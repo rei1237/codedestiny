@@ -846,6 +846,10 @@ export function drawMajorArcana(seed: string) {
   return majorArcanaCards[hashTeaHouseSeed(seed) % majorArcanaCards.length];
 }
 
+export function drawTarotCard(seed: string) {
+  return tarotDeckCards[hashTeaHouseSeed(seed) % tarotDeckCards.length];
+}
+
 export function drawTarotOrientation(seed: string): TarotOrientation {
   return hashTeaHouseSeed(`${seed}:orientation`) % 2 === 0 ? "upright" : "reversed";
 }

@@ -51,9 +51,9 @@ type ConsultationResult = {
 };
 
 const FEATURE_KEY = "life-book-ai-consultation";
-const FEATURE_COST = 500;
-const FEATURE_AMOUNT_KRW = 50000;
-const FEATURE_MEMBERSHIP_CREDIT_COST = 5000;
+const FEATURE_COST = 300;
+const FEATURE_AMOUNT_KRW = 30000;
+const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
 const FEATURE_REASON = "인생의 책 AI 상담";
 const ROUTE = "/life-book-ai";
 
@@ -478,16 +478,26 @@ export default function LifeBookAiClient() {
               </div>
             </div>
 
-            <div className="mt-8 overflow-hidden rounded-3xl border border-amber-200/20 bg-[#100a08] shadow-inner shadow-amber-200/10">
-              <img
-                src="/fuctionassets/lifebook.webp"
-                alt="황금빛 인생의 책"
-                className="aspect-[4/3] w-full object-cover opacity-95"
-                loading="eager"
-                decoding="async"
-              />
-              <div className="border-t border-amber-200/15 bg-[#1d120acc] p-4 text-sm leading-7 text-[#eadbb9]">
-                질문에 답하는 상담이 아니라, 입력한 사주 정보로 한 권의 챕터형 인생 해석서를 완성합니다.
+            <div className="mt-8 rounded-3xl border border-amber-200/20 bg-[#100a08cc] p-4 shadow-inner shadow-amber-200/10">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Ready Check</p>
+                  <h2 className="mt-1 text-xl font-black text-amber-50">책을 열기 전 확인할 결</h2>
+                </div>
+                {isReadyToGenerate && <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-200" aria-hidden="true" />}
+              </div>
+              <div className="mt-4 grid gap-2 text-sm text-[#eadbb9]">
+                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">이름: {form.name.trim() || "아직 비어 있습니다"}</span>
+                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">생년월일: {form.birthDate || "아직 비어 있습니다"}</span>
+                <span className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3">강조 영역: {FOCUS_TOPIC[form.focusArea]}</span>
+              </div>
+              <div className="mt-4 grid gap-2">
+                {PREVIEW_CHAPTERS.slice(0, 4).map((chapter, index) => (
+                  <div key={chapter} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] px-4 py-3 text-sm font-bold text-[#f5dfb7]">
+                    <span className="mr-2 text-amber-200">{String(index + 1).padStart(2, "0")}</span>
+                    {chapter}
+                  </div>
+                ))}
               </div>
             </div>
           </aside>

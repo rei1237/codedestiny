@@ -10,6 +10,18 @@ const SAJU_KEYS = Object.freeze({
   COMPAT: "saju.compatibility",
 });
 
+const SAJU_FEATURE_KEYS = Object.freeze({
+  DAEUN: "section_daewun",
+  FULL: "section_summary",
+  COMPAT: "section_compat",
+});
+
+const SAJU_FEATURE_BY_CONTENT_KEY = Object.freeze({
+  [SAJU_KEYS.DAEUN]: SAJU_FEATURE_KEYS.DAEUN,
+  [SAJU_KEYS.FULL]: SAJU_FEATURE_KEYS.FULL,
+  [SAJU_KEYS.COMPAT]: SAJU_FEATURE_KEYS.COMPAT,
+});
+
 const successStatuses = new Set(["success", "paid", "fulfilled"]);
 const blockedStatuses = new Set(["failed", "cancelled", "refunded", "pending", "expired"]);
 
@@ -196,6 +208,102 @@ function createHarness() {
   return { unlocks, setUser, hasUnlockedContent, getUnlockedContentKeys, purchase, passUnlock, accessCheck, monthlyCreditConsume, monthlyUnlock, paymentConfirm, backfill, accessApiFailureState, paymentVerificationFailure, stalePaymentRequiredDecision };
 }
 
+function createUiUnlockHoldHarness() {
+  let now = 1000;
+  const ttlMs = 15000;
+  const unlocked = Object.create(null);
+  const holds = Object.create(null);
+
+  function holdKey(featureKey, profileId) {
+    return `${featureKey}::${profileId}`;
+  }
+
+  function mapContentKey(contentKey) {
+    return SAJU_FEATURE_BY_CONTENT_KEY[contentKey] || contentKey;
+  }
+
+  function markUnlocked(featureKey) {
+    unlocked[featureKey] = true;
+  }
+
+  function beginHold(featureKey, profileId) {
+    markUnlocked(featureKey);
+    holds[holdKey(featureKey, profileId)] = { featureKey, profileId, expiresAt: now + ttlMs };
+  }
+
+  function clearHold(featureKey, profileId) {
+    delete holds[holdKey(featureKey, profileId)];
+  }
+
+  function isHeld(featureKey, profileId) {
+    const key = holdKey(featureKey, profileId);
+    const hold = holds[key];
+    if (!hold) return false;
+    if (hold.expiresAt <= now) {
+      delete holds[key];
+      return false;
+    }
+    return true;
+  }
+
+  function setState(state, rawKey, value) {
+    const key = mapContentKey(rawKey);
+    if (key) state[key] = value === true;
+  }
+
+  function collectAccessUnlocks(state, accessPayload) {
+    if (!accessPayload || typeof accessPayload !== "object") return;
+    const unlockRows = accessPayload.unlocks && typeof accessPayload.unlocks === "object" ? accessPayload.unlocks : {};
+    for (const [contentKey, row] of Object.entries(unlockRows)) {
+      if (row && typeof row === "object" && Object.prototype.hasOwnProperty.call(row, "unlocked")) setState(state, contentKey, row.unlocked === true);
+      else if (row === true || row === false) setState(state, contentKey, row === true);
+    }
+    for (const contentKey of Array.isArray(accessPayload.unlockedContentKeys) ? accessPayload.unlockedContentKeys : []) {
+      setState(state, contentKey, true);
+    }
+  }
+
+  function buildState(snapshot) {
+    const state = Object.create(null);
+    const data = snapshot?.data && typeof snapshot.data === "object" ? snapshot.data : snapshot || {};
+    for (const featureKey of Array.isArray(data.unlockedFeatures) ? data.unlockedFeatures : []) setState(state, featureKey, true);
+    if (data.unlockMap && typeof data.unlockMap === "object") {
+      for (const [featureKey, value] of Object.entries(data.unlockMap)) {
+        if (value === true || value === false) setState(state, featureKey, value === true);
+      }
+    }
+    collectAccessUnlocks(state, data);
+    collectAccessUnlocks(state, data.accessUnlocks);
+    return state;
+  }
+
+  function reconcile(snapshot, profileId) {
+    const state = buildState(snapshot);
+    for (const [featureKey, shouldUnlock] of Object.entries(state)) {
+      if (shouldUnlock) {
+        markUnlocked(featureKey);
+        clearHold(featureKey, profileId);
+      } else if (unlocked[featureKey] === true) {
+        if (isHeld(featureKey, profileId)) continue;
+        delete unlocked[featureKey];
+      }
+    }
+  }
+
+  return {
+    beginHold,
+    markUnlocked,
+    reconcile,
+    advance(ms) {
+      now += ms;
+    },
+    isUnlocked(featureKey) {
+      return unlocked[featureKey] === true;
+    },
+    isHeld,
+  };
+}
+
 const h = createHarness();
 h.setUser("u1", { points: 100, usagePass: true });
 
@@ -283,6 +391,79 @@ assert.equal(stalePaymentRequired.accessStillGranted, true, "phase10 stale payme
 assert.equal(stalePaymentRequired.shouldRemoveExistingUnlock, false, "phase10 stale payment_required does not remove unlock");
 assert.equal(stalePaymentRequired.shouldOpenPaymentSelector, false, "phase10 stale payment_required does not auto-open selector");
 
+const raceUi = createUiUnlockHoldHarness();
+raceUi.beginHold(SAJU_FEATURE_KEYS.FULL, "profile-race");
+raceUi.reconcile({
+  profileId: "profile-race",
+  unlockMap: { [SAJU_FEATURE_KEYS.FULL]: false },
+  accessUnlocks: {
+    profileId: "profile-race",
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: false } },
+  },
+}, "profile-race");
+assert.equal(raceUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), true, "verified hold keeps section_summary unlocked through a false race snapshot");
+assert.equal(raceUi.isHeld(SAJU_FEATURE_KEYS.FULL, "profile-race"), true, "verified hold remains active until server true");
+
+const contentKeyUi = createUiUnlockHoldHarness();
+contentKeyUi.reconcile({
+  profileId: "profile-content",
+  accessUnlocks: {
+    profileId: "profile-content",
+    unlockedContentKeys: [SAJU_KEYS.FULL],
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: true } },
+  },
+}, "profile-content");
+assert.equal(contentKeyUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), true, "unlockedContentKeys maps saju.fullReading to section_summary");
+
+raceUi.reconcile({
+  profileId: "profile-race",
+  unlockMap: { [SAJU_FEATURE_KEYS.FULL]: true },
+  accessUnlocks: {
+    profileId: "profile-race",
+    unlockedContentKeys: [SAJU_KEYS.FULL],
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: true } },
+  },
+}, "profile-race");
+assert.equal(raceUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), true, "server true keeps section_summary unlocked");
+assert.equal(raceUi.isHeld(SAJU_FEATURE_KEYS.FULL, "profile-race"), false, "server true clears verified hold");
+
+const staleUi = createUiUnlockHoldHarness();
+staleUi.markUnlocked(SAJU_FEATURE_KEYS.FULL);
+staleUi.reconcile({
+  profileId: "profile-stale",
+  unlockMap: { [SAJU_FEATURE_KEYS.FULL]: false },
+  accessUnlocks: {
+    profileId: "profile-stale",
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: false } },
+  },
+}, "profile-stale");
+assert.equal(staleUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), false, "authoritative false relocks stale unlock without hold");
+
+const mismatchedProfileUi = createUiUnlockHoldHarness();
+mismatchedProfileUi.beginHold(SAJU_FEATURE_KEYS.FULL, "profile-paid");
+mismatchedProfileUi.reconcile({
+  profileId: "profile-other",
+  unlockMap: { [SAJU_FEATURE_KEYS.FULL]: false },
+  accessUnlocks: {
+    profileId: "profile-other",
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: false } },
+  },
+}, "profile-other");
+assert.equal(mismatchedProfileUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), false, "verified hold only protects matching profile false snapshots");
+
+const expiredUi = createUiUnlockHoldHarness();
+expiredUi.beginHold(SAJU_FEATURE_KEYS.FULL, "profile-expired");
+expiredUi.advance(15001);
+expiredUi.reconcile({
+  profileId: "profile-expired",
+  unlockMap: { [SAJU_FEATURE_KEYS.FULL]: false },
+  accessUnlocks: {
+    profileId: "profile-expired",
+    unlocks: { [SAJU_KEYS.FULL]: { unlocked: false } },
+  },
+}, "profile-expired");
+assert.equal(expiredUi.isUnlocked(SAJU_FEATURE_KEYS.FULL), false, "expired verified hold allows authoritative relock");
+
 const failureUi = h.accessApiFailureState();
 assert.equal(failureUi.bodyVisible, false, "access API 실패 시 본문 비노출");
 assert.equal(failureUi.uiState, "error", "access API 실패 시 오류 상태 표시");
@@ -297,6 +478,13 @@ for (const marker of [
   "/api/billing/saju-analysis/entitlements?",
   "/api/access/unlocks?",
   "SAJU_UNLOCK_CONFIRM_DELAYS_MS = [500, 1500, 3000]",
+  "SAJU_VERIFIED_UNLOCK_HOLD_TTL_MS = 15000",
+  "sajuVerifiedUnlockHoldMap",
+  "_cdBeginVerifiedSajuUnlockHold",
+  "_cdIsVerifiedSajuUnlockHoldActive",
+  "if (!profileId) return merged;",
+  "verified-unlock-hold-skip-relock",
+  "saju-verified-unlock-hold-v20260630-begin",
   "결제가 확인되었습니다. 콘텐츠 잠금 해제를 반영하는 중입니다.",
   "잠금 해제가 완료되었습니다.",
   "잠금 상태 다시 확인",

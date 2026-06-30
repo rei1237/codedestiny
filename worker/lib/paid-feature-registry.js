@@ -1,4 +1,5 @@
 import { normalizePaidFeaturePricingShape } from "./billing-policy.js";
+import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
 function normalizeRegistryPricingEntry(entry = {}) {
   return Object.freeze(normalizePaidFeaturePricingShape(entry));
@@ -203,12 +204,16 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "dream-psycho-analysis": { cost: 30, amountKRW: 3000, reason: "정신분석 해몽" },
   "yoga-guru-per-use": { cost: 30, reason: "요가 구루 30분 코스" },
   "flower-studio-per-use": { cost: 50, reason: "운명의 꽃 스튜디오 1회 이용" },
+  "fortune-tea-house-tarot-consultation": { cost: 50, amountKRW: 5000, reason: "운명 찻집 타로 상담" },
+  "fortune-tea-house-saju-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 사주 상담" },
+  "fortune-tea-house-saju-compatibility-consultation": { cost: 200, amountKRW: 20000, reason: "운명 찻집 사주 궁합 상담" },
+  "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 200, amountKRW: 20000, reason: "운명 찻집 숙요점 궁합 상담" },
   "sukuyo-symbolic-comparison": { cost: 50, reason: "숙요 인연 레이더" },
   "sukuyo-extreme-t-relationship": { cost: 50, reason: "극T 관계 회로 확장" },
   "sukuyo-relationship-encyclopedia": { cost: 50, reason: "숙요 인연 도감" },
   "sukuyo-past-life-reading": { cost: 100, reason: "숙요 전생 인연 리딩" },
   "sukuyo-monthly-fortune": { cost: 30, reason: "월별 숙요 운세 확장" },
-  "sukuyo-compatibility-ai": { cost: 490, amountKRW: 49000, reason: "숙요점 궁합 AI 상담" },
+  "sukuyo-compatibility-ai": { cost: 300, amountKRW: 30000, reason: "숙요점 궁합 AI 상담" },
   "sukyo_yearly_fortune_unlock": { cost: 100, reason: "숙요점 1년운 전체 해석 잠금 해제" },
   "compat-astro-synastry": { cost: 50, reason: "점성술 셜럭 시나스트리 궁합" },
   "compat-astro-direct-synastry": { cost: 50, reason: "점성술 직접 입력 시나스트리 궁합" },
@@ -244,8 +249,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
   "palm-reading-ai-consult": { cost: 50, reason: "손금 AI 상담 생성" },
   "saju_life_book_pdf": { cost: 500, reason: "사주 인생의 책 PDF 생성" },
-  "life-book-ai-consultation": { cost: 500, amountKRW: 50000, reason: "인생의 책 AI 상담" },
-  "astrology-ai-consultation": { cost: 390, amountKRW: 39000, reason: "점성술 AI 상담" },
+  "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 AI 상담" },
+  "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 AI 상담" },
   "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 200, reason: "사주 AI 상담 결과 생성" },
   "saju_ai_prompt_generator": { cost: 200, reason: "사주 AI 상담 결과 생성" },
@@ -266,7 +271,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 연간 트랜짓 운세" },
   "premium-lifebook-report": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
   "premium_pdf_saju_life_book": { cost: 500, reason: "인생의 책 생성 (13챕터)" },
-  "new-year-ai-consultation": { cost: 300, reason: "신년운세 AI 상담" },
+  "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 AI 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 AI 상담" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 AI 상담" },
   "karma-destiny-ai-consultation": { cost: 500, amountKRW: 50000, reason: "운명의 업 AI 상담" },
@@ -402,6 +407,10 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "dream-psycho-analysis",
   "yoga-guru-per-use",
   "flower-studio-per-use",
+  "fortune-tea-house-tarot-consultation",
+  "fortune-tea-house-saju-consultation",
+  "fortune-tea-house-saju-compatibility-consultation",
+  "fortune-tea-house-sukuyo-compatibility-consultation",
   "sukuyo-symbolic-comparison",
   "sukuyo-extreme-t-relationship",
   "sukuyo-relationship-encyclopedia",
@@ -528,6 +537,7 @@ const UNLOCK_PAID_FEATURE_KEY_SET = new Set(UNLOCK_PAID_FEATURE_KEYS);
 export function getPaidFeatureBillingType(featureKey) {
   const key = normalizePaidFeatureKey(featureKey);
   if (!key) return "";
+  if (isMusicTrackFeatureKey(key)) return PAID_FEATURE_BILLING_TYPES.UNLOCK;
   if (UNLOCK_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.UNLOCK;
   if (PDF_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PDF;
   if (PER_USE_PAID_FEATURE_KEY_SET.has(key)) return PAID_FEATURE_BILLING_TYPES.PER_USE;

@@ -7,6 +7,7 @@ import {
   ContentEntitlement,
   Payment,
   PaymentFailureLog,
+  PaymentWebhookEvent,
   MonthlyCreditLedger,
   PointHistory,
   ProfileCard,
@@ -576,11 +577,38 @@ function formatPaymentResponse(payment) {
   };
 }
 
-function summarizePayload(payload) {
+const SENSITIVE_PAYLOAD_KEYS = new Set([
+  "authorization",
+  "card",
+  "card_number",
+  "cardnumber",
+  "customer_uid",
+  "customeruid",
+  "email",
+  "phone",
+  "phone_number",
+  "phonenumber",
+  "receipt",
+  "receipt_url",
+  "receipturl",
+  "refund_account",
+  "refundaccount",
+  "token",
+]);
+
+function summarizePayload(payload, depth = 0) {
   if (!payload || typeof payload !== "object") return null;
-  const clone = { ...payload };
-  if (clone.card_number) clone.card_number = "[redacted]";
-  if (clone.customer_uid) clone.customer_uid = "[redacted]";
+  if (depth > 4) return "[truncated]";
+  if (Array.isArray(payload)) return payload.slice(0, 50).map((item) => summarizePayload(item, depth + 1));
+  const clone = {};
+  for (const [key, value] of Object.entries(payload)) {
+    const normalizedKey = String(key || "").replace(/[^a-zA-Z0-9_]/g, "").toLowerCase();
+    if (SENSITIVE_PAYLOAD_KEYS.has(normalizedKey)) {
+      clone[key] = "[redacted]";
+      continue;
+    }
+    clone[key] = value && typeof value === "object" ? summarizePayload(value, depth + 1) : value;
+  }
   return clone;
 }
 
@@ -618,7 +646,98 @@ async function writeFailureLog(params = {}) {
     portOneStatus,
     requestMeta: request ? getRequestMeta(request) : undefined,
     payload: summarizePayload(payload),
-    rawPortOne,
+    rawPortOne: summarizePayload(rawPortOne),
+  }).catch(() => {});
+}
+
+function extractPortOneWebhookId(headers) {
+  return String(headers.get("webhook-id") || headers.get("x-webhook-id") || "").trim();
+}
+
+function isDuplicateKeyError(error) {
+  return Number(error?.code) === 11000;
+}
+
+async function reservePortOneWebhookEvent({ request, eventType, paymentId, body }) {
+  const eventId = extractPortOneWebhookId(request.headers);
+  if (!eventId) {
+    return { ok: false, response: json({ message: "Webhook id is required." }, { status: 400 }) };
+  }
+
+  const now = new Date();
+  const baseRecord = {
+    provider: "portone",
+    eventId,
+    eventType,
+    paymentId,
+    status: "processing",
+    receivedAt: now,
+    lastAttemptAt: now,
+    requestMeta: getRequestMeta(request),
+    payload: summarizePayload(body),
+  };
+
+  try {
+    const event = await PaymentWebhookEvent.create(baseRecord);
+    return { ok: true, event, duplicate: false };
+  } catch (error) {
+    if (!isDuplicateKeyError(error)) throw error;
+    const existing = await PaymentWebhookEvent.findOne({ provider: "portone", eventId }).lean();
+    if (existing?.status === "failed") {
+      const event = await PaymentWebhookEvent.findOneAndUpdate(
+        { provider: "portone", eventId, status: "failed" },
+        {
+          $set: {
+            eventType,
+            paymentId,
+            status: "processing",
+            lastAttemptAt: now,
+            lastError: "",
+            requestMeta: getRequestMeta(request),
+            payload: summarizePayload(body),
+          },
+          $inc: { attempts: 1 },
+        },
+        { returnDocument: "after" },
+      ).lean();
+      if (event) return { ok: true, event, duplicate: false, retry: true };
+    }
+    return {
+      ok: false,
+      duplicate: true,
+      response: json({
+        ok: true,
+        duplicate: true,
+        ignored: true,
+        type: eventType,
+        paymentId,
+        webhookStatus: existing?.status || "unknown",
+      }),
+    };
+  }
+}
+
+async function markPortOneWebhookEventProcessed(event, response) {
+  if (!event?._id) return;
+  await PaymentWebhookEvent.findByIdAndUpdate(event._id, {
+    $set: {
+      status: "processed",
+      processedAt: new Date(),
+      lastError: "",
+      "payload.resultStatus": Number(response?.status || 200),
+    },
+  }).catch(() => {});
+}
+
+async function markPortOneWebhookEventFailed(event, error) {
+  if (!event?._id) return;
+  await PaymentWebhookEvent.findByIdAndUpdate(event._id, {
+    $set: {
+      status: "failed",
+      processedAt: null,
+      lastAttemptAt: new Date(),
+      lastError: String(error?.message || error || "Webhook processing failed.").slice(0, 500),
+    },
   }).catch(() => {});
 }
 
@@ -1464,7 +1583,7 @@ async function handleSinglePaymentComplete(request, env, auth) {
         coinPrice: Number(order.coinPrice || order.expectedChargedPoints || 0),
         membershipCreditCost: calculateMembershipCreditCost(Number(order.coinPrice || order.expectedChargedPoints || 0)),
         accessType: "single_purchase",
-        status: "success",
+        status: "processing",
         orderState: SINGLE_PAYMENT_ORDER_STATES.PAID_VERIFIED,
         paidAt,
         source: "confirm",
@@ -1501,9 +1620,16 @@ async function handleSinglePaymentComplete(request, env, auth) {
     await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
   }
   const unlockedPayment = await Payment.findByIdAndUpdate(finalPayment._id, {
-    $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
+    $set: {
+      status: "fulfilled",
+      orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED,
+      failureCode: null,
+      failureMessage: null,
+      failureStage: null,
+      lastErrorAt: null,
+    },
   }, { returnDocument: "after" }).lean();
-  const responsePayment = unlockedPayment || { ...finalPayment, orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED };
+  const responsePayment = unlockedPayment || { ...finalPayment, status: "fulfilled", orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED };
 
   return json({
     ok: true,
@@ -1585,6 +1711,7 @@ async function markVirtualAccountIssuedFromWebhook({ request, paymentId, body })
       paymentType: "digital_content",
       accessType: "single_purchase",
       status: { $nin: ["success", "fulfilled"] },
+      orderState: { $nin: [SINGLE_PAYMENT_ORDER_STATES.PAID_VERIFIED, SINGLE_PAYMENT_ORDER_STATES.UNLOCKED] },
     },
     {
       $set: {
@@ -1619,6 +1746,7 @@ async function markPaymentFailedFromWebhook({ request, paymentId, body }) {
       paymentType: "digital_content",
       accessType: "single_purchase",
       status: { $nin: ["success", "fulfilled"] },
+      orderState: { $nin: [SINGLE_PAYMENT_ORDER_STATES.PAID_VERIFIED, SINGLE_PAYMENT_ORDER_STATES.UNLOCKED] },
     },
     {
       $set: {
@@ -3007,28 +3135,33 @@ async function handleWebhook(request, env) {
     return json({ message: "Webhook body must include paymentId." }, { status: 400 });
   }
 
-  if (eventType === PORTONE_WEBHOOK_EVENTS.PAID) {
-    return runSinglePaymentCompleteFromWebhook(request, env, paymentId, body);
-  }
+  const reservation = await reservePortOneWebhookEvent({ request, eventType, paymentId, body });
+  if (!reservation.ok) return reservation.response;
 
-  if (eventType === PORTONE_WEBHOOK_EVENTS.VIRTUAL_ACCOUNT_ISSUED) {
-    return markVirtualAccountIssuedFromWebhook({ request, paymentId, body });
+  try {
+    let response;
+    if (eventType === PORTONE_WEBHOOK_EVENTS.PAID) {
+      response = await runSinglePaymentCompleteFromWebhook(request, env, paymentId, body);
+    } else if (eventType === PORTONE_WEBHOOK_EVENTS.VIRTUAL_ACCOUNT_ISSUED) {
+      response = await markVirtualAccountIssuedFromWebhook({ request, paymentId, body });
+    } else if (eventType === PORTONE_WEBHOOK_EVENTS.FAILED) {
+      response = await markPaymentFailedFromWebhook({ request, paymentId, body });
+    } else if (eventType === PORTONE_WEBHOOK_EVENTS.CANCELLED || eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED) {
+      response = await markPaymentCancellationForAdminReview({
+        request,
+        paymentId,
+        body,
+        partial: eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED,
+      });
+    } else {
+      response = json({ ok: true, ignored: true, type: eventType });
+    }
+    await markPortOneWebhookEventProcessed(reservation.event, response);
+    return response;
+  } catch (error) {
+    await markPortOneWebhookEventFailed(reservation.event, error);
+    throw error;
   }
-
-  if (eventType === PORTONE_WEBHOOK_EVENTS.FAILED) {
-    return markPaymentFailedFromWebhook({ request, paymentId, body });
-  }
-
-  if (eventType === PORTONE_WEBHOOK_EVENTS.CANCELLED || eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED) {
-    return markPaymentCancellationForAdminReview({
-      request,
-      paymentId,
-      body,
-      partial: eventType === PORTONE_WEBHOOK_EVENTS.PARTIAL_CANCELLED,
-    });
-  }
-
-  return json({ ok: true, ignored: true, type: eventType });
 }
 
 async function handleDigitalContentPrepare(request, auth, body) {
@@ -4033,71 +4166,175 @@ async function handleSubscriptionConfirm(request, env, auth) {
     : Math.max(now.getTime(), paidAt.getTime());
   const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
 
-  await Payment.findByIdAndUpdate(paymentRecord._id, {
+  const paymentActivationFields = {
+    impUid,
+    merchantUid,
+    paymentAmount: plan.wonPrice,
+    expectedChargedPoints: 0,
+    chargedPoints: 0,
+    paymentMethod: resolvedPaymentMethod,
+    paidAt,
+    source: "confirm",
+    paymentType: "membership_pass",
+    subscriptionTier: tier,
+    productId: plan.planId,
+    metadata: {
+      ...(paymentRecord.metadata || {}),
+      planId: plan.planId,
+      durationMonths: plan.durationMonths,
+      durationDays: plan.durationDays,
+      productType: plan.productType,
+      currency: "KRW",
+      verifiedAmount: plan.wonPrice,
+    },
+    rawPortOne: portOnePayment,
+  };
+  const subscriptionActivationUpdate = {
     $set: {
+      "profileSubscription.tier": tier,
+      "profileSubscription.passTier": tier,
+      "profileSubscription.planId": plan.planId,
+      "profileSubscription.durationMonths": plan.durationMonths,
+      "profileSubscription.productType": plan.productType,
+      "profileSubscription.profileLimit": plan.profileLimit,
+      "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
+      "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
+      "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
+      "profileSubscription.source": "pass",
+      "profileSubscription.startedAt": paidAt,
+      "profileSubscription.expiresAt": expiresAt,
+      "profileSubscription.cancelAtPeriodEnd": false,
+      "profileSubscription.cancelRequestedAt": null,
+      "profileSubscription.customerUid": customerUid,
+      "profileSubscription.paymentMethod": resolvedPaymentMethod,
+      "profileSubscription.nextBillingAt": null,
+      "profileSubscription.lastBillingAt": paidAt,
+      "profileSubscription.lastBillingStatus": "success",
+      "profileSubscription.lastBillingError": "",
+      "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
+    },
+  };
+
+  const activateSubscriptionWithoutTransaction = async () => {
+    await Payment.findByIdAndUpdate(paymentRecord._id, {
+      $set: {
+        ...paymentActivationFields,
+        status: "processing",
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
+        lastErrorAt: null,
+      },
+    });
+    const updatedUser = await User.findByIdAndUpdate(
+      auth.userId,
+      subscriptionActivationUpdate,
+      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+    if (!updatedUser) {
+      await Payment.findByIdAndUpdate(paymentRecord._id, {
+        $set: {
+          status: "retryable",
+          failureCode: "subscription_user_update_failed",
+          failureMessage: "Membership pass could not be activated after payment verification.",
+          failureStage: "subscription_user_update",
+          lastErrorAt: new Date(),
+        },
+      }).catch(() => {});
+      return { ok: false, updatedUser: null, payment: await Payment.findById(paymentRecord._id).lean() };
+    }
+    const payment = await Payment.findByIdAndUpdate(paymentRecord._id, {
+      $set: {
+        status: "success",
+        failureCode: null,
+        failureMessage: null,
+        failureStage: null,
+        lastErrorAt: null,
+      },
+    }, { returnDocument: "after" }).lean();
+    return { ok: true, updatedUser, payment };
+  };
+
+  const activateSubscriptionWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let activation = null;
+    try {
+      await session.withTransaction(async () => {
+        const payment = await Payment.findByIdAndUpdate(paymentRecord._id, {
+          $set: {
+            ...paymentActivationFields,
+            status: "success",
+            failureCode: null,
+            failureMessage: null,
+            failureStage: null,
+            lastErrorAt: null,
+          },
+        }, { returnDocument: "after", session }).lean();
+        const updatedUser = await User.findByIdAndUpdate(
+          auth.userId,
+          subscriptionActivationUpdate,
+          { returnDocument: "after", projection: { points: 1, profileSubscription: 1 }, session },
+        ).lean();
+        if (!payment || !updatedUser) throw new Error("subscription_activation_failed");
+        activation = { ok: true, payment, updatedUser };
+      });
+      return activation;
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  let activation;
+  try {
+    activation = await activateSubscriptionWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) {
+      await writeFailureLog({
+        request,
+        userId: auth.userId,
+        impUid,
+        merchantUid,
+        source: "confirm",
+        stage: "subscription_activation",
+        code: "subscription_activation_failed",
+        message: error?.message || "Membership pass activation failed.",
+        status: 500,
+        payload: body,
+        rawPortOne: portOnePayment,
+      });
+      return json({ message: "Membership pass activation failed.", code: "SUBSCRIPTION_ACTIVATION_FAILED" }, { status: 500 });
+    }
+    activation = await activateSubscriptionWithoutTransaction();
+  }
+
+  if (!activation?.ok || !activation.updatedUser) {
+    await writeFailureLog({
+      request,
+      userId: auth.userId,
       impUid,
       merchantUid,
-      paymentAmount: plan.wonPrice,
-      expectedChargedPoints: 0,
-      chargedPoints: 0,
-      paymentMethod: resolvedPaymentMethod,
-      status: "success",
-      paidAt,
       source: "confirm",
-      paymentType: "membership_pass",
-      subscriptionTier: tier,
-      productId: plan.planId,
-      metadata: {
-        ...(paymentRecord.metadata || {}),
-        planId: plan.planId,
-        durationMonths: plan.durationMonths,
-        durationDays: plan.durationDays,
-        productType: plan.productType,
-        currency: "KRW",
-        verifiedAmount: plan.wonPrice,
-      },
+      stage: "subscription_user_update",
+      code: "subscription_user_update_failed",
+      message: "Membership pass could not be activated after payment verification.",
+      status: 500,
+      payload: body,
       rawPortOne: portOnePayment,
-      failureCode: null,
-      failureMessage: null,
-      failureStage: null,
-      lastErrorAt: null,
-    },
-  });
+    });
+    return json({
+      message: "Payment was verified, but membership pass activation is pending recovery.",
+      code: "SUBSCRIPTION_ACTIVATION_PENDING",
+      pendingRecovery: true,
+      payment: formatPaymentResponse(activation?.payment || await Payment.findById(paymentRecord._id).lean()),
+    }, { status: 202 });
+  }
 
-  const updatedUser = await User.findByIdAndUpdate(
-    auth.userId,
-    {
-      $set: {
-        "profileSubscription.tier": tier,
-        "profileSubscription.passTier": tier,
-        "profileSubscription.planId": plan.planId,
-        "profileSubscription.durationMonths": plan.durationMonths,
-        "profileSubscription.productType": plan.productType,
-        "profileSubscription.profileLimit": plan.profileLimit,
-        "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.source": "pass",
-        "profileSubscription.startedAt": paidAt,
-        "profileSubscription.expiresAt": expiresAt,
-        "profileSubscription.cancelAtPeriodEnd": false,
-        "profileSubscription.cancelRequestedAt": null,
-        "profileSubscription.customerUid": customerUid,
-        "profileSubscription.paymentMethod": resolvedPaymentMethod,
-        "profileSubscription.nextBillingAt": null,
-        "profileSubscription.lastBillingAt": paidAt,
-        "profileSubscription.lastBillingStatus": "success",
-        "profileSubscription.lastBillingError": "",
-        "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || paidAt,
-      },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
+  const updatedUser = activation.updatedUser;
 
   return json({
     message: "30-day membership pass has been activated.",
     idempotent: false,
-    payment: formatPaymentResponse(await Payment.findById(paymentRecord._id).lean()),
+    payment: formatPaymentResponse(activation.payment || await Payment.findById(paymentRecord._id).lean()),
     subscription: {
       tier,
       source: "pass",

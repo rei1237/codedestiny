@@ -2831,22 +2831,37 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       shouldShowPayment: Boolean(!passFirstEligible && knownCoinCost > 0 && input.forceDeduct !== false),
     });
     if (eligibility) {
+      const eligibilityPassReady = accessAlreadyGranted || eligibility.pass.canUse === true;
+      const eligibilityStatus: PaidFeatureGateRuntimeStatus = eligibilityPassReady
+        ? "hasEntitlement"
+        : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts");
+      const eligibilityPaymentMode = eligibility.pass.canUse === true ? "MEMBERSHIP_PASS" : (requestedMode || (accessAlreadyGranted ? "DIRECT_KRW" : ""));
       const eligibilityOverlay = resolvePaymentWaitOverlay(
-        accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts"),
+        eligibilityStatus,
         undefined,
-        { paymentMode: requestedMode, featureKey: featureId, reason: input.reason },
+        {
+          paymentMode: eligibilityPaymentMode,
+          featureKey: featureId,
+          reason: input.reason,
+          accessType: eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
+          passTier: eligibility.pass.tier || "",
+          subscriptionTier: eligibility.pass.tier || "",
+        },
       );
       emitPaidFeatureGate("update", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: accessAlreadyGranted || eligibility.pass.canUse ? "checkingEntitlement" : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts"),
-        message: accessAlreadyGranted
-          ? (eligibility.access.alreadyUnlocked ? "이미 저장된 이용 권한을 확인하고 있습니다." : "서버에 저장된 이용 권한을 확인하고 있습니다.")
+        status: eligibilityStatus,
+        message: eligibilityPassReady
+          ? eligibilityOverlay.message
           : (snapshotSaysNoPass ? "결제 가능한 상품을 준비하고 있습니다." : eligibilityOverlay.message),
         cost: eligibility.coinCost,
-        paymentMode: requestedMode,
+        paymentMode: eligibilityPaymentMode,
         reason: input.reason,
+        accessType: eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
+        passTier: eligibility.pass.tier || "",
+        subscriptionTier: eligibility.pass.tier || "",
       });
     }
 
@@ -2984,19 +2999,28 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     }
 
     markPaymentRequestedOnce();
-    const processingOverlay = resolvePaymentWaitOverlay("paymentProcessing", undefined, {
-      paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode,
+    const processingStatus: PaidFeatureGateRuntimeStatus = passFirstEligible ? "hasEntitlement" : "paymentProcessing";
+    const processingPaymentMode = passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode;
+    const processingPassTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
+    const processingOverlay = resolvePaymentWaitOverlay(processingStatus, undefined, {
+      paymentMode: processingPaymentMode,
       featureKey: featureId,
       reason: input.reason,
+      accessType: passFirstEligible ? "membership_pass" : "",
+      passTier: processingPassTier,
+      subscriptionTier: processingPassTier,
     });
     emitPaidFeatureGate("update", {
       featureId,
       featureKey: featureId,
       requestId: gateRequestId,
-      status: "paymentProcessing",
+      status: processingStatus,
       message: processingOverlay.message,
-      paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode,
+      paymentMode: processingPaymentMode,
       reason: input.reason,
+      accessType: passFirstEligible ? "membership_pass" : "",
+      passTier: processingPassTier,
+      subscriptionTier: processingPassTier,
     });
 
     const response = await authFetchBilling("/api/billing/coin-gate", {

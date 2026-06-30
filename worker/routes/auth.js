@@ -47,10 +47,15 @@ const EXTRA_AUTH_CLEAR_COOKIE_NAMES = [
 const CSRF_TOKEN_TTL_MS = 2 * 60 * 60 * 1000;
 const WITHDRAW_RATE_LIMIT_MAX = 3;
 const WITHDRAW_RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const LOGIN_RATE_LIMIT_DEFAULT_MAX = 8;
+const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 15 * 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
+const loginRateLimitMap = new Map();
+const OAUTH_CODE_GUARD_TTL_MS = 10 * 60 * 1000;
+const OAUTH_CODE_EXCHANGE_GUARDS = new Map();
 
 function buildSignupProfileSubscription(now = new Date()) {
   return {
@@ -653,6 +658,17 @@ function appendAuthCookies(response, request, env, accessToken, refreshToken) {
   }));
 }
 
+function appendAuthRoleCookie(response, request, env, user) {
+  const cookieOptions = buildAuthCookieOptions(request, env);
+  const role = String(user?.role || "user").trim() || "user";
+  response.headers.append("Set-Cookie", buildCookieValue("fortune_auth_role", role, {
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+    secure: cookieOptions.secure,
+    sameSite: cookieOptions.sameSite,
+  }));
+}
+
 function appendClearAuthCookies(response, request, env) {
   const cookieOptions = buildAuthCookieOptions(request, env);
   const clearDomains = resolveCookieClearDomains(request, env);
@@ -1033,6 +1049,97 @@ function sanitizeNextPath(rawNext) {
   return rawNext;
 }
 
+function isUnsafeOAuthRedirectPath(pathname) {
+  const path = String(pathname || "").split(/[?#]/)[0].replace(/\/+$/, "") || "/";
+  return (
+    path === "/login"
+    || path.startsWith("/login/")
+    || path === "/signup"
+    || path.startsWith("/signup/")
+    || path === "/auth"
+    || path.startsWith("/auth/")
+    || path === "/api/auth"
+    || path.startsWith("/api/auth/")
+  );
+}
+
+function sanitizeOAuthNextPath(rawNext) {
+  const nextPath = sanitizeNextPath(rawNext);
+  if (!nextPath || isUnsafeOAuthRedirectPath(nextPath)) return "/";
+  return nextPath;
+}
+
+function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
+  const base = String(frontendBase || "http://localhost:3000").replace(/\/+$/, "") || "http://localhost:3000";
+  const safeNextPath = sanitizeOAuthNextPath(nextPath);
+  try {
+    return new URL(safeNextPath, `${base}/`).toString();
+  } catch (e) {
+    return `${base}/`;
+  }
+}
+
+function buildOAuthFailureRedirect(frontendBase, provider, reason) {
+  const loginUrl = new URL("/login", buildOAuthFrontendUrl(frontendBase, "/"));
+  loginUrl.searchParams.set("authError", provider || "oauth");
+  loginUrl.searchParams.set("social_error", String(reason || "oauth_failed").slice(0, 120));
+  return redirect(loginUrl.toString());
+}
+
+function logKakaoCallbackMarker(request, provider, marker, extra = {}) {
+  if (provider !== "kakao") return;
+  const payload = {
+    routePath: new URL(request.url).pathname,
+    requestHost: getRequestHost(request),
+    ...extra,
+  };
+  try {
+    console.info(`[Kakao Callback] ${marker}`, JSON.stringify(payload));
+  } catch (e) {
+    console.info(`[Kakao Callback] ${marker}`);
+  }
+}
+
+function cleanupOAuthCodeExchangeGuards(now = Date.now()) {
+  for (const [key, entry] of OAUTH_CODE_EXCHANGE_GUARDS) {
+    if (!entry || Number(entry.expiresAt || 0) <= now) OAUTH_CODE_EXCHANGE_GUARDS.delete(key);
+  }
+  if (OAUTH_CODE_EXCHANGE_GUARDS.size <= 500) return;
+  let removed = 0;
+  for (const key of OAUTH_CODE_EXCHANGE_GUARDS.keys()) {
+    OAUTH_CODE_EXCHANGE_GUARDS.delete(key);
+    removed += 1;
+    if (removed >= 100 || OAUTH_CODE_EXCHANGE_GUARDS.size <= 500) break;
+  }
+}
+
+function buildOAuthCodeGuardKey(provider, code, stateRaw, env) {
+  const secret = getAccessTokenSecret(env);
+  return `${provider}:${createHash("sha256")
+    .update(`${provider}|${String(code || "")}|${String(stateRaw || "")}|${secret}`)
+    .digest("hex")}`;
+}
+
+function beginOAuthCodeExchange(provider, code, stateRaw, env) {
+  const now = Date.now();
+  cleanupOAuthCodeExchangeGuards(now);
+  const key = buildOAuthCodeGuardKey(provider, code, stateRaw, env);
+  if (OAUTH_CODE_EXCHANGE_GUARDS.has(key)) return { key, blocked: true };
+  OAUTH_CODE_EXCHANGE_GUARDS.set(key, {
+    status: "processing",
+    expiresAt: now + OAUTH_CODE_GUARD_TTL_MS,
+  });
+  return { key, blocked: false };
+}
+
+function markOAuthCodeExchangeComplete(key) {
+  if (!key) return;
+  OAUTH_CODE_EXCHANGE_GUARDS.set(key, {
+    status: "complete",
+    expiresAt: Date.now() + OAUTH_CODE_GUARD_TTL_MS,
+  });
+}
+
 function sanitizeAuthFlow(rawFlow) {
   return String(rawFlow || "").trim().toLowerCase() === "signup" ? "signup" : "login";
 }
@@ -1404,6 +1511,77 @@ function isWithdrawRateLimited(request) {
   state.count += 1;
   withdrawRateLimitMap.set(key, state);
   return state.count > WITHDRAW_RATE_LIMIT_MAX;
+}
+
+function getLoginRateLimitMax(env) {
+  const value = Number(getEnv(env, "AUTH_LOGIN_RATE_LIMIT_MAX", String(LOGIN_RATE_LIMIT_DEFAULT_MAX)));
+  if (!Number.isFinite(value) || value <= 0) return LOGIN_RATE_LIMIT_DEFAULT_MAX;
+  return Math.min(Math.floor(value), 100);
+}
+
+function getLoginRateLimitWindowMs(env) {
+  const value = Number(getEnv(env, "AUTH_LOGIN_RATE_LIMIT_WINDOW_MS", String(LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS)));
+  if (!Number.isFinite(value) || value <= 0) return LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS;
+  return Math.min(Math.max(Math.floor(value), 60 * 1000), 60 * 60 * 1000);
+}
+
+function buildLoginRateLimitKey(request, email, env) {
+  const meta = getRequestMeta(request);
+  const ip = String(meta.ip || "unknown").trim() || "unknown";
+  const emailHash = hashEmailForAudit(email, env).slice(0, 32);
+  return `${ip}:${emailHash}`;
+}
+
+function getLoginRateLimitState(request, email, env) {
+  const key = buildLoginRateLimitKey(request, email, env);
+  const now = Date.now();
+  const max = getLoginRateLimitMax(env);
+  const windowMs = getLoginRateLimitWindowMs(env);
+  const state = loginRateLimitMap.get(key);
+  if (!state || now > state.resetAt) {
+    return { key, limited: false, count: 0, max, resetAt: now + windowMs, retryAfterSeconds: 0 };
+  }
+  const retryAfterSeconds = Math.max(1, Math.ceil((state.resetAt - now) / 1000));
+  return {
+    key,
+    limited: Number(state.count || 0) >= max,
+    count: Number(state.count || 0),
+    max,
+    resetAt: state.resetAt,
+    retryAfterSeconds,
+  };
+}
+
+function recordFailedLoginAttempt(rateLimitState) {
+  if (!rateLimitState?.key) return;
+  loginRateLimitMap.set(rateLimitState.key, {
+    count: Number(rateLimitState.count || 0) + 1,
+    resetAt: rateLimitState.resetAt,
+  });
+}
+
+function clearLoginRateLimit(rateLimitState) {
+  if (rateLimitState?.key) loginRateLimitMap.delete(rateLimitState.key);
+}
+
+function buildInvalidLoginResponse() {
+  return json({
+    ok: false,
+    code: "invalid_credentials",
+    message: "Email or password is incorrect.",
+  }, { status: 401 });
+}
+
+function buildLoginRateLimitedResponse(rateLimitState) {
+  return json({
+    ok: false,
+    code: "rate_limited",
+    message: "Too many login attempts. Please try again later.",
+    retryAfterSeconds: rateLimitState.retryAfterSeconds,
+  }, {
+    status: 429,
+    headers: { "Retry-After": String(rateLimitState.retryAfterSeconds) },
+  });
 }
 
 function hashEmailForAudit(email, env) {
@@ -1919,6 +2097,15 @@ async function handleLogin(request, env) {
     return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
   }
 
+  const loginRateLimitState = getLoginRateLimitState(request, email, env);
+  if (loginRateLimitState.limited) {
+    console.warn("[auth/login] rate limited:", {
+      emailHash: hashEmailForAudit(email, env).slice(0, 12),
+      retryAfterSeconds: loginRateLimitState.retryAfterSeconds,
+    });
+    return buildLoginRateLimitedResponse(loginRateLimitState);
+  }
+
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_login_connect_db");
@@ -1942,6 +2129,26 @@ async function handleLogin(request, env) {
               joinedAt: 1,
               passwordHash: 1,
               localAuth: 1,
+              profileSubscription: 1,
+              subscription: 1,
+              membership: 1,
+              membershipPass: 1,
+              pass: 1,
+              entitlement: 1,
+              licensePass: 1,
+              accessGateResult: 1,
+              plan: 1,
+              planId: 1,
+              productId: 1,
+              subscriptionTier: 1,
+              membershipTier: 1,
+              passTier: 1,
+              status: 1,
+              subscriptionStatus: 1,
+              membershipStatus: 1,
+              isActive: 1,
+              isSubscribed: 1,
+              expiresAt: 1,
               socialAccounts: 1,
             },
             maxTimeMS: dbMaxTimeMs,
@@ -1951,19 +2158,13 @@ async function handleLogin(request, env) {
         "auth_login_find_user",
       );
       if (!user) {
-        return json({
-          ok: false,
-          code: "email_not_found",
-          message: "가입되지 않은 이메일이에요.",
-        }, { status: 404 });
+        recordFailedLoginAttempt(loginRateLimitState);
+        return buildInvalidLoginResponse();
       }
 
       if (!isLocalAuthEnabled(user) || !user.passwordHash) {
-        return json({
-          ok: false,
-          code: "social_account",
-          message: "소셜 로그인으로 가입된 계정이에요. 구글/카카오/네이버로 로그인해 주세요.",
-        }, { status: 401 });
+        recordFailedLoginAttempt(loginRateLimitState);
+        return buildInvalidLoginResponse();
       }
 
       const passwordOk = await withAuthOpTimeout(
@@ -1972,13 +2173,11 @@ async function handleLogin(request, env) {
         "auth_login_verify_password",
       );
       if (!passwordOk) {
-        return json({
-          ok: false,
-          code: "password_mismatch",
-          message: "비밀번호가 올바르지 않아요.",
-        }, { status: 401 });
+        recordFailedLoginAttempt(loginRateLimitState);
+        return buildInvalidLoginResponse();
       }
 
+      clearLoginRateLimit(loginRateLimitState);
       return await withAuthOpTimeout(
         createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
         timeoutMs,
@@ -2008,11 +2207,8 @@ async function handleLogin(request, env) {
       }
 
       console.error("[auth/login] normalized auth failure:", error);
-      return json({
-        ok: false,
-        code: "password_mismatch",
-        message: "비밀번호가 올바르지 않아요.",
-      }, { status: 401 });
+      recordFailedLoginAttempt(loginRateLimitState);
+      return buildInvalidLoginResponse();
     }
   }
 
@@ -2702,7 +2898,7 @@ async function handleOAuthStart(request, env, provider) {
     }
 
     const url = new URL(request.url);
-    const nextPath = sanitizeNextPath(url.searchParams.get("next") || "") || "/";
+    const nextPath = sanitizeOAuthNextPath(url.searchParams.get("next") || "");
     const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
     const referralCapture = extractReferralCapture({
       referralCode: url.searchParams.get("referralCode") || url.searchParams.get("ref"),
@@ -2742,62 +2938,169 @@ async function handleOAuthStart(request, env, provider) {
   }
 }
 
+async function applySocialOAuthReferralReward(request, env, user, payload, fallbackCapture, timeoutMs) {
+  const referralCapture = {
+    referralCode: payload.referralCode || fallbackCapture?.referralCode,
+    referralShareToken: payload.referralShareToken || fallbackCapture?.referralShareToken,
+    referralSource: payload.referralSource || fallbackCapture?.referralSource,
+  };
+  if (
+    !payload.isNewUser
+    || sanitizeAuthFlow(payload.flow) !== "signup"
+    || !normalizeReferralCode(referralCapture.referralCode)
+    || !normalizeReferralShareToken(referralCapture.referralShareToken)
+  ) {
+    return null;
+  }
+  return await withOptionalAuthSideEffect(
+    applyKakaoReferralReward(request, env, user, referralCapture),
+    Math.min(timeoutMs, 4000),
+    "auth_oauth_referral_reward",
+    null,
+  );
+}
+
 async function handleOAuthCallback(request, env, provider) {
   const frontendBase = getFrontendBaseUrl(env);
 
   if (!OAUTH_PROVIDERS.includes(provider)) {
-    return redirect(`${frontendBase}/login?social_error=unsupported_provider`);
+    return buildOAuthFailureRedirect(frontendBase, provider, "unsupported_provider");
   }
 
+  let exchangeFailureLogged = false;
+  const logExchangeFailed = (reason) => {
+    if (exchangeFailureLogged) return;
+    exchangeFailureLogged = true;
+    logKakaoCallbackMarker(request, provider, "exchangeFailed", {
+      reason: String(reason || "oauth_callback_failed").slice(0, 120),
+    });
+  };
+
   try {
+    logKakaoCallbackMarker(request, provider, "entry");
     const url = new URL(request.url);
     const stateRaw = String(url.searchParams.get("state") || "");
     const code = String(url.searchParams.get("code") || "");
     const oauthError = String(url.searchParams.get("error") || "");
+    logKakaoCallbackMarker(request, provider, "hasCode", { hasCode: Boolean(code) });
+    logKakaoCallbackMarker(request, provider, "hasState", { hasState: Boolean(stateRaw) });
 
-    if (oauthError) return redirect(`${frontendBase}/login?social_error=${encodeURIComponent(oauthError)}`);
-    if (!stateRaw || !code) return redirect(`${frontendBase}/login?social_error=invalid_callback`);
-
-    const statePayload = await verifySocialState(stateRaw, env);
-    if (statePayload.provider !== provider) {
-      return redirect(`${frontendBase}/login?social_error=provider_mismatch`);
+    if (oauthError) {
+      logExchangeFailed("provider_error");
+      return buildOAuthFailureRedirect(frontendBase, provider, oauthError);
     }
+    if (!stateRaw || !code) {
+      logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: false });
+      logExchangeFailed("missing_oauth_params");
+      return buildOAuthFailureRedirect(frontendBase, provider, "missing_oauth_params");
+    }
+
+    let statePayload = null;
+    try {
+      statePayload = await verifySocialState(stateRaw, env);
+    } catch (error) {
+      logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: false });
+      logExchangeFailed("invalid_oauth_state");
+      throw new Error("invalid_oauth_state");
+    }
+    if (statePayload.provider !== provider) {
+      logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: false });
+      logExchangeFailed("provider_mismatch");
+      return buildOAuthFailureRedirect(frontendBase, provider, "provider_mismatch");
+    }
+    logKakaoCallbackMarker(request, provider, "stateValid", { stateValid: true });
 
     await connectDb(env);
 
     const flow = sanitizeAuthFlow(statePayload.flow);
-    const redirectPath = `/auth/${provider}/callback`;
-    const accessToken = await exchangeCodeForAccessToken(
-      provider,
-      code,
-      request,
-      env,
-      stateRaw,
-      String(statePayload.redirectUri || ""),
-    );
-    const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-    const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
-    const user = socialUser.user;
-    const grant = await signSocialGrant({
-      userId: String(user._id),
-      provider,
-      nextPath: sanitizeNextPath(statePayload.nextPath) || "/",
-      flow,
-      isNewUser: !!socialUser.created,
-      referralCode: normalizeReferralCode(statePayload.referralCode),
-      referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
-      referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
-    }, env);
-
-    const redirectParams = new URLSearchParams({ social_grant: grant, flow });
-    if (statePayload.nextPath) redirectParams.set("next", statePayload.nextPath);
-
+    const nextPath = sanitizeOAuthNextPath(statePayload.nextPath);
     const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");
-    return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
+
+    if (provider !== "kakao") {
+      const redirectPath = `/auth/${provider}/callback`;
+      const accessToken = await exchangeCodeForAccessToken(
+        provider,
+        code,
+        request,
+        env,
+        stateRaw,
+        String(statePayload.redirectUri || ""),
+      );
+      const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
+      const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
+      const user = socialUser.user;
+      const grant = await signSocialGrant({
+        userId: String(user._id),
+        provider,
+        nextPath,
+        flow,
+        isNewUser: !!socialUser.created,
+        referralCode: normalizeReferralCode(statePayload.referralCode),
+        referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
+        referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
+      }, env);
+
+      const redirectParams = new URLSearchParams({ social_grant: grant, flow });
+      if (nextPath !== "/") redirectParams.set("next", nextPath);
+      return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
+    }
+
+    const redirectTarget = buildOAuthFrontendUrl(safeFrontendBase, nextPath);
+    const exchangeGuard = beginOAuthCodeExchange(provider, code, stateRaw, env);
+    if (exchangeGuard.blocked) {
+      logKakaoCallbackMarker(request, provider, "loopGuardTriggered", { redirectTarget: nextPath });
+      return redirect(redirectTarget);
+    }
+
+    let exchangeStarted = false;
+    try {
+      logKakaoCallbackMarker(request, provider, "exchangeStart");
+      exchangeStarted = true;
+      const accessToken = await exchangeCodeForAccessToken(
+        provider,
+        code,
+        request,
+        env,
+        stateRaw,
+        String(statePayload.redirectUri || ""),
+      );
+      logKakaoCallbackMarker(request, provider, "exchangeSuccess");
+      const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
+      const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
+      const user = socialUser.user;
+      logKakaoCallbackMarker(request, provider, "userResolved");
+
+      const referralReward = await applySocialOAuthReferralReward(request, env, user, {
+        isNewUser: !!socialUser.created,
+        flow,
+        referralCode: normalizeReferralCode(statePayload.referralCode),
+        referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
+        referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
+      }, null, getAuthOpTimeoutMs(env));
+
+      const appAccessToken = await signAuthToken(user, env);
+      const nextRefresh = await issueRefreshTokenForUser(user._id, env);
+      await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
+      const response = redirect(redirectTarget);
+      appendAuthCookies(response, request, env, appAccessToken, nextRefresh.refreshToken);
+      appendAuthRoleCookie(response, request, env, user);
+      if (referralReward) response.headers.set("X-Code-Destiny-Referral-Reward", "applied");
+      logKakaoCallbackMarker(request, provider, "sessionCreated");
+      logKakaoCallbackMarker(request, provider, "redirectTarget", { redirectTarget: nextPath });
+      return response;
+    } catch (error) {
+      if (exchangeStarted) {
+        logExchangeFailed(error?.message || "oauth_callback_failed");
+      }
+      throw error;
+    } finally {
+      markOAuthCodeExchangeComplete(exchangeGuard.key);
+    }
   } catch (error) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/callback", provider, "oauth_callback_failed", error);
     const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
-    return redirect(`${frontendBase}/login?social_error=${encodeURIComponent(reason)}`);
+    logExchangeFailed(reason);
+    return buildOAuthFailureRedirect(frontendBase, provider, reason);
   }
 }
 
@@ -2849,22 +3152,11 @@ async function handleOAuthComplete(request, env) {
 
         if (!user) return json({ message: "User not found." }, { status: 404 });
 
-        const referralCapture = {
-          referralCode: payload.referralCode || body?.referralCode,
-          referralShareToken: payload.referralShareToken || body?.referralShareToken,
-          referralSource: payload.referralSource || body?.referralSource,
-        };
-        const referralReward = payload.isNewUser
-          && sanitizeAuthFlow(payload.flow) === "signup"
-          && normalizeReferralCode(referralCapture.referralCode)
-          && normalizeReferralShareToken(referralCapture.referralShareToken)
-          ? await withOptionalAuthSideEffect(
-            applyKakaoReferralReward(request, env, user, referralCapture),
-            Math.min(timeoutMs, 4000),
-            "auth_oauth_complete_referral_reward",
-            null,
-          )
-          : null;
+        const referralReward = await applySocialOAuthReferralReward(request, env, user, payload, {
+          referralCode: body?.referralCode,
+          referralShareToken: body?.referralShareToken,
+          referralSource: body?.referralSource,
+        }, timeoutMs);
 
         const accessToken = await signAuthToken(user, env);
         const nextRefresh = await issueRefreshTokenForUser(user._id, env);
@@ -2878,7 +3170,7 @@ async function handleOAuthComplete(request, env) {
           ok: true,
           message: "Social login completed.",
           user: normalizeAuthUserResponse(user),
-          nextPath: sanitizeNextPath(payload.nextPath) || "/",
+          nextPath: sanitizeOAuthNextPath(payload.nextPath),
           provider: payload.provider,
           accessToken,
           tokenType: "Bearer",
@@ -3034,3 +3326,8 @@ export async function handleAuthRoutes(request, env) {
     });
   }
 }
+
+export const __authTestUtils = {
+  handleLogin,
+  clearLoginRateLimitState: () => loginRateLimitMap.clear(),
+};

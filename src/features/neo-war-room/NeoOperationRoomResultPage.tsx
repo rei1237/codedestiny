@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
@@ -13,13 +14,22 @@ type NeoBriefing = {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoOpening?: string;
+  frontlineSummary?: string;
   coreDiagnosis?: string;
+  repeatedChoice?: { title?: string; description?: string };
   repeatedPattern?: { title?: string; description?: string };
   originalStrategy?: { title?: string; description?: string; keyRules?: string[] };
+  misalignedFlow?: { title?: string; description?: string };
   currentProblem?: { title?: string; description?: string };
   methodEvidence?: Array<{ method?: string; label?: string; summary?: string }>;
   bluntTruth?: string;
+  forbiddenAction?: { title?: string; reason?: string };
+  actionOrders?: string[];
+  sevenDayMission?: Array<{ day?: number; mission?: string }>;
+  thirtyDayStrategy?: string[];
   realityCheckQuestions?: Array<{ question?: string; whyItMatters?: string }>;
+  badge?: { name?: string; description?: string };
+  tsundereClosing?: string;
   nextStepPrompt?: string;
 };
 
@@ -27,6 +37,7 @@ type NeoRefinedOrder = {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoReview?: string;
+  actualStuckPoint?: { title?: string; description?: string };
   realBottleneck?: { title?: string; description?: string };
   updatedDiagnosis?: string;
   discardThis?: string[];
@@ -58,6 +69,21 @@ type NeoResultSession = {
 };
 
 type NeoResultPreviewMode = "" | "loading" | "briefing" | "reality" | "refined";
+type NeoBadgeVault = {
+  count: number;
+  totalAwarded: number;
+  awards: Record<string, number>;
+};
+type NeoBadgeAwardState = {
+  count: number;
+  currentBadgeIndex: number;
+  awardedNow: boolean;
+};
+type NeoBenefitSpendResult = {
+  ok: boolean;
+  count: number;
+  reason?: "missing_key" | "not_enough";
+};
 
 const realityCheckOptions = [
   "맞다. 요즘 계속 회피하고 있다.",
@@ -70,12 +96,23 @@ const realityCheckOptions = [
 ] as const;
 
 const NEO_RESULT_PREVIEW_MODES = new Set<NeoResultPreviewMode>(["loading", "briefing", "reality", "refined"]);
+const NEO_BADGE_VAULT_STORAGE_KEY = "neoOperationRoomLionBadgeVaultV1";
+const NEO_LETTER_GRANTS_STORAGE_KEY = "neoOperationRoomLetterGrantsV1";
+const NEO_LETTER_BADGE_COST = 5;
+const NEO_RESULT_BADGE_COLUMNS = 4;
+const NEO_RESULT_BADGE_ROWS = 3;
+const NEO_RESULT_BADGE_COUNT = 10;
 
 const localPreviewBriefing: NeoBriefing = {
   selectedMethod: "saju",
   operationTitle: "흐려진 전선을 다시 잡는 작전",
   neoOpening: "좋다. 지금 네 운은 멈춘 게 아니라, 같은 선택 앞에서 자꾸 힘을 잃고 있다.",
+  frontlineSummary: "겉으로는 선택지가 많은데, 실제로는 마음이 편한 쪽으로만 도망가려는 흐름이 강하다.",
   coreDiagnosis: "겉으로는 선택지가 많은데, 실제로는 마음이 편한 쪽으로만 도망가려는 흐름이 강하다.",
+  repeatedChoice: {
+    title: "반복되는 선택",
+    description: "중요한 순간마다 확신을 기다리다가 타이밍을 놓치고, 뒤늦게 스스로를 몰아붙이는 모습이 드러난다.",
+  },
   repeatedPattern: {
     title: "반복되는 선택",
     description: "중요한 순간마다 확신을 기다리다가 타이밍을 놓치고, 뒤늦게 스스로를 몰아붙이는 모습이 드러난다.",
@@ -85,19 +122,42 @@ const localPreviewBriefing: NeoBriefing = {
     description: "감정이 가라앉은 뒤 판단하는 사람이다. 빠른 결정보다 기준을 먼저 세울수록 운이 안정된다.",
     keyRules: ["선택 전에 기준을 적는다", "사람의 반응보다 내 리듬을 먼저 본다", "미룬 질문을 하루 안에 하나만 처리한다"],
   },
+  misalignedFlow: {
+    title: "지금 흐름이 어긋난 자리",
+    description: "정답을 몰라서가 아니라, 답을 고르면 잃을 것이 보이기 때문에 계속 판단을 흐리고 있다.",
+  },
   currentProblem: {
-    title: "그런데 지금 문제는 이것이다",
+    title: "지금 흐름이 어긋난 자리",
     description: "정답을 몰라서가 아니라, 답을 고르면 잃을 것이 보이기 때문에 계속 판단을 흐리고 있다.",
   },
   methodEvidence: [
-    { method: "saju", label: "사주 작전 브리핑", summary: "계절의 기운은 선택을 오래 붙잡기보다 기준을 먼저 세울 때 안정된다." },
-    { method: "ziwei", label: "자미두수 보조 판단", summary: "명궁의 흐름은 관계 반응보다 네 판단 기준을 먼저 세우라고 가리킨다." },
+    { method: "saju", label: "사주 작전 브리핑", summary: "일간의 무기는 기준을 세울 때 살아나고, 계절의 기운은 선택을 오래 붙잡기보다 행동으로 닫을 때 안정된다." },
   ],
   bluntTruth: "너는 아직 준비가 안 된 게 아니다. 준비라는 이름으로 결정을 늦추는 데 익숙해진 거다.",
+  forbiddenAction: {
+    title: "오늘 금지 행동",
+    reason: "상대 반응을 핑계로 내 결정을 다시 무르는 것.",
+  },
+  actionOrders: ["선택 기준 세 가지를 적어라", "오늘 버릴 선택지 하나를 정해라", "미룬 질문 하나를 밤 전까지 처리해라"],
+  sevenDayMission: [
+    { day: 1, mission: "가장 미룬 질문 하나를 적어라." },
+    { day: 2, mission: "선택 기준 세 가지를 정리해라." },
+    { day: 3, mission: "기준에 맞지 않는 선택지를 하나 버려라." },
+    { day: 4, mission: "마음이 흔들린 순간과 이유를 한 줄로 남겨라." },
+    { day: 5, mission: "남의 반응을 확인하기 전에 네 기준을 먼저 읽어라." },
+    { day: 6, mission: "버릴 선택지 하나를 조용히 지워라." },
+    { day: 7, mission: "일주일 뒤에도 남는 기준만 작전표에 남겨라." },
+  ],
+  thirtyDayStrategy: ["1주차: 선택 기록", "2주차: 관계 반응과 내 기준 분리", "3주차: 반복되는 불안 이름 붙이기", "4주차: 남는 기준만 유지"],
   realityCheckQuestions: [
     { question: "지금 네가 미루는 선택은 정말 정보가 부족해서냐?", whyItMatters: "부족한 정보와 피하고 싶은 책임은 전혀 다르다." },
     { question: "네가 잃기 싫은 것은 사람의 평가냐, 네가 상상한 안전함이냐?", whyItMatters: "지키는 대상을 잘못 보면 작전이 계속 어긋난다." },
   ],
+  badge: {
+    name: "안개 절단 휘장",
+    description: "흐린 마음을 핑계로 쓰지 않고, 기준을 다시 세운 사람에게 주는 휘장이다.",
+  },
+  tsundereClosing: "여기까지 봤으면 이제 현실을 대입해라. 인정해도 되고 반박해도 된다. 대신 흐리지 마라.",
   nextStepPrompt: "현실을 대입해라. 인정해도 되고 반박해도 된다. 대신 흐리지 마라.",
 };
 
@@ -105,8 +165,12 @@ const localPreviewRefinedOrder: NeoRefinedOrder = {
   selectedMethod: "saju",
   operationTitle: "선택의 안개를 걷는 수정 작전",
   neoReview: "네 답변까지 보면 핵심은 더 분명하다. 문제는 운이 아니라 네가 판단을 멈추는 방식이다.",
+  actualStuckPoint: {
+    title: "실제로 흔들리던 지점",
+    description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
+  },
   realBottleneck: {
-    title: "진짜 막힌 지점",
+    title: "실제로 흔들리던 지점",
     description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
   },
   updatedDiagnosis: "지금은 큰 결심보다 작은 실행 기준이 먼저다. 기준이 생기면 운의 흐름도 훨씬 덜 새어 나간다.",
@@ -173,6 +237,221 @@ function methodLabel(method?: string) {
   return getNeoWarRoomMethodDefinition(method)?.label || "선택한 술수";
 }
 
+function safeFilePart(value: string) {
+  return String(value || "session")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, "-")
+    .slice(0, 80) || "session";
+}
+
+function formatDateKey(value?: string | Date) {
+  const date = value ? new Date(value) : new Date();
+  const safeDate = Number.isNaN(date.getTime()) ? new Date() : date;
+  const month = String(safeDate.getMonth() + 1).padStart(2, "0");
+  const day = String(safeDate.getDate()).padStart(2, "0");
+  return `${safeDate.getFullYear()}-${month}-${day}`;
+}
+
+function todayKey() {
+  return formatDateKey();
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
+  return new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error("pdf_capture_timeout")), timeoutMs);
+    promise
+      .then(resolve)
+      .catch(reject)
+      .finally(() => window.clearTimeout(timer));
+  });
+}
+
+function getBriefingFrontline(briefing?: NeoBriefing | null) {
+  return briefing?.frontlineSummary || briefing?.coreDiagnosis || "";
+}
+
+function getBriefingRepeatedChoice(briefing?: NeoBriefing | null) {
+  return briefing?.repeatedChoice || briefing?.repeatedPattern || {};
+}
+
+function getBriefingMisalignedFlow(briefing?: NeoBriefing | null) {
+  return briefing?.misalignedFlow || briefing?.currentProblem || {};
+}
+
+function getRefinedStuckPoint(refined?: NeoRefinedOrder | null) {
+  return refined?.actualStuckPoint || refined?.realBottleneck || {};
+}
+
+function readNeoStorageRecord(key: string) {
+  if (typeof window === "undefined") return {};
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(key) || "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+  } catch {
+    return {};
+  }
+}
+
+function readNeoBadgeVault(): NeoBadgeVault {
+  const vault = readNeoStorageRecord(NEO_BADGE_VAULT_STORAGE_KEY);
+  const rawAwards = vault.awards && typeof vault.awards === "object" && !Array.isArray(vault.awards)
+    ? vault.awards as Record<string, unknown>
+    : {};
+  const awards = Object.entries(rawAwards).reduce<Record<string, number>>((nextAwards, [key, value]) => {
+    const badgeIndex = Number(value);
+    if (Number.isInteger(badgeIndex) && badgeIndex >= 0 && badgeIndex < NEO_RESULT_BADGE_COUNT) {
+      nextAwards[key] = badgeIndex;
+    }
+    return nextAwards;
+  }, {});
+  const count = Number(vault.count);
+  const totalAwarded = Number(vault.totalAwarded);
+  return {
+    count: Number.isFinite(count) && count > 0 ? Math.floor(count) : 0,
+    totalAwarded: Number.isFinite(totalAwarded) && totalAwarded > 0 ? Math.floor(totalAwarded) : Object.keys(awards).length,
+    awards,
+  };
+}
+
+function writeNeoBadgeVault(vault: NeoBadgeVault) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(NEO_BADGE_VAULT_STORAGE_KEY, JSON.stringify({
+    count: Math.max(0, Math.floor(vault.count)),
+    totalAwarded: Math.max(0, Math.floor(vault.totalAwarded)),
+    awards: vault.awards,
+  }));
+}
+
+function getNeoResultKeys(session: NeoResultSession, attemptId: string) {
+  const resultAttemptId = session.resultUrl?.split("attemptId=")[1];
+  const keys = [
+    session.sessionId,
+    session.id,
+    attemptId,
+    resultAttemptId ? decodeURIComponent(resultAttemptId) : "",
+    session.resultUrl,
+  ];
+  return Array.from(new Set(keys.map((key) => String(key || "").trim()).filter(Boolean)));
+}
+
+function awardNeoResultBadge(resultKeys: string[], enabled: boolean): NeoBadgeAwardState {
+  const vault = readNeoBadgeVault();
+  const resultKey = resultKeys[0] || "";
+  if (!enabled || !resultKey) {
+    return {
+      count: vault.count,
+      currentBadgeIndex: 0,
+      awardedNow: false,
+    };
+  }
+  const existingBadgeIndex = resultKeys
+    .map((key) => vault.awards[key])
+    .find((badgeIndex) => Number.isInteger(badgeIndex));
+  if (typeof existingBadgeIndex === "number" && Number.isInteger(existingBadgeIndex)) {
+    return {
+      count: vault.count,
+      currentBadgeIndex: existingBadgeIndex,
+      awardedNow: false,
+    };
+  }
+  const currentBadgeIndex = vault.totalAwarded % NEO_RESULT_BADGE_COUNT;
+  const nextVault = {
+    count: Math.min(999, vault.count + 1),
+    totalAwarded: vault.totalAwarded + 1,
+    awards: resultKeys.reduce<Record<string, number>>((nextAwards, key) => ({
+      ...nextAwards,
+      [key]: currentBadgeIndex,
+    }), vault.awards),
+  };
+  writeNeoBadgeVault(nextVault);
+  return {
+    count: nextVault.count,
+    currentBadgeIndex,
+    awardedNow: true,
+  };
+}
+
+function hasNeoBenefitGrant(keys: string[]) {
+  const grants = readNeoStorageRecord(NEO_LETTER_GRANTS_STORAGE_KEY);
+  return keys.some((key) => Boolean(grants[key]));
+}
+
+function writeNeoBenefitGrant(keys: string[]) {
+  if (typeof window === "undefined") return;
+  const grants = readNeoStorageRecord(NEO_LETTER_GRANTS_STORAGE_KEY);
+  const grant = {
+    spentAt: new Date().toISOString(),
+    cost: NEO_LETTER_BADGE_COST,
+    benefits: ["pdf", "neoLetter"],
+  };
+  keys.forEach((key) => {
+    grants[key] = grant;
+  });
+  window.localStorage.setItem(NEO_LETTER_GRANTS_STORAGE_KEY, JSON.stringify(grants));
+}
+
+function spendNeoBenefitBadges(keys: string[]): NeoBenefitSpendResult {
+  const vault = readNeoBadgeVault();
+  if (!keys.length) return { ok: false, count: vault.count, reason: "missing_key" };
+  if (hasNeoBenefitGrant(keys)) return { ok: true, count: vault.count };
+  if (vault.count < NEO_LETTER_BADGE_COST) return { ok: false, count: vault.count, reason: "not_enough" };
+  writeNeoBadgeVault({
+    ...vault,
+    count: vault.count - NEO_LETTER_BADGE_COST,
+  });
+  writeNeoBenefitGrant(keys);
+  return { ok: true, count: vault.count - NEO_LETTER_BADGE_COST };
+}
+
+function getNeoBenefitKeys(session: NeoResultSession, attemptId: string) {
+  const keys = [
+    session.sessionId,
+    session.id,
+    attemptId,
+    session.resultUrl?.split("attemptId=")[1] ? decodeURIComponent(session.resultUrl.split("attemptId=")[1]) : "",
+    session.resultUrl,
+  ];
+  return Array.from(new Set(keys.map((key) => String(key || "").trim()).filter(Boolean)));
+}
+
+function getBadgeStampStyle(index: number) {
+  const safeIndex = Math.max(0, Math.min(NEO_RESULT_BADGE_COUNT - 1, index));
+  const column = safeIndex % NEO_RESULT_BADGE_COLUMNS;
+  const row = Math.floor(safeIndex / NEO_RESULT_BADGE_COLUMNS);
+  return {
+    "--neo-result-badge-sheet-width": `${NEO_RESULT_BADGE_COLUMNS * 100}%`,
+    "--neo-result-badge-sheet-height": `${NEO_RESULT_BADGE_ROWS * 100}%`,
+    "--neo-result-badge-x": `${column * -100}%`,
+    "--neo-result-badge-y": `${row * -100}%`,
+  } as CSSProperties;
+}
+
+function buildNeoSincereLetter(session: NeoResultSession, methodName: string) {
+  const briefing = session.initialBriefing;
+  const refined = session.refinedOrder;
+  const title = refined?.operationTitle || briefing?.operationTitle || "이번 작전";
+  const opening = briefing?.neoOpening || "오늘 네가 들고 온 질문은 가볍지 않았다.";
+  const frontline = getBriefingFrontline(briefing);
+  const stuckPoint = getRefinedStuckPoint(refined);
+  const strategy = refined?.newLifeStrategy?.description || briefing?.originalStrategy?.description || "";
+  const closing = refined?.tsundereClosing || briefing?.tsundereClosing || briefing?.nextStepPrompt || "";
+  return [
+    `너에게. ${title}을 정리하고 나서, 나는 잠깐 작전 테이블의 불을 낮췄다. ${methodName}의 지도 위에 남은 선은 생각보다 조용했지만, 그 조용함 안에는 네가 오래 참아 온 마음이 또렷하게 남아 있었다. ${opening}`,
+    frontline
+      ? `네 운명의 전선에서 가장 먼저 드러난 것은 이것이다. ${frontline} 이 말은 너를 몰아붙이려는 판정이 아니라, 네가 더는 스스로를 흐린 사람으로 오해하지 않도록 세워 둔 표식이다. 너는 무너진 것이 아니라, 너무 오래 같은 방식으로 버티느라 방향을 잠시 잃은 쪽에 가깝다.`
+      : "네 운명의 전선에서 가장 먼저 드러난 것은, 네가 생각보다 약하지 않다는 사실이다. 다만 마음이 지칠 때마다 스스로를 뒤로 미루는 버릇이 있었고, 그 버릇이 운의 흐름을 조금씩 흐리게 만들었다.",
+    stuckPoint.description
+      ? `특히 마음에 남겨야 할 지점은 ${stuckPoint.title || "흔들리던 자리"}다. ${stuckPoint.description} 그래서 나는 네게 거창한 각오보다 작은 기준을 먼저 주고 싶다. 사람의 반응을 기다리기 전에 네 기준을 먼저 읽고, 불안이 커질수록 오늘 할 수 있는 한 가지를 작게 닫아라.`
+      : "특히 마음에 남겨야 할 지점은 선택 직전의 침묵이다. 너는 답을 모르는 척했지만, 사실은 답을 고른 뒤 달라질 풍경을 먼저 두려워했다. 그래서 나는 네게 거창한 각오보다 작은 기준을 먼저 주고 싶다.",
+    strategy
+      ? `네가 본래 움직여야 하는 방식은 이미 안쪽에 있다. ${strategy} 이 흐름을 믿어라. 운은 멀리서 갑자기 떨어지는 상이 아니라, 네가 매일 선택하는 방향에 조용히 살을 붙인다. 오늘 하나를 정리하면 내일은 조금 덜 흔들리고, 내일 덜 흔들리면 다음 선택은 더 깨끗해진다.`
+      : "네가 본래 움직여야 하는 방식은 이미 안쪽에 있다. 기준을 세우고, 감정이 가라앉은 뒤 행동을 닫고, 남의 표정이 아니라 네 안의 질서를 먼저 확인하는 것이다. 운은 멀리서 갑자기 떨어지는 상이 아니라, 네가 매일 선택하는 방향에 조용히 살을 붙인다.",
+    `나는 네 편을 무조건 들어주려고 여기에 있는 것이 아니다. 하지만 네가 너 자신을 함부로 낮추는 순간에는, 꽤 단호하게 네 앞을 막을 것이다. 너는 계속 미뤄도 되는 사람이 아니라, 이제는 자기 삶의 작전권을 되찾아야 하는 사람이다. 겁이 있어도 괜찮다. 겁이 있다는 건 아직 소중히 지키고 싶은 것이 남아 있다는 뜻이니까.`,
+    `${closing || "그러니 오늘은 흐리지 마라. 네가 알고 있는 한 가지부터 실행해라."} 사자 휘장 다섯 개를 내어준 만큼, 이 편지는 네가 다시 같은 밤으로 돌아갈 때 조용히 펼쳐 보라고 남긴다. 네오.`,
+  ].join("\n\n");
+}
+
 export default function NeoOperationRoomResultPage() {
   const searchParams = useSearchParams();
   const attemptId = searchParams?.get("attemptId") || searchParams?.get("id") || "";
@@ -191,6 +470,17 @@ export default function NeoOperationRoomResultPage() {
   const [freeform, setFreeform] = useState("");
   const [refining, setRefining] = useState(false);
   const [refineError, setRefineError] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfError, setPdfError] = useState("");
+  const [badgeAward, setBadgeAward] = useState<NeoBadgeAwardState>({
+    count: 0,
+    currentBadgeIndex: 0,
+    awardedNow: false,
+  });
+  const [neoBenefitsUnlocked, setNeoBenefitsUnlocked] = useState(false);
+  const [benefitUnlocking, setBenefitUnlocking] = useState(false);
+  const [benefitUnlockError, setBenefitUnlockError] = useState("");
+  const documentRef = useRef<HTMLElement | null>(null);
 
   const selectedMethod = session?.selectedMethod || session?.initialBriefing?.selectedMethod || session?.refinedOrder?.selectedMethod;
   const selectedMethodDefinition = useMemo(
@@ -292,14 +582,129 @@ export default function NeoOperationRoomResultPage() {
     }
   }
 
+  function handleUnlockNeoBenefits() {
+    if (!session || benefitUnlocking || neoBenefitsUnlocked) return;
+    if (isLocalPreview) {
+      setBenefitUnlockError("미리보기에서는 사자 휘장이 실제로 움직이지 않는다.");
+      return;
+    }
+    setBenefitUnlocking(true);
+    setBenefitUnlockError("");
+    const spendResult = spendNeoBenefitBadges(getNeoBenefitKeys(session, attemptId));
+    setBadgeAward((current) => ({
+      ...current,
+      count: spendResult.count,
+    }));
+    if (spendResult.ok) {
+      setNeoBenefitsUnlocked(true);
+      setPdfError("");
+    } else {
+      setBenefitUnlockError(spendResult.reason === "missing_key"
+        ? "이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라."
+        : "사자 휘장 5개가 모이면 PDF와 네오의 편지가 열린다.");
+    }
+    setBenefitUnlocking(false);
+  }
+
+  async function handlePdfDownload() {
+    const element = documentRef.current;
+    if (!element || pdfLoading) return;
+    if (!neoBenefitsUnlocked) {
+      setPdfError("사자 휘장 5개를 사용하면 PDF 저장이 열린다.");
+      return;
+    }
+    setPdfLoading(true);
+    setPdfError("");
+    try {
+      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
+        import("html2canvas"),
+        import("jspdf"),
+      ]);
+      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
+      const pdf = new JsPDF("p", "mm", "a4");
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 8;
+      const renderWidth = pageWidth - margin * 2;
+      const renderHeight = pageHeight - margin * 2;
+      const targets = Array.from(element.querySelectorAll<HTMLElement>("[data-neo-pdf-page]"));
+      const pdfTargets = targets.length ? targets : [element];
+      let hasPage = false;
+
+      for (const target of pdfTargets) {
+        let canvas: HTMLCanvasElement;
+        try {
+          canvas = await withTimeout(html2canvas(target, {
+            backgroundColor: "#070c18",
+            imageTimeout: 4000,
+            ignoreElements: (node) => node instanceof HTMLImageElement,
+            logging: false,
+            scale: Math.min(2, window.devicePixelRatio || 2),
+            useCORS: true,
+            windowWidth: Math.max(document.documentElement.scrollWidth, element.scrollWidth, target.scrollWidth),
+          }), 12000);
+        } catch {
+          continue;
+        }
+        if (!canvas.width || !canvas.height) continue;
+        const imageData = canvas.toDataURL("image/png");
+        const imageHeight = (canvas.height * renderWidth) / canvas.width;
+        let remainingHeight = imageHeight;
+        let position = margin;
+        if (hasPage) pdf.addPage();
+        pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
+        hasPage = true;
+        remainingHeight -= renderHeight;
+        while (remainingHeight > 0) {
+          position = margin + remainingHeight - imageHeight;
+          pdf.addPage();
+          pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
+          remainingHeight -= renderHeight;
+        }
+      }
+
+      if (!hasPage) throw new Error("empty_pdf_capture");
+      const sessionKey = safeFilePart(session?.sessionId || session?.id || attemptId || "preview");
+      const fileName = `neo-operation-order-${sessionKey}-${todayKey()}.pdf`;
+      const blob = pdf.output("blob");
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setPdfLoading(false);
+    }
+  }
+
   const briefing = session?.initialBriefing || null;
   const refined = session?.refinedOrder || null;
   const isGenerating = loading || session?.status === "generating";
   const isFailed = Boolean(error) || session?.status === "generation_failed";
+  const canUnlockNeoBenefits = !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
+  const neoLetterText = useMemo(
+    () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod)) : "",
+    [neoBenefitsUnlocked, selectedMethod, session],
+  );
   const backgroundStyle = {
     "--neo-bg-desktop": `url("${neoWarRoomAssets.backgrounds.desktop.src}")`,
     "--neo-bg-mobile": `url("${neoWarRoomAssets.backgrounds.mobile.src}")`,
   } as CSSProperties;
+
+  useEffect(() => {
+    if (!session || isGenerating || isFailed) {
+      setNeoBenefitsUnlocked(false);
+      return;
+    }
+    setBadgeAward(awardNeoResultBadge(getNeoResultKeys(session, attemptId), !isLocalPreview));
+    setNeoBenefitsUnlocked(hasNeoBenefitGrant(getNeoBenefitKeys(session, attemptId)));
+    setBenefitUnlockError("");
+  }, [attemptId, isFailed, isGenerating, isLocalPreview, session]);
 
   return (
     <main className={styles.shell} style={backgroundStyle}>
@@ -332,6 +737,43 @@ export default function NeoOperationRoomResultPage() {
           <Link href="/neo-operation-room/result?neoPreview=reality">현실 점검</Link>
           <Link href="/neo-operation-room/result?neoPreview=refined">2차 명령서</Link>
         </nav>
+      ) : null}
+
+      {!isGenerating && !isFailed && session ? (
+        <section className={styles.actionBar} aria-label="작전 명령서 작업">
+          <div className={styles.actionCopy}>
+            <span>{refined ? "Final Order Ready" : "Briefing Ready"}</span>
+            <strong>{refined ? "2차 수정 명령서까지 정리 완료" : "1차 작전 브리핑 정리 완료"}</strong>
+          </div>
+          <div className={styles.actionButtons}>
+            <button
+              type="button"
+              className={styles.benefitButton}
+              data-loading={benefitUnlocking ? "true" : "false"}
+              data-unlocked={neoBenefitsUnlocked ? "true" : "false"}
+              disabled={benefitUnlocking || neoBenefitsUnlocked || !canUnlockNeoBenefits}
+              onClick={handleUnlockNeoBenefits}
+            >
+              {benefitUnlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
+              <span>{benefitUnlocking ? "휘장 사용 중" : neoBenefitsUnlocked ? "특전 해금 완료" : "사자 휘장 5개 사용"}</span>
+            </button>
+            <button
+              type="button"
+              className={styles.pdfButton}
+              data-loading={pdfLoading ? "true" : "false"}
+              data-locked={neoBenefitsUnlocked ? "false" : "true"}
+              disabled={pdfLoading || !neoBenefitsUnlocked}
+              onClick={handlePdfDownload}
+            >
+              {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
+              <span>{pdfLoading ? "PDF 저장 중" : neoBenefitsUnlocked ? "PDF 저장" : "PDF 잠금"}</span>
+            </button>
+            {briefing ? <button type="button" onClick={() => setShowRealityForm(true)}>{refined ? "수정 명령 다시 받기" : "수정 명령 받기"}</button> : null}
+            <Link href="/neo-operation-room">작전 다시 짜기</Link>
+          </div>
+          {benefitUnlockError ? <p className={styles.unlockError} role="alert">{benefitUnlockError}</p> : null}
+          {pdfError ? <p className={styles.pdfError} role="alert">{pdfError}</p> : null}
+        </section>
       ) : null}
 
       {isGenerating ? (
@@ -367,15 +809,21 @@ export default function NeoOperationRoomResultPage() {
               <p>{selectedMethodDefinition.resultEvidenceLabel}</p>
               <p>{session.topic || "작전 주제 미기록"}</p>
             </div>
-            <NeoWarRoomAssetImage asset={neoWarRoomAssets.badges.resultStamp} alt="" sizes="128px" className={styles.sideStamp} imageClassName={styles.decorImage} />
+            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} />
           </aside>
 
-          <section className={styles.documentStack}>
+          <section id="neo-operation-result-document" ref={documentRef} className={styles.documentStack}>
+            <ResultSummaryCover
+              session={session}
+              methodName={methodLabel(selectedMethod)}
+              badgeIndex={badgeAward.currentBadgeIndex}
+            />
             {briefing ? (
               <InitialBriefingDocument
                 briefing={briefing}
                 evidenceFallbackLabel={selectedMethodDefinition.resultEvidenceLabel}
                 hasRefined={Boolean(refined)}
+                badgeIndex={badgeAward.currentBadgeIndex}
                 onOpenReality={() => setShowRealityForm(true)}
               />
             ) : null}
@@ -390,7 +838,19 @@ export default function NeoOperationRoomResultPage() {
                 onSubmit={handleRefine}
               />
             ) : null}
-            {refined ? <RefinedOrderDocument refined={refined} /> : null}
+            {refined ? <RefinedOrderDocument refined={refined} badgeIndex={badgeAward.currentBadgeIndex} /> : null}
+            {neoLetterText ? (
+              <NeoSincereLetter letter={neoLetterText} />
+            ) : (
+              <NeoLetterLockCard
+                badgeAward={badgeAward}
+                benefitsUnlocked={neoBenefitsUnlocked}
+                canUnlock={canUnlockNeoBenefits}
+                unlocking={benefitUnlocking}
+                unlockError={benefitUnlockError}
+                onUnlock={handleUnlockNeoBenefits}
+              />
+            )}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} />
           </section>
         </div>
@@ -399,34 +859,182 @@ export default function NeoOperationRoomResultPage() {
   );
 }
 
+function LionBadgeStamp({ badgeIndex, className = "" }: { badgeIndex: number; className?: string }) {
+  return (
+    <span className={`${styles.badgeStampFrame} ${className}`} style={getBadgeStampStyle(badgeIndex)}>
+      <NeoWarRoomAssetImage
+        asset={neoWarRoomAssets.badges.resultStamp}
+        alt=""
+        sizes="144px"
+        className={styles.badgeStampSheet}
+        imageClassName={styles.badgeStampImage}
+        style={{ background: "transparent" }}
+      />
+    </span>
+  );
+}
+
+function BadgeVaultPanel({ badgeAward, benefitsUnlocked }: { badgeAward: NeoBadgeAwardState; benefitsUnlocked: boolean }) {
+  const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
+  const remaining = Math.max(0, NEO_LETTER_BADGE_COST - progress);
+  const message = benefitsUnlocked
+    ? "PDF와 네오의 편지가 열린 작전이다."
+    : remaining === 0
+      ? "휘장 다섯 개가 모였다. 이제 특전을 열 수 있다."
+      : `${remaining}개가 더 모이면 PDF와 네오의 편지가 열린다.`;
+  return (
+    <div className={styles.badgeVault}>
+      <LionBadgeStamp badgeIndex={badgeAward.currentBadgeIndex} className={styles.badgeVaultStamp} />
+      <div className={styles.badgeVaultCopy}>
+        <span>{badgeAward.awardedNow ? "새 휘장 수여" : "사자 휘장 보관함"}</span>
+        <strong>{badgeAward.count}개 보유</strong>
+        <p>{message}</p>
+      </div>
+      <div className={styles.badgeVaultSlots} aria-label={`사자 휘장 ${progress} / ${NEO_LETTER_BADGE_COST}`}>
+        {Array.from({ length: NEO_LETTER_BADGE_COST }).map((_, index) => (
+          <i key={index} data-filled={index < progress ? "true" : "false"} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NeoLetterLockCard({
+  badgeAward,
+  benefitsUnlocked,
+  canUnlock,
+  unlocking,
+  unlockError,
+  onUnlock,
+}: {
+  badgeAward: NeoBadgeAwardState;
+  benefitsUnlocked: boolean;
+  canUnlock: boolean;
+  unlocking: boolean;
+  unlockError: string;
+  onUnlock: () => void;
+}) {
+  const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
+  return (
+    <article className={styles.neoLetterLockCard}>
+      <header className={styles.documentHeader}>
+        <span>네오가 남긴 편지</span>
+        <h2>{benefitsUnlocked ? "네오의 편지가 열렸다" : "사자 휘장 다섯 개가 문을 연다"}</h2>
+      </header>
+      <p>지금은 {progress}/{NEO_LETTER_BADGE_COST}개가 봉인에 닿았다. 다섯 개를 사용하면 PDF 명령서와 네오의 편지가 함께 열린다.</p>
+      <div className={styles.neoLetterLockActions}>
+        <button type="button" disabled={!canUnlock || unlocking || benefitsUnlocked} onClick={onUnlock}>
+          {unlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : benefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
+          <span>{unlocking ? "휘장 사용 중" : benefitsUnlocked ? "편지 해금 완료" : "사자 휘장 5개 사용"}</span>
+        </button>
+      </div>
+      {unlockError ? <p className={styles.unlockError} role="alert">{unlockError}</p> : null}
+    </article>
+  );
+}
+
+function NeoSincereLetter({ letter }: { letter: string }) {
+  return (
+    <article className={styles.neoLetterCard} data-neo-pdf-page>
+      <header className={styles.documentHeader}>
+        <span>네오가 남긴 편지</span>
+        <h2>사자 휘장 다섯 개로 열린 진심</h2>
+      </header>
+      <div className={styles.neoLetterBody}>
+        {letter.split("\n\n").map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
+    </article>
+  );
+}
+
+function ResultSummaryCover({
+  session,
+  methodName,
+  badgeIndex,
+}: {
+  session: NeoResultSession;
+  methodName: string;
+  badgeIndex: number;
+}) {
+  const briefing = session.initialBriefing || null;
+  const refined = session.refinedOrder || null;
+  const issuedAt = formatDateKey(session.updatedAt || session.createdAt);
+  return (
+    <article className={`${styles.documentCard} ${styles.summaryCover}`} data-neo-pdf-page>
+      <header className={styles.documentHeader}>
+        <span>Neo Operation Order</span>
+        <h2>{refined?.operationTitle || briefing?.operationTitle || "네오의 작전 명령서"}</h2>
+      </header>
+      <div className={styles.summaryGrid}>
+        <section>
+          <span>술수</span>
+          <strong>{methodName}</strong>
+        </section>
+        <section>
+          <span>작전 주제</span>
+          <strong>{session.topic || "미기록"}</strong>
+        </section>
+        <section>
+          <span>발급일</span>
+          <strong>{issuedAt}</strong>
+        </section>
+      </div>
+      {session.question ? <p className={styles.summaryQuestion}>{session.question}</p> : null}
+      <div className={styles.summarySeal}>
+        <LionBadgeStamp badgeIndex={badgeIndex} className={styles.stampImageFrame} />
+        <p>{refined ? "현실 점검까지 반영한 최종 작전이다." : "1차 브리핑 기준으로 저장된 작전이다."}</p>
+      </div>
+    </article>
+  );
+}
+
 function InitialBriefingDocument({
   briefing,
   evidenceFallbackLabel,
   hasRefined,
+  badgeIndex,
   onOpenReality,
 }: {
   briefing: NeoBriefing;
   evidenceFallbackLabel: string;
   hasRefined: boolean;
+  badgeIndex: number;
   onOpenReality: () => void;
 }) {
+  const frontlineSummary = getBriefingFrontline(briefing);
+  const repeatedChoice = getBriefingRepeatedChoice(briefing);
+  const misalignedFlow = getBriefingMisalignedFlow(briefing);
   return (
-    <article className={styles.documentCard}>
+    <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>1차 작전 브리핑</span>
         <h2>{briefing.operationTitle || "무명 작전"}</h2>
       </header>
-      <Section title="네오의 첫 반응" body={briefing.neoOpening} />
-      <Section title="현재 운의 핵심 진단" body={briefing.coreDiagnosis} />
-      <Section title={briefing.repeatedPattern?.title || "네가 반복하는 패턴"} body={briefing.repeatedPattern?.description} />
-      <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 살아야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
-      <Section title={briefing.currentProblem?.title || "그런데 지금 문제는 이것이다"} body={briefing.currentProblem?.description} />
+      <Section title="네오의 첫 판단" body={briefing.neoOpening} />
+      <Section title="현재 운명의 전선" body={frontlineSummary} />
+      <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
+      <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
+      <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
       {briefing.methodEvidence?.length ? (
         <div className={styles.gridList}>
           {briefing.methodEvidence.map((item) => <Section key={`${item.method}-${item.label}`} title={item.label || evidenceFallbackLabel} body={item.summary} />)}
         </div>
       ) : null}
-      <blockquote className={styles.blunt}>{briefing.bluntTruth}</blockquote>
+      {briefing.bluntTruth ? <blockquote className={styles.blunt}>{briefing.bluntTruth}</blockquote> : null}
+      <Section title={briefing.forbiddenAction?.title || "오늘 금지 행동"} body={briefing.forbiddenAction?.reason} />
+      <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
+      {briefing.sevenDayMission?.length ? (
+        <div className={styles.missionGrid}>
+          <strong>7일 작전</strong>
+          {briefing.sevenDayMission.map((item) => (
+            <section key={`${item.day}-${item.mission}`}>
+              <span>DAY {item.day}</span>
+              <p>{item.mission}</p>
+            </section>
+          ))}
+        </div>
+      ) : null}
+      <Section title="30일 전략" list={briefing.thirtyDayStrategy} />
       {briefing.realityCheckQuestions?.length ? (
         <div className={styles.questionList}>
           <strong>현실 점검 질문</strong>
@@ -438,6 +1046,17 @@ function InitialBriefingDocument({
           ))}
         </div>
       ) : null}
+      {briefing.badge?.description ? (
+        <div className={styles.badgeBlock}>
+          <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
+          <div>
+            <strong>오늘의 사자 휘장 · {briefing.badge.name || "무명 휘장"}</strong>
+            <p>{briefing.badge.description}</p>
+          </div>
+          <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
+        </div>
+      ) : null}
+      {briefing.tsundereClosing || briefing.nextStepPrompt ? <blockquote className={styles.blunt}>{briefing.tsundereClosing || briefing.nextStepPrompt}</blockquote> : null}
       {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
     </article>
   );
@@ -497,15 +1116,16 @@ function RealityCheckForm({
   );
 }
 
-function RefinedOrderDocument({ refined }: { refined: NeoRefinedOrder }) {
+function RefinedOrderDocument({ refined, badgeIndex }: { refined: NeoRefinedOrder; badgeIndex: number }) {
+  const stuckPoint = getRefinedStuckPoint(refined);
   return (
-    <article className={styles.documentCard} data-version="v2">
+    <article className={styles.documentCard} data-version="v2" data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>2차 수정 작전 명령서</span>
         <h2>{refined.operationTitle || "수정 작전"}</h2>
       </header>
       <Section title="네오의 재판단" body={refined.neoReview} />
-      <Section title={refined.realBottleneck?.title || "진짜 막힌 지점"} body={refined.realBottleneck?.description} />
+      <Section title={stuckPoint.title || "실제로 흔들리던 지점"} body={stuckPoint.description} />
       <Section title="수정된 진단" body={refined.updatedDiagnosis} />
       <Section title="버려야 할 방식" list={refined.discardThis} />
       <Section title={refined.newLifeStrategy?.title || "새 인생 전략"} body={refined.newLifeStrategy?.description} list={refined.newLifeStrategy?.principles} />
@@ -523,12 +1143,12 @@ function RefinedOrderDocument({ refined }: { refined: NeoRefinedOrder }) {
       ) : null}
       <Section title="30일 전략" list={refined.thirtyDayStrategy} />
       <div className={styles.badgeBlock}>
-        <NeoWarRoomAssetImage asset={neoWarRoomAssets.badges.grades} alt="" sizes="90px" className={styles.badgeImageFrame} imageClassName={styles.decorImage} />
+        <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
         <div>
           <strong>오늘의 사자 휘장 · {refined.badge?.name || "무명 휘장"}</strong>
           <p>{refined.badge?.description}</p>
         </div>
-        <NeoWarRoomAssetImage asset={neoWarRoomAssets.badges.resultStamp} alt="" sizes="104px" className={styles.stampImageFrame} imageClassName={styles.decorImage} />
+        <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
       </div>
       <blockquote className={styles.blunt}>{refined.tsundereClosing}</blockquote>
     </article>

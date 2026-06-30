@@ -1,4 +1,5 @@
 import { buildMusicPublicUrl } from "@/lib/r2-public-url";
+import { getMusicTrackAccessPolicy } from "@/lib/music-access-policy";
 
 export type ArtistKey = "neo" | "yeoni" | "dest1nova" | "lunabloom" | "destinycafe";
 export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA" | "Luna bloom";
@@ -9,6 +10,7 @@ export type Track = {
   artistName: ArtistName;
   title: string;
   audioKey: string;
+  audioSourceKey: string;
   coverKey: string;
   audioUrl: string;
   coverUrl: string;
@@ -16,6 +18,12 @@ export type Track = {
   mood?: string;
   order?: number;
   lyricsLookupKey?: string;
+  accessTier: "free_full" | "locked_preview";
+  previewLimitSeconds?: number;
+  purchaseFeatureKey?: string;
+  priceKRW?: number;
+  coinCost?: number;
+  downloadFileName: string;
 };
 
 type MusicFolder = "neosong" | "yeonisong" | "neosongmini1" | "yeonisongmini1" | "DEST1NOVA" | "DEST1NOVA/DEST1NOVA 2집" | "lunabloom" | "DestinyCafe" | "DestinyWar";
@@ -29,13 +37,19 @@ type ArtistConfig = {
   displayCoverUrl?: string;
 };
 
+type AudioFileEntry = string | null | {
+  fileName: string;
+  audioFolder?: MusicFolder;
+};
+
 type ArtistAudioManifest = {
   artistKey: ArtistKey;
   folder?: MusicFolder;
+  audioFolder?: MusicFolder;
   fallbackCoverFileName?: string;
   coverFileNames?: readonly string[];
   displayCoverUrl?: string;
-  audioFileNames: readonly string[];
+  audioFileNames: readonly AudioFileEntry[];
 };
 
 const ARTISTS = {
@@ -84,39 +98,41 @@ const ARTISTS = {
 const artistAudioManifests = [
   {
     artistKey: "neo",
+    audioFolder: "DEST1NOVA",
     audioFileNames: [
-      "Code Destiny.wav",
-      "정재의 사랑.wav",
-      "인성 과다 생각감옥.wav",
-      "합충형파해 Spicy Love.wav",
-      "MBTI 물어보지마.wav",
-      "STAR-CROSSED.wav",
-      "내 사랑의 총량.wav",
-      "너는 나의 용신.wav",
-      "대운 업데이트!.wav",
-      "십성 로큰롤.wav",
-      "안괴 안돼.wav",
-      "운명에게 지지 않아.wav",
-      "운명은 위대하다.wav",
+      "Code Destiny.mp3",
+      "정재의 사랑.mp3",
+      "인성 과다 생각감옥.mp3",
+      "합충형파해 Spicy Love.mp3",
+      "MBTI 물어보지마.mp3",
+      "STAR-CROSSED.mp3",
+      "내 사랑의 총량.mp3",
+      "너는 나의 용신.mp3",
+      "대운 업데이트!.mp3",
+      "십성 로큰롤.mp3",
+      "안괴 안돼.mp3",
+      "운명에게 지지 않아.mp3",
+      "운명은 위대하다.mp3",
     ],
   },
   {
     artistKey: "yeoni",
+    audioFolder: "DEST1NOVA",
     audioFileNames: [
-      "Gisin Out Yongsin In.wav",
-      "Moonlight Daydream.wav",
-      "Mystery of Life_new.wav",
-      "Star-ink Heartstorm.wav",
-      "탐랑 플러팅 주의보.wav",
-      "원진귀문 러브 알고리즘.wav",
-      "재회운아 도와줘.wav",
-      "달빛 운명여행 main title.wav",
-      "달빛 운명여행 remix ver.wav",
-      "달빛 점괘.wav",
-      "러브 포츈.wav",
-      "별자리 지도 위에서.wav",
-      "숙요점 레슨.wav",
-      "연이의 Moonlight Code.wav",
+      "Gisin Out Yongsin In.mp3",
+      "Moonlight Daydream.mp3",
+      "Mystery of Life_new.mp3",
+      "Star-ink Heartstorm.mp3",
+      "탐랑 플러팅 주의보.mp3",
+      "원진귀문 러브 알고리즘.mp3",
+      "재회운아 도와줘.mp3",
+      "달빛 운명여행 main title.mp3",
+      "달빛 운명여행 remix ver.mp3",
+      null,
+      "러브 포츈.mp3",
+      "별자리 지도 위에서.mp3",
+      "숙요점 레슨.mp3",
+      "연이의 Moonlight Code.mp3",
     ],
   },
   {
@@ -125,13 +141,13 @@ const artistAudioManifests = [
     fallbackCoverFileName: "네오 미니 앨범 1집.webp",
     coverFileNames: ["네오 미니 앨범 1집.webp"],
     audioFileNames: [
-      "매력의 sign.wav",
-      "비겁다자의 우정 지옥.wav",
+      { fileName: "매력의 sign.mp3", audioFolder: "DEST1NOVA" },
+      { fileName: "비겁다자의 우정 지옥.mp3", audioFolder: "DEST1NOVA" },
       "새벽 끝.mp3",
-      "식상 폭발 말빨천재.wav",
-      "역마살 열차창.wav",
-      "재성아 나 돈 좀 줘.wav",
-      "탐랑성 Danger.wav",
+      { fileName: "식상 폭발 말빨천재.mp3", audioFolder: "DEST1NOVA" },
+      { fileName: "역마살 열차창.mp3", audioFolder: "DEST1NOVA" },
+      { fileName: "재성아 나 돈 좀 줘.mp3", audioFolder: "DEST1NOVA" },
+      { fileName: "탐랑성 Danger.mp3", audioFolder: "DEST1NOVA" },
     ],
   },
   {
@@ -141,8 +157,8 @@ const artistAudioManifests = [
     coverFileNames: ["연이 미니 앨범 1집 (2).webp"],
     audioFileNames: [
       "Flower pig 매력살.mp3",
-      "기신은 bye bye.wav",
-      "달빛처럼 닿을게.wav",
+      { fileName: "기신은 bye bye.mp3", audioFolder: "DEST1NOVA" },
+      { fileName: "달빛처럼 닿을게.mp3", audioFolder: "DEST1NOVA" },
       "도화 화개 love charm.mp3",
       "별빛 재판.mp3",
       "손끝 숨결.mp3",
@@ -152,18 +168,18 @@ const artistAudioManifests = [
     artistKey: "dest1nova",
     audioFileNames: [
       "Flip the Card.mp3",
-      "I am your fate.wav",
+      "I am your fate.mp3",
       "Karma, karma.mp3",
       "LUCKY THIEF.mp3",
       "Synastry gravity.mp3",
       "Zero hour, we don’t run.mp3",
-      "별빛 궤도속 fatal-sign.wav",
+      "별빛 궤도속 fatal-sign.mp3",
       "별이 말해.mp3",
       "오행 FLEX.mp3",
-      "운세 soda pop.wav",
-      "자미제왕 컴백.wav",
+      "운세 soda pop.mp3",
+      "자미제왕 컴백.mp3",
       "천동성 힐링남.mp3",
-      "편관의 궤도.wav",
+      "편관의 궤도.mp3",
     ],
   },
   {
@@ -206,6 +222,7 @@ const artistAudioManifests = [
       "Moonlit War Command Chamber.mp3",
       "The Moonlit War Room.mp3",
       "The war.mp3",
+      "White Lion.mp3",
     ],
   },
   {
@@ -262,8 +279,14 @@ function findCoverFileName(artist: ArtistConfig, audioFileName: string) {
   )) || artist.fallbackCoverFileName;
 }
 
-function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index: number): Track {
+function resolveAudioFileEntry(entry: Exclude<AudioFileEntry, null>) {
+  return typeof entry === "string" ? { fileName: entry } : entry;
+}
+
+function buildTrack(manifest: ArtistAudioManifest, audioFileEntry: Exclude<AudioFileEntry, null>, index: number): Track {
   const baseArtist = ARTISTS[manifest.artistKey];
+  const resolvedAudio = resolveAudioFileEntry(audioFileEntry);
+  const audioFileName = resolvedAudio.fileName;
   const hasFolderOverride = Boolean(manifest.folder);
   const artist: ArtistConfig = {
     ...baseArtist,
@@ -273,8 +296,10 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
     displayCoverUrl: manifest.displayCoverUrl ?? (hasFolderOverride ? undefined : baseArtist.displayCoverUrl),
   };
   const audioKey = keyFromFileName(artist.folder, audioFileName);
+  const audioSourceKey = keyFromFileName(resolvedAudio.audioFolder || manifest.audioFolder || artist.folder, audioFileName);
   const coverKey = keyFromFileName(artist.folder, findCoverFileName(artist, audioFileName));
   const hasLyrics = audioFileName !== "Fortune Reveal.mp3";
+  const accessPolicy = getMusicTrackAccessPolicy(audioSourceKey);
 
   return {
     id: `${artist.artistKey}-${String(index + 1).padStart(2, "0")}`,
@@ -282,9 +307,16 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
     artistName: artist.artistName,
     title: titleFromAudioFileName(audioFileName),
     audioKey,
+    audioSourceKey,
     coverKey,
-    audioUrl: buildMusicPublicUrl(audioKey),
+    audioUrl: buildMusicPublicUrl(audioSourceKey),
     coverUrl: artist.displayCoverUrl || buildMusicPublicUrl(coverKey),
+    accessTier: accessPolicy.accessTier,
+    ...(accessPolicy.previewLimitSeconds ? { previewLimitSeconds: accessPolicy.previewLimitSeconds } : {}),
+    ...(accessPolicy.purchaseFeatureKey ? { purchaseFeatureKey: accessPolicy.purchaseFeatureKey } : {}),
+    ...(accessPolicy.priceKRW ? { priceKRW: accessPolicy.priceKRW } : {}),
+    ...(accessPolicy.coinCost ? { coinCost: accessPolicy.coinCost } : {}),
+    downloadFileName: audioFileName,
     ...(hasLyrics ? { lyricsLookupKey: audioFileName } : {}),
     order: index + 1,
   };
@@ -293,10 +325,10 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileName: string, index:
 const artistTrackCounts: Record<ArtistKey, number> = { neo: 0, yeoni: 0, dest1nova: 0, lunabloom: 0, destinycafe: 0 };
 
 export const tracks = artistAudioManifests.flatMap((manifest) => (
-  manifest.audioFileNames.map((audioFileName) => {
+  manifest.audioFileNames.flatMap((audioFileName) => {
     const index = artistTrackCounts[manifest.artistKey];
     artistTrackCounts[manifest.artistKey] += 1;
-    return buildTrack(manifest, audioFileName, index);
+    return audioFileName ? [buildTrack(manifest, audioFileName, index)] : [];
   })
 ));
 export const neoTracks = tracks.filter((track) => track.artistKey === "neo");

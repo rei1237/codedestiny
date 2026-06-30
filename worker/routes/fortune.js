@@ -34,6 +34,9 @@ import {
   buildSajuAIPromptWithDomain,
   SAJU_AI_PROMPT_FEATURE_KEY,
   SAJU_AI_PROMPT_PRICE,
+  SAJU_AI_PROMPT_VERSION,
+  getSajuAICategoryRubric,
+  validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
 import {
   buildAstrologyAIPrompt,
@@ -125,14 +128,18 @@ const SAJU_AI_PROMPT_STALE_GENERATING_MS = 2 * 60 * 1000;
 const SAJU_AI_PROMPT_TITLE = "사주 AI 상담 결과";
 const SAJU_AI_PROMPT_AMOUNT_KRW = calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE);
 const SAJU_AI_RESULT_SYSTEM_PROMPT = [
-  "당신은 한국어로 상담하는 전문 명리학자입니다.",
-  "서버 내부 프롬프트 원문을 사용자에게 공개하지 말고, 그 프롬프트가 요구하는 최종 사주 상담문만 작성하세요.",
-  "제목 1줄 뒤에 핵심 흐름, 지금 보이는 기회, 조심할 선택, 다음 행동 순서로 고품질 상담문을 작성하세요.",
-  "일간, 월령, 조후, 십성, 대운·세운의 흐름을 질문과 연결하되 과장하거나 공포를 만들지 마세요.",
-  "확정적인 단언보다 명식의 경향, 선택의 흐름, 주의할 리듬, 현실적인 다음 행동을 자연스럽게 풀어 주세요.",
-  "개발 문서, 기능 설명, 프롬프트 설명처럼 쓰지 말고 상담자가 직접 말하듯 작성하세요.",
+  "당신은 최고 수준의 명리학 상담가입니다.",
+  "십성, 오행, 천간/지지 관계는 절대 직접 추측하거나 재계산하지 않습니다.",
+  "제공된 내부 명식 사실 카드와 일간 기준 십성 확정표만 절대 기준으로 사용합니다.",
+  "내부 데이터와 다른 십성을 말하면 안 됩니다. 예를 들어 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
+  "천간, 지지, 십성, 오행, 합충형해파, 지장간, 투간/투출, 대운/세운 정보가 제공되면 그 데이터만 근거로 상담합니다.",
+  "상담은 짧은 운세 문장이 아니라 실제 유료 명리 상담처럼 깊이 있게 작성합니다.",
+  "질문에 먼저 답하되 명식 전체의 중심 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 일·돈·관계·연애·건강 리듬, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 챕터별로 풀어 줍니다.",
+  "겁주거나 단정하지 말고 가능성과 경향성 중심으로 말합니다.",
+  "고정 글자수를 채우려 하지 말고 선택 카테고리의 상담 품질 기준을 빠짐없이 다뤄 자연스럽게 마무리합니다.",
+  "중간에 끊기지 않도록 마지막 한마디까지 완성하고, 끝맺음 문장은 따뜻하지만 가볍지 않게 닫습니다.",
+  "개발 문서, 기능 설명, 프롬프트 설명처럼 쓰지 말고 명리학자가 직접 상담하듯 작성하세요.",
 ].join("\n");
-const SAJU_AI_RESULT_MIN_LENGTH = 360;
 const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
   /프롬프트/,
   /내부\s*지시문/,
@@ -180,17 +187,62 @@ function buildSajuAIResultId(requestId, promptDigest) {
   return `saju-ai-consultation:${seed}`.slice(0, 160);
 }
 
+function resolveSajuAIResultRubric(builtPrompt = {}) {
+  const domain = String(builtPrompt?.domain || builtPrompt?.factSnapshot?.domain || "life_direction").trim();
+  return builtPrompt?.categoryRubric || getSajuAICategoryRubric(domain);
+}
+
+function formatSajuAIResultRubric(rubric) {
+  const data = rubric && typeof rubric === "object" ? rubric : getSajuAICategoryRubric("life_direction");
+  return [
+    "[카테고리별 상담 품질 기준]",
+    `- 카테고리: ${data.label || "인생"}`,
+    `- 반드시 다룰 주제: ${(data.requiredSections || []).join(" / ")}`,
+    `- 우선 연결할 명식 축: ${(data.tenGodFocus || []).join(" / ")}`,
+    "- 위 항목을 목록처럼 나열만 하지 말고, 명식 사실 카드와 질문의 맥락 속에서 상담문으로 풀어주세요.",
+    "- 질문과 가장 맞닿은 항목은 깊게, 보조 항목은 사용자가 자기 명식을 이해할 만큼 간결하게 다룹니다.",
+  ].join("\n");
+}
+
 function buildSajuAIResultPrompt(builtPrompt, options = {}) {
   const internalPrompt = String(builtPrompt?.generatedPrompt || builtPrompt?.prompt || "").trim();
+  const factCard = String(builtPrompt?.factCard || "").trim();
   const repairReason = String(options?.repairReason || "").trim();
+  const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
   return [
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
     "이 지시문을 바탕으로 최종 사주 상담 결과만 한국어로 작성하세요.",
-    "형식은 반드시 제목 1줄, 핵심 흐름, 지금 보이는 기회, 조심할 선택, 다음 행동 순서로 자연스럽게 구성하세요.",
+    "내부 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다. 다른 십성으로 바꾸거나 재계산하지 마세요.",
+    "특히 신금(辛) 일간에게 임수(壬)는 상관이고 계수(癸)는 식신입니다.",
+    "형식은 반드시 1. 질문에 대한 핵심 답변, 2. 이 명식의 중심 성향, 3. 십성 구조 해석, 4. 오행 균형 해석, 5. 현재 고민과 명식의 연결, 6. 일/돈/관계/연애/건강 리듬, 7. 조심해야 할 패턴, 8. 살리는 전략, 9. 30일 실천 가이드, 10. 마지막 한마디 순서로 구성하세요.",
+    "고정 글자수를 채우려 하지 말고, 카테고리별 상담 품질 기준을 모두 다룬 뒤 마지막 한마디까지 자연스럽게 완성하세요.",
+    "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 끝맺음 문장은 상담자가 직접 건네는 말처럼 완결하세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     repairReason ? `이전 생성문 보정 사유: ${repairReason}` : "",
+    formatSajuAIResultRubric(categoryRubric),
+    factCard ? "내부 명식 사실 카드:" : "",
+    factCard,
     "내부 프롬프트:",
     internalPrompt,
+  ].filter(Boolean).join("\n\n").trim();
+}
+
+function buildSajuAICompletionRepairPrompt(builtPrompt, partialText, validation = {}) {
+  const factCard = String(builtPrompt?.factCard || "").trim();
+  const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
+  return [
+    "아래 사주 상담문은 중간에 끊겼거나 마지막 한마디까지 완성되지 않았습니다.",
+    "기존 내용을 반복하지 말고, 끊긴 지점 이후부터 자연스럽게 이어서 부족한 챕터와 마지막 한마디를 완성하세요.",
+    "십성/오행/명식 관계는 내부 명식 사실 카드만 기준으로 삼고 재계산하지 마세요.",
+    "추가 문장 안에서도 내부 십성표와 다른 십성을 말하면 안 됩니다.",
+    validation?.reason ? `보완 사유: ${validation.reason}` : "",
+    formatSajuAIResultRubric(categoryRubric),
+    factCard ? "내부 명식 사실 카드:" : "",
+    factCard,
+    "기존 상담문:",
+    String(partialText || "").trim(),
+    "이어쓰기 지시:",
+    "위 내용을 반복하지 말고 이어질 본문만 작성하세요. 마지막에는 반드시 '10. 마지막 한마디' 또는 자연스러운 마지막 한마디로 닫으세요.",
   ].filter(Boolean).join("\n\n").trim();
 }
 
@@ -198,16 +250,99 @@ function normalizeSajuAIResultText(text) {
   return String(text || "").replace(/\r\n/g, "\n").trim();
 }
 
-function validateSajuAIResultText(text) {
+const SAJU_AI_REQUIRED_CHAPTER_PATTERNS = Object.freeze([
+  /질문에\s*대한\s*핵심\s*답변/,
+  /명식의?\s*중심\s*성향/,
+  /십성\s*구조/,
+  /오행\s*균형/,
+  /현재\s*고민|고민과\s*명식/,
+  /일\/돈\/관계\/연애\/건강|일\s*돈\s*관계\s*연애\s*건강/,
+  /조심해야\s*할\s*패턴/,
+  /살리는\s*전략/,
+  /30일\s*실천/,
+  /마지막\s*한마디/,
+]);
+
+const SAJU_AI_INCOMPLETE_TAIL_PATTERNS = Object.freeze([
+  /(?:그리고|또한|하지만|그러나|다만|그래서|그러므로|왜냐하면|예를 들어|즉|첫째|둘째|셋째)\s*$/,
+  /(?:해야|하면|하며|하고|되며|이고|으로|에서|에게|부터|까지|처럼|때문에)\s*$/,
+  /[-,:;·•]\s*$/,
+  /\(\s*$/,
+  /\[\s*$/,
+]);
+
+function countSajuAIRequiredChapters(text) {
+  return SAJU_AI_REQUIRED_CHAPTER_PATTERNS.reduce((count, pattern) => (
+    pattern.test(text) ? count + 1 : count
+  ), 0);
+}
+
+function hasSajuAINaturalEnding(text) {
   const normalized = normalizeSajuAIResultText(text);
-  if (normalized.length < SAJU_AI_RESULT_MIN_LENGTH) {
-    return { ok: false, reason: "상담문이 충분히 깊게 생성되지 않았습니다." };
+  if (!normalized) return false;
+  const tail = normalized.slice(-220).trim();
+  if (/마지막\s*한마디/.test(normalized)) return true;
+  if (/(습니다|입니다|하세요|바랍니다|좋습니다|됩니다|합니다|열립니다|흐릅니다|드러납니다|가리킵니다|비춥니다)[.!?。？！…]?$/.test(tail)) return true;
+  return /(당신의|이 명식은|오늘부터|마지막으로|끝으로).{10,}(습니다|입니다|하세요|바랍니다|좋습니다)[.!?。？！…]?$/.test(tail);
+}
+
+function detectSajuAIIncompleteResult(text) {
+  const normalized = normalizeSajuAIResultText(text);
+  if (!normalized) return { incomplete: true, reason: "상담문이 비어 있습니다." };
+  const tail = normalized.slice(-180).trim();
+  const tailLooksCut = SAJU_AI_INCOMPLETE_TAIL_PATTERNS.some((pattern) => pattern.test(tail));
+  if (tailLooksCut) return { incomplete: true, reason: "상담문 마지막 문장이 중간에 끊겼습니다." };
+  if (!hasSajuAINaturalEnding(normalized)) {
+    return { incomplete: true, reason: "마지막 한마디 또는 자연스러운 마무리가 없습니다." };
   }
+  return { incomplete: false, reason: "" };
+}
+
+function countSajuAICategoryMatches(text, rubric) {
+  const data = rubric && typeof rubric === "object" ? rubric : getSajuAICategoryRubric("life_direction");
+  const groups = Array.isArray(data.validationKeywords) ? data.validationKeywords : [];
+  return groups.reduce((count, group) => {
+    const keywords = Array.isArray(group) ? group : [];
+    return keywords.some((keyword) => text.includes(String(keyword || "").trim())) ? count + 1 : count;
+  }, 0);
+}
+
+export function validateSajuAIResultText(text, factSnapshot = null, options = {}) {
+  const normalized = normalizeSajuAIResultText(text);
   const forbidden = SAJU_AI_RESULT_FORBIDDEN_PATTERNS.find((pattern) => pattern.test(normalized));
   if (forbidden) {
     return { ok: false, reason: "상담문 안에 기계적인 표현이 남아 있습니다." };
   }
-  return { ok: true, text: normalized };
+  const incomplete = detectSajuAIIncompleteResult(normalized);
+  if (incomplete.incomplete) {
+    return { ok: false, reason: incomplete.reason, incomplete: true };
+  }
+  const chapterCount = countSajuAIRequiredChapters(normalized);
+  if (chapterCount < 8) {
+    return {
+      ok: false,
+      reason: "상담문 필수 챕터가 충분히 갖춰지지 않았습니다.",
+      qualityIssues: { chapterCount },
+    };
+  }
+  const rubric = options?.categoryRubric || getSajuAICategoryRubric(options?.domain || factSnapshot?.domain || "life_direction");
+  const categoryMatches = countSajuAICategoryMatches(normalized, rubric);
+  if (categoryMatches < 4) {
+    return {
+      ok: false,
+      reason: "카테고리별 핵심 상담 항목이 부족합니다.",
+      qualityIssues: { categoryMatches, category: rubric.label || rubric.domain },
+    };
+  }
+  const tenGodValidation = validateSajuMyeongsikTenGodText(normalized, factSnapshot);
+  if (!tenGodValidation.ok) {
+    return {
+      ok: false,
+      reason: "내부 십성표와 충돌하는 표현이 있습니다.",
+      tenGodMismatches: tenGodValidation.mismatches,
+    };
+  }
+  return { ok: true, text: normalized, chapterCount, categoryMatches };
 }
 
 function buildSajuAIPromptPaymentRequiredError() {
@@ -282,6 +417,10 @@ function readSajuAIPromptProfileId(body = {}, sajuResult = {}) {
   ).trim().slice(0, 120);
 }
 
+function resolveSajuAIProfileIdForConsultation(body = {}, sajuResult = {}) {
+  return readSajuAIPromptProfileId(body, sajuResult) || "default";
+}
+
 function normalizeSajuAIPromptAccessMethod(consumePayload = {}, body = {}) {
   const consume = consumePayload?.consume && typeof consumePayload.consume === "object" ? consumePayload.consume : {};
   const accessGrant = consumePayload?.accessGrant && typeof consumePayload.accessGrant === "object" ? consumePayload.accessGrant : {};
@@ -340,7 +479,7 @@ function normalizeSajuAIPromptAccessMethod(consumePayload = {}, body = {}) {
   return "single";
 }
 
-function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayload, chargedCoins, balanceAfter, requestId, execution, promptDigest, model, provider, domain, resultId }) {
+function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayload, chargedCoins, balanceAfter, requestId, execution, promptDigest, model, provider, domain, resultId, question, profileId, saved = false }) {
   return {
     ok: true,
     status: "completed",
@@ -348,9 +487,15 @@ function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayloa
     stepMessage: "결과 준비 완료",
     resultText: normalizeSajuAIResultText(resultText),
     title: SAJU_AI_PROMPT_TITLE,
+    consultationType: "saju_myeongsik_ai",
+    promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    question: String(question || "").trim(),
     summaryIntent: builtPrompt.summaryIntent || "",
     questionType: builtPrompt.questionType,
     domain: String(builtPrompt.domain || domain || "").trim() || undefined,
+    profileId: String(profileId || "").trim() || undefined,
+    factSnapshot: builtPrompt.factSnapshot || undefined,
+    tenGodSnapshot: builtPrompt.tenGodSnapshot || undefined,
     amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
     chargedCoins,
     membershipCreditCost: Math.max(0, Number(consumePayload?.membershipCreditCost || consumePayload?.consume?.membershipCreditCost || 0)),
@@ -369,6 +514,8 @@ function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayloa
     balanceAfter,
     model: model || undefined,
     provider: provider || undefined,
+    saved: saved === true,
+    generatedAt: new Date().toISOString(),
   };
 }
 
@@ -490,6 +637,78 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
     ...(profileId ? { profileId: String(profileId).trim() } : {}),
     $or: clauses,
   }).lean();
+}
+
+async function saveSajuAIConsultationResultRecord({ auth, body, profileId, requestId, resultId, resultPayload, builtPrompt, consumePayload, paymentIdentity, promptDigest }) {
+  const userId = String(auth?.userId || "").trim();
+  const normalizedProfileId = String(profileId || readSajuAIPromptProfileId(body, body?.sajuResult) || "default").trim() || "default";
+  const normalizedRequestId = String(requestId || "").trim();
+  if (!userId || !normalizedRequestId || !resultPayload?.resultText) return null;
+
+  const now = new Date();
+  const accessMethod = normalizeSajuAIPromptAccessMethod(consumePayload, body);
+  const executionId = buildSajuAIPromptExecutionId({ userId, profileId: normalizedProfileId, requestId: normalizedRequestId });
+  const paymentId = String(paymentIdentity?.paymentId || "").trim();
+  const orderId = String(paymentIdentity?.orderId || normalizedRequestId).trim();
+  const chargedCoins = Math.max(0, Number(resultPayload.chargedCoins || 0));
+  const amountKRW = Math.max(0, Number(resultPayload.amountKRW || 0));
+  const monthlyDeductedAmount = Math.max(0, Number(resultPayload.membershipCreditCost || 0));
+  const progress = buildSajuAIProgress(100, "completed", "결과 준비 완료");
+  const safeResultPayload = {
+    ...resultPayload,
+    saved: true,
+    profileId: normalizedProfileId,
+  };
+
+  return PaidExecutionRecord.findOneAndUpdate(
+    {
+      userId,
+      featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+      profileId: normalizedProfileId,
+      requestId: normalizedRequestId,
+    },
+    {
+      $setOnInsert: {
+        executionId,
+        requestId: normalizedRequestId,
+        userId,
+        featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+        profileId: normalizedProfileId,
+        accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+        accessMethod,
+        amountCoins: accessMethod === "single" ? chargedCoins : 0,
+        amountKRW: accessMethod === "single" ? amountKRW : 0,
+        monthlyDeductedAmount: accessMethod === "monthly" ? monthlyDeductedAmount : 0,
+        paymentId: paymentId && paymentId !== normalizedRequestId ? paymentId : "",
+        orderId,
+        consumedAt: now,
+        idempotencyKey: executionId.slice(0, 180),
+      },
+      $set: {
+        status: "completed",
+        completedAt: now,
+        resultId: String(resultId || "").trim(),
+        result: {
+          consultation: safeResultPayload,
+          promptVersion: builtPrompt?.promptVersion || SAJU_AI_PROMPT_VERSION,
+          consultationType: "saju_myeongsik_ai",
+          factSnapshot: builtPrompt?.factSnapshot || null,
+          tenGodSnapshot: builtPrompt?.tenGodSnapshot || null,
+          promptDigest: String(promptDigest || "").trim(),
+          progress,
+          order: {
+            paymentStatus: "PAID",
+            accessMethod,
+            amountCoins: chargedCoins,
+            amountKRW,
+            monthlyDeductedAmount,
+          },
+        },
+        error: null,
+      },
+    },
+    { upsert: true, new: true },
+  ).lean();
 }
 
 function readSajuAIPromptMonthlyRefundContext(consumePayload = {}, body = {}) {
@@ -3669,6 +3888,32 @@ async function handleSajuAIPrompt(request, auth, env) {
     return buildSajuAIPromptError("PROMPT_GENERATION_FAILED", "상담문 생성 준비 중 오류가 발생했습니다.", 500);
   }
 
+  const profileId = resolveSajuAIProfileIdForConsultation(body, sajuResult);
+  console.info("[SajuMyeongsikAI] fact snapshot built", {
+    requestId: String(body?.requestId || "").slice(0, 120),
+    profileId,
+    promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    dayStem: builtPrompt.factSnapshot?.dayMaster?.stem || "",
+  });
+  console.info("[SajuMyeongsikAI] category rubric selected", {
+    requestId: String(body?.requestId || "").slice(0, 120),
+    promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+    domain: builtPrompt.domain || "",
+    category: builtPrompt.categoryRubric?.label || "",
+  });
+  const factValidation = validateSajuMyeongsikTenGodText(builtPrompt.factCard || "", builtPrompt.factSnapshot);
+  if (!factValidation.ok) {
+    console.warn("[SajuMyeongsikAI] validation mismatch", {
+      requestId: String(body?.requestId || "").slice(0, 120),
+      mismatchCount: factValidation.mismatches.length,
+    });
+    return buildSajuAIPromptError("TEN_GOD_FACT_VALIDATION_FAILED", "명식 십성 기준을 확정하는 중 충돌이 발견되었습니다. 잠시 후 다시 시도해 주세요.", 500);
+  }
+  console.info("[SajuMyeongsikAI] tenGod validation passed", {
+    requestId: String(body?.requestId || "").slice(0, 120),
+    promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+  });
+
   const digestBase = `${String(auth?.userId || "").trim()}:${SAJU_AI_PROMPT_FEATURE_KEY}:${builtPrompt.digestSource}`;
   const digestHex = (await sha256Hex(digestBase)) || String(Date.now());
   const payloadHash = ((await sha256Hex(builtPrompt.digestSource)) || digestHex).slice(0, 120);
@@ -3774,20 +4019,94 @@ async function handleSajuAIPrompt(request, auth, env) {
     let lastValidation = null;
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const ai = await callGeminiText(env, buildSajuAIResultPrompt(builtPrompt, {
+      const llmPrompt = buildSajuAIResultPrompt(builtPrompt, {
         repairReason: lastValidation?.reason || "",
-      }), {
+      });
+      console.info("[SajuMyeongsikAI] LLM request created", {
+        requestId,
+        promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+        attempt: attempt + 1,
+      });
+      const ai = await callGeminiText(env, llmPrompt, {
         systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
         taskType: "fortune",
-        temperature: attempt > 0 ? 0.64 : 0.72,
-        maxOutputTokens: 4096,
+        temperature: attempt > 0 ? 0.5 : 0.56,
+        maxOutputTokens: 14000,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);
-      const validation = ai?.ok ? validateSajuAIResultText(resultText) : { ok: false, reason: ai?.message || ai?.error || "LLM 생성 실패" };
+      let validation = ai?.ok
+        ? validateSajuAIResultText(resultText, builtPrompt.factSnapshot, {
+          domain: builtPrompt.domain,
+          categoryRubric: builtPrompt.categoryRubric,
+        })
+        : { ok: false, reason: ai?.message || ai?.error || "LLM 생성 실패" };
+      if (!validation.ok && validation.tenGodMismatches?.length) {
+        console.warn("[SajuMyeongsikAI] validation mismatch", {
+          requestId,
+          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+          mismatchCount: validation.tenGodMismatches.length,
+        });
+      }
+      if (ai?.ok && validation.incomplete) {
+        console.warn("[SajuMyeongsikAI] incomplete result", {
+          requestId,
+          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+          attempt: attempt + 1,
+          reason: validation.reason,
+        });
+        const repairPrompt = buildSajuAICompletionRepairPrompt(builtPrompt, resultText, validation);
+        console.info("[SajuMyeongsikAI] completion repair requested", {
+          requestId,
+          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+          attempt: attempt + 1,
+        });
+        const repairAi = await callGeminiText(env, repairPrompt, {
+          systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
+          taskType: "fortune",
+          temperature: 0.42,
+          maxOutputTokens: 8000,
+        });
+        if (repairAi?.ok) {
+          const repairedText = normalizeSajuAIResultText(`${resultText}\n\n${repairAi.text || ""}`);
+          const repairedValidation = validateSajuAIResultText(repairedText, builtPrompt.factSnapshot, {
+            domain: builtPrompt.domain,
+            categoryRubric: builtPrompt.categoryRubric,
+          });
+          if (!repairedValidation.ok && repairedValidation.tenGodMismatches?.length) {
+            console.warn("[SajuMyeongsikAI] validation mismatch", {
+              requestId,
+              promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+              mismatchCount: repairedValidation.tenGodMismatches.length,
+              stage: "completion-repair",
+            });
+          }
+          if (repairedValidation.ok) {
+            finalAi = { ...ai, repairProvider: repairAi.provider, repairModel: repairAi.model };
+            finalText = repairedValidation.text;
+            lastValidation = repairedValidation;
+            console.info("[SajuMyeongsikAI] quality validation passed", {
+              requestId,
+              promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+              chapterCount: repairedValidation.chapterCount,
+              categoryMatches: repairedValidation.categoryMatches,
+              repaired: true,
+            });
+            break;
+          }
+          validation = repairedValidation;
+        }
+      }
       if (ai?.ok && validation.ok) {
         finalAi = ai;
         finalText = validation.text;
         lastValidation = validation;
+        console.info("[SajuMyeongsikAI] quality validation passed", {
+          requestId,
+          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+          chapterCount: validation.chapterCount,
+          categoryMatches: validation.categoryMatches,
+          repaired: false,
+        });
         break;
       }
       finalAi = ai;
@@ -3817,14 +4136,37 @@ async function handleSajuAIPrompt(request, auth, env) {
       domain,
       promptDigest,
       resultId,
+      question,
+      profileId,
       model: finalAi.model || undefined,
       provider: finalAi.provider || undefined,
     });
+    const savedRecord = await saveSajuAIConsultationResultRecord({
+      auth,
+      body,
+      profileId,
+      requestId,
+      resultId,
+      resultPayload,
+      builtPrompt,
+      consumePayload,
+      paymentIdentity,
+      promptDigest,
+    });
+    resultPayload.saved = true;
+    resultPayload.jobId = savedRecord?.executionId || resultPayload.jobId;
+    resultPayload.executionId = savedRecord?.executionId || resultPayload.executionId;
     logSajuAIPromptStage("LLM_JOB_COMPLETED", {
       userId: auth.userId,
       requestId,
       paymentId: paymentIdentity.paymentId,
       orderId: paymentIdentity.orderId,
+    });
+    console.info("[SajuMyeongsikAI] result saved", {
+      requestId,
+      resultId,
+      promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+      profileId,
     });
     return json(resultPayload);
   } catch (error) {

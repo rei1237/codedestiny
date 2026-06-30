@@ -73,13 +73,127 @@ function findOpening(built, sourceBranch, triggerBranch, relationType) {
 }
 
 try {
-  const { buildSajuAIPromptWithDomain } = await loadPromptBuilder();
+  const {
+    buildSajuAIPromptWithDomain,
+    getSajuAICategoryRubric,
+    getTenGodFromDayMaster,
+    validateSajuMyeongsikTenGodText,
+  } = await loadPromptBuilder();
+  const { validateSajuAIResultText } = await import(pathToFileURL(path.join(root, "worker/routes/fortune.js")).href);
+
+  const shinMetalCases = [
+    ["壬", "상관"],
+    ["癸", "식신"],
+    ["甲", "정재"],
+    ["乙", "편재"],
+    ["丙", "정관"],
+    ["丁", "편관"],
+    ["戊", "정인"],
+    ["己", "편인"],
+    ["庚", "겁재"],
+    ["辛", "비견"],
+  ];
+  for (const [targetStem, expectedTenGod] of shinMetalCases) {
+    assert.equal(
+      getTenGodFromDayMaster("辛", targetStem),
+      expectedTenGod,
+      `辛 day master should read ${targetStem} as ${expectedTenGod}`,
+    );
+  }
+
+  const shinBuilt = buildSajuAIPromptWithDomain({
+    question: "나의 일과 돈, 관계 흐름을 명식 전체로 자세히 알려주세요.",
+    domain: "life_direction",
+    sajuResult: makeSajuResult({
+      pillars: {
+        y: { g: "壬", j: "申", gE: "수", jE: "금" },
+        m: { g: "癸", j: "酉", gE: "수", jE: "금" },
+        d: { g: "辛", j: "丑", gE: "금", jE: "토" },
+        h: { g: "甲", j: "辰", gE: "목", jE: "토" },
+      },
+      daewun: [{ age: 30, gan: "壬", zhi: "子", score: 76, label: "test Shin-Ren daewoon" }],
+    }),
+  });
+  assert.equal(shinBuilt.promptVersion, "saju-myeongsik-ai-v3", "Saju AI consultation prompt version should be v3");
+  const renRow = shinBuilt.factSnapshot.fixedTenGodTable.find((row) => row.stem === "壬");
+  const guiRow = shinBuilt.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸");
+  assert.equal(renRow?.tenGod, "상관", "辛 day master fact snapshot should fix 壬 as 상관");
+  assert.equal(guiRow?.tenGod, "식신", "辛 day master fact snapshot should fix 癸 as 식신");
+  assert.ok(shinBuilt.factCard.includes("壬(임):상관"), "fact card should expose 壬 as 상관");
+  assert.ok(shinBuilt.factCard.includes("癸(계):식신"), "fact card should expose 癸 as 식신");
+  assert.ok(shinBuilt.prompt.includes("[명식 사실 카드]"), "prompt should include the fact card");
+  assert.ok(shinBuilt.prompt.includes("[카테고리별 상담 품질 기준]"), "prompt should include category quality rubric");
+  assert.equal(shinBuilt.categoryRubric?.domain, "life_direction", "built prompt should expose the selected category rubric");
+  assert.ok(shinBuilt.prompt.includes("신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관"), "prompt should pin the Shin-Ren correction");
+  assert.equal(
+    validateSajuMyeongsikTenGodText("임수는 상관으로 작동합니다.", shinBuilt.factSnapshot).ok,
+    true,
+    "validation should pass the correct Shin-Ren ten-god",
+  );
+  assert.equal(
+    validateSajuMyeongsikTenGodText("임수는 식신으로 작동합니다.", shinBuilt.factSnapshot).ok,
+    false,
+    "validation should reject the wrong Shin-Ren ten-god",
+  );
 
   const baseBuilt = buildSajuAIPromptWithDomain({
     question: "올해 직업과 재물 흐름에서 무엇을 우선해야 하나요?",
     domain: "career",
     sajuResult: makeSajuResult(),
   });
+  const conciseCompleteCareerResult = [
+    "1. 질문에 대한 핵심 답변",
+    "지금 질문은 직업과 진로를 한꺼번에 정리하라는 흐름으로 보입니다. 일하는 방식은 혼자 밀어붙이기보다 역할을 분명히 나눌 때 안정됩니다.",
+    "2. 이 명식의 중심 성향",
+    "이 명식은 중심을 세운 뒤 성장 전략을 잡아야 힘이 납니다.",
+    "3. 십성 구조 해석",
+    "관성, 식상, 인성, 재성은 각각 책임, 표현, 학습, 현실 성과로 이어집니다.",
+    "4. 오행 균형 해석",
+    "오행 균형은 일의 속도와 회복 리듬을 함께 조절하라고 가리킵니다.",
+    "5. 현재 고민과 명식의 연결",
+    "이직과 전환 타이밍을 묻는 이유는 조직 안의 역할과 독립 가능성을 동시에 보고 싶기 때문입니다.",
+    "6. 일/돈/관계/연애/건강 리듬",
+    "일과 돈은 먼저 안정시키고, 관계와 건강은 무리한 확장보다 루틴을 세우는 편이 좋습니다.",
+    "7. 조심해야 할 패턴",
+    "성장 욕심이 앞서 준비 없이 움직이면 흐름이 흩어질 수 있습니다.",
+    "8. 살리는 전략",
+    "조직 안에서는 책임 범위를 분명히 하고, 독립은 작은 수익 모델부터 시험하세요.",
+    "9. 30일 실천 가이드",
+    "첫째, 업무 기록을 정리하세요. 둘째, 커리어 선택지를 세 개로 줄이세요. 셋째, 다음 전환을 위한 준비 항목을 적으세요.",
+    "10. 마지막 한마디",
+    "당신의 진로는 급히 증명할수록 흐려지기보다, 중심을 세우고 꾸준히 다듬을 때 더 선명하게 열립니다.",
+  ].join("\n\n");
+  const completeValidation = validateSajuAIResultText(conciseCompleteCareerResult, baseBuilt.factSnapshot, {
+    domain: "career",
+    categoryRubric: baseBuilt.categoryRubric,
+  });
+  assert.equal(completeValidation.ok, true, "short complete result should pass quality validation without a fixed length floor");
+  const incompleteValidation = validateSajuAIResultText(`${conciseCompleteCareerResult}\n\n그리고`, baseBuilt.factSnapshot, {
+    domain: "career",
+    categoryRubric: baseBuilt.categoryRubric,
+  });
+  assert.equal(incompleteValidation.ok, false, "cut-off result should fail validation");
+  assert.equal(incompleteValidation.incomplete, true, "cut-off result should be marked incomplete");
+  const categoryRubricCases = [
+    ["career", "직업 적합도"],
+    ["money", "수입 구조"],
+    ["love", "끌림의 방식"],
+    ["litigation", "문서/증거 정리"],
+    ["relationship", "소통 방식"],
+    ["health", "생활 리듬"],
+    ["life_direction", "삶의 방향"],
+  ];
+  for (const [domain, marker] of categoryRubricCases) {
+    const rubric = getSajuAICategoryRubric(domain);
+    const built = buildSajuAIPromptWithDomain({
+      question: `${rubric.label} 상담 품질 기준이 명식에 맞게 들어가는지 확인해 주세요.`,
+      domain,
+      sajuResult: makeSajuResult(),
+    });
+    assert.equal(built.categoryRubric?.domain, domain, `${domain} rubric should be returned`);
+    assert.ok(built.prompt.includes("[카테고리별 상담 품질 기준]"), `${domain} prompt should include the rubric header`);
+    assert.ok(built.prompt.includes(marker), `${domain} prompt should include its required topic marker`);
+  }
   const baseFactors = baseBuilt.advancedFactors;
   assert.ok(Array.isArray(baseFactors.hiddenStems), "advancedFactors.hiddenStems should be an array");
   assert.ok(baseFactors.hiddenStems.length >= 8, "canonical JSON should include hidden stems from four branches");

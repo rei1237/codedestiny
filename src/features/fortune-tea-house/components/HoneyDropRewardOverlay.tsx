@@ -1,6 +1,6 @@
 "use client";
 
-import { Send } from "lucide-react";
+import { BookOpen, Send } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -10,6 +10,7 @@ type HoneyDropRewardOverlayProps = {
   honeyDrops: FortuneTeaHouseHoneyDropsState | null;
   burstKey: number;
   message: string;
+  onOpenTarotAlbum: () => void;
 };
 
 type PigAnswerEntry = {
@@ -273,11 +274,13 @@ function HoneyPigQnaPanel() {
   );
 }
 
-export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message }: HoneyDropRewardOverlayProps) {
+export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum }: HoneyDropRewardOverlayProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [honeyModeActive, setHoneyModeActive] = useState(false);
   const count = honeyDrops?.currentHoneyDrops ?? 0;
   const unlocked = count >= 10 || Boolean(honeyDrops?.unlocked);
+  const tarotAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
+  const albumProgress = Math.min(10, count);
   const showBurst = burstKey > 0 && Boolean(honeyDrops?.earnedThisResult);
   const statusLabel = unlocked ? "열림" : "혜택";
   const honeyIconStyle = {
@@ -307,6 +310,22 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message }
         <em>{statusLabel}</em>
       </button>
 
+      <button
+        type="button"
+        className={styles.honeyAlbumButton}
+        data-unlocked={tarotAlbumUnlocked ? "true" : "false"}
+        onClick={() => {
+          setShowInfo(false);
+          setHoneyModeActive(false);
+          onOpenTarotAlbum();
+        }}
+        aria-label={tarotAlbumUnlocked ? "달빛 타로 앨범 보기" : `달빛 타로 앨범 열기, 꿀방울 ${albumProgress}/10`}
+      >
+        <BookOpen size={15} strokeWidth={2.2} aria-hidden />
+        <span>{tarotAlbumUnlocked ? "달빛 앨범 보기" : "달빛 앨범"}</span>
+        <em>{tarotAlbumUnlocked ? "열림" : `${albumProgress}/10`}</em>
+      </button>
+
       {unlocked ? (
         <button
           type="button"
@@ -328,12 +347,18 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message }
             <span className={styles.honeyInfoPig} style={flowerPigStyle} />
           </span>
           <div>
-            <strong>{unlocked ? "꽃돼지가 달콤한 질문 시간을 열어뒀어요." : "꿀방울을 모으면 상담이 조금 더 달콤해져요."}</strong>
+            <strong>{tarotAlbumUnlocked ? "달빛 타로 앨범이 손님 곁에 열려 있어요." : "꿀방울 10개면 연이의 비밀 카드첩을 열 수 있어요."}</strong>
             <p>
-              {unlocked
-                ? "꿀 모드를 켜면 꽃돼지에게 가벼운 질문을 건넬 수 있어요. 모은 꿀방울은 사라지지 않아요."
-                : "상담이 마무리될 때마다 한 방울씩 쌓이고, 10방울부터 작은 보너스 조언이 붙어요. 결제 재화는 아니에요."}
+              {tarotAlbumUnlocked
+                ? "해금 완료 · 꿀방울이 0개여도 언제든 78장의 카드를 감상할 수 있어요."
+                : `보유 꿀방울 ${count}개 / 해금 필요 10개. 운명의 찻집에서 상담을 마치면 꿀방울이 하나씩 모여요.`}
             </p>
+            <div className={styles.honeyAlbumMeter} aria-label={`달빛 타로 앨범 진행도 ${albumProgress}/10`}>
+              <span style={{ width: `${albumProgress * 10}%` }} />
+            </div>
+            <button type="button" className={styles.honeyAlbumPanelButton} onClick={onOpenTarotAlbum}>
+              {tarotAlbumUnlocked ? "앨범 감상하기" : "달빛 앨범 살펴보기"}
+            </button>
           </div>
         </div>
       ) : null}

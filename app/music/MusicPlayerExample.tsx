@@ -7,6 +7,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
   ChevronDown,
+  Download,
+  Lock,
 
   Moon,
   Pause,
@@ -20,6 +22,7 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
+import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
@@ -36,9 +39,7 @@ type MusicPlayerExampleProps = {
 type PlaylistThemeMode = "all" | ArtistKey;
 
 type PlayerStyle = CSSProperties & {
-  "--cover-image"?: string;
   "--asset-ambient-image"?: string;
-  "--moon-banner-cover-fallback"?: string;
 };
 type AlbumImageMode = "default" | "human";
 
@@ -47,6 +48,16 @@ type HumanModeCoverMap = {
   dest1novaVol1: string;
   dest1novaVol2: string;
 };
+type MusicAccessEntry = {
+  trackId: string;
+  audioSourceKey: string;
+  featureKey: string;
+  hasFullAccess: boolean;
+  audioUrl?: string;
+  downloadUrl?: string;
+  code?: string;
+};
+type MusicAccessMap = Record<string, MusicAccessEntry>;
 
 const BANNER_STARS = [
   { cx: 14, cy: 18, r: 1.8, opacity: 0.32, duration: "3s", delay: "0s" },
@@ -80,6 +91,36 @@ function safeBuildMusicPublicUrl(objectKey: string) {
   }
 }
 
+function buildMusicApiUrl(path: "audio" | "download", track: Track) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("key", track.audioSourceKey);
+  if (track.purchaseFeatureKey) {
+    searchParams.set("featureKey", track.purchaseFeatureKey);
+  }
+  return `/api/music/${path}?${searchParams.toString()}`;
+}
+
+function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap) {
+  if (track.accessTier === "free_full") return true;
+  return Boolean(track.id && accessByTrackId[track.id]?.hasFullAccess);
+}
+
+function buildPlaybackTrack(track: Track, accessByTrackId: MusicAccessMap): Track {
+  if (!hasTrackFullAccess(track, accessByTrackId)) return track;
+
+  return {
+    ...track,
+    accessTier: "free_full",
+    previewLimitSeconds: undefined,
+    audioUrl: accessByTrackId[track.id]?.audioUrl || buildMusicApiUrl("audio", track),
+  };
+}
+
+function buildDownloadUrl(track: Track, accessByTrackId: MusicAccessMap) {
+  if (!hasTrackFullAccess(track, accessByTrackId)) return "";
+  return accessByTrackId[track.id]?.downloadUrl || buildMusicApiUrl("download", track);
+}
+
 function canUseHumanCoverMode(artistKey: ArtistKey) {
   return artistKey === "yeoni" || artistKey === "dest1nova";
 }
@@ -107,6 +148,10 @@ function resolveTrackAlbumCoverUrl(track: Track, mode: AlbumImageMode, humanMode
   }
 
   return track.coverUrl;
+}
+
+function getTrackCoverShape(track: Track) {
+  return track.artistKey === "neo" || track.artistKey === "dest1nova" ? "wide" : "square";
 }
 
 const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
@@ -152,6 +197,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareText: "Code Destiny 달빛 라이브러리에서 들어보세요.",
     shareMain: "Code Destiny 메인",
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+    previewBadge: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30",
+    fullAccessBadge: "\uc804\uccb4\ub4e3\uae30 \uc5f4\ub9bc",
+    buyFullTrack: "\uc804\uccb4\ub4e3\uae30 300\uc6d0",
+    buyingFullTrack: "\uacb0\uc81c \ud655\uc778 \uc911",
+    downloadTrack: "\ub2e4\uc6b4\ub85c\ub4dc",
+    previewLimitReached: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30\uac00 \ub05d\ub0ac\uc2b5\ub2c8\ub2e4.",
+    purchaseFailed: "\uacb0\uc81c\ub97c \uc644\ub8cc\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.",
   },
   en: {
     lyricsAria: "Current track lyrics",
@@ -195,6 +247,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareText: "Listen inside the Code Destiny moon library.",
     shareMain: "Code Destiny main",
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+    previewBadge: "40 sec preview",
+    fullAccessBadge: "Full track open",
+    buyFullTrack: "Full track 300 KRW",
+    buyingFullTrack: "Checking payment",
+    downloadTrack: "Download",
+    previewLimitReached: "The 40 second preview has ended.",
+    purchaseFailed: "Payment was not completed.",
   },
   ja: {
     lyricsAria: "現在の曲の歌詞",
@@ -238,6 +297,13 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareText: "Code Destinyの月明かりライブラリで聴いてみてください。",
     shareMain: "Code Destiny メイン",
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+    previewBadge: "40 sec preview",
+    fullAccessBadge: "Full track open",
+    buyFullTrack: "Full track 300 KRW",
+    buyingFullTrack: "Checking payment",
+    downloadTrack: "Download",
+    previewLimitReached: "The 40 second preview has ended.",
+    purchaseFailed: "Payment was not completed.",
   },
 } as const;
 
@@ -377,19 +443,6 @@ function MoonWaveform({ isPlaying }: MoonWaveformProps) {
   );
 }
 
-function MoonCoverStack() {
-  return (
-    <div className={styles.moonCoverStack} aria-hidden>
-      <span className={styles.coverStackGlow} />
-      <span className={`${styles.floatingCover} ${styles.floatingCoverNeo}`} />
-      <span className={`${styles.floatingCover} ${styles.floatingCoverYeoni}`} />
-      <span className={`${styles.floatingCover} ${styles.floatingCoverDest1nova}`} />
-      <span className={`${styles.floatingCover} ${styles.floatingCoverLuna}`} />
-      <span className={styles.coverStackWave} />
-    </div>
-  );
-}
-
 type MoonLibraryHeroProps = {
   tracksCount: number;
   copy: ReturnType<typeof getMusicPlayerCopy>;
@@ -421,7 +474,6 @@ function MoonLibraryHero({ tracksCount, copy, onPlayAll, onExploreMoods }: MoonL
           ))}
         </div>
       </div>
-      <MoonCoverStack />
     </section>
   );
 }
@@ -432,6 +484,8 @@ type FeaturedTrackCardProps = {
   coverFailed: boolean;
   isPlaying: boolean;
   isSaved: boolean;
+  hasFullAccess: boolean;
+  isPurchasing: boolean;
   listeningStatusLabel: string;
   copy: ReturnType<typeof getMusicPlayerCopy>;
   canToggleAlbumMode: boolean;
@@ -442,6 +496,8 @@ type FeaturedTrackCardProps = {
   onCoverLoad: () => void;
   onCoverError: () => void;
   onPlayToggle: () => void;
+  onPurchase: () => void;
+  onDownload: () => void;
   onSaveToggle: () => void;
   onShare: () => void;
 };
@@ -452,6 +508,8 @@ function FeaturedTrackCard({
   coverFailed,
   isPlaying,
   isSaved,
+  hasFullAccess,
+  isPurchasing,
   listeningStatusLabel,
   copy,
   canToggleAlbumMode,
@@ -462,12 +520,16 @@ function FeaturedTrackCard({
   onCoverLoad,
   onCoverError,
   onPlayToggle,
+  onPurchase,
+  onDownload,
   onSaveToggle,
   onShare,
 }: FeaturedTrackCardProps) {
+  const isLockedPreview = !hasFullAccess && track.accessTier === "locked_preview";
+
   return (
     <section className={styles.featuredTrackCard} data-playing={isPlaying ? "true" : "false"} data-artist={track.artistKey}>
-      <div className={styles.featuredCover} data-fallback={coverFailed || !coverUrl ? "true" : "false"}>
+      <div className={styles.featuredCover} data-cover-shape={getTrackCoverShape(track)} data-fallback={coverFailed || !coverUrl ? "true" : "false"}>
         {coverUrl ? (
           <Image
             className={styles.featuredCoverImage}
@@ -499,6 +561,9 @@ function FeaturedTrackCard({
         <h2>{track.title}</h2>
         <p className={styles.featuredArtist}>{track.artistName}</p>
         <p className={styles.featuredMood}>{track.mood || copy.featuredMood}</p>
+        <span className={styles.musicAccessBadge} data-access={hasFullAccess ? "full" : "preview"}>
+          {hasFullAccess ? copy.fullAccessBadge : copy.previewBadge}
+        </span>
         <MoonWaveform isPlaying={isPlaying} />
         <span className={styles.featuredStatus} aria-live="polite">{listeningStatusLabel}</span>
       </div>
@@ -518,6 +583,26 @@ function FeaturedTrackCard({
           <Bookmark size={18} aria-hidden />
           <span>{isSaved ? copy.saved : copy.save}</span>
         </button>
+        {isLockedPreview ? (
+          <button
+            className={styles.purchaseTrackButton}
+            type="button"
+            onClick={onPurchase}
+            disabled={isPurchasing}
+          >
+            <Lock size={16} aria-hidden />
+            <span>{isPurchasing ? copy.buyingFullTrack : copy.buyFullTrack}</span>
+          </button>
+        ) : (
+          <button
+            className={styles.downloadTrackButton}
+            type="button"
+            onClick={onDownload}
+          >
+            <Download size={16} aria-hidden />
+            <span>{copy.downloadTrack}</span>
+          </button>
+        )}
         {canToggleAlbumMode ? (
           <button
             className={styles.albumModeButton}
@@ -548,8 +633,6 @@ function FeaturedTrackCard({
 
 type StickyMoonPlayerProps = {
   track: Track;
-  coverUrl: string;
-  coverFailed: boolean;
   isPlaying: boolean;
   muted: boolean;
   progressPercent: number;
@@ -558,14 +641,10 @@ type StickyMoonPlayerProps = {
   onPlayToggle: () => void;
   onNext: () => void;
   onMuteToggle: () => void;
-  onCoverLoad: () => void;
-  onCoverError: () => void;
 };
 
 function StickyMoonPlayer({
   track,
-  coverUrl,
-  coverFailed,
   isPlaying,
   muted,
   progressPercent,
@@ -574,28 +653,12 @@ function StickyMoonPlayer({
   onPlayToggle,
   onNext,
   onMuteToggle,
-  onCoverLoad,
-  onCoverError,
 }: StickyMoonPlayerProps) {
   return (
     <aside className={styles.nowPlayingDock} data-playing={isPlaying ? "true" : "false"} aria-label={copy.playerAria}>
       <span className={styles.nowPlayingDockGlow} aria-hidden />
-      <span className={styles.nowPlayingDockCover} data-fallback={coverFailed ? "true" : "false"}>
-        {coverUrl ? (
-          <Image
-            src={coverUrl}
-            alt={`${track.artistName} - ${track.title} cover`}
-            width={64}
-            height={64}
-            sizes="64px"
-            placeholder="blur"
-            blurDataURL={MOON_COVER_BLUR_DATA_URL}
-            unoptimized
-            onLoad={onCoverLoad}
-            onError={onCoverError}
-          />
-        ) : null}
-        <span className={styles.nowPlayingDockFallback} aria-hidden />
+      <span className={styles.nowPlayingDockCover} aria-hidden>
+        <span className={styles.nowPlayingDockFallback} />
       </span>
       <span className={styles.nowPlayingDockMeta}>
         <span className={styles.nowPlayingDockTitle}>
@@ -632,11 +695,51 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const initialSharedTrackId = useMemo(() => {
     return sharedTrackId && allTracks.some((track) => track.id === sharedTrackId) ? sharedTrackId : undefined;
   }, [sharedTrackId]);
-  const player = useMusicPlayer(allTracks, { initialVolume: 0.85, initialTrackId: initialSharedTrackId });
+  const [accessByTrackId, setAccessByTrackId] = useState<MusicAccessMap>({});
+  const [purchasingTrackId, setPurchasingTrackId] = useState("");
+  const [musicAccessMessage, setMusicAccessMessage] = useState("");
+  const refreshMusicAccess = useCallback(async (tracksToRefresh: readonly Track[] = allTracks) => {
+    const lockedTracks = tracksToRefresh.filter((track) => track.accessTier === "locked_preview" && track.purchaseFeatureKey);
+    if (!lockedTracks.length) return;
+
+    const response = await fetch("/api/music/access", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tracks: lockedTracks.map((track) => ({
+          trackId: track.id,
+          audioSourceKey: track.audioSourceKey,
+          featureKey: track.purchaseFeatureKey,
+        })),
+      }),
+    });
+    const payload = await response.json().catch(() => null) as { tracks?: MusicAccessEntry[] } | null;
+    if (!Array.isArray(payload?.tracks)) return;
+
+    setAccessByTrackId((current) => {
+      const next = { ...current };
+      for (const entry of payload.tracks || []) {
+        if (entry?.trackId) next[entry.trackId] = entry;
+      }
+      return next;
+    });
+  }, []);
+  const playbackTracks = useMemo(() => (
+    allTracks.map((track) => buildPlaybackTrack(track, accessByTrackId))
+  ), [accessByTrackId]);
+  const handlePreviewLimitReached = useCallback(() => {
+    setMusicAccessMessage(getMusicPlayerCopy(getCurrentLoadingLocale()).previewLimitReached);
+  }, []);
+  const player = useMusicPlayer(playbackTracks, {
+    initialVolume: 0.85,
+    initialTrackId: initialSharedTrackId,
+    onPreviewLimitReached: handlePreviewLimitReached,
+  });
   const setPlaybackState = useMusicPlaybackStore((state) => state.setPlaybackState);
   const selectTrack = player.selectTrack;
   const sharedTrackSyncAttemptsRef = useRef(0);
-  const progressMax = player.duration || 0;
+  const rawProgressMax = player.duration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
@@ -649,12 +752,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const isCurrentTrackSaved = Boolean(currentTrackId && savedTrackIds[currentTrackId]);
   const currentTrackAlbumMode = currentTrack ? getAlbumCoverMode(albumImageModeByArtist, currentTrack.artistKey) : "default";
   const coverFailed = Boolean(!currentTrack || !resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS) || (currentTrackId && failedCoverIds[currentTrackId]));
-  const displayedTracks = useMemo(() => {
+  const playlistTracks = useMemo(() => {
     return player.tracks.map((track) => ({
       ...track,
-      coverUrl: resolveTrackAlbumCoverUrl(track, getAlbumCoverMode(albumImageModeByArtist, track.artistKey), HUMAN_MODE_COVER_URLS),
+      coverUrl: "",
     }));
-  }, [albumImageModeByArtist, player.tracks]);
+  }, [player.tracks]);
   const effectiveArtistTheme = playlistThemeMode === "all" ? player.currentTrack?.artistKey : playlistThemeMode;
   const artistThemeClass = effectiveArtistTheme === "dest1nova"
     ? styles.dest1novaMode
@@ -679,6 +782,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       window.removeEventListener("storage", syncLocale);
     };
   }, []);
+
+  useEffect(() => {
+    void refreshMusicAccess();
+  }, [refreshMusicAccess]);
 
   useEffect(() => {
     setPlaybackState(currentTrackId, player.isPlaying);
@@ -713,21 +820,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       return "";
     }
   }, [ambientAssetKey]);
-  const bannerFallbackCover = useMemo(() => {
-    if (!currentTrack) {
-      return "url('/music-covers/yeoni-1st-album.webp')";
-    }
-
-    const coverUrl = resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS);
-    return coverUrl ? `url("${coverUrl}")` : "url('/music-covers/yeoni-1st-album.webp')";
-  }, [currentTrack, currentTrackAlbumMode]);
   const playerStyle: PlayerStyle = {};
   const currentTrackCoverUrl = currentTrack ? resolveTrackAlbumCoverUrl(currentTrack, currentTrackAlbumMode, HUMAN_MODE_COVER_URLS) : "";
-
-  if (currentTrack && currentTrackCoverUrl && !coverFailed) {
-    playerStyle["--cover-image"] = `url("${currentTrackCoverUrl}")`;
-  }
-  playerStyle["--moon-banner-cover-fallback"] = bannerFallbackCover;
 
   if (ambientAssetUrl) {
     playerStyle["--asset-ambient-image"] = `url("${ambientAssetUrl}")`;
@@ -879,9 +973,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       window.clearTimeout(preloadIdleId);
     };
   }, [player.currentIndex, player.tracks]);
+  const currentTrackHasFullAccess = currentTrack ? hasTrackFullAccess(currentTrack, accessByTrackId) : false;
+  const currentTrackPreviewLimit = !currentTrackHasFullAccess ? Number(currentTrack?.previewLimitSeconds || 0) : 0;
+  const progressMax = currentTrackPreviewLimit > 0
+    ? Math.min(rawProgressMax || currentTrackPreviewLimit, currentTrackPreviewLimit)
+    : rawProgressMax;
   const listeningStatusLabel = getListeningStatusLabel(player.isLoading, player.canPlay, player.isPlaying, copy);
   const progressPercent = progressMax > 0
-    ? Math.min(100, Math.max(0, (player.currentTime / progressMax) * 100))
+    ? Math.min(100, Math.max(0, (Math.min(player.currentTime, progressMax) / progressMax) * 100))
     : 0;
 
   async function handleShareNowPlaying() {
@@ -935,6 +1034,49 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     if (!firstTrack) return;
     player.selectTrack(firstTrack.id, { play: true });
   }, [player.selectTrack, player.tracks]);
+
+  const handlePurchaseCurrentTrack = useCallback(async () => {
+    const track = player.currentTrack;
+    if (!track?.purchaseFeatureKey || hasTrackFullAccess(track, accessByTrackId)) return;
+
+    setPurchasingTrackId(track.id);
+    setMusicAccessMessage("");
+    try {
+      const purchaseRequestId = `music-track:${track.purchaseFeatureKey}:${Date.now()}`;
+      const result = await runBillingCoinGate({
+        featureKey: track.purchaseFeatureKey,
+        categoryKey: "music-track",
+        reason: "Code Destiny music full track unlock",
+        productId: `unlock.${track.purchaseFeatureKey}`,
+        productType: "music_track",
+        serviceType: "music_track",
+        cost: track.coinCost || 3,
+        amountKRW: track.priceKRW || 300,
+        requestId: purchaseRequestId,
+        idempotencyKey: purchaseRequestId,
+      });
+
+      if (result.ok) {
+        await refreshMusicAccess([track]);
+        return;
+      }
+
+      setMusicAccessMessage(copy.purchaseFailed);
+    } catch {
+      setMusicAccessMessage(copy.purchaseFailed);
+    } finally {
+      setPurchasingTrackId("");
+    }
+  }, [accessByTrackId, copy.purchaseFailed, player.currentTrack, refreshMusicAccess]);
+
+  const handleDownloadCurrentTrack = useCallback(() => {
+    const track = player.currentTrack;
+    if (!track || !hasTrackFullAccess(track, accessByTrackId)) return;
+
+    const downloadUrl = buildDownloadUrl(track, accessByTrackId);
+    if (!downloadUrl || typeof window === "undefined") return;
+    window.location.href = downloadUrl;
+  }, [accessByTrackId, player.currentTrack]);
 
   const handleExploreMoods = useCallback(() => {
     if (typeof document === "undefined") return;
@@ -1076,6 +1218,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               coverFailed={coverFailed}
               isPlaying={player.isPlaying}
               isSaved={isCurrentTrackSaved}
+              hasFullAccess={currentTrackHasFullAccess}
+              isPurchasing={purchasingTrackId === currentTrack.id}
               listeningStatusLabel={listeningStatusLabel}
               copy={copy}
               canToggleAlbumMode={canToggleAlbumMode}
@@ -1086,6 +1230,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               onCoverLoad={markCoverLoaded}
               onCoverError={markCoverFailed}
               onPlayToggle={handlePlayToggle}
+              onPurchase={handlePurchaseCurrentTrack}
+              onDownload={handleDownloadCurrentTrack}
               onSaveToggle={handleFeaturedSaveToggle}
               onShare={() => void handleShareNowPlaying()}
             />
@@ -1125,7 +1271,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                       value={Math.min(player.currentTime, progressMax)}
                       onChange={(event) => player.seek(Number(event.currentTarget.value))}
                     />
-                    <span>{formatTime(player.duration)}</span>
+                    <span>{formatTime(progressMax)}</span>
                   </label>
 
                   <div className={styles.secondaryControls}>
@@ -1183,6 +1329,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
                   <pre className={styles.errorText}>{player.audioDebugHelperText}</pre>
                 ) : null}
 
+                {musicAccessMessage ? (
+                  <p className={styles.musicAccessMessage} role="status">
+                    {musicAccessMessage}
+                  </p>
+                ) : null}
+
                 <LyricsPanel
                   isOpen={isLyricsOpen}
                   isLoading={isLyricsLoading}
@@ -1193,7 +1345,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               </div>
 
               <MusicPlaylistPanel
-                tracks={displayedTracks}
+                tracks={playlistTracks}
                 failedCoverIds={failedCoverIds}
                 onActiveTabChange={setPlaylistThemeMode}
                 onCoverError={handlePlaylistCoverError}
@@ -1203,8 +1355,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
           </div>
           <StickyMoonPlayer
             track={currentTrack}
-            coverUrl={currentTrackCoverUrl}
-            coverFailed={coverFailed}
             isPlaying={player.isPlaying}
             muted={player.muted}
             progressPercent={progressPercent}
@@ -1213,8 +1363,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
             onPlayToggle={handlePlayToggle}
             onNext={player.next}
             onMuteToggle={player.toggleMute}
-            onCoverLoad={markCoverLoaded}
-            onCoverError={markCoverFailed}
           />
         </>
       ) : null}

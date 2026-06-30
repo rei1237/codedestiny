@@ -48,21 +48,40 @@ export function getJwtAudience(env) {
   return getEnv(env, "JWT_AUDIENCE") || getEnv(env, "AUTH_AUDIENCE") || "code-destiny-web";
 }
 
+function isProductionAuthEnv(env) {
+  const value = String(
+    getEnv(env, "NODE_ENV")
+    || getEnv(env, "ENVIRONMENT")
+    || getEnv(env, "CF_PAGES_BRANCH")
+    || "",
+  ).trim().toLowerCase();
+  return value === "production" || value === "main";
+}
+
+function resolveRequiredAuthSecret(env, keys, fallbackErrorMessage) {
+  for (const key of keys) {
+    const value = getEnv(env, key);
+    if (value) return value;
+  }
+  if (isProductionAuthEnv(env)) {
+    throw new Error(fallbackErrorMessage);
+  }
+  return "dev-secret";
+}
+
 export function getAccessTokenSecret(env) {
-  return (
-    getEnv(env, "JWT_ACCESS_SECRET")
-    || getEnv(env, "JWT_SECRET")
-    || getEnv(env, "AUTH_SECRET")
-    || "dev-secret"
+  return resolveRequiredAuthSecret(
+    env,
+    ["JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET"],
+    "JWT access token secret is required in production.",
   );
 }
 
 export function getRefreshTokenSecret(env) {
-  return (
-    getEnv(env, "JWT_REFRESH_SECRET")
-    || getEnv(env, "JWT_SECRET")
-    || getEnv(env, "AUTH_SECRET")
-    || "dev-secret"
+  return resolveRequiredAuthSecret(
+    env,
+    ["JWT_REFRESH_SECRET", "JWT_SECRET", "AUTH_SECRET"],
+    "JWT refresh token secret is required in production.",
   );
 }
 

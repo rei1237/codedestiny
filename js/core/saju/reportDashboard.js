@@ -1173,8 +1173,48 @@ function _sajuFunTryRecoverTargetCard(targetId) {
   return !!document.getElementById(targetId);
 }
 
+function _sajuFunEnsureHealthReportRendered(targetEl) {
+  if (!targetEl || targetEl.id !== 'healthReportCard') return false;
+  var area = document.getElementById('healthReportSection');
+  if (!area) return false;
+
+  var html = String(area.innerHTML || '').trim();
+  var text = String(area.textContent || '').replace(/\s+/g, ' ').trim();
+  if (html.length >= 40 || text.length >= 20 || (area.children && area.children.length > 0)) return true;
+
+  _sajuFunTryRecoverTargetCard('healthReportCard');
+
+  html = String(area.innerHTML || '').trim();
+  text = String(area.textContent || '').replace(/\s+/g, ' ').trim();
+  return html.length >= 40 || text.length >= 20 || !!(area.children && area.children.length > 0);
+}
+
+function _sajuFunEnsureHealthReportBlockReady(block) {
+  if (!block || block.id !== 'rpt-v2-section-healthReportCard') return false;
+  var targetEl = block.querySelector ? block.querySelector('#healthReportCard') : null;
+  var slot = document.getElementById('rpt-v2-body-healthReportCard');
+
+  if (!targetEl) {
+    targetEl = document.getElementById('healthReportCard');
+    if (!targetEl) {
+      _sajuFunTryRecoverTargetCard('healthReportCard');
+      targetEl = document.getElementById('healthReportCard');
+    }
+  }
+
+  if (!targetEl) return false;
+  if (targetEl.style && targetEl.style.display === 'none') targetEl.style.display = '';
+  if (slot && !slot.contains(targetEl)) {
+    slot.innerHTML = '';
+    slot.appendChild(targetEl);
+  }
+
+  return _sajuFunEnsureHealthReportRendered(targetEl);
+}
+
 function _sajuFunHasRenderableContent(targetEl) {
   if (!targetEl) return false;
+  if (targetEl.id === 'healthReportCard' && _sajuFunEnsureHealthReportRendered(targetEl)) return true;
   var innerSection = targetEl.querySelector ? targetEl.querySelector('div[id]') : null;
   if (!innerSection) return true;
 
@@ -1475,6 +1515,7 @@ function toggleReportFeatureCard(btn) {
   if (detail) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
+      _sajuFunEnsureHealthReportBlockReady(block);
       _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);
     } else {
@@ -1595,6 +1636,7 @@ window.openSajuFunFeature = function(targetId, afterAction) {
     }
 
     if (target.style && target.style.display === 'none') target.style.display = '';
+    if (targetId === 'healthReportCard') _sajuFunEnsureHealthReportRendered(target);
     var scrollTarget = _sajuFunEnsureDashboardBlockOpen(target) || target;
     try {
       scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'start' });

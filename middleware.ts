@@ -187,6 +187,14 @@ const PROTECTED_AUTH_ROUTE_PREFIXES = [
   "/points",
 ];
 
+const AUTH_MIDDLEWARE_BYPASS_PATHS = new Set([
+  "/auth/kakao/callback",
+  "/api/auth/kakao/callback",
+  "/api/auth/oauth/kakao/callback",
+  "/auth/error",
+  "/login",
+]);
+
 function isStaticAssetPath(pathname) {
   if (!pathname) return false;
   for (const prefix of STATIC_PREFIXES) {
@@ -213,6 +221,30 @@ function shouldRedirectToCanonical(host) {
 function normalizePathname(pathname) {
   if (!pathname || pathname === "/") return "/";
   return pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
+}
+
+function isAuthMiddlewareBypassPath(pathname) {
+  return AUTH_MIDDLEWARE_BYPASS_PATHS.has(normalizePathname(pathname));
+}
+
+function isKakaoCallbackPath(pathname) {
+  const normalized = normalizePathname(pathname);
+  return normalized === "/auth/kakao/callback"
+    || normalized === "/api/auth/kakao/callback"
+    || normalized === "/api/auth/oauth/kakao/callback";
+}
+
+function logKakaoMiddlewareBypass(request) {
+  if (!isKakaoCallbackPath(request.nextUrl.pathname)) return;
+  const payload = {
+    routePath: request.nextUrl.pathname,
+    requestHost: request.nextUrl.host,
+  };
+  try {
+    console.info("[Kakao Callback] middlewareBypass", JSON.stringify(payload));
+  } catch (error) {
+    console.info("[Kakao Callback] middlewareBypass");
+  }
 }
 
 function stripLocaleSlug(pathname) {
@@ -282,9 +314,27 @@ function mergeMusicCspForAudio(cspHeader) {
   const cspValue = String(cspHeader || "").trim();
   const mediaDomain = "https://music.code-destiny.com";
   const mediaDirective = `media-src 'self' ${mediaDomain}`;
+  const fallbackMusicCsp = [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
+    "script-src-elem 'self' 'unsafe-inline'",
+    "connect-src 'self' https://music.code-destiny.com",
+    mediaDirective,
+    "style-src 'self' 'unsafe-inline'",
+    "style-src-elem 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https://assets.code-destiny.com",
+    "frame-src 'self'",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'self'",
+    "manifest-src 'self'",
+  ].join("; ");
 
   if (!cspValue) {
-    return `default-src 'self'; ${mediaDirective}`;
+    return fallbackMusicCsp;
   }
 
   const directives = cspValue.split(";").map((part) => part.trim()).filter(Boolean);
@@ -388,6 +438,16 @@ export function middleware(request) {
 
     // API routes and non-idempotent requests must not be canonical-redirected.
     // Redirecting these can break POST flows and trigger cross-origin CORS failures.
+    if (pathname.startsWith("/api/") && isAuthMiddlewareBypassPath(pathname)) {
+      logKakaoMiddlewareBypass(request);
+      const response = NextResponse.next();
+      if (isKakaoCallbackPath(pathname)) {
+        response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+        response.headers.set("Pragma", "no-cache");
+      }
+      return response;
+    }
+
     if (pathname.startsWith("/api/") || !["GET", "HEAD", "OPTIONS"].includes(method)) {
       return NextResponse.next();
     }
@@ -460,6 +520,16 @@ export function middleware(request) {
   }
 
   const routePath = stripLocaleSlug(normalizedPath);
+
+  if (isAuthMiddlewareBypassPath(routePath)) {
+    logKakaoMiddlewareBypass(request);
+    const response = NextResponse.next();
+    if (isKakaoCallbackPath(routePath)) {
+      response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+      response.headers.set("Pragma", "no-cache");
+    }
+    return response;
+  }
 
   if (routePath === "/saju/love-secret" || routePath === "/saju/love-bible" || routePath === "/premium/saju-love-bible") {
     const redirectUrl = request.nextUrl.clone();

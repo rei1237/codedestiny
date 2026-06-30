@@ -52,6 +52,74 @@ function buildBaseSajuResult() {
 }
 
 describe("Saju AI prompt domain templates", () => {
+  test("신금 일간 기준 십성표를 고정한다", () => {
+    const cases = [
+      ["壬", "상관"],
+      ["癸", "식신"],
+      ["甲", "정재"],
+      ["乙", "편재"],
+      ["丙", "정관"],
+      ["丁", "편관"],
+      ["戊", "정인"],
+      ["己", "편인"],
+      ["庚", "겁재"],
+      ["辛", "비견"],
+    ];
+
+    cases.forEach(([targetStem, expected]) => {
+      expect(sajuPrompt.getTenGodFromDayMaster("辛", targetStem)).toBe(expected);
+    });
+  });
+
+  test("명식 fact snapshot이 신금-임수 오류를 막는다", () => {
+    const base = buildBaseSajuResult();
+    base.pillars = {
+      y: { g: "壬", j: "申" },
+      m: { g: "癸", j: "酉" },
+      d: { g: "辛", j: "丑", gE: "금" },
+      h: { g: "甲", j: "辰" },
+    };
+    const built = sajuPrompt.buildSajuAIPromptWithDomain({
+      question: "나의 일과 돈, 관계 흐름을 명식 전체로 자세히 알려줘",
+      sajuResult: base,
+      domain: "life_direction",
+    });
+
+    expect(built.promptVersion).toBe("saju-myeongsik-ai-v3");
+    expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "壬")?.tenGod).toBe("상관");
+    expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸")?.tenGod).toBe("식신");
+    expect(built.factCard).toContain("壬(임):상관");
+    expect(built.factCard).toContain("癸(계):식신");
+    expect(built.prompt).toContain("[카테고리별 상담 품질 기준]");
+    expect(built.categoryRubric.domain).toBe("life_direction");
+    expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 상관으로 작동합니다.", built.factSnapshot).ok).toBe(true);
+    expect(sajuPrompt.validateSajuMyeongsikTenGodText("임수는 식신으로 작동합니다.", built.factSnapshot).ok).toBe(false);
+  });
+
+  test("각 도메인별 상담 품질 rubric을 프롬프트에 넣는다", () => {
+    const cases = [
+      ["career", "직업 적합도"],
+      ["money", "수입 구조"],
+      ["love", "끌림의 방식"],
+      ["litigation", "문서/증거 정리"],
+      ["relationship", "소통 방식"],
+      ["health", "생활 리듬"],
+      ["life_direction", "삶의 방향"],
+    ];
+
+    cases.forEach(([domain, marker]) => {
+      const built = sajuPrompt.buildSajuAIPromptWithDomain({
+        question: `${marker} 중심으로 내 명식을 상담해줘`,
+        sajuResult: buildBaseSajuResult(),
+        domain,
+      });
+
+      expect(built.categoryRubric.domain).toBe(domain);
+      expect(built.prompt).toContain("[카테고리별 상담 품질 기준]");
+      expect(built.prompt).toContain(marker);
+    });
+  });
+
   test("money 도메인으로 프롬프트를 생성한다", () => {
     const built = sajuPrompt.buildSajuAIPromptWithDomain({
       question: "내 재물운과 수익 구조를 자세히 알려줘",

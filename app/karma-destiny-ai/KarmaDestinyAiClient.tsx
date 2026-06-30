@@ -88,6 +88,8 @@ type EnsureAccessResult =
 type ConsultationResult = {
   ok: boolean;
   sessionId?: string;
+  reportId?: string;
+  attemptId?: string;
   accessType?: AccessType;
   status?: string;
   integratedResult?: IntegratedResult | null;
@@ -125,10 +127,20 @@ const KARMA_SECTIONS = [
 ] as const;
 
 const LOADING_STAGES = [
-  { icon: "☯", label: "사주 원국을 펼치는 중...", duration: 2000 },
-  { icon: "♄", label: "행성의 위치를 읽는 중...", duration: 2500 },
-  { icon: "☽", label: "나크샤트라를 탐색하는 중...", duration: 2000 },
-  { icon: "✦", label: "운명의 답장을 작성하는 중...", duration: 3000 },
+  { icon: "☯", label: "운명의 실타래를 펼치는 중...", duration: 1800 },
+  { icon: "♄", label: "반복된 인생 패턴을 읽는 중...", duration: 2200 },
+  { icon: "☽", label: "관계와 감정의 업을 해석하는 중...", duration: 2200 },
+  { icon: "✦", label: "장문 리포트의 문을 여는 중...", duration: 2600 },
+] as const;
+
+const PREMIUM_VALUE_CARDS = [
+  "반복되는 관계의 업",
+  "돈과 생존의 패턴",
+  "직업과 사명의 방향",
+  "원가족과 감정의 빚",
+  "앞으로 1년의 해소 흐름",
+  "3년 장기 운명 전략",
+  "상담가의 최종 편지",
 ] as const;
 
 const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string }> = [
@@ -695,15 +707,17 @@ export default function KarmaDestinyAiPage() {
       ...access,
     }, idempotencyKey);
 
-    if (result.ok && Array.isArray(result.messages) && result.messages.length) {
+    if (result.ok && result.sessionId) {
       setSessionId(result.sessionId || "");
       setAccessType(result.accessType || "");
-      setMessages(result.messages);
+      setMessages(Array.isArray(result.messages) ? result.messages : []);
       setSummaryCards(result.summaryCards || null);
       setIntegratedResult(result.integratedResult || null);
       setNotice("");
       setError("");
-      setStatus("ready");
+      setStatus("reading");
+      const target = `/karma-destiny-ai/result?sessionId=${encodeURIComponent(result.sessionId)}${result.status === "completed" ? "" : "&pending=1"}`;
+      window.location.assign(target);
       return;
     }
     if (result.ok && result.status === "generating") {
@@ -852,6 +866,22 @@ export default function KarmaDestinyAiPage() {
             <span>{statusText}</span>
           </div>
           {accessType && <p className="kdai-access">이용 방식: {accessType}</p>}
+        </div>
+      </section>
+
+      <section className="kdai-premium-map" aria-label="운명의 업 상담 구성">
+        <div className="kdai-premium-map__intro">
+          <span>Premium Karma Report</span>
+          <h2>30,000자 이상으로 여는 운명의 업 리포트</h2>
+          <p>5만 원 상담에 맞게 명리, 점성, 베다 상징과 현실 행동 전략을 16장 장문 흐름으로 엮습니다.</p>
+        </div>
+        <div className="kdai-premium-map__cards">
+          {PREMIUM_VALUE_CARDS.map((item) => (
+            <article key={item}>
+              <Sparkles size={16} />
+              <strong>{item}</strong>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -1124,6 +1154,77 @@ export default function KarmaDestinyAiPage() {
           max-width: 1220px;
           margin: 0 auto clamp(16px, 3vw, 28px);
           padding: clamp(16px, 3vw, 30px);
+        }
+
+        .kdai-premium-map {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: minmax(240px, 340px) minmax(0, 1fr);
+          gap: clamp(14px, 2.5vw, 24px);
+          align-items: stretch;
+          max-width: 1220px;
+          margin: 0 auto clamp(16px, 3vw, 28px);
+        }
+
+        .kdai-premium-map__intro,
+        .kdai-premium-map__cards article {
+          border: 1px solid rgba(239, 204, 137, .2);
+          border-radius: 8px;
+          background: rgba(9, 8, 24, .7);
+          box-shadow: inset 0 1px 0 rgba(255, 247, 223, .08);
+        }
+
+        .kdai-premium-map__intro {
+          padding: clamp(16px, 2.5vw, 24px);
+        }
+
+        .kdai-premium-map__intro span {
+          display: block;
+          margin-bottom: 8px;
+          color: #f8d06f;
+          font-size: .76rem;
+          font-weight: 800;
+          letter-spacing: .08em;
+          text-transform: uppercase;
+        }
+
+        .kdai-premium-map__intro h2 {
+          margin: 0 0 10px;
+          color: #fff5d6;
+          font-family: CodeDestinyDisplay, serif;
+          font-size: clamp(1.35rem, 2vw, 2rem);
+          letter-spacing: 0;
+        }
+
+        .kdai-premium-map__intro p {
+          margin: 0;
+          color: rgba(255, 247, 223, .76);
+          line-height: 1.72;
+        }
+
+        .kdai-premium-map__cards {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+        }
+
+        .kdai-premium-map__cards article {
+          display: flex;
+          min-height: 86px;
+          flex-direction: column;
+          justify-content: space-between;
+          padding: 14px;
+          color: #f9f0dc;
+        }
+
+        .kdai-premium-map__cards svg {
+          color: #f8d06f;
+        }
+
+        .kdai-premium-map__cards strong {
+          font-size: .95rem;
+          line-height: 1.42;
         }
 
         .kdai-hero::before {
@@ -2118,10 +2219,15 @@ export default function KarmaDestinyAiPage() {
           }
 
           .kdai-hero,
+          .kdai-premium-map,
           .kdai-workspace,
           .kdai-summary,
           .kdai-system-cards {
             grid-template-columns: 1fr;
+          }
+
+          .kdai-premium-map__cards {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
           }
 
           .kdai-hero__image {

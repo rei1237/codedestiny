@@ -1,0 +1,125 @@
+/**
+ * @jest-environment node
+ */
+
+const mockConnectDb = jest.fn(async () => undefined);
+const mockResetMongooseConnection = jest.fn(async () => undefined);
+const mockFindOne = jest.fn();
+const mockVerifyPassword = jest.fn(async () => false);
+
+jest.unstable_mockModule("../../worker/lib/db.js", () => ({
+  connectDb: mockConnectDb,
+  mongoose: { connection: { name: "test" } },
+  resetMongooseConnection: mockResetMongooseConnection,
+  resolveMongoDbName: jest.fn(() => "test"),
+}));
+
+jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  MonthlyCreditLedger: {},
+  PointHistory: {},
+  RefreshTokenSession: {},
+  User: {
+    collection: {
+      findOne: mockFindOne,
+    },
+  },
+}));
+
+jest.unstable_mockModule("../../worker/lib/password.js", () => ({
+  hashPassword: jest.fn(async () => "hashed-password"),
+  verifyPassword: mockVerifyPassword,
+}));
+
+let authRoutes;
+let authLib;
+
+async function readResponse(response) {
+  const payload = await response.json();
+  return { status: response.status, payload, headers: response.headers };
+}
+
+function buildLoginRequest(email = "tester@example.com") {
+  return new Request("https://example.com/api/auth/login", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "cf-connecting-ip": "203.0.113.10",
+    },
+    body: JSON.stringify({ email, password: "wrong-password" }),
+  });
+}
+
+beforeAll(async () => {
+  authRoutes = await import("../../worker/routes/auth.js");
+  authLib = await import("../../worker/lib/auth.js");
+});
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  authRoutes.__authTestUtils.clearLoginRateLimitState();
+});
+
+describe("auth production secret guard", () => {
+  test("production must not fall back to dev-secret for access tokens", () => {
+    expect(() => authLib.getAccessTokenSecret({ NODE_ENV: "production" }))
+      .toThrow("JWT access token secret is required in production.");
+  });
+
+  test("production must not fall back to dev-secret for refresh tokens", () => {
+    expect(() => authLib.getRefreshTokenSecret({ NODE_ENV: "production" }))
+      .toThrow("JWT refresh token secret is required in production.");
+  });
+});
+
+describe("login enumeration and brute-force guard", () => {
+  const env = {
+    JWT_ACCESS_SECRET: "test-access-secret",
+    JWT_REFRESH_SECRET: "test-refresh-secret",
+    AUTH_LOGIN_RATE_LIMIT_MAX: "1",
+    AUTH_LOGIN_RATE_LIMIT_WINDOW_MS: "60000",
+  };
+
+  test("unknown account returns generic invalid_credentials", async () => {
+    mockFindOne.mockResolvedValue(null);
+
+    const response = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(401);
+    expect(payload.code).toBe("invalid_credentials");
+    expect(payload.message).toBe("Email or password is incorrect.");
+  });
+
+  test("wrong password returns the same generic invalid_credentials", async () => {
+    mockFindOne.mockResolvedValue({
+      _id: "64f0a1b2c3d4e5f678901234",
+      email: "tester@example.com",
+      passwordHash: "hashed",
+      localAuth: { enabled: true },
+    });
+    mockVerifyPassword.mockResolvedValue(false);
+
+    const response = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(401);
+    expect(payload.code).toBe("invalid_credentials");
+    expect(payload.message).toBe("Email or password is incorrect.");
+  });
+
+  test("repeated login failures are rate limited before another DB lookup", async () => {
+    mockFindOne.mockResolvedValue(null);
+
+    const first = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    expect(first.status).toBe(401);
+
+    mockFindOne.mockClear();
+    const second = await authRoutes.__authTestUtils.handleLogin(buildLoginRequest(), env);
+    const { status, payload, headers } = await readResponse(second);
+
+    expect(status).toBe(429);
+    expect(payload.code).toBe("rate_limited");
+    expect(Number(headers.get("Retry-After"))).toBeGreaterThan(0);
+    expect(mockFindOne).not.toHaveBeenCalled();
+  });
+});

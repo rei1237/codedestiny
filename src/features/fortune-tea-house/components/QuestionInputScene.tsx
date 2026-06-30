@@ -11,6 +11,7 @@ import {
   type DestinyProfileCard,
 } from "@/app/_lib/profile-card-storage";
 import { fortuneTeaHouseAssets } from "../data/assets";
+import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseResultButtonLabel } from "../data/consultPricing";
 import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSukuyoInput, FortuneTeaTarotSpread } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
@@ -87,24 +88,28 @@ const tarotSpreadOptions: Array<{
   { id: "five", title: "5카드 스프레드", description: "현재 · 상대/상황 · 장애 · 가능성 · 조언까지 깊게 봅니다." },
 ];
 
+const questionSceneUi =
+  "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
 const questionPanelUi =
-  "rounded-[30px] border border-amber-100/30 bg-[#14091f]/85 shadow-[0_34px_96px_rgba(7,3,18,0.5),0_0_44px_rgba(248,187,221,0.12),inset_0_1px_0_rgba(255,255,255,0.16)] ring-1 ring-amber-100/10 backdrop-blur-2xl";
+  "relative overflow-hidden rounded-[30px] border border-[#f6dfb7]/30 bg-gradient-to-br from-[#241337]/90 via-[#12091f]/90 to-[#080511]/95 shadow-[0_36px_104px_rgba(4,2,12,0.54),0_0_54px_rgba(206,196,255,0.14),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/10 backdrop-blur-2xl";
 const questionSectionUi =
-  "rounded-[22px] border border-amber-100/15 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_18px_48px_rgba(7,3,18,0.18)]";
+  "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.065] shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_18px_48px_rgba(7,3,18,0.2)] ring-1 ring-white/5";
 const questionHeaderUi =
-  "[&>span]:shadow-[0_0_22px_rgba(233,196,106,0.22)] [&_h3]:text-[1.08rem] [&_p]:text-white/68";
+  "[&>span]:border-[#f6dfb7]/30 [&>span]:bg-[#f6dfb7]/10 [&>span]:text-[#ffe8a6] [&>span]:shadow-[0_0_24px_rgba(246,223,183,0.18)] [&_h3]:font-[var(--tea-font-premium)] [&_h3]:text-[1.1rem] [&_h3]:text-[#fffaf1] [&_h3]:tracking-[0] [&_p]:font-[var(--tea-font-body)] [&_p]:leading-[1.78] [&_p]:text-white/70";
 const consultModeGridUi = "gap-4 lg:gap-5";
 const consultModeCardUi =
-  "rounded-3xl border-white/10 bg-gradient-to-br from-[#26113c]/85 via-[#14091f]/88 to-[#090414]/92 shadow-[0_24px_70px_rgba(7,3,18,0.34),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-transform transition-shadow duration-200 hover:-translate-y-1 hover:border-amber-100/50 hover:shadow-[0_32px_82px_rgba(7,3,18,0.46),0_0_42px_rgba(192,132,252,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-100/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f] disabled:cursor-wait disabled:opacity-60";
-const questionLabelUi = "text-amber-100/90";
+  "rounded-3xl border-[#f6dfb7]/20 bg-gradient-to-br from-[#2a173e]/90 via-[#14091f]/90 to-[#080511]/95 shadow-[0_26px_74px_rgba(7,3,18,0.36),0_0_34px_rgba(206,196,255,0.08),inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur-xl transition-transform transition-shadow duration-300 hover:-translate-y-1 hover:border-[#f6dfb7]/50 hover:shadow-[0_34px_88px_rgba(7,3,18,0.48),0_0_46px_rgba(206,196,255,0.18)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/75 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f] disabled:cursor-wait disabled:opacity-60";
+const questionLabelUi = "text-[#ffe8a6]/90";
 const questionInputUi =
-  "min-h-12 rounded-2xl border border-amber-100/25 bg-[#10071c]/75 px-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_12px_28px_rgba(7,3,18,0.12)] outline-none transition placeholder:text-white/35 focus:border-amber-100/70 focus:ring-4 focus:ring-amber-100/15 disabled:cursor-not-allowed disabled:opacity-55";
+  "min-h-12 rounded-2xl border border-[#f6dfb7]/30 bg-[#0e0719]/80 px-4 font-[var(--tea-font-body)] text-[#fffaf1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_12px_30px_rgba(7,3,18,0.16)] outline-none transition placeholder:text-white/40 focus:border-[#ffe8a6]/75 focus:ring-4 focus:ring-[#ffe8a6]/20 disabled:cursor-not-allowed disabled:opacity-55";
 const questionTextareaUi =
-  "rounded-[22px] border border-amber-100/25 bg-[#10071c]/75 px-4 py-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.09),0_14px_34px_rgba(7,3,18,0.16)] outline-none transition placeholder:text-white/35 focus:border-amber-100/70 focus:ring-4 focus:ring-amber-100/15 disabled:cursor-not-allowed disabled:opacity-55";
+  "rounded-[22px] border border-[#f6dfb7]/30 bg-[#0e0719]/80 px-4 py-4 font-[var(--tea-font-body)] leading-[1.78] text-[#fffaf1] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_16px_38px_rgba(7,3,18,0.18)] outline-none transition placeholder:text-white/40 focus:border-[#ffe8a6]/75 focus:ring-4 focus:ring-[#ffe8a6]/20 disabled:cursor-not-allowed disabled:opacity-55";
 const sukuyoCardUi =
-  "rounded-2xl border border-white/15 bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_18px_44px_rgba(7,3,18,0.16)]";
+  "rounded-2xl border border-white/20 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_18px_44px_rgba(7,3,18,0.16)]";
 const branchNoteUi =
-  "rounded-2xl border border-indigo-100/20 bg-white/[0.055] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
+  "rounded-2xl border border-[#d7d4ff]/25 bg-white/[0.06] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]";
+const tarotSpreadOptionUi =
+  "rounded-2xl border-[#f6dfb7]/20 bg-white/[0.055] shadow-[0_16px_38px_rgba(7,3,18,0.18),inset_0_1px_0_rgba(255,255,255,0.1)] transition duration-300 hover:-translate-y-0.5 hover:border-[#ffe8a6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#12071f]";
 const actionRowUi = "items-stretch sm:items-center";
 
 type TeaHouseProfileOption = {
@@ -200,6 +205,7 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
 
 export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "" }: QuestionInputSceneProps) {
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
+  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(consultationMode);
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
   const [selectedProfileOptionId, setSelectedProfileOptionId] = useState(initialInput?.profileId || "");
@@ -439,7 +445,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const sukuyoAutoQuestionPreview = consultationMode === "sukuyo" ? buildSukuyoAutoQuestion() : "";
 
   return (
-    <section className={styles.questionScene} aria-labelledby="teaQuestionTitle">
+    <section className={`${styles.questionScene} ${questionSceneUi}`} aria-labelledby="teaQuestionTitle">
       <div className={styles.questionActor}>
         <div className={styles.questionOracleStage}>
           <YeoniDialogueActor mood="comfort" isSpeaking={false} className={styles.yeoniPortrait} priority />
@@ -505,6 +511,10 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       <span>
                         <b>잘 어울리는 질문</b>
                         {option.suitedFor}
+                      </span>
+                      <span>
+                        <b>상담 금액</b>
+                        {getFortuneTeaHouseConsultPriceLabel(option.id)}
                       </span>
                     </span>
                   </span>
@@ -584,7 +594,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       type="button"
                       role="radio"
                       aria-checked={selected}
-                      className={styles.tarotSpreadOption}
+                      className={`${styles.tarotSpreadOption} ${tarotSpreadOptionUi}`}
                       data-selected={selected ? "true" : "false"}
                       onClick={() => setTarotSpread(option.id)}
                       disabled={isSubmitting}
@@ -947,7 +957,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             <strong>찻잔의 향이 잠시 흐려졌어요.</strong>
             <p>{submitError}</p>
             <TeaHouseButton type="button" variant="secondary" onClick={submitCurrentQuestion} loading={isSubmitting}>
-              다시 한 번 건네기
+              {submitButtonLabel}
             </TeaHouseButton>
           </section>
         ) : null}
@@ -956,7 +966,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             찻잔 다시 고르기
           </TeaHouseButton>
           <TeaHouseButton type="submit" loading={isSubmitting}>
-            {consultationMode === "tarot" ? "타로로 연이에게 묻기" : consultationMode === "sukuyo" ? "달빛 궁합을 연이에게 묻기" : "사주로 연이에게 묻기"}
+            {submitButtonLabel}
           </TeaHouseButton>
         </div>
       </form>

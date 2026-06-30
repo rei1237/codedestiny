@@ -43,6 +43,8 @@
     "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
     "verify:entry-encoding": "node scripts/verify-entry-encoding.mjs",
     "verify:r2-fonts": "node scripts/verify-r2-font-assets.mjs",
+    "r2:cache-metadata:plan": "node scripts/apply-r2-cache-metadata.mjs",
+    "r2:cache-metadata:apply": "node scripts/apply-r2-cache-metadata.mjs --apply",
     "verify:cf:migration": "node scripts/verify-cloudflare-migration-readiness.mjs",
     "verify:style-sync": "node scripts/verify-style-sync.mjs",
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
@@ -91,6 +93,7 @@
     "smoke:oauth:prod": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny.com",
     "smoke:oauth:worker": "node scripts/smoke-oauth-callbacks.mjs --base https://code-destiny-web.bulegyung.workers.dev",
     "test:auth-session": "node scripts/auth-wrong-password-smoke.mjs",
+    "test:worker:auth-payments": "cross-env NODE_OPTIONS=--experimental-vm-modules jest __tests__/worker/auth.login-security.test.js __tests__/worker/payments.webhook-ledger.test.js __tests__/worker/payments.prepare-idempotency.test.js --runInBand --testEnvironment node",
     "smoke:premium:timeout-rate": "node scripts/smoke-premium-timeout-rate-limit.mjs",
     "test:signup": "node scripts/test-signup.mjs",
     "perf:psi": "node scripts/measure-psi.mjs",
@@ -154,6 +157,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@jest/globals": "^30.4.1",
     "@next/bundle-analyzer": "^15.5.15",
     "@opennextjs/cloudflare": "^1.19.4",
     "@types/node": "^20.14.8",
@@ -163,6 +167,7 @@
     "cross-env": "^7.0.3",
     "eslint": "^8.57.1",
     "eslint-config-next": "^15.5.12",
+    "jest": "^30.4.2",
     "lighthouse": "^13.1.0",
     "postcss": "^8.4.39",
     "sharp": "^0.34.5",

@@ -1,5 +1,4 @@
 .playerShell {
-  --moon-banner-cover-fallback: url('/music-covers/yeoni-1st-album.webp');
   --moon-ink: #f7fbff;
   --moon-muted: rgba(232, 242, 255, 0.72);
   --moon-line: rgba(234, 242, 255, 0.2);
@@ -225,7 +224,6 @@
   color: var(--moon-ink);
   background:
     linear-gradient(rgba(6, 9, 20, 0.45), rgba(6, 9, 20, 0.62)),
-    var(--cover-image),
     radial-gradient(circle at 18% 16%, rgba(248, 242, 206, 0.2), transparent 14rem),
     linear-gradient(145deg, #050711, #10112a 52%, #101d2b);
   background-size: cover;
@@ -449,7 +447,6 @@
   z-index: -4;
   background:
     linear-gradient(var(--ambient-overlay-start, rgba(6, 9, 20, 0.48)), var(--ambient-overlay-end, rgba(6, 9, 20, 0.7))),
-    var(--cover-image),
     var(--ambient-radial, radial-gradient(circle at 50% 40%, rgba(155, 216, 255, 0.18), transparent 23rem));
   background-size: cover;
   background-position: center;
@@ -879,8 +876,7 @@
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.26), transparent 28%),
     radial-gradient(circle at 64% 68%, rgba(126, 224, 255, 0.18), transparent 32%),
-    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba),
-    var(--moon-banner-cover-fallback) center / cover no-repeat;
+    linear-gradient(145deg, #182038, #4c6680 52%, #f0d8ba);
   box-shadow:
     0 28px 70px rgba(0, 0, 0, 0.46),
     0 0 68px rgba(224, 242, 255, 0.18);
@@ -892,8 +888,7 @@
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 246, 251, 0.28), transparent 26%),
     radial-gradient(circle at 66% 70%, rgba(255, 150, 205, 0.2), transparent 34%),
-    linear-gradient(145deg, #2a0d25, #7b315c 54%, #ffd5e7),
-    var(--moon-banner-cover-fallback) center / cover no-repeat;
+    linear-gradient(145deg, #2a0d25, #7b315c 54%, #ffd5e7);
   box-shadow:
     0 28px 70px rgba(34, 4, 26, 0.46),
     0 0 68px rgba(255, 159, 207, 0.24);
@@ -903,8 +898,7 @@
   background:
     radial-gradient(circle at 34% 22%, rgba(255, 247, 226, 0.28), transparent 26%),
     radial-gradient(circle at 66% 70%, rgba(223, 117, 255, 0.18), transparent 34%),
-    linear-gradient(145deg, #25112f, #7c3b61 54%, #ffe1a8),
-    var(--moon-banner-cover-fallback) center / cover no-repeat;
+    linear-gradient(145deg, #25112f, #7c3b61 54%, #ffe1a8);
   box-shadow:
     0 28px 70px rgba(32, 12, 38, 0.46),
     0 0 68px rgba(255, 201, 114, 0.22);
@@ -3471,7 +3465,6 @@
 .nowPlayingDockFallback {
   background:
     radial-gradient(circle at 30% 24%, rgba(255, 255, 255, 0.22), transparent 28%),
-    var(--moon-banner-cover-fallback) center / cover no-repeat,
     linear-gradient(145deg, #1a1540, #3b2864 54%, #d4af7a);
   opacity: 0;
 }
@@ -4622,8 +4615,7 @@
   border-radius: 8px;
   border-color: rgba(255, 255, 255, 0.16);
   background:
-    linear-gradient(145deg, rgba(5, 3, 10, 0.88), rgba(16, 10, 36, 0.84)),
-    var(--cover-image);
+    linear-gradient(145deg, rgba(5, 3, 10, 0.88), rgba(16, 10, 36, 0.84));
   backdrop-filter: blur(18px);
 }
 
@@ -4851,6 +4843,201 @@
   }
 }
 
+.libraryHero {
+  min-height: auto;
+  grid-template-columns: minmax(0, 1fr);
+  padding: clamp(28px, 4vw, 46px);
+}
+
+.libraryHeroCopy {
+  max-width: 920px;
+}
+
+.moonCoverStack {
+  display: none;
+}
+
+.featuredTrackCard {
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr) auto;
+  gap: 24px;
+}
+
+.featuredCover {
+  width: min(100%, 320px);
+  justify-self: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle at 34% 24%, rgba(248, 250, 252, 0.18), transparent 28%),
+    linear-gradient(145deg, #100a24, #241b44 56%, #101827);
+}
+
+.featuredCover[data-cover-shape="wide"] {
+  width: min(100%, 420px);
+  aspect-ratio: 16 / 9;
+}
+
+.featuredCoverImage {
+  object-fit: contain;
+  background: rgba(5, 3, 10, 0.72);
+}
+
+.featuredCover:hover .featuredCoverImage {
+  transform: none;
+}
+
+.playlistScroll {
+  min-height: 0;
+  max-height: min(62svh, 620px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 6px 12px 0;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+}
+
+.playlistGrid {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.playlistTrack {
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+}
+
+.playlistTrack:hover,
+.playlistTrack[aria-current="true"] {
+  transform: none;
+}
+
+.playlistTrackButton {
+  min-height: 68px;
+  grid-template-columns: 30px 44px minmax(0, 1fr) auto;
+  grid-template-rows: 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+}
+
+.playlistThumb {
+  width: 44px;
+  height: 44px;
+}
+
+.playlistTrackText {
+  gap: 4px;
+}
+
+.playlistTrackTitle {
+  font-family: var(--font-body);
+  font-size: 0.96rem;
+  line-height: 1.24;
+}
+
+.playlistMoodTag {
+  display: none;
+}
+
+.playlistTrackMeta {
+  grid-column: auto;
+  display: grid;
+  justify-items: end;
+  min-width: max-content;
+}
+
+.playlistPlayIcon {
+  display: none;
+}
+
+.playlistShareButton {
+  position: static;
+  width: 34px;
+  height: 34px;
+  transform: none;
+  justify-self: center;
+  align-self: center;
+}
+
+.nowPlayingDock {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.nowPlayingDockCover,
+.nowPlayingDockGlow {
+  display: none;
+}
+
+@media (max-width: 1119px) {
+  .featuredTrackCard {
+    grid-template-columns: minmax(240px, 360px) minmax(0, 1fr);
+  }
+
+  .featuredActions {
+    grid-column: 1 / -1;
+  }
+
+  .playlistScroll {
+    max-height: min(60svh, 560px);
+  }
+}
+
+@media (max-width: 760px) {
+  .libraryHero {
+    padding: 24px 18px;
+  }
+
+  .featuredTrackCard {
+    grid-template-columns: 1fr;
+  }
+
+  .featuredCover,
+  .featuredCover[data-cover-shape="wide"] {
+    width: min(100%, 320px);
+  }
+
+  .featuredActions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .featuredPlayButton {
+    width: 58px;
+    justify-self: start;
+  }
+
+  .playlistScroll {
+    max-height: min(58svh, 520px);
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .playlistTrackButton {
+    grid-template-columns: 28px 40px minmax(0, 1fr);
+  }
+
+  .playlistTrackMeta {
+    display: none;
+  }
+}
+
+@media (max-width: 430px) {
+  .featuredCover,
+  .featuredCover[data-cover-shape="wide"] {
+    width: 100%;
+  }
+
+  .featuredActions {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .playlistScroll {
+    max-height: min(56svh, 460px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .libraryHero::before,
   .featuredTrackCard::before,
@@ -4860,4 +5047,70 @@
     animation: none !important;
     transition: none !important;
   }
+}
+.musicAccessBadge,
+.playlistAccessBadge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  gap: 6px;
+  border: 1px solid rgba(245, 227, 174, 0.32);
+  border-radius: 999px;
+  padding: 5px 9px;
+  color: #fff7d6;
+  background: rgba(245, 227, 174, 0.11);
+  font-size: 0.73rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.musicAccessBadge[data-access="preview"],
+.playlistAccessBadge[data-access="preview"] {
+  border-color: rgba(255, 177, 213, 0.36);
+  color: #ffe5f2;
+  background: rgba(255, 177, 213, 0.12);
+}
+
+.purchaseTrackButton,
+.downloadTrackButton {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  gap: 8px;
+  border: 1px solid rgba(245, 227, 174, 0.36);
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: #fff7d6;
+  background: rgba(245, 227, 174, 0.12);
+  font-size: 0.82rem;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.purchaseTrackButton:hover,
+.downloadTrackButton:hover {
+  transform: translateY(-1px);
+  border-color: rgba(245, 227, 174, 0.58);
+  background: rgba(245, 227, 174, 0.18);
+}
+
+.purchaseTrackButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+
+.musicAccessMessage {
+  margin: 0;
+  border: 1px solid rgba(245, 227, 174, 0.25);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #fff7d6;
+  background: rgba(245, 227, 174, 0.08);
+  font-size: 0.86rem;
+  font-weight: 800;
 }

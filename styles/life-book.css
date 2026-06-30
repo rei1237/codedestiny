@@ -47,7 +47,7 @@
 
 /* 사주 신년운세 카드는 공통 lifebook 배경이 아닌 전용 커버를 사용 */
 .lifebook-tile.saju-newyear-tile {
-  background: var(--lb-void) url('/fuctionassets/신년운세.webp?v=build-1779170632465') center 22% / cover no-repeat;
+  background: var(--lb-void) url('/fuctionassets/신년운세.webp?v=build-717e909820aa') center 22% / cover no-repeat;
 }
 
 .lifebook-tile__img-wrap { display: none; }
@@ -57,8 +57,10 @@
   min-height: 392px;
   border: 1px solid rgba(236, 203, 128, 0.28);
   background:
-    linear-gradient(90deg, rgba(236, 203, 128, 0.16) 0 1px, transparent 1px 36px),
-    repeating-linear-gradient(135deg, rgba(255, 244, 207, 0.055) 0 1px, transparent 1px 18px),
+    linear-gradient(90deg, rgba(8, 5, 7, 0.76) 0%, rgba(8, 5, 7, 0.34) 42%, rgba(8, 5, 7, 0.86) 100%),
+    linear-gradient(90deg, rgba(236, 203, 128, 0.14) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(135deg, rgba(255, 244, 207, 0.05) 0 1px, transparent 1px 18px),
+    url('/fuctionassets/lifebook.webp?v=build-717e909820aa') center 36% / cover no-repeat,
     linear-gradient(135deg, #08070d 0%, #191018 38%, #231516 62%, #09070b 100%);
   box-shadow:
     0 22px 62px rgba(0, 0, 0, 0.46),
@@ -94,7 +96,8 @@
 
 .fg-group--lifebook .lifebook-tile__bg {
   background:
-    linear-gradient(180deg, rgba(8, 6, 12, 0.24) 0%, rgba(8, 6, 12, 0.68) 64%, rgba(5, 3, 8, 0.92) 100%),
+    linear-gradient(180deg, rgba(8, 6, 12, 0.18) 0%, rgba(8, 6, 12, 0.46) 54%, rgba(5, 3, 8, 0.92) 100%),
+    linear-gradient(90deg, rgba(4, 3, 6, 0.86), rgba(4, 3, 6, 0.48) 47%, rgba(4, 3, 6, 0.72)),
     linear-gradient(120deg, rgba(236, 203, 128, 0.16), transparent 35%, rgba(93, 31, 28, 0.18) 70%, transparent);
 }
 
@@ -132,7 +135,10 @@
   width: fit-content;
   min-width: 208px;
   color: #1c1207;
-  background: linear-gradient(90deg, #fff0b6 0%, #d9ad55 52%, #a86f21 100%);
+  background: linear-gradient(90deg, #fff3bd 0%, #dfb75d 52%, #b77721 100%);
+  box-shadow:
+    0 12px 26px rgba(217, 173, 85, 0.34),
+    inset 0 1px 0 rgba(255, 255, 230, 0.42);
 }
 
 .lifebook-tile:hover,
@@ -343,8 +349,8 @@
   .lifebook-tile { min-height: 360px; background-position: center 15%; }
   .lifebook-tile__inner { min-height: 360px; padding: 16px 16px 20px; }
   .lifebook-tile__title { font-size: 1.35rem; }
-  .fg-group--lifebook .lifebook-tile { min-height: 372px; }
-  .fg-group--lifebook .lifebook-tile__inner { min-height: 372px; }
+  .fg-group--lifebook .lifebook-tile { min-height: 384px; background-position: center 38%; }
+  .fg-group--lifebook .lifebook-tile__inner { min-height: 384px; }
   .fg-group--lifebook .lifebook-tile__cta { width: 100%; min-width: 0; }
 }
 

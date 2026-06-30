@@ -15,6 +15,7 @@ import TeaHouseEntryScene from "./components/TeaHouseEntryScene";
 import TeaHouseButton from "./components/TeaHouseButton";
 import TeaHouseResultSheet from "./components/TeaHouseResultSheet";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
+import DestinyCafeTarotAlbum from "./components/DestinyCafeTarotAlbum";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
@@ -75,6 +76,7 @@ type FortuneTeaHouseConsultApiResponse = {
   result?: FortuneTeaHouseConsultResponse;
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
+  paymentRequired?: boolean;
   generationMeta?: {
     mode?: "gemini" | "local_fallback";
     provider?: string;
@@ -156,6 +158,7 @@ export default function FortuneTeaHousePage() {
   const [questionInput, setQuestionInput] = useState<Partial<FortuneTeaHouseQuestionInput>>({});
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
   const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
+  const [isTarotAlbumOpen, setIsTarotAlbumOpen] = useState(false);
   const [honeyRewardBurstKey, setHoneyRewardBurstKey] = useState(0);
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -524,7 +527,11 @@ export default function FortuneTeaHousePage() {
       });
       const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
       if (!response.ok || !payload.ok || !payload.result) {
-        throw new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
+        if (payload.paymentRequired) {
+          (submitError as Error & { paymentRequired?: boolean }).paymentRequired = true;
+        }
+        throw submitError;
       }
       logSubmitStep("api result success", payload.generationMeta);
       if (consultRunRef.current !== consultRunId) return;
@@ -564,7 +571,8 @@ export default function FortuneTeaHousePage() {
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error", error);
-      if (localPreviewResult && useLocalPreview) {
+      const blocksLocalPreview = error instanceof Error && (error as Error & { paymentRequired?: boolean }).paymentRequired;
+      if (localPreviewResult && useLocalPreview && !blocksLocalPreview) {
         markGenerationComplete();
         const nextResult = {
           ...localPreviewResult,
@@ -581,7 +589,7 @@ export default function FortuneTeaHousePage() {
         return;
       }
       markGenerationError();
-      setSubmitError("찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");
+      setSubmitError(error instanceof Error && error.message ? error.message : "찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");
       goToStage("questionInput");
     } finally {
       if (consultRunRef.current === consultRunId) {
@@ -661,7 +669,6 @@ export default function FortuneTeaHousePage() {
           result={consultResult}
           honeyDrops={honeyDrops}
           onRestart={restartConsultation}
-          onReady={() => showReadyNotice("저장은 아직 준비 중이에요. 오늘은 이 결과를 화면에서 천천히 읽어 주세요.")}
           onShowTarot={() => goToStage("tarotReveal")}
           onEditBirthInfo={() => goToStage("questionInput")}
           onHoneyDropsChange={setHoneyDrops}
@@ -704,8 +711,16 @@ export default function FortuneTeaHousePage() {
           honeyDrops={honeyDrops}
           burstKey={honeyRewardBurstKey}
           message={honeyRewardMessage}
+          onOpenTarotAlbum={() => setIsTarotAlbumOpen(true)}
         />
       ) : null}
+
+      <DestinyCafeTarotAlbum
+        isOpen={isTarotAlbumOpen}
+        honeyDrops={honeyDrops}
+        onClose={() => setIsTarotAlbumOpen(false)}
+        onHoneyDropsChange={setHoneyDrops}
+      />
 
       <div className={styles.entryTransition} data-active={isEnteringTeaHouse ? "true" : "false"} aria-hidden>
         <AssetImage

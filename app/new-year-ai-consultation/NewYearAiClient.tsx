@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { CalendarDays, Download, Loader2, Moon, Sparkles, WalletCards } from "lucide-react";
 import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -507,15 +506,17 @@ export default function NewYearAiConsultationPage() {
     <main className="nyai-page">
       <section className="nyai-panel nyai-intro" aria-label="신년운세 AI 상담">
         <div className="nyai-orbit" aria-hidden="true" />
-        <div className="nyai-image-shell">
-          <Image
-            src="/fuctionassets/신년운세.webp"
-            alt="신년운세 AI 상담"
-            fill
-            priority
-            sizes="(min-width: 1024px) 420px, 100vw"
-          />
-          <span className="nyai-image-badge">AI Consultation</span>
+        <div className="nyai-consult-card" aria-label="상담 준비 요약">
+          <div className="nyai-consult-year">
+            <span>상담 연도</span>
+            <strong>{form.targetYear || "미정"}</strong>
+          </div>
+          <div className="nyai-consult-rows">
+            <span><b>집중 흐름</b>{selectedFocusOption.label}</span>
+            <span><b>이름</b>{form.userName.trim() || "아직 비어 있습니다"}</span>
+            <span><b>생년월일</b>{form.birthDate || "아직 비어 있습니다"}</span>
+            <span><b>상태</b>{statusText}</span>
+          </div>
         </div>
         <div className="nyai-intro-copy">
           <div className="nyai-kicker"><Moon size={16} /> 신년운세 AI 상담</div>
@@ -762,46 +763,73 @@ export default function NewYearAiConsultationPage() {
           bottom: 18px;
         }
 
-        .nyai-image-shell {
-          overflow: hidden;
-          aspect-ratio: 1 / 1;
-          border-radius: 8px;
-          border: 1px solid rgba(255, 222, 144, .34);
-          background: #2a100f;
+        .nyai-consult-card {
           position: relative;
           z-index: 1;
+          display: grid;
+          align-content: space-between;
+          gap: 18px;
+          min-height: 300px;
+          overflow: hidden;
+          padding: 18px;
+          border: 1px solid rgba(255, 222, 144, .34);
+          border-radius: 8px;
+          background:
+            radial-gradient(circle at 18% 10%, rgba(255, 223, 133, .22), transparent 34%),
+            linear-gradient(155deg, rgba(62, 18, 15, .72), rgba(17, 12, 11, .82));
         }
 
-        .nyai-image-shell::after {
+        .nyai-consult-card::before {
           content: "";
           position: absolute;
-          inset: 0;
-          background: linear-gradient(180deg, transparent 44%, rgba(36, 10, 8, .48));
+          inset: 12px;
+          border: 1px solid rgba(255, 229, 160, .18);
+          border-radius: 8px;
           pointer-events: none;
         }
 
-        .nyai-image-shell img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
+        .nyai-consult-year span {
           display: block;
-        }
-
-        .nyai-image-badge {
-          position: absolute;
-          left: 12px;
-          bottom: 12px;
-          z-index: 2;
-          min-height: 28px;
-          padding: 6px 10px;
-          border-radius: 8px;
-          border: 1px solid rgba(255, 229, 160, .46);
-          background: rgba(47, 15, 12, .72);
-          color: #ffe8a8;
+          color: rgba(255, 237, 192, .72);
           font-size: 12px;
           font-weight: 900;
-          letter-spacing: .02em;
-          backdrop-filter: blur(8px);
+          letter-spacing: .14em;
+          text-transform: uppercase;
+        }
+
+        .nyai-consult-year strong {
+          display: block;
+          margin-top: 8px;
+          color: #fff0bf;
+          font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
+          font-size: clamp(44px, 6vw, 72px);
+          line-height: 1;
+          letter-spacing: 0;
+        }
+
+        .nyai-consult-rows {
+          display: grid;
+          gap: 8px;
+        }
+
+        .nyai-consult-rows span {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          min-height: 34px;
+          padding: 8px 10px;
+          border: 1px solid rgba(255, 224, 154, .2);
+          border-radius: 8px;
+          background: rgba(255, 248, 226, .08);
+          color: #fff3cb;
+          font-size: 13px;
+          font-weight: 800;
+        }
+
+        .nyai-consult-rows b {
+          color: rgba(255, 237, 192, .72);
+          font-size: 12px;
         }
 
         .nyai-intro-copy h1 {
@@ -1292,9 +1320,8 @@ export default function NewYearAiConsultationPage() {
             grid-template-columns: 1fr;
           }
 
-          .nyai-image-shell {
-            max-height: 260px;
-            aspect-ratio: 16 / 9;
+          .nyai-consult-card {
+            min-height: auto;
           }
 
           .nyai-grid {

@@ -10,7 +10,7 @@ const IS_DEV = process.env.NODE_ENV !== "production";
 const DEV_AUDIO_HELPER_TEXT = [
   "R2 audio load checklist:",
   "- R2 object key typo",
-  "- .wav public access issue",
+  "- audio public access issue",
   "- CORS GET/HEAD setting issue",
   "- file Content-Type issue",
   "- URL encoding issue for spaces or Korean filenames",
@@ -28,6 +28,7 @@ type UseMusicPlayerOptions = {
   initialVolume?: number;
   initialRepeat?: RepeatMode;
   initialShuffle?: boolean;
+  onPreviewLimitReached?: (track: Track) => void;
 };
 
 type PersistedMusicPlayerState = {
@@ -145,6 +146,11 @@ function getPreviousIndex(currentIndex: number, trackCount: number, shuffle: boo
   return previousIndex;
 }
 
+function getPreviewLimitSeconds(track?: Track | null) {
+  const limit = Number(track?.previewLimitSeconds || 0);
+  return Number.isFinite(limit) && limit > 0 ? limit : 0;
+}
+
 export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayerOptions = {}) {
   const initialIndex = useMemo(() => {
     const foundIndex = options.initialTrackId
@@ -154,7 +160,6 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
   }, [options.initialTrackId, tracks]);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const nextAudioPreloadRef = useRef<HTMLAudioElement | null>(null);
   const tracksRef = useRef(tracks);
   const currentIndexRef = useRef(initialIndex);
   const isPlayingRef = useRef(false);
@@ -166,6 +171,8 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
   const wantsPlaybackRef = useRef(false);
   const timeUpdateRafRef = useRef<number | null>(null);
   const lastTimeUpdateRef = useRef(0);
+  const onPreviewLimitReachedRef = useRef(options.onPreviewLimitReached);
+  const previewLimitReachedTrackIdRef = useRef("");
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -208,7 +215,25 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     setAudioDebugHelperText(null);
 
     try {
-      audio.preload = "auto";
+      if (audio.src !== track.audioUrl) {
+        audio.pause();
+        audio.src = track.audioUrl;
+        audio.preload = "metadata";
+        audio.load();
+        setCurrentTime(0);
+        setDuration(0);
+        setCanPlay(false);
+        setIsLoading(true);
+        setStatus("loading");
+      } else {
+        audio.preload = "metadata";
+        const previewLimit = getPreviewLimitSeconds(track);
+        if (previewLimit && audio.currentTime >= previewLimit) {
+          audio.currentTime = 0;
+          setCurrentTime(0);
+          previewLimitReachedTrackIdRef.current = "";
+        }
+      }
       await audio.play();
       isPlayingRef.current = true;
       setIsPlaying(true);
@@ -247,6 +272,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
     const normalizedIndex = ((nextIndex % trackCount) + trackCount) % trackCount;
     playAfterSourceChangeRef.current = shouldPlay;
+    previewLimitReachedTrackIdRef.current = "";
     currentIndexRef.current = normalizedIndex;
     setCurrentIndex(normalizedIndex);
 
@@ -322,7 +348,11 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     const audio = audioRef.current;
     if (!audio) return;
 
-    const nextTime = clamp(seconds, 0, Number.isFinite(audio.duration) ? audio.duration : 0);
+    const track = tracksRef.current[currentIndexRef.current];
+    const previewLimit = getPreviewLimitSeconds(track);
+    const maxDuration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    const maxTime = previewLimit ? Math.min(previewLimit, maxDuration || previewLimit) : maxDuration;
+    const nextTime = clamp(seconds, 0, maxTime);
     audio.currentTime = nextTime;
     setCurrentTime(nextTime);
   }, []);
@@ -331,7 +361,10 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     const audio = audioRef.current;
     if (!audio) return;
 
-    const maxTime = Number.isFinite(audio.duration) ? audio.duration : Number.POSITIVE_INFINITY;
+    const track = tracksRef.current[currentIndexRef.current];
+    const previewLimit = getPreviewLimitSeconds(track);
+    const maxDuration = Number.isFinite(audio.duration) ? audio.duration : Number.POSITIVE_INFINITY;
+    const maxTime = previewLimit ? Math.min(previewLimit, maxDuration) : maxDuration;
     const nextTime = clamp((audio.currentTime || 0) + deltaSeconds, 0, maxTime);
     audio.currentTime = nextTime;
     setCurrentTime(nextTime);
@@ -421,6 +454,10 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
   }, [tracks]);
 
   useEffect(() => {
+    onPreviewLimitReachedRef.current = options.onPreviewLimitReached;
+  }, [options.onPreviewLimitReached]);
+
+  useEffect(() => {
     currentIndexRef.current = currentIndex;
   }, [currentIndex]);
 
@@ -438,7 +475,7 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
   useEffect(() => {
     const audio = new Audio();
-    audio.preload = "metadata";
+    audio.preload = "none";
     audio.volume = clamp(options.initialVolume ?? 1, 0, 1);
     audio.muted = false;
     audioRef.current = audio;
@@ -458,6 +495,23 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     };
 
     const handleTimeUpdate = () => {
+      const track = tracksRef.current[currentIndexRef.current];
+      const previewLimit = getPreviewLimitSeconds(track);
+      if (track && previewLimit && audio.currentTime >= previewLimit) {
+        audio.currentTime = previewLimit;
+        audio.pause();
+        isPlayingRef.current = false;
+        wantsPlaybackRef.current = false;
+        setIsPlaying(false);
+        setCurrentTime(previewLimit);
+        setStatus("paused");
+        if (previewLimitReachedTrackIdRef.current !== track.id) {
+          previewLimitReachedTrackIdRef.current = track.id;
+          onPreviewLimitReachedRef.current?.(track);
+        }
+        return;
+      }
+
       const now = performance.now();
       if (audio.paused) return;
       if (typeof document !== "undefined" && document.hidden) return;
@@ -566,14 +620,15 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
       return;
     }
 
-    audio.src = currentTrack.audioUrl;
-    audio.preload = shouldPlayAfterLoad ? "auto" : "metadata";
+    audio.removeAttribute("src");
+    audio.preload = "none";
     audio.load();
+    previewLimitReachedTrackIdRef.current = "";
     setCurrentTime(0);
     setDuration(0);
     setCanPlay(false);
-    setIsLoading(true);
-    setStatus("loading");
+    setIsLoading(false);
+    setStatus("idle");
     setErrorMessage(null);
     setAudioDebugHelperText(null);
 
@@ -609,25 +664,6 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
 
     return () => {
       link.remove();
-    };
-  }, [nextTrack?.audioUrl]);
-
-  useEffect(() => {
-    if (typeof Audio === "undefined" || !nextTrack?.audioUrl) return;
-
-    const nextAudio = new Audio();
-    nextAudio.preload = "metadata";
-    nextAudio.src = nextTrack.audioUrl;
-    nextAudioPreloadRef.current = nextAudio;
-    nextAudio.load();
-
-    return () => {
-      nextAudio.pause();
-      nextAudio.removeAttribute("src");
-      nextAudio.load();
-      if (nextAudioPreloadRef.current === nextAudio) {
-        nextAudioPreloadRef.current = null;
-      }
     };
   }, [nextTrack?.audioUrl]);
 

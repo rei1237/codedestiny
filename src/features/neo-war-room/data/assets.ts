@@ -25,8 +25,8 @@ export const NEO_WAR_ROOM_ASSET_FOLDER = "DestinyWar";
 
 export const neoWarRoomBgmTracks = {
   moonlitWarRoom: {
-    key: "the-moonlit-war-room",
-    url: "https://music.code-destiny.com/DestinyWar/The%20Moonlit%20War%20Room.mp3",
+    key: "white-lion",
+    url: "https://music.code-destiny.com/DestinyWar/White%20Lion.mp3",
     volume: 0.26,
   },
 } as const;
@@ -73,6 +73,24 @@ export const neoWarRoomAssets = {
       "hero",
       "hero-fullbody",
     ),
+    strategyNeoMain: destinyWarAsset(
+      "전략실 네오 메인-Photoroom.png",
+      "전략실 변신 전 네오 메인 일러스트",
+      "hero",
+      "strategy-neo-main",
+    ),
+    blackShadow: destinyWarAsset(
+      "검은 그림자-Photoroom.png",
+      "전략실에 나타난 검은 그림자",
+      "hero",
+      "black-shadow",
+    ),
+    transformation: destinyWarAsset(
+      "네오 변신씬 (2).webp",
+      "네오 변신 장면 일러스트",
+      "hero",
+      "hero-transformation",
+    ),
   },
   sprites: {
     withBackground: buildSpriteSet("네오 스프라이트 배경", 7, "네오 작전실 표정 스프라이트"),
@@ -81,6 +99,12 @@ export const neoWarRoomAssets = {
       src: asset.src.replace(".png", "-Photoroom.png"),
       objectKey: asset.objectKey.replace(".png", "-Photoroom.png"),
     })),
+    strategyNeo: destinyWarAsset(
+      "전략실 네오-Photoroom.png",
+      "전략실 변신 전 네오 표정 스프라이트 시트",
+      "sprite",
+      "strategy-neo-sprite-sheet",
+    ),
   },
   backgrounds: {
     lobbyDesktop: destinyWarAsset(
@@ -106,6 +130,12 @@ export const neoWarRoomAssets = {
       "네오의 팩폭 작전실 모바일 배경",
       "room-background",
       "mobile-background",
+    ),
+    strategyCity: destinyWarAsset(
+      "전략실 도시.webp",
+      "네오의 운명 전략실 도시 배경",
+      "room-background",
+      "strategy-city-background",
     ),
   },
   methods: {

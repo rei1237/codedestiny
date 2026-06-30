@@ -20,6 +20,12 @@ function getPortOneBaseUrl(env) {
   return getEnv(env, "PORTONE_API_BASE_URL", DEFAULT_PORTONE_BASE_URL).replace(/\/+$/, "");
 }
 
+function getPortOneTimeoutMs(env) {
+  const value = Number(getEnv(env, "PORTONE_API_TIMEOUT_MS", "8000"));
+  if (!Number.isFinite(value) || value <= 0) return 8000;
+  return Math.min(Math.max(Math.floor(value), 1000), 30000);
+}
+
 function getExactEnv(env, key, fallback = "") {
   return getEnv(env, key, fallback);
 }
@@ -150,7 +156,24 @@ function getPortOneHeaders(env) {
 }
 
 async function requestJson(url, options, errorPrefix) {
-  const response = await fetch(url, options);
+  const timeoutMs = getPortOneTimeoutMs(options?.env);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const { env: _env, signal: _signal, ...fetchOptions } = options || {};
+  let response;
+  try {
+    response = await fetch(url, {
+      ...fetchOptions,
+      signal: controller.signal,
+    });
+  } catch (error) {
+    if (error?.name === "AbortError") {
+      throw new Error(`${errorPrefix}: request timed out after ${timeoutMs}ms`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+  }
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -258,6 +281,7 @@ export async function fetchPortOnePayment(env, paymentId) {
     {
       method: "GET",
       headers: getPortOneHeaders(env),
+      env,
     },
     "PortOne payment lookup failed",
   );
@@ -302,6 +326,7 @@ export async function cancelPortOnePayment(env, params = {}) {
       method: "POST",
       headers: getPortOneHeaders(env),
       body: JSON.stringify(body),
+      env,
     },
     "PortOne payment cancel failed",
   );

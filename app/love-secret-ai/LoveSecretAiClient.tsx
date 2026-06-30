@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import {
   AlertCircle,
   CalendarDays,
@@ -636,7 +635,7 @@ export default function LoveSecretAiPage() {
       <div className="pointer-events-none fixed left-[-10%] right-[-10%] top-56 h-28 rotate-[-4deg] bg-[linear-gradient(92deg,transparent_0_14%,rgba(244,114,182,0.34)_16%,rgba(250,204,21,0.18)_46%,rgba(244,114,182,0.3)_78%,transparent_88%)] blur-xl" aria-hidden="true" />
 
       <section className="relative mx-auto flex w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
-        <LoveSecretHero phase={phase} phaseText={phaseText} busy={busy} />
+        <LoveSecretHero phase={phase} phaseText={phaseText} busy={busy} step={step} />
 
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
           <form onSubmit={handleSubmit} className="rounded-3xl border border-white/15 bg-white/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
@@ -762,42 +761,59 @@ export default function LoveSecretAiPage() {
   );
 }
 
-function LoveSecretHero({ phase, phaseText, busy }: { phase: Phase; phaseText: string; busy: boolean }) {
+function LoveSecretHero({ phase, phaseText, busy, step }: { phase: Phase; phaseText: string; busy: boolean; step: number }) {
+  const labels = ["내 정보", "상대방 정보", "상담 주제"];
+
   return (
-    <header className="grid gap-5 rounded-3xl border border-white/10 bg-white/[0.07] p-4 shadow-2xl shadow-black/30 backdrop-blur-xl lg:grid-cols-[minmax(220px,340px)_minmax(0,1fr)] lg:p-6">
-      <div className="relative min-h-[240px] overflow-hidden rounded-3xl border border-rose-100/20 bg-[#2b071d]">
-        <Image
-          src="/fuctionassets/lovebible.webp"
-          alt="연애 비책 AI 상담"
-          fill
-          priority
-          sizes="(min-width: 1024px) 340px, 100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#160014]/80 via-[#160014]/20 to-transparent" />
-        <div className="absolute left-5 top-5 h-24 w-24 rounded-full bg-amber-100/30 blur-2xl" aria-hidden="true" />
-      </div>
-      <div className="relative flex flex-col justify-center py-2">
-        <p className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200/25 bg-amber-100/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-amber-100">
-          <Moon className="h-4 w-4" aria-hidden="true" />
-          Love Secret · AI Romance Reading
-        </p>
-        <h1 className="mt-4 text-4xl font-black leading-tight text-white [font-family:var(--font-display)] sm:text-6xl">
-          연애 비책 AI 상담
-        </h1>
-        <p className="mt-4 max-w-3xl text-base leading-8 text-rose-50/85 sm:text-lg">
-          마음의 온도, 사주의 균형, 두 사람의 리듬을 함께 읽어 지금 가장 필요한 연애의 한 수를 전해드립니다.
-        </p>
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          {["사주 기반 연애 성향", "궁합과 관계 흐름", "조후로 보는 친밀감 리듬", "현실적인 연애 조언"].map((item) => (
-            <span key={item} className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-bold text-rose-50">
-              {item}
-            </span>
-          ))}
+    <header className="rounded-3xl border border-white/10 bg-white/[0.07] p-4 shadow-2xl shadow-black/30 backdrop-blur-xl lg:p-6">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
+        <div className="relative flex flex-col justify-center py-2">
+          <p className="inline-flex w-fit items-center gap-2 rounded-full border border-amber-200/25 bg-amber-100/10 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-amber-100">
+            <Moon className="h-4 w-4" aria-hidden="true" />
+            Love Secret · AI Romance Reading
+          </p>
+          <h1 className="mt-4 text-4xl font-black leading-tight text-white [font-family:var(--font-display)] sm:text-6xl">
+            연애 비책 AI 상담
+          </h1>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-rose-50/85 sm:text-lg">
+            마음의 온도, 사주의 균형, 두 사람의 리듬을 함께 읽어 지금 가장 필요한 연애의 한 수를 전해드립니다.
+          </p>
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {["사주 기반 연애 성향", "궁합과 관계 흐름", "조후로 보는 친밀감 리듬", "현실적인 연애 조언"].map((item) => (
+              <span key={item} className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-sm font-bold text-rose-50">
+                {item}
+              </span>
+            ))}
+          </div>
+          <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm font-bold text-rose-50" data-phase={phase}>
+            {busy ? <Loader2 className="h-4 w-4 animate-spin text-amber-200 motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />}
+            <span>{phaseText}</span>
+          </div>
         </div>
-        <div className="mt-5 flex items-center gap-3 rounded-2xl border border-white/10 bg-black/20 p-3 text-sm font-bold text-rose-50" data-phase={phase}>
-          {busy ? <Loader2 className="h-4 w-4 animate-spin text-amber-200 motion-reduce:animate-none" aria-hidden="true" /> : <Sparkles className="h-4 w-4 text-amber-200" aria-hidden="true" />}
-          <span>{phaseText}</span>
+
+        <div className="grid gap-3 border-t border-white/10 pt-4 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-100">상담 준비 단계</p>
+          <div className="grid gap-2">
+            {labels.map((label, index) => {
+              const active = step === index;
+              const done = step > index;
+              return (
+                <div key={label} className={cx(
+                  "flex min-h-12 items-center gap-3 rounded-2xl border px-3 text-sm font-black transition",
+                  active ? "border-amber-200/45 bg-amber-200/15 text-white" : done ? "border-rose-100/25 bg-white/10 text-rose-50" : "border-white/10 bg-black/15 text-rose-100/70",
+                )}>
+                  <span className={cx(
+                    "grid h-8 w-8 shrink-0 place-items-center rounded-full text-sm",
+                    active ? "bg-amber-200 text-[#35101e]" : done ? "bg-rose-200 text-[#35101e]" : "bg-white/10 text-rose-50",
+                  )}>
+                    {done ? <Check className="h-4 w-4" aria-hidden="true" /> : index + 1}
+                  </span>
+                  <span>{label}</span>
+                  {active && <span className="ml-auto rounded-full border border-amber-200/30 px-2 py-1 text-[11px] text-amber-100">현재</span>}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </header>

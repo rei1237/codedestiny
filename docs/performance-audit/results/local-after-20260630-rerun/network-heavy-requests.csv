@@ -1,0 +1,9 @@
+pageUrl,viewport,run,requestUrl,path,resourceType,mimeType,status,transferredSizeBytes,transferredSize,encodedBodySizeBytes,cache,initiator,extension,fileName,componentTraceNeeded
+/music,mobile,cold,http://localhost:3100/music/,/music/,document,text/plain,500,348,348 B,348,no,other,,localhost,no
+/music,mobile,repeat,http://localhost:3100/music/,/music/,document,text/plain,500,348,348 B,348,no,other,,localhost,no
+/palm-reading,mobile,cold,http://localhost:3100/palm-reading/,/palm-reading/,document,text/plain,500,321,321 B,321,no,other,,localhost,no
+/palm-reading,mobile,repeat,http://localhost:3100/palm-reading/,/palm-reading/,document,text/plain,500,321,321 B,321,no,other,,localhost,no
+/music,mobile,cold,http://localhost:3100/favicon.ico,/favicon.ico,other,text/plain,500,300,300 B,300,no,other,.ico,favicon.ico,no
+/music,mobile,repeat,http://localhost:3100/favicon.ico,/favicon.ico,other,text/plain,500,300,300 B,300,no,other,.ico,favicon.ico,no
+/palm-reading,mobile,cold,http://localhost:3100/favicon.ico,/favicon.ico,other,text/plain,500,300,300 B,300,no,other,.ico,favicon.ico,no
+/palm-reading,mobile,repeat,http://localhost:3100/favicon.ico,/favicon.ico,other,text/plain,500,300,300 B,300,no,other,.ico,favicon.ico,no

@@ -2,11 +2,11 @@
   'use strict';
 
   /* mobile touch: direct tap only (scroll/move/long-press blocked) */
-  var TAP_MAX_DX = 8;
-  var TAP_MAX_DY = 8;
-  var TAP_MOVE_DETECT_PX = 2;
-  var TAP_VERTICAL_BLOCK_PX = 6;
-  var MAX_TAP_DURATION_MS = 500;
+  var TAP_MAX_DX = 16;
+  var TAP_MAX_DY = 16;
+  var TAP_MOVE_DETECT_PX = 4;
+  var TAP_VERTICAL_BLOCK_PX = 18;
+  var MAX_TAP_DURATION_MS = 650;
   var GHOST_CLICK_BLOCK_MS = 500;
   var ACTION_DEDUPE_MS = 650;
   var SCROLL_BLOCK_MS = 200;
@@ -700,7 +700,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-3a6d80129b32').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-b4723286f708').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -782,23 +782,23 @@
   var LAZY_LOAD_ACTIONS = {
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-3a6d80129b32'
+      'js/animal-totem-experience.js?v=build-b4723286f708'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-3a6d80129b32'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-3a6d80129b32'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-3a6d80129b32'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-b4723286f708'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-b4723286f708'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-b4723286f708'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-3a6d80129b32'],
-    openDreamModal: ['js/dream-ledger.js?v=build-3a6d80129b32'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-3a6d80129b32'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-b4723286f708'],
+    openDreamModal: ['js/dream-ledger.js?v=build-b4723286f708'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-b4723286f708'],
     openKemetModal: ['js/oracle-kcg.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-3a6d80129b32']
+    openSibylModal: ['js/sibyl-system.js?v=build-b4723286f708']
   };
 
   function normalizeScriptSrc(src) {
@@ -1209,7 +1209,7 @@
           markCardScrollLock(240);
         }
       }
-    }, { passive: true, capture: true });
+    }, { passive: false, capture: true });
 
     root.addEventListener('touchend', function (event) {
       var pt = getPoint(event);
@@ -1223,9 +1223,8 @@
         var dx = Math.abs(pt.x - ctx.startX);
         var now = Date.now();
         var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx;
+        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
         var shouldBlockTap = ctx.moved
-          || ctx.hadMoveEvent
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
@@ -1249,7 +1248,7 @@
       /* Mobile callback: re-scan with elementFromPoint when touchCtx delayed handling fails (minimal fallback). */
       if (lastTouchStart) {
         var touchAge = Date.now() - (lastTouchStart.at || 0);
-        if (touchAge > MAX_TAP_DURATION_MS || lastTouchHadMove) {
+        if (touchAge > MAX_TAP_DURATION_MS) {
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
           return;
         }
@@ -1345,9 +1344,8 @@
         var dx = Math.abs(pt.x - ctx.startX);
         var now = Date.now();
         var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
-        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx;
+        var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
         var shouldBlockTap = ctx.moved
-          || ctx.hadMoveEvent
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
@@ -1367,7 +1365,7 @@
       }
       if (lastTouchStart) {
         var touchAge = Date.now() - (lastTouchStart.at || 0);
-        if (touchAge > MAX_TAP_DURATION_MS || lastTouchHadMove) {
+        if (touchAge > MAX_TAP_DURATION_MS) {
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
           return;
         }

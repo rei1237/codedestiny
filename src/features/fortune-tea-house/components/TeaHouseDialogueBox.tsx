@@ -16,6 +16,8 @@ type TeaHouseDialogueBoxProps = {
 
 const TYPEWRITER_INTERVAL_MS = 24;
 const TYPEWRITER_INTERVAL_NARRATION_MS = 48;
+const dialoguePremiumUi =
+  "relative !rounded-[22px] !border !border-[#f6dfb7]/30 !shadow-[0_24px_70px_rgba(6,3,18,0.38),0_0_34px_rgba(206,196,255,0.12),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/10 backdrop-blur-2xl [&_p]:!font-[var(--tea-font-body)] [&_p]:!leading-[1.82] [&_p]:!tracking-[0] [&_strong]:!font-[var(--tea-font-premium)] [&_strong]:!tracking-[0]";
 
 function getSpeakerLabel(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker) {
   if (speaker === "narration") return "나레이션";
@@ -86,7 +88,7 @@ export default function TeaHouseDialogueBox({
 
   return (
     <div
-      className={`${styles.dialogueBox} ${className}`}
+      className={`${styles.dialogueBox} ${dialoguePremiumUi} ${className}`}
       data-speaker={speaker}
       data-frame={isSystem ? "system" : "character"}
       data-complete={isTextComplete ? "true" : "false"}

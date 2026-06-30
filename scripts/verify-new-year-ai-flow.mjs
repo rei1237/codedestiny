@@ -70,7 +70,7 @@ assertIncludes(pageSourcePath, "targetYear");
 assertIncludes(pageSourcePath, "focusArea");
 assertIncludes(pageSourcePath, "더 깊게 보고 싶은 흐름");
 assertIncludes(pageSourcePath, "nyai-category-chip");
-assertIncludes(pageSourcePath, "AI Consultation");
+assertIncludes(pageSourcePath, "nyai-consult-card");
 assertIncludes(pageSourcePath, "handleDownloadPdf");
 assertIncludes(pageSourcePath, "html2canvas");
 assertIncludes(pageSourcePath, "jspdf");

@@ -1,3 +1,5 @@
+import type {} from "node:fs";
+
 const { createHmac, createHash } = require("node:crypto") as typeof import("node:crypto");
 const { mkdir, readFile, writeFile } = require("node:fs/promises") as typeof import("node:fs/promises");
 const { dirname, extname, resolve } = require("node:path") as typeof import("node:path");
@@ -59,6 +61,9 @@ const ARTISTS: readonly ArtistConfig[] = [
   },
 ];
 const PREFIXES = ARTISTS.map((artist) => artist.prefix);
+const EXCLUDED_AUDIO_BASENAMES = new Set([
+  "\uB2EC\uBE5B \uC810\uAD18",
+]);
 const EMPTY_SHA256 = sha256Hex("");
 
 loadDotenv({ path: ".env.local", quiet: true });
@@ -468,7 +473,7 @@ function titleFromKey(key: string) {
 function buildTracks(keys: readonly string[], baseUrl: string) {
   const normalizedKeys = keys.map(normalizeObjectKey).filter(Boolean).filter(isTargetKey);
   const coverKeys = normalizedKeys.filter((key) => [".webp", ".png"].includes(extensionOfKey(key)));
-  const audioKeys = normalizedKeys.filter((key) => extensionOfKey(key) === ".wav");
+  const audioKeys = normalizedKeys.filter((key) => extensionOfKey(key) === ".mp3" && !EXCLUDED_AUDIO_BASENAMES.has(basenameOfKey(key)));
   const tracks: GeneratedTrack[] = [];
 
   for (const artist of ARTISTS) {

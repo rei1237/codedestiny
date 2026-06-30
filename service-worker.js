@@ -136,8 +136,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ★ JS/CSS 파일: no-store로 fetch (해시 없는 파일 구버전 방지)
-  // _next/static/chunks/*.js 같은 해시 파일도 no-store → 브라우저 자체 캐시에 맡김
   if (
     event.request.destination === 'script' ||
     event.request.destination === 'style' ||
@@ -145,12 +143,6 @@ self.addEventListener('fetch', (event) => {
     pathname.endsWith('.css') ||
     pathname.endsWith('.mjs')
   ) {
-    event.respondWith(
-      fetch(event.request, { cache: 'no-store' }).catch(async () => {
-        const cached = await caches.match(event.request);
-        return cached || createOfflineFallback(event.request);
-      })
-    );
     return;
   }
 

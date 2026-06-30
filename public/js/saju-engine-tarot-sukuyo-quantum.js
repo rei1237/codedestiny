@@ -4486,7 +4486,7 @@ function renderTTest(p, natal, johu, pw) {
     var priceLabel = syPaidPriceLabel(feature);
     var opts = options && typeof options === 'object' ? options : {};
     var title = opts.title || '🔒 관계 확장 잠금 해제';
-    var desc = opts.desc || '이 영역은 이용권, 월정석, 단건 결제 중 가능한 방식으로 열립니다. 잠금 해제 후 [관계 회로], [연애 알고리즘], [현실 처리 능력]이 함께 열립니다.';
+    var desc = opts.desc || '이 영역은 이용권, 월정석, 단건 결제 중 가능한 방식으로 열립니다. 잠금 해제 후 [관계 회로], [연애 알고리즘], [현실 처리 능력], [사주 기반 극T 해석], [디버깅 처방전]이 함께 열립니다.';
     var extraStyle = opts.fullSpan === true ? 'grid-column:1/-1;' : '';
     return '<section class="t-panel" style="--t-panel-accent:rgba(244,114,182,.26);opacity:.96;position:relative;' + extraStyle + '">'
       + '<div class="t-panel-title">' + title + '</div>'
@@ -4629,7 +4629,11 @@ function renderTTest(p, natal, johu, pw) {
       builderHtml += relationshipGateHtmlFromBuilder
         ? '<div class="t-panel-grid">' + relationshipGateHtmlFromBuilder + '</div>'
         : '<div class="t-panel-grid">' + relationshipHtmlFromBuilder + loveHtmlFromBuilder + workMoneyHtmlFromBuilder + '</div>';
-      builderHtml += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtmlFromBuilder + fatalBugHtmlFromBuilder + prescriptionHtmlFromBuilder + '</div>';
+      builderHtml += '<div class="t-panel-grid t-panel-grid--support">'
+        + (hasExtremeTRelationshipAccess ? sajuBaseHtmlFromBuilder : '')
+        + fatalBugHtmlFromBuilder
+        + (hasExtremeTRelationshipAccess ? prescriptionHtmlFromBuilder : '')
+        + '</div>';
       builderHtml += missionHtmlFromBuilder;
       builderHtml += summaryCardHtmlFromBuilder;
       builderHtml += '</div>';
@@ -5130,7 +5134,11 @@ function renderTTest(p, natal, johu, pw) {
   html += fallbackRelationshipGateHtml
     ? '<div class="t-panel-grid">' + fallbackRelationshipGateHtml + '</div>'
     : '<div class="t-panel-grid">' + relationshipHtml + loveHtml + workMoneyHtml + '</div>';
-  html += '<div class="t-panel-grid t-panel-grid--support">' + sajuBaseHtml + fatalBugHtml + prescriptionHtml + '</div>';
+  html += '<div class="t-panel-grid t-panel-grid--support">'
+    + (hasFallbackExtremeTRelationshipAccess ? sajuBaseHtml : '')
+    + fatalBugHtml
+    + (hasFallbackExtremeTRelationshipAccess ? prescriptionHtml : '')
+    + '</div>';
   html += missionHtml;
   html += summaryCardHtml;
   html += '</div>';

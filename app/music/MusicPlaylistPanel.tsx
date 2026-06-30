@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Moon, Play, Search, Share2, Sparkles } from "lucide-react";
+import { Lock, Moon, Play, Search, Share2, Sparkles } from "lucide-react";
 import {
   type ChangeEvent,
   type MouseEvent as ReactMouseEvent,
@@ -202,6 +202,7 @@ const PlaylistTrackCard = memo(function PlaylistTrackCard({
     useCallback((state) => state.currentTrackId === track.id && state.isPlaying, [track.id]),
   );
   const coverUnavailable = !track.coverUrl || hasCoverError;
+  const isLockedPreview = track.accessTier === "locked_preview";
   const handleTrackSelect = useCallback(() => {
     onSelectTrack(track.id);
   }, [onSelectTrack, track.id]);
@@ -269,6 +270,16 @@ const PlaylistTrackCard = memo(function PlaylistTrackCard({
             <span className={styles.playlistTrackMood}>{collectionLabel}</span>
           </span>
           <span className={styles.playlistMoodTag}>{moodTag}</span>
+          <span className={styles.playlistAccessBadge} data-access={isLockedPreview ? "preview" : "full"}>
+            {isLockedPreview ? (
+              <>
+                <Lock size={12} aria-hidden />
+                <span>40 sec preview</span>
+              </>
+            ) : (
+              <span>Full track</span>
+            )}
+          </span>
         </span>
 
         <span className={styles.playlistTrackMeta}>
@@ -299,6 +310,7 @@ const PlaylistTrackCard = memo(function PlaylistTrackCard({
     && prev.track.artistKey === next.track.artistKey
     && prev.track.artistName === next.track.artistName
     && prev.track.coverUrl === next.track.coverUrl
+    && prev.track.accessTier === next.track.accessTier
     && prev.displayIndex === next.displayIndex
     && prev.collectionLabel === next.collectionLabel
     && prev.durationLabel === next.durationLabel

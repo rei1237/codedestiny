@@ -72,7 +72,7 @@ export const teaCupSpriteMap: Record<string, TeaCupSpriteEntry> = {
   "white-lotus-healing": {
     ...sheets,
     normal: slice(942, 53, 234, 324),
-    selected: slice(500, 537, 471, 481),
+    selected: slice(506, 537, 412, 481),
   },
   "black-moon-brown-rice": {
     ...sheets,

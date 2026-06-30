@@ -14,8 +14,15 @@ export function createHttpError(status, message, payload = {}) {
 export function json(body, init = {}) {
   const headers = new Headers(init.headers || {});
   headers.set("Content-Type", "application/json; charset=utf-8");
-  headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
-  headers.set("Pragma", "no-cache");
+  const requestedCacheControl = headers.get("Cache-Control") || "";
+  const allowsPublicCache = /\bpublic\b/i.test(requestedCacheControl) && !/\bno-store\b/i.test(requestedCacheControl);
+
+  if (!allowsPublicCache) {
+    headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    headers.set("Pragma", "no-cache");
+  } else {
+    headers.delete("Pragma");
+  }
 
   return new Response(JSON.stringify(body), {
     ...init,

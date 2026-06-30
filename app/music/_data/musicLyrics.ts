@@ -11343,7 +11343,6 @@ Yeoni의 등불은 남아
     || normalized.includes("fortune")
     || normalized.includes("러브")
     || normalized.includes("포츈")
-    || normalized.includes("달빛 점괘")
   ) {
     return `[Verse 1]
 오늘은 뭐가 뜰까

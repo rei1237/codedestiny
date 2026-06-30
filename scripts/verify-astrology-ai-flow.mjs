@@ -89,7 +89,7 @@ assert(models.includes("astrologyAiConsultationSchema"), "astrologyAiConsultatio
 assert(models.includes("astrologyAiConsultations"), "astrologyAiConsultations collection missing");
 
 const registry = read("worker/lib/paid-feature-registry.js");
-assert(registry.includes('"astrology-ai-consultation": { cost: 390, amountKRW: 39000'), "registry pricing missing");
+assert(registry.includes('"astrology-ai-consultation": { cost: 300, amountKRW: 30000'), "registry pricing missing");
 assert(registry.includes('gotoAstrologyPremium: "astrology-ai-consultation"'), "registry action alias must use new key");
 assert(registry.includes('premium_pdf_western_astrology: "premium-astrology-report"'), "old PDF key alias should remain separate");
 

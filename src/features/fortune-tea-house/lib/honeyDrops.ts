@@ -55,6 +55,8 @@ export function normalizeHoneyDropsState(value: unknown): FortuneTeaHouseHoneyDr
     totalEarned,
     totalSpent,
     lastEarnedAt: typeof source.lastEarnedAt === "string" ? source.lastEarnedAt : undefined,
+    tarotAlbumUnlocked: Boolean(source.tarotAlbumUnlocked),
+    tarotAlbumUnlockedAt: typeof source.tarotAlbumUnlockedAt === "string" ? source.tarotAlbumUnlockedAt : undefined,
     resultId: typeof source.resultId === "string" ? source.resultId : undefined,
     earnedThisResult: Boolean(source.earnedThisResult),
     duplicateResult: Boolean(source.duplicateResult),

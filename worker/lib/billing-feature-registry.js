@@ -12,6 +12,7 @@ import {
   MEMBERSHIP_CREDIT_PER_COIN,
   normalizePaidFeaturePricingShape,
 } from "./billing-policy.js";
+import { resolveMusicTrackUnlockPricing } from "../../lib/music-access-policy.js";
 
 const BILLING_FEATURE_CATEGORIES = Object.freeze({
   "palm-reading": Object.freeze({
@@ -205,6 +206,19 @@ function resolveByFeatureKey(featureKey) {
       cost: Number(featureSpec.cost),
       amountKRW: Number(featureSpec.amountKRW),
       reason: String(featureSpec.reason || "Paid feature unlock"),
+    });
+  }
+
+  const musicTrackSpec = resolveMusicTrackUnlockPricing(normalizedFeatureKey);
+  if (musicTrackSpec) {
+    return toPricingShape({
+      categoryKey: "music-track",
+      categoryLabel: "Code Destiny Music",
+      subFeatureKey: normalizeKey(normalizedFeatureKey) || "default",
+      featureKey: normalizedFeatureKey,
+      cost: Number(musicTrackSpec.cost),
+      amountKRW: Number(musicTrackSpec.amountKRW),
+      reason: String(musicTrackSpec.reason || "Code Destiny music full track unlock"),
     });
   }
 

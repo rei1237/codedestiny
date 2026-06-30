@@ -186,6 +186,7 @@ const paymentSchema = new mongoose.Schema({
   reportId: { type: String, trim: true, default: "", index: true },
   sessionId: { type: String, trim: true, default: "", index: true },
   pricingSnapshot: { type: mongoose.Schema.Types.Mixed },
+  metadata: { type: mongoose.Schema.Types.Mixed },
   paymentMethod: { type: String, trim: true, default: "unknown" },
   status: { type: String, enum: ["pending", "paid", "processing", "success", "fulfilled", "retryable", "failed", "cancelled", "refunded"], default: "pending", index: true },
   orderState: {
@@ -373,6 +374,33 @@ const paymentFailureLogSchema = new mongoose.Schema({
 paymentFailureLogSchema.index({ createdAt: -1 });
 paymentFailureLogSchema.index({ source: 1, createdAt: -1 });
 
+const paymentWebhookEventSchema = new mongoose.Schema({
+  provider: { type: String, required: true, trim: true, maxlength: 40, default: "portone" },
+  eventId: { type: String, required: true, trim: true, maxlength: 180 },
+  eventType: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  paymentId: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  status: {
+    type: String,
+    enum: ["processing", "processed", "failed"],
+    default: "processing",
+    index: true,
+  },
+  attempts: { type: Number, default: 1, min: 1 },
+  receivedAt: { type: Date, default: Date.now, index: true },
+  processedAt: { type: Date, default: null },
+  lastAttemptAt: { type: Date, default: Date.now },
+  lastError: { type: String, default: "", trim: true, maxlength: 500 },
+  requestMeta: {
+    ip: { type: String, trim: true, maxlength: 120 },
+    userAgent: { type: String, trim: true, maxlength: 300 },
+    requestId: { type: String, trim: true, maxlength: 120 },
+  },
+  payload: { type: mongoose.Schema.Types.Mixed },
+}, { timestamps: true, collection: "payment_webhook_events" });
+
+paymentWebhookEventSchema.index({ provider: 1, eventId: 1 }, { unique: true });
+paymentWebhookEventSchema.index({ paymentId: 1, createdAt: -1 });
+
 const serviceExecutionTransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   executionKey: { type: String, required: true, trim: true, maxlength: 120 },
@@ -533,8 +561,21 @@ const karmaDestinyAiMessageSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 }, { _id: false });
 
+const karmaDestinyAiChapterSchema = new mongoose.Schema({
+  id: { type: String, required: true, trim: true, maxlength: 40 },
+  order: { type: Number, required: true },
+  title: { type: String, required: true, trim: true, maxlength: 120 },
+  content: { type: String, required: true, trim: true, maxlength: 14000 },
+  summary: { type: String, default: "", trim: true, maxlength: 1200 },
+  keyTakeaways: { type: [String], default: [] },
+  highlightQuotes: { type: [String], default: [] },
+  charCount: { type: Number, default: 0 },
+}, { _id: false });
+
 const karmaDestinyAiConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  reportId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  attemptId: { type: String, default: "", trim: true, maxlength: 180, index: true },
   userId: { type: String, required: true, trim: true, index: true },
   birthInfo: {
     name: { type: String, default: "", trim: true, maxlength: 80 },
@@ -555,10 +596,18 @@ const karmaDestinyAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1600 },
   integratedResult: { type: mongoose.Schema.Types.Mixed, default: null },
   summaryCards: { type: mongoose.Schema.Types.Mixed, default: null },
-  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  billingState: { type: mongoose.Schema.Types.Mixed, default: null },
   messages: { type: [karmaDestinyAiMessageSchema], default: [] },
+  chapters: { type: [karmaDestinyAiChapterSchema], default: [] },
+  chapterSummaries: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  finalLetter: { type: String, default: "", trim: true, maxlength: 14000 },
+  generatedAt: { type: Date, default: null },
+  totalCharCount: { type: Number, default: 0 },
+  qualityCheck: { type: mongoose.Schema.Types.Mixed, default: null },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
@@ -920,6 +969,8 @@ export const MonthlyCreditLedger = mongoose.models.MonthlyCreditLedger
 export const ContentEntitlement = mongoose.models.ContentEntitlement
   || mongoose.model("ContentEntitlement", contentEntitlementSchema);
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
+export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
+  || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);

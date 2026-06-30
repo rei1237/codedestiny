@@ -1,7 +1,7 @@
 import { buildOraclePrompt } from "@/app/tarot/prompt-maker/utils/buildOraclePrompt";
 import type { DrawnTarotCard, TarotSpread, TarotSpreadCategory } from "@/app/tarot/prompt-maker/types";
 import type { FortuneTeaHouseConsultRequest, FortuneTeaTarotSnapshot, FortuneTeaTarotSpread, FortuneTeaTarotSpreadCard } from "../data/consult";
-import { drawMajorArcana, drawTarotOrientation, majorArcanaCards, type TeaHouseTarotCard, type TarotOrientation } from "../data/tarotCards";
+import { drawTarotCard, drawTarotOrientation, tarotDeckCards, type TeaHouseTarotCard, type TarotOrientation } from "../data/tarotCards";
 
 const tarotSpreadPositions: Record<FortuneTeaTarotSpread, Array<{ positionId: string; positionLabel: string; positionMeaning: string }>> = {
   three: [
@@ -80,7 +80,7 @@ function buildDrawnCard(card: TeaHouseTarotCard, orientation: TarotOrientation):
 }
 
 export function buildFortuneTeaTarotSnapshot(request: FortuneTeaHouseConsultRequest, seed: string): FortuneTeaTarotSnapshot {
-  const card = drawMajorArcana(seed);
+  const card = drawTarotCard(seed);
   const orientation = drawTarotOrientation(seed);
   const meaning = orientation === "upright" ? card.upright : card.reversed;
   const category = categoryFromTeaCup(request);
@@ -120,12 +120,12 @@ export function buildFortuneTeaTarotSnapshot(request: FortuneTeaHouseConsultRequ
 
 function pickSpreadCards(seed: string, count: number) {
   const picked: TeaHouseTarotCard[] = [];
-  for (let index = 0; picked.length < count && index < majorArcanaCards.length * 2; index += 1) {
-    const card = drawMajorArcana(`${seed}:spread:${index}`);
+  for (let index = 0; picked.length < count && index < tarotDeckCards.length * 2; index += 1) {
+    const card = drawTarotCard(`${seed}:spread:${index}`);
     if (!picked.some((item) => item.id === card.id)) picked.push(card);
   }
   if (picked.length < count) {
-    for (const card of majorArcanaCards) {
+    for (const card of tarotDeckCards) {
       if (picked.length >= count) break;
       if (!picked.some((item) => item.id === card.id)) picked.push(card);
     }
@@ -141,7 +141,7 @@ export function buildFortuneTeaTarotSpreadCards(
   const positions = tarotSpreadPositions[tarotSpread];
   const cards = pickSpreadCards(seed, positions.length);
   const tarotSpreadCards = positions.map((position, index) => {
-    const card = cards[index] || drawMajorArcana(`${seed}:spread:fallback:${index}`);
+    const card = cards[index] || drawTarotCard(`${seed}:spread:fallback:${index}`);
     const orientation = drawTarotOrientation(`${seed}:spread:${position.positionId}:${card.id}`);
     const meaning = orientation === "upright" ? card.upright : card.reversed;
     return {

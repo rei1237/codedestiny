@@ -77,8 +77,15 @@
   z-index: 1;
 }
 
-.heroSection[data-phase="prologue"] .vnCopy,
-.heroSection[data-phase="prologue"] .vnCharacter {
+.heroSection[data-phase="prologue"] {
+  background-image:
+    radial-gradient(circle at 24% 18%, rgba(245, 212, 135, 0.24), transparent 28%),
+    linear-gradient(90deg, rgba(5, 8, 18, 0.68) 0%, rgba(5, 8, 18, 0.34) 48%, rgba(5, 8, 18, 0.24) 100%),
+    linear-gradient(180deg, rgba(5, 8, 18, 0.04) 0%, rgba(5, 8, 18, 0.62) 100%),
+    var(--neo-prologue-bg);
+}
+
+.heroSection[data-phase="prologue"] .vnCopy {
   display: none;
 }
 
@@ -156,9 +163,34 @@
   background:
     linear-gradient(90deg, rgba(5, 8, 18, 0.52) 0%, rgba(5, 10, 20, 0.16) 45%, rgba(5, 8, 18, 0.06) 100%),
     linear-gradient(180deg, rgba(7, 14, 31, 0.02) 0%, rgba(3, 5, 10, 0.38) 100%),
-    var(--neo-bg-desktop);
+    var(--neo-prologue-bg);
   background-size: cover;
   background-position: center;
+}
+
+.vnStage[data-effect="signal"]::before {
+  background:
+    radial-gradient(circle at 18% 14%, rgba(245, 212, 135, 0.24), transparent 28%),
+    radial-gradient(circle at 76% 28%, rgba(167, 35, 48, 0.18), transparent 28%),
+    linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.54));
+}
+
+.vnStage[data-effect="transform"]::after,
+.vnStage[data-effect="arrival"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 72% 46%, rgba(255, 238, 178, 0.3), transparent 18%),
+    radial-gradient(circle at 74% 42%, rgba(167, 35, 48, 0.18), transparent 28%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+}
+
+.vnStage[data-effect="transform"]::after {
+  animation: neoPrologueFlare 1.55s ease-in-out infinite alternate;
 }
 
 .vnStage::before {
@@ -231,8 +263,8 @@
 .vnCharacterCrop[data-sheet-crop="true"] .vnCharacterImageLayer {
   top: var(--neo-sheet-y, 0%);
   left: var(--neo-sheet-x, 0%);
-  width: 400%;
-  height: 200%;
+  width: var(--neo-sheet-width, 400%);
+  height: var(--neo-sheet-height, 400%);
   inset: auto;
 }
 
@@ -262,6 +294,173 @@
   object-fit: contain;
   object-position: center center;
   transform: none;
+}
+
+.vnCharacter[data-scene="hidden"] {
+  display: none;
+}
+
+.vnCharacter[data-scene="hidden"] .vnCharacterCrop {
+  animation: none;
+}
+
+.vnCharacter[data-scene="shadow"] {
+  right: clamp(54px, 9vw, 132px);
+  bottom: clamp(142px, 12vw, 190px);
+  width: min(31vw, 360px);
+  height: auto;
+  aspect-ratio: 1 / 1.28;
+  opacity: 0.94;
+}
+
+.vnCharacter[data-scene="shadow"] .vnCharacterCrop {
+  animation: neoFloat 6.2s ease-in-out infinite;
+  filter: drop-shadow(0 34px 46px rgba(0, 0, 0, 0.76)) drop-shadow(0 0 26px rgba(17, 23, 43, 0.72));
+}
+
+.vnCharacter[data-scene="shadow"] .vnCharacterImage {
+  object-fit: contain;
+  object-position: center bottom;
+  transform: scale(1.03);
+}
+
+.vnCharacter[data-scene="preTransformNeoMain"] {
+  right: clamp(62px, 9vw, 128px);
+  bottom: clamp(150px, 13vw, 196px);
+  width: min(25vw, 312px);
+  height: auto;
+  aspect-ratio: 1086 / 1448;
+}
+
+.vnCharacter[data-scene="preTransformNeoTalk"] {
+  right: clamp(58px, 9vw, 124px);
+  bottom: clamp(158px, 13vw, 204px);
+  width: min(24vw, 292px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterCrop,
+.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterCrop {
+  border-radius: 24px;
+  animation: neoCuteBounce 2.4s ease-in-out infinite;
+  filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 24px rgba(245, 212, 135, 0.38));
+}
+
+.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterCrop::after,
+.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterCrop::after {
+  content: "";
+  position: absolute;
+  inset: 11% 7% 6%;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 999px;
+  background: radial-gradient(circle at 50% 82%, rgba(245, 212, 135, 0.22), transparent 48%);
+  mix-blend-mode: screen;
+}
+
+.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterImage,
+.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterImage {
+  object-fit: contain;
+  object-position: center center;
+  transform: none;
+}
+
+.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterImage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
+}
+
+.vnCharacter[data-scene="transformingNeo"] {
+  right: clamp(26px, 6vw, 92px);
+  bottom: clamp(132px, 12vw, 182px);
+  width: min(45vw, 560px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+}
+
+.vnCharacter[data-scene="transformingNeo"] .vnCharacterCrop {
+  animation: neoTransformRise 1.8s ease-in-out infinite alternate;
+  border-radius: 18px;
+  border: 1px solid rgba(245, 212, 135, 0.24);
+  background:
+    radial-gradient(circle at 50% 70%, rgba(245, 212, 135, 0.2), transparent 44%),
+    radial-gradient(circle at 50% 38%, rgba(102, 126, 205, 0.22), transparent 48%),
+    #070b18 !important;
+  filter: drop-shadow(0 38px 48px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 42px rgba(245, 212, 135, 0.58));
+}
+
+.vnCharacter[data-scene="transformingNeo"] .vnCharacterImage {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: fill;
+  object-position: center center;
+  transform: none;
+}
+
+.vnCharacter[data-scene="humanNeo"] .vnCharacterImage {
+  transform: scale(1.04);
+}
+
+.vnTransformHud {
+  position: absolute;
+  top: clamp(22px, 4vw, 46px);
+  right: clamp(20px, 5vw, 72px);
+  z-index: 6;
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 8px 14px;
+  align-items: center;
+  min-width: min(280px, 46vw);
+  border: 1px solid rgba(245, 212, 135, 0.5);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #fff7de;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(245, 212, 135, 0.18), transparent 38%),
+    linear-gradient(135deg, rgba(7, 12, 24, 0.84), rgba(38, 24, 60, 0.58)),
+    rgba(5, 8, 16, 0.76);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.vnTransformHud span {
+  color: rgba(245, 212, 135, 0.9);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+}
+
+.vnTransformHud strong {
+  justify-self: end;
+  color: #fff7de;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.vnTransformHud i {
+  grid-column: 1 / -1;
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.vnTransformHud i::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--neo-transform-progress, 0%);
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f5d487, #9fbaff, #fff7de);
+  box-shadow: 0 0 18px rgba(245, 212, 135, 0.58);
 }
 
 .vnDialogueBox {
@@ -299,8 +498,45 @@
   transform: rotate(45deg);
 }
 
+.vnDialogueBox[data-speaker="inner"] {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  border-color: rgba(159, 186, 255, 0.5);
+  background:
+    radial-gradient(circle at 8% 22%, rgba(159, 186, 255, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(7, 12, 28, 0.92), rgba(9, 14, 30, 0.88)),
+    rgba(5, 8, 16, 0.88);
+}
+
+.vnDialogueBox[data-speaker="inner"]::after {
+  right: auto;
+  left: clamp(44px, 8vw, 92px);
+  border-color: rgba(159, 186, 255, 0.5);
+  background: rgba(7, 12, 28, 0.92);
+}
+
+.vnDialogueBox[data-speaker="narration"]::after {
+  display: none;
+}
+
+.vnDialogueContent {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.vnInnerVoiceAvatar {
+  width: clamp(58px, 7vw, 82px);
+  height: auto;
+  align-self: center;
+  filter: drop-shadow(0 0 18px rgba(159, 186, 255, 0.42)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.34));
+  animation: neoInnerVoicePulse 2.8s ease-in-out infinite;
+}
+
 .vnDialogueBox:focus-visible,
 .bgmToggle:focus-visible,
+.vnGhostButton:focus-visible,
 .vnStartButton:focus-visible {
   outline: 2px solid #f0d17b;
   outline-offset: 3px;
@@ -345,6 +581,51 @@
   word-break: keep-all;
 }
 
+.vnDialogueBox[data-speaker="unknown"] .vnSpeaker span,
+.vnDialogueBox[data-speaker="inner"] .vnSpeaker span {
+  border-color: rgba(214, 188, 118, 0.58);
+  background: rgba(12, 18, 34, 0.64);
+}
+
+.vnDialogueBox[data-speaker="inner"] .vnSpeaker strong {
+  color: #d9e4ff;
+}
+
+.vnDialogueBox[data-speaker="narration"] .vnSpeaker strong {
+  color: #e6d29a;
+}
+
+.vnNotificationCard {
+  display: grid;
+  gap: 5px;
+  width: fit-content;
+  max-width: min(520px, 100%);
+  border: 1px solid rgba(245, 212, 135, 0.42);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(7, 12, 23, 0.68);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.vnNotificationCard strong {
+  color: #fff5d7;
+  font-size: 0.84rem;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.vnNotificationCard span,
+.vnCtaHelper {
+  color: rgba(239, 244, 252, 0.76);
+  font-size: 0.78rem;
+  font-weight: 760;
+  line-height: 1.45;
+}
+
+.vnCtaHelper {
+  display: block;
+}
+
 .vnNextIndicator {
   justify-self: end;
   color: rgba(214, 188, 118, 0.88);
@@ -353,11 +634,41 @@
   letter-spacing: 0.04em;
 }
 
-.vnStartButton {
+.vnControlRow {
   position: absolute;
   z-index: 6;
   right: clamp(20px, 4vw, 58px);
   bottom: clamp(188px, 18vw, 226px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  max-width: calc(100% - clamp(40px, 8vw, 116px));
+}
+
+.vnGhostButton {
+  min-height: 44px;
+  border: 1px solid rgba(214, 188, 118, 0.46);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: rgba(255, 247, 222, 0.9);
+  background: rgba(5, 8, 16, 0.74);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  font-size: 0.82rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.vnGhostButton:hover {
+  border-color: rgba(255, 234, 168, 0.82);
+  color: #fff7de;
+}
+
+.vnStartButton {
+  position: relative;
   min-height: 72px;
   display: inline-grid;
   grid-template-columns: 64px minmax(0, auto);
@@ -695,14 +1006,14 @@
 
 .operationMapBody {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-  gap: 22px;
+  grid-template-columns: minmax(430px, 0.96fr) minmax(390px, 1.04fr);
+  gap: clamp(20px, 2.4vw, 30px);
   align-items: stretch;
 }
 
 .operationMapVisual {
   position: relative;
-  min-height: 340px;
+  min-height: 380px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.11);
   border-radius: 8px;
@@ -830,13 +1141,18 @@
   left: 50%;
   top: 50%;
   z-index: 4;
-  width: clamp(156px, 34vw, 246px);
+  width: clamp(168px, 20vw, 228px);
   height: auto;
   aspect-ratio: 390 / 460;
   opacity: 0.96;
-  transform: translate(-50%, -50%) scale(0.94);
+  transform: translate(-50%, -50%) scale(0.96);
   filter: drop-shadow(0 0 26px rgba(245, 212, 135, 0.58)) drop-shadow(0 0 54px rgba(185, 34, 43, 0.18));
   animation: neoLoadingSealReveal 4.8s ease-in-out infinite;
+}
+
+.operationMapVisual[data-sprite="true"] .operationSeal {
+  left: 27%;
+  width: clamp(156px, 17vw, 212px);
 }
 
 .operationSeal::before,
@@ -872,6 +1188,7 @@
 }
 
 .operationSealImage {
+  display: block;
   width: 100%;
   height: 100%;
   background: transparent !important;
@@ -882,10 +1199,114 @@
   object-position: center !important;
 }
 
+.operationSheetActor {
+  position: absolute;
+  right: clamp(20px, 5vw, 54px);
+  top: 50%;
+  z-index: 5;
+  width: clamp(142px, 17vw, 218px);
+  height: auto;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border: 1px solid rgba(245, 212, 135, 0.38);
+  border-radius: 8px;
+  background:
+    radial-gradient(circle at 48% 72%, rgba(245, 212, 135, 0.24), transparent 44%),
+    radial-gradient(circle at 50% 28%, rgba(132, 150, 216, 0.22), transparent 52%),
+    rgba(3, 7, 16, 0.58);
+  box-shadow:
+    0 24px 46px rgba(0, 0, 0, 0.44),
+    0 0 28px rgba(245, 212, 135, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transform: translateY(-50%);
+  animation: neoCuteBounce 2.8s ease-in-out infinite;
+}
+
+.operationSheetActor::before,
+.operationSheetActor::after {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: 999px;
+}
+
+.operationSheetActor::before {
+  border: 1px solid rgba(245, 212, 135, 0.26);
+  box-shadow: inset 0 0 28px rgba(245, 212, 135, 0.1);
+}
+
+.operationSheetActor::after {
+  background: radial-gradient(circle at 50% 80%, rgba(245, 212, 135, 0.28), transparent 52%);
+  mix-blend-mode: screen;
+}
+
+.operationSheetFrame {
+  position: absolute !important;
+  top: var(--neo-sheet-y, 0%);
+  left: var(--neo-sheet-x, 0%);
+  z-index: 1;
+  width: var(--neo-sheet-width, 400%) !important;
+  height: var(--neo-sheet-height, 400%) !important;
+  max-width: none;
+  background: transparent !important;
+}
+
+.operationSheetImage {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: fill !important;
+  object-position: center center !important;
+}
+
 .operationMapStatus {
   display: grid;
-  gap: 14px;
-  align-content: start;
+  gap: 16px;
+  align-content: stretch;
+  min-width: 0;
+}
+
+.operationMapActorSlot {
+  min-width: 0;
+}
+
+.operationMapActor {
+  position: relative;
+  top: auto;
+  grid-template-columns: minmax(156px, 0.72fr) minmax(0, 1fr);
+  align-items: stretch;
+  min-height: 256px;
+  padding: 12px;
+  border-color: rgba(245, 212, 135, 0.42);
+  background:
+    radial-gradient(circle at 22% 16%, rgba(245, 212, 135, 0.18), transparent 38%),
+    linear-gradient(145deg, rgba(14, 19, 32, 0.96), rgba(45, 14, 22, 0.34)),
+    rgba(4, 8, 18, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 22px 54px rgba(0, 0, 0, 0.34);
+}
+
+.operationMapActor .spriteStage {
+  align-self: stretch;
+  width: 100%;
+  min-height: 232px;
+  border-color: rgba(245, 212, 135, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 18px 38px rgba(0, 0, 0, 0.26);
+}
+
+.operationMapActor .spriteDialogue {
+  align-self: stretch;
+  align-content: center;
+  padding: 16px;
+  border-color: rgba(245, 212, 135, 0.38);
+  background: linear-gradient(145deg, rgba(7, 11, 22, 0.94), rgba(87, 25, 32, 0.28));
+}
+
+.operationMapActor .spriteDialogue p {
+  color: rgba(255, 247, 226, 0.98);
+  font-size: clamp(1rem, 1.18vw, 1.16rem);
+  line-height: 1.62;
 }
 
 .operationLoadingDialogue {
@@ -893,9 +1314,9 @@
   display: grid;
   gap: 10px;
   overflow: hidden;
-  border: 1px solid rgba(214, 188, 118, 0.3);
+  border: 1px solid rgba(214, 188, 118, 0.42);
   border-radius: 8px;
-  padding: 16px;
+  padding: 18px;
   background:
     linear-gradient(135deg, rgba(8, 12, 24, 0.9), rgba(38, 12, 20, 0.26)),
     rgba(4, 8, 18, 0.74);
@@ -936,7 +1357,7 @@
   margin: 0;
   color: rgba(255, 247, 226, 0.94);
   font-family: var(--font-premium);
-  font-size: 1.02rem;
+  font-size: 1.1rem;
   font-weight: 850;
   line-height: 1.65;
   word-break: keep-all;
@@ -945,9 +1366,9 @@
 .operationProgressBox {
   display: grid;
   gap: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 8px;
-  padding: 14px;
+  padding: 16px;
   background: rgba(3, 7, 16, 0.74);
 }
 
@@ -2501,6 +2922,10 @@
     min-height: 260px;
   }
 
+  .operationMapVisual[data-sprite="true"] {
+    min-height: 300px;
+  }
+
   .operationMapRoom {
     inset: 12px;
   }
@@ -2508,6 +2933,29 @@
   .operationSeal {
     width: min(48vw, 176px);
     height: auto;
+  }
+
+  .operationMapVisual[data-sprite="true"] .operationSeal {
+    left: 33%;
+    width: min(39vw, 152px);
+  }
+
+  .operationSheetActor {
+    right: 16px;
+    top: 54%;
+    width: min(36vw, 142px);
+  }
+
+  .operationMapActor {
+    min-height: 0;
+  }
+
+  .operationMapActor .spriteStage {
+    min-height: 0;
+  }
+
+  .operationMapActor .spriteDialogue {
+    padding: 12px;
   }
 
   .commandLayout {
@@ -2664,6 +3112,21 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .operationMapVisual[data-sprite="true"] {
+    min-height: 280px;
+  }
+
+  .operationMapVisual[data-sprite="true"] .operationSeal {
+    left: 31%;
+    width: min(34vw, 126px);
+  }
+
+  .operationSheetActor {
+    right: 12px;
+    top: 56%;
+    width: min(31vw, 116px);
+  }
+
   .operationMapHeader h2 {
     font-size: 1.34rem;
   }
@@ -2729,7 +3192,7 @@
   .vnStage[data-phase="prologue"] {
     background:
       linear-gradient(180deg, rgba(5, 8, 18, 0.12) 0%, rgba(5, 8, 18, 0.56) 100%),
-      var(--neo-bg-mobile);
+      var(--neo-prologue-bg);
     background-size: cover;
     background-position: center top;
   }
@@ -2777,6 +3240,57 @@
     width: min(44vw, 220px);
   }
 
+  .vnCharacter[data-scene="hidden"] {
+    right: 6vw;
+    bottom: 168px;
+    width: min(48vw, 220px);
+    height: min(34svh, 280px);
+  }
+
+  .vnCharacter[data-scene="shadow"] {
+    right: 6vw;
+    bottom: 168px;
+    width: min(46vw, 220px);
+    height: auto;
+  }
+
+  .vnCharacter[data-scene="preTransformNeoMain"],
+  .vnCharacter[data-scene="preTransformNeoTalk"] {
+    right: 7vw;
+    bottom: 176px;
+    width: min(40vw, 198px);
+  }
+
+  .vnCharacter[data-scene="transformingNeo"],
+  .vnCharacter[data-scene="humanNeo"] {
+    right: -2vw;
+    bottom: 202px;
+    width: min(70vw, 320px);
+    height: min(42svh, 360px);
+  }
+
+  .vnCharacter[data-scene="transformingNeo"] {
+    right: 4vw;
+    bottom: 210px;
+    width: min(72vw, 320px);
+    height: auto;
+  }
+
+  .vnTransformHud {
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    right: 78px;
+    min-width: min(216px, calc(100vw - 112px));
+    padding: 9px 10px;
+  }
+
+  .vnTransformHud span {
+    font-size: 0.64rem;
+  }
+
+  .vnTransformHud strong {
+    font-size: 0.86rem;
+  }
+
   .vnDialogueBox {
     left: 12px;
     right: 12px;
@@ -2785,15 +3299,44 @@
     padding: 15px;
   }
 
+  .vnDialogueBox[data-speaker="inner"] {
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 10px;
+    padding-left: 12px;
+  }
+
+  .vnDialogueBox[data-speaker="inner"]::after {
+    left: 36px;
+  }
+
+  .vnInnerVoiceAvatar {
+    width: 48px;
+  }
+
   .vnDialogueBox p {
     font-size: 1rem;
     line-height: 1.58;
   }
 
-  .vnStartButton {
+  .vnNotificationCard {
+    padding: 8px 10px;
+  }
+
+  .vnControlRow {
     right: 12px;
     left: auto;
-    bottom: 176px;
+    bottom: 216px;
+    max-width: min(336px, calc(100vw - 24px));
+    align-items: flex-end;
+  }
+
+  .vnGhostButton {
+    min-height: 42px;
+    padding: 9px 12px;
+    font-size: 0.76rem;
+  }
+
+  .vnStartButton {
     max-width: min(252px, calc(100vw - 24px));
     min-height: 58px;
     grid-template-columns: 48px minmax(0, 1fr);
@@ -2856,12 +3399,50 @@
     height: auto;
   }
 
+  .vnCharacter[data-scene="hidden"],
+  .vnCharacter[data-scene="preTransformNeoMain"],
+  .vnCharacter[data-scene="preTransformNeoTalk"] {
+    right: 4vw;
+    bottom: 184px;
+    width: min(42vw, 168px);
+  }
+
+  .vnCharacter[data-scene="shadow"] {
+    right: 4vw;
+    bottom: 184px;
+    width: min(44vw, 172px);
+    height: auto;
+  }
+
+  .vnCharacter[data-scene="transformingNeo"],
+  .vnCharacter[data-scene="humanNeo"] {
+    right: -8vw;
+    bottom: 220px;
+    width: min(74vw, 296px);
+    height: min(38svh, 312px);
+  }
+
+  .vnCharacter[data-scene="transformingNeo"] {
+    right: 2vw;
+    bottom: 228px;
+    width: min(76vw, 296px);
+    height: auto;
+  }
+
   .vnDialogueBox {
     min-height: 154px;
   }
 
-  .vnStartButton {
-    bottom: 184px;
+  .vnDialogueBox[data-speaker="inner"] {
+    grid-template-columns: 42px minmax(0, 1fr);
+  }
+
+  .vnInnerVoiceAvatar {
+    width: 42px;
+  }
+
+  .vnControlRow {
+    bottom: 226px;
   }
 }
 
@@ -2876,9 +3457,12 @@
   .operationSeal,
   .operationSeal::before,
   .operationSeal::after,
+  .operationSheetActor,
   .operationMapRoom::before,
   .operationMapRoom::after,
   .operationLoadingDialogue::before,
+  .vnStage[data-effect="transform"]::after,
+  .vnInnerVoiceAvatar,
   .vnCharacterCrop,
   .spriteActor[data-talking="true"] .spriteImageFrame,
   .typingCaret {
@@ -2894,6 +3478,56 @@
 
   50% {
     transform: translateY(-8px);
+  }
+}
+
+@keyframes neoCuteBounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  45% {
+    transform: translateY(-7px) scale(1.015);
+  }
+
+  70% {
+    transform: translateY(-2px) scale(0.998);
+  }
+}
+
+@keyframes neoInnerVoicePulse {
+  0%,
+  100% {
+    opacity: 0.82;
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1.04);
+  }
+}
+
+@keyframes neoPrologueFlare {
+  from {
+    opacity: 0.42;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 0.9;
+    transform: scale(1.03);
+  }
+}
+
+@keyframes neoTransformRise {
+  from {
+    transform: translateY(10px) scale(0.99);
+  }
+
+  to {
+    transform: translateY(-8px) scale(1.02);
   }
 }
 

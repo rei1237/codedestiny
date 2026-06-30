@@ -5973,10 +5973,27 @@ function _sajuPromptHashText(value) {
   return (hash >>> 0).toString(36);
 }
 
-function _sajuPromptBuildRequestNonce(profileId, domain, question) {
+function _sajuPromptBuildSnapshotHash() {
+  var snapshot = {
+    promptVersion: 'saju-myeongsik-ai-v3',
+    pillars: G_PILLARS || null,
+    natal: G_NATAL || null,
+    johu: G_JOHU || null,
+    power: G_POWER || null,
+    jong: G_JONG || null,
+    bazi: _sajuPromptBuildBaziSnapshot()
+  };
+  return _sajuPromptHashText(JSON.stringify(snapshot));
+}
+
+function _sajuPromptBuildRequestNonce(profileId, domain, question, snapshotHash) {
   var normalizedQuestion = String(question || '').trim().replace(/\s+/g, ' ');
-  var seed = [String(profileId || '').trim(), String(domain || 'general').trim(), normalizedQuestion].join('|');
-  return 'v20260617-' + _sajuPromptHashText(seed);
+  var seed = ['saju-myeongsik-ai-v3', String(profileId || '').trim(), String(domain || 'general').trim(), String(snapshotHash || '').trim(), normalizedQuestion].join('|');
+  return 'v20260630-v2-' + _sajuPromptHashText(seed);
+}
+
+function _sajuPromptBuildCurrentRequestNonce(domain, question) {
+  return _sajuPromptBuildRequestNonce(_sajuPromptResolveProfileId(), domain, question, _sajuPromptBuildSnapshotHash());
 }
 
 function _sajuPromptTextSnippet(value, limit) {
@@ -6077,7 +6094,7 @@ function _sajuPromptBuildDaewunQuantumRows() {
 
 function _sajuPromptBuildEngineContext() {
   return {
-    marker: 'saju-ai-question-prompt-context-v20260617',
+    marker: 'saju-ai-question-prompt-context-v20260630-v3',
     sourceLayers: [
       'pillars',
       'natal-elements',
@@ -6216,6 +6233,166 @@ function _sajuPromptCopyText(text) {
     document.body.removeChild(ta);
     return Promise.reject(err);
   }
+}
+
+function _sajuPromptToast(message, tone) {
+  try {
+    var toast = document.createElement('div');
+    toast.textContent = String(message || '');
+    toast.setAttribute('role', 'status');
+    toast.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;max-width:min(92vw,420px);padding:10px 14px;border-radius:8px;border:1px solid rgba(230,196,112,.56);background:' + (tone === 'error' ? '#7f1d1d' : '#1f2a19') + ';color:#fff7df;font-size:.82rem;font-weight:800;box-shadow:0 18px 36px rgba(0,0,0,.28);';
+    document.body.appendChild(toast);
+    setTimeout(function() {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity .24s ease';
+      setTimeout(function() { if (toast && toast.parentNode) toast.parentNode.removeChild(toast); }, 260);
+    }, 1800);
+  } catch (_) {}
+}
+
+function _sajuPromptEscapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function _sajuPromptSavedResultsKey(profileId) {
+  return 'codeDestiny:sajuAiConsultation:saved:' + (String(profileId || '').trim() || 'default');
+}
+
+function _sajuPromptStoreSavedResult(payload) {
+  var item = payload && typeof payload === 'object' ? payload : {};
+  var profileId = String(item.profileId || _sajuPromptResolveProfileId() || '').trim() || 'default';
+  var resultId = String(item.resultId || item.requestId || '').trim();
+  if (!resultId || !String(item.resultText || '').trim()) return false;
+  var stored = {
+    resultId: resultId,
+    requestId: String(item.requestId || '').trim(),
+    profileId: profileId,
+    question: String(item.question || '').trim(),
+    domain: String(item.domain || '').trim(),
+    resultText: String(item.resultText || '').trim(),
+    promptVersion: String(item.promptVersion || '').trim(),
+    consultationType: String(item.consultationType || 'saju_myeongsik_ai').trim(),
+    factSnapshot: item.factSnapshot || null,
+    tenGodSnapshot: item.tenGodSnapshot || null,
+    saved: true,
+    savedAt: new Date().toISOString()
+  };
+  try {
+    localStorage.setItem(_sajuPromptSavedResultsKey(profileId), JSON.stringify(stored));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function _sajuPromptReadSavedResult(profileId) {
+  try {
+    var raw = localStorage.getItem(_sajuPromptSavedResultsKey(profileId));
+    if (!raw) return null;
+    var parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || !String(parsed.resultText || '').trim()) return null;
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
+
+function _sajuPromptChapterTitle(line) {
+  var text = String(line || '').trim().replace(/^#+\s*/, '').replace(/^\d{1,2}[.)]\s*/, '');
+  var titles = [
+    '질문에 대한 핵심 답변',
+    '이 명식의 중심 성향',
+    '십성 구조 해석',
+    '오행 균형 해석',
+    '현재 고민과 명식의 연결',
+    '일/돈/관계/연애/건강 리듬',
+    '조심해야 할 패턴',
+    '살리는 전략',
+    '30일 실천 가이드',
+    '마지막 한마디'
+  ];
+  for (var i = 0; i < titles.length; i += 1) {
+    if (text.indexOf(titles[i]) === 0) return titles[i];
+  }
+  return '';
+}
+
+function _sajuPromptRenderChapters(text) {
+  var lines = String(text || '').split(/\n+/);
+  var html = '';
+  var open = false;
+  function ensureOpen(title) {
+    if (open) html += '</section>';
+    html += '<section style="padding:15px 14px;border-top:1px solid rgba(113,63,18,.12);"><h4 style="margin:0 0 9px;color:#4a2e11;font-size:.96rem;line-height:1.42;font-weight:950;">' + _sajuPromptEscapeHtml(title || '상담 흐름') + '</h4>';
+    open = true;
+  }
+  lines.forEach(function(line) {
+    var trimmed = String(line || '').trim();
+    if (!trimmed) return;
+    var title = _sajuPromptChapterTitle(trimmed);
+    if (title) {
+      ensureOpen(title);
+      return;
+    }
+    if (!open) ensureOpen('핵심 상담');
+    html += '<p style="margin:0 0 10px;color:#1f2a19;font-size:.88rem;line-height:1.86;word-break:keep-all;">' + _sajuPromptEscapeHtml(trimmed) + '</p>';
+  });
+  if (open) html += '</section>';
+  return html || '<section style="padding:14px;"><p style="margin:0;color:#1f2a19;">상담문을 불러오지 못했습니다.</p></section>';
+}
+
+function _sajuPromptBuildResultSummaryHtml(payload) {
+  var item = payload && typeof payload === 'object' ? payload : {};
+  var text = String(item.resultText || '').replace(/\s+/g, ' ').trim();
+  var summary = text.length > 260 ? text.slice(0, 260) + '…' : text;
+  return '<div style="margin:13px 13px 0;border:1px solid rgba(180,121,38,.22);background:linear-gradient(135deg,rgba(255,247,223,.9),rgba(255,255,255,.72));border-radius:8px;padding:12px;">'
+    + '<div style="font-size:.72rem;color:#8a5a16;font-weight:950;letter-spacing:.08em;">핵심 요약</div>'
+    + '<p style="margin:6px 0 0;color:#2a2117;font-size:.86rem;line-height:1.72;word-break:keep-all;">' + _sajuPromptEscapeHtml(summary) + '</p>'
+    + '</div>';
+}
+
+function _sajuPromptBuildBasisHtml(payload) {
+  var fact = payload && payload.factSnapshot && typeof payload.factSnapshot === 'object' ? payload.factSnapshot : {};
+  var day = fact.dayMaster || {};
+  var ten = fact.heavenlyStemTenGods || {};
+  var chips = [];
+  if (day.stem) chips.push('기준 일간 ' + day.stem + (day.elementKo ? ' · ' + day.elementKo : '') + (day.yinYangKo ? ' · ' + day.yinYangKo : ''));
+  ['year', 'month', 'day', 'hour'].forEach(function(key) {
+    var row = ten[key] || {};
+    if (row.stem && row.tenGod) chips.push(row.label + ' ' + row.stem + ' ' + row.tenGod);
+  });
+  var trust = '<div style="font-size:.72rem;color:#7c5a20;line-height:1.55;margin-top:7px;">내부 명식 기준으로 해석되었습니다. 십성은 서버 계산값을 기준으로 고정했습니다.</div>';
+  return '<div style="margin:10px 13px 0;border:1px solid rgba(113,63,18,.14);background:rgba(255,252,243,.72);border-radius:8px;padding:11px;">'
+    + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+    + (chips.length ? chips.map(function(chip) { return '<span style="border:1px solid rgba(113,63,18,.18);background:#fff7df;color:#4a2e11;border-radius:999px;padding:6px 8px;font-size:.72rem;font-weight:900;">' + _sajuPromptEscapeHtml(chip) + '</span>'; }).join('') : '<span style="color:#6b4e16;font-size:.76rem;">명식 기준 정보가 함께 저장되었습니다.</span>')
+    + '</div>' + trust + '</div>';
+}
+
+function _sajuPromptBuildQuestionHtml(payload) {
+  var question = String(payload && payload.question || '').trim();
+  if (!question) return '';
+  return '<div style="margin:10px 13px 0;padding:10px 11px;border-left:3px solid #c89236;background:rgba(120,53,15,.06);border-radius:8px;color:#3b2a14;font-size:.82rem;line-height:1.65;word-break:keep-all;"><b>질문</b><br>' + _sajuPromptEscapeHtml(question) + '</div>';
+}
+
+function _sajuPromptBuildShareText(payload) {
+  var item = payload && typeof payload === 'object' ? payload : {};
+  var fact = item.factSnapshot && typeof item.factSnapshot === 'object' ? item.factSnapshot : {};
+  var day = fact.dayMaster || {};
+  var question = String(item.question || '').trim();
+  var body = String(item.resultText || '').replace(/\s+/g, ' ').trim();
+  if (body.length > 900) body = body.slice(0, 900) + '…';
+  return [
+    'Code Destiny 사주 AI 상담 결과',
+    day.stem ? '기준 일간: ' + day.stem + (day.elementKo ? ' / ' + day.elementKo : '') + (day.yinYangKo ? ' / ' + day.yinYangKo : '') : '',
+    question ? '질문: ' + question : '',
+    '',
+    body
+  ].filter(function(line, idx) { return idx === 3 || String(line || '').trim(); }).join('\n');
 }
 
 function _sajuPromptApiUrls(path) {
@@ -6438,7 +6615,7 @@ function _sajuPromptResolveProfileId() {
 
 function _requestSajuQuestionPrompt(question, privacyOptions, domain, options) {
   var opts = options && typeof options === 'object' ? options : {};
-  var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  var requestNonce = _sajuPromptBuildCurrentRequestNonce(domain, question);
   var savedEvidence = opts.paidEvidence && typeof opts.paidEvidence === 'object' ? opts.paidEvidence : null;
   function attachEvidence(result) {
     if (result && typeof result === 'object' && savedEvidence) result._sajuPaidEvidence = savedEvidence;
@@ -6524,9 +6701,12 @@ function _buildSajuQuestionPromptHtml() {
     +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
     +   '</div>'
-    +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.97),rgba(255,247,223,.94));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
-    +     '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(113,63,18,.16);padding:11px 13px;background:rgba(120,53,15,.06);"><strong style="font-size:0.82rem;color:#2a2117;">명식이 열어 준 상담문</strong><button data-saju-ai-copy-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">복사</button></div>'
-    +     '<pre data-saju-ai-output-text style="white-space:pre-wrap;margin:0;padding:14px;color:#1f2a19;font-size:0.84rem;line-height:1.78;font-family:inherit;word-break:keep-all;"></pre>'
+    +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.98),rgba(255,247,223,.95));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
+    +     '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(113,63,18,.16);padding:12px 13px;background:rgba(120,53,15,.06);flex-wrap:wrap;"><div><strong style="font-size:0.9rem;color:#2a2117;line-height:1.42;">명식이 열어 준 상담문</strong><div data-saju-ai-save-state style="margin-top:3px;font-size:.7rem;color:#7c5a20;font-weight:800;">내부 명식 기준으로 해석되었습니다</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button data-saju-ai-save-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#2a2117;color:#fff7df;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">저장하기</button><button data-saju-ai-copy-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">내용 복사</button><button data-saju-ai-share-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">공유하기</button><button data-saju-ai-reset-result type="button" style="border:1px solid rgba(113,63,18,.24);background:rgba(255,255,255,.66);color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">다시 질문하기</button></div></div>'
+    +     '<div data-saju-ai-result-summary></div>'
+    +     '<div data-saju-ai-result-question></div>'
+    +     '<div data-saju-ai-result-basis></div>'
+    +     '<div data-saju-ai-output-text style="margin:0;font-family:inherit;"></div>'
     +   '</div>'
     +   '<textarea data-saju-ai-output readonly style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0;"></textarea>'
     +   '<div data-saju-ai-status style="position:relative;margin-top:9px;font-size:0.76rem;color:rgba(255,247,223,.72);line-height:1.55;"></div>'
@@ -6586,6 +6766,13 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var outputPanel = rootEl.querySelector('[data-saju-ai-output-panel]');
   var outputTextEl = rootEl.querySelector('[data-saju-ai-output-text]');
   var copyBtn = rootEl.querySelector('[data-saju-ai-copy-result]');
+  var saveBtn = rootEl.querySelector('[data-saju-ai-save-result]');
+  var shareBtn = rootEl.querySelector('[data-saju-ai-share-result]');
+  var resetBtn = rootEl.querySelector('[data-saju-ai-reset-result]');
+  var saveStateEl = rootEl.querySelector('[data-saju-ai-save-state]');
+  var summaryEl = rootEl.querySelector('[data-saju-ai-result-summary]');
+  var basisEl = rootEl.querySelector('[data-saju-ai-result-basis]');
+  var questionEl = rootEl.querySelector('[data-saju-ai-result-question]');
   var statusEl = rootEl.querySelector('[data-saju-ai-status]');
   var progressEl = rootEl.querySelector('[data-saju-ai-progress-card]');
   var progressBarEl = rootEl.querySelector('[data-saju-ai-progress-bar]');
@@ -6593,7 +6780,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var progressPercentEl = rootEl.querySelector('[data-saju-ai-progress-percent]');
   var progressMessageEl = rootEl.querySelector('[data-saju-ai-progress-message]');
   var stepEls = progressEl ? progressEl.querySelectorAll('[data-saju-ai-step]') : [];
-  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !statusEl) return;
+  if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !saveBtn || !shareBtn || !resetBtn || !statusEl) return;
 
   var isLoading = false;
   var progressTimer = null;
@@ -6602,6 +6789,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var lastPaidEvidence = null;
   var lastPaidEvidenceKey = '';
   var activePendingJob = null;
+  var currentResultPayload = null;
 
   function requestKey(question, domain) {
     return String(question || '').trim() + '::' + String(domain || '').trim();
@@ -6682,9 +6870,38 @@ function _bindSajuQuestionPromptCard(rootEl) {
     if (mode === 'DIRECT_KRW' || method === 'CARD') return '단건 결제 확인 완료. ';
     return chargedCoins > 0 ? '결제 확인 완료. ' : '이용 권한 확인 완료. ';
   }
-  function renderResult(text) {
+  function updateSavedState() {
+    var isSaved = !!(currentResultPayload && currentResultPayload.saved === true);
+    if (saveBtn) {
+      saveBtn.textContent = isSaved ? '저장됨' : '저장하기';
+      saveBtn.disabled = isSaved;
+      saveBtn.style.opacity = isSaved ? '0.72' : '1';
+      saveBtn.style.cursor = isSaved ? 'default' : 'pointer';
+    }
+    if (saveStateEl) {
+      saveStateEl.textContent = isSaved ? '저장된 상담 결과입니다 · 내부 명식 기준으로 해석되었습니다' : '내부 명식 기준으로 해석되었습니다';
+    }
+  }
+  function renderResult(payloadOrText) {
+    var payload = payloadOrText && typeof payloadOrText === 'object' ? Object.assign({}, payloadOrText) : { resultText: String(payloadOrText || '') };
+    var text = String(payload.resultText || '').trim();
+    if (!text) return;
+    var profileId = String(payload.profileId || _sajuPromptResolveProfileId() || '').trim();
+    var savedLocal = _sajuPromptReadSavedResult(profileId);
+    var resultId = String(payload.resultId || payload.requestId || '').trim();
+    var isLocallySaved = !!(savedLocal && String(savedLocal.resultId || savedLocal.requestId || '').trim() === resultId);
+    currentResultPayload = Object.assign({}, payload, {
+      resultText: text,
+      profileId: profileId,
+      serverSaved: payload.saved === true,
+      saved: payload.saved === true && payload.savedAt ? true : isLocallySaved
+    });
     outputEl.value = text;
-    outputTextEl.textContent = text;
+    outputTextEl.innerHTML = _sajuPromptRenderChapters(text);
+    if (summaryEl) summaryEl.innerHTML = _sajuPromptBuildResultSummaryHtml(currentResultPayload);
+    if (questionEl) questionEl.innerHTML = _sajuPromptBuildQuestionHtml(currentResultPayload);
+    if (basisEl) basisEl.innerHTML = _sajuPromptBuildBasisHtml(currentResultPayload);
+    updateSavedState();
     outputPanel.style.display = 'block';
     outputPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
@@ -6710,7 +6927,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   function handleCompletedPayload(payload, pendingJob) {
     var resultText = String(payload && payload.resultText || '').trim();
     if (!resultText) return false;
-    renderResult(resultText);
+    renderResult(payload);
     regenerateBtn.style.display = 'inline-flex';
     regenerateBtn.textContent = '다시 상담 받기';
     if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
@@ -6885,14 +7102,77 @@ function _bindSajuQuestionPromptCard(rootEl) {
   copyBtn.addEventListener('click', function() {
     _sajuPromptCopyText(outputEl.value).then(function() {
       _sajuPromptSetStatus(statusEl, '상담문을 복사했습니다.', 'success');
+      _sajuPromptToast('상담문을 복사했습니다.', 'success');
     }).catch(function() {
       _sajuPromptSetStatus(statusEl, '복사에 실패했습니다. 상담문을 직접 선택해 주세요.', 'error');
+      _sajuPromptToast('복사에 실패했습니다.', 'error');
     });
+  });
+  saveBtn.addEventListener('click', function() {
+    if (!currentResultPayload || !String(currentResultPayload.resultText || '').trim()) {
+      _sajuPromptSetStatus(statusEl, '저장할 상담 결과가 없습니다.', 'error');
+      _sajuPromptToast('저장할 상담 결과가 없습니다.', 'error');
+      return;
+    }
+    var ok = _sajuPromptStoreSavedResult(currentResultPayload);
+    if (ok) {
+      currentResultPayload.saved = true;
+      updateSavedState();
+      _sajuPromptSetStatus(statusEl, '상담 결과를 저장했습니다. 새로고침 후에도 다시 볼 수 있습니다.', 'success');
+      _sajuPromptToast('상담 결과를 저장했습니다.', 'success');
+    } else {
+      _sajuPromptSetStatus(statusEl, '저장에 실패했습니다. 브라우저 저장 공간을 확인해 주세요.', 'error');
+      _sajuPromptToast('저장에 실패했습니다.', 'error');
+    }
+  });
+  shareBtn.addEventListener('click', function() {
+    if (!currentResultPayload || !String(currentResultPayload.resultText || '').trim()) {
+      _sajuPromptSetStatus(statusEl, '공유할 상담 결과가 없습니다.', 'error');
+      return;
+    }
+    var shareText = _sajuPromptBuildShareText(currentResultPayload);
+    var sharePayload = { title: 'Code Destiny 사주 AI 상담 결과', text: shareText };
+    if (navigator.share) {
+      Promise.resolve(navigator.share(sharePayload)).then(function() {
+        _sajuPromptSetStatus(statusEl, '공유를 열었습니다.', 'success');
+      }).catch(function() {
+        return _sajuPromptCopyText(shareText).then(function() {
+          console.info('[SajuMyeongsikAI] share copied', { mode: 'share-fallback' });
+          _sajuPromptSetStatus(statusEl, '공유문을 복사했습니다.', 'success');
+          _sajuPromptToast('공유문을 복사했습니다.', 'success');
+        }).catch(function() {
+          _sajuPromptSetStatus(statusEl, '공유문 복사에 실패했습니다.', 'error');
+          _sajuPromptToast('공유문 복사에 실패했습니다.', 'error');
+        });
+      });
+      return;
+    }
+    _sajuPromptCopyText(shareText).then(function() {
+      console.info('[SajuMyeongsikAI] share copied', { mode: 'clipboard-fallback' });
+      _sajuPromptSetStatus(statusEl, '공유문을 복사했습니다.', 'success');
+      _sajuPromptToast('공유문을 복사했습니다.', 'success');
+    }).catch(function() {
+      _sajuPromptSetStatus(statusEl, '공유문 복사에 실패했습니다.', 'error');
+      _sajuPromptToast('공유문 복사에 실패했습니다.', 'error');
+    });
+  });
+  resetBtn.addEventListener('click', function() {
+    outputEl.value = '';
+    outputTextEl.innerHTML = '';
+    if (summaryEl) summaryEl.innerHTML = '';
+    if (questionEl) questionEl.innerHTML = '';
+    if (basisEl) basisEl.innerHTML = '';
+    currentResultPayload = null;
+    outputPanel.style.display = 'none';
+    inputEl.disabled = false;
+    inputEl.focus();
+    _sajuPromptSetStatus(statusEl, '새 질문을 입력해 주세요.', 'info');
   });
   updateCount();
   setProgress(-1, false);
   _sajuPromptSetStatus(statusEl, '질문을 남기면 결제, 월정석 크레딧, 멤버십 이용권 확인 뒤 사주 AI 상담 결과가 열립니다.', 'info');
-  var restoredJob = _sajuPromptReadPendingJob(_sajuPromptResolveProfileId());
+  var currentProfileId = _sajuPromptResolveProfileId();
+  var restoredJob = _sajuPromptReadPendingJob(currentProfileId);
   if (restoredJob && (restoredJob.requestId || restoredJob.jobId || restoredJob.executionId)) {
     activePendingJob = restoredJob;
     if (restoredJob.question) inputEl.value = restoredJob.question;
@@ -6909,6 +7189,16 @@ function _bindSajuQuestionPromptCard(rootEl) {
     _sajuPromptSetStatus(statusEl, '새로고침 전 진행 중이던 상담문을 이어받고 있습니다.', 'info');
     setLoading(true);
     pollPendingJob(restoredJob, true);
+  } else {
+    var savedResult = _sajuPromptReadSavedResult(currentProfileId);
+    if (savedResult) {
+      renderResult(savedResult);
+      if (savedResult.question) inputEl.value = savedResult.question;
+      updateCount();
+      regenerateBtn.style.display = 'inline-flex';
+      regenerateBtn.textContent = '다시 상담 받기';
+      _sajuPromptSetStatus(statusEl, '저장된 사주 AI 상담 결과를 불러왔습니다.', 'success');
+    }
   }
 }
 

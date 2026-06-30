@@ -31,31 +31,55 @@ const pigFrames = [
   talkingPigYeoniFrameCrops.doorway,
 ] as const;
 
-const transformFrames = [
-  { col: 0, row: 0 },
-  { col: 1, row: 0 },
-  { col: 2, row: 0 },
-  { col: 3, row: 0 },
-  { col: 0, row: 1 },
-  { col: 1, row: 1 },
-  { col: 2, row: 1 },
-  { col: 3, row: 1 },
+const transformFrameSheet = { width: 1536, height: 1024 } as const;
+
+const transformFrameColumns = [
+  { x: 1, width: 220 },
+  { x: 223, width: 215 },
+  { x: 440, width: 217 },
+  { x: 658, width: 217 },
+  { x: 877, width: 217 },
+  { x: 1096, width: 216 },
+  { x: 1314, width: 221 },
 ] as const;
 
+const transformFrameRows = [
+  { y: 1, height: 254 },
+  { y: 257, height: 254 },
+  { y: 513, height: 227 },
+  { y: 742, height: 282 },
+] as const;
+
+type TransformFrameCrop = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+const transformFrames: readonly TransformFrameCrop[] = transformFrameRows.flatMap((row) =>
+  transformFrameColumns.map((column) => ({
+    x: column.x,
+    y: row.y,
+    width: column.width,
+    height: row.height,
+  })),
+);
+
+const transformFrameCanvas = { width: 221, height: 282 } as const;
+const entryStorySceneUi =
+  "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1]";
+const entryStoryPanelUi =
+  "relative z-10 mx-auto w-full max-w-[760px] !rounded-none !border-0 !bg-transparent !p-0 !shadow-none !ring-0 !backdrop-blur-0";
+const entryDialogueUi =
+  "!border-[#f6dfb7]/35 !bg-[#12091f]/80 !text-[#fffaf1] !shadow-[0_24px_72px_rgba(4,2,12,0.42),0_0_38px_rgba(214,213,255,0.14),inset_0_1px_0_rgba(255,255,255,0.16)] [&_p]:!text-[#fffaf1]";
+
 const TRANSFORM_MIN_VISIBLE_MS = 1200;
-const TRANSFORM_FALLBACK_FRAME_MS = 140;
-const TRANSFORM_VIDEO_CACHE_KEY = "20260629-transform";
+const TRANSFORM_FALLBACK_FRAME_MS = 100;
 const PIG_IDLE_FIRST_DELAY_MS = 8200;
 const PIG_IDLE_NEXT_DELAY_MS = 10800;
 const TRANSFORM_AUTO_ADVANCE_DELAY_MS = 900;
 const YEONI_REVEAL_AUTO_ADVANCE_DELAY_MS = 2800;
-
-function withAssetCacheKey(src: string, cacheKey: string) {
-  if (!src) return src;
-  return `${src}${src.includes("?") ? "&" : "?"}v=${cacheKey}`;
-}
-
-const transformVideoSrc = withAssetCacheKey(fortuneTeaHouseAssets.videos.pigTransform, TRANSFORM_VIDEO_CACHE_KEY);
 
 function debugEntry(message: string, ...payload: unknown[]) {
   if (process.env.NODE_ENV !== "production") {
@@ -77,8 +101,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const [pigFrameIndex, setPigFrameIndex] = useState(0);
   const [usePigFallback, setUsePigFallback] = useState(false);
   const [useTransformFallback, setUseTransformFallback] = useState(false);
-  const [isTransformVideoModalOpen, setIsTransformVideoModalOpen] = useState(false);
-  const [transformVideoError, setTransformVideoError] = useState("");
   const [transformHasPlayed, setTransformHasPlayed] = useState(false);
   const [transformFallbackFrameIndex, setTransformFallbackFrameIndex] = useState(0);
   const [isTransformMinTimeReady, setIsTransformMinTimeReady] = useState(false);
@@ -92,7 +114,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const previousStage = getPreviousTeaHouseEntryStage(scene.stage);
   const nextStage = getNextTeaHouseEntryStage(scene.stage);
   const isTransformPreview = scene.stage === "transformPreview";
-  const isTransformAdvanceLocked = isTransformPreview && !isTransformMinTimeReady;
+  const isTransformAdvanceLocked = isTransformPreview && (!isTransformMinTimeReady || !transformHasPlayed);
   const isAutoAdvanceLineStage = scene.stage === "transformPreview" || scene.stage === "yeoniReveal";
   const showSkip = scene.stage !== "teaIntro" && scene.stage !== "transformPreview" && scene.stage !== "yeoniReveal";
   const canGoPrevious = Boolean(previousStage) || lineIndex > 0;
@@ -119,8 +141,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     setTransformFallbackFrameIndex(prefersReducedMotion && stage === "transformPreview" ? transformFrames.length - 1 : 0);
     setUsePigFallback(false);
     setUseTransformFallback(stage === "transformPreview");
-    setIsTransformVideoModalOpen(false);
-    setTransformVideoError("");
     setTransformHasPlayed(stage !== "transformPreview");
     setIsTransformMinTimeReady(stage !== "transformPreview");
   }, [prefersReducedMotion, stage]);
@@ -134,28 +154,19 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   }, [lineIndex]);
 
   useEffect(() => {
-    if (stage !== "transformPreview") return;
-    debugTransform("video url:", transformVideoSrc);
-  }, [stage]);
-
-  useEffect(() => {
     if (stage !== "doorOpened" && stage !== "transformPreview") return;
-
-    const video = document.createElement("video");
-    video.preload = "auto";
-    video.muted = true;
-    video.playsInline = true;
-    video.src = transformVideoSrc;
-    video.load();
 
     const teaCupSheet = new window.Image();
     teaCupSheet.decoding = "async";
     teaCupSheet.src = fortuneTeaHouseAssets.teaCups.correctedPhotoroom;
 
+    const transformSheet = new window.Image();
+    transformSheet.decoding = "async";
+    transformSheet.src = fortuneTeaHouseAssets.pig.transformScene;
+
     return () => {
-      video.removeAttribute("src");
-      video.load();
       teaCupSheet.removeAttribute("src");
+      transformSheet.removeAttribute("src");
     };
   }, [stage]);
 
@@ -173,18 +184,31 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
 
     if (prefersReducedMotion) {
       setTransformFallbackFrameIndex(transformFrames.length - 1);
+      setTransformHasPlayed(true);
       return;
     }
 
     let frameIndex = 0;
+    const frameTimers: number[] = [];
     setTransformFallbackFrameIndex(0);
-    const frameTimer = window.setInterval(() => {
-      frameIndex = (frameIndex + 1) % transformFrames.length;
+    setTransformHasPlayed(false);
+
+    const advanceFrame = () => {
+      frameIndex += 1;
+      if (frameIndex >= transformFrames.length) {
+        setTransformFallbackFrameIndex(transformFrames.length - 1);
+        setTransformHasPlayed(true);
+        return;
+      }
+
       setTransformFallbackFrameIndex(frameIndex);
-    }, TRANSFORM_FALLBACK_FRAME_MS);
+      frameTimers.push(window.setTimeout(advanceFrame, TRANSFORM_FALLBACK_FRAME_MS));
+    };
+
+    frameTimers.push(window.setTimeout(advanceFrame, TRANSFORM_FALLBACK_FRAME_MS));
 
     return () => {
-      window.clearInterval(frameTimer);
+      frameTimers.forEach((timer) => window.clearTimeout(timer));
     };
   }, [prefersReducedMotion, stage]);
 
@@ -217,36 +241,10 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     return () => window.clearTimeout(timer);
   }, [canShowPigIdleLine, idleLineIndex, lineIndex, stage]);
 
-  const finishTransformVideo = useCallback(() => {
-    setIsTransformVideoModalOpen(false);
-    setTransformHasPlayed(true);
-    window.setTimeout(() => {
-      if (!isLastLine) {
-        setLineIndex((current) => Math.min(current + 1, scene.lines.length - 1));
-        return;
-      }
-      if (nextStage) {
-        onStageChange(nextStage);
-        return;
-      }
-      onComplete();
-    }, 160);
-  }, [isLastLine, nextStage, onComplete, onStageChange, scene.lines.length]);
-
-  const handleTransformVideoError = useCallback((error?: unknown) => {
-    debugTransform("modal video error:", transformVideoSrc, error);
-    setTransformVideoError("변신 장면을 불러오지 못했어요. 다시 시도해 주세요.");
-  }, []);
-
   const goNext = useCallback(() => {
     setIdleLineIndex(null);
     if (isAutoAdvanceLineStage && !isCurrentLineTextComplete) return;
     if (isTransformAdvanceLocked) return;
-    if (isTransformPreview && !transformHasPlayed) {
-      setTransformVideoError("");
-      setIsTransformVideoModalOpen(true);
-      return;
-    }
     if (!isLastLine) {
       setLineIndex((current) => current + 1);
       return;
@@ -261,11 +259,9 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     isAutoAdvanceLineStage,
     isLastLine,
     isTransformAdvanceLocked,
-    isTransformPreview,
     nextStage,
     onComplete,
     onStageChange,
-    transformHasPlayed,
   ]);
 
   useEffect(() => {
@@ -283,17 +279,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     return () => window.clearTimeout(timer);
   }, [goNext, isCurrentLineTextComplete, isShowingIdleLine, isTransformAdvanceLocked, isAutoAdvanceLineStage, lineIndex, stage, transformHasPlayed]);
 
-  useEffect(() => {
-    if (!isTransformVideoModalOpen) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") finishTransformVideo();
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [finishTransformVideo, isTransformVideoModalOpen]);
-
   function goPrevious() {
     setIdleLineIndex(null);
     if (lineIndex > 0) {
@@ -304,7 +289,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   }
 
   return (
-    <section className={styles.entryStoryScene} data-entry-stage={scene.stage} aria-labelledby="teaHouseEntryTitle" style={sceneStyle}>
+    <section className={`${styles.entryStoryScene} ${entryStorySceneUi}`} data-entry-stage={scene.stage} aria-labelledby="teaHouseEntryTitle" style={sceneStyle}>
       <span className={styles.entryStoryBackground} aria-hidden />
       <span className={styles.entryStoryOverlay} aria-hidden />
       <span className={styles.entryStoryMoonGlow} aria-hidden />
@@ -317,13 +302,13 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
         useTransformFallback={useTransformFallback}
         onPigError={() => setUsePigFallback(true)}
       />
-      <div className={styles.entryStoryPanel}>
+      <div className={`${styles.entryStoryPanel} ${entryStoryPanelUi}`}>
         <p className={styles.sceneEyebrow}>{scene.eyebrow}</p>
         <h2 id="teaHouseEntryTitle">{scene.title}</h2>
         <TeaHouseDialogueBox
           speaker={currentLine.speaker}
           text={currentLine.text}
-          className={`${styles.entryDialogueBox} ${isShowingIdleLine ? styles.entryIdleDialogueBox : ""}`}
+          className={`${styles.entryDialogueBox} ${entryDialogueUi} ${isShowingIdleLine ? styles.entryIdleDialogueBox : ""}`}
           onAdvance={goNext}
           isAdvanceDisabled={isTransformAdvanceLocked || (isAutoAdvanceLineStage && !isCurrentLineTextComplete)}
           onTextComplete={setIsCurrentLineTextComplete}
@@ -359,60 +344,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
           </div>
         </div>
       </div>
-      {isTransformVideoModalOpen ? (
-        <TransformVideoModal
-          src={transformVideoSrc}
-          error={transformVideoError}
-          onClose={finishTransformVideo}
-          onEnded={finishTransformVideo}
-          onError={handleTransformVideoError}
-        />
-      ) : null}
     </section>
-  );
-}
-
-type TransformVideoModalProps = {
-  src: string;
-  error: string;
-  onClose: () => void;
-  onEnded: () => void;
-  onError: (error?: unknown) => void;
-};
-
-function TransformVideoModal({ src, error, onClose, onEnded, onError }: TransformVideoModalProps) {
-  return (
-    <div className={styles.transformVideoOverlay} role="dialog" aria-modal="true" aria-labelledby="transformVideoTitle" onClick={onClose}>
-      <div className={styles.transformVideoCard} onClick={(event) => event.stopPropagation()}>
-        <button className={styles.transformVideoClose} type="button" onClick={onClose} aria-label="변신 영상 닫기">
-          ×
-        </button>
-        <div className={styles.transformVideoHeader}>
-          <span>Moonlight Cutscene</span>
-          <h3 id="transformVideoTitle">달빛이 연이를 깨웁니다</h3>
-        </div>
-        {error ? (
-          <div className={styles.transformVideoFallback} role="status">
-            <strong>{error}</strong>
-            <p>잠시 뒤 다시 시도하거나, 연이를 먼저 만나러 갈 수 있어요.</p>
-            <TeaHouseButton onClick={onClose}>연이 만나러 가기</TeaHouseButton>
-          </div>
-        ) : (
-          <video
-            className={styles.transformVideoPlayer}
-            controls
-            autoPlay
-            muted
-            playsInline
-            preload="metadata"
-            onEnded={onEnded}
-            onError={(event) => onError(event.currentTarget.error)}
-          >
-            <source src={src} type="video/mp4" />
-          </video>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -434,7 +366,7 @@ function EntryActor({
   onPigError,
 }: EntryActorProps) {
   const pigFrame = pigFrames[pigFrameIndex] || pigFrames[0];
-  const transformFrame = transformFrames[transformFallbackFrameIndex] || transformFrames[0];
+  const transformFrame = transformFrames[transformFallbackFrameIndex] || transformFrames[0]!;
 
   if (actor === "none") {
     return (
@@ -491,18 +423,24 @@ function EntryActor({
         <span className={styles.entryTransformRing} aria-hidden />
         <span className={styles.entryTransformPetals} aria-hidden />
         <span
-          className={styles.entryTransformFrame}
+          className={`${styles.entryTransformFrame} ${styles.pigSpriteFrame}`}
           data-frame-index={transformFallbackFrameIndex}
           style={
             {
-              "--entry-transform-col": transformFrame.col,
-              "--entry-transform-row": transformFrame.row,
+              "--pig-sprite-x": `${transformFrame.x}px`,
+              "--pig-sprite-y": `${transformFrame.y}px`,
+              "--pig-sprite-width": `${transformFrame.width}px`,
+              "--pig-sprite-height": `${transformFrame.height}px`,
+              "--pig-sprite-aspect-width": transformFrameCanvas.width,
+              "--pig-sprite-aspect-height": transformFrameCanvas.height,
+              "--pig-sprite-sheet-width": `${transformFrameSheet.width}px`,
+              "--pig-sprite-sheet-height": `${transformFrameSheet.height}px`,
             } as CSSProperties
           }
         >
           <Image
-            className={styles.entryTransformSheet}
-            src={fortuneTeaHouseAssets.pig.transparent.transform}
+            className={`${styles.entryTransformSheet} ${styles.pigSpriteSheet}`}
+            src={fortuneTeaHouseAssets.pig.transformScene}
             alt="꽃돼지?가 연이로 변신하는 달빛 컷신"
             fill
             sizes="(max-width: 640px) 88vw, 48vw"

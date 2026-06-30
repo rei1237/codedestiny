@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaTarotSpreadCard } from "../data/consult";
+import { getFortuneTeaHouseResultButtonLabel } from "../data/consultPricing";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TarotCardBack from "./TarotCardBack";
@@ -21,6 +22,18 @@ const deckSlotsByCount: Record<number, string[]> = {
   3: ["left", "center", "right"],
   5: ["far-left", "left", "center", "right", "far-right"],
 };
+const tarotRevealSceneUi =
+  "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
+const tarotRevealPanelUi =
+  "relative overflow-hidden rounded-[30px] border border-[#f6dfb7]/25 bg-gradient-to-br from-[#241337]/90 via-[#12091f]/90 to-[#080511]/95 shadow-[0_38px_108px_rgba(4,2,12,0.54),0_0_62px_rgba(206,196,255,0.14),inset_0_1px_0_rgba(255,255,255,0.16)] ring-1 ring-white/10 backdrop-blur-2xl";
+const tarotDialogueUi =
+  "border-[#d7d4ff]/25 bg-[#12091f]/70 shadow-[0_24px_70px_rgba(4,2,12,0.36),0_0_44px_rgba(206,196,255,0.14),inset_0_1px_0_rgba(255,255,255,0.14)]";
+const tarotDeckUi =
+  "rounded-[28px] border border-[#f6dfb7]/10 bg-white/[0.035] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_20px_64px_rgba(4,2,12,0.18)]";
+const tarotDeckCardUi =
+  "drop-shadow-[0_24px_34px_rgba(4,2,12,0.38)] transition duration-500 focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/80 focus-visible:ring-offset-4 focus-visible:ring-offset-[#080511]";
+const tarotActionBarUi =
+  "rounded-2xl border border-[#f6dfb7]/20 bg-[#0e0719]/60 px-4 py-3 shadow-[0_18px_48px_rgba(4,2,12,0.24),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 backdrop-blur-xl";
 
 const getInitialRevealPhase = (prefersReducedMotion: boolean): TarotRevealPhase => (prefersReducedMotion ? "choosing" : "preparing");
 
@@ -46,6 +59,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   const [phase, setPhase] = useState<TarotRevealPhase>(() => getInitialRevealPhase(prefersReducedMotion));
   const [revealedPositions, setRevealedPositions] = useState<string[]>([]);
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
+  const resultButtonLabel = getFortuneTeaHouseResultButtonLabel(result.consultationMode || "tarot");
   const revealedCount = revealedPositions.length;
   const allCardsRevealed = spreadCards.length > 0 && revealedCount >= spreadCards.length;
   const orientationLabel = result.tarot.orientation === "upright" ? "정방향" : "역방향";
@@ -82,25 +96,26 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
     complete: `${result.tarot.nameKo} ${orientationLabel}을 중심으로 ${spreadCards.length}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요.`,
   };
   const phaseLabelByPhase: Record<TarotRevealPhase, string> = {
-    preparing: "카드 준비 중",
+    preparing: "",
     shuffling: "카드가 섞이는 중",
     choosing: `${revealedCount}/${spreadCards.length}장 공개`,
     complete: "모든 카드 공개 완료",
   };
   const dialogueText = dialogueTextByPhase[phase];
-  const phaseLabel = phaseLabelByPhase[phase];
+  const phaseLabel = phase === "preparing" ? "" : phaseLabelByPhase[phase];
 
   return (
-    <section className={styles.tarotRevealScene} data-accent={selectedCup?.accent || "pink"} aria-labelledby="tarotRevealTitle">
-      <div className={styles.tarotRevealPanel}>
+    <section className={`${styles.tarotRevealScene} ${tarotRevealSceneUi}`} data-accent={selectedCup?.accent || "pink"} aria-labelledby="tarotRevealTitle">
+      <div className={`${styles.tarotRevealPanel} ${tarotRevealPanelUi}`}>
         <p className={styles.sceneEyebrow}>{selectedCup?.visualMotif || "moonlit tarot"}</p>
         <h2 id="tarotRevealTitle">{selectedCup?.tarotRevealTitle || "찻잔 위에 카드가 떠올랐어요"}</h2>
         <TeaHouseDialogueBox
           speaker="연이"
           text={dialogueText}
+          className={tarotDialogueUi}
         />
         <div className={styles.tarotStage} data-phase={phase}>
-          <div className={styles.tarotDeck} data-count={spreadCards.length} role="group" aria-label="운명의 카드 선택">
+          <div className={`${styles.tarotDeck} ${tarotDeckUi}`} data-count={spreadCards.length} role="group" aria-label="운명의 카드 선택">
             {spreadCards.map((card, index) => {
               const revealId = card.positionId || `position-${index}`;
               const isRevealed = revealedPositions.includes(revealId);
@@ -110,7 +125,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
                 <button
                   key={`${revealId}-${card.cardId}`}
                   type="button"
-                  className={styles.tarotDeckCard}
+                  className={`${styles.tarotDeckCard} ${tarotDeckCardUi}`}
                   data-slot={slot}
                   data-index={index}
                   data-phase={phase}
@@ -133,24 +148,21 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
                       orientation={card.orientation}
                       keywords={card.keywords}
                       meaning={card.meaning}
-                      size="sm"
+                      size="lg"
                       compact
+                      visualOnly
                     />
-                  </span>
-                  <span className={styles.tarotDeckPosition}>
-                    <strong>{card.positionLabel}</strong>
-                    <small>{card.positionMeaning}</small>
                   </span>
                 </button>
               );
             })}
           </div>
         </div>
-        <div className={`${styles.storyActions} ${styles.tarotActionBar}`}>
-          <span className={styles.storyProgress}>{phaseLabel}</span>
+        <div className={`${styles.storyActions} ${styles.tarotActionBar} ${tarotActionBarUi}`}>
+          {phaseLabel ? <span className={styles.storyProgress}>{phaseLabel}</span> : null}
           {phase === "choosing" ? <span className={styles.tarotChoiceHint}>카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.</span> : null}
           <TeaHouseButton onClick={onComplete} disabled={!allCardsRevealed}>
-            결과 시트 보기
+            {resultButtonLabel}
           </TeaHouseButton>
         </div>
       </div>

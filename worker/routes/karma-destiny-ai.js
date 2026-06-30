@@ -62,13 +62,43 @@ const VALID_TOPICS = new Set([
   "현재 고민 상담",
 ]);
 
-const INITIAL_CONSULTATION_MIN_LENGTH = 20000;
-const INITIAL_CONSULTATION_MAX_LENGTH = 30000;
+const INITIAL_CONSULTATION_MIN_LENGTH = 30000;
+const INITIAL_CONSULTATION_MAX_LENGTH = 0;
 const INITIAL_CONSULTATION_SECTION_MIN_LENGTH = 1500;
-const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 28000;
-const INITIAL_SECTION_SYMBOLS = ["命", "業", "時", "情", "財", "課", "箋", "柱", "星", "梵"];
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 12000;
+const PREMIUM_BATCH_SIZE = 4;
+const PREMIUM_BATCH_LOCK_TTL_MS = 90_000;
+const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
+const PREMIUM_CHAPTER_TARGET_LENGTH = "1,900~2,400자";
+const INITIAL_SECTION_SYMBOLS = ["業", "柱", "情", "家", "財", "職", "心", "前", "試", "緣", "年", "策", "儀", "禁", "句", "箋"];
+const PREMIUM_CHAPTERS = Object.freeze([
+  { id: "chapter-01", order: 1, symbol: "業", title: "운명의 업 총론", minLength: 1500, required: ["반복해서 마주치는 핵심 과제", "비슷한 상황이 반복되는 이유", "타고난 성향과 선택 패턴", "이번 생에서 풀어야 할 주제"] },
+  { id: "chapter-02", order: 2, symbol: "柱", title: "사주/명리 기반 업의 구조", minLength: 1500, required: ["일간", "월지", "십성", "오행 균형", "강약", "용신/기신 흐름", "가능성 중심 표현"] },
+  { id: "chapter-03", order: 3, symbol: "情", title: "관계의 업", minLength: 1500, required: ["연애", "이별", "재회", "결혼", "끌리는 사람의 유형", "상처받는 방식", "좋은 인연의 기준"] },
+  { id: "chapter-04", order: 4, symbol: "家", title: "가족과 원가족의 업", minLength: 1500, required: ["부모와 형제", "가족 분위기", "인정 욕구", "책임감", "죄책감", "감정적 독립"] },
+  { id: "chapter-05", order: 5, symbol: "財", title: "돈과 생존의 업", minLength: 1500, required: ["돈을 버는 방식", "돈이 새는 패턴", "불안 때문에 하는 선택", "손실 구조", "재물운을 살리는 행동 지침"] },
+  { id: "chapter-06", order: 6, symbol: "職", title: "직업과 사명의 업", minLength: 1500, required: ["잘 맞는 일", "직장/사업 문제", "성공을 위해 버릴 태도", "타고난 재능", "장기 전문성"] },
+  { id: "chapter-07", order: 7, symbol: "心", title: "마음의 업과 자기파괴 패턴", minLength: 1500, required: ["불안", "회피", "과몰입", "인정 욕구", "분노", "무기력", "회복 루틴"] },
+  { id: "chapter-08", order: 8, symbol: "前", title: "전생적 상징 해석", minLength: 1500, required: ["상징적 서사", "무의식의 archetype", "왕", "수행자", "상인", "전사", "예술가", "방랑자", "치유자"] },
+  { id: "chapter-09", order: 9, symbol: "試", title: "이번 생에서 반복되는 시험", minLength: 1500, required: ["선택의 갈림길", "같은 실수의 상황", "운이 막히는 신호", "운이 열리는 신호", "선택 기준"] },
+  { id: "chapter-10", order: 10, symbol: "緣", title: "인연의 빚과 갚아야 할 감정", minLength: 1500, required: ["매달리는 이유", "밀어내는 이유", "미련과 집착", "정리할 때", "기다릴 때", "감정의 빚 정리"] },
+  { id: "chapter-11", order: 11, symbol: "年", title: "앞으로 1년의 업 해소 흐름", minLength: 1500, required: ["12개월 흐름", "분기별 주의점", "관계", "일", "돈", "건강한 루틴", "전략적 표현"] },
+  { id: "chapter-12", order: 12, symbol: "策", title: "3년 장기 운명 전략", minLength: 1500, required: ["1년 차 정리", "2년 차 재구성", "3년 차 확장", "실제 행동"] },
+  { id: "chapter-13", order: 13, symbol: "儀", title: "업을 풀기 위한 실천 의식", minLength: 1500, required: ["글쓰기", "정리", "사과", "거리두기", "감사 기록", "매일 5분", "매주 1회", "매월 1회"] },
+  { id: "chapter-14", order: 14, symbol: "禁", title: "피해야 할 선택과 사람", minLength: 1500, required: ["불운을 키우는 선택", "피해야 할 관계 유형", "일의 방식", "돈 습관", "약해질 때 하지 말아야 할 행동"] },
+  { id: "chapter-15", order: 15, symbol: "句", title: "운명을 바꾸는 핵심 문장", minLength: 900, required: ["사용자가 기억할 문장 10개", "상담 맥락에 맞춘 문장", "흔한 자기계발 문구 금지"] },
+  { id: "chapter-16", order: 16, symbol: "箋", title: "최종 편지", minLength: 1500, required: ["따뜻한 편지", "현실적 결심", "감정적 만족감", "여운 있는 마지막 문장"] },
+]);
+const GENERATION_STAGES = Object.freeze([
+  "운명의 실타래를 펼치는 중",
+  "반복된 인생 패턴을 읽는 중",
+  "관계와 감정의 업을 해석하는 중",
+  "돈과 직업의 흐름을 정리하는 중",
+  "앞으로의 해소 전략을 작성하는 중",
+  "최종 편지를 봉인하는 중",
+]);
 
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/i;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|JSON|rawProviderDebug|providerReason|debug|model|token|토큰|모델명|이 기능은|해당 기능|본 기능|기능|이 결과는|결과는|상담 결과|생성 결과|분석 결과|결과물|출력|서버 계산 데이터|분석 데이터/i;
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -647,7 +677,7 @@ function buildSystemPrompt(mode = "initial") {
       ...shared,
       "",
       "추가 질문 응답 방식:",
-      "처음 상담의 10개 장 제목을 반복하지 않습니다.",
+      "처음 상담의 16개 장 제목을 반복하지 않습니다.",
       "첫 문장부터 사용자의 새 질문에 직접 답합니다.",
       "이전 상담에서 이미 말한 내용을 길게 되풀이하지 말고, 새 질문에 필요한 흐름만 다시 짚습니다.",
       "사주, 서양 점성술, 베다 점성술의 근거는 필요한 만큼만 섞어 2~4개의 완성된 산문 단락으로 답합니다.",
@@ -662,36 +692,21 @@ function buildSystemPrompt(mode = "initial") {
     ...shared,
     "",
     "초기 상담 구조:",
-    "아래 10개 파트를 순서대로 작성하고, 각 파트는 2,000~2,600자의 완성된 산문으로 씁니다.",
-    "불릿 리스트나 단순 나열을 사용하지 않습니다.",
-    "## ① 命 — 당신이라는 별의 본질",
-    "사주 일간과 태양 별자리, 나크샤트라를 통합하여 이 사람의 본질 에너지를 하나의 통일된 은유로 묘사합니다. 반드시 “당신은 ~와 같은 존재입니다”로 시작합니다.",
-    "## ② 業 — 반복되는 삶의 문양",
-    "사주 비겁/식상 구조, 달의 별자리 감정 패턴, 라후-케투 카르마 축을 통합하여 반복되는 관계·감정·선택 패턴을 서술합니다. 반드시 “삶은 당신에게 반복해서 ~라는 장면을 보여줍니다”로 시작합니다.",
-    "## ③ 時 — 지금 이 계절의 의미",
-    "현재 대운, 서양 점성술 트랜짓, 베다 다샤 주기를 통합하여 지금 이 시기가 인생에서 어떤 국면인지 계절이나 자연 현상의 은유로 서술합니다.",
-    "## ④ 情 — 관계에서 흐르는 강물",
-    "육친 구조, 금성·화성 위치, 베다 7하우스를 통합하여 관계에서 반복되는 감정 구조와 지금 필요한 전환을 서술합니다.",
-    "## ⑤ 財 — 재능과 물질이 만나는 지점",
-    "사주 재성·식상 구조, 서양 2하우스·MC, 베다 아르타 하우스를 통합하여 돈과 재능에서 반복되는 선택 흐름과 지금 시기의 기회를 서술합니다.",
-    "## ⑥ 課 — 이 생의 핵심 과제",
-    "사주 용신·희신, 카이런, 라후의 방향을 통합하여 이 생에서 영혼이 배워야 할 가장 핵심적인 한 가지를 선명하게 서술합니다. 반드시 “당신의 운명은 ~를 배우도록 설계되어 있습니다”로 시작합니다.",
-    "## ⑦ 箋 — 오늘을 위한 운명의 처방",
-    "앞의 흐름을 바탕으로 지금 당장 실천 가능한 구체적인 방향을 제시합니다. 추상적 조언이 아니라 “오늘, ~를 해보세요”처럼 구체적으로 작성합니다. 마지막 문장은 사용자의 이름이나 닉네임을 불러 따뜻하게 마무리합니다.",
-    "## ⑧ 柱 — 명리학자가 짚는 삶의 균형",
-    "명리학자의 목소리로 일간, 오행, 십성, 대운의 균형을 깊게 읽어 삶에서 반복되는 선택 습관과 현실 처방을 구체적으로 전합니다. 용어 설명보다 상담가가 직접 맥을 짚는 문장으로 씁니다.",
-    "## ⑨ 星 — 점성술사가 비추는 영혼의 하늘",
-    "점성술사의 목소리로 태양, 달, 상승궁, 금성·화성, 카이런과 현재 하늘의 움직임을 엮어 감정 반응, 관계 방식, 자기 회복의 길을 신비롭고 자연스럽게 전합니다.",
-    "## ⑩ 梵 — 베다 점성술사가 여는 카르마의 길",
-    "베다 점성술사의 목소리로 라후-케투 축, 나크샤트라, 다샤 흐름, 다르마와 아르타의 방향을 엮어 이번 생에서 풀어야 할 카르마와 실제 실천의 길을 전합니다.",
+    "최종 상담은 16개 장으로 완성합니다. 한 번에 전부 쓰지 않고 요청받은 장만 깊게 씁니다.",
+    `각 장은 목표 ${PREMIUM_CHAPTER_TARGET_LENGTH}의 완성된 산문이며, 각 장 마지막에는 “이번 장의 핵심” 3줄을 둡니다.`,
+    "장마다 감정적 해석과 현실적 전략을 함께 담고, 관계·직업·돈·가족·전생적 상징·1년 흐름·3년 전략이 서로 이어지게 씁니다.",
+    "전생은 사실 단정이 아니라 무의식의 상징적 서사로만 다룹니다.",
+    "질병, 사망, 사고, 파산, 이혼, 투자 손실 같은 일을 확정 예언하지 않습니다.",
+    "법률·의료·투자 판단을 대신하지 않습니다.",
+    "내부 작업 표현, 결제 표현, 모델명, 토큰, 원시 응답, 디버그 사유를 노출하지 않습니다.",
+    "흔한 위로나 자기계발식 문장을 반복하지 말고, 사용자의 입력과 계산 근거에 맞는 구체적 장면과 선택 기준을 씁니다.",
     "",
     "초기 상담 금지 사항:",
-    "‘당신의 사주를 보면’, ‘점성술에 따르면’ 등 출처 언급을 금지합니다.",
-    "동일한 내용을 다른 파트에서 반복하지 않습니다.",
+    "‘당신은 반드시’, ‘전생에 실제로’, ‘무조건’처럼 확정하거나 겁주는 표현을 금지합니다.",
+    "동일한 내용을 다른 장에서 반복하지 않습니다.",
     "‘~할 수 있습니다’, ‘~일 것입니다’의 반복적 어미를 피합니다.",
-    "10개 파트 외의 추가 내용을 쓰지 않습니다.",
     "마지막에 추가 질문을 유도하지 않습니다.",
-    "전체 분량은 공백 제외 20,000~30,000자로 맞춥니다.",
+    `최종 합산 분량은 실제 사용자가 읽는 plain text 기준 ${INITIAL_CONSULTATION_MIN_LENGTH.toLocaleString("ko-KR")}자 이상이어야 합니다.`,
   ].join("\n");
 }
 
@@ -713,8 +728,8 @@ function buildFirstPrompt(input, integratedResult) {
     "[상담 근거]",
     JSON.stringify(integratedResult),
     "",
-    "위 계산 데이터를 바탕으로 10개 파트만 작성하고, 전체 상담문은 공백 제외 20,000~30,000자로 완성하세요.",
-    "각 파트 제목은 지정된 한자와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
+    "위 계산 데이터를 바탕으로 16개 장을 순서대로 작성하고, 전체 상담문은 실제 사용자가 읽는 plain text 기준 30,000자 이상으로 완성하세요.",
+    "각 장 제목은 지정된 순서와 한글 제목을 그대로 사용하되, 본문은 산문으로 이어 쓰세요.",
     "사용자의 선택 주제와 질문은 전체 서사의 중심 감정으로 녹이고, 별도 문답 형식으로 나누지 마세요.",
     "각 파트에는 사주명리학, 서양 점성술, 베다 점성술의 근거가 설명표처럼 분리되지 않고 자연스럽게 스며들어야 합니다.",
   ].join("\n");
@@ -744,7 +759,7 @@ function buildFollowUpPrompt(consultation, question) {
     "[새 질문]",
     question,
     "",
-    "10개 파트를 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
+    "16개 장을 반복하지 말고, 첫 문장부터 새 질문에 직접 답하세요.",
     "이전 상담 흐름을 이어받되 필요한 부분만 짚고, 업을 죄나 벌이 아닌 반복 패턴과 성장 과제로 풀어주세요.",
   ].join("\n");
 }
@@ -767,57 +782,198 @@ function cleanForbiddenResult(text) {
     .replace(/서버 계산 데이터|분석 데이터/g, "상담 근거");
 }
 
+function normalizePlainText(text) {
+  return clean(text)
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function countMeaningfulChars(text) {
-  return clean(text).replace(/\s/g, "").length;
+  return normalizePlainText(text).length;
+}
+
+function countUserVisibleChars(text) {
+  return normalizePlainText(text).length;
+}
+
+function formatChapterHeading(chapter) {
+  const order = Number(chapter?.order || 0);
+  const title = clean(chapter?.title, 120);
+  return `${order}장. ${title}`;
+}
+
+function formatChapterContent(chapter) {
+  const keyTakeaways = safeArray(chapter?.keyTakeaways).map((item) => clean(item, 220)).filter(Boolean).slice(0, 3);
+  return [
+    `## ${formatChapterHeading(chapter)}`,
+    "",
+    clean(chapter?.content, 14000),
+    "",
+    "이번 장의 핵심",
+    ...keyTakeaways.map((item) => `- ${item}`),
+  ].filter(Boolean).join("\n");
+}
+
+function formatChaptersAsConsultationText(chapters = []) {
+  return safeArray(chapters)
+    .sort((a, b) => Number(a.order || 0) - Number(b.order || 0))
+    .map(formatChapterContent)
+    .join("\n\n");
 }
 
 function parseKarmaConsultationSections(text) {
   const normalized = clean(text).replace(/\r\n/g, "\n");
   if (!normalized) return [];
-  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(?:[①②③④⑤⑥⑦⑧⑨⑩]\s*)?([命業時情財課箋柱星梵])\s*[—–-]\s*([^\n]+)/g;
+  const headingPattern = /(?:^|\n)(?:#{1,3}\s*)?(\d{1,2})장\.\s*([^\n]+)/g;
   const matches = [...normalized.matchAll(headingPattern)];
   return matches.map((match, index) => {
     const start = (match.index || 0) + match[0].length;
     const end = matches[index + 1]?.index ?? normalized.length;
+    const order = Number(match[1]);
+    const definition = PREMIUM_CHAPTERS[order - 1] || {};
     return {
-      symbol: clean(match[1], 2),
-      title: `${clean(match[1], 2)} — ${clean(match[2]).replace(/\*\*/g, "")}`,
+      symbol: clean(definition.symbol || match[1], 3),
+      id: clean(definition.id || `chapter-${String(order).padStart(2, "0")}`, 40),
+      order,
+      title: `${order}장. ${clean(match[2]).replace(/\*\*/g, "")}`,
       body: normalized.slice(start, end).trim(),
     };
-  }).filter((section) => section.symbol && section.body);
+  }).filter((section) => section.order && section.body);
+}
+
+function detectRepeatedParagraphs(text) {
+  const counts = new Map();
+  const paragraphs = clean(text)
+    .split(/\n{2,}/)
+    .map((paragraph) => normalizePlainText(paragraph).replace(/[.,!?。？！\s]/g, ""))
+    .filter((paragraph) => paragraph.length >= 80);
+  for (const paragraph of paragraphs) counts.set(paragraph, (counts.get(paragraph) || 0) + 1);
+  return [...counts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([paragraph, count]) => ({ sample: paragraph.slice(0, 80), count }))
+    .slice(0, 8);
+}
+
+function detectGenericAdviceWarnings(text) {
+  const normalized = normalizePlainText(text);
+  const genericPhrases = [
+    "자신을 사랑하세요",
+    "긍정적으로 생각하세요",
+    "마음을 열어보세요",
+    "너무 걱정하지 마세요",
+    "천천히 나아가세요",
+    "스스로를 믿으세요",
+  ];
+  return genericPhrases
+    .map((phrase) => ({ phrase, count: (normalized.match(new RegExp(phrase, "g")) || []).length }))
+    .filter((item) => item.count >= 3);
+}
+
+function normalizeChapter(rawChapter, definition) {
+  const content = cleanForbiddenResult(clean(rawChapter?.content || rawChapter?.body, 14000));
+  const rawTakeaways = safeArray(rawChapter?.keyTakeaways || rawChapter?.takeaways || rawChapter?.coreLines)
+    .map((item) => cleanForbiddenResult(clean(item, 220)))
+    .filter(Boolean);
+  const summary = cleanForbiddenResult(clean(rawChapter?.summary, 1200));
+  const keyTakeaways = rawTakeaways.length >= 3
+    ? rawTakeaways.slice(0, 3)
+    : [
+      ...rawTakeaways,
+      ...clean(summary).split(/\n+/).map((line) => line.replace(/^[-•\d.)\s]+/, "").trim()).filter(Boolean),
+    ].slice(0, 3);
+  while (keyTakeaways.length < 3 && content) {
+    keyTakeaways.push(`${definition.title}의 흐름은 반복되는 감정과 현실 선택을 함께 비춥니다.`);
+  }
+  const highlightQuotes = safeArray(rawChapter?.highlightQuotes || rawChapter?.quotes)
+    .map((item) => cleanForbiddenResult(clean(item, 180)))
+    .filter(Boolean)
+    .slice(0, 3);
+  const normalized = {
+    id: definition.id,
+    order: definition.order,
+    title: definition.title,
+    content,
+    summary,
+    keyTakeaways: keyTakeaways.slice(0, 3),
+    highlightQuotes,
+  };
+  return {
+    ...normalized,
+    charCount: countUserVisibleChars(formatChapterContent(normalized)),
+  };
+}
+
+function validatePremiumReportQuality(chapters, options = {}) {
+  const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
+  const chapterMinCount = Number(options.chapterMinCount || PREMIUM_CHAPTERS.length);
+  const ordered = safeArray(chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+  const reportText = formatChaptersAsConsultationText(ordered);
+  const totalChars = countUserVisibleChars(reportText);
+  const missingChapters = PREMIUM_CHAPTERS
+    .filter((definition) => !ordered.some((chapter) => chapter.id === definition.id && clean(chapter.content).length > 0))
+    .map((definition) => definition.id);
+  const shortChapters = ordered
+    .filter((chapter) => countUserVisibleChars(formatChapterContent(chapter)) < Number(PREMIUM_CHAPTERS[Number(chapter.order || 1) - 1]?.minLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH))
+    .map((chapter) => chapter.id);
+  const summaryWarnings = ordered
+    .filter((chapter) => safeArray(chapter.keyTakeaways).filter(Boolean).length < 3)
+    .map((chapter) => chapter.id);
+  const repeatedPhraseWarnings = detectRepeatedParagraphs(reportText);
+  const genericAdviceWarnings = detectGenericAdviceWarnings(reportText);
+  const promptLeakDetected = FORBIDDEN_RESULT_PATTERN.test(reportText);
+  const ok = totalChars >= minLength
+    && ordered.length >= chapterMinCount
+    && missingChapters.length === 0
+    && shortChapters.length === 0
+    && summaryWarnings.length === 0
+    && repeatedPhraseWarnings.length === 0
+    && genericAdviceWarnings.length === 0
+    && !promptLeakDetected;
+  return {
+    passed: ok,
+    ok,
+    totalCharCount: totalChars,
+    totalChars,
+    minLength,
+    chapterCount: ordered.length,
+    chapterMinCount,
+    missingChapters,
+    shortChapters,
+    summaryWarnings,
+    repeatedPhraseWarnings,
+    genericAdviceWarnings,
+    promptLeakDetected,
+    hasForbiddenText: promptLeakDetected,
+    tooShort: totalChars < minLength,
+    tooLong: false,
+  };
 }
 
 function validateInitialConsultationQuality(text, options = {}) {
-  const sanitized = cleanForbiddenResult(text);
-  const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
-  const maxLength = Number(options.maxLength || INITIAL_CONSULTATION_MAX_LENGTH);
-  const sectionMinLength = Number(options.sectionMinLength || INITIAL_CONSULTATION_SECTION_MIN_LENGTH);
-  const sections = parseKarmaConsultationSections(sanitized);
-  const totalChars = countMeaningfulChars(sanitized);
-  const missingSymbols = INITIAL_SECTION_SYMBOLS.filter((symbol) => !sections.some((section) => section.symbol === symbol));
-  const shortSections = sections
-    .filter((section) => countMeaningfulChars(section.body) < sectionMinLength)
-    .map((section) => section.symbol);
-  const hasForbiddenText = FORBIDDEN_RESULT_PATTERN.test(sanitized);
-  return {
-    ok: totalChars >= minLength && totalChars <= maxLength && sections.length === INITIAL_SECTION_SYMBOLS.length && missingSymbols.length === 0 && shortSections.length === 0 && !hasForbiddenText,
-    totalChars,
-    minLength,
-    maxLength,
-    sectionCount: sections.length,
-    missingSymbols,
-    shortSections,
-    tooShort: totalChars < minLength,
-    tooLong: totalChars > maxLength,
-    hasForbiddenText,
-  };
+  const sections = parseKarmaConsultationSections(cleanForbiddenResult(text));
+  const chapters = sections.map((section) => normalizeChapter({
+    content: section.body,
+    summary: "",
+    keyTakeaways: [],
+  }, PREMIUM_CHAPTERS[section.order - 1] || {
+    id: section.id,
+    order: section.order,
+    title: clean(section.title.replace(/^\d+장\.\s*/, ""), 120),
+    minLength: INITIAL_CONSULTATION_SECTION_MIN_LENGTH,
+  }));
+  return validatePremiumReportQuality(chapters, options);
 }
 
 async function repairForbiddenConsultationText(env, text, systemPrompt, options = {}) {
   if (!FORBIDDEN_RESULT_PATTERN.test(text)) return clean(text);
   const repair = await callGeminiText(env, [
     "다음 상담 답변에서 시스템성 표현과 작업 용어를 모두 제거하고, 자연스러운 운명의 업 상담문으로만 다시 써주세요.",
-    "10개 파트 제목과 전체 분량은 유지하고, 상담가가 직접 말하는 문장만 남겨주세요.",
+    "16개 장 제목과 전체 분량은 유지하고, 상담가가 직접 말하는 문장만 남겨주세요.",
     "",
     text,
   ].join("\n"), {
@@ -842,10 +998,10 @@ async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt,
 
   const expanded = await callGeminiText(env, [
     "다음 운명의 업 상담문을 같은 계산 근거 안에서 더 깊고 균형 잡힌 완성 원고로 다시 써주세요.",
-    `전체 분량은 공백 제외 ${minLength}~${maxLength}자 사이여야 합니다.`,
-    "10개 파트와 지정된 제목 순서는 반드시 유지합니다.",
-    "각 파트는 새로운 관점과 실제 상담의 밀도를 가져야 하며, 같은 문장을 늘리거나 비슷한 조언을 반복하지 않습니다.",
-    "명리학자, 점성술사, 베다 점성술사의 전문 파트는 서로 다른 근거와 처방을 드러냅니다.",
+    `전체 분량은 실제 사용자가 읽는 plain text 기준 ${minLength}자 이상이어야 합니다.`,
+    "16개 장과 지정된 제목 순서는 반드시 유지합니다.",
+    "각 장은 새로운 관점과 실제 상담의 밀도를 가져야 하며, 같은 문장을 늘리거나 비슷한 조언을 반복하지 않습니다.",
+    "명리학자, 점성술사, 베다 점성술사의 근거는 장마다 자연스럽게 연결됩니다.",
     "PDF, 챕터, 프롬프트, 시스템, AI, 기능, 결과, 출력, 데이터 같은 작업 표현은 쓰지 않습니다.",
     "",
     "[원래 요청]",
@@ -875,19 +1031,6 @@ async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt,
 }
 
 function buildKarmaDestinyAiMockConsultation() {
-  const markers = ["①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"];
-  const titles = [
-    ["命", "당신이라는 별의 본질"],
-    ["業", "반복되는 삶의 문양"],
-    ["時", "지금 이 계절의 의미"],
-    ["情", "관계에서 흐르는 강물"],
-    ["財", "재능과 물질이 만나는 지점"],
-    ["課", "이 생의 핵심 과제"],
-    ["箋", "오늘을 위한 운명의 처방"],
-    ["柱", "명리학자가 짚는 삶의 균형"],
-    ["星", "점성술사가 비추는 영혼의 하늘"],
-    ["梵", "베다 점성술사가 여는 카르마의 길"],
-  ];
   const paragraphSeeds = [
     "당신 안에는 오래 눌러 두었던 직감과 현실을 끝까지 확인하려는 힘이 함께 머무릅니다. 마음은 먼저 기척을 알아차리고, 몸은 그 기척이 실제 삶에서 어떤 선택으로 이어질지 천천히 따져 봅니다. 그래서 중요한 국면마다 서두르는 듯 보여도 속으로는 이미 여러 번 길을 가늠하고 있습니다.",
     "반복되는 매듭은 약함의 흔적이 아니라 아직 다르게 써 보지 못한 능력의 그림자에 가깝습니다. 같은 사람, 같은 말투, 같은 기다림 앞에서 마음이 흔들릴 때마다 운명은 당신에게 더 단단한 기준을 세우라고 속삭입니다. 그 기준은 차가운 선이 아니라 스스로를 함부로 넘기지 않는 온기입니다.",
@@ -897,14 +1040,32 @@ function buildKarmaDestinyAiMockConsultation() {
     "이 생의 과제는 모든 것을 혼자 감당하는 품을 내려놓고, 필요한 순간에 도움과 협력을 받아들이는 데 있습니다. 운명은 당신에게 강함만을 요구하지 않습니다. 오히려 부드럽게 기대고도 무너지지 않는 법, 마음을 열고도 자신을 잃지 않는 법을 배우도록 이끌고 있습니다.",
     "오늘은 오래 미뤄 둔 작은 결정을 하나만 실제 행동으로 옮겨 보세요. 누군가에게 답장을 보내거나, 정리하지 못한 문장을 적거나, 마음속에서만 재던 제안을 조용히 꺼내는 것으로 충분합니다. 운명은 거창한 선언보다 정확한 한 걸음에 더 빠르게 반응합니다.",
   ];
-  return titles.map(([symbol, title], sectionIndex) => {
-    const paragraphs = Array.from({ length: 10 }, (_, paragraphIndex) => {
+  const chapters = PREMIUM_CHAPTERS.map((definition, sectionIndex) => {
+    const paragraphs = Array.from({ length: sectionIndex === 14 ? 6 : 9 }, (_, paragraphIndex) => {
       const first = paragraphSeeds[(sectionIndex + paragraphIndex) % paragraphSeeds.length];
       const second = paragraphSeeds[(sectionIndex + paragraphIndex + 2) % paragraphSeeds.length];
-      return `${first} ${second}`;
+      return `${definition.title}의 ${paragraphIndex + 1}번째 흐름에서, ${first} ${second}`;
     });
-    return `## ${markers[sectionIndex]} ${symbol} — ${title}\n\n${paragraphs.join("\n\n")}`;
-  }).join("\n\n");
+    const content = [
+      ...paragraphs,
+      "이번 장의 핵심",
+      `- ${definition.title}은 지금 반복되는 선택의 모양을 더 선명하게 드러냅니다.`,
+      "- 감정의 원인을 운명 탓으로 돌리지 않고, 현실에서 바꿀 수 있는 기준으로 옮기는 일이 중요합니다.",
+      "- 오늘의 작은 실천이 오래된 매듭을 느슨하게 만드는 첫 방향이 됩니다.",
+    ].join("\n\n");
+    return {
+      ...definition,
+      content,
+      summary: `${definition.title}에서 가장 중요한 흐름은 반복을 알아차리고 다른 선택을 세우는 일입니다.`,
+      keyTakeaways: [
+        `${definition.title}은 오래 반복된 감정의 결을 비춥니다.`,
+        "현실에서 바꿀 수 있는 기준을 한 가지 정해야 합니다.",
+        "작은 행동이 다음 운의 문을 여는 시작점입니다.",
+      ],
+      highlightQuotes: ["운명은 거창한 선언보다 정확한 한 걸음에 더 빠르게 반응합니다."],
+    };
+  });
+  return formatChaptersAsConsultationText(chapters);
 }
 
 async function generateConsultationText(env, prompt, options = {}) {
@@ -965,6 +1126,309 @@ async function generateConsultationText(env, prompt, options = {}) {
   };
 }
 
+function buildGenerationProgress(doc = {}, overrides = {}) {
+  const chapters = safeArray(overrides.chapters || doc.chapters);
+  const completedChapters = chapters.length;
+  const totalChapters = PREMIUM_CHAPTERS.length;
+  const nextDefinition = PREMIUM_CHAPTERS[Math.min(completedChapters, totalChapters - 1)] || PREMIUM_CHAPTERS[totalChapters - 1];
+  const basePercent = Math.min(96, Math.round((completedChapters / totalChapters) * 96));
+  const stageIndex = Math.min(GENERATION_STAGES.length - 1, Math.floor((completedChapters / totalChapters) * GENERATION_STAGES.length));
+  const status = clean(overrides.status || doc.status || "generating");
+  return {
+    totalChapters,
+    completedChapters,
+    currentChapterId: completedChapters < totalChapters ? nextDefinition.id : "",
+    currentChapterTitle: completedChapters < totalChapters ? nextDefinition.title : "최종 품질을 확인하는 중",
+    activeBatchIndex: Number(overrides.activeBatchIndex ?? doc.generationProgress?.activeBatchIndex ?? Math.floor(completedChapters / PREMIUM_BATCH_SIZE)),
+    totalBatches: Math.ceil(totalChapters / PREMIUM_BATCH_SIZE),
+    percent: status === "completed" ? 100 : Number(overrides.percent ?? basePercent),
+    stageLabel: clean(overrides.stageLabel || GENERATION_STAGES[stageIndex] || GENERATION_STAGES[0], 80),
+    lockedAt: overrides.lockedAt ?? doc.generationProgress?.lockedAt ?? null,
+    lockToken: clean(overrides.lockToken ?? doc.generationProgress?.lockToken, 80),
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function buildPublicUserInput(doc = {}) {
+  const birth = doc.birthInfo || {};
+  const place = birth.birthPlace || {};
+  return {
+    name: clean(birth.name, 80),
+    gender: clean(birth.gender, 20),
+    birthDate: clean(birth.birthDate, 10),
+    birthTime: birth.birthTimeUnknown ? "모름" : clean(birth.birthTime, 5),
+    birthTimeUnknown: birth.birthTimeUnknown === true,
+    calendarType: clean(birth.calendarType, 10),
+    birthPlace: {
+      city: clean(place.city, 100),
+      country: clean(place.country, 100),
+      timezone: clean(place.timezone, 80),
+    },
+    topic: clean(doc.topic, 100),
+    question: clean(doc.userQuestion, 1600),
+  };
+}
+
+function buildResultLookup(identifier, auth) {
+  const value = clean(identifier, 180);
+  return {
+    userId: clean(auth.userId),
+    $or: [
+      { id: value },
+      { reportId: value },
+      { attemptId: value },
+      { idempotencyKey: value },
+    ],
+  };
+}
+
+function extractJsonPayload(text) {
+  const raw = clean(text);
+  const unfenced = raw.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+  const first = unfenced.indexOf("{");
+  const last = unfenced.lastIndexOf("}");
+  if (first < 0 || last <= first) {
+    const error = new Error("LLM batch response was not valid JSON.");
+    error.code = "LLM_JSON_PARSE_FAILED";
+    throw error;
+  }
+  return JSON.parse(unfenced.slice(first, last + 1));
+}
+
+function buildBatchPrompt(consultation, batchIndex) {
+  const birth = consultation.birthInfo || {};
+  const place = birth.birthPlace || {};
+  const start = batchIndex * PREMIUM_BATCH_SIZE;
+  const definitions = PREMIUM_CHAPTERS.slice(start, start + PREMIUM_BATCH_SIZE);
+  const previousSummaries = safeArray(consultation.chapterSummaries)
+    .map((item) => clean(item?.summary || item?.carryForward || item, 500))
+    .filter(Boolean)
+    .slice(-8);
+  const avoidPhrases = uniq(safeArray(consultation.generationProgress?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 16);
+  return [
+    "[사용자 입력]",
+    `이름 또는 닉네임: ${birth.name || "이름 미입력"}`,
+    `성별: ${birth.gender}`,
+    `생년월일: ${birth.birthDate}`,
+    `출생시간: ${birth.birthTimeUnknown ? "모름" : birth.birthTime}`,
+    `달력: ${birth.calendarType === "lunar" ? "음력" : "양력"}`,
+    `출생지: ${[place.city, place.country, place.timezone].filter(Boolean).join(", ")}`,
+    `상담 주제: ${consultation.topic}`,
+    `현재 질문: ${consultation.userQuestion || "선택한 상담 주제를 중심으로 봅니다."}`,
+    "",
+    "[명리·점성·베다 계산 요약]",
+    clean(JSON.stringify(consultation.integratedResult || {}), 14000),
+    "",
+    "[앞 장에서 이어받을 흐름]",
+    previousSummaries.length ? previousSummaries.join("\n") : "아직 앞 장이 없습니다. 전체 상담의 기둥을 세우듯 시작합니다.",
+    "",
+    "[반복하지 않을 표현]",
+    avoidPhrases.length ? avoidPhrases.join(", ") : "흔한 위로, 뻔한 자기계발 문장, 같은 은유의 반복",
+    "",
+    "[이번에 작성할 장]",
+    JSON.stringify(definitions.map((definition) => ({
+      id: definition.id,
+      order: definition.order,
+      title: definition.title,
+      targetLength: PREMIUM_CHAPTER_TARGET_LENGTH,
+      required: definition.required,
+    }))),
+    "",
+    "위 장들만 깊게 작성하세요. 각 장 content는 산문 중심으로 충분히 길게 쓰고, 각 장 마지막 흐름을 summary와 keyTakeaways 3개로 정리하세요.",
+    "전생적 상징은 사실 단정이 아니라 무의식의 상징처럼 보이는 서사로만 표현하세요.",
+    "사용자가 실제로 취할 수 있는 관계, 돈, 일, 가족, 마음의 행동 전략을 각 장 안에 자연스럽게 넣으세요.",
+    "반환은 아래 형태의 JSON 객체 하나만 허용합니다. content 안에는 JSON, 프롬프트, 시스템, AI, 모델, 토큰, 결제, 디버그 표현을 넣지 마세요.",
+    '{"chapters":[{"id":"chapter-01","title":"운명의 업 총론","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."]}],"chapterSummary":{"summary":"...","carryForward":"...","avoidPhrases":["..."]},"avoidPhrases":["..."]}',
+  ].join("\n");
+}
+
+async function callRealGeminiText(env, prompt, options = {}) {
+  const ai = await callGeminiText(env, prompt, {
+    systemPrompt: options.systemPrompt || buildSystemPrompt("initial"),
+    taskType: "fortune",
+    temperature: options.temperature ?? 0.72,
+    maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 70_000),
+  });
+  const provider = clean(ai?.provider || ai?.model || "gemini");
+  const isMock = /mock/i.test(provider) || ai?.isMock === true;
+  if (!ai?.ok || isMock || !clean(ai?.text)) {
+    const error = new Error(clean(ai?.message || ai?.error || "LLM generation failed.", 500));
+    error.code = isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_GENERATION_FAILED";
+    error.providerDiagnostics = getProviderDiagnostics(env);
+    throw error;
+  }
+  return { text: clean(ai.text), provider, model: clean(ai?.model) };
+}
+
+async function generateChapterBatch(env, consultation, batchIndex, logContext = {}) {
+  const prompt = buildBatchPrompt(consultation, batchIndex);
+  const generated = await callRealGeminiText(env, prompt, {
+    temperature: 0.72,
+    maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+    systemPrompt: buildSystemPrompt("initial"),
+  });
+  let payload;
+  try {
+    payload = extractJsonPayload(generated.text);
+  } catch (error) {
+    const repaired = await callRealGeminiText(env, [
+      "아래 답변을 내용 손실 없이 지정된 JSON 객체 형식으로만 다시 정리하세요.",
+      "새 내용을 쓰지 말고, 이미 쓴 상담문을 장별 content, summary, keyTakeaways, highlightQuotes로만 옮기세요.",
+      "",
+      generated.text,
+    ].join("\n"), {
+      temperature: 0.35,
+      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+      systemPrompt: "당신은 텍스트를 지정된 JSON 구조로 정리하는 편집자입니다. JSON 객체 하나만 반환합니다.",
+    });
+    payload = extractJsonPayload(repaired.text);
+    generated.provider = repaired.provider || generated.provider;
+    generated.model = repaired.model || generated.model;
+  }
+  const definitions = PREMIUM_CHAPTERS.slice(batchIndex * PREMIUM_BATCH_SIZE, (batchIndex + 1) * PREMIUM_BATCH_SIZE);
+  const incoming = safeArray(payload?.chapters);
+  const chapters = definitions.map((definition) => {
+    const raw = incoming.find((item) => clean(item?.id) === definition.id || Number(item?.order) === definition.order || clean(item?.title) === definition.title);
+    if (!raw) {
+      const error = new Error(`Missing generated chapter ${definition.id}`);
+      error.code = "LLM_BATCH_CHAPTER_MISSING";
+      throw error;
+    }
+    return normalizeChapter(raw, definition);
+  });
+  logKarmaAi("LLM Batch Generated", { ...logContext, batchIndex, chapterIds: chapters.map((chapter) => chapter.id), provider: generated.provider, model: generated.model });
+  return {
+    chapters,
+    chapterSummary: {
+      batchIndex,
+      summary: clean(payload?.chapterSummary?.summary, 800),
+      carryForward: clean(payload?.chapterSummary?.carryForward, 800),
+      avoidPhrases: uniq(safeArray(payload?.chapterSummary?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 12),
+    },
+    avoidPhrases: uniq(safeArray(payload?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 12),
+    provider: generated.provider,
+    model: generated.model,
+  };
+}
+
+function pickReinforcementTargets(chapters, quality) {
+  const byId = new Map(safeArray(chapters).map((chapter) => [chapter.id, chapter]));
+  const explicit = [
+    ...safeArray(quality.shortChapters),
+    ...safeArray(quality.missingChapters),
+  ].map((id) => PREMIUM_CHAPTERS.find((definition) => definition.id === id)).filter(Boolean);
+  if (explicit.length) return explicit.slice(0, PREMIUM_BATCH_SIZE);
+  return [...PREMIUM_CHAPTERS]
+    .sort((a, b) => countUserVisibleChars(formatChapterContent(byId.get(a.id) || {})) - countUserVisibleChars(formatChapterContent(byId.get(b.id) || {})))
+    .slice(0, PREMIUM_BATCH_SIZE);
+}
+
+async function reinforcePremiumReport(env, consultation, chapters, quality, attempt, logContext = {}) {
+  const targets = pickReinforcementTargets(chapters, quality);
+  const chapterMap = new Map(chapters.map((chapter) => [chapter.id, chapter]));
+  const prompt = [
+    "현재 운명의 업 상담 결과가 목표 분량보다 부족하다. 기존 내용을 반복하지 말고, 구체적 사례, 시기별 흐름, 관계 패턴, 현실 행동 전략, 주의할 선택, 회복 루틴을 추가하여 부족한 분량을 보강하라.",
+    "",
+    "[사용자 입력]",
+    JSON.stringify(buildPublicUserInput(consultation)),
+    "",
+    "[보강해야 할 장]",
+    JSON.stringify(targets.map((definition) => ({
+      id: definition.id,
+      order: definition.order,
+      title: definition.title,
+      required: definition.required,
+      currentCharCount: countUserVisibleChars(formatChapterContent(chapterMap.get(definition.id) || {})),
+    }))),
+    "",
+    "[현재 품질 점검]",
+    JSON.stringify({
+      totalCharCount: quality.totalCharCount,
+      minLength: quality.minLength,
+      shortChapters: quality.shortChapters,
+      repeatedPhraseWarnings: quality.repeatedPhraseWarnings,
+      genericAdviceWarnings: quality.genericAdviceWarnings,
+    }),
+    "",
+    "각 supplement content는 기존 장에 이어 붙일 수 있는 새 산문이어야 합니다. 이미 쓴 문단을 다시 쓰지 말고, 더 구체적인 사례와 선택 기준을 추가하세요.",
+    "반환은 JSON 객체 하나만 허용합니다.",
+    '{"supplements":[{"id":"chapter-01","content":"...","summary":"...","keyTakeaways":["...","...","..."],"highlightQuotes":["..."]}],"avoidPhrases":["..."]}',
+  ].join("\n");
+  const generated = await callRealGeminiText(env, prompt, {
+    temperature: 0.66,
+    maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+    systemPrompt: buildSystemPrompt("initial"),
+  });
+  const payload = extractJsonPayload(generated.text);
+  const supplements = safeArray(payload?.supplements);
+  const merged = chapters.map((chapter) => {
+    const supplement = supplements.find((item) => clean(item?.id) === chapter.id);
+    if (!supplement) return chapter;
+    const definition = PREMIUM_CHAPTERS[chapter.order - 1] || chapter;
+    const content = [chapter.content, cleanForbiddenResult(clean(supplement.content, 8000))].filter(Boolean).join("\n\n");
+    const keyTakeaways = safeArray(supplement.keyTakeaways).length
+      ? safeArray(supplement.keyTakeaways).map((item) => cleanForbiddenResult(clean(item, 220))).filter(Boolean).slice(0, 3)
+      : chapter.keyTakeaways;
+    const mergedChapter = {
+      ...chapter,
+      content,
+      summary: cleanForbiddenResult(clean(supplement.summary || chapter.summary, 1200)),
+      keyTakeaways: keyTakeaways.length >= 3 ? keyTakeaways : chapter.keyTakeaways,
+      highlightQuotes: uniq([...safeArray(chapter.highlightQuotes), ...safeArray(supplement.highlightQuotes)].map((item) => cleanForbiddenResult(clean(item, 180)))).slice(0, 3),
+    };
+    return {
+      ...mergedChapter,
+      charCount: countUserVisibleChars(formatChapterContent({ ...mergedChapter, title: definition.title })),
+    };
+  });
+  logKarmaAi("LLM Reinforcement Generated", { ...logContext, attempt, targetIds: targets.map((target) => target.id), provider: generated.provider, model: generated.model });
+  return {
+    chapters: merged,
+    avoidPhrases: uniq(safeArray(payload?.avoidPhrases).map((item) => clean(item, 120))).slice(0, 12),
+    provider: generated.provider,
+    model: generated.model,
+  };
+}
+
+async function applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing }) {
+  const billingState = asObject(consultation.billingState);
+  if (billingState.deferredUsage) {
+    await callDeferredUsageRoute({
+      request,
+      env,
+      path: "apply",
+      idempotencyKey: consultation.idempotencyKey,
+      sessionId: consultation.id,
+    });
+  } else if (!billingState.usageAlreadyApplied && consultation.accessType === "pass") {
+    await applyUsageOnce({ userId: auth.userId, sessionId: consultation.id, accessType: consultation.accessType, pricing });
+  } else if (!billingState.usageAlreadyApplied && isMonthlyCreditAccess(consultation.accessType)) {
+    const gateError = new Error("monthly credit must be confirmed by common billing gate");
+    gateError.code = "MONTHLY_CREDIT_GATE_REQUIRED";
+    throw gateError;
+  } else {
+    await KarmaDestinyAiConsultation.updateOne(
+      { id: consultation.id, usageAppliedAt: null },
+      { $set: { usageAppliedAt: new Date() } },
+    );
+  }
+}
+
+async function cancelDeferredUsageIfNeeded({ request, env, consultation, error }) {
+  const billingState = asObject(consultation?.billingState);
+  if (!billingState.deferredUsage || consultation?.usageAppliedAt) return;
+  await callDeferredUsageRoute({
+    request,
+    env,
+    path: "cancel",
+    idempotencyKey: consultation.idempotencyKey,
+    sessionId: consultation.id,
+    code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
+    message: clean(error?.message || error, 500),
+  });
+}
+
 function buildSummaryCards(integratedResult = {}) {
   const synthesis = asObject(integratedResult.synthesis);
   const themes = safeArray(synthesis.karmicThemes).map((item) => clean(item)).filter(Boolean);
@@ -1009,13 +1473,40 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
 }
 
 function publicSession(doc) {
+  const chapters = safeArray(doc.chapters).map((chapter) => ({
+    id: clean(chapter.id, 40),
+    order: Number(chapter.order || 0),
+    title: clean(chapter.title, 120),
+    content: clean(chapter.content, 14000),
+    summary: clean(chapter.summary, 1200),
+    keyTakeaways: safeArray(chapter.keyTakeaways).map((item) => clean(item, 220)).filter(Boolean).slice(0, 3),
+    highlightQuotes: safeArray(chapter.highlightQuotes).map((item) => clean(item, 180)).filter(Boolean).slice(0, 3),
+    charCount: Number(chapter.charCount || countUserVisibleChars(formatChapterContent(chapter))),
+  })).sort((a, b) => a.order - b.order);
+  const assistantMessages = safeArray(doc.messages).filter((message) => message.role === "assistant");
+  const generatedAt = doc.generatedAt || assistantMessages[assistantMessages.length - 1]?.createdAt || null;
   return {
     ok: true,
     sessionId: clean(doc.id),
+    reportId: clean(doc.reportId || doc.id),
+    attemptId: clean(doc.attemptId || doc.idempotencyKey),
     accessType: clean(doc.accessType),
     status: clean(doc.status),
+    generatedAt,
+    totalCharCount: Number(doc.totalCharCount || (chapters.length ? countUserVisibleChars(formatChaptersAsConsultationText(chapters)) : 0)),
+    userInput: buildPublicUserInput(doc),
     integratedResult: doc.integratedResult || null,
     summaryCards: doc.summaryCards || null,
+    chapters,
+    finalLetter: clean(doc.finalLetter, 14000),
+    qualityCheck: doc.qualityCheck ? {
+      passed: doc.qualityCheck.passed === true || doc.qualityCheck.ok === true,
+      totalCharCount: Number(doc.qualityCheck.totalCharCount || doc.qualityCheck.totalChars || 0),
+      chapterCount: Number(doc.qualityCheck.chapterCount || 0),
+      repeatedPhraseWarnings: safeArray(doc.qualityCheck.repeatedPhraseWarnings).slice(0, 8),
+      promptLeakDetected: doc.qualityCheck.promptLeakDetected === true,
+    } : null,
+    generationProgress: doc.generationProgress || buildGenerationProgress(doc),
     messages: safeArray(doc.messages).map((message) => ({
       role: message.role,
       content: message.content,
@@ -1191,14 +1682,13 @@ async function handleStart(request, env) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
-    return json({ ok: true, sessionId: existing.id, status: "generating", message: "삶의 반복 패턴과 업의 흐름을 읽고 있습니다" }, { status: 202 });
-  }
 
   const sessionId = existing?.id || `kdai_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}_${randomToken(8)}`;
   const now = new Date();
   const seed = {
     id: sessionId,
+    reportId: clean(existing?.reportId || sessionId, 120),
+    attemptId: idempotencyKey,
     userId: clean(auth.userId),
     birthInfo: normalized.input.birthInfo,
     topic: normalized.input.topic,
@@ -1206,86 +1696,75 @@ async function handleStart(request, env) {
     accessType: access.accessType,
     paymentId: clean(access.paymentId, 160),
     billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
-    messages: [],
+    billingState: {
+      deferredUsage: access.deferredUsage === true,
+      usageAlreadyApplied: access.usageAlreadyApplied === true,
+      paymentId: clean(access.paymentId, 160),
+      billingRequestId: clean(access.billingRequestId || idempotencyKey, 180),
+      preparedAt: now.toISOString(),
+    },
+    messages: existing?.status === "generating" ? safeArray(existing.messages) : [],
+    chapters: existing?.status === "generating" ? safeArray(existing.chapters) : [],
+    chapterSummaries: existing?.status === "generating" ? safeArray(existing.chapterSummaries) : [],
+    finalLetter: existing?.status === "generating" ? clean(existing.finalLetter, 14000) : "",
+    generatedAt: null,
+    totalCharCount: existing?.status === "generating" ? Number(existing.totalCharCount || 0) : 0,
+    qualityCheck: null,
+    generationProgress: buildGenerationProgress(existing || {}, {
+      chapters: existing?.status === "generating" ? safeArray(existing.chapters) : [],
+      stageLabel: GENERATION_STAGES[0],
+      activeBatchIndex: Math.floor((existing?.status === "generating" ? safeArray(existing.chapters).length : 0) / PREMIUM_BATCH_SIZE),
+      lockToken: "",
+      lockedAt: null,
+    }),
     idempotencyKey,
     inputHash: normalized.inputHash,
     status: "generating",
     generationError: null,
   };
 
-  if (existing) {
-    await KarmaDestinyAiConsultation.updateOne(
-      { id: existing.id },
-      { $set: { ...seed, updatedAt: now } },
-    );
-  } else {
-    try {
-      await KarmaDestinyAiConsultation.create(seed);
-    } catch (error) {
-      if (error?.code === 11000) {
-        const duplicate = await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
-        if (duplicate?.status === "completed") return json(publicSession(duplicate));
-        return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: "삶의 반복 패턴과 업의 흐름을 읽고 있습니다" }, { status: 202 });
-      }
-      throw error;
-    }
-  }
-
   try {
+    if (existing) {
+      await KarmaDestinyAiConsultation.updateOne(
+        { id: existing.id },
+        { $set: { ...seed, updatedAt: now } },
+      );
+    } else {
+      try {
+        await KarmaDestinyAiConsultation.create(seed);
+      } catch (error) {
+        if (error?.code === 11000) {
+          const duplicate = await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+          if (duplicate?.status === "completed") return json(publicSession(duplicate));
+          return json(publicSession(duplicate || seed), { status: 202 });
+        }
+        throw error;
+      }
+    }
+
     logKarmaAi("LLM Fortune Data Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    const integratedResult = await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo);
+    const integratedResult = existing?.integratedResult || await buildKarmaDestinyIntegratedResult(env, normalized.input.birthInfo);
     if (!integratedResult?.saju && !integratedResult?.westernAstrology && !integratedResult?.vedicAstrology) {
       const calculationError = new Error(CALCULATION_ERROR_MESSAGE);
       calculationError.code = "CALCULATION_ERROR";
       throw calculationError;
     }
     logKarmaAi("LLM Fortune Data Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
-    const summaryCards = buildSummaryCards(integratedResult);
-    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, integratedResult), {
-      mode: "initial",
-      minLength: INITIAL_CONSULTATION_MIN_LENGTH,
-      maxLength: INITIAL_CONSULTATION_MAX_LENGTH,
-      maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-      logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
-    });
-    if (access.deferredUsage) {
-      await callDeferredUsageRoute({ request, env, path: "apply", idempotencyKey, sessionId });
-    } else if (!access.usageAlreadyApplied && access.accessType === "pass") {
-      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing });
-    } else if (!access.usageAlreadyApplied && isMonthlyCreditAccess(access.accessType)) {
-      const gateError = new Error("monthly credit must be confirmed by common billing gate");
-      gateError.code = "MONTHLY_CREDIT_GATE_REQUIRED";
-      throw gateError;
-    } else {
-      await KarmaDestinyAiConsultation.updateOne(
-        { id: sessionId, usageAppliedAt: null },
-        { $set: { usageAppliedAt: new Date() } },
-      );
-    }
-    const completed = await KarmaDestinyAiConsultation.findOneAndUpdate(
+    const summaryCards = existing?.summaryCards || buildSummaryCards(integratedResult);
+    const prepared = await KarmaDestinyAiConsultation.findOneAndUpdate(
       { id: sessionId },
       {
         $set: {
-          status: "completed",
+          status: "generating",
           integratedResult,
           summaryCards,
-          messages: [
-            { role: "user", content: `${normalized.input.topic}${normalized.input.question ? `\n${normalized.input.question}` : ""}`, createdAt: now },
-            { role: "assistant", content: generated.text, createdAt: new Date() },
-          ],
-          usageAppliedAt: new Date(),
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString(), deferredUsageApplied: access.deferredUsage === true },
+          generationProgress: buildGenerationProgress({ ...seed, integratedResult, summaryCards }),
           generationError: null,
         },
       },
       { new: true },
     ).lean();
-    logKarmaAi("LLM Generate Success", {
-      ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
-      provider: generated.provider,
-      model: generated.model,
-    });
-    return json(publicSession(completed));
+    return json(publicSession(prepared), { status: 202 });
   } catch (error) {
     await KarmaDestinyAiConsultation.updateOne(
       { id: sessionId },
@@ -1302,14 +1781,11 @@ async function handleStart(request, env) {
     ).catch(() => {});
     logKarmaAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     if (access.deferredUsage) {
-      await callDeferredUsageRoute({
+      await cancelDeferredUsageIfNeeded({
         request,
         env,
-        path: "cancel",
-        idempotencyKey,
-        sessionId,
-        code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
-        message: clean(error?.message || error, 500),
+        consultation: { ...seed, usageAppliedAt: null },
+        error,
       }).catch((restoreError) => {
         logKarmaAi("LLM Refund Or Restore", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error: restoreError }), "warn");
       });
@@ -1323,6 +1799,206 @@ async function handleStart(request, env) {
     }
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }
+}
+
+async function handleGenerateBatch(request, env) {
+  const route = "/api/karma-destiny-ai/generate-batch";
+  const body = await readJson(request);
+  const sessionId = clean(body?.sessionId || body?.reportId || body?.attemptId || body?.idempotencyKey, 180);
+  if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+
+  await connectDb(env);
+  const pricing = getPricing();
+  let consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(sessionId, auth)).lean();
+  if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  if (consultation.status === "completed") return json(publicSession(consultation));
+  if (consultation.status === "generation_failed") {
+    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, sessionId: consultation.id, status: consultation.status }, { status: 409 });
+  }
+  if (!consultation.integratedResult) {
+    return json({ ok: false, reason: "CALCULATION_ERROR", message: CALCULATION_ERROR_MESSAGE }, { status: 422 });
+  }
+
+  const lock = asObject(consultation.generationProgress);
+  const lockAgeMs = lock.lockedAt ? Date.now() - new Date(lock.lockedAt).getTime() : Number.POSITIVE_INFINITY;
+  if (clean(lock.lockToken) && lockAgeMs >= 0 && lockAgeMs < PREMIUM_BATCH_LOCK_TTL_MS) {
+    return json(publicSession(consultation), { status: 202 });
+  }
+
+  const lockToken = randomToken(12);
+  const currentChapters = safeArray(consultation.chapters);
+  const batchIndex = Math.min(Math.floor(currentChapters.length / PREMIUM_BATCH_SIZE), Math.ceil(PREMIUM_CHAPTERS.length / PREMIUM_BATCH_SIZE) - 1);
+  await KarmaDestinyAiConsultation.updateOne(
+    { id: consultation.id, userId: clean(auth.userId), status: "generating" },
+    {
+      $set: {
+        generationProgress: buildGenerationProgress(consultation, {
+          chapters: currentChapters,
+          activeBatchIndex: batchIndex,
+          lockToken,
+          lockedAt: new Date(),
+          stageLabel: GENERATION_STAGES[Math.min(batchIndex + 1, GENERATION_STAGES.length - 1)],
+        }),
+      },
+    },
+  );
+  consultation = await KarmaDestinyAiConsultation.findOne({ id: consultation.id, userId: clean(auth.userId) }).lean();
+
+  const logContext = safeLogPayload({
+    route,
+    requestId: consultation.idempotencyKey,
+    body,
+    normalized: {
+      input: {
+        serviceType: "karma-ai-consultation",
+        focusArea: "batch_generation",
+        question: consultation.userQuestion,
+        birthInfo: consultation.birthInfo,
+      },
+    },
+    access: consultation.accessType,
+    env,
+  });
+
+  try {
+    let chapters = safeArray(consultation.chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+    if (chapters.length < PREMIUM_CHAPTERS.length) {
+      const generated = await generateChapterBatch(env, consultation, batchIndex, logContext);
+      const generatedIds = new Set(generated.chapters.map((chapter) => chapter.id));
+      chapters = [
+        ...chapters.filter((chapter) => !generatedIds.has(chapter.id)),
+        ...generated.chapters,
+      ].sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+      const chapterSummaries = [
+        ...safeArray(consultation.chapterSummaries).filter((item) => Number(item?.batchIndex) !== batchIndex),
+        generated.chapterSummary,
+      ].sort((a, b) => Number(a?.batchIndex || 0) - Number(b?.batchIndex || 0));
+      const avoidPhrases = uniq([
+        ...safeArray(consultation.generationProgress?.avoidPhrases),
+        ...generated.avoidPhrases,
+        ...safeArray(generated.chapterSummary?.avoidPhrases),
+      ]).slice(0, 24);
+
+      consultation = await KarmaDestinyAiConsultation.findOneAndUpdate(
+        { id: consultation.id, userId: clean(auth.userId) },
+        {
+          $set: {
+            chapters,
+            chapterSummaries,
+            totalCharCount: countUserVisibleChars(formatChaptersAsConsultationText(chapters)),
+            generationProgress: {
+              ...buildGenerationProgress(consultation, {
+                chapters,
+                activeBatchIndex: Math.floor(chapters.length / PREMIUM_BATCH_SIZE),
+                lockToken: "",
+                lockedAt: null,
+                stageLabel: chapters.length >= PREMIUM_CHAPTERS.length ? "최종 품질을 확인하는 중" : GENERATION_STAGES[Math.min(batchIndex + 1, GENERATION_STAGES.length - 1)],
+              }),
+              avoidPhrases,
+            },
+            llmMeta: { provider: generated.provider, model: generated.model, updatedAt: new Date().toISOString() },
+          },
+        },
+        { new: true },
+      ).lean();
+    }
+
+    chapters = safeArray(consultation.chapters).sort((a, b) => Number(a.order || 0) - Number(b.order || 0));
+    if (chapters.length < PREMIUM_CHAPTERS.length) {
+      return json(publicSession(consultation), { status: 202 });
+    }
+
+    let quality = validatePremiumReportQuality(chapters);
+    let provider = clean(consultation.llmMeta?.provider);
+    let model = clean(consultation.llmMeta?.model);
+    for (let attempt = 1; attempt <= PREMIUM_REINFORCEMENT_MAX_ATTEMPTS && !quality.ok; attempt += 1) {
+      const reinforced = await reinforcePremiumReport(env, consultation, chapters, quality, attempt, logContext);
+      chapters = reinforced.chapters;
+      provider = reinforced.provider || provider;
+      model = reinforced.model || model;
+      quality = validatePremiumReportQuality(chapters);
+    }
+
+    if (!quality.ok) {
+      const error = new Error("Karma destiny consultation did not meet premium quality requirements.");
+      error.code = quality.tooShort ? "LLM_RESULT_TOO_SHORT" : "LLM_RESULT_QUALITY_FAILED";
+      error.quality = quality;
+      throw error;
+    }
+
+    await applyUsageAfterSuccessfulGeneration({ request, env, auth, consultation, pricing });
+    const completedAt = new Date();
+    const assistantContent = formatChaptersAsConsultationText(chapters);
+    const finalLetter = clean(chapters.find((chapter) => chapter.id === "chapter-16")?.content, 14000);
+    const completed = await KarmaDestinyAiConsultation.findOneAndUpdate(
+      { id: consultation.id, userId: clean(auth.userId) },
+      {
+        $set: {
+          status: "completed",
+          chapters,
+          finalLetter,
+          generatedAt: completedAt,
+          totalCharCount: quality.totalCharCount,
+          qualityCheck: quality,
+          generationProgress: buildGenerationProgress({ ...consultation, status: "completed" }, { chapters, status: "completed", percent: 100, lockToken: "", lockedAt: null, stageLabel: "최종 편지를 봉인했습니다" }),
+          messages: [
+            { role: "user", content: `${consultation.topic}${consultation.userQuestion ? `\n${consultation.userQuestion}` : ""}`, createdAt: consultation.createdAt || completedAt },
+            { role: "assistant", content: assistantContent, createdAt: completedAt },
+          ],
+          usageAppliedAt: completedAt,
+          llmMeta: { provider, model, completedAt: completedAt.toISOString(), deferredUsageApplied: asObject(consultation.billingState).deferredUsage === true },
+          generationError: null,
+        },
+      },
+      { new: true },
+    ).lean();
+    logKarmaAi("LLM Generate Success", { ...logContext, provider, model, totalCharCount: quality.totalCharCount, chapterCount: chapters.length });
+    return json(publicSession(completed));
+  } catch (error) {
+    await KarmaDestinyAiConsultation.updateOne(
+      { id: consultation.id, userId: clean(auth.userId) },
+      {
+        $set: {
+          status: "generation_failed",
+          qualityCheck: error?.quality || null,
+          generationProgress: {
+            ...buildGenerationProgress(consultation, { chapters: safeArray(consultation.chapters), lockToken: "", lockedAt: null }),
+            lockToken: "",
+            lockedAt: null,
+          },
+          generationError: {
+            code: clean(error?.code || "LLM_GENERATION_FAILED", 80),
+            message: clean(error?.message || error, 500),
+            at: new Date().toISOString(),
+          },
+        },
+      },
+    ).catch(() => {});
+    await cancelDeferredUsageIfNeeded({ request, env, consultation, error }).catch((restoreError) => {
+      logKarmaAi("LLM Refund Or Restore", safeLogPayload({ route, requestId: consultation.idempotencyKey, body, access: consultation.accessType, env, error: restoreError }), "warn");
+    });
+    logKarmaAi("LLM Error", safeLogPayload({ route, requestId: consultation.idempotencyKey, body, access: consultation.accessType, env, error }), "error");
+    return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE, sessionId: consultation.id, status: "generation_failed" }, { status: 503 });
+  }
+}
+
+async function handleResult(request, env, path) {
+  const url = new URL(request.url);
+  const pathId = path.startsWith("/result/") ? decodeURIComponent(path.slice("/result/".length)) : "";
+  const identifier = clean(pathId || url.searchParams.get("sessionId") || url.searchParams.get("reportId") || url.searchParams.get("attemptId") || url.searchParams.get("idempotencyKey"), 180);
+  if (!identifier) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+
+  await connectDb(env);
+  const consultation = await KarmaDestinyAiConsultation.findOne(buildResultLookup(identifier, auth)).lean();
+  if (!consultation) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
+  const statusCode = consultation.status === "generating" ? 202 : consultation.status === "generation_failed" ? 409 : 200;
+  return json(publicSession(consultation), { status: statusCode });
 }
 
 async function handleMessage(request, env) {
@@ -1393,6 +2069,8 @@ export async function handleKarmaDestinyAiRoutes(request, env = {}) {
   try {
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
+    if (method === "POST" && path === "/generate-batch") return await handleGenerateBatch(request, env);
+    if (method === "GET" && (path === "/result" || path.startsWith("/result/"))) return await handleResult(request, env, path);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
@@ -1413,5 +2091,8 @@ export const __karmaDestinyAiTestUtils = {
   cleanForbiddenResult,
   parseKarmaConsultationSections,
   validateInitialConsultationQuality,
+  validatePremiumReportQuality,
+  formatChaptersAsConsultationText,
+  PREMIUM_CHAPTERS,
   buildKarmaDestinyAiMockConsultation,
 };

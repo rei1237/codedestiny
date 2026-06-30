@@ -36,6 +36,7 @@ export const fortuneTeaHouseAssets = {
   pig: {
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
     transform: teaHouseAsset("꽃돼지 연이 변신.webp"),
+    transformScene: teaHouseAsset("연이 변신씬.webp"),
     base1: teaHouseAsset("꽃돼지.webp"),
     base2: teaHouseAsset("꽃돼지2.webp"),
     base3: teaHouseAsset("꽃돼지3.webp"),

@@ -34,6 +34,7 @@ const {
 const {
   ContentEntitlement,
   Payment,
+  PaymentWebhookEvent,
   ProfileCard,
   User,
 } = modelsMod;
@@ -66,6 +67,10 @@ const originals = {
   paymentFindOneAndUpdate: Payment.findOneAndUpdate,
   paymentFindById: Payment.findById,
   paymentFindByIdAndUpdate: Payment.findByIdAndUpdate,
+  paymentWebhookCreate: PaymentWebhookEvent.create,
+  paymentWebhookFindOne: PaymentWebhookEvent.findOne,
+  paymentWebhookFindOneAndUpdate: PaymentWebhookEvent.findOneAndUpdate,
+  paymentWebhookFindByIdAndUpdate: PaymentWebhookEvent.findByIdAndUpdate,
   profileFindOne: ProfileCard.findOne,
   userFindById: User.findById,
   userUpdateOne: User.updateOne,
@@ -228,6 +233,38 @@ function resetState() {
     }
     return query(state.payment);
   };
+  const webhookEvents = new Map();
+  PaymentWebhookEvent.create = async (doc) => {
+    const key = `${doc.provider}:${doc.eventId}`;
+    if (webhookEvents.has(key)) {
+      const error = new Error("duplicate webhook event");
+      error.code = 11000;
+      throw error;
+    }
+    const created = { _id: `webhook_${webhookEvents.size + 1}`, ...doc };
+    webhookEvents.set(key, created);
+    return created;
+  };
+  PaymentWebhookEvent.findOne = (criteria = {}) => {
+    const key = `${criteria.provider}:${criteria.eventId}`;
+    return query(webhookEvents.get(key) || null);
+  };
+  PaymentWebhookEvent.findOneAndUpdate = (criteria = {}, update = {}) => {
+    const key = `${criteria.provider}:${criteria.eventId}`;
+    const existing = webhookEvents.get(key);
+    if (!existing || (criteria.status && existing.status !== criteria.status)) return query(null);
+    Object.assign(existing, update.$set || {});
+    if (update.$inc?.attempts) existing.attempts = Number(existing.attempts || 0) + Number(update.$inc.attempts || 0);
+    return query(existing);
+  };
+  PaymentWebhookEvent.findByIdAndUpdate = (id, update = {}) => {
+    for (const event of webhookEvents.values()) {
+      if (event._id !== id) continue;
+      Object.assign(event, update.$set || {});
+      return query(event);
+    }
+    return query(null);
+  };
   globalThis.fetch = async (url) => {
     assert.ok(String(url).includes(`/payments/${encodeURIComponent(state.payment.merchantUid)}`), "PortOne lookup URL should include paymentId");
     return new Response(JSON.stringify({ payment: state.portonePayment }), {
@@ -246,6 +283,10 @@ function restoreMocks() {
   Payment.findOneAndUpdate = originals.paymentFindOneAndUpdate;
   Payment.findById = originals.paymentFindById;
   Payment.findByIdAndUpdate = originals.paymentFindByIdAndUpdate;
+  PaymentWebhookEvent.create = originals.paymentWebhookCreate;
+  PaymentWebhookEvent.findOne = originals.paymentWebhookFindOne;
+  PaymentWebhookEvent.findOneAndUpdate = originals.paymentWebhookFindOneAndUpdate;
+  PaymentWebhookEvent.findByIdAndUpdate = originals.paymentWebhookFindByIdAndUpdate;
   ProfileCard.findOne = originals.profileFindOne;
   User.findById = originals.userFindById;
   User.updateOne = originals.userUpdateOne;

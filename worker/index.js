@@ -386,6 +386,7 @@ const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => impo
 const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
 const handleYoutubeRoutes = createLazyRouteHandler("./routes/youtube.js", () => import("./routes/youtube.js"), "handleYoutubeRoutes");
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
+const handleMusicRoutes = createLazyRouteHandler("./routes/music.js", () => import("./routes/music.js"), "handleMusicRoutes", "api/music");
 const handleLifeBookAiRoutes = createLazyRouteHandler("./routes/life-book-ai.js", () => import("./routes/life-book-ai.js"), "handleLifeBookAiRoutes", "api/life-book-ai");
 const handleLoveSecretAiRoutes = createLazyRouteHandler("./routes/love-secret-ai.js", () => import("./routes/love-secret-ai.js"), "handleLoveSecretAiRoutes", "api/love-secret-ai");
 const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
@@ -467,16 +468,45 @@ function applyNoCacheHeaders(headers) {
   headers.set("Pragma", "no-cache");
 }
 
-function buildOAuthCallbackShimResponse(provider) {
+function buildNoCacheRedirectResponse(location, status = 302) {
+  const headers = new Headers({ Location: location });
+  applyNoCacheHeaders(headers);
+  headers.set("X-Robots-Tag", "noindex, nofollow");
+  return new Response(null, { status, headers });
+}
+
+function buildOAuthCallbackShimHtmlResponse(provider) {
   const callbackPath = `/api/auth/oauth/${provider}/callback`;
   const callbackPathJson = JSON.stringify(callbackPath);
-  const body = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Code Destiny</title></head><body><p>로그인을 연결하는 중입니다.</p><script>location.replace(${callbackPathJson}+location.search+location.hash);</script><noscript><a href="${callbackPath}">${callbackPath}</a></noscript></body></html>`;
+  const body = `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow"><title>Code Destiny</title></head><body><p>Connecting login.</p><script>location.replace(${callbackPathJson}+location.search+location.hash);</script><noscript><a href="${callbackPath}">${callbackPath}</a></noscript></body></html>`;
   const headers = new Headers({
     "Content-Type": "text/html; charset=utf-8",
     "X-Robots-Tag": "noindex, nofollow",
   });
   applyNoCacheHeaders(headers);
   return new Response(body, { status: 200, headers });
+}
+
+function buildOAuthCallbackShimResponse(request, provider) {
+  if (provider !== "kakao") return buildOAuthCallbackShimHtmlResponse(provider);
+
+  const sourceUrl = new URL(request.url);
+  if (sourceUrl.searchParams.has("social_grant")) {
+    const loginUrl = new URL("/login", sourceUrl.origin);
+    loginUrl.searchParams.set("authError", provider);
+    loginUrl.searchParams.set("social_error", "expired_callback");
+    if (provider === "kakao") {
+      console.info("[Kakao Callback] loopGuardTriggered", JSON.stringify({
+        routePath: sourceUrl.pathname,
+        redirectTarget: "/login",
+      }));
+    }
+    return buildNoCacheRedirectResponse(loginUrl.toString());
+  }
+
+  const callbackUrl = new URL(`/api/auth/oauth/${provider}/callback`, sourceUrl.origin);
+  callbackUrl.search = sourceUrl.search;
+  return buildNoCacheRedirectResponse(callbackUrl.toString());
 }
 
 function normalizeOrigin(rawValue) {
@@ -861,7 +891,7 @@ export default {
 
       const oauthCallbackPageMatch = url.pathname.match(/^\/auth\/(google|naver|kakao)\/callback$/);
       if (request.method === "GET" && oauthCallbackPageMatch) {
-        return buildOAuthCallbackShimResponse(String(oauthCallbackPageMatch[1] || "").toLowerCase());
+        return buildOAuthCallbackShimResponse(request, String(oauthCallbackPageMatch[1] || "").toLowerCase());
       }
 
       if (url.pathname === "/api/health") {
@@ -1062,6 +1092,10 @@ export default {
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
         return withCorsHeaders(request, env, await handleBillingRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/music" || url.pathname.startsWith("/api/music/")) {
+        return withCorsHeaders(request, env, await handleMusicRoutes(request, env));
       }
 
       if (url.pathname === "/api/naming-prompt" || url.pathname.startsWith("/api/naming-prompt/")) {

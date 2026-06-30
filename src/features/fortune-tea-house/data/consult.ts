@@ -73,6 +73,8 @@ export type FortuneTeaHouseHoneyDropsState = {
   totalEarned?: number;
   totalSpent?: number;
   lastEarnedAt?: string;
+  tarotAlbumUnlocked?: boolean;
+  tarotAlbumUnlockedAt?: string;
   resultId?: string;
   earnedThisResult?: boolean;
   duplicateResult?: boolean;
