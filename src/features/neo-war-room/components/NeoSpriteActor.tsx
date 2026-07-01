@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoWarRoomAssetImage from "./NeoWarRoomAssetImage";
 import type { NeoWarRoomAsset } from "../data/assets";
 import {
@@ -41,6 +42,7 @@ export default function NeoSpriteActor({
   ariaLive = "polite",
   className = "",
 }: NeoSpriteActorProps) {
+  const spriteGate = useSpritePlaybackGate<HTMLElement>();
   const config = getNeoWarRoomSpriteStateConfig(state);
   const resolvedVariant = variant ?? config.variant;
   const dialogue = dialogueOverride ?? config.dialogue;
@@ -51,19 +53,29 @@ export default function NeoSpriteActor({
     () => talkSheetFrames?.filter((frame) => Number.isFinite(frame) && frame >= 1) ?? [],
     [talkSheetFrames],
   );
+  const displayTalkFrames = useMemo(
+    () => (spriteGate.isMobile ? validTalkFrames.slice(0, 12) : validTalkFrames),
+    [spriteGate.isMobile, validTalkFrames],
+  );
+  const displayTalkSheetFrames = useMemo(
+    () => (spriteGate.isMobile ? validTalkSheetFrames.slice(0, 12) : validTalkSheetFrames),
+    [spriteGate.isMobile, validTalkSheetFrames],
+  );
   const talkSheetFrameKey = useMemo(() => validTalkSheetFrames.join("|"), [validTalkSheetFrames]);
   const [talkFrameIndex, setTalkFrameIndex] = useState(0);
-  const shouldAnimatePairedTalk = talking && validTalkFrames.length > 1 && validTalkSheetFrames.length > 1;
-  const shouldAnimateSheetTalk = talking && !shouldAnimatePairedTalk && validTalkSheetFrames.length > 1;
-  const shouldAnimateAssetTalk = talking && !shouldAnimatePairedTalk && !shouldAnimateSheetTalk && validTalkFrames.length > 1;
+  const [isPageVisible, setIsPageVisible] = useState(() => (typeof document === "undefined" ? true : !document.hidden));
+  const shouldAnimatePairedTalk = talking && displayTalkFrames.length > 1 && displayTalkSheetFrames.length > 1;
+  const shouldAnimateSheetTalk = talking && !shouldAnimatePairedTalk && displayTalkSheetFrames.length > 1;
+  const shouldAnimateAssetTalk = talking && !shouldAnimatePairedTalk && !shouldAnimateSheetTalk && displayTalkFrames.length > 1;
   const shouldAnimateTalk = shouldAnimatePairedTalk || shouldAnimateSheetTalk || shouldAnimateAssetTalk;
   const activeAsset = shouldAnimatePairedTalk || shouldAnimateAssetTalk
-    ? validTalkFrames[talkFrameIndex % validTalkFrames.length]
+    ? displayTalkFrames[talkFrameIndex % displayTalkFrames.length] ?? asset
     : asset;
   const activeSheetFrame = shouldAnimatePairedTalk || shouldAnimateSheetTalk
-    ? validTalkSheetFrames[talkFrameIndex % validTalkSheetFrames.length]
+    ? displayTalkSheetFrames[talkFrameIndex % displayTalkSheetFrames.length] ?? sheetFrame
     : sheetFrame;
-  const sheetFrameIndex = typeof activeSheetFrame === "number" && activeSheetFrame >= 1 ? activeSheetFrame - 1 : null;
+  const isMobileSingleWebpFrame = spriteGate.isMobile && activeAsset.src.includes("/neo-operation-room/sprites/transparent/");
+  const sheetFrameIndex = !isMobileSingleWebpFrame && typeof activeSheetFrame === "number" && activeSheetFrame >= 1 ? activeSheetFrame - 1 : null;
   const sheetCol = sheetFrameIndex === null ? 0 : sheetFrameIndex % 4;
   const sheetRow = sheetFrameIndex === null ? 0 : Math.floor(sheetFrameIndex / 4);
   const sheetCropStyle = sheetFrameIndex === null
@@ -75,32 +87,42 @@ export default function NeoSpriteActor({
 
   useEffect(() => {
     setTalkFrameIndex(0);
-  }, [asset.src, talkFrameKey, talkSheetFrameKey]);
+  }, [asset.src, spriteGate.isMobile, talkFrameKey, talkSheetFrameKey]);
 
   useEffect(() => {
-    if (!shouldAnimateTalk) return undefined;
+    const updateVisibility = () => setIsPageVisible(!document.hidden);
+    updateVisibility();
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldAnimateTalk || !isPageVisible || !spriteGate.canAnimate) return undefined;
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     if (prefersReducedMotion) return undefined;
     const frameCount = shouldAnimatePairedTalk
-      ? Math.min(validTalkFrames.length, validTalkSheetFrames.length)
+      ? Math.min(displayTalkFrames.length, displayTalkSheetFrames.length)
       : shouldAnimateSheetTalk
-        ? validTalkSheetFrames.length
-        : validTalkFrames.length;
+        ? displayTalkSheetFrames.length
+        : displayTalkFrames.length;
     const timer = window.setInterval(() => {
       setTalkFrameIndex((current) => (current + 1) % frameCount);
     }, talkFrameIntervalMs);
     return () => window.clearInterval(timer);
-  }, [shouldAnimateTalk, shouldAnimatePairedTalk, shouldAnimateSheetTalk, talkFrameIntervalMs, validTalkFrames.length, validTalkSheetFrames.length]);
+  }, [displayTalkFrames.length, displayTalkSheetFrames.length, isPageVisible, shouldAnimateTalk, shouldAnimatePairedTalk, shouldAnimateSheetTalk, spriteGate.canAnimate, talkFrameIntervalMs]);
 
   return (
     <aside
+      ref={spriteGate.ref}
       className={`${styles.spriteActor} ${className}`.trim()}
       data-state={config.state}
       data-variant={resolvedVariant}
       data-size={size}
       data-motion={config.motion}
       data-sheet-crop={sheetFrameIndex === null ? "false" : "true"}
-      data-talking={shouldAnimateTalk ? "true" : "false"}
+      data-mobile-single-frame={isMobileSingleWebpFrame ? "true" : "false"}
+      data-talking={shouldAnimateTalk && spriteGate.canAnimate ? "true" : "false"}
+      data-playback={shouldAnimateTalk && spriteGate.canAnimate ? "animated" : "static"}
       aria-live={ariaLive}
     >
       <div className={styles.spriteStage}>

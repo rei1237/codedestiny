@@ -34,6 +34,118 @@ const HIDDEN_STEMS = {
 };
 const PRODUCES = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const CONTROLS = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
+const CHINESE_TEN_GOD_TO_KO = {
+  比肩: "비견",
+  劫财: "겁재",
+  食神: "식신",
+  伤官: "상관",
+  偏财: "편재",
+  正财: "정재",
+  七杀: "편관",
+  偏官: "편관",
+  正官: "정관",
+  偏印: "편인",
+  正印: "정인",
+  日主: "일간",
+};
+const PILLAR_LABELS = {
+  year: "년주",
+  month: "월주",
+  day: "일주",
+  hour: "시주",
+};
+const BRANCH_SEASON = {
+  寅: { season: "봄", element: "목", climate: "생기가 열리는 초봄", adjustment: "화 기운으로 드러내고 토 기운으로 안정시킵니다." },
+  卯: { season: "봄", element: "목", climate: "목기가 왕한 한봄", adjustment: "화 기운으로 표현하고 금 기운으로 다듬습니다." },
+  辰: { season: "봄의 끝", element: "토", climate: "습토가 목기를 갈무리하는 때", adjustment: "화 기운으로 온기를 더하고 토의 방향을 정리합니다." },
+  巳: { season: "여름", element: "화", climate: "열기가 오르는 초여름", adjustment: "수 기운으로 열을 식히고 금 기운으로 결을 세웁니다." },
+  午: { season: "여름", element: "화", climate: "화기가 왕한 한여름", adjustment: "수 기운으로 조후를 맞추고 토 기운으로 열을 받아 냅니다." },
+  未: { season: "여름의 끝", element: "토", climate: "건토가 열기를 머금는 때", adjustment: "수 기운으로 건조함을 풀고 목 기운으로 순환을 엽니다." },
+  申: { season: "가을", element: "금", climate: "금기가 열리는 초가을", adjustment: "화 기운으로 금을 단련하고 수 기운으로 흐름을 냅니다." },
+  酉: { season: "가을", element: "금", climate: "금기가 왕한 한가을", adjustment: "화 기운으로 차가움을 덜고 목 기운으로 생기를 더합니다." },
+  戌: { season: "가을의 끝", element: "토", climate: "건토가 금기를 갈무리하는 때", adjustment: "수 기운으로 마른 기운을 적시고 목 기운으로 풀어 줍니다." },
+  亥: { season: "겨울", element: "수", climate: "수기가 열리는 초겨울", adjustment: "화 기운으로 온기를 세우고 목 기운으로 생장을 잇습니다." },
+  子: { season: "겨울", element: "수", climate: "수기가 왕한 한겨울", adjustment: "화 기운으로 온도를 맞추고 토 기운으로 흐름을 잡습니다." },
+  丑: { season: "겨울의 끝", element: "토", climate: "습토가 수기를 품은 때", adjustment: "화 기운으로 얼어 있는 기운을 풀고 목 기운으로 움직임을 엽니다." },
+};
+const STEM_COMBINATION_PAIRS = [
+  ["甲", "己", "갑기합", "토"],
+  ["乙", "庚", "을경합", "금"],
+  ["丙", "辛", "병신합", "수"],
+  ["丁", "壬", "정임합", "목"],
+  ["戊", "癸", "무계합", "화"],
+];
+const STEM_CLASH_PAIRS = [
+  ["甲", "庚", "갑경충"],
+  ["乙", "辛", "을신충"],
+  ["丙", "壬", "병임충"],
+  ["丁", "癸", "정계충"],
+];
+const BRANCH_COMBINATION_PAIRS = [
+  ["子", "丑", "자축합", "토"],
+  ["寅", "亥", "인해합", "목"],
+  ["卯", "戌", "묘술합", "화"],
+  ["辰", "酉", "진유합", "금"],
+  ["巳", "申", "사신합", "수"],
+  ["午", "未", "오미합", "토"],
+];
+const BRANCH_CLASH_PAIRS = [
+  ["子", "午", "자오충"],
+  ["丑", "未", "축미충"],
+  ["寅", "申", "인신충"],
+  ["卯", "酉", "묘유충"],
+  ["辰", "戌", "진술충"],
+  ["巳", "亥", "사해충"],
+];
+const BRANCH_HARM_PAIRS = [
+  ["子", "未", "자미해"],
+  ["丑", "午", "축오해"],
+  ["寅", "巳", "인사해"],
+  ["卯", "辰", "묘진해"],
+  ["申", "亥", "신해해"],
+  ["酉", "戌", "유술해"],
+];
+const BRANCH_BREAK_PAIRS = [
+  ["子", "酉", "자유파"],
+  ["丑", "辰", "축진파"],
+  ["寅", "亥", "인해파"],
+  ["卯", "午", "묘오파"],
+  ["巳", "申", "사신파"],
+  ["未", "戌", "미술파"],
+];
+const BRANCH_PUNISHMENT_GROUPS = [
+  { branches: ["寅", "巳", "申"], label: "인사신형" },
+  { branches: ["丑", "戌", "未"], label: "축술미형" },
+  { branches: ["子", "卯"], label: "자묘형" },
+  { branches: ["辰"], label: "진진형" },
+  { branches: ["午"], label: "오오형" },
+  { branches: ["酉"], label: "유유형" },
+  { branches: ["亥"], label: "해해형" },
+];
+const THREE_HARMONY_GROUPS = [
+  { branches: ["申", "子", "辰"], label: "신자진 삼합", element: "수" },
+  { branches: ["亥", "卯", "未"], label: "해묘미 삼합", element: "목" },
+  { branches: ["寅", "午", "戌"], label: "인오술 삼합", element: "화" },
+  { branches: ["巳", "酉", "丑"], label: "사유축 삼합", element: "금" },
+];
+const DIRECTIONAL_GROUPS = [
+  { branches: ["寅", "卯", "辰"], label: "인묘진 방합", element: "목" },
+  { branches: ["巳", "午", "未"], label: "사오미 방합", element: "화" },
+  { branches: ["申", "酉", "戌"], label: "신유술 방합", element: "금" },
+  { branches: ["亥", "子", "丑"], label: "해자축 방합", element: "수" },
+];
+const LIFE_FORTUNE_CHAPTER_EVIDENCE = [
+  { title: "타고난 명식의 중심", refs: ["dayMaster", "monthPillar", "pillarDetails.month", "seasonalBalance", "strength"] },
+  { title: "성격과 마음의 결", refs: ["dayMaster", "tenGodsByPillar.day", "tenGods", "fiveElements", "pillarDetails.day"] },
+  { title: "재능과 일의 방향", refs: ["tenGods", "tenGodsByPillar.month", "tenGodsByPillar.hour", "fiveElements", "fortuneFacts.strongestTenGods"] },
+  { title: "재물과 생활 기반", refs: ["tenGods", "fiveElements", "usefulGod", "unfavorableGod", "natalInteractions"] },
+  { title: "사랑과 인연의 흐름", refs: ["pillarDetails.day", "natalInteractions.branchCombinations", "natalInteractions.branchClashes", "tenGodsByPillar"] },
+  { title: "관계와 가족의 장", refs: ["pillarDetails.year", "pillarDetails.month", "natalInteractions", "relationSummary"] },
+  { title: "건강과 생활 리듬", refs: ["seasonalBalance", "fiveElements", "strength", "calculationMeta.timeUnknown"] },
+  { title: "대운으로 보는 큰 전환", refs: ["majorLuck.direction", "majorLuck.startSolarDate", "majorLuck.currentCycle", "majorLuck.cycles"] },
+  { title: "가까운 세운의 흐름", refs: ["yearlyLuck", "majorLuck.currentCycle", "yearlyLuck.natalInteractions"] },
+  { title: "앞으로 열릴 선택", refs: ["fortuneFacts", "interpretationPlan", "usefulGod", "majorLuck.currentCycle", "yearlyLuck"] },
+];
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -90,6 +202,48 @@ function tenGodFor(dayStem, targetStem) {
   return "";
 }
 
+function normalizeTenGodName(value) {
+  const text = clean(value, 20);
+  return CHINESE_TEN_GOD_TO_KO[text] || text;
+}
+
+function buildHiddenStemDetails(dayStem, branch) {
+  return (HIDDEN_STEMS[branch] || []).map((stem) => ({
+    stem,
+    element: STEM_ELEMENT[stem] || "",
+    tenGod: tenGodFor(dayStem, stem),
+  }));
+}
+
+function buildPillarDetail(key, pillar, eightChar, dayStem) {
+  if (!pillar) return null;
+  const methodPrefix = key.charAt(0).toUpperCase() + key.slice(1);
+  const stem = pillarStem(pillar);
+  const branch = pillarBranch(pillar);
+  const rawBranchTenGods = typeof eightChar?.[`get${methodPrefix}ShiShenZhi`] === "function"
+    ? eightChar[`get${methodPrefix}ShiShenZhi`]()
+    : [];
+  return {
+    key,
+    label: PILLAR_LABELS[key] || key,
+    pillar,
+    heavenlyStem: stem,
+    earthlyBranch: branch,
+    stemElement: STEM_ELEMENT[stem] || "",
+    branchElement: BRANCH_ELEMENT[branch] || "",
+    hiddenStems: buildHiddenStemDetails(dayStem, branch),
+    stemTenGod: key === "day" ? "일간" : tenGodFor(dayStem, stem),
+    branchTenGods: Array.isArray(rawBranchTenGods)
+      ? rawBranchTenGods.map(normalizeTenGodName).filter(Boolean)
+      : [],
+    elementPair: typeof eightChar?.[`get${methodPrefix}WuXing`] === "function" ? clean(eightChar[`get${methodPrefix}WuXing`](), 20) : "",
+    naYin: typeof eightChar?.[`get${methodPrefix}NaYin`] === "function" ? clean(eightChar[`get${methodPrefix}NaYin`](), 40) : "",
+    twelveStage: typeof eightChar?.[`get${methodPrefix}DiShi`] === "function" ? clean(eightChar[`get${methodPrefix}DiShi`](), 20) : "",
+    xun: typeof eightChar?.[`get${methodPrefix}Xun`] === "function" ? clean(eightChar[`get${methodPrefix}Xun`](), 20) : "",
+    xunKong: typeof eightChar?.[`get${methodPrefix}XunKong`] === "function" ? clean(eightChar[`get${methodPrefix}XunKong`](), 20) : "",
+  };
+}
+
 function buildTenGodDistribution(dayStem, pillars) {
   const counts = {};
   for (const pillar of pillars.filter(Boolean)) {
@@ -134,6 +288,206 @@ function pickDominantElement(fiveElements) {
   return entries[0]?.[0] || "";
 }
 
+function sortedCountEntries(counts = {}) {
+  return Object.entries(counts)
+    .map(([name, value]) => ({ name, value: Number(value || 0) }))
+    .filter((entry) => entry.name && Number.isFinite(entry.value))
+    .sort((a, b) => b.value - a.value);
+}
+
+function buildSeasonalBalance(monthBranch, fiveElements, dayStem) {
+  const month = BRANCH_SEASON[monthBranch] || {};
+  const dayElement = STEM_ELEMENT[dayStem] || "";
+  const sortedElements = sortedCountEntries(fiveElements);
+  const dominant = sortedElements[0] || null;
+  const deficient = [...sortedElements].reverse()[0] || null;
+  let dayMasterSeasonalState = "월령과 일간의 관계를 계산할 수 없습니다.";
+  if (month.element && dayElement) {
+    if (month.element === dayElement) dayMasterSeasonalState = "월령이 일간과 같은 기운을 품어 뿌리가 있는 편입니다.";
+    else if (PRODUCES[month.element] === dayElement) dayMasterSeasonalState = "월령이 일간을 생하여 회복의 바탕을 줍니다.";
+    else if (PRODUCES[dayElement] === month.element) dayMasterSeasonalState = "일간이 월령으로 기운을 흘려 표현과 소모가 함께 생깁니다.";
+    else if (CONTROLS[month.element] === dayElement) dayMasterSeasonalState = "월령이 일간을 제어하여 책임과 압박의 결이 생깁니다.";
+    else if (CONTROLS[dayElement] === month.element) dayMasterSeasonalState = "일간이 월령을 다루려 하여 현실 장악의 욕구가 생깁니다.";
+  }
+  return {
+    monthBranch,
+    season: month.season || "",
+    seasonElement: month.element || "",
+    climate: month.climate || "",
+    adjustment: month.adjustment || "",
+    dayElement,
+    dayMasterSeasonalState,
+    dominantElement: dominant?.name || "",
+    dominantElementScore: dominant?.value || 0,
+    deficientElement: deficient?.name || "",
+    deficientElementScore: deficient?.value || 0,
+  };
+}
+
+function buildTenGodByPillar(pillarDetails = {}) {
+  return Object.fromEntries(Object.entries(pillarDetails).map(([key, detail]) => {
+    if (!detail) return [key, null];
+    return [key, {
+      label: detail.label,
+      pillar: detail.pillar,
+      stemTenGod: detail.stemTenGod,
+      branchTenGods: detail.branchTenGods,
+      hiddenStemTenGods: (detail.hiddenStems || []).map((hidden) => ({
+        stem: hidden.stem,
+        tenGod: hidden.tenGod,
+        element: hidden.element,
+      })),
+      primaryHiddenTenGod: detail.hiddenStems?.[0]?.tenGod || "",
+    }];
+  }));
+}
+
+function pillarEntries(pillarDetails = {}) {
+  return Object.entries(pillarDetails)
+    .filter(([, detail]) => detail?.pillar)
+    .map(([key, detail]) => ({
+      key,
+      label: detail.label || PILLAR_LABELS[key] || key,
+      pillar: detail.pillar,
+      stem: detail.heavenlyStem,
+      branch: detail.earthlyBranch,
+    }));
+}
+
+function pairMatches(pair, first, second) {
+  return (pair[0] === first && pair[1] === second) || (pair[0] === second && pair[1] === first);
+}
+
+function buildPairInteractions(entries, pairs, field, type) {
+  const found = [];
+  for (let i = 0; i < entries.length; i += 1) {
+    for (let j = i + 1; j < entries.length; j += 1) {
+      const first = entries[i]?.[field];
+      const second = entries[j]?.[field];
+      const pair = pairs.find((candidate) => pairMatches(candidate, first, second));
+      if (!pair) continue;
+      found.push({
+        type,
+        label: pair[2],
+        element: pair[3] || "",
+        pillars: [entries[i].key, entries[j].key],
+        pillarLabels: [entries[i].label, entries[j].label],
+        values: [first, second],
+      });
+    }
+  }
+  return found;
+}
+
+function collectGroupInteractions(entries, groups, type) {
+  const branchToEntries = new Map();
+  for (const entry of entries) {
+    if (!entry.branch) continue;
+    if (!branchToEntries.has(entry.branch)) branchToEntries.set(entry.branch, []);
+    branchToEntries.get(entry.branch).push(entry);
+  }
+  return groups.flatMap((group) => {
+    const matched = group.branches.flatMap((branch) => branchToEntries.get(branch) || []);
+    const uniqueKeys = new Set(matched.map((entry) => entry.key));
+    if (group.branches.length === 1 ? matched.length < 2 : !group.branches.every((branch) => branchToEntries.has(branch))) return [];
+    return [{
+      type,
+      label: group.label,
+      element: group.element || "",
+      branches: group.branches,
+      pillars: [...uniqueKeys],
+      pillarLabels: matched.map((entry) => entry.label),
+    }];
+  });
+}
+
+// 명리 관계성은 결과 문장 생성 전에 JSON 근거로만 고정해 LLM이 임의로 합충을 만들지 못하게 합니다.
+function buildNatalInteractions(pillarDetails = {}) {
+  const entries = pillarEntries(pillarDetails);
+  return {
+    stemCombinations: buildPairInteractions(entries, STEM_COMBINATION_PAIRS, "stem", "천간합"),
+    stemClashes: buildPairInteractions(entries, STEM_CLASH_PAIRS, "stem", "천간충"),
+    branchCombinations: buildPairInteractions(entries, BRANCH_COMBINATION_PAIRS, "branch", "지지육합"),
+    branchClashes: buildPairInteractions(entries, BRANCH_CLASH_PAIRS, "branch", "지지충"),
+    branchHarms: buildPairInteractions(entries, BRANCH_HARM_PAIRS, "branch", "지지해"),
+    branchBreaks: buildPairInteractions(entries, BRANCH_BREAK_PAIRS, "branch", "지지파"),
+    branchPunishments: collectGroupInteractions(entries, BRANCH_PUNISHMENT_GROUPS, "지지형"),
+    threeHarmony: collectGroupInteractions(entries, THREE_HARMONY_GROUPS, "삼합"),
+    directionalGroups: collectGroupInteractions(entries, DIRECTIONAL_GROUPS, "방합"),
+  };
+}
+
+function buildLuckNatalInteractions(luckPillar, pillarDetails = {}) {
+  const luckStem = pillarStem(luckPillar);
+  const luckBranch = pillarBranch(luckPillar);
+  const entries = pillarEntries(pillarDetails);
+  const luckEntry = { key: "luck", label: "운", pillar: luckPillar, stem: luckStem, branch: luckBranch };
+  const combinedEntries = [luckEntry, ...entries];
+  return {
+    stemCombinations: buildPairInteractions(combinedEntries, STEM_COMBINATION_PAIRS, "stem", "천간합").filter((item) => item.pillars.includes("luck")),
+    stemClashes: buildPairInteractions(combinedEntries, STEM_CLASH_PAIRS, "stem", "천간충").filter((item) => item.pillars.includes("luck")),
+    branchCombinations: buildPairInteractions(combinedEntries, BRANCH_COMBINATION_PAIRS, "branch", "지지육합").filter((item) => item.pillars.includes("luck")),
+    branchClashes: buildPairInteractions(combinedEntries, BRANCH_CLASH_PAIRS, "branch", "지지충").filter((item) => item.pillars.includes("luck")),
+    branchHarms: buildPairInteractions(combinedEntries, BRANCH_HARM_PAIRS, "branch", "지지해").filter((item) => item.pillars.includes("luck")),
+    branchBreaks: buildPairInteractions(combinedEntries, BRANCH_BREAK_PAIRS, "branch", "지지파").filter((item) => item.pillars.includes("luck")),
+  };
+}
+
+function summarizeRelations(interactions = {}) {
+  const support = [
+    ...(interactions.stemCombinations || []),
+    ...(interactions.branchCombinations || []),
+    ...(interactions.threeHarmony || []),
+    ...(interactions.directionalGroups || []),
+  ];
+  const tension = [
+    ...(interactions.stemClashes || []),
+    ...(interactions.branchClashes || []),
+    ...(interactions.branchHarms || []),
+    ...(interactions.branchBreaks || []),
+    ...(interactions.branchPunishments || []),
+  ];
+  return {
+    supportCount: support.length,
+    tensionCount: tension.length,
+    supportLabels: support.map((item) => item.label).slice(0, 8),
+    tensionLabels: tension.map((item) => item.label).slice(0, 8),
+    mainPattern: support[0]?.label || tension[0]?.label || "두드러진 합충형파해가 강하지 않은 편",
+  };
+}
+
+function buildInterpretationPlan() {
+  return LIFE_FORTUNE_CHAPTER_EVIDENCE.map((chapter, index) => ({
+    chapterNumber: index + 1,
+    title: chapter.title,
+    evidenceRefs: chapter.refs,
+  }));
+}
+
+function buildFortuneFacts({ dayMaster, monthPillar, fiveElements, tenGods, seasonalBalance, strength, usefulGod, unfavorableGod, majorLuck, yearlyLuck, relationSummary }) {
+  return {
+    readingBase: {
+      dayMaster,
+      monthBranch: pillarBranch(monthPillar),
+      monthPillar,
+      strength,
+      usefulGod,
+      unfavorableGod,
+    },
+    elementBalance: {
+      dominantElement: seasonalBalance.dominantElement,
+      deficientElement: seasonalBalance.deficientElement,
+      seasonalAdjustment: seasonalBalance.adjustment,
+    },
+    strongestTenGods: sortedCountEntries(tenGods).slice(0, 5),
+    currentLuck: {
+      majorLuck: majorLuck?.currentCycle || null,
+      nextYears: Array.isArray(yearlyLuck) ? yearlyLuck.slice(0, 5) : [],
+    },
+    relationSummary,
+  };
+}
+
 function sexagenaryIndex(pillar) {
   const stem = pillarStem(pillar);
   const branch = pillarBranch(pillar);
@@ -148,33 +502,92 @@ function nextPillar(index, offset) {
   return `${STEMS[next % 10]}${BRANCHES[next % 12]}`;
 }
 
-function buildMajorLuck({ monthPillar, yearPillar, gender }) {
-  const monthIndex = sexagenaryIndex(monthPillar);
-  const yearStem = pillarStem(yearPillar);
-  if (monthIndex < 0 || !yearStem) return { available: false, reason: "월주 기준 대운 배열을 만들 수 없습니다." };
-  const isYangYear = STEM_POLARITY[yearStem] === "yang";
-  const normalizedGender = clean(gender).toLowerCase();
-  const forward = (normalizedGender === "male" && isYangYear) || (normalizedGender === "female" && !isYangYear);
-  const direction = forward ? 1 : -1;
+function normalizeGenderCode(gender) {
+  const value = clean(gender).toLowerCase();
+  if (value === "male" || value === "m" || value === "남성") return 1;
+  if (value === "female" || value === "f" || value === "여성") return 0;
+  return null;
+}
+
+function buildMajorLuck({ eightChar, birthYear, currentYear, gender, dayMaster, pillarDetails }) {
+  const genderCode = normalizeGenderCode(gender);
+  if (!eightChar || typeof eightChar.getYun !== "function") {
+    return { available: false, reason: "대운 계산용 EightChar 데이터가 없습니다." };
+  }
+  if (genderCode === null) {
+    return {
+      available: false,
+      reason: "성별 비공개 입력이어서 대운 순행·역행을 단정하지 않습니다.",
+    };
+  }
+
+  const yun = eightChar.getYun(genderCode);
+  const cycles = (yun.getDaYun?.() || []).slice(0, 10).map((cycle, index) => {
+    const pillar = clean(cycle.getGanZhi?.(), 10);
+    const branch = pillarBranch(pillar);
+    const startYear = Number(cycle.getStartYear?.() || 0);
+    const endYear = Number(cycle.getEndYear?.() || 0);
+    return {
+      index,
+      startAge: Number(cycle.getStartAge?.() || 0),
+      endAge: Number(cycle.getEndAge?.() || 0),
+      startYear,
+      endYear,
+      pillar,
+      heavenlyStem: pillarStem(pillar),
+      earthlyBranch: branch,
+      stemTenGod: pillar ? tenGodFor(dayMaster, pillarStem(pillar)) : "",
+      hiddenStems: pillar ? buildHiddenStemDetails(dayMaster, branch) : [],
+      natalInteractions: pillar ? buildLuckNatalInteractions(pillar, pillarDetails) : {},
+      xun: pillar ? clean(cycle.getXun?.(), 20) : "",
+      xunKong: pillar ? clean(cycle.getXunKong?.(), 20) : "",
+      isCurrent: startYear > 0 && endYear > 0 && Number(currentYear) >= startYear && Number(currentYear) <= endYear,
+    };
+  });
+
+  const startSolar = yun.getStartSolar?.();
   return {
     available: true,
-    direction: forward ? "순행" : "역행",
-    startAge: 7,
-    note: "절입 시각 정밀 보정 전의 기본 배열입니다.",
-    cycles: Array.from({ length: 8 }, (_, index) => ({
-      age: 7 + index * 10,
-      pillar: nextPillar(monthIndex, direction * (index + 1)),
-    })),
+    direction: yun.isForward?.() ? "순행" : "역행",
+    genderCode,
+    startAfterBirth: {
+      years: Number(yun.getStartYear?.() || 0),
+      months: Number(yun.getStartMonth?.() || 0),
+      days: Number(yun.getStartDay?.() || 0),
+      hours: Number(yun.getStartHour?.() || 0),
+    },
+    startSolarDate: startSolar?.toYmd?.() || "",
+    startSolarDateTime: startSolar?.toYmdHms?.() || "",
+    currentYear: Number(currentYear),
+    currentAgeKoreanStyle: Number(currentYear) - Number(birthYear) + 1,
+    currentCycle: cycles.find((cycle) => cycle.isCurrent) || null,
+    cycles,
+    calculationBasis: "lunar-javascript EightChar.getYun(gender) 절기 기반 대운",
   };
 }
 
-function buildYearlyLuck(startYear = new Date().getFullYear()) {
+function findMajorLuckCycle(majorLuck, year) {
+  return (majorLuck?.cycles || []).find((cycle) => Number(year) >= Number(cycle.startYear) && Number(year) <= Number(cycle.endYear)) || null;
+}
+
+function buildYearlyLuck({ startYear = new Date().getFullYear(), dayMaster, birthYear, majorLuck, pillarDetails } = {}) {
   return Array.from({ length: 5 }, (_, index) => {
     const year = Number(startYear) + index;
     const lunar = Solar.fromYmdHms(year, 7, 1, 12, 0, 0).getLunar();
+    const pillar = lunar.getYearInGanZhiExact?.() || lunar.getYearInGanZhi();
+    const branch = pillarBranch(pillar);
+    const majorLuckCycle = findMajorLuckCycle(majorLuck, year);
     return {
       year,
-      pillar: lunar.getYearInGanZhi(),
+      ageKoreanStyle: Number(year) - Number(birthYear) + 1,
+      pillar,
+      heavenlyStem: pillarStem(pillar),
+      earthlyBranch: branch,
+      stemTenGod: tenGodFor(dayMaster, pillarStem(pillar)),
+      hiddenStems: buildHiddenStemDetails(dayMaster, branch),
+      natalInteractions: buildLuckNatalInteractions(pillar, pillarDetails),
+      majorLuckPillar: majorLuckCycle?.pillar || "",
+      majorLuckAgeRange: majorLuckCycle ? `${majorLuckCycle.startAge}-${majorLuckCycle.endAge}` : "",
     };
   });
 }
@@ -204,16 +617,47 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
 
   const lunar = buildLunar(birthDate, birthTime, calendarType);
   const solar = lunar.getSolar();
-  const yearPillar = lunar.getYearInGanZhi();
-  const monthPillar = lunar.getMonthInGanZhi();
-  const dayPillar = lunar.getDayInGanZhi();
-  const hourPillar = timeUnknown ? "" : lunar.getTimeInGanZhi();
+  const eightChar = lunar.getEightChar?.();
+  const yearPillar = clean(eightChar?.getYear?.(), 10) || lunar.getYearInGanZhiExact?.() || lunar.getYearInGanZhi();
+  const monthPillar = clean(eightChar?.getMonth?.(), 10) || lunar.getMonthInGanZhiExact?.() || lunar.getMonthInGanZhi();
+  const dayPillar = clean(eightChar?.getDay?.(), 10) || lunar.getDayInGanZhiExact?.() || lunar.getDayInGanZhi();
+  const hourPillar = timeUnknown ? "" : clean(eightChar?.getTime?.(), 10) || lunar.getTimeInGanZhi();
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
-  const dayMaster = pillarStem(dayPillar);
+  const dayMaster = clean(eightChar?.getDayGan?.(), 4) || pillarStem(dayPillar);
   const fiveElements = buildElementDistribution(pillars);
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
   const usefulElement = pickBalancingElement(fiveElements);
   const dominantElement = pickDominantElement(fiveElements);
+  const currentYear = new Date().getFullYear();
+  const pillarDetails = {
+    year: buildPillarDetail("year", yearPillar, eightChar, dayMaster),
+    month: buildPillarDetail("month", monthPillar, eightChar, dayMaster),
+    day: buildPillarDetail("day", dayPillar, eightChar, dayMaster),
+    hour: timeUnknown ? null : buildPillarDetail("hour", hourPillar, eightChar, dayMaster),
+  };
+  const tenGodsByPillar = buildTenGodByPillar(pillarDetails);
+  const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);
+  const natalInteractions = buildNatalInteractions(pillarDetails);
+  const relationSummary = summarizeRelations(natalInteractions);
+  const majorLuck = buildMajorLuck({ eightChar, birthYear: solar?.getYear?.() || birthDate.year, currentYear, gender: birthInfo.gender, dayMaster, pillarDetails });
+  const yearlyLuck = buildYearlyLuck({ startYear: currentYear, dayMaster, birthYear: solar?.getYear?.() || birthDate.year, majorLuck, pillarDetails });
+  const strength = judgeStrength(dayMaster, fiveElements);
+  const usefulGod = usefulElement ? `${usefulElement} 기운을 보완 축으로 봅니다.` : "";
+  const unfavorableGod = dominantElement ? `${dominantElement} 기운이 과해질 때 균형을 살핍니다.` : "";
+  const interpretationPlan = buildInterpretationPlan();
+  const fortuneFacts = buildFortuneFacts({
+    dayMaster,
+    monthPillar,
+    fiveElements,
+    tenGods,
+    seasonalBalance,
+    strength,
+    usefulGod,
+    unfavorableGod,
+    majorLuck,
+    yearlyLuck,
+    relationSummary,
+  });
 
   return {
     yearPillar,
@@ -221,15 +665,23 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
     dayPillar,
     hourPillar: hourPillar || undefined,
     dayMaster,
+    pillarDetails,
     fiveElements,
     tenGods,
-    strength: judgeStrength(dayMaster, fiveElements),
-    usefulGod: usefulElement ? `${usefulElement} 기운을 보완 축으로 봅니다.` : "",
-    unfavorableGod: dominantElement ? `${dominantElement} 기운이 과해질 때 균형을 살핍니다.` : "",
-    majorLuck: buildMajorLuck({ monthPillar, yearPillar, gender: birthInfo.gender }),
-    yearlyLuck: buildYearlyLuck(),
+    tenGodsByPillar,
+    allowedTenGods: ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"],
+    strength,
+    usefulGod,
+    unfavorableGod,
+    seasonalBalance,
+    natalInteractions,
+    relationSummary,
+    majorLuck,
+    yearlyLuck,
+    fortuneFacts,
+    interpretationPlan,
     calculationMeta: {
-      method: "lunar-javascript-core-pillars",
+      method: "lunar-javascript-eightchar-core-pillars",
       sourceCalendarType: calendarType,
       solarDate: solar?.toYmd?.() || "",
       solarDateTime: solar?.toYmdHms?.() || "",

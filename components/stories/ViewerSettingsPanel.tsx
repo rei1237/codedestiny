@@ -3,7 +3,7 @@
 import { READER_BODY_FONT_OPTIONS, READING_PRESET_OPTIONS, type ReaderSettings, type ReadingPreset } from "@/hooks/useReaderSettings";
 import styles from "./viewer.module.css";
 
-interface ViewerSettingsPanelProps {
+export interface ViewerSettingsPanelProps {
   open: boolean;
   settings: ReaderSettings;
   onClose: () => void;

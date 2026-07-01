@@ -7,11 +7,37 @@ import MainHeroFortuneForm from "./MainHeroFortuneForm";
 import QuickServiceShortcuts from "./QuickServiceShortcuts";
 import DestinyIcon from "./icons/DestinyIcon";
 import type { ServiceCardModel } from "./ServiceCard";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
 const KKULKKUL_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
+const MAIN_LANDING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof MAIN_LANDING_LOCALES)[number];
+
+function normalizeMainLandingLocale(value?: string | null): LoadingLocale {
+  const raw = String(value || "").trim();
+  if (!raw) return "ko";
+  const normalized = raw.replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans" || normalized === "cn") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "tw") return "zh-TW";
+  const base = normalized.split("-")[0];
+  return MAIN_LANDING_LOCALES.includes(base as LoadingLocale) ? (base as LoadingLocale) : "ko";
+}
+
+function getCurrentMainLandingLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { __cdCurrentLang?: string }).__cdCurrentLang;
+  if (runtimeLanguage) return normalizeMainLandingLocale(runtimeLanguage);
+  try {
+    const stored =
+      window.localStorage.getItem("cd_locale") ||
+      window.localStorage.getItem("code-destiny-locale") ||
+      window.localStorage.getItem("cd_lang") ||
+      window.localStorage.getItem("locale");
+    if (stored) return normalizeMainLandingLocale(stored);
+  } catch {}
+  return normalizeMainLandingLocale(document.documentElement.lang || navigator.language);
+}
 
 type MainLandingCopy = {
   logoAlt: string;
@@ -275,7 +301,7 @@ const ORACLE_ITEMS_COPY: ServiceCardModel[] = [
   { title: "스톤헨지 룬", description: "고대 북유럽 룬 신탁", href: "/oracle/rune", emoji: "ᚱ", badges: [{ text: "3,000원~12,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "지오맨시 흙점", description: "대지 징후 16행 점술", href: "/geomancy-oracle-v4.html", emoji: "⟁", badges: [{ text: "5,000원", tone: "coin" }] },
   { title: "데스티니 포커", description: "카드 상징 운세 판독", href: "/destiny-poker.html", emoji: "🃏", badges: [{ text: "무료", tone: "free" }] },
-  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/oracle/ifa", emoji: "🪬", badges: [{ text: "3,000원", tone: "coin" }] },
+  { title: "이파 오라클 (IFÀ)", description: "요루바 256 오두 신탁", href: "/ifa-oracle.html", emoji: "🪬", badges: [{ text: "3,000원", tone: "coin" }] },
 ];
 
 const COSMIC_ITEMS_COPY: ServiceCardModel[] = [
@@ -430,7 +456,7 @@ function LazySection({ id, className, minHeight = 260, rootMargin = "300px 0px",
 }
 
 export default function MainLandingPage() {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentMainLandingLocale());
   const copy = getMainLandingCopy(locale);
   const tx = useCallback((value: string | undefined) => translateMainLandingText(value, locale), [locale]);
   const [profile, setProfile] = useState<FormState | null>(null);
@@ -442,7 +468,7 @@ export default function MainLandingPage() {
   const premiumItems = useMemo(() => translateServiceItems(PREMIUM_ITEMS_COPY, tx), [tx]);
 
   useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentMainLandingLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
     window.addEventListener("storage", syncLocale);

@@ -38,6 +38,9 @@ const PLAYLIST_TAB_LABELS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "all", label: "ALL" },
 ];
 
+const INITIAL_VISIBLE_TRACKS = 10;
+const TRACK_RENDER_BATCH_SIZE = 10;
+
 const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
   ko: {
     playlistAria: "음악 플레이리스트",
@@ -52,6 +55,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     mainLabel: "Code Destiny 메인",
     playTrack: (title: string) => `${title} 재생`,
     nowPlaying: "Now Playing",
+    showMore: (count: number) => `${count}곡 더 보기`,
   },
   en: {
     playlistAria: "Music playlist",
@@ -66,6 +70,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     mainLabel: "Code Destiny main",
     playTrack: (title: string) => `Play ${title}`,
     nowPlaying: "Now Playing",
+    showMore: (count: number) => `Show ${count} more`,
   },
   ja: {
     playlistAria: "音楽プレイリスト",
@@ -80,6 +85,7 @@ const MUSIC_PLAYLIST_TEXT_TRANSLATIONS = {
     mainLabel: "Code Destinyメイン",
     playTrack: (title: string) => `${title}を再生`,
     nowPlaying: "Now Playing",
+    showMore: (count: number) => `さらに${count}曲`,
   },
 } as const;
 
@@ -367,6 +373,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const [query, setQuery] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sharedTrackId, setSharedTrackId] = useState("");
+  const [visibleTrackCount, setVisibleTrackCount] = useState(INITIAL_VISIBLE_TRACKS);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const copy = musicPlaylistCopy(locale);
   const sharedTrackResetTimerRef = useRef<number | null>(null);
@@ -427,6 +434,17 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const handleTrackSelect = useCallback((trackId: string) => {
     onSelectTrack(trackId);
   }, [onSelectTrack]);
+
+  const visibleTracks = useMemo(() => {
+    return filteredTracks.slice(0, visibleTrackCount);
+  }, [filteredTracks, visibleTrackCount]);
+
+  const remainingTrackCount = Math.max(0, filteredTracks.length - visibleTracks.length);
+  const nextVisibleTrackCount = Math.min(TRACK_RENDER_BATCH_SIZE, remainingTrackCount);
+
+  const handleShowMoreTracks = useCallback(() => {
+    setVisibleTrackCount((current) => Math.min(current + TRACK_RENDER_BATCH_SIZE, filteredTracks.length));
+  }, [filteredTracks.length]);
 
   const handleTrackCoverError = useCallback((trackId: string) => {
     onCoverError(trackId);
@@ -504,6 +522,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     if (playlistScrollRef.current) {
       playlistScrollRef.current.scrollTop = 0;
     }
+    setVisibleTrackCount(INITIAL_VISIBLE_TRACKS);
   }, [activeTab, deferredQuery, tracks]);
 
   useEffect(() => {
@@ -537,7 +556,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
             {copy.kicker}
           </span>
           <span className={styles.playlistTitle}>{copy.title}</span>
-          <span className={styles.playlistSubtitle}>{copy.tracksCount(filteredTracks.length, tracks.length)}</span>
+          <span className={styles.playlistSubtitle}>{copy.tracksCount(visibleTracks.length, tracks.length)}</span>
         </span>
         <span className={styles.playlistHeaderMeta}>
           <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
@@ -571,7 +590,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
         <div className={styles.playlistScroll} ref={playlistScrollRef}>
           {filteredTracks.length ? (
             <div className={styles.playlistGrid}>
-              {filteredTracks.map((track, index) => (
+              {visibleTracks.map((track, index) => (
                 <PlaylistTrackCard
                   key={track.track.id}
                   track={track.track}
@@ -587,6 +606,15 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
                   onShareTrack={handleTrackShare}
                 />
               ))}
+              {remainingTrackCount > 0 ? (
+                <button
+                  className={styles.playlistMoreButton}
+                  type="button"
+                  onClick={handleShowMoreTracks}
+                >
+                  {copy.showMore(nextVisibleTrackCount)}
+                </button>
+              ) : null}
             </div>
           ) : (
             <div className={styles.playlistEmpty}>

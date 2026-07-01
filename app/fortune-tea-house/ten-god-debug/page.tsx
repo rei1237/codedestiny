@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TenGodDebugPage from "@/src/features/fortune-tea-house/components/TenGodDebugPage";
+import TenGodDebugRouteClient from "./TenGodDebugRouteClient";
 
 export const metadata: Metadata = {
   title: "운명의 찻집 십성 검증",
@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function FortuneTeaHouseTenGodDebugRoute() {
-  return <TenGodDebugPage />;
+  return <TenGodDebugRouteClient />;
 }

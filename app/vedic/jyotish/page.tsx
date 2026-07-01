@@ -3,17 +3,17 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const VEDIC_JYOTISH_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "베다 점성술 (Jyotish) - 라시·다샤 해석",
-    "meta.description": "항성 황도 기반 베다 점성술로 라시 차트, 낙샤트라, 다샤 흐름을 읽는 실행형 가이드입니다.",
+    "meta.title": "베다 점성술 (Jyotish) - 라그나·라시·다샤 해석",
+    "meta.description": "항성 황도와 Lahiri 아야남샤를 기준으로 라그나, 라시, 그라하, 바바, 나크샤트라, 빈쇼타리 다샤를 읽는 베다점 가이드입니다.",
     "service.h1": "베다 점성술 (Jyotish)",
-    "service.seoText": "베다 점성술은 항성 황도와 다샤 시기 체계를 바탕으로 장기 흐름을 읽는 전통 점성 시스템입니다.",
-    "valueGuide.title": "베다 점성술을 실용적으로 읽는 6포인트",
-    "value.1.title": "1. 베다 점성술은 항성 황도 기준이라는 점이 출발점입니다",
-    "value.2.title": "2. 라시(D1)와 나밤샤(D9)를 함께 봐야 입체적입니다",
-    "value.3.title": "3. 하우스·행성·디그니티를 세트로 읽어야 정확합니다",
-    "value.4.title": "4. 다샤는 예언이 아니라 시기 운영 도구입니다",
-    "value.5.title": "5. 궁합 해석은 생활 호환성 질문과 함께 써야 합니다",
-    "value.6.title": "6. 주간 기록으로 차트 해석을 내 데이터로 바꾸세요",
+    "service.seoText": "베다 점성술은 항성 황도, Lahiri 아야남샤, Whole Sign Bhava, 27개 나크샤트라와 빈쇼타리 다샤를 함께 살펴 삶의 주제를 읽는 전통 점성 체계입니다.",
+    "valueGuide.title": "베다점 핵심 개념 6가지",
+    "value.1.title": "1. 라그나, Lagna는 삶이 시작되는 문입니다",
+    "value.2.title": "2. 라시, Rashi는 그라하가 놓인 별자리의 무대입니다",
+    "value.3.title": "3. 그라하, Graha는 삶의 힘을 움직이는 행성 신호입니다",
+    "value.4.title": "4. 바바, Bhava는 삶을 12개 영역으로 나누어 봅니다",
+    "value.5.title": "5. 나크샤트라, Nakshatra는 달의 길을 세밀하게 비춥니다",
+    "value.6.title": "6. 다샤, Dasha는 행성의 시기를 읽는 흐름입니다",
   },
   en: {
     "meta.title": "Vedic Astrology (Jyotish) - Rashi and Dasha Reading",
@@ -38,9 +38,9 @@ const META = {
   path: "/vedic/jyotish",
   title: vedicJyotishText("meta.title"),
   description: vedicJyotishText("meta.description"),
-  keywords: ["베다 점성술", "Jyotish", "낙샤트라", "다샤", "인도 점성술"],
+  keywords: ["베다 점성술", "Jyotish", "라그나", "라시", "그라하", "바바", "나크샤트라", "빈쇼타리 다샤"],
   image: "https://code-destiny.com/fuctionassets/veda.webp",
-  featureList: ["라시·나밤샤 관점", "다샤 타이밍", "생활 적용 가이드"],
+  featureList: ["Sidereal · Lahiri 기준", "Lagna · Rashi · Bhava", "Nakshatra · Vimshottari Dasha"],
   applicationCategory: "LifestyleApplication",
 } as const;
 
@@ -523,32 +523,32 @@ const SERVICE = {
     {
       title: vedicJyotishText("value.1.title"),
       body:
-        "서양 점성술과 가장 큰 차이는 황도 기준입니다. 베다는 실제 별자리 위치를 기준으로 계산하기 때문에 같은 사람도 별자리 해석이 달라질 수 있습니다. 이 차이를 먼저 이해하면 왜 결과가 다르게 나오는지 혼란이 줄고, 체계별 장단점을 비교해 사용할 수 있습니다.",
+        "라그나, Lagna는 태어난 순간 동쪽 지평선에 오른 상승 별자리입니다. 같은 달의 별자리를 가진 사람이라도 라그나가 다르면 삶을 밀고 가는 방식과 현실에서 반복되는 패턴이 달라집니다. 정확한 라그나와 바바를 보려면 출생시간과 출생지 좌표가 필요합니다.",
     },
     {
       title: vedicJyotishText("value.2.title"),
       body:
-        "라시 차트는 삶의 기본 구조를, 나밤샤는 잠재력과 성숙의 방향을 보여줍니다. D1만으로 결론을 내리면 일시적 인상에 치우칠 수 있으므로, 두 차트의 공통 신호를 우선 확인하는 방식이 안정적입니다. 공통으로 강조되는 주제는 실제 삶에서 반복 체감될 가능성이 높습니다.",
+        "라시, Rashi는 양자리부터 물고기자리까지 이어지는 12개의 별자리입니다. 베다점에서는 항성 황도와 Lahiri 아야남샤를 기준으로 그라하가 어느 라시에 놓였는지 살피며, 그 위치가 어떤 삶의 영역을 움직이는지 함께 읽습니다.",
     },
     {
       title: vedicJyotishText("value.3.title"),
       body:
-        "행성 이름 하나만으로 결과를 단정하면 오류가 커집니다. 같은 금성이라도 하우스 위치와 디그니티에 따라 의미가 달라지고, 아스펙트가 결론을 바꿉니다. 베다 해석은 요소를 분리해 점수화하기보다 문맥을 연결해 해석하는 과정이므로, 단일 키워드 해석을 피하는 것이 핵심입니다.",
+        "그라하, Graha는 태양, 달, 화성, 수성, 목성, 금성, 토성에 라후와 케투를 더해 봅니다. 라후와 케투는 물리 행성이 아니라 달의 노드로, 욕망과 분리, 낯선 확장과 오래된 습관의 축을 비춥니다. 행성 이름 하나보다 라시, 바바, 나크샤트라를 함께 보아야 자연스럽습니다.",
     },
     {
       title: vedicJyotishText("value.4.title"),
       body:
-        "다샤는 특정 행성 주제가 전면으로 올라오는 기간을 알려줍니다. 이를 결과 확정으로 받아들이기보다 준비 체크리스트로 쓰면 유용합니다. 예를 들어 책임 신호가 강한 시기에는 구조화, 확장 신호가 강한 시기에는 기회 검증을 우선 배치하는 식으로 일정 운영 전략을 세울 수 있습니다.",
+        "바바, Bhava는 삶을 12개의 영역으로 나누어 보는 방식입니다. Whole Sign Bhava를 쓸 때는 라그나가 있는 라시를 1하우스로 두고, 이후 라시 순서대로 2하우스부터 12하우스가 열립니다. 그래서 출생시간이 없으면 바바 해석은 단정하지 않는 편이 바릅니다.",
     },
     {
       title: vedicJyotishText("value.5.title"),
       body:
-        "베다 궁합 지표는 유용하지만 숫자만으로 관계를 판정하면 실제와 어긋날 수 있습니다. 감정 표현 방식, 재정 습관, 갈등 후 회복 속도 같은 생활 질문을 함께 점검하면 해석 품질이 올라갑니다. 궁합은 운명 판결이 아니라 함께 살아가는 운영 규칙을 찾는 과정에 가깝습니다.",
+        "나크샤트라, Nakshatra는 달이 지나가는 하늘길을 27개 구역으로 세밀하게 나눈 별자리입니다. 한 나크샤트라는 13도 20분이고, 다시 4개의 파다로 나뉩니다. 특히 태어난 순간 달의 나크샤트라는 감정 반응, 관계 패턴, 무의식적 욕구를 읽을 때 깊게 떠오릅니다.",
     },
     {
       title: vedicJyotishText("value.6.title"),
       body:
-        "결과를 읽은 뒤 한 주 동안 집중도, 관계 에너지, 지출 패턴을 기록하면 차트 문장이 현실 감각으로 번역됩니다. 이 과정이 쌓이면 다음 분기 계획이나 중요한 결정에서 해석을 실전 의사결정 기준으로 사용할 수 있습니다. 점성술의 가치는 설명보다 적용 단계에서 커집니다.",
+        "다샤, Dasha는 특정 행성의 주제가 삶의 전면으로 올라오는 시기를 봅니다. 가장 널리 쓰이는 빈쇼타리 다샤, Vimshottari Dasha는 출생 시 달의 나크샤트라를 시작점으로 삼고 120년 순환 안에서 현재의 마하다샤를 읽습니다. 이는 좋고 나쁨의 판정이 아니라 어떤 주제를 더 의식적으로 다룰지 알려 주는 흐름입니다.",
     },
   ],
 };

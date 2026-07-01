@@ -122,6 +122,43 @@ function canRetryRenameWithOverwrite(error, sourcePath, targetPath) {
   );
 }
 
+function canTreatMissingExportPromotionAsDone(error, sourcePath, targetPath) {
+  return (
+    error?.code === "ENOENT"
+    && isNextExportHtmlPromotion(sourcePath, targetPath)
+    && fs.existsSync(toPathString(targetPath))
+  );
+}
+
+function isNextPublicExportCopy(sourcePath, targetPath) {
+  const source = path.normalize(toPathString(sourcePath));
+  const target = path.normalize(toPathString(targetPath));
+  if (!source || !target) return false;
+  const root = path.normalize(process.cwd());
+  return (
+    source.startsWith(`${root}${path.sep}public${path.sep}`)
+    && target.startsWith(`${root}${path.sep}out${path.sep}`)
+  );
+}
+
+function canTreatMissingPublicCopyAsDone(error, sourcePath, targetPath) {
+  return (
+    error?.code === "ENOENT"
+    && isNextPublicExportCopy(sourcePath, targetPath)
+    && waitForExistingFile(targetPath)
+  );
+}
+
+function canRetryPublicCopyWithParent(error, sourcePath, targetPath) {
+  const source = toPathString(sourcePath);
+  return (
+    error?.code === "ENOENT"
+    && isNextPublicExportCopy(sourcePath, targetPath)
+    && source
+    && fs.existsSync(source)
+  );
+}
+
 function ensureGuardedManifest(filePath) {
   const pathString = toPathString(filePath);
   if (!pathString) return false;
@@ -177,6 +214,10 @@ function sleep(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }
 
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 function isNextServerAppModulePath(filePath) {
   const pathString = toPathString(filePath);
   if (!pathString) return false;
@@ -185,14 +226,72 @@ function isNextServerAppModulePath(filePath) {
   return normalizedPath.endsWith(`${path.sep}page.js`) || normalizedPath.endsWith(`${path.sep}route.js`);
 }
 
+function resolveNextServerRuntimeRequest(request, parent) {
+  if (typeof request !== "string" || !request.endsWith("webpack-runtime.js")) return "";
+  const parentFile = parent?.filename;
+  if (!parentFile) return "";
+  const normalizedParent = path.normalize(parentFile);
+  if (!normalizedParent.includes(`${path.sep}.next${path.sep}server${path.sep}app${path.sep}`)) return "";
+  return path.resolve(path.dirname(normalizedParent), request);
+}
+
 function waitForExistingFile(filePath) {
   const pathString = toPathString(filePath);
   if (!pathString) return false;
-  for (let index = 0; index < 300; index += 1) {
+  for (let index = 0; index < 1200; index += 1) {
     if (fs.existsSync(pathString)) return true;
     sleep(50);
   }
   return fs.existsSync(pathString);
+}
+
+async function waitForExistingFileAsync(filePath) {
+  const pathString = toPathString(filePath);
+  if (!pathString) return false;
+  for (let index = 0; index < 600; index += 1) {
+    if (fs.existsSync(pathString)) return true;
+    await delay(50);
+  }
+  return fs.existsSync(pathString);
+}
+
+function resolveWebpackRuntimeChunkRequest(request, parent) {
+  if (typeof request !== "string" || !request.startsWith("./") || !request.endsWith(".js")) return "";
+  const parentFile = parent?.filename;
+  if (!parentFile) return "";
+  const normalizedParent = path.normalize(parentFile);
+  if (
+    path.basename(normalizedParent) !== "webpack-runtime.js"
+    || !normalizedParent.includes(`${path.sep}.next${path.sep}server${path.sep}`)
+  ) {
+    return "";
+  }
+
+  const parentDir = path.dirname(normalizedParent);
+  const relativeRequest = request.slice(2).replace(/\\/g, "/");
+  const candidates = [];
+
+  if (relativeRequest.startsWith("chunks/vendor-chunks/")) {
+    candidates.push(path.join(parentDir, relativeRequest.replace(/^chunks\//, "")));
+  }
+
+  candidates.push(path.join(parentDir, relativeRequest));
+
+  if (!relativeRequest.startsWith("chunks/")) {
+    candidates.push(path.join(parentDir, "chunks", relativeRequest));
+  }
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate;
+  }
+
+  for (const candidate of candidates) {
+    if (candidate.includes(`${path.sep}vendor-chunks${path.sep}`) && waitForExistingFile(candidate)) {
+      return candidate;
+    }
+  }
+
+  return "";
 }
 
 function isWaitableServerManifestPath(filePath) {
@@ -239,7 +338,7 @@ async function readStableNextJson(filePath, args, currentContents) {
   if (!isNextJsonPath(filePath) || !looksIncompleteJson(currentContents)) return currentContents;
   let latestContents = currentContents;
   for (let index = 0; index < 120; index += 1) {
-    sleep(50);
+    await delay(50);
     latestContents = await readFile.call(fs.promises, filePath, ...args);
     if (!looksIncompleteJson(latestContents)) return latestContents;
   }
@@ -248,10 +347,12 @@ async function readStableNextJson(filePath, args, currentContents) {
 
 const readFileSync = fs.readFileSync;
 const renameSync = fs.renameSync;
+const copyFileSync = fs.copyFileSync;
 fs.renameSync = function guardedRenameSync(sourcePath, targetPath, ...args) {
   try {
     return renameSync.call(this, sourcePath, targetPath, ...args);
   } catch (error) {
+    if (canTreatMissingExportPromotionAsDone(error, sourcePath, targetPath)) return undefined;
     if (canRetryRenameWithOverwrite(error, sourcePath, targetPath)) {
       fs.rmSync(targetPath, { force: true });
       return renameSync.call(this, sourcePath, targetPath, ...args);
@@ -260,9 +361,27 @@ fs.renameSync = function guardedRenameSync(sourcePath, targetPath, ...args) {
   }
 };
 
+fs.copyFileSync = function guardedCopyFileSync(sourcePath, targetPath, ...args) {
+  try {
+    return copyFileSync.call(this, sourcePath, targetPath, ...args);
+  } catch (error) {
+    if (canTreatMissingPublicCopyAsDone(error, sourcePath, targetPath)) return undefined;
+    if (canRetryPublicCopyWithParent(error, sourcePath, targetPath)) {
+      fs.mkdirSync(path.dirname(toPathString(targetPath)), { recursive: true });
+      return copyFileSync.call(this, sourcePath, targetPath, ...args);
+    }
+    throw error;
+  }
+};
+
 const rename = fs.rename;
+const copyFile = fs.copyFile;
 fs.rename = function guardedRename(sourcePath, targetPath, callback) {
   return rename.call(this, sourcePath, targetPath, (error) => {
+    if (canTreatMissingExportPromotionAsDone(error, sourcePath, targetPath)) {
+      callback(null);
+      return;
+    }
     if (!error || !canRetryRenameWithOverwrite(error, sourcePath, targetPath)) {
       callback(error);
       return;
@@ -274,6 +393,27 @@ fs.rename = function guardedRename(sourcePath, targetPath, callback) {
         return;
       }
       rename.call(this, sourcePath, targetPath, callback);
+    });
+  });
+};
+
+fs.copyFile = function guardedCopyFile(sourcePath, targetPath, ...args) {
+  const callback = args.pop();
+  return copyFile.call(this, sourcePath, targetPath, ...args, (error) => {
+    if (!error || canTreatMissingPublicCopyAsDone(error, sourcePath, targetPath)) {
+      callback(null);
+      return;
+    }
+    if (!canRetryPublicCopyWithParent(error, sourcePath, targetPath)) {
+      callback(error);
+      return;
+    }
+    fs.mkdir(path.dirname(toPathString(targetPath)), { recursive: true }, (mkdirError) => {
+      if (mkdirError) {
+        callback(error);
+        return;
+      }
+      copyFile.call(this, sourcePath, targetPath, ...args, callback);
     });
   });
 };
@@ -297,13 +437,28 @@ fs.readFileSync = function guardedReadFileSync(filePath, ...args) {
 
 const readFile = fs.promises.readFile;
 const renamePromise = fs.promises.rename;
+const copyFilePromise = fs.promises.copyFile;
 fs.promises.rename = async function guardedRenamePromise(sourcePath, targetPath, ...args) {
   try {
     return await renamePromise.call(this, sourcePath, targetPath, ...args);
   } catch (error) {
+    if (canTreatMissingExportPromotionAsDone(error, sourcePath, targetPath)) return undefined;
     if (canRetryRenameWithOverwrite(error, sourcePath, targetPath)) {
       await fs.promises.rm(targetPath, { force: true });
       return renamePromise.call(this, sourcePath, targetPath, ...args);
+    }
+    throw error;
+  }
+};
+
+fs.promises.copyFile = async function guardedCopyFilePromise(sourcePath, targetPath, ...args) {
+  try {
+    return await copyFilePromise.call(this, sourcePath, targetPath, ...args);
+  } catch (error) {
+    if (canTreatMissingPublicCopyAsDone(error, sourcePath, targetPath)) return undefined;
+    if (canRetryPublicCopyWithParent(error, sourcePath, targetPath)) {
+      await fs.promises.mkdir(path.dirname(toPathString(targetPath)), { recursive: true });
+      return copyFilePromise.call(this, sourcePath, targetPath, ...args);
     }
     throw error;
   }
@@ -316,7 +471,7 @@ fs.promises.readFile = async function guardedReadFile(filePath, ...args) {
     if (error?.code === "ENOENT" && ensureRootDevelopmentManifest(filePath)) {
       return await readStableNextJson(filePath, args, await readFile.call(this, filePath, ...args));
     }
-    if (error?.code === "ENOENT" && isWaitableServerManifestPath(filePath) && waitForExistingFile(filePath)) {
+    if (error?.code === "ENOENT" && isWaitableServerManifestPath(filePath) && await waitForExistingFileAsync(filePath)) {
       return readStableNextJson(filePath, args, await readFile.call(this, filePath, ...args));
     }
     if (error?.code === "ENOENT" && ensureGuardedManifest(filePath)) {
@@ -343,11 +498,18 @@ Module._resolveFilename = function guardedResolveFilename(request, parent, isMai
     if (fs.existsSync(candidate)) return candidate;
   }
 
+  const webpackRuntimeChunkPath = resolveWebpackRuntimeChunkRequest(request, parent);
+  if (webpackRuntimeChunkPath) return webpackRuntimeChunkPath;
+
   try {
     return resolveFilename.call(this, request, parent, isMain, options);
   } catch (error) {
     if (error?.code === "MODULE_NOT_FOUND" && isNextServerAppModulePath(request) && waitForExistingFile(request)) {
       return resolveFilename.call(this, request, parent, isMain, options);
+    }
+    const runtimeRequestPath = resolveNextServerRuntimeRequest(request, parent);
+    if (error?.code === "MODULE_NOT_FOUND" && runtimeRequestPath && waitForExistingFile(runtimeRequestPath)) {
+      return runtimeRequestPath;
     }
     throw error;
   }

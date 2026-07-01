@@ -8,6 +8,12 @@
 /sukyo                         /sukuyo                   301
 /sukyo/*                       /sukuyo/:splat            301
 /face-reading                  /physiognomy              301
+/saju/lifebook                 /life-book-ai             301
+/saju/lifebook/*               /life-book-ai             301
+/saju/animal-test              /saju/animal-destiny      301
+/saju/animal-test/*            /saju/animal-destiny      301
+/oracle/ifa                    /ifa-oracle.html          301
+/oracle/ifa/*                  /ifa-oracle.html          301
 
 # 브랜드/핵심 서비스 별칭
 /ggulggul                      /manse                    301

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getNeoWarRoomMethodDefinition, neoWarRoomMethodRegistry } from "./data/method-registry";
@@ -481,6 +482,7 @@ export default function NeoOperationRoomResultPage() {
   const [benefitUnlocking, setBenefitUnlocking] = useState(false);
   const [benefitUnlockError, setBenefitUnlockError] = useState("");
   const documentRef = useRef<HTMLElement | null>(null);
+  const resultSealGate = useSpritePlaybackGate<HTMLDivElement>({ pauseWhenOffscreen: false });
 
   const selectedMethod = session?.selectedMethod || session?.initialBriefing?.selectedMethod || session?.refinedOrder?.selectedMethod;
   const selectedMethodDefinition = useMemo(
@@ -695,6 +697,8 @@ export default function NeoOperationRoomResultPage() {
     "--neo-bg-desktop": `url("${neoWarRoomAssets.backgrounds.desktop.src}")`,
     "--neo-bg-mobile": `url("${neoWarRoomAssets.backgrounds.mobile.src}")`,
   } as CSSProperties;
+  const neoResultGradesAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.gradesMobile : neoWarRoomAssets.badges.grades;
+  const neoResultStampAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
 
   useEffect(() => {
     if (!session || isGenerating || isFailed) {
@@ -739,46 +743,9 @@ export default function NeoOperationRoomResultPage() {
         </nav>
       ) : null}
 
-      {!isGenerating && !isFailed && session ? (
-        <section className={styles.actionBar} aria-label="작전 명령서 작업">
-          <div className={styles.actionCopy}>
-            <span>{refined ? "Final Order Ready" : "Briefing Ready"}</span>
-            <strong>{refined ? "2차 수정 명령서까지 정리 완료" : "1차 작전 브리핑 정리 완료"}</strong>
-          </div>
-          <div className={styles.actionButtons}>
-            <button
-              type="button"
-              className={styles.benefitButton}
-              data-loading={benefitUnlocking ? "true" : "false"}
-              data-unlocked={neoBenefitsUnlocked ? "true" : "false"}
-              disabled={benefitUnlocking || neoBenefitsUnlocked || !canUnlockNeoBenefits}
-              onClick={handleUnlockNeoBenefits}
-            >
-              {benefitUnlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
-              <span>{benefitUnlocking ? "휘장 사용 중" : neoBenefitsUnlocked ? "특전 해금 완료" : "사자 휘장 5개 사용"}</span>
-            </button>
-            <button
-              type="button"
-              className={styles.pdfButton}
-              data-loading={pdfLoading ? "true" : "false"}
-              data-locked={neoBenefitsUnlocked ? "false" : "true"}
-              disabled={pdfLoading || !neoBenefitsUnlocked}
-              onClick={handlePdfDownload}
-            >
-              {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
-              <span>{pdfLoading ? "PDF 저장 중" : neoBenefitsUnlocked ? "PDF 저장" : "PDF 잠금"}</span>
-            </button>
-            {briefing ? <button type="button" onClick={() => setShowRealityForm(true)}>{refined ? "수정 명령 다시 받기" : "수정 명령 받기"}</button> : null}
-            <Link href="/neo-operation-room">작전 다시 짜기</Link>
-          </div>
-          {benefitUnlockError ? <p className={styles.unlockError} role="alert">{benefitUnlockError}</p> : null}
-          {pdfError ? <p className={styles.pdfError} role="alert">{pdfError}</p> : null}
-        </section>
-      ) : null}
-
       {isGenerating ? (
         <section className={styles.stateCard} aria-live="polite">
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.badges.grades} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
+          <NeoWarRoomAssetImage asset={neoResultGradesAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
           <h2>작전 브리핑 생성 중</h2>
           <p>계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다.</p>
         </section>
@@ -786,10 +753,10 @@ export default function NeoOperationRoomResultPage() {
 
       {isFailed ? (
         <section className={styles.stateCard} aria-live="assertive">
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.badges.resultStamp} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
+          <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
           <h2>작전 명령서 열람 실패</h2>
           <p>{error || session?.generationError?.message || "생성에 실패했다. 입력과 권한을 확인한 뒤 다시 시도해라."}</p>
-          <Link href="/neo-operation-room">작전 다시 짜기</Link>
+          <Link href="/neo-operation-room" prefetch={false}>작전 다시 짜기</Link>
         </section>
       ) : null}
 
@@ -809,7 +776,6 @@ export default function NeoOperationRoomResultPage() {
               <p>{selectedMethodDefinition.resultEvidenceLabel}</p>
               <p>{session.topic || "작전 주제 미기록"}</p>
             </div>
-            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} />
           </aside>
 
           <section id="neo-operation-result-document" ref={documentRef} className={styles.documentStack}>
@@ -839,6 +805,40 @@ export default function NeoOperationRoomResultPage() {
               />
             ) : null}
             {refined ? <RefinedOrderDocument refined={refined} badgeIndex={badgeAward.currentBadgeIndex} /> : null}
+            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} />
+            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} />
+            <section className={styles.actionBar} aria-label="작전 명령서 보관과 특전">
+              <div className={styles.actionCopy}>
+                <span>{refined ? "Final Order Ready" : "Briefing Ready"}</span>
+                <strong>{refined ? "2차 수정 명령서까지 정리 완료" : "1차 작전 브리핑 정리 완료"}</strong>
+              </div>
+              <div className={styles.actionButtons}>
+                <button
+                  type="button"
+                  className={styles.benefitButton}
+                  data-loading={benefitUnlocking ? "true" : "false"}
+                  data-unlocked={neoBenefitsUnlocked ? "true" : "false"}
+                  disabled={benefitUnlocking || neoBenefitsUnlocked || !canUnlockNeoBenefits}
+                  onClick={handleUnlockNeoBenefits}
+                >
+                  {benefitUnlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
+                  <span>{benefitUnlocking ? "휘장 사용 중" : neoBenefitsUnlocked ? "특전 해금 완료" : "사자 휘장 5개 사용"}</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.pdfButton}
+                  data-loading={pdfLoading ? "true" : "false"}
+                  data-locked={neoBenefitsUnlocked ? "false" : "true"}
+                  disabled={pdfLoading || !neoBenefitsUnlocked}
+                  onClick={handlePdfDownload}
+                >
+                  {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
+                  <span>{pdfLoading ? "PDF 저장 중" : neoBenefitsUnlocked ? "PDF 저장" : "PDF 잠금"}</span>
+                </button>
+              </div>
+              {benefitUnlockError ? <p className={styles.unlockError} role="alert">{benefitUnlockError}</p> : null}
+              {pdfError ? <p className={styles.pdfError} role="alert">{pdfError}</p> : null}
+            </section>
             {neoLetterText ? (
               <NeoSincereLetter letter={neoLetterText} />
             ) : (
@@ -851,7 +851,6 @@ export default function NeoOperationRoomResultPage() {
                 onUnlock={handleUnlockNeoBenefits}
               />
             )}
-            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} />
           </section>
         </div>
       ) : null}
@@ -860,16 +859,20 @@ export default function NeoOperationRoomResultPage() {
 }
 
 function LionBadgeStamp({ badgeIndex, className = "" }: { badgeIndex: number; className?: string }) {
+  const badgeGate = useSpritePlaybackGate<HTMLSpanElement>();
+  const stampAsset = badgeGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
   return (
-    <span className={`${styles.badgeStampFrame} ${className}`} style={getBadgeStampStyle(badgeIndex)}>
-      <NeoWarRoomAssetImage
-        asset={neoWarRoomAssets.badges.resultStamp}
-        alt=""
-        sizes="144px"
-        className={styles.badgeStampSheet}
-        imageClassName={styles.badgeStampImage}
-        style={{ background: "transparent" }}
-      />
+    <span ref={badgeGate.ref} className={`${styles.badgeStampFrame} ${className}`} style={getBadgeStampStyle(badgeIndex)}>
+      {badgeGate.canLoad ? (
+        <NeoWarRoomAssetImage
+          asset={stampAsset}
+          alt=""
+          sizes="144px"
+          className={styles.badgeStampSheet}
+          imageClassName={styles.badgeStampImage}
+          style={{ background: "transparent" }}
+        />
+      ) : null}
     </span>
   );
 }
@@ -1010,8 +1013,11 @@ function InitialBriefingDocument({
         <span>1차 작전 브리핑</span>
         <h2>{briefing.operationTitle || "무명 작전"}</h2>
       </header>
-      <Section title="네오의 첫 판단" body={briefing.neoOpening} />
       <Section title="현재 운명의 전선" body={frontlineSummary} />
+      {briefing.bluntTruth ? <blockquote className={styles.blunt}>{briefing.bluntTruth}</blockquote> : null}
+      <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
+      {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
+      <Section title="네오의 첫 판단" body={briefing.neoOpening} />
       <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
       <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
       <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
@@ -1020,9 +1026,7 @@ function InitialBriefingDocument({
           {briefing.methodEvidence.map((item) => <Section key={`${item.method}-${item.label}`} title={item.label || evidenceFallbackLabel} body={item.summary} />)}
         </div>
       ) : null}
-      {briefing.bluntTruth ? <blockquote className={styles.blunt}>{briefing.bluntTruth}</blockquote> : null}
       <Section title={briefing.forbiddenAction?.title || "오늘 금지 행동"} body={briefing.forbiddenAction?.reason} />
-      <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
       {briefing.sevenDayMission?.length ? (
         <div className={styles.missionGrid}>
           <strong>7일 작전</strong>
@@ -1057,7 +1061,6 @@ function InitialBriefingDocument({
         </div>
       ) : null}
       {briefing.tsundereClosing || briefing.nextStepPrompt ? <blockquote className={styles.blunt}>{briefing.tsundereClosing || briefing.nextStepPrompt}</blockquote> : null}
-      {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
     </article>
   );
 }
@@ -1170,8 +1173,8 @@ function CtaDeck({ attemptId, hasRefined, onOpenReality }: { attemptId: string; 
   return (
     <nav className={styles.ctaDeck} aria-label="작전 명령서 다음 행동">
       <button type="button" onClick={onOpenReality}>{hasRefined ? "네오에게 다시 반박하기" : "수정 작전 명령서 받기"}</button>
-      <Link href="/neo-operation-room">작전 다시 짜기</Link>
-      <Link href="/neo-operation-room">다른 술수로 다시 분석하기</Link>
+      <Link href="/neo-operation-room" prefetch={false}>작전 다시 짜기</Link>
+      <Link href="/neo-operation-room" prefetch={false}>다른 술수로 다시 분석하기</Link>
       <Link href="/fortune-tea-house">연이의 운명 찻집으로 가기</Link>
       {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>작전 명령서 다시 열기</Link> : null}
     </nav>

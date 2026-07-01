@@ -39,6 +39,8 @@ interface PremiumBlurGateProps {
   onUnlock?: () => void;
   /** 상품 설명 짧게 */
   subDesc?: string;
+  isCheckingAccess?: boolean;
+  checkingAccessMessage?: string;
 }
 
 type PremiumBlurGateCopy = {
@@ -224,6 +226,8 @@ const PREMIUM_GATE_PRICE_SUFFIX: Record<LoadingLocale, string> = {
   ms: " KRW",
 };
 
+const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
+
 /* ─────────────────────────────────────────
    샘플 잠긴 콘텐츠 렌더러
 ───────────────────────────────────────── */
@@ -303,6 +307,8 @@ export default function PremiumBlurGate({
   coinCost,
   onUnlock,
   subDesc,
+  isCheckingAccess = false,
+  checkingAccessMessage,
 }: PremiumBlurGateProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
@@ -316,6 +322,7 @@ export default function PremiumBlurGate({
   const displayLockedItems = resolvePremiumGateItems(lockedItems, copy.lockedItems, locale);
   const displayProductName = resolvePremiumGateText(productName, copy.productName, locale);
   const displaySubDesc = resolvePremiumGateText(subDesc, copy.subDesc, locale);
+  const displayCheckingAccessMessage = resolvePremiumGateText(checkingAccessMessage, ACCESS_CHECKING_MESSAGE, locale);
   const formattedPrice = formatPremiumGatePrice(price, locale, true);
   const formattedCoinValue = formatPremiumGatePrice(Math.max(0, Math.floor(Number(coinCost || 0) * 100)), locale);
 
@@ -407,13 +414,21 @@ export default function PremiumBlurGate({
               )}
             </div>
 
+            {isCheckingAccess && (
+              <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-3 py-2 text-xs font-semibold text-amber-100">
+                {displayCheckingAccessMessage}
+              </p>
+            )}
+
             {/* CTA 버튼 */}
             <motion.button
               type="button"
-              onClick={onUnlock}
+              onClick={isCheckingAccess ? undefined : onUnlock}
+              disabled={isCheckingAccess}
+              aria-busy={isCheckingAccess ? "true" : undefined}
               onHoverStart={() => setIsHovering(true)}
               onHoverEnd={() => setIsHovering(false)}
-              className="relative w-full py-3.5 rounded-xl font-bold text-sm tracking-wide overflow-hidden"
+              className="relative min-h-12 w-full touch-manipulation overflow-hidden rounded-xl py-3.5 text-sm font-bold tracking-wide disabled:cursor-wait disabled:opacity-75"
               style={{
                 background: "linear-gradient(135deg,#d4a843 0%,#f0c060 50%,#b8860b 100%)",
                 color: "#1a0e00",
@@ -430,7 +445,9 @@ export default function PremiumBlurGate({
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               />
               <span className="relative z-10">
-                {coinCost
+                {isCheckingAccess
+                  ? displayCheckingAccessMessage
+                  : coinCost
                   ? copy.coinCta(formattedCoinValue)
                   : copy.priceCta(displayProductName, formattedPrice)}
               </span>

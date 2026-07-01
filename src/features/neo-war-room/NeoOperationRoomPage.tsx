@@ -20,6 +20,7 @@ import {
   pickNeoDialogue,
 } from "./data/dialogues";
 import {
+  NEO_WAR_ROOM_MIN_QUESTION_LENGTH,
   NEO_WAR_ROOM_ACCESS_ENDPOINT,
   buildInitialNeoWarRoomBirthState,
   buildNeoWarRoomAccessPayload,
@@ -115,7 +116,7 @@ type NeoPrologueLine = {
   speaker: NeoPrologueSpeaker;
   speakerLabel: string;
   text: string;
-  scene: "intro" | "signal" | "lionReveal" | "identityComedy" | "nameReveal" | "transformation" | "humanNeo" | "strategyRoom" | "final";
+  scene: "intro" | "signal" | "lionReveal" | "patternAudit" | "nameReveal" | "transformation" | "humanNeo" | "strategyRoom" | "final";
   character: NeoPrologueCharacter;
   sheetFrame?: number;
   transformFrame?: number;
@@ -140,8 +141,13 @@ const NEO_TRANSFORM_FRAME_COUNT = 24;
 const NEO_TRANSFORM_SHEET_COLUMNS = 6;
 const NEO_TRANSFORM_SHEET_ROWS = 4;
 const NEO_TRANSFORM_SHEET_CELL_PX = 256;
-const NEO_TRANSFORM_FRAME_INSET_PX = 0;
+const NEO_TRANSFORM_FRAME_INSET_PX = 2;
 const NEO_TRANSFORM_FRAME_INTERVAL_MS = 62;
+const NEO_TRANSFORM_MOBILE_FRAME_COUNT = 24;
+const NEO_TRANSFORM_MOBILE_SHEET_COLUMNS = 6;
+const NEO_TRANSFORM_MOBILE_SHEET_ROWS = 4;
+const NEO_TRANSFORM_MOBILE_SHEET_CELL_PX = 256;
+const NEO_TRANSFORM_MOBILE_FRAME_INTERVAL_MS = 62;
 const NEO_PRE_TRANSFORM_SHEET_COLUMNS = 4;
 const NEO_PRE_TRANSFORM_SHEET_ROWS = 4;
 const NEO_PRE_TRANSFORM_SHEET_CELL_PX = 313.5;
@@ -160,6 +166,7 @@ const NEO_PROLOGUE_SHADOW = neoWarRoomAssets.hero.blackShadow;
 const NEO_PROLOGUE_PRE_TRANSFORM_MAIN = neoWarRoomAssets.hero.strategyNeoMain;
 const NEO_PROLOGUE_PRE_TRANSFORM_SHEET = neoWarRoomAssets.sprites.strategyNeo;
 const NEO_PROLOGUE_TRANSFORMATION = neoWarRoomAssets.hero.transformation;
+const NEO_PROLOGUE_TRANSFORMATION_MOBILE = neoWarRoomAssets.hero.transformationMobile;
 const NEO_TRANSPARENT_TALK_INTERVAL_MS = 3200;
 const NEO_TRANSPARENT_TALK_SHEETS = neoWarRoomAssets.sprites.transparent;
 const createNeoTransparentCropAsset = (sheetIndex: number, frameIndex: number): NeoWarRoomAsset => {
@@ -181,6 +188,13 @@ const NEO_TRANSPARENT_TALK_FRAME_ASSETS: readonly NeoWarRoomAsset[] = NEO_TRANSP
 );
 const getNeoTransparentTalkFrameAsset = (sheetIndex: number, frameIndex: number) =>
   createNeoTransparentCropAsset(sheetIndex % NEO_TRANSPARENT_TALK_SHEETS.length, frameIndex % 8);
+
+const entryBriefingItems = [
+  { label: "상담 방식", value: "사주 · 자미두수 · 베다 · 점성술" },
+  { label: "입력 흐름", value: "출생 좌표, 현재 전선, 핵심 질문" },
+  { label: "결과 구성", value: "진단, 반복 패턴, 7일 행동 기준" },
+  { label: "접근 방식", value: "이용권 확인 후 전략 브리핑" },
+] as const;
 
 const methodIntroDialogues = [
   {
@@ -277,14 +291,14 @@ const methodIntroDialogues = [
 ] as const;
 
 const neoLandingDialogues = [
-  "왔냐. 여긴 네 마음을 달래는 방이 아니라, 네 선택을 정리하는 전략 상담실이다.",
-  "문이 닫히면 핑계는 밖에 남긴다. 안쪽에는 네가 반복한 선택만 올려놓는다.",
-  "오늘 볼 건 운이 좋다 나쁘다가 아니다. 네가 어디서 같은 전선을 잃는지다.",
-  "사주든 별자리든 지도는 다르다. 하지만 네가 움직여야 할 방향은 하나로 모인다.",
-  "겁먹을 필요 없다. 흐릿한 마음을 작전 언어로 바꾸려는 것뿐이다.",
-  "네가 계속 미룬 질문이 있다면, 그게 오늘 첫 번째 보고서다.",
-  "사자 휘장은 겁주는 표식이 아니다. 다시 똑바로 앉겠다는 신호다.",
-  "준비됐으면 앉아라. 이제부터는 감정의 안개가 아니라 선택의 지도를 본다.",
+  "왔냐. 여긴 마음을 달래기 전에, 네 선택의 기준을 먼저 세우는 전략 상담실이다.",
+  "문이 닫히면 핑계가 아니라 사실을 올려놓는다. 어디서 같은 선택을 반복했는지부터 본다.",
+  "오늘 볼 건 운이 좋고 나쁘다가 아니다. 네가 왜 비슷한 장면에서 계속 힘을 잃는지다.",
+  "사주든 별자리든 지도는 다르다. 목적은 네가 다시 움직일 기준을 찾는 것이다.",
+  "겁먹을 필요 없다. 감정의 안개를 판단 가능한 문장으로 바꾸는 과정이다.",
+  "네가 오래 미룬 질문이 있다면, 그게 오늘 첫 번째 단서다.",
+  "사자 휘장은 겁주는 표식이 아니다. 다시 기준을 세우겠다는 신호다.",
+  "준비됐으면 앉아라. 이제부터는 막연한 불운이 아니라 반복된 선택 구조를 본다.",
 ] as const;
 
 const neoPrologueDialogues: readonly NeoPrologueLine[] = [
@@ -292,16 +306,16 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-arrival",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "잠깐. 상담 받으러 왔는데 왜 조명이 작전실 분위기야?\n나 혹시 잘못 눌렀나?",
+    text: "요즘은 뭘 해도 조금씩 어긋난다.\n열심히 안 산 것도 아닌데, 결과가 늘 비슷하게 무너진다.",
     scene: "intro",
     character: "shadow",
     effect: "signal",
   },
   {
     id: "inner-shadow-check",
-    speaker: "inner",
-    speakerLabel: "내면의 목소리",
-    text: "저 검은 그림자... 설마 나인가?\n요즘 선택을 미루다 보니 실루엣까지 흐릿해진 건가.",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "처음엔 운이 안 따라준다고 생각했다.\n그런데 관계도, 일도, 돈도 결국 비슷한 자리에서 막힌다.",
     scene: "signal",
     character: "hidden",
     effect: "signal",
@@ -310,26 +324,26 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-war-room-welcome",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "잘못 누른 건 아니다.\n여긴 위로 상담소가 아니라, 네 선택 패턴을 작전처럼 해독하는 방이다.",
+    text: "잘못 들어온 게 아니다.\n여긴 그 막힌 흐름을 감정이 아니라 기준으로 해부하는 작전실이다.",
     scene: "lionReveal",
     character: "preTransformNeoMain",
     effect: "seal",
   },
   {
-    id: "customer-cat-misread",
+    id: "customer-long-stuck",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "선택 패턴까지는 알겠는데...\n혹시 진행자는 고양이야?",
-    scene: "identityComedy",
+    text: "큰 사건 하나로 무너진 건 아니다.\n다만 버티다 보니 어느 순간부터 뭘 선택해도 자신이 없어졌다.",
+    scene: "patternAudit",
     character: "shadow",
     effect: "seal",
   },
   {
-    id: "neo-not-cat",
+    id: "neo-pattern-diagnosis",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "사자다.\n그리고 그냥 사자가 아니라 전략가 네오다. 발음 조심해라.",
-    scene: "identityComedy",
+    text: "그게 첫 번째 단서다.\n인생이 안 풀릴 때 사람은 실패보다 먼저 자기 판단을 믿지 못하게 된다.",
+    scene: "patternAudit",
     character: "preTransformNeoMain",
     effect: "seal",
   },
@@ -337,7 +351,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-problem",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "그래, 전략가 사자.\n근데 나는 그냥 요즘 선택이 자꾸 꼬여서 온 거야. 큰일 난 건 아니고.",
+    text: "그래서 계속 미룬다.\n정해야 할 순간마다 더 알아보고, 조금만 더 버티자고 넘긴다.",
     scene: "signal",
     character: "shadow",
     effect: "signal",
@@ -346,7 +360,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-denial-detected",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "방금 그 '큰일 난 건 아니고'가 첫 번째 단서다.\n사람은 진짜 급한 문제일수록 말끝을 흐린다.",
+    text: "미루는 건 신중함처럼 보이지만, 오래 반복되면 선택권을 남에게 넘기는 방식이 된다.\n오늘은 그 지점을 먼저 잡는다.",
     scene: "nameReveal",
     character: "preTransformNeoMain",
     effect: "seal",
@@ -355,7 +369,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-many-maps",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "그럼 여기서는 뭘 보는 건데?\n사주, 별자리, 자미두수, 베다점... 이름만 들어도 머리가 복잡한데.",
+    text: "그럼 사주나 별자리가 내 문제를 대신 해결해 주는 거야?\n솔직히 그런 말은 조금 불안하다.",
     scene: "nameReveal",
     character: "shadow",
     effect: "signal",
@@ -364,7 +378,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-method-briefing",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "지도는 넷이지만 목적은 하나다.\n사주는 기본 전투 방식, 자미두수는 인생의 배치도, 베다는 반복 흐름, 점성술은 마음의 궤도를 본다.",
+    text: "대신 해결하지 않는다.\n사주는 기질의 기준, 자미두수는 인생의 배치, 베다는 반복 압력, 점성술은 마음의 궤도를 비춘다.",
     scene: "strategyRoom",
     character: "preTransformNeoMain",
     effect: "seal",
@@ -373,7 +387,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-topic-briefing",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "그리고 주제를 골라야 한다.\n연애인지, 일인지, 돈인지, 인간관계인지. 전선을 흐리면 작전도 흐려진다.",
+    text: "지도는 네가 어디서 같은 결정을 반복하는지 보여 준다.\n연애, 일, 돈, 관계 중 지금 가장 무너진 전선을 하나로 좁혀라.",
     scene: "strategyRoom",
     character: "preTransformNeoMain",
     effect: "seal",
@@ -382,7 +396,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-birth-coordinates",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "출생 정보까지 넣는 이유는?\n그냥 요즘 고민만 말하면 안 돼?",
+    text: "출생 정보까지 넣는 이유는?\n지금 힘든 이야기를 하는 데 과거의 좌표가 그렇게 중요해?",
     scene: "strategyRoom",
     character: "shadow",
     effect: "signal",
@@ -391,7 +405,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-coordinate-briefing",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "고민은 현재 위치고, 출생 좌표는 네가 들고 태어난 지도다.\n둘을 같이 봐야 길이 막힌 건지, 네가 같은 벽에 계속 박는 건지 구분된다.",
+    text: "중요하다.\n현재의 고민은 증상이고, 출생 좌표는 네가 어떤 방식으로 반응하기 쉬운지 보여 주는 기준점이다.",
     scene: "strategyRoom",
     character: "preTransformNeoMain",
     effect: "seal",
@@ -400,7 +414,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-roar-question",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "팩폭 강도도 있네.\n사자 포효맛은 이름부터 좀 위험해 보이는데?",
+    text: "팩폭 강도는 왜 고르는 거야?\n지금도 충분히 날카로운데 더 세게 들을 필요가 있나?",
     scene: "strategyRoom",
     character: "shadow",
     effect: "signal",
@@ -409,8 +423,8 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-roar-warning",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "멋으로 고르는 맛은 아니다.\n순한맛은 숨 쉴 틈을 남기고, 기본맛은 핵심을 찌르고, 포효맛은 변명부터 내려놓게 만든다.",
-    scene: "identityComedy",
+    text: "강도는 공격성이 아니라 직면의 깊이다.\n순한맛은 숨을 고르고, 기본맛은 핵심을 짚고, 포효맛은 변명까지 작전판에서 치운다.",
+    scene: "patternAudit",
     character: "preTransformNeoMain",
     effect: "seal",
   },
@@ -418,7 +432,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-transform-ready",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "겁먹을 필요는 없다.\n도망치지만 않으면, 감정의 안개는 작전 명령서로 바뀐다.",
+    text: "겁낼 필요 없다.\n내가 깨뜨리려는 건 네가 아니라, 너를 같은 자리에 묶어 둔 낡은 판단 방식이다.",
     scene: "transformation",
     character: "preTransformNeoMain",
     effect: "seal",
@@ -427,7 +441,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "transform-flare",
     speaker: "narration",
     speakerLabel: "내레이션",
-    text: "사자 휘장이 빛을 토해 내자, 네오의 윤곽이 도시의 별빛과 겹쳐진다.\n흩어져 있던 고민들이 하나의 작전판 위로 정렬된다.",
+    text: "사자 휘장이 낮게 빛나자, 흩어진 고민이 하나의 선으로 이어진다.\n운이 나빴다는 말 뒤에 숨어 있던 반복 선택이 작전판 위에 드러난다.",
     scene: "transformation",
     character: "transformingNeo",
     transformFrame: 1,
@@ -437,7 +451,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "customer-style-change",
     speaker: "customer",
     speakerLabel: "고객",
-    text: "잠깐, 방금 변신했지?\n상담보다 스케일이 큰데?",
+    text: "조금 알 것 같다.\n위로를 들으러 온 줄 알았는데, 사실은 내가 잃어버린 기준을 확인하러 온 거였네.",
     scene: "humanNeo",
     character: "shadow",
     effect: "arrival",
@@ -446,17 +460,17 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-final-briefing",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "이제 들어와라.\n네 고민은 감상문이 아니라 브리핑으로 정리하고, 네 회피는 현실 점검에서 다시 확인한다.",
+    text: "맞다. 이제 들어와라.\n네 인생을 평가하지 않는다. 다만 어디서 흔들렸고, 오늘 무엇부터 바꿔야 하는지 분명히 정리한다.",
     scene: "final",
     character: "humanNeo",
     effect: "arrival",
     notification: {
-      title: "작전실 연결 완료",
-      body: "분석 방식, 상담 주제, 출생 좌표, 팩폭 강도가 작전판에 올라간다.",
+      title: "전략실 연결 완료",
+      body: "현재 전선, 출생 좌표, 질문, 직면 강도가 한 장의 작전판에 오른다.",
     },
     cta: {
       label: "운명 전략실 입장하기",
-      helperText: "첫 작전 브리핑을 시작한다.",
+      helperText: "막힌 흐름을 기준과 다음 행동으로 정리한다.",
     },
   },
 ] as const;
@@ -496,16 +510,33 @@ const getNeoSheetCropStyle = (
   };
 };
 
-const getNeoPrologueSheetStyle = (line: NeoPrologueLine | null, transformFrame: number) => {
+const getNeoPrologueSheetStyle = (line: NeoPrologueLine | null, transformFrame: number, useMobileTransformSheet: boolean) => {
   const isTransforming = line?.character === "transformingNeo";
-  const columns = isTransforming ? NEO_TRANSFORM_SHEET_COLUMNS : NEO_PRE_TRANSFORM_SHEET_COLUMNS;
-  const rows = isTransforming ? NEO_TRANSFORM_SHEET_ROWS : NEO_PRE_TRANSFORM_SHEET_ROWS;
-  const cellPx = isTransforming ? NEO_TRANSFORM_SHEET_CELL_PX : NEO_PRE_TRANSFORM_SHEET_CELL_PX;
+  const columns = isTransforming
+    ? useMobileTransformSheet
+      ? NEO_TRANSFORM_MOBILE_SHEET_COLUMNS
+      : NEO_TRANSFORM_SHEET_COLUMNS
+    : NEO_PRE_TRANSFORM_SHEET_COLUMNS;
+  const rows = isTransforming
+    ? useMobileTransformSheet
+      ? NEO_TRANSFORM_MOBILE_SHEET_ROWS
+      : NEO_TRANSFORM_SHEET_ROWS
+    : NEO_PRE_TRANSFORM_SHEET_ROWS;
+  const cellPx = isTransforming
+    ? useMobileTransformSheet
+      ? NEO_TRANSFORM_MOBILE_SHEET_CELL_PX
+      : NEO_TRANSFORM_SHEET_CELL_PX
+    : NEO_PRE_TRANSFORM_SHEET_CELL_PX;
   const insetPx = isTransforming ? NEO_TRANSFORM_FRAME_INSET_PX : NEO_PRE_TRANSFORM_FRAME_INSET_PX;
   const requestedFrame = isTransforming ? transformFrame : line?.sheetFrame;
+  const frameCount = isTransforming
+    ? useMobileTransformSheet
+      ? NEO_TRANSFORM_MOBILE_FRAME_COUNT
+      : NEO_TRANSFORM_FRAME_COUNT
+    : columns * rows;
   if (!requestedFrame || (line?.character !== "preTransformNeoTalk" && !isTransforming)) return {};
   return getNeoSheetCropStyle(
-    Math.min(isTransforming ? NEO_TRANSFORM_FRAME_COUNT : columns * rows, requestedFrame),
+    Math.min(frameCount, requestedFrame),
     columns,
     rows,
     cellPx,
@@ -906,9 +937,11 @@ export default function NeoOperationRoomPage() {
   const [isCommandTyping, setIsCommandTyping] = useState(false);
   const [localPreviewMode, setLocalPreviewMode] = useState<NeoPreviewMode>("");
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(true);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
+  const [isPageVisible, setIsPageVisible] = useState(() => (typeof document === "undefined" ? true : !document.hidden));
+  const [isSpriteMobile, setIsSpriteMobile] = useState(false);
   const idempotencyKeyRef = useRef("");
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
@@ -919,6 +952,8 @@ export default function NeoOperationRoomPage() {
   );
   const selectedIntensity = intensityOptions.find((item) => item.id === intensity) ?? null;
   const trimmedQuestion = question.trim();
+  const questionReady = trimmedQuestion.length >= NEO_WAR_ROOM_MIN_QUESTION_LENGTH;
+  const questionShortfall = Math.max(0, NEO_WAR_ROOM_MIN_QUESTION_LENGTH - trimmedQuestion.length);
   const validationInput: NeoWarRoomValidationInput = {
     profileMode: birthState.profileMode,
     birth: birthState.birth,
@@ -1039,10 +1074,13 @@ export default function NeoOperationRoomPage() {
           ? "STORY"
           : "NEO";
   const activeHeroCharacter = activePrologueLine?.character || "humanNeo";
-  const activeHeroCharacterAsset = activePrologueLine
-    ? getNeoPrologueCharacterAsset(activeHeroCharacter)
-    : NEO_INTRO_PORTRAIT;
   const activeHeroIsTransforming = activeHeroCharacter === "transformingNeo";
+  const activeTransformFrameCount = activeHeroIsTransforming && isSpriteMobile ? NEO_TRANSFORM_MOBILE_FRAME_COUNT : NEO_TRANSFORM_FRAME_COUNT;
+  const activeHeroCharacterAsset = activePrologueLine
+    ? activeHeroIsTransforming && isSpriteMobile
+      ? NEO_PROLOGUE_TRANSFORMATION_MOBILE
+      : getNeoPrologueCharacterAsset(activeHeroCharacter)
+    : NEO_INTRO_PORTRAIT;
   const activeHeroUsesSheetCrop = activeHeroCharacter === "preTransformNeoTalk" || activeHeroIsTransforming;
   const activeHeroImageSizes = activeHeroCharacter === "preTransformNeoMain" || activeHeroCharacter === "preTransformNeoTalk"
     ? "(max-width: 768px) 46vw, 28vw"
@@ -1050,11 +1088,11 @@ export default function NeoOperationRoomPage() {
       ? "(max-width: 768px) 76vw, 46vw"
       : "(max-width: 768px) 82vw, 42vw";
   const activeHeroImagePriority = activeHeroCharacter !== "preTransformNeoTalk" && !activeHeroIsTransforming;
-  const transformProgress = activeHeroIsTransforming ? Math.round((transformFrame / NEO_TRANSFORM_FRAME_COUNT) * 100) : 0;
+  const transformProgress = activeHeroIsTransforming ? Math.round((transformFrame / activeTransformFrameCount) * 100) : 0;
   const activeHeroCharacterStyle = {
     "--neo-vn-object-position": activeHeroUsesSheetCrop ? "center center" : "center bottom",
     "--neo-transform-progress": `${transformProgress}%`,
-    ...getNeoPrologueSheetStyle(activePrologueLine, transformFrame),
+    ...getNeoPrologueSheetStyle(activePrologueLine, transformFrame, activeHeroIsTransforming && isSpriteMobile),
   } as unknown as CSSProperties;
   const activeHeroFallbackSrc = activeHeroCharacter === "shadow"
     ? undefined
@@ -1066,7 +1104,7 @@ export default function NeoOperationRoomPage() {
   const warRoomScene = showCommandDeck ? "command" : heroScenePhase;
   const heroActionLabel = activePrologueLine?.cta?.label || "작전실 입장하기";
   const heroActionMeta = activePrologueLine?.cta?.helperText || (hasSeenPrologue ? "Prologue Cleared" : "Operation Entry");
-  const heroDialogueHint = activeHeroIsTransforming && transformFrame < NEO_TRANSFORM_FRAME_COUNT
+  const heroDialogueHint = activeHeroIsTransforming && transformFrame < activeTransformFrameCount
     ? "변신 중"
     : isPrologueActive && isLastPrologueStep
       ? "입장 준비 완료"
@@ -1076,7 +1114,7 @@ export default function NeoOperationRoomPage() {
   const showBirthInfo = Boolean(method && topic);
   const showIntensitySelect = Boolean(method && topic && hasBirthCoordinates);
   const showQuestionInput = Boolean(method && topic && hasBirthCoordinates && intensity);
-  const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && trimmedQuestion.length >= 8);
+  const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && questionReady);
   const activeActorState: NeoWarRoomEmotionState = busy || previewOperationMap || displayBriefing || displayRefinedOrder || validationErrors.length || errorMessage
     ? activeCommandDialogue.emotionState || actorState
     : !method
@@ -1094,6 +1132,7 @@ export default function NeoOperationRoomPage() {
   const methodIntroActive = showCommandDeck && !method && !busy && !previewOperationMap && !displayBriefing && !displayRefinedOrder && !validationErrors.length && !errorMessage;
   const commandSpriteConfig: NeoCommandSpriteConfig = useMemo(() => {
     if (busy || previewOperationMap) {
+      if (isSpriteMobile) return neoCommandSpriteMap.asking_question;
       const loadingAsset = neoWarRoomAssets.sprites.withBackground[operationStageIndex % neoWarRoomAssets.sprites.withBackground.length] || neoCommandSpriteMap.analyzing.asset;
       return {
         ...neoCommandSpriteMap.analyzing,
@@ -1101,8 +1140,8 @@ export default function NeoOperationRoomPage() {
         sheetFrame: (operationStageIndex % 7) + 1,
       };
     }
-    if (displayRefinedOrder) return neoCommandSpriteMap.result_complete;
-    if (displayBriefing) return neoCommandSpriteMap.reality_check;
+    if (displayRefinedOrder) return isSpriteMobile ? neoCommandSpriteMap.asking_question : neoCommandSpriteMap.result_complete;
+    if (displayBriefing) return isSpriteMobile ? neoCommandSpriteMap.intensity_normal : neoCommandSpriteMap.reality_check;
     if (!method) return neoCommandSpriteMap.method_select;
     if (!topic) return neoCommandSpriteMap.topic_select;
     if (!hasBirthCoordinates) return neoCommandSpriteMap.birth_info;
@@ -1116,6 +1155,7 @@ export default function NeoOperationRoomPage() {
   }, [
     displayBriefing,
     busy,
+    isSpriteMobile,
     operationStageIndex,
     displayRefinedOrder,
     previewOperationMap,
@@ -1135,14 +1175,28 @@ export default function NeoOperationRoomPage() {
       ? NEO_TRANSPARENT_TALK_FRAME_ASSETS
       : undefined;
   const commandActorIsTalking = Boolean(commandActorTalkFrames?.length);
+  const neoBadgeGradesAsset = isSpriteMobile ? neoWarRoomAssets.badges.gradesMobile : neoWarRoomAssets.badges.grades;
   const commandFlowSteps = [
-    { id: "method", label: "분석 방식", done: Boolean(method), active: !method },
-    { id: "topic", label: "상담 전선", done: Boolean(topic), active: Boolean(method) && !topic },
-    { id: "birth", label: "좌표 확인", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
-    { id: "intensity", label: "팩폭 강도", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
-    { id: "question", label: "질문 입력", done: trimmedQuestion.length >= 8, active: Boolean(method && topic && hasBirthCoordinates && intensity) && trimmedQuestion.length < 8 },
-    { id: "launch", label: "작전 개시", done: operationReady, active: Boolean(method && topic && hasBirthCoordinates && intensity && trimmedQuestion.length >= 8) },
+    { id: "method", label: "분석 방식", targetId: "neo-method-title", done: Boolean(method), active: !method },
+    { id: "topic", label: "상담 전선", targetId: "neo-topic-title", done: Boolean(topic), active: Boolean(method) && !topic },
+    { id: "birth", label: "좌표 확인", targetId: "neo-profile-title", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
+    { id: "intensity", label: "팩폭 강도", targetId: "neo-intensity-title", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
+    { id: "question", label: "질문 입력", targetId: "neo-question-title", done: questionReady, active: Boolean(method && topic && hasBirthCoordinates && intensity) && !questionReady },
+    { id: "launch", label: "작전 개시", targetId: "neo-operation-launch", done: operationReady, active: Boolean(method && topic && hasBirthCoordinates && intensity && questionReady) },
   ];
+  const commandStepHint = !method
+    ? "먼저 어떤 지도로 전선을 볼지 고르면 다음 단계가 열린다."
+    : !topic
+      ? "지금 가장 흔들리는 전선을 하나로 좁혀라."
+      : !hasBirthCoordinates
+        ? "출생 좌표를 확인해야 같은 벽에 부딪히는 흐름을 가를 수 있다."
+        : !intensity
+          ? "팩폭 강도는 네가 오늘 받아낼 수 있는 직면의 깊이다."
+          : !questionReady
+            ? `질문을 ${questionShortfall}자 더 적으면 작전 개시가 열린다.`
+            : operationReady
+              ? "작전 브리핑이 도착했다. 현실 점검까지 이어갈 수 있다."
+              : "사자 휘장으로 작전을 시작할 준비가 끝났다.";
   const bgmStatusLabel =
     bgmStatus === "playing"
       ? "ON"
@@ -1202,7 +1256,7 @@ export default function NeoOperationRoomPage() {
     if (audio) audio.volume = NEO_WAR_ROOM_BGM_TRACK.volume;
     try {
       const savedPreference = window.localStorage.getItem(NEO_WAR_ROOM_BGM_STORAGE_KEY);
-      if (savedPreference === "off") setBgmEnabled(false);
+      if (savedPreference === "on") setBgmEnabled(true);
     } catch {
       void 0;
     }
@@ -1265,26 +1319,43 @@ export default function NeoOperationRoomPage() {
   }, []);
 
   useEffect(() => {
+    const updateVisibility = () => setIsPageVisible(!document.hidden);
+    updateVisibility();
+    document.addEventListener("visibilitychange", updateVisibility);
+    return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+    const mobileQuery = window.matchMedia("(max-width: 768px)");
+    const updateSpriteViewport = () => setIsSpriteMobile(mobileQuery.matches);
+    updateSpriteViewport();
+    mobileQuery.addEventListener("change", updateSpriteViewport);
+    return () => mobileQuery.removeEventListener("change", updateSpriteViewport);
+  }, []);
+
+  useEffect(() => {
     if (!isPrologueActive || activePrologueLine?.character !== "transformingNeo") {
       setTransformFrame(1);
       return undefined;
     }
-    if (prefersReducedMotion) {
-      setTransformFrame(NEO_TRANSFORM_FRAME_COUNT);
+    if (prefersReducedMotion || !isPageVisible) {
+      setTransformFrame(activeTransformFrameCount);
       return undefined;
     }
     setTransformFrame(1);
+    const frameIntervalMs = isSpriteMobile ? NEO_TRANSFORM_MOBILE_FRAME_INTERVAL_MS : NEO_TRANSFORM_FRAME_INTERVAL_MS;
     const timer = window.setInterval(() => {
       setTransformFrame((current) => {
-        if (current >= NEO_TRANSFORM_FRAME_COUNT) {
+        if (current >= activeTransformFrameCount) {
           window.clearInterval(timer);
-          return NEO_TRANSFORM_FRAME_COUNT;
+          return activeTransformFrameCount;
         }
         return current + 1;
       });
-    }, NEO_TRANSFORM_FRAME_INTERVAL_MS);
+    }, frameIntervalMs);
     return () => window.clearInterval(timer);
-  }, [activePrologueLine?.character, activePrologueLine?.id, isPrologueActive, prefersReducedMotion]);
+  }, [activePrologueLine?.character, activePrologueLine?.id, activeTransformFrameCount, isPageVisible, isPrologueActive, isSpriteMobile, prefersReducedMotion]);
 
   useEffect(() => {
     const text = activeCommandDialogue.text;
@@ -1293,7 +1364,7 @@ export default function NeoOperationRoomPage() {
       setIsCommandTyping(false);
       return undefined;
     }
-    if (!text || prefersReducedMotion) {
+    if (!text || prefersReducedMotion || !isPageVisible) {
       setDisplayedCommandDialogue(text);
       setIsCommandTyping(false);
       return undefined;
@@ -1320,25 +1391,26 @@ export default function NeoOperationRoomPage() {
       window.clearInterval(timer);
       setIsCommandTyping(false);
     };
-  }, [activeCommandDialogue.text, prefersReducedMotion, showCommandDeck]);
+  }, [activeCommandDialogue.text, isPageVisible, prefersReducedMotion, showCommandDeck]);
 
   useEffect(() => {
-    if (!methodIntroActive || prefersReducedMotion) return undefined;
+    if (!methodIntroActive || prefersReducedMotion || !isPageVisible) return undefined;
     const timer = window.setInterval(() => {
       setMethodIntroStep((current) => (current + 1) % methodIntroDialogues.length);
     }, METHOD_INTRO_AUTO_ADVANCE_MS);
     return () => window.clearInterval(timer);
-  }, [methodIntroActive, prefersReducedMotion]);
+  }, [isPageVisible, methodIntroActive, prefersReducedMotion]);
 
   useEffect(() => {
-    if (prefersReducedMotion || hasActiveWarRoomEntry) return undefined;
+    if (prefersReducedMotion || hasActiveWarRoomEntry || !isPageVisible) return undefined;
     const timer = window.setInterval(() => {
       setIntroStep((current) => (current + 1) % neoLandingDialogues.length);
     }, NEO_MAIN_DIALOGUE_AUTO_ADVANCE_MS);
     return () => window.clearInterval(timer);
-  }, [hasActiveWarRoomEntry, prefersReducedMotion]);
+  }, [hasActiveWarRoomEntry, isPageVisible, prefersReducedMotion]);
 
   useEffect(() => {
+    if (!isPageVisible) return undefined;
     if (previewOperationMap) {
       const timer = window.setInterval(() => {
         setOperationStageIndex((current) => (current + 1) % operationMapStages.length);
@@ -1357,10 +1429,10 @@ export default function NeoOperationRoomPage() {
       setOperationStageIndex((current) => (current + 1) % operationMapStages.length);
     }, 2200);
     return () => window.clearInterval(timer);
-  }, [flowPhase, previewOperationMap]);
+  }, [flowPhase, isPageVisible, previewOperationMap]);
 
   useEffect(() => {
-    if (!showOperationMapActor || prefersReducedMotion) {
+    if (!showOperationMapActor || prefersReducedMotion || !isPageVisible) {
       setOperationMapSpriteFrame(NEO_OPERATION_LOADING_SPRITE_FRAMES[0]);
       return undefined;
     }
@@ -1370,7 +1442,7 @@ export default function NeoOperationRoomPage() {
       setOperationMapSpriteFrame(NEO_OPERATION_LOADING_SPRITE_FRAMES[frameIndex] ?? NEO_OPERATION_LOADING_SPRITE_FRAMES[0]);
     }, NEO_OPERATION_LOADING_SPRITE_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [prefersReducedMotion, showOperationMapActor]);
+  }, [isPageVisible, prefersReducedMotion, showOperationMapActor]);
 
   function toggleNeoBgm() {
     if (!bgmEnabled || bgmStatus !== "playing") {
@@ -1400,12 +1472,7 @@ export default function NeoOperationRoomPage() {
   }
 
   function enterWarRoom() {
-    setEntryRevision(NEO_OPERATION_ROOM_ENTRY_REVISION);
-    setHasEnteredWarRoom(true);
-    setHasCompletedPrologue(hasSeenPrologue);
-    setPrologueStep(0);
-    setTransformFrame(1);
-    window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    revealCommandDeck();
   }
 
   function markPrologueSeen() {
@@ -1432,8 +1499,8 @@ export default function NeoOperationRoomPage() {
 
   function advanceHeroDialogue() {
     if (isPrologueActive) {
-      if (activeHeroIsTransforming && transformFrame < NEO_TRANSFORM_FRAME_COUNT) {
-        setTransformFrame(NEO_TRANSFORM_FRAME_COUNT);
+      if (activeHeroIsTransforming && transformFrame < activeTransformFrameCount) {
+        setTransformFrame(activeTransformFrameCount);
         return;
       }
       if (isLastPrologueStep) {
@@ -1452,6 +1519,10 @@ export default function NeoOperationRoomPage() {
     setPrologueStep(0);
     setTransformFrame(1);
     window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }
+
+  function scrollCommandSection(targetId: string) {
+    document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function handleIntroKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -1730,7 +1801,15 @@ export default function NeoOperationRoomPage() {
               <span>팩폭</span>
               <span>작전실</span>
             </h1>
-            <p className={styles.subtitle}>위로보다 진단, 감정보다 작전.</p>
+            <p className={styles.subtitle}>감정의 안개를 걷고, 선택의 기준을 다시 세운다.</p>
+            <div className={styles.entryBrief} aria-label="작전실 핵심 흐름">
+              {entryBriefingItems.map((item) => (
+                <span key={item.label}>
+                  <strong>{item.label}</strong>
+                  <em>{item.value}</em>
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className={styles.vnCharacter} data-scene={activeHeroCharacter}>
@@ -1760,7 +1839,7 @@ export default function NeoOperationRoomPage() {
           {activeHeroIsTransforming ? (
             <div className={styles.vnTransformHud} style={activeHeroCharacterStyle} aria-hidden="true">
               <span>변신 동기화</span>
-              <strong>{String(transformFrame).padStart(2, "0")}/{NEO_TRANSFORM_FRAME_COUNT}</strong>
+              <strong>{String(transformFrame).padStart(2, "0")}/{activeTransformFrameCount}</strong>
               <i />
             </div>
           ) : null}
@@ -1802,11 +1881,11 @@ export default function NeoOperationRoomPage() {
               <button type="button" className={styles.vnGhostButton} onClick={revealCommandDeck}>
                 스킵
               </button>
-            ) : hasSeenPrologue ? (
+            ) : (
               <button type="button" className={styles.vnGhostButton} onClick={replayPrologue}>
-                프롤로그 다시보기
+                {hasSeenPrologue ? "프롤로그 다시보기" : "프롤로그 보기"}
               </button>
-            ) : null}
+            )}
 
             {showHeroActionButton ? (
               <button
@@ -1848,7 +1927,7 @@ export default function NeoOperationRoomPage() {
           </div>
 
           <div className={styles.operationMapBody}>
-            <div className={styles.operationMapVisual} data-sprite={showOperationMapActor ? "true" : "false"} aria-hidden="true">
+            <div className={styles.operationMapVisual} data-sprite={showOperationMapActor && !isSpriteMobile ? "true" : "false"} aria-hidden="true">
               <div className={styles.operationMapRoom}>
                 <span className={styles.mapOrbit} />
                 <span className={styles.mapLineOne} />
@@ -1867,7 +1946,7 @@ export default function NeoOperationRoomPage() {
                   imageClassName={styles.loadingSealImage}
                 />
               </div>
-              {showOperationMapActor ? (
+              {showOperationMapActor && !isSpriteMobile ? (
                 <div className={styles.operationSheetActor}>
                   <NeoWarRoomAssetImage
                     asset={NEO_PROLOGUE_PRE_TRANSFORM_SHEET}
@@ -1922,12 +2001,19 @@ export default function NeoOperationRoomPage() {
         <section className={styles.commandConversation} aria-label="네오 작전 안내">
           <div className={styles.commandProgressRail}>
             {commandFlowSteps.map((step, index) => (
-              <span key={step.id} data-active={step.active ? "true" : "false"} data-done={step.done ? "true" : "false"}>
+              <button
+                key={step.id}
+                type="button"
+                data-active={step.active ? "true" : "false"}
+                data-done={step.done ? "true" : "false"}
+                onClick={() => scrollCommandSection(step.targetId)}
+              >
                 <em>{String(index + 1).padStart(2, "0")}</em>
                 {step.label}
-              </span>
+              </button>
             ))}
           </div>
+          <p className={styles.commandStepHint}>{commandStepHint}</p>
         </section>
         <div className={styles.commandLayout}>
           <div className={styles.commandFields}>
@@ -2029,6 +2115,11 @@ export default function NeoOperationRoomPage() {
                   직접 입력
                 </button>
               </div>
+              <p className={styles.profileModeHint}>
+                {birthState.profileMode === "saved"
+                  ? "현재 프로필에서 불러온 좌표다. 다르면 직접 입력으로 바꿔라."
+                  : "출생지와 시간대는 기본 기준값이 들어와 있으니 네 좌표에 맞는지 확인해라."}
+              </p>
               <div className={styles.birthGrid}>
                 <label className={styles.fieldLabel}>
                   이름
@@ -2088,6 +2179,7 @@ export default function NeoOperationRoomPage() {
                     type="text"
                     value={birthState.birth.city}
                     disabled={birthFieldsDisabled}
+                    data-default-value={birthState.profileMode === "manual" && birthState.birth.city === "Seoul" ? "true" : "false"}
                     placeholder="Seoul"
                     onChange={(event) => updateBirthInput("city", event.target.value)}
                   />
@@ -2098,6 +2190,7 @@ export default function NeoOperationRoomPage() {
                     type="text"
                     value={birthState.birth.timezone}
                     disabled={birthFieldsDisabled}
+                    data-default-value={birthState.profileMode === "manual" && birthState.birth.timezone === "Asia/Seoul" ? "true" : "false"}
                     placeholder="Asia/Seoul"
                     onChange={(event) => updateBirthInput("timezone", event.target.value)}
                   />
@@ -2196,6 +2289,9 @@ export default function NeoOperationRoomPage() {
                   {selectedMethod?.label || "분석 방식 미선택"} · {topic || "주제 미선택"} · {selectedIntensity?.label || "강도 미선택"}
                 </span>
               </div>
+              {!questionReady ? (
+                <p className={styles.questionHint}>작전 개시는 질문을 {questionShortfall}자 더 적으면 열린다.</p>
+              ) : null}
             </section>
             ) : null}
 
@@ -2225,7 +2321,7 @@ export default function NeoOperationRoomPage() {
             ) : null}
 
             {showLaunchConfirm ? (
-            <div className={styles.startRow}>
+            <div id="neo-operation-launch" className={styles.startRow}>
               <NeoWarRoomAssetImage
                 asset={neoWarRoomAssets.decor.asset1}
                 alt=""
@@ -2354,7 +2450,7 @@ export default function NeoOperationRoomPage() {
                 {displayBriefing.badge?.description ? (
                   <div className={styles.badgeAward}>
                     <NeoWarRoomAssetImage
-                      asset={neoWarRoomAssets.badges.grades}
+                      asset={neoBadgeGradesAsset}
                       alt=""
                       sizes="86px"
                       className={styles.badgeAwardImage}
@@ -2540,7 +2636,7 @@ export default function NeoOperationRoomPage() {
                 {displayRefinedOrder.badge?.description ? (
                   <div className={styles.badgeAward}>
                     <NeoWarRoomAssetImage
-                      asset={neoWarRoomAssets.badges.grades}
+                      asset={neoBadgeGradesAsset}
                       alt=""
                       sizes="86px"
                       className={styles.badgeAwardImage}

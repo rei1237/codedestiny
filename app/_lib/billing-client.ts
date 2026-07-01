@@ -283,6 +283,10 @@ type BillingCoinGateInput = {
   usagePolicy?: string;
   executionKey?: string;
   paymentMode?: string;
+  allowedPaymentModes?: string[];
+  disablePassFirst?: boolean;
+  disablePassChoice?: boolean;
+  skipPassProbe?: boolean;
   payloadHash?: string;
   productId?: string;
   productType?: string;
@@ -948,7 +952,7 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#f3dd9a;font-size:13px;line-height:1.45}
     .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
     .cd-react-payment-choice-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);padding:9px 15px;color:#f8fafc;cursor:pointer;font-weight:900}
-    @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);border-radius:20px;padding:12px}.cd-react-payment-choice-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-react-payment-choice-visual{width:94px;height:78px;margin-bottom:6px}.cd-react-payment-choice-aura--outer{width:78px;height:78px}.cd-react-payment-choice-aura--inner{width:60px;height:60px}.cd-react-payment-choice-glass{left:15px;top:7px;width:64px;height:64px}.cd-react-payment-choice-crescent{left:29px;top:20px;width:39px;height:39px}.cd-react-payment-choice-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
+    @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px;background:linear-gradient(145deg,rgba(7,11,34,.94),rgba(18,18,48,.96));backdrop-filter:none}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);border-radius:20px;padding:12px;box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.14)}.cd-react-payment-choice-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.42;box-shadow:0 0 24px rgba(250,230,160,.1)}.cd-react-payment-choice-dialog::after{opacity:.42}.cd-react-payment-choice-visual{width:94px;height:78px;margin-bottom:6px}.cd-react-payment-choice-aura--outer{width:78px;height:78px}.cd-react-payment-choice-aura--inner{width:60px;height:60px;box-shadow:0 0 18px rgba(250,230,160,.1)}.cd-react-payment-choice-glass{left:15px;top:7px;width:64px;height:64px;backdrop-filter:none}.cd-react-payment-choice-reflect{filter:none;opacity:.64}.cd-react-payment-choice-badge{backdrop-filter:none}.cd-react-payment-choice-crescent{left:29px;top:20px;width:39px;height:39px;box-shadow:0 0 16px rgba(250,230,160,.24),inset -6px -4px 10px rgba(196,181,253,.14)}.cd-react-payment-choice-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 20px rgba(2,6,23,.2)}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
     @media(prefers-reduced-motion:reduce){.cd-react-payment-choice-visual{animation:none!important}.cd-react-payment-choice-option{transition:none}.cd-react-payment-choice-option:hover{transform:none}}
   `;
   document.head.appendChild(style);
@@ -1741,7 +1745,10 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       membershipCoverage: membershipCoverage || undefined,
       monthlyBalance: context.eligibility?.monthly.balance,
       skipBalanceRefresh: passAlreadyChecked,
-      disablePassFirst: passAlreadyChecked && context.eligibility?.pass.canUse !== true,
+      allowedPaymentModes: input.allowedPaymentModes,
+      disablePassFirst: input.disablePassFirst === true || (passAlreadyChecked && context.eligibility?.pass.canUse !== true),
+      disablePassChoice: input.disablePassChoice === true,
+      skipPassProbe: input.skipPassProbe === true,
       internalMainGate: true,
     });
   } catch (error) {
@@ -2223,6 +2230,10 @@ function resolvePaidFeatureInFlightKey(input: {
   orderId?: string;
   payloadHash?: string;
   paymentMode?: string;
+  allowedPaymentModes?: string[];
+  disablePassFirst?: boolean;
+  disablePassChoice?: boolean;
+  skipPassProbe?: boolean;
   productId?: string;
   serviceType?: string;
 }) {
@@ -2236,6 +2247,10 @@ function resolvePaidFeatureInFlightKey(input: {
     ["content", input.contentKey],
     ["purchase", input.purchaseId || input.idempotencyKey || input.orderId],
     ["payload", input.payloadHash],
+    ["paymentModes", Array.isArray(input.allowedPaymentModes) ? input.allowedPaymentModes.join(",") : ""],
+    ["disablePassFirst", input.disablePassFirst === true ? "1" : ""],
+    ["disablePassChoice", input.disablePassChoice === true ? "1" : ""],
+    ["skipPassProbe", input.skipPassProbe === true ? "1" : ""],
     ["product", input.productId],
     ["service", input.serviceType],
   ]
@@ -2767,12 +2782,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       markPaidAttemptPaymentRequested();
     };
     const requestedMode = normalizePaymentMode(input.paymentMode);
-    const explicitPassMode = requestedMode === "MEMBERSHIP_PASS";
+    const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
+    const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
     const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW";
     const knownInputCoinCost = resolveKnownCoinCost(input, null);
     const initialSnapshotPassLimit = initialSnapshot?.state === "active" ? subscriptionSnapshotPassLimit(initialSnapshot.tier) : 0;
     const snapshotPassServerCheckFirst = Boolean(
       !explicitPaymentMode
+      && !passDisabled
       && knownInputCoinCost > 0
       && initialSnapshot?.state === "active"
       && initialSnapshotPassLimit > 0
@@ -2793,7 +2810,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       priceKRW: input.priceKRW,
       amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
     };
-    const passEligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
+    const passEligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || passDisabled
       ? null
       : await fetchPaymentEligibility(eligibilityInput, { phase: "pass" }).catch(() => null);
     const passEligibility = passEligibilityResult?.ok ? passEligibilityResult.data : null;
@@ -2817,7 +2834,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
-    const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || eligibility?.pass.canUse === true;
+    const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || (!passDisabled && eligibility?.pass.canUse === true);
+    const passAccessEligible = !passDisabled && (explicitPassMode || snapshotPassServerCheckFirst || eligibility?.pass.canUse === true);
     const snapshotSaysNoPass = normalizeAccessReason(eligibility?.access.reason) === "subscription_snapshot_none";
     console.log("[이용권 체크]", {
       passStatus: {
@@ -2831,11 +2849,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       shouldShowPayment: Boolean(!passFirstEligible && knownCoinCost > 0 && input.forceDeduct !== false),
     });
     if (eligibility) {
-      const eligibilityPassReady = accessAlreadyGranted || eligibility.pass.canUse === true;
+      const eligibilityPassReady = accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true);
       const eligibilityStatus: PaidFeatureGateRuntimeStatus = eligibilityPassReady
         ? "hasEntitlement"
         : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts");
-      const eligibilityPaymentMode = eligibility.pass.canUse === true ? "MEMBERSHIP_PASS" : (requestedMode || (accessAlreadyGranted ? "DIRECT_KRW" : ""));
+      const eligibilityPaymentMode = !passDisabled && eligibility.pass.canUse === true ? "MEMBERSHIP_PASS" : (requestedMode || (accessAlreadyGranted ? "DIRECT_KRW" : ""));
       const eligibilityOverlay = resolvePaymentWaitOverlay(
         eligibilityStatus,
         undefined,
@@ -2843,7 +2861,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           paymentMode: eligibilityPaymentMode,
           featureKey: featureId,
           reason: input.reason,
-          accessType: eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
+          accessType: !passDisabled && eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
           passTier: eligibility.pass.tier || "",
           subscriptionTier: eligibility.pass.tier || "",
         },
@@ -2859,7 +2877,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         cost: eligibility.coinCost,
         paymentMode: eligibilityPaymentMode,
         reason: input.reason,
-        accessType: eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
+        accessType: !passDisabled && eligibility.pass.canUse === true ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
         passTier: eligibility.pass.tier || "",
         subscriptionTier: eligibility.pass.tier || "",
       });
@@ -3000,13 +3018,13 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
 
     markPaymentRequestedOnce();
     const processingStatus: PaidFeatureGateRuntimeStatus = passFirstEligible ? "hasEntitlement" : "paymentProcessing";
-    const processingPaymentMode = passFirstEligible ? "MEMBERSHIP_PASS" : requestedMode;
+    const processingPaymentMode = passAccessEligible ? "MEMBERSHIP_PASS" : (accessAlreadyGranted ? "DIRECT_KRW" : requestedMode);
     const processingPassTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
     const processingOverlay = resolvePaymentWaitOverlay(processingStatus, undefined, {
       paymentMode: processingPaymentMode,
       featureKey: featureId,
       reason: input.reason,
-      accessType: passFirstEligible ? "membership_pass" : "",
+      accessType: passAccessEligible ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
       passTier: processingPassTier,
       subscriptionTier: processingPassTier,
     });
@@ -3018,7 +3036,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       message: processingOverlay.message,
       paymentMode: processingPaymentMode,
       reason: input.reason,
-      accessType: passFirstEligible ? "membership_pass" : "",
+      accessType: passAccessEligible ? "membership_pass" : (accessAlreadyGranted ? "already_unlocked" : ""),
       passTier: processingPassTier,
       subscriptionTier: processingPassTier,
     });
@@ -3030,8 +3048,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       },
       body: JSON.stringify({
         ...(input || {}),
-        paymentMode: passFirstEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
-        forceDeduct: passFirstEligible ? false : input.forceDeduct,
+        paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
+        forceDeduct: passAccessEligible ? false : input.forceDeduct,
         attemptId: activeAttempt.attemptId,
       }),
     });
@@ -3266,6 +3284,10 @@ export async function purchaseFeature(input: {
   requestId?: string;
   forceDeduct?: boolean;
   paymentMode?: string;
+  allowedPaymentModes?: string[];
+  disablePassFirst?: boolean;
+  disablePassChoice?: boolean;
+  skipPassProbe?: boolean;
   payloadHash?: string;
   productId?: string;
   productType?: string;

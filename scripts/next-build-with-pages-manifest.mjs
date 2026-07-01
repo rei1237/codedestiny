@@ -1,5 +1,5 @@
-import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
 const rootDir = process.cwd();
@@ -7,15 +7,39 @@ const manifestPath = resolve(rootDir, ".next", "server", "pages-manifest.json");
 const appManifestPath = resolve(rootDir, ".next", "server", "app-paths-manifest.json");
 const middlewareManifestPath = resolve(rootDir, ".next", "server", "middleware-manifest.json");
 const serverReferenceManifestPath = resolve(rootDir, ".next", "server", "server-reference-manifest.json");
+const buildManifestPath = resolve(rootDir, ".next", "build-manifest.json");
 const pagesDir = resolve(rootDir, ".next", "server", "pages");
 const appDir = resolve(rootDir, ".next", "server", "app");
+const server404JsPath = resolve(rootDir, ".next", "server", "pages", "404.js");
+const server500JsPath = resolve(rootDir, ".next", "server", "pages", "500.js");
+const server404Path = resolve(rootDir, ".next", "server", "pages", "404.html");
+const server500Path = resolve(rootDir, ".next", "server", "pages", "500.html");
 const export404Path = resolve(rootDir, ".next", "export", "404.html");
 const export500Path = resolve(rootDir, ".next", "export", "500.html");
+const exportDetailPath = resolve(rootDir, ".next", "export-detail.json");
 const diagnosticsPath = resolve(rootDir, ".next", "diagnostics", "build-diagnostics.json");
 const routesManifestPath = resolve(rootDir, ".next", "routes-manifest.json");
 const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
 const manifestReadGuardRequire = "--require=./scripts/next-manifest-read-guard.cjs";
 const stableBuildWorkerMode = "0";
+const exportSuccessGraceMs = Number.parseInt(process.env.CD_NEXT_EXPORT_SUCCESS_GRACE_MS || "90000", 10);
+const maxBuildAttempts = Math.max(1, Number.parseInt(process.env.CD_NEXT_BUILD_ATTEMPTS || "2", 10) || 1);
+
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function removeBuildOutputWithRetry(target) {
+  for (let attemptIndex = 0; attemptIndex < 40; attemptIndex += 1) {
+    try {
+      rmSync(target, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (!["EBUSY", "ENOTEMPTY", "EPERM"].includes(error?.code) || attemptIndex === 39) throw error;
+      sleepSync(100);
+    }
+  }
+}
 
 function withManifestReadGuard(nodeOptions = "") {
   return [nodeOptions, manifestReadGuardRequire].filter(Boolean).join(" ");
@@ -95,7 +119,7 @@ function collectAppPathsManifestEntries(dir = appDir, entries = {}) {
   return entries;
 }
 
-function ensureExportHtmlFallback(filePath, title) {
+function ensureHtmlFallback(filePath, title) {
   if (existsSync(filePath)) return;
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(
@@ -105,9 +129,41 @@ function ensureExportHtmlFallback(filePath, title) {
   );
 }
 
+function ensurePageJsFallback(filePath) {
+  if (existsSync(filePath)) return;
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, "module.exports = require('./_error.js');\n", "utf8");
+}
+
+function ensureServerPagesFallbacks() {
+  if (!existsSync(pagesDir) || !existsSync(buildManifestPath)) return;
+  ensurePageJsFallback(server404JsPath);
+  ensurePageJsFallback(server500JsPath);
+  ensureHtmlFallback(server404Path, "404");
+  ensureHtmlFallback(server500Path, "500");
+  ensureErrorPagesBuildManifestEntries();
+}
+
+function ensureErrorPagesBuildManifestEntries() {
+  const buildManifest = readJsonObject(buildManifestPath);
+  const pages = buildManifest.pages;
+  if (!pages || typeof pages !== "object" || Array.isArray(pages)) return;
+  const errorFiles = pages["/_error"];
+  if (!Array.isArray(errorFiles) || errorFiles.length === 0) return;
+
+  let changed = false;
+  for (const route of ["/404", "/500"]) {
+    if (Array.isArray(pages[route]) && pages[route].length > 0) continue;
+    pages[route] = [...errorFiles];
+    changed = true;
+  }
+
+  if (changed) writeJsonAtomic(buildManifestPath, buildManifest);
+}
+
 function ensureExportFallbacks() {
-  ensureExportHtmlFallback(export404Path, "404");
-  ensureExportHtmlFallback(export500Path, "500");
+  ensureHtmlFallback(export404Path, "404");
+  ensureHtmlFallback(export500Path, "500");
 }
 
 function ensurePagesManifest({ exportFallback = false } = {}) {
@@ -138,10 +194,15 @@ function ensurePagesManifest({ exportFallback = false } = {}) {
 }
 
 function ensureAppPathsManifest() {
-  const current = readJsonObject(appManifestPath);
+  const current = Object.fromEntries(
+    Object.entries(readJsonObject(appManifestPath)).filter(([, outputPath]) => (
+      typeof outputPath === "string" && existsSync(resolve(rootDir, ".next", "server", outputPath))
+    )),
+  );
   const entries = collectAppPathsManifestEntries();
   const notFoundOutputPath = join(appDir, "_not-found", "page.js");
   if (existsSync(notFoundOutputPath)) {
+    entries["/_not-found"] = "app/_not-found/page.js";
     entries["/_not-found/page"] = "app/_not-found/page.js";
   }
   const merged = { ...current, ...entries };
@@ -204,12 +265,17 @@ function seedPrebuildManifests() {
   seedEmptyPagesManifest();
   seedEmptyMiddlewareManifest();
   seedEmptyServerReferenceManifest();
+  ensureServerPagesFallbacks();
 }
 
 function seedRuntimeGuardManifests() {
   seedEmptyMiddlewareManifest();
   seedEmptyServerReferenceManifest();
   ensurePagesManifest();
+  if (existsSync(buildManifestPath) && (existsSync(appManifestPath) || existsSync(join(appDir, "_not-found", "page.js")))) {
+    ensureAppPathsManifest();
+  }
+  ensureServerPagesFallbacks();
 }
 
 function startManifestGuard() {
@@ -226,7 +292,7 @@ function startManifestGuard() {
 }
 
 function assertCoreRoutesManifest() {
-  if (existsSync(routesManifestPath)) return true;
+  if (hasCoreRoutesManifest()) return true;
 
   console.error(
     [
@@ -238,24 +304,96 @@ function assertCoreRoutesManifest() {
   return false;
 }
 
-ensureBuildDiagnostics();
-seedPrebuildManifests();
-const manifestGuard = startManifestGuard();
+function hasCoreRoutesManifest() {
+  return existsSync(routesManifestPath);
+}
 
-const child = spawn(process.execPath, [nextCli, "build"], {
-  cwd: rootDir,
-  env: {
-    ...process.env,
-    CIRCLE_NODE_TOTAL: process.env.CIRCLE_NODE_TOTAL || "1",
-    NEXT_PRIVATE_BUILD_WORKER: process.env.NEXT_PRIVATE_BUILD_WORKER || stableBuildWorkerMode,
-    NODE_OPTIONS: withManifestReadGuard(process.env.NODE_OPTIONS),
-  },
-  stdio: "inherit",
-  shell: false,
-});
+function hasSuccessfulExportDetail() {
+  const detail = readJsonObject(exportDetailPath);
+  return detail.success === true && typeof detail.outDirectory === "string";
+}
 
-child.on("close", (code) => {
-  clearInterval(manifestGuard);
+function stopChildBuildTree() {
+  if (!child) return;
+  if (!child.pid) return;
+  if (process.platform === "win32") {
+    spawnSync("taskkill", ["/pid", String(child.pid), "/t", "/f"], {
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    return;
+  }
+  child.kill("SIGTERM");
+}
+
+function clearBuildOutputsForRetry() {
+  for (const target of [resolve(rootDir, ".next"), resolve(rootDir, "out")]) {
+    removeBuildOutputWithRetry(target);
+  }
+}
+
+let child = null;
+let manifestGuard = null;
+let exportSuccessWatchdog = null;
+let finished = false;
+let attempt = 0;
+let exportSuccessSeenAt = 0;
+
+function clearAttemptTimers() {
+  if (manifestGuard) clearInterval(manifestGuard);
+  if (exportSuccessWatchdog) clearInterval(exportSuccessWatchdog);
+  manifestGuard = null;
+  exportSuccessWatchdog = null;
+}
+
+function startNextBuildAttempt() {
+  attempt += 1;
+  exportSuccessSeenAt = 0;
+  ensureBuildDiagnostics();
+  seedPrebuildManifests();
+  manifestGuard = startManifestGuard();
+
+  child = spawn(process.execPath, [nextCli, "build"], {
+    cwd: rootDir,
+    env: {
+      ...process.env,
+      CIRCLE_NODE_TOTAL: process.env.CIRCLE_NODE_TOTAL || "1",
+      NEXT_PRIVATE_BUILD_WORKER: process.env.NEXT_PRIVATE_BUILD_WORKER || stableBuildWorkerMode,
+      NODE_OPTIONS: withManifestReadGuard(process.env.NODE_OPTIONS),
+    },
+    stdio: "inherit",
+    shell: false,
+  });
+
+  exportSuccessWatchdog = setInterval(() => {
+    if (!hasSuccessfulExportDetail()) {
+      exportSuccessSeenAt = 0;
+      return;
+    }
+
+    exportSuccessSeenAt ||= Date.now();
+    if (Date.now() - exportSuccessSeenAt < exportSuccessGraceMs) return;
+
+    console.warn("[next-build-with-pages-manifest] export succeeded but next build did not exit; finalizing completed export.");
+    stopChildBuildTree();
+    finishBuild(0);
+  }, 5000);
+  exportSuccessWatchdog.unref?.();
+
+  child.on("close", finishBuild);
+
+  child.on("error", (error) => {
+    if (finished) return;
+    finished = true;
+    clearAttemptTimers();
+    console.error("[next-build-with-pages-manifest]", error);
+    process.exit(1);
+  });
+}
+
+function finishBuild(code) {
+  if (finished) return;
+  clearAttemptTimers();
   let manifestRepairFailed = false;
 
   try {
@@ -265,7 +403,17 @@ child.on("close", (code) => {
     console.error("[next-build-with-pages-manifest] manifest repair failed:", error);
   }
 
-  if (!assertCoreRoutesManifest()) {
+  const routesManifestOk = hasCoreRoutesManifest();
+  if ((code !== 0 || manifestRepairFailed || !routesManifestOk) && attempt < maxBuildAttempts) {
+    console.warn(`[next-build-with-pages-manifest] build attempt ${attempt}/${maxBuildAttempts} failed; retrying from a clean Next output.`);
+    clearBuildOutputsForRetry();
+    startNextBuildAttempt();
+    return;
+  }
+
+  finished = true;
+
+  if (!routesManifestOk && !assertCoreRoutesManifest()) {
     process.exit(code === 0 ? 1 : (code ?? 1));
   }
 
@@ -274,10 +422,6 @@ child.on("close", (code) => {
   }
 
   process.exit(code ?? 1);
-});
+}
 
-child.on("error", (error) => {
-  clearInterval(manifestGuard);
-  console.error("[next-build-with-pages-manifest]", error);
-  process.exit(1);
-});
+startNextBuildAttempt();

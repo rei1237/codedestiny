@@ -113,6 +113,39 @@ function getSukuyoVersionGuardReason() {
   return '';
 }
 
+function getActiveVersionGuardModalReason() {
+  var selectors = [
+    '#tilePvwOverlay.pvw-open',
+    '#sajuLoaderOverlay[aria-hidden="false"]',
+    '#cdPaidFeatureGate.is-open',
+    '.MobileFeatureBottomSheet[aria-hidden="false"]',
+    '[role="dialog"][aria-hidden="false"]',
+    '.modal-overlay.is-open',
+    '.modal-overlay.show'
+  ];
+  for (var i = 0; i < selectors.length; i += 1) {
+    var node = null;
+    try { node = document.querySelector(selectors[i]); } catch (e) { node = null; }
+    if (isVersionGuardVisibleElement(node)) return '서비스 창 열람 중';
+  }
+  try {
+    var lastAction = window.__cdLastMobileAction;
+    if (lastAction && Number(lastAction.at) > 0 && Date.now() - Number(lastAction.at) < 3000) {
+      return '서비스 진입 중';
+    }
+  } catch (e) {}
+  return '';
+}
+
+function getActiveMobileCollectionGuardReason() {
+  try {
+    var isMobile = !window.matchMedia || window.matchMedia('(max-width: 768px), (hover: none) and (pointer: coarse)').matches;
+    if (!isMobile) return '';
+    if (document.querySelector('#inputPage [data-collection-open="true"]')) return 'mobile collection open';
+  } catch (e) {}
+  return '';
+}
+
 function isCriticalOperationInProgress() {
   try {
     if (window.__CD_PAYMENT_PROCESSING__) return '결제 처리 중';
@@ -122,6 +155,10 @@ function isCriticalOperationInProgress() {
     }
     var sukuyoReason = getSukuyoVersionGuardReason();
     if (sukuyoReason) return sukuyoReason;
+    var modalReason = getActiveVersionGuardModalReason();
+    if (modalReason) return modalReason;
+    var collectionReason = getActiveMobileCollectionGuardReason();
+    if (collectionReason) return collectionReason;
 
     var active = document.activeElement;
     if (active) {
@@ -194,24 +231,53 @@ function showVersionUpdateBanner(version, reason) {
   banner.style.boxShadow = '0 12px 30px rgba(0,0,0,0.18)';
   banner.style.color = '#7c2d12';
   banner.style.fontFamily = 'Pretendard, -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+  banner.style.pointerEvents = 'none';
+
+  var compactMobileBanner = false;
+  try {
+    compactMobileBanner = !!(window.matchMedia && window.matchMedia('(max-width: 640px), (pointer: coarse)').matches);
+  } catch (e) {
+    compactMobileBanner = false;
+  }
+  if (compactMobileBanner) {
+    banner.style.left = 'auto';
+    banner.style.right = '10px';
+    banner.style.bottom = 'max(10px, env(safe-area-inset-bottom, 0px))';
+    banner.style.width = 'min(168px, calc(100vw - 20px))';
+    banner.style.padding = '8px';
+    banner.style.borderRadius = '10px';
+  }
 
   var title = document.createElement('div');
   title.textContent = '새 버전이 배포되었습니다.';
   title.style.fontSize = '14px';
   title.style.fontWeight = '700';
   title.style.marginBottom = '4px';
+  if (compactMobileBanner) {
+    title.style.fontSize = '12px';
+    title.style.marginBottom = '2px';
+  }
 
   var message = document.createElement('div');
   message.setAttribute('data-cd-version-message', '1');
   message.textContent = '현재 ' + reason + ' 상태여서 자동 새로고침을 보류했습니다.';
   message.style.fontSize = '12px';
   message.style.opacity = '0.92';
+  if (compactMobileBanner) {
+    message.style.display = 'none';
+  }
 
   var actions = document.createElement('div');
   actions.style.display = 'flex';
   actions.style.gap = '8px';
   actions.style.justifyContent = 'flex-end';
   actions.style.marginTop = '10px';
+  actions.style.pointerEvents = 'none';
+  if (compactMobileBanner) {
+    actions.style.gap = '5px';
+    actions.style.marginTop = '6px';
+    actions.style.justifyContent = 'stretch';
+  }
 
   var laterButton = document.createElement('button');
   laterButton.type = 'button';
@@ -223,6 +289,12 @@ function showVersionUpdateBanner(version, reason) {
   laterButton.style.padding = '6px 10px';
   laterButton.style.fontSize = '12px';
   laterButton.style.fontWeight = '700';
+  laterButton.style.pointerEvents = 'auto';
+  if (compactMobileBanner) {
+    laterButton.style.flex = '1 1 0';
+    laterButton.style.padding = '5px 6px';
+    laterButton.style.fontSize = '11px';
+  }
   laterButton.addEventListener('click', function() {
     try { sessionStorage.setItem(APP_VERSION_DEFER_GUARD, version); } catch (e) {}
     removeVersionUpdateBanner();
@@ -238,6 +310,12 @@ function showVersionUpdateBanner(version, reason) {
   refreshButton.style.padding = '6px 10px';
   refreshButton.style.fontSize = '12px';
   refreshButton.style.fontWeight = '700';
+  refreshButton.style.pointerEvents = 'auto';
+  if (compactMobileBanner) {
+    refreshButton.style.flex = '1 1 0';
+    refreshButton.style.padding = '5px 6px';
+    refreshButton.style.fontSize = '11px';
+  }
   refreshButton.addEventListener('click', function() {
     applyVersionRefresh(version);
   });

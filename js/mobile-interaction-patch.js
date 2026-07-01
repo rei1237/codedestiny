@@ -18,6 +18,10 @@
   var lastActionInvoke = { action: '', at: 0 };
   var cardScrollLockUntil = 0;
   var cardScrollTouch = { active: false, moved: false };
+  var tapFeedbackEl = null;
+  var tapFeedbackTimer = 0;
+  var overlayGuardTimer = 0;
+  var TAP_FEEDBACK_CLASS = 'cd-mobile-tap-feedback';
   var CARD_SCROLL_SELECTORS = [
     '.feature-card-grid',
     '.feat-collection',
@@ -31,6 +35,25 @@
     '.sibyl-entry-tile',
     '.prem-card',
     '.fc-toggle-btn'
+  ].join(',');
+  var GENERIC_CARD_ACTION_SELECTORS = [
+    '.moon-preview-card',
+    '.cd-comprehensive-prompt-entry',
+    '.feature-card-grid .feature-card',
+    '.feature-card-grid .tarot-tile',
+    '.feature-card-grid .lifebook-tile',
+    '.feature-card-grid .lovebible-tile',
+    '.feature-card-grid .lovesim-tile',
+    '.feature-card-grid .sibyl-entry-tile',
+    '.feature-card-grid .prem-card',
+    '.lifebook-tile',
+    '.lovebible-tile',
+    '.lovesim-tile',
+    '.sibyl-entry-tile',
+    '.prem-card',
+    '.feat-collection__grid .tarot-tile',
+    '.tarot-collection__grid .tarot-tile',
+    '.pvc-prem-grid .tarot-tile'
   ].join(',');
   var MOBILE_INTERACTION_PATCH_COPY = {
     ko: { locationSeoul: '대한민국 (서울)' },
@@ -68,13 +91,97 @@
     return !!(node && node.closest && node.closest(CARD_SCROLL_SELECTORS));
   }
 
+  function isGenericCardActionElement(node) {
+    return !!(node && node.closest && node.closest(GENERIC_CARD_ACTION_SELECTORS));
+  }
+
   function shouldBlockCardTap() {
     return Date.now() < cardScrollLockUntil;
+  }
+
+  function getTapFeedbackElement(node) {
+    if (!node || typeof node.closest !== 'function') return null;
+    var el = node.closest('[data-action],a[href],button,[role="button"],.MobileFeatureCard,.MobileCompactCard,.MobileQuickAction,.tarot-tile,.feature-card,.prem-card,.moon-preview-card,.cd-comprehensive-prompt-entry');
+    if (!el) return null;
+    if (el.matches && el.matches('input,textarea,select,label')) return null;
+    if (el.disabled || el.getAttribute('aria-disabled') === 'true') return null;
+    return el;
+  }
+
+  function clearTapFeedback() {
+    if (tapFeedbackTimer) {
+      clearTimeout(tapFeedbackTimer);
+      tapFeedbackTimer = 0;
+    }
+    if (tapFeedbackEl && tapFeedbackEl.classList) {
+      tapFeedbackEl.classList.remove(TAP_FEEDBACK_CLASS);
+    }
+    tapFeedbackEl = null;
+  }
+
+  function showTapFeedback(node) {
+    var el = getTapFeedbackElement(node);
+    if (!el) return;
+    if (tapFeedbackEl && tapFeedbackEl !== el) clearTapFeedback();
+    tapFeedbackEl = el;
+    el.classList.add(TAP_FEEDBACK_CLASS);
+    tapFeedbackTimer = setTimeout(clearTapFeedback, 220);
+  }
+
+  function hasOpenMobileOverlay() {
+    var selectors = [
+      '#tilePvwOverlay.pvw-open',
+      '#sajuLoaderOverlay[aria-hidden="false"]',
+      '#cdPaidFeatureGate.is-open',
+      '#cdLoginRequiredModal.is-open',
+      '#privacy-modal-overlay[aria-hidden="false"]',
+      '#goldenGrainChargeModalRoot[aria-hidden="false"]',
+      '#namingPromptModal[aria-hidden="false"]',
+      '.saju-loader-overlay[aria-hidden="false"]',
+      '.modal[aria-hidden="false"]',
+      '[role="dialog"][aria-modal="true"][aria-hidden="false"]'
+    ].join(',');
+    try {
+      var nodes = document.querySelectorAll(selectors);
+      for (var i = 0; i < nodes.length; i += 1) {
+        var node = nodes[i];
+        var style = window.getComputedStyle ? window.getComputedStyle(node) : null;
+        if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) continue;
+        var rect = node.getBoundingClientRect ? node.getBoundingClientRect() : null;
+        if (!rect || rect.width > 20 || rect.height > 20) return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  function reconcileOverlayLifecycle() {
+    try {
+      if (!hasOpenMobileOverlay()) {
+        if (document.body && document.body.style && document.body.style.overflow === 'hidden') {
+          document.body.style.overflow = '';
+        }
+        if (document.body && document.body.classList) {
+          document.body.classList.remove('lb-modal-open');
+          if (!document.querySelector('#namingPromptModal[aria-hidden="false"]')) {
+            document.body.classList.remove('naming-prompt-open');
+          }
+        }
+      }
+    } catch (_) {}
+  }
+
+  function scheduleOverlayLifecycleGuard(delayMs) {
+    if (overlayGuardTimer) clearTimeout(overlayGuardTimer);
+    overlayGuardTimer = setTimeout(function() {
+      overlayGuardTimer = 0;
+      reconcileOverlayLifecycle();
+    }, typeof delayMs === 'number' ? delayMs : 80);
   }
 
   function isDesktopNoTouch() {
     try {
       var hasMatchMedia = typeof window.matchMedia === 'function';
+      if (hasMatchMedia && window.matchMedia('(max-width: 768px)').matches) return false;
       var finePointer = hasMatchMedia && (
         window.matchMedia('(pointer:fine)').matches ||
         window.matchMedia('(any-pointer:fine)').matches ||
@@ -92,6 +199,78 @@
     } catch (_) {
       return false;
     }
+  }
+
+  function isMobileRuntime() {
+    try {
+      if (typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 768px)').matches) return true;
+      return /android|iphone|ipad|ipod/i.test(navigator.userAgent || '') || Number(navigator.maxTouchPoints || 0) > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function applyMobileMediaPerformance(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var mobile = isMobileRuntime();
+    var imgs = [];
+    if (scope.matches && scope.matches('img')) imgs.push(scope);
+    if (scope.querySelectorAll) imgs = imgs.concat(Array.prototype.slice.call(scope.querySelectorAll('img')));
+    imgs.forEach(function(img) {
+      if (!img || img.dataset.cdMobilePerfMedia === '1') return;
+      var className = String(img.className || '');
+      var isLcp = img.getAttribute('data-lcp-candidate') === '1';
+      var isMobileHubLogo = className.indexOf('cd-mobile-hub__logo') !== -1;
+      if (!isLcp && !isMobileHubLogo) {
+        img.setAttribute('loading', 'lazy');
+        if (!img.hasAttribute('fetchpriority')) img.setAttribute('fetchpriority', 'low');
+      }
+      if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+      if (!img.hasAttribute('sizes')) {
+        if (className.indexOf('tarot-tile__img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 92px, 200px');
+        else if (className.indexOf('tarot-face-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 31vw, 200px');
+        else if (isMobileHubLogo) img.setAttribute('sizes', '46px');
+        else if (className.indexOf('sibyl-entry-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 116px, 320px');
+        else if (className.indexOf('sb-logo-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 72px, 160px');
+        else if (className.indexOf('honey-membership-mini__pass-img') !== -1) img.setAttribute('sizes', '86px');
+        else if (className.indexOf('membership-recap-cta__mascot-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 128px, 240px');
+        else if (className.indexOf('tile-pvw-hero-img') !== -1) img.setAttribute('sizes', '(max-width: 768px) 100vw, 500px');
+        else if (img.closest && img.closest('.moon-music-entry__cover-stack')) img.setAttribute('sizes', '(max-width: 768px) 260px, 320px');
+        else if (Number(img.getAttribute('width') || 0) >= 1000) img.setAttribute('sizes', '(max-width: 768px) 88vw, 720px');
+        else if (Number(img.getAttribute('width') || 0) >= 400) img.setAttribute('sizes', '(max-width: 768px) 42vw, 420px');
+        else if (Number(img.getAttribute('width') || 0) > 0) img.setAttribute('sizes', img.getAttribute('width') + 'px');
+      }
+      if (mobile && img.id === 'neoLogo') {
+        img.setAttribute('loading', 'lazy');
+        img.setAttribute('fetchpriority', 'low');
+      }
+      img.dataset.cdMobilePerfMedia = '1';
+    });
+
+    var mediaNodes = [];
+    if (scope.matches && scope.matches('audio,video')) mediaNodes.push(scope);
+    if (scope.querySelectorAll) mediaNodes = mediaNodes.concat(Array.prototype.slice.call(scope.querySelectorAll('audio,video')));
+    mediaNodes.forEach(function(node) {
+      if (!node || node.dataset.cdMobilePerfMedia === '1') return;
+      if (!node.hasAttribute('data-user-media-started')) node.setAttribute('preload', 'none');
+      node.autoplay = false;
+      node.removeAttribute('autoplay');
+      node.dataset.cdMobilePerfMedia = '1';
+    });
+  }
+
+  function watchMobileMediaPerformance() {
+    applyMobileMediaPerformance(document);
+    try { window.__cdMobilePerformanceMediaGuardReady = true; } catch (_) {}
+    if (!document.body || typeof MutationObserver === 'undefined') return;
+    var mediaObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        Array.prototype.forEach.call(mutation.addedNodes || [], function(node) {
+          if (node && node.nodeType === 1) applyMobileMediaPerformance(node);
+        });
+      });
+    });
+    mediaObserver.observe(document.body, { childList: true, subtree: true });
   }
 
   /* INP: defer heavy data-action handlers in index-inline-runtime / uiBindings to the next task. */
@@ -125,9 +304,16 @@
   var RULES = [
     {
       action: 'openPhysiognomyApp',
-      cardSelector: '.feature-card--face',
+      cardSelector: '.feature-card--face, .tarot-tile--physio',
       targetSelector: [
         '[data-action="openPhysiognomyApp"]',
+        '.tarot-tile--physio',
+        '.tarot-tile--physio .tarot-tile__img-wrap',
+        '.tarot-tile--physio .tarot-tile__img',
+        '.tarot-tile--physio .tarot-tile__badge',
+        '.tarot-tile--physio .tarot-tile__title',
+        '.tarot-tile--physio .tarot-tile__desc',
+        '.tarot-tile--physio .tarot-tile__body',
         '.feature-card--face .feature-card__visual',
         '.feature-card--face .feature-card__img-wrap',
         '.feature-card--face .feature-card__img',
@@ -135,6 +321,20 @@
         '.feature-card--face .feature-card__desc',
         '.feature-card--face .feature-card__cta',
         '.feature-card--face .feature-card__launch'
+      ].join(',')
+    },
+    {
+      action: 'openMbtiModal',
+      cardSelector: '.tarot-tile--mbti',
+      targetSelector: [
+        '[data-action="openMbtiModal"]',
+        '.tarot-tile--mbti',
+        '.tarot-tile--mbti .tarot-tile__img-wrap',
+        '.tarot-tile--mbti .tarot-tile__img',
+        '.tarot-tile--mbti .tarot-tile__badge',
+        '.tarot-tile--mbti .tarot-tile__title',
+        '.tarot-tile--mbti .tarot-tile__desc',
+        '.tarot-tile--mbti .tarot-tile__body'
       ].join(',')
     },
     {
@@ -169,6 +369,41 @@
         '.tarot-tile--animal-totem .tarot-tile__title',
         '.tarot-tile--animal-totem .tarot-tile__desc',
         '.tarot-tile--animal-totem .tarot-tile__body'
+      ].join(',')
+    },
+    {
+      action: 'openTarotModal',
+      cardSelector: '.feature-card--tarot, .tarot-tile--classic',
+      targetSelector: [
+        '[data-action="openTarotModal"]',
+        '.tarot-tile--classic',
+        '.tarot-tile--classic .tarot-tile__img-wrap',
+        '.tarot-tile--classic .tarot-tile__img',
+        '.tarot-tile--classic .tarot-tile__badge',
+        '.tarot-tile--classic .tarot-tile__title',
+        '.tarot-tile--classic .tarot-tile__desc',
+        '.tarot-tile--classic .tarot-tile__body',
+        '.feature-card--tarot .feature-card__visual',
+        '.feature-card--tarot .feature-card__img-wrap',
+        '.feature-card--tarot .feature-card__img',
+        '.feature-card--tarot .feature-card__title',
+        '.feature-card--tarot .feature-card__desc',
+        '.feature-card--tarot .feature-card__cta',
+        '.feature-card--tarot .feature-card__launch'
+      ].join(',')
+    },
+    {
+      action: 'openCelestialHarmony',
+      cardSelector: '.tarot-tile--celestial-harmony',
+      targetSelector: [
+        '[data-action="openCelestialHarmony"]',
+        '.tarot-tile--celestial-harmony',
+        '.tarot-tile--celestial-harmony .tarot-tile__img-wrap',
+        '.tarot-tile--celestial-harmony .tarot-tile__img',
+        '.tarot-tile--celestial-harmony .tarot-tile__badge',
+        '.tarot-tile--celestial-harmony .tarot-tile__title',
+        '.tarot-tile--celestial-harmony .tarot-tile__desc',
+        '.tarot-tile--celestial-harmony .tarot-tile__body'
       ].join(',')
     },
     {
@@ -242,6 +477,20 @@
       ].join(',')
     },
     {
+      action: 'openCosmicSoulMeditation',
+      cardSelector: '.tarot-tile--meditation[data-action="openCosmicSoulMeditation"], .tarot-tile--meditation[href*="cosmic-soul-meditation"]',
+      targetSelector: [
+        '[data-action="openCosmicSoulMeditation"]',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"]',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__img-wrap',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__img',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__badge',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__title',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__desc',
+        '.tarot-tile--meditation[href*="cosmic-soul-meditation"] .tarot-tile__body'
+      ].join(',')
+    },
+    {
       action: 'openTarotHealingModal',
       cardSelector: '.tarot-tile--healing',
       targetSelector: [
@@ -256,16 +505,9 @@
     },
     {
       action: 'openRoyalTeaOracle',
-      cardSelector: '.tarot-tile--royal-tea',
+      cardSelector: '[data-action="openRoyalTeaOracle"]',
       targetSelector: [
-        '[data-action="openRoyalTeaOracle"]',
-        '.tarot-tile--royal-tea',
-        '.tarot-tile--royal-tea .tarot-tile__img-wrap',
-        '.tarot-tile--royal-tea .tarot-tile__img',
-        '.tarot-tile--royal-tea .tarot-tile__badge',
-        '.tarot-tile--royal-tea .tarot-tile__title',
-        '.tarot-tile--royal-tea .tarot-tile__desc',
-        '.tarot-tile--royal-tea .tarot-tile__body'
+        '[data-action="openRoyalTeaOracle"]'
       ].join(',')
     },
     {
@@ -425,6 +667,26 @@
         '.feature-card--egypt .feature-card__desc',
         '.feature-card--egypt .feature-card__cta',
         '.feature-card--egypt .feature-card__launch'
+      ].join(',')
+    },
+    {
+      action: 'openJuyukModal',
+      cardSelector: '.tarot-tile--juyuk-fc, .feature-card--juyuk',
+      targetSelector: [
+        '[data-action="openJuyukModal"]',
+        '.tarot-tile--juyuk-fc',
+        '.tarot-tile--juyuk-fc .tarot-tile__img-wrap',
+        '.tarot-tile--juyuk-fc .tarot-tile__img',
+        '.tarot-tile--juyuk-fc .tarot-tile__title',
+        '.tarot-tile--juyuk-fc .tarot-tile__desc',
+        '.tarot-tile--juyuk-fc .tarot-tile__body',
+        '.feature-card--juyuk .feature-card__visual',
+        '.feature-card--juyuk .feature-card__img-wrap',
+        '.feature-card--juyuk .feature-card__img',
+        '.feature-card--juyuk .feature-card__title',
+        '.feature-card--juyuk .feature-card__desc',
+        '.feature-card--juyuk .feature-card__cta',
+        '.feature-card--juyuk .feature-card__launch'
       ].join(',')
     },
     {
@@ -604,6 +866,79 @@
     window.dispatchEvent(new CustomEvent('code-destiny:feature-tap', { detail: detail }));
   }
 
+  function blockCollectionToggleEvent(event) {
+    if (event && event.cancelable && typeof event.preventDefault === 'function') event.preventDefault();
+    if (event && typeof event.stopImmediatePropagation === 'function') event.stopImmediatePropagation();
+    else if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
+  }
+
+  function findCollectionToggleFromOrigin(origin) {
+    return origin instanceof Element ? origin.closest('[data-action="toggleCollection"][data-target]') : null;
+  }
+
+  function findCollectionToggleFromPoint(x, y) {
+    var px = Number(x);
+    var py = Number(y);
+    if (!Number.isFinite(px) || !Number.isFinite(py)) return null;
+    var top = typeof document.elementFromPoint === 'function' ? document.elementFromPoint(px, py) : null;
+    var direct = findCollectionToggleFromOrigin(top);
+    if (direct) return direct;
+    if (typeof document.elementsFromPoint === 'function') {
+      var stack = document.elementsFromPoint(px, py);
+      for (var i = 0; i < stack.length; i += 1) {
+        var stacked = findCollectionToggleFromOrigin(stack[i]);
+        if (stacked) return stacked;
+      }
+    }
+    var toggles = document.querySelectorAll('[data-action="toggleCollection"][data-target]');
+    for (var j = 0; j < toggles.length; j += 1) {
+      var toggle = toggles[j];
+      var rect = toggle.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+      if (px < rect.left || px > rect.right || py < rect.top || py > rect.bottom) continue;
+      var style = window.getComputedStyle ? window.getComputedStyle(toggle) : null;
+      if (style && (style.display === 'none' || style.visibility === 'hidden' || style.pointerEvents === 'none')) continue;
+      return toggle;
+    }
+    return null;
+  }
+
+  function toggleMobileCollection(toggle, event, source) {
+    if (!toggle) return false;
+    var targetId = String(toggle.getAttribute('data-target') || '').trim();
+    var collection = targetId ? document.getElementById(targetId) : null;
+    if (!collection) return false;
+    var guard = window.__cdMobileCollectionToggleGuard;
+    if (guard && guard.targetId === targetId && (Date.now() - guard.at) < 650) {
+      blockCollectionToggleEvent(event);
+      return true;
+    }
+    window.__cdMobileCollectionToggleGuard = { targetId: targetId, at: Date.now(), source: source || 'mobile-patch' };
+    window.__cdLastMobileAction = { action: 'toggleCollection', sourceType: source || 'mobile-patch', at: Date.now() };
+    blockCollectionToggleEvent(event);
+    var nextState = collection.getAttribute('data-collection-open') !== 'true';
+    collection.setAttribute('data-collection-open', String(nextState));
+    toggle.setAttribute('aria-expanded', String(nextState));
+    try {
+      document.dispatchEvent(new CustomEvent('cd:collection-toggle', {
+        detail: { targetId: targetId, isOpen: nextState }
+      }));
+    } catch (_) {}
+    return true;
+  }
+
+  function handleCollectionToggleTap(event, point, source) {
+    if (!event || !point) return false;
+    var start = lastTouchStart;
+    if (start && (Date.now() - (start.at || 0)) <= MAX_TAP_DURATION_MS) {
+      var dx = Math.abs(Number(point.x) - Number(start.x));
+      var dy = Math.abs(Number(point.y) - Number(start.y));
+      if (dx >= TAP_MAX_DX || dy >= TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) return false;
+    }
+    var toggle = findCollectionToggleFromOrigin(event.target) || findCollectionToggleFromPoint(point.x, point.y);
+    return toggleMobileCollection(toggle, event, source);
+  }
+
   function shouldSkipDuplicateAction(action) {
     if (!action) return false;
     var now = Date.now();
@@ -700,7 +1035,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-d69c074628d4').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-eab15715b1e1').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -780,25 +1115,31 @@
   }
 
   var LAZY_LOAD_ACTIONS = {
+    openPhysiognomyApp: [
+      'AnalysisEngine.js?v=20260606-physio-accuracy',
+      'PhysiognomyUI.js?v=20260606-physio-accuracy'
+    ],
+    openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-d69c074628d4'
+      'js/animal-totem-experience.js?v=build-eab15715b1e1'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-d69c074628d4'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-d69c074628d4'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-d69c074628d4'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-eab15715b1e1'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-eab15715b1e1'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-eab15715b1e1'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-d69c074628d4'],
-    openDreamModal: ['js/dream-ledger.js?v=build-d69c074628d4'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-d69c074628d4'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-eab15715b1e1'],
+    openDreamModal: ['js/dream-ledger.js?v=build-eab15715b1e1'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-eab15715b1e1'],
     openKemetModal: ['js/oracle-kcg.js'],
+    openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-d69c074628d4']
+    openSibylModal: ['js/sibyl-system.js?v=build-eab15715b1e1']
   };
 
   function normalizeScriptSrc(src) {
@@ -851,6 +1192,13 @@
 
   function invokeBusinessAction(rule, origin, sourceEvent) {
     if (!rule) return false;
+    try {
+      window.__cdLastMobileAction = {
+        action: rule.action,
+        sourceType: sourceEvent ? sourceEvent.type : 'manual',
+        at: Date.now()
+      };
+    } catch (_) {}
     ensureMobileBackstackRuntime();
     try {
       if (window.__cdMobileNav && typeof window.__cdMobileNav.onActionInvoke === 'function') {
@@ -883,6 +1231,14 @@
       if (_coinGateTile && _coinGateTile.getAttribute('data-pvw-bypass')) _coinGateTile = null;
     }
     if (_coinGateTile) {
+      var _coinGateCost = Number(_coinGateTile.getAttribute('data-coin-cost') || 0);
+      if (_coinGateCost > 0 && !_fromPreviewBypass && typeof window._cdOpenTilePreview === 'function') {
+        try {
+          if (window._cdOpenTilePreview(_coinGateTile)) {
+            return true;
+          }
+        } catch (_) {}
+      }
       if (typeof window.__cdRequireTileLockGate === 'function') {
         if (!window.__cdRequireTileLockGate(_coinGateTile)) {
           return true;
@@ -895,6 +1251,35 @@
       }
     }
     // Coin/payment gate check complete.
+
+    var directLinkEl = origin && typeof origin.closest === 'function'
+      ? origin.closest('a[href]')
+      : null;
+    if (directLinkEl) {
+      var directCoinCost = Number(directLinkEl.getAttribute('data-coin-cost') || 0);
+      var directLockCost = Number(directLinkEl.getAttribute('data-tile-lock-cost') || 0);
+      var directHref = directLinkEl.getAttribute('href') || directLinkEl.getAttribute('data-direct-href') || directLinkEl.getAttribute('data-fallback-href') || '';
+      var normalizedHref = String(directHref || '').trim();
+      if (
+        directCoinCost <= 0 &&
+        directLockCost <= 0 &&
+        normalizedHref &&
+        normalizedHref !== '#' &&
+        normalizedHref.indexOf('javascript:') !== 0
+      ) {
+        try {
+          window.location.href = normalizedHref;
+          return true;
+        } catch (directErr) {
+          try {
+            window.location.assign(normalizedHref);
+            return true;
+          } catch (assignErr) {
+            console.error('[mobile-interaction-patch] direct link navigation failed:', assignErr || directErr);
+          }
+        }
+      }
+    }
 
     var loadToken = beginFeatureLoading(rule.action, { minMs: 350, maxMs: 7000 });
 
@@ -1038,7 +1423,8 @@
     var el = origin.closest('[data-action]');
     if (!el) return null;
     var action = el.getAttribute('data-action');
-    if (!action || !FEATURE_ACTION_SET[action]) return null;
+    if (!action || action === 'toggleCollection') return null;
+    if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(el)) return null;
     return el;
   }
 
@@ -1075,6 +1461,38 @@
       return true;
     }
     return false;
+  }
+
+  function findMobileCardLink(origin) {
+    if (!origin || typeof origin.closest !== 'function') return null;
+    var link = origin.closest(
+      'a[href].tarot-tile,' +
+      'a[href].premium-card,' +
+      'a[href].service-card,' +
+      'a[href].MobileFeatureCard,' +
+      'a[href].MobileLockedCard,' +
+      'a[href].moon-preview-card'
+    );
+    if (!link) return null;
+    var href = String(link.getAttribute('href') || '').trim();
+    if (!href || href.charAt(0) === '#' || /^javascript:/i.test(href)) return null;
+    return link;
+  }
+
+  function invokeMobileCardLink(link) {
+    if (!link) return false;
+    var href = String(link.getAttribute('href') || '').trim();
+    if (!href || shouldSkipDuplicateAction('link::' + href)) return false;
+    try {
+      window.__cdLastMobileAction = {
+        action: 'navigateLink',
+        href: href,
+        sourceType: 'touch',
+        at: Date.now()
+      };
+    } catch (_) {}
+    window.location.href = href;
+    return true;
   }
 
   function injectTouchActionStyle() {
@@ -1129,11 +1547,54 @@
       '  -webkit-tap-highlight-color: transparent;',
       '  cursor: pointer;',
       '}',
+      '.moon-preview-card, .cd-comprehensive-prompt-entry,',
+      '.lang-trigger, .cd-mobile-hub__chip, .cd-mobile-hub__section-more, .cd-mobile-bottom-nav__chip, .moon-music-entry__cta,',
+      '.feature-card-grid .feature-card, .feature-card-grid .tarot-tile, .feature-card-grid .lifebook-tile,',
+      '.feature-card-grid .lovebible-tile, .feature-card-grid .lovesim-tile, .feature-card-grid .sibyl-entry-tile,',
+      '.feature-card-grid .prem-card, .lifebook-tile, .lovebible-tile, .lovesim-tile, .sibyl-entry-tile, .prem-card {',
+      '  touch-action: manipulation;',
+      '  -webkit-tap-highlight-color: transparent;',
+      '  cursor: pointer;',
+      '  min-height: 44px;',
+      '  min-width: 44px;',
+      '}',
+      '.lang-trigger, .cd-mobile-hub__chip, .cd-mobile-hub__section-more, .cd-mobile-bottom-nav__chip, .moon-music-entry__cta {',
+      '  min-height: 44px !important;',
+      '  min-width: 44px !important;',
+      '}',
+      '.lang-trigger {',
+      '  height: 44px !important;',
+      '}',
+      '.moon-preview-card__sigil, .moon-preview-card__meta,',
+      '.feature-card-grid .tarot-tile__img-wrap, .feature-card-grid .tarot-tile__img,',
+      '.feature-card-grid .tarot-tile__body, .feature-card-grid .tarot-tile__title,',
+      '.feature-card-grid .tarot-tile__desc, .feature-card-grid .tarot-tile__badge,',
+      '.feature-card-grid .tarot-tile__coin-badge, .feature-card-grid .tarot-tile__lock-icon,',
+      '.feature-card-grid .tarot-tile__img-placeholder, .feature-card-grid .tarot-tile__img-skeleton,',
+      '.tarot-tile__img-wrap, .tarot-tile__img, .tarot-tile__body,',
+      '.tarot-tile__title, .tarot-tile__desc, .tarot-tile__badge,',
+      '.tarot-tile__coin-badge, .tarot-tile__lock-icon,',
+      '.tarot-tile__img-placeholder, .tarot-tile__img-skeleton,',
+      '.lifebook-tile__bg, .lifebook-tile__particles,',
+      '.lovebible-tile__bg, .lovebible-tile__particles {',
+      '  pointer-events: none;',
+      '}',
       '.feature-card-grid, .feat-collection, .tarot-collection, .feat-collection__grid, .tarot-collection__grid {',
       '  touch-action: pan-y;',
       '}',
       ':root {',
       '  --cd-safe-vh: 100vh;',
+      '}',
+      '.cd-mobile-tap-feedback {',
+      '  transform: translateY(1px) scale(.992);',
+      '  filter: brightness(1.06);',
+      '  transition: transform .12s ease, filter .12s ease;',
+      '}',
+      '#tilePvwOverlay:not(.pvw-open), #sajuLoaderOverlay[aria-hidden="true"], #privacy-modal-overlay[aria-hidden="true"], #goldenGrainChargeModalRoot[aria-hidden="true"], #namingPromptModal[aria-hidden="true"], #cdLoginRequiredModal[aria-hidden="true"], .saju-loader-overlay[aria-hidden="true"], .modal[aria-hidden="true"] {',
+      '  pointer-events: none !important;',
+      '}',
+      '#namingPromptModal[aria-hidden="false"] {',
+      '  min-height: var(--cd-safe-vh);',
       '}',
       '@supports (height: 100dvh) {',
       '  :root { --cd-safe-vh: 100dvh; }',
@@ -1143,6 +1604,35 @@
       '  max-height: var(--cd-safe-vh);',
       '  overflow-x: hidden;',
       '  -webkit-overflow-scrolling: touch;',
+      '}',
+      '@media (max-width: 767px), (hover: none) and (pointer: coarse) {',
+      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-visual,',
+      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite,',
+      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite::before,',
+      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-progress::after {',
+      '    animation-play-state: paused !important;',
+      '    -webkit-animation-play-state: paused !important;',
+      '  }',
+      '  #sajuLoaderOverlay[aria-hidden="true"] .saju-loader-yeon-sprite::before {',
+      '    background-image: none !important;',
+      '  }',
+      '  #sajuLoaderOverlay[aria-hidden="false"][data-marker~="honey-fortune-logo-payment-ux-v20260618"],',
+      '  #cdPaidFeatureGate {',
+      '    backdrop-filter: blur(6px) saturate(1.02) !important;',
+      '    -webkit-backdrop-filter: blur(6px) saturate(1.02) !important;',
+      '  }',
+      '  .tile-pvw-bd, .tile-pvw-close, .tile-pvw-hero-cat, .tile-pvw-hero-cost {',
+      '    backdrop-filter: none !important;',
+      '    -webkit-backdrop-filter: none !important;',
+      '  }',
+      '}',
+      '@media (prefers-reduced-motion: reduce) {',
+      '  .moon-music-entry__stars, .moon-music-entry__stars-crescent,',
+      '  #sajuLoaderOverlay .saju-loader-yeon-sprite::before,',
+      '  .tile-pvw-hero-img.pvw-img-enter {',
+      '    animation: none !important;',
+      '    -webkit-animation: none !important;',
+      '  }',
       '}'
     ].join('\n');
 
@@ -1150,6 +1640,84 @@
     style.id = 'cd-mobile-touch-bridge-style';
     style.textContent = css;
     document.head.appendChild(style);
+  }
+
+  function bindMobileDataActionFallback(root) {
+    if (!root || root.__cdMobileDataActionFallbackBound) return;
+    root.__cdMobileDataActionFallbackBound = true;
+    root.addEventListener('click', function (event) {
+      if (!event || event.__cdMobileBridgeHandled || !event.target || !event.target.closest) return;
+      var actionEl = findDataActionElement(event.target);
+      if (!actionEl) return;
+      var now = Date.now();
+      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
+        && (lastTouchHadMove || cardScrollTouch.moved);
+      if (now < suppressClickUntil || recentScrollGuard) return;
+      if (!invokeDataActionFallback(actionEl, event)) return;
+      event.__cdMobileBridgeHandled = true;
+      showTapFeedback(actionEl);
+      scheduleOverlayLifecycleGuard(360);
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+  }
+
+  function bindDirectFeatureCardActions(root) {
+    var scope = root && root.querySelectorAll ? root : document;
+    var nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action], #cdMobileDestinyHub [data-action]');
+    nodes.forEach(function(node) {
+      if (!node || node.__cdMobileDirectActionBound) return;
+      var action = node.getAttribute('data-action');
+      if (!action || action === 'toggleCollection') return;
+      if (!FEATURE_ACTION_SET[action] && !isGenericCardActionElement(node)) return;
+      node.__cdMobileDirectActionBound = true;
+      var directTouch = null;
+      node.addEventListener('touchstart', function(event) {
+        var pt = getPoint(event);
+        directTouch = pt ? { x: pt.x, y: pt.y, moved: false, at: Date.now() } : null;
+      }, { passive: true });
+      node.addEventListener('touchmove', function(event) {
+        if (!directTouch) return;
+        var pt = getPoint(event);
+        if (!pt) return;
+        if (Math.abs(pt.x - directTouch.x) > TAP_MOVE_DETECT_PX || Math.abs(pt.y - directTouch.y) > TAP_MOVE_DETECT_PX) {
+          directTouch.moved = true;
+        }
+      }, { passive: true });
+      node.addEventListener('touchend', function(event) {
+        if (!directTouch || directTouch.moved || Date.now() - directTouch.at > MAX_TAP_DURATION_MS) {
+          directTouch = null;
+          return;
+        }
+        directTouch = null;
+        if (event && event.__cdMobileBridgeHandled) return;
+        if (!invokeDataActionFallback(node, event)) return;
+        event.__cdMobileBridgeHandled = true;
+        showTapFeedback(node);
+        scheduleOverlayLifecycleGuard(360);
+        event.preventDefault();
+        event.stopPropagation();
+      }, { passive: false });
+      node.addEventListener('pointerup', function(event) {
+        if (!event || event.pointerType !== 'touch' || event.__cdMobileBridgeHandled) return;
+        if (directTouch && directTouch.moved) return;
+        if (!invokeDataActionFallback(node, event)) return;
+        event.__cdMobileBridgeHandled = true;
+        showTapFeedback(node);
+        scheduleOverlayLifecycleGuard(360);
+        event.preventDefault();
+        event.stopPropagation();
+      }, { passive: false });
+      node.addEventListener('click', function(event) {
+        if (!event || event.__cdMobileBridgeHandled) return;
+        if (!invokeDataActionFallback(node, event)) return;
+        event.__cdMobileBridgeHandled = true;
+        showTapFeedback(node);
+        scheduleOverlayLifecycleGuard(360);
+        event.preventDefault();
+        event.stopPropagation();
+      }, true);
+    });
   }
 
   function createBulletproofDelegator(root) {
@@ -1169,6 +1737,10 @@
       if (pt) {
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
+      }
+      if (event && event.target) {
+        showTapFeedback(event.target);
+        scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
@@ -1201,6 +1773,7 @@
       if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
         touchCtx.hadMoveEvent = true;
         lastTouchHadMove = true;
+        clearTapFeedback();
       }
       if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
         touchCtx.moved = true;
@@ -1215,6 +1788,45 @@
       var pt = getPoint(event);
       if (!pt) return;
 
+      if (handleCollectionToggleTap(event, pt, 'touch')) {
+        event.__cdMobileBridgeHandled = true;
+        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+        return;
+      }
+
+      if (event.target && event.target.closest) {
+        var gateTile = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
+        if (gateTile && !gateTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+          try {
+            if (window._cdOpenTilePreview(gateTile)) {
+              showTapFeedback(gateTile);
+              scheduleOverlayLifecycleGuard(360);
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
+          } catch (_) {}
+        }
+      }
+
+      if (lastTouchStart) {
+        var directDx = Math.abs(pt.x - lastTouchStart.x);
+        var directDy = Math.abs(pt.y - lastTouchStart.y);
+        var directAge = Date.now() - (lastTouchStart.at || 0);
+        var directLink = findMobileCardLink(event.target);
+        if (directLink && directDx < TAP_MAX_DX && directDy < TAP_MAX_DY && directAge <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
+          if (invokeMobileCardLink(directLink)) {
+            showTapFeedback(directLink);
+            scheduleOverlayLifecycleGuard(360);
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
+        }
+      }
+
       var ctx = touchCtx;
       touchCtx = null;
 
@@ -1224,17 +1836,19 @@
         var now = Date.now();
         var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
         var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
+        var recentScrollGuard = ((now - lastScrollAt) <= SCROLL_BLOCK_MS || shouldBlockCardTap())
+          && (ctx.hadMoveEvent || lastTouchHadMove || cardScrollTouch.moved);
         var shouldBlockTap = ctx.moved
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
           || tapDuration > MAX_TAP_DURATION_MS
-          || (now - lastScrollAt) <= SCROLL_BLOCK_MS
-          || shouldBlockCardTap();
+          || recentScrollGuard;
 
         if (!shouldBlockTap) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
+            scheduleOverlayLifecycleGuard(360);
             event.preventDefault();
             event.stopPropagation();
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1255,7 +1869,7 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
-          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+          if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             return;
           }
@@ -1264,10 +1878,13 @@
             var actionFromTarget = findDataActionElement(event.target);
             var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromPoint = findDataActionElement(actionFromPointEl);
+            var linkFromTarget = findMobileCardLink(event.target);
+            var linkFromPoint = findMobileCardLink(actionFromPointEl);
             var elAtPoint = actionFromPointEl || document.body;
             return {
               ruleFromPoint: ruleFromPoint,
               actionEl: actionFromTarget || actionFromPoint,
+              linkEl: linkFromTarget || linkFromPoint,
               elAtPoint: elAtPoint
             };
           }, function (state) {
@@ -1275,6 +1892,7 @@
             if (state.ruleFromPoint) {
               var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
               if (handledRule) {
+                scheduleOverlayLifecycleGuard(360);
                 event.preventDefault();
                 event.stopPropagation();
                 suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1282,6 +1900,15 @@
               }
             }
             if (invokeDataActionFallback(state.actionEl, event)) {
+              scheduleOverlayLifecycleGuard(360);
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
+            if (invokeMobileCardLink(state.linkEl)) {
+              showTapFeedback(state.linkEl);
+              scheduleOverlayLifecycleGuard(360);
               event.preventDefault();
               event.stopPropagation();
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1289,7 +1916,7 @@
           });
         }
       }
-    }, { passive: true, capture: true });
+    }, { passive: false, capture: true });
 
     /* pointer event callback: allow pointer input on touch browsers too. */
     root.addEventListener('pointerdown', function (event) {
@@ -1298,6 +1925,10 @@
       if (pt) {
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
+      }
+      if (event && event.target) {
+        showTapFeedback(event.target);
+        scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
       var rule = findRuleFromTarget(event.target);
@@ -1327,6 +1958,7 @@
       if (dx > TAP_MOVE_DETECT_PX || dy > TAP_MOVE_DETECT_PX) {
         touchCtx.hadMoveEvent = true;
         lastTouchHadMove = true;
+        clearTapFeedback();
       }
       if (dx > TAP_MAX_DX || dy > TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) {
         touchCtx.moved = true;
@@ -1337,6 +1969,42 @@
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
       if (!pt) return;
+      if (handleCollectionToggleTap(event, pt, 'pointer')) {
+        event.__cdMobileBridgeHandled = true;
+        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+        return;
+      }
+      if (event.target && event.target.closest) {
+        var gateTile2 = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
+        if (gateTile2 && !gateTile2.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+          try {
+            if (window._cdOpenTilePreview(gateTile2)) {
+              showTapFeedback(gateTile2);
+              scheduleOverlayLifecycleGuard(360);
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
+          } catch (_) {}
+        }
+      }
+      if (lastTouchStart) {
+        var directDx2 = Math.abs(pt.x - lastTouchStart.x);
+        var directDy2 = Math.abs(pt.y - lastTouchStart.y);
+        var directAge2 = Date.now() - (lastTouchStart.at || 0);
+        var directLink2 = findMobileCardLink(event.target);
+        if (directLink2 && directDx2 < TAP_MAX_DX && directDy2 < TAP_MAX_DY && directAge2 <= MAX_TAP_DURATION_MS && !lastTouchHadMove && !cardScrollTouch.moved) {
+          if (invokeMobileCardLink(directLink2)) {
+            showTapFeedback(directLink2);
+            scheduleOverlayLifecycleGuard(360);
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+            return;
+          }
+        }
+      }
       var ctx = touchCtx;
       touchCtx = null;
       if (ctx) {
@@ -1345,15 +2013,18 @@
         var now = Date.now();
         var tapDuration = ctx.startedAt ? (now - ctx.startedAt) : 0;
         var verticalDominant = dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx * 1.2;
+        var recentScrollGuard = (now - lastScrollAt) <= SCROLL_BLOCK_MS
+          && (ctx.hadMoveEvent || lastTouchHadMove);
         var shouldBlockTap = ctx.moved
           || dx >= TAP_MAX_DX
           || dy >= TAP_MAX_DY
           || verticalDominant
           || tapDuration > MAX_TAP_DURATION_MS
-          || (now - lastScrollAt) <= SCROLL_BLOCK_MS;
+          || recentScrollGuard;
         if (!shouldBlockTap) {
           var handled = invokeBusinessAction(ctx.rule, ctx.target, event);
           if (handled) {
+            scheduleOverlayLifecycleGuard(360);
             event.preventDefault();
             event.stopPropagation();
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1372,7 +2043,7 @@
         var dx = Math.abs(pt.x - lastTouchStart.x);
         var dy = Math.abs(pt.y - lastTouchStart.y);
         if (dx < TAP_MAX_DX && dy < TAP_MAX_DY && dy < TAP_VERTICAL_BLOCK_PX) {
-          if (Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) {
+          if ((Date.now() - lastScrollAt <= SCROLL_BLOCK_MS) && lastTouchHadMove) {
             suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
             return;
           }
@@ -1381,10 +2052,13 @@
             var actionFromTarget = findDataActionElement(event.target);
             var actionFromPointEl = document.elementFromPoint(pt.x, pt.y) || document.elementFromPoint(lastTouchStart.x, lastTouchStart.y);
             var actionFromPoint = findDataActionElement(actionFromPointEl);
+            var linkFromTarget = findMobileCardLink(event.target);
+            var linkFromPoint = findMobileCardLink(actionFromPointEl);
             var elAtPoint = actionFromPointEl || document.body;
             return {
               ruleFromPoint: ruleFromPoint,
               actionEl: actionFromTarget || actionFromPoint,
+              linkEl: linkFromTarget || linkFromPoint,
               elAtPoint: elAtPoint
             };
           }, function (state) {
@@ -1392,6 +2066,7 @@
             if (state.ruleFromPoint) {
               var handledRule = invokeBusinessAction(state.ruleFromPoint, state.elAtPoint, event);
               if (handledRule) {
+                scheduleOverlayLifecycleGuard(360);
                 event.preventDefault();
                 event.stopPropagation();
                 suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1399,6 +2074,15 @@
               }
             }
             if (invokeDataActionFallback(state.actionEl, event)) {
+              scheduleOverlayLifecycleGuard(360);
+              event.preventDefault();
+              event.stopPropagation();
+              suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+              return;
+            }
+            if (invokeMobileCardLink(state.linkEl)) {
+              showTapFeedback(state.linkEl);
+              scheduleOverlayLifecycleGuard(360);
               event.preventDefault();
               event.stopPropagation();
               suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
@@ -1411,17 +2095,25 @@
     root.addEventListener('touchcancel', function () {
       cardScrollTouch.active = false;
       cardScrollTouch.moved = false;
+      clearTapFeedback();
       markCardScrollLock(180);
     }, { passive: true, capture: true });
 
     root.addEventListener('click', function (event) {
       if (!event || !event.target || !event.target.closest) return;
+      if (handleCollectionToggleTap(event, { x: event.clientX, y: event.clientY }, 'click')) {
+        event.__cdMobileBridgeHandled = true;
+        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+        return;
+      }
       var rule = findRuleFromTarget(event.target);
       if (!rule) return;
 
       // Scroll/touch ghost click suppression must only apply to bridge-managed rules.
       var now = Date.now();
-      if (now < suppressClickUntil || (now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap()) {
+      var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
+        && (lastTouchHadMove || cardScrollTouch.moved);
+      if (now < suppressClickUntil || recentScrollGuard) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1430,9 +2122,14 @@
       var handled = invokeBusinessAction(rule, event.target, event);
       if (!handled) return;
 
+      event.__cdMobileBridgeHandled = true;
+      showTapFeedback(event.target);
+      scheduleOverlayLifecycleGuard(360);
       event.preventDefault();
       event.stopPropagation();
     }, true);
+
+    bindMobileDataActionFallback(root);
   }
 
   function init() {
@@ -1460,9 +2157,12 @@
       }
     })();
 
+    watchMobileMediaPerformance();
+
     // Global scroll state tracking.
     window.addEventListener('scroll', function() {
       lastScrollAt = Date.now();
+      clearTapFeedback();
       markCardScrollLock(160);
     }, { passive: true });
 
@@ -1510,6 +2210,8 @@
           }, { passive: true });
         }
       });
+
+      bindDirectFeatureCardActions(document);
     }
 
     // 초기 설정 및 DOM 변경 시 재설정
@@ -1520,7 +2222,20 @@
     scrollObserver.observe(document.body, { childList: true, subtree: true });
 
     injectTouchActionStyle();
-    createBulletproofDelegator(document);
+    try { createBulletproofDelegator(document); } catch (err) { console.error('[mobile-interaction-patch] touch bridge bind failed:', err); }
+    bindMobileDataActionFallback(document);
+    bindDirectFeatureCardActions(document);
+    try { window.__cdMobileTouchBridgeReady = !!document.__cdTouchBridgeBound; } catch (_) {}
+    reconcileOverlayLifecycle();
+    window.addEventListener('pageshow', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
+    window.addEventListener('pagehide', function() { clearTapFeedback(); scheduleOverlayLifecycleGuard(40); }, { passive: true });
+    window.addEventListener('popstate', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
+    window.addEventListener('hashchange', function() { scheduleOverlayLifecycleGuard(40); }, { passive: true });
+    window.addEventListener('code-destiny:feature-tap', function() { scheduleOverlayLifecycleGuard(360); }, { passive: true });
+    document.addEventListener('visibilitychange', function() {
+      clearTapFeedback();
+      scheduleOverlayLifecycleGuard(40);
+    }, { passive: true });
   }
 
   if (document.readyState === 'loading') {

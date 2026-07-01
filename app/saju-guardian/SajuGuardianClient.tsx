@@ -129,6 +129,7 @@ const SAJU_GUARDIAN_IMAGE_SRC = "/fuctionassets/saju-guardian-animal-v20260615.p
 const SAJU_GUARDIAN_HANDOFF_KEY = "cd_saju_guardian_handoff_v20260628";
 const SAJU_GUARDIAN_HANDOFF_MARKER = "saju-guardian-main-saju-handoff-v20260628";
 const SAJU_GUARDIAN_HANDOFF_TTL_MS = 30 * 60 * 1000;
+const SAJU_GUARDIAN_ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
 
 type SajuGuardianTx = (value: string) => string;
 
@@ -1967,9 +1968,9 @@ export default function SajuGuardianPage() {
           <div className="rounded-[2rem] border border-white/70 bg-white/80 p-7 shadow-xl backdrop-blur-xl">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-50 text-3xl shadow-inner">🔮</div>
             <p className="mt-5 text-xs font-black tracking-[0.16em] text-rose-400">{tx("해금 확인")}</p>
-            <h1 className="mt-2 text-2xl font-black text-slate-800">{tx("수호 인장 권한 확인 중")}</h1>
+            <h1 className="mt-2 text-2xl font-black text-slate-800">{SAJU_GUARDIAN_ACCESS_CHECKING_MESSAGE}</h1>
             <p className="mt-3 text-sm leading-relaxed text-slate-500">
-              {tx("해금 기록과 이용권을 확인한 뒤 사주 가디언 소환진을 열어드립니다.")}
+              {SAJU_GUARDIAN_ACCESS_CHECKING_MESSAGE}
             </p>
           </div>
         </div>

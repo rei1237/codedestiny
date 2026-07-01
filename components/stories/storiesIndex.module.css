@@ -1,0 +1,619 @@
+.stage {
+  --moon-pure: #f7f2ff;
+  --moon-glow: #c4b5fd;
+  --moon-mid: #a78bfa;
+  --moon-deep: #7c5fe6;
+  --text-primary: #f0ecff;
+  --text-secondary: rgba(196, 181, 253, 0.72);
+  --text-muted: rgba(167, 139, 250, 0.52);
+  --border-default: rgba(167, 139, 250, 0.14);
+  --card-shadow: 0 16px 46px rgba(48, 20, 120, 0.2), 0 4px 12px rgba(0, 0, 0, 0.28);
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 28px;
+}
+
+.stars {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--moon-pure);
+  box-shadow: 0 0 6px rgba(196, 181, 253, 0.38);
+  opacity: var(--star-opacity);
+}
+
+.starTwinkle {
+  animation: storyStarTwinkle var(--twinkle-duration, 3s) ease-in-out infinite;
+  animation-delay: var(--twinkle-delay, 0s);
+}
+
+@keyframes storyStarTwinkle {
+  0%, 100% {
+    opacity: var(--star-opacity);
+    transform: scale(1);
+  }
+  50% {
+    opacity: calc(var(--star-opacity) * 0.32);
+    transform: scale(0.72);
+  }
+}
+
+.hero {
+  position: relative;
+  min-height: 320px;
+  overflow: hidden;
+  padding: clamp(40px, 6vw, 72px) clamp(24px, 5vw, 56px) 30px;
+  border: 1px solid rgba(196, 181, 253, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 84% 18%, rgba(120, 80, 240, 0.2), transparent 36%),
+    linear-gradient(145deg, rgba(18, 14, 46, 0.92), rgba(9, 7, 30, 0.76));
+  box-shadow: var(--card-shadow);
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.52), transparent);
+  opacity: 0.72;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  gap: 18px;
+  max-width: 590px;
+}
+
+.moonOrb,
+.moonAmbient {
+  position: absolute;
+  right: -60px;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.moonOrb {
+  top: -50px;
+  width: 230px;
+  height: 230px;
+  background: radial-gradient(circle at 35% 35%, rgba(247, 242, 255, 0.86), rgba(196, 181, 253, 0.46) 42%, rgba(124, 95, 230, 0.1) 70%, transparent 72%);
+  box-shadow: 0 0 70px rgba(167, 139, 250, 0.24);
+  opacity: 0.55;
+}
+
+.moonAmbient {
+  top: -130px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(124, 95, 230, 0.14), transparent 64%);
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--moon-mid);
+  font-family: var(--story-font-body, var(--font-body));
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.kicker::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.62;
+}
+
+.hero h1 {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  color: var(--text-primary);
+  font-family: var(--story-font-display, "CodeDestinyDisplay", "Noto Serif KR", serif);
+  font-size: clamp(24px, 6.4vw, 38px);
+  font-weight: 300;
+  line-height: 1.28;
+}
+
+.hero h1 strong {
+  color: var(--moon-pure);
+  font-weight: 700;
+  background: linear-gradient(135deg, #f7f2ff 0%, #ddd6fe 54%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--story-font-body, var(--font-body));
+  font-size: 13.5px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.divider span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(167, 139, 250, 0.26));
+}
+
+.divider span:last-child {
+  background: linear-gradient(to left, transparent, rgba(167, 139, 250, 0.26));
+}
+
+.divider b {
+  color: rgba(167, 139, 250, 0.5);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.entryRibbon {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 10px 16px;
+  border: 1px solid rgba(167, 139, 250, 0.24);
+  border-radius: 12px;
+  background: rgba(124, 95, 230, 0.1);
+  color: rgba(226, 217, 243, 0.84);
+  font-family: var(--story-font-body, var(--font-body));
+  font-size: 12px;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.highlightStrip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 18px 22px;
+  border: 1px solid rgba(167, 139, 250, 0.12);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(18, 14, 44, 0.7), rgba(10, 8, 28, 0.52));
+}
+
+.highlightItem {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.highlightValue {
+  color: #f7f2ff;
+  font-family: var(--story-font-display, "CodeDestinyDisplay", "Noto Serif KR", serif);
+  font-size: 1.42rem;
+  font-weight: 700;
+}
+
+.highlightLabel {
+  color: rgba(196, 181, 253, 0.62);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.featuredLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(300px, 0.7fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.featuredStoryCard,
+.readerCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(196, 181, 253, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 88% 14%, rgba(196, 181, 253, 0.16), transparent 32%),
+    linear-gradient(150deg, rgba(20, 16, 52, 0.9), rgba(12, 10, 38, 0.68));
+  box-shadow: var(--card-shadow);
+}
+
+.featuredStoryCard::before,
+.readerCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196, 181, 253, 0.58), transparent);
+}
+
+.featuredStoryCard {
+  display: grid;
+  gap: 20px;
+  min-height: 100%;
+  padding: 28px;
+}
+
+.storyCoverBlock {
+  position: relative;
+  height: 176px;
+  margin: -28px -28px 0;
+  overflow: hidden;
+  border-radius: 20px 20px 0 0;
+  background:
+    radial-gradient(ellipse at 30% 40%, rgba(124, 95, 230, 0.42), transparent 55%),
+    linear-gradient(155deg, #120c32 0%, #090721 100%);
+}
+
+.storyCoverBlock::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(12, 10, 38, 0.92));
+}
+
+.storyCoverMoon {
+  position: absolute;
+  top: 22px;
+  right: 36px;
+  width: 78px;
+  height: 78px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #f7f2ff, #c4b5fd 44%, #7c5fe6 72%, transparent 74%);
+  box-shadow: 0 0 32px rgba(167, 139, 250, 0.42);
+}
+
+.storyCoverTitle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: 14px 24px 18px;
+}
+
+.storyCoverEyebrow {
+  margin-bottom: 4px;
+  color: rgba(196, 181, 253, 0.78);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.24em;
+}
+
+.storyCoverName {
+  color: #f7f2ff;
+  font-family: var(--story-font-display, "CodeDestinyDisplay", "Noto Serif KR", serif);
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 700;
+  line-height: 1.24;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.58);
+}
+
+.featuredEyebrow,
+.readerCardEyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--moon-glow);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.featuredStoryCard h2 {
+  margin: 0;
+  color: var(--moon-pure);
+  font-family: var(--story-font-display, "CodeDestinyDisplay", "Noto Serif KR", serif);
+  font-size: clamp(1.65rem, 3.5vw, 2.35rem);
+  font-weight: 700;
+  line-height: 1.22;
+}
+
+.featuredStoryCard p {
+  margin: 0;
+  color: rgba(226, 217, 243, 0.82);
+  font-family: var(--story-font-body, var(--font-body));
+  font-size: 0.96rem;
+  line-height: 1.82;
+  word-break: keep-all;
+}
+
+.featuredMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.featuredMeta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 11px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 8px;
+  background: rgba(167, 139, 250, 0.07);
+  color: rgba(226, 217, 243, 0.76);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.featuredActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.featuredActions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 22px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 850;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.featuredActions a:first-child {
+  border: 1px solid rgba(196, 181, 253, 0.48);
+  background: linear-gradient(135deg, rgba(124, 95, 230, 0.28), rgba(167, 139, 250, 0.18));
+  color: #f7f2ff;
+}
+
+.featuredActions a:first-child:hover,
+.secondaryAction:hover {
+  transform: translateY(-2px);
+}
+
+.secondaryAction {
+  border: 1px solid rgba(167, 139, 250, 0.22) !important;
+  background: rgba(13, 11, 42, 0.62) !important;
+  color: rgba(196, 181, 253, 0.88) !important;
+}
+
+.readerCard {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  align-content: start;
+}
+
+.readerCardHead,
+.readerFontList {
+  display: grid;
+  gap: 6px;
+}
+
+.readerCardHead strong {
+  color: #f7f2ff;
+  font-family: var(--story-font-display, "CodeDestinyDisplay", "Noto Serif KR", serif);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.readerPreview {
+  position: relative;
+  padding: 16px 18px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  border-radius: 12px;
+  background: rgba(124, 95, 230, 0.06);
+  color: #f2efff;
+}
+
+.readerStats,
+.readerPresetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.readerStats span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 10px;
+  border: 1px solid rgba(167, 139, 250, 0.14);
+  border-radius: 8px;
+  background: rgba(167, 139, 250, 0.09);
+  color: rgba(226, 217, 243, 0.78);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.readerChip,
+.readerScaleButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: rgba(13, 11, 42, 0.6);
+  color: rgba(226, 217, 243, 0.72);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.readerChipActive,
+.readerFontButtonActive {
+  border-color: rgba(196, 181, 253, 0.38) !important;
+  background: rgba(124, 95, 230, 0.2) !important;
+  color: var(--moon-glow) !important;
+}
+
+.readerFontButton {
+  display: grid;
+  gap: 3px;
+  padding: 11px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: rgba(13, 11, 42, 0.55);
+  color: var(--text-primary);
+  text-align: left;
+}
+
+.readerFontButton strong {
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.readerFontButton span {
+  color: rgba(226, 217, 243, 0.65);
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.readerScaleRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.readerScaleButton {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.readerScaleTrack {
+  display: flex;
+  align-items: center;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.1);
+}
+
+.readerScaleTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #7c5fe6, #c4b5fd);
+  transition: width 0.2s ease;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  padding: 0 0 40px;
+}
+
+@media (min-width: 640px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 900px) {
+  .featuredLayout {
+    grid-template-columns: 1fr;
+  }
+
+  .readerCard {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .stage {
+    gap: 20px;
+  }
+
+  .star:nth-child(n+22) {
+    display: none;
+  }
+
+  .hero {
+    min-height: 276px;
+    border-radius: 16px;
+    padding: 34px 22px 26px;
+  }
+
+  .moonOrb {
+    width: 170px;
+    height: 170px;
+    opacity: 0.36;
+  }
+
+  .moonAmbient {
+    display: none;
+  }
+
+  .entryRibbon {
+    font-size: 11.5px;
+  }
+
+  .highlightStrip {
+    gap: 10px;
+    padding: 14px 16px;
+  }
+
+  .highlightValue {
+    font-size: 1.22rem;
+  }
+
+  .featuredStoryCard {
+    padding: 22px;
+  }
+
+  .storyCoverBlock {
+    height: 150px;
+    margin: -22px -22px 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .highlightStrip {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .featuredActions a {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .starTwinkle,
+  .featuredActions a,
+  .readerScaleTrack span {
+    animation: none;
+    transition: none;
+  }
+}

@@ -30,6 +30,10 @@ export default function TeaCupVisual({ cup, state = "normal", size = "menu", cla
         src={crop.src}
         sheetWidth={crop.sheetWidth}
         sheetHeight={crop.sheetHeight}
+        mobileSrc={crop.mobileSrc}
+        mobileSheetWidth={crop.mobileSheetWidth}
+        mobileSheetHeight={crop.mobileSheetHeight}
+        mobileCrop={crop.mobileCrop}
         x={crop.x}
         y={crop.y}
         width={crop.width}

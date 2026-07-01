@@ -37,6 +37,7 @@ export const fortuneTeaHouseAssets = {
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
     transform: teaHouseAsset("꽃돼지 연이 변신.webp"),
     transformScene: teaHouseAsset("연이 변신씬.webp"),
+    transformSceneMobile: "/images/fortune-tea-house/mobile/flower-pig-yeoni-transform-mobile.webp",
     base1: teaHouseAsset("꽃돼지.webp"),
     base2: teaHouseAsset("꽃돼지2.webp"),
     base3: teaHouseAsset("꽃돼지3.webp"),
@@ -104,6 +105,14 @@ export const fortuneTeaHouseAssets = {
       yeoniSprite7Tarot: "/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.png",
       teaChatSprite: "/images/fortune-tea-house/yeoni-tea-chat-loading-sprite.png",
       talkingPigYeoni3Sprite: "/images/fortune-tea-house/talking-flower-pig-yeoni3-sprite-cropped.png",
+      flowerPig5Sprite: "/images/fortune-tea-house/flower-pig-5-sprite-safe.png",
+      cupPoseSpriteSheetMobile: "/images/fortune-tea-house/mobile/yeoni-cup-pose-sprite-sheet-mobile.webp",
+      yeoniSprite2ThanksMobile: "/images/fortune-tea-house/mobile/yeoni-sprite2-thanks-mobile.webp",
+      talkingPigYeoni3SpriteMobile: "/images/fortune-tea-house/mobile/talking-flower-pig-yeoni3-sprite-mobile.webp",
+      flowerPig5SpriteMobile: "/images/fortune-tea-house/mobile/flower-pig-5-sprite-mobile.webp",
+      yeoniCupPoseStillMobile: "/images/fortune-tea-house/mobile/yeoni-cup-pose-still-mobile.webp",
+      yeoniThanksStillMobile: "/images/fortune-tea-house/mobile/yeoni-thanks-still-mobile.webp",
+      flowerPigResultStillMobile: "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp",
       tarotCard: "/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.png",
       tarotCardAnim: teaHouseAsset("연이 타로 카드 24 프레임-Photoroom.png"),
     },
@@ -133,8 +142,8 @@ export const fortuneTeaHouseAssets = {
     overlay: teaHouseAsset("오버레이.webp"),
     overlay2: teaHouseAsset("오버레이2.webp"),
     overlay1: teaHouseAsset("오버레이.webp"),
-    overlayCutout: teaHouseNoBackgroundAsset("오버레이-Photoroom.png"),
-    overlay2Cutout: teaHouseNoBackgroundAsset("오버레이2-Photoroom.png"),
+    overlayCutout: teaHouseAsset("오버레이.webp"),
+    overlay2Cutout: teaHouseAsset("오버레이2.webp"),
     resultSheet: teaHouseAsset("운명의 찻집 결과 시트.webp"),
     emotionGauge: teaHouseAsset("꽃돼지 감정 분석 바 게이지.webp"),
   },
@@ -146,6 +155,8 @@ export const fortuneTeaHouseAssets = {
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
     labeledPhotoroom: "/images/fortune-tea-house/tea-cups-labeled-photoroom.png",
     correctedPhotoroom: "/images/fortune-tea-house/tea-cups-corrected-photoroom.png",
+    labeledMobile: "/images/fortune-tea-house/mobile/tea-cups-labeled-mobile.webp",
+    correctedMobile: "/images/fortune-tea-house/mobile/tea-cups-corrected-mobile.webp",
     transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
   },
   tea: {
@@ -163,6 +174,7 @@ export const fortuneTeaHouseAssets = {
   saju: {
     tenGodSheet: tenGodSheetAsset,
     tenGodSheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
+    tenGodSheetMobile: "/images/fortune-tea-house/mobile/ten-gods-mobile.webp",
   },
   consultModes: {
     tarot: teaHouseNoBackgroundAsset("운명의 찻집 타로.webp"),
@@ -172,6 +184,7 @@ export const fortuneTeaHouseAssets = {
   tenGods: {
     sheet: tenGodSheetAsset,
     sheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
+    sheetMobile: "/images/fortune-tea-house/mobile/ten-gods-mobile.webp",
   },
 } as const;
 

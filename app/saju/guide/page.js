@@ -134,7 +134,8 @@ export default function SajuGuidePage() {
         </p>
       </section>
 
-      <section className="cd-card-grid">
+      <section className="cd-card-grid" aria-labelledby="saju-guide-faq-title">
+        <h2 id="saju-guide-faq-title" className="sr-only">FAQ</h2>
         {faqItems.map((item) => (
           <article key={item.question} className="cd-card">
             <h2>{item.question}</h2>

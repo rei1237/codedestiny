@@ -6,6 +6,7 @@ import {
   canUseByPass,
   normalizeHoneyPassEntitlement,
 } from "./profile-limits.js";
+import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_EXCLUDED_FEATURE_KEYS = new Set([
@@ -118,11 +119,15 @@ function resolveMonthlySubscription(user = {}) {
 }
 
 function canUseMonthlyForFeature(featureKey) {
-  return Boolean(cleanText(featureKey));
+  const key = cleanText(featureKey);
+  return Boolean(key) && !isMusicTrackFeatureKey(key);
 }
 
 function isPassExcluded(featureCandidates = []) {
-  return featureCandidates.some((key) => PASS_EXCLUDED_FEATURE_KEYS.has(cleanText(key)));
+  return featureCandidates.some((key) => {
+    const featureKey = cleanText(key);
+    return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey) || isMusicTrackFeatureKey(featureKey);
+  });
 }
 
 function resolveLicenseReason(tier) {

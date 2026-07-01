@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import type { CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { teaHouseCups } from "../data/teaCups";
 import { getTeaCupSprite } from "../data/teaCupSpriteMap";
@@ -20,12 +20,46 @@ const assetCandidates = [
   ["uiSelection", fortuneTeaHouseAssets.ui.selection],
 ] as const;
 
+function DebugAssetFigure({ assetKey, src }: { assetKey: string; src: string }) {
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <figure>
+      {failed ? (
+        <span
+          style={{
+            display: "grid",
+            minHeight: 180,
+            placeItems: "center",
+            borderRadius: 8,
+            color: "rgba(255, 246, 250, 0.72)",
+            background: "rgba(255, 246, 250, 0.08)",
+            textAlign: "center",
+          }}
+        >
+          이미지를 불러오지 못했습니다.
+        </span>
+      ) : (
+        <img
+          src={src}
+          alt={`${assetKey} 찻잔 후보 원본`}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+        />
+      )}
+      <figcaption>{assetKey}</figcaption>
+    </figure>
+  );
+}
+
 export default function TeaCupDebugPage() {
   const debugStyle = {
     "--tea-bg-desktop": `url("${fortuneTeaHouseAssets.backgrounds.interiorDesktop2}")`,
     "--tea-bg-mobile": `url("${fortuneTeaHouseAssets.backgrounds.interiorMobile2}")`,
     "--tea-overlay": `url("${fortuneTeaHouseAssets.ui.overlay}")`,
     "--tea-overlay-2": `url("${fortuneTeaHouseAssets.ui.overlay2}")`,
+    overflowX: "clip",
   } as CSSProperties;
 
   return (
@@ -38,10 +72,7 @@ export default function TeaCupDebugPage() {
 
       <section className={styles.teaCupDebugSheets} aria-label="찻잔 후보 원본 이미지">
         {assetCandidates.map(([key, src]) => (
-          <figure key={key}>
-            <img src={src} alt={`${key} 찻잔 후보 원본`} loading="lazy" decoding="async" />
-            <figcaption>{key}</figcaption>
-          </figure>
+          <DebugAssetFigure key={key} assetKey={key} src={src} />
         ))}
       </section>
 

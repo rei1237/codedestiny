@@ -4,6 +4,7 @@
 
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
+import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import {
   getYeoniSpriteFrame,
@@ -30,16 +31,14 @@ export default function YeoniDialogueActor({
   priority = false,
   cueText = "",
 }: YeoniDialogueActorProps) {
+  const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failedSheets, setFailedSheets] = useState<Record<string, boolean>>({});
   const visual = useMemo(() => pickYeoniExpression(cueText, mood, isSpeaking), [cueText, isSpeaking, mood]);
   const activeFrame = visual.kind === "sprite" ? getYeoniSpriteFrame(visual.frameId) : null;
   const activeSheet = activeFrame ? yeoniSpriteSheets[activeFrame.sheet] : null;
   const hasFailed = activeFrame ? failedSheets[activeFrame.sheet] : false;
-  const activeVisualKind = visual.kind === "sprite" && !hasFailed ? "sprite" : "bust";
-  const preloadFrames = useMemo(() => {
-    const frameIds = ["welcome-idle", "serious-idle", "thinking-talk", "comfort-idle", "playful-idle", "surprised-talk", "closing-idle"] as const;
-    return Array.from(new Set(frameIds)).map((frameId) => getYeoniSpriteFrame(frameId));
-  }, []);
+  const activeVisualKind = visual.kind === "sprite" && !hasFailed && !spriteGate.prefersReducedMotion ? "sprite" : "bust";
+  const shouldLoadSpriteSheet = activeVisualKind === "sprite" && spriteGate.canLoad;
   const frameStyle = {
     "--yeoni-sprite-columns": activeSheet?.columns || 1,
     "--yeoni-sprite-rows": activeSheet?.rows || 1,
@@ -50,6 +49,7 @@ export default function YeoniDialogueActor({
 
   return (
     <div
+      ref={spriteGate.ref}
       className={`${styles.yeoniActor} ${className}`}
       data-mood={mood}
       data-speaking={activeVisualKind === "sprite" ? "true" : "false"}
@@ -70,14 +70,14 @@ export default function YeoniDialogueActor({
           decoding="async"
           loading={priority ? "eager" : "lazy"}
         />
-        {activeFrame && activeSheet && !hasFailed ? (
+        {activeFrame && activeSheet && shouldLoadSpriteSheet ? (
           <img
             className={styles.yeoniSpriteSheet}
             src={activeSheet.src}
             alt=""
             aria-hidden
             decoding="async"
-            loading={priority ? "eager" : "lazy"}
+            loading="lazy"
             onError={() => setFailedSheets((current) => ({ ...current, [activeFrame.sheet]: true }))}
           />
         ) : null}
@@ -88,17 +88,6 @@ export default function YeoniDialogueActor({
         ) : null}
       </span>
       <span className={styles.yeoniActorScent} aria-hidden />
-      <div className={styles.preloadFrames} aria-hidden>
-        {preloadFrames.map((frame) => (
-          <img
-            key={`${frame.sheet}-${frame.id}`}
-            src={yeoniSpriteSheets[frame.sheet].src}
-            alt=""
-            decoding="async"
-            loading={priority ? "eager" : "lazy"}
-          />
-        ))}
-      </div>
     </div>
   );
 }

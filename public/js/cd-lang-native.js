@@ -49,6 +49,7 @@
   var activeDictionaryLang = 'ko';
   var missingKeyLog = {};
   var applying = false;
+  var nativeScriptCacheKey = detectNativeScriptCacheKey();
 
   function isSupportedLang(lang) {
     return SUPPORTED_LANGS.indexOf(lang) !== -1;
@@ -72,6 +73,22 @@
     return '';
   }
 
+  function detectNativeScriptCacheKey() {
+    try {
+      var script = document.currentScript || document.querySelector('script[src*="/js/cd-lang-native.js"]');
+      var src = script && script.getAttribute('src');
+      if (!src) return '';
+      var params = new URL(src, window.location.href).searchParams;
+      return params.get('v') || '';
+    } catch (_) {}
+    return '';
+  }
+
+  function getDictionaryUrl(file) {
+    var url = '/i18n/' + file + '.json';
+    return nativeScriptCacheKey ? url + '?v=' + encodeURIComponent(nativeScriptCacheKey) : url;
+  }
+
   function readCookie(name) {
     try {
       var prefix = name + '=';
@@ -84,21 +101,48 @@
     return '';
   }
 
+  function readStoredValue(name) {
+    try { return localStorage.getItem(name) || ''; } catch (_) {}
+    return '';
+  }
+
+  function hasSavedLangAck() {
+    return readStoredValue('cd_lang_ack') === '1' ||
+      readStoredValue('cd_locale_ack') === '1' ||
+      readCookie('cd_locale_ack') === '1';
+  }
+
   function getSavedLang() {
     var urlLang = getUrlLang();
     if (urlLang) return urlLang;
-    try {
-      var stored = localStorage.getItem('cd_lang');
+    if (hasSavedLangAck()) {
+      var stored = readStoredValue('cd_lang');
       if (stored) return normalizeLang(stored);
-    } catch (_) {}
-    var cookieLang = readCookie('cd_locale');
-    if (cookieLang) return normalizeLang(cookieLang);
+      var cookieLang = readCookie('cd_locale');
+      if (cookieLang) return normalizeLang(cookieLang);
+    }
     return 'ko';
   }
 
   function setSavedLang(lang) {
     try { localStorage.setItem('cd_lang', lang); } catch (_) {}
     writeCookie('cd_locale', lang, 315360000);
+  }
+
+  function markLegacyExplicitLang(lang) {
+    try {
+      localStorage.setItem('cd_lang_explicit', '1');
+      if (lang) localStorage.setItem('cd_lang', lang);
+    } catch (_) {}
+  }
+
+  function markSavedLangAck(lang) {
+    try {
+      localStorage.setItem('cd_lang_ack', '1');
+      localStorage.setItem('cd_locale_ack', '1');
+    } catch (_) {}
+    markLegacyExplicitLang(lang);
+    writeCookie('cd_locale_ack', '1', 315360000);
   }
 
   function writeCookie(name, value, maxAge) {
@@ -129,6 +173,21 @@
       btn.classList.toggle('active', active);
       if (active) btn.setAttribute('aria-current', 'true');
       else btn.removeAttribute('aria-current');
+    });
+  }
+
+  function installNativeLanguageUiGuards() {
+    window.cdRefreshLangLabel = function () {
+      updateLanguageUi(getSavedLang());
+    };
+  }
+
+  function syncLanguageUiSoon(lang) {
+    updateLanguageUi(lang);
+    [60, 240, 720, 1600].forEach(function (delay) {
+      window.setTimeout(function () {
+        updateLanguageUi(getSavedLang());
+      }, delay);
     });
   }
 
@@ -200,17 +259,18 @@
   function loadDictionary(lang) {
     var file = I18N_FILE_BY_LANG[lang];
     if (!file) return Promise.resolve(null);
-    if (dictionaryCache[file]) return dictionaryCache[file];
-    dictionaryCache[file] = fetch('/i18n/' + file + '.json', { cache: 'force-cache' })
+    var cacheKey = file + ':' + nativeScriptCacheKey;
+    if (dictionaryCache[cacheKey]) return dictionaryCache[cacheKey];
+    dictionaryCache[cacheKey] = fetch(getDictionaryUrl(file), { cache: 'force-cache' })
       .then(function (res) {
         if (!res.ok) throw new Error('i18n fetch failed: ' + file);
         return res.json();
       })
       .catch(function () {
-        delete dictionaryCache[file];
+        delete dictionaryCache[cacheKey];
         return null;
       });
-    return dictionaryCache[file];
+    return dictionaryCache[cacheKey];
   }
 
   function shouldTranslateText(el) {
@@ -291,10 +351,11 @@
     setNativeOnlyLanguageMode();
     clearLegacyTranslateCookie();
     setSavedLang(lang);
-    writeCookie('cd_locale_ack', '1', 315360000);
-    updateLanguageUi(lang);
+    markSavedLangAck(lang);
+    syncLanguageUiSoon(lang);
     closeLanguageMenu();
     applyNativeTranslations(lang).finally(function () {
+      syncLanguageUiSoon(lang);
       applying = false;
     });
   }
@@ -315,14 +376,23 @@
   function init() {
     setNativeOnlyLanguageMode();
     clearLegacyTranslateCookie();
+    installNativeLanguageUiGuards();
     if (document.documentElement) {
       document.documentElement.setAttribute('data-cd-native-lang', 'ready');
     }
     markNativeNodes();
     var lang = getSavedLang();
-    if (getUrlLang()) setSavedLang(lang);
-    updateLanguageUi(lang);
-    applyNativeTranslations(lang);
+    if (getUrlLang()) {
+      setSavedLang(lang);
+      markSavedLangAck(lang);
+    } else if (lang !== 'ko' && hasSavedLangAck()) {
+      setSavedLang(lang);
+      markSavedLangAck(lang);
+    }
+    syncLanguageUiSoon(lang);
+    applyNativeTranslations(lang).finally(function () {
+      syncLanguageUiSoon(lang);
+    });
     if (!window.__cdNativeLangClickBound) {
       window.__cdNativeLangClickBound = true;
       document.addEventListener('click', function (event) {

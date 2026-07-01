@@ -3,8 +3,35 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import TarotHealingClient from "./TarotHealingClient";
+
+const TAROT_HEALING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof TAROT_HEALING_LOCALES)[number];
+
+function normalizeTarotHealingLocale(value?: string | null): LoadingLocale {
+  const raw = String(value || "").trim();
+  if (!raw) return "ko";
+  const normalized = raw.replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans" || normalized === "cn") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "tw") return "zh-TW";
+  const base = normalized.split("-")[0];
+  return TAROT_HEALING_LOCALES.includes(base as LoadingLocale) ? (base as LoadingLocale) : "ko";
+}
+
+function getCurrentTarotHealingLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { __cdCurrentLang?: string }).__cdCurrentLang;
+  if (runtimeLanguage) return normalizeTarotHealingLocale(runtimeLanguage);
+  try {
+    const stored =
+      window.localStorage.getItem("cd_locale") ||
+      window.localStorage.getItem("code-destiny-locale") ||
+      window.localStorage.getItem("cd_lang") ||
+      window.localStorage.getItem("locale");
+    if (stored) return normalizeTarotHealingLocale(stored);
+  } catch {}
+  return normalizeTarotHealingLocale(document.documentElement.lang || navigator.language);
+}
 
 type HealingCopy = {
   eyebrow: string;
@@ -460,7 +487,7 @@ const HEALING_COPY: Record<LoadingLocale, HealingCopy> = {
 
 function resolveLocaleFromPath(pathname: string | null): LoadingLocale {
   const firstSegment = (pathname || "").split("/").filter(Boolean)[0];
-  return firstSegment ? normalizeLoadingLocale(firstSegment) : "ko";
+  return firstSegment ? normalizeTarotHealingLocale(firstSegment) : "ko";
 }
 
 export default function TarotHealingLandingContent() {
@@ -469,7 +496,7 @@ export default function TarotHealingLandingContent() {
 
   useEffect(() => {
     const fromPath = resolveLocaleFromPath(pathname);
-    setLocale(fromPath === "ko" ? getCurrentLoadingLocale() : fromPath);
+    setLocale(fromPath === "ko" ? getCurrentTarotHealingLocale() : fromPath);
   }, [pathname]);
 
   const copy = HEALING_COPY[locale] || HEALING_COPY.ko;

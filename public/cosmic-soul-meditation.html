@@ -24,7 +24,9 @@
   if (!token) {
     if (typeof window.__cdOpenLoginRequiredModal === 'function') {
       window.__cdOpenLoginRequiredModal({ reason: 'mobile_auth_resync', redirectTo: window.location.pathname });
-    } else { window.history.back(); }
+    } else {
+      window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
+    }
     return;
   }
 })();

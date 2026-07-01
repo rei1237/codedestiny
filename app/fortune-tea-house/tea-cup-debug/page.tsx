@@ -1,4 +1,4 @@
-import TeaCupDebugPage from "@/src/features/fortune-tea-house/components/TeaCupDebugPage";
+import TeaCupDebugRouteClient from "./TeaCupDebugRouteClient";
 
 export const metadata = {
   title: "운명의 찻집 찻잔 Crop Debug | Code Destiny",
@@ -9,5 +9,5 @@ export const metadata = {
 };
 
 export default function Page() {
-  return <TeaCupDebugPage />;
+  return <TeaCupDebugRouteClient />;
 }

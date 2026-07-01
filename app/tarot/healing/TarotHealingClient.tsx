@@ -1,7 +1,34 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const TAROT_HEALING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof TAROT_HEALING_LOCALES)[number];
+
+function normalizeTarotHealingLocale(value?: string | null): LoadingLocale {
+  const raw = String(value || "").trim();
+  if (!raw) return "ko";
+  const normalized = raw.replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans" || normalized === "cn") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "tw") return "zh-TW";
+  const base = normalized.split("-")[0];
+  return TAROT_HEALING_LOCALES.includes(base as LoadingLocale) ? (base as LoadingLocale) : "ko";
+}
+
+function getCurrentTarotHealingLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { __cdCurrentLang?: string }).__cdCurrentLang;
+  if (runtimeLanguage) return normalizeTarotHealingLocale(runtimeLanguage);
+  try {
+    const stored =
+      window.localStorage.getItem("cd_locale") ||
+      window.localStorage.getItem("code-destiny-locale") ||
+      window.localStorage.getItem("cd_lang") ||
+      window.localStorage.getItem("locale");
+    if (stored) return normalizeTarotHealingLocale(stored);
+  } catch {}
+  return normalizeTarotHealingLocale(document.documentElement.lang || navigator.language);
+}
 
 const HEALING_LOADING_COPY: Record<LoadingLocale, string> = {
   ko: "따뜻한 태양 타로 화면을 불러오는 중…",
@@ -26,7 +53,7 @@ const SunHealingTarot = dynamic(() => import("../../components/SunHealingTarot")
       role="status"
       aria-live="polite"
     >
-      {HEALING_LOADING_COPY[getCurrentLoadingLocale()] || HEALING_LOADING_COPY.ko}
+      {HEALING_LOADING_COPY[getCurrentTarotHealingLocale()] || HEALING_LOADING_COPY.ko}
     </div>
   ),
 });

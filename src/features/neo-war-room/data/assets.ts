@@ -47,6 +47,17 @@ function destinyWarAsset(fileName: string, alt: string, category: NeoWarRoomAsse
   };
 }
 
+function localNeoWarRoomAsset(publicPath: string, alt: string, category: NeoWarRoomAssetCategory, role: string): NeoWarRoomAsset {
+  return {
+    src: publicPath,
+    fallbackSrc: "",
+    objectKey: publicPath.replace(/^\//, ""),
+    alt,
+    category,
+    role,
+  };
+}
+
 function buildSpriteSet(prefix: string, count: number, altPrefix: string) {
   return Array.from({ length: count }, (_, index) => {
     const frame = index + 1;
@@ -85,11 +96,17 @@ export const neoWarRoomAssets = {
       "hero",
       "black-shadow",
     ),
-    transformation: destinyWarAsset(
-      "네오 변신씬 (2).webp",
-      "네오 변신 장면 일러스트",
+    transformation: localNeoWarRoomAsset(
+      "/neo-operation-room/sprites/neo-transform-v3-clean.webp",
+      "네오 변신 장면 스프라이트 시트",
       "hero",
-      "hero-transformation",
+      "hero-transformation-v3-clean",
+    ),
+    transformationMobile: localNeoWarRoomAsset(
+      "/neo-operation-room/sprites/neo-transform-v3-clean.webp",
+      "네오 변신 장면 모바일 스프라이트 시트",
+      "hero",
+      "hero-transformation-v3-clean-mobile",
     ),
   },
   sprites: {
@@ -104,6 +121,12 @@ export const neoWarRoomAssets = {
       "전략실 변신 전 네오 표정 스프라이트 시트",
       "sprite",
       "strategy-neo-sprite-sheet",
+    ),
+    strategyNeoMobile: localNeoWarRoomAsset(
+      "/neo-operation-room/sprites/mobile/neo-strategy-sheet-mobile.webp",
+      "Neo strategy sprite mobile sheet",
+      "sprite",
+      "strategy-neo-mobile-sheet",
     ),
   },
   backgrounds: {
@@ -179,11 +202,23 @@ export const neoWarRoomAssets = {
       "badge-stamp",
       "badge-grades",
     ),
+    gradesMobile: localNeoWarRoomAsset(
+      "/neo-operation-room/sprites/mobile/neo-badge-grades-mobile.webp",
+      "Neo badge grades mobile sheet",
+      "badge-stamp",
+      "badge-grades-mobile",
+    ),
     resultStamp: destinyWarAsset(
       "사자 휘장 도장-Photoroom.png",
       "작전 명령서 완료 도장",
       "badge-stamp",
       "result-stamp",
+    ),
+    resultStampMobile: localNeoWarRoomAsset(
+      "/neo-operation-room/sprites/mobile/neo-result-stamp-mobile.webp",
+      "Neo result stamp mobile sheet",
+      "badge-stamp",
+      "result-stamp-mobile",
     ),
   },
   decor: {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import TarotDebugPage from "@/src/features/fortune-tea-house/components/TarotDebugPage";
+import TarotDebugRouteClient from "./TarotDebugRouteClient";
 
 export const metadata: Metadata = {
   title: "운명의 찻집 타로 아틀라스 검증",
@@ -10,5 +10,5 @@ export const metadata: Metadata = {
 };
 
 export default function FortuneTeaHouseTarotDebugRoute() {
-  return <TarotDebugPage />;
+  return <TarotDebugRouteClient />;
 }

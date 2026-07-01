@@ -49,12 +49,15 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
   "id=\"vedic-result-body\"",
   "aria-label=\"PDF로 저장\"",
   "window.print()",
-  "graha_strength",
-  "bhava_focus",
-  "navamsa",
-  "transit_remedy",
+  "라그나, Lagna",
+  "라시, Rashi",
+  "그라하, Graha",
+  "바바, Bhava",
+  "나크샤트라, Nakshatra",
+  "다샤, Dasha",
+  "빈쇼타리 다샤, Vimshottari Dasha",
   "BasicVedicChartData",
-  "기본 베다 차트 데이터",
+  "베다점 계산 상세",
   "planetRows",
 ].forEach((needle) => assertIncludes(client, needle, "client contract"));
 assertMissing(client, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job"], "client");
@@ -86,15 +89,17 @@ const route = read("worker/routes/vedic-ai.js");
   "validateConsultationQuality",
   "maxTotalChars",
   "requireStructured: true",
-  "graha_strength",
-  "bhava_focus",
-  "navamsa",
-  "transit_remedy",
+  "rashi",
+  "graha",
+  "bhava",
+  "nakshatra",
+  "vimshottari_dasha",
+  "VedicChartResult",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
 assertMissing(route, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "generateChapter"], "worker route");
 assertMissing(route, ["3,500~5,000자", "500~700자", "600~800자", "400~500자"], "worker route length contract");
 assertIncludes(route, "10,000~20,000자", "length range contract");
-assertIncludes(route, "같은 뜻의 문장을 늘리지 말고", "expert depth guard");
+assertIncludes(route, "JSON에 없는 행성 위치, 하우스, 나크샤트라, 파다, 다샤 기간은 지어내지 않습니다", "result-only guard");
 
 const workerIndex = read("worker/index.js");
 assertIncludes(workerIndex, "/api/vedic-ai", "worker index route");
@@ -111,29 +116,21 @@ assertIncludes(runtime, "window.location.assign('/vedic-ai')", "runtime navigati
 const { handleVedicAiRoutes, __vedicAiTestUtils } = await import(new URL("../worker/routes/vedic-ai.js", import.meta.url).href);
 const readingSectionKeys = [
   "lagna",
-  "sun_nakshatra",
-  "moon_nakshatra",
-  "graha_strength",
-  "bhava_focus",
-  "navamsa",
+  "rashi",
+  "graha",
+  "bhava",
+  "nakshatra",
   "dasha",
-  "transit_remedy",
-  "karma",
-  "topic",
-  "prescription",
+  "vimshottari_dasha",
 ];
 const sectionTitles = {
-  lagna: "拉格納 — 어센던트가 말하는 영혼의 입구",
-  sun_nakshatra: "蘇利耶 — 태양이 머문 별자리의 빛",
-  moon_nakshatra: "旃陀羅 — 달이 머문 별자리의 감정",
-  graha_strength: "格羅哈 — 행성 강약과 숨은 기질",
-  bhava_focus: "婆伐 — 바바가 여는 삶의 무대",
-  navamsa: "那婆姆沙 — 나밤샤가 비추는 깊은 약속",
-  dasha: "達薩 — 지금 이 행성의 계절",
-  transit_remedy: "高遮羅 — 고차르와 업야야의 조율",
-  karma: "業 — 이 생의 카르마적 과제",
-  topic: "問 — 지금 질문에 대한 답",
-  prescription: "方 — 별이 건네는 오늘의 처방",
+  lagna: "라그나, Lagna",
+  rashi: "라시, Rashi",
+  graha: "그라하, Graha",
+  bhava: "바바, Bhava",
+  nakshatra: "나크샤트라, Nakshatra",
+  dasha: "다샤, Dasha",
+  vimshottari_dasha: "빈쇼타리 다샤, Vimshottari Dasha",
 };
 function repeatedReading(seed, minChars) {
   let text = "";
@@ -164,7 +161,7 @@ const longMockQuality = __vedicAiTestUtils.validateConsultationQuality(JSON.stri
   scores: { dharma: 90, artha: 90, kama: 90, moksha: 90, overall: 90 },
   sections: Object.fromEntries(readingSectionKeys.map((key, index) => [
     key,
-    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 긴 흐름은`, 2200) },
+    { title: sectionTitles[key], body: repeatedReading(`${index + 1}번째 긴 흐름은`, 3200) },
   ])),
 }), { minTotalChars: 10000, maxTotalChars: 20000, requireStructured: true });
 assert.equal(longMockQuality.ok, false, "[verify:vedic-ai-flow] long mock reading must fail");

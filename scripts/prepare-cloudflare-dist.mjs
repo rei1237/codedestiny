@@ -1,10 +1,13 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
+import { getStaticShellCanonicalRoutes } from "./static-canonical-route-map.mjs";
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
 const publicDir = resolve(rootDir, "public");
 const generatedOutDir = resolve(rootDir, "out");
+const nextServerAppDir = resolve(rootDir, ".next", "server", "app");
+const rootIndexPath = resolve(rootDir, "index.html");
 const candidates = [generatedOutDir, resolve(rootDir, ".open-next", "assets")];
 
 const sourceDir = candidates.find((dirPath) => existsSync(dirPath));
@@ -19,6 +22,7 @@ const staticShellRouteHtmlFiles = new Set([
 const generatedRouteHtmlRoots = [
   generatedOutDir,
   sourceDir,
+  nextServerAppDir,
 ];
 
 if (!sourceDir) {
@@ -28,7 +32,7 @@ if (!sourceDir) {
 
 function clearDirectoryOrRemove(targetDir) {
   try {
-    rmSync(targetDir, { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+    removePathWithRetry(targetDir);
     return;
   } catch (error) {
     if (error?.code !== "EPERM" || !existsSync(targetDir) || !statSync(targetDir).isDirectory()) {
@@ -37,16 +41,86 @@ function clearDirectoryOrRemove(targetDir) {
   }
 
   for (const entry of readdirSync(targetDir)) {
-    rmSync(join(targetDir, entry), { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+    removePathWithRetry(join(targetDir, entry));
+  }
+}
+
+function waitForFileLock(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function isTransientFileSystemError(error) {
+  return ["EBUSY", "EPIPE", "EPERM", "ESRCH", "ENOENT", "ENOTEMPTY"].includes(error?.code);
+}
+
+function removePathWithRetry(targetPath) {
+  const maxAttempts = 12;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      rmSync(targetPath, { recursive: true, force: true, maxRetries: 8, retryDelay: 300 });
+      return;
+    } catch (error) {
+      if (isTransientFileSystemError(error) && attempt < maxAttempts) {
+        waitForFileLock(200 * attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+function copyFileWithRetry(sourcePath, targetPath) {
+  const maxAttempts = 8;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      copyFileSync(sourcePath, targetPath);
+      return;
+    } catch (error) {
+      if (isTransientFileSystemError(error) && attempt < maxAttempts) {
+        waitForFileLock(150 * attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+function copyDirectoryWithRetry(sourcePath, targetPath, options) {
+  const maxAttempts = 8;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      cpSync(sourcePath, targetPath, options);
+      return;
+    } catch (error) {
+      if (isTransientFileSystemError(error) && attempt < maxAttempts) {
+        waitForFileLock(180 * attempt);
+        continue;
+      }
+      throw error;
+    }
   }
 }
 
 function collectGeneratedRouteHtmlFiles(sourceRoot, currentDir = sourceRoot, routeFiles = []) {
   if (!sourceRoot || !existsSync(currentDir)) return routeFiles;
 
-  for (const entry of readdirSync(currentDir)) {
+  let entries = [];
+  try {
+    entries = readdirSync(currentDir);
+  } catch (error) {
+    if (error?.code === "ENOENT") return routeFiles;
+    throw error;
+  }
+
+  for (const entry of entries) {
     const entryPath = join(currentDir, entry);
-    const stats = statSync(entryPath);
+    let stats;
+    try {
+      stats = statSync(entryPath);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
 
     if (stats.isDirectory()) {
       collectGeneratedRouteHtmlFiles(sourceRoot, entryPath, routeFiles);
@@ -79,9 +153,55 @@ function restoreGeneratedRouteHtml(targetRoot) {
       const sourcePath = join(routeRoot, routeFile);
       const targetPath = join(targetRoot, routeFile);
       mkdirSync(dirname(targetPath), { recursive: true });
-      copyFileSync(sourcePath, targetPath);
+      copyFileWithRetry(sourcePath, targetPath);
       restored.add(routeFile);
     }
+  }
+}
+
+function escapeHtmlAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function toCanonicalUrl(pathname) {
+  const normalized = String(pathname || "/").startsWith("/") ? String(pathname || "/") : `/${pathname}`;
+  return `https://code-destiny.com${normalized}`;
+}
+
+function injectStaticShellRouteMeta(html, route) {
+  const canonicalUrl = toCanonicalUrl(route.canonical);
+  const routeMeta = [
+    `<meta name="cd-static-canonical-route" content="${escapeHtmlAttr(route.canonical)}">`,
+    route.action ? `<meta name="cd-static-canonical-action" content="${escapeHtmlAttr(route.action)}">` : "",
+  ].filter(Boolean).join("\n");
+
+  let nextHtml = html
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlAttr(route.title)}</title>`)
+    .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(route.description)}">`)
+    .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
+    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
+
+  if (nextHtml.includes("</head>")) {
+    nextHtml = nextHtml.replace("</head>", `${routeMeta}\n</head>`);
+  }
+
+  return nextHtml;
+}
+
+function writeStaticShellCanonicalRoutes(targetRoot) {
+  if (!existsSync(rootIndexPath)) return;
+
+  const rootShellHtml = readFileSync(rootIndexPath, "utf8");
+  for (const route of getStaticShellCanonicalRoutes()) {
+    const routeFile = route.canonical.replace(/^\/+/, "").replace(/\/+$/, "");
+    if (!routeFile) continue;
+    const targetPath = join(targetRoot, routeFile, "index.html");
+    mkdirSync(dirname(targetPath), { recursive: true });
+    writeFileSync(targetPath, injectStaticShellRouteMeta(rootShellHtml, route), "utf8");
   }
 }
 
@@ -90,12 +210,13 @@ if (existsSync(distDir)) {
 }
 
 mkdirSync(distDir, { recursive: true });
-cpSync(sourceDir, distDir, { recursive: true, force: true });
+copyDirectoryWithRetry(sourceDir, distDir, { recursive: true, force: true });
 
 // Safety net: merge committed public assets so Pages deploy never misses legacy static files.
 if (existsSync(publicDir)) {
-  cpSync(publicDir, distDir, { recursive: true, force: true });
+  copyDirectoryWithRetry(publicDir, distDir, { recursive: true, force: true });
   restoreGeneratedRouteHtml(distDir);
+  writeStaticShellCanonicalRoutes(distDir);
   console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${distDir}`);
 }
 
@@ -104,8 +225,9 @@ if (existsSync(publicDir)) {
 // This prevents `/styles/*.css` (and other public assets) from being served as HTML fallback.
 const openNextAssetsDir = resolve(rootDir, ".open-next", "assets");
 if (existsSync(openNextAssetsDir) && existsSync(publicDir)) {
-  cpSync(publicDir, openNextAssetsDir, { recursive: true, force: true });
+  copyDirectoryWithRetry(publicDir, openNextAssetsDir, { recursive: true, force: true });
   restoreGeneratedRouteHtml(openNextAssetsDir);
+  writeStaticShellCanonicalRoutes(openNextAssetsDir);
   console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${openNextAssetsDir}`);
 }
 
@@ -121,20 +243,21 @@ const inlineSourceDir = resolve(rootDir, "js", "inline");
 if (existsSync(inlineSourceDir)) {
   const inlineDistDir = resolve(distDir, "js", "inline");
   mkdirSync(inlineDistDir, { recursive: true });
-  cpSync(inlineSourceDir, inlineDistDir, { recursive: true, force: true });
+  copyDirectoryWithRetry(inlineSourceDir, inlineDistDir, { recursive: true, force: true });
   console.log(`[prepare-cloudflare-dist] Copied ${inlineSourceDir} -> ${inlineDistDir}`);
 
   const assetsRoot = resolve(rootDir, ".open-next", "assets");
   if (existsSync(assetsRoot)) {
     if (existsSync(publicDir)) {
-      cpSync(publicDir, assetsRoot, { recursive: true, force: true });
+      copyDirectoryWithRetry(publicDir, assetsRoot, { recursive: true, force: true });
       restoreGeneratedRouteHtml(assetsRoot);
+      writeStaticShellCanonicalRoutes(assetsRoot);
       console.log(`[prepare-cloudflare-dist] Merged ${publicDir} -> ${assetsRoot}`);
     }
 
     const inlineAssetsDir = resolve(assetsRoot, "js", "inline");
     mkdirSync(inlineAssetsDir, { recursive: true });
-    cpSync(inlineSourceDir, inlineAssetsDir, { recursive: true, force: true });
+    copyDirectoryWithRetry(inlineSourceDir, inlineAssetsDir, { recursive: true, force: true });
     console.log(`[prepare-cloudflare-dist] Copied ${inlineSourceDir} -> ${inlineAssetsDir}`);
   }
 }

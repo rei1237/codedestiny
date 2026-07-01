@@ -1,4 +1,7 @@
+"use client";
+
 import { type CSSProperties } from "react";
+import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
@@ -26,6 +29,7 @@ const scentProgressUi =
   "rounded-[22px] border border-[#f6dfb7]/20 bg-white/[0.06] shadow-[0_20px_58px_rgba(4,2,12,0.24),inset_0_1px_0_rgba(255,255,255,0.12)] ring-1 ring-white/5 backdrop-blur-xl";
 
 export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
+  const teaChatGate = useSpritePlaybackGate<HTMLDivElement>();
   const chatLine =
     consultationMode === "saju"
       ? "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요."
@@ -70,9 +74,20 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
     : consultationMode === "tarot"
       ? `${loadingTitle}\n카드가 향기의 결을 따라 움직이고 있어요.`
       : `${loadingTitle}\n열리지 않은 것은 지어내지 않고, 지금 드러난 결만 고요히 읽습니다.`;
-  const waitingSprite = fortuneTeaHouseAssets.yeoni.transparent.cupPoseSpriteSheet;
+  const waitingSprite = teaChatGate.isMobile
+    ? fortuneTeaHouseAssets.yeoni.transparent.yeoniCupPoseStillMobile
+    : fortuneTeaHouseAssets.yeoni.transparent.cupPoseSpriteSheet;
+  const waitingSpriteProbe = useLazySpriteSource(waitingSprite, teaChatGate.canLoad);
+  const waitingFallback = fortuneTeaHouseAssets.yeoni.transparent.cupPose;
+  const waitingSpriteSource = waitingSpriteProbe.isLoaded
+    ? waitingSpriteProbe.resolvedSrc
+    : waitingSpriteProbe.isFailed
+      ? waitingFallback
+      : "";
   const teaChatStyle = {
-    "--yeoni-tea-chat-sprite": `url("${waitingSprite}")`,
+    "--yeoni-tea-chat-sprite": waitingSpriteSource ? `url("${waitingSpriteSource}")` : "none",
+    "--yeoni-tea-chat-bg-size": teaChatGate.isMobile || waitingSpriteProbe.isFailed ? "contain" : "400% 200%",
+    "--yeoni-tea-chat-bg-position": teaChatGate.isMobile || waitingSpriteProbe.isFailed ? "center" : "0% 0%",
   } as CSSProperties;
   const activeProgress = progress || {
     percent: 5,
@@ -102,7 +117,13 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
           src={fortuneTeaHouseAssets.pig.emotionGauge}
           alt="마음의 향을 읽는 감정 분석 장식"
         />
-        <div className={styles.scentLoadingTeaChatStage} style={teaChatStyle}>
+        <div
+          ref={teaChatGate.ref}
+          className={styles.scentLoadingTeaChatStage}
+          data-playback={teaChatGate.canAnimate && !teaChatGate.isMobile && waitingSpriteProbe.isLoaded ? "animated" : "static"}
+          data-sprite-status={waitingSpriteProbe.status}
+          style={teaChatStyle}
+        >
           <span className={styles.scentLoadingTeaChatAura} aria-hidden />
           <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
           <span className={styles.scentLoadingTeaChatBubble}>

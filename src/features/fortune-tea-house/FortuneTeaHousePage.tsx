@@ -1,22 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
 import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
-import QuestionInputScene from "./components/QuestionInputScene";
-import ScentLoadingScene from "./components/ScentLoadingScene";
-import TarotRevealScene from "./components/TarotRevealScene";
-import FortuneTeaHouseDebugPanel from "./components/FortuneTeaHouseDebugPanel";
-import TeaCupRitualScene from "./components/TeaCupRitualScene";
-import TeaCupSelectionScene from "./components/TeaCupSelectionScene";
 import AssetImage from "./components/AssetImage";
-import TeaHouseEntryScene from "./components/TeaHouseEntryScene";
 import TeaHouseButton from "./components/TeaHouseButton";
-import TeaHouseResultSheet from "./components/TeaHouseResultSheet";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
-import DestinyCafeTarotAlbum from "./components/DestinyCafeTarotAlbum";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
@@ -29,6 +19,8 @@ import {
   pickHoneyDropMessage,
 } from "./lib/honeyDrops";
 import styles from "./styles/fortune-tea-house.module.css";
+
+type RunBillingCoinGate = typeof import("@/app/_lib/billing-client")["runBillingCoinGate"];
 
 const FORTUNE_TEA_BGM_TRACKS = {
   moonlitTeaHouse: {
@@ -64,6 +56,7 @@ const FORTUNE_TEA_BGM_TRACKS = {
 } as const;
 
 const FORTUNE_TEA_BGM_STORAGE_KEY = "code-destiny-fortune-tea-house-bgm";
+const FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY = "code-destiny-fortune-tea-house-entry-prologue-seen:v1";
 const FORTUNE_TEA_LOADING_PLAYLIST = [
   FORTUNE_TEA_BGM_TRACKS.moonlightTea,
   FORTUNE_TEA_BGM_TRACKS.moonlitDestinyRoom,
@@ -71,9 +64,19 @@ const FORTUNE_TEA_LOADING_PLAYLIST = [
 ] as const;
 
 type FortuneTeaBgmTrack = (typeof FORTUNE_TEA_BGM_TRACKS)[keyof typeof FORTUNE_TEA_BGM_TRACKS];
-type FortuneTeaBillingGateInput = Parameters<typeof runBillingCoinGate>[0];
-type FortuneTeaBillingGateResult = Awaited<ReturnType<typeof runBillingCoinGate>>;
+type FortuneTeaBillingGateInput = Parameters<RunBillingCoinGate>[0];
+type FortuneTeaBillingGateResult = Awaited<ReturnType<RunBillingCoinGate>>;
 type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]>;
+
+const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
+const FortuneTeaHouseDebugPanel = lazy(() => import("./components/FortuneTeaHouseDebugPanel"));
+const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
+const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
+const TarotRevealScene = lazy(() => import("./components/TarotRevealScene"));
+const TeaCupRitualScene = lazy(() => import("./components/TeaCupRitualScene"));
+const TeaCupSelectionScene = lazy(() => import("./components/TeaCupSelectionScene"));
+const TeaHouseEntryScene = lazy(() => import("./components/TeaHouseEntryScene"));
+const TeaHouseResultSheet = lazy(() => import("./components/TeaHouseResultSheet"));
 
 type FortuneTeaHouseConsultApiResponse = {
   ok?: boolean;
@@ -183,6 +186,7 @@ async function postFortuneTeaConsultRequest(body: FortuneTeaConsultPostBody, sig
 
 async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string) {
   const billingInput = buildFortuneTeaBillingGateInput(payload, mode, attemptId);
+  const { runBillingCoinGate } = await import("@/app/_lib/billing-client");
   const gate = await runBillingCoinGate(billingInput);
   if (!gate.ok || !gate.data) {
     const code = toText(gate.error?.code).toUpperCase();
@@ -244,11 +248,54 @@ function logSubmitStep(message: string, payload?: unknown) {
   }
 }
 
+function SceneLoadingPanel() {
+  return (
+    <section className={styles.consultErrorScene} aria-live="polite" aria-busy="true">
+      <div className={styles.consultErrorCard}>
+        <p className={styles.sceneEyebrow}>달빛 찻잔을 데우는 중이에요</p>
+        <h2>장면을 조용히 열고 있어요</h2>
+        <p>잠시만 기다리면 바로 이어서 볼 수 있어요.</p>
+      </div>
+    </section>
+  );
+}
+
+function TarotAlbumLoadingDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[70] grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#2A174A_0%,#0B1020_42%,#050611_100%)] px-5 text-[#F8F1DC]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tarotAlbumLoadingTitle"
+    >
+      <button
+        type="button"
+        className="fixed right-4 top-4 z-[75] grid h-11 w-11 place-items-center rounded-full border border-amber-200/25 bg-white/[0.07] text-amber-50 shadow-[0_16px_40px_rgba(0,0,0,.35)]"
+        onClick={onClose}
+        aria-label="달빛 타로 앨범 닫기"
+      >
+        <span aria-hidden>×</span>
+      </button>
+      <section className="w-full max-w-sm rounded-[28px] border border-amber-100/15 bg-white/[0.07] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,.42)]">
+        <span className="mx-auto mb-4 block h-11 w-11 rounded-full bg-[radial-gradient(circle_at_36%_34%,#fff8d8_0_18%,#efd489_42%,rgba(239,212,137,.12)_70%)] shadow-[0_0_24px_rgba(239,212,137,.24)]" aria-hidden />
+        <h2 id="tarotAlbumLoadingTitle" className="text-base font-black">
+          달빛 타로 앨범을 여는 중이에요.
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-amber-50/70">
+          카드첩이 열리면 바로 이어서 볼 수 있어요.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 export default function FortuneTeaHousePage() {
   const [stage, setStage] = useState<TeaHouseStage>("landing");
   const [notice, setNotice] = useState("");
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(true);
+  const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
+  const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(false);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
@@ -342,7 +389,13 @@ export default function FortuneTeaHousePage() {
 
     try {
       const savedPreference = window.localStorage.getItem(FORTUNE_TEA_BGM_STORAGE_KEY);
-      if (savedPreference === "off") setBgmEnabled(false);
+      if (savedPreference === "on") setBgmEnabled(true);
+    } catch {
+      void 0;
+    }
+    try {
+      const savedEntryPrologueSeen = window.localStorage.getItem(FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY);
+      if (savedEntryPrologueSeen === "seen") setHasSeenEntryPrologue(true);
     } catch {
       void 0;
     }
@@ -452,20 +505,12 @@ export default function FortuneTeaHousePage() {
     setBgmStatus("idle");
   }, [bgmEnabled, currentBgmTrack.key, isBgmPreferenceReady, playBgm]);
 
-  useEffect(() => {
-    if (!isBgmPreferenceReady || !bgmEnabled || bgmStatus === "playing") return;
-    const unlockAudio = () => {
-      void playBgm();
-    };
-    window.addEventListener("pointerdown", unlockAudio, { once: true });
-    window.addEventListener("keydown", unlockAudio, { once: true });
-    return () => {
-      window.removeEventListener("pointerdown", unlockAudio);
-      window.removeEventListener("keydown", unlockAudio);
-    };
-  }, [bgmEnabled, bgmStatus, isBgmPreferenceReady, playBgm]);
-
   function goToStage(nextStage: TeaHouseStage) {
+    if (nextStage === "doorOpened") {
+      setIsEntryPrologueSkipped(false);
+    } else if (nextStage === "teaIntro" && isTeaHouseEntryStage(stage) && stage !== "yeoniReveal") {
+      setIsEntryPrologueSkipped(true);
+    }
     setStage(nextStage);
   }
 
@@ -485,11 +530,40 @@ export default function FortuneTeaHousePage() {
   function enterTeaHouse() {
     if (isEnteringTeaHouse) return;
     void playBgm();
+    setIsEntryPrologueSkipped(false);
+    if (hasSeenEntryPrologue) {
+      goToStage("teaSelect");
+      return;
+    }
     setIsEnteringTeaHouse(true);
     enterTimerRef.current = window.setTimeout(() => {
       setIsEnteringTeaHouse(false);
       goToStage("doorOpened");
     }, 1280);
+  }
+
+  function replayEntryPrologue() {
+    if (isEnteringTeaHouse) return;
+    void playBgm();
+    setIsEntryPrologueSkipped(false);
+    setIsEnteringTeaHouse(true);
+    enterTimerRef.current = window.setTimeout(() => {
+      setIsEnteringTeaHouse(false);
+      goToStage("doorOpened");
+    }, 1280);
+  }
+
+  function completeEntryPrologue() {
+    if (!isEntryPrologueSkipped) {
+      setHasSeenEntryPrologue(true);
+      try {
+        window.localStorage.setItem(FORTUNE_TEA_ENTRY_PROLOGUE_SEEN_STORAGE_KEY, "seen");
+      } catch {
+        void 0;
+      }
+    }
+    setIsEntryPrologueSkipped(false);
+    goToStage("teaSelect");
   }
 
   function restartConsultation() {
@@ -739,14 +813,16 @@ export default function FortuneTeaHousePage() {
     if (stage === "landing") {
       return (
         <FortuneTeaHouseLanding
+          hasSeenPrologue={hasSeenEntryPrologue}
           onEnter={enterTeaHouse}
+          onReplayPrologue={replayEntryPrologue}
           onShowHistory={() => showReadyNotice("상담 기록은 아직 준비 중이에요.")}
         />
       );
     }
 
     if (isTeaHouseEntryStage(stage)) {
-      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={() => goToStage("teaSelect")} />;
+      return <TeaHouseEntryScene stage={stage} onStageChange={goToStage} onComplete={completeEntryPrologue} />;
     }
 
     if (stage === "teaSelect") {
@@ -834,36 +910,42 @@ export default function FortuneTeaHousePage() {
         />
       ) : null}
 
-      <DestinyCafeTarotAlbum
-        isOpen={isTarotAlbumOpen}
-        honeyDrops={honeyDrops}
-        onClose={() => setIsTarotAlbumOpen(false)}
-        onHoneyDropsChange={setHoneyDrops}
-      />
+      {isTarotAlbumOpen ? (
+        <Suspense fallback={<TarotAlbumLoadingDialog onClose={() => setIsTarotAlbumOpen(false)} />}>
+          <DestinyCafeTarotAlbum
+            isOpen={isTarotAlbumOpen}
+            honeyDrops={honeyDrops}
+            onClose={() => setIsTarotAlbumOpen(false)}
+            onHoneyDropsChange={setHoneyDrops}
+          />
+        </Suspense>
+      ) : null}
 
-      <div className={styles.entryTransition} data-active={isEnteringTeaHouse ? "true" : "false"} aria-hidden>
-        <AssetImage
-          className={`${styles.entryTransitionImage} ${styles.entryTransitionImageDesktop}`}
-          imageClassName={styles.entryTransitionImageAsset}
-          src={fortuneTeaHouseAssets.backgrounds.loadingDesktop}
-          alt=""
-          priority
-        />
-        <AssetImage
-          className={`${styles.entryTransitionImage} ${styles.entryTransitionImageMobile}`}
-          imageClassName={styles.entryTransitionImageAsset}
-          src={fortuneTeaHouseAssets.backgrounds.loadingMobile}
-          alt=""
-          priority
-        />
-        <span className={styles.entryTransitionRing} />
-        <div className={styles.entryLoadingPanel}>
-          <strong>LOADING...</strong>
-          <p className={styles.entryLoadingPanelMessage}>달빛이 찻집의 문을 조용히 열고 있어요.</p>
-          <p>달빛 찻집의 문이 열립니다</p>
-          <i />
+      {isEnteringTeaHouse ? (
+        <div className={styles.entryTransition} data-active="true" aria-hidden>
+          <AssetImage
+            className={`${styles.entryTransitionImage} ${styles.entryTransitionImageDesktop}`}
+            imageClassName={styles.entryTransitionImageAsset}
+            src={fortuneTeaHouseAssets.backgrounds.loadingDesktop}
+            alt=""
+            priority
+          />
+          <AssetImage
+            className={`${styles.entryTransitionImage} ${styles.entryTransitionImageMobile}`}
+            imageClassName={styles.entryTransitionImageAsset}
+            src={fortuneTeaHouseAssets.backgrounds.loadingMobile}
+            alt=""
+            priority
+          />
+          <span className={styles.entryTransitionRing} />
+          <div className={styles.entryLoadingPanel}>
+            <strong>LOADING...</strong>
+            <p className={styles.entryLoadingPanelMessage}>달빛이 찻집의 문을 조용히 열고 있어요.</p>
+            <p>달빛 찻집의 문이 열립니다</p>
+            <i />
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className={styles.sceneFrame} aria-live="polite">
         <AnimatePresence mode="wait" initial={false}>
@@ -875,18 +957,24 @@ export default function FortuneTeaHousePage() {
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -10, scale: 0.996 }}
             transition={{ duration: reduceMotion ? 0.16 : 0.36, ease: [0.22, 1, 0.36, 1] }}
           >
-            {renderScene()}
+            <Suspense fallback={<SceneLoadingPanel />}>
+              {renderScene()}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </div>
-      <FortuneTeaHouseDebugPanel
-        stage={stage}
-        selectedCup={selectedCup}
-        questionInput={questionInput}
-        consultResult={consultResult}
-        lastError={submitError}
-        isSubmitting={isSubmitting}
-      />
+      {process.env.NODE_ENV !== "production" ? (
+        <Suspense fallback={null}>
+          <FortuneTeaHouseDebugPanel
+            stage={stage}
+            selectedCup={selectedCup}
+            questionInput={questionInput}
+            consultResult={consultResult}
+            lastError={submitError}
+            isSubmitting={isSubmitting}
+          />
+        </Suspense>
+      ) : null}
     </FortuneTeaHouseImmersiveShell>
   );
 }

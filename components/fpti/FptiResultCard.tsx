@@ -528,12 +528,15 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
   }
 }
 
+const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
+
 export default function FptiResultCard({ result }: Props) {
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
   const [deepNotice, setDeepNotice] = useState("");
   const [activeChapter, setActiveChapter] = useState(0);
+  const [accessChecking, setAccessChecking] = useState(true);
   const [accessState, setAccessState] = useState<FptiReportAccessState>({ isUnlocked: false });
   const [deepReport, setDeepReport] = useState<FptiDeepReport>(() => normalizeDeepReport(createInitialDeepReport(result), false));
   const unlockingRef = useRef(false);
@@ -556,6 +559,8 @@ export default function FptiResultCard({ result }: Props) {
     let cancelled = false;
     const scope = readAuthScope();
     const stored = safeReadStored(scope, signature);
+    const storedUnlocked = Boolean(stored?.report && stored.access?.isUnlocked);
+    setAccessChecking(!storedUnlocked);
     if (stored?.report && stored.access?.isUnlocked) {
       setAccessState(stored.access);
       setDeepReport(normalizeDeepReport(stored.report, true));
@@ -608,6 +613,8 @@ export default function FptiResultCard({ result }: Props) {
         }
       } catch {
         // Keep current state when balance sync fails.
+      } finally {
+        if (!cancelled) setAccessChecking(false);
       }
     };
 
@@ -619,7 +626,7 @@ export default function FptiResultCard({ result }: Props) {
   }, [result, signature]);
 
   const handleUnlockDeepReport = async () => {
-    if (deepLoading || unlockingRef.current) return;
+    if (deepLoading || accessChecking || unlockingRef.current) return;
     if (accessState.isUnlocked) return;
 
     unlockingRef.current = true;
@@ -835,10 +842,10 @@ export default function FptiResultCard({ result }: Props) {
             <button
               type="button"
               onClick={handleUnlockDeepReport}
-              disabled={deepLoading}
+              disabled={deepLoading || accessChecking}
               className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading ? "잠금 해제 처리 중" : "FPTI 심층 리포트 잠금 해제 (20,000원)"}
+              {deepLoading || accessChecking ? ACCESS_CHECKING_MESSAGE : "FPTI 심층 리포트 잠금 해제 (20,000원)"}
             </button>
           )}
           {accessState.isUnlocked && (
@@ -848,8 +855,9 @@ export default function FptiResultCard({ result }: Props) {
           )}
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "전체 열람 가능" : "미리보기"}</span>
+          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "전체 열람 가능" : accessChecking ? ACCESS_CHECKING_MESSAGE : "미리보기"}</span>
         </div>
+        {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{ACCESS_CHECKING_MESSAGE}</p>}
         {deepNotice && <p className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>

@@ -1,10 +1,23 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { talkingPigYeoniFrameCrops, talkingPigYeoniFrames } from "../data/assets";
 import type { YeoniMood } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
+
+type IdleWindow = Window & {
+  requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+  cancelIdleCallback?: (handle: number) => void;
+};
+
+type NetworkNavigator = Navigator & {
+  connection?: { saveData?: boolean; effectiveType?: string };
+  mozConnection?: { saveData?: boolean; effectiveType?: string };
+  webkitConnection?: { saveData?: boolean; effectiveType?: string };
+  deviceMemory?: number;
+};
 
 const pigExpressionFrames = {
   welcome: talkingPigYeoniFrameCrops.welcome,
@@ -22,11 +35,41 @@ type TalkingPigYeoniProps = {
 };
 
 export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood }: TalkingPigYeoniProps) {
+  const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failed, setFailed] = useState(false);
+  const [shouldWarmFrames, setShouldWarmFrames] = useState(false);
   const activeFrame = useMemo(() => pickPigExpressionFrame(cueText, mood, isSpeaking), [cueText, isSpeaking, mood]);
+  const warmFrames = useMemo(() => talkingPigYeoniFrames.filter((frame) => frame !== activeFrame.src), [activeFrame.src]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!spriteGate.canAnimate || spriteGate.isMobile) {
+      setShouldWarmFrames(false);
+      return undefined;
+    }
+
+    const nav = window.navigator as NetworkNavigator;
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+    const memory = Number(nav.deviceMemory || 0);
+    const cores = Number(nav.hardwareConcurrency || 0);
+    const effectiveType = String(connection?.effectiveType || "").toLowerCase();
+    if (connection?.saveData || (memory > 0 && memory <= 4) || (cores > 0 && cores <= 4) || effectiveType === "2g" || effectiveType === "slow-2g") return;
+
+    let idleId: number | null = null;
+    const idleWindow = window as IdleWindow;
+    const timerId = window.setTimeout(() => {
+      idleId = idleWindow.requestIdleCallback?.(() => setShouldWarmFrames(true), { timeout: 1800 }) ?? null;
+      if (idleId === null) setShouldWarmFrames(true);
+    }, 2400);
+
+    return () => {
+      window.clearTimeout(timerId);
+      if (idleId !== null) idleWindow.cancelIdleCallback?.(idleId);
+    };
+  }, [spriteGate.canAnimate, spriteGate.isMobile]);
 
   return (
-    <div className={styles.talkingPig} data-expression={activeFrame.label} data-speaking={isSpeaking ? "true" : "false"}>
+    <div ref={spriteGate.ref} className={styles.talkingPig} data-expression={activeFrame.label} data-speaking={isSpeaking ? "true" : "false"}>
       <span className={styles.pigGlow} aria-hidden />
       <span
         className={`${styles.pigImage} ${styles.pigSpriteFrame}`}
@@ -50,7 +93,7 @@ export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood 
             src={activeFrame.src}
             alt={activeFrame.label}
             decoding="async"
-            loading="eager"
+            loading="lazy"
             onError={() => setFailed(true)}
           />
         ) : (
@@ -62,9 +105,9 @@ export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood 
       <span className={styles.pigNamePlate}>꽃돼지?</span>
       <span className={styles.pigScentTrail} aria-hidden />
       <div className={styles.preloadFrames} aria-hidden>
-        {talkingPigYeoniFrames.map((frame) => (
-          <img key={frame} src={frame} alt="" decoding="async" loading="eager" />
-        ))}
+        {shouldWarmFrames ? warmFrames.map((frame) => (
+          <img key={frame} src={frame} alt="" decoding="async" loading="lazy" />
+        )) : null}
       </div>
     </div>
   );

@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bookmark,
@@ -28,7 +29,6 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
 import { useMusicPlayer, type RepeatMode } from "./_hooks/useMusicPlayer";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
-import MusicPlaylistPanel from "./MusicPlaylistPanel";
 import styles from "./moon-music-player.module.css";
 
 type MusicPlayerExampleProps = {
@@ -69,6 +69,7 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
+const INITIAL_MUSIC_ACCESS_TRACK_COUNT = 12;
 const MOON_COVER_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
 const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
 const HUMAN_MODE_COVER_KEYS = {
@@ -76,6 +77,33 @@ const HUMAN_MODE_COVER_KEYS = {
   dest1novaVol1: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc94 \ub370\ubdd4.webp",
   dest1novaVol2: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc942.webp",
 };
+
+function MusicPlaylistFallback() {
+  return (
+    <aside className={styles.playlistPanel} aria-busy="true">
+      <div className={styles.playlistHeaderButton}>
+        <span className={styles.playlistHeaderText}>
+          <span className={styles.playlistKicker}>
+            <Moon size={13} aria-hidden />
+            달빛 선곡
+          </span>
+          <span className={styles.playlistTitle}>플레이리스트를 여는 중</span>
+          <span className={styles.playlistSubtitle}>잠시만 기다려 주세요.</span>
+        </span>
+      </div>
+      <div className={styles.playlistBody}>
+        <div className={styles.playlistEmpty}>
+          <strong>달빛 음악실이 곧 열립니다.</strong>
+          <span>첫 곡은 바로 들을 수 있도록 준비하고 있어요.</span>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+const MusicPlaylistPanel = dynamic(() => import("./MusicPlaylistPanel"), {
+  loading: MusicPlaylistFallback,
+});
 
 const HUMAN_MODE_COVER_URLS = {
   yeoni: safeBuildMusicPublicUrl(`humanmode/${HUMAN_MODE_COVER_KEYS.yeoni}`),
@@ -784,8 +812,37 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   }, []);
 
   useEffect(() => {
-    void refreshMusicAccess();
-  }, [refreshMusicAccess]);
+    if (typeof window === "undefined") return;
+
+    const priorityTrackIds = new Set<string>();
+    if (initialSharedTrackId) priorityTrackIds.add(initialSharedTrackId);
+    for (const track of allTracks.slice(0, INITIAL_MUSIC_ACCESS_TRACK_COUNT)) {
+      priorityTrackIds.add(track.id);
+    }
+
+    const priorityTracks = allTracks.filter((track) => priorityTrackIds.has(track.id));
+    void refreshMusicAccess(priorityTracks);
+
+    const win = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    const refreshAllTracks = () => void refreshMusicAccess(allTracks);
+    let idleId: number | undefined;
+    const timeoutId = window.setTimeout(() => {
+      if (win.requestIdleCallback) {
+        idleId = win.requestIdleCallback(refreshAllTracks, { timeout: 3000 });
+        return;
+      }
+
+      refreshAllTracks();
+    }, 7000);
+
+    return () => {
+      if (idleId !== undefined && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [initialSharedTrackId, refreshMusicAccess]);
 
   useEffect(() => {
     setPlaybackState(currentTrackId, player.isPlaying);
@@ -896,6 +953,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       return;
     }
 
+    if (!isLyricsOpen) {
+      setLyricsText("");
+      setIsLyricsLoading(false);
+      return;
+    }
+
     let cancelled = false;
     setIsLyricsLoading(true);
     setLyricsText("");
@@ -923,9 +986,10 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     return () => {
       cancelled = true;
     };
-  }, [player.currentTrack?.id, player.currentTrack?.lyricsLookupKey]);
+  }, [isLyricsOpen, player.currentTrack?.id, player.currentTrack?.lyricsLookupKey]);
 
   useEffect(() => {
+    if (!isLyricsOpen) return;
     if (!player.currentTrack || !player.tracks.length) return;
 
     const cacheKeys = new Set<string>();
@@ -972,7 +1036,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       cancelled = true;
       window.clearTimeout(preloadIdleId);
     };
-  }, [player.currentIndex, player.tracks]);
+  }, [isLyricsOpen, player.currentIndex, player.tracks]);
   const currentTrackHasFullAccess = currentTrack ? hasTrackFullAccess(currentTrack, accessByTrackId) : false;
   const currentTrackPreviewLimit = !currentTrackHasFullAccess ? Number(currentTrack?.previewLimitSeconds || 0) : 0;
   const progressMax = currentTrackPreviewLimit > 0
@@ -1018,8 +1082,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   }, []);
 
   const handlePlaylistTrackSelect = useCallback((trackId: string) => {
+    const track = allTracks.find((candidate) => candidate.id === trackId);
+    if (track?.accessTier === "locked_preview") {
+      void refreshMusicAccess([track]);
+    }
     player.selectTrack(trackId, { play: true });
-  }, [player.selectTrack]);
+  }, [player.selectTrack, refreshMusicAccess]);
 
   const handlePlayToggle = useCallback(() => {
     if (player.isPlaying) {
@@ -1052,6 +1120,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         serviceType: "music_track",
         cost: track.coinCost || 3,
         amountKRW: track.priceKRW || 300,
+        membershipCreditCost: (track.coinCost || 3) * 10,
+        allowedPaymentModes: ["direct", "monthly"],
+        disablePassFirst: true,
+        disablePassChoice: true,
+        skipPassProbe: true,
+        forceDeduct: true,
         requestId: purchaseRequestId,
         idempotencyKey: purchaseRequestId,
       });

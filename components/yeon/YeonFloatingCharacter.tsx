@@ -2,15 +2,37 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
+import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { YeonMood, ZodiacSign } from "@/lib/yeon/types";
 import { getYeonSpriteSequence } from "@/lib/yeon/sprite";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import YeonSpriteFrame from "./YeonSpriteFrame";
 
 type Props = {
   mood: YeonMood;
   sign: ZodiacSign;
 };
+
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW";
+
+function normalizeYeonFloatingLocale(value?: string | null): LoadingLocale {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized.startsWith("en")) return "en";
+  if (normalized.startsWith("ja")) return "ja";
+  if (normalized === "zh-tw" || normalized === "zh-hant") return "zh-TW";
+  if (normalized.startsWith("zh")) return "zh-CN";
+  return "ko";
+}
+
+function getCurrentYeonFloatingLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+  if (runtimeLanguage) return normalizeYeonFloatingLocale(runtimeLanguage);
+  try {
+    const stored = window.localStorage.getItem("cd_locale") || window.localStorage.getItem("locale");
+    if (stored) return normalizeYeonFloatingLocale(stored);
+  } catch (_) {}
+  return normalizeYeonFloatingLocale(window.document?.documentElement?.lang || window.navigator?.language);
+}
 
 const YEON_FLOATING_CHARACTER_COPY = {
   ko: {
@@ -34,21 +56,23 @@ function getYeonFloatingCharacterCopy(locale: LoadingLocale) {
 }
 
 export default function YeonFloatingCharacter({ mood, sign }: Props) {
+  const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const frames = useMemo(() => getYeonSpriteSequence(sign, mood), [sign, mood]);
   const [cursor, setCursor] = useState(0);
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentYeonFloatingLocale());
   const copy = getYeonFloatingCharacterCopy(locale);
 
   useEffect(() => {
     setCursor(0);
+    if (!spriteGate.canAnimate) return undefined;
     const timer = window.setInterval(() => {
       setCursor((prev) => (prev + 1) % frames.length);
     }, 850);
     return () => window.clearInterval(timer);
-  }, [frames]);
+  }, [frames, spriteGate.canAnimate]);
 
   useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentYeonFloatingLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
     window.addEventListener("cd:locale-change", syncLocale);
@@ -62,9 +86,10 @@ export default function YeonFloatingCharacter({ mood, sign }: Props) {
 
   return (
     <motion.div
+      ref={spriteGate.ref}
       className="relative mx-auto h-56 w-56 md:h-64 md:w-64"
-      animate={{ y: [-6, 6, -6] }}
-      transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
+      animate={spriteGate.canAnimate ? { y: [-6, 6, -6] } : { y: 0 }}
+      transition={spriteGate.canAnimate ? { duration: 4.2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
       aria-label={copy.ariaLabel}
     >
       <div className="absolute inset-0 rounded-full border border-white/35 bg-[radial-gradient(circle_at_28%_24%,rgba(255,255,255,0.36),transparent_44%),radial-gradient(circle_at_74%_72%,rgba(145,164,255,0.24),transparent_46%),rgba(8,10,34,0.35)]" />
@@ -83,8 +108,8 @@ export default function YeonFloatingCharacter({ mood, sign }: Props) {
           key={n}
           className="absolute text-sm text-white/80"
           style={{ left: `${20 + n * 28}%`, top: `${16 + (n % 2) * 24}%` }}
-          animate={{ opacity: [0.15, 0.9, 0.15], scale: [0.7, 1.2, 0.7] }}
-          transition={{ duration: 2.6 + n * 0.4, repeat: Infinity, ease: "easeInOut" }}
+          animate={spriteGate.canAnimate ? { opacity: [0.15, 0.9, 0.15], scale: [0.7, 1.2, 0.7] } : { opacity: 0.3, scale: 1 }}
+          transition={spriteGate.canAnimate ? { duration: 2.6 + n * 0.4, repeat: Infinity, ease: "easeInOut" } : { duration: 0.2 }}
           aria-hidden
         >
           ✦

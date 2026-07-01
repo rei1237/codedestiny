@@ -605,6 +605,13 @@
   gap: 0.75rem;
 }
 
+.summaryHeader {
+  margin-bottom: 0.75rem;
+  color: #f6d67e;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .summaryGrid article,
 .chartCards article,
 .sectionCard,
@@ -852,11 +859,51 @@
   font-weight: 500;
 }
 
+.chartNotice {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
 .chartDataGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.65rem;
   margin: 0;
+}
+
+.chartDetail {
+  border: 1px solid rgba(196, 181, 253, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.025);
+  padding: 0.85rem;
+}
+
+.chartDetail summary {
+  cursor: pointer;
+  color: rgba(246, 214, 126, 0.92);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.chartDetail > *:not(summary) {
+  margin-top: 0.8rem;
+}
+
+.rashiList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.rashiList span {
+  border: 1px solid rgba(196, 181, 253, 0.14);
+  border-radius: 8px;
+  padding: 0.5rem;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 0.8rem;
+  text-align: center;
 }
 
 .chartDataGrid div {

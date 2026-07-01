@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { estimateReadingMinutes } from "@/lib/stories/metrics";
 import type { IChapter, IStory } from "@/lib/stories/types";
-import styles from "./storyComponents.module.css";
+import styles from "./chapterList.module.css";
+
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "es" | "fr" | "de";
 
 interface ChapterListProps {
   story: IStory;
@@ -26,6 +27,30 @@ interface StoredViewCounts {
 
 const VIEW_COUNT_STORAGE_KEY = "cd-story-view-counts";
 const VIEW_COUNT_EVENT = "cd-story-view-counts-updated";
+
+function normalizeStoryLocale(value?: string | null): LoadingLocale {
+  const locale = (value || "").toLowerCase();
+  if (locale.startsWith("en")) return "en";
+  if (locale.startsWith("ja") || locale.startsWith("jp")) return "ja";
+  if (locale.startsWith("zh-tw") || locale.startsWith("zh-hant") || locale.includes("traditional")) return "zh-TW";
+  if (locale.startsWith("zh")) return "zh-CN";
+  if (locale.startsWith("vi")) return "vi";
+  if (locale.startsWith("es")) return "es";
+  if (locale.startsWith("fr")) return "fr";
+  if (locale.startsWith("de")) return "de";
+  return "ko";
+}
+
+function getCurrentStoryLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+  if (runtimeLanguage) return normalizeStoryLocale(runtimeLanguage);
+  try {
+    const stored = window.localStorage.getItem("cd_locale") || window.localStorage.getItem("code-destiny-locale");
+    if (stored) return normalizeStoryLocale(stored);
+  } catch (_) {}
+  return normalizeStoryLocale(document.documentElement.lang || navigator.language);
+}
 
 const STORY_CHAPTER_TEXT_TRANSLATIONS = {
   ko: {
@@ -101,7 +126,7 @@ function getStoryChapterCopy(locale: LoadingLocale) {
 }
 
 function syncStoryLocale(setLocale: (locale: LoadingLocale) => void) {
-  const syncLocale = () => setLocale(getCurrentLoadingLocale());
+  const syncLocale = () => setLocale(getCurrentStoryLocale());
   syncLocale();
   window.addEventListener("cd:locale-ready", syncLocale);
   window.addEventListener("cd:locale-change", syncLocale);
@@ -149,7 +174,7 @@ function readStoredChapterViews(storyId: string) {
 export default function ChapterList({ story, chapters }: ChapterListProps) {
   const [progress, setProgress] = useState<StoredProgress>({});
   const [storedViews, setStoredViews] = useState<Record<string, number>>({});
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentStoryLocale());
   const copy = getStoryChapterCopy(locale);
 
   useEffect(() => syncStoryLocale(setLocale), []);
@@ -233,7 +258,7 @@ export default function ChapterList({ story, chapters }: ChapterListProps) {
 
 export function ContinueReadingButton({ story, fallbackHref }: { story: IStory; fallbackHref: string }) {
   const [href, setHref] = useState("");
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentStoryLocale());
   const copy = getStoryChapterCopy(locale);
 
   useEffect(() => syncStoryLocale(setLocale), []);
@@ -254,7 +279,7 @@ export function ContinueReadingButton({ story, fallbackHref }: { story: IStory; 
 
 export function StoryProgressPanel({ story, chapters }: ChapterListProps) {
   const [progress, setProgress] = useState<StoredProgress>({});
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentStoryLocale());
   const copy = getStoryChapterCopy(locale);
 
   useEffect(() => syncStoryLocale(setLocale), []);

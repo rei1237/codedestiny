@@ -1,5 +1,6 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
+import { getStaticShellCanonicalRoutes } from "./static-canonical-route-map.mjs";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -8,6 +9,7 @@ const publicStaticIndexPath = resolve(rootDir, "public", "static", "index.html")
 const generatedSitemapPath = resolve(rootDir, "out", "sitemap.xml");
 const generatedRobotsPath = resolve(rootDir, "out", "robots.txt");
 const generatedOutDir = resolve(rootDir, "out");
+const nextServerAppDir = resolve(rootDir, ".next", "server", "app");
 const distIndexPath = resolve(rootDir, "dist", "index.html");
 const distSitemapPath = resolve(rootDir, "dist", "sitemap.xml");
 const distRobotsPath = resolve(rootDir, "dist", "robots.txt");
@@ -36,7 +38,7 @@ function stripLeadingBom(buffer) {
 function assertShellLooksReady(html, options = {}) {
   const { allowStaticSelfRedirect = false } = options;
   const requiredMarkers = [
-    'id="codeSplash"',
+    'id="authQuickLinks"',
     "openHwatuModal",
   ];
 
@@ -74,9 +76,23 @@ function relativePath(from, to) {
 function collectGeneratedRouteHtmlFiles(sourceRoot, currentDir = sourceRoot, routeFiles = []) {
   if (!existsSync(currentDir)) return routeFiles;
 
-  for (const entry of readdirSync(currentDir)) {
+  let entries = [];
+  try {
+    entries = readdirSync(currentDir);
+  } catch (error) {
+    if (error?.code === "ENOENT") return routeFiles;
+    throw error;
+  }
+
+  for (const entry of entries) {
     const entryPath = resolve(currentDir, entry);
-    const stats = statSync(entryPath);
+    let stats;
+    try {
+      stats = statSync(entryPath);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
 
     if (stats.isDirectory()) {
       collectGeneratedRouteHtmlFiles(sourceRoot, entryPath, routeFiles);
@@ -97,17 +113,76 @@ function collectGeneratedRouteHtmlFiles(sourceRoot, currentDir = sourceRoot, rou
 function restoreGeneratedRouteHtml() {
   let copiedCount = 0;
 
-  for (const routeFile of collectGeneratedRouteHtmlFiles(generatedOutDir)) {
-    const sourcePath = resolve(generatedOutDir, routeFile);
-    if (!existsSync(sourcePath)) continue;
-    const destinationPath = resolve(rootDir, "dist", routeFile);
-    mkdirSync(dirname(destinationPath), { recursive: true });
-    copyFileSync(sourcePath, destinationPath);
-    copiedCount += 1;
+  for (const sourceRoot of [generatedOutDir, nextServerAppDir]) {
+    for (const routeFile of collectGeneratedRouteHtmlFiles(sourceRoot)) {
+      const sourcePath = resolve(sourceRoot, routeFile);
+      if (!existsSync(sourcePath)) continue;
+      const destinationPath = resolve(rootDir, "dist", routeFile);
+      mkdirSync(dirname(destinationPath), { recursive: true });
+      copyFileSync(sourcePath, destinationPath);
+      copiedCount += 1;
+    }
   }
 
   if (copiedCount > 0) {
     console.log(`[promote-static-shell] restored ${copiedCount} generated app route HTML file(s)`);
+  }
+}
+
+function restoreStaticShellLocaleHtml() {
+  for (const routeFile of staticShellRouteHtmlFiles) {
+    if (!/^(en|ja|zh)\/index\.html$/.test(routeFile)) continue;
+    const sourcePath = resolve(publicDir, routeFile);
+    if (!existsSync(sourcePath)) continue;
+    const destinationPath = resolve(rootDir, "dist", routeFile);
+    mkdirSync(dirname(destinationPath), { recursive: true });
+    copyFileSync(sourcePath, destinationPath);
+  }
+}
+
+function escapeHtmlAttr(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function toCanonicalUrl(pathname) {
+  const normalized = String(pathname || "/").startsWith("/") ? String(pathname || "/") : `/${pathname}`;
+  return `https://code-destiny.com${normalized}`;
+}
+
+function injectStaticShellRouteMeta(html, route) {
+  const canonicalUrl = toCanonicalUrl(route.canonical);
+  const routeMeta = [
+    `<meta name="cd-static-canonical-route" content="${escapeHtmlAttr(route.canonical)}">`,
+    route.action ? `<meta name="cd-static-canonical-action" content="${escapeHtmlAttr(route.action)}">` : "",
+  ].filter(Boolean).join("\n");
+
+  let nextHtml = html
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlAttr(route.title)}</title>`)
+    .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(route.description)}">`)
+    .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
+    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
+
+  if (nextHtml.includes("</head>")) {
+    nextHtml = nextHtml.replace("</head>", `${routeMeta}\n</head>`);
+  }
+
+  return nextHtml;
+}
+
+function writeStaticShellCanonicalRoutes() {
+  if (!existsSync(publicIndexPath)) return;
+
+  const rootShellHtml = readFileSync(publicIndexPath, "utf8");
+  for (const route of getStaticShellCanonicalRoutes()) {
+    const routeFile = route.canonical.replace(/^\/+/, "").replace(/\/+$/, "");
+    if (!routeFile) continue;
+    const destinationPath = resolve(rootDir, "dist", routeFile, "index.html");
+    mkdirSync(dirname(destinationPath), { recursive: true });
+    writeFileSync(destinationPath, injectStaticShellRouteMeta(rootShellHtml, route), "utf8");
   }
 }
 
@@ -118,6 +193,7 @@ if (!existsSync(resolve(rootDir, "dist"))) {
 if (existsSync(publicDir)) {
   cpSync(publicDir, resolve(rootDir, "dist"), { recursive: true, force: true });
   restoreGeneratedRouteHtml();
+  restoreStaticShellLocaleHtml();
   console.log(`[promote-static-shell] public assets: ${publicDir} -> ${resolve(rootDir, "dist")}`);
 
   if (existsSync(generatedSitemapPath)) {
@@ -136,3 +212,5 @@ writeHtml(publicIndexPath, distIndexPath, "root");
 if (existsSync(publicStaticIndexPath)) {
   writeHtml(publicStaticIndexPath, distStaticIndexPath, "legacy static", { allowStaticSelfRedirect: true });
 }
+
+writeStaticShellCanonicalRoutes();

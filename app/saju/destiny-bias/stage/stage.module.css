@@ -1,0 +1,161 @@
+@keyframes rayA {
+  0%, 100% { transform: translateX(0) rotate(16deg); opacity: 0.35; }
+  35% { transform: translateX(16px) rotate(16deg); opacity: 0.92; }
+  70% { transform: translateX(-8px) rotate(16deg); opacity: 0.45; }
+}
+
+@keyframes rayB {
+  0%, 100% { transform: translateX(0) rotate(-19deg); opacity: 0.34; }
+  35% { transform: translateX(-18px) rotate(-19deg); opacity: 0.96; }
+  70% { transform: translateX(10px) rotate(-19deg); opacity: 0.5; }
+}
+
+@keyframes star {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); filter: blur(8px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+@keyframes floatA {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-6px) rotate(-7deg); }
+}
+
+@keyframes floatB {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-7px) rotate(9deg); }
+}
+
+@keyframes floatC {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-6px) rotate(7deg); }
+}
+
+@keyframes orbA {
+  0%, 100% { transform: translate(0, 0); opacity: 0.38; }
+  50% { transform: translate(-16px, 12px); opacity: 0.82; }
+}
+
+@keyframes orbB {
+  0%, 100% { transform: translate(0, 0); opacity: 0.33; }
+  50% { transform: translate(18px, 8px); opacity: 0.75; }
+}
+
+@keyframes cardA {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-15px) rotate(-1.5deg); }
+}
+
+@keyframes cardB {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-13px) rotate(1.3deg); }
+}
+
+@keyframes ring {
+  0%, 100% { box-shadow: 0 0 18px rgba(236,72,153,.35), inset 0 0 18px rgba(59,130,246,.18); }
+  50% { box-shadow: 0 0 34px rgba(236,72,153,.6), inset 0 0 26px rgba(59,130,246,.3); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.72; }
+  50% { opacity: 1; }
+}
+
+@keyframes title {
+  0%, 100% { opacity: 1; }
+  35% { opacity: 0.86; }
+  70% { opacity: 0.9; }
+}
+
+@keyframes feature {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.rayA { animation: rayA 5.2s ease-in-out infinite; }
+.rayB { animation: rayB 5.5s ease-in-out infinite; }
+.shell { animation: pulse .01s linear 1 both; }
+.child { animation: fadeUp .75s cubic-bezier(.22,1,.36,1) both; }
+.d1 { animation-delay: .2s; }
+.d2 { animation-delay: .35s; }
+.d3 { animation-delay: .5s; }
+.floatA { animation: floatA 2.2s ease-in-out infinite; }
+.floatB { animation: floatB 1.9s ease-in-out infinite; }
+.floatC { animation: floatC 2.1s ease-in-out .16s infinite; }
+.orbA { animation: orbA 5.3s ease-in-out infinite; }
+.orbB { animation: orbB 5.1s ease-in-out infinite; }
+.cardA { animation: cardA 3.3s ease-in-out infinite; }
+.cardB { animation: cardB 3.1s ease-in-out .34s infinite; }
+.ring { animation: ring 2.7s ease-in-out infinite; }
+.pulse { animation: pulse 1.9s ease-in-out infinite; }
+.pulseSoft { animation: pulse 2.1s ease-in-out infinite; }
+.title { animation: title 2.2s ease-in-out infinite; }
+.star {
+  animation: star var(--stage-star-duration, 2s) ease-in-out var(--stage-star-delay, 0s) infinite;
+}
+
+.featureCard {
+  animation: feature var(--stage-feature-duration, 2.35s) ease-in-out var(--stage-feature-delay, 0s) infinite;
+}
+
+@media (max-width: 640px) {
+  .rayA,
+  .rayB {
+    display: none;
+  }
+
+  .child {
+    animation-duration: .45s;
+  }
+
+  .panel {
+    backdrop-filter: none !important;
+    box-shadow: 0 0 10px rgba(192,132,252,0.28) !important;
+  }
+
+  .orbA,
+  .orbB,
+  .cardA,
+  .cardB,
+  .ring,
+  .title,
+  .featureCard {
+    animation: none !important;
+  }
+
+  .ring {
+    box-shadow: 0 0 16px rgba(236,72,153,.32), inset 0 0 14px rgba(59,130,246,.16);
+  }
+
+  .star {
+    animation-duration: 3.4s !important;
+  }
+
+  .pulse,
+  .pulseSoft {
+    animation-duration: 2.6s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rayA,
+  .rayB,
+  .child,
+  .floatA,
+  .floatB,
+  .floatC,
+  .orbA,
+  .orbB,
+  .cardA,
+  .cardB,
+  .ring,
+  .pulse,
+  .pulseSoft,
+  .title {
+    animation: none !important;
+  }
+}

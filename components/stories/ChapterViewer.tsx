@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import {
   READER_BODY_FONT_OPTIONS,
   READER_CONTENT_WIDTHS,
@@ -12,7 +12,7 @@ import { useReadingProgress } from "@/hooks/useReadingProgress";
 import type { ChapterNav, IChapter, IStory } from "@/lib/stories/types";
 import ReadingProgressBar from "./ReadingProgressBar";
 import ViewerNavBar from "./ViewerNavBar";
-import ViewerSettingsPanel from "./ViewerSettingsPanel";
+import type { ViewerSettingsPanelProps } from "./ViewerSettingsPanel";
 import styles from "./viewer.module.css";
 
 interface ChapterViewerProps {
@@ -59,6 +59,30 @@ function formatChapterLabel(chapterNumber: number) {
   return chapterNumber === 0 ? "프롤로그" : `Chapter ${chapterNumber}`;
 }
 
+function ViewerSettingsPanelFallback({ open, onClose }: Pick<ViewerSettingsPanelProps, "open" | "onClose">) {
+  return (
+    <>
+      <button
+        className={`${styles.drawerBackdrop} ${open ? styles.drawerBackdropOpen : ""}`}
+        type="button"
+        aria-label="읽기 설정 닫기"
+        onClick={onClose}
+      />
+      <aside className={`${styles.drawer} ${open ? styles.drawerOpen : ""}`} aria-hidden={!open}>
+        <div className={styles.drawerHead}>
+          <h2>읽기 설정</h2>
+          <button className={styles.iconButton} type="button" onClick={onClose} aria-label="닫기">
+            ×
+          </button>
+        </div>
+        <section className={styles.settingGroup}>
+          <span className={styles.settingLabel}>설정을 여는 중입니다.</span>
+        </section>
+      </aside>
+    </>
+  );
+}
+
 function incrementStoredViewCount(storyId: string, chapterSlug: string) {
   if (typeof window === "undefined") return;
 
@@ -99,10 +123,15 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
   const { settings, updateSetting, resetSettings, applyPreset } = useReaderSettings();
   const { lastPosition, updateProgress } = useReadingProgress(story._id, chapter.slug, chapter.chapterNumber);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [SettingsPanel, setSettingsPanel] = useState<ComponentType<ViewerSettingsPanelProps> | null>(null);
   const [topHidden, setTopHidden] = useState(false);
   const [dockMuted, setDockMuted] = useState(false);
   const shellRef = useRef<HTMLElement | null>(null);
   const lastScrollYRef = useRef(0);
+  const scrollFrameRef = useRef<number | null>(null);
+  const topHiddenRef = useRef(false);
+  const dockMutedRef = useRef(false);
+  const progressRef = useRef(0);
   const restoredRef = useRef(false);
 
   const listHref = `/stories/${story.slug}`;
@@ -122,6 +151,25 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
   }, [story._id, chapter.slug]);
 
   useEffect(() => {
+    progressRef.current = lastPosition;
+  }, [lastPosition]);
+
+  useEffect(() => {
+    if (!settingsOpen || SettingsPanel) return undefined;
+    let isMounted = true;
+
+    import("./ViewerSettingsPanel").then((module) => {
+      if (isMounted) {
+        setSettingsPanel(() => module.default);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [SettingsPanel, settingsOpen]);
+
+  useEffect(() => {
     if (restoredRef.current || lastPosition <= 1) return;
     restoredRef.current = true;
     requestAnimationFrame(() => {
@@ -138,23 +186,54 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    const onScroll = () => {
+    const flushScrollState = () => {
+      scrollFrameRef.current = null;
       const currentY = target.scrollTop;
       const movingDown = currentY > lastScrollYRef.current;
-      setTopHidden(movingDown && currentY > 90);
-      setDockMuted(movingDown && currentY > 160);
+      const nextTopHidden = movingDown && currentY > 90;
+      const nextDockMuted = movingDown && currentY > 160;
+      const nextProgress = Math.round(getScrollPercent(target));
+
+      if (topHiddenRef.current !== nextTopHidden) {
+        topHiddenRef.current = nextTopHidden;
+        setTopHidden(nextTopHidden);
+      }
+      if (dockMutedRef.current !== nextDockMuted) {
+        dockMutedRef.current = nextDockMuted;
+        setDockMuted(nextDockMuted);
+      }
+      if (progressRef.current !== nextProgress) {
+        progressRef.current = nextProgress;
+        updateProgress(nextProgress);
+      }
+
       lastScrollYRef.current = currentY;
-      updateProgress(getScrollPercent(target));
+    };
+
+    const onScroll = () => {
+      if (scrollFrameRef.current !== null) return;
+      scrollFrameRef.current = window.requestAnimationFrame(flushScrollState);
     };
 
     target.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => {
+      if (scrollFrameRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameRef.current);
+        scrollFrameRef.current = null;
+      }
       target.removeEventListener("scroll", onScroll);
       document.body.style.overflow = previousOverflow;
-      updateProgress(getScrollPercent(target));
+      const finalProgress = Math.round(getScrollPercent(target));
+      progressRef.current = finalProgress;
+      updateProgress(finalProgress);
     };
   }, [updateProgress]);
+
+  const revealDock = useCallback(() => {
+    dockMutedRef.current = false;
+    setDockMuted(false);
+  }, []);
 
   const cssVars = useMemo(() => {
     const theme = themeTokens[settings.theme];
@@ -193,7 +272,7 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
       className={styles.shell}
       data-theme={settings.theme}
       style={cssVars}
-      onPointerDown={() => setDockMuted(false)}
+      onPointerDown={revealDock}
     >
       <ViewerNavBar
         chapterTitle={chapter.title}
@@ -252,14 +331,18 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
         })}
         </article>
       </section>
-      <ViewerSettingsPanel
-        onApplyPreset={applyPreset}
-        onChange={updateSetting}
-        onClose={() => setSettingsOpen(false)}
-        onReset={resetSettings}
-        open={settingsOpen}
-        settings={settings}
-      />
+      {SettingsPanel ? (
+        <SettingsPanel
+          onApplyPreset={applyPreset}
+          onChange={updateSetting}
+          onClose={() => setSettingsOpen(false)}
+          onReset={resetSettings}
+          open={settingsOpen}
+          settings={settings}
+        />
+      ) : (
+        <ViewerSettingsPanelFallback open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      )}
     </main>
   );
 }

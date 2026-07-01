@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 
 const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
@@ -42,6 +43,15 @@ const excludedInsightCategories = new Set([
   "운영 체크리스트",
   "법률/운영",
 ]);
+const staticCanonicalAliasPaths = new Set(
+  STATIC_CANONICAL_ROUTES.flatMap((route) => route.aliases || [])
+    .map((path) => normalizeSitemapPath(path).replace(/\/+$/, "")),
+);
+const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
+  path: route.canonical,
+  changefreq: "weekly",
+  priority: route.canonical === "/life-book-ai" ? 0.94 : 0.9,
+}));
 
 const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
@@ -343,6 +353,7 @@ function normalizeSitemapPath(pathname) {
 
 function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
+  if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
 
@@ -439,6 +450,7 @@ async function main() {
 
   const routeEntries = [
     ...coreRoutes,
+    ...staticCanonicalRouteEntries,
     ...localInsights,
     ...extractSeoGrowthInsightRoutes(),
     ...dynamicInsights,

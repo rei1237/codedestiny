@@ -3083,14 +3083,11 @@
   }
 
   .coverAmbient {
-    opacity: 0.24;
-    filter: blur(20px) saturate(1.02);
-    transform: scale(1.08);
+    display: none;
   }
 
   .moonbeam {
-    opacity: 0.16;
-    filter: none;
+    display: none;
   }
 
   .moon::before {
@@ -3100,13 +3097,19 @@
   }
 
   .stars {
-    opacity: 0.48;
-    background-size: 180px 190px, 260px 270px, 340px 300px;
+    display: none;
   }
 
   .mist {
     opacity: 0.58;
     filter: none;
+  }
+
+  .bannerGlowLeft,
+  .bannerGlowRight,
+  .bannerStars,
+  .bannerCrescent {
+    display: none;
   }
 
   .playerFrame {
@@ -4442,6 +4445,25 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
+}
+
+.playlistMoreButton {
+  min-height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #f8f7ff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.playlistMoreButton:hover,
+.playlistMoreButton:focus-visible {
+  border-color: rgba(199, 183, 255, 0.36);
+  background: rgba(199, 183, 255, 0.12);
 }
 
 .playlistTrack {

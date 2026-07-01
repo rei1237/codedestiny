@@ -79,9 +79,10 @@
 
 .heroSection[data-phase="prologue"] {
   background-image:
-    radial-gradient(circle at 24% 18%, rgba(245, 212, 135, 0.24), transparent 28%),
-    linear-gradient(90deg, rgba(5, 8, 18, 0.68) 0%, rgba(5, 8, 18, 0.34) 48%, rgba(5, 8, 18, 0.24) 100%),
-    linear-gradient(180deg, rgba(5, 8, 18, 0.04) 0%, rgba(5, 8, 18, 0.62) 100%),
+    radial-gradient(circle at 24% 18%, rgba(245, 212, 135, 0.18), transparent 30%),
+    radial-gradient(circle at 74% 20%, rgba(129, 140, 168, 0.16), transparent 34%),
+    linear-gradient(90deg, rgba(5, 8, 18, 0.76) 0%, rgba(5, 8, 18, 0.42) 48%, rgba(5, 8, 18, 0.26) 100%),
+    linear-gradient(180deg, rgba(5, 8, 18, 0.08) 0%, rgba(5, 8, 18, 0.7) 100%),
     var(--neo-prologue-bg);
 }
 
@@ -161,11 +162,12 @@
 
 .vnStage[data-phase="prologue"] {
   background:
-    linear-gradient(90deg, rgba(5, 8, 18, 0.52) 0%, rgba(5, 10, 20, 0.16) 45%, rgba(5, 8, 18, 0.06) 100%),
-    linear-gradient(180deg, rgba(7, 14, 31, 0.02) 0%, rgba(3, 5, 10, 0.38) 100%),
+    linear-gradient(90deg, rgba(5, 8, 18, 0.62) 0%, rgba(5, 10, 20, 0.22) 48%, rgba(5, 8, 18, 0.08) 100%),
+    linear-gradient(180deg, rgba(7, 14, 31, 0.04) 0%, rgba(3, 5, 10, 0.48) 100%),
     var(--neo-prologue-bg);
   background-size: cover;
   background-position: center;
+  box-shadow: 0 30px 96px rgba(0, 0, 0, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .vnStage[data-effect="signal"]::before {
@@ -229,6 +231,42 @@
   display: block;
 }
 
+.entryBrief {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  max-width: 560px;
+}
+
+.entryBrief span {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  border: 1px solid rgba(214, 188, 118, 0.24);
+  border-radius: 8px;
+  padding: 10px 11px;
+  background: rgba(5, 8, 16, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.entryBrief strong {
+  color: #e4ca80;
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.entryBrief em {
+  color: rgba(239, 244, 252, 0.82);
+  font-size: 0.8rem;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
 .vnCharacter {
   position: absolute;
   right: clamp(0px, 3vw, 44px);
@@ -261,11 +299,13 @@
 }
 
 .vnCharacterCrop[data-sheet-crop="true"] .vnCharacterImageLayer {
+  inset: auto;
   top: var(--neo-sheet-y, 0%);
   left: var(--neo-sheet-x, 0%);
+  right: auto;
+  bottom: auto;
   width: var(--neo-sheet-width, 400%);
   height: var(--neo-sheet-height, 400%);
-  inset: auto;
 }
 
 .vnCharacterImage {
@@ -485,6 +525,16 @@
   cursor: pointer;
 }
 
+.vnStage[data-phase="prologue"] .vnDialogueBox {
+  min-height: 168px;
+  border-color: rgba(226, 199, 132, 0.56);
+  padding: clamp(20px, 2.8vw, 30px);
+  background:
+    linear-gradient(180deg, rgba(5, 8, 16, 0.95), rgba(8, 13, 25, 0.9)),
+    rgba(5, 8, 16, 0.9);
+  box-shadow: 0 24px 58px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
 .vnDialogueBox::after {
   content: "";
   position: absolute;
@@ -533,6 +583,21 @@
 
 .vnDialogueBox[data-speaker="narration"]::after {
   display: none;
+}
+
+.vnStage[data-phase="prologue"] .vnDialogueBox[data-speaker="customer"] {
+  border-color: rgba(178, 196, 226, 0.5);
+  background:
+    linear-gradient(180deg, rgba(11, 18, 34, 0.96), rgba(5, 8, 17, 0.92)),
+    rgba(5, 8, 16, 0.92);
+}
+
+.vnStage[data-phase="prologue"] .vnDialogueBox[data-speaker="inner"] {
+  border-color: rgba(159, 186, 255, 0.54);
+  background:
+    radial-gradient(circle at 8% 22%, rgba(159, 186, 255, 0.14), transparent 34%),
+    linear-gradient(180deg, rgba(7, 12, 28, 0.96), rgba(9, 14, 30, 0.9)),
+    rgba(5, 8, 16, 0.9);
 }
 
 .vnDialogueContent {
@@ -596,6 +661,13 @@
   word-break: keep-all;
 }
 
+.vnStage[data-phase="prologue"] .vnDialogueBox p {
+  max-width: min(1040px, 100%);
+  font-size: clamp(1.02rem, 2vw, 1.34rem);
+  font-weight: 780;
+  line-height: 1.72;
+}
+
 .vnDialogueBox[data-speaker="customer"] .vnSpeaker span,
 .vnDialogueBox[data-speaker="inner"] .vnSpeaker span {
   border-color: rgba(214, 188, 118, 0.58);
@@ -647,6 +719,17 @@
   line-height: 1.45;
 }
 
+.vnStage[data-phase="prologue"] .vnNotificationCard {
+  border-color: rgba(226, 199, 132, 0.52);
+  background:
+    linear-gradient(135deg, rgba(36, 47, 66, 0.72), rgba(8, 13, 25, 0.72)),
+    rgba(7, 12, 23, 0.72);
+}
+
+.vnStage[data-phase="prologue"] .vnCtaHelper {
+  color: rgba(235, 242, 252, 0.86);
+}
+
 .vnCtaHelper {
   display: block;
 }
@@ -669,6 +752,10 @@
   justify-content: flex-end;
   gap: 10px;
   max-width: calc(100% - clamp(40px, 8vw, 116px));
+}
+
+.vnStage[data-phase="prologue"] .vnControlRow {
+  bottom: clamp(360px, 30vw, 420px);
 }
 
 .vnGhostButton {
@@ -716,6 +803,18 @@
   line-height: 1;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.vnStage[data-phase="prologue"] .vnStartButton {
+  min-height: 78px;
+  border-color: rgba(255, 226, 155, 0.82);
+  background:
+    linear-gradient(135deg, rgba(110, 28, 38, 0.98), rgba(15, 22, 39, 0.98) 52%, rgba(68, 65, 50, 0.94)),
+    rgba(5, 8, 16, 0.96);
+  box-shadow:
+    0 24px 58px rgba(0, 0, 0, 0.56),
+    0 0 36px rgba(245, 212, 135, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .vnStartButton::before,
@@ -836,6 +935,12 @@
   letter-spacing: 0.12em;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.vnStage[data-phase="prologue"] .ctaButtonCopy em {
+  color: rgba(235, 242, 252, 0.8);
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .heroCopy {
@@ -1525,12 +1630,16 @@
 
 .commandProgressRail {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(116px, 1fr));
   gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: thin;
 }
 
-.commandProgressRail span {
+.commandProgressRail button {
   min-width: 0;
+  appearance: none;
   display: grid;
   gap: 5px;
   border: 1px solid rgba(180, 194, 224, 0.18);
@@ -1538,9 +1647,11 @@
   padding: 9px 8px;
   color: rgba(226, 233, 246, 0.66);
   background: rgba(3, 7, 14, 0.52);
+  cursor: pointer;
   font-size: 0.74rem;
   font-weight: 850;
   line-height: 1.15;
+  text-align: left;
 }
 
 .commandProgressRail em {
@@ -1551,16 +1662,36 @@
   letter-spacing: 0.08em;
 }
 
-.commandProgressRail span[data-active="true"] {
+.commandProgressRail button[data-active="true"] {
   border-color: rgba(245, 212, 135, 0.72);
   color: #fff4d0;
   background: linear-gradient(180deg, rgba(69, 55, 29, 0.42), rgba(8, 13, 25, 0.74));
   box-shadow: inset 0 0 0 1px rgba(245, 212, 135, 0.14), 0 10px 26px rgba(0, 0, 0, 0.24);
 }
 
-.commandProgressRail span[data-done="true"] {
+.commandProgressRail button[data-done="true"] {
   border-color: rgba(102, 166, 144, 0.4);
   color: rgba(235, 248, 240, 0.82);
+}
+
+.commandProgressRail button:focus-visible {
+  outline: 2px solid #f0d17b;
+  outline-offset: 2px;
+}
+
+.commandStepHint,
+.profileModeHint,
+.questionHint {
+  margin: 0;
+  color: rgba(246, 238, 217, 0.76);
+  font-size: 0.86rem;
+  font-weight: 760;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.commandStepHint {
+  color: rgba(255, 247, 222, 0.84);
 }
 
 .commandSpeechBubble {
@@ -1806,6 +1937,21 @@
   transform-origin: top left;
 }
 
+.spriteActor[data-mobile-single-frame="true"] .spriteStage {
+  aspect-ratio: 362 / 543;
+}
+
+.spriteActor[data-mobile-single-frame="true"] .spriteImage {
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  transform: none !important;
+}
+
 .deckSection {
   display: grid;
   gap: 14px;
@@ -2041,6 +2187,11 @@
   font: inherit;
   font-size: 0.95rem;
   font-weight: 700;
+}
+
+.fieldLabel input[data-default-value="true"] {
+  color: rgba(255, 248, 232, 0.62);
+  font-style: italic;
 }
 
 .fieldLabel input:disabled,
@@ -2994,7 +3145,7 @@
   }
 
   .commandProgressRail {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(108px, 1fr));
   }
 
   .commandSpeechBubble::after {
@@ -3086,7 +3237,6 @@
     border-bottom: 1px solid rgba(225, 198, 126, 0.25);
   }
 
-  .methodGrid,
   .topicGrid,
   .intensityGrid,
   .profileModeGrid,
@@ -3098,6 +3248,11 @@
     grid-template-columns: 1fr;
   }
 
+  .methodGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
   .startHint {
     grid-column: auto;
   }
@@ -3107,12 +3262,48 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr;
     align-items: start;
+    gap: 9px;
+    padding: 10px;
   }
 
   .methodImageFrame {
     width: 100%;
     height: auto;
     min-height: 0;
+    max-height: 118px;
+    aspect-ratio: 4 / 3;
+  }
+
+  .methodMeta {
+    display: grid;
+    justify-content: stretch;
+  }
+
+  .methodMeta span:first-child {
+    font-size: 1rem;
+  }
+
+  .methodBadge {
+    width: fit-content;
+    font-size: 0.62rem !important;
+  }
+
+  .methodText {
+    gap: 6px;
+  }
+
+  .methodText strong {
+    font-size: 0.84rem;
+    line-height: 1.32;
+  }
+
+  .methodText em {
+    font-size: 0.76rem;
+    line-height: 1.38;
+  }
+
+  .methodText small {
+    display: none;
   }
 
   .choiceButton {
@@ -3282,7 +3473,7 @@
 
   .vnStage[data-phase="prologue"] {
     background:
-      linear-gradient(180deg, rgba(5, 8, 18, 0.12) 0%, rgba(5, 8, 18, 0.56) 100%),
+      linear-gradient(180deg, rgba(5, 8, 18, 0.18) 0%, rgba(5, 8, 18, 0.68) 100%),
       var(--neo-prologue-bg);
     background-size: cover;
     background-position: center top;
@@ -3304,6 +3495,23 @@
   .vnCopy .subtitle {
     max-width: 56%;
     font-size: 1.22rem;
+  }
+
+  .entryBrief {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .entryBrief span {
+    padding: 8px;
+  }
+
+  .entryBrief strong {
+    font-size: 0.66rem;
+  }
+
+  .entryBrief em {
+    font-size: 0.72rem;
   }
 
   .vnCharacter {
@@ -3340,7 +3548,7 @@
 
   .vnCharacter[data-scene="shadow"] {
     right: 6vw;
-    bottom: 198px;
+    bottom: 226px;
     width: min(46vw, 220px);
     height: auto;
   }
@@ -3348,22 +3556,22 @@
   .vnCharacter[data-scene="preTransformNeoMain"],
   .vnCharacter[data-scene="preTransformNeoTalk"] {
     right: 7vw;
-    bottom: 176px;
+    bottom: 194px;
     width: min(40vw, 198px);
   }
 
   .vnCharacter[data-scene="transformingNeo"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: -2vw;
-    bottom: 202px;
-    width: min(70vw, 320px);
-    height: min(42svh, 360px);
+    right: 2vw;
+    bottom: 340px;
+    width: min(52vw, 260px);
+    height: min(30svh, 252px);
   }
 
   .vnCharacter[data-scene="transformingNeo"] {
     right: 4vw;
-    bottom: 210px;
-    width: min(72vw, 320px);
+    bottom: 348px;
+    width: min(58vw, 270px);
     height: auto;
   }
 
@@ -3388,6 +3596,11 @@
     bottom: 12px;
     min-height: 142px;
     padding: 15px;
+  }
+
+  .vnStage[data-phase="prologue"] .vnDialogueBox {
+    min-height: 172px;
+    padding: 16px;
   }
 
   .vnDialogueBox[data-speaker="inner"] {
@@ -3417,6 +3630,11 @@
     line-height: 1.58;
   }
 
+  .vnStage[data-phase="prologue"] .vnDialogueBox p {
+    font-size: 0.98rem;
+    line-height: 1.64;
+  }
+
   .vnNotificationCard {
     padding: 8px 10px;
   }
@@ -3427,6 +3645,10 @@
     bottom: 216px;
     max-width: min(336px, calc(100vw - 24px));
     align-items: flex-end;
+  }
+
+  .vnStage[data-phase="prologue"] .vnControlRow {
+    bottom: 540px;
   }
 
   .vnGhostButton {
@@ -3444,6 +3666,11 @@
     line-height: 1.2;
     text-align: center;
     white-space: normal;
+  }
+
+  .vnStage[data-phase="prologue"] .vnStartButton {
+    max-width: min(278px, calc(100vw - 24px));
+    min-height: 64px;
   }
 
   .vnStartButton .ctaOrbitFrame {
@@ -3502,34 +3729,38 @@
   .vnCharacter[data-scene="preTransformNeoMain"],
   .vnCharacter[data-scene="preTransformNeoTalk"] {
     right: 4vw;
-    bottom: 184px;
+    bottom: 226px;
     width: min(42vw, 168px);
   }
 
   .vnCharacter[data-scene="shadow"] {
     right: 4vw;
-    bottom: 184px;
+    bottom: 226px;
     width: min(44vw, 172px);
     height: auto;
   }
 
   .vnCharacter[data-scene="transformingNeo"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: -8vw;
-    bottom: 220px;
-    width: min(74vw, 296px);
-    height: min(38svh, 312px);
+    right: 2vw;
+    bottom: 350px;
+    width: min(52vw, 202px);
+    height: min(28svh, 236px);
   }
 
   .vnCharacter[data-scene="transformingNeo"] {
-    right: 2vw;
-    bottom: 228px;
-    width: min(76vw, 296px);
+    right: 4vw;
+    bottom: 358px;
+    width: min(58vw, 224px);
     height: auto;
   }
 
   .vnDialogueBox {
     min-height: 154px;
+  }
+
+  .vnStage[data-phase="prologue"] .vnDialogueBox {
+    min-height: 184px;
   }
 
   .vnDialogueBox[data-speaker="inner"] {
@@ -3542,6 +3773,10 @@
 
   .vnControlRow {
     bottom: 226px;
+  }
+
+  .vnStage[data-phase="prologue"] .vnControlRow {
+    bottom: 600px;
   }
 }
 

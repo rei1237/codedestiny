@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { estimateReadingMinutes } from "@/lib/stories/metrics";
 import type { IStory } from "@/lib/stories/types";
 import {
@@ -13,11 +12,13 @@ import {
   useReaderSettings,
 } from "@/hooks/useReaderSettings";
 import StoryCard from "./StoryCard";
-import styles from "@/app/stories/stories.module.css";
+import styles from "./storiesIndex.module.css";
 
 interface StoriesIndexProps {
   stories: IStory[];
 }
+
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "es" | "fr" | "de";
 
 interface Star {
   x: number;
@@ -182,6 +183,30 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
   },
 } as const;
 
+function normalizeStoriesIndexLocale(value?: string | null): LoadingLocale {
+  const locale = (value || "").toLowerCase();
+  if (locale.startsWith("en")) return "en";
+  if (locale.startsWith("ja") || locale.startsWith("jp")) return "ja";
+  if (locale.startsWith("zh-tw") || locale.startsWith("zh-hant") || locale.includes("traditional")) return "zh-TW";
+  if (locale.startsWith("zh")) return "zh-CN";
+  if (locale.startsWith("vi")) return "vi";
+  if (locale.startsWith("es")) return "es";
+  if (locale.startsWith("fr")) return "fr";
+  if (locale.startsWith("de")) return "de";
+  return "ko";
+}
+
+function getCurrentStoriesIndexLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+  if (runtimeLanguage) return normalizeStoriesIndexLocale(runtimeLanguage);
+  try {
+    const stored = window.localStorage.getItem("cd_locale") || window.localStorage.getItem("code-destiny-locale");
+    if (stored) return normalizeStoriesIndexLocale(stored);
+  } catch (_) {}
+  return normalizeStoriesIndexLocale(document.documentElement.lang || navigator.language);
+}
+
 function getStoriesIndexCopy(locale: LoadingLocale) {
   if (locale === "en" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
     return STORIES_INDEX_TEXT_TRANSLATIONS[locale];
@@ -217,10 +242,10 @@ function generateStars(count: number, seed = 42): Star[] {
 export default function StoriesIndex({ stories }: StoriesIndexProps) {
   const { settings, updateSetting, applyPreset } = useReaderSettings();
   const [continueHref, setContinueHref] = useState("");
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentStoriesIndexLocale());
   const copy = getStoriesIndexCopy(locale);
   const story = stories[0];
-  const stars = useMemo(() => generateStars(55), []);
+  const stars = useMemo(() => generateStars(34), []);
   const readerBodyFontOptions = useMemo(() => getReaderBodyFontOptions(locale), [locale]);
   const readingPresetOptions = useMemo(() => getReadingPresetOptions(locale), [locale]);
   const selectedFont = readerBodyFontOptions.find((option) => option.id === settings.bodyFont) || readerBodyFontOptions[0] || READER_BODY_FONT_OPTIONS[0];
@@ -243,10 +268,16 @@ export default function StoriesIndex({ stories }: StoriesIndexProps) {
   }, [story]);
 
   useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentStoriesIndexLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
-    return () => window.removeEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    window.addEventListener("storage", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+      window.removeEventListener("storage", syncLocale);
+    };
   }, []);
 
   return (

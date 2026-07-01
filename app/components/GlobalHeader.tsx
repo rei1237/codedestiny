@@ -3,7 +3,39 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof LOCALE_CODES)[number];
+
+function normalizeChromeLocale(value?: string | null): LoadingLocale {
+  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "vi-vn") return "vi";
+  return LOCALE_CODES.find((locale) => locale.toLowerCase() === normalized) || "ko";
+}
+
+function getCurrentChromeLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  try {
+    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+    if (runtimeLang) return normalizeChromeLocale(runtimeLang);
+  } catch {}
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    const fromQuery = params.get("lang");
+    if (fromQuery) return normalizeChromeLocale(fromQuery);
+  } catch {}
+  try {
+    const fromStorage = window.localStorage.getItem("cd_lang");
+    if (fromStorage) return normalizeChromeLocale(fromStorage);
+  } catch {}
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
+    if (match?.[1]) return normalizeChromeLocale(decodeURIComponent(match[1]));
+  } catch {}
+  return "ko";
+}
 
 const AuthWidget = dynamic(() => import("./AuthWidget"), {
   ssr: false,
@@ -179,7 +211,7 @@ export default function GlobalHeader() {
   const copy = GLOBAL_HEADER_COPY[locale] || GLOBAL_HEADER_COPY.ko;
 
   useEffect(() => {
-    setLocale(getCurrentLoadingLocale());
+    setLocale(getCurrentChromeLocale());
   }, []);
 
   return (

@@ -1658,10 +1658,20 @@
     max-width: 100%;
     padding: 12px;
     gap: 12px;
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, .035) inset,
+      0 18px 44px rgba(0, 0, 0, .42);
+    backdrop-filter: none;
   }
 
   .visualPanel {
     min-height: 0;
+  }
+
+  .visualPanel,
+  .workPanel {
+    backdrop-filter: none;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
   }
 
   .lunarBotanicalScene {
@@ -1669,6 +1679,17 @@
     width: 142%;
     height: 340px;
     opacity: .82;
+  }
+
+  .sceneMoonAura,
+  .sceneLotus,
+  .scenePetalLayer,
+  .sceneStars {
+    filter: none;
+  }
+
+  .sceneMoon {
+    filter: drop-shadow(0 0 18px rgba(255, 232, 182, .34));
   }
 
   .workPanel {
@@ -1838,6 +1859,8 @@
     align-items: flex-start;
     flex-direction: column;
     padding: 14px 16px;
+    background: rgba(7, 8, 21, .97);
+    backdrop-filter: none;
   }
 
   .modalActions {
@@ -1850,6 +1873,10 @@
 
   .modalBody {
     padding: 34px 16px 46px;
+  }
+
+  .pdfMoonImage span {
+    box-shadow: 0 0 28px rgba(253, 246, 219, .3);
   }
 
   .starPair {

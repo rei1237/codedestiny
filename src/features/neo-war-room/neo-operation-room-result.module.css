@@ -845,6 +845,19 @@
     height: 76px;
   }
 
+  .badgeStampFrame {
+    margin: 0 auto;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(245, 212, 135, 0.2), transparent 58%),
+      rgba(3, 7, 16, 0.12) !important;
+    box-shadow: 0 0 18px rgba(214, 188, 118, 0.24), inset 0 0 0 1px rgba(245, 212, 135, 0.2);
+  }
+
+  .badgeStampSheet {
+    transform: translateZ(0);
+    transform-origin: top left;
+  }
+
   .neoLetterBody {
     padding-left: 12px;
   }

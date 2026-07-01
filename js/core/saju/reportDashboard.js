@@ -82,7 +82,7 @@ var SAJU_ANIMAL_TEST_FEATURE = {
   description: _reportDashboardText("rd.description.001"),
   category: 'fun-saju',
   group: '재미있는 사주 콘텐츠',
-  href: '/saju/animal-test',
+  href: '/saju/animal-destiny',
   emoji: '🐷🐱🦁',
   tags: ['십이운성', '동물점', '연애패턴', '직업성향', '오늘미션'],
   badge: 'NEW',
@@ -316,7 +316,7 @@ window.openSecretHouseRoute = function() {
 };
 
 window.openAnimalDestinyRoute = function() {
-  var target = SAJU_ANIMAL_TEST_FEATURE.href || '/saju/animal-test';
+  var target = SAJU_ANIMAL_TEST_FEATURE.href || '/saju/animal-destiny';
   try {
     window.location.assign(target);
   } catch (e) {

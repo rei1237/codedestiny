@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useState } from "react";
+import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById } from "../data/teaCups";
@@ -177,6 +178,26 @@ export default function TeaHouseResultSheet({
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
+  const resultYeoniGate = useSpritePlaybackGate<HTMLSpanElement>();
+  const resultPigGate = useSpritePlaybackGate<HTMLSpanElement>();
+  const resultYeoniSprite = resultYeoniGate.isMobile
+    ? fortuneTeaHouseAssets.yeoni.transparent.yeoniThanksStillMobile
+    : fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite2Thanks;
+  const resultPigSprite = resultPigGate.isMobile
+    ? fortuneTeaHouseAssets.yeoni.transparent.flowerPigResultStillMobile
+    : fortuneTeaHouseAssets.yeoni.transparent.flowerPig5Sprite;
+  const resultYeoniProbe = useLazySpriteSource(resultYeoniSprite, resultYeoniGate.canLoad);
+  const resultPigProbe = useLazySpriteSource(resultPigSprite, resultPigGate.canLoad);
+  const resultYeoniSpriteSource = resultYeoniProbe.isLoaded
+    ? resultYeoniProbe.resolvedSrc
+    : resultYeoniProbe.isFailed
+      ? fortuneTeaHouseAssets.yeoni.transparent.bust
+      : "";
+  const resultPigSpriteSource = resultPigProbe.isLoaded
+    ? resultPigProbe.resolvedSrc
+    : resultPigProbe.isFailed
+      ? fortuneTeaHouseAssets.cutout.flowerPig
+      : "";
   const consultationMode = result.consultationMode || "tarot";
   const isTarotMode = consultationMode === "tarot";
   const isSajuMode = consultationMode === "saju";
@@ -352,8 +373,15 @@ export default function TeaHouseResultSheet({
     >
       <aside className={styles.resultYeoniPanel}>
         <span
+          ref={resultYeoniGate.ref}
           className={styles.resultThanksYeoniSprite}
-          style={{ "--result-yeoni-sprite": `url("${fortuneTeaHouseAssets.yeoni.transparent.yeoniSprite2Thanks}")` } as CSSProperties}
+          data-playback={resultYeoniGate.canAnimate && !resultYeoniGate.isMobile && resultYeoniProbe.isLoaded ? "animated" : "static"}
+          data-sprite-status={resultYeoniProbe.status}
+          style={{
+            "--result-yeoni-sprite": resultYeoniSpriteSource ? `url("${resultYeoniSpriteSource}")` : "none",
+            "--result-yeoni-bg-size": resultYeoniGate.isMobile || resultYeoniProbe.isFailed ? "contain" : "400% 200%",
+            "--result-yeoni-bg-position": resultYeoniGate.isMobile || resultYeoniProbe.isFailed ? "center" : "0% 0%",
+          } as CSSProperties}
           role="img"
           aria-label="상담을 마치고 감사 인사를 건네는 연이"
         />
@@ -523,8 +551,15 @@ export default function TeaHouseResultSheet({
           <div className={styles.resultEmotionPigStage}>
             <span className={styles.resultEmotionPigGlow} aria-hidden />
             <span
+              ref={resultPigGate.ref}
               className={styles.resultEmotionPigSprite}
-              style={{ "--result-pig-sprite": `url("${fortuneTeaHouseAssets.yeoni.transparent.talkingPigYeoni3Sprite}")` } as CSSProperties}
+              data-playback={resultPigGate.canAnimate && !resultPigGate.isMobile && resultPigProbe.isLoaded ? "animated" : "static"}
+              data-sprite-status={resultPigProbe.status}
+              style={{
+                "--result-pig-sprite": resultPigSpriteSource ? `url("${resultPigSpriteSource}")` : "none",
+                "--result-pig-bg-size": resultPigGate.isMobile || resultPigProbe.isFailed ? "contain" : "400% 400%",
+                "--result-pig-bg-position": resultPigGate.isMobile || resultPigProbe.isFailed ? "center" : "0% 0%",
+              } as CSSProperties}
               role="img"
               aria-label="마음의 향을 맡는 꽃돼지 연이"
             />

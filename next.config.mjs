@@ -96,6 +96,11 @@ const buildGitSha = firstNonEmpty([
 
 const buildPublicApiBase = resolvePublicApiBase();
 process.env.NEXT_PUBLIC_EFFECTIVE_API_BASE_URL = buildPublicApiBase;
+const buildRuntimeTarget = firstNonEmpty([
+  process.env.NEXT_PUBLIC_RUNTIME_TARGET,
+  process.env.RUNTIME_TARGET,
+  "web",
+]);
 
 const buildTime = firstNonEmpty([
   process.env.NEXT_PUBLIC_BUILD_TIME,
@@ -116,6 +121,7 @@ function createNextConfig(phase) {
       NEXT_PUBLIC_GIT_SHA: buildGitSha,
       NEXT_PUBLIC_BUILD_TIME: buildTime,
       NEXT_PUBLIC_EFFECTIVE_API_BASE_URL: buildPublicApiBase,
+      NEXT_PUBLIC_RUNTIME_TARGET: buildRuntimeTarget,
     },
     productionBrowserSourceMaps: process.env.NEXT_PUBLIC_ENABLE_SOURCEMAPS === "1"
       || process.env.ENABLE_SOURCEMAPS === "1",

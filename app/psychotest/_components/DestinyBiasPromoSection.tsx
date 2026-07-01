@@ -2,7 +2,32 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "es" | "fr" | "de";
+
+function normalizePromoLocale(value?: string | null): LoadingLocale {
+  const locale = (value || "").toLowerCase();
+  if (locale.startsWith("en")) return "en";
+  if (locale.startsWith("ja") || locale.startsWith("jp")) return "ja";
+  if (locale.startsWith("zh-tw") || locale.startsWith("zh-hant") || locale.includes("traditional")) return "zh-TW";
+  if (locale.startsWith("zh")) return "zh-CN";
+  if (locale.startsWith("vi")) return "vi";
+  if (locale.startsWith("es")) return "es";
+  if (locale.startsWith("fr")) return "fr";
+  if (locale.startsWith("de")) return "de";
+  return "ko";
+}
+
+function getCurrentPromoLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+  if (runtimeLanguage) return normalizePromoLocale(runtimeLanguage);
+  try {
+    const stored = window.localStorage.getItem("cd_locale") || window.localStorage.getItem("code-destiny-locale");
+    if (stored) return normalizePromoLocale(stored);
+  } catch (_) {}
+  return normalizePromoLocale(document.documentElement.lang || navigator.language);
+}
 
 const DESTINY_BIAS_PROMO_COPY = {
   ko: {
@@ -58,11 +83,11 @@ function getDestinyBiasPromoCopy(locale: LoadingLocale) {
 }
 
 export default function DestinyBiasPromoSection() {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentPromoLocale());
   const copy = getDestinyBiasPromoCopy(locale);
 
   useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentPromoLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
     window.addEventListener("cd:locale-change", syncLocale);

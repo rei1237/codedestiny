@@ -1,11 +1,32 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import GlobalHeader from "./GlobalHeader";
-import SiteFooterHub from "./SiteFooterHub";
 import DisclaimerBanner from "./DisclaimerBanner";
 
+const DeferredSiteFooterHub = dynamic(() => import("./SiteFooterHub"), {
+  ssr: false,
+  loading: () => null,
+});
+
+const FOOTER_PREVIEW_LINKS = [
+  { href: "/saju", label: "Saju" },
+  { href: "/tarot", label: "Tarot" },
+  { href: "/astrology/cosmic", label: "Astrology" },
+  { href: "/oracle/sukuyo", label: "Sukuyo" },
+  { href: "/ziwei/chart", label: "Ziwei" },
+  { href: "/vedic/jyotish", label: "Vedic" },
+  { href: "/dream", label: "Dream" },
+  { href: "/music", label: "Music" },
+  { href: "/premium-unlock", label: "Premium" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact" },
+];
+
 const CHROMELESS_ROUTES = [
+  "/app",
   "/saju/love-simulation",
   "/saju/destiny-bias",
   "/saju/destiny-meeting-place",
@@ -33,15 +54,101 @@ const CHROMELESS_ROUTES = [
   "/saju-guardian",
 ];
 
+function useFooterInView(enabled: boolean) {
+  const footerMountRef = useRef<HTMLDivElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (!enabled || isReady) return;
+    const target = footerMountRef.current;
+    if (!target || !("IntersectionObserver" in window)) {
+      const timer = window.setTimeout(() => setIsReady(true), 5000);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setIsReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "720px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [enabled, isReady]);
+
+  return { footerMountRef, isReady };
+}
+
+function FooterWarmupPreview() {
+  return (
+    <footer
+      aria-label="Code Destiny navigation preview"
+      style={{
+        marginTop: 48,
+        padding: "30px 20px calc(30px + env(safe-area-inset-bottom))",
+        borderTop: "1px solid rgba(215, 196, 255, 0.18)",
+        background: "linear-gradient(180deg, rgba(15, 13, 34, 0.92), rgba(7, 6, 18, 0.96))",
+        color: "rgba(249, 246, 255, 0.78)",
+      }}
+    >
+      <strong style={{ display: "block", color: "#fff", fontSize: 15 }}>Code Destiny Navigation</strong>
+      <p style={{ margin: "8px 0 0", maxWidth: 720, fontSize: 13, lineHeight: 1.65 }}>
+        Code Destiny gathers saju, tarot, astrology, sukuyo, ziwei, vedic stars, dream symbols, moon music,
+        and premium destiny readings under one quiet night sky. Each path keeps the tone of a private
+        consultation: calm, mystical, emotionally natural, and close enough to return to when a question
+        begins to stir again.
+      </p>
+      <p style={{ margin: "8px 0 0", maxWidth: 720, fontSize: 13, lineHeight: 1.65 }}>
+        The main paths lead to birth chart insight, relationship timing, daily fortune, tarot spreads,
+        compatibility, dream interpretation, story chapters, music playlists, and deeper paid readings.
+        Policy pages, contact details, refund guidance, privacy terms, and service information remain close
+        beside them so the journey feels clear as well as enchanted.
+      </p>
+      <p style={{ margin: "8px 0 0", maxWidth: 720, fontSize: 13, lineHeight: 1.65 }}>
+        Return to the reading that called your name, move toward another symbol, or keep this small
+        constellation as a gentle guide through the service.
+      </p>
+      <p style={{ margin: "8px 0 0", maxWidth: 720, fontSize: 13, lineHeight: 1.65 }}>
+        Every guide is written to support reflection, not to replace medical, legal, financial, or personal
+        decisions that need real-world information and qualified help. Let each symbol become a calm note
+        beside your own judgment, not a command above it.
+      </p>
+      <p style={{ margin: "8px 0 0", maxWidth: 720, fontSize: 13, lineHeight: 1.65 }}>
+        For returning visitors, the familiar doors remain in the same constellation: free readings for quick
+        orientation, guide pages for slower study, story and music rooms for softer moments, and premium
+        reports for people who want a longer reading. Move lightly, check the policy pages when needed, and
+        keep the answer close to the life you are actually living.
+      </p>
+      <nav
+        aria-label="Essential Code Destiny links"
+        style={{ display: "flex", flexWrap: "wrap", gap: "10px 14px", marginTop: 14, fontSize: 13 }}
+      >
+        {FOOTER_PREVIEW_LINKS.map((link) => (
+          <a key={link.href} href={link.href} style={{ color: "#d9c8ff", textDecoration: "none" }}>
+            {link.label}
+          </a>
+        ))}
+      </nav>
+    </footer>
+  );
+}
+
 export default function AppChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? "/";
   const hideChrome = CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const footer = useFooterInView(!hideChrome);
   return (
     <>
       {!hideChrome && <GlobalHeader />}
       {children}
       {!hideChrome && <DisclaimerBanner />}
-      {!hideChrome && <SiteFooterHub />}
+      {!hideChrome && (
+        <div ref={footer.footerMountRef}>
+          {footer.isReady ? <DeferredSiteFooterHub /> : <FooterWarmupPreview />}
+        </div>
+      )}
     </>
   );
 }

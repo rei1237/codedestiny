@@ -35,6 +35,8 @@ type SummaryCards = {
   moonSign?: string;
   nakshatra?: string;
   currentDasha?: string;
+  strongGrahas?: string[];
+  majorBhavas?: string[];
   keywords?: string[];
   d1?: Record<string, unknown> | null;
   d9?: Record<string, unknown> | null;
@@ -149,23 +151,19 @@ const SCORE_LABELS: Record<string, string> = {
 
 const SECTION_GLYPHS: Record<string, string> = {
   lagna: "↑",
-  sun_nakshatra: "☉",
-  moon_nakshatra: "☽",
-  graha_strength: "G",
-  bhava_focus: "B",
-  navamsa: "D9",
+  rashi: "R",
+  graha: "G",
+  bhava: "B",
+  nakshatra: "☽",
   dasha: "★",
-  transit_remedy: "T",
-  karma: "業",
-  topic: "問",
-  prescription: "方",
+  vimshottari_dasha: "V",
 };
 
 const ERROR_TEXT: Record<string, string> = {
   INPUT_MISSING: "베다점 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
   BIRTH_TIME_MISSING: "베다점은 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
   CUSTOM_QUESTION_MISSING: "직접 질문을 선택했다면 지금 가장 궁금한 내용을 함께 적어 주세요.",
-  BIRTH_PLACE_INVALID: "출생지와 시간대를 확인하기 어려워요. 도시명 또는 시간대를 다시 확인해 주세요.",
+  BIRTH_PLACE_INVALID: "라그나와 바바 계산에는 출생지 좌표가 필요해요. 도시명을 다시 확인해 주세요.",
   LOGIN_REQUIRED: "로그인이 필요한 상담입니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
   PAYMENT_VERIFY_FAILED: "결제 정보를 확인하지 못했어요. 결제나 이용권은 차감되지 않았습니다.",
@@ -177,15 +175,13 @@ const ERROR_TEXT: Record<string, string> = {
 };
 
 const SECTION_TITLES = [
-  "우주가 말하는 핵심 결론",
-  "나의 베다 차트 기질",
-  "현재 질문과 연결되는 별의 흐름",
-  "나크샤트라가 비추는 감정",
-  "일과 재물의 방향",
-  "관계와 인연의 흐름",
-  "조심해야 할 선택",
-  "오늘의 별빛 행동 처방",
-  "마지막 조언",
+  "라그나, Lagna",
+  "라시, Rashi",
+  "그라하, Graha",
+  "바바, Bhava",
+  "나크샤트라, Nakshatra",
+  "다샤, Dasha",
+  "빈쇼타리 다샤, Vimshottari Dasha",
 ];
 
 const initialForm: FormState = {
@@ -330,7 +326,7 @@ async function postJson<T>(path: string, body: Record<string, unknown>, requestI
 function validateForm(form: FormState) {
   if (!form.birthDate || !form.gender || !form.calendarType) return ERROR_TEXT.INPUT_MISSING;
   if (!form.birthTimeUnknown && !form.birthTime) return ERROR_TEXT.BIRTH_TIME_MISSING;
-  if (!form.birthPlace.trim() && !form.timezone.trim()) return ERROR_TEXT.BIRTH_PLACE_INVALID;
+  if (!form.birthPlace.trim()) return ERROR_TEXT.BIRTH_PLACE_INVALID;
   if (form.focusArea === "custom" && form.question.trim().length < 2) return ERROR_TEXT.CUSTOM_QUESTION_MISSING;
   return "";
 }
@@ -418,7 +414,7 @@ function joinChartValues(...values: unknown[]) {
 }
 
 function chartPointSign(point: Record<string, unknown>) {
-  return chartDisplayValue(asRecord(point.rashi).name, point.sign);
+  return chartDisplayValue(point.rashiKo, point.rashi, point.signKo, point.sign, asRecord(point.rashi).name);
 }
 
 function chartPointNakshatra(point: Record<string, unknown>) {
@@ -426,19 +422,55 @@ function chartPointNakshatra(point: Record<string, unknown>) {
 }
 
 function planetRows(chart: Record<string, unknown>) {
-  const planets = Array.isArray(chart.planets) ? chart.planets.map(asRecord) : [];
-  const byName = new Map(planets.map((planet) => [toText(planet.name), planet]));
+  const planets = Array.isArray(chart.grahas)
+    ? chart.grahas.map(asRecord)
+    : (Array.isArray(chart.planets) ? chart.planets.map(asRecord) : []);
+  const byName = new Map(planets.map((planet) => [toText(planet.nameEn || planet.name), planet]));
   return Object.keys(PLANET_LABELS).map((name) => {
     const planet = byName.get(name) || {};
     return {
       name,
-      label: PLANET_LABELS[name],
+      label: chartDisplayValue(planet.nameKo, PLANET_LABELS[name]),
       sign: chartPointSign(planet),
-      house: planet.house ? `${toText(planet.house)}H` : "-",
+      degree: chartDisplayValue(planet.degreeInRashi, planet.degree),
+      house: planet.bhava || planet.house ? `${toText(planet.bhava || planet.house)}H` : "-",
       nakshatra: chartPointNakshatra(planet),
       pada: chartDisplayValue(asRecord(planet.nakshatra).pada, planet.pada),
+      keywords: Array.isArray(planet.interpretationKeywords) ? planet.interpretationKeywords.map(toText).filter(Boolean).join(", ") : "",
     };
   }).filter((row) => row.sign !== "-" || row.house !== "-" || row.nakshatra !== "-");
+}
+
+function rashiRows(chart: Record<string, unknown>) {
+  return Array.isArray(chart.rashis) ? chart.rashis.map(asRecord) : [];
+}
+
+function bhavaRows(chart: Record<string, unknown>) {
+  const rows = Array.isArray(chart.bhavas)
+    ? chart.bhavas.map(asRecord)
+    : (Array.isArray(chart.houses) ? chart.houses.map(asRecord) : []);
+  return rows.map((row) => ({
+    house: chartDisplayValue(row.house),
+    rashi: chartDisplayValue(row.rashiKo, row.rashi, row.signKo, row.sign),
+    meaning: chartDisplayValue(row.meaning),
+    grahas: Array.isArray(row.grahas)
+      ? row.grahas.map(toText).filter(Boolean).join(", ")
+      : (Array.isArray(row.planets) ? row.planets.map(toText).filter(Boolean).join(", ") : ""),
+  }));
+}
+
+function dashaRows(chart: Record<string, unknown>) {
+  const vimshottari = asRecord(chart.vimshottariDasha);
+  const legacyDasha = asRecord(chart.dasha);
+  const periods = Array.isArray(vimshottari.periods)
+    ? vimshottari.periods.map(asRecord)
+    : (Array.isArray(legacyDasha.periods) ? legacyDasha.periods.map(asRecord) : []);
+  return periods.slice(0, 10).map((period) => ({
+    lord: chartDisplayValue(period.lord),
+    startDate: chartDisplayValue(period.startDate, String(period.start || "").slice(0, 10)),
+    endDate: chartDisplayValue(period.endDate, String(period.end || "").slice(0, 10)),
+    durationYears: chartDisplayValue(period.durationYears, period.years),
+  }));
 }
 
 function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
@@ -446,22 +478,33 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
   const sun = chartPoint(chart, "sun");
   const moon = chartPoint(chart, "moon");
   const dasha = asRecord(chart.dasha);
+  const config = asRecord(chart.calculationConfig);
+  const moonNakshatra = asRecord(chart.moonNakshatra);
+  const vimshottari = asRecord(chart.vimshottariDasha);
+  const currentMahadasha = asRecord(vimshottari.currentMahadasha);
+  const hasLagna = Boolean(chart.lagna && typeof chart.lagna === "object");
   const rows = [
-    ["아야남샤", chartDisplayValue(chart.ayanamsa)],
-    ["라그나", joinChartValues(chartPointSign(lagna), lagna.degree)],
-    ["태양", joinChartValues(chartPointSign(sun), chartPointNakshatra(sun), sun.degree)],
-    ["달", joinChartValues(chartPointSign(moon), chartPointNakshatra(moon), moon.degree)],
-    ["현재 다샤", chartDisplayValue(dasha.currentLord, dasha.currentMahadasha)],
-    ["남은 흐름", chartDisplayValue(dasha.remaining, dasha.remainingYears)],
+    ["Zodiac", chartDisplayValue(config.zodiac, "sidereal")],
+    ["Ayanamsa", chartDisplayValue(config.ayanamsa, chart.ayanamsa)],
+    ["Bhava", chartDisplayValue(config.bhavaSystem, "whole-sign")],
+    ["라그나, Lagna", hasLagna ? joinChartValues(chartPointSign(lagna), lagna.degreeInRashi || lagna.degree, lagna.nakshatra, lagna.pada ? `${lagna.pada}파다` : "") : "출생시간 필요"],
+    ["달의 나크샤트라, Moon Nakshatra", joinChartValues(moonNakshatra.name || chartPointNakshatra(moon), moonNakshatra.pada ? `${moonNakshatra.pada}파다` : moon.pada ? `${moon.pada}파다` : "", moonNakshatra.lord)],
+    ["현재 다샤, Current Dasha", chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha)],
   ];
   const planets = planetRows(chart);
+  const rashis = rashiRows(chart);
+  const bhavas = bhavaRows(chart);
+  const dashas = dashaRows(chart);
 
   return (
-    <section className={styles.basicChartData} aria-label="기본 베다 차트 데이터">
+    <section className={styles.basicChartData} aria-label="베다점 계산 상세">
       <div className={styles.basicChartHeader}>
-        <span>기본 베다 차트 데이터</span>
-        <strong>Chart Data</strong>
+        <span>베다점 계산 상세</span>
+        <strong>VedicChartResult</strong>
       </div>
+      {!hasLagna ? (
+        <p className={styles.chartNotice}>출생시간이 없어 라그나와 바바는 임의 계산하지 않았습니다. 달, 라시, 나크샤트라, 빈쇼타리 다샤를 중심으로 읽습니다.</p>
+      ) : null}
       <dl className={styles.chartDataGrid}>
         {rows.map(([label, value]) => (
           <div key={label}>
@@ -470,16 +513,45 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
           </div>
         ))}
       </dl>
+      <details className={styles.chartDetail} open>
+        <summary>라그나, Lagna</summary>
+        <dl className={styles.chartDataGrid}>
+          {[
+            ["라그나 라시", chartDisplayValue(lagna.rashiKo, lagna.rashi, lagna.signKo, lagna.sign)],
+            ["라그나 도수", chartDisplayValue(lagna.degreeInRashi, lagna.degree)],
+            ["라그나 나크샤트라", chartDisplayValue(lagna.nakshatra)],
+            ["라그나 파다", lagna.pada ? `${toText(lagna.pada)}파다` : "-"],
+            ["라그나 기준 1하우스 시작 라시", chartDisplayValue(lagna.firstHouseRashiKo, lagna.firstHouseRashi)],
+          ].map(([label, value]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{hasLagna ? value : "출생시간 필요"}</dd>
+            </div>
+          ))}
+        </dl>
+      </details>
+      <details className={styles.chartDetail}>
+        <summary>라시, Rashi</summary>
+        <div className={styles.rashiList}>
+          {rashis.map((rashi) => (
+            <span key={toText(rashi.nameEn)}>{chartDisplayValue(rashi.nameKo, rashi.nameEn)}</span>
+          ))}
+        </div>
+      </details>
       {planets.length ? (
-        <div className={styles.planetTableWrap}>
+        <details className={styles.chartDetail} open>
+          <summary>그라하, Graha</summary>
+          <div className={styles.planetTableWrap}>
           <table className={styles.planetTable}>
             <thead>
               <tr>
-                <th>행성</th>
+                <th>그라하</th>
                 <th>라시</th>
-                <th>하우스</th>
+                <th>도수</th>
+                <th>바바</th>
                 <th>나크샤트라</th>
                 <th>파다</th>
+                <th>해석 키워드</th>
               </tr>
             </thead>
             <tbody>
@@ -487,15 +559,66 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
                 <tr key={row.name}>
                   <td>{row.label}</td>
                   <td>{row.sign}</td>
+                  <td>{row.degree}</td>
                   <td>{row.house}</td>
                   <td>{row.nakshatra}</td>
                   <td>{row.pada}</td>
+                  <td>{row.keywords || "-"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          </div>
+        </details>
+      ) : null}
+      <details className={styles.chartDetail}>
+        <summary>바바, Bhava</summary>
+        {bhavas.length ? (
+          <div className={styles.planetTableWrap}>
+            <table className={styles.planetTable}>
+              <thead><tr><th>바바</th><th>라시</th><th>의미</th><th>그라하</th></tr></thead>
+              <tbody>
+                {bhavas.map((row) => (
+                  <tr key={row.house}>
+                    <td>{row.house}H</td>
+                    <td>{row.rashi}</td>
+                    <td>{row.meaning}</td>
+                    <td>{row.grahas || "-"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <p className={styles.chartNotice}>정확한 바바 계산에는 출생시간과 출생지 좌표가 필요합니다.</p>}
+      </details>
+      <details className={styles.chartDetail}>
+        <summary>나크샤트라, Nakshatra</summary>
+        <p className={styles.chartNotice}>
+          달의 나크샤트라: {joinChartValues(moonNakshatra.name || chartPointNakshatra(moon), moonNakshatra.pada ? `${moonNakshatra.pada}파다` : "", moonNakshatra.lord)}
+        </p>
+      </details>
+      <details className={styles.chartDetail}>
+        <summary>다샤, Dasha</summary>
+        <p className={styles.chartNotice}>빈쇼타리 다샤, Vimshottari Dasha: {chartDisplayValue(currentMahadasha.lord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate)}</p>
+      </details>
+      <details className={styles.chartDetail}>
+        <summary>빈쇼타리 다샤, Vimshottari Dasha</summary>
+        <div className={styles.planetTableWrap}>
+          <table className={styles.planetTable}>
+            <thead><tr><th>Lord</th><th>시작</th><th>종료</th><th>기간</th></tr></thead>
+            <tbody>
+              {dashas.map((row) => (
+                <tr key={`${row.lord}-${row.startDate}`}>
+                  <td>{row.lord}</td>
+                  <td>{row.startDate}</td>
+                  <td>{row.endDate}</td>
+                  <td>{row.durationYears}년</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : null}
+      </details>
     </section>
   );
 }
@@ -649,10 +772,9 @@ function StructuredReadingResult({
   const sun = chartPoint(chart, "sun");
   const moon = chartPoint(chart, "moon");
   const dasha = asRecord(chart.dasha);
-  const lagnaRashi = asRecord(lagna.rashi);
-  const sunNakshatra = asRecord(sun.nakshatra);
-  const moonNakshatra = asRecord(moon.nakshatra);
-  const moonRashi = asRecord(moon.rashi);
+  const moonNakshatra = asRecord(chart.moonNakshatra);
+  const vimshottari = asRecord(chart.vimshottariDasha);
+  const currentMahadasha = asRecord(vimshottari.currentMahadasha);
   const sectionEntries = Object.entries(reading.sections);
 
   return (
@@ -667,25 +789,25 @@ function StructuredReadingResult({
 
       <section className={styles.chartSummaryCard}>
         <article>
-          <span>어센던트</span>
-          <strong>{toText(lagnaRashi.name) || toText(lagna.sign) || "-"}</strong>
-          <small>Lagna</small>
+          <span>라그나, Lagna</span>
+          <strong>{chartDisplayValue(lagna.rashiKo, lagna.rashi, lagna.signKo, lagna.sign)}</strong>
+          <small>{joinChartValues(lagna.degreeInRashi || lagna.degree, lagna.nakshatra, lagna.pada ? `${lagna.pada}파다` : "")}</small>
         </article>
         <article>
-          <span>태양 나크샤트라</span>
-          <strong>{toText(sunNakshatra.name) || toText(sun.nakshatra) || "-"}</strong>
-          <small>{toText(sunNakshatra.pada) || toText(sun.pada) || ""}</small>
+          <span>라시, Rashi</span>
+          <strong>{joinChartValues(chartPointSign(sun), chartPointSign(moon))}</strong>
+          <small>Sun · Moon</small>
         </article>
         <article>
-          <span>달 나크샤트라</span>
-          <strong>{toText(moonNakshatra.name) || toText(moon.nakshatra) || "-"}</strong>
-          <small>{toText(moon.sign) || toText(moonRashi.name) || ""}</small>
+          <span>나크샤트라, Nakshatra</span>
+          <strong>{chartDisplayValue(moonNakshatra.name, moon.nakshatra)}</strong>
+          <small>{joinChartValues(moonNakshatra.pada ? `${moonNakshatra.pada}파다` : moon.pada ? `${moon.pada}파다` : "", moonNakshatra.lord)}</small>
         </article>
       </section>
 
       <div className={styles.dashaBanner}>
-        <span>현재 다샤</span>
-        <strong>{toText(dasha.currentLord || dasha.currentMahadasha) || "-"} · 잔여 {toText(dasha.remaining) || "-"}년</strong>
+        <span>다샤, Dasha · 빈쇼타리 다샤, Vimshottari Dasha</span>
+        <strong>{chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate)}</strong>
       </div>
 
       <BasicVedicChartData chart={chart} />
@@ -1040,11 +1162,15 @@ export default function VedicAiClient() {
             </div>
           ) : (
             <>
+              <div className={styles.summaryHeader}>
+                <span>베다점 핵심 지표</span>
+              </div>
               <div className={styles.summaryGrid}>
-                <article><span>Lagna</span><strong>{summary.lagna || toText(lagna.sign) || "Moon Chart"}</strong></article>
-                <article><span>Moon Sign</span><strong>{summary.moonSign || toText(moon.sign) || "-"}</strong></article>
-                <article><span>Nakshatra</span><strong>{summary.nakshatra || toText(moon.nakshatra) || "-"}</strong></article>
-                <article><span>Current Dasha</span><strong>{summary.currentDasha || "-"}</strong></article>
+                <article><span>라그나, Lagna</span><strong>{summary.lagna || toText(lagna.signKo || lagna.sign) || "출생시간 필요"}</strong></article>
+                <article><span>달의 나크샤트라, Moon Nakshatra</span><strong>{summary.nakshatra || toText(moon.nakshatra) || "-"}</strong></article>
+                <article><span>현재 다샤, Current Dasha</span><strong>{summary.currentDasha || "-"}</strong></article>
+                <article><span>강하게 작동하는 그라하</span><strong>{summary.strongGrahas?.length ? summary.strongGrahas.join(", ") : "-"}</strong></article>
+                <article><span>주요 바바</span><strong>{summary.majorBhavas?.length ? summary.majorBhavas.join(", ") : "-"}</strong></article>
               </div>
 
               <div className={styles.keywordRow}>

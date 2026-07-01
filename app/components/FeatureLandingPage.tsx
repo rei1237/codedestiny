@@ -1,13 +1,55 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
-import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
-import DestinyIcon, { type DestinyIconName } from "./icons/DestinyIcon";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
+
+const FEATURE_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof FEATURE_LOCALES)[number];
+
+const FEATURE_LOCALE_ALIAS: Record<string, LoadingLocale> = {
+  zh: "zh-CN",
+  "zh-cn": "zh-CN",
+  "zh-hans": "zh-CN",
+  "zh-tw": "zh-TW",
+  "zh-hant": "zh-TW",
+  "zh-hk": "zh-TW",
+  "zh-mo": "zh-TW",
+  "vi-vn": "vi",
+  "en-us": "en",
+  "ja-jp": "ja",
+};
+
+function normalizeFeatureLocaleCode(value?: string | null): LoadingLocale {
+  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
+  if (!normalized) return "ko";
+  const alias = FEATURE_LOCALE_ALIAS[normalized];
+  if (alias) return alias;
+  return FEATURE_LOCALES.find((locale) => locale.toLowerCase() === normalized) || "ko";
+}
+
+function getCurrentFeatureLocale(): LoadingLocale {
+  try {
+    const languageGetter = (window as Window & { cdGetCurrentLanguage?: () => string | undefined }).cdGetCurrentLanguage;
+    const current = languageGetter?.();
+    if (current) return normalizeFeatureLocaleCode(current);
+  } catch {}
+  try {
+    const lang = new URLSearchParams(window.location.search || "").get("lang");
+    if (lang) return normalizeFeatureLocaleCode(lang);
+  } catch {}
+  try {
+    const stored = window.localStorage.getItem("cd_lang");
+    if (stored) return normalizeFeatureLocaleCode(stored);
+  } catch {}
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
+    if (match?.[1]) return normalizeFeatureLocaleCode(decodeURIComponent(match[1]));
+  } catch {}
+  return "ko";
+}
 
 type ServiceContent = {
   title?: string;
@@ -443,373 +485,10 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
   },
 };
 
-const FEATURE_SLUG_TAG_COPY: Partial<Record<LoadingLocale, Record<string, string>>> = {
-  en: {
-    "/flower/destiny": "Integrated flower atelier",
-    "/flower/astrology": "Astrology flower report",
-    "/flower/jamidusu": "Zi Wei flower report",
-    "/flower/sukuyo": "Lunar phase flower report",
-    "/tarot/self-esteem": "5-card growth quest",
-    "/tarot/reunion": "5-card lighthouse spread",
-    "/tarot/year": "12-month fortune tarot",
-    "/oracle/hwatu": "Traditional Hwatu fortune",
-    "/oracle/kemet": "Egyptian oracle",
-    "/oracle/juyuk": "64-hexagram turtle oracle",
-    "/oracle/sukuyo": "27 lunar mansion fortune",
-    "/vedic/jyotish": "Vedic astrology",
-    "/animal/physio": "Selfie face reading",
-    "/animal/mbti": "16 totem chemistry",
-    "/animal/totem": "Guardian animal card reading",
-    "/dream/tarot": "AI dream prompt",
-    "/dream/psycho": "Psychoanalytic dream reading",
-    "/tarot/healing": "4-card healing spread",
-    "/tarot/mingri": "78-card universal deck AI reading",
-    "/tarot/love": "6-card relationship spread",
-    "/saju/basic": "Four Pillars calendar basic reading",
-    "/saju/sibyl": "Saju career aptitude × destiny risk index",
-    "/saju/lifebook": "Premium Saju deep report",
-    "/saju/love-secret": "Saju love strategy · ideal type analysis",
-    "/saju/love-bible": "Saju love strategy · ideal type analysis",
-    "/saju/love-simulation": "Saju love simulation",
-    "/ziwei/chart": "12 palaces · four transformations · decade fortune counsel",
-    "/astrology/cosmic": "Sun · Moon · Ascendant analysis",
-    "/oracle/hwatu-life": "7-question Hwatu life hand test",
-    "/oracle/sikojen-povailu": "Finnish tin casting oracle",
-    "/oracle/royal-tea": "Tasseography tea leaf reading",
-  },
-  ja: {
-    "/flower/destiny": "総合フラワーアトリエ",
-    "/flower/astrology": "占星術フラワーリポート",
-    "/flower/jamidusu": "紫微斗数フラワーリポート",
-    "/flower/sukuyo": "月相フラワーリポート",
-    "/tarot/self-esteem": "5カード成長クエスト",
-    "/tarot/reunion": "5カード灯台スプレッド",
-    "/tarot/year": "12か月運勢タロット",
-    "/oracle/hwatu": "伝統花札占い",
-    "/oracle/kemet": "エジプト神託オラクル",
-    "/oracle/juyuk": "六十四卦の亀甲占い",
-    "/oracle/sukuyo": "二十七宿の運勢占い",
-    "/vedic/jyotish": "ヴェーダ占星術",
-    "/animal/physio": "セルフィー人相占い",
-    "/animal/mbti": "16タイプのトーテム相性",
-    "/animal/totem": "守護動物カードリーディング",
-    "/dream/tarot": "AI夢プロンプト",
-    "/dream/psycho": "精神分析の夢占い",
-    "/tarot/healing": "4カードヒーリングスプレッド",
-    "/tarot/mingri": "78枚ユニバーサルデッキAIリーディング",
-    "/tarot/love": "6カード恋愛関係スプレッド",
-    "/saju/basic": "四柱推命万歳暦の基本鑑定",
-    "/saju/sibyl": "四柱推命ベースの適性 × 運命リスク指数",
-    "/saju/lifebook": "プレミアム四柱推命深層リポート",
-    "/saju/love-secret": "四柱推命による恋愛戦略 · 理想の相手分析",
-    "/saju/love-bible": "四柱推命による恋愛戦略 · 理想の相手分析",
-    "/saju/love-simulation": "四柱推命恋愛シミュレーション",
-    "/ziwei/chart": "十二宮 · 四化 · 大限の深層相談",
-    "/astrology/cosmic": "太陽 · 月 · アセンダント分析",
-    "/oracle/hwatu-life": "7問で読む花札人生札テスト",
-    "/oracle/sikojen-povailu": "フィンランド錫占いオラクル",
-    "/oracle/royal-tea": "タッセオグラフィー茶葉リーディング",
-  },
-  "zh-CN": {
-    "/flower/destiny": "综合花之命运工坊",
-    "/flower/astrology": "占星花之报告",
-    "/flower/jamidusu": "紫微斗数花之报告",
-    "/flower/sukuyo": "月相花之报告",
-    "/tarot/self-esteem": "5张牌成长任务",
-    "/tarot/reunion": "5张牌灯塔牌阵",
-    "/tarot/year": "12个月运势塔罗",
-    "/oracle/hwatu": "传统花札运势",
-    "/oracle/kemet": "埃及神谕 Oracle",
-    "/oracle/juyuk": "六十四卦龟卜",
-    "/oracle/sukuyo": "二十七宿运势",
-    "/vedic/jyotish": "吠陀占星",
-    "/animal/physio": "自拍面相分析",
-    "/animal/mbti": "16种图腾默契",
-    "/animal/totem": "守护动物卡牌解读",
-    "/dream/tarot": "AI梦境提示词",
-    "/dream/psycho": "精神分析解梦",
-    "/tarot/healing": "4张牌疗愈牌阵",
-    "/tarot/mingri": "78张通用牌组AI解读",
-    "/tarot/love": "6张牌恋爱关系牌阵",
-    "/saju/basic": "四柱推命万年历基础解读",
-    "/saju/sibyl": "四柱推命职业适性 × 命运风险指数",
-    "/saju/lifebook": "高级四柱推命深度报告",
-    "/saju/love-secret": "四柱推命恋爱策略 · 理想型分析",
-    "/saju/love-bible": "四柱推命恋爱策略 · 理想型分析",
-    "/saju/love-simulation": "四柱推命恋爱模拟",
-    "/ziwei/chart": "十二宫 · 四化 · 大限深度咨询",
-    "/astrology/cosmic": "太阳 · 月亮 · 上升星座分析",
-    "/oracle/hwatu-life": "7题花札人生牌测试",
-    "/oracle/sikojen-povailu": "芬兰锡铸神谕",
-    "/oracle/royal-tea": "茶叶占卜解读",
-  },
-  "zh-TW": {
-    "/flower/destiny": "綜合花之命運工坊",
-    "/flower/astrology": "占星花之報告",
-    "/flower/jamidusu": "紫微斗數花之報告",
-    "/flower/sukuyo": "月相花之報告",
-    "/tarot/self-esteem": "5張牌成長任務",
-    "/tarot/reunion": "5張牌燈塔牌陣",
-    "/tarot/year": "12個月運勢塔羅",
-    "/oracle/hwatu": "傳統花札運勢",
-    "/oracle/kemet": "埃及神諭 Oracle",
-    "/oracle/juyuk": "六十四卦龜卜",
-    "/oracle/sukuyo": "二十七宿運勢",
-    "/vedic/jyotish": "吠陀占星",
-    "/animal/physio": "自拍面相分析",
-    "/animal/mbti": "16種圖騰默契",
-    "/animal/totem": "守護動物卡牌解讀",
-    "/dream/tarot": "AI夢境提示詞",
-    "/dream/psycho": "精神分析解夢",
-    "/tarot/healing": "4張牌療癒牌陣",
-    "/tarot/mingri": "78張通用牌組AI解讀",
-    "/tarot/love": "6張牌戀愛關係牌陣",
-    "/saju/basic": "四柱推命萬年曆基礎解讀",
-    "/saju/sibyl": "四柱推命職業適性 × 命運風險指數",
-    "/saju/lifebook": "高級四柱推命深度報告",
-    "/saju/love-secret": "四柱推命戀愛策略 · 理想型分析",
-    "/saju/love-bible": "四柱推命戀愛策略 · 理想型分析",
-    "/saju/love-simulation": "四柱推命戀愛模擬",
-    "/ziwei/chart": "十二宮 · 四化 · 大限深度諮詢",
-    "/astrology/cosmic": "太陽 · 月亮 · 上升星座分析",
-    "/oracle/hwatu-life": "7題花札人生牌測試",
-    "/oracle/sikojen-povailu": "芬蘭錫鑄神諭",
-    "/oracle/royal-tea": "茶葉占卜解讀",
-  },
-  vi: {
-    "/flower/destiny": "Xưởng hoa định mệnh tổng hợp",
-    "/flower/astrology": "Báo cáo hoa chiêm tinh",
-    "/flower/jamidusu": "Báo cáo hoa Tử Vi Đẩu Số",
-    "/flower/sukuyo": "Báo cáo hoa theo pha trăng",
-    "/tarot/self-esteem": "Hành trình trưởng thành 5 lá",
-    "/tarot/reunion": "Trải bài ngọn hải đăng 5 lá",
-    "/tarot/year": "Tarot vận may 12 tháng",
-    "/oracle/hwatu": "Vận may Hwatu truyền thống",
-    "/oracle/kemet": "Oracle Ai Cập",
-    "/oracle/juyuk": "Oracle rùa 64 quẻ",
-    "/oracle/sukuyo": "Vận may 27 tú tinh mặt trăng",
-    "/vedic/jyotish": "Chiêm tinh Vệ Đà",
-    "/animal/physio": "Xem tướng mặt qua selfie",
-    "/animal/mbti": "Tương hợp 16 totem",
-    "/animal/totem": "Đọc bài động vật hộ mệnh",
-    "/dream/tarot": "Gợi ý giấc mơ bằng AI",
-    "/dream/psycho": "Giải mộng phân tâm học",
-    "/tarot/healing": "Trải bài chữa lành 4 lá",
-    "/tarot/mingri": "AI đọc bộ bài phổ quát 78 lá",
-    "/tarot/love": "Trải bài tình yêu 6 lá",
-    "/saju/basic": "Luận cơ bản lịch Tứ trụ",
-    "/saju/sibyl": "Tứ trụ nghề nghiệp × chỉ số rủi ro định mệnh",
-    "/saju/lifebook": "Báo cáo Tứ trụ chuyên sâu cao cấp",
-    "/saju/love-secret": "Chiến lược tình yêu Tứ trụ · phân tích mẫu người lý tưởng",
-    "/saju/love-bible": "Chiến lược tình yêu Tứ trụ · phân tích mẫu người lý tưởng",
-    "/saju/love-simulation": "Mô phỏng tình yêu Tứ trụ",
-    "/ziwei/chart": "12 cung · tứ hóa · đại vận chuyên sâu",
-    "/astrology/cosmic": "Phân tích Mặt Trời · Mặt Trăng · Cung mọc",
-    "/oracle/hwatu-life": "Bài kiểm tra đời người Hwatu 7 câu",
-    "/oracle/sikojen-povailu": "Oracle đúc thiếc Phần Lan",
-    "/oracle/royal-tea": "Đọc lá trà Tasseography",
-  },
-  hi: {
-    "/flower/destiny": "एकीकृत फूल भाग्य कक्ष",
-    "/flower/astrology": "ज्योतिष फूल रिपोर्ट",
-    "/flower/jamidusu": "Zi Wei फूल रिपोर्ट",
-    "/flower/sukuyo": "चंद्र चरण फूल रिपोर्ट",
-    "/tarot/self-esteem": "5 कार्ड आत्म-विकास यात्रा",
-    "/tarot/reunion": "5 कार्ड दीपस्तंभ स्प्रेड",
-    "/tarot/year": "12 महीने का भाग्य टैरो",
-    "/oracle/hwatu": "पारंपरिक Hwatu भाग्य",
-    "/oracle/kemet": "मिस्री ओरेकल",
-    "/oracle/juyuk": "64 हेक्साग्राम कछुआ ओरेकल",
-    "/oracle/sukuyo": "27 चंद्र नक्षत्र भाग्य",
-    "/vedic/jyotish": "वैदिक ज्योतिष",
-    "/animal/physio": "सेल्फी चेहरा रीडिंग",
-    "/animal/mbti": "16 totem संगति",
-    "/animal/totem": "रक्षक पशु कार्ड रीडिंग",
-    "/dream/tarot": "AI स्वप्न प्रॉम्प्ट",
-    "/dream/psycho": "मनोविश्लेषणात्मक स्वप्न रीडिंग",
-    "/tarot/healing": "4 कार्ड उपचार स्प्रेड",
-    "/tarot/mingri": "78 कार्ड universal deck AI रीडिंग",
-    "/tarot/love": "6 कार्ड प्रेम संबंध स्प्रेड",
-    "/saju/basic": "Four Pillars calendar की मूल रीडिंग",
-    "/saju/sibyl": "Saju करियर क्षमता × भाग्य जोखिम सूचकांक",
-    "/saju/lifebook": "Premium Saju गहन रिपोर्ट",
-    "/saju/love-secret": "Saju प्रेम रणनीति · आदर्श साथी विश्लेषण",
-    "/saju/love-bible": "Saju प्रेम रणनीति · आदर्श साथी विश्लेषण",
-    "/saju/love-simulation": "Saju प्रेम सिमुलेशन",
-    "/ziwei/chart": "12 महल · चार परिवर्तन · दशकीय परामर्श",
-    "/astrology/cosmic": "सूर्य · चंद्र · लग्न विश्लेषण",
-    "/oracle/hwatu-life": "7 प्रश्नों वाला Hwatu जीवन-पत्ता टेस्ट",
-    "/oracle/sikojen-povailu": "फ़िनिश टिन ढलाई ओरेकल",
-    "/oracle/royal-tea": "Tasseography चाय-पत्ती रीडिंग",
-  },
-  es: {
-    "/flower/destiny": "Atelier floral integrado",
-    "/flower/astrology": "Informe floral astrológico",
-    "/flower/jamidusu": "Informe floral Zi Wei",
-    "/flower/sukuyo": "Informe floral de fases lunares",
-    "/tarot/self-esteem": "Búsqueda de crecimiento de 5 cartas",
-    "/tarot/reunion": "Tirada faro de 5 cartas",
-    "/tarot/year": "Tarot de fortuna de 12 meses",
-    "/oracle/hwatu": "Fortuna Hwatu tradicional",
-    "/oracle/kemet": "Oráculo egipcio",
-    "/oracle/juyuk": "Oráculo tortuga de 64 hexagramas",
-    "/oracle/sukuyo": "Fortuna de 27 mansiones lunares",
-    "/vedic/jyotish": "Astrología védica",
-    "/animal/physio": "Lectura facial con selfie",
-    "/animal/mbti": "Química de 16 tótems",
-    "/animal/totem": "Lectura de cartas de animal guardián",
-    "/dream/tarot": "Prompt onírico con IA",
-    "/dream/psycho": "Interpretación psicoanalítica de sueños",
-    "/tarot/healing": "Tirada sanadora de 4 cartas",
-    "/tarot/mingri": "Lectura IA de mazo universal de 78 cartas",
-    "/tarot/love": "Tirada de relación amorosa de 6 cartas",
-    "/saju/basic": "Lectura básica del calendario de Cuatro Pilares",
-    "/saju/sibyl": "Aptitud profesional Saju × índice de riesgo del destino",
-    "/saju/lifebook": "Informe Saju profundo premium",
-    "/saju/love-secret": "Estrategia amorosa Saju · análisis de pareja ideal",
-    "/saju/love-bible": "Estrategia amorosa Saju · análisis de pareja ideal",
-    "/saju/love-simulation": "Simulación amorosa Saju",
-    "/ziwei/chart": "12 palacios · cuatro transformaciones · consulta de década",
-    "/astrology/cosmic": "Análisis Sol · Luna · Ascendente",
-    "/oracle/hwatu-life": "Test de vida Hwatu de 7 preguntas",
-    "/oracle/sikojen-povailu": "Oráculo finlandés de estaño fundido",
-    "/oracle/royal-tea": "Lectura de hojas de té tasseográfica",
-  },
-  fr: {
-    "/flower/destiny": "Atelier floral intégré",
-    "/flower/astrology": "Rapport floral astrologique",
-    "/flower/jamidusu": "Rapport floral Zi Wei",
-    "/flower/sukuyo": "Rapport floral des phases lunaires",
-    "/tarot/self-esteem": "Quête de croissance en 5 cartes",
-    "/tarot/reunion": "Tirage phare en 5 cartes",
-    "/tarot/year": "Tarot de destinée sur 12 mois",
-    "/oracle/hwatu": "Fortune Hwatu traditionnelle",
-    "/oracle/kemet": "Oracle égyptien",
-    "/oracle/juyuk": "Oracle tortue des 64 hexagrammes",
-    "/oracle/sukuyo": "Destinée des 27 demeures lunaires",
-    "/vedic/jyotish": "Astrologie védique",
-    "/animal/physio": "Lecture du visage par selfie",
-    "/animal/mbti": "Alchimie des 16 totems",
-    "/animal/totem": "Lecture de cartes animal gardien",
-    "/dream/tarot": "Prompt de rêve IA",
-    "/dream/psycho": "Interprétation psychanalytique des rêves",
-    "/tarot/healing": "Tirage de guérison en 4 cartes",
-    "/tarot/mingri": "Lecture IA du deck universel de 78 cartes",
-    "/tarot/love": "Tirage relationnel amoureux en 6 cartes",
-    "/saju/basic": "Lecture de base du calendrier des Quatre Piliers",
-    "/saju/sibyl": "Aptitude professionnelle Saju × indice de risque du destin",
-    "/saju/lifebook": "Rapport Saju profond premium",
-    "/saju/love-secret": "Stratégie amoureuse Saju · analyse du partenaire idéal",
-    "/saju/love-bible": "Stratégie amoureuse Saju · analyse du partenaire idéal",
-    "/saju/love-simulation": "Simulation amoureuse Saju",
-    "/ziwei/chart": "12 palais · quatre transformations · conseil de décennie",
-    "/astrology/cosmic": "Analyse Soleil · Lune · Ascendant",
-    "/oracle/hwatu-life": "Test de vie Hwatu en 7 questions",
-    "/oracle/sikojen-povailu": "Oracle finlandais de l'étain fondu",
-    "/oracle/royal-tea": "Lecture tasseographique des feuilles de thé",
-  },
-  de: {
-    "/flower/destiny": "Integriertes Blumenatelier",
-    "/flower/astrology": "Astrologischer Blumenbericht",
-    "/flower/jamidusu": "Zi-Wei-Blumenbericht",
-    "/flower/sukuyo": "Mondphasen-Blumenbericht",
-    "/tarot/self-esteem": "5-Karten-Wachstumsquest",
-    "/tarot/reunion": "5-Karten-Leuchtturmlegung",
-    "/tarot/year": "12-Monate-Schicksalstarot",
-    "/oracle/hwatu": "Traditionelle Hwatu-Deutung",
-    "/oracle/kemet": "Ägyptisches Orakel",
-    "/oracle/juyuk": "64-Hexagramm-Schildkrötenorakel",
-    "/oracle/sukuyo": "27 Mondhäuser-Deutung",
-    "/vedic/jyotish": "Vedische Astrologie",
-    "/animal/physio": "Selfie-Gesichtsdeutung",
-    "/animal/mbti": "Chemie der 16 Totems",
-    "/animal/totem": "Schutztier-Kartenlesung",
-    "/dream/tarot": "KI-Traumprompt",
-    "/dream/psycho": "Psychoanalytische Traumdeutung",
-    "/tarot/healing": "4-Karten-Heilungslegung",
-    "/tarot/mingri": "KI-Lesung mit 78-Karten-Universaldeck",
-    "/tarot/love": "6-Karten-Beziehungslegung",
-    "/saju/basic": "Grunddeutung des Vier-Säulen-Kalenders",
-    "/saju/sibyl": "Saju-Berufseignung × Schicksalsrisikoindex",
-    "/saju/lifebook": "Premium-Tiefenbericht für Saju",
-    "/saju/love-secret": "Saju-Liebesstrategie · Analyse des Idealtyps",
-    "/saju/love-bible": "Saju-Liebesstrategie · Analyse des Idealtyps",
-    "/saju/love-simulation": "Saju-Liebessimulation",
-    "/ziwei/chart": "12 Paläste · vier Transformationen · Dekadenberatung",
-    "/astrology/cosmic": "Analyse von Sonne · Mond · Aszendent",
-    "/oracle/hwatu-life": "7-Fragen-Hwatu-Lebenshandtest",
-    "/oracle/sikojen-povailu": "Finnisches Zinngussorakel",
-    "/oracle/royal-tea": "Tasseografie-Teeblattlesung",
-  },
-  nl: {
-    "/flower/destiny": "Geïntegreerd bloemenatelier",
-    "/flower/astrology": "Astrologisch bloemenrapport",
-    "/flower/jamidusu": "Zi Wei-bloemenrapport",
-    "/flower/sukuyo": "Bloemenrapport voor maanfasen",
-    "/tarot/self-esteem": "5-kaarten groeiqueeste",
-    "/tarot/reunion": "5-kaarten vuurtorenspreiding",
-    "/tarot/year": "12-maanden fortuintarot",
-    "/oracle/hwatu": "Traditionele Hwatu-lezing",
-    "/oracle/kemet": "Egyptisch orakel",
-    "/oracle/juyuk": "64-hexagrammen schildpadorakel",
-    "/oracle/sukuyo": "Fortuin van 27 maanhuizen",
-    "/vedic/jyotish": "Vedische astrologie",
-    "/animal/physio": "Selfie-gezichtslezing",
-    "/animal/mbti": "Chemie van 16 totems",
-    "/animal/totem": "Beschermdier-kaartlezing",
-    "/dream/tarot": "AI-droomprompt",
-    "/dream/psycho": "Psychoanalytische droomduiding",
-    "/tarot/healing": "4-kaarten healingspread",
-    "/tarot/mingri": "AI-lezing met 78-kaarten universeel deck",
-    "/tarot/love": "6-kaarten liefdesrelatiespread",
-    "/saju/basic": "Basislezing van de Vierpijlerkalender",
-    "/saju/sibyl": "Saju-loopbaanaanleg × bestemmingsrisico-index",
-    "/saju/lifebook": "Premium diepterapport voor Saju",
-    "/saju/love-secret": "Saju-liefdesstrategie · analyse van ideale partner",
-    "/saju/love-bible": "Saju-liefdesstrategie · analyse van ideale partner",
-    "/saju/love-simulation": "Saju-liefdessimulatie",
-    "/ziwei/chart": "12 paleizen · vier transformaties · decenniumadvies",
-    "/astrology/cosmic": "Analyse Zon · Maan · Ascendant",
-    "/oracle/hwatu-life": "7-vragen Hwatu levenshandtest",
-    "/oracle/sikojen-povailu": "Fins tingiet-orakel",
-    "/oracle/royal-tea": "Tasseografie-theebladlezing",
-  },
-  ms: {
-    "/flower/destiny": "Atelier bunga takdir bersepadu",
-    "/flower/astrology": "Laporan bunga astrologi",
-    "/flower/jamidusu": "Laporan bunga Zi Wei",
-    "/flower/sukuyo": "Laporan bunga fasa bulan",
-    "/tarot/self-esteem": "Misi pertumbuhan 5 kad",
-    "/tarot/reunion": "Bentangan rumah api 5 kad",
-    "/tarot/year": "Tarot nasib 12 bulan",
-    "/oracle/hwatu": "Nasib Hwatu tradisional",
-    "/oracle/kemet": "Oracle Mesir",
-    "/oracle/juyuk": "Oracle kura-kura 64 heksagram",
-    "/oracle/sukuyo": "Nasib 27 rumah bulan",
-    "/vedic/jyotish": "Astrologi Veda",
-    "/animal/physio": "Bacaan wajah selfie",
-    "/animal/mbti": "Keserasian 16 totem",
-    "/animal/totem": "Bacaan kad haiwan pelindung",
-    "/dream/tarot": "Prompt mimpi AI",
-    "/dream/psycho": "Tafsiran mimpi psikoanalitik",
-    "/tarot/healing": "Bentangan penyembuhan 4 kad",
-    "/tarot/mingri": "Bacaan AI dek universal 78 kad",
-    "/tarot/love": "Bentangan hubungan cinta 6 kad",
-    "/saju/basic": "Bacaan asas kalendar Empat Tiang",
-    "/saju/sibyl": "Aptitud kerjaya Saju × indeks risiko takdir",
-    "/saju/lifebook": "Laporan mendalam Saju premium",
-    "/saju/love-secret": "Strategi cinta Saju · analisis pasangan ideal",
-    "/saju/love-bible": "Strategi cinta Saju · analisis pasangan ideal",
-    "/saju/love-simulation": "Simulasi cinta Saju",
-    "/ziwei/chart": "12 istana · empat transformasi · nasihat dekad",
-    "/astrology/cosmic": "Analisis Matahari · Bulan · Ascendant",
-    "/oracle/hwatu-life": "Ujian tangan hidup Hwatu 7 soalan",
-    "/oracle/sikojen-povailu": "Oracle tuangan timah Finland",
-    "/oracle/royal-tea": "Bacaan daun teh Tasseography",
-  },
+type FeatureSlugTagCopyMap = Partial<Record<LoadingLocale, Record<string, string>>>;
+type FeatureLandingSlugTagsModule = {
+  FEATURE_SLUG_TAG_COPY: FeatureSlugTagCopyMap;
 };
-
-/* Particle positions for the 5 floating items */
 const PARTICLE_POS = [
   { top:"6%",  left:"4%"   },
   { top:"14%", right:"5%"  },
@@ -817,50 +496,6 @@ const PARTICLE_POS = [
   { top:"62%", right:"3%"  },
   { top:"82%", left:"6%"   },
 ];
-
-const ICON_TOKEN_MAP: Record<string, DestinyIconName> = {
-  "✨": "sparkle",
-  "⭐": "star",
-  "🌟": "star",
-  "💫": "sparkleLine",
-  "🌙": "moon",
-  "☀️": "sun",
-  "☀": "sun",
-  "🌸": "lotus",
-  "🌺": "lotus",
-  "💮": "lotus",
-  "🪷": "lotus",
-  "🔮": "crystal",
-  "💎": "crystal",
-  "📜": "scroll",
-  "🧭": "compass",
-  "⚡": "seal",
-  "☯": "yinYang",
-  "☸": "palace",
-  "🌌": "zodiac",
-  "🪐": "zodiac",
-  "🦁": "animalPaw",
-  "🦊": "animalPaw",
-  "🦅": "animalPaw",
-  "🐷": "flowerPig",
-  "🎴": "tarot",
-  "🃏": "tarot",
-  "ᚱ": "rune",
-  "🪬": "seal",
-  "🫖": "lotus",
-  "💭": "cloud",
-  "🧠": "seal",
-  "🧘": "lotus",
-  "🧘‍♀️": "lotus",
-  "🕉️": "yinYang",
-  "🕯️": "seal",
-  "✦": "sparkleLine",
-};
-
-function resolveTokenIcon(token: string): DestinyIconName {
-  return ICON_TOKEN_MAP[token] || "sparkle";
-}
-
 const FEATURE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
   ko: "ko-KR",
   en: "en-US",
@@ -894,13 +529,19 @@ const FEATURE_PRICE_SUFFIX: Record<LoadingLocale, string> = {
 function resolveFeatureLocaleFromPath(pathname: string): LoadingLocale {
   const localeSegment = String(pathname || "").split("/").filter(Boolean)[0];
   if (!localeSegment) return "ko";
-  return normalizeLoadingLocale(localeSegment);
+  return normalizeFeatureLocaleCode(localeSegment);
 }
 
 function resolveFeatureLocale(pathname: string): LoadingLocale {
   const pathLocale = resolveFeatureLocaleFromPath(pathname);
   if (pathLocale !== "ko") return pathLocale;
-  return getCurrentLoadingLocale();
+  return getCurrentFeatureLocale();
+}
+
+function resolveFeatureBasePath(pathname: string) {
+  const basePath = stripLocalePrefix(pathname);
+  if (basePath.length <= 1) return basePath || "/";
+  return basePath.replace(/\/+$/, "");
 }
 
 function hasKoreanText(value?: string) {
@@ -936,10 +577,16 @@ function formatFeaturePrice(value: string, locale: LoadingLocale) {
   return `${new Intl.NumberFormat(numberLocale).format(amount)}${suffix}`;
 }
 
-function resolveFeatureTag(basePath: string, category: string, tag: string | undefined, locale: LoadingLocale) {
+function resolveFeatureTag(
+  basePath: string,
+  category: string,
+  tag: string | undefined,
+  locale: LoadingLocale,
+  copy: FeatureLandingCopy,
+  slugTagCopy?: FeatureSlugTagCopyMap | null,
+) {
   if (locale === "ko" || !tag || !hasKoreanText(tag)) return tag;
-  const copy = FEATURE_LANDING_COPY[locale] || FEATURE_LANDING_COPY.en;
-  return FEATURE_SLUG_TAG_COPY[locale]?.[basePath] || FEATURE_SLUG_TAG_COPY.en?.[basePath] || copy.categoryTags[category] || copy.defaultTitle;
+  return slugTagCopy?.[locale]?.[basePath] || slugTagCopy?.en?.[basePath] || copy.categoryTags[category] || copy.defaultTitle;
 }
 
 /* ═══════════════════════════════════════════
@@ -947,18 +594,48 @@ function resolveFeatureTag(basePath: string, category: string, tag: string | und
 ═══════════════════════════════════════════ */
 export default function FeatureLandingPage({ service }: { service?: ServiceLike }) {
   const pathname = usePathname() || "/";
-  const basePath = stripLocalePrefix(pathname);
+  const basePath = resolveFeatureBasePath(pathname);
   const [locale, setLocale] = useState<LoadingLocale>(() => resolveFeatureLocaleFromPath(pathname));
   const [shareReady, setShareReady] = useState(false);
+  const [slugTagCopy, setSlugTagCopy] = useState<FeatureSlugTagCopyMap | null>(null);
+  const shareMountRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setLocale(resolveFeatureLocale(pathname));
   }, [pathname]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setShareReady(true), 1200);
-    return () => window.clearTimeout(timer);
-  }, []);
+    if (locale === "ko" || slugTagCopy) return;
+    let cancelled = false;
+    import("./FeatureLandingPage.slugTags")
+      .then((module: FeatureLandingSlugTagsModule) => {
+        if (!cancelled) setSlugTagCopy(module.FEATURE_SLUG_TAG_COPY);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [locale, slugTagCopy]);
+
+  useEffect(() => {
+    if (shareReady) return;
+    const target = shareMountRef.current;
+    if (!target || !("IntersectionObserver" in window)) {
+      const timer = window.setTimeout(() => setShareReady(true), 4000);
+      return () => window.clearTimeout(timer);
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShareReady(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "280px 0px" },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [shareReady]);
 
   const action = ACTION_MAP[basePath];
   const runHref = basePath === "/oracle/sikojen-povailu"
@@ -980,10 +657,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const cfg: SlugCfg = SLUG_CFG[basePath] ?? {
     icon:"✨", badge:"SERVICE", particles:["✦","⭐","✨","💫","✦"],
   };
-  const heroIconName = resolveTokenIcon(cfg.icon);
   const copy = FEATURE_LANDING_COPY[locale] || FEATURE_LANDING_COPY.ko;
   const activeService = resolveLocalizedService(service, locale);
-  const localizedTag = resolveFeatureTag(basePath, category, cfg.tag, locale);
+  const localizedTag = resolveFeatureTag(basePath, category, cfg.tag, locale, copy, slugTagCopy);
   const titleFallback = locale === "ko" ? copy.defaultTitle : (cfg.badge || copy.defaultTitle);
   const title = resolveFeatureText(activeService?.h1 || activeService?.title, titleFallback, locale);
   const description = resolveFeatureText(activeService?.description, copy.defaultDescription, locale);
@@ -1052,7 +728,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
         .flp-img-wrap:hover::after { animation: flp-shine .7s ease forwards; }
         @media (max-width: 768px), (prefers-reduced-motion: reduce) {
           .flp-orb,.flp-particle,.flp-petal,.flp-hero-icon,.flp-manse-card,.flp-manse-shine,.flp-manse-logo { animation:none!important; }
-          .flp-particle-extra { display:none!important; }
+          .flp-orb,.flp-particle,.flp-petal { display:none!important; }
+          .flp-hero-icon { filter:none!important; }
+          .flp-img-wrap { box-shadow:0 14px 34px rgba(15,23,42,.34)!important; }
           .flp-in { animation-duration:.32s; }
           .flp-btn-p:hover,.flp-btn-s:hover { transform:none; }
         }
@@ -1082,12 +760,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
           animation:`flp-float ${4.2 + i * 0.9}s ease-in-out ${i * 0.55}s infinite`,
           userSelect:"none",
         }}>
-          <DestinyIcon
-            name={resolveTokenIcon(p)}
-            size={14 + (i % 3) * 5}
-            className="text-violet-100/70"
-            variant="soft"
-          />
+          <span style={{
+            display:"inline-flex",
+            alignItems:"center",
+            justifyContent:"center",
+            width:14 + (i % 3) * 5,
+            height:14 + (i % 3) * 5,
+            fontSize:14 + (i % 3) * 5,
+            lineHeight:1,
+            color:"rgba(245,243,255,0.72)",
+          }}>{p}</span>
         </div>
       ))}
 
@@ -1141,7 +823,16 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             animation:`flp-float 4s ease-in-out infinite`,
             display:"inline-flex",
           }}>
-            <DestinyIcon name={heroIconName} size={72} className="text-violet-100" variant="glow" />
+            <span style={{
+              display:"inline-flex",
+              alignItems:"center",
+              justifyContent:"center",
+              width:72,
+              height:72,
+              fontSize:56,
+              lineHeight:1,
+              filter:"drop-shadow(0 0 10px rgba(180,200,255,0.45))",
+            }}>{cfg.icon}</span>
           </div>
           <h1 style={{
             fontFamily:"'Noto Serif KR','Noto Serif',serif",
@@ -1361,10 +1052,18 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             textDecoration:"none", boxShadow:t.btnGlow, letterSpacing:"0.03em",
             fontFamily:"'Noto Sans KR',sans-serif",
           }}>
-            <DestinyIcon name={heroIconName} size={18} className="text-white" variant="soft" />
+            <span style={{
+              display:"inline-flex",
+              alignItems:"center",
+              justifyContent:"center",
+              width:18,
+              height:18,
+              fontSize:16,
+              lineHeight:1,
+            }}>{cfg.icon}</span>
             <span>{isPaidFeature ? copy.paidCta(formatFeaturePrice(paidMeta.coins, locale)) : copy.freeCta}</span>
           </a>
-          <Link href="/insights" className="flp-btn-s" style={{
+          <a href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"13px 24px", background:t.btnSec,
             border:`1px solid ${t.btnSecBorder}`,
@@ -1373,21 +1072,23 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
             textDecoration:"none", letterSpacing:"0.02em",
           }}>
             {copy.insights}
-          </Link>
+          </a>
         </div>
 
-        {shareReady ? (
-          <Suspense fallback={null}>
-            <ShareWidget
-              title={title}
-              description={description}
-              path={basePath}
-              image={activeService?.ogImage}
-              contentType="software"
-              contentId={basePath}
-            />
-          </Suspense>
-        ) : null}
+        <div ref={shareMountRef}>
+          {shareReady ? (
+            <Suspense fallback={null}>
+              <ShareWidget
+                title={title}
+                description={description}
+                path={basePath}
+                image={activeService?.ogImage}
+                contentType="software"
+                contentId={basePath}
+              />
+            </Suspense>
+          ) : null}
+        </div>
 
         {isPaidFeature && (
           <p style={{

@@ -28,12 +28,15 @@ const metadataCopy = IFA_ORACLE_METADATA_COPY.ko;
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
+  alternates: {
+    canonical: "https://code-destiny.com/ifa-oracle.html",
+  },
   robots: {
     index: false,
-    follow: false,
+    follow: true,
     googleBot: {
       index: false,
-      follow: false,
+      follow: true,
     },
   },
 };

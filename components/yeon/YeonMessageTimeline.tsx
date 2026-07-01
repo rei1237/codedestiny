@@ -2,13 +2,34 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { YeonMessageOutput } from "@/lib/yeon/types";
 import YeonTypewriterBubble from "./YeonTypewriterBubble";
 
 type Props = {
   message: YeonMessageOutput;
 };
+
+type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW";
+
+function normalizeYeonTimelineLocale(value?: string | null): LoadingLocale {
+  const normalized = String(value || "").toLowerCase();
+  if (normalized.startsWith("en")) return "en";
+  if (normalized.startsWith("ja")) return "ja";
+  if (normalized === "zh-tw" || normalized === "zh-hant") return "zh-TW";
+  if (normalized.startsWith("zh")) return "zh-CN";
+  return "ko";
+}
+
+function getCurrentYeonTimelineLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+  if (runtimeLanguage) return normalizeYeonTimelineLocale(runtimeLanguage);
+  try {
+    const stored = window.localStorage.getItem("cd_locale") || window.localStorage.getItem("locale");
+    if (stored) return normalizeYeonTimelineLocale(stored);
+  } catch (_) {}
+  return normalizeYeonTimelineLocale(window.document?.documentElement?.lang || window.navigator?.language);
+}
 
 function TimelineCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -60,11 +81,11 @@ function getYeonMessageTimelineCopy(locale: LoadingLocale) {
 }
 
 export default function YeonMessageTimeline({ message }: Props) {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentYeonTimelineLocale());
   const copy = getYeonMessageTimelineCopy(locale);
 
   useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    const syncLocale = () => setLocale(getCurrentYeonTimelineLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
     window.addEventListener("cd:locale-change", syncLocale);

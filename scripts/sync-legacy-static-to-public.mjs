@@ -9,6 +9,24 @@ import { dirname, resolve, join } from "node:path";
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
 
+function sleepSync(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function writeFileSyncWithRetry(filePath, data, options) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      writeFileSync(filePath, data, options);
+      return;
+    } catch (error) {
+      if (!["UNKNOWN", "EBUSY", "EPERM"].includes(error?.code) || attempt === 19) {
+        throw error;
+      }
+      sleepSync(50);
+    }
+  }
+}
+
 function syncSwissEphVendor() {
   const srcBase = resolve(rootDir, "node_modules", "sweph-wasm", "dist");
   if (!existsSync(srcBase)) return;
@@ -204,6 +222,7 @@ function stripLeadingBom(buffer) {
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
 const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-payment-wasm";
+const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-b1e31d8ae62f";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
@@ -399,6 +418,10 @@ function preserveVedicAIConsultationCacheKey(source) {
     .replace(
       /(\/js\/vedic-ai-consultation\.js\?v=)[a-zA-Z0-9_-]+/g,
       `$1${VEDIC_AI_CONSULTATION_CACHE_KEY}`,
+    )
+    .replace(
+      /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
+      `$1${MOBILE_INTERACTION_PATCH_CACHE_KEY}`,
     );
 }
 
@@ -696,13 +719,13 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     ? stripLeadingBom(readFileSync(publicIndex)).toString("utf8")
     : "";
   if (currentPublicHtml !== baseIndexHtml) {
-    writeFileSync(publicIndex, indexBuf);
+    writeFileSyncWithRetry(publicIndex, indexBuf);
     console.log("[sync-legacy-static-to-public] Rebuilt public/index.html from canonical root shell");
   }
 
   const staticDir = resolve(publicDir, "static");
   mkdirSync(staticDir, { recursive: true });
-  writeFileSync(resolve(staticDir, "index.html"), indexBuf);
+  writeFileSyncWithRetry(resolve(staticDir, "index.html"), indexBuf);
   console.log("[sync-legacy-static-to-public] Copied index.html -> public/static/index.html (SPA shell; avoids [adminHash] collision).");
 
   for (const loc of localeLandingDirs) {
@@ -710,7 +733,7 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     mkdirSync(locDir, { recursive: true });
     const localeIndexHtml = dedupeUtf8CharsetMeta(applyLocaleSeoMeta(baseIndexHtml, `/${loc}`));
     assertEntryHtmlHealthy(localeIndexHtml, `public/${loc}/index.html`);
-    writeFileSync(resolve(locDir, "index.html"), Buffer.from(localeIndexHtml, "utf8"));
+    writeFileSyncWithRetry(resolve(locDir, "index.html"), Buffer.from(localeIndexHtml, "utf8"));
   }
 
   for (const legacyLoc of legacyLocaleLandingDirs) {

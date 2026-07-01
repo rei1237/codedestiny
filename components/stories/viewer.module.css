@@ -492,6 +492,11 @@
 }
 
 @media (max-width: 768px) {
+  .shell[data-theme="starlight"] {
+    animation: none;
+    background-size: 180px 180px, 240px 240px, 300px 300px, auto;
+  }
+
   .readerCanvas {
     width: calc(100vw - 1.35rem);
     padding-top: 74px;
@@ -501,6 +506,10 @@
   .topNav {
     grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 8px;
+    background: color-mix(in srgb, var(--reader-surface) 96%, transparent);
+    box-shadow: 0 3px 12px rgba(167, 139, 250, 0.10);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .navButton {
@@ -519,6 +528,10 @@
     width: calc(100vw - 20px);
     padding: 8px;
     border-radius: 16px;
+    background: color-mix(in srgb, var(--reader-surface) 96%, transparent);
+    box-shadow: 0 8px 18px rgba(167, 139, 250, 0.10);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
   }
 
   .bottomLink {

@@ -55,6 +55,7 @@ import {
   PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
 } from "../lib/profile-card-mutation-policy.js";
+import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
   FREE: "free",
@@ -345,7 +346,7 @@ function resolvePricingAmountKRW(pricing = {}, coinCost = 0) {
 
 function isPassExcludedPricing(pricing = {}) {
   const featureKey = String(pricing?.featureKey || "").trim();
-  return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey);
+  return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey) || isMusicTrackFeatureKey(featureKey);
 }
 
 function resolvePassPolicyForTier(tierRaw) {
@@ -762,7 +763,9 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
-  const passCovered = canUseByPass(activeEntitlement, coinCost);
+  const isProfileCardManage = String(pricing?.featureKey || "").trim() === PROFILE_CARD_MANAGE_FEATURE_KEY;
+  const passExcluded = isPassExcludedPricing(pricing) && !isProfileCardManage;
+  const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   const equalPriorityPaidMethods = ["DIRECT_KRW", ...(monthlyCovered ? ["MOONLIGHT_STONE"] : [])];
 
@@ -784,7 +787,7 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     hiddenMethods: passCovered ? ["DIRECT_KRW", "MOONLIGHT_STONE", "COIN"] : [],
     decisionReason: passCovered
       ? "PASS_COVERED"
-      : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED"),
+      : (passExcluded ? "PASS_EXCLUDED_PAYMENT_REQUIRED" : (hasActivePass && passLimitValue > 0 && coinCost > passLimitValue ? "PRICE_EXCEEDS_PASS_LIMIT" : "PAYMENT_REQUIRED")),
     ...(pricing?.passDiscount ? { passDiscount: pricing.passDiscount } : {}),
   };
 }
@@ -3585,7 +3588,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const forceDeductRequested = forceDeductRaw !== undefined
     && (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
   const requestedPaymentMode = String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase();
-  const membershipPassOnly = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
+  const pricingFeatureKey = String(pricing?.featureKey || "").trim();
+  const passExcludedForPricing = isPassExcludedPricing(pricing) && pricingFeatureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY;
+  const membershipPassRequested = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
+  const membershipPassOnly = membershipPassRequested && !passExcludedForPricing;
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
     || requestedPaymentMode === "monthly"
     || requestedPaymentMode === "membership_credit"
@@ -3603,13 +3609,21 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const deferUsage = isDeferredUsageRequested(body);
   const knownPaymentMode = !requestedPaymentMode
     || requestedPaymentMode === "single_purchase"
-    || membershipPassOnly
+    || membershipPassRequested
     || monthlyBalanceRequested
     || directPaymentRequested
     || coinPaymentRequested;
   if (!knownPaymentMode) {
     return failure(400, "UNKNOWN_PAYMENT_METHOD", "알 수 없는 결제 수단입니다.", undefined, {
       paymentMode: requestedPaymentMode,
+    });
+  }
+  if (membershipPassRequested && passExcludedForPricing) {
+    return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", "음악 트랙은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+      pricing,
+      paymentOptions: buildPassPaymentDecision(null, pricing, null),
+      accessGrant: null,
+      balance: null,
     });
   }
   logPaidAccessStage("REQUEST_START", {
@@ -3644,7 +3658,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     && !directPaymentRequested
     && !coinPaymentRequested
     && false;
-  const shouldAutoUnlockWithPass = !monthlyBalanceRequested
+  const shouldAutoUnlockWithPass = !passExcludedForPricing
+    && !monthlyBalanceRequested
     && !directPaymentRequested
     && !coinPaymentRequested;
 
@@ -4707,6 +4722,45 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       },
     },
   });
+
+  if (passExcludedForPricing && coinPaymentRequested) {
+    const musicPaymentMethods = ["DIRECT_KRW", ...(paymentDecision.canUseByMonthly ? ["MOONLIGHT_STONE"] : [])];
+    return failure(402, "PAYMENT_REQUIRED", "음악 트랙은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+      pricing,
+      ...paymentDecision,
+      paymentOptions: {
+        ...paymentDecision,
+        canUseByPass: false,
+        recommendedMethod: "PAYMENT_CHOICE",
+        recommendedMethods: musicPaymentMethods,
+        equalPriorityMethods: musicPaymentMethods,
+        hiddenMethods: ["PASS", "COIN"],
+        paymentPriority: "USER_CHOICE_EQUAL",
+      },
+      accessDecision,
+      shouldOpenPaymentSelector: true,
+      availableMethods: musicPaymentMethods,
+      accessGrant: null,
+      balance: null,
+      checkout: {
+        endpoint: "/api/billing/checkout",
+        payload: {
+          paymentType: "digital_content",
+          featureKey: String(pricing.featureKey || ""),
+          reason: String(pricing.reason || ""),
+          categoryKey: pricing.categoryKey,
+          subFeatureKey: pricing.subFeatureKey,
+          paymentAmount: resolvePricingAmountKRW(pricing, resolvePricingCoinCost(pricing)),
+          coinPrice: resolvePricingCoinCost(pricing),
+          membershipCreditCost: Number(pricing.membershipCreditCost || calculateMembershipCreditCost(resolvePricingCoinCost(pricing))),
+          requestId,
+          reportId: reportId || undefined,
+          sessionId: reportSessionId || undefined,
+          profileId: profileId || undefined,
+        },
+      },
+    });
+  }
 
   if (coinPaymentRequested) {
     await connectDb(env);

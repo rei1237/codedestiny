@@ -17,21 +17,71 @@ import LoadingProgressMotion, {
   type LoadingMotionTone,
 } from "./common/LoadingProgressMotion";
 import { PaymentPigVisual } from "./common/PaymentPigVisual";
-import {
-  getCurrentLoadingLocale,
-  resolveLoadingMessage,
-  type LoadingLocale,
-  type LoadingStage,
-  type PaymentType,
-} from "@/constants/loadingMessages";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
+type LoadingStage = "pg_processing" | "result_loading" | "access_check";
+type PaymentType = "subscription" | "single" | "pass";
+
+const PAYMENT_LOADING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof PAYMENT_LOADING_LOCALES)[number];
+type LoadingMessage = { title: string; sub: string };
+
+function normalizeLoadingLocale(value?: string | null): LoadingLocale {
+  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
+  if (normalized === "vi-vn") return "vi";
+  return PAYMENT_LOADING_LOCALES.find((locale) => locale.toLowerCase() === normalized) || "ko";
+}
+
+function getCurrentLoadingLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  try {
+    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+    if (runtimeLang) return normalizeLoadingLocale(runtimeLang);
+  } catch {}
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    const fromQuery = params.get("lang");
+    if (fromQuery) return normalizeLoadingLocale(fromQuery);
+  } catch {}
+  try {
+    const fromStorage = window.localStorage.getItem("cd_lang");
+    if (fromStorage) return normalizeLoadingLocale(fromStorage);
+  } catch {}
+  try {
+    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
+    if (match?.[1]) return normalizeLoadingLocale(decodeURIComponent(match[1]));
+  } catch {}
+  return "ko";
+}
+
+function PaymentOverlayFallback() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-[2147483001] flex items-end justify-center bg-slate-950/62 px-0 backdrop-blur-sm sm:items-center sm:px-4"
+    >
+      <div
+        className="w-full rounded-t-[8px] border border-white/15 bg-slate-950/92 p-5 text-white shadow-[0_18px_60px_rgba(2,6,23,.5)] sm:max-w-[420px] sm:rounded-[8px]"
+        style={{ paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+      >
+        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
+        <p className="m-0 text-sm font-black">결제 확인 화면을 여는 중입니다.</p>
+        <p className="mt-2 text-xs font-semibold leading-relaxed text-slate-300">
+          창을 닫지 말고 잠시만 기다려 주세요.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 const DeferredPaymentProcessingOverlay = dynamic<PaymentLoadingProps>(
   () => import("./PaymentProcessingOverlay"),
   {
     ssr: false,
-    loading: () => null,
+    loading: () => <PaymentOverlayFallback />,
   },
 );
 
@@ -103,7 +153,8 @@ type PaidFeatureGateContextValue = {
 const DEFAULT_PROCESSING_MESSAGE = "처리 중이에요\n잠시만 기다려 주세요";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const PAID_GATE_DEFAULT_MESSAGE = "이용권을 확인하는 중이에요";
+const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
+const PAID_GATE_DEFAULT_MESSAGE = ACCESS_CHECKING_MESSAGE;
 
 type PaidGateCopy = { label: string; title: string; message: string };
 type PaidGateUiCopy = {
@@ -120,11 +171,11 @@ const KOREAN_TEXT_PATTERN = /[가-힣]/;
 
 const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
-  opening: { label: "준비", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
-  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: "이용권을 확인하는 중이에요" },
+  opening: { label: "준비", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
+  checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
   hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권을 확인했어요\n결과를 불러오는 중이에요" },
   noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
-  loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: "이용권 적용 여부와 결제 가능 상태를 확인하고 있어요" },
+  loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: ACCESS_CHECKING_MESSAGE },
   readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
   paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
   paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 불러오는 중이에요" },
@@ -258,6 +309,38 @@ const PAID_GATE_NUMBER_LOCALE: Record<LoadingLocale, string> = {
   ms: "ms-MY",
 };
 
+const LIGHTWEIGHT_LOADING_MESSAGES: Record<LoadingStage, Record<PaymentType, LoadingMessage>> = {
+  pg_processing: {
+    subscription: { title: "Processing moonstone payment", sub: "Please stay with us for a moment" },
+    single: { title: "Processing payment", sub: "Please do not close this window" },
+    pass: { title: "Checking pass access", sub: "Please stay with us for a moment" },
+  },
+  result_loading: {
+    subscription: { title: "Moonstone access is opening", sub: "Loading your result" },
+    single: { title: "Payment is complete", sub: "Loading your result" },
+    pass: { title: "Pass access is confirmed", sub: "Loading your result" },
+  },
+  access_check: {
+    subscription: { title: "Checking moonstone access", sub: "Confirming your access safely" },
+    single: { title: "Checking payment access", sub: "Confirming whether payment can continue" },
+    pass: { title: "Checking pass access", sub: "Confirming whether your pass can be used" },
+  },
+};
+
+function resolveFallbackLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
+  const activeLocale = normalizeLoadingLocale(locale || "ko");
+  if (activeLocale === "ko") {
+    if (stage === "pg_processing") return { title: PAID_GATE_COPY.paymentProcessing.title, sub: PAID_GATE_COPY.paymentProcessing.message };
+    if (stage === "result_loading") return { title: PAID_GATE_COPY.paymentSuccess.title, sub: PAID_GATE_COPY.paymentSuccess.message };
+    return { title: PAID_GATE_COPY.checkingEntitlement.title, sub: PAID_GATE_COPY.checkingEntitlement.message || DEFAULT_PROCESSING_MESSAGE };
+  }
+  return LIGHTWEIGHT_LOADING_MESSAGES[stage || "access_check"]?.[paymentType || "pass"] || LIGHTWEIGHT_LOADING_MESSAGES.access_check.pass;
+}
+
+function resolveLoadingMessage(stage?: LoadingStage, paymentType?: PaymentType, locale?: LoadingLocale | string | null): LoadingMessage {
+  return resolveFallbackLoadingMessage(stage, paymentType, locale);
+}
+
 const PaidFeatureGateContext = createContext<PaidFeatureGateContextValue | undefined>(undefined);
 
 function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentLoadingVariant {
@@ -382,7 +465,7 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
   const resolvedDetail = typeof detail === "string" ? { message: detail } : detail;
   const message = String(resolvedDetail.message || "");
   if (status === "checkingEntitlement") {
-    return { message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
+    return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
   }
   if (status === "hasEntitlement") {
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
@@ -401,12 +484,12 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
   }
   if (status === "opening" || status === "loadingProducts") {
     if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.", mode: "pass" };
+      return { message: ACCESS_CHECKING_MESSAGE, mode: "pass" };
     }
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
       return { message: message || "월정석 정보를 확인하는 중이에요", mode: "monthly" };
     }
-    return { message: message || "결제 가능한 수단을 확인하고 있습니다.", mode: "checkout" };
+    return { message: ACCESS_CHECKING_MESSAGE, mode: "checkout" };
   }
   if (status === "paymentProcessing") {
     return { message: message || "결제 승인과 이용 권한을 확인하고 있습니다.", mode: resolvePaymentLoadingVariant(message, "confirm") };
@@ -753,7 +836,10 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
           data-loading-phase={loadingPhase}
           className="fixed inset-0 z-[2147483002] flex items-end justify-center bg-[linear-gradient(180deg,rgba(3,6,18,.50),rgba(2,6,23,.72))] px-0 backdrop-blur-[14px] sm:items-center sm:px-4"
         >
-          <div className="w-full rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6">
+          <div
+            className="w-full overflow-y-auto rounded-t-[8px] border border-white/20 bg-[radial-gradient(circle_at_82%_10%,rgba(254,240,138,.16),transparent_32%),linear-gradient(145deg,rgba(15,23,42,.82),rgba(30,41,59,.68))] p-5 text-white shadow-[0_26px_90px_rgba(2,6,23,.58),inset_0_1px_0_rgba(255,255,255,.18)] backdrop-blur-[22px] sm:max-w-[440px] sm:rounded-[8px] sm:p-6"
+            style={{ maxHeight: "min(88svh, 88dvh)", paddingBottom: "calc(1.25rem + env(safe-area-inset-bottom, 0px))" }}
+          >
             <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-white/20 sm:hidden" />
             <PaymentPigVisual tone={gateMotionTone} />
             <div className="mb-4 flex items-start justify-between gap-4">

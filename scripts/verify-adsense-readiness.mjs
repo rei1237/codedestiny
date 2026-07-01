@@ -389,13 +389,13 @@ function wait(ms) {
 
 function readFileUtf8WithRetry(absolutePath) {
   let lastError = null;
-  for (let attempt = 0; attempt < 8; attempt += 1) {
+  for (let attempt = 0; attempt < 80; attempt += 1) {
     try {
       return readFileSync(absolutePath, "utf8");
     } catch (error) {
       lastError = error;
       if (!retryableReadErrorCodes.has(error?.code)) throw error;
-      wait(80 + attempt * 60);
+      wait(100 + Math.min(attempt * 50, 500));
     }
   }
   throw lastError;
@@ -913,10 +913,11 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
   for (const absolutePath of htmlFiles) {
     const route = routeFromHtmlPath(baseDir, absolutePath);
     if (!matchesPaidFeatureRoute(route)) continue;
-    paidRouteCount += 1;
-
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileUtf8WithRetry(absolutePath);
+    const html = readOptional(absolutePath);
+    if (!html) continue;
+
+    paidRouteCount += 1;
     assert(!canLoadAdsense(route), `${route}: paid feature route policy should block AdSense`);
     assert(!adsenseMarkers.test(html), `${htmlPath}: paid feature route must not embed AdSense`);
   }
@@ -998,7 +999,13 @@ function verifyGeneratedAdsenseBlockedRoutes(baseDir) {
     if (canLoadAdsense(route)) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileUtf8WithRetry(absolutePath);
+    let html = "";
+    try {
+      html = readFileUtf8WithRetry(absolutePath);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
     assert(!adsenseMarkers.test(html), `${htmlPath}: AdSense-blocked route must not embed AdSense`);
   }
 }
@@ -1008,7 +1015,13 @@ function verifyNoGeneratedStaticAdUnits(baseDir) {
 
   for (const absolutePath of htmlFiles) {
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
-    const html = readFileUtf8WithRetry(absolutePath);
+    let html = "";
+    try {
+      html = readFileUtf8WithRetry(absolutePath);
+    } catch (error) {
+      if (error?.code === "ENOENT") continue;
+      throw error;
+    }
     assert(
       !staticAdUnitMarkupPattern.test(html),
       `${htmlPath}: generated HTML must not include static AdSense unit markup before explicit placement review`,

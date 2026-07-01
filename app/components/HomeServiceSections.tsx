@@ -4,50 +4,77 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getLocalizedServiceSections } from "../_lib/serviceSections";
 import FeatureSymbol from "./icons/FeatureSymbol";
 import DestinyIcon from "./icons/DestinyIcon";
 
+const HOME_SERVICE_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof HOME_SERVICE_LOCALES)[number];
+
+function normalizeHomeServiceLocale(value?: string | null): LoadingLocale {
+  const raw = String(value || "").trim();
+  if (!raw) return "ko";
+  const normalized = raw.replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans" || normalized === "cn") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "tw") return "zh-TW";
+  const base = normalized.split("-")[0];
+  return HOME_SERVICE_LOCALES.includes(base as LoadingLocale) ? (base as LoadingLocale) : "ko";
+}
+
+function getCurrentHomeServiceLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { __cdCurrentLang?: string }).__cdCurrentLang;
+  if (runtimeLanguage) return normalizeHomeServiceLocale(runtimeLanguage);
+  try {
+    const stored =
+      window.localStorage.getItem("cd_locale") ||
+      window.localStorage.getItem("code-destiny-locale") ||
+      window.localStorage.getItem("cd_lang") ||
+      window.localStorage.getItem("locale");
+    if (stored) return normalizeHomeServiceLocale(stored);
+  } catch {}
+  return normalizeHomeServiceLocale(document.documentElement.lang || navigator.language);
+}
+
 const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
-  "/saju/basic": "/index.html",
+  "/saju/basic": "/saju/basic",
   "/daily-fortune": "/index.html",
   "/manse": "/index.html",
   "/compatibility": "/index.html?action=runCompat",
-  "/tarot/mingri": "/index.html?action=openTarotModal",
+  "/tarot/mingri": "/tarot/mingri",
   "/ziwei/chart": "/ziwei/chart",
-  "/oracle/sukuyo": "/index.html?action=openSukuyoModal",
-  "/astrology/cosmic": "/index.html?action=openAstroModal",
-  "/vedic/jyotish": "/index.html?action=navigateToVedic",
+  "/oracle/sukuyo": "/oracle/sukuyo",
+  "/astrology/cosmic": "/astrology/cosmic",
+  "/vedic/jyotish": "/vedic/jyotish",
   "/dream": "/index.html?action=openDreamModal",
   "/animal/physio": "/index.html?action=openPhysiognomyApp",
   "/premium": "/index.html",
-  "/oracle/ifa": "/index.html?action=openIfaOracle",
+  "/ifa-oracle.html": "/ifa-oracle.html",
   "/oracle/royal-tea": "/index.html?action=openRoyalTeaOracle",
   "/oracle/sikojen-povailu": "/index.html?action=openSikojenPovailu",
   "/flower/destiny": "/index.html?action=openDestinyFlowerStudio",
   "/dream/tarot": "/index.html?action=openDreamModal",
-  "/saju/sibyl": "/index.html?action=openSibylModal",
-  "/saju/lifebook": "/life-book-ai",
+  "/saju/sibyl": "/saju/sibyl",
+  "/life-book-ai": "/life-book-ai",
   "/love-secret-ai": "/love-secret-ai",
-  "/saju/love-simulation": "/index.html?action=openLoveSimulation",
+  "/saju/love-simulation": "/saju/love-simulation",
   "/saju/destiny-bias": "/index.html?action=openDestinyBias",
-  "/saju/animal-test": "/saju/animal-test",
-  "/saju/destiny-meeting-place": "/index.html",
-  "/tarot/love": "/index.html?action=openTarotLoveModal",
+  "/saju/animal-destiny": "/saju/animal-destiny",
+  "/saju/destiny-meeting-place": "/saju/destiny-meeting-place",
+  "/tarot/love": "/tarot/love",
   "/tarot/healing": "/index.html?action=openTarotHealingModal",
-  "/tarot/self-esteem": "/index.html?action=openTarotSelfEsteemModal",
-  "/tarot/reunion": "/index.html?action=openTarotReunionModal",
+  "/tarot/self-esteem": "/tarot/self-esteem",
+  "/tarot/reunion": "/tarot/reunion",
   "/tarot/prompt-maker": "/tarot/prompt-maker",
-  "/tarot/year": "/index.html?action=openTarotYearFortuneModal",
+  "/tarot/year": "/tarot/year",
   "/tarot/crystal-soul/": "/index.html?action=startCrystalSoulTarot",
   "/tarot/mindscan/": "/index.html?action=startMindScanTarot",
   "/celestial-harmony.html": "/index.html?action=openCelestialHarmony",
   "/tarot-ijik.html": "/index.html?action=startIjikTarot",
-  "/oracle/hwatu": "/index.html?action=openHwatuModal",
+  "/oracle/hwatu": "/oracle/hwatu",
   "/oracle/hwatu-life": "/index.html?action=openHwatuModal",
   "/oracle/kemet": "/index.html?action=openKemetModal",
-  "/oracle/juyuk": "/index.html?action=openJuyukModal",
+  "/oracle/juyuk": "/oracle/juyuk",
   "/geomancy-oracle-v4.html": "/index.html?action=openGeomancyOracle",
   "/royal-tea-oracle.html": "/index.html?action=openRoyalTeaOracle",
   "/destiny-poker.html": "/index.html",
@@ -90,7 +117,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "카드·모달이 한 화면에 모여 있는 기존 메인입니다.",
     quickTitle: "사주 외 신비 운세 바로가기",
     quickLinks: [
-      { href: "/oracle/ifa", label: "이파 오라클" },
+      { href: "/ifa-oracle.html", label: "이파 오라클" },
       { href: "/oracle/royal-tea", label: "타세오그래피" },
       { href: "/oracle/sikojen-povailu", label: "핀란드 주석점" },
       { href: "/flower/destiny", label: "운명의 꽃" },
@@ -105,7 +132,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "The legacy main gathers cards and modals on one screen.",
     quickTitle: "Mystic fortunes beyond Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa Oracle" },
+      { href: "/ifa-oracle.html", label: "Ifa Oracle" },
       { href: "/oracle/royal-tea", label: "Tasseography" },
       { href: "/oracle/sikojen-povailu", label: "Finnish Tin Oracle" },
       { href: "/flower/destiny", label: "Destiny Flower" },
@@ -120,7 +147,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "カードとモーダルが一画面にまとまった従来メインです。",
     quickTitle: "四柱推命以外の神秘占いへ",
     quickLinks: [
-      { href: "/oracle/ifa", label: "イファオラクル" },
+      { href: "/ifa-oracle.html", label: "イファオラクル" },
       { href: "/oracle/royal-tea", label: "タッセオグラフィー" },
       { href: "/oracle/sikojen-povailu", label: "フィンランド錫占い" },
       { href: "/flower/destiny", label: "運命の花" },
@@ -135,7 +162,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "旧版主页会把卡片与弹窗集中在同一个画面。",
     quickTitle: "八字以外的神秘运势",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa 神谕" },
+      { href: "/ifa-oracle.html", label: "Ifa 神谕" },
       { href: "/oracle/royal-tea", label: "茶叶占卜" },
       { href: "/oracle/sikojen-povailu", label: "芬兰锡占" },
       { href: "/flower/destiny", label: "命运之花" },
@@ -150,7 +177,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "舊版首頁會把卡片與彈窗集中在同一個畫面。",
     quickTitle: "八字以外的神秘運勢",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa 神諭" },
+      { href: "/ifa-oracle.html", label: "Ifa 神諭" },
       { href: "/oracle/royal-tea", label: "茶葉占卜" },
       { href: "/oracle/sikojen-povailu", label: "芬蘭錫占" },
       { href: "/flower/destiny", label: "命運之花" },
@@ -165,7 +192,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "Main cũ gom thẻ và modal trên cùng một màn hình.",
     quickTitle: "Vận may huyền bí ngoài Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/ifa-oracle.html", label: "Oracle Ifa" },
       { href: "/oracle/royal-tea", label: "Bói lá trà" },
       { href: "/oracle/sikojen-povailu", label: "Bói thiếc Phần Lan" },
       { href: "/flower/destiny", label: "Hoa định mệnh" },
@@ -180,7 +207,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "पुराना मुख्य पेज कार्ड और मोडल को एक ही स्क्रीन पर रखता है.",
     quickTitle: "Saju से आगे की रहस्यमय रीडिंग",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa Oracle" },
+      { href: "/ifa-oracle.html", label: "Ifa Oracle" },
       { href: "/oracle/royal-tea", label: "चाय-पत्ती ओरेकल" },
       { href: "/oracle/sikojen-povailu", label: "फ़िनिश टिन ओरेकल" },
       { href: "/flower/destiny", label: "नियति का फूल" },
@@ -195,7 +222,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "El main heredado reúne tarjetas y modales en una pantalla.",
     quickTitle: "Fortunas místicas más allá de Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Oráculo Ifá" },
+      { href: "/ifa-oracle.html", label: "Oráculo Ifá" },
       { href: "/oracle/royal-tea", label: "Lectura de té" },
       { href: "/oracle/sikojen-povailu", label: "Oráculo finlandés de estaño" },
       { href: "/flower/destiny", label: "Flor del destino" },
@@ -210,7 +237,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "L'ancien main rassemble cartes et modales sur un seul écran.",
     quickTitle: "Oracles mystiques au-delà de Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/ifa-oracle.html", label: "Oracle Ifa" },
       { href: "/oracle/royal-tea", label: "Lecture des feuilles de thé" },
       { href: "/oracle/sikojen-povailu", label: "Oracle finlandais de l'étain" },
       { href: "/flower/destiny", label: "Fleur du destin" },
@@ -225,7 +252,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "Der alte Main sammelt Karten und Modals auf einem Bildschirm.",
     quickTitle: "Mystische Orakel jenseits von Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa-Orakel" },
+      { href: "/ifa-oracle.html", label: "Ifa-Orakel" },
       { href: "/oracle/royal-tea", label: "Teeblatt-Orakel" },
       { href: "/oracle/sikojen-povailu", label: "Finnisches Zinnorakel" },
       { href: "/flower/destiny", label: "Blume des Schicksals" },
@@ -240,7 +267,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "De legacy main verzamelt kaarten en modals op één scherm.",
     quickTitle: "Mystieke lezingen buiten Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Ifa-orakel" },
+      { href: "/ifa-oracle.html", label: "Ifa-orakel" },
       { href: "/oracle/royal-tea", label: "Theebladlezing" },
       { href: "/oracle/sikojen-povailu", label: "Fins tinorakel" },
       { href: "/flower/destiny", label: "Bloem van bestemming" },
@@ -255,7 +282,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
     legacyNote: "Main lama mengumpulkan kad dan modal pada satu skrin.",
     quickTitle: "Nasib mistik selain Saju",
     quickLinks: [
-      { href: "/oracle/ifa", label: "Oracle Ifa" },
+      { href: "/ifa-oracle.html", label: "Oracle Ifa" },
       { href: "/oracle/royal-tea", label: "Bacaan daun teh" },
       { href: "/oracle/sikojen-povailu", label: "Oracle timah Finland" },
       { href: "/flower/destiny", label: "Bunga takdir" },
@@ -266,7 +293,7 @@ const HOME_SERVICE_COPY: Record<LoadingLocale, {
 
 function resolveLocaleFromPath(pathname: string | null): LoadingLocale {
   const firstSegment = (pathname || "").split("/").filter(Boolean)[0];
-  return firstSegment ? normalizeLoadingLocale(firstSegment) : "ko";
+  return firstSegment ? normalizeHomeServiceLocale(firstSegment) : "ko";
 }
 
 /**
@@ -283,7 +310,7 @@ export default function HomeServiceSections({ variant = "default" }: Props) {
 
   useEffect(() => {
     const fromPath = resolveLocaleFromPath(pathname);
-    setLocale(fromPath === "ko" ? getCurrentLoadingLocale() : fromPath);
+    setLocale(fromPath === "ko" ? getCurrentHomeServiceLocale() : fromPath);
   }, [pathname]);
 
   return (

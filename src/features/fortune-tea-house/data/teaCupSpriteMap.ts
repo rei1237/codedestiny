@@ -13,6 +13,19 @@ type TeaCupSpriteSheet = {
   src: string;
   sheetWidth: number;
   sheetHeight: number;
+  mobileSrc?: string;
+  mobileSheetWidth?: number;
+  mobileSheetHeight?: number;
+};
+
+type TeaCupSpriteMobileCrop = {
+  src: string;
+  sheetWidth: number;
+  sheetHeight: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 type TeaCupSpriteEntry = {
@@ -26,12 +39,18 @@ const normalSheet = {
   src: fortuneTeaHouseAssets.teaCups.correctedPhotoroom,
   sheetWidth: 1448,
   sheetHeight: 1086,
+  mobileSrc: fortuneTeaHouseAssets.teaCups.correctedMobile,
+  mobileSheetWidth: 724,
+  mobileSheetHeight: 543,
 } as const;
 
 const selectedSheet = {
   src: fortuneTeaHouseAssets.teaCups.labeledPhotoroom,
   sheetWidth: 1448,
   sheetHeight: 1086,
+  mobileSrc: fortuneTeaHouseAssets.teaCups.labeledMobile,
+  mobileSheetWidth: 724,
+  mobileSheetHeight: 543,
 } as const;
 
 const sheets = {
@@ -45,6 +64,21 @@ function slice(x: number, y: number, width: number, height: number): TeaCupSprit
     y,
     width,
     height,
+  };
+}
+
+function mobileCropFor(sheet: TeaCupSpriteSheet, crop: TeaCupSpriteSlice): TeaCupSpriteMobileCrop | undefined {
+  if (!sheet.mobileSrc || !sheet.mobileSheetWidth || !sheet.mobileSheetHeight) return undefined;
+  const scaleX = sheet.mobileSheetWidth / sheet.sheetWidth;
+  const scaleY = sheet.mobileSheetHeight / sheet.sheetHeight;
+  return {
+    src: sheet.mobileSrc,
+    sheetWidth: sheet.mobileSheetWidth,
+    sheetHeight: sheet.mobileSheetHeight,
+    x: crop.x * scaleX,
+    y: crop.y * scaleY,
+    width: crop.width * scaleX,
+    height: crop.height * scaleY,
   };
 }
 
@@ -89,6 +123,10 @@ export function getTeaCupSprite(cupId: string, state: TeaCupSpriteState = "norma
     src: sheet.src,
     sheetWidth: sheet.sheetWidth,
     sheetHeight: sheet.sheetHeight,
+    mobileSrc: sheet.mobileSrc,
+    mobileSheetWidth: sheet.mobileSheetWidth,
+    mobileSheetHeight: sheet.mobileSheetHeight,
+    mobileCrop: mobileCropFor(sheet, crop),
     ...crop,
   };
 }

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import StoriesIndexRouteClient from "./StoriesIndexRouteClient";
 import { getStories } from "@/lib/stories/data";
-import styles from "./stories.module.css";
+import styles from "./stories-route.module.css";
 
 const STORIES_PAGE_TEXT_TRANSLATIONS = {
   ko: {

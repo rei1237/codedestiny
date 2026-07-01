@@ -1,12 +1,15 @@
 import { redirect } from "next/navigation";
 
 export const metadata = {
+  alternates: {
+    canonical: "https://code-destiny.com/saju/animal-destiny",
+  },
   robots: {
     index: false,
-    follow: false,
+    follow: true,
     googleBot: {
       index: false,
-      follow: false,
+      follow: true,
     },
   },
 };

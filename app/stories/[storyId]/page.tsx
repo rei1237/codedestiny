@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ChapterList, { ContinueReadingButton, StoryProgressPanel } from "@/components/stories/ChapterList";
 import { estimateReadingMinutes, getChaptersByStoryId, getFirstChapterHref, getStories, getStoryById } from "@/lib/stories/data";
-import styles from "../stories.module.css";
+import styles from "./story-detail.module.css";
 
 type StoryPageProps = {
   params: Promise<{ storyId: string }> | { storyId: string };

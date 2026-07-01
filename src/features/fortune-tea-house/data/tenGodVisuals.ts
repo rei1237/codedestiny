@@ -7,6 +7,18 @@ export type TenGodVisualMeta = {
   src?: string;
   sheetWidth?: number;
   sheetHeight?: number;
+  mobileSrc?: string;
+  mobileSheetWidth?: number;
+  mobileSheetHeight?: number;
+  mobileCrop?: {
+    src: string;
+    sheetWidth: number;
+    sheetHeight: number;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
   x?: number;
   y?: number;
   width?: number;
@@ -16,8 +28,11 @@ export type TenGodVisualMeta = {
 };
 
 const tenGodSheet = fortuneTeaHouseAssets.saju.tenGodSheetLocal;
+const tenGodSheetMobile = fortuneTeaHouseAssets.saju.tenGodSheetMobile;
 const tenGodSheetWidth = 1448;
 const tenGodSheetHeight = 1086;
+const tenGodSheetMobileWidth = 724;
+const tenGodSheetMobileHeight = 543;
 const tenGodIconWidth = 290;
 const tenGodIconHeight = 520;
 const topRowY = 0;
@@ -29,6 +44,18 @@ const tenGodSprite = (tenGodId: TenGodId, x: number, y: number, glyph: string, a
   src: tenGodSheet,
   sheetWidth: tenGodSheetWidth,
   sheetHeight: tenGodSheetHeight,
+  mobileSrc: tenGodSheetMobile,
+  mobileSheetWidth: tenGodSheetMobileWidth,
+  mobileSheetHeight: tenGodSheetMobileHeight,
+  mobileCrop: {
+    src: tenGodSheetMobile,
+    sheetWidth: tenGodSheetMobileWidth,
+    sheetHeight: tenGodSheetMobileHeight,
+    x: x * (tenGodSheetMobileWidth / tenGodSheetWidth),
+    y: y * (tenGodSheetMobileHeight / tenGodSheetHeight),
+    width: tenGodIconWidth * (tenGodSheetMobileWidth / tenGodSheetWidth),
+    height: tenGodIconHeight * (tenGodSheetMobileHeight / tenGodSheetHeight),
+  },
   x,
   y,
   width: tenGodIconWidth,

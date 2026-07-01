@@ -91,6 +91,7 @@ const RESULT_CACHE_KEY = "premium:ziwei:result:v5";
 const PREMIUM_UNLOCK_MARKER_KEY = "premium:ziwei:unlock:v1";
 const LEGACY_TILE_LOCK_KEY = "cd_tile_locks";
 const TILE_LOCK_PREFIX = "cd_tile_locks_v2::";
+const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
 const PREMIUM_UNLOCK_ALIASES = [
   "premium-ziwei",
   "ziwei-deep",
@@ -827,6 +828,8 @@ export default function AdvancedZiweiSection({
                   <PremiumBlurGate
                     lockedTitle={activeSection.title}
                     subDesc="메인 해금과 자동 동기화되는 프리미엄 상세 리포트"
+                    isCheckingAccess={unlockSyncing}
+                    checkingAccessMessage={ACCESS_CHECKING_MESSAGE}
                     onUnlock={() => onStartGeneration?.()}
                     previewContent={
                       <div className="mb-8 text-center text-cyan-100/55">
@@ -851,7 +854,7 @@ export default function AdvancedZiweiSection({
             <p>
               본 리포트는 자미두수 계산 엔진을 기반으로 생성되며, 실제 삶의 의사결정은 개인의 상황과 선택을 함께 고려해 진행해야 합니다.
             </p>
-            {unlockSyncing ? <p className="text-cyan-200/80">해금 상태를 동기화하는 중입니다...</p> : null}
+            {unlockSyncing ? <p className="text-cyan-200/80">{ACCESS_CHECKING_MESSAGE}</p> : null}
           </div>
 
           <button

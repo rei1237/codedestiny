@@ -196,7 +196,7 @@ function buildPaidFeatureLinks(env) {
     {
       title: "사주 인생의 책",
       desc: "오늘의 흐름 너머 평생의 기질, 대운, 관계, 재물의 결이 한 권의 운명서로 열립니다.",
-      href: `${base}/saju/lifebook?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_lifebook`,
+      href: `${base}/life-book-ai?utm_source=daily_email&utm_medium=email&utm_campaign=daily_saju_cta_lifebook`,
       cta: "인생의 책 열기",
     },
     {

@@ -1,57 +1,25 @@
 import { getSwissVedicPlanets } from "./swiss-ephemeris.js";
-
-const SIGNS = [
-  "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-  "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces",
-];
-
-const SIGN_LORDS = [
-  "Mars", "Venus", "Mercury", "Moon", "Sun", "Mercury",
-  "Venus", "Mars", "Jupiter", "Saturn", "Saturn", "Jupiter",
-];
-
-const NAKSHATRAS = [
-  ["Ashwini", "Ketu"],
-  ["Bharani", "Venus"],
-  ["Krittika", "Sun"],
-  ["Rohini", "Moon"],
-  ["Mrigashira", "Mars"],
-  ["Ardra", "Rahu"],
-  ["Punarvasu", "Jupiter"],
-  ["Pushya", "Saturn"],
-  ["Ashlesha", "Mercury"],
-  ["Magha", "Ketu"],
-  ["Purva Phalguni", "Venus"],
-  ["Uttara Phalguni", "Sun"],
-  ["Hasta", "Moon"],
-  ["Chitra", "Mars"],
-  ["Swati", "Rahu"],
-  ["Vishakha", "Jupiter"],
-  ["Anuradha", "Saturn"],
-  ["Jyeshtha", "Mercury"],
-  ["Mula", "Ketu"],
-  ["Purva Ashadha", "Venus"],
-  ["Uttara Ashadha", "Sun"],
-  ["Shravana", "Moon"],
-  ["Dhanishta", "Mars"],
-  ["Shatabhisha", "Rahu"],
-  ["Purva Bhadrapada", "Jupiter"],
-  ["Uttara Bhadrapada", "Saturn"],
-  ["Revati", "Mercury"],
-];
-
-const DASHA_ORDER = ["Ketu", "Venus", "Sun", "Moon", "Mars", "Rahu", "Jupiter", "Saturn", "Mercury"];
-const DASHA_YEARS = {
-  Ketu: 7,
-  Venus: 20,
-  Sun: 6,
-  Moon: 10,
-  Mars: 7,
-  Rahu: 18,
-  Jupiter: 16,
-  Saturn: 19,
-  Mercury: 17,
-};
+import {
+  DASHA_ORDER,
+  DASHA_YEARS,
+  GRAHA_KEYWORDS,
+  GRAHA_KO,
+  GRAHA_ORDER,
+  NAKSHATRAS,
+  SIGN_LORDS,
+  SIGNS,
+  SIGNS_KO,
+  buildVimshottariDasha,
+  degreeInSign,
+  houseFromReference,
+  ketuLongitudeFromRahu,
+  nakshatraInfo,
+  nd,
+  rashiList,
+  round,
+  signIndex,
+  signName,
+} from "./vedic-derived-calculations.js";
 
 const OWN_SIGNS = {
   Sun: ["Leo"],
@@ -146,61 +114,10 @@ const CITY_COORDS = [
 ];
 
 const DEFAULT_TIMEZONE = "Asia/Seoul";
-const DEFAULT_PLACE = Object.freeze({
-  city: "서울",
-  country: "한국",
-  latitude: 37.5665,
-  longitude: 126.9780,
-  timezone: DEFAULT_TIMEZONE,
-});
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
-}
-
-function nd(value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return NaN;
-  return ((n % 360) + 360) % 360;
-}
-
-function round(value, digits = 4) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return null;
-  const factor = 10 ** digits;
-  return Math.round(n * factor) / factor;
-}
-
-function signIndex(longitude) {
-  const lon = nd(longitude);
-  return Number.isFinite(lon) ? Math.floor(lon / 30) : null;
-}
-
-function signName(longitude) {
-  const index = signIndex(longitude);
-  return index == null ? "" : SIGNS[index];
-}
-
-function degreeInSign(longitude) {
-  const lon = nd(longitude);
-  return Number.isFinite(lon) ? round(lon % 30, 4) : null;
-}
-
-function nakshatraInfo(longitude) {
-  const lon = nd(longitude);
-  if (!Number.isFinite(lon)) return { name: "", lord: "", pada: null, index: null };
-  const span = 360 / 27;
-  const padaSpan = span / 4;
-  const index = Math.min(26, Math.floor(lon / span));
-  const pada = Math.min(4, Math.floor((lon - (index * span)) / padaSpan) + 1);
-  const [name, lord] = NAKSHATRAS[index];
-  return { name, lord, pada, index };
-}
-
-function houseFromReference(sign, referenceSign) {
-  if (!Number.isInteger(sign) || !Number.isInteger(referenceSign)) return null;
-  return ((sign - referenceSign + 12) % 12) + 1;
 }
 
 function angularDistance(a, b) {
@@ -330,11 +247,11 @@ async function resolvePlaceForCalculation(rawPlace = {}) {
   const geocoded = await geocodePlace(rawPlace);
   if (geocoded) return geocoded;
 
-  return {
-    ...DEFAULT_PLACE,
-    source: placeSearchText(rawPlace) ? "geocode-fallback-seoul" : "missing-place-fallback-seoul",
-    fallback: true,
-  };
+  const error = new Error("Birth place coordinates are required for Lagna and Bhava calculation.");
+  error.code = "BIRTH_PLACE_INVALID";
+  error.status = 422;
+  error.details = { placeProvided: Boolean(placeSearchText(rawPlace)) };
+  throw error;
 }
 
 function guessTimezoneFromLongitude(longitude) {
@@ -414,11 +331,15 @@ function buildPoint(name, longitude, referenceSign, retrograde = false, sunLongi
   const dignity = planetDignity(name, sign);
   const point = {
     name,
+    nameKo: GRAHA_KO[name] || name,
     sign: sign == null ? "" : SIGNS[sign],
+    signKo: sign == null ? "" : SIGNS_KO[sign],
     signIndex: sign,
     degree: degreeInSign(longitude),
+    degreeInRashi: degreeInSign(longitude),
     longitude: round(nd(longitude), 4),
     house: houseFromReference(sign, referenceSign),
+    bhava: houseFromReference(sign, referenceSign),
     nakshatra: nak.name,
     nakshatraLord: nak.lord,
     pada: nak.pada,
@@ -474,10 +395,15 @@ function buildHouses(referenceSign, planets, mode) {
   return Array.from({ length: 12 }, (_, index) => {
     const sign = (referenceSign + index) % 12;
     return {
+      label: "바바, Bhava",
       house: index + 1,
       sign: SIGNS[sign],
+      signKo: SIGNS_KO[sign],
+      rashi: SIGNS[sign],
+      rashiKo: SIGNS_KO[sign],
       lord: SIGN_LORDS[sign],
       planets: planets.filter((planet) => planet.house === index + 1).map((planet) => planet.name),
+      grahas: planets.filter((planet) => planet.house === index + 1).map((planet) => GRAHA_KO[planet.name] || planet.name),
       meaning: houseMeaning(index + 1),
       basis: mode,
     };
@@ -486,18 +412,18 @@ function buildHouses(referenceSign, planets, mode) {
 
 function houseMeaning(house) {
   return [
-    "self, body, life direction",
-    "wealth, speech, family resources",
-    "courage, skills, siblings",
-    "home, mother, emotional ground",
-    "creativity, children, intelligence",
-    "work, health routines, obstacles",
-    "partnership, marriage, contracts",
-    "transformation, hidden matters",
-    "dharma, teachers, fortune",
-    "career, status, public role",
-    "income, networks, gains",
-    "release, foreign places, inner life",
+    "나 자신, 외모, 기본 기질, 삶의 출발점",
+    "돈, 말, 가족 기반",
+    "표현, 용기, 형제자매, 짧은 이동",
+    "집, 마음의 안정, 어머니, 내면의 기반",
+    "창조성, 연애, 자녀, 지성, 전생 공덕",
+    "노동, 건강 관리, 경쟁, 문제 해결",
+    "결혼, 파트너, 계약, 대인관계",
+    "변화, 위기, 상속, 깊은 심리, 숨겨진 것",
+    "철학, 신념, 스승, 장거리 이동, 행운",
+    "직업, 사회적 역할, 명예",
+    "수익, 네트워크, 큰 목표",
+    "무의식, 고립, 해외, 영성, 내려놓음",
   ][house - 1] || "";
 }
 
@@ -593,68 +519,100 @@ function buildYogas(planets, houses) {
   return yogas;
 }
 
-function addYears(date, years) {
-  return new Date(date.getTime() + (years * 365.2425 * 24 * 3600000));
-}
-
-function buildVimshottariDasha(moonLongitude, birthUtc = new Date(), now = new Date()) {
-  const nak = nakshatraInfo(moonLongitude);
-  const startLord = nak.lord || "Moon";
-  const span = 360 / 27;
-  const startIndex = DASHA_ORDER.indexOf(startLord);
-  const nakStart = (nak.index || 0) * span;
-  const elapsedFraction = Math.max(0, Math.min(1, (nd(moonLongitude) - nakStart) / span));
-  const remainingYears = DASHA_YEARS[startLord] * (1 - elapsedFraction);
-  const timeline = [];
-  let cursor = new Date(birthUtc.getTime());
-  let lordIndex = startIndex;
-  let first = true;
-  for (let i = 0; i < 12; i += 1) {
-    const lord = DASHA_ORDER[(lordIndex + i) % DASHA_ORDER.length];
-    const years = first ? remainingYears : DASHA_YEARS[lord];
-    const end = addYears(cursor, years);
-    timeline.push({ lord, start: cursor.toISOString(), end: end.toISOString(), years: round(years, 3) });
-    cursor = end;
-    first = false;
-  }
-  let current = timeline.find((period) => new Date(period.start) <= now && now < new Date(period.end)) || timeline[0];
-  if (!current) current = timeline[0];
-  const antar = buildSubDasha(current, now);
-  const pratyantar = antar ? buildSubDasha(antar, now) : null;
-  return {
-    system: "Vimshottari",
-    currentMahadasha: current?.lord || "",
-    currentAntardasha: antar?.lord || "",
-    currentPratyantarDasha: pratyantar?.lord || "",
-    timeline,
-    birthNakshatraLord: startLord,
-    birthDashaBalanceYears: round(remainingYears, 3),
-  };
-}
-
-function buildSubDasha(parent, now) {
-  const start = new Date(parent.start);
-  const end = new Date(parent.end);
-  const totalMs = end.getTime() - start.getTime();
-  if (!Number.isFinite(totalMs) || totalMs <= 0) return null;
-  let cursor = new Date(start.getTime());
-  const parentIndex = DASHA_ORDER.indexOf(parent.lord);
-  for (let i = 0; i < DASHA_ORDER.length; i += 1) {
-    const lord = DASHA_ORDER[(parentIndex + i) % DASHA_ORDER.length];
-    const duration = totalMs * (DASHA_YEARS[lord] / 120);
-    const next = new Date(cursor.getTime() + duration);
-    if (cursor <= now && now < next) return { lord, start: cursor.toISOString(), end: next.toISOString() };
-    cursor = next;
-  }
-  return null;
-}
-
 function summarizeChart(chart) {
-  const lagna = chart.lagna?.sign ? `${chart.lagna.sign} Lagna` : "Moon chart 중심";
+  const lagna = chart.lagna?.sign ? `${chart.lagna.sign} Lagna` : "Lagna/Bhava unavailable";
   const moon = chart.moon?.sign ? `${chart.moon.sign} Moon` : "Moon data pending";
   const nak = chart.moon?.nakshatra ? `${chart.moon.nakshatra} Pada ${chart.moon.pada}` : "";
   const dasha = [chart.dasha?.currentMahadasha, chart.dasha?.currentAntardasha].filter(Boolean).join(" / ");
   return [lagna, moon, nak, dasha ? `current dasha ${dasha}` : ""].filter(Boolean).join(" · ");
+}
+
+function buildLagnaResult(rawAscendant, lagnaSign) {
+  if (!Number.isInteger(lagnaSign) || !Number.isFinite(Number(rawAscendant))) return null;
+  const nak = nakshatraInfo(rawAscendant);
+  return {
+    label: "라그나, Lagna",
+    rashi: SIGNS[lagnaSign],
+    rashiKo: SIGNS_KO[lagnaSign],
+    longitude: round(rawAscendant, 4),
+    degreeInRashi: degreeInSign(rawAscendant),
+    degree: degreeInSign(rawAscendant),
+    nakshatra: nak.name,
+    nakshatraLord: nak.lord,
+    pada: nak.pada,
+    firstHouseRashi: SIGNS[lagnaSign],
+    firstHouseRashiKo: SIGNS_KO[lagnaSign],
+  };
+}
+
+function buildGrahaRows(points) {
+  const byName = new Map(points.map((point) => [point.name, point]));
+  return GRAHA_ORDER.map((name) => {
+    const point = byName.get(name);
+    if (!point) return null;
+    return {
+      label: "그라하, Graha",
+      nameKo: GRAHA_KO[name] || name,
+      nameEn: name,
+      rashi: point.sign,
+      rashiKo: point.signKo,
+      longitude: point.longitude,
+      degreeInRashi: point.degreeInRashi,
+      degree: point.degree,
+      bhava: point.house,
+      house: point.house,
+      nakshatra: point.nakshatra,
+      nakshatraLord: point.nakshatraLord,
+      pada: point.pada,
+      interpretationKeywords: GRAHA_KEYWORDS[name] || [],
+      dignity: point.dignity,
+      retrograde: point.retrograde,
+      combust: point.combust,
+    };
+  }).filter(Boolean);
+}
+
+function buildBhavaRows(houses) {
+  return houses.map((house) => ({
+    label: "바바, Bhava",
+    house: house.house,
+    rashi: house.sign,
+    rashiKo: house.signKo,
+    meaning: house.meaning,
+    grahas: house.grahas || house.planets || [],
+    lord: house.lord,
+  }));
+}
+
+function buildMoonNakshatraResult(moonPoint) {
+  if (!moonPoint) return null;
+  return {
+    label: "나크샤트라, Nakshatra",
+    name: moonPoint.nakshatra,
+    pada: moonPoint.pada,
+    lord: moonPoint.nakshatraLord,
+    moonLongitude: moonPoint.longitude,
+  };
+}
+
+function buildVimshottariResult(dasha) {
+  if (!dasha) return null;
+  const current = dasha.current || null;
+  return {
+    label: "다샤, Dasha",
+    systemLabel: "빈쇼타리 다샤, Vimshottari Dasha",
+    birthNakshatra: dasha.birthNakshatra || "",
+    firstDashaLord: dasha.firstDashaLord || dasha.birthNakshatraLord || "",
+    birthBalanceYears: dasha.birthBalanceYears,
+    currentMahadasha: current,
+    currentAntardasha: dasha.currentAntardashaPeriod || null,
+    periods: (dasha.periods || dasha.timeline || []).map((period) => ({
+      lord: period.lord,
+      startDate: period.startDate || String(period.start || "").slice(0, 10),
+      endDate: period.endDate || String(period.end || "").slice(0, 10),
+      durationYears: period.durationYears ?? period.years,
+    })),
+  };
 }
 
 export async function calculateVedicAiChart(env, consultationInput = {}, options = {}) {
@@ -668,8 +626,7 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
   });
   const moonLongitude = raw.planets?.Moon;
   const lagnaSign = birthInfo.birthTimeUnknown === true ? null : signIndex(raw.ascendantSidereal);
-  const moonSign = signIndex(moonLongitude);
-  const referenceSign = Number.isInteger(lagnaSign) ? lagnaSign : moonSign;
+  const referenceSign = Number.isInteger(lagnaSign) ? lagnaSign : null;
   const sunLongitude = raw.planets?.Sun;
   const points = Object.keys(raw.planets || {})
     .filter((name) => Number.isFinite(Number(raw.planets[name])))
@@ -678,7 +635,7 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
 
   const moonPoint = points.find((planet) => planet.name === "Moon") || null;
   const sunPoint = points.find((planet) => planet.name === "Sun") || null;
-  const houses = buildHouses(referenceSign, points, Number.isInteger(lagnaSign) ? "lagna" : "moon");
+  const houses = buildHouses(referenceSign, points, "whole-sign");
   const dasha = moonPoint?.longitude != null
     ? buildVimshottariDasha(moonPoint.longitude, chartInput.utcDate, options.now instanceof Date ? options.now : new Date())
     : null;
@@ -714,6 +671,12 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
   }
 
   const chart = {
+    calculationConfig: {
+      zodiac: "sidereal",
+      ayanamsa: "Lahiri",
+      bhavaSystem: "whole-sign",
+      source: "SWISS",
+    },
     ayanamsa: "Lahiri",
     ayanamsaDegree: round(raw.ayanamsa, 6),
     calculationMeta: {
@@ -725,14 +688,28 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
       locationSource: place.source,
       timezone: place.timezone,
       timezoneOffsetHours: chartInput.timezone,
+      bhavaSystem: "whole-sign",
+      zodiac: "sidereal",
+      ayanamsa: "Lahiri",
+      locationRequiredForLagnaBhava: true,
+      lagnaBhavaAvailable: Number.isInteger(lagnaSign),
+      unavailableReason: Number.isInteger(lagnaSign) ? "" : "birth-time-missing",
       calculatedAt: new Date().toISOString(),
     },
     lagna: Number.isInteger(lagnaSign) ? {
+      label: "라그나, Lagna",
       sign: SIGNS[lagnaSign],
+      signKo: SIGNS_KO[lagnaSign],
+      rashi: SIGNS[lagnaSign],
+      rashiKo: SIGNS_KO[lagnaSign],
       degree: degreeInSign(raw.ascendantSidereal),
+      degreeInRashi: degreeInSign(raw.ascendantSidereal),
       longitude: round(raw.ascendantSidereal, 4),
       nakshatra: lagnaNak?.name || "",
+      nakshatraLord: lagnaNak?.lord || "",
       pada: lagnaNak?.pada || null,
+      firstHouseRashi: SIGNS[lagnaSign],
+      firstHouseRashiKo: SIGNS_KO[lagnaSign],
     } : null,
     moon: moonPoint ? {
       sign: moonPoint.sign,
@@ -751,14 +728,19 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
       house: sunPoint.house,
     } : null,
     planets: points,
+    rashis: rashiList(),
+    grahas: buildGrahaRows(points),
     rahuKetu: {
       rahu: points.find((planet) => planet.name === "Rahu") || null,
       ketu: points.find((planet) => planet.name === "Ketu") || null,
     },
     houses,
+    bhavas: buildBhavaRows(houses),
+    moonNakshatra: buildMoonNakshatraResult(moonPoint),
     divisionalCharts: buildDivisionalCharts(points),
     yogas: buildYogas(points, houses),
     dasha,
+    vimshottariDasha: buildVimshottariResult(dasha),
     transits,
     chartSummary: "",
   };
@@ -767,7 +749,16 @@ export async function calculateVedicAiChart(env, consultationInput = {}, options
 }
 
 export const __vedicAiChartTestUtils = {
+  nd,
+  signIndex,
+  signName,
+  degreeInSign,
+  NAKSHATRAS,
+  DASHA_ORDER,
+  DASHA_YEARS,
+  rashiList,
   nakshatraInfo,
+  ketuLongitudeFromRahu,
   resolvePlace,
   timezoneOffsetHours,
   buildVimshottariDasha,
