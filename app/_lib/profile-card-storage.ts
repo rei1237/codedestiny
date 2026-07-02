@@ -44,6 +44,7 @@ const PROFILE_STORAGE_NS = "FORTUNE_APP_USER_PROFILES";
 const PROFILE_BRIDGE_KEYS = ["FORTUNE_APP_USER_PROFILE", "FORTUNE_APP_VEDIC_PAYLOAD", "OLYMPUS_ORACLE_PROFILE"];
 export const ACTIVE_PROFILE_ID_KEY = "code-destiny.activeProfileId";
 export const ACTIVE_PROFILE_CACHE_KEY = "code-destiny.activeProfileCache.v1";
+const GUEST_PROFILE_KEY = "codeDestiny:guestProfile";
 const LEGACY_PROFILE_KEYS = [
   "birthData",
   "selectedBirthData",
@@ -157,6 +158,18 @@ function readProfileScope(): string {
   return String(user?.id || user?.userId || user?._id || user?.uid || "guest").trim().toLowerCase() || "guest";
 }
 
+function isLoggedInProfileScope(scope = readProfileScope()): boolean {
+  return Boolean(scope && scope !== "guest");
+}
+
+function scopedActiveProfileIdKey(scope = readProfileScope()): string {
+  return `${ACTIVE_PROFILE_ID_KEY}::${scope || "guest"}`;
+}
+
+function scopedActiveProfileCacheKey(scope = readProfileScope()): string {
+  return `${ACTIVE_PROFILE_CACHE_KEY}::${scope || "guest"}`;
+}
+
 function getStoredAuthToken(): string {
   if (typeof window === "undefined") return "";
   const keys = ["fortune_auth_token", "cdToken"];
@@ -216,38 +229,43 @@ export function readCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
 ): DestinyProfileCard | null {
   if (typeof window === "undefined") return null;
+  const scope = readProfileScope();
+  const loggedIn = isLoggedInProfileScope(scope);
 
   const eventResolved = pickDestinyProfileFromPayload(eventProfile, "", predicate);
   if (eventResolved) return eventResolved;
 
-  const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => unknown }).__cdGetCurrentDestinyProfile;
-  if (typeof getCurrent === "function") {
-    const current = pickDestinyProfileFromPayload(getCurrent(), "", predicate);
-    if (current) return current;
+  if (!loggedIn) {
+    const getCurrent = (window as unknown as { __cdGetCurrentDestinyProfile?: () => unknown }).__cdGetCurrentDestinyProfile;
+    if (typeof getCurrent === "function") {
+      const current = pickDestinyProfileFromPayload(getCurrent(), "", predicate);
+      if (current) return current;
+    }
+
+    const globalProfile = (window as unknown as { __cdCurrentDestinyProfile?: unknown }).__cdCurrentDestinyProfile;
+    const globalResolved = pickDestinyProfileFromPayload(globalProfile, "", predicate);
+    if (globalResolved) return globalResolved;
   }
 
-  const globalProfile = (window as unknown as { __cdCurrentDestinyProfile?: unknown }).__cdCurrentDestinyProfile;
-  const globalResolved = pickDestinyProfileFromPayload(globalProfile, "", predicate);
-  if (globalResolved) return globalResolved;
-
-  const activeCached = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, ACTIVE_PROFILE_CACHE_KEY), "", predicate)
-    || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, ACTIVE_PROFILE_CACHE_KEY), "", predicate);
+  const activeCached = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, scopedActiveProfileCacheKey(scope)), "", predicate)
+    || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, scopedActiveProfileCacheKey(scope)), "", predicate);
   if (activeCached) return activeCached;
 
-  for (const key of PROFILE_BRIDGE_KEYS) {
-    const bridged = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), "", predicate)
-      || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), "", predicate);
-    if (bridged) return bridged;
+  if (!loggedIn) {
+    for (const key of [GUEST_PROFILE_KEY, ...PROFILE_BRIDGE_KEYS]) {
+      const bridged = pickDestinyProfileFromPayload(readStoredJson<unknown>(window.sessionStorage, key), "", predicate)
+        || pickDestinyProfileFromPayload(readStoredJson<unknown>(window.localStorage, key), "", predicate);
+      if (bridged) return bridged;
+    }
   }
 
-  const scope = readProfileScope();
   const currentKeys = [
     `${PROFILE_STORAGE_NS}.current::${scope}`,
-    `${PROFILE_STORAGE_NS}.current`,
+    ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.current`]),
   ];
   const listKeys = [
     `${PROFILE_STORAGE_NS}.list::${scope}`,
-    `${PROFILE_STORAGE_NS}.list`,
+    ...(loggedIn ? [] : [`${PROFILE_STORAGE_NS}.list`]),
   ];
   const currentId = currentKeys
     .map((key) => String(window.localStorage.getItem(key) || window.sessionStorage.getItem(key) || "").trim())
@@ -277,14 +295,25 @@ export function clearLegacyProfileSelectionKeys(deletedProfileId = "") {
 export function publishDestinyProfileBridge(profile: DestinyProfileCard) {
   if (typeof window === "undefined") return;
   try {
+    const scope = readProfileScope();
     const normalized = normalizeDestinyProfileCard(profile) || profile;
     (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile = normalized;
     const payload = JSON.stringify(normalized);
     const profileId = String(normalized.id || normalized.profileId || "").trim();
-    window.localStorage.setItem(ACTIVE_PROFILE_ID_KEY, profileId);
-    window.localStorage.setItem(ACTIVE_PROFILE_CACHE_KEY, payload);
-    window.sessionStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
-    window.localStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
+    window.localStorage.setItem(scopedActiveProfileIdKey(scope), profileId);
+    window.localStorage.setItem(scopedActiveProfileCacheKey(scope), payload);
+    window.sessionStorage.setItem(scopedActiveProfileCacheKey(scope), payload);
+    if (!isLoggedInProfileScope(scope)) {
+      window.localStorage.setItem(GUEST_PROFILE_KEY, payload);
+      window.sessionStorage.setItem(GUEST_PROFILE_KEY, payload);
+      window.sessionStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
+      window.localStorage.setItem("FORTUNE_APP_USER_PROFILE", payload);
+    } else {
+      window.localStorage.removeItem(ACTIVE_PROFILE_ID_KEY);
+      window.localStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
+      window.localStorage.removeItem("FORTUNE_APP_USER_PROFILE");
+      window.sessionStorage.removeItem("FORTUNE_APP_USER_PROFILE");
+    }
   } catch {}
 }
 
@@ -303,9 +332,14 @@ export function publishDestinyProfileList(profiles: DestinyProfileCard[], curren
     const payload = JSON.stringify(safeProfiles);
     for (const store of [window.localStorage, window.sessionStorage]) {
       store.setItem(`${PROFILE_STORAGE_NS}.list::${scope}`, payload);
-      store.setItem(`${PROFILE_STORAGE_NS}.list`, payload);
       store.setItem(`${PROFILE_STORAGE_NS}.current::${scope}`, nextCurrentId);
-      store.setItem(`${PROFILE_STORAGE_NS}.current`, nextCurrentId);
+      if (!isLoggedInProfileScope(scope)) {
+        store.setItem(`${PROFILE_STORAGE_NS}.list`, payload);
+        store.setItem(`${PROFILE_STORAGE_NS}.current`, nextCurrentId);
+      } else {
+        store.removeItem(`${PROFILE_STORAGE_NS}.list`);
+        store.removeItem(`${PROFILE_STORAGE_NS}.current`);
+      }
     }
     if (active) {
       publishDestinyProfileBridge(active);
@@ -319,12 +353,16 @@ export function clearActiveDestinyProfileCache(deletedProfileId = "") {
   if (typeof window === "undefined") return;
   try {
     const activeId = String(window.localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || "").trim();
+    const scopedActiveId = String(window.localStorage.getItem(scopedActiveProfileIdKey()) || "").trim();
     const currentProfile = (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile;
     const currentId = String(currentProfile?.id || currentProfile?.profileId || "").trim();
-    if (!deletedProfileId || activeId === deletedProfileId || currentId === deletedProfileId) {
+    if (!deletedProfileId || activeId === deletedProfileId || scopedActiveId === deletedProfileId || currentId === deletedProfileId) {
       delete (window as unknown as { __cdCurrentDestinyProfile?: DestinyProfileCard }).__cdCurrentDestinyProfile;
       window.localStorage.removeItem(ACTIVE_PROFILE_ID_KEY);
       window.localStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
+      window.localStorage.removeItem(scopedActiveProfileIdKey());
+      window.localStorage.removeItem(scopedActiveProfileCacheKey());
+      window.sessionStorage.removeItem(scopedActiveProfileCacheKey());
       window.localStorage.removeItem("FORTUNE_APP_USER_PROFILE");
       window.sessionStorage.removeItem("FORTUNE_APP_USER_PROFILE");
     }
@@ -336,7 +374,7 @@ export async function fetchCurrentDestinyProfile(
   predicate: ProfilePredicate = hasAnyBirthDate,
 ): Promise<DestinyProfileCard | null> {
   if (typeof window === "undefined") return null;
-  const localFallback = () => readCurrentDestinyProfile(undefined, predicate);
+  const localFallback = () => (isLoggedInProfileScope() ? null : readCurrentDestinyProfile(undefined, predicate));
 
   try {
     const headers = new Headers({ Accept: "application/json" });
@@ -353,7 +391,7 @@ export async function fetchCurrentDestinyProfile(
 
     const payload = await response.json();
     const currentId = String(payload?.currentId || "").trim();
-    const localProfileId = String(window.localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || "").trim();
+    const localProfileId = String(window.localStorage.getItem(scopedActiveProfileIdKey()) || "").trim();
     if (localProfileId && currentId && localProfileId !== currentId) {
       console.warn("[ProfileSync] local profile mismatch. Server profile will be used.", {
         serverProfileId: currentId,
@@ -374,7 +412,10 @@ export function isDestinyProfileStorageKey(key: string | null): boolean {
   if (!key) return false;
   return key === ACTIVE_PROFILE_ID_KEY
     || key === ACTIVE_PROFILE_CACHE_KEY
+    || key.startsWith(`${ACTIVE_PROFILE_ID_KEY}::`)
+    || key.startsWith(`${ACTIVE_PROFILE_CACHE_KEY}::`)
     || PROFILE_BRIDGE_KEYS.includes(key)
+    || key === GUEST_PROFILE_KEY
     || LEGACY_PROFILE_KEYS.includes(key)
     || key.startsWith(PROFILE_STORAGE_NS);
 }

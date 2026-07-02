@@ -391,4 +391,31 @@
     overflow-y: auto !important;
     padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
   }
+
+  #tilePvwOverlay:not(.pvw-open),
+  #sajuLoaderOverlay[aria-hidden="true"],
+  #privacy-modal-overlay[aria-hidden="true"],
+  #privacy-modal-overlay:not(.show),
+  #goldenGrainChargeModalRoot[aria-hidden="true"],
+  #goldenGrainChargeModal:not(.golden-grain-modal--open),
+  #namingPromptModal[aria-hidden="true"],
+  #cdLoginRequiredModal[aria-hidden="true"],
+  .saju-loader-overlay[aria-hidden="true"],
+  .modal[aria-hidden="true"] {
+    pointer-events: none !important;
+  }
+
+  #goldenGrainChargeModalRoot[aria-hidden="true"] * {
+    pointer-events: none !important;
+  }
+
+  #tilePvwOverlay.pvw-open,
+  #namingPromptModal[aria-hidden="false"],
+  #goldenGrainChargeModal.golden-grain-modal--open,
+  [data-component="MobileFeatureBottomSheet"][aria-hidden="false"] {
+    overflow-y: auto !important;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
 }

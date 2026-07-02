@@ -31,50 +31,6 @@ const pigFrames = [
   talkingPigYeoniFrameCrops.doorway,
 ] as const;
 
-const transformFrameSheet = { width: 1536, height: 1024 } as const;
-
-const transformFrameColumns = [
-  { x: 1, width: 220 },
-  { x: 223, width: 215 },
-  { x: 440, width: 217 },
-  { x: 658, width: 217 },
-  { x: 877, width: 217 },
-  { x: 1096, width: 216 },
-  { x: 1314, width: 221 },
-] as const;
-
-const transformFrameRows = [
-  { y: 1, height: 254 },
-  { y: 257, height: 254 },
-  { y: 513, height: 227 },
-  { y: 742, height: 282 },
-] as const;
-
-type TransformFrameCrop = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-
-const transformFrames: readonly TransformFrameCrop[] = transformFrameRows.flatMap((row) =>
-  transformFrameColumns.map((column) => ({
-    x: column.x,
-    y: row.y,
-    width: column.width,
-    height: row.height,
-  })),
-);
-
-const transformFrameCanvas = { width: 221, height: 282 } as const;
-const transformMobileFrameSheet = { width: 996, height: 424 } as const;
-const transformMobileFrameCanvas = { width: 166, height: 212 } as const;
-const transformMobileFrames: readonly TransformFrameCrop[] = Array.from({ length: 12 }, (_value, index) => ({
-  x: (index % 6) * transformMobileFrameCanvas.width,
-  y: Math.floor(index / 6) * transformMobileFrameCanvas.height,
-  width: transformMobileFrameCanvas.width,
-  height: transformMobileFrameCanvas.height,
-}));
 const entryStorySceneUi =
   "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1]";
 const entryStoryPanelUi =
@@ -83,7 +39,10 @@ const entryDialogueUi =
   "!border-[#f6dfb7]/35 !bg-[#12091f]/80 !text-[#fffaf1] !shadow-[0_24px_72px_rgba(4,2,12,0.42),0_0_38px_rgba(214,213,255,0.14),inset_0_1px_0_rgba(255,255,255,0.16)] [&_p]:!text-[#fffaf1]";
 
 const TRANSFORM_MIN_VISIBLE_MS = 1200;
-const TRANSFORM_FALLBACK_FRAME_MS = 100;
+const TRANSFORM_START_DELAY_MS = 120;
+const TRANSFORM_FLASH_DELAY_MS = 310;
+const TRANSFORM_FLASH_MS = 190;
+const TRANSFORM_COMPLETE_MS = 980;
 const PIG_IDLE_FIRST_DELAY_MS = 8200;
 const PIG_IDLE_NEXT_DELAY_MS = 10800;
 const TRANSFORM_AUTO_ADVANCE_DELAY_MS = 900;
@@ -108,13 +67,10 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const [idleLineIndex, setIdleLineIndex] = useState<number | null>(null);
   const [pigFrameIndex, setPigFrameIndex] = useState(0);
   const [usePigFallback, setUsePigFallback] = useState(false);
-  const [useTransformFallback, setUseTransformFallback] = useState(false);
   const [transformHasPlayed, setTransformHasPlayed] = useState(false);
-  const [transformFallbackFrameIndex, setTransformFallbackFrameIndex] = useState(0);
+  const [isTransformed, setIsTransformed] = useState(false);
+  const [showTransformFlash, setShowTransformFlash] = useState(false);
   const [isTransformMinTimeReady, setIsTransformMinTimeReady] = useState(false);
-  const [isPageVisible, setIsPageVisible] = useState(() => (typeof document === "undefined" ? true : !document.hidden));
-  const [isSpriteMobile, setIsSpriteMobile] = useState(false);
-  const [useTransformStaticFallback, setUseTransformStaticFallback] = useState(false);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const baseLine = scene.lines[lineIndex] || scene.lines[0]!;
   const canShowPigIdleLine = scene.actor === "pig" && flowerPigIdleLines.length > 0;
@@ -125,7 +81,6 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const previousStage = getPreviousTeaHouseEntryStage(scene.stage);
   const nextStage = getNextTeaHouseEntryStage(scene.stage);
   const isTransformPreview = scene.stage === "transformPreview";
-  const activeTransformFrameCount = isSpriteMobile ? transformMobileFrames.length : transformFrames.length;
   const isTransformAdvanceLocked = isTransformPreview && (!isTransformMinTimeReady || !transformHasPlayed);
   const isAutoAdvanceLineStage = scene.stage === "transformPreview" || scene.stage === "yeoniReveal";
   const showSkip = scene.stage !== "teaIntro" && scene.stage !== "transformPreview" && scene.stage !== "yeoniReveal";
@@ -150,13 +105,12 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
     setLineIndex(0);
     setIdleLineIndex(null);
     setPigFrameIndex(0);
-    setTransformFallbackFrameIndex(prefersReducedMotion && stage === "transformPreview" ? activeTransformFrameCount - 1 : 0);
     setUsePigFallback(false);
-    setUseTransformFallback(stage === "transformPreview");
-    setUseTransformStaticFallback(false);
     setTransformHasPlayed(stage !== "transformPreview");
+    setIsTransformed(stage !== "transformPreview");
+    setShowTransformFlash(false);
     setIsTransformMinTimeReady(stage !== "transformPreview");
-  }, [activeTransformFrameCount, prefersReducedMotion, stage]);
+  }, [stage]);
 
   useEffect(() => {
     setIdleLineIndex(null);
@@ -167,32 +121,21 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   }, [lineIndex]);
 
   useEffect(() => {
-    if (stage !== "doorOpened") return;
+    if (stage !== "doorOpened" && stage !== "transformPreview") return;
 
     const teaCupSheet = new window.Image();
     teaCupSheet.decoding = "async";
     teaCupSheet.src = fortuneTeaHouseAssets.teaCups.correctedPhotoroom;
 
+    const yeoniBust = new window.Image();
+    yeoniBust.decoding = "async";
+    yeoniBust.src = fortuneTeaHouseAssets.yeoni.bust;
+
     return () => {
       teaCupSheet.removeAttribute("src");
+      yeoniBust.removeAttribute("src");
     };
   }, [stage]);
-
-  useEffect(() => {
-    const updateVisibility = () => setIsPageVisible(!document.hidden);
-    updateVisibility();
-    document.addEventListener("visibilitychange", updateVisibility);
-    return () => document.removeEventListener("visibilitychange", updateVisibility);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.matchMedia) return;
-    const mobileQuery = window.matchMedia("(max-width: 768px)");
-    const updateSpriteViewport = () => setIsSpriteMobile(mobileQuery.matches);
-    updateSpriteViewport();
-    mobileQuery.addEventListener("change", updateSpriteViewport);
-    return () => mobileQuery.removeEventListener("change", updateSpriteViewport);
-  }, []);
 
   useEffect(() => {
     if (stage !== "transformPreview") return;
@@ -204,43 +147,31 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
 
   useEffect(() => {
     if (stage !== "transformPreview") return;
-    debugTransform("transform sprite started");
+    debugTransform("transform transition started");
 
-    if (prefersReducedMotion || !isPageVisible || useTransformStaticFallback) {
-      setTransformFallbackFrameIndex(activeTransformFrameCount - 1);
+    if (prefersReducedMotion) {
+      setIsTransformed(true);
+      setShowTransformFlash(false);
       setTransformHasPlayed(true);
       return;
     }
 
-    let frameIndex = 0;
-    const frameTimers: number[] = [];
-    setTransformFallbackFrameIndex(0);
+    setIsTransformed(false);
+    setShowTransformFlash(false);
     setTransformHasPlayed(false);
 
-    const advanceFrame = () => {
-      frameIndex += 1;
-      if (frameIndex >= activeTransformFrameCount) {
-        setTransformFallbackFrameIndex(activeTransformFrameCount - 1);
-        setTransformHasPlayed(true);
-        return;
-      }
-
-      setTransformFallbackFrameIndex(frameIndex);
-      frameTimers.push(window.setTimeout(advanceFrame, TRANSFORM_FALLBACK_FRAME_MS));
-    };
-
-    frameTimers.push(window.setTimeout(advanceFrame, TRANSFORM_FALLBACK_FRAME_MS));
+    const transformTimer = window.setTimeout(() => setIsTransformed(true), TRANSFORM_START_DELAY_MS);
+    const flashTimer = window.setTimeout(() => setShowTransformFlash(true), TRANSFORM_FLASH_DELAY_MS);
+    const flashOffTimer = window.setTimeout(() => setShowTransformFlash(false), TRANSFORM_FLASH_DELAY_MS + TRANSFORM_FLASH_MS);
+    const completeTimer = window.setTimeout(() => setTransformHasPlayed(true), TRANSFORM_COMPLETE_MS);
 
     return () => {
-      frameTimers.forEach((timer) => window.clearTimeout(timer));
+      window.clearTimeout(transformTimer);
+      window.clearTimeout(flashTimer);
+      window.clearTimeout(flashOffTimer);
+      window.clearTimeout(completeTimer);
     };
-  }, [activeTransformFrameCount, isPageVisible, prefersReducedMotion, stage, useTransformStaticFallback]);
-
-  useEffect(() => {
-    if (stage === "transformPreview" && useTransformFallback) {
-      debugTransform("fallback frame:", transformFallbackFrameIndex);
-    }
-  }, [stage, transformFallbackFrameIndex, useTransformFallback]);
+  }, [prefersReducedMotion, stage]);
 
   useEffect(() => {
     if (stage === "transformPreview" && transformHasPlayed) {
@@ -321,13 +252,11 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
       <EntryActor
         actor={scene.actor}
         pigFrameIndex={pigFrameIndex}
-        transformFallbackFrameIndex={transformFallbackFrameIndex}
-        isTransformMobile={isSpriteMobile}
+        isTransformed={isTransformed}
+        showTransformFlash={showTransformFlash}
+        transformHasPlayed={transformHasPlayed}
         usePigFallback={usePigFallback}
-        useTransformFallback={useTransformFallback}
-        useTransformStaticFallback={useTransformStaticFallback}
         onPigError={() => setUsePigFallback(true)}
-        onTransformError={() => setUseTransformStaticFallback(true)}
       />
       <div className={`${styles.entryStoryPanel} ${entryStoryPanelUi}`}>
         <p className={styles.sceneEyebrow}>{scene.eyebrow}</p>
@@ -378,32 +307,23 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
 type EntryActorProps = {
   actor: TeaHouseEntryActor;
   pigFrameIndex: number;
-  transformFallbackFrameIndex: number;
-  isTransformMobile: boolean;
+  isTransformed: boolean;
+  showTransformFlash: boolean;
+  transformHasPlayed: boolean;
   usePigFallback: boolean;
-  useTransformFallback: boolean;
-  useTransformStaticFallback: boolean;
   onPigError: () => void;
-  onTransformError: () => void;
 };
 
 function EntryActor({
   actor,
   pigFrameIndex,
-  transformFallbackFrameIndex,
-  isTransformMobile,
+  isTransformed,
+  showTransformFlash,
+  transformHasPlayed,
   usePigFallback,
-  useTransformFallback,
-  useTransformStaticFallback,
   onPigError,
-  onTransformError,
 }: EntryActorProps) {
   const pigFrame = pigFrames[pigFrameIndex] || pigFrames[0];
-  const activeTransformFrames = isTransformMobile ? transformMobileFrames : transformFrames;
-  const activeTransformSheet = isTransformMobile ? transformMobileFrameSheet : transformFrameSheet;
-  const activeTransformCanvas = isTransformMobile ? transformMobileFrameCanvas : transformFrameCanvas;
-  const transformFrame = activeTransformFrames[Math.min(transformFallbackFrameIndex, activeTransformFrames.length - 1)] || activeTransformFrames[0]!;
-  const transformSheetSrc = isTransformMobile ? fortuneTeaHouseAssets.pig.transformSceneMobile : fortuneTeaHouseAssets.pig.transformScene;
 
   if (actor === "none") {
     return (
@@ -452,55 +372,51 @@ function EntryActor({
       <div
         className={styles.entryActor}
         data-actor="transform"
-        data-fallback={useTransformFallback ? "true" : "false"}
+        data-transformed={isTransformed ? "true" : "false"}
       >
         <span className={styles.entryTransformBurst} aria-hidden />
         <span className={styles.entryTransformTeaCup} aria-hidden />
         <span className={styles.entryTransformLotusMist} aria-hidden />
         <span className={styles.entryTransformRing} aria-hidden />
         <span className={styles.entryTransformPetals} aria-hidden />
-        {useTransformStaticFallback ? (
-          <span className={`${styles.entryTransformFrame} ${styles.entryTransformStaticFrame}`}>
-            <Image
-              className={styles.entryTransformStaticImage}
-              src={fortuneTeaHouseAssets.pig.transparent.transform}
-              alt="꽃돼지 연이가 연이로 변신하는 달빛 장면"
-              fill
-              sizes="(max-width: 640px) 88vw, 48vw"
+        <span className={`${styles.entryTransformFrame} relative`}>
+          {!transformHasPlayed ? (
+            <picture
+              className={`${styles.entryTransformPicture} absolute inset-0 transition-all duration-1000 ease-in-out will-change-transform ${
+                isTransformed ? "pointer-events-none opacity-0 scale-110 blur-sm" : "opacity-100 scale-100 blur-0"
+              }`}
+            >
+              <source srcSet={fortuneTeaHouseAssets.cutout.flowerPig} type="image/webp" />
+              <img
+                className="absolute inset-0 h-full w-full object-contain object-bottom"
+                src={fortuneTeaHouseAssets.fallback.flowerPig}
+                alt="변신 전 꽃돼지 연이"
+                loading="eager"
+                decoding="async"
+              />
+            </picture>
+          ) : null}
+          <picture
+            className={`${styles.entryTransformPicture} absolute inset-0 transition-all duration-1000 ease-in-out will-change-transform ${
+              isTransformed ? "opacity-100 scale-100 blur-0" : "opacity-0 scale-90 blur-sm"
+            }`}
+          >
+            <source srcSet={fortuneTeaHouseAssets.yeoni.bust} type="image/webp" />
+            <img
+              className="absolute inset-0 h-full w-full object-contain object-bottom"
+              src={fortuneTeaHouseAssets.fallback.yeoniBust}
+              alt="달빛 속에서 모습을 드러낸 연이"
               loading="eager"
-              unoptimized
+              decoding="async"
             />
-          </span>
-        ) : (
-        <span
-          className={`${styles.entryTransformFrame} ${styles.pigSpriteFrame}`}
-          data-frame-index={transformFallbackFrameIndex}
-          data-mobile-sheet={isTransformMobile ? "true" : "false"}
-          style={
-            {
-              "--pig-sprite-x": `${transformFrame.x}px`,
-              "--pig-sprite-y": `${transformFrame.y}px`,
-              "--pig-sprite-width": `${transformFrame.width}px`,
-              "--pig-sprite-height": `${transformFrame.height}px`,
-              "--pig-sprite-aspect-width": activeTransformCanvas.width,
-              "--pig-sprite-aspect-height": activeTransformCanvas.height,
-              "--pig-sprite-sheet-width": `${activeTransformSheet.width}px`,
-              "--pig-sprite-sheet-height": `${activeTransformSheet.height}px`,
-            } as CSSProperties
-          }
-        >
-          <Image
-            className={`${styles.entryTransformSheet} ${styles.pigSpriteSheet}`}
-            src={transformSheetSrc}
-            alt="꽃돼지?가 연이로 변신하는 달빛 컷신"
-            fill
-            sizes="(max-width: 640px) 88vw, 48vw"
-            loading="eager"
-            unoptimized
-            onError={onTransformError}
+          </picture>
+          <span
+            className={`${styles.entryTransformFlash} absolute inset-0 bg-white/20 transition-opacity duration-200 ease-out ${
+              showTransformFlash ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden
           />
         </span>
-        )}
       </div>
     );
   }

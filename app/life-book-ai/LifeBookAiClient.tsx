@@ -51,9 +51,6 @@ type ConsultationResult = {
 };
 
 const FEATURE_KEY = "life-book-ai-consultation";
-const FEATURE_COST = 300;
-const FEATURE_AMOUNT_KRW = 30000;
-const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
 const FEATURE_REASON = "인생의 책 AI 상담";
 const ROUTE = "/life-book-ai";
 
@@ -108,6 +105,7 @@ const HERO_BADGES = ["타고난 사주", "대운과 세운", "사랑과 인연",
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "이 리포트는 이용권 또는 결제 확인 후 생성됩니다. 결제창을 확인해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
+const PRICE_NOT_FOUND_MESSAGE = "결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
 const INVALID_INPUT_MESSAGE = "인생의 책을 열기 위한 정보가 부족합니다. 생년월일과 성별을 다시 확인해 주세요.";
 const BIRTH_TIME_REQUIRED_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
 const SERVER_ERROR_MESSAGE = "인생의 책을 준비하는 중 문제가 발생했습니다. 결제나 이용권은 차감되지 않았습니다.";
@@ -213,8 +211,12 @@ function validateForm(form: ConsultationForm) {
 
 function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
-  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST);
-  const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, FEATURE_AMOUNT_KRW);
+  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, 0);
+  const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, 0);
+  const membershipCreditCost = toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, 0);
+  if (cost <= 0 || amountKRW <= 0 || membershipCreditCost <= 0) {
+    throw new Error(PRICE_NOT_FOUND_MESSAGE);
+  }
   return {
     categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
     subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || FEATURE_KEY,
@@ -234,7 +236,7 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
     amountKRW,
     amountKrw: amountKRW,
     paymentAmount: amountKRW,
-    membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, FEATURE_MEMBERSHIP_CREDIT_COST),
+    membershipCreditCost,
   };
 }
 

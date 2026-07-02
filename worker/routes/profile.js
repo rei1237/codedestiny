@@ -278,16 +278,21 @@ function toClientProfile(doc) {
   const day = Number(doc?.birth?.day || 1);
   const hour = Number(doc?.birth?.hour || 0);
   const minute = Number(doc?.birth?.minute || 0);
+  const calendarType = sanitizeCalType(doc?.birth?.calType);
   const birthDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const birthTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 
   return {
     id: String(doc.profileId || ""),
     profileId: String(doc.profileId || ""),
+    userId: String(doc.userId || ""),
     name: String(doc.name || "이름 없음"),
     gender: sanitizeGender(doc.gender),
-    birthDate: `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-    birthTime: `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`,
+    birthDate,
+    birthTime,
+    calendarType,
+    isDefault: false,
+    selected: false,
     birthIso: `${birthDate} ${birthTime}`,
     birth: {
       year,
@@ -295,7 +300,7 @@ function toClientProfile(doc) {
       day,
       hour,
       minute,
-      calType: sanitizeCalType(doc?.birth?.calType),
+      calType: calendarType,
     },
     location: {
       label: String(doc?.location?.label || ""),
@@ -311,6 +316,15 @@ function toClientProfile(doc) {
 async function listUserProfiles(userId) {
   const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
   return docs.map(toClientProfile);
+}
+
+function markCurrentProfile(profiles, currentId) {
+  const selectedId = String(currentId || "").trim();
+  return profiles.map((profile) => ({
+    ...profile,
+    isDefault: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
+    selected: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
+  }));
 }
 
 function buildProfilePaymentRequestId(action, profileId) {
@@ -1057,7 +1071,7 @@ async function handleGetProfiles(auth) {
 
   return json({
     ok: true,
-    profiles: access.profiles,
+    profiles: markCurrentProfile(access.profiles, currentId),
     currentId,
     subscription,
     profileAccess: access.profileAccess,
@@ -1079,12 +1093,37 @@ async function handleGetProfileDetail(auth, profileIdRaw) {
   }
 
   const clientProfile = toClientProfile(profile);
+  const selected = String(user?.destinyProfilesCurrentId || "") === String(clientProfile.id || "");
   return json({
     ok: true,
     profile: {
       ...clientProfile,
-      isActive: String(user?.destinyProfilesCurrentId || "") === String(clientProfile.id || ""),
+      isActive: selected,
+      isDefault: selected,
+      selected,
     },
+  });
+}
+
+async function handleGetCurrentProfile(auth) {
+  const user = await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+    .lean();
+  if (!user) return json({ ok: false, message: "User not found." }, { status: 404 });
+
+  const subscription = resolveSubscriptionPolicy(user);
+  const profiles = await listUserProfiles(auth.userId);
+  const access = resolveSingleProfileAccess(user, profiles, subscription);
+  const currentId = access.currentId;
+  const markedProfiles = markCurrentProfile(access.profiles, currentId);
+  return json({
+    ok: true,
+    profile: markedProfiles.find((profile) => String(profile.id || "") === String(currentId || "")) || null,
+    profiles: markedProfiles,
+    currentId,
+    subscription,
+    profileAccess: access.profileAccess,
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
   });
 }
 
@@ -1187,10 +1226,10 @@ async function handleCreateProfile(request, auth) {
     return json({
       success: true,
       message: "PROFILE_CREATED_SUCCESSFULLY",
-      data: profile,
+      data: { ...profile, isDefault: true, selected: true },
       ok: true,
-      profile,
-      profiles,
+      profile: { ...profile, isDefault: true, selected: true },
+      profiles: markCurrentProfile(profiles, nextCurrentId),
       currentId: nextCurrentId,
       subscription,
       canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, count + 1),
@@ -1292,6 +1331,77 @@ async function handleUpdateCurrent(request, auth) {
   });
 }
 
+async function handleUpdateProfile(request, auth, profileIdRaw) {
+  const profileId = sanitizeProfileId(profileIdRaw);
+  if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "수정할 프로필 카드 ID가 필요합니다." }, { status: 400 });
+
+  const body = await readJson(request);
+  const rawProfile = body?.profile && typeof body.profile === "object" ? body.profile : body;
+  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  if (!existingProfile) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+
+  const mergedProfile = {
+    ...existingProfile,
+    ...rawProfile,
+    profileId,
+    birth: {
+      ...(existingProfile.birth || {}),
+      ...((rawProfile.birth && typeof rawProfile.birth === "object") ? rawProfile.birth : {}),
+    },
+    location: {
+      ...(existingProfile.location || {}),
+      ...((rawProfile.location && typeof rawProfile.location === "object") ? rawProfile.location : {}),
+    },
+  };
+  const birthValidation = validateRequiredBirth(mergedProfile);
+  if (!birthValidation.ok) {
+    return json({ ok: false, success: false, message: birthValidation.message }, { status: 400 });
+  }
+
+  const normalized = normalizeIncomingProfile(mergedProfile, 0);
+  normalized.profileId = profileId;
+  normalized.birth = birthValidation.birth;
+
+  const updated = await ProfileCard.findOneAndUpdate(
+    { userId: auth.userId, profileId },
+    {
+      $set: {
+        name: normalized.name,
+        gender: normalized.gender,
+        birth: normalized.birth,
+        location: normalized.location,
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  if (!updated) return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
+
+  const user = await User.findById(auth.userId)
+    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+    .lean();
+  const subscription = resolveSubscriptionPolicy(user || {});
+  const profiles = await listUserProfiles(auth.userId);
+  const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profileId || profiles[0]?.id || "";
+  if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
+    await User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
+  }
+
+  return json({
+    ok: true,
+    success: true,
+    profile: {
+      ...toClientProfile(updated),
+      isDefault: String(nextCurrentId) === profileId,
+      selected: String(nextCurrentId) === profileId,
+    },
+    profiles: markCurrentProfile(profiles, nextCurrentId),
+    currentId: nextCurrentId,
+    subscription,
+    canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
+  });
+}
+
 async function handleDeleteProfile(request, auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
@@ -1355,7 +1465,7 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
     chargedCoins,
     freeByMembership,
     remainingCoins: getRemainingProfileActionCoins(user),
-    profiles,
+    profiles: markCurrentProfile(profiles, nextCurrentId),
     currentId: nextCurrentId,
     currentProfile: profiles.find((profile) => String(profile?.id || "") === nextCurrentId) || null,
     canCreateMore: canCreateProfileWithinSubscriptionLimit(subscription, profiles.length),
@@ -1374,17 +1484,21 @@ export async function handleProfileRoutes(request, env) {
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
+    if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth);
     if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth);
 
     const profileMatch = path.match(/^\/([^/]+)$/);
     if (profileMatch && method === "GET") {
       return await handleGetProfileDetail(auth, profileMatch[1]);
     }
+    if (profileMatch && (method === "PATCH" || method === "PUT")) {
+      return await handleUpdateProfile(request, auth, profileMatch[1]);
+    }
     if (profileMatch && method === "DELETE") {
       return await handleDeleteProfile(request, auth, profileMatch[1]);
     }
 
-    if (["GET", "POST", "PATCH", "DELETE"].includes(method)) return notFound();
+    if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
     return handleRouteError(error, {

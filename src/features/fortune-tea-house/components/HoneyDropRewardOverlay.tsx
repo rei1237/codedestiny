@@ -281,10 +281,14 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
   const unlocked = count >= 10 || Boolean(honeyDrops?.unlocked);
   const tarotAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
   const albumProgress = Math.min(10, count);
+  const albumProgressPercent = `${albumProgress * 10}%`;
   const showBurst = burstKey > 0 && Boolean(honeyDrops?.earnedThisResult);
   const albumStatusLabel = tarotAlbumUnlocked ? "열림" : `${albumProgress}/10`;
   const honeyIconStyle = {
     "--honey-icon-image": `url("${fortuneTeaHouseAssets.rewards.honeyDropCounter}")`,
+  } as CSSProperties;
+  const albumProgressStyle = {
+    "--honey-album-progress": albumProgressPercent,
   } as CSSProperties;
   const flowerPigStyle = {
     "--honey-pig-image": `url("${fortuneTeaHouseAssets.rewards.flowerPigHoneyHug}")`,
@@ -312,6 +316,7 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
           type="button"
           className={styles.honeyAlbumButton}
           data-unlocked={tarotAlbumUnlocked ? "true" : "false"}
+          style={albumProgressStyle}
           onClick={() => {
             setShowInfo(false);
             setHoneyModeActive(false);
@@ -320,7 +325,10 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
           aria-label={tarotAlbumUnlocked ? "달빛 타로 앨범 보기" : `달빛 타로 앨범 열기, 꿀방울 ${albumProgress}/10`}
         >
           <BookOpen size={14} strokeWidth={2.2} aria-hidden />
-          <span>달빛 앨범</span>
+          <span className={styles.honeyAlbumText}>달빛 앨범</span>
+          <span className={styles.honeyAlbumProgress} aria-hidden>
+            <i />
+          </span>
           <em>{albumStatusLabel}</em>
         </button>
       </div>

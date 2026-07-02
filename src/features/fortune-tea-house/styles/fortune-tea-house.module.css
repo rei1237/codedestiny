@@ -1023,7 +1023,7 @@
   top: max(14px, env(safe-area-inset-top));
   left: calc(max(14px, env(safe-area-inset-left)) + 74px);
   z-index: 9;
-  width: min(154px, calc(100vw - 170px));
+  width: min(214px, calc(100vw - 170px));
   pointer-events: none;
 }
 
@@ -1034,36 +1034,109 @@
 
 .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
 .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-  max-width: 154px;
+  max-width: 214px;
   margin-left: auto;
 }
 
 .honeyHeaderDock {
   box-sizing: border-box;
+  position: relative;
   width: 100%;
+  isolation: isolate;
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  padding: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 232, 166, 0.28);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(255, 241, 194, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 8%, rgba(248, 187, 221, 0.18), transparent 38%),
+    linear-gradient(140deg, rgba(35, 16, 55, 0.74), rgba(18, 10, 36, 0.62) 54%, rgba(61, 31, 91, 0.68));
+  box-shadow:
+    0 18px 42px rgba(5, 2, 14, 0.32),
+    0 0 28px rgba(248, 187, 221, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(18px) saturate(1.18);
+  pointer-events: auto;
+  transition:
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    transform 240ms ease;
+}
+
+.honeyHeaderDock::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255, 232, 166, 0.56), rgba(248, 187, 221, 0.32), rgba(185, 156, 255, 0.42));
+  opacity: 0.5;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  padding: 1px;
+}
+
+.honeyHeaderDock::after {
+  content: "";
+  position: absolute;
+  top: -45%;
+  left: -30%;
+  z-index: 0;
+  pointer-events: none;
+  width: 80%;
+  height: 160%;
+  border-radius: 999px;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  opacity: 0;
+  transform: translateX(-28%) rotate(18deg);
+  transition:
+    opacity 240ms ease,
+    transform 240ms ease;
+}
+
+.honeyHeaderDock:hover,
+.honeyHeaderDock:focus-within {
+  transform: translateY(-1px) scale(1.012);
+  border-color: rgba(255, 232, 166, 0.46);
+  box-shadow:
+    0 22px 50px rgba(5, 2, 14, 0.36),
+    0 0 34px rgba(248, 187, 221, 0.22),
+    0 0 20px rgba(255, 232, 166, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.honeyHeaderDock:hover::after,
+.honeyHeaderDock:focus-within::after {
+  opacity: 1;
+  transform: translateX(92%) rotate(18deg);
 }
 
 .honeyCounter {
   box-sizing: border-box;
   appearance: none;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  min-height: 25px;
+  min-height: 34px;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
+  grid-template-columns: 30px minmax(0, 1fr);
   align-items: center;
-  gap: 5px;
-  padding: 3px 8px 3px 5px;
-  border: 1px solid rgba(255, 230, 156, 0.42);
-  border-radius: 999px;
+  gap: 7px;
+  padding: 5px 9px 5px 6px;
+  border: 1px solid rgba(255, 230, 156, 0.32);
+  border-radius: 15px 17px 15px 9px;
   color: rgba(255, 250, 253, 0.94);
   background:
-    radial-gradient(circle at 16% 8%, rgba(255, 244, 196, 0.28), transparent 34%),
-    linear-gradient(135deg, rgba(73, 34, 80, 0.86), rgba(22, 9, 35, 0.74));
+    radial-gradient(circle at 14% 12%, rgba(255, 244, 196, 0.3), transparent 34%),
+    linear-gradient(135deg, rgba(85, 39, 87, 0.78), rgba(31, 13, 49, 0.62));
   box-shadow:
-    0 10px 24px rgba(5, 2, 14, 0.26),
-    0 0 16px rgba(255, 210, 96, 0.14),
+    0 10px 22px rgba(5, 2, 14, 0.2),
+    0 0 18px rgba(255, 210, 96, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(14px) saturate(1.1);
   cursor: pointer;
@@ -1071,16 +1144,18 @@
   text-align: left;
   min-width: 0;
   transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
     background 180ms ease,
-    transform 180ms ease;
+    transform 220ms ease;
 }
 
 .honeyCounter:hover {
-  transform: translateY(-0.5px);
+  transform: translateY(-1px) scale(1.015);
   border-color: rgba(255, 230, 156, 0.58);
   box-shadow:
     0 12px 26px rgba(5, 2, 14, 0.3),
-    0 0 18px rgba(255, 210, 96, 0.2),
+    0 0 22px rgba(255, 210, 96, 0.24),
     inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
@@ -1091,26 +1166,31 @@
 
 .honeyAlbumButton {
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
   width: 100%;
-  min-height: 25px;
+  min-height: 38px;
   display: grid;
-  grid-template-columns: 14px minmax(0, 1fr) auto;
+  grid-template-columns: 16px minmax(48px, 0.68fr) minmax(34px, 1fr) auto;
   align-items: center;
-  gap: 4px;
-  padding: 3px 6px;
-  border: 1px solid rgba(165, 213, 255, 0.34);
-  border-radius: 999px;
+  gap: 6px;
+  padding: 6px 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 226, 190, 0.38);
+  border-radius: 12px 15px 9px 15px;
   color: rgba(255, 248, 255, 0.92);
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 233, 177, 0.18), transparent 30%),
-    linear-gradient(135deg, rgba(18, 31, 64, 0.86), rgba(58, 34, 88, 0.78));
+    radial-gradient(circle at 19% 10%, rgba(255, 246, 214, 0.3), transparent 28%),
+    radial-gradient(circle at 82% 6%, rgba(248, 187, 221, 0.2), transparent 34%),
+    linear-gradient(135deg, rgba(34, 35, 86, 0.82), rgba(82, 44, 112, 0.72) 58%, rgba(38, 23, 72, 0.78));
   box-shadow:
     0 10px 24px rgba(5, 2, 14, 0.24),
-    0 0 16px rgba(165, 213, 255, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 0 18px rgba(178, 196, 255, 0.16),
+    0 0 12px rgba(255, 226, 190, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(14px) saturate(1.1);
   font-family: var(--tea-font-playful);
-  font-size: 0.62rem;
+  font-size: 0.64rem;
   font-weight: 900;
   cursor: pointer;
   pointer-events: auto;
@@ -1122,45 +1202,136 @@
     background 180ms ease;
 }
 
+.honeyAlbumButton::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 68% 34%, rgba(38, 23, 72, 0.82) 0 7px, transparent 8px),
+    radial-gradient(circle at 45% 50%, rgba(255, 244, 201, 0.95) 0 9px, transparent 10px);
+  filter: drop-shadow(0 0 10px rgba(255, 232, 166, 0.42));
+  opacity: 0.82;
+}
+
+.honeyAlbumButton::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(110deg, transparent 0 18%, rgba(255, 255, 255, 0.22) 34%, transparent 52%),
+    radial-gradient(ellipse at 88% 76%, rgba(255, 226, 238, 0.22), transparent 42%);
+  opacity: 0.38;
+  transform: translateX(-34%);
+  transition:
+    opacity 220ms ease,
+    transform 240ms ease;
+}
+
 .honeyAlbumButton[data-unlocked="true"] {
   border-color: rgba(255, 233, 177, 0.5);
   background:
-    radial-gradient(circle at 20% 0%, rgba(255, 244, 196, 0.24), transparent 30%),
-    linear-gradient(135deg, rgba(77, 47, 107, 0.86), rgba(31, 28, 76, 0.82));
+    radial-gradient(circle at 22% 4%, rgba(255, 244, 196, 0.34), transparent 32%),
+    radial-gradient(circle at 82% 20%, rgba(165, 213, 255, 0.22), transparent 36%),
+    linear-gradient(135deg, rgba(96, 58, 126, 0.88), rgba(33, 29, 82, 0.84));
 }
 
 .honeyAlbumButton:hover,
 .honeyAlbumButton:focus-visible {
-  transform: translateY(-0.5px);
-  border-color: rgba(255, 233, 177, 0.58);
+  transform: translateY(-1px) scale(1.015);
+  border-color: rgba(255, 236, 198, 0.68);
   box-shadow:
     0 8px 18px rgba(5, 2, 14, 0.2),
-    0 0 18px rgba(165, 213, 255, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    0 0 26px rgba(178, 196, 255, 0.24),
+    0 0 18px rgba(255, 226, 190, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
   outline: none;
 }
 
-.honeyAlbumButton span {
+.honeyAlbumButton:hover::after,
+.honeyAlbumButton:focus-visible::after {
+  opacity: 0.62;
+  transform: translateX(24%);
+}
+
+.honeyAlbumButton svg {
+  position: relative;
+  z-index: 1;
+  color: #fff1be;
+  filter:
+    drop-shadow(0 0 8px rgba(255, 232, 166, 0.42))
+    drop-shadow(0 2px 5px rgba(5, 2, 14, 0.22));
+}
+
+.honeyAlbumText {
+  position: relative;
+  z-index: 1;
   min-width: 0;
   overflow: hidden;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-shadow:
+    0 0 12px rgba(255, 232, 166, 0.22),
+    0 1px 8px rgba(5, 2, 14, 0.24);
+}
+
+.honeyAlbumProgress {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-width: 28px;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 246, 250, 0.18);
+  background:
+    radial-gradient(circle at 10% 50%, rgba(255, 255, 255, 0.22), transparent 24%),
+    rgba(15, 12, 40, 0.34);
+  box-shadow:
+    inset 0 1px 2px rgba(5, 2, 14, 0.28),
+    0 0 12px rgba(178, 196, 255, 0.14);
+}
+
+.honeyAlbumProgress i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--honey-album-progress, 0%);
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 88% 50%, rgba(255, 255, 255, 0.86) 0 2px, transparent 3px),
+    linear-gradient(90deg, #fff2b6, #f8bbdd 54%, #a5d5ff);
+  box-shadow:
+    0 0 14px rgba(248, 187, 221, 0.42),
+    0 0 10px rgba(165, 213, 255, 0.24);
 }
 
 .honeyAlbumButton em {
+  position: relative;
+  z-index: 1;
   min-width: 28px;
   padding: 2px 5px;
   border-radius: 999px;
-  color: rgba(19, 22, 46, 0.92);
-  background: linear-gradient(135deg, #fff7d2, #a5d5ff);
+  color: rgba(28, 20, 55, 0.94);
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.72), transparent 32%),
+    linear-gradient(135deg, #fff7d2, #f8bbdd 58%, #a5d5ff);
   font-size: 0.52rem;
   font-style: normal;
   text-align: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    0 0 10px rgba(255, 232, 166, 0.18);
 }
 
 .honeyCounterIcon {
-  width: 24px;
+  width: 30px;
   aspect-ratio: 1;
   position: relative;
   display: grid;
@@ -1174,7 +1345,7 @@
   background-size: contain;
   filter:
     drop-shadow(0 10px 12px rgba(5, 2, 14, 0.24))
-    drop-shadow(0 0 16px rgba(255, 218, 118, 0.34));
+    drop-shadow(0 0 18px rgba(255, 218, 118, 0.42));
 }
 
 .honeyCounterIcon::before {
@@ -1195,11 +1366,16 @@
 .honeyCounterIcon::after {
   content: "";
   position: absolute;
-  inset: 0;
-  z-index: -1;
-  border-radius: 999px;
-  background: radial-gradient(circle at 50% 58%, rgba(255, 225, 147, 0.16), transparent 60%);
-  filter: blur(2px);
+  right: -3px;
+  top: -2px;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, transparent 2px),
+    conic-gradient(from 45deg, transparent 0 16%, rgba(255, 239, 176, 0.95) 17% 22%, transparent 23% 48%, rgba(255, 239, 176, 0.82) 49% 55%, transparent 56%);
+  filter: drop-shadow(0 0 8px rgba(255, 230, 156, 0.58));
 }
 
 .honeyCounter div {
@@ -9039,7 +9215,7 @@
   .honeyRewardLayer {
     top: max(14px, env(safe-area-inset-top));
     left: calc(max(10px, env(safe-area-inset-left)) + 72px);
-    width: min(150px, calc(100vw - 168px));
+    width: min(198px, calc(100vw - 168px));
   }
 
   .honeyRewardLayer[data-mode="active"] {
@@ -9049,22 +9225,24 @@
 
   .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
   .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-    max-width: 150px;
+    max-width: 198px;
   }
 
   .honeyHeaderDock {
-    gap: 3px;
+    gap: 5px;
+    padding: 6px;
+    border-radius: 18px;
   }
 
   .honeyCounter {
-    grid-template-columns: 22px minmax(0, 1fr);
-    min-height: 24px;
-    gap: 4px;
-    padding: 3px 7px 3px 5px;
+    grid-template-columns: 26px minmax(0, 1fr);
+    min-height: 31px;
+    gap: 6px;
+    padding: 4px 8px 4px 5px;
   }
 
   .honeyCounterIcon {
-    width: 22px;
+    width: 26px;
   }
 
   .honeyCounter span {
@@ -9076,10 +9254,10 @@
   }
 
   .honeyAlbumButton {
-    grid-template-columns: 14px minmax(0, 1fr) auto;
-    min-height: 24px;
-    gap: 4px;
-    padding: 3px 6px;
+    grid-template-columns: 15px minmax(42px, 0.65fr) minmax(30px, 1fr) auto;
+    min-height: 34px;
+    gap: 5px;
+    padding: 5px 7px;
     font-size: 0.6rem;
   }
 
@@ -9800,6 +9978,9 @@
   .honeyPigTypingDots span,
   .entryTransition img,
   .entryTransition span,
+  .entryTransformFrame,
+  .entryTransformPicture,
+  .entryTransformFlash,
   .entryLoadingPanel,
   .entryLoadingPanel i::before,
   .entryYeoniDescent,
@@ -10107,6 +10288,29 @@
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes yeoniTransformGlow {
+  0% {
+    box-shadow:
+      0 34px 70px rgba(5, 2, 14, 0.42),
+      0 0 24px rgba(248, 187, 221, 0.18),
+      0 0 12px rgba(255, 255, 255, 0.12);
+  }
+
+  48% {
+    box-shadow:
+      0 34px 70px rgba(5, 2, 14, 0.42),
+      0 0 76px rgba(255, 246, 250, 0.36),
+      0 0 42px rgba(233, 196, 106, 0.24);
+  }
+
+  100% {
+    box-shadow:
+      0 34px 70px rgba(5, 2, 14, 0.42),
+      0 0 46px rgba(248, 187, 221, 0.26),
+      0 0 24px rgba(255, 255, 255, 0.18);
   }
 }
 
@@ -10736,23 +10940,22 @@
 }
 
 .entryTransformFrame {
-  width: min(76vw, 520px);
-  min-width: min(300px, 76vw);
+  width: min(58vw, 520px);
+  min-width: min(280px, 76vw);
   max-width: 520px;
   box-sizing: border-box;
-  aspect-ratio: var(--pig-sprite-aspect-width, 221) / var(--pig-sprite-aspect-height, 282) !important;
+  aspect-ratio: 4 / 5 !important;
   contain: layout paint;
   transform-origin: center center;
-  border: 1px solid rgba(255, 226, 241, 0.82);
-  border-radius: 28px;
+  border: 0;
+  border-radius: 999px;
   background:
-    radial-gradient(circle at 50% 48%, rgba(255, 226, 241, 0.32), transparent 58%),
-    #fff;
+    radial-gradient(circle at 50% 56%, rgba(255, 246, 250, 0.28), transparent 34%),
+    radial-gradient(circle at 50% 70%, rgba(233, 196, 106, 0.14), transparent 58%);
   box-shadow:
     0 34px 70px rgba(5, 2, 14, 0.42),
-    0 0 42px rgba(248, 187, 221, 0.34),
-    0 0 22px rgba(255, 255, 255, 0.26),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.78);
+    0 0 46px rgba(248, 187, 221, 0.26),
+    0 0 24px rgba(255, 255, 255, 0.18);
   filter:
     drop-shadow(0 0 34px rgba(248, 187, 221, 0.22))
     drop-shadow(0 0 18px rgba(233, 196, 106, 0.14));
@@ -10772,20 +10975,31 @@
     drop-shadow(0 0 26px rgba(233, 196, 106, 0.18));
 }
 
-.entryTransformSheet {
-  object-fit: fill;
+.entryTransformPicture {
+  display: block;
+  transform-origin: center bottom;
   pointer-events: none;
 }
 
-.entryTransformStaticFrame {
-  aspect-ratio: 1 !important;
-  background: transparent;
+.entryTransformPicture img {
+  pointer-events: none;
+  filter:
+    drop-shadow(0 32px 48px rgba(5, 2, 14, 0.4))
+    drop-shadow(0 0 24px rgba(248, 187, 221, 0.24));
 }
 
-.entryTransformStaticImage {
-  object-fit: contain;
-  object-position: center bottom;
+.entryTransformFlash {
+  z-index: 6;
+  border-radius: 999px;
   pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(2px);
+}
+
+.entryActor[data-actor="transform"][data-transformed="true"] .entryTransformFrame {
+  animation:
+    transformCutsceneFocus 1.2s ease-out both,
+    yeoniTransformGlow 1s ease-out 180ms both;
 }
 
 .entryYeoniActor {
@@ -15954,7 +16168,7 @@
   align-self: end;
   justify-self: center;
   min-height: min(52svh, 500px);
-  width: min(34vw, 420px);
+  width: min(38vw, 460px);
 }
 
 .page[data-stage="landing"] .landingPigMascot {
@@ -15962,14 +16176,89 @@
 }
 
 .page[data-stage="landing"] .landingSpeechWrap {
-  bottom: clamp(34px, 8svh, 82px);
-  width: min(360px, 30vw);
-  max-width: 360px;
+  left: 50%;
+  right: auto;
+  top: clamp(-164px, -16svh, -124px);
+  bottom: auto;
+  width: min(368px, 30vw);
+  max-width: 368px;
+  min-height: 104px;
+  padding: 20px 24px 22px;
+  transform: translateX(-50%) scale(0.98);
+  transform-origin: 50% 100%;
+  border: 1px solid rgba(255, 219, 198, 0.58);
+  border-radius: 34px 44px 30px 46px / 42px 34px 46px 28px;
+  background:
+    radial-gradient(circle at 18% 14%, rgba(255, 255, 255, 0.36), transparent 30%),
+    radial-gradient(circle at 82% 16%, rgba(255, 227, 241, 0.24), transparent 34%),
+    linear-gradient(135deg, rgba(239, 218, 250, 0.82), rgba(255, 219, 236, 0.76) 56%, rgba(223, 212, 255, 0.68));
+  box-shadow:
+    0 22px 58px rgba(32, 12, 49, 0.26),
+    0 0 26px rgba(248, 187, 221, 0.34),
+    0 0 16px rgba(255, 232, 166, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(16px) saturate(1.14);
+  animation: landingPetalBubbleIn 480ms cubic-bezier(0.18, 0.92, 0.24, 1) both;
 }
 
 .page[data-stage="landing"] .landingSpeechWrap p {
-  font-size: 0.98rem;
-  line-height: 1.58;
+  color: #3a1f5c;
+  font-size: 1rem;
+  line-height: 1.62;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.page[data-stage="landing"] .landingSpeechWrap::before {
+  border-radius: 34px 44px 30px 46px / 42px 34px 46px 28px;
+  background:
+    radial-gradient(ellipse at 15% 12%, rgba(255, 255, 255, 0.34), transparent 24%),
+    radial-gradient(ellipse at 92% 84%, rgba(248, 187, 221, 0.2), transparent 32%);
+  opacity: 0.72;
+  clip-path: none;
+  filter: none;
+}
+
+.page[data-stage="landing"] .landingSpeechWrap::after {
+  left: 48%;
+  right: auto;
+  bottom: -15px;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-right: 1px solid rgba(255, 219, 198, 0.52);
+  border-bottom: 1px solid rgba(255, 219, 198, 0.52);
+  border-radius: 4px 4px 16px;
+  background: linear-gradient(135deg, rgba(255, 222, 238, 0.76), rgba(231, 210, 255, 0.62));
+  filter: drop-shadow(0 7px 10px rgba(32, 12, 49, 0.2));
+  transform: rotate(45deg);
+}
+
+.page[data-stage="landing"] .landingSpeechOrnament {
+  top: -17px;
+  left: 24px;
+  width: 76px;
+  height: 34px;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 16% 66%, rgba(255, 241, 248, 0.95) 0 8px, transparent 9px),
+    radial-gradient(ellipse at 38% 38%, rgba(248, 187, 221, 0.96) 0 12px, transparent 13px),
+    radial-gradient(ellipse at 60% 64%, rgba(255, 226, 238, 0.94) 0 11px, transparent 12px),
+    radial-gradient(ellipse at 82% 44%, rgba(255, 232, 166, 0.72) 0 8px, transparent 9px);
+  box-shadow:
+    0 0 24px rgba(248, 187, 221, 0.34),
+    0 0 14px rgba(255, 232, 166, 0.18);
+}
+
+@keyframes landingPetalBubbleIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(12px) scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
 }
 
 @media (max-width: 980px) {
@@ -16027,9 +16316,19 @@
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
+    left: 50%;
+    top: auto;
     bottom: 10px;
     width: min(calc(100vw - 40px), 330px);
     max-width: 330px;
+    min-height: 0;
+    transform: translateX(-50%);
+    transform-origin: center bottom;
+  }
+
+  .page[data-stage="landing"] .landingSpeechWrap::after {
+    left: 36px;
+    bottom: -13px;
   }
 }
 
@@ -16080,8 +16379,11 @@
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
+    left: 50%;
+    top: auto;
     bottom: 4px;
     padding: 15px 17px 17px;
+    transform: translateX(-50%);
   }
 
   .page[data-stage="landing"] .landingSpeechWrap p {
@@ -16132,5 +16434,78 @@
 
   .page[data-stage="landing"] .landingSpeechWrap {
     display: none;
+  }
+}
+
+@media (max-width: 390px) {
+  .honeyRewardLayer {
+    left: calc(max(8px, env(safe-area-inset-left)) + 64px);
+    width: min(168px, calc(100vw - 148px));
+  }
+
+  .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
+  .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
+    max-width: 168px;
+  }
+
+  .honeyHeaderDock {
+    gap: 4px;
+    padding: 5px;
+    border-radius: 16px;
+  }
+
+  .honeyCounter {
+    grid-template-columns: 24px minmax(0, 1fr);
+    min-height: 29px;
+    padding: 4px 7px 4px 5px;
+  }
+
+  .honeyCounterIcon {
+    width: 24px;
+  }
+
+  .honeyCounter span {
+    display: none;
+  }
+
+  .honeyCounter strong {
+    margin-top: 0;
+    font-size: 0.66rem;
+  }
+
+  .honeyAlbumButton {
+    grid-template-columns: 15px minmax(34px, 0.68fr) minmax(24px, 1fr) auto;
+    min-height: 32px;
+    gap: 4px;
+    padding: 5px 6px;
+  }
+
+  .honeyAlbumText {
+    max-width: 42px;
+  }
+
+  .honeyAlbumProgress {
+    min-width: 24px;
+    height: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .honeyHeaderDock,
+  .honeyHeaderDock::after,
+  .honeyCounter,
+  .honeyAlbumButton,
+  .honeyAlbumButton::after,
+  .page[data-stage="landing"] .landingSpeechWrap {
+    animation: none;
+    transition: none;
+  }
+
+  .honeyHeaderDock:hover,
+  .honeyHeaderDock:focus-within,
+  .honeyCounter:hover,
+  .honeyAlbumButton:hover,
+  .honeyAlbumButton:focus-visible {
+    transform: none;
   }
 }

@@ -136,7 +136,7 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
         </div>
       )}
 
-      <p className="mb-3 min-h-[44px] text-xs leading-5 text-slate-100/78">{item.description}</p>
+      <p className="mb-3 min-h-[44px] text-xs leading-5 text-slate-200/95">{item.description}</p>
 
       <div className="mb-4 flex flex-wrap gap-1.5">
         {(item.badges || []).map((badge) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -243,6 +243,56 @@ function priceText(target: FeatureMarketingTarget) {
   return "기존 결제 정책 확인";
 }
 
+let bodyScrollLockCount = 0;
+let previousBodyOverflow = "";
+let previousBodyPaddingRight = "";
+
+function lockBodyScroll() {
+  if (typeof document === "undefined") return;
+  const body = document.body;
+  if (!body) return;
+
+  if (bodyScrollLockCount === 0) {
+    previousBodyOverflow = body.style.overflow;
+    previousBodyPaddingRight = body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
+  }
+
+  bodyScrollLockCount += 1;
+  body.style.overflow = "hidden";
+  body.setAttribute("data-cd-scroll-lock", "true");
+}
+
+function unlockBodyScroll() {
+  if (typeof document === "undefined") return;
+  const body = document.body;
+  if (!body) return;
+
+  bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
+  if (bodyScrollLockCount !== 0) return;
+
+  body.style.overflow = previousBodyOverflow;
+  body.style.paddingRight = previousBodyPaddingRight;
+  body.removeAttribute("data-cd-scroll-lock");
+}
+
+function useBodyScrollLock(enabled: boolean) {
+  useEffect(() => {
+    if (!enabled) return;
+    lockBodyScroll();
+    return () => {
+      unlockBodyScroll();
+    };
+  }, [enabled]);
+}
+
+const modalSheetScrollStyle: CSSProperties = {
+  maxHeight: "calc(100dvh - max(16px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)))",
+  overscrollBehaviorY: "contain",
+  WebkitOverflowScrolling: "touch",
+};
+
 export function FeatureMarketingDetailModal({
   open,
   target,
@@ -254,18 +304,16 @@ export function FeatureMarketingDetailModal({
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const copy = useMemo(() => resolveFeatureMarketingCopy(target), [target]);
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (!open) return;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKeyDown);
     closeRef.current?.focus();
     return () => {
-      document.body.style.overflow = prevOverflow;
       window.removeEventListener("keydown", onKeyDown);
     };
   }, [open, onClose]);
@@ -279,6 +327,7 @@ export function FeatureMarketingDetailModal({
         aria-modal="true"
         aria-labelledby="featureMarketingTitle"
         className="max-h-[92svh] w-full overflow-y-auto rounded-t-2xl border border-white/12 bg-[linear-gradient(180deg,#081427,#111a34_56%,#070b1d)] p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-slate-50 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:max-w-[620px] sm:rounded-2xl sm:p-6"
+        style={modalSheetScrollStyle}
         onMouseDown={(event) => event.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between gap-3">

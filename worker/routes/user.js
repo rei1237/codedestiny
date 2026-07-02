@@ -191,11 +191,27 @@ function resolveSubscriptionPolicy(user) {
 }
 
 function toClientProfile(doc) {
+  const year = Number(doc?.birth?.year || 1900);
+  const month = Number(doc?.birth?.month || 1);
+  const day = Number(doc?.birth?.day || 1);
+  const hour = Number(doc?.birth?.hour || 0);
+  const minute = Number(doc?.birth?.minute || 0);
+  const calendarType = sanitizeCalType(doc?.birth?.calType);
+  const birthDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const birthTime = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+
   return {
     id: String(doc.profileId || ""),
     profileId: String(doc.profileId || ""),
+    userId: String(doc.userId || ""),
     name: String(doc.name || "이름 없음"),
     gender: sanitizeGender(doc.gender),
+    birthDate,
+    birthTime,
+    calendarType,
+    isDefault: false,
+    selected: false,
+    birthIso: `${birthDate} ${birthTime}`,
     birth: {
       year: Number(doc?.birth?.year || 1900),
       month: Number(doc?.birth?.month || 1),
@@ -218,6 +234,15 @@ function toClientProfile(doc) {
 async function listUserProfiles(userId) {
   const docs = await ProfileCard.find({ userId }).sort({ createdAt: 1 }).lean();
   return docs.map(toClientProfile);
+}
+
+function markCurrentProfile(profiles, currentId) {
+  const selectedId = String(currentId || "").trim();
+  return profiles.map((profile) => ({
+    ...profile,
+    isDefault: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
+    selected: Boolean(selectedId && String(profile?.id || profile?.profileId || "") === selectedId),
+  }));
 }
 
 function profilePaymentRequiredResponse(requestId) {
@@ -379,7 +404,7 @@ async function handleGetDestinyProfiles(auth) {
 
   return json({
     ok: true,
-    profiles: access.profiles,
+    profiles: markCurrentProfile(access.profiles, currentId),
     currentId,
     subscription,
     profileAccess: access.profileAccess,
@@ -502,7 +527,7 @@ async function handleSyncDestinyProfiles(request, auth) {
 
   return json({
     ok: true,
-    profiles: access.profiles,
+    profiles: markCurrentProfile(access.profiles, access.currentId),
     currentId: access.currentId,
     subscription,
     profileAccess: access.profileAccess,

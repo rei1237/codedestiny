@@ -31,6 +31,11 @@ type DestinyProfile = {
   profileId?: string;
   name: string;
   gender?: "M" | "F" | "OTHER";
+  birthDate?: string;
+  birthTime?: string;
+  calendarType?: string;
+  isDefault?: boolean;
+  selected?: boolean;
   birth?: {
     year?: number;
     month?: number;
@@ -545,6 +550,16 @@ export default function MePage() {
     emitDestinyProfileChanged(nextProfiles, nextCurrentId);
   }, []);
 
+  const clearProfileState = useCallback(() => {
+    setProfiles([]);
+    setCurrentId("");
+    setCanCreateMore(true);
+    setViewingProfile(null);
+    setActiveProfileMenuId("");
+    clearActiveDestinyProfileCache();
+    emitDestinyProfileChanged([], "");
+  }, []);
+
   const refreshProfileActionBalance = useCallback(async () => {
     try {
       const response = await authFetch(`${apiBase}/api/billing/balance`, {
@@ -577,6 +592,7 @@ export default function MePage() {
   }, [apiBase, user?.points]);
 
   const loadProfileState = useCallback(async () => {
+    clearProfileState();
     const response = await authFetch(`${apiBase}/api/profile`, {
       method: "GET",
       cache: "no-store",
@@ -594,7 +610,7 @@ export default function MePage() {
     }
 
     applyProfilePayload(payload);
-  }, [apiBase, applyProfilePayload]);
+  }, [apiBase, applyProfilePayload, clearProfileState]);
 
   const loadPdfArchive = useCallback(async () => {
     setArchiveLoading(true);
@@ -643,6 +659,7 @@ export default function MePage() {
       if (mounted) {
         setUser(cachedUser);
         setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
+        clearProfileState();
       }
 
       try {
@@ -686,7 +703,7 @@ export default function MePage() {
     return () => {
       mounted = false;
     };
-  }, [apiBase, loadPdfArchive, loadProfileState, refreshProfileActionBalance, router]);
+  }, [apiBase, clearProfileState, loadPdfArchive, loadProfileState, refreshProfileActionBalance, router]);
 
   const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
@@ -894,6 +911,42 @@ export default function MePage() {
       setViewingProfileLoadingId("");
     }
   };
+
+  const activateProfile = useCallback(async (profile: DestinyProfile) => {
+    if (busyAction || profile.id === currentId) return;
+    setActiveProfileMenuId("");
+    setBusyAction(`activate:${profile.id}`);
+    try {
+      const response = await authFetch(`${apiBase}/api/profile/current`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({ currentId: profile.id }),
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+      const payload = await safeParseJson<{ ok?: boolean; currentId?: string; message?: string }>(response);
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || "대표 프로필을 변경하지 못했습니다.");
+      }
+      const nextCurrentId = String(payload.currentId || profile.id);
+      const nextProfiles = profiles.map((item) => ({
+        ...item,
+        isDefault: item.id === nextCurrentId,
+        selected: item.id === nextCurrentId,
+      }));
+      setProfiles(nextProfiles);
+      setCurrentId(nextCurrentId);
+      publishDestinyProfileList(nextProfiles, nextCurrentId);
+      emitDestinyProfileChanged(nextProfiles, nextCurrentId);
+      setAuthNotice("대표 프로필이 변경되었습니다.");
+    } catch (error) {
+      setAuthNotice(error instanceof Error ? error.message : "대표 프로필 변경 중 오류가 발생했습니다.");
+    } finally {
+      setBusyAction("");
+    }
+  }, [apiBase, busyAction, currentId, profiles]);
 
   const executeProfileAction = useCallback(async (
     action: "delete",
@@ -1118,6 +1171,7 @@ export default function MePage() {
   const handleLogout = async () => {
     if (logoutPending) return;
     setLogoutPending(true);
+    clearProfileState();
     try {
       await logout(apiBase);
     } finally {
@@ -1356,6 +1410,21 @@ export default function MePage() {
                                 <span>{mePageText("mePage.005")}</span>
                                 <span className="text-xs text-slate-400">{viewing ? "..." : ""}</span>
                               </button>
+                              {!active ? (
+                                <button
+                                  type="button"
+                                  role="menuitem"
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    void activateProfile(profile);
+                                  }}
+                                  disabled={viewing || activating || deleting || (!!busyAction && !activating)}
+                                  className="flex min-h-[44px] w-full touch-manipulation items-center justify-between rounded-md px-3 py-2 text-left text-sm font-semibold text-amber-100 hover:bg-amber-300/10 disabled:opacity-40"
+                                >
+                                  <span>대표로 선택</span>
+                                  <span className="text-xs text-slate-400">{activating ? "..." : ""}</span>
+                                </button>
+                              ) : null}
                               <button
                                 type="button"
                                 role="menuitem"

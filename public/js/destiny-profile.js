@@ -27,6 +27,7 @@
   var DP_PROFILE_DELETE_GATE_SPRITE_URL = '/fuctionassets/%EC%97%B0%EC%9D%B4%20%EC%BA%90%EB%A6%AD%ED%84%B0%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B8%20%EC%8B%9C%ED%8A%B8.webp';
   var ACTIVE_PROFILE_CACHE_KEY = 'code-destiny.activeProfileCache.v1';
   var ACTIVE_PROFILE_ID_KEY = 'code-destiny.activeProfileId';
+  var GUEST_PROFILE_KEY = 'codeDestiny:guestProfile';
   var _dpProfileMenuLastTouchAt = 0;
   var _dpProfileMenuPointerHandledAt = 0;
   var _dpProfileMenuSyntheticEvent = false;
@@ -255,6 +256,19 @@
     return KEY_META_PREFIX + String(scope || 'guest');
   }
 
+  function _dpIsLoggedInScope(scope) {
+    var safeScope = String(scope || _dpGetProfileScope() || 'guest').trim().toLowerCase();
+    return !!safeScope && safeScope !== 'guest';
+  }
+
+  function _dpGetScopedActiveProfileIdKey(scope) {
+    return ACTIVE_PROFILE_ID_KEY + '::' + String(scope || 'guest');
+  }
+
+  function _dpGetScopedActiveProfileCacheKey(scope) {
+    return ACTIVE_PROFILE_CACHE_KEY + '::' + String(scope || 'guest');
+  }
+
   function _dpGetAuthTokenCacheHint() {
     var token = '';
     try {
@@ -296,6 +310,16 @@
         tokenHint: safeScope === 'guest' ? '' : _dpGetAuthTokenCacheHint(),
         savedAt: Date.now()
       }));
+      localStorage.setItem(_dpGetScopedActiveProfileIdKey(safeScope), resolvedCurrentId);
+      var active = _dpPickProfileFromPayload(normalized, resolvedCurrentId);
+      if (active) {
+        var activePayload = JSON.stringify(active);
+        localStorage.setItem(_dpGetScopedActiveProfileCacheKey(safeScope), activePayload);
+        try { sessionStorage.setItem(_dpGetScopedActiveProfileCacheKey(safeScope), activePayload); } catch (_) {}
+      } else {
+        localStorage.removeItem(_dpGetScopedActiveProfileCacheKey(safeScope));
+        try { sessionStorage.removeItem(_dpGetScopedActiveProfileCacheKey(safeScope)); } catch (_) {}
+      }
     } catch (e) {}
   }
 
@@ -303,6 +327,20 @@
     try {
       var directKeys = [KEY_LIST, KEY_CURR, KEY_SCOPE_HINT, KEY_LEGACY_OWNER];
       for (var i = 0; i < directKeys.length; i += 1) localStorage.removeItem(directKeys[i]);
+    } catch (e) {}
+  }
+
+  function _dpClearGlobalProfileBridge() {
+    try {
+      localStorage.removeItem(ACTIVE_PROFILE_ID_KEY);
+      localStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
+      localStorage.removeItem('FORTUNE_APP_USER_PROFILE');
+      localStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD');
+      localStorage.removeItem('OLYMPUS_ORACLE_PROFILE');
+      sessionStorage.removeItem(ACTIVE_PROFILE_CACHE_KEY);
+      sessionStorage.removeItem('FORTUNE_APP_USER_PROFILE');
+      sessionStorage.removeItem('FORTUNE_APP_VEDIC_PAYLOAD');
+      sessionStorage.removeItem('OLYMPUS_ORACLE_PROFILE');
     } catch (e) {}
   }
 
@@ -456,9 +494,12 @@
     var listed = _dpPickProfileFromPayload(list, requestedId);
     if (listed) return listed;
 
+    var scope = _dpGetProfileScope();
+    var loggedIn = _dpIsLoggedInScope(scope);
     var cacheId = requestedId;
     try {
-      cacheId = cacheId || String(localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || '').trim();
+      cacheId = cacheId || String(localStorage.getItem(_dpGetScopedActiveProfileIdKey(scope)) || '').trim();
+      if (!loggedIn) cacheId = cacheId || String(localStorage.getItem(ACTIVE_PROFILE_ID_KEY) || '').trim();
     } catch (e) {}
 
     var globalProfile = null;
@@ -471,7 +512,9 @@
     var stores = [];
     try { stores.push(localStorage); } catch (e3) {}
     try { stores.push(sessionStorage); } catch (e4) {}
-    var keys = [ACTIVE_PROFILE_CACHE_KEY, 'FORTUNE_APP_USER_PROFILE', 'FORTUNE_APP_VEDIC_PAYLOAD', 'OLYMPUS_ORACLE_PROFILE'];
+    var keys = loggedIn
+      ? [_dpGetScopedActiveProfileCacheKey(scope)]
+      : [_dpGetScopedActiveProfileCacheKey(scope), GUEST_PROFILE_KEY, ACTIVE_PROFILE_CACHE_KEY, 'FORTUNE_APP_USER_PROFILE', 'FORTUNE_APP_VEDIC_PAYLOAD', 'OLYMPUS_ORACLE_PROFILE'];
     for (var si = 0; si < stores.length; si += 1) {
       for (var ki = 0; ki < keys.length; ki += 1) {
         var cached = _dpPickProfileFromPayload(_dpReadJsonStore(stores[si], keys[ki]), cacheId);
@@ -498,7 +541,9 @@
 
   function _dpPublishCurrentProfile() {
     try {
-      window.__cdCurrentDestinyProfile = DPStorage.current();
+      var current = DPStorage.current();
+      if (current) window.__cdCurrentDestinyProfile = current;
+      else delete window.__cdCurrentDestinyProfile;
     } catch (e) {}
   }
 
@@ -519,6 +564,7 @@
     _dpProfiles = _dpNormalizeProfiles(profiles);
     _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, currentId);
     _dpClearLegacyProfileStorage();
+    if (_dpIsLoggedInScope(nextScope)) _dpClearGlobalProfileBridge();
     _dpWriteStoredProfileState(nextScope, _dpProfiles, _dpCurrentId);
     _dpPublishCurrentProfile();
     return true;
@@ -6327,10 +6373,11 @@
 
     _dpBindTouchScrollMark();
 
-    _dpEnsureScopedStorageReady();
+    var hasInitialSessionHint = _dpHasSessionHint();
+    if (!hasInitialSessionHint) _dpEnsureScopedStorageReady();
 
-    var initialProfile = DPStorage.current();
-    var shouldShowProfileLoading = !initialProfile && _dpHasSessionHint();
+    var initialProfile = hasInitialSessionHint ? null : DPStorage.current();
+    var shouldShowProfileLoading = hasInitialSessionHint;
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
@@ -6349,8 +6396,6 @@
         _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'auth-session-not-ready' });
         return;
       }
-
-      _dpRenderCachedProfileNow();
 
       _dpLoadFromServer(function(loaded) {
         if (loaded) {
@@ -6551,16 +6596,22 @@
 
     function _dpRefreshAuthScopeNow() {
       _dpScopedStorageReadyScope = '';
+      _dpProfileMemoryScope = '';
+      _dpProfiles = [];
+      _dpCurrentId = '';
       _dpSessionVerify.checkedAt = 0;
       _dpSessionVerify.ok = false;
       _dpSessionVerify.userId = '';
       _dpSessionVerify.signature = '';
       _dpSessionVerify.pending = null;
+      _dpClearGlobalProfileBridge();
+      _dpPublishCurrentProfile();
 
-      _dpEnsureScopedStorageReady();
+      if (_dpHasSessionHint()) renderProfileLoadingCard();
+      else _dpEnsureScopedStorageReady();
       _dpLoadSubCache();
       _dpUpdateSaveBtn();
-      renderMasterCard(DPStorage.current());
+      if (!_dpHasSessionHint()) renderMasterCard(DPStorage.current());
       renderProfileList();
 
       _dpLoadFromServer(function(loaded) {

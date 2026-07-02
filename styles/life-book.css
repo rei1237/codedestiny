@@ -5,21 +5,21 @@
 
 /* ── CSS 변수 ─────────────────────────────────── */
 :root {
-  --lb-void: #050210;
-  --lb-deep: #0b0620;
-  --lb-dark: #100830;
-  --lb-surface: #160c38;
-  --lb-border: rgba(180, 140, 255, 0.18);
-  --lb-border-bright: rgba(210, 170, 255, 0.45);
-  --lb-gold: #f5d78e;
-  --lb-gold-dim: rgba(245, 215, 142, 0.65);
-  --lb-amethyst: #a78bfa;
-  --lb-violet: #7c3aed;
-  --lb-lilac: #c4b5fd;
-  --lb-white: #f5f0ff;
-  --lb-text: rgba(225, 210, 255, 0.88);
-  --lb-glow-violet: rgba(124, 58, 237, 0.45);
-  --lb-glow-gold: rgba(245, 200, 80, 0.35);
+  --lb-void: #060713;
+  --lb-deep: #090f26;
+  --lb-dark: #12182f;
+  --lb-surface: #171f3d;
+  --lb-border: rgba(188, 205, 255, 0.2);
+  --lb-border-bright: rgba(228, 241, 255, 0.46);
+  --lb-gold: #f6da89;
+  --lb-gold-dim: rgba(250, 227, 156, 0.66);
+  --lb-amethyst: #a6c8ff;
+  --lb-violet: #6e8ee6;
+  --lb-lilac: #c8dcff;
+  --lb-white: #eef5ff;
+  --lb-text: rgba(231, 236, 255, 0.88);
+  --lb-glow-violet: rgba(145, 165, 255, 0.55);
+  --lb-glow-gold: rgba(246, 216, 132, 0.38);
 }
 
 /* ── 타일 카드 — 풀블리드 히어로 포스터 ─────────── */
@@ -33,15 +33,17 @@
   padding: 0;
   cursor: pointer;
   background:
-    linear-gradient(135deg, #09070f 0%, #1b1018 42%, #08060d 100%);
+    radial-gradient(circle at 76% 16%, rgba(192, 206, 255, 0.25), transparent 44%),
+    radial-gradient(circle at 26% 80%, rgba(235, 223, 174, 0.18), transparent 54%),
+    linear-gradient(130deg, #090b19 0%, #111935 42%, #090b1d 100%);
   min-height: 420px;
   box-shadow:
-    0 12px 48px rgba(80, 30, 180, 0.6),
-    0 0 0 1.5px rgba(200, 160, 255, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 28px 70px rgba(4, 8, 28, 0.72),
+    0 0 0 1px rgba(188, 205, 255, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
   transition: transform 0.36s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   text-align: left;
-  font-family: 'Gowun Dodum', 'Noto Serif KR', serif;
+  font-family: 'CodeDestinyBody', 'Noto Serif KR', serif;
   contain: layout paint style;
 }
 
@@ -55,17 +57,17 @@
 
 .fg-group--lifebook .lifebook-tile {
   min-height: 392px;
-  border: 1px solid rgba(236, 203, 128, 0.28);
+  border: 1px solid rgba(188, 205, 255, 0.28);
   background:
-    linear-gradient(90deg, rgba(8, 5, 7, 0.76) 0%, rgba(8, 5, 7, 0.34) 42%, rgba(8, 5, 7, 0.86) 100%),
-    linear-gradient(90deg, rgba(236, 203, 128, 0.14) 0 1px, transparent 1px 36px),
-    repeating-linear-gradient(135deg, rgba(255, 244, 207, 0.05) 0 1px, transparent 1px 18px),
+    linear-gradient(90deg, rgba(9, 11, 31, 0.72) 0%, rgba(9, 11, 31, 0.34) 42%, rgba(9, 11, 31, 0.9) 100%),
+    radial-gradient(circle at 68% 20%, rgba(188, 205, 255, 0.16), transparent 36%),
+    repeating-linear-gradient(135deg, rgba(188, 205, 255, 0.05) 0 1px, transparent 1px 18px),
     url('/fuctionassets/lifebook.webp?v=build-717e909820aa') center 36% / cover no-repeat,
-    linear-gradient(135deg, #08070d 0%, #191018 38%, #231516 62%, #09070b 100%);
+    linear-gradient(135deg, #070817 0%, #121934 38%, #1d2340 62%, #0a1024 100%);
   box-shadow:
-    0 22px 62px rgba(0, 0, 0, 0.46),
-    0 0 0 1px rgba(236, 203, 128, 0.16),
-    inset 0 1px 0 rgba(255, 247, 220, 0.14);
+    0 24px 60px rgba(7, 11, 32, 0.72),
+    0 0 0 1px rgba(188, 205, 255, 0.2),
+    inset 0 1px 0 rgba(255, 248, 228, 0.16);
 }
 
 .fg-group--lifebook .lifebook-tile::before,
@@ -78,27 +80,28 @@
 .fg-group--lifebook .lifebook-tile::before {
   inset: 14px;
   z-index: 1;
-  border: 1px solid rgba(236, 203, 128, 0.22);
+  border: 1px solid rgba(188, 205, 255, 0.26);
   border-radius: 17px;
   box-shadow:
-    inset 0 0 0 1px rgba(255, 247, 220, 0.06),
-    0 0 28px rgba(236, 203, 128, 0.08);
+    inset 0 0 0 1px rgba(255, 247, 221, 0.08),
+    0 0 24px rgba(188, 205, 255, 0.12);
 }
 
 .fg-group--lifebook .lifebook-tile::after {
-  top: 72px;
-  right: 24px;
+  top: 76px;
+  right: 20px;
   z-index: 1;
-  width: min(34%, 220px);
+  width: min(30%, 200px);
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(236, 203, 128, 0.62), transparent);
+  background: linear-gradient(90deg, transparent, rgba(188, 205, 255, 0.62), transparent);
+  opacity: 0.9;
 }
 
 .fg-group--lifebook .lifebook-tile__bg {
   background:
-    linear-gradient(180deg, rgba(8, 6, 12, 0.18) 0%, rgba(8, 6, 12, 0.46) 54%, rgba(5, 3, 8, 0.92) 100%),
-    linear-gradient(90deg, rgba(4, 3, 6, 0.86), rgba(4, 3, 6, 0.48) 47%, rgba(4, 3, 6, 0.72)),
-    linear-gradient(120deg, rgba(236, 203, 128, 0.16), transparent 35%, rgba(93, 31, 28, 0.18) 70%, transparent);
+    linear-gradient(180deg, rgba(8, 11, 28, 0.2) 0%, rgba(9, 12, 27, 0.48) 50%, rgba(5, 8, 20, 0.93) 100%),
+    linear-gradient(90deg, rgba(5, 8, 20, 0.9), rgba(5, 8, 20, 0.56) 47%, rgba(6, 10, 22, 0.72)),
+    linear-gradient(120deg, rgba(188, 205, 255, 0.16), transparent 35%, rgba(12, 16, 33, 0.2) 70%, transparent);
 }
 
 .fg-group--lifebook .lifebook-tile__inner {
@@ -111,43 +114,43 @@
 }
 
 .fg-group--lifebook .lifebook-tile__title {
-  color: #fff7df;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.72), 0 0 24px rgba(236, 203, 128, 0.18);
+  color: #f8fbff;
+  text-shadow: 0 2px 18px rgba(5, 9, 24, 0.76), 0 0 26px rgba(188, 205, 255, 0.22);
 }
 
 .fg-group--lifebook .lifebook-tile__subtitle {
-  color: #f2d99a;
+  color: #f0e1b7;
   letter-spacing: 0.04em;
 }
 
 .fg-group--lifebook .lifebook-tile__desc {
   max-width: 680px;
-  color: rgba(245, 236, 214, 0.88);
+  color: rgba(228, 237, 255, 0.9);
 }
 
 .fg-group--lifebook .lb-feat {
-  border-color: rgba(236, 203, 128, 0.28);
-  background: rgba(12, 8, 12, 0.66);
-  color: rgba(255, 247, 223, 0.88);
+  border-color: rgba(188, 205, 255, 0.34);
+  background: rgba(12, 16, 34, 0.66);
+  color: rgba(237, 242, 255, 0.9);
 }
 
 .fg-group--lifebook .lifebook-tile__cta {
   width: fit-content;
   min-width: 208px;
-  color: #1c1207;
-  background: linear-gradient(90deg, #fff3bd 0%, #dfb75d 52%, #b77721 100%);
+  color: #20191c;
+  background: linear-gradient(90deg, #fdeebe 0%, #ecdcad 52%, #f0c96f 100%);
   box-shadow:
-    0 12px 26px rgba(217, 173, 85, 0.34),
-    inset 0 1px 0 rgba(255, 255, 230, 0.42);
+    0 12px 26px rgba(242, 214, 145, 0.3),
+    inset 0 1px 0 rgba(255, 250, 227, 0.44);
 }
 
 .lifebook-tile:hover,
 .lifebook-tile:focus-visible {
   transform: translateY(-6px) scale(1.015);
   box-shadow:
-    0 28px 72px rgba(120, 50, 255, 0.65),
-    0 0 0 2px rgba(220, 190, 255, 0.55),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 30px 72px rgba(8, 12, 28, 0.72),
+    0 0 0 2px rgba(188, 205, 255, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
   outline: none;
 }
 
@@ -161,13 +164,15 @@
   inset: 0;
   background:
     linear-gradient(to bottom,
-      rgba(8, 3, 22, 0.42) 0%,
-      rgba(8, 3, 22, 0.1) 28%,
-      rgba(4, 1, 15, 0.0) 42%,
-      rgba(6, 2, 20, 0.55) 62%,
-      rgba(5, 1, 18, 0.88) 80%,
-      rgba(4, 1, 15, 0.97) 100%
-    );
+      rgba(10, 14, 31, 0.44) 0%,
+      rgba(10, 14, 31, 0.12) 28%,
+      rgba(8, 11, 26, 0.0) 42%,
+      rgba(11, 16, 32, 0.52) 62%,
+      rgba(8, 11, 24, 0.88) 80%,
+      rgba(6, 9, 20, 0.96) 100%
+    ),
+    radial-gradient(circle at 18% 34%, rgba(188, 205, 255, 0.24), transparent 35%),
+    radial-gradient(circle at 82% 76%, rgba(248, 216, 124, 0.22), transparent 40%);
   pointer-events: none;
   z-index: 0;
 }
@@ -183,16 +188,17 @@
 
 .lb-p {
   position: absolute;
-  color: rgba(253, 230, 138, 0.55);
+  color: rgba(228, 241, 255, 0.56);
   font-size: 0.85rem;
   animation: lb-float 6s ease-in-out infinite;
+  mix-blend-mode: screen;
 }
-.lb-p--1 { top: 10%; left: 6%; animation-delay: 0s; font-size: 0.7rem; }
-.lb-p--2 { top: 14%; right: 8%; animation-delay: -1.5s; color: rgba(196, 181, 253, 0.5); }
-.lb-p--3 { bottom: 32%; left: 4%; animation-delay: -3s; font-size: 0.65rem; }
-.lb-p--4 { top: 50%; right: 5%; animation-delay: -2s; color: rgba(253, 230, 138, 0.45); }
-.lb-p--5 { bottom: 16%; right: 12%; animation-delay: -4.5s; font-size: 0.7rem; }
-.lb-p--6 { top: 68%; left: 10%; animation-delay: -1s; font-size: 0.6rem; color: rgba(196, 181, 253, 0.4); }
+.lb-p--1 { top: 10%; left: 6%; animation-delay: 0s; font-size: 0.7rem; color: rgba(188, 205, 255, 0.5); }
+.lb-p--2 { top: 14%; right: 8%; animation-delay: -1.5s; color: rgba(246, 216, 132, 0.42); }
+.lb-p--3 { bottom: 32%; left: 4%; animation-delay: -3s; font-size: 0.65rem; color: rgba(196, 210, 255, 0.46); }
+.lb-p--4 { top: 50%; right: 5%; animation-delay: -2s; color: rgba(255, 240, 186, 0.44); }
+.lb-p--5 { bottom: 16%; right: 12%; animation-delay: -4.5s; font-size: 0.7rem; color: rgba(188, 205, 255, 0.46); }
+.lb-p--6 { top: 68%; left: 10%; animation-delay: -1s; font-size: 0.6rem; color: rgba(233, 245, 255, 0.4); }
 
 @keyframes lb-float {
   0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.4; }
@@ -229,8 +235,8 @@
   font-weight: 900;
   letter-spacing: 0.25em;
   color: #fde68a;
-  background: rgba(14, 8, 2, 0.75);
-  border: 1px solid rgba(250, 204, 21, 0.55);
+  background: rgba(17, 26, 52, 0.8);
+  border: 1px solid rgba(255, 248, 219, 0.5);
   border-radius: 5px;
   padding: 4px 9px;
   text-transform: uppercase;
@@ -246,8 +252,8 @@
   font-size: 0.68rem;
   font-weight: 800;
   color: #ede9fe;
-  background: rgba(10, 5, 30, 0.78);
-  border: 1px solid rgba(160, 120, 255, 0.5);
+  background: rgba(10, 20, 46, 0.78);
+  border: 1px solid rgba(173, 196, 255, 0.48);
   border-radius: 999px;
   padding: 4px 12px;
   backdrop-filter: blur(6px);
@@ -261,9 +267,9 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: radial-gradient(circle at 33% 28%, #fffde0 0%, #ffd040 48%, #c97a08 100%);
-  border: 1px solid rgba(255, 200, 50, 0.55);
-  box-shadow: 0 0 4px rgba(255, 195, 40, 0.55), inset 0 1px 2px rgba(255, 255, 200, 0.6);
+  background: radial-gradient(circle at 33% 28%, #fffdf0 0%, #e8d8b5 52%, #9fb2e6 100%);
+  border: 1px solid rgba(188, 205, 255, 0.58);
+  box-shadow: 0 0 4px rgba(188, 205, 255, 0.45), inset 0 1px 2px rgba(240, 246, 255, 0.5);
   flex-shrink: 0;
 }
 
@@ -278,16 +284,19 @@
 .lifebook-tile__title {
   font-size: 1.6rem;
   font-weight: 900;
-  color: #faf5ff;
+  font-family: 'CodeDestinyDisplay', 'Gowun Dodum', serif;
+  color: #f8f6ff;
   margin: 0;
   letter-spacing: 0.03em;
   line-height: 1.18;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.8), 0 0 32px rgba(80, 20, 180, 0.4);
+  text-shadow:
+    0 2px 18px rgba(6, 10, 32, 0.8),
+    0 0 28px rgba(145, 165, 255, 0.36);
 }
 
 .lifebook-tile__subtitle {
   font-size: 0.88rem;
-  color: #d8b4fe;
+  color: #f0d9a8;
   margin: 0;
   letter-spacing: 0.07em;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
@@ -295,7 +304,7 @@
 
 .lifebook-tile__desc {
   font-size: 0.82rem;
-  color: rgba(220, 210, 255, 0.85);
+  color: rgba(229, 236, 255, 0.85);
   margin: 0;
   line-height: 1.55;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
@@ -311,9 +320,9 @@
 
 .lb-feat {
   font-size: 0.68rem;
-  color: #ede9fe;
-  background: rgba(8, 3, 20, 0.72);
-  border: 1px solid rgba(160, 120, 255, 0.4);
+  color: #f0edff;
+  background: rgba(11, 19, 45, 0.7);
+  border: 1px solid rgba(188, 205, 255, 0.42);
   border-radius: 6px;
   padding: 3px 8px;
   white-space: nowrap;
@@ -329,15 +338,15 @@
   font-weight: 800;
   color: #1a0a3a;
   letter-spacing: 0.04em;
-  background: linear-gradient(90deg, #ffd54f 0%, #ffaa00 50%, #ff8c00 100%);
+  background: linear-gradient(135deg, #fce9b4 0%, #edd89d 45%, #b58f45 100%);
   border: none;
   border-radius: 12px;
   padding: 13px 18px;
   text-align: center;
   transition: filter 0.22s, transform 0.22s;
   box-shadow:
-    0 4px 20px rgba(255, 160, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 220, 0.35);
+    0 4px 20px rgba(245, 214, 138, 0.48),
+    inset 0 1px 0 rgba(255, 252, 232, 0.42);
 }
 .lifebook-tile:hover .lifebook-tile__cta {
   filter: brightness(1.08);

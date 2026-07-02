@@ -96,17 +96,11 @@ export const neoWarRoomAssets = {
       "hero",
       "black-shadow",
     ),
-    transformation: localNeoWarRoomAsset(
-      "/neo-operation-room/sprites/neo-transform-v3-clean.webp",
-      "네오 변신 장면 스프라이트 시트",
+    lionSeal: localNeoWarRoomAsset(
+      "/neo-operation-room/lion-seal-loading.webp",
+      "전략실에 나타난 황금빛 사자 휘장",
       "hero",
-      "hero-transformation-v3-clean",
-    ),
-    transformationMobile: localNeoWarRoomAsset(
-      "/neo-operation-room/sprites/neo-transform-v3-clean.webp",
-      "네오 변신 장면 모바일 스프라이트 시트",
-      "hero",
-      "hero-transformation-v3-clean-mobile",
+      "hero-lion-seal",
     ),
   },
   sprites: {

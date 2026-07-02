@@ -177,7 +177,7 @@
     linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.54));
 }
 
-.vnStage[data-effect="transform"]::after,
+.vnStage[data-effect="morph"]::after,
 .vnStage[data-effect="arrival"]::after {
   content: "";
   position: absolute;
@@ -191,7 +191,7 @@
   opacity: 0.78;
 }
 
-.vnStage[data-effect="transform"]::after {
+.vnStage[data-effect="morph"]::after {
   animation: neoPrologueFlare 1.55s ease-in-out infinite alternate;
 }
 
@@ -364,143 +364,213 @@
   transform: scale(1.03);
 }
 
-.vnCharacter[data-scene="preTransformNeoMain"] {
-  right: clamp(62px, 9vw, 128px);
-  bottom: clamp(150px, 13vw, 196px);
-  width: min(25vw, 312px);
+.vnCharacter[data-scene="lion"],
+.vnCharacter[data-scene="lionGlitch"] {
+  right: clamp(82px, 12vw, 172px);
+  bottom: clamp(146px, 13vw, 196px);
+  width: min(28vw, 336px);
   height: auto;
-  aspect-ratio: 1086 / 1448;
+  aspect-ratio: 390 / 460;
 }
 
-.vnCharacter[data-scene="preTransformNeoTalk"] {
-  right: clamp(58px, 9vw, 124px);
-  bottom: clamp(158px, 13vw, 204px);
-  width: min(24vw, 292px);
-  height: auto;
-  aspect-ratio: 1 / 1;
+.vnCharacter[data-scene="lion"] .vnCharacterCrop,
+.vnCharacter[data-scene="lionGlitch"] .vnCharacterCrop {
+  overflow: visible;
+  animation: neoLionBreathe 4.6s ease-in-out infinite;
+  filter: drop-shadow(0 30px 36px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 34px rgba(245, 212, 135, 0.44));
 }
 
-.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterCrop,
-.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterCrop {
-  border-radius: 24px;
-  animation: neoCuteBounce 2.4s ease-in-out infinite;
-  filter: drop-shadow(0 28px 32px rgba(0, 0, 0, 0.58)) drop-shadow(0 0 24px rgba(245, 212, 135, 0.38));
+.vnCharacter[data-scene="lionGlitch"] .vnCharacterCrop {
+  animation: neoLionSneeze 1.28s cubic-bezier(.2, .8, .22, 1) infinite;
 }
 
-.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterCrop::after,
-.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterCrop::after {
+.vnCharacter[data-scene="lion"] .vnCharacterCrop::before,
+.vnCharacter[data-scene="lionGlitch"] .vnCharacterCrop::before {
   content: "";
   position: absolute;
-  inset: 11% 7% 6%;
-  z-index: 2;
-  pointer-events: none;
+  inset: 16% 2% 3%;
+  z-index: 0;
   border-radius: 999px;
-  background: radial-gradient(circle at 50% 82%, rgba(245, 212, 135, 0.22), transparent 48%);
-  mix-blend-mode: screen;
-}
-
-.vnCharacter[data-scene="preTransformNeoMain"] .vnCharacterImage,
-.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterImage {
-  object-fit: contain;
-  object-position: center center;
-  transform: none;
-}
-
-.vnCharacter[data-scene="preTransformNeoTalk"] .vnCharacterImage {
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: fill;
-}
-
-.vnCharacter[data-scene="transformingNeo"] {
-  right: clamp(26px, 6vw, 92px);
-  bottom: clamp(132px, 12vw, 182px);
-  width: min(45vw, 560px);
-  height: auto;
-  aspect-ratio: 1 / 1;
-}
-
-.vnCharacter[data-scene="transformingNeo"] .vnCharacterCrop {
-  animation: neoTransformRise 1.8s ease-in-out infinite alternate;
-  border-radius: 18px;
-  border: 1px solid rgba(245, 212, 135, 0.24);
   background:
-    radial-gradient(circle at 50% 70%, rgba(245, 212, 135, 0.2), transparent 44%),
-    radial-gradient(circle at 50% 38%, rgba(102, 126, 205, 0.22), transparent 48%),
-    #070b18 !important;
-  filter: drop-shadow(0 38px 48px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 42px rgba(245, 212, 135, 0.58));
+    radial-gradient(circle at 50% 56%, rgba(245, 212, 135, 0.24), transparent 48%),
+    conic-gradient(from 90deg, transparent, rgba(245, 212, 135, 0.38), transparent 34%, rgba(151, 177, 230, 0.22), transparent 68%);
+  filter: blur(1px);
+  opacity: 0.72;
+  animation: neoLionAura 6.8s linear infinite;
 }
 
-.vnCharacter[data-scene="transformingNeo"] .vnCharacterImage {
-  width: 100%;
-  height: 100%;
-  max-width: none;
-  object-fit: fill;
-  object-position: center center;
-  transform: none;
-}
-
-.vnCharacter[data-scene="humanNeo"] .vnCharacterImage {
-  transform: scale(1.04);
-}
-
-.vnTransformHud {
+.vnCharacter[data-scene="lionGlitch"] .vnCharacterCrop::after {
+  content: "ERROR: DIGNITY";
   position: absolute;
-  top: clamp(22px, 4vw, 46px);
-  right: clamp(20px, 5vw, 72px);
-  z-index: 6;
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 8px 14px;
-  align-items: center;
-  min-width: min(280px, 46vw);
-  border: 1px solid rgba(245, 212, 135, 0.5);
-  border-radius: 8px;
-  padding: 12px 14px;
-  color: #fff7de;
-  background:
-    radial-gradient(circle at 16% 18%, rgba(245, 212, 135, 0.18), transparent 38%),
-    linear-gradient(135deg, rgba(7, 12, 24, 0.84), rgba(38, 24, 60, 0.58)),
-    rgba(5, 8, 16, 0.76);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-.vnTransformHud span {
-  color: rgba(245, 212, 135, 0.9);
-  font-size: 0.72rem;
+  top: 4%;
+  right: -12%;
+  z-index: 3;
+  border: 1px solid rgba(255, 218, 143, 0.56);
+  border-radius: 6px;
+  padding: 5px 7px;
+  color: rgba(255, 245, 215, 0.9);
+  background: rgba(86, 14, 26, 0.68);
+  box-shadow: 0 0 18px rgba(245, 212, 135, 0.28);
+  font-size: 0.64rem;
   font-weight: 950;
   letter-spacing: 0.08em;
 }
 
-.vnTransformHud strong {
-  justify-self: end;
-  color: #fff7de;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 950;
-  line-height: 1;
-}
-
-.vnTransformHud i {
-  grid-column: 1 / -1;
+.vnCharacter[data-scene="lion"] .vnCharacterImage,
+.vnCharacter[data-scene="lionGlitch"] .vnCharacterImage {
   position: relative;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  z-index: 1;
+  object-fit: contain;
+  object-position: center center;
+  transform: scale(0.94);
 }
 
-.vnTransformHud i::before {
+.vnCharacter[data-scene="morph"] {
+  right: clamp(14px, 5vw, 82px);
+  bottom: clamp(210px, 19vw, 270px);
+  width: min(42vw, 540px);
+  height: min(58svh, 540px);
+}
+
+.vnCharacter[data-scene="morph"] .vnCharacterCrop {
+  overflow: visible;
+  animation: none;
+  filter: drop-shadow(0 36px 48px rgba(0, 0, 0, 0.72));
+}
+
+.vnMorphStage {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.vnMorphStage > * {
+  position: absolute;
+}
+
+.vnMorphRing {
+  left: 50%;
+  top: 57%;
+  width: min(34vw, 420px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(245, 212, 135, 0.46);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, transparent 48%, rgba(245, 212, 135, 0.2) 49%, transparent 54%),
+    conic-gradient(from 20deg, transparent, rgba(245, 212, 135, 0.68), transparent 28%, rgba(154, 178, 235, 0.34), transparent 68%);
+  filter: blur(0.2px) drop-shadow(0 0 20px rgba(245, 212, 135, 0.36));
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.62);
+  animation: neoMorphRing 2.5s ease-in-out forwards;
+}
+
+.vnMorphSilhouette {
+  left: 52%;
+  bottom: 8%;
+  width: min(28vw, 350px);
+  height: min(56svh, 520px);
+  border-radius: 48% 48% 34% 34%;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255, 246, 214, 0.58), transparent 16%),
+    linear-gradient(180deg, rgba(245, 212, 135, 0.26), rgba(115, 34, 48, 0.16) 44%, transparent 78%);
+  clip-path: polygon(38% 0, 62% 0, 70% 20%, 82% 42%, 72% 100%, 28% 100%, 18% 42%, 30% 20%);
+  filter: blur(16px);
+  opacity: 0;
+  transform: translateX(-50%) scaleY(0.68);
+  animation: neoMorphFlash 2.5s ease-in-out forwards;
+}
+
+.vnMorphLion {
+  position: absolute !important;
+  left: 16%;
+  bottom: 23%;
+  width: min(26vw, 320px);
+  height: min(42svh, 380px);
+  opacity: 1;
+  transform-origin: 50% 78%;
+  animation: neoLionDissolve 2.5s ease-in-out forwards;
+}
+
+.vnMorphLion .vnCharacterImage {
+  object-fit: contain;
+  object-position: center center;
+  transform: scale(0.94);
+}
+
+.vnMorphNeo {
+  position: absolute !important;
+  right: 0;
+  bottom: -2%;
+  width: min(38vw, 470px);
+  height: min(74svh, 680px);
+  opacity: 0;
+  transform-origin: 50% 86%;
+  animation: neoHumanReveal 2.5s cubic-bezier(.2, .82, .18, 1) forwards, neoHumanIdle 5.8s ease-in-out 2.55s infinite;
+}
+
+.vnMorphNeo .vnCharacterImage {
+  object-fit: contain;
+  object-position: center bottom;
+  transform: scale(1.02);
+}
+
+.vnMorphParticles,
+.vnMorphFlash {
+  inset: 0;
+  opacity: 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.vnMorphParticles {
+  background:
+    radial-gradient(circle at 34% 48%, rgba(245, 212, 135, 0.92) 0 2px, transparent 3px),
+    radial-gradient(circle at 44% 34%, rgba(255, 248, 214, 0.86) 0 1px, transparent 3px),
+    radial-gradient(circle at 56% 54%, rgba(155, 182, 236, 0.82) 0 2px, transparent 4px),
+    radial-gradient(circle at 62% 28%, rgba(245, 212, 135, 0.74) 0 1px, transparent 3px),
+    radial-gradient(circle at 72% 48%, rgba(255, 248, 214, 0.7) 0 2px, transparent 4px);
+  filter: drop-shadow(0 0 10px rgba(245, 212, 135, 0.8));
+  animation: neoMorphParticles 2.5s ease-out forwards;
+}
+
+.vnMorphFlash {
+  background:
+    radial-gradient(circle at 54% 48%, rgba(255, 246, 214, 0.86), transparent 18%),
+    linear-gradient(100deg, transparent 28%, rgba(245, 212, 135, 0.28), transparent 68%);
+  animation: neoMorphFlash 2.5s ease-in-out forwards;
+}
+
+.vnCharacter[data-scene="humanNeo"] {
+  right: clamp(4px, 4vw, 74px);
+  bottom: clamp(214px, 19vw, 274px);
+  width: min(35vw, 450px);
+  height: min(58svh, 540px);
+}
+
+.vnCharacter[data-scene="humanNeo"] .vnCharacterCrop {
+  overflow: visible;
+  animation: neoHumanIdle 5.8s ease-in-out infinite;
+  filter: drop-shadow(0 34px 44px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 28px rgba(245, 212, 135, 0.2));
+}
+
+.vnCharacter[data-scene="humanNeo"] .vnCharacterCrop::after {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
-  width: var(--neo-transform-progress, 0%);
-  border-radius: inherit;
-  background: linear-gradient(90deg, #f5d487, #9fbaff, #fff7de);
-  box-shadow: 0 0 18px rgba(245, 212, 135, 0.58);
+  inset: 7% 8% 4%;
+  z-index: 2;
+  border-radius: 999px;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 244, 203, 0.14), transparent 62%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+  animation: neoNeoAfterglow 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.vnCharacter[data-scene="humanNeo"] .vnCharacterImage {
+  object-fit: contain;
+  object-position: center bottom;
+  transform: scale(1.04);
 }
 
 .vnDialogueBox {
@@ -565,6 +635,38 @@
 
 .vnDialogueBox[data-speaker="narration"]::after {
   display: none;
+}
+
+.vnDialogueBox[data-speaker="system"] {
+  border-color: rgba(245, 212, 135, 0.58);
+  background:
+    linear-gradient(180deg, rgba(35, 28, 18, 0.94), rgba(6, 10, 20, 0.92)),
+    rgba(5, 8, 16, 0.92);
+}
+
+.vnDialogueBox[data-speaker="system"] .vnSpeaker span {
+  border-color: rgba(245, 212, 135, 0.62);
+  color: #fff5d7;
+  background: rgba(110, 72, 20, 0.58);
+}
+
+.vnDialogueBox[data-speaker="system"] .vnSpeaker strong {
+  color: #f4d58a;
+}
+
+.vnStage[data-effect="morph"] .vnDialogueBox {
+  animation: neoDialogueImpact 2.5s ease-out both;
+}
+
+.vnStage[data-effect="morph"] .vnDialogueBox::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(105deg, transparent 20%, rgba(245, 212, 135, 0.18), transparent 58%);
+  opacity: 0;
+  pointer-events: none;
+  animation: neoDialogueSweep 2.5s ease-out both;
 }
 
 .vnStage[data-phase="prologue"] .vnDialogueBox[data-speaker="customer"] {
@@ -3516,41 +3618,37 @@
     height: auto;
   }
 
-  .vnCharacter[data-scene="preTransformNeoMain"],
-  .vnCharacter[data-scene="preTransformNeoTalk"] {
+  .vnCharacter[data-scene="lion"],
+  .vnCharacter[data-scene="lionGlitch"] {
     right: 7vw;
-    bottom: 194px;
-    width: min(40vw, 198px);
+    bottom: 218px;
+    width: min(42vw, 204px);
   }
 
-  .vnCharacter[data-scene="transformingNeo"],
+  .vnCharacter[data-scene="morph"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: 2vw;
-    bottom: 340px;
-    width: min(52vw, 260px);
-    height: min(30svh, 252px);
+    right: -3vw;
+    bottom: 300px;
+    width: min(66vw, 312px);
+    height: min(40svh, 360px);
   }
 
-  .vnCharacter[data-scene="transformingNeo"] {
-    right: 4vw;
-    bottom: 348px;
-    width: min(58vw, 270px);
-    height: auto;
+  .vnMorphLion {
+    left: 2%;
+    bottom: 16%;
+    width: min(38vw, 176px);
+    height: min(28svh, 240px);
   }
 
-  .vnTransformHud {
-    top: calc(12px + env(safe-area-inset-top, 0px));
-    right: 78px;
-    min-width: min(216px, calc(100vw - 112px));
-    padding: 9px 10px;
+  .vnMorphNeo {
+    right: 0;
+    bottom: -8%;
+    width: min(58vw, 268px);
+    height: min(42svh, 360px);
   }
 
-  .vnTransformHud span {
-    font-size: 0.64rem;
-  }
-
-  .vnTransformHud strong {
-    font-size: 0.86rem;
+  .vnMorphRing {
+    width: min(58vw, 260px);
   }
 
   .vnDialogueBox {
@@ -3563,7 +3661,7 @@
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
     min-height: 172px;
-    padding: 16px;
+    padding: 16px 16px 92px;
   }
 
   .vnDialogueBox[data-speaker="customer"] {
@@ -3602,7 +3700,7 @@
   .vnStage[data-phase="prologue"] .vnControlRow {
     left: 12px;
     right: 12px;
-    bottom: 236px;
+    bottom: 28px;
     max-width: none;
     display: flex;
     align-items: center;
@@ -3633,13 +3731,17 @@
   }
 
   .vnStage[data-phase="prologue"] .vnStartButton {
-    max-width: min(278px, calc(100vw - 24px));
-    min-height: 64px;
-    flex: 1 1 auto;
+    max-width: min(100%, 100vw - 54px);
+    min-height: 58px;
+    grid-template-columns: 42px minmax(0, 1fr);
+    flex: 1 1 0;
+    padding: 8px 12px 8px 8px;
   }
 
   .vnStage[data-phase="prologue"] .vnGhostButton {
-    flex: 0 0 auto;
+    min-width: 54px;
+    flex: 0 0 54px;
+    padding-inline: 8px;
   }
 
   .vnStartButton .ctaOrbitFrame {
@@ -3695,8 +3797,8 @@
   }
 
   .vnCharacter[data-scene="hidden"],
-  .vnCharacter[data-scene="preTransformNeoMain"],
-  .vnCharacter[data-scene="preTransformNeoTalk"] {
+  .vnCharacter[data-scene="lion"],
+  .vnCharacter[data-scene="lionGlitch"] {
     right: 4vw;
     bottom: 226px;
     width: min(42vw, 168px);
@@ -3709,19 +3811,20 @@
     height: auto;
   }
 
-  .vnCharacter[data-scene="transformingNeo"],
+  .vnCharacter[data-scene="morph"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: 2vw;
-    bottom: 350px;
-    width: min(52vw, 202px);
-    height: min(28svh, 236px);
+    right: -5vw;
+    bottom: 324px;
+    width: min(68vw, 252px);
+    height: min(36svh, 312px);
   }
 
-  .vnCharacter[data-scene="transformingNeo"] {
-    right: 4vw;
-    bottom: 358px;
-    width: min(58vw, 224px);
-    height: auto;
+  .vnMorphNeo {
+    width: min(62vw, 228px);
+  }
+
+  .vnMorphLion {
+    width: min(40vw, 150px);
   }
 
   .vnDialogueBox {
@@ -3730,6 +3833,7 @@
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
     min-height: 184px;
+    padding-bottom: 96px;
   }
 
   .vnControlRow {
@@ -3737,7 +3841,7 @@
   }
 
   .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: 248px;
+    bottom: 28px;
   }
 }
 
@@ -3756,11 +3860,26 @@
   .operationMapRoom::before,
   .operationMapRoom::after,
   .operationLoadingDialogue::before,
-  .vnStage[data-effect="transform"]::after,
+  .vnStage[data-effect="morph"]::after,
   .vnCharacterCrop,
+  .vnMorphRing,
+  .vnMorphSilhouette,
+  .vnMorphLion,
+  .vnMorphNeo,
+  .vnMorphParticles,
+  .vnMorphFlash,
   .spriteActor[data-talking="true"] .spriteImageFrame,
   .typingCaret {
     animation: none;
+  }
+
+  .vnMorphLion {
+    opacity: 0;
+  }
+
+  .vnMorphNeo {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -3802,13 +3921,220 @@
   }
 }
 
-@keyframes neoTransformRise {
-  from {
-    transform: translateY(10px) scale(0.99);
+@keyframes neoLionBreathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
   }
 
-  to {
-    transform: translateY(-8px) scale(1.02);
+  50% {
+    transform: translateY(-6px) scale(1.018);
+  }
+}
+
+@keyframes neoLionSneeze {
+  0%,
+  42%,
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 30px 36px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 34px rgba(245, 212, 135, 0.44));
+  }
+
+  48% {
+    transform: translateY(3px) rotate(-1.2deg) scale(0.98);
+    filter: drop-shadow(0 24px 30px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 16px rgba(245, 212, 135, 0.32));
+  }
+
+  56% {
+    transform: translateY(-8px) rotate(2deg) scale(1.05);
+    filter: drop-shadow(0 34px 40px rgba(0, 0, 0, 0.72)) drop-shadow(0 0 54px rgba(245, 212, 135, 0.78));
+  }
+
+  66% {
+    transform: translateY(0) rotate(-0.6deg) scale(1.01);
+  }
+}
+
+@keyframes neoLionAura {
+  0%,
+  100% {
+    opacity: 0.52;
+    transform: rotate(0deg) scale(0.96);
+  }
+
+  50% {
+    opacity: 0.86;
+    transform: rotate(180deg) scale(1.06);
+  }
+}
+
+@keyframes neoMorphRing {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.62);
+  }
+
+  28% {
+    opacity: 0.86;
+    transform: translate(-50%, -50%) rotate(80deg) scale(0.94);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(220deg) scale(1.08);
+  }
+
+  100% {
+    opacity: 0.42;
+    transform: translate(-50%, -50%) rotate(360deg) scale(1.18);
+  }
+}
+
+@keyframes neoLionDissolve {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    filter: blur(0) brightness(1) saturate(1);
+    clip-path: inset(0 0 0 0);
+  }
+
+  34% {
+    opacity: 1;
+    transform: translate(2%, -2%) rotate(-1.5deg) scale(1.05);
+    filter: blur(0) brightness(1.28) saturate(1.2);
+  }
+
+  58% {
+    opacity: 0.72;
+    transform: translate(14%, -8%) rotate(2deg) scale(0.94);
+    filter: blur(2px) brightness(1.8) saturate(0.86);
+    clip-path: inset(0 0 22% 0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(36%, -18%) rotate(4deg) scale(0.72);
+    filter: blur(9px) brightness(2.1) saturate(0.4);
+    clip-path: inset(0 0 86% 0);
+  }
+}
+
+@keyframes neoHumanReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.82);
+    filter: blur(14px) brightness(1.8);
+    clip-path: inset(22% 14% 0 14%);
+  }
+
+  44% {
+    opacity: 0.18;
+    transform: translateY(10px) scale(0.94);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.03);
+    filter: blur(1.5px) brightness(1.16);
+    clip-path: inset(0 0 0 0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) brightness(1);
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes neoHumanIdle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-7px) rotate(0.35deg);
+  }
+}
+
+@keyframes neoMorphFlash {
+  0%,
+  20% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  44% {
+    opacity: 0.95;
+    transform: scale(1.04);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.16);
+  }
+}
+
+@keyframes neoMorphParticles {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.86);
+  }
+
+  36% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-68px) scale(1.18);
+  }
+}
+
+@keyframes neoNeoAfterglow {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: translateX(-8%);
+  }
+
+  50% {
+    opacity: 0.78;
+    transform: translateX(8%);
+  }
+}
+
+@keyframes neoDialogueImpact {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  6% {
+    transform: translateX(-3px);
+  }
+
+  12% {
+    transform: translateX(3px);
+  }
+
+  18% {
+    transform: translateX(0);
+  }
+}
+
+@keyframes neoDialogueSweep {
+  0%,
+  26%,
+  100% {
+    opacity: 0;
+    transform: translateX(-28%);
+  }
+
+  48% {
+    opacity: 1;
+    transform: translateX(18%);
   }
 }
 

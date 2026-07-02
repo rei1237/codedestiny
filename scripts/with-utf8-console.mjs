@@ -7,7 +7,8 @@ if (args.length === 0) {
   process.exit(2);
 }
 
-const [command, ...commandArgs] = args;
+const [rawCommand, ...commandArgs] = args;
+const command = process.platform === "win32" && rawCommand === "npm" ? "npm.cmd" : rawCommand;
 
 if (process.platform !== "win32") {
   const result = spawnSync(command, commandArgs, {

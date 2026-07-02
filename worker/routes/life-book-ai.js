@@ -335,8 +335,8 @@ function paymentVerifyFailed() {
 function getPricing() {
   const resolved = getBillingFeaturePricing({ featureKey: FEATURE_KEY });
   const pricing = resolved?.pricing || null;
-  const coinPrice = Number(pricing?.coinPrice || pricing?.cost || 300);
-  const amountKRW = Number(pricing?.amountKRW || pricing?.paymentAmount || 30000);
+  const coinPrice = Number(pricing?.coinPrice ?? pricing?.cost);
+  const amountKRW = Number(pricing?.amountKRW ?? pricing?.paymentAmount ?? pricing?.cashPrice);
   if (!resolved?.ok || !pricing || !Number.isInteger(coinPrice) || coinPrice <= 0 || !Number.isInteger(amountKRW) || amountKRW <= 0) {
     const error = new Error("life-book-ai price not found");
     error.code = "PRICE_NOT_FOUND";
