@@ -4,6 +4,7 @@ import {
   CONTENT_ENTITLEMENT_STATUSES,
   ContentEntitlement,
   SAJU_LOCKED_CONTENT_KEYS,
+  User,
 } from "./models.js";
 import { createHttpError } from "./http.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
@@ -40,6 +41,23 @@ const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
 
 function cleanKey(value, maxLen = 160) {
   return String(value || "").trim().slice(0, maxLen);
+}
+
+function uniqueKeys(values = []) {
+  return Array.from(new Set(values.map((value) => cleanKey(value)).filter(Boolean)));
+}
+
+function featureKeyVariants(value) {
+  const raw = cleanKey(value);
+  const normalized = normalizePaidFeatureKey(raw) || raw;
+  return uniqueKeys([
+    raw,
+    normalized,
+    raw.replace(/_/g, "-"),
+    raw.replace(/-/g, "_"),
+    normalized.replace(/_/g, "-"),
+    normalized.replace(/-/g, "_"),
+  ]);
 }
 
 function normalizeDateOrNull(value) {
@@ -200,6 +218,114 @@ export async function upsertPaidContentUnlock(input = {}) {
     contentKey: target.contentKey,
     scope: target.scope,
   });
+}
+
+export async function revokePaymentContentAccess({
+  payment = {},
+  revokedStatus = CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+  reason = "",
+  session = null,
+} = {}) {
+  const userId = cleanKey(payment?.userId, 120);
+  if (!userId) return { ok: false, skipped: true, reason: "MISSING_USER_ID" };
+
+  const pricing = payment?.pricingSnapshot && typeof payment.pricingSnapshot === "object"
+    ? payment.pricingSnapshot
+    : {};
+  const target = resolvePaidContentUnlockTarget({
+    userId,
+    profileId: pricing.profileId || pricing.selectedProfileId || payment.profileId,
+    serviceKey: pricing.serviceKey || pricing.serviceId || payment.productId,
+    contentKey: pricing.contentKey || pricing.contentId || payment.contentKey || payment.featureKey,
+    featureKey: payment.featureKey || pricing.featureKey || pricing.contentKey || pricing.contentId,
+    productKey: payment.productId,
+    scope: pricing.scope,
+  });
+  const paymentIds = uniqueKeys([
+    payment._id,
+    payment.id,
+    payment.impUid,
+    payment.merchantUid,
+    payment.paymentId,
+    payment.requestId,
+    payment.orderId,
+  ]);
+  const contentAliases = uniqueKeys([
+    target.contentKey,
+    ...(target.contentKey ? resolveContentKeyAliases(target.contentKey) : []),
+    pricing.contentId,
+    pricing.contentKey,
+    payment.featureKey,
+  ]);
+  const clauses = [];
+  if (paymentIds.length) {
+    clauses.push({ paymentId: { $in: paymentIds } }, { orderId: { $in: paymentIds } });
+  }
+  if (target.serviceKey && contentAliases.length) {
+    const contentClause = {
+      serviceKey: target.serviceKey,
+      contentKey: { $in: contentAliases },
+    };
+    if (target.profileId) contentClause.profileId = target.profileId;
+    clauses.push(contentClause);
+  }
+  if (!clauses.length) return { ok: false, skipped: true, reason: "MISSING_UNLOCK_TARGET" };
+
+  const status = Object.values(CONTENT_ENTITLEMENT_STATUSES).includes(revokedStatus)
+    ? revokedStatus
+    : CONTENT_ENTITLEMENT_STATUSES.REFUNDED;
+  const now = new Date();
+  const update = ContentEntitlement.updateMany(
+    {
+      userId,
+      source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
+      status: CONTENT_ENTITLEMENT_STATUSES.ACTIVE,
+      $or: clauses,
+    },
+    {
+      $set: {
+        status,
+        expiresAt: now,
+        updatedAt: now,
+      },
+    },
+  );
+  if (session) update.session(session);
+  const entitlementResult = await update;
+
+  const featureVariants = uniqueKeys([
+    ...featureKeyVariants(payment.featureKey),
+    ...featureKeyVariants(target.featureKey),
+    ...featureKeyVariants(resolveUnlockedFeatureKeyFromContentKey(target.contentKey)),
+  ]);
+  let userResult = null;
+  if (featureVariants.length) {
+    const userUpdate = User.updateOne(
+      { _id: userId },
+      {
+        $pull: {
+          paidFeatures: { $in: featureVariants },
+          unlockedFeatures: { $in: featureVariants },
+        },
+      },
+    );
+    if (session) userUpdate.session(session);
+    userResult = await userUpdate;
+  }
+
+  const entitlementModifiedCount = Number(entitlementResult?.modifiedCount || 0);
+  const entitlementMatchedCount = Number(entitlementResult?.matchedCount || entitlementResult?.n || 0);
+  const userModifiedCount = Number(userResult?.modifiedCount || userResult?.nModified || 0);
+  return {
+    ok: true,
+    unlockRevoked: entitlementModifiedCount > 0 || userModifiedCount > 0,
+    entitlementMatchedCount,
+    entitlementModifiedCount,
+    userModifiedCount,
+    status,
+    reason: cleanKey(reason, 160),
+    featureKeys: featureVariants,
+  };
 }
 
 export async function hasUnlockedContent({ userId, profileId, serviceKey, contentKey }) {

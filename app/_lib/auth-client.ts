@@ -79,6 +79,34 @@ function clearLegacyClientAccessToken() {
   }
 }
 
+function isMobileAppRuntime() {
+  if (typeof window === "undefined") return process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app";
+  const runtimeTarget = (window as unknown as { __CODE_DESTINY_RUNTIME_TARGET?: string }).__CODE_DESTINY_RUNTIME_TARGET
+    || document.documentElement.dataset.runtimeTarget
+    || process.env.NEXT_PUBLIC_RUNTIME_TARGET;
+  return runtimeTarget === "mobile-app";
+}
+
+function readMobileAppAccessToken() {
+  if (typeof window === "undefined" || !isMobileAppRuntime()) return "";
+  try {
+    return String(localStorage.getItem("fortune_auth_token") || "").trim();
+  } catch (e) {
+    return "";
+  }
+}
+
+function persistMobileAppAccessToken(accessToken: string) {
+  if (typeof window === "undefined" || !isMobileAppRuntime()) return;
+  const token = String(accessToken || "").trim();
+  if (!token) return;
+  try {
+    localStorage.setItem("fortune_auth_token", token);
+  } catch (e) {
+    void e;
+  }
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -144,6 +172,10 @@ export async function waitForAuthLogoutToSettle(timeoutMs = LOGOUT_TIMEOUT_MS) {
 
 function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
+  const accessToken = readMobileAppAccessToken();
+  if (accessToken && !headers.has("Authorization")) {
+    headers.set("Authorization", `Bearer ${accessToken}`);
+  }
 
   return new Request(targetUrl, {
     ...init,
@@ -238,7 +270,11 @@ async function refreshSession(apiBase: string) {
 
         try {
           const payload = (await response.json()) as { user?: unknown; accessToken?: string };
-          clearLegacyClientAccessToken();
+          if (isMobileAppRuntime() && payload?.accessToken) {
+            persistMobileAppAccessToken(payload.accessToken);
+          } else {
+            clearLegacyClientAccessToken();
+          }
           if (payload?.user) {
             persistSanitizedAuthUser(payload.user);
             publishAuthSync("login");

@@ -1020,102 +1020,101 @@
 
 .honeyRewardLayer {
   position: fixed;
-  top: calc(max(14px, env(safe-area-inset-top)) + 52px);
-  right: max(14px, env(safe-area-inset-right));
+  top: max(14px, env(safe-area-inset-top));
+  left: calc(max(14px, env(safe-area-inset-left)) + 74px);
   z-index: 9;
-  width: min(178px, calc(100vw - 28px));
+  width: min(154px, calc(100vw - 170px));
   pointer-events: none;
 }
 
 .honeyRewardLayer[data-mode="active"] {
+  left: max(14px, env(safe-area-inset-left));
   width: min(430px, calc(100vw - 28px));
 }
 
-.honeyRewardLayer[data-mode="active"] .honeyCounter,
-.honeyRewardLayer[data-mode="active"] .honeyAlbumButton,
+.honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
 .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-  max-width: 178px;
+  max-width: 154px;
   margin-left: auto;
 }
 
+.honeyHeaderDock {
+  box-sizing: border-box;
+  width: 100%;
+  display: grid;
+  gap: 4px;
+}
+
 .honeyCounter {
+  box-sizing: border-box;
   appearance: none;
   width: 100%;
-  min-height: 52px;
+  min-height: 25px;
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
-  gap: 8px;
-  padding: 6px 7px 6px 6px;
-  border: 1px solid rgba(255, 230, 156, 0.46);
+  gap: 5px;
+  padding: 3px 8px 3px 5px;
+  border: 1px solid rgba(255, 230, 156, 0.42);
   border-radius: 999px;
   color: rgba(255, 250, 253, 0.94);
   background:
-    radial-gradient(circle at 18% 8%, rgba(255, 244, 196, 0.34), transparent 34%),
-    radial-gradient(circle at 88% 18%, rgba(248, 187, 221, 0.24), transparent 32%),
-    linear-gradient(135deg, rgba(73, 34, 80, 0.9), rgba(22, 9, 35, 0.78));
+    radial-gradient(circle at 16% 8%, rgba(255, 244, 196, 0.28), transparent 34%),
+    linear-gradient(135deg, rgba(73, 34, 80, 0.86), rgba(22, 9, 35, 0.74));
   box-shadow:
-    0 18px 44px rgba(5, 2, 14, 0.32),
-    0 0 24px rgba(255, 210, 96, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -14px 24px rgba(9, 4, 20, 0.18);
-  backdrop-filter: blur(16px) saturate(1.16);
+    0 10px 24px rgba(5, 2, 14, 0.26),
+    0 0 16px rgba(255, 210, 96, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(14px) saturate(1.1);
   cursor: pointer;
   pointer-events: auto;
   text-align: left;
+  min-width: 0;
   transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
+    background 180ms ease,
     transform 180ms ease;
 }
 
-.honeyCounter[data-unlocked="true"] {
-  border-color: rgba(255, 218, 118, 0.62);
+.honeyCounter:hover {
+  transform: translateY(-0.5px);
+  border-color: rgba(255, 230, 156, 0.58);
   box-shadow:
-    0 18px 44px rgba(5, 2, 14, 0.32),
-    0 0 30px rgba(255, 210, 96, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
-}
-
-.honeyCounter:hover,
-.honeyCounter[data-open="true"] {
-  border-color: rgba(255, 230, 156, 0.62);
-  transform: translateY(-1px);
-  box-shadow:
-    0 20px 48px rgba(5, 2, 14, 0.36),
-    0 0 30px rgba(255, 210, 96, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    0 12px 26px rgba(5, 2, 14, 0.3),
+    0 0 18px rgba(255, 210, 96, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .honeyCounter:focus-visible {
-  outline: 2px solid rgba(255, 230, 156, 0.82);
-  outline-offset: 3px;
+  outline: 2px solid rgba(255, 230, 156, 0.76);
+  outline-offset: 2px;
 }
 
 .honeyAlbumButton {
+  box-sizing: border-box;
   width: 100%;
-  min-height: 38px;
+  min-height: 25px;
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 7px;
-  margin-top: 8px;
-  padding: 7px 10px;
+  gap: 4px;
+  padding: 3px 6px;
   border: 1px solid rgba(165, 213, 255, 0.34);
   border-radius: 999px;
   color: rgba(255, 248, 255, 0.92);
   background:
-    radial-gradient(circle at 18% 0%, rgba(255, 233, 177, 0.2), transparent 30%),
-    linear-gradient(135deg, rgba(18, 31, 64, 0.9), rgba(58, 34, 88, 0.86));
+    radial-gradient(circle at 18% 0%, rgba(255, 233, 177, 0.18), transparent 30%),
+    linear-gradient(135deg, rgba(18, 31, 64, 0.86), rgba(58, 34, 88, 0.78));
   box-shadow:
-    0 14px 32px rgba(5, 2, 14, 0.28),
-    0 0 24px rgba(165, 213, 255, 0.14),
+    0 10px 24px rgba(5, 2, 14, 0.24),
+    0 0 16px rgba(165, 213, 255, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px) saturate(1.1);
   font-family: var(--tea-font-playful);
-  font-size: 0.76rem;
+  font-size: 0.62rem;
   font-weight: 900;
   cursor: pointer;
   pointer-events: auto;
+  min-width: 0;
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -1126,17 +1125,17 @@
 .honeyAlbumButton[data-unlocked="true"] {
   border-color: rgba(255, 233, 177, 0.5);
   background:
-    radial-gradient(circle at 20% 0%, rgba(255, 244, 196, 0.28), transparent 30%),
-    linear-gradient(135deg, rgba(77, 47, 107, 0.9), rgba(31, 28, 76, 0.88));
+    radial-gradient(circle at 20% 0%, rgba(255, 244, 196, 0.24), transparent 30%),
+    linear-gradient(135deg, rgba(77, 47, 107, 0.86), rgba(31, 28, 76, 0.82));
 }
 
 .honeyAlbumButton:hover,
 .honeyAlbumButton:focus-visible {
-  transform: translateY(-1px);
+  transform: translateY(-0.5px);
   border-color: rgba(255, 233, 177, 0.58);
   box-shadow:
-    0 18px 38px rgba(5, 2, 14, 0.32),
-    0 0 30px rgba(165, 213, 255, 0.18),
+    0 8px 18px rgba(5, 2, 14, 0.2),
+    0 0 18px rgba(165, 213, 255, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
   outline: none;
 }
@@ -1150,18 +1149,18 @@
 }
 
 .honeyAlbumButton em {
-  min-width: 36px;
-  padding: 4px 7px;
+  min-width: 28px;
+  padding: 2px 5px;
   border-radius: 999px;
   color: rgba(19, 22, 46, 0.92);
   background: linear-gradient(135deg, #fff7d2, #a5d5ff);
-  font-size: 0.63rem;
+  font-size: 0.52rem;
   font-style: normal;
   text-align: center;
 }
 
 .honeyCounterIcon {
-  width: 42px;
+  width: 24px;
   aspect-ratio: 1;
   position: relative;
   display: grid;
@@ -1211,9 +1210,10 @@
   display: block;
   color: rgba(255, 239, 176, 0.84);
   font-family: var(--tea-font-playful);
-  font-size: 0.68rem;
+  font-size: 0.52rem;
   font-weight: 800;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .honeyCounter strong {
@@ -1221,10 +1221,11 @@
   margin-top: 2px;
   color: #fff8df;
   font-family: var(--tea-font-premium);
-  font-size: 1.12rem;
+  font-size: 0.68rem;
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 14px rgba(255, 218, 118, 0.28);
+  white-space: nowrap;
 }
 
 .honeyCounter em {
@@ -9036,40 +9037,56 @@
   }
 
   .honeyRewardLayer {
-    top: calc(max(14px, env(safe-area-inset-top)) + 52px);
-    right: 10px;
-    width: min(162px, calc(100vw - 20px));
+    top: max(14px, env(safe-area-inset-top));
+    left: calc(max(10px, env(safe-area-inset-left)) + 72px);
+    width: min(150px, calc(100vw - 168px));
   }
 
   .honeyRewardLayer[data-mode="active"] {
+    left: 10px;
     width: min(360px, calc(100vw - 20px));
   }
 
-  .honeyRewardLayer[data-mode="active"] .honeyCounter,
-  .honeyRewardLayer[data-mode="active"] .honeyAlbumButton,
+  .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
   .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-    max-width: 162px;
+    max-width: 150px;
+  }
+
+  .honeyHeaderDock {
+    gap: 3px;
   }
 
   .honeyCounter {
-    grid-template-columns: 38px minmax(0, 1fr) auto;
-    min-height: 48px;
-    gap: 7px;
-    padding: 5px 6px 5px 5px;
+    grid-template-columns: 22px minmax(0, 1fr);
+    min-height: 24px;
+    gap: 4px;
+    padding: 3px 7px 3px 5px;
   }
 
   .honeyCounterIcon {
-    width: 38px;
+    width: 22px;
+  }
+
+  .honeyCounter span {
+    font-size: 0.5rem;
   }
 
   .honeyCounter strong {
-    font-size: 1rem;
+    font-size: 0.64rem;
   }
 
-  .honeyCounter em {
-    min-width: 32px;
-    padding: 4px 6px;
+  .honeyAlbumButton {
+    grid-template-columns: 14px minmax(0, 1fr) auto;
+    min-height: 24px;
+    gap: 4px;
+    padding: 3px 6px;
     font-size: 0.6rem;
+  }
+
+  .honeyAlbumButton em {
+    min-width: 27px;
+    padding: 2px 5px;
+    font-size: 0.5rem;
   }
 
   .honeyInfoPanel {

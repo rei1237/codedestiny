@@ -380,6 +380,7 @@ function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOve
 }
 
 const handleAuthRoutes = createLazyRouteHandler("./routes/auth.js", () => import("./routes/auth.js"), "handleAuthRoutes");
+const handleAppStoreRoutes = createLazyRouteHandler("./routes/app-store.js", () => import("./routes/app-store.js"), "handleAppStoreRoutes", "api/app-store");
 const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => import("./routes/admin.js"), "handleAdminRoutes");
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
@@ -1037,6 +1038,10 @@ export default {
 
       if (url.pathname === "/api/auth" || url.pathname.startsWith("/api/auth/")) {
         return withCorsHeaders(request, env, await handleAuthRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/app-store" || url.pathname.startsWith("/api/app-store/")) {
+        return withCorsHeaders(request, env, await handleAppStoreRoutes(request, env));
       }
 
       if (url.pathname === "/api/me/payment-phone") {

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import MobileAppActions from "./MobileAppActions";
 import MobileAppRuntimeBridge from "./MobileAppRuntimeBridge";
 import { listServiceFeatures } from "@/app/_lib/serviceFeatureRegistry";
+import { FeatureMarketingLink } from "@/app/components/FeatureMarketingDetailModal";
 
 export const metadata = {
   title: "Code Destiny App",
@@ -65,6 +67,8 @@ export default function CodeDestinyMobileAppPage() {
           </div>
         </div>
 
+        <MobileAppActions />
+
         <section className="grid gap-3" aria-label="앱 운세 목록">
           <div className="flex items-center justify-between gap-3">
             <h2 className="m-0 text-sm font-black tracking-[0.08em] text-slate-100">열려 있는 길</h2>
@@ -74,9 +78,21 @@ export default function CodeDestinyMobileAppPage() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             {features.map((feature) => (
-              <Link
+              <FeatureMarketingLink
                 key={feature.slug}
                 href={normalizeLaunchRoute(feature.launchRoute)}
+                target={{
+                  title: feature.title,
+                  subtitle: feature.subtitle,
+                  description: feature.description,
+                  href: normalizeLaunchRoute(feature.launchRoute),
+                  slug: feature.slug,
+                  featureKey: feature.featureKey,
+                  category: feature.category,
+                  accessType: feature.accessType,
+                  priceLabel: feature.priceLabel,
+                  coinPrice: feature.coinPrice,
+                }}
                 className="grid min-h-[118px] content-between rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-left no-underline shadow-[0_10px_30px_rgba(0,0,0,0.2)]"
               >
                 <span className="text-sm font-black leading-snug text-[#fff3c4]">{feature.title}</span>
@@ -84,7 +100,7 @@ export default function CodeDestinyMobileAppPage() {
                 <span className="text-[11px] font-black text-emerald-200">
                   {feature.accessType === "free" ? "바로 열림" : "달빛 결제"}
                 </span>
-              </Link>
+              </FeatureMarketingLink>
             ))}
           </div>
         </section>

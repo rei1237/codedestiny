@@ -114,6 +114,33 @@ const ADMIN_PROMPT_COMMON_DOMAINS = new Set([
   "life_direction",
   "personality",
 ]);
+
+function isProductionAdminEnv(env) {
+  const value = String(
+    getEnv(env, "NODE_ENV")
+    || getEnv(env, "ENVIRONMENT")
+    || getEnv(env, "CF_PAGES_BRANCH")
+    || ""
+  ).trim().toLowerCase();
+  return value === "production" || value === "main";
+}
+
+function isPlaceholderAdminSecret(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return !normalized
+    || normalized.includes("placeholder")
+    || normalized.includes("change_me")
+    || normalized.includes("your_")
+    || normalized.includes("example");
+}
+
+function resolveFlowerAdminSecret(env) {
+  const secret = String(getEnv(env, "FLOWER_ADMIN_SECRET") || "").trim();
+  if (isProductionAdminEnv(env) && isPlaceholderAdminSecret(secret)) {
+    throw createHttpError(503, "관리자 보안 키가 설정되지 않았습니다.", { code: "ADMIN_SECRET_NOT_CONFIGURED" });
+  }
+  return secret || "flower-admin-dev-secret-placeholder-000000";
+}
 const ADMIN_GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
 const ADMIN_JI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 const ADMIN_ELEMENT_META = Object.freeze({
@@ -2897,10 +2924,12 @@ async function verifyFlowerAdminToken(request, env) {
   const signatureHex = token.slice(dotIdx + 1);
   if (!/^[a-f0-9]{64}$/i.test(signatureHex)) return false;
 
-  const expectedHex = await hmacSha256Hex(
-    payloadB64,
-    String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000"),
-  );
+  let expectedHex = "";
+  try {
+    expectedHex = await hmacSha256Hex(payloadB64, resolveFlowerAdminSecret(env));
+  } catch (error) {
+    return false;
+  }
 
   if (!timingSafeEqualText(expectedHex, signatureHex.toLowerCase())) return false;
 
@@ -4211,7 +4240,7 @@ async function issueFlowerAdminToken(env) {
   const now = Math.floor(Date.now() / 1000);
   const payload = JSON.stringify({ v: 1, issued: now, exp: now + FLOWER_TOKEN_TTL_SEC });
   const payloadB64 = base64urlEncode(payload);
-  const secret = String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
+  const secret = resolveFlowerAdminSecret(env);
   const signature = await hmacSha256Hex(payloadB64, secret);
   return `${payloadB64}.${signature}`;
 }

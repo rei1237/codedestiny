@@ -548,24 +548,6 @@
   transform: rotate(45deg);
 }
 
-.vnDialogueBox[data-speaker="inner"] {
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  border-color: rgba(159, 186, 255, 0.5);
-  background:
-    radial-gradient(circle at 8% 22%, rgba(159, 186, 255, 0.18), transparent 34%),
-    linear-gradient(180deg, rgba(7, 12, 28, 0.92), rgba(9, 14, 30, 0.88)),
-    rgba(5, 8, 16, 0.88);
-}
-
-.vnDialogueBox[data-speaker="inner"]::after {
-  right: auto;
-  left: clamp(44px, 8vw, 92px);
-  border-color: rgba(159, 186, 255, 0.5);
-  background: rgba(7, 12, 28, 0.92);
-}
-
 .vnDialogueBox[data-speaker="customer"] {
   border-color: rgba(168, 186, 216, 0.42);
   color: #edf4ff;
@@ -592,26 +574,10 @@
     rgba(5, 8, 16, 0.92);
 }
 
-.vnStage[data-phase="prologue"] .vnDialogueBox[data-speaker="inner"] {
-  border-color: rgba(159, 186, 255, 0.54);
-  background:
-    radial-gradient(circle at 8% 22%, rgba(159, 186, 255, 0.14), transparent 34%),
-    linear-gradient(180deg, rgba(7, 12, 28, 0.96), rgba(9, 14, 30, 0.9)),
-    rgba(5, 8, 16, 0.9);
-}
-
 .vnDialogueContent {
   display: grid;
   gap: 10px;
   min-width: 0;
-}
-
-.vnInnerVoiceAvatar {
-  width: clamp(58px, 7vw, 82px);
-  height: auto;
-  align-self: center;
-  filter: drop-shadow(0 0 18px rgba(159, 186, 255, 0.42)) drop-shadow(0 12px 18px rgba(0, 0, 0, 0.34));
-  animation: neoInnerVoicePulse 2.8s ease-in-out infinite;
 }
 
 .vnDialogueBox:focus-visible,
@@ -668,8 +634,7 @@
   line-height: 1.72;
 }
 
-.vnDialogueBox[data-speaker="customer"] .vnSpeaker span,
-.vnDialogueBox[data-speaker="inner"] .vnSpeaker span {
+.vnDialogueBox[data-speaker="customer"] .vnSpeaker span {
   border-color: rgba(214, 188, 118, 0.58);
   background: rgba(12, 18, 34, 0.64);
 }
@@ -682,10 +647,6 @@
 
 .vnDialogueBox[data-speaker="customer"] .vnSpeaker strong {
   color: #cbd9f6;
-}
-
-.vnDialogueBox[data-speaker="inner"] .vnSpeaker strong {
-  color: #d9e4ff;
 }
 
 .vnDialogueBox[data-speaker="narration"] .vnSpeaker strong {
@@ -750,12 +711,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 10px;
   max-width: calc(100% - clamp(40px, 8vw, 116px));
 }
 
 .vnStage[data-phase="prologue"] .vnControlRow {
-  bottom: clamp(360px, 30vw, 420px);
+  bottom: clamp(410px, 34vw, 470px);
+  max-width: min(520px, calc(100% - clamp(40px, 8vw, 116px)));
 }
 
 .vnGhostButton {
@@ -3603,26 +3566,12 @@
     padding: 16px;
   }
 
-  .vnDialogueBox[data-speaker="inner"] {
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: 10px;
-    padding-left: 12px;
-  }
-
-  .vnDialogueBox[data-speaker="inner"]::after {
-    left: 36px;
-  }
-
   .vnDialogueBox[data-speaker="customer"] {
     min-height: 132px;
   }
 
   .vnDialogueBox[data-speaker="customer"][data-character="shadow"]::after {
     right: clamp(48px, 22vw, 118px);
-  }
-
-  .vnInnerVoiceAvatar {
-    width: 48px;
   }
 
   .vnDialogueBox p {
@@ -3641,20 +3590,34 @@
 
   .vnControlRow {
     right: 12px;
-    left: auto;
+    left: 12px;
     bottom: 216px;
-    max-width: min(336px, calc(100vw - 24px));
-    align-items: flex-end;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: 540px;
+    left: 12px;
+    right: 12px;
+    bottom: 236px;
+    max-width: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
   }
 
   .vnGhostButton {
     min-height: 42px;
     padding: 9px 12px;
     font-size: 0.76rem;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .vnStartButton {
@@ -3666,11 +3629,17 @@
     line-height: 1.2;
     text-align: center;
     white-space: normal;
+    flex: 1 1 auto;
   }
 
   .vnStage[data-phase="prologue"] .vnStartButton {
     max-width: min(278px, calc(100vw - 24px));
     min-height: 64px;
+    flex: 1 1 auto;
+  }
+
+  .vnStage[data-phase="prologue"] .vnGhostButton {
+    flex: 0 0 auto;
   }
 
   .vnStartButton .ctaOrbitFrame {
@@ -3763,20 +3732,12 @@
     min-height: 184px;
   }
 
-  .vnDialogueBox[data-speaker="inner"] {
-    grid-template-columns: 42px minmax(0, 1fr);
-  }
-
-  .vnInnerVoiceAvatar {
-    width: 42px;
-  }
-
   .vnControlRow {
     bottom: 226px;
   }
 
   .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: 600px;
+    bottom: 248px;
   }
 }
 
@@ -3796,7 +3757,6 @@
   .operationMapRoom::after,
   .operationLoadingDialogue::before,
   .vnStage[data-effect="transform"]::after,
-  .vnInnerVoiceAvatar,
   .vnCharacterCrop,
   .spriteActor[data-talking="true"] .spriteImageFrame,
   .typingCaret {
@@ -3827,19 +3787,6 @@
 
   70% {
     transform: translateY(-2px) scale(0.998);
-  }
-}
-
-@keyframes neoInnerVoicePulse {
-  0%,
-  100% {
-    opacity: 0.82;
-    transform: translateY(0) scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(-3px) scale(1.04);
   }
 }
 

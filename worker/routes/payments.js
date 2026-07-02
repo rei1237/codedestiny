@@ -31,6 +31,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
+import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -1181,23 +1182,35 @@ async function handleSinglePaymentCancel(request, env, auth) {
   const partial = isPartialSingleCancel({ requestedAmount, paidAmount, cancelResult });
   const orderState = partial ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED : SINGLE_PAYMENT_ORDER_STATES.CANCELLED;
   const status = partial ? "refunded" : "cancelled";
+  const revocation = partial
+    ? { unlockRevoked: false, adminReviewRequired: true }
+    : await revokeSinglePaymentContentAccess(paymentRecord, {
+      status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
+      reason: "admin_single_payment_cancellation",
+    });
+  const adminReviewRequired = partial || revocation.adminReviewRequired === true;
   const updatedPayment = await Payment.findByIdAndUpdate(paymentRecord._id, {
     $set: {
       status,
       orderState,
       source: "system",
       rawPortOne: cancelResult,
-      "pricingSnapshot.cancellationReviewRequired": true,
-      "pricingSnapshot.unlockRevoked": false,
+      "pricingSnapshot.cancellationReviewRequired": adminReviewRequired,
+      "pricingSnapshot.unlockRevoked": revocation.unlockRevoked === true,
       "pricingSnapshot.cancelledBy": String(auth.userId || "admin"),
       "pricingSnapshot.cancelReason": reason,
       "pricingSnapshot.cancelAmount": requestedAmount || paidAmount,
       "pricingSnapshot.cancelledAt": new Date().toISOString(),
+      "metadata.unlockRevoked": revocation.unlockRevoked === true,
+      "metadata.unlockRevocationStatus": revocation.status || (partial ? "" : CONTENT_ENTITLEMENT_STATUSES.CANCELLED),
+      "metadata.unlockRevocationError": revocation.error || "",
       failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
       failureMessage: partial
         ? "Partial cancellation completed. Unlock is not revoked automatically."
-        : "Cancellation completed. Unlock is not revoked automatically.",
-      failureStage: "single_cancel_admin_review",
+        : (adminReviewRequired
+          ? "Cancellation completed. Unlock revocation requires administrator review."
+          : "Cancellation completed. Unlock was revoked."),
+      failureStage: adminReviewRequired ? "single_cancel_admin_review" : "single_cancel_unlock_revoked",
       lastErrorAt: new Date(),
     },
     $inc: { confirmAttempts: 1 },
@@ -1207,8 +1220,8 @@ async function handleSinglePaymentCancel(request, env, auth) {
     ok: true,
     idempotent: false,
     status: orderState,
-    unlockRevoked: false,
-    adminReviewRequired: true,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired,
     payment: formatPaymentResponse(updatedPayment),
   });
 }
@@ -1269,6 +1282,126 @@ async function upsertSinglePaymentUnlockRecord({ payment, paidAt }) {
   ).lean();
 }
 
+function buildSinglePaymentRefundIdempotencyKey(payment, jobId = "no-job") {
+  const paymentId = String(payment?.impUid || payment?.merchantUid || payment?._id || "no-payment").trim();
+  const serviceId = String(payment?.pricingSnapshot?.serviceId || payment?.productId || payment?.featureKey || "unknown-service").trim();
+  return `refund:${paymentId}:${serviceId}:${jobId || "no-job"}`.slice(0, 220);
+}
+
+function logPaidServicePaymentEvent(marker, payment = {}, extras = {}) {
+  try {
+    console.info(marker, JSON.stringify({
+      userId: String(payment?.userId || extras.userId || ""),
+      profileId: String(payment?.pricingSnapshot?.profileId || extras.profileId || ""),
+      serviceId: String(payment?.pricingSnapshot?.serviceId || payment?.productId || payment?.featureKey || extras.serviceId || ""),
+      paymentId: String(payment?.impUid || payment?.merchantUid || extras.paymentId || ""),
+      merchantUid: String(payment?.merchantUid || extras.merchantUid || ""),
+      impUid: String(payment?.impUid || extras.impUid || ""),
+      jobId: String(extras.jobId || "no-job"),
+      amount: Number(payment?.paymentAmount || extras.amount || 0),
+      deliveryStatus: String(extras.deliveryStatus || ""),
+      refundStatus: String(extras.refundStatus || ""),
+      failureReason: String(extras.failureReason || payment?.failureMessage || ""),
+    }));
+  } catch (_) {
+    console.info(marker);
+  }
+}
+
+async function autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, reasonMessage, failureStage) {
+  if (!payment?._id) return { refunded: false, reason: "PAYMENT_MISSING" };
+  if (payment.status === "cancelled" || payment.orderState === SINGLE_PAYMENT_ORDER_STATES.CANCELLED) {
+    logPaidServicePaymentEvent("[PaidService Duplicate Refund Blocked]", payment, {
+      deliveryStatus: "refunded",
+      refundStatus: "refunded",
+      failureReason: reasonMessage,
+    });
+    return { refunded: true, idempotent: true, payment };
+  }
+
+  const refundIdempotencyKey = buildSinglePaymentRefundIdempotencyKey(payment);
+  logPaidServicePaymentEvent("[PaidService Auto Refund Requested]", payment, {
+    deliveryStatus: "refund_pending",
+    refundStatus: "pending",
+    failureReason: reasonMessage,
+  });
+
+  try {
+    const canceledPortOne = await cancelPortOnePayment(env, {
+      impUid: payment.impUid || payment.merchantUid,
+      merchantUid: payment.merchantUid || payment.impUid,
+      reason: reasonMessage,
+      checksum: Number(payment.paymentAmount || 0) || undefined,
+      idempotencyKey: refundIdempotencyKey,
+    });
+
+    const now = new Date();
+    const revocation = await revokeSinglePaymentContentAccess(payment, {
+      status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+      reason: reasonCode,
+    });
+    const canceledPayment = await Payment.findByIdAndUpdate(
+      payment._id,
+      {
+        $set: {
+          impUid: payment.impUid || payment.merchantUid || "",
+          merchantUid: payment.merchantUid || payment.impUid || "",
+          paymentAmount: Number(payment.paymentAmount || 0),
+          status: "cancelled",
+          orderState: SINGLE_PAYMENT_ORDER_STATES.CANCELLED,
+          rawPortOne: canceledPortOne,
+          failureCode: reasonCode,
+          failureMessage: reasonMessage,
+          failureStage,
+          lastErrorAt: now,
+          "metadata.deliveryStatus": "refunded",
+          "metadata.refundStatus": "refunded",
+          "metadata.refundIdempotencyKey": refundIdempotencyKey,
+          "metadata.autoRefundedAt": now,
+          "metadata.refundReason": reasonMessage,
+          "metadata.unlockRevoked": revocation.unlockRevoked === true,
+          "metadata.unlockRevocationStatus": revocation.status || CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+          "metadata.unlockRevocationError": revocation.error || "",
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+
+    logPaidServicePaymentEvent("[PaidService Auto Refund Success]", canceledPayment || payment, {
+      deliveryStatus: "refunded",
+      refundStatus: "refunded",
+      failureReason: reasonMessage,
+    });
+    return { refunded: true, payment: canceledPayment || payment };
+  } catch (error) {
+    const now = new Date();
+    const failedPayment = await Payment.findByIdAndUpdate(
+      payment._id,
+      {
+        $set: {
+          orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
+          failureCode: `${reasonCode}_refund_failed`.slice(0, 120),
+          failureMessage: String(error?.message || reasonMessage || "Automatic refund failed.").slice(0, 500),
+          failureStage,
+          lastErrorAt: now,
+          "metadata.deliveryStatus": "refund_failed",
+          "metadata.refundStatus": "refund_failed",
+          "metadata.refundIdempotencyKey": refundIdempotencyKey,
+          "metadata.refundFailedAt": now,
+          "metadata.refundFailureReason": String(error?.message || error || "").slice(0, 500),
+        },
+      },
+      { returnDocument: "after" },
+    ).lean();
+    logPaidServicePaymentEvent("[PaidService Auto Refund Failed]", failedPayment || payment, {
+      deliveryStatus: "refund_failed",
+      refundStatus: "refund_failed",
+      failureReason: String(error?.message || reasonMessage || ""),
+    });
+    return { refunded: false, refundFailed: true, payment: failedPayment || payment, reason: String(error?.message || error || "") };
+  }
+}
+
 async function recordUserPaidFeature(userId, featureKey, options = {}) {
   const key = String(featureKey || "").trim();
   if (!userId || !key) return null;
@@ -1282,6 +1415,32 @@ async function recordUserPaidFeature(userId, featureKey, options = {}) {
     },
     options?.session ? { session: options.session } : undefined,
   );
+}
+
+async function revokeSinglePaymentContentAccess(payment, { status = CONTENT_ENTITLEMENT_STATUSES.REFUNDED, reason = "", session = null } = {}) {
+  if (!payment?._id && !payment?.merchantUid && !payment?.impUid) {
+    return { unlockRevoked: false, adminReviewRequired: true, reason: "PAYMENT_MISSING" };
+  }
+  try {
+    const result = await revokePaymentContentAccess({
+      payment,
+      revokedStatus: status,
+      reason,
+      session,
+    });
+    return {
+      ...result,
+      unlockRevoked: result.unlockRevoked === true,
+      adminReviewRequired: result.ok !== true,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      unlockRevoked: false,
+      adminReviewRequired: true,
+      error: String(error?.message || error || "Unlock revocation failed.").slice(0, 500),
+    };
+  }
 }
 
 function buildSafePortOneLookupLog(portOnePayment = {}) {
@@ -1349,16 +1508,23 @@ async function handleSinglePaymentComplete(request, env, auth) {
       entitlement = await upsertSinglePaymentUnlockRecord({ payment: order, paidAt });
       await recordUserPaidFeature(order.userId, order.featureKey);
     } catch (error) {
-      await Payment.findByIdAndUpdate(order._id, {
-        $set: {
-          orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
-          failureCode: "unlock_upsert_failed",
-          failureMessage: String(error?.message || "Unlock upsert failed."),
-          failureStage: "single_unlock_upsert",
-          lastErrorAt: new Date(),
-        },
-      }).catch(() => {});
-      throw error;
+      const reasonMessage = String(error?.message || "Unlock upsert failed.");
+      const refund = await autoRefundSinglePaymentDeliveryFailure(
+        env,
+        order,
+        "unlock_upsert_failed",
+        reasonMessage,
+        "single_unlock_upsert",
+      );
+      return json({
+        ok: false,
+        code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
+        message: refund.refunded
+          ? "Paid content access could not be granted. The payment was fully refunded automatically."
+          : "Paid content access could not be granted. Automatic refund requires administrator review.",
+        refundStatus: refund.refunded ? "refunded" : "refund_failed",
+        payment: formatPaymentResponse(refund.payment || order),
+      }, { status: refund.refunded ? 502 : 500 });
     }
     await Payment.findByIdAndUpdate(order._id, {
       $set: { orderState: SINGLE_PAYMENT_ORDER_STATES.UNLOCKED },
@@ -1605,16 +1771,23 @@ async function handleSinglePaymentComplete(request, env, auth) {
       entitlement = await upsertSinglePaymentUnlockRecord({ payment: finalPayment, paidAt });
       await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
     } catch (error) {
-      await Payment.findByIdAndUpdate(finalPayment._id, {
-        $set: {
-          orderState: SINGLE_PAYMENT_ORDER_STATES.ERROR,
-          failureCode: "unlock_upsert_failed",
-          failureMessage: String(error?.message || "Unlock upsert failed."),
-          failureStage: "single_unlock_upsert",
-          lastErrorAt: new Date(),
-        },
-      }).catch(() => {});
-      throw error;
+      const reasonMessage = String(error?.message || "Unlock upsert failed.");
+      const refund = await autoRefundSinglePaymentDeliveryFailure(
+        env,
+        finalPayment,
+        "unlock_upsert_failed",
+        reasonMessage,
+        "single_unlock_upsert",
+      );
+      return json({
+        ok: false,
+        code: refund.refunded ? "AUTO_REFUNDED_UNLOCK_UPSERT_FAILED" : "AUTO_REFUND_FAILED_UNLOCK_UPSERT_FAILED",
+        message: refund.refunded
+          ? "Paid content access could not be granted. The payment was fully refunded automatically."
+          : "Paid content access could not be granted. Automatic refund requires administrator review.",
+        refundStatus: refund.refunded ? "refunded" : "refund_failed",
+        payment: formatPaymentResponse(refund.payment || finalPayment),
+      }, { status: refund.refunded ? 502 : 500 });
     }
   } else {
     await recordUserPaidFeature(finalPayment.userId, finalPayment.featureKey);
@@ -1777,7 +1950,7 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
     merchantUid: paymentId,
     paymentType: "digital_content",
     accessType: "single_purchase",
-  }).select("_id status").lean();
+  }).lean();
   if (!current) {
     await writeFailureLog({
       request,
@@ -1793,21 +1966,35 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
   }
 
   const completed = current.status === "success" || current.status === "fulfilled";
-  const nextStatus = completed ? current.status : (partial ? "refunded" : "cancelled");
+  const nextStatus = partial ? (completed ? current.status : "refunded") : "cancelled";
   const nextOrderState = partial
     ? SINGLE_PAYMENT_ORDER_STATES.PARTIAL_CANCELLED
     : SINGLE_PAYMENT_ORDER_STATES.CANCELLED;
+  const revocation = partial
+    ? { unlockRevoked: false, adminReviewRequired: true }
+    : await revokeSinglePaymentContentAccess(current, {
+      status: CONTENT_ENTITLEMENT_STATUSES.CANCELLED,
+      reason: "webhook_payment_cancellation",
+    });
+  const adminReviewRequired = partial || revocation.adminReviewRequired === true;
   await Payment.findByIdAndUpdate(current._id, {
     $set: {
       status: nextStatus,
       orderState: nextOrderState,
       source: "webhook",
       rawPortOne: body,
+      "metadata.unlockRevoked": revocation.unlockRevoked === true,
+      "metadata.unlockRevocationStatus": revocation.status || (partial ? "" : CONTENT_ENTITLEMENT_STATUSES.CANCELLED),
+      "metadata.unlockRevocationError": revocation.error || "",
+      "pricingSnapshot.unlockRevoked": revocation.unlockRevoked === true,
+      "pricingSnapshot.cancellationReviewRequired": adminReviewRequired,
       failureCode: partial ? "partial_cancel_admin_review" : "cancel_admin_review",
       failureMessage: partial
         ? "Partial cancellation webhook received. Unlock is not revoked automatically."
-        : "Cancellation webhook received. Unlock is not revoked automatically.",
-      failureStage: "webhook_cancel_admin_review",
+        : (adminReviewRequired
+          ? "Cancellation webhook received. Unlock revocation requires administrator review."
+          : "Cancellation webhook received. Unlock was revoked."),
+      failureStage: adminReviewRequired ? "webhook_cancel_admin_review" : "webhook_cancel_unlock_revoked",
       lastErrorAt: new Date(),
     },
     $inc: { confirmAttempts: 1 },
@@ -1816,9 +2003,10 @@ async function markPaymentCancellationForAdminReview({ request, paymentId, body,
   return json({
     ok: true,
     idempotent: false,
-    status: completed ? "ADMIN_REVIEW_REQUIRED" : nextOrderState,
+    status: adminReviewRequired ? "ADMIN_REVIEW_REQUIRED" : nextOrderState,
     paymentId,
-    unlockRevoked: false,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired,
   });
 }
 
@@ -4302,7 +4490,26 @@ async function handleSubscriptionConfirm(request, env, auth) {
         payload: body,
         rawPortOne: portOnePayment,
       });
-      return json({ message: "Membership pass activation failed.", code: "SUBSCRIPTION_ACTIVATION_FAILED" }, { status: 500 });
+      const paymentForRefund = {
+        ...(await Payment.findById(paymentRecord._id).lean() || paymentRecord),
+        ...paymentActivationFields,
+        _id: paymentRecord._id,
+      };
+      const refund = await autoRefundSinglePaymentDeliveryFailure(
+        env,
+        paymentForRefund,
+        "subscription_activation_failed",
+        String(error?.message || "Membership pass activation failed."),
+        "subscription_activation",
+      );
+      return json({
+        message: refund.refunded
+          ? "Membership pass activation failed. The payment was fully refunded automatically."
+          : "Membership pass activation failed. Automatic refund requires administrator review.",
+        code: refund.refunded ? "AUTO_REFUNDED_SUBSCRIPTION_ACTIVATION_FAILED" : "AUTO_REFUND_FAILED_SUBSCRIPTION_ACTIVATION_FAILED",
+        refundStatus: refund.refunded ? "refunded" : "refund_failed",
+        payment: formatPaymentResponse(refund.payment || paymentForRefund),
+      }, { status: refund.refunded ? 502 : 500 });
     }
     activation = await activateSubscriptionWithoutTransaction();
   }
@@ -4321,12 +4528,27 @@ async function handleSubscriptionConfirm(request, env, auth) {
       payload: body,
       rawPortOne: portOnePayment,
     });
+    const paymentForRefund = {
+      ...(activation?.payment || await Payment.findById(paymentRecord._id).lean() || paymentRecord),
+      ...paymentActivationFields,
+      _id: paymentRecord._id,
+    };
+    const refund = await autoRefundSinglePaymentDeliveryFailure(
+      env,
+      paymentForRefund,
+      "subscription_user_update_failed",
+      "Membership pass could not be activated after payment verification.",
+      "subscription_user_update",
+    );
     return json({
-      message: "Payment was verified, but membership pass activation is pending recovery.",
-      code: "SUBSCRIPTION_ACTIVATION_PENDING",
-      pendingRecovery: true,
-      payment: formatPaymentResponse(activation?.payment || await Payment.findById(paymentRecord._id).lean()),
-    }, { status: 202 });
+      message: refund.refunded
+        ? "Membership pass activation failed. The payment was fully refunded automatically."
+        : "Membership pass activation failed. Automatic refund requires administrator review.",
+      code: refund.refunded ? "AUTO_REFUNDED_SUBSCRIPTION_USER_UPDATE_FAILED" : "AUTO_REFUND_FAILED_SUBSCRIPTION_USER_UPDATE_FAILED",
+      pendingRecovery: !refund.refunded,
+      refundStatus: refund.refunded ? "refunded" : "refund_failed",
+      payment: formatPaymentResponse(refund.payment || paymentForRefund),
+    }, { status: refund.refunded ? 502 : 500 });
   }
 
   const updatedUser = activation.updatedUser;
@@ -4703,8 +4925,13 @@ async function cancelReportedResultFailurePayment(env, paymentRecord, reasonCode
     merchantUid: paymentRecord.merchantUid || paymentRecord.impUid,
     reason: reasonMessage,
     checksum: Number(paymentRecord.paymentAmount || 0) || undefined,
+    idempotencyKey: buildSinglePaymentRefundIdempotencyKey(paymentRecord),
   });
 
+  const revocation = await revokeSinglePaymentContentAccess(paymentRecord, {
+    status: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+    reason: reasonCode,
+  });
   const canceledPayment = await Payment.findByIdAndUpdate(
     paymentRecord._id,
     {
@@ -4716,6 +4943,10 @@ async function cancelReportedResultFailurePayment(env, paymentRecord, reasonCode
         failureMessage: reasonMessage,
         failureStage: "result_failure_auto_refund",
         lastErrorAt: new Date(),
+        "metadata.refundStatus": "refunded",
+        "metadata.unlockRevoked": revocation.unlockRevoked === true,
+        "metadata.unlockRevocationStatus": revocation.status || CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+        "metadata.unlockRevocationError": revocation.error || "",
       },
     },
     { returnDocument: "after" },
@@ -4724,6 +4955,8 @@ async function cancelReportedResultFailurePayment(env, paymentRecord, reasonCode
   return {
     cancelled: true,
     idempotent: false,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired: revocation.adminReviewRequired === true,
     payment: formatPaymentResponse(canceledPayment || paymentRecord),
   };
 }
@@ -4784,6 +5017,8 @@ async function handleReportFailure(request, env, auth) {
     message: autoRefund?.cancelled ? "Payment failure report recorded and refunded." : "Payment failure report recorded.",
     autoRefunded: Boolean(autoRefund?.cancelled),
     idempotent: Boolean(autoRefund?.idempotent),
+    unlockRevoked: autoRefund?.unlockRevoked === true,
+    adminReviewRequired: autoRefund?.adminReviewRequired === true,
     payment: autoRefund?.payment || undefined,
   });
 }
@@ -5420,6 +5655,7 @@ export const __paymentsTestUtils = {
   handleSinglePaymentStart,
   handleSinglePaymentComplete,
   handleWebhook,
+  markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,

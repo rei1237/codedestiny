@@ -412,13 +412,30 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
   coinAmount: { type: Number, default: 0, min: 0 },
   idempotencyKey: { type: String, default: "", trim: true, maxlength: 120, index: true },
   featureKey: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  serviceId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  productId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  profileId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  jobId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  orderId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   cost: { type: Number, default: 0, min: 0 },
+  amount: { type: Number, default: 0, min: 0 },
+  currency: { type: String, default: "KRW", trim: true, maxlength: 16 },
+  paymentProvider: { type: String, default: "", trim: true, maxlength: 40 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  merchantUid: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  impUid: { type: String, default: "", trim: true, maxlength: 160, index: true },
   sourceTransactionId: { type: String, default: "", trim: true, maxlength: 120, index: true },
   paymentRef: {
     impUid: { type: String, default: "", trim: true, maxlength: 120 },
     merchantUid: { type: String, default: "", trim: true, maxlength: 120 },
     paymentId: { type: String, default: "", trim: true, maxlength: 120 },
     cancelEligible: { type: Boolean, default: false },
+  },
+  deliveryStatus: {
+    type: String,
+    enum: ["payment_pending", "paid", "entitlement_granting", "entitlement_granted", "generating", "delivered", "failed", "refund_pending", "refunded", "refund_failed"],
+    default: "generating",
+    index: true,
   },
   status: {
     type: String,
@@ -444,7 +461,11 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
   lastClientHeartbeatAt: { type: Date, default: null },
   clientClosedAt: { type: Date, default: null },
   abandonedAt: { type: Date, default: null },
+  deliveredAt: { type: Date, default: null },
+  failedAt: { type: Date, default: null },
+  refundRequestedAt: { type: Date, default: null },
   refundedAt: { type: Date, default: null },
+  refundFailedAt: { type: Date, default: null },
   completedAt: { type: Date, default: null },
   compensatedAt: { type: Date, default: null },
   failureStage: { type: String, default: "", trim: true, maxlength: 80 },
@@ -452,10 +473,13 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
   refundReason: { type: String, default: "", trim: true, maxlength: 160 },
   refundStatus: {
     type: String,
-    enum: ["none", "pending", "refunded", "failed"],
+    enum: ["none", "pending", "refunded", "failed", "refund_failed"],
     default: "none",
     index: true,
   },
+  refundIdempotencyKey: { type: String, default: "", trim: true, maxlength: 220, index: true },
+  refundProviderResponse: { type: mongoose.Schema.Types.Mixed, default: null },
+  refundFailureReason: { type: String, default: "", trim: true, maxlength: 500 },
   premiumStatus: {
     type: String,
     enum: ["payment_pending", "paid", "generating", "completed", "failed", "abandoned", "refund_pending", "refunded", "refund_failed"],
@@ -478,6 +502,8 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
 
 serviceExecutionTransactionSchema.index({ userId: 1, executionKey: 1 }, { unique: true });
 serviceExecutionTransactionSchema.index({ status: 1, timeoutAt: 1, nextRetryAt: 1 });
+serviceExecutionTransactionSchema.index({ paymentId: 1, serviceId: 1, jobId: 1 });
+serviceExecutionTransactionSchema.index({ refundIdempotencyKey: 1 });
 serviceExecutionTransactionSchema.index({ retentionUntil: 1 }, { expireAfterSeconds: 0 });
 
 const paidExecutionRecordSchema = new mongoose.Schema({
@@ -515,8 +541,8 @@ paidExecutionRecordSchema.index(
 paidExecutionRecordSchema.index(
   { paymentId: 1 },
   {
+    name: "paymentId_unique_nonempty",
     unique: true,
-    sparse: true,
     partialFilterExpression: {
       paymentId: { $exists: true, $type: "string", $gt: "" },
     },

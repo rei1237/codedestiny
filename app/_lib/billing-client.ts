@@ -192,6 +192,18 @@ type PaymentChoiceFunction = ((options: Record<string, unknown>) => Promise<Paym
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
+  __CODE_DESTINY_RUNTIME_TARGET?: string;
+  Capacitor?: {
+    isNativePlatform?: () => boolean;
+  };
+  CodeDestinyNative?: {
+    purchase?: (input: {
+      featureKey: string;
+      productId: string;
+      productType?: string;
+      idempotencyKey?: string;
+    }) => Promise<Record<string, unknown>>;
+  };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
@@ -211,9 +223,16 @@ type PaidFeatureGateRuntimeStatus =
   | "noEntitlement"
   | "loadingProducts"
   | "readyToPay"
+  | "paymentPreparing"
+  | "paymentWindowOpen"
   | "paymentProcessing"
   | "paymentSuccess"
   | "paymentFailed"
+  | "processing"
+  | "deliveryProcessing"
+  | "refund_pending"
+  | "refunded"
+  | "refund_failed"
   | "error";
 
 type PaidFeatureGateRuntimeDetail = {
@@ -459,6 +478,18 @@ export function decidePaidFeatureAccess(entitlement: EntitlementStatus, feature:
 
 export type ServiceExecutionStatus = "pending" | "success" | "failed" | "refunded" | "cancelled";
 
+export type PaidServiceDeliveryStatus =
+  | "payment_pending"
+  | "paid"
+  | "entitlement_granting"
+  | "entitlement_granted"
+  | "generating"
+  | "delivered"
+  | "failed"
+  | "refund_pending"
+  | "refunded"
+  | "refund_failed";
+
 export type ServiceExecutionPayload = {
   executionKey: string;
   featureKey?: string;
@@ -491,6 +522,28 @@ export type ServiceExecutionData = {
   compensatedAt: string | null;
   reasonCode: string;
   reasonMessage: string;
+  serviceId?: string;
+  productId?: string;
+  profileId?: string;
+  paymentId?: string;
+  merchantUid?: string;
+  impUid?: string;
+  orderId?: string;
+  jobId?: string;
+  amount?: number;
+  currency?: string;
+  paymentProvider?: string;
+  premiumStatus?: string;
+  deliveryStatus?: PaidServiceDeliveryStatus;
+  refundStatus?: "none" | "pending" | "refunded" | "failed" | "refund_failed";
+  refundReason?: string;
+  refundIdempotencyKey?: string;
+  deliveredAt?: string | null;
+  failedAt?: string | null;
+  refundRequestedAt?: string | null;
+  refundedAt?: string | null;
+  refundFailedAt?: string | null;
+  refundFailureReason?: string;
   compensation: {
     coinRefunded: boolean;
     coinRefundTxId: string;
@@ -1709,6 +1762,15 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   if (input.forceDeduct === false) return null;
 
   const requestedMode = normalizePaymentMode(input.paymentMode);
+  if (isMobileAppRuntime()) {
+    if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE") return null;
+    return runNativeAppStorePayment(input, {
+      featureId: context.featureId,
+      requestId: context.requestId,
+      eligibility: context.eligibility,
+    });
+  }
+
   if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW") return null;
 
   const runtimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
@@ -1884,6 +1946,120 @@ function toQuery(input: Record<string, unknown>) {
   return params.toString();
 }
 
+function isMobileAppRuntime() {
+  if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") return true;
+  if (typeof window === "undefined") return false;
+  const runtimeWindow = window as RuntimeApiWindow;
+  if (runtimeWindow.__CODE_DESTINY_RUNTIME_TARGET === "mobile-app") return true;
+  try {
+    return runtimeWindow.Capacitor?.isNativePlatform?.() === true;
+  } catch (e) {
+    return false;
+  }
+}
+
+function nativeAppStoreFailure(code: string, message: string, status = 503): BillingResult<BillingCoinGateData> {
+  return {
+    ok: false,
+    status,
+    data: null,
+    message,
+    error: { code, message },
+    raw: { code, message },
+  };
+}
+
+async function runNativeAppStorePayment(input: BillingCoinGateInput, context: {
+  featureId: string;
+  requestId: string;
+  eligibility: PaymentEligibility | null;
+}): Promise<BillingResult<BillingCoinGateData>> {
+  if (typeof window === "undefined") {
+    return nativeAppStoreFailure("NATIVE_RUNTIME_UNAVAILABLE", "앱 결제 연결을 확인할 수 없습니다.");
+  }
+
+  const runtimeWindow = window as RuntimeApiWindow;
+  const purchase = runtimeWindow.CodeDestinyNative?.purchase;
+  if (typeof purchase !== "function") {
+    return nativeAppStoreFailure("NATIVE_BILLING_UNAVAILABLE", "앱 결제 연결이 아직 준비되지 않았습니다.");
+  }
+
+  const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
+  const productQuery = toQuery({
+    featureKey,
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    reason: input.reason,
+    productType: input.productType,
+  });
+  const productResponse = await authFetchBilling(`/api/app-store/products?${productQuery}`, { method: "GET" });
+  const productParsed = await parseBillingResponse<{
+    product?: {
+      productId?: string;
+      productType?: string;
+      featureKey?: string;
+    };
+    pricing?: BillingFeaturePricing;
+  }>(productResponse);
+
+  const product = productParsed.data?.product;
+  const productId = toText(product?.productId);
+  if (!productParsed.ok || !productId) {
+    return nativeAppStoreFailure(
+      productParsed.error?.code || "APP_STORE_PRODUCT_UNAVAILABLE",
+      productParsed.error?.message || productParsed.message || "앱 결제 상품을 불러오지 못했습니다.",
+      productParsed.status || 503,
+    );
+  }
+
+  let purchaseResult: Record<string, unknown> | null = null;
+  try {
+    purchaseResult = await purchase({
+      featureKey,
+      productId,
+      productType: toText(product?.productType || input.productType || "inapp"),
+      idempotencyKey: input.idempotencyKey || context.requestId,
+    });
+  } catch (error) {
+    return nativeAppStoreFailure(
+      toText((error as { code?: string })?.code || "APP_STORE_PURCHASE_FAILED"),
+      toText((error as { message?: string })?.message || "앱 결제가 완료되지 않았습니다."),
+      402,
+    );
+  }
+
+  if (purchaseResult?.ok === false) {
+    return nativeAppStoreFailure(
+      toText(purchaseResult.code || "APP_STORE_PURCHASE_FAILED"),
+      toText(purchaseResult.message || "앱 결제가 완료되지 않았습니다."),
+      402,
+    );
+  }
+
+  const verifyResponse = await authFetchBilling("/api/app-store/google/verify", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      ...(input || {}),
+      featureKey,
+      productId,
+      productType: product?.productType || input.productType || "inapp",
+      requestId: context.requestId,
+      idempotencyKey: input.idempotencyKey || context.requestId,
+      purchaseToken: purchaseResult?.purchaseToken,
+      packageName: purchaseResult?.packageName,
+      orderId: purchaseResult?.orderId,
+      purchaseState: purchaseResult?.purchaseState,
+      acknowledged: purchaseResult?.acknowledged,
+      provider: "GOOGLE_PLAY",
+    }),
+  });
+
+  return parseBillingResponse<BillingCoinGateData>(verifyResponse);
+}
+
 function runtimeNow() {
   if (typeof performance !== "undefined" && typeof performance.now === "function") {
     return performance.now();
@@ -1904,6 +2080,11 @@ function paymentLoadingOwnsPaidFeatureStatus(status: string) {
     "paymentProcessing",
     "paymentSuccess",
     "paymentPreparing",
+    "processing",
+    "deliveryProcessing",
+    "refund_pending",
+    "refunded",
+    "refund_failed",
   ].includes(status);
 }
 
@@ -2073,6 +2254,31 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
     paymentMethod: toText(detail?.paymentMethod),
   });
 
+  if (status === "processing" || status === "deliveryProcessing") {
+    return {
+      message: text || "결제는 완료되었습니다.\n유료 콘텐츠 제공 상태를 확인하고 있습니다.\n잠시만 기다려 주세요.",
+      mode: "payment-complete",
+    };
+  }
+  if (status === "refund_pending") {
+    return {
+      message: text || "죄송합니다.\n유료 콘텐츠가 정상적으로 제공되지 않아 자동 환불을 진행하고 있습니다.\n결제 금액은 100% 환불됩니다.",
+      mode: "refund-pending",
+    };
+  }
+  if (status === "refunded") {
+    return {
+      message: text || "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다.\n같은 결제 건으로 다시 청구되지 않습니다.",
+      mode: "refunded",
+    };
+  }
+  if (status === "refund_failed") {
+    return {
+      message: text || "자동 환불 요청 중 문제가 발생했습니다.\n결제는 정상적으로 기록되어 있으며, 환불 처리를 위해 관리자 확인이 필요합니다.\n잠시 후 다시 확인해 주세요.",
+      mode: "refund-failed",
+    };
+  }
+
   if (status === "checkingEntitlement") {
     const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
     return {
@@ -2169,7 +2375,7 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     startedAt: Number.isFinite(Number(detail.startedAt)) ? Number(detail.startedAt) : runtimeNow(),
   };
   const status = String(payload.status || "checkingEntitlement");
-  const copyFromStatus: Record<PaidFeatureGateRuntimeStatus, string> = {
+  const copyFromStatus: Partial<Record<PaidFeatureGateRuntimeStatus, string>> = {
     opening: "결제 가능한 수단을 확인하고 있습니다.",
     checkingEntitlement: "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
     hasEntitlement: "이용권 적용이 완료되었습니다.",
@@ -2179,6 +2385,11 @@ function emitPaidFeatureGate(action: "open" | "update" | "close", detail: PaidFe
     paymentProcessing: "결제 승인과 이용 권한을 확인하고 있습니다.",
     paymentSuccess: "이용 권한 저장이 완료되었습니다.",
     paymentFailed: "결제 처리에 실패했습니다.",
+    processing: "결제는 완료되었습니다.\n유료 콘텐츠 제공 상태를 확인하고 있습니다.\n잠시만 기다려 주세요.",
+    deliveryProcessing: "결제는 완료되었습니다.\n유료 콘텐츠 제공 상태를 확인하고 있습니다.\n잠시만 기다려 주세요.",
+    refund_pending: "죄송합니다.\n유료 콘텐츠가 정상적으로 제공되지 않아 자동 환불을 진행하고 있습니다.\n결제 금액은 100% 환불됩니다.",
+    refunded: "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다.\n같은 결제 건으로 다시 청구되지 않습니다.",
+    refund_failed: "자동 환불 요청 중 문제가 발생했습니다.\n결제는 정상적으로 기록되어 있으며, 환불 처리를 위해 관리자 확인이 필요합니다.\n잠시 후 다시 확인해 주세요.",
     error: billingClientText("billingClient.error.001"),
   };
   const overlayMessage = String(payload.message || copyFromStatus[status as PaidFeatureGateRuntimeStatus] || "결제 상태를 안전하게 확인하고 있습니다.").trim();
@@ -2784,7 +2995,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const requestedMode = normalizePaymentMode(input.paymentMode);
     const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
     const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
-    const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW";
+    const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
+    const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
     const knownInputCoinCost = resolveKnownCoinCost(input, null);
     const initialSnapshotPassLimit = initialSnapshot?.state === "active" ? subscriptionSnapshotPassLimit(initialSnapshot.tier) : 0;
     const snapshotPassServerCheckFirst = Boolean(

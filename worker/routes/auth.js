@@ -1069,6 +1069,31 @@ function sanitizeOAuthNextPath(rawNext) {
   return nextPath;
 }
 
+function sanitizeAppOAuthRedirect(rawRedirect) {
+  const value = String(rawRedirect || "").trim();
+  if (!value) return "";
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "com.codedestiny.app:" || parsed.host !== "auth") return "";
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.toString();
+  } catch (e) {
+    return "";
+  }
+}
+
+function buildAppOAuthRedirect(appRedirect, params = {}) {
+  const target = sanitizeAppOAuthRedirect(appRedirect);
+  if (!target) return "";
+  const url = new URL(target);
+  Object.entries(params).forEach(([key, value]) => {
+    const text = String(value || "");
+    if (text) url.searchParams.set(key, text);
+  });
+  return url.toString();
+}
+
 function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
   const base = String(frontendBase || "http://localhost:3000").replace(/\/+$/, "") || "http://localhost:3000";
   const safeNextPath = sanitizeOAuthNextPath(nextPath);
@@ -1333,6 +1358,7 @@ async function findOrCreateSocialUser(provider, profile, env) {
 
   let user = await User.findOne({ [socialField]: profile.providerId });
   if (user) {
+    if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
     const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
     if (profilePhoneNumber && !normalizeKoreanPhoneNumber(user.phoneNumber || user.phone)) {
       user.set("phoneNumber", profilePhoneNumber);
@@ -1344,6 +1370,7 @@ async function findOrCreateSocialUser(provider, profile, env) {
   if (profile.email) {
     user = await User.findOne({ email: profile.email });
     if (user) {
+      if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
       if (hasExplicitlyUnverifiedSocialEmail(profile)) {
         throw new Error(`${provider}_email_unverified`);
       }
@@ -1407,6 +1434,10 @@ async function findOrCreateSocialUser(provider, profile, env) {
 
 function isLocalAuthEnabled(user) {
   return user?.localAuth?.enabled !== false;
+}
+
+function isWithdrawnAuthUser(user) {
+  return String(user?.status || "").trim().toLowerCase() === "withdrawn";
 }
 
 function getCsrfSecret(env) {
@@ -1922,6 +1953,7 @@ async function handleRegister(request, env) {
             localAuth: 1,
             profileSubscription: 1,
             socialAccounts: 1,
+            status: 1,
           },
           maxTimeMS: dbMaxTimeMs,
         },
@@ -1931,6 +1963,16 @@ async function handleRegister(request, env) {
     );
 
     if (existing) {
+      if (isWithdrawnAuthUser(existing)) {
+        return signupErrorResponse(
+          request,
+          env,
+          409,
+          "duplicate_email",
+          "이미 사용 중인 이메일이에요.",
+        );
+      }
+
       let existingPasswordOk = false;
       if (isLocalAuthEnabled(existing) && existing.passwordHash) {
         existingPasswordOk = await withAuthOpTimeout(
@@ -2162,6 +2204,11 @@ async function handleLogin(request, env) {
         return buildInvalidLoginResponse();
       }
 
+      if (isWithdrawnAuthUser(user)) {
+        recordFailedLoginAttempt(loginRateLimitState);
+        return buildInvalidLoginResponse();
+      }
+
       if (!isLocalAuthEnabled(user) || !user.passwordHash) {
         recordFailedLoginAttempt(loginRateLimitState);
         return buildInvalidLoginResponse();
@@ -2303,6 +2350,9 @@ async function handleMe(request, env) {
     }
     if (!user) {
       return json({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
+    }
+    if (isWithdrawnAuthUser(user)) {
+      return json({ ok: false, code: "unauthorized", message: "User is not active." }, { status: 401 });
     }
 
     return json({
@@ -2577,11 +2627,12 @@ async function handleRefresh(request, env) {
         joinedAt: 1,
         passwordHash: 1,
         localAuth: 1,
+        status: 1,
       },
     },
   );
 
-  if (!user) {
+  if (!user || isWithdrawnAuthUser(user)) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "User not found." }, { status: 401 });
     clearAuthCookies(response, request, env);
@@ -2899,6 +2950,7 @@ async function handleOAuthStart(request, env, provider) {
 
     const url = new URL(request.url);
     const nextPath = sanitizeOAuthNextPath(url.searchParams.get("next") || "");
+    const appRedirect = sanitizeAppOAuthRedirect(url.searchParams.get("appRedirect") || "");
     const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
     const referralCapture = extractReferralCapture({
       referralCode: url.searchParams.get("referralCode") || url.searchParams.get("ref"),
@@ -2910,6 +2962,7 @@ async function handleOAuthStart(request, env, provider) {
       provider,
       nextPath,
       frontendBase,
+      appRedirect,
       flow,
       redirectUri: cfg.redirectUri,
       referralCode: referralCapture.referralCode,
@@ -3015,6 +3068,7 @@ async function handleOAuthCallback(request, env, provider) {
     const flow = sanitizeAuthFlow(statePayload.flow);
     const nextPath = sanitizeOAuthNextPath(statePayload.nextPath);
     const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");
+    const appRedirect = sanitizeAppOAuthRedirect(statePayload.appRedirect);
 
     if (provider !== "kakao") {
       const redirectPath = `/auth/${provider}/callback`;
@@ -3042,6 +3096,12 @@ async function handleOAuthCallback(request, env, provider) {
 
       const redirectParams = new URLSearchParams({ social_grant: grant, flow });
       if (nextPath !== "/") redirectParams.set("next", nextPath);
+      const appRedirectTarget = buildAppOAuthRedirect(appRedirect, {
+        social_grant: grant,
+        flow,
+        next: nextPath !== "/" ? nextPath : "",
+      });
+      if (appRedirectTarget) return redirect(appRedirectTarget);
       return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
     }
 
@@ -3069,6 +3129,28 @@ async function handleOAuthCallback(request, env, provider) {
       const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
       const user = socialUser.user;
       logKakaoCallbackMarker(request, provider, "userResolved");
+
+      if (appRedirect) {
+        const grant = await signSocialGrant({
+          userId: String(user._id),
+          provider,
+          nextPath,
+          flow,
+          isNewUser: !!socialUser.created,
+          referralCode: normalizeReferralCode(statePayload.referralCode),
+          referralShareToken: normalizeReferralShareToken(statePayload.referralShareToken),
+          referralSource: String(statePayload.referralSource || "").trim().toLowerCase(),
+        }, env);
+        const appRedirectTarget = buildAppOAuthRedirect(appRedirect, {
+          social_grant: grant,
+          flow,
+          next: nextPath !== "/" ? nextPath : "",
+        });
+        if (appRedirectTarget) {
+          logKakaoCallbackMarker(request, provider, "appRedirectTarget", { redirectTarget: nextPath });
+          return redirect(appRedirectTarget);
+        }
+      }
 
       const referralReward = await applySocialOAuthReferralReward(request, env, user, {
         isNewUser: !!socialUser.created,
@@ -3142,6 +3224,7 @@ async function handleOAuthComplete(request, env) {
                 points: 1,
                 joinedAt: 1,
                 profileSubscription: 1,
+                status: 1,
               },
               maxTimeMS: dbMaxTimeMs,
             },
@@ -3151,6 +3234,7 @@ async function handleOAuthComplete(request, env) {
         );
 
         if (!user) return json({ message: "User not found." }, { status: 404 });
+        if (isWithdrawnAuthUser(user)) return json({ message: "User not found." }, { status: 404 });
 
         const referralReward = await applySocialOAuthReferralReward(request, env, user, payload, {
           referralCode: body?.referralCode,
@@ -3217,6 +3301,34 @@ async function handleOAuthComplete(request, env) {
   }
 }
 
+async function handleAppExchange(request, env) {
+  const auth = await requireAuth(request, env);
+  const tokenUser = {
+    _id: auth.userId,
+    id: auth.userId,
+    email: auth.email || "",
+    name: auth.name || "",
+    role: auth.role || "user",
+    image: auth.image || "",
+    profileImage: auth.image || "",
+    birthDate: auth.birthDate || "",
+    birthTime: auth.birthTime || "",
+    gender: auth.gender || "OTHER",
+    points: Number(auth.points || 0),
+    joinedAt: auth.joinedAt || null,
+    profileSubscription: auth.profileSubscription || null,
+  };
+  const accessToken = await signAuthToken(tokenUser, env);
+  return json({
+    ok: true,
+    runtimeTarget: "mobile-app",
+    accessToken,
+    tokenType: "Bearer",
+    accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
+    user: normalizeAuthUserResponse(tokenUser),
+  });
+}
+
 export async function handleAuthRoutes(request, env) {
   let path = "";
   try {
@@ -3252,6 +3364,7 @@ export async function handleAuthRoutes(request, env) {
       || path === "/signup"
       || path === "/login"
       || path === "/refresh"
+      || path === "/app/exchange"
       || path === "/withdraw"
       || path === "/oauth/complete"
       || path === "/referral/kakao-share"
@@ -3282,6 +3395,7 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/signup") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
+    if (method === "POST" && path === "/app/exchange") return await handleAppExchange(request, env);
     if (method === "GET" && path === "/me") return await handleMe(request, env);
     if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);

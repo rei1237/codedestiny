@@ -144,7 +144,7 @@ export function getPortOneWebhookUrl(env) {
   return siteBaseUrl ? `${siteBaseUrl}/api/webhooks/portone` : "";
 }
 
-function getPortOneHeaders(env) {
+function getPortOneHeaders(env, extraHeaders = {}) {
   const apiSecret = getPortOneConfig(env).portoneApiSecret;
   if (!apiSecret) {
     throw new Error("PORTONE_API_SECRET is required.");
@@ -152,6 +152,7 @@ function getPortOneHeaders(env) {
   return {
     "Content-Type": "application/json",
     Authorization: `PortOne ${apiSecret}`,
+    ...extraHeaders,
   };
 }
 
@@ -297,7 +298,9 @@ export async function cancelPortOnePayment(env, params = {}) {
     merchantUid,
     reason,
     amount,
+    checksum,
     currentCancellableAmount,
+    idempotencyKey,
     refundHolder,
     refundBank,
     refundAccount,
@@ -313,6 +316,7 @@ export async function cancelPortOnePayment(env, params = {}) {
   };
 
   if (Number.isFinite(Number(amount)) && Number(amount) > 0) body.amount = Number(amount);
+  if (Number.isFinite(Number(checksum)) && Number(checksum) > 0) body.checksum = Number(checksum);
   if (Number.isFinite(Number(currentCancellableAmount)) && Number(currentCancellableAmount) > 0) {
     body.currentCancellableAmount = Number(currentCancellableAmount);
   }
@@ -324,7 +328,10 @@ export async function cancelPortOnePayment(env, params = {}) {
     `${getPortOneBaseUrl(env)}/payments/${encodeURIComponent(paymentId)}/cancel`,
     {
       method: "POST",
-      headers: getPortOneHeaders(env),
+      headers: getPortOneHeaders(
+        env,
+        idempotencyKey ? { "Idempotency-Key": String(idempotencyKey).slice(0, 220) } : {},
+      ),
       body: JSON.stringify(body),
       env,
     },

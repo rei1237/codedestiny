@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { DestinyIconName } from "./icons/DestinyIcon";
+import { FeatureMarketingLink } from "./FeatureMarketingDetailModal";
 import FeatureSymbol from "./icons/FeatureSymbol";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
@@ -153,14 +153,20 @@ export default function ServiceCard({ item }: { item: ServiceCardModel }) {
       </div>
 
       <div className="mt-auto">
-        <Link
+        <FeatureMarketingLink
           href={item.href}
+          target={{
+            title: cleanTitle(item.title),
+            description: item.description,
+            href: item.href,
+            badges: item.badges,
+          }}
           onClick={handleClick}
           className="inline-flex w-full items-center justify-center gap-1 rounded-xl border border-sky-100/35 bg-[linear-gradient(135deg,rgba(56,189,248,0.32),rgba(30,64,175,0.38))] px-3 py-2 text-xs font-semibold text-sky-50 transition duration-300 group-hover:border-sky-100/55 group-hover:bg-[linear-gradient(135deg,rgba(56,189,248,0.42),rgba(37,99,235,0.46))]"
         >
           {cta}
           <span aria-hidden>→</span>
-        </Link>
+        </FeatureMarketingLink>
       </div>
     </article>
   );

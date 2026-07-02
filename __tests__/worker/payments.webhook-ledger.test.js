@@ -68,6 +68,7 @@ beforeAll(async () => {
     failureLogCreate: PaymentFailureLog.create,
     entitlementFindOne: ContentEntitlement.findOne,
     entitlementFindOneAndUpdate: ContentEntitlement.findOneAndUpdate,
+    entitlementUpdateMany: ContentEntitlement.updateMany,
     userUpdateOne: User.updateOne,
   };
 });
@@ -85,6 +86,7 @@ afterEach(() => {
   PaymentFailureLog.create = originals.failureLogCreate;
   ContentEntitlement.findOne = originals.entitlementFindOne;
   ContentEntitlement.findOneAndUpdate = originals.entitlementFindOneAndUpdate;
+  ContentEntitlement.updateMany = originals.entitlementUpdateMany;
   User.updateOne = originals.userUpdateOne;
   jest.restoreAllMocks();
 });
@@ -158,7 +160,7 @@ describe("single payment entitlement consistency", () => {
     },
   };
 
-  test("entitlement grant failure leaves payment in processing/error instead of success", async () => {
+  test("entitlement grant failure triggers automatic full refund", async () => {
     let paymentFindOneCall = 0;
     Payment.findOne = jest.fn(() => {
       paymentFindOneCall += 1;
@@ -176,6 +178,7 @@ describe("single payment entitlement consistency", () => {
     ContentEntitlement.findOneAndUpdate = jest.fn(() => {
       throw new Error("entitlement db down");
     });
+    ContentEntitlement.updateMany = jest.fn().mockResolvedValue({ matchedCount: 0, modifiedCount: 0 });
     User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
     PaymentFailureLog.create = jest.fn().mockResolvedValue({});
     global.fetch = jest.fn(async () => new Response(JSON.stringify({
@@ -194,14 +197,76 @@ describe("single payment entitlement consistency", () => {
       body: JSON.stringify({ paymentId: "pay_single_001" }),
     });
 
-    await expect(testUtils.handleSinglePaymentComplete(request, env, auth))
-      .rejects.toThrow("entitlement db down");
+    const response = await testUtils.handleSinglePaymentComplete(request, env, auth);
+    const parsed = await readResponse(response);
 
+    expect(parsed.status).toBe(502);
+    expect(parsed.payload.ok).toBe(false);
+    expect(parsed.payload.code).toBe("AUTO_REFUNDED_UNLOCK_UPSERT_FAILED");
+    expect(parsed.payload.refundStatus).toBe("refunded");
     expect(Payment.findOneAndUpdate.mock.calls[0][1].$set.status).toBe("processing");
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(String(global.fetch.mock.calls[1][0])).toContain("/payments/pay_single_001/cancel");
+    expect(global.fetch.mock.calls[1][1].headers["Idempotency-Key"]).toBe("refund:pay_single_001:saju:no-job");
     expect(Payment.findByIdAndUpdate).toHaveBeenCalledWith("payment-doc-001", expect.objectContaining({
       $set: expect.objectContaining({
-        orderState: "ERROR",
+        status: "cancelled",
+        orderState: "CANCELLED",
         failureCode: "unlock_upsert_failed",
+        failureStage: "single_unlock_upsert",
+        "metadata.refundStatus": "refunded",
+      }),
+    }), { returnDocument: "after" });
+  });
+
+  test("full cancellation webhook revokes entitlement and paid feature access", async () => {
+    Payment.findOne = jest.fn().mockReturnValue(queryResult({
+      ...order,
+      status: "fulfilled",
+      orderState: "UNLOCKED",
+      paidAt: new Date("2026-06-30T00:00:00.000Z"),
+    }));
+    Payment.findByIdAndUpdate = jest.fn().mockReturnValue(queryResult({
+      ...order,
+      status: "cancelled",
+      orderState: "CANCELLED",
+    }));
+    ContentEntitlement.updateMany = jest.fn().mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
+    User.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+
+    const response = await testUtils.markPaymentCancellationForAdminReview({
+      request: new Request("https://example.com/api/payments/webhook", { method: "POST" }),
+      paymentId: "pay_single_001",
+      body: { type: "Transaction.Cancelled", data: { paymentId: "pay_single_001" } },
+      partial: false,
+    });
+    const parsed = await readResponse(response);
+
+    expect(parsed.status).toBe(200);
+    expect(parsed.payload.unlockRevoked).toBe(true);
+    expect(parsed.payload.adminReviewRequired).toBe(false);
+    expect(ContentEntitlement.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      userId: auth.userId,
+      source: "PAYMENT",
+      status: "ACTIVE",
+    }), expect.objectContaining({
+      $set: expect.objectContaining({ status: "CANCELLED" }),
+    }));
+    expect(User.updateOne).toHaveBeenCalledWith(
+      { _id: auth.userId },
+      expect.objectContaining({
+        $pull: expect.objectContaining({
+          paidFeatures: expect.objectContaining({ $in: expect.arrayContaining(["section_summary"]) }),
+          unlockedFeatures: expect.objectContaining({ $in: expect.arrayContaining(["section_summary"]) }),
+        }),
+      }),
+    );
+    expect(Payment.findByIdAndUpdate).toHaveBeenCalledWith("payment-doc-001", expect.objectContaining({
+      $set: expect.objectContaining({
+        status: "cancelled",
+        orderState: "CANCELLED",
+        "metadata.unlockRevoked": true,
+        "pricingSnapshot.cancellationReviewRequired": false,
       }),
     }));
   });

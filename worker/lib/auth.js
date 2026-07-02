@@ -58,6 +58,24 @@ function isProductionAuthEnv(env) {
   return value === "production" || value === "main";
 }
 
+function isPlaceholderSecret(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return !normalized
+    || normalized === "dev-secret"
+    || normalized.includes("placeholder")
+    || normalized.includes("change_me")
+    || normalized.includes("your_")
+    || normalized.includes("example");
+}
+
+function resolveFlowerAdminSecret(env) {
+  const secret = String(getEnv(env, "FLOWER_ADMIN_SECRET") || "").trim();
+  if (isProductionAuthEnv(env) && isPlaceholderSecret(secret)) {
+    throw new Error("FLOWER_ADMIN_SECRET is required in production.");
+  }
+  return secret || (isProductionAuthEnv(env) ? "" : "flower-admin-dev-secret-placeholder-000000");
+}
+
 function resolveRequiredAuthSecret(env, keys, fallbackErrorMessage) {
   for (const key of keys) {
     const value = getEnv(env, key);
@@ -146,6 +164,19 @@ function normalizeAuthResultFromUser(user) {
   };
 }
 
+function isWithdrawnUser(user) {
+  return String(user?.status || "").trim().toLowerCase() === "withdrawn";
+}
+
+function isAuthMeRequest(request) {
+  try {
+    const pathname = new URL(request.url).pathname;
+    return pathname === "/api/auth/me" || pathname === "/auth/me";
+  } catch (e) {
+    return false;
+  }
+}
+
 function isPaidServiceAdminAuthPath(request) {
   try {
     const pathname = new URL(request.url).pathname;
@@ -214,10 +245,13 @@ async function verifyFlowerAdminTokenForPaidService(request, env) {
   const signatureHex = token.slice(dotIdx + 1).toLowerCase();
   if (!/^[a-f0-9]{64}$/.test(signatureHex)) return null;
 
-  const expectedHex = await hmacSha256Hex(
-    payloadB64,
-    String(env?.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000"),
-  );
+  let expectedHex = "";
+  try {
+    expectedHex = await hmacSha256Hex(payloadB64, resolveFlowerAdminSecret(env));
+  } catch (error) {
+    logAuthError("flower-admin-secret", error);
+    return null;
+  }
   if (!timingSafeEqualText(expectedHex, signatureHex)) return null;
 
   let payload = null;
@@ -261,7 +295,32 @@ function logAuthError(stage, error, extras = {}) {
   }
 }
 
-async function verifyAccessTokenToAuth(token, env) {
+async function resolveActiveUserAuth(userId, env) {
+  await connectDb(env);
+  const user = await User.collection.findOne(
+    { _id: new mongoose.Types.ObjectId(userId) },
+    {
+      projection: {
+        _id: 1,
+        name: 1,
+        email: 1,
+        birthDate: 1,
+        birthTime: 1,
+        gender: 1,
+        role: 1,
+        points: 1,
+        joinedAt: 1,
+        image: 1,
+        profileImage: 1,
+        status: 1,
+      },
+    },
+  );
+  if (!user || isWithdrawnUser(user)) return null;
+  return normalizeAuthResultFromUser(user);
+}
+
+async function verifyAccessTokenToAuth(token, env, options = {}) {
   if (!token) return null;
   try {
     const payload = await verifyJwt(token, getAccessTokenSecret(env), {
@@ -270,7 +329,16 @@ async function verifyAccessTokenToAuth(token, env) {
     });
     const userId = extractTokenUserId(payload);
     if (!userId) return null;
-    return normalizeAuthResultFromPayload(payload, userId);
+    const tokenAuth = normalizeAuthResultFromPayload(payload, userId);
+    try {
+      return await resolveActiveUserAuth(userId, env);
+    } catch (dbError) {
+      logAuthError("verify-access-token-user", dbError, { userId });
+      if (options.allowDbFallback === true) {
+        return { ...tokenAuth, authDbFallback: true };
+      }
+      return null;
+    }
   } catch (error) {
     logAuthError("verify-access-token", error, { hasToken: true });
     return null;
@@ -314,10 +382,11 @@ async function verifyRefreshSessionToAuth(request, env) {
           joinedAt: 1,
           image: 1,
           profileImage: 1,
+          status: 1,
         },
       },
     );
-    if (!user) return null;
+    if (!user || isWithdrawnUser(user)) return null;
 
     return normalizeAuthResultFromUser(user);
   } catch (error) {
@@ -354,7 +423,7 @@ async function getDevAuthUserFromEnv(env) {
 
   await connectDb(env);
   const user = await User.findById(userId).lean();
-  return user?._id ? normalizeAuthResultFromUser(user) : null;
+  return user?._id && !isWithdrawnUser(user) ? normalizeAuthResultFromUser(user) : null;
 }
 
 export async function requireAuth(request, env) {
@@ -366,15 +435,16 @@ export async function getOptionalUserFromRequest(request, env) {
     const bearerToken = getHeaderBearerToken(request);
     const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
+    const allowTokenDbFallback = isAuthMeRequest(request);
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
     if (flowerAdminAuth) return flowerAdminAuth;
 
-    const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env);
+    const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env, { allowDbFallback: allowTokenDbFallback });
     if (bearerAuth) return bearerAuth;
 
     if (accessCookieToken && accessCookieToken !== bearerToken) {
-      const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env);
+      const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env, { allowDbFallback: allowTokenDbFallback });
       if (cookieAuth) return cookieAuth;
     }
 

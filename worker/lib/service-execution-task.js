@@ -1,11 +1,25 @@
 import { connectDb, mongoose } from "./db.js";
-import { MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
+import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
 import { cancelPortOnePayment } from "./portone.js";
+import { revokePaymentContentAccess } from "./content-unlocks.js";
 
 const DEFAULT_TIMEOUT_SECONDS = 600;
 const DEFAULT_LOCK_SECONDS = 45;
 const DEFAULT_RETENTION_DAYS = 14;
 const DEFAULT_SOFT_ABANDON_GRACE_SECONDS = 900;
+const REFUND_LOCK_SECONDS = 90;
+const PAID_SERVICE_DELIVERY_STATUSES = Object.freeze({
+  PAYMENT_PENDING: "payment_pending",
+  PAID: "paid",
+  ENTITLEMENT_GRANTING: "entitlement_granting",
+  ENTITLEMENT_GRANTED: "entitlement_granted",
+  GENERATING: "generating",
+  DELIVERED: "delivered",
+  FAILED: "failed",
+  REFUND_PENDING: "refund_pending",
+  REFUNDED: "refunded",
+  REFUND_FAILED: "refund_failed",
+});
 
 function nowDate() {
   return new Date();
@@ -100,6 +114,10 @@ function normalizeRefundReason(value) {
   return String(value || "").trim().slice(0, 160);
 }
 
+function normalizeRefundIdempotencyKey(value) {
+  return String(value || "").trim().slice(0, 220);
+}
+
 function cleanMetadataText(value, max = 160) {
   return String(value || "").trim().slice(0, max);
 }
@@ -127,6 +145,225 @@ function safePaymentRef(input = {}) {
   };
 }
 
+function resolveDeliveryStatus(doc = {}) {
+  const explicit = cleanMetadataText(doc.deliveryStatus, 40);
+  if (explicit) return explicit;
+  const premiumStatus = cleanMetadataText(doc.premiumStatus, 40);
+  if (premiumStatus === "completed") return PAID_SERVICE_DELIVERY_STATUSES.DELIVERED;
+  if (premiumStatus === "refund_failed") return PAID_SERVICE_DELIVERY_STATUSES.REFUND_FAILED;
+  if (premiumStatus === "refund_pending") return PAID_SERVICE_DELIVERY_STATUSES.REFUND_PENDING;
+  if (premiumStatus === "refunded") return PAID_SERVICE_DELIVERY_STATUSES.REFUNDED;
+  if (premiumStatus === "failed") return PAID_SERVICE_DELIVERY_STATUSES.FAILED;
+  if (premiumStatus === "abandoned") return PAID_SERVICE_DELIVERY_STATUSES.FAILED;
+  const status = cleanMetadataText(doc.status, 40);
+  if (status === "success") return PAID_SERVICE_DELIVERY_STATUSES.DELIVERED;
+  if (status === "refunded") return PAID_SERVICE_DELIVERY_STATUSES.REFUNDED;
+  if (status === "failed") return PAID_SERVICE_DELIVERY_STATUSES.REFUND_FAILED;
+  return PAID_SERVICE_DELIVERY_STATUSES.GENERATING;
+}
+
+function firstCleanText(...values) {
+  for (const value of values) {
+    const text = cleanMetadataText(value, 160);
+    if (text) return text;
+  }
+  return "";
+}
+
+function firstNonNegativeAmount(...values) {
+  for (const value of values) {
+    const n = Number(value);
+    if (Number.isFinite(n) && n >= 0) return Math.floor(n);
+  }
+  return 0;
+}
+
+function safeResultObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+function resultNestedSources(result) {
+  const item = safeResultObject(result);
+  const archive = safeResultObject(item.archive || item.resultArchive);
+  const payload = safeResultObject(item.payload || archive.payload);
+  const pdfReady = safeResultObject(item.pdfReady || item.pdf || item.file || archive.pdfReady || payload.pdfReady);
+  return [item, archive, payload, pdfReady].filter((source) => Object.keys(source).length);
+}
+
+function resultHasProviderMockSignal(result) {
+  const item = safeResultObject(result);
+  const llmMeta = safeResultObject(item.llmMeta || item.meta || item.metadata);
+  const provider = cleanMetadataText(item.provider || llmMeta.provider || item.modelProvider, 80).toLowerCase();
+  return item.mock === true
+    || item.isMock === true
+    || item.dryRun === true
+    || item.dry_run === true
+    || llmMeta.mock === true
+    || llmMeta.dryRun === true
+    || provider === "mock"
+    || provider === "dry-run"
+    || provider === "dry_run";
+}
+
+function extractResultText(result) {
+  if (typeof result === "string") return result.trim();
+  if (!result || typeof result !== "object") return "";
+  const item = safeResultObject(result);
+  const candidates = [
+    item.content,
+    item.text,
+    item.message,
+    item.answer,
+    item.summary,
+    item.resultText,
+    item.result,
+    item.report,
+    item.html,
+    Array.isArray(item.messages) ? item.messages.map((entry) => entry?.content || "").join("\n") : "",
+    Array.isArray(item.chapters) ? item.chapters.map((entry) => entry?.content || entry?.text || entry?.html || "").join("\n") : "",
+    Array.isArray(item.sections) ? item.sections.map((entry) => entry?.body || entry?.content || entry?.text || "").join("\n") : "",
+  ];
+  return candidates.map((value) => String(value || "").trim()).find(Boolean) || "";
+}
+
+function resultChapters(result) {
+  for (const source of resultNestedSources(result)) {
+    if (Array.isArray(source.chapters) && source.chapters.length) return source.chapters;
+  }
+  return [];
+}
+
+function hasPdfArtifact(result) {
+  return resultNestedSources(result).some((source) => Boolean(
+    source.pdfUrl
+      || source.downloadUrl
+      || source.storedUrl
+      || source.reportUrl
+      || source.htmlUrl
+      || source.url
+      || source.fileKey
+      || source.storageKey
+      || source.filePath
+      || source.r2Key,
+  ));
+}
+
+function isPdfServiceId(serviceId) {
+  const key = cleanMetadataText(serviceId, 120).toLowerCase();
+  return key.includes("pdf")
+    || key.includes("premium-astrology-report")
+    || key.includes("premium-sukuyo-report")
+    || key.includes("premium-vedic-report")
+    || key.includes("premium-lifebook-report")
+    || key.includes("premium-soul-origin-report")
+    || key.includes("premium-fpti-report");
+}
+
+function hasResultIdentifier(result) {
+  return resultNestedSources(result).some((source) => Boolean(
+    source.resultId
+      || source.id
+      || source.reportId
+      || source.sessionId
+      || source.jobId
+      || source.executionId,
+  ));
+}
+
+export function validatePaidServiceResult(serviceId, result, options = {}) {
+  if (result === null || result === undefined) return { ok: false, reason: "RESULT_EMPTY" };
+  if (typeof result === "string") {
+    const text = result.trim();
+    if (!text) return { ok: false, reason: "RESULT_EMPTY_STRING" };
+    if ((text.startsWith("{") || text.startsWith("["))) {
+      try {
+        return validatePaidServiceResult(serviceId, JSON.parse(text), options);
+      } catch (error) {
+        return { ok: false, reason: "RESULT_JSON_PARSE_FAILED" };
+      }
+    }
+    return text.length >= Number(options.minTextLength || 20)
+      ? { ok: true }
+      : { ok: false, reason: "RESULT_TEXT_TOO_SHORT" };
+  }
+  if (Array.isArray(result)) {
+    return result.length > 0 ? { ok: true } : { ok: false, reason: "RESULT_EMPTY_ARRAY" };
+  }
+  if (typeof result !== "object") return { ok: false, reason: "RESULT_INVALID_TYPE" };
+
+  const item = safeResultObject(result);
+  const status = cleanMetadataText(item.status || item.deliveryStatus || item.generationStatus, 80).toLowerCase();
+  if (["failed", "generation_failed", "timeout", "invalid_result", "refund_failed", "refunded"].includes(status)) {
+    return { ok: false, reason: `RESULT_STATUS_${status.toUpperCase()}` };
+  }
+  if (item.generationError || item.error) return { ok: false, reason: "RESULT_HAS_ERROR" };
+  if (resultHasProviderMockSignal(item)) return { ok: false, reason: "RESULT_MOCK_OR_DRY_RUN" };
+
+  const expectedUserId = cleanMetadataText(options.userId, 120);
+  const resultUserId = cleanMetadataText(item.userId || item.ownerUserId, 120);
+  if (expectedUserId && resultUserId && expectedUserId !== resultUserId) {
+    return { ok: false, reason: "RESULT_USER_MISMATCH" };
+  }
+
+  if (isPdfServiceId(serviceId)) {
+    const chapters = resultChapters(item);
+    if (!hasPdfArtifact(item) && !chapters.length) return { ok: false, reason: "PDF_ARTIFACT_MISSING" };
+    if (chapters.length && chapters.some((chapter) => !extractResultText(chapter) || extractResultText(chapter).length < 20)) {
+      return { ok: false, reason: "PDF_CHAPTER_INVALID" };
+    }
+    return { ok: true };
+  }
+
+  const text = extractResultText(item);
+  if (!hasResultIdentifier(item) && !text) return { ok: false, reason: "RESULT_ID_OR_CONTENT_MISSING" };
+  if (text && text.length < Number(options.minTextLength || 20)) return { ok: false, reason: "RESULT_TEXT_TOO_SHORT" };
+  return { ok: true };
+}
+
+function resolvePaymentIdForRefund(execution = {}, payment = null) {
+  return firstCleanText(
+    execution.paymentId,
+    execution.paymentRef?.paymentId,
+    execution.impUid,
+    execution.paymentRef?.impUid,
+    execution.merchantUid,
+    execution.paymentRef?.merchantUid,
+    payment?.impUid,
+    payment?.merchantUid,
+  );
+}
+
+function buildRefundIdempotencyKey(execution = {}, payment = null) {
+  const paymentId = resolvePaymentIdForRefund(execution, payment) || "no-payment";
+  const serviceId = firstCleanText(execution.serviceId, execution.featureKey, payment?.featureKey) || "unknown-service";
+  const jobId = firstCleanText(execution.jobId, execution.reportId, execution.sessionId, execution.executionKey) || "no-job";
+  return normalizeRefundIdempotencyKey(`refund:${paymentId}:${serviceId}:${jobId}`);
+}
+
+function paidServiceLogPayload(execution = {}, extras = {}) {
+  return {
+    userId: String(execution.userId || extras.userId || ""),
+    profileId: firstCleanText(execution.profileId, extras.profileId),
+    serviceId: firstCleanText(execution.serviceId, execution.featureKey, extras.serviceId),
+    paymentId: firstCleanText(execution.paymentId, execution.paymentRef?.paymentId, extras.paymentId),
+    merchantUid: firstCleanText(execution.merchantUid, execution.paymentRef?.merchantUid, extras.merchantUid),
+    impUid: firstCleanText(execution.impUid, execution.paymentRef?.impUid, extras.impUid),
+    jobId: firstCleanText(execution.jobId, execution.reportId, execution.sessionId, execution.executionKey, extras.jobId),
+    amount: Number(execution.amount || extras.amount || 0),
+    deliveryStatus: firstCleanText(extras.deliveryStatus, resolveDeliveryStatus(execution)),
+    refundStatus: firstCleanText(extras.refundStatus, execution.refundStatus),
+    failureReason: firstCleanText(extras.failureReason, execution.failureReason, execution.reasonMessage),
+  };
+}
+
+function logPaidServiceEvent(marker, execution = {}, extras = {}) {
+  try {
+    console.info(marker, JSON.stringify(paidServiceLogPayload(execution, extras)));
+  } catch (error) {
+    console.info(marker, paidServiceLogPayload(execution, extras));
+  }
+}
+
 function toSummary(doc) {
   if (!doc) return null;
   return {
@@ -139,10 +376,23 @@ function toSummary(doc) {
     reportType: String(doc.reportType || ""),
     reportId: String(doc.reportId || ""),
     sessionId: String(doc.sessionId || ""),
+    paymentSessionId: String(doc.paymentSessionId || ""),
     coinTransactionId: String(doc.coinTransactionId || ""),
     coinAmount: Number(doc.coinAmount || 0),
+    serviceId: String(doc.serviceId || doc.featureKey || ""),
+    productId: String(doc.productId || ""),
+    profileId: String(doc.profileId || ""),
+    paymentId: String(doc.paymentId || doc?.paymentRef?.paymentId || ""),
+    merchantUid: String(doc.merchantUid || doc?.paymentRef?.merchantUid || ""),
+    impUid: String(doc.impUid || doc?.paymentRef?.impUid || ""),
+    orderId: String(doc.orderId || ""),
+    jobId: String(doc.jobId || doc.reportId || doc.sessionId || ""),
+    amount: Number(doc.amount || 0),
+    currency: String(doc.currency || "KRW"),
+    paymentProvider: String(doc.paymentProvider || ""),
     status: String(doc.status || "pending"),
     premiumStatus: String(doc.premiumStatus || "generating"),
+    deliveryStatus: resolveDeliveryStatus(doc),
     timeoutAt: doc.timeoutAt || null,
     nextRetryAt: doc.nextRetryAt || null,
     retryCount: Number(doc.retryCount || 0),
@@ -162,6 +412,13 @@ function toSummary(doc) {
     },
     refundStatus: String(doc?.refundStatus || "none"),
     refundReason: String(doc?.refundReason || ""),
+    refundIdempotencyKey: String(doc?.refundIdempotencyKey || ""),
+    deliveredAt: doc?.deliveredAt || null,
+    failedAt: doc?.failedAt || null,
+    refundRequestedAt: doc?.refundRequestedAt || null,
+    refundedAt: doc?.refundedAt || null,
+    refundFailedAt: doc?.refundFailedAt || null,
+    refundFailureReason: String(doc?.refundFailureReason || ""),
     generationStartedAt: doc?.generationStartedAt || null,
     generationCompletedAt: doc?.generationCompletedAt || null,
     generationFailedAt: doc?.generationFailedAt || null,
@@ -520,53 +777,24 @@ async function runUsagePassRefund({ userId, execution, requestId }) {
   if (accessType !== "usage_pass" && transactionType !== "usage_pass") {
     return { refunded: false, skipped: true, reason: "NOT_USAGE_PASS" };
   }
-
-  const category = cleanMetadataText(billing.usagePassCategory || billing.category || metadata.usagePassCategory || metadata.category, 80);
-  if (!category) return { refunded: false, skipped: true, reason: "USAGE_PASS_CATEGORY_MISSING" };
-
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: userId,
-      usagePasses: { $elemMatch: { category } },
-    },
-    {
-      $inc: { "usagePasses.$.remainingUses": 1 },
-      $set: { "usagePasses.$.updatedAt": new Date() },
-    },
-    {
-      returnDocument: "after",
-      projection: { usagePasses: 1 },
-    },
-  ).lean();
-  if (!updatedUser) return { refunded: false, skipped: true, reason: "USAGE_PASS_NOT_FOUND" };
-
-  await ServiceExecutionTransaction.updateOne(
-    { _id: execution._id },
-    {
-      $set: {
-        "metadata.billing.usagePassRefunded": true,
-        "metadata.billing.usagePassRefundedAt": new Date(),
-        "metadata.billing.usagePassRefundRequestId": String(requestId || "").slice(0, 120),
-      },
-    },
-  ).catch(() => {});
-
   return {
-    refunded: true,
-    idempotent: false,
-    category,
+    refunded: false,
+    skipped: true,
+    reason: "USAGE_PASS_REFUND_EXCLUDED_BY_POLICY",
   };
 }
 
-async function runPaymentCancel(env, paymentRef = {}, reason) {
+async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   const impUid = String(paymentRef.impUid || paymentRef.paymentId || "").trim();
-  const merchantUid = String(paymentRef.merchantUid || "").trim();
-  if (!impUid && !merchantUid) return { cancelled: false, skipped: true };
+  const merchantUid = String(paymentRef.merchantUid || execution.merchantUid || "").trim();
+  const paymentId = String(paymentRef.paymentId || execution.paymentId || impUid || merchantUid || "").trim();
+  if (!impUid && !merchantUid && !paymentId) return { cancelled: false, skipped: true };
 
   const payment = await Payment.findOne({
     $or: [
       ...(impUid ? [{ impUid }] : []),
       ...(merchantUid ? [{ merchantUid }] : []),
+      ...(paymentId ? [{ impUid: paymentId }, { merchantUid: paymentId }, { requestId: paymentId }] : []),
     ],
   }).lean();
 
@@ -580,21 +808,45 @@ async function runPaymentCancel(env, paymentRef = {}, reason) {
 
   const paymentType = cleanMetadataText(payment.paymentType, 80).toLowerCase();
   const accessType = cleanMetadataText(payment.accessType, 80).toLowerCase();
+  const paymentMethod = cleanMetadataText(payment.paymentMethod, 80).toLowerCase();
   const singlePurchasePayment = paymentType === "digital_content" && accessType === "single_purchase";
-  if (!paymentRef.cancelEligible && !singlePurchasePayment) {
+  const membershipPassPayment = paymentType === "membership_pass";
+  if (paymentMethod === "monthly_credit") {
+    return { cancelled: false, skipped: true, reason: "MONTHLY_CREDIT_NOT_PG" };
+  }
+  if (!singlePurchasePayment && !membershipPassPayment) {
     return { cancelled: false, skipped: true, reason: "PAYMENT_CANCEL_NOT_ELIGIBLE" };
   }
   if (singlePurchasePayment && Number(payment.chargedPoints || 0) > 0) {
     return { cancelled: false, skipped: true, reason: "POINT_CHARGE_ROLLBACK_REQUIRED" };
   }
 
+  const refundIdempotencyKey = buildRefundIdempotencyKey(execution, payment);
   const canceledPortOne = await cancelPortOnePayment(env, {
     impUid: payment.impUid || impUid,
     merchantUid: payment.merchantUid || merchantUid,
     reason,
     checksum: Number(payment.paymentAmount || 0) || undefined,
+    idempotencyKey: refundIdempotencyKey,
   });
 
+  const now = nowDate();
+  let revocation = { unlockRevoked: false, adminReviewRequired: false };
+  if (singlePurchasePayment) {
+    try {
+      revocation = await revokePaymentContentAccess({
+        payment,
+        revokedStatus: CONTENT_ENTITLEMENT_STATUSES.REFUNDED,
+        reason: "service_delivery_auto_refund",
+      });
+    } catch (error) {
+      revocation = {
+        unlockRevoked: false,
+        adminReviewRequired: true,
+        error: String(error?.message || error || "Unlock revocation failed.").slice(0, 500),
+      };
+    }
+  }
   await Payment.updateOne(
     { _id: payment._id },
     {
@@ -602,23 +854,95 @@ async function runPaymentCancel(env, paymentRef = {}, reason) {
         status: "cancelled",
         orderState: "CANCELLED",
         rawPortOne: canceledPortOne,
-        failureCode: null,
-        failureMessage: null,
-        failureStage: null,
+        failureCode: "service_delivery_auto_refund",
+        failureMessage: String(reason || "Paid service delivery failed.").slice(0, 500),
+        failureStage: "service_delivery_auto_refund",
+        lastErrorAt: now,
+        "metadata.autoRefundedAt": now,
+        "metadata.refundIdempotencyKey": refundIdempotencyKey,
+        "metadata.refundReason": String(reason || "").slice(0, 160),
+        "metadata.refundStatus": "refunded",
+        "metadata.unlockRevoked": revocation.unlockRevoked === true,
+        "metadata.unlockRevocationStatus": singlePurchasePayment ? CONTENT_ENTITLEMENT_STATUSES.REFUNDED : "",
+        "metadata.unlockRevocationError": revocation.error || "",
       },
     },
   );
 
-  return { cancelled: true, idempotent: false };
+  return {
+    cancelled: true,
+    idempotent: false,
+    refundIdempotencyKey,
+    providerResponse: canceledPortOne,
+    unlockRevoked: revocation.unlockRevoked === true,
+    adminReviewRequired: revocation.adminReviewRequired === true,
+  };
 }
 
 async function settleExecutionById(env, executionId, reasonCode, reasonMessage) {
-  const execution = await ServiceExecutionTransaction.findById(executionId).lean();
+  let execution = await ServiceExecutionTransaction.findById(executionId).lean();
   if (!execution) return { ok: false, status: "missing" };
-  if (execution.status !== "pending") return { ok: true, status: execution.status, idempotent: true };
+  if (execution.status !== "pending") {
+    logPaidServiceEvent("[PaidService Duplicate Refund Blocked]", execution, {
+      refundStatus: execution.refundStatus,
+      deliveryStatus: resolveDeliveryStatus(execution),
+    });
+    return { ok: true, status: execution.status, idempotent: true };
+  }
 
   const reason = normalizeReason(reasonCode, reasonMessage);
   const requestId = execution.executionKey || String(execution._id);
+  const refundIdempotencyKey = buildRefundIdempotencyKey(execution);
+  const claimNow = nowDate();
+  const existingLockToken = cleanMetadataText(execution.lock?.token, 220);
+  const lockClauses = [
+    { "lock.token": "" },
+    { "lock.token": { $exists: false } },
+    { "lock.until": null },
+    { "lock.until": { $lte: claimNow } },
+  ];
+  if (existingLockToken.startsWith("svc-lock-")) {
+    lockClauses.push({ "lock.token": existingLockToken });
+  }
+  const claimed = await ServiceExecutionTransaction.findOneAndUpdate(
+    {
+      _id: execution._id,
+      status: "pending",
+      $or: lockClauses,
+    },
+    {
+      $set: {
+        deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.REFUND_PENDING,
+        premiumStatus: "refund_pending",
+        refundStatus: "pending",
+        refundRequestedAt: claimNow,
+        failedAt: execution.failedAt || claimNow,
+        reasonCode: reason.code,
+        reasonMessage: reason.message,
+        refundIdempotencyKey,
+        nextRetryAt: claimNow,
+        "lock.token": refundIdempotencyKey,
+        "lock.until": lockExpiry(REFUND_LOCK_SECONDS),
+        "lock.acquiredAt": claimNow,
+      },
+    },
+    { returnDocument: "after" },
+  ).lean();
+
+  if (!claimed) {
+    const latest = await ServiceExecutionTransaction.findById(execution._id).lean();
+    logPaidServiceEvent("[PaidService Duplicate Refund Blocked]", latest || execution, {
+      refundStatus: latest?.refundStatus || execution.refundStatus,
+      deliveryStatus: resolveDeliveryStatus(latest || execution),
+    });
+    return { ok: true, status: latest?.status || execution.status, idempotent: true };
+  }
+
+  execution = claimed;
+  logPaidServiceEvent("[PaidService Auto Refund Requested]", execution, {
+    refundStatus: "pending",
+    failureReason: reason.message,
+  });
 
   try {
     const coinResult = await runCoinRefund({
@@ -646,11 +970,10 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       requestId,
     });
 
-    const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message);
+    const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
     const nextStatus = coinResult.refunded
       || monthlyCreditResult.refunded
-      || usagePassResult.refunded
       || paymentResult.cancelled
       ? "refunded"
       : "failed";
@@ -661,14 +984,25 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
         $set: {
           status: nextStatus,
           premiumStatus: nextStatus === "refunded" ? "refunded" : "refund_failed",
+          deliveryStatus: nextStatus === "refunded" ? PAID_SERVICE_DELIVERY_STATUSES.REFUNDED : PAID_SERVICE_DELIVERY_STATUSES.REFUND_FAILED,
           reasonCode: reason.code,
           reasonMessage: reason.message,
           completedAt: now,
           compensatedAt: now,
           nextRetryAt: now,
-          refundStatus: nextStatus === "refunded" ? "refunded" : "failed",
+          refundStatus: nextStatus === "refunded" ? "refunded" : "refund_failed",
           refundedAt: nextStatus === "refunded" ? now : null,
+          refundFailedAt: nextStatus === "refunded" ? null : now,
           refundReason: normalizeRefundReason(reason.code || reason.message || ""),
+          refundProviderResponse: paymentResult.providerResponse || null,
+          refundFailureReason: nextStatus === "refunded"
+            ? ""
+            : [
+              coinResult.reason,
+              monthlyCreditResult.reason,
+              usagePassResult.reason,
+              paymentResult.reason,
+            ].filter(Boolean).join("; ").slice(0, 500),
           "compensation.coinRefunded": Boolean(coinResult.refunded),
           "compensation.coinRefundTxId": String(coinResult.refundTxId || ""),
           "compensation.monthlyCreditRefunded": Boolean(monthlyCreditResult.refunded),
@@ -677,10 +1011,22 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "compensation.usagePassRefunded": Boolean(usagePassResult.refunded),
           "compensation.usagePassCategory": String(usagePassResult.category || ""),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
+          "compensation.unlockRevoked": Boolean(paymentResult.unlockRevoked),
+          "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired),
           "lock.token": "",
           "lock.until": null,
           "lock.acquiredAt": null,
         },
+      },
+    );
+
+    logPaidServiceEvent(
+      nextStatus === "refunded" ? "[PaidService Auto Refund Success]" : "[PaidService Auto Refund Failed]",
+      { ...execution, status: nextStatus, refundStatus: nextStatus === "refunded" ? "refunded" : "refund_failed" },
+      {
+        deliveryStatus: nextStatus === "refunded" ? PAID_SERVICE_DELIVERY_STATUSES.REFUNDED : PAID_SERVICE_DELIVERY_STATUSES.REFUND_FAILED,
+        refundStatus: nextStatus === "refunded" ? "refunded" : "refund_failed",
+        failureReason: reason.message,
       },
     );
 
@@ -701,8 +1047,13 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       {
         $set: {
           status: exhausted ? "failed" : "pending",
+          deliveryStatus: exhausted ? PAID_SERVICE_DELIVERY_STATUSES.REFUND_FAILED : PAID_SERVICE_DELIVERY_STATUSES.REFUND_PENDING,
+          premiumStatus: exhausted ? "refund_failed" : "refund_pending",
+          refundStatus: exhausted ? "refund_failed" : "pending",
           reasonCode: reason.code,
           reasonMessage: String(error?.message || reason.message).slice(0, 500),
+          refundFailureReason: String(error?.message || reason.message).slice(0, 500),
+          refundFailedAt: exhausted ? nowDate() : null,
           nextRetryAt: exhausted ? nowDate() : backoffRetryAt(nextRetryCount),
           "lock.token": "",
           "lock.until": null,
@@ -740,6 +1091,38 @@ export async function startServiceExecution(env, userId, payload = {}) {
   const coinTransactionId = normalizeReportId(payload.coinTransactionId || sourceTransactionId);
   const coinAmount = normalizeCost(payload.coinAmount ?? payload.cost);
   const idempotencyKey = normalizeIdempotencyKey(payload.idempotencyKey || executionKey);
+  const metadata = payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null;
+  const metadataFields = metadata || {};
+  const metadataBilling = metadata && typeof metadata.billing === "object" ? metadata.billing : {};
+  const paymentRef = safePaymentRef(payload.payment || metadataBilling.payment || metadataFields.payment);
+  const serviceId = firstCleanText(payload.serviceId, payload.productId, metadataFields.serviceId, metadataBilling.serviceId, featureKey);
+  const productId = firstCleanText(payload.productId, metadataFields.productId, metadataBilling.productId, featureKey);
+  const profileId = firstCleanText(payload.profileId, metadataFields.profileId, metadataBilling.profileId);
+  const jobId = firstCleanText(payload.jobId, metadataFields.jobId, reportId, sessionId, executionKey);
+  const orderId = firstCleanText(payload.orderId, payload.payment?.orderId, payload.payment?.merchantUid, metadataFields.orderId, metadataBilling.orderId);
+  const paymentId = firstCleanText(payload.paymentId, payload.impUid, paymentRef.paymentId, paymentRef.impUid, metadataFields.paymentId, metadataBilling.paymentId);
+  const merchantUid = firstCleanText(payload.merchantUid, paymentRef.merchantUid, metadataFields.merchantUid, metadataBilling.merchantUid, orderId);
+  const impUid = firstCleanText(payload.impUid, paymentRef.impUid, metadataFields.impUid, metadataBilling.impUid, paymentId);
+  const amount = firstNonNegativeAmount(
+    payload.amount,
+    payload.amountKRW,
+    payload.payment?.amount,
+    payload.payment?.paymentAmount,
+    metadataFields.amount,
+    metadataFields.amountKRW,
+    metadataBilling.amount,
+    metadataBilling.amountKRW,
+    cost,
+  );
+  const currency = firstCleanText(payload.currency, payload.payment?.currency, metadataFields.currency, metadataBilling.currency) || "KRW";
+  const paymentProvider = firstCleanText(
+    payload.paymentProvider,
+    payload.payment?.paymentProvider,
+    payload.payment?.provider,
+    metadataFields.paymentProvider,
+    metadataBilling.paymentProvider,
+    "portone",
+  );
 
   if (!executionKey) return { ok: false, status: 400, message: "executionKey is required." };
   if (!featureKey) return { ok: false, status: 400, message: "featureKey is required." };
@@ -776,18 +1159,30 @@ export async function startServiceExecution(env, userId, payload = {}) {
       coinAmount,
       idempotencyKey,
       featureKey,
+      serviceId,
+      productId,
+      profileId,
+      jobId,
+      orderId,
       cost,
+      amount,
+      currency,
+      paymentProvider,
+      paymentId,
+      merchantUid,
+      impUid,
       sourceTransactionId,
-      paymentRef: safePaymentRef(payload.payment),
+      paymentRef,
       status: "pending",
       premiumStatus: "generating",
+      deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.GENERATING,
       timeoutAt,
       nextRetryAt: startedAt,
       retryCount: 0,
       maxRetries: clampInt(payload.maxRetries, 5, 1, 20),
       generationStartedAt: startedAt,
       refundStatus: "none",
-      metadata: payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null,
+      metadata,
       retentionUntil,
     },
     $set: {
@@ -804,6 +1199,19 @@ export async function startServiceExecution(env, userId, payload = {}) {
     update,
     { upsert: true, returnDocument: "after" },
   ).lean();
+
+  logPaidServiceEvent("[PaidService Delivery Start]", doc, {
+    deliveryStatus: resolveDeliveryStatus(doc),
+    refundStatus: doc?.refundStatus || "none",
+  });
+  logPaidServiceEvent("[PaidService Entitlement Granted]", doc, {
+    deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.ENTITLEMENT_GRANTED,
+    refundStatus: doc?.refundStatus || "none",
+  });
+  logPaidServiceEvent("[PaidService Generation Start]", doc, {
+    deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.GENERATING,
+    refundStatus: doc?.refundStatus || "none",
+  });
 
   return {
     ok: true,
@@ -857,19 +1265,61 @@ export async function completeServiceExecution(env, userId, payload = {}) {
   const reportId = normalizeReportId(payload.reportId);
   const sessionId = normalizeSessionId(payload.sessionId || payload.reportSessionId);
   const completionMetadata = payload.metadata && typeof payload.metadata === "object" ? payload.metadata : null;
+  const hasResultPayload = Object.prototype.hasOwnProperty.call(payload, "result");
+  const existingForValidation = await ServiceExecutionTransaction.findOne({ userId: userObjectId, executionKey }).lean();
+  if (!existingForValidation) return { ok: false, status: 404, message: "Execution not found." };
+  if (existingForValidation.status !== "pending") {
+    return { ok: true, status: 200, idempotent: true, execution: toSummary(existingForValidation) };
+  }
+
+  const validationResult = hasResultPayload
+    ? payload.result
+    : {
+      ...(completionMetadata || {}),
+      reportId: reportId || completionMetadata?.reportId || existingForValidation.reportId || "",
+      sessionId: sessionId || completionMetadata?.sessionId || existingForValidation.sessionId || "",
+      resultId: reportId || sessionId || completionMetadata?.resultId || existingForValidation.reportId || existingForValidation.sessionId || "",
+    };
+  const validation = validatePaidServiceResult(
+    firstCleanText(payload.serviceId, payload.featureKey, existingForValidation.serviceId, existingForValidation.featureKey),
+    validationResult,
+    { userId: String(userObjectId) },
+  );
+  logPaidServiceEvent("[PaidService Result Validation]", existingForValidation, {
+    deliveryStatus: resolveDeliveryStatus(existingForValidation),
+    refundStatus: existingForValidation.refundStatus,
+    failureReason: validation.ok ? "" : validation.reason,
+  });
+  if (!validation.ok) {
+    return failServiceExecution(env, userId, {
+      executionKey,
+      sessionId,
+      reportId,
+      reasonCode: "invalid_result",
+      reasonMessage: validation.reason || "Paid service result validation failed.",
+      failureStage: "result_validation",
+      failureReason: validation.reason || "Paid service result validation failed.",
+      forceRefundOnClose: true,
+    });
+  }
+
   const doc = await ServiceExecutionTransaction.findOneAndUpdate(
     { userId: userObjectId, executionKey, status: "pending" },
     {
       $set: {
         status: "success",
         premiumStatus: "completed",
+        deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.DELIVERED,
         reportId: reportId || undefined,
         sessionId: sessionId || undefined,
+        deliveredAt: now,
+        failedAt: null,
         completedAt: now,
         generationCompletedAt: now,
         refundStatus: "none",
         reasonCode: "",
         reasonMessage: "",
+        refundFailureReason: "",
         ...(completionMetadata ? { metadata: completionMetadata } : {}),
         "lock.token": "",
         "lock.until": null,
@@ -884,6 +1334,11 @@ export async function completeServiceExecution(env, userId, payload = {}) {
     if (!existing) return { ok: false, status: 404, message: "Execution not found." };
     return { ok: true, status: 200, idempotent: true, execution: toSummary(existing) };
   }
+
+  logPaidServiceEvent("[PaidService Delivery Success]", doc, {
+    deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.DELIVERED,
+    refundStatus: doc.refundStatus || "none",
+  });
 
   return { ok: true, status: 200, idempotent: false, execution: toSummary(doc) };
 }
@@ -956,12 +1411,21 @@ export async function failServiceExecution(env, userId, payload = {}) {
     };
   }
 
+  const failedAt = nowDate();
+  logPaidServiceEvent("[PaidService Delivery Failed]", doc, {
+    deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.FAILED,
+    refundStatus: "pending",
+    failureReason,
+  });
+
   await ServiceExecutionTransaction.updateOne(
     { _id: doc._id, status: "pending" },
     {
       $set: {
         premiumStatus: "failed",
-        generationFailedAt: nowDate(),
+        deliveryStatus: PAID_SERVICE_DELIVERY_STATUSES.FAILED,
+        failedAt,
+        generationFailedAt: failedAt,
         failureStage,
         failureReason,
         refundStatus: "pending",

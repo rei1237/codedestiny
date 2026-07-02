@@ -628,7 +628,6 @@ export default function FortuneTeaHousePage() {
     setQuestionInput(nextQuestionInput);
     setConsultResult(null);
     startGenerationProgress(nextQuestionInput.consultationMode);
-    goToStage("scentLoading");
     const consultRunId = consultRunRef.current + 1;
     consultRunRef.current = consultRunId;
     const useLocalPreview = canUseLocalConsultPreview();

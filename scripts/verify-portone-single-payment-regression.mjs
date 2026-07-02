@@ -62,6 +62,7 @@ const originals = {
   fetch: globalThis.fetch,
   contentFindOne: ContentEntitlement.findOne,
   contentFindOneAndUpdate: ContentEntitlement.findOneAndUpdate,
+  contentUpdateMany: ContentEntitlement.updateMany,
   paymentCreate: Payment.create,
   paymentFindOne: Payment.findOne,
   paymentFindOneAndUpdate: Payment.findOneAndUpdate,
@@ -156,6 +157,7 @@ function resetState() {
     createdPayments: [],
     entitlementByKey: new Map(),
     preUnlocked: false,
+    userFeaturePulls: [],
     payment: makePayment(),
     portonePayment: makePortOnePayment(),
   };
@@ -167,7 +169,10 @@ function resetState() {
     email: "tester@example.com",
     phoneNumber: "01012345678",
   });
-  User.updateOne = async () => ({ acknowledged: true, modifiedCount: 1 });
+  User.updateOne = async (_criteria = {}, update = {}) => {
+    if (update.$pull) state.userFeaturePulls.push(update.$pull);
+    return { acknowledged: true, modifiedCount: 1 };
+  };
   ContentEntitlement.findOne = (criteria = {}) => {
     if (state.preUnlocked) return query({ _id: "entitlement_existing", ...criteria, unlockedAt: new Date() });
     const key = [
@@ -196,6 +201,28 @@ function resetState() {
     Object.assign(doc, update.$set || {});
     state.entitlementByKey.set(key, doc);
     return query(doc);
+  };
+  ContentEntitlement.updateMany = async (_criteria = {}, update = {}) => {
+    let matchedCount = 0;
+    let modifiedCount = 0;
+    for (const doc of state.entitlementByKey.values()) {
+      const userMatches = !_criteria.userId || String(doc.userId) === String(_criteria.userId);
+      const statusMatches = !_criteria.status || String(doc.status) === String(_criteria.status);
+      const sourceMatches = !_criteria.source || String(doc.source) === String(_criteria.source);
+      const clauseMatches = !Array.isArray(_criteria.$or) || _criteria.$or.some((clause) => {
+        if (clause.paymentId?.$in?.includes(doc.paymentId)) return true;
+        if (clause.orderId?.$in?.includes(doc.orderId)) return true;
+        if (clause.serviceKey && clause.serviceKey !== doc.serviceKey) return false;
+        if (clause.profileId && clause.profileId !== doc.profileId) return false;
+        if (clause.contentKey?.$in) return clause.contentKey.$in.includes(doc.contentKey);
+        return false;
+      });
+      if (!userMatches || !statusMatches || !sourceMatches || !clauseMatches) continue;
+      matchedCount += 1;
+      Object.assign(doc, update.$set || {});
+      modifiedCount += 1;
+    }
+    return { acknowledged: true, matchedCount, modifiedCount };
   };
   Payment.create = async (doc) => {
     const created = { _id: `pay_created_${state.createdPayments.length + 1}`, ...doc };
@@ -278,6 +305,7 @@ function restoreMocks() {
   globalThis.fetch = originals.fetch;
   ContentEntitlement.findOne = originals.contentFindOne;
   ContentEntitlement.findOneAndUpdate = originals.contentFindOneAndUpdate;
+  ContentEntitlement.updateMany = originals.contentUpdateMany;
   Payment.create = originals.paymentCreate;
   Payment.findOne = originals.paymentFindOne;
   Payment.findOneAndUpdate = originals.paymentFindOneAndUpdate;
@@ -431,9 +459,17 @@ async function runServerTests() {
   result = await jsonResponse(response);
   assert.equal(result.status, 200, "same paymentId complete should be idempotent");
   assert.equal(state.entitlementByKey.size, 1, "same paymentId should keep one unlock record");
+  let webhook = await signedWebhookRequest({ type: "Transaction.Cancelled", data: { paymentId: state.payment.merchantUid } });
+  response = await handleWebhook(webhook, ENV);
+  result = await jsonResponse(response);
+  assert.equal(result.status, 200, "Transaction.Cancelled webhook should succeed");
+  assert.equal(result.payload.unlockRevoked, true, "full cancellation webhook should revoke unlock");
+  const revokedEntitlement = Array.from(state.entitlementByKey.values())[0];
+  assert.equal(revokedEntitlement.status, "CANCELLED", "full cancellation should close entitlement");
+  assert.ok(state.userFeaturePulls.some((entry) => entry?.paidFeatures?.$in?.includes("section_summary")), "full cancellation should pull paid feature");
 
   resetState();
-  let webhook = await signedWebhookRequest({ type: "Transaction.Paid", data: { paymentId: state.payment.merchantUid } });
+  webhook = await signedWebhookRequest({ type: "Transaction.Paid", data: { paymentId: state.payment.merchantUid } });
   response = await handleWebhook(webhook, ENV);
   result = await jsonResponse(response);
   assert.equal(result.status, 200, "Transaction.Paid webhook should succeed");

@@ -108,7 +108,7 @@ type NeoCommandSpriteConfig = {
   asset?: NeoWarRoomAsset;
   sheetFrame?: number;
 };
-type NeoPrologueSpeaker = "customer" | "neo" | "narration" | "inner" | "system";
+type NeoPrologueSpeaker = "customer" | "neo" | "narration" | "system";
 type NeoPrologueCharacter = "hidden" | "shadow" | "preTransformNeoMain" | "preTransformNeoTalk" | "transformingNeo" | "humanNeo";
 type NeoPrologueEffect = "none" | "signal" | "seal" | "transform" | "arrival";
 type NeoPrologueLine = {
@@ -312,7 +312,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     effect: "signal",
   },
   {
-    id: "inner-shadow-check",
+    id: "customer-shadow-check",
     speaker: "customer",
     speakerLabel: "고객",
     text: "처음엔 운이 안 따라준다고 생각했다.\n그런데 관계도, 일도, 돈도 결국 비슷한 자리에서 막힌다.",
@@ -544,34 +544,8 @@ const getNeoPrologueSheetStyle = (line: NeoPrologueLine | null, transformFrame: 
   );
 };
 
-function NeoInnerVoiceAvatar({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 96 96" aria-hidden="true" focusable="false">
-      <defs>
-        <radialGradient id="neoInnerVoiceGlow" cx="50%" cy="44%" r="64%">
-          <stop offset="0%" stopColor="#f8e7b0" stopOpacity="0.95" />
-          <stop offset="48%" stopColor="#96b8ff" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#131a33" stopOpacity="0.08" />
-        </radialGradient>
-        <linearGradient id="neoInnerVoiceBody" x1="22" y1="10" x2="78" y2="88" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#fff6d9" stopOpacity="0.96" />
-          <stop offset="0.54" stopColor="#9fbaff" stopOpacity="0.78" />
-          <stop offset="1" stopColor="#4b5f9e" stopOpacity="0.42" />
-        </linearGradient>
-      </defs>
-      <circle cx="48" cy="48" r="43" fill="url(#neoInnerVoiceGlow)" />
-      <path d="M48 12c15 0 28 14 28 31 0 22-17 38-28 44-11-6-28-22-28-44 0-17 13-31 28-31Z" fill="url(#neoInnerVoiceBody)" stroke="rgba(255,246,210,.72)" strokeWidth="2" />
-      <path d="M35 51c4 6 9 9 13 9s9-3 13-9" fill="none" stroke="#192441" strokeWidth="3" strokeLinecap="round" opacity="0.72" />
-      <circle cx="36" cy="42" r="4" fill="#1a2340" opacity="0.82" />
-      <circle cx="60" cy="42" r="4" fill="#1a2340" opacity="0.82" />
-      <path d="M48 38c-5-7-15-1-10 7 3 4 10 9 10 9s7-5 10-9c5-8-5-14-10-7Z" fill="#f7d989" opacity="0.9" />
-      <path d="M20 23l4 8 8 4-8 4-4 8-4-8-8-4 8-4 4-8Zm60 7 3 6 6 3-6 3-3 6-3-6-6-3 6-3 3-6Z" fill="#f5d487" opacity="0.86" />
-    </svg>
-  );
-}
-
 const getNeoPrologueCharacterLabel = (character: NeoPrologueCharacter) => {
-  if (character === "hidden") return "화면 밖에서 들리는 목소리";
+  if (character === "hidden") return "화면 밖의 고객";
   if (character === "shadow") return "전략실에 나타난 검은 그림자";
   if (character === "preTransformNeoMain") return "전략실 변신 전 네오";
   if (character === "preTransformNeoTalk") return "전략실에서 말하는 변신 전 네오";
@@ -1068,11 +1042,9 @@ export default function NeoOperationRoomPage() {
   const activeHeroSpeakerCode =
     activePrologueLine?.speaker === "customer"
       ? "CLIENT"
-      : activePrologueLine?.speaker === "inner"
-        ? "VOICE"
-        : activePrologueLine?.speaker === "narration"
-          ? "STORY"
-          : "NEO";
+      : activePrologueLine?.speaker === "narration"
+        ? "STORY"
+        : "NEO";
   const activeHeroCharacter = activePrologueLine?.character || "humanNeo";
   const activeHeroIsTransforming = activeHeroCharacter === "transformingNeo";
   const activeTransformFrameCount = activeHeroIsTransforming && isSpriteMobile ? NEO_TRANSFORM_MOBILE_FRAME_COUNT : NEO_TRANSFORM_FRAME_COUNT;
@@ -1854,7 +1826,6 @@ export default function NeoOperationRoomPage() {
             onClick={advanceHeroDialogue}
             onKeyDown={handleIntroKeyDown}
           >
-            {activePrologueLine?.speaker === "inner" ? <NeoInnerVoiceAvatar className={styles.vnInnerVoiceAvatar} /> : null}
             <div className={styles.vnDialogueContent}>
               <div className={styles.vnSpeaker}>
                 <span aria-hidden="true">{activeHeroSpeakerCode}</span>
