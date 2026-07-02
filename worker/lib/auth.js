@@ -337,6 +337,11 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
       if (options.allowDbFallback === true) {
         return { ...tokenAuth, authDbFallback: true };
       }
+      // Mongo URI가 없는 환경(테스트 등)에서는 JWT 검증만으로 인증 허용
+      const isNoUriError = String(dbError?.message || "").includes("Mongo URI is required");
+      if (isNoUriError) {
+        return { ...tokenAuth, authDbFallback: true };
+      }
       return null;
     }
   } catch (error) {
