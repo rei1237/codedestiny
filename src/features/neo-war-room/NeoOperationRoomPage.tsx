@@ -931,12 +931,14 @@ export default function NeoOperationRoomPage() {
     if (lastCommandChoice?.kind === "intensity" && intensity === lastCommandChoice.value) return getNeoIntensityDialogue(intensity);
     return null;
   }, [intensity, lastCommandChoice, method, topic]);
+  const selectedMethodDialogue = useMemo(() => (method ? getNeoMethodDialogue(method) : null), [method]);
   const activeCommandDialogue = useMemo(() => {
     if (validationErrors.length) return neoOperationDialogues.error.missingInput[0];
     if (errorMessage) return neoOperationDialogues.error.generatingFailed[0];
     if (busy || previewOperationMap) return getNeoLoadingDialogue(method, operationStageIndex);
     if (displayRefinedOrder) return neoOperationDialogues.refinedResult[0];
     if (displayBriefing) return neoOperationDialogues.initialResult[0];
+    if (selectedMethodDialogue && (!topic || !hasBirthCoordinates || !intensity)) return selectedMethodDialogue;
     if (lastChoiceDialogue) return lastChoiceDialogue;
     if (!method) return methodIntroDialogues[methodIntroStep % methodIntroDialogues.length];
     if (!topic) return getNeoTopicDialogue("");
@@ -954,6 +956,7 @@ export default function NeoOperationRoomPage() {
     operationStageIndex,
     displayRefinedOrder,
     displayBriefing,
+    selectedMethodDialogue,
     lastChoiceDialogue,
     topic,
     hasBirthCoordinates,
