@@ -128,6 +128,21 @@ function buildMusicApiUrl(path: "audio" | "download", track: Track) {
   return `/api/music/${path}?${searchParams.toString()}`;
 }
 
+function triggerTrackDownload(downloadUrl: string, fileName: string) {
+  const anchor = document.createElement("a");
+  anchor.href = downloadUrl;
+  anchor.rel = "noopener";
+  anchor.style.display = "none";
+  anchor.download = fileName;
+
+  document.body.appendChild(anchor);
+  anchor.click();
+
+  window.setTimeout(() => {
+    if (anchor.parentNode) anchor.parentNode.removeChild(anchor);
+  }, 0);
+}
+
 function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap) {
   if (track.accessTier === "free_full") return true;
   return Boolean(track.id && accessByTrackId[track.id]?.hasFullAccess);
@@ -1148,8 +1163,9 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     if (!track || !hasTrackFullAccess(track, accessByTrackId)) return;
 
     const downloadUrl = buildDownloadUrl(track, accessByTrackId);
-    if (!downloadUrl || typeof window === "undefined") return;
-    window.location.href = downloadUrl;
+    if (!downloadUrl || typeof document === "undefined") return;
+
+    triggerTrackDownload(downloadUrl, track.downloadFileName || "code-destiny-track.mp3");
   }, [accessByTrackId, player.currentTrack]);
 
   const handleExploreMoods = useCallback(() => {

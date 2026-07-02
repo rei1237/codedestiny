@@ -28,6 +28,7 @@ type QuestionInputSceneProps = {
   onBack: () => void;
   isSubmitting?: boolean;
   submitError?: string;
+  priceLabels?: Partial<Record<FortuneTeaHouseConsultMode, string>>;
 };
 
 const concernTopics = ["연애 · 재회", "썸 · 인연", "진로 · 사업", "금전운", "마음 회복", "이별 · 위기"] as const;
@@ -203,9 +204,13 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
   };
 }
 
-export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "" }: QuestionInputSceneProps) {
+export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
-  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(consultationMode);
+  const priceLabelForMode = useCallback(
+    (mode: FortuneTeaHouseConsultMode) => priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode),
+    [priceLabels],
+  );
+  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(consultationMode, priceLabelForMode(consultationMode));
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
   const [selectedProfileOptionId, setSelectedProfileOptionId] = useState(initialInput?.profileId || "");
@@ -514,7 +519,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       </span>
                       <span>
                         <b>상담 금액</b>
-                        {getFortuneTeaHouseConsultPriceLabel(option.id)}
+                        {priceLabelForMode(option.id)}
                       </span>
                     </span>
                   </span>

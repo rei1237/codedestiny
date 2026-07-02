@@ -850,7 +850,7 @@ async function fetchPricingForSubscriptionSnapshot(input: {
   return parsed.ok && parsed.data?.pricing && typeof parsed.data.pricing === "object" ? parsed.data.pricing : null;
 }
 
-function formatPaymentWon(amount: number): string {
+export function formatPaymentWon(amount: number): string {
   return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}원`;
 }
 

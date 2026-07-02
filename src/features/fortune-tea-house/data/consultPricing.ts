@@ -33,8 +33,8 @@ export function getFortuneTeaHouseConsultPriceLabel(mode: FortuneTeaHousePriceKe
   return fortuneTeaHouseConsultPricing[mode].label;
 }
 
-export function getFortuneTeaHouseResultButtonLabel(mode: FortuneTeaHouseConsultMode) {
-  if (mode === "tarot") return `타로 결과 보기 · ${getFortuneTeaHouseConsultPriceLabel("tarot")}`;
-  if (mode === "sukuyo") return `숙요점 궁합 결과 보기 · ${getFortuneTeaHouseConsultPriceLabel("sukuyo")}`;
-  return `사주 결과 보기 · ${getFortuneTeaHouseConsultPriceLabel("saju")}`;
+export function getFortuneTeaHouseResultButtonLabel(mode: FortuneTeaHouseConsultMode, priceLabel = getFortuneTeaHouseConsultPriceLabel(mode)) {
+  if (mode === "tarot") return `타로 결과 보기 · ${priceLabel}`;
+  if (mode === "sukuyo") return `숙요점 궁합 결과 보기 · ${priceLabel}`;
+  return `사주 결과 보기 · ${priceLabel}`;
 }

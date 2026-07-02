@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { fetchPaymentEligibility, formatPaymentWon, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import {
@@ -827,6 +827,7 @@ export default function NeoOperationRoomPage() {
   const [refineError, setRefineError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [consultPriceLabel, setConsultPriceLabel] = useState("");
   const [resultUrl, setResultUrl] = useState("");
   const [operationStageIndex, setOperationStageIndex] = useState(0);
   const [introStep, setIntroStep] = useState(0);
@@ -925,6 +926,26 @@ export default function NeoOperationRoomPage() {
     Boolean(birthState.birth.birthDate)
     && Boolean(birthState.birth.gender)
     && (birthState.birth.birthTimeUnknown || Boolean(birthState.birth.birthTime));
+  const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && questionReady);
+  useEffect(() => {
+    if (!showLaunchConfirm || consultPriceLabel) return;
+    let cancelled = false;
+    void fetchPaymentEligibility({
+      productId: "neo-operation-room",
+      serviceType: FEATURE_KEY,
+      featureKey: FEATURE_KEY,
+    }, { phase: "full" })
+      .then((result) => {
+        const priceKRW = Math.max(0, Math.floor(Number(result.data?.priceKRW || 0)));
+        if (!cancelled && priceKRW > 0) setConsultPriceLabel(formatPaymentWon(priceKRW));
+      })
+      .catch(() => {
+        void 0;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [consultPriceLabel, showLaunchConfirm]);
   const lastChoiceDialogue = useMemo(() => {
     if (lastCommandChoice?.kind === "method" && method === lastCommandChoice.value) return getNeoMethodDialogue(method);
     if (lastCommandChoice?.kind === "topic" && topic === lastCommandChoice.value) return getNeoTopicDialogue(topic);
@@ -1010,7 +1031,6 @@ export default function NeoOperationRoomPage() {
   const showBirthInfo = Boolean(method && topic);
   const showIntensitySelect = Boolean(method && topic && hasBirthCoordinates);
   const showQuestionInput = Boolean(method && topic && hasBirthCoordinates && intensity);
-  const showLaunchConfirm = Boolean(method && topic && hasBirthCoordinates && intensity && questionReady);
   const activeActorState: NeoWarRoomEmotionState = busy || previewOperationMap || displayBriefing || displayRefinedOrder || validationErrors.length || errorMessage
     ? activeCommandDialogue.emotionState || actorState
     : !method
@@ -1541,6 +1561,8 @@ export default function NeoOperationRoomPage() {
       const gatePaymentAmount = toPositiveInteger(runtimeGate.paymentAmount ?? paymentPayload.paymentAmount ?? runtimeGate.totalAmount ?? paymentPayload.totalAmount);
       const gateAmountKRW = toPositiveInteger(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? gatePaymentAmount);
       const gateMembershipCreditCost = toPositiveInteger(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost);
+      const displayAmountKRW = gateAmountKRW || gatePaymentAmount;
+      if (displayAmountKRW > 0) setConsultPriceLabel(formatPaymentWon(displayAmountKRW));
       openPaidFeatureGate({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
@@ -2222,10 +2244,19 @@ export default function NeoOperationRoomPage() {
               <div className={styles.launchSummary}>
                 <strong>사자 휘장 확인</strong>
                 <span>{selectedMethod?.label} · {topic} · {selectedIntensity?.label}</span>
+                <span>{consultPriceLabel ? `${FEATURE_TITLE} · ${consultPriceLabel}` : FEATURE_TITLE}</span>
               </div>
               <button type="submit" className={styles.startButton} disabled={!canStart} aria-busy={busy}>
                 <span className={styles.ctaButtonCopy}>
-                  <strong>{busy ? "작전 지도 분석 중" : "사자 휘장으로 작전 개시"}</strong>
+                  <strong>
+                    {flowPhase === "payment"
+                      ? "결제 확인 중"
+                      : flowPhase === "generating"
+                        ? "AI 상담 생성 중"
+                        : busy
+                          ? "작전 지도 분석 중"
+                          : "사자 휘장으로 작전 개시"}
+                  </strong>
                   <em>{busy ? "Mapping Fate" : "Lion Seal Command"}</em>
                 </span>
               </button>

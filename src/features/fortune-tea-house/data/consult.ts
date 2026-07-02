@@ -286,6 +286,13 @@ export type FortuneTeaHouseConsultResponse = {
   resultId?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
   serviceScope?: FortuneTeaHouseServiceScope;
+  featureKey?: string;
+  pricing?: {
+    amountKRW?: number;
+    amountKrw?: number;
+    paymentAmount?: number;
+    [key: string]: unknown;
+  };
   sessionTitle: string;
   questionSummary: string;
   teaCup: {

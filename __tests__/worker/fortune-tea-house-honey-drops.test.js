@@ -8,6 +8,7 @@ const SERVICE_SCOPE = "FORTUNE_TEA_HOUSE";
 let handleFortuneTeaHouseRoutes;
 let authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
 let paidAccessAllowed = true;
+let callGeminiTextMock;
 
 function clone(value) {
   return value == null ? value : JSON.parse(JSON.stringify(value));
@@ -234,8 +235,9 @@ beforeAll(async () => {
       headers: { "content-type": "application/json" },
     })),
   }));
+  callGeminiTextMock = jest.fn(async () => ({ ok: false, error: "external_call_blocked" }));
   jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
-    callGeminiText: jest.fn(async () => ({ ok: false, error: "external_call_blocked" })),
+    callGeminiText: callGeminiTextMock,
   }));
   const mod = await import("../../worker/routes/fortune-tea-house.js");
   handleFortuneTeaHouseRoutes = mod.handleFortuneTeaHouseRoutes;
@@ -245,6 +247,7 @@ beforeEach(() => {
   fakeDb.reset();
   authState = { userId: USER_ID, email: "tea@example.com", role: "user" };
   paidAccessAllowed = true;
+  callGeminiTextMock?.mockClear();
 });
 
 const FEATURE_KEYS = {
@@ -339,6 +342,8 @@ describe("fortune tea house honey drops", () => {
     expect(status).toBe(402);
     expect(payload.paymentRequired).toBe(true);
     expect(payload.paymentPayload.featureKey).toBe(FEATURE_KEYS.tarot);
+    expect(payload.paymentPayload.amountKRW).toBe(5000);
+    expect(payload.paymentPayload.runtimeGate.paymentAmount).toBe(5000);
   });
 
   test("billing evidence with another fortune tea feature key is rejected", async () => {
@@ -366,6 +371,7 @@ describe("fortune tea house honey drops", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify(validConsultBody("same-result")),
     }), env);
+    const callCountAfterFirst = callGeminiTextMock.mock.calls.length;
     const second = await handleFortuneTeaHouseRoutes(new Request("https://example.com/api/fortune-tea-house/consult", {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -379,6 +385,7 @@ describe("fortune tea house honey drops", () => {
 
     expect(firstPayload.honeyDrops.earnedThisResult).toBe(true);
     expect(secondPayload.honeyDrops.duplicateResult).toBe(true);
+    expect(callGeminiTextMock.mock.calls.length).toBe(callCountAfterFirst);
     expect(wallet.balance).toBe(1);
     expect(ledgers).toHaveLength(1);
   });

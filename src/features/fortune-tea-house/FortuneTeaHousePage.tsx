@@ -80,6 +80,9 @@ const TeaHouseResultSheet = lazy(() => import("./components/TeaHouseResultSheet"
 
 type FortuneTeaHouseConsultApiResponse = {
   ok?: boolean;
+  status?: string;
+  reason?: string;
+  retryable?: boolean;
   result?: FortuneTeaHouseConsultResponse;
   honeyDrops?: FortuneTeaHouseHoneyDropsState;
   message?: string;
@@ -120,6 +123,7 @@ const FORTUNE_TEA_FEATURE_KEY_BY_MODE: Record<FortuneTeaHouseConsultMode, string
   saju: "fortune-tea-house-saju-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 };
+type FortuneTeaPriceLabelMap = Partial<Record<FortuneTeaHouseConsultMode, string>>;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -138,6 +142,16 @@ function buildFortuneTeaPaymentError(message: string) {
   const error = new Error(message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.");
   (error as Error & { paymentRequired?: boolean }).paymentRequired = true;
   return error;
+}
+
+function buildFortuneTeaGenerationPendingError(message?: string) {
+  const error = new Error(message || "결제는 확인되었고 상담문은 아직 생성 중이에요. 잠시 뒤 같은 버튼으로 다시 열어 주세요.");
+  (error as Error & { generationPending?: boolean }).generationPending = true;
+  return error;
+}
+
+function isFortuneTeaGenerationPending(response: Response, payload: FortuneTeaHouseConsultApiResponse) {
+  return response.status === 202 || payload.status === "generating" || payload.reason === "GENERATION_IN_PROGRESS";
 }
 
 function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string): FortuneTeaBillingGateInput {
@@ -307,6 +321,7 @@ export default function FortuneTeaHousePage() {
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [consultPriceLabels, setConsultPriceLabels] = useState<FortuneTeaPriceLabelMap>({});
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
@@ -441,6 +456,36 @@ export default function FortuneTeaHousePage() {
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
     };
   }, []);
+
+  useEffect(() => {
+    if (stage !== "questionInput") return;
+    let cancelled = false;
+    const entries = Object.entries(FORTUNE_TEA_FEATURE_KEY_BY_MODE) as Array<[FortuneTeaHouseConsultMode, string]>;
+    void import("@/app/_lib/billing-client")
+      .then(async ({ fetchPaymentEligibility, formatPaymentWon }) => {
+        const labels = await Promise.all(entries.map(async ([mode, featureKey]) => {
+          const result = await fetchPaymentEligibility({
+            productId: "fortune-tea-house",
+            serviceType: "fortune-tea-house",
+            featureKey,
+          }, { phase: "full" }).catch(() => null);
+          const priceKRW = Math.max(0, Math.floor(Number(result?.data?.priceKRW || 0)));
+          return [mode, priceKRW > 0 ? formatPaymentWon(priceKRW) : ""] as const;
+        }));
+        if (!cancelled) {
+          setConsultPriceLabels((current) => ({
+            ...current,
+            ...Object.fromEntries(labels.filter(([, label]) => label)),
+          }));
+        }
+      })
+      .catch(() => {
+        void 0;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [stage]);
 
   useEffect(() => {
     setNotice("");
@@ -694,13 +739,28 @@ export default function FortuneTeaHousePage() {
       }, abortController.signal).finally(() => {
         if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
       });
+      if (isFortuneTeaGenerationPending(response, payload)) {
+        throw buildFortuneTeaGenerationPendingError(payload.message);
+      }
       if ((!response.ok || !payload.ok || !payload.result) && payload.paymentRequired) {
+        setGenerationProgress((current) => ({
+          ...current,
+          percent: Math.max(current.percent, 24),
+          label: "가격 확인",
+          message: "상담 가격과 결제 권한을 확인하고 있어요.",
+        }));
         const billing = await runFortuneTeaBillingGate(payload, nextQuestionInput.consultationMode, attemptId);
         if (consultRunRef.current !== consultRunId) return;
         const billingGate = asRecord(billing.data);
         const accessGrant = asRecord(billingGate.accessGrant);
         const consume = asRecord(billingGate.consume);
         logSubmitStep("billing gate success", { featureKey: billing.featureKey });
+        setGenerationProgress((current) => ({
+          ...current,
+          percent: Math.max(current.percent, 42),
+          label: "결제 확인 중",
+          message: "결제와 이용권이 열린 것을 확인하고 있어요.",
+        }));
         ({ response, payload } = await postFortuneTeaConsultRequest({
           ...requestPayloadWithAttempt,
           draftResult: localDraft,
@@ -717,6 +777,9 @@ export default function FortuneTeaHousePage() {
             consume,
           },
         }));
+      }
+      if (isFortuneTeaGenerationPending(response, payload)) {
+        throw buildFortuneTeaGenerationPendingError(payload.message);
       }
       if (!response.ok || !payload.ok || !payload.result) {
         const submitError = new Error(payload.message || "연이가 상담문을 엮는 중 잠시 멈췄어요. 다시 한 번만 건네주세요.");
@@ -763,7 +826,10 @@ export default function FortuneTeaHousePage() {
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error", error);
-      const blocksLocalPreview = error instanceof Error && (error as Error & { paymentRequired?: boolean }).paymentRequired;
+      const blocksLocalPreview = error instanceof Error && (
+        (error as Error & { paymentRequired?: boolean }).paymentRequired
+        || (error as Error & { generationPending?: boolean }).generationPending
+      );
       if (localPreviewResult && useLocalPreview && !blocksLocalPreview) {
         markGenerationComplete();
         const nextResult = {
@@ -841,6 +907,7 @@ export default function FortuneTeaHousePage() {
           onSubmit={submitQuestion}
           isSubmitting={isSubmitting}
           submitError={submitError}
+          priceLabels={consultPriceLabels}
         />
       );
     }

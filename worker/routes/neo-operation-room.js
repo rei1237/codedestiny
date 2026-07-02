@@ -297,6 +297,47 @@ function hasMonthlyCreditBalance(user = {}, cost = 0) {
   return cost > 0 && balance >= cost;
 }
 
+function hasActiveMonthlySubscription(user = {}) {
+  const monthly = asObject(user.monthlySubscription);
+  const profileSubscription = asObject(user.profileSubscription);
+  const status = clean(
+    monthly.status
+      || monthly.subscriptionStatus
+      || profileSubscription.monthlyStatus
+      || profileSubscription.subscriptionStatus
+      || "",
+  ).toLowerCase();
+  const inactive = ["expired", "inactive", "cancelled", "canceled", "failed", "refunded"].includes(status);
+  const active = ["active", "paid", "success", "subscribed", "current", "valid"].includes(status)
+    || monthly.active === true
+    || monthly.isActive === true
+    || monthly.isSubscribed === true;
+  const expiresAt = monthly.expiresAt || monthly.currentPeriodEnd || profileSubscription.expiresAt || profileSubscription.currentPeriodEnd;
+  const expiry = expiresAt ? new Date(expiresAt).getTime() : NaN;
+  const dateActive = Number.isFinite(expiry) ? expiry > Date.now() : true;
+  return !inactive && active && dateActive;
+}
+
+function isSinglePurchaseNeoDecision(decision = {}, accessType = "") {
+  const source = clean(decision.accessSource).toLowerCase();
+  const license = clean(decision.licenseType).toLowerCase();
+  const reason = clean(decision.reason).toLowerCase();
+  return accessType === "paid" || source === "paidfeatures" || license === "single_purchase" || reason === "already_purchased";
+}
+
+function resolveReusableNeoAccountAccess(decision = {}, user = {}, pricing = {}) {
+  if (!decision?.allowed) return null;
+  const accessType = mapAccessType(decision, user);
+  if (!isSinglePurchaseNeoDecision(decision, accessType)) return { accessType };
+
+  const pass = normalizeHoneyPassEntitlement(user || {});
+  if (pass && canUseByPass(pass, pricing.coinPrice)) return { accessType: "pass" };
+  if (hasActiveMonthlySubscription(user) && hasMonthlyCreditBalance(user, pricing.membershipCreditCost)) {
+    return { accessType: "subscription" };
+  }
+  return null;
+}
+
 async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash) {
   await connectDb(env);
   const existing = await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
@@ -306,6 +347,9 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
   if (existing?.status === "completed") {
     return { ok: true, accessType: clean(existing.accessType) || "paid", paymentId: clean(existing.paymentId, 160), existing };
   }
+  if (existing?.status === "generating" || existing?.status === "generation_failed") {
+    return { ok: true, accessType: clean(existing.accessType) || "paid", paymentId: clean(existing.paymentId, 160), existing };
+  }
   const user = await loadUser(auth.userId);
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
@@ -313,7 +357,9 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
   }
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
   if (!decision.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
-  const accessType = mapAccessType(decision, user);
+  const reusableAccess = resolveReusableNeoAccountAccess(decision, user, pricing);
+  if (!reusableAccess) return { ok: false, reason: "PAYMENT_REQUIRED" };
+  const accessType = reusableAccess.accessType;
   if (accessType === "subscription" && !hasMonthlyCreditBalance(user, pricing.membershipCreditCost)) {
     return { ok: false, reason: "PAYMENT_REQUIRED" };
   }
@@ -463,7 +509,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
   if (decision.allowed) {
-    const accessType = mapAccessType(decision, user);
+    const reusableAccess = resolveReusableNeoAccountAccess(decision, user, pricing);
+    if (!reusableAccess) return { ok: false, reason: "PAYMENT_REQUIRED" };
+    const accessType = reusableAccess.accessType;
     if (accessType === "subscription" && !hasMonthlyCreditBalance(user, pricing.membershipCreditCost)) return { ok: false, reason: "PAYMENT_REQUIRED" };
     return { ok: true, accessType, paymentId: "", source: "server" };
   }

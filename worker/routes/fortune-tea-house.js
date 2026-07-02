@@ -2787,6 +2787,108 @@ function honeyCollections() {
   };
 }
 
+function buildFortuneTeaResultStorageId(userId, resultId) {
+  return `fortune-tea-house-result:${createHash("sha256").update(`${userId}:${resultId}`).digest("hex").slice(0, 48)}`;
+}
+
+function isFreshFortuneTeaGeneration(doc, now = Date.now()) {
+  if (!doc || doc.status !== "generating") return false;
+  const updatedAt = new Date(doc.updatedAt || doc.createdAt || 0).getTime();
+  return Number.isFinite(updatedAt) && now - updatedAt < 120000;
+}
+
+function publicFortuneTeaStoredResult(doc, fallback = {}) {
+  const stored = objectValue(doc?.result);
+  if (!Object.keys(stored).length) return null;
+  const resultId = cleanText(stored.resultId || doc?.resultId || fallback.resultId, 180);
+  return {
+    ...stored,
+    resultId,
+    serviceScope: cleanText(stored.serviceScope || doc?.serviceScope || fallback.serviceScope, 80) || FORTUNE_TEA_HOUSE_SCOPE,
+    consultationMode: normalizeConsultationMode(stored.consultationMode || doc?.consultationMode || fallback.consultationMode),
+    featureKey: cleanText(stored.featureKey || doc?.featureKey || fallback.featureKey, 160),
+    pricing: stored.pricing || doc?.pricing || fallback.pricing || undefined,
+  };
+}
+
+async function beginFortuneTeaHouseGeneration({ auth, resultId, consultRequest, featureKey, pricing, requestId }) {
+  if (!auth?.userId) return { ok: true };
+  const userId = String(auth.userId);
+  const now = new Date();
+  const { results } = honeyCollections();
+  const existing = await results.findOne({ userId, resultId });
+  if (existing?.status === "completed") {
+    const result = publicFortuneTeaStoredResult(existing, {
+      resultId,
+      consultationMode: consultRequest.consultationMode,
+      featureKey,
+      pricing,
+    });
+    if (result) return { ok: false, completed: true, result, doc: existing };
+  }
+  if (isFreshFortuneTeaGeneration(existing)) {
+    return { ok: false, inProgress: true, doc: existing };
+  }
+
+  try {
+    await results.updateOne(
+      { userId, resultId },
+      {
+        $set: {
+          userId,
+          resultId,
+          serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
+          consultationMode: normalizeConsultationMode(consultRequest.consultationMode),
+          featureKey,
+          pricing: pricing || {},
+          profileId: cleanText(consultRequest.profileId, 120),
+          status: "generating",
+          generationLock: {
+            requestId: cleanText(requestId || resultId, 180),
+            startedAt: now,
+          },
+          generationError: null,
+          updatedAt: now,
+        },
+        $setOnInsert: {
+          _id: buildFortuneTeaResultStorageId(userId, resultId),
+          createdAt: now,
+        },
+      },
+      { upsert: true },
+    );
+  } catch (error) {
+    if (Number(error?.code) === 11000) return { ok: false, inProgress: true };
+    throw error;
+  }
+  return { ok: true };
+}
+
+async function markFortuneTeaHouseGenerationFailed({ auth, resultId, code, message }) {
+  if (!auth?.userId) return;
+  const userId = String(auth.userId);
+  const now = new Date();
+  const { results } = honeyCollections();
+  await results.updateOne(
+    { userId, resultId },
+    {
+      $set: {
+        status: "generation_failed",
+        generationError: {
+          code: cleanText(code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
+          message: cleanText(message || "generation failed", 500),
+          at: now.toISOString(),
+          retryable: true,
+        },
+        updatedAt: now,
+      },
+      $unset: { generationLock: "" },
+    },
+  ).catch((error) => {
+    console.warn("[fortune-tea-house/consult] generation failure status update failed", error);
+  });
+}
+
 function dateIso(value) {
   if (!value) return undefined;
   const date = value instanceof Date ? value : new Date(value);
@@ -2893,6 +2995,8 @@ async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, resul
         resultId,
         serviceScope: FORTUNE_TEA_HOUSE_SCOPE,
         consultationMode: normalizeConsultationMode(consultRequest.consultationMode),
+        featureKey: cleanText(result.featureKey, 160),
+        pricing: result.pricing || {},
         status: "completed",
         profileId: cleanText(consultRequest.profileId, 120),
         questionSummary: cleanMultiline(result.questionSummary || consultRequest.question, 1200),
@@ -2900,7 +3004,11 @@ async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, resul
         generationMeta: generationMeta || {},
         updatedAt: now,
       },
-      $setOnInsert: { createdAt: now },
+      $unset: { generationLock: "", generationError: "" },
+      $setOnInsert: {
+        _id: buildFortuneTeaResultStorageId(userId, resultId),
+        createdAt: now,
+      },
     },
     { upsert: true },
   );
@@ -3521,6 +3629,41 @@ async function handleConsult(request, env) {
   const fallback = normalizeDraftResult(body?.draftResult, consultRequest);
   const resultId = buildHoneyResultId(body, consultRequest);
   const requestId = readFortuneTeaRequestId(body, consultRequest);
+  if (access.auth?.userId) {
+    await connectDb(env);
+    const generation = await beginFortuneTeaHouseGeneration({
+      auth: access.auth,
+      resultId,
+      consultRequest,
+      featureKey: access.featureKey,
+      pricing: access.pricing,
+      requestId,
+    });
+    if (generation.completed) {
+      const honeyDrops = await readHoneyDropsState(request, env);
+      return json({
+        ok: true,
+        result: generation.result,
+        honeyDrops: honeyDrops ? {
+          ...honeyDrops,
+          resultId,
+          earnedThisResult: false,
+          duplicateResult: true,
+        } : honeyDrops,
+        generationMeta: generation.doc?.generationMeta || {},
+        cached: true,
+      });
+    }
+    if (generation.inProgress) {
+      return json({
+        ok: true,
+        status: "generating",
+        retryable: true,
+        resultId,
+        message: "결제는 확인되었고 상담문은 아직 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
+      }, { status: 202 });
+    }
+  }
   let generated;
   try {
     generated = await generateConsultResult(consultRequest, fallback, env);
@@ -3551,6 +3694,12 @@ async function handleConsult(request, env) {
         console.warn("[fortune-tea-house/billing-deferred] cancel failed", cancelError);
       });
     }
+    await markFortuneTeaHouseGenerationFailed({
+      auth: access.auth,
+      resultId,
+      code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
+      message: cleanText(error?.message || error, 500),
+    });
     throw error;
   }
   const auth = access.auth;

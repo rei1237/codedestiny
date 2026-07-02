@@ -304,4 +304,33 @@ describe("Payments prepare idempotency", () => {
     expect(payload.order.paymentAmount).toBe(12000);
     expect(Payment.create).not.toHaveBeenCalled();
   });
+
+  test("digital content prepare: client amount mismatch is rejected for neo consultation", async () => {
+    mockUserFindById({
+      profileSubscription: { tier: "free", expiresAt: null },
+    });
+    mockPaymentFindOne(null);
+    Payment.create = jest.fn();
+
+    const req = new Request("https://example.com/api/payments/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": "idem-neo-amount-mismatch",
+      },
+      body: JSON.stringify({
+        productId: "neo-operation-room",
+        paymentType: "digital_content",
+        featureKey: "neo-operation-room-consultation",
+        paymentAmount: 100,
+      }),
+    });
+
+    const response = await testUtils.handlePrepare(req, {}, auth);
+    const { status, payload } = await readResponse(response);
+
+    expect(status).toBe(400);
+    expect(payload.code).toBe("CLIENT_AMOUNT_MISMATCH");
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
 });
