@@ -1712,22 +1712,22 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-163c032ac751'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-163c032ac751'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-163c032ac751'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-b2471140e775'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-b2471140e775'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-b2471140e775'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-163c032ac751'); },
-  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-163c032ac751'); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-163c032ac751').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-163c032ac751'); }); },
+  openLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-b2471140e775'); },
+  closeLuckSyncDiary: function() { return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-b2471140e775'); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b2471140e775').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-b2471140e775'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-163c032ac751'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-163c032ac751'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-b2471140e775'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-b2471140e775'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-163c032ac751'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-163c032ac751'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-b2471140e775'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-b2471140e775'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-163c032ac751').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-b2471140e775').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -2029,15 +2029,15 @@ function __cdEnsureSajuCoreLoaded() {
 
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-    '/js/core/kasi-calendar-service.js?v=build-163c032ac751',
-    '/js/compat-llm-prompts.js?v=build-163c032ac751',
-    '/js/saju-engine.js?v=build-163c032ac751',
-      '/js/core/saju/extremeTResult.js?v=build-163c032ac751',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-163c032ac751',
-    '/js/core/saju/modalProfileState.js?v=build-163c032ac751',
-    '/js/core/saju/reportDashboard.js?v=build-163c032ac751',
-    '/js/saju-engine-continuation.js?v=build-163c032ac751',
-    '/js/entertain-engine.js?v=build-163c032ac751'
+    '/js/core/kasi-calendar-service.js?v=build-b2471140e775',
+    '/js/compat-llm-prompts.js?v=build-b2471140e775',
+    '/js/saju-engine.js?v=build-b2471140e775',
+      '/js/core/saju/extremeTResult.js?v=build-b2471140e775',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-b2471140e775',
+    '/js/core/saju/modalProfileState.js?v=build-b2471140e775',
+    '/js/core/saju/reportDashboard.js?v=build-b2471140e775',
+    '/js/saju-engine-continuation.js?v=build-b2471140e775',
+    '/js/entertain-engine.js?v=build-b2471140e775'
   ];
 
   __cdSajuCoreLoadPromise = chain.reduce(function(promise, src) {
@@ -2057,7 +2057,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-163c032ac751')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-b2471140e775')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2075,7 +2075,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-163c032ac751';
+    var src = '/js/swisseph-loader.js?v=build-b2471140e775';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2339,7 +2339,7 @@ __cdInstallSajuActionStub('runCompat');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-163c032ac751').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-b2471140e775').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') {
       return window.LuckSyncDiary.open();
     }
@@ -2347,7 +2347,7 @@ window.openLuckSyncDiary = function() {
   });
 };
 window.closeLuckSyncDiary = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-163c032ac751').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-b2471140e775').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.close === 'function') {
       return window.LuckSyncDiary.close();
     }
@@ -2495,6 +2495,9 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
   var wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
   var ioEnabled = typeof IntersectionObserver !== 'undefined';
   var r2AssetBase = 'https://assets.code-destiny.com/';
+  var localAssetKeys = {
+    'saju-guardian-animal-v20260615.png': true
+  };
 
   function splitCollectionImagePath(src) {
     var raw = String(src || '').trim();
@@ -2518,6 +2521,11 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
   }
 
   function buildR2CollectionAssetUrl(objectKey, suffix) {
+    var decodedKey = String(objectKey || '').replace(/^\/+/, '');
+    try {
+      decodedKey = decodeURIComponent(decodedKey);
+    } catch (_) {}
+    if (localAssetKeys[decodedKey]) return '';
     var encodedKey = encodeCollectionAssetKey(objectKey);
     if (!encodedKey) return '';
     return r2AssetBase + encodedKey + (suffix || '');
@@ -2529,15 +2537,15 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
     if (raw.indexOf(r2AssetBase) === 0) return raw;
     var parts = splitCollectionImagePath(raw);
     var path = parts.path;
-    if (path.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('/fuctionassets/'.length), parts.suffix);
-    if (path.indexOf('fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('fuctionassets/'.length), parts.suffix);
-    if (path.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(path.slice('/images/'.length), parts.suffix);
-    if (path.indexOf('images/') === 0) return buildR2CollectionAssetUrl(path.slice('images/'.length), parts.suffix);
+    if (path.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('/fuctionassets/'.length), parts.suffix) || raw;
+    if (path.indexOf('fuctionassets/') === 0) return buildR2CollectionAssetUrl(path.slice('fuctionassets/'.length), parts.suffix) || raw;
+    if (path.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(path.slice('/images/'.length), parts.suffix) || raw;
+    if (path.indexOf('images/') === 0) return buildR2CollectionAssetUrl(path.slice('images/'.length), parts.suffix) || raw;
     try {
       var url = new URL(raw, window.location.href);
       if (url.origin === 'https://code-destiny.com' || url.origin === window.location.origin) {
-        if (url.pathname.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/fuctionassets/'.length), url.search + url.hash);
-        if (url.pathname.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/images/'.length), url.search + url.hash);
+        if (url.pathname.indexOf('/fuctionassets/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/fuctionassets/'.length), url.search + url.hash) || raw;
+        if (url.pathname.indexOf('/images/') === 0) return buildR2CollectionAssetUrl(url.pathname.slice('/images/'.length), url.search + url.hash) || raw;
       }
     } catch (_) {}
     return raw;
@@ -2974,8 +2982,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-163c032ac751')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-163c032ac751'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-b2471140e775')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-b2471140e775'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -7452,9 +7460,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-163c032ac751',
-      '/js/saju-engine.js?v=build-163c032ac751',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-163c032ac751'
+    '/js/compat-llm-prompts.js?v=build-b2471140e775',
+      '/js/saju-engine.js?v=build-b2471140e775',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-b2471140e775'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7474,7 +7482,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-163c032ac751'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-b2471140e775'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8163,8 +8171,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-163c032ac751')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-163c032ac751'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-b2471140e775')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-b2471140e775'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
