@@ -1,11 +1,13 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { fetchBillingBalance } from "@/app/_lib/billing-client";
 
 type CacheKind = "session" | "profile" | "entitlement" | "paymentAccess";
 
 type CachedResponse = {
   body: string;
+  cachedAt: number;
   fetchedAt: number;
   headers: [string, string][];
   kind: CacheKind;
@@ -40,6 +42,7 @@ type RuntimeWindow = Window & {
 const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
 const VOLATILE_QUERY_KEYS = new Set(["_", "t", "ts", "cb", "cache", "cacheBust", "cachebuster"]);
 const REQUEST_GUARD_MARKER = "request-traffic-guard-v20260704";
+const SUBSCRIPTION_STATUS_CACHE_TTL_MS = 180_000;
 const cache = new Map<string, CachedResponse>();
 const inFlight = new Map<string, Promise<Response>>();
 const subscribers = new Set<() => void>();
@@ -200,6 +203,18 @@ function responseFromCached(entry: CachedResponse) {
   });
 }
 
+function getCacheTtlMs(kind: CacheKind) {
+  if (kind === "entitlement") return SUBSCRIPTION_STATUS_CACHE_TTL_MS;
+  if (kind === "session") return 300_000;
+  if (kind === "profile") return 120_000;
+  return 120_000;
+}
+
+function isFreshCachedResponse(entry: CachedResponse | undefined, kind: CacheKind) {
+  if (!entry || !Number.isFinite(entry.cachedAt)) return false;
+  return Date.now() - entry.cachedAt <= getCacheTtlMs(kind);
+}
+
 function guardedGuestAuthResponse() {
   return new Response(JSON.stringify({
     ok: true,
@@ -248,9 +263,11 @@ function updateStatus(kind: CacheKind, status: UserAccessSnapshot["profileStatus
 function rememberResponse(key: string, response: Response, url: string, kind: CacheKind, userKey: string) {
   if (!response.ok) return;
   void response.clone().text().then((body) => {
+    const now = Date.now();
     cache.set(key, {
       body,
-      fetchedAt: Date.now(),
+      cachedAt: now,
+      fetchedAt: now,
       headers: Array.from(response.headers.entries()),
       kind,
       status: response.status,
@@ -291,6 +308,34 @@ export function invalidateUserAccessCache(reason = "manual") {
   }
 }
 
+export function invalidateSessionCache(reason = "manual") {
+  invalidateMatching((entry) => entry.kind === "session");
+  updateStatus("session", "idle", null);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, kind: "session", at: Date.now() } }));
+  }
+}
+
+export function invalidateEntitlementCache(reason = "manual") {
+  invalidateMatching((entry) => entry.kind === "entitlement" || entry.kind === "paymentAccess");
+  setSnapshot({
+    entitlementStatus: "idle",
+    paymentAccessStatus: "idle",
+    error: null,
+  });
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, kind: "entitlement", at: Date.now() } }));
+  }
+}
+
+export function invalidateProfileCache(reason = "manual") {
+  invalidateMatching((entry) => entry.kind === "profile");
+  updateStatus("profile", "idle", null);
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("cd:user-access-cache-invalidated", { detail: { reason, kind: "profile", at: Date.now() } }));
+  }
+}
+
 export async function ensureUserAccessLoaded(options: { force?: boolean; includeProfile?: boolean; includeBilling?: boolean; reason?: string } = {}) {
   if (typeof window === "undefined") return getUserAccessSnapshot();
   installUserAccessFetchCache();
@@ -307,14 +352,16 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
   }
   if (options.includeBilling !== false) {
     tasks.push(fetch("/api/subscription/status", init).catch((error) => error));
-    tasks.push(fetch("/api/billing/balance", init).catch((error) => error));
+    tasks.push(fetchBillingBalance({ force: options.force, emit: false }).catch((error) => error));
   }
   await Promise.allSettled(tasks);
   return getUserAccessSnapshot();
 }
 
 export async function refreshUserAccessAfterPayment() {
-  invalidateUserAccessCache("payment");
+  invalidateEntitlementCache("payment");
+  invalidateProfileCache("payment");
+  fetchBillingBalance({ force: true, emit: false }).catch(() => {});
   return ensureUserAccessLoaded({ force: true, includeBilling: true, includeProfile: true, reason: "payment" });
 }
 
@@ -385,7 +432,8 @@ export function installUserAccessFetchCache() {
     const cacheKey = makeCacheKey(userKey, parsedUrl, kind);
     if (!shouldBypass(init)) {
       const cached = cache.get(cacheKey);
-      if (cached) return Promise.resolve(responseFromCached(cached));
+      if (isFreshCachedResponse(cached, kind) && cached) return Promise.resolve(responseFromCached(cached));
+      if (cached) cache.delete(cacheKey);
       const pending = inFlight.get(cacheKey);
       if (pending) return pending.then((response) => response.clone());
     } else {
@@ -430,8 +478,12 @@ export function installUserAccessInvalidationListeners() {
     const source = String(detail?.source || "").toLowerCase();
     const kind = String(detail?.event || "").toLowerCase();
     if (source === "subscription-sync" && kind === "subscription") return;
-    if (kind === "logout" || kind === "login" || kind === "subscription" || kind === "payment" || kind === "profile") {
+    if (kind === "logout" || kind === "login") {
       invalidateUserAccessCache(kind);
+    } else if (kind === "subscription" || kind === "payment") {
+      invalidateEntitlementCache(kind);
+    } else if (kind === "profile") {
+      invalidateProfileCache(kind);
     }
   };
   const onBillingUpdated = () => {
@@ -442,8 +494,10 @@ export function installUserAccessInvalidationListeners() {
     updateStatus("profile", "idle", null);
   };
   const onStorage = (event: StorageEvent) => {
-    if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token" || event.key === "fortune_auth_role") {
-      invalidateUserAccessCache("auth-storage");
+    if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token") {
+      invalidateSessionCache("auth-storage");
+    } else if (event.key === "fortune_auth_role") {
+      invalidateEntitlementCache("auth-storage");
     }
   };
 

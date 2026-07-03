@@ -17,6 +17,18 @@ export interface LLMRequest {
       data: string;
     };
   }>;
+  logContext?: {
+    requestId?: string;
+    serviceId?: string;
+    serviceType?: string;
+    featureKey?: string;
+    userIdHash?: string;
+    profileIdPresent?: boolean;
+    idempotencyKeyHash?: string;
+    providerCallCount?: number;
+    cacheHit?: boolean;
+    duplicateBlocked?: boolean;
+  };
 }
 
 export interface LLMResponse {
@@ -135,6 +147,34 @@ function getErrorMessage(error: unknown): string {
   return String(error || "Unknown error");
 }
 
+function cleanLogValue(value: unknown, maxLength = 120): string {
+  return String(value || "").trim().slice(0, maxLength);
+}
+
+function shouldLogProviderCall(env?: CloudflareEnv): boolean {
+  const raw = String((env as Record<string, unknown> | undefined)?.["LLM_PROVIDER_CALL_LOG"] ?? "").trim().toLowerCase();
+  return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
+function emitProviderCallLog(provider: LLMResponse["provider"], model: string, request: LLMRequest, env?: CloudflareEnv): void {
+  if (!shouldLogProviderCall(env)) return;
+  const context = request.logContext || {};
+  console.info("[llm provider_call]", {
+    action: "provider_call",
+    provider,
+    model: cleanLogValue(model, 120),
+    taskType: cleanLogValue(request.taskType || "general", 40),
+    requestId: cleanLogValue(context.requestId, 180),
+    serviceId: cleanLogValue(context.serviceId || context.serviceType || context.featureKey, 80),
+    userIdHash: cleanLogValue(context.userIdHash, 64),
+    profileIdPresent: Boolean(context.profileIdPresent),
+    idempotencyKeyHash: cleanLogValue(context.idempotencyKeyHash, 64),
+    providerCallCount: Number(context.providerCallCount || 0) || undefined,
+    cacheHit: Boolean(context.cacheHit),
+    duplicateBlocked: Boolean(context.duplicateBlocked),
+  });
+}
+
 function extractGeminiText(payload: GeminiPayload): string {
   const parts = payload.candidates?.[0]?.content?.parts || [];
   return parts
@@ -221,6 +261,7 @@ async function callGeminiPrimary(
       : new URL(endpoint, "https://generativelanguage.googleapis.com");
     endpointUrl.searchParams.set("key", apiKey);
 
+    emitProviderCallLog("gemini", model, normalized, env);
     const response = await fetch(endpointUrl.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -268,6 +309,7 @@ async function callCloudflareWorkersAI(
     { role: "user", content: normalized.prompt },
   ];
 
+  emitProviderCallLog("cloudflare", model, normalized, env);
   const result = await env.AI.run(model, {
     messages,
     max_tokens: normalized.maxTokens,

@@ -453,11 +453,12 @@ assertContains(indexSource, "await portOneLoadPromise", "direct payment reuses p
 assertContains(indexSource, "typeof _cdSetCoinGateOverlay === 'function' && (typeof _cdIsCoinGateOverlayVisible !== 'function' || !_cdIsCoinGateOverlayVisible())", "direct checkout keeps existing wait overlay instead of reopening it");
 assertContains(indexSource, "status: 'paymentWindowOpen'", "single payment wait UI remains while PortOne auth is open");
 assertContains(indexSource, "status: 'paymentProcessing'", "payment wait UI remains during server confirmation");
-assertContains(indexSource, "updateSharedPaidGate('paymentProcessing', '월정석 결제를 확인하고 있습니다.'", "monthly payment wait UI starts from the actual monthly charge request");
+assertContains(indexSource, "updateSharedPaidGate('paymentProcessing', '월정석 이벤트 재화 사용 권한을 확인하고 있습니다.'", "monthly event currency wait UI starts from the actual monthly charge request");
 assertContains(indexSource, "__cdMonthlyCreditGateInFlight", "monthly payment request has single-flight guard");
 assertContains(indexSource, "단건 결제가 완료되어 열람되었습니다.", "single payment success copy");
-assertContains(indexSource, "월정석 결제가 완료되었습니다.", "monthly payment success copy");
-assertContains(indexSource, "월정석 혜택으로 열람되었습니다.", "monthly benefit success copy");
+assertContains(indexSource, "월정석 사용이 완료되었습니다.", "monthly event currency success copy");
+assertContains(indexSource, "월정석 이벤트 재화로 열람되었습니다.", "monthly event currency access success copy");
+assertContains(indexSource, "월정석은 이벤트성 선불 재화입니다.", "monthly event currency disclaimer copy");
 assertContains(indexSource, "FAMILY 이용권이 적용되었습니다.", "static family license pass success copy");
 assertContains(indexSource, "membership-honey-kkulkkul.webp", "static license pass reuses honey pig asset");
 assertContains(indexSource, "forceDeduct: false", "static membership pass probe never deducts coins");
@@ -469,7 +470,7 @@ assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, cached.re
 assertContains(indexSource, "_cdShouldForceFreshPaidPassCheck(content, result)", "paid precheck does not store stale pass payment-required results");
 assertContains(indexSource, "_subTier === 'family' ? 999999999", "main shell family policy pass limit");
 assertContains(indexSource, "Code Destiny Family 30일", "main shell family payment modal copy");
-assertContains(indexSource, "\\uC0C1\\uD488\\uBCC4 \\uC6D0\\uD654 \\uB2E8\\uAC74 \\uACB0\\uC81C", "main shell PDF single-payment modal copy");
+assertContains(indexSource, "월정석 이벤트 재화 기준", "main shell monthly event currency basis copy");
 assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
 assertContains(indexSource, "passButtonHtml", "pass retry/store card remains in the payment modal");

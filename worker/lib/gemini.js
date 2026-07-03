@@ -65,6 +65,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       timeoutMs: Number(options.timeoutMs || 0) || undefined,
       apiEndpoint: clean(options.apiEndpoint || options.endpoint),
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
+      logContext: options.logContext && typeof options.logContext === "object" ? options.logContext : undefined,
     }, env);
 
     return {

@@ -11,6 +11,8 @@ const CALENDAR_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const BREAKER_FAILURE_THRESHOLD = 3;
 const BREAKER_COOLDOWN_MS = 1000 * 60 * 10;
 const MAX_RETRIES = 1;
+const RETRY_BASE_DELAY_MS = Math.max(150, Number(process.env.KASI_PROXY_RETRY_BASE_MS || 250));
+const RETRY_MAX_DELAY_MS = Math.max(RETRY_BASE_DELAY_MS, Number(process.env.KASI_PROXY_RETRY_MAX_MS || 1500));
 
 const LEGACY_METHOD_CACHE = new Map<string, { expiresAt: number; value: any }>();
 const LEGACY_METHOD_INFLIGHT = new Map<string, Promise<any>>();
@@ -103,6 +105,36 @@ function writeCache(map: Map<string, { expiresAt: number; value: any }>, key: st
     expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || 1000),
     value,
   });
+}
+
+function waitForRetry(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, Math.max(0, Math.trunc(ms))));
+}
+
+function parseRetryAfterMs(rawValue: string | null | undefined) {
+  const value = String(rawValue || "").trim();
+  if (!value) return null;
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return seconds * 1000;
+  }
+
+  const retryAt = Date.parse(value);
+  if (!Number.isFinite(retryAt)) return null;
+
+  return Math.max(0, retryAt - Date.now());
+}
+
+function buildRetryDelayMs(attempt: number, retryAfter: string | null | undefined) {
+  const hintedDelay = parseRetryAfterMs(retryAfter);
+  if (hintedDelay !== null) {
+    return Math.min(RETRY_MAX_DELAY_MS, Math.max(RETRY_BASE_DELAY_MS, hintedDelay));
+  }
+
+  const exponential = RETRY_BASE_DELAY_MS * Math.pow(2, Math.max(0, attempt));
+  const jitter = Math.floor(Math.random() * 125);
+  return Math.min(RETRY_MAX_DELAY_MS, exponential + jitter);
 }
 
 function isCircuitOpen() {
@@ -209,10 +241,12 @@ async function fetchKasiUpstream(method: string, params: Record<string, string>)
             signal: controller.signal,
           });
           const payload = await response.json().catch(() => null);
+          const responseRetryAfter = response.headers.get("Retry-After");
           if (!response.ok || !payload) {
             const err = new Error(`KASI 응답 오류: HTTP ${response.status}`) as Error & { status?: number; code?: string };
-            err.status = 503;
+            err.status = response.status || 503;
             err.code = "KASI_UPSTREAM_ERROR";
+            (err as Error & { retryAfter?: string | null }).retryAfter = responseRetryAfter;
             throw err;
           }
           const resultCode = String(payload?.response?.header?.resultCode || "");
@@ -220,6 +254,7 @@ async function fetchKasiUpstream(method: string, params: Record<string, string>)
             const err = new Error(payload?.response?.header?.resultMsg || "KASI API 오류") as Error & { status?: number; code?: string };
             err.status = 503;
             err.code = "KASI_UPSTREAM_ERROR";
+            (err as Error & { retryAfter?: string | null }).retryAfter = responseRetryAfter;
             throw err;
           }
 
@@ -233,6 +268,7 @@ async function fetchKasiUpstream(method: string, params: Record<string, string>)
             const timeoutError = new Error("KASI API 타임아웃") as Error & { status?: number; code?: string };
             timeoutError.status = 503;
             timeoutError.code = "KASI_TIMEOUT";
+            (timeoutError as Error & { retryAfter?: string | null }).retryAfter = null;
             lastError = timeoutError;
           } else {
             lastError = error;
@@ -242,9 +278,9 @@ async function fetchKasiUpstream(method: string, params: Record<string, string>)
           const canRetry = attempt < MAX_RETRIES;
           const retryable = !status || status === 408 || status === 429 || status >= 500;
           if (!canRetry || !retryable) {
-            noteKasiFailure();
             break;
           }
+          await waitForRetry(buildRetryDelayMs(attempt, lastError?.retryAfter));
         } finally {
           clearTimeout(timer);
         }
@@ -252,7 +288,10 @@ async function fetchKasiUpstream(method: string, params: Record<string, string>)
     }
   }
 
-  if (lastError) throw lastError;
+  if (lastError) {
+    noteKasiFailure();
+    throw lastError;
+  }
   const err = new Error("KASI API 요청 실패") as Error & { status?: number; code?: string };
   err.status = 503;
   err.code = "KASI_REQUEST_FAILED";
@@ -303,6 +342,41 @@ async function requestLegacyMethod(methodRaw: unknown, paramsRaw: unknown) {
   return task.finally(() => {
     LEGACY_METHOD_INFLIGHT.delete(key);
   });
+}
+
+export async function resolveKasiLunarFromSolar(inputRaw: { year?: unknown; month?: unknown; day?: unknown }) {
+  const year = toInt(inputRaw?.year, null);
+  const month = toInt(inputRaw?.month, null);
+  const day = toInt(inputRaw?.day, null);
+
+  if (!year || !month || !day) return null;
+
+  try {
+    const data = await requestLegacyMethod("getLunCalInfo", {
+      solYear: String(year),
+      solMonth: pad2(month),
+      solDay: pad2(day),
+    });
+
+    if (!data?.ok || !Array.isArray(data?.rows) || !data.rows.length) {
+      return null;
+    }
+
+    const row = data.rows[0] || {};
+    const lunarYear = Number(row.lunYear ?? row.year ?? row.lunarYear);
+    const lunarMonth = Number(row.lunMonth ?? row.month ?? row.lunarMonth);
+    const lunarDay = Number(row.lunDay ?? row.day ?? row.lunarDay);
+    const leapRaw = String(row.lunLeapmonth ?? row.isLeap ?? row.leapMonth ?? "").trim().toLowerCase();
+    const isLeap = leapRaw === "1" || leapRaw === "y" || leapRaw === "true" || leapRaw === "윤" || leapRaw === "leap";
+
+    if (!Number.isFinite(lunarYear) || !Number.isFinite(lunarMonth) || !Number.isFinite(lunarDay)) {
+      return null;
+    }
+
+    return { lunarYear, lunarMonth, lunarDay, isLeap };
+  } catch (error) {
+    return null;
+  }
 }
 
 async function requestCalendarSummary(inputRaw: any) {

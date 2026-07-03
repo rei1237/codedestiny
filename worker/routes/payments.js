@@ -23,7 +23,7 @@ import {
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
 } from "../lib/portone.js";
-import { resolveChargePointsByAmount, validatePointChargePayload } from "../lib/validation.js";
+import { resolveChargePointsByAmount, validatePointChargePayload, validateTurnstilePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
@@ -33,6 +33,7 @@ import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PA
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
+import { verifyTurnstileToken } from "../lib/turnstile.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -52,6 +53,7 @@ const PORTONE_WEBHOOK_EVENTS = Object.freeze({
   CANCELLED: "Transaction.Cancelled",
   PARTIAL_CANCELLED: "Transaction.PartialCancelled",
 });
+const SUBSCRIPTION_DURATION_MS_PER_DAY = 86400000;
 const PORTONE_WEBHOOK_PAYMENT_EVENTS = new Set(Object.values(PORTONE_WEBHOOK_EVENTS));
 const SINGLE_PAYMENT_ORDER_STATES = Object.freeze({
   PENDING: "PENDING",
@@ -215,6 +217,36 @@ function isRemovedCountPassProductId(value) {
   return /^(?:saju_unlock_(?:3|5)|fortune_(?:30|50)_(?:3|10|30)|compat_(?:3|10|30))$/.test(productId);
 }
 
+function makeTurnstileErrorResponse(status, code, message) {
+  return json({
+    ok: false,
+    code: String(code || "turnstile_verification_failed"),
+    message: String(message || "Turnstile verification failed."),
+  }, { status: Math.max(400, Number(status) || 403) });
+}
+
+async function verifyPaymentTurnstileToken(request, env, body) {
+  const turnstileValidated = validateTurnstilePayload(body);
+  if (!turnstileValidated.isValid) {
+    return makeTurnstileErrorResponse(401, "turnstile_token_required", "Turnstile verification is required for payment preparation.");
+  }
+
+  const turnstileResult = await verifyTurnstileToken({
+    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
+    response: turnstileValidated.sanitized.turnstileToken,
+    remoteip: getRequestMeta(request).ip,
+  });
+  if (!turnstileResult.success) {
+    return makeTurnstileErrorResponse(
+      turnstileResult.status || 403,
+      turnstileResult.code || "turnstile_verification_failed",
+      turnstileResult.message || "Turnstile verification failed.",
+    );
+  }
+
+  return null;
+}
+
 function resolveDigitalContentPricing(body = {}, entitlement = {}) {
   if (isRemovedCountPassProductId(body?.productId)) {
     return {
@@ -366,6 +398,44 @@ function hasActiveSubscriptionConflict(sub) {
   const tier = normalizePassTier(sub?.tier || sub?.passTier || sub?.subscriptionTier || sub?.plan) || "free";
   const expAt = toValidDate(sub?.expiresAt);
   return tier !== "free" && !!expAt && expAt.getTime() > Date.now();
+}
+
+function buildSubscriptionUpdateGuard(existingSubscription, now) {
+  const currentExpiresAt = toValidDate(existingSubscription?.expiresAt);
+  if (currentExpiresAt && currentExpiresAt.getTime() > now.getTime()) {
+    return { "profileSubscription.expiresAt": currentExpiresAt };
+  }
+  return {
+    $or: [
+      { "profileSubscription.expiresAt": { $exists: false } },
+      { "profileSubscription.expiresAt": null },
+      { "profileSubscription.expiresAt": { $lte: now } },
+    ],
+  };
+}
+
+function calculateSubscriptionActivationExpiresAt({
+  existingSubscription,
+  transitionCode,
+  now,
+  paidAt,
+  durationDays,
+}) {
+  const nowMs = Number(now && now.getTime ? now.getTime() : NaN);
+  const paidAtMs = Number(paidAt && paidAt.getTime ? paidAt.getTime() : NaN);
+  const referenceMs = Number.isFinite(paidAtMs) && Number.isFinite(nowMs)
+    ? Math.max(nowMs, paidAtMs)
+    : Number.isFinite(nowMs) ? nowMs : Date.now();
+  const duration = Number.isFinite(Number(durationDays)) ? Number(durationDays) : 30;
+  const normalizedDurationDays = Math.max(1, Math.floor(duration));
+  const existingExpiresAt = toValidDate(existingSubscription?.expiresAt);
+  const isUpgrade = transitionCode === "UPGRADE_ALLOWED";
+  const extendFromMs = isUpgrade
+    ? referenceMs
+    : existingExpiresAt && existingExpiresAt.getTime() > nowMs
+      ? existingExpiresAt.getTime()
+      : referenceMs;
+  return new Date(extendFromMs + normalizedDurationDays * SUBSCRIPTION_DURATION_MS_PER_DAY);
 }
 
 function getTierRank(tierRaw) {
@@ -3408,6 +3478,9 @@ async function handleDigitalContentPrepare(request, auth, body) {
 
 async function handlePrepare(request, env, auth) {
   const body = await readJson(request);
+  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
+  if (turnstileVerificationError) return turnstileVerificationError;
+
   if (isDigitalContentPaymentRequest(body)) {
     return handleDigitalContentPrepare(request, auth, body);
   }
@@ -3546,8 +3619,11 @@ async function handlePrepare(request, env, auth) {
   }, { status: 201 });
 }
 
-async function handleSubscriptionPrepare(request, auth) {
+async function handleSubscriptionPrepare(request, env, auth) {
   const body = await readJson(request);
+  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
+  if (turnstileVerificationError) return turnstileVerificationError;
+
   const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);
   const planId = String(body?.planId || "").trim().toLowerCase();
@@ -3715,7 +3791,10 @@ async function handleSubscriptionPrepare(request, auth) {
   }, { status: 201 });
 }
 
-async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, plan, tier, paymentMethodHint }) {
+async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint }) {
+  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
+  if (turnstileVerificationError) return turnstileVerificationError;
+
   const requestId = String(body?.requestId || body?.idempotencyKey || body?.merchantUid || "").trim().slice(0, 160)
     || `sub_monthly_${Date.now()}_${tier}_${String(auth.userId || "user").slice(-8)}`;
   const merchantUid = String(body?.merchantUid || body?.merchant_uid || requestId).trim().slice(0, 160);
@@ -3792,20 +3871,14 @@ async function handleSubscriptionMonthlyCreditConfirm(request, auth, { body, pla
     }, { status: 402 });
   }
 
-  const currentExpiresAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
-  const extensionBaseTime = currentExpiresAt && currentExpiresAt.getTime() > now.getTime()
-    ? currentExpiresAt.getTime()
-    : now.getTime();
-  const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
-  const subscriptionUpdateGuard = currentExpiresAt && currentExpiresAt.getTime() > now.getTime()
-    ? { "profileSubscription.expiresAt": currentExpiresAt }
-    : {
-      $or: [
-        { "profileSubscription.expiresAt": { $exists: false } },
-        { "profileSubscription.expiresAt": null },
-        { "profileSubscription.expiresAt": { $lte: now } },
-      ],
-    };
+  const expiresAt = calculateSubscriptionActivationExpiresAt({
+    existingSubscription: existingUser?.profileSubscription,
+    transitionCode: transition.code,
+    now,
+    paidAt: now,
+    durationDays: plan.durationDays,
+  });
+  const subscriptionUpdateGuard = buildSubscriptionUpdateGuard(existingUser?.profileSubscription, now);
 
   let paymentRecord = existingPayment;
   if (!paymentRecord) {
@@ -4132,7 +4205,7 @@ async function handleSubscriptionConfirm(request, env, auth) {
     return json({ message: "Subscription amount or currency mismatch.", code: "SUBSCRIPTION_PRICE_MISMATCH" }, { status: 400 });
   }
   if (paymentMethodHint === "monthly_credit" || paymentMethodHint === "monthly") {
-    return await handleSubscriptionMonthlyCreditConfirm(request, auth, { body, plan, tier, paymentMethodHint });
+    return await handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint });
   }
   if (!impUid) {
     return json({ message: "impUid and valid tier are required." }, { status: 400 });
@@ -4258,11 +4331,13 @@ async function handleSubscriptionConfirm(request, env, auth) {
     }, { status: 409 });
   }
 
-  const currentExpiresAt = toValidDate(existingUser?.profileSubscription?.expiresAt);
-  const extensionBaseTime = currentExpiresAt && currentExpiresAt.getTime() > paidAt.getTime()
-    ? currentExpiresAt.getTime()
-    : Math.max(now.getTime(), paidAt.getTime());
-  const expiresAt = new Date(extensionBaseTime + plan.durationDays * 86400000);
+  const expiresAt = calculateSubscriptionActivationExpiresAt({
+    existingSubscription: existingUser?.profileSubscription,
+    transitionCode: transition.code,
+    now,
+    paidAt,
+    durationDays: plan.durationDays,
+  });
 
   const paymentActivationFields = {
     impUid,
@@ -5528,7 +5603,7 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/single/complete") return await handleSinglePaymentComplete(request, env, auth);
     if (method === "POST" && path === "/single/cancel") return await handleSinglePaymentCancel(request, env, auth);
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env, auth);
-    if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, auth);
+    if (method === "POST" && path === "/subscription/prepare") return await handleSubscriptionPrepare(request, env, auth);
     if (method === "POST" && path === "/confirm") return await handleConfirm(request, env, auth);
     if (method === "POST" && path === "/subscription/confirm") return await handleSubscriptionConfirm(request, env, auth);
     if (method === "POST" && path === "/cancel") return await handleCancel(request, env, auth);

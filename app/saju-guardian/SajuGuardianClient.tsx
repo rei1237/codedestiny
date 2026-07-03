@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
+import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
   GANJI_ANIMAL_MAP,
@@ -718,26 +719,21 @@ async function verifyGuardianUnlockAccess() {
   if (typeof window === "undefined") return false;
   const requestAccessCheck = async (reason: string): Promise<GuardianPayload | null> => {
     try {
-      const response = await fetch("/api/billing/coin-gate", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          categoryKey: "main-tile",
-          subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
-          featureKey: SAJU_GUARDIAN_FEATURE_KEY,
-          paymentMode: "MEMBERSHIP_PASS",
-          forceDeduct: false,
-          cost: 100,
-          coinPrice: 100,
-          reason,
-          requestId: `guardian-access:${Date.now().toString(36)}`,
-        }),
+      const result = await runBillingCoinGate({
+        categoryKey: "main-tile",
+        subFeatureKey: SAJU_GUARDIAN_FEATURE_KEY,
+        featureKey: SAJU_GUARDIAN_FEATURE_KEY,
+        paymentMode: "MEMBERSHIP_PASS",
+        forceDeduct: false,
+        cost: 100,
+        coinPrice: 100,
+        reason,
+        requestId: `guardian-access:${Date.now().toString(36)}`,
       });
-      if (!response.ok) {
+      if (!result.ok || !result.data) {
         return null;
       }
-      return (await response.json().catch(() => null)) as GuardianPayload;
+      return result.data as GuardianPayload;
     } catch (_) {
       return null;
     }

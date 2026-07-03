@@ -13,6 +13,8 @@ binding = "AI"
 
 # Non-secret defaults. Secrets and deployment-specific values should be set
 # with `wrangler secret put` or in the Cloudflare dashboard.
+# Turnstile secret:
+# `wrangler secret put TURNSTILE_SECRET_KEY`
 [vars]
 NODE_ENV = "production"
 AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"

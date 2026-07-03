@@ -390,8 +390,8 @@ export function useCoinGate() {
         if (chargeResult.status === 402 || code === "PAYMENT_REQUIRED") {
           return {
             ok: false,
-            code: "PAYMENT_REQUIRED",
-            message,
+            code: "PAYMENT_CANCELLED",
+            message: message || coinGateText("singlePaymentRequired"),
             requiredCoins,
             chargedCoins: 0,
             balanceAfter: 0,

@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import MoonIcon, { type MoonPhase } from "@/components/ui/MoonIcon";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import WithdrawModal from "../components/WithdrawModal";
@@ -20,9 +21,9 @@ import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
-/* ══════════════════════════════════════════════════════════════════
-   타입 정의
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ????뺤쓽
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 type AuthUser = {
   id?: string;
@@ -161,7 +162,7 @@ type PaymentHistoryItem = {
   cancelledAt?: string | null;
 };
 
-/* ── 프로필 이용권 타입 ───────────────────────────────────────── */
+/* ?? ?꾨줈???댁슜沅????????????????????????????????????????????? */
 type SubscriptionTier = "free" | "standard" | "premium" | "vvip" | "family";
 
 type SubscriptionStatus = {
@@ -293,7 +294,7 @@ type PortOnePaymentRequest = {
   noticeUrls?: string[];
 };
 
-/** Toast 알림 하나의 데이터 구조 */
+/** Toast ?뚮┝ ?섎굹???곗씠??援ъ“ */
 type ToastItem = {
   id: number;
   type: "error" | "success" | "info";
@@ -309,9 +310,9 @@ declare global {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   상수 정의
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?곸닔 ?뺤쓽
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 const PORTONE_MOBILE_REDIRECT_PATH = process.env.NEXT_PUBLIC_PORTONE_MOBILE_REDIRECT_PATH || "/points";
 const PAYMENT_ACTION_LOCK_TTL_MS = 15 * 60 * 1000;
@@ -349,7 +350,7 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
     apiBase,
   });
   const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-  if (!response.ok) throw new Error(payload.message || "결제용 휴대폰 번호를 확인하지 못했습니다.");
+  if (!response.ok) throw new Error(payload.message || "寃곗젣???대???踰덊샇瑜??뺤씤?섏? 紐삵뻽?듬땲??");
   return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || "");
 }
 
@@ -364,7 +365,7 @@ async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Pro
     apiBase,
   });
   const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-  if (!response.ok) throw new Error(payload.message || "휴대폰 번호 저장에 실패했습니다.");
+  if (!response.ok) throw new Error(payload.message || "?대???踰덊샇 ??μ뿉 ?ㅽ뙣?덉뒿?덈떎.");
   return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
 }
 
@@ -374,9 +375,9 @@ async function ensurePaymentPhoneNumber(apiBase: string, user: AuthUser | null):
   if (current) return current;
   const saved = await getSavedPaymentPhoneNumber(apiBase).catch(() => "");
   if (saved) return saved;
-  const typed = window.prompt("이니시스 결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.", "");
+  const typed = window.prompt("?대땲?쒖뒪 寃곗젣瑜??꾪빐 援щℓ???대???踰덊샇媛 ?꾩슂?⑸땲?? 理쒖큹 1?뚮쭔 ?낅젰??二쇱꽭??", "");
   const normalized = normalizePaymentPhoneNumber(typed || "");
-  if (!normalized) throw new Error("이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
+  if (!normalized) throw new Error("?대땲?쒖뒪 寃곗젣瑜?吏꾪뻾?섎젮硫?援щℓ???대???踰덊샇媛 ?꾩슂?⑸땲??");
   const nextPhone = await savePaymentPhoneNumber(apiBase, normalized);
   const latestUser = readSanitizedAuthUser() as AuthUser | null;
   if (latestUser) persistSanitizedAuthUser({ ...latestUser, phoneNumber: nextPhone, phone: latestUser.phone || nextPhone });
@@ -386,7 +387,7 @@ async function ensurePaymentPhoneNumber(apiBase: string, user: AuthUser | null):
 function buildPortOneCustomer(user: AuthUser | null, paymentId: string, phoneNumber?: string): PortOneCustomer {
   const cachedUser = readSanitizedAuthUser() as AuthUser | null;
   const merged = { ...(cachedUser || {}), ...(user || {}) } as AuthUser;
-  const fullName = String(merged.name || "회원").trim();
+  const fullName = String(merged.name || "?뚯썝").trim();
   const email = normalizePortoneEmail(merged.email);
   const customerId = String(merged.id || merged.userId || merged.uid || merged._id || paymentId).trim();
   const resolvedPhoneNumber = normalizePaymentPhoneNumber(phoneNumber || pickPhoneNumber(merged) || "");
@@ -486,7 +487,7 @@ const SUBSCRIPTION_PLANS: SubscriptionPlan[] = SUBSCRIPTION_BASE_PLANS.flatMap((
     planId: `${base.tier}_${duration.months}m`,
     durationMonths: duration.months,
     productType: "membership_pass",
-    title: `${base.title} · ${duration.label}`,
+    title: `${base.title} 쨌 ${duration.label}`,
     wonPrice: Math.round(base.baseWonPrice * duration.months * (1 - duration.discount)),
     badge: duration.badge || base.badge,
     features: base.features.map((feature) =>
@@ -615,110 +616,110 @@ type PointsPageCopy = {
 
 const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ko: {
-    defaultUserName: "사용자",
-    defaultMemberName: "회원",
-    duration30: "30일",
-    heldPass: "보유 이용권",
-    allPaidPdfPolicy: "모든 유료 서비스 이용 가능",
-    generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
-    familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
-    planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
-    monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} 월정석`,
-    won: (amount, locale) => `${Number(amount || 0).toLocaleString(locale)}원`,
+    defaultUserName: "?ъ슜??,
+    defaultMemberName: "?뚯썝",
+    duration30: "30??,
+    heldPass: "蹂댁쑀 ?댁슜沅?,
+    allPaidPdfPolicy: "紐⑤뱺 ?좊즺 ?쒕퉬???댁슜 媛??,
+    generalLimitPolicy: (value) => `?쇰컲 ${value} ?댄븯 ?댁슜 媛??,
+    familyValueLine: (duration) => `Family ?꾩껜 ?쒗깮 / ${duration}`,
+    planValueLine: (value, duration) => `${value} ?댄븯 湲곕뒫 / ${duration}`,
+    monthlyCreditValue: (amount, locale) => `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString(locale)} ?붿젙??,
+    won: (amount, locale) => `${Number(amount || 0).toLocaleString(locale)}??,
     planTitles: {
-      free: "무료 플랜",
-      standard: "스탠다드 꿀 30일",
-      premium: "프리미엄 꿀 30일",
-      vvip: "VVIP 꿀단지 30일",
-      family: "Code Destiny Family 30일",
+      free: "臾대즺 ?뚮옖",
+      standard: "?ㅽ깲?ㅻ뱶 轅 30??,
+      premium: "?꾨━誘몄뾼 轅 30??,
+      vvip: "VVIP 轅?⑥? 30??,
+      family: "Code Destiny Family 30??,
     },
     planBadges: {
-      recommended: "추천",
+      recommended: "異붿쿇",
       family: "Family",
       vvip: "VVIP",
     },
     planFeatures: {
       free: {},
       standard: {
-        profile3: "프로필 최대 3개 생성",
-        under3000: "3,000원 이하 유료 기능 이용 가능",
-        over3000Single: "30일 동안 스탠다드 혜택 유지",
-        pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        profile3: "?꾨줈??理쒕? 3媛??앹꽦",
+        under3000: "3,000???댄븯 ?좊즺 湲곕뒫 ?댁슜 媛??,
+        over3000Single: "30???숈븞 ?ㅽ깲?ㅻ뱶 ?쒗깮 ?좎?",
+        pdfSingle: "PDF ?곹뭹 議곌굔? 寃곗젣 ???덈궡",
+        activeImmediately: "寃곗젣 利됱떆 30???댁슜沅??쒖꽦??,
+        notAutoBilling: "?붿젙???먮뒗 ?먰솕 援щℓ 媛??,
       },
       premium: {
-        profile7: "프로필 최대 7개 생성",
-        under5000: "5,000원 이하 유료 기능 이용 가능",
-        over5000Single: "30일 동안 프리미엄 혜택 유지",
-        pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        profile7: "?꾨줈??理쒕? 7媛??앹꽦",
+        under5000: "5,000???댄븯 ?좊즺 湲곕뒫 ?댁슜 媛??,
+        over5000Single: "30???숈븞 ?꾨━誘몄뾼 ?쒗깮 ?좎?",
+        pdfSingle: "PDF ?곹뭹 議곌굔? 寃곗젣 ???덈궡",
+        activeImmediately: "寃곗젣 利됱떆 30???댁슜沅??쒖꽦??,
+        notAutoBilling: "?붿젙???먮뒗 ?먰솕 援щℓ 媛??,
       },
       vvip: {
-        profile15: "프로필 최대 15개 생성",
-        under10000: "10,000원 이하 유료 기능 이용 가능",
-        over10000Single: "30일 동안 VVIP 혜택 유지",
-        pdfSingle: "PDF 상품 조건은 결제 전 안내",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        profile15: "?꾨줈??理쒕? 15媛??앹꽦",
+        under10000: "10,000???댄븯 ?좊즺 湲곕뒫 ?댁슜 媛??,
+        over10000Single: "30???숈븞 VVIP ?쒗깮 ?좎?",
+        pdfSingle: "PDF ?곹뭹 議곌굔? 寃곗젣 ???덈궡",
+        activeImmediately: "寃곗젣 利됱떆 30???댁슜沅??쒖꽦??,
+        notAutoBilling: "?붿젙???먮뒗 ?먰솕 援щℓ 媛??,
       },
       family: {
-        profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "모든 유료 서비스 이용 가능",
-        familyIncluded: "Family 전체 혜택 적용",
-        activeImmediately: "결제 즉시 30일 이용권 활성화",
-        notAutoBilling: "월정석 또는 원화 구매 가능",
+        profileUnlimited: "?꾨줈??異붽?쨌?섏젙쨌??젣 臾대즺, ?쒗븳 ?놁쓬",
+        allPaidPdf: "紐⑤뱺 ?좊즺 ?쒕퉬???댁슜 媛??,
+        familyIncluded: "Family ?꾩껜 ?쒗깮 ?곸슜",
+        activeImmediately: "寃곗젣 利됱떆 30???댁슜沅??쒖꽦??,
+        notAutoBilling: "?붿젙???먮뒗 ?먰솕 援щℓ 媛??,
       },
     },
     pointPackages: {
       directPaidService: {
-        title: "상품별 혜택 안내",
-        description: "이용권별 혜택 범위와 PDF 조건은 결제 전 상품 안내에서 확인할 수 있습니다.",
+        title: "?곹뭹蹂??쒗깮 ?덈궡",
+        description: "?댁슜沅뚮퀎 ?쒗깮 踰붿쐞? PDF 議곌굔? 寃곗젣 ???곹뭹 ?덈궡?먯꽌 ?뺤씤?????덉뒿?덈떎.",
       },
     },
     paymentMethods: {
-      cardGeneral: { label: "KG이니시스 카드", desc: "포트원 V2 인증 결제" },
+      cardGeneral: { label: "KG?대땲?쒖뒪 移대뱶", desc: "?ы듃??V2 ?몄쬆 寃곗젣" },
     },
     paymentStatuses: {
-      success: "생성 완료",
-      paid: "결제 완료",
-      processing: "생성 중",
-      retryable: "재시도 가능",
-      cancelled: "취소완료",
-      refunded: "환불완료",
-      failed: "실패",
-      pending: "대기",
+      success: "?앹꽦 ?꾨즺",
+      paid: "寃곗젣 ?꾨즺",
+      processing: "?앹꽦 以?,
+      retryable: "?ъ떆??媛??,
+      cancelled: "痍⑥냼?꾨즺",
+      refunded: "?섎텋?꾨즺",
+      failed: "?ㅽ뙣",
+      pending: "?湲?,
     },
-    subscriptionAria: "달빛 30일 이용권",
-    toastCloseLabel: "알림 닫기",
-    monthlyBonusAria: "월정석 보너스 잔량과 사용 내역",
-    walletAria: "이용권 상점 안내",
-    refundAgreement: "원화 결제된 30일 이용권은 결제 즉시 활성화되며, 유료 기능 이용 시작 후에는 환불이 제한될 수 있음을 확인했습니다.",
-    passAlt: "달빛 이용권",
-    wonSinglePaymentAria: "원화 결제 안내",
+    subscriptionAria: "?щ튆 30???댁슜沅?,
+    toastCloseLabel: "?뚮┝ ?リ린",
+    monthlyBonusAria: "?붿젙??蹂대꼫???붾웾怨??ъ슜 ?댁뿭",
+    walletAria: "?댁슜沅??곸젏 ?덈궡",
+    refundAgreement: "?먰솕 寃곗젣??30???댁슜沅뚯? 寃곗젣 利됱떆 ?쒖꽦?붾릺硫? ?좊즺 湲곕뒫 ?댁슜 ?쒖옉 ?꾩뿉???섎텋???쒗븳?????덉쓬???뺤씤?덉뒿?덈떎.",
+    passAlt: "?щ튆 ?댁슜沅?,
+    wonSinglePaymentAria: "?먰솕 寃곗젣 ?덈궡",
     paymentFailureGuide: [
-      "창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.",
-      "한도 초과: 다른 카드/계좌이체 또는 금액을 낮춰 재시도해 주세요.",
-      "카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.",
+      "李??リ린/痍⑥냼: 寃곗젣媛 痍⑥냼?섏뼱 ?댁슜沅?沅뚰븳???앹꽦?섏? ?딆뒿?덈떎.",
+      "?쒕룄 珥덇낵: ?ㅻⅨ 移대뱶/怨꾩쥖?댁껜 ?먮뒗 湲덉븸????떠 ?ъ떆?꾪빐 二쇱꽭??",
+      "移대뱶???먭?: ?좎떆 ???ㅼ떆 ?쒕룄?섍굅???ㅻⅨ 寃곗젣?섎떒???좏깮??二쇱꽭??",
     ],
-    accountInfoAria: "계정 정보",
+    accountInfoAria: "怨꾩젙 ?뺣낫",
     dangerDeleteLines: [
-      "탈퇴 시 이용권·운세 프로필 등 모든 데이터가 즉시 영구 삭제됩니다.",
-      "탈퇴 후 동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.",
-      "법적 보존 의무에 따라 결제 거래 금액·일시는 5년간 익명화 보관됩니다.",
+      "?덊눜 ???댁슜沅뙿룹슫???꾨줈????紐⑤뱺 ?곗씠?곌? 利됱떆 ?곴뎄 ??젣?⑸땲??",
+      "?덊눜 ???숈씪 ?대찓?쇰줈 ?ш??낇빐???댁쟾 ?곗씠?곕뒗 蹂듦뎄?섏? ?딆뒿?덈떎.",
+      "踰뺤쟻 蹂댁〈 ?섎Т???곕씪 寃곗젣 嫄곕옒 湲덉븸쨌?쇱떆??5?꾧컙 ?듬챸??蹂닿??⑸땲??",
     ],
-    closeLabel: "닫기",
-    currentPlan: "현재 플랜",
-    purchasePass: (icon) => `${icon} 30일 이용권 구매하기`,
-    extendPass: "30일 이용권 연장",
-    lowerTierBlocked: "상위 티어 사용 중 (구매 불가)",
-    lowerTierBlockedHelp: "현재 상위 티어 이용권이 활성화되어 하위 플랜은 선택할 수 없습니다.",
-    activePassLabel: "30일 이용권 활성화",
-    activePassMessage: (expires) => `${expires}까지 30일 혜택이 유지됩니다. 월정석 또는 원화로 다음 이용권을 다시 열 수 있습니다.`,
-    activePassFooter: "결제 즉시 이용권 혜택이 활성화되며 30일 동안 유효합니다.",
-    activePassAutoRenewWarning: "만료 후에는 월정석 또는 원화로 30일 혜택을 다시 열 수 있습니다.",
-    coffeeBadge: "커피 2잔 값으로 30일",
+    closeLabel: "?リ린",
+    currentPlan: "?꾩옱 ?뚮옖",
+    purchasePass: (icon) => `${icon} 30???댁슜沅?援щℓ?섍린`,
+    extendPass: "30???댁슜沅??곗옣",
+    lowerTierBlocked: "?곸쐞 ?곗뼱 ?ъ슜 以?(援щℓ 遺덇?)",
+    lowerTierBlockedHelp: "?꾩옱 ?곸쐞 ?곗뼱 ?댁슜沅뚯씠 ?쒖꽦?붾릺???섏쐞 ?뚮옖? ?좏깮?????놁뒿?덈떎.",
+    activePassLabel: "30???댁슜沅??쒖꽦??,
+    activePassMessage: (expires) => `${expires}源뚯? 30???쒗깮???좎??⑸땲?? ?붿젙???먮뒗 ?먰솕濡??ㅼ쓬 ?댁슜沅뚯쓣 ?ㅼ떆 ?????덉뒿?덈떎.`,
+    activePassFooter: "寃곗젣 利됱떆 ?댁슜沅??쒗깮???쒖꽦?붾릺硫?30???숈븞 ?좏슚?⑸땲??",
+    activePassAutoRenewWarning: "留뚮즺 ?꾩뿉???붿젙???먮뒗 ?먰솕濡?30???쒗깮???ㅼ떆 ?????덉뒿?덈떎.",
+    coffeeBadge: "而ㅽ뵾 2??媛믪쑝濡?30??,
   },
   en: {
     defaultUserName: "User",
@@ -838,9 +839,9 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
   ms: null as unknown as PointsPageCopy,
 };
 
-POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "ユーザー", defaultMemberName: "会員", duration30: "30日", passAlt: "月明かり利用券", closeLabel: "閉じる" };
-POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "用户", defaultMemberName: "会员", duration30: "30天", passAlt: "月光通行证", closeLabel: "关闭" };
-POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "使用者", defaultMemberName: "會員", passAlt: "月光通行證", closeLabel: "關閉" };
+POINTS_PAGE_COPY.ja = { ...POINTS_PAGE_COPY.en, defaultUserName: "?╉꺖?뜰꺖", defaultMemberName: "鴉싧뱻", duration30: "30??, passAlt: "?덃삇?뗣굤?⑴뵪??, closeLabel: "?됥걯?? };
+POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, defaultUserName: "?ⓩ댎", defaultMemberName: "鴉싧몮", duration30: "30鸚?, passAlt: "?덂뀎?싪죱瑥?, closeLabel: "?녜뿭" };
+POINTS_PAGE_COPY["zh-TW"] = { ...POINTS_PAGE_COPY["zh-CN"], defaultUserName: "鵝욜뵪??, defaultMemberName: "?껃뱻", passAlt: "?덂뀎?싪죱鈺?, closeLabel: "?쒒뻾" };
 
 for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale[]) {
   POINTS_PAGE_COPY[locale] = POINTS_PAGE_COPY.en;
@@ -861,9 +862,9 @@ const FORMAT_LOCALE_BY_LANG: Record<LoadingLocale, string> = {
   ms: "ms-MY",
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   유틸리티 함수
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?좏떥由ы떚 ?⑥닔
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 function formatWon(amount: number, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
   return copy.won(Number(amount || 0), locale);
@@ -928,12 +929,12 @@ function getPointPackageTitle(pack: Pick<PointPackage, "title">, copy: PointsPag
 }
 
 function formatPaymentMethodLabel(payment: PaymentHistoryItem, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
-  if (isMonthlyCreditPayment(payment)) return langSensitiveLabel(copy, "프로모션 처리", "Promotion");
+  if (isMonthlyCreditPayment(payment)) return langSensitiveLabel(copy, "?꾨줈紐⑥뀡 泥섎━", "Promotion");
   const method = String(payment.paymentMethodLabel || payment.paymentMethod || "").trim();
   const normalized = method.toLowerCase();
   if (!method) return "-";
   if (normalized === "card_general" || normalized === "card") return copy.paymentMethods.cardGeneral?.label || method;
-  if (normalized === "virtual_account") return langSensitiveLabel(copy, "가상계좌", "Virtual account");
+  if (normalized === "virtual_account") return langSensitiveLabel(copy, "媛?곴퀎醫?, "Virtual account");
   if (normalized === "kakaopay") return "KakaoPay";
   if (normalized === "naverpay") return "Naver Pay";
   return method;
@@ -963,10 +964,10 @@ function formatPaymentTimeLabel(payment: PaymentHistoryItem, copy: PointsPageCop
 }
 
 function formatMonthlyCreditLedgerType(type: string) {
-  if (type === "MONTHLY_CREDIT_GRANT") return "지급";
-  if (type === "MONTHLY_CREDIT_SPEND") return "사용";
-  if (type === "MONTHLY_CREDIT_REFUND") return "복원";
-  return "기록";
+  if (type === "MONTHLY_CREDIT_GRANT") return "吏湲?;
+  if (type === "MONTHLY_CREDIT_SPEND") return "?ъ슜";
+  if (type === "MONTHLY_CREDIT_REFUND") return "蹂듭썝";
+  return "湲곕줉";
 }
 
 function formatMonthlyCreditLedgerAmount(entry: MonthlyCreditLedgerItem, copy: PointsPageCopy = POINTS_PAGE_COPY.ko, locale = FORMAT_LOCALE_BY_LANG.ko) {
@@ -978,13 +979,13 @@ function formatMonthlyCreditLedgerAmount(entry: MonthlyCreditLedgerItem, copy: P
 
 function formatMonthlyCreditLedgerReason(entry: MonthlyCreditLedgerItem) {
   const reason = String(entry.reason || "").trim();
-  if (reason.includes("membership_credit_access")) return "유료 기능 이용";
-  if (reason.includes("monthly-credit membership pass purchase")) return "달빛 이용권 활성화";
+  if (reason.includes("membership_credit_access")) return "?좊즺 湲곕뒫 ?댁슜";
+  if (reason.includes("monthly-credit membership pass purchase")) return "?щ튆 ?댁슜沅??쒖꽦??;
   if (reason) return reason;
-  if (entry.type === "MONTHLY_CREDIT_GRANT") return "보너스 월정석 지급";
-  if (entry.type === "MONTHLY_CREDIT_SPEND") return "보너스 월정석 사용";
-  if (entry.type === "MONTHLY_CREDIT_REFUND") return "보너스 월정석 복원";
-  return "월정석 내역";
+  if (entry.type === "MONTHLY_CREDIT_GRANT") return "蹂대꼫???붿젙??吏湲?;
+  if (entry.type === "MONTHLY_CREDIT_SPEND") return "蹂대꼫???붿젙???ъ슜";
+  if (entry.type === "MONTHLY_CREDIT_REFUND") return "蹂대꼫???붿젙??蹂듭썝";
+  return "?붿젙???댁뿭";
 }
 
 function mapPaymentStatusLabel(status: string, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
@@ -1004,18 +1005,18 @@ function getErrorMessage(error: unknown, fallback: string) {
 }
 
 function mapAuthRefreshTemporaryFailureMessage() {
-  return "로그인 세션 확인이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
+  return "濡쒓렇???몄뀡 ?뺤씤???쇱떆?곸쑝濡?吏?곕릺怨??덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??";
 }
 
 function mapPaymentErrorMessage(rawMessage: string) {
   const text = String(rawMessage || "").toLowerCase();
-  if (text.includes("취소") || text.includes("cancel"))
-    return "결제가 취소되었습니다. 원하실 때 다시 시도하실 수 있어요.";
-  if (text.includes("한도") || text.includes("limit"))
-    return "결제 한도 초과로 진행되지 않았습니다. 다른 카드나 결제수단을 이용해 주세요.";
-  if (text.includes("점검") || text.includes("maintenance") || text.includes("unavailable"))
-    return "카드사/PG 점검 시간으로 결제가 지연되고 있습니다. 잠시 후 다시 시도해 주세요.";
-  return "결제를 완료하지 못했습니다. 네트워크 상태와 결제 정보를 확인 후 다시 시도해 주세요.";
+  if (text.includes("痍⑥냼") || text.includes("cancel"))
+    return "寃곗젣媛 痍⑥냼?섏뿀?듬땲?? ?먰븯?????ㅼ떆 ?쒕룄?섏떎 ???덉뼱??";
+  if (text.includes("?쒕룄") || text.includes("limit"))
+    return "寃곗젣 ?쒕룄 珥덇낵濡?吏꾪뻾?섏? ?딆븯?듬땲?? ?ㅻⅨ 移대뱶??寃곗젣?섎떒???댁슜??二쇱꽭??";
+  if (text.includes("?먭?") || text.includes("maintenance") || text.includes("unavailable"))
+    return "移대뱶??PG ?먭? ?쒓컙?쇰줈 寃곗젣媛 吏?곕릺怨??덉뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??";
+  return "寃곗젣瑜??꾨즺?섏? 紐삵뻽?듬땲?? ?ㅽ듃?뚰겕 ?곹깭? 寃곗젣 ?뺣낫瑜??뺤씤 ???ㅼ떆 ?쒕룄??二쇱꽭??";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1024,9 +1025,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeSubscriptionTier(value: unknown): SubscriptionTier {
   const text = String(value || "").trim().toLowerCase();
-  if (text === "standard" || text.includes("스탠다드")) return "standard";
-  if (text === "premium" || text.includes("프리미엄")) return "premium";
-  if (text === "vvip" || text.includes("브이브이아이피") || text.includes("골드")) return "vvip";
+  if (text === "standard" || text.includes("?ㅽ깲?ㅻ뱶")) return "standard";
+  if (text === "premium" || text.includes("?꾨━誘몄뾼")) return "premium";
+  if (text === "vvip" || text.includes("釉뚯씠釉뚯씠?꾩씠??) || text.includes("怨⑤뱶")) return "vvip";
   if (text === "family" || text.includes("code destiny family")) return "family";
   return "free";
 }
@@ -1063,10 +1064,10 @@ function statusIndicatesActive(value: unknown) {
     "completed",
     "confirmed",
     "approved",
-    "등록중",
-    "이용중",
-    "유효",
-    "완료",
+    "?깅줉以?,
+    "?댁슜以?,
+    "?좏슚",
+    "?꾨즺",
   ].includes(status);
 }
 
@@ -1197,15 +1198,15 @@ function normalizeMePayload(payload: MeResponse) {
 }
 
 /**
- * API 응답을 안전하게 JSON으로 파싱합니다.
- * Content-Type이 application/json이 아닌 경우(예: HTML 에러 페이지)
- * 사용자 친화적인 에러 메시지를 던집니다.
+ * API ?묐떟???덉쟾?섍쾶 JSON?쇰줈 ?뚯떛?⑸땲??
+ * Content-Type??application/json???꾨땶 寃쎌슦(?? HTML ?먮윭 ?섏씠吏)
+ * ?ъ슜??移쒗솕?곸씤 ?먮윭 硫붿떆吏瑜??섏쭛?덈떎.
  */
 async function safeParseJson<T>(response: Response): Promise<T> {
   const contentType = response.headers.get("content-type") ?? "";
   if (!contentType.includes("application/json")) {
     throw new Error(
-      `서버 점검 중입니다. 잠시 후 다시 시도해 주세요. (HTTP ${response.status})`,
+      `?쒕쾭 ?먭? 以묒엯?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭?? (HTTP ${response.status})`,
     );
   }
   return response.json() as Promise<T>;
@@ -1214,7 +1215,7 @@ async function safeParseJson<T>(response: Response): Promise<T> {
 function ensurePortoneSdk() {
   return new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
-      reject(new Error("브라우저 환경에서만 결제를 진행할 수 있습니다."));
+      reject(new Error("釉뚮씪?곗? ?섍꼍?먯꽌留?寃곗젣瑜?吏꾪뻾?????덉뒿?덈떎."));
       return;
     }
     if (window.PortOne?.requestPayment) { resolve(); return; }
@@ -1223,11 +1224,11 @@ function ensurePortoneSdk() {
     if (existingScript) {
       existingScript.addEventListener("load", () => {
         if (window.PortOne?.requestPayment) resolve();
-        else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+        else reject(new Error("?ы듃??V2 SDK媛 珥덇린?붾릺吏 ?딆븯?듬땲??"));
       }, { once: true });
       existingScript.addEventListener(
         "error",
-        () => reject(new Error("결제 SDK를 불러오지 못했습니다.")),
+        () => reject(new Error("寃곗젣 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??")),
         { once: true },
       );
       return;
@@ -1238,9 +1239,9 @@ function ensurePortoneSdk() {
     script.async = true;
     script.onload = () => {
       if (window.PortOne?.requestPayment) resolve();
-      else reject(new Error("포트원 V2 SDK가 초기화되지 않았습니다."));
+      else reject(new Error("?ы듃??V2 SDK媛 珥덇린?붾릺吏 ?딆븯?듬땲??"));
     };
-    script.onerror = () => reject(new Error("결제 SDK를 불러오지 못했습니다."));
+    script.onerror = () => reject(new Error("寃곗젣 SDK瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
     document.body.appendChild(script);
   });
 }
@@ -1255,13 +1256,13 @@ async function fetchPortOnePaymentConfig(apiBase: string): Promise<PortOnePaymen
   });
   const payload = await safeParseJson<PortOnePaymentConfig>(response);
   if (!response.ok) {
-    throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
+    throw new Error(payload.message || "?ы듃??V2 寃곗젣 ?ㅼ젙???뺤씤?????놁뒿?덈떎.");
   }
   const storeId = String(payload.storeId || "").trim();
   const channelKey = String(payload.channelKey || "").trim();
 
   if (!storeId || !channelKey) {
-    throw new Error(payload.message || "포트원 V2 결제 설정을 확인할 수 없습니다.");
+    throw new Error(payload.message || "?ы듃??V2 寃곗젣 ?ㅼ젙???뺤씤?????놁뒿?덈떎.");
   }
   return {
     ...payload,
@@ -1374,9 +1375,9 @@ function readPendingSubscriptionPass() {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: 프로필 이용권 섹션
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?쒕툕 而댄룷?뚰듃: ?꾨줈???댁슜沅??뱀뀡
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 function SubscriptionSection({
   subscription,
@@ -1405,7 +1406,7 @@ function SubscriptionSection({
       badge:   "from-[#d8bd72] to-[#f5df9d]",
       freeTag: "bg-[#f3dd9a]/22 text-[#ffe8a3] ring-1 ring-[#f3dd9a]/60",
       btn:     "from-[#d8bd72] to-[#f5df9d] text-[#151832] shadow-[0_8px_18px_rgba(243,221,154,0.24)]",
-      icon:    "🌔",
+      icon:    "?뙏",
     },
     rose: {
       card:    "border-[#cab8ff]/55 bg-[#0d1230]/95",
@@ -1413,7 +1414,7 @@ function SubscriptionSection({
       badge:   "from-[#cab8ff] to-[#f3dd9a]",
       freeTag: "bg-[#cab8ff]/22 text-[#ded4ff] ring-1 ring-[#cab8ff]/60",
       btn:     "from-[#cab8ff] to-[#f3dd9a] text-[#151832] shadow-[0_8px_18px_rgba(202,184,255,0.24)]",
-      icon:    "🌕",
+      icon:    "?뙐",
     },
     purple: {
       card:    "border-[#8cb8ff]/55 bg-[#0d1433]/95",
@@ -1421,7 +1422,7 @@ function SubscriptionSection({
       badge:   "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff]",
       freeTag: "bg-[#8cb8ff]/22 text-[#e8f1ff] ring-1 ring-[#8cb8ff]/60",
       btn:     "from-[#f3dd9a] via-[#cab8ff] to-[#8cb8ff] text-[#151832] shadow-[0_8px_18px_rgba(140,184,255,0.24)]",
-      icon:    "🌌",
+      icon:    "?뙆",
     },
   };
 
@@ -1435,102 +1436,102 @@ function SubscriptionSection({
       aria-label={copy.subscriptionAria}
       className="overflow-hidden rounded-[24px] border border-[#f3dd9a]/32 bg-[#050817] text-slate-50 shadow-[0_24px_70px_rgba(4,7,26,0.56)] ring-1 ring-white/12 backdrop-blur"
     >
-      {/* 섹션 헤더 */}
+      {/* ?뱀뀡 ?ㅻ뜑 */}
       <div
         className="px-5 pt-5 pb-5"
         style={{ background: "linear-gradient(145deg, rgba(5,8,23,0.99) 0%, rgba(12,18,48,0.98) 48%, rgba(24,29,72,0.96) 100%)" }}
       >
-        {/* 제목 */}
+        {/* ?쒕ぉ */}
         <div className="mb-4">
-          <p className="text-xs font-black uppercase tracking-widest text-[#ded4ff]">연이의 달빛 이용권 상점</p>
-          <h2 className="mt-1 text-2xl font-black leading-tight text-white">연이의 달빛 이용권 상점</h2>
+          <p className="text-xs font-black uppercase tracking-widest text-[#ded4ff]">?곗씠???щ튆 ?댁슜沅??곸젏</p>
+          <h2 className="mt-1 text-2xl font-black leading-tight text-white">?곗씠???щ튆 ?댁슜沅??곸젏</h2>
           <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
-            30일 이용권 상품과 원화 결제 조건을 확인하세요.
+            30???댁슜沅??곹뭹怨??먰솕 寃곗젣 議곌굔???뺤씤?섏꽭??
           </p>
         </div>
 
-        {/* 핵심 혜택 callout */}
+        {/* ?듭떖 ?쒗깮 callout */}
         <div className="mb-4 rounded-[16px] border border-[#cab8ff]/45 bg-[#11183a]/85 px-4 py-3.5 shadow-[inset_0_1px_3px_rgba(255,255,255,0.08)]">
           <p className="mb-2 flex items-center gap-1.5 text-[12.5px] font-black uppercase tracking-wide text-[#ffe8a3]">
-            <span aria-hidden="true">🌙</span> 달빛 이용권의 특별한 이유
+            <span aria-hidden="true">?뙔</span> ?щ튆 ?댁슜沅뚯쓽 ?밸퀎???댁쑀
           </p>
           <p className="text-[13.5px] leading-6 text-slate-100">
-            <span className="font-bold text-white">가족·연인·자녀 등 다른 생년월일</span>로 프로필을 추가해도,
-            30일 이용권 하나로 <span className="font-bold text-white">모든 프로필에서 이용권 혜택을 그대로 이용</span>할 수 있습니다.
+            <span className="font-bold text-white">媛議굿룹뿰?맞룹옄? ???ㅻⅨ ?앸뀈?붿씪</span>濡??꾨줈?꾩쓣 異붽??대룄,
+            30???댁슜沅??섎굹濡?<span className="font-bold text-white">紐⑤뱺 ?꾨줈?꾩뿉???댁슜沅??쒗깮??洹몃?濡??댁슜</span>?????덉뒿?덈떎.
           </p>
           <p className="mt-2 text-[12.5px] font-semibold text-[#ded4ff]">
-            월정석 또는 원화 결제로 30일 혜택을 다시 열 수 있습니다.
+            ?붿젙???먮뒗 ?먰솕 寃곗젣濡?30???쒗깮???ㅼ떆 ?????덉뒿?덈떎.
           </p>
         </div>
 
-        {/* 달빛 이용권 혜택 사전 안내 */}
+        {/* ?щ튆 ?댁슜沅??쒗깮 ?ъ쟾 ?덈궡 */}
         {subscription.lowBalanceWarning && (
           <div className="mb-4 rounded-[14px] border border-orange-300/50 bg-orange-400/12 px-4 py-3">
             <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-orange-100">
-              <span aria-hidden="true">🔔</span> 달빛 이용권 혜택 범위를 확인해 주세요
+              <span aria-hidden="true">?뵒</span> ?щ튆 ?댁슜沅??쒗깮 踰붿쐞瑜??뺤씤??二쇱꽭??
             </p>
             <p className="mt-1 text-[11.5px] text-orange-100/90">
-              이용권 기간({expires}까지)은 유지되며,
-              추가 유료 콘텐츠는 상품별 안내에 따라 이용할 수 있습니다.
+              ?댁슜沅?湲곌컙({expires}源뚯?)? ?좎??섎ŉ,
+              異붽? ?좊즺 肄섑뀗痢좊뒗 ?곹뭹蹂??덈궡???곕씪 ?댁슜?????덉뒿?덈떎.
             </p>
           </div>
         )}
 
-        {/* 공통 운영 정책 안내 */}
+        {/* 怨듯넻 ?댁쁺 ?뺤콉 ?덈궡 */}
         <div className="mb-4 rounded-[16px] border border-[#8cb8ff]/42 bg-[#0f2348]/80 px-4 py-3.5">
           <p className="flex items-center gap-1.5 text-[12.5px] font-black text-[#e8f1ff]">
-            <span aria-hidden="true">ℹ️</span> 이용권 운영 정책
+            <span aria-hidden="true">?뱄툘</span> ?댁슜沅??댁쁺 ?뺤콉
           </p>
           <ul className="mt-2 space-y-1.5 text-[12.5px] leading-5 text-slate-100">
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">모든 신규 판매 이용권은 <strong>결제 검증 성공 시점부터 30일 동안 유효</strong>합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">스탠다드·프리미엄·VVIP는 일반 유료 서비스가 각 3,000원/5,000원/10,000원 이하일 때 이용권으로 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">Code Destiny Family는 프로필 카드 제한 없이 모든 유료 서비스를 이용할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">PDF 서비스와 일반 유료 서비스 조건은 상품별 안내에서 확인할 수 있습니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">기간 종료 후 추가 결제 없이 무료 플랜으로 전환됩니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">원화 결제된 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능합니다.</span></li>
-            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0"><strong>월정석 또는 원화로 여는 30일 이용권</strong>이며, 결제 전 환불 규정 동의가 필요합니다.</span></li>
-            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">·</span><span className="min-w-0">콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">紐⑤뱺 ?좉퇋 ?먮ℓ ?댁슜沅뚯? <strong>寃곗젣 寃利??깃났 ?쒖젏遺??30???숈븞 ?좏슚</strong>?⑸땲??</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">?ㅽ깲?ㅻ뱶쨌?꾨━誘몄뾼쨌VVIP???쇰컲 ?좊즺 ?쒕퉬?ㅺ? 媛?3,000??5,000??10,000???댄븯?????댁슜沅뚯쑝濡??댁슜?????덉뒿?덈떎.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">Code Destiny Family???꾨줈??移대뱶 ?쒗븳 ?놁씠 紐⑤뱺 ?좊즺 ?쒕퉬?ㅻ? ?댁슜?????덉뒿?덈떎.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">PDF ?쒕퉬?ㅼ? ?쇰컲 ?좊즺 ?쒕퉬??議곌굔? ?곹뭹蹂??덈궡?먯꽌 ?뺤씤?????덉뒿?덈떎.</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">湲곌컙 醫낅즺 ??異붽? 寃곗젣 ?놁씠 臾대즺 ?뚮옖?쇰줈 ?꾪솚?⑸땲??</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">?먰솕 寃곗젣???댁슜沅뚯? ?좊즺 湲곕뒫 ?댁슜 ??寃곗젣?쇰줈遺??7???대궡 ?섎텋 ?붿껌??媛?ν빀?덈떎.</span></li>
+            <li className="flex items-start gap-1.5 font-bold text-rose-600"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0"><strong>?붿젙???먮뒗 ?먰솕濡??щ뒗 30???댁슜沅?/strong>?대ŉ, 寃곗젣 ???섎텋 洹쒖젙 ?숈쓽媛 ?꾩슂?⑸땲??</span></li>
+            <li className="flex items-start gap-1.5"><span className="mt-0.5 flex-shrink-0">쨌</span><span className="min-w-0">肄섑뀗痢??앹꽦, PDF ?뚮뜑留? ?좊즺 由щ뵫 ?대엺, ?댁슜沅??쒗깮 ?ъ슜???쒖옉??遺遺꾩? ?섎텋???쒗븳?????덉뒿?덈떎.</span></li>
           </ul>
         </div>
 
         {highlightedPlan && (
           <div className="mb-4 rounded-[14px] border border-rose-300 bg-rose-50/70 px-4 py-3">
-            <p className="text-[11.5px] font-extrabold text-rose-800">🎯 메인 화면에서 선택한 플랜으로 안내 중</p>
+            <p className="text-[11.5px] font-extrabold text-rose-800">?렞 硫붿씤 ?붾㈃?먯꽌 ?좏깮???뚮옖?쇰줈 ?덈궡 以?/p>
             <p className="mt-1 text-[11.5px] text-rose-700">
-              선택 플랜: <strong>{highlightedPlan === "standard" ? "스탠다드 달빛 이용권" : highlightedPlan === "premium" ? "프리미엄 달빛 이용권" : highlightedPlan === "family" ? "Code Destiny Family" : "VVIP 달빛 이용권"}</strong>
+              ?좏깮 ?뚮옖: <strong>{highlightedPlan === "standard" ? "?ㅽ깲?ㅻ뱶 ?щ튆 ?댁슜沅? : highlightedPlan === "premium" ? "?꾨━誘몄뾼 ?щ튆 ?댁슜沅? : highlightedPlan === "family" ? "Code Destiny Family" : "VVIP ?щ튆 ?댁슜沅?}</strong>
             </p>
           </div>
         )}
 
       </div>
 
-      {/* ────────────────────────────────────────────────── */}
-      {/* 무료 플랜 안내 + 이용권 훅                          */}
-      {/* ────────────────────────────────────────────────── */}
+      {/* ?????????????????????????????????????????????????? */}
+      {/* 臾대즺 ?뚮옖 ?덈궡 + ?댁슜沅???                         */}
+      {/* ?????????????????????????????????????????????????? */}
       {(!subscription.isActive || subscription.tier === "free") && (
       <div className="mx-5 mb-5 rounded-[20px] border border-[#cab8ff]/24 bg-[#0b1028]/92 p-4 shadow-[0_14px_32px_rgba(7,10,28,0.34)]">
-        {/* 제목 행 */}
+        {/* ?쒕ぉ ??*/}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-2xl leading-none">🆓</span>
+          <span className="text-2xl leading-none">?넃</span>
           <div className="flex-1 min-w-0">
             <p className="text-[11.5px] font-black uppercase tracking-widest text-slate-300">Free Plan</p>
-            <p className="text-[15px] font-black text-white leading-tight">무료 플랜</p>
+            <p className="text-[15px] font-black text-white leading-tight">臾대즺 ?뚮옖</p>
           </div>
           {subscription.tier === "free" && (
-            <span className="flex-shrink-0 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[11px] font-bold text-neutral-600">현재 플랜</span>
+            <span className="flex-shrink-0 rounded-full bg-neutral-200 px-2.5 py-0.5 text-[11px] font-bold text-neutral-600">?꾩옱 ?뚮옖</span>
           )}
         </div>
 
-        {/* 무료 제공 항목 */}
+        {/* 臾대즺 ?쒓났 ??ぉ */}
         <div className="mb-3 rounded-[14px] border border-emerald-300/30 bg-emerald-300/10 px-3.5 py-3">
-          <p className="mb-2 text-[12px] font-extrabold text-emerald-100">✅ 무료로 지금 바로 즐길 수 있어요</p>
+          <p className="mb-2 text-[12px] font-extrabold text-emerald-100">??臾대즺濡?吏湲?諛붾줈 利먭만 ???덉뼱??/p>
           <ul className="space-y-1.5">
             {[
-              { icon: "☀️", text: "일일 운세 · 오늘/이달 운세 키워드", sub: "매일 갱신, 무제한 무료" },
-              { icon: "🃏", text: "행복한 회복 타로", sub: "힐링 타로 — 제한 없이 무료" },
-              { icon: "🀄", text: "데일리 점술 5종", sub: "화투점·데스티니 포커·돼지 주석점·영국 홍차점·역경 주역" },
-              { icon: "📊", text: "기본 사주 만세력", sub: "연·월·일·시 명식표 + 일주 캐릭터 요약" },
-              { icon: "🎭", text: "재미 맛보기 콘텐츠", sub: "MBTI 동물 궁합·사주 AI 이상형·사주네컷 등" },
+              { icon: "?截?, text: "?쇱씪 ?댁꽭 쨌 ?ㅻ뒛/?대떖 ?댁꽭 ?ㅼ썙??, sub: "留ㅼ씪 媛깆떊, 臾댁젣??臾대즺" },
+              { icon: "?깗", text: "?됰났???뚮났 ?濡?, sub: "?먮쭅 ?濡????쒗븳 ?놁씠 臾대즺" },
+              { icon: "??, text: "?곗씪由??먯닠 5醫?, sub: "?뷀닾?먃룸뜲?ㅽ떚???ъ빱쨌?쇱? 二쇱꽍?먃룹쁺援??띿감?먃룹뿭寃?二쇱뿭" },
+              { icon: "?뱤", text: "湲곕낯 ?ъ＜ 留뚯꽭??, sub: "?걔룹썡쨌?셋룹떆 紐낆떇??+ ?쇱＜ 罹먮┃???붿빟" },
+              { icon: "?렚", text: "?щ? 留쏅낫湲?肄섑뀗痢?, sub: "MBTI ?숇Ъ 沅곹빀쨌?ъ＜ AI ?댁긽?빧룹궗二쇰꽕而??? },
             ].map(({ icon, text, sub }) => (
               <li key={text} className="flex items-start gap-2">
                 <span className="flex-shrink-0 text-sm leading-4 mt-0.5">{icon}</span>
@@ -1543,49 +1544,49 @@ function SubscriptionSection({
           </ul>
         </div>
 
-        {/* 잠긴 콘텐츠 — 이용권 훅 */}
+        {/* ?좉릿 肄섑뀗痢????댁슜沅???*/}
         <div className="mb-3 rounded-[14px] border border-white/18 bg-white/[0.09] px-3.5 py-3">
-          <p className="mb-2 text-[12px] font-extrabold text-slate-100">🔒 이용권 선택 후 잠금이 해제돼요</p>
+          <p className="mb-2 text-[12px] font-extrabold text-slate-100">?뵏 ?댁슜沅??좏깮 ???좉툑???댁젣?쇱슂</p>
           <ul className="space-y-1.5">
             {[
-              "상세 사주 분석 — 연애·재물·직업·건강 심층 리포트",
-              "한 계정으로 최대 15개 프로필 동시 관리 (가족·연인·자녀 포함)",
-              "프리미엄 타로 · 이집트 오라클 · 스톤헨지 룬 등",
-              "RPG 운명 캐릭터 · 여행 운명지 · 건강 보고서",
-              "가족·연인 등 다계정 프로필 동시 분석",
+              "?곸꽭 ?ъ＜ 遺꾩꽍 ???곗븷쨌?щЪ쨌吏곸뾽쨌嫄닿컯 ?ъ링 由ы룷??,
+              "??怨꾩젙?쇰줈 理쒕? 15媛??꾨줈???숈떆 愿由?(媛議굿룹뿰?맞룹옄? ?ы븿)",
+              "?꾨━誘몄뾼 ?濡?쨌 ?댁쭛???ㅻ씪??쨌 ?ㅽ넠?⑥? 猷???,
+              "RPG ?대챸 罹먮┃??쨌 ?ы뻾 ?대챸吏 쨌 嫄닿컯 蹂닿퀬??,
+              "媛議굿룹뿰?????ㅺ퀎???꾨줈???숈떆 遺꾩꽍",
             ].map((text) => (
               <li key={text} className="flex items-start gap-2 opacity-60 blur-[0.3px]">
-                <span className="flex-shrink-0 text-[11px] text-neutral-400 mt-0.5">🔒</span>
+                <span className="flex-shrink-0 text-[11px] text-neutral-400 mt-0.5">?뵏</span>
                 <span className="text-[12.5px] text-slate-300 line-through decoration-slate-500">{text}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* 마케팅 훅 CTA 블록 */}
+        {/* 留덉?????CTA 釉붾줉 */}
         <div className="rounded-[14px] border border-[#f3dd9a]/40 bg-[#f3dd9a]/10 px-4 py-3.5">
           <p className="mb-2 text-[13.5px] font-black leading-snug text-[#ffe8a3]">
-            맛보기만으로도 이 정도인데,<br />
-            <span className="text-white">30일 이용권으로 얼마나 깊이 볼 수 있을까요?</span> 🌙
+            留쏅낫湲곕쭔?쇰줈?????뺣룄?몃뜲,<br />
+            <span className="text-white">30???댁슜沅뚯쑝濡??쇰쭏??源딆씠 蹂????덉쓣源뚯슂?</span> ?뙔
           </p>
           <p className="mb-3 text-[12.5px] leading-6 text-slate-100">
-            오늘 운세가 마음에 걸렸다면, 그건 당신의 직감이 맞는 거예요.
-            <br />Honey 이용권 하나로 <strong>사주·타로·점성술의 진짜 깊이</strong>를 경험해 보세요.
-            가족과 연인의 운명까지, <strong>30일 동안 모든 프로필</strong>에 혜택이 적용됩니다.
+            ?ㅻ뒛 ?댁꽭媛 留덉쓬??嫄몃졇?ㅻ㈃, 洹멸굔 ?뱀떊??吏곴컧??留욌뒗 嫄곗삁??
+            <br />Honey ?댁슜沅??섎굹濡?<strong>?ъ＜쨌?濡쑣룹젏?깆닠??吏꾩쭨 源딆씠</strong>瑜?寃쏀뿕??蹂댁꽭??
+            媛議깃낵 ?곗씤???대챸源뚯?, <strong>30???숈븞 紐⑤뱺 ?꾨줈??/strong>???쒗깮???곸슜?⑸땲??
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="inline-flex items-center gap-1 rounded-full bg-rose-100 px-2.5 py-1 text-[10.5px] font-bold text-rose-700">
-              ✨ 결제 즉시 혜택 활성화
+              ??寃곗젣 利됱떆 ?쒗깮 ?쒖꽦??
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-[10.5px] font-bold text-sky-700">
-              👨‍👩‍👧 최대 15 프로필 혜택 적용
+              ?뫅?랅윉⒱랅윉?理쒕? 15 ?꾨줈???쒗깮 ?곸슜
             </span>
           </div>
         </div>
       </div>
       )}
 
-      {/* 플랜 카드 */}
+      {/* ?뚮옖 移대뱶 */}
       <div className="grid gap-4 p-5 pt-0 sm:grid-cols-2 xl:grid-cols-4">
         {SUBSCRIPTION_PLANS.map((plan) => {
           const theme = planThemeMap[plan.theme];
@@ -1607,45 +1608,45 @@ function SubscriptionSection({
                 lowerTierBlocked ? "opacity-65" : "",
               ].join(" ")}
             >
-              {/* 뱃지 */}
+              {/* 諭껋? */}
               {plan.badge && !isCurrentActive && (
                 <span className={`absolute top-3 right-3 rounded-full bg-gradient-to-r ${theme.badge} px-2 py-0.5 text-[11px] font-black text-[#151832] shadow`}>
-                  {plan.tier === "vvip" ? `👑 ${copy.planBadges.vvip}` : `✨ ${copy.planBadges[plan.badge] || plan.badge}`}
+                  {plan.tier === "vvip" ? `?몣 ${copy.planBadges.vvip}` : `??${copy.planBadges[plan.badge] || plan.badge}`}
                 </span>
               )}
               {isCurrentActive && (
                 <span className="absolute top-3 right-3 rounded-full bg-emerald-500 px-2 py-0.5 text-[11px] font-black text-white shadow">
-                  ✓ {copy.activePassLabel}
+                  ??{copy.activePassLabel}
                 </span>
               )}
 
-              {/* 플랜 아이콘 & 이름 */}
+              {/* ?뚮옖 ?꾩씠肄?& ?대쫫 */}
               <p className="text-xl leading-none">{theme.icon}</p>
               <p className={`mt-2 text-[12px] font-black uppercase tracking-wider ${theme.label}`}>{copy.planTitles[plan.tier]}</p>
 
-              {/* 가격 */}
+              {/* 媛寃?*/}
               <p className="mt-2 flex flex-wrap items-center gap-1 text-[17px] font-black leading-snug text-white">
                 <CoinIcon size="md" />
                 {formatSubscriptionPlanValueLine(plan, copy, formatLocale)}
               </p>
               <p className="mt-1 text-[12.5px] font-semibold text-slate-200">
-                {copy.duration30} · {formatWon(plan.wonPrice, copy, formatLocale)}
+                {copy.duration30} 쨌 {formatWon(plan.wonPrice, copy, formatLocale)}
               </p>
 
-              {/* 커피 한 잔 뱃지 — freeUpTo 50 이하 플랜(스탠다드)에만 */}
+              {/* 而ㅽ뵾 ????諭껋? ??freeUpTo 50 ?댄븯 ?뚮옖(?ㅽ깲?ㅻ뱶)?먮쭔 */}
               {plan.freeUpTo !== null && plan.freeUpTo <= 50 && plan.tier === "standard" && plan.durationMonths === 1 && (
                 <div className="mt-2 inline-flex w-fit items-center gap-1 rounded-full bg-[#f3dd9a]/22 px-2.5 py-1 text-[12px] font-bold text-[#ffe8a3]">
-                  ☕ {copy.coffeeBadge}
+                  ??{copy.coffeeBadge}
                 </div>
               )}
 
-              {/* 무료 이용 범위 태그 */}
+              {/* 臾대즺 ?댁슜 踰붿쐞 ?쒓렇 */}
               <div className={`mt-2 inline-flex w-fit items-center gap-1 rounded-full px-2.5 py-1 text-[12px] font-bold ${theme.freeTag}`}>
-                🆓{" "}
+                ?넃{" "}
                 {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
               </div>
 
-              {/* 기능 목록 */}
+              {/* 湲곕뒫 紐⑸줉 */}
               <ul className="mt-3 flex-1 space-y-1.5">
                 {plan.features.map((f) => {
                   const translatedFeature = copy.planFeatures[plan.tier]?.[f] || f;
@@ -1663,7 +1664,7 @@ function SubscriptionSection({
                     >
                       {!isBonus && (
                         <span className={`mt-0.5 flex-shrink-0 ${isKey ? theme.label : "text-amber-400"}`}>
-                          {isKey ? "★" : "·"}
+                          {isKey ? "?? : "쨌"}
                         </span>
                       )}
                       {translatedFeature}
@@ -1672,7 +1673,7 @@ function SubscriptionSection({
                 })}
               </ul>
 
-              {/* CTA 버튼 */}
+              {/* CTA 踰꾪듉 */}
               <button
                 type="button"
                 onClick={() => onSubscribe(plan)}
@@ -1707,7 +1708,7 @@ function SubscriptionSection({
       {subscription.isActive && subscription.tier !== "free" && (
         <div className="mx-5 mb-5 rounded-[14px] border border-violet-200 bg-violet-50/60 px-4 py-3">
           <p className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-violet-800">
-            <span aria-hidden="true">🧭</span>
+            <span aria-hidden="true">?㎛</span>
             {copy.activePassLabel}
           </p>
           <p className="mt-1 text-[11.5px] text-violet-700">
@@ -1733,17 +1734,17 @@ function SubscriptionSection({
       )}
 
       <div className="space-y-1.5 px-5 pb-5">
-        <p className="text-[12.5px] font-semibold text-[#ffe8a3]">✅ {copy.activePassFooter}</p>
+        <p className="text-[12.5px] font-semibold text-[#ffe8a3]">??{copy.activePassFooter}</p>
         <p className="text-[12.5px] font-bold text-rose-100">{copy.activePassAutoRenewWarning}</p>
       </div>
     </section>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: Toast 알림 컨테이너
-   화면 상단 중앙에 알림을 쌓아 표시하며 5초 후 자동 닫힙니다.
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?쒕툕 而댄룷?뚰듃: Toast ?뚮┝ 而⑦뀒?대꼫
+   ?붾㈃ ?곷떒 以묒븰???뚮┝???볦븘 ?쒖떆?섎ŉ 5珥????먮룞 ?ロ옓?덈떎.
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 function ToastContainer({
   toasts,
@@ -1770,20 +1771,20 @@ function ToastContainer({
                 : "bg-amber-50 border-amber-300 text-amber-900"
           }`}
         >
-          {/* 아이콘 */}
+          {/* ?꾩씠肄?*/}
           <span className="mt-0.5 flex-shrink-0 text-base">
-            {toast.type === "success" ? "✅" : toast.type === "error" ? "⚠️" : "ℹ️"}
+            {toast.type === "success" ? "?? : toast.type === "error" ? "?좑툘" : "?뱄툘"}
           </span>
-          {/* 메시지 */}
+          {/* 硫붿떆吏 */}
           <span className="flex-1 leading-snug">{toast.text}</span>
-          {/* 수동 닫기 버튼 */}
+          {/* ?섎룞 ?リ린 踰꾪듉 */}
           <button
             type="button"
             onClick={() => onDismiss(toast.id)}
             className="flex-shrink-0 text-base opacity-50 hover:opacity-90 transition-opacity"
             aria-label={closeLabel}
           >
-            ✕
+            ??
           </button>
         </div>
       ))}
@@ -1791,10 +1792,10 @@ function ToastContainer({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: 콘텐츠 기준 아이콘
-   🪙 이모지 렌더링 불안정 문제를 해결합니다.
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   ?쒕툕 而댄룷?뚰듃: 肄섑뀗痢?湲곗? ?꾩씠肄?
+   ?첌 ?대え吏 ?뚮뜑留?遺덉븞??臾몄젣瑜??닿껐?⑸땲??
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" | "xl"; className?: string }) {
   const sizeClasses: Record<string, string> = {
@@ -1812,7 +1813,7 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
         boxShadow: "inset 0 2px 3px rgba(255,255,255,0.55), inset 0 -1px 2px rgba(0,0,0,0.18), 0 2px 6px rgba(140,80,0,0.28)",
       }}
     >
-      ✦
+      ??
     </span>
   );
 }
@@ -1835,26 +1836,26 @@ function MonthlyCreditBonusCard({
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">보너스 월정석</p>
-          <h3 className="mt-1 text-lg font-black text-white">월정석 잔량</h3>
+          <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">蹂대꼫???붿젙??/p>
+          <h3 className="mt-1 text-lg font-black text-white">?붿젙???붾웾</h3>
           <p className="mt-1 text-sm text-slate-200">
-            월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
+            ?붿젙?앹? ?щ튆 ?댁슜沅뚭낵 ?대깽?몃줈 吏湲됰릺??蹂대꼫???쒗깮?대ŉ, ?붿젙???먯껜??蹂꾨룄濡?援щℓ?섍굅??異⑹쟾?????놁뒿?덈떎.
           </p>
         </div>
         <div className="rounded-[18px] border border-[#f3dd9a]/48 bg-[#f3dd9a]/18 px-4 py-3 text-left sm:text-right">
-          <p className="text-xs font-bold text-[#ffe8a3]">현재 사용 가능</p>
+          <p className="text-xs font-bold text-[#ffe8a3]">?꾩옱 ?ъ슜 媛??/p>
           <p className="mt-1 text-2xl font-black text-white">{formatMonthlyCreditValue(balance, copy, formatLocale)}</p>
-          <p className="mt-1 text-[11px] font-bold text-rose-100">구매·충전 불가</p>
+          <p className="mt-1 text-[11px] font-bold text-rose-100">援щℓ쨌異⑹쟾 遺덇?</p>
         </div>
       </div>
 
       <div className="mt-4 rounded-[18px] border border-white/16 bg-[#050817]/72 p-3.5">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <h4 className="text-sm font-bold text-white">월정석 사용 내역</h4>
-          <span className="text-[11px] font-semibold text-slate-300">최근 {Math.min(ledgers.length, 8)}건</span>
+          <h4 className="text-sm font-bold text-white">?붿젙???ъ슜 ?댁뿭</h4>
+          <span className="text-[11px] font-semibold text-slate-300">理쒓렐 {Math.min(ledgers.length, 8)}嫄?/span>
         </div>
         {ledgers.length === 0 ? (
-          <p className="text-sm text-slate-300">아직 월정석 사용 내역이 없습니다.</p>
+          <p className="text-sm text-slate-300">?꾩쭅 ?붿젙???ъ슜 ?댁뿭???놁뒿?덈떎.</p>
         ) : (
           <div className="space-y-2">
             {ledgers.slice(0, 8).map((entry) => {
@@ -1870,7 +1871,7 @@ function MonthlyCreditBonusCard({
                   <span className="min-w-0">
                     <span className="block font-semibold text-white">{formatMonthlyCreditLedgerReason(entry)}</span>
                     <span className="block text-[11px] text-slate-300">
-                      {formatDateTime(entry.createdAt, formatLocale)} · {formatMonthlyCreditValue(Number(entry.afterBalance || 0), copy, formatLocale)}
+                      {formatDateTime(entry.createdAt, formatLocale)} 쨌 {formatMonthlyCreditValue(Number(entry.afterBalance || 0), copy, formatLocale)}
                     </span>
                   </span>
                   <span className={`font-black ${isSpend ? "text-rose-100" : "text-emerald-100"}`}>
@@ -1886,10 +1887,10 @@ function MonthlyCreditBonusCard({
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-  서브 컴포넌트: 콘텐츠 가치 단위 카드
-  콘텐츠 기준은 가격 산정용 내부 단위로만 안내합니다.
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+  ?쒕툕 而댄룷?뚰듃: 肄섑뀗痢?媛移??⑥쐞 移대뱶
+  肄섑뀗痢?湲곗?? 媛寃??곗젙???대? ?⑥쐞濡쒕쭔 ?덈궡?⑸땲??
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
   return (
@@ -1916,30 +1917,30 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
               }}
               aria-hidden="true"
             >
-              🌙
+              ?뙔
             </div>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">
-                연이의 달빛 이용권 상점
+                ?곗씠???щ튆 ?댁슜沅??곸젏
               </p>
-              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} 님의 달빛 이용권 상점</p>
+              <p className="mt-1 text-[17px] font-black leading-tight text-white">{name} ?섏쓽 ?щ튆 ?댁슜沅??곸젏</p>
             </div>
           </div>
 
           <div className="flex flex-col items-start gap-1 sm:items-end">
             <p className="text-xs font-semibold uppercase tracking-wide text-[#ffe8a3]">
-              원화 결제 기준
+              ?먰솕 寃곗젣 湲곗?
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[22px] font-black leading-none text-white">
-                30일 이용권
+                30???댁슜沅?
               </span>
             </div>
             <p className="max-w-[300px] text-[12.5px] leading-5 text-slate-100 sm:text-right">
-              월정석 또는 원화로 여는 30일 이용권이며, PDF와 고가 서비스 조건은 상품별 안내에 따릅니다.
+              ?붿젙???먮뒗 ?먰솕濡??щ뒗 30???댁슜沅뚯씠硫? PDF? 怨좉? ?쒕퉬??議곌굔? ?곹뭹蹂??덈궡???곕쫭?덈떎.
             </p>
             <p className="max-w-[300px] text-[12.5px] font-bold leading-5 text-[#ffe8a3] sm:text-right">
-              월정석은 보너스 혜택으로만 지급되며 월정석 자체는 구매·충전할 수 없습니다.
+              ?붿젙?앹? 蹂대꼫???쒗깮?쇰줈留?吏湲됰릺硫??붿젙???먯껜??援щℓ쨌異⑹쟾?????놁뒿?덈떎.
             </p>
           </div>
         </div>
@@ -1948,17 +1949,17 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-  서브 컴포넌트: 원화 결제 상품 카드
-  클릭 시 결제 방법 모달로 이동합니다.
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+  ?쒕툕 而댄룷?뚰듃: ?먰솕 寃곗젣 ?곹뭹 移대뱶
+  ?대┃ ??寃곗젣 諛⑸쾿 紐⑤떖濡??대룞?⑸땲??
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 const MOONLIGHT_TIER_LABELS: Record<SubscriptionTier, string> = {
-  free: "이용권 없음",
-  standard: "Standard 달빛 30일",
-  premium: "Premium 달빛 30일",
-  vvip: "VVIP 달빛 30일",
-  family: "Code Destiny Family 30일",
+  free: "?댁슜沅??놁쓬",
+  standard: "Standard ?щ튆 30??,
+  premium: "Premium ?щ튆 30??,
+  vvip: "VVIP ?щ튆 30??,
+  family: "Code Destiny Family 30??,
 };
 
 function getMoonlightDaysLeft(expiresAt: string | null | undefined) {
@@ -1969,23 +1970,23 @@ function getMoonlightDaysLeft(expiresAt: string | null | undefined) {
 }
 
 function getMoonlightExpiryLabel(expiresAt: string | null | undefined, formatLocale: string) {
-  if (!expiresAt) return "만료일 정보 없음";
+  if (!expiresAt) return "留뚮즺???뺣낫 ?놁쓬";
   const date = new Date(expiresAt);
-  if (!Number.isFinite(date.getTime())) return "만료일 정보 없음";
+  if (!Number.isFinite(date.getTime())) return "留뚮즺???뺣낫 ?놁쓬";
   return date.toLocaleDateString(formatLocale, { year: "numeric", month: "long", day: "numeric" });
 }
 
 function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
   const limit = subscription.profileLimit || getSubscriptionPolicyProfileLimit(subscription.tier);
-  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString("ko-KR")}개`;
+  return limit <= 0 ? "?꾨줈??臾댁젣?? : `?꾨줈??理쒕? ${limit.toLocaleString("ko-KR")}媛?;
 }
 
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
-  if (tier === "family") return "모든 유료 서비스 이용 가능";
-  if (tier === "vvip") return "1만원 이하 유료 무료";
-  if (tier === "premium") return "5천원 이하 유료 무료";
-  if (tier === "standard") return "3천원 이하 유료 무료";
-  return "30일 혜택 선택 가능";
+  if (tier === "family") return "紐⑤뱺 ?좊즺 ?쒕퉬???댁슜 媛??;
+  if (tier === "vvip") return "1留뚯썝 ?댄븯 ?좊즺 臾대즺";
+  if (tier === "premium") return "5泥쒖썝 ?댄븯 ?좊즺 臾대즺";
+  if (tier === "standard") return "3泥쒖썝 ?댄븯 ?좊즺 臾대즺";
+  return "30???쒗깮 ?좏깮 媛??;
 }
 
 function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
@@ -2016,25 +2017,25 @@ function MoonlightShopHero() {
             <span className="moon-shop-visual-spark moon-shop-visual-spark--three" />
           </div>
           <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.28em] text-[color:var(--moon-silver)]">연이의 달빛 이용권 상점</p>
-            <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">연이의 달빛 이용권 상점</h1>
+            <p className="text-xs font-black uppercase tracking-[0.28em] text-[color:var(--moon-silver)]">?곗씠???щ튆 ?댁슜沅??곸젏</p>
+            <h1 className="mt-2 text-3xl font-black leading-tight text-white sm:text-4xl">?곗씠???щ튆 ?댁슜沅??곸젏</h1>
             <p className="mt-3 text-sm font-semibold leading-6 text-[color:var(--moon-silver)] sm:text-base">
-              달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+              ?щ튆 ?댁슜沅??곹뭹怨??먰솕 寃곗젣 議곌굔?????붾㈃?먯꽌 ?뺤씤?섏꽭??
             </p>
             <p className="mt-2 text-sm font-black leading-6 text-[color:var(--moon-gold)]">
-              월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+              ?붿젙???먮뒗 ?먰솕 寃곗젣濡?30???쒗깮???????덉뒿?덈떎.
             </p>
           </div>
         </div>
         <div className="relative z-10 flex flex-col gap-2 sm:flex-row lg:flex-col">
           <Link href="/" prefetch={false} className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            홈 화면 바로가기
+            ???붾㈃ 諛붾줈媛湲?
           </Link>
           <Link href="/points/history" className="btn-moonlight inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            이용권 주문 내역
+            ?댁슜沅?二쇰Ц ?댁뿭
           </Link>
           <Link href="/" prefetch={false} className="btn-moonlight-ghost inline-flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-black">
-            ← 서비스 화면으로
+            ???쒕퉬???붾㈃?쇰줈
           </Link>
         </div>
       </div>
@@ -2056,31 +2057,31 @@ function MoonlightActivePassCard({
   const isActivePass = subscription.isActive && subscription.tier !== "free";
   const tier = isActivePass ? subscription.tier : "free";
   const daysLeft = getMoonlightDaysLeft(subscription.expiresAt);
-  const daysLeftLabel = daysLeft === null ? "남은 기간 확인 중" : `${daysLeft}일 남음`;
+  const daysLeftLabel = daysLeft === null ? "?⑥? 湲곌컙 ?뺤씤 以? : `${daysLeft}???⑥쓬`;
   const progress = isActivePass ? Math.max(0, Math.min(1, (daysLeft ?? 0) / 30)) : 0;
   const expiryLabel = getMoonlightExpiryLabel(subscription.expiresAt, formatLocale);
   const title = MOONLIGHT_TIER_LABELS[tier];
   const benefits = [
-    { icon: "👤", label: getMoonlightProfileLabel(subscription) },
-    { icon: "✨", label: getMoonlightBenefitLabel(tier) },
-    { icon: "🌙", label: "월정석으로도 구매 가능" },
-    { icon: "🗝️", label: tier === "family" ? "모든 유료 서비스 이용 가능" : "한도 내 유료 리딩 혜택" },
+    { icon: "?뫀", label: getMoonlightProfileLabel(subscription) },
+    { icon: "??, label: getMoonlightBenefitLabel(tier) },
+    { icon: "?뙔", label: "?붿젙?앹쑝濡쒕룄 援щℓ 媛?? },
+    { icon: "?뿚截?, label: tier === "family" ? "紐⑤뱺 ?좊즺 ?쒕퉬???댁슜 媛?? : "?쒕룄 ???좊즺 由щ뵫 ?쒗깮" },
   ];
 
   return (
-    <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label="현재 달빛 이용권">
+    <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label="?꾩옱 ?щ튆 ?댁슜沅?>
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-[rgba(167,139,250,0.12)] shadow-[0_0_28px_rgba(167,139,250,0.32)]">
-              <span className="text-2xl text-white" aria-hidden="true">∞</span>
+              <span className="text-2xl text-white" aria-hidden="true">??/span>
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">나의 달빛 이용권 혜택</p>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-mist)]">?섏쓽 ?щ튆 ?댁슜沅??쒗깮</p>
               <h2 className="mt-1 text-xl font-black leading-tight text-white">{title}</h2>
               <p className="mt-2 flex flex-wrap items-center gap-2 text-sm font-bold text-[color:var(--moon-teal)]">
                 <span className="h-2 w-2 rounded-full bg-[color:var(--moon-teal)] shadow-[0_0_12px_rgba(94,234,212,0.76)]" aria-hidden="true" />
-                {isActivePass ? `${title} 이용 중 · 만료일까지 이용 가능` : "활성 이용권이 없습니다"}
+                {isActivePass ? `${title} ?댁슜 以?쨌 留뚮즺?쇨퉴吏 ?댁슜 媛?? : "?쒖꽦 ?댁슜沅뚯씠 ?놁뒿?덈떎"}
               </p>
             </div>
           </div>
@@ -2097,13 +2098,13 @@ function MoonlightActivePassCard({
           </div>
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title="달빛 이용권 남은 기간" />
+              <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title="?щ튆 ?댁슜沅??⑥? 湲곌컙" />
               <div>
-                <p className="text-xs font-bold text-[color:var(--moon-mist)]">만료일</p>
-                <p className="mt-1 text-base font-black text-white">{isActivePass ? expiryLabel : "이용권 구매 후 표시됩니다"}</p>
+                <p className="text-xs font-bold text-[color:var(--moon-mist)]">留뚮즺??/p>
+                <p className="mt-1 text-base font-black text-white">{isActivePass ? expiryLabel : "?댁슜沅?援щℓ ???쒖떆?⑸땲??}</p>
               </div>
             </div>
-            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? daysLeftLabel : "0일 남음"}</p>
+            <p className="text-xl font-black text-[color:var(--moon-teal)]">{isActivePass ? daysLeftLabel : "0???⑥쓬"}</p>
           </div>
         </div>
 
@@ -2118,7 +2119,7 @@ function MoonlightActivePassCard({
 
         <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="text-sm font-black text-[color:var(--moon-glow)] underline-offset-4 hover:underline">
-            환불 요청 안내 보기 →
+            ?섎텋 ?붿껌 ?덈궡 蹂닿린 ??
           </a>
           {isActivePass ? (
             <button
@@ -2127,7 +2128,7 @@ function MoonlightActivePassCard({
               onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
               className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
             >
-              이용권 상태 확인
+              ?댁슜沅??곹깭 ?뺤씤
             </button>
           ) : null}
         </div>
@@ -2158,16 +2159,16 @@ function MoonlightMonthlyCreditCard({
       <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
-            <h2 className="mt-2 text-2xl font-black text-white">월정석의 흐름을 불러오는 중이에요</h2>
+            <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">蹂대꼫???붿젙??/p>
+            <h2 className="mt-2 text-2xl font-black text-white">?붿젙?앹쓽 ?먮쫫??遺덈윭?ㅻ뒗 以묒씠?먯슂</h2>
             <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-              달빛 이용권과 보너스 혜택을 조용히 정돈하고 있어요.
+              ?щ튆 ?댁슜沅뚭낵 蹂대꼫???쒗깮??議곗슜???뺣룉?섍퀬 ?덉뼱??
             </p>
           </div>
           <div className="moonstone-counter flex min-h-[168px] min-w-[196px] flex-col items-center justify-center rounded-[22px] px-8 py-6 text-center">
-            <p className="moon-loading-orb moonstone-counter__symbol text-4xl font-black">✦</p>
-            <p className="moonstone-counter__label mt-3 text-sm font-black text-white">달빛 확인 중</p>
-            <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">잠시만 기다려 주세요</p>
+            <p className="moon-loading-orb moonstone-counter__symbol text-4xl font-black">??/p>
+            <p className="moonstone-counter__label mt-3 text-sm font-black text-white">?щ튆 ?뺤씤 以?/p>
+            <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">?좎떆留?湲곕떎??二쇱꽭??/p>
           </div>
         </div>
         <div className="mt-6 space-y-3 border-t border-[color:var(--moon-rim)] pt-5">
@@ -2182,13 +2183,13 @@ function MoonlightMonthlyCreditCard({
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 정보 대기" />
-          <p className="mt-3 text-base font-black text-white">월정석의 달빛이 잠시 흐려졌어요</p>
+          <MoonIcon phase="crescent" className="h-14 w-14" title="?붿젙???뺣낫 ?湲? />
+          <p className="mt-3 text-base font-black text-white">?붿젙?앹쓽 ?щ튆???좎떆 ?먮젮議뚯뼱??/p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-            잔량과 사용 내역은 곧 다시 확인할 수 있어요.
+            ?붾웾怨??ъ슜 ?댁뿭? 怨??ㅼ떆 ?뺤씤?????덉뼱??
           </p>
           <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
-            다시 확인하기
+            ?ㅼ떆 ?뺤씤?섍린
           </button>
         </div>
       </section>
@@ -2199,38 +2200,38 @@ function MoonlightMonthlyCreditCard({
     <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-2xl">
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">보너스 월정석</p>
-          <h2 className="mt-2 text-2xl font-black text-white">월정석이란?</h2>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">蹂대꼫???붿젙??/p>
+          <h2 className="mt-2 text-2xl font-black text-white">?붿젙?앹씠??</h2>
           <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-            특별한 날, 카카오톡 공유, 운영 이벤트를 통해서만 얻을 수 있는 보너스 재화입니다. 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
+            ?밸퀎???? 移댁뭅?ㅽ넚 怨듭쑀, ?댁쁺 ?대깽?몃? ?듯빐?쒕쭔 ?살쓣 ???덈뒗 蹂대꼫???ы솕?낅땲?? ?붿젙???먯껜??蹂꾨룄濡?援щℓ?섍굅??異⑹쟾?????놁뒿?덈떎.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {["특별한 날", "카카오톡 공유", "운영 이벤트"].map((source) => (
+            {["?밸퀎????, "移댁뭅?ㅽ넚 怨듭쑀", "?댁쁺 ?대깽??].map((source) => (
               <span key={source} className="moonstone-source-pill rounded-full px-3 py-1 text-xs font-black">
-                ✦ {source}
+                ??{source}
               </span>
             ))}
           </div>
         </div>
         <div className="moonstone-counter flex min-h-[178px] min-w-[206px] flex-col items-center justify-center rounded-[24px] px-8 py-6 text-center">
-          <p className="moonstone-counter__symbol text-base font-black">✦</p>
+          <p className="moonstone-counter__symbol text-base font-black">??/p>
           <p className="moonstone-counter__value mt-1 text-5xl font-black leading-none">{Math.max(0, Math.floor(Number(balance || 0))).toLocaleString(formatLocale)}</p>
-          <p className="moonstone-counter__label mt-3 text-sm font-black text-white">현재 사용 가능</p>
-          <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">이벤트 전용 재화</p>
+          <p className="moonstone-counter__label mt-3 text-sm font-black text-white">?꾩옱 ?ъ슜 媛??/p>
+          <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">?대깽???꾩슜 ?ы솕</p>
         </div>
       </div>
 
       <div className="mt-6 border-t border-[color:var(--moon-rim)] pt-5">
         <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="text-base font-black text-white">월정석 사용 내역</h3>
-          <span className="text-xs font-bold text-[color:var(--moon-mist)]">최근 {Math.min(ledgers.length, 8)}건</span>
+          <h3 className="text-base font-black text-white">?붿젙???ъ슜 ?댁뿭</h3>
+          <span className="text-xs font-bold text-[color:var(--moon-mist)]">理쒓렐 {Math.min(ledgers.length, 8)}嫄?/span>
         </div>
         {ledgers.length === 0 ? (
           <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-            <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 사용 내역 없음" />
-            <p className="mt-3 text-base font-black text-white">아직 달빛이 흐르지 않았어요</p>
+            <MoonIcon phase="crescent" className="h-14 w-14" title="?붿젙???ъ슜 ?댁뿭 ?놁쓬" />
+            <p className="mt-3 text-base font-black text-white">?꾩쭅 ?щ튆???먮Ⅴ吏 ?딆븯?댁슂</p>
             <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-              달빛 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
+              ?щ튆 ?댁슜沅뚯쓣 援щℓ?섎㈃ 蹂대꼫???붿젙?앹쓣 諛쏆쓣 ???덉뼱??
             </p>
           </div>
         ) : (
@@ -2245,7 +2246,7 @@ function MoonlightMonthlyCreditCard({
                   <span className="min-w-0">
                     <span className="block font-black text-white">{formatMonthlyCreditLedgerReason(entry)}</span>
                     <span className="block text-xs text-[color:var(--moon-mist)]">
-                      {formatDateTime(entry.createdAt, formatLocale)} · {formatMonthlyCreditValue(Number(entry.afterBalance || 0), copy, formatLocale)}
+                      {formatDateTime(entry.createdAt, formatLocale)} 쨌 {formatMonthlyCreditValue(Number(entry.afterBalance || 0), copy, formatLocale)}
                     </span>
                   </span>
                   <span className={`font-black ${isSpend ? "text-rose-100" : "text-[color:var(--moon-teal)]"}`}>
@@ -2284,8 +2285,8 @@ function MoonlightShopPlans({
     <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
       <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">이용권 상품</p>
-          <h2 className="mt-2 text-2xl font-black text-white">판매 중인 달빛 이용권</h2>
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-[color:var(--moon-glow)]">?댁슜沅??곹뭹</p>
+          <h2 className="mt-2 text-2xl font-black text-white">?먮ℓ 以묒씤 ?щ튆 ?댁슜沅?/h2>
         </div>
         {subscription.isActive && subscription.tier !== "free" ? (
           <button
@@ -2294,7 +2295,7 @@ function MoonlightShopPlans({
             onClick={() => onCancelSubscription(Boolean(subscription.cancelAtPeriodEnd))}
             className="btn-moonlight-ghost inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50"
           >
-            이용권 상태 확인
+            ?댁슜沅??곹깭 ?뺤씤
           </button>
         ) : null}
       </div>
@@ -2323,10 +2324,10 @@ function MoonlightShopPlans({
                       </span>
                     ) : null}
                     {isCurrentActive ? (
-                      <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">현재 이용 중</span>
+                      <span className="rounded-full bg-[rgba(94,234,212,0.16)] px-2.5 py-1 text-xs font-black text-[color:var(--moon-teal)]">?꾩옱 ?댁슜 以?/span>
                     ) : null}
                   </div>
-                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">월정석 또는 원화로 구매하는 30일 이용권</p>
+                  <p className="mt-1 text-sm font-bold text-[color:var(--moon-mist)]">?붿젙???먮뒗 ?먰솕濡?援щℓ?섎뒗 30???댁슜沅?/p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     <span className="rounded-full border border-[color:var(--moon-rim)] px-2.5 py-1 text-xs font-bold text-[color:var(--moon-silver)]">
                       {formatSubscriptionPlanPolicy(plan, copy, formatLocale)}
@@ -2346,7 +2347,7 @@ function MoonlightShopPlans({
                     disabled={ctaDisabled}
                     className="btn-moonlight inline-flex min-h-11 w-full items-center justify-center rounded-xl px-4 text-sm font-black disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                   >
-                    {isCurrentActive ? "연장하기 →" : lowerTierBlocked ? copy.lowerTierBlocked : "구매하기 →"}
+                    {isCurrentActive ? "?곗옣?섍린 ?? : lowerTierBlocked ? copy.lowerTierBlocked : "援щℓ?섍린 ??}
                   </button>
                   {lowerTierBlocked ? (
                     <p className="text-right text-xs font-bold text-[color:var(--moon-mist)]">{copy.lowerTierBlockedHelp}</p>
@@ -2384,8 +2385,8 @@ function MoonlightOrderHistory({
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6">
         <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
-          <span className="text-xs font-bold text-[color:var(--moon-mist)]">달빛 주문 기록 확인 중</span>
+          <h2 className="text-xl font-black text-white">理쒓렐 二쇰Ц ?댁뿭</h2>
+          <span className="text-xs font-bold text-[color:var(--moon-mist)]">?щ튆 二쇰Ц 湲곕줉 ?뺤씤 以?/span>
         </div>
         <div className="space-y-3">
           <div className="moon-loading-line h-24 rounded-[18px]" />
@@ -2399,13 +2400,13 @@ function MoonlightOrderHistory({
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6">
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 대기" />
-          <p className="mt-3 text-base font-black text-white">주문 내역의 달빛이 잠시 가려졌어요</p>
+          <MoonIcon phase="outline" className="h-14 w-14" title="?댁슜沅?二쇰Ц ?댁뿭 ?湲? />
+          <p className="mt-3 text-base font-black text-white">二쇰Ц ?댁뿭???щ튆???좎떆 媛?ㅼ죱?댁슂</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-            결제 기능은 그대로 유지되며, 내역은 잠시 뒤 다시 확인할 수 있어요.
+            寃곗젣 湲곕뒫? 洹몃?濡??좎??섎ŉ, ?댁뿭? ?좎떆 ???ㅼ떆 ?뺤씤?????덉뼱??
           </p>
           <button type="button" onClick={onRetry} className="btn-moonlight mt-5 inline-flex min-h-10 items-center justify-center rounded-xl px-4 text-sm font-black">
-            다시 확인하기
+            ?ㅼ떆 ?뺤씤?섍린
           </button>
         </div>
       </section>
@@ -2415,15 +2416,15 @@ function MoonlightOrderHistory({
   return (
     <section className="moon-card rounded-[24px] p-5 sm:p-6">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-xl font-black text-white">최근 주문 내역</h2>
-        <span className="text-xs font-bold text-[color:var(--moon-mist)]">주문시각 / 결제시각 / 승인번호 / 영수증</span>
+        <h2 className="text-xl font-black text-white">理쒓렐 二쇰Ц ?댁뿭</h2>
+        <span className="text-xs font-bold text-[color:var(--moon-mist)]">二쇰Ц?쒓컖 / 寃곗젣?쒓컖 / ?뱀씤踰덊샇 / ?곸닔利?/span>
       </div>
       {payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 없음" />
-          <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
+          <MoonIcon phase="outline" className="h-14 w-14" title="?댁슜沅?二쇰Ц ?댁뿭 ?놁쓬" />
+          <p className="mt-3 text-base font-black text-white">泥?踰덉㎏ ?щ튆 ?댁슜沅뚯쓣 援щℓ?대낫?몄슂</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
-            이용권 주문 내역이 이곳에 차분히 쌓입니다.
+            ?댁슜沅?二쇰Ц ?댁뿭???닿납??李⑤텇???볦엯?덈떎.
           </p>
         </div>
       ) : (
@@ -2438,21 +2439,21 @@ function MoonlightOrderHistory({
                   <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusMeta.cls}`}>{statusMeta.label}</span>
                 </div>
                 <div className="mt-3 grid gap-1 text-xs font-semibold text-[color:var(--moon-mist)] sm:grid-cols-2">
-                  <p>주문시각: {formatDateTime(payment.createdAt || payment.updatedAt, formatLocale)}</p>
-                  <p>결제시각: {formatPaymentTimeLabel(payment, copy, formatLocale)}</p>
-                  <p>최근변경: {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt, formatLocale)}</p>
-                  <p>결제수단: {formatPaymentMethodLabel(payment, copy)}</p>
-                  <p>승인번호: {payment.approvalNumber || "-"}</p>
-                  <p>주문번호: {payment.merchantUid || "-"}</p>
-                  <p>결제ID: {payment.impUid || "-"}</p>
+                  <p>二쇰Ц?쒓컖: {formatDateTime(payment.createdAt || payment.updatedAt, formatLocale)}</p>
+                  <p>寃곗젣?쒓컖: {formatPaymentTimeLabel(payment, copy, formatLocale)}</p>
+                  <p>理쒓렐蹂寃? {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt, formatLocale)}</p>
+                  <p>寃곗젣?섎떒: {formatPaymentMethodLabel(payment, copy)}</p>
+                  <p>?뱀씤踰덊샇: {payment.approvalNumber || "-"}</p>
+                  <p>二쇰Ц踰덊샇: {payment.merchantUid || "-"}</p>
+                  <p>寃곗젣ID: {payment.impUid || "-"}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {payment.receiptUrl ? (
                     <a href={payment.receiptUrl} target="_blank" rel="noreferrer" className="btn-moonlight-ghost inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-black">
-                      영수증 보기
+                      ?곸닔利?蹂닿린
                     </a>
                   ) : (
-                    <span className="text-xs font-bold text-[color:var(--moon-mist)]">영수증 URL 미제공</span>
+                    <span className="text-xs font-bold text-[color:var(--moon-mist)]">?곸닔利?URL 誘몄젣怨?/span>
                   )}
                   <button
                     type="button"
@@ -2460,7 +2461,7 @@ function MoonlightOrderHistory({
                     onClick={() => requestCancelPayment(payment)}
                     className="inline-flex min-h-9 items-center rounded-lg border border-rose-300/45 bg-rose-400/10 px-3 text-xs font-black text-rose-100 transition-colors hover:bg-rose-400/16 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
+                    {cancelingPaymentId === payment.id ? "痍⑥냼 泥섎━ 以?.." : "寃곗젣 痍⑥냼 ?붿껌"}
                   </button>
                 </div>
               </div>
@@ -2475,7 +2476,7 @@ function MoonlightOrderHistory({
 function MoonlightPaymentNotice() {
   return (
     <section className="moon-card rounded-[20px] px-5 py-4 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
-      각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
+      媛??댁슜沅뚯? ?뺥빐吏?湲덉븸 踰붿쐞???좊즺 由щ뵫??30???숈븞 ?댁뼱 以띾땲?? Family??紐⑤뱺 ?좊즺 ?쒕퉬?ㅻ? ?댁슜?????덇퀬, ?붿젙?앹쑝濡쒕룄 ?댁슜沅?援щℓ媛 媛?ν빀?덈떎.
     </section>
   );
 }
@@ -2505,71 +2506,74 @@ function PackageCard({
           : "border-white/12 bg-white/[0.08] shadow-[0_8px_22px_rgba(7,10,28,0.18)] hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(202,184,255,0.20)] hover:border-[#cab8ff]/60",
       ].join(" ")}
     >
-      {/* BEST 뱃지 */}
+      {/* BEST 諭껋? */}
       {isBest && (
         <span className="absolute top-3 right-3 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[11px] font-black text-[#151832] shadow-[0_4px_12px_rgba(202,184,255,0.32)]">
-          추천 결제 기준
+          異붿쿇 寃곗젣 湲곗?
         </span>
       )}
 
-      {/* 상단 행: 상품명 + 콘텐츠 기준 가격 */}
+      {/* ?곷떒 ?? ?곹뭹紐?+ 肄섑뀗痢?湲곗? 媛寃?*/}
       <div className={`flex items-center justify-between gap-2 ${isBest ? "pr-[90px]" : ""}`}>
         <span className="text-[15px] font-bold text-white">{pkg.title}</span>
         <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-[15px] font-black text-[#f3dd9a]">
           <CoinIcon size="md" />
-          콘텐츠 기준 {pkg.points.toLocaleString("ko-KR")}
+          肄섑뀗痢?湲곗? {pkg.points.toLocaleString("ko-KR")}
         </span>
       </div>
       <p className="mt-1 text-[11.5px] font-semibold text-slate-200">{pkg.description}</p>
 
-      {/* 하단 행: 원화 금액 + 정책 */}
+      {/* ?섎떒 ?? ?먰솕 湲덉븸 + ?뺤콉 */}
       <div className="mt-1.5 flex items-center justify-between gap-2">
         <span className="flex items-center gap-1.5 text-sm font-semibold text-[#7A5230]">
           <span className="text-[11px] text-slate-400 line-through">{formatWon(listPrice)}</span>
           {formatWon(pkg.amount)}
         </span>
         <span className="text-sm font-bold text-[#f3dd9a]">
-          {discountRate}% 할인
+          {discountRate}% ?좎씤
         </span>
       </div>
       <span className="mt-2.5 inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#cab8ff] to-[#f3dd9a] px-2.5 py-1 text-[12px] font-black text-[#151832] shadow-[0_3px_10px_rgba(202,184,255,0.24)]">
-        원화 결제
+        ?먰솕 寃곗젣
       </span>
 
-      {/* 선택 체크마크 */}
+      {/* ?좏깮 泥댄겕留덊겕 */}
       {selected && (
         <span className="absolute bottom-4 right-4 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-black text-white shadow-[0_2px_8px_rgba(180,130,0,0.4)]">
-          ✓
+          ??
         </span>
       )}
     </button>
   );
 }
 
-/* ══════════════════════════════════════════════════════════════════
-   메인 페이지 컴포넌트: PointsPage
-══════════════════════════════════════════════════════════════════ */
+/* ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧
+   硫붿씤 ?섏씠吏 而댄룷?뚰듃: PointsPage
+?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */
 
 export default function PointsPage() {
   const router = useRouter();
 
-  /** 모바일 리디렉션 복귀를 한 번만 처리하기 위한 플래그 */
+  /** 紐⑤컮??由щ뵒?됱뀡 蹂듦?瑜???踰덈쭔 泥섎━?섍린 ?꾪븳 ?뚮옒洹?*/
   const redirectHandledRef = useRef(false);
   const paymentActionLockRef = useRef<{ key: string; startedAt: number } | null>(null);
   const confirmPaymentInFlightRef = useRef(new Map<string, Promise<ConfirmResponse>>());
   const confirmSubscriptionInFlightRef = useRef(new Map<string, Promise<ConfirmSubscriptionResponse>>());
   const fetchMyPointStateInFlightRef = useRef<Promise<void> | null>(null);
   const fetchSubscriptionStatusInFlightRef = useRef<Promise<void> | null>(null);
-  /** Toast ID 증가용 카운터 */
+  /** Toast ID 利앷???移댁슫??*/
   const toastCounter = useRef(0);
 
-  /* ── API 기본 URL ─────────────────────────────────────────────── */
+  /* ?? API 湲곕낯 URL ??????????????????????????????????????????????? */
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+  const turnstileSiteKey = String(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || process.env.Turnstile_Site_Key || "",
+  ).trim();
   const [lang, setLang] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = POINTS_PAGE_COPY[lang] || POINTS_PAGE_COPY.ko;
   const formatLocale = FORMAT_LOCALE_BY_LANG[lang] || FORMAT_LOCALE_BY_LANG.ko;
 
-  /* ── 상태 ──────────────────────────────────────────────────────── */
+  /* ?? ?곹깭 ???????????????????????????????????????????????????????? */
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [selectedPackage] = useState<PointPackage>(POINT_PACKAGES[0]);
   const [selectedMethod, setSelectedMethod] = useState<string>("card_general");
@@ -2596,6 +2600,9 @@ export default function PointsPage() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [isSubscriptionRefundAgreed, setIsSubscriptionRefundAgreed] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState("");
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -2606,7 +2613,7 @@ export default function PointsPage() {
     freeLimit: 0,
   });
 
-  /** Toast 알림 목록 */
+  /** Toast ?뚮┝ 紐⑸줉 */
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   useEffect(() => {
     const refreshLocale = () => setLang(getCurrentLoadingLocale());
@@ -2632,16 +2639,16 @@ export default function PointsPage() {
     }
   }, []);
 
-  /* ── Toast 헬퍼 ───────────────────────────────────────────────── */
+  /* ?? Toast ?ы띁 ????????????????????????????????????????????????? */
 
-  /** 새 Toast를 추가하고 5초 후 자동 제거합니다. */
+  /** ??Toast瑜?異붽??섍퀬 5珥????먮룞 ?쒓굅?⑸땲?? */
   const pushToast = useCallback((type: ToastItem["type"], text: string) => {
     const id = ++toastCounter.current;
     setToasts((prev) => [...prev, { id, type, text }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
   }, []);
 
-  /** 특정 Toast를 수동으로 닫습니다. */
+  /** ?뱀젙 Toast瑜??섎룞?쇰줈 ?レ뒿?덈떎. */
   const dismissToast = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
@@ -2687,8 +2694,8 @@ export default function PointsPage() {
 
   const buildPassAppliedMessage = useCallback((tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
-    const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
-    return `${passLabel} 혜택이 적용되었습니다.\n결과를 불러오는 중이에요`;
+    const passLabel = label === "?댁슜沅? ? "?댁슜沅? : `${label} ?댁슜沅?;
+    return `${passLabel} ?쒗깮???곸슜?섏뿀?듬땲??\n寃곌낵瑜?遺덈윭?ㅻ뒗 以묒씠?먯슂`;
   }, [subscription.tier]);
 
   const showPassAppliedStage = useCallback(async (message?: string, tier?: unknown) => {
@@ -2702,7 +2709,7 @@ export default function PointsPage() {
     };
   }, [hideProcessingOverlay]);
 
-  /** 이용권 성공 후 legacy destiny-profile.js가 읽는 localStorage 캐시를 갱신합니다. */
+  /** ?댁슜沅??깃났 ??legacy destiny-profile.js媛 ?쎈뒗 localStorage 罹먯떆瑜?媛깆떊?⑸땲?? */
   const persistSubscriptionCache = useCallback((sub: SubscriptionStatus) => {
     try {
       const user = readSanitizedAuthUser();
@@ -2745,7 +2752,7 @@ export default function PointsPage() {
     } catch { /* noop */ }
   }, []);
 
-  /* ── 서버에서 주문/이용권 상태 조회 ─────────────────────────────── */
+  /* ?? ?쒕쾭?먯꽌 二쇰Ц/?댁슜沅??곹깭 議고쉶 ??????????????????????????????? */
   const fetchMyPointState = useCallback(
     async () => {
       if (fetchMyPointStateInFlightRef.current) {
@@ -2766,7 +2773,7 @@ export default function PointsPage() {
         return;
       }
 
-      // Content-Type 검증 후 JSON 파싱 — HTML 에러 페이지 방어
+      // Content-Type 寃利???JSON ?뚯떛 ??HTML ?먮윭 ?섏씠吏 諛⑹뼱
       const payload = await safeParseJson<MeResponse>(response);
       const payloadCode = String((payload as { code?: string; error?: string })?.code || (payload as { code?: string; error?: string })?.error || "").toUpperCase();
       if (!response.ok) {
@@ -2782,7 +2789,7 @@ export default function PointsPage() {
         if (payloadCode === "AUTH_REFRESH_TEMPORARY_FAILURE") {
           throw new Error(mapAuthRefreshTemporaryFailureMessage());
         }
-        throw new Error(payload.message || "결제 및 이용권 정보를 불러오지 못했습니다.");
+        throw new Error(payload.message || "寃곗젣 諛??댁슜沅??뺣낫瑜?遺덈윭?ㅼ? 紐삵뻽?듬땲??");
       }
 
       const normalized = normalizeMePayload(payload);
@@ -2831,15 +2838,15 @@ export default function PointsPage() {
 
   const syncSubscriptionAppliedStage = useCallback(async (tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
-    const passLabel = label === "이용권" ? "이용권" : `${label} 이용권`;
-    setProcessingStage(`${passLabel}을 확인했어요\n결과를 불러오는 중이에요`, "pass-applied");
+    const passLabel = label === "?댁슜沅? ? "?댁슜沅? : `${label} ?댁슜沅?;
+    setProcessingStage(`${passLabel}???뺤씤?덉뼱??n寃곌낵瑜?遺덈윭?ㅻ뒗 以묒씠?먯슂`, "pass-applied");
     await Promise.allSettled([
       fetchMyPointState(),
     ]);
     await showPassAppliedStage(undefined, tier);
   }, [fetchMyPointState, setProcessingStage, showPassAppliedStage, subscription.tier]);
 
-  /* ── 초기 인증 토큰 확인 ───────────────────────────────────────── */
+  /* ?? 珥덇린 ?몄쬆 ?좏겙 ?뺤씤 ????????????????????????????????????????? */
   useEffect(() => {
     const parsedUser = readSanitizedAuthUser() as AuthUser | null;
 
@@ -2854,7 +2861,7 @@ export default function PointsPage() {
     setIsBooting(false);
   }, [router]);
 
-  /* ── 부팅 후 결제/주문 정보 로드 ─────────────────────────────── */
+  /* ?? 遺????寃곗젣/二쇰Ц ?뺣낫 濡쒕뱶 ??????????????????????????????? */
   useEffect(() => {
     if (isBooting) return;
 
@@ -2864,12 +2871,12 @@ export default function PointsPage() {
       setPointStateStatus("ready");
     }).catch((error) => {
       setPointStateStatus("error");
-      setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
+      setPointStateError(getErrorMessage(error, "?댁슜沅??곸젏 ?뺣낫瑜??좎떆 遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
       console.warn("[points-page] shop summary unavailable", error);
     });
   }, [fetchMyPointState, isBooting]);
 
-  /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
+  /* ?? ?댁슜沅??곹깭 濡쒕뱶 ??????????????????????????????????????????????? */
   useEffect(() => {
     if (isBooting) return;
     const pendingPass = readPendingSubscriptionPass();
@@ -2952,7 +2959,7 @@ export default function PointsPage() {
     });
   }, [isBooting, apiBase, authUser, persistSubscriptionCache]);
 
-  /* ── 서버 결제 검증 ────────────────────────────────────────────── */
+  /* ?? ?쒕쾭 寃곗젣 寃利??????????????????????????????????????????????? */
   const confirmPaymentWithServer = useCallback(
     async (params: {
       impUid: string;
@@ -2994,11 +3001,11 @@ export default function PointsPage() {
           apiBase,
         });
 
-      // Content-Type 검증 후 JSON 파싱
+      // Content-Type 寃利???JSON ?뚯떛
       const payload = await safeParseJson<ConfirmResponse & { message?: string }>(response);
 
       if (!response.ok) {
-        throw new Error(payload.message || "서버 결제 검증에 실패했습니다.");
+        throw new Error(payload.message || "?쒕쾭 寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎.");
       }
 
         return payload;
@@ -3030,6 +3037,7 @@ export default function PointsPage() {
       customerUid?: string;
       paymentMethod?: string;
       requestId?: string;
+      turnstileToken?: string;
     }) => {
       const confirmKey = `${body.impUid || body.requestId || "monthly_credit"}:${body.merchantUid || body.planId || ""}`;
       const existing = confirmSubscriptionInFlightRef.current.get(confirmKey);
@@ -3082,20 +3090,20 @@ export default function PointsPage() {
           apiBase,
         });
       } catch {
-        // 실패 보고는 보조 경로이므로 UI 흐름을 막지 않는다.
+        // ?ㅽ뙣 蹂닿퀬??蹂댁“ 寃쎈줈?대?濡?UI ?먮쫫??留됱? ?딅뒗??
       }
     },
     [apiBase],
   );
 
-  /* ── 결제 성공 후 처리 ─────────────────────────────────────────── */
+  /* ?? 寃곗젣 ?깃났 ??泥섎━ ??????????????????????????????????????????? */
   const handleConfirmSuccess = useCallback(
     async (result: ConfirmResponse, fromRedirect = false) => {
       pushToast(
         "success",
         fromRedirect
-          ? "모바일 결제 복귀 확인이 완료되었습니다. 결제 내역에서 상품 이용을 이어갈 수 있어요."
-          : result.message || "결제가 완료되었습니다. 해당 상품 이용을 이어가세요.",
+          ? "紐⑤컮??寃곗젣 蹂듦? ?뺤씤???꾨즺?섏뿀?듬땲?? 寃곗젣 ?댁뿭?먯꽌 ?곹뭹 ?댁슜???댁뼱媛????덉뼱??"
+          : result.message || "寃곗젣媛 ?꾨즺?섏뿀?듬땲?? ?대떦 ?곹뭹 ?댁슜???댁뼱媛?몄슂.",
       );
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
@@ -3107,7 +3115,7 @@ export default function PointsPage() {
   const requestCancelPayment = useCallback(
     async (payment: PaymentHistoryItem) => {
       const ok = window.confirm(
-        `${formatWon(payment.paymentAmount)} 결제를 취소할까요?\n이미 이용한 콘텐츠 또는 이용권 혜택이 있으면 취소가 제한될 수 있습니다.`,
+        `${formatWon(payment.paymentAmount)} 寃곗젣瑜?痍⑥냼?좉퉴??\n?대? ?댁슜??肄섑뀗痢??먮뒗 ?댁슜沅??쒗깮???덉쑝硫?痍⑥냼媛 ?쒗븳?????덉뒿?덈떎.`,
       );
       if (!ok) return;
 
@@ -3122,7 +3130,7 @@ export default function PointsPage() {
           body: JSON.stringify({
             impUid: payment.impUid,
             merchantUid: payment.merchantUid,
-            reason: "사용자 취소 요청",
+            reason: "?ъ슜??痍⑥냼 ?붿껌",
           }),
         }, {
           retryOn401: true,
@@ -3136,13 +3144,13 @@ export default function PointsPage() {
         }>(response);
 
         if (!response.ok) {
-          throw new Error(payload.message || "결제 취소에 실패했습니다.");
+          throw new Error(payload.message || "寃곗젣 痍⑥냼???ㅽ뙣?덉뒿?덈떎.");
         }
 
         await fetchMyPointState();
-        pushToast("success", payload.message || "결제가 취소되었습니다.");
+        pushToast("success", payload.message || "寃곗젣媛 痍⑥냼?섏뿀?듬땲??");
       } catch (error: unknown) {
-        pushToast("error", getErrorMessage(error, "결제 취소 처리 중 오류가 발생했습니다."));
+        pushToast("error", getErrorMessage(error, "寃곗젣 痍⑥냼 泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."));
       } finally {
         setCancelingPaymentId(null);
       }
@@ -3150,7 +3158,7 @@ export default function PointsPage() {
     [apiBase, fetchMyPointState, pushToast],
   );
 
-  /* ── 모바일 결제 리디렉션 복귀 처리 ───────────────────────────── */
+  /* ?? 紐⑤컮??寃곗젣 由щ뵒?됱뀡 蹂듦? 泥섎━ ????????????????????????????? */
   useEffect(() => {
     if (isBooting || redirectHandledRef.current) return;
     if (typeof window === "undefined") return;
@@ -3176,7 +3184,7 @@ export default function PointsPage() {
       clearPendingSubscriptionOrder();
 
       const failMessage = mapPaymentErrorMessage(
-        query.get("error_msg") || query.get("errorMsg") || "결제가 취소되었습니다.",
+        query.get("error_msg") || query.get("errorMsg") || "寃곗젣媛 痍⑥냼?섏뿀?듬땲??",
       );
 
       reportPaymentFailureToServer({
@@ -3199,8 +3207,8 @@ export default function PointsPage() {
     setIsProcessing(true);
     setProcessingStage(
       isSubscriptionRedirect
-        ? "30일 이용권이 활성화되고 있어요\n곧 이용 가능해져요"
-        : "결제가 완료됐어요\n결과를 불러오는 중이에요",
+        ? "30???댁슜沅뚯씠 ?쒖꽦?붾릺怨??덉뼱??n怨??댁슜 媛?ν빐?몄슂"
+        : "寃곗젣媛 ?꾨즺?먯뼱??n寃곌낵瑜?遺덈윭?ㅻ뒗 以묒씠?먯슂",
       "payment-complete",
     );
 
@@ -3210,7 +3218,7 @@ export default function PointsPage() {
 
       if (!pendingSub || !merchantUid) {
         clearPendingSubscriptionOrder();
-        pushToast("error", "이용권 결제 복귀 정보를 찾지 못했습니다. 다시 시도해 주세요.");
+        pushToast("error", "?댁슜沅?寃곗젣 蹂듦? ?뺣낫瑜?李얠? 紐삵뻽?듬땲?? ?ㅼ떆 ?쒕룄??二쇱꽭??");
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
         }
@@ -3253,7 +3261,7 @@ export default function PointsPage() {
 
           clearPendingSubscriptionOrder();
           await syncSubscriptionAppliedStage(data.subscription?.tier || pendingSub.tier);
-          pushToast("success", data.message || "이용권 결제가 완료되어 이용권이 활성화되었습니다.");
+          pushToast("success", data.message || "?댁슜沅?寃곗젣媛 ?꾨즺?섏뼱 ?댁슜沅뚯씠 ?쒖꽦?붾릺?덉뒿?덈떎.");
           setShowStarBurst(true);
           setTimeout(() => setShowStarBurst(false), 1200);
           if (window.location.search) {
@@ -3265,10 +3273,10 @@ export default function PointsPage() {
             merchantUid,
             impUid,
             reasonCode: "subscription_redirect_confirm_failed",
-            reasonMessage: getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."),
+            reasonMessage: getErrorMessage(error, "紐⑤컮???댁슜沅?寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."),
             paymentMethod: pendingSub.paymentMethod,
           });
-          pushToast("error", getErrorMessage(error, "모바일 이용권 결제 검증에 실패했습니다."));
+          pushToast("error", getErrorMessage(error, "紐⑤컮???댁슜沅?寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."));
           if (window.location.search) {
             window.history.replaceState({}, "", window.location.pathname);
           }
@@ -3304,10 +3312,10 @@ export default function PointsPage() {
           merchantUid: merchantUidFromQuery || pending?.merchantUid,
           impUid,
           reasonCode: "redirect_confirm_failed",
-          reasonMessage: getErrorMessage(error, "모바일 결제 복귀 검증에 실패했습니다."),
+          reasonMessage: getErrorMessage(error, "紐⑤컮??寃곗젣 蹂듦? 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."),
           paymentMethod: pending?.paymentMethod,
         });
-        pushToast("error", getErrorMessage(error, "모바일 결제 검증에 실패했습니다."));
+        pushToast("error", getErrorMessage(error, "紐⑤컮??寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."));
         if (window.location.search) {
           window.history.replaceState({}, "", window.location.pathname);
         }
@@ -3329,7 +3337,7 @@ export default function PointsPage() {
     syncSubscriptionAppliedStage,
   ]);
 
-  /* ── 이용권 결제 시작 ───────────────────────────────────────────── */
+  /* ?? ?댁슜沅?寃곗젣 ?쒖옉 ????????????????????????????????????????????? */
   const startPayment = async () => {
     if (!authUser) {
       router.replace("/login?next=%2Fpoints");
@@ -3340,7 +3348,22 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("잔액을 확인하는 중이에요", "payment");
+
+    if (!turnstileSiteKey) {
+      setTurnstileError("Turnstile ???ㅼ젙???꾩슂?⑸땲??");
+      setIsProcessing(false);
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+
+    if (!turnstileToken) {
+      setTurnstileError("寃곗젣 ?쒖옉 ??Turnstile ?몄쬆???꾩슂?⑸땲??");
+      setTurnstileResetSignal((value) => value + 1);
+      setIsProcessing(false);
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+    setProcessingStage("?붿븸???뺤씤?섎뒗 以묒씠?먯슂", "payment");
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
@@ -3357,18 +3380,19 @@ export default function PointsPage() {
           coinPrice: selectedPackage.points,
           paymentMethod: selectedMethod,
           productName: getPointPackageTitle(selectedPackage, copy),
+          turnstileToken,
         }),
       }, {
         retryOn401: true,
         apiBase,
       });
 
-      // Content-Type 검증 후 JSON 파싱
+      // Content-Type 寃利???JSON ?뚯떛
       const preparePayload = await safeParseJson<PrepareOrderResponse & { message?: string }>(
         prepareResponse,
       );
       if (!prepareResponse.ok || !preparePayload.order) {
-        throw new Error(preparePayload.message || "결제 준비에 실패했습니다.");
+        throw new Error(preparePayload.message || "寃곗젣 以鍮꾩뿉 ?ㅽ뙣?덉뒿?덈떎.");
       }
 
       const order = preparePayload.order;
@@ -3386,10 +3410,12 @@ export default function PointsPage() {
       await ensurePortoneSdk();
 
       if (!window.PortOne?.requestPayment) {
-        throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
+        throw new Error("?ы듃??V2 寃곗젣 SDK媛 珥덇린?붾릺吏 ?딆븯?듬땲??");
       }
 
       const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
+      setTurnstileToken("");
+      setTurnstileResetSignal((value) => value + 1);
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
@@ -3421,14 +3447,14 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      setProcessingStage("원화 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
+      setProcessingStage("?먰솕 寃곗젣 以鍮?以?n二쇰Ц ?뺣낫? ?몄쬆 ?먮쫫???뺤씤?섍퀬 ?덉뼱??, "checkout");
       await closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
       if (!rsp || rsp.code || !paymentId) {
         const message = mapPaymentErrorMessage(
-          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "결제가 취소되었습니다.",
+          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "寃곗젣媛 痍⑥냼?섏뿀?듬땲??",
         );
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
@@ -3443,7 +3469,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("결제가 완료됐어요\n결과를 불러오는 중이에요", "payment-complete");
+        setProcessingStage("寃곗젣媛 ?꾨즺?먯뼱??n寃곌낵瑜?遺덈윭?ㅻ뒗 以묒씠?먯슂", "payment-complete");
         setIsProcessing(true);
         const result = await confirmPaymentWithServer({
           impUid: paymentId,
@@ -3464,27 +3490,27 @@ export default function PointsPage() {
           merchantUid: order.merchantUid,
           impUid: paymentId,
           reasonCode: "confirm_failed",
-          reasonMessage: getErrorMessage(error, "결제 검증에 실패했습니다."),
+          reasonMessage: getErrorMessage(error, "寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."),
           paymentMethod: selectedMethod,
         });
-        pushToast("error", getErrorMessage(error, "결제 검증에 실패했습니다."));
+        pushToast("error", getErrorMessage(error, "寃곗젣 寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎."));
       } finally {
         setIsProcessing(false);
       }
     } catch (error: unknown) {
       reportPaymentFailureToServer({
         reasonCode: "prepare_or_sdk_failed",
-        reasonMessage: getErrorMessage(error, "결제를 시작하지 못했습니다."),
+        reasonMessage: getErrorMessage(error, "寃곗젣瑜??쒖옉?섏? 紐삵뻽?듬땲??"),
         paymentMethod: selectedMethod,
       });
       setIsProcessing(false);
-      pushToast("error", getErrorMessage(error, "결제를 시작하지 못했습니다."));
+      pushToast("error", getErrorMessage(error, "寃곗젣瑜??쒖옉?섏? 紐삵뻽?듬땲??"));
     } finally {
       releasePaymentActionLock(actionLockKey);
     }
   };
 
-  /* ── 갤럭시아 결제 성공 핸들러 ─────────────────────────────────── */
+  /* ?? 媛ㅻ윮?쒖븘 寃곗젣 ?깃났 ?몃뱾????????????????????????????????????? */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
@@ -3496,20 +3522,33 @@ export default function PointsPage() {
     }
 
     if (plan.durationMonths !== 1) {
-      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
+      pushToast("error", "?꾩옱 ?좉퇋 ?먮ℓ ?댁슜沅뚯? 30?쇨텒留??좏깮?????덉뒿?덈떎.");
       return;
     }
 
     if (activeTierRank > requestedTierRank) {
-      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
+      pushToast("info", "?꾩옱 ?곸쐞 ?곗뼱 ?댁슜沅뚯씠 ?쒖꽦?붾릺???섏쐞 ?뚮옖? ?좎껌?????놁뒿?덈떎.");
       return;
     }
 
     const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
+    if (!turnstileSiteKey) {
+      setTurnstileError("Turnstile 키 설정이 필요합니다.");
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+
+    if (!turnstileToken) {
+      setTurnstileError("결제 시작 전 Turnstile 인증이 필요합니다.");
+      setTurnstileResetSignal((value) => value + 1);
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout");
+    setProcessingStage("30???댁슜沅?寃곗젣 ?뺣낫瑜?以鍮꾪븯怨??덉뼱??, "checkout");
     setIsProcessing(true);
 
     try {
@@ -3529,6 +3568,7 @@ export default function PointsPage() {
           currency: "KRW",
           productType: plan.productType,
           paymentMethod: selectedMethod || "card_general",
+          turnstileToken,
         }),
       }, {
         retryOn401: true,
@@ -3536,22 +3576,22 @@ export default function PointsPage() {
       });
 
       if (prepareRes.status === 404 || prepareRes.status === 405 || prepareRes.status === 501) {
-        pushToast("error", "이용권 결제 API를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
+        pushToast("error", "?댁슜沅?寃곗젣 API瑜??뺤씤?????놁뒿?덈떎. ?좎떆 ???ㅼ떆 ?쒕룄??二쇱꽭??");
         return;
       }
 
       const prepareData = await safeParseJson<PrepareSubscriptionOrderResponse>(prepareRes);
       if (!prepareRes.ok || !prepareData.order) {
         if (prepareRes.status === 409) {
-          pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
+          pushToast("error", prepareData.message || "?대? ?쒖꽦 ?댁슜沅뚯씠 ?덉뼱 以묐났 援щℓ瑜??좎껌?????놁뒿?덈떎.");
           return;
         }
-        pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
+        pushToast("error", prepareData.message || "?댁슜沅?寃곗젣 以鍮꾩뿉 ?ㅽ뙣?덉뒿?덈떎.");
         return;
       }
 
       await ensurePortoneSdk();
-      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
+      if (!window.PortOne?.requestPayment) throw new Error("?ы듃??V2 寃곗젣 SDK媛 珥덇린?붾릺吏 ?딆븯?듬땲??");
 
       const order = prepareData.order;
       const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
@@ -3604,7 +3644,7 @@ export default function PointsPage() {
       if (!rsp || rsp.code || !paymentId) {
         clearPendingSubscriptionOrder();
         const message = mapPaymentErrorMessage(
-          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "이용권 결제가 취소되었습니다.",
+          rsp?.message || rsp?.error_msg || rsp?.errorMsg || "?댁슜沅?寃곗젣媛 痍⑥냼?섏뿀?듬땲??",
         );
         reportPaymentFailureToServer({
           merchantUid: order.merchantUid,
@@ -3618,7 +3658,7 @@ export default function PointsPage() {
       }
 
       try {
-        setProcessingStage("30일 이용권 결제를 확인하고 있어요\n잠시만 기다려 주세요", "subscription");
+        setProcessingStage("30???댁슜沅?寃곗젣瑜??뺤씤?섍퀬 ?덉뼱??n?좎떆留?湲곕떎??二쇱꽭??, "subscription");
         setIsProcessing(true);
         const confirmData = await confirmSubscriptionWithServer({
           impUid: paymentId,
@@ -3665,16 +3705,16 @@ export default function PointsPage() {
           merchantUid: order.merchantUid,
           impUid: paymentId,
           reasonCode: "subscription_confirm_failed",
-          reasonMessage: getErrorMessage(error, "이용권 결제 확인에 실패했습니다."),
+          reasonMessage: getErrorMessage(error, "?댁슜沅?寃곗젣 ?뺤씤???ㅽ뙣?덉뒿?덈떎."),
           paymentMethod: selectedMethod || "card_general",
         });
-        pushToast("error", getErrorMessage(error, "이용권 결제 확인에 실패했습니다."));
+        pushToast("error", getErrorMessage(error, "?댁슜沅?寃곗젣 ?뺤씤???ㅽ뙣?덉뒿?덈떎."));
       }
     } catch (error: unknown) {
-      const message = getErrorMessage(error, "이용권 처리 중 오류가 발생했습니다.");
+      const message = getErrorMessage(error, "?댁슜沅?泥섎━ 以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎.");
       clearPendingSubscriptionOrder();
-      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
-        pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
+      if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("以묐났 ?댁슜沅?) || message.includes("以묐났 援щℓ")) {
+        pushToast("error", "?대? ?쒖꽦 ?댁슜沅뚯씠 ?덉뼱 以묐났 援щℓ瑜??좎껌?????놁뒿?덈떎.");
         return;
       }
       pushToast("error", message);
@@ -3695,17 +3735,17 @@ export default function PointsPage() {
     }
 
     if (plan.durationMonths !== 1) {
-      pushToast("error", "현재 신규 판매 이용권은 30일권만 선택할 수 있습니다.");
+      pushToast("error", "?꾩옱 ?좉퇋 ?먮ℓ ?댁슜沅뚯? 30?쇨텒留??좏깮?????덉뒿?덈떎.");
       return;
     }
 
     if (activeTierRank > requestedTierRank) {
-      pushToast("info", "현재 상위 티어 이용권이 활성화되어 하위 플랜은 신청할 수 없습니다.");
+      pushToast("info", "?꾩옱 ?곸쐞 ?곗뼱 ?댁슜沅뚯씠 ?쒖꽦?붾릺???섏쐞 ?뚮옖? ?좎껌?????놁뒿?덈떎.");
       return;
     }
 
     if (monthlyStoneBalance < requiredMonthlyCredits) {
-      pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
+      pushToast("error", `?붿젙???붾웾??遺議깊빀?덈떎. ?꾩슂 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, ?꾩옱 ${formatMonthlyCreditValue(monthlyStoneBalance)}?낅땲??`);
       return;
     }
 
@@ -3713,9 +3753,24 @@ export default function PointsPage() {
     const actionLockKey = `subscription-monthly-credit:${plan.planId}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
+    if (!turnstileSiteKey) {
+      setTurnstileError("Turnstile 키 설정이 필요합니다.");
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+
+    if (!turnstileToken) {
+      setTurnstileError("결제 시작 전 Turnstile 인증이 필요합니다.");
+      setTurnstileResetSignal((value) => value + 1);
+      releasePaymentActionLock(actionLockKey);
+      return;
+    }
+
     setIsProcessing(true);
     setPendingSubscriptionPaymentPlan(null);
-    setProcessingStage("월정석이 깃들고 있어요\n곧 이용 가능해져요", "payment-complete");
+    setProcessingStage("?붿젙?앹씠 源껊뱾怨??덉뼱??n怨??댁슜 媛?ν빐?몄슂", "payment-complete");
+    setTurnstileToken("");
+    setTurnstileResetSignal((value) => value + 1);
 
     try {
       const confirmData = await confirmSubscriptionWithServer({
@@ -3729,6 +3784,7 @@ export default function PointsPage() {
         currency: "KRW",
         productType: plan.productType,
         paymentMethod: "monthly_credit",
+        turnstileToken,
       });
 
       if (confirmData.subscription) {
@@ -3752,15 +3808,15 @@ export default function PointsPage() {
       }
 
       await syncSubscriptionAppliedStage(confirmData.subscription?.tier || plan.tier);
-      pushToast("success", confirmData.message || "월정석이 깃들었습니다.");
+      pushToast("success", confirmData.message || "?붿젙?앹씠 源껊뱾?덉뒿?덈떎.");
       setShowStarBurst(true);
       setTimeout(() => setShowStarBurst(false), 1200);
     } catch (error: unknown) {
-      const message = getErrorMessage(error, "월정석을 적용하지 못했습니다.");
-      if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("부족")) {
-        pushToast("error", `월정석 잔량이 부족합니다. 필요 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, 현재 ${formatMonthlyCreditValue(monthlyStoneBalance)}입니다.`);
-      } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("중복 이용권") || message.includes("중복 구매")) {
-        pushToast("error", "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
+      const message = getErrorMessage(error, "?붿젙?앹쓣 ?곸슜?섏? 紐삵뻽?듬땲??");
+      if (message.includes("INSUFFICIENT_MONTHLY_CREDITS") || message.includes("遺議?)) {
+        pushToast("error", `?붿젙???붾웾??遺議깊빀?덈떎. ?꾩슂 ${formatMonthlyCreditValue(requiredMonthlyCredits)}, ?꾩옱 ${formatMonthlyCreditValue(monthlyStoneBalance)}?낅땲??`);
+      } else if (message.includes("SUBSCRIPTION_CONFLICT") || message.includes("以묐났 ?댁슜沅?) || message.includes("以묐났 援щℓ")) {
+        pushToast("error", "?대? ?쒖꽦 ?댁슜沅뚯씠 ?덉뼱 以묐났 援щℓ瑜??좎껌?????놁뒿?덈떎.");
       } else {
         pushToast("error", message);
       }
@@ -3778,15 +3834,15 @@ export default function PointsPage() {
     }
 
     const confirmText = resume
-      ? "이용권 상태를 다시 확인할까요?"
-      : "이용권 상태를 확인할까요? 만료일까지는 모든 혜택을 유지합니다.";
+      ? "?댁슜沅??곹깭瑜??ㅼ떆 ?뺤씤?좉퉴??"
+      : "?댁슜沅??곹깭瑜??뺤씤?좉퉴?? 留뚮즺?쇨퉴吏??紐⑤뱺 ?쒗깮???좎??⑸땲??";
     if (!window.confirm(confirmText)) return;
 
     const actionLockKey = `subscription-cancel:${resume ? "resume" : "cancel"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly");
+    setProcessingStage("?붿젙???뺣낫瑜??뺤씤?섎뒗 以묒씠?먯슂", "monthly");
     try {
       const res = await authFetch(`${apiBase}/api/fortune/pig-coin/profile-subscription/cancel`, {
         method: "POST",
@@ -3802,7 +3858,7 @@ export default function PointsPage() {
       });
       const data = await safeParseJson<{ message?: string; subscription?: SubscriptionStatus }>(res);
       if (!res.ok) {
-        pushToast("error", data.message || "이용권 상태 변경에 실패했습니다.");
+        pushToast("error", data.message || "?댁슜沅??곹깭 蹂寃쎌뿉 ?ㅽ뙣?덉뒿?덈떎.");
         return;
       }
       if (data.subscription) {
@@ -3822,18 +3878,18 @@ export default function PointsPage() {
         setSubscription((prev) => mergeSubscriptionState(prev, { ...newSub, lowBalanceWarning: prev.lowBalanceWarning }));
         persistSubscriptionCache(newSub);
       }
-      pushToast("success", data.message || "이용권 상태가 변경되었습니다.");
+      pushToast("success", data.message || "?댁슜沅??곹깭媛 蹂寃쎈릺?덉뒿?덈떎.");
     } catch (error: unknown) {
-      pushToast("error", getErrorMessage(error, "이용권 상태 변경 중 오류가 발생했습니다."));
+      pushToast("error", getErrorMessage(error, "?댁슜沅??곹깭 蹂寃?以??ㅻ쪟媛 諛쒖깮?덉뒿?덈떎."));
     } finally {
       releasePaymentActionLock(actionLockKey);
       setIsProcessing(false);
     }
   };
 
-  /* ── 패키지 선택 핸들러 ─────────────────────────────────────────── */
+  /* ?? ?⑦궎吏 ?좏깮 ?몃뱾????????????????????????????????????????????? */
 
-  /* ── 부팅 중 화면 ───────────────────────────────────────────────── */
+  /* ?? 遺??以??붾㈃ ????????????????????????????????????????????????? */
   if (isBooting) {
     return (
       <main
@@ -3841,8 +3897,8 @@ export default function PointsPage() {
         style={{ background: "linear-gradient(160deg, #071126 0%, #151a3d 46%, #332255 100%)" }}
       >
         <div className="text-center">
-          <div className="mb-3 text-5xl animate-pulse">🌙</div>
-          <p className="font-semibold">이용권 상점을 불러오는 중...</p>
+          <div className="mb-3 text-5xl animate-pulse">?뙔</div>
+          <p className="font-semibold">?댁슜沅??곸젏??遺덈윭?ㅻ뒗 以?..</p>
         </div>
       </main>
     );
@@ -3861,18 +3917,18 @@ export default function PointsPage() {
       setPointStateStatus("ready");
     }).catch((error) => {
       setPointStateStatus("error");
-      setPointStateError(getErrorMessage(error, "이용권 상점 정보를 잠시 불러오지 못했습니다."));
+      setPointStateError(getErrorMessage(error, "?댁슜沅??곸젏 ?뺣낫瑜??좎떆 遺덈윭?ㅼ? 紐삵뻽?듬땲??"));
       console.warn("[points-page] shop summary retry failed", error);
     });
   };
 
-  /* ── 메인 렌더 ─────────────────────────────────────────────────── */
+  /* ?? 硫붿씤 ?뚮뜑 ??????????????????????????????????????????????????? */
   return (
     <main
       className="moon-shop relative min-h-screen overflow-hidden px-4 py-8 text-slate-100"
       style={{ background: "radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A" }}
     >
-      {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
+      {/* ?? 諛곌꼍 湲濡쒖슦 ?ㅻ툕 ??????????????????????????????????????? */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
         <div
           className="absolute -top-40 -left-40 w-[600px] h-[600px] rounded-full opacity-40"
@@ -3888,17 +3944,17 @@ export default function PointsPage() {
         />
       </div>
 
-      {/* ── 결제 성공 StarBurst 이펙트 ───────────────────────────── */}
+      {/* ?? 寃곗젣 ?깃났 StarBurst ?댄럺??????????????????????????????? */}
       {showStarBurst && (
         <div className="pointer-events-none fixed inset-0 z-[90]" aria-hidden="true">
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping">💰</div>
-          <div className="absolute left-[42%] top-[44%] text-2xl animate-pulse">✨</div>
-          <div className="absolute left-[57%] top-[43%] text-3xl animate-bounce">🐷</div>
-          <div className="absolute left-[49%] top-[57%] text-2xl animate-ping">💰</div>
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-5xl animate-ping">?뮥</div>
+          <div className="absolute left-[42%] top-[44%] text-2xl animate-pulse">??/div>
+          <div className="absolute left-[57%] top-[43%] text-3xl animate-bounce">?맰</div>
+          <div className="absolute left-[49%] top-[57%] text-2xl animate-ping">?뮥</div>
         </div>
       )}
 
-      {/* ── Toast 컨테이너 ────────────────────────────────────────── */}
+      {/* ?? Toast 而⑦뀒?대꼫 ?????????????????????????????????????????? */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} closeLabel={copy.toastCloseLabel} />
 
       {pendingSubscriptionPaymentPlan && (
@@ -3913,22 +3969,22 @@ export default function PointsPage() {
         >
           <div className="w-full max-w-md rounded-[20px] border border-amber-200/35 bg-[#111832] p-5 text-slate-100 shadow-[0_24px_70px_rgba(0,0,0,0.45)]">
             <p id="subscriptionPaymentChoiceTitle" className="text-base font-black text-white">
-              달빛 이용권 결제 방식 선택
+              ?щ튆 ?댁슜沅?寃곗젣 諛⑹떇 ?좏깮
             </p>
             <p className="mt-2 text-sm leading-relaxed text-slate-200">
-              {copy.planTitles[pendingSubscriptionPaymentPlan.tier]} · {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan, copy, formatLocale)} · {formatWon(pendingSubscriptionPaymentPlan.wonPrice, copy, formatLocale)}
+              {copy.planTitles[pendingSubscriptionPaymentPlan.tier]} 쨌 {formatSubscriptionPlanValueLine(pendingSubscriptionPaymentPlan, copy, formatLocale)} 쨌 {formatWon(pendingSubscriptionPaymentPlan.wonPrice, copy, formatLocale)}
             </p>
             <p className="mt-1 text-[12px] font-bold text-[#f3dd9a]">
-              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} · {formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
+              {formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)} 쨌 {formatMonthlyCreditValue(monthlyStoneBalance, copy, formatLocale)}
             </p>
             <div className="mt-4 rounded-[14px] border border-white/12 bg-white/[0.07] px-3.5 py-3 text-[12px] leading-relaxed text-slate-200">
-              <p className="font-black text-white">30일 이용권 조건</p>
-              <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
-              <p className="mt-1 font-bold text-[#f3dd9a]">월정석 또는 원화 결제로 30일 혜택을 활성화할 수 있습니다.</p>
-              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다.</p>
-              <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
+              <p className="font-black text-white">30???댁슜沅?議곌굔</p>
+              <p className="mt-1">寃곗젣 ?꾨즺 利됱떆 怨꾩젙???쒖꽦?붾릺硫? ?쒕쾭 寃곗젣 寃利??깃났 ?쒓컖遺??30?쇨컙 ?좎??⑸땲??</p>
+              <p className="mt-1 font-bold text-[#f3dd9a]">?붿젙???먮뒗 ?먰솕 寃곗젣濡?30???쒗깮???쒖꽦?뷀븷 ???덉뒿?덈떎.</p>
+              <p className="mt-1 font-bold text-[#cab8ff]">蹂댁쑀??蹂대꼫???붿젙?앹? 30???댁슜沅??쒖꽦?붿뿉 ?ъ슜?????덉쑝硫? ?붿젙???먯껜??援щℓ쨌異⑹쟾?섍굅???꾧툑 ?섎텋?????놁뒿?덈떎.</p>
+              <p className="mt-1">?먰솕 寃곗젣??30???댁슜沅뚯? ?좊즺 湲곕뒫 ?댁슜 ??寃곗젣?쇰줈遺??7???대궡 ?섎텋 ?붿껌??媛?ν븯硫? ?댁슜沅??쒗깮 ?ъ슜???쒖옉??遺遺꾩? ?섎텋???쒗븳?????덉뒿?덈떎.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
-                자세한 환불 규정 보기
+                ?먯꽭???섎텋 洹쒖젙 蹂닿린
               </a>
             </div>
             <label className="mt-3 flex items-start gap-2 rounded-[14px] border border-amber-200/35 bg-amber-200/10 px-3.5 py-3 text-[12px] font-bold text-amber-100">
@@ -3943,7 +3999,7 @@ export default function PointsPage() {
             <div className="mt-4 grid gap-2">
               <button
                 type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed}
+                disabled={isProcessing || !isSubscriptionRefundAgreed || !turnstileToken}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
@@ -3952,12 +4008,12 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-amber-200/45 bg-amber-200 px-4 py-3 text-left text-[#151832] shadow-[0_10px_22px_rgba(243,221,154,0.18)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">원화 결제</span>
-                <span className="mt-1 block text-[12px] font-semibold">콘텐츠 가치는 원화로 표시되며 보안 결제창에서 결제합니다.</span>
+                <span className="block text-sm font-black">?먰솕 寃곗젣</span>
+                <span className="mt-1 block text-[12px] font-semibold">肄섑뀗痢?媛移섎뒗 ?먰솕濡??쒖떆?섎ŉ 蹂댁븞 寃곗젣李쎌뿉??寃곗젣?⑸땲??</span>
               </button>
-              <button
-                type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed || !canUseMonthlyCreditForPendingSubscription}
+                <button
+                  type="button"
+                  disabled={isProcessing || !isSubscriptionRefundAgreed || !canUseMonthlyCreditForPendingSubscription || !turnstileToken}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
@@ -3966,7 +4022,7 @@ export default function PointsPage() {
                 }}
                 className="rounded-[14px] border border-[#cab8ff]/45 bg-[#cab8ff]/18 px-4 py-3 text-left text-slate-100 shadow-[0_10px_22px_rgba(202,184,255,0.14)] transition hover:bg-[#cab8ff]/24 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <span className="block text-sm font-black">보너스 월정석 사용</span>
+                <span className="block text-sm font-black">蹂대꼫???붿젙???ъ슜</span>
                 <span className="mt-1 block text-[12px] font-semibold">
                   {canUseMonthlyCreditForPendingSubscription
                     ? `${formatMonthlyCreditValue(pendingSubscriptionMonthlyCreditCost, copy, formatLocale)}`
@@ -3986,7 +4042,7 @@ export default function PointsPage() {
         </div>
       )}
 
-      {/* ── 페이지 콘텐츠 ────────────────────────────────────────── */}
+      {/* ?? ?섏씠吏 肄섑뀗痢??????????????????????????????????????????? */}
       <div className="relative mx-auto w-full max-w-6xl space-y-5">
         <MoonlightShopHero />
         <MoonlightActivePassCard
@@ -4028,9 +4084,9 @@ export default function PointsPage() {
         {false && (
         <>
 
-        {/* ① 헤더 카드 */}
+        {/* ???ㅻ뜑 移대뱶 */}
         <header className="overflow-hidden rounded-[24px] border border-white/16 bg-[#0b1028]/92 shadow-[0_18px_46px_rgba(7,10,28,0.42)] backdrop-blur">
-          {/* 헤더 탐색 프리리엄 바 */}
+          {/* ?ㅻ뜑 ?먯깋 ?꾨━由ъ뾼 諛?*/}
           <div
             className="h-[3px] w-full"
             style={{ background: "linear-gradient(90deg, rgba(255,255,255,0), #f3dd9a 24%, #cab8ff 52%, #8cb8ff 76%, rgba(255,255,255,0))" }}
@@ -4053,16 +4109,16 @@ export default function PointsPage() {
                 />
                 <div>
                   <p className="text-xs font-extrabold tracking-[0.22em] text-[#ded4ff] uppercase">
-                    연이의 달빛 이용권 상점
+                    ?곗씠???щ튆 ?댁슜沅??곸젏
                   </p>
                   <h1 className="mt-0.5 text-[22px] font-black text-white sm:text-3xl leading-tight">
-                    연이의 달빛 이용권 상점
+                    ?곗씠???щ튆 ?댁슜沅??곸젏
                   </h1>
                   <p className="mt-2 text-[15px] leading-relaxed text-slate-100">
-                    달빛 이용권 상품과 원화 결제 조건을 한 화면에서 확인하세요.
+                    ?щ튆 ?댁슜沅??곹뭹怨??먰솕 寃곗젣 議곌굔?????붾㈃?먯꽌 ?뺤씤?섏꽭??
                   </p>
                   <p className="mt-1 text-[13px] font-semibold text-[#ffe8a3]">
-                    월정석 또는 원화 결제로 30일 혜택을 열 수 있습니다.
+                    ?붿젙???먮뒗 ?먰솕 寃곗젣濡?30???쒗깮???????덉뒿?덈떎.
                   </p>
                 </div>
               </div>
@@ -4071,24 +4127,24 @@ export default function PointsPage() {
                   href="/points/history"
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-[#cab8ff]/55 bg-[#cab8ff]/18 px-4 py-2.5 text-sm font-bold text-[#ffe8a3] shadow-[0_2px_12px_rgba(202,184,255,0.18)] transition-all hover:bg-[#cab8ff]/24 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
-                  📋 이용권 주문 내역
+                  ?뱥 ?댁슜沅?二쇰Ц ?댁뿭
                 </Link>
                 <Link
                   href="/"
                   prefetch={false}
                   className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/20 bg-white/[0.14] px-4 py-2.5 text-sm font-bold text-slate-50 shadow-[0_2px_12px_rgba(7,10,28,0.18)] transition-all hover:bg-white/20 hover:-translate-y-0.5 active:scale-[0.97]"
                 >
-                  ← 서비스 화면으로
+                  ???쒕퉬???붾㈃?쇰줈
                 </Link>
               </div>
             </div>
           </div>
         </header>
 
-        {/* ② 이용권 안내 카드 */}
+        {/* ???댁슜沅??덈궡 移대뱶 */}
         <WalletCard name={authUser?.name || copy.defaultUserName} copy={copy} />
 
-        {/* ②-1 이용권 상태 카드 */}
+        {/* ??1 ?댁슜沅??곹깭 移대뱶 */}
         <SubscriptionStatusCard subscription={subscription} />
 
         <MonthlyCreditBonusCard
@@ -4098,16 +4154,16 @@ export default function PointsPage() {
           formatLocale={formatLocale}
         />
 
-        {/* ②-2 이용권 섹션 구분선 */}
+        {/* ??2 ?댁슜沅??뱀뀡 援щ텇??*/}
         <div className="flex items-center gap-3 px-1">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#f3dd9a]">
-            이용권 상품
+            ?댁슜沅??곹뭹
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-amber-400 to-transparent opacity-50" />
         </div>
 
-        {/* ②-3 이용권 상품 카드 */}
+        {/* ??3 ?댁슜沅??곹뭹 移대뱶 */}
         <SubscriptionSection
           subscription={subscription}
           onSubscribe={setPendingSubscriptionPaymentPlan}
@@ -4118,22 +4174,22 @@ export default function PointsPage() {
           formatLocale={formatLocale}
         />
 
-        {/* ③ 섹션 구분선 */}
+        {/* ???뱀뀡 援щ텇??*/}
         <section
           aria-label={copy.wonSinglePaymentAria}
           className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 px-5 py-4 text-[15px] leading-7 text-slate-100"
         >
-          각 이용권은 정해진 금액 범위의 유료 리딩을 30일 동안 열어 줍니다. Family는 모든 유료 서비스를 이용할 수 있고, 월정석으로도 이용권 구매가 가능합니다.
+          媛??댁슜沅뚯? ?뺥빐吏?湲덉븸 踰붿쐞???좊즺 由щ뵫??30???숈븞 ?댁뼱 以띾땲?? Family??紐⑤뱺 ?좊즺 ?쒕퉬?ㅻ? ?댁슜?????덇퀬, ?붿젙?앹쑝濡쒕룄 ?댁슜沅?援щℓ媛 媛?ν빀?덈떎.
         </section>
 
         <section className="rounded-[20px] border border-white/16 bg-[#0b1028]/82 p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <h3 className="font-bold text-white">최근 주문 내역</h3>
-            <span className="text-xs font-semibold text-slate-200">주문시각 / 결제시각 / 승인번호 / 영수증</span>
+            <h3 className="font-bold text-white">理쒓렐 二쇰Ц ?댁뿭</h3>
+            <span className="text-xs font-semibold text-slate-200">二쇰Ц?쒓컖 / 寃곗젣?쒓컖 / ?뱀씤踰덊샇 / ?곸닔利?/span>
           </div>
 
           {paymentHistory.length === 0 ? (
-            <p className="text-sm text-slate-300">아직 주문 내역이 없습니다.</p>
+            <p className="text-sm text-slate-300">?꾩쭅 二쇰Ц ?댁뿭???놁뒿?덈떎.</p>
           ) : (
             <div className="space-y-2.5">
               {paymentHistory.map((payment) => {
@@ -4154,13 +4210,13 @@ export default function PointsPage() {
                     </div>
 
                     <div className="mt-2 grid gap-1 text-[11.5px] text-[#7A5230] sm:grid-cols-2">
-                      <p>주문시각: {formatDateTime(payment.createdAt || payment.updatedAt)}</p>
-                      <p>결제시각: {formatPaymentTimeLabel(payment)}</p>
-                      <p>최근변경: {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt)}</p>
-                      <p>결제수단: {formatPaymentMethodLabel(payment)}</p>
-                      <p>승인번호: {payment.approvalNumber || "-"}</p>
-                      <p>주문번호: {payment.merchantUid || "-"}</p>
-                      <p>결제ID: {payment.impUid || "-"}</p>
+                      <p>二쇰Ц?쒓컖: {formatDateTime(payment.createdAt || payment.updatedAt)}</p>
+                      <p>寃곗젣?쒓컖: {formatPaymentTimeLabel(payment)}</p>
+                      <p>理쒓렐蹂寃? {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt)}</p>
+                      <p>寃곗젣?섎떒: {formatPaymentMethodLabel(payment)}</p>
+                      <p>?뱀씤踰덊샇: {payment.approvalNumber || "-"}</p>
+                      <p>二쇰Ц踰덊샇: {payment.merchantUid || "-"}</p>
+                      <p>寃곗젣ID: {payment.impUid || "-"}</p>
                     </div>
 
                     <div className="mt-2.5 flex flex-wrap items-center gap-2">
@@ -4171,10 +4227,10 @@ export default function PointsPage() {
                           rel="noreferrer"
                           className="inline-flex items-center rounded-lg border border-[#D9C07A] bg-[#FFF8E2] px-2.5 py-1 text-[11.5px] font-bold text-[#7A5230] hover:bg-[#FFF2CC]"
                         >
-                          영수증 보기
+                          ?곸닔利?蹂닿린
                         </a>
                       ) : (
-                        <span className="text-[11px] text-[#9B7040]">영수증 URL 미제공</span>
+                        <span className="text-[11px] text-[#9B7040]">?곸닔利?URL 誘몄젣怨?/span>
                       )}
 
                       <button
@@ -4183,7 +4239,7 @@ export default function PointsPage() {
                         onClick={() => requestCancelPayment(payment)}
                         className="inline-flex items-center rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11.5px] font-bold text-rose-700 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
+                        {cancelingPaymentId === payment.id ? "痍⑥냼 泥섎━ 以?.." : "寃곗젣 痍⑥냼 ?붿껌"}
                       </button>
                     </div>
                   </div>
@@ -4193,81 +4249,81 @@ export default function PointsPage() {
           )}
         </section>
 
-        {/* ⑤ 결제 실패 안내 */}
+        {/* ??寃곗젣 ?ㅽ뙣 ?덈궡 */}
         <section className="cd-card-light rounded-[20px] border border-[#EDDBA3]/60 bg-[rgba(255,248,228,0.55)] p-5">
-          <h3 className="font-bold text-[#5C3A1E]">결제 실패 안내</h3>
+          <h3 className="font-bold text-[#5C3A1E]">寃곗젣 ?ㅽ뙣 ?덈궡</h3>
           <ul className="mt-2 space-y-1.5 text-sm text-[#7A5230]">
-            <li>• 창 닫기/취소: 결제가 취소되어 이용권 권한이 생성되지 않습니다.</li>
-            <li>• 한도 초과: 다른 카드/계좌이체 또는 금액을 낮춰 재시도해 주세요.</li>
-            <li>• 카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.</li>
+            <li>??李??リ린/痍⑥냼: 寃곗젣媛 痍⑥냼?섏뼱 ?댁슜沅?沅뚰븳???앹꽦?섏? ?딆뒿?덈떎.</li>
+            <li>???쒕룄 珥덇낵: ?ㅻⅨ 移대뱶/怨꾩쥖?댁껜 ?먮뒗 湲덉븸????떠 ?ъ떆?꾪빐 二쇱꽭??</li>
+            <li>??移대뱶???먭?: ?좎떆 ???ㅼ떆 ?쒕룄?섍굅???ㅻⅨ 寃곗젣?섎떒???좏깮??二쇱꽭??</li>
           </ul>
         </section>
 
-        {/* ⑥ 섹션 구분선 — 계정 설정 */}
+        {/* ???뱀뀡 援щ텇????怨꾩젙 ?ㅼ젙 */}
         </>
         )}
 
         <div className="flex items-center gap-3 px-1 pt-2">
           <div className="h-px flex-1 bg-gradient-to-r from-transparent via-slate-400 to-transparent opacity-40" />
           <span className="text-[11px] font-extrabold uppercase tracking-widest text-slate-500">
-            계정 설정
+            怨꾩젙 ?ㅼ젙
           </span>
           <div className="h-px flex-1 bg-gradient-to-l from-transparent via-slate-400 to-transparent opacity-40" />
         </div>
 
-        {/* ⑦ 계정 정보 카드 */}
+        {/* ??怨꾩젙 ?뺣낫 移대뱶 */}
         <section
-          aria-label="계정 정보"
+          aria-label="怨꾩젙 ?뺣낫"
           className="rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden"
         >
-          {/* 헤더 */}
+          {/* ?ㅻ뜑 */}
           <div className="px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
             <div className="flex items-center gap-2">
-              <span className="text-lg" aria-hidden="true">👤</span>
+              <span className="text-lg" aria-hidden="true">?뫀</span>
               <div>
                 <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">Account</p>
-                <h2 className="text-base font-bold text-slate-700">내 계정 정보</h2>
+                <h2 className="text-base font-bold text-slate-700">??怨꾩젙 ?뺣낫</h2>
               </div>
             </div>
           </div>
 
-          {/* 계정 상세 */}
+          {/* 怨꾩젙 ?곸꽭 */}
           <div className="p-5 space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">이름</p>
-                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.name || "—"}</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">?대쫫</p>
+                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.name || "??}</p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">아이디 (이메일)</p>
-                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.email || "—"}</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">?꾩씠??(?대찓??</p>
+                <p className="text-sm font-semibold text-slate-700 truncate">{authUser?.email || "??}</p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">콘텐츠 가치 단위</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">肄섑뀗痢?媛移??⑥쐞</p>
                 <p className="text-sm font-semibold text-amber-700">
-                  콘텐츠 기준은 가격 산정 전용
+                  肄섑뀗痢?湲곗?? 媛寃??곗젙 ?꾩슜
                 </p>
               </div>
               <div className="rounded-[14px] border border-slate-100 bg-slate-50/80 px-4 py-3">
-                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">현재 이용권</p>
+                <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-400 mb-1">?꾩옱 ?댁슜沅?/p>
                 <p className="text-sm font-semibold text-slate-700">
-                  {!subscription.isActive || subscription.tier === "free" ? "이용권 없음"
-                   : subscription.tier === "standard" ? "스탠다드 달빛 이용권"
-                   : subscription.tier === "premium" ? "프리미엄 달빛 이용권"
-                   : subscription.tier === "vvip" ? "VVIP 달빛 이용권"
-                   : "—"}
+                  {!subscription.isActive || subscription.tier === "free" ? "?댁슜沅??놁쓬"
+                   : subscription.tier === "standard" ? "?ㅽ깲?ㅻ뱶 ?щ튆 ?댁슜沅?
+                   : subscription.tier === "premium" ? "?꾨━誘몄뾼 ?щ튆 ?댁슜沅?
+                   : subscription.tier === "vvip" ? "VVIP ?щ튆 ?댁슜沅?
+                   : "??}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* 위험 구역 구분선 */}
+          {/* ?꾪뿕 援ъ뿭 援щ텇??*/}
           <div className="mx-5 border-t border-dashed border-red-200" />
 
-          {/* 위험 구역 */}
+          {/* ?꾪뿕 援ъ뿭 */}
           <div className="p-5">
             <div className="rounded-[18px] border border-red-200 bg-red-50/60 overflow-hidden">
-              {/* 위험 구역 헤더 */}
+              {/* ?꾪뿕 援ъ뿭 ?ㅻ뜑 */}
               <div className="px-4 py-3 bg-red-100/70 border-b border-red-200 flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"
                   className="w-4 h-4 text-red-600 flex-shrink-0" aria-hidden="true">
@@ -4275,18 +4331,18 @@ export default function PointsPage() {
                     d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
                     clipRule="evenodd" />
                 </svg>
-                <p className="text-[12px] font-extrabold text-red-700 uppercase tracking-wide">위험 구역 — Danger Zone</p>
+                <p className="text-[12px] font-extrabold text-red-700 uppercase tracking-wide">?꾪뿕 援ъ뿭 ??Danger Zone</p>
               </div>
 
               <div className="p-4 space-y-3">
-                {/* 경고 안내 */}
+                {/* 寃쎄퀬 ?덈궡 */}
                 <div className="text-[12px] text-red-700 leading-relaxed space-y-1">
-                  <p>• 탈퇴 시 이용권·운세 프로필 등 <strong>모든 데이터가 즉시 영구 삭제</strong>됩니다.</p>
-                  <p>• 탈퇴 후 <strong>동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.</strong></p>
-                  <p>• 법적 보존 의무에 따라 결제 거래 금액·일시는 5년간 익명화 보관됩니다.</p>
+                  <p>???덊눜 ???댁슜沅뙿룹슫???꾨줈????<strong>紐⑤뱺 ?곗씠?곌? 利됱떆 ?곴뎄 ??젣</strong>?⑸땲??</p>
+                  <p>???덊눜 ??<strong>?숈씪 ?대찓?쇰줈 ?ш??낇빐???댁쟾 ?곗씠?곕뒗 蹂듦뎄?섏? ?딆뒿?덈떎.</strong></p>
+                  <p>??踰뺤쟻 蹂댁〈 ?섎Т???곕씪 寃곗젣 嫄곕옒 湲덉븸쨌?쇱떆??5?꾧컙 ?듬챸??蹂닿??⑸땲??</p>
                 </div>
 
-                {/* 탈퇴 버튼 */}
+                {/* ?덊눜 踰꾪듉 */}
                 <button
                   type="button"
                   onClick={() => setIsWithdrawOpen(true)}
@@ -4297,7 +4353,7 @@ export default function PointsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round"
                       d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                   </svg>
-                  회원 탈퇴
+                  ?뚯썝 ?덊눜
                 </button>
               </div>
             </div>
@@ -4305,7 +4361,7 @@ export default function PointsPage() {
         </section>
       </div>
 
-      {/* ══ 결제 방법 모달 ══════════════════════════════════════ */}
+      {/* ?먥븧 寃곗젣 諛⑸쾿 紐⑤떖 ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */}
       {isMethodModalOpen && (
         <div
           className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(20,10,5,0.65)] px-4 backdrop-blur-sm"
@@ -4314,7 +4370,7 @@ export default function PointsPage() {
           }}
         >
           <div className="w-full max-w-lg rounded-[28px] overflow-hidden shadow-[0_24px_70px_rgba(80,40,5,0.42)]">
-            {/* 모달 식별 골드 바 */}
+            {/* 紐⑤떖 ?앸퀎 怨⑤뱶 諛?*/}
             <div
               className="h-[3px] w-full"
               style={{ background: "linear-gradient(90deg, #A0680A 0%, #FFD060 30%, #FFFFFF 50%, #FFD060 70%, #A0680A 100%)" }}
@@ -4325,14 +4381,14 @@ export default function PointsPage() {
               style={{ background: "linear-gradient(160deg, #FFFDF5 0%, #FFF6E0 50%, #FFF1CC 100%)" }}
             >
 
-            {/* 모달 헤더 */}
+            {/* 紐⑤떖 ?ㅻ뜑 */}
             <div className="mb-5 flex items-start justify-between gap-3">
               <div>
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.2em] text-amber-700">
-                  원화 결제 방법 선택
+                  ?먰솕 寃곗젣 諛⑸쾿 ?좏깮
                 </p>
                 <h4 className="mt-0.5 text-lg font-bold text-[#5C3A1E]">
-                  {selectedPackage.title} · 콘텐츠 기준 {selectedPackage.points.toLocaleString("ko-KR")}
+                  {selectedPackage.title} 쨌 肄섑뀗痢?湲곗? {selectedPackage.points.toLocaleString("ko-KR")}
                 </h4>
                 <p className="text-sm font-semibold text-[#7A5230]">
                   {formatWon(selectedPackage.amount)}
@@ -4343,13 +4399,13 @@ export default function PointsPage() {
                 disabled={isProcessing}
                 onClick={() => setIsMethodModalOpen(false)}
                 className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full border border-[#EDDBA3] bg-white/90 text-lg font-bold text-[#7A5230] transition-colors hover:bg-white disabled:opacity-50"
-                aria-label="닫기"
+                aria-label="?リ린"
               >
-                ×
+                횞
               </button>
             </div>
 
-            {/* 결제 방법 그리드 */}
+            {/* 寃곗젣 諛⑸쾿 洹몃━??*/}
             <div className="grid gap-2 sm:grid-cols-2">
               {PAYMENT_METHODS.map((method) => {
                 const sel = method.id === selectedMethod;
@@ -4375,21 +4431,39 @@ export default function PointsPage() {
               })}
             </div>
 
-            {/* 결제 진행 버튼 */}
+            {/* 寃곗젣 吏꾪뻾 踰꾪듉 */}
+            {turnstileSiteKey ? (
+              <div className="mt-3">
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  mode="managed"
+                  disabled={isProcessing}
+                  resetSignal={turnstileResetSignal}
+                  onTokenChange={(value) => {
+                    setTurnstileToken(value || "");
+                    if (value) {
+                      setTurnstileError("");
+                    }
+                  }}
+                  onMessage={(message) => setTurnstileError(message)}
+                />
+              </div>
+            ) : null}
+            {turnstileError ? <p className="mt-2 text-sm text-rose-700">{turnstileError}</p> : null}
             <button
               type="button"
               onClick={startPayment}
-              disabled={isProcessing}
+              disabled={isProcessing || !turnstileToken}
               className="mt-5 w-full rounded-[16px] bg-gradient-to-r from-[#C9A84C] via-[#DFB84C] to-[#E8C060] px-4 py-4 text-base font-black text-white shadow-[0_10px_28px_rgba(160,120,20,0.45)] transition-all hover:-translate-y-0.5 hover:from-[#D4B050] hover:to-[#F0CD6A] hover:shadow-[0_14px_32px_rgba(160,120,20,0.55)] active:scale-[0.97] active:shadow-none disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isProcessing ? "🐷 연결 중..." : "원화 결제를 진행합니다"}
+              {isProcessing ? "?맰 ?곌껐 以?.." : "?먰솕 寃곗젣瑜?吏꾪뻾?⑸땲??}
             </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ══ 회원 탈퇴 모달 ══════════════════════════════════════════ */}
+      {/* ?먥븧 ?뚯썝 ?덊눜 紐⑤떖 ?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧?먥븧 */}
       <WithdrawModal
         isOpen={isWithdrawOpen}
         onClose={() => setIsWithdrawOpen(false)}

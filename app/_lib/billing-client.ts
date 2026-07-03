@@ -23,10 +23,10 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
     "billingClient.text.002": "이용권 확인이 끝났습니다. 달빛 아래 가장 알맞은 방식으로 콘텐츠를 열어주세요.",
     "billingClient.text.003": "PortOne V2 · KG이니시스",
     "billingClient.text.004": "카드 또는 간편결제로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.",
-    "billingClient.text.005": "월정석 결제",
+    "billingClient.text.005": "월정석 사용",
     "billingClient.text.006": "이용권 다시 확인",
     "billingClient.text.007": "취소",
-    "billingClient.text.008": "음악 기능은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.",
+    "billingClient.text.008": "음악 기능은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석 이벤트 재화로 이용해 주세요.",
     "billingClient.message.001": "결제창을 열지 못했습니다.",
     "billingClient.message.002": "결제창을 열지 못했습니다.",
     "billingClient.error.001": "결제 처리 중 오류가 발생했습니다.",
@@ -331,10 +331,10 @@ type BillingCoinGateInput = {
 
 type PaymentEligibilityPhase = "pass" | "full";
 
-const BILLING_COIN_GATE_RECENT_TTL_MS = 1200;
-const BILLING_BALANCE_RECENT_TTL_MS = 5000;
-const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 5000;
-const REACT_PAID_FEATURE_GATE_RECENT_TTL_MS = 1200;
+const BILLING_COIN_GATE_RECENT_TTL_MS = 10_000;
+const BILLING_BALANCE_RECENT_TTL_MS = 15_000;
+const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 15_000;
+const REACT_PAID_FEATURE_GATE_RECENT_TTL_MS = 10_000;
 const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;
@@ -564,6 +564,15 @@ function normalizePaymentMode(value: unknown): string {
   const mode = toText(value).toUpperCase().replace(/[\s-]+/g, "_");
   if (mode === "MONTHLY_CREDIT" || mode === "MEMBERSHIP_CREDIT" || mode === "MOONLIGHTSTONE") return "MOONLIGHT_STONE";
   return mode;
+}
+
+function normalizePaymentModeList(value: unknown): string[] {
+  const values = Array.isArray(value)
+    ? value
+    : toText(value).split(",");
+  return values
+    .map((item) => normalizePaymentMode(item))
+    .filter(Boolean);
 }
 
 function toNumber(value: unknown, fallback = 0): number {
@@ -1044,12 +1053,26 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const allowedPaymentModes = Array.isArray(opts.allowedPaymentModes)
     ? opts.allowedPaymentModes.map((mode) => toText(mode).toLowerCase())
     : null;
-  const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly");
+  const paymentOptions = asRecord(opts.paymentOptions);
+  const equalPriorityMethods = normalizePaymentModeList(
+    opts.equalPriorityMethods
+      ?? paymentOptions?.equalPriorityMethods
+      ?? opts.recommendedMethods
+      ?? paymentOptions?.recommendedMethods,
+  );
+  const hasEqualPriorityMethods = equalPriorityMethods.length > 0;
+  let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"))
+    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("DIRECT_KRW"));
   const canShowPassStore = !isMusicTrackPayment && opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const canShowPassRefresh = canShowPassStore;
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
   const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
+  const monthlyCanUse = monthlyCost > 0 && monthlyBalance >= monthlyCost;
+  const canShowMonthly = (!allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit"))
+    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("MOONLIGHT_STONE"))
+    && monthlyCanUse;
+  if (!canShowDirect && !canShowMonthly) canShowDirect = true;
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
@@ -1084,16 +1107,17 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <p class="cd-react-payment-choice-sub">${escapePaymentText(paymentChoiceSub)}</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-grid">
+          ${canShowDirect ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
             <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.003")}</span>
             <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
             <span>${billingClientText("billingClient.text.004")}</span>
-          </button>
+          </button>` : ""}
           ${canShowMonthly ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
             <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.005")}</span>
-            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 잔량</strong>
-            <span>보유 잔량 ${monthlyBalance.toLocaleString("ko-KR")}에서 차감 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
+            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 이벤트 재화</strong>
+            <span>보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
           </button>` : ""}
           ${canShowPassStore ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
@@ -1128,7 +1152,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (mode === "direct") {
         runtimeWindow._cdSetCoinGateOverlay?.(true, "단건 결제창을 여는 중입니다. 결제가 완료되면 이용 권한을 확인합니다.", "card");
       } else if (mode === "monthly") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.", "monthly");
+        runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 이벤트 재화 사용 권한을 확인하고 있습니다.", "monthly");
       }
     };
 
@@ -1184,7 +1208,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
               openMembershipPassStore(coinPrice, passTier);
             }, 450);
           }).catch(() => {
-            setStatus("이용권 재확인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", true);
+            setStatus("이용권 재확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", true);
             button.disabled = false;
           });
           return;
@@ -1198,7 +1222,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "월정석 잔량으로 결제 권한을 확인하고 있습니다." : "단건 결제창을 여는 중입니다.");
+        setStatus(mode === "monthly" ? "월정석 이벤트 재화 사용 권한을 확인하고 있습니다." : "단건 결제창을 여는 중입니다.");
         showWaitOverlay(mode);
         close(mode);
       });
@@ -1767,6 +1791,7 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   const reason = toText(input.reason || featureKey);
   const membershipCoverage = buildRuntimeMembershipCoverage(context.eligibility);
   const passAlreadyChecked = Boolean(context.eligibility && !isSubscriptionSnapshotEligibility(context.eligibility));
+  const runtimePaymentOptions = asRecord(context.eligibility?.raw?.paymentOptions) || asRecord(context.eligibility?.raw) || {};
 
   let runtimeResult: RuntimePaidServiceGateResult | null = null;
   try {
@@ -1791,6 +1816,11 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
       reportSessionId: input.reportSessionId || input.sessionId,
       membershipCoverage: membershipCoverage || undefined,
       monthlyBalance: context.eligibility?.monthly.balance,
+      membershipCreditBalance: context.eligibility?.monthly.balance,
+      canUseByMonthly: context.eligibility?.monthly.canUse,
+      paymentOptions: runtimePaymentOptions,
+      equalPriorityMethods: runtimePaymentOptions.equalPriorityMethods,
+      recommendedMethods: runtimePaymentOptions.recommendedMethods,
       skipBalanceRefresh: passAlreadyChecked,
       allowedPaymentModes: input.allowedPaymentModes,
       disablePassFirst: input.disablePassFirst === true || (passAlreadyChecked && context.eligibility?.pass.canUse !== true),

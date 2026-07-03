@@ -47,6 +47,7 @@ type LoginCredentials = {
   password: string;
   nextPath?: string;
   apiBase?: string;
+  turnstileToken?: string;
 };
 
 type LoginApiPayload = {
@@ -595,16 +596,17 @@ export async function login(credentials: LoginCredentials) {
 
     for (let attempt = 0; attempt < LOGIN_MAX_ATTEMPTS; attempt += 1) {
       try {
-        const nextResponse = await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/login", apiBase), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({
-            email,
-            password,
-            nextPath,
-          }),
-        }, LOGIN_ATTEMPT_TIMEOUT_MS);
+      const nextResponse = await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/login", apiBase), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+          nextPath,
+          turnstileToken: credentials.turnstileToken || "",
+        }),
+      }, LOGIN_ATTEMPT_TIMEOUT_MS);
 
         if (nextResponse.status >= 500 && attempt < LOGIN_MAX_ATTEMPTS - 1) {
           await sleep(LOGIN_RETRY_BASE_DELAY_MS * (attempt + 1));

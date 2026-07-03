@@ -1,25 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
+﻿import { NextRequest, NextResponse } from "next/server";
 import {
   buildCanonicalSukuyoNatal,
   buildSukuyoFromLunar,
   buildSukuyoNatalDataSummaryTable,
 } from "@/worker/lib/sukuyo-premium.js";
 import { requireRouteAuth } from "@/app/_lib/route-auth";
+import { resolveKasiLunarFromSolar } from "@/app/api/kasi/calendar/route";
+import { getSwissWesternChart } from "@/worker/lib/swiss-ephemeris.js";
 
 const SUKUYO_BASIC_ROUTE_TEXT_TRANSLATIONS = {
   ko: {
-    "sukuyoBasicRoute.moonPhaseUnknown": "정보 없음",
-    "sukuyoBasicRoute.moonPhaseNew": "삭(신월)",
-    "sukuyoBasicRoute.moonPhaseCrescent": "초승",
-    "sukuyoBasicRoute.moonPhaseFirstQuarter": "상현",
-    "sukuyoBasicRoute.moonPhaseWaxing": "차는달",
-    "sukuyoBasicRoute.moonPhaseFull": "망(보름)",
-    "sukuyoBasicRoute.moonPhaseWaning": "기우는달",
-    "sukuyoBasicRoute.moonPhaseLastQuarter": "하현",
-    "sukuyoBasicRoute.moonPhaseDark": "그믐",
-    "sukuyoBasicRoute.invalidInput": "year/month/day 입력이 필요합니다.",
-    "sukuyoBasicRoute.calcFailed": "숙요 계산에 실패했습니다.",
-    "sukuyoBasicRoute.canonicalInvalid": "숙요 canonical 데이터 검증에 실패했습니다.",
+    "sukuyoBasicRoute.moonPhaseUnknown": "?뺣낫 ?놁쓬",
+    "sukuyoBasicRoute.moonPhaseNew": "???좎썡)",
+    "sukuyoBasicRoute.moonPhaseCrescent": "珥덉듅",
+    "sukuyoBasicRoute.moonPhaseFirstQuarter": "?곹쁽",
+    "sukuyoBasicRoute.moonPhaseWaxing": "차오름달",
+    "sukuyoBasicRoute.moonPhaseFull": "留?蹂대쫫)",
+    "sukuyoBasicRoute.moonPhaseWaning": "湲곗슦?붾떖",
+    "sukuyoBasicRoute.moonPhaseLastQuarter": "?섑쁽",
+    "sukuyoBasicRoute.moonPhaseDark": "洹몃캁",
+    "sukuyoBasicRoute.invalidInput": "year/month/day ?낅젰???꾩슂?⑸땲??",
+    "sukuyoBasicRoute.calcFailed": "?숈슂 怨꾩궛???ㅽ뙣?덉뒿?덈떎.",
+    "sukuyoBasicRoute.canonicalInvalid": "?숈슂 canonical ?곗씠??寃利앹뿉 ?ㅽ뙣?덉뒿?덈떎.",
   },
 } as const;
 
@@ -29,6 +31,40 @@ function sukuyoBasicRouteText(key: keyof typeof SUKUYO_BASIC_ROUTE_TEXT_TRANSLAT
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
+const DIRECT_SWISS_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error("SWISS_DIRECT_TIMEOUT")), timeoutMs);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      }
+    );
+  });
+}
+
+function buildSwissDirectEnv(origin: string) {
+  return {
+    ...process.env,
+    PUBLIC_SITE_ORIGIN: process.env.PUBLIC_SITE_ORIGIN || origin,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL || origin,
+    SITE_BASE_URL: process.env.SITE_BASE_URL || origin,
+    AUTH_FRONTEND_BASE_URL: process.env.AUTH_FRONTEND_BASE_URL || origin,
+    SWISS_API_BASE_URL: "",
+    ASTRO_SWISS_BASE_URL: "",
+    SWISS_API_BASE: "",
+    SWISS_API_KEY: "",
+    SWISS_API_TOKEN: "",
+    SWISS_API_FORCE_EXTERNAL: "0",
+    SWISS_API_WESTERN_PATH: "",
+  };
+}
 
 function pad2(v: number) {
   return String(v).padStart(2, "0");
@@ -87,46 +123,16 @@ function resolveMoonPhaseByAngle(angle: number) {
     phaseAngle: Math.round(a * 10) / 10,
     illumination,
     label,
-    cycle: waxing ? "상현 이전(증가)" : "하현 이후(감소)",
-    yinYangFlow: waxing ? "양기 생장" : "음기 수렴",
+    cycle: waxing ? "?곹쁽 ?댁쟾(利앷?)" : "?섑쁽 ?댄썑(媛먯냼)",
+    yinYangFlow: waxing ? "?묎린 ?앹옣" : "?뚭린 ?섎졃",
     waxingOrWaning: waxing ? "waxing" : "waning",
-    interpretationKey: waxing ? "확장" : "정리",
+    interpretationKey: waxing ? "?뺤옣" : "?뺣━",
   };
 }
 
 async function fetchKasiLunarFromSolar(req: NextRequest, year: number, month: number, day: number) {
-  try {
-    const response = await fetch(`${req.nextUrl.origin}/api/kasi/calendar`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        method: "getLunCalInfo",
-        params: {
-          solYear: String(year),
-          solMonth: pad2(month),
-          solDay: pad2(day),
-        },
-      }),
-      signal: AbortSignal.timeout(8000),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data?.ok || !Array.isArray(data?.rows) || !data.rows.length) return null;
-
-    const row = data.rows[0] || {};
-    const lunarYear = Number(row.lunYear ?? row.year ?? row.lunarYear);
-    const lunarMonth = Number(row.lunMonth ?? row.month ?? row.lunarMonth);
-    const lunarDay = Number(row.lunDay ?? row.day ?? row.lunarDay);
-    const leapRaw = String(row.lunLeapmonth ?? row.isLeap ?? row.leapMonth ?? "").trim().toLowerCase();
-    const isLeap = leapRaw === "1" || leapRaw === "y" || leapRaw === "true" || leapRaw === "윤" || leapRaw === "leap";
-
-    if (!Number.isFinite(lunarYear) || !Number.isFinite(lunarMonth) || !Number.isFinite(lunarDay)) {
-      return null;
-    }
-
-    return { lunarYear, lunarMonth, lunarDay, isLeap };
-  } catch (e) {
-    return null;
-  }
+  void req;
+  return resolveKasiLunarFromSolar({ year, month, day });
 }
 
 async function fetchSwissSukuyoBasis(
@@ -142,25 +148,17 @@ async function fetchSwissSukuyoBasis(
     lon: number;
   }
 ) {
-  try {
-    const response = await fetch(`${req.nextUrl.origin}/api/astro/western-chart`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(8000),
-    });
-
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || !data?.ok) return null;
-    const chartPayload = data?.chart ?? data?.data ?? data;
-
-    return {
+  return withTimeout(
+    getSwissWesternChart(
+      buildSwissDirectEnv(req.nextUrl.origin),
+      payload,
+      { requestUrl: req.url }
+    ).then((chartPayload) => ({
       moonLongitude: extractSwissEclipticLongitude(chartPayload, "Moon"),
       sunLongitude: extractSwissEclipticLongitude(chartPayload, "Sun"),
-    };
-  } catch (e) {
-    return null;
-  }
+    })),
+    DIRECT_SWISS_TIMEOUT_MS
+  ).catch(() => null);
 }
 
 export async function POST(req: NextRequest) {
@@ -277,7 +275,7 @@ export async function POST(req: NextRequest) {
       summaryTable,
       display: {
         base: {
-          mansion: `${canonical?.natalSukuyo?.nameKo || ""}宿(${canonical?.natalSukuyo?.nameHan || ""})`,
+          mansion: `${canonical?.natalSukuyo?.nameKo || ""}若?${canonical?.natalSukuyo?.nameHan || ""})`,
           index: canonical?.natalSukuyo?.index ?? null,
           lunarDate: canonical?.profile?.birth?.lunarDate || null,
           direction: canonical?.natalSukuyo?.direction || null,
@@ -308,3 +306,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

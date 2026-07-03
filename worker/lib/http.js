@@ -16,8 +16,9 @@ export function json(body, init = {}) {
   headers.set("Content-Type", "application/json; charset=utf-8");
   const requestedCacheControl = headers.get("Cache-Control") || "";
   const allowsPublicCache = /\bpublic\b/i.test(requestedCacheControl) && !/\bno-store\b/i.test(requestedCacheControl);
+  const allowsPrivateCache = /\bprivate\b/i.test(requestedCacheControl) && !/\bno-store\b/i.test(requestedCacheControl);
 
-  if (!allowsPublicCache) {
+  if (!allowsPublicCache && !allowsPrivateCache) {
     headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
     headers.set("Pragma", "no-cache");
   } else {

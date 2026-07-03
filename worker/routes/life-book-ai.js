@@ -82,6 +82,8 @@ const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
 const LIFE_FORTUNE_MAX_OUTPUT_TOKENS = 40000;
 const LIFE_FORTUNE_TIMEOUT_MS = 90000;
 const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;
+const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;
+const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 1;
 const LIFE_BOOK_RESULT_TEXT_MAX_CHARS = 140000;
 const LIFE_FORTUNE_CHAPTER_TITLES = Object.freeze([
   "타고난 명식의 중심",
@@ -133,6 +135,7 @@ function getProviderDiagnostics(env = {}) {
   const hasGeminiKey = GEMINI_ENV_KEYS.some((key) => clean(env?.[key], 2000) || readProcessEnv(key));
   const hasEnvAI = typeof env?.AI?.run === "function";
   return {
+    hasGeminiKey,
     hasEnvAI,
     willUseRealLLM: hasGeminiKey || hasEnvAI,
     providerReason: hasGeminiKey ? "gemini_api_key_available" : hasEnvAI ? "workers_ai_binding_available" : "no_real_llm_provider_detected",
@@ -191,6 +194,42 @@ function logLifeBookAi(marker, details = {}, level = "info") {
 
 function sha256(value) {
   return createHash("sha256").update(String(value || "")).digest("hex");
+}
+
+function shortHash(value, length = 16) {
+  const text = clean(value);
+  return text ? sha256(text).slice(0, length) : "";
+}
+
+function logLifeBookAction(action, details = {}, level = "info") {
+  const method = level === "error" ? "error" : level === "warn" ? "warn" : "info";
+  console[method]("[LifeBook AI action]", {
+    action,
+    requestId: clean(details.requestId || "", 180),
+    serviceId: clean(details.serviceId || FEATURE_KEY, 80),
+    userIdHash: clean(details.userIdHash || shortHash(details.userId), 64),
+    profileIdPresent: Boolean(details.profileId || details.profileIdPresent),
+    idempotencyKeyHash: clean(details.idempotencyKeyHash || shortHash(details.idempotencyKey || details.requestId), 64),
+    providerCallCount: Number(details.providerCallCount || 0) || 0,
+    cacheHit: Boolean(details.cacheHit),
+    duplicateBlocked: Boolean(details.duplicateBlocked),
+    status: clean(details.status || "", 40),
+    route: clean(details.route || "", 120),
+    reason: clean(details.reason || "", 120),
+  });
+}
+
+function buildProviderLogContext({ requestId = "", userId = "", idempotencyKey = "", providerCallCount = 0, cacheHit = false, duplicateBlocked = false } = {}) {
+  return {
+    requestId: clean(requestId, 180),
+    serviceId: FEATURE_KEY,
+    userIdHash: shortHash(userId),
+    profileIdPresent: false,
+    idempotencyKeyHash: shortHash(idempotencyKey || requestId),
+    providerCallCount,
+    cacheHit,
+    duplicateBlocked,
+  };
 }
 
 function stableJson(value) {
@@ -1185,12 +1224,15 @@ async function generateConsultationText(env, prompt, options = {}) {
     ...diagnostics,
     providerReason: diagnostics.providerReason,
   });
+  const maxProviderCalls = Math.max(1, Math.floor(Number(options.maxProviderCalls || LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION) || 1));
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: options.temperature || 0.72,
     maxOutputTokens: options.maxOutputTokens || 18000,
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
+    logContext: options.logContext,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1204,6 +1246,11 @@ async function generateConsultationText(env, prompt, options = {}) {
   const lifeFortune = isLifeFortuneInput(qualityInput);
   const issues = getLifeBookReportQualityIssues(text, qualityInput);
   if (!issues.length) return { text, provider, model: clean(ai?.model) };
+  if (maxProviderCalls <= 1) {
+    const error = new Error(`Life book result quality check failed: ${issues.join(", ")}`);
+    error.code = "LLM_QUALITY_CHECK_FAILED";
+    throw error;
+  }
 
   const repair = await callGeminiText(env, buildLifeBookRepairPrompt(text, issues, qualityInput), {
     systemPrompt: buildSystemPrompt(),
@@ -1211,6 +1258,11 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: 0.52,
     maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000),
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
+    logContext: {
+      ...(options.logContext || {}),
+      providerCallCount: Number(options.logContext?.providerCallCount || 1) + 1,
+    },
   });
   const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
   const repairedIssues = getLifeBookReportQualityIssues(repaired, qualityInput);
@@ -1509,10 +1561,25 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
+  logLifeBookAction("entitlement_check", {
+    route,
+    requestId: idempotencyKey,
+    userId: auth.userId,
+    idempotencyKey,
+    status: "checking",
+  });
 
   logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
   const pricing = { ...getPricing(), env };
   if (isAdmin(auth)) {
+    logLifeBookAction("entitlement_check", {
+      route,
+      requestId: idempotencyKey,
+      userId: auth.userId,
+      idempotencyKey,
+      status: "granted",
+      reason: "admin",
+    });
     logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "admin", env }));
     return json({
       ok: true,
@@ -1533,6 +1600,14 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, input: normalized.input });
   if (access.ok) {
+    logLifeBookAction("entitlement_check", {
+      route,
+      requestId: idempotencyKey,
+      userId: auth.userId,
+      idempotencyKey,
+      status: "granted",
+      reason: access.accessType,
+    });
     logLifeBookAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }));
     return json({
       ok: true,
@@ -1549,6 +1624,14 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
+  logLifeBookAction("entitlement_check", {
+    route,
+    requestId: idempotencyKey,
+    userId: auth.userId,
+    idempotencyKey,
+    status: "payment_required",
+    reason: access.reason,
+  });
   logLifeBookAi("Payment Required", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "payment_required", env }));
   return json({
     ok: false,
@@ -1639,6 +1722,47 @@ async function restoreAccessBeforeGenerationFailure({ request, env, userId, acce
   return deferredCanceled || await restoreBillingGateAccessOnFailure({ userId, access, reason, orderName }).catch(() => false);
 }
 
+async function reserveProviderCallOnce({ userId, sessionId, idempotencyKey, route }) {
+  const updated = await LifeBookAiConsultation.findOneAndUpdate(
+    {
+      id: sessionId,
+      userId: clean(userId),
+      idempotencyKey,
+      status: "generating",
+      $or: [
+        { "llmMeta.providerCallCount": { $exists: false } },
+        { "llmMeta.providerCallCount": { $lt: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION } },
+      ],
+    },
+    {
+      $inc: { "llmMeta.providerCallCount": 1 },
+      $set: {
+        "llmMeta.providerCallLastAt": new Date().toISOString(),
+      },
+    },
+    { new: true },
+  ).lean();
+
+  if (!updated) {
+    const existing = await LifeBookAiConsultation.findOne({ userId: clean(userId), idempotencyKey }).select("id status llmMeta").lean();
+    logLifeBookAction("generate_blocked_duplicate", {
+      route,
+      requestId: idempotencyKey,
+      userId,
+      idempotencyKey,
+      status: existing?.status || "unknown",
+      providerCallCount: Number(existing?.llmMeta?.providerCallCount || 0),
+      duplicateBlocked: true,
+      reason: "provider_call_limit_reached",
+    }, "warn");
+    const error = new Error("Duplicate provider call blocked.");
+    error.code = "PROVIDER_DUPLICATE_BLOCKED";
+    throw error;
+  }
+
+  return Number(updated.llmMeta?.providerCallCount || 1);
+}
+
 async function handleResult(request, env, pathId = "") {
   const url = new URL(request.url);
   const attemptId = clean(url.searchParams.get("attemptId") || url.searchParams.get("idempotencyKey"), 180);
@@ -1658,12 +1782,42 @@ async function handleResult(request, env, pathId = "") {
     $or: clauses,
   }).lean();
 
-  if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
+  if (!consultation) {
+    logLifeBookAction("status_check", {
+      requestId: attemptId || sessionId,
+      userId: auth.userId,
+      idempotencyKey: attemptId,
+      status: "not_found",
+      cacheHit: false,
+      reason: "RESULT_NOT_FOUND",
+      route: "/api/life-book-ai/result",
+    });
+    return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
+  }
   if (consultation.status === "generating") {
     const orderName = getConsultationOrderName({ consultationType: consultation.llmMeta?.input?.consultationType });
-    return json({ ...publicSession(consultation), message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
+    logLifeBookAction("status_check", {
+      requestId: attemptId || sessionId,
+      userId: auth.userId,
+      idempotencyKey: consultation.idempotencyKey,
+      status: "generating",
+      cacheHit: true,
+      providerCallCount: Number(consultation.llmMeta?.providerCallCount || 0),
+      route: "/api/life-book-ai/result",
+    });
+    return json({ ...publicSession(consultation), message: `${orderName}을 완성하는 중입니다.` }, { status: 202, headers: { "Retry-After": "3", "Cache-Control": "no-store" } });
   }
   if (consultation.status === "generation_failed") {
+    logLifeBookAction("result_fetch", {
+      requestId: attemptId || sessionId,
+      userId: auth.userId,
+      idempotencyKey: consultation.idempotencyKey,
+      status: "generation_failed",
+      cacheHit: true,
+      providerCallCount: Number(consultation.llmMeta?.providerCallCount || 0),
+      reason: clean(consultation.generationError?.code || "LLM_ERROR", 80),
+      route: "/api/life-book-ai/result",
+    }, "warn");
     return json({
       ...publicSession(consultation),
       ok: false,
@@ -1675,9 +1829,28 @@ async function handleResult(request, env, pathId = "") {
   const payload = publicSession(consultation);
   const assistantContent = payload.messages.find((message) => message.role === "assistant")?.content || "";
   if (!assistantContent.trim()) {
+    logLifeBookAction("result_fetch", {
+      requestId: attemptId || sessionId,
+      userId: auth.userId,
+      idempotencyKey: consultation.idempotencyKey,
+      status: "empty",
+      cacheHit: true,
+      providerCallCount: Number(consultation.llmMeta?.providerCallCount || 0),
+      reason: "RESULT_EMPTY",
+      route: "/api/life-book-ai/result",
+    }, "warn");
     return json({ ok: false, reason: "RESULT_EMPTY", message: MESSAGES.llmFailed }, { status: 409 });
   }
-  return json(payload);
+  logLifeBookAction("result_fetch", {
+    requestId: attemptId || sessionId,
+    userId: auth.userId,
+    idempotencyKey: consultation.idempotencyKey,
+    status: "completed",
+    cacheHit: true,
+    providerCallCount: Number(consultation.llmMeta?.providerCallCount || 0),
+    route: "/api/life-book-ai/result",
+  });
+  return json(payload, { headers: { "Cache-Control": "private, max-age=300" } });
 }
 
 async function handleStart(request, env, route = "/api/life-book-ai/generate") {
@@ -1696,9 +1869,29 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
 
   const auth = await getOptionalUserFromRequest(request, env);
   if (!auth) return loginRequired();
+  logLifeBookAction("generate_start", {
+    route,
+    requestId: idempotencyKey,
+    userId: auth.userId,
+    idempotencyKey,
+    status: "received",
+  });
 
   const lockKey = `${clean(auth.userId)}:${idempotencyKey}`;
-  if (startLocks.has(lockKey)) return startLocks.get(lockKey);
+  if (startLocks.has(lockKey)) {
+    logLifeBookAction("generate_reused", {
+      route,
+      requestId: idempotencyKey,
+      userId: auth.userId,
+      idempotencyKey,
+      status: "single_flight",
+      cacheHit: true,
+      duplicateBlocked: true,
+      reason: "in_memory_lock",
+    });
+    const lockedResponse = await startLocks.get(lockKey);
+    return lockedResponse.clone();
+  }
 
   const pending = (async () => {
     await connectDb(env);
@@ -1707,9 +1900,83 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
 
     const existing = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
     if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(MESSAGES.invalidInput, 409);
-    if (existing?.status === "completed") return json(publicSession(existing));
-    if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < LIFE_BOOK_GENERATING_REUSE_MS) {
+    if (existing?.status === "completed") {
+      logLifeBookAction("generate_reused", {
+        route,
+        requestId: idempotencyKey,
+        userId: auth.userId,
+        idempotencyKey,
+        status: "completed",
+        cacheHit: true,
+        providerCallCount: Number(existing.llmMeta?.providerCallCount || 0),
+      });
+      return json(publicSession(existing));
+    }
+    if (existing?.status === "generating") {
+      const lastTouchedAt = new Date(existing.updatedAt || existing.createdAt).getTime();
+      if (Date.now() - lastTouchedAt >= LIFE_BOOK_GENERATING_STALE_MS) {
+        await LifeBookAiConsultation.updateOne(
+          { id: existing.id, status: "generating" },
+          {
+            $set: {
+              status: "generation_failed",
+              generationError: {
+                code: "GENERATION_STALLED",
+                message: "Generation did not complete within the allowed window.",
+                at: new Date().toISOString(),
+              },
+            },
+          },
+        ).catch(() => {});
+        const failed = await LifeBookAiConsultation.findOne({ id: existing.id }).lean();
+        logLifeBookAction("generate_blocked_duplicate", {
+          route,
+          requestId: idempotencyKey,
+          userId: auth.userId,
+          idempotencyKey,
+          status: "generation_failed",
+          cacheHit: true,
+          duplicateBlocked: true,
+          providerCallCount: Number(failed?.llmMeta?.providerCallCount || existing.llmMeta?.providerCallCount || 0),
+          reason: "GENERATION_STALLED",
+        }, "warn");
+        return json({
+          ...publicSession(failed || existing),
+          ok: false,
+          reason: "GENERATION_STALLED",
+          message: MESSAGES.llmFailed,
+        }, { status: 503 });
+      }
+      logLifeBookAction("generate_reused", {
+        route,
+        requestId: idempotencyKey,
+        userId: auth.userId,
+        idempotencyKey,
+        status: "generating",
+        cacheHit: true,
+        duplicateBlocked: true,
+        providerCallCount: Number(existing.llmMeta?.providerCallCount || 0),
+      });
       return json({ ok: true, sessionId: existing.id, status: "generating", message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
+    }
+    if (existing?.status === "generation_failed") {
+      logLifeBookAction("generate_blocked_duplicate", {
+        route,
+        requestId: idempotencyKey,
+        userId: auth.userId,
+        idempotencyKey,
+        status: "generation_failed",
+        cacheHit: true,
+        duplicateBlocked: true,
+        providerCallCount: Number(existing.llmMeta?.providerCallCount || 0),
+        reason: clean(existing.generationError?.code || "GENERATION_ALREADY_FAILED", 80),
+      }, "warn");
+      return json({
+        ...publicSession(existing),
+        ok: false,
+        reason: "GENERATION_ALREADY_FAILED",
+        message: MESSAGES.llmFailed,
+      }, { status: 409 });
     }
 
     logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
@@ -1806,6 +2073,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       status: "generating",
       generationError: null,
       llmMeta: {
+        providerCallCount: 0,
+        providerCallLastAt: null,
         input: {
           serviceType: normalized.input.serviceType,
           consultationType: normalized.input.consultationType,
@@ -1826,7 +2095,26 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       } catch (error) {
         if (error?.code === 11000) {
           const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+          logLifeBookAction("generate_reused", {
+            route,
+            requestId: idempotencyKey,
+            userId: auth.userId,
+            idempotencyKey,
+            status: duplicate?.status || "generating",
+            cacheHit: true,
+            duplicateBlocked: true,
+            providerCallCount: Number(duplicate?.llmMeta?.providerCallCount || 0),
+            reason: "unique_index_collision",
+          });
           if (duplicate?.status === "completed") return json(publicSession(duplicate));
+          if (duplicate?.status === "generation_failed") {
+            return json({
+              ...publicSession(duplicate),
+              ok: false,
+              reason: "GENERATION_ALREADY_FAILED",
+              message: MESSAGES.llmFailed,
+            }, { status: 409 });
+          }
           return json({ ok: true, sessionId: duplicate?.id || sessionId, status: "generating", message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
         }
         throw error;
@@ -1834,12 +2122,27 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
     }
 
     try {
-      const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env });
+      const providerCallCount = await reserveProviderCallOnce({
+        userId: auth.userId,
+        sessionId,
+        idempotencyKey,
+        route,
+      });
+      const logContext = {
+        ...safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: access.accessType, env }),
+        ...buildProviderLogContext({
+          requestId: idempotencyKey,
+          userId: auth.userId,
+          idempotencyKey,
+          providerCallCount,
+        }),
+      };
       const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
         minLength: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS,
         maxOutputTokens: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000,
         timeoutMs: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_TIMEOUT_MS : undefined,
         logContext,
+        maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION,
         input: normalized.input,
       });
       const title = extractTitle(generated.text, normalized.input.birthInfo.name, normalized.input.consultationType);
@@ -1884,6 +2187,8 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
               provider: generated.provider,
               model: generated.model,
               reportJson,
+              providerCallCount,
+              providerCallLastAt: new Date().toISOString(),
               completedAt: new Date().toISOString(),
               input: {
                 serviceType: normalized.input.serviceType,
@@ -1910,6 +2215,24 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       }));
       return json(publicSession(completed));
     } catch (error) {
+      if (clean(error?.code) === "PROVIDER_DUPLICATE_BLOCKED") {
+        const duplicate = await LifeBookAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+        if (duplicate?.status === "completed") return json(publicSession(duplicate));
+        if (duplicate?.status === "generation_failed") {
+          return json({
+            ...publicSession(duplicate),
+            ok: false,
+            reason: "GENERATION_ALREADY_FAILED",
+            message: MESSAGES.llmFailed,
+          }, { status: 409 });
+        }
+        return json({
+          ok: true,
+          sessionId: duplicate?.id || sessionId,
+          status: "generating",
+          message: `${orderName}을 완성하는 중입니다.`,
+        }, { status: 202 });
+      }
       const restored = await restoreAccessBeforeGenerationFailure({
         request,
         env,

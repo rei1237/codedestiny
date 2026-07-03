@@ -223,6 +223,7 @@ assert(lifeFortuneCard && !lifeFortuneCard.includes("AI 상담 · 30,000원"), "
 for (const marker of [
   'const CONSULTATION_TYPE = "lifeFortune"',
   'const MAX_POLL_DURATION_MS = 8 * 60 * 1000',
+  'const startLockRef = useRef(false);',
   'function postPrepare',
   'function postGenerate',
   '"/api/life-book-ai/prepare"',
@@ -253,6 +254,8 @@ for (const marker of [
   "const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;",
   "const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;",
   "const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;",
+  "const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;",
+  "const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 1;",
   "buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash = \"\")",
   "deferUsage: true",
   "forceDeduct: true",
@@ -270,8 +273,28 @@ for (const marker of [
   "finalizeDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, orderName = ORDER_NAME })",
   "cancelDeferredBillingUsage({ request, env, access, idempotencyKey, sessionId, error, orderName = ORDER_NAME })",
   "applyUsageOnce({ request, env, userId, sessionId, access, idempotencyKey, pricing, orderName = ORDER_NAME })",
+  "reserveProviderCallOnce",
+  "providerCallCount",
+  "PROVIDER_DUPLICATE_BLOCKED",
+  "GENERATION_STALLED",
+  "generate_reused",
+  "generate_blocked_duplicate",
+  "status_check",
+  "result_fetch",
+  "maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION",
+  "fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
+}
+
+const llmClient = read("lib/llm-client.ts");
+for (const marker of [
+  "action: \"provider_call\"",
+  "emitProviderCallLog(\"gemini\"",
+  "emitProviderCallLog(\"cloudflare\"",
+  "idempotencyKeyHash",
+]) {
+  includes("lib/llm-client.ts", llmClient, marker);
 }
 
 for (const marker of [

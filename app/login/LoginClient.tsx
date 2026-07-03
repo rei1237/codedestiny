@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useMemo, useState } from "react";
@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearAuthError, login as loginWithStore } from "../_lib/auth-store";
+import TurnstileWidget from "../../components/TurnstileWidget";
 import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
@@ -367,7 +368,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileError, setTurnstileError] = useState("");
+  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const copy = getLoginPageCopy(locale);
+  const turnstileSiteKey = String(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || process.env.Turnstile_Site_Key || "",
+  ).trim();
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
@@ -428,6 +435,12 @@ export default function LoginPage() {
       setError(copy.invalidCredentials);
       return;
     }
+    if (!turnstileToken) {
+      setError("Turnstile 확인이 필요합니다.");
+      setTurnstileError("Turnstile 토큰을 받아주세요.");
+      setTurnstileResetSignal((value) => value + 1);
+      return;
+    }
 
     setError("");
     clearAuthError();
@@ -445,6 +458,7 @@ export default function LoginPage() {
         password,
         nextPath,
         apiBase: authApiBase,
+        turnstileToken,
       });
 
       setLoginStatus("success");
@@ -467,7 +481,10 @@ export default function LoginPage() {
         setLoginStatus("error");
         return;
       }
-      setError(copy.loginProcessingError);
+      setError(message);
+      setTurnstileError(message);
+      setTurnstileToken("");
+      setTurnstileResetSignal((value) => value + 1);
       setLoginStatus("error");
     } finally {
       setLoginSubmitting(false);
@@ -497,6 +514,7 @@ export default function LoginPage() {
   };
 
   const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || loginStatus === "success";
+  const submitDisabled = isBusy || !turnstileToken;
   const formDisabled = isBusy;
 
   return (
@@ -571,21 +589,41 @@ export default function LoginPage() {
                     {showPassword ? copy.hidePassword : copy.showPassword}
                   </button>
                 </div>
-                <div className="mt-2 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => setError(copy.passwordResetPending)}
-                    className="min-h-0 min-w-0 px-0 py-0 text-xs font-semibold text-violet-200/85 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-100"
-                  >
-                    {copy.forgotPassword}
-                  </button>
-                </div>
+              <div className="mt-2 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setError(copy.passwordResetPending)}
+                  className="min-h-0 min-w-0 px-0 py-0 text-xs font-semibold text-violet-200/85 underline decoration-violet-300/60 underline-offset-4 hover:text-violet-100"
+                >
+                  {copy.forgotPassword}
+                </button>
               </div>
-              <button
-                type="submit"
-                disabled={formDisabled}
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+            </div>
+            {turnstileSiteKey ? (
+              <div className="mt-2">
+                <TurnstileWidget
+                  siteKey={turnstileSiteKey}
+                  mode="managed"
+                  disabled={formDisabled}
+                  resetSignal={turnstileResetSignal}
+                  onTokenChange={(value) => {
+                    setTurnstileToken(value || "");
+                    if (value) setTurnstileError("");
+                  }}
+                  onMessage={(message) => setTurnstileError(message)}
+                />
+              </div>
+            ) : (
+              <p className="mt-2 rounded-md border border-rose-300/50 bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
+                보안 인증 키가 설정되지 않았습니다. 관리자에게 문의해 주세요.
+              </p>
+            )}
+            {turnstileError ? <p className="mt-2 text-xs text-rose-200">{turnstileError}</p> : null}
+            <button
+              type="submit"
+              disabled={submitDisabled}
+              className="inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+            >
                 {loginSubmitting ? copy.submitting : copy.submit}
               </button>
             </form>
@@ -661,3 +699,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

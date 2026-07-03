@@ -359,7 +359,7 @@ export default function DestinyMeetingPlacePage() {
         <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
             <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 {formatFeatureCost(FEATURE_COST)}</span>
-            <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">이용권 확인 후 단건/월정석 결제</span>
+            <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">이용권 확인 후 단건 결제/월정석 사용</span>
             <span className="rounded-full border border-[#ffb4e6]/45 bg-[#ff9dd9]/15 px-3 py-1 text-[#ffd6ef]">별빛/야경 인연 무드 추천</span>
             <span className="rounded-full border border-[#9fd0ff]/45 bg-[#81bbff]/14 px-3 py-1 text-[#d6ebff]">장소 + 시기 + 국가 + 스타일</span>
             {!isLoggedIn ? <span className="rounded-full border border-rose-200/40 bg-rose-400/15 px-3 py-1 text-rose-100">로그인 후 분석 가능</span> : null}

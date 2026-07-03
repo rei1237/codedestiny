@@ -159,8 +159,8 @@ assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment
 assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
 assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "paid gate sprite uses honey fortune logo");
 assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 결제가 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
-assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 결제가 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
+assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");
 
 assertContains(billingClientSource, "hasVerifiedBillingAccess", "React billing access guard");
 assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "markPaidAttemptPaymentSucceeded()", "React billing verifies before success");
@@ -256,9 +256,10 @@ assertContains(paymentsRouteSource, "idempotent: true", "idempotent success hand
 assertContains(paymentsRouteSource, "accessGrant", "server access grant response");
 
 const legacyPigCoinConsumeFetch = 'fetch("/api/fortune/' + 'pig-coin/' + 'consume';
-assertContains(tarotLoveSource, 'fetch("/api/billing/coin-gate"', "tarot love uses worker billing coin gate");
+assertContains(tarotLoveSource, "window._cdOpenPaidServiceGate", "tarot love uses common paid service gate");
+assertNotContains(tarotLoveSource, 'fetch("/api/billing/coin-gate"', "tarot love direct coin gate bypass removed");
 assertNotContains(tarotLoveSource, legacyPigCoinConsumeFetch, "tarot love legacy consume bypass removed");
-assertContains(tarotLoveSource, "window._cdHasVerifiedServerAccess", "tarot love server access guard");
+assertContains(billingClientSource, "hasVerifiedBillingAccess", "common paid gate keeps server access guard");
 
 const fortuneTeaSubmitSource = section(
   fortuneTeaHouseSource,

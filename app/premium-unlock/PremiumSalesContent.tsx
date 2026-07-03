@@ -384,6 +384,7 @@ export default function PremiumSalesContent() {
   const [progressTick, setProgressTick] = useState(0);
   const pollTimerRef = useRef<number | null>(null);
   const resultDocumentRef = useRef<HTMLElement | null>(null);
+  const startLockRef = useRef(false);
 
   const isChecking = status === "checking" || status === "payment";
   const isGenerating = status === "generating";
@@ -487,6 +488,7 @@ export default function PremiumSalesContent() {
 
   async function handleGenerateClick(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (startLockRef.current || isBusy) return;
     const validationMessage = validateForm(form);
     if (validationMessage) {
       setError(validationMessage);
@@ -494,6 +496,7 @@ export default function PremiumSalesContent() {
       return;
     }
 
+    startLockRef.current = true;
     const requestId = buildAttemptId();
     const payload = buildConsultationPayload(form, requestId);
     setAttemptId(requestId);
@@ -557,6 +560,8 @@ export default function PremiumSalesContent() {
         message,
         cancelled: message === PAYMENT_CANCELLED_MESSAGE,
       });
+    } finally {
+      startLockRef.current = false;
     }
   }
 

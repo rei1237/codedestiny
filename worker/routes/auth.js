@@ -19,7 +19,8 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
-import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
+import { validateLoginPayload, validateRegisterPayload, validateTurnstilePayload } from "../lib/validation.js";
+import { verifyTurnstileToken } from "../lib/turnstile.js";
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
@@ -1595,6 +1596,14 @@ function clearLoginRateLimit(rateLimitState) {
   if (rateLimitState?.key) loginRateLimitMap.delete(rateLimitState.key);
 }
 
+function makeTurnstileErrorResponse(status, code, message) {
+  return json({
+    ok: false,
+    code: String(code || "turnstile_verification_failed"),
+    message: String(message || "Turnstile verification failed."),
+  }, { status: Math.max(400, Number(status) || 403) });
+}
+
 function buildInvalidLoginResponse() {
   return json({
     ok: false,
@@ -2123,6 +2132,7 @@ async function handleLogin(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const body = await readJson(request);
+  const requestMeta = getRequestMeta(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
     return json({
@@ -2131,6 +2141,23 @@ async function handleLogin(request, env) {
       message: "Login payload is invalid.",
       errors: validated.errors,
     }, { status: 400 });
+  }
+  const turnstileValidated = validateTurnstilePayload(body);
+  if (!turnstileValidated.isValid) {
+    return makeTurnstileErrorResponse(401, "turnstile_token_required", "Turnstile verification is required.");
+  }
+
+  const turnstileResult = await verifyTurnstileToken({
+    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
+    response: turnstileValidated.sanitized.turnstileToken,
+    remoteip: requestMeta?.ip,
+  });
+  if (!turnstileResult.success) {
+    return makeTurnstileErrorResponse(
+      turnstileResult.status || 403,
+      turnstileResult.code || "turnstile_verification_failed",
+      turnstileResult.message || "Turnstile verification failed.",
+    );
   }
 
   const { email, password } = validated.sanitized;
