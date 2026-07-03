@@ -502,17 +502,21 @@ function billingGateSource(body = {}) {
 
 function collectBillingObjects(body = {}) {
   const gate = billingGateSource(body);
-  const runtimeGate = objectValue(body.runtimeGate || gate.runtimeGate);
+  const result = objectValue(body.result || gate.result);
+  const payment = objectValue(body.payment || gate.payment);
   const consume = objectValue(body.consume || gate.consume);
   const accessGrant = objectValue(body.accessGrant || gate.accessGrant || gate.accessGateResult);
   const pricing = objectValue(body.pricing || gate.pricing);
-  const payment = objectValue(body.payment || gate.payment);
-  const licensePass = objectValue(gate.licensePass || gate.membershipPass);
-  return { gate, runtimeGate, consume, accessGrant, pricing, payment, licensePass };
+  const pricingSnapshot = objectValue(body.pricingSnapshot || gate.pricingSnapshot || payment.pricingSnapshot || pricing.pricingSnapshot);
+  const runtimeGate = objectValue(body.runtimeGate || gate.runtimeGate || accessGrant.runtimeGate);
+  const licensePass = objectValue(body.licensePass || body.membershipPass || gate.licensePass || gate.membershipPass || accessGrant.licensePass || accessGrant.membershipPass);
+  const metadata = objectValue(body.metadata || gate.metadata || payment.metadata || consume.metadata || accessGrant.metadata || pricing.metadata || pricingSnapshot.metadata);
+  const deferredUsage = objectValue(body.deferredUsage || gate.deferredUsage || result.deferredUsage || metadata.deferredUsage);
+  return { gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage };
 }
 
 function billingFeatureMatches(body = {}) {
-  const { gate, runtimeGate, consume, accessGrant, pricing, payment, licensePass } = collectBillingObjects(body);
+  const { gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage } = collectBillingObjects(body);
   const keys = [
     body.featureKey,
     body.subFeatureKey,
@@ -527,8 +531,14 @@ function billingFeatureMatches(body = {}) {
     accessGrant.featureKey,
     pricing.featureKey,
     pricing.subFeatureKey,
+    pricingSnapshot.featureKey,
+    pricingSnapshot.subFeatureKey,
     payment.featureKey,
     licensePass.featureKey,
+    metadata.featureKey,
+    metadata.subFeatureKey,
+    deferredUsage.featureKey,
+    deferredUsage.serviceType,
   ].map((item) => clean(item).toLowerCase()).filter(Boolean);
   return keys.includes(FEATURE_KEY) || keys.includes(SERVICE_KEY);
 }
@@ -540,33 +550,71 @@ function addEvidenceId(ids, value) {
 
 function collectBillingEvidenceIds(body = {}) {
   const ids = new Set();
-  const { gate, runtimeGate, consume, accessGrant, payment, licensePass } = collectBillingObjects(body);
-  const sources = [body, gate, runtimeGate, consume, accessGrant, payment, licensePass];
-  for (const source of sources) {
-    addEvidenceId(ids, source?._id);
-    addEvidenceId(ids, source?.id);
-    addEvidenceId(ids, source?.paymentId);
-    addEvidenceId(ids, source?.merchantUid);
-    addEvidenceId(ids, source?.impUid);
-    addEvidenceId(ids, source?.transactionId);
-    addEvidenceId(ids, source?.purchaseId);
-    addEvidenceId(ids, source?.ledgerId);
-    addEvidenceId(ids, source?.evidenceId);
-    addEvidenceId(ids, source?.requestId);
-    addEvidenceId(ids, source?.idempotencyKey);
-    addEvidenceId(ids, source?.orderId);
-    addEvidenceId(ids, source?.executionId);
-  }
+  const visit = (source, depth = 0) => {
+    if (!source || typeof source !== "object" || Array.isArray(source) || depth > 3) return;
+    [
+      "_id",
+      "id",
+      "paymentId",
+      "merchantUid",
+      "merchant_uid",
+      "impUid",
+      "imp_uid",
+      "transactionId",
+      "purchaseId",
+      "ledgerId",
+      "evidenceId",
+      "requestId",
+      "idempotencyKey",
+      "orderId",
+      "executionId",
+      "pointHistoryId",
+      "monthlyCreditLedgerId",
+      "receiptId",
+    ].forEach((key) => addEvidenceId(ids, source?.[key]));
+    [
+      "data",
+      "billingGate",
+      "billing",
+      "billingResult",
+      "paymentContext",
+      "_paymentContext",
+      "runtimeGate",
+      "consume",
+      "accessGrant",
+      "accessGateResult",
+      "pricing",
+      "pricingSnapshot",
+      "payment",
+      "licensePass",
+      "membershipPass",
+      "metadata",
+      "result",
+      "deferredUsage",
+      "evidence",
+    ].forEach((key) => visit(source?.[key], depth + 1));
+  };
+  visit(body);
   return [...ids];
 }
 
 function collectBillingContractValues(body = {}, field = "") {
   const values = new Set();
-  const { gate, runtimeGate, consume, accessGrant, pricing, payment, licensePass } = collectBillingObjects(body);
-  const sources = [body, gate, runtimeGate, consume, accessGrant, pricing, payment, licensePass];
+  const { gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage } = collectBillingObjects(body);
+  const deferredEvidence = objectValue(deferredUsage.evidence);
+  const sources = [body, gate, runtimeGate, consume, accessGrant, pricing, pricingSnapshot, payment, licensePass, metadata, deferredUsage, deferredEvidence];
   for (const source of sources) {
     addEvidenceId(values, source?.[field]);
-    if (field === "inputHash") addEvidenceId(values, source?.pricingSnapshot?.inputHash);
+    if (field === "requestId" || field === "idempotencyKey") {
+      addEvidenceId(values, source?.purchaseId);
+      addEvidenceId(values, source?.executionId);
+    }
+    if (field === "inputHash") {
+      addEvidenceId(values, source?.payloadHash);
+      addEvidenceId(values, source?.input_hash);
+      addEvidenceId(values, source?.pricingSnapshot?.inputHash);
+      addEvidenceId(values, source?.pricingSnapshot?.payloadHash);
+    }
   }
   return [...values];
 }
@@ -615,6 +663,11 @@ function paymentEvidenceClauses(ids = []) {
     clauses.push({ idempotencyKey: id });
     clauses.push({ merchantUid: id });
     clauses.push({ impUid: id });
+    clauses.push({ "metadata.requestId": id });
+    clauses.push({ "metadata.idempotencyKey": id });
+    clauses.push({ "metadata.purchaseId": id });
+    clauses.push({ "metadata.transactionId": id });
+    clauses.push({ "metadata.paymentId": id });
     if (objectIdLike(id)) clauses.push({ _id: id });
   }
   return clauses;
@@ -651,14 +704,24 @@ function billingContractEvidenceClauses({ idempotencyKey = "", inputHash = "" } 
       { "metadata.orderId": idempotencyKey },
       { "metadata.purchaseId": idempotencyKey },
       { "metadata.sourceId": idempotencyKey },
+      { "result.deferredUsage.requestId": idempotencyKey },
+      { "result.deferredUsage.idempotencyKey": idempotencyKey },
+      { "result.deferredUsage.purchaseId": idempotencyKey },
+      { "result.deferredUsage.evidence.requestId": idempotencyKey },
     );
   }
   if (inputHash) {
     clauses.push(
       { inputHash },
+      { payloadHash: inputHash },
       { "metadata.inputHash": inputHash },
+      { "metadata.payloadHash": inputHash },
       { "pricingSnapshot.inputHash": inputHash },
+      { "pricingSnapshot.payloadHash": inputHash },
       { "result.deferredUsage.inputHash": inputHash },
+      { "result.deferredUsage.payloadHash": inputHash },
+      { "result.deferredUsage.evidence.inputHash": inputHash },
+      { "result.deferredUsage.evidence.payloadHash": inputHash },
     );
   }
   return clauses;

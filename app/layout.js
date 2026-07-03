@@ -3,6 +3,7 @@ import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
 import NavigationProvider from "./providers/NavigationProvider";
+import UserSessionProvider from "./providers/UserSessionProvider";
 import AppChrome from "./components/AppChrome";
 import RuntimeClientGuards from "./components/RuntimeClientGuards";
 import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
@@ -169,11 +170,13 @@ export default function RootLayout({ children }) {
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
           <Suspense>
-            <NavigationProvider>
-              <RuntimeClientGuards />
-              <ToastProvider />
-              <AppChrome>{children}</AppChrome>
-            </NavigationProvider>
+            <UserSessionProvider>
+              <NavigationProvider>
+                <RuntimeClientGuards />
+                <ToastProvider />
+                <AppChrome>{children}</AppChrome>
+              </NavigationProvider>
+            </UserSessionProvider>
           </Suspense>
         </PaymentProcessingProvider>
       </body>

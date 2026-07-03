@@ -5,17 +5,33 @@
 let handleDreamRoutes;
 let setGeminiCaller;
 let resetGeminiCaller;
+let setAccessVerifier;
+let resetAccessVerifier;
 
 beforeAll(async () => {
+  jest.unstable_mockModule("../../worker/lib/gemini.js", () => ({
+    callGeminiText: jest.fn(async () => ({ ok: false, error: "mocked" })),
+  }));
   const mod = await import("../../worker/routes/dream.js");
   handleDreamRoutes = mod.handleDreamRoutes;
   setGeminiCaller = mod.__setDreamGeminiCallerForTest;
   resetGeminiCaller = mod.__resetDreamGeminiCallerForTest;
+  setAccessVerifier = mod.__setDreamPsychoAccessVerifierForTest;
+  resetAccessVerifier = mod.__resetDreamPsychoAccessVerifierForTest;
+});
+
+beforeEach(() => {
+  if (typeof setAccessVerifier === "function") {
+    setAccessVerifier(async () => ({ ok: true, accessType: "test" }));
+  }
 });
 
 afterEach(() => {
   if (typeof resetGeminiCaller === "function") {
     resetGeminiCaller();
+  }
+  if (typeof resetAccessVerifier === "function") {
+    resetAccessVerifier();
   }
 });
 
@@ -47,6 +63,30 @@ describe("worker /api/dream/psycho-analysis", () => {
 
     expect(res.status).toBe(400);
     expect(payload.ok).toBe(false);
+  });
+
+  test("payment access is required before psycho LLM generation", async () => {
+    setAccessVerifier(async () => ({
+      ok: false,
+      status: 402,
+      code: "PAYMENT_REQUIRED",
+      message: "payment required",
+      detail: { reason: "PAYMENT_REQUIRED" },
+    }));
+
+    const req = new Request("https://example.com/api/dream/psycho-analysis", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dreamText: "A quiet dream with a closed door and a long hallway." }),
+    });
+
+    const res = await handleDreamRoutes(req, {});
+    const payload = await res.json();
+
+    expect(res.status).toBe(402);
+    expect(payload.ok).toBe(false);
+    expect(payload.code).toBe("PAYMENT_REQUIRED");
+    expect(payload.detail.requiredFeatureKey).toBe("dream-psycho-analysis");
   });
 
   test("LLM 성공 시 intake를 포함해 gemini 소스로 반환한다", async () => {
@@ -147,8 +187,8 @@ describe("worker /api/dream/psycho-analysis", () => {
     expect(payload.tone && payload.tone.primary).toBeTruthy();
     expect(payload.quality && payload.quality.ok).toBe(true);
 
-    expect(captured.prompt).toMatch(/\[상담 인테이크\]/);
-    expect(captured.prompt).toMatch(/\[꿈 감정 톤 추정\]/);
+    expect(captured.prompt).toMatch(/\[\uC0C1\uB2F4 \uBA54\uD0C0\]/);
+    expect(captured.prompt).toMatch(/\[\uAFC8 \uAC10\uC815 \uCD94\uC815\]/);
     expect(captured.prompt).toMatch(/불안과 죄책감/);
     expect(captured.prompt).toMatch(/관계에서 같은 갈등 반복/);
     expect(captured.prompt).toMatch(/업무 과부하와 수면 부족/);

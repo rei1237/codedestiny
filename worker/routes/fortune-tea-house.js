@@ -1022,10 +1022,14 @@ function normalizeFortuneTeaBillingAccessType(source = {}) {
 
 function isReusableFortuneTeaAccessDecision(accessDecision) {
   if (!accessDecision?.allowed) return false;
-  const source = cleanText(accessDecision.accessSource, 80).toLowerCase();
-  const licenseType = cleanText(accessDecision.licenseType, 80).toLowerCase();
-  const reason = cleanText(accessDecision.reason, 80).toLowerCase();
-  return source === "admin" || licenseType === "admin" || reason === "admin";
+  const haystack = [
+    accessDecision.accessSource,
+    accessDecision.licenseType,
+    accessDecision.reason,
+    accessDecision.subscriptionStatus,
+  ].map((item) => cleanText(item, 80).toLowerCase()).join(" ");
+  if (/single_purchase|already_purchased|paidfeatures/.test(haystack)) return false;
+  return /admin|monthly|subscription|membership_credit|license|pass|family/.test(haystack);
 }
 
 function isFortuneTeaAdminAuth(auth = {}) {

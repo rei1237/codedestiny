@@ -3240,8 +3240,9 @@
   }
 
   .commandDeck {
-    gap: 20px;
-    padding: 16px;
+    gap: 16px;
+    margin-top: 0;
+    padding: max(14px, env(safe-area-inset-top, 0px)) 14px max(18px, env(safe-area-inset-bottom, 0px));
     overflow: visible;
     background:
       linear-gradient(180deg, rgba(7, 12, 24, 0.9), rgba(4, 7, 13, 0.96)),
@@ -3251,7 +3252,8 @@
   }
 
   .commandProgressRail {
-    grid-template-columns: repeat(6, minmax(108px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: visible;
   }
 
   .commandSpeechBubble::after {
@@ -3309,36 +3311,38 @@
   .commandLayout {
     display: flex;
     flex-direction: column;
-    padding-top: 210px;
+    gap: 14px;
+    padding-top: 0;
   }
 
   .commandActor {
-    position: fixed;
-    top: calc(env(safe-area-inset-top, 0px) + 10px);
-    left: 50%;
-    z-index: 20;
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + 56px);
+    left: auto;
+    z-index: 6;
     order: -1;
-    width: min(460px, calc(100vw - 32px));
-    padding: 9px;
-    transform: translateX(-50%);
+    width: 100%;
+    padding: 8px;
+    transform: none;
     backdrop-filter: blur(18px);
   }
 
   .spriteActor {
-    grid-template-columns: 118px minmax(0, 1fr);
+    grid-template-columns: 74px minmax(0, 1fr);
     align-items: center;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
   }
 
   .commandActor[data-size="medium"] {
-    grid-template-columns: 118px minmax(0, 1fr);
-    gap: 10px;
+    grid-template-columns: 74px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .commandActor[data-size="medium"][data-variant="transparent"] .spriteStage,
   .commandActor[data-size="medium"][data-mobile-single-frame="true"] .spriteStage {
-    width: 118px;
-    max-height: 176px;
+    width: 74px;
+    max-height: 96px;
   }
 
   .spriteStage,
@@ -3352,8 +3356,8 @@
   }
 
   .spriteDialogue p {
-    font-size: 0.9rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.42;
   }
 
   .spriteDialogue::before {
@@ -3433,12 +3437,12 @@
   }
 
   .choiceButton {
-    min-height: 52px;
+    min-height: 56px;
     padding: 13px 12px;
   }
 
   .questionInput {
-    min-height: 170px;
+    min-height: 152px;
     font-size: 16px;
   }
 
@@ -3512,7 +3516,7 @@
   }
 
   .spriteActor {
-    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-columns: 68px minmax(0, 1fr);
     padding: 8px;
   }
 
@@ -3584,12 +3588,12 @@
   }
 
   .heroSection {
-    min-height: 100svh;
-    padding: 10px;
+    min-height: 100dvh;
+    padding: max(8px, env(safe-area-inset-top, 0px)) 8px max(8px, env(safe-area-inset-bottom, 0px));
   }
 
   .vnStage {
-    min-height: calc(100svh - 20px);
+    min-height: calc(100dvh - 16px);
     background:
       linear-gradient(180deg, rgba(5, 8, 18, 0.16) 0%, rgba(5, 8, 18, 0.62) 100%),
       var(--neo-bg-mobile);
@@ -3607,20 +3611,21 @@
 
   .vnCopy {
     width: 100%;
-    padding: 24px 18px 0;
+    padding: max(18px, calc(env(safe-area-inset-top, 0px) + 12px)) 16px 0;
     gap: 10px;
   }
 
   .vnCopy h1 {
     max-width: 100%;
-    font-size: 3.05rem;
+    font-size: 2.86rem;
     line-height: 0.96;
     overflow-wrap: anywhere;
   }
 
   .vnCopy .subtitle {
-    max-width: 56%;
-    font-size: 1.22rem;
+    max-width: 64%;
+    font-size: 1.02rem;
+    line-height: 1.42;
   }
 
   .entryBrief {
@@ -3641,10 +3646,10 @@
   }
 
   .vnCharacter {
-    right: -5vw;
-    bottom: 188px;
-    width: min(70vw, 318px);
-    height: min(44svh, 360px);
+    right: -8vw;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 176px);
+    width: min(64vw, 292px);
+    height: min(38dvh, 330px);
   }
 
   .vnCharacterImage {
@@ -3661,43 +3666,43 @@
 
   .vnCharacter[data-scene^="sprite"] {
     right: 6vw;
-    bottom: 150px;
-    width: min(44vw, 220px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 156px);
+    width: min(42vw, 204px);
   }
 
   .vnCharacter[data-scene="hidden"] {
     right: 6vw;
-    bottom: 168px;
-    width: min(48vw, 220px);
-    height: min(34svh, 280px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 174px);
+    width: min(44vw, 204px);
+    height: min(30dvh, 260px);
   }
 
   .vnCharacter[data-scene="shadow"] {
     right: 6vw;
-    bottom: 226px;
-    width: min(46vw, 220px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 214px);
+    width: min(42vw, 200px);
     height: auto;
   }
 
   .vnCharacter[data-scene="lion"],
   .vnCharacter[data-scene="lionGlitch"] {
     right: 7vw;
-    bottom: 218px;
-    width: min(42vw, 204px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 208px);
+    width: min(38vw, 186px);
   }
 
   .vnCharacter[data-scene="morph"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: -3vw;
-    bottom: 300px;
-    width: min(66vw, 312px);
-    height: min(40svh, 360px);
+    right: -6vw;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 264px);
+    width: min(62vw, 286px);
+    height: min(34dvh, 328px);
   }
 
   .vnStage[data-phase="prologue"] .vnCharacter[data-scene="humanNeo"] {
     right: 7vw;
-    bottom: 226px;
-    width: min(46vw, 220px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 210px);
+    width: min(42vw, 198px);
     height: auto;
     aspect-ratio: 1 / 1;
   }
@@ -3712,8 +3717,8 @@
   .vnMorphNeo {
     right: 0;
     bottom: -8%;
-    width: min(58vw, 268px);
-    height: min(42svh, 360px);
+    width: min(54vw, 248px);
+    height: min(36dvh, 328px);
   }
 
   .vnMorphRing {
@@ -3723,14 +3728,14 @@
   .vnDialogueBox {
     left: 12px;
     right: 12px;
-    bottom: 12px;
-    min-height: 142px;
-    padding: 15px;
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    min-height: 132px;
+    padding: 13px 14px;
   }
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
-    min-height: 172px;
-    padding: 16px 16px 92px;
+    min-height: 158px;
+    padding: 14px 14px 84px;
   }
 
   .vnDialogueBox[data-speaker="customer"] {
@@ -3742,13 +3747,13 @@
   }
 
   .vnDialogueBox p {
-    font-size: 1rem;
-    line-height: 1.58;
+    font-size: 0.94rem;
+    line-height: 1.5;
   }
 
   .vnStage[data-phase="prologue"] .vnDialogueBox p {
-    font-size: 0.98rem;
-    line-height: 1.64;
+    font-size: 0.92rem;
+    line-height: 1.54;
   }
 
   .vnNotificationCard {
@@ -3758,7 +3763,7 @@
   .vnControlRow {
     right: 12px;
     left: 12px;
-    bottom: 216px;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 146px);
     max-width: none;
     display: flex;
     align-items: center;
@@ -3769,7 +3774,7 @@
   .vnStage[data-phase="prologue"] .vnControlRow {
     left: 12px;
     right: 12px;
-    bottom: 28px;
+    bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 18px));
     max-width: none;
     display: flex;
     align-items: center;
@@ -3778,7 +3783,7 @@
   }
 
   .vnGhostButton {
-    min-height: 42px;
+    min-height: 44px;
     padding: 9px 12px;
     font-size: 0.76rem;
     flex: 0 0 auto;
@@ -3789,7 +3794,7 @@
 
   .vnStartButton {
     max-width: min(252px, calc(100vw - 24px));
-    min-height: 58px;
+    min-height: 56px;
     grid-template-columns: 48px minmax(0, 1fr);
     padding: 8px 12px 8px 8px;
     font-size: 0.78rem;
@@ -3848,20 +3853,20 @@
   }
 
   .vnCopy h1 {
-    font-size: 2.72rem;
+    font-size: 2.46rem;
   }
 
   .vnCharacter {
-    right: -8vw;
-    bottom: 202px;
-    width: min(74vw, 296px);
-    height: min(40svh, 320px);
+    right: -10vw;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 166px);
+    width: min(68vw, 264px);
+    height: min(34dvh, 286px);
   }
 
   .vnCharacter[data-scene^="sprite"] {
     right: 4vw;
-    bottom: 160px;
-    width: min(48vw, 190px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 150px);
+    width: min(42vw, 172px);
     height: auto;
   }
 
@@ -3869,29 +3874,29 @@
   .vnCharacter[data-scene="lion"],
   .vnCharacter[data-scene="lionGlitch"] {
     right: 4vw;
-    bottom: 226px;
-    width: min(42vw, 168px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 204px);
+    width: min(38vw, 154px);
   }
 
   .vnCharacter[data-scene="shadow"] {
     right: 4vw;
-    bottom: 226px;
-    width: min(44vw, 172px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 204px);
+    width: min(40vw, 160px);
     height: auto;
   }
 
   .vnCharacter[data-scene="morph"],
   .vnCharacter[data-scene="humanNeo"] {
-    right: -5vw;
-    bottom: 324px;
-    width: min(68vw, 252px);
-    height: min(36svh, 312px);
+    right: -8vw;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 246px);
+    width: min(62vw, 226px);
+    height: min(31dvh, 282px);
   }
 
   .vnStage[data-phase="prologue"] .vnCharacter[data-scene="humanNeo"] {
     right: 5vw;
-    bottom: 226px;
-    width: min(48vw, 190px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 204px);
+    width: min(42vw, 172px);
     height: auto;
     aspect-ratio: 1 / 1;
   }
@@ -3905,20 +3910,20 @@
   }
 
   .vnDialogueBox {
-    min-height: 154px;
+    min-height: 142px;
   }
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
-    min-height: 184px;
-    padding-bottom: 96px;
+    min-height: 168px;
+    padding-bottom: 88px;
   }
 
   .vnControlRow {
-    bottom: 226px;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 154px);
   }
 
   .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: 28px;
+    bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px));
   }
 }
 

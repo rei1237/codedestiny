@@ -32,11 +32,11 @@ const talkingPigFrames = [
 
 const landingPetals = Array.from({ length: 16 }, (_, index) => index);
 const landingSceneUi =
-  "relative isolate min-h-svh overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
+  "relative isolate min-h-[100dvh] overflow-hidden bg-[#080511] text-[#fffaf1] antialiased";
 const landingHeroUi =
-  "relative isolate min-h-svh overflow-hidden";
+  "relative isolate min-h-[100dvh] overflow-hidden";
 const landingCopyUi =
-  "relative z-10 max-w-[620px] [text-wrap:balance]";
+  "relative z-10 mx-auto max-w-[620px] [text-wrap:balance] lg:mx-0";
 const landingBadgeUi =
   "inline-flex items-center justify-center !rounded-full !border !border-[#f6dfb7]/25 !bg-[#12091f]/40 px-4 py-2 !font-[var(--tea-font-premium)] !text-[0.78rem] !font-semibold !tracking-[0] !text-[#ffe8a6] !shadow-[0_12px_28px_rgba(4,2,12,0.2),0_0_22px_rgba(246,223,183,0.12)] ring-1 ring-white/10 backdrop-blur-md";
 const landingTitleUi =
@@ -50,15 +50,15 @@ const landingActionsUi =
 const landingHistoryUi =
   "mt-3 flex min-h-11 w-full max-w-[460px] items-center justify-center gap-2 !rounded-[0.85rem] !border !border-[#f6dfb7]/20 !bg-[#12091f]/35 px-4 py-2.5 !font-[var(--tea-font-premium)] !text-[0.92rem] !font-semibold !text-[#fffaf1]/90 !shadow-[0_12px_28px_rgba(4,2,12,0.2),inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/5 backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:!border-[#ffe8a6]/45 hover:!text-[#fffaf1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/75";
 const landingGuideUi =
-  "relative z-10 mx-auto mb-12 mt-7 grid w-full max-w-[1180px] grid-cols-1 gap-3 px-3 text-[#fffaf1]/90 md:mb-16 md:mt-10 md:px-4 lg:grid-cols-3 lg:gap-5";
+  "relative z-10 mx-auto mb-10 mt-4 grid w-full max-w-[1180px] grid-cols-1 gap-3 px-4 text-[#fffaf1]/90 sm:mt-6 md:mb-16 md:mt-10 lg:grid-cols-3 lg:gap-5";
 const landingGuideCardUi =
-  "grid min-w-0 content-start gap-3 rounded-[8px] border border-[#f6dfb7]/20 p-4 md:p-6";
+  "grid min-w-0 content-start gap-2.5 rounded-[8px] border border-[#f6dfb7]/20 p-4 sm:p-5 md:gap-3 md:p-6";
 const landingGuideBadgeUi =
   "w-fit rounded-full border border-[#f6dfb7]/30 bg-[#12091f]/45 px-2.5 py-1 !font-[var(--tea-font-premium)] !text-[0.72rem] !font-extrabold !leading-none !tracking-[0] !text-[#ffe8a6]";
 const landingGuideTitleUi =
-  "m-0 !font-[var(--tea-font-display)] !text-[1.08rem] !font-medium !leading-[1.36] !tracking-[0] !text-[#fffaf1] md:!text-[1.28rem] lg:!text-[1.4rem]";
+  "m-0 !font-[var(--tea-font-display)] !text-[1.03rem] !font-medium !leading-[1.34] !tracking-[0] !text-[#fffaf1] md:!text-[1.28rem] lg:!text-[1.4rem]";
 const landingGuideBodyUi =
-  "m-0 break-keep !font-[var(--tea-font-body)] !text-[0.88rem] !font-medium !leading-[1.72] !text-[#fff7e8]/80 md:!text-[0.94rem] md:!leading-[1.82]";
+  "m-0 break-keep !font-[var(--tea-font-body)] !text-[0.84rem] !font-medium !leading-[1.66] !text-[#fff7e8]/80 md:!text-[0.94rem] md:!leading-[1.82]";
 const landingGuideCardStyle: CSSProperties = {
   background:
     "radial-gradient(circle at 18% 0%, rgba(246, 223, 183, 0.13), transparent 38%), linear-gradient(145deg, rgba(18, 9, 31, 0.78), rgba(38, 19, 56, 0.58))",
@@ -231,7 +231,7 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
           </p>
         </article>
         <article className={landingGuideCardUi} style={landingGuideCardStyle}>
-          <span className={landingGuideBadgeUi}>Yeoni's Promise</span>
+          <span className={landingGuideBadgeUi}>Yeoni&apos;s Promise</span>
           <h2 className={landingGuideTitleUi}>상처를 크게 만들지 않고, 필요한 말은 흐리지 않습니다</h2>
           <p className={landingGuideBodyUi}>
             운명의 찻집은 마음을 재촉하지 않습니다. 다만 같은 걱정을 오래 품고 있었다면, 그 걱정이

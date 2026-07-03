@@ -16082,13 +16082,13 @@
 }
 
 .page[data-stage="landing"] .landingScene {
-  min-height: 100svh;
+  min-height: 100dvh;
   overflow: hidden;
   background: #080511;
 }
 
 .page[data-stage="landing"] .landingHero {
-  min-height: 100svh;
+  min-height: 100dvh;
   background-image:
     linear-gradient(90deg, rgba(7, 3, 16, 0.78) 0%, rgba(7, 3, 16, 0.44) 45%, rgba(7, 3, 16, 0.2) 100%),
     var(--landing-bg-desktop);
@@ -16110,7 +16110,7 @@
 }
 
 .page[data-stage="landing"] .landingHeroContent {
-  min-height: 100svh;
+  min-height: 100dvh;
   grid-template-columns: minmax(0, 560px) minmax(240px, 0.86fr);
   align-items: center;
   justify-content: space-between;
@@ -16263,6 +16263,7 @@
 
 @media (max-width: 980px) {
   .page[data-stage="landing"] .landingHero {
+    min-height: 100dvh;
     background-image:
       linear-gradient(180deg, rgba(7, 3, 16, 0.8) 0%, rgba(7, 3, 16, 0.52) 48%, rgba(7, 3, 16, 0.34) 100%),
       var(--landing-bg-mobile);
@@ -16270,11 +16271,12 @@
 
   .page[data-stage="landing"] .landingHeroContent {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(190px, 1fr);
-    align-content: start;
+    grid-template-rows: auto minmax(150px, 1fr);
+    min-height: 100dvh;
+    align-content: stretch;
     justify-items: center;
-    gap: 20px;
-    padding: 62px 20px max(20px, env(safe-area-inset-bottom));
+    gap: 14px;
+    padding: max(52px, calc(env(safe-area-inset-top, 0px) + 48px)) 18px max(18px, env(safe-area-inset-bottom, 0px));
   }
 
   .page[data-stage="landing"] .landingCopy {
@@ -16291,12 +16293,14 @@
     margin-left: auto;
     margin-right: auto;
     font-size: 1.14rem;
+    max-width: 480px;
   }
 
   .page[data-stage="landing"] .landingIntro {
     margin-left: auto;
     margin-right: auto;
     font-size: 0.94rem;
+    max-width: 460px;
   }
 
   .page[data-stage="landing"] .landingActions,
@@ -16307,18 +16311,18 @@
 
   .page[data-stage="landing"] .landingVisual {
     align-self: end;
-    width: min(100%, 360px);
-    min-height: 218px;
+    width: min(100%, 340px);
+    min-height: clamp(152px, 28dvh, 218px);
   }
 
   .page[data-stage="landing"] .landingPigMascot {
-    width: 178px;
+    width: 166px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
     left: 50%;
     top: auto;
-    bottom: 10px;
+    bottom: clamp(4px, 1.2dvh, 12px);
     width: min(calc(100vw - 40px), 330px);
     max-width: 330px;
     min-height: 0;
@@ -16334,8 +16338,8 @@
 
 @media (max-width: 640px) {
   .page[data-stage="landing"] .landingHeroContent {
-    gap: 16px;
-    padding: 54px 16px max(18px, env(safe-area-inset-bottom));
+    gap: 12px;
+    padding: max(48px, calc(env(safe-area-inset-top, 0px) + 44px)) 16px max(16px, env(safe-area-inset-bottom, 0px));
   }
 
   .page[data-stage="landing"] .landingBadge {
@@ -16344,82 +16348,83 @@
   }
 
   .page[data-stage="landing"] .landingCopy h1 {
-    margin-top: 13px;
-    font-size: 3rem;
+    margin-top: 11px;
+    font-size: 2.78rem;
     line-height: 1;
   }
 
   .page[data-stage="landing"] .landingLead {
-    margin-top: 15px;
-    font-size: 1.02rem;
-    line-height: 1.54;
+    margin-top: 13px;
+    font-size: 0.98rem;
+    line-height: 1.5;
   }
 
   .page[data-stage="landing"] .landingIntro {
-    margin-top: 10px;
-    font-size: 0.88rem;
-    line-height: 1.62;
+    margin-top: 9px;
+    font-size: 0.84rem;
+    line-height: 1.56;
   }
 
   .page[data-stage="landing"] .landingActions {
-    margin-top: 18px;
+    margin-top: 14px;
   }
 
   .page[data-stage="landing"] .landingActions .teaButton,
   .page[data-stage="landing"] .landingHistoryButton {
     width: min(100%, 340px);
+    min-height: 48px;
   }
 
   .page[data-stage="landing"] .landingVisual {
-    min-height: 196px;
+    min-height: clamp(150px, 24dvh, 184px);
   }
 
   .page[data-stage="landing"] .landingPigMascot {
-    width: 150px;
+    width: 138px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
     left: 50%;
     top: auto;
-    bottom: 4px;
-    padding: 15px 17px 17px;
+    bottom: 0;
+    padding: 13px 16px 15px;
     transform: translateX(-50%);
   }
 
   .page[data-stage="landing"] .landingSpeechWrap p {
-    font-size: 0.84rem;
-    line-height: 1.52;
+    font-size: 0.8rem;
+    line-height: 1.48;
   }
 }
 
 @media (max-width: 390px) {
   .page[data-stage="landing"] .landingHeroContent {
-    padding-top: 46px;
+    padding-top: max(44px, calc(env(safe-area-inset-top, 0px) + 40px));
   }
 
   .page[data-stage="landing"] .landingCopy h1 {
-    font-size: 2.58rem;
+    font-size: 2.38rem;
   }
 
   .page[data-stage="landing"] .landingLead {
-    font-size: 0.96rem;
+    font-size: 0.9rem;
   }
 
   .page[data-stage="landing"] .landingIntro {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
   }
 
   .page[data-stage="landing"] .landingVisual {
-    min-height: 174px;
+    min-height: 150px;
   }
 
   .page[data-stage="landing"] .landingPigMascot {
-    width: 132px;
+    width: 118px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
     width: min(calc(100vw - 28px), 304px);
-    padding: 13px 15px 15px;
+    padding: 12px 14px 14px;
   }
 }
 
@@ -16429,7 +16434,7 @@
   }
 
   .page[data-stage="landing"] .landingVisual {
-    min-height: 158px;
+    min-height: 136px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {

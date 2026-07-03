@@ -3,7 +3,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, mongoose } from "../lib/db.js";
-import { LoveSecretAiConsultation, MonthlyCreditLedger, Payment, PointHistory, User } from "../lib/models.js";
+import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
@@ -472,38 +472,78 @@ function collectBillingEvidenceIds(body = {}) {
     const id = clean(value, 180);
     if (id) ids.add(id);
   };
-  const payment = objectOf(body.payment);
-  const accessGrant = objectOf(body.accessGrant);
-  const consume = objectOf(body.consume);
-  [
-    body.paymentId,
-    body.transactionId,
-    body.purchaseId,
-    body.ledgerId,
-    body.attemptId,
-    body.requestId,
-    body.idempotencyKey,
-    body.orderId,
-    payment.paymentId,
-    payment.impUid,
-    payment.merchantUid,
-    payment.transactionId,
-    payment.purchaseId,
-    payment.requestId,
-    accessGrant.paymentId,
-    accessGrant.purchaseId,
-    accessGrant.transactionId,
-    accessGrant.ledgerId,
-    accessGrant.evidenceId,
-    accessGrant.requestId,
-    consume.paymentId,
-    consume.purchaseId,
-    consume.transactionId,
-    consume.ledgerId,
-    consume.evidenceId,
-    consume.requestId,
-  ].forEach(add);
+  const visit = (source, depth = 0) => {
+    if (!source || typeof source !== "object" || Array.isArray(source) || depth > 3) return;
+    [
+      "_id",
+      "id",
+      "paymentId",
+      "merchantUid",
+      "merchant_uid",
+      "impUid",
+      "imp_uid",
+      "transactionId",
+      "purchaseId",
+      "ledgerId",
+      "attemptId",
+      "requestId",
+      "idempotencyKey",
+      "orderId",
+      "executionId",
+      "evidenceId",
+      "pointHistoryId",
+      "monthlyCreditLedgerId",
+      "receiptId",
+    ].forEach((key) => add(source[key]));
+    [
+      "data",
+      "billingGate",
+      "billing",
+      "billingResult",
+      "paymentContext",
+      "_paymentContext",
+      "consume",
+      "accessGrant",
+      "payment",
+      "pricing",
+      "runtimeGate",
+      "metadata",
+    ].forEach((key) => visit(source[key], depth + 1));
+  };
+  visit(body);
   return [...ids];
+}
+
+function paymentIdFromBillingBody(body = {}) {
+  const ids = collectBillingEvidenceIds(body);
+  return clean(
+    body.paymentId
+      || objectOf(body.payment).paymentId
+      || objectOf(body.payment).impUid
+      || objectOf(body.payment).merchantUid
+      || ids[0],
+    160,
+  );
+}
+
+function buildPaidExecutionEvidenceQuery(ids) {
+  const or = [];
+  ids.forEach((id) => {
+    or.push(
+      { requestId: id },
+      { idempotencyKey: id },
+      { executionId: id },
+      { paymentId: id },
+      { orderId: id },
+      { "result.deferredUsage.requestId": id },
+      { "result.deferredUsage.paymentId": id },
+      { "result.deferredUsage.evidence.paymentId": id },
+      { "result.deferredUsage.evidence.pointHistoryId": id },
+      { "result.deferredUsage.evidence.ledgerId": id },
+    );
+    if (isObjectIdLike(id)) or.push({ _id: id });
+  });
+  return or;
 }
 
 function buildPointHistoryEvidenceQuery(ids) {
@@ -517,8 +557,9 @@ function buildPointHistoryEvidenceQuery(ids) {
       { "metadata.transactionId": id },
       { "metadata.ledgerId": id },
       { "metadata.evidenceId": id },
+      { "metadata.paymentId": id },
     );
-    if (isObjectIdLike(id)) or.push({ _id: id });
+    if (isObjectIdLike(id)) or.push({ _id: id }, { paymentId: id });
   });
   return or;
 }
@@ -536,16 +577,70 @@ function buildMonthlyLedgerEvidenceQuery(ids) {
       { "metadata.transactionId": id },
       { "metadata.ledgerId": id },
       { "metadata.evidenceId": id },
+      { "metadata.paymentId": id },
     );
     if (isObjectIdLike(id)) or.push({ _id: id });
   });
   return or;
 }
 
+function buildPaymentEvidenceQuery(ids) {
+  const or = [];
+  ids.forEach((id) => {
+    or.push(
+      { impUid: id },
+      { merchantUid: id },
+      { requestId: id },
+      { idempotencyKey: id },
+      { "metadata.requestId": id },
+      { "metadata.idempotencyKey": id },
+      { "metadata.purchaseId": id },
+      { "metadata.transactionId": id },
+      { "metadata.paymentId": id },
+    );
+    if (isObjectIdLike(id)) or.push({ _id: id });
+  });
+  return or;
+}
+
+function mapBillingEvidenceAccessType(value) {
+  const text = clean(value, 100).toLowerCase();
+  if (/membership_credit|monthly|subscription/.test(text)) return "subscription";
+  if (/membership_pass|family|pass|license/.test(text)) return "pass";
+  return "paid";
+}
+
 async function resolveBillingUsageEvidence(env, auth, body = {}) {
   const ids = collectBillingEvidenceIds(body);
   if (!ids.length) return null;
   await connectDb(env);
+  const deferredOr = buildPaidExecutionEvidenceQuery(ids);
+  const deferredRecord = deferredOr.length
+    ? await PaidExecutionRecord.findOne({
+      userId: clean(auth.userId),
+      featureId: FEATURE_KEY,
+      status: { $in: ["paid_pending_generation", "completed", "paid", "success", "fulfilled"] },
+      $or: deferredOr,
+    }).sort({ updatedAt: -1, createdAt: -1 }).select("_id executionId requestId paymentId accessMethod result status").lean()
+    : null;
+  if (deferredRecord) {
+    const deferredUsage = objectOf(objectOf(deferredRecord.result).deferredUsage);
+    const accessType = mapBillingEvidenceAccessType(deferredUsage.accessType || deferredUsage.paymentMethod || deferredRecord.accessMethod);
+    return {
+      ok: true,
+      accessType,
+      accessSource: accessType === "subscription" ? "billing_gate_membership_credit" : accessType === "pass" ? "billing_gate_pass" : "billing_gate_paid",
+      paymentId: clean(deferredRecord.paymentId || deferredRecord.executionId || deferredRecord._id, 160),
+      billingEvidence: {
+        executionId: clean(deferredRecord.executionId, 160),
+        requestId: clean(deferredRecord.requestId, 180),
+        paymentId: clean(deferredRecord.paymentId, 160),
+        accessMethod: clean(deferredRecord.accessMethod, 80),
+        deferredUsage,
+      },
+    };
+  }
+
   const pointOr = buildPointHistoryEvidenceQuery(ids);
   const pointHistory = pointOr.length
     ? await PointHistory.findOne({
@@ -557,24 +652,26 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
         { $or: pointOr },
         {
           $or: [
-            { "metadata.accessType": { $in: ["membership_credit", "coin", "single_purchase"] } },
-            { "metadata.transactionType": { $in: ["membership_credit", "coin", "single_purchase"] } },
-            { "metadata.accessMethod": { $in: ["MONTHLY", "COIN", "DIRECT_KRW"] } },
-            { "metadata.paymentMethod": { $in: ["MONTHLY", "COIN", "DIRECT_KRW"] } },
+            { "metadata.accessType": { $in: ["membership_credit", "membership_pass", "family", "family_pass", "coin", "single_purchase"] } },
+            { "metadata.transactionType": { $in: ["membership_credit", "membership_pass", "family", "family_pass", "coin", "single_purchase"] } },
+            { "metadata.accessMethod": { $in: ["MONTHLY", "MONTHLY_CREDIT", "MOONLIGHT_STONE", "PASS", "MEMBERSHIP_PASS", "FAMILY", "FAMILY_PASS", "COIN", "DIRECT_KRW"] } },
+            { "metadata.paymentMethod": { $in: ["MONTHLY", "MONTHLY_CREDIT", "MOONLIGHT_STONE", "PASS", "MEMBERSHIP_PASS", "FAMILY", "FAMILY_PASS", "COIN", "DIRECT_KRW"] } },
           ],
         },
       ],
     }).select("_id metadata").lean()
     : null;
   if (pointHistory) {
-    const accessType = clean(pointHistory?.metadata?.accessType).toLowerCase();
-    const isMonthly = accessType === "membership_credit"
-      || clean(pointHistory?.metadata?.transactionType).toLowerCase() === "membership_credit"
-      || clean(pointHistory?.metadata?.accessMethod).toUpperCase() === "MONTHLY";
+    const accessType = mapBillingEvidenceAccessType(
+      pointHistory?.metadata?.accessType
+        || pointHistory?.metadata?.transactionType
+        || pointHistory?.metadata?.accessMethod
+        || pointHistory?.metadata?.paymentMethod,
+    );
     return {
       ok: true,
-      accessType: isMonthly ? "subscription" : "paid",
-      accessSource: isMonthly ? "billing_gate_membership_credit" : "billing_gate_paid",
+      accessType,
+      accessSource: accessType === "subscription" ? "billing_gate_membership_credit" : accessType === "pass" ? "billing_gate_pass" : "billing_gate_paid",
       paymentId: String(pointHistory._id || body.paymentId || ""),
       billingEvidence: {
         pointHistoryId: String(pointHistory._id || ""),
@@ -608,6 +705,32 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
         pointHistoryId: clean(ledger?.metadata?.pointHistoryId, 160),
         purchaseId: clean(ledger.sourceId || ledger?.metadata?.purchaseId || ledger?.metadata?.requestId, 160),
         membershipCreditCost: Math.max(0, Math.floor(Number(ledger.amount || ledger?.metadata?.requiredMonthlyCredits || 0))),
+      },
+    };
+  }
+  const paymentOr = buildPaymentEvidenceQuery(ids);
+  const payment = paymentOr.length
+    ? await Payment.findOne({
+      userId: auth.userId,
+      paymentType: "digital_content",
+      status: { $in: ["paid", "success", "fulfilled"] },
+      $and: [
+        { $or: paymentOr },
+        { $or: [{ featureKey: FEATURE_KEY }, { "pricingSnapshot.featureKey": FEATURE_KEY }, { "metadata.featureKey": FEATURE_KEY }] },
+      ],
+    }).sort({ paidAt: -1, updatedAt: -1, createdAt: -1 }).select("_id merchantUid impUid requestId idempotencyKey").lean()
+    : null;
+  if (payment) {
+    return {
+      ok: true,
+      accessType: "paid",
+      accessSource: "billing_gate_paid",
+      paymentId: clean(payment.merchantUid || payment.impUid || payment.requestId || payment.idempotencyKey || payment._id, 160),
+      billingEvidence: {
+        paymentId: clean(payment._id, 160),
+        merchantUid: clean(payment.merchantUid, 160),
+        impUid: clean(payment.impUid, 160),
+        requestId: clean(payment.requestId || payment.idempotencyKey, 180),
       },
     };
   }
@@ -995,7 +1118,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 
   const user = await loadBillingUser(auth.userId);
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
+  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, paymentId: paymentIdFromBillingBody(body) });
 }
 
 async function handleStart(request, env, route = "/api/love-secret-ai/generate") {

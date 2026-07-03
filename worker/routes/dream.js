@@ -1,6 +1,10 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 
+const DREAM_PSYCHO_FEATURE_KEY = "dream-psycho-analysis";
+const DREAM_PSYCHO_FEATURE_REASON = "정신분석 해몽";
 const DREAM_PSYCHO_GEMINI_MODEL_KEYS = Object.freeze([
   "DREAM_PSYCHO_GEMINI_MODEL",
   "PSYCHO_DREAM_GEMINI_MODEL",
@@ -8,6 +12,7 @@ const DREAM_PSYCHO_GEMINI_MODEL_KEYS = Object.freeze([
 ]);
 
 let dreamGeminiCaller = callGeminiText;
+let dreamPsychoAccessVerifier = verifyPsychoDreamAccess;
 
 export function __setDreamGeminiCallerForTest(fn) {
   dreamGeminiCaller = typeof fn === "function" ? fn : callGeminiText;
@@ -15,6 +20,50 @@ export function __setDreamGeminiCallerForTest(fn) {
 
 export function __resetDreamGeminiCallerForTest() {
   dreamGeminiCaller = callGeminiText;
+}
+
+export function __setDreamPsychoAccessVerifierForTest(fn) {
+  dreamPsychoAccessVerifier = typeof fn === "function" ? fn : verifyPsychoDreamAccess;
+}
+
+export function __resetDreamPsychoAccessVerifierForTest() {
+  dreamPsychoAccessVerifier = verifyPsychoDreamAccess;
+}
+
+async function verifyPsychoDreamAccess(request, env = {}) {
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (error) {
+    if (Number(error?.status) === 401) {
+      return { ok: false, status: 401, code: "LOGIN_REQUIRED", message: "로그인 후 정신분석 해몽을 이용해 주세요." };
+    }
+    throw error;
+  }
+
+  const decision = await canAccessPaidFeature(auth.userId, DREAM_PSYCHO_FEATURE_KEY, {
+    env,
+    reason: DREAM_PSYCHO_FEATURE_REASON,
+  });
+  if (decision?.allowed) {
+    return {
+      ok: true,
+      auth,
+      accessType: String(decision.licenseType || decision.accessSource || "paid").trim(),
+      accessSource: String(decision.accessSource || decision.reason || "").trim(),
+    };
+  }
+
+  return {
+    ok: false,
+    status: decision?.reason === "LOGIN_REQUIRED" ? 401 : 402,
+    code: decision?.reason === "LOGIN_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_REQUIRED",
+    message: decision?.reason === "LOGIN_REQUIRED" ? "로그인 후 정신분석 해몽을 이용해 주세요." : "정신분석 해몽 결제 확인이 필요합니다.",
+    detail: {
+      reason: String(decision?.reason || "PAYMENT_REQUIRED").trim(),
+      requiredFeatureKey: DREAM_PSYCHO_FEATURE_KEY,
+    },
+  };
 }
 
 function normalizeDreamText(payload) {
@@ -923,6 +972,20 @@ async function handlePsychoAnalysis(request, env = {}) {
   const normalized = normalizeDreamText(body);
   if (!normalized.ok) {
     return json({ ok: false, message: normalized.message }, { status: 400 });
+  }
+
+  const access = await dreamPsychoAccessVerifier(request, env, body);
+  if (!access?.ok) {
+    const status = Number(access?.status || 402);
+    return json({
+      ok: false,
+      code: access?.code || (status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_REQUIRED"),
+      message: access?.message || (status === 401 ? "로그인 후 정신분석 해몽을 이용해 주세요." : "정신분석 해몽 결제 확인이 필요합니다."),
+      detail: {
+        ...(access?.detail && typeof access.detail === "object" ? access.detail : {}),
+        requiredFeatureKey: DREAM_PSYCHO_FEATURE_KEY,
+      },
+    }, { status });
   }
 
   const tone = normalizePsychoTone(body, normalized.text);

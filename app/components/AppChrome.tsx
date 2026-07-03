@@ -1,10 +1,14 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import type { ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ArrowLeft, Home } from "lucide-react";
 import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
+
+const HOME_ROUTE = "/";
 
 const DeferredSiteFooterHub = dynamic(() => import("./SiteFooterHub"), {
   ssr: false,
@@ -54,6 +58,11 @@ const CHROMELESS_ROUTES = [
   "/saju-guardian",
 ];
 
+const FEATURE_NAV_EXTRA_ROUTES = [
+  "/premium-unlock",
+  "/pdf/life-book",
+];
+
 function useFooterInView(enabled: boolean) {
   const footerMountRef = useRef<HTMLDivElement | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -79,6 +88,66 @@ function useFooterInView(enabled: boolean) {
   }, [enabled, isReady]);
 
   return { footerMountRef, isReady };
+}
+
+function isUnsafePaymentReferrer(referrer: string) {
+  if (!referrer) return true;
+  try {
+    const url = new URL(referrer);
+    if (url.origin !== window.location.origin) return true;
+    return /\/api\/(payments|billing)|payment|checkout|confirm|portone/i.test(url.pathname + url.search);
+  } catch {
+    return true;
+  }
+}
+
+function FeatureBackHomeNav() {
+  const router = useRouter();
+
+  const goHome = useCallback(() => {
+    router.push(HOME_ROUTE);
+  }, [router]);
+
+  const goBack = useCallback(() => {
+    if (typeof window === "undefined") {
+      router.push(HOME_ROUTE);
+      return;
+    }
+    const canUseHistory = window.history.length > 1 && !isUnsafePaymentReferrer(document.referrer);
+    if (canUseHistory) {
+      const startPath = `${window.location.pathname}${window.location.search}`;
+      window.history.back();
+      window.setTimeout(() => {
+        if (`${window.location.pathname}${window.location.search}` === startPath) router.replace(HOME_ROUTE);
+      }, 240);
+      return;
+    }
+    router.push(HOME_ROUTE);
+  }, [router]);
+
+  return (
+    <nav
+      aria-label="Feature navigation"
+      className="pointer-events-none fixed left-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[2147481200] flex items-center gap-2 sm:left-4"
+    >
+      <button
+        type="button"
+        onClick={goBack}
+        className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/18 bg-slate-950/62 text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+        aria-label="이전 페이지로 이동"
+      >
+        <ArrowLeft className="h-5 w-5" aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        onClick={goHome}
+        className="pointer-events-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/30 bg-[linear-gradient(135deg,rgba(15,23,42,0.78),rgba(70,49,118,0.68),rgba(184,134,48,0.42))] px-4 text-sm font-black text-amber-50 no-underline shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-amber-100/54 hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
+      >
+        <Home className="h-4 w-4" aria-hidden="true" />
+        <span>홈</span>
+      </button>
+    </nav>
+  );
 }
 
 function FooterWarmupPreview() {
@@ -135,13 +204,19 @@ function FooterWarmupPreview() {
   );
 }
 
-export default function AppChrome({ children }: { children: React.ReactNode }) {
+export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const hideChrome = CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const showFeatureNav = pathname !== HOME_ROUTE && (
+    hideChrome
+    || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
+    || /\/(result|play|start)(?=\/|$)/.test(pathname)
+  );
   const footer = useFooterInView(!hideChrome);
   return (
     <>
       {!hideChrome && <GlobalHeader />}
+      {showFeatureNav && <FeatureBackHomeNav />}
       {children}
       {!hideChrome && <DisclaimerBanner />}
       {!hideChrome && (

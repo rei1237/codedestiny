@@ -113,13 +113,18 @@ const LUNAR_SCENE_STARS = [
   { x: 88, y: 218, r: 1.5, opacity: 0.3, delay: 1.5 },
 ];
 const SECTION_ICONS: Record<string, string> = {
-  essence: "☽",
-  chemistry: "✦",
+  overview: "☯",
+  twoStars: "☽",
+  attraction: "✦",
   conflict: "〜",
   timing: "◎",
   caution: "⚠",
-  strength: "◈",
-  prescription: "♡",
+  treasure: "◈",
+  communication: "🗣",
+  domains: "💞",
+  crisis: "🌪",
+  outlook: "🔭",
+  moonLetter: "♡",
 };
 const SCORE_AXES: { key: ScoreKey; label: string; angle: number }[] = [
   { key: "destiny", label: "운명 인연", angle: -90 },
@@ -622,12 +627,48 @@ function TraitCompareTable({ a, b }: { a: CompatPersonMeta; b: CompatPersonMeta 
 }
 
 function chunkReadingSections(sections: Record<string, { title: string; body: string }>) {
-  const entries = Object.entries(sections);
-  return [
-    entries.slice(0, 3),
-    entries.slice(3, 5),
-    entries.slice(5, 7),
-  ].filter((group) => group.length);
+  return Object.entries(sections).map((entry) => [entry]);
+}
+
+function renderInlineRichText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
+    return part;
+  });
+}
+
+function renderRichText(body: string) {
+  return body.split(/\n{2,}/).map((block, blockIndex) => {
+    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+    if (!lines.length) return null;
+    if (lines.every((line) => /^\d+[.)]\s+/.test(line))) {
+      return (
+        <ol key={blockIndex}>
+          {lines.map((line, lineIndex) => <li key={lineIndex}>{renderInlineRichText(line.replace(/^\d+[.)]\s+/, ""))}</li>)}
+        </ol>
+      );
+    }
+    if (lines.every((line) => /^[-*]\s+/.test(line))) {
+      return (
+        <ul key={blockIndex}>
+          {lines.map((line, lineIndex) => <li key={lineIndex}>{renderInlineRichText(line.replace(/^[-*]\s+/, ""))}</li>)}
+        </ul>
+      );
+    }
+    if (lines.every((line) => /^>\s?/.test(line))) {
+      return <blockquote key={blockIndex}>{renderInlineRichText(lines.map((line) => line.replace(/^>\s?/, "")).join(" "))}</blockquote>;
+    }
+    return (
+      <p key={blockIndex}>
+        {lines.map((line, lineIndex) => (
+          <span key={lineIndex}>
+            {renderInlineRichText(line)}
+            {lineIndex < lines.length - 1 ? <br /> : null}
+          </span>
+        ))}
+      </p>
+    );
+  });
 }
 
 function CompatResultModal({ result, onClose, onDownloadError }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void }) {
@@ -733,7 +774,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
                   <span>{SECTION_ICONS[key] || "✦"}</span>
                   <h3>{section.title}</h3>
                 </div>
-                <p>{section.body}</p>
+                <div className={styles.readingBody}>{renderRichText(section.body)}</div>
               </article>
             ))}
           </section>

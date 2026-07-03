@@ -13,6 +13,7 @@ import {
 } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
@@ -281,6 +282,31 @@ async function loadUser(userId) {
     .lean();
 }
 
+function mapPaidFeatureAccessType(decision = {}) {
+  const haystack = [
+    decision.accessSource,
+    decision.licenseType,
+    decision.reason,
+    decision.subscriptionStatus,
+  ].map((item) => clean(item, 100).toLowerCase()).join(" ");
+  if (/admin/.test(haystack)) return "admin";
+  if (/monthly|subscription|membership_credit/.test(haystack)) return "subscription";
+  if (/pass|family|license/.test(haystack)) return "pass";
+  return "paid";
+}
+
+function isReusablePaidFeatureAccess(decision = {}) {
+  if (!decision?.allowed) return false;
+  const haystack = [
+    decision.accessSource,
+    decision.licenseType,
+    decision.reason,
+    decision.subscriptionStatus,
+  ].map((item) => clean(item, 100).toLowerCase()).join(" ");
+  if (/single_purchase|already_purchased|paidfeatures/.test(haystack)) return false;
+  return /admin|monthly|subscription|membership_credit|license|pass|family/.test(haystack);
+}
+
 async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash) {
   await connectDb(env);
   const existing = await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
@@ -297,6 +323,14 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "" };
+  }
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  if (isReusablePaidFeatureAccess(decision)) {
+    return {
+      ok: true,
+      accessType: mapPaidFeatureAccessType(decision),
+      paymentId: "",
+    };
   }
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
