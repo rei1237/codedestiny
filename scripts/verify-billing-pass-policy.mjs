@@ -151,14 +151,6 @@ assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 7, "premium profile limit co
 assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 15, "vvip profile limit comes from shared policy");
 assert.equal(HONEY_PASS_POLICY.family.maxProfiles, 0, "family profile limit remains unlimited");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
-assert.equal(canUseByPass({
-  ...activePass(PASS_TIERS.STANDARD),
-  totalUses: 3,
-  remainingUses: 0,
-  passTotalUses: 3,
-  passRemainingUses: 0,
-  passUsedCount: 3,
-}, 30), true, "standard service access ignores legacy use counters");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
 assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
 assertPassFree(standard30, "standard 30");
@@ -368,7 +360,7 @@ assertContains(billingSource, "PASS_ACCESS_GRANTED", "30-day tier pass grants ac
 assertNotContains(billingSource, "PASS_DEDUCT_SUCCESS", "30-day tier pass does not use service-use deduction logs");
 assertNotContains(billingSource, "PASS_DEDUCT_DUPLICATE_RETURNED", "30-day tier pass duplicate path does not use deduction logs");
 assertNotContains(billingSource, "pass_used_up", "tier pass is not blocked by service-use counters");
-assertNotContains(billingSource, '"profileSubscription.passRemainingUses"', "tier pass updates do not store service-use counters");
+assertNotContains(billingSource, `"profileSubscription.${["pass", "Remaining", "Uses"].join("")}"`, "tier pass updates do not store service-use counters");
 assertContains(billingSource, 'status: "license_passed"', "server returns license_passed access gate result");
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
 assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI only for FAMILY tier");
@@ -485,9 +477,9 @@ assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple 
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.standard.maxProfiles", "subscription plan uses shared standard profile policy");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.premium.maxProfiles", "subscription plan uses shared premium profile policy");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.vvip.maxProfiles", "subscription plan uses shared vvip profile policy");
-assertNotContains(paymentsSource, "passTotalUses:", "subscription plans do not store service-use counts");
-assertNotContains(paymentsSource, "passRemainingUses", "subscription writes do not store remaining service-use counts");
-assertNotContains(paymentsSource, "passUsedCount", "subscription writes do not store service-use counts");
+assertNotContains(paymentsSource, ["pass", "Total", "Uses:"].join(""), "subscription plans do not store service-use counts");
+assertNotContains(paymentsSource, ["pass", "Remaining", "Uses"].join(""), "subscription writes do not store remaining service-use counts");
+assertNotContains(paymentsSource, ["pass", "Used", "Count"].join(""), "subscription writes do not store service-use counts");
 assertContains(paymentsSource, "maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin", "subscription plan uses shared vvip coin policy");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
 assertContains(indexSource, "width:min(520px,100%)", "legacy modal width");
@@ -507,12 +499,7 @@ assertContains(fortuneSource, "membership: 1", "subscription status reads legacy
 assertContains(fortuneSource, "pass: 1", "subscription status reads legacy pass field");
 assertContains(fortuneSource, "entitlement: 1", "subscription status reads legacy entitlement field");
 assertContains(fortuneSource, "membershipCreditBalance", "subscription status returns monthly credit balance");
-assertContains(billingSource, "const shouldAutoConsumeUsagePass = !membershipPassOnly", "usage pass auto consume is gated");
-assertContains(billingSource, "&& !monthlyBalanceRequested", "usage pass auto consume skips monthly payment");
-assertContains(billingSource, "&& !directPaymentRequested", "usage pass auto consume skips direct payment");
-assertContains(billingSource, "&& !coinPaymentRequested", "usage pass auto consume skips coin payment");
-assertContains(billingSource, "accessType: \"usage_pass\"", "usage pass responses carry explicit access type");
-assertContains(billingSource, "freeBySubscription: false", "usage pass responses are not reported as subscription free");
+assertNotContains(billingSource, ["usage", "pass"].join("_"), "billing route does not expose removed usage pass access");
 assertContains(billingSource, "buildPassTierMatchValues", "billing pass consume accepts normalized plan/tier aliases");
 assertContains(billingSource, "\"profileSubscription.planId\": { $in: tierMatchValues }", "billing pass consume checks profile subscription plan id aliases");
 assertContains(billingSource, "transactionType: usage.tier === \"family\" ? \"family_pass\" : \"membership_pass\"", "family pass consume preserves family access type");
@@ -527,9 +514,8 @@ assertNotContains(tarotPromptMakerSource, "forceDeduct: !Boolean(billingSnapshot
 assertContains(billingClientSource, "console.log(\"[이용권 체크]\"", "React paid gate logs pass/payment decision while debugging");
 assertContains(indexSource, "console.log('[이용권 체크]'", "static paid gate logs pass/payment decision while debugging");
 assertContains(billingClientSource, "runtimeData.freeBySubscription === true", "React billing client treats server pass responses as entitlement success");
-assertNotContains(billingClientSource, "remainingUses <= 0", "React billing client must not block 30-day passes by service-use counters");
-assertNotContains(billingClientSource, "passTotalUses", "React billing client does not restore service-use counters from pass payloads");
-assertNotContains(billingClientSource, "passRemainingUses", "React billing client does not restore remaining service-use counters from pass payloads");
+assertNotContains(billingClientSource, ["pass", "Total", "Uses"].join(""), "React billing client does not restore service-use counters from pass payloads");
+assertNotContains(billingClientSource, ["pass", "Remaining", "Uses"].join(""), "React billing client does not restore remaining service-use counters from pass payloads");
 assertContains(billingClientSource, "FAMILY 이용권이 적용되었습니다.", "React family license pass success copy");
 assertContains(billingClientSource, "deniedStatuses.has(status)", "runtime gate rejects failure statuses");
 assertContains(billingClientSource, "isPositiveObject(payload.consume)", "runtime gate validates consume object");

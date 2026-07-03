@@ -17,6 +17,7 @@ import {
   getProfileCardMutationPolicy,
   resolveProfileCardActionAccess,
 } from "../lib/profile-card-mutation-policy.js";
+import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 
 const MAX_PROFILE_ID_LEN = 80;
 const MAX_NAME_LEN = 80;
@@ -27,6 +28,20 @@ const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STO
 
 function sanitizeString(value, maxLen) {
   return String(value || "").trim().slice(0, maxLen);
+}
+
+async function enforceProfileRouteSecurity(request, env, auth, method, path) {
+  if (!["POST", "PATCH", "PUT", "DELETE"].includes(method)) return { ok: true };
+  return enforceSensitiveEndpointSecurity({
+    env,
+    request,
+    userId: auth?.userId || auth?.id || "",
+    endpoint: `profile:${method}:${path}`,
+    allowedMethods: [method],
+    requireJson: method !== "DELETE",
+    rateLimit: { limit: 10, windowSeconds: 10 * 60 },
+    rateLimitKey: `${auth?.userId || auth?.id || "anonymous"}:profile:${method}`,
+  });
 }
 
 function sanitizeProfileId(value) {
@@ -1479,6 +1494,8 @@ export async function handleProfileRoutes(request, env) {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
     const auth = await requireUserFromRequest(request, env);
+    const security = await enforceProfileRouteSecurity(request, env, auth, method, path);
+    if (!security.ok) return security.response;
 
     await connectDb(env);
 

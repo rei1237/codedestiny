@@ -432,7 +432,6 @@ export function useCoinGate() {
           || chargeAccessMethod === "FAMILY"
           || chargeAccessSignal.includes("family")
           || chargeAccessSignal.includes("membership_pass")
-          || chargeAccessSignal.includes("usage_pass")
       );
       const chargeMonthlyGranted = /membership_credit|monthly_credit|moonlight_stone/.test(chargeAccessSignal);
       const chargeAlreadyGranted = chargeAccessType === "already_unlocked";

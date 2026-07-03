@@ -379,7 +379,7 @@ async function loadBillingUser(userId) {
 function normalizeAccessType(value) {
   const raw = clean(value).toLowerCase();
   if (["membership_credit", "monthly_credit", "monthly", "subscription"].includes(raw)) return "monthly_credit";
-  if (["membership_pass", "family_pass", "pass", "usage_pass"].includes(raw)) return "pass";
+  if (["membership_pass", "family_pass", "pass"].includes(raw)) return "pass";
   if (["admin"].includes(raw)) return "admin";
   return "paid";
 }
@@ -1447,23 +1447,6 @@ function buildSummaryCards(integratedResult = {}) {
 async function applyUsageOnce({ userId, sessionId, accessType, pricing }) {
   const existing = await KarmaDestinyAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
-
-  if (accessType === "pass") {
-    const passUpdate = await User.updateOne(
-      { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
-      {
-        $inc: {
-          "profileSubscription.passRemainingUses": -1,
-          "profileSubscription.passUsedCount": 1,
-        },
-      },
-    );
-    if (!passUpdate?.modifiedCount) {
-      const error = new Error("membership pass balance is insufficient");
-      error.code = "MEMBERSHIP_PASS_CONSUME_FAILED";
-      throw error;
-    }
-  }
 
   await KarmaDestinyAiConsultation.updateOne(
     { id: sessionId, usageAppliedAt: null },

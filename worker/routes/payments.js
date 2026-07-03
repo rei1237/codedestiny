@@ -32,6 +32,7 @@ import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../l
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
+import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -180,61 +181,47 @@ function isDigitalContentPaymentRequest(body = {}) {
     || Boolean(body?.featureKey || body?.reason || body?.categoryKey || body?.subFeatureKey || body?.productId);
 }
 
-const USAGE_PASS_PRODUCT_CATALOG = Object.freeze({
-  saju_unlock_3: Object.freeze({ id: "saju_unlock_3", category: "saju_unlock", uses: 3, paymentAmount: 12000, coinPrice: 150, title: "사주 잠금 서비스 3개 해제권" }),
-  saju_unlock_5: Object.freeze({ id: "saju_unlock_5", category: "saju_unlock", uses: 5, paymentAmount: 19000, coinPrice: 250, title: "사주 잠금 서비스 5개 해제권" }),
-  fortune_30_3: Object.freeze({ id: "fortune_30_3", category: "fortune_30", uses: 3, paymentAmount: 6900, coinPrice: 90, title: "3,000원 이하 운세 3회 이용권" }),
-  fortune_30_10: Object.freeze({ id: "fortune_30_10", category: "fortune_30", uses: 10, paymentAmount: 22500, coinPrice: 300, title: "3,000원 이하 운세 10회 이용권" }),
-  fortune_30_30: Object.freeze({ id: "fortune_30_30", category: "fortune_30", uses: 30, paymentAmount: 63000, coinPrice: 900, title: "3,000원 이하 운세 30회 이용권" }),
-  fortune_50_3: Object.freeze({ id: "fortune_50_3", category: "fortune_50", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "5,000원 이하 운세 3회 이용권" }),
-  fortune_50_10: Object.freeze({ id: "fortune_50_10", category: "fortune_50", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "5,000원 이하 운세 10회 이용권" }),
-  fortune_50_30: Object.freeze({ id: "fortune_50_30", category: "fortune_50", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "5,000원 이하 운세 30회 이용권" }),
-  compat_3: Object.freeze({ id: "compat_3", category: "compat", uses: 3, paymentAmount: 11500, coinPrice: 150, title: "운세 서비스 궁합 3회 이용권" }),
-  compat_10: Object.freeze({ id: "compat_10", category: "compat", uses: 10, paymentAmount: 37500, coinPrice: 500, title: "운세 서비스 궁합 10회 이용권" }),
-  compat_30: Object.freeze({ id: "compat_30", category: "compat", uses: 30, paymentAmount: 105000, coinPrice: 1500, title: "운세 서비스 궁합 30회 이용권" }),
-});
-
-function resolveUsagePassProductFromBody(body = {}) {
-  const productId = String(body?.productId || "").trim().toLowerCase();
-  if (!productId) return null;
-  return USAGE_PASS_PRODUCT_CATALOG[productId] || null;
+function paymentRateLimitForPath(path = "") {
+  if (path === "/confirm" || path === "/subscription/confirm" || path === "/single/complete") {
+    return { limit: 10, windowSeconds: 10 * 60 };
+  }
+  if (path === "/prepare" || path === "/subscription/prepare" || path === "/single/start") {
+    return { limit: 5, windowSeconds: 10 * 60 };
+  }
+  if (path === "/cancel" || path === "/single/cancel" || path === "/report-failure") {
+    return { limit: 5, windowSeconds: 10 * 60 };
+  }
+  return { limit: 10, windowSeconds: 10 * 60 };
 }
 
-function buildUsagePassPricing(product) {
-  return {
-    categoryKey: `${product.category}-usage-pass`,
-    categoryLabel: `${product.category} 이용권`,
-    subFeatureKey: String(product.id),
-    featureKey: `usage-pass-${product.category}-${product.uses}`,
-    cost: Number(product.coinPrice || 0),
-    coinPrice: Number(product.coinPrice || 0),
-    displayUnit: "KRW",
-    displayPrice: `${calculateKrwAmountFromCoins(Number(product.coinPrice || 0)).toLocaleString("ko-KR")}원`,
-    reason: String(product.title || "횟수형 이용권"),
-    currency: "KRW",
-    amountKRW: Number(product.paymentAmount || 0),
-    cashPrice: Number(product.paymentAmount || 0),
-    paymentMode: "single_purchase",
-    coinDisplayOnly: true,
-    usagePass: {
-      category: String(product.category),
-      uses: Number(product.uses || 0),
-      productId: String(product.id || ""),
-    },
-  };
+async function enforcePaymentRouteSecurity(request, env, auth, path) {
+  const method = request.method.toUpperCase();
+  if (method !== "POST" || path === "/webhook") return { ok: true };
+  const meta = getRequestMeta(request);
+  return enforceSensitiveEndpointSecurity({
+    env,
+    request,
+    userId: auth?.userId,
+    endpoint: `payments:${path}`,
+    allowedMethods: ["POST"],
+    requireJson: true,
+    rateLimit: paymentRateLimitForPath(path),
+    rateLimitKey: `${auth?.userId || "anonymous"}:${meta.ip || "unknown"}:${path}`,
+  });
+}
+
+function isRemovedCountPassProductId(value) {
+  const productId = String(value || "").trim().toLowerCase();
+  return /^(?:saju_unlock_(?:3|5)|fortune_(?:30|50)_(?:3|10|30)|compat_(?:3|10|30))$/.test(productId);
 }
 
 function resolveDigitalContentPricing(body = {}, entitlement = {}) {
-  const usagePassProduct = resolveUsagePassProductFromBody(body);
-  if (usagePassProduct) {
-    const pricing = buildUsagePassPricing(usagePassProduct);
+  if (isRemovedCountPassProductId(body?.productId)) {
     return {
-      ok: true,
-      pricing,
-      paymentAmount: Number(pricing.amountKRW || 0),
-      coinPrice: Number(pricing.coinPrice || 0),
-      source: "usage-pass-product",
-      usagePass: pricing.usagePass,
+      ok: false,
+      status: 400,
+      message: "지원하지 않는 결제 상품입니다.",
+      code: "INVALID_PRODUCT_KEY",
     };
   }
 
@@ -272,70 +259,8 @@ function resolveDigitalContentPricing(body = {}, entitlement = {}) {
 }
 
 function buildDigitalProductName(body = {}, pricing = {}) {
-  const label = String(body?.productName || pricing.reason || pricing.featureKey || "디지털 운세 콘텐츠").trim();
+  const label = String(pricing.reason || pricing.featureKey || body?.productName || "디지털 운세 콘텐츠").trim();
   return label.slice(0, 80) || "디지털 운세 콘텐츠";
-}
-
-async function grantUsagePassToUser({ userId, product, paymentId, paidAt, session = null }) {
-  if (!userId || !product) return null;
-
-  const findQuery = User.findById(userId).select("usagePasses points");
-  if (session) findQuery.session(session);
-  const currentUser = await findQuery.lean();
-  if (!currentUser) return null;
-
-  const nextUsagePasses = Array.isArray(currentUser.usagePasses)
-    ? currentUser.usagePasses.map((entry) => ({ ...entry }))
-    : [];
-
-  const category = String(product.category || "").trim();
-  const addedUses = Number(product.uses || 0);
-  if (!category || !Number.isInteger(addedUses) || addedUses <= 0) return null;
-
-  const now = paidAt instanceof Date ? paidAt : new Date();
-  const index = nextUsagePasses.findIndex((entry) => String(entry?.category || "") === category);
-  if (index >= 0) {
-    const prevRemaining = Number(nextUsagePasses[index]?.remainingUses || 0);
-    const prevPurchased = Number(nextUsagePasses[index]?.purchasedUses || 0);
-    nextUsagePasses[index] = {
-      ...nextUsagePasses[index],
-      category,
-      remainingUses: Math.max(0, prevRemaining) + addedUses,
-      purchasedUses: Math.max(0, prevPurchased) + addedUses,
-      productId: String(product.id || ""),
-      lastPaymentId: String(paymentId || ""),
-      lastGrantedAt: now,
-      updatedAt: now,
-    };
-  } else {
-    nextUsagePasses.push({
-      category,
-      remainingUses: addedUses,
-      purchasedUses: addedUses,
-      productId: String(product.id || ""),
-      lastPaymentId: String(paymentId || ""),
-      lastGrantedAt: now,
-      updatedAt: now,
-    });
-  }
-
-  const updateQuery = User.findByIdAndUpdate(
-    userId,
-    { $set: { usagePasses: nextUsagePasses } },
-    { returnDocument: "after", projection: { usagePasses: 1, points: 1 } },
-  );
-  if (session) updateQuery.session(session);
-  const updatedUser = await updateQuery.lean();
-  const updatedPasses = Array.isArray(updatedUser?.usagePasses) ? updatedUser.usagePasses : [];
-  const resolved = updatedPasses.find((entry) => String(entry?.category || "") === category);
-
-  return {
-    category,
-    productId: String(product.id || ""),
-    addedUses,
-    remainingUses: Number(resolved?.remainingUses || 0),
-    points: Number(updatedUser?.points || 0),
-  };
 }
 
 const SUBSCRIPTION_BASE_PLANS = {
@@ -2592,7 +2517,6 @@ async function settlePaymentByImpUid({
 
   const paymentType = String(paymentRecord?.paymentType || "point_charge").trim();
   const isDigitalContentPayment = paymentType === "digital_content";
-  const usagePassProduct = isDigitalContentPayment ? resolveUsagePassProductFromBody(body) : null;
 
   if (paymentType === "point_charge" && paymentRecord.status !== "success") {
     await markPaymentFailure(paymentRecord, {
@@ -2958,15 +2882,6 @@ async function settlePaymentByImpUid({
     }
 
     if (isDigitalContentPayment) {
-      let usagePass = null;
-      if (usagePassProduct) {
-        usagePass = await grantUsagePassToUser({
-          userId: ownerUserId,
-          product: usagePassProduct,
-          paymentId: String(finalizedPayment._id || ""),
-          paidAt,
-        });
-      }
       const accessEvidence = await createDigitalContentAccessEvidence({
         userId: ownerUserId,
         payment: finalizedPayment,
@@ -3008,9 +2923,8 @@ async function settlePaymentByImpUid({
       return {
         ok: true,
         idempotent: false,
-        user: { id: ownerUserId, points: usagePass ? Number(usagePass.points || 0) : await getUserPoints(ownerUserId) },
+        user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
         payment: formatPaymentResponse(finalizedPayment),
-        usagePass,
         accessGrant: {
           ok: true,
           accessType: "single_purchase",
@@ -3121,16 +3035,6 @@ async function settlePaymentByImpUid({
         }
 
         if (isDigitalContentPayment) {
-          let usagePass = null;
-          if (usagePassProduct) {
-            usagePass = await grantUsagePassToUser({
-              userId: ownerUserId,
-              product: usagePassProduct,
-              paymentId: String(finalizedPayment._id || ""),
-              paidAt,
-              session,
-            });
-          }
           const accessEvidence = await createDigitalContentAccessEvidence({
             userId: ownerUserId,
             payment: finalizedPayment,
@@ -3153,10 +3057,9 @@ async function settlePaymentByImpUid({
           txResult = {
             ok: true,
             idempotent: false,
-            user: { id: ownerUserId, points: usagePass ? Number(usagePass.points || 0) : await getUserPoints(ownerUserId) },
+            user: { id: ownerUserId, points: await getUserPoints(ownerUserId) },
             payment: formatPaymentResponse(finalizedPayment),
-            usagePass,
-            accessGrant: {
+        accessGrant: {
               ok: true,
               accessType: "single_purchase",
               purchaseId: String(finalizedPayment._id || ""),
@@ -3353,6 +3256,13 @@ async function handleWebhook(request, env) {
 }
 
 async function handleDigitalContentPrepare(request, auth, body) {
+  if (isRemovedCountPassProductId(body?.productId)) {
+    return json({
+      message: "지원하지 않는 결제 상품입니다.",
+      code: "INVALID_PRODUCT_KEY",
+    }, { status: 400 });
+  }
+
   const passUser = await User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
@@ -3386,7 +3296,7 @@ async function handleDigitalContentPrepare(request, auth, body) {
   const productName = buildDigitalProductName(body, resolved.pricing);
   const idempotencyKey = resolveIdempotencyKey(request, body);
   const featureKey = String(resolved.pricing?.featureKey || body?.featureKey || "").trim();
-  const productId = String(body?.productId || resolved.pricing?.usagePass?.productId || "").trim().toLowerCase();
+  const productId = String(body?.productId || "").trim().toLowerCase();
   const requestId = String(body?.requestId || "").trim().slice(0, 120);
   const reportId = String(body?.reportId || "").trim().slice(0, 120);
   const sessionId = String(body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120);
@@ -4664,7 +4574,6 @@ async function handleConfirm(request, env, auth) {
     idempotent: Boolean(settled.idempotent),
     user: settled.user,
     payment: settled.payment,
-    usagePass: settled.usagePass || null,
     accessGrant: settled.accessGrant || null,
     ...(settled.accessGrant?.accessType === "single_purchase" ? {
       accessMethod: "CARD",
@@ -5337,15 +5246,6 @@ function buildSubscriptionSummary(profileSubscription) {
 function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthlyCreditLedgers) {
   const safeUser = user || {};
   const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
-  const usagePasses = Array.isArray(safeUser.usagePasses)
-    ? safeUser.usagePasses.map((entry) => ({
-      category: String(entry?.category || ""),
-      remainingUses: Number(entry?.remainingUses || 0),
-      purchasedUses: Number(entry?.purchasedUses || 0),
-      productId: String(entry?.productId || ""),
-      updatedAt: entry?.updatedAt || null,
-    }))
-    : [];
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
     const key = String(unlockedFeatures[i] || "").trim();
@@ -5372,7 +5272,6 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       transactions: mappedTransactions,
       payments: mappedPayments,
       subscriptions,
-      usagePasses,
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       membershipCreditBalance: monthlyCredits,
@@ -5386,10 +5285,8 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       unlockedFeatures,
-      usagePasses,
     },
     unlockedFeatures,
-    usagePasses,
     unlockMap,
     payments: mappedPayments,
     pointHistories: mappedTransactions,
@@ -5411,7 +5308,6 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       transactions: [],
       payments: [],
       subscriptions: [],
-      usagePasses: [],
       monthlyCredits: 0,
       membershipCreditBalance: 0,
       monthlyCreditLedgers: [],
@@ -5423,10 +5319,8 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       points: balance,
       monthlyCredits: 0,
       unlockedFeatures: [],
-      usagePasses: [],
     },
     unlockedFeatures: [],
-    usagePasses: [],
     unlockMap: {},
     payments: [],
     pointHistories: [],
@@ -5444,7 +5338,6 @@ async function handleMe(auth, env) {
       points: 1,
       joinedAt: 1,
       unlockedFeatures: 1,
-      usagePasses: 1,
       profileSubscription: 1,
     });
 
@@ -5621,6 +5514,9 @@ export async function handlePaymentRoutes(request, env) {
 
     const auth = await requireAuth(request, env);
     trace.authVerified = true;
+
+    const security = await enforcePaymentRouteSecurity(request, env, auth, path);
+    if (!security.ok) return security.response;
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);

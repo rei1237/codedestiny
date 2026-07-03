@@ -470,7 +470,7 @@ function normalizeSajuAIPromptAccessMethod(consumePayload = {}, body = {}) {
       || "",
   ).trim().toLowerCase();
 
-  if (accessType === "membership_pass" || accessType === "usage_pass" || accessMethod === "PASS" || paymentMode === "MEMBERSHIP_PASS") {
+  if (accessType === "membership_pass" || accessMethod === "PASS" || paymentMode === "MEMBERSHIP_PASS") {
     return passTier === "family" ? "family" : "pass";
   }
   if (accessType === "membership_credit" || accessMethod === "MONTHLY" || paymentMode === "MOONLIGHT_STONE" || paymentMode === "MONTHLY_CREDIT") {
@@ -1112,14 +1112,12 @@ function isAIPromptPassAccessPayload(body = {}) {
         || accessReason === "pass_covered"
         || accessReason === "pass_free"
         || accessType === "membership_pass"
-        || accessType === "usage_pass"
         || accessType === "subscription_pass"
         || paymentMode === "membership_pass"
         || accessMethod === "PASS"
       )
     )
     || accessType === "membership_pass"
-    || accessType === "usage_pass"
     || accessType === "pass"
     || accessType === "membership"
     || accessType === "subscription_pass"

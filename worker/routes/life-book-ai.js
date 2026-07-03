@@ -1442,16 +1442,6 @@ async function applyUsageOnce({ request, env, userId, sessionId, access, idempot
         if (error?.code !== 11000) throw error;
       });
     }
-  } else if (access.accessSource !== "billing_gate" && access.accessType === "pass") {
-    await User.updateOne(
-      { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
-      {
-        $inc: {
-          "profileSubscription.passRemainingUses": -1,
-          "profileSubscription.passUsedCount": 1,
-        },
-      },
-    ).catch(() => {});
   } else if (access.accessType === "paid" && access.paymentId) {
     await Payment.updateOne(
       { userId, featureKey: FEATURE_KEY, merchantUid: access.paymentId },

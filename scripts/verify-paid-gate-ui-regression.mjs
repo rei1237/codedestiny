@@ -220,7 +220,8 @@ const reactOverlayApplySource = section(paymentProcessingContextSource, "const a
 assertBefore(reactOverlayApplySource, "if (!previous.open) {", "stopProcessing();", "React provider closes directly-started payment overlay on global close");
 assertContains(reactOverlayApplySource, "closeProcessingNow();", "React provider direct payment overlay close");
 
-assertContains(billingRouteSource, "consumeUsagePassIfAvailable", "pass consume path");
+assertContains(billingRouteSource, "consumeTierPassIfAvailable", "tier pass consume path");
+assertNotContains(billingRouteSource, ["consume", "Usage", "Pass", "If", "Available"].join(""), "removed usage pass consume path");
 assertContains(billingRouteSource, 'accessMethod: "PASS"', "pass access method");
 assertContains(billingRouteSource, 'requestedPaymentMode === "monthly_credit"', "monthly mode stays separate");
 assertContains(indexSource, "paymentMode: 'DIRECT_KRW'", "direct mode stays separate");

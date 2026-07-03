@@ -2489,7 +2489,7 @@ function PackageCard({
   selected: boolean;
   onSelect: (pkg: PointPackage) => void;
 }) {
-  const isBest = pkg.id === "fortune_50_10";
+  const isBest = false;
   const listPrice = pkg.points * 100;
   const discountRate = listPrice > 0 ? Math.max(0, Math.round((1 - pkg.amount / listPrice) * 100)) : 0;
 

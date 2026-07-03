@@ -1,0 +1,518 @@
+import { createHash } from "node:crypto";
+import { connectDb, mongoose } from "../db.js";
+import { getOptionalUserFromRequest } from "../auth.js";
+import { getEnv } from "../env.js";
+import { getRequestMeta, json } from "../http.js";
+import {
+  AbuseScore,
+  ContentEntitlement,
+  IdempotencyKey,
+  PaidExecutionRecord,
+  Payment,
+  ProfileCard,
+  SecurityEvent,
+} from "../models.js";
+import { getBillingFeaturePricing } from "../billing-feature-registry.js";
+
+const SECURITY_MESSAGES = Object.freeze({
+  LOGIN_REQUIRED: "로그인이 필요해요.",
+  PAYMENT_REQUIRED: "결제 확인이 필요해요.",
+  OWNER_MISMATCH: "이 결과는 현재 계정에서 볼 수 없어요.",
+  IDEMPOTENCY_PROCESSING: "이미 처리 중인 요청이에요.",
+  RATE_LIMIT_EXCEEDED: "요청이 잠시 많아졌어요. 조금 뒤 다시 시도해주세요.",
+  INVALID_REQUEST: "요청 정보를 확인해 주세요.",
+});
+
+const ABUSE_POINTS = Object.freeze({
+  OWNER_MISMATCH: 5,
+  PAID_ACCESS_BYPASS_ATTEMPT: 7,
+  RATE_LIMIT_EXCEEDED: 2,
+  INVALID_PRODUCT_PRICE: 8,
+  PAYMENT_AMOUNT_MISMATCH: 8,
+  PRODUCT_FEATURE_MISMATCH: 8,
+  HUGE_PAYLOAD: 3,
+  INVALID_FLOW_STEP: 3,
+  INVALID_CONTENT_TYPE: 3,
+  INVALID_ORIGIN: 5,
+});
+
+function cleanText(value, max = 160) {
+  return String(value || "").trim().slice(0, max);
+}
+
+function isProductionRuntime(env = {}) {
+  const value = cleanText(getEnv(env, "NODE_ENV") || getEnv(env, "ENVIRONMENT") || getEnv(env, "CF_PAGES_BRANCH")).toLowerCase();
+  return value === "production" || value === "main";
+}
+
+export function getSecurityGuardMode(env = {}) {
+  const configured = cleanText(getEnv(env, "SECURITY_GUARD_MODE")).toLowerCase();
+  if (configured === "off" || configured === "monitor" || configured === "enforce") return configured;
+  return isProductionRuntime(env) ? "enforce" : "monitor";
+}
+
+function shouldEnforce(env = {}) {
+  return getSecurityGuardMode(env) === "enforce";
+}
+
+function hashValue(value, secret = "") {
+  return createHash("sha256")
+    .update(String(secret || "code-destiny-security-log"))
+    .update(":")
+    .update(String(value || ""))
+    .digest("hex");
+}
+
+export function getSecuritySubjectHash({ request, env, userId = "", endpoint = "" } = {}) {
+  const meta = request ? getRequestMeta(request) : {};
+  const secret = getEnv(env, "SECURITY_LOG_HASH_SECRET") || getEnv(env, "JWT_SECRET") || getEnv(env, "AUTH_SECRET") || "";
+  return hashValue([userId || "", meta.ip || "unknown", endpoint || ""].join("|"), secret).slice(0, 96);
+}
+
+function safeObject(value, depth = 0) {
+  if (!value || typeof value !== "object" || depth > 2) return value;
+  if (Array.isArray(value)) return value.slice(0, 20).map((entry) => safeObject(entry, depth + 1));
+  const output = {};
+  for (const [key, entry] of Object.entries(value).slice(0, 40)) {
+    if (/password|secret|token|authorization|cookie/i.test(key)) {
+      output[key] = "[redacted]";
+    } else if (entry && typeof entry === "object") {
+      output[key] = safeObject(entry, depth + 1);
+    } else {
+      output[key] = typeof entry === "string" ? entry.slice(0, 500) : entry;
+    }
+  }
+  return output;
+}
+
+function objectIdOrNull(value) {
+  const text = cleanText(value, 80);
+  return mongoose.Types.ObjectId.isValid(text) ? text : null;
+}
+
+function userIdText(value) {
+  return cleanText(value, 80);
+}
+
+function securityResponse(status, code, message, headers = {}) {
+  return json({
+    ok: false,
+    success: false,
+    code,
+    reason: code,
+    message,
+  }, { status, headers });
+}
+
+export async function writeSecurityLog({
+  env,
+  request,
+  level = "warn",
+  reason,
+  userId = "",
+  endpoint = "",
+  metadata = {},
+} = {}) {
+  if (getSecurityGuardMode(env) === "off") return null;
+  try {
+    await connectDb(env);
+    const meta = request ? getRequestMeta(request) : {};
+    const ipHash = request ? getSecuritySubjectHash({ request, env, userId, endpoint: "ip" }) : "";
+    return await SecurityEvent.create({
+      userId: objectIdOrNull(userId),
+      ipHash,
+      endpoint: cleanText(endpoint),
+      level: ["info", "warn", "error"].includes(level) ? level : "warn",
+      reason: cleanText(reason, 120),
+      method: cleanText(request?.method, 12),
+      userAgent: cleanText(meta.userAgent, 300),
+      metadata: safeObject(metadata),
+      createdAt: new Date(),
+    });
+  } catch (_) {
+    return null;
+  }
+}
+
+function allowedOrigins(env = {}, request = null) {
+  const values = [
+    request ? new URL(request.url).origin : "",
+    getEnv(env, "SITE_BASE_URL"),
+    getEnv(env, "AUTH_FRONTEND_BASE_URL"),
+    getEnv(env, "NEXT_PUBLIC_SITE_URL"),
+    ...cleanText(getEnv(env, "SECURITY_ALLOWED_ORIGINS"), 2000).split(","),
+  ];
+  return new Set(values.map((value) => {
+    const raw = cleanText(value, 300).replace(/\/+$/, "");
+    if (!raw) return "";
+    try {
+      return new URL(raw).origin.replace(/\/+$/, "");
+    } catch (_) {
+      return raw;
+    }
+  }).filter(Boolean));
+}
+
+function originFromHeader(value) {
+  const raw = cleanText(value, 500);
+  if (!raw) return "";
+  try {
+    return new URL(raw).origin.replace(/\/+$/, "");
+  } catch (_) {
+    return raw.replace(/\/+$/, "");
+  }
+}
+
+export async function validateSensitiveRequest({
+  request,
+  env,
+  endpoint = "",
+  userId = "",
+  allowedMethods = ["POST"],
+  requireJson = true,
+  skipOrigin = false,
+} = {}) {
+  if (getSecurityGuardMode(env) === "off") return { ok: true };
+  const method = cleanText(request?.method).toUpperCase();
+  if (allowedMethods.length && !allowedMethods.includes(method)) {
+    await writeSecurityLog({ env, request, userId, endpoint, reason: "INVALID_METHOD", metadata: { allowedMethods } });
+    return shouldEnforce(env)
+      ? { ok: false, response: securityResponse(405, "METHOD_NOT_ALLOWED", SECURITY_MESSAGES.INVALID_REQUEST) }
+      : { ok: true, monitored: true };
+  }
+
+  const contentType = cleanText(request?.headers?.get("content-type"), 160).toLowerCase();
+  if (requireJson && ["POST", "PUT", "PATCH", "DELETE"].includes(method) && !contentType.includes("application/json")) {
+    await writeSecurityLog({ env, request, userId, endpoint, reason: "INVALID_CONTENT_TYPE", metadata: { contentType } });
+    await addAbuseScore({ env, request, userId, endpoint, reason: "INVALID_CONTENT_TYPE" });
+    return shouldEnforce(env)
+      ? { ok: false, response: securityResponse(400, "INVALID_CONTENT_TYPE", SECURITY_MESSAGES.INVALID_REQUEST) }
+      : { ok: true, monitored: true };
+  }
+
+  if (!skipOrigin) {
+    const origin = originFromHeader(request?.headers?.get("origin"));
+    const refererOrigin = originFromHeader(request?.headers?.get("referer"));
+    const incoming = origin || refererOrigin;
+    if (incoming && !allowedOrigins(env, request).has(incoming)) {
+      await writeSecurityLog({ env, request, userId, endpoint, reason: "INVALID_ORIGIN", metadata: { origin: incoming } });
+      await addAbuseScore({ env, request, userId, endpoint, reason: "INVALID_ORIGIN" });
+      return shouldEnforce(env)
+        ? { ok: false, response: securityResponse(403, "INVALID_ORIGIN", SECURITY_MESSAGES.INVALID_REQUEST) }
+        : { ok: true, monitored: true };
+    }
+  }
+
+  return { ok: true };
+}
+
+export async function addAbuseScore({ env, request, userId = "", endpoint = "", reason, score } = {}) {
+  if (getSecurityGuardMode(env) === "off") return { ok: true, score: 0 };
+  try {
+    await connectDb(env);
+    const increment = Number(score || ABUSE_POINTS[reason] || 1);
+    const subjectHash = getSecuritySubjectHash({ request, env, userId, endpoint });
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const blockedUntil = increment >= 20 ? new Date(now.getTime() + 60 * 60 * 1000) : undefined;
+    const update = {
+      $inc: { score: increment },
+      $set: { updatedAt: now, expiresAt },
+      $setOnInsert: {
+        subjectHash,
+        userId: objectIdOrNull(userId),
+        endpoint: cleanText(endpoint),
+        kind: "abuse",
+        createdAt: now,
+      },
+      $push: { lastReasons: { $each: [cleanText(reason, 120)], $slice: -12 } },
+    };
+    if (blockedUntil) update.$set.blockedUntil = blockedUntil;
+    const doc = await AbuseScore.findOneAndUpdate(
+      { subjectHash, endpoint: cleanText(endpoint), kind: "abuse" },
+      update,
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    if (Number(doc?.score || 0) >= 20 && !doc?.blockedUntil) {
+      await AbuseScore.updateOne(
+        { _id: doc._id },
+        { $set: { blockedUntil: new Date(now.getTime() + 60 * 60 * 1000), updatedAt: now } },
+      );
+    }
+    if (Number(doc?.score || 0) >= 40) {
+      await writeSecurityLog({ env, request, userId, endpoint, level: "error", reason: "ADMIN_REVIEW_REQUIRED", metadata: { score: doc.score } });
+    }
+    return { ok: true, score: Number(doc?.score || 0), blockedUntil: doc?.blockedUntil || null };
+  } catch (_) {
+    return { ok: true, score: 0 };
+  }
+}
+
+export async function checkSoftBlock({ env, request, userId = "", endpoint = "" } = {}) {
+  if (!shouldEnforce(env)) return { ok: true };
+  try {
+    await connectDb(env);
+    const subjectHash = getSecuritySubjectHash({ request, env, userId, endpoint });
+    const doc = await AbuseScore.findOne({
+      subjectHash,
+      endpoint: cleanText(endpoint),
+      kind: "abuse",
+      blockedUntil: { $gt: new Date() },
+    }).lean();
+    if (!doc) return { ok: true };
+    return {
+      ok: false,
+      response: securityResponse(429, "RATE_LIMIT_EXCEEDED", SECURITY_MESSAGES.RATE_LIMIT_EXCEEDED, { "Retry-After": "3600" }),
+    };
+  } catch (_) {
+    return { ok: true };
+  }
+}
+
+export async function enforceRateLimit({
+  env,
+  request,
+  userId = "",
+  endpoint = "",
+  key = "",
+  limit = 60,
+  windowSeconds = 60,
+} = {}) {
+  if (getSecurityGuardMode(env) === "off") return { ok: true };
+  try {
+    await connectDb(env);
+    const nowMs = Date.now();
+    const windowMs = Math.max(1, Number(windowSeconds || 60)) * 1000;
+    const windowStart = Math.floor(nowMs / windowMs) * windowMs;
+    const rateKey = key || userId || getRequestMeta(request).ip || "anonymous";
+    const subjectHash = hashValue(["rate", endpoint, rateKey, windowStart].join("|"), getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
+    const now = new Date(nowMs);
+    const expiresAt = new Date(nowMs + windowMs * 2);
+    const doc = await AbuseScore.findOneAndUpdate(
+      { subjectHash, endpoint: cleanText(endpoint), kind: "rate_limit" },
+      {
+        $inc: { score: 1 },
+        $set: { updatedAt: now, expiresAt },
+        $setOnInsert: {
+          subjectHash,
+          userId: objectIdOrNull(userId),
+          endpoint: cleanText(endpoint),
+          kind: "rate_limit",
+          createdAt: now,
+          lastReasons: [],
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true },
+    ).lean();
+    const count = Number(doc?.score || 0);
+    if (count <= Number(limit || 60)) return { ok: true, count };
+    const retryAfter = String(Math.max(1, Math.ceil((windowStart + windowMs - nowMs) / 1000)));
+    await writeSecurityLog({ env, request, userId, endpoint, reason: "RATE_LIMIT_EXCEEDED", metadata: { count, limit, windowSeconds } });
+    await addAbuseScore({ env, request, userId, endpoint, reason: "RATE_LIMIT_EXCEEDED" });
+    return shouldEnforce(env)
+      ? { ok: false, response: securityResponse(429, "RATE_LIMIT_EXCEEDED", SECURITY_MESSAGES.RATE_LIMIT_EXCEEDED, { "Retry-After": retryAfter }) }
+      : { ok: true, monitored: true, count };
+  } catch (_) {
+    return { ok: true };
+  }
+}
+
+export async function detectAbusePattern({
+  env,
+  request,
+  userId = "",
+  endpoint = "",
+  methodAllowlist = [],
+  maxPayloadBytes = 256 * 1024,
+} = {}) {
+  if (getSecurityGuardMode(env) === "off") return { ok: true, reasons: [] };
+  const reasons = [];
+  const meta = getRequestMeta(request);
+  const method = cleanText(request?.method).toUpperCase();
+  const contentLength = Number(request?.headers?.get("content-length") || 0);
+  if (methodAllowlist.length && !methodAllowlist.includes(method)) reasons.push("INVALID_METHOD");
+  if (!meta.userAgent) reasons.push("MISSING_USER_AGENT");
+  if (Number.isFinite(contentLength) && contentLength > maxPayloadBytes) reasons.push("HUGE_PAYLOAD");
+  for (const reason of reasons) {
+    await writeSecurityLog({ env, request, userId, endpoint, reason, metadata: { contentLength } });
+    if (ABUSE_POINTS[reason]) await addAbuseScore({ env, request, userId, endpoint, reason });
+  }
+  return { ok: true, reasons };
+}
+
+export async function enforceSensitiveEndpointSecurity(options = {}) {
+  const {
+    env,
+    request,
+    userId = "",
+    endpoint = "",
+    allowedMethods = ["POST"],
+    requireJson = true,
+    skipOrigin = false,
+    rateLimit = null,
+    rateLimitKey = "",
+    maxPayloadBytes,
+  } = options;
+  const validation = await validateSensitiveRequest({ request, env, userId, endpoint, allowedMethods, requireJson, skipOrigin });
+  if (!validation.ok) return validation;
+  const block = await checkSoftBlock({ env, request, userId, endpoint });
+  if (!block.ok) return block;
+  await detectAbusePattern({ env, request, userId, endpoint, methodAllowlist: allowedMethods, maxPayloadBytes });
+  if (rateLimit) {
+    return enforceRateLimit({
+      env,
+      request,
+      userId,
+      endpoint,
+      key: rateLimitKey || userId || getRequestMeta(request).ip,
+      limit: rateLimit.limit,
+      windowSeconds: rateLimit.windowSeconds,
+    });
+  }
+  return { ok: true };
+}
+
+function aiActionFromPath(path = "") {
+  const normalized = cleanText(path, 200).toLowerCase();
+  if (/\/(start|generate|create|consult)$/.test(normalized)) return "start";
+  if (/\/(prepare|ensure-access|access|checkout)$/.test(normalized)) return "ensure";
+  if (/\/(message|refine|chat)$/.test(normalized)) return "message";
+  if (/\/(result|session|consultation)/.test(normalized) || /^\/[^/]+$/.test(normalized)) return "result";
+  return "";
+}
+
+export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
+  const action = aiActionFromPath(path);
+  if (!action) return { ok: true };
+  const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
+  const resolvedUserId = userId || String(auth?.userId || "");
+  const method = cleanText(request?.method).toUpperCase();
+  const isRead = action === "result" && method === "GET";
+  const allowedMethods = isRead ? ["GET"] : ["POST"];
+  const endpoint = `ai:${cleanText(serviceKey, 80)}:${action}`;
+  const rateLimit = isRead
+    ? { limit: 60, windowSeconds: 60 }
+    : { limit: 3, windowSeconds: 60 };
+  const primary = await enforceSensitiveEndpointSecurity({
+    env,
+    request,
+    userId: resolvedUserId,
+    endpoint,
+    allowedMethods,
+    requireJson: !isRead,
+    rateLimit,
+    rateLimitKey: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:${action}`,
+    maxPayloadBytes: 256 * 1024,
+  });
+  if (!primary.ok) return primary;
+  if (action === "start") {
+    const daily = await enforceRateLimit({
+      env,
+      request,
+      userId: resolvedUserId,
+      endpoint: `${endpoint}:daily`,
+      key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:start:daily`,
+      limit: 20,
+      windowSeconds: 24 * 60 * 60,
+    });
+    if (!daily.ok) return daily;
+  }
+  return { ok: true };
+}
+
+export async function enforceIdempotency({
+  env,
+  userId = "",
+  endpoint = "",
+  idempotencyKey = "",
+  requestPayload = null,
+  ttlSeconds = 10 * 60,
+} = {}) {
+  const key = cleanText(idempotencyKey, 240);
+  if (!key || getSecurityGuardMode(env) === "off") return { ok: true, applied: false };
+  await connectDb(env);
+  const keyHash = hashValue(key, getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
+  const requestHash = hashValue(JSON.stringify(safeObject(requestPayload || {})), keyHash).slice(0, 96);
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + Math.max(1, Number(ttlSeconds || 600)) * 1000);
+  const existing = await IdempotencyKey.findOne({ userId: objectIdOrNull(userId), endpoint: cleanText(endpoint), keyHash }).lean();
+  if (existing) {
+    if (existing.requestHash && existing.requestHash !== requestHash) {
+      return { ok: false, response: securityResponse(409, "IDEMPOTENCY_CONFLICT", SECURITY_MESSAGES.IDEMPOTENCY_PROCESSING) };
+    }
+    if (existing.status === "processing" && existing.expiresAt > now) {
+      return { ok: false, response: securityResponse(409, "IDEMPOTENCY_PROCESSING", SECURITY_MESSAGES.IDEMPOTENCY_PROCESSING) };
+    }
+    return { ok: true, applied: true, existing };
+  }
+  await IdempotencyKey.create({
+    userId: objectIdOrNull(userId),
+    endpoint: cleanText(endpoint),
+    keyHash,
+    requestHash,
+    status: "processing",
+    expiresAt,
+    createdAt: now,
+    updatedAt: now,
+  });
+  return { ok: true, applied: true };
+}
+
+export async function completeIdempotency({ env, userId = "", endpoint = "", idempotencyKey = "", status = "success", responseRef = null } = {}) {
+  const key = cleanText(idempotencyKey, 240);
+  if (!key || getSecurityGuardMode(env) === "off") return;
+  try {
+    const keyHash = hashValue(key, getEnv(env, "SECURITY_LOG_HASH_SECRET")).slice(0, 96);
+    await IdempotencyKey.updateOne(
+      { userId: objectIdOrNull(userId), endpoint: cleanText(endpoint), keyHash },
+      { $set: { status: status === "failed" ? "failed" : "success", responseRef: safeObject(responseRef || null), updatedAt: new Date() } },
+    );
+  } catch (_) {}
+}
+
+export async function requireOwnership({ env, request, userId, resourceType, resourceId, endpoint = "" } = {}) {
+  const id = cleanText(resourceId, 180);
+  const owner = objectIdOrNull(userId);
+  const ownerText = userIdText(userId);
+  if (!ownerText || !id) return { ok: false, response: securityResponse(403, "OWNER_MISMATCH", SECURITY_MESSAGES.OWNER_MISMATCH) };
+  await connectDb(env);
+  const profileId = cleanText(id, 100);
+  let found = null;
+  if (resourceType === "profile" && owner) found = await ProfileCard.findOne({ userId: owner, profileId }).select("_id").lean();
+  if (resourceType === "payment" && owner) found = await Payment.findOne({ userId: owner, $or: [{ _id: objectIdOrNull(id) }, { impUid: id }, { merchantUid: id }, { requestId: id }, { idempotencyKey: id }] }).select("_id").lean();
+  if (resourceType === "entitlement") found = await ContentEntitlement.findOne({ userId: ownerText, $or: [{ _id: objectIdOrNull(id) }, { paymentId: id }, { orderId: id }, { idempotencyKey: id }] }).select("_id").lean();
+  if (resourceType === "paidExecution") found = await PaidExecutionRecord.findOne({ userId: ownerText, $or: [{ _id: objectIdOrNull(id) }, { requestId: id }, { paymentId: id }, { orderId: id }, { idempotencyKey: id }, { executionId: id }] }).select("_id").lean();
+  if (found) return { ok: true, resource: found };
+  await writeSecurityLog({ env, request, userId, endpoint, reason: "OWNER_MISMATCH", metadata: { resourceType, resourceId: id } });
+  await addAbuseScore({ env, request, userId, endpoint, reason: "OWNER_MISMATCH" });
+  return { ok: false, response: securityResponse(403, "OWNER_MISMATCH", SECURITY_MESSAGES.OWNER_MISMATCH) };
+}
+
+export async function validateProductAccess({
+  env,
+  request,
+  userId = "",
+  endpoint = "",
+  productKey = "",
+  featureKey = "",
+  amountFromClient,
+  amountFromProvider,
+} = {}) {
+  const resolved = getBillingFeaturePricing({ featureKey: featureKey || productKey, subFeatureKey: productKey });
+  if (!resolved?.ok || !resolved.pricing) {
+    await writeSecurityLog({ env, request, userId, endpoint, reason: "INVALID_PRODUCT_KEY", metadata: { productKey, featureKey } });
+    await addAbuseScore({ env, request, userId, endpoint, reason: "PAID_ACCESS_BYPASS_ATTEMPT" });
+    return { ok: false, response: securityResponse(400, "INVALID_PRODUCT_KEY", SECURITY_MESSAGES.INVALID_REQUEST) };
+  }
+  const expected = Number(resolved.pricing.amountKRW || resolved.pricing.cashPrice || 0);
+  const client = amountFromClient === undefined || amountFromClient === null || amountFromClient === "" ? expected : Number(amountFromClient);
+  const provider = amountFromProvider === undefined || amountFromProvider === null || amountFromProvider === "" ? expected : Number(amountFromProvider);
+  if ((Number.isFinite(client) && client !== expected) || (Number.isFinite(provider) && provider !== expected)) {
+    await writeSecurityLog({ env, request, userId, endpoint, reason: "PAYMENT_AMOUNT_MISMATCH", metadata: { expected, client, provider } });
+    await addAbuseScore({ env, request, userId, endpoint, reason: "PAYMENT_AMOUNT_MISMATCH" });
+    return { ok: false, response: securityResponse(400, "PAYMENT_AMOUNT_MISMATCH", SECURITY_MESSAGES.INVALID_REQUEST) };
+  }
+  return { ok: true, pricing: resolved.pricing };
+}
+
+export const SECURITY_ERROR_MESSAGES = SECURITY_MESSAGES;

@@ -14,10 +14,10 @@ const SINGLE_ACCOUNT_SLUG = String(process.env.DEV_SEED_ACCOUNT_SLUG || "").trim
 const SINGLE_ACCOUNT_STATE = String(process.env.DEV_SEED_ACCOUNT_STATE || "free").trim();
 
 const PASS_SPECS = {
-  standard: { profileLimit: 3, passUses: 3, maxCoveredCoin: 30 },
-  premium: { profileLimit: 7, passUses: 7, maxCoveredCoin: 50 },
-  vvip: { profileLimit: 15, passUses: 15, maxCoveredCoin: 100 },
-  family: { profileLimit: 999999999, passUses: 999999999, maxCoveredCoin: 999999999 },
+  standard: { profileLimit: 3, maxCoveredCoin: 30 },
+  premium: { profileLimit: 7, maxCoveredCoin: 50 },
+  vvip: { profileLimit: 15, maxCoveredCoin: 100 },
+  family: { profileLimit: 0, maxCoveredCoin: 999999999 },
 };
 
 const ACCOUNTS = [
@@ -73,9 +73,6 @@ function baseProfileSubscription() {
     durationMonths: 0,
     profileLimit: 1,
     passTier: "",
-    passTotalUses: 0,
-    passRemainingUses: 0,
-    passUsedCount: 0,
     maxCoveredCoin: 0,
     freeLimit: 0,
     passLimit: 0,
@@ -154,8 +151,6 @@ function profileSubscriptionForState(state, now) {
         durationMonths: 1,
         profileLimit: spec.profileLimit,
         passTier: "premium",
-        passTotalUses: spec.passUses,
-        passRemainingUses: spec.passUses,
         maxCoveredCoin: spec.maxCoveredCoin,
         freeLimit: spec.maxCoveredCoin,
         passLimit: spec.maxCoveredCoin,
@@ -194,8 +189,6 @@ function profileSubscriptionForState(state, now) {
     durationMonths: 1,
     profileLimit: spec.profileLimit,
     passTier: state,
-    passTotalUses: spec.passUses,
-    passRemainingUses: spec.passUses,
     maxCoveredCoin: spec.maxCoveredCoin,
     freeLimit: spec.maxCoveredCoin,
     passLimit: spec.maxCoveredCoin,

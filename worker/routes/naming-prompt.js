@@ -14,7 +14,7 @@ const CURRENCY = "KRW";
 const RESULT_VERSION = "naming-prompt-v20260626";
 const SAJU_EVIDENCE_SOURCE = "main-shell-saju-engine";
 const ALLOWED_FEATURE_KEYS = new Set([FEATURE_KEY, LEGACY_FEATURE_KEY, "naming_prompt", "namingPrompt", "premiumNamingPrompt"]);
-const PASS_ACCESS_TYPES = new Set(["membership_pass", "usage_pass", "subscription_pass", "family", "family_pass", "license_pass"]);
+const PASS_ACCESS_TYPES = new Set(["membership_pass", "subscription_pass", "family", "family_pass", "license_pass"]);
 
 const ELEMENT_LABELS = Object.freeze({
   wood: "목(木)",

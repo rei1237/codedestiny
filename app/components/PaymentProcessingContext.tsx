@@ -454,7 +454,7 @@ function isPassPaidFeatureDetail(detail: PaidFeatureGateDetail) {
     detail.accessMethod,
     detail.paymentMethod,
   ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean).join(" ");
-  return /\b(pass|membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b|이용권 확인|이용권 적용|이용권으로/.test(haystack);
+  return /\b(pass|membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b|이용권 확인|이용권 적용|이용권으로/.test(haystack);
 }
 
 function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: PaidFeatureGateDetail | string = {}) {

@@ -38,6 +38,8 @@ type RuntimeWindow = Window & {
 };
 
 const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
+const VOLATILE_QUERY_KEYS = new Set(["_", "t", "ts", "cb", "cache", "cacheBust", "cachebuster"]);
+const REQUEST_GUARD_MARKER = "request-traffic-guard-v20260704";
 const cache = new Map<string, CachedResponse>();
 const inFlight = new Map<string, Promise<Response>>();
 const subscribers = new Set<() => void>();
@@ -77,6 +79,55 @@ function readJsonStorage(key: string) {
   } catch {
     return null;
   }
+}
+
+function readCookie(name: string) {
+  if (typeof document === "undefined") return "";
+  try {
+    const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const match = String(document.cookie || "").match(new RegExp(`(?:^|;\\s*)${escaped}=([^;]*)`));
+    return match ? decodeURIComponent(match[1] || "") : "";
+  } catch {
+    return "";
+  }
+}
+
+function writeCookie(name: string, value: string, maxAge?: number) {
+  if (typeof document === "undefined") return;
+  try {
+    const age = typeof maxAge === "number" ? `; max-age=${Math.max(0, Math.floor(maxAge))}` : "";
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${name}=${encodeURIComponent(value)}; path=/${age}; SameSite=Lax${secure}`;
+  } catch {
+  }
+}
+
+function ensureSessionCookie() {
+  const current = readCookie("cd_session_guard");
+  if (current) return current;
+  const token = `sg.${Date.now().toString(36)}.${Math.random().toString(36).slice(2, 10)}`;
+  writeCookie("cd_session_guard", token);
+  return token;
+}
+
+function hasAuthCookieHint() {
+  const role = readCookie("fortune_auth_role").trim().toLowerCase();
+  return Boolean(role && role !== "guest" && role !== "anonymous");
+}
+
+function hasClientAuthHint() {
+  if (typeof window === "undefined") return false;
+  try {
+    const token = String(
+      window.localStorage.getItem("fortune_auth_token")
+        || window.sessionStorage.getItem("fortune_auth_token")
+        || "",
+    ).trim();
+    if (token) return true;
+    if (readJsonStorage("fortune_auth_user")) return true;
+  } catch {
+  }
+  return hasAuthCookieHint();
 }
 
 function resolveUserKey() {
@@ -128,8 +179,17 @@ function shouldBypass(init?: RequestInit) {
   return headers.get(CACHE_REFRESH_HEADER) === "1";
 }
 
+function normalizeSearchParams(url: URL) {
+  const kept: [string, string][] = [];
+  url.searchParams.forEach((value, key) => {
+    if (!VOLATILE_QUERY_KEYS.has(key)) kept.push([key, value]);
+  });
+  kept.sort((a, b) => a[0] === b[0] ? a[1].localeCompare(b[1]) : a[0].localeCompare(b[0]));
+  return kept.map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`).join("&");
+}
+
 function makeCacheKey(userKey: string, url: URL, kind: CacheKind) {
-  return [kind, userKey, url.pathname, url.searchParams.toString()].join("|");
+  return [kind, userKey, url.pathname, normalizeSearchParams(url)].join("|");
 }
 
 function responseFromCached(entry: CachedResponse) {
@@ -137,6 +197,22 @@ function responseFromCached(entry: CachedResponse) {
     status: entry.status,
     statusText: entry.statusText,
     headers: new Headers(entry.headers),
+  });
+}
+
+function guardedGuestAuthResponse() {
+  return new Response(JSON.stringify({
+    ok: true,
+    authenticated: false,
+    guest: true,
+    reason: "no_auth_hint",
+    clientGuard: REQUEST_GUARD_MARKER,
+  }), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "X-Code-Destiny-Client-Guard": REQUEST_GUARD_MARKER,
+    },
   });
 }
 
@@ -218,6 +294,8 @@ export function invalidateUserAccessCache(reason = "manual") {
 export async function ensureUserAccessLoaded(options: { force?: boolean; includeProfile?: boolean; includeBilling?: boolean; reason?: string } = {}) {
   if (typeof window === "undefined") return getUserAccessSnapshot();
   installUserAccessFetchCache();
+  ensureSessionCookie();
+  if (!hasClientAuthHint()) return getUserAccessSnapshot();
   const headers = options.force ? { [CACHE_REFRESH_HEADER]: "1" } : undefined;
   const init: RequestInit = { method: "GET", credentials: "include", cache: "no-store", headers };
   const authResponse = await fetch("/api/auth/me", init).catch(() => null);
@@ -298,6 +376,10 @@ export function installUserAccessFetchCache() {
 
     const kind = resolveCacheKind(parsedUrl.pathname);
     if (!kind || parsedUrl.origin !== window.location.origin) return nativeFetch(input, init);
+    ensureSessionCookie();
+    if (parsedUrl.pathname === "/api/auth/me" && !hasClientAuthHint()) {
+      return Promise.resolve(guardedGuestAuthResponse());
+    }
 
     const userKey = resolveUserKey();
     const cacheKey = makeCacheKey(userKey, parsedUrl, kind);

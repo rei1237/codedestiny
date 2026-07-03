@@ -1,4 +1,5 @@
 import { getEnv } from "./lib/env.js";
+import { enforceAiRouteSecurity } from "./lib/security/index.js";
 
 const ROUTE_METRICS_STATE = {
   byRoute: Object.create(null),
@@ -423,6 +424,17 @@ const handleNamingPromptRoutes = createLazyRouteHandler("./routes/naming-prompt.
 const handleAccessRoutes = createLazyRouteHandler("./routes/access.js", () => import("./routes/access.js"), "handleAccessRoutes");
 const handleRpgRoutes = createLazyRouteHandler("./routes/rpg.js", () => import("./routes/rpg.js"), "handleRpgRoutes");
 const handleFptiRoutes = createLazyRouteHandler("./routes/fpti.js", () => import("./routes/fpti.js"), "handleFptiRoutes");
+
+async function runAiRouteWithSecurity(request, env, serviceKey, handler) {
+  const security = await enforceAiRouteSecurity({
+    request,
+    env,
+    serviceKey,
+    path: new URL(request.url).pathname,
+  });
+  if (!security.ok) return withCorsHeaders(request, env, security.response);
+  return withCorsHeaders(request, env, await handler(request, env));
+}
 
 const getRuntimeKeyMatrix = async (env, forceRefresh = false) => {
   const now = Date.now();
@@ -1148,7 +1160,7 @@ export default {
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {
-        return withCorsHeaders(request, env, await handleFortuneTeaHouseRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "fortune-tea-house", handleFortuneTeaHouseRoutes);
       }
 
       if (url.pathname === "/api/fpti" || url.pathname.startsWith("/api/fpti/")) {
@@ -1218,7 +1230,7 @@ export default {
       }
 
       if (url.pathname === "/api/ziwei-ai" || url.pathname.startsWith("/api/ziwei-ai/")) {
-        return withCorsHeaders(request, env, await handleZiweiAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "ziwei-ai", handleZiweiAiRoutes);
       }
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {
@@ -1250,30 +1262,30 @@ export default {
       }
 
       if (url.pathname === "/api/love-secret-ai" || url.pathname.startsWith("/api/love-secret-ai/")) {
-        return withCorsHeaders(request, env, await handleLoveSecretAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "love-secret-ai", handleLoveSecretAiRoutes);
       }
 
       if (url.pathname === "/api/saju-new-year" || url.pathname.startsWith("/api/saju-new-year/")) {
         return withCorsHeaders(request, env, await handleSajuNewYearRoutes(request, env));
       }
       if (url.pathname === "/api/new-year-ai" || url.pathname.startsWith("/api/new-year-ai/")) {
-        return withCorsHeaders(request, env, await handleNewYearAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "new-year-ai", handleNewYearAiRoutes);
       }
 
       if (url.pathname === "/api/karma-destiny-ai" || url.pathname.startsWith("/api/karma-destiny-ai/")) {
-        return withCorsHeaders(request, env, await handleKarmaDestinyAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "karma-destiny-ai", handleKarmaDestinyAiRoutes);
       }
 
       if (url.pathname === "/api/vedic-ai" || url.pathname.startsWith("/api/vedic-ai/")) {
-        return withCorsHeaders(request, env, await handleVedicAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "vedic-ai", handleVedicAiRoutes);
       }
 
       if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
-        return withCorsHeaders(request, env, await handleNeoOperationRoomRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes);
       }
 
       if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {
-        return withCorsHeaders(request, env, await handleLifeBookAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "life-book-ai", handleLifeBookAiRoutes);
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {
@@ -1330,7 +1342,7 @@ export default {
         url.pathname === "/api/astrology-ai"
         || url.pathname.startsWith("/api/astrology-ai/")
       ) {
-        return withCorsHeaders(request, env, await handleAstrologyAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "astrology-ai", handleAstrologyAiRoutes);
       }
 
 
@@ -1338,7 +1350,7 @@ export default {
         url.pathname === "/api/sukuyo-compatibility-ai"
         || url.pathname.startsWith("/api/sukuyo-compatibility-ai/")
       ) {
-        return withCorsHeaders(request, env, await handleSukuyoCompatibilityAiRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "sukuyo-compatibility-ai", handleSukuyoCompatibilityAiRoutes);
       }
 
       if (

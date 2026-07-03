@@ -588,7 +588,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     }
   }
 
-  if (ctx.accessType === "membership_pass" || ctx.accessType === "usage_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS") {
+  if (ctx.accessType === "membership_pass" || ctx.accessType === "family" || ctx.accessMethod === "PASS") {
     if ((!ctx.featureKey || ctx.featureKey === FEATURE_KEY) && (!ctx.requestId || ctx.requestId === idempotencyKey)) {
       return {
         ok: true,
@@ -1142,20 +1142,6 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }
       }).catch((error) => {
         if (error?.code !== 11000) throw error;
       });
-    }
-  }
-  if (source !== "billing-gate" && accessType === "pass") {
-    const pass = await User.findById(userId).select("profileSubscription").lean().then((user) => normalizeHoneyPassEntitlement(user || {})).catch(() => null);
-    if (pass && canUseByPass(pass, pricing.coinPrice)) {
-      await User.updateOne(
-        { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
-        {
-          $inc: {
-            "profileSubscription.passRemainingUses": -1,
-            "profileSubscription.passUsedCount": 1,
-          },
-        },
-      ).catch(() => {});
     }
   }
   await AstrologyAiConsultation.updateOne({ id: sessionId, usageAppliedAt: null }, { $set: { usageAppliedAt: new Date() } });

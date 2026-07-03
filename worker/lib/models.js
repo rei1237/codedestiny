@@ -28,18 +28,6 @@ const userSchema = new mongoose.Schema({
     status: { type: String, default: "", trim: true },
     expiresAt: { type: Date, default: null },
   },
-  usagePasses: {
-    type: [{
-      category: { type: String, enum: ["saju", "tarot", "saju_unlock", "fortune_30", "fortune_50", "compat"], required: true },
-      remainingUses: { type: Number, min: 0, default: 0 },
-      purchasedUses: { type: Number, min: 0, default: 0 },
-      productId: { type: String, default: "", trim: true, maxlength: 80 },
-      lastPaymentId: { type: String, default: "", trim: true, maxlength: 120 },
-      lastGrantedAt: { type: Date, default: null },
-      updatedAt: { type: Date, default: Date.now },
-    }],
-    default: [],
-  },
   localAuth: {
     enabled: { type: Boolean, default: true },
     activatedAt: { type: Date, default: Date.now },
@@ -78,9 +66,6 @@ const userSchema = new mongoose.Schema({
     durationMonths: { type: Number, default: 0, min: 0 },
     profileLimit: { type: Number, default: 1, min: 0 },
     passTier: { type: String, enum: ["standard", "premium", "vvip", "family", ""], default: "" },
-    passTotalUses: { type: Number, default: 0, min: 0 },
-    passRemainingUses: { type: Number, default: 0, min: 0 },
-    passUsedCount: { type: Number, default: 0, min: 0 },
     maxCoveredCoin: { type: Number, default: 0, min: 0 },
     freeLimit: { type: Number, default: 0, min: 0 },
     passLimit: { type: Number, default: 0, min: 0 },
@@ -401,6 +386,54 @@ const paymentWebhookEventSchema = new mongoose.Schema({
 paymentWebhookEventSchema.index({ provider: 1, eventId: 1 }, { unique: true });
 paymentWebhookEventSchema.index({ paymentId: 1, createdAt: -1 });
 
+const securityEventSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
+  ipHash: { type: String, trim: true, maxlength: 96, index: true, default: "" },
+  endpoint: { type: String, trim: true, maxlength: 160, index: true, default: "" },
+  level: { type: String, enum: ["info", "warn", "error"], default: "warn", index: true },
+  reason: { type: String, trim: true, maxlength: 120, index: true, default: "" },
+  method: { type: String, trim: true, maxlength: 12, default: "" },
+  userAgent: { type: String, trim: true, maxlength: 300, default: "" },
+  metadata: { type: mongoose.Schema.Types.Mixed, default: null },
+  createdAt: { type: Date, default: Date.now, index: true },
+}, { collection: "security_events" });
+
+securityEventSchema.index({ userId: 1, createdAt: -1 });
+securityEventSchema.index({ ipHash: 1, createdAt: -1 });
+securityEventSchema.index({ reason: 1, createdAt: -1 });
+
+const idempotencyKeySchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
+  endpoint: { type: String, trim: true, maxlength: 160, required: true, index: true },
+  keyHash: { type: String, trim: true, maxlength: 96, required: true, index: true },
+  requestHash: { type: String, trim: true, maxlength: 96, default: "" },
+  status: { type: String, enum: ["processing", "success", "failed"], default: "processing", index: true },
+  responseRef: { type: mongoose.Schema.Types.Mixed, default: null },
+  expiresAt: { type: Date, required: true, index: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+}, { collection: "idempotency_keys" });
+
+idempotencyKeySchema.index({ userId: 1, endpoint: 1, keyHash: 1 }, { unique: true });
+idempotencyKeySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
+const abuseScoreSchema = new mongoose.Schema({
+  subjectHash: { type: String, trim: true, maxlength: 128, required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
+  endpoint: { type: String, trim: true, maxlength: 160, index: true, default: "" },
+  kind: { type: String, enum: ["abuse", "rate_limit"], default: "abuse", index: true },
+  score: { type: Number, default: 0, min: 0 },
+  blockedUntil: { type: Date, default: null, index: true },
+  lastReasons: { type: [String], default: [] },
+  expiresAt: { type: Date, required: true, index: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+}, { collection: "abuse_scores" });
+
+abuseScoreSchema.index({ subjectHash: 1, endpoint: 1, kind: 1 }, { unique: true });
+abuseScoreSchema.index({ userId: 1, endpoint: 1, updatedAt: -1 });
+abuseScoreSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 const serviceExecutionTransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   executionKey: { type: String, required: true, trim: true, maxlength: 120 },
@@ -492,8 +525,6 @@ const serviceExecutionTransactionSchema = new mongoose.Schema({
     monthlyCreditRefunded: { type: Boolean, default: false },
     monthlyCreditRefundAmount: { type: Number, default: 0, min: 0 },
     monthlyCreditRefundLedgerId: { type: String, default: "", trim: true, maxlength: 120 },
-    usagePassRefunded: { type: Boolean, default: false },
-    usagePassCategory: { type: String, default: "", trim: true, maxlength: 80 },
     paymentCancelled: { type: Boolean, default: false },
   },
   metadata: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -997,6 +1028,9 @@ export const ContentEntitlement = mongoose.models.ContentEntitlement
 export const PaymentFailureLog = mongoose.models.PaymentFailureLog || mongoose.model("PaymentFailureLog", paymentFailureLogSchema);
 export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
   || mongoose.model("PaymentWebhookEvent", paymentWebhookEventSchema);
+export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
+export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
+export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);

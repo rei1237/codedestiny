@@ -129,8 +129,7 @@ function isBackfillablePassHistory(history) {
   const accessMethod = String(metadata.accessMethod || metadata.paymentMethod || "").trim().toUpperCase();
   const transactionType = String(metadata.transactionType || "").trim().toLowerCase();
   return BACKFILL_PASS_ACCESS_TYPES.includes(accessType)
-    || BACKFILL_PASS_ACCESS_METHODS.includes(accessMethod)
-    || transactionType === "usage_pass";
+    || BACKFILL_PASS_ACCESS_METHODS.includes(accessMethod);
 }
 
 function isObjectIdLike(value) {

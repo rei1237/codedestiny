@@ -811,7 +811,7 @@ function paymentTokenClauses(tokens = []) {
 function normalizeBillingAccessType(value) {
   const accessType = clean(value).toLowerCase();
   if (["membership_credit", "monthly_credit", "moonlight_stone", "monthly", "subscription"].includes(accessType)) return "subscription";
-  if (["membership_pass", "license_pass", "subscription_pass", "usage_pass", "pass", "family", "family_pass"].includes(accessType)) return "pass";
+  if (["membership_pass", "license_pass", "subscription_pass", "pass", "family", "family_pass"].includes(accessType)) return "pass";
   return "paid";
 }
 
@@ -828,11 +828,11 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
   if (!hasEvidencePayload) return null;
   if (featureKey && featureKey !== FEATURE_KEY) return null;
 
+  if (/usage[-_]pass/.test(signal)) return null;
+
   if (signal.includes("pass")) {
     const pass = normalizeHoneyPassEntitlement(user || {});
-    const usageMarker = `usage-pass:${FEATURE_KEY}:${idempotencyKey}`;
-    const usagePassConsumed = Array.isArray(user?.recentConsumeRequestIds) && user.recentConsumeRequestIds.includes(usageMarker);
-    if (canUseByPass(pass, pricing.coinPrice) || usagePassConsumed) {
+    if (canUseByPass(pass, pricing.coinPrice)) {
       return { ok: true, accessType: "pass", paymentId: tokens[0] || "", prepaid: true };
     }
   }
@@ -1288,23 +1288,6 @@ async function generateConsultationText(env, prompt, options = {}) {
 async function applyUsageOnce({ userId, sessionId, accessType }) {
   const existing = await NewYearAiConsultation.findOne({ id: sessionId }).select("usageAppliedAt").lean();
   if (existing?.usageAppliedAt) return true;
-
-  if (accessType === "pass") {
-    const passUpdate = await User.updateOne(
-      { _id: userId, "profileSubscription.passRemainingUses": { $gt: 0 } },
-      {
-        $inc: {
-          "profileSubscription.passRemainingUses": -1,
-          "profileSubscription.passUsedCount": 1,
-        },
-      },
-    );
-    if (!passUpdate?.modifiedCount) {
-      const error = new Error("membership pass balance is insufficient");
-      error.code = "MEMBERSHIP_PASS_CONSUME_FAILED";
-      throw error;
-    }
-  }
 
   await NewYearAiConsultation.updateOne(
     { id: sessionId, usageAppliedAt: null },

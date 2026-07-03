@@ -406,8 +406,6 @@ function toSummary(doc) {
       monthlyCreditRefunded: Boolean(doc?.compensation?.monthlyCreditRefunded),
       monthlyCreditRefundAmount: Number(doc?.compensation?.monthlyCreditRefundAmount || 0),
       monthlyCreditRefundLedgerId: String(doc?.compensation?.monthlyCreditRefundLedgerId || ""),
-      usagePassRefunded: Boolean(doc?.compensation?.usagePassRefunded),
-      usagePassCategory: String(doc?.compensation?.usagePassCategory || ""),
       paymentCancelled: Boolean(doc?.compensation?.paymentCancelled),
     },
     refundStatus: String(doc?.refundStatus || "none"),
@@ -769,21 +767,6 @@ async function runMonthlyCreditRefund({
   };
 }
 
-async function runUsagePassRefund({ userId, execution, requestId }) {
-  const metadata = execution?.metadata && typeof execution.metadata === "object" ? execution.metadata : {};
-  const billing = metadata.billing && typeof metadata.billing === "object" ? metadata.billing : {};
-  const accessType = cleanMetadataText(billing.accessType || metadata.accessType).toLowerCase();
-  const transactionType = cleanMetadataText(billing.transactionType || metadata.transactionType).toLowerCase();
-  if (accessType !== "usage_pass" && transactionType !== "usage_pass") {
-    return { refunded: false, skipped: true, reason: "NOT_USAGE_PASS" };
-  }
-  return {
-    refunded: false,
-    skipped: true,
-    reason: "USAGE_PASS_REFUND_EXCLUDED_BY_POLICY",
-  };
-}
-
 async function runPaymentCancel(env, paymentRef = {}, reason, execution = {}) {
   const impUid = String(paymentRef.impUid || paymentRef.paymentId || "").trim();
   const merchantUid = String(paymentRef.merchantUid || execution.merchantUid || "").trim();
@@ -964,12 +947,6 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       reason: `${reason.message}`.slice(0, 120),
     });
 
-    const usagePassResult = await runUsagePassRefund({
-      userId: execution.userId,
-      execution,
-      requestId,
-    });
-
     const paymentResult = await runPaymentCancel(env, execution.paymentRef || {}, reason.message, execution);
 
     const nextStatus = coinResult.refunded
@@ -1000,7 +977,6 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
             : [
               coinResult.reason,
               monthlyCreditResult.reason,
-              usagePassResult.reason,
               paymentResult.reason,
             ].filter(Boolean).join("; ").slice(0, 500),
           "compensation.coinRefunded": Boolean(coinResult.refunded),
@@ -1008,8 +984,6 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
           "compensation.monthlyCreditRefunded": Boolean(monthlyCreditResult.refunded),
           "compensation.monthlyCreditRefundAmount": Number(monthlyCreditResult.amount || 0),
           "compensation.monthlyCreditRefundLedgerId": String(monthlyCreditResult.ledgerId || ""),
-          "compensation.usagePassRefunded": Boolean(usagePassResult.refunded),
-          "compensation.usagePassCategory": String(usagePassResult.category || ""),
           "compensation.paymentCancelled": Boolean(paymentResult.cancelled),
           "compensation.unlockRevoked": Boolean(paymentResult.unlockRevoked),
           "compensation.adminReviewRequired": Boolean(paymentResult.adminReviewRequired),
@@ -1035,7 +1009,6 @@ async function settleExecutionById(env, executionId, reasonCode, reasonMessage) 
       status: nextStatus,
       coinResult,
       monthlyCreditResult,
-      usagePassResult,
       paymentResult,
     };
   } catch (error) {

@@ -20,7 +20,6 @@ type DevTesterUser = {
   profileSubscription?: {
     tier?: string;
     passTier?: string;
-    passRemainingUses?: number;
     profileLimit?: number;
     maxCoveredCoin?: number;
     expiresAt?: string | null;
@@ -78,14 +77,12 @@ function formatPassLabel(user: DevTesterUser | null, copy: (typeof DEV_PAYMENT_T
   const licenses = user?.licenses || null;
   const sub = user?.profileSubscription || null;
   const tier = String(sub?.passTier || sub?.tier || "free");
-  const remaining = Number(sub?.passRemainingUses || 0);
   const limit = Number(sub?.maxCoveredCoin || 0);
   const licenseCounts = licenses
     ? `S${Number(licenses.standard || 0)} P${Number(licenses.premium || 0)} V${Number(licenses.vvip || 0)}`
     : "";
-  const remainingLabel = tier === "family" ? copy.unlimited : (remaining ? String(remaining) : "");
   const limitLabel = tier === "family" ? copy.allAccess : (limit ? `${limit}c` : "");
-  return `${tier}${remainingLabel ? ` / ${remainingLabel}` : ""}${limitLabel ? ` / ${limitLabel}` : ""}${licenseCounts ? ` / ${licenseCounts}` : ""}`;
+  return `${tier}${limitLabel ? ` / ${limitLabel}` : ""}${licenseCounts ? ` / ${licenseCounts}` : ""}`;
 }
 
 export default function DevPaymentTester() {

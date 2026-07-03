@@ -36,11 +36,11 @@ function createHarness() {
   const users = new Map();
 
   function setUser(userId, patch) {
-    users.set(userId, { id: userId, points: 0, usagePass: false, ...users.get(userId), ...patch });
+    users.set(userId, { id: userId, points: 0, ...users.get(userId), ...patch });
   }
 
   function getUser(userId) {
-    return users.get(userId) || { id: userId, points: 0, usagePass: false, passLimit: 0, monthlyBalance: 0 };
+    return users.get(userId) || { id: userId, points: 0, passLimit: 0, monthlyBalance: 0 };
   }
 
   function hasUnlockedContent(input) {
@@ -84,7 +84,6 @@ function createHarness() {
 
   function passUnlock({ userId, profileId, contentKey }) {
     const user = getUser(userId);
-    assert.equal(user.usagePass, true);
     upsertContentUnlock({ userId, profileId, serviceKey: "saju", contentKey, source: "PASS", passId: "pass-1" });
     return { ok: true, paymentWindowOpened: false };
   }
@@ -305,7 +304,7 @@ function createUiUnlockHoldHarness() {
 }
 
 const h = createHarness();
-h.setUser("u1", { points: 100, usagePass: true });
+h.setUser("u1", { points: 100 });
 
 const purchase = h.purchase({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN });
 assert.equal(purchase.ok, true, "사주 대운 분석 구매 성공");
@@ -315,14 +314,15 @@ assert.equal(h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", se
 assert.equal(h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", serviceKey: "saju" }).includes(SAJU_KEYS.DAEUN), true, "재로그인 후 같은 프로필 unlocked");
 assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-b", serviceKey: "saju", contentKey: SAJU_KEYS.DAEUN }), false, "다른 profileId는 locked");
 
+const pass = h.passUnlock({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.FULL });
+assert.equal(pass.paymentWindowOpened, false, "Pass unlock keeps payment selector closed");
+
 const beforePoints = h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", serviceKey: "saju" }).length;
 const repurchase = h.purchase({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.DAEUN });
 assert.equal(repurchase.alreadyUnlocked, true, "이미 unlocked면 결제창 없음");
 assert.equal(repurchase.charged, 0, "이미 unlocked면 추가 유료 처리 없음");
 assert.equal(h.getUnlockedContentKeys({ userId: "u1", profileId: "profile-a", serviceKey: "saju" }).length, beforePoints, "중복 unlock 없음");
 
-const pass = h.passUnlock({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.FULL });
-assert.equal(pass.paymentWindowOpened, false, "이용권 보유자는 결제창 없이 unlock");
 assert.equal(h.hasUnlockedContent({ userId: "u1", profileId: "profile-a", serviceKey: "saju", contentKey: SAJU_KEYS.FULL }), true, "이용권 unlock 저장");
 
 h.paymentConfirm({ userId: "u1", profileId: "profile-a", contentKey: SAJU_KEYS.COMPAT, paymentId: "pay-compat", status: "success" });

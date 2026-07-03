@@ -113,8 +113,6 @@ export type PaymentEligibility = {
     tier: "standard" | "premium" | "vvip" | "family" | null;
     label: string | null;
     limit: number | null;
-    totalUses?: number | null;
-    remainingUses?: number | null;
     canUse: boolean;
   };
   monthly: {
@@ -147,7 +145,6 @@ export type EntitlementStatus = {
   isActive: boolean;
   plan: EntitlementPlan;
   expiresAt?: string | null;
-  remainingUses?: number | null;
   maxCoinCovered?: number | null;
   source?: "server" | "local-cache";
 };
@@ -810,8 +807,6 @@ function buildSnapshotPaymentEligibility(input: {
         tier: passTier,
         label: labelForPassTier(passTier),
         limit: passLimit > 0 ? passLimit : null,
-        totalUses: null,
-        remainingUses: null,
         canUse: canUseByPass,
       },
       monthly: {
@@ -1168,7 +1163,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             const entitlementStatus: EntitlementStatus = {
               isActive: latest.data?.pass.hasActivePass === true,
               plan: normalizeEntitlementPlan(latest.data?.pass.tier),
-              remainingUses: null,
               maxCoinCovered: latest.data?.pass.tier === "family" ? null : latest.data?.pass.limit ?? null,
               source: "server",
             };
@@ -1296,10 +1290,6 @@ function isMonthlyCreditAccessType(value: unknown): boolean {
     || accessType === "monthly_subscription";
 }
 
-function isUsagePassAccessType(value: unknown): boolean {
-  return toText(value).toLowerCase() === "usage_pass";
-}
-
 function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string, unknown>, requestedMode = "", passFirstEligible = false) {
   const consume = asRecord(data.consume);
   const accessGrant = asRecord(data.accessGrant);
@@ -1322,7 +1312,6 @@ function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string,
     accessGrant?.paymentMethod,
   ];
   const monthlyApplied = candidates.some(isMonthlyCreditAccessType);
-  const usagePassApplied = candidates.some(isUsagePassAccessType);
   const membershipPassApplied = !monthlyApplied && (data.freeBySubscription === true || isMembershipPassGrantedPayload(data) || passFirstEligible);
 
   if (monthlyApplied) {
@@ -1331,16 +1320,6 @@ function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string,
       paymentMode: "MOONLIGHT_STONE",
       entitlementApplied: false,
       passApplied: false,
-      usagePassApplied: false,
-    };
-  }
-  if (usagePassApplied) {
-    return {
-      status: "hasEntitlement" as const,
-      paymentMode: "USAGE_PASS",
-      entitlementApplied: true,
-      passApplied: false,
-      usagePassApplied: true,
     };
   }
   if (membershipPassApplied) {
@@ -1349,7 +1328,6 @@ function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string,
       paymentMode: "MEMBERSHIP_PASS",
       entitlementApplied: true,
       passApplied: true,
-      usagePassApplied: false,
     };
   }
   return {
@@ -1357,7 +1335,6 @@ function resolveAppliedBillingPayment(data: BillingCoinGateData & Record<string,
     paymentMode: normalizePaymentMode(requestedMode) || "DIRECT_KRW",
     entitlementApplied: false,
     passApplied: false,
-    usagePassApplied: false,
   };
 }
 
@@ -2106,7 +2083,7 @@ function resolvePaymentWaitKind(input: {
     .join(" ");
 
   if (mode === "MOONLIGHT_STONE" || /\b(monthly_credit|membership_credit|moonlight_stone|monthly_subscription|monthly)\b/.test(haystack)) return "monthly";
-  if (mode === "MEMBERSHIP_PASS" || /\b(membership_pass|license_pass|subscription_pass|family_pass|usage_pass|pass_applied)\b/.test(haystack)) return "pass";
+  if (mode === "MEMBERSHIP_PASS" || /\b(membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b/.test(haystack)) return "pass";
   if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
   if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
   if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
@@ -2720,8 +2697,6 @@ function buildRecoverablePaymentEligibility(input: {
         tier: null,
         label: null,
         limit: null,
-        totalUses: null,
-        remainingUses: null,
         canUse: false,
       },
       monthly: {
@@ -2880,8 +2855,6 @@ async function fetchPaymentEligibilityUncached(input: {
       tier: passTier,
       label: labelForPassTier(passTier),
       limit: normalizedPassLimit,
-      totalUses: null,
-      remainingUses: null,
       canUse: !passExpired && Boolean(familyAllAccess || (options.canUseByPass ?? data.canUseByPass ?? passCovered)),
     },
     monthly: {
@@ -2898,7 +2871,6 @@ async function fetchPaymentEligibilityUncached(input: {
   const entitlementStatus: EntitlementStatus = {
     isActive: eligibility.pass.hasActivePass,
     plan: normalizeEntitlementPlan(eligibility.pass.tier),
-    remainingUses: null,
     maxCoinCovered: eligibility.pass.tier === "family" ? null : eligibility.pass.limit,
     source: "server",
   };

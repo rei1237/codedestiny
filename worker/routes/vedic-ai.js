@@ -391,7 +391,7 @@ function serverError(message = MESSAGES.serverFailed, status = 500, reason = "SE
 async function loadBillingUser(userId) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
   return User.findById(userId)
-    .select("email name phoneNumber points role profileSubscription subscription membership pass entitlement paidFeatures unlockedFeatures recentConsumeRequestIds usagePasses")
+    .select("email name phoneNumber points role profileSubscription subscription membership pass entitlement paidFeatures unlockedFeatures recentConsumeRequestIds")
     .lean();
 }
 
@@ -458,7 +458,8 @@ function readEvidenceAccessType(evidence = {}, body = {}) {
     stableJson(evidence),
   ].map((value) => clean(value).toLowerCase()).filter(Boolean).join("|");
   if (signal.includes("membership_credit") || signal.includes("moonlight_stone") || signal.includes("monthly")) return "subscription";
-  if (signal.includes("membership_pass") || signal.includes("usage_pass") || signal.includes("family") || signal.includes("pass")) return "pass";
+  if (/usage[-_]pass/.test(signal)) return "removed_pass";
+  if (signal.includes("membership_pass") || signal.includes("family") || signal.includes("pass")) return "pass";
   if (signal.includes("coin") || signal.includes("point")) return "paid";
   return "paid";
 }
@@ -569,19 +570,14 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
 
   const user = await loadBillingUser(userObjectId);
   if (likelyAccessType === "pass") {
-    const usageMarker = `usage-pass:${FEATURE_KEY}:${idempotencyKey}`;
-    const usagePassConsumed = Array.isArray(user?.recentConsumeRequestIds) && user.recentConsumeRequestIds.includes(usageMarker);
     const pass = normalizeHoneyPassEntitlement(user || {});
-    if (usagePassConsumed || canUseByPass(pass, pricing.coinPrice)) {
-      const category = clean(evidence.bodyConsume?.category || evidence.bodyAccessGrant?.category || "", 120);
+    if (canUseByPass(pass, pricing.coinPrice)) {
       return {
         accessType: "pass",
         paymentId: ids[0] || "",
-        source: usagePassConsumed ? "usage-pass" : "pass-entitlement",
-        prepaid: usagePassConsumed,
-        evidenceType: usagePassConsumed ? "usage_pass" : "pass",
-        usageMarker: usagePassConsumed ? usageMarker : "",
-        usageCategory: category,
+        source: "pass-entitlement",
+        prepaid: false,
+        evidenceType: "pass",
       };
     }
   }
@@ -623,22 +619,6 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
   const now = new Date();
 
   try {
-    if (evidenceType === "usage_pass" && access.usageMarker && access.usageCategory) {
-      await User.updateOne(
-        {
-          _id: userObjectId,
-          recentConsumeRequestIds: access.usageMarker,
-          "usagePasses.category": access.usageCategory,
-        },
-        {
-          $inc: { "usagePasses.$.remainingUses": 1 },
-          $set: { "usagePasses.$.updatedAt": now },
-          $pull: { recentConsumeRequestIds: access.usageMarker },
-        },
-      );
-      return true;
-    }
-
     if (evidenceType === "coin" && mongoose.Types.ObjectId.isValid(evidenceId)) {
       const history = await PointHistory.findOne({
         _id: new mongoose.Types.ObjectId(evidenceId),

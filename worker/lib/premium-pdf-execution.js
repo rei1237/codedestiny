@@ -327,7 +327,6 @@ export function buildPremiumExecutionContext({
         transactionType: billingTransactionType,
         accessMethod: billingAccessMethod,
         membershipCreditCost: toInt(consume.membershipCreditCost || consume.requiredMonthlyCredits || body?.membershipCreditCost, 0),
-        usagePassCategory: clean(consume.category || access?.category || accessGrant.category || body?.usagePassCategory, 80),
         ledgerId: clean(consume.ledgerId || body?.ledgerId, 120),
       },
     },

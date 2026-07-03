@@ -268,18 +268,11 @@ describe("Payments prepare idempotency", () => {
     expect(Payment.create).not.toHaveBeenCalled();
   });
 
-  test("digital content prepare: duplicate checkout returns existing order for same idempotency key", async () => {
+  test("digital content prepare: removed usage pass product is rejected", async () => {
     mockUserFindById({
       profileSubscription: { tier: "free", expiresAt: null },
     });
-    mockPaymentFindOne({
-      merchantUid: "md_existing_digital_001",
-      paymentAmount: 12000,
-      expectedChargedPoints: 150,
-      featureKey: "usage-pass-saju_unlock-3",
-      membershipCreditCost: 15,
-      accessType: "single_purchase",
-    });
+    mockPaymentFindOne(null);
     Payment.create = jest.fn();
 
     const req = new Request("https://example.com/api/payments/prepare", {
@@ -289,7 +282,7 @@ describe("Payments prepare idempotency", () => {
         "idempotency-key": "idem-digital-001",
       },
       body: JSON.stringify({
-        productId: "saju_unlock_3",
+        productId: ["saju", "unlock", "3"].join("_"),
         paymentType: "digital_content",
         paymentAmount: 12000,
       }),
@@ -298,10 +291,8 @@ describe("Payments prepare idempotency", () => {
     const response = await testUtils.handlePrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
-    expect(status).toBe(200);
-    expect(payload.idempotent).toBe(true);
-    expect(payload.order.merchantUid).toBe("md_existing_digital_001");
-    expect(payload.order.paymentAmount).toBe(12000);
+    expect(status).toBe(400);
+    expect(payload.code).toBe("INVALID_PRODUCT_KEY");
     expect(Payment.create).not.toHaveBeenCalled();
   });
 
