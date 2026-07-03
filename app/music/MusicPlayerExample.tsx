@@ -164,6 +164,18 @@ function buildDownloadUrl(track: Track, accessByTrackId: MusicAccessMap) {
   return accessByTrackId[track.id]?.downloadUrl || buildMusicApiUrl("download", track);
 }
 
+function buildFullAccessEntry(track: Track, entry: Partial<MusicAccessEntry> = {}): MusicAccessEntry {
+  return {
+    trackId: track.id,
+    audioSourceKey: entry.audioSourceKey || track.audioSourceKey,
+    featureKey: entry.featureKey || track.purchaseFeatureKey || "",
+    hasFullAccess: true,
+    audioUrl: entry.audioUrl || buildMusicApiUrl("audio", track),
+    downloadUrl: entry.downloadUrl || buildMusicApiUrl("download", track),
+    code: entry.code || "FULL_ACCESS",
+  };
+}
+
 function canUseHumanCoverMode(artistKey: ArtistKey) {
   return artistKey === "yeoni" || artistKey === "dest1nova";
 }
@@ -744,10 +756,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const refreshMusicAccess = useCallback(async (tracksToRefresh: readonly Track[] = allTracks) => {
     const lockedTracks = tracksToRefresh.filter((track) => track.accessTier === "locked_preview" && track.purchaseFeatureKey);
     if (!lockedTracks.length) return;
+    const lockedTrackById = new Map(lockedTracks.map((track) => [track.id, track]));
 
     const response = await fetch("/api/music/access", {
       method: "POST",
       credentials: "include",
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         tracks: lockedTracks.map((track) => ({
@@ -763,10 +777,24 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     setAccessByTrackId((current) => {
       const next = { ...current };
       for (const entry of payload.tracks || []) {
-        if (entry?.trackId) next[entry.trackId] = entry;
+        if (!entry?.trackId) continue;
+        const currentEntry = current[entry.trackId];
+        if (currentEntry?.hasFullAccess && entry.hasFullAccess !== true) continue;
+        const sourceTrack = lockedTrackById.get(entry.trackId);
+        next[entry.trackId] = entry.hasFullAccess && sourceTrack
+          ? buildFullAccessEntry(sourceTrack, entry)
+          : entry;
       }
       return next;
     });
+  }, []);
+  const markTrackFullAccess = useCallback((track: Track) => {
+    if (!track.id || !track.purchaseFeatureKey) return;
+
+    setAccessByTrackId((current) => ({
+      ...current,
+      [track.id]: buildFullAccessEntry(track, current[track.id]),
+    }));
   }, []);
   const playbackTracks = useMemo(() => (
     allTracks.map((track) => buildPlaybackTrack(track, accessByTrackId))
@@ -782,6 +810,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const setPlaybackState = useMusicPlaybackStore((state) => state.setPlaybackState);
   const selectTrack = player.selectTrack;
   const sharedTrackSyncAttemptsRef = useRef(0);
+  const accessRefreshTrackIdsRef = useRef<Record<string, string>>({});
   const rawProgressMax = player.duration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
@@ -858,6 +887,41 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       window.clearTimeout(timeoutId);
     };
   }, [initialSharedTrackId, refreshMusicAccess]);
+
+  useEffect(() => {
+    const track = player.currentTrack;
+    if (!track || track.accessTier !== "locked_preview" || !track.purchaseFeatureKey) return;
+    if (accessByTrackId[track.id]?.hasFullAccess) return;
+
+    const refreshKey = `${track.id}:${track.purchaseFeatureKey}`;
+    if (accessRefreshTrackIdsRef.current[track.id] === refreshKey) return;
+    accessRefreshTrackIdsRef.current[track.id] = refreshKey;
+    void refreshMusicAccess([track]);
+  }, [accessByTrackId, player.currentTrack, refreshMusicAccess]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const resetMusicAccess = () => {
+      accessRefreshTrackIdsRef.current = {};
+      setAccessByTrackId({});
+      window.setTimeout(() => {
+        const priorityTracks = allTracks.slice(0, INITIAL_MUSIC_ACCESS_TRACK_COUNT);
+        void refreshMusicAccess(priorityTracks);
+      }, 0);
+    };
+    const handleAuthChanged = () => resetMusicAccess();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token") resetMusicAccess();
+    };
+
+    window.addEventListener("cd:auth-changed", handleAuthChanged);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener("cd:auth-changed", handleAuthChanged);
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [refreshMusicAccess]);
 
   useEffect(() => {
     setPlaybackState(currentTrackId, player.isPlaying);
@@ -1146,6 +1210,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       });
 
       if (result.ok) {
+        markTrackFullAccess(track);
         await refreshMusicAccess([track]);
         return;
       }
@@ -1156,7 +1221,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     } finally {
       setPurchasingTrackId("");
     }
-  }, [accessByTrackId, copy.purchaseFailed, player.currentTrack, refreshMusicAccess]);
+  }, [accessByTrackId, copy.purchaseFailed, markTrackFullAccess, player.currentTrack, refreshMusicAccess]);
 
   const handleDownloadCurrentTrack = useCallback(() => {
     const track = player.currentTrack;
