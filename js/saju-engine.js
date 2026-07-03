@@ -5588,29 +5588,6 @@ function _cdAIPromptIsPassPayload(payload, access) {
     || accessMethod === 'PASS';
 }
 
-function _cdAIPromptRecordedMembershipPass(opts, requestId, passPayload) {
-  var source = passPayload && typeof passPayload === 'object' ? passPayload : {};
-  var data = source.data && typeof source.data === 'object' ? source.data : source;
-  var profileId = String(opts.profileId || opts.selectedProfileId || '').trim();
-  return _cdAIPromptRequestJson('/api/billing/coin-gate', {
-    method: 'POST',
-    body: JSON.stringify({
-      featureKey: String(opts.featureKey || '').trim(),
-      reason: String(opts.reason || 'AI 질문 프롬프트 생성').trim(),
-      requestId: requestId,
-      profileId: profileId || undefined,
-      selectedProfileId: profileId || undefined,
-      categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
-      subFeatureKey: String(opts.subFeatureKey || '').trim() || undefined,
-      paymentMode: 'MEMBERSHIP_PASS',
-      forceDeduct: true,
-      freeBySubscription: source.freeBySubscription === true || data.freeBySubscription === true,
-      accessDecision: data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : undefined,
-      accessGrant: data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : undefined
-    })
-  });
-}
-
 function _cdAIPromptGate(input) {
   var opts = input && typeof input === 'object' ? input : {};
   var featureKey = String(opts.featureKey || '').trim();
@@ -5694,23 +5671,15 @@ function _cdAIPromptGate(input) {
       }
     }));
   }
-  return _cdAIPromptRequestJson('/api/billing/coin-gate', {
-    method: 'POST',
-    body: JSON.stringify({
-      featureKey: featureKey,
-      reason: reason,
-      requestId: requestId,
-      categoryKey: String(opts.categoryKey || 'ai-prompt').trim(),
-      paymentMode: 'MEMBERSHIP_PASS',
-      forceDeduct: true
-    })
-  }).then(function(result) {
-    var gate = normalize(result);
-    if (gate.ok) return gate;
-    gate.code = gate.code || 'PAYMENT_REQUIRED';
-    gate.message = gate.message || '이용권 또는 단건결제 확인 후 프롬프트를 생성할 수 있습니다.';
-    return gate;
-  });
+  return Promise.resolve(normalize({
+    ok: false,
+    status: 503,
+    payload: {
+      code: 'PAYMENT_GATE_UNAVAILABLE',
+      message: '결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+      requiredCoins: cost
+    }
+  }));
 }
 
 function _cdAIPromptGateEvidence(gateResult) {

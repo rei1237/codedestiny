@@ -437,64 +437,6 @@
     if (commonGateResult !== null) return commonGateResult;
     global.alert(animalTotemText("payment.gateLoadFailed"));
     return false;
-
-    var token = "";
-    try { token = String(localStorage.getItem("fortune_auth_token") || ""); } catch (_) {}
-    var headers = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = "Bearer " + token;
-    togglePaymentOverlay(true, animalTotemText("overlay.checkingPayment"));
-
-    try {
-      var response = await fetch("/api/billing/coin-gate", {
-        method: "POST",
-        headers: headers,
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({
-          categoryKey: "animal-totem",
-          subFeatureKey: spec.subFeatureKey,
-          featureKey: spec.featureKey,
-          reason: spec.reason,
-          forceDeduct: true,
-          requestId: "animal-totem:" + spec.subFeatureKey + ":" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9)
-        })
-      });
-      var payload = await response.json().catch(function() { return {}; });
-      var code = String(
-        (payload && payload.error && payload.error.code)
-        || (payload && payload.code)
-        || ""
-      ).toUpperCase();
-
-      if (response.status === 401 || response.status === 403 || code === "AUTH_REQUIRED") {
-        openAuthRequiredUi();
-        return false;
-      }
-
-      if (response.status === 402 || code === "INSUFFICIENT_COINS") {
-        openInsufficientCoinsUi();
-        return false;
-      }
-
-      if (!response.ok || payload.ok === false) {
-        var message = String(
-          (payload && payload.error && payload.error.message)
-          || (payload && payload.message)
-          || animalTotemText("payment.krwFailed")
-        );
-        global.alert(message);
-        return false;
-      }
-
-      syncUserPointsFromBilling(payload);
-      return true;
-    } catch (error) {
-      console.error("[animal-totem][billing]", error);
-      global.alert(animalTotemText("payment.processError"));
-      return false;
-    } finally {
-      togglePaymentOverlay(false);
-    }
   }
 
   function useSoftBodyLock() {

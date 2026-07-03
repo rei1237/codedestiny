@@ -571,30 +571,19 @@
 
   function consumeCoinDirect(cost, reason, featureKey) {
     var requestId = "tarot-love:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
-    if (typeof window._cdChooseServicePaymentMode === "function" && typeof window._cdRunDirectKrwCheckout === "function") {
-      return window._cdChooseServicePaymentMode({
+    if (typeof window._cdOpenPaidServiceGate === "function") {
+      return Promise.resolve(window._cdOpenPaidServiceGate({
         title: reason,
         reason: reason,
         coinPrice: cost,
         cost: cost,
         amountKrw: Math.max(0, Number(cost || 0)) * 100,
+        amountKRW: Math.max(0, Number(cost || 0)) * 100,
         featureKey: featureKey,
-      }).then(function(choice) {
-        if (choice === "pass" || choice === "pass_applied") return true;
-        if (choice === "direct") {
-          if (typeof window._cdSetCoinGateOverlay === "function") window._cdSetCoinGateOverlay(true, formatTarotLoveKrw(cost) + " " + getTarotLoveCopy().checkingPayment);
-          return window._cdRunDirectKrwCheckout({
-            coinPrice: cost,
-            cost: cost,
-            title: reason,
-            reason: reason,
-            featureKey: featureKey,
-            requestId: requestId,
-            checkoutPayload: { paymentMode: "DIRECT_KRW" },
-          }).then(function() { return true; });
-        }
-        if (choice !== "monthly") return false;
-        return consumeMonthlyCredit(cost, reason, featureKey, requestId);
+        requestId: requestId,
+        forceDeduct: true,
+      })).then(function(result) {
+        return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
         window.alert(String(error && error.message || getTarotLoveCopy().checkoutFailed));
         return false;
@@ -608,58 +597,7 @@
   }
 
   function consumeMonthlyCredit(cost, reason, featureKey, requestId) {
-    var token = getAuthToken();
-    var consumeHeaders = {
-      "Content-Type": "application/json",
-    };
-    if (token) consumeHeaders.Authorization = "Bearer " + token;
-
-    if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(true, formatTarotLoveKrw(cost) + ' ' + getTarotLoveCopy().checkingPayment);
-    return fetch("/api/billing/coin-gate", {
-      method: "POST",
-      headers: consumeHeaders,
-      credentials: "include",
-      cache: "no-store",
-      body: JSON.stringify({
-        cost: cost,
-        reason: reason,
-        featureKey: featureKey,
-        paymentMode: "MOONLIGHT_STONE",
-        forceDeduct: true,
-        requestId: requestId,
-      }),
-    })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (data) {
-          if (res.status === 401) {
-            if (window.confirm(getTarotLoveCopy().loginConfirm)) {
-              var next = encodeURIComponent(location.pathname + location.search);
-              window.location.href = "/login?next=" + next;
-            }
-            return false;
-          }
-          if (res.status === 402) {
-            showCoinShortage(cost, reason);
-            return false;
-          }
-          if (!res.ok || data.ok === false) {
-            window.alert(String(data.message || getTarotLoveCopy().krwFailed));
-            return false;
-          }
-          if (typeof window._cdHasVerifiedServerAccess === "function" && !window._cdHasVerifiedServerAccess(data, featureKey)) {
-            window.alert(getTarotLoveCopy().serverAccessFailed);
-            return false;
-          }
-          return true;
-        });
-      })
-      .catch(function () {
-        window.alert("결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-        return false;
-      })
-      .finally(function () {
-        if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false);
-      });
+    return consumeCoinDirect(cost, reason, featureKey || requestId);
   }
 
   function rollbackCoinBestEffort(cost, reason, featureKey) {

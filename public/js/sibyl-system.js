@@ -3621,32 +3621,7 @@ function _sibylText(key) {
       });
     }
 
-    var balance = await _resolveSibylBalance();
-
-    if (balance < pricing.cost) {
-      throw { status: 400, code: 'INSUFFICIENT_BALANCE', message: _sibylText("sibyl.message.004") };
-    }
-
-    var gateRes = await _fetchApiJson('/api/billing/coin-gate', {
-      method: 'POST',
-      body: JSON.stringify({
-        featureKey: pricing.featureKey,
-        reason: pricing.reason,
-        requestId: requestId,
-        payloadHash: String(payloadHash || '').slice(0, 120),
-        forceDeduct: true
-      })
-    });
-
-    if (!gateRes.ok) {
-      throw _toApiError(gateRes, '원화 결제가 완료되지 않았습니다.');
-    }
-
-    return {
-      requestId: requestId,
-      pricing: pricing,
-      consumePayload: gateRes.payload
-    };
+    throw { status: 503, code: 'PAYMENT_GATE_UNAVAILABLE', message: '결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.' };
   }
 
   async function _requestSibylRefund(paymentContext, failReason) {

@@ -13774,23 +13774,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         });
       });
     }
-    return syPromptRequestJson('/api/billing/coin-gate', {
-      method: 'POST',
-      body: JSON.stringify({
-        featureKey: featureKey,
-        reason: reason,
-        requestId: requestId,
-        categoryKey: String(opts.categoryKey || 'sukuyo').trim(),
-        paymentMode: 'MEMBERSHIP_PASS',
-        forceDeduct: true
-      })
-    }).then(function(result) {
-      var gate = normalize(result);
-      if (gate.ok) return gate;
-      gate.code = gate.code || 'PAYMENT_REQUIRED';
-      gate.message = gate.message || '프롬프트를 생성할 수 없습니다.';
-      return gate;
-    });
+    return Promise.resolve(normalize({
+      ok: false,
+      status: 503,
+      payload: {
+        code: 'PAYMENT_GATE_UNAVAILABLE',
+        message: '결제 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.',
+        requiredCoins: cost
+      }
+    }));
   }
 
   function syPromptGateEvidence(gateResult) {
