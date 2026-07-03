@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type FlowPhase = "idle" | "access" | "payment" | "reading" | "ready";
@@ -105,6 +110,7 @@ const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "점성술 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
+  PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "생년월일, 출생시간, 출생지 정보를 다시 확인해 주세요.",
   PLACE_ERROR: "출생지 정보를 확인하지 못했습니다. 도시와 국가를 다시 입력해 주세요.",
   CALCULATION_ERROR: "점성술 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
@@ -393,11 +399,26 @@ export default function AstrologyAiClient() {
     setNotice("");
     setPhase("access");
     setProgressIndex(1);
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId: idempotencyKey,
+      title: "이용권 확인",
+      reason: FEATURE_TITLE,
+      paymentMode: "MEMBERSHIP_PASS",
+    });
     try {
       console.info("[AstrologyAI] access check started", { requestId: idempotencyKey });
       const { response, data } = await postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, buildPayload(), idempotencyKey);
       if (data.ok) {
         console.info("[AstrologyAI] access check success", { requestId: idempotencyKey, accessType: data.accessType });
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: FEATURE_TITLE,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 별자리 흐름을 읽고 있습니다.",
+        });
         await startConsultation(idempotencyKey, { accessToken: data.accessToken, accessType: data.accessType });
         return;
       }
@@ -426,18 +447,28 @@ export default function AstrologyAiClient() {
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();
-        throw new Error(code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
+        throw new Error(code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
       }
       console.info("[AstrologyAI] access check success", { requestId: idempotencyKey, accessType: "billing-gate" });
       await startConsultation(idempotencyKey, extractPaymentContext(gate, idempotencyKey));
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
-      if (code === "LOGIN_REQUIRED" || code === "PAYMENT_VERIFY_FAILED" || code === "INVALID_INPUT") {
+      const paymentCancelled = code === "PAYMENT_CANCELLED";
+      if (code === "LOGIN_REQUIRED" || code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_CANCELLED" || code === "INVALID_INPUT") {
         console.error("[AstrologyAI] access check failed", { requestId: idempotencyKey, code });
       } else {
         console.error("[AstrologyAI] generation empty result", { requestId: idempotencyKey, code });
       }
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId: idempotencyKey,
+        title: "이용권 확인 실패",
+        reason: FEATURE_TITLE,
+        paymentMode: "MEMBERSHIP_PASS",
+        message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
+        cancelled: paymentCancelled,
+      });
       setPhase("idle");
       clearProgressTimers();
     } finally {

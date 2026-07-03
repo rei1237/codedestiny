@@ -153,7 +153,7 @@ type PaidFeatureGateContextValue = {
 const DEFAULT_PROCESSING_MESSAGE = "처리 중이에요\n잠시만 기다려 주세요";
 
 const PAID_GATE_DEFAULT_TITLE = "결제/이용권 확인";
-const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
+const ACCESS_CHECKING_MESSAGE = "이용권 확인 중이에요\n잠시만 기다려 주세요";
 const PAID_GATE_DEFAULT_MESSAGE = ACCESS_CHECKING_MESSAGE;
 
 type PaidGateCopy = { label: string; title: string; message: string };
@@ -173,18 +173,18 @@ const PAID_GATE_COPY: Record<PaidFeatureGateStatus, PaidGateCopy> = {
   idle: { label: "대기", title: PAID_GATE_DEFAULT_TITLE, message: PAID_GATE_DEFAULT_MESSAGE },
   opening: { label: "준비", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
   checkingEntitlement: { label: "확인 중", title: "이용권 확인", message: ACCESS_CHECKING_MESSAGE },
-  hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권을 확인했어요\n결과를 불러오는 중이에요" },
-  noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "이용 가능한 이용권을 찾지 못했습니다." },
+  hasEntitlement: { label: "이용 가능", title: "이용권 확인 완료", message: "이용권 확인이 끝났어요\n결과를 준비하고 있어요" },
+  noEntitlement: { label: "결제 필요", title: PAID_GATE_DEFAULT_TITLE, message: "사용 가능한 이용권이 없어 결제가 필요합니다." },
   loadingProducts: { label: "확인 중", title: "이용권/결제 확인", message: ACCESS_CHECKING_MESSAGE },
   readyToPay: { label: "선택 대기", title: "결제 수단 선택", message: "이 콘텐츠를 열 수 있는 결제 수단을 선택해 주세요." },
-  paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제를 처리하고 있어요\n창을 닫지 말아 주세요" },
-  paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 불러오는 중이에요" },
-  paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다." },
-  error: { label: "오류", title: "확인 실패", message: "네트워크 상태를 확인한 뒤 다시 시도해 주세요." },
+  paymentProcessing: { label: "처리 중", title: "결제 처리 중", message: "결제 승인과 이용 권한을 확인하고 있어요\n창을 닫지 말아 주세요" },
+  paymentSuccess: { label: "완료", title: "결제 완료", message: "결제가 완료됐어요\n결과를 준비하고 있어요" },
+  paymentFailed: { label: "실패", title: "결제 확인 실패", message: "결제를 완료하지 못했습니다. 다시 시도해 주세요." },
+  error: { label: "오류", title: "확인 실패", message: "이용권 확인에 실패했습니다. 잠시 후 다시 시도해 주세요." },
   paymentPreparing: { label: "결제 준비", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
   paymentWindowOpen: { label: "결제 진행", title: "단건 결제 준비 중", message: "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요\n창을 닫지 말아 주세요" },
-  savingUnlock: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
-  unlockSaving: { label: "저장 중", title: "잠금 해제 저장 중", message: "결과 화면으로 이어지도록 이용 권한 기록을 저장하고 있습니다." },
+  savingUnlock: { label: "저장 중", title: "이용 권한 저장 중", message: "결과 화면으로 이어지도록 이용 권한을 저장하고 있습니다." },
+  unlockSaving: { label: "저장 중", title: "이용 권한 저장 중", message: "결과 화면으로 이어지도록 이용 권한을 저장하고 있습니다." },
   cancelled: { label: "취소됨", title: "결제 선택 취소", message: "결제 선택이 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." },
 };
 
@@ -368,9 +368,9 @@ function resolvePaymentLoadingVariant(message?: string, mode?: string): PaymentL
 
 function resolvePaymentLoadingStage(variant: PaymentLoadingVariant, message?: string): LoadingStage {
   const normalizedMessage = String(message || "");
-  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중/.test(normalizedMessage)) return "result_loading";
-  if (/결제를 처리하고 있어요|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
-  if (/정보를 확인하는 중이에요|이용권을 확인하는 중이에요|결제 가능 상태를 확인하고 있어요/.test(normalizedMessage)) return "access_check";
+  if (/활성화되고|완료됐어요|확인했어요|결과를 불러오는 중|결과를 준비하고/.test(normalizedMessage)) return "result_loading";
+  if (/결제를 처리하고 있어요|결제 승인과 이용 권한|창을 닫지 말아 주세요/.test(normalizedMessage)) return "pg_processing";
+  if (/정보를 확인하는 중이에요|이용권을 확인하는 중이에요|이용권 확인 중|결제 가능 상태를 확인하고 있어요/.test(normalizedMessage)) return "access_check";
   if (variant === "subscription" || variant === "checkout" || variant === "confirm") return "pg_processing";
   if (variant === "payment-complete" || variant === "pass-applied" || variant === "unlock-saving") return "result_loading";
   return "access_check";
@@ -426,15 +426,11 @@ function isExternalPaymentWindowStatus(status: PaidFeatureGateStatus) {
 
 function paymentLoadingOwnsPaidFeatureStatus(status: PaidFeatureGateStatus) {
   return [
-    "opening",
-    "checkingEntitlement",
-    "hasEntitlement",
-    "loadingProducts",
-    "paymentProcessing",
-    "paymentSuccess",
-    "paymentPreparing",
-    "savingUnlock",
-    "unlockSaving",
+    "processing",
+    "deliveryProcessing",
+    "refund_pending",
+    "refunded",
+    "refund_failed",
   ].includes(status);
 }
 
@@ -471,14 +467,14 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
       return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
     }
-    return { message: message || "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+    return { message: message || "이용권 확인이 끝났어요\n결과를 준비하고 있어요", mode: "pass-applied" };
   }
   if (status === "paymentSuccess") {
     if (isMonthlyPaidFeatureDetail(resolvedDetail)) {
       return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };
     }
     if (isPassPaidFeatureDetail(resolvedDetail)) {
-      return { message: "이용권 적용이 완료되었습니다.", mode: "pass-applied" };
+      return { message: "이용권 확인이 끝났어요\n결과를 준비하고 있어요", mode: "pass-applied" };
     }
     return { message: message || "이용 권한 저장이 완료되었습니다.", mode: "payment-complete" };
   }
@@ -501,7 +497,7 @@ function resolvePaidFeatureStatusOverlay(status: PaidFeatureGateStatus, detail: 
     return { message: message || "단건 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", mode: "checkout" };
   }
   if (status === "savingUnlock" || status === "unlockSaving") {
-    return { message: message || "잠금 해제 권한을 저장하고 있습니다.", mode: "unlock-saving" };
+    return { message: message || "이용 권한을 저장하고 있습니다.", mode: "unlock-saving" };
   }
   return { message, mode: resolvePaymentLoadingVariant(message) };
 }
@@ -751,16 +747,6 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       }
     };
   }, [close, state.open, state.requestId, state.status]);
-
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    if (!state.open) return;
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [state.open]);
 
   useEffect(() => {
     if (!state.open || !showSkeleton) {
@@ -1071,16 +1057,18 @@ export function PaymentProcessingProvider({
 
   return (
     <PaymentProcessingContext.Provider value={value}>
-      {children}
-      {isProcessing ? (
-        <DeferredPaymentProcessingOverlay
-          open
-          variant={processingVariant}
-          stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
-          paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
-          statusMessage={processingMessage}
-        />
-      ) : null}
+      <PaidFeatureGateProvider>
+        {children}
+        {isProcessing ? (
+          <DeferredPaymentProcessingOverlay
+            open
+            variant={processingVariant}
+            stage={resolvePaymentLoadingStage(processingVariant, processingMessage)}
+            paymentType={resolvePaymentLoadingType(processingVariant, processingMessage)}
+            statusMessage={processingMessage}
+          />
+        ) : null}
+      </PaidFeatureGateProvider>
     </PaymentProcessingContext.Provider>
   );
 }

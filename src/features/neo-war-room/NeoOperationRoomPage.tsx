@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { fetchPaymentEligibility, formatPaymentWon, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  fetchPaymentEligibility,
+  formatPaymentWon,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import {
@@ -101,7 +108,7 @@ type NeoSession = {
 type EnsureAccessResult =
   | { ok: true; accessToken: string; accessType: AccessType; consultation?: NeoSession | null }
   | { ok: false; reason: "PAYMENT_REQUIRED"; paymentPayload: Record<string, unknown> }
-  | { ok: false; reason: "LOGIN_REQUIRED" | "INVALID_INPUT" | "PAYMENT_VERIFY_FAILED" | "LLM_ERROR" | "CALCULATION_ERROR" | "SERVER_ERROR"; message?: string };
+  | { ok: false; reason: "LOGIN_REQUIRED" | "INVALID_INPUT" | "PAYMENT_VERIFY_FAILED" | "PAYMENT_CANCELLED" | "LLM_ERROR" | "CALCULATION_ERROR" | "SERVER_ERROR"; message?: string };
 type NeoCommandSpriteConfig = {
   state: NeoWarRoomEmotionState;
   variant: NeoSpriteVariant;
@@ -152,6 +159,7 @@ const NEO_LOADING_SEAL_SRC = "/neo-operation-room/lion-seal-loading.webp";
 const NEO_INTRO_PORTRAIT = neoWarRoomAssets.hero.portrait;
 const NEO_PROLOGUE_SHADOW = neoWarRoomAssets.hero.blackShadow;
 const NEO_PROLOGUE_LION = neoWarRoomAssets.hero.lionSeal;
+const NEO_PROLOGUE_PRE_TRANSFORM_MAIN = neoWarRoomAssets.hero.strategyNeoMain;
 const NEO_PROLOGUE_PRE_TRANSFORM_SHEET = neoWarRoomAssets.sprites.strategyNeo;
 const NEO_TRANSPARENT_TALK_INTERVAL_MS = 3200;
 const NEO_TRANSPARENT_TALK_SHEETS = neoWarRoomAssets.sprites.transparent;
@@ -445,6 +453,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
 const getNeoPrologueCharacterAsset = (character: NeoPrologueCharacter): NeoWarRoomAsset => {
   if (character === "shadow") return NEO_PROLOGUE_SHADOW;
   if (character === "lion" || character === "lionGlitch" || character === "morph") return NEO_PROLOGUE_LION;
+  if (character === "humanNeo") return NEO_PROLOGUE_PRE_TRANSFORM_SHEET;
   return NEO_INTRO_PORTRAIT;
 };
 
@@ -481,7 +490,7 @@ const getNeoPrologueCharacterLabel = (character: NeoPrologueCharacter) => {
   if (character === "lion") return "전략실에 나타난 사자";
   if (character === "lionGlitch") return "홀로그램 빛에 휘말린 사자";
   if (character === "morph") return "사자에서 네오로 이어지는 변신 장면";
-  return "전략실에 떠 있는 네오";
+  return "전략실에서 말하는 네오";
 };
 
 const methodCardCopy: Record<NeoWarRoomConsultMode, string> = {
@@ -704,6 +713,7 @@ const errorCopy: Record<string, string> = {
   LOGIN_REQUIRED: "작전을 시작하려면 로그인이 필요하다. 로그인하고 다시 앉아라.",
   PAYMENT_REQUIRED: "작전 브리핑 이용권이 필요하다. 결제창을 먼저 통과해라.",
   PAYMENT_VERIFY_FAILED: "결제나 이용권 확인이 끝나지 않았다. 권한을 확인한 뒤 다시 시도해라.",
+  PAYMENT_CANCELLED: "결제가 취소됐다. 필요할 때 다시 작전을 시작해라.",
   INVALID_INPUT: "작전 정보가 부족하다. 입력값을 다시 확인해라.",
   CALCULATION_ERROR: "운명의 계산 지도를 펼치는 중 문제가 생겼다. 출생정보를 다시 확인해라.",
   LLM_ERROR: "작전 브리핑 작성에 실패했다. 이용권이나 결제 권한은 보존되니 다시 시도해라.",
@@ -1004,19 +1014,32 @@ export default function NeoOperationRoomPage() {
   const activeHeroCharacter = activePrologueLine?.character || "humanNeo";
   const activeHeroIsMorphing = activeHeroCharacter === "morph";
   const activeHeroCharacterAsset = activePrologueLine ? getNeoPrologueCharacterAsset(activeHeroCharacter) : NEO_INTRO_PORTRAIT;
-  const activeHeroUsesSheetCrop = false;
+  const activeHeroUsesSheetCrop = Boolean(activePrologueLine && activeHeroCharacter === "humanNeo");
   const activeHeroImageSizes =
     activeHeroCharacter === "lion" || activeHeroCharacter === "lionGlitch"
       ? "(max-width: 768px) 54vw, 24vw"
+      : activeHeroUsesSheetCrop
+        ? "(max-width: 768px) 52vw, 30vw"
       : "(max-width: 768px) 82vw, 42vw";
   const activeHeroImagePriority = !activeHeroIsMorphing;
   const activeHeroCharacterStyle = {
-    "--neo-vn-object-position": activeHeroCharacter === "lion" || activeHeroCharacter === "lionGlitch" ? "center center" : "center bottom",
+    "--neo-vn-object-position": activeHeroCharacter === "lion" || activeHeroCharacter === "lionGlitch" || activeHeroUsesSheetCrop ? "center center" : "center bottom",
+    ...(activeHeroUsesSheetCrop
+      ? getNeoSheetCropStyle(
+          activePrologueLine?.sheetFrame || 2,
+          NEO_PRE_TRANSFORM_SHEET_COLUMNS,
+          NEO_PRE_TRANSFORM_SHEET_ROWS,
+          NEO_PRE_TRANSFORM_SHEET_CELL_PX,
+          NEO_PRE_TRANSFORM_FRAME_INSET_PX,
+        )
+      : {}),
   } as unknown as CSSProperties;
   const activeHeroFallbackSrc = activeHeroCharacter === "shadow"
     ? undefined
     : activeHeroCharacter === "lion" || activeHeroCharacter === "lionGlitch" || activeHeroIsMorphing
       ? NEO_INTRO_PORTRAIT.src
+      : activeHeroUsesSheetCrop
+        ? NEO_PROLOGUE_PRE_TRANSFORM_MAIN.src
       : neoWarRoomAssets.hero.fullbody.src;
   const activeHeroEffect = activePrologueLine?.effect || "none";
   const heroScenePhase = isPrologueActive ? "prologue" : "landing";
@@ -1538,10 +1561,25 @@ export default function NeoOperationRoomPage() {
     setStatusMessage("권한과 이용권을 확인하는 중이다.");
     setFlowPhase("checking");
     setOperationReady(false);
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId: idempotencyKey,
+      title: "이용권 확인",
+      reason: FEATURE_TITLE,
+      paymentMode: "MEMBERSHIP_PASS",
+    });
 
     try {
       const { response, data } = await postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, payload, idempotencyKey);
       if (data.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: FEATURE_TITLE,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났다. 작전 지도를 펼치는 중이다.",
+        });
         if (data.consultation?.initialBriefing) {
           completeWithSession(data.consultation);
           return;
@@ -1563,16 +1601,6 @@ export default function NeoOperationRoomPage() {
       const gateMembershipCreditCost = toPositiveInteger(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost);
       const displayAmountKRW = gateAmountKRW || gatePaymentAmount;
       if (displayAmountKRW > 0) setConsultPriceLabel(formatPaymentWon(displayAmountKRW));
-      openPaidFeatureGate({
-        featureKey: FEATURE_KEY,
-        requestId: idempotencyKey,
-        title: toText(runtimeGate.title || paymentPayload.title || FEATURE_TITLE),
-        reason: toText(runtimeGate.reason || paymentPayload.reason || FEATURE_TITLE),
-        cost: gateCoinPrice || undefined,
-        status: "loadingProducts",
-        paymentMode: "pass",
-        message: "이용권, 월정석, 단건 결제 가능 상태를 확인하는 중이다.",
-      });
       const gate = await runBillingCoinGate({
         ...runtimeGate,
         featureKey: FEATURE_KEY,
@@ -1595,11 +1623,21 @@ export default function NeoOperationRoomPage() {
       });
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code || (gate.status === 401 ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED")).toUpperCase();
-        throw new Error(code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
+        throw new Error(code === "PAYMENT_CANCELLED" ? "PAYMENT_CANCELLED" : code === "AUTH_REQUIRED" ? "LOGIN_REQUIRED" : "PAYMENT_VERIFY_FAILED");
       }
       await startBriefing(idempotencyKey, payload, extractPaymentContext(gate, idempotencyKey));
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const paymentCancelled = code === "PAYMENT_CANCELLED";
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId: idempotencyKey,
+        title: "이용권 확인 실패",
+        reason: FEATURE_TITLE,
+        paymentMode: "MEMBERSHIP_PASS",
+        message: errorCopy[code] || errorCopy.SERVER_ERROR,
+        cancelled: paymentCancelled,
+      });
       setFlowPhase("failed");
       setOperationReady(false);
       setStatusMessage("");

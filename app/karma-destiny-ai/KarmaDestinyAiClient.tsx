@@ -2,7 +2,12 @@
 
 import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
@@ -106,6 +111,7 @@ const FEATURE_AMOUNT_KRW = 50000;
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "운명의 업 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
+const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
 const REQUIRED_INPUT_MESSAGE = "운명의 업 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.";
@@ -732,20 +738,13 @@ export default function KarmaDestinyAiPage() {
 
   const runCommonBillingGate = async (paymentPayload: BillingGatePayload, idempotencyKey: string) => {
     const billingInput = buildBillingGateInput(paymentPayload, idempotencyKey);
-    openPaidFeatureGate({
-      featureKey: billingInput.featureKey,
-      requestId: idempotencyKey,
-      cost: billingInput.cost,
-      paymentMode: "pass",
-      message: "결제창을 확인해 주세요",
-    });
-
     const gate = await runBillingCoinGate(billingInput);
 
     if (!gate.ok || !gate.data) {
       const code = String(gate.error?.code || "").toUpperCase();
       if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
       if (code === "INSUFFICIENT_COINS") throw new Error(PAYMENT_REQUIRED_MESSAGE);
+      if (code === "PAYMENT_CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
       throw new Error(gate.error?.message || PAYMENT_VERIFY_FAILED_MESSAGE);
     }
 
@@ -774,10 +773,25 @@ export default function KarmaDestinyAiPage() {
     setError("");
     setNotice("");
     setStatus("preparing");
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId: idempotencyKey,
+      title: "이용권 확인",
+      reason: "운명의 업 AI 상담",
+      paymentMode: "MEMBERSHIP_PASS",
+    });
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/karma-destiny-ai/ensure-access", payload, idempotencyKey);
       if (access.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: "운명의 업 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 업의 흐름을 읽고 있습니다.",
+        });
         await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
         return;
       }
@@ -795,9 +809,11 @@ export default function KarmaDestinyAiPage() {
       throw new Error("message" in denied ? denied.message || SERVER_ERROR_MESSAGE : SERVER_ERROR_MESSAGE);
     } catch (caught) {
       const message = caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
+      const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setError(
         message === LOGIN_REQUIRED_MESSAGE
           || message === PAYMENT_VERIFY_FAILED_MESSAGE
+          || message === PAYMENT_CANCELLED_MESSAGE
           || message === LLM_ERROR_MESSAGE
           || message === PAYMENT_REQUIRED_MESSAGE
           || message === REQUIRED_INPUT_MESSAGE
@@ -809,6 +825,15 @@ export default function KarmaDestinyAiPage() {
             : message || NETWORK_ERROR_MESSAGE,
       );
       setStatus("error");
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId: idempotencyKey,
+        title: "이용권 확인 실패",
+        reason: "운명의 업 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+        message,
+        cancelled: paymentCancelled,
+      });
     } finally {
       startLockRef.current = false;
     }

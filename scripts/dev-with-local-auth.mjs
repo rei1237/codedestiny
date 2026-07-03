@@ -1,8 +1,56 @@
 import { spawn } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const children = new Set();
 let shuttingDown = false;
+const portoneAliasGroups = [
+  ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_API_SECRET_KEY", "PORTONE_V2_API_SECRET", "PORTONE_API_SECRET_V2", "PORTONE_SECRET"],
+  ["PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_CHANNEL", "PORTONE_CHANNELKEY", "PORTONE_V2_CHANNEL_KEY"],
+  ["PORTONE_STORE_ID", "PORTONE_Store", "PORTONE_STORE", "PORTONE_STOREID", "PORTONE_V2_STORE_ID"],
+  ["PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_WEBHOOK", "PORTONE_WEBHOOK_SECRET_KEY", "PORTONE_WEBHOOK_TOKEN", "PORTONE_webhook_Secret", "PORTONE_V2_WEBHOOK_SECRET"],
+  ["PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOKURL"],
+  ["MID", "INICISMID", "INIstoreId", "INI_STORE_ID", "INICIS_MID", "INICIS_STORE_ID"],
+  ["INIsignkey", "INISIGNKEY", "INI_SIGNKEY", "INICIS_SIGNKEY", "INICIS_WEB_SIGNKEY"],
+  ["INIAPIKEY", "INI_API_KEY", "INICIS_API_KEY"],
+  ["INIAPI_IV", "INI_API_IV", "INICIS_API_IV"],
+];
+
+function loadEnvFile(path, override = true) {
+  if (!existsSync(path)) return;
+  const text = readFileSync(path, "utf8");
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*[=:]\s*(.*)\s*$/);
+    if (!match) continue;
+    const key = match[1];
+    if (!override && process.env[key] !== undefined && process.env[key] !== "") continue;
+    let value = match[2].trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    process.env[key] = value.replace(/\\n/g, "\n");
+  }
+}
+
+function promoteAliasGroup(keys) {
+  const primary = keys[0];
+  if (process.env[primary]) return;
+  for (const key of keys.slice(1)) {
+    const value = String(process.env[key] || "").trim();
+    if (!value) continue;
+    process.env[primary] = value;
+    return;
+  }
+}
+
+loadEnvFile(".env", true);
+loadEnvFile(".env.cloudflare.local", true);
+loadEnvFile(".dev.vars", true);
+loadEnvFile(".env.local", true);
+for (const group of portoneAliasGroups) promoteAliasGroup(group);
 
 function start(name, args) {
   const isWindows = process.platform === "win32";

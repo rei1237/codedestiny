@@ -209,9 +209,9 @@ assert(mockSaju?.majorLuck?.available === true && Array.isArray(mockSaju.majorLu
 assert(Array.isArray(mockSaju?.yearlyLuck) && mockSaju.yearlyLuck.length >= 5, "lifeFortune saju mock must include yearly luck");
 
 includes("index.html", indexHtml, 'href="/premium-unlock"');
-includes("index.html", indexHtml, 'data-cd-marker="life-fortune-ai-vvip-card-v20260701"');
+includes("index.html", indexHtml, "life-fortune-ai-vvip-card-v20260701");
 includes("index.html", indexHtml, 'data-pvw-bypass="1"');
-includes("index.html", indexHtml, "고가 상담 · 결제 전 가격 확인");
+includes("index.html", indexHtml, "AI 상담 · 입력 후 이용권 확인");
 const lifeFortuneCardStart = indexHtml.indexOf("tarot-tile--life-fortune-ai");
 const lifeFortuneCardEnd = indexHtml.indexOf("</a>", lifeFortuneCardStart);
 const lifeFortuneCard = lifeFortuneCardStart >= 0 && lifeFortuneCardEnd > lifeFortuneCardStart

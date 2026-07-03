@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { BookOpen, CreditCard, Download, Loader2, RefreshCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 
 type GenderType = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -70,13 +76,8 @@ type LifeFortuneReport = {
   finalMessage?: string;
 };
 
-declare global {
-  interface Window {
-    _cdOpenPaidServiceGate?: (payload: Record<string, unknown>) => Promise<unknown>;
-  }
-}
-
 const FEATURE_KEY = "life-book-ai-consultation";
+const FEATURE_TITLE = "인생 총운 AI 상담";
 const CONSULTATION_TYPE = "lifeFortune";
 const TOPIC = "전체 인생 총운";
 const STORAGE_KEY = "code-destiny-life-fortune-attempt";
@@ -89,6 +90,10 @@ const MAX_POLL_DURATION_MS = 8 * 60 * 1000;
 const LONG_GENERATION_NOTICE_MS = 90 * 1000;
 const MIN_BIRTH_DATE = "1900-01-01";
 const MAX_BIRTH_DATE = "2100-12-31";
+const PRICE_NOT_FOUND_MESSAGE = "가격 정보를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
+const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 또는 이용권 확인이 완료되지 않았습니다.";
+const PAYMENT_CANCELLED_MESSAGE = "결제 선택이 취소되었습니다.";
+const LOGIN_REQUIRED_MESSAGE = "로그인 후 인생 총운을 열 수 있습니다.";
 
 const FALLBACK_CHAPTERS = [
   "타고난 명식의 중심",
@@ -101,6 +106,20 @@ const FALLBACK_CHAPTERS = [
   "대운으로 보는 큰 전환",
   "가까운 세운의 흐름",
   "앞으로 열릴 선택",
+];
+
+const GENERATION_STEPS = [
+  "이용권과 월정석, 단건결제 가능 여부를 차례로 살피고 있습니다.",
+  "생년월일시의 기운을 명식의 중심에 맞추고 있습니다.",
+  "대운과 세운이 만드는 큰 전환의 결을 따라가고 있습니다.",
+  "삶, 일, 재물, 관계의 흐름을 한 상담문 안에 엮고 있습니다.",
+  "오래 간직할 수 있도록 문장의 숨을 차분히 다듬고 있습니다.",
+];
+
+const TRUST_POINTS = [
+  "상담 정보 입력 뒤 이용권, 월정석, 단건결제를 같은 순서로 확인합니다.",
+  "권한 확인 전에는 상담문 생성이 시작되지 않습니다.",
+  "서버에 등록된 가격과 사용 정책만 결제 판단에 적용됩니다.",
 ];
 
 const initialForm: LifeFortuneForm = {
@@ -118,6 +137,11 @@ function toText(value: unknown) {
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function toNumber(value: unknown, fallback = 0) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
 function buildAttemptId() {
@@ -197,60 +221,61 @@ async function fetchStoredResult(attemptId: string): Promise<ConsultationResult 
   return payload;
 }
 
-function buildGatePayload(paymentPayload: PaymentPayload, requestId: string) {
+function buildBillingGateInput(paymentPayload: PaymentPayload, requestId: string) {
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
-  const inputHash = toText(paymentPayload.inputHash);
+  const inputHash = toText(runtimeGate.inputHash ?? paymentPayload.inputHash);
+  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, 0);
+  const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, 0);
+  const membershipCreditCost = toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, 0);
+  if (cost <= 0 || amountKRW <= 0 || membershipCreditCost <= 0) {
+    throw new Error(PRICE_NOT_FOUND_MESSAGE);
+  }
   return {
-    ...paymentPayload,
-    billingMode: "coin-gate",
-    featureKey: FEATURE_KEY,
-    serviceType: FEATURE_KEY,
-    contentId: FEATURE_KEY,
-    orderName: "인생 총운 AI 상담",
-    reason: "인생 총운 AI 상담",
+    categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
+    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || FEATURE_KEY,
+    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || FEATURE_KEY,
+    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || FEATURE_TITLE,
+    productId: toText(runtimeGate.productId ?? paymentPayload.productId) || "life-book-ai",
+    productType: toText(runtimeGate.productType ?? paymentPayload.productType) || "life-book-ai",
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
+    forceDeduct: true,
+    deferUsage: true,
+    usagePolicy: "apply_after_success",
+    executionKey: `life-fortune:${requestId}`,
     requestId,
     idempotencyKey: requestId,
-    inputHash,
+    payloadHash: inputHash,
+    cost,
+    coinPrice: cost,
+    amountKRW,
+    amountKrw: amountKRW,
+    paymentAmount: amountKRW,
+    membershipCreditCost,
     consultationType: CONSULTATION_TYPE,
-    deferUsage: true,
-    forceDeduct: true,
-    runtimeGate: {
-      ...runtimeGate,
-      featureKey: FEATURE_KEY,
-      subFeatureKey: FEATURE_KEY,
-      serviceType: FEATURE_KEY,
-      reason: "인생 총운 AI 상담",
-      requestId,
-      idempotencyKey: requestId,
-      inputHash,
-      consultationType: CONSULTATION_TYPE,
-      deferUsage: true,
-      forceDeduct: true,
-    },
   };
 }
 
 async function openPaidGate(paymentPayload: PaymentPayload, requestId: string) {
-  if (typeof window._cdOpenPaidServiceGate !== "function") {
-    throw new Error("결제 창을 열 수 없습니다. 잠시 후 다시 시도해 주세요.");
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  const gate = await runBillingCoinGate(buildBillingGateInput(paymentPayload, requestId));
+  if (!gate.ok || !gate.data) {
+    const code = toText(gate.error?.code).toUpperCase();
+    if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
+    if (code === "PAYMENT_CANCELLED" || code === "CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
+    throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
   }
-  const gatePayload = buildGatePayload(paymentPayload, requestId);
-  const result = await window._cdOpenPaidServiceGate(gatePayload);
-  const record = asRecord(result);
-  if (!result || record.cancelled === true || record.canceled === true) {
-    throw new Error("결제가 완료되지 않았습니다.");
-  }
+  const record = asRecord(gate.data);
   return {
     billingGate: record,
     consume: asRecord(record.consume),
-    accessGrant: asRecord(record.accessGrant || record.accessGateResult),
+    accessGrant: asRecord(record.accessGrant || record.accessGateResult || record.licensePass || record.membershipPass),
     payment: asRecord(record.payment),
     pricing: asRecord(record.pricing),
     requestId,
     idempotencyKey: requestId,
-    inputHash: toText(gatePayload.inputHash),
+    inputHash: toText(runtimeGate.inputHash ?? paymentPayload.inputHash),
     consultationType: CONSULTATION_TYPE,
-    orderName: "인생 총운 AI 상담",
+    orderName: FEATURE_TITLE,
   };
 }
 
@@ -356,11 +381,14 @@ export default function PremiumSalesContent() {
   const [attemptId, setAttemptId] = useState("");
   const [result, setResult] = useState<ConsultationResult | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [progressTick, setProgressTick] = useState(0);
   const pollTimerRef = useRef<number | null>(null);
   const resultDocumentRef = useRef<HTMLElement | null>(null);
 
   const isBusy = status === "checking" || status === "payment" || status === "generating";
   const report = useMemo(() => buildReport(result), [result]);
+  const activeStepIndex = isBusy ? Math.min(GENERATION_STEPS.length - 1, progressTick % GENERATION_STEPS.length) : 0;
+  const progressPercent = status === "completed" ? 100 : isBusy ? Math.min(94, 18 + progressTick * 5) : 0;
 
   const clearPollTimer = useCallback(() => {
     if (pollTimerRef.current) {
@@ -368,6 +396,14 @@ export default function PremiumSalesContent() {
       pollTimerRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    if (!isBusy) return;
+    const timer = window.setInterval(() => {
+      setProgressTick((value) => value + 1);
+    }, 1800);
+    return () => window.clearInterval(timer);
+  }, [isBusy]);
 
   const updateForm = useCallback(<K extends keyof LifeFortuneForm>(key: K, value: LifeFortuneForm[K]) => {
     setForm((prev) => ({
@@ -441,20 +477,45 @@ export default function PremiumSalesContent() {
     setResult(null);
     setError("");
     setNotice("");
+    setProgressTick(0);
     setStatus("checking");
     localStorage.setItem(STORAGE_KEY, requestId);
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId,
+      title: "이용권 확인",
+      reason: FEATURE_TITLE,
+      paymentMode: "MEMBERSHIP_PASS",
+      message: "상담 정보와 이용권을 차례로 확인하고 있습니다.",
+    });
 
     try {
       const access = await postPrepare(payload, requestId);
       let accessEvidence: Record<string, unknown>;
 
       if (access.ok === true) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: "이용권 확인 완료",
+          reason: FEATURE_TITLE,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 인생 총운의 큰 흐름을 읽고 있습니다.",
+        });
         accessEvidence = { accessToken: access.accessToken };
       } else if (access.reason === "PAYMENT_REQUIRED" && access.paymentPayload) {
         setStatus("payment");
         accessEvidence = await openPaidGate(access.paymentPayload, requestId);
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: "결제 확인 완료",
+          reason: FEATURE_TITLE,
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "결제 확인이 끝났습니다. 인생 총운의 큰 흐름을 읽고 있습니다.",
+        });
       } else if (access.reason === "LOGIN_REQUIRED") {
-        throw new Error(access.message || "로그인 후 인생 총운을 열 수 있습니다.");
+        throw new Error(access.message || LOGIN_REQUIRED_MESSAGE);
       } else {
         throw new Error(access.message || "상담 권한을 확인하지 못했습니다.");
       }
@@ -476,8 +537,18 @@ export default function PremiumSalesContent() {
       setNotice("상담문을 완성하는 중입니다.");
       pollResult(requestId);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "인생 총운을 열지 못했습니다.");
+      const message = caught instanceof Error ? caught.message : "인생 총운을 열지 못했습니다.";
+      setError(message);
       setStatus("error");
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId,
+        title: "이용권 확인 실패",
+        reason: FEATURE_TITLE,
+        paymentMode: "MEMBERSHIP_PASS",
+        message,
+        cancelled: message === PAYMENT_CANCELLED_MESSAGE,
+      });
     }
   }
 
@@ -542,13 +613,29 @@ export default function PremiumSalesContent() {
     setError("");
     setResult(null);
     setAttemptId("");
+    setProgressTick(0);
     localStorage.removeItem(STORAGE_KEY);
   }
 
   return (
-    <main className="min-h-screen bg-[#080706] text-[#f7efe2]" style={{ fontFamily: "CodeDestinyBody, CodeDestinyPremium, 'Noto Sans KR', sans-serif" }}>
-      <section className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-6 md:grid-cols-[minmax(320px,420px)_1fr] md:px-6 lg:px-8">
-        <form onSubmit={handleSubmit} className="self-start border border-[#d8b56d]/25 bg-[#14100c] p-5 shadow-2xl shadow-black/30 md:sticky md:top-6">
+    <main
+      data-ui-marker="life-fortune-premium-ui-v20260703"
+      className="relative isolate min-h-screen overflow-hidden bg-[#050607] text-[#f7efe2]"
+      style={{ fontFamily: "CodeDestinyBody, CodeDestinyPremium, 'Noto Sans KR', sans-serif" }}
+    >
+      <div className="pointer-events-none absolute inset-0 -z-10">
+        <img
+          src={LIFE_FORTUNE_IMAGE_SRC}
+          alt=""
+          className="h-full w-full object-cover opacity-28"
+          aria-hidden="true"
+          loading="eager"
+          decoding="async"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_18%,rgba(242,207,130,0.18),transparent_32%),linear-gradient(115deg,rgba(5,6,7,0.94)_0%,rgba(16,13,10,0.86)_48%,rgba(6,37,27,0.82)_100%)]" />
+      </div>
+      <section className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-6 md:grid-cols-[minmax(320px,430px)_1fr] md:px-6 lg:px-8">
+        <form onSubmit={handleSubmit} className="self-start rounded-lg border border-[#d8b56d]/25 bg-[#14100c]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur md:sticky md:top-6">
           <div className="flex items-center gap-2 text-[#f2cf82]">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
             <p className="text-sm font-bold">인생 총운 상담</p>
@@ -557,11 +644,11 @@ export default function PremiumSalesContent() {
           <p className="mt-3 text-sm leading-7 text-[#dcc7a3]">
             생년월일시의 기운, 대운과 세운의 결을 함께 살펴 지금 삶에서 강하게 떠오르는 방향을 읽습니다.
           </p>
-          <div className="mt-5 overflow-hidden border border-[#d8b56d]/25 bg-black/30">
+          <div className="mt-5 overflow-hidden rounded-lg border border-[#d8b56d]/25 bg-black/30">
             <img
               src={LIFE_FORTUNE_IMAGE_SRC}
               alt="인생 총람"
-              className="h-48 w-full object-cover"
+              className="h-52 w-full object-cover"
               loading="eager"
               decoding="async"
               onError={(event) => { event.currentTarget.style.display = "none"; }}
@@ -652,16 +739,27 @@ export default function PremiumSalesContent() {
 
           {error && <p className="mt-4 border border-[#fb7185]/35 bg-[#7f1d1d]/25 p-3 text-sm leading-6 text-[#fecdd3]">{error}</p>}
           {notice && <p className="mt-4 border border-[#a7f3d0]/25 bg-[#063f31]/25 p-3 text-sm leading-6 text-[#c6f7e2]">{notice}</p>}
-          {isBusy && <p className="mt-4 text-sm font-bold text-[#f2cf82]">{statusText(status)}</p>}
+          {isBusy && (
+            <div className="mt-4 rounded-lg border border-[#d8b56d]/25 bg-black/25 p-4" aria-live="polite">
+              <div className="flex items-center justify-between gap-3 text-xs font-bold text-[#f2cf82]">
+                <span>{statusText(status)}</span>
+                <span>{progressPercent}%</span>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#2a2118]">
+                <div className="h-full rounded-full bg-[#f2cf82] transition-all duration-700" style={{ width: `${progressPercent}%` }} />
+              </div>
+              <p className="mt-3 text-sm leading-6 text-[#f4dfb7]">{GENERATION_STEPS[activeStepIndex]}</p>
+            </div>
+          )}
 
           <div className="mt-5 grid gap-2">
             <button
               type="submit"
               disabled={isBusy}
-              className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#f2cf82] bg-[#f2cf82] px-4 text-base font-black text-[#171007] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-12 items-center justify-center gap-2 border border-[#f2cf82] bg-[#f2cf82] px-4 text-sm font-black text-[#171007] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
             >
               {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <BookOpen className="h-5 w-5" aria-hidden="true" />}
-              인생 총운 열기
+              {isBusy ? "상담문 준비 중" : "상담 정보 입력 후 이용권 확인"}
             </button>
             {attemptId && (
               <button
@@ -676,12 +774,16 @@ export default function PremiumSalesContent() {
           </div>
 
           <div className="mt-5 grid gap-2 text-xs leading-5 text-[#bda986]">
-            <p className="flex items-center gap-2"><ShieldCheck className="h-4 w-4 text-[#a7f3d0]" aria-hidden="true" /> 이용권, 월정석, 단건결제를 순서대로 확인합니다.</p>
-            <p className="flex items-center gap-2"><CreditCard className="h-4 w-4 text-[#f2cf82]" aria-hidden="true" /> 금액과 차감 기준은 서버에 등록된 가격을 따릅니다.</p>
+            {TRUST_POINTS.map((point, index) => (
+              <p key={point} className="flex items-center gap-2">
+                {index === 2 ? <CreditCard className="h-4 w-4 shrink-0 text-[#f2cf82]" aria-hidden="true" /> : <ShieldCheck className="h-4 w-4 shrink-0 text-[#a7f3d0]" aria-hidden="true" />}
+                <span>{point}</span>
+              </p>
+            ))}
           </div>
         </form>
 
-        <section className="min-h-[70vh] border border-[#d8b56d]/20 bg-[#100d0a] p-4 shadow-2xl shadow-black/25 md:p-6">
+        <section className="min-h-[70vh] rounded-lg border border-[#d8b56d]/20 bg-[#100d0a]/90 p-4 shadow-2xl shadow-black/25 backdrop-blur md:p-6">
           {status === "completed" && result ? (
             <>
             <div className="mb-4 flex justify-end">
@@ -779,14 +881,58 @@ export default function PremiumSalesContent() {
             </article>
             </>
           ) : (
-            <div className="grid min-h-[70vh] place-items-center text-center">
-              <div className="max-w-xl">
-                {isBusy ? <Loader2 className="mx-auto h-10 w-10 animate-spin text-[#f2cf82]" aria-hidden="true" /> : <Sparkles className="mx-auto h-10 w-10 text-[#f2cf82]" aria-hidden="true" />}
-                <h2 className="mt-5 text-2xl font-black">{isBusy ? statusText(status) : "삶의 큰 흐름은 조용히 모습을 드러냅니다."}</h2>
-                <p className="mt-3 text-sm leading-7 text-[#dcc7a3]">
-                  생년월일시를 건네면 일간, 월지, 오행, 십성, 대운과 세운의 결을 함께 살펴 인생 총운의 방향을 펼칩니다.
-                </p>
+            <div className="grid min-h-[70vh] content-center gap-5">
+              <div className="relative min-h-[300px] overflow-hidden rounded-lg border border-[#d8b56d]/20 bg-black/30">
+                <img
+                  src={LIFE_FORTUNE_IMAGE_SRC}
+                  alt="인생 총람"
+                  className="absolute inset-0 h-full w-full object-cover opacity-75"
+                  loading="eager"
+                  decoding="async"
+                  onError={(event) => { event.currentTarget.style.display = "none"; }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#080706] via-[#080706]/60 to-transparent" />
+                <div className="relative flex min-h-[300px] flex-col justify-end p-5 md:p-7">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#f2cf82]/35 bg-black/35 px-3 py-1 text-xs font-black text-[#f2cf82]">
+                    {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
+                    {isBusy ? "상담문을 여는 중" : "인생 총운 AI 상담"}
+                  </div>
+                  <h2 className="mt-4 max-w-2xl text-2xl font-black leading-tight md:text-4xl">
+                    {isBusy ? statusText(status) : "삶의 큰 흐름은 조용히 모습을 드러냅니다."}
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-7 text-[#f5dfba]">
+                    생년월일시를 건네면 일간, 월지, 오행, 십성, 대운과 세운의 결을 함께 살펴 인생 총운의 방향을 펼칩니다.
+                  </p>
+                </div>
               </div>
+
+              {isBusy ? (
+                <div className="rounded-lg border border-[#d8b56d]/20 bg-black/25 p-5">
+                  <div className="flex items-center justify-between gap-3 text-sm font-black text-[#f2cf82]">
+                    <span>{GENERATION_STEPS[activeStepIndex]}</span>
+                    <span>{progressPercent}%</span>
+                  </div>
+                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#2a2118]">
+                    <div className="h-full rounded-full bg-[#a7f3d0] transition-all duration-700" style={{ width: `${progressPercent}%` }} />
+                  </div>
+                  <div className="mt-5 grid gap-2">
+                    {GENERATION_STEPS.map((step, index) => (
+                      <p key={step} className={`border px-3 py-2 text-sm leading-6 ${index === activeStepIndex ? "border-[#f2cf82]/45 bg-[#f2cf82]/10 text-[#fff5d8]" : "border-[#d8b56d]/10 bg-black/10 text-[#cdbb99]"}`}>
+                        {step}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-3">
+                  {TRUST_POINTS.map((point, index) => (
+                    <div key={point} className="rounded-lg border border-[#d8b56d]/20 bg-black/25 p-4 text-sm leading-6 text-[#e8d4b0]">
+                      <p className="text-xs font-black text-[#f2cf82]">{String(index + 1).padStart(2, "0")}</p>
+                      <p className="mt-2">{point}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </section>

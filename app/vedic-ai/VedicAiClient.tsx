@@ -3,7 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import styles from "./VedicAiClient.module.css";
 
@@ -167,6 +172,7 @@ const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "로그인이 필요한 상담입니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
   PAYMENT_VERIFY_FAILED: "결제 정보를 확인하지 못했어요. 결제나 이용권은 차감되지 않았습니다.",
+  PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   PREPARE_FAILED: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   CHART_CALCULATION_FAILED: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
   LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
@@ -951,6 +957,7 @@ export default function VedicAiClient() {
     submitBusyRef.current = true;
     setError("");
     setNotice("");
+    let gateStarted = false;
 
     try {
       const pending = pendingAccessRef.current;
@@ -960,6 +967,14 @@ export default function VedicAiClient() {
       }
 
       setPhase("access");
+      beginPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId,
+        title: "이용권 확인",
+        reason: "베다 점성술 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+      });
+      gateStarted = true;
       const { data } = await postJson<EnsureAccessResult>(
         "/api/vedic-ai/ensure-access",
         { ...buildPayload(form, requestId), idempotencyKey: requestId },
@@ -967,6 +982,14 @@ export default function VedicAiClient() {
       );
 
       if (data.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: "이용권 확인 완료",
+          reason: "베다 점성술 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 별빛의 흐름을 읽고 있습니다.",
+        });
         if (data.consultation) {
           setConsultation(data.consultation);
           requestIdRef.current = "";
@@ -984,19 +1007,35 @@ export default function VedicAiClient() {
       setPhase("payment");
       const paymentPayload = asRecord(data.paymentPayload);
       const gate = await runBillingCoinGate(buildBillingGateInput(paymentPayload, requestId));
-      if (!isPaymentGranted(gate)) throw new Error("PAYMENT_VERIFY_FAILED");
+      if (!isPaymentGranted(gate)) {
+        const code = String(gate.error?.code || "").toUpperCase();
+        if (code === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");
+        throw new Error("PAYMENT_VERIFY_FAILED");
+      }
 
       const access = extractPayment(gate, requestId);
       pendingAccessRef.current = { requestId, access, paymentWasRequired: true };
       await startConsultation(requestId, access, true);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
-      const clearPrepaid = ["LLM_FAILED", "CHART_CALCULATION_FAILED", "BIRTH_PLACE_INVALID", "PAYMENT_VERIFY_FAILED", "LOGIN_REQUIRED", "PREPARE_FAILED"].includes(code);
+      const paymentCancelled = code === "PAYMENT_CANCELLED";
+      const clearPrepaid = ["LLM_FAILED", "CHART_CALCULATION_FAILED", "BIRTH_PLACE_INVALID", "PAYMENT_VERIFY_FAILED", "PAYMENT_CANCELLED", "LOGIN_REQUIRED", "PREPARE_FAILED"].includes(code);
       if (clearPrepaid) {
         pendingAccessRef.current = null;
         requestIdRef.current = "";
       }
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      if (gateStarted) {
+        failPaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: "이용권 확인 실패",
+          reason: "베다 점성술 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
+          cancelled: paymentCancelled,
+        });
+      }
     } finally {
       submitBusyRef.current = false;
       setPhase("idle");

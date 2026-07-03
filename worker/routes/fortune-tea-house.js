@@ -1024,7 +1024,13 @@ function isReusableFortuneTeaAccessDecision(accessDecision) {
   if (!accessDecision?.allowed) return false;
   const source = cleanText(accessDecision.accessSource, 80).toLowerCase();
   const licenseType = cleanText(accessDecision.licenseType, 80).toLowerCase();
-  return source !== "paidfeatures" && licenseType !== "single_purchase";
+  const reason = cleanText(accessDecision.reason, 80).toLowerCase();
+  return source === "admin" || licenseType === "admin" || reason === "admin";
+}
+
+function isFortuneTeaAdminAuth(auth = {}) {
+  const role = cleanText(auth.role || auth.userRole || auth.user?.role, 80).toLowerCase();
+  return role === "admin";
 }
 
 async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey }) {
@@ -1249,6 +1255,25 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
         consultRequest,
         status: 401,
       }),
+    };
+  }
+
+  if (isFortuneTeaAdminAuth(auth)) {
+    return {
+      ok: true,
+      auth,
+      featureKey,
+      pricing: pricingResult.pricing,
+      accessDecision: {
+        allowed: true,
+        reason: "ADMIN",
+        userId: auth.userId,
+        featureKey,
+        accessSource: "admin",
+        licenseType: "admin",
+        pricing: pricingResult.pricing,
+      },
+      deferredUsage: false,
     };
   }
 
@@ -2487,7 +2512,7 @@ function buildSystemPrompt() {
   ].join("\n");
 }
 
-function buildUserPrompt(request, fallback, attempt = 0) {
+function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const sajuRule = resolveSajuCategoryRule(request);
   const tarotRule = resolveTarotCategoryRule(request);
@@ -2513,7 +2538,9 @@ function buildUserPrompt(request, fallback, attempt = 0) {
       consultationMode,
       focusRule,
       bridgeRule,
-      qualityRecovery: attempt > 0 ? "이전 응답이 분량, 필수 섹션, 반복 문단, 일반론 또는 시스템 문구 검증을 통과하지 못했다. 이번에는 선택된 상담 방식의 필수 구조와 요구 분량을 반드시 지킨다." : undefined,
+      qualityRecovery: attempt > 0
+        ? `이전 응답이 품질 검증을 통과하지 못했다. 원인: ${cleanText(lastQualityError, 240) || "분량, 필수 섹션, 반복 문단, 일반론 또는 시스템 문구 문제"}. 이번에는 선택된 상담 방식의 필수 구조와 요구 분량을 반드시 지킨다.`
+        : undefined,
       sajuFactInput,
       tarotFactInput,
       sukuyoFactInput,
@@ -2710,17 +2737,17 @@ async function generateConsultResult(request, fallback, env) {
   }
 
   const consultationMode = normalizeConsultationMode(request.consultationMode);
-  const maxAttempts = consultationMode === "saju" || consultationMode === "tarot" ? 2 : 1;
+  const maxAttempts = 3;
   let lastError = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
-      const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt), {
+      const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt, lastError?.message || lastError), {
         systemPrompt: buildSystemPrompt(),
         taskType: "fortune",
-        temperature: attempt > 0 ? 0.54 : 0.62,
-        maxOutputTokens: consultationMode === "saju" ? 12000 : consultationMode === "tarot" ? 7200 : 4200,
-        timeoutMs: consultationMode === "saju" ? 42000 : consultationMode === "tarot" ? 36000 : 24000,
+        temperature: attempt > 1 ? 0.48 : attempt > 0 ? 0.54 : 0.62,
+        maxOutputTokens: consultationMode === "saju" ? 12000 : consultationMode === "tarot" ? 7200 : 7200,
+        timeoutMs: consultationMode === "saju" ? 42000 : 36000,
         fallbackToWorkersAI: false,
       });
 
@@ -2746,8 +2773,9 @@ async function generateConsultResult(request, fallback, env) {
 
   console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
   if (!isLocalLikeEnv(env)) {
-    const error = new Error("fortune tea house llm quality failed");
-    error.status = 502;
+    const error = new Error("연이가 상담문을 끝까지 다듬지 못했어요. 이용권이나 결제 권한은 보존되니 잠시 후 다시 열어 주세요.");
+    error.status = 503;
+    error.code = "FORTUNE_TEA_HOUSE_LLM_RETRYABLE";
     throw error;
   }
   return {
@@ -3700,6 +3728,14 @@ async function handleConsult(request, env) {
       code: cleanText(error?.code || "FORTUNE_TEA_HOUSE_GENERATION_FAILED", 80),
       message: cleanText(error?.message || error, 500),
     });
+    if (cleanText(error?.code, 80) === "FORTUNE_TEA_HOUSE_LLM_RETRYABLE") {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "LLM_RETRYABLE",
+        message: cleanText(error?.message, 500) || "연이가 상담문을 끝까지 다듬지 못했어요. 잠시 후 다시 열어 주세요.",
+      }, { status: 503 });
+    }
     throw error;
   }
   const auth = access.auth;

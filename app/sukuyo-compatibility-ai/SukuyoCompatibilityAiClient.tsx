@@ -4,7 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { CalendarDays, ChevronLeft, ChevronRight, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 
@@ -302,6 +307,7 @@ const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "숙요점 궁합 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
+  PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 두 사람의 생년월일과 달력 기준을 다시 확인해 주세요.",
   CALCULATION_FAILED: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
@@ -899,6 +905,13 @@ export default function SukuyoCompatibilityAiClient() {
     setError("");
     setNotice("");
     setPhase("access");
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId: idempotencyKey,
+      title: "이용권 확인",
+      reason: "숙요점 궁합 AI 상담",
+      paymentMode: "MEMBERSHIP_PASS",
+    });
     try {
       const { data } = await postJson<EnsureAccessResult>(
         "/api/sukuyo-compatibility-ai/prepare",
@@ -906,6 +919,14 @@ export default function SukuyoCompatibilityAiClient() {
         idempotencyKey,
       );
       if (data.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: "숙요점 궁합 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 인연의 흐름을 읽고 있습니다.",
+        });
         await startConsultation(idempotencyKey, { accessToken: data.accessToken, accessType: data.accessType });
         return;
       }
@@ -917,12 +938,26 @@ export default function SukuyoCompatibilityAiClient() {
       setPhase("payment");
       const paymentPayload = asRecord("paymentPayload" in denied ? denied.paymentPayload : {});
       const runtimeResult = await runBillingCoinGate(buildBillingGateInput(paymentPayload, idempotencyKey));
-      if (!isPaymentGranted(runtimeResult)) throw new Error("PAYMENT_VERIFY_FAILED");
+      if (!isPaymentGranted(runtimeResult)) {
+        const runtimeCode = String(runtimeResult.error?.code || "").toUpperCase();
+        if (runtimeCode === "PAYMENT_CANCELLED") throw new Error("PAYMENT_CANCELLED");
+        throw new Error("PAYMENT_VERIFY_FAILED");
+      }
       const payment = extractPayment(runtimeResult, idempotencyKey);
       await startConsultation(idempotencyKey, { ...payment, billingGate: asRecord(runtimeResult.data) }, true);
     } catch (caught) {
       const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
+      const paymentCancelled = code === "PAYMENT_CANCELLED";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId: idempotencyKey,
+        title: "이용권 확인 실패",
+        reason: "숙요점 궁합 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+        message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
+        cancelled: paymentCancelled,
+      });
       setPhase("idle");
     }
   }

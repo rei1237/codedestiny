@@ -21,6 +21,9 @@ import {
 import styles from "./styles/fortune-tea-house.module.css";
 
 type RunBillingCoinGate = typeof import("@/app/_lib/billing-client")["runBillingCoinGate"];
+type BeginPaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["beginPaidFeatureGateCheck"];
+type CompletePaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["completePaidFeatureGateCheck"];
+type FailPaidFeatureGateCheck = typeof import("@/app/_lib/billing-client")["failPaidFeatureGateCheck"];
 
 const FORTUNE_TEA_BGM_TRACKS = {
   moonlitTeaHouse: {
@@ -207,12 +210,55 @@ async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiRespon
     const message = code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED"
       ? "로그인 후 운명 찻집 상담을 열 수 있어요."
       : gate.error?.message || gate.message || "결제 확인이 완료되지 않았어요. 다시 한 번만 시도해 주세요.";
-    throw buildFortuneTeaPaymentError(message);
+    throw buildFortuneTeaPaymentError(code === "PAYMENT_CANCELLED" ? "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다." : message);
   }
   return {
     featureKey: toText(billingInput.featureKey),
     data: gate.data as FortuneTeaBillingGateData & Record<string, unknown>,
   };
+}
+
+async function beginFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
+  const { beginPaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
+    beginPaidFeatureGateCheck: BeginPaidFeatureGateCheck;
+  };
+  beginPaidFeatureGateCheck({
+    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    requestId: attemptId,
+    title: "이용권 확인",
+    reason: "운명 찻집 상담",
+    paymentMode: "MEMBERSHIP_PASS",
+  });
+}
+
+async function completeFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
+  const { completePaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
+    completePaidFeatureGateCheck: CompletePaidFeatureGateCheck;
+  };
+  completePaidFeatureGateCheck({
+    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    requestId: attemptId,
+    title: "이용권 확인 완료",
+    reason: "운명 찻집 상담",
+    paymentMode: "MEMBERSHIP_PASS",
+    message: "이용권 확인이 끝났어요. 찻잔의 말을 정리하고 있어요.",
+  });
+}
+
+async function failFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string, message?: string) {
+  const { failPaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
+    failPaidFeatureGateCheck: FailPaidFeatureGateCheck;
+  };
+  const cancelled = /PAYMENT_CANCELLED|취소/.test(message || "");
+  failPaidFeatureGateCheck({
+    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    requestId: attemptId,
+    title: "이용권 확인 실패",
+    reason: "운명 찻집 상담",
+    paymentMode: "MEMBERSHIP_PASS",
+    cancelled,
+    message: message || "이용권 확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.",
+  });
 }
 
 const FORTUNE_TEA_PROGRESS_STEPS: FortuneTeaProgressStep[] = [
@@ -309,7 +355,7 @@ export default function FortuneTeaHousePage() {
   const [isEnteringTeaHouse, setIsEnteringTeaHouse] = useState(false);
   const [hasSeenEntryPrologue, setHasSeenEntryPrologue] = useState(false);
   const [isEntryPrologueSkipped, setIsEntryPrologueSkipped] = useState(false);
-  const [bgmEnabled, setBgmEnabled] = useState(false);
+  const [bgmEnabled, setBgmEnabled] = useState(true);
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [selectedCup, setSelectedCup] = useState<TeaHouseCup | null>(null);
@@ -404,7 +450,7 @@ export default function FortuneTeaHousePage() {
 
     try {
       const savedPreference = window.localStorage.getItem(FORTUNE_TEA_BGM_STORAGE_KEY);
-      if (savedPreference === "on") setBgmEnabled(true);
+      if (savedPreference === "off") setBgmEnabled(false);
     } catch {
       void 0;
     }
@@ -678,6 +724,7 @@ export default function FortuneTeaHousePage() {
     const useLocalPreview = canUseLocalConsultPreview();
     let localPreviewResult: FortuneTeaHouseConsultResponse | null = null;
     let localPreviewResultId = "";
+    let accessGateStarted = false;
 
     try {
       const startedAt = Date.now();
@@ -724,6 +771,8 @@ export default function FortuneTeaHousePage() {
       };
       const attemptId = createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
+      await beginFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
+      accessGateStarted = true;
       const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
         ...requestPayload,
         attemptId,
@@ -790,6 +839,7 @@ export default function FortuneTeaHousePage() {
       }
       logSubmitStep("api result success", payload.generationMeta);
       if (consultRunRef.current !== consultRunId) return;
+      if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
       markGenerationComplete();
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
@@ -826,11 +876,13 @@ export default function FortuneTeaHousePage() {
     } catch (error) {
       if (consultRunRef.current !== consultRunId) return;
       logSubmitStep("error", error);
+      const generationPending = error instanceof Error && (error as Error & { generationPending?: boolean }).generationPending;
       const blocksLocalPreview = error instanceof Error && (
         (error as Error & { paymentRequired?: boolean }).paymentRequired
-        || (error as Error & { generationPending?: boolean }).generationPending
+        || generationPending
       );
       if (localPreviewResult && useLocalPreview && !blocksLocalPreview) {
+        if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, localPreviewResultId);
         markGenerationComplete();
         const nextResult = {
           ...localPreviewResult,
@@ -845,6 +897,17 @@ export default function FortuneTeaHousePage() {
         }
         goToStage("tarotReveal");
         return;
+      }
+      if (accessGateStarted) {
+        if (generationPending) {
+          await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, localPreviewResultId);
+        } else {
+          await failFortuneTeaAccessGate(
+            nextQuestionInput.consultationMode,
+            localPreviewResultId,
+            error instanceof Error && error.message ? error.message : undefined,
+          );
+        }
       }
       markGenerationError();
       setSubmitError(error instanceof Error && error.message ? error.message : "찻잔의 향이 잠시 흐려졌어요. 다시 한 번만 건네주세요.");

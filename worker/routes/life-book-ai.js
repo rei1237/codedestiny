@@ -1504,7 +1504,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   }, { status: 402 });
 }
 
-async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
+async function resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey }) {
   const token = clean(body?.accessToken || request.headers.get("x-life-book-ai-access-token"));
   if (token) {
     try {
@@ -1533,9 +1533,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   });
   if (billingGateAccess?.ok) return billingGateAccess;
 
-  const user = await loadBillingUser(auth.userId);
-  if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  return resolveServerAccess({ auth, user, pricing: { ...pricing, env }, idempotencyKey, inputHash: normalized.inputHash, input: normalized.input });
+  return { ok: false, reason: "PAYMENT_VERIFY_FAILED" };
 }
 
 function buildLimitedSajuResult(error, birthInfo = {}) {
@@ -1662,7 +1660,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
     }
 
     logLifeBookAi("LLM Access Check Start", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", access: "checking", env }));
-    const access = await resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey });
+    const access = await resolveStartAccess({ request, env, auth, body, normalized, idempotencyKey });
     if (!access.ok) {
       if (access.reason === "LOGIN_REQUIRED") return loginRequired();
       if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);

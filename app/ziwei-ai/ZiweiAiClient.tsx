@@ -4,7 +4,12 @@ import { useMemo, useRef, useState, type CSSProperties, type FormEvent } from "r
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -114,6 +119,7 @@ const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
   PAYMENT_REQUIRED: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
+  PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "자미두수 상담에 필요한 정보가 부족해요. 생년월일, 성별, 출생시간 정보를 다시 확인해 주세요.",
   BIRTH_TIME_MISSING: "자미두수는 출생시간이 중요해요. 출생시간을 입력하거나 ‘출생시간 모름’을 선택해 주세요.",
   CUSTOM_QUESTION_REQUIRED: "별궁에 묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
@@ -526,6 +532,7 @@ export default function ZiweiAiPage() {
     setError("");
     setNotice("별궁을 열기 위한 정보를 확인하고 있습니다");
     setPhase("checking");
+    let gateStarted = false;
 
     try {
       const validationMessage = validateForm(form);
@@ -533,8 +540,24 @@ export default function ZiweiAiPage() {
         throw new Error(validationMessage);
       }
       const payload = buildConsultationPayload(form, idempotencyKey);
+      beginPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId: idempotencyKey,
+        title: "이용권 확인",
+        reason: "자미두수 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+      });
+      gateStarted = true;
       const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey);
       if (data.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: "자미두수 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 별궁의 흐름을 읽고 있습니다.",
+        });
         await generateConsultation(idempotencyKey, payload, { accessToken: data.accessToken, accessType: data.accessType });
         return;
       }
@@ -549,13 +572,27 @@ export default function ZiweiAiPage() {
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();
         if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
-        if (code === "PAYMENT_CANCELLED" || code === "PAYMENT_REQUIRED" || gate.status === 402) throw new Error(ERROR_TEXT.PAYMENT_VERIFY_FAILED);
+        if (code === "PAYMENT_CANCELLED") throw new Error(ERROR_TEXT.PAYMENT_CANCELLED);
+        if (code === "PAYMENT_REQUIRED" || gate.status === 402) throw new Error(ERROR_TEXT.PAYMENT_VERIFY_FAILED);
         throw new Error(gate.error?.message || ERROR_TEXT.SERVER_ERROR);
       }
 
       await generateConsultation(idempotencyKey, payload, extractPayment(gate, idempotencyKey));
     } catch (caught) {
-      setError(caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
+      const message = caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR;
+      const paymentCancelled = message === ERROR_TEXT.PAYMENT_CANCELLED;
+      setError(message);
+      if (gateStarted) {
+        failPaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "이용권 확인 실패",
+          reason: "자미두수 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message,
+          cancelled: paymentCancelled,
+        });
+      }
       setNotice("");
       setPhase("idle");
     } finally {

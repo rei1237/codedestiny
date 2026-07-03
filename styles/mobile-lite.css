@@ -29,6 +29,468 @@
   }
 }
 
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  html.cd-mobile-runtime {
+    min-height: 100dvh;
+    background: #070b1f;
+    overscroll-behavior-x: none;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html.cd-mobile-runtime body {
+    min-height: 100dvh;
+    background: #070b1f;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.cd-mobile-runtime body #inputPage {
+    padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub[data-marker*="mobile-app-shell"] {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 560px !important;
+    min-height: 100dvh !important;
+    margin: 0 auto !important;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px calc(112px + env(safe-area-inset-bottom, 0px)) !important;
+    color: #fffaf0 !important;
+    background:
+      radial-gradient(circle at 82% 0%, rgba(248, 216, 148, 0.2), transparent 120px),
+      radial-gradient(circle at 0% 18%, rgba(125, 211, 252, 0.16), transparent 120px),
+      linear-gradient(180deg, #081026 0%, #101632 54%, #070b1f 100%) !important;
+    overflow: visible !important;
+    scroll-margin-top: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 72 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 10px !important;
+    min-height: 56px !important;
+    margin: calc(-8px - env(safe-area-inset-top, 0px)) -12px 10px !important;
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: linear-gradient(180deg, rgba(7, 11, 31, 0.96), rgba(7, 11, 31, 0.72)) !important;
+    backdrop-filter: blur(18px) saturate(1.15) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.15) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__brand,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__brand {
+    gap: 9px !important;
+    color: #fff7dd !important;
+    text-decoration: none !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__mark {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(248, 216, 148, 0.32) !important;
+    background: linear-gradient(135deg, rgba(248, 216, 148, 0.96), rgba(255, 255, 255, 0.78)) !important;
+    color: #111827 !important;
+    font-size: 0.72rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__copy {
+    display: grid !important;
+    gap: 1px !important;
+    min-width: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__copy strong,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__copy small {
+    display: block !important;
+    margin: 0 !important;
+    max-width: 44vw !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__copy strong {
+    color: #fff7dd !important;
+    font-size: 0.9rem !important;
+    font-weight: 900 !important;
+    line-height: 1.12 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__copy small {
+    color: rgba(226, 232, 240, 0.74) !important;
+    font-size: 0.68rem !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__actions {
+    gap: 6px !important;
+    flex-shrink: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__action {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 50px !important;
+    min-height: 38px !important;
+    padding: 0 10px !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #f8fafc !important;
+    font-size: 0.74rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+    text-decoration: none !important;
+    touch-action: manipulation !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__action:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__primary a:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__mini:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chip:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__card:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active,
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active {
+    transform: scale(0.985) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub[data-marker*="mobile-app-shell"] .cd-mobile-hub__fold,
+  html.cd-mobile-runtime body:not(.neo-mode) #cdMobileDestinyHub[data-marker*="mobile-app-shell"] .cd-mobile-hub__fold {
+    min-height: auto !important;
+    gap: 10px !important;
+    padding: 14px 14px 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 24px !important;
+    background:
+      radial-gradient(circle at 100% 0%, rgba(248, 216, 148, 0.22), transparent 112px),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04)) !important;
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__brand {
+    align-items: center !important;
+    padding: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__title {
+    max-width: 100% !important;
+    color: #fff3c4 !important;
+    font-size: clamp(1.28rem, 6vw, 1.72rem) !important;
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
+    word-break: keep-all !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__desc {
+    max-width: 100% !important;
+    color: rgba(248, 250, 252, 0.82) !important;
+    font-size: 0.9rem !important;
+    line-height: 1.48 !important;
+    word-break: keep-all !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__primary a {
+    min-height: 52px !important;
+    border-radius: 16px !important;
+    background: linear-gradient(135deg, #f8d878, #fff3bf) !important;
+    color: #111827 !important;
+    text-decoration: none !important;
+    box-shadow: 0 14px 28px rgba(248, 216, 148, 0.18) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__assist,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__quick {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__mini,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chip,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__pass-cta,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card {
+    min-height: 44px !important;
+    border-radius: 14px !important;
+    text-decoration: none !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chips {
+    display: flex !important;
+    gap: 7px !important;
+    overflow-x: auto !important;
+    padding-bottom: 2px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chips::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__belowfold,
+  html.cd-mobile-runtime body:not(.neo-mode) #cdMobileDestinyHub[data-marker*="mobile-home-consult-priority"] .cd-mobile-hub__belowfold {
+    display: grid !important;
+    gap: 14px !important;
+    margin-top: 14px !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub #mobileRecommendedCards,
+  html.cd-mobile-runtime body:not(.neo-mode) #cdMobileDestinyHub[data-marker*="mobile-home-consult-priority"] #mobileRecommendedCards,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__section--categories,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__pass,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__all-details {
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 22px !important;
+    background:
+      radial-gradient(circle at 86% 0%, rgba(248, 216, 148, 0.12), transparent 112px),
+      linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)) !important;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub #mobileRecommendedCards {
+    padding: 14px !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 112px auto auto auto !important;
+    gap: 6px !important;
+    min-height: 224px !important;
+    padding: 0 0 12px !important;
+    overflow: hidden !important;
+    border-radius: 20px !important;
+    border: 1px solid rgba(248, 216, 148, 0.26) !important;
+    color: #fffaf0 !important;
+    text-decoration: none !important;
+    background: linear-gradient(145deg, rgba(20, 24, 48, 0.98), rgba(7, 11, 31, 0.96)) !important;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28) !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--tea {
+    background: linear-gradient(145deg, rgba(43, 24, 48, 0.98), rgba(18, 32, 34, 0.96)) !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--neo {
+    background: linear-gradient(145deg, rgba(13, 20, 38, 0.98), rgba(15, 23, 42, 0.96)) !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb::before,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb::before {
+    content: "대표 모드" !important;
+    left: 10px !important;
+    top: 10px !important;
+    z-index: 3 !important;
+    padding: 4px 8px !important;
+    border-radius: 999px !important;
+    color: #111827 !important;
+    background: linear-gradient(135deg, #f8d878, #fff3bf) !important;
+    font-size: 0.62rem !important;
+    font-weight: 900 !important;
+    line-height: 1 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb {
+    grid-row: 1 !important;
+    width: 100% !important;
+    height: 112px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    object-fit: cover !important;
+    aspect-ratio: 16 / 9 !important;
+    box-shadow: none !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__card-kicker {
+    grid-row: 2 !important;
+    display: block !important;
+    margin: 4px 12px 0 !important;
+    color: rgba(248, 216, 148, 0.9) !important;
+    font-size: 0.68rem !important;
+    font-style: normal !important;
+    font-weight: 900 !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) strong,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) strong {
+    grid-row: 3 !important;
+    margin: 0 12px !important;
+    color: #fff7dd !important;
+    font-size: 1rem !important;
+    line-height: 1.18 !important;
+    letter-spacing: 0 !important;
+    word-break: keep-all !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) span,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) span {
+    grid-row: 4 !important;
+    margin: 0 12px !important;
+    color: rgba(226, 232, 240, 0.78) !important;
+    font-size: 0.76rem !important;
+    line-height: 1.34 !important;
+    letter-spacing: 0 !important;
+    white-space: normal !important;
+    word-break: keep-all !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(n+3) {
+    min-height: 92px !important;
+    padding: 12px !important;
+    border-radius: 18px !important;
+    text-decoration: none !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__section--categories {
+    padding: 14px !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card {
+    display: grid !important;
+    align-content: center !important;
+    gap: 4px !important;
+    min-height: 88px !important;
+    padding: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    background: rgba(255, 255, 255, 0.065) !important;
+    color: #f8fafc !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card strong {
+    color: #fff3c4 !important;
+    font-size: 0.92rem !important;
+    font-weight: 900 !important;
+    line-height: 1.18 !important;
+    letter-spacing: 0 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card span {
+    color: rgba(226, 232, 240, 0.76) !important;
+    font-size: 0.72rem !important;
+    line-height: 1.32 !important;
+    letter-spacing: 0 !important;
+    word-break: keep-all !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileBottomNav {
+    z-index: 980 !important;
+    padding: 8px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)) !important;
+    background: linear-gradient(180deg, rgba(7, 11, 31, 0.74), rgba(7, 11, 31, 0.98)) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 -14px 36px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(18px) saturate(1.1) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.1) !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__main {
+    max-width: 560px !important;
+    margin: 0 auto !important;
+    gap: 6px !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item {
+    min-height: 54px !important;
+    border-radius: 16px !important;
+    background: rgba(255, 255, 255, 0.065) !important;
+    color: rgba(226, 232, 240, 0.78) !important;
+    font-size: 0.67rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0 !important;
+    text-decoration: none !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item::before {
+    font-size: 1.08rem !important;
+    line-height: 1 !important;
+  }
+
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item.is-active,
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-current="page"],
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-selected="true"] {
+    border-color: rgba(248, 216, 148, 0.48) !important;
+    background: linear-gradient(135deg, rgba(248, 216, 148, 0.24), rgba(125, 211, 252, 0.14)) !important;
+    color: #fff7dd !important;
+  }
+
+  html.cd-mobile-runtime body #tilePvwOverlay.pvw-open,
+  html.cd-mobile-runtime body [data-component="MobileFeatureBottomSheet"][aria-hidden="false"] {
+    min-height: 100dvh !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__action {
+    min-width: 44px !important;
+    padding: 0 8px !important;
+    font-size: 0.68rem !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb {
+    grid-template-rows: 98px auto auto auto !important;
+    min-height: 212px !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb {
+    height: 98px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__action:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__primary a:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__mini:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__chip:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__card:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card:active,
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active,
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active {
+    transform: none !important;
+  }
+}
+
 /* Mobile-first lightweight overrides for low-end Android */
 @media (max-width: 900px) {
   html.cd-mobile-lite,

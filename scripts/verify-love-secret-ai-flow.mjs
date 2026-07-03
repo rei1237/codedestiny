@@ -144,6 +144,8 @@ const pageSourcePath = fs.existsSync(rel("app/love-secret-ai/LoveSecretAiClient.
   : "app/love-secret-ai/page.tsx";
 const page = read(pageSourcePath);
 const resultPage = read("app/love-secret-ai/result/page.tsx");
+const resultClient = read("app/love-secret-ai/result/LoveSecretAiResultClient.tsx");
+const resultSource = `${resultPage}\n${resultClient}`;
 const route = read("worker/routes/love-secret-ai.js");
 const workerIndex = read("worker/index.js");
 const models = read("worker/lib/models.js");
@@ -190,7 +192,7 @@ for (const marker of [
   "jspdf",
   "consultation?.pdfSections?.length ? consultation.pdfSections : consultation?.sections",
 ]) {
-  assertIncludes("app/love-secret-ai/result/page.tsx", resultPage, marker);
+  assertIncludes("app/love-secret-ai/result/page.tsx", resultSource, marker);
 }
 
 for (const marker of [

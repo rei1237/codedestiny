@@ -26,12 +26,13 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
     "billingClient.text.005": "월정석 결제",
     "billingClient.text.006": "이용권 다시 확인",
     "billingClient.text.007": "취소",
+    "billingClient.text.008": "음악 기능은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.",
     "billingClient.message.001": "결제창을 열지 못했습니다.",
     "billingClient.message.002": "결제창을 열지 못했습니다.",
     "billingClient.error.001": "결제 처리 중 오류가 발생했습니다.",
-    "billingClient.message.003": "이용권과 기존 잠금 해제 내역을 확인하고 있습니다.",
+    "billingClient.message.003": "이용권과 기존 이용 권한을 확인하고 있습니다.",
     "billingClient.message.004": "결제 가능한 상품을 확인했습니다.",
-    "billingClient.message.005": "보유한 30일 이용권으로 바로 열 수 있는지 확인 중입니다.",
+    "billingClient.message.005": "이용권 확인 중입니다.",
     "billingClient.message.006": "이용권 확인이 끝났습니다. 결제 가능 상태를 확인하고 있습니다.",
     "billingClient.message.007": "결제 가능한 상품을 확인해 주세요.",
     "billingClient.message.008": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
@@ -47,6 +48,7 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
     "billingClient.message.018": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
     "billingClient.message.019": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
     "billingClient.message.020": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
+    "billingClient.message.021": "결제 가능 상태를 확인하고 있습니다.",
   },
 } as const;
 
@@ -228,6 +230,7 @@ type PaidFeatureGateRuntimeStatus =
   | "paymentProcessing"
   | "paymentSuccess"
   | "paymentFailed"
+  | "cancelled"
   | "processing"
   | "deliveryProcessing"
   | "refund_pending"
@@ -1036,6 +1039,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const opts = options || {};
   const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
   const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
+  const normalizedCategoryKey = toText(opts.categoryKey).toLowerCase();
+  const normalizedProductType = toText(opts.productType || opts.serviceType).toLowerCase();
+  const isMusicTrackPayment = normalizedCategoryKey === "music-track" || normalizedProductType === "music_track" || normalizedProductType === "music-track";
   const membershipCoverage = asRecord(opts.membershipCoverage);
   const directCoinPrice = coinPrice;
   const rawDirectAmount = Math.max(0, Math.floor(toNumber(opts.amountKrw ?? opts.amountKRW, directCoinPrice * 100)));
@@ -1044,7 +1050,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     ? opts.allowedPaymentModes.map((mode) => toText(mode).toLowerCase())
     : null;
   const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly");
-  const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
+  const canShowPassStore = !isMusicTrackPayment && opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
+  const canShowPassRefresh = canShowPassStore;
+  const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
   const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
@@ -1078,7 +1086,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <span class="cd-react-payment-choice-reflect"></span>
         </div>
         <h2 class="cd-react-payment-choice-title">${billingClientText("billingClient.text.001")}</h2>
-        <p class="cd-react-payment-choice-sub">${billingClientText("billingClient.text.002")}</p>
+        <p class="cd-react-payment-choice-sub">${escapePaymentText(paymentChoiceSub)}</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-grid">
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
@@ -1101,7 +1109,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         <div class="cd-react-payment-choice-status" data-payment-status></div>
         <div class="cd-react-payment-choice-actions">
-          <button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">${billingClientText("billingClient.text.006")}</button>
+          ${canShowPassRefresh ? `<button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">${billingClientText("billingClient.text.006")}</button>` : ""}
           <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">${billingClientText("billingClient.text.007")}</button>
         </div>
       </div>
@@ -2073,13 +2081,6 @@ function isExternalPaymentWindowStatus(status: string) {
 
 function paymentLoadingOwnsPaidFeatureStatus(status: string) {
   return [
-    "opening",
-    "checkingEntitlement",
-    "hasEntitlement",
-    "loadingProducts",
-    "paymentProcessing",
-    "paymentSuccess",
-    "paymentPreparing",
     "processing",
     "deliveryProcessing",
     "refund_pending",
@@ -2584,6 +2585,50 @@ export function updatePaidFeatureGate(input: {
   });
 }
 
+type PaidFeatureGateCheckInput = {
+  categoryKey?: string;
+  subFeatureKey?: string;
+  featureKey?: string;
+  reason?: string;
+  requestId?: string;
+  cost?: number;
+  title?: string;
+  message?: string;
+  paymentMode?: string;
+  accessType?: string;
+};
+
+export function beginPaidFeatureGateCheck(input: PaidFeatureGateCheckInput) {
+  return openPaidFeatureGate({
+    ...input,
+    status: "checkingEntitlement",
+    paymentMode: input.paymentMode || "MEMBERSHIP_PASS",
+    message: input.message || "이용권 확인 중입니다.",
+  });
+}
+
+export function completePaidFeatureGateCheck(input: PaidFeatureGateCheckInput) {
+  updatePaidFeatureGate({
+    ...input,
+    status: "hasEntitlement",
+    paymentMode: input.paymentMode || "MEMBERSHIP_PASS",
+    message: input.message || "이용권 확인이 끝났습니다. 결과를 준비하고 있습니다.",
+  });
+}
+
+export function failPaidFeatureGateCheck(input: PaidFeatureGateCheckInput & { cancelled?: boolean }) {
+  const message = input.message || (input.cancelled
+    ? "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다."
+    : "이용권 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+  const cancelled = input.cancelled === true || /PAYMENT_CANCELLED|취소|cancel/i.test(message);
+  updatePaidFeatureGate({
+    ...input,
+    status: cancelled ? "cancelled" : "error",
+    paymentMode: input.paymentMode || "MEMBERSHIP_PASS",
+    message,
+  });
+}
+
 export async function fetchBillingFeaturePricing(input: {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -2975,12 +3020,18 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   });
   const gateRequestId = toText(input.requestId || activeAttempt.attemptId || inFlightKey);
   const initialSnapshot = readSubscriptionSnapshotForUser();
+  const requestedMode = normalizePaymentMode(input.paymentMode);
+  const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
+  const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
+  const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
+  const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
+  const initialGateStatus: PaidFeatureGateRuntimeStatus = passDisabled ? "paymentPreparing" : "checkingEntitlement";
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,
     requestId: gateRequestId,
-    status: "checkingEntitlement",
-    message: billingClientText("billingClient.message.005"),
+    status: initialGateStatus,
+    message: passDisabled ? billingClientText("billingClient.message.021") : billingClientText("billingClient.message.005"),
     paymentMode: input.paymentMode,
     reason: input.reason,
   });
@@ -2992,11 +3043,6 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       paymentRequestedMarked = true;
       markPaidAttemptPaymentRequested();
     };
-    const requestedMode = normalizePaymentMode(input.paymentMode);
-    const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
-    const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
-    const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
-    const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
     const knownInputCoinCost = resolveKnownCoinCost(input, null);
     const initialSnapshotPassLimit = initialSnapshot?.state === "active" ? subscriptionSnapshotPassLimit(initialSnapshot.tier) : 0;
     const snapshotPassServerCheckFirst = Boolean(
@@ -3197,7 +3243,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             featureId,
             featureKey: featureId,
             requestId: gateRequestId,
-            status: runtimeCode === "PAYMENT_CANCELLED" ? "noEntitlement" : "paymentFailed",
+            status: runtimeCode === "PAYMENT_CANCELLED" ? "cancelled" : "paymentFailed",
             message: parsed.error?.message || parsed.message || "결제가 완료되지 않았습니다.",
             cost: knownCoinCost,
             reason: input.reason,
@@ -3437,7 +3483,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               featureId,
               featureKey: featureId,
               requestId: gateRequestId,
-              status: runtimeCode === "PAYMENT_CANCELLED" ? "noEntitlement" : "paymentFailed",
+              status: runtimeCode === "PAYMENT_CANCELLED" ? "cancelled" : "paymentFailed",
               message: parsedRuntimePaymentResult.error?.message || parsedRuntimePaymentResult.message || "결제가 완료되지 않았습니다.",
               cost: knownCoinCost,
               reason: input.reason,

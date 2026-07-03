@@ -14,7 +14,12 @@ import {
   WalletCards,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
@@ -105,6 +110,7 @@ const HERO_BADGES = ["타고난 사주", "대운과 세운", "사랑과 인연",
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "이 리포트는 이용권 또는 결제 확인 후 생성됩니다. 결제창을 확인해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
+const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const PRICE_NOT_FOUND_MESSAGE = "결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.";
 const INVALID_INPUT_MESSAGE = "인생의 책을 열기 위한 정보가 부족합니다. 생년월일과 성별을 다시 확인해 주세요.";
 const BIRTH_TIME_REQUIRED_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
@@ -391,10 +397,25 @@ export default function LifeBookAiClient() {
     setNotice("");
     setProgressTick(0);
     setStatus("opening");
+    beginPaidFeatureGateCheck({
+      featureKey: FEATURE_KEY,
+      requestId,
+      title: "이용권 확인",
+      reason: "인생의 책 AI 상담",
+      paymentMode: "MEMBERSHIP_PASS",
+    });
 
     try {
       const access = await postJson<PrepareResult>("/api/life-book-ai/prepare", payload, requestId);
       if (access.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: FEATURE_KEY,
+          requestId,
+          title: "이용권 확인 완료",
+          reason: "인생의 책 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 인생의 책을 준비하고 있습니다.",
+        });
         await generateConsultation(payload, requestId, { accessToken: access.accessToken });
         return;
       }
@@ -418,6 +439,7 @@ export default function LifeBookAiClient() {
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();
           if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
+          if (code === "PAYMENT_CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
           throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
         }
         console.info("[LifeBook AI Payment Success]", {
@@ -436,8 +458,18 @@ export default function LifeBookAiClient() {
         : err instanceof Error
           ? err.message
           : SERVER_ERROR_MESSAGE;
+      const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       setError(message);
       setStatus("error");
+      failPaidFeatureGateCheck({
+        featureKey: FEATURE_KEY,
+        requestId,
+        title: "이용권 확인 실패",
+        reason: "인생의 책 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+        message,
+        cancelled: paymentCancelled,
+      });
     } finally {
       startLockRef.current = false;
     }

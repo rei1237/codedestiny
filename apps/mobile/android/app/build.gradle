@@ -24,15 +24,42 @@ def readMobileInt = { String name, int fallback ->
     }
 }
 
-def releaseStoreFilePath = readMobileConfig('CODE_DESTINY_ANDROID_KEYSTORE_FILE', readMobileConfig('storeFile', ''))
-def releaseStoreFile = releaseStoreFilePath ? file(releaseStoreFilePath) : null
-if (releaseStoreFilePath && !releaseStoreFile.exists()) {
-    releaseStoreFile = rootProject.file(releaseStoreFilePath)
+def resolveReleaseStoreFile = { String configuredPath ->
+    if (!configuredPath) return null
+    def expandedPath = configuredPath.startsWith('~')
+            ? System.getProperty('user.home') + configuredPath.substring(1)
+            : configuredPath
+    def candidate = file(expandedPath)
+    if (!candidate.exists()) {
+        candidate = rootProject.file(expandedPath)
+    }
+    return candidate
 }
+
+def releaseStoreFilePath = readMobileConfig('CODE_DESTINY_ANDROID_KEYSTORE_FILE', readMobileConfig('storeFile', ''))
+def releaseStoreFile = resolveReleaseStoreFile(releaseStoreFilePath)
 def releaseKeyAlias = readMobileConfig('CODE_DESTINY_ANDROID_KEY_ALIAS', readMobileConfig('keyAlias', ''))
 def releaseStorePassword = readMobileConfig('CODE_DESTINY_ANDROID_KEYSTORE_PASSWORD', readMobileConfig('storePassword', ''))
 def releaseKeyPassword = readMobileConfig('CODE_DESTINY_ANDROID_KEY_PASSWORD', readMobileConfig('keyPassword', ''))
-def hasReleaseSigning = releaseStoreFilePath && releaseStoreFile.exists() && releaseKeyAlias && releaseStorePassword && releaseKeyPassword
+def missingReleaseSigningItems = []
+if (!releaseStoreFilePath) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEYSTORE_FILE')
+if (releaseStoreFilePath && (releaseStoreFile == null || !releaseStoreFile.exists())) missingReleaseSigningItems.add("keystore file not found: ${releaseStoreFilePath}")
+if (!releaseKeyAlias) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEY_ALIAS')
+if (!releaseStorePassword) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEYSTORE_PASSWORD')
+if (!releaseKeyPassword) missingReleaseSigningItems.add('CODE_DESTINY_ANDROID_KEY_PASSWORD')
+def hasReleaseSigning = missingReleaseSigningItems.isEmpty()
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def releasePackageTasks = taskGraph.allTasks.findAll { task ->
+        task.path == ':app:bundleRelease' || task.path == ':app:assembleRelease'
+    }
+    if (!releasePackageTasks.isEmpty() && !hasReleaseSigning) {
+        throw new GradleException("""Code Destiny Android release signing is not configured.
+Missing: ${missingReleaseSigningItems.join(', ')}
+Create apps/mobile/android/release-signing.properties from release-signing.example.properties, or set CODE_DESTINY_ANDROID_* environment variables.
+Release builds are not allowed to fall back to debug signing.""".stripIndent().trim())
+    }
+}
 
 android {
     namespace = "com.codedestiny.app"

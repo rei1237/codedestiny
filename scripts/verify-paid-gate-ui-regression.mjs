@@ -13,6 +13,58 @@ const billingRouteSource = readFileSync(resolve(root, "worker/routes/billing.js"
 const paymentsRouteSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const tarotLoveSource = readFileSync(resolve(root, "js/tarot-love-experience.js"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
+const fortuneTeaHouseSource = readFileSync(resolve(root, "src/features/fortune-tea-house/FortuneTeaHousePage.tsx"), "utf8");
+const neoOperationRoomSource = readFileSync(resolve(root, "src/features/neo-war-room/NeoOperationRoomPage.tsx"), "utf8");
+const reactGateFirstFeatureSources = [
+  {
+    label: "life-book-ai",
+    source: readFileSync(resolve(root, "app/life-book-ai/LifeBookAiClient.tsx"), "utf8"),
+    api: 'postJson<PrepareResult>("/api/life-book-ai/prepare"',
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "love-secret-ai",
+    source: readFileSync(resolve(root, "app/love-secret-ai/LoveSecretAiClient.tsx"), "utf8"),
+    api: 'postJson<EnsureAccessResult>("/api/love-secret-ai/prepare"',
+    checkout: "runLoveSecretPaymentGate",
+  },
+  {
+    label: "new-year-ai",
+    source: readFileSync(resolve(root, "app/new-year-ai-consultation/NewYearAiClient.tsx"), "utf8"),
+    api: 'postJson<EnsureAccessResult>("/api/new-year-ai/ensure-access"',
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "astrology-ai",
+    source: readFileSync(resolve(root, "app/astrology-ai/AstrologyAiClient.tsx"), "utf8"),
+    api: "postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess",
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "ziwei-ai",
+    source: readFileSync(resolve(root, "app/ziwei-ai/ZiweiAiClient.tsx"), "utf8"),
+    api: 'postJson<ApiResult>("/api/ziwei-ai/prepare"',
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "vedic-ai",
+    source: readFileSync(resolve(root, "app/vedic-ai/VedicAiClient.tsx"), "utf8"),
+    api: '"/api/vedic-ai/ensure-access"',
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "sukuyo-compatibility-ai",
+    source: readFileSync(resolve(root, "app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx"), "utf8"),
+    api: '"/api/sukuyo-compatibility-ai/prepare"',
+    checkout: "runBillingCoinGate",
+  },
+  {
+    label: "karma-destiny-ai",
+    source: readFileSync(resolve(root, "app/karma-destiny-ai/KarmaDestinyAiClient.tsx"), "utf8"),
+    api: 'postJson<EnsureAccessResult>("/api/karma-destiny-ai/ensure-access"',
+    checkout: "runCommonBillingGate",
+  },
+];
 
 function assertContains(source, marker, label = marker) {
   assert.ok(source.includes(marker), `${label}: missing marker`);
@@ -115,6 +167,12 @@ assertBefore(billingClientSource, "if (!hasVerifiedBillingAccess(parsed.data", "
 assertContains(billingClientSource, "SERVER_ACCESS_GRANT_MISSING", "React server grant missing error");
 assertContains(billingClientSource, "서버 권한 검증에 실패했습니다", "React server verification failure message");
 assertContains(billingClientSource, "billingCoinGateInFlight", "React in-flight duplicate guard");
+assertContains(billingClientSource, "export function beginPaidFeatureGateCheck", "React paid feature gate check helper");
+assertContains(billingClientSource, 'status: "checkingEntitlement"', "React paid feature gate starts from entitlement check");
+assertContains(billingClientSource, "export function completePaidFeatureGateCheck", "React paid feature gate complete helper");
+assertContains(billingClientSource, "export function failPaidFeatureGateCheck", "React paid feature gate failure helper");
+assertContains(billingClientSource, 'status: cancelled ? "cancelled" : "error"', "React paid feature gate cancellation status");
+assertContains(billingClientSource, 'status: runtimeCode === "PAYMENT_CANCELLED" ? "cancelled" : "paymentFailed"', "React runtime cancellation is not payment failure");
 assertContains(billingClientSource, "const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;", "React checkout timeout is long enough for PG setup");
 assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;", "React confirm timeout is long enough for payment verification");
 assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React coin gate uses confirm timeout");
@@ -132,13 +190,23 @@ assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats
 assertNotContains(reactWaitKindSource, "이용권으로|membership", "React pass wait kind must not use broad membership regex");
 
 const reactBillingOverlayOwnershipSource = section(billingClientSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaymentWaitKind", "React billing overlay ownership");
+assertNotContains(reactBillingOverlayOwnershipSource, '"checkingEntitlement"', "React billing entitlement check must stay in paid gate UI");
+assertNotContains(reactBillingOverlayOwnershipSource, '"hasEntitlement"', "React billing pass success must stay in paid gate UI");
+assertNotContains(reactBillingOverlayOwnershipSource, '"paymentSuccess"', "React billing payment success must stay in paid gate UI");
 assertNotContains(reactBillingOverlayOwnershipSource, '"paymentWindowOpen"', "React billing must not keep overlay during external PG window");
 const reactBillingGateEmitSource = section(billingClientSource, "function emitPaidFeatureGate(", "function resolvePaidFeatureInFlightKey", "React billing paid gate emit");
 assertBefore(reactBillingGateEmitSource, 'if (action !== "close" && isExternalPaymentWindowStatus(status))', 'if (action !== "close" && paymentLoadingOwnsPaidFeatureStatus(status))', "React billing closes overlays before PG window owns focus");
 assertContains(reactBillingGateEmitSource, "emitPaymentLoadingState(false);", "React billing closes payment overlay for PG window");
 const reactProviderOverlayOwnershipSource = section(paymentProcessingContextSource, "function paymentLoadingOwnsPaidFeatureStatus(", "function resolvePaidFeatureStatusOverlay", "React provider overlay ownership");
+assertNotContains(reactProviderOverlayOwnershipSource, '"checkingEntitlement"', "React provider entitlement check must stay in paid gate UI");
+assertNotContains(reactProviderOverlayOwnershipSource, '"hasEntitlement"', "React provider pass success must stay in paid gate UI");
+assertNotContains(reactProviderOverlayOwnershipSource, '"paymentSuccess"', "React provider payment success must stay in paid gate UI");
 assertNotContains(reactProviderOverlayOwnershipSource, '"paymentWindowOpen"', "React provider must not keep overlay during external PG window");
 assertContains(paymentProcessingContextSource, "function isMonthlyPaidFeatureDetail", "React provider has monthly paid-feature resolver");
+assertContains(paymentProcessingContextSource, "<PaidFeatureGateProvider>", "React app connects paid gate provider globally");
+assertContains(paymentProcessingContextSource, 'checkingEntitlement: { label: "확인 중", title: "이용권 확인"', "React paid gate checking entitlement copy");
+assertContains(paymentProcessingContextSource, 'cancelled: { label: "취소됨", title: "결제 선택 취소"', "React paid gate cancelled copy");
+assertNotContains(paymentProcessingContextSource, 'document.body.style.overflow = "hidden"', "React paid gate must not lock mobile body scroll");
 const reactProviderStatusOverlaySource = section(paymentProcessingContextSource, "function resolvePaidFeatureStatusOverlay(", "function nowForPaidGate", "React provider paid status overlay");
 assertBefore(reactProviderStatusOverlaySource, "isMonthlyPaidFeatureDetail(resolvedDetail)", "isPassPaidFeatureDetail(resolvedDetail)", "React provider resolves monthly success before pass success");
 assertContains(reactProviderStatusOverlaySource, 'return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };', "React provider monthly success copy");
@@ -190,6 +258,36 @@ const legacyPigCoinConsumeFetch = 'fetch("/api/fortune/' + 'pig-coin/' + 'consum
 assertContains(tarotLoveSource, 'fetch("/api/billing/coin-gate"', "tarot love uses worker billing coin gate");
 assertNotContains(tarotLoveSource, legacyPigCoinConsumeFetch, "tarot love legacy consume bypass removed");
 assertContains(tarotLoveSource, "window._cdHasVerifiedServerAccess", "tarot love server access guard");
+
+const fortuneTeaSubmitSource = section(
+  fortuneTeaHouseSource,
+  "async function submitQuestion(nextQuestionInput: FortuneTeaHouseQuestionInput)",
+  "} catch (error) {",
+  "fortune tea house submit flow"
+);
+assertBefore(fortuneTeaSubmitSource, "await beginFortuneTeaAccessGate", "postFortuneTeaConsultRequest({", "fortune tea house opens paid gate before consult API");
+assertContains(fortuneTeaSubmitSource, "accessGateStarted = true", "fortune tea house tracks paid gate state");
+assertContains(fortuneTeaHouseSource, "await completeFortuneTeaAccessGate", "fortune tea house completes paid gate after access");
+assertContains(fortuneTeaHouseSource, "await failFortuneTeaAccessGate", "fortune tea house shows paid gate failure");
+
+const neoSubmitSource = section(
+  neoOperationRoomSource,
+  "async function handleSubmit(event: FormEvent<HTMLFormElement>)",
+  "} catch (caught) {",
+  "neo operation room submit flow"
+);
+assertBefore(neoSubmitSource, "beginPaidFeatureGateCheck({", "postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess", "neo operation room opens paid gate before ensure-access API");
+assertContains(neoSubmitSource, "completePaidFeatureGateCheck({", "neo operation room completes paid gate after access");
+assertContains(neoOperationRoomSource, "failPaidFeatureGateCheck({", "neo operation room shows paid gate failure");
+
+for (const feature of reactGateFirstFeatureSources) {
+  assertContains(feature.source, "beginPaidFeatureGateCheck", `${feature.label} imports gate-first helper`);
+  assertContains(feature.source, "completePaidFeatureGateCheck", `${feature.label} completes paid gate`);
+  assertContains(feature.source, "failPaidFeatureGateCheck", `${feature.label} fails paid gate visibly`);
+  assertBefore(feature.source, "beginPaidFeatureGateCheck({", feature.api, `${feature.label} opens paid gate before access API`);
+  const gateFirstFlowSource = feature.source.slice(feature.source.indexOf("beginPaidFeatureGateCheck({"));
+  assertBefore(gateFirstFlowSource, feature.api, feature.checkout, `${feature.label} checks entitlement before checkout gate`);
+}
 
 for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, 'id="cd-main-shell-critical-v20260604"', "critical CSS marker mirrored");

@@ -72,3 +72,11 @@ _scripts-archive/
 # Google Cloud service account keys (NEVER commit)
 key/
 *.json.key
+*.jks
+*.keystore
+*.p12
+*.apk
+*.aab
+release-signing.properties
+key.properties
+local.properties

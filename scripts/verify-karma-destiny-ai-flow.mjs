@@ -11,6 +11,7 @@ const pageSource = [
   read("app/karma-destiny-ai/page.tsx"),
   read("app/karma-destiny-ai/KarmaDestinyAiClient.tsx"),
   read("app/karma-destiny-ai/result/page.tsx"),
+  read("app/karma-destiny-ai/result/KarmaDestinyAiResultClient.tsx"),
 ].join("\n");
 const workerIndexSource = read("worker/index.js");
 const routeSource = read("worker/routes/karma-destiny-ai.js");

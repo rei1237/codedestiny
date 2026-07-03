@@ -19,6 +19,18 @@ const mePageSourcePath = existsSync(resolve(root, "app/me/MeClient.tsx"))
 const mePageSource = readFileSync(resolve(root, mePageSourcePath), "utf8");
 const pagesHeadersSource = readFileSync(resolve(root, "public/_headers"), "utf8");
 const clientPaymentSource = `${indexSource}\n${destinyProfileSource}`;
+const portoneAliasGroups = [
+  ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_API_SECRET_KEY", "PORTONE_V2_API_SECRET", "PORTONE_API_SECRET_V2", "PORTONE_SECRET"],
+  ["PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_CHANNEL", "PORTONE_CHANNELKEY", "PORTONE_V2_CHANNEL_KEY"],
+  ["PORTONE_STORE_ID", "PORTONE_Store", "PORTONE_STORE", "PORTONE_STOREID", "PORTONE_V2_STORE_ID"],
+  ["PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_WEBHOOK", "PORTONE_WEBHOOK_SECRET_KEY", "PORTONE_WEBHOOK_TOKEN", "PORTONE_webhook_Secret", "PORTONE_V2_WEBHOOK_SECRET"],
+  ["PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOKURL"],
+  ["MID", "INICISMID", "INIstoreId", "INI_STORE_ID", "INICIS_MID", "INICIS_STORE_ID"],
+  ["INIsignkey", "INISIGNKEY", "INI_SIGNKEY", "INICIS_SIGNKEY", "INICIS_WEB_SIGNKEY"],
+  ["INIAPIKEY", "INI_API_KEY", "INICIS_API_KEY"],
+  ["INIAPI_IV", "INI_API_IV", "INICIS_API_IV"],
+];
+const localPortOneEnv = buildLocalPortOneEnv();
 
 const paymentsMod = await import("../worker/routes/payments.js");
 const portoneMod = await import("../worker/lib/portone.js");
@@ -101,6 +113,57 @@ function assertBefore(source, first, second, label) {
 
 function readPaymentId(payload) {
   return String(payload?.order?.paymentId || payload?.order?.merchantUid || payload?.payment?.merchantUid || "").trim();
+}
+
+function parseEnvText(text) {
+  const parsed = {};
+  for (const line of text.split(/\r?\n/)) {
+    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*[=:]\s*(.*)\s*$/);
+    if (!match) continue;
+    let value = match[2].trim();
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.slice(1, -1);
+    }
+    parsed[match[1]] = value.replace(/\\n/g, "\n");
+  }
+  return parsed;
+}
+
+function buildLocalPortOneEnv() {
+  const env = {};
+  for (const fileName of [".env.local", ".env.cloudflare.local", ".env"]) {
+    const filePath = resolve(root, fileName);
+    if (!existsSync(filePath)) continue;
+    const parsed = parseEnvText(readFileSync(filePath, "utf8"));
+    for (const [key, value] of Object.entries(parsed)) {
+      if (env[key]) continue;
+      env[key] = value;
+    }
+  }
+  for (const group of portoneAliasGroups) {
+    const primary = group[0];
+    if (env[primary]) continue;
+    for (const key of group.slice(1)) {
+      const value = String(env[key] || "").trim();
+      if (!value) continue;
+      env[primary] = value;
+      break;
+    }
+  }
+  return env;
+}
+
+function withoutConsoleError(callback) {
+  const original = console.error;
+  console.error = () => {};
+  try {
+    return callback();
+  } finally {
+    console.error = original;
+  }
 }
 
 function makePayment(overrides = {}) {
@@ -359,9 +422,16 @@ async function signedWebhookRequest(body) {
 }
 
 async function runServerTests() {
-  const missingConfig = portoneMod.getPortOnePublicConfig({});
+  const missingConfig = withoutConsoleError(() => portoneMod.getPortOnePublicConfig({}));
   assert.equal(missingConfig.configured, false, "env missing should fail safely");
   assert.equal("portoneApiSecret" in missingConfig, false, "public config should not expose API secret key");
+  if (localPortOneEnv.PORTONE_API_SECRET || localPortOneEnv.PORTONE_CHANNEL_KEY || localPortOneEnv.PORTONE_STORE_ID) {
+    const localConfig = portoneMod.getPortOnePublicConfig(localPortOneEnv);
+    assert.equal(localConfig.configured, true, ".env.local PortOne core env should configure payments");
+    assert.equal(localConfig.serverVerificationConfigured, true, ".env.local PortOne API secret should configure server verification");
+    assert.equal(localConfig.storeId, localPortOneEnv.PORTONE_STORE_ID, ".env.local PortOne store id should be reflected");
+    assert.equal(localConfig.channelKey, localPortOneEnv.PORTONE_CHANNEL_KEY, ".env.local PortOne channel key should be reflected");
+  }
   const fullConfig = portoneMod.getPortOnePublicConfig(ENV);
   assert.equal(fullConfig.configured, true, "PortOne core env should configure payments");
   assert.equal(fullConfig.inicisConfigured, true, "Inicis MID/signkey/API key/IV should be reported when present");

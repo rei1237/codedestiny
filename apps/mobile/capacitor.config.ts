@@ -7,7 +7,7 @@ const androidConfig = {
 
 const config: CapacitorConfig = {
   appId: process.env.CODE_DESTINY_ANDROID_PACKAGE_ID || "com.codedestiny.app",
-  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "Code Destiny - 꿀꿀 운세",
+  appName: process.env.CODE_DESTINY_ANDROID_APP_NAME || "Code Destiny",
   webDir: "../../dist",
   server: {
     androidScheme: "https",

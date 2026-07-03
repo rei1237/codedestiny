@@ -113,14 +113,17 @@ assert(page.includes("결제창을 확인해 주세요"), "payment copy missing"
 assert(page.includes("행성과 별자리의 흐름을 읽고 있습니다"), "LLM loading copy missing");
 assertMissing(page, ["/api/astrology/prepare", "/api/astrology/create-job", "/api/astrology/generate", "/api/astrology/chapter"], "page");
 
-const resultPage = read("app/astrology-ai/result/page.tsx");
-assert(resultPage.includes('document.getElementById("astrology-ai-result-document")'), "PDF result document lookup missing");
-assert(resultPage.includes('querySelectorAll("details")'), "PDF must expand collapsed result sections before capture");
-assert(resultPage.includes("html2canvas(element"), "PDF canvas capture missing");
-assert(resultPage.includes("pdf.save(`code-destiny-astrology-ai-"), "PDF save missing");
-assert(resultPage.includes("previousDetailOpenStates"), "PDF detail state restore missing");
-assert(resultPage.includes("기본 차트 데이터"), "basic chart data section missing from PDF document");
-assert(resultPage.includes("행성 위치") && resultPage.includes("하우스") && resultPage.includes("주요 각도") && resultPage.includes("현재 트랜짓"), "basic chart data groups missing");
+const resultSource = [
+  read("app/astrology-ai/result/page.tsx"),
+  read("app/astrology-ai/result/AstrologyAiResultClient.tsx"),
+].join("\n");
+assert(resultSource.includes('document.getElementById("astrology-ai-result-document")'), "PDF result document lookup missing");
+assert(resultSource.includes('querySelectorAll("details")'), "PDF must expand collapsed result sections before capture");
+assert(resultSource.includes("html2canvas(element"), "PDF canvas capture missing");
+assert(resultSource.includes("pdf.save(`code-destiny-astrology-ai-"), "PDF save missing");
+assert(resultSource.includes("previousDetailOpenStates"), "PDF detail state restore missing");
+assert(resultSource.includes("기본 차트 데이터"), "basic chart data section missing from PDF document");
+assert(resultSource.includes("행성 위치") && resultSource.includes("하우스") && resultSource.includes("주요 각도") && resultSource.includes("현재 트랜짓"), "basic chart data groups missing");
 
 const appChrome = read("app/components/AppChrome.tsx");
 assert(appChrome.includes('"/astrology-ai"'), "chromeless route missing");

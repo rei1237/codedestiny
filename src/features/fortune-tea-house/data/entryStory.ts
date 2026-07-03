@@ -43,7 +43,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         speaker: "narration",
-        text: "테이블마다 아직 손대지 않은 찻잔들이 놓여 있습니다.\n잔마다 다른 빛이 떠 있고, 그 빛은 당신이 미처 이름 붙이지 못한 질문을 기다리는 듯합니다. 달콤한 향이 감도는 잔 앞에서는 작은 인기척이 한 번 더 바삐 스칩니다.",
+        text: "테이블마다 아직 손대지 않은 찻잔들이 놓여 있습니다.\n잔마다 다른 빛이 떠 있고, 그 빛은 당신이 미처 이름 붙이지 못한 질문을 기다리는 듯합니다. 사랑과 일, 돈과 마음의 회복처럼 서로 다른 밤의 주제가 잔마다 조용히 머물러 있습니다.",
         cta: "조심히 둘러보기",
       },
     ],
@@ -57,13 +57,13 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
     lines: [
       {
         speaker: "꽃돼지?",
-        text: "꿀… 드디어 왔네.\n문이 먼저 네 한숨을 알아보고 열렸어. 나는 꽃돼지가 되고 나서 꿀 향만 스쳐도 잠깐 넋을 놓치게 됐고.",
+        text: "드디어 왔네.\n문이 먼저 네 한숨을 알아보고 열렸어. 운명의 찻집은 오래 품은 질문을 찻잔 위에 내려놓는 사람에게만 조용히 문을 열어.",
         cta: "인사하기",
         mood: "welcome",
       },
       {
         speaker: "꽃돼지?",
-        text: "나? 이 찻집의 문지기이자 향기 시식 담당.\n이름은 꽃돼지?야. 물음표까지 이름이니까 빼먹으면 조금 서운해.",
+        text: "나? 이 찻집의 문지기이자 첫 안내자.\n이름은 꽃돼지?야. 물음표까지 이름이니까 빼먹으면 조금 서운해.",
         cta: "꽃돼지? 바라보기",
         mood: "playful",
       },
@@ -90,7 +90,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         speaker: "꽃돼지?",
-        text: "말하지 못한 이름도 있고, 보내지 못한 문장도 있고, 괜찮은 척 접어 둔 기대도 있네.\n꽃돼지가 되고 나서 꿀에는 좀 환장하게 됐지만, 이런 마음은 그보다 더 빨리 알아차려.",
+        text: "말하지 못한 이름도 있고, 보내지 못한 문장도 있고, 괜찮은 척 접어 둔 기대도 있네.\n이곳에서는 그런 마음을 차와 카드, 사주와 인연의 흐름에 비추어 한 겹씩 읽어.",
         cta: "숨 고르기",
         mood: "comfort",
       },
@@ -142,7 +142,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         speaker: "연이",
-        text: "제 본모습은 조금 작고, 둥글고, 꽃돼지가 되고 나서는 꿀단지만 보여도 체면보다 본능이 먼저 달려가지만…\n사람의 마음에서 피어나는 운명의 향을 읽는 데에는 꽤 오래 마음을 들여 왔답니다.",
+        text: "문 앞에서는 조금 작고 둥근 모습으로 손님의 첫 숨을 살피지만…\n사람의 마음에서 피어나는 운명의 향을 읽는 데에는 꽤 오래 마음을 들여 왔답니다.",
         cta: "고개 끄덕이기",
         mood: "playful",
       },
@@ -175,7 +175,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
       },
       {
         speaker: "연이",
-        text: "먼저 차를 한 잔 골라볼까요?\n어떤 찻잔을 고르느냐에 따라, 오늘 당신의 고민을 비추는 달빛의 결이 조금씩 달라진답니다. 달콤한 잔 앞에서 제가 잠깐 눈을 반짝여도 모른 척해 주세요.",
+        text: "먼저 차를 한 잔 골라볼까요?\n어떤 찻잔을 고르느냐에 따라, 오늘 당신의 고민을 비추는 달빛의 결이 조금씩 달라진답니다.",
         cta: "찻잔 살펴보기",
         mood: "welcome",
       },
@@ -192,7 +192,7 @@ export const teaHouseEntryScenes: TeaHouseEntrySceneData[] = [
 export const flowerPigIdleLines: TeaHouseEntryLine[] = [
   {
     speaker: "꽃돼지?",
-    text: "꿀… 기다리는 동안에도 찻잔은 조금씩 밝아져.\n마음이 천천히 도착하는 속도라면, 그 속도도 오늘의 답에 가까워.",
+    text: "기다리는 동안에도 찻잔은 조금씩 밝아져.\n마음이 천천히 도착하는 속도라면, 그 속도도 오늘의 답에 가까워.",
     mood: "comfort",
   },
   {
@@ -202,7 +202,7 @@ export const flowerPigIdleLines: TeaHouseEntryLine[] = [
   },
   {
     speaker: "꽃돼지?",
-    text: "꿀 냄새가 나는 고민은 대체로 마음이 아직 포기하지 않았다는 뜻이야.\n나는 그런 마음을 꽤 좋아해. 조금 끈적해도 진심이잖아. 꽃돼지가 되고 나서 꿀에 환장하게 된 것도 어쩌면 그 진심 때문인지 몰라.",
+    text: "오래 남아 있는 고민은 대체로 마음이 아직 포기하지 않았다는 뜻이야.\n나는 그런 마음을 꽤 좋아해. 이 찻집은 바로 그런 진심을 억지로 밀어내지 않고, 천천히 읽어 주는 곳이거든.",
     mood: "playful",
   },
   {
@@ -227,7 +227,7 @@ export const flowerPigIdleLines: TeaHouseEntryLine[] = [
   },
   {
     speaker: "꽃돼지?",
-    text: "꿀… 오늘의 밤은 조금 다정해.\n그래도 너무 빨리 괜찮아지려고 애쓰지는 마. 마음도 데우는 시간이 필요해.",
+    text: "오늘의 밤은 조금 다정해.\n그래도 너무 빨리 괜찮아지려고 애쓰지는 마. 마음도 데우는 시간이 필요해.",
     mood: "comfort",
   },
 ];

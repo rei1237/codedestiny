@@ -16,7 +16,12 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  failPaidFeatureGateCheck,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import {
   getActivePaidAttemptSession,
@@ -139,6 +144,7 @@ const ANALYSIS_ITEMS = [
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_REQUIRED_MESSAGE = "연애 비책 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
+const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const INVALID_INPUT_MESSAGE = "연애 비책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 연애 상황을 다시 확인해 주세요.";
 const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요.";
 const BIRTH_TIME_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
@@ -371,7 +377,11 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
     productType: toText(runtimeGate.productType) || "love-secret-ai",
     serviceType: toText(runtimeGate.serviceType) || "love-secret-ai",
   });
-  if (!isPaymentGranted(gateResult)) throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
+  if (!isPaymentGranted(gateResult)) {
+    const code = String(gateResult.error?.code || "").toUpperCase();
+    if (code === "PAYMENT_CANCELLED") throw new Error(PAYMENT_CANCELLED_MESSAGE);
+    throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
+  }
   return extractPayment(gateResult, idempotencyKey);
 }
 
@@ -591,10 +601,25 @@ export default function LoveSecretAiPage() {
     setNotice("");
     setPhase("reading");
     setProgressIndex(0);
+    beginPaidFeatureGateCheck({
+      featureKey: SERVICE_TYPE,
+      requestId: idempotencyKey,
+      title: "이용권 확인",
+      reason: "연애 비책 AI 상담",
+      paymentMode: "MEMBERSHIP_PASS",
+    });
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);
       if (access.ok) {
+        completePaidFeatureGateCheck({
+          featureKey: SERVICE_TYPE,
+          requestId: idempotencyKey,
+          title: "이용권 확인 완료",
+          reason: "연애 비책 AI 상담",
+          paymentMode: "MEMBERSHIP_PASS",
+          message: "이용권 확인이 끝났습니다. 마음의 흐름을 읽고 있습니다.",
+        });
         await startConsultation(payload, idempotencyKey, { accessToken: access.accessToken });
         return;
       }
@@ -610,9 +635,19 @@ export default function LoveSecretAiPage() {
       throw new Error(("message" in access && access.message) || SERVER_ERROR_MESSAGE);
     } catch (caught) {
       const message = caught instanceof TypeError ? NETWORK_ERROR_MESSAGE : caught instanceof Error ? caught.message : SERVER_ERROR_MESSAGE;
+      const paymentCancelled = message === PAYMENT_CANCELLED_MESSAGE;
       markPaidAttemptFailed(message || "love_secret_ai_generate_failed");
       setError(message || SERVER_ERROR_MESSAGE);
       setPhase("error");
+      failPaidFeatureGateCheck({
+        featureKey: SERVICE_TYPE,
+        requestId: idempotencyKey,
+        title: "이용권 확인 실패",
+        reason: "연애 비책 AI 상담",
+        paymentMode: "MEMBERSHIP_PASS",
+        message: message || SERVER_ERROR_MESSAGE,
+        cancelled: paymentCancelled,
+      });
       setResultOpenMessage("상담 생성이 완료되지 않았습니다. 입력 화면에서 다시 시도해 주세요.");
     } finally {
       startLockRef.current = false;
