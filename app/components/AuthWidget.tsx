@@ -113,7 +113,16 @@ export default function AuthWidget() {
       scheduleSyncUser();
     };
     const onAuthChanged = (event: Event) => {
-      if (event instanceof CustomEvent && !shouldSyncAuthFromPayload(event.detail)) return;
+      if (event instanceof CustomEvent) {
+        const detail = event.detail as { source?: unknown; event?: unknown } | null;
+        const source = String(detail?.source || "");
+        const evt = String(detail?.event || "");
+        // 같은 탭에서 auth-store가 login/logout으로 스토어를 이미 갱신한 경우
+        // /api/auth/me를 다시 강제 호출하지 않는다(로그인 직후 요청 버스트 제거).
+        // 타 탭 로그인은 아래 BroadcastChannel 경로로 계속 동기화된다.
+        if (source === "auth-store" && (evt === "login" || evt === "logout")) return;
+        if (!shouldSyncAuthFromPayload(detail)) return;
+      }
       scheduleSyncUser();
     };
     window.addEventListener("storage", onStorage);

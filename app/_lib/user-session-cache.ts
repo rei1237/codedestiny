@@ -159,6 +159,7 @@ function resolveCacheKind(pathname: string): CacheKind | null {
   if (pathname === "/api/auth/me") return "session";
   if (pathname === "/api/profile" || pathname === "/api/profile/current") return "profile";
   if (pathname === "/api/subscription/status" || pathname === "/api/subscription/me") return "entitlement";
+  if (pathname === "/api/fortune/pig-coin/profile-subscription/status" || pathname === "/api/profile-subscription/status") return "entitlement";
   if (pathname === "/api/billing/balance" || pathname === "/api/billing/features" || pathname === "/api/billing/unlock-status") return "paymentAccess";
   return null;
 }
@@ -361,7 +362,8 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
 export async function refreshUserAccessAfterPayment() {
   invalidateEntitlementCache("payment");
   invalidateProfileCache("payment");
-  fetchBillingBalance({ force: true, emit: false }).catch(() => {});
+  // billing 잔액은 ensureUserAccessLoaded(includeBilling)가 force로 1회 조회하므로
+  // 별도의 선행 fetchBillingBalance 직접 호출(중복)을 제거한다.
   return ensureUserAccessLoaded({ force: true, includeBilling: true, includeProfile: true, reason: "payment" });
 }
 

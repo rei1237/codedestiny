@@ -351,7 +351,10 @@ export async function refreshBillingBalance(expectedAuthMutationSeq = authMutati
 
   const requestAuthMutationSeq = expectedAuthMutationSeq;
   const nextBillingBalanceInFlight = (async () => {
-    const response = await authFetch("/api/billing/balance?compact=1", {
+    // billing-client의 fetchBillingBalance와 동일한 URL(쿼리 없음)로 통일해
+    // window.fetch 세션 캐시(paymentAccess kind)에서 단일 항목으로 dedup되게 한다.
+    // compact 파라미터는 unlocks 포함 여부만 토글하며 membership 필드는 두 응답 모두 포함된다.
+    const response = await authFetch("/api/billing/balance", {
       method: "GET",
       cache: "no-store",
     });
