@@ -1,5 +1,5 @@
 # robots.txt - Code Destiny
-# Updated: 2026-04-17
+# Updated: 2026-07-04
 # Primary source: app/robots.ts (Next.js generates /robots.txt)
 # This file is kept in sync as a static fallback.
 
@@ -25,3 +25,4 @@ Disallow: /*?auth=
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
+Sitemap: https://code-destiny.com/sitemap-insights.xml

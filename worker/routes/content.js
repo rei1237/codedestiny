@@ -350,7 +350,7 @@ async function handleContentFeed(path, request, env) {
   if (method !== "GET" && method !== "HEAD") return methodNotAllowed();
 
   const normalizedPath = path.replace(/\/+/g, "/");
-  const isSitemap = normalizedPath === "/sitemap.xml";
+  const isSitemap = normalizedPath === "/sitemap-insights.xml" || normalizedPath === "/sitemap.xml";
   const isRootRss = normalizedPath === "/rss.xml";
   const isInsightsRss = normalizedPath === "/insights/rss.xml";
   if (!isSitemap && !isRootRss && !isInsightsRss) return notFound();

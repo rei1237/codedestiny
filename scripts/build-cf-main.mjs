@@ -10,6 +10,7 @@ const npmArgs = (args) => (canRunNpmCliWithNode ? [npmCli, ...args] : args);
 const steps = [
   [npmCommand, npmArgs(["run", "clean:build"])],
   [npmCommand, npmArgs(["run", "sync:public"])],
+  [npmCommand, npmArgs(["run", "sitemap:generate"])],
   [npmCommand, npmArgs(["run", "verify:public-parity"])],
   [npmCommand, npmArgs(["run", "i18n:check"])],
   [npmCommand, npmArgs(["run", "verify:locale-main-sync"])],

@@ -45,7 +45,10 @@ export default function robots(): MetadataRoute.Robots {
         disallow: privateDisallowRules,
       },
     ],
-    sitemap: [`${SEO_V2_SITE.siteUrl}/sitemap.xml`],
+    sitemap: [
+      `${SEO_V2_SITE.siteUrl}/sitemap.xml`,
+      `${SEO_V2_SITE.siteUrl}/sitemap-insights.xml`,
+    ],
     host: SEO_V2_SITE.siteUrl,
   };
 }

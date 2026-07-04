@@ -15,6 +15,30 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+// public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
+// noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
+const noindexPathPrefixes = [
+  "/animal/physio",
+  "/maya",
+  "/oracle/royal-tea",
+  "/oracle/sikojen-povailu",
+  "/palm-reading",
+  "/pdf",
+  "/premium",
+  "/premium-reports",
+  "/saju/destiny-bias",
+  "/saju/love-simulation",
+  "/saju-fpti",
+  "/saju-guardian",
+  "/saju-picture",
+  "/sukuyo/calendar",
+  "/tarot/year",
+  "/tarot/healing",
+  "/ziwei/chart",
+  "/blog",
+  "/famous",
+  "/fortune/sikojen-povailu",
+];
 const privateRoutePatterns = [
   /^\/api(?:\/|$)/,
   /^\/admin(?:\/|$)/,
@@ -93,6 +117,13 @@ const coreRoutes = [
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
   { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
   { path: "/fortune-tea-house", changefreq: "weekly", priority: 0.86 },
+  { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
+  { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
+  { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
+  { path: "/new-year-ai-consultation", changefreq: "monthly", priority: 0.86 },
+  { path: "/ziwei-ai", changefreq: "weekly", priority: 0.88 },
+  { path: "/vedic-ai", changefreq: "weekly", priority: 0.87 },
+  { path: "/karma-destiny-ai", changefreq: "monthly", priority: 0.85 },
   { path: "/about", changefreq: "monthly", priority: 0.9 },
   { path: "/faq", changefreq: "monthly", priority: 0.88 },
   { path: "/methodology", changefreq: "monthly", priority: 0.86 },
@@ -278,7 +309,8 @@ function extractFamousSajuRoutes() {
     const category = String(match[3] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    routes.push({ path: `/insights/famous-saju/${slug}`, changefreq: "monthly", priority: 0.78, lastmod: today });
+    // 상세(/insights/famous-saju/<slug>)는 현재 robots index:false 라 사이트맵에서 제외.
+    // 색인을 다시 열면 여기서 detail 라우트 push를 복원할 것.
 
     const cSlug = famousCategorySlug(category);
     if (cSlug) categoryRoutes.add(cSlug);
@@ -354,6 +386,7 @@ function normalizeSitemapPath(pathname) {
 function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
+  if (noindexPathPrefixes.some((prefix) => normalized.startsWith(`${prefix}/`))) return false;
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
 
@@ -389,6 +422,8 @@ function buildI18nAlternates(paths) {
 function buildI18nRouteEntries() {
   const entries = [];
 
+  // SEO_INDEXABLE_LOCALES=["ko","ja","zh","en"] — 전체 로케일 URL을 hreflang alternates 와
+  // 함께 싣는다 (lib/i18n/locales.ts 와 동기화 유지).
   for (const group of i18nRouteGroups) {
     const alternates = buildI18nAlternates(group.paths);
     for (const path of Object.values(group.paths)) {
@@ -450,6 +485,7 @@ async function main() {
 
   const routeEntries = [
     ...coreRoutes,
+    ...buildI18nRouteEntries(),
     ...staticCanonicalRouteEntries,
     ...localInsights,
     ...extractSeoGrowthInsightRoutes(),
