@@ -2246,6 +2246,11 @@ async function handleChargeSimulate(request, env, auth) {
   });
 }
 
+function isTransactionUnsupported(error) {
+  return /Transaction numbers are only allowed|replica set|Transaction .* not supported/i
+    .test(String(error?.message || ""));
+}
+
 async function handlePigCoinConsume(request, auth, options = {}) {
   const env = options?.env || {};
   const body = await readJson(request);
@@ -2435,7 +2440,13 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     }, { status: 402 });
   }
 
-  const coinRequestId = requestId || `coin:${featureKey}:${String(auth.userId || "")}:${payloadHash || Date.now().toString(36)}`;
+  // 멱등성 키는 반드시 결정적이어야 한다. requestId가 없을 때 Date.now()로 폴백하면 동시 더블클릭이
+  // 서로 다른 키를 얻어 recentConsumeRequestIds 가드를 통과, 이중 차감된다. 요청 내용으로만 파생해
+  // 동일 요청은 항상 같은 키가 되도록 한다(payloadHash 없으면 feature/category/cost로 스코프).
+  const coinRequestScope = String(
+    payloadHash || `${categoryKey}:${subFeatureKey}:${cost}`,
+  ).slice(0, 80);
+  const coinRequestId = requestId || `coin:${featureKey}:${String(auth.userId || "")}:${coinRequestScope}`;
   const existingCoinSpend = await findAIPromptPaymentEvidence({
     auth,
     featureKey,
@@ -2480,43 +2491,91 @@ async function handlePigCoinConsume(request, auth, options = {}) {
     });
   }
 
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      points: { $gte: cost },
-      ...(coinRequestId ? { recentConsumeRequestIds: { $ne: coinRequestId } } : {}),
-    },
-    {
-      $inc: { points: -cost },
-      ...(coinRequestId ? { $addToSet: { recentConsumeRequestIds: coinRequestId } } : {}),
-    },
-    { returnDocument: "after", projection: { points: 1, unlockedFeatures: 1 } },
-  ).lean();
-
-  if (updatedUser) {
-    const history = await PointHistory.create({
-      userId: auth.userId,
-      kind: "deduct",
-      delta: -cost,
-      balanceAfter: Number(updatedUser.points || 0),
-      reason,
+  const deductFilter = {
+    _id: auth.userId,
+    points: { $gte: cost },
+    ...(coinRequestId ? { recentConsumeRequestIds: { $ne: coinRequestId } } : {}),
+  };
+  const deductUpdate = {
+    $inc: { points: -cost },
+    ...(coinRequestId ? { $addToSet: { recentConsumeRequestIds: coinRequestId } } : {}),
+  };
+  const buildCoinHistoryDoc = (pointsAfter) => ({
+    userId: auth.userId,
+    kind: "deduct",
+    delta: -cost,
+    balanceAfter: Number(pointsAfter || 0),
+    reason,
+    featureKey,
+    metadata: {
+      source: "fortune.pig-coin.consume",
+      accessType: "coin",
+      accessMethod: "COIN",
+      paymentMethod: "COIN",
+      paymentMode: "COIN",
+      requestId: coinRequestId,
+      categoryKey,
+      subFeatureKey,
+      payloadHash,
       featureKey,
-      metadata: {
-        source: "fortune.pig-coin.consume",
-        accessType: "coin",
-        accessMethod: "COIN",
-        paymentMethod: "COIN",
-        paymentMode: "COIN",
-        requestId: coinRequestId,
-        categoryKey,
-        subFeatureKey,
-        payloadHash,
-        featureKey,
-        coinPrice: cost,
-        chargedCoins: cost,
-        paidAt: new Date().toISOString(),
-      },
+      coinPrice: cost,
+      chargedCoins: cost,
+      paidAt: new Date().toISOString(),
+    },
+  });
+
+  // 원자적 차감(2483) 성공 후 PointHistory 기록 전에 isolate가 죽으면, 포인트만 빠지고 접근/감사로그가
+  // 없으며 동일 requestId 재시도도 recentConsumeRequestIds 가드에 막혀 복구 불가하다. 차감+이력을 한
+  // 트랜잭션으로 묶고, 트랜잭션 미지원 환경에서는 보상(saga)으로 차감을 되돌린다(월정석 경로와 동일 패턴).
+  const compensateCoinDeduct = async () => {
+    await User.findByIdAndUpdate(auth.userId, {
+      $inc: { points: cost },
+      ...(coinRequestId ? { $pull: { recentConsumeRequestIds: coinRequestId } } : {}),
+    }).catch(() => {});
+  };
+  const runCoinSpendWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let outcome = null;
+    try {
+      await session.withTransaction(async () => {
+        const user = await User.findOneAndUpdate(deductFilter, deductUpdate, {
+          returnDocument: "after",
+          projection: { points: 1, unlockedFeatures: 1 },
+          session,
+        }).lean();
+        if (!user) { outcome = null; return; }
+        const [history] = await PointHistory.create([buildCoinHistoryDoc(user.points)], { session });
+        outcome = { updatedUser: user, history };
+      });
+      return outcome;
+    } finally {
+      await session.endSession();
+    }
+  };
+  const runCoinSpendWithCompensation = async () => {
+    const user = await User.findOneAndUpdate(deductFilter, deductUpdate, {
+      returnDocument: "after",
+      projection: { points: 1, unlockedFeatures: 1 },
+    }).lean();
+    if (!user) return null;
+    const history = await PointHistory.create(buildCoinHistoryDoc(user.points)).catch(async (error) => {
+      await compensateCoinDeduct();
+      throw error;
     });
+    return { updatedUser: user, history };
+  };
+
+  let coinSpend;
+  try {
+    coinSpend = await runCoinSpendWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) throw error;
+    coinSpend = await runCoinSpendWithCompensation();
+  }
+
+  if (coinSpend?.updatedUser) {
+    const updatedUser = coinSpend.updatedUser;
+    const history = coinSpend.history;
     const unlockedFeatures = normalizePersistentUnlockKeys(updatedUser.unlockedFeatures);
     return json({
       message: `${cost.toLocaleString("ko-KR")} coins deducted.`,
@@ -4939,20 +4998,38 @@ async function handleShareReward(request, auth) {
     }, { status: 429 });
   }
 
-  const contentDup = await PointHistory.countDocuments({
-    userId: auth.userId,
-    kind: "share_reward",
-    "metadata.contentId": contentId,
-    createdAt: { $gte: kstMidnight },
-  });
+  // Per-content/day idempotency key. Unique index on PointHistory.dedupeKey makes the
+  // duplicate-grant check atomic (create-first), closing the previous count-then-$inc TOCTOU
+  // where concurrent requests for the same contentId could both pass the check and double-credit.
+  const kstNow = new Date(now.getTime() + 9 * 3600 * 1000);
+  const kstDateKey = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, "0")}${String(kstNow.getUTCDate()).padStart(2, "0")}`;
+  const dedupeKey = `share_reward:${auth.userId}:${contentId}:${kstDateKey}`;
 
-  if (contentDup > 0) {
-    return json({
-      message: "This content was already rewarded today.",
-      code: "CONTENT_ALREADY_REWARDED",
-      usedToday: todayCount,
-      limitPerDay: SHARE_REWARD_DAILY_LIMIT,
-    }, { status: 409 });
+  let rewardHistory;
+  try {
+    rewardHistory = await PointHistory.create({
+      userId: auth.userId,
+      kind: "share_reward",
+      delta: SHARE_REWARD_AMOUNT,
+      balanceAfter: 0, // backfilled after the atomic increment below
+      reason: `Share reward for ${contentId}`,
+      featureKey: "share-reward",
+      dedupeKey,
+      metadata: {
+        source: "fortune.pig-coin.share-reward",
+        contentId,
+      },
+    });
+  } catch (err) {
+    if (err?.code === 11000) {
+      return json({
+        message: "This content was already rewarded today.",
+        code: "CONTENT_ALREADY_REWARDED",
+        usedToday: todayCount,
+        limitPerDay: SHARE_REWARD_DAILY_LIMIT,
+      }, { status: 409 });
+    }
+    throw err;
   }
 
   const updatedUser = await User.findByIdAndUpdate(
@@ -4961,20 +5038,16 @@ async function handleShareReward(request, auth) {
     { returnDocument: "after", projection: { points: 1 } },
   ).lean();
 
-  if (!updatedUser) return json({ message: "User not found." }, { status: 404 });
+  if (!updatedUser) {
+    // Roll back the lock so a missing/removed account isn't permanently blocked.
+    await PointHistory.deleteOne({ _id: rewardHistory._id }).catch(() => {});
+    return json({ message: "User not found." }, { status: 404 });
+  }
 
-  await PointHistory.create({
-    userId: auth.userId,
-    kind: "share_reward",
-    delta: SHARE_REWARD_AMOUNT,
-    balanceAfter: Number(updatedUser.points || 0),
-    reason: `Share reward for ${contentId}`,
-    featureKey: "share-reward",
-    metadata: {
-      source: "fortune.pig-coin.share-reward",
-      contentId,
-    },
-  });
+  await PointHistory.updateOne(
+    { _id: rewardHistory._id },
+    { $set: { balanceAfter: Number(updatedUser.points || 0) } },
+  ).catch(() => {});
 
   return json({
     message: `${SHARE_REWARD_AMOUNT} coins awarded for sharing.`,
