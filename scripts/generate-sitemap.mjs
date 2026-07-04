@@ -11,6 +11,7 @@ const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-gro
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const psychotestSourcePath = resolve(rootDir, "lib", "psychotest-catalog.ts");
+const storiesSourcePath = resolve(rootDir, "lib", "stories", "data.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -385,6 +386,37 @@ function extractHighValueRoutes() {
   return [...pageRoutes, ...Array.from(categoryRoutes.values())];
 }
 
+function extractStoryRoutes() {
+  const source = readFileSync(storiesSourcePath, "utf8");
+  const routes = [{ path: "/stories", changefreq: "weekly", priority: 0.7, lastmod: today }];
+
+  const storyRegex = /slug:\s*"([a-z0-9-]+)"[\s\S]{0,200}?totalChapters:/g;
+  const storySlugs = new Set();
+  let storyMatch;
+  while ((storyMatch = storyRegex.exec(source)) !== null) {
+    storySlugs.add(storyMatch[1]);
+  }
+  for (const slug of storySlugs) {
+    routes.push({ path: `/stories/${slug}`, changefreq: "weekly", priority: 0.68, lastmod: today });
+  }
+
+  // app/stories/[storyId]/[chapterId]/page.tsx는 noindex를 설정하지 않으므로
+  // 사이트맵에 없으면 verify-adsense-readiness.mjs의 verifyIndexableRouteCoverage에서 실패한다.
+  const chapterRegex = /storyId:\s*"story-([a-z0-9-]+)"[\s\S]{0,120}?slug:\s*"([a-z0-9-]+)"/g;
+  const seenChapters = new Set();
+  let chapterMatch;
+  while ((chapterMatch = chapterRegex.exec(source)) !== null) {
+    const storySlug = chapterMatch[1];
+    const chapterSlug = chapterMatch[2];
+    const key = `${storySlug}/${chapterSlug}`;
+    if (seenChapters.has(key)) continue;
+    seenChapters.add(key);
+    routes.push({ path: `/stories/${storySlug}/${chapterSlug}`, changefreq: "monthly", priority: 0.6, lastmod: today });
+  }
+
+  return routes;
+}
+
 function toUrl(pathname) {
   return new URL(pathname, siteBaseUrl).toString();
 }
@@ -509,6 +541,7 @@ async function main() {
     ...extractFamousSajuRoutes(),
     ...extractPsychotestRoutes(),
     ...extractHighValueRoutes(),
+    ...extractStoryRoutes(),
   ];
 
   const entryMap = new Map();
