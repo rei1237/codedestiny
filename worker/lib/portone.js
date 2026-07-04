@@ -343,6 +343,3 @@ export async function cancelPortOnePayment(env, params = {}) {
   return canceled;
 }
 
-export async function chargePortOneBilling() {
-  throw new Error("PortOne V2 recurring billing is not configured for membership passes.");
-}
