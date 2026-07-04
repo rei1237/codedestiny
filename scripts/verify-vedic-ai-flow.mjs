@@ -30,7 +30,7 @@ assertMissing(cardSlice, ['data-action="gotoVedicPremium"', 'data-coin-cost="300
 assertMissing(html, ["/js/vedic-ai-consultation.js?v="], "index legacy script include");
 
 const page = read("app/vedic-ai/page.tsx");
-assertIncludes(page, "나크샤트라와 행성의 흐름", "page metadata");
+assertIncludes(page, "나크샤트라와 행성 배치", "page metadata");
 
 const client = read("app/vedic-ai/VedicAiClient.tsx");
 [

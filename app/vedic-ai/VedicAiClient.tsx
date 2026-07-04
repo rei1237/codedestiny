@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
@@ -10,6 +11,7 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { DashaTimeline, HeroChartPreview, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 
 type Gender = "male" | "female" | "unknown" | "";
@@ -634,7 +636,7 @@ function sectionHeading(line: string) {
   return SECTION_TITLES.find((title) => text.includes(title) || title.includes(text)) || "";
 }
 
-function splitAssistantSections(content: string) {
+export function splitAssistantSections(content: string) {
   const lines = content.split(/\n+/).map((line) => line.trim()).filter(Boolean);
   const sections: Array<{ title: string; body: string }> = [];
   let currentTitle = "";
@@ -662,7 +664,7 @@ function splitAssistantSections(content: string) {
   }));
 }
 
-function parseStructuredReading(content: string) {
+export function parseStructuredReading(content: string) {
   const text = content.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "");
   if (!text.startsWith("{")) return null;
   try {
@@ -765,7 +767,7 @@ function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
   );
 }
 
-function StructuredReadingResult({
+export function StructuredReadingResult({
   reading,
   chart,
   name,
@@ -816,6 +818,9 @@ function StructuredReadingResult({
         <strong>{chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate)}</strong>
       </div>
 
+      <NorthIndianChart chart={chart} />
+      <DashaTimeline chart={chart} />
+
       <BasicVedicChartData chart={chart} />
 
       <section className={styles.scorePanel}>
@@ -864,6 +869,36 @@ export default function VedicAiClient() {
   const requestIdRef = useRef("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const submitBusyRef = useRef(false);
+
+  // 재열람: 완료된 상담은 ?cid=로 다시 열 수 있다 (결제 없이 조회만)
+  useEffect(() => {
+    const cid = new URLSearchParams(window.location.search).get("cid");
+    if (!cid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const response = await authFetch(`/api/vedic-ai/result?id=${encodeURIComponent(cid)}`);
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && data?.ok && data.consultation) setConsultation(data.consultation as Consultation);
+      } catch {
+        // 재열람 실패는 조용히 무시 — 새 상담은 그대로 시작할 수 있다
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function rememberConsultationUrl(id: string) {
+    if (!id || typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cid", id);
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      // URL 갱신 실패는 무시
+    }
+  }
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const chatBusy = phase === "chat";
@@ -934,6 +969,7 @@ export default function VedicAiClient() {
     );
     if (data.ok && data.consultation) {
       setConsultation(data.consultation);
+      rememberConsultationUrl(data.consultation.id);
       setError("");
       setNotice("");
       requestIdRef.current = "";
@@ -992,6 +1028,7 @@ export default function VedicAiClient() {
         });
         if (data.consultation) {
           setConsultation(data.consultation);
+          rememberConsultationUrl(data.consultation.id);
           requestIdRef.current = "";
           pendingAccessRef.current = null;
           return;
@@ -1082,7 +1119,6 @@ export default function VedicAiClient() {
             <p>나크샤트라와 행성의 흐름, 다샤의 리듬 위로 지금의 질문이 조용히 비춥니다.</p>
             <div className={styles.heroMeta}>
               <span>30,000원</span>
-              <span>{FEATURE_COST}코인</span>
               <span>다샤 흐름</span>
             </div>
           </div>
@@ -1090,6 +1126,7 @@ export default function VedicAiClient() {
             <div className={styles.mandalaCore} />
             <div className={styles.orbitOne} />
             <div className={styles.orbitTwo} />
+            <HeroChartPreview />
           </div>
         </div>
       </section>
@@ -1198,6 +1235,10 @@ export default function VedicAiClient() {
               <div className={styles.emptyMandala} aria-hidden="true" />
               <h2>별의 지도가 조용히 열릴 준비가 되어 있습니다.</h2>
               <p>출생의 순간과 지금의 질문이 만나는 자리에서 흐름을 살피겠습니다.</p>
+              <Link href="/vedic-ai/result/" className={styles.resultListItem}>
+                <strong>지난 상담 다시 보기</strong>
+                <small>완료된 베다점 상담은 언제든 다시 열 수 있습니다.</small>
+              </Link>
             </div>
           ) : (
             <>

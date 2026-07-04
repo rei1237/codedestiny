@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
+import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -65,12 +66,6 @@ const FOCUS_AREA_LABELS = Object.freeze({
 const FOCUS_AREA_VALUES = new Set(Object.keys(FOCUS_AREA_LABELS));
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
 ];
 
 const MESSAGES = {
@@ -87,6 +82,9 @@ const MESSAGES = {
 };
 
 const SYSTEM_PROMPT = VEDIC_RESULT_ONLY_SYSTEM_PROMPT;
+
+const ALL_SIGNS_KO = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
+const GRAHA_KO_MAP = { Sun: "태양", Moon: "달", Mars: "화성", Mercury: "수성", Jupiter: "목성", Venus: "금성", Saturn: "토성", Rahu: "라후", Ketu: "케투" };
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
@@ -769,14 +767,29 @@ function compactChartForPrompt(chart) {
   };
 }
 
+function buildCanonicalFactsLine(chart) {
+  const facts = [];
+  if (chart?.lagna?.rashiKo) facts.push(`라그나=${chart.lagna.rashiKo}(${chart.lagna.sign})`);
+  if (chart?.moonNakshatra?.name) facts.push(`달의 나크샤트라=${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` ${chart.moonNakshatra.pada}파다` : ""}`);
+  const mahaLord = chart?.vimshottariDasha?.currentMahadasha?.lord;
+  if (mahaLord) facts.push(`현재 마하다샤=${GRAHA_KO_MAP[mahaLord] || mahaLord}(${mahaLord})`);
+  const antarLord = chart?.vimshottariDasha?.currentAntardasha?.lord;
+  if (antarLord) facts.push(`현재 안타르다샤=${GRAHA_KO_MAP[antarLord] || antarLord}(${antarLord})`);
+  return facts.join(" · ");
+}
+
 function buildFirstPrompt(input, chart) {
+  const canonicalFacts = buildCanonicalFactsLine(chart);
   return [
     "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담을 시작하세요.",
     "LLM은 계산하지 않습니다. 라그나, 라시, 그라하, 바바, 나크샤트라, 다샤는 제공된 JSON 값만 해석하세요.",
     "JSON에 null 또는 빈 배열로 표시된 값은 출생 정보 한계로 확인이 제한된다고 안내하고 추측하지 마세요.",
     "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
+    "각 섹션 body는 (1) 계산값 근거 명시 → (2) 삶의 주제 해석 → (3) 실행 가능한 조언 순서로 쓰세요. 해당 섹션의 핵심 계산값(라시·나크샤트라·다샤 lord 등)을 본문에 그대로 언급한 뒤 해석하세요.",
+    `모든 섹션의 마지막 문단은 상담 주제 "${input.topic}"${input.userQuestion ? "와 사용자의 자유 질문" : ""}에 연결해 마무리하세요.`,
     "첫 상담문은 sections body 전체 합산 공백 제외 10,000~20,000자 사이로 완성하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
+    ...(canonicalFacts ? ["", `계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
     "",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
     `성별: ${input.birthInfo.gender}`,
@@ -803,6 +816,9 @@ function buildFirstPrompt(input, chart) {
     "",
     "계산된 VedicChartResult 데이터:",
     JSON.stringify(compactChartForPrompt(chart), null, 2),
+    "",
+    "전통 조티시 해석 어휘 (계산값에만 적용):",
+    JSON.stringify(buildVedicKnowledgeContext(chart), null, 2),
   ].join("\n");
 }
 
@@ -856,6 +872,61 @@ function parseStructuredConsultationText(value) {
   }
 }
 
+// LLM 본문이 서버 계산값과 모순되게 서술하지 않았는지 사후 검증한다.
+// (프롬프트 지시만으로는 수치 위조를 막을 수 없으므로 응답 단계에서 대조)
+function validateChartConsistency(content, chart) {
+  const issues = [];
+  if (!chart) return issues;
+  const parsed = parseStructuredConsultationText(cleanMultiline(content, MAX_ASSISTANT_TEXT_CHARS));
+  const sections = parsed?.sections && typeof parsed.sections === "object" ? parsed.sections : null;
+  const sectionBody = (key) => cleanMultiline(sections?.[key]?.body || "");
+  const fullText = sections
+    ? Object.values(sections).map((section) => cleanMultiline(section?.body || "")).join("\n")
+    : cleanMultiline(content);
+
+  const lagnaKo = clean(chart?.lagna?.rashiKo, 20);
+  if (lagnaKo) {
+    const wrongLagna = ALL_SIGNS_KO.some((signKo) => signKo !== lagnaKo && new RegExp(`${signKo}\\s*라그나`).test(fullText));
+    if (wrongLagna) issues.push("consistency.lagna_sign_mismatch");
+    const lagnaBody = sectionBody("lagna");
+    if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || " ")) {
+      issues.push("consistency.lagna_sign_unstated");
+    }
+  }
+
+  const nakshatraName = clean(chart?.moonNakshatra?.name, 40);
+  const nakshatraBody = sectionBody("nakshatra");
+  if (nakshatraName && nakshatraBody && !nakshatraBody.includes(nakshatraName)) {
+    issues.push("consistency.moon_nakshatra_unstated");
+  }
+
+  const mahaLord = clean(chart?.vimshottariDasha?.currentMahadasha?.lord, 20);
+  if (mahaLord) {
+    const lordKo = GRAHA_KO_MAP[mahaLord] || mahaLord;
+    const dashaText = [sectionBody("dasha"), sectionBody("vimshottari_dasha")].join("\n").trim();
+    if (dashaText && !dashaText.includes(mahaLord) && !dashaText.includes(lordKo)) {
+      issues.push("consistency.mahadasha_lord_unstated");
+    }
+  }
+  return issues;
+}
+
+function describeQualityIssuesForRepair(issues, chart) {
+  const lines = [];
+  const canonical = buildCanonicalFactsLine(chart);
+  if (issues.some((issue) => issue.startsWith("consistency."))) {
+    lines.push(`- 본문 서술이 계산 확정값과 어긋났다. 반드시 이 값 그대로 서술하라: ${canonical}`);
+  }
+  if (issues.includes("consistency.lagna_sign_unstated")) lines.push("- lagna 섹션 본문에 라그나 라시 이름을 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("consistency.moon_nakshatra_unstated")) lines.push("- nakshatra 섹션 본문에 달의 나크샤트라 이름을 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("consistency.mahadasha_lord_unstated")) lines.push("- dasha/vimshottari_dasha 섹션 본문에 현재 마하다샤 lord를 그대로 언급한 뒤 해석하라.");
+  if (issues.includes("total_body_too_short")) lines.push(`- sections body 전체 합산 공백 제외 ${MIN_INITIAL_READING_CHARS.toLocaleString()}자 이상으로 더 깊고 길게 쓰라.`);
+  if (issues.includes("total_body_too_long")) lines.push(`- sections body 전체 합산 공백 제외 ${MAX_INITIAL_READING_CHARS.toLocaleString()}자 이하로 압축하라.`);
+  if (issues.includes("structured_json.missing")) lines.push("- 반환은 JSON 객체 하나만 허용한다. JSON 밖에 어떤 텍스트도 쓰지 마라.");
+  if (!lines.length) lines.push("- 요구된 섹션 구조와 길이 기준을 모두 충족해 다시 작성하라.");
+  return lines;
+}
+
 function validateConsultationQuality(content, options = {}) {
   const minTotalChars = Number(options.minTotalChars || 0);
   const maxTotalChars = Number(options.maxTotalChars || 0);
@@ -891,6 +962,7 @@ function validateConsultationQuality(content, options = {}) {
 
   if (minTotalChars > 0 && totalChars < minTotalChars) issues.push("total_body_too_short");
   if (maxTotalChars > 0 && totalChars > maxTotalChars) issues.push("total_body_too_long");
+  if (options.chart) issues.push(...validateChartConsistency(text, options.chart));
   return { ok: issues.length === 0, issues, totalChars, sectionCount };
 }
 
@@ -928,6 +1000,7 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
     minTotalChars: Number(options.minTotalChars || 0),
     maxTotalChars: Number(options.maxTotalChars || 0),
     requireStructured: options.requireStructured === true,
+    chart: options.chart || null,
   });
   if (!quality.ok) {
     const error = new Error(`LLM_QUALITY_FAILED:${quality.issues.join(",")}`);
@@ -1081,6 +1154,31 @@ async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey,
   });
 }
 
+async function generateInitialReading(env, input, chart, context) {
+  const options = {
+    minTotalChars: MIN_INITIAL_READING_CHARS,
+    maxTotalChars: MAX_INITIAL_READING_CHARS,
+    requireStructured: true,
+    maxOutputTokens: INITIAL_MAX_OUTPUT_TOKENS,
+    chart,
+  };
+  const prompt = buildFirstPrompt(input, chart);
+  try {
+    return await callConsultationLlm(env, prompt, context, options);
+  } catch (error) {
+    const issues = Array.isArray(error?.quality?.issues) ? error.quality.issues : [];
+    if (!issues.length) throw error;
+    logVedicAi("LLM Quality Retry", { ...context, issues }, "warn");
+    const repairPrompt = [
+      prompt,
+      "",
+      "직전 응답이 아래 품질 기준을 어겨 반려되었다. 전부 고쳐서 처음부터 다시 작성하라:",
+      ...describeQualityIssuesForRepair(issues, chart),
+    ].join("\n");
+    return callConsultationLlm(env, repairPrompt, context, options);
+  }
+}
+
 async function generateConsultation({ request, env, auth, body, normalized, idempotencyKey }) {
   const pricing = getPricing();
   const context = routeLogContext(request, body, normalized, idempotencyKey);
@@ -1137,12 +1235,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 
   try {
     logVedicAi("LLM Generate Start", context);
-    const { content, meta } = await callConsultationLlm(env, buildFirstPrompt(normalized.input, chart), context, {
-      minTotalChars: MIN_INITIAL_READING_CHARS,
-      maxTotalChars: MAX_INITIAL_READING_CHARS,
-      requireStructured: true,
-      maxOutputTokens: INITIAL_MAX_OUTPUT_TOKENS,
-    });
+    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context);
     doc.vedicChart = chart;
     doc.messages = [
       ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),
@@ -1239,11 +1332,51 @@ async function handleMessage(request, env) {
   }
 }
 
+async function handleResult(request, env) {
+  if (request.method !== "GET") return methodNotAllowed();
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) return loginRequired();
+
+  const path = getRoutePath(request, "/api/vedic-ai");
+  const url = new URL(request.url);
+  const pathId = path.startsWith("/result/") ? decodeURIComponent(path.slice("/result/".length)) : "";
+  const id = clean(pathId || url.searchParams.get("id") || url.searchParams.get("consultationId"), 120);
+
+  await connectDb(env);
+  if (!id) {
+    const rows = await VedicAiConsultation.find({ userId: String(auth.userId), status: "completed" })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .select("id topic birthInfo vedicChart.chartSummary createdAt updatedAt")
+      .lean();
+    return json({
+      ok: true,
+      consultations: rows.map((row) => ({
+        id: row.id,
+        topic: row.topic || "",
+        name: clean(row.birthInfo?.name, 80),
+        chartSummary: clean(row.vedicChart?.chartSummary, 200),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    });
+  }
+
+  const consultation = await VedicAiConsultation.findOne({
+    userId: String(auth.userId),
+    id,
+    status: "completed",
+  }).lean();
+  if (!consultation) return notFound();
+  return json({ ok: true, consultation: consultationPayload(consultation) });
+}
+
 export async function handleVedicAiRoutes(request, env) {
   const path = getRoutePath(request, "/api/vedic-ai");
   if (path === "/ensure-access") return handleEnsureAccess(request, env);
   if (path === "/start") return handleStart(request, env);
   if (path === "/message") return handleMessage(request, env);
+  if (path === "/result" || path.startsWith("/result/")) return handleResult(request, env);
   return notFound();
 }
 
@@ -1255,5 +1388,8 @@ export const __vedicAiTestUtils = {
   buildPaymentPayload,
   sanitizeAssistantText,
   validateConsultationQuality,
+  validateChartConsistency,
+  describeQualityIssuesForRepair,
+  buildCanonicalFactsLine,
   collectEvidenceIds,
 };

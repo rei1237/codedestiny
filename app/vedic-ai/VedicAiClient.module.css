@@ -1222,3 +1222,280 @@
     border-bottom-color: #d1d5db;
   }
 }
+
+/* ── 라시 차트 (북인도식 D1) ───────────────────────────── */
+
+.rashiChartCard,
+.dashaTimelineCard {
+  margin-top: 1.1rem;
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(30, 20, 60, 0.72), rgba(12, 8, 28, 0.85));
+  padding: 1rem 1.1rem 1.2rem;
+}
+
+.rashiChartHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.8rem;
+}
+
+.rashiChartHeader span {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #fbbf24;
+}
+
+.rashiChartHeader small {
+  font-size: 0.7rem;
+  color: rgba(226, 222, 255, 0.6);
+}
+
+.rashiChartBody {
+  display: grid;
+  grid-template-columns: minmax(200px, 300px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.rashiChartSvg {
+  width: 100%;
+  height: auto;
+}
+
+.rashiFrame {
+  fill: rgba(20, 12, 44, 0.6);
+  stroke: rgba(251, 191, 36, 0.55);
+  stroke-width: 1.6;
+}
+
+.rashiHouse polygon,
+.rashiHouseSelected polygon {
+  fill: rgba(124, 58, 237, 0.08);
+  stroke: rgba(196, 181, 253, 0.4);
+  stroke-width: 0.8;
+  transition: fill 0.2s ease;
+}
+
+.rashiHouse,
+.rashiHouseSelected {
+  cursor: pointer;
+  outline: none;
+}
+
+.rashiHouse:hover polygon,
+.rashiHouse:focus-visible polygon {
+  fill: rgba(251, 191, 36, 0.14);
+}
+
+.rashiHouseSelected polygon {
+  fill: rgba(251, 191, 36, 0.22);
+  stroke: rgba(251, 191, 36, 0.8);
+}
+
+.rashiSignNumber {
+  font-size: 11px;
+  font-weight: 700;
+  fill: rgba(226, 222, 255, 0.85);
+  pointer-events: none;
+}
+
+.rashiGrahaText {
+  font-size: 10px;
+  font-weight: 800;
+  fill: #fbbf24;
+  pointer-events: none;
+}
+
+.rashiDetailPane {
+  min-height: 90px;
+  border: 1px dashed rgba(139, 92, 246, 0.35);
+  border-radius: 14px;
+  padding: 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.rashiDetailPane strong {
+  font-size: 0.9rem;
+  color: #fbbf24;
+}
+
+.rashiDetailPane p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: rgba(236, 233, 255, 0.85);
+}
+
+.rashiDetailPane small {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 253, 0.75);
+}
+
+.rashiDetailHint {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: rgba(226, 222, 255, 0.55);
+}
+
+/* ── 다샤 타임라인 ─────────────────────────────────────── */
+
+.dashaTrackWrap {
+  overflow-x: auto;
+  padding-bottom: 0.4rem;
+}
+
+.dashaTrack {
+  display: flex;
+  min-width: 560px;
+  border-radius: 10px;
+  overflow: visible;
+}
+
+.dashaSegment {
+  position: relative;
+  border: none;
+  min-height: 40px;
+  padding: 0.2rem 0.15rem;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  border-radius: 4px;
+  margin-right: 2px;
+}
+
+.dashaSegment span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #17123a;
+  white-space: nowrap;
+}
+
+.dashaSegment:hover,
+.dashaSegment:focus-visible {
+  opacity: 0.85;
+}
+
+.dashaSegmentSelected {
+  opacity: 1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(251, 191, 36, 0.25);
+}
+
+.dashaNowMarker {
+  position: absolute;
+  top: -16px;
+  transform: translateX(-50%);
+  font-style: normal;
+  font-size: 0.7rem;
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.8);
+}
+
+.dashaSelectedInfo {
+  margin: 0.7rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(236, 233, 255, 0.85);
+}
+
+.dashaSelectedInfo strong {
+  color: #fbbf24;
+}
+
+/* ── 히어로 장식 차트 ──────────────────────────────────── */
+
+.heroChartPreview {
+  position: absolute;
+  inset: 12%;
+  width: 76%;
+  height: 76%;
+  opacity: 0.85;
+  animation: heroChartPulse 6s ease-in-out infinite;
+}
+
+.heroChartPreview .rashiFrame {
+  fill: rgba(20, 12, 44, 0.3);
+}
+
+.heroChartHouse polygon {
+  fill: rgba(124, 58, 237, 0.06);
+  stroke: rgba(251, 191, 36, 0.35);
+  stroke-width: 0.7;
+}
+
+.heroChartHouse text {
+  font-size: 9px;
+  fill: rgba(226, 222, 255, 0.5);
+}
+
+@keyframes heroChartPulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.95; }
+}
+
+/* ── 지난 상담 다시 보기 ───────────────────────────────── */
+
+.resultListCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.resultListItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 14px;
+  padding: 0.85rem 1rem;
+  background: rgba(24, 15, 52, 0.6);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.resultListItem:hover {
+  border-color: rgba(251, 191, 36, 0.6);
+  background: rgba(30, 20, 64, 0.75);
+}
+
+.resultListItem strong {
+  font-size: 0.9rem;
+  color: #ece9ff;
+}
+
+.resultListItem small {
+  font-size: 0.72rem;
+  color: rgba(196, 181, 253, 0.7);
+}
+
+@media (max-width: 720px) {
+  .rashiChartBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .rashiChartCard,
+  .dashaTimelineCard {
+    break-inside: avoid;
+    border-color: #d1d5db;
+    background: #fff;
+  }
+
+  .rashiChartHeader span,
+  .rashiDetailPane strong,
+  .dashaSelectedInfo,
+  .dashaSelectedInfo strong,
+  .rashiDetailPane p,
+  .rashiDetailPane small {
+    color: #111827;
+  }
+}
