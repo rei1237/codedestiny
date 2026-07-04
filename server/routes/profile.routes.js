@@ -179,64 +179,16 @@ router.get("/", async (req, res, next) => {
   }
 });
 
-router.post("/", async (req, res, next) => {
-  try {
-    const user = await User.findById(req.auth.userId)
-      .select("profileSubscription destinyProfilesCurrentId")
-      .lean();
-
-    if (!user) {
-      return res.status(404).json({ ok: false, message: "사용자를 찾을 수 없습니다." });
-    }
-
-    const subscription = resolveSubscriptionPolicy(user);
-    const count = await ProfileCard.countDocuments({ userId: req.auth.userId });
-
-    if (count >= subscription.profileLimit) {
-      return res.status(403).json({
-        ok: false,
-        code: "PROFILE_LIMIT_EXCEEDED",
-        message: "무료 계정은 프로필 카드를 1개만 생성할 수 있습니다. 구독 후 추가 생성이 가능합니다.",
-        subscription,
-      });
-    }
-
-    const normalized = normalizeIncomingProfile(req.body?.profile || req.body, count);
-    const duplicated = await ProfileCard.findOne({
-      userId: req.auth.userId,
-      profileId: normalized.profileId,
-    }).lean();
-
-    if (duplicated) {
-      return res.status(409).json({ ok: false, code: "PROFILE_ID_CONFLICT", message: "이미 존재하는 프로필 ID입니다." });
-    }
-
-    const created = await ProfileCard.create({
-      userId: req.auth.userId,
-      profileId: normalized.profileId,
-      name: normalized.name,
-      gender: normalized.gender,
-      birth: normalized.birth,
-      location: normalized.location,
-    });
-
-    const profile = toClientProfile(created.toObject());
-    const nextCurrentId = String(user.destinyProfilesCurrentId || "") || profile.id;
-
-    if (nextCurrentId !== String(user.destinyProfilesCurrentId || "")) {
-      await User.updateOne({ _id: req.auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } });
-    }
-
-    return res.status(201).json({
-      ok: true,
-      profile,
-      currentId: nextCurrentId,
-      subscription,
-      canCreateMore: count + 1 < subscription.profileLimit,
-    });
-  } catch (error) {
-    return next(error);
-  }
+// [DEPRECATED] 프로필 카드 생성은 5,000원 단건결제 또는 월정석 결제가 필요하며,
+// 결제 증거(PortOne/월정석) 검증 계층은 Cloudflare Worker(worker/routes/profile.js)에만 존재한다.
+// 이 레거시 Express 경로는 결제 계층이 없어 무료·무제한 생성 우회구멍이 되므로 위임 응답으로 차단한다.
+// 정책: docs/payment-policy-content-access.md (프로필 카드 추가/삭제)
+router.post("/", async (_req, res) => {
+  return res.status(410).json({
+    ok: false,
+    code: "USE_WORKER_PROFILE_ENDPOINT",
+    message: "프로필 카드 추가는 5,000원 단건결제 또는 월정석으로만 진행할 수 있습니다. 앱 내 프로필 관리 화면(결제 지원 경로)에서 다시 시도해주세요.",
+  });
 });
 
 router.patch("/current", async (req, res, next) => {
@@ -301,31 +253,16 @@ router.patch("/:profileId", async (req, res, next) => {
   }
 });
 
-router.delete("/:profileId", async (req, res, next) => {
-  try {
-    const profileId = sanitizeProfileId(req.params.profileId);
-    if (!profileId) {
-      return res.status(400).json({ ok: false, message: "유효한 profileId가 필요합니다." });
-    }
-
-    const deleted = await ProfileCard.findOneAndDelete({ userId: req.auth.userId, profileId }).lean();
-    if (!deleted) {
-      return res.status(404).json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." });
-    }
-
-    const profiles = await listUserProfiles(req.auth.userId);
-    const user = await User.findById(req.auth.userId).select("destinyProfilesCurrentId").lean();
-    const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
-
-    await User.updateOne(
-      { _id: req.auth.userId },
-      { $set: { destinyProfilesCurrentId: nextCurrentId } },
-    );
-
-    return res.status(200).json({ ok: true, deletedProfileId: profileId, profiles, currentId: nextCurrentId });
-  } catch (error) {
-    return next(error);
-  }
+// [DEPRECATED] 프로필 카드 삭제는 건당 5,000원(또는 월정석) 결제가 필요하며(family 이용권만 무료),
+// 결제 증거 검증 계층은 Cloudflare Worker(worker/routes/profile.js)에만 존재한다.
+// 이 레거시 Express 경로는 결제 없이 삭제하여 5,000원 정책을 우회하므로 위임 응답으로 차단한다.
+// 정책: docs/payment-policy-content-access.md (프로필 카드 추가/삭제). 보유 개수 제한 없이 1개여도 삭제 가능하나 결제는 필수.
+router.delete("/:profileId", async (_req, res) => {
+  return res.status(410).json({
+    ok: false,
+    code: "USE_WORKER_PROFILE_ENDPOINT",
+    message: "프로필 카드 삭제는 5,000원 단건결제 또는 월정석으로만 진행할 수 있습니다. 앱 내 프로필 관리 화면(결제 지원 경로)에서 다시 시도해주세요.",
+  });
 });
 
 module.exports = router;

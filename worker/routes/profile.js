@@ -1144,18 +1144,19 @@ async function handleGetCurrentProfile(auth) {
 
 async function handleCreateProfile(request, auth) {
   try {
-    const user = await User.findById(auth.userId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-      .lean();
+    const [user, count, body] = await Promise.all([
+      User.findById(auth.userId)
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+        .lean(),
+      ProfileCard.countDocuments({ userId: auth.userId }),
+      readJson(request),
+    ]);
 
     if (!user) {
       return json({ ok: false, success: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
     }
 
     const subscription = resolveSubscriptionPolicy(user);
-    const count = await ProfileCard.countDocuments({ userId: auth.userId });
-
-    const body = await readJson(request);
     const rawProfile = body?.profile || body;
     const birthValidation = validateRequiredBirth(rawProfile);
     if (!birthValidation.ok) {
@@ -1421,11 +1422,12 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, message: "?좏슚??profileId媛 ?꾩슂?⑸땲??" }, { status: 400 });
 
-  const existingProfile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  const [existingProfile, body] = await Promise.all([
+    ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
+    readJson(request).catch(() => ({})),
+  ]);
   if (!existingProfile) return json({ ok: false, message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
 
-
-  const body = await readJson(request).catch(() => ({}));
   const authorization = await ensureProfileDeleteAuthorized(auth, {
     action: PROFILE_CARD_MUTATION_ACTIONS.DELETE,
     profileId,
