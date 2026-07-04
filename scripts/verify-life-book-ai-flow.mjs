@@ -211,14 +211,14 @@ assert(Array.isArray(mockSaju?.yearlyLuck) && mockSaju.yearlyLuck.length >= 5, "
 includes("index.html", indexHtml, 'href="/premium-unlock"');
 includes("index.html", indexHtml, "life-fortune-ai-vvip-card-v20260701");
 includes("index.html", indexHtml, 'data-pvw-bypass="1"');
-includes("index.html", indexHtml, "AI 상담 · 입력 후 이용권 확인");
 const lifeFortuneCardStart = indexHtml.indexOf("tarot-tile--life-fortune-ai");
 const lifeFortuneCardEnd = indexHtml.indexOf("</a>", lifeFortuneCardStart);
 const lifeFortuneCard = lifeFortuneCardStart >= 0 && lifeFortuneCardEnd > lifeFortuneCardStart
   ? indexHtml.slice(lifeFortuneCardStart, lifeFortuneCardEnd)
   : "";
-assert(lifeFortuneCard && !lifeFortuneCard.includes('data-coin-cost="300"'), "life fortune card must not hardcode coin cost");
-assert(lifeFortuneCard && !lifeFortuneCard.includes("AI 상담 · 30,000원"), "life fortune card must not hardcode KRW price");
+// 카드에는 실제 판매가(레지스트리 300코인=30,000원)를 그대로 표기한다 — 2026-07-04 제품 결정.
+assert(lifeFortuneCard && lifeFortuneCard.includes('data-coin-cost="300"'), "life fortune card must carry coin cost data attribute");
+assert(lifeFortuneCard && lifeFortuneCard.includes("AI 상담 · 30,000원"), "life fortune card must show the KRW price");
 
 for (const marker of [
   'const CONSULTATION_TYPE = "lifeFortune"',
@@ -255,7 +255,7 @@ for (const marker of [
   "const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;",
   "const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;",
   "const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;",
-  "const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 1;",
+  "const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 2;",
   "buildBillingGatePayload(pricing, idempotencyKey, input = {}, inputHash = \"\")",
   "deferUsage: true",
   "forceDeduct: true",

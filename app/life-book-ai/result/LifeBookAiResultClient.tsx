@@ -266,6 +266,19 @@ function LifeBookResultContent() {
     return () => window.clearInterval(timer);
   }, [loadResult, pending, result?.status]);
 
+  // 책 진도: 스크롤 위치를 독서 진행률로 표시
+  const [readProgress, setReadProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - window.innerHeight;
+      setReadProgress(max > 0 ? Math.min(100, Math.max(0, Math.round((window.scrollY / max) * 100))) : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [result?.status]);
+
   const report = useMemo(() => buildReport(result), [result]);
   const birth = result?.birthInfo || {};
   const saju = result?.sajuResult || null;
@@ -358,9 +371,9 @@ function LifeBookResultContent() {
       <main className="grid min-h-screen place-items-center bg-[#050407] px-4 text-amber-50">
         <div className="max-w-lg rounded-3xl border border-amber-200/20 bg-amber-50/10 p-8 text-center shadow-2xl backdrop-blur-xl">
           <Loader2 className="mx-auto h-10 w-10 animate-spin text-amber-200" aria-hidden="true" />
-          <h1 className="mt-5 text-2xl font-black">당신의 인생의 책을 집필하는 중입니다</h1>
+          <h1 className="mt-5 text-2xl font-black">명리학자가 당신의 책을 집필하는 중입니다</h1>
           <p className="mt-3 text-sm leading-7 text-[#eadbb9]">
-            사주의 뼈대와 시간의 흐름을 엮어 각 장을 차례로 완성하고 있습니다. 이 창은 닫지 않아도 곧 결과로 바뀝니다.
+            사주의 뼈대와 시간의 흐름을 엮어 각 장을 차례로 완성하고 있습니다. 이 창은 닫지 않아도 곧 첫 장이 열립니다.
           </p>
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-black/30">
             <div className="h-full w-[72%] animate-pulse rounded-full bg-gradient-to-r from-[#b47b25] via-[#f2d07a] to-[#fff3b0]" />
@@ -372,6 +385,12 @@ function LifeBookResultContent() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050407] text-amber-50 [font-family:var(--font-body)]">
+      <div className="fixed inset-x-0 top-0 z-50 h-1 bg-black/40" aria-hidden="true">
+        <div className="h-full bg-gradient-to-r from-[#b47b25] via-[#f2d07a] to-[#fff3b0] transition-[width] duration-150" style={{ width: `${readProgress}%` }} />
+      </div>
+      <div className="fixed right-3 top-2 z-50 rounded-full border border-amber-200/25 bg-black/55 px-2.5 py-0.5 text-[11px] font-black text-amber-100" aria-label={`책 진도 ${readProgress}%`}>
+        {readProgress}%
+      </div>
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.22),transparent_34%),radial-gradient(circle_at_18%_28%,rgba(120,43,38,0.20),transparent_30%),linear-gradient(135deg,#1b120b,#2a1a10_44%,#050407)]" />
       <div className="pointer-events-none fixed inset-0 opacity-35 [background-image:radial-gradient(rgba(250,226,169,.58)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.14)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
 
@@ -389,13 +408,15 @@ function LifeBookResultContent() {
         {pdfError && <div className="mb-4 rounded-2xl border border-rose-200/25 bg-rose-950/30 px-4 py-3 text-sm font-bold text-rose-100">{pdfError}</div>}
 
         <article id="life-book-result-document" className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-          <header data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7">
+          <header data-life-book-pdf-page className="relative overflow-hidden rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#b47b25] via-[#f2d07a] to-[#b47b25]" aria-hidden="true" />
             <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
               인생의 책 AI 상담 리포트
             </p>
             <h1 className="mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl">{report.title}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>
+            <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-200/85">主人公 · {userName}</p>
             <div className="mt-5 grid gap-2 text-sm text-[#f0dec0] sm:grid-cols-2 lg:grid-cols-4">
               <span>이름: {userName}</span>
               <span>생년월일: {birth.birthDate || "미입력"}</span>
@@ -550,6 +571,22 @@ function LifeBookResultContent() {
                   <p className="mt-3 text-[15px] leading-8 text-[#f4e6cb]">{report.finalMessage}</p>
                 </section>
               )}
+
+              <section className="rounded-3xl border border-amber-200/20 bg-[#100a08]/70 p-6 text-center">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-200">— 마지막 장 —</p>
+                <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-[#eadbb9]">
+                  {userName}님의 책은 여기서 잠시 덮이지만, 이야기는 오늘의 선택에서 다시 이어집니다.
+                  마음에 남는 장이 있다면 PDF로 간직해 두세요.
+                </p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+                  <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 text-sm font-black text-[#171007] disabled:opacity-60">
+                    이 책을 PDF로 간직하기
+                  </button>
+                  <Link href="/life-book-ai" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 bg-black/25 px-5 text-sm font-bold text-amber-50 transition hover:bg-amber-50/10">
+                    소중한 사람의 책도 열어 보기
+                  </Link>
+                </div>
+              </section>
             </section>
           </div>
         </article>

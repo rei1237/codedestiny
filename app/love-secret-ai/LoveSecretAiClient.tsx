@@ -34,7 +34,7 @@ type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
 type GenderType = "male" | "female" | "unknown" | "";
 type Phase = "idle" | "reading" | "payment" | "generating" | "ready" | "error";
-type RelationshipStatus = "single" | "crush" | "dating" | "breakup" | "reunion" | "marriage" | "complicated" | "custom";
+type RelationshipStatus = "single" | "crush" | "some" | "dating" | "breakup" | "reunion" | "marriage" | "complicated" | "custom";
 type FocusArea = "relationshipFlow" | "distance" | "reunion" | "longTerm" | "intimacy" | "timing" | "pattern" | "custom";
 
 type PersonInfo = {
@@ -104,6 +104,7 @@ const CONSULTATION_TYPE = "loveSecret";
 const RELATIONSHIP_STATUSES: Array<{ value: RelationshipStatus; label: string }> = [
   { value: "single", label: "솔로" },
   { value: "crush", label: "짝사랑" },
+  { value: "some", label: "썸 타는 중" },
   { value: "dating", label: "연애 중" },
   { value: "breakup", label: "이별 직후" },
   { value: "reunion", label: "재회 고민" },

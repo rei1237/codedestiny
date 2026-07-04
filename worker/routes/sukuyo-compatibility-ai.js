@@ -10,8 +10,8 @@ import { callGeminiText } from "../lib/gemini.js";
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 AI 상담";
 const COMPATIBILITY_TITLE = "숙요점 궁합 AI 상담";
-const AMOUNT_KRW = 49000;
-const COIN_PRICE = 490;
+const AMOUNT_KRW = 30000;
+const COIN_PRICE = 300;
 const TOKEN_TTL_MS = 20 * 60 * 1000;
 const startLocks = new Map();
 
@@ -104,9 +104,11 @@ const COMPATIBILITY_JSON_SYSTEM_PROMPT = [
   `sections.*.body의 합계는 공백 포함 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS.toLocaleString("ko-KR")}~${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS.toLocaleString("ko-KR")}자 사이여야 합니다.`,
   "각 sections.*.body는 지정된 최소 글자수를 반드시 넘겨야 하며, 부족하면 구체적 사례, 실제 대사, 행동 지침, 시기별 전망을 추가합니다.",
   "마크다운 코드블록, JSON 밖 설명 문구, 후속 질문 유도 문구를 절대 넣지 않습니다.",
-  "sections.*.body 안에서는 문단, 굵게, 번호 목록, 인용, 실제 대화체 예시를 Markdown 문자열로 자연스럽게 사용할 수 있습니다.",
+  "sections.*.body에 사용할 수 있는 마크업은 **굵게**, 번호 목록(1. ), 하이픈 목록(- ), 인용(> ) 네 가지뿐입니다. 표, 제목 기호(#), 코드블록, 링크, HTML 태그는 절대 쓰지 않습니다.",
   "모든 body에는 구체적 상황 묘사, 실제 대화체 예시, 체크리스트 또는 번호 행동 지침, 시기별 전망 중 최소 2가지 이상을 포함합니다.",
-  "두 사람의 이름, 오행, 숙, 수호신, 관계 유형, 거리, 점수를 각 body마다 자연스럽게 반복 언급해 전체 일관성을 유지합니다.",
+  "각 body는 그 섹션 주제와 직접 관련된 계산 근거(관계 유형의 정의, 방향별 거리, 오행 상생·상극, 숙 그룹, 음양 조합 중 해당되는 것)를 최소 1회 명시적으로 인용해 논거로 삼습니다. 근거 없는 단정 문장을 쓰지 않습니다.",
+  "'두 분은 특별한 인연입니다', '운명이 두 사람을 이끌었습니다'처럼 계산 근거 없이 치켜세우는 보일러플레이트 문장을 금지합니다. 감탄과 위로는 반드시 27숙 상성 근거 뒤에만 붙입니다.",
+  "전체 서사는 '운명적 끌림'과 '현실적 조율' 두 축으로 짭니다. 끌림을 말할 때는 관계 유형·거리·상생의 근거를, 조율을 말할 때는 상극·그룹 차이·음양 조합의 과제를 짝지어 말합니다.",
   "숙 이름은 첫 언급 시 한글과 한자를 병기합니다.",
   "같은 비유와 같은 첫 문장 구조를 반복하지 않으며, '돌봄과 치유', '변화와 개혁' 같은 추상 표현으로 분량을 채우지 않습니다.",
   "상대방의 마음, 재회, 이별, 결혼을 확정하지 않고 건강한 선택과 경계를 존중합니다.",
@@ -568,6 +570,10 @@ function buildSukuyoCompatibilityPromptContext(input, calculation) {
         shadows: calculation.personBSukuyo?.shadows,
       },
       relation: buildCompatibilityRelationMeta(calculation.compatibility),
+      relationLogic: {
+        guide: "관계 유형은 두 본명숙 사이의 방향별 거리로 확정된 값이다. 아래 12유형 정의를 유형 이름과 함께 논거로 인용하고, 정의에 없는 의미를 지어내지 않는다.",
+        definitions: SUKUYO_RELATION_12.map((item) => ({ type: `${item.name}(${item.han})`, meaning: item.meaning })),
+      },
       traditionalCompatibility: calculation.compatibility,
       elementHarmony: {
         personAElement,
@@ -1017,8 +1023,9 @@ function buildFirstPrompt(input, calculation) {
       "본명숙 산출, 관계 거리, 양방향 관계 유형, 기질 속성, 점수는 이미 확정된 값입니다.",
       "반환 JSON의 meta 값은 [반환 JSON 뼈대]와 정확히 같아야 하며, sections.*.title도 뼈대 title 그대로 유지합니다.",
       `sections.*.body만 전문 숙요점 상담문으로 채우며, body 합계는 공백 포함 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS.toLocaleString("ko-KR")}~${SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS.toLocaleString("ko-KR")}자 사이가 되어야 합니다.`,
-      "각 body는 3~5개 소단락으로 나누고, 필요한 곳에 굵게, 번호 목록, 인용, 실제 대화체 예시를 Markdown 문자열로 넣습니다.",
-      "모든 body에는 두 사람의 이름, 오행, 본명숙, 수호신, 관계 유형, 거리, 점수를 자연스럽게 반복 언급합니다.",
+      "각 body는 3~5개 소단락으로 나누고, 마크업은 **굵게**, 번호 목록, 하이픈 목록, 인용(> ) 네 가지만 사용합니다.",
+      "각 body는 그 섹션 주제와 관련된 계산 근거(관계 유형 정의, 방향별 거리, 오행 상생·상극, 숙 그룹, 음양)를 최소 1회 인용해 논거로 삼고, 근거 없는 찬사 문장은 쓰지 않습니다.",
+      "서사는 '운명적 끌림'(관계 유형·거리·상생 근거)과 '현실적 조율'(상극·그룹 차이·음양 과제)의 두 축을 오가며 짭니다.",
       "모든 body에는 구체적 상황 묘사, 실제 대화체 예시, 체크리스트 또는 번호 행동 지침, 시기별 전망 중 최소 2가지 이상을 넣습니다.",
       "갈등, 금기, 대화법, 위기, 장기 전망은 추상어가 아니라 실제 말투와 행동으로 풀어야 합니다.",
       "같은 비유와 같은 첫 문장 구조를 반복하지 마세요.",
@@ -1132,7 +1139,14 @@ function normalizeStructuredSukuyoCompatibilityText(text, input, calculation) {
   const sections = {};
   let totalChars = 0;
   for (const section of SUKUYO_SECTION_SPECS) {
-    const body = cleanRichText(sourceSections[section.key]?.body, 5200);
+    const rawBody = cleanRichText(sourceSections[section.key]?.body);
+    // 상한 초과 시 문장 중간이 아니라 마지막 문장 경계에서 자른다.
+    let body = rawBody;
+    if (rawBody.length > 5200) {
+      const sliced = rawBody.slice(0, 5200);
+      const boundary = Math.max(sliced.lastIndexOf("다."), sliced.lastIndexOf("요."), sliced.lastIndexOf(".\n"), sliced.lastIndexOf("!"), sliced.lastIndexOf("?"));
+      body = boundary > section.minChars ? sliced.slice(0, boundary + 2).trim() : sliced;
+    }
     if (body.length < section.minChars) {
       throw Object.assign(new Error(`숙요점 궁합 상담 ${section.key} 본문이 ${section.minChars}자보다 부족합니다.`), { code: "LLM_FAILED", status: 503 });
     }
@@ -1242,6 +1256,89 @@ function executionAccessMethod(accessType) {
   return "pass";
 }
 
+// 선차감(코인/월정석)된 접근에서 생성이 실패하면 차감을 되돌린다.
+// vedic-ai.js의 restorePrepaidAccessOnFailure와 동일한 멱등 환급 규약을 따른다.
+async function restorePrepaidAccessOnFailure(env, auth, access, error) {
+  const accessType = clean(access?.accessType).toLowerCase();
+  // 이용권/월정석 커버(pass/family/license)·관리자·토큰 접근은 차감이 없으므로 환급 대상 아님.
+  if (!["paid", "subscription"].includes(accessType)) return false;
+  const evidenceId = clean(access?.paymentId, 160);
+  if (!isObjectIdLike(evidenceId)) return false; // PG 직접결제(merchantUid 문자열)는 재시도로 자가복구되므로 제외.
+
+  const userId = String(auth?.userId || "");
+  const now = new Date();
+  const failureMessage = clean(error?.message || error || "sukuyo compatibility generation failed", 500);
+
+  try {
+    if (accessType === "subscription") {
+      const ledger = await MonthlyCreditLedger.findOne({
+        _id: evidenceId,
+        userId,
+        type: "MONTHLY_CREDIT_SPEND",
+        serviceKey: FEATURE_KEY,
+        "metadata.refundedForServiceExecution": { $ne: true },
+      }).lean();
+      if (!ledger) return false;
+      const refundCredit = Math.max(0, Math.floor(Number(ledger.amount || 0)));
+      const marked = await MonthlyCreditLedger.updateOne(
+        { _id: ledger._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
+        { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
+      );
+      if (!marked.modifiedCount) return false;
+      if (refundCredit > 0) {
+        await User.findByIdAndUpdate(userId, {
+          $inc: {
+            "profileSubscription.membershipCreditBalance": refundCredit,
+            "profileSubscription.membershipCreditUsed": -refundCredit,
+          },
+        }).catch(() => {});
+      }
+      return true;
+    }
+
+    // accessType === "paid" → 코인 PointHistory 차감 역계산.
+    const history = await PointHistory.findOne({
+      _id: evidenceId,
+      userId,
+      kind: "deduct",
+      featureKey: FEATURE_KEY,
+      "metadata.refundedForServiceExecution": { $ne: true },
+    }).lean();
+    if (!history) return false;
+    const refundCoins = Math.max(0, Math.floor(Math.abs(Number(history.delta || history?.metadata?.chargedCoins || COIN_PRICE || 0))));
+    const marked = await PointHistory.updateOne(
+      { _id: history._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
+      { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
+    );
+    if (!marked.modifiedCount) return false;
+    if (refundCoins > 0) {
+      const updated = await User.findByIdAndUpdate(userId, { $inc: { points: refundCoins } }, { new: true, projection: { points: 1 } }).lean();
+      await PointHistory.create({
+        userId,
+        kind: "refund",
+        delta: refundCoins,
+        balanceAfter: Math.max(0, Math.floor(Number(updated?.points || 0))),
+        reason: `${COMPATIBILITY_TITLE} 생성 실패 환급`,
+        featureKey: FEATURE_KEY,
+        metadata: {
+          refundedForServiceExecution: true,
+          originalPointHistoryId: String(history._id || ""),
+          failureMessage,
+        },
+      }).catch(() => {});
+    }
+    return true;
+  } catch (restoreError) {
+    logSukyoAi("[Sukyo AI LLM Refund Failed]", {
+      route: "/api/sukuyo-compatibility-ai/generate",
+      accessType,
+      evidenceId,
+      errorMessage: clean(restoreError?.message || restoreError, 300),
+    }, restoreError, env);
+    return false;
+  }
+}
+
 async function recordSuccessfulUsage(auth, idempotencyKey, access, consultation, now) {
   const accessMethod = executionAccessMethod(access.accessType);
   await PaidExecutionRecord.findOneAndUpdate(
@@ -1337,8 +1434,22 @@ async function handleStart(request, env) {
       accessGranted: true,
       accessType: access.accessType,
     });
-    const calculation = calculateSukuyo(normalized);
-    const firstAnswer = await createFirstAnswer(env, { ...normalized, idempotencyKey }, calculation);
+    let calculation;
+    let firstAnswer;
+    try {
+      calculation = calculateSukuyo(normalized);
+      firstAnswer = await createFirstAnswer(env, { ...normalized, idempotencyKey }, calculation);
+    } catch (genError) {
+      // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다.
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
+      logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
+        route: "/api/sukuyo-compatibility-ai/generate",
+        requestId: idempotencyKey,
+        consultationType: normalized.consultationType,
+        restored,
+      }, restored ? null : genError, env);
+      throw genError;
+    }
     const now = new Date();
     const storedPersonB = normalized.consultationType === "personal" ? {
       name: "",
@@ -1485,9 +1596,58 @@ async function handleMessage(request, env) {
   return json({ ok: true, consultation: serializeConsultation(consultation), message: { role: "assistant", content: answer, createdAt: now } });
 }
 
+async function handleResult(request, env) {
+  let auth = null;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (_) {
+    return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
+  }
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 60);
+
+  await connectDb(env);
+  if (!sessionId) {
+    const rows = await SukuyoCompatibilityAiConsultation.find({ userId: auth.userId })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .select("personA.name personA.shuku personB.name personB.shuku sukuyoResult.relationType relationshipType createdAt updatedAt")
+      .lean();
+    return json({
+      ok: true,
+      consultations: rows.map((row) => ({
+        id: String(row._id),
+        personAName: clean(row.personA?.name, 80) || "나",
+        personAShuku: clean(row.personA?.shuku, 20),
+        personBName: clean(row.personB?.name, 80) || "상대",
+        personBShuku: clean(row.personB?.shuku, 20),
+        relationType: clean(row.sukuyoResult?.relationType, 20),
+        relationshipType: clean(row.relationshipType, 40),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    });
+  }
+
+  if (!/^[0-9a-f]{24}$/i.test(sessionId)) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 422 });
+  }
+  const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
+  if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
+  return json({ ok: true, consultation: serializeConsultation(consultation) });
+}
+
 export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/sukuyo-compatibility-ai");
+  if (method === "GET" && path === "/result") {
+    try {
+      return await handleResult(request, env);
+    } catch (error) {
+      logSukyoAi("[Sukyo AI LLM Error]", { route: "/api/sukuyo-compatibility-ai/result", errorMessage: clean(error?.message || error, 500) }, error, env);
+      return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.serverFailed }, { status: 500 });
+    }
+  }
   if (method !== "POST") return methodNotAllowed();
   try {
     if (path === "/ensure-access" || path === "/prepare") return await handleEnsureAccess(request, env);

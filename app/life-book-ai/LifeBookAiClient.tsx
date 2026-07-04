@@ -28,6 +28,8 @@ type GenderType = "male" | "female" | "unknown" | "";
 type FocusAreaType = "overall" | "love" | "money" | "career" | "relationship" | "family" | "lifePurpose" | "turningPoint";
 type FlowStatus = "idle" | "opening" | "payment" | "generating" | "completed" | "error";
 
+type LifeBookMode = "lifeBook" | "lifeFortune";
+
 type ConsultationForm = {
   name: string;
   gender: GenderType;
@@ -36,6 +38,7 @@ type ConsultationForm = {
   birthTimeUnknown: boolean;
   calendarType: CalendarType;
   focusArea: FocusAreaType;
+  mode: LifeBookMode;
 };
 
 type PrepareResult =
@@ -95,13 +98,13 @@ const PREVIEW_CHAPTERS = [
 ];
 
 const GENERATION_STEPS = [
-  "명식의 기본 구조를 계산하고 있어요",
+  "명리학자가 당신의 책을 펼치는 중입니다… 명식의 기본 구조를 계산하고 있어요",
   "타고난 오행과 십성의 균형을 살피고 있어요",
-  "조후와 삶의 온도를 해석하고 있어요",
-  "성격, 재능, 관계의 반복 패턴을 정리하고 있어요",
-  "대운과 세운의 큰 흐름을 읽고 있어요",
-  "사랑, 일, 재물, 인연의 장을 집필하고 있어요",
-  "마지막 조언과 PDF용 원고를 정리하고 있어요",
+  "조후와 삶의 온도를 읽어 내려가고 있어요",
+  "성격, 재능, 관계의 반복 패턴을 한 장씩 정리하고 있어요",
+  "대운과 세운의 큰 흐름을 책갈피로 표시하고 있어요",
+  "사랑, 일, 재물, 인연의 장을 정성껏 집필하고 있어요",
+  "마지막 장의 조언과 저장용 원고를 다듬고 있어요",
   "완성된 책을 새 창에서 열 준비를 하고 있어요",
 ];
 
@@ -126,7 +129,13 @@ const defaultForm = (): ConsultationForm => ({
   birthTimeUnknown: false,
   calendarType: "solar",
   focusArea: "overall",
+  mode: "lifeBook",
 });
+
+const MODE_OPTIONS: Array<{ value: LifeBookMode; label: string; desc: string }> = [
+  { value: "lifeBook", label: "인생의 책", desc: "삶을 한 권의 책으로 읽어 주는 감성 서사 리포트" },
+  { value: "lifeFortune", label: "인생 총운", desc: "일간·용신·대운 근거 중심의 정밀 진단 리포트 (분량 3배)" },
+];
 
 function buildInitialForm(): ConsultationForm {
   const form = defaultForm();
@@ -185,7 +194,7 @@ function buildConsultationPayload(form: ConsultationForm, requestId: string) {
   const topic = FOCUS_TOPIC[form.focusArea];
   return {
     serviceType: FEATURE_KEY,
-    consultationType: "lifeBook",
+    consultationType: form.mode || "lifeBook",
     userName: form.name.trim(),
     gender: form.gender || "unknown",
     birthDate: form.birthDate,
@@ -550,6 +559,22 @@ export default function LifeBookAiClient() {
                   {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                   {statusLabel}
                 </div>
+              </div>
+
+              <div className="mb-4 grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="리포트 형태 선택">
+                {MODE_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={form.mode === option.value}
+                    onClick={() => updateField("mode", option.value)}
+                    className={`rounded-2xl border px-4 py-3 text-left transition ${form.mode === option.value ? "border-amber-200 bg-amber-200/15" : "border-amber-100/15 bg-[#0b1020cc] hover:border-amber-200/45"}`}
+                  >
+                    <span className={`block text-sm font-black ${form.mode === option.value ? "text-amber-100" : "text-[#f4dfbd]"}`}>{option.label}</span>
+                    <span className="mt-1 block text-xs leading-5 text-[#e7d2b5]">{option.desc}</span>
+                  </button>
+                ))}
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

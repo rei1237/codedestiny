@@ -21,8 +21,10 @@ const UNSAFE_ADVICE_PATTERNS = Object.freeze([
   /뒤쫓/g,
   /심리\s*조종/g,
   /죄책감을\s*유발/g,
-  /무조건\s*(연락|기다|붙잡|밀어붙)/g,
-  /반드시\s*(돌아|좋아|싫어|연락)/g,
+  /무조건\s*(연락|기다|붙잡|밀어붙|이뤄|이루어|잘\s*풀|성공)/g,
+  /반드시\s*(돌아|좋아|싫어|연락|이뤄|이루어|결혼|사귀|재회|성공)/g,
+  /100\s*%\s*(이뤄|성공|돌아|확실)/g,
+  /틀림없이\s*(이뤄|돌아|사귀|결혼)/g,
 ]);
 
 export const LOVE_SECRET_AI_MIN_TOTAL_BODY_CHARS = 10000;
@@ -88,7 +90,9 @@ export const LOVE_SECRET_AI_SYSTEM_PROMPT = `당신은 30년 경력의 사주 �
 15. 궁합 점수만 말하지 말고 이유, 감정 흐름, 현실 행동 조언을 함께 전합니다.
 16. 속궁합은 선정적으로 쓰지 않고 감정 온도, 스킨십 선호 리듬, 친밀감 속도, 정서적 안정감 중심으로 품격 있게 다룹니다.
 17. 마지막에는 사용자가 오늘 바로 붙잡을 수 있는 한 가지 태도와 한 가지 행동이 남도록 정리합니다.
-18. 미성년자, 강요, 통제, 추적, 성적 노골성으로 읽힐 수 있는 표현은 피합니다.`;
+18. 미성년자, 강요, 통제, 추적, 성적 노골성으로 읽힐 수 있는 표현은 피합니다.
+19. 모든 행동 제안은 계산된 명식·궁합 데이터의 근거와 연결합니다. "진심을 다하면 통합니다" 같은 근거 없는 일반론과 "반드시 이뤄집니다" 같은 무책임한 확언은 금지합니다.
+20. 톤은 상황에 따라 오갑니다 — 위로가 필요한 대목은 다정하게, 판단이 필요한 대목은 짧고 직설적으로. 단, 직설은 사실 근거 위에서만 씁니다.`;
 
 export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
   const partnerMode = sajuResult?.partnerChart ? "상대 포함 연애 상담 모드" : "단독 연애 상담 모드";
@@ -115,7 +119,7 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     "명식 근거는 용어를 나열하지 말고 사랑에서 드러나는 감정, 거리감, 표현 방식, 선택 습관으로 번역합니다.",
     "상대 정보가 부족하면 단정하지 말고, 현재 드러난 흐름과 사용자가 확인할 수 있는 신호를 중심으로 말합니다.",
     "전체 상담 본문은 sections의 모든 body를 합산해 10,000~20,000자 사이로 씁니다.",
-    "분량을 채우기 위해 같은 조언을 늘이지 않고, 각 섹션마다 명리 근거, 관계 심리, 현실 행동 처방 중 하나 이상을 새롭게 펼칩니다.",
+    "분량을 채우기 위해 같은 조언을 늘이지 않습니다. 각 섹션은 반드시 명리 근거(일간·일지·오행·조후·십성·궁합 관계 중 해당되는 것)를 최소 1회 명시하고, 그 근거를 관계 심리와 현실 행동 처방으로 이어 씁니다. 근거 없이 누구에게나 통하는 일반 연애 조언은 금지합니다.",
     "각 섹션의 body는 700~1,000자 안팎의 밀도 있는 문단으로 쓰되 첫 문장 구조를 반복하지 않습니다.",
     "조언은 기다림, 대화, 거리두기, 고백, 재회, 정리 중 사용자의 상황에 맞는 선택지를 구체적으로 좁힙니다.",
     "keywords는 지금 이 관계의 핵심 키워드 3개입니다.",
@@ -124,8 +128,8 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     "oneLineDiagnosis는 오늘의 관계 한 줄 진단입니다.",
     "relationshipTemperature는 두 사람의 감정 온도를 한 문장으로 정리합니다.",
     "sections와 pdfSections는 같은 상담 내용을 화면과 저장용으로 나눠 보여 줄 상담 카드입니다.",
-    "actionSecrets는 지금 당장 실천할 연애 비책 5가지입니다.",
-    "sevenDayGuide는 7일 동안 실행할 수 있는 현실적인 가이드입니다.",
+    "actionSecrets는 지금 당장 실천할 연애 비책 5가지입니다. 각 항목은 반드시 '[난이도·타이밍] 행동 문장 (근거: 명식 근거 한 줄)' 형식으로 씁니다. 난이도는 쉬움/보통/도전 중 하나, 타이밍은 오늘/이번 주/이번 달 중 하나입니다. 예: '[쉬움·오늘] 답장 속도를 상대 리듬에 맞춰 반 박자 늦추세요 (근거: 상대 일간 갑목은 재촉당하면 닫히는 결)'.",
+    "sevenDayGuide는 7일 동안 실행할 수 있는 현실적인 가이드입니다. 각 일차 항목도 상대 또는 나의 명식 근거와 연결된 구체 행동으로 쓰고, 막연한 덕담('마음을 여세요' 류)은 금지합니다.",
     "finalMessage와 finalLine은 마지막 상담사의 한마디입니다.",
     "answer는 주요 섹션을 자연스럽게 이어 붙인 전체 상담 본문입니다.",
     "",
@@ -165,7 +169,7 @@ export function buildFirstConsultationPrompt(input = {}, sajuResult = {}) {
     '  "stageActionSecrets": "썸, 연애, 재회, 정리 등 관계 단계별 실행 비책",',
     '  "communicationAdvice": "상대에게 다가갈 때 사용할 수 있는 대화 문장과 말의 온도",',
     '  "selfProtectionBoundary": "피해야 할 선택과 지켜야 할 자기 보호 기준",',
-    '  "actionSecrets": ["실천 비책 1", "실천 비책 2", "실천 비책 3", "실천 비책 4", "실천 비책 5"],',
+    '  "actionSecrets": ["[쉬움·오늘] 행동 문장 (근거: 명식 근거)", "[보통·이번 주] 행동 문장 (근거: 명식 근거)", "[보통·이번 주] 행동 문장 (근거: 명식 근거)", "[도전·이번 달] 행동 문장 (근거: 명식 근거)", "[쉬움·오늘] 행동 문장 (근거: 명식 근거)"],',
     '  "sevenDayGuide": ["1일차 가이드", "2일차 가이드", "3일차 가이드", "4일차 가이드", "5일차 가이드", "6일차 가이드", "7일차 가이드"],',
     '  "thirtyDayFlow": "30일 동안 관계의 온도를 조율하는 흐름 처방",',
     '  "sections": [',
@@ -454,6 +458,44 @@ export function validateConsultationText(text) {
     throw error;
   }
   return value;
+}
+
+// 상담문이 계산된 명식 근거를 실제로 참조했는지 사후 검증한다.
+// (길이·금칙어 게이트만으로는 근거 없는 일반 연애 조언을 걸러낼 수 없음)
+export function validateLoveSecretGrounding(result = {}, groundingTerms = []) {
+  const terms = groundingTerms.map((term) => clean(term)).filter((term) => term.length >= 1);
+  const issues = [];
+  const fullText = [result.answer, ...(Array.isArray(result.sections) ? result.sections.map((section) => section.body) : [])].join("\n");
+
+  if (terms.length) {
+    const hits = terms.filter((term) => fullText.includes(term));
+    if (hits.length < Math.min(3, terms.length)) issues.push(`GROUNDING_TERMS:${hits.length}/${terms.length}`);
+  }
+
+  const actionSecrets = Array.isArray(result.reading?.actionSecrets) ? result.reading.actionSecrets : [];
+  const sevenDayGuide = Array.isArray(result.reading?.sevenDayGuide) ? result.reading.sevenDayGuide : [];
+  const actionText = [...actionSecrets, ...sevenDayGuide].join("\n");
+  if (actionText && !/근거\s*[:：]/.test(actionText)) issues.push("ACTION_GROUNDING_MISSING");
+
+  if (actionSecrets.length >= 3) {
+    const badgeCount = actionSecrets.filter((item) => /^\[\s*(쉬움|보통|도전)\s*[·,\s]\s*(오늘|이번\s*주|이번\s*달)\s*\]/.test(String(item))).length;
+    if (badgeCount < 3) issues.push("ACTION_BADGE_FORMAT");
+  }
+  return issues;
+}
+
+export function describeLoveSecretGroundingIssues(issues = []) {
+  const lines = [];
+  if (issues.some((issue) => issue.startsWith("GROUNDING_TERMS"))) {
+    lines.push("- 계산된 명식 데이터(일간, 십성, 궁합 관계)를 본문에서 직접 언급하며 근거로 삼으세요. 근거 없는 일반 연애 조언은 금지입니다.");
+  }
+  if (issues.includes("ACTION_GROUNDING_MISSING")) {
+    lines.push("- actionSecrets와 sevenDayGuide의 각 항목에 '(근거: …)' 형태로 명식 근거를 붙이세요.");
+  }
+  if (issues.includes("ACTION_BADGE_FORMAT")) {
+    lines.push("- actionSecrets 각 항목을 '[난이도·타이밍] 행동 (근거: …)' 형식으로 쓰세요. 난이도는 쉬움/보통/도전, 타이밍은 오늘/이번 주/이번 달 중 하나입니다.");
+  }
+  return lines;
 }
 
 export function normalizeFollowUpResponse(text) {

@@ -20,12 +20,6 @@ const ORDER_NAME = "인생의 책 AI 상담";
 
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
 ];
 
 const MESSAGES = Object.freeze({
@@ -83,7 +77,8 @@ const LIFE_FORTUNE_MAX_OUTPUT_TOKENS = 40000;
 const LIFE_FORTUNE_TIMEOUT_MS = 90000;
 const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;
 const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;
-const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 1;
+// 2회 허용: 1회 생성 + 품질 미달 시 1회 수선. 1이면 수선 프롬프트가 데드코드가 된다.
+const LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION = 2;
 const LIFE_BOOK_RESULT_TEXT_MAX_CHARS = 140000;
 const LIFE_FORTUNE_CHAPTER_TITLES = Object.freeze([
   "타고난 명식의 중심",
@@ -901,10 +896,22 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
   return null;
 }
 
-function buildSystemPrompt() {
+function buildSystemPrompt(consultationType = "lifeBook") {
+  const isFortune = consultationType === "lifeFortune";
+  const toneLines = isFortune
+    ? [
+      "이 상담은 '인생 총운' — 서사보다 정확한 진단과 통찰이 중심입니다. 문장마다 명리 근거(일간, 용신, 십성, 대운)를 붙이고, 근거 없는 덕담과 보일러플레이트('당신은 특별합니다' 류)는 금지합니다.",
+      "강점과 리스크를 균형 있게 제시합니다. 리스크를 말할 때는 반드시 조절 방법을 함께 붙이고, 강점을 말할 때는 그것이 통하는 조건을 함께 붙입니다.",
+    ]
+    : [
+      "이 상담은 '인생의 책' — 읽는 경험 자체가 선물인 서사형 리포트입니다. 각 장은 설명문 나열이 아니라, 한 사람의 인생 소설을 곁에서 읽어 주는 다정한 화자의 이야기로 씁니다.",
+      "명리 근거는 각주처럼 나열하지 말고 이야기 속 문장으로 자연스럽게 녹입니다. 예: '경금 일간의 당신은…'처럼 근거가 서사의 일부가 되게 하되, 근거 없는 뜬구름 덕담으로 문단을 채우지 않습니다.",
+      "화자의 시점과 톤은 처음부터 끝까지 같은 사람이 읽어 주듯 일관되게 유지합니다.",
+    ];
   return [
     "당신은 30년 경력의 사주 명리학자이자, 한 사람의 삶을 조용히 오래 살펴 온 운명 상담가입니다.",
     "사용자의 생년월일, 성별, 출생시간, 계산된 사주 명리 데이터를 바탕으로 삶의 흐름을 한 권의 책처럼 읽어 줍니다.",
+    ...toneLines,
     "질문에 짧게 답하지 말고, 타고난 사주, 성격, 사랑, 일, 재물, 대운, 세운, 삶의 목적이 서로 이어지는 깊은 상담문으로 작성합니다.",
     "각 장은 명식에서 드러나는 근거, 그 근거가 삶에서 만드는 의미, 지금 현실에서 선택할 수 있는 조언의 순서로 자연스럽게 흐르게 합니다.",
     "인생을 단정하거나 겁주지 말고, 사용자가 앞으로 선택할 수 있는 방향을 부드럽고도 분명하게 비춥니다.",
@@ -1071,7 +1078,8 @@ function buildFirstPrompt(input, sajuResult) {
     "분량이 부족할 때는 같은 문장을 늘리지 말고, 사주 전문가로서 일간·월지·오행·조후·십성·대운·세운을 더 세밀하게 판독하는 expertReadings를 보강하세요.",
     "문장의 양보다 명식 근거, 해석의 연결성, 현실 조언의 정확도를 우선하고, 근거 없이 감성 문장만 길게 늘리지 마세요.",
     "각 장 summary는 한 장의 핵심을 한 문장으로 담고, content는 최소 700자 이상의 3문단 이상으로 충분히 깊게 쓰며, advice는 사용자가 바로 붙잡을 수 있는 현실 조언을 2개 이상 담으세요.",
-    "열 장의 관점이 서로 겹치지 않게 하며, 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
+    "각 장 content에는 그 장과 관련된 명식 근거(일간, 월지, 오행, 십성, 대운 간지 중 해당되는 것)를 최소 2개, 설명체 각주가 아니라 이야기 속 문장으로 자연스럽게 녹여 언급하세요.",
+    "열 장의 관점이 서로 겹치지 않게 하며, 같은 문장을 다른 장에 다시 쓰지 마세요. 같은 표현을 반복하기보다 장마다 다른 결을 살려 주세요.",
   ].join("\n");
 }
 
@@ -1167,6 +1175,21 @@ function getLifeBookReportQualityIssues(content, input = {}) {
 
   if (totalContentLength < minTotalContentChars) issues.push("total_content_too_short");
   if (totalContentLength > maxTotalContentChars) issues.push("total_content_too_long");
+
+  // 장 간 중복 서사 검출: 20자 이상 동일 문장이 서로 다른 장에 다시 나오면 반려
+  const sentenceOwner = new Map();
+  let duplicateCount = 0;
+  chapters.forEach((chapter, index) => {
+    const sentences = clean(chapter?.content, 20000)
+      .split(/(?<=[.!?다요])\s+|\n+/)
+      .map((sentence) => sentence.trim())
+      .filter((sentence) => sentence.length >= 20);
+    for (const sentence of new Set(sentences)) {
+      if (sentenceOwner.has(sentence) && sentenceOwner.get(sentence) !== index) duplicateCount += 1;
+      else sentenceOwner.set(sentence, index);
+    }
+  });
+  if (duplicateCount >= 3) issues.push(`duplicate_narrative:${duplicateCount}`);
   return issues;
 }
 
@@ -1206,6 +1229,9 @@ function buildLifeBookRepairPrompt(content, issues, input = {}) {
     lifeFortune ? "합·충·형·파·해, 삼합, 방합은 natalInteractions, majorLuck.cycles[].natalInteractions, yearlyLuck[].natalInteractions에 있는 항목만 말하세요." : "",
     "전체 본문은 짧게 줄이지 말고, 같은 표현을 반복하지 않으며 전문 명리학자의 상담처럼 부드럽고 분명하게 유지하세요.",
     "기술 표현은 결과에 드러내지 말고, 계산 데이터에 없는 십성 이름은 만들지 마세요.",
+    issues.some((issue) => String(issue).startsWith("duplicate_narrative"))
+      ? "서로 다른 장에 같은 문장이 반복되었습니다. 각 장은 서로 다른 인생 영역과 시기를 다루므로, 겹친 문장을 그 장 고유의 근거와 장면으로 전부 새로 쓰세요."
+      : "",
     `보완할 지점: ${issues.join(", ")}`,
     "",
     content,
@@ -1225,8 +1251,9 @@ async function generateConsultationText(env, prompt, options = {}) {
     providerReason: diagnostics.providerReason,
   });
   const maxProviderCalls = Math.max(1, Math.floor(Number(options.maxProviderCalls || LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION) || 1));
+  const promptConsultationType = isLifeFortuneInput(options.input || {}) ? "lifeFortune" : "lifeBook";
   const ai = await callGeminiText(env, prompt, {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: buildSystemPrompt(promptConsultationType),
     taskType: "fortune",
     temperature: options.temperature || 0.72,
     maxOutputTokens: options.maxOutputTokens || 18000,
@@ -1253,7 +1280,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   }
 
   const repair = await callGeminiText(env, buildLifeBookRepairPrompt(text, issues, qualityInput), {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: buildSystemPrompt(promptConsultationType),
     taskType: "fortune",
     temperature: 0.52,
     maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000),

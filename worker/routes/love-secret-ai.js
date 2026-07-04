@@ -13,8 +13,10 @@ import {
   LOVE_SECRET_AI_SYSTEM_PROMPT,
   buildFirstConsultationPrompt,
   buildFollowUpConsultationPrompt,
+  describeLoveSecretGroundingIssues,
   normalizeFollowUpResponse,
   parseFirstConsultationResponse,
+  validateLoveSecretGrounding,
 } from "../lib/love-secret-ai-prompt.js";
 
 const SERVICE_KEY = "love-secret-ai";
@@ -24,16 +26,11 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "연애 비책 AI 상담";
 const GEMINI_ENV_KEYS = Object.freeze([
   "GEMINIF_API_KEY",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
 ]);
 const RELATIONSHIP_STATUS_LABELS = Object.freeze({
   single: "솔로",
   crush: "짝사랑",
+  some: "썸",
   dating: "연애 중",
   breakup: "이별 직후",
   reunion: "재회 고민",
@@ -737,28 +734,66 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
   return null;
 }
 
+function buildLoveSecretGroundingTerms(sajuResult = {}) {
+  return [
+    sajuResult?.myChart?.dayMaster,
+    sajuResult?.myChart?.reference?.dominantTenGod,
+    sajuResult?.partnerChart?.dayMaster,
+    sajuResult?.partnerChart?.reference?.dominantTenGod,
+    "일간",
+  ].map((term) => clean(term, 20)).filter(Boolean);
+}
+
 async function generateFirstConsultation(env, input, sajuResult, logContext = {}) {
-  const ai = await callGeminiText(env, buildFirstConsultationPrompt(input, sajuResult), {
-    systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
-    temperature: 0.72,
-    maxOutputTokens: 14000,
-    taskType: "fortune",
-  });
-  const provider = clean(ai?.provider);
-  const model = clean(ai?.model);
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-  logLoveSecretAi("LLM Provider Selected", {
-    ...logContext,
-    providerReason: isMock ? "mock_provider_blocked" : provider || model || logContext.providerReason || "llm_provider_selected",
-    provider,
-    model,
-  });
-  if (!ai?.ok || isMock || !clean(ai.text)) {
-    const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
-    error.code = "LLM_GENERATION_FAILED";
-    throw error;
+  const basePrompt = buildFirstConsultationPrompt(input, sajuResult);
+  const callOnce = async (prompt) => {
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
+      temperature: 0.72,
+      maxOutputTokens: 14000,
+      taskType: "fortune",
+    });
+    const provider = clean(ai?.provider);
+    const model = clean(ai?.model);
+    const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    logLoveSecretAi("LLM Provider Selected", {
+      ...logContext,
+      providerReason: isMock ? "mock_provider_blocked" : provider || model || logContext.providerReason || "llm_provider_selected",
+      provider,
+      model,
+    });
+    if (!ai?.ok || isMock || !clean(ai.text)) {
+      const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
+      error.code = "LLM_GENERATION_FAILED";
+      throw error;
+    }
+    return { parsed: parseFirstConsultationResponse(ai.text), provider, model };
+  };
+
+  let { parsed, provider, model } = await callOnce(basePrompt);
+  const groundingTerms = buildLoveSecretGroundingTerms(sajuResult);
+  let groundingIssues = validateLoveSecretGrounding(parsed, groundingTerms);
+  if (groundingIssues.length) {
+    logLoveSecretAi("Grounding Retry", { ...logContext, issues: groundingIssues }, "warn");
+    try {
+      const retry = await callOnce([
+        basePrompt,
+        "",
+        "직전 답변이 아래 근거 기준을 지키지 못해 반려되었다. 전부 지켜 처음부터 다시 작성하라:",
+        ...describeLoveSecretGroundingIssues(groundingIssues),
+      ].join("\n"));
+      const retryIssues = validateLoveSecretGrounding(retry.parsed, groundingTerms);
+      if (retryIssues.length <= groundingIssues.length) {
+        ({ parsed, provider, model } = retry);
+        groundingIssues = retryIssues;
+      }
+    } catch (retryError) {
+      logLoveSecretAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
+    }
+    if (groundingIssues.length) {
+      logLoveSecretAi("Grounding Residual", { ...logContext, issues: groundingIssues }, "warn");
+    }
   }
-  const parsed = parseFirstConsultationResponse(ai.text);
   return {
     ...parsed,
     provider,

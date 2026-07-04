@@ -68,6 +68,9 @@ type Consultation = {
     oneLineDiagnosis?: string;
     relationshipTemperature?: string;
     finalMessage?: string;
+    actionSecrets?: string[];
+    sevenDayGuide?: string[];
+    thirtyDayFlow?: string;
   } | null;
   pdfSections?: ResultSection[];
   sajuSummary?: SajuSummary | null;
@@ -96,6 +99,57 @@ const FALLBACK_SECTIONS = [
 
 function toText(value: unknown) {
   return String(value || "").trim();
+}
+
+// "[쉬움·오늘] 행동 (근거: …)" 형식의 전략 문자열을 배지·행동·근거로 분해
+function parseActionSecret(raw: string) {
+  const text = toText(raw);
+  const badgeMatch = text.match(/^\[\s*(쉬움|보통|도전)\s*[·,\s]\s*(오늘|이번\s*주|이번\s*달)\s*\]\s*/);
+  const rest = badgeMatch ? text.slice(badgeMatch[0].length) : text;
+  const evidenceMatch = rest.match(/\(근거\s*[:：]\s*([^)]+)\)\s*$/);
+  return {
+    difficulty: badgeMatch?.[1] || "",
+    timing: badgeMatch?.[2]?.replace(/\s+/g, " ") || "",
+    action: evidenceMatch ? rest.slice(0, evidenceMatch.index).trim() : rest,
+    evidence: evidenceMatch?.[1]?.trim() || "",
+  };
+}
+
+const DIFFICULTY_STYLES: Record<string, string> = {
+  쉬움: "border-emerald-200/40 bg-emerald-400/15 text-emerald-100",
+  보통: "border-amber-200/40 bg-amber-400/15 text-amber-100",
+  도전: "border-rose-200/40 bg-rose-400/15 text-rose-100",
+};
+
+function LoveSecretActionCards({ reading }: { reading: NonNullable<Consultation["reading"]> }) {
+  const secrets = (reading.actionSecrets || []).map(parseActionSecret).filter((item) => item.action);
+  if (!secrets.length) return null;
+  return (
+    <section className="mt-6" aria-label="지금 실행할 전략 카드">
+      <p className="text-sm font-black uppercase tracking-[0.16em] text-amber-100">Action Secrets · 전략 카드</p>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {secrets.map((item, index) => (
+          <article key={`${item.action}-${index}`} className="rounded-2xl border border-amber-100/20 bg-white/5 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-amber-100/30 bg-amber-100/10 px-2.5 py-0.5 text-[11px] font-black text-amber-50">비책 {index + 1}</span>
+              {item.difficulty && (
+                <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-black ${DIFFICULTY_STYLES[item.difficulty] || DIFFICULTY_STYLES.보통}`}>
+                  {item.difficulty}
+                </span>
+              )}
+              {item.timing && (
+                <span className="rounded-full border border-sky-200/40 bg-sky-400/15 px-2.5 py-0.5 text-[11px] font-black text-sky-100">{item.timing}</span>
+              )}
+            </div>
+            <p className="mt-2 text-sm font-bold leading-7 text-white">{item.action}</p>
+            {item.evidence && (
+              <p className="mt-1.5 text-xs leading-6 text-amber-100/75">근거 · {item.evidence}</p>
+            )}
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 function safeFilePart(value: string) {
@@ -387,6 +441,8 @@ function LoveSecretResultPageContent({
           ))}
         </section>
       ) : null}
+
+      {consultation.reading ? <LoveSecretActionCards reading={consultation.reading} /> : null}
 
       <section className="mt-6 grid gap-4">
         {sections.map((section, index) => (

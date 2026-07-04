@@ -1,7 +1,7 @@
 "use client";
 
-import { CalendarDays, Download, Loader2, Moon, Sparkles, WalletCards } from "lucide-react";
-import { useCallback, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { CalendarDays, Download, Loader2, Moon, Share2, Sparkles, WalletCards } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -77,6 +77,33 @@ type EnsureAccessResult =
   | { ok: false; reason: "INVALID_INPUT"; message: string }
   | { ok: false; reason?: string; message?: string };
 
+type MonthlyFlowRow = {
+  month: number;
+  pillar: string;
+  element: string;
+  tenGod: string;
+  domain: string;
+  relationToDayBranch: string;
+  timing: string;
+};
+
+type TargetYearInfo = {
+  year: number | null;
+  pillar: string;
+  stem: string;
+  branch: string;
+  stemElement: string;
+  tenGod: string;
+};
+
+type RecentSession = {
+  sessionId: string;
+  year: number | null;
+  pillar: string;
+  name: string;
+  updatedAt?: string;
+};
+
 type ConsultationResult = {
   ok: boolean;
   sessionId?: string;
@@ -84,6 +111,8 @@ type ConsultationResult = {
   status?: string;
   messages?: ChatMessage[];
   sajuProfile?: SajuProfile | null;
+  monthlyFlow?: MonthlyFlowRow[];
+  targetYear?: TargetYearInfo | null;
   reason?: string;
   message?: string;
 };
@@ -298,6 +327,407 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
+const KO_STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
+const KO_BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+const HANJA_STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+const HANJA_BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+const BRANCH_ANIMALS = ["쥐", "소", "호랑이", "토끼", "용", "뱀", "말", "양", "원숭이", "닭", "개", "돼지"];
+
+// 연도 간지(입춘 무시, 연 단위 근사 — 시즌 배지/테마용. 명리 계산은 서버가 담당)
+function yearGanzi(year: number) {
+  if (!Number.isInteger(year) || year < 1900 || year > 2100) return null;
+  const stemIndex = (year - 4) % 10;
+  const branchIndex = (year - 4) % 12;
+  return {
+    ko: `${KO_STEMS[stemIndex]}${KO_BRANCHES[branchIndex]}`,
+    hanja: `${HANJA_STEMS[stemIndex]}${HANJA_BRANCHES[branchIndex]}`,
+    animal: BRANCH_ANIMALS[branchIndex],
+    elementIndex: Math.floor(stemIndex / 2), // 0목 1화 2토 3금 4수
+  };
+}
+
+// 세운 천간 오행 → 시즌 테마 컬러 (목/화/토/금/수)
+const ELEMENT_THEMES = [
+  { name: "목", accent: "#4ade80", soft: "rgba(74, 222, 128, 0.16)", deep: "#14532d" },
+  { name: "화", accent: "#fb7185", soft: "rgba(251, 113, 133, 0.16)", deep: "#7f1d1d" },
+  { name: "토", accent: "#fbbf24", soft: "rgba(251, 191, 36, 0.16)", deep: "#78350f" },
+  { name: "금", accent: "#e2e8f0", soft: "rgba(226, 232, 240, 0.14)", deep: "#334155" },
+  { name: "수", accent: "#818cf8", soft: "rgba(129, 140, 248, 0.18)", deep: "#312e81" },
+];
+
+function buildSeasonCountdown(targetYear: number) {
+  if (!Number.isInteger(targetYear)) return "";
+  const now = new Date();
+  const janFirst = new Date(targetYear, 0, 1);
+  if (now < janFirst) {
+    const days = Math.ceil((janFirst.getTime() - now.getTime()) / 86400000);
+    return `${targetYear}년 새해까지 D-${days}`;
+  }
+  if (now.getFullYear() === targetYear) {
+    const yearEnd = new Date(targetYear + 1, 0, 1);
+    const percent = Math.min(99, Math.max(1, Math.round(((now.getTime() - janFirst.getTime()) / (yearEnd.getTime() - janFirst.getTime())) * 100)));
+    return `${targetYear}년의 ${percent}%를 지나는 중`;
+  }
+  return `${targetYear}년의 흐름을 되짚어 봅니다`;
+}
+
+const TIMING_LABELS: Record<string, string> = { 기회: "기회", 주의: "주의", 정비: "정비" };
+
+function quarterSummaries(rows: MonthlyFlowRow[]) {
+  return [0, 1, 2, 3].map((quarter) => {
+    const months = rows.filter((row) => Math.floor((row.month - 1) / 3) === quarter);
+    const count = (timing: string) => months.filter((row) => row.timing === timing).length;
+    const opportunity = months.filter((row) => row.timing === "기회").map((row) => `${row.month}월`);
+    return {
+      quarter: quarter + 1,
+      range: `${quarter * 3 + 1}~${quarter * 3 + 3}월`,
+      opportunity: count("기회"),
+      caution: count("주의"),
+      maintain: count("정비"),
+      highlight: opportunity.length ? `${opportunity.join("·")} 기회` : count("주의") ? "속도 조절 구간" : "정비 흐름",
+    };
+  });
+}
+
+function MonthlyFlowCalendar({ rows }: { rows: MonthlyFlowRow[] }) {
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
+  if (rows.length !== 12) return null;
+  const selected = selectedMonth ? rows.find((row) => row.month === selectedMonth) : null;
+  return (
+    <section className="nyai-month-calendar" data-pdf-section="monthly-calendar" aria-label="월별 운세 캘린더 — 달을 누르면 해설이 열립니다">
+      <div className="nyai-month-head">
+        <strong>12개월 운세 캘린더</strong>
+        <span>달을 누르면 그 달의 간지와 흐름이 열립니다</span>
+      </div>
+      <div className="nyai-quarter-row">
+        {quarterSummaries(rows).map((item) => (
+          <div className="nyai-quarter-card" key={item.quarter}>
+            <span>{item.quarter}분기 · {item.range}</span>
+            <strong>{item.highlight}</strong>
+            <small>기회 {item.opportunity} · 주의 {item.caution} · 정비 {item.maintain}</small>
+          </div>
+        ))}
+      </div>
+      <div className="nyai-month-grid" role="list">
+        {rows.map((row) => (
+          <button
+            type="button"
+            role="listitem"
+            key={row.month}
+            className={`nyai-month-cell nyai-month-cell--${row.timing === "기회" ? "opportunity" : row.timing === "주의" ? "caution" : "maintain"}${selectedMonth === row.month ? " is-selected" : ""}`}
+            onClick={() => setSelectedMonth(selectedMonth === row.month ? null : row.month)}
+            aria-label={`${row.month}월 ${row.pillar} ${row.timing}`}
+          >
+            <strong>{row.month}월</strong>
+            <span>{row.pillar}</span>
+            <small>{TIMING_LABELS[row.timing] || row.timing}</small>
+          </button>
+        ))}
+      </div>
+      {selected ? (
+        <div className="nyai-month-detail">
+          <strong>{selected.month}월 · {selected.pillar} ({selected.element})</strong>
+          <p>
+            십신 {selected.tenGod || "미산출"} — {selected.domain || "생활 리듬 조정"}.
+            {" "}{selected.relationToDayBranch}
+          </p>
+        </div>
+      ) : (
+        <p className="nyai-month-hint">색은 계산된 판정입니다 — 밝은 칸은 기회, 붉은 칸은 주의, 회색 칸은 정비의 달.</p>
+      )}
+    </section>
+  );
+}
+
+// SNS 공유 카드 (1080×1350) — 캔버스 직접 드로잉, 외부 요청 없음
+async function drawShareCard(options: {
+  year: number;
+  ganziHanja: string;
+  ganziKo: string;
+  name: string;
+  rows: MonthlyFlowRow[];
+  theme: { accent: string; deep: string };
+}) {
+  const { year, ganziHanja, ganziKo, name, rows, theme } = options;
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1350;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("share canvas unavailable");
+
+  const gradient = context.createLinearGradient(0, 0, 1080, 1350);
+  gradient.addColorStop(0, "#180a08");
+  gradient.addColorStop(0.55, theme.deep);
+  gradient.addColorStop(1, "#0b0605");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 1080, 1350);
+
+  context.strokeStyle = theme.accent;
+  context.lineWidth = 6;
+  context.strokeRect(48, 48, 1080 - 96, 1350 - 96);
+
+  context.textAlign = "center";
+  context.fillStyle = "rgba(255, 240, 220, 0.85)";
+  context.font = "600 44px 'Noto Sans KR', sans-serif";
+  context.fillText("신년운세 AI 상담", 540, 200);
+
+  context.fillStyle = theme.accent;
+  context.font = "800 220px 'Noto Serif KR', serif";
+  context.fillText(ganziHanja, 540, 560);
+
+  context.fillStyle = "#fff6ea";
+  context.font = "800 88px 'Noto Sans KR', sans-serif";
+  context.fillText(`${year} ${ganziKo}년`, 540, 700);
+
+  if (name) {
+    context.fillStyle = "rgba(255, 240, 220, 0.92)";
+    context.font = "600 52px 'Noto Sans KR', sans-serif";
+    context.fillText(`${name}님의 새해 흐름`, 540, 800);
+  }
+
+  const opportunity = rows.filter((row) => row.timing === "기회").map((row) => `${row.month}월`).slice(0, 4);
+  const caution = rows.filter((row) => row.timing === "주의").map((row) => `${row.month}월`).slice(0, 4);
+  context.font = "600 46px 'Noto Sans KR', sans-serif";
+  context.fillStyle = theme.accent;
+  context.fillText(opportunity.length ? `기회의 달 · ${opportunity.join(" ")}` : "기회의 달을 함께 찾아드립니다", 540, 950);
+  context.fillStyle = "rgba(251, 146, 133, 0.95)";
+  context.fillText(caution.length ? `쉬어갈 달 · ${caution.join(" ")}` : "무리하지 않는 리듬이 열쇠", 540, 1030);
+
+  context.fillStyle = "rgba(255, 240, 220, 0.6)";
+  context.font = "500 38px 'Noto Sans KR', sans-serif";
+  context.fillText("code-destiny.com", 540, 1230);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("share blob failed"))), "image/png");
+  });
+}
+
+const NYAI_SEASON_CSS = `
+.nyai-ganzi-chip {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--nyai-accent, #fbbf24);
+  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
+  border: 1px solid var(--nyai-accent, #fbbf24);
+}
+
+.nyai-countdown {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-year-field > span {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.nyai-year-chips {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.nyai-year-chip {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 226, 191, 0.25);
+  background: rgba(46, 19, 15, 0.55);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.nyai-year-chip small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.nyai-year-chip.is-active {
+  border-color: var(--nyai-accent, #fbbf24);
+  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
+}
+
+.nyai-year-field input {
+  margin-top: 8px;
+  width: 100%;
+}
+
+.nyai-result-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nyai-month-calendar {
+  border: 1px solid rgba(255, 226, 191, 0.22);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(31, 12, 9, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nyai-month-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.nyai-month-head strong {
+  font-size: 14px;
+  color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-month-head span {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.nyai-quarter-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.nyai-quarter-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 226, 191, 0.06);
+  border: 1px solid rgba(255, 226, 191, 0.14);
+}
+
+.nyai-quarter-card span { font-size: 10px; opacity: 0.65; }
+.nyai-quarter-card strong { font-size: 12px; color: var(--nyai-accent, #fbbf24); }
+.nyai-quarter-card small { font-size: 10px; opacity: 0.7; }
+
+.nyai-month-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.nyai-month-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: 10px 9px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 226, 191, 0.18);
+  background: rgba(255, 226, 191, 0.05);
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.nyai-month-cell strong { font-size: 13px; }
+.nyai-month-cell span { font-size: 12px; opacity: 0.85; }
+.nyai-month-cell small { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; }
+
+.nyai-month-cell--opportunity {
+  border-color: var(--nyai-accent, #fbbf24);
+  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16));
+}
+.nyai-month-cell--opportunity small { color: var(--nyai-accent, #fbbf24); }
+
+.nyai-month-cell--caution {
+  border-color: rgba(248, 113, 113, 0.55);
+  background: rgba(248, 113, 113, 0.12);
+}
+.nyai-month-cell--caution small { color: #fca5a5; }
+
+.nyai-month-cell--maintain small { opacity: 0.6; }
+
+.nyai-month-cell.is-selected {
+  transform: translateY(-2px);
+  border-width: 2px;
+}
+
+.nyai-month-detail {
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 226, 191, 0.3);
+  padding: 10px 12px;
+}
+
+.nyai-month-detail strong {
+  font-size: 13px;
+  color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-month-detail p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  opacity: 0.9;
+}
+
+.nyai-month-hint {
+  margin: 0;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.nyai-recent-list {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.nyai-recent-list > strong {
+  font-size: 12px;
+  color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 226, 191, 0.2);
+  background: rgba(46, 19, 15, 0.5);
+  color: inherit;
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.2s ease;
+}
+
+.nyai-recent-item:hover {
+  border-color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-recent-item small { opacity: 0.6; }
+
+@media (max-width: 720px) {
+  .nyai-quarter-row { grid-template-columns: repeat(2, 1fr); }
+  .nyai-month-grid { grid-template-columns: repeat(3, 1fr); }
+  .nyai-year-chips { grid-template-columns: 1fr 1fr; }
+}
+`;
+
 export default function NewYearAiConsultationPage() {
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
@@ -306,10 +736,70 @@ export default function NewYearAiConsultationPage() {
   const [accessType, setAccessType] = useState<AccessType | "">("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sajuProfile, setSajuProfile] = useState<SajuProfile | null>(null);
+  const [monthlyFlow, setMonthlyFlow] = useState<MonthlyFlowRow[]>([]);
+  const [targetYearInfo, setTargetYearInfo] = useState<TargetYearInfo | null>(null);
+  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
+  const [showCustomYear, setShowCustomYear] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const resultRef = useRef<HTMLDivElement | null>(null);
+
+  const applyResult = useCallback((result: ConsultationResult) => {
+    setAccessType(result.accessType || "");
+    setMessages(Array.isArray(result.messages) ? result.messages : []);
+    setSajuProfile(result.sajuProfile || null);
+    setMonthlyFlow(Array.isArray(result.monthlyFlow) ? result.monthlyFlow : []);
+    setTargetYearInfo(result.targetYear || null);
+    setNotice("");
+    setError("");
+    setStatus("ready");
+    if (result.sessionId && typeof window !== "undefined") {
+      try {
+        const url = new URL(window.location.href);
+        url.searchParams.set("sid", result.sessionId);
+        window.history.replaceState(null, "", url.toString());
+      } catch {
+        // URL 갱신 실패는 무시
+      }
+    }
+  }, []);
+
+  const loadSession = useCallback(async (sessionId: string) => {
+    try {
+      const response = await fetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`, { credentials: "include" });
+      const result = await response.json().catch(() => ({})) as ConsultationResult;
+      if (result.ok && Array.isArray(result.messages) && result.messages.length) {
+        applyResult({ ...result, sessionId });
+        return true;
+      }
+    } catch {
+      // 재열람 실패는 조용히 무시 — 새 상담은 그대로 시작 가능
+    }
+    return false;
+  }, [applyResult]);
+
+  // 재열람: ?sid= 복원 + 지난 상담 목록
+  useEffect(() => {
+    let cancelled = false;
+    const sid = new URLSearchParams(window.location.search).get("sid");
+    if (sid) void loadSession(sid);
+    (async () => {
+      try {
+        const response = await fetch("/api/new-year-ai/result", { credentials: "include" });
+        if (!response.ok) return;
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && Array.isArray(data?.sessions)) setRecentSessions(data.sessions);
+      } catch {
+        // 목록 조회 실패는 무시
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const statusText = useMemo(() => {
     if (status === "preparing") return "상담을 준비하고 있습니다";
@@ -332,6 +822,8 @@ export default function NewYearAiConsultationPage() {
     setAccessType("");
     setMessages([]);
     setSajuProfile(null);
+    setMonthlyFlow([]);
+    setTargetYearInfo(null);
     setError("");
     setNotice("");
     setStatus("idle");
@@ -365,12 +857,7 @@ export default function NewYearAiConsultationPage() {
     }, idempotencyKey);
 
     if (result.ok && Array.isArray(result.messages) && result.messages.length) {
-      setAccessType(result.accessType || "");
-      setMessages(result.messages);
-      setSajuProfile(result.sajuProfile || null);
-      setNotice("");
-      setError("");
-      setStatus("ready");
+      applyResult(result);
       return;
     }
     if (result.ok && result.status === "generating") {
@@ -381,7 +868,7 @@ export default function NewYearAiConsultationPage() {
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
     if (result.reason === "LLM_ERROR") throw new Error(LLM_ERROR_MESSAGE);
     throw new Error(result.message || SERVER_ERROR_MESSAGE);
-  }, []);
+  }, [applyResult]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -528,14 +1015,74 @@ export default function NewYearAiConsultationPage() {
     }
   }, [assistantMessages.length, form.targetYear, form.userName, isDownloading]);
 
+  // 시즌 아이덴티티: 상담 연도의 간지·오행 테마
+  const seasonYear = Number(targetYearInfo?.year || form.targetYear);
+  const ganzi = useMemo(() => yearGanzi(seasonYear), [seasonYear]);
+  const seasonTheme = ELEMENT_THEMES[ganzi?.elementIndex ?? 2] || ELEMENT_THEMES[2];
+  const seasonCountdown = useMemo(() => buildSeasonCountdown(seasonYear), [seasonYear]);
+  const themeVars = {
+    "--nyai-accent": seasonTheme.accent,
+    "--nyai-accent-soft": seasonTheme.soft,
+    "--nyai-accent-deep": seasonTheme.deep,
+  } as CSSProperties;
+  const currentYear = new Date().getFullYear();
+
+  const selectTargetYear = useCallback((year: number) => {
+    setForm((prev) => ({ ...prev, targetYear: String(year) }));
+    resetAttempt();
+  }, [resetAttempt]);
+
+  const handleShareCard = useCallback(async () => {
+    if (!assistantMessages.length || isSharing || !ganzi) return;
+    setIsSharing(true);
+    setError("");
+    try {
+      const blob = await drawShareCard({
+        year: seasonYear,
+        ganziHanja: ganzi.hanja,
+        ganziKo: ganzi.ko,
+        name: form.userName.trim(),
+        rows: monthlyFlow,
+        theme: seasonTheme,
+      });
+      const fileName = `신년운세_${seasonYear}_${ganzi.ko}.png`;
+      const file = new File([blob], fileName, { type: "image/png" });
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `${seasonYear} ${ganzi.ko}년 신년운세`,
+          text: `${seasonYear} ${ganzi.ko}년, 나의 새해 흐름을 확인했어요.`,
+        });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (caught) {
+      if ((caught as Error)?.name !== "AbortError") {
+        setError("공유 카드를 만드는 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  }, [assistantMessages.length, form.userName, ganzi, isSharing, monthlyFlow, seasonTheme, seasonYear]);
+
   return (
-    <main className="nyai-page">
+    <main className="nyai-page" style={themeVars} data-season-element={seasonTheme.name}>
       <section className="nyai-panel nyai-intro" aria-label="신년운세 AI 상담">
         <div className="nyai-orbit" aria-hidden="true" />
         <div className="nyai-consult-card" aria-label="상담 준비 요약">
           <div className="nyai-consult-year">
             <span>상담 연도</span>
             <strong>{form.targetYear || "미정"}</strong>
+            {ganzi ? (
+              <em className="nyai-ganzi-chip" aria-label={`${seasonYear}년 간지 ${ganzi.ko}년`}>
+                {ganzi.hanja} · {ganzi.ko}년 ({ganzi.animal}띠)
+              </em>
+            ) : null}
           </div>
           <div className="nyai-consult-rows">
             <span><b>집중 흐름</b>{selectedFocusOption.label}</span>
@@ -559,6 +1106,7 @@ export default function NewYearAiConsultationPage() {
             {!isBusy && <Sparkles size={16} />}
             <span>{statusText}</span>
           </div>
+          {seasonCountdown && <p className="nyai-countdown">{seasonCountdown}</p>}
           {accessType && <p className="nyai-access">이용 방식: {accessType}</p>}
         </div>
       </section>
@@ -598,10 +1146,54 @@ export default function NewYearAiConsultationPage() {
                 <option value="lunar">음력</option>
               </select>
             </label>
-            <label>
-              상담 연도
-              <input type="number" value={form.targetYear} min="1900" max="2100" onChange={updateField("targetYear")} required />
-            </label>
+            <div className="nyai-year-field">
+              <span>상담 연도</span>
+              <div className="nyai-year-chips" role="radiogroup" aria-label="상담 연도 선택">
+                {[currentYear, currentYear + 1].map((year) => {
+                  const chipGanzi = yearGanzi(year);
+                  const isActive = Number(form.targetYear) === year && !showCustomYear;
+                  return (
+                    <button
+                      type="button"
+                      key={year}
+                      className={`nyai-year-chip${isActive ? " is-active" : ""}`}
+                      role="radio"
+                      aria-checked={isActive}
+                      disabled={isBusy}
+                      onClick={() => {
+                        setShowCustomYear(false);
+                        selectTargetYear(year);
+                      }}
+                    >
+                      <strong>{year === currentYear ? "올해" : "내년"} {year}</strong>
+                      {chipGanzi ? <small>{chipGanzi.ko}년 · {chipGanzi.animal}띠</small> : null}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  className={`nyai-year-chip${showCustomYear ? " is-active" : ""}`}
+                  role="radio"
+                  aria-checked={showCustomYear}
+                  disabled={isBusy}
+                  onClick={() => setShowCustomYear(true)}
+                >
+                  <strong>다른 연도</strong>
+                  <small>직접 입력</small>
+                </button>
+              </div>
+              {showCustomYear && (
+                <input
+                  type="number"
+                  value={form.targetYear}
+                  min="1900"
+                  max="2100"
+                  onChange={updateField("targetYear")}
+                  aria-label="상담 연도 직접 입력"
+                  required
+                />
+              )}
+            </div>
           </div>
           <div className="nyai-focus-panel">
             <div className="nyai-focus-head">
@@ -651,10 +1243,16 @@ export default function NewYearAiConsultationPage() {
               <h2>새해의 첫 번째 답장</h2>
             </div>
             {assistantMessages.length > 0 && (
-              <button className="nyai-pdf-button" type="button" onClick={handleDownloadPdf} disabled={isDownloading}>
-                {isDownloading ? <Loader2 size={16} className="nyai-spin" /> : <Download size={16} />}
-                <span>{isDownloading ? "저장 중" : "PDF 저장"}</span>
-              </button>
+              <div className="nyai-result-actions">
+                <button className="nyai-pdf-button" type="button" onClick={() => void handleShareCard()} disabled={isSharing} aria-label="공유 카드 이미지 만들기">
+                  {isSharing ? <Loader2 size={16} className="nyai-spin" /> : <Share2 size={16} />}
+                  <span>{isSharing ? "카드 생성 중" : "공유 카드"}</span>
+                </button>
+                <button className="nyai-pdf-button" type="button" onClick={handleDownloadPdf} disabled={isDownloading}>
+                  {isDownloading ? <Loader2 size={16} className="nyai-spin" /> : <Download size={16} />}
+                  <span>{isDownloading ? "저장 중" : "PDF 저장"}</span>
+                </button>
+              </div>
             )}
           </div>
           <div className="nyai-messages" ref={resultRef}>
@@ -662,10 +1260,27 @@ export default function NewYearAiConsultationPage() {
               <div className="nyai-empty">
                 <p>아직 새해의 첫 문장이 열리지 않았습니다.</p>
                 <span>생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.</span>
+                {recentSessions.length > 0 && (
+                  <div className="nyai-recent-list" aria-label="지난 신년운세 다시 보기">
+                    <strong>지난 상담 다시 보기</strong>
+                    {recentSessions.map((session) => (
+                      <button
+                        type="button"
+                        key={session.sessionId}
+                        className="nyai-recent-item"
+                        onClick={() => void loadSession(session.sessionId)}
+                      >
+                        <span>{session.year ? `${session.year}년` : "신년운세"}{session.pillar ? ` ${session.pillar}` : ""}</span>
+                        <small>{session.name || "무기명"}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ) : assistantMessages.map((message, index) => (
               <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
                 {index === 0 && <SajuProfilePanel profile={sajuProfile} />}
+                {index === 0 && <MonthlyFlowCalendar rows={monthlyFlow} />}
                 <article className="nyai-message nyai-message--assistant">
                   <span>새해 상담 편지</span>
                   <AssistantMessageContent content={message.content} />
@@ -676,6 +1291,7 @@ export default function NewYearAiConsultationPage() {
         </section>
       </section>
 
+      <style>{NYAI_SEASON_CSS}</style>
       <style>{`
         .nyai-page {
           min-height: 100vh;

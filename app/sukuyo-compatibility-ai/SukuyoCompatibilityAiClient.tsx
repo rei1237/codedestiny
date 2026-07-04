@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { CalendarDays, ChevronLeft, ChevronRight, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
+import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
   beginPaidFeatureGateCheck,
@@ -78,10 +78,9 @@ type EnsureAccessResult =
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const FEATURE_REASON = "숙요점 궁합 AI 상담";
-const FEATURE_COST = 490;
-const FEATURE_AMOUNT_KRW = 49000;
-const FEATURE_MEMBERSHIP_CREDIT_COST = 4900;
-const STEPS = ["내 달자리", "상대의 달자리"];
+const FEATURE_COST = 300;
+const FEATURE_AMOUNT_KRW = 30000;
+const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
 const LOADING_STAGES = [
   { phase: "1", label: "두 사람의 달빛 자리를 맞춰보고 있어요.", sub: "생년 정보 확인" },
   { phase: "2", label: "본명숙과 관계 거리의 흐름을 차분히 읽는 중입니다.", sub: "본명숙 계산" },
@@ -126,6 +125,23 @@ const SECTION_ICONS: Record<string, string> = {
   outlook: "🔭",
   moonLetter: "♡",
 };
+// 챕터 진입 시 숙요 역술가 보이스 로딩 카피
+const CHAPTER_LOADING_COPY: Record<string, string> = {
+  overview: "역술가가 두 별의 전체 궁합 그림을 펼치고 있습니다…",
+  twoStars: "두 분의 본명숙을 나란히 놓고 기질을 비춰보는 중입니다.",
+  attraction: "처음 끌렸던 순간의 별자리 거리를 되짚어 보고 있습니다.",
+  conflict: "파문이 이는 자리를 관계 유형의 결로 살피는 중입니다.",
+  timing: "관계의 계절이 어디쯤 왔는지 절기력을 넘기고 있습니다.",
+  caution: "원국 근거로 조심할 습관을 정리하는 중입니다.",
+  treasure: "두 분만의 강점이 모이는 자리를 찾아내고 있습니다.",
+  communication: "서로에게 닿는 말의 온도를 맞춰 보는 중입니다.",
+  domains: "연애, 일, 우정 — 영역별 상성을 갈아 끼워 보고 있습니다.",
+  crisis: "위기 국면을 건너는 단계별 지침을 세우는 중입니다.",
+  outlook: "1년 뒤, 3년 뒤 두 갈래 하늘을 미리 내다보는 중입니다.",
+  moonLetter: "마지막 달빛 처방을 정성껏 접고 있습니다…",
+};
+const CHAPTER_LOADING_COPY_FALLBACK = "다음 장의 달빛을 모으는 중입니다…";
+
 const SCORE_AXES: { key: ScoreKey; label: string; angle: number }[] = [
   { key: "destiny", label: "운명 인연", angle: -90 },
   { key: "harmony", label: "기질 조화", angle: -18 },
@@ -671,10 +687,72 @@ function renderRichText(body: string) {
   });
 }
 
+// 요약 헤더: 두 별을 잇는 별자리 라인 + 궁합 게이지 + "운명적 끌림 vs 현실적 조율" 듀얼 미터
+function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
+  const pull = Math.round(((meta.scores.destiny + meta.scores.emotion) / 40) * 100);
+  const tune = Math.round(((meta.scores.stability + meta.scores.harmony) / 40) * 100);
+  return (
+    <section className={styles.summaryHeaderCard} aria-label="궁합 요약">
+      <svg viewBox="0 0 320 96" className={styles.starLineSvg} aria-hidden="true">
+        <path d="M28 66 Q160 8 292 66" fill="none" stroke="rgba(200,168,255,0.35)" strokeWidth="1.2" strokeDasharray="3 5" />
+        <line x1="28" y1="66" x2="292" y2="66" stroke="rgba(255,232,182,0.5)" strokeWidth="1.4" />
+        <circle cx="28" cy="66" r="7" fill="#FFE8B6" style={{ filter: "drop-shadow(0 0 8px rgba(255,232,182,0.9))" }} />
+        <circle cx="292" cy="66" r="7" fill="#C8A8FF" style={{ filter: "drop-shadow(0 0 8px rgba(200,168,255,0.9))" }} />
+        <text x="28" y="88" textAnchor="middle" fontSize="10" fill="rgba(255,247,232,0.85)">{meta.person_a.sukuyo}</text>
+        <text x="292" y="88" textAnchor="middle" fontSize="10" fill="rgba(255,247,232,0.85)">{meta.person_b.sukuyo}</text>
+        <text x="160" y="58" textAnchor="middle" fontSize="10" fill="rgba(255,232,182,0.9)">{meta.relation.type_a_to_b} · 거리 {meta.relation.distance}숙</text>
+      </svg>
+      <div className={styles.summaryGauge}>
+        <div className={styles.gaugeCircle} role="img" aria-label={`종합 궁합 ${meta.scores.total}점`} style={{ background: `conic-gradient(#FFE8B6 ${meta.scores.total * 3.6}deg, rgba(255,255,255,0.08) 0deg)` }}>
+          <span><strong>{meta.scores.total}</strong><small>/100</small></span>
+        </div>
+        <div className={styles.dualMeter}>
+          <div>
+            <span>운명적 끌림</span>
+            <i><b style={{ width: `${pull}%` }} /></i>
+            <em>{pull}%</em>
+          </div>
+          <div>
+            <span>현실적 조율</span>
+            <i data-tone="tune"><b style={{ width: `${tune}%` }} /></i>
+            <em>{tune}%</em>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CompatResultModal({ result, onClose, onDownloadError }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
+  const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
+  const [activeChapter, setActiveChapter] = useState(0);
+  const [unlockedChapter, setUnlockedChapter] = useState(0);
+  const [chapterLoading, setChapterLoading] = useState(false);
+  const chapterTimerRef = useRef<number | null>(null);
+  const chapterBodyRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setChapterLoading(true);
+    chapterTimerRef.current = window.setTimeout(() => setChapterLoading(false), 850);
+    return () => {
+      if (chapterTimerRef.current) window.clearTimeout(chapterTimerRef.current);
+    };
+  }, []);
+
+  const openChapter = (index: number) => {
+    if (index < 0 || index >= chapterEntries.length || index > unlockedChapter + 1) return;
+    if (chapterTimerRef.current) window.clearTimeout(chapterTimerRef.current);
+    setActiveChapter(index);
+    setUnlockedChapter((current) => Math.max(current, index));
+    setChapterLoading(true);
+    chapterTimerRef.current = window.setTimeout(() => {
+      setChapterLoading(false);
+      chapterBodyRef.current?.scrollTo?.({ top: 0 });
+    }, 850);
+  };
 
   const handlePDF = async () => {
     const element = document.getElementById("compat-result-body");
@@ -733,7 +811,59 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
         </div>
       </header>
 
-      <div id="compat-result-body" className={styles.modalBody}>
+      <div className={styles.modalBody}>
+        <CompatSummaryHeader meta={meta} />
+        <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+          {chapterEntries.map(([key, section], index) => (
+            <button
+              key={key}
+              type="button"
+              className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}${index > unlockedChapter + 1 ? ` ${styles.chapterChipLocked}` : ""}`}
+              onClick={() => openChapter(index)}
+              disabled={index > unlockedChapter + 1}
+              aria-current={index === activeChapter ? "true" : undefined}
+              aria-label={`${index + 1}장 ${section.title}${index > unlockedChapter + 1 ? " (아직 잠겨 있어요)" : ""}`}
+            >
+              <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
+              {index + 1}장
+            </button>
+          ))}
+        </nav>
+        <div className={styles.chapterStage} ref={chapterBodyRef}>
+          {chapterLoading ? (
+            <div className={styles.yeonLoading} aria-live="polite">
+              <span aria-hidden="true">☾</span>
+              <p>{CHAPTER_LOADING_COPY[chapterEntries[activeChapter]?.[0] || ""] || CHAPTER_LOADING_COPY_FALLBACK}</p>
+            </div>
+          ) : (
+            <article className={styles.readingSection}>
+              <div>
+                <span>{SECTION_ICONS[chapterEntries[activeChapter]?.[0] || ""] || "✦"}</span>
+                <h3>{chapterEntries[activeChapter]?.[1]?.title || ""}</h3>
+              </div>
+              <div className={styles.readingBody}>{renderRichText(chapterEntries[activeChapter]?.[1]?.body || "")}</div>
+            </article>
+          )}
+        </div>
+        <div className={styles.chapterPager}>
+          <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0 || chapterLoading} aria-label="이전 장으로">
+            이전 장
+          </button>
+          <span>{activeChapter + 1} / {chapterEntries.length}</span>
+          {activeChapter < chapterEntries.length - 1 ? (
+            <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} disabled={chapterLoading} aria-label="다음 장 열기">
+              다음 장 열기
+            </button>
+          ) : (
+            <button type="button" className={styles.chapterNextButton} onClick={onClose} disabled={chapterLoading} aria-label="결과 닫기">
+              여운 남기고 닫기
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}
+      <div id="compat-result-body" className={styles.pdfSource} aria-hidden="true">
         <section className={`${styles.coverSection} ${styles.pdfPage} ${styles.pdfCoverPage}`} data-pdf-section>
           <div className={styles.pdfMoonImage} aria-hidden="true">
             <span />
@@ -790,14 +920,25 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
   );
 }
 
+type RecentConsultation = {
+  id: string;
+  personAName: string;
+  personAShuku: string;
+  personBName: string;
+  personBShuku: string;
+  relationType: string;
+  updatedAt?: string;
+};
+
 export default function SukuyoCompatibilityAiClient() {
   const reduceMotion = useReducedMotion() === true;
-  const [step, setStep] = useState(0);
   const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
   const relationshipType = "연인";
   const topic = "전체 궁합";
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  const [resultOpen, setResultOpen] = useState(false);
+  const [recentList, setRecentList] = useState<RecentConsultation[]>([]);
   const [phase, setPhase] = useState<"idle" | "access" | "payment" | "start" | "chat">("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -805,9 +946,65 @@ export default function SukuyoCompatibilityAiClient() {
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const consultationType: ConsultationType = "compatibility";
-  const stepLabels = STEPS;
-  const lastStep = stepLabels.length - 1;
   const result = useMemo(() => latestAssistantJson(consultation), [consultation]);
+
+  useEffect(() => {
+    if (result) setResultOpen(true);
+  }, [result]);
+
+  function rememberConsultationUrl(id: string) {
+    if (!id || typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cid", id);
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      // URL 갱신 실패는 무시
+    }
+  }
+
+  // 재열람: ?cid= 복원 + 지난 궁합 목록
+  useEffect(() => {
+    let cancelled = false;
+    const cid = new URLSearchParams(window.location.search).get("cid");
+    (async () => {
+      if (cid) {
+        try {
+          const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(cid)}`);
+          const data = await response.json().catch(() => ({}));
+          if (!cancelled && data?.ok && data.consultation) setConsultation(data.consultation as Consultation);
+        } catch {
+          // 재열람 실패는 조용히 무시
+        }
+      }
+      try {
+        const response = await authFetch("/api/sukuyo-compatibility-ai/result");
+        if (!response.ok) return;
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && Array.isArray(data?.consultations)) setRecentList(data.consultations);
+      } catch {
+        // 목록 조회 실패는 무시
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function loadRecentConsultation(id: string) {
+    try {
+      const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
+      const data = await response.json().catch(() => ({}));
+      if (data?.ok && data.consultation) {
+        setConsultation(data.consultation as Consultation);
+        rememberConsultationUrl(id);
+        return;
+      }
+      setError("상담 내역을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } catch {
+      setError(ERROR_TEXT.NETWORK_ERROR);
+    }
+  }
 
   useEffect(() => {
     document.body.classList.add(styles.fullscreenBody);
@@ -874,44 +1071,13 @@ export default function SukuyoCompatibilityAiClient() {
     return "";
   }
 
-  function getStepValidationMessage(index = step) {
-    if (index === 0) return getPersonValidationMessage("a", personA);
-    if (consultationType === "compatibility" && index === 1) return getPersonValidationMessage("b", personB);
-    return validatePayload() ? "" : ERROR_TEXT.INVALID_INPUT;
-  }
-
   function getPayloadValidationMessage() {
     return getPersonValidationMessage("a", personA) || getPersonValidationMessage("b", personB) || ERROR_TEXT.INVALID_INPUT;
   }
 
-  function isStepComplete(index: number) {
-    if (index === 0) return !getPersonValidationMessage("a", personA);
-    if (index === 1) return !getPersonValidationMessage("b", personB);
-    return false;
-  }
-
-  function handleStepClick(index: number) {
-    if (busy) return;
-    if (index > step) {
-      const message = getStepValidationMessage(step);
-      if (message) {
-        setError(message);
-        return;
-      }
-    }
-    setError("");
-    setStep(index);
-  }
-
-  function handleNextStep() {
-    const message = getStepValidationMessage(step);
-    if (message) {
-      setError(message);
-      return;
-    }
-    setError("");
-    setStep((current) => Math.min(lastStep, current + 1));
-  }
+  const personAComplete = !getPersonValidationMessage("a", personA);
+  const personBComplete = !getPersonValidationMessage("b", personB);
+  const bothComplete = personAComplete && personBComplete;
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
@@ -922,6 +1088,7 @@ export default function SukuyoCompatibilityAiClient() {
     );
     if (data.ok && data.consultation) {
       setConsultation(data.consultation);
+      if (data.consultation.id) rememberConsultationUrl(data.consultation.id);
       setError("");
       setNotice("");
       setPhase("idle");
@@ -1122,39 +1289,58 @@ export default function SukuyoCompatibilityAiClient() {
                 <h2>두 사람의 달빛 자리를 엽니다</h2>
                 <span>숙요점의 본명숙과 관계 거리를 바탕으로 서로의 끌림, 갈등, 마음의 속도를 AI 상담 형식으로 차분히 풀어드립니다.</span>
               </div>
-              <div className={styles.stepTabs}>
-                {stepLabels.map((label, index) => {
-                  const complete = isStepComplete(index);
-                  const stepClass = index === step ? styles.stepActive : complete ? styles.stepComplete : styles.step;
-                  return (
-                    <button key={label} type="button" className={stepClass} onClick={() => handleStepClick(index)} disabled={busy} aria-current={index === step ? "step" : undefined}>
-                      <span>{complete && index !== step ? "✓" : index + 1}</span>{label}
-                    </button>
-                  );
-                })}
+              <div className={styles.duoGrid}>
+                <div className={`${styles.duoCard}${personAComplete ? ` ${styles.duoCardComplete}` : ""}`}>
+                  <header className={styles.duoCardHead}>
+                    <span aria-hidden="true">☾</span>
+                    <strong>나의 별</strong>
+                    <em>{personAComplete ? "자리 완성" : "채우는 중"}</em>
+                  </header>
+                  {renderPersonFields("a", personA)}
+                </div>
+                <div className={styles.duoBridge} aria-hidden="true">
+                  <span>✦</span>
+                  <i />
+                </div>
+                <div className={`${styles.duoCard} ${styles.duoCardPartner}${personBComplete ? ` ${styles.duoCardComplete}` : ""}`}>
+                  <header className={styles.duoCardHead}>
+                    <span aria-hidden="true">☆</span>
+                    <strong>상대의 별</strong>
+                    <em>{personBComplete ? "자리 완성" : "채우는 중"}</em>
+                  </header>
+                  {renderPersonFields("b", personB)}
+                </div>
               </div>
 
-              <div className={styles.formPanel}>
-                {step === 0 && renderPersonFields("a", personA)}
-                {step === 1 && renderPersonFields("b", personB)}
+              <div className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`} aria-hidden="true">
+                <div className={styles.teaserGauge}>
+                  <span />
+                  <em>궁합 게이지</em>
+                </div>
+                <div className={styles.teaserLine}>
+                  <i /><b /><i />
+                </div>
+                <p>{bothComplete ? "두 별의 자리가 모두 채워졌어요. 이제 달빛 궁합을 열 수 있습니다." : "두 별의 자리가 채워지면 미리보기가 선명해져요."}</p>
               </div>
 
               <div className={styles.actions}>
-                <button type="button" className={styles.ghostButton} onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={busy || step === 0} aria-label="이전 단계">
-                  <ChevronLeft size={18} />
-                  이전
+                <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
+                  {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
+                  달빛 궁합 열기
                 </button>
-                {step < lastStep ? (
-                  <button type="button" className={styles.primaryButton} onClick={handleNextStep} disabled={busy}>
-                    다음 <ChevronRight size={18} />
-                  </button>
-                ) : (
-                  <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy}>
-                    {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
-                    달빛 궁합 열기
-                  </button>
-                )}
               </div>
+
+              {recentList.length > 0 && (
+                <div className={styles.recentBox} aria-label="지난 궁합 다시 보기">
+                  <strong>지난 달빛 궁합 다시 보기</strong>
+                  {recentList.slice(0, 5).map((item) => (
+                    <button key={item.id} type="button" className={styles.recentItem} onClick={() => void loadRecentConsultation(item.id)} disabled={busy}>
+                      <span>{item.personAName} ✦ {item.personBName}</span>
+                      <small>{[item.personAShuku && `${item.personAShuku}·${item.personBShuku}`, item.relationType].filter(Boolean).join(" · ")}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
             </>
           ) : !result ? (
             <div className={styles.resultPanel}>
@@ -1195,6 +1381,23 @@ export default function SukuyoCompatibilityAiClient() {
                 <p><Moon size={15} /> 달빛 답장이 완성되었습니다</p>
                 <h2>결과 레이어에서 궁합을 확인하고 PDF로 저장할 수 있습니다</h2>
               </div>
+              <div className={styles.actions}>
+                <button type="button" className={styles.primaryButton} onClick={() => setResultOpen(true)}>
+                  <Moon size={18} />
+                  달빛 답장 다시 열기
+                </button>
+                <button
+                  type="button"
+                  className={styles.ghostButton}
+                  onClick={() => {
+                    setConsultation(null);
+                    setResultOpen(false);
+                    submitKeyRef.current = "";
+                  }}
+                >
+                  새 궁합 보기
+                </button>
+              </div>
             </div>
           )}
 
@@ -1208,14 +1411,10 @@ export default function SukuyoCompatibilityAiClient() {
         </section>
       </section>
       {phase === "start" && <MoonLoadingScreen />}
-      {result && (
+      {result && resultOpen && (
         <CompatResultModal
           result={result}
-          onClose={() => {
-            setConsultation(null);
-            setStep(0);
-            submitKeyRef.current = "";
-          }}
+          onClose={() => setResultOpen(false)}
           onDownloadError={setError}
         />
       )}

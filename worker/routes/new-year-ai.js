@@ -46,15 +46,18 @@ const FOCUS_AREA_LABELS = Object.freeze({
 });
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
 ];
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
+// lunar-javascript는 간지를 한자로 반환하므로, 한글 키 오행/십신 테이블과 맞추기 위해 정규화한다.
+const HANJA_TO_KO_GANZI = {
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+};
+
+function toKoreanGanzi(value) {
+  return String(value || "").split("").map((char) => HANJA_TO_KO_GANZI[char] || char).join("");
+}
 const ELEMENTS = ["목", "화", "토", "금", "수"];
 const STEM_ELEMENT = {
   갑: "목", 을: "목",
@@ -264,7 +267,8 @@ function describeBranchRelation(sourceBranch, targetBranch) {
   if (BRANCH_CLASH[sourceBranch] === targetBranch) return `${sourceBranch}-${targetBranch} 충으로 변화와 조정 압력이 생기기 쉬움`;
   if (BRANCH_COMBINATION[sourceBranch] === targetBranch) return `${sourceBranch}-${targetBranch} 합으로 관계와 협력의 실마리가 열리기 쉬움`;
   if (sourceBranch === targetBranch) return `${targetBranch} 기운이 반복되어 같은 패턴이 강해지기 쉬움`;
-  return "큰 충돌보다는 기존 구조 위에 새 기운이 더해지는 흐름";
+  // "충"·"합" 글자를 포함하면 timing/트리거 판정 정규식에 오탐되므로 중립 표현을 유지할 것
+  return "큰 마찰보다는 기존 구조 위에 새 기운이 더해지는 흐름";
 }
 
 function describeStemRelation(sourceStem, targetStem) {
@@ -272,7 +276,7 @@ function describeStemRelation(sourceStem, targetStem) {
   if (STEM_CLASH[sourceStem] === targetStem) return `${sourceStem}-${targetStem} 천간충으로 표면 사건과 판단이 흔들리기 쉬움`;
   if (STEM_COMBINATION[sourceStem] === targetStem) return `${sourceStem}-${targetStem} 천간합으로 관계, 계약, 선택의 묶임이 생기기 쉬움`;
   if (sourceStem === targetStem) return `${targetStem} 천간이 반복되어 같은 의지와 경쟁심이 강해지기 쉬움`;
-  return "천간은 직접 충합보다 새 역할이 더해지는 흐름";
+  return "천간은 직접 부딪히기보다 새 역할이 더해지는 흐름";
 }
 
 function rankedElements(fiveElements) {
@@ -395,10 +399,10 @@ function calculateNewYearFortuneData(input) {
   const birthTime = parseBirthTime(birth.birthTime);
   const lunar = buildLunarFromInput(dateParts, birthTime, birth.calendarType);
   const solar = lunar.getSolar();
-  const yearPillar = lunar.getYearInGanZhi();
-  const monthPillar = lunar.getMonthInGanZhi();
-  const dayPillar = lunar.getDayInGanZhi();
-  const hourPillar = birthTime.timeUnknown ? "" : lunar.getTimeInGanZhi();
+  const yearPillar = toKoreanGanzi(lunar.getYearInGanZhi());
+  const monthPillar = toKoreanGanzi(lunar.getMonthInGanZhi());
+  const dayPillar = toKoreanGanzi(lunar.getDayInGanZhi());
+  const hourPillar = birthTime.timeUnknown ? "" : toKoreanGanzi(lunar.getTimeInGanZhi());
   const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
@@ -411,7 +415,7 @@ function calculateNewYearFortuneData(input) {
   const balancingElement = pickElement(fiveElements, "weak");
   const targetYear = Number(input.targetYear || input.year);
   const targetLunar = Solar.fromYmdHms(targetYear, 7, 1, 12, 0, 0).getLunar();
-  const targetPillar = targetLunar.getYearInGanZhi();
+  const targetPillar = toKoreanGanzi(targetLunar.getYearInGanZhi());
   const targetStem = pillarStem(targetPillar);
   const targetBranch = pillarBranch(targetPillar);
   const targetTenGod = tenGodFor(dayMaster, targetStem);
@@ -421,7 +425,7 @@ function calculateNewYearFortuneData(input) {
   const johu = buildJohuSummary(monthBranch, fiveElements);
   const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
-    const monthPillar = Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi();
+    const monthPillar = toKoreanGanzi(Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi());
     const stem = pillarStem(monthPillar);
     const branch = pillarBranch(monthPillar);
     const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
@@ -1020,6 +1024,28 @@ function buildSystemPrompt() {
   ].join("\n");
 }
 
+// 세운·월운 계산 확정값을 프롬프트 앵커로 요약한다.
+// 본문이 이 값과 다르게 서술하면 품질 게이트(validateConsultationQuality)에서 반려된다.
+function buildCanonicalNewYearFacts(fortuneData = {}) {
+  const target = fortuneData.targetYear || {};
+  const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
+  const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
+  const lines = [];
+  if (target.pillar) {
+    lines.push(`세운: ${target.year}년 ${target.pillar} (천간 ${target.stem}=${target.stemElement}, 지지 ${target.branch}=${target.branchElement}, 일간 기준 십신 ${target.tenGodToDayMaster || "미산출"})`);
+  }
+  if (trigger) {
+    lines.push(`세운이 가장 강하게 닿는 원국 자리: ${trigger.pillar} ${trigger.ganji} — 천간 ${trigger.heavenlyStem} / 지지 ${trigger.earthlyBranch}`);
+  }
+  if (monthly.length) {
+    lines.push("월별 확정 스펙 (달마다 이 간지·십신·판정을 본문에 그대로 인용해 서로 다른 조언으로 쓸 것):");
+    monthly.forEach((row) => {
+      lines.push(`- ${row.month}월 ${row.pillar} · ${row.tenGod || "십신 미산출"} · ${row.timing} · ${row.relationToDayBranch}`);
+    });
+  }
+  return lines;
+}
+
 function buildFirstPrompt(input, fortuneData) {
   const birth = input.birthInfo || {};
   return [
@@ -1041,13 +1067,16 @@ function buildFirstPrompt(input, fortuneData) {
     "[계산된 사주와 세운 데이터]",
     JSON.stringify(fortuneData, null, 2),
     "",
+    "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
+    ...buildCanonicalNewYearFacts(fortuneData),
+    "",
     "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
     "1. 새해 전체 운의 핵심 결론을 먼저 말합니다.",
     "2. 원국의 격국, 용신·기신, 조후가 올해 어떤 방식으로 쓰이는지 쉽게 풀어냅니다.",
-    "3. 대운의 배경 위에 세운이 어떤 사건성과 선택 압력을 일으키는지 짚습니다.",
+    "3. 대운의 배경 위에 세운이 어떤 사건성과 선택 압력을 일으키는지 짚습니다. 이때 세운 간지와, 세운이 원국의 어느 기둥과 합·충하는지를 본문에 직접 인용해 근거로 삼습니다.",
     "4. 사용자가 선택한 집중 상담 분야를 가장 깊게 다루고, 질문이 있으면 그 질문에 직접 답합니다.",
     "5. 일, 돈, 관계, 몸과 마음의 흐름은 집중 분야를 해치지 않는 선에서 균형 있게 비춥니다.",
-    "6. 월별 흐름에서는 기회가 열리는 달과 조심해야 할 달을 구체적으로 구분합니다.",
+    "6. 월별 흐름에서는 1월부터 12월까지 열두 달을 하나도 빠뜨리지 않고 각각 최소 한 문단씩 씁니다. 각 달은 위 월별 확정 스펙의 월주 간지와 십신을 본문에 직접 언급하고, 판정(기회/주의/정비)에 맞는 조언을 이웃한 달과 겹치지 않게 다르게 씁니다.",
     "7. 조심해야 할 패턴은 겁주지 말고, 피해야 할 선택과 회복 방법을 함께 말합니다.",
     "8. 마지막에는 사용자가 올해 붙잡을 수 있는 현실 조언과 새해를 여는 한 줄을 남깁니다.",
     "",
@@ -1077,6 +1106,36 @@ function countConsultationChars(text) {
   return clean(text).replace(/\s+/g, "").length;
 }
 
+// 세운·월운 계산값 대비 본문 정합성 검증 (fortuneData가 있을 때만 동작)
+function validateFortuneDataConsistency(cleaned, fortuneData) {
+  const issues = [];
+  if (!fortuneData || typeof fortuneData !== "object") return issues;
+
+  const missingMonths = Array.from({ length: 12 }, (_, index) => index + 1)
+    .filter((month) => !new RegExp(`(?<![0-9])${month}\\s*월`).test(cleaned));
+  if (missingMonths.length) issues.push(`MISSING_MONTHS:${missingMonths.join(",")}`);
+
+  const annualPillar = clean(fortuneData.targetYear?.pillar);
+  if (annualPillar && !cleaned.includes(annualPillar)) issues.push("ANNUAL_PILLAR_UNSTATED");
+
+  const monthly = Array.isArray(fortuneData.monthlyFlow) ? fortuneData.monthlyFlow : [];
+  if (monthly.length === 12) {
+    const cited = monthly.filter((row) => row.pillar && cleaned.includes(row.pillar)).length;
+    if (cited < 8) issues.push(`MONTHLY_PILLAR_CITATIONS:${cited}/12`);
+  }
+
+  const trigger = fortuneData.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger || null;
+  if (trigger) {
+    const match = `${trigger.heavenlyStem} ${trigger.earthlyBranch}`.match(/(.)-(.)\s*(천간충|천간합|충|합)/);
+    if (match) {
+      const [, source, target] = match;
+      const pairPattern = new RegExp(`${source}\\s*[-·와과]?\\s*${target}|${target}\\s*[-·와과]?\\s*${source}`);
+      if (!pairPattern.test(cleaned)) issues.push("SEWOON_INTERACTION_UNSTATED");
+    }
+  }
+  return issues;
+}
+
 function validateConsultationQuality(text, options = {}) {
   const minTotalChars = Number(options.minTotalChars || NEW_YEAR_AI_MIN_TOTAL_CHARS) || NEW_YEAR_AI_MIN_TOTAL_CHARS;
   const maxTotalChars = Number(options.maxTotalChars || NEW_YEAR_AI_MAX_TOTAL_CHARS) || NEW_YEAR_AI_MAX_TOTAL_CHARS;
@@ -1092,6 +1151,7 @@ function validateConsultationQuality(text, options = {}) {
   if (FORBIDDEN_RESULT_PATTERN.test(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
   if (sections.length < 6) issues.push(`SECTION_COUNT:${sections.length}/6`);
   if (missingTopics.length) issues.push(`MISSING_EXPERT_TOPICS:${missingTopics.join("|")}`);
+  issues.push(...validateFortuneDataConsistency(cleaned, options.fortuneData));
   return {
     ok: issues.length === 0,
     text: cleaned,
@@ -1104,9 +1164,33 @@ function validateConsultationQuality(text, options = {}) {
   };
 }
 
-function buildConsultationExpansionPrompt(originalText, minTotalChars = NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars = NEW_YEAR_AI_MAX_TOTAL_CHARS) {
+function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
+  const lines = [];
+  const missingMonths = issues.find((issue) => issue.startsWith("MISSING_MONTHS:"));
+  if (missingMonths) {
+    lines.push(`빠진 달이 있습니다(${missingMonths.split(":")[1]}월). 1월부터 12월까지 모든 달을 각각 최소 한 문단씩 쓰세요.`);
+  }
+  if (issues.includes("ANNUAL_PILLAR_UNSTATED") && fortuneData?.targetYear?.pillar) {
+    lines.push(`올해의 세운 간지 "${fortuneData.targetYear.pillar}"를 본문에 직접 언급하며 해석하세요.`);
+  }
+  if (issues.some((issue) => issue.startsWith("MONTHLY_PILLAR_CITATIONS"))) {
+    lines.push("월별 문단마다 그 달의 월주 간지(계산 확정값)를 직접 인용해 근거로 삼으세요.");
+  }
+  if (issues.includes("SEWOON_INTERACTION_UNSTATED")) {
+    const trigger = fortuneData?.advancedSajuSummary?.daewoonSewoon?.annualEventTrigger;
+    lines.push(`세운이 원국과 만나는 합·충 근거(${trigger ? `${trigger.pillar} ${trigger.ganji} 기준 ${trigger.heavenlyStem} / ${trigger.earthlyBranch}` : "계산된 상호작용"})를 본문에 직접 인용하세요.`);
+  }
+  if (lines.length && fortuneData) {
+    lines.push("아래 계산 확정값과 다르게 서술하는 것은 금지합니다:");
+    lines.push(...buildCanonicalNewYearFacts(fortuneData));
+  }
+  return lines;
+}
+
+function buildConsultationExpansionPrompt(originalText, minTotalChars = NEW_YEAR_AI_MIN_TOTAL_CHARS, maxTotalChars = NEW_YEAR_AI_MAX_TOTAL_CHARS, issues = [], fortuneData = null) {
   return [
     "아래 신년운세 상담문은 방향은 좋지만 완성본으로 보기에는 깊이가 부족합니다.",
+    ...describeConsistencyIssuesForRepair(issues, fortuneData),
     `기존 흐름과 어조를 유지하면서 전체 본문 합계가 공백 제외 ${minTotalChars.toLocaleString("ko-KR")}자 이상 ${maxTotalChars.toLocaleString("ko-KR")}자 이하가 되도록 보강하세요.`,
     "단순히 문장의 양만 늘리지 말고, 부족한 부분에는 명리 전문가로서 새로운 파트를 추가하세요.",
     "새 파트는 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충, 월운, 현실 처방을 필요한 만큼 자연스럽게 보강해야 합니다.",
@@ -1231,10 +1315,12 @@ async function generateConsultationText(env, prompt, options = {}) {
     }
   }
 
-  let quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
-  const shouldExpand = quality.issues.some((issue) => issue.startsWith("MIN_TOTAL_CHARS") || issue.startsWith("SECTION_COUNT") || issue.startsWith("MISSING_EXPERT_TOPICS"));
+  const fortuneData = options.fortuneData || null;
+  let quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
+  const EXPANDABLE_ISSUE_PATTERN = /^(MIN_TOTAL_CHARS|SECTION_COUNT|MISSING_EXPERT_TOPICS|MISSING_MONTHS|ANNUAL_PILLAR_UNSTATED|MONTHLY_PILLAR_CITATIONS|SEWOON_INTERACTION_UNSTATED)/;
+  const shouldExpand = quality.issues.some((issue) => EXPANDABLE_ISSUE_PATTERN.test(issue));
   if (shouldExpand) {
-    const expansion = await callGeminiText(env, buildConsultationExpansionPrompt(quality.text, minTotalChars, maxTotalChars), {
+    const expansion = await callGeminiText(env, buildConsultationExpansionPrompt(quality.text, minTotalChars, maxTotalChars, quality.issues, fortuneData), {
       systemPrompt: buildSystemPrompt(),
       taskType: "fortune",
       temperature: 0.66,
@@ -1247,7 +1333,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       finalText = expansionText;
       finalProvider = clean(expansion?.provider || finalProvider);
       finalModel = clean(expansion?.model || finalModel);
-      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
     }
   }
 
@@ -1265,7 +1351,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       finalText = compressedText;
       finalProvider = clean(compressed?.provider || finalProvider);
       finalModel = clean(compressed?.model || finalModel);
-      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars });
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
     }
   }
 
@@ -1347,13 +1433,38 @@ function buildBasicSajuProfile(doc = {}) {
   };
 }
 
+function publicMonthlyFlow(doc) {
+  const fortuneData = doc?.llmMeta?.fortuneData && typeof doc.llmMeta.fortuneData === "object" ? doc.llmMeta.fortuneData : null;
+  const rows = Array.isArray(fortuneData?.monthlyFlow) ? fortuneData.monthlyFlow : [];
+  return rows.map((row) => ({
+    month: Number(row.month) || 0,
+    pillar: clean(row.pillar),
+    element: clean(row.element),
+    tenGod: clean(row.tenGod),
+    domain: clean(row.domain),
+    relationToDayBranch: clean(row.relationToDayBranch),
+    timing: clean(row.timing),
+  })).filter((row) => row.month >= 1 && row.month <= 12);
+}
+
 function publicSession(doc) {
+  const fortuneData = doc?.llmMeta?.fortuneData && typeof doc.llmMeta.fortuneData === "object" ? doc.llmMeta.fortuneData : null;
+  const target = fortuneData?.targetYear && typeof fortuneData.targetYear === "object" ? fortuneData.targetYear : {};
   return {
     ok: true,
     sessionId: clean(doc.id),
     accessType: clean(doc.accessType),
     status: clean(doc.status),
     sajuProfile: buildBasicSajuProfile(doc),
+    targetYear: {
+      year: Number(target.year || doc.year || 0) || null,
+      pillar: clean(target.pillar),
+      stem: clean(target.stem),
+      branch: clean(target.branch),
+      stemElement: clean(target.stemElement),
+      tenGod: clean(target.tenGodToDayMaster),
+    },
+    monthlyFlow: publicMonthlyFlow(doc),
     messages: Array.isArray(doc.messages)
       ? doc.messages.map((message) => ({
         role: message.role,
@@ -1596,6 +1707,7 @@ async function handleStart(request, env) {
       minTotalChars: NEW_YEAR_AI_MIN_TOTAL_CHARS,
       maxTotalChars: NEW_YEAR_AI_MAX_TOTAL_CHARS,
       maxOutputTokens: NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+      fortuneData,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
     if (access.deferredUsage) {
@@ -1695,6 +1807,43 @@ async function handleMessage(request, env) {
   }, { status: 410 });
 }
 
+async function handleResult(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) {
+    return json({ ok: false, reason: "LOGIN_REQUIRED", message: LOGIN_REQUIRED_MESSAGE }, { status: 401 });
+  }
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("sessionId") || url.searchParams.get("id"), 180);
+
+  await connectDb(env);
+  if (!sessionId) {
+    const rows = await NewYearAiConsultation.find({ userId: clean(auth.userId), status: "completed" })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .select("id year birthInfo llmMeta.fortuneData.targetYear createdAt updatedAt")
+      .lean();
+    return json({
+      ok: true,
+      sessions: rows.map((row) => ({
+        sessionId: clean(row.id),
+        year: Number(row.llmMeta?.fortuneData?.targetYear?.year || row.year || 0) || null,
+        pillar: clean(row.llmMeta?.fortuneData?.targetYear?.pillar),
+        name: clean(row.birthInfo?.name, 80),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    });
+  }
+
+  const doc = await NewYearAiConsultation.findOne({
+    userId: clean(auth.userId),
+    id: sessionId,
+    status: "completed",
+  }).lean();
+  if (!doc) return notFound();
+  return json(publicSession(doc));
+}
+
 export async function handleNewYearAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/new-year-ai");
@@ -1703,6 +1852,7 @@ export async function handleNewYearAiRoutes(request, env = {}) {
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
+    if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
@@ -1719,9 +1869,12 @@ export const __newYearAiTestUtils = {
   calculateNewYearFortuneData,
   buildFirstPrompt,
   buildSystemPrompt,
+  buildCanonicalNewYearFacts,
   cleanForbiddenResult,
   countConsultationChars,
   validateConsultationQuality,
+  validateFortuneDataConsistency,
   buildMockConsultationText,
   buildBasicSajuProfile,
+  publicSession,
 };
