@@ -118,7 +118,7 @@ assert.match(sajuAIGateSource, /amountKrw:\s*amountKrw/, "saju prompt gate must 
 assert.match(sajuAIGateSource, /paymentAmount:\s*amountKrw/, "saju prompt gate must keep KRW payment amount aligned");
 assert.match(sajuAIGateSource, /allowedPaymentModes:\s*allowedPaymentModes/, "saju prompt gate must pass allowed payment modes");
 assert.match(sajuAIGateSource, /disablePassChoice:\s*opts\.disablePassChoice === true/, "saju prompt gate must support direct-only pass choice disabling");
-assert.match(sajuAIGateSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "saju prompt fallback may only probe membership pass access");
+assert.match(sajuAIGateSource, /code:\s*'PAYMENT_GATE_UNAVAILABLE'/, "saju prompt gate fallback must fail safe (surface gate-unavailable, never silently charge) when the standard paid service gate module is missing");
 assert.match(sajuPromptRequestSource, /featureKey:\s*'saju_ai_prompt_generator'/, "saju question prompt must use the 1514371 feature key");
 assert.match(sajuPromptRequestSource, /cost:\s*200/, "saju prompt must charge 200 coins for the 20,000 KRW result");
 assert.match(sajuPromptRequestSource, /amountKrw:\s*20000/, "saju prompt must pass the 20,000 KRW amount");
@@ -177,7 +177,7 @@ assert.match(sajuEngineSource, /headers:\s*Object\.assign\(buildHeaders\(\),\s*\
 assert.match(sajuEngineSource, /accessDecision:\s*evidence\.accessDecision/, "ziwei prompt generation must forward accessDecision evidence");
 assert.match(sajuEngineSource, /freeBySubscription:\s*evidence\.freeBySubscription/, "ziwei prompt generation must forward pass evidence");
 assert.match(sukuyoEngineSource, /window\._cdOpenPaidServiceGate/, "sukuyo prompt client must use the standard paid service gate");
-assert.match(sukuyoEngineSource, /paymentMode:\s*'MEMBERSHIP_PASS'/, "sukuyo prompt fallback may only probe membership pass access");
+assert.match(sukuyoEngineSource, /code:\s*'PAYMENT_GATE_UNAVAILABLE'/, "sukuyo prompt gate fallback must fail safe (surface gate-unavailable, never silently charge) when the standard paid service gate module is missing");
 assert.match(sukuyoEngineSource, /sukuyo_ai_prompt_generator/, "sukuyo prompt must use canonical server feature key");
 assert.match(sukuyoEngineSource, /amountKrw:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.amountKrw \|\| opts\.amountKRW \|\| opts\.paymentAmount \|\| \(cost \* 100\)\)\)\)/, "sukuyo prompt gate must pass KRW amount into the standard paid gate");
 assert.match(sukuyoEngineSource, /membershipCreditCost:\s*Math\.max\(0,\s*Math\.floor\(Number\(opts\.membershipCreditCost \|\| \(cost \* 10\)\)\)\)/, "sukuyo prompt gate must pass monthly credit cost");
