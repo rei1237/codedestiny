@@ -1,6 +1,6 @@
 "use client";
 
-import { type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import type { FortuneTeaHouseConsultMode } from "../data/consult";
@@ -30,12 +30,36 @@ const scentProgressUi =
 
 export default function ScentLoadingScene({ selectedCup, consultationMode = "tarot", progress }: ScentLoadingSceneProps) {
   const teaChatGate = useSpritePlaybackGate<HTMLDivElement>();
-  const chatLine =
-    consultationMode === "saju"
-      ? "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요."
-      : consultationMode === "sukuyo"
-        ? "두 사람의 달빛이 서로 어떻게 닿는지 보고 있어요. 말은 천천히 골라드릴게요."
-        : "킁킁… 이 질문에는 아직 말하지 못한 마음이 묻어 있어요.";
+  const chatLines = useMemo(
+    () =>
+      consultationMode === "saju"
+        ? [
+            "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요.",
+            "찻잎이 태어난 계절의 흐름을 우려내고 있어요. 조금만 기다려 주세요.",
+            "오행의 온도를 손끝으로 재보는 중이에요. 곧 말이 골라질 거예요.",
+          ]
+        : consultationMode === "sukuyo"
+          ? [
+              "두 사람의 달빛이 서로 어떻게 닿는지 보고 있어요. 말은 천천히 골라드릴게요.",
+              "27숙의 별자리 사이 거리를 재는 중이에요. 인연의 온도가 떠오르고 있어요.",
+              "달빛이 두 잔 위에서 겹치는 순간을 기다리고 있어요.",
+            ]
+          : [
+              "킁킁… 이 질문에는 아직 말하지 못한 마음이 묻어 있어요.",
+              "찻잎이 당신의 운을 우려내고 있어요. 카드가 천천히 깨어나는 중이에요.",
+              "달빛 아래에서 카드 한 장이 먼저 몸을 뒤척였어요. 조금만 더요.",
+            ],
+    [consultationMode],
+  );
+  const [chatLineIndex, setChatLineIndex] = useState(0);
+  useEffect(() => {
+    setChatLineIndex(0);
+    const timer = window.setInterval(() => {
+      setChatLineIndex((current) => (current + 1) % chatLines.length);
+    }, 4600);
+    return () => window.clearInterval(timer);
+  }, [chatLines]);
+  const chatLine = chatLines[chatLineIndex];
   const progressSteps =
     consultationMode === "saju"
       ? [
@@ -128,7 +152,7 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
           <span className={styles.scentLoadingTeaChatSprite} role="img" aria-label="찻잔을 들고 기다리는 연이" />
           <span className={styles.scentLoadingTeaChatBubble}>
             <strong>연이</strong>
-            <span>{chatLine}</span>
+            <span key={chatLineIndex} className={styles.scentLoadingChatLineSwap}>{chatLine}</span>
           </span>
           {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.scentLoadingTeaCupBadge} /> : null}
         </div>

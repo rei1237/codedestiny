@@ -82,36 +82,39 @@ function mobileCropFor(sheet: TeaCupSpriteSheet, crop: TeaCupSpriteSlice): TeaCu
   };
 }
 
+// Crop rects are measured from the sheets' alpha channel (tight bounding box of
+// each tile + 6px uniform padding) so no neighbouring tile bleeds into a crop
+// and no tile edge (tassels, frame tips, label banners) gets clipped.
 export const teaCupSpriteMap: Record<string, TeaCupSpriteEntry> = {
   "lotus-moon": {
     ...sheets,
-    normal: slice(18, 52, 256, 324),
-    selected: slice(61, 47, 424, 502),
+    normal: slice(25, 61, 242, 304),
+    selected: slice(61, 47, 424, 482),
   },
   "honey-peach": {
     ...sheets,
-    normal: slice(268, 53, 244, 324),
-    selected: slice(508, 48, 463, 501),
+    normal: slice(274, 62, 233, 304),
+    selected: slice(508, 49, 424, 482),
   },
   "star-black-tea": {
     ...sheets,
-    normal: slice(505, 54, 230, 324),
-    selected: slice(959, 48, 416, 501),
+    normal: slice(511, 63, 217, 304),
+    selected: slice(954, 48, 421, 481),
   },
   "gold-cinnamon": {
     ...sheets,
-    normal: slice(723, 53, 230, 325),
-    selected: slice(55, 537, 420, 479),
+    normal: slice(729, 62, 216, 305),
+    selected: slice(55, 535, 420, 481),
   },
   "white-lotus-healing": {
     ...sheets,
-    normal: slice(942, 53, 234, 324),
-    selected: slice(506, 537, 412, 481),
+    normal: slice(948, 62, 221, 304),
+    selected: slice(500, 536, 424, 482),
   },
   "black-moon-brown-rice": {
     ...sheets,
-    normal: slice(1187, 52, 242, 325),
-    selected: slice(959, 537, 410, 481),
+    normal: slice(1193, 61, 229, 305),
+    selected: slice(948, 536, 421, 482),
   },
 };
 

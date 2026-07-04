@@ -63,6 +63,12 @@ const FEATURE_NAV_EXTRA_ROUTES = [
   "/pdf/life-book",
 ];
 
+// Routes that render their own in-experience back/home controls, so the global
+// floating nav would duplicate and overlap them.
+const FEATURE_NAV_SELF_MANAGED_ROUTES = [
+  "/fortune-tea-house",
+];
+
 function useFooterInView(enabled: boolean) {
   const footerMountRef = useRef<HTMLDivElement | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -207,7 +213,8 @@ function FooterWarmupPreview() {
 export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
   const hideChrome = CHROMELESS_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
-  const showFeatureNav = pathname !== HOME_ROUTE && (
+  const selfManagedNav = FEATURE_NAV_SELF_MANAGED_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"));
+  const showFeatureNav = pathname !== HOME_ROUTE && !selfManagedNav && (
     hideChrome
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
     || /\/(result|play|start)(?=\/|$)/.test(pathname)

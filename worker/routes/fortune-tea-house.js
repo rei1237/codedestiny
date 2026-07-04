@@ -13,13 +13,15 @@ import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 12;
 const requestBuckets = new Map();
-const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY", "GEMINIF_API_KEY1", "GEMINIF_API_KEY2", "GEMINIF_API_KEY3", "GEMINIF_API_KEY4", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
-const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|콘텐츠 블록|서비스 결과|API|JSON|payload|schema/i;
-const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|mock|dry[_-]?run|providerReason|Gemini|OpenAI|Workers AI|schema|payload|JSON/i;
+const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY"];
+const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|콘텐츠 블록|서비스 결과|\bAPI\b|\bJSON\b|\bpayload\b|\bschema\b/i;
+const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|\bmock\b|dry[_-]?run|providerReason|\bGemini\b|\bOpenAI\b|Workers AI|\bschema\b|\bpayload\b|\bJSON\b/i;
 const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
 const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
-const SAJU_MIN_RESULT_CHARS = 5000;
-const TAROT_MIN_RESULT_CHARS = 1800;
+const SAJU_MIN_RESULT_CHARS = 6000;
+const SAJU_TARGET_RESULT_CHARS = 8000;
+const TAROT_MIN_RESULT_CHARS = 3200;
+const SUKUYO_MIN_RESULT_CHARS = 5000;
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
 const TAROT_ALBUM_UNLOCK_COST = 10;
@@ -35,21 +37,35 @@ const FORTUNE_TEA_HOUSE_SERVICE_KEY = "fortune-tea-house";
 const FORTUNE_TEA_HOUSE_BILLING_STATUSES = ["paid_pending_generation", "generating", "generation_failed", "completed"];
 const FORTUNE_TEA_HOUSE_PAYMENT_STATUSES = ["paid", "success", "fulfilled"];
 const SAJU_REQUIRED_SECTION_TITLES = [
-  "핵심 요약",
-  "타고난 기질",
-  "오행 균형",
-  "십성 구조",
-  "강점",
-  "반복되는 약점",
-  "현재 운의 흐름",
-  "일 · 돈 · 관계 · 건강 리듬",
-  "앞으로 조심할 시기",
-  "실천 전략",
-  "오늘의 한 문장 조언",
+  "첫 잔 — 연이의 인사와 첫인상",
+  "타고난 결 — 일간과 오행이 말해주는 나",
+  "마음의 물길 — 십성이 보여주는 패턴",
+  "잘 풀리는 결 — 내 명식의 강점",
+  "삐걱대는 결 — 미리 알아두면 좋은 것",
+  "지금 이 시기 — 대운과 세운의 바람",
+  "찻집의 처방 — 오늘부터의 실천",
+  "연이의 한마디",
 ];
 const TAROT_LOVE_REQUIRED_TERMS = ["지금 연락", "금지 행동", "7일"];
 const TAROT_REUNION_REQUIRED_TERMS = ["재회 가능성"];
 const SAJU_FORBIDDEN_COPY_PATTERN = /긍정적으로 생각|마음을 차분히 바라보|대화가 중요|모든 것은 당신의 선택|작은 행동 하나만|인간 상담사 연이로서|무조건 잘 됩니다|반드시 재회|절대 안 됩니다|정해진 운명|타로 카드|카드 상징|점성술|숙요점|자미두수/i;
+const yeoniPersonaPrompt = [
+  "너는 '연이'다. 운명의 찻집에서 손님을 맞이하는, 따뜻하고 다정한 상담가다.",
+  "연이는 명리학·자미두수·타로·숙요점을 모두 깊이 이해한 진짜 전문가지만, 손님 앞에서는 지식을 뽐내지 않는다. 어려운 걸 쉽게, 무거운 걸 가볍게 건넨다.",
+  "손님은 지금 마음이 복잡해서 찻집 문을 열고 들어왔다. 연이의 첫 번째 일은 '맞히는 것'이 아니라 '곁에 있어 주는 것'이다.",
+  "반말이 아닌 다정한 존댓말을 쓴다. '~예요', '~네요', '~하실 거예요' 체를 끝까지 유지한다.",
+  "단정하고 위협적인 예언을 하지 않는다. '당신은 올해 큰 손실을 봅니다'처럼 쓰지 말고 '올해는 조금 조심스럽게 걸어가시면 좋은 시기예요. 왜 그런지 같이 볼까요?'처럼 가능성과 결을 이야기한다.",
+  "손님이 스스로 선택할 여지를 남긴다. 운명은 정해진 감옥이 아니라 '흐름'으로 본다.",
+  "이모지는 쓰지 않거나 아주 절제해서 쓴다. 찻집의 차분함을 지킨다.",
+  "전문 용어는 반드시 그 자리에서 한 문장으로 풀어준다.",
+  "근거 없는 좋은 말/나쁜 말(보일러플레이트)을 절대 쓰지 않는다. 모든 해석은 실제 원국·카드·숙의 구조에서 논리적으로 도출한다.",
+  "'왜 그렇게 해석되는가'를 손님이 납득할 수 있도록 근거 → 해석 → 조언 순서로 푼다.",
+  "일반론(누구에게나 맞는 말)을 배제하고, 이 손님만의 구조에서 나오는 이야기를 한다.",
+  "확실하지 않은 부분은 솔직하게 '이 부분은 결이 두 갈래로 갈려요'처럼 말한다.",
+  "죽음·질병·이혼·파산 등을 단정적으로 예언하지 않는다.",
+  "손님을 불안하게 만들어 결제를 유도하는 표현을 쓰지 않는다.",
+  "의료·법률·투자에 대한 확정적 조언을 하지 않는다. 찻집의 이야기일 뿐임을 지킨다.",
+];
 const baseSajuSystemPrompt = [
   "너는 운명 찻집의 상담사 연이다.",
   "연이는 사주 명리학을 깊이 이해하지만 어려운 용어를 그대로 나열하지 않고 손님이 이해할 수 있는 말로 풀어준다.",
@@ -131,9 +147,9 @@ const teaCategorySajuPromptMap = {
     resultKey: "loveReunionSajuReading",
     category: "연애 · 재회",
     concept: "미련과 가능성 사이에서 내 사주의 관계 패턴과 현재 운의 흐름을 통해 가장 덜 다치는 다음 걸음을 찾는 상담",
-    minChars: 5500,
+    minChars: 6000,
     focus: ["일간의 관계 방식", "배우자성/관성/재성의 작동", "식상 표현 방식", "인성의 미련과 회상", "비겁의 자존심", "현재 대운·세운의 관계 흐름", "합충형해파가 만드는 거리감"],
-    requiredSections: ["지금 재회 질문이 떠오른 사주적 이유", "내 일간이 사랑을 붙잡는 방식", "미련과 가능성을 구분해야 하는 지점", "현재 운에서 관계가 다시 움직이는 조건", "재회를 닫아버리는 내 반복 패턴", "상대 정보 유무에 따른 관계 리듬", "지금 연락해도 되는가", "연락한다면 어떤 톤이어야 하는가", "7일 관계 정리/접근 플랜", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 이 질문이 찻집까지 온 이유", "타고난 결 — 내 일간이 사랑을 붙잡는 방식", "마음의 물길 — 미련과 가능성을 가르는 십성", "잘 풀리는 결 — 이 관계에서 살아 있는 힘", "삐걱대는 결 — 재회를 닫아버리는 반복 패턴", "지금 이 시기 — 운이 관계를 다시 여는 조건", "지금 연락해도 되는가", "찻집의 처방 — 7일 관계 정리 플랜", "연이의 한마디"],
     gauges: [
       ["미련", "pink", 64, "인성과 관계 질문의 반복성이 오래 남은 장면을 되짚게 합니다."],
       ["관계 압박", "purple", 58, "관성 흐름이 강하면 관계에서 책임과 부담을 크게 느낄 수 있습니다."],
@@ -149,9 +165,9 @@ const teaCategorySajuPromptMap = {
     resultKey: "connectionSajuReading",
     category: "썸 · 인연",
     concept: "아직 이름 붙지 않은 설렘이 내 사주에서 어떻게 피어나는지, 인연의 속도와 접근 방식을 읽는 상담",
-    minChars: 5500,
+    minChars: 6000,
     focus: ["일간의 호감 표현", "식상으로 드러나는 매력", "재성/관성의 관계 욕구", "도화·홍염·천희 신살이 있으면 참고", "비겁의 경쟁심", "인성의 신중함", "새 인연이 들어오기 쉬운 운"],
-    requiredSections: ["내 사주에서 설렘이 시작되는 방식", "상대에게 끌리는 포인트", "호감을 표현할 때 생기는 장점과 어색함", "지금 인연이 커질 가능성", "너무 빨리 다가가면 생길 수 있는 문제", "좋은 연락 리듬과 만남 전략", "상대 정보가 있을 경우 두 사람의 속도 차이", "7일 썸 리듬 플랜", "오늘 보내기 좋은 가벼운 문장 예시", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 설렘이 피어난 자리", "타고난 결 — 내 일간이 호감을 표현하는 방식", "마음의 물길 — 설렘을 키우거나 망설이게 하는 십성", "잘 풀리는 결 — 이 인연에서 살아 있는 힘", "삐걱대는 결 — 속도가 어긋나기 쉬운 지점", "지금 이 시기 — 인연이 커지는 타이밍", "좋은 연락 리듬과 만남 전략", "찻집의 처방 — 7일 썸 리듬 플랜", "연이의 한마디"],
     gauges: [
       ["설렘", "pink", 66, "식상과 화 기운은 마음이 밖으로 피어나는 속도를 보여줍니다."],
       ["호감 표현력", "gold", 57, "식상이 살아 있으면 호감을 말과 행동으로 옮기기 쉽습니다."],
@@ -169,7 +185,7 @@ const teaCategorySajuPromptMap = {
     concept: "막막한 길 위에서 내 명식이 가진 일의 방향, 재능, 실행력, 확장 타이밍을 읽는 상담",
     minChars: 6000,
     focus: ["일간의 일하는 방식", "월령과 격국의 사회적 방향", "식상·재성·관성 연결", "인성의 공부와 보호막", "비겁의 독립성/협업", "현재 대운·세운의 확장/전환/정체 신호"],
-    requiredSections: ["내 명식이 보여주는 일의 기본 방향", "지금 막막함이 생긴 사주적 이유", "강하게 써야 할 재능", "지금 부족하거나 보완해야 할 기운", "사업/진로 확장 가능성", "현재 운에서 움직여도 되는 부분", "피해야 할 선택", "14일 실행 플랜", "리스크 체크리스트", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 막막함이 찾아온 이유", "타고난 결 — 내 명식이 일하는 방식", "마음의 물길 — 식상·재성·관성이 만드는 일의 구조", "잘 풀리는 결 — 강하게 써야 할 재능", "삐걱대는 결 — 확장을 막는 패턴과 피해야 할 선택", "지금 이 시기 — 움직여도 되는 운의 신호", "리스크 체크리스트", "찻집의 처방 — 14일 실행 플랜", "연이의 한마디"],
     gauges: [
       ["방향감", "gold", 54, "월령과 일간의 결은 사회적으로 힘을 쓰는 방향을 비춥니다."],
       ["실행력", "green", 56, "식상과 비겁 흐름은 실제로 밀고 나가는 힘을 보여줍니다."],
@@ -187,7 +203,7 @@ const teaCategorySajuPromptMap = {
     concept: "내 명식의 돈 흐름, 수익화 방식, 소비 패턴, 회복 전략을 읽는 상담",
     minChars: 6000,
     focus: ["재성의 강약과 위치", "식상이 재성을 생하는지", "비겁이 재성을 나누는지", "관성이 재성을 지키는지", "인성이 재성 흐름을 막거나 안정시키는지", "현재 대운·세운의 재물 흐름"],
-    requiredSections: ["내 명식의 돈 그릇", "돈이 들어오는 방식", "돈이 새는 패턴", "현재 운에서 금전 흐름이 움직이는 지점", "이번 달 조심해야 할 소비/손실 패턴", "수익화를 위해 써야 할 재능", "돈을 지키는 현실 기준", "30일 금전 회복 플랜", "하지 말아야 할 금전 행동", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 돈 걱정이 놓인 자리", "타고난 결 — 내 명식의 돈 그릇", "마음의 물길 — 재성을 살리고 새게 하는 십성", "잘 풀리는 결 — 돈이 들어오는 방식", "삐걱대는 결 — 소비가 새는 패턴", "지금 이 시기 — 금전 흐름이 움직이는 지점", "돈을 지키는 현실 기준", "찻집의 처방 — 30일 금전 회복 플랜", "연이의 한마디"],
     gauges: [
       ["재물 감각", "gold", 58, "재성의 흐름은 돈을 알아보고 다루는 감각을 비춥니다."],
       ["수익화 가능성", "green", 52, "식상이 재성을 돕는 구조일수록 재능이 수익으로 이어지기 쉽습니다."],
@@ -203,9 +219,9 @@ const teaCategorySajuPromptMap = {
     resultKey: "healingSajuReading",
     category: "마음회복",
     concept: "내 명식 안에서 반복되는 소모 패턴을 보고 스스로에게 돌아오는 회복의 숨을 찾는 상담",
-    minChars: 5500,
+    minChars: 6000,
     focus: ["일간의 피로 방식", "오행 과다/부족의 정서적 긴장", "인성의 생각 과부하", "식상의 표현/해소", "관성의 압박", "비겁의 비교와 버티기", "재성의 현실 부담", "회복에 필요한 오행 균형"],
-    requiredSections: ["내 명식이 지치는 방식", "요즘 마음이 무거워진 사주적 이유", "반복되는 자기 소모 패턴", "지금 줄여야 할 생각과 행동", "회복에 필요한 기운", "오늘 바로 가능한 회복 행동", "7일 회복 루틴", "나에게 해도 되는 말", "도움을 요청해야 할 신호", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 무거워진 마음이 앉는 자리", "타고난 결 — 내 명식이 지치는 방식", "마음의 물길 — 생각을 붙드는 십성", "잘 풀리는 결 — 회복에 쓸 수 있는 기운", "삐걱대는 결 — 반복되는 자기 소모 패턴", "지금 이 시기 — 숨을 고를 수 있는 운", "나에게 해도 되는 말", "찻집의 처방 — 7일 회복 루틴", "연이의 한마디"],
     gauges: [
       ["피로도", "purple", 64, "관성과 재성의 부담은 몸과 마음의 피로를 함께 올립니다."],
       ["생각 과부하", "blue", 60, "인성이 강하면 지나간 장면을 오래 복기할 수 있습니다."],
@@ -221,9 +237,9 @@ const teaCategorySajuPromptMap = {
     resultKey: "crisisSajuReading",
     category: "이별 · 위기",
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 내 사주의 관계 위기 패턴과 안전한 판단 기준을 찾는 상담",
-    minChars: 5500,
+    minChars: 6000,
     focus: ["일간이 위기에서 반응하는 방식", "관성/재성의 관계 압박", "식상의 말의 날카로움 또는 표현 부족", "인성의 집착/회상", "비겁의 자존심 싸움", "합충형해파가 만드는 단절과 충돌", "현재 운에서 위기가 커지는 이유"],
-    requiredSections: ["지금 위기가 커진 사주적 장면", "내가 위기에서 반복하는 반응", "관계를 지키기 위해 필요한 조건", "내려놓아야 하는 패턴", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "더 악화시키는 행동", "72시간 안정 플랜", "안전하게 판단하기 위한 체크리스트", "연이의 마지막 한마디"],
+    requiredSections: ["첫 잔 — 위기가 커진 장면", "타고난 결 — 내 일간이 위기에서 반응하는 방식", "마음의 물길 — 긴장을 키우는 십성", "잘 풀리는 결 — 나를 지키는 힘", "삐걱대는 결 — 더 다치게 하는 반복 패턴", "지금 이 시기 — 흔들림이 지나가는 운", "지금 대화해도 되는가, 지켜야 할 경계선", "찻집의 처방 — 72시간 안전 플랜", "연이의 한마디"],
     gauges: [
       ["긴장도", "purple", 66, "충돌 신호와 관성 압박은 관계의 긴장을 높입니다."],
       ["충돌 가능성", "pink", 58, "식상이 날카롭게 쓰이면 말의 온도가 쉽게 올라갈 수 있습니다."],
@@ -241,7 +257,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "loveReunionReading",
     category: "연애 · 재회",
     concept: "미련과 가능성 사이에서 지금 연락, 기다림, 정리, 재회 조건을 구분하는 타로 상담",
-    minChars: 2200,
+    minChars: 3200,
     focus: ["미련과 실제 가능성 분리", "상대의 침묵·거리두기 존중", "과거 방식 그대로의 재회 경계", "연락 가능 조건", "재회를 닫는 행동", "7일 관계 정리/접근 플랜"],
     requiredSections: ["카드가 비춘 관계의 현재 장면", "아직 남아 있는 마음과 현실 가능성의 차이", "두 사람 사이에서 반복된 패턴", "재회 가능성이 열리는 조건", "재회 가능성을 닫는 행동", "지금 연락해도 되는가", "보낸다면 어떤 톤이어야 하는가", "오늘 하지 말아야 할 행동 3가지", "7일 행동 플랜", "연이의 마지막 한마디"],
     gauges: ["기대", "불안", "미련", "망설임", "회복"],
@@ -253,7 +269,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "connectionReading",
     category: "썸 · 인연",
     concept: "아직 이름 붙지 않은 설렘의 온도, 호감 신호, 다가가도 좋은 속도를 읽는 타로 상담",
-    minChars: 1900,
+    minChars: 3200,
     focus: ["호감 단정 금지", "관찰 가능한 신호", "다가가는 속도", "어색해지기 쉬운 행동", "연락과 대화의 리듬", "7일 썸 리듬 플랜"],
     requiredSections: ["카드가 비춘 설렘의 첫 장면", "이 인연의 현재 온도", "상대와 나 사이의 신호 읽기", "가까워질 가능성을 키우는 행동", "어색해지기 쉬운 행동", "연락/대화의 좋은 리듬", "다음 만남 또는 대화에서 쓸 사인", "오늘 보내기 좋은 가벼운 문장 예시", "7일 썸 리듬 플랜", "연이의 마지막 한마디"],
     gauges: ["설렘", "호기심", "조심스러움", "기대", "타이밍"],
@@ -265,7 +281,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "careerBusinessReading",
     category: "진로 · 사업",
     concept: "막막한 길 위에서 방향, 준비도, 실행 순서, 리스크를 나누어 읽는 타로 상담",
-    minChars: 1900,
+    minChars: 3200,
     focus: ["막연한 성공 예언 금지", "현재 길의 정체", "확장 가능성", "아직 부족한 준비", "이번 주 실행 우선순위", "리스크 체크", "14일 실행 플랜"],
     requiredSections: ["카드가 비춘 현재 진로의 장면", "지금 막막함의 정체", "가능성이 있는 방향", "아직 준비가 부족한 부분", "올해/이번 달 선택 기준", "이번 주 실행 우선순위", "리스크 체크리스트", "작은 실험으로 검증할 방법", "14일 실행 플랜", "연이의 마지막 한마디"],
     gauges: ["방향감", "막막함", "실행력", "리스크", "가능성"],
@@ -277,7 +293,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "moneyReading",
     category: "금전운",
     concept: "수입, 지출, 누수, 현실 기준, 금전 회복 루틴을 나누어 읽는 타로 상담",
-    minChars: 1900,
+    minChars: 3200,
     focus: ["금전 확정 예언 금지", "현재 돈의 온도", "수입 기회", "충동 소비와 손실 위험", "이번 달 관리 기준", "투자 판단 단정 금지", "30일 금전 회복 플랜"],
     requiredSections: ["카드가 비춘 돈의 현재 온도", "지금 돈이 새는 지점", "수입 기회가 열리는 방향", "충동 소비 또는 손실 위험", "이번 달 돈 관리 기준", "지금 하면 좋은 정리", "하지 말아야 할 금전 행동", "30일 금전 회복 플랜", "현실 체크리스트", "연이의 마지막 한마디"],
     gauges: ["안정감", "소비 충동", "회복력", "기회감", "현실감"],
@@ -289,7 +305,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "healingReading",
     category: "마음회복",
     concept: "예언보다 회복, 정리, 자기 돌봄, 안전한 감정 루틴을 먼저 찾는 타로 상담",
-    minChars: 1900,
+    minChars: 3200,
     focus: ["회복 중심", "자기 비난 완화", "지친 마음의 반복 패턴", "오늘 멈춰야 할 마음 습관", "작은 회복 행동", "도움을 요청해야 할 신호", "7일 회복 루틴"],
     requiredSections: ["카드가 비춘 마음의 현재 상태", "가장 지친 부분", "반복되는 자기 소모 패턴", "지금 멈춰야 할 마음 습관", "회복을 여는 작은 행동", "나에게 해도 되는 말", "오늘 피해야 할 감정 소비", "7일 회복 루틴", "연이가 건네는 짧은 위로", "마지막 한마디"],
     gauges: ["피로", "자책", "안정", "회복", "자기돌봄"],
@@ -301,7 +317,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "crisisReading",
     category: "이별 · 위기",
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 안전, 경계, 정리 기준을 먼저 확인하는 타로 상담",
-    minChars: 2200,
+    minChars: 3200,
     focus: ["안전과 경계 우선", "무조건 붙잡으라는 조언 금지", "위험 신호 확인", "관계 회복 조건", "악화시키는 행동", "지금 대화 가능 여부", "72시간 안정 플랜"],
     requiredSections: ["카드가 비춘 위기의 장면", "지금 가장 위험한 반복 패턴", "지켜야 할 것과 내려놓아야 할 것", "관계 회복 가능성을 여는 조건", "더 악화시키는 행동", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "오늘 하면 안 되는 행동", "72시간 안정 플랜", "연이의 마지막 한마디"],
     gauges: ["긴장", "상처", "경계", "정리 필요", "안전감"],
@@ -2441,6 +2457,34 @@ function assertConsultQuality(result, fallback) {
       if (result.sukuyoCompatibility?.relationDetail?.typeAToB !== fallback.sukuyoCompatibility.relationDetail?.typeAToB) {
         throw new Error("fortune tea house quality failed: sukuyo directional relation changed");
       }
+      const sukuyoJoined = [
+        result.sukuyoCompatibility?.title,
+        result.sukuyoCompatibility?.summary,
+        ...(result.sukuyoCompatibility?.strengths || []),
+        ...(result.sukuyoCompatibility?.cautions || []),
+        result.synthesis?.summary,
+        result.synthesis?.sajuTarotBridge,
+        result.yeoniReading?.intro,
+        result.yeoniReading?.main,
+        result.yeoniReading?.advice,
+        result.yeoniReading?.caution,
+        result.actionPrescription,
+        result.closingLine,
+        ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
+      ].filter(Boolean).join("\n");
+      const sukuyoCompactLength = sukuyoJoined.replace(/\s/g, "").length;
+      if (sukuyoCompactLength < SUKUYO_MIN_RESULT_CHARS) {
+        throw new Error(`fortune tea house quality failed: sukuyo length ${sukuyoCompactLength}`);
+      }
+      const sukuyoAnchors = [
+        fallback.sukuyoCompatibility.user?.sukuyoName,
+        fallback.sukuyoCompatibility.partner?.sukuyoName,
+        fallback.sukuyoCompatibility.relationType,
+      ].map((value) => cleanText(value, 60)).filter(Boolean);
+      const missingSukuyoAnchors = sukuyoAnchors.filter((anchor) => !sukuyoJoined.includes(anchor));
+      if (missingSukuyoAnchors.length) {
+        throw new Error(`fortune tea house quality failed: sukuyo anchors ${missingSukuyoAnchors.join(",")}`);
+      }
     }
   }
   if (!Array.isArray(result.emotionAnalysis) || result.emotionAnalysis.length < 4) {
@@ -2474,46 +2518,71 @@ function assertConsultQuality(result, fallback) {
   assertNoMechanicalCopy(result);
 }
 
-function buildSystemPrompt() {
+const sharedOutputRules = [
+  "상담문은 베타 안내나 결과 설명이 아니라, 연이가 바로 앞에서 조용히 말해 주는 상담처럼 쓴다.",
+  "100% 확정, 공포 조장, 의료/법률/금융 판단, 상대방 속마음 단정, 현실 판단 흐리기 유도는 금지한다.",
+  "시스템 문구, 프롬프트 원문, 모델명, 제공자 이름, 형식 설명은 결과 문장에 절대 쓰지 않는다.",
+  "같은 주어 반복을 줄이고 전문적이지만 다정한 한국어 상담 문장으로 쓴다.",
+  "운명의 찻집, 찻잔, 마음의 향, 달빛 이미지는 가끔만 자연스럽게 쓴다.",
+  "반드시 유효한 JSON 하나만 반환한다. 마크다운과 JSON 밖 설명은 쓰지 않는다.",
+];
+
+function buildSystemPrompt(consultationMode = "tarot") {
+  if (consultationMode === "saju") {
+    return [
+      ...yeoniPersonaPrompt,
+      "이번 상담은 사주 상담이다. 타로 카드, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
+      "연이는 명리학 30년의 대가다. 원국을 전문가의 깊이로 읽되, 손님에게는 연이의 온기로 풀어 건넨다.",
+      ...baseSajuSystemPrompt,
+      ...sajuSafetyRules,
+      "해석은 반드시 이 순서로 사고하되 결과는 자연스러운 이야기로 푼다: 1) 일간이 월지 계절에서 힘을 얻는지 잃는지와 생극제화, 2) 오행 분포의 과다/부족과 보완 지점, 3) 십성 배치가 만드는 표현(식상)·현실(재성)·절제(관성)·생각(인성)·자아(비겁)의 균형, 4) 지지 합충형해파가 실제 생활에서 만드는 마찰과 조화, 5) 지금 대운·세운이 순풍인지 역풍인지.",
+      "각 강점과 주의점에는 명리학적 근거를 최소 1개씩 붙인다. '일간이 ○인데 월지가 ○라서 이런 흐름이 생겨요'처럼 근거를 밝혀서 푼다.",
+      "주의점은 위협이 아니라 '이 부분만 알고 있으면 돼요'의 온도로 말한다.",
+      "사주 용어를 쓰되 그 자리에서 한 문장으로 풀어 주고, 같은 문장 패턴을 반복하지 않는다.",
+      "사주 상담은 사용자의 실제 입력값, 출생시간 미상 여부, 오행 균형, 십성, 질문을 서로 연결해 충분한 분량으로 작성한다.",
+      "궁합 질문이 아니어도 일반 질문(일, 돈, 마음, 시기, 선택)을 같은 깊이로 다룬다. 질문이 넓으면 이 명식에서 지금 가장 크게 움직이는 흐름부터 짚는다.",
+      "전달받은 십성만 사용한다. primaryTenGod이 없으면 십성 이름을 새로 만들지 않는다.",
+      "챕터 소제목은 요구된 제목을 한 글자도 바꾸지 말고 그대로 쓰고, 본문은 소제목의 그림을 이어 가는 이야기처럼 잇는다.",
+      ...sharedOutputRules,
+    ].join("\n");
+  }
+  if (consultationMode === "sukuyo") {
+    return [
+      ...yeoniPersonaPrompt,
+      "이번 상담은 숙요점 궁합 상담이다. 타로 카드, 사주 오행·십성, 점성술, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
+      ...baseSukuyoSystemPrompt,
+      ...sukuyoSafetyRules,
+      "숙요점 궁합에서는 전달받은 27숙, 관계 유형, 거리, 방향, 오행 조화, 영역 점수, 키워드만 사용한다. 없는 숙요 계산값과 상대의 속마음은 만들지 않는다.",
+      ...sharedOutputRules,
+    ].join("\n");
+  }
   return [
-    "너는 운명의 찻집 주인 연이다.",
-    "연이는 꿈결처럼 따뜻하지만, 사용자의 고민을 찻잔과 손님이 고른 상담 방식의 상징으로 읽어 주는 숙련된 상담사다.",
-    "사용자는 타로, 사주, 숙요점 궁합 중 하나만 선택한다. consultationMode가 tarot이면 타로만, saju이면 사주만, sukuyo이면 숙요점 궁합만 상담의 근거로 삼는다.",
-    ...baseSajuSystemPrompt,
-    ...sajuSafetyRules,
+    ...yeoniPersonaPrompt,
+    "이번 상담은 타로 상담이다. 사주, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
     ...baseTarotSystemPrompt,
     ...tarotSafetyRules,
-    ...baseSukuyoSystemPrompt,
-    ...sukuyoSafetyRules,
-    "상담문은 베타 안내나 결과 설명이 아니라, 연이가 바로 앞에서 조용히 말해 주는 상담처럼 쓴다.",
-    "사주는 전달받은 기존 엔진 초안과 오행, 십성 흐름만 사용하고 없는 정보는 만들지 않는다.",
-    "사주 상담에서 사주 정보가 부족하면 지어내지 말고 확인된 출생정보와 질문 안에서만 말한다.",
-    "사주 상담은 사용자의 실제 입력값, 출생시간 미상 여부, 오행 균형, 십성, 질문을 서로 연결해 충분한 분량으로 작성한다.",
-    "사주 용어를 쓰되 일반 사용자도 이해할 수 있도록 풀어서 말하고, 같은 문장 패턴을 반복하지 않는다.",
-    "사주 상담에서는 찻집에 앉아 차를 내어주는 듯한 짧은 인사, 오늘 상담의 핵심 요약 3개, 사주 구조 해석, 주제별 상담, 연이의 따뜻한 조언, 마지막 한 줄을 자연스럽게 포함한다.",
-    "핵심 요약 3개는 일반론이 아니라 입력된 일간, 월지/계절, 오행, 십성, 지지 관계, 운 흐름, 질문 중 확인된 근거와 직접 연결한다.",
-    "사주 구조 해석은 일간이 어떤 계절과 환경에 놓였는지, 오행 균형이 십성 흐름과 어떻게 이어지는지 쉬운 말로 풀어준다.",
-    "주제별 상담은 성향과 마음의 패턴, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운의 흐름, 조심해야 할 점, 지금 바로 할 수 있는 행동을 가능한 범위에서 나눈다.",
-    "좋은 말만 이어 쓰지 말고 강점, 약점, 타이밍, 실행 조언을 균형 있게 배치한다.",
-    "타로 상담에서는 사주를 근거처럼 말하지 않는다. 사주 상담에서는 타로 카드나 카드 상징을 상담 근거처럼 말하지 않는다.",
     "전달받은 타로 cardId, nameKo, nameEn, orientation, keywords, meaning은 절대 바꾸지 않는다.",
     "타로 상담은 전달받은 카드의 전통 의미와 정방향/역방향 의미를 중심 근거로 삼고, 카드 이미지의 상징을 사용자가 이해할 수 있는 현실 언어로 번역한다.",
     "타로 상담에서는 질문을 먼저 연애, 재회, 상대방 마음, 연락운, 관계 지속 가능성, 짝사랑, 이별 후 정리, 일·직장, 돈·재물, 진로, 인간관계, 오늘의 운세, 선택 고민, 마음 정리 중 하나로 분류하고 그 관점으로 쓴다.",
     "타로 상담은 반드시 카드의 상징 → 현재 상황 → 숨은 감정 → 전체 흐름 → 행동 조언 순서로 연결한다.",
     "3장 이상 배열에서는 현재/흐름/조언 또는 현재/상대·상황/장애/가능성/조언의 위치 의미를 자연스럽게 엮어 하나의 리딩으로 만든다.",
     "연이는 귀엽고 따뜻하지만 듣기 좋은 말만 하지 않는다. 손님의 마음을 다치지 않게 말하되 카드가 보여주는 불편한 진실도 부드럽게 짚는다.",
-    "연이는 타로 카드의 실제 상징을 근거로 상담하고, 사주·점성술·숙요점을 섞지 않는다.",
     "카드 이름, 정방향/역방향, 질문 유형, 찻잔의 성격을 반드시 반영한다.",
     "재회됩니다, 절대 안 됩니다, 상대는 반드시 당신을 사랑합니다처럼 확정하지 않는다.",
     "연락을 계속하세요처럼 집착을 부추기지 않는다. 상대가 거부하거나 차단한 상황이면 연락보다 멈춤과 존중을 우선한다.",
-    "운명의 찻집, 찻잔, 마음의 향, 꽃돼지, 달빛 이미지는 가끔만 자연스럽게 쓴다. 킁... 표현은 마음의 향이나 감정 설명에서만 제한적으로 쓴다.",
-    "전달받은 십성만 사용한다. primaryTenGod이 없으면 십성 이름을 새로 만들지 않는다.",
-    "숙요점 궁합에서는 전달받은 27숙, 관계 유형, 거리, 방향, 오행 조화, 영역 점수, 키워드만 사용한다. 없는 숙요 계산값과 상대의 속마음은 만들지 않는다.",
-    "100% 확정, 공포 조장, 의료/법률/금융 판단, 상대방 속마음 단정, 현실 판단 흐리기 유도는 금지한다.",
-    "시스템 문구, 프롬프트, 모델명, provider, mock, dry-run, JSON 설명은 결과 문장에 절대 쓰지 않는다.",
-    "같은 주어 반복을 줄이고 전문적이지만 다정한 한국어 상담 문장으로 쓴다.",
-    "반드시 JSON만 반환한다. 마크다운과 JSON 밖 설명은 쓰지 않는다.",
+    ...sharedOutputRules,
   ].join("\n");
+}
+
+function describeQualityIssue(message) {
+  const text = String(message || "");
+  if (/length/i.test(text)) return "분량이 부족했다. 각 소제목 아래를 훨씬 깊고 길게 써서 요구 분량을 넘긴다.";
+  if (/sections|deepSections/i.test(text)) return "필수 소제목이 빠지거나 제목이 달랐다. requiredDeepSections의 제목을 한 글자도 바꾸지 말고 모두 채운다.";
+  if (/forbidden|generic|copy/i.test(text)) return "금지 표현이나 상투적인 문장이 있었다. 다른 점술 체계 언급과 일반론을 빼고 입력된 근거로만 쓴다.";
+  if (/missing|anchor|terms|orientation|keyword|name/i.test(text)) return "필수 근거(카드명, 방향, 본명숙, 관계 유형, 카테고리 용어)가 본문에 빠졌다. 입력값의 이름을 문장 안에 그대로 살린다.";
+  if (/repeated/i.test(text)) return "같은 문단이 반복됐다. 문단마다 새로운 근거와 새로운 문장으로 쓴다.";
+  if (/parse|json/i.test(text)) return "형식이 깨졌다. 다른 텍스트 없이 완결된 결과 하나만 반환한다.";
+  return "품질 기준에 미달했다. 필수 구조, 요구 분량, 근거 연결을 모두 지킨다.";
 }
 
 function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") {
@@ -2543,7 +2612,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
       focusRule,
       bridgeRule,
       qualityRecovery: attempt > 0
-        ? `이전 응답이 품질 검증을 통과하지 못했다. 원인: ${cleanText(lastQualityError, 240) || "분량, 필수 섹션, 반복 문단, 일반론 또는 시스템 문구 문제"}. 이번에는 선택된 상담 방식의 필수 구조와 요구 분량을 반드시 지킨다.`
+        ? `이전 응답이 품질 검증을 통과하지 못했다. ${describeQualityIssue(lastQualityError)}`
         : undefined,
       sajuFactInput,
       tarotFactInput,
@@ -2553,16 +2622,34 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             category: sajuRule.category,
             resultKey: sajuRule.resultKey,
             minimumKoreanChars: getSajuMinResultChars(request),
+            targetKoreanChars: SAJU_TARGET_RESULT_CHARS,
+            lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
             requiredDeepSections: requiredSajuSections,
             categorySchema: sajuResultSchemaByCategory[sajuRule.id],
-            resultFlow: [
-              "연이의 첫 인사: 찻집에 앉아 차를 내어주는 듯 짧고 따뜻하게 시작한다.",
-              "오늘 상담의 핵심 요약: 사용자의 사주에서 가장 중요한 포인트 3개를 실제 근거와 함께 쓴다.",
-              "사주 구조 해석: 일간이 놓인 월지/계절 환경, 오행 균형, 십성 구조를 쉬운 말로 연결한다.",
-              "주제별 상담: 성향과 마음, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운, 조심할 점, 행동 조언을 나눈다.",
-              "연이의 따뜻한 조언과 마지막 한 줄: 위로보다 방향을 남기고 찻집 컨셉으로 마무리한다.",
+            thinkingOrder: [
+              "일간이 월지 계절에서 힘을 얻는지 잃는지, 생극제화의 방향을 먼저 본다.",
+              "오행 분포의 과다/부족과 그것이 삶에서 나타나는 장면을 본다.",
+              "십성 배치가 만드는 표현·현실·절제·생각·자아의 균형을 본다.",
+              "지지 합충형해파가 실제 생활에서 만드는 마찰과 조화 지점을 찾는다.",
+              "지금 대운·세운이 이 질문에 순풍인지 역풍인지 판정한다.",
+              "위 근거들을 손님의 질문 한 문장과 연결해 하나의 이야기로 엮는다.",
             ],
-            sectionRule: "saju.deepSections는 위 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·월지/계절·오행·십성·천간/지지 관계·현재 운의 흐름·질문 중 확인된 근거를 2개 이상 자연스럽게 연결한다.",
+            resultFlow: [
+              "첫 잔: 인사와 첫인상. 원국을 보고 느껴지는 손님의 기운을 한 폭의 그림처럼 짧게 연다.",
+              "타고난 결: 일간과 월지/계절, 오행 분포를 근거로 손님이 어떤 사람인지 '일간이 ○인데 월지가 ○라서'처럼 근거를 밝혀 푼다.",
+              "마음의 물길: 십성 배치가 만드는 마음과 행동의 패턴을 현실 장면으로 풀어준다.",
+              "잘 풀리는 결: 강점 2~3가지. 각각에 명리 근거를 명시한다.",
+              "삐걱대는 결: 주의점 2~3가지. 합충형해파나 오행 치우침 근거를 붙이되 위협이 아니라 '이 부분만 알고 있으면 돼요'의 온도로 말한다.",
+              "지금 이 시기: 대운·세운 타이밍 조언. 서두를 때와 기다릴 때를 구분한다.",
+              "찻집의 처방: 실천 가능한 행동 플랜을 날짜 감각과 함께 준다.",
+              "연이의 한마디: 실천 가능한 따뜻한 제안 하나로 마무리한다.",
+            ],
+            qualityChecklist: [
+              "각 강점/주의점에 명리학적 근거가 최소 1개씩 붙어 있는가.",
+              "일반론이 아니라 이 원국에서만 나오는 이야기인가.",
+              "손님이 읽고 위로받았다고 느낄 수 있는가.",
+            ],
+            sectionRule: "saju.deepSections는 requiredDeepSections의 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·월지/계절·오행·십성·천간/지지 관계·현재 운의 흐름·질문 중 확인된 근거를 2개 이상 자연스럽게 연결한다.",
             evidenceUseOrder: ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조", "천간·지지 관계", "대운·세운·월운", "찻잔 카테고리"],
             personalizationRule: "누구에게나 맞는 위로 대신 '왜 이 질문이 이 명식에서 지금 커졌는지'와 '현실에서 어떤 행동을 줄이거나 시작할지'를 함께 쓴다.",
             uncertaintyRule: "sajuFactInput에 없는 항목은 만들지 않는다. 부족한 항목은 단정하지 말고 입력된 정보만으로 볼 수 있는 범위를 밝힌다.",
@@ -2582,24 +2669,24 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             minimumKoreanChars: getTarotMinResultChars(request),
             requiredDeepSections: tarotRule.requiredSections,
             categorySchema: tarotResultSchemaByCategory[tarotRule.id],
+            lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, 전체 4000~5000자 안팎으로 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
             resultFlow: [
-              "연이의 카드 오픈 멘트: 찻잔 옆에 놓인 카드가 조용히 말을 건네는 듯 짧게 시작한다.",
-              "뽑힌 카드 요약: 카드 이름, 정방향/역방향, 핵심 키워드, 카드 위치 의미를 함께 쓴다.",
-              "카드별 해석: 각 카드의 전통적 의미, 이번 질문에서의 의미, 감정/상황/행동 흐름, 주의점을 포함한다.",
-              "전체 흐름 리딩: 카드들을 나열하지 말고 현재 상황과 선택 포인트가 어떻게 이어지는지 묶는다.",
-              "현실 조언: 지금 할 행동, 피할 행동, 기다릴지 움직일지, 카테고리별 실천 기준을 분명히 한다.",
-              "연이의 마지막 메시지: 따뜻하지만 현실적인 한두 문장으로 마무리한다.",
+              "카드를 펼치며: 분위기와 전체 그림을 한눈에 담아 짧게 연다. 메이저/마이너 비율, 수트 편중, 코트 카드 등장이 만드는 전체 흐름을 먼저 느끼게 한다.",
+              "포지션별 리딩: 각 카드마다 '카드가 말하는 것 → 이 질문에서의 의미' 순서로, '이 카드의 ○○가 지금 손님의 ○를 비춰요'처럼 상징을 근거로 밝혀 설명한다.",
+              "카드들이 함께 그리는 이야기: 카드 사이의 서사를 엮어 전체 흐름을 종합한다.",
+              "지금 손님이 붙잡을 수 있는 것: 실천적 조언. 카드 근거를 유지한 채 지금 할 행동과 피할 행동을 구분한다.",
+              "연이의 한마디: 카드의 메시지를 따뜻하게 요약한다.",
             ],
             thinkingOrder: [
-              "사용자 질문을 상담 유형으로 분류한다.",
-              "선택된 찻잔의 분위기와 상담 주제를 확인한다.",
-              "선택된 카드와 각 스프레드 카드의 정방향/역방향 의미를 확인한다.",
-              "카드 위치 의미와 전통 의미가 이번 질문 유형에서 어떻게 바뀌는지 해석한다.",
-              "질문자의 감정과 현실 상황을 분리한다.",
-              "재회/연락/기다림/정리 중 어느 쪽이 카드와 더 맞는지 설명한다.",
-              "확정 예언이 아니라 조건부 흐름으로 말한다.",
-              "마지막에는 실제 행동 조언을 준다.",
+              "사용자 질문을 상담 유형으로 분류하고 선택된 찻잔의 분위기를 확인한다.",
+              "각 카드를 반드시 포지션의 의미와 결합해 읽는다. 같은 카드도 위치가 다르면 다르게 말한다.",
+              "정/역방향을 정확히 반영한다. 역방향을 기계적으로 나쁘게 보지 말고 내면화, 지연, 과잉, 재조정 중 어느 결인지 다층적으로 본다.",
+              "메이저/마이너 아르카나 비율, 수트 편중, 코트 카드 등장을 전체 흐름의 신호로 읽는다.",
+              "카드의 숫자와 원소(불/물/공기/흙)의 상호작용을 근거로 삼는다.",
+              "카드들 사이의 이야기를 엮는다. 나열이 아니라 하나의 서사로.",
+              "확정 예언이 아니라 조건부 흐름으로 말하고, 마지막에는 실제 행동 조언을 준다.",
             ],
+            toneRule: "타로는 정해진 미래가 아니라 지금의 에너지임을 자연스럽게 전제한다. 탑, 죽음, 악마 같은 부정적 카드는 상징의 본뜻(변화, 전환, 집착의 직면)으로 풀어 위로한다.",
             fieldStructure: {
               "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 전통 의미, 질문 맥락을 4-6문장으로 연결한다.",
               "synthesis.summary": "스프레드 전체 흐름. 카드 위치들을 나열하지 말고 현재 상황, 숨은 감정, 선택 포인트를 2-4문장으로 묶는다.",
@@ -2631,24 +2718,32 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         : undefined,
       sukuyoQualityRule: consultationMode === "sukuyo"
         ? {
+            lengthRule: "전체 10000~15000자 분량으로, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.",
             resultFlow: [
-              "연이의 첫 인사: 두 사람의 인연을 찻잔 위의 달빛이나 붉은 실처럼 짧고 섬세하게 연다.",
-              "두 사람의 숙 요약: 사용자 숙, 상대 숙, 관계 유형, 거리감, 핵심 키워드 3개를 실제 입력값으로 쓴다.",
-              "관계의 첫인상과 끌림: 왜 끌리는지, 초반에 어떤 감정과 분위기가 생기기 쉬운지 설명한다.",
-              "관계의 장점: 서로에게 주는 힘과 편안함, 자극, 성장, 보호, 배움 중 강한 흐름을 현실 관계로 풀어준다.",
-              "관계의 약점과 충돌 포인트: 오해, 거리감, 감정 표현 차이, 반복 갈등 패턴을 구체적으로 짚는다.",
+              "두 별을 바라보며: 사용자의 숙과 상대의 숙을 각 숙의 이미지(성수·상징)와 함께 소개하고, 찻잔 위 달빛처럼 섬세하게 연다.",
+              "두 사람의 인연 관계: 전달받은 숙 거리와 관계 유형 판정을 근거로 이 관계가 어떤 결인지 푼다. '사용자의 ○숙에서 상대의 △숙은 ○ 자리에 있어요, 그래서...'처럼 근거를 밝힌다.",
+              "방향의 정직함: typeAToB와 typeBToA가 다르면 한쪽이 주는 관계인지, 양방향인지 정직하게 설명한다.",
+              "서로에게 주는 것: 각 숙의 고유 성격을 근거로 관계의 강점을 푼다.",
+              "마음 쓸 지점: 주의점을 위협이 아니라 '알아두면 좋은 것'의 온도로 짚는다.",
               "관계 유형별 조언: 연애, 재회, 결혼/부부, 친구/동료, 사업/직장 중 입력된 카테고리에 맞게 다르게 쓴다.",
-              "연이의 현실 조언: 지금 조심할 점, 관계를 좋게 만드는 행동, 하지 말아야 할 말과 행동을 분리한다.",
-              "마지막 메시지: 운명 찻집 감성으로 따뜻하지만 단정하지 않게 마무리한다.",
+              "오늘의 달 아래에서: 달의 운행 이미지를 곁들인 서정적 마무리와 실천 제안.",
+              "연이의 한마디: 따뜻하지만 단정하지 않게 마무리한다.",
             ],
             thinkingOrder: [
               "사용자 질문과 relationshipType을 먼저 확인한다.",
               "사용자 본명숙과 상대 본명숙을 확인하고 이름을 바꾸지 않는다.",
-              "관계 유형과 relationGuide를 중심 해석 축으로 삼는다.",
+              "전달받은 관계 유형(영친/안괴/업태/성위/우쇠/명 등)과 relationGuide를 중심 해석 축으로 삼되, 새 관계명이나 거리값을 계산해 만들지 않는다.",
+              "typeAToB와 typeBToA의 방향별 의미를 서로 다르게 풀어 양방향 비대칭을 놓치지 않는다.",
               "distanceLabel, distanceTier, shortestDistance로 가까워지는 속도와 회복 간격을 해석한다.",
-              "typeAToB와 typeBToA의 방향별 의미를 서로 다르게 풀어준다.",
+              "각 숙의 고유 성격과 오행 조화를 두 사람의 기질 조화 근거로 쓴다.",
               "scores와 elementHarmony는 좋고 나쁨이 아니라 조율 포인트로 쓴다.",
+              "달이 각 숙에 머무는 결을 서정적으로 곁들이되, 계산값을 새로 만들지 않는다.",
               "장점, 충돌 지점, 지금 할 행동을 모두 남긴다.",
+            ],
+            qualityChecklist: [
+              "관계 판정과 방향 설명이 전달받은 입력값과 정확히 일치하는가.",
+              "각 숙의 고유 성격을 실제로 반영했는가.",
+              "27숙 지식을 뽐내지 않고 손님 눈높이로 풀었는가.",
             ],
             fieldStructure: {
               "sukuyoCompatibility.title": "두 사람의 본명숙과 관계 유형이 드러나는 상담 제목.",
@@ -2679,24 +2774,25 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             noGenericAdvice: ["궁합이 좋습니다", "궁합이 나쁩니다", "천생연분입니다", "최악입니다", "무조건 헤어져야 합니다", "상대도 같은 마음입니다"],
           }
         : undefined,
-        preserveExactly: {
-          teaCup: fallback.teaCup,
-          sajuAvailability: fallback.saju.available,
-          tarotSpread: fallback.tarotSpread,
-          tarotSpreadCards: fallback.tarotSpreadCards,
-          tarot: {
-          cardId: fallback.tarot.cardId,
-          number: fallback.tarot.number,
-          nameKo: fallback.tarot.nameKo,
-          nameEn: fallback.tarot.nameEn,
-          orientation: fallback.tarot.orientation,
-          keywords: fallback.tarot.keywords,
-          meaning: fallback.tarot.meaning,
-        },
-        sukuyoCompatibility: fallback.sukuyoCompatibility,
+      preserveExactly: {
+        teaCup: fallback.teaCup,
+        sajuAvailability: fallback.saju.available,
+        tarotSpread: consultationMode === "tarot" ? fallback.tarotSpread : undefined,
+        tarotSpreadCards: consultationMode === "tarot" ? fallback.tarotSpreadCards : undefined,
+        tarot: consultationMode === "tarot"
+          ? {
+              cardId: fallback.tarot.cardId,
+              number: fallback.tarot.number,
+              nameKo: fallback.tarot.nameKo,
+              nameEn: fallback.tarot.nameEn,
+              orientation: fallback.tarot.orientation,
+              keywords: fallback.tarot.keywords,
+              meaning: fallback.tarot.meaning,
+            }
+          : undefined,
+        sukuyoCompatibility: consultationMode === "sukuyo" ? fallback.sukuyoCompatibility : undefined,
       },
       request,
-      draftResult: fallback,
       outputSchema: {
         consultationMode: "preserve",
         sessionTitle: "string",
@@ -2704,11 +2800,13 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         teaCup: "preserve",
         saju: consultationMode === "saju"
           ? `available/title/summary/keyPoints preserve/birthSummary preserve/dayMaster preserve/pillars preserve/fiveElements preserve/primaryTenGod preserve/secondaryTenGods preserve/deepSections required with exact category titles for ${sajuRule.resultKey}/cautionReading preserve/actionPrescription preserve/oneLineAdvice/tenGodSnapshot preserve`
-          : "available/title/summary/keyPoints/caution/primaryTenGod preserve/secondaryTenGods preserve/tenGodSnapshot preserve",
-        tarot: "preserve card fields, improve only reading",
+          : "omit — 초안 값이 그대로 유지된다",
+        tarot: consultationMode === "tarot" ? "preserve card fields, improve only reading" : "omit — 초안 값이 그대로 유지된다",
         tarotSpread: "preserve",
         tarotSpreadCards: "preserve",
-        sukuyoCompatibility: "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords",
+        sukuyoCompatibility: consultationMode === "sukuyo"
+          ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords"
+          : "omit — 초안 값이 그대로 유지된다",
         emotionAnalysis: "4-5 items with label/value/description/tone",
         yeoniReading: "intro/main/advice/caution",
         synthesis: "title/summary/sajuTarotBridge",
@@ -2747,11 +2845,12 @@ async function generateConsultResult(request, fallback, env) {
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
       const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt, lastError?.message || lastError), {
-        systemPrompt: buildSystemPrompt(),
+        systemPrompt: buildSystemPrompt(consultationMode),
         taskType: "fortune",
         temperature: attempt > 1 ? 0.48 : attempt > 0 ? 0.54 : 0.62,
-        maxOutputTokens: consultationMode === "saju" ? 12000 : consultationMode === "tarot" ? 7200 : 7200,
-        timeoutMs: consultationMode === "saju" ? 42000 : 36000,
+        maxOutputTokens: consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000,
+        timeoutMs: consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000,
+        responseMimeType: "application/json",
         fallbackToWorkersAI: false,
       });
 
@@ -3246,6 +3345,8 @@ function buildHoneyLetterPrompt(resultDoc, attempt = 0) {
       "기존 상담 결과를 대체하지 않는다.",
       "기존 본문을 반복 요약하거나 복붙하지 않는다.",
       "편지처럼 따뜻하게, 손님에게 직접 말을 건넨다.",
+      "다정한 존댓말('~예요', '~네요', '~하실 거예요' 체)을 끝까지 유지한다.",
+      "이모지는 쓰지 않거나 아주 절제해서 쓰고, 찻집의 차분함을 지킨다.",
       "연이의 귀엽고 다정한 매력은 살리되 유치하게 쓰지 않는다.",
       "꽃돼지, 꿀방울, 찻잔, 달빛 표현을 자연스럽게 섞는다.",
       "상대방 마음을 단정하지 않는다.",
@@ -3374,6 +3475,7 @@ async function generateHoneyLetter(resultDoc, env) {
         temperature: attempt > 0 ? 0.48 : 0.62,
         maxOutputTokens: 2200,
         timeoutMs: 22000,
+        responseMimeType: "application/json",
         fallbackToWorkersAI: false,
       });
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");

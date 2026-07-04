@@ -9,6 +9,7 @@ import { useRubInteraction } from "@/src/components/crystal/useRubInteraction";
 import { useCoinGate } from "../../hooks/useCoinGate";
 
 const CRYSTAL_COST = 50;
+const CRYSTAL_COST_KRW = CRYSTAL_COST * 100; // 코인은 폐지된 내부 계산 단위, 사용자 표시는 항상 원화(KRW_PER_COIN=100)
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const GEM_TYPES = [
   "amethyst",
@@ -45,7 +46,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "당신의 에너지가 카드를 깨웁니다",
     readerFallback: "{gem}의 질문을 마음속에 담고 카드를 한 장씩 열어 주세요.",
     openingCards: "카드의 빛을 여는 중",
-    openReading: "카드 리딩 열기 ({cost}코인)",
+    openReading: "카드 리딩 열기 ({cost}원)",
     spreadAria: "5장 원석 타로 스프레드",
     positionPrefix: "포지션",
     resultHeader: "원석 소울 타로 결과",
@@ -78,7 +79,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Your energy awakens the cards",
     readerFallback: "Hold your question inside {gem} and open each card one by one.",
     openingCards: "Opening the light of the cards",
-    openReading: "Open card reading ({cost} coins)",
+    openReading: "Open card reading ({cost} KRW)",
     spreadAria: "Five-card crystal tarot spread",
     positionPrefix: "Position",
     resultHeader: "Crystal Soul Tarot Result",
@@ -111,7 +112,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "あなたのエネルギーがカードを目覚めさせます",
     readerFallback: "{gem}に問いをそっと預け、カードを一枚ずつ開いてください。",
     openingCards: "カードの光を開いています",
-    openReading: "カードリーディングを開く（{cost}コイン）",
+    openReading: "カードリーディングを開く（{cost}ウォン）",
     spreadAria: "5枚クリスタルタロットスプレッド",
     positionPrefix: "ポジション",
     resultHeader: "クリスタルソウルタロット結果",
@@ -144,7 +145,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "你的能量正在唤醒牌面",
     readerFallback: "把问题交给 {gem}，然后一张一张打开牌。",
     openingCards: "正在开启牌的光",
-    openReading: "开启卡牌解读（{cost}枚硬币）",
+    openReading: "开启卡牌解读（{cost}韩元）",
     spreadAria: "五张原石塔罗牌阵",
     positionPrefix: "位置",
     resultHeader: "水晶灵魂塔罗结果",
@@ -177,7 +178,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "你的能量正在喚醒牌面",
     readerFallback: "把問題交給 {gem}，然後一張一張打開牌。",
     openingCards: "正在開啟牌的光",
-    openReading: "開啟卡牌解讀（{cost}枚硬幣）",
+    openReading: "開啟卡牌解讀（{cost}韓元）",
     spreadAria: "五張原石塔羅牌陣",
     positionPrefix: "位置",
     resultHeader: "水晶靈魂塔羅結果",
@@ -210,7 +211,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Năng lượng của bạn đánh thức các lá bài",
     readerFallback: "Giữ câu hỏi trong {gem} rồi mở từng lá bài.",
     openingCards: "Đang mở ánh sáng của lá bài",
-    openReading: "Mở bài đọc ({cost} coin)",
+    openReading: "Mở bài đọc ({cost} KRW)",
     spreadAria: "Trải bài tarot pha lê 5 lá",
     positionPrefix: "Vị trí",
     resultHeader: "Kết quả Tarot Linh Hồn Pha Lê",
@@ -243,7 +244,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "आपकी ऊर्जा कार्डों को जगाती है",
     readerFallback: "{gem} में अपना प्रश्न रखें और कार्ड एक-एक करके खोलें।",
     openingCards: "कार्डों की रोशनी खुल रही है",
-    openReading: "कार्ड रीडिंग खोलें ({cost} coins)",
+    openReading: "कार्ड रीडिंग खोलें ({cost} KRW)",
     spreadAria: "5-card crystal tarot spread",
     positionPrefix: "Position",
     resultHeader: "Crystal Soul Tarot Result",
@@ -276,7 +277,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Tu energía despierta las cartas",
     readerFallback: "Guarda tu pregunta en {gem} y abre las cartas una por una.",
     openingCards: "Abriendo la luz de las cartas",
-    openReading: "Abrir lectura de cartas ({cost} monedas)",
+    openReading: "Abrir lectura de cartas ({cost} KRW)",
     spreadAria: "Tirada de tarot cristalino de 5 cartas",
     positionPrefix: "Posición",
     resultHeader: "Resultado del Tarot del Alma de Cristal",
@@ -309,7 +310,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Votre énergie éveille les cartes",
     readerFallback: "Déposez votre question dans {gem} et ouvrez les cartes une à une.",
     openingCards: "Ouverture de la lumière des cartes",
-    openReading: "Ouvrir la lecture ({cost} pièces)",
+    openReading: "Ouvrir la lecture ({cost} KRW)",
     spreadAria: "Tirage tarot cristal en 5 cartes",
     positionPrefix: "Position",
     resultHeader: "Résultat du Tarot de l'Âme Cristal",
@@ -342,7 +343,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Deine Energie weckt die Karten",
     readerFallback: "Lege deine Frage in {gem} und öffne die Karten nacheinander.",
     openingCards: "Das Licht der Karten öffnet sich",
-    openReading: "Kartenlesung öffnen ({cost} Coins)",
+    openReading: "Kartenlesung öffnen ({cost} KRW)",
     spreadAria: "5-Karten-Kristalltarot-Legung",
     positionPrefix: "Position",
     resultHeader: "Kristallseelen-Tarot Ergebnis",
@@ -375,7 +376,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Jouw energie wekt de kaarten",
     readerFallback: "Leg je vraag in {gem} en open de kaarten één voor één.",
     openingCards: "Het licht van de kaarten opent",
-    openReading: "Kaartlezing openen ({cost} coins)",
+    openReading: "Kaartlezing openen ({cost} KRW)",
     spreadAria: "5-kaarten kristaltarotlegging",
     positionPrefix: "Positie",
     resultHeader: "Kristalziel Tarot resultaat",
@@ -408,7 +409,7 @@ const CRYSTAL_UI_COPY = {
     rubSubHint: "Tenaga anda membangunkan kad",
     readerFallback: "Simpan soalan anda dalam {gem} dan buka kad satu demi satu.",
     openingCards: "Membuka cahaya kad",
-    openReading: "Buka bacaan kad ({cost} coin)",
+    openReading: "Buka bacaan kad ({cost} KRW)",
     spreadAria: "Sebaran tarot kristal 5 kad",
     positionPrefix: "Posisi",
     resultHeader: "Keputusan Tarot Jiwa Kristal",
@@ -709,6 +710,7 @@ function GemSelectScreen({ selectedGem, onSelect, copy, locale }) {
               key={type}
               type="button"
               className={`gem-card ${selected ? "selected" : ""}`}
+              style={{ "--gem": getGemColor(type) || "#a78bfa" }}
               onClick={() => onSelect(type)}
               aria-pressed={selected}
             >
@@ -779,7 +781,7 @@ function TarotReaderChat({ gemType, reading, loading, paying, error, onStart, co
         <div className="reader-pay-panel">
           <button type="button" className="crystal-primary-button" onClick={onStart} disabled={loading || paying}>
             {loading || paying ? <Loader2 size={18} className="spin" /> : <Sparkles size={18} />}
-            {loading || paying ? copy.openingCards : formatCopy(copy.openReading, { cost: CRYSTAL_COST })}
+            {loading || paying ? copy.openingCards : formatCopy(copy.openReading, { cost: CRYSTAL_COST_KRW.toLocaleString("ko-KR") })}
           </button>
           {error ? <p className="crystal-error">{error}</p> : null}
         </div>
@@ -1135,6 +1137,19 @@ export default function CrystalSoulTarotClient() {
             radial-gradient(circle at 78% 18%, rgba(196,181,253,0.48) 0 1.2px, transparent 2px),
             radial-gradient(circle at 44% 82%, rgba(167,139,250,0.34) 0 1px, transparent 1.8px);
           background-size: 108px 108px, 154px 154px, 188px 188px;
+          animation: crystalStarDrift 42s linear infinite;
+        }
+
+        .crystal-soul-orbit::after {
+          content: "";
+          position: absolute;
+          inset: -25%;
+          pointer-events: none;
+          background:
+            radial-gradient(38% 38% at 22% 28%, color-mix(in srgb, var(--active-gem), transparent 80%), transparent 70%),
+            radial-gradient(42% 42% at 80% 70%, color-mix(in srgb, var(--active-gem), transparent 86%), transparent 72%);
+          filter: blur(44px);
+          animation: crystalAurora 20s ease-in-out infinite alternate;
         }
 
         .crystal-screen {
@@ -1185,32 +1200,47 @@ export default function CrystalSoulTarotClient() {
         }
 
         .gem-card {
+          --gem: #a78bfa;
+          position: relative;
           min-height: 198px;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           gap: 10px;
-          border: 1px solid rgba(167, 139, 250, 0.15);
+          border: 1px solid color-mix(in srgb, var(--gem), transparent 82%);
           border-radius: 16px;
           padding: 20px 14px;
-          background: rgba(167, 139, 250, 0.05);
+          background:
+            radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--gem), transparent 88%), transparent 62%),
+            rgba(167, 139, 250, 0.04);
           color: var(--text-main);
           cursor: pointer;
+          overflow: hidden;
           transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .gem-card:hover {
-          background: rgba(167, 139, 250, 0.1);
-          border-color: rgba(167, 139, 250, 0.4);
+          border-color: color-mix(in srgb, var(--gem), transparent 45%);
           transform: translateY(-4px);
-          box-shadow: 0 8px 32px rgba(167, 139, 250, 0.2);
+          box-shadow: 0 14px 40px -12px color-mix(in srgb, var(--gem), transparent 45%);
         }
 
         .gem-card.selected {
-          background: rgba(167, 139, 250, 0.15);
-          border-color: #a78bfa;
-          box-shadow: 0 0 24px rgba(167, 139, 250, 0.35);
+          border-color: var(--gem);
+          background:
+            radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--gem), transparent 78%), transparent 60%),
+            rgba(167, 139, 250, 0.08);
+          box-shadow: 0 0 0 1px color-mix(in srgb, var(--gem), transparent 55%), 0 0 34px -6px color-mix(in srgb, var(--gem), transparent 50%);
+        }
+
+        .gem-card.selected::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          pointer-events: none;
+          background: linear-gradient(180deg, color-mix(in srgb, var(--gem), transparent 84%), transparent 46%);
         }
 
         .gem-card__name {
@@ -1650,10 +1680,26 @@ export default function CrystalSoulTarotClient() {
         }
 
         .synthesis-panel {
-          border: 1px solid rgba(167, 139, 250, 0.22);
+          position: relative;
+          border: 1px solid color-mix(in srgb, var(--active-gem), transparent 74%);
           border-radius: 14px;
-          background: rgba(167, 139, 250, 0.07);
-          padding: 20px;
+          background:
+            radial-gradient(120% 60% at 50% 0%, color-mix(in srgb, var(--active-gem), transparent 88%), transparent 58%),
+            rgba(167, 139, 250, 0.06);
+          padding: 22px 20px;
+          box-shadow: 0 24px 70px -34px color-mix(in srgb, var(--active-gem), transparent 30%);
+          overflow: hidden;
+        }
+
+        .synthesis-panel::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, var(--active-gem), transparent);
+          opacity: 0.7;
         }
 
         .synthesis-panel p,
@@ -1861,6 +1907,64 @@ export default function CrystalSoulTarotClient() {
           background: #c4b5fd;
           vertical-align: -0.15em;
           animation: blink 0.8s step-end infinite;
+        }
+
+        .tarot-card__back::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          background: linear-gradient(115deg, transparent 42%, rgba(255, 255, 255, 0.16) 50%, transparent 58%);
+          transform: translateX(-120%);
+          animation: crystalSheen 4.2s ease-in-out infinite;
+        }
+
+        .spread-item.is-open .tarot-card::after {
+          content: "";
+          position: absolute;
+          inset: -16px;
+          z-index: -1;
+          border-radius: 22px;
+          pointer-events: none;
+          background: radial-gradient(circle, color-mix(in srgb, var(--active-gem), transparent 58%), transparent 70%);
+          filter: blur(12px);
+          animation: crystalReveal 1s ease both;
+        }
+
+        .crystal-primary-button {
+          background: linear-gradient(135deg, color-mix(in srgb, var(--active-gem), transparent 52%), color-mix(in srgb, var(--active-gem), transparent 80%));
+          border-color: color-mix(in srgb, var(--active-gem), transparent 48%);
+          box-shadow: 0 14px 34px -14px var(--active-gem);
+        }
+
+        .crystal-primary-button:hover {
+          background: linear-gradient(135deg, color-mix(in srgb, var(--active-gem), transparent 42%), color-mix(in srgb, var(--active-gem), transparent 72%));
+          border-color: color-mix(in srgb, var(--active-gem), transparent 34%);
+        }
+
+        .gem-message {
+          box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--active-gem), transparent 84%), 0 14px 40px -26px color-mix(in srgb, var(--active-gem), transparent 40%);
+        }
+
+        @keyframes crystalStarDrift {
+          from { background-position: 0 0, 0 0, 0 0; }
+          to { background-position: 108px 216px, -154px 154px, 188px -188px; }
+        }
+
+        @keyframes crystalAurora {
+          from { transform: translate3d(-3%, -2%, 0) scale(1); opacity: 0.65; }
+          to { transform: translate3d(4%, 3%, 0) scale(1.08); opacity: 1; }
+        }
+
+        @keyframes crystalSheen {
+          0%, 68% { transform: translateX(-120%); }
+          100% { transform: translateX(120%); }
+        }
+
+        @keyframes crystalReveal {
+          0% { opacity: 0; transform: scale(0.7); }
+          45% { opacity: 0.95; }
+          100% { opacity: 0.4; transform: scale(1); }
         }
 
         @keyframes gemFloat {

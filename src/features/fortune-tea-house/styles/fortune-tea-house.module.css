@@ -1020,8 +1020,8 @@
 
 .honeyRewardLayer {
   position: fixed;
-  top: max(14px, env(safe-area-inset-top));
-  left: calc(max(14px, env(safe-area-inset-left)) + 74px);
+  top: calc(max(14px, env(safe-area-inset-top)) + 50px);
+  left: max(14px, env(safe-area-inset-left));
   z-index: 9;
   width: min(214px, calc(100vw - 170px));
   pointer-events: none;
@@ -9213,8 +9213,8 @@
   }
 
   .honeyRewardLayer {
-    top: max(14px, env(safe-area-inset-top));
-    left: calc(max(10px, env(safe-area-inset-left)) + 72px);
+    top: calc(max(14px, env(safe-area-inset-top)) + 50px);
+    left: max(10px, env(safe-area-inset-left));
     width: min(198px, calc(100vw - 168px));
   }
 
@@ -16444,7 +16444,7 @@
 
 @media (max-width: 390px) {
   .honeyRewardLayer {
-    left: calc(max(8px, env(safe-area-inset-left)) + 64px);
+    left: max(8px, env(safe-area-inset-left));
     width: min(168px, calc(100vw - 148px));
   }
 
@@ -16512,5 +16512,29 @@
   .honeyAlbumButton:hover,
   .honeyAlbumButton:focus-visible {
     transform: none;
+  }
+}
+
+/* Keep the landing hero copy clear of the fixed top controls (home/BGM row + honey dock) */
+@media (max-width: 980px) {
+  .page[data-stage="landing"] .landingHeroContent {
+    padding-top: 156px;
+  }
+}
+
+/* Crossfade between rotating loading chat lines in the scent loading scene */
+.scentLoadingChatLineSwap {
+  display: inline-block;
+  animation: scentChatLineFade 620ms ease both;
+}
+
+@keyframes scentChatLineFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scentLoadingChatLineSwap {
+    animation: none;
   }
 }

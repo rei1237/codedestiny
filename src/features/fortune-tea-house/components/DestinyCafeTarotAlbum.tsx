@@ -817,7 +817,7 @@ function TarotAlbumLockPanel({
             <Lock size={13} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </p>
-          <h2 id="tarotAlbumTitle" className="bg-gradient-to-r from-[#C9A8E8] via-[#F5EFFF] to-[#E8B85C] bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl">
+          <h2 id="tarotAlbumTitle" className="break-keep bg-gradient-to-r from-[#C9A8E8] via-[#F5EFFF] to-[#E8B85C] bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl">
             달빛 봉인이 걸린 카드첩
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[#B8A8D4] sm:text-base">
