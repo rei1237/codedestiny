@@ -85,6 +85,13 @@ export const metadata = {
     canonical: "/",
     languages: {
       ko: "/",
+      "ko-KR": "/",
+      ja: "/ja/",
+      "ja-JP": "/ja/",
+      "zh-CN": "/zh/",
+      zh: "/zh/",
+      en: "/en/",
+      "en-US": "/en/",
       "x-default": "/",
     },
   },
@@ -110,8 +117,19 @@ export const metadata = {
     description: ROOT_SEO.ogDescription,
     images: [siteSeo.defaultOgImage],
   },
+  // verification: Google Search Console 등록 후 아래 주석을 해제하고 실제 코드를 넣을 것.
+  // GSC(https://search.google.com/search-console) → 속성 추가 → "HTML 태그" 방식의 content 값.
+  // 정적 홈(index.html)의 <head>에도 동일한 <meta name="google-site-verification">를 넣어야 함(루트 index.html 수정 후 npm run sync:public).
+  // verification: {
+  //   google: "GOOGLE_SITE_VERIFICATION_CODE_HERE",
+  // },
   other: {
-    "naver-site-verification": "b0fd5fe51988d4063ba5ae1875a97d5531bc1a1e",
+    // 두 코드 모두 유지: 정적 index.html(구 등록분)과 Next 레이아웃(신 등록분)이 서로 다른
+    // 네이버 서치어드바이저 확인 코드를 쓰고 있었음. 어느 쪽 등록이 유효한지 확인 전까지 병기.
+    "naver-site-verification": [
+      "b0fd5fe51988d4063ba5ae1875a97d5531bc1a1e",
+      "7b6c0226cae15c61e2582eea0d9378e241ef2167",
+    ],
   },
 };
 
@@ -162,6 +180,9 @@ export default function RootLayout({ children }) {
       <head>
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
+        <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />
+        <link rel="alternate" hrefLang="zh-CN" href="https://code-destiny.com/zh/" />
+        <link rel="alternate" hrefLang="en" href="https://code-destiny.com/en/" />
         <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
         <meta property="og:site_name" content={siteSeo.siteName} />
         <meta property="og:locale" content="ko_KR" />

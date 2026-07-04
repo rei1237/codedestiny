@@ -2,7 +2,10 @@ export type Locale = "ko" | "ja" | "zh" | "en";
 
 export const LOCALES = ["ko", "ja", "zh", "en"] as const;
 export const PUBLIC_LOCALES = ["ja", "zh", "en"] as const;
-export const SEO_INDEXABLE_LOCALES = ["ko"] as const;
+// 2026-07: 일본 오가닉 유입 확보를 위해 다국어 색인 개방.
+// ja/zh/en SSR 페이지(app/[locale]/*)는 네이티브 품질 번역이 완료된 상태
+// (lib/seo/i18nKeywords.ts, lib/seo/i18nInsights.ts 참고).
+export const SEO_INDEXABLE_LOCALES = ["ko", "ja", "zh", "en"] as const;
 export const LOCALE_NAVIGATION_LOCALES = LOCALES;
 
 const LOCALE_LABELS_TEXT_TRANSLATIONS = {

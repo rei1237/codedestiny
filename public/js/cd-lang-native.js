@@ -112,6 +112,18 @@
       readCookie('cd_locale_ack') === '1';
   }
 
+  function getPathPrefixLang() {
+    // /ja/, /zh/, /en/ 로케일 랜딩에서는 경로만으로 기본 언어를 결정한다.
+    // (일본 등 검색 유입 방문자가 쿠키 없이도 해당 언어로 첫 화면을 보게 하기 위함)
+    try {
+      var seg = String(window.location.pathname || '').split('/')[1] || '';
+      if (seg === 'ja') return 'ja';
+      if (seg === 'zh') return 'zh-CN';
+      if (seg === 'en') return 'en';
+    } catch (_) {}
+    return '';
+  }
+
   function getSavedLang() {
     var urlLang = getUrlLang();
     if (urlLang) return urlLang;
@@ -121,6 +133,8 @@
       var cookieLang = readCookie('cd_locale');
       if (cookieLang) return normalizeLang(cookieLang);
     }
+    var pathLang = getPathPrefixLang();
+    if (pathLang) return pathLang;
     return 'ko';
   }
 

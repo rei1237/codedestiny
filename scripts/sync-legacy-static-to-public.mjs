@@ -433,19 +433,62 @@ function cacheBustMobileInteractionPatchScriptRefs(source, buildTimestamp) {
   );
 }
 
+// 로케일 랜딩 셸(/ja, /zh, /en)의 head 를 해당 언어로 현지화한다.
+// 본문은 런타임에 cd-lang-native.js 가 /i18n/{lang}.json 사전으로 번역하고
+// (경로 프리픽스 자동 감지), head 메타는 여기서 빌드 타임에 교체한다.
+// SEO_INDEXABLE_LOCALES(lib/i18n/locales.ts)와 함께 다국어 색인이 열려 있으므로 noindex 를 걸지 않는다.
+const LOCALE_SHELL_SEO = {
+  "/ja": {
+    lang: "ja",
+    ogLocale: "ja_JP",
+    language: "Japanese",
+    title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — Code Destiny",
+    description:
+      "生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
+    keywords:
+      "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
+  },
+  "/zh": {
+    lang: "zh-CN",
+    ogLocale: "zh_CN",
+    language: "Chinese",
+    title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — Code Destiny",
+    description:
+      "输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
+    keywords:
+      "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
+  },
+  "/en": {
+    lang: "en",
+    ogLocale: "en_US",
+    language: "English",
+    title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — Code Destiny",
+    description:
+      "Enter your birth date for free Korean Saju (Four Pillars) readings, tarot, Zi Wei Dou Shu, Sukuyo compatibility and daily horoscopes — warm, in-depth AI interpretations.",
+    keywords:
+      "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
+  },
+};
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
-  const canonicalUrl = "https://code-destiny.com/";
-  const noindexMeta = '<meta name="robots" content="noindex, nofollow">';
-  const localizedHtml = indexHtml
+  const seo = LOCALE_SHELL_SEO[localePath];
+  if (!seo) return indexHtml;
+
+  const canonicalUrl = `https://code-destiny.com${localePath}/`;
+  return indexHtml
+    .replace(/<html lang="ko"/i, `<html lang="${seo.lang}"`)
+    .replace(/<title>[^<]*<\/title>/i, `<title>${seo.title}</title>`)
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
+    .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${seo.description}"/>`)
+    .replace(/<meta name="keywords" content="[^"]*"/i, `<meta name="keywords" content="${seo.keywords}"`)
     .replace(/<meta property="og:url" content="[^"]*">/i, `<meta property="og:url" content="${canonicalUrl}">`)
-    .replace(/<meta name="robots" content="[^"]*">/i, noindexMeta);
-
-  if (/<meta name="robots" content="[^"]*">/i.test(localizedHtml)) {
-    return localizedHtml;
-  }
-
-  return localizedHtml.replace(/<link rel="canonical" href="[^"]*">/i, (match) => `${match}\n${noindexMeta}`);
+    .replace(/<meta property="og:locale" content="[^"]*">/i, `<meta property="og:locale" content="${seo.ogLocale}">`)
+    .replace(/<meta property="og:title" content="[^"]*">/i, `<meta property="og:title" content="${seo.title}">`)
+    .replace(/<meta property="og:description" content="[^"]*">/i, `<meta property="og:description" content="${seo.description}">`)
+    .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${seo.title}">`)
+    .replace(/<meta name="twitter:description" content="[^"]*">/i, `<meta name="twitter:description" content="${seo.description}">`)
+    .replace(/<meta name="language" content="[^"]*">/i, `<meta name="language" content="${seo.language}">`)
+    .replace(/<meta http-equiv="content-language" content="[^"]*">/i, `<meta http-equiv="content-language" content="${seo.lang}">`);
 }
 
 function stripBomInPublicHtmlTree(targetDir) {
