@@ -181,17 +181,17 @@ export function pickNeoDialogue(dialogues: readonly NeoOperationDialogue[] | und
   return dialogues[index];
 }
 
-export function getNeoMethodDialogue(method: NeoWarRoomConsultMode | "") {
+export function getNeoMethodDialogue(method: NeoWarRoomConsultMode | "", seed = 0) {
   if (!method) return neoOperationDialogues.methodSelect.default[0];
-  return pickNeoDialogue(neoOperationDialogues.methodSelect[method]);
+  return pickNeoDialogue(neoOperationDialogues.methodSelect[method], seed);
 }
 
-export function getNeoTopicDialogue(topic: string) {
-  return pickNeoDialogue(neoOperationDialogues.topicSelect[topic] || neoOperationDialogues.topicSelect.default);
+export function getNeoTopicDialogue(topic: string, seed = 0) {
+  return pickNeoDialogue(neoOperationDialogues.topicSelect[topic] || neoOperationDialogues.topicSelect.default, seed);
 }
 
-export function getNeoIntensityDialogue(intensity: NeoWarRoomIntensityId | "") {
-  return intensity ? pickNeoDialogue(neoOperationDialogues.intensitySelect[intensity]) : neoOperationDialogues.intensitySelect.standard[0];
+export function getNeoIntensityDialogue(intensity: NeoWarRoomIntensityId | "", seed = 0) {
+  return intensity ? pickNeoDialogue(neoOperationDialogues.intensitySelect[intensity], seed) : neoOperationDialogues.intensitySelect.standard[0];
 }
 
 export function getNeoLoadingDialogue(method: NeoWarRoomConsultMode | "", stageIndex: number) {

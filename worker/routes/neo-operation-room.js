@@ -17,7 +17,7 @@ import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { prepareAstroPremiumCalculation } from "../lib/astro-premium-generator.js";
 import {
@@ -484,14 +484,69 @@ function compactObject(value, maxEntries = 10) {
   return Object.fromEntries(Object.entries(source).filter(([, item]) => item !== undefined && item !== null && item !== "").slice(0, maxEntries));
 }
 
+const EVIDENCE_TOKEN_ALIASES = Object.freeze({
+  Sun: "태양", Moon: "달", Mars: "화성", Mercury: "수성", Jupiter: "목성", Venus: "금성", Saturn: "토성", Rahu: "라후", Ketu: "케투",
+  Aries: "양자리", Taurus: "황소자리", Gemini: "쌍둥이자리", Cancer: "게자리", Leo: "사자자리", Virgo: "처녀자리",
+  Libra: "천칭자리", Scorpio: "전갈자리", Sagittarius: "사수자리", Capricorn: "염소자리", Aquarius: "물병자리", Pisces: "물고기자리",
+});
+
+function buildEvidenceTokens(values) {
+  const tokens = [];
+  for (const value of values) {
+    const token = clean(value, 60);
+    if (!token || tokens.includes(token)) continue;
+    // 한 글자 한글 토큰(지지 등)은 일반 단어와 오탐 매칭되므로 제외 (한자 단일 글자는 허용)
+    if (token.length < 2 && !/[一-鿿]/.test(token)) continue;
+    tokens.push(token);
+    const alias = EVIDENCE_TOKEN_ALIASES[token];
+    if (alias && !tokens.includes(alias)) tokens.push(alias);
+  }
+  return tokens.slice(0, 24);
+}
+
+function compactSajuLuckCycle(cycle) {
+  if (!cycle || typeof cycle !== "object") return null;
+  return compactObject({
+    pillar: cycle.pillar,
+    startAge: cycle.startAge,
+    endAge: cycle.endAge,
+    startYear: cycle.startYear,
+    endYear: cycle.endYear,
+    stemTenGod: cycle.stemTenGod,
+    isCurrent: cycle.isCurrent === true ? true : undefined,
+  }, 8);
+}
+
+function summarizeSajuMajorLuck(majorLuck) {
+  const source = asObject(majorLuck);
+  if (source.available === false) {
+    return { available: false, reason: clean(source.reason, 200) };
+  }
+  const currentCycle = compactSajuLuckCycle(source.currentCycle);
+  return compactObject({
+    available: true,
+    direction: source.direction,
+    startSolarDate: source.startSolarDate,
+    currentCycle,
+    cycles: safeArray(source.cycles).map(compactSajuLuckCycle).filter(Boolean).slice(0, 6),
+  }, 6);
+}
+
 function summarizeSaju(chart) {
+  const majorLuck = summarizeSajuMajorLuck(chart.majorLuck);
+  const currentCycle = majorLuck?.currentCycle || null;
+  const yearlyLuck = safeArray(chart.yearlyLuck).slice(0, 4);
+  const thisYear = yearlyLuck[0] || null;
   return {
     method: "saju",
-    summary: "사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, 대운과 세운 흐름을 근거로 삼는다.",
+    summary: "사주 엔진이 산출한 사주팔자, 일간, 오행 분포, 십성 분포, 용신, 합충, 대운과 세운 흐름을 근거로 삼는다.",
     evidenceSummary: [
       `연월일시 기둥: ${[chart.yearPillar, chart.monthPillar, chart.dayPillar, chart.hourPillar].filter(Boolean).join(" / ")}`,
       chart.dayMaster ? `일간: ${chart.dayMaster}` : "",
       chart.strength ? `신강약 판단: ${chart.strength}` : "",
+      currentCycle?.pillar ? `현재 대운: ${currentCycle.pillar} (${currentCycle.startAge}-${currentCycle.endAge}세, ${majorLuck.direction || ""})`.trim() : "",
+      thisYear?.pillar ? `올해 세운: ${thisYear.year}년 ${thisYear.pillar}${thisYear.stemTenGod ? ` (${thisYear.stemTenGod})` : ""}` : "",
+      chart.usefulGod ? `용신 방향: ${chart.usefulGod}` : "",
     ].filter(Boolean).join("\n"),
     pillars: compactObject({
       year: chart.yearPillar,
@@ -502,26 +557,108 @@ function summarizeSaju(chart) {
     }),
     fiveElements: chart.fiveElements || null,
     tenGods: chart.tenGods || null,
-    majorLuck: safeArray(chart.majorLuck).slice(0, 4),
-    yearlyLuck: safeArray(chart.yearlyLuck).slice(0, 4),
+    strength: clean(chart.strength, 200) || null,
+    usefulGod: clean(chart.usefulGod, 200) || null,
+    unfavorableGod: clean(chart.unfavorableGod, 200) || null,
+    seasonalBalance: compactObject(chart.seasonalBalance, 6),
+    natalInteractions: compactObject(chart.natalInteractions, 6),
+    strongestTenGods: safeArray(chart.fortuneFacts?.strongestTenGods).slice(0, 5),
+    majorLuck,
+    yearlyLuck,
+    evidenceTokens: buildEvidenceTokens([
+      chart.yearPillar,
+      chart.monthPillar,
+      chart.dayPillar,
+      chart.hourPillar,
+      chart.dayMaster,
+      currentCycle?.pillar,
+      currentCycle?.stemTenGod,
+      thisYear?.pillar,
+      thisYear?.stemTenGod,
+      ...safeArray(chart.fortuneFacts?.strongestTenGods).map((item) => item?.name),
+    ]),
     calculationMeta: compactObject(chart.calculationMeta, 6),
   };
 }
 
+const ZIWEI_TRANSFORMATION_LABELS = { huaLu: "화록", huaQuan: "화권", huaKe: "화과", huaJi: "화기" };
+
+// 궁의 별 이름 배열에 brightness(강약) 표기를 붙인다. 표에 없는 별은 이름만(가짜 강약 생성 금지).
+function ziweiStarsWithBrightness(palace) {
+  const brightness = palace?.brightness && typeof palace.brightness === "object" ? palace.brightness : {};
+  const stars = [
+    ...safeArray(palace?.mainStars),
+    ...safeArray(palace?.assistantStars),
+    ...safeArray(palace?.maleficStars),
+  ];
+  return stars.map((name) => formatStarWithBrightness(name, brightness[name]));
+}
+
+// evidenceSummary는 900자로 잘리므로(normalizeEvidence), 심볼만 붙인 한 줄 압축 표기를 쓴다.
+function ziweiStarsWithBrightnessCompact(palace) {
+  const brightness = palace?.brightness && typeof palace.brightness === "object" ? palace.brightness : {};
+  const stars = [
+    ...safeArray(palace?.mainStars),
+    ...safeArray(palace?.assistantStars),
+    ...safeArray(palace?.maleficStars),
+  ];
+  return stars
+    .map((name) => {
+      const desc = describeBrightness(brightness[name]);
+      return desc ? `${name}${desc.symbol}` : name;
+    })
+    .join("·");
+}
+
 function summarizeZiwei(chart) {
+  const lifePalaceName = clean(chart?.mingGong || chart?.lifePalace, 40);
+  const bodyPalaceName = clean(chart?.shenGong || chart?.bodyPalace, 40);
+  const palaces = safeArray(chart?.palaces).slice(0, 12);
+  const lifePalaceDetail = palaces.find((palace) => palace?.name && palace.name === lifePalaceName) || null;
+  const fourTransformations = asObject(chart?.fourTransformations);
+  const transformationLine = Object.entries(ZIWEI_TRANSFORMATION_LABELS)
+    .map(([key, label]) => (fourTransformations[key] ? `${label}: ${fourTransformations[key]}` : ""))
+    .filter(Boolean)
+    .join(", ");
+  const yearlyLuck = chart?.yearlyLuck || chart?.yearlyFlow || chart?.annualLuck || null;
+  const brightnessSummaryLine = palaces
+    .map((palace) => {
+      const stars = ziweiStarsWithBrightnessCompact(palace);
+      return stars ? `${palace.name}:${stars}` : "";
+    })
+    .filter(Boolean)
+    .join(" / ");
   return {
     method: "ziwei",
-    summary: clean(chart?.chartSummary || "자미두수 엔진이 산출한 명궁, 신궁, 주요 별 배치와 궁위 흐름을 근거로 삼는다.", 900),
+    summary: clean(chart?.chartSummary || "자미두수 엔진이 산출한 명궁, 신궁, 사화, 주요 별 배치와 궁위 흐름을 근거로 삼는다.", 900),
     evidenceSummary: [
-      chart?.mingGong ? `명궁: ${JSON.stringify(chart.mingGong)}` : "",
-      chart?.shenGong ? `신궁: ${JSON.stringify(chart.shenGong)}` : "",
+      lifePalaceName ? `명궁: ${lifePalaceName}${lifePalaceDetail?.earthlyBranch ? `(${lifePalaceDetail.earthlyBranch}궁)` : ""}${lifePalaceDetail ? ` — 주성: ${ziweiStarsWithBrightness(lifePalaceDetail).join(", ") || "무주성"}` : ""}` : "",
+      bodyPalaceName ? `신궁: ${bodyPalaceName}` : "",
+      transformationLine ? `생년 사화 — ${transformationLine}` : "",
+      yearlyLuck?.year ? `올해(${yearlyLuck.year}년) 유년궁: ${yearlyLuck.palaceName || yearlyLuck.earthlyBranch || ""}${safeArray(yearlyLuck.mainStars).length ? ` (주성: ${safeArray(yearlyLuck.mainStars).join(", ")})` : ""}` : "",
+      brightnessSummaryLine ? `12궁 강약(◎묘·O득·▲리·△평·X함): ${brightnessSummaryLine}` : "",
     ].filter(Boolean).join("\n") || "자미두수 명반 계산 결과를 근거로 삼는다.",
-    mingGong: chart?.mingGong || chart?.lifePalace || null,
-    shenGong: chart?.shenGong || chart?.bodyPalace || null,
-    palaces: safeArray(chart?.palaces).slice(0, 12),
-    stars: safeArray(chart?.stars).slice(0, 20),
-    majorLuck: chart?.majorLuck || chart?.decadeLuck || null,
-    yearlyFlow: chart?.yearlyFlow || chart?.annualLuck || null,
+    mingGong: lifePalaceName || null,
+    shenGong: bodyPalaceName || null,
+    palaces,
+    fourTransformations: compactObject(fourTransformations, 4),
+    keyStars: safeArray(chart?.keyFeatures?.keyStars).slice(0, 8),
+    strongestPalaces: safeArray(chart?.keyFeatures?.strongestPalaces).slice(0, 3),
+    sanFangSiZheng: compactObject({
+      core: chart?.sanFangSiZheng?.core,
+      lifePalace: lifePalaceName ? asObject(chart?.sanFangSiZheng?.byPalace)[lifePalaceName] : undefined,
+    }, 2),
+    majorLuck: safeArray(chart?.majorLuck || chart?.decadeLuck).slice(0, 12),
+    yearlyLuck,
+    evidenceTokens: buildEvidenceTokens([
+      lifePalaceDetail?.earthlyBranch,
+      bodyPalaceName,
+      ...safeArray(lifePalaceDetail?.mainStars),
+      ...Object.values(fourTransformations),
+      yearlyLuck?.palaceName,
+      ...safeArray(yearlyLuck?.mainStars),
+      ...safeArray(chart?.keyFeatures?.keyStars),
+    ]),
     calculationMeta: compactObject(chart?.calculationMeta, 8),
   };
 }
@@ -533,16 +670,35 @@ function summarizeVedic(chart) {
     evidenceSummary: [
       chart?.lagna ? `라그나: ${JSON.stringify(chart.lagna)}` : "",
       chart?.moon ? `달: ${JSON.stringify(chart.moon)}` : "",
-      chart?.dasha?.current ? `현재 다샤: ${JSON.stringify(chart.dasha.current)}` : "",
+      chart?.dasha?.current?.lord ? `현재 마하다샤: ${chart.dasha.current.lord} (${chart.dasha.current.startDate} ~ ${chart.dasha.current.endDate}까지)` : "",
+      chart?.dasha?.currentAntardashaPeriod?.lord ? `현재 안타르다샤: ${chart.dasha.currentAntardashaPeriod.lord} (~${chart.dasha.currentAntardashaPeriod.endDate}까지)` : "",
     ].filter(Boolean).join("\n") || "베다 차트 계산 결과를 근거로 삼는다.",
     lagna: chart?.lagna || null,
     moon: chart?.moon || null,
     sun: chart?.sun || null,
     planets: safeArray(chart?.planets).slice(0, 12),
     houses: safeArray(chart?.houses).slice(0, 12),
-    dasha: chart?.dasha || null,
+    dasha: chart?.dasha ? compactObject({
+      system: chart.dasha.system,
+      birthNakshatra: chart.dasha.birthNakshatra,
+      currentMahadasha: chart.dasha.current,
+      currentAntardasha: chart.dasha.currentAntardashaPeriod,
+      upcoming: safeArray(chart.dasha.timeline)
+        .filter((period) => period?.endDate >= (chart.dasha.current?.startDate || ""))
+        .slice(0, 4)
+        .map((period) => ({ lord: period.lord, startDate: period.startDate, endDate: period.endDate })),
+    }, 6) : null,
     transits: chart?.transits || null,
     yogas: safeArray(chart?.yogas).slice(0, 10),
+    evidenceTokens: buildEvidenceTokens([
+      chart?.lagna?.rashi || chart?.lagna?.sign,
+      chart?.lagna?.rashiKo,
+      chart?.moon?.sign,
+      chart?.moon?.nakshatra,
+      chart?.sun?.sign,
+      chart?.dasha?.current?.lord,
+      chart?.dasha?.currentAntardashaPeriod?.lord,
+    ]),
     calculationMeta: compactObject(chart?.calculationMeta, 8),
   };
 }
@@ -565,6 +721,12 @@ function summarizeAstrology(prepared) {
     houses: safeArray(chartBody?.houses).slice(0, 12),
     aspects: safeArray(chartBody?.aspects).slice(0, 18),
     timingInsights: chart?.timingInsights || null,
+    evidenceTokens: buildEvidenceTokens([
+      chartBody?.sun?.sign,
+      chartBody?.moon?.sign,
+      (chartBody?.ascendant || chartBody?.asc)?.sign,
+      ...safeArray(chartBody?.planets).slice(0, 6).flatMap((planet) => [planet?.name, planet?.sign]),
+    ]),
     calculationMode: clean(chart?.calculationMode || prepared?.resolved?.source, 120),
   };
 }
@@ -605,9 +767,18 @@ function hasForbiddenResultText(value) {
   return /\b(mock|dry-run|provider|system|prompt)\b/i.test(text);
 }
 
-async function generateBriefing(env, normalized, methodSummary) {
-  const prompt = buildNeoOperationRoomInitialPrompt(normalized.input, methodSummary);
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.72 });
+function briefingCitesEvidence(briefing, tokens) {
+  const text = [
+    ...safeArray(briefing?.methodEvidence).map((item) => clean(item?.summary, 2000)),
+    clean(briefing?.bluntTruth, 2000),
+    clean(briefing?.frontlineSummary, 3000),
+  ].join("\n");
+  if (!text) return false;
+  return tokens.some((token) => token && text.includes(token));
+}
+
+async function requestBriefingOnce(env, prompt, normalized, methodSummary) {
+  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65 });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
@@ -625,6 +796,28 @@ async function generateBriefing(env, normalized, methodSummary) {
     throw error;
   }
   return { briefing, provider, model };
+}
+
+async function generateBriefing(env, normalized, methodSummary) {
+  const prompt = buildNeoOperationRoomInitialPrompt(normalized.input, methodSummary);
+  let result = await requestBriefingOnce(env, prompt, normalized, methodSummary);
+  const tokens = safeArray(methodSummary?.evidenceTokens).map((token) => clean(token, 60)).filter(Boolean);
+  if (tokens.length && !briefingCitesEvidence(result.briefing, tokens)) {
+    const retryPrompt = [
+      prompt,
+      "",
+      "[재작성 지시]",
+      "이전 응답은 계산 요약의 실제 값을 인용하지 않아 무효 처리됐다.",
+      `methodEvidence.summary와 bluntTruth의 문장 안에 다음 값 중 최소 2개를 그대로 인용해서, 위 [반환 JSON 스키마]의 JSON 전체를 다시 작성한다: ${tokens.slice(0, 14).join(", ")}`,
+    ].join("\n");
+    try {
+      const retried = await requestBriefingOnce(env, retryPrompt, normalized, methodSummary);
+      result = retried;
+    } catch {
+      // 재시도 실패 시 첫 결과를 그대로 사용한다 (결제된 요청을 하드 실패시키지 않음)
+    }
+  }
+  return result;
 }
 
 function normalizeRealityCheckInput(body = {}) {
@@ -652,7 +845,7 @@ function normalizeRealityCheckInput(body = {}) {
 
 async function generateRefinedOrder(env, consultation, realityCheck) {
   const prompt = buildNeoOperationRoomRefinedPrompt(consultation, realityCheck);
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 7000, temperature: 0.72 });
+  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 7000, temperature: 0.65 });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
@@ -1104,4 +1297,8 @@ export const __neoOperationRoomTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
   normalizeInput,
+  summarizeSaju,
+  summarizeZiwei,
+  summarizeVedic,
+  summarizeAstrology,
 };
