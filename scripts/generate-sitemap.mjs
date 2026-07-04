@@ -322,8 +322,10 @@ function extractFamousSajuRoutes() {
     const category = String(match[3] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    // 상세(/insights/famous-saju/<slug>)는 현재 robots index:false 라 사이트맵에서 제외.
-    // 색인을 다시 열면 여기서 detail 라우트 push를 복원할 것.
+    // 정본 슬러그로 방문 시 index:true (app/insights/famous-saju/[slug]/page.tsx의
+    // `slug === reading.celebrity.slug` 분기), CONTENT_PREFIXES의 "/insights"에 걸려
+    // AdSense 색인 대상이므로 사이트맵에 포함해야 한다. (별칭 슬러그만 noindex로 남는다.)
+    routes.push({ path: `/insights/famous-saju/${slug}`, changefreq: "monthly", priority: 0.75, lastmod: today });
 
     const cSlug = famousCategorySlug(category);
     if (cSlug) categoryRoutes.add(cSlug);
