@@ -149,15 +149,7 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge }) {
 
 function pickGeminiKeys() {
   return [
-    process.env.GEOMANCY_GEMINI_API_KEY1,
-    process.env.GEOMANCY_GEMINI_API_KEY2,
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
-    process.env.GEMINI_API_KEY,
-    process.env.GOOGLE_GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY,
+    process.env.GEMINIF_API_KEY,
   ]
     .map((value) => clean(value))
     .filter(Boolean)

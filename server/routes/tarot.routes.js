@@ -30,10 +30,7 @@ let geminiKeyCursor = 0;
 
 function pickGeminiKeys() {
   return [
-    process.env.GEMINIF_API_KEY1,
-    process.env.GEMINIF_API_KEY2,
-    process.env.GEMINIF_API_KEY3,
-    process.env.GEMINIF_API_KEY4,
+    process.env.GEMINIF_API_KEY,
   ]
     .map((v) => safeText(v))
     .filter(Boolean);
