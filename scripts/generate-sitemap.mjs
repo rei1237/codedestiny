@@ -159,6 +159,7 @@ const coreRoutes = [
   { path: "/astrology/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/vedic/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/tarot/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/tarot/prompt-maker", changefreq: "monthly", priority: 0.76 },
   { path: "/mayan-calendar/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/calendar/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
