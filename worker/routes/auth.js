@@ -324,6 +324,9 @@ async function applyKakaoReferralReward(request, env, newUser, referralCapture =
     {
       _id: referrerObjectId,
       referralCode,
+      // Withdrawn accounts must not collect referral rewards. $ne (not $eq "active")
+      // keeps legacy docs that predate the status field eligible.
+      status: { $ne: "withdrawn" },
       "referralProgram.kakaoShareRewardEnabled": true,
       $expr: {
         $lte: [
@@ -1913,6 +1916,34 @@ async function handleRegister(request, env) {
       "invalid_request_body",
       "Registration payload is invalid.",
       { errors: validated.errors },
+    );
+  }
+
+  // Turnstile verification (parity with login) — blocks bot/scripted signups that
+  // would otherwise farm signup credit and referral rewards.
+  const registerRequestMeta = getRequestMeta(request);
+  const registerTurnstile = validateTurnstilePayload(body);
+  if (!registerTurnstile.isValid) {
+    return signupErrorResponse(
+      request,
+      env,
+      401,
+      "turnstile_token_required",
+      "Turnstile verification is required.",
+    );
+  }
+  const registerTurnstileResult = await verifyTurnstileToken({
+    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
+    response: registerTurnstile.sanitized.turnstileToken,
+    remoteip: registerRequestMeta?.ip,
+  });
+  if (!registerTurnstileResult.success) {
+    return signupErrorResponse(
+      request,
+      env,
+      registerTurnstileResult.status || 403,
+      registerTurnstileResult.code || "turnstile_verification_failed",
+      registerTurnstileResult.message || "Turnstile verification failed.",
     );
   }
 
