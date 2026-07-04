@@ -127,6 +127,18 @@ export default async function InsightsPage() {
     { name: "운세 인사이트 허브", path: "/insights" },
   ]);
 
+  const topicHubs = [
+    { href: "/insights/saju/", label: "사주 인사이트" },
+    { href: "/insights/ziwei/", label: "자미두수 인사이트" },
+    { href: "/insights/sukuyo/", label: "숙요점 인사이트" },
+    { href: "/insights/tarot/", label: "타로 인사이트" },
+    { href: "/insights/astrology/", label: "점성술 인사이트" },
+    { href: "/insights/vedic/", label: "베다 점성술 인사이트" },
+    { href: "/insights/dream/", label: "꿈해몽 인사이트" },
+    { href: "/insights/compatibility/", label: "궁합 인사이트" },
+    { href: "/insights/famous-saju/", label: "유명인 사주 아카이브" },
+  ];
+
   return (
     <>
       <InsightsCosmicRouteClient
@@ -138,6 +150,35 @@ export default async function InsightsPage() {
         initialTotalCount={initialAllItems.length}
         initialFamousSajuItems={initialFamousSajuItems.slice(0, 6)}
       />
+      {/* 인터랙티브 허브는 클라이언트 전용(ssr:false)이라 검색엔진용 정적 목차를 함께 렌더링한다. */}
+      <section className="sr-only" aria-label="운세 인사이트 아카이브 목차">
+        <h1>운세 인사이트 허브 — 사주·자미두수·숙요점·타로 가이드</h1>
+        <p>
+          사주팔자의 오행과 십성, 자미두수 12궁 명반, 숙요점 27숙, 타로 카드 해석, 서양·베다
+          점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
+          주제별 허브에서 원하는 분야의 글을 모아 볼 수 있습니다.
+        </p>
+        <nav aria-label="주제별 인사이트 허브">
+          <ul>
+            {topicHubs.map((topic) => (
+              <li key={topic.href}>
+                <a href={topic.href}>{topic.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav aria-label="전체 인사이트 글 목록">
+          <ul>
+            {initialAllItems
+              .filter((item) => item.isPublished && item.slug)
+              .map((item) => (
+                <li key={item.slug}>
+                  <a href={`/insights/${item.slug}/`}>{item.title}</a>
+                </li>
+              ))}
+          </ul>
+        </nav>
+      </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />
     </>
