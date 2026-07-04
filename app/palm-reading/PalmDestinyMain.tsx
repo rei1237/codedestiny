@@ -16,6 +16,7 @@ import PalmLineOverlay, {
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 const PALM_DESTINY_TEXT_TRANSLATIONS = {
   ko: {
@@ -2335,7 +2336,7 @@ export default function PalmDestinyMain() {
         coinGateCode === "AUTH_REQUIRED"
           ? "로그인이 필요합니다. 로그인 후 다시 이용해 주세요."
           : coinGateCode === "INSUFFICIENT_COINS"
-          ? `현재 보유 코인이 부족합니다. 현재 사용 비용은 ${serverCost}포인트입니다.`
+          ? `잔액이 부족합니다. 현재 이용 비용은 ${formatKrwFromCoins(serverCost)}입니다.`
           : coinGateCode === "PRICE_NOT_FOUND"
           ? "현재 이용 가능한 결제 가격을 확인할 수 없습니다. 잠시 후 다시 시도해 주세요."
           : coinGateResult.error?.message || "결제 상태 확인 중 문제가 발생했습니다.";

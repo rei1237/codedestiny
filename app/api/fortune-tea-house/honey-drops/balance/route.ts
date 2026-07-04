@@ -12,5 +12,17 @@ export async function GET(request: Request) {
   if (isStaticExportBuild()) {
     return Response.json({ ok: false, reason: "WORKER_RUNTIME_ONLY" });
   }
-  return handleFortuneTeaHouseRoutes(request, process.env);
+  return handleFortuneTeaHouseRoutes(toPlainRequest(request), process.env);
+}
+
+// Next dev serves force-static GET routes with a proxied NextRequest whose
+// undici internals can mismatch the runtime Request class ("Cannot read
+// private member #state"). Rebuild a plain Request before handing it to the
+// worker route handler.
+function toPlainRequest(request: Request): Request {
+  try {
+    return new Request(request.url, { method: "GET", headers: request.headers });
+  } catch {
+    return new Request("http://localhost/api/fortune-tea-house/honey-drops/balance", { method: "GET" });
+  }
 }

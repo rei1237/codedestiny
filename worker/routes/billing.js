@@ -185,6 +185,23 @@ function buildPaidAccessDecisionCacheKey({ userId, profileId, featureKey, coinPr
   ].join("|");
 }
 
+// 결제/환불 완료 시 해당 유저의 접근 결정 캐시를 즉시 무효화한다(캐시 키 첫 세그먼트가 userId).
+// payments.js가 import 순환(billing.js→payments.js) 없이 호출할 수 있도록 캐시 객체에 노출한다.
+function invalidatePaidAccessDecisionCacheForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return 0;
+  const prefix = `${uid}|`;
+  let removed = 0;
+  for (const key of paidAccessDecisionCache.entries.keys()) {
+    if (key.startsWith(prefix)) {
+      paidAccessDecisionCache.entries.delete(key);
+      removed += 1;
+    }
+  }
+  return removed;
+}
+paidAccessDecisionCache.invalidateForUser = invalidatePaidAccessDecisionCacheForUser;
+
 function readPaidAccessDecisionFromCache(cacheKey) {
   if (!cacheKey) return null;
   const now = Date.now();
@@ -3863,20 +3880,97 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       }
     }
 
-    const updatedUser = await User.findOneAndUpdate(
-      {
-        _id: authCheck.auth.userId,
-        points: { $gte: requiredCoins },
-        ...(coinPurchaseId ? { recentConsumeRequestIds: { $ne: coinPurchaseId } } : {}),
+    const coinDeductFilter = {
+      _id: authCheck.auth.userId,
+      points: { $gte: requiredCoins },
+      ...(coinPurchaseId ? { recentConsumeRequestIds: { $ne: coinPurchaseId } } : {}),
+    };
+    const coinDeductUpdate = {
+      $inc: { points: -requiredCoins },
+      ...(coinPurchaseId ? { $addToSet: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+    };
+    const compensateCoinDeduct = async () => {
+      await User.findByIdAndUpdate(authCheck.auth.userId, {
+        $inc: { points: requiredCoins },
+        ...(coinPurchaseId ? { $pull: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+      }).catch(() => {});
+    };
+    const buildCoinHistoryPayload = (balanceAfter) => ({
+      userId: authCheck.auth.userId,
+      kind: "deduct",
+      delta: -requiredCoins,
+      balanceAfter,
+      reason: String(pricing?.reason || "coin_access"),
+      featureKey: coinFeatureKey,
+      metadata: {
+        accessType: "coin",
+        accessMethod: "COIN",
+        paymentMethod: "COIN",
+        transactionType: "coin",
+        ...buildProfileCardMutationMetadata(body),
+        requestId,
+        purchaseId: coinPurchaseId,
+        idempotencyKey: String(body?.idempotencyKey || coinPurchaseId || "").trim().slice(0, 160),
+        orderId: String(body?.orderId || coinPurchaseId || "").trim().slice(0, 160),
+        reportId,
+        sessionId: reportSessionId,
+        reportSessionId,
+        profileId,
+        selectedProfileId: profileId,
+        featureKey: coinFeatureKey,
+        coinPrice: requiredCoins,
+        chargedCoins: requiredCoins,
+        paidAt: new Date().toISOString(),
       },
-      {
-        $inc: { points: -requiredCoins },
-        ...(coinPurchaseId ? { $addToSet: { recentConsumeRequestIds: coinPurchaseId } } : {}),
-      },
-      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-    ).lean();
+    });
 
-    if (!updatedUser) {
+    // Atomic: coin balance debit + its point-history row (the coin ledger) commit together,
+    // so an isolate kill can't debit coins without recording the deduction.
+    const runCoinSpendWithTransaction = async () => {
+      const session = await mongoose.startSession();
+      let outcome = null;
+      try {
+        await session.withTransaction(async () => {
+          const updatedUser = await User.findOneAndUpdate(coinDeductFilter, coinDeductUpdate, {
+            returnDocument: "after",
+            projection: { points: 1, profileSubscription: 1 },
+            session,
+          }).lean();
+          if (!updatedUser) { outcome = null; return; }
+          const coinBalance = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
+          const [coinHistory] = await PointHistory.create([buildCoinHistoryPayload(coinBalance)], { session });
+          outcome = { updatedUser, coinBalance, coinHistory };
+        });
+        return outcome;
+      } finally {
+        await session.endSession();
+      }
+    };
+
+    // Fallback when transactions are unavailable: best-effort with manual compensation (saga).
+    const runCoinSpendWithCompensation = async () => {
+      const updatedUser = await User.findOneAndUpdate(coinDeductFilter, coinDeductUpdate, {
+        returnDocument: "after",
+        projection: { points: 1, profileSubscription: 1 },
+      }).lean();
+      if (!updatedUser) return null;
+      const coinBalance = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
+      const coinHistory = await PointHistory.create(buildCoinHistoryPayload(coinBalance)).catch(async (error) => {
+        await compensateCoinDeduct();
+        throw error;
+      });
+      return { updatedUser, coinBalance, coinHistory };
+    };
+
+    let coinOutcome;
+    try {
+      coinOutcome = await runCoinSpendWithTransaction();
+    } catch (error) {
+      if (!isTransactionUnsupported(error)) throw error;
+      coinOutcome = await runCoinSpendWithCompensation();
+    }
+
+    if (!coinOutcome) {
       const currentUser = await User.findById(authCheck.auth.userId)
         .select("points profileSubscription recentConsumeRequestIds")
         .lean();
@@ -3918,45 +4012,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       });
     }
 
-    const coinBalance = Math.max(0, Math.floor(Number(updatedUser?.points || 0)));
+    const { updatedUser, coinBalance, coinHistory } = coinOutcome;
     const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
-    let coinHistory = null;
-    try {
-      coinHistory = await PointHistory.create({
-        userId: authCheck.auth.userId,
-        kind: "deduct",
-        delta: -requiredCoins,
-        balanceAfter: coinBalance,
-        reason: String(pricing?.reason || "coin_access"),
-        featureKey: coinFeatureKey,
-        metadata: {
-          accessType: "coin",
-          accessMethod: "COIN",
-          paymentMethod: "COIN",
-          transactionType: "coin",
-          ...buildProfileCardMutationMetadata(body),
-          requestId,
-          purchaseId: coinPurchaseId,
-          idempotencyKey: String(body?.idempotencyKey || coinPurchaseId || "").trim().slice(0, 160),
-          orderId: String(body?.orderId || coinPurchaseId || "").trim().slice(0, 160),
-          reportId,
-          sessionId: reportSessionId,
-          reportSessionId,
-          profileId,
-          selectedProfileId: profileId,
-          featureKey: coinFeatureKey,
-          coinPrice: requiredCoins,
-          chargedCoins: requiredCoins,
-          paidAt: new Date().toISOString(),
-        },
-      });
-    } catch (error) {
-      await User.findByIdAndUpdate(authCheck.auth.userId, {
-        $inc: { points: requiredCoins },
-        ...(coinPurchaseId ? { $pull: { recentConsumeRequestIds: coinPurchaseId } } : {}),
-      }).catch(() => {});
-      throw error;
-    }
 
     let accessGrant = null;
     let unlockEntitlement = null;

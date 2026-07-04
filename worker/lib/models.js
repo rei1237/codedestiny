@@ -234,10 +234,22 @@ const pointHistorySchema = new mongoose.Schema({
   paymentId: { type: mongoose.Schema.Types.ObjectId, ref: "Payment", index: true },
   impUid: { type: String, trim: true, index: true },
   merchantUid: { type: String, trim: true, index: true },
+  // Idempotency lock for grants that must not double-credit under concurrency
+  // (e.g. share reward per content/day). Only set on such grants; partial-unique below.
+  dedupeKey: { type: String, trim: true, default: "" },
   metadata: { type: mongoose.Schema.Types.Mixed },
 }, { timestamps: true });
 
 pointHistorySchema.index({ userId: 1, createdAt: -1 });
+pointHistorySchema.index(
+  { dedupeKey: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      dedupeKey: { $exists: true, $type: "string", $gt: "" },
+    },
+  },
+);
 
 const monthlyCreditLedgerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },

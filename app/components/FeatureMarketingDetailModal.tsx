@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -239,7 +240,7 @@ function priceText(target: FeatureMarketingTarget) {
   if (target.priceLabel) return target.priceLabel;
   const badgePrice = (target.badges || []).map((badge) => badge.text || "").find((text) => /(원|코인|해금|결제)/.test(text));
   if (badgePrice) return badgePrice;
-  if ((target.coinPrice || 0) > 0) return `${target.coinPrice?.toLocaleString("ko-KR")} 달빛`;
+  if ((target.coinPrice || 0) > 0) return formatKrwFromCoins(target.coinPrice);
   return "기존 결제 정책 확인";
 }
 

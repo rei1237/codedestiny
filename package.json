@@ -61,6 +61,7 @@
     "verify:test-account-all-paid-services": "node scripts/verify-all-paid-services-payment-flow.mjs",
     "verify:inicis-local-auth": "node scripts/verify-inicis-local-auth.mjs",
     "verify:portone-single-payment": "node scripts/verify-portone-single-payment-regression.mjs",
+    "verify:payment-concurrency-guards": "node scripts/verify-payment-concurrency-guards.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:auth-public-origin": "node scripts/verify-auth-public-origin.mjs",

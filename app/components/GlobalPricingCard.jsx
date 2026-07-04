@@ -74,7 +74,6 @@ const GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS = {
     localCurrency: "현재 지역 통화로 가격 표시",
     detecting: "감지 중...",
     popular: "가장 인기",
-    coins: (amount) => `${amount} 코인`,
     descriptions: {
       starter: "프리미엄 리딩 10회",
       standard: "리딩 35회 + 운명 리포트",
@@ -89,7 +88,6 @@ const GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS = {
     localCurrency: "Prices shown in your local currency",
     detecting: "detecting...",
     popular: "MOST POPULAR",
-    coins: (amount) => `${amount} Coins`,
     descriptions: {
       starter: "10 premium readings",
       standard: "35 readings + Destiny Report",
@@ -104,7 +102,6 @@ const GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS = {
     localCurrency: "現在地の通貨で価格を表示",
     detecting: "検出中...",
     popular: "人気プラン",
-    coins: (amount) => `${amount}コイン`,
     descriptions: {
       starter: "プレミアムリーディング10回",
       standard: "リーディング35回 + 運命レポート",
@@ -305,26 +302,6 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
               }}
             >
               {loading ? "…" : convertPrice(tier.krwPrice, currency, rates)}
-            </div>
-
-                  {/* 원화 가치 */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-              }}
-            >
-              <span style={{ fontSize: 18 }}>🪙</span>
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 700,
-                  color: "#fbbf24",
-                }}
-              >
-                {copy.coins(tier.coins)}
-              </span>
             </div>
 
             <div style={{ fontSize: 13, color: "#64748b", lineHeight: 1.5 }}>

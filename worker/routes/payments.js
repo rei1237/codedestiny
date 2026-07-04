@@ -23,12 +23,12 @@ import {
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
 } from "../lib/portone.js";
-import { resolveChargePointsByAmount, validatePointChargePayload, validateTurnstilePayload } from "../lib/validation.js";
+import { validateTurnstilePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
-import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
@@ -654,6 +654,32 @@ function isDuplicateKeyError(error) {
   return Number(error?.code) === 11000;
 }
 
+// PortOne는 at-least-once로 웹훅을 재전송한다. 첫 처리가 isolate kill 등으로 "processing"에서
+// 멈춘 이벤트를 영구히 duplicate 취급하면 결제는 PAID인데 unlock이 반영되지 않는다. 아래 시간이
+// 지난 stale "processing" 레코드는 다음 재전송에서 재클레임을 허용한다.
+const WEBHOOK_STALE_PROCESSING_MS = 2 * 60 * 1000;
+
+// 웹훅 이벤트 레코드가 재처리 가능한 상태인지 순수 판정한다(테스트 용이하도록 분리).
+function isWebhookEventReclaimable(existing, nowMs = Date.now(), staleMs = WEBHOOK_STALE_PROCESSING_MS) {
+  const status = String(existing?.status || "");
+  if (status === "failed") return true;
+  if (status === "processing") {
+    const last = existing?.lastAttemptAt ? new Date(existing.lastAttemptAt).getTime() : 0;
+    if (!Number.isFinite(last) || last <= 0) return true;
+    return nowMs - last >= staleMs;
+  }
+  return false;
+}
+
+// 웹훅 핸들러 응답이 성공(2xx)인지 판정한다. 실패 응답을 processed로 마킹하면 PortOne 재전송이
+// 우리 멱등성 계층에서 영구 차단되므로, 성공일 때만 processed로 확정해야 한다.
+function isSuccessfulWebhookResponse(response) {
+  const status = Number(response?.status || 0);
+  // 202(Accepted)는 "아직 미완료"(예: 결제 pending)를 뜻하므로 processed로 확정하지 않고
+  // 재시도 대상으로 남긴다. 그 외 2xx만 terminal 성공으로 본다.
+  return status >= 200 && status < 300 && status !== 202;
+}
+
 async function reservePortOneWebhookEvent({ request, eventType, paymentId, body }) {
   const eventId = extractPortOneWebhookId(request.headers);
   if (!eventId) {
@@ -679,9 +705,14 @@ async function reservePortOneWebhookEvent({ request, eventType, paymentId, body 
   } catch (error) {
     if (!isDuplicateKeyError(error)) throw error;
     const existing = await PaymentWebhookEvent.findOne({ provider: "portone", eventId }).lean();
-    if (existing?.status === "failed") {
+    if (isWebhookEventReclaimable(existing, now.getTime())) {
+      // 원자적 재클레임: stale processing은 lastAttemptAt 조건까지 걸어 동시 재전송 중 한 요청만 이긴다.
+      const staleCutoff = new Date(now.getTime() - WEBHOOK_STALE_PROCESSING_MS);
+      const reclaimFilter = existing.status === "processing"
+        ? { provider: "portone", eventId, status: "processing", lastAttemptAt: { $lte: staleCutoff } }
+        : { provider: "portone", eventId, status: "failed" };
       const event = await PaymentWebhookEvent.findOneAndUpdate(
-        { provider: "portone", eventId, status: "failed" },
+        reclaimFilter,
         {
           $set: {
             eventType,
@@ -965,12 +996,24 @@ function resolveSinglePaymentPricing(body = {}) {
     };
   }
 
+  // 실제 청구 KRW는 레지스트리 정본(pricing.amountKRW)을 우선 사용한다. coinPrice*100 하드코딩은
+  // KRW가 100의 배수가 아닌 상품에서 반올림 과금을 유발해 다른 결제 경로와 불일치하므로 쓰지 않는다.
+  const amountKRW = normalizeKrwAmount(pricing.amountKRW) || calculateKrwAmountFromCoins(coinPrice);
+  if (!Number.isInteger(amountKRW) || amountKRW <= 0) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Payment product value is invalid.",
+      code: "INVALID_PRODUCT_PRICE",
+    };
+  }
+
   return {
     ok: true,
     pricing,
     featureKey: String(pricing.featureKey || featureKey).trim(),
     coinPrice,
-    amountKRW: coinPrice * 100,
+    amountKRW,
     source: resolved.source || "pricing",
   };
 }
@@ -1397,10 +1440,20 @@ async function autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, 
   }
 }
 
+// billing.js의 결제-접근 결정 캐시(globalThis 공유)를 해당 유저 단위로 무효화한다.
+// import 순환(billing.js→payments.js)을 피하려고 캐시 객체에 붙은 메서드를 직접 호출한다.
+function invalidatePaidAccessDecisionCacheForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return;
+  try {
+    globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid);
+  } catch {}
+}
+
 async function recordUserPaidFeature(userId, featureKey, options = {}) {
   const key = String(featureKey || "").trim();
   if (!userId || !key) return null;
-  return User.updateOne(
+  const result = await User.updateOne(
     { _id: userId },
     {
       $addToSet: {
@@ -1410,6 +1463,8 @@ async function recordUserPaidFeature(userId, featureKey, options = {}) {
     },
     options?.session ? { session: options.session } : undefined,
   );
+  invalidatePaidAccessDecisionCacheForUser(userId);
+  return result;
 }
 
 async function revokeSinglePaymentContentAccess(payment, { status = CONTENT_ENTITLEMENT_STATUSES.REFUNDED, reason = "", session = null } = {}) {
@@ -1423,6 +1478,7 @@ async function revokeSinglePaymentContentAccess(payment, { status = CONTENT_ENTI
       reason,
       session,
     });
+    invalidatePaidAccessDecisionCacheForUser(payment?.userId);
     return {
       ...result,
       unlockRevoked: result.unlockRevoked === true,
@@ -2839,42 +2895,24 @@ async function settlePaymentByImpUid({
     };
   }
 
-  let chargedPoints;
-  try {
-    if (isDigitalContentPayment) {
-      chargedPoints = 0;
-    } else {
-      const pointsForPolicy = expectedChargedPoints > 0 ? expectedChargedPoints : undefined;
-      chargedPoints = resolveChargePointsByAmount(env, portOneAmount, pointsForPolicy);
-    }
-  } catch (error) {
+  // Prepaid coin top-up (point_charge / any non-digital settlement) is retired. Only
+  // digital_content products settle here; reject anything else before any DB mutation so
+  // no "coin charge" crediting path can run. Currency/amount are still re-verified below.
+  if (!isDigitalContentPayment) {
     await markPaymentFailure(paymentRecord, {
       status: "failed",
       paymentMethod,
       rawPortOne: portOnePayment,
-      failureCode: "charge_policy_invalid",
-      failureMessage: error.message || "Charge point policy validation failed.",
+      failureCode: "point_charge_disabled",
+      failureMessage: "Prepaid coin top-up settlement is disabled.",
       failureStage: "policy_validate",
       incrementAttempt: true,
     });
-
-    await writeFailureLog({
-      request,
-      userId: ownerUserId,
-      impUid,
-      merchantUid,
-      source,
-      stage: "policy_validate",
-      code: "charge_policy_invalid",
-      message: error.message || "Charge point policy validation failed.",
-      status: 400,
-      expectedAmount,
-      portOneAmount,
-      payload: body,
-      rawPortOne: portOnePayment,
-    });
-
-    return { ok: false, status: 400, message: error.message || "Charge point policy validation failed." };
+    return {
+      ok: false,
+      status: 410,
+      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    };
   }
 
   const ownerExists = await User.exists({ _id: ownerUserId });
@@ -2884,7 +2922,7 @@ async function settlePaymentByImpUid({
       paymentMethod,
       rawPortOne: portOnePayment,
       failureCode: "user_not_found",
-      failureMessage: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge.",
+      failureMessage: "User not found for product payment.",
       failureStage: "user_lookup",
       incrementAttempt: true,
     });
@@ -2897,13 +2935,13 @@ async function settlePaymentByImpUid({
       source,
       stage: "user_lookup",
       code: "user_not_found",
-      message: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge.",
+      message: "User not found for product payment.",
       status: 404,
       payload: body,
       rawPortOne: portOnePayment,
     });
 
-    return { ok: false, status: 404, message: isDigitalContentPayment ? "User not found for product payment." : "User not found for point charge." };
+    return { ok: false, status: 404, message: "User not found for product payment." };
   }
 
   const paidAt = toDateFromUnixSeconds(portOnePayment.paid_at);
@@ -2917,13 +2955,13 @@ async function settlePaymentByImpUid({
           impUid,
           merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
           paymentAmount: portOneAmount,
-          expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
-          chargedPoints,
+          expectedChargedPoints,
+          chargedPoints: 0,
           featureKey: String(paymentRecord.featureKey || body?.featureKey || body?.subFeatureKey || ""),
           productId: String(paymentRecord.productId || body?.productId || "").trim().toLowerCase(),
-          coinPrice: isDigitalContentPayment ? expectedChargedPoints : 0,
-          membershipCreditCost: isDigitalContentPayment ? calculateMembershipCreditCost(expectedChargedPoints) : 0,
-          accessType: isDigitalContentPayment ? "single_purchase" : "",
+          coinPrice: expectedChargedPoints,
+          membershipCreditCost: calculateMembershipCreditCost(expectedChargedPoints),
+          accessType: "single_purchase",
           requestId: String(paymentRecord.requestId || body?.requestId || "").trim().slice(0, 120),
           reportId: String(paymentRecord.reportId || body?.reportId || "").trim().slice(0, 120),
           sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120),
@@ -3015,43 +3053,11 @@ async function settlePaymentByImpUid({
       };
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      ownerUserId,
-      { $inc: { points: chargedPoints } },
-      { returnDocument: "after", projection: { points: 1 } },
-    ).lean();
-
-    if (!updatedUser) {
-      await Payment.findByIdAndUpdate(finalizedPayment._id, {
-        $set: {
-          status: "failed",
-          failureCode: "user_not_found",
-          failureMessage: "User not found for point charge.",
-          failureStage: "user_update",
-          lastErrorAt: new Date(),
-        },
-      }).catch(() => {});
-
-      return { ok: false, status: 404, message: "User not found for point charge." };
-    }
-
-    await PointHistory.create({
-      userId: ownerUserId,
-      kind: "charge",
-      delta: chargedPoints,
-      balanceAfter: Number(updatedUser.points || 0),
-      reason: "Point charge",
-      paymentId: finalizedPayment._id,
-      impUid,
-      merchantUid: finalizedPayment.merchantUid,
-      metadata: { source, paymentAmount: portOneAmount, paymentMethod },
-    }).catch(() => {});
-
+    // Unreachable: prepaid coin top-up is retired and rejected before mutation (guard above).
     return {
-      ok: true,
-      idempotent: false,
-      user: { id: ownerUserId, points: Number(updatedUser.points || 0) },
-      payment: formatPaymentResponse(finalizedPayment),
+      ok: false,
+      status: 410,
+      message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     };
   };
 
@@ -3069,13 +3075,13 @@ async function settlePaymentByImpUid({
               impUid,
               merchantUid: merchantUid || paymentRecord.merchantUid || undefined,
               paymentAmount: portOneAmount,
-              expectedChargedPoints: isDigitalContentPayment ? expectedChargedPoints : chargedPoints,
-              chargedPoints,
+              expectedChargedPoints,
+              chargedPoints: 0,
               featureKey: String(paymentRecord.featureKey || body?.featureKey || body?.subFeatureKey || ""),
               productId: String(paymentRecord.productId || body?.productId || "").trim().toLowerCase(),
-              coinPrice: isDigitalContentPayment ? expectedChargedPoints : 0,
-              membershipCreditCost: isDigitalContentPayment ? calculateMembershipCreditCost(expectedChargedPoints) : 0,
-              accessType: isDigitalContentPayment ? "single_purchase" : "",
+              coinPrice: expectedChargedPoints,
+              membershipCreditCost: calculateMembershipCreditCost(expectedChargedPoints),
+              accessType: "single_purchase",
               requestId: String(paymentRecord.requestId || body?.requestId || "").trim().slice(0, 120),
               reportId: String(paymentRecord.reportId || body?.reportId || "").trim().slice(0, 120),
               sessionId: String(paymentRecord.sessionId || body?.sessionId || body?.reportSessionId || "").trim().slice(0, 120),
@@ -3150,31 +3156,11 @@ async function settlePaymentByImpUid({
           return;
         }
 
-        const updatedUser = await User.findByIdAndUpdate(
-          ownerUserId,
-          { $inc: { points: chargedPoints } },
-          { returnDocument: "after", projection: { points: 1 }, session },
-        ).lean();
-
-        if (!updatedUser) throw new Error("user_not_found");
-
-        await PointHistory.create([{
-          userId: ownerUserId,
-          kind: "charge",
-          delta: chargedPoints,
-          balanceAfter: Number(updatedUser.points || 0),
-          reason: "Point charge",
-          paymentId: finalizedPayment._id,
-          impUid,
-          merchantUid: finalizedPayment.merchantUid,
-          metadata: { source, paymentAmount: portOneAmount, paymentMethod },
-        }], { session });
-
+        // Unreachable: prepaid coin top-up is retired and rejected before mutation (guard above).
         txResult = {
-          ok: true,
-          idempotent: false,
-          user: { id: ownerUserId, points: Number(updatedUser.points || 0) },
-          payment: formatPaymentResponse(finalizedPayment),
+          ok: false,
+          status: 410,
+          message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
         };
       });
 
@@ -3317,7 +3303,17 @@ async function handleWebhook(request, env) {
     } else {
       response = json({ ok: true, ignored: true, type: eventType });
     }
-    await markPortOneWebhookEventProcessed(reservation.event, response);
+    // 성공(2xx) 응답일 때만 processed로 확정한다. 502(PortOne 조회 실패) 같은 비-2xx를 processed로
+    // 마킹하면 PortOne 재전송이 멱등성 계층에서 영구 차단돼 미지급 결제가 남는다. 실패는 failed로
+    // 남겨 다음 재전송에서 재처리되게 한다.
+    if (isSuccessfulWebhookResponse(response)) {
+      await markPortOneWebhookEventProcessed(reservation.event, response);
+    } else {
+      await markPortOneWebhookEventFailed(
+        reservation.event,
+        new Error(`Webhook handler returned non-success status ${Number(response?.status || 0)}.`),
+      );
+    }
     return response;
   } catch (error) {
     await markPortOneWebhookEventFailed(reservation.event, error);
@@ -3489,134 +3485,6 @@ async function handlePrepare(request, env, auth) {
     message: "선불형 잔액 상품은 더 이상 판매하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
     code: "POINT_CHARGE_DISABLED",
   }, { status: 410 });
-
-  const paymentAmount = Number(body?.paymentAmount ?? body?.amount);
-  const requestedChargePoints = body?.chargePoints === undefined || body?.chargePoints === null
-    ? undefined
-    : Number(body?.chargePoints);
-
-  if (!Number.isInteger(paymentAmount) || paymentAmount <= 0) {
-    await writeFailureLog({
-      request,
-      userId: auth.userId,
-      source: "prepare",
-      stage: "payload_validate",
-      code: "invalid_payment_amount",
-      message: "paymentAmount must be a positive integer.",
-      status: 400,
-      payload: body,
-    });
-    return json({ message: "paymentAmount must be a positive integer." }, { status: 400 });
-  }
-
-  if (requestedChargePoints !== undefined && (!Number.isInteger(requestedChargePoints) || requestedChargePoints <= 0)) {
-    await writeFailureLog({
-      request,
-      userId: auth.userId,
-      source: "prepare",
-      stage: "payload_validate",
-      code: "invalid_charge_points",
-      message: "chargePoints must be a positive integer.",
-      status: 400,
-      payload: body,
-    });
-    return json({ message: "chargePoints must be a positive integer." }, { status: 400 });
-  }
-
-  const chargedPoints = resolveChargePointsByAmount(env, paymentAmount, requestedChargePoints);
-  const paymentMethod = normalizePaymentMethod(body?.paymentMethod);
-  const rawProductName = String(body?.productName || `${chargedPoints.toLocaleString("ko-KR")} point charge`).trim();
-  const productName = rawProductName.slice(0, 80) || `${chargedPoints.toLocaleString("ko-KR")} point charge`;
-  const idempotencyKey = resolveIdempotencyKey(request, body);
-
-  if (idempotencyKey) {
-    const existing = await Payment.findOne({
-      userId: auth.userId,
-      idempotencyKey,
-      paymentType: "point_charge",
-    }).sort({ createdAt: -1 }).lean();
-
-    if (existing) {
-      const existingAmount = Number(existing.paymentAmount || 0);
-      const existingPoints = Number(existing.expectedChargedPoints || 0);
-      if (existingAmount !== paymentAmount || existingPoints !== chargedPoints) {
-        return json({
-          message: "Idempotency key conflict. Request payload does not match existing payment preparation.",
-          code: "IDEMPOTENCY_CONFLICT",
-        }, { status: 409 });
-      }
-
-      return json({
-        message: "Payment preparation already completed.",
-        idempotent: true,
-        order: {
-          merchantUid: String(existing.merchantUid || ""),
-          paymentAmount: existingAmount,
-          chargePoints: existingPoints,
-          productName,
-        },
-      });
-    }
-  }
-
-  const merchantUid = buildMerchantUid(auth.userId);
-
-  try {
-    await Payment.create({
-      userId: auth.userId,
-      merchantUid,
-      idempotencyKey,
-      paymentAmount,
-      expectedChargedPoints: chargedPoints,
-      chargedPoints: 0,
-      paymentMethod,
-      status: "pending",
-      source: "prepare",
-      paymentType: "point_charge",
-      subscriptionTier: "",
-    });
-  } catch (error) {
-    if (Number(error?.code) !== 11000 || !idempotencyKey) throw error;
-
-    const existing = await Payment.findOne({
-      userId: auth.userId,
-      idempotencyKey,
-      paymentType: "point_charge",
-    }).sort({ createdAt: -1 }).lean();
-
-    if (!existing) throw error;
-
-    const existingAmount = Number(existing.paymentAmount || 0);
-    const existingPoints = Number(existing.expectedChargedPoints || 0);
-    if (existingAmount !== paymentAmount || existingPoints !== chargedPoints) {
-      return json({
-        message: "Idempotency key conflict. Request payload does not match existing payment preparation.",
-        code: "IDEMPOTENCY_CONFLICT",
-      }, { status: 409 });
-    }
-
-    return json({
-      message: "Payment preparation already completed.",
-      idempotent: true,
-      order: {
-        merchantUid: String(existing.merchantUid || ""),
-        paymentAmount: existingAmount,
-        chargePoints: existingPoints,
-        productName,
-      },
-    });
-  }
-
-  return json({
-    message: "Payment preparation completed.",
-    idempotent: false,
-    order: {
-      merchantUid,
-      paymentAmount,
-      chargePoints: chargedPoints,
-      productName,
-    },
-  }, { status: 201 });
 }
 
 async function handleSubscriptionPrepare(request, env, auth) {
@@ -4077,19 +3945,35 @@ async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body
       },
     });
   } catch (error) {
-    await User.findByIdAndUpdate(auth.userId, {
-      $set: { profileSubscription: existingUser.profileSubscription || {} },
-      $pull: { recentConsumeRequestIds: requestId },
-    }).catch(() => {});
-    await markPaymentFailure(paymentRecord, {
-      status: "failed",
-      paymentMethod: "monthly_credit",
-      failureCode: "subscription_monthly_credit_ledger_failed",
-      failureMessage: String(error?.message || "Monthly credit ledger creation failed."),
-      failureStage: "subscription_monthly_credit_ledger",
-      incrementAttempt: true,
-    }).catch(() => {});
-    throw error;
+    if (Number(error?.code) === 11000) {
+      // 동일 sourceId(requestId) 원장이 이미 존재 = 멱등 재시도. 크레딧 차감·구독 활성은 유효하므로
+      // 롤백하지 않고 기존 원장을 재사용해 정상 완료 처리한다.
+      ledger = await MonthlyCreditLedger.findOne({
+        userId: auth.userId,
+        type: "MONTHLY_CREDIT_SPEND",
+        sourceId: requestId,
+      }).lean().catch(() => null);
+    } else {
+      // 원장 생성 실패 시 크레딧 차감+구독 활성을 함께 되돌린다. profileSubscription 서브도큐먼트 전체를
+      // 무조건 스냅샷으로 치환하면 그 사이 다른 요청의 변경을 덮어쓰므로, 우리가 방금 설정한 활성
+      // 상태(expiresAt)가 그대로일 때만(=우리 활성이 최신일 때만) 스냅샷으로 복원한다.
+      await User.updateOne(
+        { _id: auth.userId, "profileSubscription.expiresAt": expiresAt },
+        {
+          $set: { profileSubscription: existingUser.profileSubscription || {} },
+          $pull: { recentConsumeRequestIds: requestId },
+        },
+      ).catch(() => {});
+      await markPaymentFailure(paymentRecord, {
+        status: "failed",
+        paymentMethod: "monthly_credit",
+        failureCode: "subscription_monthly_credit_ledger_failed",
+        failureMessage: String(error?.message || "Monthly credit ledger creation failed."),
+        failureStage: "subscription_monthly_credit_ledger",
+        incrementAttempt: true,
+      }).catch(() => {});
+      throw error;
+    }
   }
 
   await Payment.findByIdAndUpdate(paymentRecord._id, {
@@ -4389,16 +4273,28 @@ async function handleSubscriptionConfirm(request, env, auth) {
   };
 
   const activateSubscriptionWithoutTransaction = async () => {
-    await Payment.findByIdAndUpdate(paymentRecord._id, {
-      $set: {
-        ...paymentActivationFields,
-        status: "processing",
-        failureCode: null,
-        failureMessage: null,
-        failureStage: null,
-        lastErrorAt: null,
+    // Idempotency gate: only claim a payment that is not already "success". A replayed or
+    // concurrent confirm of an already-activated payment returns null here, so the membership
+    // extension below is skipped (prevents expiresAt double-extension).
+    const claimed = await Payment.findOneAndUpdate(
+      { _id: paymentRecord._id, status: { $ne: "success" } },
+      {
+        $set: {
+          ...paymentActivationFields,
+          status: "processing",
+          failureCode: null,
+          failureMessage: null,
+          failureStage: null,
+          lastErrorAt: null,
+        },
       },
-    });
+      { returnDocument: "after" },
+    ).lean();
+    if (!claimed) {
+      const existingPayment = await Payment.findById(paymentRecord._id).lean();
+      const existingActiveUser = await User.findById(auth.userId, "points profileSubscription").lean();
+      return { ok: true, idempotent: true, payment: existingPayment, updatedUser: existingActiveUser };
+    }
     const updatedUser = await User.findByIdAndUpdate(
       auth.userId,
       subscriptionActivationUpdate,
@@ -4433,22 +4329,38 @@ async function handleSubscriptionConfirm(request, env, auth) {
     let activation = null;
     try {
       await session.withTransaction(async () => {
-        const payment = await Payment.findByIdAndUpdate(paymentRecord._id, {
-          $set: {
-            ...paymentActivationFields,
-            status: "success",
-            failureCode: null,
-            failureMessage: null,
-            failureStage: null,
-            lastErrorAt: null,
+        // Idempotency gate: claim only a not-yet-success payment. A concurrent/replayed confirm
+        // sees null and returns the current state without re-applying the membership extension.
+        const payment = await Payment.findOneAndUpdate(
+          { _id: paymentRecord._id, status: { $ne: "success" } },
+          {
+            $set: {
+              ...paymentActivationFields,
+              status: "success",
+              failureCode: null,
+              failureMessage: null,
+              failureStage: null,
+              lastErrorAt: null,
+            },
           },
-        }, { returnDocument: "after", session }).lean();
+          { returnDocument: "after", session },
+        ).lean();
+        if (!payment) {
+          const existingPayment = await Payment.findById(paymentRecord._id, null, { session }).lean();
+          const existingActiveUser = await User.findById(
+            auth.userId,
+            "points profileSubscription",
+            { session },
+          ).lean();
+          activation = { ok: true, idempotent: true, payment: existingPayment, updatedUser: existingActiveUser };
+          return;
+        }
         const updatedUser = await User.findByIdAndUpdate(
           auth.userId,
           subscriptionActivationUpdate,
           { returnDocument: "after", projection: { points: 1, profileSubscription: 1 }, session },
         ).lean();
-        if (!payment || !updatedUser) throw new Error("subscription_activation_failed");
+        if (!updatedUser) throw new Error("subscription_activation_failed");
         activation = { ok: true, payment, updatedUser };
       });
       return activation;
@@ -4595,10 +4507,17 @@ async function handleConfirm(request, env, auth) {
     isValid = Boolean(sanitized.impUid);
     if (!isValid) errors = ["impUid is required."];
   } else {
-    const validated = validatePointChargePayload(body);
-    isValid = validated.isValid;
-    errors = validated.errors;
-    sanitized = validated.sanitized;
+    // Prepaid coin top-up (point_charge) confirm payloads are retired; only digital-content
+    // and redirect-return confirms are accepted here.
+    isValid = false;
+    errors = ["Unsupported payment confirm payload. Prepaid coin top-up is no longer available."];
+    sanitized = {
+      impUid: "",
+      merchantUid: undefined,
+      paymentAmount: undefined,
+      chargePoints: undefined,
+      paymentMethod: undefined,
+    };
   }
 
   if (!isValid) {
@@ -5632,4 +5551,7 @@ export const __paymentsTestUtils = {
   normalizeIdempotencyKey,
   signStandardWebhookPayload,
   verifyPortOneWebhookSignature,
+  isWebhookEventReclaimable,
+  isSuccessfulWebhookResponse,
+  WEBHOOK_STALE_PROCESSING_MS,
 };
