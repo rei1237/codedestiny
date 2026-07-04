@@ -988,6 +988,9 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-option[data-mode="direct"]{border-color:rgba(247,215,122,.42);background:linear-gradient(145deg,rgba(45,37,30,.82),rgba(31,27,43,.82))}
     .cd-react-payment-choice-option[data-mode="monthly"]{border-color:rgba(147,197,253,.42);background:linear-gradient(145deg,rgba(12,40,67,.82),rgba(22,27,58,.82))}
     .cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.52}
+    .cd-react-payment-choice-option--recommended{border-color:rgba(255,224,130,.74);background:linear-gradient(145deg,rgba(255,247,219,.16),rgba(250,230,160,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 34px rgba(2,6,23,.3),0 0 26px rgba(250,220,150,.18)}
+    .cd-react-payment-choice-option--recommended:hover{border-color:rgba(255,232,150,.9)}
+    .cd-react-payment-choice-recommend{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34);z-index:2}
     .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:5px;font-size:15px;line-height:1.35;color:#fff}
     .cd-react-payment-choice-option span{position:relative;display:block;color:rgba(229,236,255,.78);font-size:12px;line-height:1.5}
     .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border:1px solid rgba(255,242,184,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
@@ -1067,6 +1070,33 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
     : "달빛 이용권을 구매하면 한도 이하 기능은 결제창 없이 바로 열립니다.";
 
+  const directButtonHtml = canShowDirect ? `
+          <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
+            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.003")}</span>
+            <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
+            <span>${billingClientText("billingClient.text.004")}</span>
+          </button>` : "";
+  const monthlyButtonHtml = canShowMonthly ? `
+          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
+            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.005")}</span>
+            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 이벤트 재화</strong>
+            <span>보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
+          </button>` : "";
+  // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
+  // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).
+  const hasActivePassTier = Boolean(passTier && passTier !== "free");
+  const passStoreFirst = canShowPassStore && !hasActivePassTier;
+  const passStoreButtonHtml = canShowPassStore ? `
+          <button type="button" class="cd-react-payment-choice-option${passStoreFirst ? " cd-react-payment-choice-option--recommended" : ""}" data-mode="pass-store"${passStoreFirst ? ' aria-label="달빛 이용권 상점 (추천)"' : ""}>
+            ${passStoreFirst ? '<span class="cd-react-payment-choice-recommend">추천</span>' : ""}
+            <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
+            <strong>${escapePaymentText(passStoreTitle)}</strong>
+            <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
+          </button>` : "";
+  const paymentChoiceButtonsHtml = passStoreFirst
+    ? `${passStoreButtonHtml}${directButtonHtml}${monthlyButtonHtml}`
+    : `${directButtonHtml}${monthlyButtonHtml}${passStoreButtonHtml}`;
+
   return new Promise((resolve) => {
     let settled = false;
     const previousOverflow = document.body.style.overflow;
@@ -1089,26 +1119,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <p class="cd-react-payment-choice-sub">${escapePaymentText(paymentChoiceSub)}</p>
         <p class="cd-react-payment-choice-note"><strong>${escapePaymentText(title)}</strong><br>${formatCoinValueWon(coinPrice)} 기준 · ${formatPaymentWon(directAmount)}</p>
         <div class="cd-react-payment-choice-grid">
-          ${canShowDirect ? `
-          <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
-            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.003")}</span>
-            <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
-            <span>${billingClientText("billingClient.text.004")}</span>
-          </button>` : ""}
-          ${canShowMonthly ? `
-          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
-            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.005")}</span>
-            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 이벤트 재화</strong>
-            <span>보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
-          </button>` : ""}
-          ${canShowPassStore ? `
-          <button type="button" class="cd-react-payment-choice-option" data-mode="pass-store">
-            <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
-            <strong>${escapePaymentText(passStoreTitle)}</strong>
-            <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
-          </button>` : ""}
+          ${paymentChoiceButtonsHtml}
         </div>
-        <div class="cd-react-payment-choice-status" data-payment-status></div>
+        <div class="cd-react-payment-choice-status" data-payment-status role="status" aria-live="polite"></div>
         <div class="cd-react-payment-choice-actions">
           ${canShowPassRefresh ? `<button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">${billingClientText("billingClient.text.006")}</button>` : ""}
           <button type="button" class="cd-react-payment-choice-cancel" data-mode="cancel">${billingClientText("billingClient.text.007")}</button>
@@ -1210,7 +1223,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       });
     });
     document.body.appendChild(modal);
-    modal.querySelector<HTMLButtonElement>('[data-mode="direct"]')?.focus();
+    // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
+    (modal.querySelector<HTMLButtonElement>(".cd-react-payment-choice-option")
+      || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
   });
 }
 
@@ -3052,28 +3067,26 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       priceKRW: input.priceKRW,
       amountKRW: input.amountKRW ?? input.amountKrw ?? input.paymentAmount,
     };
-    const passEligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || passDisabled
+    // unlock-status를 pass/full 2회 호출하던 구조를 단일 full 조회로 통합한다.
+    // full 응답에 이미 pass 커버 정보(access.canAccess / pass.canUse)가 포함되므로
+    // 별도 pass 프로브 왕복이 불필요하며, 유료 액션마다 발생하던 요청 2배 증폭을 제거한다.
+    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
       ? null
-      : await fetchPaymentEligibility(eligibilityInput, { phase: "pass" }).catch(() => null);
-    const passEligibility = passEligibilityResult?.ok ? passEligibilityResult.data : null;
-    const passAlreadyGranted = passEligibility?.access.canAccess === true;
-    const passCoveredByServer = passAlreadyGranted || passEligibility?.pass.canUse === true;
-    if (passEligibility && !passCoveredByServer && !explicitPaymentMode && input.forceDeduct !== false) {
+      : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
+    const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
+    const passCoveredByServer = eligibility?.access.canAccess === true || eligibility?.pass.canUse === true;
+    if (eligibility && !passCoveredByServer && !explicitPaymentMode && !passDisabled && input.forceDeduct !== false) {
       emitPaidFeatureGate("update", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
         status: "loadingProducts",
         message: billingClientText("billingClient.message.006"),
-        cost: passEligibility.coinCost,
+        cost: eligibility.coinCost,
         paymentMode: requestedMode,
         reason: input.reason,
       });
     }
-    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || passCoveredByServer
-      ? passEligibilityResult
-      : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
-    const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || (!passDisabled && eligibility?.pass.canUse === true);
