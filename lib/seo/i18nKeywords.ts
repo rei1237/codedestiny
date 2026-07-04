@@ -143,7 +143,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     ja: {
       title: "紫微斗数 無料鑑定 | 命盤と十二宮の流れ",
-      description: "命宮、財帛宮、官禄宮、夫妻宮など十二宮の流れから性格、関係、仕事、お金の方向を読みます。",
+      description: "命宮、財帛宮、官禄宮、夫妻宮など十二宮の流れから、性格、人間関係、仕事、お金の方向性までを落ち着いて読み解きます。",
       h1: "紫微斗数の命盤鑑定",
       intro: "紫微斗数は人生の領域を宮で分け、星の配置から現実的な選択の流れを読む東洋占星術です。",
       mainKeyword: "紫微斗数",
@@ -163,7 +163,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     zh: {
       title: "紫微斗数免费解读 | 命盘与十二宫流向",
-      description: "通过命宫、财帛宫、官禄宫、夫妻宫等十二宫，查看性格、关系、事业与财富方向。",
+      description: "通过命宫、财帛宫、官禄宫、夫妻宫等十二宫的流向，细致查看你的性格、人际关系、事业与财富方向，并给出可参考的建议。",
       h1: "紫微斗数命盘解读",
       intro: "紫微斗数把人生领域分成不同宫位，并从星曜分布中读取现实选择的流向。",
       mainKeyword: "紫微斗数",
@@ -205,7 +205,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
   sukuyo: {
     ko: {
       title: "숙요점 궁합 보기 | 27숙 관계 흐름",
-      description: "27숙을 바탕으로 두 사람의 끌림, 안정감, 갈등 패턴, 회복 타이밍을 살펴봅니다.",
+      description: "27숙을 바탕으로 두 사람의 끌림, 안정감, 갈등 패턴, 회복 타이밍까지 살펴 관계의 흐름을 차분히 이해하도록 돕습니다.",
       h1: "숙요점 궁합과 관계 해석",
       intro: "숙요점은 태어난 날의 숙을 기준으로 관계의 거리감과 반복되는 감정 흐름을 읽는 전통 궁합 체계입니다.",
       mainKeyword: "숙요점 궁합",
@@ -225,7 +225,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     ja: {
       title: "宿曜占星 相性診断 | 27宿の関係の流れ",
-      description: "27宿をもとに、二人の引力、安心感、衝突パターン、回復のタイミングを読みます。",
+      description: "27宿をもとに、二人の引力、安心感、衝突のパターン、そして関係が回復するタイミングまでを丁寧に読み解いていきます。",
       h1: "宿曜の相性と関係リーディング",
       intro: "宿曜は生まれた日の宿を基準に、関係の距離感と繰り返す感情の流れを読む伝統的な相性体系です。",
       mainKeyword: "宿曜 相性",
@@ -245,7 +245,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     zh: {
       title: "宿曜关系解读 | 27宿相性流向",
-      description: "依据27宿查看两个人的吸引力、稳定感、冲突模式与关系修复时机。",
+      description: "依据27宿细致查看两个人的吸引力、稳定感、冲突模式与关系修复时机，帮助你更加从容地理解彼此之间的相处流向。",
       h1: "宿曜相性与关系解读",
       intro: "宿曜以出生日期对应的宿为基础，观察关系距离感与反复出现的情绪流向。",
       mainKeyword: "宿曜相性",
@@ -307,7 +307,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     ja: {
       title: "今日の運勢 無料リーディング | 感情・関係・タイミング",
-      description: "今日の感情の流れ、関係の注意点、行動タイミングを確認し、一日の優先順位を整えます。",
+      description: "今日の感情の流れ、人間関係の注意点、行動に適したタイミングを手早く確認し、一日の優先順位を落ち着いて整えられます。",
       h1: "今日の運勢",
       intro: "今日の運勢は、一日の空気と選択の速度を整える短いリーディングです。",
       mainKeyword: "今日の運勢",
@@ -327,7 +327,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     zh: {
       title: "今日运势免费查看 | 情绪、关系与时机",
-      description: "快速确认今天的情绪流向、关系注意点与行动时机，整理一天的优先顺序。",
+      description: "帮助你快速确认今天的情绪流向、人际关系注意点与适合行动的时机，从容地整理并安排好一整天的优先顺序与节奏。",
       h1: "今日运势",
       intro: "今日运势是一段简短解读，帮助你整理一天的气氛与选择节奏。",
       mainKeyword: "今日运势",

@@ -33,8 +33,8 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
     },
     descriptionByLocale: {
       ko: "자미두수 초보자가 명궁, 재백궁, 관록궁처럼 핵심 궁위를 중심으로 명반을 차분히 읽는 기본 순서를 정리했습니다.",
-      ja: "紫微斗数の初心者向けに、宮位中心で命盤を読む基本順序を整理しました。",
-      zh: "面向新手整理紫微斗数命盘的关键阅读顺序与理解方法。",
+      ja: "紫微斗数の初心者向けに、命宮や財帛宮など核心となる宮位を中心に命盤を落ち着いて読み進める基本の順序を丁寧に整理しました。",
+      zh: "面向新手，围绕命宫、财帛宫、官禄宫等核心宫位，系统整理紫微斗数命盘的关键阅读顺序、理解方法与实用要点。",
       en: "A practical reading sequence for beginners who want to interpret Zi Wei charts by key palaces.",
     },
     h1ByLocale: {
@@ -100,8 +100,8 @@ export const I18N_INSIGHT_ARTICLES: I18nInsightArticle[] = [
     },
     descriptionByLocale: {
       ko: "숙요점을 통해 관계의 반복 갈등, 소통 리듬, 회복 타이밍을 함께 읽고 현실적인 대화 기준으로 정리하는 실전 가이드입니다.",
-      ja: "宿曜を使って関係の衝突反復と回復タイミングを読む実践ガイドです。",
-      zh: "通过宿曜识别关系中的冲突循环与修复窗口。",
+      ja: "宿曜を使って、人間関係で繰り返される衝突のパターンと回復に適したタイミングを読み解き、現実的な対話の指針へ整理する実践ガイドです。",
+      zh: "通过宿曜识别人际关系中反复出现的冲突循环与修复窗口，帮助你把它整理成现实中可用的沟通节奏与相处参考。",
       en: "A practical guide to identifying recurring conflict and recovery windows with Sukuyo.",
     },
     h1ByLocale: {
