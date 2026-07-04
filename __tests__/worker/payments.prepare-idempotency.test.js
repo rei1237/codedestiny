@@ -151,7 +151,7 @@ describe("Payments prepare idempotency", () => {
       body: JSON.stringify({ tier: "standard", paymentMethod: "card_general" }),
     });
 
-    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const response = await testUtils.handleSubscriptionPrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
     expect(status).toBe(200);
@@ -179,7 +179,7 @@ describe("Payments prepare idempotency", () => {
         body: JSON.stringify({ tier, paymentMethod: "card_general" }),
       });
 
-      const response = await testUtils.handleSubscriptionPrepare(req, auth);
+      const response = await testUtils.handleSubscriptionPrepare(req, {}, auth);
       const { status, payload } = await readResponse(response);
       const created = Payment.create.mock.calls[0]?.[0];
 
@@ -209,7 +209,7 @@ describe("Payments prepare idempotency", () => {
       body: JSON.stringify({ tier: "standard", idempotencyKey: "idem-sub-002", paymentMethod: "card_general" }),
     });
 
-    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const response = await testUtils.handleSubscriptionPrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
     expect(status).toBe(409);
@@ -234,7 +234,7 @@ describe("Payments prepare idempotency", () => {
       }),
     });
 
-    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const response = await testUtils.handleSubscriptionPrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
     expect(status).toBe(400);
@@ -259,7 +259,7 @@ describe("Payments prepare idempotency", () => {
       }),
     });
 
-    const response = await testUtils.handleSubscriptionPrepare(req, auth);
+    const response = await testUtils.handleSubscriptionPrepare(req, {}, auth);
     const { status, payload } = await readResponse(response);
 
     expect(status).toBe(400);

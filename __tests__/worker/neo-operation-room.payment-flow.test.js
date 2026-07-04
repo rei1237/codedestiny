@@ -53,6 +53,8 @@ beforeAll(async () => {
   }));
   jest.unstable_mockModule("../../worker/lib/ziwei-ai-chart.js", () => ({
     calculateZiweiAiChart: jest.fn(async () => ({})),
+    describeBrightness: jest.fn(() => ""),
+    formatStarWithBrightness: jest.fn((starName) => String(starName || "")),
   }));
   jest.unstable_mockModule("../../worker/lib/vedic-ai-chart.js", () => ({
     calculateVedicAiChart: jest.fn(async () => ({})),

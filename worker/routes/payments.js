@@ -23,7 +23,6 @@ import {
   getPortOneWebhookSecret,
   getPortOneWebhookUrl,
 } from "../lib/portone.js";
-import { validateTurnstilePayload } from "../lib/validation.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
@@ -33,7 +32,6 @@ import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PA
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
-import { verifyTurnstileToken } from "../lib/turnstile.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -215,36 +213,6 @@ async function enforcePaymentRouteSecurity(request, env, auth, path) {
 function isRemovedCountPassProductId(value) {
   const productId = String(value || "").trim().toLowerCase();
   return /^(?:saju_unlock_(?:3|5)|fortune_(?:30|50)_(?:3|10|30)|compat_(?:3|10|30))$/.test(productId);
-}
-
-function makeTurnstileErrorResponse(status, code, message) {
-  return json({
-    ok: false,
-    code: String(code || "turnstile_verification_failed"),
-    message: String(message || "Turnstile verification failed."),
-  }, { status: Math.max(400, Number(status) || 403) });
-}
-
-async function verifyPaymentTurnstileToken(request, env, body) {
-  const turnstileValidated = validateTurnstilePayload(body);
-  if (!turnstileValidated.isValid) {
-    return makeTurnstileErrorResponse(401, "turnstile_token_required", "Turnstile verification is required for payment preparation.");
-  }
-
-  const turnstileResult = await verifyTurnstileToken({
-    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
-    response: turnstileValidated.sanitized.turnstileToken,
-    remoteip: getRequestMeta(request).ip,
-  });
-  if (!turnstileResult.success) {
-    return makeTurnstileErrorResponse(
-      turnstileResult.status || 403,
-      turnstileResult.code || "turnstile_verification_failed",
-      turnstileResult.message || "Turnstile verification failed.",
-    );
-  }
-
-  return null;
 }
 
 function resolveDigitalContentPricing(body = {}, entitlement = {}) {
@@ -3474,8 +3442,6 @@ async function handleDigitalContentPrepare(request, auth, body) {
 
 async function handlePrepare(request, env, auth) {
   const body = await readJson(request);
-  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
-  if (turnstileVerificationError) return turnstileVerificationError;
 
   if (isDigitalContentPaymentRequest(body)) {
     return handleDigitalContentPrepare(request, auth, body);
@@ -3489,8 +3455,6 @@ async function handlePrepare(request, env, auth) {
 
 async function handleSubscriptionPrepare(request, env, auth) {
   const body = await readJson(request);
-  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
-  if (turnstileVerificationError) return turnstileVerificationError;
 
   const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);
@@ -3660,9 +3624,6 @@ async function handleSubscriptionPrepare(request, env, auth) {
 }
 
 async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body, plan, tier, paymentMethodHint }) {
-  const turnstileVerificationError = await verifyPaymentTurnstileToken(request, env, body);
-  if (turnstileVerificationError) return turnstileVerificationError;
-
   const requestId = String(body?.requestId || body?.idempotencyKey || body?.merchantUid || "").trim().slice(0, 160)
     || `sub_monthly_${Date.now()}_${tier}_${String(auth.userId || "user").slice(-8)}`;
   const merchantUid = String(body?.merchantUid || body?.merchant_uid || requestId).trim().slice(0, 160);
