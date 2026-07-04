@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "note": "빌드타임 정적 인라인용 Pexels 이미지 캐시. scripts/fetch-saju-images.mjs가 채운다. byQuery=일간 쿼리별 재현성 캐시, bySlug=페이지가 읽는 slug별 최종 이미지. 비어 있으면 페이지는 og:image webp로 폴백한다.",
+  "byQuery": {},
+  "bySlug": {}
+}

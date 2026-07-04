@@ -1,5 +1,7 @@
+import Image from "next/image";
 import Link from "next/link";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
+import { getFamousSajuHeroImage, type FamousSajuHeroImage } from "../../../../lib/famous-saju/famous-saju-image";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds, type CelebritySajuMagazineResult } from "../../../../lib/famous-saju/celebrity-saju-service";
 
 type PageParams = { slug: string };
@@ -7,6 +9,7 @@ type PageProps = { params: Promise<PageParams> };
 type FamousSajuSeoMeta = ReturnType<typeof getFamousSajuSeoMetadata>;
 type MagazinePillar = CelebritySajuMagazineResult["pillars"]["year"];
 type RelatedCelebrity = { slug: string; category: string; nameKo: string; tags: string[] };
+type TocItem = { id: string; title: string };
 
 const SITE_ORIGIN = "https://code-destiny.com";
 
@@ -113,9 +116,22 @@ const elementRows = [
   { key: "wood", label: "목", hanja: "木", color: "#5fd198", tone: "border-emerald-200/25 bg-emerald-200/10 text-emerald-100" },
   { key: "fire", label: "화", hanja: "火", color: "#f08a8a", tone: "border-rose-200/25 bg-rose-200/10 text-rose-100" },
   { key: "earth", label: "토", hanja: "土", color: "#caa45a", tone: "border-amber-200/25 bg-amber-200/10 text-amber-100" },
-  { key: "metal", label: "금", hanja: "金", color: "#b7a6e8", tone: "border-violet-200/25 bg-violet-200/10 text-violet-100" },
+  { key: "metal", label: "금", hanja: "金", color: "#d9d3c1", tone: "border-stone-200/25 bg-stone-200/10 text-stone-100" },
   { key: "water", label: "수", hanja: "水", color: "#69a7f7", tone: "border-sky-200/25 bg-sky-200/10 text-sky-100" },
 ] as const;
+
+// 일간 오행별 액센트: 경금=은/화이트골드 계열.
+const elementAccent: Record<string, { color: string; soft: string }> = {
+  목: { color: "#5fd198", soft: "rgba(95,209,152,0.16)" },
+  화: { color: "#f08a8a", soft: "rgba(240,138,138,0.16)" },
+  토: { color: "#caa45a", soft: "rgba(202,164,90,0.16)" },
+  금: { color: "#d9d3c1", soft: "rgba(217,211,193,0.18)" },
+  수: { color: "#69a7f7", soft: "rgba(105,167,247,0.16)" },
+};
+
+function accentFor(dayElement: string) {
+  return elementAccent[dayElement] || { color: "#c9b7f2", soft: "rgba(201,183,242,0.16)" };
+}
 
 const pillarAccents = [
   "border-emerald-200/25 bg-[#0d1d1a]",
@@ -140,6 +156,10 @@ function displayPillar(value: MagazinePillar | null): MagazinePillar {
   };
 }
 
+function sectionById(magazine: CelebritySajuMagazineResult, id: string) {
+  return magazine.sections.find((section) => section.id === id) || null;
+}
+
 function SectionHeader({ label, title }: { label: string; title: string }) {
   return (
     <div className="mb-4 border-b border-amber-100/15 pb-3">
@@ -149,13 +169,40 @@ function SectionHeader({ label, title }: { label: string; title: string }) {
   );
 }
 
+function OracleQuote({ children, accent }: { children: string; accent: string }) {
+  return (
+    <blockquote className="mt-5 rounded-r-lg border-l-2 pl-4 text-sm italic leading-7 text-slate-100/80" style={{ borderColor: accent }}>
+      {children}
+      <cite className="mt-2 block text-[11px] not-italic text-amber-100/55 [font-family:var(--font-decorative)]">— 연이의 상담 노트</cite>
+    </blockquote>
+  );
+}
+
 function splitFortuneParagraphs(value: string) {
   return value.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
 }
 
-function CelebritySajuHero({ magazine }: { magazine: CelebritySajuMagazineResult }) {
+function Breadcrumb({ celebrity }: { celebrity: RelatedCelebrity }) {
+  return (
+    <nav aria-label="breadcrumb" className="pt-6">
+      <ol className="flex flex-wrap items-center gap-1.5 text-xs text-slate-300/70">
+        <li><Link href="/insights" className="hover:text-amber-100">운세 인사이트</Link></li>
+        <li aria-hidden className="text-slate-500">›</li>
+        <li><Link href="/insights/famous-saju" className="hover:text-amber-100">유명인 사주</Link></li>
+        <li aria-hidden className="text-slate-500">›</li>
+        <li className="text-amber-100/80">{celebrity.category}</li>
+        <li aria-hidden className="text-slate-500">›</li>
+        <li className="font-semibold text-white">{celebrity.nameKo}</li>
+      </ol>
+    </nav>
+  );
+}
+
+function CelebritySajuHero({ magazine, heroImage }: { magazine: CelebritySajuMagazineResult; heroImage: FamousSajuHeroImage }) {
   const basis = magazine.threePillarBasis ? "3주 기준" : "4주 기준";
   const dayPillar = magazine.pillars.day.ganji;
+  const accent = accentFor(magazine.dayElement);
+  const imagery = magazine.summary.dayMasterImagery || magazine.summary.coreMetaphor;
 
   return (
     <header className="pt-8 text-center sm:pt-10">
@@ -163,15 +210,43 @@ function CelebritySajuHero({ magazine }: { magazine: CelebritySajuMagazineResult
       <h1 className="mt-4 text-4xl font-semibold leading-tight text-white sm:text-5xl [font-family:var(--font-premium)]">
         {magazine.profile.displayName}
       </h1>
-      <p className="mt-4 text-base font-semibold leading-7 text-amber-50 [font-family:var(--font-display)]">
-        {dayPillar} 일주 - {magazine.summary.coreMetaphor}
+      <p className="mt-4 text-base font-semibold leading-7 [font-family:var(--font-display)]" style={{ color: accent.color }}>
+        {dayPillar} 일주 · {magazine.summary.coreMetaphor}
       </p>
       <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-200/70">
+        {imagery}
+      </p>
+      <p className="mx-auto mt-2 max-w-2xl text-xs leading-6 text-slate-300/55">
         {magazine.summary.subtitle}
       </p>
-      <div className="mt-5 inline-flex max-w-full items-center rounded-lg border border-emerald-200/25 bg-emerald-100/10 px-4 py-2 text-xs font-semibold text-emerald-50 [font-family:var(--font-playful)]">
+      <div className="mt-5 inline-flex max-w-full items-center rounded-lg border px-4 py-2 text-xs font-semibold [font-family:var(--font-playful)]" style={{ borderColor: accent.color, backgroundColor: accent.soft, color: accent.color }}>
         공개 원국 직접 해석 · {basis}
       </div>
+      <figure className="relative mx-auto mt-6 max-w-3xl overflow-hidden rounded-xl border" style={{ borderColor: accent.soft }}>
+        <Image
+          src={heroImage.src}
+          alt={heroImage.alt}
+          width={1200}
+          height={630}
+          priority
+          className="h-auto w-full object-cover"
+          style={{ aspectRatio: "1200 / 630" }}
+        />
+        <div className="pointer-events-none absolute inset-0" style={{ background: `linear-gradient(180deg, rgba(7,5,18,0) 45%, rgba(7,5,18,0.85) 100%)` }} />
+        {heroImage.source === "pexels" && heroImage.credit ? (
+          <figcaption className="absolute bottom-1 right-2 text-[10px] text-slate-200/70">
+            Photo:{" "}
+            {heroImage.creditUrl ? (
+              <a href={heroImage.creditUrl} target="_blank" rel="noopener noreferrer nofollow" className="underline hover:text-white">
+                {heroImage.credit}
+              </a>
+            ) : (
+              heroImage.credit
+            )}{" "}
+            / Pexels
+          </figcaption>
+        ) : null}
+      </figure>
     </header>
   );
 }
@@ -181,26 +256,52 @@ function CelebritySajuNotice({ magazine }: { magazine: CelebritySajuMagazineResu
   return null;
 }
 
+function TableOfContents({ items }: { items: TocItem[] }) {
+  return (
+    <ol className="space-y-1.5 text-sm text-violet-100/65">
+      {items.map((item, index) => (
+        <li key={item.id}>
+          <a href={`#${item.id}`} className="flex gap-2 hover:text-violet-100">
+            <span className="text-violet-300/45">{String(index + 1).padStart(2, "0")}</span>
+            <span>{item.title}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 function CelebritySajuPillarTable({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   const pillars = [magazine.pillars.year, magazine.pillars.month, magazine.pillars.day, displayPillar(magazine.pillars.hour)];
 
   return (
-    <section className="mt-8">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+    <section id="pillars" className="mt-8 scroll-mt-24">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {pillars.map((pillar, index) => (
           <article key={`${pillar.label}-${index}`} className={`min-h-[128px] rounded-lg border p-4 ${pillarAccents[index]}`}>
             <div className="flex items-start justify-between gap-2">
               <p className="text-xs font-medium text-slate-100/60 [font-family:var(--font-decorative)]">{pillar.label}</p>
               {index === 2 ? <span className="rounded-md bg-violet-400 px-2 py-0.5 text-[11px] font-bold text-white">일주</span> : null}
             </div>
-            <h2 className={`mt-3 text-3xl font-semibold [font-family:var(--font-premium)] ${pillar.isUnknown ? "text-slate-100/35" : "text-white"}`}>{pillar.ganji}</h2>
+            <h3 className={`mt-3 text-3xl font-semibold [font-family:var(--font-premium)] ${pillar.isUnknown ? "text-slate-100/35" : "text-white"}`}>{pillar.ganji}</h3>
             <div className="mt-3 flex gap-2">
               <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-violet-400/20 text-violet-100"}`}>{pillar.stem}</span>
               <span className={`rounded-md px-2 py-1 text-sm font-semibold ${pillar.isUnknown ? "bg-white/5 text-violet-100/35" : "bg-amber-300/20 text-amber-100"}`}>{pillar.branch}</span>
             </div>
-            <p className="mt-3 text-xs leading-5 text-slate-100/60">
-              {pillar.isUnknown ? "미상" : `${pillar.stemTenGod} · ${pillar.branchTenGod}`}
-            </p>
+            <dl className="mt-3 space-y-1 text-xs leading-5 text-slate-100/60">
+              <div className="flex justify-between gap-2">
+                <dt className="text-slate-100/40">십성</dt>
+                <dd className="text-right">{pillar.isUnknown ? "미상" : `${pillar.stemTenGod} · ${pillar.branchTenGod}`}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-slate-100/40">12운성</dt>
+                <dd className="text-right">{pillar.isUnknown ? "미상" : pillar.twelveStage}</dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-slate-100/40">신살</dt>
+                <dd className="text-right">{pillar.isUnknown ? "미상" : pillar.majorStars}</dd>
+              </div>
+            </dl>
           </article>
         ))}
       </div>
@@ -210,12 +311,12 @@ function CelebritySajuPillarTable({ magazine }: { magazine: CelebritySajuMagazin
 
 function CelebritySajuQuickSummaryCards({ magazine }: { magazine: CelebritySajuMagazineResult }) {
   const strongest = magazine.fiveElements.strongest.join(" · ") || "알 수 없음";
-  const weakest = magazine.fiveElements.weakest.join(" · ") || "알 수 없음";
   const tenGod = magazine.tenGods.highlights[0];
+  // 요약 층위 = 한 줄 핵심만. (구조 설명은 오행 섹션, 생활 처방은 상세 본문에서 별도로 다룬다.)
   const cards = [
     { label: famousSajuInsightText("famousSajuInsight.004"), title: magazine.pillars.day.ganji, body: magazine.summary.coreMetaphor },
-    { label: famousSajuInsightText("famousSajuInsight.005"), title: `${strongest} 강 / ${weakest} 약`, body: magazine.fiveElements.interpretation },
-    { label: famousSajuInsightText("famousSajuInsight.006"), title: tenGod?.name || "십성 확인", body: tenGod?.reading || "계산값 기준으로만 조심스럽게 읽습니다." },
+    { label: famousSajuInsightText("famousSajuInsight.005"), title: `${strongest} 강`, body: magazine.fiveElements.summaryLine },
+    { label: famousSajuInsightText("famousSajuInsight.006"), title: tenGod?.name || "십성 확인", body: tenGod?.meaning || "계산값 기준으로만 조심스럽게 읽습니다." },
   ];
 
   return (
@@ -231,44 +332,71 @@ function CelebritySajuQuickSummaryCards({ magazine }: { magazine: CelebritySajuM
   );
 }
 
+function ConclusionBlock({ magazine }: { magazine: CelebritySajuMagazineResult }) {
+  const accent = accentFor(magazine.dayElement);
+  return (
+    <section id="conclusion" className="mt-5 scroll-mt-24 rounded-lg border p-5 sm:p-6" style={{ borderColor: accent.color, backgroundColor: accent.soft }}>
+      <p className="text-[11px] font-semibold [font-family:var(--font-decorative)]" style={{ color: accent.color }}>한 줄 결론</p>
+      <p className="mt-3 text-base font-medium leading-8 text-white sm:text-lg">{magazine.summary.oneLineReading}</p>
+    </section>
+  );
+}
+
 function FiveElementBarChart({ magazine }: { magazine: CelebritySajuMagazineResult }) {
-  const max = Math.max(...elementRows.map((item) => magazine.fiveElements[item.key]), 1);
+  const counts = elementRows.map((item) => magazine.fiveElements[item.key]);
+  const max = Math.max(...counts, 1);
+  const baseY = 96;
+  const barW = 30;
+  const gap = 28;
+  const chartW = elementRows.length * barW + (elementRows.length - 1) * gap;
 
   return (
-    <section className="mt-5 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
+    <section id="five-elements" className="mt-5 scroll-mt-24 rounded-lg border border-emerald-100/15 bg-[#0d1720] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.005")} title={`${magazine.fiveElements.strongest.join("·") || "알 수 없음"} 강, ${magazine.fiveElements.weakest.join("·") || "알 수 없음"} 보완`} />
-      <div className="grid grid-cols-5 gap-3">
-        {elementRows.map((item) => {
-          const count = magazine.fiveElements[item.key];
-          const height = count > 0 ? Math.max(18, Math.round((count / max) * 74)) : 12;
-          return (
-            <div key={item.key} className="text-center">
-              <p className="text-xs text-violet-100/50">{item.hanja}</p>
-              <div className="mt-2 flex h-20 items-end justify-center">
-                <span className={`w-6 rounded-md ${count === 0 ? "border border-dashed border-violet-200/20 bg-transparent" : ""}`} style={{ height: `${height}px`, backgroundColor: count === 0 ? "transparent" : item.color }} />
-              </div>
-              <p className="mt-2 text-sm font-semibold text-white">{item.label}</p>
-              <p className="text-xs text-violet-100/60">{count}</p>
-            </div>
-          );
-        })}
+      <div className="overflow-x-auto">
+        <svg viewBox={`0 0 ${chartW} 128`} role="img" aria-label="오행 분포 막대 그래프" className="mx-auto h-40 w-full max-w-md">
+          <line x1="0" y1={baseY} x2={chartW} y2={baseY} stroke="rgba(148,163,184,0.25)" strokeWidth="1" />
+          {elementRows.map((item, index) => {
+            const count = magazine.fiveElements[item.key];
+            const height = count > 0 ? Math.max(10, Math.round((count / max) * 74)) : 6;
+            const x = index * (barW + gap);
+            const y = baseY - height;
+            return (
+              <g key={item.key}>
+                <rect x={x} y={y} width={barW} height={height} rx="5" fill={count === 0 ? "transparent" : item.color} stroke={count === 0 ? "rgba(148,163,184,0.4)" : "none"} strokeDasharray={count === 0 ? "3 3" : undefined} />
+                <text x={x + barW / 2} y={y - 6} textAnchor="middle" fontSize="12" fill="#e2e8f0" fontWeight="600">{count}</text>
+                <text x={x + barW / 2} y={baseY + 18} textAnchor="middle" fontSize="14" fill="#cbd5e1" fontWeight="600">{item.hanja}</text>
+                <text x={x + barW / 2} y={baseY + 32} textAnchor="middle" fontSize="10" fill="rgba(203,213,225,0.6)">{item.label}</text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-2 flex flex-wrap gap-2">
         {elementRows.map((item) => {
           const count = magazine.fiveElements[item.key];
           if (count > 0) return null;
           return <span key={`empty-${item.key}`} className={`rounded-md border px-2 py-1 text-xs ${item.tone}`}>{item.label} 공백</span>;
         })}
       </div>
-      <p className="mt-5 text-sm leading-7 text-slate-200/75">{magazine.fiveElements.interpretation}</p>
+      <p className="mt-4 text-sm leading-7 text-slate-100/85">{magazine.fiveElements.structureLine}</p>
+      <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-slate-200/75">
+        {splitFortuneParagraphs(magazine.fiveElements.interpretation).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
     </section>
   );
 }
 
 function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineResult }) {
+  const intro = sectionById(magazine, "ten-gods");
   return (
-    <section className="mt-5 rounded-lg border border-amber-100/15 bg-[#151319] p-4 sm:p-5">
+    <section id="ten-gods" className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#151319] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.007")} title={famousSajuInsightText("famousSajuInsight.008")} />
+      {intro?.body ? (
+        <div className="mb-4 space-y-3 text-sm leading-8 text-slate-200/70">
+          {splitFortuneParagraphs(intro.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+      ) : null}
       <div className="grid gap-3">
         {magazine.tenGods.highlights.map((item) => (
           <article key={item.name} className="grid gap-4 rounded-lg border border-violet-300/20 bg-[#171426] p-4 sm:grid-cols-[3.5rem_1fr]">
@@ -276,7 +404,7 @@ function TenGodHighlightCards({ magazine }: { magazine: CelebritySajuMagazineRes
               {item.name.slice(0, 1)}
             </div>
             <div>
-              <h3 className="text-base font-semibold text-white [font-family:var(--font-display)]">{item.name} - {item.meaning}</h3>
+              <h3 className="text-base font-semibold text-white [font-family:var(--font-display)]">{item.name} · {item.meaning}</h3>
               <div className="mt-2 space-y-3 text-sm leading-7 text-slate-200/75">
                 {splitFortuneParagraphs(item.reading).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
               </div>
@@ -294,9 +422,10 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
     { title: famousSajuInsightText("famousSajuInsight.010"), items: magazine.stars.neutralStars, tone: "border-sky-200/25 bg-sky-100/[0.06] text-sky-100" },
     { title: famousSajuInsightText("famousSajuInsight.011"), items: magazine.stars.cautionStars, tone: "border-rose-200/25 bg-rose-100/[0.06] text-rose-100" },
   ];
+  const texture = sectionById(magazine, "stars");
 
   return (
-    <section className="mt-5 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
+    <section id="stars" className="mt-5 scroll-mt-24 rounded-lg border border-sky-100/15 bg-[#0b1522] p-4 sm:p-5">
       <SectionHeader label={famousSajuInsightText("famousSajuInsight.012")} title={famousSajuInsightText("famousSajuInsight.013")} />
       <div className="grid gap-3 md:grid-cols-3">
         {groups.map((group) => (
@@ -314,17 +443,23 @@ function SinsalBadgeGrid({ magazine }: { magazine: CelebritySajuMagazineResult }
           </div>
         ))}
       </div>
+      {texture?.body ? (
+        <div className="mt-4 space-y-3 border-t border-white/10 pt-4 text-sm leading-8 text-slate-200/75">
+          {splitFortuneParagraphs(texture.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-function MagazineSection({ section }: { section: CelebritySajuMagazineResult["sections"][number] }) {
+function MagazineSection({ section, accent }: { section: CelebritySajuMagazineResult["sections"][number]; accent?: string }) {
   return (
-    <section id={section.id} className="scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
+    <section id={section.id} className="mt-5 scroll-mt-24 rounded-lg border border-amber-100/15 bg-[#10131d] p-4 sm:p-5">
       <h2 className="text-lg font-semibold leading-snug text-white sm:text-xl [font-family:var(--font-premium)]">{section.title}</h2>
       <div className="mt-4 space-y-4 text-sm leading-8 text-slate-200/75 sm:text-base">
         {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
       </div>
+      {accent && section.body ? <OracleQuote accent={accent}>{splitFortuneParagraphs(section.body)[0] || section.body}</OracleQuote> : null}
       {section.cards?.length ? (
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           {section.cards.map((card) => (
@@ -342,9 +477,43 @@ function MagazineSection({ section }: { section: CelebritySajuMagazineResult["se
   );
 }
 
-function CelebrityActivityInsightCard({ magazine }: { magazine: CelebritySajuMagazineResult }) {
-  void magazine;
-  return null;
+// 행적과 사주의 결 — 수동 큐레이션된 실제 행적을 십성/오행과 나란히 배치.
+// 이미 위 십성 카드에서 증거로 인용된 행적은 note를 반복하지 않고(다른 층위), 카드 참조만 남긴다.
+function CelebrityActivityInsightCard({ magazine, highlightedTenGods }: { magazine: CelebritySajuMagazineResult; highlightedTenGods: Set<string> }) {
+  const section = sectionById(magazine, "deeds-and-chart");
+  if (!magazine.deeds.length || !section) return null;
+  const accent = accentFor(magazine.dayElement);
+
+  return (
+    <section id="deeds-and-chart" className="mt-5 scroll-mt-24 rounded-lg border p-4 sm:p-5" style={{ borderColor: accent.color, backgroundColor: "#0f0d1a" }}>
+      <SectionHeader label="행적" title={section.title.replace(/^\[|\]$/g, "")} />
+      <div className="space-y-3 text-sm leading-8 text-slate-200/75 sm:text-base">
+        {splitFortuneParagraphs(section.body).map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      </div>
+      <ol className="mt-5 space-y-4">
+        {magazine.deeds.map((deed, index) => {
+          const alsoInTenGodCard = deed.linkType === "tenGod" && highlightedTenGods.has(deed.link);
+          return (
+            <li key={deed.deed} className="relative rounded-lg border border-white/10 bg-[#141122] p-4 pl-5">
+              <span className="absolute left-0 top-4 h-[calc(100%-2rem)] w-[3px] rounded-full" style={{ backgroundColor: accent.color }} />
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold" style={{ color: accent.color }}>{String(index + 1).padStart(2, "0")}</span>
+                <span className="rounded-md border px-2 py-0.5 text-[11px] font-semibold" style={{ borderColor: accent.color, color: accent.color }}>
+                  {deed.linkType === "tenGod" ? `십성 · ${deed.link}` : `오행 · ${deed.link}`}
+                </span>
+              </div>
+              <p className="mt-2 text-sm font-medium leading-7 text-white">{deed.deed}</p>
+              {alsoInTenGodCard ? (
+                <p className="mt-2 text-xs leading-6 text-slate-300/55">위 &lsquo;{deed.link}&rsquo; 십성 해석에서 이 행적을 증거로 자세히 풀이했어요.</p>
+              ) : (
+                <p className="mt-2 text-sm leading-7 text-slate-200/70">{deed.note}</p>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
 }
 
 function CelebritySajuFAQ({ faq }: { faq: CelebritySajuMagazineResult["faq"] }) {
@@ -437,14 +606,31 @@ export default async function FamousSajuInsightDetailPage({ params }: PageProps)
 
   const { celebrity, magazine } = reading;
   const related = getCelebrityRelatedList(celebrity);
+  const relatedSummary: RelatedCelebrity = { slug: celebrity.slug, category: celebrity.category, nameKo: celebrity.nameKo, tags: celebrity.tags };
+  const accent = accentFor(magazine.dayElement);
   const canonicalPath = `/insights/famous-saju/${celebrity.slug}`;
   const canonicalUrl = toAbsoluteUrl(canonicalPath);
   const seo = getFamousSajuSeoMetadata(celebrity, reading);
-  const heroImageUrl = toAbsoluteUrl(celebrity.profileImage || seo.image || "");
-  const tableOfContents = magazine.sections.map((section) => ({
-    id: section.id,
-    title: section.title,
-  }));
+  const heroImage = getFamousSajuHeroImage(celebrity.slug, magazine.summary.dayMasterImagery);
+  const heroImageUrl = heroImage.source === "pexels" ? heroImage.src : toAbsoluteUrl(celebrity.profileImage || seo.image || "");
+
+  const highlightedTenGods = new Set(magazine.tenGods.highlights.map((item) => item.name));
+  const dayPillarSection = sectionById(magazine, "day-pillar-texture");
+  const twelveStageSection = sectionById(magazine, "twelve-stage");
+  const finalSection = sectionById(magazine, "final-texture");
+
+  const tableOfContents: TocItem[] = [
+    { id: "pillars", title: "원국 4주" },
+    { id: "conclusion", title: "한 줄 결론" },
+    dayPillarSection ? { id: "day-pillar-texture", title: "일주의 결" } : null,
+    { id: "five-elements", title: "오행의 흐름" },
+    { id: "ten-gods", title: "십성 해석" },
+    { id: "stars", title: "신살의 결" },
+    twelveStageSection ? { id: "twelve-stage", title: "12운성" } : null,
+    magazine.deeds.length ? { id: "deeds-and-chart", title: "행적과 사주의 결" } : null,
+    finalSection ? { id: "final-texture", title: "맺는 문장" } : null,
+  ].filter((item): item is TocItem => Boolean(item));
+
   const personJsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
@@ -518,30 +704,44 @@ body:has(main[data-famous-saju-detail]) {
         }}
       />
       <article className="mx-auto max-w-5xl px-4 pb-10 sm:px-6 sm:pb-14">
-        <CelebritySajuHero magazine={magazine} />
+        <Breadcrumb celebrity={relatedSummary} />
+        <CelebritySajuHero magazine={magazine} heroImage={heroImage} />
+        <CelebritySajuNotice magazine={magazine} />
         <CelebritySajuPillarTable magazine={magazine} />
-        <FiveElementBarChart magazine={magazine} />
-        <CelebritySajuQuickSummaryCards magazine={magazine} />
-        <TenGodHighlightCards magazine={magazine} />
-        <SinsalBadgeGrid magazine={magazine} />
 
-        <nav className="mt-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 sm:p-5" aria-label="명식 해석 순서">
-          <SectionHeader label={famousSajuInsightText("famousSajuInsight.018")} title={famousSajuInsightText("famousSajuInsight.019")} />
-          <ol className="grid gap-2 text-sm text-violet-100/65 sm:grid-cols-2">
-            {tableOfContents.map((item) => (
-              <li key={item.id}>
-                <a href={`#${item.id}`} className="hover:text-violet-100">{item.title}</a>
-              </li>
-            ))}
-          </ol>
-        </nav>
+        <div className="mt-5 lg:grid lg:grid-cols-[minmax(0,1fr)_216px] lg:items-start lg:gap-8">
+          <div className="min-w-0">
+            <details className="mb-5 rounded-lg border border-violet-300/20 bg-[#100b23] p-4 lg:hidden">
+              <summary className="cursor-pointer text-sm font-semibold text-violet-100/80 [font-family:var(--font-decorative)]">
+                {famousSajuInsightText("famousSajuInsight.019")}
+              </summary>
+              <div className="mt-3">
+                <TableOfContents items={tableOfContents} />
+              </div>
+            </details>
 
-        <section className="mt-5 grid gap-5">
-          {magazine.sections.map((section) => <MagazineSection key={section.id} section={section} />)}
-        </section>
-        <CelebritySajuFAQ faq={magazine.faq} />
-        <CelebritySajuCTA cta={magazine.cta} />
-        <RelatedCelebritySajuList related={related} />
+            <CelebritySajuQuickSummaryCards magazine={magazine} />
+            <ConclusionBlock magazine={magazine} />
+            {dayPillarSection ? <MagazineSection section={dayPillarSection} accent={accent.color} /> : null}
+            <FiveElementBarChart magazine={magazine} />
+            <TenGodHighlightCards magazine={magazine} />
+            <SinsalBadgeGrid magazine={magazine} />
+            {twelveStageSection ? <MagazineSection section={twelveStageSection} /> : null}
+            <CelebrityActivityInsightCard magazine={magazine} highlightedTenGods={highlightedTenGods} />
+            {finalSection ? <MagazineSection section={finalSection} accent={accent.color} /> : null}
+            <CelebritySajuFAQ faq={magazine.faq} />
+            <CelebritySajuCTA cta={magazine.cta} />
+            <RelatedCelebritySajuList related={related} />
+            <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
+          </div>
+
+          <aside className="hidden lg:block">
+            <div className="sticky top-6 rounded-lg border border-violet-300/20 bg-[#100b23] p-4">
+              <p className="mb-3 text-[11px] font-semibold text-amber-100/70 [font-family:var(--font-decorative)]">{famousSajuInsightText("famousSajuInsight.019")}</p>
+              <TableOfContents items={tableOfContents} />
+            </div>
+          </aside>
+        </div>
       </article>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }} />

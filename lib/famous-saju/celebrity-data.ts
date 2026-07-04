@@ -369,3 +369,177 @@ export function getCelebrityStaticSlugs() {
 export function getCelebritiesByCategory(category: string) {
   return publishedCelebritySajuSeeds.filter((item) => categoryToSlug(item.category) === category);
 }
+
+// 행적↔명리 수동 큐레이션 데이터.
+// 계산 엔진으로는 인물의 실제 행적을 알 수 없으므로, 공개된 역사 기록(나무위키 등)을
+// 근거로 "실제 행적 → 연결되는 십성/오행 → 해석 노트"를 slug별로 직접 매핑한다.
+// 카피 생성 계층(celebrity-saju-service)이 이 데이터를 주입해 일반론이 아닌
+// 인물 고유의 서술을 만든다. annotation이 없는 slug는 계산값 기반 일반 카피로 자동 폴백한다.
+export type CelebritySajuAnnotationFact = {
+  /** 실제로 확인되는 행적/일화 */
+  deed: string;
+  /** 연결할 십성(비견·겁재·정재·편관 등) 또는 오행(목·화·토·금·수) 라벨 */
+  link: string;
+  /** link가 십성인지 오행인지 */
+  linkType: "tenGod" | "element";
+  /** 행적과 명식을 잇는 역술가 해석 한 문장 */
+  note: string;
+};
+
+export type CelebritySajuAnnotation = {
+  /** 히어로/일주 섹션에 쓰는 인물 고유 물상 한 줄 (일간에 종속되지 않는 캐릭터 카피) */
+  dayMasterImagery?: string;
+  /** 최소 3개의 행적↔명리 매핑 */
+  facts: CelebritySajuAnnotationFact[];
+};
+
+export const celebrityAnnotations: Record<string, CelebritySajuAnnotation> = {
+  "yi-sun-sin": {
+    dayMasterImagery: "칼끝 같은 관성(官星)의 압박 속에서도 스스로의 중심을 잃지 않는 장수의 결",
+    facts: [
+      {
+        deed: "『난중일기』를 임진왜란 7년 내내 이어 쓰며 진중의 병력·군량·화약·격군 수와 날씨·물때까지 낱낱이 셈해 기록했습니다",
+        link: "정재",
+        linkType: "tenGod",
+        note: "화려한 무용담이 아니라 끝까지 숫자를 관리하고 축적한 살림꾼의 감각이, 신뢰와 반복으로 쌓는 정재의 결과 정확히 겹칩니다",
+      },
+      {
+        deed: "명량에서 열세 척으로 울돌목의 좁은 물목과 거센 물살을 전장으로 삼았고, 한산에서는 학익진으로 적을 넓게 감싸 격멸했습니다",
+        link: "편관",
+        linkType: "tenGod",
+        note: "불리한 판을 피하지 않고 지형과 진법으로 정면 돌파하는 승부의 방식은, 압박을 추진력으로 바꾸는 편관·겁재의 기세로 읽힙니다",
+      },
+      {
+        deed: "조정과 상관의 압력, 파직과 백의종군 속에서도 원칙과 군율을 굽히지 않았습니다",
+        link: "비견",
+        linkType: "tenGod",
+        note: "타인의 시선보다 스스로 세운 기준을 먼저 붙드는 강직함은, 자기 중심을 지키는 비견의 독립성과 맞닿아 있습니다",
+      },
+      {
+        deed: "삼도수군통제사로서 흩어진 수군을 다시 모아 '신에게는 아직 열두 척의 배가 남아 있사옵니다'라며 무너진 판을 재건했습니다",
+        link: "금",
+        linkType: "element",
+        note: "거친 광석을 벼려 칼날을 세우듯, 부서진 조건에서 핵심만 남겨 다시 기준을 세우는 힘은 금(金) 기운의 완성 감각으로 드러납니다",
+      },
+    ],
+  },
+  "king-sejong": {
+    dayMasterImagery: "백성의 눈높이까지 스스로 내려와 지식을 나누어 준 학자 군주의 결",
+    facts: [
+      {
+        deed: "백성이 쉽게 배우도록 훈민정음을 직접 창제하고 그 원리를 『훈민정음해례본』으로 풀어냈습니다",
+        link: "식신",
+        linkType: "tenGod",
+        note: "지식을 움켜쥐지 않고 밖으로 흘려보내 백성을 먹이고 기르는 방식은, 꾸준히 만들어 나누는 식신의 생산성과 정확히 겹칩니다",
+      },
+      {
+        deed: "집현전을 세워 젊은 학자들과 경연에서 밤늦도록 토론하며 학문을 제도로 정착시켰습니다",
+        link: "정인",
+        linkType: "tenGod",
+        note: "흩어진 경험을 배움의 구조로 정리하고 인재를 품어 키우는 흐름은, 학습과 보호의 기운인 정인의 결입니다",
+      },
+      {
+        deed: "공법(전세 제도)을 정할 때 17만여 명에게 찬반을 묻는 대규모 여론조사를 시행하며 민본을 제도로 옮겼습니다",
+        link: "정관",
+        linkType: "tenGod",
+        note: "흐트러질 수 있는 권력을 공적인 형식과 절차 안에서 다스리는 태도는, 질서와 책임의 십성인 정관으로 읽힙니다",
+      },
+    ],
+  },
+  "yu-gwan-sun": {
+    dayMasterImagery: "어린 나이에도 스스로 세운 신념을 끝까지 놓지 않은 불꽃 같은 결",
+    facts: [
+      {
+        deed: "이화학당 휴교 후 고향으로 내려가 아우내 장터의 3·1 만세운동을 직접 조직하고 앞장섰습니다",
+        link: "겁재",
+        linkType: "tenGod",
+        note: "밀리는 판에서 오히려 날이 서고 직접 부딪쳐 돌파하는 기세는, 경쟁과 돌파력의 십성인 겁재로 드러납니다",
+      },
+      {
+        deed: "서대문형무소에 갇혀 모진 고문을 받으면서도 옥중 만세를 멈추지 않았습니다",
+        link: "편관",
+        linkType: "tenGod",
+        note: "극한의 압박을 피하지 않고 정면으로 받아 내는 승부성은, 편관이 위험한 자리에서 오히려 선명해지는 방식과 맞닿아 있습니다",
+      },
+      {
+        deed: "열여덟 어린 나이에도 신념을 굽히지 않고 옥중에서 순국했습니다",
+        link: "비견",
+        linkType: "tenGod",
+        note: "타인의 시선이나 회유보다 스스로 세운 원칙을 먼저 붙드는 강직함은, 자기 중심을 지키는 비견의 독립성입니다",
+      },
+    ],
+  },
+  "an-jung-geun": {
+    dayMasterImagery: "결단의 순간과 사색의 깊이를 한 몸에 지닌 의사(義士)의 결",
+    facts: [
+      {
+        deed: "하얼빈역에서 침략의 원흉 이토 히로부미를 저격하고 그 자리에서 대한독립을 외쳤습니다",
+        link: "편관",
+        linkType: "tenGod",
+        note: "위험을 앞에 두고 물러서지 않고 한 번에 결행하는 힘은, 압박을 추진력으로 바꾸는 편관의 승부성으로 읽힙니다",
+      },
+      {
+        deed: "뤼순 감옥에서 사형을 앞두고도 『동양평화론』을 집필하며 거사의 대의를 사상으로 정립했습니다",
+        link: "편인",
+        linkType: "tenGod",
+        note: "남들이 지나친 문제를 붙잡아 낯선 생각 속으로 깊이 파고드는 태도는, 독창적 관찰과 몰입의 십성인 편인의 결입니다",
+      },
+      {
+        deed: "동지들과 단지동맹을 맺어 왼손 넷째 손가락을 끊고 혈서로 결의를 다졌습니다",
+        link: "비견",
+        linkType: "tenGod",
+        note: "무리에 기대기보다 스스로 세운 신념을 몸으로 증명하는 방식은, 자기 기준을 붙드는 비견의 독립성과 겹칩니다",
+      },
+    ],
+  },
+  "kim-gu": {
+    dayMasterImagery: "흩어진 힘을 하나로 묶어 낸 통합형 지도자의 결",
+    facts: [
+      {
+        deed: "대한민국임시정부의 주석으로서 분열되기 쉬운 독립운동 세력의 구심점 역할을 했습니다",
+        link: "정관",
+        linkType: "tenGod",
+        note: "역할과 책임을 공적인 질서 안에 세워 흐트러진 힘을 묶어 내는 태도는, 질서와 책임의 십성인 정관으로 드러납니다",
+      },
+      {
+        deed: "한인애국단을 조직해 이봉창·윤봉길 의거를 기획하며 판을 뒤흔들 결정적 한 수를 던졌습니다",
+        link: "편관",
+        linkType: "tenGod",
+        note: "불리한 판을 정면으로 흔들어 국면을 바꾸는 결단은, 압박 속에서 승부를 거는 편관의 기세로 읽힙니다",
+      },
+      {
+        deed: "자신의 삶과 사상을 『백범일지』에 직접 기록해 후대에 남겼습니다",
+        link: "정인",
+        linkType: "tenGod",
+        note: "경험을 의미와 기록으로 정리해 다음 세대의 바탕으로 삼는 흐름은, 배움과 정리의 십성인 정인의 결입니다",
+      },
+    ],
+  },
+  "jeong-yak-yong": {
+    dayMasterImagery: "유배의 고요 속에서 오히려 방대한 세계를 세운 실학자의 결",
+    facts: [
+      {
+        deed: "수원화성을 쌓을 때 거중기를 직접 설계해 공사 기간과 비용을 크게 줄였습니다",
+        link: "편인",
+        linkType: "tenGod",
+        note: "정해진 방식을 그대로 따르지 않고 낯선 원리로 우회로를 찾는 감각은, 독창적 관찰과 몰입의 십성인 편인으로 드러납니다",
+      },
+      {
+        deed: "강진에서 18년 유배 생활을 하는 동안 『목민심서』·『경세유표』 등 500여 권을 저술했습니다",
+        link: "식신",
+        linkType: "tenGod",
+        note: "화려한 한 번보다 멈추지 않고 꾸준히 쌓아 결과물을 만들어 내는 힘은, 지속의 생산성인 식신의 결과 겹칩니다",
+      },
+      {
+        deed: "『목민심서』로 목민관이 지켜야 할 도리와 애민 행정의 원칙을 체계로 정리했습니다",
+        link: "정관",
+        linkType: "tenGod",
+        note: "흩어진 실무를 공적 원칙과 질서로 세우는 태도는, 기준을 세우고 다스리는 정관의 결입니다",
+      },
+    ],
+  },
+};
+
+export function getCelebrityAnnotation(slug: string): CelebritySajuAnnotation | null {
+  return celebrityAnnotations[slug] || null;
+}

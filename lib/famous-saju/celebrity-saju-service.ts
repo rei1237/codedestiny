@@ -3,10 +3,13 @@ import { getTwelveStagesForPillars } from "../../app/saju/animal-destiny/lib/twe
 import {
   categoryToSlug,
   famousSajuCategories,
+  getCelebrityAnnotation,
   getCelebrityBySlug,
   getCelebrityStaticSlugs,
   getCelebritiesByCategory,
   publishedCelebritySajuSeeds,
+  type CelebritySajuAnnotation,
+  type CelebritySajuAnnotationFact,
   type CelebritySajuSeed,
 } from "./celebrity-data";
 
@@ -208,6 +211,7 @@ export type CelebritySajuMagazineResult = {
     title: string;
     subtitle: string;
     coreMetaphor: string;
+    dayMasterImagery?: string;
     oneLineReading: string;
     cautionNote: string;
   };
@@ -219,8 +223,22 @@ export type CelebritySajuMagazineResult = {
     water: number;
     strongest: string[];
     weakest: string[];
+    /** 요약 카드용 한 줄 핵심 */
+    summaryLine: string;
+    /** 오행 섹션/차트용 구조 설명 */
+    structureLine: string;
+    /** 상세 본문용 생활 처방(가장 긴 층위) */
     interpretation: string;
   };
+  /** 일간(日干) 오행: 목/화/토/금/수 — 액센트 컬러 등 UI 판별용. 미상이면 "" */
+  dayElement: string;
+  /** 행적↔명리 매핑(수동 큐레이션). 없으면 빈 배열 */
+  deeds: Array<{
+    deed: string;
+    link: string;
+    linkType: "tenGod" | "element";
+    note: string;
+  }>;
   tenGods: {
     highlights: Array<{
       name: string;
@@ -1115,6 +1133,12 @@ function subjectParticle(value: string) {
 
 function objectParticle(value: string) {
   return `${value}${hasFinalConsonant(value) ? "을" : "를"}`;
+}
+
+// 주제격 조사 은/는 (예: "겁재는", "비견은"). 받침 없는 십성/신살명에서
+// "겁재은" 류 오류를 막기 위해 하드코딩 대신 이 유틸을 쓴다.
+function topicParticle(value: string) {
+  return `${value}${hasFinalConsonant(value) ? "은" : "는"}`;
 }
 
 function formatTagPair(tags: string[]) {
@@ -2016,6 +2040,24 @@ function buildElementFlowText(strongest: ElementKey[], weakest: ElementKey[]) {
   return `${strongest.join("·")} 기운이 먼저 명식을 움직입니다. ${strongBody} 그러나 ${weakest.join("·")} 기운이 약하면 흐름의 한쪽이 비어 속도와 균형 사이에 간극이 생깁니다. ${weakBody} 명리적으로는 강한 오행을 단순히 꺾기보다, 약한 오행이 맡아야 할 역할을 생활 리듬과 선택의 방식 안에서 되살리는 것이 중요합니다. 이때 보완 기운은 부족한 성향을 억지로 더하는 장식이 아니라, 원국의 과열과 공백을 조율하는 실제 처방의 축으로 보아야 합니다.`;
 }
 
+// 요약 카드용: 오행의 한 줄 핵심 (가장 짧은 층위)
+function buildElementSummaryLine(strongest: ElementKey[], weakest: ElementKey[]) {
+  if (!strongest.length) return "오행 분포가 아직 충분히 열리지 않았습니다.";
+  if (strongest.length >= 5) return "다섯 기운이 고르게 나뉜 균형형 명식입니다.";
+  const strongestText = strongest.join("·");
+  const weakestText = weakest.join("·");
+  return `${topicParticle(strongestText)} 가장 선명하고, ${topicParticle(weakestText)} 의식적으로 채워야 하는 결입니다.`;
+}
+
+// 오행 섹션/차트용: 기운이 어떻게 배치되어 작동하는지 구조 설명 (중간 층위)
+function buildElementStructureLine(strongest: ElementKey[], weakest: ElementKey[]) {
+  if (!strongest.length) return "계산된 오행이 부족하면 구조를 임의로 그리지 않고 비워 둡니다.";
+  if (strongest.length >= 5) return "특정 기운이 판을 독점하지 않고 다섯 오행이 서로 견제하며 명식의 축을 나눠 잡는 구조입니다. 힘을 배분하는 데 강점이 있는 대신, 결정적 순간에 어느 기운을 앞세울지 스스로 골라야 방향이 또렷해집니다.";
+  const strongestText = strongest.join("·");
+  const weakestText = weakest.join("·");
+  return `${topicParticle(strongestText)} 명식의 축을 잡고 ${topicParticle(weakestText)} 뒤로 물러선 구조입니다. 강한 오행이 방향과 속도를 정하는 사이, 약한 오행이 맡아야 할 역할은 생활 리듬 안에서 따로 세워야 좌우의 균형이 섭니다.`;
+}
+
 function connectStemTone(text: string) {
   return text
     .replace(/합니다\.$/, "하며")
@@ -2038,14 +2080,27 @@ function findTenGodPositions(name: string, pillars: Array<CelebritySajuMagazineP
   return uniqueKeywords(positions).join("·") || "원국의 표면 점수";
 }
 
-function buildTenGodReading(name: string, positionText: string, dayElement: string, strongestText: string, weakestText: string) {
+function buildTenGodReading(
+  name: string,
+  positionText: string,
+  dayElement: string,
+  strongestText: string,
+  weakestText: string,
+  fact?: CelebritySajuAnnotationFact,
+) {
   const tone = tenGodReadingTone[name] || {
-    nature: `${name}은 일간이 세상과 만나는 독자적인 작용이다. 단순한 성격표가 아니라 힘이 어디로 흐르고 무엇을 먼저 선택하는지를 가리킨다.`,
+    nature: `${topicParticle(name)} 일간이 세상과 만나는 독자적인 작용이다. 단순한 성격표가 아니라 힘이 어디로 흐르고 무엇을 먼저 선택하는지를 가리킨다.`,
     motion: "이 힘은 원국의 다른 오행과 섞이며 행동의 습관과 관계의 반응으로 드러난다.",
     caution: "다만 약한 오행이 받쳐 주지 못하면 작용이 한쪽으로 기울어 조율이 필요하다.",
   };
 
-  return `${tone.nature} ${tone.motion}\n\n이 명식에서 ${name}은 ${positionText}에 놓인다. ${dayElement} 일간이 ${strongestText} 기운 위에서 움직이므로 ${name}은 추상적 재능이 아니라 선택의 방식으로 드러난다. ${weakestText} 기운이 약하게 놓이면 ${tone.caution}`;
+  // annotation이 있으면 인물의 실제 행적을 증거로 인용해 고유 문장을 만든다.
+  // 없으면 명식의 자리·오행 힘으로 십성별 고유 문장을 구성한다(공통 꼬리 문장 없음).
+  const evidence = fact
+    ? `${fact.deed}. ${fact.note}.`
+    : `이 명식에서 ${topicParticle(name)} ${positionText}에 걸립니다. ${dayElement} 일간이 ${strongestText} 기운 위에 설 때 그 색이 가장 진해지고, ${weakestText} 기운이 옅은 자리에서는 반대로 속도를 늦추는 조율이 필요해집니다.`;
+
+  return `${tone.nature} ${tone.motion}\n\n${evidence} ${tone.caution}`;
 }
 
 function buildMagazineTenGodHighlights(
@@ -2054,6 +2109,7 @@ function buildMagazineTenGodHighlights(
   dayElement: string,
   strongestText: string,
   weakestText: string,
+  annotation?: CelebritySajuAnnotation | null,
 ) {
   const visible = asRecord(asRecord(getNatalAnalysis(saju).tenGods).visible);
   const highlights = Object.entries(visible)
@@ -2062,10 +2118,11 @@ function buildMagazineTenGodHighlights(
     .slice(0, 4)
     .map(([name]) => {
       const positionText = findTenGodPositions(name, pillars);
+      const fact = annotation?.facts.find((item) => item.linkType === "tenGod" && item.link === name);
       return {
         name,
         meaning: tenGodMeaning[name] || "명식 안에서 드러나는 재능의 작용",
-        reading: buildTenGodReading(name, positionText, dayElement, strongestText, weakestText),
+        reading: buildTenGodReading(name, positionText, dayElement, strongestText, weakestText, fact),
       };
     });
 
@@ -2086,7 +2143,7 @@ function buildStarReading(name: string) {
   if (name.includes("화개")) return "화개는 화려함을 안쪽으로 접어 깊이를 만드는 별이다. 고독한 몰입과 전문성이 살아나며, 보이는 자리보다 혼자 닦은 시간이 힘이 된다.";
   if (["괴강", "백호", "양인"].some((keyword) => name.includes(keyword))) return "날이 선 신살은 강한 압력과 결단의 기운을 품는다. 부드럽게 흐르기보다 한 번에 치고 나가는 힘이 강해, 원국의 속도를 더 날카롭게 만든다.";
   if (name.includes("공망")) return "공망은 한 자리가 비어 있는 감각을 만든다. 비어 있음은 약점만이 아니라, 집착을 덜고 다른 방식으로 길을 여는 여백이 된다.";
-  return `${name}은 원국의 결을 한 겹 더 선명하게 만드는 신살이다. 이름 하나로 길흉을 정하지 않고, 오행과 십성의 흐름 속에서 어떤 색을 더하는지 보아야 한다.`;
+  return `${topicParticle(name)} 원국의 결을 한 겹 더 선명하게 만드는 신살이다. 이름 하나로 길흉을 정하지 않고, 오행과 십성의 흐름 속에서 어떤 색을 더하는지 보아야 한다.`;
 }
 
 function buildSinsalTextureText(stars: CelebritySajuMagazineStar[], strongestText: string, primaryTenGod: string) {
@@ -2098,7 +2155,7 @@ function buildSinsalTextureText(stars: CelebritySajuMagazineStar[], strongestTex
   return activeStars
     .map((star) => {
       const position = star.position && star.position !== "알 수 없음" ? `${star.position}에서 ` : "";
-      return `${star.name}은 ${position}작동한다. ${buildStarReading(star.name)} 이 명식에서는 ${strongestText} 기운과 ${primaryTenGod}의 작용을 통과하므로, ${star.name}도 따로 떠 있는 표식이 아니라 원국의 속도와 관계의 압력을 조율하는 색으로 드러난다.`;
+      return `${topicParticle(star.name)} ${position}작동한다. ${buildStarReading(star.name)} 이 명식에서는 ${strongestText} 기운과 ${primaryTenGod}의 작용을 통과하므로, ${star.name}도 따로 떠 있는 표식이 아니라 원국의 속도와 관계의 압력을 조율하는 색으로 드러난다.`;
     })
     .join("\n\n");
 }
@@ -2199,10 +2256,14 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
         water: 0,
         strongest: [],
         weakest: [],
+        summaryLine: "오행 분포가 아직 열리지 않았습니다.",
+        structureLine: "계산값이 충분하지 않아 오행 구조를 표시하지 않습니다.",
         interpretation: "계산값이 충분하지 않아 오행 분포를 표시하지 않습니다.",
       },
       tenGods: { highlights: [] },
       stars: { goodStars: [], neutralStars: [], cautionStars: [] },
+      dayElement: "",
+      deeds: [],
       sections: [
         {
           id: "calculation-needed",
@@ -2234,13 +2295,25 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
   const coreMetaphor = elementMetaphor[dayElement] || `${dayElement} 기운의 꽃`;
   const strongestText = strongest.join("·") || "알 수 없음";
   const weakestText = weakest.join("·") || "알 수 없음";
+  const annotation = getCelebrityAnnotation(person.slug);
   const magazinePillars = [year, month, day, hour];
-  const tenGodHighlights = buildMagazineTenGodHighlights(saju, magazinePillars, dayElement, strongestText, weakestText);
+  const tenGodHighlights = buildMagazineTenGodHighlights(saju, magazinePillars, dayElement, strongestText, weakestText, annotation);
   const primaryTenGod = tenGodHighlights[0]?.name || "십성";
   const dayPillar = `${saju.pillars.day.ganji}일주`;
-  const oneLineReading = `${strongestText} 기운 위에 선 ${dayPillar}은 ${primaryTenGod}의 방식으로 자기 날을 세우는 명식입니다. 일간의 기세, 월령의 계절감, 드러난 십성의 작용을 함께 보면 이 명식은 단순한 성향보다 반복되는 선택의 문법으로 읽힙니다.`;
+  const oneLineReading = `${strongestText} 기운 위에 선 ${topicParticle(dayPillar)} ${primaryTenGod}의 방식으로 자기 날을 세우는 명식입니다. 일간의 기세, 월령의 계절감, 드러난 십성의 작용을 함께 보면 이 명식은 단순한 성향보다 반복되는 선택의 문법으로 읽힙니다.`;
   const dayPillarTexture = buildDayPillarTexture(saju, dayPillar, dayElement);
+  const elementSummaryLine = buildElementSummaryLine(strongest, weakest);
+  const elementStructureLine = buildElementStructureLine(strongest, weakest);
   const elementInterpretation = buildElementFlowText(strongest, weakest);
+  const deeds = (annotation?.facts || []).map((fact) => ({
+    deed: fact.deed,
+    link: fact.link,
+    linkType: fact.linkType,
+    note: fact.note,
+  }));
+  const deedsSectionBody = deeds.length
+    ? `계산된 명식은 기질의 골격을 보여 주고, 실제 삶은 그 골격이 어떻게 쓰였는지를 보여 줍니다. ${person.nameKo}의 확인되는 행적을 원국의 십성·오행과 나란히 놓으면, 추상적인 성향 설명이 아니라 "이 기운이 이렇게 쓰였다"는 증거로 사주가 읽힙니다.`
+    : "";
   const sinsalTexture = buildSinsalTextureText(
     [...magazineStars.goodStars, ...magazineStars.neutralStars, ...magazineStars.cautionStars],
     strongestText,
@@ -2272,6 +2345,7 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
       title: `${person.nameKo} ${dayPillar}, ${coreMetaphor}의 결`,
       subtitle: `${person.birthDate || "생년월일 미상"} · ${calendarType === "lunar" ? "음력" : "양력"} · ${birthTimeLabel}`,
       coreMetaphor,
+      dayMasterImagery: annotation?.dayMasterImagery,
       oneLineReading,
       cautionNote: sourceNote,
     },
@@ -2283,12 +2357,16 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
       water: counts.수,
       strongest,
       weakest,
+      summaryLine: elementSummaryLine,
+      structureLine: elementStructureLine,
       interpretation: elementInterpretation,
     },
     tenGods: {
       highlights: tenGodHighlights,
     },
     stars: magazineStars,
+    dayElement,
+    deeds,
     sections: [
       {
         id: "day-pillar-texture",
@@ -2324,6 +2402,18 @@ function buildCelebritySajuMagazineResult(person: CelebritySajuSeed, chart: Famo
         title: famousSajuCopy("magazine.twelveStageSpeed"),
         body: twelveStageTexture,
       },
+      ...(deeds.length
+        ? [{
+            id: "deeds-and-chart",
+            title: "[행적과 사주의 결]",
+            body: deedsSectionBody,
+            cards: deeds.map((item) => ({
+              label: item.linkType === "tenGod" ? `십성 · ${item.link}` : `오행 · ${item.link}`,
+              title: item.deed,
+              description: item.note,
+            })),
+          }]
+        : []),
       {
         id: "final-texture",
         title: famousSajuCopy("magazine.closingSentence"),
