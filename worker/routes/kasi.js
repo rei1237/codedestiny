@@ -1,4 +1,5 @@
 import { createHttpError, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { Lunar, Solar } from "lunar-javascript";
 
 const PRIMARY_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
 const SECONDARY_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
@@ -56,6 +57,49 @@ function toInt(value, fallback = null) {
   const n = Number(value);
   if (!Number.isFinite(n)) return fallback;
   return Math.trunc(n);
+}
+
+// KASI 업스트림이 장애일 때 lunar-javascript로 음양력 변환을 로컬 계산해 서비스 연속성을 유지한다.
+function computeLocalCalendarFallback(method, params) {
+  if (method === "getLunCalInfo") {
+    const solYear = toInt(params?.solYear);
+    const solMonth = toInt(params?.solMonth);
+    const solDay = toInt(params?.solDay);
+    if (!solYear || !solMonth || !solDay) return null;
+
+    const lunar = Solar.fromYmd(solYear, solMonth, solDay).getLunar();
+    const lunarMonth = lunar.getMonth();
+    return [{
+      solYear: String(solYear),
+      solMonth: String(solMonth).padStart(2, "0"),
+      solDay: String(solDay).padStart(2, "0"),
+      lunYear: String(lunar.getYear()),
+      lunMonth: String(Math.abs(lunarMonth)).padStart(2, "0"),
+      lunDay: String(lunar.getDay()).padStart(2, "0"),
+      lunLeapmonth: lunarMonth < 0 ? "윤" : "평",
+    }];
+  }
+
+  if (method === "getSolCalInfo") {
+    const lunYear = toInt(params?.lunYear);
+    const lunMonth = toInt(params?.lunMonth);
+    const lunDay = toInt(params?.lunDay);
+    if (!lunYear || !lunMonth || !lunDay) return null;
+    const isLeapMonth = String(params?.leapMonth || params?.lunLeapmonth || "").trim() === "윤"
+      || String(params?.leapMonth || "").trim().toLowerCase() === "y";
+
+    const solar = Lunar.fromYmd(lunYear, isLeapMonth ? -lunMonth : lunMonth, lunDay).getSolar();
+    return [{
+      lunYear: String(lunYear),
+      lunMonth: String(lunMonth).padStart(2, "0"),
+      lunDay: String(lunDay).padStart(2, "0"),
+      solYear: String(solar.getYear()),
+      solMonth: String(solar.getMonth()).padStart(2, "0"),
+      solDay: String(solar.getDay()).padStart(2, "0"),
+    }];
+  }
+
+  return null;
 }
 
 function normalizeCalendarType(value) {
@@ -408,10 +452,42 @@ async function requestLegacyMethod(env, methodRaw, paramsRaw) {
 
   const task = (async () => {
     if (isCircuitOpen()) {
+      const localRows = computeLocalCalendarFallback(method, params);
+      if (localRows) {
+        return {
+          ok: true,
+          method,
+          rows: localRows,
+          cache: "miss",
+          source: "local",
+          maintenance: false,
+          fallbackRecommended: true,
+          warnings: ["KASI circuit이 열려 있어 로컬 계산으로 대체되었습니다."],
+        };
+      }
       throw createHttpError(503, "KASI circuit is open", { code: "KASI_CIRCUIT_OPEN" });
     }
 
-    const result = await fetchKasiUpstream(env, method, params);
+    let result;
+    try {
+      result = await fetchKasiUpstream(env, method, params);
+    } catch (error) {
+      const localRows = computeLocalCalendarFallback(method, params);
+      if (localRows) {
+        return {
+          ok: true,
+          method,
+          rows: localRows,
+          cache: "miss",
+          source: "local",
+          maintenance: false,
+          fallbackRecommended: true,
+          warnings: [`KASI 업스트림 응답 실패로 로컬 계산으로 대체되었습니다: ${error?.message || "unknown error"}`],
+        };
+      }
+      throw error;
+    }
+
     const payload = {
       ok: true,
       method,

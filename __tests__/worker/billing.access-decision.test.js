@@ -77,7 +77,7 @@ describe("Billing access decision", () => {
       accessGranted: true,
       reason: "already_unlocked",
       shouldOpenPaymentSelector: false,
-      availableMethods: ["pass", "one_time", "monthly"],
+      availableMethods: ["pass", "monthly", "one_time"],
       unlockId: "unlock_1",
       priceCoin: 50,
     });
@@ -98,7 +98,7 @@ describe("Billing access decision", () => {
 
     expect(passCovered.shouldOpenPaymentSelector).toBe(false);
     expect(paymentRequired.shouldOpenPaymentSelector).toBe(true);
-    expect(paymentRequired.availableMethods).toEqual(["pass", "one_time", "monthly"]);
+    expect(paymentRequired.availableMethods).toEqual(["pass", "monthly", "one_time"]);
   });
 
   test("구독 무료 한도 내 기능은 subscription_active 이어야 한다", () => {

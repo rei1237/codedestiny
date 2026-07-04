@@ -214,7 +214,10 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({
     canAccessPaidFeature: jest.fn(async (userId, featureKey) => ({
       allowed: paidAccessAllowed,
-      reason: paidAccessAllowed ? "TEST_ACCESS" : "PAYMENT_REQUIRED",
+      // isReusableFortuneTeaAccessDecision()이 reason/accessSource/licenseType에서
+      // admin|monthly|subscription|membership_credit|license|pass|family 중 하나를 인식해야
+      // allowed=true가 실제로 반영된다 — "TEST_ACCESS"는 매칭되지 않아 항상 결제 필요로 처리됐다.
+      reason: paidAccessAllowed ? "license_active" : "PAYMENT_REQUIRED",
       userId,
       featureKey,
       pricing: null,

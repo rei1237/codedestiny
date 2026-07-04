@@ -65,6 +65,9 @@ beforeAll(async () => {
     jest.unstable_mockModule("../../worker/lib/saju-ai-prompt.js", () => ({
       SAJU_AI_PROMPT_FEATURE_KEY: "saju_ai_prompt_generator",
       SAJU_AI_PROMPT_PRICE: 100,
+      SAJU_AI_PROMPT_VERSION: "test-saju-ai-prompt-version",
+      getSajuAICategoryRubric: () => ({}),
+      validateSajuMyeongsikTenGodText: () => ({ ok: true, issues: [] }),
       buildSajuAIPrompt: () => promptBuildResult,
       buildSajuAIPromptWithDomain: () => promptBuildResult,
     })),
