@@ -10,21 +10,24 @@ const INSIGHTS_COPY = {
     title: "占いインサイト記事 | Code Destiny",
     description: "紫微斗数と宿曜の基礎から実践的な読み解き方まで、日本語でわかりやすく解説するインサイト記事の一覧です。",
     h1: "占いインサイト記事",
-    intro: "実践で使える短い解説記事を優先して掲載しています。",
+    intro:
+      "紫微斗数と宿曜占星術を中心に、初めての方でも迷わず読み進められるよう、専門用語をかみ砕いて解説する記事を集めています。生年月日や相性の悩みから、実際の相談でよく聞かれる疑問まで、短時間で要点をつかめる構成にしています。気になるテーマから読み始めて、必要に応じて他の記事にも目を通してみてください。",
     keywords: ["占い", "紫微斗数", "宿曜", "無料占い", "運勢"]
   },
   zh: {
     title: "占卜洞察文章 | Code Destiny",
     description: "聚焦紫微斗数与宿曜占星术的入门知识与实战应用，为你提供简洁、可执行且易于快速阅读与落地实践的洞察文章。",
     h1: "占卜洞察文章",
-    intro: "优先提供短而实用的内容，方便快速阅读与落地。",
+    intro:
+      "本页面精选了围绕紫微斗数与宿曜占星术展开的入门与实战文章，力求用简明易懂的语言拆解专业术语。无论你关心的是性格分析、感情相处还是时机选择，都可以从贴近生活的角度快速抓住重点。建议先从最感兴趣的主题读起，再逐步扩展到其他相关文章。",
     keywords: ["占卜", "紫微斗数", "宿曜", "免费算命", "运势"]
   },
   en: {
     title: "Fortune Insights | Code Destiny",
     description: "Read practical beginner insights on Zi Wei Dou Shu and Sukuyo in English.",
     h1: "Fortune Insights",
-    intro: "Short and actionable articles focused on practical interpretation.",
+    intro:
+      "This page gathers beginner-friendly articles on Zi Wei Dou Shu and Sukuyo astrology, breaking down technical terms into everyday language. Whether you are curious about personality patterns, relationship compatibility, or timing for decisions, each article focuses on practical takeaways you can use right away. Start with the topic that interests you most, then explore the rest at your own pace.",
     keywords: ["fortune insights", "zi wei dou shu", "sukuyo", "daily fortune", "free fortune reading"]
   },
 };
