@@ -4157,7 +4157,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     : null;
 
   let unlockEntitlement = null;
-  if (!requestedFeatureIsPdfGeneration) {
+  // Only persist a ContentEntitlement for genuine profile-scoped UNLOCK features.
+  // Per-use (회당결제) keys must not be persisted here — they re-charge each use.
+  // Mirrors shouldPersistProfileUnlockEntitlement (= !canGeneratePaidPdf && isProfileScopedUnlockKey).
+  if (!requestedFeatureIsPdfGeneration && isProfileScopedUnlockKey(requestedFeatureKey)) {
     try {
       unlockEntitlement = await upsertSajuProfileUnlockEntitlement(env, {
         userId: authCheck.auth.userId,

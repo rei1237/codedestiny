@@ -2328,7 +2328,6 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   const categoryKey = String(body?.categoryKey || "").trim().slice(0, 60);
   const subFeatureKey = String(body?.subFeatureKey || "").trim().slice(0, 60);
   const payloadHash = String(body?.payloadHash || "").trim().slice(0, 120);
-  const unlockKeysToPersist = resolvePersistentUnlockKeys(featureKey);
   const requestId = String(
     body?.requestId
       || request.headers.get("idempotency-key")
