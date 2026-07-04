@@ -13,14 +13,13 @@ import {
   User,
 } from "../lib/models.js";
 import { findActivePaidContentUnlock, upsertPaidContentUnlock } from "../lib/content-unlocks.js";
-import { callGeminiText } from "../lib/gemini.js";
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKUYO_EXECUTION_STALE_MS = 25 * 60 * 1000;
-const SUKYO_COMPAT_TOKEN_MIN_COINS = 490;
+const SUKYO_COMPAT_TOKEN_MIN_COINS = 300;
 const SUKYO_COMPAT_AI_TITLE = "숙요점 궁합 AI 상담";
 const SUKYO_COMPAT_AI_ROUTE = "/api/sukuyo/compatibility-ai-consultation";
-const SUKYO_COMPAT_AI_AMOUNT_KRW = 49000;
-const SUKYO_COMPAT_AI_PRICE_COINS = 490;
+const SUKYO_COMPAT_AI_AMOUNT_KRW = 30000;
+const SUKYO_COMPAT_AI_PRICE_COINS = 300;
 const SUKYO_YEARLY_FORTUNE_PRICE_KRW = 10000;
 const SUKYO_YEARLY_FORTUNE_PRICE_COINS = 100;
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";

@@ -9,6 +9,7 @@ function normalizeProvider(provider) {
   return provider === "cloudflare" ? "workers-ai" : provider;
 }
 
+// callLLM 게이트웨이의 대체 진입점(현재 프로덕션 호출자 없음, CLAUDE.md 문서화된 공개 래퍼).
 export async function generateWithGemini(env, prompt, options = {}) {
   try {
     const result = await callLLM({
