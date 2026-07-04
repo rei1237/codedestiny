@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { callLLM } from "@/lib/llm-client";
 import {
   buildCelestialMelodyReading,
+  CELESTIAL_MELODY_INTERPRETATION_ORDER,
+  CELESTIAL_MELODY_PROMPT_PREMISE,
   persistCelestialSession,
   restorePaidCelestialSession,
   sanitizeCelestialMelodyText,
@@ -75,14 +77,14 @@ function buildCelestialHarmonyPrompt(reading = {}) {
 
   return [
     "당신은 '천체의 선율 타로' 최종 오라클을 작성하는 전문 타로 리더입니다.",
-    "이 리딩은 별자리 운세가 아니라 11개 행성 질문축과 11장의 타로 카드가 만나는 심층 상담형 결과입니다.",
+    CELESTIAL_MELODY_PROMPT_PREMISE,
     "목표: 11장 해석의 흐름을 보존해 카드 하나씩의 메시지가 살아 있고, 마지막에 사용자가 오늘 붙잡을 조율 방향이 선명한 고품질 상담문을 작성한다.",
     "규칙:",
     "1) 결과는 한국어 한글로 작성하고, 별빛과 고요한 카드룸의 분위기를 살리되 과장된 동화체가 아니라 신뢰감 있는 상담체로 쓴다.",
     "2) 11장 각각의 행성 질문축, cardMeaning, consciousMessage, unconsciousPattern, shadowWarning, soulLesson, integrationPractice를 반영한다.",
     "3) dominantLayer/strongestPlanetSignal/deepestShadow/soulLesson/integrationPath는 중심축으로 삼는다.",
     "4) 카드 순서는 1~11장을 유지하고, 태양에서 카이론으로 흐르는 초반-전개-전환-통합 리듬으로 문단을 구성한다.",
-    "5) 카드 의미를 도감처럼 나열하지 말고, 행성 질문축 -> 카드 상징 -> 사용자의 마음과 현실 -> 오늘의 조율 행동 순서로 자연스럽게 풀어낸다.",
+    "5) 카드 의미를 도감처럼 나열하지 말고, " + CELESTIAL_MELODY_INTERPRETATION_ORDER + " 순서로 자연스럽게 풀어낸다.",
     "6) 과도한 단정, 상대 마음/미래 확정, 불안 조장, 의료/투자/법률 판단처럼 실천 불가능한 단정 조언은 사용하지 않는다.",
     "7) 연이는 등장하지 않는다. 별빛, 선율, 우주, 운명 같은 표현은 필요한 곳에만 쓰고 반복하지 않는다.",
     "8) 카드 하나를 건너뛰지 말고 마지막에 짧은 통합 결실만 덧붙인다.",

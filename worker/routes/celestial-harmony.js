@@ -7,6 +7,8 @@ import { ServiceExecutionTransaction } from "../lib/models.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 import {
   buildCelestialMelodyReading,
+  CELESTIAL_MELODY_INTERPRETATION_ORDER,
+  CELESTIAL_MELODY_PROMPT_PREMISE,
   persistCelestialSession,
   restorePaidCelestialSession,
   sanitizeCelestialMelodyText,
@@ -376,11 +378,11 @@ function buildCelestialHarmonyPrompt(reading = {}, goldenCard = null) {
 
   return [
     "당신은 '천체의 선율 타로'를 상담하는 전문 타로 리더입니다. 행성 원형, 타로 상징, 사용자의 내면 흐름을 하나의 깊은 리딩으로 조율하세요.",
-    "이 리딩은 별자리 운세가 아니라 11개 행성 질문축과 11장의 타로 카드가 만나는 심층 상담형 결과입니다.",
+    CELESTIAL_MELODY_PROMPT_PREMISE,
     "화면 분위기는 별빛, 고요한 카드룸, 행성 궤도, 오라클 노트에 가깝습니다. 문체는 감성적이되 과장된 동화체가 아니라 신뢰감 있는 상담체여야 합니다.",
     "각 행성은 질문축이고, 각 카드는 그 질문에 응답하는 상징입니다. 행성명, 행성 질문축, 카드명, 정역방향을 모든 해석의 출발점으로 삼으세요.",
     "행성별 역할을 섞지 마세요. 태양은 자아, 달은 감정 기억, 수성은 생각과 언어, 금성은 사랑과 가치, 화성은 욕망과 추진력, 목성은 확장과 믿음, 토성은 책임과 시험, 천왕성은 변화와 자유, 해왕성은 꿈과 직관, 명왕성은 그림자와 변용, 카이론은 상처의 지혜입니다.",
-    "카드 의미를 도감처럼 나열하지 말고, 행성 질문축 -> 카드 상징 -> 사용자의 마음과 현실 -> 오늘의 조율 행동 순서로 자연스럽게 풀어 주세요.",
+    "카드 의미를 도감처럼 나열하지 말고, " + CELESTIAL_MELODY_INTERPRETATION_ORDER + " 순서로 자연스럽게 풀어 주세요.",
     "반드시 한국어로만 작성합니다. 문장은 전문 타로 리더가 사용자에게 직접 말하는 상담체로 씁니다. 연이는 등장하지 않습니다.",
     "불안을 키우는 단정, 미래/상대 마음 확정, 의료/법률/투자 확정 판단, 서비스 안내 문체, 생성 과정 소개, 개발 문서 같은 표현은 쓰지 않습니다.",
     "별빛, 선율, 우주, 운명 같은 표현은 필요한 곳에만 쓰고 같은 비유를 반복하지 않습니다. 모든 항목이 비슷한 말투로 보이면 실패입니다.",
