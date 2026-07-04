@@ -36,7 +36,7 @@ type StarTrait = {
 
 const STAR_TRAITS: Record<string, StarTrait> = {
   자미: {
-    archetype: "중심을 세우는 통합형 리더",
+    archetype: "자미(紫微) — 무리의 한가운데서 기준을 세우는 북극성형 리더",
     strength: "판단 기준을 명확히 세우고 큰 구조를 관리하는 힘",
     caution: "완벽한 통제를 고집할 때 관계 긴장과 피로가 누적되기 쉬움",
     work: "총괄/기획/의사결정 역할에서 권한과 책임을 함께 쥘 때 성과가 큼",
@@ -45,7 +45,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "과로로 인한 긴장성 두통과 수면 질 저하를 먼저 관리해야 함",
   },
   천기: {
-    archetype: "전략적 사고가 빠른 분석형 설계자",
+    archetype: "천기(天機) — 머릿속 톱니가 늘 도는 분석형 설계자",
     strength: "복잡한 정보를 구조화하고 대안을 설계하는 능력",
     caution: "과한 예측과 걱정으로 실행이 늦어지거나 번아웃이 생길 수 있음",
     work: "데이터 분석, 제품 설계, 연구, 컨설팅 업무와 궁합이 좋음",
@@ -54,7 +54,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "신경계 과부하로 인한 소화 저하와 목/어깨 긴장을 경계해야 함",
   },
   태양: {
-    archetype: "표현력과 추진력이 강한 외향형 실행가",
+    archetype: "태양(太陽) — 방 안을 데우는 한낮의 해 같은 외향형 실행가",
     strength: "주도적으로 움직이며 사람을 모아 에너지를 확장하는 힘",
     caution: "속도를 우선할 때 정서적 섬세함이 부족해 보일 수 있음",
     work: "영업, 마케팅, 교육, 대외 커뮤니케이션 영역에서 강점이 뚜렷함",
@@ -63,7 +63,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "심혈관성 피로, 눈의 피로, 수면 불균형 관리가 필요함",
   },
   무곡: {
-    archetype: "실리와 규율을 중시하는 재무형 전략가",
+    archetype: "무곡(武曲) — 숫자 위에 단단히 선 재무형 전략가",
     strength: "숫자 감각, 원가 관리, 리스크 통제 능력이 뛰어남",
     caution: "감정 표현이 절제되어 차갑게 오해받을 수 있음",
     work: "재무, 운영, 품질관리, 엔지니어링 분야에 강함",
@@ -72,7 +72,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "근골격 긴장, 관절 부담, 만성 피로 누적을 예방해야 함",
   },
   천동: {
-    archetype: "공감력과 회복력이 높은 조율형 케어러",
+    archetype: "천동(天同) — 곁에 있으면 마음이 놓이는 봄볕 같은 조율형 케어러",
     strength: "사람의 감정 결을 빠르게 읽고 분위기를 부드럽게 만드는 힘",
     caution: "갈등을 회피하다 핵심 문제 해결이 늦어질 수 있음",
     work: "고객경험, HR, 교육, 심리상담, 브랜딩 분야와 맞음",
@@ -81,7 +81,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "컨디션 기복이 체중과 수면 패턴으로 나타나기 쉬움",
   },
   염정: {
-    archetype: "기준과 정의감을 중시하는 원칙형 개혁가",
+    archetype: "염정(廉貞) — 옳고 그름의 선을 또렷이 긋는 원칙형 개혁가",
     strength: "비합리 구조를 고치고 규범을 세우는 추진력",
     caution: "옳고 그름에 집중할수록 대인 관계의 마찰이 증가할 수 있음",
     work: "법무, 감사, 기획혁신, 제도 설계, 정책 업무에 강점",
@@ -90,7 +90,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "스트레스성 위장 반응과 교감신경 과긴장을 관리해야 함",
   },
   천부: {
-    archetype: "안정적 축적을 선호하는 보존형 관리자",
+    archetype: "천부(天府) — 곳간을 든든히 채워 두는 보존형 관리자",
     strength: "자원 관리와 인내심, 장기 설계 능력이 뛰어남",
     caution: "변화가 빠른 시기에 대응 속도가 늦어질 수 있음",
     work: "운영관리, 자산관리, 공공/행정 조직에서 강점",
@@ -99,7 +99,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "활동량 부족으로 순환 저하가 오기 쉬움",
   },
   태음: {
-    archetype: "감수성과 축적형 통찰을 지닌 내면형 전략가",
+    archetype: "태음(太陰) — 밤바다에 비친 달빛 같은 내면형 전략가",
     strength: "디테일 관찰, 정서 이해, 섬세한 리스크 회피",
     caution: "고민이 길어지면 결단이 늦어지는 경향",
     work: "콘텐츠, 디자인, 리서치, 심층 기획에 탁월",
@@ -108,7 +108,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "호르몬 리듬과 수면 위생을 우선 관리해야 함",
   },
   탐랑: {
-    archetype: "확장성과 매력 자본을 갖춘 기회형 개척가",
+    archetype: "탐랑(貪狼) — 사람과 기회를 끌어당기는 매력형 개척가",
     strength: "트렌드 감각, 네트워크 확장, 시장 감지 능력",
     caution: "욕망의 분산으로 집중력이 흔들릴 수 있음",
     work: "신사업, 미디어, 커뮤니티, 영업 확장에 강함",
@@ -117,7 +117,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "과로와 과음/야식 습관이 누적되기 쉬움",
   },
   거문: {
-    archetype: "언어와 논리로 판을 여는 설득형 분석가",
+    archetype: "거문(巨門) — 말과 논리로 닫힌 문을 여는 설득형 분석가",
     strength: "문제의 본질을 말로 풀어내고 설득하는 역량",
     caution: "비판적 표현이 강해 갈등으로 번질 수 있음",
     work: "법/미디어/교육/콘텐츠/컨설팅에 적합",
@@ -126,7 +126,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "호흡기, 성대, 턱관절 긴장을 주기적으로 관리해야 함",
   },
   천량: {
-    archetype: "윤리와 보호 본능이 강한 멘토형 리더",
+    archetype: "천량(天梁) — 그늘을 내주는 큰 나무 같은 멘토형 리더",
     strength: "장기 관점, 보호력, 문제 수습 능력",
     caution: "책임을 과도하게 떠안아 자기 돌봄이 늦어질 수 있음",
     work: "교육, 코칭, 의료보건, 공공서비스 분야와 궁합",
@@ -135,7 +135,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "면역 균형과 회복 루틴이 성과를 좌우함",
   },
   칠살: {
-    archetype: "결단과 돌파력이 강한 전술형 실행가",
+    archetype: "칠살(七殺) — 승부처에서 단숨에 치고 나가는 전술형 실행가",
     strength: "위기 대응, 고난도 의사결정, 강한 집중력",
     caution: "과감함이 과속이 되면 손실 폭이 커질 수 있음",
     work: "프로젝트 리더, 전략 실행, 구조조정 역할에 강함",
@@ -144,7 +144,7 @@ const STAR_TRAITS: Record<string, StarTrait> = {
     health: "부상/염증성 컨디션, 과긴장 회복이 필요함",
   },
   파군: {
-    archetype: "낡은 구조를 갈아엎는 혁신형 개척자",
+    archetype: "파군(破軍) — 낡은 판을 허물고 새로 짜는 혁신형 개척자",
     strength: "대전환, 재구성, 무에서 유를 만드는 능력",
     caution: "끊고 다시 시작하는 패턴이 잦아 피로가 누적될 수 있음",
     work: "스타트업, 혁신 프로젝트, 턴어라운드 업무에 강함",

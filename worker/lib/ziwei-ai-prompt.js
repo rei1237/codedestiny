@@ -724,7 +724,10 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
   const analysisAngles = buildZiweiAngles(questionType).concat(
     Array.isArray(domainTemplate.analysisAngles) ? domainTemplate.analysisAngles : [],
     [
-    "근거 궁 2개 이상, 근거 별 2개 이상을 명시하고 문장마다 근거를 대응",
+    "각 핵심 문단은 '① 한 줄 핵심(은유·이미지) → ② 근거(궁·별·강약·사화·삼방사정 회조) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 서술",
+    "별 하나로 단정하지 말고, 근거 궁 2개 이상·근거 별 2개 이상을 명시하며 삼방사정 회조를 반드시 포함",
+    "별·용어는 한자를 한 번 병기(예: 자미(紫微), 화기(化忌))하고 그 자리에서 한 번은 쉬운 말로 풀이",
+    "화기(化忌)가 앉은 궁은 공포 조장 없이 주의점과 대처법을 함께 제시",
     "사화/대한/세운 근거를 행동 타이밍으로 변환해 단기·중기 전략으로 분리",
     "모호 표현 없이 질문 주제에 대한 결론을 선택 단위(무엇을/언제/어떻게)로 제시",
     ],
@@ -829,8 +832,9 @@ export function buildZiweiCounselingToneProfile({ question, chartResult, domain 
     caution: builtPrompt.caution,
     toneQuestion: resolvedQuestion,
     toneRules: [
-      "궁·별·사화 근거를 먼저 제시하고",
-      "해석은 상담자의 현재 선택으로 좁히며",
+      "한 줄 핵심(은유)으로 문단을 열고",
+      "궁·별·강약·사화·삼방사정 회조 근거를 논리로 노출하되 한자는 한 번 병기 후 쉬운 말로 풀며",
+      "해석은 상담자의 현재 선택으로 좁히고",
       "실행은 4주와 6개월 단위로 나누어 안내",
     ],
     toneLead: `${builtPrompt.domainLabel} 상담의 기본 어조를 ${builtPrompt.questionType} 축으로 정렬한 프로필입니다.`,

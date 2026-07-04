@@ -33,7 +33,7 @@ export interface ZiweiPalaceTemplate {
 export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> = {
   ming: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.001"),
-    meaning: "타고난 자아와 인생 핵심 축을 읽는 궁입니다.",
+    meaning: "명궁(命宮) — 명반의 중심 기둥. 타고난 나다움과 인생의 핵심 축이 어디를 향하는지 보여 줍니다.",
     insightPrompts: [
       "나는 어떤 상황에서 가장 나답게 빛나는가",
       "반복되는 결정 패턴은 무엇인가",
@@ -48,7 +48,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   siblings: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.002"),
-    meaning: "가까운 관계의 협력/경쟁 구조를 해석하는 궁입니다.",
+    meaning: "형제궁(兄弟宮) — 가장 가까운 사람들과의 어깨동무. 협력과 경쟁이 어떤 결로 오가는지 읽는 자리입니다.",
     insightPrompts: [
       "가까운 사람과 갈등이 생길 때 촉발점은 무엇인가",
       "협력의 조건과 거리 조절 기준은 무엇인가",
@@ -59,7 +59,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   spouse: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.003"),
-    meaning: "연애/결혼/동반자 관계의 작동 원리를 보여주는 궁입니다.",
+    meaning: "부부궁(夫妻宮) — 두 사람이 맞잡은 손. 연애·결혼·동반자 관계가 어떻게 움직이는지 보여 주는 자리입니다.",
     insightPrompts: [
       "이상형과 실제 궁합의 차이는 무엇인가",
       "관계에서 반복되는 패턴은 무엇인가",
@@ -70,7 +70,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   children: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.004"),
-    meaning: "자녀/후배/창작물 등 미래 결실의 에너지를 해석합니다.",
+    meaning: "자녀궁(子女宮) — 내가 키워 맺는 열매. 자녀·후배·창작물 같은 미래의 결실이 자라는 자리입니다.",
     insightPrompts: [
       "돌봄의 방식이 결실에 미치는 영향은 무엇인가",
       "후속 세대를 키울 때 강점과 약점은 무엇인가",
@@ -81,7 +81,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   wealth: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.005"),
-    meaning: "수입/지출/투자/저축 등 재물 흐름 전반을 읽는 궁입니다.",
+    meaning: "재백궁(財帛宮) — 돈이 드나드는 강물. 들어오는 물길과 새는 물길, 재물의 흐름 전체를 읽는 자리입니다.",
     insightPrompts: [
       "돈이 들어오는 구조와 새는 구조는 각각 무엇인가",
       "화록/화기의 영향은 어떤 습관으로 체감되는가",
@@ -92,7 +92,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   health: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.006"),
-    meaning: "생활 리듬과 회복력 중심으로 건강 관리 방향을 제시합니다.",
+    meaning: "질액궁(疾厄宮) — 몸이 보내는 신호등. 병을 단정하는 자리가 아니라, 생활 리듬과 회복력의 방향을 살피는 자리입니다.",
     insightPrompts: [
       "스트레스가 몸으로 드러나는 패턴은 무엇인가",
       "수면/식단/운동의 병목은 어디인가",
@@ -103,7 +103,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   travel: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.007"),
-    meaning: "사회적 이미지와 외부 활동, 이동운을 해석하는 궁입니다.",
+    meaning: "천이궁(遷移宮) — 문 밖의 바람. 바깥 활동과 이동, 사회적 이미지에서 운이 어떻게 열리는지 읽는 자리입니다.",
     insightPrompts: [
       "외부 활동에서 운이 열리는 장면은 무엇인가",
       "이직/이사/여행 타이밍은 어떻게 잡을 것인가",
@@ -114,7 +114,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   friends: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.008"),
-    meaning: "친구/인맥/동업 등 인간관계 네트워크를 해석하는 궁입니다.",
+    meaning: "교우궁(交友宮) — 나를 둘러싼 사람들의 그물. 친구·인맥·동업이 힘을 채워 주는지 새게 하는지 읽는 자리입니다.",
     insightPrompts: [
       "관계에서 에너지가 채워지는 연결과 소모되는 연결은 무엇인가",
       "동업/협업의 안정 조건은 무엇인가",
@@ -125,7 +125,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   career: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.009"),
-    meaning: "직업 적성, 사회적 성취, 업무 스타일을 읽는 궁입니다.",
+    meaning: "관록궁(官祿宮) — 세상에 세우는 나의 무대. 직업 적성과 성취, 일하는 방식이 드러나는 자리입니다.",
     insightPrompts: [
       "조직형/사업형 중 어디에 강점이 큰가",
       "성과를 지속하는 업무 루틴은 무엇인가",
@@ -136,7 +136,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   property: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.010"),
-    meaning: "주거 안정, 공간 에너지, 부동산 인연을 해석하는 궁입니다.",
+    meaning: "전택궁(田宅宮) — 내가 뿌리내리는 땅과 집. 주거 안정과 공간의 기운, 부동산 인연을 읽는 자리입니다.",
     insightPrompts: [
       "집/공간이 성과와 감정에 주는 영향은 무엇인가",
       "이사/매수 타이밍을 어떻게 검토할 것인가",
@@ -147,7 +147,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   fortune: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.011"),
-    meaning: "정신적 안정감과 행복 회복 루틴을 읽는 궁입니다.",
+    meaning: "복덕궁(福德宮) — 마음이 쉬어 가는 뒷마당. 정신적 안정과 행복을 회복하는 리듬을 읽는 자리입니다.",
     insightPrompts: [
       "내면이 가장 안정되는 환경은 무엇인가",
       "불안을 키우는 사고 루프는 무엇인가",
@@ -158,7 +158,7 @@ export const ZIWEI_PALACE_TEMPLATES: Record<ZiweiPalaceId, ZiweiPalaceTemplate> 
   },
   parents: {
     title: ziweiDeepTemplatesText("ziweiDeepTemplates.012"),
-    meaning: "부모/윗사람/후원자와의 인연 구조를 해석하는 궁입니다.",
+    meaning: "부모궁(父母宮) — 나를 이끄는 손윗사람의 그늘. 부모·윗사람·후원자와의 인연 구조를 읽는 자리입니다.",
     insightPrompts: [
       "윗사람과의 갈등이 생기는 패턴은 무엇인가",
       "도움을 받기 위해 필요한 태도는 무엇인가",

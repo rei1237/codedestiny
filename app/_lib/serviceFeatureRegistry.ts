@@ -144,7 +144,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "자미두수의 12궁 구조와 주요 성요 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
       "heroImageAlt": "심화 자미두수 12궁 상담 대표 이미지",
       "tags": ["자미두수", "12궁", "명궁", "신궁", "사화"],
-      "highlights": ["12궁 핵심 명반", "30,000원 AI 상담", "명반 상담으로 이어짐"],
+      "highlights": ["명궁~복덕궁 12궁 인생 전체 해석", "사화·삼방사정·대한 흐름 심층", "AI 심층 PDF 리포트 (15챕터·3~4만자)"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -173,7 +173,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "성요 조합 기반 역할·직무 힌트"
         }
       ],
-      "priceLabel": "50,000원",
+      "priceLabel": "20,000원",
       "premiumOptions": [],
       "seo": {
         "title": "심화 자미두수 12궁 상담 소개 | Code Destiny",
@@ -907,7 +907,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -1671,7 +1671,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "命宮・身宮・四化・十二宮から人生の地図を実用的に読み解きます。",
       "description": "命宮・身宮・四化・十二宮から人生の地図を実用的に読み解きます。",
       "heroImageAlt": "紫微斗数 12宮 詳細鑑定の象徴イメージ",
-      "priceLabel": "50,000ウォン",
+      "priceLabel": "20,000ウォン",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
@@ -2435,7 +2435,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "以命宫、身宫、四化与十二宫整理一张实用的人生命盘。",
       "description": "以命宫、身宫、四化与十二宫整理一张实用的人生命盘。",
       "heroImageAlt": "紫微斗数十二宫深度咨询象征图像",
-      "priceLabel": "50,000韩元",
+      "priceLabel": "20,000韩元",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
@@ -3199,7 +3199,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "以命宮、身宮、四化與十二宮整理一張實用的人生命盤。",
       "description": "以命宮、身宮、四化與十二宮整理一張實用的人生命盤。",
       "heroImageAlt": "紫微斗數十二宮深度諮詢象徵圖像",
-      "priceLabel": "50,000韓元",
+      "priceLabel": "20,000韓元",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
@@ -3963,7 +3963,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -4727,7 +4727,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -5491,7 +5491,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -6255,7 +6255,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -7019,7 +7019,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -7783,7 +7783,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
@@ -8547,7 +8547,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "description": "Read the Life Palace, Body Palace, transformations, and the twelve palaces as a practical destiny map.",
       "heroImageAlt": "Advanced Zi Wei Dou Shu 12-Palace Counsel symbolic preview",
-      "priceLabel": "KRW 50,000",
+      "priceLabel": "KRW 20,000",
       "tags": ["Zi Wei", "12 Palaces", "Life Palace", "Four Transformations"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [

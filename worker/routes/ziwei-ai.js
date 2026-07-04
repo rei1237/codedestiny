@@ -9,7 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
+import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -23,12 +23,6 @@ const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
 const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 26000;
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
-  "GEMINIF_API_KEY1",
-  "GEMINIF_API_KEY2",
-  "GEMINIF_API_KEY3",
-  "GEMINIF_API_KEY4",
-  "GEMINI_API_KEY",
-  "GOOGLE_GEMINI_API_KEY",
 ];
 
 const MESSAGES = Object.freeze({
@@ -822,28 +816,165 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
 
 function buildSystemPrompt() {
   return [
-    "당신은 자미두수(紫微斗數)를 상담하는 최고 수준의 명반 해석가입니다.",
+    "당신은 30년 경력의 자미두수(紫微斗數) 명인입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
     "",
     "대만·홍콩 정통 파계를 기반으로 하되, 현대인의 삶에 실용적으로 적용하는 심화 독법으로 상담합니다.",
     "정확도는 계산된 명반 데이터에 둡니다. 없는 별, 없는 궁, 확인되지 않은 사건은 만들지 말고, 근거가 약한 부분은 부드러운 가능성으로 말합니다.",
     "상담은 사용자의 질문을 중심에 두고, 명반의 근거와 현실의 선택지를 한 흐름으로 이어 줍니다.",
     "",
-    "반드시 지켜야 할 원칙:",
+    "가장 중요한 두 원칙(무조건 우선):",
+    "A. 별 하나만 보고 길흉을 단정하지 않습니다. 반드시 해당 궁의 주성·보좌성, 삼방사정에서 회조(會照)되는 별, 회·조·협 관계, 사화(祿權科忌)의 비입/자화를 함께 종합해 서술합니다.",
+    "B. 사전식 별 정의를 나열하지 않습니다('자미는 제왕의 별입니다' 같은 문장 금지). 대신 그 근거가 사용자의 삶에서 어떤 성향·사건 패턴·선택 습관으로 나타나는지로 풀어냅니다.",
+    "",
+    "서술 방식(각 핵심 문단을 이 3단으로):",
+    "① 한 줄 핵심 — 이 궁/주제의 기조를 은유·이미지로 한 문장. (감성 한 스푼)",
+    "② 왜 그런가(근거) — 성요·강약·사화·삼방사정을 근거로 '명궁의 자미가 삼방에서 천부를 회조하니…'처럼 논리를 노출해 2~3문장.",
+    "③ 그래서 삶에서는 — 추상론이 아니라 지금 실행할 수 있는 행동 제안 1~2문장.",
+    "",
+    "표기 규칙: 별·용어는 한자를 한 번 병기하고(예: 자미(紫微), 화기(化忌)), 초심자도 읽히게 그 자리에서 한 번은 쉬운 말로 풀어 줍니다.",
+    "",
+    "그 밖의 원칙:",
     "1. 보고서처럼 딱딱하게 쓰지 말고, 실제 상담사가 명반을 놓고 설명하듯 자연스럽게 답변합니다.",
-    "2. 명궁, 신궁, 12궁, 주성, 보성, 살성, 사화, 삼방사정, 대운과 세운의 흐름을 반영합니다.",
-    "3. 별 이름만 나열하지 말고, 궁·별·강약·사화의 근거가 사용자의 삶에서 어떤 성향, 사건 패턴, 선택 습관으로 나타나는지 풀어냅니다.",
-    "4. 주성의 강약은 반드시 해석에 반영합니다. 묘는 선명하고 순수하게, 왕은 충분히 활성화된 기운으로, 평은 상황 의존적 기질로, 함은 제약되거나 굴절되는 기운으로 풀어냅니다.",
-    "5. 사화는 화록·화권·화과·화기가 어느 궁에 떨어지는지에 따라 확장, 장악력, 인정, 집착과 차질의 흐름으로 구분합니다.",
-    "6. 보성은 도움과 보완으로, 살성은 위험 단정이 아니라 긴장, 압박, 돌파력, 반복되는 시험으로 해석합니다.",
-    "7. 현재 대운과 세운은 지금 사용자가 실제로 선택할 타이밍 언어로 연결합니다.",
-    "8. 질액궁은 건강을 단정하지 말고 생활 습관과 취약 경향으로 조심스럽게 해석합니다.",
-    "9. 운세를 절대적 예언처럼 말하지 않고 불안감을 조장하지 않습니다.",
-    "10. 같은 문장을 반복하지 않습니다.",
-    "11. PDF, 챕터, job, progress, 프롬프트, 시스템 같은 표현을 결과에 노출하지 않습니다.",
-    "12. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
-    "13. 각 핵심 문단은 명반 근거, 현실에서 드러나는 모습, 지금 선택할 조언이 자연스럽게 이어지게 씁니다.",
-    "14. 삼방사정은 한 궁만 따로 끊어 보지 않고, 질문과 연결된 축의 힘이 어디서 들어오고 어디로 새는지 읽는 방식으로 반영합니다.",
+    "2. 명반 데이터의 각 궁에는 별의 강약(묘·왕·득·리·평·함) 값이 brightness로 함께 제공됩니다. 이 값을 반드시 해석의 핵심 근거로 사용하고([아래 계산 확정값]의 강약 표기를 그대로 인용), 표에 없는 별은 강약을 지어내지 말고 궁의 조합·사화·삼방사정으로만 근거를 세웁니다.",
+    "3. 사화는 화록·화권·화과·화기가 어느 궁에 떨어지는지에 따라 확장, 장악력, 인정, 집착과 차질의 흐름으로 구분합니다.",
+    "4. 보성은 도움과 보완으로, 살성은 위험 단정이 아니라 긴장, 압박, 돌파력, 반복되는 시험으로 해석합니다.",
+    "5. 현재 대운과 세운은 지금 사용자가 실제로 선택할 타이밍 언어로 연결합니다.",
+    "6. 화기(化忌)가 앉은 궁은 '주의'가 직관적으로 드러나게 짚되, 공포를 조장하지 말고 반드시 대처법을 함께 제시합니다.",
+    "7. 질액궁은 건강을 단정하지 말고 생활 습관과 취약 경향으로 조심스럽게 해석합니다.",
+    "8. 운세를 절대적 예언처럼 말하지 않고 불안감을 조장하지 않습니다.",
+    "9. 같은 문장을 반복하지 않습니다.",
+    "10. PDF, 챕터, job, progress, 프롬프트, 시스템 같은 표현을 결과에 노출하지 않습니다.",
+    "11. 사용자가 선택한 상담 주제와 자유 질문을 가장 깊게 다룹니다.",
+    "12. 삼방사정은 한 궁만 따로 끊어 보지 않고, 질문과 연결된 축의 힘이 어디서 들어오고 어디로 새는지 읽는 방식으로 반영합니다.",
   ].join("\n");
+}
+
+// 사화 4성이 실제로 앉은 궁을 명반에서 찾아 확정값으로 요약한다.
+function resolveSihuaPlacements(chart) {
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const transforms = chart?.fourTransformations || {};
+  const labels = { huaLu: "화록", huaQuan: "화권", huaKe: "화과", huaJi: "화기" };
+  const placements = {};
+  for (const [key, star] of Object.entries(transforms)) {
+    if (!star) continue;
+    const palace = palaces.find((item) => [
+      ...(item.mainStars || []),
+      ...(item.assistantStars || []),
+      ...(item.maleficStars || []),
+    ].includes(star));
+    placements[key] = { label: labels[key] || key, star, palace: palace?.name || "" };
+  }
+  return placements;
+}
+
+// 궁의 주성/보성/살성 이름에 brightness(강약) 표기를 붙인 텍스트로 변환한다. 표에 없는 별은 이름만 표기(가짜 강약 생성 금지).
+function starsWithBrightness(palace, stars) {
+  const list = Array.isArray(stars) ? stars : [];
+  if (!list.length) return "무주성(차성안궁)";
+  const brightness = palace?.brightness && typeof palace.brightness === "object" ? palace.brightness : {};
+  return list.map((name) => formatStarWithBrightness(name, brightness[name])).join(", ");
+}
+
+function buildCanonicalZiweiFacts(chart) {
+  const lines = [];
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const lifePalaceData = palaces.find((item) => item.name === "명궁");
+  if (chart?.lifePalace || lifePalaceData) {
+    lines.push(`명궁: ${lifePalaceData?.earthlyBranch ? `${lifePalaceData.earthlyBranch}궁` : ""} 주성 ${starsWithBrightness(lifePalaceData, lifePalaceData?.mainStars)}`.trim());
+  }
+  if (chart?.bodyPalace) lines.push(`신궁: ${chart.bodyPalace}`);
+  const sihua = resolveSihuaPlacements(chart);
+  const sihuaLine = Object.values(sihua)
+    .map((item) => `${item.label}=${item.star}${item.palace ? `(${item.palace})` : ""}`)
+    .join(" · ");
+  if (sihuaLine) lines.push(`사화: ${sihuaLine}`);
+  if (chart?.bureau?.name) lines.push(`오행국: ${chart.bureau.name} (첫 대한 ${chart.bureau.number}세 시작)`);
+  if (palaces.length) {
+    lines.push("12궁 강약(◎=묘·최상, O=득·안정, ▲=리·이로움, △=평·보통, X=함·주의):");
+    for (const palace of palaces) {
+      const allStars = [...(palace.mainStars || []), ...(palace.assistantStars || []), ...(palace.maleficStars || [])];
+      if (!allStars.length) continue;
+      lines.push(`- ${palace.name}(${palace.earthlyBranch}): ${starsWithBrightness(palace, allStars)}`);
+    }
+  }
+  return lines;
+}
+
+// LLM 응답의 meta를 서버 계산 확정값으로 덮어쓰고, 본문이 사화·12궁을 실제로 참조했는지 검증한다.
+function enforceZiweiChartFacts(text, chart) {
+  const parsed = parseStructuredConsultationResult(text);
+  if (!parsed || typeof parsed !== "object") return { text, issues: [] };
+
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const lifeData = palaces.find((item) => item.name === "명궁") || null;
+  const bodyData = palaces.find((item) => item.name === chart?.bodyPalace) || null;
+  const sihua = resolveSihuaPlacements(chart);
+  const meta = parsed.meta && typeof parsed.meta === "object" ? parsed.meta : {};
+
+  meta.mingong = {
+    ...(meta.mingong && typeof meta.mingong === "object" ? meta.mingong : {}),
+    branch: lifeData?.earthlyBranch || "",
+    main_stars: lifeData?.mainStars || [],
+  };
+  meta.shengong = {
+    ...(meta.shengong && typeof meta.shengong === "object" ? meta.shengong : {}),
+    palace: chart?.bodyPalace || "",
+    main_stars: bodyData?.mainStars || [],
+  };
+  const sihuaKeyMap = { huaLu: "lu", huaQuan: "quan", huaKe: "ke", huaJi: "ji" };
+  const metaSihua = meta.sihua && typeof meta.sihua === "object" ? meta.sihua : {};
+  for (const [key, placement] of Object.entries(sihua)) {
+    metaSihua[sihuaKeyMap[key] || key] = { star: placement.star, palace: placement.palace };
+  }
+  meta.sihua = metaSihua;
+
+  const currentYear = new Date().getFullYear();
+  const lunarYear = Number(chart?.lunar?.year);
+  const age = Number.isFinite(lunarYear) ? currentYear - lunarYear + 1 : null;
+  const currentLuck = age != null
+    ? (chart?.majorLuck || []).find((cycle) => Number(cycle.startAge) <= age && age <= Number(cycle.endAge))
+    : null;
+  if (currentLuck) {
+    const luckPalace = palaces.find((item) => item.name === currentLuck.palaceName) || null;
+    meta.dayun = {
+      ...(meta.dayun && typeof meta.dayun === "object" ? meta.dayun : {}),
+      current_palace: currentLuck.palaceName || "",
+      age_range: currentLuck.range || "",
+      main_stars: luckPalace?.mainStars || [],
+    };
+  }
+  parsed.meta = meta;
+
+  const sections = parsed.sections && typeof parsed.sections === "object" ? parsed.sections : {};
+  const bodyText = Object.values(sections).map((section) => clean(section?.body)).join("\n");
+  const issues = [];
+  for (const placement of Object.values(sihua)) {
+    if (placement.star && bodyText && !bodyText.includes(placement.star)) {
+      issues.push(`SIHUA_STAR_UNSTATED:${placement.star}`);
+    }
+  }
+  if (bodyText && palaces.length) {
+    const mentioned = palaces.filter((item) => bodyText.includes(item.name)).length;
+    if (mentioned < 9) issues.push(`PALACE_COVERAGE:${mentioned}/12`);
+  }
+  if (bodyText && (lifeData?.mainStars || []).length && !lifeData.mainStars.some((star) => bodyText.includes(star))) {
+    issues.push("MINGGONG_STAR_UNSTATED");
+  }
+
+  return { text: JSON.stringify(parsed, null, 2), issues };
+}
+
+function describeZiweiGroundingIssues(issues, chart) {
+  const lines = [];
+  const missingStars = issues.filter((issue) => issue.startsWith("SIHUA_STAR_UNSTATED:")).map((issue) => issue.split(":")[1]);
+  if (missingStars.length) lines.push(`- 사화 별 ${missingStars.join(", ")}를 본문에서 별 이름으로 직접 언급하며 해석하라.`);
+  if (issues.some((issue) => issue.startsWith("PALACE_COVERAGE"))) {
+    lines.push("- 12궁 가운데 최소 9개 궁을 본문에서 궁 이름으로 직접 참조하라. 막연한 총평으로 궁 참조를 대체하지 마라.");
+  }
+  if (issues.includes("MINGGONG_STAR_UNSTATED")) lines.push("- 명궁 주성을 본문에서 별 이름으로 직접 언급하며 근거로 삼아라.");
+  lines.push("아래 계산 확정값과 다르게 서술하는 것은 금지한다:");
+  lines.push(...buildCanonicalZiweiFacts(chart));
+  return lines;
 }
 
 function buildFirstPrompt(input, chart) {
@@ -862,6 +993,9 @@ function buildFirstPrompt(input, chart) {
     "[계산된 자미두수 명반 데이터]",
     JSON.stringify(chart, null, 2),
     "",
+    "[계산 확정값 — 본문과 meta에서 이 값과 다르게 서술하는 것을 금지]",
+    ...buildCanonicalZiweiFacts(chart),
+    "",
     "반드시 아래 JSON 구조만 반환해 주세요. JSON 앞뒤에 설명, 마크다운 코드블록, 인사말을 붙이지 마세요.",
     JSON.stringify({
       meta: {
@@ -870,13 +1004,11 @@ function buildFirstPrompt(input, chart) {
         mingong: {
           branch: "명궁 지지",
           main_stars: ["별 이름"],
-          strength: ["묘/왕/평/함"],
           description: "명궁 핵심 요약",
         },
         shengong: {
           palace: "신궁 이름",
           main_stars: ["별 이름"],
-          strength: ["묘/왕/평/함"],
         },
         sihua: {
           lu: { star: "별 이름", palace: "궁 이름" },
@@ -899,6 +1031,7 @@ function buildFirstPrompt(input, chart) {
         },
       },
       sections: {
+        reading_guide: { title: "이 명반을 읽는 순서", body: "상담 본문" },
         essence: { title: "명궁이 말하는 본질", body: "상담 본문" },
         flow: { title: "사화와 흐름의 물결", body: "상담 본문" },
         triad_axis: { title: "삼방사정이 여는 축", body: "상담 본문" },
@@ -915,23 +1048,25 @@ function buildFirstPrompt(input, chart) {
     }, null, 2),
     "",
     "작성 규칙:",
-    "1. sections의 12개 body는 각각 완결된 상담 문단으로 작성하고, 서로 같은 첫 문장 구조를 반복하지 마세요.",
+    "0. reading_guide는 이 명반을 어떤 순서로 읽으면 좋은지 안내하는 2~3문장입니다. '먼저 명궁으로 성향을, 신궁으로 후천의 힘을, 그다음 질문과 가까운 핵심 궁과 삼방사정으로 관계를 읽으세요'처럼 초심자를 이끄는 짧은 길잡이로 쓰세요. 이 문단은 3단 구조를 적용하지 않습니다.",
+    "1. reading_guide를 제외한 각 body는 완결된 상담 문단으로 작성하고, '① 한 줄 핵심(은유) → ② 근거(궁·별·강약·사화·삼방사정) → ③ 지금 실행할 행동 조언' 3단으로 자연스럽게 이어 쓰세요. 서로 같은 첫 문장 구조를 반복하지 마세요.",
     `2. sections의 모든 body를 합산한 실제 상담 본문은 공백 포함 ${MIN_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이상 ${MAX_INITIAL_CONSULTATION_BODY_CHARS.toLocaleString("ko-KR")}자 이하로 작성하세요. 문장만 늘리지 말고 자미두수 전문가가 실제로 더 살필 파트를 각 흐름에 고르게 나누어 주세요.`,
     "3. 사용자의 상담 주제와 자유 질문을 먼저 붙잡고, 그 질문에 직접 닿는 궁과 별을 우선순위로 삼으세요.",
     "4. essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
-    "5. flow는 화록·화권·화과·화기를 모두 언급하고, 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
+    "5. flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 위 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
     "6. triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
     "7. twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
     "8. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약, 삼방사정, 대운·세운 흐름을 질문 주제와 연결하세요.",
     "9. timing_strategy는 현재 대한, 올해 세운, 가까운 4주와 6개월의 선택 리듬을 분리해 말하세요.",
     "10. health는 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
-    "11. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요.",
+    "11. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요. 화기(化忌)가 앉은 궁이 있으면 그 주의점이 직관적으로 드러나게 짚되, 반드시 대처법을 함께 제시하세요.",
     "12. core_answer는 사용자의 질문에 대해 자미두수 전문가가 마지막으로 짚어 줄 핵심 답을 명확하게 전하세요.",
     "13. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
-    "14. 각 body는 궁/별 근거, 현실에서 드러나는 모습, 지금의 선택 조언이 한 문단 안에서 이어지게 쓰세요.",
+    "14. 별·용어는 한자를 한 번 병기하고(예: 자미(紫微), 화기(化忌)), 초심자도 읽히게 그 자리에서 한 번은 쉬운 말로 풀어 주세요. 단, 별 하나만 보고 단정하지 말고 반드시 삼방사정 회조와 사화 근거를 함께 녹이세요.",
     "15. career, wealth, relationship, health는 각 20점 만점, overall은 별도 종합 판단으로 100점 만점에 맞추세요.",
     "16. 전체 문체는 전문적이고 신비롭되, 개발 문서나 기능 안내처럼 들리면 안 됩니다.",
     "17. 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
+    "18. [계산 확정값]의 '12궁 강약' 표기(◎묘·O득·▲리·△평·X함)를 모든 궁 해석의 핵심 근거로 사용하세요. 강한 별(◎/O)은 확장·기회로, 약한 별(△/X)은 관리·주의가 필요한 지점으로 명시적으로 연결하고, 표에 없는 별의 강약은 지어내지 마세요.",
     chart?.uncertainty?.birthTimeUnknown ? "출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
   ].filter(Boolean).join("\n");
 }
@@ -1534,13 +1669,33 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
 
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
-    const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), {
+    const generationOptions = {
       minLength: 360,
       minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
       maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS,
       maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
       logContext,
-    });
+    };
+    let generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), generationOptions);
+    let grounding = enforceZiweiChartFacts(generated.text, chart);
+    if (grounding.issues.length) {
+      logZiweiAi("Grounding Retry", { ...logContext, issues: grounding.issues }, "warn");
+      const retryPrompt = [
+        buildFirstPrompt(normalized.input, chart),
+        "",
+        "직전 답변이 아래 근거 기준을 지키지 못해 반려되었다. 전부 지켜 처음부터 다시 작성하라:",
+        ...describeZiweiGroundingIssues(grounding.issues, chart),
+      ].join("\n");
+      try {
+        generated = await generateConsultationText(env, retryPrompt, generationOptions);
+        grounding = enforceZiweiChartFacts(generated.text, chart);
+      } catch (retryError) {
+        logZiweiAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
+      }
+      // meta는 서버 확정값으로 덮어썼으므로, 본문 인용이 여전히 부족해도 실패 처리하지 않고 경고만 남긴다.
+      if (grounding.issues.length) logZiweiAi("Grounding Residual", { ...logContext, issues: grounding.issues }, "warn");
+    }
+    generated = { ...generated, text: grounding.text };
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, paymentId: access.paymentId || "", pricing, prepaid: access.prepaid === true });
     const firstUserMessage = normalized.input.userQuestion || normalized.input.topic;
     const completed = await ZiweiAiConsultation.findOneAndUpdate(
@@ -1641,11 +1796,48 @@ async function handleMessage(request, env) {
   }
 }
 
+async function handleResult(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth) return loginRequired();
+  const url = new URL(request.url);
+  const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 120);
+
+  await connectDb(env);
+  if (!sessionId) {
+    const rows = await ZiweiAiConsultation.find({ userId: clean(auth.userId), status: "completed" })
+      .sort({ updatedAt: -1 })
+      .limit(10)
+      .select("id topic birthInfo ziweiChart.lifePalace ziweiChart.chartSummary createdAt updatedAt")
+      .lean();
+    return json({
+      ok: true,
+      consultations: rows.map((row) => ({
+        id: clean(row.id),
+        topic: clean(row.topic),
+        name: clean(row.birthInfo?.name, 80),
+        lifePalace: clean(row.ziweiChart?.lifePalace, 20),
+        chartSummary: clean(row.ziweiChart?.chartSummary, 200),
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+      })),
+    });
+  }
+
+  const consultation = await ZiweiAiConsultation.findOne({
+    id: sessionId,
+    userId: clean(auth.userId),
+    status: "completed",
+  }).lean();
+  if (!consultation) return notFound();
+  return json(publicConsultation(consultation));
+}
+
 export async function handleZiweiAiRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/ziwei-ai");
 
   try {
+    if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
     }
@@ -1667,6 +1859,10 @@ export const __ziweiAiTestUtils = {
   normalizeConsultationInput,
   buildFirstPrompt,
   buildSystemPrompt,
+  buildCanonicalZiweiFacts,
+  resolveSihuaPlacements,
+  enforceZiweiChartFacts,
+  describeZiweiGroundingIssues,
   cleanForbiddenResult,
   countStructuredConsultationBodyChars,
   MIN_INITIAL_CONSULTATION_BODY_CHARS,

@@ -108,7 +108,7 @@ export function generateZiweiDeepSummary(chart: Omit<ZiweiDeepChart, "summary">)
     strongestPalaceId: strongest.palace.id,
     weakestPalaceId: weakest.palace.id,
     direction:
-      `이 심화 명반은 ${topThree.join(" / ")}를 확장축으로 쓰고, ${careThree.join(" / ")}를 관리축으로 분리할 때 가장 정확해집니다. 기본 자미두수처럼 12궁 배치만 보는 단계가 아니라, 주성·사화·삼방사정·차성을 한 판단으로 묶어 읽어야 합니다.`,
+      `읽는 순서는 이렇게 잡으세요. 먼저 명궁(命宮)으로 타고난 성향을, 신궁(身宮)으로 후천에 길러지는 힘을 보고, 그다음 질문과 가까운 핵심 궁과 삼방사정(三方四正)으로 관계의 흐름을 읽으면 명반이 한 장의 지도처럼 이어집니다. 이 심화 명반은 ${topThree.join(" / ")}를 확장축으로 쓰고, ${careThree.join(" / ")}를 관리축으로 분리할 때 가장 정확해집니다. 기본 자미두수처럼 12궁 배치만 보는 단계가 아니라, 주성·사화·삼방사정·차성을 한 판단으로 묶어 읽어야 합니다.`,
     strengths: strengthHints,
     weaknesses: weaknessHints,
     openingCondition:

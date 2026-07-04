@@ -396,6 +396,8 @@ const handleNewYearAiRoutes = createLazyRouteHandler("./routes/new-year-ai.js", 
 const handleVedicAiRoutes = createLazyRouteHandler("./routes/vedic-ai.js", () => import("./routes/vedic-ai.js"), "handleVedicAiRoutes", "api/vedic-ai");
 const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destiny-ai.js", () => import("./routes/karma-destiny-ai.js"), "handleKarmaDestinyAiRoutes", "api/karma-destiny-ai");
 const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
+// 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트
+const handleZiweiDeepReportRoutes = createLazyRouteHandler("./routes/ziwei-deep-report.js", () => import("./routes/ziwei-deep-report.js"), "handleZiweiDeepReportRoutes", "api/ziwei-deep-report");
 const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea-house.js", () => import("./routes/fortune-tea-house.js"), "handleFortuneTeaHouseRoutes", "api/fortune-tea-house");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
@@ -1232,6 +1234,11 @@ export default {
 
       if (url.pathname === "/api/ziwei-ai" || url.pathname.startsWith("/api/ziwei-ai/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-ai", handleZiweiAiRoutes);
+      }
+
+      // 심화 자미두수 PDF (ZIWEI_DEEP_PDF)
+      if (url.pathname === "/api/ziwei-deep-report" || url.pathname.startsWith("/api/ziwei-deep-report/")) {
+        return runAiRouteWithSecurity(request, env, "ziwei-deep-report", handleZiweiDeepReportRoutes);
       }
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {

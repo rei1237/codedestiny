@@ -6,7 +6,6 @@ const PALACE_NAMES = ["명궁", "형제궁", "부부궁", "자녀궁", "재백�
 const MAIN_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
 const ASSISTANT_STARS = ["문창", "문곡", "좌보", "우필", "천괴", "천월", "녹존", "함지", "천요"];
 const MALEFIC_STARS = ["경양", "타라", "화성", "영성", "지공", "지겁"];
-const STRENGTHS = ["묘", "왕", "득", "평", "함", "약"];
 
 const STEM_ALIAS = {
   "甲": "갑",
@@ -55,6 +54,70 @@ const TRANSFORMATION_LABELS = {
   huaKe: "화과",
   huaJi: "화기",
 };
+
+// 정통 자미두수 명암표(廟旺利平陷) — js/saju-engine.js의 ZW_CLASSICAL_STATE와 동일한 원자료(28성×12지지)를
+// 한글 지지 키로 변환한 값. LLM 상담에 가짜 근거를 넣지 않기 위해 반드시 이 표만 사용한다.
+const ZIWEI_BRIGHTNESS_TABLE = {
+  "자미":{"자":"평","축":"묘","인":"왕","묘":"왕","진":"묘","사":"평","오":"묘","미":"묘","신":"평","유":"평","술":"묘","해":"평"},
+  "천기":{"자":"평","축":"함","인":"왕","묘":"왕","진":"평","사":"리","오":"함","미":"평","신":"묘","유":"왕","술":"평","해":"묘"},
+  "태양":{"자":"함","축":"함","인":"묘","묘":"묘","진":"왕","사":"왕","오":"묘","미":"왕","신":"평","유":"함","술":"함","해":"함"},
+  "무곡":{"자":"묘","축":"왕","인":"리","묘":"평","진":"묘","사":"평","오":"평","미":"평","신":"왕","유":"묘","술":"함","해":"리"},
+  "천동":{"자":"왕","축":"함","인":"평","묘":"묘","진":"함","사":"평","오":"함","미":"묘","신":"평","유":"평","술":"리","해":"왕"},
+  "염정":{"자":"평","축":"평","인":"묘","묘":"평","진":"묘","사":"함","오":"묘","미":"묘","신":"묘","유":"평","술":"평","해":"평"},
+  "천부":{"자":"묘","축":"묘","인":"왕","묘":"평","진":"묘","사":"평","오":"묘","미":"묘","신":"왕","유":"평","술":"묘","해":"평"},
+  "태음":{"자":"왕","축":"묘","인":"한","묘":"평","진":"함","사":"함","오":"함","미":"평","신":"평","유":"묘","술":"묘","해":"왕"},
+  "탐랑":{"자":"왕","축":"평","인":"묘","묘":"리","진":"평","사":"묘","오":"왕","미":"평","신":"묘","유":"묘","술":"평","해":"묘"},
+  "거문":{"자":"왕","축":"묘","인":"평","묘":"함","진":"함","사":"묘","오":"함","미":"묘","신":"묘","유":"평","술":"함","해":"묘"},
+  "천상":{"자":"묘","축":"묘","인":"왕","묘":"평","진":"왕","사":"리","오":"묘","미":"묘","신":"왕","유":"평","술":"묘","해":"평"},
+  "천량":{"자":"평","축":"묘","인":"묘","묘":"묘","진":"묘","사":"평","오":"묘","미":"함","신":"묘","유":"평","술":"묘","해":"함"},
+  "칠살":{"자":"묘","축":"평","인":"묘","묘":"평","진":"왕","사":"평","오":"묘","미":"왕","신":"묘","유":"평","술":"묘","해":"평"},
+  "파군":{"자":"왕","축":"함","인":"묘","묘":"함","진":"묘","사":"함","오":"왕","미":"함","신":"함","유":"함","술":"묘","해":"리"},
+  "좌보":{"자":"왕","축":"묘","인":"왕","묘":"묘","진":"묘","사":"리","오":"왕","미":"묘","신":"왕","유":"리","술":"왕","해":"리"},
+  "우필":{"자":"왕","축":"묘","인":"왕","묘":"리","진":"왕","사":"리","오":"왕","미":"묘","신":"왕","유":"리","술":"묘","해":"리"},
+  "문창":{"자":"리","축":"왕","인":"묘","묘":"왕","진":"왕","사":"왕","오":"약","미":"왕","신":"묘","유":"왕","술":"리","해":"왕"},
+  "문곡":{"자":"리","축":"왕","인":"묘","묘":"왕","진":"리","사":"왕","오":"리","미":"왕","신":"리","유":"왕","술":"리","해":"왕"},
+  "녹존":{"자":"묘","축":"왕","인":"리","묘":"왕","진":"리","사":"약","오":"왕","미":"왕","신":"리","유":"왕","술":"리","해":"약"},
+  "천괴":{"자":"평","축":"평","인":"왕","묘":"평","진":"평","사":"평","오":"왕","미":"평","신":"왕","유":"평","술":"평","해":"평"},
+  "천월":{"자":"평","축":"평","인":"평","묘":"평","진":"평","사":"평","오":"평","미":"리","신":"묘","유":"리","술":"평","해":"평"},
+  "천마":{"자":"왕","축":"리","인":"묘","묘":"리","진":"왕","사":"리","오":"묘","미":"리","신":"왕","유":"리","술":"묘","해":"리"},
+  "경양":{"자":"약","축":"리","인":"왕","묘":"묘","진":"왕","사":"리","오":"약","미":"리","신":"왕","유":"묘","술":"묘","해":"리"},
+  "타라":{"자":"약","축":"약","인":"리","묘":"왕","진":"묘","사":"함","오":"리","미":"약","신":"함","유":"리","술":"왕","해":"약"},
+  "화성":{"자":"약","축":"왕","인":"왕","묘":"리","진":"왕","사":"리","오":"약","미":"평","신":"왕","유":"함","술":"왕","해":"리"},
+  "영성":{"자":"약","축":"리","인":"묘","묘":"묘","진":"왕","사":"리","오":"약","미":"리","신":"왕","유":"함","술":"왕","해":"리"},
+  "지공":{"자":"리","축":"약","인":"리","묘":"왕","진":"묘","사":"묘","오":"리","미":"리","신":"리","유":"왕","술":"묘","해":"왕"},
+  "지겁":{"자":"리","축":"약","인":"리","묘":"리","진":"리","사":"평","오":"리","미":"약","신":"리","유":"왕","술":"묘","해":"왕"},
+};
+
+const BRIGHTNESS_SYMBOL = { 묘: "◎", 득: "O", 리: "▲", 평: "△", 함: "X" };
+const BRIGHTNESS_MEANING = { 묘: "최상", 득: "득지", 리: "이로움", 평: "균형", 함: "함몰 주의" };
+
+function normalizeBrightnessLevel(level) {
+  const lv = clean(level);
+  if (lv === "묘" || lv === "왕") return "묘";
+  if (lv === "득") return "득";
+  if (lv === "리" || lv === "이" || lv === "약") return "리";
+  if (lv === "평" || lv === "한" || lv === "불") return "평";
+  if (lv === "함" || lv === "실") return "함";
+  return "";
+}
+
+function brightnessFor(starName, branchKo) {
+  const raw = ZIWEI_BRIGHTNESS_TABLE[starName]?.[branchKo];
+  return normalizeBrightnessLevel(raw);
+}
+
+/** 강약(묘·득·리·평·함) 정보를 { level, symbol, meaning } 형태로 반환. 표에 없는 별이면 null. */
+export function describeBrightness(level) {
+  const normalized = normalizeBrightnessLevel(level);
+  if (!normalized) return null;
+  return { level: normalized, symbol: BRIGHTNESS_SYMBOL[normalized], meaning: BRIGHTNESS_MEANING[normalized] };
+}
+
+/** "자미◎(최상)" 형태의 표기. 강약 정보가 없으면 별 이름만 반환(가짜 근거 생성 금지). */
+export function formatStarWithBrightness(starName, level) {
+  const desc = describeBrightness(level);
+  return desc ? `${starName}${desc.symbol}(${desc.meaning})` : starName;
+}
 
 function mod(value, size = 12) {
   return ((Number(value) % size) + size) % size;
@@ -128,15 +191,6 @@ function hourIndex(hour) {
   return hour === 23 || hour === 0 ? 0 : Math.floor((hour + 1) / 2);
 }
 
-function brightnessFor(starName, palaceIndex, type) {
-  const seed = Math.abs(
-    Array.from(starName).reduce((sum, char) => sum + char.codePointAt(0), 0)
-      + palaceIndex
-      + (type === "main" ? 0 : type === "assistant" ? 2 : 4),
-  );
-  return STRENGTHS[seed % STRENGTHS.length];
-}
-
 function createPalaceShells() {
   return BRANCHES.map((branch, index) => ({
     branchIndex: index,
@@ -151,12 +205,15 @@ function createPalaceShells() {
   }));
 }
 
+// 별 명암(묘·왕·득·평·함)은 ZIWEI_BRIGHTNESS_TABLE(정통 명암표)에 있는 별만 산출한다.
+// (이전에는 별 이름 해시 기반 의사난수를 넣어 가짜 근거로 해석을 유도하는 문제가 있었음 — 표에 없는 별은 절대 추정하지 않는다)
 function addStar(palaces, palaceIndex, starName, type) {
   const index = mod(palaceIndex);
   const palace = palaces[index];
   const key = type === "main" ? "mainStars" : type === "assistant" ? "assistantStars" : "maleficStars";
   if (!palace[key].includes(starName)) palace[key].push(starName);
-  palace.brightness[starName] = brightnessFor(starName, index, type);
+  const level = brightnessFor(starName, palace.earthlyBranch);
+  if (level) palace.brightness[starName] = level;
 }
 
 function placePalaces(mingIndex, shells) {
@@ -246,7 +303,8 @@ function calculateBureau(stemIndex, mingIndex) {
   let elementValue = (stemElement[mingStem] || 3) + (branchElement[mingIndex] || 3);
   if (elementValue > 5) elementValue -= 5;
   const bureauByElement = { 1: 3, 2: 4, 3: 2, 4: 6, 5: 5 };
-  const bureauName = { 2: "목이국", 3: "화삼국", 4: "금사국", 5: "토오국", 6: "수육국" };
+  // 오국 명칭은 국수에 고정된다: 2국=수이국, 3국=목삼국, 4국=금사국, 5국=토오국, 6국=화육국
+  const bureauName = { 2: "수이국", 3: "목삼국", 4: "금사국", 5: "토오국", 6: "화육국" };
   const bureau = bureauByElement[elementValue] || 4;
   return { bureau, bureauName: bureauName[bureau] || "금사국" };
 }
@@ -391,6 +449,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   const uncertainty = {
     birthTimeUnknown: timeParts.unknown,
+    brightnessUnavailable: false,
     note: timeParts.unknown ? "birth_time_unknown_noon_basis" : "",
   };
   if (timeParts.unknown) {

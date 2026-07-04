@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -47,6 +47,24 @@ type ZiweiChart = {
     huaKe?: string;
     huaJi?: string;
   };
+  majorLuck?: Array<{
+    palaceName?: string;
+    earthlyBranch?: string;
+    range?: string;
+    startAge?: number;
+    endAge?: number;
+    direction?: string;
+  }>;
+  bureau?: { number?: number; name?: string };
+};
+
+type RecentZiweiConsultation = {
+  id: string;
+  topic: string;
+  name: string;
+  lifePalace: string;
+  chartSummary: string;
+  updatedAt?: string;
 };
 
 type ConsultationMessage = {
@@ -108,6 +126,20 @@ type FormState = {
   question: string;
 };
 
+const BRANCH_RE = /[子丑寅卯辰巳午未申酉戌亥]/;
+const HUA_CLASS: Array<[string, string]> = [
+  ["화록", "huaLu"], ["禄", "huaLu"], ["祿", "huaLu"], ["록", "huaLu"],
+  ["화권", "huaQuan"], ["權", "huaQuan"], ["권", "huaQuan"],
+  ["화과", "huaKe"], ["科", "huaKe"], ["과", "huaKe"],
+  ["화기", "huaJi"], ["忌", "huaJi"], ["기", "huaJi"],
+];
+function huaClass(label: string): string {
+  for (const [needle, cls] of HUA_CLASS) {
+    if (label.includes(needle)) return cls;
+  }
+  return "";
+}
+
 const FEATURE_KEY = "ziwei-ai-consultation";
 const FEATURE_REASON = "자미두수 AI 상담";
 const FEATURE_COST = 300;
@@ -129,6 +161,98 @@ const ERROR_TEXT: Record<string, string> = {
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
 
+const PREVIEW_PALACES = ["명궁", "부모궁", "복덕궁", "전택궁", "형제궁", "관록궁", "부부궁", "노복궁", "자녀궁", "천이궁", "재백궁", "질액궁"];
+
+const ZWV_CSS = `
+.zwvPreviewBoard{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;width:min(300px,80%);margin:0 auto 14px;opacity:.75}
+.zwvPreviewBoard i{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border:1px solid rgba(139,92,246,.3);border-radius:8px;background:rgba(20,16,44,.5);font-style:normal}
+.zwvPreviewBoard i b{font-size:9.5px;font-weight:700;color:rgba(226,222,255,.75)}
+.zwvPreviewBoard i span{font-size:10px;color:#c4b5fd}
+.zwvPreviewBoard i.isLife{border-color:rgba(251,191,36,.6)}
+.zwvPreviewBoard i.isLife b{color:#fbbf24}
+.zwvRecentList{margin-top:16px;display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px}
+.zwvRecentList>strong{font-size:12px;color:#c4b5fd;letter-spacing:.05em}
+.zwvRecentList button{display:flex;flex-direction:column;gap:2px;text-align:left;padding:9px 12px;border-radius:11px;border:1px solid rgba(139,92,246,.32);background:rgba(20,16,44,.55);color:#ece9ff;cursor:pointer;transition:border-color .2s}
+.zwvRecentList button:hover{border-color:rgba(251,191,36,.6)}
+.zwvRecentList button span{font-size:13px}
+.zwvRecentList button small{font-size:10.5px;color:rgba(196,181,253,.7)}
+.zwvTimeline{border:1px solid rgba(139,92,246,.3);border-radius:14px;padding:13px 14px;background:rgba(12,9,30,.6)}
+.zwvTimelineHead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.zwvTimelineHead span{font-size:12.5px;font-weight:800;color:#fbbf24;letter-spacing:.06em}
+.zwvTimelineHead small{font-size:10.5px;color:rgba(226,222,255,.55)}
+.zwvTimelineTrack{display:flex;gap:3px;overflow-x:auto;padding:14px 2px 4px}
+.zwvSegment{position:relative;flex:1 0 64px;display:flex;flex-direction:column;gap:2px;align-items:center;padding:8px 4px;border-radius:9px;border:1px solid rgba(139,92,246,.3);background:rgba(30,24,64,.55);color:#ece9ff;cursor:pointer;transition:border-color .2s,transform .15s}
+.zwvSegment strong{font-size:10.5px}
+.zwvSegment span{font-size:11px;color:rgba(226,222,255,.8)}
+.zwvSegment.isCurrent{border-color:#fbbf24;background:rgba(251,191,36,.12)}
+.zwvSegment.isSelected{transform:translateY(-2px);border-width:2px}
+.zwvSegment.hasJi span{color:#fda4af}
+.zwvSegment i{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-style:normal;font-size:10px;color:#fbbf24;text-shadow:0 0 8px rgba(251,191,36,.8)}
+.zwvTimelineInfo{margin:10px 0 0;font-size:12px;line-height:1.6;color:rgba(236,233,255,.85)}
+.zwvTimelineInfo strong{color:#fbbf24}
+`;
+
+// 대한(10년 주기) 타임라인 — 서버 계산 majorLuck을 나이순으로 그리고 현재 나이를 표시
+function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate?: string }) {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const cycles = useMemo(() => (
+    (chart?.majorLuck || [])
+      .filter((cycle) => Number.isFinite(Number(cycle.startAge)))
+      .sort((a, b) => Number(a.startAge) - Number(b.startAge))
+      .slice(0, 10)
+  ), [chart?.majorLuck]);
+  if (!cycles.length) return null;
+
+  const birthYear = Number(String(birthDate || "").slice(0, 4));
+  const age = Number.isFinite(birthYear) && birthYear > 1900 ? new Date().getFullYear() - birthYear + 1 : null;
+  const currentIndex = age != null
+    ? cycles.findIndex((cycle) => Number(cycle.startAge) <= age && age <= Number(cycle.endAge))
+    : -1;
+  const palaceByName = new Map((chart?.palaces || []).map((palace) => [palace.name, palace]));
+  const selected = selectedIndex != null ? cycles[selectedIndex] : (currentIndex >= 0 ? cycles[currentIndex] : null);
+  const selectedPalace = selected ? palaceByName.get(selected.palaceName || "") : null;
+
+  return (
+    <section className="zwvTimeline" data-ziwei-pdf-section aria-label="대한 타임라인 — 구간을 누르면 해당 궁의 별이 보입니다">
+      <div className="zwvTimelineHead">
+        <span>대한(大限) 타임라인</span>
+        <small>{chart?.bureau?.name ? `${chart.bureau.name} · 첫 대한 ${cycles[0]?.startAge}세` : "10년 주기 흐름"} · ▼ 지금</small>
+      </div>
+      <div className="zwvTimelineTrack" role="list">
+        {cycles.map((cycle, index) => {
+          const isCurrent = index === currentIndex;
+          const isSelected = selectedIndex === index || (selectedIndex == null && isCurrent);
+          const palace = palaceByName.get(cycle.palaceName || "");
+          const hasJi = (palace?.transformations || []).some((item) => String(item).includes("화기"));
+          return (
+            <button
+              type="button"
+              role="listitem"
+              key={`${cycle.palaceName}-${cycle.startAge}`}
+              className={`zwvSegment${isSelected ? " isSelected" : ""}${isCurrent ? " isCurrent" : ""}${hasJi ? " hasJi" : ""}`}
+              onClick={() => setSelectedIndex(selectedIndex === index ? null : index)}
+              aria-label={`${cycle.range}세 ${cycle.palaceName} 대한${isCurrent ? ", 현재 진행 중" : ""}`}
+            >
+              {isCurrent ? <i aria-hidden="true">▼</i> : null}
+              <strong>{cycle.range}</strong>
+              <span>{cycle.palaceName}</span>
+            </button>
+          );
+        })}
+      </div>
+      {selected ? (
+        <p className="zwvTimelineInfo">
+          <strong>{selected.range}세 · {selected.palaceName} 대한 ({selected.direction || "순행"})</strong>
+          {" — "}
+          {(selectedPalace?.mainStars || []).length ? `주성 ${(selectedPalace?.mainStars || []).join(", ")}` : "무주성 궁"}
+          {(selectedPalace?.transformations || []).length ? ` · 사화 ${(selectedPalace?.transformations || []).join(", ")}` : ""}
+          {currentIndex >= 0 && cycles[currentIndex] === selected ? " · 지금 이 대한을 지나는 중입니다" : ""}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
 const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
   { value: "overall", label: "전체 명반 해석" },
   { value: "personality", label: "타고난 성향" },
@@ -146,6 +270,7 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
 }, {} as Record<FocusArea, string>);
 
 const SECTION_ORDER = [
+  "reading_guide",
   "essence",
   "flow",
   "triad_axis",
@@ -160,6 +285,7 @@ const SECTION_ORDER = [
   "prescription",
 ];
 const SECTION_GLYPHS: Record<string, string> = {
+  reading_guide: "序",
   essence: "命",
   flow: "化",
   triad_axis: "合",
@@ -181,7 +307,7 @@ const SCORE_LABELS: Record<string, string> = {
 };
 const LOADING_STAGES = [
   { glyph: "命", label: "자미두수 명반을 세우는 중", sub: "12궁 배치 계산" },
-  { glyph: "旺", label: "별의 강약을 판정하는 중", sub: "묘·왕·평·함 분석" },
+  { glyph: "旺", label: "성계 배치를 확정하는 중", sub: "주성·보성·살성 배치" },
   { glyph: "化", label: "사화의 흐름을 읽는 중", sub: "화록·화권·화과·화기" },
   { glyph: "運", label: "대운의 물길을 찾는 중", sub: "현재 대운 계산" },
   { glyph: "星", label: "별궁 상담을 완성하는 중", sub: "명반 서사 생성" },
@@ -464,15 +590,77 @@ export default function ZiweiAiPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  const [recentList, setRecentList] = useState<RecentZiweiConsultation[]>([]);
   const [pdfLoading, setPdfLoading] = useState(false);
   const idempotencyRef = useRef("");
   const busyRef = useRef(false);
   const resultRef = useRef<HTMLDivElement | null>(null);
 
+  function rememberConsultationUrl(id: string) {
+    if (!id || typeof window === "undefined") return;
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("cid", id);
+      window.history.replaceState(null, "", url.toString());
+    } catch {
+      // URL 갱신 실패는 무시
+    }
+  }
+
+  // 재열람: ?cid= 복원 + 지난 상담 목록
+  useEffect(() => {
+    let cancelled = false;
+    const cid = new URLSearchParams(window.location.search).get("cid");
+    (async () => {
+      if (cid) {
+        try {
+          const response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(cid)}`);
+          const data = await response.json().catch(() => ({})) as ApiResult;
+          if (!cancelled && data?.ok && data.consultation) {
+            setConsultation(data.consultation);
+            setPhase("ready");
+          }
+        } catch {
+          // 재열람 실패는 조용히 무시
+        }
+      }
+      try {
+        const response = await authFetch("/api/ziwei-ai/result");
+        if (!response.ok) return;
+        const data = await response.json().catch(() => ({}));
+        if (!cancelled && Array.isArray(data?.consultations)) setRecentList(data.consultations);
+      } catch {
+        // 목록 조회 실패는 무시
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function loadRecentConsultation(id: string) {
+    try {
+      const response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(id)}`);
+      const data = await response.json().catch(() => ({})) as ApiResult;
+      if (data?.ok && data.consultation) {
+        setConsultation(data.consultation);
+        setPhase("ready");
+        rememberConsultationUrl(id);
+        return;
+      }
+      setError("지난 상담을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } catch {
+      setError(ERROR_TEXT.NETWORK_ERROR);
+    }
+  }
+
   const busy = phase === "checking" || phase === "payment" || phase === "reading";
   const summary = consultation?.summaryCards || {};
   const palaces = consultation?.ziweiChart?.palaces || [];
   const fourTransformations = consultation?.ziweiChart?.fourTransformations || {};
+  const lifeBranch = (String(consultation?.ziweiChart?.lifePalace || summary.lifePalace || "").match(BRANCH_RE) || [])[0];
+  const bodyBranch = (String(consultation?.ziweiChart?.bodyPalace || summary.bodyPalace || "").match(BRANCH_RE) || [])[0];
   const assistantMessages = useMemo(() => consultation?.messages?.filter((message) => message.role === "assistant") || [], [consultation?.messages]);
   const structuredResult = useMemo(() => {
     for (const message of assistantMessages) {
@@ -512,6 +700,7 @@ export default function ZiweiAiPage() {
     }, idempotencyKey);
     if (data.ok && data.consultation) {
       setConsultation(data.consultation);
+      rememberConsultationUrl(data.consultation.id);
       setPhase("ready");
       setNotice("");
       return;
@@ -769,11 +958,27 @@ export default function ZiweiAiPage() {
             </div>
           ) : !consultation ? (
             <div className="emptyState">
-              <div className="palaceSigil" aria-hidden="true">
-                {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
+              <div className="zwvPreviewBoard" aria-hidden="true">
+                {PREVIEW_PALACES.map((name, index) => (
+                  <i key={name} className={index === 0 ? "isLife" : ""}>
+                    <b>{name}</b>
+                    <span>{index === 0 ? "★" : index % 3 === 0 ? "✦" : "·"}</span>
+                  </i>
+                ))}
               </div>
               <strong>별궁을 펼칠 준비가 되어 있습니다</strong>
-              <span>입력한 정보 기준으로 명반을 세우고 상담이 이어집니다.</span>
+              <span>상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.</span>
+              {recentList.length > 0 && (
+                <div className="zwvRecentList" aria-label="지난 자미두수 상담 다시 보기">
+                  <strong>지난 별궁 기록 다시 보기</strong>
+                  {recentList.slice(0, 5).map((item) => (
+                    <button key={item.id} type="button" onClick={() => void loadRecentConsultation(item.id)} disabled={busy}>
+                      <span>{item.topic || "자미두수 AI 상담"}{item.name ? ` · ${item.name}` : ""}</span>
+                      <small>{item.chartSummary?.slice(0, 60) || item.lifePalace || ""}</small>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <>
@@ -829,6 +1034,8 @@ export default function ZiweiAiPage() {
                   </section>
                 )}
 
+                <MajorLuckTimeline chart={consultation.ziweiChart} birthDate={consultation.birthInfo?.birthDate} />
+
                 <section className="chartDataPanel" data-ziwei-pdf-section data-ziwei-chart-data="basic-chart-v20260630">
                   <div className="chartDataHeader">
                     <span>기본 명반 데이터</span>
@@ -846,18 +1053,42 @@ export default function ZiweiAiPage() {
                   </div>
                 </section>
 
-                <div className="palaceGrid" data-ziwei-pdf-section>
-                  {palaces.slice(0, 12).map((palace) => (
-                    <article key={`${palace.name}-${palace.earthlyBranch}`} className="palaceCard">
-                      <div>
-                        <strong>{palace.name}</strong>
-                        <span>{palace.earthlyBranch || ""}</span>
-                      </div>
-                      <p>{(palace.mainStars || []).join(" · ") || "주성 없음"}</p>
-                      <small>{[...(palace.transformations || []), ...(palace.maleficStars || []).slice(0, 2)].join(" · ")}</small>
-                    </article>
-                  ))}
-                </div>
+                <section className="palaceBoard" data-ziwei-pdf-section>
+                  <div className="palaceBoardSky" aria-hidden="true" />
+                  <div className="palaceGrid">
+                    {palaces.slice(0, 12).map((palace) => {
+                      const isLife = Boolean(palace.name?.includes("명궁")) || (Boolean(lifeBranch) && palace.earthlyBranch === lifeBranch);
+                      const isBody = Boolean(bodyBranch) && palace.earthlyBranch === bodyBranch;
+                      const mainStars = palace.mainStars || [];
+                      const badges = palace.transformations || [];
+                      const malefic = (palace.maleficStars || []).slice(0, 2);
+                      return (
+                        <article
+                          key={`${palace.name}-${palace.earthlyBranch}`}
+                          className={`palaceCard${isLife ? " isLife" : ""}${isBody ? " isBody" : ""}`}
+                        >
+                          {isLife && <em className="palaceTag" aria-label="명궁">命</em>}
+                          {isBody && !isLife && <em className="palaceTag isBodyTag" aria-label="신궁">身</em>}
+                          <div className="palaceHead">
+                            <strong>{palace.name}</strong>
+                            <span>{palace.earthlyBranch || ""}</span>
+                          </div>
+                          <div className="starRow">
+                            {mainStars.length
+                              ? mainStars.map((star, i) => <span key={i} className="star main">{star}</span>)
+                              : <span className="star empty">주성 없음</span>}
+                          </div>
+                          {(badges.length > 0 || malefic.length > 0) && (
+                            <div className="badgeRow">
+                              {badges.map((label, i) => <span key={`h${i}`} className={`hua ${huaClass(label)}`}>{label}</span>)}
+                              {malefic.map((star, i) => <span key={`m${i}`} className="star malefic">{star}</span>)}
+                            </div>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
 
                 <div className="chatList">
                   {assistantSections.map((section) => (
@@ -876,6 +1107,7 @@ export default function ZiweiAiPage() {
         </div>
       </section>
 
+      <style>{ZWV_CSS}</style>
       <style>{`
         .ziweiAiShell{position:relative;min-height:100dvh;overflow:hidden;background:radial-gradient(ellipse at 22% 6%,rgba(116,82,170,.42),transparent 34%),radial-gradient(ellipse at 78% 18%,rgba(212,175,95,.20),transparent 28%),radial-gradient(ellipse at 52% 92%,rgba(83,121,177,.22),transparent 38%),linear-gradient(145deg,#050714 0%,#0d1027 42%,#161033 72%,#060712 100%);color:#f8fafc;padding:22px;font-family:var(--font-body)}
         .ziweiAiShell::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,.72) 0 1px,transparent 1.4px),radial-gradient(circle,rgba(250,235,182,.58) 0 1px,transparent 1.2px);background-size:92px 92px,137px 137px;background-position:12px 18px,54px 36px;opacity:.22;pointer-events:none}
@@ -961,12 +1193,37 @@ export default function ZiweiAiPage() {
         .dayunBanner span{color:#cfc7f8;font-size:12px;font-weight:820}
         .dayunBanner strong{color:#fffaf0;font-size:16px}
         .dayunBanner p{margin:0;color:#d9c7ff;line-height:1.58}
-        .palaceGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:15px}
-        .palaceCard{min-height:116px;border:1px solid rgba(224,210,255,.18);border-radius:8px;background:rgba(255,255,255,.055);padding:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-        .palaceCard div{display:flex;justify-content:space-between;gap:8px;color:#fff0b8}
-        .palaceCard div span{color:#cfc7f8;font-size:12px}
-        .palaceCard p{margin:12px 0 8px;color:#fff;font-size:13px;line-height:1.45}
-        .palaceCard small{color:#d9c7ff;line-height:1.4}
+        .palaceBoard{position:relative;overflow:hidden;margin-bottom:15px;border:1px solid rgba(226,214,255,.16);border-radius:16px;padding:14px;background:radial-gradient(ellipse at 26% 16%,rgba(99,102,241,.20),transparent 52%),radial-gradient(ellipse at 78% 84%,rgba(168,85,247,.17),transparent 55%),radial-gradient(ellipse at 50% 52%,rgba(56,189,248,.10),transparent 62%),linear-gradient(160deg,rgba(9,11,30,.72),rgba(4,5,15,.88))}
+        .palaceBoardSky{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(255,255,255,.9) 0 1px,transparent 1.6px),radial-gradient(circle,rgba(250,235,182,.72) 0 1px,transparent 1.4px);background-size:76px 76px,119px 119px;background-position:11px 14px,47px 35px;opacity:.16;animation:ziweiTwinkle 5.5s ease-in-out infinite}
+        .palaceGrid{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+        .palaceCard{position:relative;display:flex;flex-direction:column;overflow:hidden;min-height:118px;border:1px solid rgba(224,210,255,.14);border-radius:12px;background:rgba(255,255,255,.03);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease,background .2s ease}
+        .palaceCard:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.28);background:rgba(255,255,255,.06);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 14px 28px -14px rgba(0,0,0,.65)}
+        .palaceCard.isLife{border-color:rgba(252,211,77,.5);background:radial-gradient(ellipse at 50% -10%,rgba(252,211,77,.15),rgba(255,255,255,.03) 62%);box-shadow:0 0 24px -4px rgba(252,211,77,.5),inset 0 1px 0 rgba(255,255,255,.10)}
+        .palaceCard.isBody{border-color:rgba(125,211,252,.44);background:radial-gradient(ellipse at 50% -10%,rgba(56,189,248,.12),rgba(255,255,255,.03) 62%);box-shadow:0 0 22px -6px rgba(56,189,248,.5),inset 0 1px 0 rgba(255,255,255,.08)}
+        .palaceTag{position:absolute;top:9px;right:9px;display:grid;place-items:center;width:22px;height:22px;border-radius:999px;background:rgba(252,211,77,.16);border:1px solid rgba(252,211,77,.5);color:#ffe9a6;font-family:var(--font-premium);font-size:12px;font-weight:800;font-style:normal;box-shadow:0 0 12px rgba(252,211,77,.35)}
+        .palaceTag.isBodyTag{background:rgba(56,189,248,.14);border-color:rgba(125,211,252,.5);color:#bae6fd;box-shadow:0 0 12px rgba(56,189,248,.3)}
+        .palaceHead{display:flex;align-items:baseline;gap:7px;margin-bottom:9px}
+        .palaceHead strong{color:#fffaf0;font-family:var(--font-display);font-size:15px;font-weight:800}
+        .palaceCard.isLife .palaceHead strong{color:#ffe9a6;text-shadow:0 0 12px rgba(252,211,77,.42)}
+        .palaceCard.isBody .palaceHead strong{color:#e0f2fe}
+        .palaceHead span{color:#a9a2d6;font-size:12px;font-weight:700}
+        .starRow{display:flex;flex-wrap:wrap;gap:5px 8px;margin-bottom:8px}
+        .star{font-size:12.5px;line-height:1.3;letter-spacing:.2px}
+        .star.main{color:#fde8a7;font-weight:700}
+        .palaceCard.isLife .star.main{color:#fff2c4;text-shadow:0 0 8px rgba(252,211,77,.5);animation:ziweiGlow 3.4s ease-in-out infinite}
+        .palaceCard.isBody .star.main{color:#dbeafe}
+        .star.empty{color:#6f6a92;font-weight:600}
+        .star.malefic{color:#fca5a5;font-weight:600}
+        .badgeRow{display:flex;flex-wrap:wrap;gap:5px;margin-top:auto}
+        .hua{display:inline-flex;align-items:center;padding:1px 8px;border-radius:999px;font-size:11px;font-weight:800;border:1px solid transparent;color:#e6e0ff}
+        .hua.huaLu{color:#bbf7d0;background:rgba(34,197,94,.13);border-color:rgba(74,222,128,.35)}
+        .hua.huaQuan{color:#e9d5ff;background:rgba(168,85,247,.15);border-color:rgba(192,132,252,.4)}
+        .hua.huaKe{color:#bae6fd;background:rgba(56,189,248,.14);border-color:rgba(125,211,252,.4)}
+        .hua.huaJi{color:#fecaca;background:rgba(239,68,68,.16);border-color:rgba(248,113,113,.5);animation:ziweiHuaJi 2.4s ease-in-out infinite}
+        @keyframes ziweiTwinkle{0%,100%{opacity:.09}50%{opacity:.22}}
+        @keyframes ziweiGlow{0%,100%{text-shadow:0 0 6px rgba(252,211,77,.32)}50%{text-shadow:0 0 13px rgba(252,211,77,.7)}}
+        @keyframes ziweiHuaJi{0%,100%{box-shadow:0 0 0 rgba(248,113,113,0)}50%{box-shadow:0 0 12px rgba(248,113,113,.55)}}
+        @media(prefers-reduced-motion:reduce){.palaceBoardSky,.palaceCard.isLife .star.main,.hua.huaJi{animation:none!important}}
         .chatList{display:grid;gap:12px}
         .chatCard{display:grid;gap:10px;border:1px solid rgba(224,210,255,.22);border-radius:8px;background:linear-gradient(145deg,rgba(8,11,30,.92),rgba(28,26,64,.78));padding:16px;color:#f8fafc}
         .chatCardTitle{display:flex;align-items:center;gap:8px;color:#fff0b8}
@@ -977,7 +1234,7 @@ export default function ZiweiAiPage() {
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}
-        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.palaceGrid,.chartDataGrid{grid-template-columns:1fr}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
+        @media(max-width:620px){.ziweiAiShell{padding:10px}.ziweiHero{min-height:248px}.heroCopy{padding:24px 20px 44px}.heroConstellation{right:-86px;top:48%;width:252px;opacity:.45}.heroConstellation i{transform:translate(-50%,-50%) rotate(var(--angle)) translateY(-112px)}.heroConstellation b{width:58px;font-size:27px}.heroBackdropText{right:-10%;bottom:14%;font-size:76px}.fieldRow,.summaryGrid,.chartDataGrid{grid-template-columns:1fr}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceBoard{padding:10px}.resultToolbar{align-items:stretch;flex-direction:column}.resultToolbar button{width:100%}.resultCover{padding:18px}.resultCover h2{font-size:24px}.resultPane{min-height:420px;padding:12px}.emptyState,.loadingState{min-height:340px}.palaceSigil{width:138px}.palaceSigil span{transform:rotate(calc(var(--i,0)*30deg)) translateY(-58px)}}
       `}</style>
     </main>
   );
