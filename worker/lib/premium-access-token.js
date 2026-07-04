@@ -28,28 +28,6 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const why = String(reason || "").trim().toLowerCase();
 
   const reportTypeByFeatureKey = {
-    "saju_life_book_pdf": "lifeBook",
-    "saju_lifebook_pdf": "lifeBook",
-    "premium_pdf_saju_life_book": "lifeBook",
-    "premium-lifebook-report": "lifeBook",
-    "premium-astrology-report": "westernAstrologyPremium",
-    "premium-astrology-report-compat": "westernAstrologyPremium",
-    "premium_pdf_western_astrology": "westernAstrologyPremium",
-    "premium_pdf_western_astrology_compat": "westernAstrologyPremium",
-    "premium-sukuyo-report": "sookyoPremium",
-    "premium-sukuyo-report-compat": "sookyoPremium",
-    "premium_pdf_sukyo": "sookyoPremium",
-    "premium_pdf_sukyo_compat": "sookyoPremium",
-    "premium-vedic-report": "vedicPremium",
-    "premium-vedic-report-compat": "vedicPremium",
-    "premium_pdf_vedic": "vedicPremium",
-    "premium_pdf_vedic_compat": "vedicPremium",
-    "premium_pdf_soul_origin": "soulOriginKarma",
-    "premium-soul-origin-report": "soulOriginKarma",
-    soulOriginKarma: "soulOriginKarma",
-    soul_origin_karma: "soulOriginKarma",
-    soul_origin_book: "soulOriginKarma",
-    destiny_prayer_book: "soulOriginKarma",
     "premium-fpti-report": "fptiPremium",
     premium_fpti_report: "fptiPremium",
   };

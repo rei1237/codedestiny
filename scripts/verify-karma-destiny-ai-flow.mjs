@@ -95,12 +95,7 @@ assertIncludes(registrySource, "\"karma-destiny-ai-consultation\": { cost: 500, 
 
 assert.ok(!existsSync(resolve(root, "js/soul-origin-book.js")), "legacy soul-origin client should be deleted");
 assert.ok(!existsSync(resolve(root, "worker/lib/pdf-v2/soul-origin")), "legacy soul-origin service directory should be deleted");
-
-const { handleSoulOriginRoutes } = await import(pathToFileURL(resolve(root, "worker/routes/soul-origin.js")).href);
-const removedResponse = await handleSoulOriginRoutes(new Request("https://example.test/api/soul-origin/create-job", { method: "POST" }), {});
-const removedJson = await removedResponse.json();
-assert.equal(removedResponse.status, 410, "legacy soul-origin API should be disabled");
-assert.equal(removedJson.next, "/karma-destiny-ai", "legacy API should point to new page");
+assert.ok(!existsSync(resolve(root, "worker/routes/soul-origin.js")), "legacy soul-origin route should be deleted");
 
 const { handleKarmaDestinyAiRoutes, __karmaDestinyAiTestUtils } = await import(pathToFileURL(resolve(root, "worker/routes/karma-destiny-ai.js")).href);
 const {

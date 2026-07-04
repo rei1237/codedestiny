@@ -15,30 +15,8 @@ describe("Premium access-control rules", () => {
     expect(rules).toHaveLength(0);
   });
 
-  test("lifeBook은 최근 per-use 결제 증빙 규칙이 있어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("lifeBook", {});
-    expect(rules.length).toBeGreaterThanOrEqual(3);
-    expect(rules).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          featureKey: "premium_pdf_saju_life_book",
-          minCost: 500,
-          windowMinutes: 120,
-        }),
-        expect.objectContaining({
-          featureKey: "premium-lifebook-report",
-          reason: "인생의 책 생성 (13챕터)",
-          minCost: 500,
-          windowMinutes: 120,
-        }),
-        expect.objectContaining({
-          featureKey: "coin-gate-per-use",
-          reason: "인생의 책 생성 (13챕터)",
-          minCost: 500,
-          windowMinutes: 120,
-        }),
-      ]),
-    );
+  test("lifeBook 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
+    expect(utils.buildAlternativePaymentRules("lifeBook", {})).toHaveLength(0);
   });
 
   test("ziweiPremium 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
@@ -56,37 +34,16 @@ describe("Premium access-control rules", () => {
     expect(rules).toHaveLength(0);
   });
 
-  test("westernAstrologyPremium compatibility는 490 코인 규칙이어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("westernAstrologyPremium", { mode: "compatibility" });
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium-astrology-report-compat",
-        minCost: 490,
-        windowMinutes: 120,
-      }),
-    ]));
+  test("westernAstrologyPremium 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
+    expect(utils.buildAlternativePaymentRules("westernAstrologyPremium", { mode: "compatibility" })).toHaveLength(0);
   });
 
-  test("sookyoPremium compatibility는 490 코인 규칙이어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("sookyoPremium", { mode: "compatibility" });
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium-sukuyo-report-compat",
-        minCost: 490,
-        windowMinutes: 240,
-      }),
-    ]));
+  test("sookyoPremium 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
+    expect(utils.buildAlternativePaymentRules("sookyoPremium", { mode: "compatibility" })).toHaveLength(0);
   });
 
-  test("vedicPremium은 compatibility 요청이어도 개인 리포트 390 코인 규칙이어야 한다", () => {
-    const rules = utils.buildAlternativePaymentRules("vedicPremium", { mode: "compatibility" });
-    expect(rules).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        featureKey: "premium-vedic-report",
-        minCost: 390,
-        windowMinutes: 120,
-      }),
-    ]));
+  test("vedicPremium 레거시 PDF 접근 규칙은 AI 상담 전환 후 비워야 한다", () => {
+    expect(utils.buildAlternativePaymentRules("vedicPremium", { mode: "compatibility" })).toHaveLength(0);
   });
 
   test("sibylDominator는 100코인 최근 결제 증빙 규칙을 가져야 한다", () => {

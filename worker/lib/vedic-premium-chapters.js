@@ -1,4 +1,3 @@
-export const VEDIC_PREMIUM_FEATURE_KEY = "premium_pdf_vedic";
 export const VEDIC_SOLO_TARGET_CHARS = 40000;
 
 const rows = [

@@ -119,7 +119,6 @@ function billingRateLimitForPath(path = "", method = "GET") {
   if (path === "/coin-gate" || path === "/checkout") return { limit: 5, windowSeconds: 10 * 60 };
   if (path === "/confirm") return { limit: 10, windowSeconds: 10 * 60 };
   if (path.startsWith("/coin-gate/deferred/") || path.startsWith("/executions/")) return { limit: 3, windowSeconds: 60 };
-  if (path.startsWith("/pdf-archive")) return { limit: 10, windowSeconds: 10 * 60 };
   if (path === "/access") return method === "GET" ? { limit: 60, windowSeconds: 60 } : { limit: 20, windowSeconds: 60 };
   if (path === "/dev-payment-tester") return { limit: 10, windowSeconds: 10 * 60 };
   return { limit: 20, windowSeconds: 60 };
@@ -127,7 +126,7 @@ function billingRateLimitForPath(path = "", method = "GET") {
 
 function isBillingSecurityPath(path = "", method = "GET") {
   if (method === "POST") return true;
-  return path === "/access" || path === "/pdf-archive" || path.startsWith("/pdf-archive/");
+  return path === "/access";
 }
 
 async function enforceBillingRouteSecurity(request, env, path, method) {
@@ -220,11 +219,7 @@ function writePaidAccessDecisionToCache(cacheKey, decision, priceCoin) {
   return decision;
 }
 
-const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([
-  "saju_life_book_pdf",
-  "premium-lifebook-report",
-  "premium_pdf_saju_life_book",
-]);
+const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([]);
 
 function resolveSajuProfileUnlockContentKey(featureKey, contentKey = "") {
   const explicitContentKey = String(contentKey || "").trim();
@@ -1163,6 +1158,13 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
   return updatedUser;
 }
 
+// Mirrors payments.js: MongoDB multi-doc transactions require a replica set. When the
+// deployment can't run them, callers fall back to a best-effort saga (manual compensation).
+function isTransactionUnsupported(error) {
+  return /Transaction numbers are only allowed|replica set|Transaction .* not supported/i
+    .test(String(error?.message || ""));
+}
+
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
   const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
@@ -1264,36 +1266,36 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     }
   }
 
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: authUserId,
-      "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
-      ...(purchaseId ? { recentConsumeRequestIds: { $ne: purchaseId } } : {}),
-    },
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": -requiredCredit,
-        "profileSubscription.membershipCreditUsed": requiredCredit,
-      },
-      ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
-    },
-    {
-      returnDocument: "after",
-      projection: { points: 1, profileSubscription: 1 },
-    },
-  ).lean();
-
-  if (!updatedUser) return null;
-
-  const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
-  const history = await PointHistory.create({
+
+  const deductFilter = {
+    _id: authUserId,
+    "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
+    ...(purchaseId ? { recentConsumeRequestIds: { $ne: purchaseId } } : {}),
+  };
+  const deductUpdate = {
+    $inc: {
+      "profileSubscription.membershipCreditBalance": -requiredCredit,
+      "profileSubscription.membershipCreditUsed": requiredCredit,
+    },
+    ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
+  };
+  const compensateDeduct = async () => {
+    await User.findByIdAndUpdate(authUserId, {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": requiredCredit,
+        "profileSubscription.membershipCreditUsed": -requiredCredit,
+      },
+      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
+    }).catch(() => {});
+  };
+  const buildHistoryPayload = (pointsAfter, monthlyCredits) => ({
     userId: authUserId,
     kind: "deduct",
     delta: -Math.max(0, coinPrice),
-    balanceAfter: Number(updatedUser?.points || 0),
+    balanceAfter: Number(pointsAfter || 0),
     reason: String(pricing?.reason || "membership_credit_access"),
     featureKey,
     metadata: {
@@ -1318,31 +1320,21 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       monthlyCreditsAsCoins: monthlyCredits / MEMBERSHIP_CREDIT_PER_COIN,
-      balanceAfter: Number(updatedUser?.points || 0),
+      balanceAfter: Number(pointsAfter || 0),
     },
-  }).catch(async (error) => {
-    await User.findByIdAndUpdate(authUserId, {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": requiredCredit,
-        "profileSubscription.membershipCreditUsed": -requiredCredit,
-      },
-      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
-    }).catch(() => {});
-    throw error;
   });
-
-  const ledger = await MonthlyCreditLedger.create({
+  const buildLedgerPayload = (historyId, monthlyCredits) => ({
     userId: authUserId,
     type: "MONTHLY_CREDIT_SPEND",
     amount: requiredCredit,
     beforeBalance: monthlyCredits + requiredCredit,
     afterBalance: monthlyCredits,
     reason: String(pricing?.reason || "membership_credit_access"),
-    sourceId: purchaseId || String(history?._id || ""),
+    sourceId: purchaseId || String(historyId || ""),
     serviceKey: featureKey,
     profileId,
     metadata: {
-      pointHistoryId: String(history?._id || ""),
+      pointHistoryId: String(historyId || ""),
       ...profileMutationMetadata,
       requestId: normalizedRequestId,
       purchaseId,
@@ -1353,27 +1345,72 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       accessType: "membership_credit",
       accessMethod: "MONTHLY",
     },
-  }).catch(async (error) => {
-    await User.findByIdAndUpdate(authUserId, {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": requiredCredit,
-        "profileSubscription.membershipCreditUsed": -requiredCredit,
-      },
-      ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
-    }).catch(() => {});
-    await PointHistory.updateOne(
-      { _id: history?._id, userId: authUserId },
-      {
-        $set: {
-          "metadata.monthlyCreditLedgerFailed": true,
-          "metadata.monthlyCreditLedgerFailedAt": new Date(),
-          "metadata.monthlyCreditLedgerFailureMessage": String(error?.message || "").slice(0, 500),
-          "metadata.monthlyCreditRefundedForLedgerFailure": true,
-        },
-      },
-    ).catch(() => {});
-    throw error;
   });
+
+  // Atomic path: monthly-stone deduction + point-history + spend-ledger commit together, so an
+  // isolate kill can never leave the balance debited without its ledger/history rows.
+  const runSpendWithTransaction = async () => {
+    const session = await mongoose.startSession();
+    let outcome = null;
+    try {
+      await session.withTransaction(async () => {
+        const updatedUser = await User.findOneAndUpdate(deductFilter, deductUpdate, {
+          returnDocument: "after",
+          projection: { points: 1, profileSubscription: 1 },
+          session,
+        }).lean();
+        if (!updatedUser) { outcome = null; return; }
+        const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+        const [history] = await PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session });
+        const [ledger] = await MonthlyCreditLedger.create([buildLedgerPayload(history?._id, monthlyCredits)], { session });
+        outcome = { updatedUser, monthlyCredits, history, ledger };
+      });
+      return outcome;
+    } finally {
+      await session.endSession();
+    }
+  };
+
+  // Fallback when transactions are unavailable: best-effort with manual compensation (saga),
+  // preserving the pre-transaction behavior.
+  const runSpendWithCompensation = async () => {
+    const updatedUser = await User.findOneAndUpdate(deductFilter, deductUpdate, {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    }).lean();
+    if (!updatedUser) return null;
+    const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+    const history = await PointHistory.create(buildHistoryPayload(updatedUser?.points, monthlyCredits)).catch(async (error) => {
+      await compensateDeduct();
+      throw error;
+    });
+    const ledger = await MonthlyCreditLedger.create(buildLedgerPayload(history?._id, monthlyCredits)).catch(async (error) => {
+      await compensateDeduct();
+      await PointHistory.updateOne(
+        { _id: history?._id, userId: authUserId },
+        {
+          $set: {
+            "metadata.monthlyCreditLedgerFailed": true,
+            "metadata.monthlyCreditLedgerFailedAt": new Date(),
+            "metadata.monthlyCreditLedgerFailureMessage": String(error?.message || "").slice(0, 500),
+            "metadata.monthlyCreditRefundedForLedgerFailure": true,
+          },
+        },
+      ).catch(() => {});
+      throw error;
+    });
+    return { updatedUser, monthlyCredits, history, ledger };
+  };
+
+  let spendOutcome;
+  try {
+    spendOutcome = await runSpendWithTransaction();
+  } catch (error) {
+    if (!isTransactionUnsupported(error)) throw error;
+    spendOutcome = await runSpendWithCompensation();
+  }
+  if (!spendOutcome) return null;
+  const { updatedUser, monthlyCredits, history, ledger } = spendOutcome;
 
   return {
     transactionId: String(history?._id || ""),
@@ -2203,733 +2240,6 @@ function toIso(value) {
   return date.toISOString();
 }
 
-const REPORT_TYPE_FALLBACK = Object.freeze({
-  lifeBook: { reportType: "life_book", displayName: "사주 인생의 책" },
-  ziweiPremium: { reportType: "ziwei_book", displayName: "자미두수" },
-  sookyoPremium: { reportType: "sukyo_book", displayName: "숙요점" },
-  westernAstrologyPremium: { reportType: "western_astro_book", displayName: "점성술" },
-  vedicPremium: { reportType: "vedic_book", displayName: "베다점" },
-  soulOriginKarma: { reportType: "soul_origin_book", displayName: "운명의 업" },
-});
-
-function toArchiveBase(doc) {
-  const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
-  const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
-  const fallback = REPORT_TYPE_FALLBACK[String(doc?.reportType || "")] || {
-    reportType: cleanText(doc?.reportType || "premium_report", 80) || "premium_report",
-    displayName: "프리미엄 리포트",
-  };
-
-  const reportId = cleanText(doc?.reportId || archive.reportId || metadata.reportId, 120);
-  const createdAt = toIso(doc?.createdAt || archive.createdAt || doc?.updatedAt);
-  const completedAt = toIso(doc?.completedAt || archive.completedAt || doc?.updatedAt || doc?.createdAt);
-  const updatedAt = toIso(doc?.updatedAt || completedAt || createdAt);
-  const pdfUrl = cleanText(archive.pdfUrl || archive?.pdfReady?.pdfUrl, 500);
-  const htmlUrl = cleanText(archive.htmlUrl || archive?.pdfReady?.htmlUrl, 500);
-  const downloadUrl = cleanText(archive.downloadUrl || archive?.pdfReady?.downloadUrl || pdfUrl, 500);
-  const chapters = Array.isArray(archive.chapters) ? archive.chapters : [];
-  const canReopen = Boolean(pdfUrl || chapters.length > 0 || (archive.payload && typeof archive.payload === "object"));
-
-  return {
-    reportId,
-    reportType: cleanText(archive.reportType || fallback.reportType, 80) || fallback.reportType,
-    title: cleanText(archive.title || "", 240),
-    displayName: cleanText(archive.displayName || fallback.displayName, 120) || fallback.displayName,
-    mode: cleanText(archive.mode || "", 40),
-    status: "completed",
-    createdAt,
-    completedAt,
-    updatedAt,
-    birthName: cleanText(archive.birthName || "", 120),
-    targetName: cleanText(archive.targetName || "", 120),
-    serverStatus: cleanText(archive.serverStatus || "completed", 40),
-    qualityStatus: cleanText(archive.qualityStatus || "", 40),
-    pdfUrl,
-    htmlUrl,
-    downloadUrl,
-    pdfStorageKey: cleanText(archive.pdfStorageKey || "", 200),
-    summary: cleanText(archive.summary || "", 1000),
-    chapterCount: Number(archive.chapterCount || chapters.length || 0),
-    expectedChapterCount: Number(archive.expectedChapterCount || 0),
-    localDraftChapterCount: Number(archive.localDraftChapterCount || archive?.pdfReady?.localDraftChapterCount || chapters.length || 0),
-    llmDraftChapterCount: Number(archive.llmDraftChapterCount || archive?.pdfReady?.llmDraftChapterCount || 0),
-    manuscriptSource: cleanText(archive.manuscriptSource || archive?.pdfReady?.manuscriptSource || "", 80),
-    llmAssemblyOnly: archive.llmAssemblyOnly === true || archive?.pdfReady?.llmAssemblyOnly === true,
-    externalCallsAllowed: archive.externalCallsAllowed === true || archive?.pdfReady?.externalCallsAllowed === true,
-    llmAssembly: archive?.llmAssembly || archive?.pdfReady?.llmAssembly || metadata?.llmAssembly || null,
-    pdfCompletionValidation: archive.pdfCompletionValidation || archive?.pdfReady?.pdfCompletionValidation || null,
-    pdfV2: archive.pdfV2 && typeof archive.pdfV2 === "object" ? archive.pdfV2 : archive?.payload?.pdfV2,
-    pdfReady: archive.pdfReady && typeof archive.pdfReady === "object" ? archive.pdfReady : null,
-    chapters,
-    payload: archive.payload && typeof archive.payload === "object" ? archive.payload : null,
-    paymentSessionId: cleanText(doc?.paymentSessionId || metadata.purchaseId || "", 160),
-    coinAmount: Number(doc?.coinAmount || 0),
-    canReopen,
-    canDownload: Boolean(downloadUrl || pdfUrl),
-  };
-}
-
-function stripArchiveHtmlText(html) {
-  const source = String(html || "");
-  const withBreaks = source
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|section|article|h[1-6]|li|tr|table|main|header|footer)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ");
-  return withBreaks
-    .replace(/&#x([0-9a-f]+);/gi, (_match, hex) => {
-      const codePoint = parseInt(hex, 16);
-      try { return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : " "; } catch (_) { return " "; }
-    })
-    .replace(/&#(\d+);/g, (_match, raw) => {
-      const codePoint = parseInt(raw, 10);
-      try { return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : " "; } catch (_) { return " "; }
-    })
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&lt;/gi, "<")
-    .replace(/&gt;/gi, ">")
-    .replace(/&quot;/gi, "\"")
-    .replace(/&#39;/g, "'");
-}
-
-function archivePlainText(value) {
-  const source = String(value || "");
-  const decoded = /<[^>]+>/.test(source) ? stripArchiveHtmlText(source) : source;
-  return decoded
-    .replace(/\r\n?/g, "\n")
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
-    .replace(/[ \t\f\v]+/g, " ")
-    .replace(/\n[ \t]+/g, "\n")
-    .replace(/[ \t]+\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-function archiveTextUnits(value) {
-  return Array.from(String(value || "")).reduce((sum, char) => {
-    const codePoint = char.codePointAt(0) || 0;
-    if (/\s/.test(char)) return sum + 0.35;
-    if (codePoint <= 0x007f) return sum + 0.58;
-    if (codePoint <= 0x024f) return sum + 0.72;
-    return sum + 1;
-  }, 0);
-}
-
-function wrapArchivePdfText(value, maxUnits = 52) {
-  const plain = archivePlainText(value);
-  if (!plain) return [];
-  const lines = [];
-  const paragraphs = plain.split(/\n+/).map((item) => item.trim()).filter(Boolean);
-  for (const paragraph of paragraphs) {
-    let line = "";
-    let lineUnits = 0;
-    const tokens = paragraph.split(/(\s+)/).filter((token) => token.length > 0);
-    for (const token of tokens) {
-      const tokenUnits = archiveTextUnits(token);
-      if (line && lineUnits + tokenUnits > maxUnits) {
-        lines.push(line.trim());
-        line = "";
-        lineUnits = 0;
-      }
-      if (tokenUnits > maxUnits) {
-        for (const char of Array.from(token)) {
-          const charUnits = archiveTextUnits(char);
-          if (line && lineUnits + charUnits > maxUnits) {
-            lines.push(line.trim());
-            line = "";
-            lineUnits = 0;
-          }
-          line += char;
-          lineUnits += charUnits;
-        }
-      } else {
-        line += token;
-        lineUnits += tokenUnits;
-      }
-    }
-    if (line.trim()) lines.push(line.trim());
-    lines.push("");
-  }
-  while (lines.length && !lines[lines.length - 1]) lines.pop();
-  return lines;
-}
-
-function archivePdfHex(value) {
-  let hex = "";
-  for (const char of Array.from(String(value || ""))) {
-    let codePoint = char.codePointAt(0) || 0x20;
-    if (codePoint > 0xffff || (codePoint >= 0xd800 && codePoint <= 0xdfff)) codePoint = 0x25a1;
-    if (codePoint < 0x20 && codePoint !== 0x09) codePoint = 0x20;
-    hex += codePoint.toString(16).toUpperCase().padStart(4, "0");
-  }
-  return hex || "0020";
-}
-
-function archivePdfLineOp(text, x, y, size, color = "0.11 0.08 0.18") {
-  return `${color} rg BT /F1 ${Number(size).toFixed(2)} Tf 1 0 0 1 ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} Tm <${archivePdfHex(text)}> Tj ET\n`;
-}
-
-function archivePdfScore(value, fallback = 50) {
-  const score = Number(value);
-  const resolved = Number.isFinite(score) ? score : Number(fallback);
-  return Math.max(0, Math.min(100, Math.round(Number.isFinite(resolved) ? resolved : 50)));
-}
-
-function archivePdfRectOp(x, y, width, height, fill, stroke = "", strokeWidth = 0.8) {
-  let ops = `${fill} rg ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} ${Number(width).toFixed(2)} ${Number(height).toFixed(2)} re f\n`;
-  if (stroke) {
-    ops += `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${Number(x).toFixed(2)} ${Number(y).toFixed(2)} ${Number(width).toFixed(2)} ${Number(height).toFixed(2)} re S\n`;
-  }
-  return ops;
-}
-
-function archivePdfPathOp(points = [], fill, stroke = "", strokeWidth = 1) {
-  if (!Array.isArray(points) || points.length < 3) return "";
-  const [first, ...rest] = points;
-  let ops = `${fill} rg ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
-  for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
-  ops += "h f\n";
-  if (stroke) {
-    ops += `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
-    for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
-    ops += "h S\n";
-  }
-  return ops;
-}
-
-function archivePdfStrokePathOp(points = [], stroke = "0.78 0.72 0.86", strokeWidth = 0.6) {
-  if (!Array.isArray(points) || points.length < 3) return "";
-  const [first, ...rest] = points;
-  let ops = `${stroke} RG ${Number(strokeWidth).toFixed(2)} w ${first.x.toFixed(2)} ${first.y.toFixed(2)} m `;
-  for (const point of rest) ops += `${point.x.toFixed(2)} ${point.y.toFixed(2)} l `;
-  return `${ops}h S\n`;
-}
-
-function isSukuyoArchiveReport(archive = {}, metadata = {}, reportType = "") {
-  const aliases = Array.isArray(archive?.reportTypeAliases) ? archive.reportTypeAliases : [];
-  const haystack = [
-    reportType,
-    archive?.reportType,
-    archive?.archiveReportType,
-    metadata?.reportType,
-    metadata?.canonicalReportType,
-    ...aliases,
-  ].map((item) => String(item || "").toLowerCase()).join(" ");
-  return /sukyo|sookyo|sukuyo/.test(haystack) || String(archive?.displayName || "").includes("숙요");
-}
-
-function archiveSukuyoTokenIncludes(value, tokens = []) {
-  const haystack = String(value || "").toLowerCase();
-  return tokens.some((token) => haystack.includes(String(token).toLowerCase()));
-}
-
-function archiveSukuyoDistanceTier(value) {
-  const token = String(value || "").toLowerCase();
-  if (token.includes("근") || token.includes("near")) return "near";
-  if (token.includes("원") || token.includes("far")) return "far";
-  return "middle";
-}
-
-function isArchiveMaoSamAngoeNearFireWater({ localJson = {}, payload = {}, relation = {}, compatibility = {} } = {}) {
-  const selfStar = [
-    localJson?.self?.sukuyoStar,
-    payload?.self?.sukuyoStar,
-    payload?.userSukyo?.nameKo,
-    payload?.userSukyo?.name,
-    payload?.userSukyo?.nameEn,
-  ].join(" ");
-  const partnerStar = [
-    localJson?.partner?.sukuyoStar,
-    payload?.partner?.sukuyoStar,
-    payload?.partnerSukyo?.nameKo,
-    payload?.partnerSukyo?.name,
-    payload?.partnerSukyo?.nameEn,
-  ].join(" ");
-  const relationName = [
-    relation?.typeKo,
-    relation?.typeHan,
-    relation?.type,
-    compatibility?.relationType,
-    compatibility?.relationTypeHan,
-  ].join(" ");
-  const distanceName = [
-    relation?.distanceLabel,
-    relation?.distance,
-    compatibility?.distanceLabel,
-    compatibility?.distance,
-  ].join(" ");
-  const selfElement = [
-    relation?.elementHarmony?.meElement,
-    relation?.elementHarmony?.aElement,
-    localJson?.self?.element,
-    payload?.userSukyo?.element,
-  ].join(" ");
-  const partnerElement = [
-    relation?.elementHarmony?.otherElement,
-    relation?.elementHarmony?.bElement,
-    localJson?.partner?.element,
-    payload?.partnerSukyo?.element,
-  ].join(" ");
-  return archiveSukuyoTokenIncludes(selfStar, ["묘", "mao", "卯"])
-    && archiveSukuyoTokenIncludes(partnerStar, ["삼", "sam", "參"])
-    && archiveSukuyoTokenIncludes(relationName, ["안괴", "安壞", "angoe", "ankai"])
-    && archiveSukuyoDistanceTier(distanceName) === "near"
-    && archiveSukuyoTokenIncludes(selfElement, ["화", "火", "fire"])
-    && archiveSukuyoTokenIncludes(partnerElement, ["수", "水", "water"]);
-}
-
-function buildSukuyoArchiveVisualModel(archive = {}, metadata = {}, reportType = "") {
-  if (!isSukuyoArchiveReport(archive, metadata, reportType)) return null;
-  const payload = archive?.payload && typeof archive.payload === "object" ? archive.payload : {};
-  const localJson = archive?.localSukuyoCompatibilityJson && typeof archive.localSukuyoCompatibilityJson === "object"
-    ? archive.localSukuyoCompatibilityJson
-    : payload?.localSukuyoCompatibilityJson && typeof payload.localSukuyoCompatibilityJson === "object"
-      ? payload.localSukuyoCompatibilityJson
-      : payload;
-  const relation = localJson?.relation && typeof localJson.relation === "object" ? localJson.relation : {};
-  const compatibility = payload?.compatibility && typeof payload.compatibility === "object" ? payload.compatibility : {};
-  const chemistry = relation?.chemistry && typeof relation.chemistry === "object" ? relation.chemistry : {};
-  const exactPromptScores = isArchiveMaoSamAngoeNearFireWater({ localJson, payload, relation, compatibility });
-  const items = exactPromptScores
-    ? [
-      { label: "감정 공명", value: 72, color: "0.56 0.28 0.86" },
-      { label: "대화 안정성", value: 65, color: "0.06 0.58 0.62" },
-      { label: "갈등 회복력", value: 48, color: "0.86 0.55 0.08" },
-      { label: "가치관 일치", value: 61, color: "0.18 0.45 0.86" },
-      { label: "장기 지속력", value: 55, color: "0.18 0.62 0.32" },
-      { label: "친밀감 깊이", value: 78, color: "0.88 0.26 0.20" },
-      { label: "성장 시너지", value: 59, color: "0.56 0.28 0.86" },
-    ]
-    : [
-      { label: "감정 공명", value: archivePdfScore(chemistry.emotional ?? compatibility.temperature ?? compatibility.chemistryScore, 58), color: "0.56 0.28 0.86" },
-      { label: "대화 안정성", value: archivePdfScore(chemistry.communication ?? compatibility.communicationScore, 55), color: "0.06 0.58 0.62" },
-      { label: "갈등 회복력", value: archivePdfScore(chemistry.recoveryPotential ?? compatibility.growthScore, 51), color: "0.86 0.55 0.08" },
-      { label: "가치관 일치", value: archivePdfScore(chemistry.dailyLife ?? compatibility.stabilityScore, 53), color: "0.18 0.45 0.86" },
-      { label: "장기 지속력", value: archivePdfScore(chemistry.longTermPotential ?? compatibility.compatibilityIndex, 50), color: "0.18 0.62 0.32" },
-      { label: "친밀감 깊이", value: archivePdfScore(chemistry.physical ?? compatibility.chemistryScore ?? chemistry.emotional, 56), color: "0.88 0.26 0.20" },
-      { label: "성장 시너지", value: archivePdfScore(relation.magnetism ?? compatibility.growthScore ?? chemistry.recoveryPotential, 52), color: "0.56 0.28 0.86" },
-    ];
-  const radarItems = exactPromptScores
-    ? [
-      { label: "끌림", value: 82 },
-      { label: "소통", value: 65 },
-      { label: "회복", value: 48 },
-      { label: "안정", value: 55 },
-      { label: "성장", value: 59 },
-      { label: "현실", value: 61 },
-    ]
-    : [
-      { label: "끌림", value: archivePdfScore(relation.magnetism ?? compatibility.chemistryScore ?? items[5]?.value, 58) },
-      { label: "소통", value: items[1].value },
-      { label: "회복", value: items[2].value },
-      { label: "안정", value: items[4].value },
-      { label: "성장", value: items[6].value },
-      { label: "현실", value: items[3].value },
-    ];
-  return {
-    type: "sukuyo",
-    relationType: archivePlainText(relation.typeKo || relation.type || compatibility.relationType || "숙요 궁합"),
-    distance: archivePlainText(relation.distanceLabel || compatibility.distanceLabel || ""),
-    selfStar: archivePlainText(localJson?.self?.sukuyoStar || payload?.self?.sukuyoStar || ""),
-    partnerStar: archivePlainText(localJson?.partner?.sukuyoStar || payload?.partner?.sukuyoStar || ""),
-    relationTheme: archivePlainText(relation.relationTheme || ""),
-    items,
-    radarItems,
-  };
-}
-
-function pushArchivePdfBlock(blocks, label, value) {
-  const text = archivePlainText(value);
-  if (!text) return;
-  if (label) blocks.push({ type: "heading", text: label });
-  blocks.push({ type: "body", text });
-}
-
-function pushArchivePdfListBlock(blocks, label, values) {
-  const items = (Array.isArray(values) ? values : [])
-    .map((item) => archivePlainText(item))
-    .filter(Boolean)
-    .slice(0, 8);
-  if (!items.length) return;
-  if (label) blocks.push({ type: "heading", text: label });
-  blocks.push({ type: "list", text: items.map((item) => `• ${item}`).join("\n") });
-}
-
-function pushArchivePdfTableBlock(blocks, section = {}) {
-  const rows = Array.isArray(section?.tableRows) ? section.tableRows : [];
-  if (!rows.length) return;
-  const headers = Array.isArray(section?.tableHeaders) ? section.tableHeaders.map((header) => archivePlainText(header)).filter(Boolean) : [];
-  const title = archivePlainText(section?.tableTitle || "관계 흐름 표");
-  blocks.push({ type: "heading", text: title });
-  if (headers.length) blocks.push({ type: "table", text: headers.join(" | ") });
-  blocks.push({
-    type: "table",
-    text: rows
-      .slice(0, 12)
-      .map((row) => (Array.isArray(row) ? row : [row]).map((cell) => archivePlainText(cell)).filter(Boolean).join(" | "))
-      .filter(Boolean)
-      .join("\n"),
-  });
-}
-
-function buildArchivePdfSections({ archive = {}, metadata = {}, reportId = "", htmlContent = "" } = {}) {
-  const title = archivePlainText(archive?.title || archive?.displayName || metadata?.displayName || "Code Destiny Premium PDF");
-  const reportType = archivePlainText(archive?.archiveReportType || archive?.reportType || metadata?.reportType || "");
-  const displayName = archivePlainText(archive?.displayName || metadata?.displayName || title || "프리미엄 운명 리포트");
-  const coverKicker = /vedic|jyotish/i.test(reportType)
-    ? "VEDIC JYOTISH PREMIUM"
-    : /love[_-]?book|love[_-]?secret/i.test(reportType)
-    ? "PREMIUM LOVE READING"
-    : /soul[_-]?origin|soulOriginKarma/i.test(reportType)
-      ? "SOUL ORIGIN KARMA REPORT"
-      : isSukuyoArchiveReport(archive, metadata, reportType)
-        ? "SUKUYO COMPATIBILITY MAP"
-      : "CODE DESTINY PREMIUM REPORT";
-  const visualModel = buildSukuyoArchiveVisualModel(archive, metadata, reportType);
-  const generatedAt = toIso(archive?.completedAt || archive?.generatedAt || archive?.pdfReady?.generatedAt || metadata?.completedAt || metadata?.generatedAt || new Date());
-  const chapters = Array.isArray(archive?.chapters) ? archive.chapters : [];
-  const sections = chapters.map((chapter, index) => {
-    const chapterTitle = archivePlainText(chapter?.title || chapter?.name || `Chapter ${index + 1}`);
-    const blocks = [];
-    pushArchivePdfBlock(blocks, "", chapter?.summary || chapter?.overview || chapter?.intro);
-    pushArchivePdfListBlock(blocks, "핵심 요약", chapter?.summaryCards || chapter?.keyPoints);
-    pushArchivePdfListBlock(blocks, "실행 방향", chapter?.actionItems || chapter?.actionGuide || chapter?.advice);
-    pushArchivePdfListBlock(blocks, "확인 체크리스트", chapter?.checklist);
-    if (Array.isArray(chapter?.categories)) {
-      for (const category of chapter.categories) {
-        pushArchivePdfBlock(blocks, category?.title || category?.name || "", category?.finalText || category?.text || category?.content || category?.summary);
-      }
-    }
-    if (Array.isArray(chapter?.sections)) {
-      for (const section of chapter.sections) {
-        pushArchivePdfBlock(blocks, section?.title || section?.name || "", section?.finalText || section?.text || section?.content || section?.body);
-        pushArchivePdfListBlock(blocks, "사주 근거", section?.sajuEvidence);
-        pushArchivePdfListBlock(blocks, "핵심 포인트", section?.keyPoints);
-        pushArchivePdfListBlock(blocks, "실천 조언", section?.actionGuide || section?.actionItems || section?.advice);
-        pushArchivePdfListBlock(blocks, "살펴볼 부분", section?.caution);
-        pushArchivePdfListBlock(blocks, "체크리스트", section?.checklist);
-        pushArchivePdfTableBlock(blocks, section);
-      }
-    }
-    pushArchivePdfBlock(blocks, "실행 방향", chapter?.practicalAdvice);
-    pushArchivePdfBlock(blocks, "살펴볼 부분", chapter?.cautionFlow);
-    pushArchivePdfBlock(blocks, "다음 선택", chapter?.transitionLine);
-    pushArchivePdfBlock(blocks, "", chapter?.finalText || chapter?.text || chapter?.content || chapter?.body);
-    return { title: chapterTitle, blocks };
-  }).filter((section) => section.title || section.blocks.length);
-  if (!sections.length) {
-    const fallbackLines = archivePlainText(htmlContent).split(/\n+/).map((line) => line.trim()).filter(Boolean);
-    const blocks = fallbackLines.slice(0, 160).map((line) => ({ type: "body", text: line }));
-    if (blocks.length) sections.push({ title: title || "Premium Report", blocks });
-  }
-  return { title, displayName, coverKicker, generatedAt, reportId: cleanText(reportId, 120), sections, visualModel };
-}
-
-function buildNativeArchivePdfBytes(input = {}) {
-  const encoder = new TextEncoder();
-  const model = buildArchivePdfSections(input);
-  const width = 595.28;
-  const height = 841.89;
-  const marginX = 52;
-  const pages = [];
-  const title = model.title || "Code Destiny Premium PDF";
-  const generatedDate = model.generatedAt ? model.generatedAt.slice(0, 10) : "";
-
-  function pageBase(sectionTitle) {
-    let ops = "";
-    ops += "0.985 0.978 1 rg 0 0 595.28 841.89 re f\n";
-    ops += "0.155 0.09 0.29 rg 0 801.89 595.28 40 re f\n";
-    ops += archivePdfLineOp("CODE DESTINY", marginX, 818, 9, "0.88 0.82 1");
-    ops += archivePdfLineOp(sectionTitle || title, marginX, 785, 13, "0.20 0.11 0.34");
-    ops += "0.82 0.78 0.90 RG 0.8 w 52 769 m 543 769 l S\n";
-    return ops;
-  }
-
-  function finalizePage(ops, pageNo) {
-    let next = ops;
-    next += "0.82 0.78 0.90 RG 0.6 w 52 42 m 543 42 l S\n";
-    next += archivePdfLineOp(`${pageNo}`, 526, 24, 8, "0.46 0.40 0.55");
-    return next;
-  }
-
-  function addCoverPage() {
-    let ops = "";
-    ops += "0.105 0.07 0.19 rg 0 0 595.28 841.89 re f\n";
-    ops += "0.35 0.18 0.67 rg 0 0 595.28 210 re f\n";
-    ops += archivePdfLineOp(model.coverKicker || "CODE DESTINY PREMIUM REPORT", marginX, 708, 11, "0.82 0.72 1");
-    const coverTitleLines = wrapArchivePdfText(title, 22).slice(0, 4);
-    coverTitleLines.forEach((line, index) => {
-      ops += archivePdfLineOp(line, marginX, 650 - (index * 28), 24, "0.98 0.95 1");
-    });
-    ops += archivePdfLineOp(model.displayName || "프리미엄 운명 리포트", marginX, 548, 14, "0.94 0.86 1");
-    if (generatedDate) ops += archivePdfLineOp(`생성일 ${generatedDate}`, marginX, 514, 10, "0.83 0.77 0.92");
-    if (model.reportId) ops += archivePdfLineOp(`고유번호 ${model.reportId}`, marginX, 492, 8, "0.72 0.66 0.84");
-    pages.push(ops);
-  }
-
-  function addSukuyoVisualPage(visual = {}) {
-    let ops = pageBase("숙요 궁합 시각 지도");
-    ops += archivePdfRectOp(52, 610, 491, 116, "0.12 0.08 0.23", "0.80 0.70 0.95", 0.9);
-    ops += archivePdfLineOp("숙요 궁합 시각 지도", 74, 690, 19, "0.99 0.95 1");
-    ops += archivePdfLineOp(`${visual.selfStar || "본명숙"}  ×  ${visual.partnerStar || "상대숙"}`, 74, 662, 12, "0.90 0.84 1");
-    ops += archivePdfLineOp([visual.relationType, visual.distance].filter(Boolean).join(" · ") || "관계 흐름", 74, 640, 11, "0.99 0.88 0.64");
-    const themeLines = wrapArchivePdfText(visual.relationTheme || "관계의 온도와 회복의 결이 점수의 층으로 드러납니다.", 42).slice(0, 2);
-    themeLines.forEach((line, index) => {
-      ops += archivePdfLineOp(line, 286, 690 - (index * 17), 10, "0.92 0.88 0.98");
-    });
-
-    ops += archivePdfLineOp("관계 에너지 그래프", 58, 578, 14, "0.22 0.10 0.36");
-    let barY = 548;
-    for (const item of visual.items || []) {
-      const value = archivePdfScore(item.value);
-      ops += archivePdfLineOp(item.label, 66, barY + 4, 9.2, "0.17 0.12 0.24");
-      ops += archivePdfLineOp(`${value}`, 504, barY + 4, 9.2, "0.17 0.12 0.24");
-      ops += archivePdfRectOp(154, barY, 326, 10, "0.90 0.86 0.95");
-      ops += archivePdfRectOp(154, barY, 326 * (value / 100), 10, item.color || "0.56 0.28 0.86");
-      barY -= 31;
-    }
-
-    ops += archivePdfLineOp("조율 레이더", 58, 300, 14, "0.22 0.10 0.36");
-    const cx = 300;
-    const cy = 184;
-    const radius = 100;
-    const radarItems = Array.isArray(visual.radarItems) ? visual.radarItems : [];
-    for (const scale of [0.25, 0.5, 0.75, 1]) {
-      const ring = radarItems.map((_, index) => {
-        const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
-        return { x: cx + Math.cos(angle) * radius * scale, y: cy + Math.sin(angle) * radius * scale };
-      });
-      if (ring.length >= 3) ops += archivePdfStrokePathOp(ring, "0.78 0.72 0.86", 0.45);
-    }
-    const shape = radarItems.map((item, index) => {
-      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
-      const value = archivePdfScore(item.value) / 100;
-      return { x: cx + Math.cos(angle) * radius * value, y: cy + Math.sin(angle) * radius * value };
-    });
-    if (shape.length >= 3) ops += archivePdfPathOp(shape, "0.70 0.91 0.88", "0.86 0.62 0.16", 1.3);
-    radarItems.forEach((item, index) => {
-      const angle = (-Math.PI / 2) + (index * 2 * Math.PI / Math.max(1, radarItems.length));
-      const labelX = cx + Math.cos(angle) * (radius + 34);
-      const labelY = cy + Math.sin(angle) * (radius + 34);
-      ops += archivePdfLineOp(`${item.label} ${archivePdfScore(item.value)}`, labelX - 30, labelY, 8.3, "0.18 0.13 0.25");
-    });
-    pages.push(ops);
-  }
-
-  function addTextSection(section, sectionIndex) {
-    let ops = pageBase(section.title);
-    let y = 742;
-    const pageTitle = section.title || `${sectionIndex + 1}`;
-    function commitPage() {
-      pages.push(ops);
-      ops = pageBase(pageTitle);
-      y = 742;
-    }
-    function ensureLine(needed = 16) {
-      if (y < 70 + needed) commitPage();
-    }
-    for (const line of wrapArchivePdfText(`${String(sectionIndex + 1).padStart(2, "0")}  ${pageTitle}`, 38)) {
-      ensureLine(24);
-      ops += archivePdfLineOp(line, marginX, y, 17, "0.18 0.09 0.31");
-      y -= 27;
-    }
-    y -= 5;
-    for (const block of section.blocks || []) {
-      const blockType = archivePlainText(block?.type || "body");
-      const isHeading = blockType === "heading";
-      const isList = blockType === "list";
-      const isTable = blockType === "table";
-      const size = isHeading ? 11.2 : isTable ? 8.8 : isList ? 9.2 : 9.8;
-      const leading = isHeading ? 20 : isTable ? 13.2 : isList ? 14.2 : 15.2;
-      const maxUnits = isHeading ? 44 : isTable ? 64 : isList ? 56 : 58;
-      const color = isHeading ? "0.32 0.14 0.55" : isTable ? "0.30 0.23 0.38" : isList ? "0.22 0.12 0.30" : "0.13 0.10 0.18";
-      const lines = wrapArchivePdfText(block?.text || "", maxUnits);
-      if (!lines.length) continue;
-      if (isHeading) y -= 4;
-      for (const line of lines) {
-        if (!line) {
-          y -= 7;
-          continue;
-        }
-        ensureLine(leading);
-        ops += archivePdfLineOp(line, marginX, y, size, color);
-        y -= leading;
-      }
-      y -= isHeading ? 2 : 7;
-    }
-    pages.push(ops);
-  }
-
-  addCoverPage();
-  if (model.visualModel?.type === "sukuyo") addSukuyoVisualPage(model.visualModel);
-  if (model.sections.length > 1) {
-    let ops = pageBase("목차");
-    let y = 742;
-    model.sections.forEach((section, index) => {
-      if (y < 76) {
-        pages.push(ops);
-        ops = pageBase("목차");
-        y = 742;
-      }
-      ops += archivePdfLineOp(`${String(index + 1).padStart(2, "0")}  ${section.title}`, marginX, y, 11, "0.16 0.10 0.26");
-      y -= 20;
-    });
-    pages.push(ops);
-  }
-  model.sections.forEach(addTextSection);
-  if (!pages.length) pages.push(pageBase(title));
-
-  const finalizedPages = pages.map((ops, index) => finalizePage(ops, index + 1));
-  const objects = [null];
-  objects.push("<< /Type /Catalog /Pages 2 0 R >>");
-  objects.push("");
-  objects.push("<< /Type /Font /Subtype /CIDFontType0 /BaseFont /HYGoThic-Medium /CIDSystemInfo << /Registry (Adobe) /Ordering (Korea1) /Supplement 2 >> >>");
-  objects.push("<< /Type /Font /Subtype /Type0 /BaseFont /HYGoThic-Medium /Encoding /UniKS-UCS2-H /DescendantFonts [3 0 R] >>");
-  const pageIds = [];
-  for (const pageOps of finalizedPages) {
-    const contentId = objects.length;
-    objects.push(`<< /Length ${encoder.encode(pageOps).length} >>\nstream\n${pageOps}endstream`);
-    const pageId = objects.length;
-    objects.push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /Font << /F1 4 0 R >> >> /Contents ${contentId} 0 R >>`);
-    pageIds.push(pageId);
-  }
-  objects[2] = `<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${pageIds.length} >>`;
-  let pdf = "%PDF-1.7\n%\u00E2\u00E3\u00CF\u00D3\n";
-  const offsets = [];
-  for (let index = 1; index < objects.length; index += 1) {
-    offsets[index] = encoder.encode(pdf).length;
-    pdf += `${index} 0 obj\n${objects[index]}\nendobj\n`;
-  }
-  const xrefOffset = encoder.encode(pdf).length;
-  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
-  for (let index = 1; index < objects.length; index += 1) {
-    pdf += `${String(offsets[index]).padStart(10, "0")} 00000 n \n`;
-  }
-  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
-  return encoder.encode(pdf);
-}
-
-async function requireArchiveAuth(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
-  if (!auth?.userId) {
-    return {
-      ok: false,
-      response: failure(401, "AUTH_REQUIRED", "로그인이 필요합니다."),
-      auth: null,
-    };
-  }
-  return { ok: true, auth, response: null };
-}
-
-async function handlePdfArchiveList(request, env) {
-  const authCheck = await requireArchiveAuth(request, env);
-  if (!authCheck.ok) return authCheck.response;
-
-  await connectDb(env);
-  const docs = await ServiceExecutionTransaction.find({
-    userId: authCheck.auth.userId,
-    status: "success",
-    premiumStatus: "completed",
-    reportId: { $exists: true, $ne: "" },
-  })
-    .sort({ completedAt: -1, updatedAt: -1, createdAt: -1 })
-    .limit(120)
-    .lean();
-
-  const items = docs
-    .map((doc) => toArchiveBase(doc))
-    .filter((item) => item.reportId)
-    .sort((a, b) => String(b.completedAt || b.updatedAt || "").localeCompare(String(a.completedAt || a.updatedAt || "")));
-
-  return json({ ok: true, items });
-}
-
-async function handlePdfArchiveDetail(request, env, reportIdRaw) {
-  const authCheck = await requireArchiveAuth(request, env);
-  if (!authCheck.ok) return authCheck.response;
-
-  const reportId = cleanText(reportIdRaw, 120);
-  if (!reportId) {
-    return failure(400, "MISSING_REPORT_ID", "reportId가 필요합니다.");
-  }
-
-  await connectDb(env);
-
-  const foundAny = await ServiceExecutionTransaction.findOne({ reportId }).lean();
-  if (foundAny && String(foundAny.userId || "") !== String(authCheck.auth.userId || "")) {
-    return failure(403, "FORBIDDEN", "이 리포트를 열람할 권한이 없습니다.");
-  }
-
-  const doc = await ServiceExecutionTransaction.findOne({
-    userId: authCheck.auth.userId,
-    reportId,
-    status: "success",
-    premiumStatus: "completed",
-  })
-    .sort({ completedAt: -1, updatedAt: -1 })
-    .lean();
-
-  if (!doc) {
-    return failure(404, "REPORT_NOT_FOUND", "저장된 PDF 결과를 찾을 수 없습니다.");
-  }
-
-  const format = cleanText(new URL(request.url).searchParams.get("format"), 40).toLowerCase();
-  const metadata = (doc && typeof doc.metadata === "object" && doc.metadata) ? doc.metadata : {};
-  const archive = (metadata.archive && typeof metadata.archive === "object") ? metadata.archive : {};
-  const htmlContent = String(
-    archive?.pdfReady?.html
-    || archive?.lifeBookPdfRecord?.htmlContent
-    || metadata?.lifeBookPdfRecord?.htmlContent
-    || "",
-  );
-  if (format === "html" || format === "document" || format === "print") {
-    if (!htmlContent.trim()) {
-      return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
-    }
-    const fileBase = cleanText(archive?.title || archive?.displayName || reportId, 120)
-      .replace(/[^\w가-힣.-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      || "code-destiny-report";
-    const asciiFileBase = fileBase.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "code-destiny-report";
-    const encodedFileName = encodeURIComponent(`${fileBase}.html`);
-    return new Response(htmlContent, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/html; charset=UTF-8",
-        "Content-Disposition": `inline; filename="${asciiFileBase}.html"; filename*=UTF-8''${encodedFileName}`,
-        "Cache-Control": "private, no-store",
-      },
-    });
-  }
-  if (format === "pdf" || format === "download") {
-    const hasArchiveChapters = Array.isArray(archive?.chapters) && archive.chapters.length > 0;
-    if (!htmlContent.trim() && !hasArchiveChapters) {
-      return failure(404, "PDF_HTML_NOT_FOUND", "저장된 PDF 문서를 찾을 수 없습니다.");
-    }
-    const fileBase = cleanText(archive?.title || archive?.displayName || reportId, 120)
-      .replace(/[^\w가-힣.-]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      || "code-destiny-report";
-    const asciiFileBase = fileBase.replace(/[^\w.-]+/g, "-").replace(/^-+|-+$/g, "") || "code-destiny-report";
-    const encodedFileName = encodeURIComponent(`${fileBase}.pdf`);
-    const pdfBytes = buildNativeArchivePdfBytes({ archive, metadata, reportId, htmlContent });
-    return new Response(pdfBytes, {
-      status: 200,
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${asciiFileBase}.pdf"; filename*=UTF-8''${encodedFileName}`,
-        "Cache-Control": "private, no-store",
-        "X-CD-PDF-Renderer": "native-text-v1",
-      },
-    });
-  }
-
-  const report = toArchiveBase(doc);
-  return json({ ok: true, report });
-}
-
 function failure(status, code, message, debugMessage, extras = {}, errorDetails) {
   const normalizedCode = normalizeBillingErrorCode(code);
   const responseStatus = extras?.status || (Number(status) === 402 ? "payment_required" : "error");
@@ -3097,7 +2407,6 @@ function resolvePaidReportSessionFallback(pricing = {}, reportId = "", requestId
   const featureKey = String(pricing?.featureKey || "").trim();
   const id = String(reportId || "").trim();
   if (!id) return String(requestId || "").trim();
-  if (featureKey === "premium_pdf_soul_origin" || featureKey === "premium-soul-origin-report") return `soul-origin:${id}`;
   if (/love[_-]?secret|love[_-]?book/i.test(featureKey)) return `love-book:${id}`;
   return `paid-report:${id}`;
 }
@@ -6432,11 +5741,6 @@ export async function handleBillingRoutes(request, env) {
     if (method === "POST" && path === "/executions/complete") return await runServiceExecutionAction(request, env, "complete");
     if (method === "POST" && path === "/executions/fail") return await runServiceExecutionAction(request, env, "fail");
     if (method === "GET" && path === "/executions/status") return await getServiceExecutionStatus(request, env);
-    if (method === "GET" && path === "/pdf-archive") return await handlePdfArchiveList(request, env);
-    if (method === "GET" && path.startsWith("/pdf-archive/")) {
-      const reportId = cleanText(path.slice("/pdf-archive/".length), 120);
-      return await handlePdfArchiveDetail(request, env, reportId);
-    }
 
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
@@ -6452,7 +5756,6 @@ export const __billingTestUtils = {
   buildPaidContentAccessDecision,
   buildPassPaymentDecision,
   buildMembershipPassFromStatusSnapshot,
-  buildNativeArchivePdfBytes,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

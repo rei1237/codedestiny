@@ -73,19 +73,6 @@ type ProfileStatePayload = {
   subscription?: ProfileSubscription;
 };
 
-type PremiumPdfArchiveItem = {
-  reportId: string;
-  reportType: string;
-  title?: string;
-  displayName?: string;
-  mode?: string;
-  completedAt?: string;
-  birthName?: string;
-  targetName?: string;
-  canReopen?: boolean;
-  canDownload?: boolean;
-  pdfUrl?: string;
-};
 
 type ProfileActionType = "create" | "delete";
 
@@ -472,9 +459,6 @@ export default function MePage() {
   const [hasLocalAuth, setHasLocalAuth] = useState(true);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [busyAction, setBusyAction] = useState<string>("");
-  const [archiveItems, setArchiveItems] = useState<PremiumPdfArchiveItem[]>([]);
-  const [archiveLoading, setArchiveLoading] = useState(false);
-  const [archiveNotice, setArchiveNotice] = useState("");
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
   const [createDraft, setCreateDraft] = useState<ProfileCreateDraft>(buildCreateDraft());
@@ -612,45 +596,6 @@ export default function MePage() {
     applyProfilePayload(payload);
   }, [apiBase, applyProfilePayload, clearProfileState]);
 
-  const loadPdfArchive = useCallback(async () => {
-    setArchiveLoading(true);
-    try {
-      const response = await authFetch(`${apiBase}/api/premium/pdf-archive`, {
-        method: "GET",
-        cache: "no-store",
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-
-      const payload = await response.json().catch(() => null);
-      if (!response.ok || !payload?.ok) {
-        setArchiveItems([]);
-        setArchiveNotice(String(payload?.error?.message || payload?.message || "PDF 보관함을 불러오지 못했습니다."));
-        return;
-      }
-
-      const items = Array.isArray(payload?.items) ? payload.items as PremiumPdfArchiveItem[] : [];
-      setArchiveItems(items);
-      setArchiveNotice("");
-
-      try {
-        const recent = items.slice(0, 30).map((item) => ({
-          reportId: String(item?.reportId || ""),
-          reportType: String(item?.reportType || ""),
-          title: String(item?.title || ""),
-          completedAt: String(item?.completedAt || ""),
-        }));
-        window.localStorage.setItem("codeDestinyPremiumPdfArchive", JSON.stringify(recent));
-      } catch {}
-    } catch {
-      setArchiveItems([]);
-      setArchiveNotice("PDF 보관함을 불러오는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setArchiveLoading(false);
-    }
-  }, [apiBase]);
-
   useEffect(() => {
     let mounted = true;
 
@@ -681,7 +626,6 @@ export default function MePage() {
         if (mounted) {
           await loadProfileState();
           await refreshProfileActionBalance();
-          await loadPdfArchive();
         }
       } catch (error) {
         if (!mounted) return;
@@ -703,7 +647,7 @@ export default function MePage() {
     return () => {
       mounted = false;
     };
-  }, [apiBase, clearProfileState, loadPdfArchive, loadProfileState, refreshProfileActionBalance, router]);
+  }, [apiBase, clearProfileState, loadProfileState, refreshProfileActionBalance, router]);
 
   const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
@@ -1459,69 +1403,6 @@ export default function MePage() {
               )}
             </div>
           </aside>
-        </section>
-
-        <section className="rounded-lg border border-white/10 bg-white/[0.04] p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-amber-300">PDF Archive</p>
-              <h2 className="mt-1 text-xl font-bold text-white">PDF 보관함</h2>
-              <p className="mt-1 text-sm text-slate-300">완성된 인생의 책과 프리미엄 리포트를 다시 열람하고 내려받을 수 있습니다.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void loadPdfArchive()}
-              className="rounded-md border border-white/20 px-3 py-2 text-xs font-semibold text-slate-200"
-            >
-              새로고침
-            </button>
-          </div>
-
-          {archiveNotice ? (
-            <div className="mt-4 rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              {archiveNotice}
-            </div>
-          ) : null}
-
-          {archiveLoading ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">PDF 보관함을 불러오는 중입니다.</div>
-          ) : archiveItems.length === 0 ? (
-            <div className="mt-4 rounded-lg border border-dashed border-white/20 p-4 text-sm text-slate-300">아직 보관된 프리미엄 PDF가 없습니다.</div>
-          ) : (
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {archiveItems.map((item) => {
-                const displayName = String(item.displayName || "운명 리포트");
-                const title = String(item.title || displayName);
-                const subject = String(item.targetName || item.birthName || "").trim();
-                return (
-                  <article key={item.reportId} className="rounded-lg border border-white/10 bg-black/15 p-4">
-                    <p className="text-xs font-semibold text-amber-200">{displayName}</p>
-                    <h3 className="mt-1 text-base font-bold text-white">{title}</h3>
-                    <p className="mt-2 text-xs text-slate-300">{formatArchiveDate(item.completedAt)} 생성</p>
-                    <p className="mt-1 text-xs text-slate-400">유형 {modeLabel(item.mode)}{subject ? ` · ${subject}` : ""}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Link
-                        href={`/me/reports?reportId=${encodeURIComponent(item.reportId)}`}
-                        className="rounded-md bg-amber-300 px-3 py-1.5 text-xs font-bold text-slate-900"
-                      >
-                        다시 열기
-                      </Link>
-                      {item.canDownload && item.pdfUrl ? (
-                        <a
-                          href={item.pdfUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded-md border border-white/20 px-3 py-1.5 text-xs font-semibold text-slate-200"
-                        >
-                          PDF 다운로드
-                        </a>
-                      ) : null}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
         </section>
       </div>
 

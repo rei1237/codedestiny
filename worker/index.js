@@ -413,7 +413,6 @@ const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => impo
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
-const handleSoulOriginRoutes = createLazyRouteHandler("./routes/soul-origin.js", () => import("./routes/soul-origin.js"), "handleSoulOriginRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
@@ -1389,10 +1388,6 @@ export default {
 
       if (url.pathname === "/api/vedic" || url.pathname.startsWith("/api/vedic/")) {
         return withCorsHeaders(request, env, await handleAstroRoutes(request, env));
-      }
-
-      if (url.pathname === "/api/soul-origin" || url.pathname.startsWith("/api/soul-origin/")) {
-        return withCorsHeaders(request, env, await handleSoulOriginRoutes(request, env));
       }
 
       if (url.pathname === "/api/debug" || url.pathname.startsWith("/api/debug/")) {

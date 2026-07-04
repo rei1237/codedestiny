@@ -9,14 +9,9 @@ import { verifyPremiumAccessToken } from "./premium-access-token.js";
 import { normalizeHoneyPassEntitlement } from "./profile-limits.js";
 
 export const PREMIUM_UNLOCK_POLICY = Object.freeze({
-  lifeBook: [],
   ziweiPremium: ["premium-ziwei", "premiumDivinationPack"],
-  westernAstrologyPremium: ["premium-astrology", "premiumDivinationPack"],
-  sookyoPremium: ["premium-sukuyo", "premiumDivinationPack"],
   sukuyoPastLifeReading: ["sukuyo-past-life-reading", "premiumDivinationPack"],
-  vedicPremium: ["premium-veda", "premiumDivinationPack"],
   celestialHarmony: ["premiumDivinationPack"],
-  soulOriginKarma: ["premiumDivinationPack"],
   fptiPremium: ["premium-fpti-report"],
 });
 
@@ -195,35 +190,6 @@ function normalizeModeToken(requestBody = {}) {
 }
 
 export function buildAlternativePaymentRules(reportType, requestBody = {}) {
-  if (reportType === "lifeBook") {
-    return [
-      {
-        featureKey: "saju_life_book_pdf",
-        reason: "인생의 책 생성 (13챕터)",
-        minCost: 500,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium_pdf_saju_life_book",
-        reason: "인생의 책 생성 (13챕터)",
-        minCost: 500,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium-lifebook-report",
-        reason: "인생의 책 생성 (13챕터)",
-        minCost: 500,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "인생의 책 생성 (13챕터)",
-        minCost: 500,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
   if (reportType === "celestialHarmony") {
     return [
       {
@@ -256,87 +222,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     }];
   }
 
-  if (reportType === "westernAstrologyPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    const isCompat = modeToken.includes("compat");
-    return [
-      {
-        featureKey: isCompat ? "premium_pdf_western_astrology_compat" : "premium_pdf_western_astrology",
-        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: isCompat ? "premium-astrology-report-compat" : "premium-astrology-report",
-        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: isCompat ? "점성술 프리미엄 PDF 궁합 리포트 생성" : "점성술 프리미엄 PDF 리포트 생성",
-        minCost: isCompat ? 490 : 390,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
-  if (reportType === "sookyoPremium") {
-    const modeToken = normalizeModeToken(requestBody);
-    const isCompat = modeToken.includes("compat");
-    const baseRules = [
-      {
-        featureKey: "premium-sukuyo",
-        reason: "숙요점 인생 총람 생성",
-        minCost: 390,
-        windowMinutes: 240,
-      },
-      {
-        featureKey: "premium_pdf_sukyo",
-        reason: "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: 390,
-        windowMinutes: 240,
-      },
-      {
-        featureKey: "premium-sukuyo-report",
-        reason: "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: 390,
-        windowMinutes: 240,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "숙요점 프리미엄 PDF 리포트 생성",
-        minCost: 390,
-        windowMinutes: 240,
-      },
-    ];
-
-    if (isCompat) {
-      return [
-        {
-          featureKey: "premium_pdf_sukyo_compat",
-          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 240,
-        },
-        {
-          featureKey: "premium-sukuyo-report-compat",
-          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 240,
-        },
-        {
-          featureKey: "coin-gate-per-use",
-          reason: "숙요점 프리미엄 PDF 궁합 리포트 생성",
-          minCost: 490,
-          windowMinutes: 240,
-        },
-      ];
-    }
-
-    return baseRules;
-  }
-
   if (reportType === "sukuyoPastLifeReading") {
     return [
       {
@@ -350,70 +235,6 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
         reason: "숙요 전생 인연 리딩",
         minCost: 100,
         windowMinutes: 240,
-      },
-    ];
-  }
-
-  if (reportType === "vedicPremium") {
-    return [
-      {
-        featureKey: "premium_pdf_vedic",
-        reason: "베다점 AI 상담 결과 생성",
-        minCost: 390,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium-vedic-report",
-        reason: "베다점 AI 상담 결과 생성",
-        minCost: 390,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "베다점 AI 상담 결과 생성",
-        minCost: 390,
-        windowMinutes: 120,
-      },
-    ];
-  }
-
-  if (reportType === "soulOriginKarma") {
-    return [
-      {
-        featureKey: "premium_pdf_soul_origin",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "soulOriginKarma",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "soul_origin_karma",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "soul-origin",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "premium-soul-origin-report",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
-      },
-      {
-        featureKey: "coin-gate-per-use",
-        reason: "운명의 업 생성",
-        minCost: 690,
-        windowMinutes: 120,
       },
     ];
   }
@@ -774,8 +595,7 @@ function premiumTokenMatchesRequestBinding(tokenPayload = {}, binding = {}) {
 }
 
 function requiresContextBoundPremiumPaymentEvidence(reportType = "") {
-  const normalized = String(reportType || "").trim();
-  return normalized === "vedicPremium" || normalized === "soulOriginKarma";
+  return false;
 }
 
 async function findEvidenceByPaymentTokens(userId, requestBody = {}, rules = [], options = {}) {
@@ -926,7 +746,7 @@ function buildPaymentRequiredResult(reportType, requiredRules = [], requestBody 
 
 export async function requirePremiumReportAccess(env, userId, reportType, requestBody = {}) {
   const normalizedReportType = String(reportType || "").trim();
-  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium" || normalizedReportType === "sookyoPremium" || normalizedReportType === "vedicPremium";
+  const isPerUsePdfReportType = normalizedReportType === "ziweiPremium";
   const unlockPolicy = uniqueStrings(PREMIUM_UNLOCK_POLICY[normalizedReportType] || []);
   const alternativeRules = buildAlternativePaymentRules(normalizedReportType, requestBody);
   const requiredRules = buildRequiredPaymentRules(normalizedReportType, requestBody);
@@ -1199,37 +1019,6 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     };
     logSajuAccessResolved(allowed);
     return allowed;
-  }
-
-  if (normalizedReportType === "lifeBook" && alternativeRules.length) {
-    for (let i = 0; i < alternativeRules.length; i += 1) {
-      const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
-      if (!evidence) continue;
-      await upsertPremiumContentEntitlementFromEvidence({
-        userId: user._id,
-        profileId,
-        featureKey: String(evidence?.featureKey || alternativeRules[i]?.featureKey || receivedFeatureKey || ""),
-        evidence,
-      });
-      logPremiumAccessDecision({
-        route: requestBody?._accessRoute,
-        userId,
-        reportType: normalizedReportType,
-        featureKey: String(evidence?.featureKey || ""),
-        accessSource: "recent-payment-window",
-        matchedTransactionId: String(evidence?._id || ""),
-      });
-      const allowed = {
-        ok: true,
-        accessType: "recent-payment-window",
-        reportType: normalizedReportType,
-        matchedTransactionId: String(evidence?._id || ""),
-        featureKey: String(evidence?.featureKey || ""),
-        chargedCoins: Math.abs(Number(evidence?.delta || 0)),
-      };
-      logSajuAccessResolved(allowed);
-      return allowed;
-    }
   }
 
   if (normalizedReportType === "celestialHarmony" && alternativeRules.length) {

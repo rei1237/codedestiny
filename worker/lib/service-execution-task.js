@@ -251,11 +251,6 @@ function hasPdfArtifact(result) {
 function isPdfServiceId(serviceId) {
   const key = cleanMetadataText(serviceId, 120).toLowerCase();
   return key.includes("pdf")
-    || key.includes("premium-astrology-report")
-    || key.includes("premium-sukuyo-report")
-    || key.includes("premium-vedic-report")
-    || key.includes("premium-lifebook-report")
-    || key.includes("premium-soul-origin-report")
     || key.includes("premium-fpti-report");
 }
 

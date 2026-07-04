@@ -1,5 +1,3 @@
-export const ASTRO_PREMIUM_FEATURE_KEY = "premium-astrology-report";
-
 export const ASTRO_PREMIUM_CHAPTERS = [
   {
     id: "astro_cosmic_summary",

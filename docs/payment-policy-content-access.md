@@ -1,0 +1,53 @@
+# 결제 정책 — 콘텐츠 접근 유형 (2026-07-04)
+
+> [1부. 개요](payment-policy-overview.md) · **2부. 콘텐츠 접근 유형 (이 문서)** · [3부. 결제 플로우 & 변경 이력](payment-policy-flow.md)
+
+세 가지 접근 유형은 코드·문서·UI 어디에서도 혼용하지 말 것.
+
+## A. 잠금 콘텐츠 (Lock / Unlock)
+
+- **정의**: 기본적으로 숨겨져 있다가 조건 충족 시 해제되는 콘텐츠. 1회 결제 후 `ContentEntitlement` DB에 영구 저장되어 이후 재결제 없이 반복 이용 가능
+- **해제 방법**: 이용권 보유 시 무료 해제 (가격 상한 이내) 또는 단건 PG 결제
+- **식별 마커**: `worker/lib/paid-feature-registry.js`의 `RAW_PIG_COIN_UNLOCK_PRODUCTS`(`unlock.` 접두 + `forceDeduct: true`), `worker/routes/fortune.js`의 `PERSISTENT_UNLOCK_KEY_SET` 등록, 결제 후 `upsertPaidContentUnlock()`(`worker/lib/content-unlocks.js`) 호출
+- **현재 예시**:
+  - 사주 분석 화면: 대운(`section_daewun`), 총평/1년 운(`section_summary`), 궁합 미리보기(`section_compat`)
+  - 자미두수 심화: `ziwei_decade_luck`(대한 흐름), `ziwei_love_deep`(부부궁 심화), `ziwei_twelve_palaces`(12궁 정밀), `ziwei_symbolic_layer`, `ziwei_life_yearly_flow`
+  - 숙요점 1년운 전체 해석: `sukyo_yearly_fortune_unlock`
+- **UI**: 잠금 아이콘 + 해제 유도 CTA (`PremiumBlurGate.tsx`)
+
+## B. 이용할 때마다 구매 (Per-Use Payment / 회당 결제)
+
+- **정의**: 사용할 때마다 매번 단건 결제(코인/원화)하는 것이 기본이나, **이용권(구독 패스)이 있고 그 가격이 이용권의 커버 한도 이내이면 이용권으로 무료 처리**한다(2026-07-04 재확정). 즉 이용권 보유·티어(standard/premium/vvip/family)에 따라 무료 커버 여부가 달라진다 — family는 무제한 커버. 이용권이 없거나 가격이 한도를 초과하면 단건 결제로 진행. 결과를 저장하지 않으므로 매 사용마다 이 판정을 다시 거친다.
+- **식별 마커**: `PER_USE_PAID_FEATURE_KEY_LIST`/`RAW_FEATURE_KEY_PRICE_TABLE`에 등록(`unlock.` 접두 없음, `forceDeduct` 플래그 없음), `PERSISTENT_UNLOCK_KEY_SET` 미포함. 이용권 커버 판정은 `worker/lib/profile-limits.js`의 `canUseByPass()`/`normalizeHoneyPassEntitlement()`를 각 라우트(`worker/routes/*-ai.js`)와 `worker/lib/paid-feature-access.js`의 `canAccessPaidFeature()`가 호출하여 수행
+- **현재 예시**:
+  - 궁합 분석 전체: `compat-saju-compatibility`, `compat-ziwei-compatibility`, `compat-sukuyo-compatibility`, `vedic-compatibility-per-use`, `compat-astro-synastry` 등
+  - 타로 전체: `tarot-year-fortune`, `tarot-love-relationship`, `tarot-reunion-reading` 등 `tarot-*`
+  - AI 상담 전반: 인생의 책, 연애 비책, 신년운세, 운명 찻집, 팩폭 전략실(`life-book-ai`, `love-secret-ai`, `new-year-ai`, `fortune-tea-house`, `neo-operation-room` 등), 숙요점 궁합 AI 상담(`sukuyo-compatibility-ai`) — 위 이용권 커버 규칙 동일 적용
+  - 숙요점 기본 궁합(`compat-sukuyo-compatibility`, 100코인=10,000원): **콘텐츠는 잠금 UI 없이 노출**되지만 궁합 계산 실행 시마다 회당 결제(위 이용권 커버 규칙 적용). "비잠금"이 "무료"를 뜻하지 않음에 주의
+- **UI**: 이용권으로 커버되면 무료 처리 안내, 그렇지 않으면 결제 금액(원화) 표시 + 결제 버튼
+
+## C. 비잠금·무료 (Free Access)
+
+- **정의**: 유료 기능 레지스트리(`paid-feature-registry.js`)에 전혀 등록되지 않은 기본 기능. 별도 결제 없이 즉시 이용 가능
+- **예시**: 기본 사주팔자/자미두수/숙요점 조회 화면 자체(그 안의 대운/총평/심화 콘텐츠 등 일부 섹션만 A유형으로 잠김). ※ 숙요점 "기본 궁합 계산"은 여기(무료)가 아니라 B유형(회당결제)임 — 화면 노출은 자유롭지만 실행 시 과금
+- **UI**: 잠금 UI 없이 바로 노출
+
+## D. 프로필 카드 추가/삭제 (고정 관리 수수료)
+
+- **정의**: 운세 대상 인물(프로필 카드)의 추가·삭제에 부과되는 **건당 고정 수수료**. 잠금 콘텐츠(A)도 회당 결제(B)도 아닌 별도 유형이다.
+- **금액**: **건당 5,000원 단건결제** 또는 **월정석 500**(코인 50 상당). 서버 상수 `PROFILE_CARD_DELETE_COST_KRW = 5000`(`worker/lib/profile-card-mutation-policy.js`). 클라이언트가 보낸 금액은 신뢰하지 않고 서버 상수와 일치 검증(`worker/routes/payments.js`의 `CLIENT_AMOUNT_MISMATCH`).
+- **첫 프로필 무료**: 계정당 최초 1개는 무료 생성(`FREE_INITIAL_PROFILE_CARD_COUNT = 1`).
+- **개수 상한은 하드 상한 아님**: 이용권 등급별 개수(standard 3 / premium 7 / vvip 15)는 기준값일 뿐, **초과해도 건당 5,000원 결제로 무제한 추가 가능**. 상한을 이유로 생성을 막지 않는다(`resolveProfileCardActionAccess`가 초과 시에도 `requiresPayment: true` 반환).
+- **삭제**: 건당 5,000원(또는 월정석). **보유 개수 하한 없음 — 프로필이 1개여도 삭제 가능**(결제는 필수). 삭제 후 최초 무료 슬롯이 다시 열린다.
+- **family 이용권만 무료**: family 등급은 추가·삭제 모두 무료·무제한(`isFamilyOrAbove`). 그 외 등급은 이용권 보유와 무관하게 결제 필요.
+- **⚠️ 이용권(pass)으로는 결제 불가**: 프로필 추가/삭제는 **오직 단건결제(`single_purchase`) 또는 월정석(`membership_credit`)** 으로만 정산된다. 이용권 잔여/커버 한도로 대체 결제되지 않으며(`evidenceCostMatches`가 두 방식만 인정), 프론트에도 이용권 결제 옵션을 노출하지 않는다(`ProfileActionPaymentMethod = "card" | "monthly_stones"`).
+- **결제 계층 위치**: PortOne 서명·멱등·환불을 포함한 결제 검증은 **Cloudflare Worker(`worker/routes/profile.js`)에만 존재**. 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 결제 계층이 없어 **위임 응답(410 `USE_WORKER_PROFILE_ENDPOINT`)으로 차단**되어 있다.
+- **UI**: 추가/삭제 모달에 "5,000원 단건결제 / 월정석" 2개 결제수단만 노출(`app/me/MeClient.tsx`).
+
+## 신규 기능 추가 시 체크리스트
+
+1. 결과가 저장되어 재열람 가능한 고정 콘텐츠인가? → **A. 잠금 콘텐츠**
+2. 매번 새로 생성되는 개인화 리딩/AI 상담인가? → **B. 회당 결제**
+3. 유료 레지스트리에 등록하지 않아도 되는 기본 기능인가? → **C. 무료**
+4. 프로필 카드 추가/삭제처럼 건당 고정 관리 수수료(이용권 결제 불가)인가? → **D. 프로필 카드 추가/삭제**
+5. 가격 표시는 항상 원화(추후 현지 통화)로 — [1부 코인 표시 규칙](payment-policy-overview.md#2-코인레거시-내부-단위-표시-규칙) 참고

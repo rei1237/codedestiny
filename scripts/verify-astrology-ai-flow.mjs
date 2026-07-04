@@ -91,7 +91,6 @@ assert(models.includes("astrologyAiConsultations"), "astrologyAiConsultations co
 const registry = read("worker/lib/paid-feature-registry.js");
 assert(registry.includes('"astrology-ai-consultation": { cost: 300, amountKRW: 30000'), "registry pricing missing");
 assert(registry.includes('gotoAstrologyPremium: "astrology-ai-consultation"'), "registry action alias must use new key");
-assert(registry.includes('premium_pdf_western_astrology: "premium-astrology-report"'), "old PDF key alias should remain separate");
 
 const billingClient = read("app/_lib/billing-client.ts");
 assert(billingClient.includes('gotoastrologypremium: "astrology-ai-consultation"'), "React billing alias missing");

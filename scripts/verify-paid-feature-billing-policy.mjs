@@ -21,7 +21,6 @@ const sukuyoEngineSource = source("js/saju-engine-tarot-sukuyo-quantum.js");
 const indexRuntimeSource = source("js/core/index-inline-runtime.js");
 const billingSource = source("worker/routes/billing.js");
 const workerAccessSource = source("worker/lib/access-control.js");
-const premiumRouteAccessSource = source("app/_lib/premium-route-access.ts");
 const kemetSource = source("js/oracle-kcg.js");
 const tarotYearSource = source("js/tarot-year-fortune-experience.js");
 const tarotLoveSource = source("js/tarot-love-experience.js");
@@ -155,7 +154,6 @@ assert.match(sukuyoEngineSource, /compat-sukuyo-compatibility/, "Sukuyo base com
 assert.match(sukuyoEngineSource, /premium-sukuyo-compat-extra/, "Sukuyo precision compatibility must use its 120-coin featureKey");
 assert.match(sukuyoEngineSource, /syRequirePaidSukuyoFeature/, "Sukuyo paid extensions must pass through the paid gate");
 assert.doesNotMatch(workerAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "120-coin Sukuyo precision add-on must not authorize premium PDF access");
-assert.doesNotMatch(premiumRouteAccessSource, /featureKey:\s*["']premium-sukuyo-compat-extra["']/, "Next PDF route access must not accept the 120-coin Sukuyo precision add-on");
 
 assert.match(indexRuntimeSource, /애니멀 토템 리딩/, "animal totem runtime must still call common paid gate");
 assert.match(kemetSource, /_cdCoinGatePerUse/, "Kemet oracle must still call common paid gate");
