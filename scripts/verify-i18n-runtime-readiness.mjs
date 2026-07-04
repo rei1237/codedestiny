@@ -11,11 +11,13 @@ const staticMirrorFiles = [
   "public/ja/index.html",
   "public/zh/index.html",
 ];
-const noindexLocaleMirrorFiles = [
-  "public/en/index.html",
-  "public/ja/index.html",
-  "public/zh/index.html",
-];
+// feat(i18n-seo) "open ja/zh/en indexing"(a4a0ae90) 이후 정책: 각 로케일 미러는
+// 자기 자신의 로케일 경로로 self-canonical + index,follow여야 한다(더 이상 noindex/루트 canonical 아님).
+const indexableLocaleMirrorFiles = {
+  "public/en/index.html": "https://code-destiny.com/en/",
+  "public/ja/index.html": "https://code-destiny.com/ja/",
+  "public/zh/index.html": "https://code-destiny.com/zh/",
+};
 
 const buttonLangToFile = {
   en: "en.json",
@@ -281,15 +283,16 @@ for (const mirrorPath of staticMirrorFiles) {
   }
 }
 
-for (const mirrorPath of noindexLocaleMirrorFiles) {
+for (const [mirrorPath, expectedCanonical] of Object.entries(indexableLocaleMirrorFiles)) {
   const mirrorHtml = readText(resolve(rootDir, mirrorPath));
+  const escapedCanonical = expectedCanonical.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  if (!/<link rel="canonical" href="https:\/\/code-destiny\.com\/">/i.test(mirrorHtml)) {
-    failures.push(`${mirrorPath} must canonicalize to https://code-destiny.com/ until locale SEO is explicitly enabled`);
+  if (!new RegExp(`<link rel="canonical" href="${escapedCanonical}">`, "i").test(mirrorHtml)) {
+    failures.push(`${mirrorPath} must self-canonicalize to ${expectedCanonical}`);
   }
 
-  if (!/<meta name="robots" content="noindex, nofollow">/i.test(mirrorHtml)) {
-    failures.push(`${mirrorPath} must remain noindex while runtime translation is not SEO-indexable`);
+  if (!/<meta name="robots" content="index, follow/i.test(mirrorHtml)) {
+    failures.push(`${mirrorPath} must be indexable (robots: index, follow) per the open-locale-indexing policy`);
   }
 }
 

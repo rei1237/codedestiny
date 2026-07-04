@@ -132,6 +132,7 @@ const coreRoutes = [
   { path: "/terms", changefreq: "yearly", priority: 0.55 },
   { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
+  { path: "/editorial-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
@@ -150,6 +151,18 @@ const coreRoutes = [
   { path: "/high-value/category/daily-fortune", changefreq: "monthly", priority: 0.78 },
   { path: "/high-value/category/astrology-ziwei", changefreq: "monthly", priority: 0.78 },
   { path: "/high-value/category/methodology", changefreq: "monthly", priority: 0.78 },
+  { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/saju/ten-gods", changefreq: "monthly", priority: 0.78 },
+  { path: "/saju/five-elements", changefreq: "monthly", priority: 0.78 },
+  { path: "/ziwei/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/sukuyo/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/astrology/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/vedic/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/tarot/guide", changefreq: "monthly", priority: 0.8 },
+  { path: "/mayan-calendar/guide", changefreq: "monthly", priority: 0.78 },
+  { path: "/calendar/guide", changefreq: "monthly", priority: 0.78 },
+  { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
+  { path: "/music/guide", changefreq: "monthly", priority: 0.78 },
 ];
 
 const localeHreflangAliases = {

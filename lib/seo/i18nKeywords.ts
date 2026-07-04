@@ -55,7 +55,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     ja: {
       title: "無料四柱推命・タロット・今日の運勢 | Code Destiny",
-      description: "四柱推命、タロット、紫微斗数、宿曜、今日の運勢を一か所で確認し、今の流れを落ち着いて読み解けます。",
+      description: "四柱推命、タロット、紫微斗数、宿曜占星術、今日の運勢までを一か所で確認しながら、今の流れを落ち着いて丁寧に読み解けます。",
       h1: "無料四柱推命・タロット・今日の運勢",
       intro: "Code Destinyは、生年月日と相談内容の流れをもとに複数の占術をつなげて読める運勢プラットフォームです。",
       mainKeyword: "無料四柱推命",
@@ -77,7 +77,7 @@ export const I18N_SEO_PAGES: Record<SeoPageKey, Record<Locale, SeoPageLocaleCont
     },
     zh: {
       title: "免费四柱八字、塔罗与今日运势 | Code Destiny",
-      description: "在一个地方查看四柱八字、塔罗、紫微斗数、宿曜与今日运势，安静地读懂当下的流向。",
+      description: "在一个地方查看四柱八字、塔罗、紫微斗数、宿曜占星术与今日运势，安静而细致地读懂当下的流向，并为你的选择提供参考。",
       h1: "免费四柱八字、塔罗与今日运势",
       intro: "Code Destiny依据出生信息与提问背景，把多种命理体系连接成易读的咨询式解读。",
       mainKeyword: "免费四柱八字",
