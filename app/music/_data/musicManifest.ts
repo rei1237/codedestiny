@@ -1,6 +1,15 @@
 import { buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { getMusicTrackAccessPolicy } from "@/lib/music-access-policy";
 
+// 잠금곡은 공개 CDN URL을 노출하지 않고, 서버가 바이트를 제한하는 미리듣기 프록시를 사용한다.
+function buildMusicPreviewApiUrl(audioSourceKey: string, featureKey?: string) {
+  const params = new URLSearchParams();
+  params.set("key", audioSourceKey);
+  if (featureKey) params.set("featureKey", featureKey);
+  params.set("mode", "preview");
+  return `/api/music/audio?${params.toString()}`;
+}
+
 export type ArtistKey = "neo" | "yeoni" | "dest1nova" | "lunabloom" | "destinycafe";
 export type ArtistName = "Neo" | "Yeoni" | "DEST1NOVA" | "Luna bloom";
 
@@ -309,7 +318,9 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileEntry: Exclude<Audio
     audioKey,
     audioSourceKey,
     coverKey,
-    audioUrl: buildMusicPublicUrl(audioSourceKey),
+    audioUrl: accessPolicy.accessTier === "free_full"
+      ? buildMusicPublicUrl(audioSourceKey)
+      : buildMusicPreviewApiUrl(audioSourceKey, accessPolicy.purchaseFeatureKey),
     coverUrl: artist.displayCoverUrl || buildMusicPublicUrl(coverKey),
     accessTier: accessPolicy.accessTier,
     ...(accessPolicy.previewLimitSeconds ? { previewLimitSeconds: accessPolicy.previewLimitSeconds } : {}),

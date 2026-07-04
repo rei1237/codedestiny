@@ -6,7 +6,28 @@ import {
   getMusicTrackAccessPolicy,
   isValidMusicAudioSourceKey,
   normalizeMusicAudioSourceKey,
+  MUSIC_PREVIEW_MAX_BYTES,
 } from "../../lib/music-access-policy.js";
+
+// 업스트림이 Range를 무시하고 전체 파일을 보내더라도 maxBytes에서 스트림을 끊어 곡 전체 유출을 방지한다.
+function capByteStream(readable, maxBytes) {
+  if (!readable) return readable;
+  let remaining = Math.max(0, Number(maxBytes) || 0);
+  const transform = new TransformStream({
+    transform(chunk, controller) {
+      if (remaining <= 0) return;
+      if (chunk.byteLength <= remaining) {
+        controller.enqueue(chunk);
+        remaining -= chunk.byteLength;
+      } else {
+        controller.enqueue(chunk.slice(0, remaining));
+        remaining = 0;
+        controller.terminate();
+      }
+    },
+  });
+  return readable.pipeThrough(transform);
+}
 
 function encodeR2ObjectKey(objectKey) {
   return String(objectKey || "")
@@ -160,30 +181,51 @@ function buildContentDisposition(key) {
   return `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
-async function requireFullTrackAccess(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
-  const input = resolveRequestTrack(request);
-  const access = await resolveTrackAccess(input, auth, env);
+async function streamMusicPreview(env, access) {
+  const headers = new Headers();
+  headers.set("Range", `bytes=0-${Math.max(0, MUSIC_PREVIEW_MAX_BYTES - 1)}`);
 
-  if (!access.hasFullAccess) {
-    return {
-      access,
-      response: json({
-        ok: false,
-        code: access.code,
-        track: access,
-      }, { status: access.code === "LOGIN_REQUIRED" ? 401 : 402 }),
-    };
+  const upstream = await fetch(buildMusicPublicUrl(env, access.audioSourceKey), { headers });
+  if (!upstream.ok && upstream.status !== 206) {
+    return json({ ok: false, code: "PREVIEW_UNAVAILABLE" }, { status: 502 });
   }
 
-  return { access, response: null };
+  const responseHeaders = new Headers();
+  responseHeaders.set("Content-Type", "audio/mpeg");
+  // 미리듣기는 seek/전체 다운로드를 막기 위해 Range를 노출하지 않고 짧은 클립으로만 제공한다.
+  responseHeaders.set("Accept-Ranges", "none");
+  responseHeaders.set("Cache-Control", "private, no-store");
+  responseHeaders.set("X-Music-Access", "preview");
+
+  return new Response(capByteStream(upstream.body, MUSIC_PREVIEW_MAX_BYTES), {
+    status: 200,
+    headers: responseHeaders,
+  });
 }
 
 async function proxyMusicFile(request, env, options = {}) {
   if (request.method.toUpperCase() !== "GET") return methodNotAllowed();
 
-  const { access, response } = await requireFullTrackAccess(request, env);
-  if (response) return response;
+  const auth = await getOptionalUserFromRequest(request, env);
+  const input = resolveRequestTrack(request);
+  const access = await resolveTrackAccess(input, auth, env);
+
+  if (!access.hasFullAccess) {
+    // 오디오 재생 요청이고 유효한 잠금곡이면 402 대신 바이트 제한 미리듣기를 제공한다.
+    const previewEligible = options.download !== true
+      && access.accessTier === "locked_preview"
+      && isValidMusicAudioSourceKey(access.audioSourceKey);
+
+    if (!previewEligible) {
+      return json({
+        ok: false,
+        code: access.code,
+        track: access,
+      }, { status: access.code === "LOGIN_REQUIRED" ? 401 : 402 });
+    }
+
+    return streamMusicPreview(env, access);
+  }
 
   const headers = new Headers();
   const range = request.headers.get("Range");
