@@ -72,6 +72,79 @@ export default function PromptHubPage() {
           만드는 데 있지 않고, 흩어진 마음을 상담 가능한 언어로 정돈하는 데 있습니다.
         </p>
       </section>
+
+      <section className="mx-auto mt-6 max-w-3xl rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-sm">
+        <h2 className="text-xl font-black text-white">이 허브에서 다룰 수 있는 도구</h2>
+        <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-200">
+          <li>
+            <strong className="text-cyan-100">사주·당사주</strong> — 생년월일시를 바탕으로 성향, 시기, 관계의 흐름을
+            묻는 질문을 다듬습니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">타로</strong> — 오늘의 선택이나 관계의 갈림길처럼 구체적인 장면을 카드로
+            풀어낼 질문을 세웁니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">점성술·베다 점성술</strong> — 행성의 배치를 근거로 시기, 궁합, 진로의
+            방향을 좁혀 묻는 프롬프트를 만듭니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">자미두수</strong> — 명궁, 재백궁, 관록궁 등 각 궁의 흐름 중 어떤 부분을
+            먼저 확인할지 정리합니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">숙요점</strong> — 두 사람의 궁합과 갈등 패턴을 27숙 기준으로 묻는 질문을
+            구성합니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">수비학</strong> — 이름과 생년월일의 숫자에서 반복되는 성향을 확인하는
+            질문을 만듭니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">구성학·매화역수</strong> — 방위와 수리 감각을 바탕으로 이동, 이사, 선택의
+            시점을 묻는 프롬프트를 다듬습니다.
+          </li>
+          <li>
+            <strong className="text-cyan-100">꿈 상징·호라리</strong> — 최근 꾼 꿈이나 지금 이 순간의 질문 자체를
+            상징으로 풀어낼 문장을 세웁니다.
+          </li>
+        </ul>
+      </section>
+
+      <section className="mx-auto mt-6 max-w-3xl rounded-3xl border border-white/10 bg-white/[0.06] p-6 shadow-sm">
+        <h2 className="text-xl font-black text-white">자주 묻는 질문</h2>
+        <div className="mt-4 space-y-4 text-sm leading-7 text-slate-200">
+          <div>
+            <h3 className="font-bold text-white">생성된 프롬프트를 그대로 다른 서비스에 써도 되나요?</h3>
+            <p className="mt-1">
+              네, 가능합니다. 다만 그대로 붙여 넣기보다 자신의 상황과 말투에 맞게 한 번 다듬으면 더 자연스러운 상담
+              결과를 얻을 수 있습니다.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-white">입력한 내용이나 결과가 서버에 저장되나요?</h3>
+            <p className="mt-1">
+              이 허브는 질문을 다듬는 도구로, 입력한 생년월일이나 질문 문구를 별도 계정 정보로 보관하지 않습니다.
+              결과는 화면에서 바로 확인하고 필요할 때 복사해 사용하세요.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-white">여러 도구를 한 번에 써야 하나요?</h3>
+            <p className="mt-1">
+              아니요, 지금 궁금한 주제 하나만 골라 사용해도 충분합니다. 사랑, 일, 돈, 관계처럼 질문의 결이 다르면
+              그때그때 필요한 도구만 다시 선택하면 됩니다.
+            </p>
+          </div>
+          <div>
+            <h3 className="font-bold text-white">프롬프트만 보고 중요한 결정을 내려도 될까요?</h3>
+            <p className="mt-1">
+              프롬프트와 해석은 상담의 출발점일 뿐입니다. 건강, 법률, 재정처럼 중요한 결정은 현실의 정보와 전문가의
+              조언을 함께 확인한 뒤 신중하게 판단하시길 권합니다.
+            </p>
+          </div>
+        </div>
+      </section>
+
       <PromptHubRouteClient />
     </div>
   );
