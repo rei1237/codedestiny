@@ -3079,6 +3079,12 @@
     <priority>0.93</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/yeon-star-hug/</loc>
+    <lastmod>2026-07-04</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/zh/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/" />

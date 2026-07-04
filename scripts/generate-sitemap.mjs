@@ -125,6 +125,7 @@ const coreRoutes = [
   { path: "/ziwei-ai", changefreq: "weekly", priority: 0.88 },
   { path: "/vedic-ai", changefreq: "weekly", priority: 0.87 },
   { path: "/karma-destiny-ai", changefreq: "monthly", priority: 0.85 },
+  { path: "/yeon-star-hug", changefreq: "weekly", priority: 0.85 },
   { path: "/about", changefreq: "monthly", priority: 0.9 },
   { path: "/faq", changefreq: "monthly", priority: 0.88 },
   { path: "/methodology", changefreq: "monthly", priority: 0.86 },
