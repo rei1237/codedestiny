@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-805f45898130'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-805f45898130'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-805f45898130'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-981af4a8e966'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-981af4a8e966'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-981af4a8e966'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-805f45898130')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-981af4a8e966')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-805f45898130'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-805f45898130'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-981af4a8e966'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-981af4a8e966'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-805f45898130'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-805f45898130'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-981af4a8e966'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-981af4a8e966'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -104,14 +104,14 @@ const __lazyActionLoaders = {
   closeLoveSecretModal: () => Promise.resolve(),
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-805f45898130').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-981af4a8e966').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-805f45898130')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-981af4a8e966')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -460,9 +460,13 @@ function __runChunked(listLike, fn, opts = {}) {
 
 function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   if (!collection) return;
-  // 모바일: 목록 카드는 심볼 플레이스홀더 유지(이미지 미로딩) — 원본 이미지는 상세 팝업에서만
-  if (typeof window !== 'undefined' && window.__cdMobileRuntime) return;
-  const wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
+  let wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
+  // 모바일: 목록형 7개 컬렉션만 심볼 유지(이미지 미로딩) — VVIP/스포트라이트 등 히어로 카드는 이미지 유지
+  if (typeof window !== 'undefined' && window.__cdMobileRuntime) {
+    const listScope = '#animalCollection,#cosmicCollection,#flowerCollection,#meditationCollection,#miscCollection,#oracleCollection,#tarotCollection';
+    wraps = Array.prototype.filter.call(wraps, (w) => !(w.closest && w.closest(listScope)));
+    if (!wraps.length) return;
+  }
   const ioEnabled = typeof IntersectionObserver !== 'undefined';
 
   const hydrateWrap = (wrap) => {
