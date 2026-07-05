@@ -39,6 +39,7 @@ const ACCESS_TOKEN_TYPE = "ziwei-deep-pdf-access";
 const ACCESS_TOKEN_TTL = "45m";
 const TITLE = ZIWEI_DEEP_PDF_META.label; // "심화 자미두수 PDF"
 const CHAPTER_CONCURRENCY = 4; // Gemini 병렬 호출 상한(레이트리밋·subrequest 안전)
+const CHAPTER_BATCH_SIZE = CHAPTER_CONCURRENCY; // 한 요청에서 생성할 챕터 수(=1 동시성 웨이브)
 
 const MESSAGES = {
   loginRequired: "심화 자미두수 PDF 리포트를 생성하려면 로그인이 필요합니다.",
@@ -235,6 +236,31 @@ async function generateReport(env, chart, birthInfo) {
   };
 }
 
+/**
+ * 배치 생성: startIndex부터 CHAPTER_BATCH_SIZE개 챕터만 생성한다.
+ * 챕터는 명반+생년월일 기반 결정론(자유질문 없음)이라 각 배치는 서로 독립·멱등하며,
+ * 챕터 단위 LLM 캐시로 재요청 시 재사용된다. 한 요청의 wall-clock을 1 웨이브로 묶어
+ * Cloudflare/브라우저 타임아웃 위험을 제거한다.
+ */
+async function generateReportBatch(env, chart, birthInfo, startIndex) {
+  const totalChapters = ZIWEI_DEEP_CHAPTERS.length;
+  const start = Math.max(0, Math.min(Math.trunc(startIndex) || 0, totalChapters));
+  const slice = ZIWEI_DEEP_CHAPTERS.slice(start, start + CHAPTER_BATCH_SIZE);
+  const chapters = await runWithConcurrency(
+    slice,
+    CHAPTER_CONCURRENCY,
+    (chapter) => generateChapter(env, chart, birthInfo, chapter),
+  );
+  const nextIndex = start + slice.length;
+  return {
+    startIndex: start,
+    nextIndex,
+    totalChapters,
+    done: nextIndex >= totalChapters,
+    chapters: chapters.map(({ id, title, body, chars, provider, ok }) => ({ id, title, body, chars, provider, ok })),
+  };
+}
+
 // ─── Handlers ────────────────────────────────────────────────────────────
 
 async function handlePrepare(request, env) {
@@ -313,7 +339,35 @@ async function handleGenerate(request, env) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
 
+  // startIndex가 있으면 배치 모드(신규 클라이언트). 없으면 기존 단일 생성(구버전 호환).
+  const rawStartIndex = Number(asObject(body).startIndex);
+  const batchMode = Number.isFinite(rawStartIndex);
+
   try {
+    if (batchMode) {
+      const batch = await generateReportBatch(env, chart, normalized.birthInfo, rawStartIndex);
+      // 다음 배치가 DB·결제 조회 없이 순수 JWT 검증만으로 접근하도록 재사용 토큰을 발급한다(과금 없음).
+      const accessToken = await createAccessToken(env, {
+        userId: auth.userId,
+        accessType: access.accessType,
+        idempotencyKey,
+        inputHash: normalized.inputHash,
+      });
+      return json({
+        ok: true,
+        accessType: access.accessType,
+        accessToken,
+        reportMeta: {
+          featureKey: FEATURE_KEY,
+          label: TITLE,
+          minTotalChars: ZIWEI_DEEP_PDF_META.minTotalChars,
+          chapterCount: batch.totalChapters,
+          generatedAt: new Date().toISOString(),
+        },
+        ...(batch.startIndex === 0 ? { birthInfo: normalized.birthInfo, ziweiChart: chart } : {}),
+        batch,
+      });
+    }
     const report = await generateReport(env, chart, normalized.birthInfo);
     return json({ ok: true, accessType: access.accessType, birthInfo: normalized.birthInfo, ziweiChart: chart, report });
   } catch (error) {

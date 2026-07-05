@@ -40,6 +40,8 @@ export interface ZiweiDeepBirthInput {
 
 interface ReportChapter { id: string; title: string; body: string; chars: number; ok?: boolean }
 interface DeepReport { label: string; chapters: ReportChapter[]; totalChars: number; generatedAt: string }
+interface BatchResult { startIndex: number; nextIndex: number; totalChapters: number; done: boolean; chapters: ReportChapter[] }
+interface ReportMeta { label: string; generatedAt: string; minTotalChars: number; chapterCount: number }
 
 type Phase = "idle" | "checking" | "payment" | "generating" | "ready";
 
@@ -153,7 +155,12 @@ type ApiResult = {
   accessToken?: string; accessType?: string;
   paymentPayload?: Record<string, unknown>;
   report?: DeepReport;
+  batch?: BatchResult;
+  reportMeta?: ReportMeta;
 };
+
+const TOTAL_CHAPTERS = 15;
+const MAX_BATCHES = 20; // 터미널 가드: 15챕터 / 최소 1챕터 배치 → 무한루프 방지
 
 interface Props { birth: ZiweiDeepBirthInput; disabled?: boolean }
 
@@ -163,6 +170,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   const [report, setReport] = useState<DeepReport | null>(null);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
+  const [genProgress, setGenProgress] = useState({ done: 0, total: TOTAL_CHAPTERS });
   const busyRef = useRef(false);
   const idempotencyRef = useRef("");
   const reportRef = useRef<HTMLDivElement | null>(null);
@@ -191,11 +199,41 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
 
   async function generate(idempotencyKey: string, extra: Record<string, unknown>) {
     setPhase("generating");
+    setGenProgress({ done: 0, total: TOTAL_CHAPTERS });
     const stop = cycleSteps();
     try {
-      const { status, data } = await postJson<ApiResult>("/api/ziwei-deep-report/generate", { ...payload, ...extra, idempotencyKey }, idempotencyKey);
-      if (data.ok && data.report) { setReport(data.report); setPhase("ready"); return; }
-      throw new Error(mapError(data, status));
+      // 15챕터를 배치(startIndex 0→4→8→12)로 나눠 순차 호출한다. 각 요청은 1 웨이브로 짧게
+      // 끝나 타임아웃 위험이 없고, 챕터는 결정론이라 각 배치가 독립·재개 가능하다.
+      const accumulated: ReportChapter[] = [];
+      let meta: ReportMeta | null = null;
+      let accessExtra: Record<string, unknown> = { ...extra };
+      let startIndex = 0;
+      for (let guard = 0; guard < MAX_BATCHES; guard += 1) {
+        const { status, data } = await postJson<ApiResult>(
+          "/api/ziwei-deep-report/generate",
+          { ...payload, ...accessExtra, idempotencyKey, startIndex },
+          idempotencyKey,
+        );
+        if (!data.ok || !data.batch) throw new Error(mapError(data, status));
+        accumulated.push(...data.batch.chapters);
+        if (!meta && data.reportMeta) meta = data.reportMeta;
+        // 두 번째 배치부터는 재사용 토큰으로 접근(추가 DB·결제 조회 없음).
+        if (data.accessToken) accessExtra = { accessToken: data.accessToken, accessType: data.accessType };
+        setGenProgress({ done: Math.min(data.batch.nextIndex, data.batch.totalChapters), total: data.batch.totalChapters });
+        if (data.batch.done) {
+          const totalChars = accumulated.reduce((sum, ch) => sum + (ch.chars || 0), 0);
+          setReport({
+            label: meta?.label || FEATURE_REASON,
+            generatedAt: meta?.generatedAt || new Date().toISOString(),
+            totalChars,
+            chapters: accumulated,
+          });
+          setPhase("ready");
+          return;
+        }
+        startIndex = data.batch.nextIndex;
+      }
+      throw new Error(ERROR_TEXT.SERVER_ERROR);
     } finally { stop(); }
   }
 
@@ -316,7 +354,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         {phase === "generating" && (
           <div className="mt-4 flex items-center gap-3 rounded-xl border border-sky-300/25 bg-sky-400/10 px-4 py-3">
             <Loader2 className="h-4 w-4 animate-spin text-sky-200" />
-            <span className="text-sm text-sky-100">{LOADING_STEPS[stepIndex]}</span>
+            <span className="text-sm text-sky-100">
+              {LOADING_STEPS[stepIndex]}
+              {genProgress.done > 0 ? ` (${genProgress.done}/${genProgress.total}챕터)` : ""}
+            </span>
           </div>
         )}
 
