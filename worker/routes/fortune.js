@@ -5142,15 +5142,6 @@ export async function handleFortuneRoutes(request, env) {
 
       trace.authVerified = true;
       try {
-        await connectDb(env);
-      } catch (error) {
-        const isBalanceRoute = path === "/pig-coin/balance";
-        if (isBalanceRoute) return buildDbFallbackBalance(auth, error);
-        return buildDbFallbackSubscriptionStatus(auth, error);
-      }
-      trace.dbConnected = true;
-
-      try {
         if (path === "/pig-coin/balance") return await handleBalance(auth);
         return await handleSubscriptionStatus(request, env, auth);
       } catch (error) {
@@ -5182,8 +5173,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleZiweiAIPrompt(request, auth, env);
     }
 
@@ -5193,8 +5182,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSukuyoAIPrompt(request, auth, env);
     }
 
@@ -5213,8 +5200,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSajuAIConsultationStatus(request, auth, path);
     }
 
@@ -5224,8 +5209,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleSajuAIConsultationResult(request, auth, path);
     }
 
@@ -5235,8 +5218,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleAstrologyAIPrompt(request, auth, env);
     }
 
@@ -5246,8 +5227,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleVedicAIPrompt(request, auth, env);
     }
 
@@ -5257,8 +5236,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleVedicPrashnaSnapshot(request, auth, env);
     }
 
@@ -5268,8 +5245,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleVedicPrashnaGenerate(request, auth, env);
     }
 
@@ -5279,8 +5254,6 @@ export async function handleFortuneRoutes(request, env) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      await connectDb(env);
-      trace.dbConnected = true;
       return await handleVedicPrashnaResult(request, auth);
     }
 
