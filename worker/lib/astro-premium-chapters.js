@@ -219,22 +219,3 @@ export const ASTRO_PREMIUM_CATEGORY_RULES = Object.freeze({
   c12_s4: { planets: ["Jupiter", "Saturn", "Pluto"], points: ["timing", "midheaven"], houses: [9, 10, 11], theme: "앞으로 3년의 방향", manifest: "확장, 책임, 깊은 전환이 장기 계획의 세 축을 이룹니다.", strength: "긴 호흡으로 삶의 구조를 재설계하는 힘", caution: "3년 계획을 너무 추상적으로 두면 실행력이 떨어집니다.", advice: "1년 차는 정리, 2년 차는 확장, 3년 차는 고정의 흐름으로 계획하세요.", action: "3년 목표를 해마다 하나의 핵심 과제로 나누세요." },
   c12_s5: { planets: ["Sun", "Venus", "Jupiter"], points: ["ascendant", "midheaven"], houses: [1, 5, 10], theme: "나를 가장 빛나게 하는 선택", manifest: "기쁨, 의미, 사회적 역할이 만나는 선택에서 가장 자연스럽게 빛납니다.", strength: "자신다운 선택을 기회와 성과로 연결하는 힘", caution: "빛나는 선택이 항상 쉬운 선택은 아니므로 기준을 분명히 해야 합니다.", advice: "태양의 목적, 금성의 기쁨, 목성의 가능성, MC의 방향이 겹치는 길을 고르세요.", action: "다음 선택 앞에서 기쁨, 성장, 책임, 지속성을 각각 점검하세요." },
 });
-
-export function sanitizeAstroPremiumText(value) {
-  return String(value || "")
-    .replace(/\b(undefined|null|nan)\b/gi, "")
-    .replace(/\b(payload|json|localdraft|fallback|llm|api|raw|schema|debug)\b/gi, "")
-    .replace(/\b(preflightfailed|swiss\s*required|chart\s*seed\s*failed)\b/gi, "")
-    .replace(/(내부\s*데이터|엔진\s*결과|계산\s*시그니처|데이터\s*정규화|품질\s*검증|재생성|디버그)/gi, "")
-    .replace(/chapter\s*1(\s*chapter\s*1)*/gi, "")
-    .replace(/자동\s*복구\s*생성/gi, "")
-    .replace(/데이터가\s*부족합니다/gi, "")
-    .replace(/[ \t]{2,}/g, " ")
-    .replace(/\n[ \t]+/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
-}
-
-export function getAstroChapterTitles() {
-  return ASTRO_PREMIUM_CHAPTERS.map((chapter) => chapter.title);
-}

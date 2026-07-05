@@ -9070,7 +9070,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 ${renderNarrCard('현실 발현', workTokens[0] || workText || coreTokens[1] || coreText)}
                 ${renderNarrCard('돈 습관', wealthTokens[0] || wealthText || coreTokens[2] || coreText)}
               </div>
-              <div class="sy-narr-tail rounded-xl border border-indigo-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc(mansionName + '의 천성은 ' + syComposeFromTokens(coreTokens, coreText) + '의 결로 읽힙니다. 이 기질은 일에서는 ' + syFirstToken(workTokens, workText || '안정적인 실행력') + '로 나타나고, 돈 습관에서는 ' + syFirstToken(wealthTokens, wealthText || '지속 가능한 축적 감각') + '로 연결됩니다. 즉, 감정의 속도를 조절하면서 작은 실행을 누적할 때 안정적인 성과로 이어집니다.')}</div>
+              <div class="sy-narr-tail rounded-xl border border-indigo-200/30 bg-slate-900/60 p-3 text-sm leading-7 text-slate-100/90">${syCanonicalEsc(mansionName + '(의 핵심 기운):\n' + syComposeFromTokens(coreTokens, coreText) + '\n\n이 기질이 현실에서 작동하는 방식:\n• 일과 사회생활: ' + syFirstToken(workTokens, workText || '안정적인 실행력') + '을(를) 통해 신뢰를 만듭니다.\n• 재물과 돈의 흐름: ' + syFirstToken(wealthTokens, wealthText || '지속 가능한 축적 감각') + '으로 연결됩니다.\n\n성장의 길:\n감정의 속도를 조절하면서 작은 실행을 누적할 때, 안정적인 성과와 신뢰의 자산이 쌓입니다.')}</div>
             </div>
             <div class="sy-natal-panel" id="sy-panel-hidden" role="tabpanel" aria-labelledby="syNTabHidden">
               <p class="sy-natal-text">${syCanonicalEsc(hiddenText)}</p>

@@ -31,6 +31,11 @@ const AppVersionGuard = dynamic(() => import("./AppVersionGuard"), {
   loading: () => null,
 });
 
+const OfflineOverlay = dynamic(() => import("./OfflineOverlay"), {
+  ssr: false,
+  loading: () => null,
+});
+
 const DevPaymentTester =
   process.env.NODE_ENV === "production"
     ? null
@@ -78,6 +83,7 @@ export default function RuntimeClientGuards() {
   return (
     <>
       <LocaleRuntimeBridge />
+      <OfflineOverlay />
       {mountAdsense ? <DeferredAdsense /> : null}
       {mountMaintenanceGuards ? (
         <>

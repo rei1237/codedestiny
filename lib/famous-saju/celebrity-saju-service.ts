@@ -2826,7 +2826,7 @@ export function buildFamousSajuArticle(person: CelebritySajuSeed, calculatedChar
       title: famousSajuCopy("section.gyeokUseful"),
       imageQuery: "purple galaxy stars destiny chart mystical",
       imageSection: "default",
-      body: `격국은 ${finalGyeokguk}의 결로 읽힙니다. 그 이유는 ${gyeokReasonLens} 볼 수 있고, 보완 기운은 ${visibleUsefulText} 축으로 놓습니다. 판단 근거는 ${formatReasonSentences(yongshinReason, person.nameKo)} ${gyeokClosing}`,
+      body: `격국은 ${finalGyeokguk}의 결로 읽힙니다. 이런 격국은 ${gyeokReasonLens}에서 비롯되며, 보완 기운은 ${visibleUsefulText} 축으로 놓습니다. 판단 근거는 ${formatReasonSentences(yongshinReason, person.nameKo)} ${gyeokClosing}`,
     },
     {
       title: categoryVoice.careerTitle,

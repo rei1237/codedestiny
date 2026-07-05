@@ -25,6 +25,7 @@ import {
 } from "../lib/portone.js";
 import { getEnv } from "../lib/env.js";
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { extractTurnstileToken, verifyTurnstileToken } from "../lib/turnstile.js";
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
@@ -3455,6 +3456,25 @@ async function handlePrepare(request, env, auth) {
 
 async function handleSubscriptionPrepare(request, env, auth) {
   const body = await readJson(request);
+
+  const turnstileToken = extractTurnstileToken(body);
+  if (!turnstileToken) {
+    return json({
+      message: "Turnstile verification is required.",
+      code: "TURNSTILE_TOKEN_REQUIRED",
+    }, { status: 401 });
+  }
+  const turnstileResult = await verifyTurnstileToken({
+    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
+    response: turnstileToken,
+    remoteip: getRequestMeta(request)?.ip,
+  });
+  if (!turnstileResult.success) {
+    return json({
+      message: turnstileResult.message,
+      code: turnstileResult.code || "TURNSTILE_VERIFICATION_FAILED",
+    }, { status: turnstileResult.status || 403 });
+  }
 
   const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);

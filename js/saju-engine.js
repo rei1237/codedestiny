@@ -9935,16 +9935,15 @@ function calcAstroSwissChartOrThrow(year, month, day, localHour, lat, lon, tz, h
 function renderAstroSwissUnavailable(reason) {
   var area = document.getElementById('astroResult');
   if (!area) return;
-  var msg = String(reason || 'SwissEph 라이브러리 초기화 실패')
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  var msg = String(reason || 'SwissEph 라이브러리 초기화 실패');
+  try { console.warn('[astro-swiss-unavailable]', msg); } catch (_logErr) {}
   area.innerHTML = ''
     + '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;">'
     + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
     + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 엔진 연결 중</div>'
     + '<div class="astro-desc" style="line-height:1.75;">'
     + '<p style="margin:0;color:#ffe4e6;">정확한 차트 계산용 Swiss 라이브러리 연결에 실패했습니다.</p>'
-    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지/출생시간 입력과 Swiss 라이브러리 로드 상태를 확인한 뒤 다시 시도해 주세요.</p>'
-    + '<p style="margin:8px 0 0 0;color:#fecdd3;"><b>참고 로그:</b> ' + msg + '</p>'
+    + '<p style="margin:8px 0 0 0;color:#cbd5e1;">출생지/출생시간 입력을 확인한 뒤 다시 시도해 주세요. 문제가 반복되면 잠시 후 다시 열어 주세요.</p>'
     + '</div></div></div>';
 }
 
@@ -10079,7 +10078,7 @@ function _astroBuildNatalWheelCard(chart, birth, houseSystemLabel) {
   };
 
   if (!chart || !chart.asc) {
-    return { cardHtml: '' };
+    return { cardHtml: '<div class="astro-wheel-card"><div class="astro-wheel-warning">출생 시간 정보가 부족해 출생 차트를 그릴 수 없습니다. 출생 시간을 입력하면 차트가 표시됩니다.</div></div>' };
   }
 
   var warnings = [];
@@ -10383,8 +10382,8 @@ function renderAstroInsightLegacyNeon() {
     var h6Index   = (ascIndex + 5) % 12;
     var chartRulerByAsc = [
       '화성(Mars)', '금성(Venus)', '수성(Mercury)', '달(Moon)',
-      '태양(Sun)', '수성(Mercury)', '금성(Venus)', '화성/명왕성(Mars/Pluto)',
-      '목성(Jupiter)', '토성(Saturn)', '토성/천왕성(Saturn/Uranus)', '목성/해왕성(Jupiter/Neptune)'
+      '태양(Sun)', '수성(Mercury)', '금성(Venus)', '명왕성(Pluto)',
+      '목성(Jupiter)', '토성(Saturn)', '천왕성(Uranus)', '해왕성(Neptune)'
     ];
     var chartRuler = chartRulerByAsc[ascIndex] || '미확인';
     var _astroSunLon = sunIndex * 30 + (chart.sun && typeof chart.sun.deg === 'number' ? chart.sun.deg : 0);
@@ -10411,18 +10410,18 @@ function renderAstroInsightLegacyNeon() {
 
     /* ── Jupiter 트랜짓 메시지 (astrologer 배열 재사용) ── */
     var transitMsg = [
-      "새 판 짜는 시즌이에요. 시작 버튼 누르면 속도 제대로 붙습니다. 🔥",
-      "돈·안정·생활 퀄리티를 천천히 올리기 좋은 흐름이에요. 꾸준함이 승리합니다. 💸",
-      "연락운과 아이디어 운이 살아나요. 말 한마디, 글 한 줄이 기회를 데려옵니다. 📱",
-      "집·가족·마음 컨디션 정비에 별빛이 실려요. 내 편 공간을 먼저 챙겨보세요. 🏡",
-      "무대 체질 ON. 나를 보여줄수록 반응이 오는 시기예요. ✨",
-      "루틴 정리하면 성과가 터집니다. 작은 습관이 큰 차이를 만들어요. ✅",
-      "관계운 상승 구간. 혼자보다 함께할 때 레벨업이 빠릅니다. 🤝",
-      "깊은 감정 정리 + 재정 점검이 동시에 필요한 시기. 정면돌파가 약이 돼요. 🦂",
-      "시야가 넓어지는 시즌. 여행·공부·도전에서 운의 문이 열립니다. 🌍",
-      "커리어 집중 모드. 책임감이 곧 실적으로 바뀌는 타이밍이에요. 🏆",
-      "사람과 프로젝트가 미래를 키워줘요. 커뮤니티에 답이 있습니다. 🧠",
-      "잠깐 느리게 가도 좋아요. 내면 정리 후에 다음 점프가 더 크게 옵니다. 🌊"
+      "확장과 착수의 시기입니다. 새로운 계획을 구체적인 첫걸음으로 옮기면 추진력이 빠르게 붙습니다.",
+      "재정과 생활 기반을 다지기 좋은 흐름입니다. 화려한 한 번보다 꾸준한 축적이 성과로 이어집니다.",
+      "소통과 정보의 문이 열리는 시기입니다. 짧은 대화나 글 한 편이 뜻밖의 기회로 연결될 수 있습니다.",
+      "가정과 정서적 기반을 정비할 시기입니다. 마음이 쉴 수 있는 공간을 먼저 다지면 다른 영역도 함께 안정됩니다.",
+      "자기표현과 존재감이 확장되는 시기입니다. 스스로를 드러낼수록 주변의 반응과 기회가 따라옵니다.",
+      "일상의 체계를 정비하면 성과로 이어지는 시기입니다. 작은 루틴의 개선이 누적된 결과를 만듭니다.",
+      "관계와 협력이 확장되는 흐름입니다. 혼자보다 함께할 때 성장의 폭이 커집니다.",
+      "감정과 재정을 함께 정리해야 하는 시기입니다. 미뤄둔 문제를 정면으로 다루면 오히려 흐름이 가벼워집니다.",
+      "시야가 넓어지는 시기입니다. 여행, 학습, 새로운 도전이 운의 문을 열어줍니다.",
+      "커리어에 집중력이 모이는 시기입니다. 책임을 맡을수록 성과로 돌아오는 흐름입니다.",
+      "사람과 공동의 프로젝트가 미래를 여는 시기입니다. 커뮤니티 안에서 답을 찾게 됩니다.",
+      "속도를 늦추고 내면을 정리할 시기입니다. 조용한 정비의 시간이 다음 도약의 발판이 됩니다."
     ];
 
     var sunArchetypeByIdx = [
@@ -10468,17 +10467,24 @@ function renderAstroInsightLegacyNeon() {
     var vmAspect = '';
     var vi = chart.planets.Venus && chart.planets.Venus.sign ? chart.planets.Venus.sign.idx : 0;
     var mi2 = chart.planets.Mars && chart.planets.Mars.sign ? chart.planets.Mars.sign.idx : 0;
-    if(vi===mi2) vmAspect = "<span class='aspect-hl'>[같은 리듬]</span> 마음 가는 포인트와 행동 타이밍이 잘 맞아, 빠르게 가까워지는 스타일이에요. 💞";
-    else if((vi-mi2+12)%12===6) vmAspect = "<span class='aspect-hl'>[밀당 리듬]</span> 끌림은 강한데 방식이 달라요. 대화 템포만 맞추면 훨씬 편해집니다. ⚖️";
+    if(vi===mi2) vmAspect = "<span class='aspect-hl'>[합, 0°]</span> 마음이 가는 지점과 행동이 같은 리듬으로 맞물려, 끌림이 빠르게 관계로 이어지는 배치입니다.";
+    else if((vi-mi2+12)%12===6) vmAspect = "<span class='aspect-hl'>[충, 180°]</span> 끌림은 강하지만 표현 방식이 서로 다른 배치입니다. 대화로 속도를 맞추면 긴장이 균형으로 바뀝니다.";
     var venusMarsSignGap = (vi - mi2 + 12) % 12;
     var vmFallbackByGap = {
       0:'금성-화성이 같은 사인에 있어 감정 표현과 행동이 같은 리듬으로 동기화됩니다.',
-      2:'좋아하는 방식과 행동 타이밍이 부드럽게 이어져요. 데이트가 자연스럽게 흘러갑니다.',
-      3:'서로 매력은 큰데 방식 차이도 커요. 룰을 먼저 정하면 다툼이 줄어요.',
-      4:'표현과 행동이 안정적으로 맞물리는 편이라 오래 가는 관계에 유리해요.',
-      6:'강한 끌림 + 강한 온도차 조합이에요. 잠깐 멈춤 대화가 관계를 지켜줍니다.'
+      1:'금성-화성이 인접한 사인에 있어 마음이 가는 지점과 행동이 미세하게 어긋납니다. 작은 조율만 거치면 자연스럽게 맞물립니다.',
+      2:'금성-화성이 우호적인 각(섹스타일)을 이룹니다. 좋아하는 방식과 행동 타이밍이 부드럽게 이어져 관계가 자연스럽게 흘러갑니다.',
+      3:'금성-화성이 긴장된 각(스퀘어)을 이룹니다. 서로 끌리는 힘은 크지만 방식의 차이도 뚜렷하니, 미리 정한 기준이 다툼을 줄여줍니다.',
+      4:'금성-화성이 조화로운 각(트라인)을 이룹니다. 표현과 행동이 안정적으로 맞물려 오래 가는 관계에 유리한 배치입니다.',
+      5:'금성-화성이 어긋난 각(퀸컨스)을 이룹니다. 원하는 것과 실제 행동이 다르게 움직이니, 서로의 속도를 있는 그대로 인정하는 과정이 필요합니다.',
+      6:'금성-화성이 마주보는 각(충)을 이룹니다. 강한 끌림과 뚜렷한 온도차가 함께 있는 배치라, 잠시 멈추고 대화하는 시간이 관계를 지켜줍니다.',
+      7:'금성-화성이 어긋난 각(퀸컨스)을 이룹니다. 바라는 것과 행동 사이에 조정이 필요한 시기이니, 대화로 간극을 좁혀가면 좋습니다.',
+      8:'금성-화성이 조화로운 각(트라인)을 이룹니다. 마음이 가는 대로 움직여도 무리 없이 관계가 흘러가는 배치입니다.',
+      9:'금성-화성이 긴장된 각(스퀘어)을 이룹니다. 매력과 추진력이 강한 만큼 부딪힘도 잦으니, 미리 정한 규칙이 도움이 됩니다.',
+      10:'금성-화성이 우호적인 각(섹스타일)을 이룹니다. 호감과 행동이 자연스럽게 이어져 관계가 편안하게 진행됩니다.',
+      11:'금성-화성이 인접한 사인에 있어 사소한 온도차가 있을 수 있으나, 조금만 맞추면 무리 없이 어울리는 배치입니다.'
     };
-    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('서로의 템포가 다른 날이에요. 급하게 결론 내기보다 한 박자 쉬어가면 훨씬 좋아요.');
+    var vmCalcFallback = vmFallbackByGap[venusMarsSignGap] || ('금성과 화성의 리듬이 서로 다른 배치입니다. 급하게 결론 내기보다 한 박자 쉬어가며 맞춰보는 편이 좋습니다.');
 
     var masterInsight = '';
 
@@ -11428,10 +11434,6 @@ function renderAstroInsightLegacyNeon() {
       +'.astro-readable .astro-table th,.astro-readable .astro-table td{padding:8px 7px;line-height:1.62;}'
       +'.astro-label{font-size:12px;color:#93c5fd;display:block;margin-bottom:4px;font-weight:700;letter-spacing:.01em;}'
       +'.astro-body .astro-core{border:1px solid rgba(167,139,250,.28);background:rgba(76,29,149,.15);border-radius:12px;padding:10px;color:#ede9fe;font-size:13px;line-height:1.65;}'
-      +'.astro-body .expert-title{color:#a5f3fc;font-weight:800;margin-bottom:10px;}'
-      +'.astro-body .neo-bubble,.astro-body .yeon-bubble{border-radius:12px;padding:11px 12px;line-height:1.7;font-size:13px;color:#e2e8f0;}'
-      +'.astro-body .neo-bubble{background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.23);margin-bottom:8px;}'
-      +'.astro-body .yeon-bubble{background:rgba(244,114,182,.1);border:1px solid rgba(244,114,182,.22);}'
       +'.astro-neon-syn-wrap{margin-top:10px;padding:12px;border-radius:14px;border:1px solid rgba(96,165,250,.35);background:linear-gradient(165deg,rgba(11,14,20,.92),rgba(15,29,58,.88) 46%,rgba(26,28,44,.9));box-shadow:0 12px 24px -20px rgba(56,189,248,.8),inset 0 1px 0 rgba(255,255,255,.06);}'
       +'.astro-neon-syn-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:10px;}'
       +'.astro-neon-syn-title{font-size:13px;font-weight:800;color:#bae6fd;letter-spacing:.01em;}'
@@ -11656,7 +11658,7 @@ function renderAstroInsightLegacyNeon() {
         + '</div></div>';
     }
 
-    var html = '<div class="astro-body astro-readable cosmic-theme star-container is-detail" id="astroBodyWrap">'
+    var html = '<div class="astro-body astro-readable cosmic-theme star-container is-easy" id="astroBodyWrap">'
       + astroNeonCss
       + precisionNoticeHtml
       + astroActionHubHtml
@@ -11669,7 +11671,7 @@ function renderAstroInsightLegacyNeon() {
       +'<div class="astro-subhead" style="margin:0;color:#a5f3fc;">✨ 오늘의 핵심 흐름</div>'
       +'<div class="astro-neon-badge">태양·달·상승궁 가이드</div>'
       +'</div>'
-      +'<div class="astro-mode-row"><button type="button" class="astro-reading-mode-btn" id="astroReadingModeToggle" aria-pressed="true">핵심만 보기로 줄이기</button></div>'
+      +'<div class="astro-mode-row"><button type="button" class="astro-reading-mode-btn" id="astroReadingModeToggle" aria-pressed="false">전체 리딩 다시 펼치기</button></div>'
       +'<div class="astro-neon-panel">'
       +'<p class="astro-neon-key"><b>오늘 먼저 볼 키워드:</b> '+astroKeywordLine+'</p>'
       +'<p class="astro-neon-key"><b>하늘이 비추는 흐름:</b> '+astroMoodLine+' '+relationAxisText+'</p>'
@@ -11786,8 +11788,8 @@ function renderAstroInsightLegacyNeon() {
         +'<p style="color:#cbd5e1;">친구는 대화 리듬이 맞는 사람, 동료는 약속과 품질 기준을 지키는 사람, 연인은 달 '+_friendlyHousePair(moonHousePair)+' 안정축을 이해해 주는 사람이 특히 잘 맞습니다. 관계 기준은 "속도보다 신뢰"로 두는 것이 좋습니다.</p>'
         +'<div class="astro-core" style="font-size:0.95rem;line-height:1.6;font-weight:normal">'
         +'<ul style="padding-left:20px;margin-bottom:0;">'
-        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (마음이 편한 관계)</b><br>감정 안정 포인트는 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 초반에 안심감을 먼저 만들면 오래가요. 내 약점 원소 <b>'+elemShortNames[elemWeakest]+'</b>를 채워주는 사람이 특히 찰떡입니다.</li>'
-        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (끌림과 템포)</b><br><b>'+venusSign+'</b> 금성('+venusHousePair+')은 사랑 표현법, <b>'+marsSign+'</b> 화성('+marsHousePair+')은 행동 타이밍이에요. "표현 맞추기 → 속도 맞추기" 순서가 제일 자연스럽습니다.</li>'
+        +'<li style="margin-bottom:10px;"><b>💕 연애 궁합 (마음이 편한 관계)</b><br>감정 안정 포인트는 <b>'+moonSign+'</b>('+moonHousePair+')입니다. 초반에 안심감을 먼저 만들면 관계가 오래갑니다. 내 약점 원소 <b>'+elemShortNames[elemWeakest]+'</b>를 채워주는 사람과 특히 잘 맞습니다.</li>'
+        +'<li style="margin-bottom:10px;"><b>✨ 속 궁합 (끌림과 템포)</b><br><b>'+venusSign+'</b> 금성('+venusHousePair+')은 사랑 표현법, <b>'+marsSign+'</b> 화성('+marsHousePair+')은 행동 타이밍입니다. "표현 맞추기 → 속도 맞추기" 순서가 가장 자연스럽습니다.</li>'
         +'<li><b>🤝 일 궁합 (함께 잘 일하는 조합)</b><br>업무 축은 MC <b>'+mcSign+'</b>와 토성 <b>'+saturnSign+'</b>('+saturnHousePair+')입니다. 감정보다 일정·품질·약속을 같이 지키는 파트너가 더 오래 갑니다.</li>'
         +'</ul>'
         +'</div>'
@@ -11808,28 +11810,28 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 직접 입력 시나스트리 궁합 ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-amber astro-compat-panel astro-compat-panel--direct">'
-        +'<div class="astro-subhead" style="color:#f59e0b;">💫 나의 시나스트리: 상대 직접 입력</div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#f59e0b;margin-bottom:0;"><span aria-hidden="true">💫</span> 나의 시나스트리: 상대 직접 입력</div><span class="astro-price-pill">5,000원</span></div>'
         +'<div class="astro-paid-note"><strong>유료 궁합 분석 · 5,000원</strong><span>결제 확인 후 두 사람의 시나스트리 결과가 생성됩니다.</span></div>'
         +'<div class="astro-desc">'
         +'<p style="font-size:0.85rem;color:#b2bec3;margin:0 0 12px 0;line-height:1.6;word-break:keep-all;">'
-        +'상대 정보만 넣으면 두 사람의 케미 지도가 즉시 오픈됩니다. 시간 미상이면 12:00(정오)로도 OK, 대화 템포 힌트까지 뽑아드려요.'
+        +'상대 정보를 입력하면 두 사람의 궁합 지도를 확인할 수 있습니다. 태어난 시각을 모르면 12:00(정오)로 계산되며, 대화 템포에 대한 힌트도 함께 제공됩니다.'
         +'</p>'
         /* 입력 폼 */
         +'<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label class="astro-label">상대방 이름 (선택)</label>'
+        +'<label class="astro-label" for="asDirect_name">상대방 이름 (선택)</label>'
         +'<input type="text" class="astro-neon-input" id="asDirect_name" placeholder="' + _sajuEngineText("se_11066_attr_placeholder") + '" autocomplete="off">'
         +'</div>'
         +'<div style="flex:1;min-width:130px;">'
-        +'<label class="astro-label">생년월일</label>'
+        +'<label class="astro-label" for="asDirect_date">생년월일</label>'
         +'<input type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-cd-birthdate-digits class="astro-neon-input" id="asDirect_date" required>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label class="astro-label">태어난 시각</label>'
+        +'<label class="astro-label" for="asDirect_time">태어난 시각</label>'
         +'<input type="time" class="astro-neon-input" id="asDirect_time" value="12:00" style="width:120px;">'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label class="astro-label">상대 성별</label>'
+        +'<label class="astro-label" for="asDirect_gender">상대 성별</label>'
         +'<select id="asDirect_gender" class="astro-neon-select" style="width:120px;">'
         +'<option value="F">여성</option>'
         +'<option value="M">남성</option>'
@@ -11837,7 +11839,7 @@ function renderAstroInsightLegacyNeon() {
         +'</select>'
         +'</div>'
         +'<div style="flex:0 0 auto;">'
-        +'<label class="astro-label">도시(시/군)</label>'
+        +'<label class="astro-label" for="asDirect_city">도시(시/군)</label>'
         +'<select id="asDirect_city" class="astro-neon-select" style="width:240px;">'
         +'<option value="">도시 선택(시/군 단위)</option>'
         +'</select>'
@@ -11850,7 +11852,7 @@ function renderAstroInsightLegacyNeon() {
 
         /* ── ★ 점성술 유명인 시나스트리 궁합 (신규) ── */
         +'<div class="astro-section astro-neon-accent astro-neon-accent-indigo astro-compat-panel astro-compat-panel--celeb" id="astroSynastrySection">'
-        +'<div class="astro-subhead" style="color:#818cf8;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div>'
+        +'<div class="astro-section-title-row"><div class="astro-subhead" style="color:#818cf8;margin-bottom:0;">🌌 유명인 시나스트리 (셀럽 궁합 실험실)</div><span class="astro-price-pill">5,000원</span></div>'
         +'<div class="astro-paid-note astro-paid-note--pink"><strong>유명인 궁합 분석 · 5,000원</strong><span>셀럽을 선택하면 결제 확인 후 궁합 리포트가 열립니다.</span></div>'
         +'<div class="astro-desc">'
 
@@ -12033,8 +12035,23 @@ function renderAstroInsightLegacyNeon() {
         +'<div class="expert-title">🗣️ 네오 & 연이의 코즈믹 카운슬링</div>'
         +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
         +'<div class="expert-msg">'
-        +'<div class="neo-bubble"><strong>네오의 한마디</strong> 오늘 차트의 핵심은 실행 우선순위를 분명히 두는 것입니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 MC '+mcSign+' 축에서 결과물을 먼저 만들고, 토성 '+_friendlyHousePair(saturnHousePair)+' 루틴으로 신뢰를 쌓으세요. 지금 가장 중요한 포인트는 첫째, 감정 과열 시 결론을 늦추는 것. 둘째, 핵심 과제 하나를 오늘 안에 끝내는 것. 셋째, 관계 대화에서 속도보다 합의를 먼저 두는 것입니다.</div>'
-        +'<div class="yeon-bubble"><strong>연이의 한마디</strong> 마음이 지칠수록 달 '+_friendlyHousePair(moonHousePair)+'이 쉬는 방식을 먼저 챙겨주세요. 조심해야 할 흐름은 혼자서 버티다 갑자기 닫히는 패턴이고, 살려야 할 재능은 공감력과 관찰력, 그리고 끝까지 책임지는 집중력입니다. 오늘의 선택 기준은 단순해요. "지금의 평온을 지키면서도 내일의 나를 편하게 해 주는 선택"을 고르세요.</div>'
+        +'<div class="expert-msg-row expert-msg-row--neo">'
+        +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%20%EB%B0%98%EC%8B%A0%EC%83%81%20%EB%B0%B0%EA%B2%BD%EC%97%86%EC%9D%8C-Photoroom.png" alt="네오" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🔷</span></span>'
+        +'<div class="neo-bubble">'
+        +'<div class="expert-bubble-head"><strong>네오의 한마디</strong><span class="expert-tag expert-tag--neo">분석형 조언</span></div>'
+        +'<p class="expert-lead">오늘 차트의 핵심은 실행 우선순위를 분명히 두는 것입니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 MC '+mcSign+' 축에서 결과물을 먼저 만들고, 토성 '+_friendlyHousePair(saturnHousePair)+' 루틴으로 신뢰를 쌓으세요.</p>'
+        +'<p class="expert-list-label">지금 가장 중요한 포인트</p>'
+        +'<ol class="expert-list"><li>감정 과열 시 결론을 늦추기</li><li>핵심 과제 하나를 오늘 안에 끝내기</li><li>관계 대화에서 속도보다 합의를 먼저 두기</li></ol>'
+        +'</div>'
+        +'</div>'
+        +'<div class="expert-msg-row expert-msg-row--yeon">'
+        +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/DestinyCafe/nobackground/yeoni-bust-cutout.webp" alt="연이" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🌸</span></span>'
+        +'<div class="yeon-bubble">'
+        +'<div class="expert-bubble-head"><strong>연이의 한마디</strong><span class="expert-tag expert-tag--yeon">감성형 조언</span></div>'
+        +'<p class="expert-lead">마음이 지칠수록 달 '+_friendlyHousePair(moonHousePair)+'이 쉬는 방식을 먼저 챙겨주세요. 조심해야 할 흐름은 혼자서 버티다 갑자기 닫히는 패턴이고, 살려야 할 재능은 공감력과 관찰력, 그리고 끝까지 책임지는 집중력입니다.</p>'
+        +'<blockquote class="expert-callout">지금의 평온을 지키면서도 내일의 나를 편하게 해 주는 선택을 고르세요.</blockquote>'
+        +'</div>'
+        +'</div>'
         +'</div>'
         +'</div>'
 
@@ -12070,7 +12087,7 @@ function renderAstroInsightLegacyNeon() {
           readingModeBtn.textContent = detailMode ? '핵심만 보기로 줄이기' : '전체 리딩 다시 펼치기';
         }
       }
-      applyMode(true);
+      applyMode(false);
 
       if(modeBtn){
         modeBtn.addEventListener('click', function(){
@@ -12961,11 +12978,11 @@ function renderAstroInsightLegacyNeon() {
     function _syBuildNarrative(meta){
       var score = meta.score || 50;
       var rel;
-      if(score >= 85) rel = '찰떡 합 인연 - 마음, 가치관, 행동 템포가 고르게 잘 맞아요.';
-      else if(score >= 70) rel = '함께 성장하는 인연 - 기본 궁합이 좋고, 갈등도 잘 풀 수 있는 조합입니다.';
-      else if(score >= 55) rel = '밀당형 인연 - 끌림도 크고 부딪힘도 있어, 운영 방식이 중요해요.';
-      else if(score >= 40) rel = '연습이 필요한 인연 - 서로 맞추는 대화와 규칙이 꼭 필요합니다.';
-      else rel = '숙제 많은 인연 - 경계 설정과 합의가 없으면 쉽게 지칠 수 있어요.';
+      if(score >= 85) rel = '조화형 인연 - 마음, 가치관, 행동 템포가 고르게 맞물리는 배치입니다.';
+      else if(score >= 70) rel = '함께 성장하는 인연 - 기본 궁합이 좋고, 갈등도 비교적 잘 풀리는 조합입니다.';
+      else if(score >= 55) rel = '역동형 인연 - 끌림도 크고 부딪힘도 있어, 관계를 운영하는 방식이 중요합니다.';
+      else if(score >= 40) rel = '조율이 필요한 인연 - 서로 맞추는 대화와 합의가 꼭 필요한 배치입니다.';
+      else rel = '과제가 많은 인연 - 경계 설정과 합의가 없으면 쉽게 지칠 수 있는 배치입니다.';
 
       var supportTxt = meta.support ? (meta.support.pair + ' ' + meta.support.asp.name) : '뚜렷한 조화각 없음';
       var challengeTxt = meta.challenge ? (meta.challenge.pair + ' ' + meta.challenge.asp.name) : '뚜렷한 긴장각 없음';
@@ -12975,15 +12992,15 @@ function renderAstroInsightLegacyNeon() {
       var h78Boost = (meta.overlayNorm != null && meta.overlayNorm > 0.14)
         ? '7H/8H 투사가 강해 관계의 몰입도와 변환 강도가 큽니다.'
         : (meta.overlayNorm != null && meta.overlayNorm < -0.08)
-          ? '12H/6H 압력이 커서 관계 피로 수호가 핵심 과제입니다.'
-          : '7H/8H와 일상 하우스가 균형적이라 운행 역량이 성패를 가릅니다.';
+          ? '12H/6H 압력이 커서 관계 피로를 관리하는 것이 핵심 과제입니다.'
+          : '7H/8H와 일상 하우스가 균형적이라 운영 역량이 성패를 가릅니다.';
 
-      var love = '연애에서는 '+supportTxt+'이 설렘을 키우고, '+challengeTxt+'이 다툼 포인트가 되기 쉬워요. '
-        +'내 금성 '+venusStage+'과 달 '+moonStage+'의 감정 포인트를 먼저 맞추면 만족도가 확 올라갑니다.';
+      var love = '연애에서는 '+supportTxt+'이 설렘을 키우고, '+challengeTxt+'이 다툼 포인트가 되기 쉽습니다. '
+        +'내 금성 '+venusStage+'과 달 '+moonStage+'의 감정 포인트를 먼저 맞추면 관계의 만족도가 안정적으로 올라갑니다.';
       var busi = '협업에서는 내 태양 투사 하우스 '+sunStage+'가 메인 무대입니다. '
         +'역할과 책임을 하우스 주제에 맞춰 나누면 성과는 안정되고 에너지 소모는 줄어듭니다.';
       var spirit = '관계의 성장 포인트는 '+meta.myElem+'-'+meta.theirElem+' 조합에서 드러납니다. '+h78Boost+' '
-        +'점수 '+score+'/100 구간에서는 "감정 정리 루틴 + 갈등 복기 규칙"을 같이 만들수록 관계가 빨리 좋아집니다.';
+        +'점수 '+score+'/100 구간에서는 "감정 정리 루틴 + 갈등 복기 규칙"을 함께 만들어 가면 관계가 점차 안정됩니다.';
 
       return { relType: rel, loveDesc: love, busDesc: busi, spiritDesc: spirit };
     }
@@ -13055,7 +13072,7 @@ function renderAstroInsightLegacyNeon() {
                     '불-불': { light:'✧ 불꽃 같은 열정과 에너지가 증폭', shadow:'✦ 둘 다 리더 기질, 주도권 충돌 주의', remedy:'서로의 에너지를 경쟁이 아닌 창조로 승화시키세요' },
                     '불-흙': { light:'✧ 열정+현실감각의 이상적 조합',    shadow:'✦ 속도 차이 — 불은 빠르고 흙은 느립니다', remedy:'페이스 조율: 행동 전 충분한 논의가 신뢰를 만듭니다' },
                     '불-공기':{ light:'✧ 창의적 영감이 폭발하는 관계',   shadow:'✦ 감정보다 언어, 피상적 교류에 머물 수 있음', remedy:'진심을 담은 깊은 대화 시간을 의도적으로 만드세요' },
-                    '불-물': { light:'✧ 열정과 감성의 조화, 강렬한 끌림',shadow:'✦ 기질 충돌 — 불은 이성적, 물은 감성적', remedy:'감정 언어를 배우세요. 공감 표현이 모든 갈등을 녹입니다' },
+                    '불-물': { light:'✧ 열정과 감성의 조화, 강렬한 끌림',shadow:'✦ 기질 충돌 — 불은 이성적, 물은 감성적', remedy:'감정 언어를 배우세요. 공감 표현을 늘릴수록 갈등이 부드럽게 풀립니다' },
                     '흙-흙': { light:'✧ 안정·신뢰·현실적 성취의 최강 조합',shadow:'✦ 변화를 두려워해 정체될 수 있음',      remedy:'새로운 경험을 함께 도전하며 관계에 신선함을 부어주세요' },
                     '흙-공기':{ light:'✧ 실행력과 아이디어의 완벽 균형', shadow:'✦ 가치관 차이, 물질 vs 이상',            remedy:'서로의 세계관을 존중하며 다름 속에서 시너지를 찾으세요' },
                     '흙-물': { light:'✧ 포용과 안정의 따뜻한 울타리',    shadow:'✦ 물이 흙을 무겁게 만들 수 있음',       remedy:'감정을 실용적으로 표현하면 관계가 훨씬 원활해집니다' },
@@ -29638,10 +29655,14 @@ function showQuantumResult() {
   function _astroCounselRenderError(message) {
     var area = document.getElementById('astroResult');
     if (!area) return;
-    area.innerHTML = '<div class="astro-counsel-error" data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '">'
-      + '<strong>점성술 상담 차트를 준비하지 못했어요</strong>'
-      + '<p>' + _astroCounselEscape(message) + '</p>'
-      + '</div>';
+    area.innerHTML = ''
+      + '<div class="astro-body astro-readable cosmic-theme star-container" id="astroBodyWrap" style="background:linear-gradient(180deg,#060a16 0%,#0d1428 50%,#121a32 100%);border-radius:20px;padding:12px;" data-astro-basic-result="' + ASTRO_COUNSEL_MARKER + '">'
+      + '<div class="astro-section" style="border:1px solid rgba(248,113,113,.4);background:linear-gradient(160deg,rgba(30,10,20,.78),rgba(20,20,45,.88));border-radius:16px;padding:14px;">'
+      + '<div class="astro-subhead" style="color:#fecdd3;margin-bottom:8px;">🛰 점성술 상담 차트 준비 실패</div>'
+      + '<div class="astro-desc" style="line-height:1.75;">'
+      + '<p style="margin:0;color:#ffe4e6;">점성술 상담 차트를 준비하지 못했습니다.</p>'
+      + '<p style="margin:8px 0 0 0;color:#cbd5e1;">' + _astroCounselEscape(message) + '</p>'
+      + '</div></div></div>';
   }
 
   function _astroCounselSetText(root, selector, text) {
@@ -30019,9 +30040,12 @@ function showQuantumResult() {
     if (wheel && !wheel.closest('.astro-restored-chart-details')) {
       var details = document.createElement('details');
       details.className = 'astro-restored-chart-details';
+      details.open = true;
       details.innerHTML = '<summary><span>하늘 지도와 계산 상세 펼치기</span><em>행성 위치표 · 어스펙트 원본</em></summary>';
       wheel.parentNode.insertBefore(details, wheel);
       details.appendChild(wheel);
+      var restoredHero = wrap.querySelector('.astro-restored-hero');
+      if (restoredHero) restoredHero.insertAdjacentElement('afterend', details);
     }
     _astroCounselBindPaidGateObserver(area);
     _astroCounselApplyPaidGates();

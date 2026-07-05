@@ -125,6 +125,13 @@ if (Test-Path (Join-Path $androidDir "gradlew.bat")) {
     Write-FailLine "Gradle wrapper missing at apps/mobile/android/gradlew.bat"
 }
 
+$googleServicesJson = Join-Path $androidDir "app/google-services.json"
+if (Test-Path $googleServicesJson) {
+    Write-Ok "google-services.json found (FCM push notifications enabled)"
+} else {
+    Write-WarnLine "google-services.json not found. Build still works; FCM push notifications stay disabled until this file is added."
+}
+
 if ($failed) {
     exit 1
 }

@@ -1443,26 +1443,6 @@ function validateAstroTransitInsights(insights = {}) {
   };
 }
 
-export function validateAstroPdfCompletionPayload({ pdfReady = {}, requireDownloadUrl = false } = {}) {
-  const issues = [];
-  const html = clean(pdfReady?.html);
-  if (!html) issues.push("html.missing");
-  if (html && !/<!doctype html>/i.test(html)) issues.push("html.doctype");
-  if (html && !/<meta\s+charset=["']?UTF-8["']?/i.test(html)) issues.push("html.charset");
-
-  const downloadUrl = clean(pdfReady?.downloadUrl || pdfReady?.pdfUrl || pdfReady?.htmlUrl);
-  if (requireDownloadUrl && !downloadUrl) issues.push("download_url.missing");
-
-  return {
-    ok: issues.length === 0,
-    issues: [...new Set(issues)],
-    chapterCount: 0,
-    expectedChapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    htmlLength: html.length,
-    hasDownloadUrl: Boolean(downloadUrl),
-  };
-}
-
 export async function prepareAstroPremiumCalculation(env, rawInput = {}, options = {}) {
   const emit = typeof options.log === "function"
     ? options.log
@@ -1551,23 +1531,6 @@ export async function prepareAstroPremiumCalculation(env, rawInput = {}, options
     transitValidation,
     generationMode: ASTRO_PDF_CONFIG.generationMode,
     provider: ASTRO_PDF_CONFIG.provider,
-  };
-}
-
-export async function generateAstroPremiumReport(env, rawInput = {}, options = {}) {
-  const prepared = await prepareAstroPremiumCalculation(env, rawInput, options);
-  return {
-    ok: true,
-    status: "calculated",
-    generationMode: ASTRO_PDF_CONFIG.generationMode,
-    provider: ASTRO_PDF_CONFIG.provider,
-    manuscriptSource: "calculation-only",
-    chapterCount: 0,
-    expectedChapterCount: ASTRO_PREMIUM_CHAPTERS.length,
-    localAstroChartJson: prepared.localAstroChartJson,
-    birthInput: prepared.birthInput,
-    chartValidation: prepared.chartValidation,
-    transitValidation: prepared.transitValidation,
   };
 }
 

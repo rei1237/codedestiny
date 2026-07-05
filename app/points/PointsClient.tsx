@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import MoonIcon, { type MoonPhase } from "@/components/ui/MoonIcon";
+import TurnstileWidget from "@/components/TurnstileWidget";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import WithdrawModal from "../components/WithdrawModal";
 import { usePaymentProcessing } from "../components/PaymentProcessingContext";
@@ -2596,6 +2597,9 @@ export default function PointsPage() {
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [pendingSubscriptionPaymentPlan, setPendingSubscriptionPaymentPlan] = useState<SubscriptionPlan | null>(null);
   const [isSubscriptionRefundAgreed, setIsSubscriptionRefundAgreed] = useState(false);
+  const [subscriptionTurnstileToken, setSubscriptionTurnstileToken] = useState("");
+  const subscriptionTurnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || process.env.Turnstile_Site_Key || "";
   const [subscription, setSubscription] = useState<SubscriptionStatus>({
     tier:         "free",
     isActive:     false,
@@ -3529,6 +3533,7 @@ export default function PointsPage() {
           currency: "KRW",
           productType: plan.productType,
           paymentMethod: selectedMethod || "card_general",
+          turnstileToken: subscriptionTurnstileToken,
         }),
       }, {
         retryOn401: true,
@@ -3940,10 +3945,20 @@ export default function PointsPage() {
               />
               <span>{copy.refundAgreement}</span>
             </label>
+            {subscriptionTurnstileSiteKey ? (
+              <div className="mt-3">
+                <TurnstileWidget
+                  siteKey={subscriptionTurnstileSiteKey}
+                  mode="managed"
+                  disabled={isProcessing}
+                  onTokenChange={(value) => setSubscriptionTurnstileToken(value || "")}
+                />
+              </div>
+            ) : null}
             <div className="mt-4 grid gap-2">
               <button
                 type="button"
-                disabled={isProcessing || !isSubscriptionRefundAgreed}
+                disabled={isProcessing || !isSubscriptionRefundAgreed || !subscriptionTurnstileToken}
                 onClick={() => {
                   const plan = pendingSubscriptionPaymentPlan;
                   if (!plan) return;
