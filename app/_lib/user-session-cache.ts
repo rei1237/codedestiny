@@ -348,11 +348,20 @@ export async function ensureUserAccessLoaded(options: { force?: boolean; include
   const hasSession = await hasAuthenticatedSession(authResponse);
   if (!hasSession) return getUserAccessSnapshot();
   const tasks: Promise<unknown>[] = [];
+  // /api/profile 응답이 subscription(이용권)을 함께 반환하므로 별도
+  // /api/subscription/status 호출(중복)을 제거하고, 프로필 로드 성공 시
+  // entitlement 상태를 ready로 표시한다.
   if (options.includeProfile !== false) {
-    tasks.push(fetch("/api/profile", init).catch((error) => error));
+    tasks.push(
+      fetch("/api/profile", init)
+        .then((response) => {
+          if (response && response.ok) updateStatus("entitlement", "ready", null);
+          return response;
+        })
+        .catch((error) => error),
+    );
   }
   if (options.includeBilling !== false) {
-    tasks.push(fetch("/api/subscription/status", init).catch((error) => error));
     tasks.push(fetchBillingBalance({ force: options.force, emit: false }).catch((error) => error));
   }
   await Promise.allSettled(tasks);

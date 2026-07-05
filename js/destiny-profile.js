@@ -1422,8 +1422,18 @@
     }, 240);
   }
 
+  /** 구독 상태를 free(비활성)로 리셋 — 비로그인/세션만료 시 사용 */
+  function _dpResetSubscriptionState() {
+    _dpSubScope = _dpGetProfileScope();
+    _dpSubTier = 'free';
+    _dpSubIsActive = false;
+    _dpSubProfileLimit = 1;
+    _dpUpdateSaveBtn();
+  }
+
   function _dpLoadFromServer(callback) {
     if (!_dpHasSessionHint()) {
+      _dpResetSubscriptionState();
       _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'no-session-hint' });
       if (callback) callback(false);
       return Promise.resolve(false);
@@ -1435,6 +1445,7 @@
 
     _dpLoadFromServerPending = _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) {
+        _dpResetSubscriptionState();
         return false;
       }
       var requestScope = _dpGetProfileScope();
@@ -6376,7 +6387,10 @@
     var hasInitialSessionHint = _dpHasSessionHint();
     if (!hasInitialSessionHint) _dpEnsureScopedStorageReady();
 
-    var initialProfile = hasInitialSessionHint ? null : DPStorage.current();
+    // 로그인 사용자도 현재 스코프에 저장된 프로필이 있으면 즉시 렌더(SWR식) —
+    // DPStorage.current()는 인증 사용자 스코프 기준으로 읽으므로 이전 사용자
+    // 카드가 노출되지 않는다. 저장분이 없을 때만 로딩 카드를 띄운다.
+    var initialProfile = DPStorage.current();
     var shouldShowProfileLoading = hasInitialSessionHint;
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
@@ -6397,6 +6411,8 @@
         return;
       }
 
+      // 구독 상태는 _dpLoadFromServer가 /api/profile 응답의 subscription으로 갱신하므로
+      // 별도 _fetchSubscription() 호출(중복 네트워크)을 제거한다.
       _dpLoadFromServer(function(loaded) {
         if (loaded) {
           renderMasterCard(DPStorage.current());
@@ -6405,8 +6421,6 @@
           renderMasterCard(DPStorage.current());
         }
       });
-
-      _fetchSubscription();
     }).catch(function() {
       _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'profile-bootstrap-error' });
     });
@@ -6614,22 +6628,35 @@
       if (!_dpHasSessionHint()) renderMasterCard(DPStorage.current());
       renderProfileList();
 
+      // 구독 상태는 _dpLoadFromServer가 /api/profile 응답으로 갱신하므로
+      // 별도 _fetchSubscription() 호출(중복 네트워크)을 제거한다.
       _dpLoadFromServer(function(loaded) {
         if (!loaded) return;
         renderMasterCard(DPStorage.current());
         renderProfileList();
         _dpUpdateSaveBtn();
       });
-      _fetchSubscription();
     }
 
-    window.addEventListener('cd:auth-changed', _dpRefreshAuthScopeNow);
+    // cd:auth-changed / BroadcastChannel / storage 세 리스너가 동일 인증 변경에
+    // 대해 거의 동시에 발화하므로, 트레일링 디바운스로 1회 실행으로 합쳐
+    // 프로필+구독 재조회 중복을 막는다(최종 인증 상태 기준으로 실행).
+    var _dpAuthScopeRefreshTimer = null;
+    function _dpScheduleAuthScopeRefresh() {
+      if (_dpAuthScopeRefreshTimer) clearTimeout(_dpAuthScopeRefreshTimer);
+      _dpAuthScopeRefreshTimer = setTimeout(function() {
+        _dpAuthScopeRefreshTimer = null;
+        _dpRefreshAuthScopeNow();
+      }, 150);
+    }
+
+    window.addEventListener('cd:auth-changed', _dpScheduleAuthScopeRefresh);
 
     try {
       if (typeof BroadcastChannel !== 'undefined') {
         var authSyncChannel = new BroadcastChannel('code-destiny-auth-sync');
         authSyncChannel.onmessage = function() {
-          _dpRefreshAuthScopeNow();
+          _dpScheduleAuthScopeRefresh();
         };
       }
     } catch (e) {}
@@ -6638,7 +6665,7 @@
       var key = ev && ev.key ? String(ev.key) : '';
       if (!key) return;
       if (key === 'fortune_auth_user' || key === 'fortune_auth_token' || key === 'fortune_auth_role') {
-        _dpRefreshAuthScopeNow();
+        _dpScheduleAuthScopeRefresh();
       }
     });
 
