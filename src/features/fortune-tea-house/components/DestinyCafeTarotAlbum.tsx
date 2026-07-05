@@ -859,24 +859,24 @@ function TarotAlbumLockPanel({
           </div>
           <HoneyDropProgress current={currentHoneyDrops} total={TAROT_ALBUM_UNLOCK_COST} />
           <button
-            type=”button”
+            type="button"
             className={cx(
-              “mt-6 inline-flex min-h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full border px-5 text-sm font-black transition focus:outline-none focus:ring-2 focus:ring-champagne-gold/55”,
+              "mt-6 inline-flex min-h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full border px-5 text-sm font-black transition focus:outline-none focus:ring-2 focus:ring-champagne-gold/55",
               canUnlock && !isUnlocking
-                ? “border-champagne-gold/60 bg-gradient-to-r from-champagne-gold via-pearl-mist to-twilight-violet text-midnight-ink shadow-[0_18px_44px_rgba(216,179,108,.24)] hover:-translate-y-0.5 hover:shadow-[0_0_42px_rgba(216,179,108,.3)]”
-                : “cursor-not-allowed border-twilight-violet/28 bg-pearl-mist/[0.07] text-moonveil-silver shadow-[0_0_28px_rgba(156,135,212,.1)]”,
+                ? "border-champagne-gold/60 bg-gradient-to-r from-champagne-gold via-pearl-mist to-twilight-violet text-midnight-ink shadow-[0_18px_44px_rgba(216,179,108,.24)] hover:-translate-y-0.5 hover:shadow-[0_0_42px_rgba(216,179,108,.3)]"
+                : "cursor-not-allowed border-twilight-violet/28 bg-pearl-mist/[0.07] text-moonveil-silver shadow-[0_0_28px_rgba(156,135,212,.1)]"
             )}
             disabled={!canUnlock || isUnlocking}
             onClick={onUnlock}
           >
-            {isUnlocking ? <Loader2 size={18} className=”animate-spin” aria-hidden /> : <BookOpen size={18} aria-hidden />}
-            {isUnlocking ? “달빛 앨범을 여는 중” : canUnlock ? “꿀방울 10개로 앨범 열기” : “꿀방울이 조금 더 필요해요”}
+            {isUnlocking ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <BookOpen size={18} aria-hidden />}
+            {isUnlocking ? "달빛 앨범을 여는 중" : canUnlock ? "꿀방울 10개로 앨범 열기" : "꿀방울이 조금 더 필요해요"}
           </button>
-          <div className=”mx-auto mt-5 grid max-w-2xl grid-cols-[34px_minmax(0,1fr)] gap-3 rounded-2xl border border-twilight-violet/20 bg-midnight-ink/72 px-4 py-3 text-left text-sm leading-relaxed text-pearl-mist shadow-[0_18px_44px_rgba(5,2,14,.18)]”>
-            <span className=”relative mt-0.5 grid h-8 w-8 place-items-center rounded-full border border-champagne-gold/24 bg-champagne-gold/10 text-champagne-gold”>
+          <div className="mx-auto mt-5 grid max-w-2xl grid-cols-[34px_minmax(0,1fr)] gap-3 rounded-2xl border border-twilight-violet/20 bg-midnight-ink/72 px-4 py-3 text-left text-sm leading-relaxed text-pearl-mist shadow-[0_18px_44px_rgba(5,2,14,.18)]">
+            <span className="relative mt-0.5 grid h-8 w-8 place-items-center rounded-full border border-champagne-gold/24 bg-champagne-gold/10 text-champagne-gold">
               <Sparkles size={15} aria-hidden />
             </span>
-            <p>”{unlockMessage || lockDialogue}”</p>
+            <p>"{unlockMessage || lockDialogue}"</p>
           </div>
         </div>
       </div>
@@ -1165,12 +1165,12 @@ function TarotCardModal({
             <DetailSection title="돈" body={card.moneyMeaning} />
           </div>
           <DetailSection title="내면 성장" body={card.innerGrowthMeaning} />
-          <blockquote className=”rounded-2xl border border-champagne-gold/20 bg-champagne-gold/10 px-4 py-4 text-sm leading-7 text-champagne-gold”>
-            “{card.yeoniMessage}”
+          <blockquote className="rounded-2xl border border-champagne-gold/20 bg-champagne-gold/10 px-4 py-4 text-sm leading-7 text-champagne-gold">
+            "{card.yeoniMessage}"
           </blockquote>
-          <section className=”rounded-2xl border border-moonveil-silver/16 bg-moonveil-silver/[0.07] px-4 py-4”>
-            <h4 className=”text-sm font-black text-moonveil-silver”>나에게 던지는 질문</h4>
-            <p className=”mt-2 text-sm leading-7 text-pearl-mist/88”>{card.journalQuestion}</p>
+          <section className="rounded-2xl border border-moonveil-silver/16 bg-moonveil-silver/[0.07] px-4 py-4">
+            <h4 className="text-sm font-black text-moonveil-silver">나에게 던지는 질문</h4>
+            <p className="mt-2 text-sm leading-7 text-pearl-mist/88">{card.journalQuestion}</p>
           </section>
         </div>
         <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-midnight-ink/88 px-4 py-3 backdrop-blur-2xl sm:absolute sm:rounded-b-[2rem]">
