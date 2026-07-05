@@ -1995,7 +1995,7 @@ export default function PalmDestinyMain() {
       }
 
       const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
-      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원)`);
+      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${formatKrwFromCoins(Math.max(0, serverCost))})`);
 
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
@@ -2172,7 +2172,7 @@ export default function PalmDestinyMain() {
       }
 
       activeBillingGateRequestId = billingChargeRequestId;
-      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원)`);
+      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${formatKrwFromCoins(Math.max(0, serverCost))})`);
       const coinGateResult = await runBillingCoinGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,

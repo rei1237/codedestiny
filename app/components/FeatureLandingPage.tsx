@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
+import { useServerPrice } from "@/app/hooks/useServerPrice";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
 
@@ -286,17 +287,18 @@ const ACTION_MAP: Record<string, string> = {
   "/yoga-guru":"openYogaGuru",
 };
 
-const PAID_SLUG_META: Record<string, { coins: string }> = {
-  "/flower/destiny":   { coins: "5,000원" },
-  "/flower/astrology": { coins: "5,000원" },
-  "/flower/jamidusu":  { coins: "5,000원" },
-  "/flower/sukuyo":    { coins: "5,000원" },
-  "/dream/psycho":     { coins: "3,000원" },
-  "/tarot/love": { coins: "5,000원" },
-  "/tarot/reunion": { coins: "5,000원" },
-  "/tarot/year": { coins: "3,000원" },
-  "/oracle/royal-tea": { coins: "3,000원" },
-  "/yoga-guru": { coins: "3,000원" },
+// coins 라벨은 서버 가격 조회 실패 시의 fallback — 정본은 featureKey로 조회하는 서버 가격
+const PAID_SLUG_META: Record<string, { coins: string; featureKey: string }> = {
+  "/flower/destiny":   { coins: "5,000원", featureKey: "flower-studio-per-use" },
+  "/flower/astrology": { coins: "5,000원", featureKey: "flower-studio-per-use" },
+  "/flower/jamidusu":  { coins: "5,000원", featureKey: "flower-studio-per-use" },
+  "/flower/sukuyo":    { coins: "5,000원", featureKey: "flower-studio-per-use" },
+  "/dream/psycho":     { coins: "3,000원", featureKey: "dream-psycho-analysis" },
+  "/tarot/love": { coins: "5,000원", featureKey: "tarot-love-relationship" },
+  "/tarot/reunion": { coins: "5,000원", featureKey: "tarot-reunion-reading" },
+  "/tarot/year": { coins: "3,000원", featureKey: "tarot-year-fortune" },
+  "/oracle/royal-tea": { coins: "3,000원", featureKey: "royal-tea-oracle" },
+  "/yoga-guru": { coins: "3,000원", featureKey: "yoga-guru-per-use" },
 };
 
 type FeatureLandingCopy = {
@@ -649,6 +651,11 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     : "/index.html";
   const paidMeta = PAID_SLUG_META[basePath];
   const isPaidFeature = !!paidMeta;
+  // 서버 가격 정본 조회 (ko 외 로케일은 접미사 현지화를 위해 fallback 라벨 유지)
+  const paidPrice = useServerPrice({
+    featureKey: locale === "ko" ? paidMeta?.featureKey : undefined,
+    fallbackLabel: paidMeta ? formatFeaturePrice(paidMeta.coins, locale) : "",
+  });
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -1061,7 +1068,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               fontSize:16,
               lineHeight:1,
             }}>{cfg.icon}</span>
-            <span>{isPaidFeature ? copy.paidCta(formatFeaturePrice(paidMeta.coins, locale)) : copy.freeCta}</span>
+            <span>{isPaidFeature ? copy.paidCta(paidPrice.label || formatFeaturePrice(paidMeta.coins, locale)) : copy.freeCta}</span>
           </a>
           <a href="/insights" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
