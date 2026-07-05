@@ -18,6 +18,8 @@
   var SUKYO_TOTAL_CHAPTERS = 15;
   var SUKYO_COIN_COST_FALLBACK = 490;
   var SUKYO_RUNNING_POLL_INTERVAL_MS = 4500;
+  // 서버가 준 pollAfterMs가 비정상적으로 작아도 이 간격보다 빠르게 폴링하지 않는다(요청 폭주 방지).
+  var SUKYO_RUNNING_POLL_MIN_INTERVAL_MS = 1500;
   var SUKYO_RUNNING_POLL_MAX_ATTEMPTS = 160;
   var SUKYO_LLM_MANUSCRIPT_SOURCE = 'llm-authored';
   var SUKYO_ACCEPTED_MANUSCRIPT_SOURCES = [SUKYO_LLM_MANUSCRIPT_SOURCE, 'llm-html-v2', 'llm-workers-ai', 'llm-gemini', 'llm-workers-ai+gemini'];
@@ -3251,7 +3253,7 @@
               return;
             }
             _applySukuyoServerProgress(data && data.running || running, attempts);
-            setTimeout(tick, Number((data && data.running && data.running.pollAfterMs) || running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS);
+            setTimeout(tick, Math.max(SUKYO_RUNNING_POLL_MIN_INTERVAL_MS, Number((data && data.running && data.running.pollAfterMs) || running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS));
           })
           .catch(function (error) {
             if (attempts >= SUKYO_RUNNING_POLL_MAX_ATTEMPTS) {
@@ -3262,7 +3264,7 @@
             }
             _setLoadingNotice('숙요점 궁합 PDF 생성 상태를 다시 확인하는 중입니다.');
             _applySukuyoServerProgress(running, attempts);
-            setTimeout(tick, Number(running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS);
+            setTimeout(tick, Math.max(SUKYO_RUNNING_POLL_MIN_INTERVAL_MS, Number(running.pollAfterMs || SUKYO_RUNNING_POLL_INTERVAL_MS) || SUKYO_RUNNING_POLL_INTERVAL_MS));
           });
       }
       tick();

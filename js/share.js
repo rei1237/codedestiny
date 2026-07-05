@@ -329,7 +329,11 @@ function showVersionUpdateBanner(version, reason) {
   document.body.appendChild(banner);
 }
 
+var __versionGuardInFlight = false;
 function runNuclearVersionGuard() {
+  // focus·visibilitychange·interval·이벤트가 겹쳐 version.json을 중복 요청하지 않도록 단일 실행 보장.
+  if (__versionGuardInFlight) return Promise.resolve();
+  __versionGuardInFlight = true;
   return resolveRuntimeVersion().then(function(version) {
     // dev 버전 또는 fetch 실패 시 아무 작업 안 함
     if (!version || version === 'dev') return version;
@@ -377,6 +381,8 @@ function runNuclearVersionGuard() {
 
     // SW 전체 해제 + Cache Storage 전부 삭제 후 reload
     return applyVersionRefresh(version);
+  }).finally(function() {
+    __versionGuardInFlight = false;
   });
 }
 

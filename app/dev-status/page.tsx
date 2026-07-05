@@ -41,6 +41,7 @@ export default function DevStatusPage() {
   useEffect(() => {
     let alive = true;
     let timer: number | null = null;
+    let failureStreak = 0;
 
     async function tick() {
       try {
@@ -53,12 +54,16 @@ export default function DevStatusPage() {
         setPayload(json);
         setError("");
         setLastUpdatedAt(Date.now());
+        failureStreak = 0;
       } catch (e) {
         if (!alive) return;
         setError(e instanceof Error ? e.message : DEV_STATUS_PAGE_TEXT_TRANSLATIONS.en.fetchFailed);
+        failureStreak += 1;
       } finally {
         if (!alive) return;
-        timer = window.setTimeout(tick, 1000);
+        // 연속 실패(네트워크·429·Cloudflare 1015)에서는 지수 백오프로 요청 폭주를 막는다. 정상 시 1초 폴링.
+        const delay = failureStreak > 0 ? Math.min(30000, 1000 * 2 ** failureStreak) : 1000;
+        timer = window.setTimeout(tick, delay);
       }
     }
 
