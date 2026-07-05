@@ -3837,8 +3837,8 @@ export default function PointsPage() {
   if (isBooting) {
     return (
       <main
-        className="flex min-h-screen items-center justify-center text-slate-100"
-        style={{ background: "linear-gradient(160deg, #071126 0%, #151a3d 46%, #332255 100%)" }}
+        className="flex min-h-[100dvh] items-center justify-center text-slate-100"
+        style={{ background: "var(--cd-page-bg-gradient, linear-gradient(160deg, #071126 0%, #151a3d 46%, #332255 100%))" }}
       >
         <div className="text-center">
           <div className="mb-3 text-5xl animate-pulse">🌙</div>
@@ -3869,8 +3869,8 @@ export default function PointsPage() {
   /* ── 메인 렌더 ─────────────────────────────────────────────────── */
   return (
     <main
-      className="moon-shop relative min-h-screen overflow-hidden px-4 py-8 text-slate-100"
-      style={{ background: "radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A" }}
+      className="moon-shop relative min-h-[100dvh] overflow-hidden px-4 py-8 text-slate-100"
+      style={{ background: "var(--cd-page-bg-gradient, radial-gradient(circle at 50% -10%, rgba(30,27,96,0.54), transparent 38%), #08091A)" }}
     >
       {/* ── 배경 글로우 오브 ─────────────────────────────────────── */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">

@@ -79,7 +79,7 @@ export default function CodeDestinyMobileAppPage() {
   const features = CORE_SLUGS.map((slug) => featureBySlug.get(slug)).filter(isDefined);
 
   return (
-    <main className="min-h-[100dvh] bg-[#070b1f] text-[#fffaf0]">
+    <main className="min-h-[100dvh] bg-[color:var(--cd-page-bg,#070b1f)] text-[#fffaf0]">
       <MobileAppRuntimeBridge />
       <section className="mx-auto flex min-h-[100dvh] w-full max-w-[560px] flex-col gap-4 px-4 pb-[calc(106px+env(safe-area-inset-bottom))]">
         <header className="sticky top-0 z-30 -mx-4 flex min-h-16 items-center justify-between gap-3 border-b border-white/10 bg-[#070b1f]/90 px-4 pb-3 pt-[calc(10px+env(safe-area-inset-top))] backdrop-blur-xl">

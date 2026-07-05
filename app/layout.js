@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import "../styles/theme-tokens.css";
 import { ToastProvider } from "./components/Toast";
 import { PaymentProcessingProvider } from "./components/PaymentProcessingContext";
 import { Suspense } from "react";
@@ -189,6 +190,12 @@ export default function RootLayout({ children }) {
         <meta property="og:site_name" content={siteSeo.siteName} />
         <meta property="og:locale" content="ko_KR" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
+        {/* 정적 허브와 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
+          }}
+        />
       </head>
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>

@@ -1125,14 +1125,14 @@ export default function MePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#0f1224] px-4 py-10 text-slate-100">
+      <main className="min-h-[100dvh] bg-[color:var(--cd-page-bg,#0f1224)] px-4 py-10 text-slate-100">
         <div className="mx-auto max-w-5xl text-sm text-slate-300">{"\uB0B4 \uC6B4\uBA85 \uB370\uC774\uD130\uB97C \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4."}</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#0f1224] px-4 py-8 text-slate-100">
+    <main className="min-h-[100dvh] bg-[color:var(--cd-page-bg,#0f1224)] px-4 py-8 text-slate-100">
       <div className="mx-auto flex max-w-6xl flex-col gap-5">
         <header className="flex flex-col gap-3 border-b border-white/10 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>

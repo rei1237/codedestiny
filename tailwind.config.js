@@ -17,6 +17,20 @@ module.exports = {
         "pearl-mist": "#EDEFF5",
         "champagne-gold": "#D8B36C",
         "twilight-violet": "#9C87D4",
+        // 연이/네오 듀얼 테마 토큰 (styles/theme-tokens.css의 CSS 변수 참조)
+        cd: {
+          bg: "var(--cd-bg)",
+          surface: "var(--cd-surface)",
+          "surface-2": "var(--cd-surface-2)",
+          text: "var(--cd-text)",
+          muted: "var(--cd-text-muted)",
+          accent: "var(--cd-accent)",
+          "accent-soft": "var(--cd-accent-soft)",
+          gold: "var(--cd-gold)",
+          "gold-soft": "var(--cd-gold-soft)",
+          border: "var(--cd-border)",
+          "cta-text": "var(--cd-cta-text)",
+        },
       },
       fontFamily: {
         body: ["var(--font-body)"],
