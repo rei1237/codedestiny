@@ -281,8 +281,8 @@
     gap: 10px !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb,
-  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-template-rows: 112px auto auto auto !important;
@@ -298,16 +298,20 @@
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28) !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--tea {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--tea {
     background: linear-gradient(145deg, rgba(43, 24, 48, 0.98), rgba(18, 32, 34, 0.96)) !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--neo {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--neo {
     background: linear-gradient(145deg, rgba(13, 20, 38, 0.98), rgba(15, 23, 42, 0.96)) !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb::before,
-  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb::before {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--prompt-hub {
+    background: linear-gradient(145deg, rgba(42, 34, 14, 0.98), rgba(20, 16, 6, 0.96)) !important;
+  }
+
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb::before,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb::before {
     content: "대표 모드" !important;
     left: 10px !important;
     top: 10px !important;
@@ -322,8 +326,8 @@
     letter-spacing: 0 !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb,
-  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) .cd-mobile-hub__card-thumb,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) .cd-mobile-hub__card-thumb {
     grid-row: 1 !important;
     width: 100% !important;
     height: 112px !important;
@@ -346,8 +350,8 @@
     letter-spacing: 0 !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) strong,
-  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) strong {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) strong,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) strong {
     grid-row: 3 !important;
     margin: 0 12px !important;
     color: #fff7dd !important;
@@ -357,8 +361,8 @@
     word-break: keep-all !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) span,
-  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) span {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) span,
+  html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) span {
     grid-row: 4 !important;
     margin: 0 12px !important;
     color: rgba(226, 232, 240, 0.78) !important;
@@ -468,12 +472,12 @@
     font-size: 0.68rem !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2).cd-mobile-hub__card--with-thumb {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb {
     grid-template-rows: 98px auto auto auto !important;
     min-height: 212px !important;
   }
 
-  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+2) .cd-mobile-hub__card-thumb {
+  html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) .cd-mobile-hub__card-thumb {
     height: 98px !important;
   }
 }

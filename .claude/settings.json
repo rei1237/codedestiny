@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(npm run verify:billing-pass-policy 2>&1)",
+      "PowerShell(npm run verify:paid-feature-common-flow 2>&1)",
+      "Bash(curl -s -o /dev/null -w \"port 3000: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(OUT=\"/c/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/03123200-a6ba-465f-b57f-f419a0e9b240/scratchpad\" MODE=pig node \"/c/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/03123200-a6ba-465f-b57f-f419a0e9b240/scratchpad/preview.cjs\")",
+      "PowerShell(npm run verify:payment-concurrency-guards 2>&1)",
+      "PowerShell(npm run verify:worker-size 2>&1)",
+      "PowerShell(Start-Sleep -Seconds 8; $response = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing -TimeoutSec 5 -ErrorAction SilentlyContinue; if \\($response.StatusCode -eq 200\\) { \"Server ready\" } else { \"Not ready: $\\($response.StatusCode\\)\" })",
+      "Bash(xargs wc -l)",
+      "PowerShell(git add worker/routes/billing.js)",
+      "PowerShell(cd C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad; $env:OUT = $PWD; $env:MODE = 'pig'; node preview.cjs 2>&1)",
+      "Bash(curl -s -o /dev/null -w \"image status: %{http_code}\\\\n\" \"http://localhost:3000/fuctionassets/comprehensive-fortune-prompt.webp?v=build-6b96f5ed29a4\")",
+      "PowerShell(cd C:\\\\Users\\\\user\\\\Downloads\\\\codedestiny-main; $env:OUT = \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\"; $env:MODE = \"pig\"; node \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\\\\preview.cjs\" 2>&1)",
+      "PowerShell(cd C:\\\\Users\\\\user\\\\Downloads\\\\codedestiny-main; cp \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\\\\preview.cjs\" .; $env:OUT = \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\"; $env:MODE = \"pig\"; node preview.cjs 2>&1)",
+      "Bash(cp \"/c/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/03123200-a6ba-465f-b57f-f419a0e9b240/scratchpad/diag.cjs\" ./diag-temp.cjs)",
+      "Bash(node ./diag-temp.cjs)",
+      "Bash(rm -f ./diag-temp.cjs)",
+      "PowerShell(cd C:\\\\Users\\\\user\\\\Downloads\\\\codedestiny-main; cp \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\\\\preview-all-features.cjs\" .; $env:OUT = \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\82e64349-dc8e-4e73-9781-3df24b1d1874\\\\scratchpad\"; $env:MODE = \"pig\"; node preview-all-features.cjs 2>&1)",
+      "Bash(OUT=\"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\ce2fd833-205a-4da9-a148-be7f35dc2543\\\\scratchpad\" MODE=pig node \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\ce2fd833-205a-4da9-a148-be7f35dc2543\\\\scratchpad\\\\preview.cjs\")",
+      "Bash(ls public/index.html index.html)",
+      "Bash(wc -l public/index.html)",
+      "Bash(wc -l index.html)",
+      "Bash(cp \"/c/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/03123200-a6ba-465f-b57f-f419a0e9b240/scratchpad/preview.cjs\" ./preview-temp.cjs)",
+      "Bash(OUT=\"/c/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/03123200-a6ba-465f-b57f-f419a0e9b240/scratchpad\" MODE=pig node ./preview-temp.cjs)",
+      "Bash(rm -f ./preview-temp.cjs)",
+      "Bash(curl -s -o /dev/null -w \"port 3000: %{http_code}\\\\n\" --max-time 10 http://localhost:3000/)"
+    ]
+  }
+}

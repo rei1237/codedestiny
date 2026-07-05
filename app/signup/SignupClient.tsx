@@ -7,7 +7,7 @@ import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import TurnstileWidget from "../../components/TurnstileWidget";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { waitForAuthLogoutToSettle } from "../_lib/auth-client";
+import { authFetch, waitForAuthLogoutToSettle } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
@@ -333,16 +333,18 @@ export default function SignupPage() {
     (async () => {
       await waitForAuthLogoutToSettle();
       if (cancelled) return null;
-      const response = await fetch(`${authApiBase}/api/auth/me`, {
+      // authFetch 경유로 in-flight /api/auth/me 중복 제거(AuthWidget 호출과 공유).
+      const response = await authFetch("/api/auth/me", {
         method: "GET",
         credentials: "include",
         cache: "no-store",
         signal: controller.signal,
-      });
+      }, { apiBase: authApiBase });
         if (!response.ok) return null;
         return parseJsonResponse<SignupResult>(response);
     })()
       .then((payload) => {
+        if (cancelled) return;
         if (!payload?.user) return;
         persistAuth(payload.user, payload.accessToken);
         const nextPath = resolveNextPathFromQuery(params);
@@ -391,31 +393,19 @@ export default function SignupPage() {
       let response: Response | null = null;
       let lastFetchError: Error | null = null;
 
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const nextResponse = await fetchWithTimeout(socialCompleteEndpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ socialGrant }),
-          });
-
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-
-          response = nextResponse;
-          break;
-        } catch (err) {
-          lastFetchError = isAbortError(err)
-            ? new Error("소셜 회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
-            : err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-        }
+      // socialGrant는 1회용이라 재시도하면 서버에서 중복 refresh 세션이 생성될 수 있다.
+      // 이 경로는 보조 경로이며(주 경로는 /auth/{provider}/callback), 1회만 교환한다.
+      try {
+        response = await fetchWithTimeout(socialCompleteEndpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ socialGrant }),
+        });
+      } catch (err) {
+        lastFetchError = isAbortError(err)
+          ? new Error("소셜 회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+          : err instanceof Error ? err : new Error("네트워크 오류가 발생했습니다.");
       }
 
       if (!response) {
@@ -495,44 +485,33 @@ export default function SignupPage() {
 
       await waitForAuthLogoutToSettle();
 
-      for (let attempt = 0; attempt < 2; attempt += 1) {
-        try {
-          const nextResponse = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({
-              name: name.trim(),
-              email: loginId.trim(),
-              phoneNumber: normalizedPhoneNumber,
-              password,
-              birthDate,
-              birthTime,
-              gender,
-              nextPath,
-              turnstileToken,
-              referralCode: referralCapture.referralCode,
-              referralShareToken: referralCapture.referralShareToken,
-              referralSource: referralCapture.referralSource,
-            }),
-          });
-
-          if (nextResponse.status >= 500 && attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-
-          response = nextResponse;
-          break;
-        } catch (error) {
-          lastFetchError = isAbortError(error)
-            ? new Error("회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
-            : error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
-          if (attempt === 0) {
-            await sleep(250);
-            continue;
-          }
-        }
+      // Turnstile 토큰은 1회용이라 동일 토큰으로 재시도하면 서버 siteverify가 반드시 실패한다.
+      // 또한 "성공 후 응답 유실 → 재시도"는 EMAIL_ALREADY_REGISTERED 유령 오류를 만든다.
+      // 따라서 자동 재시도 없이 1회만 요청하고, 실패 시 catch에서 토큰을 리셋한다.
+      try {
+        response = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            name: name.trim(),
+            email: loginId.trim(),
+            phoneNumber: normalizedPhoneNumber,
+            password,
+            birthDate,
+            birthTime,
+            gender,
+            nextPath,
+            turnstileToken,
+            referralCode: referralCapture.referralCode,
+            referralShareToken: referralCapture.referralShareToken,
+            referralSource: referralCapture.referralSource,
+          }),
+        });
+      } catch (error) {
+        lastFetchError = isAbortError(error)
+          ? new Error("회원가입 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.")
+          : error instanceof Error ? error : new Error("네트워크 오류가 발생했습니다.");
       }
 
       if (!response) {

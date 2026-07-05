@@ -299,11 +299,40 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         return Number(window.__cdOAuthFlowSeq || 0) !== flowSeq;
       }
 
+      async function tryLoadMe() {
+        try {
+          const meResponse = await fetchWithTimeout(meUrl, {
+            method: "GET",
+            credentials: "include",
+            cache: "no-store",
+          }, REQUEST_TIMEOUT_MS);
+          if (meResponse.ok) {
+            const mePayload = await parseJsonResponse(meResponse);
+            if (mePayload && mePayload.user && mePayload.user.id) {
+              return { ...mePayload, nextPath: resolveNextPathFromQuery(params) };
+            }
+          }
+        } catch (e) {
+          // ignore probe errors
+        }
+        return null;
+      }
+
       (async () => {
         let payload = null;
         let lastError = null;
 
         for (let attempt = 0; attempt < MAX_RETRIES; attempt += 1) {
+          // 재시도 전, 직전 시도가 이미 성공했는데 응답만 유실된 상황인지 /me로 확인한다.
+          // 이미 로그인됐다면 socialGrant를 다시 교환(중복 refresh 세션 생성)하지 않고 종료.
+          if (attempt > 0) {
+            const mePayload = await tryLoadMe();
+            if (mePayload) {
+              payload = mePayload;
+              debugAuth("[auth] me loaded via pre-retry probe", mePayload.user.id);
+              break;
+            }
+          }
           try {
             const response = await fetchWithTimeout(completeUrl, {
               method: "POST",
@@ -345,25 +374,10 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
         }
 
         if (!payload || !payload.user || !payload.user.id) {
-          try {
-            const meResponse = await fetchWithTimeout(meUrl, {
-              method: "GET",
-              credentials: "include",
-              cache: "no-store",
-            }, REQUEST_TIMEOUT_MS);
-
-            if (meResponse.ok) {
-              const mePayload = await parseJsonResponse(meResponse);
-              if (mePayload && mePayload.user && mePayload.user.id) {
-                payload = {
-                  ...mePayload,
-                  nextPath: resolveNextPathFromQuery(params),
-                };
-                debugAuth("[auth] me loaded", mePayload.user.id);
-              }
-            }
-          } catch (e) {
-            // ignore fallback errors
+          const mePayload = await tryLoadMe();
+          if (mePayload) {
+            payload = mePayload;
+            debugAuth("[auth] me loaded", mePayload.user.id);
           }
         }
 

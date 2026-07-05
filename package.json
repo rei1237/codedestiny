@@ -51,6 +51,7 @@
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
     "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "migrate:payments-read-indexes": "node scripts/migrate-payments-read-indexes.mjs",
+    "migrate:auth-core-indexes": "node scripts/migrations/20260705-add-auth-core-indexes.mjs",
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",
     "migrate:insights-to-content": "node scripts/migrate-insights-to-content.mjs",
     "seed:inicis-test-account": "node scripts/seed-inicis-test-account.mjs",

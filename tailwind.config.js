@@ -10,6 +10,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      colors: {
+        "midnight-ink": "#0A0E1A",
+        "deep-indigo": "#1B2340",
+        "moonveil-silver": "#A8B3C7",
+        "pearl-mist": "#EDEFF5",
+        "champagne-gold": "#D8B36C",
+        "twilight-violet": "#9C87D4",
+      },
       fontFamily: {
         body: ["var(--font-body)"],
         display: ["var(--font-display)"],
@@ -78,6 +86,10 @@ module.exports = {
           "0%": { transform: "scale(0.8)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "moon-rise": {
+          "0%": { opacity: "0", transform: "translateY(12px) scale(0.98)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 780ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
@@ -94,10 +106,12 @@ module.exports = {
         "fortune-spin": "fortune-spin 8s linear infinite",
         "slide-in-left": "slide-in-left 500ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
         "scale-in": "scale-in 400ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
+        "moon-rise": "moon-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
       boxShadow: {
         "violet-neon": "0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35)",
         "violet-neon-focus": "0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45)",
+        "moon-glow": "0 0 40px -5px rgba(216,179,108,0.35), 0 0 80px -20px rgba(156,135,212,0.25)",
       },
     },
   },

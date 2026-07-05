@@ -3,6 +3,9 @@ import mongoose from "mongoose";
 import { getEnv, installProcessEnv } from "./env.js";
 
 let connectPromise = null;
+// 마지막으로 연결 건강을 확인한 시각(ping 성공 또는 신규 연결 성공).
+// 웜 커넥션 재사용 시 매 요청 ping 왕복을 피하기 위해 유휴 임계 이내면 ping을 생략한다.
+let lastHealthyAt = 0;
 
 function extractDbNameFromUri(uri) {
   try {
@@ -98,6 +101,11 @@ export async function connectDb(env = {}) {
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
   if (mongoose.connection.readyState === 1) {
+    // 최근에 건강을 확인했다면(유휴 임계 이내) ping 왕복을 생략해 요청 지연을 줄인다.
+    const pingMinIntervalMS = clampTimeoutMs(getEnv(env, "MONGO_PING_MIN_INTERVAL_MS", "20000"), 20000, 0, 60000);
+    if (lastHealthyAt && Date.now() - lastHealthyAt < pingMinIntervalMS) {
+      return mongoose.connection;
+    }
     const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "3500"), 3500, 1000, 10000);
     try {
       await withTimeout(
@@ -105,10 +113,12 @@ export async function connectDb(env = {}) {
         pingTimeoutMS,
         "MongoDB ping timed out in Worker.",
       );
+      lastHealthyAt = Date.now();
       return mongoose.connection;
     } catch (e) {
       await resetMongooseConnection();
       connectPromise = null;
+      lastHealthyAt = 0;
     }
   }
 
@@ -196,6 +206,7 @@ export async function connectDb(env = {}) {
       }
 
       if (mongoose.connection.readyState === 1) {
+        lastHealthyAt = Date.now();
         return mongoose.connection;
       }
 

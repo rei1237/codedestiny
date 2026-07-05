@@ -21,6 +21,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { validateLoginPayload, validateRegisterPayload, validateTurnstilePayload } from "../lib/validation.js";
 import { verifyTurnstileToken } from "../lib/turnstile.js";
+import { clearRateLimit, incrementRateLimit, readRateLimitState } from "../lib/rate-limit.js";
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
@@ -879,6 +880,14 @@ function getAuthOpTimeoutMs(env) {
   return Math.floor(raw);
 }
 
+// refresh 토큰 회전 grace window — 방금 회전된 토큰이 이 시간 이내에 재생되면
+// 멀티탭 동시 회전으로 간주해 전 세션 폐기 대신 정상 처리한다. (기본 30초)
+function getRefreshReuseGraceMs(env) {
+  const raw = Number(getEnv(env, "AUTH_REFRESH_REUSE_GRACE_MS", "30000"));
+  if (!Number.isFinite(raw) || raw < 0) return 30000;
+  return Math.min(Math.floor(raw), 5 * 60 * 1000);
+}
+
 function getAuthConnectTimeoutMs(env) {
   const authTimeoutMs = getAuthOpTimeoutMs(env);
   const guardTimeoutMs = Number(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"));
@@ -1529,9 +1538,9 @@ function clearAuthCookies(response, request, env) {
   }));
 }
 
-function isWithdrawRateLimited(request) {
-  const meta = getRequestMeta(request);
-  const key = String(meta.ip || "unknown");
+const WITHDRAW_RATE_LIMIT_ENDPOINT = "auth_withdraw";
+
+function isWithdrawRateLimitedInMemory(key) {
   const now = Date.now();
   const state = withdrawRateLimitMap.get(key);
 
@@ -1546,6 +1555,23 @@ function isWithdrawRateLimited(request) {
   state.count += 1;
   withdrawRateLimitMap.set(key, state);
   return state.count > WITHDRAW_RATE_LIMIT_MAX;
+}
+
+async function isWithdrawRateLimited(request, env) {
+  const meta = getRequestMeta(request);
+  const key = String(meta.ip || "unknown");
+  try {
+    const { count } = await incrementRateLimit({
+      subjectHash: key,
+      endpoint: WITHDRAW_RATE_LIMIT_ENDPOINT,
+      windowMs: WITHDRAW_RATE_LIMIT_WINDOW_MS,
+      env,
+    });
+    return count > WITHDRAW_RATE_LIMIT_MAX;
+  } catch (error) {
+    console.warn("[auth/withdraw] rate-limit store unavailable, falling back to in-memory:", error?.message || error);
+    return isWithdrawRateLimitedInMemory(key);
+  }
 }
 
 function getLoginRateLimitMax(env) {
@@ -1567,36 +1593,79 @@ function buildLoginRateLimitKey(request, email, env) {
   return `${ip}:${emailHash}`;
 }
 
-function getLoginRateLimitState(request, email, env) {
-  const key = buildLoginRateLimitKey(request, email, env);
+const LOGIN_RATE_LIMIT_ENDPOINT = "auth_login";
+
+// ── in-memory 폴백(분산 store 장애 시에만 best-effort로 사용) ────────────────
+function getLoginRateLimitStateInMemory(key, max, windowMs) {
   const now = Date.now();
-  const max = getLoginRateLimitMax(env);
-  const windowMs = getLoginRateLimitWindowMs(env);
   const state = loginRateLimitMap.get(key);
   if (!state || now > state.resetAt) {
-    return { key, limited: false, count: 0, max, resetAt: now + windowMs, retryAfterSeconds: 0 };
+    return { key, source: "memory", limited: false, count: 0, max, windowMs, resetAt: now + windowMs, retryAfterSeconds: 0 };
   }
   const retryAfterSeconds = Math.max(1, Math.ceil((state.resetAt - now) / 1000));
   return {
     key,
+    source: "memory",
     limited: Number(state.count || 0) >= max,
     count: Number(state.count || 0),
     max,
+    windowMs,
     resetAt: state.resetAt,
     retryAfterSeconds,
   };
 }
 
-function recordFailedLoginAttempt(rateLimitState) {
-  if (!rateLimitState?.key) return;
+function recordFailedLoginAttemptInMemory(rateLimitState) {
   loginRateLimitMap.set(rateLimitState.key, {
     count: Number(rateLimitState.count || 0) + 1,
     resetAt: rateLimitState.resetAt,
   });
 }
 
-function clearLoginRateLimit(rateLimitState) {
-  if (rateLimitState?.key) loginRateLimitMap.delete(rateLimitState.key);
+// ── 분산(Mongo abuse_scores) rate limit + in-memory 폴백 ─────────────────────
+async function getLoginRateLimitState(request, email, env) {
+  const key = buildLoginRateLimitKey(request, email, env);
+  const max = getLoginRateLimitMax(env);
+  const windowMs = getLoginRateLimitWindowMs(env);
+  try {
+    const state = await readRateLimitState({ subjectHash: key, endpoint: LOGIN_RATE_LIMIT_ENDPOINT, max, env });
+    return { key, source: "mongo", env, windowMs, max, ...state };
+  } catch (error) {
+    console.warn("[auth/login] rate-limit store unavailable, falling back to in-memory:", error?.message || error);
+    return getLoginRateLimitStateInMemory(key, max, windowMs);
+  }
+}
+
+async function recordFailedLoginAttempt(rateLimitState) {
+  if (!rateLimitState?.key) return;
+  if (rateLimitState.source === "memory") {
+    recordFailedLoginAttemptInMemory(rateLimitState);
+    return;
+  }
+  try {
+    await incrementRateLimit({
+      subjectHash: rateLimitState.key,
+      endpoint: LOGIN_RATE_LIMIT_ENDPOINT,
+      windowMs: rateLimitState.windowMs,
+      env: rateLimitState.env,
+    });
+  } catch (error) {
+    console.warn("[auth/login] rate-limit increment failed:", error?.message || error);
+    recordFailedLoginAttemptInMemory(rateLimitState);
+  }
+}
+
+async function clearLoginRateLimit(rateLimitState) {
+  if (!rateLimitState?.key) return;
+  if (rateLimitState.source === "memory") {
+    loginRateLimitMap.delete(rateLimitState.key);
+    return;
+  }
+  try {
+    await clearRateLimit({ subjectHash: rateLimitState.key, endpoint: LOGIN_RATE_LIMIT_ENDPOINT, env: rateLimitState.env });
+  } catch (error) {
+    console.warn("[auth/login] rate-limit clear failed:", error?.message || error);
+  }
 }
 
 function makeTurnstileErrorResponse(status, code, message) {
@@ -2178,6 +2247,23 @@ async function handleLogin(request, env) {
     return makeTurnstileErrorResponse(401, "turnstile_token_required", "Turnstile verification is required.");
   }
 
+  const { email, password } = validated.sanitized;
+  const localDevUser = resolveLocalDevAuthUser(request, env, email, password);
+  if (localDevUser) {
+    return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
+  }
+
+  // rate limit을 Turnstile siteverify(외부 네트워크 호출)보다 먼저 검사해
+  // 차단 대상 요청이 siteverify 왕복을 발생시키지 않도록 한다.
+  const loginRateLimitState = await getLoginRateLimitState(request, email, env);
+  if (loginRateLimitState.limited) {
+    console.warn("[auth/login] rate limited:", {
+      emailHash: hashEmailForAudit(email, env).slice(0, 12),
+      retryAfterSeconds: loginRateLimitState.retryAfterSeconds,
+    });
+    return buildLoginRateLimitedResponse(loginRateLimitState);
+  }
+
   const turnstileResult = await verifyTurnstileToken({
     secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
     response: turnstileValidated.sanitized.turnstileToken,
@@ -2189,21 +2275,6 @@ async function handleLogin(request, env) {
       turnstileResult.code || "turnstile_verification_failed",
       turnstileResult.message || "Turnstile verification failed.",
     );
-  }
-
-  const { email, password } = validated.sanitized;
-  const localDevUser = resolveLocalDevAuthUser(request, env, email, password);
-  if (localDevUser) {
-    return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
-  }
-
-  const loginRateLimitState = getLoginRateLimitState(request, email, env);
-  if (loginRateLimitState.limited) {
-    console.warn("[auth/login] rate limited:", {
-      emailHash: hashEmailForAudit(email, env).slice(0, 12),
-      retryAfterSeconds: loginRateLimitState.retryAfterSeconds,
-    });
-    return buildLoginRateLimitedResponse(loginRateLimitState);
   }
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {
@@ -2258,17 +2329,17 @@ async function handleLogin(request, env) {
         "auth_login_find_user",
       );
       if (!user) {
-        recordFailedLoginAttempt(loginRateLimitState);
+        await recordFailedLoginAttempt(loginRateLimitState);
         return buildInvalidLoginResponse();
       }
 
       if (isWithdrawnAuthUser(user)) {
-        recordFailedLoginAttempt(loginRateLimitState);
+        await recordFailedLoginAttempt(loginRateLimitState);
         return buildInvalidLoginResponse();
       }
 
       if (!isLocalAuthEnabled(user) || !user.passwordHash) {
-        recordFailedLoginAttempt(loginRateLimitState);
+        await recordFailedLoginAttempt(loginRateLimitState);
         return buildInvalidLoginResponse();
       }
 
@@ -2278,11 +2349,11 @@ async function handleLogin(request, env) {
         "auth_login_verify_password",
       );
       if (!passwordOk) {
-        recordFailedLoginAttempt(loginRateLimitState);
+        await recordFailedLoginAttempt(loginRateLimitState);
         return buildInvalidLoginResponse();
       }
 
-      clearLoginRateLimit(loginRateLimitState);
+      await clearLoginRateLimit(loginRateLimitState);
       return await withAuthOpTimeout(
         createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
         timeoutMs,
@@ -2619,10 +2690,19 @@ async function handleRefresh(request, env) {
   }
 
   const tokenHash = hashRefreshToken(refreshToken, env);
+
+  // 원자적 회전 권리 선점 — revokedAt:null 세션만 매칭해 즉시 revoked 처리한다.
+  // 동시 요청(멀티탭) 중 오직 하나만 pre-image(session)를 획득한다. 나머지는
+  // null을 받아 아래 grace window 판정으로 넘어간다. 이로써 read-modify-write
+  // 경쟁과 revokedAt 재확인 분기를 하나의 원자 연산으로 대체한다.
   let session;
   try {
     session = await withAuthOpTimeout(
-      RefreshTokenSession.findOne({ tokenHash }).lean(),
+      RefreshTokenSession.findOneAndUpdate(
+        { tokenHash, revokedAt: null },
+        { $set: { revokedAt: new Date() } },
+        { returnDocument: "before" },
+      ).lean(),
       getAuthOpTimeoutMs(env),
       "auth_refresh_find_session",
     );
@@ -2638,23 +2718,41 @@ async function handleRefresh(request, env) {
     }
     throw error;
   }
+
   if (!session) {
-    await revokeAllUserRefreshSessions(userId);
-    const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
-    clearAuthCookies(response, request, env);
-    return response;
+    // 회전 선점 실패 — 이미 회전됐거나 존재하지 않는 토큰.
+    // grace window 이내에 방금 회전된 토큰의 재생이라면 멀티탭 동시 회전으로 보고
+    // 전 세션 폐기 없이 이 요청에도 새 세션을 발급한다.
+    let priorSession = null;
+    try {
+      priorSession = await RefreshTokenSession.findOne({ tokenHash }).lean();
+    } catch (e) {
+      // 조회 실패 시 아래 reuse 처리로 폴백
+    }
+
+    const graceMs = getRefreshReuseGraceMs(env);
+    const rotatedAt = priorSession?.revokedAt ? new Date(priorSession.revokedAt).getTime() : 0;
+    const withinGrace = Boolean(
+      priorSession
+      && priorSession.replacedByTokenHash
+      && rotatedAt > 0
+      && Date.now() - rotatedAt <= graceMs
+      && refreshSessionMatchesRequest(priorSession, request),
+    );
+
+    if (withinGrace) {
+      session = priorSession;
+    } else {
+      await revokeAllUserRefreshSessions(userId);
+      const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
+      clearAuthCookies(response, request, env);
+      return response;
+    }
   }
 
   if (!refreshSessionMatchesRequest(session, request)) {
     await revokeAllUserRefreshSessions(userId);
     const response = json({ ok: false, message: "Session changed. Please sign in again." }, { status: 401 });
-    clearAuthCookies(response, request, env);
-    return response;
-  }
-
-  if (session.revokedAt) {
-    await revokeAllUserRefreshSessions(userId);
-    const response = json({ ok: false, message: "Session expired. Please sign in again." }, { status: 401 });
     clearAuthCookies(response, request, env);
     return response;
   }
@@ -2778,7 +2876,7 @@ async function handleWithdrawCsrfIssue(request, env) {
 }
 
 async function handleWithdraw(request, env) {
-  if (isWithdrawRateLimited(request)) {
+  if (await isWithdrawRateLimited(request, env)) {
     return json({ message: "Too many requests. Please try again shortly." }, { status: 429 });
   }
 

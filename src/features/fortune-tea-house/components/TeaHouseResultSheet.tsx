@@ -582,6 +582,20 @@ export default function TeaHouseResultSheet({
 
         <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniReadingTitle">
           <h3 id="yeoniReadingTitle">{isSajuMode ? "연이가 이어 읽은 사주의 결" : isSukuyoMode ? "연이가 이어 읽은 인연의 결" : "연이가 이어 읽은 타로의 결"}</h3>
+          {isTarotMode ? (
+            <TarotAssetCard
+              className={styles.resultSectionTarotCard}
+              cardId={result.tarot.cardId}
+              number={result.tarot.number}
+              nameKo={result.tarot.nameKo}
+              nameEn={result.tarot.nameEn}
+              orientation={result.tarot.orientation}
+              size="sm"
+              visualOnly
+            />
+          ) : (
+            <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
+          )}
           <div className={styles.yeoniReadingGrid}>
             <p>{result.yeoniReading.intro}</p>
             <p>{result.yeoniReading.main}</p>
@@ -592,6 +606,7 @@ export default function TeaHouseResultSheet({
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
           <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base4} alt="" />
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
               <article className={`${styles.choiceCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={choice.id}>
@@ -606,6 +621,7 @@ export default function TeaHouseResultSheet({
 
         <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle">
           <h3 id="actionPrescriptionTitle">오늘의 작은 처방</h3>
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base2} alt="" />
           <p>{result.actionPrescription}</p>
           <div className={styles.luckyKeywordList}>
             {previewKeywords.map((keyword) => (
@@ -659,6 +675,7 @@ export default function TeaHouseResultSheet({
 
         <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle">
           <h3 id="closingResultTitle">마지막 한마디</h3>
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.full} alt="" />
           <p className={styles.sajuSummary}>{result.closingLine}</p>
         </section>
 

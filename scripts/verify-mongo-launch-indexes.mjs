@@ -1,8 +1,10 @@
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../worker/lib/db.js";
 import {
+  AbuseScore,
   AstrologyAiConsultation,
   ContentEntitlement,
+  IdempotencyKey,
   KarmaDestinyAiConsultation,
   LifeBookAiConsultation,
   LoveSecretAiConsultation,
@@ -45,6 +47,8 @@ if (!env.MONGO_URI && !env.MONGODB_URI) {
 const launchModels = [
   User,
   RefreshTokenSession,
+  IdempotencyKey,
+  AbuseScore,
   Payment,
   PaymentFailureLog,
   PaymentWebhookEvent,

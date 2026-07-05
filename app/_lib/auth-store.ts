@@ -83,7 +83,9 @@ type BillingBalancePayload = BillingBalanceData & {
   data?: BillingBalanceData;
 };
 
-const LOGIN_MAX_ATTEMPTS = 2;
+// Turnstile 토큰은 1회용이라 동일 토큰으로 재시도하면 서버 siteverify가 반드시 실패한다.
+// 따라서 자동 재시도를 하지 않고(1회), 실패 시 UI에서 토큰을 리셋해 새 챌린지를 받게 한다.
+const LOGIN_MAX_ATTEMPTS = 1;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
 const LOGIN_ATTEMPT_TIMEOUT_MS = 20000;
 const AUTH_REFRESH_COOLDOWN_MS = 1500;

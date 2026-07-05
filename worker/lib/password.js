@@ -84,7 +84,12 @@ async function signPasswordHmac(password, salt) {
 }
 
 export async function hashPassword(password) {
-  return bcrypt.hash(String(password || ""), BCRYPT_ROUNDS);
+  // bcryptjs(순수 JS, rounds 12)는 Workers CPU 시간의 주 소비원이다.
+  // rounds는 유지하되 경과 시간을 로깅해 실제 CPU 헤드룸을 모니터링한다.
+  const startedAt = Date.now();
+  const hash = await bcrypt.hash(String(password || ""), BCRYPT_ROUNDS);
+  console.log(`[password] bcrypt hash rounds=${BCRYPT_ROUNDS} elapsedMs=${Date.now() - startedAt}`);
+  return hash;
 }
 
 async function verifyHmac(password, encodedHash) {
@@ -144,7 +149,10 @@ export async function verifyPassword(password, encodedHash) {
     }
 
     if (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$")) {
-      return bcrypt.compare(password, hash);
+      const startedAt = Date.now();
+      const ok = await bcrypt.compare(password, hash);
+      console.log(`[password] bcrypt compare elapsedMs=${Date.now() - startedAt}`);
+      return ok;
     }
 
     return false;
