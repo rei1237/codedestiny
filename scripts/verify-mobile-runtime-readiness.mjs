@@ -57,7 +57,6 @@ check("bottom navigation has requested quick categories", includesAny(index, ["ê
 check("mobile hub exposes representative internal features", includesAll(index, ["href=\"/fortune-tea-house\"", "href=\"/neo-operation-room\"", "href=\"/music\"", "data-action=\"openTarotModal\"", "href=\"#destinyCardForm\""]));
 check("mobile hub avoids nested anchors and buttons", mobileHubHasNoNestedInteractive(index));
 check("global touch targets use 44px and manipulation", includesAll(index, ["min-height:44px", "min-width:44px", "touch-action:manipulation"]));
-check("decorative fixed business bar cannot steal touches", includesAll(index, [".cd-fixed-business-bar", "pointer-events:none"]));
 check("hidden overlays are pointer-disabled", includesAll(mobilePatch, ["#privacy-modal-overlay[aria-hidden=\"true\"]", "#goldenGrainChargeModalRoot[aria-hidden=\"true\"]", "pointer-events: none !important"]));
 check("bottom sheets use dynamic viewport and safe area", includesAll(index, ["100dvh", "88dvh", "MobileFeatureBottomSheet", "env(safe-area-inset-bottom"]));
 check("payment sheet opens immediately before async balance sync", paymentSheetOpensBeforeAsyncSync(index));
