@@ -17,6 +17,8 @@ import {
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
+import { useIsMobileViewport } from "./_hooks/useIsMobileViewport";
+import MobileVirtualizedTrackList from "./MobileVirtualizedTrackList";
 import styles from "./moon-music-player.module.css";
 
 type VisibleArtistKey = Exclude<ArtistKey, "destinycafe">;
@@ -104,7 +106,7 @@ type PlaylistTrackEntry = {
   moodTag: string;
   isPlayable: boolean;
 };
-type PlaylistTrackDisplay = {
+export type PlaylistTrackDisplay = {
   track: Track;
   collectionLabel: string;
   durationLabel: string;
@@ -190,7 +192,7 @@ type PlaylistTrackCardProps = {
   onShareTrack: (trackId: string) => void;
 };
 
-const PlaylistTrackCard = memo(function PlaylistTrackCard({
+export const PlaylistTrackCard = memo(function PlaylistTrackCard({
   track,
   displayIndex,
   collectionLabel,
@@ -375,6 +377,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   const [sharedTrackId, setSharedTrackId] = useState("");
   const [visibleTrackCount, setVisibleTrackCount] = useState(INITIAL_VISIBLE_TRACKS);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const isMobile = useIsMobileViewport(980);
   const copy = musicPlaylistCopy(locale);
   const sharedTrackResetTimerRef = useRef<number | null>(null);
   const playlistScrollRef = useRef<HTMLDivElement | null>(null);
@@ -522,8 +525,10 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
     if (playlistScrollRef.current) {
       playlistScrollRef.current.scrollTop = 0;
     }
-    setVisibleTrackCount(INITIAL_VISIBLE_TRACKS);
-  }, [activeTab, deferredQuery, tracks]);
+    if (!isMobile) {
+      setVisibleTrackCount(INITIAL_VISIBLE_TRACKS);
+    }
+  }, [activeTab, deferredQuery, tracks, isMobile]);
 
   useEffect(() => {
     return () => {
@@ -556,7 +561,9 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
             {copy.kicker}
           </span>
           <span className={styles.playlistTitle}>{copy.title}</span>
-          <span className={styles.playlistSubtitle}>{copy.tracksCount(visibleTracks.length, tracks.length)}</span>
+          <span className={styles.playlistSubtitle}>
+            {copy.tracksCount(isMobile ? filteredTracks.length : visibleTracks.length, tracks.length)}
+          </span>
         </span>
         <span className={styles.playlistHeaderMeta}>
           <Sparkles className={styles.playlistHeaderIcon} size={18} aria-hidden />
@@ -589,33 +596,45 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
 
         <div className={styles.playlistScroll} ref={playlistScrollRef}>
           {filteredTracks.length ? (
-            <div className={styles.playlistGrid}>
-              {visibleTracks.map((track, index) => (
-                <PlaylistTrackCard
-                  key={track.track.id}
-                  track={track.track}
-                  displayIndex={index + 1}
-                  collectionLabel={track.collectionLabel}
-                  durationLabel={track.durationLabel}
-                  moodTag={track.moodTag}
-                  isPlayable={track.isPlayable}
-                  isSharedTrack={track.track.id === sharedTrackId}
-                  hasCoverError={Boolean(failedCoverIds[track.track.id])}
-                  onCoverError={handleTrackCoverError}
-                  onSelectTrack={handleTrackSelect}
-                  onShareTrack={handleTrackShare}
-                />
-              ))}
-              {remainingTrackCount > 0 ? (
-                <button
-                  className={styles.playlistMoreButton}
-                  type="button"
-                  onClick={handleShowMoreTracks}
-                >
-                  {copy.showMore(nextVisibleTrackCount)}
-                </button>
-              ) : null}
-            </div>
+            isMobile ? (
+              <MobileVirtualizedTrackList
+                tracks={filteredTracks}
+                sharedTrackId={sharedTrackId}
+                failedCoverIds={failedCoverIds}
+                onCoverError={handleTrackCoverError}
+                onSelectTrack={handleTrackSelect}
+                onShareTrack={handleTrackShare}
+                scrollRef={playlistScrollRef}
+              />
+            ) : (
+              <div className={styles.playlistGrid}>
+                {visibleTracks.map((track, index) => (
+                  <PlaylistTrackCard
+                    key={track.track.id}
+                    track={track.track}
+                    displayIndex={index + 1}
+                    collectionLabel={track.collectionLabel}
+                    durationLabel={track.durationLabel}
+                    moodTag={track.moodTag}
+                    isPlayable={track.isPlayable}
+                    isSharedTrack={track.track.id === sharedTrackId}
+                    hasCoverError={Boolean(failedCoverIds[track.track.id])}
+                    onCoverError={handleTrackCoverError}
+                    onSelectTrack={handleTrackSelect}
+                    onShareTrack={handleTrackShare}
+                  />
+                ))}
+                {remainingTrackCount > 0 ? (
+                  <button
+                    className={styles.playlistMoreButton}
+                    type="button"
+                    onClick={handleShowMoreTracks}
+                  >
+                    {copy.showMore(nextVisibleTrackCount)}
+                  </button>
+                ) : null}
+              </div>
+            )
           ) : (
             <div className={styles.playlistEmpty}>
               <strong>{copy.emptyTitle}</strong>
