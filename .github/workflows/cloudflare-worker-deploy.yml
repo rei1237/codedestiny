@@ -1,9 +1,8 @@
-name: Deploy Worker API
+name: Deploy Worker API (Manual)
 
+# 중복 배포 방지(CLOUDFLARE_PAGES_SETUP.md): Worker는 수동 실행 전용으로 유지한다.
+# push 자동 실행은 Pages 워크플로우 하나만 남겨, 같은 커밋이 여러 경로로 배포되지 않게 한다.
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
