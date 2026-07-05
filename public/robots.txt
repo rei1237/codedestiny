@@ -1,5 +1,5 @@
 # robots.txt - Code Destiny
-# Updated: 2026-07-04
+# Updated: 2026-07-05
 # Primary source: app/robots.ts (Next.js generates /robots.txt)
 # This file is kept in sync as a static fallback.
 
@@ -7,14 +7,24 @@ User-agent: *
 Allow: /
 
 Disallow: /api/
+Disallow: /api-hello-test/
 Disallow: /admin/
 Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
 Disallow: /login/
 Disallow: /signup/
 Disallow: /profile/
 Disallow: /payment/
+Disallow: /payments/
 Disallow: /checkout/
-Disallow: /result/private/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /points/
+Disallow: /premium-unlock/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
 Disallow: /my/
 Disallow: /me/
 Disallow: /mypage/private/
