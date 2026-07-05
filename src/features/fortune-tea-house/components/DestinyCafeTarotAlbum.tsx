@@ -501,7 +501,7 @@ function TarotAlbumHero({
             <Sparkles size={14} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </span>
-          <h2 id="tarotAlbumTitle" className="bg-gradient-to-r from-pearl-mist via-twilight-violet to-champagne-gold bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl lg:text-6xl">
+          <h2 id="tarotAlbumTitle" className="bg-gradient-to-r from-champagne-gold to-twilight-violet bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl lg:text-6xl">
             달빛 타로 카드 앨범
           </h2>
           <p className="mt-4 text-lg font-semibold leading-relaxed text-pearl-mist sm:text-xl">
@@ -772,7 +772,7 @@ function TarotAlbumCardItem({
         </span>
         <span className="mt-3 grid gap-1 px-1 pb-1">
           <strong className="truncate font-premium text-sm font-black leading-tight text-pearl-mist sm:text-[0.96rem]">{card.titleKo}</strong>
-          <em className="truncate text-[0.72rem] font-semibold not-italic text-moonveil-silver/76 font-mono">{card.titleEn}</em>
+          <em className="truncate text-[0.72rem] font-semibold not-italic text-moonveil-silver/72">{card.titleEn}</em>
           <span className="mt-1 inline-flex w-fit rounded-full border border-champagne-gold/18 bg-champagne-gold/8 px-2 py-1 text-[0.68rem] font-extrabold text-champagne-gold/78">
             {card.suitLabel}
           </span>
@@ -785,14 +785,16 @@ function TarotAlbumCardItem({
 function MoonPhaseSeal({ full = false }: { full?: boolean }) {
   if (full) {
     return (
-      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden>
-        <circle cx="8" cy="8" r="7.5" />
+      <svg viewBox="0 0 20 20" fill="none" aria-hidden>
+        <circle cx="10" cy="10" r="9" fill="currentColor" opacity="0.9" />
+        <circle cx="10" cy="10" r="9" stroke="currentColor" strokeWidth="0.8" opacity="0.4" />
       </svg>
     );
   }
   return (
-    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden>
-      <path d="M8,1.5 Q8,1.5 12.5,8 Q8,14.5 8,14.5" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.2" aria-hidden>
+      <circle cx="10" cy="10" r="8.5" opacity="0.3" />
+      <path d="M 10 2 Q 17 10 10 18 Q 10 18 10 2" fill="currentColor" opacity="0.6" />
     </svg>
   );
 }
@@ -839,7 +841,7 @@ function TarotAlbumLockPanel({
             <Lock size={13} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </p>
-          <h2 id="tarotAlbumTitle" className="break-keep bg-gradient-to-r from-twilight-violet via-pearl-mist to-champagne-gold bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl">
+          <h2 id="tarotAlbumTitle" className="break-keep bg-gradient-to-r from-champagne-gold to-twilight-violet bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl">
             달빛 봉인이 걸린 카드첩
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
@@ -1141,7 +1143,7 @@ function TarotCardModal({
             <h3 id="tarotAlbumDetailTitle" className="font-premium text-3xl font-black leading-tight text-pearl-mist sm:text-5xl">
               {card.titleKo}
             </h3>
-            <p className="mt-1 text-base font-semibold text-moonveil-silver/78 font-mono">{card.titleEn}</p>
+            <p className="mt-1 text-base font-semibold text-moonveil-silver/72">{card.titleEn}</p>
           </div>
           <div className="flex flex-wrap gap-2">
             {card.keywords.map((keyword) => (
