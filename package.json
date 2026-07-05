@@ -40,6 +40,7 @@
     "secrets:cf:worker": "node scripts/sync-cloudflare-worker-secrets.mjs",
     "sanitize:cf-env": "node scripts/sanitize-open-next-env.mjs",
     "prune:serverfn:heavy": "node scripts/prune-server-function-static-heavy.mjs",
+    "verify:neo": "node scripts/verify-neo-operation-room-quality.mjs",
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
     "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
     "verify:entry-encoding": "node scripts/verify-entry-encoding.mjs",

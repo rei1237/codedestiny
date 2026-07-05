@@ -19,6 +19,11 @@ type NeoBriefing = {
   coreDiagnosis?: string;
   repeatedChoice?: { title?: string; description?: string };
   repeatedPattern?: { title?: string; description?: string };
+  innateNature?: { title?: string; description?: string; keyTraits?: string[] };
+  innateStrength?: { title?: string; description?: string; strongPoints?: string[]; weakPoints?: string[] };
+  topicStyle?: { title?: string; description?: string; keyPoints?: string[] };
+  topicAreas?: Array<{ area?: string; reading?: string }>;
+  topicTiming?: { title?: string; description?: string; windows?: string[] };
   originalStrategy?: { title?: string; description?: string; keyRules?: string[] };
   misalignedFlow?: { title?: string; description?: string };
   currentProblem?: { title?: string; description?: string };
@@ -27,7 +32,6 @@ type NeoBriefing = {
   forbiddenAction?: { title?: string; reason?: string };
   actionOrders?: string[];
   sevenDayMission?: Array<{ day?: number; mission?: string }>;
-  thirtyDayStrategy?: string[];
   realityCheckQuestions?: Array<{ question?: string; whyItMatters?: string }>;
   badge?: { name?: string; description?: string };
   tsundereClosing?: string;
@@ -38,14 +42,13 @@ type NeoRefinedOrder = {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoReview?: string;
-  actualStuckPoint?: { title?: string; description?: string };
-  realBottleneck?: { title?: string; description?: string };
-  updatedDiagnosis?: string;
-  discardThis?: string[];
-  newLifeStrategy?: { title?: string; description?: string; principles?: string[] };
-  forbiddenAction?: { title?: string; reason?: string };
-  sevenDayMission?: Array<{ day?: number; mission?: string }>;
+  verdict?: { status?: string; statement?: string };
+  verdictBasis?: string;
+  actionAlternatives?: Array<{ timing?: string; action?: string; rationale?: string }>;
+  peopleToMeet?: Array<{ role?: string; complementaryEnergy?: string; whereToFind?: string }>;
   thirtyDayStrategy?: string[];
+  forbiddenAction?: { title?: string; reason?: string };
+  thisWeekFirstStep?: string;
   badge?: { name?: string; description?: string };
   tsundereClosing?: string;
 };
@@ -118,6 +121,31 @@ const localPreviewBriefing: NeoBriefing = {
     title: "반복되는 선택",
     description: "중요한 순간마다 확신을 기다리다가 타이밍을 놓치고, 뒤늦게 스스로를 몰아붙이는 모습이 드러난다.",
   },
+  innateNature: {
+    title: "타고난 성향의 핵",
+    description: "너는 감정이 가라앉은 뒤에 판단이 서는 사람이다. 즉흥보다 기준으로 움직일 때 힘이 붙고, 기준이 흐려지면 곧바로 흔들린다.",
+    keyTraits: ["기준으로 움직이는 사람", "감정 정리 후 판단이 서는 구조", "확신을 기다리다 타이밍을 놓치는 경향"],
+  },
+  innateStrength: {
+    title: "타고난 강점과 약점",
+    description: "밀어붙일 자리는 기준을 세워 오래 끌고 가는 지구력이고, 지켜야 할 자리는 확신을 기다리며 결정을 미루는 습관이다.",
+    strongPoints: ["기준을 세우면 오래 끌고 가는 지구력", "감정에 휩쓸리지 않는 판단력"],
+    weakPoints: ["확신을 기다리다 타이밍을 놓치는 결정 지연", "남의 반응에 기준이 흔들리는 지점"],
+  },
+  topicStyle: {
+    title: "이 주제에서 너의 방식",
+    description: "이 영역에서 너는 판을 넓게 벌이기보다, 기준이 맞는 한 자리를 오래 파고들 때 성과가 난다.",
+    keyPoints: ["한 자리를 오래 파고들 때 성과", "기준이 맞는지부터 확인하는 방식"],
+  },
+  topicAreas: [
+    { area: "중심 자리", reading: "이 주제의 축이 되는 자리가 단단해, 방향만 정하면 밀고 나갈 힘은 충분하다." },
+    { area: "흐름 자리", reading: "흐름을 다루는 자리가 약해, 타이밍을 재다가 놓치는 손실이 반복된다." },
+  ],
+  topicTiming: {
+    title: "이 주제의 시기 흐름",
+    description: "지금 국면은 재는 때가 아니라 작게라도 벌려 확인하는 때다.",
+    windows: ["현재: 작게 벌려 확인하는 확장 국면"],
+  },
   originalStrategy: {
     title: "본래 너는 이렇게 살아야 한다",
     description: "감정이 가라앉은 뒤 판단하는 사람이다. 빠른 결정보다 기준을 먼저 세울수록 운이 안정된다.",
@@ -149,7 +177,6 @@ const localPreviewBriefing: NeoBriefing = {
     { day: 6, mission: "버릴 선택지 하나를 조용히 지워라." },
     { day: 7, mission: "일주일 뒤에도 남는 기준만 작전표에 남겨라." },
   ],
-  thirtyDayStrategy: ["1주차: 선택 기록", "2주차: 관계 반응과 내 기준 분리", "3주차: 반복되는 불안 이름 붙이기", "4주차: 남는 기준만 유지"],
   realityCheckQuestions: [
     { question: "지금 네가 미루는 선택은 정말 정보가 부족해서냐?", whyItMatters: "부족한 정보와 피하고 싶은 책임은 전혀 다르다." },
     { question: "네가 잃기 싫은 것은 사람의 평가냐, 네가 상상한 안전함이냐?", whyItMatters: "지키는 대상을 잘못 보면 작전이 계속 어긋난다." },
@@ -166,35 +193,29 @@ const localPreviewRefinedOrder: NeoRefinedOrder = {
   selectedMethod: "saju",
   operationTitle: "선택의 안개를 걷는 수정 작전",
   neoReview: "네 답변까지 보면 핵심은 더 분명하다. 문제는 운이 아니라 네가 판단을 멈추는 방식이다.",
-  actualStuckPoint: {
-    title: "실제로 흔들리던 지점",
-    description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
+  verdict: {
+    status: "방향은 맞지만 부족하다",
+    statement: "방향은 맞다. 다만 결정을 확신이 올 때까지 미루는 습관이 그 방향을 자꾸 무르게 만든다.",
   },
-  realBottleneck: {
-    title: "실제로 흔들리던 지점",
-    description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
-  },
-  updatedDiagnosis: "지금은 큰 결심보다 작은 실행 기준이 먼저다. 기준이 생기면 운의 흐름도 훨씬 덜 새어 나간다.",
-  discardThis: ["모두가 납득할 때까지 기다리기", "마음이 완전히 편해질 때까지 미루기", "괜찮은 척하며 같은 자리로 돌아가기"],
-  newLifeStrategy: {
-    title: "새 작전 기준",
-    description: "하루 안에 확인 가능한 행동으로 전선을 좁혀라. 작게 움직이면 판단이 다시 선명해진다.",
-    principles: ["감정이 거센 날에는 결론 대신 자료만 모은다", "결정은 세 문장으로 적는다", "반복되는 회피는 바로 기록한다"],
-  },
+  verdictBasis: "일간이 약하지 않은데도 판단을 멈추는 건 능력이 아니라 기준의 문제다. 지금 대운 흐름은 벌릴 때지 재는 때가 아니다.",
+  actionAlternatives: [
+    { timing: "이번 주 ~ 2주 안", action: "미뤄둔 결정 하나를 세 문장으로 적고, 사흘 안에 실행 여부만 정해라.", rationale: "지금 흐름은 확장기라 작게라도 움직여야 판단이 다시 선명해진다." },
+    { timing: "이번 달 안", action: "남의 반응을 확인하기 전에 내 기준부터 읽는 순서를 고정해라.", rationale: "관계 반응에 흔들리는 회로가 반복 선택의 방아쇠라서, 순서를 바꾸면 흔들림이 줄어든다." },
+  ],
+  peopleToMeet: [
+    { role: "결정을 빠르게 내리고 실행부터 하는 실무형 사람", complementaryEnergy: "재는 습관을 끊어줄 추진력을 채워준다.", whereToFind: "업계 실무 모임, 사이드 프로젝트 커뮤니티, 소개 자리." },
+  ],
   forbiddenAction: {
     title: "오늘 금지 행동",
     reason: "상대 반응을 핑계로 내 결정을 다시 무르는 것.",
   },
-  sevenDayMission: [
-    { day: 1, mission: "가장 미룬 질문 하나를 적어라." },
-    { day: 2, mission: "선택 기준 세 가지를 정리해라." },
-    { day: 3, mission: "기준에 맞지 않는 선택지를 하나 버려라." },
-    { day: 4, mission: "마음이 흔들린 순간과 이유를 한 줄로 남겨라." },
-    { day: 5, mission: "남의 반응을 확인하기 전에 네 기준을 먼저 읽어라." },
-    { day: 6, mission: "버릴 선택지 하나를 조용히 지워라." },
-    { day: 7, mission: "일주일 뒤에도 남는 기준만 작전표에 남겨라." },
+  thisWeekFirstStep: "가장 오래 미룬 결정 하나를 오늘 세 문장으로 적어라. 그게 이번 주 첫 걸음이다.",
+  thirtyDayStrategy: [
+    "1주차: 미룬 결정 목록을 만들고 그중 하나를 기준 세 줄로 정리해 실행 여부만 정한다.",
+    "2주차: 남의 반응을 확인하기 전에 내 기준부터 읽는 순서를 고정한다.",
+    "3주차: 매주 버릴 선택지를 하나씩 지워 선택지를 좁힌다.",
+    "4주차: 남은 기준만 작전표에 남기고 반복되던 불안에 이름을 붙인다.",
   ],
-  thirtyDayStrategy: ["주 2회 선택 기록", "관계 반응과 내 기준 분리", "반복되는 불안을 한 줄로 명명", "한 달 뒤에도 유효한 기준만 유지"],
   badge: {
     name: "안개 절단 휘장",
     description: "흐린 마음을 핑계로 쓰지 않고, 기준을 다시 세운 사람에게 주는 휘장이다.",
@@ -280,8 +301,9 @@ function getBriefingMisalignedFlow(briefing?: NeoBriefing | null) {
   return briefing?.misalignedFlow || briefing?.currentProblem || {};
 }
 
-function getRefinedStuckPoint(refined?: NeoRefinedOrder | null) {
-  return refined?.actualStuckPoint || refined?.realBottleneck || {};
+function getRefinedStuckPoint(refined?: NeoRefinedOrder | null): { title?: string; description?: string } {
+  if (refined?.verdict?.statement) return { title: "네오의 판정", description: refined.verdict.statement };
+  return {};
 }
 
 function readNeoStorageRecord(key: string) {
@@ -435,7 +457,7 @@ function buildNeoSincereLetter(session: NeoResultSession, methodName: string) {
   const opening = briefing?.neoOpening || "오늘 네가 들고 온 질문은 가볍지 않았다.";
   const frontline = getBriefingFrontline(briefing);
   const stuckPoint = getRefinedStuckPoint(refined);
-  const strategy = refined?.newLifeStrategy?.description || briefing?.originalStrategy?.description || "";
+  const strategy = refined?.actionAlternatives?.[0]?.action || refined?.thirtyDayStrategy?.[0] || briefing?.originalStrategy?.description || "";
   const closing = refined?.tsundereClosing || briefing?.tsundereClosing || briefing?.nextStepPrompt || "";
   return [
     `너에게. ${title}을 정리하고 나서, 나는 잠깐 작전 테이블의 불을 낮췄다. ${methodName}의 지도 위에 남은 선은 생각보다 조용했지만, 그 조용함 안에는 네가 오래 참아 온 마음이 또렷하게 남아 있었다. ${opening}`,
@@ -1019,6 +1041,20 @@ function InitialBriefingDocument({
       {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
       <Section title="네오의 첫 판단" body={briefing.neoOpening} />
       <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
+      <Section title={briefing.innateNature?.title || "타고난 성향의 핵"} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
+      <Section
+        title={briefing.innateStrength?.title || "타고난 강점과 약점"}
+        body={briefing.innateStrength?.description}
+        list={[
+          ...(briefing.innateStrength?.strongPoints || []).map((point) => `💪 ${point}`),
+          ...(briefing.innateStrength?.weakPoints || []).map((point) => `⚠ ${point}`),
+        ]}
+      />
+      <Section title={briefing.topicStyle?.title || "이 주제에서 너의 방식"} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
+      {briefing.topicAreas?.length ? (
+        <Section title="주제 영역별 심층" list={briefing.topicAreas.map((item) => `${item.area} — ${item.reading}`)} />
+      ) : null}
+      <Section title={briefing.topicTiming?.title || "이 주제의 시기 흐름"} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
       <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
       <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
       {briefing.methodEvidence?.length ? (
@@ -1038,7 +1074,6 @@ function InitialBriefingDocument({
           ))}
         </div>
       ) : null}
-      <Section title="30일 전략" list={briefing.thirtyDayStrategy} />
       {briefing.realityCheckQuestions?.length ? (
         <div className={styles.questionList}>
           <strong>현실 점검 질문</strong>
@@ -1120,31 +1155,42 @@ function RealityCheckForm({
 }
 
 function RefinedOrderDocument({ refined, badgeIndex }: { refined: NeoRefinedOrder; badgeIndex: number }) {
-  const stuckPoint = getRefinedStuckPoint(refined);
   return (
     <article className={styles.documentCard} data-version="v2" data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>2차 수정 작전 명령서</span>
         <h2>{refined.operationTitle || "수정 작전"}</h2>
       </header>
-      <Section title="네오의 재판단" body={refined.neoReview} />
-      <Section title={stuckPoint.title || "실제로 흔들리던 지점"} body={stuckPoint.description} />
-      <Section title="수정된 진단" body={refined.updatedDiagnosis} />
-      <Section title="버려야 할 방식" list={refined.discardThis} />
-      <Section title={refined.newLifeStrategy?.title || "새 인생 전략"} body={refined.newLifeStrategy?.description} list={refined.newLifeStrategy?.principles} />
-      <Section title={refined.forbiddenAction?.title || "오늘 금지 행동"} body={refined.forbiddenAction?.reason} />
-      {refined.sevenDayMission?.length ? (
-        <div className={styles.missionGrid}>
-          <strong>7일 작전</strong>
-          {refined.sevenDayMission.map((item) => (
-            <section key={`${item.day}-${item.mission}`}>
-              <span>DAY {item.day}</span>
-              <p>{item.mission}</p>
-            </section>
+      <Section title="전황 재판단" body={refined.neoReview} />
+      <Section title={refined.verdict?.status ? `판정 · ${refined.verdict.status}` : "판정"} body={refined.verdict?.statement} />
+      <Section title="판정 근거" body={refined.verdictBasis} />
+      {refined.actionAlternatives?.length ? (
+        <div className={styles.gridList}>
+          {refined.actionAlternatives.map((item, index) => (
+            <Section
+              key={`${item.timing}-${index}`}
+              title={item.timing ? `전선 조정 · ${item.timing}` : "전선 조정"}
+              body={item.action}
+              list={item.rationale ? [item.rationale] : undefined}
+            />
+          ))}
+        </div>
+      ) : null}
+      {refined.peopleToMeet?.length ? (
+        <div className={styles.gridList}>
+          {refined.peopleToMeet.map((item, index) => (
+            <Section
+              key={`${item.role}-${index}`}
+              title="만나야 할 사람"
+              body={item.role}
+              list={[item.complementaryEnergy, item.whereToFind ? `만날 곳 · ${item.whereToFind}` : ""].filter(Boolean) as string[]}
+            />
           ))}
         </div>
       ) : null}
       <Section title="30일 전략" list={refined.thirtyDayStrategy} />
+      <Section title="이번 주 첫 걸음" body={refined.thisWeekFirstStep} />
+      <Section title={refined.forbiddenAction?.title || "오늘 금지 행동"} body={refined.forbiddenAction?.reason} />
       <div className={styles.badgeBlock}>
         <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
         <div>

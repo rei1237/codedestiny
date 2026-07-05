@@ -27,11 +27,14 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import {
-  buildNeoOperationRoomInitialPrompt,
-  buildNeoOperationRoomRefinedPrompt,
   buildPreviousAdviceLog,
-  parseNeoOperationRoomBriefingResponse,
-  parseNeoOperationRoomRefinedResponse,
+  NEO_INITIAL_SECTIONS,
+  NEO_REFINED_SECTIONS,
+  buildNeoInitialSectionPrompt,
+  buildNeoRefinedSectionPrompt,
+  parseNeoSectionResponse,
+  mergeNeoInitialSections,
+  mergeNeoRefinedSections,
 } from "../lib/neo-operation-room-prompt.js";
 
 const SERVICE_KEY = "neo-operation-room";
@@ -779,53 +782,107 @@ function briefingCitesEvidence(briefing, tokens) {
   return tokens.some((token) => token && text.includes(token));
 }
 
-async function requestBriefingOnce(env, prompt, normalized, methodSummary) {
-  const neoCacheConfig = {
-    store: createLlmCacheStore(env),
-    deterministic: true,
-    ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: "neo-operation-room-v1",
+// 챕터 동시 생성(레이트리밋·subrequest 안전 상한). ziwei-deep-report 패턴 재사용.
+const NEO_SECTION_CONCURRENCY = 4;
+
+async function runWithConcurrency(items, limit, worker) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function runner() {
+    while (cursor < items.length) {
+      const index = cursor++;
+      results[index] = await worker(items[index], index);
+    }
+  }
+  const runners = Array.from({ length: Math.min(limit, items.length) }, () => runner());
+  await Promise.all(runners);
+  return results;
+}
+
+// 문자열 텍스트 총량(간이) — 파국적 생성 실패 감지용.
+function countNeoTextChars(value) {
+  if (typeof value === "string") return value.length;
+  if (Array.isArray(value)) return value.reduce((sum, item) => sum + countNeoTextChars(item), 0);
+  if (value && typeof value === "object") return Object.values(value).reduce((sum, item) => sum + countNeoTextChars(item), 0);
+  return 0;
+}
+
+// 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig) {
+  try {
+    const ai = await callGeminiText(env, prompt, {
+      maxOutputTokens: 4096,
+      temperature: 0.65,
+      thinkingBudget: 0,
+      timeoutMs: 45000,
+      ...(cacheConfig ? { cache: cacheConfig } : {}),
+    });
+    const provider = clean(ai?.provider || "");
+    const model = clean(ai?.model || "");
+    const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
+    if (!ai?.ok || isMock || clean(ai?.text).length < 40) {
+      return { id: section.id, parsed: {}, provider, model, ok: false };
+    }
+    const parsed = parseNeoSectionResponse(ai.text);
+    if (hasForbiddenResultText(parsed)) {
+      return { id: section.id, parsed: {}, provider, model, ok: false };
+    }
+    return { id: section.id, parsed, provider, model, ok: Object.keys(parsed).length > 0 };
+  } catch (error) {
+    return { id: section.id, parsed: {}, provider: "", model: "", ok: false, error: clean(error?.message, 120) };
+  }
+}
+
+async function generateBriefing(env, normalized, methodSummary) {
+  const ctx = {
+    selectedMethod: normalized.input.selectedMethod,
+    topic: normalized.input.topic,
+    intensity: normalized.input.intensity,
+    question: normalized.input.question,
+    birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true,
+    methodSummary,
   };
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65, thinkingBudget: 0, timeoutMs: 60000, cache: neoCacheConfig });
-  const provider = clean(ai?.provider || "");
-  const model = clean(ai?.model || "");
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-  if (!ai?.ok || isMock || clean(ai?.text).length < 80) {
+  const cacheStore = createLlmCacheStore(env);
+  const results = await runWithConcurrency(NEO_INITIAL_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
+    const prompt = buildNeoInitialSectionPrompt(section, ctx);
+    const cacheConfig = {
+      store: cacheStore,
+      deterministic: true,
+      ttlSeconds: 30 * 24 * 60 * 60,
+      keyExtra: `neo-operation-room-v2-init-${section.id}`,
+    };
+    return generateNeoSectionOnce(env, section, prompt, cacheConfig);
+  });
+
+  let briefing = mergeNeoInitialSections(results, normalized.input, methodSummary);
+
+  // 근거 인용 가드: 정찰 보고(methodEvidence) 챕터가 계산값을 인용하지 않으면 그 챕터만 재생성.
+  const tokens = safeArray(methodSummary?.evidenceTokens).map((token) => clean(token, 60)).filter(Boolean);
+  if (tokens.length && !briefingCitesEvidence(briefing, tokens)) {
+    const evidenceSection = NEO_INITIAL_SECTIONS.find((section) => section.id === "methodEvidence");
+    if (evidenceSection) {
+      const retryPrompt = [
+        buildNeoInitialSectionPrompt(evidenceSection, ctx),
+        "",
+        "[재작성 지시]",
+        `각 methodEvidence.summary 안에 다음 값 중 최소 2개를 그대로 인용해 다시 작성한다: ${tokens.slice(0, 14).join(", ")}`,
+      ].join("\n");
+      const retried = await generateNeoSectionOnce(env, evidenceSection, retryPrompt, null);
+      if (retried.ok) {
+        briefing = mergeNeoInitialSections(results.map((entry) => (entry.id === "methodEvidence" ? retried : entry)), normalized.input, methodSummary);
+      }
+    }
+  }
+
+  if (countNeoTextChars(briefing) < 200) {
     const error = new Error(LLM_ERROR_MESSAGE);
     error.code = "LLM_FAILED";
     error.status = 503;
     throw error;
   }
-  const briefing = parseNeoOperationRoomBriefingResponse(ai.text, normalized.input, methodSummary);
-  if (hasForbiddenResultText(briefing)) {
-    const error = new Error("Neo briefing contains internal wording");
-    error.code = "LLM_RESPONSE_INVALID";
-    error.status = 503;
-    throw error;
-  }
+  const provider = clean(results.find((entry) => entry.provider)?.provider || "gemini");
+  const model = clean(results.find((entry) => entry.model)?.model || "");
   return { briefing, provider, model };
-}
-
-async function generateBriefing(env, normalized, methodSummary) {
-  const prompt = buildNeoOperationRoomInitialPrompt(normalized.input, methodSummary);
-  let result = await requestBriefingOnce(env, prompt, normalized, methodSummary);
-  const tokens = safeArray(methodSummary?.evidenceTokens).map((token) => clean(token, 60)).filter(Boolean);
-  if (tokens.length && !briefingCitesEvidence(result.briefing, tokens)) {
-    const retryPrompt = [
-      prompt,
-      "",
-      "[재작성 지시]",
-      "이전 응답은 계산 요약의 실제 값을 인용하지 않아 무효 처리됐다.",
-      `methodEvidence.summary와 bluntTruth의 문장 안에 다음 값 중 최소 2개를 그대로 인용해서, 위 [반환 JSON 스키마]의 JSON 전체를 다시 작성한다: ${tokens.slice(0, 14).join(", ")}`,
-    ].join("\n");
-    try {
-      const retried = await requestBriefingOnce(env, retryPrompt, normalized, methodSummary);
-      result = retried;
-    } catch {
-      // 재시도 실패 시 첫 결과를 그대로 사용한다 (결제된 요청을 하드 실패시키지 않음)
-    }
-  }
-  return result;
 }
 
 function normalizeRealityCheckInput(body = {}) {
@@ -852,25 +909,30 @@ function normalizeRealityCheckInput(body = {}) {
 }
 
 async function generateRefinedOrder(env, consultation, realityCheck) {
-  const previousAdviceLog = buildPreviousAdviceLog(consultation?.initialBriefing);
-  const prompt = buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, previousAdviceLog);
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 7000, temperature: 0.65, thinkingBudget: 0, timeoutMs: 60000 });
-  const provider = clean(ai?.provider || "");
-  const model = clean(ai?.model || "");
-  const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
-  if (!ai?.ok || isMock || clean(ai?.text).length < 80) {
+  const ctx = {
+    selectedMethod: clean(consultation?.selectedMethod || consultation?.initialBriefing?.selectedMethod, 30),
+    topic: consultation?.topic || "",
+    intensity: consultation?.intensity || "",
+    question: consultation?.question || "",
+    methodSummary: consultation?.methodSummary || {},
+    initialBriefing: consultation?.initialBriefing || {},
+    realityCheck,
+    previousAdviceLog: buildPreviousAdviceLog(consultation?.initialBriefing),
+  };
+  // 2차는 현실 점검(자유 입력) 반영이라 비결정적 → 캐시 미사용.
+  const results = await runWithConcurrency(NEO_REFINED_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
+    const prompt = buildNeoRefinedSectionPrompt(section, ctx);
+    return generateNeoSectionOnce(env, section, prompt, null);
+  });
+  const refinedOrder = mergeNeoRefinedSections(results, consultation);
+  if (countNeoTextChars(refinedOrder) < 200) {
     const error = new Error(LLM_ERROR_MESSAGE);
     error.code = "LLM_FAILED";
     error.status = 503;
     throw error;
   }
-  const refinedOrder = parseNeoOperationRoomRefinedResponse(ai.text, consultation);
-  if (hasForbiddenResultText(refinedOrder)) {
-    const error = new Error("Neo refined order contains internal wording");
-    error.code = "LLM_RESPONSE_INVALID";
-    error.status = 503;
-    throw error;
-  }
+  const provider = clean(results.find((entry) => entry.provider)?.provider || "gemini");
+  const model = clean(results.find((entry) => entry.model)?.model || "");
   return { refinedOrder, provider, model };
 }
 

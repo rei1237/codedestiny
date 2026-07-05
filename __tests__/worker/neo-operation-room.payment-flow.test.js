@@ -68,10 +68,14 @@ beforeAll(async () => {
     startServiceExecution: jest.fn(async () => ({})),
   }));
   jest.unstable_mockModule("../../worker/lib/neo-operation-room-prompt.js", () => ({
-    buildNeoOperationRoomInitialPrompt: jest.fn(() => ""),
-    buildNeoOperationRoomRefinedPrompt: jest.fn(() => ""),
-    parseNeoOperationRoomBriefingResponse: jest.fn(() => ({})),
-    parseNeoOperationRoomRefinedResponse: jest.fn(() => ({})),
+    buildPreviousAdviceLog: jest.fn(() => ""),
+    NEO_INITIAL_SECTIONS: [{ id: "opening", title: "t", scope: "s", minChars: 100, schema: {}, rules: [] }],
+    NEO_REFINED_SECTIONS: [{ id: "neoReview", title: "t", scope: "s", minChars: 100, schema: {}, rules: [] }],
+    buildNeoInitialSectionPrompt: jest.fn(() => ""),
+    buildNeoRefinedSectionPrompt: jest.fn(() => ""),
+    parseNeoSectionResponse: jest.fn(() => ({})),
+    mergeNeoInitialSections: jest.fn(() => ({})),
+    mergeNeoRefinedSections: jest.fn(() => ({})),
   }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
@@ -104,6 +108,12 @@ beforeAll(async () => {
     PointHistory: {
       exists: jest.fn(async () => false),
       findOne: jest.fn(() => chainLean(null)),
+      create: jest.fn(async () => ({})),
+    },
+    LlmResponseCache: {
+      findOne: jest.fn(() => chainLean(null)),
+      findOneAndUpdate: jest.fn(() => chainLean(null)),
+      updateOne: jest.fn(async () => ({})),
       create: jest.fn(async () => ({})),
     },
   }));

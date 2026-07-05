@@ -1651,6 +1651,132 @@
     rgba(4, 7, 13, 0.86);
 }
 
+.sealPerkPreview {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: clamp(14px, 2.6vw, 22px);
+  align-items: center;
+  border: 1px solid rgba(245, 212, 135, 0.34);
+  border-radius: 8px;
+  padding: clamp(15px, 2.6vw, 22px);
+  background:
+    linear-gradient(135deg, rgba(46, 33, 12, 0.62), rgba(57, 17, 23, 0.32) 58%, rgba(6, 10, 20, 0.4)),
+    rgba(5, 8, 16, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(245, 212, 135, 0.1), 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
+.sealPerkSeal {
+  position: relative;
+  width: clamp(72px, 15vw, 96px);
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+}
+
+.sealPerkSeal::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(245, 212, 135, 0.32), transparent 68%);
+  pointer-events: none;
+}
+
+.sealPerkSealFrame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5));
+}
+
+.sealPerkSealImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.sealPerkCopy {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.sealPerkEyebrow {
+  color: rgba(245, 212, 135, 0.82);
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sealPerkTitle {
+  color: #fff4d0;
+  font-size: clamp(1rem, 2.4vw, 1.16rem);
+  font-weight: 900;
+  line-height: 1.35;
+  word-break: keep-all;
+}
+
+.sealPerkDesc {
+  margin: 0;
+  color: rgba(246, 238, 217, 0.74);
+  font-size: 0.84rem;
+  font-weight: 640;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.sealPerkList {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sealPerkList li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  border: 1px solid rgba(180, 194, 224, 0.16);
+  border-radius: 7px;
+  padding: 9px 11px;
+  background: rgba(3, 7, 14, 0.5);
+}
+
+.sealPerkLock {
+  flex: 0 0 auto;
+  align-self: center;
+  border: 1px solid rgba(245, 212, 135, 0.4);
+  border-radius: 999px;
+  padding: 3px 9px;
+  color: rgba(245, 212, 135, 0.9);
+  background: rgba(46, 33, 12, 0.5);
+  font-size: 0.64rem;
+  font-weight: 950;
+  font-style: normal;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.sealPerkList li span {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  color: rgba(226, 233, 246, 0.72);
+  font-size: 0.8rem;
+  font-weight: 640;
+  line-height: 1.45;
+  word-break: keep-all;
+}
+
+.sealPerkList li span strong {
+  color: #fff7de;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
 .commandProgressRail {
   display: grid;
   grid-template-columns: repeat(6, minmax(116px, 1fr));
@@ -3336,6 +3462,22 @@
     overflow: visible;
   }
 
+  .sealPerkPreview {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .sealPerkCopy {
+    justify-items: center;
+    text-align: left;
+  }
+
+  .sealPerkList {
+    width: 100%;
+  }
+
   .commandSpeechBubble::after {
     right: 42px;
   }
@@ -3795,7 +3937,7 @@
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
     min-height: 158px;
-    padding: 14px 14px 84px;
+    padding: 14px 14px 16px;
   }
 
   .vnDialogueBox[data-speaker="customer"] {
@@ -3834,7 +3976,7 @@
   .vnStage[data-phase="prologue"] .vnControlRow {
     left: 12px;
     right: 12px;
-    bottom: max(22px, calc(env(safe-area-inset-bottom, 0px) + 18px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 176px);
     max-width: none;
     display: flex;
     align-items: center;
@@ -3975,7 +4117,7 @@
 
   .vnStage[data-phase="prologue"] .vnDialogueBox {
     min-height: 168px;
-    padding-bottom: 88px;
+    padding-bottom: 16px;
   }
 
   .vnControlRow {
@@ -3983,7 +4125,7 @@
   }
 
   .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: max(20px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 186px);
   }
 }
 

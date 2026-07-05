@@ -65,6 +65,11 @@ type NeoBriefing = {
   coreDiagnosis?: string;
   repeatedChoice?: { title?: string; description?: string };
   repeatedPattern?: { title?: string; description?: string };
+  innateNature?: { title?: string; description?: string; keyTraits?: string[] };
+  innateStrength?: { title?: string; description?: string; strongPoints?: string[]; weakPoints?: string[] };
+  topicStyle?: { title?: string; description?: string; keyPoints?: string[] };
+  topicAreas?: Array<{ area?: string; reading?: string }>;
+  topicTiming?: { title?: string; description?: string; windows?: string[] };
   originalStrategy?: { title?: string; description?: string; keyRules?: string[] };
   misalignedFlow?: { title?: string; description?: string };
   currentProblem?: { title?: string; description?: string };
@@ -73,7 +78,6 @@ type NeoBriefing = {
   forbiddenAction?: { title?: string; reason?: string };
   actionOrders?: string[];
   sevenDayMission?: Array<{ day?: number; mission?: string }>;
-  thirtyDayStrategy?: string[];
   realityCheckQuestions?: Array<{ question?: string; whyItMatters?: string }>;
   badge?: { name?: string; description?: string };
   tsundereClosing?: string;
@@ -87,6 +91,7 @@ type NeoRefinedOrder = {
   verdictBasis?: string;
   actionAlternatives?: Array<{ timing?: string; action?: string; rationale?: string }>;
   peopleToMeet?: Array<{ role?: string; complementaryEnergy?: string; whereToFind?: string }>;
+  thirtyDayStrategy?: string[];
   forbiddenAction?: { title?: string; reason?: string };
   thisWeekFirstStep?: string;
   badge?: { name?: string; description?: string };
@@ -565,6 +570,32 @@ const localPreviewBriefing: NeoBriefing = {
     title: "반복되는 선택",
     description: "중요한 순간마다 확신을 기다리다가 타이밍을 놓치고, 뒤늦게 스스로를 몰아붙이는 모습이 드러난다.",
   },
+  innateNature: {
+    title: "타고난 성향의 핵",
+    description: "너는 감정이 가라앉은 뒤에 판단이 서는 사람이다. 즉흥보다 기준으로 움직일 때 힘이 붙고, 기준이 흐려지면 곧바로 흔들린다.",
+    keyTraits: ["기준으로 움직이는 사람", "감정 정리 후 판단이 서는 구조", "확신을 기다리다 타이밍을 놓치는 경향"],
+  },
+  innateStrength: {
+    title: "타고난 강점과 약점",
+    description: "밀어붙일 자리는 기준을 세워 오래 끌고 가는 지구력이고, 지켜야 할 자리는 확신을 기다리며 결정을 미루는 습관이다.",
+    strongPoints: ["기준을 세우면 오래 끌고 가는 지구력", "감정에 휩쓸리지 않는 판단력"],
+    weakPoints: ["확신을 기다리다 타이밍을 놓치는 결정 지연", "남의 반응에 기준이 흔들리는 지점"],
+  },
+  topicStyle: {
+    title: "이 주제에서 너의 방식",
+    description: "이 영역에서 너는 판을 넓게 벌이기보다, 기준이 맞는 한 자리를 오래 파고들 때 성과가 난다. 조급하게 여러 갈래로 벌이면 힘이 흩어진다.",
+    keyPoints: ["한 자리를 오래 파고들 때 성과", "기준이 맞는지부터 확인하는 방식", "여러 갈래로 벌이면 흩어짐"],
+  },
+  topicAreas: [
+    { area: "중심 자리", reading: "이 주제의 축이 되는 자리가 단단해, 방향만 정하면 밀고 나갈 힘은 충분하다." },
+    { area: "흐름 자리", reading: "다만 흐름을 다루는 자리가 약해, 타이밍을 재다가 놓치는 손실이 반복된다." },
+    { area: "관계 자리", reading: "사람과 얽히는 자리에서 남의 반응에 기준이 흔들리는 결이 보인다." },
+  ],
+  topicTiming: {
+    title: "이 주제의 시기 흐름",
+    description: "지금 국면은 재는 때가 아니라 작게라도 벌려 확인하는 때다. 미룰수록 흐름이 닫힌다.",
+    windows: ["현재: 작게 벌려 확인하는 확장 국면", "다음 전환 전: 선택지를 좁혀 정리"],
+  },
   originalStrategy: {
     title: "본래 너는 이렇게 살아야 한다",
     description: "감정이 가라앉은 뒤 판단하는 사람이다. 빠른 결정보다 기준을 먼저 세울수록 운이 안정된다.",
@@ -596,7 +627,6 @@ const localPreviewBriefing: NeoBriefing = {
     { day: 6, mission: "버릴 선택지 하나를 조용히 지워라." },
     { day: 7, mission: "일주일 뒤에도 남는 기준만 작전표에 남겨라." },
   ],
-  thirtyDayStrategy: ["1주차: 선택 기록", "2주차: 관계 반응과 내 기준 분리", "3주차: 반복되는 불안 이름 붙이기", "4주차: 남는 기준만 유지"],
   realityCheckQuestions: [
     { question: "지금 네가 미루는 선택은 정말 정보가 부족해서냐?", whyItMatters: "부족한 정보와 피하고 싶은 책임은 전혀 다르다." },
     { question: "네가 잃기 싫은 것은 사람의 평가냐, 네가 상상한 안전함이냐?", whyItMatters: "지키는 대상을 잘못 보면 작전이 계속 어긋난다." },
@@ -651,6 +681,12 @@ const localPreviewRefinedOrder: NeoRefinedOrder = {
     title: "오늘 금지 행동",
     reason: "상대 반응을 핑계로 내 결정을 다시 무르는 것.",
   },
+  thirtyDayStrategy: [
+    "1주차: 미룬 결정 목록을 만들고 그중 하나를 기준 세 줄로 정리해 실행 여부만 정한다. 판단을 멈추는 회로를 눈으로 확인하는 주다.",
+    "2주차: 남의 반응을 확인하기 전에 내 기준부터 읽는 순서를 고정한다. 흔들림의 방아쇠를 순서로 눌러 둔다.",
+    "3주차: 매주 버릴 선택지를 하나씩 지워 선택지를 좁힌다. 운이 새는 틈을 좁히는 주다.",
+    "4주차: 3주간 남은 기준만 작전표에 남기고, 반복되던 불안에 이름을 붙여 다음 국면 기준으로 삼는다.",
+  ],
   thisWeekFirstStep: "가장 오래 미룬 결정 하나를 오늘 세 문장으로 적어라. 그게 이번 주 첫 걸음이다.",
   badge: {
     name: "안개 절단 휘장",
@@ -2126,6 +2162,40 @@ export default function NeoOperationRoomPage() {
           </div>
           <p className={styles.commandStepHint}>{commandStepHint}</p>
         </section>
+        <section className={styles.sealPerkPreview} aria-label="사자 휘장 특전 안내">
+          <div className={styles.sealPerkSeal}>
+            <NeoWarRoomAssetImage
+              asset={neoWarRoomAssets.hero.lionSeal}
+              alt="황금빛 사자 휘장"
+              sizes="88px"
+              className={styles.sealPerkSealFrame}
+              imageClassName={styles.sealPerkSealImage}
+            />
+          </div>
+          <div className={styles.sealPerkCopy}>
+            <span className={styles.sealPerkEyebrow}>Lion Seal Reward</span>
+            <strong className={styles.sealPerkTitle}>사자 휘장 5개를 모으면 잠긴 특전이 열린다</strong>
+            <p className={styles.sealPerkDesc}>
+              작전을 완수할수록 사자 휘장이 쌓인다. 다섯 개가 모이면 아래 특전이 결과 화면에서 해금된다.
+            </p>
+            <ul className={styles.sealPerkList}>
+              <li>
+                <em className={styles.sealPerkLock} aria-hidden="true">잠금</em>
+                <span>
+                  <strong>네오의 비밀 편지</strong>
+                  결과에 담기지 않은 추가 해석과 당부가 열린다
+                </span>
+              </li>
+              <li>
+                <em className={styles.sealPerkLock} aria-hidden="true">잠금</em>
+                <span>
+                  <strong>작전 명령서 PDF 다운로드</strong>
+                  전체 브리핑을 PDF로 저장해 언제든 다시 열람한다
+                </span>
+              </li>
+            </ul>
+          </div>
+        </section>
         <div className={styles.commandLayout}>
           <div className={styles.commandFields}>
             <section className={styles.deckSection} aria-labelledby="neo-method-title">
@@ -2511,6 +2581,65 @@ export default function NeoOperationRoomPage() {
                     <strong>{displayBriefingRepeatedChoice.title || "반복되는 선택"}</strong>
                     <p>{displayBriefingRepeatedChoice.description}</p>
                   </article>
+                  {displayBriefing.innateNature?.description ? (
+                    <article>
+                      <strong>{displayBriefing.innateNature.title || "타고난 성향의 핵"}</strong>
+                      <p>{displayBriefing.innateNature.description}</p>
+                      {displayBriefing.innateNature.keyTraits?.length ? (
+                        <ul>
+                          {displayBriefing.innateNature.keyTraits.map((trait) => <li key={trait}>{trait}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
+                  {displayBriefing.innateStrength?.description ? (
+                    <article>
+                      <strong>{displayBriefing.innateStrength.title || "타고난 강점과 약점"}</strong>
+                      <p>{displayBriefing.innateStrength.description}</p>
+                      {displayBriefing.innateStrength.strongPoints?.length ? (
+                        <ul>
+                          {displayBriefing.innateStrength.strongPoints.map((point) => <li key={`strong-${point}`}>💪 {point}</li>)}
+                        </ul>
+                      ) : null}
+                      {displayBriefing.innateStrength.weakPoints?.length ? (
+                        <ul>
+                          {displayBriefing.innateStrength.weakPoints.map((point) => <li key={`weak-${point}`}>⚠ {point}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
+                  {displayBriefing.topicStyle?.description ? (
+                    <article>
+                      <strong>{displayBriefing.topicStyle.title || "이 주제에서 너의 방식"}</strong>
+                      <p>{displayBriefing.topicStyle.description}</p>
+                      {displayBriefing.topicStyle.keyPoints?.length ? (
+                        <ul>
+                          {displayBriefing.topicStyle.keyPoints.map((point) => <li key={point}>{point}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
+                  {displayBriefing.topicAreas?.length ? (
+                    <article>
+                      <strong>주제 영역별 심층</strong>
+                      <ul>
+                        {displayBriefing.topicAreas.map((item) => (
+                          <li key={item.area}><strong>{item.area}</strong> — {item.reading}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ) : null}
+                  {displayBriefing.topicTiming?.description ? (
+                    <article>
+                      <strong>{displayBriefing.topicTiming.title || "이 주제의 시기 흐름"}</strong>
+                      <p>{displayBriefing.topicTiming.description}</p>
+                      {displayBriefing.topicTiming.windows?.length ? (
+                        <ul>
+                          {displayBriefing.topicTiming.windows.map((w) => <li key={w}>{w}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
                   <article>
                     <strong>{displayBriefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"}</strong>
                     <p>{displayBriefing.originalStrategy?.description}</p>
@@ -2565,12 +2694,6 @@ export default function NeoOperationRoomPage() {
                         <p>{item.mission}</p>
                       </article>
                     ))}
-                  </div>
-                ) : null}
-                {briefingRevealStep >= 5 && displayBriefing.thirtyDayStrategy?.length ? (
-                  <div className={`${styles.refinedListBlock} ${styles.revealBlock}`}>
-                    <strong>30일 전략</strong>
-                    <ul>{displayBriefing.thirtyDayStrategy.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 ) : null}
                 {briefingRevealStep >= 6 && displayBriefing.realityCheckQuestions?.length ? (
@@ -2753,6 +2876,12 @@ export default function NeoOperationRoomPage() {
                         {item.whereToFind ? <p className={styles.personWhere}>만날 곳 · {item.whereToFind}</p> : null}
                       </article>
                     ))}
+                  </div>
+                ) : null}
+                {displayRefinedOrder.thirtyDayStrategy?.length ? (
+                  <div className={styles.refinedListBlock}>
+                    <strong>30일 전략</strong>
+                    <ul>{displayRefinedOrder.thirtyDayStrategy.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 ) : null}
                 <div className={styles.briefingGrid}>
