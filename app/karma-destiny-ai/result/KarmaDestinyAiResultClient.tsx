@@ -108,6 +108,10 @@ function KarmaDestinyResultInner() {
   const [openChapters, setOpenChapters] = useState<Set<string>>(new Set());
   const [downloading, setDownloading] = useState(false);
   const batchInFlightRef = useRef(false);
+  // 서버가 진척 없이 generating을 반복 반환할 때 generate-batch POST가 무한 폭주(Cloudflare 1015)하지 않도록
+  // "무진척(stall)" 배치가 연속되면 중단한다. 챕터가 진행되면 리셋되므로 정상 생성에는 영향이 없다.
+  const generationStallRef = useRef({ lastChapters: -1, stalls: 0 });
+  const maxGenerationStalls = 6;
 
   const chapters = useMemo(() => [...(result?.chapters || [])].sort((a, b) => a.order - b.order), [result?.chapters]);
   const progress = result?.generationProgress || {};
@@ -141,8 +145,20 @@ function KarmaDestinyResultInner() {
         method: "POST",
         body: JSON.stringify({ sessionId }),
       });
+      const completed = Number(payload?.generationProgress?.completedChapters ?? 0);
+      const stall = generationStallRef.current;
+      if (completed > stall.lastChapters) {
+        stall.lastChapters = completed;
+        stall.stalls = 0;
+      } else {
+        stall.stalls += 1;
+      }
       setResult(payload);
-      setError("");
+      if (payload?.status === "generating" && stall.stalls >= maxGenerationStalls) {
+        setError("장문 리포트 생성이 지연되고 있습니다. 같은 세션으로 다시 시도해 주세요.");
+      } else {
+        setError("");
+      }
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "장문 리포트 생성이 멈췄습니다. 같은 세션으로 다시 시도해 주세요.");
     } finally {

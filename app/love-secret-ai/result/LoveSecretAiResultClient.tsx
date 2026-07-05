@@ -222,6 +222,8 @@ export default function LoveSecretAiResultClient() {
   useEffect(() => {
     let alive = true;
     let timer = 0;
+    let attempts = 0;
+    const maxAttempts = 45; // 2.2s * 45 ≈ 1.6분 상한 — 무한 폴링(Cloudflare 1015) 방지
     async function loadResult() {
       setLoading(true);
       setError("");
@@ -231,6 +233,12 @@ export default function LoveSecretAiResultClient() {
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (response.status === 202) {
           if (!alive) return;
+          attempts += 1;
+          if (attempts >= maxAttempts) {
+            setPending(false);
+            setError("상담 결과 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
           setPending(true);
           setLoading(true);
           timer = window.setTimeout(loadResult, 2200);
