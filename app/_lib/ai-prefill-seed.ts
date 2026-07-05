@@ -1,4 +1,4 @@
-﻿import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
+﻿import { readCurrentDestinyProfile, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 
 export type AiPrefillSeed = {
   name?: string;
@@ -96,7 +96,10 @@ function toDecimalString(value: unknown): string | undefined {
 }
 
 export function readAiProfileSeed(): AiPrefillSeed {
-  const profile = readCurrentDestinyProfile();
+  return seedFromDestinyProfile(readCurrentDestinyProfile());
+}
+
+export function seedFromDestinyProfile(profile: DestinyProfileCard | null | undefined): AiPrefillSeed {
   if (!profile) return {};
 
   const seed: AiPrefillSeed = {};

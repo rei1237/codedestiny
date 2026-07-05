@@ -10,7 +10,9 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 
 type CalendarType = "solar" | "lunar";
@@ -309,19 +311,22 @@ function LoadingBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
   );
 }
 
-function buildInitialPersonA(): PersonForm {
-  const profile = readAiProfileSeed();
+function applyProfileSeedToPerson(person: PersonForm, profile: AiPrefillSeed): PersonForm {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
-    return { ...EMPTY_PERSON };
+    return person;
   }
   return {
-    ...EMPTY_PERSON,
-    name: profile.name || EMPTY_PERSON.name,
-    gender: (profile.gender as PersonForm["gender"]) || EMPTY_PERSON.gender,
-    birthDate: profile.birthDate || EMPTY_PERSON.birthDate,
-    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || EMPTY_PERSON.birthTime,
-    calendarType: profile.calendarType || EMPTY_PERSON.calendarType,
+    ...person,
+    name: profile.name || person.name,
+    gender: (profile.gender as PersonForm["gender"]) || person.gender,
+    birthDate: profile.birthDate || person.birthDate,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || person.birthTime,
+    calendarType: profile.calendarType || person.calendarType,
   };
+}
+
+function buildInitialPersonA(): PersonForm {
+  return applyProfileSeedToPerson({ ...EMPTY_PERSON }, readAiProfileSeed());
 }
 
 const ERROR_TEXT: Record<string, string> = {
@@ -943,6 +948,21 @@ export default function SukuyoCompatibilityAiClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const submitKeyRef = useRef("");
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 본인(나의 별) 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setPersonA((prev) => (formTouchedRef.current ? prev : applyProfileSeedToPerson(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadPersonAFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setPersonA((prev) => applyProfileSeedToPerson(prev, seed));
+    });
+  }
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const consultationType: ConsultationType = "compatibility";
@@ -1052,6 +1072,7 @@ export default function SukuyoCompatibilityAiClient() {
   }
 
   function updatePerson(target: "a" | "b", patch: Partial<PersonForm>) {
+    formTouchedRef.current = true;
     resetAttempt();
     if (target === "a") setPersonA((current) => ({ ...current, ...patch }));
     if (target === "b") setPersonB((current) => ({ ...current, ...patch }));
@@ -1293,7 +1314,15 @@ export default function SukuyoCompatibilityAiClient() {
                 <div className={`${styles.duoCard}${personAComplete ? ` ${styles.duoCardComplete}` : ""}`}>
                   <header className={styles.duoCardHead}>
                     <span aria-hidden="true">☾</span>
-                    <strong>나의 별</strong>
+                    <strong className="min-w-0 flex-1">나의 별</strong>
+                    <button
+                      type="button"
+                      onClick={loadPersonAFromProfileCard}
+                      className="shrink-0 rounded-lg border border-[#ffe8b6]/30 bg-[#ffe8b6]/10 px-2 py-1 text-xs font-bold text-[#ffe8b6] transition hover:bg-[#ffe8b6]/20"
+                      aria-label="프로필 카드에서 출생 정보 불러오기"
+                    >
+                      프로필 카드에서 불러오기
+                    </button>
                     <em>{personAComplete ? "자리 완성" : "채우는 중"}</em>
                   </header>
                   {renderPersonFields("a", personA)}
@@ -1323,6 +1352,9 @@ export default function SukuyoCompatibilityAiClient() {
                 <p>{bothComplete ? "두 별의 자리가 모두 채워졌어요. 이제 달빛 궁합을 열 수 있습니다." : "두 별의 자리가 채워지면 미리보기가 선명해져요."}</p>
               </div>
 
+              <div className="flex items-center justify-end">
+                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="상담 이용 가격 " />
+              </div>
               <div className={styles.actions}>
                 <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}

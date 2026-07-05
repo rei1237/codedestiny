@@ -8,7 +8,9 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -189,9 +191,7 @@ const defaultForm = (): ConsultationForm => ({
   question: "",
 });
 
-function buildInitialForm(): ConsultationForm {
-  const form = defaultForm();
-  const profile = readAiProfileSeed();
+function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && !profile.timezone && !profile.city && !profile.country && profile.birthTimeUnknown === undefined && !profile.latitude && !profile.longitude) {
     return form;
   }
@@ -216,6 +216,10 @@ function buildInitialForm(): ConsultationForm {
       ...birthplace,
     },
   };
+}
+
+function buildInitialForm(): ConsultationForm {
+  return applyProfileSeedToForm(defaultForm(), readAiProfileSeed());
 }
 
 function createIdempotencyKey() {
@@ -633,6 +637,21 @@ export default function KarmaDestinyAiPage() {
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const latestOpenedResultRef = useRef("");
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   const statusText = useMemo(() => {
     if (status === "preparing") return "운명의 기록을 펼치고 있습니다";
@@ -657,6 +676,8 @@ export default function KarmaDestinyAiPage() {
   }, [latestAssistantContent, sessionId, status]);
 
   const resetAttempt = useCallback(() => {
+    // 모든 사용자 입력 핸들러가 이 함수를 거치므로, 여기서 입력 시작 여부를 기록
+    formTouchedRef.current = true;
     if (isBusy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
     setSessionId("");
@@ -912,9 +933,19 @@ export default function KarmaDestinyAiPage() {
 
       <section className="kdai-workspace">
         <form className="kdai-form kdai-panel" onSubmit={handleSubmit}>
-          <div className="kdai-panel-title">
-            <CalendarDays size={18} />
-            <h2>운명의 실을 읽기 위한 정보</h2>
+          <div className="kdai-panel-title kdai-panel-title--split">
+            <div>
+              <CalendarDays size={18} />
+              <h2>운명의 실을 읽기 위한 정보</h2>
+            </div>
+            <button
+              className="kdai-ghost-action"
+              type="button"
+              onClick={loadFormFromProfileCard}
+              aria-label="프로필 카드에서 출생 정보 불러오기"
+            >
+              <span>프로필 카드에서 불러오기</span>
+            </button>
           </div>
 
           <div className="kdai-grid">
@@ -1010,6 +1041,9 @@ export default function KarmaDestinyAiPage() {
 
           {notice && <p className="kdai-notice">{notice}</p>}
           {error && <p className="kdai-error">{error}</p>}
+          <div className="flex items-center justify-end">
+            <PriceBadge featureKey="karma-destiny-ai-consultation" fallbackCoins={500} prefix="상담 이용 가격 " />
+          </div>
           <button className="kdai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}
             <span>{isBusy ? "운명의 실을 따라가는 중..." : "운명의 업 AI 상담 받기"}</span>

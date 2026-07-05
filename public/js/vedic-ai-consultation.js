@@ -275,7 +275,10 @@
   }
   function readStoredProfile() {
     var candidates = [];
+    try { if (typeof window.__cdGetCurrentDestinyProfile === 'function') candidates.push(window.__cdGetCurrentDestinyProfile()); } catch (_) {}
     try { candidates.push(window.__cdActiveBirthProfile, window.__cdCurrentDestinyProfile, window.__cdCurrentProfile, window.__destinyFlowerSajuSnapshot); } catch (_) {}
+    try { candidates.push(JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || '{}')); } catch (_) {}
+    try { candidates.push(JSON.parse(sessionStorage.getItem('FORTUNE_APP_USER_PROFILE') || '{}')); } catch (_) {}
     try { candidates.push(JSON.parse(localStorage.getItem('destiny_profile') || '{}')); } catch (_) {}
     try { candidates.push(JSON.parse(sessionStorage.getItem('destiny_profile') || '{}')); } catch (_) {}
     for (var i = 0; i < candidates.length; i += 1) {

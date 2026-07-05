@@ -10,7 +10,9 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import { DashaTimeline, HeroChartPreview, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 
@@ -207,9 +209,7 @@ const initialForm: FormState = {
   question: "",
 };
 
-function buildInitialForm(): FormState {
-  const form = initialForm;
-  const profile = readAiProfileSeed();
+function applyProfileSeedToForm(form: FormState, profile: AiPrefillSeed): FormState {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined && !profile.timezone && !profile.city && !profile.country && !profile.latitude && !profile.longitude) {
     return form;
   }
@@ -230,6 +230,10 @@ function buildInitialForm(): FormState {
     longitude: profile.longitude || form.longitude,
     timezone: profile.timezone || form.timezone,
   };
+}
+
+function buildInitialForm(): FormState {
+  return applyProfileSeedToForm(initialForm, readAiProfileSeed());
 }
 
 function makeRequestId() {
@@ -869,6 +873,21 @@ export default function VedicAiClient() {
   const requestIdRef = useRef("");
   const pendingAccessRef = useRef<PendingAccess | null>(null);
   const submitBusyRef = useRef(false);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   // 재열람: 완료된 상담은 ?cid=로 다시 열 수 있다 (결제 없이 조회만)
   useEffect(() => {
@@ -913,6 +932,7 @@ export default function VedicAiClient() {
   }, [phase]);
 
   function updateForm(patch: Partial<FormState>) {
+    formTouchedRef.current = true;
     setForm((current) => ({ ...current, ...patch }));
   }
 
@@ -1133,9 +1153,17 @@ export default function VedicAiClient() {
 
       <section className={styles.workspace}>
         <form className={styles.formPanel} onSubmit={(event) => { event.preventDefault(); void handleSubmit(); }}>
-          <div className={styles.panelHeader}>
-            <span><Star size={18} /> 별의 지도를 열기 위한 정보</span>
+          <div className={`${styles.panelHeader} flex-wrap`}>
+            <span className="min-w-0 flex-1"><Star size={18} /> 별의 지도를 열기 위한 정보</span>
             <strong>Vedic AI</strong>
+            <button
+              type="button"
+              onClick={loadFormFromProfileCard}
+              className="shrink-0 rounded-lg border border-[#f6d67e]/35 bg-[#f6d67e]/10 px-3 py-2 text-xs font-bold text-[#f6d67e] transition hover:bg-[#f6d67e]/20"
+              aria-label="프로필 카드에서 출생 정보 불러오기"
+            >
+              프로필 카드에서 불러오기
+            </button>
           </div>
 
           <div className={styles.formGrid}>
@@ -1221,6 +1249,9 @@ export default function VedicAiClient() {
             </div>
           )}
 
+          <div className="flex items-center justify-end">
+            <PriceBadge featureKey="vedic-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+          </div>
           <button type="submit" className={styles.primaryButton} disabled={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
             {busy ? "나크샤트라의 흐름을 읽는 중..." : "베다점 AI 상담 받기"}

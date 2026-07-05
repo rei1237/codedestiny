@@ -562,6 +562,11 @@
     } catch (_) {}
 
     try {
+      var bridged = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || sessionStorage.getItem('FORTUNE_APP_USER_PROFILE') || '{}');
+      if (_hasValidBirthProfile(bridged)) return _normalizeVedicProfileForPdf(bridged);
+    } catch (_) {}
+
+    try {
       var payload = JSON.parse(localStorage.getItem('destiny_profile') || sessionStorage.getItem('destiny_profile') || '{}');
       if (_hasValidBirthProfile(payload)) return _normalizeVedicProfileForPdf(payload);
     } catch (_) {}

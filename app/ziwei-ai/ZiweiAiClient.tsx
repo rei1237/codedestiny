@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
@@ -330,9 +332,7 @@ function toZiweiGender(value: string | undefined): Gender {
   return "";
 }
 
-const buildInitialZiweiForm = (): FormState => {
-  const form = defaultForm;
-  const profile = readAiProfileSeed();
+const applyProfileSeedToZiweiForm = (form: FormState, profile: AiPrefillSeed): FormState => {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
     return form;
   }
@@ -350,6 +350,8 @@ const buildInitialZiweiForm = (): FormState => {
     calendarType: profile.calendarType || form.calendarType,
   };
 };
+
+const buildInitialZiweiForm = (): FormState => applyProfileSeedToZiweiForm(defaultForm, readAiProfileSeed());
 
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `zwai-${crypto.randomUUID()}`;
@@ -595,6 +597,21 @@ export default function ZiweiAiPage() {
   const idempotencyRef = useRef("");
   const busyRef = useRef(false);
   const resultRef = useRef<HTMLDivElement | null>(null);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToZiweiForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToZiweiForm(prev, seed));
+    });
+  }
 
   function rememberConsultationUrl(id: string) {
     if (!id || typeof window === "undefined") return;
@@ -680,6 +697,7 @@ export default function ZiweiAiPage() {
   const isLoadingConsultation = !consultation && (phase === "checking" || phase === "payment" || phase === "reading");
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    formTouchedRef.current = true;
     setForm((current) => ({ ...current, [key]: value }));
     if (!busyRef.current) {
       idempotencyRef.current = "";
@@ -861,9 +879,19 @@ export default function ZiweiAiPage() {
 
       <section className="workspace">
         <form className="consultForm" onSubmit={handleSubmit}>
-          <div className="formHeader">
-            <Sparkles size={20} />
-            <strong>별궁을 열기 위한 정보</strong>
+          <div className="formHeader flex-wrap">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <Sparkles size={20} />
+              <strong>별궁을 열기 위한 정보</strong>
+            </div>
+            <button
+              type="button"
+              onClick={loadFormFromProfileCard}
+              className="shrink-0 rounded-lg border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] transition hover:bg-[#fbbf24]/20"
+              aria-label="프로필 카드에서 출생 정보 불러오기"
+            >
+              프로필 카드에서 불러오기
+            </button>
           </div>
 
           <label>
@@ -933,6 +961,9 @@ export default function ZiweiAiPage() {
             />
           </label>
 
+          <div className="flex items-center justify-end">
+            <PriceBadge featureKey="ziwei-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+          </div>
           <button className="primaryBtn" type="submit" disabled={busy}>
             {busy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}
             {busy ? "명반의 별을 읽는 중..." : "별궁 AI 상담 받기"}

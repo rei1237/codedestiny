@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
@@ -151,9 +153,7 @@ const defaultForm = (): FormState => {
   };
 };
 
-const buildInitialForm = (): FormState => {
-  const form = defaultForm();
-  const profile = readAiProfileSeed();
+const applyProfileSeedToForm = (form: FormState, profile: AiPrefillSeed): FormState => {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && profile.birthTimeUnknown === undefined && !profile.timezone && !profile.city) {
     return form;
   }
@@ -175,6 +175,8 @@ const buildInitialForm = (): FormState => {
     placeKey: profile.city ? "custom" : form.placeKey,
   };
 };
+
+const buildInitialForm = (): FormState => applyProfileSeedToForm(defaultForm(), readAiProfileSeed());
 
 function makeIdempotencyKey() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return `astro-ai-${crypto.randomUUID()}`;
@@ -253,6 +255,21 @@ export default function AstrologyAiClient() {
   const lockRef = useRef(false);
   const idempotencyKeyRef = useRef(makeIdempotencyKey());
   const progressTimersRef = useRef<number[]>([]);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   const busy = phase === "access" || phase === "payment" || phase === "reading";
   const highlights = consultation?.chartHighlights;
@@ -273,6 +290,7 @@ export default function AstrologyAiClient() {
   }, []);
 
   function patchForm(patch: Partial<FormState>) {
+    formTouchedRef.current = true;
     setForm((prev) => ({ ...prev, ...patch }));
   }
 
@@ -539,10 +557,18 @@ export default function AstrologyAiClient() {
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
                     <CalendarDays className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
                   </span>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h2 className="text-lg font-black text-white">출생 정보</h2>
                     <p className="mt-1 text-sm leading-6 text-slate-300">차트의 태양, 달, 상승궁을 세우는 첫 기준입니다.</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={loadFormFromProfileCard}
+                    className="shrink-0 rounded-lg border border-[#f5d487]/35 bg-[#f5d487]/10 px-3 py-2 text-xs font-bold text-[#f5d487] transition hover:bg-[#f5d487]/20"
+                    aria-label="프로필 카드에서 출생 정보 불러오기"
+                  >
+                    프로필 카드에서 불러오기
+                  </button>
                 </div>
 
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -674,6 +700,9 @@ export default function AstrologyAiClient() {
                 <p className="mt-2 text-right text-xs font-semibold text-slate-400">{form.userQuestion.length}/1200</p>
               </section>
 
+              <div className="flex items-center justify-end">
+                <PriceBadge featureKey="astrology-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+              </div>
               <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
                 <button type="submit" disabled={busy} className="group relative inline-flex min-h-14 items-center justify-center gap-2 overflow-hidden rounded-lg bg-[#f5d487] px-6 text-base font-black text-[#161019] shadow-xl shadow-[#f5d487]/20 transition hover:bg-[#ffe6a8] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/40 disabled:cursor-not-allowed disabled:opacity-60">
                   <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/50 to-transparent opacity-0 transition group-hover:opacity-100" aria-hidden="true" />

@@ -22,7 +22,9 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import {
   getActivePaidAttemptSession,
   markPaidAttemptFailed,
@@ -166,30 +168,36 @@ const emptyPerson = (): PersonInfo => ({
   calendarType: "solar",
 });
 
-function buildInitialMyInfo(): PersonInfo {
-  const person = emptyPerson();
-  const profile = readAiProfileSeed();
-  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
-    return person;
-  }
-  return {
-    ...person,
-    name: profile.name || person.name,
-    gender: (profile.gender as PersonInfo["gender"]) || person.gender,
-    birthDate: profile.birthDate || person.birthDate,
-    birthTimeUnknown: profile.birthTimeUnknown ?? person.birthTimeUnknown,
-    birthTime: profile.birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
-    calendarType: profile.calendarType || person.calendarType,
-  };
-}
-
 const defaultForm = (): ConsultationForm => ({
-  myInfo: buildInitialMyInfo(),
+  myInfo: emptyPerson(),
   partnerInfo: emptyPerson(),
   relationshipStatus: "single",
   focusArea: "relationshipFlow",
   question: "",
 });
+
+function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
+    return form;
+  }
+  const person = form.myInfo;
+  return {
+    ...form,
+    myInfo: {
+      ...person,
+      name: profile.name || person.name,
+      gender: (profile.gender as PersonInfo["gender"]) || person.gender,
+      birthDate: profile.birthDate || person.birthDate,
+      birthTimeUnknown: profile.birthTimeUnknown ?? person.birthTimeUnknown,
+      birthTime: profile.birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
+      calendarType: profile.calendarType || person.calendarType,
+    },
+  };
+}
+
+function buildInitialForm(): ConsultationForm {
+  return applyProfileSeedToForm(defaultForm(), readAiProfileSeed());
+}
 
 function createIdempotencyKey() {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return `lsai-${crypto.randomUUID()}`;
@@ -387,7 +395,7 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
 }
 
 export default function LoveSecretAiPage() {
-  const [form, setForm] = useState<ConsultationForm>(() => defaultForm());
+  const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<Phase>("idle");
   const [notice, setNotice] = useState("");
@@ -399,6 +407,21 @@ export default function LoveSecretAiPage() {
   const startLockRef = useRef(false);
   const resultWindowRef = useRef<Window | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   const busy = phase === "reading" || phase === "payment" || phase === "generating";
   const selectedTopic = useMemo(() => FOCUS_AREAS.find((item) => item.value === form.focusArea) || FOCUS_AREAS[0], [form.focusArea]);
@@ -450,6 +473,8 @@ export default function LoveSecretAiPage() {
   }, [busy, phase]);
 
   const resetAttempt = useCallback(() => {
+    // 모든 사용자 입력 핸들러가 이 함수를 거치므로, 여기서 입력 시작 여부를 기록
+    formTouchedRef.current = true;
     if (busy) return;
     idempotencyKeyRef.current = createIdempotencyKey();
     setResultUrl("");
@@ -679,15 +704,25 @@ export default function LoveSecretAiPage() {
 
             <div className="mt-5 rounded-3xl border border-white/10 bg-black/15 p-4 sm:p-6">
               <div className="mb-5 flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-rose-300/15 text-rose-100 ring-1 ring-rose-200/20">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-rose-300/15 text-rose-100 ring-1 ring-rose-200/20">
                   <CalendarDays className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Step {step + 1}</p>
                   <h2 className="text-xl font-black text-white sm:text-2xl">
                     {step === 0 ? "내 정보" : step === 1 ? "상대방 정보" : "상담 주제"}
                   </h2>
                 </div>
+                {step === 0 && (
+                  <button
+                    type="button"
+                    onClick={loadFormFromProfileCard}
+                    className="shrink-0 rounded-lg border border-amber-200/30 bg-amber-100/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-100/20"
+                    aria-label="프로필 카드에서 출생 정보 불러오기"
+                  >
+                    프로필 카드에서 불러오기
+                  </button>
+                )}
               </div>
 
               {step === 0 && (
@@ -740,6 +775,11 @@ export default function LoveSecretAiPage() {
 
             {busy && <LoveSecretGeneratingCard phase={phase} text={phaseText} progress={progress} progressIndex={progressIndex} />}
 
+            {step === 2 && (
+              <div className="mt-5 flex items-center justify-end">
+                <PriceBadge featureKey="love-secret-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+              </div>
+            )}
             <div className="sticky bottom-3 z-10 mt-5 flex items-center justify-between gap-3 rounded-3xl border border-white/10 bg-[#22061a]/90 p-3 shadow-2xl shadow-black/35 backdrop-blur-xl">
               <button
                 type="button"

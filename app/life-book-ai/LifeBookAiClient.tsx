@@ -13,6 +13,7 @@ import {
   UserRound,
   WalletCards,
 } from "lucide-react";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -20,7 +21,8 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -137,9 +139,7 @@ const MODE_OPTIONS: Array<{ value: LifeBookMode; label: string; desc: string }> 
   { value: "lifeFortune", label: "인생 총운", desc: "일간·용신·대운 근거 중심의 정밀 진단 리포트 (분량 3배)" },
 ];
 
-function buildInitialForm(): ConsultationForm {
-  const form = defaultForm();
-  const profile = readAiProfileSeed();
+function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
     return form;
   }
@@ -152,6 +152,10 @@ function buildInitialForm(): ConsultationForm {
     birthTime: profile.birthTimeUnknown === true ? "" : (profile.birthTime || form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
+}
+
+function buildInitialForm(): ConsultationForm {
+  return applyProfileSeedToForm(defaultForm(), readAiProfileSeed());
 }
 
 function createIdempotencyKey() {
@@ -279,6 +283,21 @@ export default function LifeBookAiClient() {
   const startLockRef = useRef(false);
   const resultWindowRef = useRef<Window | null>(null);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   useEffect(() => {
     console.info("[LifeBook AI Page Enter]", { route: ROUTE });
@@ -314,6 +333,7 @@ export default function LifeBookAiClient() {
   }, [isBusy]);
 
   const updateField = useCallback(<K extends keyof ConsultationForm>(field: K, value: ConsultationForm[K]) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({
       ...prev,
       [field]: value,
@@ -548,13 +568,21 @@ export default function LifeBookAiClient() {
           <section className="grid content-start gap-4">
             <form onSubmit={submit} className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/25 backdrop-blur-xl sm:p-5">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Golden Life Book</p>
                   <h2 className="mt-1 text-2xl font-black text-amber-50">인생의 책을 열기 위한 정보</h2>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-[#e7d2b5]">
                     이 정보는 한 권의 인생 해석서를 구성하기 위한 기본 명식 계산에 사용됩니다.
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={loadFormFromProfileCard}
+                  className="shrink-0 rounded-lg border border-amber-200/30 bg-amber-50/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-100/20"
+                  aria-label="프로필 카드에서 출생 정보 불러오기"
+                >
+                  프로필 카드에서 불러오기
+                </button>
                 <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-black/20 px-3 py-1 text-sm font-bold text-amber-100">
                   {isBusy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
                   {statusLabel}
@@ -643,7 +671,10 @@ export default function LifeBookAiClient() {
                 </div>
               </div>
 
-              <button type="submit" disabled={isBusy} className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
+              <div className="mt-4 flex items-center justify-end">
+                <PriceBadge featureKey="life-book-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+              </div>
+              <button type="submit" disabled={isBusy} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#c68d31] via-[#f2d07a] to-[#b47b25] px-5 font-black text-[#171007] shadow-lg shadow-[#f0c66a22] transition hover:-translate-y-0.5 hover:shadow-[#f0c66a40] disabled:cursor-not-allowed disabled:opacity-60">
                 {isBusy ? <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" /> : <WalletCards className="h-5 w-5" aria-hidden="true" />}
                 {isBusy ? "인생의 책을 여는 중..." : "인생의 책 펼치기"}
               </button>

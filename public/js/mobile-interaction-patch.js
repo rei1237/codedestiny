@@ -1035,7 +1035,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-5b55fc8d3e80').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-73daed28fba6').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1122,24 +1122,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-5b55fc8d3e80'
+      'js/animal-totem-experience.js?v=build-73daed28fba6'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-5b55fc8d3e80'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-5b55fc8d3e80'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-5b55fc8d3e80'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-73daed28fba6'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-73daed28fba6'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-73daed28fba6'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-5b55fc8d3e80'],
-    openDreamModal: ['js/dream-ledger.js?v=build-5b55fc8d3e80'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-5b55fc8d3e80'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-73daed28fba6'],
+    openDreamModal: ['js/dream-ledger.js?v=build-73daed28fba6'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-73daed28fba6'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-5b55fc8d3e80']
+    openSibylModal: ['js/sibyl-system.js?v=build-73daed28fba6']
   };
 
   function normalizeScriptSrc(src) {
@@ -2257,6 +2257,19 @@
       // 프로필이 없으면 저장소에서 읽기 시도
       if (!profile && typeof window._readProfileFromStorage === 'function') {
         profile = window._readProfileFromStorage();
+      }
+      // 정본 프로필 카드 브리지 우선 확인
+      if (!profile && typeof window.__cdGetCurrentDestinyProfile === 'function') {
+        try {
+          var bridged = window.__cdGetCurrentDestinyProfile();
+          if (bridged && bridged.birth) profile = bridged;
+        } catch (_) {}
+      }
+      if (!profile && typeof localStorage !== 'undefined') {
+        try {
+          var canonical = JSON.parse(localStorage.getItem('FORTUNE_APP_USER_PROFILE') || 'null');
+          if (canonical && canonical.birth) profile = canonical;
+        } catch (_) {}
       }
       // localStorage에서도 확인
       if (!profile && typeof localStorage !== 'undefined') {

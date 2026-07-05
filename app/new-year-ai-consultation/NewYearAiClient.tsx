@@ -8,7 +8,9 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { PriceBadge } from "@/app/components/PriceBadge";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -157,9 +159,7 @@ const defaultForm = (): ConsultationForm => ({
   question: "",
 });
 
-function buildInitialForm(): ConsultationForm {
-  const form = defaultForm();
-  const profile = readAiProfileSeed();
+function applyProfileSeedToForm(form: ConsultationForm, profile: AiPrefillSeed): ConsultationForm {
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
     return form;
   }
@@ -171,6 +171,10 @@ function buildInitialForm(): ConsultationForm {
     birthTime: profile.birthTimeUnknown ? "" : (profile.birthTime || form.birthTime),
     calendarType: profile.calendarType || form.calendarType,
   };
+}
+
+function buildInitialForm(): ConsultationForm {
+  return applyProfileSeedToForm(defaultForm(), readAiProfileSeed());
 }
 
 function createIdempotencyKey() {
@@ -745,6 +749,21 @@ export default function NewYearAiConsultationPage() {
   const startLockRef = useRef(false);
   const idempotencyKeyRef = useRef(createIdempotencyKey());
   const resultRef = useRef<HTMLDivElement | null>(null);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  function loadFormFromProfileCard() {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }
 
   const applyResult = useCallback((result: ConsultationResult) => {
     setAccessType(result.accessType || "");
@@ -830,11 +849,13 @@ export default function NewYearAiConsultationPage() {
   }, [isBusy]);
 
   const updateField = (field: keyof ConsultationForm) => (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({ ...prev, [field]: event.target.value }));
     resetAttempt();
   };
 
   const selectFocusArea = useCallback((value: FocusAreaType) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({
       ...prev,
       focusArea: value,
@@ -1028,6 +1049,7 @@ export default function NewYearAiConsultationPage() {
   const currentYear = new Date().getFullYear();
 
   const selectTargetYear = useCallback((year: number) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({ ...prev, targetYear: String(year) }));
     resetAttempt();
   }, [resetAttempt]);
@@ -1116,6 +1138,14 @@ export default function NewYearAiConsultationPage() {
           <div className="nyai-form-title">
             <CalendarDays size={18} />
             <h2>새해 상담에 필요한 정보를 알려주세요</h2>
+            <button
+              type="button"
+              className="nyai-profile-load"
+              onClick={loadFormFromProfileCard}
+              aria-label="프로필 카드에서 출생 정보 불러오기"
+            >
+              프로필 카드에서 불러오기
+            </button>
           </div>
           <div className="nyai-grid">
             <label>
@@ -1230,6 +1260,9 @@ export default function NewYearAiConsultationPage() {
           </label>
           {notice && <p className="nyai-notice">{notice}</p>}
           {error && <p className="nyai-error">{error}</p>}
+          <div className="flex items-center justify-end">
+            <PriceBadge featureKey="new-year-ai-consultation" fallbackCoins={300} prefix="상담 이용 가격 " />
+          </div>
           <button className="nyai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}
             <span>{isBusy ? statusText : "신년운세 AI 상담 받기"}</span>
@@ -1573,6 +1606,29 @@ export default function NewYearAiConsultationPage() {
           margin: 0;
           font-size: 18px;
           letter-spacing: 0;
+        }
+
+        .nyai-form-title {
+          display: flex;
+        }
+
+        .nyai-form-title h2 {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .nyai-profile-load {
+          flex-shrink: 0;
+          min-height: 30px;
+          padding: 5px 10px;
+          border: 1px solid var(--nyai-accent-soft, rgba(255, 224, 154, .3));
+          border-radius: 8px;
+          background: var(--nyai-accent-soft, rgba(255, 248, 226, .1));
+          color: var(--nyai-accent, #ffe09a);
+          font: inherit;
+          font-size: 12px;
+          font-weight: 800;
+          cursor: pointer;
         }
 
         .nyai-pdf-button {
