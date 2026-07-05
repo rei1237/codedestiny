@@ -446,6 +446,20 @@ abuseScoreSchema.index({ subjectHash: 1, endpoint: 1, kind: 1 }, { unique: true 
 abuseScoreSchema.index({ userId: 1, endpoint: 1, updatedAt: -1 });
 abuseScoreSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
+// 결정적 LLM 호출 응답 캐시. 캐시 키는 정규화된 요청 필드의 SHA-256(lib/llm-cache.ts).
+// TTL 인덱스로 만료 문서 자동 정리.
+const llmResponseCacheSchema = new mongoose.Schema({
+  cacheKey: { type: String, required: true, unique: true, maxlength: 128 },
+  text: { type: String, required: true },
+  provider: { type: String, default: "", trim: true, maxlength: 40 },
+  model: { type: String, default: "", trim: true, maxlength: 120 },
+  expiresAt: { type: Date, required: true },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+}, { collection: "llm_response_cache" });
+
+llmResponseCacheSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+
 const serviceExecutionTransactionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   executionKey: { type: String, required: true, trim: true, maxlength: 120 },
@@ -1043,6 +1057,8 @@ export const PaymentWebhookEvent = mongoose.models.PaymentWebhookEvent
 export const SecurityEvent = mongoose.models.SecurityEvent || mongoose.model("SecurityEvent", securityEventSchema);
 export const IdempotencyKey = mongoose.models.IdempotencyKey || mongoose.model("IdempotencyKey", idempotencyKeySchema);
 export const AbuseScore = mongoose.models.AbuseScore || mongoose.model("AbuseScore", abuseScoreSchema);
+export const LlmResponseCache = mongoose.models.LlmResponseCache
+  || mongoose.model("LlmResponseCache", llmResponseCacheSchema);
 export const RefreshTokenSession = mongoose.models.RefreshTokenSession || mongoose.model("RefreshTokenSession", refreshTokenSessionSchema);
 export const ServiceExecutionTransaction = mongoose.models.ServiceExecutionTransaction
   || mongoose.model("ServiceExecutionTransaction", serviceExecutionTransactionSchema);

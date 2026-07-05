@@ -64,6 +64,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
@@ -4069,6 +4070,15 @@ async function handleSajuAIPrompt(request, auth, env) {
     amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
   });
 
+  // 결정적(생년월일 기반) 사주 해석 → LLM 응답 캐시 + in-flight dedup.
+  // 차감(위)·저장(아래)은 그대로 실행되고 캐시 히트 시 Gemini 호출만 건너뛴다.
+  const sajuLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
+  };
+
   try {
     let finalAi = null;
     let finalText = "";
@@ -4088,6 +4098,7 @@ async function handleSajuAIPrompt(request, auth, env) {
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
         maxOutputTokens: 14000,
+        cache: sajuLlmCache,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);
       let validation = ai?.ok
@@ -4121,6 +4132,7 @@ async function handleSajuAIPrompt(request, auth, env) {
           taskType: "fortune",
           temperature: 0.42,
           maxOutputTokens: 8000,
+          cache: sajuLlmCache,
         });
         if (repairAi?.ok) {
           const repairedText = normalizeSajuAIResultText(`${resultText}\n\n${repairAi.text || ""}`);

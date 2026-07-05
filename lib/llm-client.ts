@@ -1,3 +1,6 @@
+import { withLLMCache } from "./llm-cache";
+import type { LLMCacheConfig } from "./llm-cache";
+
 export interface LLMRequest {
   prompt: string;
   systemPrompt?: string;
@@ -29,6 +32,7 @@ export interface LLMRequest {
     cacheHit?: boolean;
     duplicateBlocked?: boolean;
   };
+  cache?: LLMCacheConfig;
 }
 
 export interface LLMResponse {
@@ -318,7 +322,7 @@ async function callCloudflareWorkersAI(
   };
 }
 
-export async function callLLM(
+async function callLLMUncached(
   request: LLMRequest,
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
@@ -347,4 +351,14 @@ export async function callLLM(
       );
     }
   }
+}
+
+export async function callLLM(
+  request: LLMRequest,
+  env?: CloudflareEnv,
+): Promise<LLMResponse> {
+  if (request.cache?.store) {
+    return withLLMCache(request, (req) => callLLMUncached(req, env), request.cache);
+  }
+  return callLLMUncached(request, env);
 }

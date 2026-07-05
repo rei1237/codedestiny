@@ -61,6 +61,7 @@ export async function callGeminiText(env, prompt, options = {}) {
       apiEndpoint: clean(options.apiEndpoint || options.endpoint),
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
       logContext: options.logContext && typeof options.logContext === "object" ? options.logContext : undefined,
+      cache: options.cache && typeof options.cache === "object" ? options.cache : undefined,
     }, env);
 
     return {
