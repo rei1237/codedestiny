@@ -6,6 +6,7 @@ import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 AI 상담";
@@ -1170,12 +1171,21 @@ async function createFirstAnswer(env, input, calculation) {
   });
   const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 18000);
   const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000);
+  // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
+  // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.
+  const sukuyoLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 7 * 24 * 60 * 60,
+    keyExtra: "sukuyo-compat-ai-v1",
+  };
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
     systemPrompt: input.consultationType === "compatibility" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
     taskType: "fortune",
     temperature: 0.74,
     maxOutputTokens: input.consultationType === "compatibility" ? compatibilityMaxOutputTokens : 4096,
     timeoutMs: input.consultationType === "compatibility" ? compatibilityTimeoutMs : Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    cache: sukuyoLlmCache,
   });
   let provider = clean(ai?.provider || "");
   let model = clean(ai?.model || "");
@@ -1203,6 +1213,7 @@ async function createFirstAnswer(env, input, calculation) {
         temperature: 0.72,
         maxOutputTokens: compatibilityMaxOutputTokens,
         timeoutMs: compatibilityTimeoutMs,
+        cache: sukuyoLlmCache,
       });
       const repairProvider = clean(repair?.provider || "");
       const repairModel = clean(repair?.model || "");

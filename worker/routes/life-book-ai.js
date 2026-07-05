@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { handleBillingRoutes } from "./billing.js";
 
@@ -1252,6 +1253,13 @@ async function generateConsultationText(env, prompt, options = {}) {
   });
   const maxProviderCalls = Math.max(1, Math.floor(Number(options.maxProviderCalls || LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION) || 1));
   const promptConsultationType = isLifeFortuneInput(options.input || {}) ? "lifeFortune" : "lifeBook";
+  // 결정적(생년월일+토픽 기반) 인생서 상담 → LLM 응답 캐시 + in-flight dedup.
+  const lifeBookLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "life-book-ai-v1",
+  };
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(promptConsultationType),
     taskType: "fortune",
@@ -1260,6 +1268,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
     fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
     logContext: options.logContext,
+    cache: lifeBookLlmCache,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1286,6 +1295,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000),
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
     fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
+    cache: lifeBookLlmCache,
     logContext: {
       ...(options.logContext || {}),
       providerCallCount: Number(options.logContext?.providerCallCount || 1) + 1,

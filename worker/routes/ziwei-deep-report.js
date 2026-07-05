@@ -24,6 +24,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
 import {
   ZIWEI_DEEP_PDF_META,
@@ -195,8 +196,15 @@ async function runWithConcurrency(items, limit, worker) {
 
 async function generateChapter(env, chart, birthInfo, chapter) {
   const prompt = buildZiweiDeepChapterPrompt(chart, birthInfo, chapter);
+  // 결정적(명반+생년월일 기반, 자유질문 없음) 챕터 해석 → LLM 응답 캐시 + in-flight dedup.
+  const chapterLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "ziwei-deep-report-v1",
+  };
   try {
-    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 4096, temperature: 0.72 });
+    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 4096, temperature: 0.72, cache: chapterLlmCache });
     const body = clean(ai?.text || "");
     if (body.length >= 200) {
       return { id: chapter.id, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini"), ok: true };

@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import {
   LOVE_SECRET_AI_SYSTEM_PROMPT,
@@ -746,12 +747,21 @@ function buildLoveSecretGroundingTerms(sajuResult = {}) {
 
 async function generateFirstConsultation(env, input, sajuResult, logContext = {}) {
   const basePrompt = buildFirstConsultationPrompt(input, sajuResult);
+  // 러브시크릿 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
+  // follow-up(generateFollowUp)은 캐시 대상 아님.
+  const loveSecretLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "love-secret-ai-v1",
+  };
   const callOnce = async (prompt) => {
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
       temperature: 0.72,
       maxOutputTokens: 14000,
       taskType: "fortune",
+      cache: loveSecretLlmCache,
     });
     const provider = clean(ai?.provider);
     const model = clean(ai?.model);

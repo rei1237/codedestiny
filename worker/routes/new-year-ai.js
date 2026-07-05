@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes } from "./billing.js";
 import { Lunar, Solar } from "lunar-javascript";
 
@@ -1276,12 +1277,20 @@ async function generateConsultationText(env, prompt, options = {}) {
     ...(options.logContext || {}),
     ...providerDiagnostics,
   });
+  // 신년운세 상담(custom focus 시 자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
+  const newYearLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "new-year-ai-v1",
+  };
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
     timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    cache: newYearLlmCache,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1306,6 +1315,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       taskType: "fortune",
       temperature: 0.58,
       maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+      cache: newYearLlmCache,
     });
     const repaired = clean(repair?.text);
     if (repair?.ok && repaired.length >= 120) {
@@ -1326,6 +1336,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.66,
       maxOutputTokens: options.expansionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      cache: newYearLlmCache,
     });
     const expansionProvider = clean(expansion?.provider || expansion?.model || "");
     const expansionText = clean(expansion?.text);
@@ -1344,6 +1355,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.52,
       maxOutputTokens: options.compressionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      cache: newYearLlmCache,
     });
     const compressedProvider = clean(compressed?.provider || compressed?.model || "");
     const compressedText = clean(compressed?.text);

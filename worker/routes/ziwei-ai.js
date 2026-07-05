@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 
 const SERVICE_KEY = "ziwei-ai";
@@ -1142,12 +1143,21 @@ async function generateConsultationText(env, prompt, options = {}) {
     ...logContext,
     ...getProviderDiagnostics(env),
   });
+  // 자미두수 상담(자유질문 포함) → 캐시 키가 프롬프트 전체(질문 포함)로 잡혀 동일 입력만 히트.
+  // 재제출/더블클릭 dedup + 결정적 재열람. follow-up(handleMessage)은 캐시 대상 아님.
+  const ziweiLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "ziwei-ai-v1",
+  };
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: options.maxOutputTokens || 7000,
     timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    cache: ziweiLlmCache,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1168,6 +1178,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.62,
       maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
       timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      cache: ziweiLlmCache,
     });
     const expandedText = clean(expanded?.text);
     const expandedBodyChars = countStructuredConsultationBodyChars(expandedText);
@@ -1203,6 +1214,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || 16000,
+    cache: ziweiLlmCache,
   });
   const repaired = clean(repair?.text);
   const finalText = cleanForbiddenResult(repair?.ok && repaired.length >= 120 ? repaired : text);

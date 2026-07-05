@@ -421,7 +421,10 @@ const idempotencyKeySchema = new mongoose.Schema({
   requestHash: { type: String, trim: true, maxlength: 96, default: "" },
   status: { type: String, enum: ["processing", "success", "failed"], default: "processing", index: true },
   responseRef: { type: mongoose.Schema.Types.Mixed, default: null },
-  expiresAt: { type: Date, required: true, index: true },
+  // expiresAt 는 아래 TTL 인덱스(.index({expiresAt:1},{expireAfterSeconds:0}))로만 색인한다.
+  // 필드 레벨 index:true 를 함께 두면 같은 키의 plain 인덱스와 TTL 인덱스가 충돌해
+  // (IndexOptionsConflict) plain 쪽이 살아남아 TTL 이 적용되지 않는다.
+  expiresAt: { type: Date, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 }, { collection: "idempotency_keys" });
@@ -437,7 +440,8 @@ const abuseScoreSchema = new mongoose.Schema({
   score: { type: Number, default: 0, min: 0 },
   blockedUntil: { type: Date, default: null, index: true },
   lastReasons: { type: [String], default: [] },
-  expiresAt: { type: Date, required: true, index: true },
+  // expiresAt 는 아래 TTL 인덱스로만 색인한다(위 idempotency_keys 와 동일한 충돌 회피).
+  expiresAt: { type: Date, required: true },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 }, { collection: "abuse_scores" });

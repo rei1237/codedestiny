@@ -16,6 +16,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import {
   completeServiceExecution,
@@ -1001,12 +1002,20 @@ async function generateConsultation(env, prompt, options = {}) {
   const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
   const maxOutputTokens = Number(options.maxOutputTokens || 7000);
   const timeoutMs = Number(env.ASTROLOGY_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000);
+  // 결정적(생년월일+카테고리 기반) 점성술 상담 → LLM 응답 캐시 + in-flight dedup.
+  const astrologyLlmCache = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "astrology-ai-v1",
+  };
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens,
     timeoutMs,
+    cache: astrologyLlmCache,
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
@@ -1033,6 +1042,7 @@ async function generateConsultation(env, prompt, options = {}) {
       temperature: options.expandTemperature ?? 0.62,
       maxOutputTokens: Math.max(Number(options.expandMaxOutputTokens || 0), maxOutputTokens, 14000),
       timeoutMs,
+      cache: astrologyLlmCache,
     });
     const repairProvider = clean(repair?.provider || finalProvider);
     const repairModel = clean(repair?.model || finalModel);
@@ -1059,6 +1069,7 @@ async function generateConsultation(env, prompt, options = {}) {
       temperature: options.condenseTemperature ?? 0.48,
       maxOutputTokens: Math.max(Number(options.condenseMaxOutputTokens || 0), maxOutputTokens, 12000),
       timeoutMs,
+      cache: astrologyLlmCache,
     });
     const repairProvider = clean(repair?.provider || finalProvider);
     const repairModel = clean(repair?.model || finalModel);
