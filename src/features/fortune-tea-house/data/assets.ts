@@ -10,7 +10,7 @@ const teaHouseAsset = (fileName: string) =>
   });
 
 const teaHouseNoBackgroundAsset = (fileName: string) => teaHouseAsset(`nobackground/${fileName}`);
-const tenGodSheetAsset = "/images/fortune-tea-house/ten-gods-photoroom.png";
+const tenGodSheetAsset = "/images/fortune-tea-house/ten-gods-photoroom.webp";
 
 export const fortuneTeaHouseAssets = {
   cutout: {
@@ -65,9 +65,9 @@ export const fortuneTeaHouseAssets = {
   },
   rewards: {
     flowerPig: teaHouseNoBackgroundAsset("꽃돼지8-Photoroom.png"),
-    flowerPigHoneyHug: "/images/fortune-tea-house/flower-pig-honey-hug.png",
+    flowerPigHoneyHug: "/images/fortune-tea-house/flower-pig-honey-hug.webp",
     honeyDrop: teaHouseNoBackgroundAsset("꿀방울.png"),
-    honeyDropCounter: "/images/fortune-tea-house/honey-drop-counter.png",
+    honeyDropCounter: "/images/fortune-tea-house/honey-drop-counter.webp",
     honeyDrop2: teaHouseNoBackgroundAsset("꿀방울 2.png"),
     honeyDrop2Fallback: teaHouseNoBackgroundAsset("꿀방울 2.png"),
   },
@@ -97,15 +97,15 @@ export const fortuneTeaHouseAssets = {
       sprite5: teaHouseNoBackgroundAsset("yeoni-sprite5-cutout.webp"),
       sprite6: teaHouseNoBackgroundAsset("yeoni-sprite6-cutout.webp"),
       sprite7: teaHouseNoBackgroundAsset("yeoni-sprite7-cutout.webp"),
-      cupPose: "/images/fortune-tea-house/yeoni-cup-pose-photoroom.png",
+      cupPose: "/images/fortune-tea-house/yeoni-cup-pose-photoroom.webp",
       cupPoseSheet: teaHouseNoBackgroundAsset("연이 컵을 내미는 포즈 스프라이트 시트-Photoroom.png"),
-      cupPoseSpriteSheet: "/images/fortune-tea-house/yeoni-cup-pose-sprite-sheet-photoroom.png",
-      yeoniSprite2Thanks: "/images/fortune-tea-house/yeoni-sprite2-thanks-photoroom.png",
-      yeoniSprite6Waiting: "/images/fortune-tea-house/yeoni-sprite6-waiting-photoroom.png",
-      yeoniSprite7Tarot: "/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.png",
-      teaChatSprite: "/images/fortune-tea-house/yeoni-tea-chat-loading-sprite.png",
-      talkingPigYeoni3Sprite: "/images/fortune-tea-house/talking-flower-pig-yeoni3-sprite-cropped.png",
-      flowerPig5Sprite: "/images/fortune-tea-house/flower-pig-5-sprite-safe.png",
+      cupPoseSpriteSheet: "/images/fortune-tea-house/yeoni-cup-pose-sprite-sheet-photoroom.webp",
+      yeoniSprite2Thanks: "/images/fortune-tea-house/yeoni-sprite2-thanks-photoroom.webp",
+      yeoniSprite6Waiting: "/images/fortune-tea-house/yeoni-sprite6-waiting-photoroom.webp",
+      yeoniSprite7Tarot: "/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.webp",
+      teaChatSprite: "/images/fortune-tea-house/yeoni-tea-chat-loading-sprite.webp",
+      talkingPigYeoni3Sprite: "/images/fortune-tea-house/talking-flower-pig-yeoni3-sprite-cropped.webp",
+      flowerPig5Sprite: "/images/fortune-tea-house/flower-pig-5-sprite-safe.webp",
       cupPoseSpriteSheetMobile: "/images/fortune-tea-house/mobile/yeoni-cup-pose-sprite-sheet-mobile.webp",
       yeoniSprite2ThanksMobile: "/images/fortune-tea-house/mobile/yeoni-sprite2-thanks-mobile.webp",
       talkingPigYeoni3SpriteMobile: "/images/fortune-tea-house/mobile/talking-flower-pig-yeoni3-sprite-mobile.webp",
@@ -113,7 +113,7 @@ export const fortuneTeaHouseAssets = {
       yeoniCupPoseStillMobile: "/images/fortune-tea-house/mobile/yeoni-cup-pose-still-mobile.webp",
       yeoniThanksStillMobile: "/images/fortune-tea-house/mobile/yeoni-thanks-still-mobile.webp",
       flowerPigResultStillMobile: "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp",
-      tarotCard: "/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.png",
+      tarotCard: "/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp",
       tarotCardAnim: teaHouseAsset("연이 타로 카드 24 프레임-Photoroom.png"),
     },
   },
@@ -153,8 +153,8 @@ export const fortuneTeaHouseAssets = {
   teaCups: {
     labeledSheet: teaHouseAsset("찻잔 이미지.webp"),
     stateSheet: teaHouseAsset("찻잔 이미지2.webp"),
-    labeledPhotoroom: "/images/fortune-tea-house/tea-cups-labeled-photoroom.png",
-    correctedPhotoroom: "/images/fortune-tea-house/tea-cups-corrected-photoroom.png",
+    labeledPhotoroom: "/images/fortune-tea-house/tea-cups-labeled-photoroom.webp",
+    correctedPhotoroom: "/images/fortune-tea-house/tea-cups-corrected-photoroom.webp",
     labeledMobile: "/images/fortune-tea-house/mobile/tea-cups-labeled-mobile.webp",
     correctedMobile: "/images/fortune-tea-house/mobile/tea-cups-corrected-mobile.webp",
     transparentStateSheet: teaHouseNoBackgroundAsset("tea-cups-state-cutout.webp"),
@@ -173,7 +173,7 @@ export const fortuneTeaHouseAssets = {
   },
   saju: {
     tenGodSheet: tenGodSheetAsset,
-    tenGodSheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
+    tenGodSheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.webp",
     tenGodSheetMobile: "/images/fortune-tea-house/mobile/ten-gods-mobile.webp",
   },
   consultModes: {
@@ -183,7 +183,7 @@ export const fortuneTeaHouseAssets = {
   },
   tenGods: {
     sheet: tenGodSheetAsset,
-    sheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.png",
+    sheetLocal: "/images/fortune-tea-house/ten-gods-photoroom.webp",
     sheetMobile: "/images/fortune-tea-house/mobile/ten-gods-mobile.webp",
   },
 } as const;

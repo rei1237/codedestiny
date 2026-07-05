@@ -29,6 +29,7 @@
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "generate:music-manifest": "node scripts/generate-music-manifest.ts",
+    "optimize:images": "node scripts/optimize-images.mjs",
     "fortune:generate": "node scripts/gen-daily.mjs",
     "fortune:generate:daily": "node scripts/gen-daily.mjs",
     "fortune:generate:system-pages": "node scripts/gen-fortune-system-pages.mjs",
