@@ -14888,57 +14888,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       }
     }
 
-    /* 사업자 정보 바 표시 여부는 JS(updateBarVisibility)가 body.cd-business-bar-hidden 토글로 결정한다.
-       과거 :has([style*="display: none"]) / :has([style*="display:none"]) 두 변형을 OR로 묶었던 방식은
-       브라우저가 style 속성을 항상 "display: none;"(공백 포함)으로 직렬화하는 탓에 공백 없는 변형의
-       :not()이 항상 참이 되어, resultPage 표시 상태와 무관하게 바가 늘 숨겨지거나(또는 :has() 미지원
-       브라우저에서는 규칙 자체가 무효화되어 늘 표시되는) 버그가 있었다. */
-    body.cd-business-bar-hidden .cd-fixed-business-bar {
-      display: none !important;
-    }
-    body:not(.cd-business-bar-hidden) {
-      padding-bottom: 45px !important;
-    }
   </style>
-
-  <!-- 사업자 정보 하단 고정 바 (결제 완료 전까지 상시 노출) -->
-  <div id="cdFixedBusinessBar" class="cd-fixed-business-bar">
-    <div class="cd-fixed-business-bar__content">
-      <strong data-cd-trans="business.companyLabel">상호명</strong><span data-cd-trans="business.companyValue">: 코드 데스티니 (Code Destiny)</span> <span>|</span>
-      <strong data-cd-trans="business.representativeLabel">대표자</strong><span data-cd-trans="business.representativeValue">: 박병하</span> <span>|</span>
-      <strong data-cd-trans="business.registrationLabel">사업자등록번호</strong><span data-cd-trans="business.registrationValue">: 372-23-02329</span> <span>|</span>
-      <strong data-cd-trans="business.mailOrderLabel">통신판매업 신고번호</strong><span data-cd-trans="business.mailOrderValue">: 제 2026-화성호-0264 호</span> <span>|</span>
-      <strong data-cd-trans="business.contactLabel">연락처</strong><span data-cd-trans="business.contactValue">: 050-6664-7398</span> <span>|</span>
-      <strong data-cd-trans="business.emailLabel">이메일</strong><span data-cd-trans="business.emailValue">: seongbae555@gmail.com</span> <span>|</span>
-      <strong data-cd-trans="business.addressLabel">주소</strong><span data-cd-trans="business.addressValue">: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</span>
-    </div>
-  </div>
-
-  <script>
-    (function() {
-      var rp = document.getElementById('resultPage');
-      var bar = document.getElementById('cdFixedBusinessBar');
-      if (!rp || !bar) return;
-
-      function updateBarVisibility() {
-        var isResultVisible = window.getComputedStyle(rp).display !== 'none';
-        /* 숙요점/자미두수/점성술/주역 전체화면 모달이 열려 있을 때도 body.cd-overlay-shell-open이
-           붙는다 (index-inline-runtime.js의 fullscreenShellOpen() 참고, 데스크톱 포함) —
-           같은 클래스를 재사용해 사업자 정보 바를 함께 숨긴다. */
-        var isFullscreenModalOpen = document.body.classList.contains('cd-overlay-shell-open');
-        var shouldHide = isResultVisible || isFullscreenModalOpen;
-        if (document.body.classList.contains('cd-business-bar-hidden') === shouldHide) return;
-        document.body.classList.toggle('cd-business-bar-hidden', shouldHide);
-        document.body.style.setProperty('padding-bottom', shouldHide ? '0px' : '45px', 'important');
-      }
-
-      updateBarVisibility();
-
-      var observer = new MutationObserver(updateBarVisibility);
-      observer.observe(rp, { attributes: true, attributeFilter: ['style'] });
-      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    })();
-  </script>
 
   <style id="cd-social-footer-v20260630">
     .cd-social-footer{box-sizing:border-box;width:min(760px,90%);margin:18px auto 0;padding:15px 14px;border:1px solid rgba(255,228,174,.34);border-radius:14px;background:linear-gradient(145deg,rgba(9,19,44,.92),rgba(12,23,52,.82) 58%,rgba(35,26,58,.72)),linear-gradient(120deg,rgba(255,220,160,.1),rgba(255,190,220,.07),rgba(135,183,255,.08));box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 16px 30px rgba(2,8,24,.34);text-align:center}
