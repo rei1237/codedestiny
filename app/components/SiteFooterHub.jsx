@@ -137,16 +137,6 @@ const SEO_LINK_GROUPS = [
   },
 ];
 
-const BUSINESS_INFO_ROWS = [
-  { label: siteFooterHubText("siteFooter.005"), value: "코드 데스티니 (Code Destiny)" },
-  { label: siteFooterHubText("siteFooter.006"), value: "박병하" },
-  { label: siteFooterHubText("siteFooter.007"), value: "372-23-02329" },
-  { label: siteFooterHubText("siteFooter.008"), value: "제 2026-화성호-0264 호" },
-  { label: siteFooterHubText("siteFooter.009"), value: "050-6664-7398" },
-  { label: siteFooterHubText("siteFooter.010"), value: "seongbae555@gmail.com" },
-  { label: siteFooterHubText("siteFooter.011"), value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
-];
-
 const REFUND_POLICY_ROWS = [
   "30일 이용권과 상품별 원화 단건 결제는 결제일 또는 계약내용을 받은 날부터 7일 이내 청약철회를 요청할 수 있습니다.",
   "콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용처럼 제공이 시작된 부분은 환불이 제한될 수 있습니다.",
@@ -188,42 +178,6 @@ export default function SiteFooterHub() {
             ))}
           </div>
 
-          <section aria-label="사업자 정보 및 환불 정책" className={styles.sfhBusinessCard}>
-            <h2 className={styles.sfhBusinessTitle}>사업자 정보 및 환불 정책</h2>
-
-            <ul className={styles.sfhBusinessList}>
-              {BUSINESS_INFO_ROWS.map((row) => (
-                <li key={row.label} className={styles.sfhBusinessItem}>
-                  <strong>{row.label}:</strong> {row.value}
-                </li>
-              ))}
-            </ul>
-
-            <div className={styles.sfhBusinessDivider}>
-              <p className={styles.sfhBusinessEmphasis}>
-                모든 거래에 대한 책임과 환불, 민원 등은 <strong>{siteFooterHubText("siteFooter.013")}</strong>에서 진행합니다.
-              </p>
-              <p className={styles.sfhBusinessMuted}>민원담당자 : 박병하 (seongbae555@gmail.com)</p>
-            </div>
-
-            <div className={styles.sfhBusinessDivider}>
-              <p className={styles.sfhRefundTitle}>디지털 운세 서비스 환불 안내</p>
-              <p className={styles.sfhBusinessEmphasis}>
-                유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.
-              </p>
-              <ul className={styles.sfhRefundList}>
-                {REFUND_POLICY_ROWS.map((rule) => (
-                  <li key={rule} className={styles.sfhBusinessMuted}>
-                    {rule}
-                  </li>
-                ))}
-              </ul>
-              <p className={styles.sfhRefundNotice}>
-                본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수: 문의하기 또는 고객지원 이메일.
-              </p>
-              <p className={styles.sfhRefundNoticeStrong}>환불 처리는 결제 수단(카드)으로만 가능합니다.</p>
-            </div>
-          </section>
         </section>
 
         <SocialFooter />
