@@ -4697,6 +4697,25 @@ async function handleDevPaymentTester(request, env) {
   return success({ user: snapshot }, "Development payment tester state updated.");
 }
 
+// 구독/이용권 신호가 전혀 없는 사용자인지 판별한다. 신호가 없으면 위임 GET이 하는
+// 자동갱신(만료 구독 재활성)도 불가능하고 pass 판정도 이미 inactive이므로, 위임 자체가
+// 불필요한 중복 라우팅(재인증 + User.findById + 핸들러 실행)이 된다. 조금이라도 신호가
+// 있으면(만료일·plan·레거시 구독 객체·월정석 잔액 등) 기존대로 위임해 갱신/판정을 보존한다.
+function hasResolvableSubscriptionSignal(user) {
+  if (!user || typeof user !== "object") return false;
+  const sub = user.profileSubscription;
+  if (sub && typeof sub === "object") {
+    if (sub.expiresAt || sub.planId || sub.plan || sub.productId || sub.startedAt || sub.customerUid) return true;
+    const subTier = String(sub.tier || sub.passTier || "").trim().toLowerCase();
+    if (subTier && subTier !== "free") return true;
+    if (Number(sub.membershipCreditBalance || 0) > 0) return true;
+  }
+  if (user.subscription || user.membership || user.pass || user.entitlement) return true;
+  if (user.plan || user.planId || user.productId || user.subscriptionTier || user.membershipTier || user.passTier || user.expiresAt) return true;
+  if (user.isSubscribed === true) return true;
+  return false;
+}
+
 async function readSubscriptionStatusSnapshot(request, env) {
   try {
     const auth = await getOptionalUserFromRequest(request, env);
@@ -4718,6 +4737,10 @@ async function readSubscriptionStatusSnapshot(request, env) {
           maxCoveredCoin: Number(entitlement.maxCoveredCoin || 0),
           entitlement,
         };
+      }
+      // 구독 신호가 전혀 없으면 위임(자동갱신 포함)이 무의미 → 즉시 inactive 반환.
+      if (!hasResolvableSubscriptionSignal(user)) {
+        return { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
       }
     }
 
