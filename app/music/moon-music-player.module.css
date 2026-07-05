@@ -3283,12 +3283,14 @@
 }
 
 @media (max-width: 980px) {
+  /* Disable decorative infinite animations on mobile to reduce GPU load */
   .isPlaying .albumStage,
   .isPaused .albumStage,
   .isPlaying .albumHalo,
   .isPlaying .albumMoonRing,
   .isPlaying .albumAura,
   .isPlaying .albumReflection,
+  .isPlaying .moonbeam,
   .playlistTrack[data-playing="true"],
   .playlistTrack[data-playing="true"] .equalizerIcon i,
   .equalizerIcon i {
@@ -3301,75 +3303,15 @@
 
   .nowPlayingMarquee {
     animation: none !important;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
   }
 
-  .closeListeningMode {
-    backdrop-filter: none;
-    background: rgba(8, 6, 21, 0.85);
-  }
-
+  /* Reduce backdrop-filter blur only on most prominent panels */
   .playerFrame::before {
-    backdrop-filter: none;
-    background: rgba(12, 8, 26, 0.75);
-  }
-
-  .albumAmbientStage {
-    backdrop-filter: none;
-    background: rgba(12, 8, 26, 0.7);
-  }
-
-  .progressAreaBg {
-    backdrop-filter: none;
-    background: rgba(30, 20, 50, 0.5);
-  }
-
-  .progressGlow {
-    backdrop-filter: none;
-    background: rgba(130, 100, 200, 0.15);
-  }
-
-  .playerControlsPanel {
-    backdrop-filter: none;
-    background: rgba(8, 6, 21, 0.8);
-  }
-
-  .playerControlsGlass {
-    backdrop-filter: none;
-    background: rgba(50, 35, 90, 0.4);
+    backdrop-filter: blur(4px) saturate(1.1);
   }
 
   .playlistPanel {
-    backdrop-filter: none;
-    background: rgba(8, 6, 21, 0.7);
-  }
-
-  .playlistScroll {
-    backdrop-filter: none;
-    background: rgba(8, 6, 21, 0.5);
-  }
-
-  .miniPlayer,
-  .miniPlayerDock {
-    backdrop-filter: none;
-    background: rgba(20, 15, 35, 0.8);
-  }
-
-  .nowPlayingDock {
-    backdrop-filter: none;
-    background: rgba(12, 8, 26, 0.9);
-  }
-
-  .libraryPanel {
-    backdrop-filter: none;
-    background: rgba(8, 6, 21, 0.75);
-  }
-
-  .listenModeInfo {
-    backdrop-filter: none;
-    background: rgba(20, 15, 35, 0.7);
+    backdrop-filter: blur(4px);
   }
 }
 

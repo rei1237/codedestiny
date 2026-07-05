@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+/**
+ * Hook to detect if viewport is mobile (≤980px).
+ * Mirrors the existing lyrics-panel viewport detection pattern.
+ */
 export function useIsMobileViewport(breakpointPx: number = 980): boolean {
   const [isMobile, setIsMobile] = useState(false);
 

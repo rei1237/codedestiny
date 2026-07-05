@@ -18,7 +18,6 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import type { ArtistKey, Track } from "./_data/musicManifest";
 import { useMusicPlaybackStore } from "./_stores/useMusicPlaybackStore";
 import { useIsMobileViewport } from "./_hooks/useIsMobileViewport";
-import MobileVirtualizedTrackList from "./MobileVirtualizedTrackList";
 import styles from "./moon-music-player.module.css";
 
 type VisibleArtistKey = Exclude<ArtistKey, "destinycafe">;
@@ -106,7 +105,7 @@ type PlaylistTrackEntry = {
   moodTag: string;
   isPlayable: boolean;
 };
-export type PlaylistTrackDisplay = {
+type PlaylistTrackDisplay = {
   track: Track;
   collectionLabel: string;
   durationLabel: string;
@@ -192,7 +191,7 @@ type PlaylistTrackCardProps = {
   onShareTrack: (trackId: string) => void;
 };
 
-export const PlaylistTrackCard = memo(function PlaylistTrackCard({
+const PlaylistTrackCard = memo(function PlaylistTrackCard({
   track,
   displayIndex,
   collectionLabel,
@@ -439,8 +438,9 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
   }, [onSelectTrack]);
 
   const visibleTracks = useMemo(() => {
-    return filteredTracks.slice(0, visibleTrackCount);
-  }, [filteredTracks, visibleTrackCount]);
+    const limit = isMobile ? Math.max(visibleTrackCount, 30) : visibleTrackCount;
+    return filteredTracks.slice(0, limit);
+  }, [filteredTracks, visibleTrackCount, isMobile]);
 
   const remainingTrackCount = Math.max(0, filteredTracks.length - visibleTracks.length);
   const nextVisibleTrackCount = Math.min(TRACK_RENDER_BATCH_SIZE, remainingTrackCount);
@@ -596,45 +596,33 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
 
         <div className={styles.playlistScroll} ref={playlistScrollRef}>
           {filteredTracks.length ? (
-            isMobile ? (
-              <MobileVirtualizedTrackList
-                tracks={filteredTracks}
-                sharedTrackId={sharedTrackId}
-                failedCoverIds={failedCoverIds}
-                onCoverError={handleTrackCoverError}
-                onSelectTrack={handleTrackSelect}
-                onShareTrack={handleTrackShare}
-                scrollRef={playlistScrollRef}
-              />
-            ) : (
-              <div className={styles.playlistGrid}>
-                {visibleTracks.map((track, index) => (
-                  <PlaylistTrackCard
-                    key={track.track.id}
-                    track={track.track}
-                    displayIndex={index + 1}
-                    collectionLabel={track.collectionLabel}
-                    durationLabel={track.durationLabel}
-                    moodTag={track.moodTag}
-                    isPlayable={track.isPlayable}
-                    isSharedTrack={track.track.id === sharedTrackId}
-                    hasCoverError={Boolean(failedCoverIds[track.track.id])}
-                    onCoverError={handleTrackCoverError}
-                    onSelectTrack={handleTrackSelect}
-                    onShareTrack={handleTrackShare}
-                  />
-                ))}
-                {remainingTrackCount > 0 ? (
-                  <button
-                    className={styles.playlistMoreButton}
-                    type="button"
-                    onClick={handleShowMoreTracks}
-                  >
-                    {copy.showMore(nextVisibleTrackCount)}
-                  </button>
-                ) : null}
-              </div>
-            )
+            <div className={styles.playlistGrid}>
+              {visibleTracks.map((track, index) => (
+                <PlaylistTrackCard
+                  key={track.track.id}
+                  track={track.track}
+                  displayIndex={index + 1}
+                  collectionLabel={track.collectionLabel}
+                  durationLabel={track.durationLabel}
+                  moodTag={track.moodTag}
+                  isPlayable={track.isPlayable}
+                  isSharedTrack={track.track.id === sharedTrackId}
+                  hasCoverError={Boolean(failedCoverIds[track.track.id])}
+                  onCoverError={handleTrackCoverError}
+                  onSelectTrack={handleTrackSelect}
+                  onShareTrack={handleTrackShare}
+                />
+              ))}
+              {remainingTrackCount > 0 ? (
+                <button
+                  className={styles.playlistMoreButton}
+                  type="button"
+                  onClick={handleShowMoreTracks}
+                >
+                  {copy.showMore(nextVisibleTrackCount)}
+                </button>
+              ) : null}
+            </div>
           ) : (
             <div className={styles.playlistEmpty}>
               <strong>{copy.emptyTitle}</strong>
