@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import {
   Footprints,
   HeartHandshake,
@@ -246,25 +246,25 @@ function cardImageUrl(card?: TarotCardDto) {
 function SunHero() {
   return (
     <div className="relative flex items-center justify-center" style={{ width: 220, height: 220 }}>
-      <motion.div
+      <m.div
         className="absolute rounded-full"
         style={{ width: 220, height: 220, background: "radial-gradient(circle, #F59E0B26 0%, transparent 70%)" }}
         animate={{ scale: [1, 1.12, 1], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
+      <m.div
         className="absolute rounded-full border-2 border-amber-300/45"
         style={{ width: 168, height: 168 }}
         animate={{ scale: [1.02, 1.1, 1.02], opacity: [0.4, 0.8, 0.4] }}
         transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
       />
-      <motion.div
+      <m.div
         className="absolute rounded-full border-2 border-amber-400/55"
         style={{ width: 110, height: 110 }}
         animate={{ scale: [1, 1.07, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
       />
-      <motion.svg
+      <m.svg
         width="80"
         height="80"
         viewBox="0 0 100 100"
@@ -290,7 +290,7 @@ function SunHero() {
         <circle cx="50" cy="50" r="18" fill="#F59E0B" />
         <circle cx="50" cy="50" r="13" fill="#FCD34D" />
         <circle cx="50" cy="50" r="7" fill="#FEF3C7" />
-      </motion.svg>
+      </m.svg>
     </div>
   );
 }
@@ -357,7 +357,7 @@ function ReadingCard({
       : "border-teal-200 bg-teal-50 text-teal-700";
 
   return (
-    <motion.section
+    <m.section
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.38 }}
@@ -371,7 +371,7 @@ function ReadingCard({
           <div className="flex items-center gap-2">
             <h3 className="font-serif text-[16px] font-semibold tracking-tight text-amber-950">{title}</h3>
             {isTyping ? (
-              <motion.span
+              <m.span
                 className="h-1.5 w-1.5 rounded-full bg-amber-500"
                 animate={{ opacity: [1, 0.2, 1] }}
                 transition={{ duration: 0.9, repeat: Infinity }}
@@ -381,7 +381,7 @@ function ReadingCard({
           <p className="mt-3 whitespace-pre-line text-[15px] leading-8 text-stone-700">{text}</p>
         </div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -786,7 +786,7 @@ export default function SunHealingTarot() {
         </header>
         <AnimatePresence mode="wait">
           {stage === "intro" ? (
-            <motion.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-0">
+            <m.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-0">
               <div className="max-w-[760px]">
                 <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/80">마음을 데우는 타로 방</p>
                 <h2 className="mt-4 max-w-[720px] font-serif text-[34px] font-semibold leading-[1.14] text-amber-950 drop-shadow-[0_10px_30px_rgba(255,255,255,0.64)] sm:text-[44px] md:text-[64px]">
@@ -806,7 +806,7 @@ export default function SunHealingTarot() {
                 </button>
               </div>
               <div className="relative mx-auto w-full max-w-[420px]">
-                <motion.div
+                <m.div
                   animate={{ y: [0, -8, 0] }}
                   transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
                   className="rounded-[32px] border border-white/80 bg-white/64 p-5 shadow-[0_28px_90px_rgba(180,120,35,0.22)] backdrop-blur-2xl"
@@ -819,12 +819,12 @@ export default function SunHealingTarot() {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </m.div>
               </div>
-            </motion.section>
+            </m.section>
           ) : null}
           {stage === "spread" ? (
-            <motion.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+            <m.section key="spread" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[minmax(0,1fr)_330px]">
               <div className="flex min-h-[calc(100dvh-132px)] flex-col justify-center rounded-[30px] border border-white/80 bg-white/70 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
                 <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
                   <div>
@@ -834,7 +834,7 @@ export default function SunHealingTarot() {
                   <span className="rounded-full border border-amber-200/70 bg-amber-50/90 px-4 py-2 text-sm font-bold text-amber-800 shadow-sm">{revealedCount}&thinsp;/&thinsp;{SPREAD_CARD_COUNT}</span>
                 </div>
                 <div className="mb-6 h-2 w-full overflow-hidden rounded-full bg-amber-100">
-                  <motion.div className="h-full rounded-full shadow-[0_0_18px_rgba(245,158,11,0.38)]" style={{ background: "linear-gradient(90deg, #67e8f9 0%, #fde68a 45%, #f59e0b 100%)" }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
+                  <m.div className="h-full rounded-full shadow-[0_0_18px_rgba(245,158,11,0.38)]" style={{ background: "linear-gradient(90deg, #67e8f9 0%, #fde68a 45%, #f59e0b 100%)" }} initial={{ width: 0 }} animate={{ width: `${progressPct}%` }} transition={{ duration: 0.5, ease: "easeOut" }} />
                 </div>
                 <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
                   {Array.from({ length: SPREAD_CARD_COUNT }).map((_, idx) => {
@@ -844,10 +844,10 @@ export default function SunHealingTarot() {
                     const isGlowing = glowingCard === idx;
                     return (
                       <div key={idx} style={{ perspective: "1200px" }} className="relative aspect-[3/4] min-h-[210px]">
-                        <AnimatePresence>{isGlowing && (<motion.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
-                        <motion.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
-                          <motion.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
-                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace />{enabled && (<motion.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
+                        <AnimatePresence>{isGlowing && (<m.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
+                        <m.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
+                          <m.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
+                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
                             <div className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_20px_56px_rgba(180,120,35,0.24)]" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
                               {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
                               <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-16" style={{ background: "linear-gradient(0deg, rgba(255,251,235,0.97) 0%, rgba(255,251,235,0.72) 58%, transparent 100%)" }}>
@@ -855,8 +855,8 @@ export default function SunHealingTarot() {
                                 <p className="mt-1 text-[13px] font-semibold leading-tight text-stone-800">{safeCardTitle(card, idx)}</p>
                               </div>
                             </div>
-                          </motion.div>
-                        </motion.button>
+                          </m.div>
+                        </m.button>
                       </div>
                     );
                   })}
@@ -881,10 +881,10 @@ export default function SunHealingTarot() {
                   ))}
                 </div>
               </aside>
-            </motion.section>
+            </m.section>
           ) : null}
           {stage === "result" ? (
-            <motion.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
+            <m.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
               <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,247,237,0.76),rgba(240,253,250,0.42))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)] lg:overflow-auto">
                 <p className="text-xs font-semibold tracking-normal text-teal-700/75">새벽빛 리딩</p>
                 <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">오늘의 태양 리딩</h2>
@@ -991,7 +991,7 @@ export default function SunHealingTarot() {
                   </section>
                 ) : null}
               </div>
-            </motion.section>
+            </m.section>
           ) : null}
         </AnimatePresence>
       </div>

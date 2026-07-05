@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import styles from "../destiny-bias.module.css";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 
@@ -51,28 +51,28 @@ export default function DestinyBiasLoadingScreen({
       {/* Aurora rings */}
       <div className="relative z-10 mt-6 mb-6 h-44 w-44">
         {/* Outer ring */}
-        <motion.div
+        <m.div
           className="absolute inset-0 rounded-full"
           style={{ border: "1.5px solid rgba(255,95,210,0.5)" }}
           animate={reduceMotion ? undefined : { rotate: 360 }}
           transition={{ duration: 10, ease: "linear", repeat: Infinity }}
         />
         {/* Middle ring */}
-        <motion.div
+        <m.div
           className="absolute inset-4 rounded-full"
           style={{ border: "1.5px solid rgba(64,200,255,0.45)" }}
           animate={reduceMotion ? undefined : { rotate: -360 }}
           transition={{ duration: 7.5, ease: "linear", repeat: Infinity }}
         />
         {/* Inner ring */}
-        <motion.div
+        <m.div
           className="absolute inset-8 rounded-full"
           style={{ border: "1.5px solid rgba(201,167,255,0.5)" }}
           animate={reduceMotion ? undefined : { rotate: 360 }}
           transition={{ duration: 5.5, ease: "linear", repeat: Infinity }}
         />
         {/* Center glow */}
-        <motion.div
+        <m.div
           className="absolute inset-0 grid place-items-center"
           animate={reduceMotion ? undefined : { opacity: [0.7, 1, 0.7] }}
           transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
@@ -86,11 +86,11 @@ export default function DestinyBiasLoadingScreen({
           >
             <DestinyIcon name="lightstick" size={34} className="text-pink-100" variant="glow" />
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Message */}
-      <motion.p
+      <m.p
         key={message}
         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ export default function DestinyBiasLoadingScreen({
         className="relative z-10 text-center text-sm font-semibold tracking-[0.02em] text-white/90 md:text-base"
       >
         {message}
-      </motion.p>
+      </m.p>
 
       {/* Fanlight dots */}
       <div className="relative z-10 mt-4 flex items-center gap-2.5">
@@ -106,7 +106,7 @@ export default function DestinyBiasLoadingScreen({
           const isActive = index === activeDots - 1;
           const isDone = index < activeDots - 1;
           return (
-            <motion.span
+            <m.span
               key={index}
               className="h-2.5 w-2.5 rounded-full"
               animate={
@@ -135,7 +135,7 @@ export default function DestinyBiasLoadingScreen({
       {/* Progress bar */}
       <div className="relative z-10 mt-5 w-full max-w-xs rounded-full border border-white/20 bg-black/25 p-1">
         <div className="h-2 overflow-hidden rounded-full bg-white/10">
-          <motion.div
+          <m.div
             className="h-full rounded-full"
             style={{
               background: "linear-gradient(90deg, #FF5FD2 0%, #8B5CFF 50%, #40C8FF 100%)",

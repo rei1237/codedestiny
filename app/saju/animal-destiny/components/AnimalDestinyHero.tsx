@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import CosmicSigil from "./CosmicSigil";
 
 const STAR_POINTS = [
@@ -56,25 +56,25 @@ export default function AnimalDestinyHero({ onStart }: Props) {
 
         <div className="relative z-10 grid items-center gap-8 lg:grid-cols-[1fr_280px]">
           <div className="space-y-4">
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.55 }}
               className="inline-flex rounded-full bg-[#8a5a2b]/92 px-4 py-1.5 text-[11px] font-black tracking-[0.24em] text-[#fff0d0]"
             >
               SAJU TWELVE STAGE ANIMAL
-            </motion.p>
+            </m.p>
 
-            <motion.h1
+            <m.h1
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.08 }}
               className="text-balance text-3xl font-black leading-tight text-[#6b3f1d] sm:text-5xl"
             >
               사주 십이운성 동물점
-            </motion.h1>
+            </m.h1>
 
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.18 }}
@@ -82,9 +82,9 @@ export default function AnimalDestinyHero({ onStart }: Props) {
             >
               내 사주 속 생명의 흐름을 12가지 동물로 알아보세요.
               성격, 관계, 일과 재물, 연애 흐름을 한 번에 읽는 직관형 리포트입니다.
-            </motion.p>
+            </m.p>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.28 }}
@@ -98,9 +98,9 @@ export default function AnimalDestinyHero({ onStart }: Props) {
                   {animal}
                 </span>
               ))}
-            </motion.div>
+            </m.div>
 
-            <motion.button
+            <m.button
               type="button"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -109,9 +109,9 @@ export default function AnimalDestinyHero({ onStart }: Props) {
               className="mt-2 inline-flex min-h-[46px] items-center justify-center rounded-2xl bg-[linear-gradient(120deg,#8a5a2b,#d88a35)] px-6 py-3 text-sm font-black text-white shadow-[0_12px_26px_rgba(138,90,43,0.34)] transition hover:brightness-105 active:scale-[0.99]"
             >
               내 동물 알아보기
-            </motion.button>
+            </m.button>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.42 }}
@@ -120,10 +120,10 @@ export default function AnimalDestinyHero({ onStart }: Props) {
               <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">십이운성 기반</span>
               <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">12가지 동물 캐릭터</span>
               <span className="rounded-xl border border-[#e0c092] bg-[#fff4de] px-3 py-2 text-[#7b542c]">성격 · 관계 · 운세 흐름 해석</span>
-            </motion.div>
+            </m.div>
           </div>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.94 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
@@ -137,7 +137,7 @@ export default function AnimalDestinyHero({ onStart }: Props) {
                 태어난 순간의 흐름을 읽어 대표 운성과 동물 캐릭터를 찾습니다.
               </p>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

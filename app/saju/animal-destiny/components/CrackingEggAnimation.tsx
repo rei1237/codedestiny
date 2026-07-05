@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CosmicSigil from "./CosmicSigil";
 
@@ -14,7 +14,7 @@ const STEPS = [
 export default function SajuComputingAnimation() {
   return (
     <div className="flex flex-col items-center gap-5 py-6">
-      <motion.div
+      <m.div
         animate={{ rotate: 360 }}
         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
         className="relative h-32 w-32"
@@ -24,11 +24,11 @@ export default function SajuComputingAnimation() {
         <div className="absolute inset-0 flex items-center justify-center text-3xl">
           <DestinyIcon name="animalPaw" size={30} className="text-cyan-50" variant="soft" />
         </div>
-      </motion.div>
+      </m.div>
 
       <div className="space-y-1 text-center">
         {STEPS.map((step, i) => (
-          <motion.p
+          <m.p
             key={step}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
@@ -36,7 +36,7 @@ export default function SajuComputingAnimation() {
             className="text-xs font-semibold text-cyan-100/88"
           >
             {step}
-          </motion.p>
+          </m.p>
         ))}
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 
 type Props = {
   mode: "calculating" | "revealing";
@@ -17,7 +17,7 @@ export default function TwelveAnimalLoading({ mode }: Props) {
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={mode}
           initial={{ opacity: 0, y: reduced ? 0 : 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ export default function TwelveAnimalLoading({ mode }: Props) {
           className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-6"
         >
           {Array.from({ length: 6 }).map((_, index) => (
-            <motion.div
+            <m.div
               key={`loading-card-${index}`}
               className="h-20 rounded-2xl border border-[#cae0f3] bg-white/86"
               animate={
@@ -43,7 +43,7 @@ export default function TwelveAnimalLoading({ mode }: Props) {
               }}
             />
           ))}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     </section>
   );

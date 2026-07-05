@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, m } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 const NIGHT_REFLECTION_TEXT_TRANSLATIONS = {
@@ -368,7 +368,7 @@ export default function NightReflectionPlanner() {
           </div>
         </div>
 
-        <motion.div
+        <m.div
           className="rounded-2xl border border-slate-200 bg-white p-3"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -407,7 +407,7 @@ export default function NightReflectionPlanner() {
             <p className="mt-2 text-xs text-slate-600">이제 눈을 감고 수정된 장면이 실제 사실인 것처럼 반복해서 상상하세요. 완료 {revisionDone}회</p>
           </div>
 
-          <motion.div
+          <m.div
             className={`mt-3 rounded-xl border p-3 transition ${satsMode ? 'border-indigo-400 bg-slate-900 text-slate-100' : 'border-slate-200 bg-white text-slate-800'}`}
             animate={{ scale: satsMode ? [1, 1.01, 1] : 1 }}
             transition={{ repeat: satsMode ? Infinity : 0, duration: 4, ease: 'easeInOut' }}
@@ -424,7 +424,7 @@ export default function NightReflectionPlanner() {
             </div>
             <p className="mt-1 text-[11px]">내일 키워드: {tomorrowKeyword}</p>
             <AnimatePresence mode="wait">
-              <motion.p
+              <m.p
                 key={satsScene}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -433,16 +433,16 @@ export default function NightReflectionPlanner() {
                 className="mt-2 rounded-lg border border-slate-300/40 bg-white/10 p-2 text-xs leading-5"
               >
                 {satsScene}
-              </motion.p>
+              </m.p>
             </AnimatePresence>
 
-            <motion.p
+            <m.p
               className="mt-2 text-center text-xs font-semibold"
               animate={{ opacity: [0.45, 1, 0.45], scale: [0.99, 1.02, 0.99] }}
               transition={{ repeat: Infinity, duration: 6, ease: 'easeInOut' }}
             >
               당신은 이미 이루어진 상태입니다. 감각에만 집중하며 잠드세요.
-            </motion.p>
+            </m.p>
 
             <div className="mt-2 flex flex-wrap items-center gap-2">
               <select
@@ -468,7 +468,7 @@ export default function NightReflectionPlanner() {
                 종료
               </button>
             </div>
-          </motion.div>
+          </m.div>
 
           <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-xs font-black text-slate-800">아침 I AM 선언</p>
@@ -493,7 +493,7 @@ export default function NightReflectionPlanner() {
             </div>
             <p className="mt-2 text-[11px] text-slate-300">명상 중에는 기기 방해 금지 모드를 켜고 전체화면으로 전환하면 몰입감이 올라갑니다.</p>
           </div>
-        </motion.div>
+        </m.div>
       </div>
 
       <style jsx>{`

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import type { ReactNode } from "react";
 
 type Props = {
@@ -14,7 +14,7 @@ export default function BiasDestinyInputPanel({ stepLabel, title, description, c
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.section
+    <m.section
       initial={reduceMotion ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, ease: "easeOut" }}
@@ -41,15 +41,15 @@ export default function BiasDestinyInputPanel({ stepLabel, title, description, c
         <h2 className="text-2xl font-black leading-tight text-white drop-shadow-[0_0_22px_rgba(192,132,252,0.35)] md:text-3xl">{title}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-7 text-white/82 md:text-base">{description}</p>
 
-        <motion.div
+        <m.div
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.32, ease: "easeOut" }}
           className="mt-5 rounded-2xl border border-white/14 bg-black/25 p-4 ring-1 ring-white/10 md:p-5"
         >
           {children}
-        </motion.div>
+        </m.div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }

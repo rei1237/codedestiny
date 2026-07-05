@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import SajuComputingAnimation from "./CrackingEggAnimation";
 import FlipCardReveal from "./FlipCardReveal";
 
@@ -42,13 +42,13 @@ export default function AnimalRevealAnimation({ mode }: Props) {
 
       <AnimatePresence mode="wait">
         {mode === "calculating" ? (
-          <motion.div key="calc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <m.div key="calc" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <SajuComputingAnimation />
-          </motion.div>
+          </m.div>
         ) : (
-          <motion.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <m.div key="reveal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <FlipCardReveal title={copy.completeTitle} subtitle={copy.completeSubtitle} />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </section>

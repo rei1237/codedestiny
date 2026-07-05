@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useState } from "react";
 
 type ExitToastProps = {
@@ -72,7 +72,7 @@ export default function ExitToast({
   return (
     <AnimatePresence>
       {visible ? (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 14, scale: 0.985 }}
@@ -86,7 +86,7 @@ export default function ExitToast({
             <span className="mr-1 text-[13px]">✦</span>
             {resolvedMessage}
           </div>
-        </motion.div>
+        </m.div>
       ) : null}
     </AnimatePresence>
   );

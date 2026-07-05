@@ -12,7 +12,7 @@ import { AdvancedZiweiResult } from "../_lib/ziwei-normalization";
 import { usePayment } from "./PaymentProcessingContext";
 import { useToast } from "./Toast";
 import PremiumBlurGate from "./PremiumBlurGate";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { authFetch } from "../_lib/auth-client";
 
 const ADVANCED_ZIWEI_SECTION_TEXT_TRANSLATIONS = {
@@ -680,23 +680,23 @@ export default function AdvancedZiweiSection({
         <div className="pointer-events-none absolute -right-20 bottom-8 h-64 w-64 rounded-full bg-amber-200/10 blur-3xl" />
 
         <div className="relative mb-10 h-36 w-36">
-          <motion.div
+          <m.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 rounded-full border border-cyan-200/35"
           />
-          <motion.div
+          <m.div
             animate={{ rotate: -360 }}
             transition={{ duration: 9, repeat: Infinity, ease: "linear" }}
             className="absolute inset-4 rounded-full border border-dashed border-amber-200/50"
           />
-          <motion.div
+          <m.div
             animate={{ scale: [1, 1.06, 1] }}
             transition={{ duration: 2.6, repeat: Infinity }}
             className="absolute inset-0 grid place-items-center text-5xl"
           >
             ✧
-          </motion.div>
+          </m.div>
         </div>
 
         <h2 className="text-3xl font-black text-white md:text-4xl" style={{ fontFamily: "'Cinzel', 'Noto Serif KR', serif" }}>
@@ -707,7 +707,7 @@ export default function AdvancedZiweiSection({
         </p>
 
         <div className="mt-10 w-full max-w-md overflow-hidden rounded-full border border-white/15 bg-white/5">
-          <motion.div
+          <m.div
             className="h-2 bg-gradient-to-r from-cyan-300 via-sky-300 to-cyan-500"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
@@ -787,7 +787,7 @@ export default function AdvancedZiweiSection({
 
         <main className="relative z-10 mx-auto mt-8 w-full max-w-4xl px-4 sm:px-6">
           <AnimatePresence mode="wait">
-            <motion.article
+            <m.article
               key={activeTab}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -845,7 +845,7 @@ export default function AdvancedZiweiSection({
                   />
                 </div>
               )}
-            </motion.article>
+            </m.article>
           </AnimatePresence>
         </main>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
+import { m, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { Loader2, Sparkles } from "lucide-react";
 import styles from "../styles/fortune-tea-house.module.css";
 
@@ -37,7 +37,7 @@ export default function TeaHouseButton({
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.button
+    <m.button
       className={[
         styles.teaButton,
         variantClass[variant],
@@ -56,6 +56,6 @@ export default function TeaHouseButton({
     >
       {loading ? <Loader2 className={`${styles.teaButtonIconSpin} shrink-0`} size={18} aria-hidden /> : <Sparkles className="shrink-0 drop-shadow-[0_0_8px_rgba(255,244,189,0.48)]" size={18} aria-hidden />}
       <span className="min-w-0 max-w-full whitespace-normal break-keep text-center [text-wrap:balance]">{children}</span>
-    </motion.button>
+    </m.button>
   );
 }

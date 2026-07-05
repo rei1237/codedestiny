@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 type Props = {
   step: string;
@@ -24,19 +24,19 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
 
       <div className="relative mx-auto h-28 w-28">
         {/* Outer Orbit */}
-        <motion.div
+        <m.div
           className="absolute inset-0 rounded-full border border-dashed border-sky-400/30"
           animate={reducedMotion ? { rotate: 0 } : { rotate: 360 }}
           transition={reducedMotion ? { duration: 0 } : { duration: 12, repeat: Infinity, ease: "linear" }}
         />
         {/* Inner element loop orbits */}
-        <motion.div
+        <m.div
           className="absolute inset-4 rounded-full border border-rose-400/20"
           animate={reducedMotion ? { rotate: 0 } : { rotate: -360 }}
           transition={reducedMotion ? { duration: 0 } : { duration: 8, repeat: Infinity, ease: "linear" }}
         />
         {/* Central Cosmos Orb - Gradients reflecting the elements */}
-        <motion.div
+        <m.div
           className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_30%_30%,#ffffff_0%,#3b82f6_35%,#10b981_65%,#f43f5e_100%)] shadow-[0_0_20px_rgba(59,130,246,0.6)]"
           animate={reducedMotion ? { scale: 1 } : { scale: [1, 1.15, 1], rotate: 360 }}
           transition={reducedMotion ? { duration: 0 } : { scale: { duration: 2.2, repeat: Infinity, ease: "easeInOut" }, rotate: { duration: 10, repeat: Infinity, ease: "linear" } }}
@@ -51,7 +51,7 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
         {ELEMENT_STYLES.map((item, idx) => {
           const isActive = idx === stepIndex % 5;
           return (
-            <motion.span
+            <m.span
               key={item.label}
               animate={
                 reducedMotion
@@ -66,14 +66,14 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
               className={`rounded-full border px-3 py-1.5 font-medium transition-all duration-300 ${item.border} ${item.text} ${item.bg} ${isActive ? `${item.glow} border-white/45` : ""}`}
             >
               {item.label}
-            </motion.span>
+            </m.span>
           );
         })}
       </div>
 
       {/* 오행 컬러 그라데이션이 빛나는 로딩 바 */}
       <div className="relative mx-auto mt-6 h-2 w-full max-w-xs overflow-hidden rounded-full bg-white/10 border border-white/5">
-        <motion.div
+        <m.div
           className="h-full rounded-full bg-gradient-to-r from-emerald-400 via-rose-400 via-amber-400 via-slate-200 to-sky-400 shadow-[0_0_8px_rgba(255,255,255,0.4)]"
           initial={{ width: "8%" }}
           animate={{ width: reducedMotion ? "80%" : "96%" }}

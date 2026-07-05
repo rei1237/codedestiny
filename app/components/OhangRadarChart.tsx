@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import {
   RadarChart,
   Radar,
@@ -378,7 +378,7 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
   const dominatedCopy = copy.elements[dominated[0]];
 
   return (
-    <motion.div
+    <m.div
       className={`relative rounded-2xl overflow-hidden ${className}`}
       style={{ background: "linear-gradient(160deg,rgba(20,12,50,0.95),rgba(8,5,20,0.98))", border: "1px solid rgba(167,139,250,0.18)" }}
       initial={{ opacity: 0, y: 14 }}
@@ -415,7 +415,7 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
 
       {/* 차트 영역 */}
       <AnimatePresence mode="wait">
-        <motion.div
+        <m.div
           key={viewMode}
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -456,7 +456,7 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
                 const meta = OHANG_META[key];
                 const elementCopy = copy.elements[key];
                 return (
-                  <motion.div
+                  <m.div
                     key={key}
                     className="flex items-center gap-3 mb-2.5"
                     initial={{ x: -16, opacity: 0 }}
@@ -469,7 +469,7 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
                       {meta.element}
                     </div>
                     <div className="flex-1 h-6 rounded-lg overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                      <motion.div
+                      <m.div
                         className="h-full rounded-lg flex items-center justify-end pr-2"
                         style={{
                           background: hoveredKey === key
@@ -482,22 +482,22 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
                         transition={{ duration: 0.7, delay: i * 0.07, ease: "easeOut" }}
                       >
                         <span className="text-[10px] font-bold text-white/80">{value}</span>
-                      </motion.div>
+                      </m.div>
                     </div>
                     <div className="w-16 text-[10px] text-violet-300/50 leading-tight">{elementCopy.desc}</div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
           )}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
 
       {/* 분석 카드 */}
       <div className="grid grid-cols-2 gap-2 px-4 pb-4 mt-1">
         {/* 지배 오행 */}
         {showDominant && (
-          <motion.div
+          <m.div
             className="rounded-xl p-3 col-span-1"
             style={{ background: `linear-gradient(135deg,${dominantMeta.color}18,rgba(8,5,20,0.6))`, border: `1px solid ${dominantMeta.color}30` }}
             whileHover={{ scale: 1.02 }}
@@ -507,12 +507,12 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
               {dominantMeta.emoji} {dominantCopy.label}
             </div>
             <div className="text-[10px] text-violet-200/60 mt-0.5">{dominantCopy.desc}</div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* 부족 오행 */}
         {showDominant && (
-          <motion.div
+          <m.div
             className="rounded-xl p-3 col-span-1"
             style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(167,139,250,0.15)" }}
             whileHover={{ scale: 1.02 }}
@@ -522,12 +522,12 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
               {dominatedMeta.emoji} {dominatedCopy.label}
             </div>
             <div className="text-[10px] text-violet-200/60 mt-0.5">{copy.supportNote(dominatedCopy.desc)}</div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* 균형 지수 */}
         {showBalance && (
-          <motion.div
+          <m.div
             className="rounded-xl p-3 col-span-2"
             style={{ background: "rgba(212,168,67,0.08)", border: "1px solid rgba(212,168,67,0.2)" }}
             whileHover={{ scale: 1.01 }}
@@ -539,7 +539,7 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
               </div>
             </div>
             <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(212,168,67,0.15)" }}>
-              <motion.div
+              <m.div
                 className="h-full rounded-full"
                 style={{ background: "linear-gradient(90deg,#d4a843,#f0c060,#d4a843)" }}
                 initial={{ width: 0 }}
@@ -550,9 +550,9 @@ export default function OhangRadarChart({ data, showBalance = true, showDominant
             <div className="text-[10px] text-amber-400/40 mt-1">
               {balanceScore >= 75 ? copy.balanceGood : balanceScore >= 50 ? copy.balanceSome : copy.balanceLow}
             </div>
-          </motion.div>
+          </m.div>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
 }

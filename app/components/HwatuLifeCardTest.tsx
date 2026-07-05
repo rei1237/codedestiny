@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
@@ -232,7 +232,7 @@ export default function HwatuLifeCardTest() {
         <p className="mb-6 text-center text-sm text-red-200/90 sm:text-base">쫄리면 뒤지시던가. 끝까지 가면 네 패가 보인다.</p>
 
         {!started && !result && (
-          <motion.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
+          <m.section initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
             <div className="rounded-xl border border-amber-500/50 bg-gradient-to-br from-stone-900/90 to-red-950/60 p-5">
               <p className="mb-3 text-amber-100">7문항으로 돈, 사랑, 위기에서의 본능을 읽어 네 인생 패를 매칭한다.</p>
               <button
@@ -243,12 +243,12 @@ export default function HwatuLifeCardTest() {
                 판에 참여하기
               </button>
             </div>
-          </motion.section>
+          </m.section>
         )}
 
         {started && !result && question && (
           <AnimatePresence mode="wait">
-            <motion.section
+            <m.section
               key={question.id}
               initial={{ opacity: 0, x: 24 }}
               animate={{ opacity: 1, x: 0 }}
@@ -256,7 +256,7 @@ export default function HwatuLifeCardTest() {
               transition={{ duration: 0.22 }}
             >
               <div className="mb-4 h-2.5 w-full overflow-hidden rounded-full border border-amber-500/40 bg-zinc-900/80">
-                <motion.div
+                <m.div
                   className="h-full bg-gradient-to-r from-red-700 via-red-500 to-amber-400"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
@@ -270,7 +270,7 @@ export default function HwatuLifeCardTest() {
               <p className="mb-4 text-sm text-zinc-300">{question.sub}</p>
               <div className="space-y-2.5">
                 {question.choices.map((choice, cIdx) => (
-                  <motion.button
+                  <m.button
                     key={choice.key}
                     type="button"
                     whileHover={{ y: -2 }}
@@ -280,17 +280,17 @@ export default function HwatuLifeCardTest() {
                   >
                     <span className="mr-2 inline-block min-w-5 text-amber-300">{choice.key}</span>
                     {choice.text}
-                  </motion.button>
+                  </m.button>
                 ))}
               </div>
-            </motion.section>
+            </m.section>
           </AnimatePresence>
         )}
 
         {result && (
-          <motion.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
+          <m.section initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}>
             <div className="mx-auto mb-4 w-44 overflow-hidden rounded-xl border-2 border-amber-400 bg-white shadow-[0_12px_30px_rgba(0,0,0,0.5)]">
-              <motion.img
+              <m.img
                 src={result.cardImage}
                 alt={result.name}
                 className="aspect-[2/3] w-full object-contain"
@@ -325,7 +325,7 @@ export default function HwatuLifeCardTest() {
               </button>
               <AnimatePresence>
                 {showDetail && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -338,7 +338,7 @@ export default function HwatuLifeCardTest() {
                       ))}
                     </div>
                     <p className="mt-2 text-amber-100/90">"패는 이미 나왔다. 이제 누가 먼저 칼을 뽑느냐의 문제다."</p>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
               <button
@@ -359,7 +359,7 @@ export default function HwatuLifeCardTest() {
                 다시 테스트하기
               </button>
             </div>
-          </motion.section>
+          </m.section>
         )}
       </div>
     </main>

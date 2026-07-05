@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import CosmicSigil from "./CosmicSigil";
 
 interface Props {
@@ -10,7 +10,7 @@ interface Props {
 
 export default function FlipCardReveal({ title, subtitle }: Props) {
   return (
-    <motion.div
+    <m.div
       initial={{ rotateY: 180, opacity: 0 }}
       animate={{ rotateY: 0, opacity: 1 }}
       transition={{ duration: 0.8 }}
@@ -25,6 +25,6 @@ export default function FlipCardReveal({ title, subtitle }: Props) {
       <p className="relative text-xs font-bold uppercase tracking-[0.24em] text-cyan-100/85">Hologram Reveal</p>
       <h3 className="relative mt-2 text-2xl font-black text-white">{title}</h3>
       <p className="relative mt-1 text-sm text-cyan-50/90">{subtitle}</p>
-    </motion.div>
+    </m.div>
   );
 }

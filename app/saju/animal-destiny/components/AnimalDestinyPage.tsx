@@ -2,7 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useMemo, useRef } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useAnimalCardExport } from "../hooks/useAnimalCardExport";
 import type { AnimalDestinyInput } from "../lib/types";
 import { useAnimalDestinyStore } from "../store/useAnimalDestinyStore";
@@ -145,7 +145,7 @@ export default function AnimalDestinyPage() {
 
         <div ref={formSectionRef} className="space-y-8 px-5 sm:px-6">
           {(status === "idle" || status === "input" || status === "error") ? (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -157,7 +157,7 @@ export default function AnimalDestinyPage() {
                 canSubmit={canSubmit}
                 error={error}
               />
-            </motion.div>
+            </m.div>
           ) : null}
 
           {status === "calculating" ? <TwelveAnimalLoading mode="calculating" /> : null}

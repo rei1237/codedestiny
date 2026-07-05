@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Persona } from "../_types";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { derivePersonaFromSaju } from "../_utils/personaLogic";
@@ -159,7 +159,7 @@ export const CustomSajuForm: React.FC<CustomSajuFormProps> = ({ onClose, onPerso
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
@@ -275,6 +275,6 @@ export const CustomSajuForm: React.FC<CustomSajuFormProps> = ({ onClose, onPerso
           {loading ? copy.loading : copy.submit}
         </button>
       </form>
-    </motion.div>
+    </m.div>
   );
 };

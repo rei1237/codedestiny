@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { ChevronDown, Compass, Copy, Heart, Luggage, MapPin, MessageCircle, Moon, Palette, Route, ShieldAlert, Sparkles, Star, WandSparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -641,7 +641,7 @@ function placeCategoryLabel(type: PlaceTypeGroup) {
 
 function SectionCard({ title, subtitle, icon, index, children }: SectionCardProps) {
   return (
-    <motion.section
+    <m.section
       variants={fadeUpVariant}
       initial="hidden"
       animate="visible"
@@ -660,13 +660,13 @@ function SectionCard({ title, subtitle, icon, index, children }: SectionCardProp
         </div>
         {children}
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 
 function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinySummaryCardProps) {
   return (
-    <motion.section
+    <m.section
       variants={fadeUpVariant}
       initial="hidden"
       animate="visible"
@@ -700,7 +700,7 @@ function DestinySummaryCard({ oneLine, chips, chargedCoins, topPlace }: DestinyS
           {topPlace ? <GlassChip className="border-[#93c5fd]/35 bg-[#93c5fd]/15 text-[#e6f2ff]">{destinyMeetingPlaceResultText("nextCoordinate")} {topPlace.name}</GlassChip> : null}
         </div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 
@@ -708,7 +708,7 @@ function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
   if (!place) return null;
 
   return (
-    <motion.section
+    <m.section
       variants={fadeUpVariant}
       initial="hidden"
       animate="visible"
@@ -782,7 +782,7 @@ function TodayPlaceCard({ place, index }: TodayPlaceCardProps) {
           </div>
         </div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }
 

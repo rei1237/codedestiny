@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { AnimatePresence, m, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
@@ -244,14 +244,14 @@ function StarField() {
       <div style={{ position: "absolute", width: "30%", height: "30%", bottom: "10%", left: "5%",
         background: "radial-gradient(ellipse, rgba(99,102,241,0.07) 0%, transparent 70%)", filter: "blur(60px)", borderRadius: "50%" }} />
       {STARS_DATA.map(s => (
-        <motion.div key={s.id} className="absolute rounded-full"
+        <m.div key={s.id} className="absolute rounded-full"
           style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size,
             background: s.id % 5 === 0 ? "#f0abfc" : s.id % 4 === 0 ? "#e879f9" : "#c4b5fd" }}
           animate={{ opacity: [0, s.size > 2 ? 0.9 : 0.5, 0] }}
           transition={{ duration: s.dur, delay: s.delay, repeat: Infinity, ease: "easeInOut" }} />
       ))}
       {[0, 1].map((i) => (
-        <motion.div
+        <m.div
           key={`shooting-${i}`}
           className="absolute h-[1px] w-28 rounded-full bg-gradient-to-r from-white/0 via-cyan-200/70 to-white/0"
           style={{ top: i === 0 ? "22%" : "58%", left: i === 0 ? "-10%" : "15%" }}
@@ -290,9 +290,9 @@ function CardBack({ selected = false, hovered = false, orderNum = 0, round = "ma
         flexDirection: "column", gap: 3 }}>
         {selected ? (
           <>
-            <motion.span style={{ fontSize: 14, color: mainColor, lineHeight: 1 }}
+            <m.span style={{ fontSize: 14, color: mainColor, lineHeight: 1 }}
               animate={{ scale: [1, 1.25, 1], opacity: [0.7, 1, 0.7] }}
-              transition={{ duration: 1.4, repeat: Infinity }}>✦</motion.span>
+              transition={{ duration: 1.4, repeat: Infinity }}>✦</m.span>
             <span style={{ fontSize: 13, color: "white", fontWeight: 900, lineHeight: 1 }}>{orderNum}</span>
           </>
         ) : (
@@ -327,7 +327,7 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
   const h = isLarge ? 122 : 90;
 
   return (
-    <motion.div ref={ref}
+    <m.div ref={ref}
       onMouseMove={e => {
         if (!ref.current) return;
         const r = ref.current.getBoundingClientRect();
@@ -352,22 +352,22 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
       </div>
       <div style={{ position: "absolute", inset: 0, borderRadius: 12,
         background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 45%, rgba(0,0,0,0.25) 100%)" }} />
-    </motion.div>
+    </m.div>
   );
 }
 
 // ── INTRO STAGE ───────────────────────────────────────────────────────────────
 function IntroStage({ onStart }: { onStart: () => void }) {
   return (
-    <motion.div className="fixed inset-0 flex flex-col items-center justify-center px-6 z-20 overflow-y-auto"
+    <m.div className="fixed inset-0 flex flex-col items-center justify-center px-6 z-20 overflow-y-auto"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.65 }}>
       <div className="min-h-full w-full max-w-4xl relative flex flex-col items-center justify-center py-14 text-center">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_12%_24%,rgba(34,211,238,0.14),transparent_38%),radial-gradient(circle_at_84%_16%,rgba(196,181,253,0.14),transparent_36%),radial-gradient(circle_at_50%_82%,rgba(244,114,182,0.10),transparent_42%)]" />
-        <motion.div className={`${COSMIC_PANEL} relative px-6 sm:px-8 py-8 sm:py-10 w-full max-w-3xl`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        <m.div className={`${COSMIC_PANEL} relative px-6 sm:px-8 py-8 sm:py-10 w-full max-w-3xl`} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
           <div className="absolute inset-0 rounded-[1.6rem] border border-cyan-200/10" />
         {/* Orb with orbiting rings */}
-        <motion.div className="relative mb-8"
+        <m.div className="relative mb-8"
           initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.15, duration: 0.75, type: "spring", stiffness: 100 }}>
           <div className="w-40 h-40 sm:w-52 sm:h-52 rounded-full overflow-hidden relative"
@@ -385,25 +385,25 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#060918]/65 via-transparent to-transparent" />
           </div>
-          <motion.div className="absolute inset-[-14px] rounded-full"
+          <m.div className="absolute inset-[-14px] rounded-full"
             style={{ border: "1px solid rgba(168,85,247,0.3)" }}
             animate={{ rotate: 360 }} transition={{ duration: 14, repeat: Infinity, ease: "linear" }}>
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full"
               style={{ background: "#e879f9", boxShadow: "0 0 12px #e879f9" }} />
-          </motion.div>
-          <motion.div className="absolute inset-[-26px] rounded-full"
+          </m.div>
+          <m.div className="absolute inset-[-26px] rounded-full"
             style={{ border: "1px solid rgba(99,102,241,0.2)" }}
             animate={{ rotate: -360 }} transition={{ duration: 22, repeat: Infinity, ease: "linear" }}>
             <div className="absolute bottom-0 right-2 w-2 h-2 rounded-full"
               style={{ background: "#818cf8", boxShadow: "0 0 8px #818cf8" }} />
-          </motion.div>
-          <motion.div className="absolute inset-[-5px] rounded-full border-2 border-purple-500/18"
+          </m.div>
+          <m.div className="absolute inset-[-5px] rounded-full border-2 border-purple-500/18"
             animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0, 0.4] }}
             transition={{ duration: 2.8, repeat: Infinity }} />
-        </motion.div>
+        </m.div>
 
         {/* Title */}
-        <motion.div className="space-y-3 mb-8" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+        <m.div className="space-y-3 mb-8" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <div className="flex items-center justify-center gap-2.5 mb-2">
             <span className="px-2.5 py-1 rounded-full border border-cyan-300/30 bg-cyan-400/10 text-[10px] tracking-[0.22em] text-cyan-100/85 uppercase">Stellar Reading</span>
             <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">Mind Scan</span>
@@ -419,10 +419,10 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             직관을 따라 10장의 카드를 선택하세요.<br />
             말과 침묵 사이에 놓인 감정의 거리와 다가갈 수 있는 속도를 읽습니다.
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Position icons */}
-        <motion.div className="flex items-center justify-center gap-4 mb-7 bg-slate-900/45 rounded-2xl px-6 py-3 border border-indigo-200/15 backdrop-blur-md"
+        <m.div className="flex items-center justify-center gap-4 mb-7 bg-slate-900/45 rounded-2xl px-6 py-3 border border-indigo-200/15 backdrop-blur-md"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.42 }}>
           {POSITIONS.map(p => (
             <div key={p.id} className="flex flex-col items-center gap-1">
@@ -430,35 +430,35 @@ function IntroStage({ onStart }: { onStart: () => void }) {
               <span className="text-[9px] text-purple-300/50">{p.label}</span>
             </div>
           ))}
-        </motion.div>
+        </m.div>
 
         {/* Flow steps */}
-        <motion.div className="flex items-center gap-2 mb-8 text-[10px] text-indigo-200/55"
+        <m.div className="flex items-center gap-2 mb-8 text-[10px] text-indigo-200/55"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
           {["메인 5장", "→", "보조 5장", "→", "자리 공개", "→", "심층 리딩"].map((t, i) => (
             <span key={i} className={t === "→" ? "text-purple-800/40" : ""}>{t}</span>
           ))}
-        </motion.div>
+        </m.div>
 
         {/* CTA button */}
-        <motion.button onClick={onStart}
+        <m.button onClick={onStart}
           className="relative overflow-hidden px-12 py-4 rounded-full text-white font-bold text-sm tracking-[0.22em] uppercase border border-cyan-200/35 bg-gradient-to-r from-indigo-600/90 via-violet-600/90 to-fuchsia-600/90 shadow-[0_0_34px_rgba(34,211,238,0.35),0_0_62px_rgba(168,85,247,0.38)]"
           initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.62, type: "spring" }}
           whileHover={{ scale: 1.07, boxShadow: "0 0 52px rgba(168,85,247,0.7), 0 6px 30px rgba(109,40,217,0.5)" }}
           whileTap={{ scale: 0.95 }}>
-          <motion.div className="absolute inset-0 rounded-full"
+          <m.div className="absolute inset-0 rounded-full"
             animate={{ opacity: [0, 0.32, 0] }} transition={{ duration: 2.2, repeat: Infinity }}
             style={{ background: "radial-gradient(ellipse at center, rgba(232,121,249,0.55) 0%, transparent 70%)" }} />
           <span className="relative z-10">🔮 마음의 문 열기</span>
-        </motion.button>
+        </m.button>
 
-        <motion.p className="mt-5 text-[10px] text-purple-500/38 tracking-widest"
+        <m.p className="mt-5 text-[10px] text-purple-500/38 tracking-widest"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
           ✦ 그 사람의 말, 행동, 침묵을 조용히 떠올리며 시작하세요 ✦
-        </motion.p>
-        </motion.div>
+        </m.p>
+        </m.div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -494,7 +494,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
     [currentSelected.length]);
 
   return (
-    <motion.div className="fixed inset-0 flex flex-col z-20 bg-[radial-gradient(circle_at_18%_12%,rgba(34,211,238,0.09),transparent_40%),radial-gradient(circle_at_78%_22%,rgba(217,70,239,0.10),transparent_36%)]"
+    <m.div className="fixed inset-0 flex flex-col z-20 bg-[radial-gradient(circle_at_18%_12%,rgba(34,211,238,0.09),transparent_40%),radial-gradient(circle_at_78%_22%,rgba(217,70,239,0.10),transparent_36%)]"
       initial={{ opacity: 0, x: round === "sub" ? 30 : 0 }} animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: round === "main" ? -30 : 0 }}
       transition={{ duration: 0.35 }}>
@@ -502,14 +502,14 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
       {/* Header */}
       <div className={`flex-shrink-0 pt-5 pb-3 px-4 text-center mx-auto mt-3 w-[min(100%,34rem)] ${COSMIC_PANEL}`}>
         <p className="text-[10px] tracking-[0.42em] text-purple-400/58 uppercase mb-1">Between Words Tarot</p>
-        <motion.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
+        <m.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {round === "main"
             ? <><span className="text-fuchsia-300">메인 카드</span> 5장 선택</>
             : <><span className="text-violet-300">보조 카드</span> 5장 선택</>}
-        </motion.h2>
+        </m.h2>
         <AnimatePresence mode="wait">
-          <motion.p key={done ? "done" : `pos-${nextPos?.id}`}
+          <m.p key={done ? "done" : `pos-${nextPos?.id}`}
             className="text-xs text-purple-300/45 mt-1 h-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {done
@@ -517,13 +517,13 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
               : nextPos
                 ? `선택 중: ${nextPos.icon} ${nextPos.label} — ${nextPos.meaning}`
                 : "카드를 선택하세요"}
-          </motion.p>
+          </m.p>
         </AnimatePresence>
 
         {/* Progress bar */}
         <div className="flex items-center justify-center gap-2 mt-3">
           {[0, 1, 2, 3, 4].map(i => (
-            <motion.div key={i} className="rounded-full h-2"
+            <m.div key={i} className="rounded-full h-2"
               animate={{
                 width: i < currentSelected.length ? 24 : 8,
                 backgroundColor: i < currentSelected.length
@@ -558,7 +558,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
             const isHov = hovIdx === idx && !disabled && !done;
 
             return (
-              <motion.div key={idx}
+              <m.div key={idx}
                 className="relative"
                 style={{ cursor: disabled || done ? "default" : "pointer" }}
                 animate={{ opacity: disabled && !isSel ? 0.27 : 1 }}
@@ -572,18 +572,18 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
                   <CardBack selected={isSel} hovered={isHov} orderNum={order} round={round} />
                 </div>
                 {isSel && (
-                  <motion.div className="absolute inset-0 rounded-[10px]"
+                  <m.div className="absolute inset-0 rounded-[10px]"
                     initial={{ opacity: 0.85 }} animate={{ opacity: 0 }}
                     transition={{ duration: 0.45 }}
                     style={{ background: round === "main" ? "rgba(232,121,249,0.38)" : "rgba(167,139,250,0.38)" }} />
                 )}
-              </motion.div>
+              </m.div>
             );
           })}
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -604,16 +604,16 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
   const questionReady = String(question || "").trim().length > 0;
 
   return (
-    <motion.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
+    <m.div className="fixed inset-0 flex flex-col items-center justify-center z-20 overflow-y-auto bg-[radial-gradient(circle_at_24%_14%,rgba(56,189,248,0.10),transparent_35%),radial-gradient(circle_at_76%_16%,rgba(217,70,239,0.11),transparent_34%)]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.45 }}>
       <div className="min-h-full w-full max-w-4xl flex flex-col items-center justify-center px-4 py-10">
 
         {/* Header */}
-        <motion.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
+        <m.div className={`text-center mb-7 w-full max-w-2xl px-5 py-5 ${COSMIC_PANEL}`} initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-[10px] tracking-[0.45em] text-purple-400/60 uppercase mb-1">Between Words Tarot</p>
           <AnimatePresence mode="wait">
-            <motion.h2 key={allRevealed ? "done" : `r${revealedCount}`}
+            <m.h2 key={allRevealed ? "done" : `r${revealedCount}`}
               className="text-xl sm:text-2xl font-bold text-white"
               initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -7 }}
               transition={{ duration: 0.28 }}>
@@ -621,15 +621,15 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                 ? <>마음의 결이 모두 <span className="text-fuchsia-300">펼쳐졌습니다</span> ✨</>
                 : <>{POSITIONS[revealedCount]?.icon} <span className="text-fuchsia-300">{POSITIONS[revealedCount]?.label}</span> 포지션이 열립니다</>
               }
-            </motion.h2>
+            </m.h2>
           </AnimatePresence>
           {!allRevealed && (
-            <motion.p className="text-xs text-purple-400/38 mt-1"
+            <m.p className="text-xs text-purple-400/38 mt-1"
               animate={{ opacity: [0.38, 0.65, 0.38] }} transition={{ duration: 1.6, repeat: Infinity }}>
               {POSITIONS[revealedCount]?.meaning}
-            </motion.p>
+            </m.p>
           )}
-        </motion.div>
+        </m.div>
 
         {/* Cross layout */}
         <div className={`${COSMIC_CARD} grid gap-5 sm:gap-7 mb-8 flex-shrink-0 p-4 sm:p-6`}
@@ -642,33 +642,33 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
             return (
               <div key={pos.id} style={{ gridColumn: pos.col, gridRow: pos.row }}
                 className="flex flex-col items-center gap-1.5">
-                <motion.span animate={{ opacity: revealed ? 0.7 : 0.28 }}
-                  className="text-[9px] text-purple-300 tracking-widest uppercase font-medium">{pos.label}</motion.span>
+                <m.span animate={{ opacity: revealed ? 0.7 : 0.28 }}
+                  className="text-[9px] text-purple-300 tracking-widest uppercase font-medium">{pos.label}</m.span>
 
                 <div className="relative">
                   {/* Sub card shadow (behind main) */}
                   {revealed && pos.id in drawnSub && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.55 }}
+                    <m.div initial={{ opacity: 0 }} animate={{ opacity: 0.55 }}
                       className="absolute z-0 rounded-xl overflow-hidden"
                       style={{ transform: "translate(8px, 8px)", width: pos.isCenter ? 84 : 62, height: pos.isCenter ? 122 : 90,
                         background: `linear-gradient(155deg, ${cardGradient(drawnSub[pos.id])[0]}, ${cardGradient(drawnSub[pos.id])[1]})` }}>
                       <div className="absolute inset-0 flex items-center justify-center">
                         <span className="text-white/25 text-[10px]">{cardRomanSymbol(drawnSub[pos.id])}</span>
                       </div>
-                    </motion.div>
+                    </m.div>
                   )}
 
-                  <motion.div className="relative z-10">
+                  <m.div className="relative z-10">
                     <AnimatePresence mode="wait">
                       {revealed ? (
-                        <motion.div key="face"
+                        <m.div key="face"
                           initial={{ rotateY: -85, scale: 0.72, opacity: 0 }}
                           animate={{ rotateY: 0, scale: 1, opacity: 1 }}
                           transition={{ duration: 0.6, ease: [0.2, 0.65, 0, 1.15] }}>
                           <CardFace pos={pos} cardId={drawn[pos.id] ?? i} />
-                        </motion.div>
+                        </m.div>
                       ) : (
-                        <motion.div key="back">
+                        <m.div key="back">
                           <div style={{
                             width: pos.isCenter ? 84 : 62, height: pos.isCenter ? 122 : 90, borderRadius: 10,
                             background: active ? "linear-gradient(155deg,#1a0a3a,#2d1b69)" : "linear-gradient(155deg,#0c0420,#150830)",
@@ -677,22 +677,22 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                             display: "flex", alignItems: "center", justifyContent: "center",
                             transition: "all 0.4s ease",
                           }}>
-                            <motion.span style={{ fontSize: pos.isCenter ? 24 : 18 }}
+                            <m.span style={{ fontSize: pos.isCenter ? 24 : 18 }}
                               animate={active ? { opacity: [0.35, 1, 0.35], scale: [1, 1.12, 1] } : { opacity: 0.18 }}
                               transition={active ? { duration: 1.1, repeat: Infinity } : {}}>
                               {pos.icon}
-                            </motion.span>
+                            </m.span>
                           </div>
-                        </motion.div>
+                        </m.div>
                       )}
                     </AnimatePresence>
-                  </motion.div>
+                  </m.div>
                 </div>
 
-                <motion.span animate={{ opacity: revealed ? 0.48 : 0 }}
+                <m.span animate={{ opacity: revealed ? 0.48 : 0 }}
                   className="text-[8px] text-purple-300 text-center max-w-[76px] leading-tight">
                   {pos.meaning}
-                </motion.span>
+                </m.span>
               </div>
             );
           })}
@@ -701,7 +701,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
         {/* Reading CTA (shows after all revealed) */}
         <AnimatePresence>
           {allRevealed && (
-            <motion.div className="flex-shrink-0 text-center"
+            <m.div className="flex-shrink-0 text-center"
               initial={{ opacity: 0, y: 22, scale: 0.88 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 18 }}>
@@ -728,7 +728,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               {readingError && (
                 <p className="text-xs text-rose-300/80 mb-3 max-w-xs mx-auto leading-relaxed">{readingError}</p>
               )}
-              <motion.button onClick={onGenerateReading} disabled={readingLoading || !questionReady}
+              <m.button onClick={onGenerateReading} disabled={readingLoading || !questionReady}
                 className="relative overflow-hidden px-11 py-4 rounded-full text-white font-bold text-sm tracking-widest uppercase disabled:opacity-60"
                 style={{
                   background: readingLoading
@@ -739,25 +739,25 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                 whileHover={!readingLoading ? { scale: 1.07 } : {}}
                 whileTap={!readingLoading ? { scale: 0.95 } : {}}>
                 {!readingLoading && (
-                  <motion.div className="absolute inset-0 rounded-full"
+                  <m.div className="absolute inset-0 rounded-full"
                     animate={{ opacity: [0, 0.3, 0] }} transition={{ duration: 2, repeat: Infinity }}
                     style={{ background: "radial-gradient(ellipse, rgba(232,121,249,0.5) 0%, transparent 70%)" }} />
                 )}
                 <span className="relative z-10 flex items-center gap-2.5">
                   {readingLoading
                     ? <>
-                      <motion.span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white inline-block"
+                      <m.span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white inline-block"
                         animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }} />
                       카드의 간격을 읽는 중...
                     </>
                     : "✨ 마음의 결 리딩 열기"}
                 </span>
-              </motion.button>
-            </motion.div>
+              </m.button>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -998,7 +998,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
   }, [reportRef]);
 
   return (
-    <motion.div className="fixed inset-0 overflow-y-auto z-20 bg-[radial-gradient(circle_at_16%_8%,rgba(245,158,11,0.14),transparent_38%),radial-gradient(circle_at_80%_12%,rgba(217,70,239,0.1),transparent_40%),radial-gradient(circle_at_50%_85%,rgba(56,189,248,0.07),transparent_42%)]"
+    <m.div className="fixed inset-0 overflow-y-auto z-20 bg-[radial-gradient(circle_at_16%_8%,rgba(245,158,11,0.14),transparent_38%),radial-gradient(circle_at_80%_12%,rgba(217,70,239,0.1),transparent_40%),radial-gradient(circle_at_50%_85%,rgba(56,189,248,0.07),transparent_42%)]"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}>
       <div className="min-h-full px-4 py-8 flex flex-col items-center">
@@ -1011,7 +1011,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
         />
 
         {/* Hero header */}
-        <motion.div className={`relative text-center mb-7 w-full max-w-2xl px-5 py-6 ${LUXE_PANEL}`}
+        <m.div className={`relative text-center mb-7 w-full max-w-2xl px-5 py-6 ${LUXE_PANEL}`}
           initial={{ opacity: 0, y: -12 }} animate={{ opacity: visibleCount >= 1 ? 1 : 0, y: visibleCount >= 1 ? 0 : -12 }}
           transition={{ duration: 0.4 }}>
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/35 bg-amber-200/10 text-lg text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.38)]">
@@ -1027,16 +1027,16 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             <span className="text-xs text-amber-100/70">{reading.persona}</span>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-amber-400/45 max-w-[72px]" />
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Mini card spread */}
-        <motion.div className={`flex items-end justify-center gap-2 mb-8 px-4 py-3 ${LUXE_CARD}`}
+        <m.div className={`flex items-end justify-center gap-2 mb-8 px-4 py-3 ${LUXE_CARD}`}
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: visibleCount >= 2 ? 1 : 0, scale: visibleCount >= 2 ? 1 : 0.9 }}>
           {POSITIONS.map((pos, i) => {
             const [c1, c2] = cardGradient(drawn[pos.id] ?? i);
             return (
-              <motion.div key={pos.id} className="flex flex-col items-center gap-0.5"
+              <m.div key={pos.id} className="flex flex-col items-center gap-0.5"
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: visibleCount >= 2 ? 1 : 0, y: visibleCount >= 2 ? 0 : 10 }}
                 transition={{ delay: i * 0.06 }}>
                 <div className={`rounded-xl overflow-hidden relative ${pos.isCenter ? "w-14 h-20" : "w-10 h-14"}`}
@@ -1049,16 +1049,16 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
                 <span className="text-[8px] text-amber-100/58">{pos.label}</span>
-              </motion.div>
+              </m.div>
             );
           })}
-        </motion.div>
+        </m.div>
 
         {/* Report content */}
         <div ref={reportRef} className="w-full max-w-2xl space-y-4">
 
           {/* Intro */}
-          <motion.div className={`${LUXE_CARD} p-5 sm:p-6`}
+          <m.div className={`${LUXE_CARD} p-5 sm:p-6`}
             style={{ background: "linear-gradient(135deg,rgba(120,53,15,0.2),rgba(127,29,29,0.08),rgba(15,23,42,0.4))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 3 ? 1 : 0, y: visibleCount >= 3 ? 0 : 14 }}
@@ -1071,10 +1071,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               <h3 className="text-sm font-bold text-amber-50 tracking-wide">마음의 문턱</h3>
             </div>
             <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
-          </motion.div>
+          </m.div>
 
           {/* Summary card */}
-          <motion.article className="rounded-2xl border border-amber-300/28 p-5 sm:p-6"
+          <m.article className="rounded-2xl border border-amber-300/28 p-5 sm:p-6"
             style={{ background: "linear-gradient(130deg,rgba(120,53,15,0.28),rgba(146,64,14,0.12),rgba(30,41,59,0.3))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
@@ -1124,11 +1124,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 오늘 내가 취할 태도: <b>{innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</b>
               </div>
             </div>
-          </motion.article>
+          </m.article>
 
           {/* Insight card draw */}
           {insightDeck.length > 0 && (
-            <motion.article className="rounded-2xl border border-amber-200/24 p-5 sm:p-6"
+            <m.article className="rounded-2xl border border-amber-200/24 p-5 sm:p-6"
               style={{ background: "linear-gradient(130deg,rgba(51,28,22,0.65),rgba(59,39,26,0.5),rgba(30,41,59,0.35))" }}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: visibleCount >= 5 ? 1 : 0, y: visibleCount >= 5 ? 0 : 14 }}>
@@ -1143,7 +1143,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   const opened = openedInsightIds.includes(id);
                   const active = activeInsight?.id === id;
                   return (
-                    <motion.button
+                    <m.button
                       key={id}
                       type="button"
                       onClick={() => handleDrawInsight(card)}
@@ -1170,13 +1170,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                           <p className="text-[11px] text-amber-100/75 mt-2">열어보기</p>
                         </>
                       )}
-                    </motion.button>
+                    </m.button>
                   );
                 })}
               </div>
 
               {activeInsight && (
-                <motion.div
+                <m.div
                   className="rounded-xl border border-white/12 bg-black/20 p-4"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1203,14 +1203,14 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                       ))}
                     </div>
                   )}
-                </motion.div>
+                </m.div>
               )}
-            </motion.article>
+            </m.article>
           )}
 
           {/* Sections */}
           {(reading.sections || []).map((s, i) => (
-            <motion.article key={s.slot} className={`${LUXE_CARD} p-5 sm:p-6`}
+            <m.article key={s.slot} className={`${LUXE_CARD} p-5 sm:p-6`}
               style={{ background: i % 2 === 0 ? "linear-gradient(140deg,rgba(48,23,29,0.74),rgba(30,19,34,0.66))" : "linear-gradient(140deg,rgba(39,26,18,0.74),rgba(19,20,36,0.66))" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= i + 7 ? 1 : 0, y: visibleCount >= i + 7 ? 0 : 16 }}
@@ -1271,12 +1271,12 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>조심할 그림자:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
                 <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 건넬 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
               </div>
-            </motion.article>
+            </m.article>
           ))}
 
           {/* Suggested messages */}
           {suggestedMessages.length > 0 && (
-            <motion.article className="rounded-2xl border border-cyan-300/24 p-5 sm:p-6"
+            <m.article className="rounded-2xl border border-cyan-300/24 p-5 sm:p-6"
               style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(109,40,217,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= 14 ? 1 : 0, y: visibleCount >= 14 ? 0 : 16 }}>
@@ -1289,12 +1289,12 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   </div>
                 ))}
               </div>
-            </motion.article>
+            </m.article>
           )}
 
           {/* Master advice */}
           {reading.masterAdvice && (
-            <motion.article className={`${LUXE_CARD} p-5 sm:p-6`}
+            <m.article className={`${LUXE_CARD} p-5 sm:p-6`}
               style={{ background: "linear-gradient(135deg,rgba(146,64,14,0.2),rgba(127,29,29,0.12),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
@@ -1307,10 +1307,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 <h4 className="text-sm sm:text-base font-bold text-amber-50">현실적인 행동 가이드</h4>
               </div>
               <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
-            </motion.article>
+            </m.article>
           )}
 
-          <motion.article className={`${LUXE_CARD} p-5 sm:p-6`}
+          <m.article className={`${LUXE_CARD} p-5 sm:p-6`}
             style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(59,130,246,0.06),transparent)" }}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
@@ -1322,10 +1322,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
               <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>오라클 메시지:</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
             </div>
-          </motion.article>
+          </m.article>
 
           {/* Closing */}
-          <motion.div className={`${LUXE_CARD} p-5 sm:p-6 text-center`}
+          <m.div className={`${LUXE_CARD} p-5 sm:p-6 text-center`}
             style={{ background: "rgba(255,255,255,0.02)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: visibleCount >= 16 ? 1 : 0 }}
@@ -1339,11 +1339,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               </p>
               <div className="w-8 h-px bg-amber-600/35" />
             </div>
-          </motion.div>
+          </m.div>
         </div>
 
         {/* Quick actions under result */}
-        <motion.div className="mt-6 w-full max-w-2xl"
+        <m.div className="mt-6 w-full max-w-2xl"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
           <div className={`${LUXE_CARD} p-3 sm:p-4`}>
@@ -1365,10 +1365,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               </button>
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* Action buttons */}
-        <motion.div className="mt-6 w-full max-w-2xl flex flex-wrap gap-2 justify-center"
+        <m.div className="mt-6 w-full max-w-2xl flex flex-wrap gap-2 justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0 }}>
           {[
@@ -1383,15 +1383,15 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               {b.label}
             </button>
           ))}
-        </motion.div>
+        </m.div>
         {shareMsg && (
-          <motion.p className="mt-2 text-xs text-purple-200/62"
+          <m.p className="mt-2 text-xs text-purple-200/62"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {shareMsg}
-          </motion.p>
+          </m.p>
         )}
 
-        <motion.article
+        <m.article
           className={`mt-6 w-full max-w-2xl p-5 sm:p-6 ${LUXE_CARD}`}
           data-marker="tarot-mindscan-ai-prompt-bottom-v20260621"
           style={{ background: "linear-gradient(135deg,rgba(245,158,11,0.16),rgba(147,51,234,0.12),rgba(15,23,42,0.68))" }}
@@ -1422,14 +1422,14 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               {aiPromptMsg}
             </span>
           </div>
-        </motion.article>
+        </m.article>
 
         <button type="button" onClick={onRestart}
           className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/78 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
           🔄 다시 카드 열기
         </button>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

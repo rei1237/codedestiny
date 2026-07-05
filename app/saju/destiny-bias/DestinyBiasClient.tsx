@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
@@ -992,14 +992,14 @@ export default function DestinyBiasClient() {
 
         <AnimatePresence>
           {toast ? (
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               className={`mb-3 ${styles.toastPill}`}
             >
               {toast}
-            </motion.p>
+            </m.p>
           ) : null}
         </AnimatePresence>
 

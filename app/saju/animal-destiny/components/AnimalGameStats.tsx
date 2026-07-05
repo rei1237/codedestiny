@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { AnimalDestinyData } from "../lib/types";
 
 const LABELS = [
@@ -31,7 +31,7 @@ export default function AnimalGameStats({ animal, insight }: Props) {
                 <span>{value}</span>
               </div>
               <div className="h-2 rounded-full bg-[#e4efd8]">
-                <motion.div
+                <m.div
                   initial={{ width: 0 }}
                   animate={{ width: `${value}%` }}
                   transition={{ duration: 0.9 }}

@@ -6,7 +6,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { m, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 /* ─────────────────────────────────────────
@@ -293,7 +293,7 @@ function FlipCard({ front, back, locked, onUnlock }: {
       style={{ perspective: "1000px" }}
       onClick={() => locked ? onUnlock?.() : setFlipped(!flipped)}
     >
-      <motion.div
+      <m.div
         className="relative w-full h-full"
         style={{ transformStyle: "preserve-3d" }}
         animate={{ rotateY: flipped ? 180 : 0 }}
@@ -307,7 +307,7 @@ function FlipCard({ front, back, locked, onUnlock }: {
         <div className="absolute inset-0 rounded-xl overflow-hidden" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
           {back}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }
@@ -343,30 +343,30 @@ export default function PremiumFeatureCard({
     <div className={`relative flex flex-col h-full ${sizeClasses[size]}`}>
       {/* 아이콘 + 잠금 오버레이 */}
       <div className="flex items-start justify-between mb-3">
-        <motion.span
+        <m.span
           className="text-3xl"
           animate={isHovering ? { scale: 1.15, rotate: [0, -5, 5, 0] } : { scale: 1, rotate: 0 }}
           transition={{ duration: 0.4 }}
         >
           {icon}
-        </motion.span>
+        </m.span>
         {locked && (
-          <motion.div
+          <m.div
             className="w-7 h-7 rounded-full flex items-center justify-center text-sm"
             style={{ background: "rgba(212,168,67,0.15)", border: "1px solid rgba(212,168,67,0.3)" }}
             animate={{ boxShadow: ["0 0 6px rgba(212,168,67,0.2)", "0 0 16px rgba(212,168,67,0.5)", "0 0 6px rgba(212,168,67,0.2)"] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
             🔒
-          </motion.div>
+          </m.div>
         )}
         {backContent && !locked && (
-          <motion.div
+          <m.div
             className="text-[10px] text-violet-400/40 mt-1"
             animate={isHovering ? { opacity: 1 } : { opacity: 0 }}
           >
             {copy.flipHint}
-          </motion.div>
+          </m.div>
         )}
       </div>
 
@@ -384,7 +384,7 @@ export default function PremiumFeatureCard({
 
       {/* 잠금 상태 안내 */}
       {locked && (
-        <motion.div
+        <m.div
           className="mt-auto pt-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: isHovering ? 1 : 0.6 }}
@@ -392,14 +392,14 @@ export default function PremiumFeatureCard({
           <div className="text-[11px] font-semibold flex items-center gap-1.5"
             style={{ color: themeConfig.accent }}>
             <span>{copy.unlock}</span>
-            <motion.span
+            <m.span
               animate={{ x: isHovering ? [0, 4, 0] : 0 }}
               transition={{ duration: 0.5, repeat: isHovering ? Infinity : 0 }}
             >
               →
-            </motion.span>
+            </m.span>
           </div>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );
@@ -412,7 +412,7 @@ export default function PremiumFeatureCard({
   );
 
   return (
-    <motion.div
+    <m.div
       className={`relative rounded-xl overflow-hidden select-none ${className}`}
       style={{
         background: `linear-gradient(160deg,${themeConfig.bg},rgba(8,5,20,0.92))`,
@@ -432,7 +432,7 @@ export default function PremiumFeatureCard({
       onClick={locked ? onUnlock : undefined}
     >
       {/* 배경 빛 효과 */}
-      <motion.div
+      <m.div
         className="absolute inset-0 pointer-events-none"
         style={{ background: `radial-gradient(ellipse at 50% 0%,${themeConfig.glow.replace("0.4)", "0.12)")},transparent 70%)` }}
         animate={isHovering ? { opacity: 1 } : { opacity: 0 }}
@@ -441,7 +441,7 @@ export default function PremiumFeatureCard({
 
       {/* 버튼 빛 스윕 */}
       {isHovering && (
-        <motion.div
+        <m.div
           className="absolute inset-0 pointer-events-none"
           style={{ background: `linear-gradient(105deg,transparent 40%,${themeConfig.accent}18 50%,transparent 60%)` }}
           animate={{ x: ["-100%", "200%"] }}
@@ -459,7 +459,7 @@ export default function PremiumFeatureCard({
       ) : (
         <FrontContent />
       )}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -504,7 +504,7 @@ export function OhangFlipCard({ element, score }: { element: OhangElement; score
         <div>
           <div className="text-[11px] text-violet-300/50 mb-2">{ohang.pos}</div>
           <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.08)" }}>
-            <motion.div className="h-full rounded-full" style={{ background: meta.color }}
+            <m.div className="h-full rounded-full" style={{ background: meta.color }}
               initial={{ width: 0 }} animate={{ width: `${score}%` }} transition={{ duration: 0.7 }} />
           </div>
           <div className="text-[10px] mt-1" style={{ color: meta.color }}>{score}{copy.scoreSuffix}</div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { DialogueStep, Choice } from "../_types";
 
 interface DialogueBoxProps {
@@ -12,7 +12,7 @@ interface DialogueBoxProps {
 
 export const DialogueBox: React.FC<DialogueBoxProps> = ({ step, onChoiceSelect, personaName }) => {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative w-full max-w-2xl mx-auto p-6 bg-black/60 backdrop-blur-md border border-white/20 rounded-2xl shadow-2xl"
@@ -31,7 +31,7 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ step, onChoiceSelect, 
       {step.choices && step.choices.length > 0 && (
         <div className="mt-6 flex flex-col gap-3">
           {step.choices.map((choice, idx) => (
-            <motion.button
+            <m.button
               key={idx}
               whileHover={{ scale: 1.02, backgroundColor: "rgba(255, 255, 255, 0.15)" }}
               whileTap={{ scale: 0.98 }}
@@ -39,10 +39,10 @@ export const DialogueBox: React.FC<DialogueBoxProps> = ({ step, onChoiceSelect, 
               className="w-full p-4 text-left text-white bg-white/10 border border-white/10 rounded-xl transition-colors hover:border-pink-500/50"
             >
               {choice.text}
-            </motion.button>
+            </m.button>
           ))}
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 };

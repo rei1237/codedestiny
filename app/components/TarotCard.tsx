@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -86,7 +86,7 @@ export default function TarotCard({
 
   return (
     <div className={`${CARD_CONTAINER_CLASSNAME} ${className}`}>
-      <motion.div
+      <m.div
         role="button"
         tabIndex={0}
         aria-label={ariaLabel}
@@ -136,7 +136,7 @@ export default function TarotCard({
             <div className="text-xs text-violet-700">{frontSubtitle}</div>
           </div>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

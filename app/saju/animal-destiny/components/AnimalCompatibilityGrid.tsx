@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAnimalDisplayData } from "../lib/animalMapping";
@@ -120,14 +120,14 @@ interface Props {
 
 function CompatibilityCard({ label, animalName, reason }: { label: string; animalName: string; reason: string }) {
   return (
-    <motion.div
+    <m.div
       whileHover={{ scale: 1.02 }}
       className="rounded-2xl border border-[#EAD8B1] bg-white p-4 shadow-sm"
     >
       <p className="text-[10px] font-black tracking-widest text-[#B88E2F] uppercase">{label}</p>
       <p className="mt-1 text-lg font-black text-[#634832]">{animalName}</p>
       <p className="mt-2 text-xs leading-relaxed text-[#634832]/80">{reason}</p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -220,7 +220,7 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
         </button>
 
         {partner.animalData ? (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-6 space-y-4 rounded-2xl bg-white p-5 shadow-sm"
@@ -241,7 +241,7 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
                 💡 {partner.tips[0]}
               </p>
             </div>
-          </motion.div>
+          </m.div>
         ) : null}
       </div>
     </section>

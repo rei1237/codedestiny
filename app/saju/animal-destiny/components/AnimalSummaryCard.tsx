@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CosmicSigil from "./CosmicSigil";
@@ -35,7 +35,7 @@ function stageAnimalSymbol(stage?: string): AnimalSymbolName {
 
 export default function AnimalSummaryCard({ animal, primaryStage, pillarLabel, score, oneLine }: Props) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-[2.5rem] border-2 border-[#EAD8B1] bg-[#FFFBEB] p-6 shadow-[0_20px_50px_rgba(184,142,47,0.15)]"
@@ -101,6 +101,6 @@ export default function AnimalSummaryCard({ animal, primaryStage, pillarLabel, s
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

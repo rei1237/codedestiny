@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -68,7 +68,7 @@ export default function FptiHero({ onStart }: Props) {
         <span>🏠</span> 홈으로
       </Link>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -100,19 +100,19 @@ export default function FptiHero({ onStart }: Props) {
 
           <div className="mt-6 grid max-w-xl grid-cols-5 gap-2 text-center text-sm">
             {ELEMENTS.map((item, idx) => (
-              <motion.div
+              <m.div
                 key={item.label}
                 animate={reducedMotion ? { opacity: 1 } : { y: [0, -4, 0], opacity: [0.82, 1, 0.82] }}
                 transition={reducedMotion ? { duration: 0 } : { duration: 3.2, repeat: Infinity, delay: idx * 0.18 }}
                 className={`rounded-xl border py-2 backdrop-blur ${item.className}`}
               >
                 {item.label}
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
 
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1, y: [0, -8, 0] }}
           transition={{ delay: 0.15, duration: 0.45, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
@@ -142,8 +142,8 @@ export default function FptiHero({ onStart }: Props) {
               </div>
             ))}
           </div>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     </section>
   );
 }

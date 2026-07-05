@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { showToast } from "../../components/Toast";
@@ -1479,7 +1479,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
       { title: "Ce qui est organisé", paragraphs: ["Le thème, le tirage choisi et l'orientation des cartes sont reliés en un flux de prompt prêt pour une consultation de tarot. Lenormand lit la séquence et les pistes d'action; le tarot éclaire les couches émotionnelles et la texture symbolique."] },
       { title: "Comment lire", paragraphs: ["Plus la question est précise, plus le résultat se clarifie autour de la situation actuelle, des signes répétés, des pistes de bascule et de l'action réaliste. Lenormand gratuit sert à ordonner le flux; le prompt d'oracle payant convient aux textes plus longs et aux consignes d'ajustement."] },
       { title: "À garder en tête", paragraphs: ["Le résultat sert au divertissement et à l'introspection. Pour les décisions à fort impact comme santé, droit, investissement, grossesse ou admission, ne décidez pas seulement avec cette lecture; vérifiez les faits et consultez un spécialiste."] },
-      { title: "Poser une bonne question", paragraphs: ["Une question qui relie émotion et action se lit mieux qu'une demande de résultat seul. Après la copie du prompt, ajoutez la situation actuelle, les émotions et les options réalistes.", "Les mêmes cartes changent selon le moment et l'attitude. Utilisez le résultat comme une phrase à clarifier aujourd'hui et une action à réduire.", "Les débutants peuvent commencer avec une ou trois cartes; les questions relationnelles ou professionnelles complexes gagnent souvent à utiliser cinq cartes ou plus.", "Les entrées sont la question, le thème, le tirage et les cartes. Le prompt ne décide pas à votre place; il clarifie la question."] },
+      { title: "Poser une bonne question", paragraphs: ["Une question qui relie ém et action se lit mieux qu'une demande de résultat seul. Après la copie du prompt, ajoutez la situation actuelle, les émotions et les options réalistes.", "Les mêmes cartes changent selon le moment et l'attitude. Utilisez le résultat comme une phrase à clarifier aujourd'hui et une action à réduire.", "Les débutants peuvent commencer avec une ou trois cartes; les questions relationnelles ou professionnelles complexes gagnent souvent à utiliser cinq cartes ou plus.", "Les entrées sont la question, le thème, le tirage et les cartes. Le prompt ne décide pas à votre place; il clarifie la question."] },
     ],
     spreadLibraryTitle: "Voir d'autres tirages",
     close: "Fermer",
@@ -2244,7 +2244,7 @@ const SENSITIVE_CATEGORY_NOTICE_COPY: Record<LoadingLocale, Partial<Record<Tarot
   fr: {
     crisis: "Les questions de crise séparent ce qu'il faut suspendre et où demander de l'aide maintenant, sans nourrir la peur.",
     money: "Les questions d'argent font d'abord émerger les signaux de risque et les repères de gestion, pas une conclusion d'investissement.",
-    self: "Les questions du coeur sont une lecture de référence pour nommer l'émotion et trouver une action de rétablissement, pas un diagnostic.",
+    self: "Les questions du coeur sont une lecture de référence pour nommer l'ém et trouver une action de rétablissement, pas un diagnostic.",
     legal: "Les questions juridiques restent une référence symbolique pour organiser les dossiers et consulter un expert, sans prédire verdict ou victoire.",
   },
   de: {
@@ -2359,7 +2359,7 @@ function StarField() {
   return (
     <>
       {stars.map((i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full bg-white/80"
           style={{
@@ -2885,7 +2885,7 @@ export default function TarotPromptMakerPage() {
 
               {/* ━━━ QUESTION STAGE ━━━ */}
               {stage === "question" && (
-                <motion.div
+                <m.div
                   key="question-stage"
                   initial={false}
                   animate={{ opacity: 1, y: 0 }}
@@ -3081,7 +3081,7 @@ export default function TarotPromptMakerPage() {
                       >
                         {isLenormandMode ? uiCopy.defaultQuestionButton.lenormand : uiCopy.defaultQuestionButton.tarot}
                       </button>
-                      <motion.button
+                      <m.button
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
                         type="button"
@@ -3090,17 +3090,17 @@ export default function TarotPromptMakerPage() {
                         style={{ background: "linear-gradient(90deg, #c084fc, #f472b6, #fbbf24)", boxShadow: "0 8px 30px rgba(192,132,252,0.35)" }}
                       >
                         {oracleModeMeta.drawLabel}
-                      </motion.button>
+                      </m.button>
                     </div>
 
                     {feedback && <p className="mt-3 text-rose-300/90 text-sm text-center">{feedback}</p>}
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {/* ━━━ DRAW STAGE ━━━ */}
               {stage === "draw" && (
-                <motion.div
+                <m.div
                   key="draw-stage"
                   initial={false}
                   animate={{ opacity: 1, y: 0 }}
@@ -3157,7 +3157,7 @@ export default function TarotPromptMakerPage() {
                         {selectedSpread.positions.map((position) => {
                           const drawn = drawnCards.find((card) => card.slotIndex === position.index);
                           return (
-                            <motion.div
+                            <m.div
                               key={`${selectedSpread.id}-${position.index}`}
                               initial={{ opacity: 0.5, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
@@ -3180,7 +3180,7 @@ export default function TarotPromptMakerPage() {
                                 }}
                               >
                                 {drawn ? (
-                                  <motion.div
+                                  <m.div
                                     key={`${drawn.cardCode}-${drawn.slotIndex}`}
                                     initial={{ rotateY: 120, opacity: 0, scale: 0.85 }}
                                     animate={{ rotateY: 0, opacity: 1, scale: 1 }}
@@ -3193,7 +3193,7 @@ export default function TarotPromptMakerPage() {
                                       <div className="text-[9px] font-bold text-[#e9d5ff] leading-tight line-clamp-1">{resolveOracleCardName(drawn, locale)}</div>
                                       <div className="text-[8px] text-[#f472b6]">{isLenormandMode ? uiCopy.combinationReading : resolveOrientationLabel(drawn.orientation, locale)}</div>
                                     </div>
-                                  </motion.div>
+                                  </m.div>
                                 ) : (
                                   <div className="h-full flex flex-col items-center justify-center rounded-xl border-dashed border border-[#7c3aed]/30" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }}>
                                     <div className="text-[10px] font-bold text-[#c084fc]">{position.index}</div>
@@ -3201,7 +3201,7 @@ export default function TarotPromptMakerPage() {
                                   </div>
                                 )}
                               </div>
-                            </motion.div>
+                            </m.div>
                           );
                         })}
                       </div>
@@ -3262,7 +3262,7 @@ export default function TarotPromptMakerPage() {
                         </div>
                       </div>
 
-                      <motion.button
+                      <m.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.97 }}
                         type="button"
@@ -3272,7 +3272,7 @@ export default function TarotPromptMakerPage() {
                         style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 6px 25px rgba(168,85,247,0.3)" }}
                       >
                         {isLenormandMode ? uiCopy.drawCard.lenormand : uiCopy.drawCard.tarot}
-                      </motion.button>
+                      </m.button>
 
                       <button
                         type="button"
@@ -3287,7 +3287,7 @@ export default function TarotPromptMakerPage() {
 
                       <AnimatePresence>
                         {showFullDeck && (
-                          <motion.div
+                          <m.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
@@ -3310,7 +3310,7 @@ export default function TarotPromptMakerPage() {
                               );
                             })}
                             </div>
-                          </motion.div>
+                          </m.div>
                         )}
                       </AnimatePresence>
                     </div>
@@ -3360,7 +3360,7 @@ export default function TarotPromptMakerPage() {
                     </div>
 
                     {/* Generate button */}
-                    <motion.button
+                    <m.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
                       type="button"
@@ -3370,16 +3370,16 @@ export default function TarotPromptMakerPage() {
                       style={{ background: "linear-gradient(90deg, #a855f7, #ec4899, #f59e0b)", boxShadow: "0 8px 30px rgba(168,85,247,0.3)" }}
                     >
                       {isGenerating || (!isLenormandMode && isPaying) ? feedbackCopy.generating : oracleModeMeta.promptLabel}
-                    </motion.button>
+                    </m.button>
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {/* ━━━ PROMPT STAGE ━━━ */}
               {stage === "prompt" && promptResult && (
-                <motion.div
+                <m.div
                   key="prompt-stage"
                   initial={false}
                   animate={{ opacity: 1, y: 0 }}
@@ -3504,7 +3504,7 @@ export default function TarotPromptMakerPage() {
 
                     {feedback && <p className="text-rose-300/80 text-xs text-center">{feedback}</p>}
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -3527,14 +3527,14 @@ export default function TarotPromptMakerPage() {
       {/* ── Spread Picker Modal ── */}
       <AnimatePresence>
         {showSpreadPicker && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center sm:justify-center p-0 sm:p-4"
             style={{ background: "rgba(5,2,15,0.75)", backdropFilter: "blur(12px)" }}
           >
-            <motion.div
+            <m.div
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 40, opacity: 0 }}
@@ -3597,7 +3597,7 @@ export default function TarotPromptMakerPage() {
                     const active = spread.id === selectedSpread.id;
                     const recommended = recommendedSpreads.some((item) => item.id === spread.id);
                     return (
-                      <motion.button
+                      <m.button
                         key={spread.id}
                         type="button"
                         whileHover={{ y: -2 }}
@@ -3617,7 +3617,7 @@ export default function TarotPromptMakerPage() {
                         <div className="text-sm font-bold text-[#e9d5ff]">{spread.title}</div>
                         <div className="text-xs text-[#a78bfa]/60 mt-0.5">{uiCopy.cardCount(spread.cardCount)} · {DIFFICULTY_LABEL[spread.difficulty]}</div>
                         <p className="mt-2 text-xs leading-relaxed text-white/55">{spread.purpose}</p>
-                      </motion.button>
+                      </m.button>
                     );
                   })}
                   {!filteredSpreads.length && (
@@ -3627,8 +3627,8 @@ export default function TarotPromptMakerPage() {
                   )}
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
 

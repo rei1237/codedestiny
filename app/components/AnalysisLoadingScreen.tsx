@@ -9,7 +9,7 @@
  */
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { m, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 /* ─────────────────────────────────────────
@@ -320,14 +320,14 @@ function CosmicParticle({ index }: { index: number }) {
   const duration = 3 + (index % 3);
 
   return (
-    <motion.div
+    <m.div
       className="absolute pointer-events-none select-none"
       style={{ left: `${x}%`, top: `${y}%`, fontSize: size, color: index % 3 === 0 ? "#d4a843" : "#a78bfa" }}
       animate={{ opacity: [0.08, 0.35, 0.08], scale: [0.8, 1.2, 0.8] }}
       transition={{ duration, delay, repeat: Infinity, ease: "easeInOut" }}
     >
       {sym}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -345,7 +345,7 @@ function CircularProgress({ progress, label }: { progress: number; label: string
         {/* 배경 링 */}
         <circle cx="60" cy="60" r={r} fill="none" stroke="rgba(167,139,250,0.12)" strokeWidth="6" />
         {/* 진행 링 */}
-        <motion.circle
+        <m.circle
           cx="60"
           cy="60"
           r={r}
@@ -367,7 +367,7 @@ function CircularProgress({ progress, label }: { progress: number; label: string
       </svg>
       {/* 퍼센트 텍스트 */}
       <div className="absolute inset-0 flex items-center justify-center flex-col">
-        <motion.span
+        <m.span
           className="text-2xl font-bold"
           style={{ background: "linear-gradient(135deg,#d4a843,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
           key={Math.round(progress)}
@@ -376,7 +376,7 @@ function CircularProgress({ progress, label }: { progress: number; label: string
           transition={{ duration: 0.2 }}
         >
           {Math.round(progress)}%
-        </motion.span>
+        </m.span>
         <span className="text-[10px] text-violet-300/60 font-medium tracking-widest">{label}</span>
       </div>
     </div>
@@ -395,7 +395,7 @@ function StepItem({ step, status, progress }: {
   const isActive = status === "active";
 
   return (
-    <motion.div
+    <m.div
       className={`relative flex items-start gap-3 p-3 rounded-xl transition-all duration-500 ${
         isActive
           ? "bg-violet-950/60 border border-violet-500/30 shadow-[0_0_20px_rgba(167,139,250,0.12)]"
@@ -426,19 +426,19 @@ function StepItem({ step, status, progress }: {
           {step.label}
         </div>
         {isActive && (
-          <motion.div
+          <m.div
             className="text-xs text-violet-300/70 mt-0.5 leading-relaxed"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             transition={{ duration: 0.3 }}
           >
             {step.detail}
-          </motion.div>
+          </m.div>
         )}
         {/* 진행 바 */}
         {isActive && (
           <div className="mt-2 h-1 rounded-full bg-violet-900/50 overflow-hidden">
-            <motion.div
+            <m.div
               className="h-full rounded-full"
               style={{ background: "linear-gradient(90deg,#d4a843,#a78bfa,#d4a843)", backgroundSize: "200% 100%" }}
               animate={{ width: `${progress}%`, backgroundPosition: ["0% 50%", "100% 50%"] }}
@@ -449,16 +449,16 @@ function StepItem({ step, status, progress }: {
       </div>
 
       {isDone && (
-        <motion.div
+        <m.div
           className="flex-shrink-0 text-amber-400 text-sm pt-0.5"
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
           ✦
-        </motion.div>
+        </m.div>
       )}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -545,7 +545,7 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
         {Array.from({ length: 20 }, (_, i) => <CosmicParticle key={i} index={i} />)}
       </div>
 
-      <motion.div
+      <m.div
         className="relative z-10 w-full max-w-md"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -553,7 +553,7 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
       >
         {/* 헤더 */}
         <div className="text-center mb-8">
-          <motion.div
+          <m.div
             className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold tracking-widest mb-4 border"
             style={{
               background: "rgba(124,58,237,0.15)",
@@ -565,7 +565,7 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
           >
             <span className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-pulse" />
             {copy.badge}
-          </motion.div>
+          </m.div>
 
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
             {copy.headingPrefix(userName)}
@@ -598,7 +598,7 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
         {/* 하단 안내 */}
         <AnimatePresence>
           {isComplete ? (
-            <motion.div
+            <m.div
               key="complete"
               className="text-center"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -609,19 +609,19 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
                 style={{ background: "linear-gradient(135deg,#d4a843,#b8860b)", color: "#1a0e00" }}>
                 🌟 {copy.complete}
               </div>
-            </motion.div>
+            </m.div>
           ) : (
-            <motion.p
+            <m.p
               key="hint"
               className="text-center text-xs text-violet-400/40 tracking-wide"
               animate={{ opacity: [0.4, 0.8, 0.4] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             >
               {copy.hint}
-            </motion.p>
+            </m.p>
           )}
         </AnimatePresence>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

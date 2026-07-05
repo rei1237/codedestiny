@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 type Props = {
   onEnter: () => void;
@@ -11,7 +11,7 @@ export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.section
+    <m.section
       initial={reduceMotion ? false : { opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.55, ease: "easeOut" }}
@@ -90,6 +90,6 @@ export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
           </div>
         </div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }

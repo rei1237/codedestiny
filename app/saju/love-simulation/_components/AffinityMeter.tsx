@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Heart } from "lucide-react";
 
 interface AffinityMeterProps {
@@ -11,15 +11,15 @@ interface AffinityMeterProps {
 export const AffinityMeter: React.FC<AffinityMeterProps> = ({ value }) => {
   return (
     <div className="flex items-center gap-4 p-4 bg-white/5 backdrop-blur-sm rounded-full border border-white/10">
-      <motion.div
+      <m.div
         animate={{ scale: [1, 1.2, 1] }}
         transition={{ repeat: Infinity, duration: 2 }}
       >
         <Heart className="w-6 h-6 text-rose-500 fill-rose-500" />
-      </motion.div>
+      </m.div>
       
       <div className="relative w-48 h-3 bg-white/20 rounded-full overflow-hidden">
-        <motion.div
+        <m.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ type: "spring", stiffness: 50 }}

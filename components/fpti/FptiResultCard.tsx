@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { fetchBillingBalance, purchaseFeature } from "@/app/_lib/billing-client";
 import { authFetch } from "@/app/_lib/auth-client";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
@@ -697,7 +697,7 @@ export default function FptiResultCard({ result }: Props) {
   };
 
   return (
-    <motion.section
+    <m.section
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
@@ -976,6 +976,6 @@ export default function FptiResultCard({ result }: Props) {
       </section>
 
       <FptiShareCard result={result} />
-    </motion.section>
+    </m.section>
   );
 }

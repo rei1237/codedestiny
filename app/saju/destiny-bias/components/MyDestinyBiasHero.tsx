@@ -1,12 +1,12 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 
 export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
   const reduceMotion = useReducedMotion();
 
   return (
-    <motion.section
+    <m.section
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
@@ -47,7 +47,7 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
           background: "linear-gradient(90deg, transparent, rgba(255,95,210,0.5) 30%, rgba(64,200,255,0.5) 70%, transparent)",
         }}
       />
-    </motion.section>
+    </m.section>
   );
 }
 

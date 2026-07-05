@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useCallback, useState, type CSSProperties, type MouseEvent, type SyntheticEvent } from "react";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
@@ -193,7 +193,7 @@ export default function DestinyBiasPhotocard({
 
   return (
     <>
-      <motion.div
+      <m.div
         id="destiny-bias-card-preview"
         className="relative isolate mx-auto w-full max-w-[420px]"
         onMouseMove={handleMove}
@@ -219,7 +219,7 @@ export default function DestinyBiasPhotocard({
           className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-[90%] -translate-x-1/2 rounded-full bg-fuchsia-400/30 blur-3xl"
           aria-hidden
         />
-      </motion.div>
+      </m.div>
       <div aria-hidden="true" style={exportWrapperStyle}>
         <PhotocardSurface
           vm={vm}

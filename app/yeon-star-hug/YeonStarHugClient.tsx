@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import {
   BatteryLow,
   Cloud,
@@ -1905,7 +1905,7 @@ export default function YeonStarHugPage() {
         <div className="absolute right-[-4rem] top-[-2rem] h-72 w-72 rounded-full bg-purple-200/45 blur-3xl" />
         <div className="absolute bottom-[-6rem] left-1/2 h-72 w-[30rem] -translate-x-1/2 rounded-full bg-yellow-100/75 blur-3xl" />
         {STAR_DOTS.map((dot, idx) => (
-          <motion.span
+          <m.span
             key={idx}
             className="absolute text-pink-300/75"
             style={{ left: dot.left, top: dot.top }}
@@ -1913,26 +1913,26 @@ export default function YeonStarHugPage() {
             transition={reduceMotion ? undefined : { duration: 3.2, repeat: Infinity, delay: dot.delay, ease: "easeInOut" }}
           >
             ✦
-          </motion.span>
+          </m.span>
         ))}
       </div>
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-5">
-        <motion.section
+        <m.section
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
           className="grid gap-5 rounded-3xl border border-white/45 bg-white/70 p-5 shadow-[0_14px_36px_rgba(236,72,153,0.22)] backdrop-blur-sm md:grid-cols-[1.1fr_0.9fr] md:p-7"
         >
           <div className="space-y-4">
-            <motion.div
+            <m.div
               animate={reduceMotion ? undefined : { y: [0, -5, 0] }}
               transition={reduceMotion ? undefined : { duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
               className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-sm font-semibold text-pink-500"
             >
               <Heart className="h-4 w-4 fill-pink-200 text-pink-400" />
               연이의 별빛 상담소
-            </motion.div>
+            </m.div>
 
             <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight md:text-5xl">
               <span className="bg-gradient-to-r from-pink-500 to-orange-400 bg-clip-text text-transparent">연이의 마음 별자리</span>
@@ -1964,10 +1964,10 @@ export default function YeonStarHugPage() {
               </div>
             )}
           </div>
-        </motion.section>
+        </m.section>
 
         <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-          <motion.article
+          <m.article
             initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
             animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
             transition={{ duration: 0.45, delay: 0.1 }}
@@ -2044,7 +2044,7 @@ export default function YeonStarHugPage() {
               {EMOTIONS.map((emotion) => {
                 const isActive = selectedEmotion === emotion.key;
                 return (
-                  <motion.button
+                  <m.button
                     key={emotion.key}
                     type="button"
                     whileTap={{ scale: 0.92 }}
@@ -2059,7 +2059,7 @@ export default function YeonStarHugPage() {
                   >
                     <emotion.Icon className={`mx-auto mb-1 h-4 w-4 ${isActive ? "text-pink-500" : "text-rose-400"}`} />
                     <span className={`text-xs font-bold ${isActive ? "text-slate-700" : "text-slate-600"}`}>{emotion.label}</span>
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
@@ -2114,11 +2114,11 @@ export default function YeonStarHugPage() {
               {isGenerating ? "연이가 별빛 흐름 정리중..." : "연이 상담 업데이트"}
             </button>
             <p className="mt-2 text-xs text-slate-500">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
-          </motion.article>
+          </m.article>
 
           <div className="flex min-w-0 flex-col gap-4">
             {!consultation || !reading ? (
-              <motion.article
+              <m.article
                 initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                 animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                 transition={{ duration: 0.35 }}
@@ -2126,10 +2126,10 @@ export default function YeonStarHugPage() {
               >
                 <p className="text-sm font-semibold text-pink-500">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
                 <p className="mt-2 text-xs text-slate-500">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
-              </motion.article>
+              </m.article>
             ) : (
               <>
-                <motion.article
+                <m.article
                   initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
@@ -2188,7 +2188,7 @@ export default function YeonStarHugPage() {
                           </div>
 
                           <AnimatePresence mode="wait">
-                            <motion.div
+                            <m.div
                               key={`${selectedEmotion}-${selectedSign}-${displayWarmMessage}`}
                               initial={reduceMotion ? undefined : { opacity: 0, y: 6 }}
                               animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
@@ -2198,7 +2198,7 @@ export default function YeonStarHugPage() {
                             >
                               <p className="text-xs font-semibold text-rose-500">{consultation.recipientLabel}께 드리는 오늘의 편지</p>
                               <p className="mt-1.5 text-sm font-semibold leading-relaxed text-slate-700">{displayWarmMessage}</p>
-                            </motion.div>
+                            </m.div>
                           </AnimatePresence>
                         </div>
                       </div>
@@ -2240,9 +2240,9 @@ export default function YeonStarHugPage() {
                         </div>
                       </div>
                     </div>
-                </motion.article>
+                </m.article>
 
-                <motion.article
+                <m.article
                   initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
                   animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
                   transition={{ duration: 0.35, delay: 0.04 }}
@@ -2287,7 +2287,7 @@ export default function YeonStarHugPage() {
                       <p className="mt-2 text-xs font-semibold text-slate-700">행운 아이템: {reading.displayCard.auraItem.name}</p>
                     </div>
                   </div>
-                </motion.article>
+                </m.article>
               </>
             )}
           </div>
@@ -2331,7 +2331,7 @@ export default function YeonStarHugPage() {
           </article>
         </section>
 
-        <motion.nav
+        <m.nav
           initial={reduceMotion ? undefined : { opacity: 0, y: 12 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.4 }}
@@ -2350,7 +2350,7 @@ export default function YeonStarHugPage() {
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
             <Coins className="h-4 w-4" /> SVG 카드 공유
           </div>
-        </motion.nav>
+        </m.nav>
       </div>
     </main>
   );

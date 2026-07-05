@@ -136,7 +136,7 @@ function createNextConfig(phase) {
     },
     experimental: {
       cpus: 1,
-      optimizePackageImports: ['lucide-react'],
+      optimizePackageImports: ['lucide-react', 'framer-motion'],
     },
     trailingSlash: true,
     webpack(config, { dev }) {

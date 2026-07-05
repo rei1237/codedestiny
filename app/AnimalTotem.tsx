@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -294,7 +294,7 @@ export default function AnimalTotem() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(244,114,182,0.28),transparent_30%),radial-gradient(circle_at_80%_80%,rgba(125,211,252,0.2),transparent_30%),radial-gradient(circle_at_50%_0%,rgba(250,204,21,0.16),transparent_45%)]" />
 
       {STAR_FIELD.map((star) => (
-        <motion.span
+        <m.span
           key={star.id}
           className="pointer-events-none absolute h-1 w-1 rounded-full bg-yellow-100 shadow-[0_0_12px_rgba(253,224,71,0.9)]"
           style={{ top: star.top, left: star.left }}
@@ -309,7 +309,7 @@ export default function AnimalTotem() {
         />
       ))}
       {animalPositions.map((a) => (
-        <motion.span
+        <m.span
           key={a.id}
           className="pointer-events-none absolute select-none"
           style={{
@@ -332,11 +332,11 @@ export default function AnimalTotem() {
           aria-hidden
         >
           {a.icon}
-        </motion.span>
+        </m.span>
       ))}
 
       <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8">
-        <motion.header
+        <m.header
           initial={{ opacity: 0, y: 22 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: "easeOut" }}
@@ -351,7 +351,7 @@ export default function AnimalTotem() {
           <p className="mx-auto mt-3 max-w-2xl text-sm text-violet-100/90 sm:text-base">
             별빛이 인도하는 카드를 한 장 골라, 오늘의 수호 동물 메시지를 받아보세요.
           </p>
-        </motion.header>
+        </m.header>
 
         <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
           <div className="rounded-[2rem] border border-white/25 bg-white/10 p-5 shadow-[0_20px_48px_rgba(76,29,149,0.28)] backdrop-blur-xl sm:p-6">
@@ -360,7 +360,7 @@ export default function AnimalTotem() {
               {deck.map((totem, index) => {
                 const flipped = flippedIds.includes(totem.id);
                 return (
-                  <motion.button
+                  <m.button
                     key={totem.id}
                     type="button"
                     onClick={() => onFlip(totem)}
@@ -368,7 +368,7 @@ export default function AnimalTotem() {
                     whileTap={{ scale: 0.97 }}
                     className="group relative h-44 [perspective:1000px] sm:h-52"
                   >
-                    <motion.div
+                    <m.div
                       animate={{ rotateY: flipped ? 360 : 0 }}
                       transition={{ duration: 0.8, ease: "easeInOut" }}
                       className="relative h-full w-full rounded-3xl border border-white/30 [transform-style:preserve-3d]"
@@ -383,21 +383,21 @@ export default function AnimalTotem() {
                         <p className="text-lg font-bold">{totem.name}</p>
                         <p className="mt-1 px-3 text-center text-xs font-medium text-slate-700">{totem.keyword}</p>
                       </div>
-                    </motion.div>
+                    </m.div>
 
-                    <motion.span
+                    <m.span
                       className="pointer-events-none absolute -right-1 top-2 h-3 w-3 rounded-full bg-yellow-200/90"
                       animate={{ opacity: [0.25, 1, 0.25], scale: [0.75, 1.35, 0.75] }}
                       transition={{ duration: 1.8, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut" }}
                     />
-                    <motion.span
+                    <m.span
                       className="pointer-events-none absolute left-2 top-1 h-2 w-2 rounded-full bg-pink-100/90"
                       animate={{ opacity: [0.2, 0.9, 0.2], scale: [0.7, 1.2, 0.7] }}
                       transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, ease: "easeInOut", delay: 0.3 }}
                     />
 
                     <span className="pointer-events-none absolute inset-0 rounded-3xl border border-transparent transition-all duration-300 group-hover:border-yellow-100/60 group-hover:shadow-[0_0_24px_rgba(250,204,21,0.5)]" />
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
@@ -433,7 +433,7 @@ export default function AnimalTotem() {
 
             <AnimatePresence mode="wait">
               {selectedTotem ? (
-                <motion.div
+                <m.div
                   key={selectedTotem.id}
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -459,9 +459,9 @@ export default function AnimalTotem() {
                   <blockquote className="mt-4 rounded-2xl border border-pink-100/45 bg-pink-100/20 px-4 py-3 text-sm leading-6 text-violet-50">
                     &ldquo;{selectedTotem.advice}&rdquo;
                   </blockquote>
-                </motion.div>
+                </m.div>
               ) : (
-                <motion.div
+                <m.div
                   key="empty"
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -469,7 +469,7 @@ export default function AnimalTotem() {
                   className="rounded-[2rem] border border-white/25 bg-white/10 p-5 text-sm text-violet-100/90 backdrop-blur-xl sm:p-6"
                 >
                   카드 한 장을 뽑거나 검색 칩을 눌러 오늘의 애니멀 토템을 확인해 보세요.
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </aside>

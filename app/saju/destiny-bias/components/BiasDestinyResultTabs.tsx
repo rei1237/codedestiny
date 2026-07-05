@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import type { DestinyBiasResultViewModel } from "../lib/types";
 
@@ -81,7 +81,7 @@ export default function BiasDestinyResultTabs({ vm }: Props) {
           ))}
         </div>
 
-        <motion.div
+        <m.div
           key={activeTab.id}
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -106,7 +106,7 @@ export default function BiasDestinyResultTabs({ vm }: Props) {
             <p className="relative text-[11px] font-semibold tracking-[0.14em] text-[#FDE68A]/95">✨ 실전 조언 BOX</p>
             <p className="relative mt-1 min-w-0 break-keep text-sm leading-7 text-white/90">{nonEmpty(activeTab.action, "감정의 속도를 한 템포 늦추고, 오늘의 작은 행동 하나를 남겨 보세요.")}</p>
           </div>
-        </motion.div>
+        </m.div>
       </article>
     </section>
   );

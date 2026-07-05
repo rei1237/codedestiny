@@ -1,7 +1,7 @@
 "use client";
 
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import FortuneTeaHouseImmersiveShell from "./components/FortuneTeaHouseImmersiveShell";
 import FortuneTeaHouseLanding from "./components/FortuneTeaHouseLanding";
 import AssetImage from "./components/AssetImage";
@@ -1069,7 +1069,7 @@ export default function FortuneTeaHousePage() {
 
       <div className={styles.sceneFrame} aria-live="polite">
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div
+          <m.div
             key={stage}
             className={styles.sceneStage}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.992 }}
@@ -1080,7 +1080,7 @@ export default function FortuneTeaHousePage() {
             <Suspense fallback={<SceneLoadingPanel />}>
               {renderScene()}
             </Suspense>
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
       {process.env.NODE_ENV !== "production" ? (

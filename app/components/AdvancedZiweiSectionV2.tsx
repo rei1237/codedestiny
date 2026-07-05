@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -1043,33 +1043,33 @@ function GalaxyBackdrop() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(74,144,226,0.18),transparent_35%),radial-gradient(circle_at_20%_20%,rgba(250,204,21,0.14),transparent_24%),radial-gradient(circle_at_80%_15%,rgba(103,80,164,0.3),transparent_30%),linear-gradient(180deg,#02050f_0%,#050816_45%,#02030a_100%)]" />
-      <motion.div
+      <m.div
         className="absolute -left-10 top-16 h-72 w-72 rounded-full bg-cyan-300/12 blur-3xl"
         animate={{ x: [0, 18, 0], y: [0, -12, 0], opacity: [0.3, 0.55, 0.3] }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
+      <m.div
         className="absolute right-0 top-0 h-80 w-80 rounded-full bg-amber-300/10 blur-3xl"
         animate={{ x: [0, -12, 0], y: [0, 20, 0], opacity: [0.28, 0.45, 0.28] }}
         transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
+      <m.div
         className="absolute bottom-0 left-1/3 h-[28rem] w-[28rem] rounded-full bg-fuchsia-400/10 blur-3xl"
         animate={{ scale: [1, 1.08, 1], opacity: [0.18, 0.4, 0.18] }}
         transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
       />
       <div className="absolute inset-0 opacity-60 [background-image:radial-gradient(rgba(255,255,255,0.38)_1px,transparent_1px),radial-gradient(rgba(255,255,255,0.24)_1px,transparent_1px)] [background-size:140px_140px,180px_180px] [background-position:0_0,70px_45px]" />
-      <motion.div
+      <m.div
         className="absolute inset-x-1/4 top-8 h-px bg-gradient-to-r from-transparent via-amber-200/40 to-transparent"
         animate={{ opacity: [0.15, 0.6, 0.15], scaleX: [0.9, 1, 0.9] }}
         transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
+      <m.div
         className="absolute bottom-16 left-1/2 h-40 w-[34rem] -translate-x-1/2 rounded-full bg-gradient-to-r from-cyan-300/10 via-amber-200/12 to-fuchsia-300/10 blur-3xl"
         animate={{ y: [0, -12, 0], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.div
+      <m.div
         className="absolute inset-x-0 top-1/4 h-px bg-gradient-to-r from-transparent via-cyan-200/50 to-transparent"
         animate={{ opacity: [0.2, 0.65, 0.2], scaleX: [0.96, 1, 0.96] }}
         transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
@@ -1909,7 +1909,7 @@ export default function AdvancedZiweiSectionV2({
           </div>
         </div>
       )}
-      <motion.div
+      <m.div
         className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
@@ -2532,7 +2532,7 @@ export default function AdvancedZiweiSectionV2({
           <p className="text-xs font-semibold text-cyan-100/80">상담의 흐름 · {activeTrack.title}</p>
           <div className="mt-4 grid gap-4">
             {(trackAnalysis?.consultationFlow || []).map((stage, index) => (
-              <motion.article
+              <m.article
                 key={`${activeTrack.key}-${stage.stage}`}
                 className={`rounded-2xl border px-4 py-4 text-sm leading-7 md:text-[15px] ${index === 0 ? "border-amber-200/25 bg-amber-200/10 text-amber-50 [text-shadow:0_0_16px_rgba(251,191,36,0.18)]" : "border-white/10 bg-black/20 text-slate-200/92"}`}
                 initial={{ opacity: 0, y: 12 }}
@@ -2560,7 +2560,7 @@ export default function AdvancedZiweiSectionV2({
                     </ul>
                   </details>
                 ) : null}
-              </motion.article>
+              </m.article>
             ))}
           </div>
         </StagePanel>
@@ -2619,7 +2619,7 @@ export default function AdvancedZiweiSectionV2({
           <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart || webLocked} />
         </div>
 
-      </motion.div>
+      </m.div>
     </section>
   );
 }

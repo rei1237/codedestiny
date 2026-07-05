@@ -14,7 +14,7 @@
  */
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 /* ─────────────────────────────────────────
@@ -251,7 +251,7 @@ function LockParticles() {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
       {[...Array(12)].map((_, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute text-amber-400/30 select-none"
           style={{
@@ -263,7 +263,7 @@ function LockParticles() {
           transition={{ duration: 2.5 + (i % 3), delay: i * 0.3, repeat: Infinity, ease: "easeInOut" }}
         >
           {["✦", "✧", "⋆", "·"][i % 4]}
-        </motion.div>
+        </m.div>
       ))}
     </div>
   );
@@ -330,7 +330,7 @@ export default function PremiumBlurGate({
     <div className="relative space-y-4">
       {/* ── 무료 미리보기 섹션 ───────────────── */}
       {previewContent && (
-        <motion.div
+        <m.div
           className="relative rounded-2xl overflow-hidden border border-violet-700/20 bg-gradient-to-b from-violet-950/40 to-slate-900/60 p-5"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -344,11 +344,11 @@ export default function PremiumBlurGate({
             </span>
           </div>
           {previewContent}
-        </motion.div>
+        </m.div>
       )}
 
       {/* ── 잠긴 프리미엄 섹션 ───────────────── */}
-      <motion.div
+      <m.div
         className="relative rounded-2xl overflow-hidden"
         style={{ border: "1px solid rgba(212,168,67,0.25)" }}
         initial={{ opacity: 0, y: 16 }}
@@ -384,14 +384,14 @@ export default function PremiumBlurGate({
 
           <div className="relative z-10 text-center max-w-xs">
             {/* 잠금 아이콘 */}
-            <motion.div
+            <m.div
               className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl"
               style={{ background: "linear-gradient(135deg,rgba(212,168,67,0.2),rgba(212,168,67,0.08))", border: "1px solid rgba(212,168,67,0.4)" }}
               animate={{ boxShadow: ["0 0 12px rgba(212,168,67,0.2)", "0 0 30px rgba(212,168,67,0.5)", "0 0 12px rgba(212,168,67,0.2)"] }}
               transition={{ duration: 2.5, repeat: Infinity }}
             >
               🔐
-            </motion.div>
+            </m.div>
 
             {/* 제목 */}
             <h3 className="text-base font-bold text-white mb-1 leading-tight">
@@ -421,7 +421,7 @@ export default function PremiumBlurGate({
             )}
 
             {/* CTA 버튼 */}
-            <motion.button
+            <m.button
               type="button"
               onClick={isCheckingAccess ? undefined : onUnlock}
               disabled={isCheckingAccess}
@@ -438,7 +438,7 @@ export default function PremiumBlurGate({
               whileTap={{ scale: 0.98 }}
             >
               {/* 버튼 빛 효과 */}
-              <motion.div
+              <m.div
                 className="absolute inset-0 rounded-xl"
                 style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)" }}
                 animate={isHovering ? { x: ["-100%", "100%"] } : { x: "-100%" }}
@@ -451,14 +451,14 @@ export default function PremiumBlurGate({
                   ? copy.coinCta(formattedCoinValue)
                   : copy.priceCta(displayProductName, formattedPrice)}
               </span>
-            </motion.button>
+            </m.button>
 
             <p className="text-[10px] text-violet-400/35 mt-2.5">
               {copy.footnote}
             </p>
           </div>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

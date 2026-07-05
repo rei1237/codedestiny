@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
@@ -181,7 +181,7 @@ const EMPTY_PERSON: PersonForm = {
 
 function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
   return (
-    <motion.svg
+    <m.svg
       className={styles.lunarBotanicalScene}
       viewBox="0 0 900 520"
       aria-hidden="true"
@@ -214,7 +214,7 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
           <stop offset="100%" stopColor="#FFE8B6" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <motion.circle
+      <m.circle
         className={styles.sceneMoonAura}
         cx="684"
         cy="138"
@@ -223,7 +223,7 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
         animate={reduceMotion ? undefined : { scale: [1, 1.035, 1], opacity: [0.76, 1, 0.82] }}
         transition={{ duration: 6.8, repeat: Infinity, ease: "easeInOut" }}
       />
-      <motion.circle
+      <m.circle
         className={styles.sceneMoon}
         cx="684"
         cy="138"
@@ -234,7 +234,7 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
       />
       <path className={styles.sceneOrbit} d="M96 360C240 260 432 206 704 244C784 255 842 286 874 320" stroke="url(#sukuyoOrbit)" />
       <path className={styles.sceneOrbitSoft} d="M156 402C280 318 420 276 592 300C706 316 786 366 836 424" stroke="url(#sukuyoOrbit)" />
-      <motion.g
+      <m.g
         className={styles.sceneLotus}
         animate={reduceMotion ? undefined : { y: [0, -5, 0], opacity: [0.78, 0.96, 0.82] }}
         transition={{ duration: 8.5, repeat: Infinity, ease: "easeInOut" }}
@@ -244,10 +244,10 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
         <ellipse cx="204" cy="386" rx="58" ry="18" fill="url(#sukuyoPetal)" opacity="0.32" transform="rotate(12 204 386)" />
         <ellipse cx="180" cy="370" rx="42" ry="26" fill="url(#sukuyoPetal)" opacity="0.42" />
         <path d="M124 414C160 428 206 430 244 414" fill="none" stroke="#FFE8B6" strokeOpacity="0.22" strokeWidth="1.2" />
-      </motion.g>
+      </m.g>
       <g className={styles.scenePetalLayer}>
         {LUNAR_SCENE_PETALS.map((petal) => (
-          <motion.g
+          <m.g
             key={`${petal.x}-${petal.y}`}
             animate={reduceMotion ? undefined : { x: [0, petal.driftX, 0], y: [0, petal.driftY, 0] }}
             transition={{ duration: 7.8, repeat: Infinity, ease: "easeInOut", delay: petal.delay }}
@@ -262,12 +262,12 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
               opacity={petal.opacity}
               transform={`rotate(${petal.rotate} ${petal.x} ${petal.y})`}
             />
-          </motion.g>
+          </m.g>
         ))}
       </g>
       <g className={styles.sceneStars}>
         {LUNAR_SCENE_STARS.map((star) => (
-          <motion.circle
+          <m.circle
             key={`${star.x}-${star.y}`}
             cx={star.x}
             cy={star.y}
@@ -279,13 +279,13 @@ function LunarBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
           />
         ))}
       </g>
-    </motion.svg>
+    </m.svg>
   );
 }
 
 function LoadingBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
   return (
-    <motion.svg
+    <m.svg
       className={styles.loadingBotanicalScene}
       viewBox="0 0 200 200"
       aria-hidden="true"
@@ -305,7 +305,7 @@ function LoadingBotanicalScene({ reduceMotion }: { reduceMotion: boolean }) {
       <ellipse cx="100" cy="176" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.66" transform="rotate(190 100 176)" />
       <ellipse cx="26" cy="100" rx="18" ry="7" fill="url(#sukuyoLoadingPetal)" opacity="0.44" transform="rotate(278 26 100)" />
       <path d="M34 112C72 150 132 150 168 112" fill="none" stroke="#FFE8B6" strokeOpacity="0.22" strokeWidth="1" />
-    </motion.svg>
+    </m.svg>
   );
 }
 
@@ -1238,7 +1238,7 @@ export default function SukuyoCompatibilityAiClient() {
       <div className={styles.threadLine} />
       <div className={styles.starField} aria-hidden="true" />
       <section className={`${styles.shell} mx-auto w-full`}>
-        <motion.aside
+        <m.aside
           className={styles.visualPanel}
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
           animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -1247,7 +1247,7 @@ export default function SukuyoCompatibilityAiClient() {
           <div className={styles.visualVeil} aria-hidden="true">
             <LunarBotanicalScene reduceMotion={reduceMotion} />
           </div>
-          <motion.div
+          <m.div
             className={styles.visualCopy}
             initial={reduceMotion ? false : { opacity: 0, y: 10 }}
             animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
@@ -1264,7 +1264,7 @@ export default function SukuyoCompatibilityAiClient() {
             </div>
             <div className={styles.insightCards} aria-label="숙요점 궁합 상담 구성">
               {CONSULTATION_CARDS.map(({ icon: Icon, title, text }, index) => (
-                <motion.article
+                <m.article
                   key={title}
                   className={styles.insightCard}
                   initial={reduceMotion ? false : { opacity: 0, y: 14 }}
@@ -1275,11 +1275,11 @@ export default function SukuyoCompatibilityAiClient() {
                   <Icon size={18} aria-hidden="true" />
                   <strong>{title}</strong>
                   <span>{text}</span>
-                </motion.article>
+                </m.article>
               ))}
             </div>
-          </motion.div>
-        </motion.aside>
+          </m.div>
+        </m.aside>
 
         <section className={styles.workPanel}>
           {!consultation ? (

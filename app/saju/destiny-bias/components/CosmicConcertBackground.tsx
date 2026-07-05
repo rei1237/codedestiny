@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import styles from "../destiny-bias.module.css";
 
 interface CosmicConcertBackgroundProps {
@@ -47,7 +47,7 @@ export default function CosmicConcertBackground({ isLowSpec, reduceMotion }: Cos
             { x: "72%", delay: 1.8, duration: 7.1, size: 2, color: "rgba(128,255,231,0.55)" },
             { x: "88%", delay: 0.3, duration: 5.5, size: 3, color: "rgba(255,217,138,0.6)" },
           ].map((p, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="absolute bottom-0 rounded-full"
               style={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 
 const FLOATING_CARDS = ["🦌", "🐈", "🦊", "🐶", "🦁", "🦉", "🐰", "🦋"];
 
@@ -21,25 +21,25 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
 
         <div className="relative z-10 grid items-center gap-7 lg:grid-cols-[1fr_260px]">
           <div className="space-y-4">
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
               className="inline-flex rounded-full border border-[#9cc3e5] bg-white px-3 py-1 text-[11px] font-black tracking-[0.18em] text-[#375f8a]"
             >
               운명의 동물 도감
-            </motion.p>
+            </m.p>
 
-            <motion.h1
+            <m.h1
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.05 }}
               className="text-balance text-3xl font-black leading-tight text-[#254769] sm:text-5xl"
             >
               나의 십이운성 동물은?
-            </motion.h1>
+            </m.h1>
 
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.12 }}
@@ -47,9 +47,9 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
             >
               태어난 사주의 에너지로 알아보는 나만의 운명 동물 도감.
               12단계 성장 여정을 통해 핵심 성향과 실전 조언을 한 번에 확인해 보세요.
-            </motion.p>
+            </m.p>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.18 }}
@@ -63,9 +63,9 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
                   {animal}
                 </span>
               ))}
-            </motion.div>
+            </m.div>
 
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.22 }}
@@ -85,10 +85,10 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
               >
                 결과 다시 보기
               </button>
-            </motion.div>
+            </m.div>
           </div>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.7, delay: 0.2 }}
@@ -109,7 +109,7 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
                 ))}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

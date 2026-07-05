@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -211,7 +211,7 @@ export default function FeatureUnlockShowcase() {
           {premiumFeatures.map((feature) => {
             const featureCopy = copy.features[feature.id];
             return (
-              <motion.article
+              <m.article
                 key={feature.id}
                 layout
                 initial={{ opacity: 0, y: 18 }}
@@ -239,7 +239,7 @@ export default function FeatureUnlockShowcase() {
                   </div>
                 </div>
 
-                <motion.div
+                <m.div
                   initial={false}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.35 }}
@@ -251,8 +251,8 @@ export default function FeatureUnlockShowcase() {
                   >
                     {featureCopy.cta}
                   </Link>
-                </motion.div>
-              </motion.article>
+                </m.div>
+              </m.article>
             );
           })}
         </div>

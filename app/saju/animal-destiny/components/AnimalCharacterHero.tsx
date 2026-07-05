@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { AnimalDestinyData } from "../lib/types";
 import AnimalSymbol from "@/app/components/icons/AnimalSymbol";
 
@@ -26,13 +26,13 @@ export default function AnimalCharacterHero({ animal, heroLine }: Props) {
           <p className="mt-1 text-sm text-[#3c4d3e]">{animal.short_copy}</p>
           {heroLine ? <p className="mt-2 text-xs font-semibold text-[#4f5f51]">{heroLine}</p> : null}
         </div>
-        <motion.div
+        <m.div
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 2.2, repeat: Infinity }}
           className="mx-auto flex h-32 w-32 items-center justify-center rounded-full border-2 border-white/70 bg-white/60 text-5xl shadow-lg"
         >
           <AnimalSymbol name="deer" size={72} className="text-[#446b48]" />
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );

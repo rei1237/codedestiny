@@ -5,10 +5,14 @@ import { usePathname, useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, Home } from "lucide-react";
+import { LazyMotion } from "framer-motion";
 import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
 
 const HOME_ROUTE = "/";
+
+// framer-motion feature 번들을 비동기 청크로 로드 (m.* 컴포넌트 전용).
+const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => mod.default);
 
 const DeferredSiteFooterHub = dynamic(() => import("./SiteFooterHub"), {
   ssr: false,
@@ -221,7 +225,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   );
   const footer = useFooterInView(!hideChrome);
   return (
-    <>
+    <LazyMotion features={loadFramerFeatures} strict>
       {!hideChrome && <GlobalHeader />}
       {showFeatureNav && <FeatureBackHomeNav />}
       {children}
@@ -231,6 +235,6 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           {footer.isReady ? <DeferredSiteFooterHub /> : <FooterWarmupPreview />}
         </div>
       )}
-    </>
+    </LazyMotion>
   );
 }

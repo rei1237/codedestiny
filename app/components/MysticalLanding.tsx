@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type MysticalService = {
@@ -306,7 +306,7 @@ export default function MysticalLanding() {
       {/* Background Particles (Static Placeholder for performance, can be enhanced) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         {[...Array(20)].map((_, i) => (
-          <motion.div
+          <m.div
             key={i}
             className="absolute w-1 h-1 bg-white rounded-full opacity-20"
             initial={{ 
@@ -341,7 +341,7 @@ export default function MysticalLanding() {
 
       {/* Hero Section */}
       <section className="relative z-20 pt-32 pb-20 px-6 max-w-6xl mx-auto text-center">
-        <motion.h1 
+        <m.h1 
           className="mb-6 font-display text-4xl font-black tracking-tight md:text-6xl"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -350,16 +350,16 @@ export default function MysticalLanding() {
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#c4a6ff] via-[#ffd700] to-[#c4a6ff] bg-[length:200%_auto] animate-gradient-flow">
             {copy.heroTitle}
           </span>
-        </motion.h1>
+        </m.h1>
         
-        <motion.p 
+        <m.p 
           className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3, duration: 0.8 }}
         >
           {copy.heroDescription}
-        </motion.p>
+        </m.p>
       </section>
 
       {/* Service Card Grid */}
@@ -379,7 +379,7 @@ export default function MysticalLanding() {
         </div>
 
         {/* CTA Button */}
-        <motion.div 
+        <m.div 
           className="mt-20 text-center"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -391,20 +391,20 @@ export default function MysticalLanding() {
               {copy.cta}
             </span>
           </button>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* Scroll Toast Message */}
       <AnimatePresence>
         {isScrolling && (
-          <motion.div 
+          <m.div 
             className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 px-6 py-2 bg-slate-900/80 border border-slate-700 backdrop-blur-md rounded-full text-xs text-slate-300 pointer-events-none"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
           >
             {copy.scrollHint}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -424,7 +424,7 @@ export default function MysticalLanding() {
 
 function ServiceCard({ service, index, isScrolling }: { service: MysticalService, index: number, isScrolling: boolean }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -459,6 +459,6 @@ function ServiceCard({ service, index, isScrolling }: { service: MysticalService
       <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-60 transition-opacity text-purple-400">
         ✦
       </div>
-    </motion.div>
+    </m.div>
   );
 }

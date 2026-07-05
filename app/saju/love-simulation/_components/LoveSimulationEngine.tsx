@@ -1,7 +1,7 @@
 "use client";
 
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
 import { INITIAL_STATS, LOVE_CHARACTERS, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
@@ -685,7 +685,7 @@ function MetricBar({ label, value }: { label: string; value: number }) {
         <span>{value >= 74 ? "깊어짐" : value >= 52 ? "이어짐" : "조심스러움"}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
-        <motion.div
+        <m.div
           initial={{ width: 0 }}
           animate={{ width: `${value}%` }}
           transition={{ duration: 0.45, ease: "easeOut" }}
@@ -903,7 +903,7 @@ function RecommendedMatchCard({
   onStart: () => void;
 }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
@@ -956,7 +956,7 @@ function RecommendedMatchCard({
           </button>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -1649,7 +1649,7 @@ export const LoveSimulationEngine: React.FC = () => {
   if (screen === "intro") {
     return (
       <section className="relative min-h-[100svh] overflow-hidden bg-[#08060d] text-white">
-        <motion.img
+        <m.img
           src={LOVE_CODE_HERO_ASSET}
           alt=""
           aria-hidden="true"
@@ -1659,12 +1659,12 @@ export const LoveSimulationEngine: React.FC = () => {
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,6,13,0.94)_0%,rgba(24,11,24,0.82)_34%,rgba(35,14,31,0.46)_58%,rgba(7,8,14,0.76)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_28%_24%,rgba(255,221,236,0.22)_0%,rgba(255,221,236,0)_38%),linear-gradient(180deg,rgba(255,244,231,0.08)_0%,rgba(255,255,255,0)_34%,rgba(4,6,12,0.58)_100%)]" />
-        <motion.div
+        <m.div
           className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-rose-100/70 to-transparent"
           animate={{ opacity: [0.35, 0.9, 0.35] }}
           transition={{ duration: 3.8, repeat: Infinity, ease: "easeInOut" }}
         />
-        <motion.div
+        <m.div
           className="absolute left-0 top-0 h-full w-1/2 bg-[linear-gradient(105deg,rgba(255,255,255,0)_0%,rgba(255,226,235,0.14)_48%,rgba(255,255,255,0)_100%)]"
           animate={{ x: ["-120%", "220%"] }}
           transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", repeatDelay: 2.4 }}
@@ -1672,27 +1672,27 @@ export const LoveSimulationEngine: React.FC = () => {
         <div className="relative mx-auto flex min-h-[100svh] w-full max-w-6xl flex-col justify-between px-5 py-7 sm:px-8 lg:px-10">
           <header className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <motion.span
+              <m.span
                 className="flex h-11 w-11 items-center justify-center rounded-lg border border-rose-100/30 bg-white/12 shadow-[0_16px_42px_rgba(244,114,182,0.24)] backdrop-blur-xl"
                 animate={{ y: [0, -3, 0], boxShadow: ["0 16px 42px rgba(244,114,182,0.18)", "0 20px 52px rgba(255,214,232,0.30)", "0 16px 42px rgba(244,114,182,0.18)"] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Sparkles className="h-5 w-5 text-rose-100" />
-              </motion.span>
+              </m.span>
               <span className="text-sm font-black uppercase tracking-[0.28em] text-rose-50/82">Love Code</span>
             </div>
           </header>
 
           <div className="grid items-center gap-9 py-8 lg:grid-cols-[0.96fr_1.04fr] lg:py-10">
-            <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: "easeOut" }} className="max-w-2xl">
-              <motion.div
+            <m.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: "easeOut" }} className="max-w-2xl">
+              <m.div
                 className="mb-6 inline-flex items-center gap-2 rounded-full border border-rose-100/26 bg-white/[0.09] px-4 py-2 text-xs font-black uppercase tracking-[0.22em] text-rose-50/86 shadow-[0_16px_42px_rgba(0,0,0,0.22)] backdrop-blur-xl"
                 animate={{ y: [0, -2, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
               >
                 <Sparkles className="h-3.5 w-3.5 text-rose-100" />
                 Visual Novel Match
-              </motion.div>
+              </m.div>
               <p className="mb-4 text-sm font-black text-rose-100/92">사주 성향과 선택으로 흐름이 달라지는 대화</p>
               <h1 className="max-w-[760px] text-5xl font-black leading-[1.02] text-white drop-shadow-[0_12px_38px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
                 Love Code: 운명의 상대와 대화하기
@@ -1733,9 +1733,9 @@ export const LoveSimulationEngine: React.FC = () => {
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
-            </motion.div>
+            </m.div>
 
-            <motion.form
+            <m.form
               initial={{ opacity: 0, scale: 0.96 }}
               animate={{ opacity: 1, scale: 1 }}
               onSubmit={(event) => {
@@ -1924,7 +1924,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 </button>
                 <AnimatePresence mode="wait">
                   {matchError ? (
-                    <motion.div
+                    <m.div
                       key="match-error"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -1932,7 +1932,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       className="rounded-lg border border-rose-100/24 bg-rose-950/34 px-4 py-3 text-sm font-bold leading-6 text-rose-50"
                     >
                       {matchError}
-                    </motion.div>
+                    </m.div>
                   ) : null}
                   {primaryMatch && primaryMatchCharacter ? (
                     <RecommendedMatchCard
@@ -1946,7 +1946,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   ) : null}
                 </AnimatePresence>
               </div>
-            </motion.form>
+            </m.form>
           </div>
 
           <div className="h-px w-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -1980,7 +1980,7 @@ export const LoveSimulationEngine: React.FC = () => {
               const isExpanded = expandedProfileId === item.id;
 
               return (
-                <motion.article
+                <m.article
                   key={item.id}
                   layout
                   initial={{ opacity: 0, y: 16 }}
@@ -2032,7 +2032,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
                     <AnimatePresence initial={false}>
                       {isExpanded ? (
-                        <motion.div
+                        <m.div
                           key="profile"
                           initial={{ opacity: 0, height: 0 }}
                           animate={{ opacity: 1, height: "auto" }}
@@ -2080,11 +2080,11 @@ export const LoveSimulationEngine: React.FC = () => {
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           </div>
-                        </motion.div>
+                        </m.div>
                       ) : null}
                     </AnimatePresence>
                   </div>
-                </motion.article>
+                </m.article>
               );
             })}
           </div>
@@ -2136,7 +2136,7 @@ export const LoveSimulationEngine: React.FC = () => {
             </div>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col justify-center">
+          <m.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col justify-center">
             <div className="rounded-lg border border-white/20 bg-black/40 p-5 shadow-2xl backdrop-blur-xl sm:p-8">
               <div className="mb-6 flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10">
@@ -2244,7 +2244,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 다시 시작하기
               </button>
             </div>
-          </motion.div>
+          </m.div>
         </div>
       </section>
     );
@@ -2256,7 +2256,7 @@ export const LoveSimulationEngine: React.FC = () => {
     <section className={`relative min-h-[100svh] overflow-hidden text-white ${character.palette.scene}`}>
       <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(8,6,18,0.98)_0%,rgba(31,16,35,0.9)_48%,rgba(8,20,26,0.96)_100%)]" />
       <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-6xl items-center justify-center px-4 py-5">
-        <motion.div
+        <m.div
           key={character.id}
           initial={{ opacity: 0, y: 18, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -2317,7 +2317,7 @@ export const LoveSimulationEngine: React.FC = () => {
               </span>
             </div>
 
-            <motion.div
+            <m.div
               key={currentScene.id}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -2356,7 +2356,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
               <AnimatePresence mode="wait">
                 {isShowingResponse && selectedChoice ? (
-                  <motion.div key="response" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                  <m.div key="response" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                     <div className="mt-3 rounded-lg border border-pink-200/22 bg-pink-200/10 p-4">
                       <p className="text-sm leading-7 text-white/82">{selectedChoice.response}</p>
                       <p className="mt-2 text-xs leading-6 text-white/52">{selectedChoice.insight}</p>
@@ -2368,9 +2368,9 @@ export const LoveSimulationEngine: React.FC = () => {
                       {sceneIndex >= scenes.length - 1 ? "결과 보기" : "다음 장면"}
                       <ChevronRight className="h-4 w-4" />
                     </button>
-                  </motion.div>
+                  </m.div>
                 ) : isChoiceOpen ? (
-                  <motion.div key="choices" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="mt-3 grid gap-2">
+                  <m.div key="choices" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} className="mt-3 grid gap-2">
                     {currentScene.choices.map((choice) => (
                       <button
                         key={choice.id}
@@ -2380,9 +2380,9 @@ export const LoveSimulationEngine: React.FC = () => {
                         {choice.text}
                       </button>
                     ))}
-                  </motion.div>
+                  </m.div>
                 ) : (
-                  <motion.div key="story-hold" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
+                  <m.div key="story-hold" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                     <div className="mt-3 rounded-lg border border-white/10 bg-black/18 p-4">
                       <p className="text-sm leading-7 text-white/70">
                         {character.conflictPattern} {character.bestApproach} 지금은 대답보다 분위기를 읽어야 하는 순간입니다.
@@ -2396,12 +2396,12 @@ export const LoveSimulationEngine: React.FC = () => {
                       중요한 순간에 대답 선택하기
                       <ChevronRight className="h-4 w-4" />
                     </button>
-                  </motion.div>
+                  </m.div>
                 )}
               </AnimatePresence>
-            </motion.div>
+            </m.div>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </section>
   );

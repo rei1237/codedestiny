@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { AnimalDestinyData, TwelveStage } from "../lib/types";
 import type { TwelveGrowthAnimalResult } from "../lib/types";
 
@@ -91,7 +91,7 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
   ];
 
   return (
-    <motion.section
+    <m.section
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       className="relative overflow-hidden rounded-[2rem] border border-[#b9d5ef] bg-[linear-gradient(160deg,#fafdff_0%,#f0f8ff_56%,#fff7eb_100%)] p-5 shadow-[0_20px_46px_rgba(56,109,156,0.16)] sm:p-7"
@@ -152,6 +152,6 @@ export default function TwelveAnimalResultCard({ animal, result, representativeS
           </div>
         </div>
       </div>
-    </motion.section>
+    </m.section>
   );
 }
