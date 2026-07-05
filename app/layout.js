@@ -178,6 +178,8 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
+        <link rel="preload" as="font" href="https://assets.code-destiny.com/Mulmaru.woff2" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" as="image" href="https://assets.code-destiny.com/%EB%A7%88%EC%95%BC%EC%A0%90.webp" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
         <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />

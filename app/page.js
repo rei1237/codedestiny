@@ -255,7 +255,7 @@ export default function HomePage() {
             <img src={BRAND_LOGO_URL} alt={homePageText("homePage.alt.001")} width={136} height={136} decoding="async" fetchPriority="high" />
           </div>
           <div className={`${styles.assetTile} ${styles.assetTileLarge}`}>
-            <img src={MAYA_IMAGE_URL} alt={homePageText("homePage.alt.002")} width={420} height={260} loading="eager" decoding="async" />
+            <img src={MAYA_IMAGE_URL} alt={homePageText("homePage.alt.002")} width={420} height={260} loading="eager" decoding="async" fetchPriority="high" />
             <span>{homePageText("homePage.text.006")}</span>
           </div>
           <div className={styles.assetTileRow}>
