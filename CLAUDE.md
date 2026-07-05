@@ -131,6 +131,8 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - 모바일 퍼스트: `sm:` → `md:` → `lg:` 순서로 작성
 - 다크모드 `dark:` 병행 필수
 - 이미지 `alt` 속성 필수, 인터랙티브 버튼 `aria-label` 필수
+- **연이(pig) 모드는 항상 밝은 꽃 컨셉** — 크림/로즈/골드 팔레트(`#fffaf7`·`#fff3f8`·`#ead089`·`#b31955`, 텍스트 `#3c1830`/`#70445c`). 연이 모드에서 다크 배경 표면(네이비/퍼플)을 남기지 말 것. 네오 모드는 달빛 다크(네이비-퍼플 + 라벤더 + 샴페인 골드). 어느 모드든 배경만 바꾸고 글자색을 안 바꾸는 반쪽 오버라이드 금지(가독성 붕괴의 주원인). 토큰은 `styles/theme-tokens.css`.
+- **모바일 목록 카드는 심볼(글리프/이모지) 우선** — 컬렉션 목록의 대표 이미지는 모바일에서 로딩하지 않고 `.tarot-tile__img-placeholder`의 심볼을 노출(로딩 절감·직관성). 원본 이미지는 상세 팝업/디테일 오버레이에서만. 구현: `js/core/uiBindings.js`·`js/core/index-inline-runtime.js`의 `__(cd)HydrateCollectionImagesChunked`가 `window.__cdMobileRuntime`이면 조기 반환.
 
 ## 검색 & 수정 원칙 (토큰 절약)
 
