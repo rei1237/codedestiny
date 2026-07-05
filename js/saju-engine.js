@@ -6755,6 +6755,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var progressTimer = null;
   var progressPercent = 0;
   var pollTimer = null;
+  var POLL_MAX_ATTEMPTS = 120; // 1.5s * 120 ≈ 3분 상한 — 무한 폴링(Cloudflare 1015) 방지
+  var pollAttempts = 0;
+  var pollErrorStreak = 0;
   var lastPaidEvidence = null;
   var lastPaidEvidenceKey = '';
   var activePendingJob = null;
@@ -6816,6 +6819,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
   function stopPolling() {
     clearTimeout(pollTimer);
     pollTimer = null;
+    pollAttempts = 0;
+    pollErrorStreak = 0;
   }
   function setLoading(next) {
     isLoading = !!next;
@@ -6913,10 +6918,27 @@ function _bindSajuQuestionPromptCard(rootEl) {
     var pending = job && typeof job === 'object' ? job : activePendingJob;
     if (!pending || (!pending.requestId && !pending.jobId && !pending.executionId)) return;
     activePendingJob = pending;
-    stopPolling();
+    // 폴링 사이클 시작(immediate)에서만 카운터를 초기화한다. 재폴링에서는 stopPolling을
+    // 호출하면 카운터가 리셋되어 상한이 무력화되므로 여기서는 타이머만 정리한다.
+    if (immediate) {
+      pollAttempts = 0;
+      pollErrorStreak = 0;
+    }
+    clearTimeout(pollTimer);
+    pollTimer = null;
+    pollAttempts += 1;
+    if (pollAttempts > POLL_MAX_ATTEMPTS) {
+      markFailedForRetry(activePendingJob, '상담문 생성이 지연되고 있어요. 결제 내역은 확인되었으니 잠시 후 다시 생성해 주세요.', 'POLL_TIMEOUT');
+      return;
+    }
+    // 연속 에러(네트워크 실패·429·Cloudflare 1015)에서는 지수 백오프로 요청 폭주를 막는다.
     var delay = immediate ? 0 : 1500;
+    if (pollErrorStreak > 0) {
+      delay = Math.min(30000, 1500 * Math.pow(2, pollErrorStreak));
+    }
     pollTimer = setTimeout(function() {
       _sajuPromptFetchStatus(activePendingJob).then(function(result) {
+        pollErrorStreak = 0;
         var payload = result && result.payload ? result.payload : {};
         if (payload.jobId || payload.executionId || payload.resultId) {
           rememberPendingJob(Object.assign({}, activePendingJob, {
@@ -6947,6 +6969,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
         if (percent > 0) setProgress(percent, stepMessage, false);
         pollPendingJob(activePendingJob, false);
       }).catch(function() {
+        pollErrorStreak += 1;
         pollPendingJob(activePendingJob, false);
       });
     }, delay);

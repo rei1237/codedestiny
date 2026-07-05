@@ -265,7 +265,9 @@ function LifeBookResultContent() {
   }, [loadResult]);
 
   useEffect(() => {
-    if (result?.status !== "generating" && !pending) return;
+    // status가 generating일 때만 폴링한다. pending 플래그를 함께 보면 completed가 된 뒤에도
+    // 폴링이 멈추지 않고, loadResult 성공 시 setPollAttempts(0) 리셋과 맞물려 상한이 무력화된다.
+    if (result?.status !== "generating") return;
     if (pollAttempts >= maxPollAttempts) {
       setError("생성에 시간이 걸리고 있습니다. 다시 시도해주세요.");
       return;
@@ -275,7 +277,7 @@ function LifeBookResultContent() {
       void loadResult();
     }, pollIntervalMs);
     return () => window.clearInterval(timer);
-  }, [loadResult, pending, result?.status, pollAttempts, maxPollAttempts]);
+  }, [loadResult, result?.status, pollAttempts, maxPollAttempts]);
 
   // 책 진도: 스크롤 위치를 독서 진행률로 표시
   const [readProgress, setReadProgress] = useState(0);
