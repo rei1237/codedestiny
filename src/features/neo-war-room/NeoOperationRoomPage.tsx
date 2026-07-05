@@ -30,6 +30,7 @@ import {
   NEO_WAR_ROOM_MIN_QUESTION_LENGTH,
   NEO_WAR_ROOM_ACCESS_ENDPOINT,
   buildInitialNeoWarRoomBirthState,
+  buildDefaultNeoWarRoomBirthState,
   buildNeoWarRoomAccessPayload,
   createNeoWarRoomIdempotencyKey,
   createNeoWarRoomInputFingerprint,
@@ -863,7 +864,7 @@ function useNeoTypewriter(text: string, enabled: boolean) {
 }
 
 export default function NeoOperationRoomPage() {
-  const [birthState, setBirthState] = useState(() => buildInitialNeoWarRoomBirthState());
+  const [birthState, setBirthState] = useState(buildDefaultNeoWarRoomBirthState);
   const [method, setMethod] = useState<NeoWarRoomConsultMode | "">("");
   const [topic, setTopic] = useState<(typeof topicOptions)[number] | "">("");
   const [intensity, setIntensity] = useState<IntensityId | "">("");
@@ -901,7 +902,7 @@ export default function NeoOperationRoomPage() {
   const [bgmEnabled, setBgmEnabled] = useState(false);
   const [bgmStatus, setBgmStatus] = useState<"idle" | "playing" | "blocked" | "off">("idle");
   const [isBgmPreferenceReady, setIsBgmPreferenceReady] = useState(false);
-  const [isPageVisible, setIsPageVisible] = useState(() => (typeof document === "undefined" ? true : !document.hidden));
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const [isSpriteMobile, setIsSpriteMobile] = useState(false);
   const idempotencyKeyRef = useRef("");
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -1304,6 +1305,12 @@ export default function NeoOperationRoomPage() {
     updateVisibility();
     document.addEventListener("visibilitychange", updateVisibility);
     return () => document.removeEventListener("visibilitychange", updateVisibility);
+  }, []);
+
+  // 저장된 프로필 시드는 스토리지 접근이라 렌더가 아닌 마운트 후(클라이언트 전용)에 주입한다.
+  useEffect(() => {
+    const seeded = buildInitialNeoWarRoomBirthState();
+    if (seeded.hasSavedProfile) setBirthState(seeded);
   }, []);
 
   useEffect(() => {

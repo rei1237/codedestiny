@@ -63,7 +63,7 @@ export default function NeoSpriteActor({
   );
   const talkSheetFrameKey = useMemo(() => validTalkSheetFrames.join("|"), [validTalkSheetFrames]);
   const [talkFrameIndex, setTalkFrameIndex] = useState(0);
-  const [isPageVisible, setIsPageVisible] = useState(() => (typeof document === "undefined" ? true : !document.hidden));
+  const [isPageVisible, setIsPageVisible] = useState(true);
   const shouldAnimatePairedTalk = talking && displayTalkFrames.length > 1 && displayTalkSheetFrames.length > 1;
   const shouldAnimateSheetTalk = talking && !shouldAnimatePairedTalk && displayTalkSheetFrames.length > 1;
   const shouldAnimateAssetTalk = talking && !shouldAnimatePairedTalk && !shouldAnimateSheetTalk && displayTalkFrames.length > 1;

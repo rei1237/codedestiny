@@ -92,6 +92,17 @@ function hasAnySavedBirth(input: NeoWarRoomBirthInput) {
   return Boolean(input.name || input.gender || input.birthDate || input.birthTime || input.city || input.timezone);
 }
 
+// 스토리지를 읽지 않는 결정적 기본 상태. 서버 프리렌더와 클라이언트 첫 렌더가 항상 일치해야
+// 하이드레이션 예외("client-side exception")가 나지 않으므로, 초기 useState 값은 이 함수를 쓴다.
+export function buildDefaultNeoWarRoomBirthState(): NeoWarRoomBirthState {
+  return {
+    profileMode: "manual",
+    hasSavedProfile: false,
+    savedBirth: defaultBirthInput,
+    birth: defaultBirthInput,
+  };
+}
+
 export function buildInitialNeoWarRoomBirthState(): NeoWarRoomBirthState {
   const seed = readAiProfileSeed();
   const savedBirth: NeoWarRoomBirthInput = {
