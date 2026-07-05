@@ -521,8 +521,10 @@ async function loadMeFromServer() {
 export async function refreshAuth(options: { force?: boolean; silent?: boolean } = {}) {
   const { force = false, silent = false } = options;
 
+  // 진행 중인 요청이 있으면 force 여부와 무관하게 공유한다. (마운트 위젯·게이트가
+  // 동시에 force:true로 /api/auth/me를 중복 발사하던 것을 한 요청으로 병합)
+  if (refreshInFlight) return refreshInFlight;
   if (!force) {
-    if (refreshInFlight) return refreshInFlight;
     if (state.authReady && (Date.now() - lastRefreshCompletedAt) < AUTH_REFRESH_COOLDOWN_MS) {
       return state.user;
     }

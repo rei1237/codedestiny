@@ -126,7 +126,6 @@ const FORTUNE_TEA_FEATURE_KEY_BY_MODE: Record<FortuneTeaHouseConsultMode, string
   saju: "fortune-tea-house-saju-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 };
-type FortuneTeaPriceLabelMap = Partial<Record<FortuneTeaHouseConsultMode, string>>;
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -216,6 +215,16 @@ async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiRespon
     featureKey: toText(billingInput.featureKey),
     data: gate.data as FortuneTeaBillingGateData & Record<string, unknown>,
   };
+}
+
+async function ensureFortuneTeaAuthReady() {
+  const { getAuthState, refreshAuth } = await import("@/app/_lib/auth-store");
+  if (getAuthState().isAuthenticated) return;
+  try {
+    await refreshAuth({ force: true, silent: true });
+  } catch {
+    // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버(getCurrentUser)가 한다.
+  }
 }
 
 async function beginFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
@@ -367,7 +376,6 @@ export default function FortuneTeaHousePage() {
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [consultPriceLabels, setConsultPriceLabels] = useState<FortuneTeaPriceLabelMap>({});
   const [loadingBgmIndex, setLoadingBgmIndex] = useState(0);
   const [generationProgress, setGenerationProgress] = useState<FortuneTeaGenerationProgress>({
     percent: 5,
@@ -502,36 +510,6 @@ export default function FortuneTeaHousePage() {
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
     };
   }, []);
-
-  useEffect(() => {
-    if (stage !== "questionInput") return;
-    let cancelled = false;
-    const entries = Object.entries(FORTUNE_TEA_FEATURE_KEY_BY_MODE) as Array<[FortuneTeaHouseConsultMode, string]>;
-    void import("@/app/_lib/billing-client")
-      .then(async ({ fetchPaymentEligibility, formatPaymentWon }) => {
-        const labels = await Promise.all(entries.map(async ([mode, featureKey]) => {
-          const result = await fetchPaymentEligibility({
-            productId: "fortune-tea-house",
-            serviceType: "fortune-tea-house",
-            featureKey,
-          }, { phase: "full" }).catch(() => null);
-          const priceKRW = Math.max(0, Math.floor(Number(result?.data?.priceKRW || 0)));
-          return [mode, priceKRW > 0 ? formatPaymentWon(priceKRW) : ""] as const;
-        }));
-        if (!cancelled) {
-          setConsultPriceLabels((current) => ({
-            ...current,
-            ...Object.fromEntries(labels.filter(([, label]) => label)),
-          }));
-        }
-      })
-      .catch(() => {
-        void 0;
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [stage]);
 
   useEffect(() => {
     setNotice("");
@@ -773,6 +751,8 @@ export default function FortuneTeaHousePage() {
       localPreviewResultId = attemptId;
       await beginFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
       accessGateStarted = true;
+      // Phase-1 이전에 인증을 예열해 이용권 보유자가 첫 제출에서 서버 게이트를 원샷 통과하도록 한다.
+      await ensureFortuneTeaAuthReady();
       const requestPayloadWithAttempt: FortuneTeaConsultPostBody = {
         ...requestPayload,
         attemptId,
@@ -810,7 +790,7 @@ export default function FortuneTeaHousePage() {
           label: "결제 확인 중",
           message: "결제와 이용권이 열린 것을 확인하고 있어요.",
         }));
-        ({ response, payload } = await postFortuneTeaConsultRequest({
+        const phase2Body: FortuneTeaConsultPostBody = {
           ...requestPayloadWithAttempt,
           draftResult: localDraft,
           featureKey: billing.featureKey,
@@ -825,7 +805,19 @@ export default function FortuneTeaHousePage() {
             accessGrant,
             consume,
           },
-        }));
+        };
+        ({ response, payload } = await postFortuneTeaConsultRequest(phase2Body));
+        // 결제 증빙은 방금 기록됐지만 DB 전파 지연으로 서버가 아직 못 찾아 402를 줄 수 있다.
+        // 같은 증빙으로 한 번만 짧게 백오프 후 재조회해 코인 결제자의 "결제했는데 또 결제창"을 없앤다.
+        if (
+          (!response.ok || !payload.ok || !payload.result)
+          && payload.paymentRequired
+          && !isFortuneTeaGenerationPending(response, payload)
+        ) {
+          await new Promise((resolve) => window.setTimeout(resolve, 500));
+          if (consultRunRef.current !== consultRunId) return;
+          ({ response, payload } = await postFortuneTeaConsultRequest(phase2Body));
+        }
       }
       if (isFortuneTeaGenerationPending(response, payload)) {
         throw buildFortuneTeaGenerationPendingError(payload.message);
@@ -970,7 +962,6 @@ export default function FortuneTeaHousePage() {
           onSubmit={submitQuestion}
           isSubmitting={isSubmitting}
           submitError={submitError}
-          priceLabels={consultPriceLabels}
         />
       );
     }

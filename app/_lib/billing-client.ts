@@ -3013,6 +3013,18 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   }
   if (recent) billingCoinGateRecent.delete(inFlightKey);
 
+  // 게이트 진입 전 인증을 예열한다. 미hydration/만료직전 토큰으로 첫 유료요청이 새어
+  // 이용권 보유자가 결제 경로로 빠지는 문제를 직접호출(runBillingCoinGate) 기능 전반에서 막는다.
+  // 정적 import는 auth-store가 순환을 피하려 billing-client import를 일부러 안 하므로 동적 import 사용.
+  try {
+    const { getAuthState, refreshAuth } = await import("./auth-store");
+    if (!getAuthState().isAuthenticated) {
+      await refreshAuth({ force: true, silent: true });
+    }
+  } catch {
+    // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버가 한다.
+  }
+
   const activeAttempt = beginPaidAttempt({
     featureKey: featureId,
     mode: toText(input.reason || ""),

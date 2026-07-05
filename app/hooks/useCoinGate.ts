@@ -495,7 +495,9 @@ export function useCoinGate() {
         }
       }
 
-      refreshAuth({ force: true, silent: true }).catch(() => {});
+      // 잔액은 coin-gate 응답으로 이미 반영됨. force 없이 호출해 쿨다운/in-flight 병합을
+      // 존중 → 성공마다 /api/auth/me를 강제 재요청하던 중복 왕복 제거.
+      refreshAuth({ silent: true }).catch(() => {});
 
       return {
         ok: true,
