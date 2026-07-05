@@ -144,6 +144,9 @@ const metadataCopy = SAJU_SIBYL_METADATA_COPY.ko;
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
+  alternates: {
+    canonical: "https://code-destiny.com/saju/sibyl",
+  },
 };
 
 export default function SajuSibylLandingPage() {

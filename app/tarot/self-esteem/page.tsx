@@ -28,6 +28,9 @@ const metadataCopy = TAROT_SELF_ESTEEM_METADATA_COPY.ko;
 export const metadata = {
   title: metadataCopy.title,
   description: metadataCopy.description,
+  alternates: {
+    canonical: "https://code-destiny.com/tarot/self-esteem",
+  },
 };
 
 export default function TarotSelfEsteemLandingPage() {
