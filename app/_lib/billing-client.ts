@@ -1,4 +1,5 @@
 import { authFetch } from "@/app/_lib/auth-client";
+import { lockBodyScroll, unlockBodyScroll } from "@/app/_lib/body-scroll-lock";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { assignMonthlyStoneBalance, resolveMonthlyStoneBalance } from "@/app/_lib/monthly-stone";
@@ -1099,7 +1100,6 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
 
   return new Promise((resolve) => {
     let settled = false;
-    const previousOverflow = document.body.style.overflow;
     const modal = document.createElement("div");
     modal.className = "cd-react-payment-choice-backdrop";
     modal.dataset.cdReactPaymentChoice = "1";
@@ -1132,7 +1132,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const close = (mode: PaymentChoiceMode) => {
       if (settled) return;
       settled = true;
-      document.body.style.overflow = previousOverflow;
+      unlockBodyScroll();
       modal.parentNode?.removeChild(modal);
       resolve(mode);
     };
@@ -1151,7 +1151,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       }
     };
 
-    document.body.style.overflow = "hidden";
+    lockBodyScroll();
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
     });
@@ -2638,25 +2638,32 @@ export async function fetchBillingFeaturePricing(input: {
   subFeatureKey?: string;
   featureKey?: string;
   reason?: string;
+  /** true면 결제 게이트 오버레이 이벤트를 발화하지 않는 조용한 가격 조회 (표시 전용) */
+  silent?: boolean;
 }): Promise<BillingResult<{ pricing: BillingFeaturePricing }>> {
+  const { silent, ...queryInput } = input;
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "billing-features");
-  emitPaidFeatureGate("open", {
-    featureId,
-    featureKey: featureId,
-    status: "checkingEntitlement",
-    message: billingClientText("billingClient.message.003"),
-  });
-  const query = toQuery(input as Record<string, unknown>);
+  if (!silent) {
+    emitPaidFeatureGate("open", {
+      featureId,
+      featureKey: featureId,
+      status: "checkingEntitlement",
+      message: billingClientText("billingClient.message.003"),
+    });
+  }
+  const query = toQuery(queryInput as Record<string, unknown>);
   const path = query ? `/api/billing/features?${query}` : "/api/billing/features";
   const response = await authFetchBilling(path, { method: "GET" });
   const parsed = await parseBillingResponse<{ pricing: BillingFeaturePricing }>(response);
-  emitPaidFeatureGate("update", {
-    featureId,
-    featureKey: featureId,
-    status: parsed.ok ? "checkingEntitlement" : "error",
-    message: parsed.ok ? "이용권 적용 가능 여부를 확인하고 있습니다." : (parsed.error?.message || parsed.message || "상품 조회에 실패했습니다."),
-    cost: parsed.data?.pricing?.cost,
-  });
+  if (!silent) {
+    emitPaidFeatureGate("update", {
+      featureId,
+      featureKey: featureId,
+      status: parsed.ok ? "checkingEntitlement" : "error",
+      message: parsed.ok ? "이용권 적용 가능 여부를 확인하고 있습니다." : (parsed.error?.message || parsed.message || "상품 조회에 실패했습니다."),
+      cost: parsed.data?.pricing?.cost,
+    });
+  }
   return parsed;
 }
 

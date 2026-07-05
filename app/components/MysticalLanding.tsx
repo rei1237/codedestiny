@@ -302,7 +302,7 @@ export default function MysticalLanding() {
   }, []);
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#0f0920] font-body text-[#e0e0e0] selection:bg-purple-500/30">
+    <div className="relative min-h-[100dvh] overflow-x-hidden bg-[#0f0920] font-body text-[#e0e0e0] selection:bg-purple-500/30">
       {/* Background Particles (Static Placeholder for performance, can be enhanced) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         {[...Array(20)].map((_, i) => (

@@ -160,7 +160,7 @@ export default function SeoLandingTemplate({ page }) {
   const faqJsonLd = buildFaqPageJsonLd(faqs);
 
   return (
-    <main className="relative isolate min-h-screen overflow-hidden bg-[#070812] px-4 py-6 text-slate-100 md:px-6 md:py-10">
+    <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-6 text-slate-100 md:px-6 md:py-10">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[linear-gradient(145deg,rgba(7,8,18,1)_0%,rgba(17,24,39,.98)_46%,rgba(16,38,34,.92)_100%)]"

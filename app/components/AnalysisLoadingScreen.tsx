@@ -531,7 +531,7 @@ export default function AnalysisLoadingScreen({ steps: providedSteps, onComplete
   }, [steps, totalDuration, onComplete]);
 
   return (
-    <div className="relative min-h-screen bg-[#08050f] flex items-center justify-center overflow-hidden py-12 px-4">
+    <div className="relative min-h-[100dvh] bg-[#08050f] flex items-center justify-center overflow-hidden py-12 px-4">
       {/* 배경 오브 */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/4 left-1/3 w-80 h-80 rounded-full opacity-10"

@@ -411,7 +411,10 @@ function closeStaticPaymentOverlay() {
   overlay.style.opacity = "";
   overlay.style.pointerEvents = "";
   overlay.style.zIndex = "";
-  if (staticOverlayOpen && document.body) document.body.style.overflow = "";
+  // 정적 오버레이가 건 락만 청소 — ref-count 락(data-cd-scroll-lock)은 건드리지 않음
+  if (staticOverlayOpen && document.body && !document.body.hasAttribute("data-cd-scroll-lock")) {
+    document.body.style.overflow = "";
+  }
 }
 
 function emitCoinGateOverlay(open: boolean, message?: string, mode?: string) {

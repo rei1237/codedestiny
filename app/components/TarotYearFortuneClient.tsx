@@ -369,7 +369,10 @@ export default function TarotYearFortuneClient() {
     return () => {
       window.clearInterval(timer);
       try {
-        document.body.style.overflow = "";
+        // 레거시 경험 스크립트가 건 락만 청소 — ref-count 락(data-cd-scroll-lock)은 건드리지 않음
+        if (!document.body.hasAttribute("data-cd-scroll-lock")) {
+          document.body.style.overflow = "";
+        }
       } catch {
         // no-op
       }

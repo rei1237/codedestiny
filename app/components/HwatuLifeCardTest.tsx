@@ -223,7 +223,7 @@ export default function HwatuLifeCardTest() {
   };
 
   return (
-    <main className="min-h-screen px-4 py-10 text-amber-50" style={{
+    <main className="min-h-[100dvh] px-4 py-10 text-amber-50" style={{
       background:
         "radial-gradient(1200px 500px at 10% 0%, rgba(127,29,29,.35), transparent 60%), radial-gradient(1100px 500px at 100% 10%, rgba(120,53,15,.35), transparent 62%), linear-gradient(145deg,#060708 0%,#0f1312 48%,#220808 100%)",
     }}>

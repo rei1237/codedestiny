@@ -1,6 +1,7 @@
 .cosmicPage {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow: hidden;
   background:
     radial-gradient(circle at 14% 16%, rgba(67, 56, 202, 0.34), transparent 34%),

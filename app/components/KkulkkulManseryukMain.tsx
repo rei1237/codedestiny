@@ -1125,7 +1125,7 @@ export default function KkulkkulManseryukMain() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">
+    <main className="min-h-[100dvh] bg-gradient-to-b from-rose-100 via-pink-50 to-amber-100 px-4 py-8 text-neutral-900">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="rounded-3xl border border-amber-200 bg-white/90 p-6 shadow-lg backdrop-blur-sm">
           {globalRuntimeError ? (

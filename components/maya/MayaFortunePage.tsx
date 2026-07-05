@@ -297,7 +297,7 @@ export default function MayaFortunePage() {
   }, [copy.copied, result]);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#070816] text-slate-50">
+    <main className="min-h-[100dvh] overflow-hidden bg-[#070816] text-slate-50">
       <section className="relative min-h-[92vh] px-4 py-10 sm:px-6 lg:px-8">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_14%,rgba(250,204,21,0.2),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(147,51,234,0.2),transparent_30%),radial-gradient(circle_at_52%_86%,rgba(20,184,166,0.14),transparent_26%),linear-gradient(180deg,#070816_0%,#11102a_48%,#09111f_100%)]" />
         <div className="absolute inset-0 opacity-70 [background-image:radial-gradient(1px_1px_at_12%_22%,rgba(255,255,255,0.9),transparent),radial-gradient(1px_1px_at_70%_18%,rgba(253,230,138,0.8),transparent),radial-gradient(1px_1px_at_82%_62%,rgba(204,251,241,0.72),transparent),radial-gradient(1px_1px_at_34%_74%,rgba(255,255,255,0.65),transparent)] [background-size:180px_180px,240px_240px,310px_310px,390px_390px]" />

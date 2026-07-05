@@ -57,6 +57,9 @@
 	html {
 		-webkit-text-size-adjust: 100%;
 		text-size-adjust: 100%;
+		/* 가로 오버플로우 시스템 차단 (세로 스크롤은 영향 없음) */
+		overflow-x: hidden;
+		overflow-x: clip;
 		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
 		-webkit-overflow-scrolling: touch;
 		/* 스크롤 시 GPU 레이어 전환에 의한 안티앨리어싱 변화 방지 */
@@ -83,6 +86,8 @@
 		-moz-osx-font-smoothing: grayscale;
 		font-synthesis: none;
 		-webkit-overflow-scrolling: touch;
+		overflow-x: hidden;
+		overflow-x: clip;
 		overscroll-behavior-y: none;
 		touch-action: pan-y;
 		padding-left: env(safe-area-inset-left, 0);

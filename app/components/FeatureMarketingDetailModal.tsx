@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -242,50 +243,6 @@ function priceText(target: FeatureMarketingTarget) {
   if (badgePrice) return badgePrice;
   if ((target.coinPrice || 0) > 0) return formatKrwFromCoins(target.coinPrice);
   return "기존 결제 정책 확인";
-}
-
-let bodyScrollLockCount = 0;
-let previousBodyOverflow = "";
-let previousBodyPaddingRight = "";
-
-function lockBodyScroll() {
-  if (typeof document === "undefined") return;
-  const body = document.body;
-  if (!body) return;
-
-  if (bodyScrollLockCount === 0) {
-    previousBodyOverflow = body.style.overflow;
-    previousBodyPaddingRight = body.style.paddingRight;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
-  }
-
-  bodyScrollLockCount += 1;
-  body.style.overflow = "hidden";
-  body.setAttribute("data-cd-scroll-lock", "true");
-}
-
-function unlockBodyScroll() {
-  if (typeof document === "undefined") return;
-  const body = document.body;
-  if (!body) return;
-
-  bodyScrollLockCount = Math.max(0, bodyScrollLockCount - 1);
-  if (bodyScrollLockCount !== 0) return;
-
-  body.style.overflow = previousBodyOverflow;
-  body.style.paddingRight = previousBodyPaddingRight;
-  body.removeAttribute("data-cd-scroll-lock");
-}
-
-function useBodyScrollLock(enabled: boolean) {
-  useEffect(() => {
-    if (!enabled) return;
-    lockBodyScroll();
-    return () => {
-      unlockBodyScroll();
-    };
-  }, [enabled]);
 }
 
 const modalSheetScrollStyle: CSSProperties = {

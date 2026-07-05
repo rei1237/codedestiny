@@ -540,7 +540,7 @@ export default function AdvancedZiweiSection({
 
   if (step === "form") {
     return (
-      <section className="relative min-h-screen overflow-hidden bg-[#030712] px-4 py-10 text-slate-100 sm:px-6">
+      <section className="relative min-h-[100dvh] overflow-hidden bg-[#030712] px-4 py-10 text-slate-100 sm:px-6">
         <StarDust />
         <div className="pointer-events-none absolute -left-24 top-8 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="pointer-events-none absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
@@ -674,7 +674,7 @@ export default function AdvancedZiweiSection({
 
   if (step === "computing") {
     return (
-      <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#020617] px-6 text-center text-slate-100">
+      <section className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-[#020617] px-6 text-center text-slate-100">
         <StarDust />
         <div className="pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-cyan-300/10 blur-3xl" />
         <div className="pointer-events-none absolute -right-20 bottom-8 h-64 w-64 rounded-full bg-amber-200/10 blur-3xl" />
@@ -725,7 +725,7 @@ export default function AdvancedZiweiSection({
     const canReadCurrent = canReadAll || !!activeChapter?.free;
 
     return (
-      <section className="relative min-h-screen overflow-hidden bg-[#02050f] pb-28 text-slate-100">
+      <section className="relative min-h-[100dvh] overflow-hidden bg-[#02050f] pb-28 text-slate-100">
         <StarDust />
         <div className="pointer-events-none absolute -right-32 top-20 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
         <div className="pointer-events-none absolute -left-24 bottom-0 h-96 w-96 rounded-full bg-amber-200/10 blur-3xl" />
