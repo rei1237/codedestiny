@@ -1832,6 +1832,39 @@ async function handleResult(request, env, pathId = "") {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: MESSAGES.resultNotFound }, { status: 404 });
   }
   if (consultation.status === "generating") {
+    const lastTouchedAt = new Date(consultation.updatedAt || consultation.createdAt).getTime();
+    if (Date.now() - lastTouchedAt >= LIFE_BOOK_GENERATING_STALE_MS) {
+      await LifeBookAiConsultation.updateOne(
+        { id: consultation.id, status: "generating" },
+        {
+          $set: {
+            status: "generation_failed",
+            generationError: {
+              code: "GENERATION_STALLED",
+              message: "Generation did not complete within the allowed window.",
+              at: new Date().toISOString(),
+            },
+          },
+        },
+      ).catch(() => {});
+      const failed = await LifeBookAiConsultation.findOne({ id: consultation.id }).lean();
+      logLifeBookAction("result_fetch", {
+        requestId: attemptId || sessionId,
+        userId: auth.userId,
+        idempotencyKey: consultation.idempotencyKey,
+        status: "generation_failed",
+        cacheHit: true,
+        providerCallCount: Number(consultation.llmMeta?.providerCallCount || 0),
+        reason: "GENERATION_STALLED",
+        route: "/api/life-book-ai/result",
+      }, "warn");
+      return json({
+        ...publicSession(failed || consultation),
+        ok: false,
+        reason: "GENERATION_STALLED",
+        message: MESSAGES.llmFailed,
+      }, { status: 503 });
+    }
     const orderName = getConsultationOrderName({ consultationType: consultation.llmMeta?.input?.consultationType });
     logLifeBookAction("status_check", {
       requestId: attemptId || sessionId,

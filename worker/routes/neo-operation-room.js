@@ -16,6 +16,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -778,7 +779,13 @@ function briefingCitesEvidence(briefing, tokens) {
 }
 
 async function requestBriefingOnce(env, prompt, normalized, methodSummary) {
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65 });
+  const neoCacheConfig = {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: "neo-operation-room-v1",
+  };
+  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65, cache: neoCacheConfig });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;

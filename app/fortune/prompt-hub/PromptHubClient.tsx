@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -1113,6 +1114,7 @@ export default function ComprehensivePromptHubPage() {
       }, {} as Record<ToolId, boolean>),
   );
   const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
+  const [heroImageError, setHeroImageError] = useState(false);
   const resultPanelRef = useRef<HTMLElement | null>(null);
 
   const currentTool = toolConfigById[activeToolId];
@@ -1470,6 +1472,11 @@ export default function ComprehensivePromptHubPage() {
           0%, 100% { opacity: .34; transform: scale(.98); }
           50% { opacity: .62; transform: scale(1.04); }
         }
+        .yeon-hero-image {
+          pointer-events: none;
+          object-fit: contain;
+          opacity: 0.9;
+        }
       `}</style>
       <div className="pointer-events-none fixed inset-0">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(251,207,232,0.42),transparent_28%),radial-gradient(circle_at_82%_8%,rgba(253,230,138,0.36),transparent_24%),radial-gradient(circle_at_86%_32%,rgba(221,214,254,0.42),transparent_30%),radial-gradient(circle_at_48%_100%,rgba(244,114,182,0.18),transparent_38%),linear-gradient(180deg,#fffaf2_0%,#fff4f8_36%,#f4efff_70%,#fff8ef_100%)]" />
@@ -1517,6 +1524,16 @@ export default function ComprehensivePromptHubPage() {
               svgClassName="mx-auto sm:mx-0 w-[128px] sm:w-[156px] md:w-[182px] lg:w-[202px]"
               ariaHidden
             />
+            {!heroImageError && (
+              <Image
+                src="/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp"
+                alt="연이 마스코트 — 운세 프롬프트 허브"
+                width={480}
+                height={360}
+                className="yeon-hero-image pointer-events-none absolute -right-12 -top-8 z-5 h-auto w-48 sm:-right-6 sm:w-56 md:-right-4 md:w-64 lg:w-80"
+                onError={() => setHeroImageError(true)}
+              />
+            )}
             <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
               <div>
                 <div className="inline-flex min-h-[34px] items-center gap-2 rounded-full border bg-white/78 px-3 text-xs font-black uppercase tracking-[0.14em]" style={{ borderColor: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>

@@ -222,6 +222,9 @@ function LifeBookResultContent() {
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [pollAttempts, setPollAttempts] = useState(0);
+  const maxPollAttempts = 45;
+  const pollIntervalMs = 3200;
 
   const loadResult = useCallback(async () => {
     if (!attemptId) {
@@ -249,6 +252,7 @@ function LifeBookResultContent() {
       }
       setResult(payload);
       setError("");
+      setPollAttempts(0);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "저장된 인생의 책을 불러오지 못했습니다.");
     } finally {
@@ -262,9 +266,16 @@ function LifeBookResultContent() {
 
   useEffect(() => {
     if (result?.status !== "generating" && !pending) return;
-    const timer = window.setInterval(() => void loadResult(), 3200);
+    if (pollAttempts >= maxPollAttempts) {
+      setError("생성에 시간이 걸리고 있습니다. 다시 시도해주세요.");
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setPollAttempts((prev) => prev + 1);
+      void loadResult();
+    }, pollIntervalMs);
     return () => window.clearInterval(timer);
-  }, [loadResult, pending, result?.status]);
+  }, [loadResult, pending, result?.status, pollAttempts, maxPollAttempts]);
 
   // 책 진도: 스크롤 위치를 독서 진행률로 표시
   const [readProgress, setReadProgress] = useState(0);
