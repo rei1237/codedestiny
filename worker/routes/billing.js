@@ -1139,6 +1139,12 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
   const user = await User.findById(authUserId)
     .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
+  return seedMembershipCreditFromUserDoc(authUserId, user);
+}
+
+// 이미 조회한 user 문서로 legacy seed 필요 여부만 판단하고, 필요할 때만 원자적 write.
+// readBillingSnapshot처럼 User를 이미 읽은 경로에서 중복 findById를 피하기 위해 사용.
+async function seedMembershipCreditFromUserDoc(authUserId, user) {
   const sub = user?.profileSubscription || {};
   const legacyPoints = Number(user?.points || 0);
   if (!user?._id) return null;
@@ -1146,33 +1152,29 @@ async function seedMembershipCreditForExistingPassIfNeeded(authUserId) {
   const legacyCredit = !sub?.legacyCoinCreditSeeded && legacyPoints > 0
     ? Math.floor(legacyPoints * MEMBERSHIP_CREDIT_PER_COIN)
     : 0;
-  let updatedUser = null;
+  if (legacyCredit <= 0) return null;
 
-  if (legacyCredit > 0) {
-    updatedUser = await User.findOneAndUpdate(
-      {
-        _id: authUserId,
-        "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
+  return User.findOneAndUpdate(
+    {
+      _id: authUserId,
+      "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
+    },
+    {
+      $inc: {
+        "profileSubscription.membershipCreditBalance": legacyCredit,
+        "profileSubscription.membershipCreditGranted": legacyCredit,
       },
-      {
-        $inc: {
-          "profileSubscription.membershipCreditBalance": legacyCredit,
-          "profileSubscription.membershipCreditGranted": legacyCredit,
-        },
-        $set: {
-          "profileSubscription.legacyCoinCreditSeeded": true,
-          "profileSubscription.legacyCoinCreditSeededAt": new Date(),
-          "profileSubscription.legacyCoinCreditSeededPoints": Math.floor(legacyPoints),
-        },
+      $set: {
+        "profileSubscription.legacyCoinCreditSeeded": true,
+        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+        "profileSubscription.legacyCoinCreditSeededPoints": Math.floor(legacyPoints),
       },
-      {
-        returnDocument: "after",
-        projection: { points: 1, profileSubscription: 1 },
-      },
-    ).lean();
-  }
-
-  return updatedUser;
+    },
+    {
+      returnDocument: "after",
+      projection: { points: 1, profileSubscription: 1 },
+    },
+  ).lean();
 }
 
 // Mirrors payments.js: MongoDB multi-doc transactions require a replica set. When the
@@ -4314,132 +4316,6 @@ async function handleFeatures(request) {
   return success(listBillingFeatures(), "서버 기능 가격표를 조회했습니다.");
 }
 
-async function handleBalance(request, env) {
-  let delegatedResponse = null;
-  let payload = {};
-  try {
-    const delegatedRequest = buildRoutedRequest(request, "/api/fortune/pig-coin/balance", "GET");
-    delegatedResponse = await handleFortuneRoutes(delegatedRequest, env);
-    payload = await readPayloadSafe(delegatedResponse);
-  } catch (error) {
-    logBillingRouteError("balance-delegate-fortune", error, request);
-    return success({
-      authenticated: false,
-      balance: 0,
-      coins: 0,
-      monthlyCredits: 0,
-      monthlyCreditsAsCoins: 0,
-      user: null,
-      unlockedFeatures: [],
-      unlockMap: {},
-      degraded: true,
-      error: {
-        code: "SERVER_ERROR",
-        message: "서버 처리 중 오류가 발생했습니다.",
-        errorDetails: buildBillingErrorDetails("balance-delegate-fortune", error),
-      },
-    }, "잔액 정보를 일시적으로 불러오지 못해 기본값으로 응답합니다.");
-  }
-
-  if (!delegatedResponse.ok) {
-    const mapped = mapCoinGateFailure(delegatedResponse.status, payload);
-    const authRequired = mapped.status === 401 || mapped.code === "AUTH_REQUIRED";
-
-    if (authRequired) {
-      return success({
-        authenticated: false,
-        balance: 0,
-        user: null,
-        unlockedFeatures: [],
-        unlockMap: {},
-        degraded: false,
-      }, "로그인이 필요하여 기본 잔액 상태로 응답합니다.");
-    }
-
-    return success({
-      authenticated: false,
-      balance: 0,
-      user: null,
-      unlockedFeatures: [],
-      unlockMap: {},
-      degraded: true,
-      error: {
-        code: mapped.code,
-        message: mapped.message,
-      },
-    }, "잔액 정보를 일시적으로 불러오지 못해 기본값으로 응답합니다.");
-  }
-
-  const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
-  let membershipCreditBalance = 0;
-  let membership = null;
-  let scopedProfileId = "";
-  let scopedUnlocks = null;
-  try {
-    const auth = await getOptionalUserFromRequest(request, env);
-    if (auth?.userId) {
-      await connectDb(env);
-      await seedMembershipCreditForExistingPassIfNeeded(auth.userId);
-      const user = await User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
-        .lean();
-      const sub = user?.profileSubscription || {};
-      const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
-      scopedProfileId = cleanProfileId(user?.destinyProfilesCurrentId);
-      scopedUnlocks = await resolveProfileScopedUnlocks(auth.userId, scopedProfileId, user?.unlockedFeatures);
-      membershipCreditBalance = Number(sub?.membershipCreditBalance || 0);
-      membership = {
-        tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
-        passTier: entitlement.passTier || null,
-        passLabel: entitlement.passLabel || entitlement.label,
-        passColorTone: entitlement.passColorTone || null,
-        label: entitlement.label,
-        isActive: entitlement.isActive,
-        freeLimit: entitlement.maxCoveredCoin,
-        passLimit: entitlement.maxCoveredCoin,
-        maxCoveredCoin: entitlement.maxCoveredCoin,
-        profileLimit: entitlement.maxProfiles,
-        source: entitlement.source,
-        expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
-        membershipCreditBalance,
-        membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
-        membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
-        legacyCoinCreditSeeded: Boolean(sub?.legacyCoinCreditSeeded),
-        legacyCoinCreditSeededPoints: Number(sub?.legacyCoinCreditSeededPoints || 0),
-        legacyCoinBalance: Number(user?.points || 0),
-      };
-    }
-  } catch (_) {
-    membership = null;
-  }
-
-  const mergedUnlockedFeatures = Array.from(new Set([
-    ...(scopedUnlocks ? scopedUnlocks.unlockedFeatures : []),
-  ]));
-  const mergedUnlockMap = {
-    ...(scopedUnlocks ? scopedUnlocks.unlockMap : {}),
-  };
-  const responseUser = payload?.user && typeof payload.user === "object"
-    ? { ...payload.user, unlockedFeatures: mergedUnlockedFeatures }
-    : null;
-
-  return success({
-    authenticated: Boolean(payload?.authenticated),
-    balance: Number.isFinite(balance) ? balance : 0,
-    legacyCoinBalance: Number.isFinite(balance) ? balance : 0,
-    coins: Number.isFinite(balance) ? balance : 0,
-    membershipCreditBalance,
-    monthlyCredits: Math.max(0, Math.floor(Number(membershipCreditBalance || 0))),
-    monthlyCreditsAsCoins: Math.max(0, Math.floor(Number(membershipCreditBalance || 0))) / MEMBERSHIP_CREDIT_PER_COIN,
-    membership,
-    currentProfileId: scopedProfileId || undefined,
-    user: responseUser,
-    unlockedFeatures: mergedUnlockedFeatures,
-    unlockMap: mergedUnlockMap,
-    raw: payload,
-  }, "이용 가능 혜택을 조회했습니다.");
-}
-
 async function handleBillingSnapshotBalance(request, env) {
   const billingUrl = new URL(request.url);
   const isMoonlightStoneRequest = billingUrl.searchParams.get("moonlightStone") === "1";
@@ -4884,12 +4760,14 @@ async function readBillingSnapshot(request, env, options = {}) {
 
   try {
     await connectDb(env);
-    const [seededUser, user] = await Promise.all([
-      seedLegacyCredit === true ? seedMembershipCreditForExistingPassIfNeeded(auth.userId) : Promise.resolve(null),
-      User.findById(auth.userId)
-        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
-        .lean(),
-    ]);
+    // User 문서를 1회만 조회하고, legacy seed 필요 시에만 원자적 write를 수행한다.
+    // (기존에는 seed 함수가 내부에서 동일 문서를 또 findById 해 User를 2회 읽었음)
+    const user = await User.findById(auth.userId)
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
+      .lean();
+    const seededUser = seedLegacyCredit === true
+      ? await seedMembershipCreditFromUserDoc(auth.userId, user)
+      : null;
     const effectiveUser = seededUser ? { ...(user || {}), ...seededUser } : user;
     const sub = effectiveUser?.profileSubscription || {};
     const entitlement = resolveActivePassPolicyWithProfileFallback(effectiveUser || {});
