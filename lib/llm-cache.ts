@@ -85,8 +85,22 @@ export function deduplicatedCall(
   return promise;
 }
 
+// 캐시 저장소(Mongo)가 느리거나 응답하지 않아도 LLM 생성 흐름을 막지 않도록 하는 상한.
+// get 이 이 시간을 넘기면 캐시 미스로 간주하고 바로 생성으로 진행한다.
+const CACHE_GET_TIMEOUT_MS = 1500;
+// set 이 이 시간을 넘기면 포기한다. 캐시 쓰기는 best-effort 이므로 사용자 응답을 지연시키지 않는다.
+const CACHE_SET_TIMEOUT_MS = 2000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
 // 결정적 호출은 캐시 + dedup, 비결정적 호출은 dedup 만 적용한다.
 // 캐시 히트든 미스든 결제/DB 저장은 호출자(라우트) 흐름에서 그대로 실행되므로 이 레이어는 관여하지 않는다.
+// 캐시는 순수 부가기능이다: 키 생성/조회/저장의 어떤 실패·지연도 생성 흐름을 절대 막거나 늦추면 안 된다.
 export async function withLLMCache(
   request: LLMRequest,
   callUncached: (request: LLMRequest) => Promise<LLMResponse>,
@@ -96,12 +110,19 @@ export async function withLLMCache(
   const deterministic = config?.deterministic === true;
   const ttlSeconds = Number(config?.ttlSeconds) > 0 ? Number(config.ttlSeconds) : DEFAULT_TTL_SECONDS;
 
-  const cacheKey = await buildCacheKey(request, config?.keyExtra);
+  // 캐시 키 생성이 실패하면 캐시/dedup 을 건너뛰고 바로 호출한다(생성이 막히면 안 됨).
+  let cacheKey: string;
+  try {
+    cacheKey = await buildCacheKey(request, config?.keyExtra);
+  } catch (error) {
+    console.warn("[llm-cache] cache key build failed; bypassing cache:", getErrorMessage(error));
+    return callUncached(request);
+  }
 
-  // 1. 캐시 조회 (결정적 호출만)
+  // 1. 캐시 조회 (결정적 호출만). 저장소가 느리면 타임아웃하고 생성으로 진행한다.
   if (deterministic && store) {
     try {
-      const cached = await store.get(cacheKey);
+      const cached = await withTimeout(store.get(cacheKey), CACHE_GET_TIMEOUT_MS, null);
       if (cached && cached.text) {
         if (request.logContext) request.logContext.cacheHit = true;
         console.info("[llm cache_hit]", {
@@ -120,12 +141,18 @@ export async function withLLMCache(
   // 2. Dedup + 실제 호출
   const result = await deduplicatedCall(cacheKey, () => callUncached(request));
 
-  // 3. 캐시 저장 (결정적 호출만, best-effort)
+  // 3. 캐시 저장 (결정적 호출만, best-effort). 응답을 지연시키지 않도록 상한을 둔다.
   if (deterministic && store && result?.text) {
     try {
-      await store.set(cacheKey, result, ttlSeconds);
+      await withTimeout(
+        store.set(cacheKey, result, ttlSeconds).catch((error) => {
+          console.warn("[llm-cache] cache write failed:", getErrorMessage(error));
+        }),
+        CACHE_SET_TIMEOUT_MS,
+        undefined,
+      );
     } catch (error) {
-      console.warn("[llm-cache] cache write failed:", getErrorMessage(error));
+      console.warn("[llm-cache] cache write timed out:", getErrorMessage(error));
     }
   }
 
