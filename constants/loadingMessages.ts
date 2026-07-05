@@ -1,16 +1,16 @@
 export const LOADING_MESSAGES = {
   pg_processing: {
-    subscription: { title: "월정석 결제를 처리하고 있어요", sub: "잠시만 기다려 주세요" },
+    subscription: { title: "연이의 월정석 · 결제를 처리하고 있어요", sub: "잠시만 기다려 주세요" },
     single: { title: "결제를 처리하고 있어요", sub: "창을 닫지 말아 주세요" },
     pass: { title: "이용권 적용을 확인하고 있어요", sub: "잠시만 기다려 주세요" },
   },
   result_loading: {
-    subscription: { title: "월정석이 깃들고 있어요", sub: "곧 이용 가능해져요" },
-    single: { title: "결제가 완료됐어요", sub: "결과를 불러오는 중이에요" },
+    subscription: { title: "연이의 월정석 · 깃들고 있어요", sub: "곧 이용 가능해져요" },
+    single: { title: "결제가 완료됐어요", sub: "달의 인도자가 결과를 불러오는 중이에요" },
     pass: { title: "이용권을 확인했어요", sub: "결과를 불러오는 중이에요" },
   },
   access_check: {
-    subscription: { title: "월정석 정보를 확인하는 중이에요", sub: "안전하게 접근 권한을 맞춰보고 있어요" },
+    subscription: { title: "연이의 월정석 · 정보를 확인하는 중이에요", sub: "안전하게 접근 권한을 맞춰보고 있어요" },
     single: { title: "잔액을 확인하는 중이에요", sub: "결제 가능 여부를 살피고 있어요" },
     pass: { title: "이용권을 확인하는 중이에요", sub: "이용 가능 여부를 살피고 있어요" },
   },

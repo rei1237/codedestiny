@@ -322,13 +322,23 @@ export default function DeferredAdsense() {
   if (!documentAllowsAdsense || !viewerAllowsAdsense) return null;
 
   return (
-    <Script
-      id="cd-adsense"
-      src={ADSENSE_SRC}
-      strategy="lazyOnload"
-      async
-      crossOrigin="anonymous"
-      data-cd-adsense="1"
-    />
+    <div
+      style={{
+        minHeight: '250px',
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Script
+        id="cd-adsense"
+        src={ADSENSE_SRC}
+        strategy="lazyOnload"
+        async
+        crossOrigin="anonymous"
+        data-cd-adsense="1"
+      />
+    </div>
   );
 }

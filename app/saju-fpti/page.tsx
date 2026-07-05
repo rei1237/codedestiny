@@ -35,5 +35,24 @@ export const metadata: Metadata = {
 };
 
 export default function SajuFptiPage() {
-  return <SajuFptiRouteClient />;
+  return (
+    <>
+      <section className="sr-only" aria-label="사주 FPTI 테스트 설명">
+        <h2>사주 FPTI 테스트</h2>
+        <p>
+          사주 오행과 십성의 분포를 기반으로 당신의 성향을 4축 FPTI 코드로 분석합니다.
+          FPTI는 Four-axis Personality Type Index의 약자로, 사주의 정보를 현대적 심리 프레임으로 번역합니다.
+        </p>
+        <p>
+          오행(목화토금수)과 십성(정편인편재정관편관)의 조화를 분석하여 당신의 성향 축을 찾아냅니다.
+          무료로 핵심 결과를 바로 확인할 수 있으며, 상세한 심층 분석 리포트는 유료 옵션으로 제공됩니다.
+        </p>
+        <p>
+          당신의 생년월일과 출생 시간을 입력하면 개인화된 FPTI 코드와 성향 분석을 받을 수 있습니다.
+          이 테스트는 사주의 과학적 해석과 현대 심리학의 통찰을 결합하여 설계되었습니다.
+        </p>
+      </section>
+      <SajuFptiRouteClient />
+    </>
+  );
 }
