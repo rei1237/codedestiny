@@ -1,7 +1,6 @@
 "use client";
 
 import { Check, Copy, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -1472,10 +1471,29 @@ export default function ComprehensivePromptHubPage() {
           0%, 100% { opacity: .34; transform: scale(.98); }
           50% { opacity: .62; transform: scale(1.04); }
         }
-        .yeon-hero-image {
+        .yeon-hero-sprite {
           pointer-events: none;
-          object-fit: contain;
-          opacity: 0.9;
+          aspect-ratio: 282 / 338;
+          overflow: hidden;
+          opacity: 0.94;
+          filter: drop-shadow(0 16px 28px rgba(244, 114, 182, 0.28));
+          animation: yeonHeroFloat 5.6s ease-in-out infinite;
+        }
+        .yeon-hero-sprite-sheet {
+          position: absolute;
+          left: calc(44 / 282 * -100%);
+          top: calc(24 / 338 * -100%);
+          width: calc(1254 / 282 * 100%);
+          height: calc(1254 / 338 * 100%);
+          max-width: none;
+          object-fit: fill;
+        }
+        @keyframes yeonHeroFloat {
+          0%, 100% { transform: translateY(0) rotate(-1deg); }
+          50% { transform: translateY(-8px) rotate(1.6deg); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .yeon-hero-sprite { animation: none; }
         }
       `}</style>
       <div className="pointer-events-none fixed inset-0">
@@ -1525,14 +1543,16 @@ export default function ComprehensivePromptHubPage() {
               ariaHidden
             />
             {!heroImageError && (
-              <Image
-                src="/fuctionassets/%EC%97%B0%EC%9D%B4%EC%9D%98%20%EB%A7%88%EC%9D%8C%20%EB%B3%84%EC%9E%90%EB%A6%AC.webp"
-                alt="연이 마스코트 — 운세 프롬프트 허브"
-                width={480}
-                height={360}
-                className="yeon-hero-image pointer-events-none absolute -right-12 -top-8 z-5 h-auto w-48 sm:-right-6 sm:w-56 md:-right-4 md:w-64 lg:w-80"
-                onError={() => setHeroImageError(true)}
-              />
+              <div className="yeon-hero-sprite pointer-events-none absolute -right-10 -top-6 z-5 w-40 sm:-right-6 sm:w-48 md:-right-4 md:w-56 lg:w-64">
+                <img
+                  src="/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"
+                  alt="연이 꽃돼지 마스코트 — 운세 프롬프트 허브"
+                  className="yeon-hero-sprite-sheet"
+                  decoding="async"
+                  loading="lazy"
+                  onError={() => setHeroImageError(true)}
+                />
+              </div>
             )}
             <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
               <div>

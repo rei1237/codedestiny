@@ -1,11 +1,9 @@
 ﻿import { requireAuth } from "../lib/auth.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 const SIBYL_MIN_TOTAL_CHARS = 20000;
-const SIBYL_MIN_CHAPTER_CHARS = 1900;
 const SIBYL_REPORT_MIN_CHAPTER_CHARS = 300;
 const SIBYL_REPORT_CHAPTERS = [
   { key: "coreMatrix", title: "CH.01 시빌라 코어 매트릭스", focus: "입력 사주, 일간, 지배 오행, 부족 오행, 주도 십성, 위험·적성 계수, 전체 진단" },
@@ -19,7 +17,6 @@ const SIBYL_REPORT_CHAPTERS = [
   { key: "moneyCareer", title: "CH.09 재물과 직업 전략", focus: "돈 버는 방식, 손실 패턴, 직업 선택 기준, 장기 커리어" },
   { key: "finalMessage", title: "CH.10 최종 실행 가이드", focus: "사주 구조 기반 최종 선언문과 운명 전략 문장" },
 ];
-const SIBYL_CATEGORY_PLAN = SIBYL_REPORT_CHAPTERS.map((item) => ({ title: item.title, focus: item.focus, key: item.key }));
 const SIBYL_FORBIDDEN_REPORT_PATTERNS = [
   /실행\s*보강\s*메모\s*R\d*/i,
   /자동\s*복구\s*생성/i,
@@ -111,32 +108,6 @@ function stableHash(input) {
     hash = Math.imul(hash, 16777619);
   }
   return (hash >>> 0).toString(16).padStart(8, "0");
-}
-
-function parseJsonCandidate(text) {
-  const source = clean(text);
-  if (!source) return null;
-
-  const candidates = [source];
-  const fenced = source.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (fenced?.[1]) candidates.push(clean(fenced[1]));
-
-  const firstBrace = source.indexOf("{");
-  const lastBrace = source.lastIndexOf("}");
-  if (firstBrace >= 0 && lastBrace > firstBrace) {
-    candidates.push(source.slice(firstBrace, lastBrace + 1));
-  }
-
-  for (const raw of candidates) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch (e) {
-      // try next
-    }
-  }
-
-  return null;
 }
 
 function buildSibylFingerprint(body = {}) {
@@ -409,209 +380,6 @@ function deterministicExpansionBlock(body = {}, category = {}, index = 0) {
   return lines.join("\n\n");
 }
 
-function buildFallbackChapter(body = {}, category = {}, index = 0, minChars = SIBYL_MIN_CHAPTER_CHARS) {
-  let text = [
-    `${category.title}는 단일 운세 문장이 아니라 행동 시스템 설계 영역입니다.`,
-    deterministicExpansionBlock(body, category, index),
-    "실행 체크리스트: 오늘 1개, 이번 주 1개, 이번 달 1개의 우선순위를 정해 즉시 실행 가능한 단위로 쪼개세요.",
-    "실패 패턴은 의지 부족이 아니라 구조 부재에서 발생합니다. 구조를 먼저 만들면 성과는 뒤따릅니다.",
-  ].join("\n\n");
-
-  let safety = 0;
-  while (text.length < minChars && safety < 8) {
-    text += `\n\n${deterministicExpansionBlock(body, category, safety + 10)}`;
-    safety += 1;
-  }
-  return normalizeLineBreaks(text);
-}
-
-function buildFallbackReport(body = {}) {
-  const chapters = SIBYL_CATEGORY_PLAN.map((category, index) => ({
-    title: category.title,
-    content: buildFallbackChapter(body, category, index),
-  }));
-  const totalChars = chapters.reduce((sum, chapter) => sum + chapter.content.length, 0);
-  return {
-    source: "fallback",
-    reportId: buildSibylFingerprint(body),
-    minTotalChars: SIBYL_MIN_TOTAL_CHARS,
-    totalChars,
-    chapters,
-  };
-}
-
-function padReportLength(chapters = [], body = {}, minTotalChars = SIBYL_MIN_TOTAL_CHARS) {
-  const output = chapters.map((chapter) => ({ ...chapter }));
-  let total = output.reduce((sum, chapter) => sum + clean(chapter?.content).length, 0);
-  if (!output.length || total >= minTotalChars) return { chapters: output, totalChars: total };
-
-  let cursor = 0;
-  let guard = 0;
-  while (total < minTotalChars && guard < 80) {
-    const idx = cursor % output.length;
-    const chapter = output[idx];
-    const expansion = deterministicExpansionBlock(body, { title: chapter.title }, guard + idx + 20);
-    chapter.content = `${normalizeLineBreaks(chapter.content)}\n\n${expansion}`;
-    total = output.reduce((sum, item) => sum + clean(item?.content).length, 0);
-    cursor += 1;
-    guard += 1;
-  }
-  return { chapters: output, totalChars: total };
-}
-
-function buildReportPrompt(body = {}, category = {}, chapterIndex = 0, chapterCount = SIBYL_CATEGORY_PLAN.length, minChars = SIBYL_MIN_CHAPTER_CHARS) {
-  const profile = body?.profile || {};
-  const b = profile?.birth || {};
-  const pillars = body?.pillars || {};
-
-  return [
-    "당신은 SIBYL SYSTEM의 사주 기반 커리어 분석 마스터입니다.",
-    "아래 입력을 바탕으로 SIBYL 도미네이터 리포트의 단일 카테고리 챕터를 작성하세요.",
-    `현재 챕터: ${chapterIndex + 1}/${chapterCount} — ${category.title}`,
-    `챕터 주제: ${category.focus}`,
-    `최소 분량: ${minChars}자 이상`,
-    "출력 형식 규칙:",
-    "- JSON/마크다운 코드블록 금지",
-    "- 한국어 본문만 출력",
-    "- 소제목을 포함한 구조적 서술로 작성",
-    "- 실행 단계, 체크포인트, 실수 방지 규칙을 구체적으로 제시",
-    "- 운세 단정 대신 조건-행동-결과 프레임으로 설명",
-    "입력 데이터:",
-    JSON.stringify({
-      profile: {
-        gender: clean(body?.gender || profile?.gender || ""),
-        birth: {
-          year: toNumber(b?.year, null),
-          month: toNumber(b?.month, null),
-          day: toNumber(b?.day, null),
-          hour: toNumber(b?.hour, null),
-          minute: toNumber(b?.minute, null),
-        },
-      },
-      pillars,
-      dominantEl: clean(body?.dominantEl),
-      dominantTenStar: clean(body?.dominantTenStar),
-      aptCoeff: toNumber(body?.aptCoeff, 0),
-      riskScore: toNumber(body?.riskScore, 0),
-      currentYear: toNumber(body?.currentYear, new Date().getFullYear()),
-      natal: body?.natal || null,
-      category,
-    }),
-  ].join("\n\n");
-}
-
-function buildExpansionPrompt(category = {}, content = "", minChars = SIBYL_MIN_CHAPTER_CHARS) {
-  const text = normalizeLineBreaks(content);
-  return [
-    "아래 리포트 초안을 더 깊고 구체적으로 확장하세요.",
-    `카테고리: ${category.title}`,
-    `목표 분량: 최소 ${minChars}자`,
-    "요구 사항:",
-    "- 사례형 설명 2개 이상",
-    "- 실패 패턴과 수정 루틴을 단계별로 제시",
-    "- 다음 7일/30일/90일 실행안을 명확히 제시",
-    "- 한국어 본문만 출력",
-    "초안:",
-    text,
-  ].join("\n\n");
-}
-
-async function callSibylGemini(env, prompt, options = {}) {
-  return callGeminiText(env, prompt, {
-    modelEnvKeys: ["SIBYL_GEMINI_MODEL"],
-    temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : 0.74,
-    topP: 0.92,
-    maxOutputTokens: Number.isFinite(Number(options.maxOutputTokens)) ? Number(options.maxOutputTokens) : 8192,
-    timeoutMs: Number(options.timeoutMs || env.SIBYL_PROVIDER_TIMEOUT_MS || 70000),
-    maxAttemptsPerPair: Number(options.maxAttemptsPerPair || env.SIBYL_PROVIDER_RETRIES || 2),
-  });
-}
-
-async function generateCategoryChapter(env, body = {}, category = {}, chapterIndex = 0) {
-  const prompt = buildReportPrompt(body, category, chapterIndex, SIBYL_CATEGORY_PLAN.length, SIBYL_MIN_CHAPTER_CHARS);
-  let usedFallback = false;
-  let model = "";
-
-  const ai = await callSibylGemini(env, prompt, {
-    maxOutputTokens: Number(env.SIBYL_MAX_OUTPUT_TOKENS || 8192),
-  });
-
-  let content = "";
-  if (ai.ok && clean(ai.text)) {
-    const parsed = parseJsonCandidate(ai.text);
-    if (parsed?.content && typeof parsed.content === "string") {
-      content = normalizeLineBreaks(parsed.content);
-    } else {
-      content = normalizeLineBreaks(ai.text);
-    }
-    model = ai.model || "";
-  }
-
-  if (content.length < Math.floor(SIBYL_MIN_CHAPTER_CHARS * 0.8)) {
-    const fallback = buildFallbackChapter(body, category, chapterIndex);
-    content = fallback;
-    usedFallback = true;
-  }
-
-  if (content.length < SIBYL_MIN_CHAPTER_CHARS) {
-    const expand = await callSibylGemini(env, buildExpansionPrompt(category, content, SIBYL_MIN_CHAPTER_CHARS), {
-      maxAttemptsPerPair: 1,
-      maxOutputTokens: Number(env.SIBYL_EXPAND_OUTPUT_TOKENS || 6144),
-    });
-
-    if (expand.ok && clean(expand.text)) {
-      const expandedText = normalizeLineBreaks(expand.text);
-      if (expandedText.length >= content.length) {
-        content = expandedText;
-      } else {
-        content = `${content}\n\n${expandedText}`;
-      }
-    }
-  }
-
-  if (content.length < SIBYL_MIN_CHAPTER_CHARS) {
-    usedFallback = true;
-    const safety = buildFallbackChapter(body, category, chapterIndex, SIBYL_MIN_CHAPTER_CHARS);
-    content = content.length > safety.length ? content : safety;
-  }
-
-  return {
-    title: category.title,
-    content: normalizeLineBreaks(content),
-    model,
-    usedFallback,
-  };
-}
-
-async function buildRichSibylReport(env = {}, body = {}) {
-  const chapters = [];
-  const warnings = [];
-  const modelCounter = {};
-
-  for (let i = 0; i < SIBYL_CATEGORY_PLAN.length; i += 1) {
-    const category = SIBYL_CATEGORY_PLAN[i];
-    const chapter = await generateCategoryChapter(env, body, category, i);
-    chapters.push({ title: chapter.title, content: chapter.content });
-    if (chapter.usedFallback) warnings.push(`${i + 1}챕터(${category.title}) fallback`);
-    if (chapter.model) modelCounter[chapter.model] = (modelCounter[chapter.model] || 0) + 1;
-  }
-
-  const padded = padReportLength(chapters, body, SIBYL_MIN_TOTAL_CHARS);
-  const model = Object.entries(modelCounter).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
-
-  return {
-    source: warnings.length ? "gemini+fallback" : "gemini",
-    reportId: buildSibylFingerprint(body),
-    minTotalChars: SIBYL_MIN_TOTAL_CHARS,
-    totalChars: padded.totalChars,
-    categoryCount: SIBYL_CATEGORY_PLAN.length,
-    categories: SIBYL_CATEGORY_PLAN.map((item) => item.title),
-    chapters: padded.chapters,
-    warnings,
-    model,
-  };
-}
-
 export async function handleSibylRoutes(request, env = {}) {
   try {
     const method = request.method.toUpperCase();
@@ -652,34 +420,17 @@ export async function handleSibylRoutes(request, env = {}) {
       missingFields: Array.isArray(canonical?.debug?.missingFields) ? canonical.debug.missingFields : [],
     };
 
-    let rich;
+    // 시빌라 도미네이터 리포트는 LLM 생성을 쓰지 않고, 캐노니컬 사주 계산만으로
+    // 결정론적으로 챕터를 구성한다(buildCanonicalChapterText 기반).
+    const rich = { source: "deterministic", warnings: [], model: "" };
     let reportStatus = "generated";
-    try {
-      rich = await buildRichSibylReport(env, body);
-    } catch (e) {
-      rich = buildFallbackReport(body);
-      rich.source = "fallback";
-      rich.warnings = ["gemini generation failed"];
-      reportStatus = "fallback-generated";
-    }
 
-    if (!rich || !Array.isArray(rich.chapters) || !rich.chapters.length) {
-      rich = buildFallbackReport(body);
-      rich.source = "fallback";
-    }
-
-    const mapped = mapToSibylChapters(rich.chapters, canonical);
-
+    const mapped = mapToSibylChapters([], canonical);
     try {
       validateSibylReport(mapped.chapterMap);
     } catch (e) {
-      const hardFallback = mapToSibylChapters([], canonical);
-      validateSibylReport(hardFallback.chapterMap);
-      mapped.chapterMap = hardFallback.chapterMap;
-      mapped.chapterList = hardFallback.chapterList;
-      rich.source = "fallback";
-      rich.warnings = (rich.warnings || []).concat(["chapter validation fallback"]);
-      reportStatus = "fallback-validated";
+      reportStatus = "validation-warning";
+      rich.warnings = ["chapter validation warning"];
     }
 
     const totalChars = mapped.chapterList.reduce((sum, chapter) => sum + clean(chapter.content).length, 0);

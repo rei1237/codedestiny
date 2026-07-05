@@ -4098,6 +4098,7 @@ async function handleSajuAIPrompt(request, auth, env) {
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
         maxOutputTokens: 14000,
+        timeoutMs: 90000,
         cache: sajuLlmCache,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);
@@ -4132,6 +4133,7 @@ async function handleSajuAIPrompt(request, auth, env) {
           taskType: "fortune",
           temperature: 0.42,
           maxOutputTokens: 8000,
+          timeoutMs: 90000,
           cache: sajuLlmCache,
         });
         if (repairAi?.ok) {

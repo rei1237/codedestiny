@@ -371,7 +371,22 @@ export function parseNeoOperationRoomBriefingResponse(text, input, methodSummary
   return briefing;
 }
 
-export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck) {
+export function buildPreviousAdviceLog(initialBriefing) {
+  const briefing = firstObject(initialBriefing);
+  const items = [];
+  const push = (prefix, value) => {
+    const text = clean(value, 120);
+    if (text) items.push(`- [${prefix}] ${text}`);
+  };
+  safeArray(briefing.actionOrders).forEach((item) => push("바로 작전", item));
+  safeArray(briefing.sevenDayMission).forEach((item) => push("7일 미션", firstObject(item).mission));
+  safeArray(briefing.thirtyDayStrategy).forEach((item) => push("30일 전략", item));
+  safeArray(firstObject(briefing.originalStrategy).keyRules).forEach((item) => push("본래 전략", item));
+  push("금지 행동", firstObject(briefing.forbiddenAction).title);
+  return items.slice(0, 20).join("\n");
+}
+
+export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, previousAdviceLog = "") {
   const selectedMethod = clean(consultation?.selectedMethod || consultation?.initialBriefing?.selectedMethod, 30);
   const methodLabel = METHOD_LABELS[selectedMethod] || selectedMethod;
   const writingGuide = METHOD_WRITING_GUIDES[selectedMethod] || {
@@ -380,15 +395,18 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck) {
     focus: ["사용자 답변에서 실제로 흔들린 자리", "버려야 할 선택 방식", "7일 안에 바꿀 행동"],
     tone: ["이제 같은 흐름을 다른 방식으로 다룰 때다."],
   };
+  const topicLabel = clean(consultation?.topic, 120) || "선택 주제";
   return [
     "너는 '네오의 팩폭 작전실'의 사자 장군 네오다.",
     "지금은 1차 작전 브리핑 이후, 사용자의 현실 점검 답변을 반영해 2차 수정 작전 명령서를 작성한다.",
+    "지금은 위로가 아니라 확신 있는 판단자로서, 사용자의 현재 방향이 맞는지부터 단정한다. 애매하게 얼버무리지 않는다.",
     "v2는 v1의 반복이 아니다. 사용자가 인정한 부분, 반박한 부분, 더 중요하다고 밝힌 현실 문제를 반드시 반영해 진단을 보정한다.",
     "말투는 직설적이고 차갑지만 사용자를 비난하거나 조롱하지 않는다.",
     "계산 근거는 이미 저장된 methodSummary와 initialBriefing 안에서만 사용한다. 없는 계산값을 새로 만들지 않는다.",
     "계산 요약 데이터에 없는 항목은 지어내지 말고, 필요하면 '현재 계산 가능한 범위에서 해석했다'고 자연스럽게 밝힌다.",
+    "'케이스마다 다르다', '노력하면 좋아진다' 같은 회피성·추상적 답변을 금지한다. 모든 대안에는 시기와 구체 행동과 근거가 붙어야 한다.",
     "사용자가 고른 체크 항목이나 자유 입력 중 최소 하나는 neoReview의 첫 문단에서 직접 짚고 지나간다.",
-    "2차 명령서는 1차 브리핑을 반복하지 말고, 사용자의 인정·반박·현실 변수를 반영해 작전을 조정한다.",
+    `모든 판정과 대안은 '${topicLabel}' 주제에 밀착시킨다. 주제와 무관한 일반론으로 새지 않는다.`,
     "개발자식 장애 지점 표현은 쓰지 말고 '막힌 지점', '흔들리는 자리', '어긋난 흐름', '운이 새는 틈', '전선이 밀리는 곳', '반복되는 선택', '흐려진 판단', '놓친 신호', '다시 잡아야 할 기준' 같은 상담 언어를 쓴다.",
     "mock, dry-run, provider, system, prompt 같은 내부 구현 단어를 결과에 쓰지 않는다.",
     "이 기능은, 이 결과는, 분석 결과는, 리포트 항목, 콘텐츠 블록 같은 제품 설명식 문장을 쓰지 않는다.",
@@ -405,6 +423,10 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck) {
     "",
     "[1차 작전 브리핑]",
     JSON.stringify(consultation?.initialBriefing || {}),
+    "",
+    "[이미 제시한 조언 (반복 금지)]",
+    clean(previousAdviceLog) || "(없음)",
+    "이 목록에 있는 조언·행동·표현은 그대로 다시 쓰지 않는다. 주제가 겹치면 반드시 다른 각도로 새로 만든다.",
     "",
     "[계산 요약 데이터]",
     JSON.stringify(consultation?.methodSummary || {}),
@@ -430,26 +452,31 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck) {
       documentType: "refined_order",
       selectedMethod,
       operationTitle: "수정 작전명",
-      neoReview: "네오의 재판단",
-      actualStuckPoint: {
-        title: "실제로 흔들리던 지점",
-        description: "실제 문제",
+      neoReview: "네오의 재판단(사용자 현실 점검 답변을 직접 반영해 시작)",
+      verdict: {
+        status: "잘하고 있다 | 조정이 필요하다 | 방향은 맞지만 부족하다 중 하나",
+        statement: "현재 방향에 대한 단정(1~2문장)",
       },
-      updatedDiagnosis: "수정된 진단",
-      discardThis: ["버려야 할 방식"],
-      newLifeStrategy: {
-        title: "새 인생 전략",
-        description: "현실에 맞게 조정된 전략",
-        principles: ["원칙"],
-      },
+      verdictBasis: "판정 근거(계산 요약의 구체 값 최소 1개 인용, 1~2문장)",
+      actionAlternatives: [
+        {
+          timing: "언제부터 언제까지(구체 시기)",
+          action: "무엇을 어떻게(구체 행동)",
+          rationale: "왜 지금 이 행동이 흐름에 맞는지(계산 근거 연결)",
+        },
+      ],
+      peopleToMeet: [
+        {
+          role: "만나야 할 사람의 역할/직업/경험",
+          complementaryEnergy: "사용자에게 부족한 기운을 어떻게 보완하는지",
+          whereToFind: "어디서 만날 가능성이 높은지(커뮤니티/모임/소개 경로)",
+        },
+      ],
       forbiddenAction: {
         title: "오늘 금지 행동",
         reason: "금지 이유",
       },
-      sevenDayMission: [
-        { day: 1, mission: "1일차 작전" },
-      ],
-      thirtyDayStrategy: ["30일 전략"],
+      thisWeekFirstStep: "이번 주 안에 실행 가능한 가장 작은 첫 걸음 하나",
       badge: {
         name: "휘장 이름",
         description: "휘장 설명",
@@ -457,53 +484,61 @@ export function buildNeoOperationRoomRefinedPrompt(consultation, realityCheck) {
       tsundereClosing: "네오의 마지막 한마디",
     }),
     "",
-    "discardThis는 3~5개로 만든다.",
-    "newLifeStrategy.principles는 3~5개로 만든다.",
-    "sevenDayMission은 day 1부터 7까지 반드시 7개로 만든다.",
-    "thirtyDayStrategy는 4~6개로 만든다.",
+    "verdict.status는 반드시 '잘하고 있다', '조정이 필요하다', '방향은 맞지만 부족하다' 중 하나로만 쓴다. 애매한 표현 금지.",
+    "verdictBasis에는 [계산 요약 데이터]의 구체 값(오행/십성/대운·세운/궁/별/사화/행성-사인-하우스/나크샤트라/다샤 중 해당 술수의 것)을 최소 1개 그대로 인용한다.",
+    "actionAlternatives는 3~5개로 만들고, 각 항목에 timing/action/rationale 셋을 모두 채운다. [이미 제시한 조언]과 겹치지 않게 새로 만든다.",
+    "peopleToMeet은 2~3개로 만들고, 각 항목에 role/complementaryEnergy/whereToFind 셋을 모두 채운다. '좋은 사람을 만나라' 같은 막연한 표현 금지.",
+    "thisWeekFirstStep은 이번 주 안에 실행 가능한 가장 작은 한 걸음 하나만 쓴다. 거창한 계획 금지.",
     "badge.name은 오늘의 사자 휘장 이름처럼 짧고 상징적으로 쓴다.",
     "결과는 네오가 사용자에게 직접 말하는 상담 문장으로 쓴다.",
     "모든 문장의 어조는 [팩폭 강도 지침]의 rules를 따른다.",
     "neoReview에는 사용자의 체크 답변 또는 자유 입력 중 최소 하나를 직접 반영해 재판단을 시작한다.",
-    "sevenDayMission과 thirtyDayStrategy는 1차 브리핑의 문장을 재사용하지 말고 최소 절반 이상 새로 설계한다.",
-    "updatedDiagnosis에는 [계산 요약 데이터]의 구체 값을 최소 1개 그대로 인용해 근거를 유지한다.",
+    "현실 점검 답변이 1차 질문과 본질적으로 같은 맥락이면 neoReview에서 '이전과 같은 맥락이네요'라고 짚고, 이전과 다른 영역(시간/관계/재정/커리어/건강 등)으로 확장해 답한다.",
   ].join("\n");
+}
+
+const VERDICT_STATUS_VALUES = Object.freeze(["잘하고 있다", "조정이 필요하다", "방향은 맞지만 부족하다"]);
+
+function normalizeVerdictStatus(value) {
+  const text = clean(value, 60).replace(/\s+/g, "");
+  if (!text) return "";
+  if (/잘하고있|맞다$|맞게/.test(text) && !/부족|아니|조정/.test(text)) return "잘하고 있다";
+  if (/아니|조정필요|바꿔야|틀렸|재정비/.test(text)) return "조정이 필요하다";
+  if (/부족|보완|맞지만|덜/.test(text)) return "방향은 맞지만 부족하다";
+  const exact = VERDICT_STATUS_VALUES.find((status) => text === status.replace(/\s+/g, ""));
+  return exact || "";
 }
 
 export function parseNeoOperationRoomRefinedResponse(text, consultation) {
   const parsed = extractJsonObject(text);
   const selectedMethod = clean(parsed.selectedMethod || consultation?.selectedMethod, 30);
-  const actualStuckPoint = firstObject(parsed.actualStuckPoint || parsed.realBottleneck);
+  const verdict = firstObject(parsed.verdict);
   const refined = {
     version: 2,
     documentType: "refined_order",
     selectedMethod,
     operationTitle: clean(parsed.operationTitle, 120),
     neoReview: clean(parsed.neoReview, 1400),
-    actualStuckPoint: {
-      title: clean(actualStuckPoint.title || "실제로 흔들리던 지점", 120),
-      description: clean(actualStuckPoint.description, 1800),
+    verdict: {
+      status: normalizeVerdictStatus(verdict.status) || "방향은 맞지만 부족하다",
+      statement: clean(verdict.statement, 900),
     },
-    realBottleneck: {
-      title: clean(actualStuckPoint.title || "실제로 흔들리던 지점", 120),
-      description: clean(actualStuckPoint.description, 1800),
-    },
-    updatedDiagnosis: clean(parsed.updatedDiagnosis, 1800),
-    discardThis: safeArray(parsed.discardThis).map((item) => clean(item, 220)).filter(Boolean).slice(0, 7),
-    newLifeStrategy: {
-      title: clean(firstObject(parsed.newLifeStrategy).title, 120),
-      description: clean(firstObject(parsed.newLifeStrategy).description, 1800),
-      principles: safeArray(firstObject(parsed.newLifeStrategy).principles).map((item) => clean(item, 240)).filter(Boolean).slice(0, 7),
-    },
+    verdictBasis: clean(parsed.verdictBasis, 1200),
+    actionAlternatives: safeArray(parsed.actionAlternatives).map((item) => ({
+      timing: clean(firstObject(item).timing, 160),
+      action: clean(firstObject(item).action, 400),
+      rationale: clean(firstObject(item).rationale, 500),
+    })).filter((item) => item.action).slice(0, 5),
+    peopleToMeet: safeArray(parsed.peopleToMeet).map((item) => ({
+      role: clean(firstObject(item).role, 200),
+      complementaryEnergy: clean(firstObject(item).complementaryEnergy, 400),
+      whereToFind: clean(firstObject(item).whereToFind, 400),
+    })).filter((item) => item.role).slice(0, 4),
     forbiddenAction: {
       title: clean(firstObject(parsed.forbiddenAction).title, 120),
       reason: clean(firstObject(parsed.forbiddenAction).reason, 900),
     },
-    sevenDayMission: safeArray(parsed.sevenDayMission).map((item, index) => ({
-      day: Number(firstObject(item).day) || index + 1,
-      mission: clean(firstObject(item).mission, 320),
-    })).filter((item) => item.mission).slice(0, 7),
-    thirtyDayStrategy: safeArray(parsed.thirtyDayStrategy).map((item) => clean(item, 320)).filter(Boolean).slice(0, 8),
+    thisWeekFirstStep: clean(parsed.thisWeekFirstStep, 400),
     badge: {
       name: clean(firstObject(parsed.badge).name, 80),
       description: clean(firstObject(parsed.badge).description, 700),
@@ -513,11 +548,12 @@ export function parseNeoOperationRoomRefinedResponse(text, consultation) {
   if (
     !refined.operationTitle
     || !refined.neoReview
-    || !refined.actualStuckPoint.description
-    || !refined.updatedDiagnosis
-    || !refined.newLifeStrategy.description
+    || !refined.verdict.statement
+    || !refined.verdictBasis
+    || refined.actionAlternatives.length < 3
+    || refined.peopleToMeet.length < 2
+    || !refined.thisWeekFirstStep
     || !refined.forbiddenAction.title
-    || refined.sevenDayMission.length < 7
     || !refined.badge.name
     || !refined.tsundereClosing
   ) {

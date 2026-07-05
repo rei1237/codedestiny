@@ -760,6 +760,7 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
       temperature: 0.72,
       maxOutputTokens: 14000,
+      timeoutMs: 90000,
       taskType: "fortune",
       cache: loveSecretLlmCache,
     });

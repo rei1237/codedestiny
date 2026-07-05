@@ -47,7 +47,6 @@ type LoginCredentials = {
   password: string;
   nextPath?: string;
   apiBase?: string;
-  turnstileToken?: string;
 };
 
 type LoginApiPayload = {
@@ -83,8 +82,7 @@ type BillingBalancePayload = BillingBalanceData & {
   data?: BillingBalanceData;
 };
 
-// Turnstile 토큰은 1회용이라 동일 토큰으로 재시도하면 서버 siteverify가 반드시 실패한다.
-// 따라서 자동 재시도를 하지 않고(1회), 실패 시 UI에서 토큰을 리셋해 새 챌린지를 받게 한다.
+// "성공 후 응답 유실 → 재시도" 유령 오류를 피하기 위해 자동 재시도 없이 1회만 요청한다.
 const LOGIN_MAX_ATTEMPTS = 1;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
 const LOGIN_ATTEMPT_TIMEOUT_MS = 20000;
@@ -611,7 +609,6 @@ export async function login(credentials: LoginCredentials) {
           email,
           password,
           nextPath,
-          turnstileToken: credentials.turnstileToken || "",
         }),
       }, LOGIN_ATTEMPT_TIMEOUT_MS);
 

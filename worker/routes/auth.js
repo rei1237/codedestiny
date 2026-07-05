@@ -19,8 +19,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
-import { validateLoginPayload, validateRegisterPayload, validateTurnstilePayload } from "../lib/validation.js";
-import { verifyTurnstileToken } from "../lib/turnstile.js";
+import { validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 import { clearRateLimit, incrementRateLimit, readRateLimitState } from "../lib/rate-limit.js";
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
@@ -1668,14 +1667,6 @@ async function clearLoginRateLimit(rateLimitState) {
   }
 }
 
-function makeTurnstileErrorResponse(status, code, message) {
-  return json({
-    ok: false,
-    code: String(code || "turnstile_verification_failed"),
-    message: String(message || "Turnstile verification failed."),
-  }, { status: Math.max(400, Number(status) || 403) });
-}
-
 function buildInvalidLoginResponse() {
   return json({
     ok: false,
@@ -1988,34 +1979,6 @@ async function handleRegister(request, env) {
     );
   }
 
-  // Turnstile verification (parity with login) — blocks bot/scripted signups that
-  // would otherwise farm signup credit and referral rewards.
-  const registerRequestMeta = getRequestMeta(request);
-  const registerTurnstile = validateTurnstilePayload(body);
-  if (!registerTurnstile.isValid) {
-    return signupErrorResponse(
-      request,
-      env,
-      401,
-      "turnstile_token_required",
-      "Turnstile verification is required.",
-    );
-  }
-  const registerTurnstileResult = await verifyTurnstileToken({
-    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
-    response: registerTurnstile.sanitized.turnstileToken,
-    remoteip: registerRequestMeta?.ip,
-  });
-  if (!registerTurnstileResult.success) {
-    return signupErrorResponse(
-      request,
-      env,
-      registerTurnstileResult.status || 403,
-      registerTurnstileResult.code || "turnstile_verification_failed",
-      registerTurnstileResult.message || "Turnstile verification failed.",
-    );
-  }
-
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_register_connect_db");
   } catch (error) {
@@ -2232,7 +2195,6 @@ async function handleLogin(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   const body = await readJson(request);
-  const requestMeta = getRequestMeta(request);
   const validated = validateLoginPayload(body);
   if (!validated.isValid) {
     return json({
@@ -2242,10 +2204,6 @@ async function handleLogin(request, env) {
       errors: validated.errors,
     }, { status: 400 });
   }
-  const turnstileValidated = validateTurnstilePayload(body);
-  if (!turnstileValidated.isValid) {
-    return makeTurnstileErrorResponse(401, "turnstile_token_required", "Turnstile verification is required.");
-  }
 
   const { email, password } = validated.sanitized;
   const localDevUser = resolveLocalDevAuthUser(request, env, email, password);
@@ -2253,8 +2211,6 @@ async function handleLogin(request, env) {
     return await createLocalDevAuthSuccessResponse(request, env, localDevUser, 200, body?.nextPath);
   }
 
-  // rate limit을 Turnstile siteverify(외부 네트워크 호출)보다 먼저 검사해
-  // 차단 대상 요청이 siteverify 왕복을 발생시키지 않도록 한다.
   const loginRateLimitState = await getLoginRateLimitState(request, email, env);
   if (loginRateLimitState.limited) {
     console.warn("[auth/login] rate limited:", {
@@ -2262,19 +2218,6 @@ async function handleLogin(request, env) {
       retryAfterSeconds: loginRateLimitState.retryAfterSeconds,
     });
     return buildLoginRateLimitedResponse(loginRateLimitState);
-  }
-
-  const turnstileResult = await verifyTurnstileToken({
-    secret: getEnv(env, "TURNSTILE_SECRET_KEY"),
-    response: turnstileValidated.sanitized.turnstileToken,
-    remoteip: requestMeta?.ip,
-  });
-  if (!turnstileResult.success) {
-    return makeTurnstileErrorResponse(
-      turnstileResult.status || 403,
-      turnstileResult.code || "turnstile_verification_failed",
-      turnstileResult.message || "Turnstile verification failed.",
-    );
   }
 
   for (let attempt = 1; attempt <= 3; attempt += 1) {

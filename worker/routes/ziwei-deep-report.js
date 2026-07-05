@@ -204,7 +204,7 @@ async function generateChapter(env, chart, birthInfo, chapter) {
     keyExtra: "ziwei-deep-report-v1",
   };
   try {
-    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 4096, temperature: 0.72, cache: chapterLlmCache });
+    const ai = await callGeminiText(env, prompt, { maxOutputTokens: 4096, temperature: 0.72, timeoutMs: 60000, cache: chapterLlmCache });
     const body = clean(ai?.text || "");
     if (body.length >= 200) {
       return { id: chapter.id, title: chapter.title, body, chars: body.length, provider: clean(ai?.provider || "gemini"), ok: true };

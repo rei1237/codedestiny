@@ -32,10 +32,6 @@ jest.unstable_mockModule("../../worker/lib/password.js", () => ({
   verifyPassword: mockVerifyPassword,
 }));
 
-jest.unstable_mockModule("../../worker/lib/turnstile.js", () => ({
-  verifyTurnstileToken: jest.fn(async () => ({ success: true })),
-}));
-
 let authRoutes;
 let authLib;
 
@@ -54,7 +50,6 @@ function buildLoginRequest(email = "tester@example.com") {
     body: JSON.stringify({
       email,
       password: "wrong-password",
-      turnstileToken: "test-turnstile-token-000000000000",
     }),
   });
 }

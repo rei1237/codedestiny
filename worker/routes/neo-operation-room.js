@@ -29,6 +29,7 @@ import {
 import {
   buildNeoOperationRoomInitialPrompt,
   buildNeoOperationRoomRefinedPrompt,
+  buildPreviousAdviceLog,
   parseNeoOperationRoomBriefingResponse,
   parseNeoOperationRoomRefinedResponse,
 } from "../lib/neo-operation-room-prompt.js";
@@ -785,7 +786,7 @@ async function requestBriefingOnce(env, prompt, normalized, methodSummary) {
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: "neo-operation-room-v1",
   };
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65, cache: neoCacheConfig });
+  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 6500, temperature: 0.65, thinkingBudget: 0, timeoutMs: 60000, cache: neoCacheConfig });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
@@ -851,8 +852,9 @@ function normalizeRealityCheckInput(body = {}) {
 }
 
 async function generateRefinedOrder(env, consultation, realityCheck) {
-  const prompt = buildNeoOperationRoomRefinedPrompt(consultation, realityCheck);
-  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 7000, temperature: 0.65 });
+  const previousAdviceLog = buildPreviousAdviceLog(consultation?.initialBriefing);
+  const prompt = buildNeoOperationRoomRefinedPrompt(consultation, realityCheck, previousAdviceLog);
+  const ai = await callGeminiText(env, prompt, { maxOutputTokens: 7000, temperature: 0.65, thinkingBudget: 0, timeoutMs: 60000 });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;

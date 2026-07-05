@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { clearAuthError, login as loginWithStore } from "../_lib/auth-store";
-import TurnstileWidget from "../../components/TurnstileWidget";
 import StarlightLoginPortal, { type LoginStatus } from "../components/StarlightLoginPortal";
 
 declare global {
@@ -368,13 +367,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string>("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileError, setTurnstileError] = useState("");
-  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
   const copy = getLoginPageCopy(locale);
-  const turnstileSiteKey = String(
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || process.env.Turnstile_Site_Key || "",
-  ).trim();
 
   const authApiBase = useMemo(() => getApiBaseUrl(), []);
 
@@ -435,12 +428,6 @@ export default function LoginPage() {
       setError(copy.invalidCredentials);
       return;
     }
-    if (!turnstileToken) {
-      setError("Turnstile 확인이 필요합니다.");
-      setTurnstileError("Turnstile 토큰을 받아주세요.");
-      setTurnstileResetSignal((value) => value + 1);
-      return;
-    }
 
     setError("");
     clearAuthError();
@@ -458,7 +445,6 @@ export default function LoginPage() {
         password,
         nextPath,
         apiBase: authApiBase,
-        turnstileToken,
       });
 
       setLoginStatus("success");
@@ -482,9 +468,6 @@ export default function LoginPage() {
         return;
       }
       setError(message);
-      setTurnstileError(message);
-      setTurnstileToken("");
-      setTurnstileResetSignal((value) => value + 1);
       setLoginStatus("error");
     } finally {
       setLoginSubmitting(false);
@@ -514,7 +497,7 @@ export default function LoginPage() {
   };
 
   const isBusy = loginSubmitting || oauthRedirecting !== null || callbackProcessing || loginStatus === "success";
-  const submitDisabled = isBusy || !turnstileToken;
+  const submitDisabled = isBusy;
   const formDisabled = isBusy;
 
   return (
@@ -599,26 +582,6 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            {turnstileSiteKey ? (
-              <div className="mt-2">
-                <TurnstileWidget
-                  siteKey={turnstileSiteKey}
-                  mode="managed"
-                  disabled={formDisabled}
-                  resetSignal={turnstileResetSignal}
-                  onTokenChange={(value) => {
-                    setTurnstileToken(value || "");
-                    if (value) setTurnstileError("");
-                  }}
-                  onMessage={(message) => setTurnstileError(message)}
-                />
-              </div>
-            ) : (
-              <p className="mt-2 rounded-md border border-rose-300/50 bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
-                보안 인증 키가 설정되지 않았습니다. 관리자에게 문의해 주세요.
-              </p>
-            )}
-            {turnstileError ? <p className="mt-2 text-xs text-rose-200">{turnstileError}</p> : null}
             <button
               type="submit"
               disabled={submitDisabled}

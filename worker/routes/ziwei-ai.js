@@ -1214,6 +1214,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || 16000,
+    timeoutMs: 90000,
     cache: ziweiLlmCache,
   });
   const repaired = clean(repair?.text);

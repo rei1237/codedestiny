@@ -53,30 +53,3 @@ export function validateLoginPayload(payload = {}) {
   };
 }
 
-function normalizeTurnstileToken(value) {
-  const token = String(value || "").trim();
-  if (!token) return "";
-  if (token.length < 20 || token.length > 2048) return "";
-  if (/\s/.test(token)) return "";
-  return token;
-}
-
-export function validateTurnstilePayload(payload = {}) {
-  const errors = [];
-  const turnstileToken = normalizeTurnstileToken(
-    payload?.turnstileToken || payload?.["cf-turnstile-response"] || payload?.cfTurnstileResponse || "",
-  );
-
-  if (!turnstileToken) {
-    errors.push("Turnstile token is required.");
-  }
-
-  return {
-    isValid: errors.length === 0,
-    errors,
-    sanitized: {
-      turnstileToken,
-    },
-  };
-}
-

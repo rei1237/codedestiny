@@ -13,6 +13,7 @@ export interface LLMRequest {
   timeoutMs?: number;
   fallbackToWorkersAI?: boolean;
   responseMimeType?: string;
+  thinkingBudget?: number;
   geminiParts?: Array<{
     text?: string;
     inline_data?: {
@@ -94,6 +95,15 @@ function normalizeRequest(request: LLMRequest): Required<Pick<LLMRequest, "promp
     prompt: String(request.prompt || "").trim(),
     taskType: request.taskType || "general",
   };
+}
+
+// 미지정=0(thinking OFF, 기본), -1=dynamic(Gemini가 결정), 그 외 음수=0, 양수=고정 예산.
+function resolveThinkingBudget(value: unknown): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return 0;
+  const floored = Math.floor(n);
+  if (floored < 0) return -1;
+  return floored;
 }
 
 function resolveGeminiModel(request: LLMRequest, env?: CloudflareEnv): string {
@@ -241,6 +251,10 @@ async function callGeminiPrimary(
       maxOutputTokens: normalized.maxTokens,
       temperature: normalized.temperature,
       ...(normalized.responseMimeType ? { responseMimeType: normalized.responseMimeType } : {}),
+      // gemini-2.5는 thinking이 기본 ON이라 thinking 토큰이 maxOutputTokens를 잠식해
+      // 긴 JSON/프로즈가 잘리거나 빈 응답이 된다. 공통 경로 기본값을 OFF(0)로 둔다.
+      // 호출부에서 thinkingBudget:-1(dynamic) 또는 양수로 옵트인 가능.
+      thinkingConfig: { thinkingBudget: resolveThinkingBudget(normalized.thinkingBudget) },
     },
   };
 

@@ -2519,10 +2519,6 @@
   object-position: center center;
 }
 
-.badgeImage {
-  object-fit: contain;
-}
-
 .launchSummary {
   display: grid;
   gap: 5px;
@@ -3027,9 +3023,124 @@
   word-break: keep-all;
 }
 
+.verdictBlock {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(245, 212, 135, 0.28);
+  border-radius: 10px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.verdictChip {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.verdictChipGood {
+  border: 1px solid rgba(120, 214, 156, 0.55);
+  background: rgba(28, 82, 52, 0.42);
+  color: #b8f2cf;
+}
+
+.verdictChipAdjust {
+  border: 1px solid rgba(232, 168, 88, 0.55);
+  background: rgba(96, 55, 16, 0.42);
+  color: #ffd8a6;
+}
+
+.verdictChipPartial {
+  border: 1px solid rgba(200, 205, 220, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  color: #e6eaf4;
+}
+
+.verdictStatement {
+  margin: 0;
+  color: #f7efe0;
+  font-size: 1.02rem;
+  font-weight: 900;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.verdictBasis {
+  margin: 0;
+  color: rgba(239, 244, 252, 0.78);
+  font-size: 0.9rem;
+  font-weight: 720;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+
+.alternativeGrid,
+.peopleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.alternativeGrid > strong,
+.peopleGrid > strong {
+  grid-column: 1 / -1;
+  color: #f5d487;
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
+.alternativeGrid article,
+.peopleGrid article {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  border: 1px solid rgba(245, 212, 135, 0.2);
+  border-radius: 8px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.alternativeTiming {
+  color: #d6bc76;
+  font-size: 0.76rem;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+}
+
+.alternativeAction,
+.personRole {
+  margin: 0;
+  color: #f4efe4;
+  font-size: 0.92rem;
+  font-weight: 860;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.alternativeRationale,
+.personEnergy,
+.personWhere {
+  margin: 0;
+  color: rgba(239, 244, 252, 0.78);
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.55;
+  word-break: keep-all;
+}
+
+.personWhere {
+  color: #d6bc76;
+  font-weight: 820;
+}
+
 .badgeAward {
   display: grid;
-  grid-template-columns: 86px minmax(0, 1fr);
+  grid-template-columns: 74px minmax(0, 1fr);
   gap: 14px;
   align-items: center;
   border: 1px solid rgba(245, 212, 135, 0.26);
@@ -3039,10 +3150,36 @@
 }
 
 .badgeAwardImage {
-  width: 86px;
-  height: 86px;
+  width: 74px;
+  aspect-ratio: 2 / 3;
+  height: auto;
   background: transparent !important;
   filter: drop-shadow(0 0 22px rgba(245, 212, 135, 0.42));
+}
+
+/* 사자 휘장 도장 시트(4열×2행)에서 고민 종류에 해당하는 한 칸만 잘라 보여준다. */
+.topicBadgeFrame {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.topicBadgeSheet {
+  position: absolute !important;
+  top: var(--neo-badge-stamp-y, 0%);
+  left: var(--neo-badge-stamp-x, 0%);
+  width: var(--neo-badge-stamp-sheet-width, 400%) !important;
+  height: var(--neo-badge-stamp-sheet-height, 200%) !important;
+  max-width: none;
+  background: transparent !important;
+}
+
+.topicBadgeImage {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  object-fit: fill !important;
+  object-position: center center !important;
 }
 
 .badgeAward p {
@@ -3096,6 +3233,11 @@
   .realityBriefGrid,
   .missionGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .alternativeGrid,
+  .peopleGrid {
+    grid-template-columns: 1fr;
   }
 
   .birthGrid {
@@ -3421,12 +3563,12 @@
   }
 
   .badgeAward {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: 58px minmax(0, 1fr);
   }
 
   .badgeAwardImage {
-    width: 64px;
-    height: 64px;
+    width: 58px;
+    height: auto;
   }
 
   .briefingGrid {
@@ -3556,21 +3698,11 @@
     line-height: 1.42;
   }
 
+  /* 모바일에서는 하단 대화 오버레이(.vnDialogueBox, position:absolute)와
+     겹쳐 잘리므로 브리핑 카드를 숨긴다. 서버 렌더 텍스트는 DOM에 남아
+     SEO 콘텐츠 게이트에는 영향 없음. 데스크톱에서는 그대로 노출. */
   .entryBrief {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .entryBrief span {
-    padding: 8px;
-  }
-
-  .entryBrief strong {
-    font-size: 0.66rem;
-  }
-
-  .entryBrief em {
-    font-size: 0.72rem;
+    display: none;
   }
 
   .vnCharacter {

@@ -5,7 +5,6 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
-import TurnstileWidget from "../../components/TurnstileWidget";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { authFetch, waitForAuthLogoutToSettle } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
@@ -253,12 +252,6 @@ export default function SignupPage() {
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [error, setError] = useState<string>("");
-  const [turnstileToken, setTurnstileToken] = useState("");
-  const [turnstileError, setTurnstileError] = useState("");
-  const [turnstileResetSignal, setTurnstileResetSignal] = useState(0);
-  const turnstileSiteKey = String(
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || process.env.TURNSTILE_SITE_KEY || process.env.Turnstile_Site_Key || "",
-  ).trim();
   const socialCompleteOnceRef = useRef(false);
   const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
@@ -460,13 +453,6 @@ export default function SignupPage() {
       return;
     }
 
-    if (!turnstileToken) {
-      setError("보안 인증(Turnstile) 확인이 필요합니다.");
-      setTurnstileError("Turnstile 토큰을 받아주세요.");
-      setTurnstileResetSignal((value) => value + 1);
-      return;
-    }
-
     setError("");
     setLoading(true);
 
@@ -485,9 +471,8 @@ export default function SignupPage() {
 
       await waitForAuthLogoutToSettle();
 
-      // Turnstile 토큰은 1회용이라 동일 토큰으로 재시도하면 서버 siteverify가 반드시 실패한다.
-      // 또한 "성공 후 응답 유실 → 재시도"는 EMAIL_ALREADY_REGISTERED 유령 오류를 만든다.
-      // 따라서 자동 재시도 없이 1회만 요청하고, 실패 시 catch에서 토큰을 리셋한다.
+      // "성공 후 응답 유실 → 재시도"는 EMAIL_ALREADY_REGISTERED 유령 오류를 만들 수 있어
+      // 자동 재시도 없이 1회만 요청한다.
       try {
         response = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
           method: "POST",
@@ -502,7 +487,6 @@ export default function SignupPage() {
             birthTime,
             gender,
             nextPath,
-            turnstileToken,
             referralCode: referralCapture.referralCode,
             referralShareToken: referralCapture.referralShareToken,
             referralSource: referralCapture.referralSource,
@@ -528,9 +512,6 @@ export default function SignupPage() {
 
       redirectAfterAuth(resolvedNextPath, payload.user);
     } catch (e) {
-      // The Turnstile token is single-use; force a fresh challenge for the retry.
-      setTurnstileToken("");
-      setTurnstileResetSignal((value) => value + 1);
       const message = e instanceof Error ? e.message : signupPageText("signupPage.004");
       if (message === "Failed to fetch") {
         setError(signupPageText("signupPage.005"));
@@ -766,30 +747,9 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {turnstileSiteKey ? (
-                <div className="mt-2">
-                  <TurnstileWidget
-                    siteKey={turnstileSiteKey}
-                    mode="managed"
-                    disabled={loading || socialLoading !== null}
-                    resetSignal={turnstileResetSignal}
-                    onTokenChange={(value) => {
-                      setTurnstileToken(value || "");
-                      if (value) setTurnstileError("");
-                    }}
-                    onMessage={(message) => setTurnstileError(message)}
-                  />
-                </div>
-              ) : (
-                <p className="mt-2 rounded-md border border-rose-300/50 bg-rose-500/15 px-3 py-2 text-xs text-rose-100">
-                  보안 인증 키가 설정되지 않았습니다. 관리자에게 문의해 주세요.
-                </p>
-              )}
-              {turnstileError ? <p className="mt-2 text-xs text-rose-200">{turnstileError}</p> : null}
-
               <button
                 type="submit"
-                disabled={loading || socialLoading !== null || !hasRequiredConsents || !turnstileToken}
+                disabled={loading || socialLoading !== null || !hasRequiredConsents}
                 className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "회원가입 중..." : "아이디/비밀번호로 회원가입"}

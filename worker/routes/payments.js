@@ -3456,7 +3456,7 @@ async function handlePrepare(request, env, auth) {
 async function handleSubscriptionPrepare(request, env, auth) {
   const body = await readJson(request);
 
-  // 결제 준비는 프론트 Turnstile 위젯이 아니라 백엔드 가드(인증·멱등성·플랜/금액 검증·티어 전환·동시성)로 방어한다.
+  // 결제 준비는 백엔드 가드(인증·멱등성·플랜/금액 검증·티어 전환·동시성)로 방어한다.
   const tier = normalizePassTier(body?.tier || body?.passTier || body?.subscriptionTier) || "";
   const durationMonths = Number(body?.durationMonths || 1);
   const planId = String(body?.planId || "").trim().toLowerCase();

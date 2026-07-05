@@ -83,14 +83,12 @@ type NeoRefinedOrder = {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoReview?: string;
-  actualStuckPoint?: { title?: string; description?: string };
-  realBottleneck?: { title?: string; description?: string };
-  updatedDiagnosis?: string;
-  discardThis?: string[];
-  newLifeStrategy?: { title?: string; description?: string; principles?: string[] };
+  verdict?: { status?: string; statement?: string };
+  verdictBasis?: string;
+  actionAlternatives?: Array<{ timing?: string; action?: string; rationale?: string }>;
+  peopleToMeet?: Array<{ role?: string; complementaryEnergy?: string; whereToFind?: string }>;
   forbiddenAction?: { title?: string; reason?: string };
-  sevenDayMission?: Array<{ day?: number; mission?: string }>;
-  thirtyDayStrategy?: string[];
+  thisWeekFirstStep?: string;
   badge?: { name?: string; description?: string };
   tsundereClosing?: string;
 };
@@ -615,35 +613,45 @@ const localPreviewRefinedOrder: NeoRefinedOrder = {
   selectedMethod: "saju",
   operationTitle: "선택의 안개를 걷는 수정 작전",
   neoReview: "네 답변까지 보면 핵심은 더 분명하다. 문제는 운이 아니라 네가 판단을 멈추는 방식이다.",
-  actualStuckPoint: {
-    title: "실제로 흔들리던 지점",
-    description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
+  verdict: {
+    status: "방향은 맞지만 부족하다",
+    statement: "방향은 맞다. 다만 결정을 확신이 올 때까지 미루는 습관이 그 방향을 자꾸 무르게 만든다.",
   },
-  realBottleneck: {
-    title: "실제로 흔들리던 지점",
-    description: "결정하기 전에는 완벽한 확신을 기다리고, 결정한 뒤에는 남의 반응으로 다시 흔들린다.",
-  },
-  updatedDiagnosis: "지금은 큰 결심보다 작은 실행 기준이 먼저다. 기준이 생기면 운의 흐름도 훨씬 덜 새어 나간다.",
-  discardThis: ["모두가 납득할 때까지 기다리기", "마음이 완전히 편해질 때까지 미루기", "괜찮은 척하며 같은 자리로 돌아가기"],
-  newLifeStrategy: {
-    title: "새 작전 기준",
-    description: "하루 안에 확인 가능한 행동으로 전선을 좁혀라. 작게 움직이면 판단이 다시 선명해진다.",
-    principles: ["감정이 거센 날에는 결론 대신 자료만 모은다", "결정은 세 문장으로 적는다", "반복되는 회피는 바로 기록한다"],
-  },
+  verdictBasis: "일간이 약하지 않은데도 판단을 멈추는 건 능력이 아니라 기준의 문제다. 지금 대운 흐름은 벌릴 때지 재는 때가 아니다.",
+  actionAlternatives: [
+    {
+      timing: "이번 주 ~ 2주 안",
+      action: "미뤄둔 결정 하나를 세 문장으로 적고, 사흘 안에 실행 여부만 정해라.",
+      rationale: "지금 흐름은 확장기라 작게라도 움직여야 판단이 다시 선명해진다.",
+    },
+    {
+      timing: "이번 달 안",
+      action: "남의 반응을 확인하기 전에 내 기준부터 읽는 순서를 고정해라.",
+      rationale: "관계 반응에 흔들리는 회로가 반복 선택의 방아쇠라서, 순서를 바꾸면 흔들림이 줄어든다.",
+    },
+    {
+      timing: "다음 세운 전환 전까지",
+      action: "버릴 선택지를 매주 하나씩 조용히 지워라.",
+      rationale: "선택지를 좁히는 것이 지금 국면에서 운이 새는 틈을 막는 가장 빠른 방법이다.",
+    },
+  ],
+  peopleToMeet: [
+    {
+      role: "결정을 빠르게 내리고 실행부터 하는 실무형 사람",
+      complementaryEnergy: "재는 습관을 끊어줄 추진력(행동의 기운)을 채워준다.",
+      whereToFind: "업계 실무 모임, 사이드 프로젝트 커뮤니티, 소개 자리.",
+    },
+    {
+      role: "네 기준을 흔들지 않고 되묻어주는 관찰자형 멘토",
+      complementaryEnergy: "감정에 휩쓸릴 때 기준을 다시 세워주는 안정된 기운.",
+      whereToFind: "스터디, 멘토링 프로그램, 오래 본 지인 중 판단이 차분한 사람.",
+    },
+  ],
   forbiddenAction: {
     title: "오늘 금지 행동",
     reason: "상대 반응을 핑계로 내 결정을 다시 무르는 것.",
   },
-  sevenDayMission: [
-    { day: 1, mission: "가장 미룬 질문 하나를 적어라." },
-    { day: 2, mission: "선택 기준 세 가지를 정리해라." },
-    { day: 3, mission: "기준에 맞지 않는 선택지를 하나 버려라." },
-    { day: 4, mission: "마음이 흔들린 순간과 이유를 한 줄로 남겨라." },
-    { day: 5, mission: "남의 반응을 확인하기 전에 네 기준을 먼저 읽어라." },
-    { day: 6, mission: "버릴 선택지 하나를 조용히 지워라." },
-    { day: 7, mission: "일주일 뒤에도 남는 기준만 작전표에 남겨라." },
-  ],
-  thirtyDayStrategy: ["주 2회 선택 기록", "관계 반응과 내 기준 분리", "반복되는 불안을 한 줄로 명명", "한 달 뒤에도 유효한 기준만 유지"],
+  thisWeekFirstStep: "가장 오래 미룬 결정 하나를 오늘 세 문장으로 적어라. 그게 이번 주 첫 걸음이다.",
   badge: {
     name: "안개 절단 휘장",
     description: "흐린 마음을 핑계로 쓰지 않고, 기준을 다시 세운 사람에게 주는 휘장이다.",
@@ -661,6 +669,64 @@ const topicOptions = [
   "지금 선택",
   "내가 반복하는 실수",
 ] as const;
+
+// 사자 휘장 도장 시트(사자 휘장 도장-Photoroom.png)는 4열 × 2행 = 8칸.
+// 고민 종류 8개를 각 칸에 1:1로 매핑하고 고정 이름을 부여한다.
+const NEO_BADGE_STAMP_COLUMNS = 4;
+const NEO_BADGE_STAMP_ROWS = 2;
+
+const neoTopicBadgeMap: Record<(typeof topicOptions)[number], { cell: number; name: string }> = {
+  "연애 / 재회": { cell: 0, name: "재회 봉인 휘장" },
+  "직업 / 이직": { cell: 1, name: "진로 개척 휘장" },
+  "돈 / 재물": { cell: 2, name: "재물 서광 휘장" },
+  "인간관계": { cell: 3, name: "관계 경계 휘장" },
+  "멘탈 / 자기관리": { cell: 4, name: "멘탈 훈장" },
+  "인생 방향": { cell: 5, name: "왕관 서약 휘장" },
+  "지금 선택": { cell: 6, name: "결단 나침반 휘장" },
+  "내가 반복하는 실수": { cell: 7, name: "숙명 성좌 휘장" },
+};
+
+function getNeoTopicBadge(topic: string) {
+  return neoTopicBadgeMap[topic as (typeof topicOptions)[number]] ?? { cell: 0, name: "무명 휘장" };
+}
+
+function getNeoBadgeStampStyle(cell: number): CSSProperties {
+  const cellCount = NEO_BADGE_STAMP_COLUMNS * NEO_BADGE_STAMP_ROWS;
+  const safeCell = Math.max(0, Math.min(cellCount - 1, cell));
+  const column = safeCell % NEO_BADGE_STAMP_COLUMNS;
+  const row = Math.floor(safeCell / NEO_BADGE_STAMP_COLUMNS);
+  return {
+    "--neo-badge-stamp-sheet-width": `${NEO_BADGE_STAMP_COLUMNS * 100}%`,
+    "--neo-badge-stamp-sheet-height": `${NEO_BADGE_STAMP_ROWS * 100}%`,
+    "--neo-badge-stamp-x": `${column * -100}%`,
+    "--neo-badge-stamp-y": `${row * -100}%`,
+  } as CSSProperties;
+}
+
+// 도장 시트를 통째로 노출하지 않고 고민 종류에 해당하는 한 칸만 잘라 보여준다.
+function NeoTopicBadge({
+  topic,
+  asset,
+  className = "",
+}: {
+  topic: string;
+  asset: NeoWarRoomAsset;
+  className?: string;
+}) {
+  const { cell } = getNeoTopicBadge(topic);
+  return (
+    <span className={`${styles.topicBadgeFrame} ${className}`.trim()} style={getNeoBadgeStampStyle(cell)}>
+      <NeoWarRoomAssetImage
+        asset={asset}
+        alt=""
+        sizes="86px"
+        className={styles.topicBadgeSheet}
+        imageClassName={styles.topicBadgeImage}
+        style={{ background: "transparent" }}
+      />
+    </span>
+  );
+}
 
 const methodImagePositions: Record<NeoWarRoomConsultMode, string> = {
   saju: "center 52%",
@@ -742,8 +808,10 @@ function getBriefingMisalignedFlow(briefing?: NeoBriefing | null) {
   return briefing?.misalignedFlow || briefing?.currentProblem || {};
 }
 
-function getRefinedStuckPoint(refined?: NeoRefinedOrder | null) {
-  return refined?.actualStuckPoint || refined?.realBottleneck || {};
+function verdictChipClass(status: string, styles: Record<string, string>) {
+  if (/잘하고/.test(status)) return styles.verdictChipGood;
+  if (/조정/.test(status)) return styles.verdictChipAdjust;
+  return styles.verdictChipPartial;
 }
 
 function normalizeGatePayload(result: unknown) {
@@ -935,7 +1003,6 @@ export default function NeoOperationRoomPage() {
   const displayBriefingFrontline = getBriefingFrontline(displayBriefing);
   const displayBriefingRepeatedChoice = getBriefingRepeatedChoice(displayBriefing);
   const displayBriefingMisalignedFlow = getBriefingMisalignedFlow(displayBriefing);
-  const displayRefinedStuckPoint = getRefinedStuckPoint(displayRefinedOrder);
   const showBriefingPanel = Boolean(displayBriefing);
   const briefingFullyRevealed = briefingRevealStep >= BRIEFING_REVEAL_STEP_COUNT;
   const showRealityPanel = Boolean(briefing || localPreviewMode === "reality" || localPreviewMode === "refined") && briefingFullyRevealed;
@@ -1165,7 +1232,7 @@ export default function NeoOperationRoomPage() {
       ? NEO_TRANSPARENT_TALK_FRAME_ASSETS
       : undefined;
   const commandActorIsTalking = Boolean(commandActorTalkFrames?.length);
-  const neoBadgeGradesAsset = isSpriteMobile ? neoWarRoomAssets.badges.gradesMobile : neoWarRoomAssets.badges.grades;
+  const neoBadgeStampAsset = isSpriteMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
   const commandFlowSteps = [
     { id: "method", label: "분석 방식", targetId: "neo-method-title", done: Boolean(method), active: !method },
     { id: "topic", label: "상담 전선", targetId: "neo-topic-title", done: Boolean(topic), active: Boolean(method) && !topic },
@@ -1387,6 +1454,15 @@ export default function NeoOperationRoomPage() {
   }, [hasActiveWarRoomEntry, isPageVisible, prefersReducedMotion]);
 
   useEffect(() => {
+    if (!busy) return;
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("neo-operation-map")
+        ?.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "center" });
+    });
+  }, [busy, prefersReducedMotion]);
+
+  useEffect(() => {
     if (!isPageVisible) return undefined;
     if (previewOperationMap) {
       const timer = window.setInterval(() => {
@@ -1544,7 +1620,7 @@ export default function NeoOperationRoomPage() {
           finishBriefing(data);
           return;
         }
-        if (toText(data.status) === "failed") break;
+        if (toText(data.status) === "failed" || toText(data.status) === "generation_failed") break;
       } catch {
         void 0;
       }
@@ -1960,6 +2036,7 @@ export default function NeoOperationRoomPage() {
 
       {showOperationMap ? (
         <section
+          id="neo-operation-map"
           className={styles.operationMapPanel}
           data-phase={flowPhase}
           aria-labelledby="neo-operation-map-title"
@@ -2509,14 +2586,8 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {briefingRevealStep >= 7 && displayBriefing.badge?.description ? (
                   <div className={`${styles.badgeAward} ${styles.revealBlock}`}>
-                    <NeoWarRoomAssetImage
-                      asset={neoBadgeGradesAsset}
-                      alt=""
-                      sizes="86px"
-                      className={styles.badgeAwardImage}
-                      imageClassName={styles.badgeImage}
-                    />
-                    <p>{displayBriefing.badge.name ? `${displayBriefing.badge.name} · ${displayBriefing.badge.description}` : displayBriefing.badge.description}</p>
+                    <NeoTopicBadge topic={topic} asset={neoBadgeStampAsset} className={styles.badgeAwardImage} />
+                    <p>{`${getNeoTopicBadge(topic).name} · ${displayBriefing.badge.description}`}</p>
                   </div>
                 ) : null}
                 {briefingRevealStep >= 7 && (displayBriefing.tsundereClosing || displayBriefing.nextStepPrompt) ? (
@@ -2647,62 +2718,59 @@ export default function NeoOperationRoomPage() {
                   {displayRefinedOrder.badge?.name ? <em>오늘의 사자 휘장 · {displayRefinedOrder.badge.name}</em> : null}
                 </div>
                 {displayRefinedOrder.neoReview ? <p className={styles.neoOpening}>{displayRefinedOrder.neoReview}</p> : null}
-                <div className={styles.briefingGrid}>
-                  <article>
-                    <strong>{displayRefinedStuckPoint.title || "실제로 흔들리던 지점"}</strong>
-                    <p>{displayRefinedStuckPoint.description}</p>
-                  </article>
-                  <article>
-                    <strong>수정된 진단</strong>
-                    <p>{displayRefinedOrder.updatedDiagnosis}</p>
-                  </article>
-                  <article>
-                    <strong>{displayRefinedOrder.newLifeStrategy?.title || "새 인생 전략"}</strong>
-                    <p>{displayRefinedOrder.newLifeStrategy?.description}</p>
-                    {displayRefinedOrder.newLifeStrategy?.principles?.length ? (
-                      <ul>
-                        {displayRefinedOrder.newLifeStrategy.principles.map((item) => <li key={item}>{item}</li>)}
-                      </ul>
+                {displayRefinedOrder.verdict?.statement ? (
+                  <div className={styles.verdictBlock}>
+                    {displayRefinedOrder.verdict.status ? (
+                      <span className={`${styles.verdictChip} ${verdictChipClass(displayRefinedOrder.verdict.status, styles)}`.trim()}>
+                        {displayRefinedOrder.verdict.status}
+                      </span>
                     ) : null}
-                  </article>
-                  <article>
-                    <strong>{displayRefinedOrder.forbiddenAction?.title || "오늘 금지 행동"}</strong>
-                    <p>{displayRefinedOrder.forbiddenAction?.reason}</p>
-                  </article>
-                </div>
-                {displayRefinedOrder.discardThis?.length ? (
-                  <div className={styles.refinedListBlock}>
-                    <strong>버려야 할 방식</strong>
-                    <ul>{displayRefinedOrder.discardThis.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <p className={styles.verdictStatement}>{displayRefinedOrder.verdict.statement}</p>
+                    {displayRefinedOrder.verdictBasis ? (
+                      <p className={styles.verdictBasis}>{displayRefinedOrder.verdictBasis}</p>
+                    ) : null}
                   </div>
                 ) : null}
-                {displayRefinedOrder.sevenDayMission?.length ? (
-                  <div className={styles.missionGrid}>
-                    <strong>7일 작전</strong>
-                    {displayRefinedOrder.sevenDayMission.map((item) => (
-                      <article key={`${item.day}-${item.mission}`}>
-                        <span>DAY {item.day}</span>
-                        <p>{item.mission}</p>
+                {displayRefinedOrder.actionAlternatives?.length ? (
+                  <div className={styles.alternativeGrid}>
+                    <strong>구체적 실행 대안</strong>
+                    {displayRefinedOrder.actionAlternatives.map((item, index) => (
+                      <article key={`${item.timing}-${item.action}-${index}`}>
+                        {item.timing ? <span className={styles.alternativeTiming}>{item.timing}</span> : null}
+                        <p className={styles.alternativeAction}>{item.action}</p>
+                        {item.rationale ? <p className={styles.alternativeRationale}>{item.rationale}</p> : null}
                       </article>
                     ))}
                   </div>
                 ) : null}
-                {displayRefinedOrder.thirtyDayStrategy?.length ? (
-                  <div className={styles.refinedListBlock}>
-                    <strong>30일 전략</strong>
-                    <ul>{displayRefinedOrder.thirtyDayStrategy.map((item) => <li key={item}>{item}</li>)}</ul>
+                {displayRefinedOrder.peopleToMeet?.length ? (
+                  <div className={styles.peopleGrid}>
+                    <strong>만나야 할 사람</strong>
+                    {displayRefinedOrder.peopleToMeet.map((item, index) => (
+                      <article key={`${item.role}-${index}`}>
+                        <p className={styles.personRole}>{item.role}</p>
+                        {item.complementaryEnergy ? <p className={styles.personEnergy}>{item.complementaryEnergy}</p> : null}
+                        {item.whereToFind ? <p className={styles.personWhere}>만날 곳 · {item.whereToFind}</p> : null}
+                      </article>
+                    ))}
                   </div>
                 ) : null}
+                <div className={styles.briefingGrid}>
+                  <article>
+                    <strong>{displayRefinedOrder.forbiddenAction?.title || "오늘 금지 행동"}</strong>
+                    <p>{displayRefinedOrder.forbiddenAction?.reason}</p>
+                  </article>
+                  {displayRefinedOrder.thisWeekFirstStep ? (
+                    <article>
+                      <strong>이번 주 첫 걸음</strong>
+                      <p>{displayRefinedOrder.thisWeekFirstStep}</p>
+                    </article>
+                  ) : null}
+                </div>
                 {displayRefinedOrder.badge?.description ? (
                   <div className={styles.badgeAward}>
-                    <NeoWarRoomAssetImage
-                      asset={neoBadgeGradesAsset}
-                      alt=""
-                      sizes="86px"
-                      className={styles.badgeAwardImage}
-                      imageClassName={styles.badgeImage}
-                    />
-                    <p>{displayRefinedOrder.badge.description}</p>
+                    <NeoTopicBadge topic={topic} asset={neoBadgeStampAsset} className={styles.badgeAwardImage} />
+                    <p>{`${getNeoTopicBadge(topic).name} · ${displayRefinedOrder.badge.description}`}</p>
                   </div>
                 ) : null}
                 {displayRefinedOrder.tsundereClosing ? <blockquote className={styles.bluntTruth}>{displayRefinedOrder.tsundereClosing}</blockquote> : null}
