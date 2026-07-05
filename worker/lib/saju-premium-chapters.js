@@ -1,5 +1,5 @@
 export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
-  { title: "나의 사랑 원형", subtitle: "나는 어떤 방식으로 사랑하는가" },
+  { title: "타고난 성향과 사랑 원형", subtitle: "일간·오행으로 보는 타고난 기질을 먼저 짚고, 그 결이 사랑에서 어떻게 드러나는가" },
   { title: "끌림의 공식", subtitle: "내가 끌리는 사람과 나를 끌어당기는 사람" },
   { title: "연애 패턴 분석", subtitle: "반복되는 사랑의 흐름" },
   { title: "표현과 소통", subtitle: "말, 침묵, 감정 전달법" },
@@ -12,9 +12,9 @@ export const LOVE_SECRET_SOLO_CHAPTERS = Object.freeze([
 ]);
 
 export const LOVE_SECRET_COMPAT_CHAPTERS = Object.freeze([
-  { title: "두 사람의 사랑 구조 총론", subtitle: "궁합의 핵심 결을 한눈에 정리" },
-  { title: "나의 연애 성향 요약", subtitle: "관계를 읽는 나의 기본 렌즈" },
-  { title: "상대의 연애 성향 요약", subtitle: "상대를 이해하는 핵심 포인트" },
+  { title: "나의 타고난 성향과 연애 결", subtitle: "일간·오행으로 보는 나의 기본 기질을 먼저 짚는다" },
+  { title: "상대의 타고난 성향과 연애 결", subtitle: "상대의 기본 기질을 먼저 짚어 이해의 바탕을 세운다" },
+  { title: "두 사람의 사랑 구조 총론", subtitle: "각자의 성향을 바탕으로 궁합의 핵심 결을 정리" },
   { title: "일간 궁합과 기본 기질", subtitle: "두 사람 기질의 상호작용" },
   { title: "일지 궁합과 관계의 뿌리", subtitle: "생활 밀착 영역의 궁합 진단" },
   { title: "배우자성으로 보는 사랑의 기대치", subtitle: "서로가 관계에서 바라는 기준" },

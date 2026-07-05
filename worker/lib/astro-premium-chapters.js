@@ -5,7 +5,7 @@ export const ASTRO_PREMIUM_CHAPTERS = [
     roman: "I",
     title: "제 1장 나의 출생 차트 전체 총론",
     categories: [
-      { id: "c1_s1", title: "내 차트의 핵심 한 줄" },
+      { id: "c1_s1", title: "타고난 성향 한눈에 (태양·달·상승궁으로 보는 기본 기질을 먼저 짚기)" },
       { id: "c1_s2", title: "태양·달·상승궁이 만드는 기본 구조" },
       { id: "c1_s3", title: "전체 행성 배치가 만드는 인생 분위기" },
       { id: "c1_s4", title: "원소와 모드가 보여주는 삶의 리듬" },

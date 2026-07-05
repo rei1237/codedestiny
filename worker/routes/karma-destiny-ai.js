@@ -66,7 +66,7 @@ const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
 const PREMIUM_CHAPTER_TARGET_LENGTH = "1,900~2,400자";
 const INITIAL_SECTION_SYMBOLS = ["業", "柱", "情", "家", "財", "職", "心", "前", "試", "緣", "年", "策", "儀", "禁", "句", "箋"];
 const PREMIUM_CHAPTERS = Object.freeze([
-  { id: "chapter-01", order: 1, symbol: "業", title: "운명의 업 총론", minLength: 1500, required: ["반복해서 마주치는 핵심 과제", "비슷한 상황이 반복되는 이유", "타고난 성향과 선택 패턴", "이번 생에서 풀어야 할 주제"] },
+  { id: "chapter-01", order: 1, symbol: "業", title: "운명의 업 총론", minLength: 1500, required: ["타고난 성향과 선택 패턴(일간·오행 근거로 가장 먼저 전반적으로 짚어 신뢰를 세운다)", "반복해서 마주치는 핵심 과제", "비슷한 상황이 반복되는 이유", "이번 생에서 풀어야 할 주제"] },
   { id: "chapter-02", order: 2, symbol: "柱", title: "사주/명리 기반 업의 구조", minLength: 1500, required: ["일간", "월지", "십성", "오행 균형", "강약", "용신/기신 흐름", "가능성 중심 표현"] },
   { id: "chapter-03", order: 3, symbol: "情", title: "관계의 업", minLength: 1500, required: ["연애", "이별", "재회", "결혼", "끌리는 사람의 유형", "상처받는 방식", "좋은 인연의 기준"] },
   { id: "chapter-04", order: 4, symbol: "家", title: "가족과 원가족의 업", minLength: 1500, required: ["부모와 형제", "가족 분위기", "인정 욕구", "책임감", "죄책감", "감정적 독립"] },

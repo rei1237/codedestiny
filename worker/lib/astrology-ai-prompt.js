@@ -332,7 +332,7 @@ function buildAstrologyFollowUps(questionType) {
 
 function buildAstrologySectionGuide(questionType, hasCompatibility) {
   const sections = [
-    "전문 상담 구조: 질문 재정의 -> 차트 핵심 근거 -> 현실 장면 -> 행동 처방 -> 후속 질문",
+    "전문 상담 구조: 타고난 성향 총론(태양·달·상승궁을 근거로 이 사람의 기본 기질과 성향을 먼저 전반적으로 짚어 신뢰를 세운다) -> 질문 재정의 -> 차트 핵심 근거 -> 현실 장면 -> 행동 처방 -> 후속 질문",
     "Cosmic Summary: (1) 한눈에 보는 기질 (2) 겉모습/속마음 (3) 오래 갈수록 강해지는 부분 (4) 주의 패턴 (5) 오늘의 한 줄",
     "Life Area Reading: 나의 기본 성향, 감정과 안정감, 사랑과 관계, 일과 사회적 방향, 돈과 재능, 성장과 인생 과제, 내면세계와 회복",
     "Personal Guidance: 강점 사용법, 약점이 터지는 상황, 사람 사이 처세술, 일/돈 처세술, 오늘 실행 조언 3개",
