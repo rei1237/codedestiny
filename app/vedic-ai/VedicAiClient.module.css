@@ -698,6 +698,7 @@
   color: rgba(255, 248, 231, 0.9);
   line-height: 1.78;
   white-space: pre-wrap;
+  word-break: keep-all;
 }
 
 .userMsg {

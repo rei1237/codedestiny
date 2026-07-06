@@ -5,6 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { toDisplayText } from "@/lib/llm-text";
+import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type LifeBookMessage = {
@@ -100,7 +102,7 @@ const FALLBACK_CHAPTERS = [
 ];
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function safeFilePart(value: string) {
@@ -189,8 +191,8 @@ function buildReport(result: LifeBookResult | null) {
     ? parsed.chapters.map((chapter, index) => ({
       ...chapter,
       chapterNumber: chapter.chapterNumber || index + 1,
-      title: chapter.title || FALLBACK_CHAPTERS[index] || `인생의 장 ${index + 1}`,
-      content: chapter.content || chapter.summary || "",
+      title: toText(chapter.title) || FALLBACK_CHAPTERS[index] || `인생의 장 ${index + 1}`,
+      content: toText(chapter.content || chapter.summary),
     }))
     : splitMarkdownChapters(content);
   return {
@@ -223,6 +225,9 @@ function LifeBookResultContent() {
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [viewAll, setViewAll] = usePagedViewerMode("lifeBookViewerModeV1");
+  const [exportExpand, setExportExpand] = useState(false);
+  const [chapterPage, setChapterPage] = useState(0);
   const [pollAttempts, setPollAttempts] = useState(0);
   const maxPollAttempts = 45;
   const pollIntervalMs = 3200;
@@ -324,6 +329,10 @@ function LifeBookResultContent() {
     if (!element || pdfLoading) return;
     setPdfLoading(true);
     setPdfError("");
+    // 페이지 뷰어가 숨긴 장(display:none)은 html2canvas에서 빈 캔버스가 되므로 전부 펼친 뒤 캡처한다.
+    setExportExpand(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await new Promise((resolve) => setTimeout(resolve, 120));
     try {
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
@@ -368,6 +377,7 @@ function LifeBookResultContent() {
     } catch {
       setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      setExportExpand(false);
       setPdfLoading(false);
     }
   }
@@ -461,10 +471,23 @@ function LifeBookResultContent() {
               </div>
               <nav className="mt-4 grid gap-2">
                 {report.chapters.map((chapter, index) => (
-                  <a key={`${chapter.title}-${index}`} href={`#chapter-${index + 1}`} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] px-3 py-2 text-sm font-bold text-[#f4dfbd] transition hover:bg-amber-50/12">
+                  <button
+                    type="button"
+                    key={`${chapter.title}-${index}`}
+                    aria-label={`${index + 1}장 ${chapter.title}(으)로 이동`}
+                    onClick={() => {
+                      if (viewAll) {
+                        document.getElementById(`chapter-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                        return;
+                      }
+                      setChapterPage(index);
+                      document.getElementById("life-book-chapter-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] px-3 py-2 text-left text-sm font-bold text-[#f4dfbd] transition hover:bg-amber-50/12"
+                  >
                     <span className="mr-2 text-amber-200">{String(index + 1).padStart(2, "0")}</span>
                     {chapter.title}
-                  </a>
+                  </button>
                 ))}
               </nav>
 
@@ -530,31 +553,45 @@ function LifeBookResultContent() {
                 </section>
               )}
 
-              {report.chapters.map((chapter, index) => (
-                <section id={`chapter-${index + 1}`} key={`${chapter.title}-${index}`} data-life-book-pdf-page className="scroll-mt-6 rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5 shadow-inner shadow-amber-200/5">
-                  <div className="mb-4 flex items-center gap-3">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-amber-200/30 bg-amber-100/10 text-sm font-black text-amber-200">
-                      {String(chapter.chapterNumber || index + 1).padStart(2, "0")}
-                    </span>
-                    <h2 className="text-2xl font-black text-amber-50">{chapter.title}</h2>
-                  </div>
-                  {chapter.summary && <p className="mb-4 rounded-2xl border border-amber-200/15 bg-black/20 p-3 text-sm leading-6 text-[#f2dfba]">{chapter.summary}</p>}
-                  <div className="space-y-3 text-[15px] leading-8 text-[#f4e6cb]">
-                    {compactLines(chapter.content || "").map((line, lineIndex) => (
-                      <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
-                    ))}
-                  </div>
-                  {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
-                    <div className="mt-4 grid gap-2">
-                      {chapter.advice.map((advice, adviceIndex) => (
-                        <div key={`${advice}-${adviceIndex}`} className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3 text-sm font-bold text-[#eadbb9]">
-                          {advice}
+              <div id="life-book-chapter-deck" className="scroll-mt-6 text-amber-100">
+                <PagedResultViewer
+                  pages={report.chapters.map((chapter, index): ResultViewerPage => ({
+                    id: `chapter-page-${index + 1}`,
+                    label: `${chapter.chapterNumber || index + 1}장`,
+                    content: (
+                      <section id={`chapter-${index + 1}`} data-life-book-pdf-page className="scroll-mt-6 rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5 shadow-inner shadow-amber-200/5">
+                        <div className="mb-4 flex items-center gap-3">
+                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-amber-200/30 bg-amber-100/10 text-sm font-black text-amber-200">
+                            {String(chapter.chapterNumber || index + 1).padStart(2, "0")}
+                          </span>
+                          <h2 className="text-2xl font-black text-amber-50">{chapter.title}</h2>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              ))}
+                        {chapter.summary && <p className="mb-4 rounded-2xl border border-amber-200/15 bg-black/20 p-3 text-sm leading-6 text-[#f2dfba]">{toText(chapter.summary)}</p>}
+                        <div className="mx-auto max-w-prose space-y-3 break-keep text-[15px] leading-8 text-[#f4e6cb]">
+                          {compactLines(chapter.content || "").map((line, lineIndex) => (
+                            <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
+                          ))}
+                        </div>
+                        {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
+                          <div className="mt-4 grid gap-2">
+                            {chapter.advice.map((advice, adviceIndex) => (
+                              <div key={`advice-${adviceIndex}`} className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3 text-sm font-bold text-[#eadbb9]">
+                                {toText(advice)}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </section>
+                    ),
+                  }))}
+                  deckLabel="인생의 책 장 넘기기"
+                  viewAll={viewAll}
+                  onViewAllChange={setViewAll}
+                  expandForExport={exportExpand}
+                  activePage={chapterPage}
+                  onPageChange={setChapterPage}
+                />
+              </div>
 
               {report.expertReadings.length > 0 && (
                 <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5">

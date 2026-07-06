@@ -6,6 +6,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -373,7 +374,7 @@ async function postJson<T>(url: string, body: Record<string, unknown>, idempoten
 }
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown, fallback = 0) {
@@ -564,7 +565,10 @@ function splitAssistantSections(content: string) {
     "오늘의 선택 조언",
     "별궁의 마지막 한마디",
   ];
-  const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
+  // 구조화 파싱에 실패한 원시(잘린) JSON은 중괄호째 노출하지 않고 읽을 수 있는 문장만 복원한다.
+  const proseSource = looksLikeRawJson(normalized) ? extractReadableTextFromJsonLike(normalized) : normalized;
+  if (!proseSource) return [];
+  const chunks = proseSource.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
   return chunks.map((chunk, index) => {
     const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
     const first = lines[0] || "";
@@ -1106,13 +1110,13 @@ export default function ZiweiAiPage() {
                           </div>
                           <div className="starRow">
                             {mainStars.length
-                              ? mainStars.map((star, i) => <span key={i} className="star main">{star}</span>)
+                              ? mainStars.map((star, i) => <span key={i} className="star main">{toText(star)}</span>)
                               : <span className="star empty">주성 없음</span>}
                           </div>
                           {(badges.length > 0 || malefic.length > 0) && (
                             <div className="badgeRow">
-                              {badges.map((label, i) => <span key={`h${i}`} className={`hua ${huaClass(label)}`}>{label}</span>)}
-                              {malefic.map((star, i) => <span key={`m${i}`} className="star malefic">{star}</span>)}
+                              {badges.map((label, i) => <span key={`h${i}`} className={`hua ${huaClass(label)}`}>{toText(label)}</span>)}
+                              {malefic.map((star, i) => <span key={`m${i}`} className="star malefic">{toText(star)}</span>)}
                             </div>
                           )}
                         </article>
@@ -1261,7 +1265,7 @@ export default function ZiweiAiPage() {
         .chatCardTitle b{display:grid;place-items:center;width:32px;aspect-ratio:1;border-radius:999px;background:rgba(245,217,145,.10);color:#fff0b8;font-family:var(--font-premium);font-size:17px;font-weight:800}
         .chatCardTitle h3{margin:0;font-family:var(--font-display);font-size:16px;line-height:1.35;color:#fff0b8}
         .chatCardTitle svg{color:#f5d991}
-        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.84;font-size:15px;color:#f3efff}
+        .chatCard p{margin:0;white-space:pre-wrap;line-height:1.84;font-size:15px;color:#f3efff;word-break:keep-all}
         .spin{animation:ziweiSpin 1s linear infinite}
         @keyframes ziweiSpin{to{transform:rotate(360deg)}}
         @media(max-width:980px){.workspace{grid-template-columns:1fr}.consultForm{position:static}.summaryGrid,.scoreGrid,.chartDataGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.palaceGrid{grid-template-columns:repeat(2,minmax(0,1fr))}.resultPane{min-height:520px}.emptyState,.loadingState{min-height:430px}}

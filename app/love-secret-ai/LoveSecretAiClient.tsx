@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -217,7 +218,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown, fallback = 0) {

@@ -11,6 +11,7 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -226,7 +227,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown, fallback = 0) {
@@ -235,8 +236,13 @@ function toNumber(value: unknown, fallback = 0) {
 }
 
 function splitAssistantSections(content: string) {
-  const normalized = content.replace(/\r\n/g, "\n").trim();
+  let normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
+  // 구조화 파싱에 실패한 원시(잘린) JSON은 중괄호째 노출하지 않고 읽을 수 있는 문장만 복원한다.
+  if (looksLikeRawJson(normalized)) {
+    normalized = extractReadableTextFromJsonLike(normalized);
+    if (!normalized) return [];
+  }
   const chunks = normalized.split(/\n{2,}/).map((chunk) => chunk.trim()).filter(Boolean);
   return chunks.map((chunk, index) => {
     const lines = chunk.split("\n").map((line) => line.trim()).filter(Boolean);
@@ -1998,6 +2004,9 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-result-section p {
           margin: 0;
+          line-height: 1.8;
+          word-break: keep-all;
+          white-space: pre-line;
         }
 
         .nyai-spin {

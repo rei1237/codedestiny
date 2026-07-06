@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -248,7 +249,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown, fallback = 0) {
@@ -641,7 +642,9 @@ function sectionHeading(line: string) {
 }
 
 export function splitAssistantSections(content: string) {
-  const lines = content.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  // 구조화 파싱에 실패한 원시(잘린) JSON은 중괄호째 노출하지 않고 읽을 수 있는 문장만 복원한다.
+  const proseSource = looksLikeRawJson(content) ? extractReadableTextFromJsonLike(content) : content;
+  const lines = proseSource.split(/\n+/).map((line) => line.trim()).filter(Boolean);
   const sections: Array<{ title: string; body: string }> = [];
   let currentTitle = "";
   let buffer: string[] = [];

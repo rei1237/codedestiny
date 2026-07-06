@@ -101,7 +101,8 @@ async function enrichFinalOracleWithGemini(reading) {
   const prompt = buildCelestialHarmonyPrompt(reading);
   const response = await callLLM({
     prompt,
-    maxTokens: 1500,
+    // 11카드 전체 오라클 서사에 1500토큰은 사실상 매번 잘림 — MAX_TOKENS 잘림 방지 상향.
+    maxTokens: 6000,
     temperature: 0.64,
     taskType: "fortune",
   });

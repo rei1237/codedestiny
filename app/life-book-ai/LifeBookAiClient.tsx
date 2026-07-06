@@ -14,6 +14,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { toDisplayText } from "@/lib/llm-text";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
   beginPaidFeatureGateCheck,
@@ -168,7 +169,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown, fallback = 0) {

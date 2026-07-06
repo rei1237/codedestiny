@@ -1,0 +1,167 @@
+/* 책장 넘김 결과 뷰어 — 구조 전용 스타일.
+   색/테마는 각 기능(caller)의 className으로 입힌다 (반쪽 오버라이드 금지 가드레일 준수). */
+
+.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modeToggle {
+  display: inline-flex;
+  align-self: flex-end;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  opacity: 0.92;
+}
+
+.modeToggle button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  opacity: 0.62;
+}
+
+.modeToggle button[aria-pressed="true"] {
+  opacity: 1;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.deck {
+  position: relative;
+  perspective: 1400px;
+  outline: none;
+  touch-action: pan-y;
+}
+
+.deck[data-view="paged"] {
+  min-height: clamp(320px, 55dvh, 520px);
+}
+
+.page {
+  display: none;
+}
+
+.deck[data-view="all"] .page {
+  display: block;
+}
+
+.deck[data-view="all"] .page + .page {
+  margin-top: 16px;
+}
+
+.deck[data-view="paged"] .page[data-active="true"] {
+  display: block;
+  transform-style: preserve-3d;
+  animation: pageInNext 300ms ease both;
+}
+
+.deck[data-view="paged"][data-dir="prev"] .page[data-active="true"] {
+  animation-name: pageInPrev;
+}
+
+@keyframes pageInNext {
+  from {
+    opacity: 0;
+    transform: translateX(44px) rotateY(7deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0deg);
+  }
+}
+
+@keyframes pageInPrev {
+  from {
+    opacity: 0;
+    transform: translateX(-44px) rotateY(-7deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) rotateY(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck[data-view="paged"] .page[data-active="true"] {
+    animation: pageFade 200ms ease both;
+  }
+  @keyframes pageFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+.breakImage {
+  margin: 16px auto 4px;
+  display: flex;
+  justify-content: center;
+}
+
+.breakImage img {
+  width: auto;
+  height: auto;
+  max-height: 9rem;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.22));
+}
+
+@media (min-width: 640px) {
+  .breakImage img {
+    max-height: 11rem;
+  }
+}
+
+.pageNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pageNav button {
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  min-width: 96px;
+}
+
+.pageNav button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.pageIndicator {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.85;
+  text-align: center;
+}
+
+/* PDF 캡처(export) 모드: 전 페이지 펼침, 장식 최소화 */
+.viewer[data-export="true"] .deck .page {
+  display: block;
+}
+
+.viewer[data-export="true"] .deck .page + .page {
+  margin-top: 16px;
+}
+
+.viewer[data-export="true"] .deck[data-view="paged"] .page[data-active="true"] {
+  animation: none;
+}

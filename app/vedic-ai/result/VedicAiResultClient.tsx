@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { toDisplayText } from "@/lib/llm-text";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 
@@ -40,7 +41,7 @@ type ViewState =
   | { kind: "detail"; consultation: Consultation };
 
 function toText(value: unknown) {
-  return String(value ?? "").trim();
+  return toDisplayText(value);
 }
 
 function formatDate(value?: string) {

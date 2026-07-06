@@ -8,6 +8,7 @@ import AssetImage from "./components/AssetImage";
 import TeaHouseButton from "./components/TeaHouseButton";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
+import { toDisplayText } from "@/lib/llm-text";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import { teaHouseCtaCopy, type TeaHouseStage } from "./data/story";
@@ -132,7 +133,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function toText(value: unknown): string {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function toNumber(value: unknown): number {

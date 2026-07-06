@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Heart, Loader2, Moon, RefreshCw } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
+import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
+import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type PersonInfo = {
@@ -99,7 +102,7 @@ const FALLBACK_SECTIONS = [
 ];
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 // "[쉬움·오늘] 행동 (근거: …)" 형식의 전략 문자열을 배지·행동·근거로 분해
@@ -167,12 +170,17 @@ function formatDate(value?: string) {
 function formatDistribution(value?: Distribution) {
   const entries = Object.entries(value || {}).filter(([, score]) => Number(score) > 0);
   if (!entries.length) return "확인된 균형 없음";
-  return entries.map(([key, score]) => `${key} ${score}`).join(" · ");
+  return entries.map(([key, score]) => `${key} ${toText(score)}`).join(" · ");
 }
 
 function splitAssistantSections(content: string) {
-  const normalized = content.replace(/\r\n/g, "\n").trim();
+  let normalized = content.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
+  // 구조화 파싱에 실패한 원시(잘린) JSON은 중괄호째 노출하지 않고 읽을 수 있는 문장만 복원한다.
+  if (looksLikeRawJson(normalized)) {
+    normalized = extractReadableTextFromJsonLike(normalized);
+    if (!normalized) return [];
+  }
   const headingMatches: RegExpExecArray[] = [];
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,46})\n+/gm;
   let match = headingPattern.exec(normalized);
@@ -219,6 +227,8 @@ export default function LoveSecretAiResultClient() {
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [viewAll, setViewAll] = usePagedViewerMode("loveSecretViewerModeV1");
+  const [exportExpand, setExportExpand] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -279,6 +289,10 @@ export default function LoveSecretAiResultClient() {
     if (!element || pdfLoading || !consultation) return;
     setPdfLoading(true);
     setPdfError("");
+    // 페이지 뷰어가 숨긴 장(display:none)은 html2canvas에서 빈 캔버스가 되므로 전부 펼친 뒤 캡처한다.
+    setExportExpand(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await new Promise((resolve) => setTimeout(resolve, 120));
     try {
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
@@ -309,6 +323,7 @@ export default function LoveSecretAiResultClient() {
     } catch (_) {
       setPdfError("상담 리포트를 PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      setExportExpand(false);
       setPdfLoading(false);
     }
   }
@@ -371,6 +386,9 @@ export default function LoveSecretAiResultClient() {
             summaryTitle={summaryTitle}
             oneLine={oneLine}
             pdfError={pdfError}
+            viewAll={viewAll}
+            onViewAllChange={setViewAll}
+            expandForExport={exportExpand}
           />
         )}
       </section>
@@ -387,6 +405,9 @@ function LoveSecretResultPageContent({
   summaryTitle,
   oneLine,
   pdfError,
+  viewAll,
+  onViewAllChange,
+  expandForExport,
 }: {
   consultation: Consultation;
   sections: ResultSection[];
@@ -396,6 +417,9 @@ function LoveSecretResultPageContent({
   summaryTitle: string;
   oneLine: string;
   pdfError: string;
+  viewAll: boolean;
+  onViewAllChange: (viewAll: boolean) => void;
+  expandForExport: boolean;
 }) {
   return (
     <div id="love-secret-result-document" className="relative rounded-3xl border border-white/10 bg-[#160014] p-4 shadow-2xl shadow-black/40 sm:p-6">
@@ -443,9 +467,9 @@ function LoveSecretResultPageContent({
 
       {consultation.keywords?.length ? (
         <section className="mt-5 flex flex-wrap gap-2">
-          {consultation.keywords.map((keyword) => (
-            <span key={keyword} className="rounded-full border border-amber-100/20 bg-amber-100/10 px-4 py-2 text-sm font-black text-amber-50">
-              {keyword}
+          {consultation.keywords.map((keyword, index) => (
+            <span key={`${index}-${toText(keyword).slice(0, 16)}`} className="rounded-full border border-amber-100/20 bg-amber-100/10 px-4 py-2 text-sm font-black text-amber-50">
+              {toText(keyword)}
             </span>
           ))}
         </section>
@@ -453,10 +477,21 @@ function LoveSecretResultPageContent({
 
       {consultation.reading ? <LoveSecretActionCards reading={consultation.reading} /> : null}
 
-      <section className="mt-6 grid gap-4">
-        {sections.map((section, index) => (
-          <LoveSecretResultSection key={`${section.title}-${index}`} index={index} section={section} />
-        ))}
+      <section className="mt-6 text-amber-100">
+        <PagedResultViewer
+          pages={withCharacterBreaks(
+            sections.map((section, index) => ({
+              id: `love-secret-section-${index}`,
+              label: toDisplayText(section.title).slice(0, 12) || `${index + 1}장`,
+              content: <LoveSecretResultSection index={index} section={section} />,
+            })),
+            yeoniBreaks,
+          )}
+          deckLabel="연애 비책 상담 결과"
+          viewAll={viewAll}
+          onViewAllChange={onViewAllChange}
+          expandForExport={expandForExport}
+        />
       </section>
 
       {consultation.finalLine && (

@@ -468,20 +468,47 @@
 .badgeBlock p,
 .stateCard p {
   margin: 0;
-  color: rgba(239, 244, 252, 0.84);
-  font-size: 0.94rem;
+  color: rgba(239, 244, 252, 0.88);
+  font-size: 0.97rem;
   font-weight: 720;
-  line-height: 1.65;
+  line-height: 1.72;
   word-break: keep-all;
+  white-space: pre-line;
 }
 
 .sectionCard ul {
   margin: 0;
   padding-left: 18px;
-  color: rgba(239, 244, 252, 0.84);
-  font-size: 0.92rem;
+  color: rgba(239, 244, 252, 0.86);
+  font-size: 0.94rem;
   font-weight: 740;
-  line-height: 1.65;
+  line-height: 1.7;
+  display: grid;
+  gap: 6px;
+}
+
+/* 책장 넘김 뷰어 — 네오 달빛 다크 스킨 (내비/토글/인디케이터는 currentColor 상속) */
+.pagedViewer {
+  color: #e9d9a9;
+}
+
+.pagedViewer > div[role="region"] > div {
+  display: grid;
+  gap: 12px;
+}
+
+/* 섹션 사이 삽입되는 네오 투명 삽화 뒤에 은은한 라벤더 글로우 */
+.pagedViewer figure {
+  position: relative;
+}
+
+.pagedViewer figure::before {
+  content: "";
+  position: absolute;
+  inset: 12% 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.24) 0%, rgba(167, 139, 250, 0) 70%);
+  pointer-events: none;
 }
 
 .gridList {

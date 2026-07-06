@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
@@ -82,7 +83,7 @@ const RESULT_PANEL_CLASS = "rounded-lg border border-white/10 bg-white/[0.045] s
 const RESULT_INFO_CLASS = "rounded-lg border border-white/10 bg-[#0d132c]/75 p-4";
 
 function toText(value: unknown) {
-  return String(value || "").trim();
+  return toDisplayText(value);
 }
 
 function pointLabel(point?: ChartPoint | null) {
@@ -388,7 +389,7 @@ export default function AstrologyAiResultClient() {
                         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#f5d487]/25 text-sm text-amber-50 transition group-open:rotate-45">+</span>
                       </span>
                     </summary>
-                    <p className="mt-5 whitespace-pre-wrap text-[15px] leading-8 text-slate-100">{section.body}</p>
+                    <p className="mt-5 whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{toText(section.body)}</p>
                   </details>
                 ))}
               </section>

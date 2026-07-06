@@ -5,6 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { toDisplayText } from "@/lib/llm-text";
+import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
+import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
@@ -495,6 +498,8 @@ export default function NeoOperationRoomResultPage() {
   const [refineError, setRefineError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [viewAll, setViewAll] = usePagedViewerMode("neoOperationRoomViewerModeV1");
+  const [exportExpand, setExportExpand] = useState(false);
   const [badgeAward, setBadgeAward] = useState<NeoBadgeAwardState>({
     count: 0,
     currentBadgeIndex: 0,
@@ -639,6 +644,10 @@ export default function NeoOperationRoomResultPage() {
     }
     setPdfLoading(true);
     setPdfError("");
+    // 페이지 뷰어가 숨긴 장(display:none)은 html2canvas에서 빈 캔버스가 되므로 전부 펼친 뒤 캡처한다.
+    setExportExpand(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    await new Promise((resolve) => setTimeout(resolve, 120));
     try {
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
@@ -702,6 +711,7 @@ export default function NeoOperationRoomResultPage() {
     } catch {
       setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      setExportExpand(false);
       setPdfLoading(false);
     }
   }
@@ -813,6 +823,9 @@ export default function NeoOperationRoomResultPage() {
                 hasRefined={Boolean(refined)}
                 badgeIndex={badgeAward.currentBadgeIndex}
                 onOpenReality={() => setShowRealityForm(true)}
+                viewAll={viewAll}
+                onViewAllChange={setViewAll}
+                expandForExport={exportExpand}
               />
             ) : null}
             {showRealityForm && briefing ? (
@@ -826,7 +839,15 @@ export default function NeoOperationRoomResultPage() {
                 onSubmit={handleRefine}
               />
             ) : null}
-            {refined ? <RefinedOrderDocument refined={refined} badgeIndex={badgeAward.currentBadgeIndex} /> : null}
+            {refined ? (
+              <RefinedOrderDocument
+                refined={refined}
+                badgeIndex={badgeAward.currentBadgeIndex}
+                viewAll={viewAll}
+                onViewAllChange={setViewAll}
+                expandForExport={exportExpand}
+              />
+            ) : null}
             <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} />
             <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} />
             <section className={styles.actionBar} aria-label="작전 명령서 보관과 특전">
@@ -1019,83 +1040,195 @@ function InitialBriefingDocument({
   hasRefined,
   badgeIndex,
   onOpenReality,
+  viewAll,
+  onViewAllChange,
+  expandForExport,
 }: {
   briefing: NeoBriefing;
   evidenceFallbackLabel: string;
   hasRefined: boolean;
   badgeIndex: number;
   onOpenReality: () => void;
+  viewAll: boolean;
+  onViewAllChange: (viewAll: boolean) => void;
+  expandForExport: boolean;
 }) {
   const frontlineSummary = getBriefingFrontline(briefing);
   const repeatedChoice = getBriefingRepeatedChoice(briefing);
   const misalignedFlow = getBriefingMisalignedFlow(briefing);
+  const bluntTruth = toDisplayText(briefing.bluntTruth);
+  const closing = toDisplayText(briefing.tsundereClosing || briefing.nextStepPrompt);
+  const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
+    {
+      id: "briefing-frontline",
+      label: "전선 진단",
+      when: Boolean(toDisplayText(frontlineSummary) || bluntTruth),
+      content: (
+        <>
+          <Section title="현재 운명의 전선" body={frontlineSummary} />
+          {bluntTruth ? <blockquote className={styles.blunt}>{bluntTruth}</blockquote> : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-orders",
+      label: "긴급 작전",
+      when: Boolean(briefing.actionOrders?.length),
+      content: (
+        <>
+          <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
+          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-judgement",
+      label: "네오의 판단",
+      when: Boolean(toDisplayText(briefing.neoOpening) || toDisplayText(repeatedChoice.description)),
+      content: (
+        <>
+          <Section title="네오의 첫 판단" body={briefing.neoOpening} />
+          <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
+        </>
+      ),
+    },
+    {
+      id: "briefing-innate",
+      label: "타고난 성향",
+      when: Boolean(toDisplayText(briefing.innateNature?.description) || toDisplayText(briefing.innateStrength?.description)),
+      content: (
+        <>
+          <Section title={briefing.innateNature?.title || "타고난 성향의 핵"} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
+          <Section
+            title={briefing.innateStrength?.title || "타고난 강점과 약점"}
+            body={briefing.innateStrength?.description}
+            list={[
+              ...(briefing.innateStrength?.strongPoints || []).map((point) => `💪 ${toDisplayText(point)}`),
+              ...(briefing.innateStrength?.weakPoints || []).map((point) => `⚠ ${toDisplayText(point)}`),
+            ]}
+          />
+        </>
+      ),
+    },
+    {
+      id: "briefing-topic",
+      label: "주제 분석",
+      when: Boolean(toDisplayText(briefing.topicStyle?.description) || briefing.topicAreas?.length),
+      content: (
+        <>
+          <Section title={briefing.topicStyle?.title || "이 주제에서 너의 방식"} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
+          {briefing.topicAreas?.length ? (
+            <Section title="주제 영역별 심층" list={briefing.topicAreas.map((item) => `${toDisplayText(item.area)} — ${toDisplayText(item.reading)}`)} />
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-timing",
+      label: "시기와 전략",
+      when: Boolean(toDisplayText(briefing.topicTiming?.description) || toDisplayText(briefing.originalStrategy?.description)),
+      content: (
+        <>
+          <Section title={briefing.topicTiming?.title || "이 주제의 시기 흐름"} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
+          <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
+        </>
+      ),
+    },
+    {
+      id: "briefing-evidence",
+      label: "어긋난 자리와 근거",
+      when: Boolean(toDisplayText(misalignedFlow.description) || briefing.methodEvidence?.length),
+      content: (
+        <>
+          <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
+          {briefing.methodEvidence?.length ? (
+            <div className={styles.gridList}>
+              {briefing.methodEvidence.map((item) => <Section key={`${item.method}-${item.label}`} title={item.label || evidenceFallbackLabel} body={item.summary} />)}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-mission",
+      label: "금지와 7일 작전",
+      when: Boolean(toDisplayText(briefing.forbiddenAction?.reason) || briefing.sevenDayMission?.length),
+      content: (
+        <>
+          <Section title={briefing.forbiddenAction?.title || "오늘 금지 행동"} body={briefing.forbiddenAction?.reason} />
+          {briefing.sevenDayMission?.length ? (
+            <div className={styles.missionGrid}>
+              <strong>7일 작전</strong>
+              {briefing.sevenDayMission.map((item, index) => (
+                <section key={`${item.day}-${index}`}>
+                  <span>DAY {item.day}</span>
+                  <p>{toDisplayText(item.mission)}</p>
+                </section>
+              ))}
+            </div>
+          ) : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-reality",
+      label: "현실 점검",
+      when: Boolean(briefing.realityCheckQuestions?.length),
+      content: (
+        <>
+          {briefing.realityCheckQuestions?.length ? (
+            <div className={styles.questionList}>
+              <strong>현실 점검 질문</strong>
+              {briefing.realityCheckQuestions.map((item, index) => (
+                <section key={`${index}-${toDisplayText(item.question).slice(0, 24)}`}>
+                  <p>{toDisplayText(item.question)}</p>
+                  <span>{toDisplayText(item.whyItMatters)}</span>
+                </section>
+              ))}
+            </div>
+          ) : null}
+          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>답하고 수정 작전 명령서 받기</button> : null}
+        </>
+      ),
+    },
+    {
+      id: "briefing-badge",
+      label: "사자 휘장",
+      when: Boolean(toDisplayText(briefing.badge?.description) || closing),
+      content: (
+        <>
+          {briefing.badge?.description ? (
+            <div className={styles.badgeBlock}>
+              <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
+              <div>
+                <strong>오늘의 사자 휘장 · {toDisplayText(briefing.badge.name) || "무명 휘장"}</strong>
+                <p>{toDisplayText(briefing.badge.description)}</p>
+              </div>
+              <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
+            </div>
+          ) : null}
+          {closing ? <blockquote className={styles.blunt}>{closing}</blockquote> : null}
+        </>
+      ),
+    },
+  ];
+  const pages: ResultViewerPage[] = pageCandidates
+    .filter((page) => page.when)
+    .map((page) => ({ id: page.id, label: page.label, content: page.content }));
   return (
     <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>1차 작전 브리핑</span>
-        <h2>{briefing.operationTitle || "무명 작전"}</h2>
+        <h2>{toDisplayText(briefing.operationTitle) || "무명 작전"}</h2>
       </header>
-      <Section title="현재 운명의 전선" body={frontlineSummary} />
-      {briefing.bluntTruth ? <blockquote className={styles.blunt}>{briefing.bluntTruth}</blockquote> : null}
-      <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
-      {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
-      <Section title="네오의 첫 판단" body={briefing.neoOpening} />
-      <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
-      <Section title={briefing.innateNature?.title || "타고난 성향의 핵"} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
-      <Section
-        title={briefing.innateStrength?.title || "타고난 강점과 약점"}
-        body={briefing.innateStrength?.description}
-        list={[
-          ...(briefing.innateStrength?.strongPoints || []).map((point) => `💪 ${point}`),
-          ...(briefing.innateStrength?.weakPoints || []).map((point) => `⚠ ${point}`),
-        ]}
+      <PagedResultViewer
+        pages={withCharacterBreaks(pages, neoInitialBreaks)}
+        deckLabel="1차 작전 브리핑"
+        className={styles.pagedViewer}
+        viewAll={viewAll}
+        onViewAllChange={onViewAllChange}
+        expandForExport={expandForExport}
       />
-      <Section title={briefing.topicStyle?.title || "이 주제에서 너의 방식"} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
-      {briefing.topicAreas?.length ? (
-        <Section title="주제 영역별 심층" list={briefing.topicAreas.map((item) => `${item.area} — ${item.reading}`)} />
-      ) : null}
-      <Section title={briefing.topicTiming?.title || "이 주제의 시기 흐름"} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
-      <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
-      <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
-      {briefing.methodEvidence?.length ? (
-        <div className={styles.gridList}>
-          {briefing.methodEvidence.map((item) => <Section key={`${item.method}-${item.label}`} title={item.label || evidenceFallbackLabel} body={item.summary} />)}
-        </div>
-      ) : null}
-      <Section title={briefing.forbiddenAction?.title || "오늘 금지 행동"} body={briefing.forbiddenAction?.reason} />
-      {briefing.sevenDayMission?.length ? (
-        <div className={styles.missionGrid}>
-          <strong>7일 작전</strong>
-          {briefing.sevenDayMission.map((item) => (
-            <section key={`${item.day}-${item.mission}`}>
-              <span>DAY {item.day}</span>
-              <p>{item.mission}</p>
-            </section>
-          ))}
-        </div>
-      ) : null}
-      {briefing.realityCheckQuestions?.length ? (
-        <div className={styles.questionList}>
-          <strong>현실 점검 질문</strong>
-          {briefing.realityCheckQuestions.map((item) => (
-            <section key={item.question}>
-              <p>{item.question}</p>
-              <span>{item.whyItMatters}</span>
-            </section>
-          ))}
-        </div>
-      ) : null}
-      {briefing.badge?.description ? (
-        <div className={styles.badgeBlock}>
-          <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
-          <div>
-            <strong>오늘의 사자 휘장 · {briefing.badge.name || "무명 휘장"}</strong>
-            <p>{briefing.badge.description}</p>
-          </div>
-          <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
-        </div>
-      ) : null}
-      {briefing.tsundereClosing || briefing.nextStepPrompt ? <blockquote className={styles.blunt}>{briefing.tsundereClosing || briefing.nextStepPrompt}</blockquote> : null}
     </article>
   );
 }
@@ -1154,63 +1287,134 @@ function RealityCheckForm({
   );
 }
 
-function RefinedOrderDocument({ refined, badgeIndex }: { refined: NeoRefinedOrder; badgeIndex: number }) {
+function RefinedOrderDocument({
+  refined,
+  badgeIndex,
+  viewAll,
+  onViewAllChange,
+  expandForExport,
+}: {
+  refined: NeoRefinedOrder;
+  badgeIndex: number;
+  viewAll: boolean;
+  onViewAllChange: (viewAll: boolean) => void;
+  expandForExport: boolean;
+}) {
+  const closing = toDisplayText(refined.tsundereClosing);
+  const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
+    {
+      id: "refined-review",
+      label: "전황 재판단",
+      when: Boolean(toDisplayText(refined.neoReview)),
+      content: <Section title="전황 재판단" body={refined.neoReview} />,
+    },
+    {
+      id: "refined-verdict",
+      label: "판정",
+      when: Boolean(toDisplayText(refined.verdict?.statement) || toDisplayText(refined.verdictBasis)),
+      content: (
+        <>
+          <Section title={refined.verdict?.status ? `판정 · ${toDisplayText(refined.verdict.status)}` : "판정"} body={refined.verdict?.statement} />
+          <Section title="판정 근거" body={refined.verdictBasis} />
+        </>
+      ),
+    },
+    {
+      id: "refined-alternatives",
+      label: "전선 조정",
+      when: Boolean(refined.actionAlternatives?.length),
+      content: (
+        <div className={styles.gridList}>
+          {(refined.actionAlternatives || []).map((item, index) => (
+            <Section
+              key={`${toDisplayText(item.timing)}-${index}`}
+              title={item.timing ? `전선 조정 · ${toDisplayText(item.timing)}` : "전선 조정"}
+              body={item.action}
+              list={item.rationale ? [toDisplayText(item.rationale)] : undefined}
+            />
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "refined-people",
+      label: "만나야 할 사람",
+      when: Boolean(refined.peopleToMeet?.length),
+      content: (
+        <div className={styles.gridList}>
+          {(refined.peopleToMeet || []).map((item, index) => (
+            <Section
+              key={`${toDisplayText(item.role)}-${index}`}
+              title="만나야 할 사람"
+              body={item.role}
+              list={[toDisplayText(item.complementaryEnergy), item.whereToFind ? `만날 곳 · ${toDisplayText(item.whereToFind)}` : ""].filter(Boolean)}
+            />
+          ))}
+        </div>
+      ),
+    },
+    {
+      id: "refined-thirty",
+      label: "30일 전략",
+      when: Boolean(refined.thirtyDayStrategy?.length || toDisplayText(refined.thisWeekFirstStep)),
+      content: (
+        <>
+          <Section title="30일 전략" list={refined.thirtyDayStrategy} />
+          <Section title="이번 주 첫 걸음" body={refined.thisWeekFirstStep} />
+        </>
+      ),
+    },
+    {
+      id: "refined-closing",
+      label: "금지와 휘장",
+      when: true,
+      content: (
+        <>
+          <Section title={refined.forbiddenAction?.title || "오늘 금지 행동"} body={refined.forbiddenAction?.reason} />
+          <div className={styles.badgeBlock}>
+            <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
+            <div>
+              <strong>오늘의 사자 휘장 · {toDisplayText(refined.badge?.name) || "무명 휘장"}</strong>
+              <p>{toDisplayText(refined.badge?.description)}</p>
+            </div>
+            <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
+          </div>
+          {closing ? <blockquote className={styles.blunt}>{closing}</blockquote> : null}
+        </>
+      ),
+    },
+  ];
+  const pages: ResultViewerPage[] = pageCandidates
+    .filter((page) => page.when)
+    .map((page) => ({ id: page.id, label: page.label, content: page.content }));
   return (
     <article className={styles.documentCard} data-version="v2" data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>2차 수정 작전 명령서</span>
-        <h2>{refined.operationTitle || "수정 작전"}</h2>
+        <h2>{toDisplayText(refined.operationTitle) || "수정 작전"}</h2>
       </header>
-      <Section title="전황 재판단" body={refined.neoReview} />
-      <Section title={refined.verdict?.status ? `판정 · ${refined.verdict.status}` : "판정"} body={refined.verdict?.statement} />
-      <Section title="판정 근거" body={refined.verdictBasis} />
-      {refined.actionAlternatives?.length ? (
-        <div className={styles.gridList}>
-          {refined.actionAlternatives.map((item, index) => (
-            <Section
-              key={`${item.timing}-${index}`}
-              title={item.timing ? `전선 조정 · ${item.timing}` : "전선 조정"}
-              body={item.action}
-              list={item.rationale ? [item.rationale] : undefined}
-            />
-          ))}
-        </div>
-      ) : null}
-      {refined.peopleToMeet?.length ? (
-        <div className={styles.gridList}>
-          {refined.peopleToMeet.map((item, index) => (
-            <Section
-              key={`${item.role}-${index}`}
-              title="만나야 할 사람"
-              body={item.role}
-              list={[item.complementaryEnergy, item.whereToFind ? `만날 곳 · ${item.whereToFind}` : ""].filter(Boolean) as string[]}
-            />
-          ))}
-        </div>
-      ) : null}
-      <Section title="30일 전략" list={refined.thirtyDayStrategy} />
-      <Section title="이번 주 첫 걸음" body={refined.thisWeekFirstStep} />
-      <Section title={refined.forbiddenAction?.title || "오늘 금지 행동"} body={refined.forbiddenAction?.reason} />
-      <div className={styles.badgeBlock}>
-        <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
-        <div>
-          <strong>오늘의 사자 휘장 · {refined.badge?.name || "무명 휘장"}</strong>
-          <p>{refined.badge?.description}</p>
-        </div>
-        <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
-      </div>
-      <blockquote className={styles.blunt}>{refined.tsundereClosing}</blockquote>
+      <PagedResultViewer
+        pages={withCharacterBreaks(pages, neoRefinedBreaks)}
+        deckLabel="2차 수정 작전 명령서"
+        className={styles.pagedViewer}
+        viewAll={viewAll}
+        onViewAllChange={onViewAllChange}
+        expandForExport={expandForExport}
+      />
     </article>
   );
 }
 
 function Section({ title, body, list }: { title: string; body?: string; list?: string[] }) {
-  if (!body && !list?.length) return null;
+  // LLM 필드가 객체/배열이거나 저장 단계에서 "[object Object]"로 오염된 경우를 방어한다.
+  const bodyText = toDisplayText(body);
+  const items = (list || []).map((item) => toDisplayText(item)).filter(Boolean);
+  if (!bodyText && !items.length) return null;
   return (
     <section className={styles.sectionCard}>
-      <h3>{title}</h3>
-      {body ? <p>{body}</p> : null}
-      {list?.length ? <ul>{list.map((item) => <li key={item}>{item}</li>)}</ul> : null}
+      <h3>{toDisplayText(title)}</h3>
+      {bodyText ? <p>{bodyText}</p> : null}
+      {items.length ? <ul>{items.map((item, index) => <li key={`${index}-${item.slice(0, 24)}`}>{item}</li>)}</ul> : null}
     </section>
   );
 }
