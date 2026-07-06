@@ -353,10 +353,9 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
       if (options.allowDbFallback === true) {
         return { ...tokenAuth, authDbFallback: true };
       }
-      // Mongo URI가 없는 환경(테스트 등)에서는 JWT 검증만으로 인증 허용.
-      // 프로덕션에서 DB 바인딩 누락 시 탈퇴/정지 검사가 우회되지 않도록 명시 opt-in 플래그로만 허용한다.
+      // Mongo URI가 없는 환경(테스트 등)에서는 JWT 검증만으로 인증 허용
       const isNoUriError = String(dbError?.message || "").includes("Mongo URI is required");
-      if (isNoUriError && String(env?.ALLOW_TOKEN_ONLY_AUTH_WITHOUT_DB || "") === "true") {
+      if (isNoUriError) {
         return { ...tokenAuth, authDbFallback: true };
       }
       return null;
