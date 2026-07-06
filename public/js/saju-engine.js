@@ -5944,20 +5944,21 @@ function _sajuPromptHashText(value) {
 
 function _sajuPromptBuildSnapshotHash() {
   var snapshot = {
-    promptVersion: 'saju-myeongsik-ai-v3',
+    promptVersion: 'saju-myeongsik-ai-v4',
     pillars: G_PILLARS || null,
     natal: G_NATAL || null,
     johu: G_JOHU || null,
     power: G_POWER || null,
     jong: G_JONG || null,
-    bazi: _sajuPromptBuildBaziSnapshot()
+    bazi: _sajuPromptBuildBaziSnapshot(),
+    calibration: _sajuPromptActiveCalibration || null
   };
   return _sajuPromptHashText(JSON.stringify(snapshot));
 }
 
 function _sajuPromptBuildRequestNonce(profileId, domain, question, snapshotHash) {
   var normalizedQuestion = String(question || '').trim().replace(/\s+/g, ' ');
-  var seed = ['saju-myeongsik-ai-v3', String(profileId || '').trim(), String(domain || 'general').trim(), String(snapshotHash || '').trim(), normalizedQuestion].join('|');
+  var seed = ['saju-myeongsik-ai-v4', String(profileId || '').trim(), String(domain || 'general').trim(), String(snapshotHash || '').trim(), normalizedQuestion].join('|');
   return 'v20260630-v2-' + _sajuPromptHashText(seed);
 }
 
@@ -6166,17 +6167,200 @@ function _sajuPromptDomainLabel(domain) {
   return map[String(domain || '').trim()] || '자동 분류';
 }
 
-function _confirmSajuQuestionPromptPurchase(domain, privacyOptions) {
+var _sajuPromptActiveCalibration = null;
+var _SAJU_CALIB_MAX_ROWS = 6;
+var _SAJU_CALIB_AREAS = [
+  ['money', '재물'],
+  ['career', '직업'],
+  ['love', '애정'],
+  ['health', '건강'],
+  ['study', '학업'],
+  ['etc', '기타']
+];
+
+function _sajuPromptCalibStorageKey() {
+  var profileId = _sajuPromptResolveProfileId();
+  return 'codeDestiny:sajuCalibration:' + (profileId || 'anonymous');
+}
+
+function _sajuPromptReadSavedCalibration() {
+  try {
+    if (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function') {
+      var profile = window.DestinyProfileManager.storage.current();
+      if (profile && profile.sajuCalibration && Array.isArray(profile.sajuCalibration.periods) && profile.sajuCalibration.periods.length) {
+        return profile.sajuCalibration;
+      }
+    }
+  } catch (_) {}
+  try {
+    var raw = localStorage.getItem(_sajuPromptCalibStorageKey());
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.periods) && parsed.periods.length) return parsed;
+    }
+  } catch (_) {}
+  return null;
+}
+
+function _sajuPromptStoreCalibration(calibration) {
+  if (!calibration || !Array.isArray(calibration.periods) || !calibration.periods.length) return;
+  var payload = { v: 1, periods: calibration.periods, updatedAt: new Date().toISOString() };
+  try {
+    var profileId = _sajuPromptResolveProfileId();
+    if (profileId && window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.update === 'function') {
+      window.DestinyProfileManager.storage.update(profileId, { sajuCalibration: payload });
+    }
+  } catch (_) {}
+  try { localStorage.setItem(_sajuPromptCalibStorageKey(), JSON.stringify(payload)); } catch (_) {}
+}
+
+function _sajuPromptParseCalibWhen(value) {
+  var num = parseInt(String(value || '').replace(/[^0-9]/g, ''), 10);
+  if (!isFinite(num) || num <= 0) return null;
+  var birthYear = Number(BIRTH_YEAR) || 0;
+  var year = null;
+  var age = null;
+  if (num >= 1900) year = num;
+  else if (num >= 1 && num <= 120) age = num;
+  if (!year && !age) return null;
+  if (birthYear > 1800) {
+    if (year && !age) age = year - birthYear + 1;
+    if (age && !year) year = birthYear + age - 1;
+  }
+  if (age != null && (age < 1 || age > 120)) age = null;
+  if (year != null && (year < 1930 || year > new Date().getFullYear() + 1)) year = null;
+  if (!year && !age) return null;
+  return { year: year, age: age };
+}
+
+function _sajuPromptCollectCalibration(scopeEl) {
+  if (!scopeEl) return null;
+  var rows = scopeEl.querySelectorAll('[data-saju-ai-calib-row]');
+  var periods = [];
+  Array.prototype.forEach.call(rows, function(row) {
+    if (periods.length >= _SAJU_CALIB_MAX_ROWS) return;
+    var whenEl = row.querySelector('[data-saju-ai-calib-when]');
+    var when = _sajuPromptParseCalibWhen(whenEl && whenEl.value);
+    if (!when) return;
+    var polarityEl = row.querySelector('[data-saju-ai-calib-polarity]');
+    var areaEl = row.querySelector('[data-saju-ai-calib-area]');
+    var intensityEl = row.querySelector('[data-saju-ai-calib-intensity]');
+    var noteEl = row.querySelector('[data-saju-ai-calib-note]');
+    periods.push({
+      polarity: polarityEl && polarityEl.value === 'bad' ? 'bad' : 'good',
+      year: when.year,
+      age: when.age,
+      area: areaEl && areaEl.value ? String(areaEl.value) : 'etc',
+      intensity: Math.min(5, Math.max(1, parseInt((intensityEl && intensityEl.value) || '3', 10) || 3)),
+      note: String((noteEl && noteEl.value) || '').replace(/\s+/g, ' ').trim().slice(0, 60)
+    });
+  });
+  if (!periods.length) return null;
+  return { v: 1, periods: periods };
+}
+
+function _sajuPromptCalibrationForRequest(calibration) {
+  if (!calibration || !Array.isArray(calibration.periods)) return null;
+  var hasGood = calibration.periods.some(function(p) { return p.polarity === 'good'; });
+  var hasBad = calibration.periods.some(function(p) { return p.polarity === 'bad'; });
+  return hasGood && hasBad ? calibration : null;
+}
+
+function _sajuPromptBuildCalibRowHtml(polarity) {
+  var fieldStyle = 'border:1px solid rgba(230,196,112,.4);background:rgba(255,252,243,.94);color:#24170c;border-radius:8px;padding:7px 8px;font-size:0.74rem;font-weight:700;box-sizing:border-box;';
+  var areaOptions = _SAJU_CALIB_AREAS.map(function(pair) {
+    return '<option value="' + pair[0] + '">' + pair[1] + '</option>';
+  }).join('');
+  var intensityOptions = ['1 (살짝)', '2', '3 (제법)', '4', '5 (아주 강하게)'].map(function(label, idx) {
+    return '<option value="' + (idx + 1) + '"' + (idx === 2 ? ' selected' : '') + '>' + label + '</option>';
+  }).join('');
+  return '<div data-saju-ai-calib-row style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;border:1px solid rgba(230,196,112,.22);background:rgba(255,255,255,.05);border-radius:8px;padding:8px;">'
+    + '<select data-saju-ai-calib-polarity aria-label="시기 성격" style="' + fieldStyle + '">'
+    +   '<option value="good"' + (polarity === 'bad' ? '' : ' selected') + '>좋았던 시기</option>'
+    +   '<option value="bad"' + (polarity === 'bad' ? ' selected' : '') + '>힘들었던 시기</option>'
+    + '</select>'
+    + '<input data-saju-ai-calib-when type="text" inputmode="numeric" placeholder="예: 2014 (연도) 또는 25 (나이)" aria-label="시기(연도 또는 나이)" style="' + fieldStyle + 'flex:1 1 150px;min-width:130px;">'
+    + '<select data-saju-ai-calib-area aria-label="영역" style="' + fieldStyle + '">' + areaOptions + '</select>'
+    + '<select data-saju-ai-calib-intensity aria-label="체감 강도" style="' + fieldStyle + '">' + intensityOptions + '</select>'
+    + '<input data-saju-ai-calib-note type="text" maxlength="60" placeholder="한 줄 메모 (선택 — 쓰지 않아도 괜찮아요)" aria-label="한 줄 메모" style="' + fieldStyle + 'flex:1 1 100%;">'
+    + '</div>';
+}
+
+function _sajuPromptBindCalibrationSection(rootEl) {
+  var section = rootEl && rootEl.querySelector('[data-saju-ai-calib]');
+  if (!section) return;
+  var rowsEl = section.querySelector('[data-saju-ai-calib-rows]');
+  var addBtn = section.querySelector('[data-saju-ai-calib-add]');
+  var nudgeEl = section.querySelector('[data-saju-ai-calib-nudge]');
+  if (!rowsEl || !addBtn) return;
+  function updateNudge() {
+    if (!nudgeEl) return;
+    var collected = _sajuPromptCollectCalibration(section);
+    var periods = collected ? collected.periods : [];
+    var good = periods.filter(function(p) { return p.polarity === 'good'; }).length;
+    var bad = periods.length - good;
+    var message;
+    if (!periods.length) message = '한 시기만 알려줘도 보정이 시작돼요';
+    else if (!good || !bad) message = '좋았던 시기와 힘들었던 시기를 하나씩 채우면 정확도 보정이 켜져요';
+    else if (good === 1 && bad === 1) message = '하나만 더 알려주시면 훨씬 정확해져요 (2~3개 권장)';
+    else message = '시기 ' + periods.length + '건이 상담 보정에 반영돼요';
+    nudgeEl.textContent = message;
+  }
+  function fillRow(row, period) {
+    if (!row || !period) return;
+    var polarityEl = row.querySelector('[data-saju-ai-calib-polarity]');
+    var whenEl = row.querySelector('[data-saju-ai-calib-when]');
+    var areaEl = row.querySelector('[data-saju-ai-calib-area]');
+    var intensityEl = row.querySelector('[data-saju-ai-calib-intensity]');
+    var noteEl = row.querySelector('[data-saju-ai-calib-note]');
+    if (polarityEl) polarityEl.value = period.polarity === 'bad' ? 'bad' : 'good';
+    if (whenEl) whenEl.value = period.year ? String(period.year) : (period.age ? String(period.age) : '');
+    if (areaEl && period.area) areaEl.value = period.area;
+    if (intensityEl && period.intensity) intensityEl.value = String(period.intensity);
+    if (noteEl) noteEl.value = String(period.note || '');
+  }
+  function syncAddButton() {
+    var count = rowsEl.querySelectorAll('[data-saju-ai-calib-row]').length;
+    var full = count >= _SAJU_CALIB_MAX_ROWS;
+    addBtn.disabled = full;
+    addBtn.style.opacity = full ? '0.6' : '1';
+  }
+  var saved = _sajuPromptReadSavedCalibration();
+  if (saved && Array.isArray(saved.periods) && saved.periods.length) {
+    var needed = Math.min(_SAJU_CALIB_MAX_ROWS, saved.periods.length);
+    while (rowsEl.querySelectorAll('[data-saju-ai-calib-row]').length < needed) {
+      rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml('good'));
+    }
+    var rows = rowsEl.querySelectorAll('[data-saju-ai-calib-row]');
+    saved.periods.slice(0, needed).forEach(function(period, idx) { fillRow(rows[idx], period); });
+    section.open = true;
+  }
+  addBtn.addEventListener('click', function() {
+    var count = rowsEl.querySelectorAll('[data-saju-ai-calib-row]').length;
+    if (count >= _SAJU_CALIB_MAX_ROWS) return;
+    rowsEl.insertAdjacentHTML('beforeend', _sajuPromptBuildCalibRowHtml(count % 2 === 0 ? 'good' : 'bad'));
+    syncAddButton();
+    updateNudge();
+  });
+  section.addEventListener('input', updateNudge);
+  section.addEventListener('change', updateNudge);
+  syncAddButton();
+  updateNudge();
+}
+
+function _confirmSajuQuestionPromptPurchase(domain, privacyOptions, calibrationCount) {
   if (typeof window.confirm !== 'function') return true;
   var protectedItems = [];
   if (privacyOptions && privacyOptions.hideName) protectedItems.push('이름 원문');
   if (privacyOptions && privacyOptions.hideBirth) protectedItems.push('원본 생년월일');
   if (privacyOptions && privacyOptions.hideTime) protectedItems.push('원본 출생시간');
   var protectedText = protectedItems.length ? protectedItems.join(', ') + ' 제외' : '개인정보 원문 포함';
+  var calibrationText = Number(calibrationCount) > 0 ? '정확도 보정: 시기 ' + Number(calibrationCount) + '건 반영\n' : '';
   return window.confirm(
     '사주 AI 상담 결과를 엽니다. 결제, 월정석 크레딧, 멤버십 이용권 중 사용 가능한 방식으로 확인됩니다.\n\n'
     + '선택 주제: ' + _sajuPromptDomainLabel(domain) + '\n'
     + '개인정보 설정: ' + protectedText + '\n'
+    + calibrationText
     + '명식 계산값은 상담의 흐름을 맞추기 위해 함께 흐릅니다.'
   );
 }
@@ -6478,6 +6662,7 @@ function _sajuPromptPostWithPaidEvidence(requestNonce, question, privacyOptions,
     question: question,
     domain: String(domain || '').trim(),
     sajuResult: _buildSajuAIPromptPayload(privacyOptions),
+    calibration: _sajuPromptActiveCalibration || undefined,
     requestId: evidence.requestId || ('saju-ai-prompt:' + requestNonce),
     profileId: profileId || undefined,
     selectedProfileId: profileId || undefined,
@@ -6625,7 +6810,7 @@ function _buildSajuQuestionPromptHtml() {
     return '<div data-saju-ai-step="' + idx + '" data-saju-ai-step-progress="' + label[0] + '" style="display:flex;align-items:center;gap:7px;border:1px solid rgba(230,196,112,.24);background:rgba(255,255,255,.06);border-radius:8px;padding:8px 8px;color:rgba(255,247,223,.66);font-size:0.68rem;font-weight:900;min-height:36px;box-sizing:border-box;"><span data-saju-ai-step-dot style="width:7px;height:7px;border-radius:50%;background:rgba(255,247,223,.34);box-shadow:0 0 0 0 rgba(253,230,138,0);"></span><span>' + label[1] + '</span></div>';
   }).join('');
   return ''
-    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260626" style="margin:18px 0 0" data-saju-analysis-only="true">'
+    + '<div id="sajuQuestionPromptGeneratorCard" data-cd-marker="saju-ai-standard-gate-llm-progress-v20260706" style="margin:18px 0 0" data-saju-analysis-only="true">'
     + '<div class="prem-box" style="position:relative;overflow:hidden;border-radius:8px;border:1px solid rgba(230,196,112,.62);background:radial-gradient(circle at 86% 12%,rgba(226,52,52,.2),transparent 22%),radial-gradient(circle at 92% 76%,rgba(28,75,150,.22),transparent 24%),linear-gradient(135deg,rgba(12,13,18,.98),rgba(33,28,26,.97) 56%,rgba(60,42,27,.96));box-shadow:0 24px 58px rgba(12,13,18,.3),inset 0 1px 0 rgba(255,255,255,.18);padding:18px;">'
     +   '<div style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(230,196,112,.14),transparent 32%,rgba(255,255,255,.1) 100%);"></div>'
     +   '<div style="position:relative;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap;margin-bottom:13px;">'
@@ -6656,6 +6841,17 @@ function _buildSajuQuestionPromptHtml() {
     +     '<label style="display:inline-flex;align-items:center;gap:6px;"><input type="checkbox" data-saju-ai-hide-time checked style="accent-color:#d9bd77;"> 원본 출생시간 제외</label>'
     +   '</div>'
     +   '<div style="position:relative;margin-top:6px;font-size:0.7rem;color:rgba(255,247,223,.6);line-height:1.55;">이름과 원문 생년월일은 기본으로 가리고, 명식의 흐름만 상담 생성에 남깁니다.</div>'
+    +   '<details data-saju-ai-calib style="position:relative;margin-top:13px;border:1px solid rgba(230,196,112,.32);border-radius:8px;background:rgba(255,255,255,.05);">'
+    +     '<summary style="cursor:pointer;padding:11px 12px;font-size:0.78rem;color:#e8c778;font-weight:900;line-height:1.5;word-break:keep-all;">정확도 높이기 (선택) — 좋았던/힘들었던 시기를 알려주시면 상담이 당신의 삶에 맞춰 보정돼요</summary>'
+    +     '<div style="padding:0 12px 12px;">'
+    +       '<p style="margin:0 0 8px;font-size:0.72rem;color:rgba(255,247,223,.72);line-height:1.6;word-break:keep-all;">힘들었던 시기는 연도와 영역만으로 충분해요. 사연은 적지 않으셔도 됩니다. 시기 정보는 운 흐름 보정에만 사용돼요.</p>'
+    +       '<div data-saju-ai-calib-rows style="display:flex;flex-direction:column;gap:7px;">' + _sajuPromptBuildCalibRowHtml('good') + _sajuPromptBuildCalibRowHtml('bad') + '</div>'
+    +       '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">'
+    +         '<button data-saju-ai-calib-add type="button" aria-label="시기 추가" style="background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:7px 10px;border-radius:8px;font-size:0.72rem;font-weight:800;cursor:pointer;">+ 시기 추가</button>'
+    +         '<span data-saju-ai-calib-nudge style="font-size:0.72rem;color:rgba(255,247,223,.7);font-weight:700;line-height:1.5;">한 시기만 알려줘도 보정이 시작돼요</span>'
+    +       '</div>'
+    +     '</div>'
+    +   '</details>'
     +   '<div data-saju-ai-progress-card style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(248,219,142,.48);background:radial-gradient(circle at 18% 12%,rgba(245,231,184,.2),transparent 26%),linear-gradient(145deg,rgba(12,15,30,.94),rgba(42,34,31,.94));box-shadow:0 18px 36px rgba(0,0,0,.24);padding:14px;">'
     +     '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:10px;">'
     +       '<div><div style="font-size:0.7rem;color:#e8c778;font-weight:900;letter-spacing:.1em;">LLM CONSULTATION</div><strong data-saju-ai-progress-message style="display:block;margin-top:4px;color:#fff7df;font-size:0.92rem;line-height:1.45;">명식의 흐름을 읽고 있어요</strong><p style="margin:5px 0 0;color:rgba(255,247,223,.7);font-size:0.74rem;line-height:1.55;">결제 확인이 완료되면 질문과 명식을 바탕으로 새 상담문을 엮습니다.</p></div>'
@@ -6726,6 +6922,7 @@ function renderSajuQuestionPromptGenerator() {
 function _bindSajuQuestionPromptCard(rootEl) {
   if (!rootEl || rootEl.dataset.sajuAiPromptBound === '1') return;
   rootEl.dataset.sajuAiPromptBound = '1';
+  _sajuPromptBindCalibrationSection(rootEl);
 
   var inputEl = rootEl.querySelector('[data-saju-ai-question]');
   var countEl = rootEl.querySelector('[data-saju-ai-count]');
@@ -6984,9 +7181,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
     }
     var domain = _sajuPromptReadDomain(rootEl);
     var privacyOptions = _sajuPromptReadPrivacy(rootEl);
+    var calibrationInput = _sajuPromptCollectCalibration(rootEl);
+    if (calibrationInput) _sajuPromptStoreCalibration(calibrationInput);
+    _sajuPromptActiveCalibration = _sajuPromptCalibrationForRequest(calibrationInput);
     var key = requestKey(question, domain);
     var reusePaidEvidence = lastPaidEvidence && lastPaidEvidenceKey === key;
-    if (!reusePaidEvidence && !_confirmSajuQuestionPromptPurchase(domain, privacyOptions)) {
+    if (!reusePaidEvidence && !_confirmSajuQuestionPromptPurchase(domain, privacyOptions, _sajuPromptActiveCalibration ? _sajuPromptActiveCalibration.periods.length : 0)) {
       _sajuPromptSetStatus(statusEl, '생성을 취소했습니다. 결제 전 설정을 다시 확인할 수 있습니다.', 'info');
       return;
     }

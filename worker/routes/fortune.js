@@ -139,6 +139,7 @@ const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "겁주거나 단정하지 말고 가능성과 경향성 중심으로 말합니다.",
   "고정 글자수를 채우려 하지 말고 선택 카테고리의 상담 품질 기준을 빠짐없이 다뤄 자연스럽게 마무리합니다.",
   "중간에 끊기지 않도록 마지막 한마디까지 완성하고, 끝맺음 문장은 따뜻하지만 가볍지 않게 닫습니다.",
+  "근거가 강한 해석과 참고 수준의 해석을 문장 안에서 구분하고, 마무리 근처에서 이 상담이 삶을 비추는 참고용 도구라는 점을 자연스럽게 한 번 담으세요.",
   "개발 문서, 기능 설명, 프롬프트 설명처럼 쓰지 말고 명리학자가 직접 상담하듯 작성하세요.",
 ].join("\n");
 const SAJU_AI_RESULT_FORBIDDEN_PATTERNS = [
@@ -219,6 +220,9 @@ function buildSajuAIResultPrompt(builtPrompt, options = {}) {
     "고정 글자수를 채우려 하지 말고, 카테고리별 상담 품질 기준을 모두 다룬 뒤 마지막 한마디까지 자연스럽게 완성하세요.",
     "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 끝맺음 문장은 상담자가 직접 건네는 말처럼 완결하세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
+    Number(builtPrompt?.calibrationApplied) > 0
+      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 5, 6, 8, 9번 챕터 산문에 자연스럽게 녹이세요."
+      : "",
     repairReason ? `이전 생성문 보정 사유: ${repairReason}` : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard ? "내부 명식 사실 카드:" : "",
@@ -3927,9 +3931,10 @@ async function handleSajuAIPrompt(request, auth, env) {
 
   let builtPrompt = null;
   try {
+    const calibration = body?.calibration;
     builtPrompt = domain
-      ? buildSajuAIPromptWithDomain({ question, sajuResult, domain })
-      : buildSajuAIPrompt({ question, sajuResult });
+      ? buildSajuAIPromptWithDomain({ question, sajuResult, domain, calibration })
+      : buildSajuAIPrompt({ question, sajuResult, calibration });
   } catch (error) {
     const code = String(error?.message || "").trim();
     if (code === "INVALID_QUESTION") {

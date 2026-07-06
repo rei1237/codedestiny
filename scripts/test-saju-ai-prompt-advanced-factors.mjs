@@ -12,6 +12,7 @@ async function loadPromptBuilder() {
   await copyFile(path.join(root, "worker/lib/saju-ai-prompt.js"), path.join(tempDir, "saju-ai-prompt.js"));
   await copyFile(path.join(root, "worker/lib/fortune-question-prompt.js"), path.join(tempDir, "fortune-question-prompt.js"));
   await copyFile(path.join(root, "worker/lib/saju-ai-prompt-templates.mjs"), path.join(tempDir, "saju-ai-prompt-templates.mjs"));
+  await copyFile(path.join(root, "worker/lib/saju-calibration.js"), path.join(tempDir, "saju-calibration.js"));
   return import(pathToFileURL(path.join(tempDir, "saju-ai-prompt.js")).href);
 }
 
@@ -114,7 +115,7 @@ try {
       daewun: [{ age: 30, gan: "壬", zhi: "子", score: 76, label: "test Shin-Ren daewoon" }],
     }),
   });
-  assert.equal(shinBuilt.promptVersion, "saju-myeongsik-ai-v3", "Saju AI consultation prompt version should be v3");
+  assert.equal(shinBuilt.promptVersion, "saju-myeongsik-ai-v4", "Saju AI consultation prompt version should be v4");
   const renRow = shinBuilt.factSnapshot.fixedTenGodTable.find((row) => row.stem === "壬");
   const guiRow = shinBuilt.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸");
   assert.equal(renRow?.tenGod, "상관", "辛 day master fact snapshot should fix 壬 as 상관");

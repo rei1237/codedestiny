@@ -4,12 +4,17 @@ import {
   getSajuPromptTemplate,
   classifyQuestionToSajuDomain,
 } from "./saju-ai-prompt-templates.mjs";
+import {
+  resolveSajuCalibrationLuck,
+  buildSajuCalibrationPromptLines,
+  buildSajuCalibrationDigest,
+} from "./saju-calibration.js";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 200;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v3";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v4";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
@@ -1242,7 +1247,6 @@ export function buildSajuMyeongsikFactSnapshot({
       daewun: Array.isArray(engineContext?.quantum?.daewun) ? engineContext.quantum.daewun : [],
       luckRows: normalizeSajuLuckRows(sajuResult, engineContext).slice(0, 24),
     },
-    builtAt: new Date().toISOString(),
   };
   return {
     factSnapshot,
@@ -1818,6 +1822,7 @@ export function buildSajuAIPromptWithDomain({
   compatibilityTarget,
   mode,
   domain,
+  calibration,
 } = {}) {
   const normalizedQuestion = ensureValidQuestion(question);
   ensureSajuResultPresence(sajuResult);
@@ -1843,6 +1848,11 @@ export function buildSajuAIPromptWithDomain({
   const jong = sajuResult.jong && typeof sajuResult.jong === "object" ? sajuResult.jong : {};
   const engineContext = normalizeSajuEngineContext(sajuResult);
   const advancedFactors = engineContext.advancedFactors;
+  const calibrationResolved = resolveSajuCalibrationLuck(calibration, {
+    daewunRows: engineContext.quantum.daewun,
+    currentAge: engineContext.quantum.currentAge,
+    currentYear: Number(sajuResult.targetYear || sajuResult.currentYear || sajuResult.engineContext?.currentYear || 0) || undefined,
+  });
   const factBuild = buildSajuMyeongsikFactSnapshot({
     sajuResult,
     question: normalizedQuestion,
@@ -1932,8 +1942,12 @@ export function buildSajuAIPromptWithDomain({
     minPromptLength: 2600,
   });
 
+  const calibrationLines = buildSajuCalibrationPromptLines(calibrationResolved, {
+    yongshin: power.yongshin,
+    kijishin: power.kijishin,
+  });
   const purposePrompt = [
-    "[명식이 답하는 사주 AI 상담 v3]",
+    "[명식이 답하는 사주 AI 상담 v4]",
     "아래 제공된 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다.",
     "LLM은 십성/오행/천간/지지 관계를 직접 계산하지 말고, 제공된 내부 계산값만 근거로 상담문을 작성합니다.",
     "상담문은 질문에만 짧게 답하지 말고 명식 전체의 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 포함합니다.",
@@ -1941,6 +1955,7 @@ export function buildSajuAIPromptWithDomain({
     ...categoryRubricLines,
     "",
     factCard,
+    ...(calibrationLines.length ? ["", ...calibrationLines] : []),
     "",
     appendSajuExternalAiPurpose(promptPackage.generatedPrompt, template, questionTypeLabel),
   ].join("\n").trim();
@@ -1981,6 +1996,7 @@ export function buildSajuAIPromptWithDomain({
     bindingLines.join("|"),
     JSON.stringify(categoryRubric),
     JSON.stringify(engineContext),
+    buildSajuCalibrationDigest(calibrationResolved),
     promptPackage.summaryIntent,
     promptPackage.analysisAngles.join("|"),
     generatedPrompt,
@@ -2027,16 +2043,18 @@ export function buildSajuAIPromptWithDomain({
       promptConfig: advancedFactors.promptConfig,
     },
     qualityChecks: qualityResult.checks,
+    calibrationApplied: calibrationResolved ? calibrationResolved.periods.length : 0,
     digestSource,
   };
 }
 
-export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverride, compatibilityTarget, mode } = {}) {
+export function buildSajuAIPrompt({ question, sajuResult, profile: profileOverride, compatibilityTarget, mode, calibration } = {}) {
   return buildSajuAIPromptWithDomain({
     question,
     sajuResult,
     profile: profileOverride,
     compatibilityTarget,
     mode,
+    calibration,
   });
 }
