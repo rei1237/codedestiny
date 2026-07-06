@@ -5119,24 +5119,20 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 }
 </style>
 <style id="cd-desktop-topbar-luxe-v20260707" data-marker="cd-desktop-topbar-luxe-v20260707">
-/* 데스크톱 상단 네비게이션 — 넓이 확장(.wrap 1180px) + 연이/네오 토글 복원 + 시각 정돈.
-   모바일 앱바 토글(themeCheckbox)과는 별개 인스턴스(themeCheckboxDesktop)로 JS에서 함께 동기화한다. */
+/* 데스크톱 상단 네비게이션 — 넓이 확장(.wrap 1180px). 연이/네오 토글은 8ade0010 원형과 동일하게
+   body 직하위에 배치된 화면 우하단 고정(position:fixed) 버튼으로 복원한다(별개 인스턴스 themeCheckboxDesktop,
+   모바일 앱바 토글 themeCheckbox와는 JS에서 함께 동기화). .moon-topbar의 backdrop-filter가 새 컨테이닝 블록을
+   만들어 그 안에 두면 fixed가 네비 구석에 갇히므로 body 바로 아래에 둔다. */
 @media (min-width: 769px) {
   .moon-topbar{display:flex!important;flex-direction:column!important;align-items:center!important;gap:10px!important;padding:14px 20px 16px!important}
   .moon-topbar__brand{width:100%!important}
   .moon-topbar__nav{row-gap:9px!important}
-  .theme-switch-wrapper--desktop{display:inline-flex!important;align-items:center!important;margin-top:2px!important}
-  .theme-switch-wrapper--desktop .theme-switch-pill{display:inline-flex!important;gap:2px!important;padding:3px!important;border-radius:999px!important}
-  .theme-switch-wrapper--desktop .tsp-option{display:inline-flex!important;align-items:center!important;gap:5px!important;min-height:32px!important;padding:6px 14px!important;border:0!important;border-radius:999px!important;background:transparent!important;cursor:pointer!important;font-family:var(--font-body)!important;font-size:.76rem!important;font-weight:800!important;line-height:1!important;transition:background .2s ease,color .2s ease,box-shadow .2s ease!important}
-  .theme-switch-wrapper--desktop .tsp-icon{font-size:.86rem!important;line-height:1!important}
-  body:not(.neo-mode) .theme-switch-wrapper--desktop .theme-switch-pill{background:rgba(255,255,255,.55)!important;border:1px solid rgba(244,114,182,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)!important}
-  body:not(.neo-mode) .theme-switch-wrapper--desktop .tsp-option{color:#7a4a62!important}
-  body:not(.neo-mode) .theme-switch-wrapper--desktop .tsp-option:hover{color:#9d174d!important}
-  body:not(.neo-mode) .theme-switch-wrapper--desktop .tsp-option[aria-pressed="true"]{background:linear-gradient(135deg,#ffe3ef,#ffd0e3)!important;color:#9d174d!important;box-shadow:0 4px 12px rgba(216,63,120,.2)!important}
-  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill{background:rgba(10,8,24,.55)!important;border:1px solid rgba(232,213,163,.3)!important;box-shadow:inset 0 1px 0 rgba(196,181,253,.14)!important}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-option{color:#c4b5fd!important}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-option:hover{color:#f4e9c8!important}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-option[aria-pressed="true"]{background:linear-gradient(135deg,#e8d5a3,#f7c94a)!important;color:#0a0818!important;box-shadow:0 4px 12px rgba(232,213,163,.26)!important}
+}
+.theme-switch-wrapper--desktop .tsp-option,
+.theme-switch-wrapper--desktop .tsp-icon,
+.theme-switch-wrapper--desktop .tsp-name{pointer-events:auto!important}
+@media (max-width: 768px) {
+  .theme-switch-wrapper--desktop{display:none!important}
 }
 </style>
 
@@ -5144,6 +5140,14 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 <script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
 <body>
+<!-- 꽃돼지/백사자 모드 토글(데스크톱): 8ade0010과 동일하게 body 직하위 배치로 backdrop-filter 컨테이닝 블록 영향 회피, 화면 우하단 고정 -->
+<div class="theme-switch-wrapper theme-switch-wrapper--desktop" role="group" aria-label="연이 · 네오 모드 선택">
+  <input type="checkbox" id="themeCheckboxDesktop" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이 · 달빛 네오 모드 전환" data-cd-trans-attr="aria-label:home.themeToggle.aria" />
+  <div class="theme-switch-pill">
+    <button type="button" class="tsp-option tsp-pig" data-theme-mode="pig" aria-pressed="true" aria-label="연이 모드"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name" data-cd-trans="home.themeToggle.yeoni">연이</span></button>
+    <button type="button" class="tsp-option tsp-lion" data-theme-mode="neo" aria-pressed="false" aria-label="네오 모드"><span class="tsp-icon" aria-hidden="true">🌙</span><span class="tsp-name" data-cd-trans="home.themeToggle.neo">네오</span></button>
+  </div>
+</div>
 <script data-marker="cd-body-scroll-lock-v20260703">
 (function(){
   if (window.__cdBodyScrollLockReady) return;
@@ -6155,13 +6159,6 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
           <button type="button" data-cd-open-collection="premiumVvipCollection" aria-label="VVIP 운명 서고로 이동" data-cd-trans data-key="home.nav.vvip">VVIP 서고</button>
           <button type="button" data-cd-open-collection="oracleCollection" aria-label="신탁과 점술 컬렉션으로 이동" data-cd-trans data-key="home.nav.oracle">신탁·점술</button>
         </nav>
-        <div class="theme-switch-wrapper theme-switch-wrapper--desktop" role="group" aria-label="연이 · 네오 모드 선택">
-          <input type="checkbox" id="themeCheckboxDesktop" class="tsw-input" role="switch" aria-checked="false" aria-label="꽃돼지 연이 · 달빛 네오 모드 전환" data-cd-trans-attr="aria-label:home.themeToggle.aria" />
-          <div class="theme-switch-pill">
-            <button type="button" class="tsp-option tsp-pig" data-theme-mode="pig" aria-pressed="true" aria-label="연이 모드"><span class="tsp-icon" aria-hidden="true">🌸</span><span class="tsp-name" data-cd-trans="home.themeToggle.yeoni">연이</span></button>
-            <button type="button" class="tsp-option tsp-lion" data-theme-mode="neo" aria-pressed="false" aria-label="네오 모드"><span class="tsp-icon" aria-hidden="true">🌙</span><span class="tsp-name" data-cd-trans="home.themeToggle.neo">네오</span></button>
-          </div>
-        </div>
       </div>
       <!-- Cosmic star particles + 별모양 꽃 -->
       <div class="logo-cosmos" aria-hidden="true">
@@ -10288,7 +10285,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
         background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018))!important;
       }
       .featured-content-card .tarot-tile__title{
-        color:#fff2bf!important;
+        color:white!important;
         font-size:clamp(1.35rem,2.2vw,2rem)!important;
         line-height:1.18!important;
         font-weight:950!important;
@@ -10296,7 +10293,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
       }
       .featured-content-card .tarot-tile__desc{
         max-width:64ch!important;
-        color:rgba(255,248,230,.96)!important;
+        color:rgba(255,255,255,.96)!important;
         text-shadow:0 1px 2px rgba(24,13,52,.28)!important;
         font-size:clamp(.94rem,1.18vw,1.04rem)!important;
         line-height:1.72!important;
@@ -10314,7 +10311,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
         border:1px solid rgba(255,255,255,.11)!important;
         border-radius:14px!important;
         background:rgba(255,255,255,.064)!important;
-        color:rgba(255,250,240,.91)!important;
+        color:rgba(255,255,255,.96)!important;
         padding:11px 12px!important;
         font-size:.78rem!important;
         line-height:1.45!important;
