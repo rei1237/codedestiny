@@ -132,6 +132,19 @@ export function readSanitizedAuthUser(): ClientAuthUser | null {
   }
 }
 
+export function isAuthUserCacheVerified(user: unknown): boolean {
+  try {
+    const scope = resolveAuthScopeFromUser(user);
+    if (!scope) return false;
+    const raw = localStorage.getItem(AUTH_CACHE_VERIFICATION_KEY);
+    if (!raw) return false;
+    const parsed = JSON.parse(raw) as { scope?: unknown };
+    return String(parsed?.scope || "").trim().toLowerCase() === scope;
+  } catch (e) {
+    return false;
+  }
+}
+
 export function resolveAuthScopeFromUser(user: unknown): string {
   if (!user || typeof user !== "object") return "";
   const source = user as Record<string, unknown>;

@@ -11,6 +11,7 @@ import {
 } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import {
+  isAuthUserCacheVerified,
   markAuthUserCacheVerified,
   persistSanitizedAuthUser,
   readSanitizedAuthUser,
@@ -450,6 +451,35 @@ function applyResolvedUser(user: AuthUser | null) {
     user,
     isAuthenticated: true,
   });
+}
+
+// 재방문 부트스트랩에서 /api/auth/me 왕복이 끝나기 전까지 헤더 위젯이 아무 등급도
+// 렌더하지 못해 스켈레톤/로그인버튼/FREE가 잠깐 노출되던 문제를 없앤다. 서버가 한 번
+// 확인해 둔(fortune_auth_cache_verified_v1) 로컬 캐시가 있으면 그 사용자로 즉시 시드하고,
+// refreshAuth가 뒤이어 백그라운드에서 /api/auth/me로 재검증한다(stale-while-revalidate).
+let bootstrapSeeded = false;
+function seedBootstrapFromVerifiedCache() {
+  if (bootstrapSeeded) return;
+  bootstrapSeeded = true;
+  if (typeof window === "undefined") return;
+  // 이미 인증 상태가 확정된 경우엔 캐시로 덮어쓰지 않는다.
+  if (state.authReady || state.user) return;
+
+  const cachedUser = readSanitizedAuthUser() as AuthUser | null;
+  if (!cachedUser) return;
+  // 서버가 검증한 스코프와 일치할 때만 신뢰한다(로그인 안 한 방문자에게 stale 프로필 노출 방지).
+  if (!isAuthUserCacheVerified(cachedUser)) return;
+
+  // lastRefreshCompletedAt은 0으로 두어 직후 refreshAuth(force:false)가 재검증을 건너뛰지 않게 한다.
+  setState({
+    user: cachedUser,
+    isAuthenticated: true,
+    authReady: true,
+  });
+}
+
+if (typeof window !== "undefined") {
+  seedBootstrapFromVerifiedCache();
 }
 
 function clearAuthStateHard() {
