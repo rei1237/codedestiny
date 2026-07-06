@@ -999,7 +999,12 @@ function mapPaymentStatusLabel(status: string, copy: PointsPageCopy = POINTS_PAG
 }
 
 function getErrorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error && error.message) return error.message;
+  if (error instanceof Error && error.message) {
+    // 한국어 안내문(서버/코드가 만든 사용자용 메시지)만 그대로 노출하고,
+    // "Failed to fetch" 같은 기술 원문은 로그로만 남기고 폴백을 보여준다.
+    if (/[가-힣]/.test(error.message)) return error.message;
+    console.error("[points] technical error hidden from user:", error);
+  }
   return fallback;
 }
 

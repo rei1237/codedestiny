@@ -1,5 +1,6 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
+import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
@@ -1880,7 +1881,15 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
         { "metadata.selectedProfileId": scopedProfileId },
       ],
     });
-    return normalizePersistentUnlockKeys(scopedKeys);
+    // KRW 단건결제 해금은 PointHistory deduct 기록 없이 ContentEntitlement에만 남으므로 병합한다.
+    let entitlementKeys = [];
+    try {
+      const snapshot = await getUnlockedContentSnapshot({ userId, profileId: scopedProfileId });
+      entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
+    } catch (e) {
+      entitlementKeys = [];
+    }
+    return normalizePersistentUnlockKeys([...scopedKeys, ...entitlementKeys]);
   }
 
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);

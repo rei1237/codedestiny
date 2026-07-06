@@ -1,6 +1,7 @@
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {
   buildDestinyBiasAnalysis,
   buildDestinyBiasCanonical,
@@ -344,6 +345,13 @@ async function handleAnalyze(request, env) {
     maxOutputTokens: 4096,
     timeoutMs: Number(env.DESTINY_BIAS_GEMINI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 45000),
     maxAttemptsPerPair: Number(env.DESTINY_BIAS_GEMINI_RETRIES || env.PREMIUM_GEMINI_RETRIES || 2),
+    // 결정적(생년월일 기반) 해석 → 캐시 + in-flight dedup으로 중복 과금 방지
+    cache: {
+      store: createLlmCacheStore(env),
+      deterministic: true,
+      ttlSeconds: 30 * 24 * 60 * 60,
+      keyExtra: "destiny-bias-v1",
+    },
   });
 
   const reportText = geminiResult?.ok

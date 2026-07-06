@@ -7,6 +7,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { authFetch, clearClientAuthState } from "../../_lib/auth-client";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { resolveMonthlyStoneBalance } from "../../_lib/monthly-stone";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 /* ══════════════════════════════════════════════════════════════════
    타입 정의
@@ -584,7 +585,7 @@ export default function PointHistoryPage() {
       );
       setPointsError(null);
     } catch (e: unknown) {
-      setPointsError(e instanceof Error ? e.message : copy.pointLoadFailed);
+      setPointsError(friendlyErrorMessage(e, copy.pointLoadFailed));
     }
   }, [apiBase, copy, router]);
 
@@ -629,7 +630,7 @@ export default function PointHistoryPage() {
       }
       setPaymentsError(null);
     } catch (e: unknown) {
-      setPaymentsError(e instanceof Error ? e.message : copy.paymentLoadFailed);
+      setPaymentsError(friendlyErrorMessage(e, copy.paymentLoadFailed));
     }
   }, [apiBase, copy, formatLocale, router]);
 
@@ -672,7 +673,7 @@ export default function PointHistoryPage() {
       setSubscriptionSummary((prev) => (!isActive && prev.includes(` · ${copy.active} · `) ? prev : nextSummary));
       setSubscriptionError(null);
     } catch (e: unknown) {
-      setSubscriptionError(e instanceof Error ? e.message : copy.subscriptionLoadFailed);
+      setSubscriptionError(friendlyErrorMessage(e, copy.subscriptionLoadFailed));
       setSubscriptionSummary(copy.subscriptionFailed);
     }
   }, [apiBase, copy, formatLocale]);

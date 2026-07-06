@@ -561,7 +561,10 @@ function isAllowedOrigin(origin, env) {
   try {
     const { hostname, protocol } = new URL(origin);
     if (protocol !== "http:" && protocol !== "https:") return false;
-    if (hostname === "code-destiny.com" || hostname.endsWith(".code-destiny.com")) return true;
+    // credentialed CORS는 실제 웹 표면만 명시 허용 (서브도메인 와일드카드 금지 —
+    // assets/music 등 정적 CDN 서브도메인 탈취 시 credentialed 호출을 막는다)
+    if (hostname === "code-destiny.com" || hostname === "www.code-destiny.com" || hostname === "api.code-destiny.com") return true;
+    // localhost는 로컬 개발 + Capacitor 앱 셸(https://localhost) 오리진용으로 유지
     if (hostname === "localhost" || hostname === "127.0.0.1") return true;
   } catch (e) {
     return false;

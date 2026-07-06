@@ -34,6 +34,36 @@ const AUTH_LOCAL_STORAGE_KEYS = [
   "cdToken",
 ];
 
+// 계정 귀속 권한/결제 캐시 — 공용 기기에서 다음 사용자에게 상속되면 안 되는 키.
+const ENTITLEMENT_LOCAL_STORAGE_KEYS = [
+  "fortune_profile_subscription",
+  "fortune_profile_subscription_owner",
+  "fortune_user_points",
+];
+
+const ENTITLEMENT_LOCAL_STORAGE_PREFIXES = [
+  "cd_premium",
+  "premium:",
+  "cd_tetogen",
+  "fortune_pending_",
+];
+
+export function clearEntitlementLocalStorage() {
+  try {
+    ENTITLEMENT_LOCAL_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key));
+    const swept: string[] = [];
+    for (let i = 0; i < localStorage.length; i += 1) {
+      const key = localStorage.key(i);
+      if (key && ENTITLEMENT_LOCAL_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix))) {
+        swept.push(key);
+      }
+    }
+    swept.forEach((key) => localStorage.removeItem(key));
+  } catch (e) {
+    // ignore storage failures
+  }
+}
+
 const AUTH_COOKIE_NAMES = [
   "fortune_auth_token",
   "fortune_auth_refresh",
@@ -230,6 +260,7 @@ export function clearClientAuthState() {
   } catch (e) {
     // ignore storage failures
   }
+  clearEntitlementLocalStorage();
   try {
     sessionStorage.clear();
   } catch (e) {

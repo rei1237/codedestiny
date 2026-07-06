@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {
@@ -1611,7 +1612,7 @@ export default function MindScanTarot() {
         }
       }
     } catch (e) {
-      setReadingError(e instanceof Error ? e.message : mindScanTarotText("mindScanTarot.017"));
+      setReadingError(friendlyErrorMessage(e, mindScanTarotText("mindScanTarot.017")));
     } finally {
       setReadingLoading(false);
     }

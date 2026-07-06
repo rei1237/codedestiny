@@ -1,4 +1,5 @@
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 
 function clean(value) {
@@ -157,6 +158,13 @@ async function buildGeomancyOracle(env, payload) {
     maxOutputTokens: 4096,
     timeoutMs: Number(env.GEOMANCY_PROVIDER_TIMEOUT_MS || 45000),
     maxAttemptsPerPair: 2,
+    // 동일 질문+카드 조합 재시도 시 캐시 + in-flight dedup으로 중복 과금 방지
+    cache: {
+      store: createLlmCacheStore(env),
+      deterministic: true,
+      ttlSeconds: 30 * 24 * 60 * 60,
+      keyExtra: "oracle-geomancy-v1",
+    },
   });
 
   if (!ai.ok) {

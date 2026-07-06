@@ -1,5 +1,6 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 function clean(value) {
   return String(value || "").trim();
@@ -320,6 +321,13 @@ async function handleGenerateYogaCourse(request, env) {
     maxOutputTokens: 8192,
     timeoutMs: Number(env.YOGA_GURU_PROVIDER_TIMEOUT_MS || 55000),
     maxAttemptsPerPair: 2,
+    // 동일 입력 재시도 시 캐시 + in-flight dedup으로 중복 과금 방지
+    cache: {
+      store: createLlmCacheStore(env),
+      deterministic: true,
+      ttlSeconds: 30 * 24 * 60 * 60,
+      keyExtra: "yoga-guru-v1",
+    },
   });
 
   const parsed = ai.ok ? parseJsonCandidate(ai.text) : null;

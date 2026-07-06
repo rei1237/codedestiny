@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchBillingFeaturePricing } from "@/app/_lib/billing-client";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 export type ServerPriceInput = {
@@ -32,7 +33,7 @@ function resolveFallbackLabel(input: ServerPriceInput): string {
   const label = String(input.fallbackLabel || "").trim();
   if (label) return label;
   const coins = Number(input.fallbackCoins || 0);
-  if (coins > 0) return formatKrwFromCoins(coins);
+  if (coins > 0) return formatKrwFromCoins(coins, getCurrentLoadingLocale());
   return "";
 }
 
@@ -55,7 +56,7 @@ async function fetchServerPriceLabel(input: ServerPriceInput): Promise<string | 
         const pricing = result.ok ? result.data?.pricing : null;
         if (!pricing) return null;
         const displayPrice = String(pricing.displayPrice || "").trim();
-        const label = displayPrice || (pricing.cost > 0 ? formatKrwFromCoins(pricing.cost) : "");
+        const label = displayPrice || (pricing.cost > 0 ? formatKrwFromCoins(pricing.cost, getCurrentLoadingLocale()) : "");
         if (!label) return null;
         priceLabelCache.set(key, label);
         return label;

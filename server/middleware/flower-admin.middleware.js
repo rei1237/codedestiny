@@ -12,7 +12,8 @@ const crypto = require("crypto");
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
 
 function getSecret() {
-  return String(process.env.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
+  // fail-closed: 시크릿 미설정 시 null 반환 → 토큰 검증 무조건 실패
+  return process.env.FLOWER_ADMIN_SECRET || null;
 }
 
 function b64uDecode(b64u) {

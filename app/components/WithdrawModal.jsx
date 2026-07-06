@@ -19,6 +19,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { useBodyScrollLock } from "../_lib/body-scroll-lock";
 
 // ─────────────────────────────────────────────────────────────────
 // 유틸
@@ -58,6 +59,7 @@ function clearClientStorage() {
  */
 export default function WithdrawModal({ isOpen, onClose, hasLocalAuth = true }) {
   const apiBase = getApiBaseUrl();
+  useBodyScrollLock(Boolean(isOpen));
   // 입력 상태
   const [password, setPassword]         = useState("");
   const [confirmText, setConfirmText]   = useState("");

@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type LifeBookMessage = {
   role: "user" | "assistant";
@@ -225,6 +226,8 @@ function LifeBookResultContent() {
   const [pollAttempts, setPollAttempts] = useState(0);
   const maxPollAttempts = 45;
   const pollIntervalMs = 3200;
+  // 429 응답 연속 횟수 — CF rate-limit(10초당 100회) 회피용 지수 백오프 계수
+  const rateLimitStreakRef = useRef(0);
 
   const loadResult = useCallback(async () => {
     if (!attemptId) {
@@ -241,6 +244,13 @@ function LifeBookResultContent() {
         setLoading(false);
         return;
       }
+      if (response.status === 429) {
+        // rate limit — 에러로 처리하지 않고 백오프 후 재시도
+        rateLimitStreakRef.current += 1;
+        setLoading(false);
+        return;
+      }
+      rateLimitStreakRef.current = 0;
       if (response.status === 202 && payload?.status === "generating") {
         setResult(payload);
         setError("");
@@ -254,7 +264,7 @@ function LifeBookResultContent() {
       setError("");
       setPollAttempts(0);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "저장된 인생의 책을 불러오지 못했습니다.");
+      setError(friendlyErrorMessage(caught, "저장된 인생의 책을 불러오지 못했습니다."));
     } finally {
       setLoading(false);
     }
@@ -272,10 +282,11 @@ function LifeBookResultContent() {
       setError("생성에 시간이 걸리고 있습니다. 다시 시도해주세요.");
       return;
     }
+    const backoffFactor = Math.min(8, 2 ** rateLimitStreakRef.current);
     const timer = window.setInterval(() => {
       setPollAttempts((prev) => prev + 1);
       void loadResult();
-    }, pollIntervalMs);
+    }, pollIntervalMs * backoffFactor);
     return () => window.clearInterval(timer);
   }, [loadResult, result?.status, pollAttempts, maxPollAttempts]);
 

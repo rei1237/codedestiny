@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Heart, Loader2, Moon, RefreshCw } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type PersonInfo = {
   name?: string;
@@ -250,7 +251,7 @@ export default function LoveSecretAiResultClient() {
           setPending(false);
         }
       } catch (caught) {
-        if (alive) setError(caught instanceof Error ? caught.message : "저장된 상담 결과를 불러오지 못했습니다.");
+        if (alive) setError(friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
       } finally {
         if (alive) setLoading(false);
       }

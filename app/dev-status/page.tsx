@@ -39,6 +39,7 @@ export default function DevStatusPage() {
   }, [payload]);
 
   useEffect(() => {
+    if (process.env.NODE_ENV === "production") return;
     let alive = true;
     let timer: number | null = null;
     let failureStreak = 0;
@@ -73,6 +74,9 @@ export default function DevStatusPage() {
       if (timer) window.clearTimeout(timer);
     };
   }, []);
+
+  // 디버그 페이지는 프로덕션에서 렌더링하지 않는다 (백엔드 404 가드의 이중화).
+  if (process.env.NODE_ENV === "production") return null;
 
   return (
     <main className="min-h-screen bg-[#020617] px-4 py-8 text-slate-100">

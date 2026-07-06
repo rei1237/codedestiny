@@ -137,6 +137,16 @@ const SEO_LINK_GROUPS = [
   },
 ];
 
+const BUSINESS_INFO_ROWS = [
+  { key: "siteFooter.005", value: "코드 데스티니 (Code Destiny)" },
+  { key: "siteFooter.006", value: "박병하" },
+  { key: "siteFooter.007", value: "372-23-02329" },
+  { key: "siteFooter.008", value: "제 2026-화성호-0264 호" },
+  { key: "siteFooter.009", value: "050-6664-7398" },
+  { key: "siteFooter.010", value: "seongbae555@gmail.com" },
+  { key: "siteFooter.011", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
+];
+
 const REFUND_POLICY_ROWS = [
   "30일 이용권과 상품별 원화 단건 결제는 결제일 또는 계약내용을 받은 날부터 7일 이내 청약철회를 요청할 수 있습니다. 청약철회 신청 시 구매 당시 사용한 결제 수단으로만 환금 처리되며, 신용카드 결제의 경우 카드사 정책에 따라 환급 기간이 상이할 수 있습니다.",
   "콘텐츠 생성, PDF 렌더링, 유료 리딩 열람, 이용권 혜택 사용처럼 제공이 시작된 부분은 환불이 제한될 수 있습니다. 다만 실제 콘텐츠 품질 문제나 서비스 미제공으로 인한 정당한 클레임의 경우 별도로 검토하여 환급을 진행할 수 있습니다.",
@@ -200,6 +210,18 @@ export default function SiteFooterHub() {
         </section>
 
         <SocialFooter />
+
+        <section aria-label="사업자 정보" style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>사업자 정보</h2>
+          <p style={{ margin: 0 }}>
+            {BUSINESS_INFO_ROWS.map((row, index) => (
+              <span key={row.key}>
+                {index > 0 ? " | " : null}
+                <strong>{siteFooterHubText(row.key)}</strong>: {row.value}
+              </span>
+            ))}
+          </p>
+        </section>
 
         <nav aria-label="정책 및 안내 링크" className={styles.sfhPolicyNav}>
           {POLICY_LINKS.map((link) => (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
@@ -202,7 +203,7 @@ export default function AstrologyAiResultClient() {
         }
         if (alive) setConsultation(payload as Consultation);
       } catch (caught) {
-        if (alive) setError(caught instanceof Error ? caught.message : "저장된 상담 결과를 불러오지 못했습니다.");
+        if (alive) setError(friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
       } finally {
         if (alive) setLoading(false);
       }

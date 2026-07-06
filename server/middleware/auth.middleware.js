@@ -1,10 +1,17 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "relaxed").toLowerCase();
+const ADMIN_SECURITY_LEVEL = String(process.env.ADMIN_SECURITY_LEVEL || "strict").toLowerCase();
 const IS_STRICT_SECURITY = ADMIN_SECURITY_LEVEL === "strict";
 
 function getAccessTokenSecret() {
-  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "dev-secret";
+  const secret =
+    process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+  if (secret) return secret;
+  // fail-closed: 로컬 개발에서만 명시적 opt-in으로 임시 시크릿 허용
+  if (process.env.NODE_ENV !== "production" && process.env.ALLOW_DEV_JWT_FALLBACK === "true") {
+    return "dev-secret";
+  }
+  throw new Error("JWT access secret is not configured (set JWT_ACCESS_SECRET)");
 }
 
 function getJwtIssuer() {

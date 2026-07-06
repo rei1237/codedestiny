@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { BookOpen, Download, Loader2, RefreshCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -440,7 +441,7 @@ export default function PremiumSalesContent() {
         }
         setNotice("상담문을 조금 더 다듬고 있습니다. 잠시 후 새로고침하면 이어서 확인할 수 있습니다.");
       } catch (caught) {
-        setError(caught instanceof Error ? caught.message : "상담을 불러오지 못했습니다.");
+        setError(friendlyErrorMessage(caught, "상담을 불러오지 못했습니다."));
         setStatus("error");
       }
     }, interval);
@@ -548,7 +549,7 @@ export default function PremiumSalesContent() {
 
       await startGeneration(payload, requestId, accessEvidence);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "인생 총운을 열지 못했습니다.";
+      const message = friendlyErrorMessage(caught, "인생 총운을 열지 못했습니다.");
       setError(message);
       setStatus("error");
       failPaidFeatureGateCheck({

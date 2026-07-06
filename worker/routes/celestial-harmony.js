@@ -2,6 +2,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { connectDb } from "../lib/db.js";
 import { ServiceExecutionTransaction } from "../lib/models.js";
 import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
@@ -641,6 +642,13 @@ async function enrichCelestialReading(env, reading, goldenCard) {
     temperature: boundedNumber(env.CELESTIAL_HARMONY_TEMPERATURE, 0.68, 0.2, 1),
     maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 10000, 4096, 16000),
     timeoutMs: boundedNumber(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS, 35000, 5000, 90000),
+    // 결정적 입력(출생차트+카드) → 캐시 + in-flight dedup으로 중복 과금 방지
+    cache: {
+      store: createLlmCacheStore(env),
+      deterministic: true,
+      ttlSeconds: 30 * 24 * 60 * 60,
+      keyExtra: "celestial-harmony-v1",
+    },
   });
 
   if (!ai.ok) {

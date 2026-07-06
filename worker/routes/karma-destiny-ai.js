@@ -8,6 +8,18 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+
+// 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
+// 초기 생성이 최대 3회(생성→교정→확장) 순차 호출이라 각 단계에 개별 키로 캐시를 건다.
+function buildKarmaLlmCache(env, stageKey) {
+  return {
+    store: createLlmCacheStore(env),
+    deterministic: true,
+    ttlSeconds: 30 * 24 * 60 * 60,
+    keyExtra: `karma-destiny-ai-v1-${stageKey}`,
+  };
+}
 import { buildKarmaDestinyIntegratedResult } from "../lib/karma-destiny-ai-calculations.js";
 import { handleBillingRoutes } from "./billing.js";
 
@@ -976,6 +988,7 @@ async function repairForbiddenConsultationText(env, text, systemPrompt, options 
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
     timeoutMs: options.timeoutMs,
+    cache: buildKarmaLlmCache(env, "repair"),
   });
   const repaired = clean(repair?.text);
   return cleanForbiddenResult(repair?.ok && repaired.length >= 160 ? repaired : text);
@@ -1009,6 +1022,7 @@ async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt,
     temperature: 0.64,
     maxOutputTokens,
     timeoutMs,
+    cache: buildKarmaLlmCache(env, "expand"),
   });
   const expandedText = clean(expanded?.text);
   if (expanded?.ok && expandedText) {
@@ -1076,6 +1090,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: options.temperature || (mode === "follow_up" ? 0.68 : 0.74),
     maxOutputTokens: options.maxOutputTokens || (mode === "initial" ? INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS : 7600),
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    cache: buildKarmaLlmCache(env, mode),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
@@ -1111,6 +1126,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || 7600,
+    cache: buildKarmaLlmCache(env, "follow-up-repair"),
   });
   const repaired = clean(repair?.text);
   return {
@@ -1243,6 +1259,7 @@ async function callRealGeminiText(env, prompt, options = {}) {
     temperature: options.temperature ?? 0.72,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 70_000),
+    cache: buildKarmaLlmCache(env, "chapter-batch"),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;

@@ -156,7 +156,16 @@
         }
 
         if (attempt < maxAttempts) {
-          await wait(retryDelayMs);
+          // 429(rate limit) 신호가 보이면 고정 간격 대신 지수 백오프로 CF rate-limit 규칙(10초당 100회)을 피한다.
+          var delayMs = retryDelayMs;
+          try {
+            var statusCode = Number((lastError && lastError.status) || (lastData && lastData.status) || 0);
+            var messageText = String((lastError && lastError.message) || (lastData && lastData.message) || '');
+            if (statusCode === 429 || /\b429\b|too many requests/i.test(messageText)) {
+              delayMs = Math.min(30000, Math.max(retryDelayMs, 5000) * Math.pow(2, attempt - 1));
+            }
+          } catch (_) {}
+          await wait(delayMs);
         }
       }
 

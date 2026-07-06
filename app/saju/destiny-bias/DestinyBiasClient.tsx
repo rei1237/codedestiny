@@ -38,6 +38,7 @@ import { analyzeDestinyBias } from "./engine/destinyBiasEngine";
 import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
 import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 const DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -765,7 +766,7 @@ export default function DestinyBiasClient() {
       setUiStep(3);
       if (analysisError instanceof Error) {
         if (analysisError.message !== "결제 가능 금액이 부족합니다." && analysisError.message !== "로그인 후 다시 시도해 주세요.") {
-          setError(analysisError.message);
+          setError(friendlyErrorMessage(analysisError, destinyBiasClientText("destinyBiasClient.setError.001")));
         }
       } else {
         setError(destinyBiasClientText("destinyBiasClient.setError.001"));
@@ -803,7 +804,7 @@ export default function DestinyBiasClient() {
       await downloadPngFromSvg(resultVm.cardSvg, `my-destiny-bias-${resultVm.destinyId}.png`);
       setToast("PNG 포토카드를 저장했어요.");
     } catch (downloadError) {
-      setError(downloadError instanceof Error ? downloadError.message : destinyBiasClientText("destinyBiasClient.message.005"));
+      setError(friendlyErrorMessage(downloadError, destinyBiasClientText("destinyBiasClient.message.005")));
     }
   }, [resultVm]);
 

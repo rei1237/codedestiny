@@ -58,8 +58,19 @@ function base64urlEncode(input) {
     .replace(/=+$/g, "");
 }
 
+function getAdminJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+  // fail-closed: 로컬 개발에서만 명시적 opt-in으로 임시 시크릿 허용
+  if (process.env.NODE_ENV !== "production" && process.env.ALLOW_DEV_JWT_FALLBACK === "true") {
+    return "dev-secret";
+  }
+  throw new Error("JWT_SECRET is not configured");
+}
+
 function signFlowerToken(payloadB64) {
-  const secret = String(process.env.FLOWER_ADMIN_SECRET || "flower-admin-dev-secret-placeholder-000000");
+  const secret = process.env.FLOWER_ADMIN_SECRET;
+  if (!secret) throw new Error("FLOWER_ADMIN_SECRET is not configured");
   return crypto.createHmac("sha256", secret).update(payloadB64, "utf8").digest("hex");
 }
 
@@ -222,7 +233,7 @@ async function sendUnlockEmail({ email, code }) {
 }
 
 function signAccessToken(user) {
-  const secret = process.env.JWT_SECRET || "dev-secret";
+  const secret = getAdminJwtSecret();
   return jwt.sign(
     { userId: String(user._id), email: user.email, role: user.role },
     secret,
@@ -231,7 +242,7 @@ function signAccessToken(user) {
 }
 
 function signRefreshToken(user) {
-  const secret = process.env.JWT_SECRET || "dev-secret";
+  const secret = getAdminJwtSecret();
   return jwt.sign(
     { userId: String(user._id), email: user.email, role: user.role },
     secret,
@@ -240,7 +251,7 @@ function signRefreshToken(user) {
 }
 
 function signPending2faToken(user) {
-  const secret = process.env.JWT_SECRET || "dev-secret";
+  const secret = getAdminJwtSecret();
   return jwt.sign(
     { userId: String(user._id), role: user.role, purpose: "admin-2fa-pending" },
     secret,
@@ -286,7 +297,7 @@ function extractAccessTokenFromCookie(req) {
 }
 
 function decodeAccessToken(accessToken) {
-  const secret = process.env.JWT_SECRET || "dev-secret";
+  const secret = getAdminJwtSecret();
   const payload = jwt.verify(accessToken, secret);
   return payload && payload.role === "admin" ? payload : null;
 }
@@ -530,7 +541,7 @@ router.get("/auth/2fa-setup", async (req, res) => {
     const pendingToken = extractPending2faToken(req);
     if (!pendingToken) return denyNotFound(res);
 
-    const secret = process.env.JWT_SECRET || "dev-secret";
+    const secret = getAdminJwtSecret();
     const payload = jwt.verify(pendingToken, secret);
     if (!payload || payload.purpose !== "admin-2fa-pending") return denyNotFound(res);
 
@@ -592,7 +603,7 @@ router.post("/auth/2fa-setup-verify", async (req, res) => {
     const otp = String(req.body?.otp || "").trim();
     if (!otp) return denyNotFound(res);
 
-    const secret = process.env.JWT_SECRET || "dev-secret";
+    const secret = getAdminJwtSecret();
     const payload = jwt.verify(pendingToken, secret);
     if (!payload || payload.purpose !== "admin-2fa-pending") return denyNotFound(res);
 
@@ -639,7 +650,7 @@ router.post("/auth/verify-2fa", async (req, res) => {
 
     if (!otp && !backupCode) return denyNotFound(res);
 
-    const secret = process.env.JWT_SECRET || "dev-secret";
+    const secret = getAdminJwtSecret();
     const payload = jwt.verify(pendingToken, secret);
     if (!payload || payload.purpose !== "admin-2fa-pending") return denyNotFound(res);
 

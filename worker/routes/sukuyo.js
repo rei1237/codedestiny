@@ -248,10 +248,12 @@ async function handleSukuyoCalendar(request) {
       ...calendar,
     });
   } catch (error) {
+    console.error("[sukuyo-calendar-error]", error);
     return json({
       ok: false,
       code: "SUKUYO_CALENDAR_FAILED",
-      error: error instanceof Error ? error.message : "숙요 달력을 불러오지 못했습니다.",
+      // 내부 에러 원문은 로그로만 남기고 사용자에게는 안내문만 노출한다.
+      error: "숙요 달력을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
     }, { status: 400 });
   }
 }

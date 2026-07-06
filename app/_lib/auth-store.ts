@@ -2,7 +2,13 @@
 
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
-import { authFetch, clearClientAuthState, logoutWithServer, waitForAuthLogoutToSettle } from "./auth-client";
+import {
+  authFetch,
+  clearClientAuthState,
+  clearEntitlementLocalStorage,
+  logoutWithServer,
+  waitForAuthLogoutToSettle,
+} from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import {
   markAuthUserCacheVerified,
@@ -320,6 +326,7 @@ function clearStaleGuestCache() {
       // ignore storage failures
     }
   });
+  clearEntitlementLocalStorage();
 }
 
 async function refreshProfileSubscriptionCache(expectedAuthMutationSeq = authMutationSeq) {

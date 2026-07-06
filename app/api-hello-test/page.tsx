@@ -65,6 +65,9 @@ export default function ApiHelloTestPage() {
     }
   }
 
+  // 디버그 페이지는 프로덕션에서 렌더링하지 않는다 (백엔드 404 가드의 이중화).
+  if (process.env.NODE_ENV === "production") return null;
+
   return (
     <main style={{ maxWidth: 720, margin: "40px auto", padding: "0 16px" }}>
       <h1>{copy.title}</h1>

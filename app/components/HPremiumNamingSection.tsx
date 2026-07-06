@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { usePaymentProcessing } from "./PaymentProcessingContext";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 const H_PREMIUM_NAMING_TEXT_TRANSLATIONS = {
   ko: {
@@ -285,7 +286,7 @@ export default function HPremiumNamingSection({
       }
       setAnalysis(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : hPremiumNamingText("hPremiumNaming.analysisError"));
+      setError(friendlyErrorMessage(e, hPremiumNamingText("hPremiumNaming.analysisError")));
     } finally {
       setAnalyzing(false);
       stopProcessing();

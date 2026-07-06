@@ -266,8 +266,8 @@ function translateMainLandingText(value: string | undefined, locale: LoadingLoca
     if (process.env.NODE_ENV !== "production") {
       console.warn("[i18n:main-landing] missing text translation", { locale, value });
     }
-    return copy.missingTranslation;
   }
+  // 번역 키 미스 시 플레이스홀더 대신 ko 원문으로 폴백
   return value;
 }
 

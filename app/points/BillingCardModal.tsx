@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useRef, useState } from "react";
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Props = {
@@ -428,6 +429,7 @@ for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"] as LoadingLocale
 export default function BillingCardModal({ buyerName, buyerPhone = "", onSuccess, onClose, apiBase }: Props) {
   const [step, setStep] = useState<Step>("input");
   const copy = BILLING_CARD_COPY[getCurrentLoadingLocale()] || BILLING_CARD_COPY.ko;
+  useBodyScrollLock(true);
 
   /* ── 카드 정보 입력 */
   const [cardNum1, setCardNum1] = useState("");

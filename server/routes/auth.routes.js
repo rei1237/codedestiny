@@ -92,7 +92,13 @@ function logServerAuthDiagnostic(req, routePath, provider, marker, error) {
 }
 
 function getAccessTokenSecret() {
-  return readEnv("JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET") || "dev-secret";
+  const secret = readEnv("JWT_ACCESS_SECRET", "JWT_SECRET", "AUTH_SECRET", "NEXTAUTH_SECRET");
+  if (secret) return secret;
+  // fail-closed: 로컬 개발에서만 명시적 opt-in으로 임시 시크릿 허용
+  if (process.env.NODE_ENV !== "production" && process.env.ALLOW_DEV_JWT_FALLBACK === "true") {
+    return "dev-secret";
+  }
+  throw new Error("JWT access secret is not configured (set JWT_ACCESS_SECRET)");
 }
 
 function getRefreshTokenSecret() {

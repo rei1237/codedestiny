@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
+import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type Chapter = {
   id: string;
@@ -130,7 +131,7 @@ function KarmaDestinyResultInner() {
       setResult(payload);
       setError("");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "운명의 업 리포트를 불러오지 못했습니다.");
+      setError(friendlyErrorMessage(caught, "운명의 업 리포트를 불러오지 못했습니다."));
     } finally {
       setLoading(false);
     }
@@ -160,7 +161,7 @@ function KarmaDestinyResultInner() {
         setError("");
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "장문 리포트 생성이 멈췄습니다. 같은 세션으로 다시 시도해 주세요.");
+      setError(friendlyErrorMessage(caught, "장문 리포트 생성이 멈췄습니다. 같은 세션으로 다시 시도해 주세요."));
     } finally {
       batchInFlightRef.current = false;
       setContinuing(false);

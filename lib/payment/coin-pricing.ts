@@ -8,6 +8,11 @@ export function coinsToKrw(coins: number | null | undefined): number {
   return Math.round(value) * KRW_PER_COIN;
 }
 
-export function formatKrwFromCoins(coins: number | null | undefined): string {
-  return `${coinsToKrw(coins).toLocaleString("ko-KR")}원`;
+export function formatKrwFromCoins(coins: number | null | undefined, locale = "ko"): string {
+  const amount = coinsToKrw(coins);
+  // ko는 기존 표기(…원) 유지, 그 외 로케일은 통화 코드 표기(KRW …)로 노출
+  if (String(locale).toLowerCase().startsWith("ko")) {
+    return `${amount.toLocaleString("ko-KR")}원`;
+  }
+  return `KRW ${amount.toLocaleString("en-US")}`;
 }
