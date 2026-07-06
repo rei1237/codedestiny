@@ -933,10 +933,10 @@ a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 @keyframes goldenBounce{0%,100%{transform:translateY(0)}35%{transform:translateY(-6px)}60%{transform:translateY(2px)}}
 .pf-showcase{position:relative;overflow:hidden;padding:clamp(22px,3vw,30px) clamp(16px,2.4vw,24px) clamp(24px,3vw,34px);background:radial-gradient(circle at top,rgba(248,187,37,.12),transparent 42%),linear-gradient(160deg,#090719 0%,#10082c 55%,#0c0622 100%);border:1px solid rgba(248,187,37,.18);box-shadow:0 20px 70px rgba(7,5,18,.42),inset 0 1px 0 rgba(255,255,255,.05);isolation:isolate;--pf-title-color:#f7f2ff;--pf-sub-color:rgba(225,216,255,.88);--pf-title-emphasis-start:#ffe7a1;--pf-title-emphasis-end:#d89a33;--pf-title-shadow:0 3px 16px rgba(25,11,58,.42),0 1px 0 rgba(255,255,255,.15);--pf-sub-shadow:0 2px 10px rgba(18,7,44,.34)}
 body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,255,.94);--pf-title-emphasis-start:#fff2b3;--pf-title-emphasis-end:#dfaa39;--pf-title-shadow:0 4px 18px rgba(28,10,66,.45),0 1px 0 rgba(255,255,255,.16);--pf-sub-shadow:0 2px 10px rgba(18,7,44,.34)}
-.pf-showcase__header{display:grid;justify-items:center;gap:12px;text-align:center;margin-bottom:28px;padding:clamp(18px,3vw,26px) clamp(14px,2.5vw,26px);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.015));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 24px rgba(2,2,8,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pf-showcase__header{display:grid;justify-items:center;gap:12px;text-align:center;margin-bottom:28px;padding:clamp(18px,3vw,26px) clamp(14px,2.5vw,26px);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.1),rgba(255,255,255,.04));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 10px 24px rgba(2,2,8,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .pf-showcase__eyebrow{font-size:.72rem;font-weight:900;letter-spacing:.34em;color:#ffd96a;text-transform:uppercase;margin-bottom:4px;display:flex;align-items:center;justify-content:center;gap:12px}
 .pf-showcase__eyebrow::before,.pf-showcase__eyebrow::after{content:'';display:inline-block;width:38px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,187,37,.9),transparent);flex-shrink:0}
-.pf-showcase__title{max-width:18ch;font-size:clamp(1.42rem,4.8vw,2.18rem);font-weight:950;color:var(--pf-title-color);margin:0;line-height:1.24;letter-spacing:-.024em;text-wrap:balance;text-shadow:var(--pf-title-shadow)}
+.pf-showcase__title{max-width:18ch;font-family:var(--font-display);font-size:clamp(1.42rem,4.8vw,2.18rem);font-weight:950;color:var(--pf-title-color);margin:0;line-height:1.24;letter-spacing:-.024em;text-wrap:balance;text-shadow:var(--pf-title-shadow)}
 .pf-showcase__title-emphasis{display:inline-block;font-weight:980;background:linear-gradient(135deg,var(--pf-title-emphasis-start) 0%,var(--pf-title-emphasis-end) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 1px 0 rgba(17,10,32,.3))}
 .pf-showcase__sub{max-width:42rem;font-size:clamp(.95rem,2.25vw,1.06rem);font-weight:700;color:var(--pf-sub-color);margin:0;line-height:1.7;letter-spacing:.01em;text-wrap:balance;text-shadow:var(--pf-sub-shadow)}
 .pf-showcase__grid{display:grid;gap:18px}
@@ -946,18 +946,27 @@ body.neo-mode .pf-showcase{--pf-title-color:#fff7dd;--pf-sub-color:rgba(233,224,
 .pf-card__icon-wrap{font-size:2.5rem;padding:22px 20px 6px;line-height:1;text-align:center}
 .pf-card__body{padding:14px 18px 20px;display:flex;flex-direction:column;gap:10px;flex:1}
 .pf-card__badge{display:inline-flex;align-items:center;font-size:.6rem;font-weight:900;letter-spacing:.12em;color:#fde68a;background:linear-gradient(135deg,rgba(250,204,21,.18),rgba(251,191,36,.08));border:1px solid rgba(250,204,21,.38);border-radius:20px;padding:3px 10px;text-transform:uppercase;width:max-content}
-.pf-card__title{font-size:1.1rem;font-weight:900;color:#f8f3ff;margin:0;letter-spacing:.02em}
+.pf-card__title{font-family:var(--font-premium,'CodeDestinyPremium',serif);font-size:1.1rem;font-weight:900;color:#f8f3ff;margin:0;letter-spacing:.02em}
 .pf-card__desc{font-size:.84rem;color:rgba(238,230,255,.93);line-height:1.66;margin:0}
 .pf-card__desc strong{color:#ddd6fe}
 .pf-card__points{margin:0;padding:0 0 0 2px;list-style:none;display:flex;flex-direction:column;gap:5px}
 .pf-card__points li{font-size:.8rem;color:rgba(232,223,255,.94);display:flex;gap:6px;align-items:flex-start;line-height:1.46}
 .pf-card__price-row{display:flex;flex-direction:column;gap:10px;margin-top:auto;padding-top:14px;border-top:1px solid rgba(140,90,255,.16)}
-.pf-card__price{display:flex;align-items:center;gap:8px;background:rgba(90,40,200,.12);border:1px solid rgba(140,90,255,.12);border-radius:10px;padding:8px 12px}
+.pf-card__price{display:flex;align-items:center;gap:8px;background:rgba(124,58,237,.22);border:1px solid rgba(180,140,255,.28);border-radius:10px;padding:8px 12px}
 .pf-coin-icon{display:inline-block;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 33% 28%,#fffde0 0%,#ffd040 48%,#c97a08 100%);border:1.5px solid rgba(255,200,50,.55);box-shadow:0 0 8px rgba(255,195,40,.55),inset 0 1px 2px rgba(255,255,200,.6);flex-shrink:0}
 .pf-coin-amount{font-size:.95rem;font-weight:900;color:#fcd262;letter-spacing:.02em}
 .pf-coin-note{font-size:.74rem;color:rgba(210,190,255,.78);font-weight:500;margin-left:auto}
 .pf-card__cta{width:100%;border:none;border-radius:10px;padding:12px 14px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;letter-spacing:.04em;transition:filter .2s,transform .2s,box-shadow .2s;box-shadow:0 4px 18px rgba(109,40,217,.4),inset 0 1px 0 rgba(255,255,255,.18)}
 .pf-card__cta:hover{filter:brightness(1.12);transform:translateY(-2px);box-shadow:0 8px 28px rgba(109,40,217,.55)}
+/* 대운/종합/궁합 3카드 시각 차별화 — 아이콘은 HTML에서 카드별로 교체, 여기선 배지·CTA·hover 톤만 분리 */
+.pf-card--daewun .pf-card__badge{color:#fef3c7;background:linear-gradient(135deg,rgba(245,158,11,.32),rgba(217,119,6,.12));border-color:rgba(245,158,11,.42)}
+.pf-card--daewun .pf-card__cta{background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 18px rgba(217,119,6,.4),inset 0 1px 0 rgba(255,255,255,.18)}
+.pf-card--daewun .pf-card__cta:hover{box-shadow:0 8px 28px rgba(217,119,6,.55)}
+.pf-card--daewun:hover{box-shadow:0 20px 52px rgba(217,119,6,.38),0 0 0 1px rgba(245,158,11,.3),inset 0 1px 0 rgba(255,255,255,.1)}
+.pf-card--compat .pf-card__badge{color:#fce7f3;background:linear-gradient(135deg,rgba(236,72,153,.32),rgba(219,39,119,.12));border-color:rgba(236,72,153,.42)}
+.pf-card--compat .pf-card__cta{background:linear-gradient(135deg,#ec4899,#db2777);box-shadow:0 4px 18px rgba(219,39,119,.4),inset 0 1px 0 rgba(255,255,255,.18)}
+.pf-card--compat .pf-card__cta:hover{box-shadow:0 8px 28px rgba(219,39,119,.55)}
+.pf-card--compat:hover{box-shadow:0 20px 52px rgba(219,39,119,.38),0 0 0 1px rgba(236,72,153,.3),inset 0 1px 0 rgba(255,255,255,.1)}
 .btn-main{width:100%;padding:16px;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;min-height:52px}
 @media(max-width:768px){.golden-grain-badge{position:absolute;top:10px;right:10px;width:min(224px,calc(100% - 20px));min-height:44px;gap:7px;padding:5px 5px 5px 9px;border-radius:16px;transform-origin:top right;z-index:5}.golden-grain-badge__coin{width:28px;height:28px;border-radius:10px}.golden-grain-badge__label{font-size:.55rem}.golden-grain-badge__balance{font-size:.78rem}.golden-grain-badge__charge{min-height:32px;padding:0 10px;font-size:.66rem}.logo-area{position:relative}.golden-grain-modal{padding:8px}.golden-grain-modal__card{width:min(640px,98vw);max-height:calc(100vh - 14px);padding:14px 10px 10px;border-radius:24px}.golden-grain-modal__title{font-size:1.25rem}.golden-grain-modal__scroll{max-height:min(54vh,480px);padding-right:4px}.golden-grain-modal__cta{margin-top:6px;padding-top:8px}.cd-section-gate__overlay{padding:28px 18px;border-radius:14px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}.cd-section-gate__body{filter:blur(8px) brightness(.88)}.cd-section-gate__title{font-size:1.05rem;max-width:280px}.cd-section-gate__desc{font-size:.8rem;max-width:260px;line-height:1.55}.cd-section-gate__btn{padding:13px 24px;font-size:.88rem;width:100%;max-width:280px;justify-content:center}.cd-section-gate__icon{font-size:2.6rem}}
 @media(max-width:680px){.pf-showcase__header{padding:16px 12px 18px}.pf-showcase__title{font-size:clamp(1.28rem,6vw,1.72rem);line-height:1.28}.pf-showcase__sub{font-size:clamp(.9rem,3.7vw,1rem);line-height:1.68}.pf-showcase__summary-note{min-height:44px}.pf-card__icon-wrap{padding:16px 20px 4px}.pf-card__price{flex-wrap:wrap}.pf-coin-note{margin-left:0}}
@@ -4958,11 +4967,19 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   html:not(.neo-mode) #resultPage .pf-card__desc strong{color:#b31955!important}
   html:not(.neo-mode) #resultPage .pf-card__points li{color:#5a3450!important}
   html:not(.neo-mode) #resultPage .pf-card__price-row{border-top:1px solid rgba(179,25,85,.14)!important}
-  html:not(.neo-mode) #resultPage .pf-card__price{background:rgba(179,25,85,.06)!important;border:1px solid rgba(179,25,85,.12)!important}
+  html:not(.neo-mode) #resultPage .pf-card__price{background:rgba(179,25,85,.14)!important;border:1px solid rgba(179,25,85,.22)!important}
   html:not(.neo-mode) #resultPage .pf-coin-amount{color:#a9691a!important}
   html:not(.neo-mode) #resultPage .pf-coin-note{color:#8a6b78!important}
   html:not(.neo-mode) #resultPage .pf-card__cta{background:linear-gradient(135deg,#d83f78,#b31955)!important;box-shadow:0 4px 16px rgba(179,25,85,.32),inset 0 1px 0 rgba(255,255,255,.24)!important}
   html:not(.neo-mode) #resultPage .pf-card__cta:hover{box-shadow:0 8px 26px rgba(179,25,85,.44)!important}
+  html:not(.neo-mode) #resultPage .pf-card:active{transform:scale(.98)!important}
+  /* 대운=앰버, 종합=바이올렛으로 데스크톱과 카드별 색 아이덴티티 통일 (궁합은 기존 로즈 기본값 유지) */
+  html:not(.neo-mode) #resultPage .pf-card--daewun .pf-card__badge{color:#92400e!important;background:linear-gradient(135deg,rgba(245,158,11,.22),rgba(217,119,6,.08))!important;border:1px solid rgba(245,158,11,.38)!important}
+  html:not(.neo-mode) #resultPage .pf-card--daewun .pf-card__cta{background:linear-gradient(135deg,#f59e0b,#d97706)!important;box-shadow:0 4px 16px rgba(217,119,6,.32),inset 0 1px 0 rgba(255,255,255,.24)!important}
+  html:not(.neo-mode) #resultPage .pf-card--daewun .pf-card__cta:hover{box-shadow:0 8px 26px rgba(217,119,6,.44)!important}
+  html:not(.neo-mode) #resultPage .pf-card--summary .pf-card__badge{color:#5b21b6!important;background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(99,102,241,.08))!important;border:1px solid rgba(124,58,237,.32)!important}
+  html:not(.neo-mode) #resultPage .pf-card--summary .pf-card__cta{background:linear-gradient(135deg,#7c3aed,#6366f1)!important;box-shadow:0 4px 16px rgba(109,40,217,.32),inset 0 1px 0 rgba(255,255,255,.24)!important}
+  html:not(.neo-mode) #resultPage .pf-card--summary .pf-card__cta:hover{box-shadow:0 8px 26px rgba(109,40,217,.44)!important}
 
   /* ── VVIP 운명 서고 원복: 데스크탑과 동일한 다크-골드 프리미엄 (양 테마 공통, 이미지 유지) ── */
   html.cd-mobile-runtime #premiumVvipCollection{background:radial-gradient(circle at 50% -12%,rgba(244,208,117,.16),transparent 42%),linear-gradient(165deg,#120e24 0%,#0a0716 100%)!important;border:1px solid rgba(244,208,117,.34)!important;box-shadow:0 18px 40px rgba(0,0,0,.42),0 0 28px rgba(244,208,117,.1),inset 0 1px 0 rgba(255,240,200,.14)!important}
@@ -5122,30 +5139,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   body.neo-mode .theme-switch-wrapper--desktop .tsp-option[aria-pressed="true"]{background:linear-gradient(135deg,#e8d5a3,#f7c94a)!important;color:#0a0818!important;box-shadow:0 4px 12px rgba(232,213,163,.26)!important}
 }
 </style>
-<style id="cd-desktop-pf-showcase-light-v20260707" data-marker="cd-desktop-pf-showcase-light-v20260707">
-/* '심층 해석 3종 세트'(.pf-showcase) 연이 라이트 팔레트 — 기존엔 모바일 전용(@media max-width:768px)이라
-   데스크톱은 항상 다크 코스믹 배경으로 남던 것을 동일 팔레트로 데스크톱에도 동일 적용한다. */
-@media (min-width: 769px) {
-  html:not(.neo-mode) #resultPage .pf-showcase{background:radial-gradient(circle at 88% 8%,rgba(234,208,137,.24),transparent 44%),linear-gradient(158deg,#fffaf7 0%,#fff3f8 56%,#fdf6ee 100%)!important;border:1px solid rgba(179,25,85,.16)!important;box-shadow:0 18px 46px rgba(179,25,85,.1),inset 0 1px 0 rgba(255,255,255,.6)!important;--pf-title-color:#3c1830;--pf-sub-color:#70445c;--pf-title-emphasis-start:#b31955;--pf-title-emphasis-end:#c98a12;--pf-title-shadow:0 1px 0 rgba(255,255,255,.6);--pf-sub-shadow:none}
-  html:not(.neo-mode) #resultPage .pf-showcase__header{background:linear-gradient(180deg,rgba(255,255,255,.94),rgba(255,244,249,.8))!important;border:1px solid rgba(179,25,85,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.85),0 8px 22px rgba(179,25,85,.1)!important}
-  html:not(.neo-mode) #resultPage .pf-showcase__eyebrow{color:#b31955!important}
-  html:not(.neo-mode) #resultPage .pf-showcase__eyebrow::before,html:not(.neo-mode) #resultPage .pf-showcase__eyebrow::after{background:linear-gradient(90deg,transparent,rgba(179,25,85,.55),transparent)!important}
-  html:not(.neo-mode) #resultPage .pf-showcase__summary-note{background:linear-gradient(180deg,rgba(179,25,85,.12),rgba(179,25,85,.05))!important;border:1px solid rgba(179,25,85,.28)!important;color:#8a1f47!important;box-shadow:0 6px 16px rgba(179,25,85,.12),inset 0 1px 0 rgba(255,255,255,.6)!important}
-  html:not(.neo-mode) #resultPage .pf-card{background:linear-gradient(180deg,#ffffff 0%,#fff5fa 100%)!important;border:1px solid rgba(179,25,85,.14)!important;box-shadow:0 6px 20px rgba(179,25,85,.09),inset 0 1px 0 rgba(255,255,255,.7)!important}
-  html:not(.neo-mode) #resultPage .pf-card:hover{box-shadow:0 16px 40px rgba(179,25,85,.18),0 0 0 1px rgba(179,25,85,.2),inset 0 1px 0 rgba(255,255,255,.8)!important}
-  html:not(.neo-mode) #resultPage .pf-card__badge{color:#8a1f47!important;background:linear-gradient(135deg,rgba(234,208,137,.35),rgba(179,25,85,.08))!important;border:1px solid rgba(179,25,85,.28)!important}
-  html:not(.neo-mode) #resultPage .pf-card__title{color:#3c1830!important}
-  html:not(.neo-mode) #resultPage .pf-card__desc{color:#70445c!important}
-  html:not(.neo-mode) #resultPage .pf-card__desc strong{color:#b31955!important}
-  html:not(.neo-mode) #resultPage .pf-card__points li{color:#5a3450!important}
-  html:not(.neo-mode) #resultPage .pf-card__price-row{border-top:1px solid rgba(179,25,85,.14)!important}
-  html:not(.neo-mode) #resultPage .pf-card__price{background:rgba(179,25,85,.06)!important;border:1px solid rgba(179,25,85,.12)!important}
-  html:not(.neo-mode) #resultPage .pf-coin-amount{color:#a9691a!important}
-  html:not(.neo-mode) #resultPage .pf-coin-note{color:#8a6b78!important}
-  html:not(.neo-mode) #resultPage .pf-card__cta{background:linear-gradient(135deg,#d83f78,#b31955)!important;box-shadow:0 4px 16px rgba(179,25,85,.32),inset 0 1px 0 rgba(255,255,255,.24)!important}
-  html:not(.neo-mode) #resultPage .pf-card__cta:hover{box-shadow:0 8px 26px rgba(179,25,85,.44)!important}
-}
-</style>
+
 <!-- PERF: reduced-motion detect -->
 <script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
 </head>
@@ -14312,7 +14306,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       #resultPage .saju-result-guide::after{content:"";position:absolute;right:26px;top:18px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 50% 25%,#111 0 8px,transparent 9px),radial-gradient(circle at 50% 75%,#fffaf0 0 8px,transparent 9px),radial-gradient(circle at 50% 25%,#fffaf0 0 22px,transparent 23px),radial-gradient(circle at 50% 75%,#111 0 22px,transparent 23px),linear-gradient(90deg,#111 0 50%,#fffaf0 50% 100%);box-shadow:inset 0 0 0 1px rgba(17,17,17,.38),0 16px 30px rgba(0,0,0,.28);transform:rotate(32deg);z-index:0}
       #resultPage .saju-result-guide>*{position:relative;z-index:1}
       #resultPage .saju-result-guide__kicker{margin:0 0 6px;color:#6f1d1b;font-size:.74rem;font-weight:900;letter-spacing:.12em}
-      #resultPage .saju-result-guide__title{margin:0;color:#101010;font-size:1.12rem;line-height:1.35;font-weight:900;word-break:keep-all}
+      #resultPage .saju-result-guide__title{margin:0;color:#101010;font-family:var(--font-display);font-size:1.12rem;line-height:1.35;font-weight:900;word-break:keep-all}
       #resultPage .saju-result-guide__desc{margin:8px 0 0;color:#2a231d;font-size:.9rem;line-height:1.62;word-break:keep-all}
       @supports ((-webkit-background-clip:text) or (background-clip:text)){#resultPage .saju-result-guide__desc{background:linear-gradient(90deg,#2a231d 0%,#2a231d 42%,#f8efe2 66%,#fff8ee 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;text-shadow:0 1px 0 rgba(255,250,240,.18)}}
       #resultPage .saju-result-guide__nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-top:14px}
@@ -14586,7 +14580,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
         <!-- 대운 분석 -->
         <div class="pf-card pf-card--daewun">
-          <div class="pf-card__icon-wrap" aria-hidden="true">🔮</div>
+          <div class="pf-card__icon-wrap" aria-hidden="true">📊</div>
           <div class="pf-card__body">
             <div class="pf-card__badge" data-cd-trans data-key="result.premiumShowcase.permanent">영구 해금</div>
             <h3 class="pf-card__title" data-cd-trans data-key="result.premiumShowcase.daewun.title">대운 (大運) 분석</h3>
@@ -14612,7 +14606,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
         <!-- 종합 사주 풀이 -->
         <div class="pf-card pf-card--summary">
-          <div class="pf-card__icon-wrap" aria-hidden="true">🔮</div>
+          <div class="pf-card__icon-wrap" aria-hidden="true">📜</div>
           <div class="pf-card__body">
             <div class="pf-card__badge" data-cd-trans data-key="result.premiumShowcase.permanent">영구 해금</div>
             <h3 class="pf-card__title" data-cd-trans data-key="result.premiumShowcase.summary.title">종합 사주 풀이</h3>
@@ -14638,7 +14632,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
         <!-- 궁합 분석 -->
         <div class="pf-card pf-card--compat">
-          <div class="pf-card__icon-wrap" aria-hidden="true">🔮</div>
+          <div class="pf-card__icon-wrap" aria-hidden="true">💞</div>
           <div class="pf-card__body">
             <div class="pf-card__badge" data-cd-trans data-key="result.premiumShowcase.permanent">영구 해금</div>
             <h3 class="pf-card__title" data-cd-trans data-key="result.premiumShowcase.compat.title">궁합 분석</h3>

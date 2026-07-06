@@ -142,7 +142,8 @@ export async function withLLMCache(
   const result = await deduplicatedCall(cacheKey, () => callUncached(request));
 
   // 3. 캐시 저장 (결정적 호출만, best-effort). 응답을 지연시키지 않도록 상한을 둔다.
-  if (deterministic && store && result?.text) {
+  // 잘린 응답(truncated)은 저장하지 않는다 — TTL 동안 잘린 텍스트가 고정되는 것을 방지.
+  if (deterministic && store && result?.text && !result.truncated) {
     try {
       await withTimeout(
         store.set(cacheKey, result, ttlSeconds).catch((error) => {

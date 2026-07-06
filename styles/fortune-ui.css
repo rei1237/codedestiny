@@ -209,7 +209,7 @@ body::after{
 @media (max-width: 480px){
   .card{padding:16px}
 }
-.sec-title{color:var(--point-color, var(--pink));font-weight:700;font-size:1.05rem;
+.sec-title{font-family:var(--font-display, inherit);color:var(--point-color, var(--pink));font-weight:700;font-size:1.05rem;
   margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .sec-title::before{content:'';display:block;width:4px;height:18px;
   background:var(--point-color, linear-gradient(var(--pink),var(--pink-l)));border-radius:2px}

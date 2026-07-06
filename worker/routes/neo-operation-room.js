@@ -808,15 +808,22 @@ function countNeoTextChars(value) {
 }
 
 // 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
+// 잘림(MAX_TOKENS)이나 빈 파싱이면 캐시를 우회해 1회 재시도한다(잘린 문장이 결과에 남는 것 방지).
 async function generateNeoSectionOnce(env, section, prompt, cacheConfig) {
   try {
-    const ai = await callGeminiText(env, prompt, {
-      maxOutputTokens: 4096,
-      temperature: 0.65,
-      thinkingBudget: 0,
-      timeoutMs: 45000,
-      ...(cacheConfig ? { cache: cacheConfig } : {}),
-    });
+    let ai = null;
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const useCache = attempt === 0 && cacheConfig;
+      ai = await callGeminiText(env, prompt, {
+        maxOutputTokens: 8192,
+        temperature: 0.65,
+        thinkingBudget: 0,
+        timeoutMs: 45000,
+        ...(useCache ? { cache: cacheConfig } : {}),
+      });
+      const needsRetry = ai?.ok && (ai.truncated === true || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
+      if (!needsRetry) break;
+    }
     const provider = clean(ai?.provider || "");
     const model = clean(ai?.model || "");
     const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;

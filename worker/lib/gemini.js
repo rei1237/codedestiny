@@ -70,6 +70,8 @@ export async function callGeminiText(env, prompt, options = {}) {
       text: result.text,
       model: result.model,
       provider: normalizeProvider(result.provider),
+      truncated: result.truncated === true,
+      finishReason: clean(result.finishReason, 40),
     };
   } catch (error) {
     return toFailure(error);

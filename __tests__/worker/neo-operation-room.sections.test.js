@@ -72,6 +72,40 @@ describe("mergeNeoInitialSections", () => {
     expect(briefing.methodEvidence).toHaveLength(1);
     expect(briefing.methodEvidence[0].summary).toContain("자미◎");
   });
+
+  test("LLM이 문자열 자리에 객체/배열을 반환해도 [object Object] 없이 텍스트로 평탄화한다", () => {
+    const results = [
+      {
+        id: "repeatedChoice",
+        parsed: {
+          repeatedChoice: {
+            title: "반복되는 선택",
+            // 중첩 객체 — 실서비스에서 [object Object]를 만든 케이스
+            description: { title: "패전의 뿌리", description: "결정 직전에 확신을 버리고 남의 말을 따른다." },
+          },
+        },
+      },
+      {
+        id: "innateCore",
+        parsed: {
+          innateNature: {
+            title: "핵",
+            // 배열 반환 케이스
+            description: ["첫 문단이다.", { text: "둘째 문단이다." }],
+            keyTraits: [{ point: "직관", why: "빠른 판단" }, "b"],
+          },
+        },
+      },
+      { id: "bluntTruth", parsed: { bluntTruth: { content: "팩트만 말한다." } } },
+    ];
+    const briefing = mergeNeoInitialSections(results, input, methodSummary);
+    expect(briefing.repeatedChoice.description).toContain("결정 직전에 확신을 버리고");
+    expect(briefing.innateNature.description).toContain("첫 문단이다.");
+    expect(briefing.innateNature.description).toContain("둘째 문단이다.");
+    expect(briefing.bluntTruth).toBe("팩트만 말한다.");
+    // 블랭킷 검증: 어떤 필드에도 [object Object]가 남지 않는다.
+    expect(JSON.stringify(briefing)).not.toContain("[object Object]");
+  });
 });
 
 describe("mergeNeoRefinedSections", () => {
@@ -87,6 +121,18 @@ describe("mergeNeoRefinedSections", () => {
     expect(refined.thirtyDayStrategy).toHaveLength(4);
     expect(refined.verdict.status).toBe("조정이 필요하다");
     expect(refined).not.toHaveProperty("innateRecheck");
+  });
+
+  test("2차 문서도 객체형 statement/neoReview를 [object Object] 없이 평탄화한다", () => {
+    const results = [
+      { id: "neoReview", parsed: { neoReview: { summary: "재판단 요약이다." } } },
+      { id: "verdict", parsed: { verdict: { status: "조정 필요", statement: { text: "방향을 틀어라." } } } },
+      { id: "thirtyDayWeek12", parsed: { thirtyDayWeek12: [{ week: "1주차", plan: "정리" }, "2주차 y"] } },
+    ];
+    const refined = mergeNeoRefinedSections(results, { selectedMethod: "ziwei" });
+    expect(refined.neoReview).toBe("재판단 요약이다.");
+    expect(refined.verdict.statement).toBe("방향을 틀어라.");
+    expect(JSON.stringify(refined)).not.toContain("[object Object]");
   });
 });
 

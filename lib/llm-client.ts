@@ -40,6 +40,9 @@ export interface LLMResponse {
   text: string;
   provider: "gemini" | "cloudflare";
   model: string;
+  /** finishReason이 MAX_TOKENS면 true — 응답이 중간에 잘렸음을 의미. 호출부에서 재시도 판단. */
+  truncated?: boolean;
+  finishReason?: string;
 }
 
 export interface CloudflareEnv {
@@ -61,6 +64,7 @@ type GeminiPayload = {
         text?: string;
       }>;
     };
+    finishReason?: string;
   }>;
   error?: {
     message?: string;
@@ -287,10 +291,24 @@ async function callGeminiPrimary(
     const text = extractGeminiText(payload);
     if (!text) throw new Error("Gemini returned an empty response.");
 
+    const finishReason = String(payload.candidates?.[0]?.finishReason || "").trim();
+    const truncated = finishReason === "MAX_TOKENS";
+    if (truncated) {
+      console.warn("[llm truncated]", {
+        model,
+        taskType: normalized.taskType,
+        maxTokens: normalized.maxTokens,
+        serviceId: normalized.logContext?.serviceId,
+        requestId: normalized.logContext?.requestId,
+      });
+    }
+
     return {
       text,
       provider: "gemini",
       model,
+      truncated,
+      ...(finishReason ? { finishReason } : {}),
     };
   } catch (error) {
     if (timeout.signal.aborted) throw new Error(`Gemini request timed out after ${timeout.timeoutMs}ms.`);

@@ -139,8 +139,35 @@ function intensityGuideFor(intensity) {
   return INTENSITY_GUIDES[clean(intensity, 30)] || INTENSITY_GUIDES.standard;
 }
 
+// LLM이 문자열 자리에 중첩 객체/배열을 반환하면 String()이 "[object Object]"를 만들어
+// 그대로 DB에 저장·노출된다. 잘 알려진 텍스트 키를 우선 꺼내 읽을 수 있는 문장으로 평탄화한다.
+const COERCE_TEXT_KEYS = ["description", "text", "content", "summary", "reading", "body", "value"];
+
+function coerceText(value, depth = 0) {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (depth >= 3) return "";
+  if (Array.isArray(value)) {
+    return value.map((item) => coerceText(item, depth + 1).trim()).filter(Boolean).join("\n");
+  }
+  if (typeof value === "object") {
+    const title = typeof value.title === "string" ? value.title.trim() : "";
+    for (const key of COERCE_TEXT_KEYS) {
+      const bodyText = coerceText(value[key], depth + 1).trim();
+      if (bodyText) return title && title !== bodyText ? `${title} — ${bodyText}` : bodyText;
+    }
+    const joined = Object.values(value)
+      .map((item) => coerceText(item, depth + 1).trim())
+      .filter(Boolean)
+      .join("\n");
+    return title && joined && joined !== title ? `${title} — ${joined}` : joined || title;
+  }
+  return "";
+}
+
 function clean(value, maxLength = 0) {
-  const text = String(value ?? "").trim();
+  const text = coerceText(value).trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
 }
 
