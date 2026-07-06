@@ -193,6 +193,22 @@ function isAuthMeRequest(request) {
   }
 }
 
+export function isAuthDbInfraError(error) {
+  const text = String(error?.message || "").toLowerCase();
+  if (!text) return false;
+  return (
+    text.includes("auth_me_connect_db")
+    || text.includes("auth_me_find_user")
+    || text.includes("timeout")
+    || text.includes("timed out")
+    || text.includes("mongo")
+    || text.includes("mongoose")
+    || text.includes("econn")
+    || text.includes("network")
+    || text.includes("server selection")
+  );
+}
+
 function isPaidServiceAdminAuthPath(request) {
   try {
     const pathname = new URL(request.url).pathname;
@@ -366,18 +382,24 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
   }
 }
 
-async function verifyRefreshSessionToAuth(request, env) {
+async function verifyRefreshSessionToAuth(request, env, options = {}) {
   const refreshToken = cookieValue(request, REFRESH_COOKIE_NAME);
   if (!refreshToken) return null;
 
+  let userId;
   try {
     const payload = await verifyJwt(refreshToken, getRefreshTokenSecret(env), {
       issuer: getJwtIssuer(env),
       audience: getJwtAudience(env),
     });
-    const userId = extractRefreshUserId(payload);
+    userId = extractRefreshUserId(payload);
     if (!userId) return null;
+  } catch (error) {
+    logAuthError("verify-refresh-session-jwt", error, { hasRefreshToken: true });
+    return null;
+  }
 
+  try {
     await connectDb(env);
 
     const tokenHash = hashRefreshToken(refreshToken, env);
@@ -411,7 +433,13 @@ async function verifyRefreshSessionToAuth(request, env) {
 
     return normalizeAuthResultFromUser(user);
   } catch (error) {
-    logAuthError("verify-refresh-session", error, { hasRefreshToken: true });
+    logAuthError("verify-refresh-session-db", error, { hasRefreshToken: true, userId });
+    // Only a request that already tolerates DB blips (e.g. /api/auth/me) gets the raw
+    // infra error rethrown, so the caller can report "degraded" instead of a hard sign-out.
+    // Every other route keeps failing closed to null, unchanged from prior behavior.
+    if (options.allowDbFallback === true && isAuthDbInfraError(error)) {
+      throw error;
+    }
     return null;
   }
 }
@@ -470,7 +498,7 @@ export async function getOptionalUserFromRequest(request, env) {
     }
 
     if (refreshCookieToken) {
-      const refreshAuth = await verifyRefreshSessionToAuth(request, env);
+      const refreshAuth = await verifyRefreshSessionToAuth(request, env, { allowDbFallback: allowTokenDbFallback });
       if (refreshAuth) return refreshAuth;
     }
 
@@ -480,6 +508,9 @@ export async function getOptionalUserFromRequest(request, env) {
     return null;
   } catch (error) {
     if (error?.message === "DEV_AUTH_USER_ID must not be used in production") throw error;
+    // Let /api/auth/me see a raw DB-infra error so it can report "degraded" instead of
+    // getting collapsed into a generic 401 that looks like a real sign-out.
+    if (isAuthMeRequest(request) && isAuthDbInfraError(error)) throw error;
     logAuthError("get-optional-user", error, {
       hasAuthorizationHeader: Boolean(request?.headers?.get("Authorization")),
       hasCookieHeader: Boolean(request?.headers?.get("Cookie")),

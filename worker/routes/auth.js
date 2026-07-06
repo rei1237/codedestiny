@@ -10,6 +10,7 @@ import {
   getJwtIssuer,
   getRefreshTokenExpiresIn,
   getRefreshTokenSecret,
+  isAuthDbInfraError,
   requireAuth,
   normalizeUserResponse,
   signAuthToken,
@@ -1885,22 +1886,6 @@ function buildTokenFallbackUser(auth) {
   };
 }
 
-function isAuthDbInfraError(error) {
-  const text = String(error?.message || "").toLowerCase();
-  if (!text) return false;
-  return (
-    text.includes("auth_me_connect_db")
-    || text.includes("auth_me_find_user")
-    || text.includes("timeout")
-    || text.includes("timed out")
-    || text.includes("mongo")
-    || text.includes("mongoose")
-    || text.includes("econn")
-    || text.includes("network")
-    || text.includes("server selection")
-  );
-}
-
 function logSignupFailure(request, env, errorCode, errorMessage) {
   const meta = getRequestMeta(request);
   console.error("[auth/signup]", JSON.stringify({
@@ -2709,27 +2694,41 @@ async function handleRefresh(request, env) {
     return response;
   }
 
-  const user = await User.collection.findOne(
-    { _id: new mongoose.Types.ObjectId(userId) },
-    {
-      projection: {
-        _id: 1,
-        name: 1,
-        email: 1,
-        phoneNumber: 1,
-        phone: 1,
-        birthDate: 1,
-        birthTime: 1,
-        gender: 1,
-        role: 1,
-        points: 1,
-        joinedAt: 1,
-        passwordHash: 1,
-        localAuth: 1,
-        status: 1,
+  let user;
+  try {
+    user = await User.collection.findOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        projection: {
+          _id: 1,
+          name: 1,
+          email: 1,
+          phoneNumber: 1,
+          phone: 1,
+          birthDate: 1,
+          birthTime: 1,
+          gender: 1,
+          role: 1,
+          points: 1,
+          joinedAt: 1,
+          passwordHash: 1,
+          localAuth: 1,
+          status: 1,
+        },
       },
-    },
-  );
+    );
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_user_lookup_degraded", error);
+      return json({
+        ok: false,
+        code: "AUTH_REFRESH_DEGRADED",
+        message: "Authentication refresh is temporarily unavailable.",
+        degraded: true,
+      }, { status: 503 });
+    }
+    throw error;
+  }
 
   if (!user || isWithdrawnAuthUser(user)) {
     await revokeAllUserRefreshSessions(userId);

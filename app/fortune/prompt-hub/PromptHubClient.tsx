@@ -1543,7 +1543,7 @@ export default function ComprehensivePromptHubPage() {
               ariaHidden
             />
             {!heroImageError && (
-              <div className="yeon-hero-sprite pointer-events-none absolute -right-10 -top-6 z-5 w-40 sm:-right-6 sm:w-48 md:-right-4 md:w-56 lg:w-64">
+              <div className="yeon-hero-sprite pointer-events-none absolute right-1 top-1 z-5 w-28 sm:right-2 sm:top-2 sm:w-32 md:w-40 lg:w-48">
                 <img
                   src="/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"
                   alt="연이 꽃돼지 마스코트 — 운세 프롬프트 허브"
@@ -1590,7 +1590,7 @@ export default function ComprehensivePromptHubPage() {
                 <select
                   value={activeToolId}
                   onChange={(event) => selectTool(event.target.value as ToolId)}
-                  className="mt-4 min-h-[46px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2"
+                  className="mt-4 min-h-[46px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 lg:hidden"
                   style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
                   aria-label={copy.mobileToolAria}
                 >
@@ -1604,7 +1604,7 @@ export default function ComprehensivePromptHubPage() {
             </div>
           </div>
 
-          <div className="mt-4 rounded-[22px] border border-slate-200/70 bg-white/72 p-3">
+          <div className="mt-4 rounded-[22px] border border-slate-200/70 bg-white/72 p-3 lg:hidden">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.toolsTitle}</p>
               <p className="text-xs font-bold text-slate-500">{copy.toolsHint}</p>
@@ -1641,7 +1641,7 @@ export default function ComprehensivePromptHubPage() {
           </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)_minmax(320px,0.82fr)]">
-            <aside className="rounded-[22px] border border-slate-200/70 bg-white/82 p-4">
+            <aside className="hidden rounded-[22px] border border-slate-200/70 bg-white/82 p-4 lg:block">
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.exploreTitle}</p>

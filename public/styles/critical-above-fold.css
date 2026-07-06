@@ -40,7 +40,7 @@ img{max-width:100%;display:block}
 img[width][height]{height:auto}
 
 /* === 5. 레이아웃 Wrap === */
-.wrap{max-width:960px;margin:0 auto;padding:0 16px 32px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 32px}
 @media(min-width:768px){.wrap{padding:0 24px 48px}}
 
 /* === 6. 고정 네비게이션 바 높이 예약 (CLS 방지) === */

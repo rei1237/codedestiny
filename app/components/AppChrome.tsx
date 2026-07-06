@@ -71,6 +71,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/fortune-tea-house",
+  "/fortune/prompt-hub",
 ];
 
 function useFooterInView(enabled: boolean) {
