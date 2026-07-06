@@ -535,6 +535,38 @@ export default function FortuneTeaHousePage() {
     }
   }, [bgmEnabled, currentBgmTrack, isBgmPreferenceReady]);
 
+  // 화면 진입 즉시 BGM 재생 시도. 브라우저 자동재생 정책으로 차단되면
+  // 첫 사용자 상호작용(탭/스크롤/키 입력)에서 즉시 재생되도록 one-time unlock 등록.
+  useEffect(() => {
+    if (!isBgmPreferenceReady || !bgmEnabled) return;
+
+    void playBgm();
+
+    let unlocked = false;
+    const unlockOnFirstInteraction = () => {
+      if (unlocked) return;
+      const audio = bgmAudioRef.current;
+      if (audio && !audio.paused) {
+        unlocked = true;
+        removeUnlockListeners();
+        return;
+      }
+      unlocked = true;
+      void playBgm();
+      removeUnlockListeners();
+    };
+    const removeUnlockListeners = () => {
+      window.removeEventListener("pointerdown", unlockOnFirstInteraction);
+      window.removeEventListener("keydown", unlockOnFirstInteraction);
+      window.removeEventListener("touchstart", unlockOnFirstInteraction);
+    };
+    window.addEventListener("pointerdown", unlockOnFirstInteraction, { once: false });
+    window.addEventListener("keydown", unlockOnFirstInteraction, { once: false });
+    window.addEventListener("touchstart", unlockOnFirstInteraction, { once: false });
+
+    return removeUnlockListeners;
+  }, [isBgmPreferenceReady, bgmEnabled, playBgm]);
+
   useEffect(() => {
     loadingBgmIndexRef.current = 0;
     setLoadingBgmIndex(0);

@@ -49,8 +49,8 @@ const landingActionsUi =
   "w-full max-w-[460px]";
 const landingHistoryUi =
   "mt-3 flex min-h-11 w-full max-w-[460px] items-center justify-center gap-2 !rounded-[0.85rem] !border !border-[#f6dfb7]/20 !bg-[#12091f]/35 px-4 py-2.5 !font-[var(--tea-font-premium)] !text-[0.92rem] !font-semibold !text-[#fffaf1]/90 !shadow-[0_12px_28px_rgba(4,2,12,0.2),inset_0_1px_0_rgba(255,255,255,0.08)] ring-1 ring-white/5 backdrop-blur-md transition duration-200 hover:-translate-y-0.5 hover:!border-[#ffe8a6]/45 hover:!text-[#fffaf1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ffe8a6]/75";
-const landingGuideUi =
-  "relative z-10 mx-auto mb-10 mt-4 grid w-full max-w-[1180px] grid-cols-1 gap-3 px-4 text-[#fffaf1]/90 sm:mt-6 md:mb-16 md:mt-10 lg:grid-cols-3 lg:gap-5";
+// UI/UX 개선: 하단 안내 카드는 화면에서 숨기되, SEO(AdSense 콘텐츠 게이트)용 텍스트는 DOM에 유지하기 위해 sr-only 처리.
+const landingGuideUi = "sr-only";
 const landingGuideCardUi =
   "grid min-w-0 content-start gap-2.5 rounded-[8px] border border-[#f6dfb7]/20 p-4 sm:p-5 md:gap-3 md:p-6";
 const landingGuideBadgeUi =

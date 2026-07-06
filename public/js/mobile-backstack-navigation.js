@@ -245,7 +245,17 @@
 
     try {
       document.body.classList.remove('lb-modal-open');
-      document.body.style.overflow = '';
+      // 키드 스크롤 락(lockCount)까지 초기화 + position/top/width 복원 —
+      // overflow만 지우면 남아있는 키드 카운트가 다음 락에서 다시 hidden을 씌운다.
+      if (typeof window.__cdForceUnlockBodyScroll === 'function') {
+        window.__cdForceUnlockBodyScroll();
+      } else {
+        if (typeof window.__cdResetBodyScrollLock === 'function') window.__cdResetBodyScrollLock();
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+      }
     } catch (_) {}
   }
 

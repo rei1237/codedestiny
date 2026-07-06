@@ -9258,7 +9258,7 @@
 
 @media (max-width: 640px) {
   .pageInner {
-    padding: 48px 12px 26px;
+    padding: 48px 12px max(26px, env(safe-area-inset-bottom));
     gap: 12px;
   }
 

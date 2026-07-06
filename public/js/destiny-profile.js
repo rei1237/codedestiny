@@ -4687,20 +4687,40 @@
   function renderProfileLoadingCard() {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
-    _dpEnsureSavingCardStyles();
-    el.className = 'dp-master-card dp-master-card--saving';
+    // \uCCAB \uD398\uC778\uD2B8 \uC815\uC801 \uC2A4\uCF08\uB808\uD1A4(dp-master-card--moon-loading)\uACFC \uB3D9\uC77C\uD55C \uB9C8\uD06C\uC5C5/\uD074\uB798\uC2A4\uB97C
+    // \uC7AC\uC0AC\uC6A9\uD574 \uAE5C\uBE61\uC784\uC744 \uC5C6\uC560\uACE0, \uC5F0\uC774(\uAF43)\u00B7\uB124\uC624(\uB2EC\uBE5B) \uC591 \uD14C\uB9C8\uC5D0\uC11C \uB2E4\uD06C \uD50C\uB798\uC2DC \uC5C6\uC774
+    // \uBC1D\uC740 \uAF43 \uC2A4\uCF08\uB808\uD1A4\uC744 \uC720\uC9C0\uD55C\uB2E4(\uB2E4\uD06C --saving \uCE74\uB4DC\uB85C \uAD50\uCCB4\uD558\uC9C0 \uC54A\uC74C).
+    el.className = 'dp-master-card dp-master-card--empty dp-master-card--moon-loading moon-destiny-form';
     el.innerHTML =
-      '<div class="dp-saving-sky" aria-hidden="true"></div>'
-      + '<div class="dp-saving-inner" role="status" aria-live="polite">'
-        + '<div class="dp-saving-orbit" aria-hidden="true">'
-          + '<div class="dp-saving-moon"></div>'
-          + '<span class="dp-saving-star dp-saving-star--a"></span>'
-          + '<span class="dp-saving-star dp-saving-star--b"></span>'
-          + '<span class="dp-saving-star dp-saving-star--c"></span>'
+      '<svg class="moon-form-stars" aria-hidden="true" width="72" height="28" viewBox="0 0 72 28">'
+        + '<circle class="moon-form-progress-dot moon-form-progress-dot--active" cx="8" cy="14" r="4"></circle>'
+        + '<ellipse class="moon-form-progress-petal" cx="24" cy="14" rx="3" ry="6" transform="rotate(-24 24 14)"></ellipse>'
+        + '<circle class="moon-form-progress-dot" cx="38" cy="14" r="3"></circle>'
+        + '<ellipse class="moon-form-progress-petal" cx="52" cy="14" rx="3" ry="6" transform="rotate(24 52 14)"></ellipse>'
+        + '<circle class="moon-form-progress-dot" cx="66" cy="14" r="3"></circle>'
+      + '</svg>'
+      + '<div class="dp-mc-empty-inner moon-form-header" role="status" aria-live="polite">'
+        + '<span class="moon-form-header__icon" aria-hidden="true">'
+          + '<svg width="32" height="32" viewBox="0 0 32 32" fill="none">'
+            + '<ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>'
+            + '<ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>'
+            + '<ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>'
+            + '<ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>'
+            + '<ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>'
+            + '<ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>'
+            + '<circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>'
+          + '</svg>'
+        + '</span>'
+        + '<div class="moon-form-header__copy">'
+          + '<span class="destiny-input-head__kicker" data-cd-trans="home.input.loadingKicker">DESTINY CARD</span>'
+          + '<div class="dp-mc-empty-title destiny-input-head__title" data-cd-trans="home.input.loadingTitle">\uC6B4\uBA85 \uCE74\uB4DC\uAC00 \uD53C\uC5B4\uB0A0 \uC790\uB9AC\uB97C \uBC1D\uD788\uB294 \uC911\uC785\uB2C8\uB2E4.</div>'
+          + '<div class="dp-mc-empty-desc destiny-input-head__desc" data-cd-trans="home.input.loadingDesc">\uC800\uC7A5\uB41C \uC0DD\uB144\uC6D4\uC77C\uC758 \uBCC4\uBE5B\uC744 \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.</div>'
         + '</div>'
-        + '<div class="dp-saving-title">\uD504\uB85C\uD544 \uCE74\uB4DC\uB97C \uBD88\uB7EC\uC624\uB294 \uC911\uC785\uB2C8\uB2E4.</div>'
-        + '<div class="dp-saving-desc">\uACC4\uC815\uC5D0 \uC800\uC7A5\uB41C \uC6B4\uBA85 \uCE74\uB4DC\uB97C \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.</div>'
-        + '<div class="dp-saving-bar" aria-hidden="true"></div>'
+      + '</div>'
+      + '<div class="dp-mc-loading-action moon-submit-btn moon-submit-btn--primary" aria-hidden="true">'
+        + '<span class="moon-submit-btn__star lotus-icon"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>'
+        + '<span class="moon-submit-btn__text main-txt" data-cd-trans="home.input.loadingAction">\uB098\uC758 \uC6B4\uBA85 \uCE74\uB4DC\uB85C \uC774\uC5B4\uC9C0\uB294 \uC911</span>'
+        + '<span class="moon-submit-btn__coin coin-pill">LOADING</span>'
       + '</div>';
   }
 
