@@ -2,12 +2,14 @@
  * MongoDB 마이그레이션 — expiresAt TTL 인덱스 드리프트 복구
  *
  * 배경:
- *   idempotency_keys / abuse_scores 스키마는 과거 expiresAt 필드에 `index: true`(plain)
- *   와 `.index({expiresAt:1},{expireAfterSeconds:0})`(TTL)를 동시에 선언했다. 같은 키의
- *   인덱스가 충돌(IndexOptionsConflict)하면서 프로덕션에는 TTL 이 아닌 plain 인덱스만
- *   생성되어 만료 문서가 자동 삭제되지 않는 상태였다(무한 증가).
+ *   idempotency_keys / abuse_scores / refresh_tokens 스키마는 과거 expiresAt 필드에
+ *   `index: true`(plain)와 `.index({expiresAt:1},{expireAfterSeconds:0})`(TTL)를 동시에
+ *   선언했다. 같은 키의 인덱스가 충돌(IndexOptionsConflict)하면서 프로덕션에는 TTL 이
+ *   아닌 plain 인덱스만 생성되어 만료 문서가 자동 삭제되지 않는 상태였다(무한 증가).
  *   models.js 에서 필드 레벨 index:true 를 제거했고, 이 스크립트는 이미 생성된 plain
  *   expiresAt_1 인덱스를 드롭한 뒤 TTL 인덱스로 재생성한다.
+ *   (refresh_tokens 는 로그인·토큰회전마다 행이 쌓이고 앱에서 delete 하지 않으므로 TTL
+ *    이 유일한 정리 수단 — 드리프트 시 세션 무한 누적.)
  *
  * 실행:
  *   MONGO_URI="mongodb+srv://..." node scripts/migrations/20260705-fix-ttl-index-drift.mjs
@@ -20,7 +22,7 @@
 
 import { config } from "dotenv";
 import { connectDb, mongoose } from "../../worker/lib/db.js";
-import { IdempotencyKey, AbuseScore } from "../../worker/lib/models.js";
+import { IdempotencyKey, AbuseScore, RefreshTokenSession } from "../../worker/lib/models.js";
 
 config({ path: ".env.local" });
 config({ path: ".env" });
@@ -70,7 +72,7 @@ async function migrate() {
   await connectDb(env);
   console.log("✅ MongoDB 연결 완료\n");
 
-  const targets = [IdempotencyKey, AbuseScore];
+  const targets = [IdempotencyKey, AbuseScore, RefreshTokenSession];
   for (const model of targets) {
     await fixExpiresAtTtl(model);
   }

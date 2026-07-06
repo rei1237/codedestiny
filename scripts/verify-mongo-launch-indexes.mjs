@@ -90,31 +90,16 @@ function hasIndex(indexes, spec, options = {}) {
   return indexes.some((index) => stableJson(index.key) === stableJson(spec) && optionMatches(options, index));
 }
 
-function hasIndexKey(indexes, spec) {
-  return indexes.some((index) => stableJson(index.key) === stableJson(spec));
-}
-
-function isAllowedOptionWarning(collection, spec, options = {}) {
-  return collection === "refresh_tokens"
-    && stableJson(spec) === "{\"expiresAt\":1}"
-    && options.expireAfterSeconds === 0;
-}
-
 await connectDb(env);
 
 const failures = [];
-const warnings = [];
 try {
   for (const model of launchModels) {
     const indexes = await model.collection.listIndexes().toArray();
     const expectedIndexes = model.schema.indexes();
     for (const [spec, options = {}] of expectedIndexes) {
       if (hasIndex(indexes, spec, options)) continue;
-      if (hasIndexKey(indexes, spec) && isAllowedOptionWarning(model.collection.name, spec, options)) {
-        warnings.push(`${model.collection.name} ${stableJson(spec)}`);
-      } else {
-        failures.push(`${model.collection.name} ${stableJson(spec)}`);
-      }
+      failures.push(`${model.collection.name} ${stableJson(spec)}`);
     }
     console.log(`[verify-mongo-launch-indexes] checked ${model.collection.name}`);
   }
@@ -126,11 +111,6 @@ if (failures.length) {
   console.error("[verify-mongo-launch-indexes] missing indexes:");
   for (const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
-}
-
-if (warnings.length) {
-  console.warn("[verify-mongo-launch-indexes] option warnings:");
-  for (const warning of warnings) console.warn(`- ${warning}`);
 }
 
 console.log("[verify-mongo-launch-indexes] OK");
