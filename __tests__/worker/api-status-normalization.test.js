@@ -7,8 +7,21 @@ let handleUserRoutes;
 let handleBillingRoutes;
 let handleAuthRoutes;
 let signJwt;
+let REFRESH_COOKIE_NAME;
 
 const TEST_USER_ID = "507f1f77bcf86cd799439011";
+
+async function buildRefreshOnlyRequest(url) {
+  const refreshToken = await signJwt(
+    { userId: TEST_USER_ID, typ: "refresh" },
+    "dev-secret",
+    { issuer: "code-destiny-api", audience: "code-destiny-web", expiresIn: "14d" },
+  );
+  return new Request(url, {
+    method: "GET",
+    headers: { Cookie: `${REFRESH_COOKIE_NAME}=${refreshToken}` },
+  });
+}
 
 async function buildAuthRequest(url, method = "GET", body) {
   const token = await signJwt(
@@ -93,12 +106,13 @@ beforeAll(async () => {
     })),
   ]);
 
-  const [fortuneMod, userMod, billingMod, authMod, jwtMod] = await Promise.all([
+  const [fortuneMod, userMod, billingMod, authMod, jwtMod, authLibMod] = await Promise.all([
     import("../../worker/routes/fortune.js"),
     import("../../worker/routes/user.js"),
     import("../../worker/routes/billing.js"),
     import("../../worker/routes/auth.js"),
     import("../../worker/lib/jwt.js"),
+    import("../../worker/lib/auth.js"),
   ]);
 
   handleFortuneRoutes = fortuneMod.handleFortuneRoutes;
@@ -106,6 +120,7 @@ beforeAll(async () => {
   handleBillingRoutes = billingMod.handleBillingRoutes;
   handleAuthRoutes = authMod.handleAuthRoutes;
   signJwt = jwtMod.signJwt;
+  REFRESH_COOKIE_NAME = authLibMod.REFRESH_COOKIE_NAME;
 });
 
 describe("Worker API status normalization", () => {
@@ -224,6 +239,28 @@ describe("Worker API status normalization", () => {
     expect(payload.degraded).toBe(true);
     expect(payload.tier).toBe("free");
     expect(payload.isActive).toBe(false);
+  });
+
+  test("refresh 토큰만 있고 DB에 닿지 못하면 /api/fortune/pig-coin/balance 는 401 AUTH_REQUIRED가 아니라 degraded여야 한다", async () => {
+    const request = await buildRefreshOnlyRequest("https://example.com/api/fortune/pig-coin/balance");
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).not.toBe(401);
+    expect(payload.authenticated).toBe(true);
+    expect(payload.degraded).toBe(true);
+  });
+
+  test("refresh 토큰만 있고 DB에 닿지 못하면 /api/fortune/pig-coin/profile-subscription/status 는 401 AUTH_REQUIRED가 아니라 degraded여야 한다", async () => {
+    const request = await buildRefreshOnlyRequest("https://example.com/api/fortune/pig-coin/profile-subscription/status");
+
+    const response = await handleFortuneRoutes(request, {});
+    const payload = await response.json();
+
+    expect(response.status).not.toBe(401);
+    expect(payload.authenticated).toBe(true);
+    expect(payload.degraded).toBe(true);
   });
 
   test("로그인 상태 + DB 바인딩 누락 /api/user/destiny-profiles 는 200 DB_FALLBACK", async () => {

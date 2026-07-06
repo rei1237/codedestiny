@@ -91,7 +91,10 @@ type BillingBalancePayload = BillingBalanceData & {
 // "성공 후 응답 유실 → 재시도" 유령 오류를 피하기 위해 자동 재시도 없이 1회만 요청한다.
 const LOGIN_MAX_ATTEMPTS = 1;
 const LOGIN_RETRY_BASE_DELAY_MS = 180;
-const LOGIN_ATTEMPT_TIMEOUT_MS = 20000;
+// Server-side worst case (connect + op timeouts across up to 3 transient-failure retries in
+// handleLogin, worker/routes/auth.js) can run well past 20s — a shorter client timeout used to
+// abort and show a false "failed" error while the server might still succeed in the background.
+const LOGIN_ATTEMPT_TIMEOUT_MS = 45000;
 const AUTH_REFRESH_COOLDOWN_MS = 1500;
 
 const IS_DEV = process.env.NODE_ENV !== "production";
@@ -660,10 +663,10 @@ export async function login(credentials: LoginCredentials) {
     if (!resolvedUser) {
       resolvedUser = await refreshAuth({ force: true });
     } else {
+      // The login response already carries the full normalized user (same shape
+      // /api/auth/me returns) — an extra silent /api/auth/me round trip here would
+      // just re-fetch data we already have.
       applyResolvedUser(payloadUser);
-      void refreshAuth({ force: false, silent: true }).catch((error) => {
-        debugAuth("[auth] silent me refresh skipped", error);
-      });
     }
 
     if (!resolvedUser) {

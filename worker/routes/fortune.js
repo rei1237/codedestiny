@@ -1,7 +1,7 @@
 import { connectDb, mongoose } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
-import { getOptionalUserFromRequest, requireUserFromRequest } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
@@ -66,7 +66,7 @@ import {
 } from "../lib/premium-access-token.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
+import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
 
 const PIG_COIN_DEFAULT_UNLOCK_COST = 10;
@@ -1934,7 +1934,7 @@ async function resolvePigCoinConsumeAuth(request, env) {
 
 function userPayload(auth, points, unlockedFeatures) {
   const payload = {
-    id: String(auth.userId),
+    id: auth?.userId ? String(auth.userId) : "",
     points: Number(points || 0),
   };
   const normalizedUnlocks = normalizePersistentUnlockKeys(unlockedFeatures);
@@ -1945,47 +1945,6 @@ function userPayload(auth, points, unlockedFeatures) {
 function normalizeSubscriptionTier(value) {
   const tier = String(value || "").trim().toLowerCase();
   return VALID_SUB_TIERS.has(tier) ? tier : null;
-}
-
-function normalizeSubscriptionStatusValue(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-function isActiveSubscriptionStatus(value) {
-  const status = normalizeSubscriptionStatusValue(value);
-  return status === "active"
-    || status === "paid"
-    || status === "current"
-    || status === "subscribed"
-    || status === "trialing"
-    || status === "success"
-    || status === "registered"
-    || status === "registering"
-    || status === "pending"
-    || status === "processing"
-    || status === "enrolled"
-    || status === "enabled"
-    || status === "valid"
-    || status === "ok"
-    || status === "complete"
-    || status === "completed"
-    || status === "confirmed"
-    || status === "approved"
-    || status === "\uB4F1\uB85D\uC911"
-    || status === "\uC774\uC6A9\uC911"
-    || status === "\uC720\uD6A8"
-    || status === "\uC644\uB8CC";
-}
-
-function isInactiveSubscriptionStatus(value) {
-  const status = normalizeSubscriptionStatusValue(value);
-  return status === "expired"
-    || status === "canceled"
-    || status === "cancelled"
-    || status === "inactive"
-    || status === "failed"
-    || status === "paused"
-    || status === "refunded";
 }
 
 function getPlanPolicy(tier) {
@@ -2688,13 +2647,15 @@ function toIsoOrNull(value) {
   return date ? date.toISOString() : null;
 }
 
+const FIND_USER_BY_ID_RAW_MAX_TIME_MS = 10000;
+
 async function findUserByIdRaw(userId, projection = {}) {
   const normalizedId = String(userId || "").trim();
   if (!mongoose.Types.ObjectId.isValid(normalizedId)) return null;
 
   return User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(normalizedId) },
-    { projection },
+    { projection, maxTimeMS: FIND_USER_BY_ID_RAW_MAX_TIME_MS },
   );
 }
 
@@ -4731,14 +4692,14 @@ async function handleSubscriptionStatus(request, env, auth) {
   const source = String(sub.source || "coin").toLowerCase();
   const expAt = toValidDate(sub.expiresAt);
   const rawSubscriptionStatus = sub.status || sub.subscriptionStatus || sub.membershipStatus || sub.lastBillingStatus || "";
-  const statusIndicatesActive = isActiveSubscriptionStatus(rawSubscriptionStatus)
+  const statusIndicatesActive = isActiveStatus(rawSubscriptionStatus)
     || sub.isActive === true
     || sub.isSubscribed === true
     || sub.active === true
     || sub.enabled === true
     || sub.valid === true
     || sub.registered === true;
-  const statusIndicatesInactive = isInactiveSubscriptionStatus(rawSubscriptionStatus);
+  const statusIndicatesInactive = isInactiveStatus(rawSubscriptionStatus);
   const cancelAtPeriodEnd = Boolean(sub.cancelAtPeriodEnd);
   const cancelRequestedAt = toValidDate(sub.cancelRequestedAt);
   let points = Number(user.points || 0);
@@ -4759,8 +4720,13 @@ async function handleSubscriptionStatus(request, env, auth) {
       effectiveTier = tier;
     } else if (effectiveExpAt && source !== "card" && !cancelAtPeriodEnd && plan && points >= plan.coins) {
       const newExpAt = new Date(Math.max(effectiveExpAt.getTime(), now.getTime()) + plan.durationDays * 86400000);
+      // Optimistic-concurrency guard: match on the exact expiresAt we just read so only the
+      // first of several racing requests (e.g. multiple tabs/devices polling status right at
+      // expiry) can charge this renewal cycle. A losing racer gets updatedUser === null below
+      // instead of silently deducting a second time for the same cycle.
+      const priorExpiresAtFilter = sub.expiresAt ?? null;
       const updatedUser = await User.findOneAndUpdate(
-        { _id: auth.userId, points: { $gte: plan.coins } },
+        { _id: auth.userId, points: { $gte: plan.coins }, "profileSubscription.expiresAt": priorExpiresAtFilter },
         {
           $inc: { points: -plan.coins },
           $set: {
@@ -4784,7 +4750,19 @@ async function handleSubscriptionStatus(request, env, auth) {
           reason: `${plan.name} subscription auto-renewal`,
           featureKey: "profile-subscription-auto-renew",
           metadata: { tier, expiresAt: newExpAt.toISOString(), autoRenew: true },
+          dedupeKey: `profile-subscription-auto-renew:${String(auth.userId)}:${new Date(priorExpiresAtFilter || 0).toISOString()}`,
         }).catch(() => {});
+      } else {
+        // Insufficient balance, or a concurrent request already renewed this cycle — re-read
+        // the current state so a losing racer reports the winner's result instead of
+        // incorrectly falling through to "free".
+        const freshUser = await findUserByIdRaw(auth.userId, { points: 1, profileSubscription: 1 });
+        const freshExpAt = toValidDate(freshUser?.profileSubscription?.expiresAt);
+        if (freshExpAt && freshExpAt > now) {
+          points = Number(freshUser.points ?? points);
+          effectiveTier = tier;
+          effectiveExpAt = freshExpAt;
+        }
       }
     }
   }
@@ -5162,18 +5140,25 @@ export async function handleFortuneRoutes(request, env) {
     if (method === "GET" && path === "/pig-coin/profile-subscription/plans") return handleProfileSubscriptionPlans();
 
     if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status" || path === "/pig-coin/profile-subscription/me")) {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const isBalanceRoute = path === "/pig-coin/balance";
+      let auth;
+      try {
+        auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true });
+      } catch (error) {
+        if (isAuthDbInfraError(error)) {
+          return isBalanceRoute ? buildDbFallbackBalance(null, error) : buildDbFallbackSubscriptionStatus(null, error);
+        }
+        throw error;
+      }
       if (!auth) {
-        if (path === "/pig-coin/balance") return handleGuestBalance();
-        return handleGuestSubscriptionStatus();
+        return isBalanceRoute ? handleGuestBalance() : handleGuestSubscriptionStatus();
       }
 
       trace.authVerified = true;
       try {
-        if (path === "/pig-coin/balance") return await handleBalance(auth);
+        if (isBalanceRoute) return await handleBalance(auth);
         return await handleSubscriptionStatus(request, env, auth);
       } catch (error) {
-        const isBalanceRoute = path === "/pig-coin/balance";
         if (isBalanceRoute) return buildDbFallbackBalance(auth, error);
         return buildDbFallbackSubscriptionStatus(auth, error);
       }
@@ -5322,4 +5307,5 @@ export const __fortuneAccessTestUtils = {
   getForcePaidTestAccountEmails: getForcePaidTestAccountEmailsFromGuard,
   resolvePigCoinConsumeAuth: resolvePigCoinConsumeAuthFromGuard,
   isAdminPigCoinBypassEnabled: isAdminPigCoinBypassEnabledFromGuard,
+  handleSubscriptionStatus,
 };

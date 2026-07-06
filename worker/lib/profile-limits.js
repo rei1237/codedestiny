@@ -137,7 +137,7 @@ function normalizeStatus(value) {
   return toText(value).toLowerCase();
 }
 
-function isInactiveStatus(value) {
+export function isInactiveStatus(value) {
   const status = normalizeStatus(value);
   return status === "expired"
     || status === "canceled"
@@ -148,7 +148,7 @@ function isInactiveStatus(value) {
     || status === "refunded";
 }
 
-function isActiveStatus(value) {
+export function isActiveStatus(value) {
   const status = normalizeStatus(value);
   return status === "active"
     || status === "paid"

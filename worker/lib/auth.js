@@ -479,12 +479,12 @@ export async function requireAuth(request, env) {
   return getServerUser(request, env);
 }
 
-export async function getOptionalUserFromRequest(request, env) {
+export async function getOptionalUserFromRequest(request, env, options = {}) {
   try {
     const bearerToken = getHeaderBearerToken(request);
     const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
-    const allowTokenDbFallback = isAuthMeRequest(request);
+    const allowTokenDbFallback = options?.allowDbFallback === true || isAuthMeRequest(request);
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
     if (flowerAdminAuth) return flowerAdminAuth;
@@ -508,9 +508,10 @@ export async function getOptionalUserFromRequest(request, env) {
     return null;
   } catch (error) {
     if (error?.message === "DEV_AUTH_USER_ID must not be used in production") throw error;
-    // Let /api/auth/me see a raw DB-infra error so it can report "degraded" instead of
-    // getting collapsed into a generic 401 that looks like a real sign-out.
-    if (isAuthMeRequest(request) && isAuthDbInfraError(error)) throw error;
+    // Let callers that already tolerate DB blips (e.g. /api/auth/me, /api/subscription/status)
+    // see a raw DB-infra error so they can report "degraded" instead of getting collapsed
+    // into a generic 401 that looks like a real sign-out.
+    if ((options?.allowDbFallback === true || isAuthMeRequest(request)) && isAuthDbInfraError(error)) throw error;
     logAuthError("get-optional-user", error, {
       hasAuthorizationHeader: Boolean(request?.headers?.get("Authorization")),
       hasCookieHeader: Boolean(request?.headers?.get("Cookie")),

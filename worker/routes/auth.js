@@ -880,6 +880,10 @@ function getAuthOpTimeoutMs(env) {
   return Math.floor(raw);
 }
 
+// 회전 claim은 됐지만 replacedByTokenHash 기록이 아직 안 끝난 아주 짧은 구간(형제 탭이
+// 회전을 완료 중) — 이 구간 안의 재생은 탈취 재사용이 아니라 동시 새로고침으로 간주한다.
+const REFRESH_IN_FLIGHT_ROTATION_TOLERANCE_MS = 3000;
+
 // refresh 토큰 회전 grace window — 방금 회전된 토큰이 이 시간 이내에 재생되면
 // 멀티탭 동시 회전으로 간주해 전 세션 폐기 대신 정상 처리한다. (기본 30초)
 function getRefreshReuseGraceMs(env) {
@@ -1794,15 +1798,18 @@ async function createRefreshSession(request, env, userId, tokenHash, expiresAt) 
 
 async function markSessionRevoked(tokenHash, patch = {}) {
   if (!tokenHash) return;
-  await RefreshTokenSession.updateOne(
-    { tokenHash },
-    {
-      $set: {
-        revokedAt: patch.revokedAt || new Date(),
-        ...(patch.replacedByTokenHash ? { replacedByTokenHash: patch.replacedByTokenHash } : {}),
-      },
-    },
-  ).catch(() => {});
+  const setFields = {};
+  // skipRevokedAt: the rotation-claim step already stamped the one true revocation instant —
+  // re-stamping it here on every grace-window replay would slide the reuse-detection window
+  // forward indefinitely instead of enforcing a fixed graceMs from the first rotation.
+  if (!patch.skipRevokedAt) {
+    setFields.revokedAt = patch.revokedAt || new Date();
+  }
+  if (patch.replacedByTokenHash) {
+    setFields.replacedByTokenHash = patch.replacedByTokenHash;
+  }
+  if (!Object.keys(setFields).length) return;
+  await RefreshTokenSession.updateOne({ tokenHash }, { $set: setFields }).catch(() => {});
 }
 
 async function revokeAllUserRefreshSessions(userId) {
@@ -2135,29 +2142,30 @@ async function handleRegister(request, env) {
     );
   }
 
-  await withOptionalAuthSideEffect(recordMonthlyCreditGrantLedger({
-    userId: user._id,
-    amount: SIGNUP_MONTHLY_CREDIT_GRANT,
-    beforeBalance: 0,
-    afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-    reason: "회원가입 이용권 혜택 지급",
-    sourceId: `signup:${String(user._id || "")}`,
-    serviceKey: "signup_bonus",
-    metadata: {
-      grantType: "signup",
-      authMethod: "local",
-    },
-  }), Math.min(timeoutMs, 2000), "auth_register_credit_grant_ledger");
-
   const referralCapture = extractReferralCapture(body);
-  const referralReward = (referralCapture.referralCode && referralCapture.referralShareToken)
-    ? await withOptionalAuthSideEffect(
-      applyKakaoReferralReward(request, env, user, referralCapture),
-      Math.min(timeoutMs, 4000),
-      "auth_register_referral_reward",
-      null,
-    )
-    : null;
+  const [, referralReward] = await Promise.all([
+    withOptionalAuthSideEffect(recordMonthlyCreditGrantLedger({
+      userId: user._id,
+      amount: SIGNUP_MONTHLY_CREDIT_GRANT,
+      beforeBalance: 0,
+      afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
+      reason: "회원가입 이용권 혜택 지급",
+      sourceId: `signup:${String(user._id || "")}`,
+      serviceKey: "signup_bonus",
+      metadata: {
+        grantType: "signup",
+        authMethod: "local",
+      },
+    }), Math.min(timeoutMs, 2000), "auth_register_credit_grant_ledger"),
+    (referralCapture.referralCode && referralCapture.referralShareToken)
+      ? withOptionalAuthSideEffect(
+        applyKakaoReferralReward(request, env, user, referralCapture),
+        Math.min(timeoutMs, 4000),
+        "auth_register_referral_reward",
+        null,
+      )
+      : Promise.resolve(null),
+  ]);
 
   try {
     return await withAuthOpTimeout(
@@ -2281,12 +2289,17 @@ async function handleLogin(request, env) {
         return buildInvalidLoginResponse();
       }
 
-      await clearLoginRateLimit(loginRateLimitState);
-      return await withAuthOpTimeout(
-        createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
-        timeoutMs,
-        "auth_login_issue_session",
-      );
+      // Rate-limit housekeeping doesn't gate whether the session gets issued, so run it
+      // alongside session creation instead of serializing an extra DB round trip in front of it.
+      const [, response] = await Promise.all([
+        clearLoginRateLimit(loginRateLimitState),
+        withAuthOpTimeout(
+          createAuthSuccessResponse(request, env, user, 200, body?.nextPath),
+          timeoutMs,
+          "auth_login_issue_session",
+        ),
+      ]);
+      return response;
     } catch (error) {
       const infraFailure = isAuthInfraFailure(error, [
         "auth_login_connect_db",
@@ -2311,7 +2324,7 @@ async function handleLogin(request, env) {
       }
 
       console.error("[auth/login] normalized auth failure:", error);
-      recordFailedLoginAttempt(loginRateLimitState);
+      await recordFailedLoginAttempt(loginRateLimitState);
       return buildInvalidLoginResponse();
     }
   }
@@ -2660,11 +2673,18 @@ async function handleRefresh(request, env) {
 
     const graceMs = getRefreshReuseGraceMs(env);
     const rotatedAt = priorSession?.revokedAt ? new Date(priorSession.revokedAt).getTime() : 0;
+    const rotationAge = rotatedAt > 0 ? Date.now() - rotatedAt : Infinity;
+    const hasReplacement = Boolean(priorSession?.replacedByTokenHash);
+    // A sibling tab's rotation can be revoked (claim step) before it finishes writing
+    // replacedByTokenHash a few DB round trips later. Without this short allowance, a second
+    // tab refreshing at nearly the same instant would read "revoked, no replacement yet" and
+    // get hard-logged-out even though its sibling's rotation was legitimate and in flight.
+    const withinInFlightRotationTolerance = !hasReplacement
+      && rotationAge <= Math.min(REFRESH_IN_FLIGHT_ROTATION_TOLERANCE_MS, graceMs);
     const withinGrace = Boolean(
       priorSession
-      && priorSession.replacedByTokenHash
-      && rotatedAt > 0
-      && Date.now() - rotatedAt <= graceMs
+      && (hasReplacement || withinInFlightRotationTolerance)
+      && rotationAge <= graceMs
       && refreshSessionMatchesRequest(priorSession, request),
     );
 
@@ -2741,7 +2761,7 @@ async function handleRefresh(request, env) {
   const nextRefresh = await issueRefreshTokenForUser(userId, env);
   await createRefreshSession(request, env, userId, nextRefresh.tokenHash, nextRefresh.expiresAt);
   await markSessionRevoked(tokenHash, {
-    revokedAt: new Date(),
+    skipRevokedAt: true,
     replacedByTokenHash: nextRefresh.tokenHash,
   });
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
@@ -3541,5 +3561,6 @@ export async function handleAuthRoutes(request, env) {
 
 export const __authTestUtils = {
   handleLogin,
+  handleRefresh,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
 };

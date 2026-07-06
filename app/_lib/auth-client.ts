@@ -2,6 +2,10 @@ import { getApiBaseUrl } from "./api-config";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
 
+// Must match CACHE_REFRESH_HEADER in user-session-cache.ts — tells that module's
+// window.fetch monkeypatch to bypass its cache and fabricated guest response, since this
+// store is the authoritative source of truth and its "no-store" intent must reach the network.
+const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const AUTH_LOGOUT_INFLIGHT_KEY = "fortune_auth_logout_inflight_at";
 const LOGOUT_TIMEOUT_MS = 3500;
@@ -109,7 +113,7 @@ function clearLegacyClientAccessToken() {
   }
 }
 
-function isMobileAppRuntime() {
+export function isMobileAppRuntime() {
   if (typeof window === "undefined") return process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app";
   const runtimeTarget = (window as unknown as { __CODE_DESTINY_RUNTIME_TARGET?: string }).__CODE_DESTINY_RUNTIME_TARGET
     || document.documentElement.dataset.runtimeTarget
@@ -200,11 +204,23 @@ export async function waitForAuthLogoutToSettle(timeoutMs = LOGOUT_TIMEOUT_MS) {
   clearLogoutInFlightMarker();
 }
 
+function isAuthoritativeAuthPath(url: string) {
+  try {
+    const pathname = new URL(url, "http://localhost").pathname;
+    return pathname === "/api/auth/me" || pathname === "/api/auth/refresh";
+  } catch (e) {
+    return false;
+  }
+}
+
 function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers || {});
   const accessToken = readMobileAppAccessToken();
   if (accessToken && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  if (isAuthoritativeAuthPath(targetUrl)) {
+    headers.set(CACHE_REFRESH_HEADER, "1");
   }
 
   return new Request(targetUrl, {
@@ -279,15 +295,28 @@ export function clearClientAuthState() {
   });
 }
 
+async function requestTokenRefresh(apiBase: string) {
+  return fetch(toAbsoluteApiUrl("/api/auth/refresh", apiBase), {
+    method: "POST",
+    credentials: "include",
+    cache: "no-store",
+    headers: { [CACHE_REFRESH_HEADER]: "1" },
+  });
+}
+
 async function refreshSession(apiBase: string) {
   if (!refreshInFlight) {
     refreshInFlight = (async () => {
       try {
-        const response = await fetch(toAbsoluteApiUrl("/api/auth/refresh", apiBase), {
-          method: "POST",
-          credentials: "include",
-          cache: "no-store",
-        });
+        let response = await requestTokenRefresh(apiBase);
+
+        if (response.status === 401 || response.status === 403) {
+          // The refresh cookie is shared across tabs — a sibling tab may have just rotated
+          // it (server-side reuse-detection grace window). Retry once after a short delay
+          // before treating this as a genuinely invalid session and logging every tab out.
+          await sleep(400);
+          response = await requestTokenRefresh(apiBase);
+        }
 
         if (!response.ok) {
           // Only clear local auth state for explicit auth invalid responses.

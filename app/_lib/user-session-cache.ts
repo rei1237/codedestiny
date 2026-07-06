@@ -435,7 +435,9 @@ export function installUserAccessFetchCache() {
     const kind = resolveCacheKind(parsedUrl.pathname);
     if (!kind || parsedUrl.origin !== window.location.origin) return nativeFetch(input, init);
     ensureSessionCookie();
-    if (parsedUrl.pathname === "/api/auth/me" && !hasClientAuthHint()) {
+    // A caller asking to bypass the cache (e.g. auth-store's force refresh) wants an
+    // authoritative server answer — never fabricate a guest response from a local hint for it.
+    if (parsedUrl.pathname === "/api/auth/me" && !hasClientAuthHint() && !shouldBypass(init)) {
       return Promise.resolve(guardedGuestAuthResponse());
     }
 

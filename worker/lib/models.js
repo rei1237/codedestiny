@@ -1047,6 +1047,24 @@ const neoOperationRoomConsultationSchema = new mongoose.Schema({
 neoOperationRoomConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 neoOperationRoomConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// socialAccounts.<provider>.id defaults to "" (not absent), so a plain sparse index wouldn't
+// exclude non-social users — a partial filter on non-empty values keeps these lean the same
+// way pointHistorySchema's dedupeKey index does. findOrCreateSocialUser (worker/routes/auth.js)
+// queries these on every social login; without this, it's an unindexed scan over all users.
+// NOTE: db.js connects with autoIndex:false, so this declaration alone does not create the
+// index in production — re-run `npm run migrate:auth-core-indexes` once against the DB
+// (scripts/migrations/20260705-add-auth-core-indexes.mjs already targets User.createIndexes()).
+["google", "naver", "kakao"].forEach((provider) => {
+  userSchema.index(
+    { [`socialAccounts.${provider}.id`]: 1 },
+    {
+      partialFilterExpression: {
+        [`socialAccounts.${provider}.id`]: { $exists: true, $type: "string", $gt: "" },
+      },
+    },
+  );
+});
+
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);
 export const Payment = mongoose.models.Payment || mongoose.model("Payment", paymentSchema);

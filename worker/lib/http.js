@@ -90,12 +90,14 @@ export function cookieValue(request, name) {
 }
 
 export function getRequestMeta(request) {
+  // cf-connecting-ip is set by Cloudflare's edge and can't be spoofed by the client, unlike
+  // x-forwarded-for (client-supplied, checking it first let anyone rotate rate-limit buckets).
   const forwarded = String(request.headers.get("x-forwarded-for") || "")
     .split(",")[0]
     .trim();
 
   return {
-    ip: forwarded || request.headers.get("cf-connecting-ip") || "unknown",
+    ip: request.headers.get("cf-connecting-ip") || forwarded || "unknown",
     userAgent: String(request.headers.get("user-agent") || "").slice(0, 300),
     requestId: String(request.headers.get("x-request-id") || request.headers.get("cf-ray") || "").slice(0, 120),
   };
