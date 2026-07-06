@@ -4,10 +4,10 @@ import { useState } from "react";
 import type { LoadingMotionTone } from "./LoadingProgressMotion";
 
 const PAYMENT_PIG_LOGO_FALLBACK_URL =
-  "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
+  "/DestinyCafe/꽃돼지3.webp?v=20260618-react-paid-gate";
 
 export const PAYMENT_PIG_LOGO_URL =
-  "https://assets.code-destiny.com/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260618-react-paid-gate";
+  "/DestinyCafe/꽃돼지3.webp?v=20260618-react-paid-gate";
 
 export function PaymentPigVisual({
   tone = "payment",
