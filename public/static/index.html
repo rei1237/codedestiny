@@ -7332,20 +7332,26 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
                       window.__cdSetGoldenBalance(nextPoints, { source: 'auth-me-fallback' });
                     }
 
-                    if (!__cdAuthCardResolved && !authMeDegraded && nextUser.profileSubscription && typeof nextUser.profileSubscription === 'object') {
+                    // 확정 스냅샷(source가 token/auth_snapshot/fallback이 아니고 degraded도 아님)만 배지를 확정한다.
+                    // token 폴백·degraded 등 '미확정' 구독 상태를 무료(STELLAR MEMBER)로 강등 확정하지 않기 위함.
+                    var __cdAuthMeSubConfirmed = !authMeDegraded
+                      && nextUser.profileSubscription
+                      && typeof nextUser.profileSubscription === 'object'
+                      && __cdHasConfirmedSubscriptionSnapshot(nextUser.profileSubscription);
+                    if (!__cdAuthCardResolved && __cdAuthMeSubConfirmed) {
                       subStatus = nextUser.profileSubscription;
                       subLabel = __cdMakeSubscriptionLabel(subStatus);
                       subChip = __cdMakeMembershipChip(subStatus);
-                    } else if (!__cdAuthCardResolved && authMeDegraded) {
-                      subStatus = {};
-                      subLabel = '';
-                      subChip = 'STELLAR MEMBER';
+                      __cdAuthCardResolved = true;
+                      __cdClearAuthDelayTimer();
+                      __cdClearAuthRetryTimer();
+                      __cdRenderWithSub(nextPoints, subLabel, subChip);
+                      return true;
                     }
-                    __cdAuthCardResolved = true;
-                    __cdClearAuthDelayTimer();
-                    __cdClearAuthRetryTimer();
-                    __cdRenderWithSub(nextPoints, subLabel, subChip);
-                    return true;
+                    // 미확정 구독 스냅샷은 배지를 확정하지 않는다: 이름/포인트는 위에서 이미 갱신됐고,
+                    // 배지는 /api/subscription/status의 확정 스냅샷이 결정하도록 넘긴다(끝내 미확정이면
+                    // __cdScheduleSubscriptionRetry 폴백이 최종 렌더). 여기서 STELLAR MEMBER로 latch하지 않음.
+                    return false;
                   })
                   .catch(function () { return false; });
               };
