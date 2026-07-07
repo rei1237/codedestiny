@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -9,6 +9,7 @@ import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, Fo
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { getTenGodMeta } from "../data/tenGods";
+import { sanitizeTeaHouseConsultResult } from "../lib/sanitizeConsultResult";
 import AssetImage from "./AssetImage";
 import TarotAssetCard from "./TarotAssetCard";
 import TeaCupVisual from "./TeaCupVisual";
@@ -169,7 +170,7 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse) 
 }
 
 export default function TeaHouseResultSheet({
-  result,
+  result: rawResult,
   onRestart,
   onShowTarot,
   onEditBirthInfo,
@@ -177,6 +178,8 @@ export default function TeaHouseResultSheet({
   onHoneyDropsChange,
   onResultUpdate,
 }: TeaHouseResultSheetProps) {
+  // 저장/캐시된 오염 결과(객체 값·빈 문자열·문자열 퍼센트)도 크래시 없이 렌더되도록 1회 정규화.
+  const result = useMemo(() => sanitizeTeaHouseConsultResult(rawResult), [rawResult]);
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const [saveStatus, setSaveStatus] = useState("");
@@ -190,16 +193,13 @@ export default function TeaHouseResultSheet({
     : fortuneTeaHouseAssets.yeoni.transparent.flowerPig5Sprite;
   const resultYeoniProbe = useLazySpriteSource(resultYeoniSprite, resultYeoniGate.canLoad);
   const resultPigProbe = useLazySpriteSource(resultPigSprite, resultPigGate.canLoad);
+  // 스프라이트 로딩 전에도 빈 무대 대신 정적 컷아웃을 먼저 보여준다 (로딩 지연 시 공백 방지).
   const resultYeoniSpriteSource = resultYeoniProbe.isLoaded
     ? resultYeoniProbe.resolvedSrc
-    : resultYeoniProbe.isFailed
-      ? fortuneTeaHouseAssets.yeoni.transparent.bust
-      : "";
+    : fortuneTeaHouseAssets.yeoni.transparent.bust;
   const resultPigSpriteSource = resultPigProbe.isLoaded
     ? resultPigProbe.resolvedSrc
-    : resultPigProbe.isFailed
-      ? fortuneTeaHouseAssets.cutout.flowerPig
-      : "";
+    : fortuneTeaHouseAssets.cutout.flowerPig;
   const consultationMode = result.consultationMode || "tarot";
   const isTarotMode = consultationMode === "tarot";
   const isSajuMode = consultationMode === "saju";
@@ -381,8 +381,8 @@ export default function TeaHouseResultSheet({
           data-sprite-status={resultYeoniProbe.status}
           style={{
             "--result-yeoni-sprite": resultYeoniSpriteSource ? `url("${resultYeoniSpriteSource}")` : "none",
-            "--result-yeoni-bg-size": resultYeoniGate.isMobile || resultYeoniProbe.isFailed ? "contain" : "400% 200%",
-            "--result-yeoni-bg-position": resultYeoniGate.isMobile || resultYeoniProbe.isFailed ? "center" : "0% 0%",
+            "--result-yeoni-bg-size": resultYeoniGate.isMobile || !resultYeoniProbe.isLoaded ? "contain" : "400% 200%",
+            "--result-yeoni-bg-position": resultYeoniGate.isMobile || !resultYeoniProbe.isLoaded ? "center" : "0% 0%",
           } as CSSProperties}
           role="img"
           aria-label="상담을 마치고 감사 인사를 건네는 연이"
@@ -398,7 +398,7 @@ export default function TeaHouseResultSheet({
           {selectedCup ? <TeaCupVisual cup={selectedCup} state="selected" size="large" className={styles.resultHeaderCup} /> : null}
           <p className={styles.sceneEyebrow}>{selectedCup?.eyebrow || "인간 상담사 연이가 읽어 준 오늘의 찻잔"}</p>
           <h2 id="teaResultTitle">{result.sessionTitle}</h2>
-          <p>{result.questionSummary}</p>
+          {result.questionSummary ? <p>{result.questionSummary}</p> : null}
           <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>
         </header>
 
@@ -545,7 +545,7 @@ export default function TeaHouseResultSheet({
             ) : null}
           </div>
           <LlmParagraphs text={synthesis.summary} />
-          <strong>{synthesis.sajuTarotBridge}</strong>
+          {synthesis.sajuTarotBridge ? <strong>{synthesis.sajuTarotBridge}</strong> : null}
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="emotionResultTitle">
@@ -559,16 +559,16 @@ export default function TeaHouseResultSheet({
               data-sprite-status={resultPigProbe.status}
               style={{
                 "--result-pig-sprite": resultPigSpriteSource ? `url("${resultPigSpriteSource}")` : "none",
-                "--result-pig-bg-size": resultPigGate.isMobile || resultPigProbe.isFailed ? "contain" : "400% 400%",
-                "--result-pig-bg-position": resultPigGate.isMobile || resultPigProbe.isFailed ? "center" : "0% 0%",
+                "--result-pig-bg-size": resultPigGate.isMobile || !resultPigProbe.isLoaded ? "contain" : "400% 400%",
+                "--result-pig-bg-position": resultPigGate.isMobile || !resultPigProbe.isLoaded ? "center" : "0% 0%",
               } as CSSProperties}
               role="img"
               aria-label="마음의 향을 맡는 꽃돼지 연이"
             />
           </div>
           <div className={styles.resultEmotionList}>
-            {result.emotionAnalysis.map((item) => (
-              <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label}>
+            {result.emotionAnalysis.map((item, index) => (
+              <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label || String(index)}>
                 <div>
                   <strong>{item.label}</strong>
                   <span>{item.value}%</span>
@@ -599,44 +599,68 @@ export default function TeaHouseResultSheet({
             <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
           )}
           <div className={styles.yeoniReadingGrid}>
-            <LlmParagraphs text={result.yeoniReading.intro} />
-            <LlmParagraphs text={result.yeoniReading.main} />
+            {result.yeoniReading.intro ? (
+              <div className={styles.yeoniReadingItem}>
+                <LlmParagraphs text={result.yeoniReading.intro} />
+              </div>
+            ) : null}
+            {result.yeoniReading.main ? (
+              <div className={styles.yeoniReadingItem}>
+                <LlmParagraphs text={result.yeoniReading.main} />
+              </div>
+            ) : null}
             <AssetImage
               className={styles.resultSectionMascot}
               src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
               fallbackSrc={fortuneTeaHouseAssets.yeoni.transparent.bust}
               alt=""
             />
-            <LlmParagraphs text={result.yeoniReading.advice} />
-            <LlmParagraphs text={result.yeoniReading.caution} />
+            {result.yeoniReading.advice ? (
+              <div className={styles.yeoniReadingItem}>
+                <LlmParagraphs text={result.yeoniReading.advice} />
+              </div>
+            ) : null}
+            {result.yeoniReading.caution ? (
+              <div className={styles.yeoniReadingItem}>
+                <LlmParagraphs text={result.yeoniReading.caution} />
+              </div>
+            ) : null}
           </div>
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
           <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base8} alt="" />
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
-              <article className={`${styles.choiceCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={choice.id}>
-                <span>{choice.subtitle}</span>
+              <article className={`${styles.choiceCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={choice.id || choice.title}>
+                {choice.subtitle ? <span>{choice.subtitle}</span> : null}
                 <h4>{choice.title}</h4>
                 <LlmParagraphs text={choice.result} />
-                <strong>{choice.caution}</strong>
+                {choice.caution ? <strong>{choice.caution}</strong> : null}
               </article>
             ))}
           </div>
         </section>
 
+        {result.actionPrescription || previewKeywords.length ? (
         <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle">
           <h3 id="actionPrescriptionTitle">오늘의 작은 처방</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base2} alt="" />
-          <LlmParagraphs text={result.actionPrescription} />
-          <div className={styles.luckyKeywordList}>
-            {previewKeywords.map((keyword) => (
-              <span key={keyword}>{keyword}</span>
-            ))}
-          </div>
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.consultModes[consultationMode] || fortuneTeaHouseAssets.cutout.flowerPig} alt="" />
+          {result.actionPrescription ? (
+            <div className={styles.yeoniReadingItem}>
+              <LlmParagraphs text={result.actionPrescription} />
+            </div>
+          ) : null}
+          {previewKeywords.length ? (
+            <div className={styles.luckyKeywordList}>
+              {previewKeywords.map((keyword) => (
+                <span key={keyword}>{keyword}</span>
+              ))}
+            </div>
+          ) : null}
         </section>
+        ) : null}
 
         <section className={`${styles.resultBlock} ${styles.honeyLetterBlock}`} aria-labelledby="honeyLetterTitle">
           <div className={styles.honeyLetterLayout}>
@@ -658,7 +682,8 @@ export default function TeaHouseResultSheet({
               {honeyLetter ? (
                 <article className={styles.honeyLetterCard} aria-live="polite">
                   <h4>{honeyLetter.title || "연이의 꿀편지"}</h4>
-                  <LlmParagraphs text={honeyLetter.body} />
+                  {/* 편지는 문단 분할 없이 원문 개행 그대로 (white-space: pre-line) */}
+                  <p>{honeyLetter.body}</p>
                 </article>
               ) : (
                 <div className={styles.honeyLetterCta}>
@@ -681,11 +706,15 @@ export default function TeaHouseResultSheet({
           </div>
         </section>
 
+        {result.closingLine ? (
         <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle">
           <h3 id="closingResultTitle">마지막 한마디</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.full} alt="" />
-          <LlmParagraphs text={result.closingLine} pClassName={styles.sajuSummary} />
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
+          <div className={styles.yeoniReadingItem}>
+            <LlmParagraphs text={result.closingLine} pClassName={styles.sajuSummary} />
+          </div>
         </section>
+        ) : null}
 
         <div className={`${styles.resultActions} ${resultActionUi}`}>
           <TeaHouseButton onClick={onRestart}>다시 상담하기</TeaHouseButton>

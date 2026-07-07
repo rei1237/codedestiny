@@ -99,10 +99,11 @@ type FortuneTeaHouseConsultApiResponse = {
     runtimeGate?: Partial<FortuneTeaBillingGateInput> & Record<string, unknown>;
   } & Record<string, unknown>;
   generationMeta?: {
-    mode?: "gemini" | "local_fallback";
+    mode?: "gemini" | "gemini_degraded" | "local_fallback";
     provider?: string;
     model?: string;
     reason?: string;
+    degraded?: boolean;
     generatedAt?: string;
   };
 };
@@ -918,6 +919,8 @@ export default function FortuneTeaHousePage() {
               ? "연이가 27숙 인연의 흐름을 먼저 짚어 상담을 이어갔어요."
               : "연이가 타로의 향을 먼저 엮어 상담을 이어갔어요.",
         );
+      } else if (payload.generationMeta?.degraded) {
+        setNotice("연이가 오늘은 향을 끝까지 우려내지 못해, 읽을 수 있는 부분부터 정성껏 담아 전했어요.");
       }
       if (nextQuestionInput.consultationMode === "saju" || nextQuestionInput.consultationMode === "sukuyo") {
         logSubmitStep("go result");
