@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaTarotSpreadCard } from "../data/consult";
-import { getFortuneTeaHouseResultButtonLabel } from "../data/consultPricing";
+import { getFortuneTeaHouseRevealButtonLabel } from "../data/consultPricing";
 import { getTeaHouseCupById } from "../data/teaCups";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TarotCardBack from "./TarotCardBack";
@@ -52,11 +52,6 @@ function buildRevealCards(result: FortuneTeaHouseConsultResponse): FortuneTeaTar
   ];
 }
 
-function priceLabelFromResult(result: FortuneTeaHouseConsultResponse) {
-  const amount = Math.max(0, Math.floor(Number(result.pricing?.amountKRW ?? result.pricing?.amountKrw ?? result.pricing?.paymentAmount ?? 0)));
-  return amount > 0 ? `${amount.toLocaleString("ko-KR")}원` : "";
-}
-
 export default function TarotRevealScene({ result, onComplete }: TarotRevealSceneProps) {
   const prefersReducedMotion = usePrefersReducedMotion();
   const spreadCards = useMemo(() => buildRevealCards(result), [result]);
@@ -64,7 +59,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   const [phase, setPhase] = useState<TarotRevealPhase>(() => getInitialRevealPhase(prefersReducedMotion));
   const [revealedPositions, setRevealedPositions] = useState<string[]>([]);
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
-  const resultButtonLabel = getFortuneTeaHouseResultButtonLabel(result.consultationMode || "tarot", priceLabelFromResult(result) || undefined);
+  const resultButtonLabel = getFortuneTeaHouseRevealButtonLabel();
   const revealedCount = revealedPositions.length;
   const allCardsRevealed = spreadCards.length > 0 && revealedCount >= spreadCards.length;
   const orientationLabel = result.tarot.orientation === "upright" ? "정방향" : "역방향";

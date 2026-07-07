@@ -2922,21 +2922,33 @@ async function generateConsultResult(request, fallback, env) {
 
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const maxAttempts = 3;
+  // 잘림(MAX_TOKENS) 발생 시 다음 시도에서 출력 토큰을 상향해 긴 상담문이 완결되도록 한다.
+  // gemini-2.5-flash 출력 상한 아래(40k)로 캡, 잘림이 없으면 base 토큰 그대로 유지.
+  const baseMaxOutputTokens = consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000;
+  const maxOutputTokensCap = 40000;
+  const timeoutMs = consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000;
   let lastError = null;
   let lastCandidate = null;
+  let truncationRetries = 0;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const maxOutputTokens = Math.min(maxOutputTokensCap, Math.round(baseMaxOutputTokens * (1 + 0.3 * truncationRetries)));
     try {
       const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt, lastError?.message || lastError), {
         systemPrompt: buildSystemPrompt(consultationMode),
         taskType: "fortune",
         temperature: attempt > 1 ? 0.48 : attempt > 0 ? 0.54 : 0.62,
-        maxOutputTokens: consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000,
-        timeoutMs: consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000,
+        maxOutputTokens,
+        timeoutMs,
         responseMimeType: "application/json",
+        // JSON 구조화 출력은 Workers AI(8B, JSON 모드 없음) 폴백이 비-JSON을 반환해 파싱 실패로
+        // 시간만 낭비한다. 찻집은 강한 결정론 fallback이 있으므로 폴백을 끄고 빠르게 degrade한다.
+        fallbackToWorkersAI: false,
       });
 
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
+      // 잘렸으면 다음 시도에서 토큰을 늘린다(extractJson가 곧 throw해도 카운터는 반영됨).
+      if (ai.truncated) truncationRetries += 1;
       const parsed = extractJson(ai.text);
       const result = mergeLlmResult(fallback, parsed);
       // 품질 게이트 실패에도 렌더 가능한 최선 후보를 보존한다 (결제 후 결과 유실 방지).
@@ -3011,10 +3023,15 @@ function buildFortuneTeaResultStorageId(userId, resultId) {
   return `fortune-tea-house-result:${createHash("sha256").update(`${userId}:${resultId}`).digest("hex").slice(0, 48)}`;
 }
 
+// 동기 생성은 최악의 경우 maxAttempts(3) × 최장 per-mode timeout(숙요 120s) = 360s까지 걸린다.
+// 잠금 유효 창이 그보다 짧으면(구 120s), 재시도 클라이언트가 진행 중 문서를 "만료"로 오인해
+// 두 번째 생성을 띄운다(중복 LLM 비용 + 저장 경쟁). 최악 시간 + 마진으로 창을 확장한다.
+const FORTUNE_TEA_GENERATION_LOCK_TTL_MS = 390000;
+
 function isFreshFortuneTeaGeneration(doc, now = Date.now()) {
   if (!doc || doc.status !== "generating") return false;
   const updatedAt = new Date(doc.updatedAt || doc.createdAt || 0).getTime();
-  return Number.isFinite(updatedAt) && now - updatedAt < 120000;
+  return Number.isFinite(updatedAt) && now - updatedAt < FORTUNE_TEA_GENERATION_LOCK_TTL_MS;
 }
 
 function publicFortuneTeaStoredResult(doc, fallback = {}) {

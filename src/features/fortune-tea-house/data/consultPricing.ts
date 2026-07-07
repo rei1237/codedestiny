@@ -38,3 +38,9 @@ export function getFortuneTeaHouseResultButtonLabel(mode: FortuneTeaHouseConsult
   if (mode === "sukuyo") return `숙요점 궁합 결과 보기 · ${priceLabel}`;
   return `사주 결과 보기 · ${priceLabel}`;
 }
+
+// 결과 생성 후(접근권 확보 상태)의 리빌 버튼용 라벨. 이 시점엔 이미 결제/이용권이 확인됐으므로
+// 가격을 노출하지 않는다. 타로/사주/숙요 공통 문구.
+export function getFortuneTeaHouseRevealButtonLabel() {
+  return "연이 상담문 펼쳐보기";
+}

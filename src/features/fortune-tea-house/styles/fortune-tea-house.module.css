@@ -5577,6 +5577,50 @@
     drop-shadow(0 0 18px rgba(255, 233, 177, 0.18));
 }
 
+/* scentLoading 대기 패널: 찻잔 + 간결한 "대기 중" 상태만. 색은 .emotionPanel 토큰을 그대로 상속(두 테마 자동 대응), 여기서는 레이아웃만 정의. */
+.scentWaitingPanel {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+}
+
+.scentWaitingPanel .scentWaitingCup {
+  position: relative;
+  width: min(210px, 60%);
+  margin-bottom: 2px;
+  filter: drop-shadow(0 18px 30px rgba(7, 3, 18, 0.32)) drop-shadow(0 0 22px rgba(255, 233, 177, 0.18));
+}
+
+.emotionPanel .scentWaitingCaption {
+  max-width: 30ch;
+  margin: 0;
+  color: var(--tea-readable-title);
+  font-family: var(--tea-font-display, var(--tea-font-premium));
+  font-size: clamp(1.12rem, 1.7vw, 1.42rem);
+  font-weight: 600;
+  line-height: 1.38;
+  text-wrap: balance;
+}
+
+.scentWaitingTrack {
+  width: min(320px, 100%);
+}
+
+.emotionPanel .scentWaitingLine {
+  min-height: 2.6em;
+  max-width: 34ch;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.62;
+  opacity: 0.86;
+}
+
+.scentWaitingPanel .loadingDelayNotice {
+  width: min(340px, 100%);
+}
+
 .scentLoadingCupPoseYeoni {
   position: relative;
   z-index: 2;
