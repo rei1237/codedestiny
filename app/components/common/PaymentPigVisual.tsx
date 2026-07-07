@@ -9,6 +9,9 @@ import type { LoadingMotionTone } from "./LoadingProgressMotion";
 const PAYMENT_PIG_PUBLIC_PATH = "/DestinyCafe/nobackground/꽃돼지3-Photoroom.png";
 
 export const PAYMENT_PIG_LOGO_URL = getAssetUrlFromPublicPath(PAYMENT_PIG_PUBLIC_PATH, {
+  // 빌드에 NEXT_PUBLIC_ASSETS_BASE_URL이 없어도 R2로 가도록 찻집 assets.ts와 동일한 하드코딩 폴백을 둔다.
+  // (로컬 폴백 경로는 public/에 존재하지 않아 env 미설정 빌드에서 이미지가 404로 사라졌다.)
+  baseUrl: process.env.NEXT_PUBLIC_ASSETS_BASE_URL || "https://assets.code-destiny.com",
   fallbackPublicPath: PAYMENT_PIG_PUBLIC_PATH,
   prefix: "",
 });
