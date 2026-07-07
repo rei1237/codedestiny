@@ -669,7 +669,6 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
       amountKRW: pricing.amountKRW,
       amountKrw: pricing.amountKRW,
       membershipCreditCost: pricing.membershipCreditCost,
-      paymentMode: "DIRECT_KRW",
       requestId: idempotencyKey,
       idempotencyKey,
     },

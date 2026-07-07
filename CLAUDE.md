@@ -85,6 +85,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 **핵심 요약**:
 - **이용권**(30일, 구독형이나 자동갱신 없음) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
+- **모든 유료 결제는 이용권 선검사 후 미커버 시에만 결제창 노출** — 결제창은 단건결제(KRW)+월정석 2옵션 동등 제시. 결제창/PortOne 직행 및 서버 runtimeGate `paymentMode` 하드코딩 금지 — [flow 문서 결제창 노출 규칙](docs/payment-policy-flow.md) 참고
 - **코인은 폐지된 개념** — 서버 내부 계산에만 남아있고, 사용자에게는 항상 통화(현재 KRW, `1코인=100원` 고정 — `worker/lib/billing-policy.js`, 프론트는 `lib/payment/coin-pricing.ts`)로 환산해 표시. 신규 UI 작성 시 `coinPrice`/`cost`를 그대로 렌더링하지 말 것
 - 신규 유료 기능은 "재열람 가능한 고정 콘텐츠"인지 "매번 생성되는 개인화 결과"인지에 따라 잠금 콘텐츠(`unlock.*`, `forceDeduct: true`) 또는 회당 결제(`PER_USE_PAID_FEATURE_KEY_LIST`)로 등록 — 판별 기준은 [content-access 문서](docs/payment-policy-content-access.md) 참고
 
