@@ -3835,6 +3835,25 @@ async function callFortuneTeaDeferredUsageRoute({ request, env, path, featureKey
   return payload?.data || payload;
 }
 
+// 이용권/결제 판정만 수행하는 체크 전용 엔드포인트 — LLM 생성·차감 없이 /consult와 동일한 접근 판정을 공유한다.
+async function handleEnsureAccess(request, env) {
+  if (!checkRateLimit(request)) {
+    return json(
+      { ok: false, message: "찻잔이 잠시 뜨거워졌어요. 잠시 후 다시 건네주세요." },
+      { status: 429 },
+    );
+  }
+  const body = await readJson(request);
+  const consultRequest = normalizeRequest(body);
+  const access = await verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest);
+  if (!access.ok) return access.response;
+  return json({
+    ok: true,
+    featureKey: access.featureKey,
+    accessSource: cleanText(access.accessDecision?.accessSource || access.accessDecision?.reason, 80),
+  });
+}
+
 async function handleConsult(request, env) {
   if (!checkRateLimit(request)) {
     return json(
@@ -3996,6 +4015,10 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}) {
 
     if (method === "POST" && path === "/honey-drops/tarot-album/unlock") {
       return await handleTarotAlbumUnlock(request, env);
+    }
+
+    if (method === "POST" && path === "/ensure-access") {
+      return await handleEnsureAccess(request, env);
     }
 
     if (method === "POST" && path === "/consult") {

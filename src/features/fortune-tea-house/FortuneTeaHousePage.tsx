@@ -203,9 +203,21 @@ async function postFortuneTeaConsultRequest(body: FortuneTeaConsultPostBody, sig
   return { response, payload };
 }
 
+// 체크 전용 이용권/결제 판정 — LLM 생성 없이 /consult와 동일한 접근 판정만 서버에서 수행한다.
+async function postFortuneTeaEnsureAccessRequest(body: FortuneTeaConsultPostBody) {
+  const response = await authFetch("/api/fortune-tea-house/ensure-access", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    cache: "no-store",
+  }, { retryOn401: false });
+  const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
+  return { response, payload };
+}
+
 // 서버가 202(생성 중)를 주면 같은 resultId로 상한 있는 폴링을 해 완료 결과로 수렴시킨다.
-// CF Block-Infinite-Loop rate-limit(10s/100회) 가드: 최대 6회·지수 백오프(1s→8s), 429/취소 시 즉시 종료.
-const FORTUNE_TEA_POLL_BACKOFFS_MS = [1000, 1500, 2500, 4000, 6000, 8000];
+// CF Block-Infinite-Loop rate-limit(10s/100회) 가드: 최대 11회·지수 백오프(1s→8s, 총 ~59s), 429/취소 시 즉시 종료.
+const FORTUNE_TEA_POLL_BACKOFFS_MS = [1000, 1500, 2500, 4000, 6000, 8000, 8000, 8000, 8000, 8000, 8000];
 async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCancelled: () => boolean) {
   for (let attempt = 0; attempt < FORTUNE_TEA_POLL_BACKOFFS_MS.length; attempt += 1) {
     await new Promise((resolve) => window.setTimeout(resolve, FORTUNE_TEA_POLL_BACKOFFS_MS[attempt]));
@@ -808,27 +820,18 @@ export default function FortuneTeaHousePage() {
         requestId: attemptId,
         idempotencyKey: attemptId,
       };
-      logSubmitStep("api result start");
-      const abortController = new AbortController();
-      const localPreviewTimeoutId = useLocalPreview ? window.setTimeout(() => abortController.abort(), 8500) : null;
-      const initialConsultBody: FortuneTeaConsultPostBody = { ...requestPayloadWithAttempt, draftResult: localDraft };
-      // 202(생성 중) 응답 시 폴링에 재사용할 body. 결제 게이트 통과 후 phase2Body로 갱신된다.
-      let consultPollBody: FortuneTeaConsultPostBody = initialConsultBody;
-      let { response, payload } = await postFortuneTeaConsultRequest(initialConsultBody, abortController.signal).finally(() => {
-        if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
-      });
-      if (isFortuneTeaGenerationPending(response, payload)) {
-        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId);
-        if (consultRunRef.current !== consultRunId) return;
-        if (polled) ({ response, payload } = polled);
-        else throw buildFortuneTeaGenerationPendingError(payload.message);
-      }
-      // 폴백(단건/월정석 결제 시트) 진입은 paymentRequired 단일 신호에만 의존하지 않는다.
-      // 서버가 401/402(로그인 필요·결제 필요)로 응답하면 pricing/paymentPayload를 함께 실어 보내므로,
-      // 신호가 유실돼도 결제 게이트를 시도한다. (429/500/503 재시도성 오류는 여기서 제외되어 일반 에러로 처리)
-      if (
-        (!response.ok || !payload.ok || !payload.result)
-        && (payload.paymentRequired || response.status === 401 || response.status === 402)
+      // 이용권 판정은 체크 전용 ensure-access로 먼저 끝낸다 (네오 전략실 ensureAccess 패턴).
+      // 접근 판정과 LLM 생성을 분리해 "이용권 확인" 게이트가 생성까지 덮지 않게 한다.
+      logSubmitStep("ensure access start");
+      const accessCheck = await postFortuneTeaEnsureAccessRequest(requestPayloadWithAttempt);
+      if (consultRunRef.current !== consultRunId) return;
+      let billingEvidenceBody: FortuneTeaConsultPostBody | null = null;
+      if (accessCheck.response.ok && accessCheck.payload.ok) {
+        logSubmitStep("ensure access ok");
+      } else if (
+        accessCheck.payload.paymentRequired
+        || accessCheck.response.status === 401
+        || accessCheck.response.status === 402
       ) {
         setGenerationProgress((current) => ({
           ...current,
@@ -836,19 +839,13 @@ export default function FortuneTeaHousePage() {
           label: "가격 확인",
           message: "상담 가격과 결제 권한을 확인하고 있어요.",
         }));
-        const billing = await runFortuneTeaBillingGate(payload, nextQuestionInput.consultationMode, attemptId);
+        const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput.consultationMode, attemptId);
         if (consultRunRef.current !== consultRunId) return;
         const billingGate = asRecord(billing.data);
         const accessGrant = asRecord(billingGate.accessGrant);
         const consume = asRecord(billingGate.consume);
         logSubmitStep("billing gate success", { featureKey: billing.featureKey });
-        setGenerationProgress((current) => ({
-          ...current,
-          percent: Math.max(current.percent, 42),
-          label: "결제 확인 중",
-          message: "결제와 이용권이 열린 것을 확인하고 있어요.",
-        }));
-        const phase2Body: FortuneTeaConsultPostBody = {
+        billingEvidenceBody = {
           ...requestPayloadWithAttempt,
           draftResult: localDraft,
           featureKey: billing.featureKey,
@@ -864,19 +861,41 @@ export default function FortuneTeaHousePage() {
             consume,
           },
         };
-        consultPollBody = phase2Body;
-        ({ response, payload } = await postFortuneTeaConsultRequest(phase2Body));
-        // 결제 증빙은 방금 기록됐지만 DB 전파 지연으로 서버가 아직 못 찾아 402를 줄 수 있다.
-        // 같은 증빙으로 한 번만 짧게 백오프 후 재조회해 코인 결제자의 "결제했는데 또 결제창"을 없앤다.
-        if (
-          (!response.ok || !payload.ok || !payload.result)
-          && payload.paymentRequired
-          && !isFortuneTeaGenerationPending(response, payload)
-        ) {
-          await new Promise((resolve) => window.setTimeout(resolve, 500));
-          if (consultRunRef.current !== consultRunId) return;
-          ({ response, payload } = await postFortuneTeaConsultRequest(phase2Body));
-        }
+      } else {
+        throw new Error(toText(accessCheck.payload.message) || "이용권 확인이 잠시 멈췄어요. 다시 한 번만 시도해 주세요.");
+      }
+
+      // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
+      await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
+      accessGateStarted = false;
+      goToStage("scentLoading");
+
+      logSubmitStep("api result start");
+      const abortController = new AbortController();
+      const localPreviewTimeoutId = useLocalPreview ? window.setTimeout(() => abortController.abort(), 8500) : null;
+      const initialConsultBody: FortuneTeaConsultPostBody = billingEvidenceBody || { ...requestPayloadWithAttempt, draftResult: localDraft };
+      // 202(생성 중) 응답 시 폴링에 재사용할 body.
+      const consultPollBody: FortuneTeaConsultPostBody = initialConsultBody;
+      let { response, payload } = await postFortuneTeaConsultRequest(initialConsultBody, abortController.signal).finally(() => {
+        if (localPreviewTimeoutId !== null) window.clearTimeout(localPreviewTimeoutId);
+      });
+      if (isFortuneTeaGenerationPending(response, payload)) {
+        const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId);
+        if (consultRunRef.current !== consultRunId) return;
+        if (polled) ({ response, payload } = polled);
+        else throw buildFortuneTeaGenerationPendingError(payload.message);
+      }
+      // 결제 증빙은 방금 기록됐지만 DB 전파 지연으로 서버가 아직 못 찾아 402를 줄 수 있다.
+      // 같은 증빙으로 한 번만 짧게 백오프 후 재조회해 코인 결제자의 "결제했는데 또 결제창"을 없앤다.
+      if (
+        billingEvidenceBody
+        && (!response.ok || !payload.ok || !payload.result)
+        && payload.paymentRequired
+        && !isFortuneTeaGenerationPending(response, payload)
+      ) {
+        await new Promise((resolve) => window.setTimeout(resolve, 500));
+        if (consultRunRef.current !== consultRunId) return;
+        ({ response, payload } = await postFortuneTeaConsultRequest(billingEvidenceBody));
       }
       if (isFortuneTeaGenerationPending(response, payload)) {
         const polled = await pollFortuneTeaConsultResult(consultPollBody, () => consultRunRef.current !== consultRunId);
