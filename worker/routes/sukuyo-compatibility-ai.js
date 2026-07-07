@@ -6,6 +6,8 @@ import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
@@ -1182,17 +1184,28 @@ async function createFirstAnswer(env, input, calculation) {
     keyExtra: "sukuyo-compat-ai-v1",
   };
   const isCompatibility = input.consultationType === "compatibility";
-  const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
+  const sukuyoCallOptions = {
     systemPrompt: isCompatibility ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
     taskType: "fortune",
     temperature: 0.74,
-    maxOutputTokens: isCompatibility ? compatibilityMaxOutputTokens : 4096,
     timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
     // 궁합은 llama가 못 만드는 대형 JSON이라 Workers AI 폴백은 무의미하다. 폴백을 끊어
     // Gemini 실패 시 즉시 실패시켜 선차감 환급을 빠르게 실행한다.
     ...(isCompatibility ? { fallbackToWorkersAI: false } : {}),
     cache: sukuyoLlmCache,
-  });
+  };
+  // 궁합은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이 잘리지 않게 보장한다.
+  const ai = isCompatibility
+    ? await callGeminiJsonWithRetry(env, buildFirstPrompt(input, calculation), {
+        ...sukuyoCallOptions,
+        baseTokens: compatibilityMaxOutputTokens,
+        capTokens: Math.round(compatibilityMaxOutputTokens * 1.3),
+        responseMimeType: "application/json",
+      })
+    : await callGeminiText(env, buildFirstPrompt(input, calculation), {
+        ...sukuyoCallOptions,
+        maxOutputTokens: 4096,
+      });
   let provider = clean(ai?.provider || "");
   let model = clean(ai?.model || "");
   const isMock = /mock/i.test(provider) || /mock/i.test(model) || ai?.isMock === true;
@@ -1203,9 +1216,11 @@ async function createFirstAnswer(env, input, calculation) {
     providerReason: isMock ? "mock_provider_blocked" : provider || model || "gemini",
   });
   let content = sanitizeConsultationText(ai?.text || "");
+  let degraded = false;
   if (ai?.ok && !isMock && input.consultationType === "compatibility") {
+    const rawContent = content;
     try {
-      content = normalizeStructuredSukuyoCompatibilityText(content, input, calculation);
+      content = normalizeStructuredSukuyoCompatibilityText(rawContent, input, calculation);
     } catch (normalizeError) {
       logSukyoAi("[Sukyo AI LLM Repair Start]", {
         route: "/api/sukuyo-compatibility-ai/generate",
@@ -1213,22 +1228,51 @@ async function createFirstAnswer(env, input, calculation) {
         consultationType: input.consultationType,
         errorMessage: clean(normalizeError?.message || normalizeError, 500),
       });
-      const repair = await callGeminiText(env, buildSukuyoCompatibilityRepairPrompt(input, calculation, content, normalizeError), {
-        systemPrompt: COMPATIBILITY_JSON_SYSTEM_PROMPT,
-        taskType: "fortune",
-        temperature: 0.72,
-        maxOutputTokens: compatibilityMaxOutputTokens,
-        timeoutMs: compatibilityTimeoutMs,
-        fallbackToWorkersAI: false,
-        cache: sukuyoLlmCache,
-      });
-      const repairProvider = clean(repair?.provider || "");
-      const repairModel = clean(repair?.model || "");
-      const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
-      if (!repair?.ok || repairIsMock) throw normalizeError;
-      provider = repairProvider || provider;
-      model = repairModel || model;
-      content = normalizeStructuredSukuyoCompatibilityText(sanitizeConsultationText(repair?.text || ""), input, calculation);
+      let repaired = null;
+      try {
+        const repair = await callGeminiJsonWithRetry(env, buildSukuyoCompatibilityRepairPrompt(input, calculation, rawContent, normalizeError), {
+          systemPrompt: COMPATIBILITY_JSON_SYSTEM_PROMPT,
+          taskType: "fortune",
+          temperature: 0.72,
+          baseTokens: compatibilityMaxOutputTokens,
+          capTokens: Math.round(compatibilityMaxOutputTokens * 1.3),
+          responseMimeType: "application/json",
+          timeoutMs: compatibilityTimeoutMs,
+          fallbackToWorkersAI: false,
+          cache: sukuyoLlmCache,
+        });
+        const repairProvider = clean(repair?.provider || "");
+        const repairModel = clean(repair?.model || "");
+        const repairIsMock = /mock/i.test(repairProvider) || /mock/i.test(repairModel) || repair?.isMock === true;
+        if (repair?.ok && !repairIsMock) {
+          provider = repairProvider || provider;
+          model = repairModel || model;
+          repaired = normalizeStructuredSukuyoCompatibilityText(sanitizeConsultationText(repair?.text || ""), input, calculation);
+        }
+      } catch (repairError) {
+        logSukyoAi("[Sukyo AI LLM Repair Failed]", {
+          route: "/api/sukuyo-compatibility-ai/generate",
+          requestId: input.idempotencyKey,
+          consultationType: input.consultationType,
+          errorMessage: clean(repairError?.message || repairError, 500),
+        });
+      }
+      if (repaired) {
+        content = repaired;
+      } else if (hasRenderableLlmText(rawContent, { minChars: 400 })) {
+        // 경량 보장 계약: 구조화 파싱이 끝내 실패해도 렌더 가능한 원문이 있으면 버리지 않는다.
+        // 원문(잘린 JSON 포함)을 그대로 전달하면 프론트가 looksLikeRawJson 복구로 읽어낸다.
+        content = rawContent;
+        degraded = true;
+        logSukyoAi("[Sukyo AI LLM Degraded]", {
+          route: "/api/sukuyo-compatibility-ai/generate",
+          requestId: input.idempotencyKey,
+          consultationType: input.consultationType,
+          errorMessage: clean(normalizeError?.message || normalizeError, 300),
+        });
+      } else {
+        throw normalizeError;
+      }
     }
   }
   if (!ai?.ok || isMock || content.length < 240) {
@@ -1248,7 +1292,7 @@ async function createFirstAnswer(env, input, calculation) {
     consultationType: input.consultationType,
     providerReason: provider || model || "real_llm_success",
   });
-  return { content, provider, model };
+  return { content, provider, model, degraded };
 }
 
 function serializeConsultation(doc) {

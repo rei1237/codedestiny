@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
@@ -1155,14 +1156,24 @@ async function generateConsultationText(env, prompt, options = {}) {
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: "ziwei-ai-v1",
   };
-  const ai = await callGeminiText(env, prompt, {
+  // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
+  // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
+  const baseMaxOutputTokens = options.maxOutputTokens || 7000;
+  const ziweiCallOptions = {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
-    maxOutputTokens: options.maxOutputTokens || 7000,
     timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
     cache: ziweiLlmCache,
-  });
+  };
+  const ai = options.responseMimeType
+    ? await callGeminiJsonWithRetry(env, prompt, {
+        ...ziweiCallOptions,
+        baseTokens: baseMaxOutputTokens,
+        capTokens: Math.round(baseMaxOutputTokens * 1.3),
+        responseMimeType: options.responseMimeType,
+      })
+    : await callGeminiText(env, prompt, { ...ziweiCallOptions, maxOutputTokens: baseMaxOutputTokens });
   const provider = clean(ai?.provider || ai?.model || "gemini");
   const isMock = /mock/i.test(provider) || ai?.isMock === true;
   let text = clean(ai?.text);
@@ -1182,6 +1193,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.62,
       maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
       timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType } : {}),
       cache: ziweiLlmCache,
     });
     const expandedText = clean(expanded?.text);
@@ -1547,7 +1559,10 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   if (!user) return loginRequired();
 
   const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash }));
-  if (access.ok && access.accessType === "paid") {
+  // 이용권(pass)·월정석(subscription)·결제(paid) 등 커버되는 접근은 네오 작전실과 동일하게
+  // prepare에서 곧바로 접근 토큰을 발급한다. 이용권 보유자가 결제 게이트로 새어
+  // "이용권 상태를 일시적으로 확인하지 못했습니다"로 막히던 문제를 차단한다.
+  if (access.ok) {
     logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
       ok: true,
@@ -1560,9 +1575,6 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
       }),
       accessType: access.accessType,
     });
-  }
-  if (access.ok) {
-    logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: "billing_gate_required", env }));
   }
   if (access.reason === "INVALID_INPUT") return invalidInput(access.message, 409);
 
@@ -1596,7 +1608,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
       return { ok: false, reason: "INVALID_INPUT", message: "상담 접근 정보가 현재 입력값과 일치하지 않습니다." };
     }
     const accessType = clean(payload.accessType);
-    if (accessType !== "admin" && accessType !== "paid") return { ok: false, reason: "PAYMENT_REQUIRED" };
+    // prepare에서 발급한 이용권/월정석/결제/관리자 토큰을 모두 신뢰한다(네오와 동일).
+    // 월정석(subscription)은 아래 handleStart의 applyUsageOnce에서 실제 차감된다.
+    if (!["admin", "paid", "pass", "subscription"].includes(accessType)) return { ok: false, reason: "PAYMENT_REQUIRED" };
     return { ok: true, accessType, paymentId: clean(payload.paymentId, 160) };
   }
 
@@ -1704,6 +1718,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
       minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS,
       maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS,
       maxOutputTokens: INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
+      responseMimeType: "application/json",
       logContext,
     };
     let generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, chart), generationOptions);

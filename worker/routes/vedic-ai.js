@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
@@ -984,12 +985,24 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
     ...logContext,
     ...getProviderDiagnostics(env),
   });
-  const result = await callGeminiText(env, prompt, {
-    systemPrompt: SYSTEM_PROMPT,
-    maxOutputTokens: Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS),
-    temperature: 0.72,
-    taskType: "fortune",
-  });
+  // 초기/repair 리딩은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이
+  // 잘리지 않게 보장한다. follow-up(requireStructured 미설정)은 프로즈라 단발 호출을 유지한다.
+  const baseMaxOutputTokens = Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS);
+  const result = options.requireStructured === true
+    ? await callGeminiJsonWithRetry(env, prompt, {
+        systemPrompt: SYSTEM_PROMPT,
+        taskType: "fortune",
+        temperature: 0.72,
+        baseTokens: baseMaxOutputTokens,
+        capTokens: Math.round(baseMaxOutputTokens * 1.3),
+        responseMimeType: "application/json",
+      })
+    : await callGeminiText(env, prompt, {
+        systemPrompt: SYSTEM_PROMPT,
+        maxOutputTokens: baseMaxOutputTokens,
+        temperature: 0.72,
+        taskType: "fortune",
+      });
   const provider = clean(result?.provider || result?.model || "gemini");
   const isMock = /mock/i.test(provider) || result?.isMock === true;
   const content = sanitizeAssistantText(result?.text || "");

@@ -5,7 +5,7 @@ import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
-import { toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -475,6 +475,31 @@ function parseCompatResult(content: string): CompatResult | null {
 function latestAssistantJson(consultation: Consultation | null) {
   const message = [...(consultation?.messages || [])].reverse().find((item) => item.role === "assistant");
   return message ? parseCompatResult(message.content) : null;
+}
+
+// 구조화 파싱이 실패한(잘린/부분) assistant 원문을 사용자에게 읽을 수 있는 문장으로 복구한다.
+// 원문 JSON 중괄호를 그대로 노출하지 않기 위해 looksLikeRawJson이면 한국어 문장만 추출한다.
+function toReadableAssistantText(content: string): string {
+  const text = toDisplayText(content) || content || "";
+  if (looksLikeRawJson(text)) {
+    const recovered = extractReadableTextFromJsonLike(text);
+    if (recovered) return recovered;
+  }
+  return text;
+}
+
+function AssistantMessageBody({ content }: { content: string }) {
+  const readable = toReadableAssistantText(content);
+  const paragraphs = splitIntoParagraphs(readable);
+  const lines = paragraphs.length ? paragraphs : (readable ? [readable] : []);
+  if (!lines.length) return null;
+  return (
+    <>
+      {lines.map((para, idx) => (
+        <p key={idx}>{para}</p>
+      ))}
+    </>
+  );
 }
 
 function MoonLoadingScreen() {
@@ -1418,7 +1443,9 @@ export default function SukuyoCompatibilityAiClient() {
                 {consultation.messages.map((item, index) => (
                   <article key={`${item.role}-${index}`} className={item.role === "assistant" ? styles.assistantMessage : styles.userMessage}>
                     <span>{item.role === "assistant" ? "상담" : "나"}</span>
-                    <p>{item.content}</p>
+                    {item.role === "assistant"
+                      ? <AssistantMessageBody content={item.content} />
+                      : <p>{item.content}</p>}
                   </article>
                 ))}
               </div>

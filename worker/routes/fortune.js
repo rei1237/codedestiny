@@ -4073,7 +4073,8 @@ async function handleSajuAIPrompt(request, auth, env) {
         systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
         taskType: "fortune",
         temperature: attempt > 0 ? 0.5 : 0.56,
-        maxOutputTokens: 14000,
+        // 늘어난 상담 분량(다장 구성)이 구 상한 14000에서 상시 잘려 완성 repair를 유발했다.
+        maxOutputTokens: 20000,
         timeoutMs: 90000,
         cache: sajuLlmCache,
       });
@@ -4091,12 +4092,14 @@ async function handleSajuAIPrompt(request, auth, env) {
           mismatchCount: validation.tenGodMismatches.length,
         });
       }
-      if (ai?.ok && validation.incomplete) {
+      // 잘림(MAX_TOKENS)은 검증이 놓칠 수 있으므로 완성 repair 대상에 명시적으로 포함한다.
+      if (ai?.ok && (validation.incomplete || ai.truncated)) {
         console.warn("[SajuMyeongsikAI] incomplete result", {
           requestId,
           promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
           attempt: attempt + 1,
           reason: validation.reason,
+          truncated: ai.truncated === true,
         });
         const repairPrompt = buildSajuAICompletionRepairPrompt(builtPrompt, resultText, validation);
         console.info("[SajuMyeongsikAI] completion repair requested", {
@@ -4108,7 +4111,8 @@ async function handleSajuAIPrompt(request, auth, env) {
           systemPrompt: SAJU_AI_RESULT_SYSTEM_PROMPT,
           taskType: "fortune",
           temperature: 0.42,
-          maxOutputTokens: 8000,
+          // 잘려서 이어붙이는 경우 여유 있는 토큰으로 완결시킨다.
+          maxOutputTokens: ai.truncated ? 12000 : 8000,
           timeoutMs: 90000,
           cache: sajuLlmCache,
         });

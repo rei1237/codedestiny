@@ -1034,14 +1034,16 @@ async function generateConsultation(env, prompt, options = {}) {
   }
 
   let qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
-  const shouldExpand = qualityIssues.some((issue) => issue.startsWith("MIN_TOTAL_CHARS:") || issue.startsWith("MISSING_EXPERT_PARTS:"));
+  // 잘림(MAX_TOKENS)은 글자수가 충분해도 문장이 끊긴 것이므로 확장/재생성 대상에 포함한다.
+  const shouldExpand = ai?.truncated === true || qualityIssues.some((issue) => issue.startsWith("MIN_TOTAL_CHARS:") || issue.startsWith("MISSING_EXPERT_PARTS:"));
   if (shouldExpand) {
     const missingExpertParts = options.requireExpertParts === true ? getMissingExpertParts(content) : [];
     const repair = await callGeminiText(env, buildConsultationExpansionPrompt(prompt, content, minLength, missingExpertParts), {
       systemPrompt: buildSystemPrompt(),
       taskType: "fortune",
       temperature: options.expandTemperature ?? 0.62,
-      maxOutputTokens: Math.max(Number(options.expandMaxOutputTokens || 0), maxOutputTokens, 14000),
+      // 잘려서 재생성하는 경우 원본보다 여유 있는 토큰으로 완결시킨다.
+      maxOutputTokens: Math.max(Number(options.expandMaxOutputTokens || 0), ai?.truncated ? Math.round(maxOutputTokens * 1.3) : maxOutputTokens, 14000),
       timeoutMs,
       cache: astrologyLlmCache,
     });
