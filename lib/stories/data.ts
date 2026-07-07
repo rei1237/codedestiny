@@ -599,6 +599,1451 @@ const codeDestinyPrologue = `프롤로그. 이상한 앱이 깔렸다
 
 “나 돼지 됐잖아아아아!”`;
 
+// <<<NEW_STORY_CONSTANTS>>>
+const nc1 = `제1화. 꽃돼지가 되었다
+
+연이는 강물 위에서 다섯 번쯤 튕긴 뒤에야 겨우 멈췄다.
+
+통, 통, 통통, 통.
+
+마지막 한 번은 좀 억울했다.
+
+이미 멈추려고 했는데 몸이 자기 마음대로 한 번 더 튀었기 때문이다.
+
+“나 진짜…….”
+
+말끝은 또 그 소리로 뭉개졌다.
+
+“꿀.”
+
+연이는 눈을 질끈 감았다.
+
+이건 꿈이다.
+
+분명히 꿈이다.
+
+어제 라면을 국물까지 다 마시고 잔 벌이다.
+
+그렇게 믿고, 꿈에서 깨는 가장 확실한 방법을 쓰기로 했다.
+
+볼을 꼬집는 것.
+
+앞발을 들어 볼을 향해 뻗었다.
+
+닿지 않았다.
+
+팔이 너무 짧아서.
+
+“…….”
+
+다시 시도했다.
+
+역시 닿지 않았다.
+
+연이는 조용히 앞발을 내렸다.
+
+“꿈 깨는 것도 팔 길이가 되네.”
+
+그렇게 믿음이 하나 깨졌다.
+
+이건 꿈이 아니었다.
+
+연이는 아주 천천히, 아주 조심스럽게 상황을 정리해 보기로 했다.
+
+첫째, 나는 원룸에서 잠들었다.
+
+둘째, 이상한 앱이 문을 열었다.
+
+셋째, 나는 지금 돼지다.
+
+넷째, 그것도 꽃 달린 돼지다.
+
+정리하고 나니 하나도 위로가 되지 않았다.
+
+“하나도 안 괜찮은데.”
+
+일단 몸부터 확인하기로 했다.
+
+앞발을 들어 봤다.
+
+작고 통통했다.
+
+뒷다리를 움직여 봤다.
+
+역시 짧았다.
+
+허리를 비틀어 뒤를 돌아봤다.
+
+꼬불꼬불한 꼬리가 자기 의지와 상관없이 살랑거렸다.
+
+“얘 왜 혼자 신났어.”
+
+한번 일어서 보기로 했다.
+
+네 다리에 힘을 주고, 조심스럽게 균형을 잡았다.
+
+그리고 곧장 앞으로 고꾸라졌다.
+
+풍덩.
+
+물을 한 모금 먹었다.
+
+물맛은 이상하게 달았다.
+
+“왜 달아. 무섭게.”
+
+연이는 다시 몸을 세우고, 이번엔 성공했다.
+
+머리 위의 꽃이 살짝 폈다.
+
+기분이 나아지면 꽃이 반응하는 모양이었다.
+
+“…내 기분 유출하지 마.”
+
+그때 강물이 이상하게 흐른다는 걸 알아챘다.
+
+물이 아니라 글자였다.
+
+가까이서 보니 강 표면에 수많은 글자들이 떠내려가고 있었다.
+
+작은 글자, 큰 글자, 흐린 글자.
+
+어떤 것은 또렷했고, 어떤 것은 반쯤 지워져 있었다.
+
+지워진 글자들은 물살에 닿을 때마다 파직, 하고 불꽃처럼 튀었다.
+
+연이는 그 불꽃 하나가 자기 코앞에서 터지자 흠칫 물러났다.
+
+“앗 뜨거.”
+
+정확히는 뜨겁지 않았다.
+
+뜨겁다기보다, 뭔가가 콕 하고 마음을 찔렀다.
+
+그 글자에는 이렇게 쓰여 있었다.
+
+[오해]
+
+연이는 그 글자를 한참 바라봤다.
+
+이상하게 낯익었다.
+
+버스 카드가 네 번 만에 찍히던 아침이 떠올랐다.
+
+좋은 뜻으로 한 말이 자꾸 삐뚤어지던 지난 몇 주가 떠올랐다.
+
+“너, 내 거였냐?”
+
+글자는 대답 없이 물살을 따라 멀어졌다.
+
+연이는 이상한 버릇이 하나 있었다.
+
+일이 꼬이면, 결과보다 원인을 먼저 봤다.
+
+남들이 “오늘 왜 이렇게 안 풀려” 하고 넘길 때, 연이는 “어디서부터 어긋났지”를 되짚었다.
+
+그게 삶에 큰 도움이 된 적은 없었다.
+
+친구들은 그걸 두고 피곤하게 산다고 했다.
+
+그런데 지금은, 그 버릇이 눈에 뭔가를 보이게 했다.
+
+떠내려가는 글자들 사이에서, 유독 한 글자만 흐름을 거슬러 멈춰 있었다.
+
+[늦음]
+
+연이는 그 글자를 가만히 들여다봤다.
+
+그러자 그 글자 밑으로 아주 가느다란 실 하나가 보였다.
+
+실은 다른 글자로 이어져 있었다.
+
+[기다림]
+
+“…아.”
+
+연이는 저도 모르게 중얼거렸다.
+
+“늦은 게 아니라, 기다린 거였네.”
+
+그 순간 [늦음]이라는 글자가 옅게 빛나더니, 스르르 [기다림] 쪽으로 풀려 흘러갔다.
+
+마치 오해가 하나 풀린 것처럼.
+
+연이는 눈을 깜빡였다.
+
+“…내가 방금 뭐 한 거지?”
+
+호기심에 다른 글자도 들여다봤다.
+
+[실수]라고 적힌 글자 아래로 또 실이 보였다.
+
+그 실은 [시도]로 이어져 있었다.
+
+“실수가 아니라, 해 본 거고.”
+
+이번에도 글자가 옅게 풀렸다.
+
+연이는 조금 소름이 돋았다.
+
+이 강의 글자들은 전부, 누군가 급하게 붙여 놓은 결론들이었다.
+
+그리고 그 밑에는, 지워진 진짜 이유가 숨어 있었다.
+
+“…이 세계, 오해로 굴러가네.”
+
+대답 대신, 하늘에서 알림음이 울렸다.
+
+띠링.
+
+허공에 반투명한 창이 떴다.
+
+[운명 코드 접속 완료]
+
+[플레이어: 연이]
+
+[상태: 손상됨]
+
+“손상은 네가 시켰잖아.”
+
+[아바타: 꽃돼지]
+
+[특성 감지: 원인을 읽는 눈]
+
+연이는 그 줄에서 멈칫했다.
+
+“원인을 읽는 눈?”
+
+[해설: 당신은 결론이 아니라 원인을 봅니다. 이 세계에서 그 눈은 무기가 됩니다.]
+
+“살면서 처음 듣는 칭찬이 게임 튜토리얼이라니.”
+
+[남은 사주: 확인 불가]
+
+“…또 불친절.”
+
+창이 잠깐 깜빡이더니, 글씨가 다시 떠올랐다.
+
+[안내: 이 세계는 당신의 운명으로 지어졌습니다.]
+
+[당신의 운명은 네 개의 기둥으로 이루어져 있습니다.]
+
+[비겁, 식상, 재성, 그리고 마지막 하나.]
+
+[지금은 네 기둥이 모두 흩어지고 오염되었습니다.]
+
+[기둥을 모두 되찾으면, 돌아갈 수 있습니다.]
+
+“돌아간다고?”
+
+연이는 벌떡, 아니 통, 하고 몸을 일으켰다.
+
+돼지 몸으로 벌떡은 무리였다.
+
+“그럼 빨리 말을 하지. 어디 있는데, 그 기둥.”
+
+[확인 불가]
+
+“…….”
+
+[손상된 세계에서는 좌표가 오염됩니다.]
+
+[먼저, 가장 가까운 물가로 가십시오.]
+
+연이는 입을 삐죽였다.
+
+“친절한 척하면서 하나도 안 친절하네.”
+
+그래도 방법이 없었다.
+
+연이는 짧은 다리를 열심히 저었다.
+
+헤엄은 생각보다 잘 됐다.
+
+둥근 몸이 튜브처럼 물에 떴고, 짧은 다리가 노처럼 움직였다.
+
+“어? 나 좀 하는데?”
+
+칭찬은 3초 만에 후회로 바뀌었다.
+
+강 저편에서 검은 것들이 다가오고 있었다.
+
+처음엔 물풀인 줄 알았다.
+
+가까이 오자 아니었다.
+
+그것은 손이었다.
+
+강물 아래에서 솟아오른, 검고 축축한 손들.
+
+손가락 끝마다 지워진 글자들이 매달려 있었다.
+
+[늦음]
+
+[실수]
+
+[전송 실패]
+
+전부 낯익은 글자였다.
+
+연이는 등골이 서늘해졌다.
+
+“쟤네 왜 내 하루를 들고 있어?”
+
+검은 손들은 대답 대신 그녀 쪽으로 뻗어 왔다.
+
+연이는 본능적으로 헤엄쳤다.
+
+짧은 다리가 미친 듯이 움직였다.
+
+“꿀꿀꿀꿀!”
+
+이번엔 돼지 소리가 나오는 게 하나도 창피하지 않았다.
+
+살아야 했으니까.
+
+물살은 점점 빨라졌다.
+
+뒤를 돌아볼 여유는 없었다.
+
+그런데도 자꾸 등 뒤가 서늘했다.
+
+검은 손 하나가 그녀의 뒷다리를 스쳤다.
+
+그 순간, 눈앞이 하얗게 번졌다.
+
+머릿속으로 낯선 장면이 밀려들었다.
+
+누군가에게 사과하려던 순간.
+
+한 박자 늦어서, 그 사람이 등을 돌리던 순간.
+
+“이건 내 기억이잖아…….”
+
+검은 손은 그 기억을 잡아당기려 했다.
+
+마치 그 장면을 통째로 뜯어 가려는 것처럼.
+
+기억이 빠져나가는 자리마다 몸이 시렸다.
+
+한 번 뜯기면, 다시는 그 순간을 떠올리지 못할 것 같았다.
+
+이상하게도, 그게 제일 무서웠다.
+
+후회조차 못 하게 되는 거.
+
+연이는 이를 악물었다.
+
+정확히는, 돼지 이빨을 악물었다.
+
+“놔. 그건 내 거야. 후회까지 다 내 거라고.”
+
+그때, 방금 배운 게 떠올랐다.
+
+이 강은 오해로 굴러간다.
+
+그러면, 저 손들이 붙잡은 것도 결국 붙여 놓은 결론일 뿐이었다.
+
+연이는 뒷다리에 매달린 [실수]라는 글자를 노려봤다.
+
+그리고 있는 힘껏 외쳤다.
+
+“그건 실수가 아니라, 내가 해 본 거라고!”
+
+글자가 흔들렸다.
+
+검은 손의 힘이 아주 잠깐 느슨해졌다.
+
+연이는 그 틈에 뒷다리를 힘껏 뺐다.
+
+그리고 앞에 떠 있던 또렷한 글자 하나를 향해 몸을 던졌다.
+
+[먼저]
+
+왜 그 글자를 골랐는지는 자기도 몰랐다.
+
+그냥, 그 글자만은 지워지지 않은 채 단단해 보였다.
+
+되짚어 보면, 오늘 아침 노트에 적었던 말이기도 했다.
+
+먼저 보자.
+
+먼저 원인을 보자.
+
+연이가 그 글자에 몸을 부딪치자, 빛이 퍼졌다.
+
+검은 손들이 비명 없이 흩어졌다.
+
+물살이 그녀를 앞으로 밀어냈다.
+
+연이는 그대로 강가 모래톱 위로 떠밀려 올라왔다.
+
+젖은 몸에서 김이 모락모락 났다.
+
+한참을 엎어져 있다가, 연이는 겨우 고개를 들었다.
+
+모래는 별가루처럼 반짝였다.
+
+밟으면 작은 소리가 났다.
+
+사각, 사각.
+
+발을 옮길 때마다 별빛이 튀었다.
+
+멀리 안개 너머로 섬 하나가 어렴풋이 떠 있었다.
+
+섬은 통째로 거꾸로 뒤집힌 것처럼 보였다.
+
+꼭대기가 아래를 향하고, 뿌리가 하늘을 향했다.
+
+연이는 그 이상한 실루엣을 한참 올려다봤다.
+
+“…저기가 목적지라는 거지.”
+
+그리고 발밑에서, 작은 빛이 하나 깜빡이고 있었다.
+
+연이는 그 빛을 앞발로 톡 건드렸다.
+
+허공에 조각난 글자 하나가 떠올랐다.
+
+절반만 남은 글자였다.
+
+[비겁]
+
+“…비겁? 내가 비겁하다고?”
+
+[안내: 당신의 첫 번째 기둥 조각을 감지했습니다.]
+
+[조각은 저 섬 안에 있습니다.]
+
+[경고: 조각은 당신의 운명을 부릅니다. 좋은 것도, 나쁜 것도.]
+
+연이는 안개 속 섬을 올려다봤다.
+
+“좋은 것도, 나쁜 것도라니.”
+
+무섭기도 했고, 이상하게 조금 설레기도 했다.
+
+몇 주 만에 처음으로, 오늘 무슨 일이 일어날지 그녀 쪽에서 궁금해졌다.
+
+불운이 매일 그녀를 따라다니던 지난 날들과는 반대였다.
+
+그동안 연이는 늘 당하는 쪽이었다.
+
+카드가 안 찍히고, 김밥이 떨어지고, 답장이 사라지는 걸 그냥 견뎠다.
+
+그런데 이번엔, 그녀가 뭔가를 따라가고 있었다.
+
+당하는 게 아니라, 쫓는 쪽.
+
+그 차이가 생각보다 컸다.
+
+그때였다.
+
+강물 위, 흩어진 별빛 사이로 누군가의 그림자가 스쳤다.
+
+사람도 아니고, 짐승도 아닌 형체.
+
+그림자는 잠깐 멈춰 그녀를 내려다봤다.
+
+연이는 반사적으로 뒷걸음쳤다.
+
+짧은 다리라 뒷걸음도 우스꽝스러웠다.
+
+그런데 그 그림자에서 흘러나온 목소리가, 아주 낮게 이렇게 말했다.
+
+“…또 너야?”
+
+연이는 얼어붙었다.
+
+“또라니. 우리 초면인데.”
+
+그림자는 대답하지 않았다.
+
+대신, 짧게 숨을 내쉬는 소리가 났다.
+
+그건 화가 난 소리가 아니었다.
+
+오히려, 오래 참았던 것을 들킨 사람의 소리에 가까웠다.
+
+“이번엔… 돼지야.”
+
+그림자가 작게 중얼거렸다.
+
+“하필.”
+
+“야. 방금 뭐라고 했어.”
+
+연이가 발끈했지만, 그림자는 이미 별빛 속으로 스며들고 있었다.
+
+연이는 한참 그 자리를 바라봤다.
+
+“뭐야, 저거.”
+
+가슴 한구석이 이상했다.
+
+분명 처음 듣는 목소리였다.
+
+그런데 어딘가, 아주 오래전에 들어 본 것 같은 기분이 들었다.
+
+그 기분은 슬픔에 가까웠는데, 왜 슬픈지는 알 수 없었다.
+
+연이는 고개를 세게 흔들었다.
+
+“아니야. 나 오늘 처음 돼지 됐어. 헛것 보는 거야.”
+
+머리 위의 꽃이 바람도 없는데 한 번 흔들렸다.
+
+연이는 젖은 몸을 털고, 섬을 향해 첫 발을 뗐다.
+
+짧은 다리로, 아주 씩씩하게.
+
+“좋아. 돼지든 뭐든, 일단 내 거부터 찾자.”
+
+그리고 작게 덧붙였다.
+
+“찾고 나면, 저 그림자 정체도 물어봐야지.”
+
+별가루 모래 위에 작은 발자국이 콩콩 찍혔다.
+
+그 발자국을 따라, 손상된 운세 세계의 첫날이 시작되고 있었다.
+`;
+
+const nc2 = `제2화. 갈기 있는 사자, 네오
+
+섬은 생각보다 멀었다.
+
+연이는 별가루 모래밭을 한참 걸었다.
+
+짧은 다리로 걷는 건 생각보다 중노동이었다.
+
+열 걸음 걷고 한 번 쉬고, 다섯 걸음 걷고 또 쉬었다.
+
+“이럴 거면 다리를 좀 길게 만들어 주지.”
+
+아무도 대답하지 않았다.
+
+머리 위의 꽃만 힘없이 처졌다.
+
+기분이 처지면 꽃도 같이 처지는 모양이었다.
+
+“…너라도 힘내라.”
+
+그때, 앞쪽 안개 속에서 뭔가 움직였다.
+
+연이는 우뚝 멈췄다.
+
+처음엔 큰 개인 줄 알았다.
+
+아니었다.
+
+갈기가 있었다.
+
+목덜미를 감싼 갈기가 금빛으로 일렁였다.
+
+몸은 눈처럼 희었다.
+
+작지만, 분명 사자였다.
+
+“…사자?”
+
+흰 사자는 소리 없이 다가와, 연이 앞에 멈춰 섰다.
+
+크기는 큰 고양이만 했다.
+
+그런데 눈빛은 큰 고양이의 것이 아니었다.
+
+오래 산 것의 눈이었다.
+
+연이는 저도 모르게 한 발 물러났다.
+
+“어… 안녕.”
+
+사자는 대답하지 않았다.
+
+대신 연이를 아래위로 훑었다.
+
+분홍 배.
+
+짧은 다리.
+
+머리 위의 꽃.
+
+훑고 나서, 사자는 아주 낮게 한숨을 쉬었다.
+
+“…역시 돼지네.”
+
+연이는 눈을 크게 떴다.
+
+“말해?”
+
+“너보다는 덜 말해.”
+
+“야.”
+
+사자는 그 말에 반응하지 않고, 연이 뒤쪽 강을 바라봤다.
+
+“검은 손, 만났지.”
+
+연이는 흠칫했다.
+
+“어떻게 알아.”
+
+“냄새가 나. 뜯긴 기억 냄새.”
+
+“…뜯긴 건 아니야. 지켰어.”
+
+사자의 눈이 아주 잠깐 커졌다.
+
+“지켰다고.”
+
+“응. 그건 내 거니까.”
+
+사자는 한동안 말이 없었다.
+
+그 침묵이 이상했다.
+
+화가 난 것도, 놀란 것도 아니었다.
+
+뭔가를, 아주 오래 기다린 대답을 방금 들은 사람의 침묵이었다.
+
+“…또.”
+
+사자가 아주 작게 중얼거렸다.
+
+연이는 그 말을 놓치지 않았다.
+
+“어젯밤 그 그림자, 너지?”
+
+“그림자는 내가 아니야.”
+
+“근데 왜 둘 다 ‘또’래.”
+
+사자는 대답하지 않았다.
+
+연이는 조금 짜증이 났다.
+
+하루 종일 아무도 제대로 대답을 안 해 줬으니까.
+
+“이봐, 갈기. 나 오늘 진짜 힘들었거든? 돼지 됐고, 손한테 쫓겼고, 다리는 짧고. 그러니까 헛소리 말고 정보를 줘. 넌 누구고, 여긴 어디고, 저 섬엔 뭐가 있어.”
+
+사자는 연이를 물끄러미 봤다.
+
+그리고 처음으로, 아주 조금 표정이 풀렸다.
+
+“이름은 네오.”
+
+“네오.”
+
+“여긴 손상된 운세 세계. 저 섬은 비겁의 섬. 네 첫 번째 기둥 조각이 저 안에 있어.”
+
+정보는 짧고 정확했다.
+
+연이는 조금 놀랐다.
+
+“오, 이제 좀 사람 같네.”
+
+“사람 아니야.”
+
+“말이 그렇다고.”
+
+그때였다.
+
+강물이 갑자기 부풀어 올랐다.
+
+물 밑에서 검은 손 수십 개가 한꺼번에 솟구쳤다.
+
+아까 강에서 본 그것들이었다.
+
+이번엔 훨씬 많았다.
+
+“어어—”
+
+연이가 뒷걸음치기도 전에, 검은 손들이 그녀를 향해 쏟아졌다.
+
+“숙여.”
+
+네오의 목소리가 짧게 떨어졌다.
+
+연이는 반사적으로 몸을 낮췄다.
+
+다음 순간, 흰 그림자가 그녀의 머리 위를 넘어갔다.
+
+네오였다.
+
+작은 몸이 허공에서 크게 부풀었다.
+
+금빛 갈기가 활짝 펼쳐지고, 흰 사자의 윤곽이 순식간에 몇 배로 커졌다.
+
+발톱이 검은 손들을 그어 냈다.
+
+콰악.
+
+검은 손들이 종잇장처럼 찢겨 나갔다.
+
+찢긴 자리에서 지워진 글자들이 우수수 떨어졌다.
+
+[늦음] [실수] [오해]
+
+연이가 아침마다 마주쳤던 말들이었다.
+
+네오는 그것들을 밟고 서서, 연이를 등 뒤로 가렸다.
+
+“괜찮아?”
+
+“어, 어. 괜찮아.”
+
+연이는 자기도 모르게 네오의 등을 올려다봤다.
+
+거대한 흰 사자의 등이었다.
+
+방금 전까지 큰 고양이만 하던 게 맞나 싶었다.
+
+“너… 원래 이렇게 커?”
+
+“원래는 더 커.”
+
+“근데 왜 작게 다녀.”
+
+네오는 잠깐 말이 없었다.
+
+“큰 모습은, 오래 못 버텨.”
+
+그 말과 동시에, 흰 사자의 윤곽이 다시 스르르 줄어들었다.
+
+몇 초 만에 네오는 다시 큰 고양이만 한 크기로 돌아왔다.
+
+갈기의 금빛도 옅어졌다.
+
+숨이 조금 가빠 보였다.
+
+연이는 그 모습을 원인을 읽는 눈으로 봤다.
+
+네오의 몸 어딘가가, 오래된 상처처럼 흐릿했다.
+
+이름이 잘려 나간 그 자리와, 같은 자리였다.
+
+연이는 아무 말도 하지 않았다.
+
+물어보면 설명이 길어진다니까.
+
+대신 다른 걸 물었다.
+
+“그래서, 네가 계속 뒤를 막아 주겠다?”
+
+“조건이 있어.”
+
+“말해 봐.”
+
+네오는 잠깐 뜸을 들였다.
+
+“네가 앞장서. 내가 뒤를 막아.”
+
+연이는 눈썹을 올렸다.
+
+“보통 반대 아니야? 강한 애가 앞장서고.”
+
+“앞은 선택하는 자리야.”
+
+네오의 목소리가 낮아졌다.
+
+“나는 선택을 못 해. 너만 할 수 있어.”
+
+그 말에는 이상한 무게가 있었다.
+
+연이는 무게의 정체를 몰랐지만, 농담이 아니라는 건 알았다.
+
+“…왜 나만 할 수 있는데?”
+
+“그건 아직 말 안 해.”
+
+“또 그거야?”
+
+“물어보면 설명이 길어져. 지금은 그게 너한테 도움이 안 돼.”
+
+연이는 그 대답이 마음에 안 들었다.
+
+그런데 이상하게, 그 대답이 거짓말 같지는 않았다.
+
+거짓말하는 사람은 보통 더 많이 설명하니까.
+
+연이는 잠깐 네오를 뜯어봤다.
+
+원인을 읽는 눈으로.
+
+네오의 갈기 밑, 아주 흐릿하게 실 하나가 보였다.
+
+그 실은 어딘가로 이어져 있었는데, 끝이 지워져 있었다.
+
+마치 누군가 그의 이름을 급하게 잘라 낸 것처럼.
+
+연이는 그걸 보고도 아무 말 하지 않았다.
+
+대신, 손을, 아니 앞발을 내밀었다.
+
+“좋아. 계약하자.”
+
+네오가 발을 봤다.
+
+“계약?”
+
+“내가 앞장서고, 네가 막아. 대신 나도 조건 하나.”
+
+“말해.”
+
+“언젠가, 그 긴 설명 다 해 줘. 도망 안 가고.”
+
+네오는 그 말을 한참 곱씹는 것 같았다.
+
+“…도망 안 가.”
+
+“약속.”
+
+“약속.”
+
+짧은 앞발과 흰 발이 가볍게 맞닿았다.
+
+그 순간, 연이는 이상한 걸 느꼈다.
+
+손끝이, 아주 잠깐, 따뜻했다.
+
+처음 만난 사이인데 익숙한 온도였다.
+
+연이는 그 느낌을 애써 무시했다.
+
+“자, 그럼 앞장선다.”
+
+“가.”
+
+연이는 비겁의 섬을 향해 다시 걸었다.
+
+이번엔 네오가 반걸음 뒤에서 따라왔다.
+
+발소리가 나지 않는 걸음이었다.
+
+그런데도 뒤가 든든했다.
+
+“근데 네오.”
+
+“왜.”
+
+“아까 나 처음 봤을 때, ‘역시 돼지네’ 했잖아. 그 ‘역시’ 뭐야.”
+
+네오는 대답하지 않았다.
+
+“대답 안 하면 나 삐진다.”
+
+“…예전엔.”
+
+“예전엔?”
+
+“예전엔 다른 모습이었어. 너.”
+
+연이는 걸음을 멈췄다.
+
+“나 태어나서 돼지는 처음인데.”
+
+“알아.”
+
+네오의 목소리는 담담했다.
+
+“그래서 하필, 이라고 한 거야.”
+
+연이는 그 말을 이해하지 못했다.
+
+그런데 가슴이 이상하게 조여 왔다.
+
+이유를 모르는 채로.
+
+“…너 혹시, 나 아는 사람이랑 착각하는 거 아니야?”
+
+“착각 아니야.”
+
+“그럼 뭔데.”
+
+“지금은 말 안 해.”
+
+“진짜 너 답답해.”
+
+“알아.”
+
+이상하게, 네오는 그 말에 아주 조금 웃은 것 같았다.
+
+웃음소리는 나지 않았지만, 갈기가 살짝 흔들렸다.
+
+연이는 걸으면서 아까 시스템이 한 말을 떠올렸다.
+
+네 개의 기둥.
+
+비겁, 식상, 재성, 그리고 마지막 하나.
+
+“네오. 비겁이 뭐야. 나 비겁한 사람 아닌데.”
+
+“그 비겁 아니야.”
+
+“그럼?”
+
+“나와 같은 것.”
+
+네오는 저 앞의 섬을 눈으로 가리켰다.
+
+“비겁의 섬은 ‘나’로 지어진 곳이야. 나를 닮은 것, 나와 겨루는 것, 나를 대신하려는 것.”
+
+“…어렵다.”
+
+“쉽게 말하면.”
+
+네오는 잠깐 고민했다.
+
+“저기 들어가면, 너를 제일 잘 아는 게 나와.”
+
+“그게 누군데.”
+
+“너.”
+
+연이는 걸음이 살짝 느려졌다.
+
+“나를 제일 잘 아는 게… 나라고.”
+
+“그래서 제일 위험해.”
+
+네오의 목소리가 조금 낮아졌다.
+
+“남이 하는 나쁜 말은 흘려. 근데 내가 나한테 하는 말은, 안 흘려.”
+
+연이는 그 말에 대꾸하지 못했다.
+
+지난 몇 주 동안, 그녀를 제일 많이 갉아먹은 건 남들의 시선이 아니었다.
+
+‘내가 뭘 잘못했나.’
+
+‘나 왜 이러지.’
+
+그런 자기 목소리였다.
+
+“…너 은근히 정확하다.”
+
+“앞장서는 사람은, 자기부터 통과해야 하니까.”
+
+그때, 섬 입구에서 빛이 새어 나왔다.
+
+거울처럼 매끄러운 문이었다.
+
+문 표면에, 꽃돼지 한 마리가 비쳤다.
+
+연이였다.
+
+그런데 거울 속 연이는, 웃고 있지 않았다.
+
+거울 속 연이가 천천히 고개를 들어, 이쪽을 노려봤다.
+
+“…어?”
+
+네오의 갈기가 곤두섰다.
+
+“왔다.”
+
+“뭐가.”
+
+“너의 겁재. 너를 가장 잘 아는 적.”
+
+거울 속 연이가, 입을 열었다.
+
+그리고 연이의 목소리로, 아주 다정하게 말했다.
+
+“어차피 넌, 또 혼자 견딜 거잖아.”
+
+연이는 숨을 삼켰다.
+
+그건, 연이가 자기 자신에게 가장 자주 하던 말이었다.
+
+네오가 연이 옆으로 반걸음 다가섰다.
+
+“연이.”
+
+처음으로, 네오가 그녀의 이름을 불렀다.
+
+“저건 네 목소리를 훔쳐서, 네가 제일 믿는 걸 무기로 써.”
+
+“…제일 믿는 거?”
+
+“혼자여야 안전하다는 믿음.”
+
+연이는 거울 속 자신을 마주 봤다.
+
+거울 속 연이가 손을 내밀었다.
+
+“이리 와. 아무도 안 믿으면, 아무한테도 안 다쳐.”
+
+그 말은 너무 익숙해서, 아플 정도였다.
+
+연이는 저도 모르게 한 발, 거울 쪽으로 향했다.
+
+그때, 옆에서 낮은 목소리가 붙잡았다.
+
+“앞장서라고 했지, 혼자 가라곤 안 했어.”
+
+네오였다.
+
+연이는 멈췄다.
+
+그리고 짧게 숨을 내쉬었다.
+
+“…그러네.”
+
+연이는 내밀던 발을 도로 거뒀다.
+
+거울 속 자신을 똑바로 보며, 처음으로 대꾸했다.
+
+“나 오늘부터, 혼자 안 견뎌 볼 건데.”
+
+거울 문이 크게 흔들렸다.
+
+그 안쪽에서, 비겁의 섬이 문을 열었다.
+`;
+
+const nc3 = `제3화. 거울 속의 나
+
+거울 문 안쪽은, 온통 거울이었다.
+
+바닥도 거울.
+
+천장도 거울.
+
+벽도 거울.
+
+연이가 발을 디딜 때마다, 수백 명의 꽃돼지가 함께 움직였다.
+
+“…어지럽다.”
+
+수백 명의 연이가 전부 조금씩 다르게 움직였다.
+
+어떤 연이는 웃었고, 어떤 연이는 울었고, 어떤 연이는 등을 돌리고 있었다.
+
+전부 진짜 같았다.
+
+“한 곳만 봐.”
+
+뒤에서 네오가 말했다.
+
+“여러 개를 다 보면, 다 진짜 같아 보여. 하나만 정해.”
+
+“어떤 걸 정해?”
+
+“제일 보기 싫은 거.”
+
+연이는 흠칫했다.
+
+“왜 하필 싫은 거야.”
+
+“싫은 게, 보통 제일 너니까.”
+
+연이는 숨을 고르고, 정면 하나만 골라 봤다.
+
+하필, 등을 돌리고 있는 연이였다.
+
+그러자 나머지 거울들이 조금 흐릿해졌다.
+
+정면의 거울 속에서, 또 다른 연이가 걸어 나왔다.
+
+거울 밖으로.
+
+발끝부터 천천히, 완전히.
+
+거울 속 연이는 연이와 똑같았다.
+
+분홍 배, 짧은 다리, 머리 위의 꽃.
+
+딱 하나 달랐다.
+
+눈빛이 지쳐 있었다.
+
+“오랜만이야.”
+
+거울 연이가 웃었다.
+
+“나 기다렸지?”
+
+“…초면인데.”
+
+“에이. 우리 매일 만났잖아.”
+
+거울 연이가 다가왔다.
+
+“새벽 두 시에. 천장 보면서.”
+
+연이는 움찔했다.
+
+잠 안 오는 밤마다, 천장을 보며 혼자 하던 생각들.
+
+그게 지금 눈앞에 서 있었다.
+
+“봐, 넌 결국 혼자야.”
+
+거울 연이가 다정하게 말했다.
+
+“친구한테 힘든 거 말했어? 안 했지. 걱정 끼치기 싫어서.”
+
+“…….”
+
+“답장 안 오면 먼저 물어봤어? 안 했지. 귀찮은 사람 되기 싫어서.”
+
+“……그건.”
+
+“그러니까 결론은 하나야. 아무도 안 믿으면, 아무도 널 못 다치게 해.”
+
+거울 연이가 손을 내밀었다.
+
+“이리 와. 내가 제일 편하잖아. 나는 널 오해 안 하거든.”
+
+그 말은 사실이었다.
+
+그래서 더 위험했다.
+
+연이의 다리가 저절로 한 발 나갔다.
+
+“연이.”
+
+네오가 낮게 불렀다.
+
+“지금 저 말, 원인을 읽어 봐.”
+
+연이는 멈칫했다.
+
+원인을 읽는 눈.
+
+연이는 거울 연이의 말을 다시 들여다봤다.
+
+‘아무도 안 믿으면, 아무도 널 못 다치게 해.’
+
+그 문장 밑으로, 가느다란 실이 보였다.
+
+실 끝에는 다른 글자가 매달려 있었다.
+
+[아무도 안 믿으면, 아무도 널 못 지켜 줘.]
+
+연이는 숨을 삼켰다.
+
+그 문장은, 결론만 예쁘게 잘라 낸 반쪽이었다.
+
+뒤에 붙어 있던 진짜 이유가, 지워져 있었다.
+
+“…너, 뒷문장 잘랐네.”
+
+거울 연이의 표정이 처음으로 굳었다.
+
+“뭐?”
+
+“혼자면 안 다치는 게 아니라, 혼자면 아무도 못 지켜 준다는 거잖아.”
+
+연이는 내밀던 발을 도로 거뒀다.
+
+“나 그거, 이제 알아.”
+
+거울 연이가 웃음을 지웠다.
+
+“건방지네. 며칠 됐다고.”
+
+거울 연이의 몸이 부풀었다.
+
+다정하던 얼굴이 일그러지고, 수백 개의 거울이 동시에 깨질 듯 울렸다.
+
+거울 속 연이들이 전부 이쪽을 향했다.
+
+“그럼, 네가 얼마나 혼자인지 보여 줄게.”
+
+사방의 거울에서 검은 실들이 쏟아졌다.
+
+실들은 연이의 발목을, 앞발을, 목을 감으려 했다.
+
+“꺄악!”
+
+“숙여.”
+
+네오가 다시 부풀었다.
+
+흰 사자가 커지며 검은 실들을 발톱으로 그어 냈다.
+
+하지만 실은 끝이 없었다.
+
+하나를 끊으면 두 개가 생겼다.
+
+“네오, 이거 끝이 없어!”
+
+“맞아.”
+
+네오가 이를 악물었다.
+
+“이건 밖에서 못 끊어. 안에서 끊어야 해.”
+
+“안에서?”
+
+“네가 저것한테 동의하는 순간마다, 실이 늘어나.”
+
+연이는 그제야 이해했다.
+
+거울 연이의 힘은, 연이가 자기를 의심하는 딱 그만큼이었다.
+
+“…내가 나를 안 믿으면, 쟤가 강해지는 거네.”
+
+“그래.”
+
+연이는 심호흡을 했다.
+
+검은 실 하나가 목을 감아 왔다.
+
+그 실에는 글자가 적혀 있었다.
+
+[넌 또 폐 끼칠 거야.]
+
+연이는 그 글자를 똑바로 봤다.
+
+그리고 아침마다 노트에 적던 말투로, 또박또박 대꾸했다.
+
+“폐가 아니라, 부탁이야.”
+
+실이 툭 끊어졌다.
+
+또 다른 실이 감겨 왔다.
+
+[넌 결국 오해받을 거야.]
+
+“오해받으면, 다시 설명하면 돼.”
+
+툭.
+
+그때, 거울들이 한꺼번에 한 장면을 비췄다.
+
+버스 정류장이었다.
+
+카드가 네 번이나 안 찍히고, 뒤에 선 사람들이 조용히 그녀를 보던 그 아침.
+
+수백 개의 거울이, 그 침묵을 동시에 재생했다.
+
+“이거 봐.”
+
+거울 연이가 속삭였다.
+
+“다들 널 한심하게 봤어. 기억나지?”
+
+연이의 가슴이 철렁했다.
+
+“그리고 이것도.”
+
+장면이 바뀌었다.
+
+답장 창에 점 세 개가 반짝이다가, 스르르 사라지던 밤.
+
+연이가 휴대폰을 뒤집어 놓고 한참을 가만히 있던, 그 밤.
+
+“봐. 그 사람도 결국 널 지웠어. 넌 그런 사람이야.”
+
+검은 실들이 한꺼번에 조여 왔다.
+
+연이는 숨이 막혔다.
+
+그 장면들은 전부 진짜였으니까.
+
+“연이.”
+
+네오가 그녀 앞을 막아섰다.
+
+큰 몸으로 실 몇 가닥을 대신 받아 내며, 낮게 말했다.
+
+“그 장면, 결론 말고 원인을 봐.”
+
+“…원인?”
+
+“점 세 개는, 사라진 게 아니라 지운 거야. 누가 지웠어?”
+
+연이는 그 밤을 다시 떠올렸다.
+
+점 세 개가 뜨고, 사라지고.
+
+그런데 그날, 먼저 대화창을 닫은 건.
+
+“…나였어.”
+
+연이는 천천히 말했다.
+
+“무슨 말을 해야 할지 몰라서, 내가 먼저 껐어.”
+
+거울 연이의 얼굴이 굳었다.
+
+“그 사람이 날 지운 게 아니라, 내가 먼저 숨은 거였네.”
+
+연이는 조여 오던 실 하나를 손으로 잡았다.
+
+“이건 그 사람 잘못도, 내 잘못도 아니야. 그냥 둘 다 늦었던 거지.”
+
+실이 스르르 힘을 잃었다.
+
+[넌 혼자가 편하잖아.]
+
+마지막 실이 감겨 왔다.
+
+연이는 잠깐 멈췄다.
+
+이건 반쯤 사실이었다.
+
+그래서 더 정직하게 대답했다.
+
+“편한 거랑 좋은 건 다르더라.”
+
+가장 굵은 실이, 뚝, 끊어졌다.
+
+거울 연이의 몸이 휘청였다.
+
+“어떻게…….”
+
+“네가 내 목소리를 훔쳤잖아.”
+
+연이가 앞으로 나섰다.
+
+“근데 그 목소리, 요즘 좀 바뀌었거든.”
+
+거울 연이의 몸에 금이 갔다.
+
+쩌적.
+
+거울 전체가 함께 울었다.
+
+연이는 그 앞으로 다가가, 손을 내밀었다.
+
+“근데 있잖아. 나, 너 미워하진 않아.”
+
+거울 연이가 멈췄다.
+
+“…뭐?”
+
+“너도 나잖아. 나 지키려고 그렇게 말한 거잖아. 안 다치게 하려고.”
+
+연이의 목소리가 부드러워졌다.
+
+“고마웠어. 근데 이제 방식 좀 바꾸자.”
+
+거울 연이의 일그러진 얼굴이, 아주 잠깐, 원래 연이의 얼굴로 돌아왔다.
+
+지친, 그러나 미워할 수 없는 얼굴로.
+
+그리고 스르르 빛으로 흩어졌다.
+
+흩어진 자리에서, 반짝이는 조각 하나가 떨어졌다.
+
+절반짜리 조각이었다.
+
+[비겁]
+
+연이는 그 조각을 앞발로 조심스럽게 받았다.
+
+작고 따뜻했다.
+
+이상하게, 눈물이 핑 돌았다.
+
+“…이게 내 운명 조각이라고.”
+
+“절반이야.”
+
+네오가 다가왔다.
+
+다시 큰 고양이만 한 크기로 돌아와 있었다.
+
+“근데 방금 그거, 잘했어.”
+
+“뭐를.”
+
+“보통은, 자기 겁재를 미워하면서 부숴. 넌 안아 줬어.”
+
+연이는 조각을 가슴에 품은 채 웃었다.
+
+“그게 나한테 하는 말이기도 하니까.”
+
+네오가 잠깐 그녀를 봤다.
+
+그 눈빛이, 처음으로 조금 흔들렸다.
+
+“…예전에도 그랬어.”
+
+“또 예전 얘기.”
+
+“응. 넌 늘 그런 식으로 이겼어. 부수는 게 아니라, 데리고 가는 식으로.”
+
+“나 진짜 기억 없다니까.”
+
+“알아.”
+
+네오는 조각을 품은 연이를 물끄러미 봤다.
+
+“기억은 네가 잃은 게 아니야. 그건 내가 지키기로 한 거였어.”
+
+연이는 그 말을 이해하지 못했다.
+
+하지만 이번엔, 캐묻지 않았다.
+
+네오의 목소리가 너무 조심스러워서, 건드리면 부서질 것 같았으니까.
+
+허공에 시스템 창이 떴다.
+
+[첫 번째 기둥 조각의 절반을 회수했습니다.]
+
+“절반?”
+
+[나머지 절반은, 이 섬 아래로 가라앉았습니다.]
+
+[나머지 절반은, 이 섬 아래로 가라앉았습니다.]
+
+“가라앉았다고? 어디로—”
+
+말이 끝나기 전에, 거울 바닥에 금이 갔다.
+
+쩌적.
+
+발밑의 수백 개의 연이가, 동시에 아래를 내려다봤다.
+
+“어어—”
+
+거울 바닥이 통째로 깨졌다.
+
+발밑이 사라졌다.
+
+연이는 반쪽 조각을 끌어안은 채, 아래로 떨어졌다.
+
+깨진 거울 아래는, 검고 깊은 물이었다.
+
+아까 강에서 본 그 검은 손들이, 물 밑에서 수백 개나 팔을 벌리고 있었다.
+
+전부 아래에서 그녀를 기다리고 있었다.
+
+“연이!”
+
+네오가 몸을 던졌다.
+
+작은 몸이 망설임 없이 연이를 향해 뛰어내렸다.
+
+“왜 따라 뛰어! 너는 위에 있어야—”
+
+“앞장서라고 했지.”
+
+네오가 그녀의 앞발을 향해 발을 뻗었다.
+
+“혼자 떨어지라곤 안 했어.”
+
+두 그림자가 함께, 검은 물속으로 빨려 들어갔다.
+
+물이 두 사람을 삼키기 직전, 연이는 네오의 목소리를 들었다.
+
+“놓지 마.”
+
+연이는 짧은 앞발로, 네오의 발을 꽉 잡았다.
+
+“안 놔.”
+
+검은 손들이 두 사람을 향해 한꺼번에 뻗어 왔다.
+
+그리고 세상이 검게 닫혔다.
+`;
+// <<<END_NEW_STORY_CONSTANTS>>>
+
 const codeDestinyChapter1 = `제1화. 꽃돼지가 되었다
 
 “나 돼지 됐잖아아아아!”
@@ -66058,8 +67503,8 @@ export const mockStories: Array<IStory | IChapter> = [
     genre: [],
     tags: [],
     author: "Code Destiny",
-    status: "completed",
-    totalChapters: 100,
+    status: "ongoing",
+    totalChapters: 3,
     viewCount: 49317,
     likeCount: 0,
     createdAt: "2026-06-20T00:00:00.000Z",
@@ -66073,10 +67518,10 @@ export const mockChapters: IChapter[] = [
     storyId: "story-code-destiny",
     slug: "prologue",
     chapterNumber: 0,
-    title: storyDataText("story.title.005"),
+    title: "프롤로그. 이상한 앱이 깔렸다",
     content: codeDestinyPrologue,
     wordCount: codeDestinyPrologue.replace(/\s+/g, "").length,
-    viewCount: 3472,
+    viewCount: 0,
     publishedAt: "2026-06-20T00:00:00.000Z",
     createdAt: "2026-06-20T00:00:00.000Z",
   },
@@ -66085,10 +67530,10 @@ export const mockChapters: IChapter[] = [
     storyId: "story-code-destiny",
     slug: "chapter-1",
     chapterNumber: 1,
-    title: storyDataText("story.title.006"),
-    content: codeDestinyChapter1Revised,
-    wordCount: codeDestinyChapter1Revised.replace(/\s+/g, "").length,
-    viewCount: 3184,
+    title: "제1화. 꽃돼지가 되었다",
+    content: nc1,
+    wordCount: nc1.replace(/\s+/g, "").length,
+    viewCount: 0,
     publishedAt: "2026-06-20T00:00:00.000Z",
     createdAt: "2026-06-20T00:00:00.000Z",
   },
@@ -66097,10 +67542,10 @@ export const mockChapters: IChapter[] = [
     storyId: "story-code-destiny",
     slug: "chapter-2",
     chapterNumber: 2,
-    title: storyDataText("story.title.007"),
-    content: codeDestinyChapter2Revised,
-    wordCount: codeDestinyChapter2Revised.replace(/\s+/g, "").length,
-    viewCount: 3148,
+    title: "제2화. 갈기 있는 사자, 네오",
+    content: nc2,
+    wordCount: nc2.replace(/\s+/g, "").length,
+    viewCount: 0,
     publishedAt: "2026-06-20T00:00:00.000Z",
     createdAt: "2026-06-20T00:00:00.000Z",
   },
@@ -66109,1189 +67554,12 @@ export const mockChapters: IChapter[] = [
     storyId: "story-code-destiny",
     slug: "chapter-3",
     chapterNumber: 3,
-    title: storyDataText("story.title.008"),
-    content: codeDestinyChapter3Revised,
-    wordCount: codeDestinyChapter3Revised.replace(/\s+/g, "").length,
-    viewCount: 3096,
+    title: "제3화. 거울 속의 나",
+    content: nc3,
+    wordCount: nc3.replace(/\s+/g, "").length,
+    viewCount: 0,
     publishedAt: "2026-06-20T00:00:00.000Z",
     createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-4",
-    storyId: "story-code-destiny",
-    slug: "chapter-4",
-    chapterNumber: 4,
-    title: storyDataText("story.title.009"),
-    content: codeDestinyChapter4Revised,
-    wordCount: codeDestinyChapter4Revised.replace(/\s+/g, "").length,
-    viewCount: 3074,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-5",
-    storyId: "story-code-destiny",
-    slug: "chapter-5",
-    chapterNumber: 5,
-    title: storyDataText("story.title.010"),
-    content: codeDestinyChapter5Revised,
-    wordCount: codeDestinyChapter5Revised.replace(/\s+/g, "").length,
-    viewCount: 3058,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-6",
-    storyId: "story-code-destiny",
-    slug: "chapter-6",
-    chapterNumber: 6,
-    title: storyDataText("story.title.011"),
-    content: codeDestinyChapter6Revised,
-    wordCount: codeDestinyChapter6Revised.replace(/\s+/g, "").length,
-    viewCount: 3042,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-7",
-    storyId: "story-code-destiny",
-    slug: "chapter-7",
-    chapterNumber: 7,
-    title: storyDataText("story.title.012"),
-    content: codeDestinyChapter7Revised,
-    wordCount: codeDestinyChapter7Revised.replace(/\s+/g, "").length,
-    viewCount: 3029,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-8",
-    storyId: "story-code-destiny",
-    slug: "chapter-8",
-    chapterNumber: 8,
-    title: storyDataText("story.title.013"),
-    content: codeDestinyChapter8Revised,
-    wordCount: codeDestinyChapter8Revised.replace(/\s+/g, "").length,
-    viewCount: 3048,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-9",
-    storyId: "story-code-destiny",
-    slug: "chapter-9",
-    chapterNumber: 9,
-    title: storyDataText("story.title.014"),
-    content: codeDestinyChapter9Revised,
-    wordCount: codeDestinyChapter9Revised.replace(/\s+/g, "").length,
-    viewCount: 3037,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-10",
-    storyId: "story-code-destiny",
-    slug: "chapter-10",
-    chapterNumber: 10,
-    title: storyDataText("story.title.015"),
-    content: codeDestinyChapter10Revised,
-    wordCount: codeDestinyChapter10Revised.replace(/\s+/g, "").length,
-    viewCount: 3065,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-11",
-    storyId: "story-code-destiny",
-    slug: "chapter-11",
-    chapterNumber: 11,
-    title: storyDataText("story.title.016"),
-    content: codeDestinyChapter11Revised,
-    wordCount: codeDestinyChapter11Revised.replace(/\s+/g, "").length,
-    viewCount: 3018,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-12",
-    storyId: "story-code-destiny",
-    slug: "chapter-12",
-    chapterNumber: 12,
-    title: storyDataText("story.title.017"),
-    content: codeDestinyChapter12Revised,
-    wordCount: codeDestinyChapter12Revised.replace(/\s+/g, "").length,
-    viewCount: 3007,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-13",
-    storyId: "story-code-destiny",
-    slug: "chapter-13",
-    chapterNumber: 13,
-    title: storyDataText("story.title.018"),
-    content: codeDestinyChapter13Revised,
-    wordCount: codeDestinyChapter13Revised.replace(/\s+/g, "").length,
-    viewCount: 3023,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-14",
-    storyId: "story-code-destiny",
-    slug: "chapter-14",
-    chapterNumber: 14,
-    title: storyDataText("story.title.019"),
-    content: codeDestinyChapter14Revised,
-    wordCount: codeDestinyChapter14Revised.replace(/\s+/g, "").length,
-    viewCount: 3014,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-15",
-    storyId: "story-code-destiny",
-    slug: "chapter-15",
-    chapterNumber: 15,
-    title: storyDataText("story.title.020"),
-    content: codeDestinyChapter15Revised,
-    wordCount: codeDestinyChapter15Revised.replace(/\s+/g, "").length,
-    viewCount: 3002,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-16",
-    storyId: "story-code-destiny",
-    slug: "chapter-16",
-    chapterNumber: 16,
-    title: storyDataText("story.title.021"),
-    content: codeDestinyChapter16Revised,
-    wordCount: codeDestinyChapter16Revised.replace(/\s+/g, "").length,
-    viewCount: 2998,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-17",
-    storyId: "story-code-destiny",
-    slug: "chapter-17",
-    chapterNumber: 17,
-    title: storyDataText("story.title.022"),
-    content: codeDestinyChapter17Revised,
-    wordCount: codeDestinyChapter17Revised.replace(/\s+/g, "").length,
-    viewCount: 2991,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-18",
-    storyId: "story-code-destiny",
-    slug: "chapter-18",
-    chapterNumber: 18,
-    title: storyDataText("story.title.023"),
-    content: codeDestinyChapter18Revised,
-    wordCount: codeDestinyChapter18Revised.replace(/\s+/g, "").length,
-    viewCount: 2984,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-19",
-    storyId: "story-code-destiny",
-    slug: "chapter-19",
-    chapterNumber: 19,
-    title: storyDataText("story.title.024"),
-    content: codeDestinyChapter19Revised,
-    wordCount: codeDestinyChapter19Revised.replace(/\s+/g, "").length,
-    viewCount: 2976,
-    publishedAt: "2026-06-20T00:00:00.000Z",
-    createdAt: "2026-06-20T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-20",
-    storyId: "story-code-destiny",
-    slug: "chapter-20",
-    chapterNumber: 20,
-    title: storyDataText("story.title.025"),
-    content: codeDestinyChapter20Revised,
-    wordCount: codeDestinyChapter20Revised.replace(/\s+/g, "").length,
-    viewCount: 2958,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-21",
-    storyId: "story-code-destiny",
-    slug: "chapter-21",
-    chapterNumber: 21,
-    title: storyDataText("story.title.026"),
-    content: codeDestinyChapter21Revised,
-    wordCount: codeDestinyChapter21Revised.replace(/\s+/g, "").length,
-    viewCount: 2947,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-22",
-    storyId: "story-code-destiny",
-    slug: "chapter-22",
-    chapterNumber: 22,
-    title: storyDataText("story.title.027"),
-    content: codeDestinyChapter22Revised,
-    wordCount: codeDestinyChapter22Revised.replace(/\s+/g, "").length,
-    viewCount: 2935,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-23",
-    storyId: "story-code-destiny",
-    slug: "chapter-23",
-    chapterNumber: 23,
-    title: storyDataText("story.title.028"),
-    content: codeDestinyChapter23Revised,
-    wordCount: codeDestinyChapter23Revised.replace(/\s+/g, "").length,
-    viewCount: 2924,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-24",
-    storyId: "story-code-destiny",
-    slug: "chapter-24",
-    chapterNumber: 24,
-    title: storyDataText("story.title.029"),
-    content: codeDestinyChapter24Revised,
-    wordCount: codeDestinyChapter24Revised.replace(/\s+/g, "").length,
-    viewCount: 2913,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-25",
-    storyId: "story-code-destiny",
-    slug: "chapter-25",
-    chapterNumber: 25,
-    title: storyDataText("story.title.030"),
-    content: codeDestinyChapter25Revised,
-    wordCount: codeDestinyChapter25Revised.replace(/\s+/g, "").length,
-    viewCount: 2902,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-26",
-    storyId: "story-code-destiny",
-    slug: "chapter-26",
-    chapterNumber: 26,
-    title: storyDataText("story.title.031"),
-    content: codeDestinyChapter26Revised,
-    wordCount: codeDestinyChapter26Revised.replace(/\s+/g, "").length,
-    viewCount: 2894,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-27",
-    storyId: "story-code-destiny",
-    slug: "chapter-27",
-    chapterNumber: 27,
-    title: storyDataText("story.title.032"),
-    content: codeDestinyChapter27Revised,
-    wordCount: codeDestinyChapter27Revised.replace(/\s+/g, "").length,
-    viewCount: 2886,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-28",
-    storyId: "story-code-destiny",
-    slug: "chapter-28",
-    chapterNumber: 28,
-    title: storyDataText("story.title.033"),
-    content: codeDestinyChapter28Revised,
-    wordCount: codeDestinyChapter28Revised.replace(/\s+/g, "").length,
-    viewCount: 2877,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-29",
-    storyId: "story-code-destiny",
-    slug: "chapter-29",
-    chapterNumber: 29,
-    title: storyDataText("story.title.034"),
-    content: codeDestinyChapter29Revised,
-    wordCount: codeDestinyChapter29Revised.replace(/\s+/g, "").length,
-    viewCount: 2869,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-30",
-    storyId: "story-code-destiny",
-    slug: "chapter-30",
-    chapterNumber: 30,
-    title: storyDataText("story.title.035"),
-    content: codeDestinyChapter30Revised,
-    wordCount: codeDestinyChapter30Revised.replace(/\s+/g, "").length,
-    viewCount: 2861,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-31",
-    storyId: "story-code-destiny",
-    slug: "chapter-31",
-    chapterNumber: 31,
-    title: storyDataText("story.title.036"),
-    content: codeDestinyChapter31Revised,
-    wordCount: codeDestinyChapter31Revised.replace(/\s+/g, "").length,
-    viewCount: 2854,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-32",
-    storyId: "story-code-destiny",
-    slug: "chapter-32",
-    chapterNumber: 32,
-    title: storyDataText("story.title.037"),
-    content: codeDestinyChapter32Revised,
-    wordCount: codeDestinyChapter32Revised.replace(/\s+/g, "").length,
-    viewCount: 2847,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-33",
-    storyId: "story-code-destiny",
-    slug: "chapter-33",
-    chapterNumber: 33,
-    title: storyDataText("story.title.038"),
-    content: codeDestinyChapter33Revised,
-    wordCount: codeDestinyChapter33Revised.replace(/\s+/g, "").length,
-    viewCount: 2843,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-34",
-    storyId: "story-code-destiny",
-    slug: "chapter-34",
-    chapterNumber: 34,
-    title: storyDataText("story.title.039"),
-    content: codeDestinyChapter34Revised,
-    wordCount: codeDestinyChapter34Revised.replace(/\s+/g, "").length,
-    viewCount: 2841,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-35",
-    storyId: "story-code-destiny",
-    slug: "chapter-35",
-    chapterNumber: 35,
-    title: storyDataText("story.title.040"),
-    content: codeDestinyChapter35Revised,
-    wordCount: codeDestinyChapter35Revised.replace(/\s+/g, "").length,
-    viewCount: 2838,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-36",
-    storyId: "story-code-destiny",
-    slug: "chapter-36",
-    chapterNumber: 36,
-    title: storyDataText("story.title.041"),
-    content: codeDestinyChapter36Revised,
-    wordCount: codeDestinyChapter36Revised.replace(/\s+/g, "").length,
-    viewCount: 2836,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-37",
-    storyId: "story-code-destiny",
-    slug: "chapter-37",
-    chapterNumber: 37,
-    title: storyDataText("story.title.042"),
-    content: codeDestinyChapter37Revised,
-    wordCount: codeDestinyChapter37Revised.replace(/\s+/g, "").length,
-    viewCount: 2834,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-38",
-    storyId: "story-code-destiny",
-    slug: "chapter-38",
-    chapterNumber: 38,
-    title: storyDataText("story.title.043"),
-    content: codeDestinyChapter38Revised,
-    wordCount: codeDestinyChapter38Revised.replace(/\s+/g, "").length,
-    viewCount: 2831,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-39",
-    storyId: "story-code-destiny",
-    slug: "chapter-39",
-    chapterNumber: 39,
-    title: storyDataText("story.title.044"),
-    content: codeDestinyChapter39Revised,
-    wordCount: codeDestinyChapter39Revised.replace(/\s+/g, "").length,
-    viewCount: 2828,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-40",
-    storyId: "story-code-destiny",
-    slug: "chapter-40",
-    chapterNumber: 40,
-    title: storyDataText("story.title.045"),
-    content: codeDestinyChapter40Revised,
-    wordCount: codeDestinyChapter40Revised.replace(/\s+/g, "").length,
-    viewCount: 2825,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-41",
-    storyId: "story-code-destiny",
-    slug: "chapter-41",
-    chapterNumber: 41,
-    title: storyDataText("story.title.046"),
-    content: codeDestinyChapter41Revised,
-    wordCount: codeDestinyChapter41Revised.replace(/\s+/g, "").length,
-    viewCount: 2823,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-42",
-    storyId: "story-code-destiny",
-    slug: "chapter-42",
-    chapterNumber: 42,
-    title: storyDataText("story.title.047"),
-    content: codeDestinyChapter42Revised,
-    wordCount: codeDestinyChapter42Revised.replace(/\s+/g, "").length,
-    viewCount: 2820,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-43",
-    storyId: "story-code-destiny",
-    slug: "chapter-43",
-    chapterNumber: 43,
-    title: storyDataText("story.title.048"),
-    content: codeDestinyChapter43Revised,
-    wordCount: codeDestinyChapter43Revised.replace(/\s+/g, "").length,
-    viewCount: 2817,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-44",
-    storyId: "story-code-destiny",
-    slug: "chapter-44",
-    chapterNumber: 44,
-    title: storyDataText("story.title.049"),
-    content: codeDestinyChapter44Revised,
-    wordCount: codeDestinyChapter44Revised.replace(/\s+/g, "").length,
-    viewCount: 2814,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-
-
-  {
-    _id: "code-destiny-chapter-45",
-    storyId: "story-code-destiny",
-    slug: "chapter-45",
-    chapterNumber: 45,
-    title: storyDataText("story.title.050"),
-    content: codeDestinyChapter45Revised,
-    wordCount: codeDestinyChapter45Revised.replace(/\s+/g, "").length,
-    viewCount: 2828,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-46",
-    storyId: "story-code-destiny",
-    slug: "chapter-46",
-    chapterNumber: 46,
-    title: storyDataText("story.title.051"),
-    content: codeDestinyChapter46Revised,
-    wordCount: codeDestinyChapter46Revised.replace(/\s+/g, "").length,
-    viewCount: 2825,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-47",
-    storyId: "story-code-destiny",
-    slug: "chapter-47",
-    chapterNumber: 47,
-    title: storyDataText("story.title.052"),
-    content: codeDestinyChapter47Revised,
-    wordCount: codeDestinyChapter47Revised.replace(/\s+/g, "").length,
-    viewCount: 2810,
-    publishedAt: "2026-06-21T00:00:00.000Z",
-    createdAt: "2026-06-21T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-48",
-    storyId: "story-code-destiny",
-    slug: "chapter-48",
-    chapterNumber: 48,
-    title: storyDataText("story.title.053"),
-    content: codeDestinyChapter48Revised,
-    wordCount: codeDestinyChapter48Revised.replace(/\s+/g, "").length,
-    viewCount: 2807,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-49",
-    storyId: "story-code-destiny",
-    slug: "chapter-49",
-    chapterNumber: 49,
-    title: storyDataText("story.title.054"),
-    content: codeDestinyChapter49Revised,
-    wordCount: codeDestinyChapter49Revised.replace(/\s+/g, "").length,
-    viewCount: 2804,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-50",
-    storyId: "story-code-destiny",
-    slug: "chapter-50",
-    chapterNumber: 50,
-    title: storyDataText("story.title.055"),
-    content: codeDestinyChapter50Revised,
-    wordCount: codeDestinyChapter50Revised.replace(/\s+/g, "").length,
-    viewCount: 2801,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-51",
-    storyId: "story-code-destiny",
-    slug: "chapter-51",
-    chapterNumber: 51,
-    title: storyDataText("story.title.056"),
-    content: codeDestinyChapter51Revised,
-    wordCount: codeDestinyChapter51Revised.replace(/\s+/g, "").length,
-    viewCount: 2798,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-52",
-    storyId: "story-code-destiny",
-    slug: "chapter-52",
-    chapterNumber: 52,
-    title: storyDataText("story.title.057"),
-    content: codeDestinyChapter52Revised,
-    wordCount: codeDestinyChapter52Revised.replace(/\s+/g, "").length,
-    viewCount: 2795,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-53",
-    storyId: "story-code-destiny",
-    slug: "chapter-53",
-    chapterNumber: 53,
-    title: storyDataText("story.title.058"),
-    content: codeDestinyChapter53Revised,
-    wordCount: codeDestinyChapter53Revised.replace(/\s+/g, "").length,
-    viewCount: 2792,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-54",
-    storyId: "story-code-destiny",
-    slug: "chapter-54",
-    chapterNumber: 54,
-    title: storyDataText("story.title.059"),
-    content: codeDestinyChapter54Revised,
-    wordCount: codeDestinyChapter54Revised.replace(/\s+/g, "").length,
-    viewCount: 2789,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-55",
-    storyId: "story-code-destiny",
-    slug: "chapter-55",
-    chapterNumber: 55,
-    title: storyDataText("story.title.060"),
-    content: codeDestinyChapter55Revised,
-    wordCount: codeDestinyChapter55Revised.replace(/\s+/g, "").length,
-    viewCount: 2786,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-56",
-    storyId: "story-code-destiny",
-    slug: "chapter-56",
-    chapterNumber: 56,
-    title: storyDataText("story.title.061"),
-    content: codeDestinyChapter56Revised,
-    wordCount: codeDestinyChapter56Revised.replace(/\s+/g, "").length,
-    viewCount: 2783,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-
-  {
-    _id: "code-destiny-chapter-57",
-    storyId: "story-code-destiny",
-    slug: "chapter-57",
-    chapterNumber: 57,
-    title: storyDataText("story.title.062"),
-    content: codeDestinyChapter57Revised,
-    wordCount: codeDestinyChapter57Revised.replace(/\s+/g, "").length,
-    viewCount: 2780,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-58",
-    storyId: "story-code-destiny",
-    slug: "chapter-58",
-    chapterNumber: 58,
-    title: storyDataText("story.title.001"),
-    content: codeDestinyChapter58Revised,
-    wordCount: codeDestinyChapter58Revised.replace(/\s+/g, "").length,
-    viewCount: 2777,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-59",
-    storyId: "story-code-destiny",
-    slug: "chapter-59",
-    chapterNumber: 59,
-    title: storyDataText("story.title.002"),
-    content: codeDestinyChapter59Revised,
-    wordCount: codeDestinyChapter59Revised.replace(/\s+/g, "").length,
-    viewCount: 2774,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-60",
-    storyId: "story-code-destiny",
-    slug: "chapter-60",
-    chapterNumber: 60,
-    title: storyDataText("story.title.003"),
-    content: codeDestinyChapter60Revised,
-    wordCount: codeDestinyChapter60Revised.replace(/\s+/g, "").length,
-    viewCount: 2771,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-61",
-    storyId: "story-code-destiny",
-    slug: "chapter-61",
-    chapterNumber: 61,
-    title: storyDataText("story.title.004"),
-    content: codeDestinyChapter61Revised,
-    wordCount: codeDestinyChapter61Revised.replace(/\s+/g, "").length,
-    viewCount: 2768,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-62",
-    storyId: "story-code-destiny",
-    slug: "chapter-62",
-    chapterNumber: 62,
-    title: "제62화. 이름을 열지 않는 법",
-    content: codeDestinyChapter62,
-    wordCount: codeDestinyChapter62.replace(/\s+/g, "").length,
-    viewCount: 2765,
-    publishedAt: "2026-06-25T00:00:00.000Z",
-    createdAt: "2026-06-25T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-63",
-    storyId: "story-code-destiny",
-    slug: "chapter-63",
-    chapterNumber: 63,
-    title: "제63화. 혼자 막는 법",
-    content: codeDestinyChapter63,
-    wordCount: codeDestinyChapter63.replace(/\s+/g, "").length,
-    viewCount: 2620,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-64",
-    storyId: "story-code-destiny",
-    slug: "chapter-64",
-    chapterNumber: 64,
-    title: "제64화. 자미성 안쪽 계단",
-    content: codeDestinyChapter64,
-    wordCount: codeDestinyChapter64.replace(/\s+/g, "").length,
-    viewCount: 2610,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-65",
-    storyId: "story-code-destiny",
-    slug: "chapter-65",
-    chapterNumber: 65,
-    title: "제65화. 줄무늬가 있는 침묵",
-    content: codeDestinyChapter65,
-    wordCount: codeDestinyChapter65.replace(/\s+/g, "").length,
-    viewCount: 2600,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-66",
-    storyId: "story-code-destiny",
-    slug: "chapter-66",
-    chapterNumber: 66,
-    title: "제66화. 돌아오라는 말",
-    content: codeDestinyChapter66,
-    wordCount: codeDestinyChapter66.replace(/\s+/g, "").length,
-    viewCount: 2590,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-67",
-    storyId: "story-code-destiny",
-    slug: "chapter-67",
-    chapterNumber: 67,
-    title: "제67화. 같은 발톱 자국",
-    content: codeDestinyChapter67,
-    wordCount: codeDestinyChapter67.replace(/\s+/g, "").length,
-    viewCount: 2580,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-68",
-    storyId: "story-code-destiny",
-    slug: "chapter-68",
-    chapterNumber: 68,
-    title: "제68화. 무성이 아닌 얼굴",
-    content: codeDestinyChapter68,
-    wordCount: codeDestinyChapter68.replace(/\s+/g, "").length,
-    viewCount: 2570,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-69",
-    storyId: "story-code-destiny",
-    slug: "chapter-69",
-    chapterNumber: 69,
-    title: "제69화. 밤의 온기",
-    content: codeDestinyChapter69,
-    wordCount: codeDestinyChapter69.replace(/\s+/g, "").length,
-    viewCount: 2560,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-70",
-    storyId: "story-code-destiny",
-    slug: "chapter-70",
-    chapterNumber: 70,
-    title: "제70화. 별들이 숨을 죽인 순간",
-    content: codeDestinyChapter70,
-    wordCount: codeDestinyChapter70.replace(/\s+/g, "").length,
-    viewCount: 2550,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-71",
-    storyId: "story-code-destiny",
-    slug: "chapter-71",
-    chapterNumber: 71,
-    title: "제71화. 재회, 그리고 침묵",
-    content: codeDestinyChapter71,
-    wordCount: codeDestinyChapter71.replace(/\s+/g, "").length,
-    viewCount: 2540,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-72",
-    storyId: "story-code-destiny",
-    slug: "chapter-72",
-    chapterNumber: 72,
-    title: "제72화. 무성이 흔들리는 이유",
-    content: codeDestinyChapter72,
-    wordCount: codeDestinyChapter72.replace(/\s+/g, "").length,
-    viewCount: 2530,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-73",
-    storyId: "story-code-destiny",
-    slug: "chapter-73",
-    chapterNumber: 73,
-    title: "제73화. 다른 운명의 상대, 다시",
-    content: codeDestinyChapter73,
-    wordCount: codeDestinyChapter73.replace(/\s+/g, "").length,
-    viewCount: 2520,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-74",
-    storyId: "story-code-destiny",
-    slug: "chapter-74",
-    chapterNumber: 74,
-    title: "제74화. 루나의 오래된 책",
-    content: codeDestinyChapter74,
-    wordCount: codeDestinyChapter74.replace(/\s+/g, "").length,
-    viewCount: 2510,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-75",
-    storyId: "story-code-destiny",
-    slug: "chapter-75",
-    chapterNumber: 75,
-    title: "제75화. 무너지는 믿음",
-    content: codeDestinyChapter75,
-    wordCount: codeDestinyChapter75.replace(/\s+/g, "").length,
-    viewCount: 2500,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-76",
-    storyId: "story-code-destiny",
-    slug: "chapter-76",
-    chapterNumber: 76,
-    title: "제76화. 두 개의 목소리",
-    content: codeDestinyChapter76,
-    wordCount: codeDestinyChapter76.replace(/\s+/g, "").length,
-    viewCount: 2490,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-77",
-    storyId: "story-code-destiny",
-    slug: "chapter-77",
-    chapterNumber: 77,
-    title: "제77화. 하늘이 찢어진 자리",
-    content: codeDestinyChapter77,
-    wordCount: codeDestinyChapter77.replace(/\s+/g, "").length,
-    viewCount: 2480,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-78",
-    storyId: "story-code-destiny",
-    slug: "chapter-78",
-    chapterNumber: 78,
-    title: "제78화. 질투가 아니라 두려움",
-    content: codeDestinyChapter78,
-    wordCount: codeDestinyChapter78.replace(/\s+/g, "").length,
-    viewCount: 2470,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-79",
-    storyId: "story-code-destiny",
-    slug: "chapter-79",
-    chapterNumber: 79,
-    title: "제79화. 왕좌 뒤의 왕좌",
-    content: codeDestinyChapter79,
-    wordCount: codeDestinyChapter79.replace(/\s+/g, "").length,
-    viewCount: 2460,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-80",
-    storyId: "story-code-destiny",
-    slug: "chapter-80",
-    chapterNumber: 80,
-    title: "제80화. 숙요의 문 앞에서",
-    content: codeDestinyChapter80,
-    wordCount: codeDestinyChapter80.replace(/\s+/g, "").length,
-    viewCount: 2450,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-81",
-    storyId: "story-code-destiny",
-    slug: "chapter-81",
-    chapterNumber: 81,
-    title: "제81화. 숙요의 정원",
-    content: codeDestinyChapter81,
-    wordCount: codeDestinyChapter81.replace(/\s+/g, "").length,
-    viewCount: 2440,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-82",
-    storyId: "story-code-destiny",
-    slug: "chapter-82",
-    chapterNumber: 82,
-    title: "제82화. 끊어진 실, 미래에서 온 매듭",
-    content: codeDestinyChapter82,
-    wordCount: codeDestinyChapter82.replace(/\s+/g, "").length,
-    viewCount: 2430,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-83",
-    storyId: "story-code-destiny",
-    slug: "chapter-83",
-    chapterNumber: 83,
-    title: "제83화. 박병하",
-    content: codeDestinyChapter83,
-    wordCount: codeDestinyChapter83.replace(/\s+/g, "").length,
-    viewCount: 2420,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-84",
-    storyId: "story-code-destiny",
-    slug: "chapter-84",
-    chapterNumber: 84,
-    title: "제84화. 읽히지 않는 이름의 진짜 뜻",
-    content: codeDestinyChapter84,
-    wordCount: codeDestinyChapter84.replace(/\s+/g, "").length,
-    viewCount: 2410,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-85",
-    storyId: "story-code-destiny",
-    slug: "chapter-85",
-    chapterNumber: 85,
-    title: "제85화. 묘아",
-    content: codeDestinyChapter85,
-    wordCount: codeDestinyChapter85.replace(/\s+/g, "").length,
-    viewCount: 2400,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-86",
-    storyId: "story-code-destiny",
-    slug: "chapter-86",
-    chapterNumber: 86,
-    title: "제86화. 그릇",
-    content: codeDestinyChapter86,
-    wordCount: codeDestinyChapter86.replace(/\s+/g, "").length,
-    viewCount: 2390,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-87",
-    storyId: "story-code-destiny",
-    slug: "chapter-87",
-    chapterNumber: 87,
-    title: "제87화. 부서뜨리겠다는 말",
-    content: codeDestinyChapter87,
-    wordCount: codeDestinyChapter87.replace(/\s+/g, "").length,
-    viewCount: 2380,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-88",
-    storyId: "story-code-destiny",
-    slug: "chapter-88",
-    chapterNumber: 88,
-    title: "제88화. 두 개의 선택지",
-    content: codeDestinyChapter88,
-    wordCount: codeDestinyChapter88.replace(/\s+/g, "").length,
-    viewCount: 2370,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-89",
-    storyId: "story-code-destiny",
-    slug: "chapter-89",
-    chapterNumber: 89,
-    title: "제89화. 되찾겠다는 집착",
-    content: codeDestinyChapter89,
-    wordCount: codeDestinyChapter89.replace(/\s+/g, "").length,
-    viewCount: 2360,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-90",
-    storyId: "story-code-destiny",
-    slug: "chapter-90",
-    chapterNumber: 90,
-    title: "제90화. 네가 아니어도 돼",
-    content: codeDestinyChapter90,
-    wordCount: codeDestinyChapter90.replace(/\s+/g, "").length,
-    viewCount: 2350,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-91",
-    storyId: "story-code-destiny",
-    slug: "chapter-91",
-    chapterNumber: 91,
-    title: "제91화. 인간이었던 자리",
-    content: codeDestinyChapter91,
-    wordCount: codeDestinyChapter91.replace(/\s+/g, "").length,
-    viewCount: 2340,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-92",
-    storyId: "story-code-destiny",
-    slug: "chapter-92",
-    chapterNumber: 92,
-    title: "제92화. 기억을 걸겠다는 마음",
-    content: codeDestinyChapter92,
-    wordCount: codeDestinyChapter92.replace(/\s+/g, "").length,
-    viewCount: 2330,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-93",
-    storyId: "story-code-destiny",
-    slug: "chapter-93",
-    chapterNumber: 93,
-    title: "제93화. 무성의 마지막 저항",
-    content: codeDestinyChapter93,
-    wordCount: codeDestinyChapter93.replace(/\s+/g, "").length,
-    viewCount: 2320,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-94",
-    storyId: "story-code-destiny",
-    slug: "chapter-94",
-    chapterNumber: 94,
-    title: "제94화. 결정의 순간",
-    content: codeDestinyChapter94,
-    wordCount: codeDestinyChapter94.replace(/\s+/g, "").length,
-    viewCount: 2310,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-95",
-    storyId: "story-code-destiny",
-    slug: "chapter-95",
-    chapterNumber: 95,
-    title: "제95화. 나는 너를 잊지 않을 거야",
-    content: codeDestinyChapter95,
-    wordCount: codeDestinyChapter95.replace(/\s+/g, "").length,
-    viewCount: 2300,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-96",
-    storyId: "story-code-destiny",
-    slug: "chapter-96",
-    chapterNumber: 96,
-    title: "제96화. 묘아를 마주 보다",
-    content: codeDestinyChapter96,
-    wordCount: codeDestinyChapter96.replace(/\s+/g, "").length,
-    viewCount: 2290,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-97",
-    storyId: "story-code-destiny",
-    slug: "chapter-97",
-    chapterNumber: 97,
-    title: "제97화. 부서지지 않은 것",
-    content: codeDestinyChapter97,
-    wordCount: codeDestinyChapter97.replace(/\s+/g, "").length,
-    viewCount: 2280,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-98",
-    storyId: "story-code-destiny",
-    slug: "chapter-98",
-    chapterNumber: 98,
-    title: "제98화. 약속으로 해두겠다, 진짜로",
-    content: codeDestinyChapter98,
-    wordCount: codeDestinyChapter98.replace(/\s+/g, "").length,
-    viewCount: 2270,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-99",
-    storyId: "story-code-destiny",
-    slug: "chapter-99",
-    chapterNumber: 99,
-    title: "제99화. 남기로 한 사람",
-    content: codeDestinyChapter99,
-    wordCount: codeDestinyChapter99.replace(/\s+/g, "").length,
-    viewCount: 2260,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
-  },
-  {
-    _id: "code-destiny-chapter-100",
-    storyId: "story-code-destiny",
-    slug: "chapter-100",
-    chapterNumber: 100,
-    title: "제100화. 완결. 읽는 이름, 쓰는 운명",
-    content: codeDestinyChapter100,
-    wordCount: codeDestinyChapter100.replace(/\s+/g, "").length,
-    viewCount: 2250,
-    publishedAt: "2026-07-06T00:00:00.000Z",
-    createdAt: "2026-07-06T00:00:00.000Z",
   },
 ]
 
