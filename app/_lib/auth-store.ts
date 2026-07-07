@@ -97,6 +97,8 @@ const LOGIN_RETRY_BASE_DELAY_MS = 180;
 // abort and show a false "failed" error while the server might still succeed in the background.
 const LOGIN_ATTEMPT_TIMEOUT_MS = 45000;
 const AUTH_REFRESH_COOLDOWN_MS = 1500;
+// 활성 이용권이 캐시에 있고 갱신까지 이만큼 이상 남았으면 profile-subscription 재조회를 생략한다.
+const SUBSCRIPTION_REFETCH_MARGIN_MS = 60 * 60 * 1000;
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -210,6 +212,37 @@ function resolveSafeUser(user: unknown): AuthUser | null {
   return safe;
 }
 
+type ProfileSubscriptionShape = NonNullable<ClientAuthUser["profileSubscription"]> & { source?: string };
+
+// 활성·미만료 이용권인지 판별 (tier가 free이거나 비활성이거나 만료됐으면 false).
+function isActiveUnexpiredSubscription(sub: ProfileSubscriptionShape | null | undefined): boolean {
+  if (!sub || !sub.isActive) return false;
+  if (String(sub.tier || "free").toLowerCase() === "free") return false;
+  if (typeof sub.expiresAt === "string" && sub.expiresAt.trim()) {
+    const expiry = new Date(sub.expiresAt).getTime();
+    if (Number.isFinite(expiry) && expiry <= Date.now()) return false;
+  }
+  return true;
+}
+
+// 권위 없는 강등 신호(토큰 폴백 / free / 비활성)인지 판별.
+function isDowngradeSubscriptionPatch(sub: ProfileSubscriptionShape | null | undefined): boolean {
+  if (!sub) return true;
+  if (sub.source === "token") return true;
+  if (!sub.isActive) return true;
+  if (String(sub.tier || "free").toLowerCase() === "free") return true;
+  return false;
+}
+
+// 유효한 활성 이용권이 캐시에 있고 갱신 여유가 충분하면 재조회를 생략해도 되는지 판별.
+function shouldSkipSubscriptionRefetch(sub: ProfileSubscriptionShape | null | undefined): boolean {
+  if (!isActiveUnexpiredSubscription(sub)) return false;
+  if (!sub || typeof sub.expiresAt !== "string" || !sub.expiresAt.trim()) return false;
+  const expiry = new Date(sub.expiresAt).getTime();
+  if (!Number.isFinite(expiry)) return false;
+  return expiry - Date.now() > SUBSCRIPTION_REFETCH_MARGIN_MS;
+}
+
 function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser | null {
   if (!base && !patch) return null;
   if (!base) return patch;
@@ -237,28 +270,34 @@ function mergeAuthUsers(base: AuthUser | null, patch: AuthUser | null): AuthUser
   if (patch.profileSubscription && typeof patch.profileSubscription === "object") {
     const current = base.profileSubscription || {};
     const next = patch.profileSubscription;
-    merged.profileSubscription = {
-      tier: typeof next.tier === "string" && next.tier.trim() ? next.tier : current.tier || "free",
-      isActive: typeof next.isActive === "boolean" ? next.isActive : !!current.isActive,
-      expiresAt: typeof next.expiresAt === "string" ? next.expiresAt : (current.expiresAt ?? null),
-      profileLimit: Number.isFinite(Number(next.profileLimit))
-        ? Number(next.profileLimit)
-        : (Number.isFinite(Number(current.profileLimit)) ? Number(current.profileLimit) : undefined),
-      monthlyStoneBalance: Number.isFinite(Number(next.monthlyStoneBalance))
-        ? Number(next.monthlyStoneBalance)
-        : (Number.isFinite(Number(current.monthlyStoneBalance)) ? Number(current.monthlyStoneBalance) : undefined),
-      membershipCreditBalance: Number.isFinite(Number(next.monthlyStoneBalance))
-        ? Number(next.monthlyStoneBalance)
-        : (Number.isFinite(Number(next.membershipCreditBalance))
-          ? Number(next.membershipCreditBalance)
-          : (Number.isFinite(Number(current.membershipCreditBalance)) ? Number(current.membershipCreditBalance) : undefined)),
-      membershipCreditGranted: Number.isFinite(Number(next.membershipCreditGranted))
-        ? Number(next.membershipCreditGranted)
-        : (Number.isFinite(Number(current.membershipCreditGranted)) ? Number(current.membershipCreditGranted) : undefined),
-      membershipCreditUsed: Number.isFinite(Number(next.membershipCreditUsed))
-        ? Number(next.membershipCreditUsed)
-        : (Number.isFinite(Number(current.membershipCreditUsed)) ? Number(current.membershipCreditUsed) : undefined),
-    };
+    // 활성·미만료 이용권을 권위 없는 강등(토큰 폴백/free/비활성) 응답이 덮어쓰지 못하게 막는다.
+    // 갱신 기간(expiresAt) 도래 전까지 캐시된 등급을 유지한다.
+    if (isActiveUnexpiredSubscription(current) && isDowngradeSubscriptionPatch(next)) {
+      merged.profileSubscription = current;
+    } else {
+      merged.profileSubscription = {
+        tier: typeof next.tier === "string" && next.tier.trim() ? next.tier : current.tier || "free",
+        isActive: typeof next.isActive === "boolean" ? next.isActive : !!current.isActive,
+        expiresAt: typeof next.expiresAt === "string" ? next.expiresAt : (current.expiresAt ?? null),
+        profileLimit: Number.isFinite(Number(next.profileLimit))
+          ? Number(next.profileLimit)
+          : (Number.isFinite(Number(current.profileLimit)) ? Number(current.profileLimit) : undefined),
+        monthlyStoneBalance: Number.isFinite(Number(next.monthlyStoneBalance))
+          ? Number(next.monthlyStoneBalance)
+          : (Number.isFinite(Number(current.monthlyStoneBalance)) ? Number(current.monthlyStoneBalance) : undefined),
+        membershipCreditBalance: Number.isFinite(Number(next.monthlyStoneBalance))
+          ? Number(next.monthlyStoneBalance)
+          : (Number.isFinite(Number(next.membershipCreditBalance))
+            ? Number(next.membershipCreditBalance)
+            : (Number.isFinite(Number(current.membershipCreditBalance)) ? Number(current.membershipCreditBalance) : undefined)),
+        membershipCreditGranted: Number.isFinite(Number(next.membershipCreditGranted))
+          ? Number(next.membershipCreditGranted)
+          : (Number.isFinite(Number(current.membershipCreditGranted)) ? Number(current.membershipCreditGranted) : undefined),
+        membershipCreditUsed: Number.isFinite(Number(next.membershipCreditUsed))
+          ? Number(next.membershipCreditUsed)
+          : (Number.isFinite(Number(current.membershipCreditUsed)) ? Number(current.membershipCreditUsed) : undefined),
+      };
+    }
   }
 
   return merged;
@@ -334,6 +373,9 @@ function clearStaleGuestCache() {
 }
 
 async function refreshProfileSubscriptionCache(expectedAuthMutationSeq = authMutationSeq) {
+  // 유효한(활성·미만료·갱신 여유) 이용권이 캐시에 있으면 재조회로 뒤집지 않고 즉시 반환한다.
+  const cachedSub = (readSanitizedAuthUser() as AuthUser | null)?.profileSubscription;
+  if (shouldSkipSubscriptionRefetch(cachedSub)) return;
   const response = await authFetch("/api/fortune/pig-coin/profile-subscription/status", {
     method: "GET",
     cache: "no-store",
@@ -549,7 +591,17 @@ async function loadMeFromServer() {
   }
 
   const cachedUser = readSanitizedAuthUser() as AuthUser | null;
-  const user = resolveSafeUser(mergeAuthUsers(cachedUser, payload?.user || null)) as AuthUser | null;
+  // handleMe가 DB 일시오류 시 토큰 폴백 유저(profileSubscription.source:"token", tier:free)를
+  // authenticated:true로 반환한다. 권위 없는 이 이용권이 캐시된 활성 등급을 덮어쓰지 않도록
+  // 병합 전에 제거한다(mergeAuthUsers 다운그레이드 가드와 이중 방어).
+  let mePatch = payload?.user || null;
+  const patchSubSource = (mePatch?.profileSubscription as { source?: string } | undefined)?.source;
+  if (mePatch && (payload?.degraded === true || patchSubSource === "token")) {
+    const rest = { ...(mePatch as AuthUser) };
+    delete rest.profileSubscription;
+    mePatch = rest;
+  }
+  const user = resolveSafeUser(mergeAuthUsers(cachedUser, mePatch)) as AuthUser | null;
   latestAppliedMeSeq = requestSeq;
 
   if (!user) {
