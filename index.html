@@ -22728,7 +22728,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
     function shouldSingleRetry(pathname, status) {
       var code = Number(status || 0);
-      if (!(code === 0 || code >= 500)) return false;
+      if (code !== 0) return false;
       var normalizedPath = String(pathname || '');
       return normalizedPath.indexOf('/api/billing/') === 0
         || normalizedPath.indexOf('/api/payments/') === 0
@@ -22749,7 +22749,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
     function shouldTryNextCandidate(status, looksHtml) {
       var code = Number(status || 0);
-      return !!looksHtml || code === 0 || (code >= 300 && code < 400) || code === 404 || code >= 500;
+      return !!looksHtml || code === 0 || (code >= 300 && code < 400) || code === 404;
     }
 
     async function retryRequestOnce(requestUrl, requestInit) {
