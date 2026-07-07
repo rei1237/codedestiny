@@ -39,6 +39,8 @@ const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 지�
 
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ];
 
 const FOCUS_AREA_LABELS = Object.freeze({

@@ -538,6 +538,8 @@ function hasSukyoAIProviderEnv(env = {}) {
   return Boolean(
     env?.AI
     || env?.GEMINIF_API_KEY
+    || env?.GEMINI_API_KEY
+    || env?.GOOGLE_GEMINI_API_KEY
     || env?.GOOGLE_GENERATIVE_AI_API_KEY
     || env?.GOOGLE_AI_API_KEY
     || env?.AI_GATEWAY_TOKEN

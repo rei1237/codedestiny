@@ -21,6 +21,8 @@ const args = ["wrangler", "dev", "--config", "worker/wrangler.toml"];
 
 const orderedKeys = [
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ];
 
 for (const key of orderedKeys) {

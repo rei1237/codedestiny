@@ -27,6 +27,8 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "연애 비책 AI 상담";
 const GEMINI_ENV_KEYS = Object.freeze([
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ]);
 const RELATIONSHIP_STATUS_LABELS = Object.freeze({
   single: "솔로",

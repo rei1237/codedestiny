@@ -21,6 +21,8 @@ const ORDER_NAME = "인생의 책 AI 상담";
 
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ];
 
 const MESSAGES = Object.freeze({
@@ -1266,7 +1268,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: options.temperature || 0.72,
     maxOutputTokens: options.maxOutputTokens || 18000,
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
-    fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
+    fallbackToWorkersAI: undefined,
     logContext: options.logContext,
     cache: lifeBookLlmCache,
   });
@@ -1294,7 +1296,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: 0.52,
     maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000),
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
-    fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined,
+    fallbackToWorkersAI: undefined,
     cache: lifeBookLlmCache,
     logContext: {
       ...(options.logContext || {}),

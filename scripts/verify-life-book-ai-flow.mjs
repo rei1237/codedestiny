@@ -282,7 +282,7 @@ for (const marker of [
   "status_check",
   "result_fetch",
   "maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION",
-  "fallbackToWorkersAI: diagnostics.hasGeminiKey ? false : undefined",
+  "fallbackToWorkersAI: undefined",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
 }

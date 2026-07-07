@@ -71,8 +71,12 @@ type GeminiPayload = {
   };
 };
 
+// 1순위는 캐노니컬 GEMINIF_API_KEY(문서 정책). 배포 시크릿이 표준 이름으로
+// 남아 있어도 동작하도록 표준 키 이름을 폴백으로 함께 인식한다.
 const GEMINI_KEY_ORDER = [
   "GEMINIF_API_KEY",
+  "GEMINI_API_KEY",
+  "GOOGLE_GEMINI_API_KEY",
 ] as const;
 
 function readProcessGeminiKey(): string {
@@ -85,8 +89,9 @@ function readProcessGeminiKey(): string {
 }
 
 function getGeminiApiKey(env?: CloudflareEnv): string {
+  const envRecord = env as Record<string, unknown> | undefined;
   for (const key of GEMINI_KEY_ORDER) {
-    const value = String(env?.[key] || "").trim();
+    const value = String(envRecord?.[key] || "").trim();
     if (value) return value;
   }
   return readProcessGeminiKey();
@@ -285,7 +290,9 @@ async function callGeminiPrimary(
 
     const payload = (await response.json().catch(() => ({}))) as GeminiPayload;
     if (!response.ok) {
-      throw new Error(payload.error?.message || `Gemini request failed (${response.status}).`);
+      const requestError = new Error(payload.error?.message || `Gemini request failed (${response.status}).`);
+      (requestError as { status?: number }).status = response.status;
+      throw requestError;
     }
 
     const text = extractGeminiText(payload);
@@ -354,13 +361,44 @@ async function callCloudflareWorkersAI(
   };
 }
 
+// 일시적 장애(429/5xx/overloaded/빈 응답)만 재시도 대상. 타임아웃은 이미 시간
+// 예산을 소진했고 장문 생성은 재시도 시 런타임 한도를 넘길 수 있어 제외한다.
+// 키 미설정/400·403·404는 재시도해도 성공하지 않으므로 제외한다.
+function isTransientGeminiError(error: unknown): boolean {
+  const status = Number((error as { status?: number })?.status || 0);
+  if (status === 429 || (status >= 500 && status <= 599)) return true;
+  const message = getErrorMessage(error).toLowerCase();
+  if (message.includes("timed out")) return false;
+  return message.includes("overloaded") || message.includes("empty response") || message.includes("try again later");
+}
+
+const GEMINI_RETRY_BACKOFF_MS = [400, 900] as const;
+
+async function callGeminiWithRetry(
+  request: LLMRequest,
+  env?: CloudflareEnv,
+): Promise<LLMResponse> {
+  const maxAttempts = GEMINI_RETRY_BACKOFF_MS.length + 1;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await callGeminiPrimary(request, env);
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxAttempts || !isTransientGeminiError(error)) throw error;
+      await new Promise((resolve) => setTimeout(resolve, GEMINI_RETRY_BACKOFF_MS[attempt - 1]));
+    }
+  }
+  throw lastError;
+}
+
 async function callLLMUncached(
   request: LLMRequest,
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
   const requestModel = resolveGeminiModel(request, env);
   try {
-    return await callGeminiPrimary(request, env);
+    return await callGeminiWithRetry(request, env);
   } catch (geminiError) {
     if (request.fallbackToWorkersAI === false) {
       throw geminiError;

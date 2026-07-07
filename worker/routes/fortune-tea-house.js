@@ -13,7 +13,7 @@ import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from 
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 12;
 const requestBuckets = new Map();
-const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY"];
+const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
 const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|콘텐츠 블록|서비스 결과|\bAPI\b|\bJSON\b|\bpayload\b|\bschema\b/i;
 const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|\bmock\b|dry[_-]?run|providerReason|\bGemini\b|\bOpenAI\b|Workers AI|\bschema\b|\bpayload\b|\bJSON\b/i;
 const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
@@ -2851,7 +2851,6 @@ async function generateConsultResult(request, fallback, env) {
         maxOutputTokens: consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000,
         timeoutMs: consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000,
         responseMimeType: "application/json",
-        fallbackToWorkersAI: false,
       });
 
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
@@ -3476,7 +3475,6 @@ async function generateHoneyLetter(resultDoc, env) {
         maxOutputTokens: 2200,
         timeoutMs: 22000,
         responseMimeType: "application/json",
-        fallbackToWorkersAI: false,
       });
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
       const letter = {

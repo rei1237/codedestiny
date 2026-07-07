@@ -1261,7 +1261,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
     const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error, env });
     logVedicAi("Refund Or Restore", { ...context, restored, reason: "llm_failed" }, restored ? "log" : "warn");
     logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
-    return serverError(MESSAGES.llmFailed, 502, "LLM_FAILED");
+    return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
   }
 }
 
@@ -1328,7 +1328,7 @@ async function handleMessage(request, env) {
     return json({ ok: true, consultation: consultationPayload(consultation.toObject()) });
   } catch (error) {
     logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
-    return serverError(MESSAGES.llmFailed, 502, "LLM_FAILED");
+    return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
   }
 }
 
