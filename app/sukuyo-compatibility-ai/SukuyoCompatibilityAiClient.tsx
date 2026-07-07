@@ -1178,11 +1178,13 @@ export default function SukuyoCompatibilityAiClient() {
     } catch (caught) {
       const code = caught instanceof TypeError ? "NETWORK_ERROR" : caught instanceof Error ? caught.message : "SERVER_ERROR";
       const paymentCancelled = code === "PAYMENT_CANCELLED";
+      // 이용권/결제 단계 실패에만 "이용권" 제목을 쓴다 — LLM/서버 오류까지 이용권 실패로 보이던 오표기 방지.
+      const entitlementFailure = paymentCancelled || code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_REQUIRED" || code === "LOGIN_REQUIRED";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: "이용권 확인 실패",
+        title: entitlementFailure ? "이용권 확인 실패" : "상담 생성 실패",
         reason: "숙요점 궁합 AI 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,

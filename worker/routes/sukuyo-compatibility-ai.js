@@ -1168,7 +1168,9 @@ async function createFirstAnswer(env, input, calculation) {
     requestId: input.idempotencyKey,
     consultationType: input.consultationType,
   });
-  const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 18000);
+  // 궁합 상담 JSON 요구 분량(body 합계 18,500~20,000자, 한국어 1자≈1~1.5토큰)이 구 상한
+  // 18000 토큰을 항상 초과해 잘림 → 파싱 실패 → LLM_FAILED가 났다. 최대 요구 기준 여유를 둔 상한.
+  const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 32000);
   const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000);
   // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
   // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.

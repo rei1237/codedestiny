@@ -59,6 +59,7 @@ const CHROMELESS_ROUTES = [
   "/love-secret-ai",
   "/astrology-ai",
   "/vedic-ai",
+  "/sukuyo-compatibility-ai",
   "/saju-guardian",
   "/premium-unlock",
 ];
