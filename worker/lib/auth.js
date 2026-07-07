@@ -2,7 +2,7 @@ import { getEnv } from "./env.js";
 import { cookieValue, createHttpError, getRequestMeta } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
-import { connectDb, mongoose } from "./db.js";
+import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
 import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
 
@@ -328,8 +328,9 @@ function logAuthError(stage, error, extras = {}) {
 }
 
 async function resolveActiveUserAuth(userId, env) {
-  await connectDb(env);
-  const user = await User.collection.findOne(
+  // stateless Worker 풀 초기화 시 무방비 connectDb/findOne이 정착하지 않아 요청이 hang되는 것을
+  // 막는다. withMongoRetry가 각 시도를 per-attempt 타임아웃으로 감싸고 일시적 오류를 재연결·재시도한다.
+  const user = await withMongoRetry(env, () => User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(userId) },
     {
       projection: {
@@ -347,7 +348,7 @@ async function resolveActiveUserAuth(userId, env) {
         status: 1,
       },
     },
-  );
+  ));
   if (!user || isWithdrawnUser(user)) return null;
   return normalizeAuthResultFromUser(user);
 }
@@ -400,17 +401,17 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
   }
 
   try {
-    await connectDb(env);
-
+    // 각 read를 withMongoRetry로 감싸 풀 초기화 순간의 hang을 per-attempt 타임아웃으로 끊고
+    // 일시적 오류를 재연결·재시도한다(withMongoRetry가 내부에서 connectDb 호출).
     const tokenHash = hashRefreshToken(refreshToken, env);
-    const session = await RefreshTokenSession.findOne({ tokenHash }).lean();
+    const session = await withMongoRetry(env, () => RefreshTokenSession.findOne({ tokenHash }).lean());
     if (!session || session.revokedAt) return null;
     if (!refreshSessionMatchesRequest(session, request)) return null;
 
     const expiresAt = new Date(session.expiresAt || 0).getTime();
     if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return null;
 
-    const user = await User.collection.findOne(
+    const user = await withMongoRetry(env, () => User.collection.findOne(
       { _id: new mongoose.Types.ObjectId(userId) },
       {
         projection: {
@@ -428,7 +429,7 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
           status: 1,
         },
       },
-    );
+    ));
     if (!user || isWithdrawnUser(user)) return null;
 
     return normalizeAuthResultFromUser(user);
