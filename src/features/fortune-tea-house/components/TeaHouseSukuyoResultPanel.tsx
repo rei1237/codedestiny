@@ -2,6 +2,7 @@
 
 import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultResponse, FortuneTeaSukuyoPersonSnapshot } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
+import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
 import styles from "../styles/fortune-tea-house.module.css";
 
@@ -81,7 +82,7 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
         <div>
           <span>달빛 궁합의 방</span>
           <h3 id="sukuyoResultPanelTitle">{compatibility.title}</h3>
-          <p>{compatibility.summary}</p>
+          <LlmParagraphs text={compatibility.summary} />
         </div>
         <AssetImage className={styles.sukuyoResultImage} src={fortuneTeaHouseAssets.consultModes.sukuyo} alt="27숙 인연의 흐름" />
       </header>
@@ -178,8 +179,8 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
           <span>오늘의 관계 처방</span>
           <h4 id="sukuyoRoleGuideTitle">서로에게 건넬 수 있는 태도</h4>
           <div>
-            <p>{compatibility.roleGuide.userAction}</p>
-            <p>{compatibility.roleGuide.partnerAction}</p>
+            <LlmParagraphs text={compatibility.roleGuide.userAction} />
+            <LlmParagraphs text={compatibility.roleGuide.partnerAction} />
           </div>
         </section>
       ) : null}

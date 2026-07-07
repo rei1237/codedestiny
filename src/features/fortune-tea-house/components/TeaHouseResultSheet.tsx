@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import { useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -457,7 +458,7 @@ export default function TeaHouseResultSheet({
 
         <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="teaCupTopicTitle">
           <h3 id="teaCupTopicTitle">찻잔이 먼저 말한 것</h3>
-          <p className={styles.sajuSummary}>{resultPrelude}</p>
+          <LlmParagraphs text={resultPrelude} pClassName={styles.sajuSummary} />
           <p className={styles.sajuCaution}>
             {isSajuMode
               ? `${result.teaCup.name}은 ${result.teaCup.topic}의 관점에서 질문을 바라보게 합니다. 연이는 그 향 위에 타로를 올리지 않고, 사주의 기본 흐름만 차분히 펼쳤습니다.`
@@ -501,7 +502,7 @@ export default function TeaHouseResultSheet({
                 <span>{card.positionLabel}</span>
                 <strong>{card.nameKo} · {card.orientation === "upright" ? "정방향" : "역방향"}</strong>
                 <p>{card.positionMeaning || "이 자리는 지금 질문에서 가장 먼저 살필 장면을 가리킵니다."}</p>
-                <p>{card.reading || result.tarot.reading}</p>
+                <LlmParagraphs text={card.reading || result.tarot.reading} />
               </article>
             ))}
           </div>
@@ -543,7 +544,7 @@ export default function TeaHouseResultSheet({
             />
             ) : null}
           </div>
-          <p>{synthesis.summary}</p>
+          <LlmParagraphs text={synthesis.summary} />
           <strong>{synthesis.sajuTarotBridge}</strong>
         </section>
 
@@ -598,28 +599,28 @@ export default function TeaHouseResultSheet({
             <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
           )}
           <div className={styles.yeoniReadingGrid}>
-            <p>{result.yeoniReading.intro}</p>
-            <p>{result.yeoniReading.main}</p>
+            <LlmParagraphs text={result.yeoniReading.intro} />
+            <LlmParagraphs text={result.yeoniReading.main} />
             <AssetImage
               className={styles.resultSectionMascot}
               src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
               fallbackSrc={fortuneTeaHouseAssets.yeoni.transparent.bust}
               alt=""
             />
-            <p>{result.yeoniReading.advice}</p>
-            <p>{result.yeoniReading.caution}</p>
+            <LlmParagraphs text={result.yeoniReading.advice} />
+            <LlmParagraphs text={result.yeoniReading.caution} />
           </div>
         </section>
 
         <section className={styles.resultBlock} aria-labelledby="choiceSimulationTitle">
           <h3 id="choiceSimulationTitle">{choiceSimulationTitle}</h3>
-          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base4} alt="" />
+          <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base8} alt="" />
           <div className={styles.choiceGrid}>
             {result.choiceSimulation.map((choice) => (
               <article className={`${styles.choiceCard} ${resultReadingCardUi} ${resultLiftCardUi}`} key={choice.id}>
                 <span>{choice.subtitle}</span>
                 <h4>{choice.title}</h4>
-                <p>{choice.result}</p>
+                <LlmParagraphs text={choice.result} />
                 <strong>{choice.caution}</strong>
               </article>
             ))}
@@ -629,7 +630,7 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.actionPrescription} ${resultGlassCardUi}`} aria-labelledby="actionPrescriptionTitle">
           <h3 id="actionPrescriptionTitle">오늘의 작은 처방</h3>
           <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.pig.transparent.base2} alt="" />
-          <p>{result.actionPrescription}</p>
+          <LlmParagraphs text={result.actionPrescription} />
           <div className={styles.luckyKeywordList}>
             {previewKeywords.map((keyword) => (
               <span key={keyword}>{keyword}</span>
@@ -657,7 +658,7 @@ export default function TeaHouseResultSheet({
               {honeyLetter ? (
                 <article className={styles.honeyLetterCard} aria-live="polite">
                   <h4>{honeyLetter.title || "연이의 꿀편지"}</h4>
-                  <p>{honeyLetter.body}</p>
+                  <LlmParagraphs text={honeyLetter.body} />
                 </article>
               ) : (
                 <div className={styles.honeyLetterCta}>
@@ -683,7 +684,7 @@ export default function TeaHouseResultSheet({
         <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="closingResultTitle">
           <h3 id="closingResultTitle">마지막 한마디</h3>
           <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.full} alt="" />
-          <p className={styles.sajuSummary}>{result.closingLine}</p>
+          <LlmParagraphs text={result.closingLine} pClassName={styles.sajuSummary} />
         </section>
 
         <div className={`${styles.resultActions} ${resultActionUi}`}>

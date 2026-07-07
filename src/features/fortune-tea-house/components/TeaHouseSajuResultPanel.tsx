@@ -3,6 +3,7 @@
 import type { CSSProperties } from "react";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
+import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import AssetImage from "./AssetImage";
 import FiveElementBalance from "./FiveElementBalance";
 import SajuPillarBoard from "./SajuPillarBoard";
@@ -89,7 +90,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
         <div className={styles.sajuSummaryIntro}>
           <span>{birth?.nickname || "손님"}의 사주 한 잔</span>
           <strong>{saju.title}</strong>
-          <p>{saju.summary}</p>
+          <LlmParagraphs text={saju.summary} />
         </div>
         <dl className={styles.sajuSummaryGrid}>
           <div>
@@ -164,7 +165,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
             <div className={styles.sajuTenGodReading}>
               <span>{primaryTenGod.roleInTeaHouse}</span>
               <strong>{primaryTenGod.nameKo}</strong>
-              <p>{primaryTenGod.reading}</p>
+              <LlmParagraphs text={primaryTenGod.reading} />
               {saju.secondaryTenGods?.length ? (
                 <div className={styles.sajuTenGodChips}>
                   {saju.secondaryTenGods.map((tenGod) => (
@@ -185,7 +186,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
           <h4 id="sajuYeoniReadingTitle">연이가 읽은 사주의 기본 흐름</h4>
         </div>
         <div className={styles.sajuReadingText}>
-          <p>{saju.summary}</p>
+          <LlmParagraphs text={saju.summary} />
           {saju.keyPoints.map((point) => (
             <span key={point}>{point}</span>
           ))}
@@ -202,7 +203,7 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
             {deepSections.map((section) => (
               <article className={styles.sajuDeepResultCard} data-tone={section.tone || "summary"} key={section.id || section.title}>
                 <span>{section.title}</span>
-                <p>{section.body}</p>
+                <LlmParagraphs text={section.body} />
               </article>
             ))}
           </div>
@@ -218,13 +219,13 @@ export default function TeaHouseSajuResultPanel({ result, onShowTarot, onEditBir
       <section className={styles.sajuCautionBlock} aria-labelledby="sajuCautionTitle">
         <span>주의할 기운</span>
         <h4 id="sajuCautionTitle">조금 천천히 살펴야 할 결</h4>
-        <p>{saju.cautionReading}</p>
+        <LlmParagraphs text={saju.cautionReading} />
       </section>
 
       <section className={styles.sajuActionBlock} aria-labelledby="sajuActionTitle">
         <span>오늘의 행동 처방</span>
         <h4 id="sajuActionTitle">사주가 권하는 한 걸음</h4>
-        <p>{saju.actionPrescription}</p>
+        <LlmParagraphs text={saju.actionPrescription} />
       </section>
 
       {showTarotAction ? (
