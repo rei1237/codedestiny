@@ -1429,10 +1429,29 @@ export default {
       }, { status: 404, headers: { "X-CF-Worker-Error": "backend_only" } });
     } catch (error) {
       logWorkerUnhandledError(request, env, error);
+      const errorName = String(error?.name || "Error");
+      const probe = `${errorName} ${String(error?.message || "")}`;
+      const transient = /MongoPoolCleared|PoolCleared|MongoNetwork|MongoTimeout|server selection timed out|connection timed out|connection is not ready|ECONNRESET|ETIMEDOUT|EPIPE|ENOTFOUND|ECONNREFUSED/i.test(probe);
+      if (transient) {
+        return jsonResponse(request, env, {
+          ok: false,
+          error: "service_unavailable",
+          code: "SERVICE_UNAVAILABLE",
+          message: "일시적으로 서비스 연결이 원활하지 않습니다. 잠시 후 다시 시도해 주세요.",
+        }, {
+          status: 503,
+          headers: {
+            "X-CF-Worker-Error": "worker_transient_db_error",
+            "Retry-After": "2",
+          },
+        });
+      }
       return jsonResponse(request, env, {
         ok: false,
         error: "worker_unhandled_exception",
-        message: "Authentication service error. Please retry login.",
+        code: "INTERNAL_SERVER_ERROR",
+        message: "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        errorName,
       }, {
         status: 500,
         headers: {

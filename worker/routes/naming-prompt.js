@@ -1,5 +1,5 @@
 import { requireAuth } from "../lib/auth.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -671,14 +671,14 @@ async function findPaymentForUser(env, auth, paymentId) {
   if (!normalized) {
     throw createHttpError(400, "paymentId is required.", { code: "PAYMENT_ID_REQUIRED" });
   }
-  const payment = await Payment.findOne({
+  const payment = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     $or: [
       { merchantUid: normalized },
       { impUid: normalized },
       { _id: /^[a-f\d]{24}$/i.test(normalized) ? normalized : undefined },
     ].filter((item) => Object.values(item)[0] !== undefined),
-  }).lean();
+  }).lean());
   if (!payment) throw createHttpError(404, "결제 기록을 찾을 수 없습니다.", { code: "PAYMENT_NOT_FOUND" });
   return payment;
 }
@@ -832,13 +832,13 @@ async function verifyMonthlyEvidence(env, auth, ctx = {}) {
     purchaseId ? { "metadata.requestId": purchaseId } : null,
   ].filter(Boolean);
   if (ledgerOr.length) {
-    const ledger = await MonthlyCreditLedger.findOne({
+    const ledger = await withMongoRetry(env, () => MonthlyCreditLedger.findOne({
       userId: auth.userId,
       type: "MONTHLY_CREDIT_SPEND",
       serviceKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
       "metadata.refundedForUnlockFailure": { $ne: true },
       $or: ledgerOr,
-    }).lean();
+    }).lean());
     if (ledger) return { source: "monthly_ledger", evidenceId: String(ledger._id || "") };
   }
   const historyOr = [
@@ -847,14 +847,14 @@ async function verifyMonthlyEvidence(env, auth, ctx = {}) {
     purchaseId ? { "metadata.requestId": purchaseId } : null,
   ].filter(Boolean);
   if (historyOr.length) {
-    const history = await PointHistory.findOne({
+    const history = await withMongoRetry(env, () => PointHistory.findOne({
       userId: auth.userId,
       kind: "deduct",
       featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
       "metadata.accessType": "membership_credit",
       "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
       $or: historyOr,
-    }).lean();
+    }).lean());
     if (history) return { source: "monthly_history", evidenceId: String(history._id || "") };
   }
   return null;
@@ -870,13 +870,13 @@ async function verifyPassEvidence(env, auth, ctx = {}) {
     requestId ? { "metadata.purchaseId": requestId } : null,
   ].filter(Boolean);
   if (!historyOr.length) return null;
-  const history = await PointHistory.findOne({
+  const history = await withMongoRetry(env, () => PointHistory.findOne({
     userId: auth.userId,
     kind: "deduct",
     featureKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
     "metadata.accessMethod": { $in: ["PASS", "FAMILY"] },
     $or: historyOr,
-  }).lean();
+  }).lean());
   return history ? { source: "pass_history", evidenceId: String(history._id || "") } : null;
 }
 
@@ -989,7 +989,7 @@ async function findExecutionResultForUser(env, auth, id) {
   await connectDb(env);
   const normalized = clean(id, 180);
   if (!normalized) return null;
-  const record = await PaidExecutionRecord.findOne({
+  const record = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
     userId: String(auth.userId || ""),
     featureId: FEATURE_KEY,
     $or: [
@@ -999,7 +999,7 @@ async function findExecutionResultForUser(env, auth, id) {
       { requestId: normalized },
       { idempotencyKey: normalized },
     ],
-  }).lean();
+  }).lean());
   return record ? serializeExecutionResult(record) : null;
 }
 
