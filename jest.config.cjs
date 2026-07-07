@@ -10,5 +10,6 @@ module.exports = {
   moduleNameMapper: {
     "^astronomy-engine$": "<rootDir>/node_modules/astronomy-engine/astronomy.js",
     "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
+    "\\.wasm$": "<rootDir>/__tests__/__mocks__/swisseph-wasm-binary.js",
   },
 };

@@ -695,12 +695,13 @@ function keywordsFromChart(chart, topic) {
   return words.slice(0, 3);
 }
 
-async function calculateAstrologyChart(env, normalized) {
+async function calculateAstrologyChart(env, normalized, requestUrl) {
   const { input } = normalized;
   const natalRaw = await getSwissWesternChart(env, input.calculationInput, {
     premium: true,
     strictSwiss: true,
     allowFallback: false,
+    requestUrl,
   });
   const birthTimeUnknown = input.birthInfo.birthTimeUnknown === true;
   const rawPlanets = natalRaw.planets || {};
@@ -764,7 +765,7 @@ async function calculateAstrologyChart(env, normalized) {
       timezone: 0,
       lat: input.calculationInput.lat,
       lon: input.calculationInput.lon,
-    }, { premium: true, strictSwiss: true, allowFallback: false });
+    }, { premium: true, strictSwiss: true, allowFallback: false, requestUrl });
     const transitPlanets = MAJOR_PLANETS.map((name) => ({
       name,
       label: PLANET_LABELS[name] || name,
@@ -1399,7 +1400,7 @@ async function handleStart(request, env) {
   await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
   try {
     console.info("[AstrologyAI] generation started", { route: "/api/astrology-ai/start", requestId: idempotencyKey, sessionId });
-    const chart = await calculateAstrologyChart(env, normalized);
+    const chart = await calculateAstrologyChart(env, normalized, request.url);
     const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), {
       minLength: ASTROLOGY_AI_MIN_RESULT_CHARS,
       maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,

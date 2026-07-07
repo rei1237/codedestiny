@@ -1,4 +1,6 @@
 import SwissEPH from "sweph-wasm";
+import createSweWasmModule from "sweph-wasm/wasm/swisseph";
+import sweWasmModule from "../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm";
 import * as Astronomy from "astronomy-engine";
 import { getEnv } from "./env.js";
 import { createHttpError } from "./http.js";
@@ -714,31 +716,25 @@ function buildSwissWasmInitError(attempts) {
 }
 
 async function createSwissInstance(env, options = {}) {
-  const wasmCandidates = resolveSwissWasmCandidates(env, options);
   let swe = null;
 
+  // Cloudflare Workers는 런타임에 fetch한 바이트를 WebAssembly.instantiate()로 즉석
+  // 컴파일하는 것을 차단한다("Wasm code generation disallowed by embedder"). sweph-wasm의
+  // 기본 SwissEPH.init(url)은 이 방식을 쓰므로 Workers에서 항상 실패한다. 대신 .wasm을
+  // 빌드 타임 ES 모듈로 import해 이미 컴파일된 WebAssembly.Module을 확보하고,
+  // instantiateWasm 훅으로 그 모듈을 직접 주입해 런타임 컴파일 자체를 우회한다.
   try {
-    console.info("[swiss-init]", JSON.stringify({
-      wasmCandidateCount: wasmCandidates.length,
-      wasmPathPrefix: String(wasmCandidates[0]?.url || "").slice(0, 120),
-    }));
-  } catch (e) {
-    // ignore logging failure
-  }
-
-  const attempts = [];
-  for (const candidate of wasmCandidates) {
-    try {
-      swe = await SwissEPH.init(candidate.url);
-      break;
-    } catch (error) {
-      attempts.push({
-        source: candidate.source,
-        error: summarizeSwissInitError(error),
-      });
-    }
-  }
-  if (!swe) {
+    const rawModule = await createSweWasmModule({
+      instantiateWasm(imports, successCallback) {
+        WebAssembly.instantiate(sweWasmModule, imports).then((instance) => {
+          successCallback(instance, sweWasmModule);
+        });
+        return {};
+      },
+    });
+    swe = new SwissEPH(rawModule);
+  } catch (error) {
+    const attempts = [{ source: "bundled-module", error: summarizeSwissInitError(error) }];
     try {
       console.warn("[swiss-init-error]", JSON.stringify({
         code: "SWISS_WASM_INIT_FAILED",
@@ -880,6 +876,13 @@ export async function getSwissWesternChart(env, payload, options = {}) {
     };
   } catch (error) {
     if (requiresStrictSwissWestern(env, options)) {
+      try {
+        console.error("[astro-western-strict-failed]", JSON.stringify({
+          reason: summarizeSwissInitError(error),
+        }));
+      } catch (e) {
+        // ignore logging failure
+      }
       throw createSwissWesternUnavailableError(error);
     }
 
