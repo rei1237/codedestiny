@@ -3,6 +3,7 @@ import { connectDb } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 
 const PRODUCT_TYPE = "naming_prompt";
@@ -636,7 +637,6 @@ function buildCheckoutPayload(inputHash, sajuEvidenceHash = "") {
   const requestId = `naming-prompt-${inputHash.slice(0, 16)}`;
   return {
     paymentType: "digital_content",
-    paymentMode: "DIRECT_KRW",
     provider: "PORTONE_V2",
     pg: "KG_INICIS",
     productType: PRODUCT_TYPE,
@@ -650,6 +650,7 @@ function buildCheckoutPayload(inputHash, sajuEvidenceHash = "") {
     amountKrw: AMOUNT_KRW,
     coinPriceBasis: COIN_PRICE,
     coinPrice: COIN_PRICE,
+    membershipCreditCost: calculateMembershipCreditCost(COIN_PRICE),
     paymentMethod: "card_general",
     requestId,
     reportId: inputHash,
@@ -1063,6 +1064,7 @@ async function handleCheckout(request, env) {
     amount: AMOUNT_KRW,
     currency: CURRENCY,
     coinPrice: COIN_PRICE,
+    membershipCreditCost: calculateMembershipCreditCost(COIN_PRICE),
     inputHash,
     sajuEvidenceHash: sajuEvidence.evidenceHash,
     passEligible: true,

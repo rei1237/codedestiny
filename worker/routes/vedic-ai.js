@@ -1129,6 +1129,19 @@ async function handleEnsureAccess(request, env) {
     return json({ ok: true, accessToken, accessType: "pass" });
   }
 
+  const pass = normalizeHoneyPassEntitlement(user || {});
+  if (canUseByPass(pass, pricing.coinPrice)) {
+    const accessToken = await createAccessToken(env, {
+      userId: String(auth.userId),
+      idempotencyKey: requestId,
+      inputHash: normalized.inputHash,
+      accessType: "pass",
+      paymentId: "",
+    });
+    logVedicAi("LLM Access Check Success", { ...context, requestId, accessCheckResult: "pass" });
+    return json({ ok: true, accessToken, accessType: "pass" });
+  }
+
   logVedicAi("LLM Access Check Success", {
     ...context,
     requestId,
