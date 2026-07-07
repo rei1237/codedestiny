@@ -11,6 +11,18 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[GlobalError]", error);
+    // 배포 전환 순간 이전 HTML이 사라진 청크를 요청하면 ChunkLoadError로 떨어진다.
+    // 새 HTML을 받으면 해결되므로 경로당 1회만 자동 새로고침한다(무한 루프 방지).
+    const chunkFailed = error?.name === "ChunkLoadError" || /Loading chunk \S+ failed/i.test(String(error?.message || ""));
+    if (!chunkFailed || typeof window === "undefined") return;
+    const reloadKey = `cd:chunk-reload:${window.location.pathname}`;
+    try {
+      if (window.sessionStorage.getItem(reloadKey)) return;
+      window.sessionStorage.setItem(reloadKey, String(Date.now()));
+    } catch {
+      return;
+    }
+    window.location.reload();
   }, [error]);
 
   return (
