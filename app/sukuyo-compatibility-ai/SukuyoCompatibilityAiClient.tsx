@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -23,6 +24,7 @@ type PersonForm = {
   gender: string;
   birthDate: string;
   birthTime: string;
+  birthTimeUnknown: boolean;
   calendarType: CalendarType;
 };
 type ConsultationMessage = {
@@ -88,7 +90,7 @@ const LOADING_STAGES = [
   { phase: "1", label: "두 사람의 달빛 자리를 맞춰보고 있어요.", sub: "생년 정보 확인" },
   { phase: "2", label: "본명숙과 관계 거리의 흐름을 차분히 읽는 중입니다.", sub: "본명숙 계산" },
   { phase: "3", label: "끌림과 갈등이 머무는 자리를 살피고 있어요.", sub: "관계 거리 해석" },
-  { phase: "4", label: "두 사람에게 전할 상담문을 고요히 정리합니다.", sub: "AI 상담문 생성" },
+  { phase: "4", label: "두 사람에게 전할 상담문을 정성껏 써 내려가는 중이에요.", sub: "AI 상담문 생성" },
 ];
 const CONSULTATION_CARDS = [
   { icon: Orbit, title: "본명숙", text: "태어난 달의 자리로 보는 마음의 기본 결" },
@@ -129,21 +131,6 @@ const SECTION_ICONS: Record<string, string> = {
   moonLetter: "♡",
 };
 // 챕터 진입 시 숙요 역술가 보이스 로딩 카피
-const CHAPTER_LOADING_COPY: Record<string, string> = {
-  overview: "역술가가 두 별의 전체 궁합 그림을 펼치고 있습니다…",
-  twoStars: "두 분의 본명숙을 나란히 놓고 기질을 비춰보는 중입니다.",
-  attraction: "처음 끌렸던 순간의 별자리 거리를 되짚어 보고 있습니다.",
-  conflict: "파문이 이는 자리를 관계 유형의 결로 살피는 중입니다.",
-  timing: "관계의 계절이 어디쯤 왔는지 절기력을 넘기고 있습니다.",
-  caution: "원국 근거로 조심할 습관을 정리하는 중입니다.",
-  treasure: "두 분만의 강점이 모이는 자리를 찾아내고 있습니다.",
-  communication: "서로에게 닿는 말의 온도를 맞춰 보는 중입니다.",
-  domains: "연애, 일, 우정 — 영역별 상성을 갈아 끼워 보고 있습니다.",
-  crisis: "위기 국면을 건너는 단계별 지침을 세우는 중입니다.",
-  outlook: "1년 뒤, 3년 뒤 두 갈래 하늘을 미리 내다보는 중입니다.",
-  moonLetter: "마지막 달빛 처방을 정성껏 접고 있습니다…",
-};
-const CHAPTER_LOADING_COPY_FALLBACK = "다음 장의 달빛을 모으는 중입니다…";
 
 const SCORE_AXES: { key: ScoreKey; label: string; angle: number }[] = [
   { key: "destiny", label: "운명 인연", angle: -90 },
@@ -179,6 +166,7 @@ const EMPTY_PERSON: PersonForm = {
   gender: "unknown",
   birthDate: "",
   birthTime: "",
+  birthTimeUnknown: false,
   calendarType: "solar",
 };
 
@@ -316,12 +304,14 @@ function applyProfileSeedToPerson(person: PersonForm, profile: AiPrefillSeed): P
   if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType) {
     return person;
   }
+  const birthTimeUnknown = profile.birthTimeUnknown === true;
   return {
     ...person,
     name: profile.name || person.name,
     gender: (profile.gender as PersonForm["gender"]) || person.gender,
     birthDate: profile.birthDate || person.birthDate,
-    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || person.birthTime,
+    birthTime: birthTimeUnknown ? "" : profile.birthTime || person.birthTime,
+    birthTimeUnknown: birthTimeUnknown || person.birthTimeUnknown,
     calendarType: profile.calendarType || person.calendarType,
   };
 }
@@ -490,6 +480,7 @@ function latestAssistantJson(consultation: Consultation | null) {
 function MoonLoadingScreen() {
   const [stage, setStage] = useState(0);
   const reduceMotion = useReducedMotion() === true;
+  useBodyScrollLock(true);
 
   useEffect(() => {
     const intervals = [2400, 3000, 3200, 3400];
@@ -551,7 +542,7 @@ function MoonLoadingScreen() {
       <div className={styles.loadingBar}>
         <span />
       </div>
-      <p className={styles.loadingFoot}>두 사람의 달빛 자리를 맞춰보고 있어요.</p>
+      <p className={styles.loadingFoot}>상담문은 길게 써 내려가느라 최대 1분 정도 걸릴 수 있어요. 화면을 닫지 말고 잠시 기다려 주세요.</p>
     </div>
   );
 }
@@ -593,7 +584,7 @@ function ScoreRadarChart({ scores }: { scores: CompatResult["meta"]["scores"] })
       {SCORE_AXES.map((axis) => {
         const pos = toXY(axis.angle, radius + 22);
         return (
-          <text key={axis.key} x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="9" fill="rgba(255,255,255,0.48)">
+          <text key={axis.key} x={pos.x} y={pos.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fill="rgba(255,255,255,0.72)">
             {axis.label}
           </text>
         );
@@ -735,30 +726,26 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
   const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
   const [activeChapter, setActiveChapter] = useState(0);
-  const [unlockedChapter, setUnlockedChapter] = useState(0);
-  const [chapterLoading, setChapterLoading] = useState(false);
-  const chapterTimerRef = useRef<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const chapterBodyRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    setChapterLoading(true);
-    chapterTimerRef.current = window.setTimeout(() => setChapterLoading(false), 850);
-    return () => {
-      if (chapterTimerRef.current) window.clearTimeout(chapterTimerRef.current);
-    };
-  }, []);
+  useBodyScrollLock(true);
 
   const openChapter = (index: number) => {
-    if (index < 0 || index >= chapterEntries.length || index > unlockedChapter + 1) return;
-    if (chapterTimerRef.current) window.clearTimeout(chapterTimerRef.current);
+    if (index < 0 || index >= chapterEntries.length) return;
     setActiveChapter(index);
-    setUnlockedChapter((current) => Math.max(current, index));
-    setChapterLoading(true);
-    chapterTimerRef.current = window.setTimeout(() => {
-      setChapterLoading(false);
-      chapterBodyRef.current?.scrollTo?.({ top: 0 });
-    }, 850);
+    chapterBodyRef.current?.scrollTo?.({ top: 0 });
   };
+
+  useEffect(() => {
+    if (showAll) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") openChapter(activeChapter - 1);
+      if (event.key === "ArrowRight") openChapter(activeChapter + 1);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChapter, showAll, chapterEntries.length]);
 
   const handlePDF = async () => {
     const element = document.getElementById("compat-result-body");
@@ -810,6 +797,9 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
             {isDownloading ? <Loader2 size={16} className={styles.spin} /> : <Download size={16} />}
             PDF 저장
           </button>
+          <button type="button" onClick={() => setShowAll((prev) => !prev)} aria-pressed={showAll}>
+            {showAll ? "한 장씩 보기" : "전체 보기"}
+          </button>
           <button type="button" onClick={onClose} aria-label="결과 닫기">
             <X size={16} />
             닫기
@@ -819,53 +809,61 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
 
       <div className={styles.modalBody}>
         <CompatSummaryHeader meta={meta} />
-        <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
-          {chapterEntries.map(([key, section], index) => (
-            <button
-              key={key}
-              type="button"
-              className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}${index > unlockedChapter + 1 ? ` ${styles.chapterChipLocked}` : ""}`}
-              onClick={() => openChapter(index)}
-              disabled={index > unlockedChapter + 1}
-              aria-current={index === activeChapter ? "true" : undefined}
-              aria-label={`${index + 1}장 ${section.title}${index > unlockedChapter + 1 ? " (아직 잠겨 있어요)" : ""}`}
-            >
-              <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
-              {index + 1}장
-            </button>
-          ))}
-        </nav>
-        <div className={styles.chapterStage} ref={chapterBodyRef}>
-          {chapterLoading ? (
-            <div className={styles.yeonLoading} aria-live="polite">
-              <span aria-hidden="true">☾</span>
-              <p>{CHAPTER_LOADING_COPY[chapterEntries[activeChapter]?.[0] || ""] || CHAPTER_LOADING_COPY_FALLBACK}</p>
+        {showAll ? (
+          <div className={styles.chapterStage} ref={chapterBodyRef}>
+            {chapterEntries.map(([key, section]) => (
+              <article key={key} className={styles.readingSection}>
+                <div>
+                  <span>{SECTION_ICONS[key] || "✦"}</span>
+                  <h3>{section.title}</h3>
+                </div>
+                <div className={styles.readingBody}>{renderRichText(section.body || "")}</div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <>
+            <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+              {chapterEntries.map(([key, section], index) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}`}
+                  onClick={() => openChapter(index)}
+                  aria-current={index === activeChapter ? "true" : undefined}
+                  aria-label={`${index + 1}장 ${section.title}`}
+                >
+                  <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
+                  {index + 1}장
+                </button>
+              ))}
+            </nav>
+            <div className={styles.chapterStage} ref={chapterBodyRef}>
+              <article className={styles.readingSection}>
+                <div>
+                  <span>{SECTION_ICONS[chapterEntries[activeChapter]?.[0] || ""] || "✦"}</span>
+                  <h3>{chapterEntries[activeChapter]?.[1]?.title || ""}</h3>
+                </div>
+                <div className={styles.readingBody}>{renderRichText(chapterEntries[activeChapter]?.[1]?.body || "")}</div>
+              </article>
             </div>
-          ) : (
-            <article className={styles.readingSection}>
-              <div>
-                <span>{SECTION_ICONS[chapterEntries[activeChapter]?.[0] || ""] || "✦"}</span>
-                <h3>{chapterEntries[activeChapter]?.[1]?.title || ""}</h3>
-              </div>
-              <div className={styles.readingBody}>{renderRichText(chapterEntries[activeChapter]?.[1]?.body || "")}</div>
-            </article>
-          )}
-        </div>
-        <div className={styles.chapterPager}>
-          <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0 || chapterLoading} aria-label="이전 장으로">
-            이전 장
-          </button>
-          <span>{activeChapter + 1} / {chapterEntries.length}</span>
-          {activeChapter < chapterEntries.length - 1 ? (
-            <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} disabled={chapterLoading} aria-label="다음 장 열기">
-              다음 장 열기
-            </button>
-          ) : (
-            <button type="button" className={styles.chapterNextButton} onClick={onClose} disabled={chapterLoading} aria-label="결과 닫기">
-              여운 남기고 닫기
-            </button>
-          )}
-        </div>
+            <div className={styles.chapterPager}>
+              <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0} aria-label="이전 장으로">
+                이전 장
+              </button>
+              <span>{activeChapter + 1} / {chapterEntries.length}</span>
+              {activeChapter < chapterEntries.length - 1 ? (
+                <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} aria-label="다음 장 열기">
+                  다음 장 열기
+                </button>
+              ) : (
+                <button type="button" className={styles.chapterNextButton} onClick={onClose} aria-label="결과 닫기">
+                  여운 남기고 닫기
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}
@@ -1050,12 +1048,12 @@ export default function SukuyoCompatibilityAiClient() {
     userName: personA.name,
     gender: personA.gender,
     birthDate: personA.birthDate,
-    birthTime: personA.birthTime,
+    birthTime: personA.birthTimeUnknown ? "" : personA.birthTime,
     calendarType: personA.calendarType,
     partnerName: consultationType === "compatibility" ? personB.name : "",
     partnerGender: consultationType === "compatibility" ? personB.gender : "",
     partnerBirthDate: consultationType === "compatibility" ? personB.birthDate : "",
-    partnerBirthTime: consultationType === "compatibility" ? personB.birthTime : "",
+    partnerBirthTime: consultationType === "compatibility" ? (personB.birthTimeUnknown ? "" : personB.birthTime) : "",
     partnerCalendarType: consultationType === "compatibility" ? personB.calendarType : "",
     relationshipType,
     topic,
@@ -1227,14 +1225,29 @@ export default function SukuyoCompatibilityAiClient() {
           {!value.birthDate && <span className={styles.fieldHint}>{owner} 생년월일을 입력해 주세요.</span>}
         </div>
         <div className={styles.field}>
-          <label htmlFor={`${prefix}-birth-time`}>출생시간</label>
+          <label htmlFor={`${prefix}-birth-time`}>
+            출생시간 <span className={styles.labelOptional}>선택</span>
+          </label>
           <div className={styles.timeControl}>
-            <input id={`${prefix}-birth-time`} type="time" value={value.birthTime} onChange={(event) => updatePerson(target, { birthTime: event.target.value })} disabled={busy} />
-            <button type="button" className={styles.timeUnknownButton} onClick={() => updatePerson(target, { birthTime: "" })} disabled={busy || !value.birthTime}>
-              모름
+            <input
+              id={`${prefix}-birth-time`}
+              type="time"
+              value={value.birthTimeUnknown ? "" : value.birthTime}
+              onChange={(event) => updatePerson(target, { birthTime: event.target.value, birthTimeUnknown: false })}
+              disabled={busy || value.birthTimeUnknown}
+              className={value.birthTimeUnknown ? styles.timeInputMuted : undefined}
+            />
+            <button
+              type="button"
+              className={value.birthTimeUnknown ? styles.timeUnknownActive : styles.timeUnknownButton}
+              onClick={() => updatePerson(target, { birthTimeUnknown: !value.birthTimeUnknown, birthTime: "" })}
+              disabled={busy}
+              aria-pressed={value.birthTimeUnknown}
+            >
+              시간 모름
             </button>
           </div>
-          <span className={styles.fieldHint}>정확한 시간을 모르신다면 ‘모름’을 선택해도 상담은 진행됩니다.</span>
+          <span className={styles.fieldHint}>숙요점은 시간 없이도 봐요. 알면 조금 더 정밀해져요.</span>
         </div>
         <div className={styles.fieldWide}>
           <span>달력 기준</span>

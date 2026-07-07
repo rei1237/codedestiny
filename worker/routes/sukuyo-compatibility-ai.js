@@ -50,21 +50,21 @@ const SUKUYO_RELATION_12 = [
   { name: "비", han: "非", meaning: "이질적 공존" },
 ];
 const SUKUYO_SECTION_SPECS = [
-  { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1500, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이" },
-  { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 1500, guide: "두 사람의 숙, 오행, 음양, 수호신이 회의실, 데이트, 갈등 상황에서 어떻게 드러나는지 생활 장면으로 풀이" },
-  { key: "attraction", title: "✦ 引力 — 끌림의 구조", minChars: 1500, guide: "처음 만났을 때 끌렸을 구체적 시나리오 1개와 지금 관계에서 끌림을 재확인하는 시나리오 1개 포함" },
-  { key: "conflict", title: "〜 波紋 — 갈등의 파문", minChars: 2000, guide: "갈등 시나리오 3가지 이상을 발단, 각자의 반응, 흔한 실수, 이상적 대응 대사 예시 순서로 제시" },
-  { key: "timing", title: "◎ 時節 — 관계의 계절", minChars: 1500, guide: "현재 이번 달, 1~3개월 후, 3~6개월 후, 6개월~1년 후 흐름과 주의사항을 별도 소단락으로 서술" },
-  { key: "caution", title: "⚠ 禁忌 — 조심해야 할 관계 습관", minChars: 1500, guide: "하지 말아야 할 말과 행동 5가지를 원국 근거와 대안 행동까지 함께 제시" },
-  { key: "treasure", title: "◈ 金脈 — 이 관계만의 보물", minChars: 1500, guide: "두 사람만의 강점을 함께 하면 좋은 활동과 방식 3가지 이상으로 제시" },
-  { key: "communication", title: "🗣 疏通 — 서로에게 맞는 대화법", minChars: 1500, guide: "사람A와 사람B에게 효과적인 대화 방식을 대조하고 화해 대사 예시를 각자 기준 2개씩 제시" },
-  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 2000, guide: "연애와 결혼, 직장 동료와 사업 파트너, 우정 관계에서 궁합이 어떻게 다르게 작용하는지 모두 풀이" },
-  { key: "crisis", title: "🌪 危機 — 위기 시나리오와 극복법", minChars: 1500, guide: "권태기, 장거리, 가치관 충돌 등 취약한 위기 국면 1~2개와 단계별 행동 지침 제시" },
-  { key: "outlook", title: "🔭 展望 — 장기 전망", minChars: 1500, guide: "1년 후와 3년 후를 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오로 제시" },
-  { key: "moonLetter", title: "♡ 月箋 — 오늘의 달빛 처방", minChars: 1000, guide: "전체 흐름을 정리하고 오늘 당장 실천할 수 있는 구체적 행동 3가지를 번호로 제시" },
+  { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1000, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이" },
+  { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 900, guide: "두 사람의 숙, 오행, 음양, 수호신이 회의실, 데이트, 갈등 상황에서 어떻게 드러나는지 생활 장면으로 풀이" },
+  { key: "attraction", title: "✦ 引力 — 끌림의 구조", minChars: 900, guide: "처음 만났을 때 끌렸을 구체적 시나리오 1개와 지금 관계에서 끌림을 재확인하는 시나리오 1개 포함" },
+  { key: "conflict", title: "〜 波紋 — 갈등의 파문", minChars: 1200, guide: "갈등 시나리오 3가지 이상을 발단, 각자의 반응, 흔한 실수, 이상적 대응 대사 예시 순서로 제시" },
+  { key: "timing", title: "◎ 時節 — 관계의 계절", minChars: 900, guide: "현재 이번 달, 1~3개월 후, 3~6개월 후, 6개월~1년 후 흐름과 주의사항을 별도 소단락으로 서술" },
+  { key: "caution", title: "⚠ 禁忌 — 조심해야 할 관계 습관", minChars: 900, guide: "하지 말아야 할 말과 행동 5가지를 원국 근거와 대안 행동까지 함께 제시" },
+  { key: "treasure", title: "◈ 金脈 — 이 관계만의 보물", minChars: 900, guide: "두 사람만의 강점을 함께 하면 좋은 활동과 방식 3가지 이상으로 제시" },
+  { key: "communication", title: "🗣 疏通 — 서로에게 맞는 대화법", minChars: 900, guide: "사람A와 사람B에게 효과적인 대화 방식을 대조하고 화해 대사 예시를 각자 기준 2개씩 제시" },
+  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 1200, guide: "연애와 결혼, 직장 동료와 사업 파트너, 우정 관계에서 궁합이 어떻게 다르게 작용하는지 모두 풀이" },
+  { key: "crisis", title: "🌪 危機 — 위기 시나리오와 극복법", minChars: 900, guide: "권태기, 장거리, 가치관 충돌 등 취약한 위기 국면 1~2개와 단계별 행동 지침 제시" },
+  { key: "outlook", title: "🔭 展望 — 장기 전망", minChars: 900, guide: "1년 후와 3년 후를 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오로 제시" },
+  { key: "moonLetter", title: "♡ 月箋 — 오늘의 달빛 처방", minChars: 700, guide: "전체 흐름을 정리하고 오늘 당장 실천할 수 있는 구체적 행동 3가지를 번호로 제시" },
 ];
 const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.minChars, 0);
-const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 20000;
+const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 14000;
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -1168,10 +1168,11 @@ async function createFirstAnswer(env, input, calculation) {
     requestId: input.idempotencyKey,
     consultationType: input.consultationType,
   });
-  // 궁합 상담 JSON 요구 분량(body 합계 18,500~20,000자, 한국어 1자≈1~1.5토큰)이 구 상한
-  // 18000 토큰을 항상 초과해 잘림 → 파싱 실패 → LLM_FAILED가 났다. 최대 요구 기준 여유를 둔 상한.
+  // 궁합 상담 JSON 요구 분량(body 합계 ~11,300자)이 구 상한을 넘겨 잘리지 않도록 여유를 둔 상한.
   const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 32000);
-  const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 90000);
+  // PREMIUM_GEMINI_TIMEOUT_MS(45s)를 참조하면 truthy 단락으로 90초 기본값이 죽어 대량 JSON 생성이
+  // 45초에 타임아웃 → LLM_FAILED 503으로 튕겼다. 궁합 전용 예산 90초를 직접 확보한다.
+  const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 90000;
   // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
   // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.
   const sukuyoLlmCache = {
@@ -1180,12 +1181,16 @@ async function createFirstAnswer(env, input, calculation) {
     ttlSeconds: 7 * 24 * 60 * 60,
     keyExtra: "sukuyo-compat-ai-v1",
   };
+  const isCompatibility = input.consultationType === "compatibility";
   const ai = await callGeminiText(env, buildFirstPrompt(input, calculation), {
-    systemPrompt: input.consultationType === "compatibility" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    systemPrompt: isCompatibility ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
     taskType: "fortune",
     temperature: 0.74,
-    maxOutputTokens: input.consultationType === "compatibility" ? compatibilityMaxOutputTokens : 4096,
-    timeoutMs: input.consultationType === "compatibility" ? compatibilityTimeoutMs : Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    maxOutputTokens: isCompatibility ? compatibilityMaxOutputTokens : 4096,
+    timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
+    // 궁합은 llama가 못 만드는 대형 JSON이라 Workers AI 폴백은 무의미하다. 폴백을 끊어
+    // Gemini 실패 시 즉시 실패시켜 선차감 환급을 빠르게 실행한다.
+    ...(isCompatibility ? { fallbackToWorkersAI: false } : {}),
     cache: sukuyoLlmCache,
   });
   let provider = clean(ai?.provider || "");
@@ -1214,6 +1219,7 @@ async function createFirstAnswer(env, input, calculation) {
         temperature: 0.72,
         maxOutputTokens: compatibilityMaxOutputTokens,
         timeoutMs: compatibilityTimeoutMs,
+        fallbackToWorkersAI: false,
         cache: sukuyoLlmCache,
       });
       const repairProvider = clean(repair?.provider || "");
