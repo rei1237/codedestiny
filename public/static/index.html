@@ -5164,6 +5164,23 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 @media (max-width: 768px) {
   .theme-switch-wrapper--desktop{display:none!important}
 }
+
+@media (min-width: 769px) {
+  .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(120deg,rgba(255,255,255,.94) 0%,rgba(255,245,249,.92) 100%);border:1.5px solid rgba(255,168,196,.64);box-shadow:0 12px 26px rgba(240,101,155,.22),0 3px 10px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.95)}
+  .theme-switch-wrapper--desktop .theme-switch-pill:hover{box-shadow:0 16px 32px rgba(240,101,155,.28),0 4px 14px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.95)}
+  .theme-switch-wrapper--desktop .tsp-pig{color:#d43870;text-shadow:none}
+  .theme-switch-wrapper--desktop .tsp-lion{color:#7e7b92}
+  .theme-switch-wrapper--desktop .theme-switch-pill::before{background:linear-gradient(150deg,#ffdbe8 0%,#ffb1ca 48%,#ff8db2 100%);box-shadow:0 7px 18px rgba(255,78,144,.34),inset 0 1px 0 rgba(255,255,255,.78)}
+  .theme-switch-wrapper--desktop .tsw-input:focus-visible + .theme-switch-pill{outline-color:#dd3b72}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(120deg,rgba(18,19,30,.98) 0%,rgba(11,12,22,.96) 100%);border-color:rgba(255,215,108,.36);box-shadow:0 13px 30px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08)}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill:hover{box-shadow:0 16px 34px rgba(255,200,85,.18),0 4px 14px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.08)}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill::before{transform:translateX(var(--seg,78px));background:linear-gradient(145deg,#2f3043 0%,#1f2033 52%,#141524 100%);box-shadow:0 7px 18px rgba(255,215,110,.24),inset 0 1px 0 rgba(255,255,255,.1)}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig{color:rgba(255,255,255,.25);text-shadow:none}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig .tsp-icon{transform:scale(.9);filter:grayscale(.2) opacity(.72)}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion{color:#ffd861;text-shadow:0 0 10px rgba(255,216,97,.26)}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion .tsp-icon{transform:scale(1.08) rotate(-4deg);filter:drop-shadow(0 2px 6px rgba(255,216,97,.25))}
+  body.neo-mode .theme-switch-wrapper--desktop .tsw-input:focus-visible + .theme-switch-pill{outline-color:#ffd861}
+}
 </style>
 <!-- PERF: reduced-motion detect -->
 <script>(function(){try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion:reduce)").matches){document.documentElement.classList.add("cd-reduced-motion");document.addEventListener("DOMContentLoaded",function(){document.body&&document.body.classList.add("cd-reduced-motion");},{once:true});}}catch(e){}}());</script>
