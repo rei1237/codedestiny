@@ -115,6 +115,9 @@ function createNextConfig(phase) {
 
   const config = {
     output: isProductionBuild ? "export" : undefined,
+    // 배포 전환 틈새에 엣지가 청크 404를 장시간 캐시(negative cache)하면 해당 URL이
+    // 다음 배포까지 오염된다. 배포별 ?dpl= 쿼리로 에셋 캐시 키를 분리해 이를 차단한다.
+    deploymentId: isProductionBuild && buildGitSha !== "unknown" ? buildGitSha.slice(0, 12) : undefined,
     compress: true,
     env: {
       NEXT_PUBLIC_APP_VERSION: buildAppVersion,
