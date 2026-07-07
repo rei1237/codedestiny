@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
@@ -755,6 +756,7 @@ export default function NeoOperationRoomResultPage() {
         <div className={styles.heroVisual} aria-hidden="true">
           <NeoWarRoomAssetImage
             asset={neoWarRoomAssets.hero.fullbody}
+            fallbackSrc="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp"
             alt=""
             priority
             sizes="(max-width: 768px) 62vw, 360px"
@@ -1067,11 +1069,7 @@ function InitialBriefingDocument({
       content: (
         <>
           <Section title="현재 운명의 전선" body={frontlineSummary} />
-          {bluntTruth ? (
-            <blockquote className={styles.blunt}>
-              <LlmParagraphs text={bluntTruth} />
-            </blockquote>
-          ) : null}
+          {bluntTruth ? <NeoBluntCallout text={bluntTruth} /> : null}
         </>
       ),
     },
@@ -1429,6 +1427,60 @@ function Section({ title, body, list }: { title: string; body?: string; list?: s
       <LlmParagraphs text={bodyText} />
       {items.length ? <ul>{items.map((item, index) => <li key={`${index}-${item.slice(0, 24)}`}>{item}</li>)}</ul> : null}
     </section>
+  );
+}
+
+// 팩폭 콜아웃 스프라이트 — 로컬 투명 webp s1 시퀀스 8프레임(이미 슬라이스됨)을 순환해 말하는 애니메이션.
+const NEO_CALLOUT_FRAMES = ["f01", "f02", "f03", "f04", "f05", "f06", "f07", "f08"].map(
+  (frame) => `/neo-operation-room/sprites/transparent/neo-transparent-s1-${frame}.webp`,
+);
+const NEO_CALLOUT_FRAME_INTERVAL_MS = 260;
+
+// 팩폭 한줄 요약을 네오 스티커(프레임 애니메이션) 옆에 배치해 시선이 쉬는 지점을 만든다.
+function NeoBluntCallout({ text }: { text: string }) {
+  const spriteGate = useSpritePlaybackGate<HTMLElement>();
+  const [frameIndex, setFrameIndex] = useState(0);
+
+  // 프레임을 미리 디코드해 두어 src 교체 시 깜빡임을 없앤다 (window.Image = DOM 생성자, next/image 아님).
+  useEffect(() => {
+    if (!spriteGate.canLoad || typeof window === "undefined") return;
+    NEO_CALLOUT_FRAMES.forEach((src) => {
+      const preloader = new window.Image();
+      preloader.decoding = "async";
+      preloader.src = src;
+    });
+  }, [spriteGate.canLoad]);
+
+  useEffect(() => {
+    if (!spriteGate.canAnimate) return undefined;
+    const timer = window.setInterval(() => {
+      setFrameIndex((current) => (current + 1) % NEO_CALLOUT_FRAMES.length);
+    }, NEO_CALLOUT_FRAME_INTERVAL_MS);
+    return () => window.clearInterval(timer);
+  }, [spriteGate.canAnimate]);
+
+  // 애니메이션이 멈춘 상태(모션 최소화·오프스크린·백그라운드)에서는 첫 프레임(f01)만 정적으로 노출.
+  const activeIndex = spriteGate.canAnimate ? frameIndex % NEO_CALLOUT_FRAMES.length : 0;
+
+  return (
+    <div className={styles.neoAside}>
+      <figure
+        ref={spriteGate.ref}
+        className={styles.neoAsideSprite}
+        data-playing={spriteGate.canAnimate ? "true" : "false"}
+      >
+        <Image
+          src={NEO_CALLOUT_FRAMES[activeIndex]}
+          width={362}
+          height={543}
+          alt="팩폭 한마디를 건네는 네오"
+          loading="lazy"
+        />
+      </figure>
+      <blockquote className={styles.blunt}>
+        <LlmParagraphs text={text} />
+      </blockquote>
+    </div>
   );
 }
 

@@ -461,6 +461,24 @@
   line-height: 1.35;
 }
 
+/* 섹션 제목 앞 골드 액센트 바 — 섹션 시작점을 또렷하게 (신규 색 없음) */
+.sectionCard h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.05rem;
+  letter-spacing: 0.01em;
+}
+
+.sectionCard h3::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 4px;
+  height: 1.05em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f5d487, rgba(214, 188, 118, 0.4));
+}
+
 .sectionCard p,
 .questionList p,
 .questionList span,
@@ -485,6 +503,17 @@
   line-height: 1.7;
   display: grid;
   gap: 6px;
+}
+
+/* 본문 읽기 측(measure) 완화 — 넓은 데스크톱에서 줄 길이 억제(줄간격 1.72 유지) */
+.sectionCard p,
+.sectionCard ul {
+  max-width: 64ch;
+}
+
+/* 카드가 그리드 행 높이에 맞춰 늘어나도 내용은 상단에 고정 — 정렬 흔들림 방지 */
+.sectionCard {
+  align-content: start;
 }
 
 /* 책장 넘김 뷰어 — 네오 달빛 다크 스킨 (내비/토글/인디케이터는 currentColor 상속) */
@@ -519,6 +548,7 @@
 
 .blunt {
   margin: 0;
+  max-width: 62ch;
   border: 1px solid rgba(185, 34, 43, 0.54);
   border-radius: 8px;
   padding: 16px;
@@ -531,6 +561,19 @@
   word-break: keep-all;
 }
 
+/* 팩폭 인용을 라벨 달린 콜아웃으로 승격 (기존 골드 재사용) */
+.blunt::before {
+  content: "NEO · 팩폭";
+  display: block;
+  margin-bottom: 9px;
+  color: #f5d487;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .blunt p {
   margin: 0;
 }
@@ -538,6 +581,41 @@
 .blunt p + p,
 .badgeBlock p + p {
   margin-top: 10px;
+}
+
+/* 팩폭 한줄 옆 네오 스티커 콜아웃 — 시선이 쉬는 지점(로컬 webp 재사용) */
+.neoAside {
+  display: grid;
+  grid-template-columns: clamp(96px, 22%, 140px) minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+/* 콜아웃 스프라이트 — 단일 프레임을 src 교체로 순환(레이아웃 안정, 프리로드로 깜빡임 없음) */
+.neoAsideSprite {
+  position: relative;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.neoAsideSprite::before {
+  content: "";
+  position: absolute;
+  inset: 6% 2%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.26) 0%, rgba(167, 139, 250, 0) 70%);
+  pointer-events: none;
+}
+
+.neoAsideSprite img {
+  position: relative;
+  width: 100%;
+  height: auto;
+  max-height: 220px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.5));
 }
 
 /* 페이지 하단 네오 삽화를 상반신만 노출하는 반신상 크롭 (신규 에셋 없이 CSS로 연출) */
@@ -910,6 +988,15 @@
   .summaryGrid,
   .summarySeal {
     grid-template-columns: 1fr;
+  }
+
+  .neoAside {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .neoAsideSprite img {
+    max-height: 168px;
   }
 
   .missionGrid section {
