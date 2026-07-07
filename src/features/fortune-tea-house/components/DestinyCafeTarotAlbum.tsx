@@ -38,6 +38,7 @@ import {
   type TarotAlbumStoryCard,
   type TarotAlbumSuit,
 } from "../data/tarotAlbumStories";
+import { authFetch } from "@/app/_lib/auth-client";
 import { normalizeHoneyDropsState } from "../lib/honeyDrops";
 import { getTarotCardImageCoverage } from "../lib/tarotCardImageMap";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
@@ -424,7 +425,7 @@ export default function DestinyCafeTarotAlbum({
               setIsUnlocking(true);
               setUnlockMessage("");
               try {
-                const response = await fetch("/api/fortune-tea-house/honey-drops/tarot-album/unlock", {
+                const response = await authFetch("/api/fortune-tea-house/honey-drops/tarot-album/unlock", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ idempotencyKey: `yeoni-tarot-album-${Date.now()}` }),

@@ -343,6 +343,10 @@ async function refreshProfileSubscriptionCache(expectedAuthMutationSeq = authMut
   const statusPayload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
   if (expectedAuthMutationSeq !== authMutationSeq) return;
   if (!statusPayload) return;
+  // DB 일시오류 시 서버는 HTTP 200 + {ok:false, degraded:true, tier:"free"} 스냅샷을
+  // 반환한다(worker buildDbFallbackSubscriptionStatus). refreshBillingBalance와 대칭으로
+  // 이를 걸러 유료 이용권이 free로 덮어써지는 것을 막는다.
+  if (statusPayload.authenticated === false || statusPayload.degraded === true) return;
 
   const base = readSanitizedAuthUser() as AuthUser | null;
   const merged = mergeAuthUsers(base, {

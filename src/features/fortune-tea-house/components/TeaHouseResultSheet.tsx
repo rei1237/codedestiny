@@ -2,6 +2,7 @@
 
 import type { CSSProperties } from "react";
 import { useState } from "react";
+import { authFetch } from "@/app/_lib/auth-client";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
@@ -313,7 +314,7 @@ export default function TeaHouseResultSheet({
     setHoneyLetterMessage("연이가 꿀방울을 모아 편지를 쓰는 중이에요.");
     try {
       const idempotencyKey = `yeoni-honey-letter:${result.resultId}`;
-      const response = await fetch("/api/fortune-tea-house/results/honey-letter", {
+      const response = await authFetch("/api/fortune-tea-house/results/honey-letter", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ resultId: result.resultId, idempotencyKey }),

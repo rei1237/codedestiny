@@ -9,6 +9,7 @@ import TeaHouseButton from "./components/TeaHouseButton";
 import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
+import { authFetch } from "@/app/_lib/auth-client";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import { teaHouseCtaCopy, type TeaHouseStage } from "./data/story";
@@ -190,7 +191,7 @@ function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiRespo
 }
 
 async function postFortuneTeaConsultRequest(body: FortuneTeaConsultPostBody, signal?: AbortSignal) {
-  const response = await fetch("/api/fortune-tea-house/consult", {
+  const response = await authFetch("/api/fortune-tea-house/consult", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -483,7 +484,7 @@ export default function FortuneTeaHousePage() {
     const abortController = new AbortController();
 
     const syncServerHoneyDrops = () => {
-      fetch("/api/fortune-tea-house/honey-drops/balance", {
+      authFetch("/api/fortune-tea-house/honey-drops/balance", {
         cache: "no-store",
         signal: abortController.signal,
       })

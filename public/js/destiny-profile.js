@@ -1443,13 +1443,14 @@
       return _dpLoadFromServerPending;
     }
 
-    _dpLoadFromServerPending = _dpVerifyLoginSession(false).then(function(ok) {
-      if (!ok) {
-        _dpResetSubscriptionState();
-        return false;
-      }
+    // 세션 힌트가 있으므로 세션검증(/api/auth/me)과 프로필 조회(/api/profile)를
+    // 병렬로 시작한다. /api/profile은 쿠키(requireUserFromRequest)로 독립 인증되므로
+    // 세션검증 완료를 기다릴 필요가 없다(콜드 경로 2왕복 → 1왕복). 세션검증의
+    // 부수효과(토큰 정리·세션 유저 persist·401 정리)는 그대로 병렬 수행된다.
+    _dpLoadFromServerPending = (function() {
       var requestScope = _dpGetProfileScope();
-      return _dpFetchJsonWithFallback('/api/profile', {
+      var verifyPromise = _dpVerifyLoginSession(false);
+      var profilePromise = _dpFetchJsonWithFallback('/api/profile', {
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders()
@@ -1458,11 +1459,22 @@
         if (result.status === 401 || result.status === 403) return null;
         return result.ok ? result.data : null;
       })
-      .then(function(data) {
+      .catch(function() { return null; });
+
+      return Promise.all([verifyPromise, profilePromise]).then(function(results) {
+        var ok = results[0];
+        var data = results[1];
+        if (!ok) {
+          _dpResetSubscriptionState();
+          return false;
+        }
         if (!data || !data.ok || !Array.isArray(data.profiles)) return false;
         var scope = _dpGetProfileScope();
+        // 세션검증이 게스트→실계정으로 스코프를 채운 경우는 정상 진행하고,
+        // 실계정→다른 실계정으로 바뀐 경우(계정 전환 레이스)만 폐기한다.
+        if (scope !== requestScope && requestScope !== 'guest') return false;
         var serverCurrentId = _dpResolveServerCurrentId(data.currentId || '', data.profiles);
-        if (scope !== requestScope || !_dpSetProfileState(scope, data.profiles, serverCurrentId)) {
+        if (!_dpSetProfileState(scope, data.profiles, serverCurrentId)) {
           return false;
         }
         _dpApplyProfileAccess(data.profileAccess);
@@ -1484,7 +1496,7 @@
         }
         return true;
       });
-    }).catch(function() {
+    })().catch(function() {
       return false;
     }).then(function(loaded) {
       _dpNotifyProfileServerReady({
