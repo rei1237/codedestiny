@@ -1,4 +1,4 @@
-import { connectDb } from "./db.js";
+import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
 import { normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { Payment, User } from "./models.js";
@@ -156,7 +156,7 @@ function resolveDirectLicense(user = {}) {
   return { active: false, tier: "", count: 0 };
 }
 
-async function hasSinglePaymentAccess(user, userId, featureCandidates) {
+async function hasSinglePaymentAccess(user, userId, featureCandidates, env = {}) {
   const paidSet = new Set([
     ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
     ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
@@ -164,13 +164,14 @@ async function hasSinglePaymentAccess(user, userId, featureCandidates) {
 
   if (featureCandidates.some((key) => paidSet.has(key))) return true;
 
-  const payment = await Payment.exists({
+  // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
+  const payment = await withMongoRetry(env, () => Payment.exists({
     userId,
     featureKey: { $in: featureCandidates },
     paymentType: "digital_content",
     accessType: "single_purchase",
     status: { $in: SINGLE_PAYMENT_STATUSES },
-  });
+  }));
   return Boolean(payment);
 }
 
@@ -202,9 +203,10 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
   const pricing = pricingResult.ok ? pricingResult.pricing : null;
   const effectiveFeatureKey = cleanText(pricing?.featureKey || normalizedFeatureKey);
   const featureCandidates = normalizeFeatureCandidates(effectiveFeatureKey);
-  const user = await User.findById(userId)
+  // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
+  const user = await withMongoRetry(env, () => User.findById(userId)
     .select("paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean();
+    .lean());
 
   if (!user?._id) {
     const decision = buildDecision({
@@ -220,7 +222,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
     return decision;
   }
 
-  if (await hasSinglePaymentAccess(user, userId, featureCandidates)) {
+  if (await hasSinglePaymentAccess(user, userId, featureCandidates, env)) {
     const decision = buildDecision({
       allowed: true,
       reason: "ALREADY_PURCHASED",
