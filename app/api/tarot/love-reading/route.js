@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildReadingResponse, getTarotEngine, validateSpreadCardCount } from "../_engine";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../../../lib/tarot/love-reading-normalizer.mjs";
+import { enhanceLoveReadingWithLlm } from "../../../../lib/tarot/love-reading-llm.mjs";
 
 export const runtime = "nodejs";
 
@@ -54,6 +55,10 @@ export async function POST(req) {
 
     const payload = buildReadingResponse(engine, "love", spreadType, cards);
     payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || [], locale);
+    // LLM 상담문 생성 — 실패 시 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
+    const enhanced = await enhanceLoveReadingWithLlm(payload.reading, { locale, env: process.env });
+    payload.reading = enhanced.reading;
+    payload.readingSource = enhanced.source;
     payload.consultingHighlights = buildLoveConsultingHighlights(payload.reading);
     payload.api = "love-reading";
     return NextResponse.json(payload);

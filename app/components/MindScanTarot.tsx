@@ -1453,6 +1453,8 @@ export default function MindScanTarot() {
   const usedRef = useRef<Set<number>>(new Set());
   const drawnRef = useRef<Record<string, number>>({});
   const drawnSubRef = useRef<Record<string, number>>({});
+  // 결제 확인이 끝난 뒤 리딩 생성이 실패했을 때, 재시도에서 중복 과금을 막는 세션 플래그.
+  const paidAccessGrantedRef = useRef(false);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -1568,13 +1570,20 @@ export default function MindScanTarot() {
         return;
       }
 
+      // 직전 제출에서 결제가 이미 확인된 재시도라면 게이트를 건너뛰고 리딩만 다시 생성한다(중복 과금 방지).
+      if (paidAccessGrantedRef.current) {
+        await executeReading();
+        paidAccessGrantedRef.current = false;
+        return;
+      }
+
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-mindscan",
         reason: "말과 행동 사이 타로 리딩",
         forceDeduct: true,
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: async ({ chargedCoins, requiredCoins, balanceAfter }) => {
-          await executeReading();
+        // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
+        onPaid: ({ chargedCoins, requiredCoins, balanceAfter }) => {
           if (chargedCoins <= 0 && requiredCoins > 0) {
             showSubscriptionIncludedNotice({
               message: mindScanTarotText("mindScanTarot.016"),
@@ -1611,6 +1620,11 @@ export default function MindScanTarot() {
           return;
         }
       }
+
+      // 게이트(이용권/결제 확인)가 닫힌 뒤에 리딩을 생성한다 — 실패 시 플래그가 남아 재시도는 무과금.
+      paidAccessGrantedRef.current = true;
+      await executeReading();
+      paidAccessGrantedRef.current = false;
     } catch (e) {
       setReadingError(friendlyErrorMessage(e, mindScanTarotText("mindScanTarot.017")));
     } finally {

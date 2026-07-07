@@ -12,6 +12,7 @@ import {
 import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mjs";
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
+import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
 import { expectedCardCount, listSpreadIds, normalizeSpreadType, getSpreadDefinition } from "../../lib/tarot/spreads.mjs";
 import {
   buildFallbackInterpretation,
@@ -1386,6 +1387,10 @@ export async function handleTarotRoutes(request, env = {}) {
         userContext: body?.userContext,
       });
       payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
+      // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
+      const enhanced = await enhanceLoveReadingWithLlm(payload.reading, { locale: "ko", env });
+      payload.reading = enhanced.reading;
+      payload.readingSource = enhanced.source;
       payload.consultingHighlights = buildLoveConsultingHighlights(payload.reading);
       payload.isRelationshipReading = true;
       payload.api = "love-reading";
