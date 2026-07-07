@@ -454,6 +454,7 @@ export default function MePage() {
   const [subscription, setSubscription] = useState<ProfileSubscription>(fallbackSubscription());
   const [canCreateMore, setCanCreateMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
   const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
   const [logoutPending, setLogoutPending] = useState(false);
   const [hasLocalAuth, setHasLocalAuth] = useState(true);
@@ -592,6 +593,11 @@ export default function MePage() {
       }
       throw new Error(String(payload?.message || "profile_state_failed"));
     }
+    // 200 OK인데 payload.ok가 false면(서버 방어분기·DB 일시오류·JSON 파싱 실패 합성) 조용히 빈 카드로
+    // 남기지 말고 non-auth 에러로 올려 배너+재시도 경로를 태운다.
+    if (!payload || payload.ok !== true) {
+      throw new Error(String(payload?.message || "profile_state_unavailable"));
+    }
 
     applyProfilePayload(payload);
   }, [apiBase, applyProfilePayload, clearProfileState]);
@@ -602,6 +608,7 @@ export default function MePage() {
     const bootstrap = async () => {
       const cachedUser = readCachedUser();
       if (mounted) {
+        setLoading(true);
         setUser(cachedUser);
         setHasLocalAuth(cachedUser?.hasLocalAuth !== false);
         clearProfileState();
@@ -609,19 +616,17 @@ export default function MePage() {
 
       try {
         await refreshAuth({ force: false, silent: true });
-        const authState = getAuthState();
-        const nextUser = (authState.user || null) as AuthUser | null;
+        const nextUser = (getAuthState().user || null) as AuthUser | null;
 
-        if (!authState.isAuthenticated || !nextUser) {
-          throw new Error("auth_invalid");
-        }
-
-        if (mounted) {
+        // 클라이언트측 인증 스냅샷으로 카드를 게이팅하지 않는다. 인앱 브라우저에서 로컬 힌트가
+        // 없어 게스트로 위조돼도 서버 쿠키는 유효할 수 있으므로, 최종 인증 판정은 서버(loadProfileState의
+        // 401/403)에 맡긴다. 캐시 사용자가 있으면 표시만 갱신한다.
+        if (mounted && nextUser) {
           persistSanitizedAuthUser(nextUser);
           setUser(nextUser);
           setHasLocalAuth(nextUser?.hasLocalAuth !== false);
-          setAuthNotice("");
         }
+        if (mounted) setAuthNotice("");
 
         if (mounted) {
           await loadProfileState();
@@ -629,11 +634,13 @@ export default function MePage() {
         }
       } catch (error) {
         if (!mounted) return;
+        // 로그인 이동은 서버가 실제로 401/403을 반환할 때만(loadProfileState의 auth_invalid).
         if (error instanceof Error && error.message === "auth_invalid") {
           clearAuth();
           router.replace("/login?next=%2Fme");
           return;
         }
+        // 그 외(일시장애·{ok:false}·네트워크)는 카드를 없애지 않고 배너+재시도로.
         setAuthNotice("내 운명 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
       } finally {
         if (mounted) {
@@ -647,7 +654,7 @@ export default function MePage() {
     return () => {
       mounted = false;
     };
-  }, [apiBase, clearProfileState, loadProfileState, refreshProfileActionBalance, router]);
+  }, [apiBase, clearProfileState, loadProfileState, refreshProfileActionBalance, router, reloadKey]);
 
   const ensurePortoneSdk = useCallback(() => new Promise<void>((resolve, reject) => {
     if (typeof window === "undefined") {
@@ -1163,8 +1170,15 @@ export default function MePage() {
         </header>
 
         {authNotice ? (
-          <div className="rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-            {authNotice}
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+            <span>{authNotice}</span>
+            <button
+              type="button"
+              onClick={() => setReloadKey((key) => key + 1)}
+              className="shrink-0 rounded-md border border-amber-300/50 bg-amber-400/15 px-3 py-1.5 text-xs font-semibold text-amber-50 hover:bg-amber-400/25"
+            >
+              {"다시 시도"}
+            </button>
           </div>
         ) : null}
 
