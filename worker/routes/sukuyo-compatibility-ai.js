@@ -1148,14 +1148,13 @@ function normalizeStructuredSukuyoCompatibilityText(text, input, calculation) {
       const boundary = Math.max(sliced.lastIndexOf("다."), sliced.lastIndexOf("요."), sliced.lastIndexOf(".\n"), sliced.lastIndexOf("!"), sliced.lastIndexOf("?"));
       body = boundary > section.minChars ? sliced.slice(0, boundary + 2).trim() : sliced;
     }
-    if (body.length < section.minChars) {
-      throw Object.assign(new Error(`숙요점 궁합 상담 ${section.key} 본문이 ${section.minChars}자보다 부족합니다.`), { code: "LLM_FAILED", status: 503 });
-    }
+    // 경량 보장 계약: 짧은 섹션이라도 버리지 않고 그대로 담는다(아래에서 전체 분량만 최종 판정).
     totalChars += body.length;
     sections[section.key] = { title: section.title, body };
   }
-  if (totalChars < SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS) {
-    throw Object.assign(new Error(`숙요점 궁합 상담 전체 본문이 ${SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS}자보다 부족합니다.`), { code: "LLM_FAILED", status: 503 });
+  // 전체 본문이 사실상 비어 있을 때만(재시도로 회복 가능) 실패 신호. 그 외에는 다소 짧아도 결과를 전달한다.
+  if (totalChars < 600) {
+    throw Object.assign(new Error(`숙요점 궁합 상담 전체 본문이 부족합니다.`), { code: "LLM_FAILED", status: 503 });
   }
   return JSON.stringify({
     meta: expected.meta,

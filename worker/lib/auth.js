@@ -465,7 +465,7 @@ function isProductionRuntime(env) {
 async function getDevAuthUserFromEnv(env) {
   const userId = String(getEnv(env, "DEV_AUTH_USER_ID") || "").trim();
   if (isProductionRuntime(env)) {
-    if (userId) throw new Error("DEV_AUTH_USER_ID must not be used in production");
+    // dev-auth는 프로덕션에서 무시(throw 금지 — 게스트 트래픽 붕괴 방지)
     return null;
   }
   if (!mongoose.Types.ObjectId.isValid(userId)) return null;

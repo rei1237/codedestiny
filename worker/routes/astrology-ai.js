@@ -16,6 +16,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import {
@@ -1098,10 +1099,24 @@ async function generateConsultation(env, prompt, options = {}) {
       maxLength,
       issues: qualityIssues,
     });
-    const error = new Error(LLM_ERROR_MESSAGE);
-    error.code = "LLM_QUALITY_CHECK_FAILED";
-    error.status = 503;
-    throw error;
+    // 경량 보장 계약: 분량/전문가파트 등 품질 미달이라도 렌더 가능한 상담문이 있으면 버리지 않고 degrade로 전달한다.
+    if (!hasRenderableLlmText(content, { minChars: 400 })) {
+      const error = new Error(LLM_ERROR_MESSAGE);
+      error.code = "LLM_QUALITY_CHECK_FAILED";
+      error.status = 503;
+      throw error;
+    }
+    return {
+      content,
+      provider: finalProvider,
+      model: finalModel,
+      quality: {
+        charCount: countConsultationChars(content),
+        minLength,
+        maxLength,
+        degraded: true,
+      },
+    };
   }
 
   return {

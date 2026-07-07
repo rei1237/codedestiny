@@ -228,4 +228,61 @@ export async function connectDb(env = {}) {
   throw new Error("MongoDB connection is not ready in Worker.");
 }
 
+// stateless Worker에서 웜 연결을 재사용하다 백그라운드 모니터 타임아웃 등으로 풀이 초기화되면
+// (MongoPoolClearedError) 확립된 풀 위에서 실행되던 쿼리가 실패한다. 이런 '일시적' 에러는
+// 재연결 후 재시도하면 대개 성공하므로 여기서 판별한다.
+export function isTransientMongoError(error) {
+  if (!error) return false;
+  const name = String(error.name || "");
+  if (
+    name === "MongoPoolClearedError"
+    || name === "PoolClearedError"
+    || name === "MongoNetworkError"
+    || name === "MongoNetworkTimeoutError"
+    || name === "MongoServerSelectionError"
+  ) {
+    return true;
+  }
+  const message = String(error.message || "");
+  return /pool .*was cleared|was cleared because|connection .*timed out|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT|server selection timed out|connection is not ready/i.test(message);
+}
+
+// 일시적 Mongo 에러에 대해 연결을 재확인/재수립하고 작업을 재시도한다.
+// connectDb는 '연결 수립'만 재시도할 뿐 확립된 풀에서 실행되는 쿼리 실패는 재시도하지 않으므로,
+// 이용권/구독 조회 같은 핫 리드 경로를 이 헬퍼로 감싸 풀 초기화 순간에도 정확한 결과를 돌려준다.
+export async function withMongoRetry(env = {}, operation, options = {}) {
+  if (typeof operation !== "function") {
+    throw new TypeError("withMongoRetry(env, operation): operation must be a function");
+  }
+  const maxRetries = clampInt(
+    options.retries != null ? options.retries : getEnv(env, "MONGO_OP_RETRIES", "2"),
+    2,
+    0,
+    4,
+  );
+  const baseDelayMS = clampInt(
+    options.baseDelayMS != null ? options.baseDelayMS : getEnv(env, "MONGO_OP_RETRY_DELAY_MS", "140"),
+    140,
+    0,
+    1500,
+  );
+
+  let lastError = null;
+  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+    try {
+      await connectDb(env);
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxRetries || !isTransientMongoError(error)) throw error;
+      // 다음 시도에서 강제로 재연결하도록 웜 상태를 무효화한다.
+      lastHealthyAt = 0;
+      connectPromise = null;
+      await resetMongooseConnection();
+      await sleep(baseDelayMS * (attempt + 1));
+    }
+  }
+  throw lastError;
+}
+
 export { mongoose };

@@ -1,4 +1,4 @@
-﻿import { connectDb } from "../lib/db.js";
+﻿import { connectDb, withMongoRetry } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -1053,17 +1053,18 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
   return { ok: true, requestId: paymentRequestId, idempotent: false, evidence: history };
 }
 
-async function handleGetProfiles(auth) {
-  const user = await User.findById(auth.userId)
+async function handleGetProfiles(auth, env) {
+  // 일시적 풀 초기화에도 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
+  const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean();
+    .lean());
 
   if (!user) {
     return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
-  const profiles = await listUserProfiles(auth.userId);
+  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const access = resolveSingleProfileAccess(user, profiles, subscription);
   const currentId = access.currentId;
 
@@ -1501,7 +1502,7 @@ export async function handleProfileRoutes(request, env) {
 
     await connectDb(env);
 
-    if (method === "GET" && path === "/") return await handleGetProfiles(auth);
+    if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
     if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth);
     if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth);

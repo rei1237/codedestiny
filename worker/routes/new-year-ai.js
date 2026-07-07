@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes } from "./billing.js";
 import { Lunar, Solar } from "lunar-javascript";
@@ -1371,6 +1372,17 @@ async function generateConsultationText(env, prompt, options = {}) {
   }
 
   if (!quality.ok) {
+    // 경량 보장 계약: 품질 기준 미달이라도 렌더 가능한 상담문이 있으면 버리지 않고 degrade로 전달한다.
+    // (기존 커밋/과금 경로가 그대로 결과를 저장·과금하므로 결제 후 무결과를 막는다.)
+    if (hasRenderableLlmText(quality.text, { minChars: 400 })) {
+      return {
+        text: quality.text,
+        provider: finalProvider,
+        model: finalModel,
+        quality,
+        degraded: true,
+      };
+    }
     const error = new Error("신년운세 상담문 품질 기준을 충족하지 못했습니다.");
     error.code = "NEW_YEAR_AI_QUALITY_FAILED";
     error.quality = quality;

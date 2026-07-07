@@ -1,4 +1,4 @@
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -5287,20 +5287,20 @@ function buildTokenFallbackPaymentsMe(auth, message) {
 
 async function handleMe(auth, env) {
   try {
-    await connectDb(env);
-    const user = await findUserByIdRaw(auth.userId, {
+    // 일시적 풀 초기화에도 월정석/결제내역을 정확히 반환하도록 조회를 재시도로 감싼다.
+    const user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
       joinedAt: 1,
       unlockedFeatures: 1,
       profileSubscription: 1,
-    });
+    }));
 
     const [recentPaymentsResult, pointHistoriesResult, monthlyCreditLedgersResult] = await Promise.allSettled([
-      findRecentPaymentsForUser(auth.userId, 20),
-      PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
-      MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean(),
+      withMongoRetry(env, () => findRecentPaymentsForUser(auth.userId, 20)),
+      withMongoRetry(env, () => PointHistory.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean()),
+      withMongoRetry(env, () => MonthlyCreditLedger.find({ userId: auth.userId }).sort({ createdAt: -1 }).limit(20).lean()),
     ]);
     const recentPayments = recentPaymentsResult.status === "fulfilled" ? recentPaymentsResult.value : [];
     const pointHistories = pointHistoriesResult.status === "fulfilled" ? pointHistoriesResult.value : [];

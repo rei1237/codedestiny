@@ -22,7 +22,7 @@ import {
   heartbeatServiceExecution,
   startServiceExecution,
 } from "../lib/service-execution-task.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -919,11 +919,13 @@ async function resolvePaidContentAccess(env, {
   }
 
   try {
-    const [existingUnlock, userPermanentUnlock, existingPass] = await withDbAccessTimeout(Promise.all([
+    // 결제 게이팅의 핵심 판정(이미 해금됐는지·이용권이 커버하는지). 일시적 풀 초기화에도
+    // '일시 불가'로 떨어지지 않고 정확히 판정하도록 재시도로 감싼다(타임아웃 degrade는 유지).
+    const [existingUnlock, userPermanentUnlock, existingPass] = await withMongoRetry(env, () => withDbAccessTimeout(Promise.all([
       findActiveSajuProfileUnlock(env, { userId, profileId, featureKey }),
       hasUserScopedPermanentUnlock(env, { userId, featureKey }),
       Promise.resolve(subscriptionPass || getActiveMembershipPassForUser(env, userId)),
-    ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT");
+    ]), PAID_ACCESS_DECISION_DB_TIMEOUT_MS, "UNLOCK_ACCESS_DECISION_TIMEOUT"));
     if (existingUnlock || userPermanentUnlock) {
       return writePaidAccessDecisionToCache(cacheKey, buildPaidContentAccessDecision({
         accessGranted: true,
@@ -4759,7 +4761,9 @@ async function readBillingSnapshot(request, env, options = {}) {
   }
 
   try {
-    await connectDb(env);
+    // 일시적 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 Mongo 에러가 나도
+    // degraded(부정확) 대신 정확한 스냅샷을 돌려주도록 쿼리 전체를 재시도로 감싼다.
+    return await withMongoRetry(env, async () => {
     // User 문서를 1회만 조회하고, legacy seed 필요 시에만 원자적 write를 수행한다.
     // (기존에는 seed 함수가 내부에서 동일 문서를 또 findById 해 User를 2회 읽었음)
     const user = await User.findById(auth.userId)
@@ -4825,6 +4829,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       unlockMap,
       degraded: false,
     };
+    });
   } catch (error) {
     logBillingRouteError("billing-snapshot", error, request);
     const fallbackBalance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;
@@ -4898,11 +4903,12 @@ async function handleSajuAnalysisEntitlements(request, env) {
   }
 
   const dbStartedAt = Date.now();
-  const entitlementSnapshot = await getUnlockedContentSnapshot({
+  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 재시도로 감싼다.
+  const entitlementSnapshot = await withMongoRetry(env, () => getUnlockedContentSnapshot({
     userId: String(snapshot.authUserId || ""),
     profileId,
     serviceKeys: SAJU_ANALYSIS_ENTITLEMENT_SERVICE_KEYS,
-  });
+  }));
   const dbReadMs = Date.now() - dbStartedAt;
   const unlockedContentIds = Array.from(new Set(entitlementSnapshot.contentKeys || []));
   const unlockedContentSet = new Set(unlockedContentIds);
@@ -4967,6 +4973,69 @@ async function handleSajuAnalysisEntitlements(request, env) {
   return withSajuEntitlementNoStore(success(data, "Saju analysis entitlement snapshot loaded."));
 }
 
+// 클라이언트가 앱 진입 시 멤버십 커버리지만 새로고침하려고 보내는 상태 조회 전용 의사 키.
+// 실제 구매 가능한 기능이 아니므로 서버 가격표를 요구하지 않는다(index.html `_cdRefreshMembershipCoverage`).
+const MEMBERSHIP_STATUS_PROBE_FEATURE_KEY = "membership-status-refresh";
+
+// membership-status-refresh 상태 조회: 가격표 없이 스냅샷에서 이용권 커버리지만 200으로 반환한다.
+// 응답 필드는 `_cdRefreshMembershipCoverage`의 unlock-status 성공 분기가 읽는 계약에 맞춘다.
+async function handleMembershipStatusProbe(request, env) {
+  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false });
+  if (data?.degraded === true) {
+    return failure(
+      503,
+      "BALANCE_SNAPSHOT_UNAVAILABLE",
+      "이용권 혜택을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      undefined,
+      {
+        status: "error",
+        degraded: true,
+        membershipCreditBalance: 0,
+        monthlyCredits: 0,
+        monthlyCreditsAsCoins: 0,
+      },
+      data?.error?.errorDetails || data?.error?.details,
+    );
+  }
+
+  const membershipPass = buildMembershipPassFromBillingSnapshot(data);
+  const subscription = data.subscription || { isActive: false, tier: "free", passTier: null, freeLimit: 0 };
+  const monthlyBalance = Math.max(0, Math.floor(Number(data.membershipCreditBalance ?? data.membership?.membershipCreditBalance ?? 0)));
+  const passActive = Boolean(membershipPass?.isActive || subscription.isActive);
+  const passTier = subscription.passTier || membershipPass?.passTier || null;
+  const tier = passActive ? String(membershipPass?.tier || subscription.tier || "free") : "free";
+  const passLimit = Math.max(0, Math.floor(Number(subscription.freeLimit || membershipPass?.passLimit || membershipPass?.maxCoveredCoin || 0)));
+  const expiresAt = subscription.entitlement?.expiresAt || membershipPass?.entitlement?.expiresAt || null;
+  const canUseByMonthly = monthlyBalance > 0;
+  const paymentOptions = {
+    coinCost: 0,
+    hasActivePass: passActive,
+    passTier,
+    passLimit,
+    canUseByPass: passActive,
+    canUseByMonthly,
+    monthlyBalance,
+  };
+
+  return success({
+    statusOnly: true,
+    featureKey: MEMBERSHIP_STATUS_PROBE_FEATURE_KEY,
+    paymentOptions,
+    hasActivePass: passActive,
+    passTier,
+    passLimit,
+    subscriptionTier: tier,
+    freeLimit: passLimit,
+    freeBySubscription: passActive,
+    canUseByPass: passActive,
+    canUseByMonthly,
+    monthlyBalance,
+    expiresAt,
+    membershipPass,
+    subscription,
+  }, "이용권 상태를 조회했습니다.");
+}
+
 async function handleUnlockStatus(request, env) {
   const url = new URL(request.url);
   const categoryKey = String(url.searchParams.get("categoryKey") || "").trim();
@@ -4974,6 +5043,12 @@ async function handleUnlockStatus(request, env) {
   const featureKey = String(url.searchParams.get("featureKey") || "").trim();
   const reason = String(url.searchParams.get("reason") || "").trim();
   const passOnly = String(url.searchParams.get("scope") || "").trim().toLowerCase() === "pass";
+
+  // 상태 조회 전용 의사 키: 구매 가능한 유료 기능이 아니라 멤버십 커버리지 스냅샷만 필요하다.
+  // 가격표 조회를 건너뛰고 스냅샷 기반 커버리지를 200으로 반환한다(가격표가 없어 404가 나던 문제 해결).
+  if (featureKey === MEMBERSHIP_STATUS_PROBE_FEATURE_KEY) {
+    return await handleMembershipStatusProbe(request, env);
+  }
 
   const pricingResult = getBillingFeaturePricing({ categoryKey, subFeatureKey, featureKey, reason });
   if (!pricingResult.ok) {

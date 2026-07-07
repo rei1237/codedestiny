@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { handleBillingRoutes } from "./billing.js";
@@ -1285,6 +1286,10 @@ async function generateConsultationText(env, prompt, options = {}) {
   const issues = getLifeBookReportQualityIssues(text, qualityInput);
   if (!issues.length) return { text, provider, model: clean(ai?.model) };
   if (maxProviderCalls <= 1) {
+    // 경량 보장 계약: 수선 여력이 없어도 렌더 가능한 본문이면 버리지 않고 degrade로 전달한다.
+    if (hasRenderableLlmText(text, { minChars: 400 })) {
+      return { text, provider, model: clean(ai?.model), degraded: true };
+    }
     const error = new Error(`Life book result quality check failed: ${issues.join(", ")}`);
     error.code = "LLM_QUALITY_CHECK_FAILED";
     throw error;
@@ -1306,6 +1311,15 @@ async function generateConsultationText(env, prompt, options = {}) {
   const repaired = cleanForbiddenResult(repair?.ok ? repair?.text : text);
   const repairedIssues = getLifeBookReportQualityIssues(repaired, qualityInput);
   if (repairedIssues.length) {
+    // 경량 보장 계약: 수선 후에도 품질 미달이나, 렌더 가능한 본문이면 버리지 않고 degrade로 전달한다.
+    if (hasRenderableLlmText(repaired, { minChars: 400 })) {
+      return {
+        text: repaired,
+        provider: clean(repair?.provider || provider),
+        model: clean(repair?.model || ai?.model),
+        degraded: true,
+      };
+    }
     const error = new Error(`Life book result quality check failed: ${repairedIssues.join(", ")}`);
     error.code = "LLM_QUALITY_CHECK_FAILED";
     throw error;

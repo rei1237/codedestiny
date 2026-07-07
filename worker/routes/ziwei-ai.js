@@ -9,6 +9,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { fetchPortOnePayment, getPortOnePublicConfig } from "../lib/portone.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 
@@ -1198,6 +1199,10 @@ async function generateConsultationText(env, prompt, options = {}) {
     const finalBodyChars = countStructuredConsultationBodyChars(cleanText);
     const rangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
     if (rangeProblem) {
+      // 경량 보장 계약: 목표 분량 범위를 벗어나도 렌더 가능한 상담문이면 버리지 않고 degrade로 전달한다.
+      if (hasRenderableLlmText(cleanText, { minChars: 400 })) {
+        return { text: cleanText, provider, model: clean(ai?.model), degraded: true };
+      }
       const error = new Error("Generated consultation body is outside required range.");
       error.code = rangeProblem === "short" ? "INSUFFICIENT_RESULT_LENGTH" : "EXCESSIVE_RESULT_LENGTH";
       throw error;
@@ -1224,6 +1229,15 @@ async function generateConsultationText(env, prompt, options = {}) {
   const finalBodyChars = countStructuredConsultationBodyChars(finalText);
   const finalRangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
   if (finalRangeProblem) {
+    // 경량 보장 계약: 수선 후에도 분량 범위를 벗어나나, 렌더 가능한 상담문이면 degrade로 전달한다.
+    if (hasRenderableLlmText(finalText, { minChars: 400 })) {
+      return {
+        text: finalText,
+        provider: clean(repair?.provider || provider),
+        model: clean(repair?.model || ai?.model),
+        degraded: true,
+      };
+    }
     const error = new Error("Generated consultation body is outside required range.");
     error.code = finalRangeProblem === "short" ? "INSUFFICIENT_RESULT_LENGTH" : "EXCESSIVE_RESULT_LENGTH";
     throw error;

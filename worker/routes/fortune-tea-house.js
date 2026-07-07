@@ -6,6 +6,7 @@ import { getCurrentUser } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
@@ -1234,12 +1235,21 @@ function buildFortuneTeaPaymentPayload({ featureKey, pricing = {}, consultReques
   };
 }
 
+function buildFortuneTeaPaymentRequiredMessage(accessDecision, status) {
+  if (status === 401) return "운명 찻집 상담은 로그인 후 이용권, 월정석, 단건결제로 열 수 있어요.";
+  // 이용권을 보유했지만 이 상담 가격이 이용권 커버 한도를 넘어 결제가 필요한 경우를 명확히 안내한다.
+  if (accessDecision?.pass?.isActive) {
+    return "보유하신 이용권으로는 이 상담을 열 수 없어요. 월정석 또는 단건 결제로 이어서 열 수 있어요.";
+  }
+  return "운명 찻집 상담 이용권 또는 결제가 필요합니다.";
+}
+
 function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDecision, consultRequest, status = 402 }) {
   const requestId = readFortuneTeaRequestId({}, consultRequest);
   return json({
     ok: false,
     paymentRequired: true,
-    message: status === 401 ? "운명 찻집 상담은 로그인 후 이용권, 월정석, 단건결제로 열 수 있어요." : "운명 찻집 상담 이용권 또는 결제가 필요합니다.",
+    message: buildFortuneTeaPaymentRequiredMessage(accessDecision, status),
     featureKey,
     pricing,
     accessDecision,
@@ -2841,6 +2851,7 @@ async function generateConsultResult(request, fallback, env) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const maxAttempts = 3;
   let lastError = null;
+  let lastCandidate = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     try {
@@ -2856,6 +2867,8 @@ async function generateConsultResult(request, fallback, env) {
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
       const parsed = extractJson(ai.text);
       const result = mergeLlmResult(fallback, parsed);
+      // 품질 게이트 실패에도 렌더 가능한 최선 후보를 보존한다 (결제 후 결과 유실 방지).
+      lastCandidate = result;
       assertConsultQuality(result, fallback);
 
       return {
@@ -2874,20 +2887,25 @@ async function generateConsultResult(request, fallback, env) {
   }
 
   console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
-  if (!isLocalLikeEnv(env)) {
-    const error = new Error("연이가 상담문을 끝까지 다듬지 못했어요. 이용권이나 결제 권한은 보존되니 잠시 후 다시 열어 주세요.");
-    error.status = 503;
-    error.code = "FORTUNE_TEA_HOUSE_LLM_RETRYABLE";
-    throw error;
+  // 경량 보장 계약: 결제가 확인된 상담은 품질 게이트를 못 넘겨도 결과를 버리지 않는다.
+  // LLM 병합 후보(있으면) 또는 결정론 fallback 중 렌더 가능한 텍스트가 있으면 degrade로 전달한다.
+  const degradeCandidate = lastCandidate || fallback;
+  if (hasRenderableLlmText(degradeCandidate)) {
+    return {
+      result: degradeCandidate,
+      generationMeta: {
+        mode: lastCandidate ? "gemini_degraded" : "local_fallback",
+        reason: lastError instanceof Error ? lastError.message : "quality_gate_degraded",
+        degraded: true,
+        generatedAt: new Date().toISOString(),
+      },
+    };
   }
-  return {
-    result: fallback,
-    generationMeta: {
-      mode: "local_fallback",
-      reason: lastError instanceof Error ? lastError.message : "llm_failed",
-      generatedAt: new Date().toISOString(),
-    },
-  };
+  // 후보조차 실질 텍스트가 없을 때만(사실상 드묾) 재시도 신호 + 결제 권한 보존(환불).
+  const error = new Error("연이가 상담문을 끝까지 다듬지 못했어요. 이용권이나 결제 권한은 보존되니 잠시 후 다시 열어 주세요.");
+  error.status = 503;
+  error.code = "FORTUNE_TEA_HOUSE_LLM_RETRYABLE";
+  throw error;
 }
 
 function buildHoneyResultId(body, consultRequest) {

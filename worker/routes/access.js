@@ -1,4 +1,4 @@
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
@@ -383,14 +383,16 @@ async function handleUnlocks(request, env) {
     throw createHttpError(403, "Profile ownership could not be verified.", { code: "MISSING_PROFILE_ID" });
   }
 
-  await connectDb(env);
-  await verifyProfileOwnership({ userId, profileId });
-
-  const docs = await getUnlockedContentKeys({ userId, profileId, serviceKey });
-  const backfilledDocs = includeBackfill
-    ? await backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs: docs })
-    : [];
-  const activeDocs = docs.concat(backfilledDocs);
+  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 조회를 재시도로 감싼다.
+  // (verifyProfileOwnership의 404 등 비-일시적 에러는 재시도 없이 즉시 전파된다.)
+  const activeDocs = await withMongoRetry(env, async () => {
+    await verifyProfileOwnership({ userId, profileId });
+    const docs = await getUnlockedContentKeys({ userId, profileId, serviceKey });
+    const backfilledDocs = includeBackfill
+      ? await backfillMissingUnlocks({ userId, profileId, serviceKey, existingDocs: docs })
+      : [];
+    return docs.concat(backfilledDocs);
+  });
 
   const unlocks = createLockedMap(serviceKey);
   const unlockedContentKeys = [];

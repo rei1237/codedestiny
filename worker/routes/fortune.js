@@ -1,4 +1,4 @@
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
@@ -65,6 +65,7 @@ import {
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
@@ -4158,6 +4159,12 @@ async function handleSajuAIPrompt(request, auth, env) {
       lastValidation = validation;
     }
 
+    // 경량 보장 계약: 십성 검증 등 품질 기준 미통과라도, LLM이 렌더 가능한 상담문을 냈다면
+    // 버리지 않고 degrade로 전달한다(결제 후 무결과 방지). 진짜 빈 결과일 때만 재시도 신호.
+    if (finalAi?.ok && !finalText && hasRenderableLlmText(lastValidation?.text, { minChars: 400 })) {
+      finalText = lastValidation.text;
+    }
+
     if (!finalAi?.ok || !finalText) {
       console.error("[fortune][saju-ai-prompt] llm generation failed:", {
         requestId,
@@ -4635,7 +4642,9 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 }
 
 async function handleSubscriptionStatus(request, env, auth) {
-  const user = await findUserByIdRaw(auth.userId, {
+  // 일시적 풀 초기화에도 구독/이용권 상태를 정확히 반환하도록 초기 조회를 재시도로 감싼다.
+  // (자동갱신 write는 아래 낙관적 동시성 가드가 이중 차감을 막으므로 read만 재시도한다.)
+  const user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
     points: 1,
     profileSubscription: 1,
     subscription: 1,
@@ -4656,7 +4665,7 @@ async function handleSubscriptionStatus(request, env, auth) {
     expiresAt: 1,
     has_started_paid_service: 1,
     first_service_access_date: 1,
-  });
+  }));
 
   if (!user) {
     const policy = getPlanPolicy(null);

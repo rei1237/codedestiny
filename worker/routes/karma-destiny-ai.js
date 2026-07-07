@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 // 결정적(생년월일+질문 기반) 생성 → 캐시 + in-flight dedup으로 재시도/새로고침 중복 과금 방지.
@@ -1032,6 +1033,11 @@ async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt,
     quality = validateInitialConsultationQuality(current, { minLength, maxLength });
   }
   if (!quality.ok) {
+    // 경량 보장 계약: 품질 기준 미달이라도 렌더 가능한 상담문이 있으면 버리지 않고 degrade로 전달한다.
+    // 너무 길어 실패한 경우(tooLong)는 그대로 전달, 그 외엔 최소 분량을 넘는 경우만 degrade.
+    if (quality.tooLong || hasRenderableLlmText(current, { minChars: 400 })) {
+      return current;
+    }
     const error = new Error("Karma destiny consultation did not meet quality length or section requirements.");
     error.code = quality.tooShort ? "LLM_RESULT_TOO_SHORT" : quality.tooLong ? "LLM_RESULT_TOO_LONG" : "LLM_RESULT_QUALITY_FAILED";
     error.quality = quality;

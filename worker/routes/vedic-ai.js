@@ -8,6 +8,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 
@@ -1003,6 +1004,10 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
     chart: options.chart || null,
   });
   if (!quality.ok) {
+    // 경량 보장 계약: 품질 미달이라도 렌더 가능한 상담문이면 버리지 않고 degrade로 전달한다.
+    if (hasRenderableLlmText(content, { minChars: 400 })) {
+      return { content, meta: { provider, model: clean(result.model || ""), isMock: false, quality, degraded: true } };
+    }
     const error = new Error(`LLM_QUALITY_FAILED:${quality.issues.join(",")}`);
     error.code = "LLM_FAILED";
     error.llm = result || null;
