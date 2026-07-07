@@ -1473,7 +1473,9 @@ function isAuthRequiredBillingCode(status: number, code?: unknown) {
     || normalizedCode === "AUTH_REQUIRED"
     || normalizedCode === "LOGIN_REQUIRED"
     || normalizedCode === "UNAUTHORIZED"
-    || normalizedCode === "NOT_LOGGED_IN";
+    || normalizedCode === "NOT_LOGGED_IN"
+    // authFetch가 401을 transient 리프레시 실패로 감싼 합성 503도 인증 필요로 취급한다.
+    || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
 }
 
 async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
@@ -1518,14 +1520,18 @@ function buildBillingFetchFailureResponse(code: string, message: string, status 
 }
 
 async function authFetchBillingOnce(path: string, init: RequestInit, options: { apiBase?: string } = {}): Promise<Response> {
+  // 게이팅/결제 엔드포인트는 401을 리프레시로 흡수해 합성 503(AUTH_REFRESH_TEMPORARY_FAILURE)으로
+  // 바꾸지 않는다 — 그러면 서버의 paymentRequired/402 신호가 마스킹돼 결제 폴백 시트가 안 뜬다.
+  // 세션 예열은 runBillingCoinGate 진입부에서 이미 수행하므로 여기서의 retryOn401은 중복이다.
+  const billingOptions = { ...options, retryOn401: false };
   if (typeof AbortController === "undefined" || init.signal) {
-    return authFetch(path, init, options);
+    return authFetch(path, init, billingOptions);
   }
 
   const controller = new AbortController();
   const timeoutId = globalThis.setTimeout(() => controller.abort(), resolveBillingFetchTimeoutMs(path, init));
   try {
-    return await authFetch(path, { ...init, signal: controller.signal }, options);
+    return await authFetch(path, { ...init, signal: controller.signal }, billingOptions);
   } catch (error) {
     if (controller.signal.aborted) {
       return buildBillingFetchFailureResponse("BILLING_REQUEST_TIMEOUT", "결제 요청 시간이 초과되었습니다. 다시 시도해 주세요.");
@@ -1663,7 +1669,9 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "PAYMENT_REQUIRED"
     || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED"
     || normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT"
-    || normalizedCode === "INSUFFICIENT_COINS";
+    || normalizedCode === "INSUFFICIENT_COINS"
+    // 합성 503(authFetch transient 리프레시)로 402/paymentRequired가 마스킹돼도 결제 폴백을 연다.
+    || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
 }
 
 function normalizeAccessReason(value: unknown) {

@@ -188,7 +188,7 @@ async function postApi<T>(
     },
     body: JSON.stringify(body),
     cache: "no-store",
-  });
+  }, { retryOn401: false });
   const payload = await response.json().catch(() => ({}));
   const reason = toText(payload?.reason);
   if (!response.ok && !options.allowExpectedReasons?.includes(reason)) {

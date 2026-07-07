@@ -368,7 +368,7 @@ async function postJson<T>(url: string, body: Record<string, unknown>, idempoten
     },
     credentials: "include",
     body: JSON.stringify(body),
-  }, { retryOn401: true });
+  }, { retryOn401: false });
   const data = await response.json().catch(() => ({}));
   return { status: response.status, data: data as T };
 }

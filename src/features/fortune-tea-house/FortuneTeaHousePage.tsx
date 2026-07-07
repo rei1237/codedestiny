@@ -197,7 +197,7 @@ async function postFortuneTeaConsultRequest(body: FortuneTeaConsultPostBody, sig
     body: JSON.stringify(body),
     cache: "no-store",
     signal,
-  });
+  }, { retryOn401: false });
   const payload = (await response.json().catch(() => ({}))) as FortuneTeaHouseConsultApiResponse;
   return { response, payload };
 }
@@ -805,7 +805,13 @@ export default function FortuneTeaHousePage() {
       if (isFortuneTeaGenerationPending(response, payload)) {
         throw buildFortuneTeaGenerationPendingError(payload.message);
       }
-      if ((!response.ok || !payload.ok || !payload.result) && payload.paymentRequired) {
+      // 폴백(단건/월정석 결제 시트) 진입은 paymentRequired 단일 신호에만 의존하지 않는다.
+      // 서버가 401/402(로그인 필요·결제 필요)로 응답하면 pricing/paymentPayload를 함께 실어 보내므로,
+      // 신호가 유실돼도 결제 게이트를 시도한다. (429/500/503 재시도성 오류는 여기서 제외되어 일반 에러로 처리)
+      if (
+        (!response.ok || !payload.ok || !payload.result)
+        && (payload.paymentRequired || response.status === 401 || response.status === 402)
+      ) {
         setGenerationProgress((current) => ({
           ...current,
           percent: Math.max(current.percent, 24),

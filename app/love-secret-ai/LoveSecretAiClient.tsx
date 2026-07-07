@@ -294,7 +294,7 @@ async function postJson<T>(path: string, body: Record<string, unknown>, idempote
       ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify(idempotencyKey ? { ...body, idempotencyKey } : body),
-  });
+  }, { retryOn401: false });
   const payload = await response.json().catch(() => ({})) as T;
   return { response, payload };
 }
