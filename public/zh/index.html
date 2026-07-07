@@ -5166,20 +5166,21 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
 }
 
 @media (min-width: 769px) {
-  .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(120deg,rgba(255,255,255,.94) 0%,rgba(255,245,249,.92) 100%);border:1.5px solid rgba(255,168,196,.64);box-shadow:0 12px 26px rgba(240,101,155,.22),0 3px 10px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.95)}
-  .theme-switch-wrapper--desktop .theme-switch-pill:hover{box-shadow:0 16px 32px rgba(240,101,155,.28),0 4px 14px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.95)}
-  .theme-switch-wrapper--desktop .tsp-pig{color:#d43870;text-shadow:none}
-  .theme-switch-wrapper--desktop .tsp-lion{color:#7e7b92}
-  .theme-switch-wrapper--desktop .theme-switch-pill::before{background:linear-gradient(150deg,#ffdbe8 0%,#ffb1ca 48%,#ff8db2 100%);box-shadow:0 7px 18px rgba(255,78,144,.34),inset 0 1px 0 rgba(255,255,255,.78)}
+  /* 연이·네오 데스크톱 토글 — 고급 세그먼트 pill 리디자인, 탁한 검은 띠 제거 (v20260707) */
+  .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(255,241,247,.82));border:1px solid rgba(179,25,85,.16);box-shadow:0 10px 30px rgba(179,25,85,.14),0 2px 8px rgba(60,24,48,.08),inset 0 1px 0 rgba(255,255,255,.9);-webkit-backdrop-filter:blur(12px) saturate(1.15);backdrop-filter:blur(12px) saturate(1.15)}
+  .theme-switch-wrapper--desktop .theme-switch-pill:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(179,25,85,.2),0 3px 10px rgba(60,24,48,.1),inset 0 1px 0 rgba(255,255,255,.92)}
+  .theme-switch-wrapper--desktop .tsp-pig{color:#a5164b;text-shadow:none}
+  .theme-switch-wrapper--desktop .tsp-lion{color:#9a93ad}
+  .theme-switch-wrapper--desktop .theme-switch-pill::before{background:linear-gradient(140deg,#ffd9e7 0%,#f6a8c6 52%,#ec6fa0 100%);box-shadow:0 6px 16px rgba(216,42,106,.28),inset 0 1px 0 rgba(255,255,255,.7)}
   .theme-switch-wrapper--desktop .tsw-input:focus-visible + .theme-switch-pill{outline-color:#dd3b72}
-  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(120deg,rgba(18,19,30,.98) 0%,rgba(11,12,22,.96) 100%);border-color:rgba(255,215,108,.36);box-shadow:0 13px 30px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08)}
-  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill:hover{box-shadow:0 16px 34px rgba(255,200,85,.18),0 4px 14px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.08)}
-  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill::before{transform:translateX(var(--seg,78px));background:linear-gradient(145deg,#2f3043 0%,#1f2033 52%,#141524 100%);box-shadow:0 7px 18px rgba(255,215,110,.24),inset 0 1px 0 rgba(255,255,255,.1)}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig{color:rgba(255,255,255,.25);text-shadow:none}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig .tsp-icon{transform:scale(.9);filter:grayscale(.2) opacity(.72)}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion{color:#ffd861;text-shadow:0 0 10px rgba(255,216,97,.26)}
-  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion .tsp-icon{transform:scale(1.08) rotate(-4deg);filter:drop-shadow(0 2px 6px rgba(255,216,97,.25))}
-  body.neo-mode .theme-switch-wrapper--desktop .tsw-input:focus-visible + .theme-switch-pill{outline-color:#ffd861}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill{background:linear-gradient(135deg,rgba(26,24,52,.78),rgba(13,12,28,.82));border-color:rgba(196,181,253,.24);box-shadow:0 12px 34px rgba(0,0,0,.42),0 2px 10px rgba(0,0,0,.26),inset 0 1px 0 rgba(228,214,255,.12)}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill:hover{box-shadow:0 16px 40px rgba(124,92,255,.22),0 3px 12px rgba(0,0,0,.32),inset 0 1px 0 rgba(228,214,255,.14)}
+  body.neo-mode .theme-switch-wrapper--desktop .theme-switch-pill::before{transform:translateX(var(--seg,78px));background:linear-gradient(140deg,#f4e2ad 0%,#e8cf8f 46%,#d4af5f 100%);box-shadow:0 6px 18px rgba(212,175,95,.32),inset 0 1px 0 rgba(255,255,255,.42)}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig{color:rgba(206,186,247,.5);text-shadow:none}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-pig .tsp-icon{transform:scale(.92);filter:grayscale(.25) opacity(.7)}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion{color:#3a2c08;text-shadow:none}
+  body.neo-mode .theme-switch-wrapper--desktop .tsp-lion .tsp-icon{transform:scale(1.06) rotate(-3deg);filter:drop-shadow(0 1px 3px rgba(0,0,0,.2))}
+  body.neo-mode .theme-switch-wrapper--desktop .tsw-input:focus-visible + .theme-switch-pill{outline-color:#e8d5a3}
 }
 </style>
 <!-- PERF: reduced-motion detect -->
