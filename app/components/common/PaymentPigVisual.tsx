@@ -1,13 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import type { LoadingMotionTone } from "./LoadingProgressMotion";
 
-const PAYMENT_PIG_LOGO_FALLBACK_URL =
-  "/DestinyCafe/꽃돼지3.webp?v=20260618-react-paid-gate";
+// 결제/이용권 대기 화면 꽃돼지 로고는 R2 에셋 한 곳에서만 관리한다.
+// 찻집 assets.ts와 동일한 prefix:"" 규칙 → https://assets.code-destiny.com/DestinyCafe/nobackground/꽃돼지3-Photoroom.png
+const PAYMENT_PIG_PUBLIC_PATH = "/DestinyCafe/nobackground/꽃돼지3-Photoroom.png";
 
-export const PAYMENT_PIG_LOGO_URL =
-  "/DestinyCafe/꽃돼지3.webp?v=20260618-react-paid-gate";
+export const PAYMENT_PIG_LOGO_URL = getAssetUrlFromPublicPath(PAYMENT_PIG_PUBLIC_PATH, {
+  fallbackPublicPath: PAYMENT_PIG_PUBLIC_PATH,
+  prefix: "",
+});
+
+// 로딩 실패 폴백은 다른 이미지로 대체하지 않고 동일 에셋을 캐시버스트로 1회 재요청한다.
+const PAYMENT_PIG_LOGO_FALLBACK_URL =
+  `${PAYMENT_PIG_LOGO_URL}${PAYMENT_PIG_LOGO_URL.includes("?") ? "&" : "?"}retry=1`;
 
 export function PaymentPigVisual({
   tone = "payment",
