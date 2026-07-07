@@ -386,7 +386,6 @@ const handleAdminRoutes = createLazyRouteHandler("./routes/admin.js", () => impo
 const handleFortuneRoutes = createLazyRouteHandler("./routes/fortune.js", () => import("./routes/fortune.js"), "handleFortuneRoutes");
 const handleTarotRoutes = createLazyRouteHandler("./routes/tarot.js", () => import("./routes/tarot.js"), "handleTarotRoutes");
 const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-harmony.js", () => import("./routes/celestial-harmony.js"), "handleCelestialHarmonyRoutes");
-const handleYoutubeRoutes = createLazyRouteHandler("./routes/youtube.js", () => import("./routes/youtube.js"), "handleYoutubeRoutes");
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
 const handleMusicRoutes = createLazyRouteHandler("./routes/music.js", () => import("./routes/music.js"), "handleMusicRoutes", "api/music");
 const handleLifeBookAiRoutes = createLazyRouteHandler("./routes/life-book-ai.js", () => import("./routes/life-book-ai.js"), "handleLifeBookAiRoutes", "api/life-book-ai");
@@ -923,7 +922,7 @@ export default {
             service: "code-destiny-api-worker",
             mode: "worker-native",
             backendOnly: true,
-            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "youtube", "celestial-harmony", "premium", "ziwei-ai", "life-book-ai", "love-secret-ai", "karma-destiny-ai", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
+            nativeRoutes: ["auth", "admin", "payments", "fortune", "tarot", "celestial-harmony", "premium", "ziwei-ai", "life-book-ai", "love-secret-ai", "karma-destiny-ai", "dream", "yoga-guru", "sibyl", "oracle", "kasi", "astro", "vedic", "soul-origin", "palm", "destiny-bias", "geo"],
             fallbackProxyMode: upstreamOrigin
               ? (isFrontendOrigin(upstreamOrigin, env) ? "misconfigured" : "enabled")
               : "disabled",
@@ -1191,10 +1190,6 @@ export default {
 
       if (url.pathname === "/api/tarot" || url.pathname.startsWith("/api/tarot/")) {
         return withCorsHeaders(request, env, await handleTarotRoutes(request, env));
-      }
-
-      if (url.pathname === "/api/youtube" || url.pathname.startsWith("/api/youtube/")) {
-        return withCorsHeaders(request, env, await handleYoutubeRoutes(request, env));
       }
 
       if (url.pathname === "/api/premium/pdf-archive" || url.pathname.startsWith("/api/premium/pdf-archive/")) {

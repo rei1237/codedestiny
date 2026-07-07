@@ -45,6 +45,8 @@
   transition: border-color 0.3s, box-shadow 0.3s;
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
+  color: inherit;
 }
 
 .sibyl-entry-tile:hover,

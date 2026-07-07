@@ -45,6 +45,8 @@
   text-align: left;
   font-family: 'CodeDestinyBody', 'Noto Serif KR', serif;
   contain: layout paint style;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* 사주 신년운세 카드는 공통 lifebook 배경이 아닌 전용 커버를 사용 */
@@ -59,7 +61,7 @@
   min-height: 392px;
   border: 1px solid rgba(188, 205, 255, 0.28);
   background:
-    linear-gradient(90deg, rgba(9, 11, 31, 0.72) 0%, rgba(9, 11, 31, 0.34) 42%, rgba(9, 11, 31, 0.9) 100%),
+    linear-gradient(90deg, rgba(9, 11, 31, 0.36) 0%, rgba(9, 11, 31, 0.08) 42%, rgba(9, 11, 31, 0.5) 100%),
     radial-gradient(circle at 68% 20%, rgba(188, 205, 255, 0.16), transparent 36%),
     repeating-linear-gradient(135deg, rgba(188, 205, 255, 0.05) 0 1px, transparent 1px 18px),
     url('/fuctionassets/lifebook.webp?v=build-717e909820aa') center 36% / cover no-repeat,
@@ -99,9 +101,8 @@
 
 .fg-group--lifebook .lifebook-tile__bg {
   background:
-    linear-gradient(180deg, rgba(8, 11, 28, 0.2) 0%, rgba(9, 12, 27, 0.48) 50%, rgba(5, 8, 20, 0.93) 100%),
-    linear-gradient(90deg, rgba(5, 8, 20, 0.9), rgba(5, 8, 20, 0.56) 47%, rgba(6, 10, 22, 0.72)),
-    linear-gradient(120deg, rgba(188, 205, 255, 0.16), transparent 35%, rgba(12, 16, 33, 0.2) 70%, transparent);
+    linear-gradient(180deg, rgba(8, 11, 28, 0.04) 0%, rgba(9, 12, 27, 0.14) 42%, rgba(5, 8, 20, 0.9) 80%, rgba(4, 6, 16, 0.96) 100%),
+    linear-gradient(120deg, rgba(188, 205, 255, 0.1), transparent 35%, rgba(12, 16, 33, 0.12) 70%, transparent);
 }
 
 .fg-group--lifebook .lifebook-tile__inner {

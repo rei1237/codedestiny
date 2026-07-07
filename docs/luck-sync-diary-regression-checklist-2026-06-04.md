@@ -7,7 +7,6 @@
 - 브라우저 개발자 도구의 Network 패널을 켠다.
 - Application 패널에서 `localStorage`와 `sessionStorage`를 확인할 수 있게 둔다.
 - 잠금 해제/미해제 상태를 각각 확인할 수 있는 계정을 준비한다.
-- YouTube API 정상 응답 환경과 API 실패/fallback 환경을 각각 확인한다.
 
 ## 체크리스트
 
@@ -24,9 +23,8 @@
 | 9 | 브라우저 데이터 삭제 시 기록 삭제 | Application에서 localStorage 삭제 후 새로고침 | 다이어리 기록이 사라진다. |
 | 10 | 잠금 해제 사용자에게만 설치 안내 표시 | 잠금 해제 계정으로 접속 | 개인 다이어리 설치 카드/안내가 표시된다. |
 | 11 | 미해제 사용자 기존 잠금 정책 유지 | 미해제 계정으로 접속 | 설치 버튼은 노출되지 않고 잠금 안내만 표시된다. |
-| 12 | YouTube 음악 목록 로딩 성공 | 명상 사운드에서 자동 불러오기 | 트랙 목록이 표시된다. |
-| 13 | 재생 불가 영상 제외 | 실패 이벤트 또는 실패 ID 저장 후 재요청 | 실패 영상이 목록에서 제외된다. |
-| 14 | API 실패 시 fallback 음악 목록 표시 | API 키 제거/응답 실패 환경 확인 | 백업 소스 목록과 라이선스 확인 안내가 표시된다. |
+| 12 | 명상 음악 목록 로딩 성공 | 명상 사운드 탭 진입 | R2 명상 트랙 23곡이 네트워크 요청 없이 즉시 표시된다. |
+| 13 | 명상 음악 재생/정지/랜덤 재생 | 목록에서 곡 재생, 랜덤 재생, 정지 버튼 클릭 | 오디오가 정상 재생/정지되고 재생 중 곡이 목록에 표시된다. |
 | 15 | 모바일 탭/카드/체크박스 터치 정상 | 390px~430px viewport에서 조작 | 탭 스크롤, 카드, 체크박스가 깨지지 않는다. |
 | 16 | 데스크톱 레이아웃 정상 | 1280px 이상 viewport 확인 | 카드 폭과 여백이 자연스럽고 겹침이 없다. |
 | 17 | 빌드 성공 | `npm run build` | 빌드가 성공한다. |
@@ -35,13 +33,11 @@
 ## 정적 검증 포인트
 
 - 기록 저장 키: `luck_sync_diary_v2`
-- 실패 음악 저장 키: `cd.luckSyncDiary.failedSatsVideos`
-- 음악 API 경로: `/api/youtube/search`
+- 명상 음악 소스: `codedestinymusic/Meditation/` R2 버킷의 mp3 23곡(자체 소유 음원), `LSD_MEDITATION_TRACKS` 정적 배열
 - 저장 정책: 기록 저장 목적의 서버 API 없음
-- YouTube 재생 방식: `youtube-nocookie.com/embed` 및 YouTube IFrame API 오류 이벤트
+- 재생 방식: `<audio>` 엘리먼트로 R2 공개 CDN(`music.code-destiny.com/Meditation/...`) 직접 재생
 
 ## 남은 수동 확인
 
-- 실제 YouTube Data API 할당량 초과 상황은 운영/스테이징 환경에서 응답을 확인한다.
 - iOS Safari의 홈 화면 추가 안내는 실제 iOS 기기에서 확인한다.
 - 데스크톱 Chrome의 PWA 설치 버튼은 `beforeinstallprompt` 발생 환경에서 확인한다.

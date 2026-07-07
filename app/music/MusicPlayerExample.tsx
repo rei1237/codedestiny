@@ -231,7 +231,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "인간",
     close: "닫기",
     heroKicker: "MOON MUSIC",
-    heroTitle: "달빛 아래 열린 89곡의 운명 플레이리스트",
+    heroTitle: "달빛 아래 열린 123곡의 운명 플레이리스트",
     heroText: "DEST1NOVA, NEO, YEONI, LUNA BLOOM의 별빛 무드를 한곳에 모은 Code Destiny의 음악 서고.",
     heroPrimary: "전체 재생",
     heroSecondary: "무드별 탐색",
@@ -281,7 +281,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "Human",
     close: "Close",
     heroKicker: "MOON MUSIC",
-    heroTitle: "89 fate tracks opened under moonlight",
+    heroTitle: "123 fate tracks opened under moonlight",
     heroText: "A Code Destiny music archive gathering the starlit moods of DEST1NOVA, NEO, YEONI, and LUNA BLOOM.",
     heroPrimary: "Play all",
     heroSecondary: "Explore moods",
@@ -331,7 +331,7 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     albumModeHuman: "ヒューマン",
     close: "閉じる",
     heroKicker: "MOON MUSIC",
-    heroTitle: "月明かりの下で開く89曲の運命プレイリスト",
+    heroTitle: "月明かりの下で開く123曲の運命プレイリスト",
     heroText: "DEST1NOVA、NEO、YEONI、LUNA BLOOMの星明かりのムードを集めたCode Destinyの音楽書庫。",
     heroPrimary: "すべて再生",
     heroSecondary: "ムードで探す",
@@ -481,7 +481,7 @@ const LyricsPanel = memo(function LyricsPanel({ isOpen, isLoading, lyricsText, o
   );
 });
 
-const MOON_LIBRARY_BADGES = ["4 moods", "Moon curated", "DEST1NOVA vol.2"] as const;
+const MOON_LIBRARY_BADGES = ["5 moods", "Moon curated", "DEST1NOVA vol.2"] as const;
 const WAVEFORM_BARS = Array.from({ length: 28 }, (_, index) => index);
 
 type MoonWaveformProps = {

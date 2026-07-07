@@ -36,6 +36,7 @@ const PLAYLIST_TAB_LABELS: Array<{ key: PlaylistTab; label: string }> = [
   { key: "yeoni", label: "YEONI" },
   { key: "dest1nova", label: "DEST1NOVA" },
   { key: "lunabloom", label: "LUNA BLOOM" },
+  { key: "meditation", label: "MEDITATION" },
   { key: "all", label: "ALL" },
 ];
 
@@ -129,6 +130,7 @@ function getTrackCollectionLabel(track: Track) {
   if (track.artistKey === "destinycafe") return "Yeoni's destiny cafe";
   if (track.artistKey === "dest1nova") return "DEST1NOVA";
   if (track.artistKey === "lunabloom") return "Luna Bloom";
+  if (track.artistKey === "meditation") return "Meditation";
   if (track.audioKey.startsWith("neosongmini1/") || track.audioKey.startsWith("yeonisongmini1/")) return "Mini Album";
   return "Moon Cut";
 }
@@ -139,6 +141,7 @@ function getTrackMoodTag(track: Track) {
   if (track.artistKey === "destinycafe") return "moon tea";
   if (track.artistKey === "dest1nova") return DEST1NOVA_SECOND_ALBUM_MARKER.test(track.audioKey) ? "starlight rush" : "cosmic pop";
   if (track.artistKey === "lunabloom") return "lucid dream";
+  if (track.artistKey === "meditation") return "calm meditation";
   return "moon pop";
 }
 
@@ -391,6 +394,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       yeoni: 0,
       dest1nova: 0,
       lunabloom: 0,
+      meditation: 0,
     } as Record<PlaylistTab, number>;
 
     tracks.forEach((track) => {
@@ -398,6 +402,7 @@ const MusicPlaylistPanel = memo(function MusicPlaylistPanel({
       else if (track.artistKey === "yeoni" || track.artistKey === "destinycafe") baseCounts.yeoni += 1;
       else if (track.artistKey === "dest1nova") baseCounts.dest1nova += 1;
       else if (track.artistKey === "lunabloom") baseCounts.lunabloom += 1;
+      else if (track.artistKey === "meditation") baseCounts.meditation += 1;
     });
 
     return baseCounts;

@@ -34,8 +34,6 @@ const LUCK_SYNC_DIARY_TEXT_TRANSLATIONS = {
     "lsd.label.011": "관계 기운 정돈",
     "lsd.label.012": "회복력 강화",
     "lsd.label.013": "집중/성과 모드",
-    "lsd.label.014": "LoFi 집중",
-    "lsd.label.015": "Theta 안정",
     "lsd.alt.001": "썸네일",
     "lsd.label.016": "보통",
     "lsd.label.017": "좋은 날",
@@ -60,7 +58,7 @@ const LUCK_SYNC_DIARY_TEXT_TRANSLATIONS = {
     "lsd.placeholder.007": "예: 중요한 미팅에서 긴장해 말이 꼬였다.",
     "lsd.placeholder.008": "예: 차분하게 핵심을 전달했고, 상대가 미소로 고개를 끄덕였다.",
     "lsd.aria-label.006": "명상 플레이리스트 모드",
-    "lsd.title.005": "SATS YouTube Player",
+    "lsd.title.005": "명상 음악 플레이어",
     "lsd.placeholder.009": "위 문장을 타이핑하거나 소리 내어 읽어보세요.",
     "lsd.aria-label.007": "이전 달",
     "lsd.aria-label.008": "다음 달",
@@ -2040,62 +2038,20 @@ function _lsdText(key) {
   }
 
   var _lsdMeditationTimer = null;
-  var _lsdSatsYouTubeCache = { lofi: null, theta: null };
-  var _lsdSatsPlaylistMeta = { lofi: null, theta: null };
-  var _lsdSatsNowPlaying = { mode: '', videoId: '' };
-  var _lsdSatsLoadPending = { lofi: null, theta: null };
-  var _lsdSatsPlayerApiPromise = null;
-  var _lsdSatsPlayer = null;
-  var _lsdSatsPlayerBoundVideo = '';
-  var LSD_SATS_SOURCE_META = {
-    lofi: { label: _lsdText("lsd.label.014"), query: 'creative commons lofi meditation instrumental free to use license -live -radio' },
-    theta: { label: _lsdText("lsd.label.015"), query: 'creative commons theta binaural beats meditation free to use license -live -radio' }
-  };
-  var LSD_SATS_FAILED_KEY = 'cd.luckSyncDiary.failedSatsVideos';
-  var _lsdSatsFailedVideos = {};
-  var LSD_SATS_LICENSE_NOTICE = '음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.';
-
-  try {
-    var failedSeed = '[]';
-    try { failedSeed = localStorage.getItem(LSD_SATS_FAILED_KEY) || failedSeed; } catch (_) {}
-    try { failedSeed = failedSeed === '[]' ? (sessionStorage.getItem(LSD_SATS_FAILED_KEY) || failedSeed) : failedSeed; } catch (_) {}
-    JSON.parse(failedSeed).forEach(function (id) {
-      if (id) _lsdSatsFailedVideos[String(id)] = true;
-    });
-  } catch (_) {}
-
-  function rememberFailedSatsVideo(videoId) {
-    if (!videoId) return;
-    _lsdSatsFailedVideos[String(videoId)] = true;
-    try {
-      var failedPayload = JSON.stringify(Object.keys(_lsdSatsFailedVideos).slice(-80));
-      localStorage.setItem(LSD_SATS_FAILED_KEY, failedPayload);
-      sessionStorage.setItem(LSD_SATS_FAILED_KEY, failedPayload);
-    } catch (_) {}
-  }
-
-  function getFailedSatsVideoIds() {
-    return Object.keys(_lsdSatsFailedVideos).filter(function (id) { return !!id; }).slice(-80);
-  }
-
-  function isPlayableSatsCandidate(item) {
-    if (!item || !item.videoId || _lsdSatsFailedVideos[String(item.videoId)]) return false;
-    var text = String((item.title || '') + ' ' + (item.channel || '')).toLowerCase();
-    if (/(private video|deleted video|unavailable|removed|blocked|\bshorts\b|#shorts)/i.test(text)) return false;
-    if (item.sourceTier === 'backup') return true;
-    return !/(24\/7|24\/?7|live radio|livestream|\blive\b|\bradio\b|실시간|라이브|라디오)/i.test(text);
-  }
-
-  function filterPlayableSatsItems(items) {
-    var seen = {};
-    return (Array.isArray(items) ? items : []).filter(function (item) {
-      if (!isPlayableSatsCandidate(item)) return false;
-      var id = String(item.videoId);
-      if (seen[id]) return false;
-      seen[id] = true;
-      return true;
-    });
-  }
+  var LSD_MEDITATION_TRACKS = [
+    'Crystal Garden', 'Dawn in the Temple', 'Fire Festival', 'First Light on Water', 'Flowing Light',
+    'Focus Flow', 'Inner Flame Awakening', 'Midnight Pulse', 'Moonlit Dawn', 'Moonlit Forest Temple',
+    'Moonlit Glass Box', 'Moonlit River Return', 'Moonlit Strategy Map', 'Moonlit Temple Gate',
+    'Rain Window Renewal', 'Sacred Flame', 'Starlight Drift', 'Still Lake Dawn', 'Still Lake Mind',
+    'Sunrise Drum Circle', 'The Memory of Water', 'The Stars Remember Your Name', 'Zero Point'
+  ].map(function (title, idx) {
+    return {
+      id: 'meditation-' + idx,
+      title: title,
+      url: 'https://music.code-destiny.com/Meditation/' + encodeURIComponent(title + '.mp3')
+    };
+  });
+  var _lsdMeditationNowPlayingId = '';
 
   function getTomorrowLuckKeyword(entry) {
     var byTheme = {
@@ -2243,18 +2199,12 @@ function _lsdText(key) {
     renderMeditationTrend(diary);
   }
 
-  function stopSatsAudio() {
-    var frame = document.getElementById('lsdSatsYoutubeFrame');
-    var holder = document.getElementById('lsdSatsPlayerPlaceholder');
+  function stopMeditationAudio() {
+    var audio = document.getElementById('lsdMeditationAudioPlayer');
     var nowTitle = document.getElementById('lsdSatsNowPlayingTitle');
-    if (frame) {
-      frame.src = '';
-      frame.style.display = 'none';
-    }
-    if (holder) holder.style.display = 'flex';
+    if (audio) audio.pause();
     if (nowTitle) nowTitle.textContent = '재생 대기 중 · 원하는 트랙을 선택해 주세요';
-    _lsdSatsNowPlaying.mode = '';
-    _lsdSatsNowPlaying.videoId = '';
+    _lsdMeditationNowPlayingId = '';
     var list = document.getElementById('lsdSatsPlaylist');
     if (list) {
       list.querySelectorAll('.lsd-sats-track').forEach(function (item) {
@@ -2263,325 +2213,63 @@ function _lsdText(key) {
     }
   }
 
-  function handleSatsPlaybackFailure(mode, videoId) {
-    if (!videoId) return;
-    rememberFailedSatsVideo(videoId);
-    var frame = document.getElementById('lsdSatsYoutubeFrame');
-    var holder = document.getElementById('lsdSatsPlayerPlaceholder');
-    var nowTitle = document.getElementById('lsdSatsNowPlayingTitle');
-    if (frame) {
-      frame.removeAttribute('src');
-      frame.style.display = 'none';
-    }
-    if (holder) holder.style.display = 'flex';
-    if (nowTitle) nowTitle.textContent = '재생 실패 · 다른 음악을 추천했어요';
-    _lsdSatsNowPlaying.mode = '';
-    _lsdSatsNowPlaying.videoId = '';
-    _lsdSatsYouTubeCache[mode] = filterPlayableSatsItems(_lsdSatsYouTubeCache[mode] || []);
-    showDiaryToast('이 트랙은 재생할 수 없어 다른 음악을 추천했어요.');
-    renderSatsPlaylist(mode, _lsdSatsYouTubeCache[mode], '재생 실패로 제외됨 · 다른 음악을 추천했어요.', _lsdSatsPlaylistMeta[mode] || null);
-  }
-
-  function ensureSatsYoutubeIframeApi() {
-    if (window.YT && typeof window.YT.Player === 'function') return Promise.resolve(window.YT);
-    if (_lsdSatsPlayerApiPromise) return _lsdSatsPlayerApiPromise;
-    _lsdSatsPlayerApiPromise = new Promise(function (resolve) {
-      var prevReady = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = function () {
-        if (typeof prevReady === 'function') {
-          try { prevReady(); } catch (_) {}
-        }
-        resolve(window.YT || null);
-      };
-      if (!document.getElementById('lsd-youtube-iframe-api')) {
-        var s = document.createElement('script');
-        s.id = 'lsd-youtube-iframe-api';
-        s.src = 'https://www.youtube.com/iframe_api';
-        s.async = true;
-        s.onerror = function () { resolve(null); };
-        document.head.appendChild(s);
-      }
-      setTimeout(function () {
-        if (window.YT && typeof window.YT.Player === 'function') resolve(window.YT);
-      }, 2400);
-    });
-    return _lsdSatsPlayerApiPromise;
-  }
-
-  function attachSatsPlayerErrorHandler(mode, videoId) {
-    var frame = document.getElementById('lsdSatsYoutubeFrame');
-    if (!frame || !videoId) return;
-    _lsdSatsPlayerBoundVideo = videoId;
-    ensureSatsYoutubeIframeApi().then(function (yt) {
-      if (!yt || !yt.Player || _lsdSatsNowPlaying.videoId !== videoId) return;
-      if (_lsdSatsPlayer) return;
-      try {
-        _lsdSatsPlayer = new yt.Player('lsdSatsYoutubeFrame', {
-          events: {
-            onError: function () {
-              handleSatsPlaybackFailure(_lsdSatsNowPlaying.mode || mode, _lsdSatsNowPlaying.videoId || _lsdSatsPlayerBoundVideo);
-            }
-          }
-        });
-      } catch (_) {}
-    });
-  }
-
-  function buildYouTubeProxyUrl(mode, force) {
-    var failed = getFailedSatsVideoIds();
-    return '/api/youtube/search?mode=' + encodeURIComponent(mode || 'lofi')
-      + '&lang=en'
-      + (force ? '&force=true' : '')
-      + (failed.length ? '&exclude=' + encodeURIComponent(failed.join(',')) : '');
-  }
-
-  function buildSatsExternalSearchUrl(mode) {
-    var meta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
-    return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(meta.query);
-  }
-
-  function openSatsVideoInYoutube(videoId) {
-    if (!videoId) return;
-    try {
-      window.open('https://www.youtube.com/watch?v=' + encodeURIComponent(videoId), '_blank', 'noopener,noreferrer');
-    } catch (_) {}
-  }
-
-  function normalizePlaylistItems(items) {
-    return (Array.isArray(items) ? items : []).map(function (item) {
-      var id = item && item.videoId;
-      if (!id) return null;
-      return {
-        videoId: String(id),
-        title: String(item.title || '제목 없음'),
-        channel: String(item.channel || 'YouTube'),
-        thumb: String(item.thumb || ''),
-        durationSeconds: Number(item.durationSeconds || 0),
-        verified: item.verified === true,
-        sourceTier: String(item.sourceTier || (item.verified ? 'cc' : 'backup')),
-        licenseLabel: String(item.licenseLabel || '')
-      };
-    }).filter(Boolean);
-  }
-
-  function fetchSatsPlaylistViaProxy(mode, force) {
-    var url = buildYouTubeProxyUrl(mode, force);
-    return fetch(url, { cache: 'no-store' })
-      .then(function (res) {
-        return res.json().catch(function () { return {}; }).then(function (json) {
-          if (!res.ok || !json || json.ok === false) {
-            throw new Error((json && json.message) || ('YouTube API 요청 실패 (' + res.status + ')'));
-          }
-          var items = normalizePlaylistItems(json.items);
-          return {
-            items: items,
-            message: String(json.message || ''),
-            source: String(json.source || 'youtube-api'),
-            licensePolicy: String(json.licensePolicy || 'creative-commons-priority'),
-            excludedFailedCount: Number(json.excludedFailedCount || 0)
-          };
-        });
-      });
-  }
-
-  function fetchSatsPlaylist(mode, force) {
-    if (!force && Array.isArray(_lsdSatsYouTubeCache[mode]) && _lsdSatsYouTubeCache[mode].length) {
-      return Promise.resolve({
-        items: _lsdSatsYouTubeCache[mode],
-        meta: _lsdSatsPlaylistMeta[mode] || null,
-      });
-    }
-    return fetchSatsPlaylistViaProxy(mode, force)
-      .then(function (payload) {
-        var playableItems = filterPlayableSatsItems(payload.items);
-        _lsdSatsYouTubeCache[mode] = playableItems;
-        _lsdSatsPlaylistMeta[mode] = {
-          message: payload.message || '',
-          source: payload.source || 'youtube-api',
-          licensePolicy: payload.licensePolicy || 'creative-commons-priority',
-          excludedFailedCount: Number(payload.excludedFailedCount || 0)
-        };
-        return {
-          items: playableItems,
-          meta: _lsdSatsPlaylistMeta[mode]
-        };
-      });
-  }
-
-  function renderSatsPlaylistMeta(mode, meta, itemsLength, message) {
-    var status = document.getElementById('lsdSatsPlaylistStatus');
-    var sourceBadge = document.getElementById('lsdSatsSourceBadge');
-    var licenseBadge = document.getElementById('lsdSatsLicenseBadge');
-    var openBtn = document.getElementById('lsdSatsOpenYoutube');
-    var modeMeta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
-    var source = String((meta && meta.source) || 'youtube-api');
-    var sourceLabel = source === 'youtube-api-verified' ? 'CC 우선 추천' : (/backup|fallback/.test(source) ? '백업 소스' : 'YouTube API');
-    var license = String((meta && meta.licensePolicy) || 'creative-commons-priority');
-    var statusText = message || '';
-    var failedCount = Number(meta && meta.excludedFailedCount) || getFailedSatsVideoIds().length;
-
-    if (!statusText) {
-      if (itemsLength > 0) {
-        statusText = modeMeta.label + ' 트랙 ' + itemsLength + '곡 준비 완료 · ' + LSD_SATS_LICENSE_NOTICE;
-      } else {
-        statusText = modeMeta.label + ' 트랙을 찾지 못했습니다. 새로고침하거나 YouTube에서 직접 확인해 주세요.';
-      }
-    }
-    if (failedCount > 0) {
-      statusText += ' 재생 실패로 제외됨 ' + failedCount + '개.';
-    }
-
-    if (status) status.textContent = statusText;
-    if (sourceBadge) sourceBadge.textContent = sourceLabel;
-    if (licenseBadge) {
-      licenseBadge.textContent = (license === 'creative-commons-verified')
-        ? '재생 가능 확인됨'
-        : (sourceLabel === '백업 소스' ? '백업 소스' : '조건 확인 필요');
-    }
-    if (openBtn) {
-      openBtn.setAttribute('data-sats-search-url', buildSatsExternalSearchUrl(mode));
-    }
-  }
-
-  function renderSatsPlaylist(mode, items, message, meta) {
+  function markMeditationPlaying(trackId) {
     var list = document.getElementById('lsdSatsPlaylist');
     if (!list) return;
-    var safeItems = filterPlayableSatsItems(items);
-    _lsdSatsYouTubeCache[mode] = safeItems;
-    renderSatsPlaylistMeta(mode, meta || _lsdSatsPlaylistMeta[mode] || null, safeItems.length, message || '');
+    list.querySelectorAll('.lsd-sats-track').forEach(function (item) {
+      item.classList.toggle('is-playing', item.getAttribute('data-sats-track') === trackId);
+    });
+  }
 
-    if (!safeItems.length) {
-      list.innerHTML = '<div class="lsd-sats-empty">재생 가능한 트랙만 남기니 목록이 비었습니다. 모드를 바꾸거나 새로고침해 주세요.</div>';
-      return;
-    }
-
-    list.innerHTML = safeItems.map(function (item, idx) {
-      var active = _lsdSatsNowPlaying.videoId === item.videoId ? ' is-playing' : '';
-      var thumbHtml = item.thumb
-        ? ('<img class="lsd-sats-thumb" src="' + escHtml(item.thumb) + '" alt="' + _lsdText("lsd.alt.001") + '" loading="lazy">')
-        : '<div class="lsd-sats-thumb lsd-sats-thumb--blank">♪</div>';
+  function renderMeditationPlaylist() {
+    var list = document.getElementById('lsdSatsPlaylist');
+    var status = document.getElementById('lsdSatsPlaylistStatus');
+    if (status) status.textContent = '명상 음악 ' + LSD_MEDITATION_TRACKS.length + '곡 · 언제든 바로 재생할 수 있습니다.';
+    if (!list) return;
+    list.innerHTML = LSD_MEDITATION_TRACKS.map(function (track, idx) {
+      var active = _lsdMeditationNowPlayingId === track.id ? ' is-playing' : '';
       return ''
-        + '<div class="lsd-sats-track' + active + '" data-sats-video="' + escHtml(item.videoId) + '">'
-        + thumbHtml
+        + '<div class="lsd-sats-track' + active + '" data-sats-track="' + escHtml(track.id) + '">'
+        + '<div class="lsd-sats-thumb lsd-sats-thumb--blank">♪</div>'
         + '<div class="lsd-sats-meta">'
-        + '  <p class="lsd-sats-track-title">' + escHtml(String(idx + 1) + '. ' + item.title) + '</p>'
-        + '  <p class="lsd-sats-track-channel">' + escHtml(item.channel) + '</p>'
-        + '  <p class="lsd-sats-track-license">' + escHtml(item.licenseLabel || (item.sourceTier === 'backup' ? '백업 소스 · 조건 확인 필요' : 'CC 우선 추천 · 재생 가능 확인됨')) + '</p>'
+        + '  <p class="lsd-sats-track-title">' + escHtml(String(idx + 1) + '. ' + track.title) + '</p>'
         + '</div>'
         + '<div class="lsd-sats-track-actions">'
-        + '  <button type="button" class="lsd-sats-play-btn" data-sats-play="' + escHtml(item.videoId) + '">▶ 재생</button>'
+        + '  <button type="button" class="lsd-sats-play-btn" data-sats-play="' + escHtml(track.id) + '">▶ 재생</button>'
         + '</div>'
         + '</div>';
     }).join('');
   }
 
-  function markSatsPlaying(videoId) {
-    var list = document.getElementById('lsdSatsPlaylist');
-    if (!list) return;
-    list.querySelectorAll('.lsd-sats-track').forEach(function (item) {
-      var isOn = item.getAttribute('data-sats-video') === videoId;
-      item.classList.toggle('is-playing', isOn);
-    });
-  }
-
-  function playSatsVideo(mode, videoId) {
-    var frame = document.getElementById('lsdSatsYoutubeFrame');
-    var holder = document.getElementById('lsdSatsPlayerPlaceholder');
+  function playMeditationTrack(trackId) {
+    var audio = document.getElementById('lsdMeditationAudioPlayer');
     var nowTitle = document.getElementById('lsdSatsNowPlayingTitle');
     var zone = document.getElementById('lsdSatsZone');
-    var tracks = _lsdSatsYouTubeCache[mode] || [];
     var picked = null;
-    for (var i = 0; i < tracks.length; i++) {
-      if (tracks[i].videoId === videoId) { picked = tracks[i]; break; }
+    for (var i = 0; i < LSD_MEDITATION_TRACKS.length; i++) {
+      if (LSD_MEDITATION_TRACKS[i].id === trackId) { picked = LSD_MEDITATION_TRACKS[i]; break; }
     }
-    if (!frame || !picked) return;
+    if (!audio || !picked) return;
     if (zone) zone.classList.add('is-dark');
-    frame.onerror = function () {
-      handleSatsPlaybackFailure(mode, videoId);
-    };
-    var origin = '';
-    try { origin = '&origin=' + encodeURIComponent(window.location.origin); } catch (_) {}
-    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(videoId)
-      + '?autoplay=1&rel=0&modestbranding=1&playsinline=1&enablejsapi=1' + origin;
-    frame.style.display = 'block';
-    if (holder) holder.style.display = 'none';
-    if (nowTitle) nowTitle.textContent = '재생 중 · ' + picked.title + ' · ' + picked.channel;
-    _lsdSatsNowPlaying.mode = mode;
-    _lsdSatsNowPlaying.videoId = videoId;
-    markSatsPlaying(videoId);
-    attachSatsPlayerErrorHandler(mode, videoId);
+    audio.src = picked.url;
+    audio.play().catch(function () {});
+    if (nowTitle) nowTitle.textContent = '재생 중 · ' + picked.title;
+    _lsdMeditationNowPlayingId = trackId;
+    markMeditationPlaying(trackId);
 
     var d = loadDiary();
     var e = getTodayEntry(d);
     e.satsCompleted = true;
-    e.meditationLogs.push({ type: 'sats', ts: Date.now(), mode: mode, videoId: videoId });
+    e.meditationLogs.push({ type: 'sats', ts: Date.now(), trackId: trackId });
     e.meditationPoints = calcMeditationPoints(e);
     saveDiary(d);
     renderMeditationBoard(e, d);
   }
 
-  function playRandomSatsTrack(mode) {
-    var normalized = mode === 'theta' ? 'theta' : 'lofi';
-    var tracks = _lsdSatsYouTubeCache[normalized] || [];
-    if (!tracks.length) {
-      return ensureSatsPlaylistReady(normalized, false).then(function () {
-        var retryTracks = _lsdSatsYouTubeCache[normalized] || [];
-        if (!retryTracks.length) return;
-        var retryIdx = Math.floor(Math.random() * retryTracks.length);
-        playSatsVideo(normalized, retryTracks[retryIdx].videoId);
-      });
-    }
-    var idx = Math.floor(Math.random() * tracks.length);
-    playSatsVideo(normalized, tracks[idx].videoId);
-    return Promise.resolve();
-  }
-
-  function loadSatsPlaylist(mode, force) {
-    var list = document.getElementById('lsdSatsPlaylist');
-    var modeMeta = LSD_SATS_SOURCE_META[mode] || LSD_SATS_SOURCE_META.lofi;
-    renderSatsPlaylistMeta(mode, null, 0, 'YouTube API에서 ' + modeMeta.label + ' 트랙을 수집하고 있어요...');
-    if (list) list.innerHTML = '<div class="lsd-sats-empty">CC 우선 추천과 백업 소스를 나누어 재생 가능한 음악만 정리하고 있습니다...</div>';
-    return fetchSatsPlaylist(mode, !!force)
-      .then(function (payload) {
-        var meta = payload && payload.meta ? payload.meta : null;
-        var items = payload && Array.isArray(payload.items) ? payload.items : [];
-        if (!force && !items.length) {
-          return loadSatsPlaylist(mode, true);
-        }
-        var message = '';
-        if (meta && /^fallback/.test(String(meta.source || '')) && meta.message) {
-          message = meta.message;
-        }
-        renderSatsPlaylist(mode, items, message, meta);
-      })
-      .catch(function (err) {
-        if (!force) {
-          return loadSatsPlaylist(mode, true);
-        }
-        renderSatsPlaylist(mode, [], (err && err.message) ? err.message : '플레이리스트 로드 실패', null);
-      });
-  }
-
-  function ensureSatsPlaylistReady(mode, force) {
-    var normalized = mode === 'theta' ? 'theta' : 'lofi';
-    if (!force && Array.isArray(_lsdSatsYouTubeCache[normalized]) && _lsdSatsYouTubeCache[normalized].length) {
-      renderSatsPlaylist(normalized, _lsdSatsYouTubeCache[normalized], '이미 불러온 트랙입니다. 바로 재생할 수 있어요.', _lsdSatsPlaylistMeta[normalized] || null);
-      return Promise.resolve();
-    }
-    if (!force && _lsdSatsLoadPending[normalized]) {
-      return _lsdSatsLoadPending[normalized];
-    }
-    var pending = loadSatsPlaylist(normalized, !!force);
-    if (!force) {
-      _lsdSatsLoadPending[normalized] = pending;
-    }
-    return pending.then(function (value) {
-      if (!force) _lsdSatsLoadPending[normalized] = null;
-      return value;
-    }, function (error) {
-      if (!force) _lsdSatsLoadPending[normalized] = null;
-      throw error;
-    });
+  function playRandomMeditationTrack() {
+    if (!LSD_MEDITATION_TRACKS.length) return;
+    var idx = Math.floor(Math.random() * LSD_MEDITATION_TRACKS.length);
+    playMeditationTrack(LSD_MEDITATION_TRACKS[idx].id);
   }
 
   function buildChallenges(luckyEl, mainTenStar, todayGZ) {
@@ -3187,9 +2875,7 @@ function _lsdText(key) {
       var d = loadDiary();
       var e = getTodayEntry(d);
       renderMeditationBoard(e, d);
-      var satsActiveTab = document.querySelector('.lsd-sats-tab.is-on[data-sats-tab]');
-      var satsMode = satsActiveTab ? satsActiveTab.getAttribute('data-sats-tab') : 'lofi';
-      ensureSatsPlaylistReady(satsMode, false);
+      renderMeditationPlaylist();
     }
   }
 
@@ -3602,20 +3288,15 @@ function _lsdText(key) {
         '.lsd-mini-label{display:block;font-size:.67rem;color:#64748b;font-weight:700;margin:0 0 4px}',
         '.lsd-meditation-input{width:100%;border:1px solid #dbe3ef;border-radius:10px;padding:8px 10px;font-size:.76rem;color:#1f2937;line-height:1.45;background:#fff;box-sizing:border-box;margin-bottom:8px}',
         '.lsd-mini-select{border:1px solid #dbe3ef;border-radius:999px;padding:7px 10px;font-size:.72rem;color:#334155;background:#fff}',
-        '.lsd-sats-tabs{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}',
-        '.lsd-sats-tab{border:1px solid #cbd5e1;background:#fff;border-radius:999px;padding:7px 11px;font-size:.68rem;font-weight:800;color:#475569;cursor:pointer;transition:all .2s}',
-        '.lsd-sats-tab.is-on{border-color:#818cf8;background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;box-shadow:0 8px 20px rgba(79,70,229,.3)}',
         '.lsd-sats-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:8px}',
         '.lsd-sats-badges{display:flex;gap:6px;flex-wrap:wrap}',
         '.lsd-sats-badge{font-size:.62rem;font-weight:800;color:#0f172a;background:#e2e8f0;border-radius:999px;padding:4px 8px}',
         '.lsd-sats-toolbar-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}',
         '.lsd-sats-player{position:relative;height:178px;border:1px solid #cbd5e1;border-radius:12px;overflow:hidden;background:#0f172a;margin-bottom:8px}',
-        '.lsd-sats-player iframe{width:100%;height:100%;border:0;display:none}',
+        '.lsd-sats-player audio{display:none}',
         '.lsd-sats-player-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px;font-size:.74rem;color:#bfdbfe;line-height:1.5;background:radial-gradient(circle at 50% 20%,rgba(56,189,248,.2),transparent 55%),linear-gradient(160deg,#0f172a,#020617)}',
         '.lsd-sats-now{font-size:.7rem;font-weight:700;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:7px 9px;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-        '.lsd-sats-open-btn{border:none;background:transparent;color:#4f46e5;font-size:.66rem;font-weight:800;cursor:pointer;padding:2px 0}',
         '.lsd-sats-zone.is-dark .lsd-sats-now{background:rgba(15,23,42,.55);border-color:rgba(125,211,252,.4);color:#e0f2fe}',
-        '.lsd-sats-zone.is-dark .lsd-sats-open-btn{color:#93c5fd}',
         '.lsd-sats-playlist{display:grid;gap:7px;max-height:232px;overflow:auto;padding-right:2px}',
         '.lsd-sats-track{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:7px 8px;transition:all .2s}',
         '.lsd-sats-zone.is-dark .lsd-sats-track{background:rgba(15,23,42,.4);border-color:rgba(100,116,139,.45)}',
@@ -3860,31 +3541,20 @@ function _lsdText(key) {
       '</div>',
       '<div id="lsdSatsScene" class="lsd-sats-scene">당신이 이미 원하는 결과를 이룬 단 하나의 장면이 표시됩니다.</div>',
       '<div class="lsd-sats-breath" id="lsdSatsBreathText">당신은 이미 이루어진 상태입니다. 소리, 촉감, 기분에만 집중하세요.</div>',
-      '<div class="lsd-sats-tabs" id="lsdSatsTabs" role="tablist" aria-label="' + _lsdText("lsd.aria-label.006") + '">',
-      '<button type="button" class="lsd-sats-tab is-on" data-sats-tab="lofi" role="tab" aria-selected="true">LoFi 집중</button>',
-      '<button type="button" class="lsd-sats-tab" data-sats-tab="theta" role="tab" aria-selected="false">Theta 안정</button>',
-      '</div>',
       '<div class="lsd-sats-toolbar">',
       '<div class="lsd-sats-badges">',
-      '<span id="lsdSatsSourceBadge" class="lsd-sats-badge">CC 우선 추천</span>',
-      '<span id="lsdSatsLicenseBadge" class="lsd-sats-badge">재생 가능 확인됨</span>',
+      '<span id="lsdSatsPlaylistStatus" class="lsd-sats-badge">명상 음악 ' + LSD_MEDITATION_TRACKS.length + '곡</span>',
       '</div>',
       '<div class="lsd-sats-toolbar-actions">',
-      '<button id="lsdStartSatsMode" type="button" class="lsd-plain-btn" style="border-color:#818cf8;color:#3730a3">자동 불러오기</button>',
       '<button id="lsdShuffleSatsPlaylist" type="button" class="lsd-plain-btn">랜덤 재생</button>',
-      '<button id="lsdRefreshSatsPlaylist" type="button" class="lsd-plain-btn">새로고침</button>',
       '<button id="lsdStopSatsMode" type="button" class="lsd-plain-btn">정지</button>',
       '</div>',
       '</div>',
-      '<div id="lsdSatsPlaylistStatus" class="lsd-sats-empty" style="margin-top:8px">음악은 YouTube에서 제공되는 공개 영상 중 Creative Commons 또는 무료 사용 가능 조건을 우선으로 추천합니다. 실제 사용 조건은 각 영상과 채널의 안내를 확인해 주세요.</div>',
       '<div class="lsd-sats-player" style="margin-top:8px">',
       '<div id="lsdSatsPlayerPlaceholder" class="lsd-sats-player-placeholder">재생 버튼을 누르기 전까지 소리는 나오지 않습니다.<br>목록에서 원하는 트랙의 ▶ 재생을 눌러주세요.</div>',
-      '<iframe id="lsdSatsYoutubeFrame" title="' + _lsdText("lsd.title.005") + '" allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>',
+      '<audio id="lsdMeditationAudioPlayer" preload="none" aria-label="' + _lsdText("lsd.title.005") + '"></audio>',
       '</div>',
       '<div id="lsdSatsNowPlayingTitle" class="lsd-sats-now">재생 대기 중 · 원하는 트랙을 선택해 주세요</div>',
-      '<div style="display:flex;justify-content:flex-end;margin-top:4px">',
-      '<button id="lsdSatsOpenYoutube" type="button" class="lsd-sats-open-btn" data-sats-search-url="https://www.youtube.com/results?search_query=creative+commons+lofi+meditation">YouTube에서 직접 탐색 ↗</button>',
-      '</div>',
       '<div id="lsdSatsPlaylist" class="lsd-sats-playlist">',
       '<div class="lsd-sats-empty">아직 로드된 플레이리스트가 없습니다.</div>',
       '</div>',
@@ -4240,10 +3910,6 @@ function _lsdText(key) {
     });
 
     switchTab(_lsdActiveTab, modal);
-    if (!modal.__lsdSatsPreloadStarted) {
-      modal.__lsdSatsPreloadStarted = true;
-      ensureSatsPlaylistReady('lofi', false);
-    }
 
     var pwaInstallBtn = document.getElementById('lsdPwaInstallBtn');
     if (pwaInstallBtn) pwaInstallBtn.onclick = requestDiaryPwaInstall;
@@ -4380,61 +4046,20 @@ function _lsdText(key) {
       renderMeditationBoard(e, d);
     };
 
-    var satsMode = 'lofi';
-
-    function updateSatsModeUI(nextMode) {
-      satsMode = nextMode === 'theta' ? 'theta' : 'lofi';
-      var tabs = document.querySelectorAll('.lsd-sats-tab[data-sats-tab]');
-      tabs.forEach(function (tab) {
-        var isOn = tab.getAttribute('data-sats-tab') === satsMode;
-        tab.classList.toggle('is-on', isOn);
-        tab.setAttribute('aria-selected', isOn ? 'true' : 'false');
-      });
-    }
-
-    var satsTabs = document.getElementById('lsdSatsTabs');
-    if (satsTabs) satsTabs.onclick = function (ev) {
-      var tabBtn = ev.target && ev.target.closest('[data-sats-tab]');
-      if (!tabBtn) return;
-      updateSatsModeUI(tabBtn.getAttribute('data-sats-tab') || 'lofi');
-      stopSatsAudio();
-      ensureSatsPlaylistReady(satsMode, false);
-    };
-
-    var startSatsBtn = document.getElementById('lsdStartSatsMode');
-    if (startSatsBtn) startSatsBtn.onclick = function () {
-      var zone = document.getElementById('lsdSatsZone');
-      if (zone) zone.classList.add('is-dark');
-      ensureSatsPlaylistReady(satsMode, false);
-    };
-
-    var refreshSatsBtn = document.getElementById('lsdRefreshSatsPlaylist');
-    if (refreshSatsBtn) refreshSatsBtn.onclick = function () {
-      loadSatsPlaylist(satsMode, true);
-    };
-
     var shuffleSatsBtn = document.getElementById('lsdShuffleSatsPlaylist');
     if (shuffleSatsBtn) shuffleSatsBtn.onclick = function () {
       var zone = document.getElementById('lsdSatsZone');
       if (zone) zone.classList.add('is-dark');
-      playRandomSatsTrack(satsMode);
-    };
-
-    var satsOpenYoutubeBtn = document.getElementById('lsdSatsOpenYoutube');
-    if (satsOpenYoutubeBtn) satsOpenYoutubeBtn.onclick = function () {
-      var searchUrl = satsOpenYoutubeBtn.getAttribute('data-sats-search-url') || buildSatsExternalSearchUrl(satsMode);
-      try {
-        window.open(searchUrl, '_blank', 'noopener,noreferrer');
-      } catch (_) {}
+      playRandomMeditationTrack();
     };
 
     var satsPlaylist = document.getElementById('lsdSatsPlaylist');
     if (satsPlaylist) satsPlaylist.onclick = function (ev) {
       var playBtn = ev.target && ev.target.closest('[data-sats-play]');
       if (playBtn) {
-        var videoId = playBtn.getAttribute('data-sats-play') || '';
-        if (!videoId) return;
-        playSatsVideo(satsMode, videoId);
+        var trackId = playBtn.getAttribute('data-sats-play') || '';
+        if (!trackId) return;
+        playMeditationTrack(trackId);
       }
     };
 
@@ -4442,10 +4067,10 @@ function _lsdText(key) {
     if (stopSatsBtn) stopSatsBtn.onclick = function () {
       var zone = document.getElementById('lsdSatsZone');
       if (zone) zone.classList.remove('is-dark');
-      stopSatsAudio();
+      stopMeditationAudio();
     };
 
-    updateSatsModeUI(satsMode);
+    renderMeditationPlaylist();
 
     var regenIam = document.getElementById('lsdRegenerateIam');
     if (regenIam) regenIam.onclick = function () {
@@ -4664,7 +4289,7 @@ function _lsdText(key) {
       clearInterval(_lsdMeditationTimer);
       _lsdMeditationTimer = null;
     }
-    stopSatsAudio();
+    stopMeditationAudio();
     document.body.style.overflow = '';
   }
 
