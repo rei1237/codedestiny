@@ -6,6 +6,7 @@ import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
+import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -1066,7 +1067,11 @@ function InitialBriefingDocument({
       content: (
         <>
           <Section title="현재 운명의 전선" body={frontlineSummary} />
-          {bluntTruth ? <blockquote className={styles.blunt}>{bluntTruth}</blockquote> : null}
+          {bluntTruth ? (
+            <blockquote className={styles.blunt}>
+              <LlmParagraphs text={bluntTruth} />
+            </blockquote>
+          ) : null}
         </>
       ),
     },
@@ -1202,12 +1207,16 @@ function InitialBriefingDocument({
               <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
               <div>
                 <strong>오늘의 사자 휘장 · {toDisplayText(briefing.badge.name) || "무명 휘장"}</strong>
-                <p>{toDisplayText(briefing.badge.description)}</p>
+                <LlmParagraphs text={briefing.badge.description} />
               </div>
               <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
             </div>
           ) : null}
-          {closing ? <blockquote className={styles.blunt}>{closing}</blockquote> : null}
+          {closing ? (
+            <blockquote className={styles.blunt}>
+              <LlmParagraphs text={closing} />
+            </blockquote>
+          ) : null}
         </>
       ),
     },
@@ -1222,7 +1231,7 @@ function InitialBriefingDocument({
         <h2>{toDisplayText(briefing.operationTitle) || "무명 작전"}</h2>
       </header>
       <PagedResultViewer
-        pages={withCharacterBreaks(pages, neoInitialBreaks)}
+        pages={withCharacterBreaks(pages, neoInitialBreaks, styles.neoBustBreak)}
         deckLabel="1차 작전 브리핑"
         className={styles.pagedViewer}
         viewAll={viewAll}
@@ -1375,11 +1384,15 @@ function RefinedOrderDocument({
             <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
             <div>
               <strong>오늘의 사자 휘장 · {toDisplayText(refined.badge?.name) || "무명 휘장"}</strong>
-              <p>{toDisplayText(refined.badge?.description)}</p>
+              <LlmParagraphs text={refined.badge?.description} />
             </div>
             <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
           </div>
-          {closing ? <blockquote className={styles.blunt}>{closing}</blockquote> : null}
+          {closing ? (
+            <blockquote className={styles.blunt}>
+              <LlmParagraphs text={closing} />
+            </blockquote>
+          ) : null}
         </>
       ),
     },
@@ -1394,7 +1407,7 @@ function RefinedOrderDocument({
         <h2>{toDisplayText(refined.operationTitle) || "수정 작전"}</h2>
       </header>
       <PagedResultViewer
-        pages={withCharacterBreaks(pages, neoRefinedBreaks)}
+        pages={withCharacterBreaks(pages, neoRefinedBreaks, styles.neoBustBreak)}
         deckLabel="2차 수정 작전 명령서"
         className={styles.pagedViewer}
         viewAll={viewAll}
@@ -1413,7 +1426,7 @@ function Section({ title, body, list }: { title: string; body?: string; list?: s
   return (
     <section className={styles.sectionCard}>
       <h3>{toDisplayText(title)}</h3>
-      {bodyText ? <p>{bodyText}</p> : null}
+      <LlmParagraphs text={bodyText} />
       {items.length ? <ul>{items.map((item, index) => <li key={`${index}-${item.slice(0, 24)}`}>{item}</li>)}</ul> : null}
     </section>
   );

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { toDisplayText } from "@/lib/llm-text";
+import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
@@ -389,7 +389,11 @@ export default function AstrologyAiResultClient() {
                         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#f5d487]/25 text-sm text-amber-50 transition group-open:rotate-45">+</span>
                       </span>
                     </summary>
-                    <p className="mt-5 whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{toText(section.body)}</p>
+                    <div className="mt-5 space-y-4">
+                      {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
+                        <p key={paragraphIndex} className="whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{paragraph}</p>
+                      ))}
+                    </div>
                   </details>
                 ))}
               </section>

@@ -443,7 +443,7 @@
 .sectionCard,
 .questionList section {
   display: grid;
-  gap: 8px;
+  gap: 10px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 14px;
@@ -529,6 +529,35 @@
   font-weight: 950;
   line-height: 1.65;
   word-break: keep-all;
+}
+
+.blunt p {
+  margin: 0;
+}
+
+.blunt p + p,
+.badgeBlock p + p {
+  margin-top: 10px;
+}
+
+/* 페이지 하단 네오 삽화를 상반신만 노출하는 반신상 크롭 (신규 에셋 없이 CSS로 연출) */
+.pagedViewer .neoBustBreak {
+  height: 200px;
+  overflow: hidden;
+  align-items: flex-start;
+}
+
+.pagedViewer .neoBustBreak img {
+  max-height: none;
+  height: 340px;
+  object-fit: cover;
+  object-position: top center;
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent);
+}
+
+.pagedViewer .neoBustBreak::before {
+  inset: 8% 18% 30%;
 }
 
 .questionList {
@@ -654,31 +683,61 @@
   font-weight: 820;
 }
 
+/* 7일 작전 — 세로 타임라인 (DAY 배지 + 커넥터 + 전체 폭 본문) */
 .missionGrid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
 }
 
 .missionGrid > strong {
-  grid-column: 1 / -1;
+  margin-bottom: 14px;
 }
 
 .missionGrid section {
+  position: relative;
   display: grid;
-  gap: 8px;
-  min-height: 120px;
-  border: 1px solid rgba(245, 212, 135, 0.2);
-  border-radius: 8px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.055);
+  grid-template-columns: 74px minmax(0, 1fr);
+  gap: 12px;
+  padding: 0 0 18px;
+}
+
+.missionGrid section:last-of-type {
+  padding-bottom: 0;
+}
+
+.missionGrid section::before {
+  content: "";
+  position: absolute;
+  left: 36px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(245, 212, 135, 0.4), rgba(167, 139, 250, 0.18));
+}
+
+.missionGrid section:last-of-type::before {
+  display: none;
 }
 
 .missionGrid span {
+  position: relative;
+  display: inline-flex;
+  align-self: start;
+  justify-content: center;
+  min-width: 64px;
+  padding: 5px 8px;
+  border: 1px solid rgba(245, 212, 135, 0.45);
+  border-radius: 999px;
+  background: rgba(3, 7, 16, 0.7);
   color: #d6bc76;
   font-size: 0.74rem;
   font-weight: 950;
   letter-spacing: 0.08em;
+}
+
+.missionGrid p {
+  padding-top: 3px;
 }
 
 .badgeBlock {
@@ -831,9 +890,6 @@
     top: auto;
   }
 
-  .missionGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 680px) {
@@ -850,11 +906,22 @@
 
   .gridList,
   .choiceGrid,
-  .missionGrid,
   .badgeBlock,
   .summaryGrid,
   .summarySeal {
     grid-template-columns: 1fr;
+  }
+
+  .missionGrid section {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  .missionGrid section::before {
+    left: 30px;
+  }
+
+  .missionGrid span {
+    min-width: 56px;
   }
 
   .badgeVault {

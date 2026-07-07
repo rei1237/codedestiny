@@ -701,6 +701,10 @@
   word-break: keep-all;
 }
 
+.sectionCard p + p {
+  margin-top: 0.8rem;
+}
+
 .userMsg {
   margin-left: min(4rem, 12vw);
   padding: 1rem;

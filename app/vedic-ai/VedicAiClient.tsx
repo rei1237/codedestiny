@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -848,7 +848,9 @@ export function StructuredReadingResult({
               <span>{SECTION_GLYPHS[key] || "✦"}</span>
               <h3>{toText(section.title) || key}</h3>
             </div>
-            <p>{toText(section.body)}</p>
+            {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
+              <p key={paragraphIndex}>{paragraph}</p>
+            ))}
           </article>
         );
       })}
@@ -1322,7 +1324,9 @@ export default function VedicAiClient() {
                       {splitAssistantSections(message.content).map((section, sectionIndex) => (
                         <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
                           <span>{section.title}</span>
-                          <p>{section.body}</p>
+                          {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
+                            <p key={paragraphIndex}>{paragraph}</p>
+                          ))}
                         </article>
                       ))}
                     </div>

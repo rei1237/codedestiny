@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { toDisplayText } from "@/lib/llm-text";
+import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 
@@ -213,7 +213,9 @@ export default function VedicAiResultClient() {
                 {splitAssistantSections(message.content).map((section, sectionIndex) => (
                   <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
                     <span>{section.title}</span>
-                    <p>{section.body}</p>
+                    {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
+                      <p key={paragraphIndex}>{paragraph}</p>
+                    ))}
                   </article>
                 ))}
               </div>

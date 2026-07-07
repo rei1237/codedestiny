@@ -42,7 +42,11 @@ export const yeoniBreaks: CharacterBreakConfig = {
 };
 
 /** cadence에 따라 페이지 하단에 캐릭터 삽화를 순환 배정한다 (이미 지정된 페이지는 건너뜀). */
-export function withCharacterBreaks(pages: ResultViewerPage[], config: CharacterBreakConfig): ResultViewerPage[] {
+export function withCharacterBreaks(
+  pages: ResultViewerPage[],
+  config: CharacterBreakConfig,
+  imageClassName?: string,
+): ResultViewerPage[] {
   if (!config.images.length || config.cadence < 1) return pages;
   let used = 0;
   return pages.map((page, index) => {
@@ -50,6 +54,6 @@ export function withCharacterBreaks(pages: ResultViewerPage[], config: Character
     if ((index + 1) % config.cadence !== 0) return page;
     const image = config.images[used % config.images.length];
     used += 1;
-    return { ...page, breakImage: image };
+    return { ...page, breakImage: imageClassName ? { ...image, className: imageClassName } : image };
   });
 }

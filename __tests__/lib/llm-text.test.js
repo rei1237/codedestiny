@@ -1,5 +1,11 @@
 /** lib/llm-text.js — LLM 표시 텍스트 유틸 단위 테스트. */
-import { toDisplayText, endsWithSentence, looksLikeRawJson, extractReadableTextFromJsonLike } from "../../lib/llm-text.js";
+import {
+  toDisplayText,
+  endsWithSentence,
+  looksLikeRawJson,
+  extractReadableTextFromJsonLike,
+  splitIntoParagraphs,
+} from "../../lib/llm-text.js";
 
 describe("toDisplayText", () => {
   test("문자열/숫자는 그대로, null/undefined는 빈 문자열", () => {
@@ -27,6 +33,43 @@ describe("toDisplayText", () => {
   test("저장 단계에서 오염된 [object Object] 토큰을 제거한다", () => {
     expect(toDisplayText("[object Object]")).toBe("");
     expect(toDisplayText("앞 [object Object] 뒤")).toBe("앞 뒤");
+  });
+});
+
+describe("splitIntoParagraphs", () => {
+  test("개행 없는 장문을 2~4문장 문단으로 나누고 내용을 보존한다", () => {
+    const sentence = "너는 돈을 버는 방식과 쓰는 방식이 어긋나 있어서 재물 운용에 반복적인 실책을 만들고 있다.";
+    const longProse = Array.from({ length: 10 }, (_, i) => `${i + 1}번째. ${sentence}`).join(" ");
+    const paragraphs = splitIntoParagraphs(longProse);
+    expect(paragraphs.length).toBeGreaterThanOrEqual(3);
+    for (const para of paragraphs) {
+      const sentenceCount = (para.match(/\./g) || []).length;
+      expect(sentenceCount).toBeGreaterThanOrEqual(2);
+      expect(sentenceCount).toBeLessThanOrEqual(8); // "n번째." + 본문 → 문단당 최대 4문장 쌍
+    }
+    expect(paragraphs.join(" ")).toBe(longProse);
+  });
+
+  test("기존 개행은 하드 문단 경계로 유지한다", () => {
+    expect(splitIntoParagraphs("첫 문단이다.\n\n둘째 문단이다.")).toEqual(["첫 문단이다.", "둘째 문단이다."]);
+  });
+
+  test("짧은 텍스트(2문장 이하)는 그대로 1개 문단", () => {
+    expect(splitIntoParagraphs("짧다. 그래도 하나다.")).toEqual(["짧다. 그래도 하나다."]);
+  });
+
+  test("소수점/공백 없는 인용부호에서는 분리하지 않는다", () => {
+    const text = `확률은 3.5할이다. ${"긴 문장을 채우기 위한 말이다. ".repeat(8)}“버텨라.”라고 말했다.`;
+    const paragraphs = splitIntoParagraphs(text);
+    expect(paragraphs.some((para) => para.includes("3.5할이다."))).toBe(true);
+    expect(paragraphs.some((para) => para.includes("“버텨라.”라고 말했다."))).toBe(true);
+    expect(paragraphs.join(" ")).not.toContain("3. 5");
+  });
+
+  test("null/객체 입력 방어", () => {
+    expect(splitIntoParagraphs(null)).toEqual([]);
+    expect(splitIntoParagraphs("")).toEqual([]);
+    expect(splitIntoParagraphs({ text: "본문이다." })).toEqual(["본문이다."]);
   });
 });
 

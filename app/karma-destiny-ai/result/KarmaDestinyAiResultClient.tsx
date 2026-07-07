@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { splitIntoParagraphs } from "@/lib/llm-text";
 
 type Chapter = {
   id: string;
@@ -369,7 +370,7 @@ function KarmaDestinyResultInner() {
                   {open && (
                     <div className="kdai-chapter__body">
                       {chapter.highlightQuotes?.[0] && <blockquote>{chapter.highlightQuotes[0]}</blockquote>}
-                      {chapter.content.split(/\n{2,}/).map((paragraph, index) => (
+                      {chapter.content.split(/\n{2,}/).flatMap((block) => splitIntoParagraphs(block)).map((paragraph, index) => (
                         <p key={`${chapter.id}-${index}`}>{paragraph}</p>
                       ))}
                       <div className="kdai-core-box">

@@ -148,6 +148,12 @@ export default function TeaHouseSukuyoResultPanel({ result }: TeaHouseSukuyoResu
           <span>끌림의 결</span>
           <h4 id="sukuyoStrengthTitle">두 사람 사이에서 살아나는 힘</h4>
         </div>
+        <AssetImage
+          className={styles.resultSectionMascot}
+          src={fortuneTeaHouseAssets.yeoni.transparent.bust}
+          fallbackSrc={fortuneTeaHouseAssets.yeoni.bust}
+          alt=""
+        />
         <div className={styles.sukuyoTextList}>
           {compatibility.strengths.map((item) => (
             <p key={item}>{item}</p>

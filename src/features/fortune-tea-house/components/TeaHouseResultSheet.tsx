@@ -600,6 +600,12 @@ export default function TeaHouseResultSheet({
           <div className={styles.yeoniReadingGrid}>
             <p>{result.yeoniReading.intro}</p>
             <p>{result.yeoniReading.main}</p>
+            <AssetImage
+              className={styles.resultSectionMascot}
+              src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
+              fallbackSrc={fortuneTeaHouseAssets.yeoni.transparent.bust}
+              alt=""
+            />
             <p>{result.yeoniReading.advice}</p>
             <p>{result.yeoniReading.caution}</p>
           </div>

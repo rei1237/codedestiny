@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { toDisplayText } from "@/lib/llm-text";
+import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
@@ -568,8 +568,8 @@ function LifeBookResultContent() {
                         </div>
                         {chapter.summary && <p className="mb-4 rounded-2xl border border-amber-200/15 bg-black/20 p-3 text-sm leading-6 text-[#f2dfba]">{toText(chapter.summary)}</p>}
                         <div className="mx-auto max-w-prose space-y-3 break-keep text-[15px] leading-8 text-[#f4e6cb]">
-                          {compactLines(chapter.content || "").map((line, lineIndex) => (
-                            <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
+                          {compactLines(chapter.content || "").flatMap((line) => splitIntoParagraphs(line.replace(/^[-*]\s*/, ""))).map((paragraph, lineIndex) => (
+                            <p key={lineIndex}>{paragraph}</p>
                           ))}
                         </div>
                         {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
@@ -604,8 +604,8 @@ function LifeBookResultContent() {
                       <div key={`${reading.title || "reading"}-${index}`} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-4">
                         <h3 className="text-lg font-black text-amber-50">{reading.title || `깊은 판독 ${index + 1}`}</h3>
                         <div className="mt-3 space-y-3 text-[15px] leading-8 text-[#f4e6cb]">
-                          {compactLines(reading.content || "").map((line, lineIndex) => (
-                            <p key={lineIndex}>{line.replace(/^[-*]\s*/, "")}</p>
+                          {compactLines(reading.content || "").flatMap((line) => splitIntoParagraphs(line.replace(/^[-*]\s*/, ""))).map((paragraph, lineIndex) => (
+                            <p key={lineIndex}>{paragraph}</p>
                           ))}
                         </div>
                         {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
@@ -629,7 +629,11 @@ function LifeBookResultContent() {
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
                     <h2 className="text-xl font-black">마지막 문장</h2>
                   </div>
-                  <p className="mt-3 text-[15px] leading-8 text-[#f4e6cb]">{report.finalMessage}</p>
+                  <div className="mt-3 space-y-3">
+                    {splitIntoParagraphs(report.finalMessage).map((paragraph, index) => (
+                      <p key={index} className="text-[15px] leading-8 text-[#f4e6cb]">{paragraph}</p>
+                    ))}
+                  </div>
                 </section>
               )}
 

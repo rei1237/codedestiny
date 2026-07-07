@@ -6,7 +6,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -1132,7 +1132,9 @@ export default function ZiweiAiPage() {
                         <b>{section.glyph || "星"}</b>
                         <h3>{section.title}</h3>
                       </div>
-                      <p>{section.body}</p>
+                      {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
+                        <p key={paragraphIndex}>{paragraph}</p>
+                      ))}
                     </article>
                   ))}
                 </div>
