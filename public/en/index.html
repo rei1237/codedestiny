@@ -24061,6 +24061,7 @@ function updateBadge() {
 
   var __CD_ENTRY_ONLY_SELF_GATED_ACTIONS = Object.freeze({
     gotoAstrologyPremium: true,
+    gotoZiweiPremium: true,
     openAnimalTotemModal: true,
     openCelestialHarmony: true,
     openDestinyBias: true,
@@ -25605,7 +25606,7 @@ function updateBadge() {
   'use strict';
   var D={
     '#destinyCardForm':{cat:'사주 · 무료 운명 카드',fallbackTitle:'🌙 나의 달빛 운명 카드',tagline:'생년월일과 출생시간을 바탕으로 사주, 오늘의 흐름, 궁합, 별자리 서비스로 이어지는 기본 프로필을 만듭니다.',feats:['이름·생년월일·출생시간 기반 기본 운명 카드 생성','출생시간을 모를 때 낮 12시 기준으로 보수 계산','사주 결과와 주요 운세 서비스 바로가기 자동 연결','저장한 프로필로 무료·프리미엄 리딩을 더 빠르게 시작'],cost:'✨ 무료',ct:'free',img:'/fuctionassets/%EC%82%AC%EC%A3%BC%EB%B3%B4%EB%8A%94%20%EC%97%B0%EC%9D%B4.webp?v=build-cf94ac6e253c',fallbackCta:'운명 카드 만들기'},
-    gotoZiweiPremium:{cat:'프리미엄 · 자미두수 AI 상담',fallbackTitle:'자미두수 AI 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 자동 상담 시작','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · AI 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
+    gotoZiweiPremium:{cat:'프리미엄 · 자미두수 AI 상담',fallbackTitle:'자미두수 AI 상담',tagline:'명궁·신궁·12궁·사화·대운·세운 흐름을 바탕으로 지금의 질문에 답합니다.',feats:['입력은 무료 — 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인','결제 확인이 끝나면 상담문이 바로 생성','명궁·재백·관록·부부·질액궁을 질문에 맞춰 연결 해석','상담 결과를 화면에서 바로 확인하고 추가 질문 이어가기'],cost:'30,000원 · AI 상담',ct:'paid',img:'/fuctionassets/jamipremiun.webp',fallbackCta:'자미두수 상담 받기'},
     '/neo-operation-room':{cat:'프리미엄 · 운명 작전실',fallbackTitle:'네오의 팩폭 운명 작전실',tagline:'사주·자미두수·베다점·점성술의 지도를 한 장의 전략처럼 펼쳐, 지금 밀리는 전선과 다시 잡아야 할 기준을 또렷하게 짚습니다.',feats:['30,000원 상담 이용권 확인','결제 완료 후 네오의 작전실로 바로 이동','사주와 별자리 흐름을 함께 비추는 종합 상담','현재 고민에 맞춘 선택 기준과 다음 행동 정리'],cost:'30,000원 · AI 상담',ct:'paid',img:'https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp',fallbackCta:'작전실 열기'},
     /* data-action="openNamingPromptModal" */
     openNamingPromptModal:{cat:'작명 · Premium Prompt',fallbackTitle:'훈민정음 작명소',tagline:'생년월일시와 원하는 이름 후보를 바탕으로 용신·소리오행·한자 의미·수리 풀이·현대적 이름감을 종합한 작명 상담 프롬프트를 생성합니다.',feats:['입력과 미리보기는 무료로 열립니다','프리미엄 작명 프롬프트 생성 시 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다','사주 보완, 인명용 한자, 소리오행, 자원오행, 원형이정 수리 지시 포함','결제 검증 후 복사 가능한 프롬프트가 생성되고 최근 결과를 다시 확인할 수 있습니다'],cost:'30,000원 · 이용권/월정석 가능',ct:'paid',img:'/fuctionassets/naming.webp',fallbackCta:'프롬프트 입력하기'},
@@ -26145,6 +26146,7 @@ function updateBadge() {
           if(_paywallTitle)_paywallTitle.textContent=openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY ? '상담 정보 입력 후 이용권/결제 확인' : _pvwTr('featurePreview.paywall.singleTitle', '1회 {amount} · 지금 바로 결과 확인', { amount: openFeaturePriceLabel||formatCoinValueWon(coinCost) });
           var _premDesc=_pvwTr('featurePreview.paywall.singleDesc', '이용할 때마다 원화 단건 결제가 필요합니다. 결제 전에는 결제 관리 페이지에서 확인해 주세요.');
           if(_pvwNamingPrompt)_premDesc=_pvwTr('featurePreview.paywall.namingDesc', '입력은 무료입니다. 프리미엄 작명 프롬프트 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다.');
+          if(action==='gotoZiweiPremium')_premDesc=_pvwTr('featurePreview.paywall.ziweiConsultDesc', '입력은 무료입니다. 상담 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다.');
           if(_pvwAstroConsult)_premDesc='입력은 무료입니다. 상담 화면에서 별빛 상담 시작 버튼을 누를 때 이용권·월정석·단건 결제 순서로 확인이 진행됩니다.';
           if(openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY)_premDesc='생년월일시를 먼저 입력한 뒤 이용권, 월정석, 단건결제 순서로 확인합니다. 최종 결제는 서버 권한 확인 뒤에만 진행됩니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;

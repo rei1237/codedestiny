@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -1542,10 +1542,10 @@ async function handleEnsureAccess(request, env, route = "/api/ziwei-ai/prepare")
   }
 
   await connectDb(env);
-  const user = await loadBillingUser(auth.userId);
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
-  const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash });
+  const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash }));
   if (access.ok && access.accessType === "paid") {
     logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -1605,9 +1605,9 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     if (directVerify.ok) return directVerify;
   }
 
-  const user = await loadBillingUser(auth.userId);
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  const billingAccess = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
+  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }));
   if (billingAccess?.ok) return billingAccess;
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
@@ -1640,7 +1640,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
   logZiweiAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logZiweiAi("Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
-  const existing = await ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  const existing = await withMongoRetry(env, () => ZiweiAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
