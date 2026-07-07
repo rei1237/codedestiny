@@ -255,23 +255,39 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     throw new TypeError("withMongoRetry(env, operation): operation must be a function");
   }
   const maxRetries = clampInt(
-    options.retries != null ? options.retries : getEnv(env, "MONGO_OP_RETRIES", "2"),
-    2,
+    options.retries != null ? options.retries : getEnv(env, "MONGO_OP_RETRIES", "1"),
+    1,
     0,
-    4,
+    3,
   );
   const baseDelayMS = clampInt(
-    options.baseDelayMS != null ? options.baseDelayMS : getEnv(env, "MONGO_OP_RETRY_DELAY_MS", "140"),
-    140,
+    options.baseDelayMS != null ? options.baseDelayMS : getEnv(env, "MONGO_OP_RETRY_DELAY_MS", "120"),
+    120,
     0,
+    1000,
+  );
+  // 각 시도(connectDb+operation)를 setTimeout 기반 시간 상한으로 감싼다. 대기 중인 타이머가 항상
+  // 존재하므로, 죽은 소켓에서 Mongo 작업 프로미스가 멈춰도 Cloudflare의 "hung"(대기 I/O 없는 미해결
+  // 프로미스) 데드락 감지가 발동하지 않는다. 상한 초과 시 즉시 예외를 던져 호출부의 degraded 폴백이
+  // 빠르게 응답하게 하고(재시도로 또 hang을 만들지 않도록 타임아웃은 재시도하지 않는다).
+  const attemptTimeoutMS = clampTimeoutMs(
+    options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "7000"),
+    7000,
     1500,
+    12000,
   );
 
   let lastError = null;
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
-      await connectDb(env);
-      return await operation();
+      return await withTimeout(
+        (async () => {
+          await connectDb(env);
+          return await operation();
+        })(),
+        attemptTimeoutMS,
+        "MongoDB operation timed out in Worker.",
+      );
     } catch (error) {
       lastError = error;
       if (attempt >= maxRetries || !isTransientMongoError(error)) throw error;
