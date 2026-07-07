@@ -7,6 +7,7 @@ import { connectDb, mongoose } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { toDisplayText } from "../../lib/llm-text.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
@@ -2140,6 +2141,62 @@ function normalizeDraftResult(candidate, request) {
   };
 }
 
+// LLM 후보 필드를 항상 렌더 가능한 문자열로 병합한다.
+// 잘린 JSON에서 온 빈 문자열/객체/배열 값이 fallback 문장을 덮어써 화면을 비우거나
+// React child 크래시를 내는 것을 필드 단위에서 차단한다 (degraded 전달 경로 포함).
+function mergeProse(candidate, fallbackText, maxLength = 4000) {
+  const text = cleanMultiline(typeof candidate === "string" ? candidate : toDisplayText(candidate), maxLength);
+  return text || cleanMultiline(fallbackText, maxLength);
+}
+
+function mergeLine(candidate, fallbackText, maxLength = 160) {
+  const text = cleanText(typeof candidate === "string" ? candidate : toDisplayText(candidate), maxLength);
+  return text || cleanText(fallbackText, maxLength);
+}
+
+function mergePercentValue(candidate, fallbackValue) {
+  const numeric = Math.round(Number(String(candidate ?? "").replace(/[^\d.-]/g, "")));
+  if (!Number.isFinite(numeric)) return fallbackValue;
+  return Math.min(100, Math.max(0, numeric));
+}
+
+function mergeEmotionAnalysis(candidates, fallbackItems) {
+  const list = Array.isArray(candidates) ? candidates : [];
+  const merged = fallbackItems.map((fallbackItem, index) => {
+    const candidate = list[index] && typeof list[index] === "object" ? list[index] : {};
+    return {
+      label: mergeLine(candidate.label, fallbackItem.label, 40),
+      value: mergePercentValue(candidate.value, fallbackItem.value),
+      description: mergeProse(candidate.description, fallbackItem.description, 900),
+      tone: cleanText(candidate.tone, 20) || fallbackItem.tone,
+    };
+  });
+  return merged;
+}
+
+function mergeChoiceSimulation(candidates, fallbackItems) {
+  const list = Array.isArray(candidates) ? candidates.slice(0, 4) : [];
+  if (!list.length) return fallbackItems;
+  const merged = list.map((item, index) => {
+    const candidate = item && typeof item === "object" ? item : {};
+    const fallbackItem = fallbackItems[index] || fallbackItems[fallbackItems.length - 1] || {};
+    return {
+      id: cleanText(candidate.id, 60) || fallbackItem.id || `choice-${index + 1}`,
+      title: mergeLine(candidate.title, fallbackItem.title, 80),
+      subtitle: mergeLine(candidate.subtitle, fallbackItem.subtitle, 120),
+      result: mergeProse(candidate.result, fallbackItem.result, 1600),
+      caution: mergeProse(candidate.caution, fallbackItem.caution, 600),
+    };
+  }).filter((item) => item.title || item.result);
+  return merged.length ? merged : fallbackItems;
+}
+
+function mergeLuckyKeywords(candidates, fallbackKeywords) {
+  const list = Array.isArray(candidates) ? candidates : [];
+  const merged = list.map((item) => cleanText(typeof item === "string" ? item : toDisplayText(item), 40)).filter(Boolean);
+  return merged.length >= 2 ? merged : fallbackKeywords;
+}
+
 function mergeLlmResult(fallback, parsed) {
   const safeParsed = parsed && typeof parsed === "object" ? parsed : {};
   const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections);
@@ -2148,10 +2205,19 @@ function mergeLlmResult(fallback, parsed) {
     ...safeParsed,
     consultationMode: fallback.consultationMode,
     teaCup: fallback.teaCup,
+    sessionTitle: mergeLine(safeParsed.sessionTitle, fallback.sessionTitle, 120),
+    questionSummary: mergeLine(safeParsed.questionSummary, fallback.questionSummary, 160),
+    actionPrescription: mergeProse(safeParsed.actionPrescription, fallback.actionPrescription),
+    closingLine: mergeProse(safeParsed.closingLine, fallback.closingLine, 1200),
     saju: {
       ...fallback.saju,
       ...(safeParsed.saju || {}),
-      keyPoints: safeParsed.saju?.keyPoints?.length ? safeParsed.saju.keyPoints : fallback.saju.keyPoints,
+      title: mergeLine(safeParsed.saju?.title, fallback.saju.title, 80),
+      summary: mergeProse(safeParsed.saju?.summary, fallback.saju.summary),
+      caution: mergeProse(safeParsed.saju?.caution, fallback.saju.caution, 1200),
+      keyPoints: safeParsed.saju?.keyPoints?.length
+        ? safeParsed.saju.keyPoints.map((point) => cleanText(typeof point === "string" ? point : toDisplayText(point), 200)).filter(Boolean)
+        : fallback.saju.keyPoints,
       birthSummary: fallback.saju.birthSummary,
       dayMaster: fallback.saju.dayMaster,
       dominantElements: fallback.saju.dominantElements,
@@ -2176,21 +2242,27 @@ function mergeLlmResult(fallback, parsed) {
       orientation: fallback.tarot.orientation,
       keywords: fallback.tarot.keywords,
       meaning: fallback.tarot.meaning,
+      reading: mergeProse(safeParsed.tarot?.reading, fallback.tarot.reading, 2400),
     },
     tarotSpread: fallback.tarotSpread,
     tarotSpreadCards: fallback.tarotSpreadCards,
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, safeParsed.sukuyoCompatibility),
-    emotionAnalysis: safeParsed.emotionAnalysis?.length ? safeParsed.emotionAnalysis : fallback.emotionAnalysis,
+    emotionAnalysis: mergeEmotionAnalysis(safeParsed.emotionAnalysis, fallback.emotionAnalysis),
     yeoniReading: {
       ...fallback.yeoniReading,
-      ...(safeParsed.yeoniReading || {}),
+      intro: mergeProse(safeParsed.yeoniReading?.intro, fallback.yeoniReading.intro),
+      main: mergeProse(safeParsed.yeoniReading?.main, fallback.yeoniReading.main),
+      advice: mergeProse(safeParsed.yeoniReading?.advice, fallback.yeoniReading.advice),
+      caution: mergeProse(safeParsed.yeoniReading?.caution, fallback.yeoniReading.caution),
     },
     synthesis: {
       ...fallback.synthesis,
-      ...(safeParsed.synthesis || {}),
+      title: mergeLine(safeParsed.synthesis?.title, fallback.synthesis.title, 80),
+      summary: mergeProse(safeParsed.synthesis?.summary, fallback.synthesis.summary),
+      sajuTarotBridge: mergeProse(safeParsed.synthesis?.sajuTarotBridge, fallback.synthesis.sajuTarotBridge, 1200),
     },
-    choiceSimulation: safeParsed.choiceSimulation?.length ? safeParsed.choiceSimulation.slice(0, 4) : fallback.choiceSimulation,
-    luckyKeywords: safeParsed.luckyKeywords?.length ? safeParsed.luckyKeywords : fallback.luckyKeywords,
+    choiceSimulation: mergeChoiceSimulation(safeParsed.choiceSimulation, fallback.choiceSimulation),
+    luckyKeywords: mergeLuckyKeywords(safeParsed.luckyKeywords, fallback.luckyKeywords),
   };
 }
 
