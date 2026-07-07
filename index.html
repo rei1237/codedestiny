@@ -24065,6 +24065,7 @@ function updateBadge() {
   });
 
   var __CD_ENTRY_ONLY_SELF_GATED_ACTIONS = Object.freeze({
+    gotoAstrologyPremium: true,
     openAnimalTotemModal: true,
     openCelestialHarmony: true,
     openDestinyBias: true,
@@ -26126,6 +26127,7 @@ function updateBadge() {
     if(_paywallEl){
       // 이용권 플랜 체크
       var _pvwNamingPrompt = action === 'openNamingPromptModal' || action === 'gotoNamingPremium';
+      var _pvwAstroConsult = action === 'gotoAstrologyPremium';
       var _pvwHasSub = (typeof window.hasActivePremiumSubscriptionFromCache === 'function')
         ? !!window.hasActivePremiumSubscriptionFromCache()
         : false;
@@ -26148,6 +26150,7 @@ function updateBadge() {
           if(_paywallTitle)_paywallTitle.textContent=openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY ? '상담 정보 입력 후 이용권/결제 확인' : _pvwTr('featurePreview.paywall.singleTitle', '1회 {amount} · 지금 바로 결과 확인', { amount: openFeaturePriceLabel||formatCoinValueWon(coinCost) });
           var _premDesc=_pvwTr('featurePreview.paywall.singleDesc', '이용할 때마다 원화 단건 결제가 필요합니다. 결제 전에는 결제 관리 페이지에서 확인해 주세요.');
           if(_pvwNamingPrompt)_premDesc=_pvwTr('featurePreview.paywall.namingDesc', '입력은 무료입니다. 프리미엄 작명 프롬프트 생성 버튼을 누를 때 30,000원 단건 결제 또는 이용권·월정석 확인이 진행됩니다.');
+          if(_pvwAstroConsult)_premDesc='입력은 무료입니다. 상담 화면에서 별빛 상담 시작 버튼을 누를 때 이용권·월정석·단건 결제 순서로 확인이 진행됩니다.';
           if(openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY)_premDesc='생년월일시를 먼저 입력한 뒤 이용권, 월정석, 단건결제 순서로 확인합니다. 최종 결제는 서버 권한 확인 뒤에만 진행됩니다.';
           if(_paywallDesc)_paywallDesc.textContent=_premDesc;
           _ctaBtn.className='tile-pvw-cta-btn tile-pvw-cta-btn--coin';
@@ -26157,6 +26160,7 @@ function updateBadge() {
             : _pvwTr('featurePreview.cta.payAndStart', '{amount}로 시작하기', { amount: _singlePaymentLabel });
           if(_pvwNamingPrompt)_ctaBtnLabel=_pvwTr('featurePreview.cta.namingStart', '프롬프트 입력하기');
           if(d.fallbackCta&&openFeatureKey!==LIFE_BOOK_AI_FEATURE_KEY)_ctaBtnLabel=_pvwCta(action, _pendingHref, d.fallbackCta);
+          if(_pvwAstroConsult)_ctaBtnLabel='상담 정보 입력하기';
           _setCtaLabel(_ctaBtnLabel);
         }
       } else if(openFeatureKey===LIFE_BOOK_AI_FEATURE_KEY){
