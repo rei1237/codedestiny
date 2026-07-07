@@ -994,7 +994,12 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-recommend{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34);z-index:2}
     .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:5px;font-size:15px;line-height:1.35;color:#fff}
     .cd-react-payment-choice-option span{position:relative;display:block;color:rgba(229,236,255,.78);font-size:12px;line-height:1.5}
-    .cd-react-payment-choice-badge{display:inline-flex!important;width:auto;border:1px solid rgba(255,242,184,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
+    .cd-react-payment-choice-badge{display:inline-flex!important;align-items:center;width:auto;border:1px solid rgba(255,242,184,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
+    .cd-react-payment-choice-glyph{margin-right:5px;font-size:12px;line-height:1;filter:drop-shadow(0 0 6px rgba(250,230,160,.32))}
+    .cd-react-payment-choice-amount{color:#ffe9a8;font-size:16.5px;font-weight:900;letter-spacing:.01em;text-shadow:0 0 14px rgba(250,220,150,.3)}
+    .cd-react-payment-choice-option.is-disabled,.cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.62;border-color:rgba(148,163,184,.3)!important;background:linear-gradient(145deg,rgba(30,37,54,.74),rgba(22,27,44,.74))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
+    .cd-react-payment-choice-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
+    .cd-react-payment-choice-option.is-disabled .cd-react-payment-choice-amount{color:rgba(226,232,240,.64);text-shadow:none}
     .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#f3dd9a;font-size:13px;line-height:1.45}
     .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
     .cd-react-payment-choice-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);padding:9px 15px;color:#f8fafc;cursor:pointer;font-weight:900}
@@ -1055,9 +1060,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
   const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
   const monthlyCanUse = monthlyCost > 0 && monthlyBalance >= monthlyCost;
+  // 월정석은 정적 결제창과 동일하게 잔량과 무관히 항상 노출하고, 부족하면 숨기지 않고 비활성(회색)으로 둔다.
   const canShowMonthly = (!allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit"))
-    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("MOONLIGHT_STONE"))
-    && monthlyCanUse;
+    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("MOONLIGHT_STONE"));
+  const monthlyDisabled = !monthlyCanUse;
   if (!canShowDirect && !canShowMonthly) canShowDirect = true;
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
@@ -1073,15 +1079,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
 
   const directButtonHtml = canShowDirect ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
-            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.003")}</span>
-            <strong>단건 결제 · ${formatPaymentWon(directAmount)}</strong>
+            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">💳</span>${billingClientText("billingClient.text.003")}</span>
+            <strong>단건 결제 · <span class="cd-react-payment-choice-amount">${formatPaymentWon(directAmount)}</span></strong>
             <span>${billingClientText("billingClient.text.004")}</span>
           </button>` : "";
   const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-react-payment-choice-option" data-mode="monthly">
-            <span class="cd-react-payment-choice-badge">${billingClientText("billingClient.text.005")}</span>
-            <strong>월정석 사용 · ${monthlyCost.toLocaleString("ko-KR")} 이벤트 재화</strong>
-            <span>보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.</span>
+          <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""}>
+            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span>
+            <strong>월정석 사용 · <span class="cd-react-payment-choice-amount">${monthlyCost.toLocaleString("ko-KR")}</span> 이벤트 재화</strong>
+            <span>${monthlyDisabled ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요." : `보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.`}</span>
           </button>` : "";
   // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
   // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).
@@ -1090,7 +1096,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passStoreButtonHtml = canShowPassStore ? `
           <button type="button" class="cd-react-payment-choice-option${passStoreFirst ? " cd-react-payment-choice-option--recommended" : ""}" data-mode="pass-store"${passStoreFirst ? ' aria-label="달빛 이용권 상점 (추천)"' : ""}>
             ${passStoreFirst ? '<span class="cd-react-payment-choice-recommend">추천</span>' : ""}
-            <span class="cd-react-payment-choice-badge">${escapePaymentText(passLabel)}</span>
+            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
             <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
           </button>` : "";
