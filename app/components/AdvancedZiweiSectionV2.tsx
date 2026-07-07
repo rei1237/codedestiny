@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { m } from "framer-motion";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
-import { authFetch } from "@/app/_lib/auth-client";
+import ZiweiAiConsultPanel from "./ziwei/ZiweiAiConsultPanel";
 import {
   calculateZiweiChart,
   normalizeZiweiForAdvancedReport,
@@ -1131,23 +1131,7 @@ export default function AdvancedZiweiSectionV2({
   const autoComputeRef = useRef(false);
   const currentProfileFingerprintRef = useRef("");
 
-  // 심화 자미두수(premium-ziwei) 서버 잠금 판정. 보수적으로: 로그인 사용자가 미해금일 때만 잠금.
-  // (익명/오류는 fail-open — SEO/미리보기 벽 방지. 하드 보호는 서버측 PDF 회당결제가 담당)
-  const [webLocked, setWebLocked] = useState(false);
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await authFetch("/api/ziwei-deep-report/access", { credentials: "include" }, { retryOn401: false });
-        const data = await res.json().catch(() => ({}));
-        if (!alive) return;
-        if (data && data.ok === true && data.error !== true && data.unlocked === false && data.reason !== "LOGIN_REQUIRED") {
-          setWebLocked(true);
-        }
-      } catch { /* fail-open */ }
-    })();
-    return () => { alive = false; };
-  }, []);
+  // 심화 자미두수 명반은 무료 열람 — 영구 해금 잠금 모델 제거. 유료 요소는 AI 상담/PDF의 회당 결제로 통일.
 
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF): 폼 → PDF 리포트 생성용 출생 정보
   const deepPdfBirth = useMemo<ZiweiDeepBirthInput>(() => ({
@@ -1896,19 +1880,6 @@ export default function AdvancedZiweiSectionV2({
   return (
     <section className="font-body fixed inset-0 z-50 h-[100dvh] overflow-y-auto overscroll-none px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1rem+env(safe-area-inset-top))] text-slate-100 sm:px-6 lg:px-8">
       <GalaxyBackdrop />
-      {webLocked && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center px-6 py-10 bg-[#05060f]/85 backdrop-blur-xl">
-          <div className="max-w-md rounded-3xl border border-amber-200/30 bg-[#0c1230]/95 p-7 text-center shadow-[0_24px_60px_-20px_rgba(0,0,0,.7)]">
-            <p className="text-4xl">🔒</p>
-            <h3 className="font-display mt-3 text-xl font-black text-white">심화 자미두수 잠금</h3>
-            <p className="mt-2 text-sm leading-7 text-slate-300">이 심화 명반 상담은 <b className="text-amber-100">20,000원에 영구 해금</b>되는 콘텐츠입니다. 홈에서 ‘자미두수 심화’ 타일로 해금해 주세요.</p>
-            <div className="mt-5 grid gap-2">
-              <button type="button" onClick={() => { window.location.href = "/"; }} className="rounded-2xl bg-gradient-to-r from-amber-200 to-sky-200 px-4 py-3 text-sm font-black text-slate-950">홈에서 해금하기</button>
-              <button type="button" onClick={() => { window.location.href = BASIC_ZIWEI_ENTRY_URL; }} className="rounded-2xl border border-white/12 bg-white/8 px-4 py-3 text-sm font-semibold text-slate-100">기본 무료 명반 보기</button>
-            </div>
-          </div>
-        </div>
-      )}
       <m.div
         className="relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-4"
         initial={{ opacity: 0, y: 18 }}
@@ -2614,9 +2585,14 @@ export default function AdvancedZiweiSectionV2({
           </div>
         ) : null}
 
+        {/* 심화 자미두수 안 인라인 AI 상담 (ziwei-ai-consultation) — 명반 무료, 상담만 회당 결제 */}
+        <div className="relative z-10 mt-6">
+          <ZiweiAiConsultPanel birth={deepPdfBirth} disabled={!chart} />
+        </div>
+
         {/* 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트 */}
         <div className="relative z-10 mt-6">
-          <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart || webLocked} />
+          <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart} />
         </div>
 
       </m.div>
