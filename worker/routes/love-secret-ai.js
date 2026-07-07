@@ -761,7 +761,9 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     const ai = await callGeminiText(env, prompt, {
       systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
       temperature: 0.72,
-      maxOutputTokens: 14000,
+      // 15개 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) —
+      // 구 상한 14000은 최소 분량조차 못 담아 잘림→INVALID_LLM_JSON이 났다.
+      maxOutputTokens: 32000,
       timeoutMs: 90000,
       taskType: "fortune",
       cache: loveSecretLlmCache,

@@ -252,7 +252,9 @@ export async function POST(req: NextRequest) {
     const llm = await callLLM({
       systemPrompt,
       prompt: userPrompt,
-      maxTokens: 7000,
+      // 7개 섹션 합계 3,500~5,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 7000은
+      // 상단 분량에서 잘려 JSON.parse 실패→502 LLM_FAILED가 났다.
+      maxTokens: 10000,
       temperature: 0.72,
       taskType: "fortune",
       timeoutMs: 45000,

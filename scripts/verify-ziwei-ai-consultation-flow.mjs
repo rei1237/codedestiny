@@ -49,7 +49,7 @@ assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000"), "initial c
 assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
 assert(route.includes("minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation min body guard missing");
 assert(route.includes("maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation max body guard missing");
-assert(route.includes("INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 26000"), "initial generation token budget missing");
+assert(route.includes("INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 45000"), "initial generation token budget missing");
 assert(route.includes("triad_axis") && route.includes("twelve_palaces") && route.includes("timing_strategy") && route.includes("core_answer"), "expert expansion sections missing");
 assert(route.includes("문장만 늘리지 말고") && route.includes("자미두수 전문가가 실제로 더 살필 파트"), "quality expansion guard missing");
 assert(route.includes("POST") && route.includes("/prepare") && route.includes("/generate") && route.includes("/ensure-access") && route.includes("/start") && route.includes("/message"), "API handlers missing");

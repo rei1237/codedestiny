@@ -1401,9 +1401,11 @@ async function handleStart(request, env) {
     const generated = await generateConsultation(env, buildFirstPrompt(normalized.input, chart), {
       minLength: ASTROLOGY_AI_MIN_RESULT_CHARS,
       maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
-      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 16000),
-      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 16000),
-      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 12000),
+      // 공백 제외 10,000~20,000자 요구(한국어 1자≈1~1.5토큰) — 구 기본 16000/12000은
+      // 목표 분량대에서 잘려 degraded 결과를 유발했다.
+      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 30000),
+      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 30000),
+      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 30000),
       requireExpertParts: true,
     });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });

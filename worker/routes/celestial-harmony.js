@@ -640,7 +640,9 @@ async function enrichCelestialReading(env, reading, goldenCard) {
   const ai = await callGeminiText(env, prompt, {
     model: firstEnvText(env, ["CELESTIAL_HARMONY_GEMINI_MODEL", "GEMINI_MODEL", "PREMIUM_GEMINI_MODEL"]),
     temperature: boundedNumber(env.CELESTIAL_HARMONY_TEMPERATURE, 0.68, 0.2, 1),
-    maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 10000, 4096, 16000),
+    // 11카드 구조화 JSON(~1.2만~2만자, 한국어 1자≈1~1.5토큰) — 구 기본 10000은 상시 잘려
+    // AI 보강이 침묵 폴백(json_parse_failed)으로 빠졌다.
+    maxOutputTokens: boundedNumber(env.CELESTIAL_HARMONY_MAX_OUTPUT_TOKENS, 24000, 4096, 32000),
     timeoutMs: boundedNumber(env.CELESTIAL_HARMONY_PROVIDER_TIMEOUT_MS, 35000, 5000, 90000),
     // 결정적 입력(출생차트+카드) → 캐시 + in-flight dedup으로 중복 과금 방지
     cache: {

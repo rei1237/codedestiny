@@ -85,7 +85,7 @@ const route = read("worker/routes/vedic-ai.js");
   "LLM Payment Guard Passed",
   "MIN_INITIAL_READING_CHARS = 10000",
   "MAX_INITIAL_READING_CHARS = 20000",
-  "INITIAL_MAX_OUTPUT_TOKENS = 16000",
+  "INITIAL_MAX_OUTPUT_TOKENS = 32000",
   "validateConsultationQuality",
   "maxTotalChars",
   "requireStructured: true",

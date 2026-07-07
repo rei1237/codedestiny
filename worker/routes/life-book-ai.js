@@ -77,7 +77,11 @@ const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;
 const LIFE_FORTUNE_MAX_TOTAL_CONTENT_CHARS = 60000;
-const LIFE_FORTUNE_MAX_OUTPUT_TOKENS = 40000;
+// 인생종합운은 총 30,000~60,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 40000은
+// 최소 분량 상단에서도 잘려 LIFE_FORTUNE_REPORT_INVALID 하드 실패를 유발했다(모델 한계 65,536).
+const LIFE_FORTUNE_MAX_OUTPUT_TOKENS = 65000;
+// 인생의 책은 총 10,000~20,000자 JSON — 구 상한 18000은 목표 상단에서 잘렸다.
+const LIFE_BOOK_MAX_OUTPUT_TOKENS = 32000;
 const LIFE_FORTUNE_TIMEOUT_MS = 90000;
 const LIFE_BOOK_GENERATING_REUSE_MS = 8 * 60 * 1000;
 const LIFE_BOOK_GENERATING_STALE_MS = 45 * 60 * 1000;
@@ -1267,7 +1271,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(promptConsultationType),
     taskType: "fortune",
     temperature: options.temperature || 0.72,
-    maxOutputTokens: options.maxOutputTokens || 18000,
+    maxOutputTokens: options.maxOutputTokens || LIFE_BOOK_MAX_OUTPUT_TOKENS,
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
     fallbackToWorkersAI: undefined,
     logContext: options.logContext,
@@ -1299,7 +1303,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(promptConsultationType),
     taskType: "fortune",
     temperature: 0.52,
-    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000),
+    maxOutputTokens: Math.max(Number(options.maxOutputTokens || 0), lifeFortune ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : LIFE_BOOK_MAX_OUTPUT_TOKENS),
     timeoutMs: Number(options.timeoutMs || env.LIFE_BOOK_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
     fallbackToWorkersAI: undefined,
     cache: lifeBookLlmCache,
@@ -2225,7 +2229,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       };
       const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, sajuResult), {
         minLength: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS : LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS,
-        maxOutputTokens: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : 18000,
+        maxOutputTokens: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_MAX_OUTPUT_TOKENS : LIFE_BOOK_MAX_OUTPUT_TOKENS,
         timeoutMs: isLifeFortuneInput(normalized.input) ? LIFE_FORTUNE_TIMEOUT_MS : undefined,
         logContext,
         maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION,

@@ -24,7 +24,9 @@ const COIN_PRICE = 300;
 const MIN_INITIAL_READING_CHARS = 10000;
 const MAX_INITIAL_READING_CHARS = 20000;
 const MAX_ASSISTANT_TEXT_CHARS = 60000;
-const INITIAL_MAX_OUTPUT_TOKENS = 16000;
+// 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 16000은
+// 목표 분량에서 잘림→JSON 파싱 실패→degraded/LLM_FAILED를 유발했다.
+const INITIAL_MAX_OUTPUT_TOKENS = 32000;
 const READING_SECTION_KEYS = [
   "lagna",
   "rashi",

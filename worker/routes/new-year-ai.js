@@ -24,7 +24,9 @@ const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습�
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000;
 const NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000;
-const NEW_YEAR_AI_MAX_OUTPUT_TOKENS = 16000;
+// 총 10,000~20,000자(권장 12,000~18,000자) 요구(한국어 1자≈1~1.5토큰) — 구 상한 16000은
+// 권장 분량대에서 상시 잘려 확장 재시도/degraded로 빠졌다.
+const NEW_YEAR_AI_MAX_OUTPUT_TOKENS = 30000;
 const NEW_YEAR_AI_REQUIRED_TOPIC_PATTERNS = Object.freeze({
   structure: /격국|월령|일간|원국|명식/,
   usefulGod: /용신|기신|희신/,

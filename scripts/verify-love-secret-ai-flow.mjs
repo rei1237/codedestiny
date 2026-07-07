@@ -244,7 +244,7 @@ assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "전체 상담 본
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "나의 명식이 사랑에서 반복하는 방식");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "십성으로 보는 애착과 표현 방식");
 assertIncludes("worker/lib/love-secret-ai-prompt.js", prompt, "30일 관계 흐름 처방");
-assertIncludes("worker/routes/love-secret-ai.js", route, "maxOutputTokens: 14000");
+assertIncludes("worker/routes/love-secret-ai.js", route, "maxOutputTokens: 32000");
 assertIncludes("worker/routes/love-secret-ai.js", route, "sajuSummary: publicSajuSummary");
 assertIncludes("worker/routes/love-secret-ai.js", route, "publicChartSummary");
 assertIncludes("app/components/AppChrome.tsx", appChrome, '"/love-secret-ai"');

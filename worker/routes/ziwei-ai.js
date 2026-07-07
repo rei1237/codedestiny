@@ -22,7 +22,9 @@ const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
 const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000;
 const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
-const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 26000;
+// 초기 상담 body 합산 20,000~30,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 26000은
+// 최소 분량도 여유가 없어 상시 잘림→JSON 파싱 실패→degraded 결과를 유발했다.
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 45000;
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
   "GEMINI_API_KEY",
@@ -1220,7 +1222,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.58,
-    maxOutputTokens: options.maxOutputTokens || 16000,
+    maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
     timeoutMs: 90000,
     cache: ziweiLlmCache,
   });
