@@ -60,6 +60,7 @@ const CHROMELESS_ROUTES = [
   "/astrology-ai",
   "/vedic-ai",
   "/saju-guardian",
+  "/premium-unlock",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [

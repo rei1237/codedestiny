@@ -10,6 +10,8 @@ import {
   failPaidFeatureGateCheck,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 
 type GenderType = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -110,18 +112,18 @@ const FALLBACK_CHAPTERS = [
 ];
 
 const LIFE_JOURNEY_LOADING_MESSAGES = [
-  "당신이 태어난 순간의 별들을 다시 불러오고 있어요.",
-  "열두 궁을 하나씩 짚어가며 당신의 이야기를 엮는 중이에요.",
-  "지나온 시간과 다가올 시간이 만나는 지점을 찾고 있어요.",
-  "당신의 명반 위에 흐르는 인생의 결을 따라가고 있어요.",
-  "숨겨진 별자리의 목소리에 귀 기울이는 중이에요.",
+  "태어난 연·월·일·시로 당신의 사주 명식을 다시 세우고 있어요.",
+  "일간을 중심으로 오행의 균형과 십신의 자리를 짚어가는 중이에요.",
+  "지나온 대운과 다가올 세운이 맞물리는 지점을 찾고 있어요.",
+  "당신의 명식 위에 흐르는 인생의 결을 따라가고 있어요.",
+  "용신과 기신의 목소리에 차분히 귀 기울이는 중이에요.",
   "조금만 더 기다려주세요, 당신의 인생 지도가 완성되고 있어요.",
 ];
 
 const HERO_JOURNEY_POINTS = [
-  "열두 궁에 머문 별의 배치를 따라 삶의 큰 물줄기를 읽습니다.",
-  "탄생의 자리에서 현재의 선택까지 이어진 시간의 결을 비춥니다.",
-  "앞으로 열릴 전환점과 오래 지켜야 할 중심이 차분히 드러납니다.",
+  "일간과 오행의 균형을 짚어 삶의 큰 물줄기를 읽습니다.",
+  "타고난 명식에서 현재의 선택까지 이어진 시간의 결을 비춥니다.",
+  "대운과 세운으로 열릴 전환점과 오래 지켜야 할 중심이 차분히 드러납니다.",
 ];
 
 const initialForm: LifeFortuneForm = {
@@ -132,6 +134,26 @@ const initialForm: LifeFortuneForm = {
   birthTimeUnknown: false,
   calendarType: "solar",
 };
+
+function applyProfileSeedToForm(form: LifeFortuneForm, profile: AiPrefillSeed): LifeFortuneForm {
+  if (!profile.name && !profile.gender && !profile.birthDate && !profile.birthTime && !profile.calendarType && profile.birthTimeUnknown === undefined) {
+    return form;
+  }
+  const gender: GenderType = profile.gender === "male" || profile.gender === "female" ? profile.gender : form.gender;
+  return {
+    ...form,
+    name: profile.name || form.name,
+    gender,
+    birthDate: profile.birthDate || form.birthDate,
+    birthTimeUnknown: profile.birthTimeUnknown ?? form.birthTimeUnknown,
+    birthTime: profile.birthTimeUnknown === true ? "" : profile.birthTime || form.birthTime,
+    calendarType: profile.calendarType || form.calendarType,
+  };
+}
+
+function buildInitialForm(): LifeFortuneForm {
+  return applyProfileSeedToForm(initialForm, readAiProfileSeed());
+}
 
 function toText(value: unknown) {
   return String(value || "").trim();
@@ -375,7 +397,7 @@ function buildSafeFileSegment(value: string) {
 }
 
 export default function PremiumSalesContent() {
-  const [form, setForm] = useState<LifeFortuneForm>(initialForm);
+  const [form, setForm] = useState<LifeFortuneForm>(buildInitialForm);
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -386,6 +408,21 @@ export default function PremiumSalesContent() {
   const pollTimerRef = useRef<number | null>(null);
   const resultDocumentRef = useRef<HTMLElement | null>(null);
   const startLockRef = useRef(false);
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const formTouchedRef = useRef(false);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 입력을 시작하기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed) return;
+    setForm((prev) => (formTouchedRef.current ? prev : applyProfileSeedToForm(prev, profileSeed)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  const loadFormFromProfileCard = useCallback(() => {
+    void reloadProfileSeed().then((seed) => {
+      if (seed) setForm((prev) => applyProfileSeedToForm(prev, seed));
+    });
+  }, [reloadProfileSeed]);
 
   const isChecking = status === "checking" || status === "payment";
   const isGenerating = status === "generating";
@@ -410,6 +447,7 @@ export default function PremiumSalesContent() {
   }, [isGenerating]);
 
   const updateForm = useCallback(<K extends keyof LifeFortuneForm>(key: K, value: LifeFortuneForm[K]) => {
+    formTouchedRef.current = true;
     setForm((prev) => ({
       ...prev,
       [key]: value,
@@ -513,7 +551,7 @@ export default function PremiumSalesContent() {
       title: "운명의 문 준비",
       reason: FEATURE_TITLE,
       paymentMode: "MEMBERSHIP_PASS",
-      message: "명반의 첫 문을 열고 있습니다.",
+      message: "명식의 첫 문을 열고 있습니다.",
     });
 
     try {
@@ -527,7 +565,7 @@ export default function PremiumSalesContent() {
           title: "운명의 문 열림",
           reason: FEATURE_TITLE,
           paymentMode: "MEMBERSHIP_PASS",
-          message: "당신의 명반 위로 인생의 큰 흐름이 떠오릅니다.",
+          message: "당신의 명식 위로 인생의 큰 흐름이 떠오릅니다.",
         });
         accessEvidence = { accessToken: access.accessToken };
       } else if (access.reason === "PAYMENT_REQUIRED" && access.paymentPayload) {
@@ -539,7 +577,7 @@ export default function PremiumSalesContent() {
           title: "운명의 문 열림",
           reason: FEATURE_TITLE,
           paymentMode: "MEMBERSHIP_PASS",
-          message: "당신의 명반 위로 인생의 큰 흐름이 떠오릅니다.",
+          message: "당신의 명식 위로 인생의 큰 흐름이 떠오릅니다.",
         });
       } else if (access.reason === "LOGIN_REQUIRED") {
         throw new Error(access.message || LOGIN_REQUIRED_MESSAGE);
@@ -650,15 +688,25 @@ export default function PremiumSalesContent() {
       </div>
       <section className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-6 md:grid-cols-[minmax(320px,430px)_1fr] md:px-6 lg:px-8">
         <form onSubmit={handleGenerateClick} className="self-start rounded-lg border border-[#d8b56d]/25 bg-[#12172b]/90 p-5 shadow-2xl shadow-black/30 backdrop-blur md:sticky md:top-6">
-          <div className="flex items-center gap-2 text-[#f2cf82]">
-            <Sparkles className="h-5 w-5" aria-hidden="true" />
-            <p className="text-sm font-bold">인생 총운 명반</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-[#f2cf82]">
+              <Sparkles className="h-5 w-5" aria-hidden="true" />
+              <p className="text-sm font-bold">인생 총운 사주</p>
+            </div>
+            <button
+              type="button"
+              onClick={loadFormFromProfileCard}
+              className="shrink-0 rounded-lg border border-[#f2cf82]/35 bg-[#f2cf82]/10 px-3 py-2 text-xs font-bold text-[#f2cf82] transition hover:bg-[#f2cf82]/20"
+              aria-label="프로필 카드에서 출생 정보 불러오기"
+            >
+              프로필 카드에서 불러오기
+            </button>
           </div>
           <h1 className="mt-4 text-3xl font-black leading-tight md:text-4xl" style={{ fontFamily: "CodeDestinyDisplay, CodeDestinyPremium, serif" }}>
-            자미두수 명반이 비추는 삶의 큰 흐름
+            사주 명리가 비추는 삶의 큰 흐름
           </h1>
           <p className="mt-3 text-sm leading-7 text-[#dcc7a3]">
-            태어난 순간의 별과 열두 궁의 흐름을 따라, 지금까지 이어진 길과 앞으로 열릴 장면을 차분히 들여다봅니다.
+            타고난 명식과 대운·세운의 흐름을 따라, 지금까지 이어진 길과 앞으로 열릴 장면을 차분히 들여다봅니다.
           </p>
           <div className="mt-5 overflow-hidden rounded-lg border border-[#d8b56d]/25 bg-black/30">
             <img
@@ -948,7 +996,7 @@ export default function PremiumSalesContent() {
                     {isGenerating ? "인생 지도를 그리는 중" : "인생 총운 AI 상담"}
                   </div>
                   <h2 className="mt-4 max-w-2xl text-3xl font-black leading-tight md:text-5xl" style={{ fontFamily: "CodeDestinyDisplay, CodeDestinyPremium, serif" }}>
-                    {isGenerating ? statusText(status) : "삶의 강은 별빛 아래에서 천천히 방향을 드러냅니다."}
+                    {isGenerating ? statusText(status) : "삶의 강은 타고난 명식을 따라 천천히 방향을 드러냅니다."}
                   </h2>
                   <p className="mt-3 max-w-2xl text-sm leading-7 text-[#f5dfba]">
                     {isGenerating
@@ -969,7 +1017,7 @@ export default function PremiumSalesContent() {
                   <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#2a2118]">
                     <div className="h-full rounded-full bg-[#a7f3d0] transition-all duration-700" style={{ width: `${progressPercent}%` }} />
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-[#f4dfb7]">연이가 별의 자리를 따라 당신의 서사를 한 장씩 이어가고 있어요.</p>
+                  <p className="mt-4 text-sm leading-6 text-[#f4dfb7]">연이가 명식의 결을 따라 당신의 서사를 한 장씩 이어가고 있어요.</p>
                 </div>
               ) : (
                 <div className="grid gap-3 md:grid-cols-3">
