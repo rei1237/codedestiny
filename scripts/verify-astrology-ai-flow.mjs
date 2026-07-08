@@ -118,8 +118,8 @@ const resultSource = [
 ].join("\n");
 assert(resultSource.includes('document.getElementById("astrology-ai-result-document")'), "PDF result document lookup missing");
 assert(resultSource.includes('querySelectorAll("details")'), "PDF must expand collapsed result sections before capture");
-assert(resultSource.includes("html2canvas(element"), "PDF canvas capture missing");
-assert(resultSource.includes("pdf.save(`code-destiny-astrology-ai-"), "PDF save missing");
+assert(resultSource.includes("exportResultPdf("), "PDF export util call missing");
+assert(resultSource.includes("fileName: `code-destiny-astrology-ai-"), "PDF save missing");
 assert(resultSource.includes("previousDetailOpenStates"), "PDF detail state restore missing");
 assert(resultSource.includes("기본 차트 데이터"), "basic chart data section missing from PDF document");
 assert(resultSource.includes("행성 위치") && resultSource.includes("하우스") && resultSource.includes("주요 각도") && resultSource.includes("현재 트랜짓"), "basic chart data groups missing");

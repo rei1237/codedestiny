@@ -99,7 +99,7 @@ assert(page.includes("data-ziwei-pdf-download=\"complete-result-v20260630\""), "
 assert(page.includes("data-ziwei-pdf-section"), "pdf section markers missing");
 assert(page.includes("data-ziwei-chart-data=\"basic-chart-v20260630\""), "basic chart data pdf marker missing");
 assert(page.includes("화록") && page.includes("화권") && page.includes("화과") && page.includes("화기"), "four transformation chart data missing");
-assert(page.includes("import(\"html2canvas\")") && page.includes("import(\"jspdf\")"), "pdf renderer imports missing");
+assert(page.includes("exportResultPdf"), "pdf renderer imports missing");
 assert(page.includes("PDF 다운로드"), "pdf download button copy missing");
 assert(page.includes("\"triad_axis\"") && page.includes("\"twelve_palaces\"") && page.includes("\"timing_strategy\"") && page.includes("\"core_answer\""), "expert sections not rendered by page");
 

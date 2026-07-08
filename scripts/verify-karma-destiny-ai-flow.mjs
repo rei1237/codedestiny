@@ -45,9 +45,9 @@ assertIncludes(pageSource, "운명의 기록을 펼치고 있습니다", "prepar
 assertIncludes(pageSource, "결제창을 확인해 주세요", "payment copy");
 assertIncludes(pageSource, "삶의 반복 패턴과 업의 흐름을 읽고 있습니다", "reading copy");
 assertIncludes(pageSource, "data-kdai-pdf-page", "PDF page split markers");
-assertIncludes(pageSource, "querySelectorAll<HTMLElement>(\"[data-kdai-pdf-page]\")", "PDF split rendering");
-assertIncludes(pageSource, "for (const [targetIndex, target] of targets.entries())", "PDF renders every split page");
-assertIncludes(pageSource, "pdf.save(fileName)", "PDF download save call");
+assertIncludes(pageSource, "@/lib/pdf/export-result-pdf", "PDF export util import");
+assertIncludes(pageSource, "captureTargets:", "PDF renders every split page via capture selector");
+assertIncludes(pageSource, "exportResultPdf({", "PDF download call");
 assertIncludes(pageSource, "상담에 사용된 차트 데이터", "PDF chart data page");
 assertIncludes(pageSource, "buildChartDataBlocks(integratedResult)", "PDF chart data source");
 assertIncludes(pageSource, "사주 원국 데이터", "saju chart data included");

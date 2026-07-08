@@ -188,8 +188,7 @@ for (const marker of [
   "LoveSecretResultSection",
   "LoveSecretSajuSummary",
   "연애 명식 기초",
-  "html2canvas",
-  "jspdf",
+  "exportResultPdf",
   "consultation?.pdfSections?.length ? consultation.pdfSections : consultation?.sections",
 ]) {
   assertIncludes("app/love-secret-ai/result/page.tsx", resultSource, marker);

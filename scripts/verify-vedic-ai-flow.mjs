@@ -48,7 +48,7 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
   "splitAssistantSections",
   "id=\"vedic-result-body\"",
   "aria-label=\"PDF로 저장\"",
-  "window.print()",
+  "exportResultPdf",
   "라그나, Lagna",
   "라시, Rashi",
   "그라하, Graha",
@@ -60,7 +60,7 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
   "베다점 계산 상세",
   "planetRows",
 ].forEach((needle) => assertIncludes(client, needle, "client contract"));
-assertMissing(client, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job"], "client");
+assertMissing(client, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "window.print()"], "client");
 
 const css = read("app/vedic-ai/VedicAiClient.module.css");
 ["radial-gradient", "mandala", "loadingMandala", "@media print", ".structuredHeader button", ".basicChartData", ".planetTable"].forEach((needle) => {
