@@ -55,3 +55,23 @@ html[data-cd-theme="neo"] {
   --cd-cta-text: #090718;
   --cd-shadow: 0 14px 26px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(228, 214, 255, 0.12);
 }
+
+/*
+ * AI 상담 결과 본문(장문 프로즈) 전용 타이포그래피 토큰 — additive, opt-in.
+ * `AiResultProse` 컴포넌트(components/fortune/)에서만 참조하므로 기존 화면은 영향 없음.
+ * 색은 --cd-prose-body-color만 정의(네오에서 순백 대신 라벤더 톤으로 눈부심 완화),
+ * 나머지는 caller의 기존 색을 그대로 쓰도록 currentColor로 둔다.
+ */
+:root {
+  --cd-prose-font-size: 16px;
+  --cd-prose-line-height: 1.75;
+  --cd-prose-measure: 66ch;
+  --cd-prose-paragraph-gap: 1.15em;
+  --cd-prose-letter-spacing: -0.01em;
+  --cd-prose-body-color: currentColor;
+}
+
+body.neo-mode,
+html[data-cd-theme="neo"] {
+  --cd-prose-body-color: #ded7f5;
+}

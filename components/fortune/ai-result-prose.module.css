@@ -1,0 +1,46 @@
+/* AI 상담 결과 본문 타이포그래피 — 구조 전용 스타일.
+   색/테마는 각 기능(caller)의 className으로 입힌다 (반쪽 오버라이드 금지 가드레일 준수). */
+
+.prose {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cd-prose-paragraph-gap, 1.15em);
+  max-width: var(--cd-prose-measure, 66ch);
+  font-size: var(--cd-prose-font-size, 16px);
+  line-height: var(--cd-prose-line-height, 1.75);
+  letter-spacing: var(--cd-prose-letter-spacing, -0.01em);
+  color: var(--cd-prose-body-color, inherit);
+}
+
+.paragraph {
+  margin: 0;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.heading {
+  margin: 0.35em 0 0;
+  font-size: 1.05em;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.list {
+  margin: 0;
+  padding-left: 1.4em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.quote {
+  margin: 0;
+  padding: 0.15em 0 0.15em 1em;
+  border-left: 3px solid currentColor;
+  opacity: 0.92;
+  font-weight: 600;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
