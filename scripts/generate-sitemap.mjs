@@ -166,6 +166,10 @@ const coreRoutes = [
   { path: "/calendar/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/music/guide", changefreq: "monthly", priority: 0.78 },
+  { path: "/flower/destiny", changefreq: "weekly", priority: 0.85 },
+  { path: "/flower/astrology", changefreq: "weekly", priority: 0.82 },
+  { path: "/flower/jamidusu", changefreq: "weekly", priority: 0.82 },
+  { path: "/flower/sukuyo", changefreq: "weekly", priority: 0.82 },
 ];
 
 const localeHreflangAliases = {
