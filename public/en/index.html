@@ -7383,7 +7383,49 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
               };
 
               var __cdReadRecentSubscriptionSnapshot = function () {
-                return null;
+                // 재진입 시 확정 이용권 배지를 즉시 복원한다. 순서 의존성 회피를 위해 localStorage를 직접 읽는다
+                // (v2 스냅샷 리더 window.__cdReadSubscriptionSnapshot는 이 지점보다 훨씬 뒤에 정의됨).
+                // 활성(active)+미래 만료만 복원 → 무료/만료/미확정 오확정 방지(195f8701 가드 준수).
+                try {
+                  var _cdSnapScope = String((u && (u.id || u.userId || u._id || u.uid)) || '').trim().toLowerCase();
+                  if (!_cdSnapScope) return null;
+                  var _cdSnapNow = Date.now();
+                  var _cdMakeSnapStatus = function (tier, exp, src) {
+                    var t = String(tier || '').trim().toLowerCase();
+                    if (!t || t === 'free' || t === 'none') return null;
+                    return { tier: t, passTier: t, isActive: true, isSubscribed: true, status: 'active', expiresAt: exp || null, source: src };
+                  };
+                  // 1순위: v2 구독 스냅샷 (active + TTL 5분 + expiresAt 미래)
+                  try {
+                    var _cdSnapRaw = localStorage.getItem('cd_subscription_snapshot_v2::' + _cdSnapScope);
+                    if (_cdSnapRaw) {
+                      var _cdSnap = JSON.parse(_cdSnapRaw);
+                      if (_cdSnap && typeof _cdSnap === 'object'
+                        && _cdSnap.state === 'active'
+                        && String(_cdSnap.userId || '').trim().toLowerCase() === _cdSnapScope
+                        && Number.isFinite(Number(_cdSnap.checkedAt))
+                        && (_cdSnapNow - Number(_cdSnap.checkedAt)) <= 300000) {
+                        var _cdSnapExp = _cdSnap.expiresAt ? Date.parse(_cdSnap.expiresAt) : NaN;
+                        if (!Number.isFinite(_cdSnapExp) || _cdSnapExp > _cdSnapNow) {
+                          var _cdSnapStatus = _cdMakeSnapStatus(_cdSnap.tier, _cdSnap.expiresAt, 'subscription_snapshot');
+                          if (_cdSnapStatus) return _cdSnapStatus;
+                        }
+                      }
+                    }
+                  } catch (_) {}
+                  // 2순위(TTL 초과·스냅샷 부재): 확정 저장된 profileSubscription — 미래 만료일이 증거일 때만
+                  var _cdSnapSub = u && u.profileSubscription;
+                  if (_cdSnapSub && typeof _cdSnapSub === 'object' && _cdSnapSub.expiresAt) {
+                    var _cdSubExp = Date.parse(_cdSnapSub.expiresAt);
+                    if (Number.isFinite(_cdSubExp) && _cdSubExp > _cdSnapNow) {
+                      var _cdSubStatus = _cdMakeSnapStatus(_cdSnapSub.tier || _cdSnapSub.passTier || _cdSnapSub.plan || _cdSnapSub.planId, _cdSnapSub.expiresAt, 'auth_user_cache');
+                      if (_cdSubStatus) return _cdSubStatus;
+                    }
+                  }
+                  return null;
+                } catch (_) {
+                  return null;
+                }
               };
 
               if (!isAdm) {
