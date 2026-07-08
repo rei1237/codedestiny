@@ -6,6 +6,7 @@ import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from
 import { authFetch } from "@/app/_lib/auth-client";
 import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
@@ -179,6 +180,8 @@ export default function AstrologyAiResultClient() {
   const [error, setError] = useState("");
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfError, setPdfError] = useState("");
+  const [viewAll, setViewAll] = usePagedViewerMode("astrologyAiViewerModeV1");
+  const [exportExpand, setExportExpand] = useState(false);
 
   useEffect(() => {
     setResultId(toText(new URLSearchParams(window.location.search).get("id")));
@@ -262,11 +265,14 @@ export default function AstrologyAiResultClient() {
     console.info("[AstrologyAI] pdf download started", { resultId });
     setPdfLoading(true);
     setPdfError("");
+    // 페이지 뷰어가 숨긴 장(display:none)은 html2canvas에서 빈 캔버스가 되므로 전부 펼친 뒤 캡처한다.
+    setExportExpand(true);
     try {
       detailsElements.forEach((details) => {
         details.open = true;
       });
-      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await new Promise((resolve) => setTimeout(resolve, 120));
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
@@ -302,6 +308,7 @@ export default function AstrologyAiResultClient() {
       detailsElements.forEach((details, index) => {
         details.open = previousDetailOpenStates[index] ?? details.open;
       });
+      setExportExpand(false);
       setPdfLoading(false);
     }
   }
@@ -390,22 +397,27 @@ export default function AstrologyAiResultClient() {
                 <p className="whitespace-pre-wrap text-sm leading-7 text-slate-200">{toText(consultation.userQuestion) || "전체 흐름을 중심으로 상담합니다."}</p>
               </section>
 
-              <section className="space-y-3">
-                {sections.map((section, index) => (
-                  <details key={`${section.title}-${index}`} className={`${RESULT_PANEL_CLASS} group p-5 sm:p-6`} open={index < 2}>
-                    <summary className="cursor-pointer list-none text-lg font-black leading-7 text-[#f5d487] focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
-                      <span className="inline-flex w-full items-center justify-between gap-3">
-                        <span>{section.title}</span>
-                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-[#f5d487]/25 text-sm text-amber-50 transition group-open:rotate-45">+</span>
-                      </span>
-                    </summary>
-                    <div className="mt-5 space-y-4">
-                      {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
-                        <p key={paragraphIndex} className="whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{paragraph}</p>
-                      ))}
-                    </div>
-                  </details>
-                ))}
+              <section>
+                <PagedResultViewer
+                  pages={sections.map((section, index) => ({
+                    id: `astrology-section-${index}`,
+                    label: toText(section.title).slice(0, 12) || `${index + 1}장`,
+                    content: (
+                      <div className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
+                        <h3 className="text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
+                        <div className="mt-5 space-y-4">
+                          {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
+                            <p key={paragraphIndex} className="whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{paragraph}</p>
+                          ))}
+                        </div>
+                      </div>
+                    ),
+                  }))}
+                  deckLabel="별자리 상담 전문"
+                  viewAll={viewAll}
+                  onViewAllChange={setViewAll}
+                  expandForExport={exportExpand}
+                />
               </section>
             </article>
 
@@ -444,19 +456,23 @@ export default function AstrologyAiResultClient() {
                 </div>
               </section>
 
-              <section className={`${RESULT_PANEL_CLASS} p-5`}>
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
-                    <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              <details className={`${RESULT_PANEL_CLASS} p-5`} open>
+                <summary className="cursor-pointer list-none focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
+                  <span className="flex items-center gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                      <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                    </span>
+                    <span className="text-lg font-black text-white">기본 차트 데이터</span>
                   </span>
-                  <h2 className="text-lg font-black text-white">기본 차트 데이터</h2>
+                </summary>
+                <div className="mt-4">
+                  <ChartDataGroup title="차트 기준" items={chartBasics} />
+                  <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
+                  <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
+                  <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
+                  <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
                 </div>
-                <ChartDataGroup title="차트 기준" items={chartBasics} />
-                <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
-                <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
-                <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
-                <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
-              </section>
+              </details>
 
               {pdfError && (
                 <section className="rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm leading-7 text-rose-50">

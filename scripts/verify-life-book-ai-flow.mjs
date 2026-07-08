@@ -282,7 +282,8 @@ for (const marker of [
   "status_check",
   "result_fetch",
   "maxProviderCalls: LIFE_BOOK_MAX_PROVIDER_CALLS_PER_GENERATION",
-  "fallbackToWorkersAI: undefined",
+  // 장문 JSON은 llama 폴백이 감당 못 해 시간만 낭비 — 폴백 차단이 의도된 계약이다.
+  "fallbackToWorkersAI: false",
 ]) {
   includes("worker/routes/life-book-ai.js", route, marker);
 }

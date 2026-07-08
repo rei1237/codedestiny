@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 
@@ -56,6 +57,7 @@ export default function VedicAiResultClient() {
   const [chatInput, setChatInput] = useState("");
   const [chatBusy, setChatBusy] = useState(false);
   const [error, setError] = useState("");
+  const [viewAll, setViewAll] = usePagedViewerMode("vedicAiViewerModeV1");
 
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("id") || "";
@@ -219,16 +221,12 @@ export default function VedicAiResultClient() {
               );
             }
             return message.role === "assistant" ? (
-              <div className={styles.sectionGrid} key={`${message.role}-${index}`}>
-                {splitAssistantSections(message.content).map((section, sectionIndex) => (
-                  <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
-                    <span>{section.title}</span>
-                    {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
-                      <p key={paragraphIndex}>{paragraph}</p>
-                    ))}
-                  </article>
-                ))}
-              </div>
+              <AssistantSectionsView
+                key={`${message.role}-${index}`}
+                content={message.content}
+                viewAll={viewAll}
+                onViewAllChange={setViewAll}
+              />
             ) : (
               <article className={styles.userMsg} key={`${message.role}-${index}`}>
                 <span>나의 질문</span>
@@ -263,5 +261,33 @@ export default function VedicAiResultClient() {
         <div style={{ marginTop: "1rem" }}>{backLink}</div>
       </section>
     </main>
+  );
+}
+
+// 장문 상담(다섹션)은 한 장씩 넘기는 페이지 뷰어로, 짧은 follow-up(단일 섹션)은 기존 카드로 렌더링.
+function AssistantSectionsView({ content, viewAll, onViewAllChange }: { content: string; viewAll: boolean; onViewAllChange: (viewAll: boolean) => void }) {
+  const sections = splitAssistantSections(content);
+  const renderSection = (section: { title: string; body: string }, sectionIndex: number) => (
+    <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
+      <span>{section.title}</span>
+      {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
+        <p key={paragraphIndex}>{paragraph}</p>
+      ))}
+    </article>
+  );
+  if (sections.length <= 1) {
+    return <div className={styles.sectionGrid}>{sections.map(renderSection)}</div>;
+  }
+  return (
+    <PagedResultViewer
+      pages={sections.map((section, index) => ({
+        id: `vedic-section-${index}`,
+        label: toText(section.title).slice(0, 12) || `${index + 1}장`,
+        content: renderSection(section, index),
+      }))}
+      deckLabel="베다점 상담 전문"
+      viewAll={viewAll}
+      onViewAllChange={onViewAllChange}
+    />
   );
 }
