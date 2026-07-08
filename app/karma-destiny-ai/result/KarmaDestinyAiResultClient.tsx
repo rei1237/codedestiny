@@ -113,7 +113,9 @@ function KarmaDestinyResultInner() {
   // 서버가 진척 없이 generating을 반복 반환할 때 generate-batch POST가 무한 폭주(Cloudflare 1015)하지 않도록
   // "무진척(stall)" 배치가 연속되면 중단한다. 챕터가 진행되면 리셋되므로 정상 생성에는 영향이 없다.
   const generationStallRef = useRef({ lastChapters: -1, stalls: 0 });
-  const maxGenerationStalls = 6;
+  // 배치 락 TTL 390s(서버) 동안 다른 탭/죽은 isolate가 락을 쥐면 무진척 라운드(~1.2s)가 이어진다.
+  // 390s를 견디도록 상한을 설정(≈0.8req/s — CF 10초당 100회 제한 대비 충분한 여유).
+  const maxGenerationStalls = 360;
 
   const chapters = useMemo(() => [...(result?.chapters || [])].sort((a, b) => a.order - b.order), [result?.chapters]);
   const progress = result?.generationProgress || {};

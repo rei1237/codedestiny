@@ -222,6 +222,33 @@ async function postJson<T>(path: string, body: Record<string, unknown>, idempote
   return { response, payload };
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// 생성이 오래 걸릴 때(202/generating) 결과 엔드포인트를 폴링해 수렴시킨다.
+// CF rate-limit(10초당 100회) 대비 최대 1req/3~8s, 상한 40회(≈5분, 서버 신선도 창 480s 이내).
+const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 40;
+
+async function pollNewYearResult(sessionId: string): Promise<ConsultationResult> {
+  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    let response: Response;
+    try {
+      response = await fetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`, { credentials: "include" });
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) throw new Error(SERVER_ERROR_MESSAGE);
+    const payload = (await response.json().catch(() => ({}))) as ConsultationResult;
+    if (!response.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
+    return payload;
+  }
+  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+}
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -897,10 +924,16 @@ export default function NewYearAiConsultationPage() {
       applyResult(result);
       return;
     }
-    if (result.ok && result.status === "generating") {
+    if (result.ok && result.status === "generating" && result.sessionId) {
+      // 생성이 진행 중 — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다(이전에는 여기서 멈춰 영구 대기였다).
       setNotice(result.message || "올해의 흐름을 읽고 있습니다");
       setStatus("reading");
-      return;
+      const resolved = await pollNewYearResult(result.sessionId);
+      if (resolved.ok && Array.isArray(resolved.messages) && resolved.messages.length) {
+        applyResult(resolved);
+        return;
+      }
+      throw new Error(resolved.message || LLM_ERROR_MESSAGE);
     }
     if (result.reason === "PAYMENT_VERIFY_FAILED") throw new Error(PAYMENT_VERIFY_FAILED_MESSAGE);
     if (result.reason === "LLM_ERROR") throw new Error(LLM_ERROR_MESSAGE);

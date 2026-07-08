@@ -73,6 +73,8 @@ type StartResult = {
   ok?: boolean;
   reason?: string;
   message?: string;
+  sessionId?: string;
+  status?: string;
   consultation?: Consultation;
 };
 type PendingAccess = {
@@ -183,6 +185,7 @@ const ERROR_TEXT: Record<string, string> = {
   LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   SERVER_ERROR: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
 };
 
 const SECTION_TITLES = [
@@ -334,6 +337,33 @@ async function postJson<T>(path: string, body: Record<string, unknown>, requestI
   } catch {
     throw new Error("NETWORK_ERROR");
   }
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
+// CF rate-limit(10초당 100회) 대비 최대 1req/3~8s, 상한 40회(≈5분, 서버 신선도 창 420s 이내).
+const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 40;
+
+async function pollVedicResult(sessionId: string): Promise<StartResult> {
+  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    let response: Response;
+    try {
+      response = await authFetch(`/api/vedic-ai/result?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) throw new Error("SERVER_ERROR");
+    const data = (await response.json().catch(() => ({}))) as StartResult;
+    if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
+    return data;
+  }
+  throw new Error("GENERATION_TIMEOUT");
 }
 
 function validateForm(form: FormState) {
@@ -1000,6 +1030,21 @@ export default function VedicAiClient() {
       requestIdRef.current = "";
       pendingAccessRef.current = null;
       return;
+    }
+    if (status === 202 && data.sessionId) {
+      // 생성이 진행 중(중복 제출 등) — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다.
+      setNotice("나크샤트라의 빛을 읽고 있습니다. 잠시만 기다려 주세요.");
+      const resolved = await pollVedicResult(data.sessionId);
+      if (resolved.ok && resolved.consultation) {
+        setConsultation(resolved.consultation);
+        rememberConsultationUrl(resolved.consultation.id);
+        setError("");
+        setNotice("");
+        requestIdRef.current = "";
+        pendingAccessRef.current = null;
+        return;
+      }
+      throw new Error(toText(resolved.reason) || "SERVER_ERROR");
     }
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
     throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : status >= 500 ? "SERVER_ERROR" : "PREPARE_FAILED"));

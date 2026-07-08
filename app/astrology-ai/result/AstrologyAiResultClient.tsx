@@ -197,12 +197,22 @@ export default function AstrologyAiResultClient() {
       setLoading(true);
       setError("");
       try {
-        const response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || payload?.ok === false) {
-          throw new Error(toText(payload?.message) || "저장된 상담 결과를 불러오지 못했습니다.");
+        // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 생성 최악 ~8분, 여기선 40회 ≈ 5분).
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          const response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
+          const payload = await response.json().catch(() => ({}));
+          if (response.status === 202) {
+            if (!alive) return;
+            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
+            continue;
+          }
+          if (!response.ok || payload?.ok === false) {
+            throw new Error(toText(payload?.message) || "저장된 상담 결과를 불러오지 못했습니다.");
+          }
+          if (alive) setConsultation(payload as Consultation);
+          return;
         }
-        if (alive) setConsultation(payload as Consultation);
+        throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 잠시 후 새로고침해 주세요.");
       } catch (caught) {
         if (alive) setError(friendlyErrorMessage(caught, "저장된 상담 결과를 불러오지 못했습니다."));
       } finally {

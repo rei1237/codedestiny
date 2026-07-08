@@ -373,6 +373,35 @@ async function postJson<T>(url: string, body: Record<string, unknown>, idempoten
   return { status: response.status, data: data as T };
 }
 
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
+// 자미두수는 분량이 가장 커(본문 2만~3만자) 최악 ~8분 — 60회(≈7.8분), 1req/3~8s.
+const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 60;
+
+async function pollZiweiResult(sessionId: string): Promise<ApiResult> {
+  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    let response: Response;
+    try {
+      response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) {
+      throw new Error("요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.");
+    }
+    const data = (await response.json().catch(() => ({}))) as ApiResult;
+    if (!response.ok) throw new Error(mapError(data, response.status));
+    return data;
+  }
+  throw new Error("상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+}
+
 function toText(value: unknown) {
   return toDisplayText(value);
 }
@@ -727,9 +756,18 @@ export default function ZiweiAiPage() {
       setNotice("");
       return;
     }
-    if (status === 202) {
+    if (status === 202 && data.sessionId) {
+      // 생성이 진행 중 — 결과 엔드포인트를 폴링해 완료까지 수렴시킨다(이전에는 여기서 멈춰 영구 대기였다).
       setNotice("12궁의 별자리를 펼치는 중...");
-      return;
+      const resolved = await pollZiweiResult(data.sessionId);
+      if (resolved.ok && resolved.consultation) {
+        setConsultation(resolved.consultation);
+        rememberConsultationUrl(resolved.consultation.id);
+        setPhase("ready");
+        setNotice("");
+        return;
+      }
+      throw new Error(mapError(resolved, 0));
     }
     throw new Error(mapError(data, status));
   }

@@ -66,19 +66,29 @@ export default function VedicAiResultClient() {
         const path = id
           ? `/api/vedic-ai/result?id=${encodeURIComponent(id)}`
           : "/api/vedic-ai/result";
-        const response = await authFetch(path);
-        if (response.status === 401) {
-          if (!cancelled) setView({ kind: "login" });
+        // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 신선도 창 420s 이내에서 40회 ≈ 5분).
+        for (let attempt = 0; attempt < 40; attempt += 1) {
+          const response = await authFetch(path);
+          if (response.status === 401) {
+            if (!cancelled) setView({ kind: "login" });
+            return;
+          }
+          if (id && response.status === 202) {
+            if (cancelled) return;
+            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
+            continue;
+          }
+          const data = await response.json().catch(() => ({}));
+          if (cancelled) return;
+          if (id) {
+            if (data?.ok && data.consultation) setView({ kind: "detail", consultation: data.consultation as Consultation });
+            else setView({ kind: "missing" });
+          } else {
+            setView({ kind: "list", items: Array.isArray(data?.consultations) ? data.consultations : [] });
+          }
           return;
         }
-        const data = await response.json().catch(() => ({}));
-        if (cancelled) return;
-        if (id) {
-          if (data?.ok && data.consultation) setView({ kind: "detail", consultation: data.consultation as Consultation });
-          else setView({ kind: "missing" });
-        } else {
-          setView({ kind: "list", items: Array.isArray(data?.consultations) ? data.consultations : [] });
-        }
+        if (!cancelled) setView({ kind: "missing" });
       } catch {
         if (!cancelled) setView({ kind: "missing" });
       }

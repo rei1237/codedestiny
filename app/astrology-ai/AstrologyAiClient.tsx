@@ -119,6 +119,8 @@ const ERROR_TEXT: Record<string, string> = {
   CALCULATION_ERROR: "점성술 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
   LLM_ERROR: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
+  RATE_LIMITED: "요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.",
 };
 
 const PROGRESS_STEPS = [
@@ -236,6 +238,34 @@ async function postJson<T>(path: string, body: Record<string, unknown>, idempote
   }, { retryOn401: false });
   const data = await response.json().catch(() => ({}));
   return { response, data: data as T };
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
+// CF rate-limit(10초당 100회) 대비 최대 1req/3~8s, 상한 40회(≈5분, 서버 신선도 창 480s 이내).
+const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 40;
+
+async function pollAstrologyResult(sessionId: string): Promise<Consultation> {
+  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    let response: Response;
+    try {
+      response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) throw new Error("RATE_LIMITED");
+    if (response.status === 404 || response.status === 409) throw new Error("LLM_ERROR");
+    if (!response.ok) throw new Error("SERVER_ERROR");
+    const data = await response.json().catch(() => ({}));
+    return data as Consultation;
+  }
+  throw new Error("GENERATION_TIMEOUT");
 }
 
 function pointLabel(point?: ChartPoint | null) {
@@ -374,16 +404,28 @@ export default function AstrologyAiClient() {
     setProgressIndex(2);
     scheduleReadingProgress();
     console.info("[AstrologyAI] generation started", { requestId: idempotencyKey });
-    const { data } = await postJson<Consultation | { ok?: false; reason?: string; message?: string }>(
-      API_ENDPOINTS.start,
-      { ...buildPayload(), ...access },
-      idempotencyKey,
-    );
-    if ("ok" in data && data.ok === false) {
-      const reason = toText(data.reason || "SERVER_ERROR");
-      throw new Error(reason || "SERVER_ERROR");
+    type StartResponse = Consultation | { ok?: boolean; reason?: string; message?: string; sessionId?: string; status?: string };
+    let response: Response;
+    let data: StartResponse;
+    try {
+      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, { ...buildPayload(), ...access }, idempotencyKey));
+    } catch {
+      // 네트워크 순단 시 같은 idempotencyKey로 1회 재시도 — 서버가 이미 생성 중이면 202로 수렴한다.
+      ({ response, data } = await postJson<StartResponse>(API_ENDPOINTS.start, { ...buildPayload(), ...access }, idempotencyKey));
     }
-    const next = data as Consultation;
+    let next: Consultation;
+    if (response.status === 202) {
+      const pendingSessionId = toText(asRecord(data).sessionId);
+      if (!pendingSessionId) throw new Error("SERVER_ERROR");
+      console.info("[AstrologyAI] generation pending, polling result", { sessionId: pendingSessionId });
+      next = await pollAstrologyResult(pendingSessionId);
+    } else {
+      if ("ok" in data && data.ok === false) {
+        const reason = toText(data.reason || "SERVER_ERROR");
+        throw new Error(reason || "SERVER_ERROR");
+      }
+      next = data as Consultation;
+    }
     if (!next?.sessionId || !Array.isArray(next.messages)) throw new Error("SERVER_ERROR");
     const assistantContent = next.messages.find((message) => message.role === "assistant")?.content?.trim() || "";
     if (!assistantContent) {
