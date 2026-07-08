@@ -146,6 +146,10 @@ function createNextConfig(phase) {
       if (!dev) {
         config.cache = false;
       }
+      // worker/lib/swiss-ephemeris.js가 swisseph.wasm을 빌드타임 ES import로 읽어
+      // WebAssembly.Module을 동기 확보한다(Workers 런타임 컴파일 차단 우회) — Next
+      // 기본 webpack5는 wasm import가 비활성이라 syncWebAssembly로 켜야 한다.
+      config.experiments = { ...config.experiments, syncWebAssembly: true };
       return config;
     },
   };
