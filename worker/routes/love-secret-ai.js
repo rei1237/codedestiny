@@ -764,8 +764,11 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       // 15개 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) —
       // 구 상한 14000은 최소 분량조차 못 담아 잘림→INVALID_LLM_JSON이 났다.
       maxOutputTokens: 32000,
-      timeoutMs: 90000,
+      // 32,000토큰(gemini-2.5-flash ~200tok/s ≈ 160s) — 구 90s는 목표 분량대 상단에서 잘렸다.
+      timeoutMs: Number(env?.LOVE_SECRET_AI_TIMEOUT_MS) || 150000,
       taskType: "fortune",
+      // 대형 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
+      fallbackToWorkersAI: false,
       cache: loveSecretLlmCache,
     });
     const provider = clean(ai?.provider);
@@ -1204,7 +1207,8 @@ async function handleStart(request, env, route = "/api/love-secret-ai/generate")
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
+  // 신선도 창 = 최악 파이프라인(초기 150s + grounding 재시도 150s) + 마진.
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 360000) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "연애 비책 상담을 준비하고 있습니다" }, { status: 202 });
   }
 

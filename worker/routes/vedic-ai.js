@@ -988,6 +988,9 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
   // 초기/repair 리딩은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이
   // 잘리지 않게 보장한다. follow-up(requireStructured 미설정)은 프로즈라 단발 호출을 유지한다.
   const baseMaxOutputTokens = Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS);
+  // timeoutMs 미지정 시 llm-client 기본 30s가 적용돼 32,000토큰(≈160s) 생성이 항상 잘렸다.
+  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)는 || 체인에 넣으면 큰 기본값이 죽으므로 참조하지 않는다.
+  const vedicTimeoutMs = Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000;
   const result = options.requireStructured === true
     ? await callGeminiJsonWithRetry(env, prompt, {
         systemPrompt: SYSTEM_PROMPT,
@@ -996,12 +999,16 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
         baseTokens: baseMaxOutputTokens,
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: "application/json",
+        timeoutMs: vedicTimeoutMs,
+        // 대형 구조화 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
+        fallbackToWorkersAI: false,
       })
     : await callGeminiText(env, prompt, {
         systemPrompt: SYSTEM_PROMPT,
         maxOutputTokens: baseMaxOutputTokens,
         temperature: 0.72,
         taskType: "fortune",
+        timeoutMs: vedicTimeoutMs,
       });
   const provider = clean(result?.provider || result?.model || "gemini");
   const isMock = /mock/i.test(provider) || result?.isMock === true;
@@ -1223,6 +1230,11 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if (existing?.status === "completed" && existing.inputHash === normalized.inputHash) {
     return json({ ok: true, consultation: consultationPayload(existing.toObject()) });
   }
+  // 진행 중 생성에 대한 재-POST는 재생성하지 않고 202로 안내(폴링 대상).
+  // 신선도 창 = 차트 계산 + 초기 180s + 품질 재시도 180s + 마진.
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 420000) {
+    return json({ ok: true, sessionId: existing.id, status: "generating", message: "나크샤트라의 빛을 읽고 있습니다" }, { status: 202 });
+  }
 
   const access = await resolveStartAccess({ env, auth, body, normalized, idempotencyKey, pricing });
   if (!access) return paymentVerifyFailed();
@@ -1398,9 +1410,18 @@ async function handleResult(request, env) {
   const consultation = await VedicAiConsultation.findOne({
     userId: String(auth.userId),
     id,
-    status: "completed",
   }).lean();
   if (!consultation) return notFound();
+  // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
+  if (consultation.status === "generating") {
+    return json(
+      { ok: true, sessionId: consultation.id, status: "generating", message: "나크샤트라의 빛을 읽고 있습니다" },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  if (consultation.status !== "completed") {
+    return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  }
   return json({ ok: true, consultation: consultationPayload(consultation) });
 }
 

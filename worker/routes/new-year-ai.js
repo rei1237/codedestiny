@@ -1290,12 +1290,17 @@ async function generateConsultationText(env, prompt, options = {}) {
     ttlSeconds: 30 * 24 * 60 * 60,
     keyExtra: "new-year-ai-v1",
   };
+  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
+  // 30,000토큰(gemini-2.5-flash ~200tok/s ≈ 150s) 장문이라 150s가 필요하다.
+  const newYearTimeoutMs = Number(env?.NEW_YEAR_AI_TIMEOUT_MS) || 150000;
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
-    timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    timeoutMs: newYearTimeoutMs,
+    // 초기 장문은 llama 폴백이 분량을 못 채움 — 폴백 대기 없이 즉시 실패(신년운세는 초기 생성 전용 라우트).
+    fallbackToWorkersAI: false,
     cache: newYearLlmCache,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1321,6 +1326,8 @@ async function generateConsultationText(env, prompt, options = {}) {
       taskType: "fortune",
       temperature: 0.58,
       maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
+      timeoutMs: newYearTimeoutMs,
+      fallbackToWorkersAI: false,
       cache: newYearLlmCache,
     });
     const repaired = clean(repair?.text);
@@ -1341,7 +1348,8 @@ async function generateConsultationText(env, prompt, options = {}) {
       taskType: "fortune",
       temperature: 0.66,
       maxOutputTokens: options.expansionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
-      timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      timeoutMs: newYearTimeoutMs,
+      fallbackToWorkersAI: false,
       cache: newYearLlmCache,
     });
     const expansionProvider = clean(expansion?.provider || expansion?.model || "");
@@ -1360,7 +1368,8 @@ async function generateConsultationText(env, prompt, options = {}) {
       taskType: "fortune",
       temperature: 0.52,
       maxOutputTokens: options.compressionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
-      timeoutMs: Number(env?.NEW_YEAR_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+      timeoutMs: newYearTimeoutMs,
+      fallbackToWorkersAI: false,
       cache: newYearLlmCache,
     });
     const compressedProvider = clean(compressed?.provider || compressed?.model || "");
@@ -1691,7 +1700,8 @@ async function handleStart(request, env) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
+  // 신선도 창 = 최악 파이프라인(초기 150s + 금지어 repair + expand/compress 각 150s) + 마진.
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 480000) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "올해의 흐름을 읽고 있습니다" }, { status: 202 });
   }
 
@@ -1867,9 +1877,18 @@ async function handleResult(request, env) {
   const doc = await NewYearAiConsultation.findOne({
     userId: clean(auth.userId),
     id: sessionId,
-    status: "completed",
   }).lean();
   if (!doc) return notFound();
+  // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
+  if (doc.status === "generating") {
+    return json(
+      { ok: true, sessionId: doc.id, status: "generating", message: "올해의 흐름을 읽고 있습니다" },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  if (doc.status !== "completed") {
+    return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
+  }
   return json(publicSession(doc));
 }
 

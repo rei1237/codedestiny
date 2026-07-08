@@ -1159,11 +1159,14 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
   const baseMaxOutputTokens = options.maxOutputTokens || 7000;
+  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
+  // 초기 상담은 최대 45,000토큰(gemini-2.5-flash ~200tok/s ≈ 225s)이라 240s가 필요하다.
+  const ziweiTimeoutMs = Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000;
   const ziweiCallOptions = {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",
     temperature: 0.72,
-    timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    timeoutMs: ziweiTimeoutMs,
     cache: ziweiLlmCache,
   };
   const ai = options.responseMimeType
@@ -1172,6 +1175,8 @@ async function generateConsultationText(env, prompt, options = {}) {
         baseTokens: baseMaxOutputTokens,
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: options.responseMimeType,
+        // 대형 구조화 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
+        fallbackToWorkersAI: false,
       })
     : await callGeminiText(env, prompt, { ...ziweiCallOptions, maxOutputTokens: baseMaxOutputTokens });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1192,8 +1197,8 @@ async function generateConsultationText(env, prompt, options = {}) {
       taskType: "fortune",
       temperature: 0.62,
       maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-      timeoutMs: Number(env?.ZIWEI_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
-      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType } : {}),
+      timeoutMs: ziweiTimeoutMs,
+      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType, fallbackToWorkersAI: false } : {}),
       cache: ziweiLlmCache,
     });
     const expandedText = clean(expanded?.text);
@@ -1234,7 +1239,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    timeoutMs: 90000,
+    // 45,000토큰 재작성은 90s에 잘린다 — 초기 생성과 동일한 상한을 쓴다.
+    timeoutMs: ziweiTimeoutMs,
     cache: ziweiLlmCache,
   });
   const repaired = clean(repair?.text);
@@ -1660,7 +1666,8 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicConsultation(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
+  // 신선도 창 = 최악 파이프라인(초기 240s + repair 240s) + 마진. 창이 짧으면 재-POST가 중복 생성을 기동한다.
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 540000) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" }, { status: 202 });
   }
 
@@ -1871,9 +1878,18 @@ async function handleResult(request, env) {
   const consultation = await ZiweiAiConsultation.findOne({
     id: sessionId,
     userId: clean(auth.userId),
-    status: "completed",
   }).lean();
   if (!consultation) return notFound();
+  // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
+  if (consultation.status === "generating") {
+    return json(
+      { ok: true, sessionId: consultation.id, status: "generating", message: "별궁의 흐름을 읽고 있습니다" },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  if (consultation.status !== "completed") {
+    return json({ ok: false, reason: "GENERATION_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  }
   return json(publicConsultation(consultation));
 }
 

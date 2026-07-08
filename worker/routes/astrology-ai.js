@@ -1003,7 +1003,11 @@ async function generateConsultation(env, prompt, options = {}) {
   const minLength = Math.max(0, Math.floor(Number(options.minLength || 180)));
   const maxLength = Math.max(0, Math.floor(Number(options.maxLength || 0)));
   const maxOutputTokens = Number(options.maxOutputTokens || 7000);
-  const timeoutMs = Number(env.ASTROLOGY_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000);
+  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
+  // 공백 제외 1만~2만자(≈3만 토큰, gemini-2.5-flash ~200tok/s)는 150s가 필요하다.
+  const timeoutMs = Number(env.ASTROLOGY_AI_TIMEOUT_MS) || 150000;
+  // 장문 초기 생성은 llama 폴백이 분량을 못 채워 시간만 낭비 → 호출부에서 폴백 차단 가능.
+  const fallbackToWorkersAI = options.fallbackToWorkersAI;
   // 결정적(생년월일+카테고리 기반) 점성술 상담 → LLM 응답 캐시 + in-flight dedup.
   const astrologyLlmCache = {
     store: createLlmCacheStore(env),
@@ -1017,6 +1021,7 @@ async function generateConsultation(env, prompt, options = {}) {
     temperature: options.temperature ?? 0.72,
     maxOutputTokens,
     timeoutMs,
+    fallbackToWorkersAI,
     cache: astrologyLlmCache,
   });
   const provider = clean(ai?.provider || "");
@@ -1046,6 +1051,7 @@ async function generateConsultation(env, prompt, options = {}) {
       // 잘려서 재생성하는 경우 원본보다 여유 있는 토큰으로 완결시킨다.
       maxOutputTokens: Math.max(Number(options.expandMaxOutputTokens || 0), ai?.truncated ? Math.round(maxOutputTokens * 1.3) : maxOutputTokens, 14000),
       timeoutMs,
+      fallbackToWorkersAI,
       cache: astrologyLlmCache,
     });
     const repairProvider = clean(repair?.provider || finalProvider);
@@ -1073,6 +1079,7 @@ async function generateConsultation(env, prompt, options = {}) {
       temperature: options.condenseTemperature ?? 0.48,
       maxOutputTokens: Math.max(Number(options.condenseMaxOutputTokens || 0), maxOutputTokens, 12000),
       timeoutMs,
+      fallbackToWorkersAI,
       cache: astrologyLlmCache,
     });
     const repairProvider = clean(repair?.provider || finalProvider);
@@ -1360,7 +1367,9 @@ async function handleStart(request, env) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
+  // 신선도 창은 최악 파이프라인(차트 계산 + 초기 150s + expand 150s + condense 150s) + 마진.
+  // 창이 파이프라인보다 짧으면 재-POST가 진행 중 생성을 중복 기동한다(찻집 390s 락과 같은 원리).
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 480000) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" }, { status: 202 });
   }
 
@@ -1410,6 +1419,8 @@ async function handleStart(request, env) {
       expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 30000),
       condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 30000),
       requireExpertParts: true,
+      // 초기 장문(1만자+)은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패시켜 재시도/환불 경로로.
+      fallbackToWorkersAI: false,
     });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
     await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
@@ -1475,10 +1486,19 @@ async function handleResult(request, env, pathId = "") {
   const consultation = await AstrologyAiConsultation.findOne({
     id: resultId,
     userId: auth.userId,
-    status: "completed",
   }).lean();
   if (!consultation) {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+  }
+  // 생성 중이면 202로 알려 클라이언트 폴링이 수렴하게 한다(start의 202 바디와 동일 형태).
+  if (consultation.status === "generating") {
+    return json(
+      { ok: true, sessionId: consultation.id, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  if (consultation.status !== "completed") {
+    return json({ ok: false, reason: "GENERATION_FAILED", message: LLM_ERROR_MESSAGE }, { status: 409 });
   }
 
   const payload = publicSession(consultation);

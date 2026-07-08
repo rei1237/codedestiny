@@ -1172,9 +1172,10 @@ async function createFirstAnswer(env, input, calculation) {
   });
   // 궁합 상담 JSON 요구 분량(body 합계 ~11,300자)이 구 상한을 넘겨 잘리지 않도록 여유를 둔 상한.
   const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 32000);
-  // PREMIUM_GEMINI_TIMEOUT_MS(45s)를 참조하면 truthy 단락으로 90초 기본값이 죽어 대량 JSON 생성이
-  // 45초에 타임아웃 → LLM_FAILED 503으로 튕겼다. 궁합 전용 예산 90초를 직접 확보한다.
-  const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 90000;
+  // PREMIUM_GEMINI_TIMEOUT_MS(45s)를 참조하면 truthy 단락으로 기본값이 죽어 대량 JSON 생성이
+  // 45초에 타임아웃 → LLM_FAILED 503으로 튕겼다. 궁합 전용 예산을 직접 확보한다.
+  // 잘림 재시도 시 토큰 cap이 41,600(32,000×1.3)까지 올라가므로(≈200tok/s ≈ 208s) 150s로 상향.
+  const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 150000;
   // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
   // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.
   const sukuyoLlmCache = {

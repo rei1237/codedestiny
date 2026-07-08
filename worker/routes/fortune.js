@@ -4075,7 +4075,8 @@ async function handleSajuAIPrompt(request, auth, env) {
         temperature: attempt > 0 ? 0.5 : 0.56,
         // 늘어난 상담 분량(다장 구성)이 구 상한 14000에서 상시 잘려 완성 repair를 유발했다.
         maxOutputTokens: 20000,
-        timeoutMs: 90000,
+        // 20,000토큰(gemini-2.5-flash ~200tok/s ≈ 100s) — 구 90s는 목표 분량대 상단에서 잘렸다.
+        timeoutMs: 120000,
         cache: sajuLlmCache,
       });
       const resultText = normalizeSajuAIResultText(ai?.text);

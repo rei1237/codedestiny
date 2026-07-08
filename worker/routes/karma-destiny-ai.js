@@ -78,7 +78,9 @@ const INITIAL_CONSULTATION_SECTION_MIN_LENGTH = 1500;
 // 구 상한 12000은 잘림→JSON 파싱 실패(LLM_JSON_PARSE_FAILED)를 유발했다.
 const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 20000;
 const PREMIUM_BATCH_SIZE = 4;
-const PREMIUM_BATCH_LOCK_TTL_MS = 90_000;
+// 배치 1회 = 생성(120s) + JSON 수선/보강 재호출 가능성까지의 최악 시간을 덮어야 한다.
+// 락이 파이프라인보다 짧으면 병렬 폴링 POST가 같은 배치를 중복 기동한다(찻집 390s 락과 같은 원리).
+const PREMIUM_BATCH_LOCK_TTL_MS = 390_000;
 const PREMIUM_REINFORCEMENT_MAX_ATTEMPTS = 2;
 const PREMIUM_CHAPTER_TARGET_LENGTH = "1,900~2,400자";
 const INITIAL_SECTION_SYMBOLS = ["業", "柱", "情", "家", "財", "職", "心", "前", "試", "緣", "年", "策", "儀", "禁", "句", "箋"];
@@ -1003,7 +1005,8 @@ async function ensureInitialConsultationQuality(env, text, prompt, systemPrompt,
   const minLength = Number(options.minLength || INITIAL_CONSULTATION_MIN_LENGTH);
   const maxLength = Number(options.maxLength || INITIAL_CONSULTATION_MAX_LENGTH);
   const maxOutputTokens = Number(options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS);
-  const timeoutMs = Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 90000);
+  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
+  const timeoutMs = Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000;
   let current = await repairForbiddenConsultationText(env, text, systemPrompt, { maxOutputTokens, timeoutMs });
   let quality = validateInitialConsultationQuality(current, { minLength, maxLength });
   if (quality.ok) return current;
@@ -1099,7 +1102,10 @@ async function generateConsultationText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: options.temperature || (mode === "follow_up" ? 0.68 : 0.74),
     maxOutputTokens: options.maxOutputTokens || (mode === "initial" ? INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS : 7600),
-    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 65000),
+    // 45s 단락 함정 회피(위 ensureInitialConsultationQuality 주석 참고). 배치당 2만 토큰 ≈ 100s.
+    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
+    // 초기 장문은 llama 폴백이 분량을 못 채움 — 폴백 대기 없이 즉시 실패. follow-up은 폴백 유지.
+    ...(mode === "initial" ? { fallbackToWorkersAI: false } : {}),
     cache: buildKarmaLlmCache(env, mode),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1268,7 +1274,9 @@ async function callRealGeminiText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS || env?.PREMIUM_GEMINI_TIMEOUT_MS || 70_000),
+    // 45s 단락 함정 회피. 배치 JSON은 llama 폴백이 형식을 못 지켜 시간만 낭비 → 폴백 차단.
+    timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
+    fallbackToWorkersAI: false,
     cache: buildKarmaLlmCache(env, "chapter-batch"),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
