@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import { splitIntoParagraphs } from "@/lib/llm-text";
+import AiResultProse from "@/components/fortune/AiResultProse";
 
 type Chapter = {
   id: string;
@@ -372,9 +372,7 @@ function KarmaDestinyResultInner() {
                   {open && (
                     <div className="kdai-chapter__body">
                       {chapter.highlightQuotes?.[0] && <blockquote>{chapter.highlightQuotes[0]}</blockquote>}
-                      {chapter.content.split(/\n{2,}/).flatMap((block) => splitIntoParagraphs(block)).map((paragraph, index) => (
-                        <p key={`${chapter.id}-${index}`}>{paragraph}</p>
-                      ))}
+                      <AiResultProse value={chapter.content} className="text-[#fff7df]/90" />
                       <div className="kdai-core-box">
                         <strong>이번 장의 핵심</strong>
                         {(chapter.keyTakeaways || []).slice(0, 3).map((item) => <span key={item}>{item}</span>)}
@@ -736,14 +734,6 @@ function ResultStyles() {
           font-family: CodeDestinyPremium, CodeDestinyBody, serif;
           font-size: 1.08rem;
           line-height: 1.75;
-        }
-
-        .kdai-chapter__body p {
-          max-width: 820px;
-          margin: 0 0 18px;
-          color: rgba(255, 247, 223, .9);
-          font-size: clamp(1rem, 1.12vw, 1.08rem);
-          line-height: 1.92;
         }
 
         .kdai-core-box {

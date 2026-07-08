@@ -11,7 +11,8 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
+import AiResultProse from "@/components/fortune/AiResultProse";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -286,22 +287,14 @@ function splitAssistantSections(content: string) {
 function AssistantMessageContent({ content }: { content: string }) {
   const sections = splitAssistantSections(content);
   if (!sections.length) {
-    return (
-      <>
-        {splitIntoParagraphs(content).map((paragraph, index) => (
-          <p key={index}>{paragraph}</p>
-        ))}
-      </>
-    );
+    return <AiResultProse value={content} />;
   }
   return (
     <div className="nyai-section-list">
       {sections.map((section, index) => (
         <section className="nyai-result-section" data-pdf-section={index + 1} key={`${section.title}-${index}`}>
           <h3>{section.title}</h3>
-          {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
-            <p key={paragraphIndex}>{paragraph}</p>
-          ))}
+          <AiResultProse value={section.body} />
         </section>
       ))}
     </div>

@@ -6,6 +6,7 @@ import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles,
 import { authFetch } from "@/app/_lib/auth-client";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import AiResultProse from "@/components/fortune/AiResultProse";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -668,47 +669,6 @@ function chunkReadingSections(sections: Record<string, { title: string; body: st
   return Object.entries(sections).map((entry) => [entry]);
 }
 
-function renderInlineRichText(text: string) {
-  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) return <strong key={index}>{part.slice(2, -2)}</strong>;
-    return part;
-  });
-}
-
-function renderRichText(body: string) {
-  return body.split(/\n{2,}/).map((block, blockIndex) => {
-    const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-    if (!lines.length) return null;
-    if (lines.every((line) => /^\d+[.)]\s+/.test(line))) {
-      return (
-        <ol key={blockIndex}>
-          {lines.map((line, lineIndex) => <li key={lineIndex}>{renderInlineRichText(line.replace(/^\d+[.)]\s+/, ""))}</li>)}
-        </ol>
-      );
-    }
-    if (lines.every((line) => /^[-*]\s+/.test(line))) {
-      return (
-        <ul key={blockIndex}>
-          {lines.map((line, lineIndex) => <li key={lineIndex}>{renderInlineRichText(line.replace(/^[-*]\s+/, ""))}</li>)}
-        </ul>
-      );
-    }
-    if (lines.every((line) => /^>\s?/.test(line))) {
-      return <blockquote key={blockIndex}>{renderInlineRichText(lines.map((line) => line.replace(/^>\s?/, "")).join(" "))}</blockquote>;
-    }
-    return (
-      <p key={blockIndex}>
-        {lines.map((line, lineIndex) => (
-          <span key={lineIndex}>
-            {renderInlineRichText(line)}
-            {lineIndex < lines.length - 1 ? <br /> : null}
-          </span>
-        ))}
-      </p>
-    );
-  });
-}
-
 // 요약 헤더: 두 별을 잇는 별자리 라인 + 궁합 게이지 + "운명적 끌림 vs 현실적 조율" 듀얼 미터
 function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
   const pull = Math.round(((meta.scores.destiny + meta.scores.emotion) / 40) * 100);
@@ -842,7 +802,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
                   <span>{SECTION_ICONS[key] || "✦"}</span>
                   <h3>{section.title}</h3>
                 </div>
-                <div className={styles.readingBody}>{renderRichText(section.body || "")}</div>
+                <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
               </article>
             ))}
           </div>
@@ -869,7 +829,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
                   <span>{SECTION_ICONS[chapterEntries[activeChapter]?.[0] || ""] || "✦"}</span>
                   <h3>{chapterEntries[activeChapter]?.[1]?.title || ""}</h3>
                 </div>
-                <div className={styles.readingBody}>{renderRichText(chapterEntries[activeChapter]?.[1]?.body || "")}</div>
+                <div className={styles.readingBody}><AiResultProse value={chapterEntries[activeChapter]?.[1]?.body} /></div>
               </article>
             </div>
             <div className={styles.chapterPager}>
@@ -933,7 +893,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
                   <span>{SECTION_ICONS[key] || "✦"}</span>
                   <h3>{section.title}</h3>
                 </div>
-                <div className={styles.readingBody}>{renderRichText(section.body)}</div>
+                <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
               </article>
             ))}
           </section>
