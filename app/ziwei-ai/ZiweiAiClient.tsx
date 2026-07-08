@@ -856,44 +856,19 @@ export default function ZiweiAiPage() {
     setPdfLoading(true);
     setError("");
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const pdfSections = Array.from(element.querySelectorAll<HTMLElement>("[data-ziwei-pdf-section]"));
-      let hasPage = false;
-
-      for (const section of pdfSections) {
-        const canvas = await html2canvas(section, {
-          backgroundColor: "#060712",
-          scale: Math.min(2, window.devicePixelRatio || 2),
-          useCORS: true,
-        });
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = (canvas.height * pageWidth) / canvas.width;
-        let remainingHeight = imageHeight;
-        let position = 0;
-
-        if (hasPage) pdf.addPage();
-        hasPage = true;
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-
-        while (remainingHeight > 0) {
-          position = remainingHeight - imageHeight;
-          pdf.addPage();
-          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-          remainingHeight -= pageHeight;
-        }
-      }
-
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
       const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
-      pdf.save(`자미두수_AI_상담_${userName}_${date}.pdf`);
+      await exportResultPdf({
+        captureTargets: [".resultDocument [data-ziwei-pdf-section]"],
+        fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
+        backgroundColor: "#060712",
+        cover: {
+          title: `${userName}님의 자미두수 상담`,
+          name: userName,
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

@@ -737,28 +737,13 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
     if (!element || isDownloading) return;
     setIsDownloading(true);
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const pdfSections = Array.from(element.querySelectorAll<HTMLElement>("[data-pdf-section]"));
-      for (const [index, section] of pdfSections.entries()) {
-        const canvas = await html2canvas(section, {
-          backgroundColor: "#060412",
-          scale: 2,
-          useCORS: true,
-        });
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = Math.min(pageHeight, (canvas.height / canvas.width) * pageWidth);
-        if (index > 0) pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, 0, pageWidth, imageHeight);
-      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const fileName = `달빛궁합_${meta.person_a.name}_${meta.person_b.name}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/ /g, "")}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
-      pdf.save(fileName);
+      await exportResultPdf({
+        captureTargets: ["#compat-result-body [data-pdf-section]"],
+        fileName,
+        backgroundColor: "#060412",
+      });
     } catch {
       onDownloadError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

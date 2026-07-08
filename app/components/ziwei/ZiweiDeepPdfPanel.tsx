@@ -294,33 +294,17 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     setPdfLoading(true);
     setError("");
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([import("html2canvas"), import("jspdf")]);
-      const JsPDF = (jsPdfModule as { default?: unknown; jsPDF?: unknown }).default || (jsPdfModule as { jsPDF?: unknown }).jsPDF;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const pdf = new (JsPDF as any)("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const sections = Array.from(element.querySelectorAll<HTMLElement>("[data-ziwei-pdf-section]"));
-      let hasPage = false;
-      for (const section of sections) {
-        const canvas = await html2canvas(section, { backgroundColor: "#0b1020", scale: Math.min(2, window.devicePixelRatio || 2), useCORS: true });
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = (canvas.height * pageWidth) / canvas.width;
-        let remainingHeight = imageHeight;
-        let position = 0;
-        if (hasPage) pdf.addPage();
-        hasPage = true;
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-        while (remainingHeight > 0) {
-          position = remainingHeight - imageHeight;
-          pdf.addPage();
-          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-          remainingHeight -= pageHeight;
-        }
-      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
-      pdf.save(`심화자미두수_${safePdfName(birth.name)}_${date}.pdf`);
+      await exportResultPdf({
+        captureTargets: ["#ziwei-deep-pdf-report [data-ziwei-pdf-section]"],
+        fileName: `심화자미두수_${safePdfName(birth.name)}_${date}.pdf`,
+        backgroundColor: "#0b1020",
+        cover: {
+          title: `${safePdfName(birth.name)}님의 심화 자미두수 리포트`,
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally { setPdfLoading(false); }
@@ -383,7 +367,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
               </button>
             </div>
 
-            <div ref={reportRef} className="mt-4 grid gap-4">
+            <div ref={reportRef} id="ziwei-deep-pdf-report" className="mt-4 grid gap-4">
               <section data-ziwei-pdf-section className="rounded-2xl border border-amber-200/20 bg-[#0b1020] p-6">
                 <p className="text-xs font-semibold tracking-[0.3em] text-amber-100/70">紫微斗數 · 심화 리포트</p>
                 <h4 className="font-display mt-2 text-2xl font-black text-white">{birth.name || "당신"}님의 심화 자미두수 15챕터</h4>
