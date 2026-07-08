@@ -971,6 +971,9 @@ const astrologyAiMessageSchema = new mongoose.Schema({
 }, { _id: false });
 
 const astrologyAiConsultationSchema = new mongoose.Schema({
+  // 다른 상담 스키마와 동일한 세션 식별자. 이 필드가 스키마에 없으면 strict 모드가 create의
+  // id를 조용히 버려 완료 저장(findOneAndUpdate({id}))과 결과 조회(findOne({id}))가 전부 미스된다.
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
