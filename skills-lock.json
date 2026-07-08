@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "caveman": {
+      "source": "blacknabis/cavemankorean",
+      "sourceType": "github",
+      "skillPath": "caveman/SKILL.md",
+      "computedHash": "e509ab9726c676c0514e6df2251b729cf90d545c2f94a786351406844349c907"
+    },
+    "caveman-commit": {
+      "source": "blacknabis/cavemankorean",
+      "sourceType": "github",
+      "skillPath": "skills/caveman-commit/SKILL.md",
+      "computedHash": "89fd592e14079fc99a3ccd4dfca5d609bac6a0252e4ec4e3939f1497e53c4cbe"
+    },
+    "caveman-compress": {
+      "source": "blacknabis/cavemankorean",
+      "sourceType": "github",
+      "skillPath": "caveman-compress/SKILL.md",
+      "computedHash": "a32f80e69ae3886f88c4b49436cc807338bfb0eeeeaa6f3813b0d507a0df8f87"
+    },
+    "caveman-help": {
+      "source": "blacknabis/cavemankorean",
+      "sourceType": "github",
+      "skillPath": "skills/caveman-help/SKILL.md",
+      "computedHash": "6abccb21cd9a1622b01f0744ee68e7df2cdc5d99f04ac86b054b24d1b7e50d44"
+    },
+    "caveman-review": {
+      "source": "blacknabis/cavemankorean",
+      "sourceType": "github",
+      "skillPath": "skills/caveman-review/SKILL.md",
+      "computedHash": "368a26f2b079ffe0d584f48006524f65cf997cb9369411aa8c6ead216dee22eb"
+    }
+  }
+}
