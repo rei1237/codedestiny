@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
+import AiResultProse from "@/components/fortune/AiResultProse";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
@@ -405,11 +406,7 @@ export default function AstrologyAiResultClient() {
                     content: (
                       <div className={`${RESULT_PANEL_CLASS} p-5 sm:p-6`}>
                         <h3 className="text-lg font-black leading-7 text-[#f5d487]">{section.title}</h3>
-                        <div className="mt-5 space-y-4">
-                          {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
-                            <p key={paragraphIndex} className="whitespace-pre-wrap break-keep text-[15px] leading-8 text-slate-100">{paragraph}</p>
-                          ))}
-                        </div>
+                        <AiResultProse value={section.body} className="mt-5 text-slate-100" />
                       </div>
                     ),
                   }))}

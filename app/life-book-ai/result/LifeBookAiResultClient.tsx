@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
+import AiResultProse from "@/components/fortune/AiResultProse";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
 type LifeBookMessage = {
@@ -128,10 +129,6 @@ function recordEntries(record?: Record<string, unknown> | null) {
   return Object.entries(record || {})
     .map(([key, value]) => ({ key, value: toText(value) }))
     .filter((entry) => entry.key && entry.value);
-}
-
-function compactLines(content: string) {
-  return String(content || "").split(/\n+/).map((line) => line.trim()).filter(Boolean);
 }
 
 function extractJsonReport(content: string): LifeBookReportJson | null {
@@ -567,11 +564,7 @@ function LifeBookResultContent() {
                           <h2 className="text-2xl font-black text-amber-50">{chapter.title}</h2>
                         </div>
                         {chapter.summary && <p className="mb-4 rounded-2xl border border-amber-200/15 bg-black/20 p-3 text-sm leading-6 text-[#f2dfba]">{toText(chapter.summary)}</p>}
-                        <div className="mx-auto max-w-prose space-y-3 break-keep text-[15px] leading-8 text-[#f4e6cb]">
-                          {compactLines(chapter.content || "").flatMap((line) => splitIntoParagraphs(line.replace(/^[-*]\s*/, ""))).map((paragraph, lineIndex) => (
-                            <p key={lineIndex}>{paragraph}</p>
-                          ))}
-                        </div>
+                        <AiResultProse value={chapter.content} className="mx-auto text-[#f4e6cb]" />
                         {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
                           <div className="mt-4 grid gap-2">
                             {chapter.advice.map((advice, adviceIndex) => (
@@ -603,11 +596,7 @@ function LifeBookResultContent() {
                     {report.expertReadings.map((reading, index) => (
                       <div key={`${reading.title || "reading"}-${index}`} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-4">
                         <h3 className="text-lg font-black text-amber-50">{reading.title || `깊은 판독 ${index + 1}`}</h3>
-                        <div className="mt-3 space-y-3 text-[15px] leading-8 text-[#f4e6cb]">
-                          {compactLines(reading.content || "").flatMap((line) => splitIntoParagraphs(line.replace(/^[-*]\s*/, ""))).map((paragraph, lineIndex) => (
-                            <p key={lineIndex}>{paragraph}</p>
-                          ))}
-                        </div>
+                        <AiResultProse value={reading.content} className="mt-3 text-[#f4e6cb]" />
                         {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
                           <div className="mt-4 grid gap-2">
                             {reading.guidance.map((guide, guideIndex) => (
@@ -629,11 +618,7 @@ function LifeBookResultContent() {
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
                     <h2 className="text-xl font-black">마지막 문장</h2>
                   </div>
-                  <div className="mt-3 space-y-3">
-                    {splitIntoParagraphs(report.finalMessage).map((paragraph, index) => (
-                      <p key={index} className="text-[15px] leading-8 text-[#f4e6cb]">{paragraph}</p>
-                    ))}
-                  </div>
+                  <AiResultProse value={report.finalMessage} className="mt-3 text-[#f4e6cb]" />
                 </section>
               )}
 

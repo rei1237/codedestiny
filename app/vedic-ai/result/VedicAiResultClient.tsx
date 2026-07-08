@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
+import AiResultProse from "@/components/fortune/AiResultProse";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 
@@ -270,9 +271,7 @@ function AssistantSectionsView({ content, viewAll, onViewAllChange }: { content:
   const renderSection = (section: { title: string; body: string }, sectionIndex: number) => (
     <article className={styles.sectionCard} key={`${section.title}-${sectionIndex}`}>
       <span>{section.title}</span>
-      {splitIntoParagraphs(section.body).map((paragraph, paragraphIndex) => (
-        <p key={paragraphIndex}>{paragraph}</p>
-      ))}
+      <AiResultProse value={section.body} />
     </article>
   );
   if (sections.length <= 1) {

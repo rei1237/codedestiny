@@ -5,6 +5,7 @@ import { AlertCircle, ArrowLeft, Download, Heart, Loader2, Moon, RefreshCw } fro
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
+import AiResultProse from "@/components/fortune/AiResultProse";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 
@@ -579,7 +580,7 @@ function LoveSecretResultSection({ index, section }: { index: number; section: R
         </span>
         <h2 className="text-xl font-black text-white">{section.title}</h2>
       </div>
-      <p className="whitespace-pre-wrap text-[15px] leading-8 text-rose-50/90">{section.body}</p>
+      <AiResultProse value={section.body} className="text-rose-50/90" />
     </article>
   );
 }
