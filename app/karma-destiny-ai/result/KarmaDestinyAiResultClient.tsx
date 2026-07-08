@@ -6,6 +6,8 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildKarmaDestinyPreviewPayload } from "@/lib/dev-preview/fixtures/karma-destiny";
 
 type Chapter = {
   id: string;
@@ -124,6 +126,13 @@ function KarmaDestinyResultInner() {
   const keywords = result?.summaryCards?.keywords?.length ? result.summaryCards.keywords.slice(0, 3) : ["업의 매듭", "관계의 반복", "현실 전략"];
 
   const loadResult = useCallback(async () => {
+    const previewState = readDevPreviewState();
+    if (previewState) {
+      setResult(buildKarmaDestinyPreviewPayload(previewState) as KarmaResult);
+      setError("");
+      setLoading(false);
+      return;
+    }
     if (!sessionId) {
       setError("상담 세션을 찾을 수 없습니다.");
       setLoading(false);
@@ -400,7 +409,10 @@ function ResultStyles() {
           display: none !important;
         }
       `}</style>
-      <style jsx>{`
+      {/* styled-jsx는 <style jsx>가 선언된 컴포넌트(ResultStyles) 트리에만 스코프 클래스를 붙인다.
+          실제 .kdai-* 엘리먼트는 부모(KarmaDestinyAiResultClient)에서 렌더되므로 scoped 모드로는
+          전혀 매치되지 않아 전체 결과 화면이 무스타일 텍스트로 노출되던 버그 — global로 전환. */}
+      <style jsx global>{`
         .kdai-result-page {
           min-height: 100vh;
           color: #f8efd8;

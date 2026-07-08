@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
+import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
+import type { RawPlanetLike, RawWesternChart } from "@/types/astrology";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
@@ -107,6 +111,41 @@ function degreeText(value: unknown) {
   return Number.isFinite(Number(value)) ? `${Number(value).toFixed(1)}°` : "";
 }
 
+function toRawPlanetLike(point?: ChartPoint | null): RawPlanetLike | undefined {
+  if (!point) return undefined;
+  return { sign: point.sign, signKo: point.signKo, degree: point.degree, house: point.house ?? undefined };
+}
+
+function toRawWesternChart(chart: AstrologyChart | null): RawWesternChart | null {
+  if (!chart || chart.birthTimeUnknown || !chart.ascendant || !Array.isArray(chart.houses) || chart.houses.length < 12) {
+    return null;
+  }
+  // majorAspects의 planetA/planetB는 한국어 라벨("태양")로 저장되지만, planets 레코드는
+  // 영어 name("sun")을 키로 쓰므로 라벨→name 역참조가 필요하다(안 하면 각도선이 하나도 안 그려짐).
+  const nameByLabel = (label: string) => (chart.planets || []).find((p) => p.label === label || p.name === label)?.name || label;
+  return {
+    source: "astrology-ai",
+    ascendant: toRawPlanetLike(chart.ascendant),
+    midheaven: toRawPlanetLike(chart.mc),
+    planets: Object.fromEntries((chart.planets || []).map((planet) => [
+      planet.name,
+      { ...toRawPlanetLike(planet), retrograde: planet.retrograde ?? undefined },
+    ])),
+    houses: chart.houses.map((house) => ({
+      house: house.house,
+      absoluteDegree: house.cuspDegree ?? undefined,
+      sign: house.sign,
+      signKo: house.signKo,
+    })),
+    aspects: (chart.majorAspects || []).map((aspect) => ({
+      p1: nameByLabel(aspect.planetA),
+      p2: nameByLabel(aspect.planetB),
+      type: aspect.aspect,
+      orb: aspect.orb ?? undefined,
+    })),
+  };
+}
+
 function planetDataLabel(planet: ChartPoint & { name: string; label?: string; retrograde?: boolean | null }) {
   return [
     planet.label || planet.name,
@@ -138,7 +177,10 @@ function balanceDataLabel(balance: Record<string, number> | undefined, labels: R
 }
 
 function splitSections(content: string) {
-  const normalized = content.replace(/\r\n/g, "\n").trim();
+  // 잘린(degrade) 응답이 원시 JSON 형태로 저장된 경우, 중괄호/키를 그대로 문단화하지 않도록
+  // 다른 6개 기능과 동일하게 사람이 읽을 수 있는 문장만 먼저 복원한다.
+  const source = looksLikeRawJson(content) ? extractReadableTextFromJsonLike(content) || content : content;
+  const normalized = source.replace(/\r\n/g, "\n").trim();
   if (!normalized) return [];
   const headingMatches: RegExpExecArray[] = [];
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,44})\n+/gm;
@@ -201,6 +243,13 @@ export default function AstrologyAiResultClient() {
       setLoading(true);
       setError("");
       try {
+        const previewState = readDevPreviewState();
+        if (previewState) {
+          const payload = buildAstrologyPreviewPayload(previewState);
+          if (!payload.ok) throw new Error(payload.message || "저장된 상담 결과를 불러오지 못했습니다.");
+          if (alive) setConsultation(payload as Consultation);
+          return;
+        }
         // 생성 중(202)이면 완료까지 몇 차례 재확인한다(서버 생성 최악 ~8분, 여기선 40회 ≈ 5분).
         for (let attempt = 0; attempt < 40; attempt += 1) {
           const response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
@@ -235,6 +284,7 @@ export default function AstrologyAiResultClient() {
   const highlights = consultation?.chartHighlights || {};
   const assistantContent = consultation?.messages?.find((message) => message.role === "assistant")?.content?.trim() || "";
   const sections = useMemo(() => splitSections(assistantContent), [assistantContent]);
+  const rawChart = useMemo(() => toRawWesternChart(chart), [chart]);
   const userName = toText(birth.name) || "당신";
   const birthTime = birth.birthTimeUnknown ? "출생시간 미상" : toText(birth.birthTime) || "출생시간 미입력";
   const coreCards = [
@@ -405,6 +455,18 @@ export default function AstrologyAiResultClient() {
             </article>
 
             <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+              {rawChart && (
+                <section className={`${RESULT_PANEL_CLASS} p-5`}>
+                  <div className="mb-3 flex items-center gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                      <Stars className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                    </span>
+                    <h2 className="text-lg font-black text-white">출생 천궁도</h2>
+                  </div>
+                  <AstrologyChartWheel chart={rawChart} className="mx-auto w-full max-w-[360px]" />
+                </section>
+              )}
+
               <section className={`${RESULT_PANEL_CLASS} p-5`}>
                 <div className="mb-4 flex items-center gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">

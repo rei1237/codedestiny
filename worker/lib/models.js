@@ -937,12 +937,22 @@ const vedicAiConsultationSchema = new mongoose.Schema({
   userQuestion: { type: String, default: "", trim: true, maxlength: 1500 },
   vedicChart: {
     ayanamsa: { type: String, default: "", trim: true, maxlength: 40 },
+    ayanamsaDegree: { type: Number, default: null },
     lagna: { type: mongoose.Schema.Types.Mixed, default: null },
     moon: { type: mongoose.Schema.Types.Mixed, default: null },
     sun: { type: mongoose.Schema.Types.Mixed, default: null },
     planets: { type: [mongoose.Schema.Types.Mixed], default: [] },
     rahuKetu: { type: mongoose.Schema.Types.Mixed, default: null },
     houses: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    // 아래 5개는 calculateVedicAiChart()가 만드는 "예쁘게 포맷된" 파생 필드 —
+    // 스키마에 없으면 대입 시점에 strict 모드가 조용히 버린다(원본 planets/houses/dasha는
+    // 보존되어 화면 폴백엔 영향 적지만, 누락 자체는 버그이므로 추가).
+    grahas: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    bhavas: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    rashis: { type: [mongoose.Schema.Types.Mixed], default: [] },
+    moonNakshatra: { type: mongoose.Schema.Types.Mixed, default: null },
+    vimshottariDasha: { type: mongoose.Schema.Types.Mixed, default: null },
+    calculationConfig: { type: mongoose.Schema.Types.Mixed, default: null },
     divisionalCharts: { type: mongoose.Schema.Types.Mixed, default: null },
     yogas: { type: [mongoose.Schema.Types.Mixed], default: [] },
     dasha: { type: mongoose.Schema.Types.Mixed, default: null },

@@ -542,6 +542,10 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
   const rashis = rashiRows(chart);
   const bhavas = bhavaRows(chart);
   const dashas = dashaRows(chart);
+  // vimshottariDasha.currentMahadasha에 시작/종료 날짜가 없을 때(레거시 저장분 등),
+  // 같은 다샤 목(lord)의 상세 기간 행에서 날짜를 대신 가져온다.
+  const currentDashaLord = chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha);
+  const currentDashaRow = dashas.find((row) => row.lord === currentDashaLord);
 
   return (
     <section className={styles.basicChartData} aria-label="베다점 계산 상세">
@@ -646,7 +650,7 @@ function BasicVedicChartData({ chart }: { chart: Record<string, unknown> }) {
       </details>
       <details className={styles.chartDetail}>
         <summary>다샤, Dasha</summary>
-        <p className={styles.chartNotice}>빈쇼타리 다샤, Vimshottari Dasha: {chartDisplayValue(currentMahadasha.lord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate)}</p>
+        <p className={styles.chartNotice}>빈쇼타리 다샤, Vimshottari Dasha: {chartDisplayValue(currentMahadasha.lord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate, currentDashaRow?.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate, currentDashaRow?.endDate)}</p>
       </details>
       <details className={styles.chartDetail}>
         <summary>빈쇼타리 다샤, Vimshottari Dasha</summary>
@@ -697,8 +701,10 @@ export function splitAssistantSections(content: string) {
   if (buffer.length) sections.push({ title: currentTitle || SECTION_TITLES[Math.min(sections.length, SECTION_TITLES.length - 1)], body: buffer.join("\n") });
   if (sections.length > 1) return sections;
 
-  const paragraphs = content.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
-  if (paragraphs.length <= 1) return [{ title: SECTION_TITLES[0], body: content.trim() }];
+  // 위에서 복원한 proseSource를 써야 한다 — 원본 content(원시 JSON)를 다시 쓰면 복구가 무효화되어
+  // 잘린 JSON이 그대로 화면에 노출된다.
+  const paragraphs = proseSource.split(/\n{2,}/).map((item) => item.trim()).filter(Boolean);
+  if (paragraphs.length <= 1) return [{ title: SECTION_TITLES[0], body: proseSource.trim() }];
   return paragraphs.slice(0, SECTION_TITLES.length).map((body, index) => ({
     title: SECTION_TITLES[index] || `별빛 조언 ${index + 1}`,
     body,

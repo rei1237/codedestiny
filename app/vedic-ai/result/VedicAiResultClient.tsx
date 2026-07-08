@@ -9,6 +9,8 @@ import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/Page
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildVedicPreviewPayload } from "@/lib/dev-preview/fixtures/vedic";
 
 type Message = {
   role: "user" | "assistant";
@@ -66,6 +68,13 @@ export default function VedicAiResultClient() {
 
     (async () => {
       try {
+        const previewState = readDevPreviewState();
+        if (previewState) {
+          const data = buildVedicPreviewPayload(previewState);
+          if (data.ok && data.consultation) setView({ kind: "detail", consultation: data.consultation as Consultation });
+          else setView({ kind: "missing" });
+          return;
+        }
         const path = id
           ? `/api/vedic-ai/result?id=${encodeURIComponent(id)}`
           : "/api/vedic-ai/result";

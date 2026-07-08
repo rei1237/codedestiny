@@ -5,10 +5,13 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
+import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
+import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 
 type LifeBookMessage = {
   role: "user" | "assistant";
@@ -184,6 +187,9 @@ function getAssistantContent(result: LifeBookResult | null) {
 function buildReport(result: LifeBookResult | null) {
   const content = getAssistantContent(result);
   const parsed = result?.reportJson || extractJsonReport(content);
+  // 잘린(degrade) 응답이 유효한 JSON으로 파싱되지 않을 때, 원시 중괄호/키를 그대로 문단화하지 않도록
+  // 다른 6개 기능과 동일하게 사람이 읽을 수 있는 문장만 복원한 뒤 챕터로 쪼갠다.
+  const fallbackContent = !parsed && looksLikeRawJson(content) ? extractReadableTextFromJsonLike(content) || content : content;
   const chapters = parsed?.chapters?.length
     ? parsed.chapters.map((chapter, index) => ({
       ...chapter,
@@ -191,7 +197,7 @@ function buildReport(result: LifeBookResult | null) {
       title: toText(chapter.title) || FALLBACK_CHAPTERS[index] || `인생의 장 ${index + 1}`,
       content: toText(chapter.content || chapter.summary),
     }))
-    : splitMarkdownChapters(content);
+    : splitMarkdownChapters(fallbackContent);
   return {
     title: parsed?.title || result?.title || "인생의 책 AI 상담 리포트",
     subtitle: parsed?.subtitle || "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
@@ -238,7 +244,10 @@ function LifeBookResultContent() {
       return;
     }
     try {
-      const response = await authFetch(`/api/life-book-ai/result?attemptId=${encodeURIComponent(attemptId)}`);
+      const previewState = readDevPreviewState();
+      const response = previewState
+        ? buildDevPreviewResponse(buildLifeBookPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
+        : await authFetch(`/api/life-book-ai/result?attemptId=${encodeURIComponent(attemptId)}`);
       const payload = await response.json().catch(() => ({})) as LifeBookResult;
       if (pending && response.status === 404) {
         setResult({ status: "generating", message: "인생의 책을 준비하고 있습니다." });
@@ -312,12 +321,12 @@ function LifeBookResultContent() {
   const userName = toText(birth.name) || "당신";
   const isGenerating = result?.status === "generating";
   const pillarRows = [
-    { label: "년주", value: formatSajuValue(saju?.yearPillar) },
-    { label: "월주", value: formatSajuValue(saju?.monthPillar) },
-    { label: "일주", value: formatSajuValue(saju?.dayPillar) },
-    { label: "시주", value: formatSajuValue(saju?.hourPillar, birth.birthTimeUnknown ? "출생시간 모름" : "계산 제한") },
-    { label: "일간", value: formatSajuValue(saju?.dayMaster) },
+    { label: "년주", ganji: formatSajuValue(saju?.yearPillar) },
+    { label: "월주", ganji: formatSajuValue(saju?.monthPillar) },
+    { label: "일주", ganji: formatSajuValue(saju?.dayPillar), emphasis: true },
+    { label: "시주", ganji: formatSajuValue(saju?.hourPillar, birth.birthTimeUnknown ? "출생시간 모름" : "계산 제한") },
   ];
+  const dayMasterValue = formatSajuValue(saju?.dayMaster);
   const fiveElementEntries = recordEntries(saju?.fiveElements);
   const tenGodEntries = recordEntries(saju?.tenGods);
 
@@ -479,14 +488,8 @@ function LifeBookResultContent() {
                   <ScrollText className="h-5 w-5" aria-hidden="true" />
                   <h2 className="text-xl font-black">기본 명식</h2>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  {pillarRows.map((row) => (
-                    <div key={row.label} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-3">
-                      <p className="text-xs font-bold text-amber-200">{row.label}</p>
-                      <p className="mt-1 text-sm font-black text-[#f4e6cb]">{row.value}</p>
-                    </div>
-                  ))}
-                </div>
+                <SajuPillarTable className="mt-4 sm:grid-cols-4" pillars={pillarRows} />
+                <p className="mt-3 text-xs font-bold text-amber-200">일간 {dayMasterValue}</p>
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
                     <h3 className="text-sm font-black text-amber-200">오행 분포</h3>

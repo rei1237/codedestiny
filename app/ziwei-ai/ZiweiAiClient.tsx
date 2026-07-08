@@ -8,6 +8,8 @@ import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-re
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildZiweiPreviewPayload } from "@/lib/dev-preview/fixtures/ziwei";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -783,6 +785,23 @@ export default function ZiweiAiPage() {
     setNotice("별궁을 열기 위한 정보를 확인하고 있습니다");
     setPhase("checking");
     let gateStarted = false;
+
+    const previewState = readDevPreviewState();
+    if (previewState) {
+      setPhase("reading");
+      const preview = buildZiweiPreviewPayload(previewState);
+      if (preview.ok) {
+        setConsultation(preview.consultation as Consultation);
+        rememberConsultationUrl(preview.consultation.id);
+        setPhase("ready");
+        setNotice("");
+      } else {
+        setError(ERROR_TEXT[preview.reason] || ERROR_TEXT.LLM_ERROR);
+        setPhase("idle");
+      }
+      busyRef.current = false;
+      return;
+    }
 
     try {
       const validationMessage = validateForm(form);

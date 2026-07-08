@@ -8,6 +8,8 @@ import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/Page
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
+import { buildLoveSecretPreviewPayload } from "@/lib/dev-preview/fixtures/love-secret";
 
 type PersonInfo = {
   name?: string;
@@ -240,8 +242,10 @@ export default function LoveSecretAiResultClient() {
       setLoading(true);
       setError("");
       try {
-        const endpoint = buildResultEndpoint();
-        const response = await authFetch(endpoint);
+        const previewState = readDevPreviewState();
+        const response = previewState
+          ? buildDevPreviewResponse(buildLoveSecretPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
+          : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
         if (response.status === 202) {
           if (!alive) return;

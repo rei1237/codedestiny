@@ -16,6 +16,9 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtures/sukuyo-compatibility";
+import SukuyoWheel from "@/components/fortune/SukuyoWheel";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
 
 type CalendarType = "solar" | "lunar";
@@ -675,15 +678,12 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
   const tune = Math.round(((meta.scores.stability + meta.scores.harmony) / 40) * 100);
   return (
     <section className={styles.summaryHeaderCard} aria-label="궁합 요약">
-      <svg viewBox="0 0 320 96" className={styles.starLineSvg} aria-hidden="true">
-        <path d="M28 66 Q160 8 292 66" fill="none" stroke="rgba(200,168,255,0.35)" strokeWidth="1.2" strokeDasharray="3 5" />
-        <line x1="28" y1="66" x2="292" y2="66" stroke="rgba(255,232,182,0.5)" strokeWidth="1.4" />
-        <circle cx="28" cy="66" r="7" fill="#FFE8B6" style={{ filter: "drop-shadow(0 0 8px rgba(255,232,182,0.9))" }} />
-        <circle cx="292" cy="66" r="7" fill="#C8A8FF" style={{ filter: "drop-shadow(0 0 8px rgba(200,168,255,0.9))" }} />
-        <text x="28" y="88" textAnchor="middle" fontSize="10" fill="rgba(255,247,232,0.85)">{meta.person_a.sukuyo}</text>
-        <text x="292" y="88" textAnchor="middle" fontSize="10" fill="rgba(255,247,232,0.85)">{meta.person_b.sukuyo}</text>
-        <text x="160" y="58" textAnchor="middle" fontSize="10" fill="rgba(255,232,182,0.9)">{meta.relation.type_a_to_b} · 거리 {meta.relation.distance}숙</text>
-      </svg>
+      <SukuyoWheel
+        myHanja={meta.person_a.sukuyo_hanja}
+        partnerHanja={meta.person_b.sukuyo_hanja}
+        relationLabel={`${meta.relation.type_a_to_b} · 거리 ${meta.relation.distance}숙`}
+        className={styles.starLineSvg}
+      />
       <div className={styles.summaryGauge}>
         <div className={styles.gaugeCircle} role="img" aria-label={`종합 궁합 ${meta.scores.total}점`} style={{ background: `conic-gradient(#FFE8B6 ${meta.scores.total * 3.6}deg, rgba(255,255,255,0.08) 0deg)` }}>
           <span><strong>{meta.scores.total}</strong><small>/100</small></span>
@@ -1094,6 +1094,21 @@ export default function SukuyoCompatibilityAiClient() {
 
   async function handleSubmit() {
     if (busy) return;
+    const previewState = readDevPreviewState();
+    if (previewState) {
+      setPhase("start");
+      const preview = buildSukuyoCompatibilityPreviewPayload(previewState);
+      if (preview.ok) {
+        setConsultation(preview.consultation as Consultation);
+        if (preview.consultation.id) rememberConsultationUrl(preview.consultation.id);
+        setError("");
+        setNotice("");
+      } else {
+        setError(ERROR_TEXT[preview.reason] || ERROR_TEXT.LLM_FAILED);
+      }
+      setPhase("idle");
+      return;
+    }
     if (!validatePayload()) {
       setError(getPayloadValidationMessage());
       return;

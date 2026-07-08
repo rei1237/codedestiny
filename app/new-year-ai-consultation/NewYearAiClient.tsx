@@ -13,6 +13,9 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { readDevPreviewState } from "@/lib/dev-preview/core";
+import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
+import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -315,14 +318,10 @@ function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
       <div className="nyai-saju-birth">
         {[birth.name, birth.birthDate, birth.birthTime, birth.calendarType === "lunar" ? "음력" : "양력", birth.gender].filter(Boolean).join(" · ")}
       </div>
-      <div className="nyai-pillar-grid">
-        {pillars.map((pillar) => (
-          <div className="nyai-pillar" key={pillar.label}>
-            <span>{pillar.label}</span>
-            <strong>{pillar.value}</strong>
-          </div>
-        ))}
-      </div>
+      <SajuPillarTable
+        className="nyai-pillar-grid"
+        pillars={pillars.map((pillar) => ({ label: pillar.label, ganji: pillar.value }))}
+      />
       <div className="nyai-saju-facts">
         <span>일간 {profile.dayMaster || "미산출"}</span>
         <span>{profile.strength || "신강·신약 미산출"}</span>
@@ -936,6 +935,18 @@ export default function NewYearAiConsultationPage() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (startLockRef.current || isBusy) return;
+    const previewState = readDevPreviewState();
+    if (previewState) {
+      setStatus("reading");
+      const preview = buildNewYearPreviewPayload(previewState);
+      if (preview.ok && Array.isArray(preview.messages) && preview.messages.length) {
+        applyResult(preview as ConsultationResult);
+      } else {
+        setError(preview.message || LLM_ERROR_MESSAGE);
+        setStatus("error");
+      }
+      return;
+    }
     const validationMessage = validateConsultationForm(form);
     if (validationMessage) {
       setNotice("");
