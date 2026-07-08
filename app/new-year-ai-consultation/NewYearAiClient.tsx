@@ -1032,45 +1032,18 @@ export default function NewYearAiConsultationPage() {
     setNotice("");
     setError("");
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const contentWidth = pageWidth - margin * 2;
-      const contentHeight = pageHeight - margin * 2;
-      const sections = Array.from(resultRef.current.querySelectorAll<HTMLElement>("[data-pdf-section]"));
-      if (!sections.length) throw new Error("PDF 저장 대상 없음");
-      let hasPage = false;
-      for (const section of sections) {
-        const canvas = await html2canvas(section, {
-          backgroundColor: "#2e130f",
-          scale: Math.min(2, Math.max(1.4, window.devicePixelRatio || 1.5)),
-          useCORS: true,
-        });
-        const sliceHeightPx = Math.max(1, Math.floor((canvas.width / contentWidth) * contentHeight));
-        for (let offsetY = 0; offsetY < canvas.height; offsetY += sliceHeightPx) {
-          const currentSliceHeight = Math.min(sliceHeightPx, canvas.height - offsetY);
-          const sliceCanvas = document.createElement("canvas");
-          sliceCanvas.width = canvas.width;
-          sliceCanvas.height = currentSliceHeight;
-          const context = sliceCanvas.getContext("2d");
-          if (!context) throw new Error("PDF 캔버스 생성 실패");
-          context.fillStyle = "#2e130f";
-          context.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
-          context.drawImage(canvas, 0, offsetY, canvas.width, currentSliceHeight, 0, 0, canvas.width, currentSliceHeight);
-          if (hasPage) pdf.addPage();
-          const sliceHeightMm = currentSliceHeight * contentWidth / canvas.width;
-          pdf.addImage(sliceCanvas.toDataURL("image/png"), "PNG", margin, margin, contentWidth, Math.min(contentHeight, sliceHeightMm));
-          hasPage = true;
-        }
-      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const safeName = (form.userName.trim() || "new-year").replace(/[\\/:*?"<>|]/g, "_");
-      pdf.save(`신년운세_AI상담_${safeName}_${form.targetYear}.pdf`);
+      await exportResultPdf({
+        captureTargets: [".nyai-messages [data-pdf-section]"],
+        fileName: `신년운세_AI상담_${safeName}_${form.targetYear}.pdf`,
+        backgroundColor: "#2e130f",
+        cover: {
+          title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
+          name: form.userName,
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

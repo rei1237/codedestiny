@@ -203,37 +203,19 @@ function KarmaDestinyResultInner() {
     if (!element || downloading) return;
     setDownloading(true);
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const targets = Array.from(element.querySelectorAll<HTMLElement>("[data-kdai-pdf-page]"));
-      for (const [index, target] of (targets.length ? targets : [element]).entries()) {
-        const canvas = await html2canvas(target, {
-          backgroundColor: "#080612",
-          scale: Math.min(2, window.devicePixelRatio || 2),
-          useCORS: true,
-        });
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = (canvas.height * pageWidth) / canvas.width;
-        let remainingHeight = imageHeight;
-        let position = 0;
-        if (index > 0) pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-        while (remainingHeight > 0) {
-          position = remainingHeight - imageHeight;
-          pdf.addPage();
-          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-          remainingHeight -= pageHeight;
-        }
-      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const safeName = userName.replace(/[\\/:*?"<>|]/g, "_");
-      pdf.save(`운명의업_장문리포트_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`);
+      await exportResultPdf({
+        captureTargets: ["#karma-premium-report [data-kdai-pdf-page]"],
+        fileName: `운명의업_장문리포트_${safeName}_${new Date().toISOString().slice(0, 10)}.pdf`,
+        backgroundColor: "#080612",
+        cover: {
+          title: `${userName}님의 운명의 업 장문 리포트`,
+          subtitle: result?.userInput?.topic || "전체 운명의 업",
+          name: userName,
+          date: formatDate(result?.generatedAt),
+        },
+      });
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

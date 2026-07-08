@@ -519,39 +519,19 @@ function KarmaResultModal({
     if (!element || isDownloading) return;
     setIsDownloading(true);
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const pageTargets = Array.from(element.querySelectorAll<HTMLElement>("[data-kdai-pdf-page]"));
-      const targets = pageTargets.length ? pageTargets : [element];
-
-      for (const [targetIndex, target] of targets.entries()) {
-        const canvas = await html2canvas(target, {
-          backgroundColor: "#060412",
-          scale: Math.min(2, window.devicePixelRatio || 2),
-          useCORS: true,
-        });
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = (canvas.height * pageWidth) / canvas.width;
-        let remainingHeight = imageHeight;
-        let position = 0;
-        if (targetIndex > 0) pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-        while (remainingHeight > 0) {
-          position = remainingHeight - imageHeight;
-          pdf.addPage();
-          pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-          remainingHeight -= pageHeight;
-        }
-      }
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const fileName = `운명의답장_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "")}.pdf`;
-      pdf.save(fileName);
+      await exportResultPdf({
+        captureTargets: ["#karma-result-content [data-kdai-pdf-page]"],
+        fileName,
+        backgroundColor: "#060412",
+        cover: {
+          title: `${userName}님의 운명의 업 답장`,
+          subtitle: birthDate,
+          name: userName,
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
     } catch {
       onDownloadError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
