@@ -521,6 +521,10 @@ export default function NeoOperationRoomResultPage() {
 
   useEffect(() => {
     let cancelled = false;
+    // 생성은 서버 백그라운드에서 진행되므로, 결과 페이지를 직접 열면 아직 generating(202)일 수 있다.
+    // 완료(또는 실패)로 수렴할 때까지 폴링한다. 4s×60=240s, CF rate-limit(10s당 100회) 여유 안.
+    const RESULT_POLL_INTERVAL_MS = 4000;
+    const RESULT_POLL_MAX_ATTEMPTS = 60;
     async function loadResult() {
       if (localPreviewMode) {
         const previewSession = buildLocalPreviewSession(localPreviewMode);
@@ -539,24 +543,43 @@ export default function NeoOperationRoomResultPage() {
       }
       setLoading(true);
       setError("");
-      try {
-        const response = await authFetch(`/api/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`);
-        const data = await response.json().catch(() => ({}));
-        if (cancelled) return;
-        if (!response.ok || !data?.ok) {
-          const message = asErrorMessage(data) || (response.status === 401 ? "로그인이 필요하다." : "작전 명령서를 찾지 못했다.");
-          setError(message);
-          setSession(null);
+      for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+        try {
+          const response = await authFetch(`/api/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`);
+          const data = await response.json().catch(() => ({}));
+          if (cancelled) return;
+          // 아직 생성 중(202) — 생성 상태를 보여주고 잠시 후 다시 조회한다.
+          if (response.status === 202 || (data?.ok && data.status === "generating")) {
+            setSession((current) => (current?.status === "generating" ? current : (data as NeoResultSession)));
+            setLoading(false);
+            await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
+            if (cancelled) return;
+            continue;
+          }
+          if (!response.ok || !data?.ok) {
+            const message = asErrorMessage(data) || (response.status === 401 ? "로그인이 필요하다." : "작전 명령서를 찾지 못했다.");
+            setError(message);
+            setSession(null);
+            setLoading(false);
+            return;
+          }
+          setSession(data as NeoResultSession);
+          setSelectedChecks(Array.isArray(data.realityCheck?.selectedChecks) ? data.realityCheck.selectedChecks : []);
+          setFreeform(String(data.realityCheck?.freeform || ""));
+          setShowRealityForm(!data.refinedOrder);
+          setLoading(false);
           return;
+        } catch {
+          if (cancelled) return;
+          // 일시적 네트워크 오류 — 잠시 후 재시도.
+          await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
+          if (cancelled) return;
         }
-        setSession(data as NeoResultSession);
-        setSelectedChecks(Array.isArray(data.realityCheck?.selectedChecks) ? data.realityCheck.selectedChecks : []);
-        setFreeform(String(data.realityCheck?.freeform || ""));
-        setShowRealityForm(!data.refinedOrder);
-      } catch {
-        if (!cancelled) setError("작전 명령서를 불러오지 못했다.");
-      } finally {
-        if (!cancelled) setLoading(false);
+      }
+      // 폴링 예산 소진 — 생성이 지연되고 있음을 알린다(이용권/권한은 보존).
+      if (!cancelled) {
+        setLoading(false);
+        setError("작전 브리핑 생성이 평소보다 오래 걸리고 있다. 이용권은 그대로 유지되니, 잠시 후 새로고침해라.");
       }
     }
     loadResult();
@@ -731,7 +754,6 @@ export default function NeoOperationRoomResultPage() {
     "--neo-bg-desktop": `url("${neoWarRoomAssets.backgrounds.desktop.src}")`,
     "--neo-bg-mobile": `url("${neoWarRoomAssets.backgrounds.mobile.src}")`,
   } as CSSProperties;
-  const neoResultGradesAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.gradesMobile : neoWarRoomAssets.badges.grades;
   const neoResultStampAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
 
   useEffect(() => {
@@ -780,9 +802,27 @@ export default function NeoOperationRoomResultPage() {
 
       {isGenerating ? (
         <section className={styles.stateCard} aria-live="polite">
-          <NeoWarRoomAssetImage asset={neoResultGradesAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
+          <NeoWarRoomAssetImage
+            asset={neoWarRoomAssets.hero.strategyNeoMain}
+            fallbackSrc="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp"
+            alt=""
+            sizes="200px"
+            className={styles.stateNeo}
+            imageClassName={styles.stateNeoImage}
+          />
           <h2>작전 브리핑 생성 중</h2>
-          <p>계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다.</p>
+          <p>{selectedMethod
+            ? `네오가 ${methodLabel(selectedMethod)}의 지도를 펼쳐 작전을 짜는 중이다. 계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다.`
+            : "계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다."}</p>
+          {selectedMethod ? (
+            <NeoWarRoomAssetImage
+              asset={selectedMethodDefinition.coverAsset}
+              alt=""
+              sizes="120px"
+              className={styles.stateMethodChip}
+              imageClassName={styles.stateMethodChipImage}
+            />
+          ) : null}
         </section>
       ) : null}
 

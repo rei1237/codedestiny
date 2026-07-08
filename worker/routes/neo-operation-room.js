@@ -41,6 +41,9 @@ const SERVICE_KEY = "neo-operation-room";
 const FEATURE_KEY = "neo-operation-room-consultation";
 const ACCESS_TOKEN_TYPE = "neo-operation-room-access";
 const ACCESS_TOKEN_TTL = "45m";
+// 백그라운드 생성(14챕터)이 완주하는 최악 시간을 덮는 신선도 창. 이 창 안의 재-POST는 2차 생성을
+// 기동하지 않고 202로 흡수돼 이중 작업/이중 과금을 막는다.
+const GENERATION_FRESHNESS_MS = 300000;
 const TITLE = "네오의 팩폭 작전실";
 const LOGIN_REQUIRED_MESSAGE = "작전을 시작하려면 로그인이 필요하다. 로그인하고 다시 앉아라.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제나 이용권 확인이 끝나지 않았다. 권한을 확인한 뒤 다시 시도해라.";
@@ -1143,7 +1146,7 @@ async function handleEnsureAccess(request, env) {
   return paymentRequired(pricing, idempotencyKey);
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, ctx = null) {
   const body = await readJson(request);
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
@@ -1164,8 +1167,21 @@ async function handleStart(request, env) {
   const existing = await NeoOperationRoomConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
   if (existing && clean(existing.inputHash) !== normalized.inputHash) return invalidInput(INVALID_INPUT_MESSAGE, 409);
   if (existing?.status === "completed") return json(publicSession(existing));
-  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < 90000) {
+  if (existing?.status === "generating" && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS) {
     return json({ ok: true, sessionId: existing.id, status: "generating", message: "운명의 작전 지도를 펼치는 중이다." }, { status: 202 });
+  }
+
+  // 정찰 지도(계산)는 LLM이 아니므로 포그라운드에서 즉시 검증한다 — 출생정보/차트 오류는 여기서 422로 빠르게 반환.
+  let methodSummary;
+  try {
+    methodSummary = await calculateMethodSummary(env, normalized, request);
+  } catch (error) {
+    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
+    return json({
+      ok: false,
+      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
+      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
+    }, { status: isCalculationError ? 422 : 503 });
   }
 
   const sessionId = existing?.id || `neoop_${clean(auth.userId).slice(-8)}_${Date.now().toString(36)}`;
@@ -1180,7 +1196,7 @@ async function handleStart(request, env) {
     topic: normalized.input.topic,
     intensity: normalized.input.intensity,
     question: normalized.input.question,
-    methodSummary: null,
+    methodSummary,
     initialBriefing: null,
     accessType: access.accessType,
     paymentId: clean(access.paymentId, 160),
@@ -1203,53 +1219,60 @@ async function handleStart(request, env) {
     }
   }
 
+  // 환불형 실행은 202 응답 전에 등록한다 — 백그라운드가 도중에 축출돼도 실행 레코드가 남아
+  // 타임아웃 크론(service-execution-task, 600s)이 미완 실행을 환불한다.
   await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
-  try {
-    const methodSummary = await calculateMethodSummary(env, normalized, request);
-    const generated = await generateBriefing(env, normalized, methodSummary);
-    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
-    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
-    const completed = await NeoOperationRoomConsultation.findOneAndUpdate(
-      { id: sessionId },
-      {
-        $set: {
-          status: "completed",
-          methodSummary,
-          initialBriefing: generated.briefing,
-          messages: [
-            { role: "user", content: normalized.input.question, createdAt: now },
-            { role: "assistant", content: JSON.stringify(generated.briefing), createdAt: new Date() },
-          ],
-          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
-          generationError: null,
-        },
-      },
-      { new: true },
-    ).lean();
-    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
-    return json(publicSession(completed));
-  } catch (error) {
-    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-    await NeoOperationRoomConsultation.updateOne(
-      { id: sessionId },
-      {
-        $set: {
-          status: "generation_failed",
-          generationError: {
-            code: clean(error?.code || "GENERATION_FAILED", 80),
-            message: clean(error?.message || error, 500),
-            at: new Date().toISOString(),
+
+  // 14개 챕터 LLM 브리핑은 요청 연결과 분리해 백그라운드(waitUntil)에서 생성한다(연결이 끊겨도 완주).
+  // 프론트는 /result 폴링으로 완료/실패를 수렴하고, 크레딧 차감은 생성 성공 후에만 이뤄진다(이중 과금 방지).
+  const runGeneration = async () => {
+    try {
+      const generated = await generateBriefing(env, normalized, methodSummary);
+      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
+      await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
+      await NeoOperationRoomConsultation.updateOne(
+        { id: sessionId },
+        {
+          $set: {
+            status: "completed",
+            methodSummary,
+            initialBriefing: generated.briefing,
+            messages: [
+              { role: "user", content: normalized.input.question, createdAt: now },
+              { role: "assistant", content: JSON.stringify(generated.briefing), createdAt: new Date() },
+            ],
+            llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+            generationError: null,
           },
         },
-      },
-    ).catch(() => {});
-    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
-    return json({
-      ok: false,
-      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
-      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
-    }, { status: isCalculationError ? 422 : 503 });
+      );
+      await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    } catch (error) {
+      await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+      await NeoOperationRoomConsultation.updateOne(
+        { id: sessionId },
+        {
+          $set: {
+            status: "generation_failed",
+            generationError: {
+              code: clean(error?.code || "GENERATION_FAILED", 80),
+              message: clean(error?.message || error, 500),
+              at: new Date().toISOString(),
+            },
+          },
+        },
+      ).catch(() => {});
+    }
+  };
+
+  // ctx가 있으면 응답 반환 후 백그라운드 실행(Workers 표준), 없으면(테스트/폴백) 동기 실행.
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(runGeneration());
+  } else {
+    await runGeneration();
   }
+
+  return json({ ok: true, sessionId, status: "generating", message: "운명의 작전 지도를 펼치는 중이다." }, { status: 202 });
 }
 
 async function handleResult(request, env, pathId = "") {
@@ -1265,6 +1288,33 @@ async function handleResult(request, env, pathId = "") {
     $or: [{ id: resultId }, { idempotencyKey: resultId }],
   }).lean();
   if (!consultation) return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
+
+  const status = clean(consultation.status);
+  // 백그라운드 생성이 진행 중 — 프론트가 폴링으로 완료를 수렴하도록 202를 반환한다.
+  // 생성 중에도 선택 술수/주제를 실어 결과 화면이 "네오가 무엇으로 작전을 짜는 중"인지 보여주게 한다.
+  if (status === "generating") {
+    return json(
+      {
+        ok: true,
+        sessionId: clean(consultation.id),
+        status: "generating",
+        selectedMethod: clean(consultation.selectedMethod),
+        topic: clean(consultation.topic),
+        message: "운명의 작전 지도를 펼치는 중이다.",
+      },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  // 생성 실패 — 실제 원인(계산/LLM)을 코드로 실어 프론트가 정확한 문구를 띄우게 한다(이용권 오표시 방지).
+  if (status === "generation_failed" || status === "failed") {
+    const failCode = clean(consultation.generationError?.code);
+    const isCalculationError = failCode.includes("BIRTH") || failCode.includes("CHART") || failCode.includes("CALCULATION");
+    return json({
+      ok: false,
+      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
+      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
+    }, { status: 409 });
+  }
   return json(publicSession(consultation));
 }
 
@@ -1354,14 +1404,14 @@ async function handleRefine(request, env) {
   }
 }
 
-export async function handleNeoOperationRoomRoutes(request, env = {}) {
+export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/neo-operation-room");
   try {
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
-    if (method === "POST" && path === "/start") return await handleStart(request, env);
+    if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/refine") return await handleRefine(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();

@@ -145,7 +145,8 @@ const API_ENDPOINTS = {
   result: "/api/neo-operation-room/result",
 } as const;
 const PENDING_RESULT_POLL_INTERVAL_MS = 4000;
-const PENDING_RESULT_POLL_MAX_ATTEMPTS = 24;
+// 백그라운드 14챕터 생성(최악 ~3분)을 덮도록 4s×60=240s 예산. CF rate-limit(10s당 100회) 여유 안.
+const PENDING_RESULT_POLL_MAX_ATTEMPTS = 60;
 const BRIEFING_SEAL_DELAY_MS = 1200;
 const BRIEFING_REVEAL_STEP_COUNT = 8;
 const BRIEFING_REVEAL_INTERVAL_MS = 1500;
@@ -817,6 +818,7 @@ const errorCopy: Record<string, string> = {
   INVALID_INPUT: "작전 정보가 부족하다. 입력값을 다시 확인해라.",
   CALCULATION_ERROR: "운명의 계산 지도를 펼치는 중 문제가 생겼다. 출생정보를 다시 확인해라.",
   LLM_ERROR: "작전 브리핑 작성에 실패했다. 이용권이나 결제 권한은 보존되니 다시 시도해라.",
+  GENERATION_PENDING: "작전 브리핑을 아직 작성 중이다. 이용권은 그대로 유지되니, 잠시 후 결과 화면에서 확인해라.",
   SERVER_ERROR: "작전실 연결에 문제가 생겼다. 잠시 후 다시 시도해라.",
 };
 
@@ -1652,35 +1654,49 @@ export default function NeoOperationRoomPage() {
         const response = await authFetch(`${API_ENDPOINTS.result}?attemptId=${encodeURIComponent(resultId)}`, {
           headers: { Accept: "application/json" },
         });
-        const data = (await response.json().catch(() => ({}))) as NeoSession & { status?: string };
+        const data = (await response.json().catch(() => ({}))) as NeoSession & { status?: string; reason?: string };
         if (data.ok && data.initialBriefing) {
           finishBriefing(data);
           return;
         }
-        if (toText(data.status) === "failed" || toText(data.status) === "generation_failed") break;
-      } catch {
-        void 0;
+        // 생성 실패: 서버가 실제 원인(LLM/계산)을 reason으로 실어 409로 준다 → 정확한 코드로 던진다.
+        if (response.status === 409 || toText(data.status) === "failed" || toText(data.status) === "generation_failed") {
+          throw new Error(toText(data.reason) === "CALCULATION_ERROR" ? "CALCULATION_ERROR" : "LLM_ERROR");
+        }
+        // 그 외(202 generating 등)는 계속 폴링한다.
+      } catch (caught) {
+        // 위에서 던진 실패 코드는 그대로 전파하고, 일시적 네트워크 오류만 삼켜 재시도한다.
+        if (caught instanceof Error && (caught.message === "LLM_ERROR" || caught.message === "CALCULATION_ERROR")) throw caught;
       }
     }
-    throw new Error("SERVER_ERROR");
+    // 폴링 예산 소진 — 생성이 아직 진행 중일 수 있으니 결과 화면에서 확인하도록 안내한다.
+    throw new Error("GENERATION_PENDING");
   }
 
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
     setFlowPhase("generating");
     setStatusMessage("운명의 작전 지도를 펼치는 중이다.");
-    const { response, data } = await postJson<NeoSession | { ok?: false; reason?: string; message?: string }>(
+    // /start는 세션을 만든 뒤 즉시 202를 반환하고 실제 생성은 서버 백그라운드에서 진행된다.
+    // 연결 자체가 끊겨 postJson이 거부되더라도 생성은 계속되므로, 폴링으로 완료를 수렴시킨다.
+    const started = await postJson<NeoSession | { ok?: false; reason?: string; message?: string }>(
       API_ENDPOINTS.start,
       { ...payload, ...access },
       idempotencyKey,
-    );
+    ).catch(() => null);
+    if (!started) {
+      setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
+      await pollPendingBriefing(idempotencyKey);
+      return;
+    }
+    const { response, data } = started;
+    if (data.ok && data.initialBriefing) {
+      finishBriefing(data);
+      return;
+    }
     if (response.status === 202) {
       const pendingId = toText((data as { sessionId?: string }).sessionId) || idempotencyKey;
       setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
       await pollPendingBriefing(pendingId);
-      return;
-    }
-    if (data.ok && data.initialBriefing) {
-      finishBriefing(data);
       return;
     }
     throw new Error(toText((data as { reason?: string }).reason) || "SERVER_ERROR");
@@ -1836,10 +1852,12 @@ export default function NeoOperationRoomPage() {
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       const paymentCancelled = code === "PAYMENT_CANCELLED";
+      // 생성 단계(LLM/계산/지연) 실패는 결제·이용권 문제가 아니므로 게이트 문구를 분리한다(오표시 방지).
+      const isGenerationCode = code === "LLM_ERROR" || code === "CALCULATION_ERROR" || code === "GENERATION_PENDING";
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: "이용권 확인 실패",
+        title: isGenerationCode ? "작전 브리핑 생성 실패" : "이용권 확인 실패",
         reason: FEATURE_TITLE,
         paymentMode: "MEMBERSHIP_PASS",
         message: errorCopy[code] || errorCopy.SERVER_ERROR,

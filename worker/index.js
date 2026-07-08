@@ -425,7 +425,7 @@ const handleAccessRoutes = createLazyRouteHandler("./routes/access.js", () => im
 const handleRpgRoutes = createLazyRouteHandler("./routes/rpg.js", () => import("./routes/rpg.js"), "handleRpgRoutes");
 const handleFptiRoutes = createLazyRouteHandler("./routes/fpti.js", () => import("./routes/fpti.js"), "handleFptiRoutes");
 
-async function runAiRouteWithSecurity(request, env, serviceKey, handler) {
+async function runAiRouteWithSecurity(request, env, serviceKey, handler, ctx) {
   const security = await enforceAiRouteSecurity({
     request,
     env,
@@ -433,7 +433,9 @@ async function runAiRouteWithSecurity(request, env, serviceKey, handler) {
     path: new URL(request.url).pathname,
   });
   if (!security.ok) return withCorsHeaders(request, env, security.response);
-  return withCorsHeaders(request, env, await handler(request, env));
+  // ctx는 즉시-202 + waitUntil 백그라운드 생성이 필요한 라우트(neo)만 사용한다.
+  // (request, env) 시그니처의 다른 핸들러는 잉여 인자를 무시한다.
+  return withCorsHeaders(request, env, await handler(request, env, ctx));
 }
 
 const getRuntimeKeyMatrix = async (env, forceRefresh = false) => {
@@ -1287,7 +1289,7 @@ export default {
       }
 
       if (url.pathname === "/api/neo-operation-room" || url.pathname.startsWith("/api/neo-operation-room/")) {
-        return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes);
+        return runAiRouteWithSecurity(request, env, "neo-operation-room", handleNeoOperationRoomRoutes, ctx);
       }
 
       if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {
