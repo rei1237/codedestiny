@@ -1227,8 +1227,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "운명의 꽃 - 통합 아틀리에",
     h1: "운명의 꽃 아틀리에",
-    description: "사주·점성술·자미두수·숙요의 결을 소스별 탭으로 열어, 내 운명의 꽃과 팔레트가 피어나는 흐름을 봅니다.",
-    seoText: "운명의 꽃 아틀리에는 네 가지 운세의 기운을 꽃, 팔레트, 해석 패널로 피워 올립니다.",
+    description: "사주의 오행과 십성, 점성술의 행성 배치, 자미두수의 명궁, 숙요점의 27수 — 네 학문이 각각 짚어낸 기운을 소스 탭으로 넘겨 보며, 나만의 운명 꽃 한 송이로 모읍니다.",
+    seoText: "운명의 꽃 아틀리에는 사주·점성술·자미두수·숙요점, 네 가지 오래된 셈법이 읽어낸 기운을 하나의 꽃과 팔레트로 엮어 보여줍니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower.webp",
     landingPoints: ["4개 운세 소스 탭 전환", "소스별 꽃·키워드·해석 패널", "프롬프트/저장/공유 도구"],
     localized: {
@@ -1253,10 +1253,10 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "점성술 운명의 꽃",
     h1: "점성술 운명의 꽃",
-    description: "태양궁의 중심 기운에 상승궁과 달궁의 보조 신호가 더해지며, 나의 점성술 꽃이 성운처럼 피어납니다.",
-    seoText: "점성술 운명의 꽃에서는 태양궁의 꽃 위로 상승궁과 달궁의 분위기가 은은하게 겹칩니다.",
+    description: "태양 별자리가 그려내는 본래 기질 위로, 상승궁의 첫인상과 달 별자리의 감정 결이 함께 포개지며 나만의 점성술 꽃이 성운처럼 피어납니다.",
+    seoText: "점성술 운명의 꽃은 태양 별자리를 중심에 두고, 상승궁과 달 별자리의 분위기를 성운처럼 겹쳐 보여줍니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower2.webp",
-    landingPoints: ["태양궁 중심 꽃 매핑", "상승궁·달궁 보조 시그널", "성운 테마 시각화/공유"],
+    landingPoints: ["태양 별자리 중심 꽃 매핑", "상승궁·달 별자리 보조 시그널", "성운 테마 시각화/공유"],
     localized: {
       en: {
         title: "Astrology Flower of Destiny",
@@ -1277,8 +1277,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "자미두수 운명의 꽃",
     h1: "자미두수 운명의 꽃",
-    description: "명궁과 주성, 밝기의 기운이 겹치며 자미두수의 꽃과 테마가 한 장의 운명 정원처럼 피어납니다.",
-    seoText: "자미두수 운명의 꽃에서는 명궁의 힌트와 주성의 빛이 꽃 팔레트와 해석으로 번집니다.",
+    description: "명궁에 자리한 주성과 그 밝기, 삼방사정으로 이어지는 궁위의 기운이 겹치며 자미두수의 꽃과 테마가 한 장의 명반처럼 피어납니다.",
+    seoText: "자미두수 운명의 꽃에서는 명궁의 주성과 사화의 흐름이 꽃 팔레트와 해석으로 번집니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower3.webp",
     landingPoints: ["명궁/주성 기반 꽃 산출", "밝기 강도 반영 테마", "자미두수 해석 패널"],
     localized: {
@@ -1301,8 +1301,8 @@ export const SERVICE_MAP = {
     component: FeatureLandingPage,
     title: "숙요 운명의 꽃",
     h1: "숙요 운명의 꽃",
-    description: "숙요 27수와 월상의 흐름이 겹치며, 달빛을 머금은 나만의 꽃과 작은 의식이 열립니다.",
-    seoText: "숙요 운명의 꽃에서는 27수의 별빛과 월상의 그림자가 꽃, 키워드, 의식으로 이어집니다.",
+    description: "내가 태어난 날 달이 머문 숙명의 자리, 27수와 오늘의 월상이 겹치며 달빛을 머금은 나만의 꽃이 피어납니다.",
+    seoText: "숙요 운명의 꽃은 태어난 날의 27수와 오늘의 달 위치를 겹쳐, 달빛 꽃과 키워드로 보여줍니다.",
     ogImage: "https://code-destiny.com/fuctionassets/flower4.webp",
     landingPoints: ["27수 기반 꽃 매칭", "달 위상 보정 시각화", "숙요 해석/가이드 패널"],
     localized: {

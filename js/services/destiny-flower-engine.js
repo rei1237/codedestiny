@@ -140,18 +140,18 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'saju.scenarioTitleFallback': '{dayMasterBadge} 개화 시나리오',
   'saju.scenarioFallbackReason': '일간과 환경을 통합해 개화 흐름을 판독했습니다.',
   'saju.growthCycle': '발아(기운 수집) → 신장(행동 증폭) → 개화(성과 표면화) → 결실(관계/자산 축적)',
-  'saju.fallbackNote': '일간 데이터 보강 로직이 적용되었습니다.',
+  'saju.fallbackNote': '생년월일 정보만으로 일간의 기운을 조심스럽게 짚어보았습니다.',
   'saju.verdict': '사주로 볼 때 당신의 꽃은 {flowerName} ({scientificName}) 입니다.',
   'saju.rationale.verdict': '사주로 볼 때 당신의 운명꽃은 {flowerName} ({scientificName}) 입니다.',
-  'saju.rationale.elements': '사주 오행 분석 결과, 주기운은 {dominant}이고 보조 흐름은 {support}으로 정리됩니다.',
-  'saju.rationale.context': '현재 운의 계절 결은 {season}, 에너지 밀도는 {water}, 삶의 무대는 {environment} 성향으로 판독되었습니다.',
-  'saju.rationale.dayMaster': '일간 주인공은 {dayMasterBadge}으로 확인되었고, 일간이 놓인 계절/환경 상호작용을 최우선으로 매칭했습니다.',
-  'saju.rationale.scenario': '일간-환경 시나리오: {reason}',
-  'saju.rationale.levels': '오행 레벨은 {elementLevelLine}이며, 목·화·토·금·수 다섯 레벨을 모두 가중 반영해 운명꽃을 확정했습니다.',
+  'saju.rationale.elements': '사주팔자의 오행을 살피면 {dominant} 기운이 이번 개화를 주도하고, {support} 기운이 곁에서 결을 더합니다.',
+  'saju.rationale.context': '지금은 {season}, {water}이 감도는 가운데 {environment} 성향의 무대 위에서 꽃이 피어날 준비를 마쳤습니다.',
+  'saju.rationale.dayMaster': '이 사주의 일간은 {dayMasterBadge}, 지금의 계절과 환경 속에서 이 일간이 어떻게 피어나는지를 가장 먼저 살폈습니다.',
+  'saju.rationale.scenario': '{reason}',
+  'saju.rationale.levels': '오행의 비율은 {elementLevelLine}로 나타나며, 다섯 기운이 어우러진 결을 살펴 지금의 운명꽃을 골랐습니다.',
   'saju.rationale.symbolism': '이 꽃은 {symbolism}을 상징하며, 지금 시기의 운명 테마를 가장 정확히 반영합니다.',
-  'saju.rationale.description': '운명꽃 해석: {description}',
-  'saju.rationale.vibe': '개화 가이드: {vibeMessage}',
-  'saju.rationale.fallback': '보정 로직: {note}',
+  'saju.rationale.description': '{description}',
+  'saju.rationale.vibe': '{vibeMessage}',
+  'saju.rationale.fallback': '{note}',
   'saju.elements.wood': '목(木)',
   'saju.elements.fire': '화(火)',
   'saju.elements.earth': '토(土)',
@@ -3742,28 +3742,28 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
 
   const lines = [];
   lines.push(
-    destinyFlowerText('saju.rationale.elements', { dominant, support }, '사주 오행 분석 결과, 주기운은 ' + dominant + '이고 보조 흐름은 ' + support + '으로 정리됩니다.')
+    destinyFlowerText('saju.rationale.elements', { dominant, support }, '사주팔자의 오행을 살피면 ' + dominant + ' 기운이 이번 개화를 주도하고, ' + support + ' 기운이 곁에서 결을 더합니다.')
   );
   lines.push(
-    destinyFlowerText('saju.rationale.context', { season, water, environment }, '현재 운의 계절 결은 ' + season + ', 에너지 밀도는 ' + water + ', 삶의 무대는 ' + environment + ' 성향으로 판독되었습니다.')
+    destinyFlowerText('saju.rationale.context', { season, water, environment }, '지금은 ' + season + ', ' + water + '이 감도는 가운데 ' + environment + ' 성향의 무대 위에서 꽃이 피어날 준비를 마쳤습니다.')
   );
-  lines.push(destinyFlowerText('saju.rationale.dayMaster', { dayMasterBadge }, '일간 주인공은 ' + dayMasterBadge + '으로 확인되었고, 일간이 놓인 계절/환경 상호작용을 최우선으로 매칭했습니다.'));
+  lines.push(destinyFlowerText('saju.rationale.dayMaster', { dayMasterBadge }, '이 사주의 일간은 ' + dayMasterBadge + ', 지금의 계절과 환경 속에서 이 일간이 어떻게 피어나는지를 가장 먼저 살폈습니다.'));
   if (dayMasterScenario && dayMasterScenario.reason) {
-    lines.push(destinyFlowerText('saju.rationale.scenario', { reason: dayMasterScenario.reason }, '일간-환경 시나리오: ' + dayMasterScenario.reason));
+    lines.push(destinyFlowerText('saju.rationale.scenario', { reason: dayMasterScenario.reason }, dayMasterScenario.reason));
   }
-  lines.push(destinyFlowerText('saju.rationale.levels', { elementLevelLine }, '오행 레벨은 ' + elementLevelLine + '이며, 목·화·토·금·수 다섯 레벨을 모두 가중 반영해 운명꽃을 확정했습니다.'));
+  lines.push(destinyFlowerText('saju.rationale.levels', { elementLevelLine }, '오행의 비율은 ' + elementLevelLine + '로 나타나며, 다섯 기운이 어우러진 결을 살펴 지금의 운명꽃을 골랐습니다.'));
   lines.push(sajuVerdict);
   if (flower.symbolism) {
     lines.push(destinyFlowerText('saju.rationale.symbolism', { symbolism: flower.symbolism }, '이 꽃은 ' + flower.symbolism + '을 상징하며, 지금 시기의 운명 테마를 가장 정확히 반영합니다.'));
   }
   if (flower.description) {
-    lines.push(destinyFlowerText('saju.rationale.description', { description: flower.description }, '운명꽃 해석: ' + flower.description));
+    lines.push(destinyFlowerText('saju.rationale.description', { description: flower.description }, flower.description));
   }
   if (flower.vibe_message) {
-    lines.push(destinyFlowerText('saju.rationale.vibe', { vibeMessage: flower.vibe_message }, '개화 가이드: ' + flower.vibe_message));
+    lines.push(destinyFlowerText('saju.rationale.vibe', { vibeMessage: flower.vibe_message }, flower.vibe_message));
   }
   if (profile.domains.saju && profile.domains.saju.day_master_fallback_used && profile.domains.saju.day_master_fallback_note) {
-    lines.push(destinyFlowerText('saju.rationale.fallback', { note: profile.domains.saju.day_master_fallback_note }, '보정 로직: ' + profile.domains.saju.day_master_fallback_note));
+    lines.push(destinyFlowerText('saju.rationale.fallback', { note: profile.domains.saju.day_master_fallback_note }, profile.domains.saju.day_master_fallback_note));
   }
 
   return lines.join(' ');
