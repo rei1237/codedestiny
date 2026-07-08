@@ -1,6 +1,5 @@
 import SwissEPH from "sweph-wasm";
 import createSweWasmModule from "sweph-wasm/wasm/swisseph";
-import sweWasmModule from "../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm";
 import * as Astronomy from "astronomy-engine";
 import { getEnv } from "./env.js";
 import { createHttpError } from "./http.js";
@@ -34,6 +33,29 @@ const FALLBACK_SWISS_WASM_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/wa
 const FALLBACK_SWISS_EPHE_BASE_URL = "https://cdn.jsdelivr.net/npm/sweph-wasm/dist/ephe/";
 
 let swissPromise = null;
+let sweWasmModulePromise = null;
+
+// 이 파일은 두 번들러가 공유한다: worker/index.js(wrangler/esbuild, Node API 없는 순수 워커)와
+// app/api/*.ts(Next webpack, 실제 Node 런타임). swisseph.wasm은 Emscripten 산출물이라 내부
+// import 네임스페이스가 축약형("a")이라 webpack의 네이티브 WebAssembly 실험이 이를 실제 JS
+// 모듈처럼 자동 해석하려다 깨진다(esbuild는 그렇게 하지 않아 워커 쪽만 정상 동작했었다).
+// 그래서 Node fs로 직접 읽어 컴파일하는 경로를 우선 시도하고(app/api/* 등 실제 Node 런타임),
+// node:fs를 못 쓰는 순수 워커에서만 빌드타임 import로 폴백한다 — webpackIgnore로 그 폴백
+// import를 Next의 webpack이 아예 건드리지 않게 해 두 번들러의 요구사항 충돌을 피한다.
+async function loadSweWasmModule() {
+  sweWasmModulePromise ??= (async () => {
+    try {
+      const { readFile } = await import("node:fs/promises");
+      const wasmUrl = new URL("../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm", import.meta.url);
+      const bytes = await readFile(wasmUrl);
+      return await WebAssembly.compile(bytes);
+    } catch {
+      const mod = await import(/* webpackIgnore: true */ "../../public/js/vendor/sweph-wasm/wasm/swisseph.wasm");
+      return mod.default ?? mod;
+    }
+  })();
+  return sweWasmModulePromise;
+}
 
 function clean(value) {
   return String(value || "").trim();
@@ -724,6 +746,7 @@ async function createSwissInstance(env, options = {}) {
   // 빌드 타임 ES 모듈로 import해 이미 컴파일된 WebAssembly.Module을 확보하고,
   // instantiateWasm 훅으로 그 모듈을 직접 주입해 런타임 컴파일 자체를 우회한다.
   try {
+    const sweWasmModule = await loadSweWasmModule();
     const rawModule = await createSweWasmModule({
       instantiateWasm(imports, successCallback) {
         WebAssembly.instantiate(sweWasmModule, imports).then((instance) => {
