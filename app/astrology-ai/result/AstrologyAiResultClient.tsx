@@ -274,33 +274,19 @@ export default function AstrologyAiResultClient() {
       });
       await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
       await new Promise((resolve) => setTimeout(resolve, 120));
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const canvas = await html2canvas(element, {
-        backgroundColor: "#060817",
-        scale: Math.min(2, window.devicePixelRatio || 2),
-        useCORS: true,
-      });
-      const pdf = new JsPDF("p", "mm", "a4");
-      const imageData = canvas.toDataURL("image/png");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const imageHeight = (canvas.height * pageWidth) / canvas.width;
-      let remainingHeight = imageHeight;
-      let position = 0;
-      pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-      remainingHeight -= pageHeight;
-      while (remainingHeight > 0) {
-        position = remainingHeight - imageHeight;
-        pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-      }
       const date = new Date().toISOString().slice(0, 10);
-      pdf.save(`code-destiny-astrology-ai-${safeFilePart(userName)}-${date}.pdf`);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: ["#astrology-ai-result-document"],
+        fileName: `code-destiny-astrology-ai-${safeFilePart(userName)}-${date}.pdf`,
+        backgroundColor: "#060817",
+        cover: {
+          title: `${userName}님의 별자리 상담`,
+          subtitle: toText(consultation?.topic) || "전체 차트 해석",
+          name: userName,
+          date,
+        },
+      });
       console.info("[AstrologyAI] pdf download success", { resultId });
     } catch (caught) {
       console.error("[AstrologyAI] pdf download failed", { resultId, message: caught instanceof Error ? caught.message : String(caught) });

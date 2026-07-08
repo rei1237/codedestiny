@@ -3,6 +3,9 @@ import { buildAssetsPublicUrl } from "@/lib/r2-public-url";
 
 const PAGE_WIDTH_MM = 210;
 const PAGE_HEIGHT_MM = 297;
+const PAGE_MARGIN_MM = 20;
+const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - PAGE_MARGIN_MM * 2;
+const CONTENT_HEIGHT_MM = PAGE_HEIGHT_MM - PAGE_MARGIN_MM * 2;
 const FOOTER_BASELINE_MM = PAGE_HEIGHT_MM - 12;
 
 const PDF_FONT_FILES = {
@@ -21,7 +24,11 @@ export type PdfCoverInfo = {
 };
 
 export type ExportResultPdfOptions = {
-  /** 캡처할 DOM 엘리먼트 id 목록. 각 항목은 새 페이지에서 시작한다(cover가 있으면 첫 항목도 새 페이지). */
+  /**
+   * 캡처할 DOM 엘리먼트를 찾는 CSS 선택자 목록(예: "#result-document" 또는 "[data-pdf-section]").
+   * 선택자 하나가 여러 엘리먼트에 매치되면(다중 섹션 캡처) DOM 순서대로 전부 캡처한다.
+   * 각 엘리먼트(또는 선택자 매치 그룹의 첫 엘리먼트)는 새 페이지에서 시작한다(cover가 있으면 첫 항목도 새 페이지).
+   */
   captureTargets: string[];
   fileName: string;
   backgroundColor: string;
@@ -76,42 +83,41 @@ async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ title: stri
 }
 
 function drawCoverPage(pdf: JsPDFInstance, cover: PdfCoverInfo, fonts: { title: string; body: string } | null) {
-  const contentWidth = PAGE_WIDTH_MM - 40;
   if (fonts) pdf.setFont(fonts.title, "normal");
   pdf.setFontSize(26);
   pdf.setTextColor(40, 32, 24);
-  const titleLines = pdf.splitTextToSize(cover.title, contentWidth);
-  pdf.text(titleLines, 20, 110, { lineHeightFactor: 1.4 });
+  const titleLines = pdf.splitTextToSize(cover.title, CONTENT_WIDTH_MM);
+  pdf.text(titleLines, PAGE_MARGIN_MM, 110, { lineHeightFactor: 1.4 });
 
   let cursorY = 110 + titleLines.length * 12;
   if (fonts) pdf.setFont(fonts.body, "normal");
   if (cover.subtitle) {
     pdf.setFontSize(13);
     pdf.setTextColor(90, 78, 64);
-    const subtitleLines = pdf.splitTextToSize(cover.subtitle, contentWidth);
+    const subtitleLines = pdf.splitTextToSize(cover.subtitle, CONTENT_WIDTH_MM);
     cursorY += 10;
-    pdf.text(subtitleLines, 20, cursorY, { lineHeightFactor: 1.6 });
+    pdf.text(subtitleLines, PAGE_MARGIN_MM, cursorY, { lineHeightFactor: 1.6 });
   }
 
   pdf.setFontSize(11);
   pdf.setTextColor(120, 110, 98);
-  if (cover.name) pdf.text(cover.name, 20, PAGE_HEIGHT_MM - 40);
-  if (cover.date) pdf.text(cover.date, 20, PAGE_HEIGHT_MM - 32);
+  if (cover.name) pdf.text(cover.name, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 40);
+  if (cover.date) pdf.text(cover.date, PAGE_MARGIN_MM, PAGE_HEIGHT_MM - 32);
 }
 
 function addCapturedCanvasAsPages(pdf: JsPDFInstance, canvas: HTMLCanvasElement, jpegQuality: number, startNewPage: boolean) {
   const imageData = canvas.toDataURL("image/jpeg", jpegQuality);
-  const imageHeight = (canvas.height * PAGE_WIDTH_MM) / canvas.width;
+  const imageHeight = (canvas.height * CONTENT_WIDTH_MM) / canvas.width;
   let remainingHeight = imageHeight;
-  let position = 0;
+  let position = PAGE_MARGIN_MM;
   if (startNewPage) pdf.addPage();
-  pdf.addImage(imageData, "JPEG", 0, position, PAGE_WIDTH_MM, imageHeight, undefined, "MEDIUM");
-  remainingHeight -= PAGE_HEIGHT_MM;
+  pdf.addImage(imageData, "JPEG", PAGE_MARGIN_MM, position, CONTENT_WIDTH_MM, imageHeight, undefined, "MEDIUM");
+  remainingHeight -= CONTENT_HEIGHT_MM;
   while (remainingHeight > 0) {
-    position = remainingHeight - imageHeight;
+    position = PAGE_MARGIN_MM + remainingHeight - imageHeight;
     pdf.addPage();
-    pdf.addImage(imageData, "JPEG", 0, position, PAGE_WIDTH_MM, imageHeight, undefined, "MEDIUM");
-    remainingHeight -= PAGE_HEIGHT_MM;
+    pdf.addImage(imageData, "JPEG", PAGE_MARGIN_MM, position, CONTENT_WIDTH_MM, imageHeight, undefined, "MEDIUM");
+    remainingHeight -= CONTENT_HEIGHT_MM;
   }
 }
 
@@ -122,8 +128,8 @@ function addFooterToAllPages(pdf: JsPDFInstance, watermarkText: string, bodyFont
     if (bodyFont) pdf.setFont(bodyFont, "normal");
     pdf.setFontSize(8);
     pdf.setTextColor(150, 150, 150);
-    pdf.text(watermarkText, 20, FOOTER_BASELINE_MM);
-    pdf.text(`${page} / ${totalPages}`, PAGE_WIDTH_MM - 20, FOOTER_BASELINE_MM, { align: "right" });
+    pdf.text(watermarkText, PAGE_MARGIN_MM, FOOTER_BASELINE_MM);
+    pdf.text(`${page} / ${totalPages}`, PAGE_WIDTH_MM - PAGE_MARGIN_MM, FOOTER_BASELINE_MM, { align: "right" });
   }
 }
 
@@ -150,20 +156,26 @@ export async function exportResultPdf(options: ExportResultPdfOptions): Promise<
   const JsPDF = jsPdfModule.default || (jsPdfModule as unknown as { jsPDF: typeof jsPdfModule.default }).jsPDF;
   const pdf: JsPDFInstance = new JsPDF("p", "mm", "a4");
 
+  const elements = captureTargets.flatMap((selector) => Array.from(document.querySelectorAll<HTMLElement>(selector)));
+  if (!elements.length) {
+    throw new Error(`exportResultPdf: no capture targets matched (${captureTargets.join(", ")})`);
+  }
+
   const fonts = await registerPdfFontsSafely(pdf);
 
   if (cover) drawCoverPage(pdf, cover, fonts);
 
   let isFirstContentPage = !cover;
-  for (const targetId of captureTargets) {
-    const element = document.getElementById(targetId);
-    if (!element) {
-      console.warn(`[exportResultPdf] capture target not found: ${targetId}`);
-      continue;
-    }
+  let capturedAnyPage = false;
+  for (const element of elements) {
     const canvas = await html2canvas(element, { backgroundColor, scale, useCORS: true });
+    if (!canvas.width || !canvas.height) continue;
     addCapturedCanvasAsPages(pdf, canvas, jpegQuality, !isFirstContentPage);
     isFirstContentPage = false;
+    capturedAnyPage = true;
+  }
+  if (!capturedAnyPage) {
+    throw new Error("exportResultPdf: all matched capture targets produced an empty canvas");
   }
 
   addFooterToAllPages(pdf, watermarkText, fonts?.body ?? null);

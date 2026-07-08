@@ -787,6 +787,11 @@
   cursor: pointer;
 }
 
+.structuredHeader button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .chartSummaryCard {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

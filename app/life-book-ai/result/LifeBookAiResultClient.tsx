@@ -331,46 +331,19 @@ function LifeBookResultContent() {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     await new Promise((resolve) => setTimeout(resolve, 120));
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const pdf = new JsPDF("p", "mm", "a4");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const margin = 8;
-      const renderWidth = pageWidth - margin * 2;
-      const renderHeight = pageHeight - margin * 2;
-      const targets = Array.from(element.querySelectorAll<HTMLElement>("[data-life-book-pdf-page]"));
-      const pdfTargets = targets.length ? targets : [element];
-      let hasPage = false;
-
-      for (const target of pdfTargets) {
-        const canvas = await html2canvas(target, {
-          backgroundColor: "#100a08",
-          scale: Math.min(2, window.devicePixelRatio || 2),
-          useCORS: true,
-          windowWidth: Math.max(document.documentElement.scrollWidth, element.scrollWidth),
-        });
-        if (!canvas.width || !canvas.height) continue;
-        const imageData = canvas.toDataURL("image/png");
-        const imageHeight = (canvas.height * renderWidth) / canvas.width;
-        let remainingHeight = imageHeight;
-        let position = margin;
-        if (hasPage) pdf.addPage();
-        pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
-        hasPage = true;
-        remainingHeight -= renderHeight;
-        while (remainingHeight > 0) {
-          position = margin + remainingHeight - imageHeight;
-          pdf.addPage();
-          pdf.addImage(imageData, "PNG", margin, position, renderWidth, imageHeight);
-          remainingHeight -= renderHeight;
-        }
-      }
-      if (!hasPage) throw new Error("empty_pdf_capture");
-      pdf.save(`life-book-reading-${safeFilePart(attemptId)}.pdf`);
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      const date = new Date().toISOString().slice(0, 10);
+      await exportResultPdf({
+        captureTargets: ["#life-book-result-document [data-life-book-pdf-page]"],
+        fileName: `life-book-reading-${safeFilePart(attemptId)}.pdf`,
+        backgroundColor: "#100a08",
+        cover: {
+          title: `${userName}님의 인생의 책`,
+          subtitle: result?.topic || "전체 인생 흐름",
+          name: userName,
+          date,
+        },
+      });
     } catch {
       setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {

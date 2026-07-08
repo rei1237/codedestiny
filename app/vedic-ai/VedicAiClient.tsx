@@ -255,6 +255,10 @@ function toText(value: unknown) {
   return toDisplayText(value);
 }
 
+function safeFilePart(value: string) {
+  return (value || "guest").replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "-").slice(0, 48);
+}
+
 function toNumber(value: unknown, fallback = 0) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -821,6 +825,29 @@ export function StructuredReadingResult({
   const vimshottari = asRecord(chart.vimshottariDasha);
   const currentMahadasha = asRecord(vimshottari.currentMahadasha);
   const sectionEntries = Object.entries(reading.sections);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+
+  async function handlePdfDownload() {
+    if (isExportingPdf) return;
+    setIsExportingPdf(true);
+    try {
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: ["#vedic-result-body"],
+        fileName: `vedic-reading-${safeFilePart(name || "result")}.pdf`,
+        backgroundColor: "#0a0818",
+        cover: {
+          title: `${name || "상담자"}님의 별의 지도`,
+          subtitle: "Jyotish · 조티시 베다 점성술",
+          date: new Date().toISOString().slice(0, 10),
+        },
+      });
+    } catch (error) {
+      console.error("[VedicAI] pdf download failed", error);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  }
 
   return (
     <div className={styles.structuredResult} id="vedic-result-body">
@@ -829,7 +856,9 @@ export function StructuredReadingResult({
           <p>Jyotish · 조티시 베다 점성술</p>
           <h2>{name || "상담자"}님의 별의 지도</h2>
         </div>
-        <button type="button" onClick={() => window.print()} aria-label="PDF로 저장">↓ PDF</button>
+        <button type="button" onClick={() => void handlePdfDownload()} disabled={isExportingPdf} aria-label="PDF로 저장">
+          {isExportingPdf ? "저장 중…" : "↓ PDF"}
+        </button>
       </div>
 
       <section className={styles.chartSummaryCard}>

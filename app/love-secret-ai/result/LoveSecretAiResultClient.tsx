@@ -295,32 +295,17 @@ export default function LoveSecretAiResultClient() {
     await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     await new Promise((resolve) => setTimeout(resolve, 120));
     try {
-      const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
-        import("html2canvas"),
-        import("jspdf"),
-      ]);
-      const JsPDF = jsPdfModule.default || jsPdfModule.jsPDF;
-      const canvas = await html2canvas(element, {
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      await exportResultPdf({
+        captureTargets: ["#love-secret-result-document"],
+        fileName: `love-secret-reading-${safeFilePart(consultation.sessionId || consultation.attemptId || "result")}.pdf`,
         backgroundColor: "#160014",
-        scale: Math.min(2, window.devicePixelRatio || 2),
-        useCORS: true,
+        cover: {
+          title: summaryTitle,
+          subtitle: oneLine,
+          date: new Date().toISOString().slice(0, 10),
+        },
       });
-      const pdf = new JsPDF("p", "mm", "a4");
-      const imageData = canvas.toDataURL("image/png");
-      const pageWidth = 210;
-      const pageHeight = 297;
-      const imageHeight = (canvas.height * pageWidth) / canvas.width;
-      let remainingHeight = imageHeight;
-      let position = 0;
-      pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-      remainingHeight -= pageHeight;
-      while (remainingHeight > 0) {
-        position = remainingHeight - imageHeight;
-        pdf.addPage();
-        pdf.addImage(imageData, "PNG", 0, position, pageWidth, imageHeight);
-        remainingHeight -= pageHeight;
-      }
-      pdf.save(`love-secret-reading-${safeFilePart(consultation.sessionId || consultation.attemptId || "result")}.pdf`);
     } catch (_) {
       setPdfError("상담 리포트를 PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
