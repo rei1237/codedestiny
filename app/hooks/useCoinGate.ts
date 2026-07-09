@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { getAuthState, refreshAuth } from "../_lib/auth-store";
+import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import {
   PAID_SERVICE_RUNTIME_SRC,
   runBillingCoinGate,
@@ -384,6 +384,10 @@ export function useCoinGate() {
         const message = toText(chargeResult.error?.message || chargeResult.message || coinGateText("singlePaymentRequired")) || coinGateText("singlePaymentRequired");
 
         if (resolveLoginRequired(code, chargeResult.status)) {
+          // 유령 로그인: UI는 로그인 상태인데 서버가 확정적 401/403을 반환한 경우.
+          // 인증 상태를 즉시 초기화하고 만료 안내 후 로그인 페이지로 이동시킨다(transient
+          // 합성 503은 resolveLoginRequired가 걸러내므로 여기 도달하지 않는다).
+          handleSessionInvalidated({ redirect: true });
           return {
             ok: false,
             code: "AUTH_REQUIRED",

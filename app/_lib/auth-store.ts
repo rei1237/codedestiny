@@ -11,6 +11,7 @@ import {
 } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import {
+  clearAuthUserCacheVerified,
   isAuthUserCacheVerified,
   markAuthUserCacheVerified,
   persistSanitizedAuthUser,
@@ -18,6 +19,7 @@ import {
   type ClientAuthUser,
 } from "./auth-storage";
 import { resolveMonthlyStoneBalance } from "./monthly-stone";
+import { showToast } from "../components/Toast";
 
 const AUTH_STORE_TEXT_TRANSLATIONS = {
   ko: {
@@ -540,6 +542,78 @@ function clearAuthStateHard() {
   });
 }
 
+const SESSION_EXPIRED_MESSAGE: Record<string, string> = {
+  ko: "세션이 만료되었습니다. 다시 로그인해 주세요.",
+  en: "Your session has expired. Please sign in again.",
+  ja: "セッションの有効期限が切れました。もう一度ログインしてください。",
+  zh: "登录状态已过期，请重新登录。",
+};
+
+function resolveSessionExpiredMessage(): string {
+  let lang = "ko";
+  try {
+    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
+    const stored = runtimeLang || window.localStorage.getItem("cd_lang") || "";
+    const normalized = String(stored).trim().toLowerCase();
+    if (normalized.startsWith("en")) lang = "en";
+    else if (normalized.startsWith("ja")) lang = "ja";
+    else if (normalized.startsWith("zh")) lang = "zh";
+  } catch (e) {
+    // fall back to Korean
+  }
+  return SESSION_EXPIRED_MESSAGE[lang] || SESSION_EXPIRED_MESSAGE.ko;
+}
+
+function isAuthRedirectExemptPath(pathname: string): boolean {
+  const path = String(pathname || "");
+  return path === "/"
+    || path.startsWith("/login")
+    || path.startsWith("/signup")
+    || path.startsWith("/admin/login");
+}
+
+// 세션 만료 디바운스 — 여러 기능 호출이 동시에 401을 받아도 토스트/리다이렉트는 1회만.
+let lastSessionInvalidationAt = 0;
+const SESSION_INVALIDATION_DEBOUNCE_MS = 1500;
+
+// 서버가 "확정적 미인증(401/403 또는 non-degraded authenticated:false)"을 알렸을 때 호출한다.
+// 일시적 오류(5xx/네트워크/degraded)에는 호출하지 않는다 — degrade-not-throw 유지.
+// redirect:true는 사용자가 능동적으로 기능을 눌러 401을 받은 경우(useCoinGate 등)에만 사용한다.
+export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
+  if (typeof window === "undefined") return;
+
+  const wasAuthenticated = state.isAuthenticated || !!state.user;
+  const now = Date.now();
+  const recentlyHandled = now - lastSessionInvalidationAt < SESSION_INVALIDATION_DEBOUNCE_MS;
+  lastSessionInvalidationAt = now;
+
+  clearAuthStateHard();
+  clearAuthUserCacheVerified();
+  publishAuthSync("logout");
+
+  // 버스트 중복 호출은 상태 정리만 하고 토스트/리다이렉트는 생략.
+  if (recentlyHandled) return;
+
+  // 이미 로그아웃 상태(진짜 게스트)였다면 만료 안내를 띄우지 않는다.
+  if (wasAuthenticated) {
+    try {
+      showToast(resolveSessionExpiredMessage(), "info");
+    } catch (e) {
+      // best-effort
+    }
+  }
+
+  if (options.redirect && !isAuthRedirectExemptPath(window.location.pathname)) {
+    try {
+      const { pathname, search } = window.location;
+      const nextParam = encodeURIComponent(`${pathname}${search || ""}`);
+      window.location.assign(`/login?next=${nextParam}&returnTo=${nextParam}&redirect=${nextParam}`);
+    } catch (e) {
+      // best-effort
+    }
+  }
+}
+
 async function loadMeFromServer() {
   const requestSeq = ++meRequestSeq;
   const requestAuthMutationSeq = authMutationSeq;
@@ -565,8 +639,7 @@ async function loadMeFromServer() {
     }
     if ([401, 403].includes(response.status)) {
       latestAppliedMeSeq = requestSeq;
-      clearAuthStateHard();
-      publishAuthSync("logout");
+      handleSessionInvalidated({ redirect: false });
       return null;
     }
     throw new Error("auth_refresh_failed");
@@ -585,8 +658,7 @@ async function loadMeFromServer() {
       return cachedUser;
     }
     latestAppliedMeSeq = requestSeq;
-    clearAuthStateHard();
-    publishAuthSync("logout");
+    handleSessionInvalidated({ redirect: false });
     return null;
   }
 

@@ -110,6 +110,14 @@ export function markAuthUserCacheVerified(input: unknown): void {
   }
 }
 
+export function clearAuthUserCacheVerified(): void {
+  try {
+    localStorage.removeItem(AUTH_CACHE_VERIFICATION_KEY);
+  } catch (e) {
+    // ignore storage failures
+  }
+}
+
 export function readSanitizedAuthUser(): ClientAuthUser | null {
   try {
     const raw = localStorage.getItem("fortune_auth_user");
