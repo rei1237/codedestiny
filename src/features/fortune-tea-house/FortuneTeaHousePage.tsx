@@ -506,39 +506,29 @@ export default function FortuneTeaHousePage() {
     };
   }, [clearGenerationProgressTimer]);
 
+  const refreshHoneyDrops = useCallback(async () => {
+    try {
+      const response = await authFetch("/api/fortune-tea-house/honey-drops/balance", { cache: "no-store" });
+      if (!response.ok) return;
+      const payload = (await response.json().catch(() => null)) as { ok?: boolean; honeyDrops?: FortuneTeaHouseHoneyDropsState } | null;
+      const serverHoneyDrops = payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
+      // 일시적 DB 오류(disabled)로 반환된 0값은 실제 잔량을 덮지 않는다.
+      if (serverHoneyDrops && !serverHoneyDrops.disabled) setHoneyDrops(serverHoneyDrops);
+    } catch {
+      void 0;
+    }
+  }, []);
+
   useEffect(() => {
-    let cancelled = false;
-    const abortController = new AbortController();
-
-    const syncServerHoneyDrops = () => {
-      authFetch("/api/fortune-tea-house/honey-drops/balance", {
-        cache: "no-store",
-        signal: abortController.signal,
-      })
-        .then(async (response) => {
-          if (!response.ok) return null;
-          const payload = (await response.json().catch(() => null)) as { ok?: boolean; honeyDrops?: FortuneTeaHouseHoneyDropsState } | null;
-          return payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
-        })
-        .then((serverHoneyDrops) => {
-          if (!cancelled && serverHoneyDrops) setHoneyDrops(serverHoneyDrops);
-        })
-        .catch(() => {
-          void 0;
-        });
-    };
-
     const idleWindow = window as BrowserIdleWindow;
-    const idleCallbackId = idleWindow.requestIdleCallback?.(syncServerHoneyDrops, { timeout: 2500 }) ?? null;
-    const fallbackTimerId = idleCallbackId === null ? window.setTimeout(syncServerHoneyDrops, 1200) : null;
+    const idleCallbackId = idleWindow.requestIdleCallback?.(() => void refreshHoneyDrops(), { timeout: 2500 }) ?? null;
+    const fallbackTimerId = idleCallbackId === null ? window.setTimeout(() => void refreshHoneyDrops(), 1200) : null;
 
     return () => {
-      cancelled = true;
-      abortController.abort();
       if (idleCallbackId !== null) idleWindow.cancelIdleCallback?.(idleCallbackId);
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
     };
-  }, []);
+  }, [refreshHoneyDrops]);
 
   useEffect(() => {
     setNotice("");
@@ -924,7 +914,8 @@ export default function FortuneTeaHousePage() {
       const resultId = payload.result.resultId || attemptId;
       const serverHoneyDrops = normalizeHoneyDropsState(payload.honeyDrops);
       const nextResult = { ...payload.result, resultId, consultationMode: nextQuestionInput.consultationMode };
-      if (serverHoneyDrops) setHoneyDrops(serverHoneyDrops);
+      // 적립 실패(disabled) 시 반환되는 0값으로 실제 잔량을 덮지 않는다.
+      if (serverHoneyDrops && !serverHoneyDrops.disabled) setHoneyDrops(serverHoneyDrops);
       if (serverHoneyDrops?.earnedThisResult) {
         setHoneyRewardMessage(pickHoneyDropMessage(serverHoneyDrops));
         setHoneyRewardBurstKey((key) => key + 1);
@@ -1109,6 +1100,7 @@ export default function FortuneTeaHousePage() {
           honeyDrops={honeyDrops}
           burstKey={honeyRewardBurstKey}
           message={honeyRewardMessage}
+          onRequestRefresh={refreshHoneyDrops}
           onOpenTarotAlbum={() => setIsTarotAlbumOpen(true)}
         />
       ) : null}

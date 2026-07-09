@@ -1465,7 +1465,8 @@
 .honeyInfoPanel {
   position: absolute;
   top: calc(100% + 10px);
-  right: 0;
+  left: 0;
+  right: auto;
   width: min(286px, calc(100vw - 28px));
   min-height: 104px;
   display: grid;
@@ -1492,6 +1493,11 @@
 
 .honeyInfoPanel[data-unlocked="true"] {
   border-color: rgba(255, 218, 118, 0.58);
+}
+
+.honeyRewardLayer[data-mode="active"] .honeyInfoPanel {
+  left: auto;
+  right: 0;
 }
 
 .honeyInfoPigBubble {

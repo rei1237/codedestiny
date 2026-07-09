@@ -11,6 +11,7 @@ type HoneyDropRewardOverlayProps = {
   burstKey: number;
   message: string;
   onOpenTarotAlbum: () => void;
+  onRequestRefresh?: () => void;
 };
 
 type PigAnswerEntry = {
@@ -274,7 +275,7 @@ function HoneyPigQnaPanel() {
   );
 }
 
-export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum }: HoneyDropRewardOverlayProps) {
+export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh }: HoneyDropRewardOverlayProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [honeyModeActive, setHoneyModeActive] = useState(false);
   const count = honeyDrops?.currentHoneyDrops ?? 0;
@@ -303,7 +304,10 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
           aria-expanded={showInfo}
           aria-controls="fortuneTeaHoneyInfo"
           aria-label={`꿀방울 ${count}개, 상담 혜택 보기`}
-          onClick={() => setShowInfo((current) => !current)}
+          onClick={() => {
+            if (!showInfo) onRequestRefresh?.();
+            setShowInfo((current) => !current);
+          }}
         >
           <span className={styles.honeyCounterIcon} style={honeyIconStyle} aria-hidden />
           <div>
@@ -320,6 +324,7 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
           onClick={() => {
             setShowInfo(false);
             setHoneyModeActive(false);
+            onRequestRefresh?.();
             onOpenTarotAlbum();
           }}
           aria-label={tarotAlbumUnlocked ? "달빛 타로 앨범 보기" : `달빛 타로 앨범 열기, 꿀방울 ${albumProgress}/10`}
