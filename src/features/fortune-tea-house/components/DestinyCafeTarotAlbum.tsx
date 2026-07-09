@@ -25,6 +25,7 @@ import {
   Loader2,
   Lock,
   Moon,
+  RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
@@ -178,6 +179,9 @@ export default function DestinyCafeTarotAlbum({
   const [unlockMessage, setUnlockMessage] = useState("");
   const [pdfCards, setPdfCards] = useState<TarotAlbumStoryCard[]>([]);
   const [pdfStatus, setPdfStatus] = useState<TarotPdfStatus | null>(null);
+  const [flippedById, setFlippedById] = useState<Record<string, boolean>>({});
+  const [revealedById, setRevealedById] = useState<Record<string, boolean>>({});
+  const prefersReducedMotion = usePrefersReducedMotion();
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const pdfRenderRef = useRef<HTMLDivElement | null>(null);
   const albumCards = useMemo(() => tarotAlbumStoryCards, []);
@@ -191,8 +195,16 @@ export default function DestinyCafeTarotAlbum({
   const isHoneyDisabled = Boolean(honeyDrops?.disabled);
   const isAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
   const canUnlock = !isHoneyLoading && !isHoneyDisabled && !isAlbumUnlocked && currentHoneyDrops >= TAROT_ALBUM_UNLOCK_COST;
-  const cardBackUrl = fortuneTeaHouseAssets.yeoni.transparent.tarotCard;
+  const cardBackUrl = fortuneTeaHouseAssets.yeoni.transparent.tarotCardBackR2;
   const honeyDropUrl = fortuneTeaHouseAssets.rewards.honeyDropCounter;
+  const backgroundDesktopUrl = fortuneTeaHouseAssets.backgrounds.mainDesktop;
+  const backgroundMobileUrl = fortuneTeaHouseAssets.backgrounds.mainMobile;
+  const yeoniCutoutUrl = fortuneTeaHouseAssets.yeoni.transparent.bust;
+  const yeoniCharacterUrl = fortuneTeaHouseAssets.yeoni.transparent.sprite7CharacterR2;
+  const previewCards = useMemo(
+    () => albumCards.filter((card) => card.arcana === "major").slice(0, 5),
+    [albumCards],
+  );
   const isPdfBusy = Boolean(pdfStatus && ["preparing", "images", "stories", "rendering"].includes(pdfStatus.phase));
   const lockDialogue = isHoneyDisabled
     ? "잠시 후 다시 확인해주세요."
@@ -251,6 +263,7 @@ export default function DestinyCafeTarotAlbum({
       setUnlockMessage("");
       setPdfStatus(null);
       setPdfCards([]);
+      setFlippedById({});
     }
   }, [isOpen]);
 
@@ -271,6 +284,15 @@ export default function DestinyCafeTarotAlbum({
       else next[card.id] = true;
       return next;
     });
+  }, []);
+
+  const handleFlipCard = useCallback((card: TarotAlbumStoryCard) => {
+    setFlippedById((current) => ({ ...current, [card.id]: true }));
+    setRevealedById((current) => (current[card.id] ? current : { ...current, [card.id]: true }));
+  }, []);
+
+  const handleCoverCard = useCallback((card: TarotAlbumStoryCard) => {
+    setFlippedById((current) => ({ ...current, [card.id]: false }));
   }, []);
 
   const handleSelectAdjacent = useCallback((direction: -1 | 1) => {
@@ -353,6 +375,13 @@ export default function DestinyCafeTarotAlbum({
       aria-labelledby="tarotAlbumTitle"
       onMouseDown={handleBackdropMouseDown}
     >
+      <TarotAlbumMotionStyles />
+      <div className="pointer-events-none fixed inset-0" aria-hidden>
+        <div className="absolute inset-0 hidden bg-cover bg-center sm:block" style={{ backgroundImage: `url("${backgroundDesktopUrl}")` }} />
+        <div className="absolute inset-0 bg-cover bg-center sm:hidden" style={{ backgroundImage: `url("${backgroundMobileUrl}")` }} />
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(10,8,24,.74),rgba(10,8,24,.82)_46%,rgba(10,8,24,.94))]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_72%_14%,rgba(232,213,163,.16),transparent_56%)]" />
+      </div>
       <span className="pointer-events-none fixed left-1/2 top-[-7rem] h-80 w-80 -translate-x-1/2 rounded-full bg-twilight-violet/20 blur-3xl" aria-hidden />
       <span className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_16%,rgba(237,239,245,.05)_0_1px,transparent_2px),radial-gradient(circle_at_78%_24%,rgba(156,135,212,.04)_0_1px,transparent_2px),radial-gradient(circle_at_34%_72%,rgba(216,179,108,.03)_0_1px,transparent_2px),radial-gradient(circle_at_88%_78%,rgba(245,239,255,.02)_0_1px,transparent_2px)] opacity-100" aria-hidden />
       <span className="pointer-events-none fixed inset-x-0 bottom-0 h-56 bg-[radial-gradient(ellipse_at_bottom,rgba(0,0,0,.72),transparent_70%)]" aria-hidden />
@@ -375,12 +404,13 @@ export default function DestinyCafeTarotAlbum({
               totalCards={albumCards.length}
               selectedCount={selectedCount}
               cardBackUrl={cardBackUrl}
+              yeoniCharacterUrl={yeoniCharacterUrl}
               pdfBusy={isPdfBusy}
               onDownloadAll={() => handleDownloadPdf("all")}
               onDownloadSelected={() => handleDownloadPdf("selected")}
             />
             <TarotPdfStatusBox status={pdfStatus} />
-            <div className="sticky top-0 z-20 -mx-4 border-y border-white/10 bg-midnight-ink/82 px-4 py-3 backdrop-blur-2xl sm:top-3 sm:mx-0 sm:rounded-3xl sm:border sm:bg-white/[0.06]">
+            <div className="sticky top-0 z-20 -mx-4 border-y border-white/10 bg-midnight-ink/78 px-4 py-3 backdrop-blur-2xl sm:top-3 sm:mx-0 sm:rounded-3xl sm:border sm:border-champagne-gold/15 sm:bg-midnight-ink/55">
               <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(210px,260px)_minmax(260px,360px)] xl:items-center">
                 <TarotAlbumFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
                 <TarotAlbumSort sortMode={sortMode} onSortModeChange={setSortMode} />
@@ -391,10 +421,15 @@ export default function DestinyCafeTarotAlbum({
               cards={filteredCards}
               selectedCardIds={selectedCardIds}
               imageFailedById={imageFailedById}
+              flippedById={flippedById}
+              revealedById={revealedById}
+              prefersReducedMotion={prefersReducedMotion}
               cardBackUrl={cardBackUrl}
               onImageError={handleImageError}
               onSelectCard={setSelectedCard}
               onTogglePdfCard={handleTogglePdfCard}
+              onFlipCard={handleFlipCard}
+              onCoverCard={handleCoverCard}
             />
             {!filteredCards.length ? (
               <p className="rounded-2xl border border-moonveil-silver/15 bg-white/[0.045] px-4 py-5 text-center text-sm leading-relaxed text-moonveil-silver/80">
@@ -412,6 +447,8 @@ export default function DestinyCafeTarotAlbum({
             lockDialogue={lockDialogue}
             honeyDropUrl={honeyDropUrl}
             cardBackUrl={cardBackUrl}
+            yeoniCutoutUrl={yeoniCutoutUrl}
+            previewCards={previewCards}
             onUnlock={async () => {
               if (isAlbumUnlocked) return;
               if (isHoneyLoading || isHoneyDisabled) {
@@ -480,6 +517,7 @@ function TarotAlbumHero({
   totalCards,
   selectedCount,
   cardBackUrl,
+  yeoniCharacterUrl,
   pdfBusy,
   onDownloadAll,
   onDownloadSelected,
@@ -488,39 +526,41 @@ function TarotAlbumHero({
   totalCards: number;
   selectedCount: number;
   cardBackUrl: string;
+  yeoniCharacterUrl: string;
   pdfBusy: boolean;
   onDownloadAll: () => void;
   onDownloadSelected: () => void;
 }) {
   return (
-    <header className="relative overflow-hidden rounded-[2rem] border border-champagne-gold/20 bg-white/[0.06] px-6 py-8 shadow-[0_0_60px_rgba(216,179,108,0.12)] backdrop-blur-xl md:px-10 md:py-12">
+    <header className="relative overflow-hidden rounded-[2rem] border border-champagne-gold/20 bg-midnight-ink/45 px-6 py-8 shadow-[0_0_60px_rgba(216,179,108,0.12)] backdrop-blur-xl md:px-10 md:py-12">
       <span className="pointer-events-none absolute left-10 top-6 h-28 w-28 rounded-full bg-champagne-gold/10 blur-2xl" aria-hidden />
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(237,239,245,.10),transparent_34%),linear-gradient(120deg,rgba(255,255,255,.08),transparent_45%)]" aria-hidden />
-      <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] lg:items-center">
+      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(237,239,245,.10),transparent_34%),linear-gradient(120deg,rgba(255,255,255,.05),transparent_45%)]" aria-hidden />
+      <MoonlitPetalField density="normal" />
+      <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(220px,300px)] lg:items-center">
         <div className="max-w-3xl">
           <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-champagne-gold/25 bg-champagne-gold/10 px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.18em] text-champagne-gold">
             <Sparkles size={14} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </span>
-          <h2 id="tarotAlbumTitle" className="bg-gradient-to-r from-champagne-gold to-twilight-violet bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl lg:text-6xl">
+          <h2 id="tarotAlbumTitle" className="font-premium text-4xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl lg:text-6xl">
             달빛 타로 카드 앨범
           </h2>
           <p className="mt-4 text-lg font-semibold leading-relaxed text-pearl-mist sm:text-xl">
             78장의 카드가 달빛 찻집의 도감처럼 조용히 펼쳐집니다.
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-moonveil-silver/78 sm:text-base">
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
             연이가 깊은 서랍에 아껴두었던 카드 이야기예요. 타로 카드 의미와 해석을 한 장씩 읽고, 마음에 남는 카드는 PDF로 엮어 보관해 보세요.
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <TarotAlbumUnlockBadge />
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver/78">
-              보유 꿀방울 <span className="font-mono ml-1">{currentHoneyDrops}</span>개
+            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
+              보유 꿀방울 <span className="ml-1 font-mono tabular-nums">{currentHoneyDrops}</span>개
             </span>
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver/78">
-              해금 카드 <span className="font-mono ml-1">{totalCards}</span>장
+            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
+              해금 카드 <span className="ml-1 font-mono tabular-nums">{totalCards}</span>장
             </span>
-            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver/78">
-              달빛 서가 <span className="font-mono ml-1">{selectedCount}/{totalCards}</span>장
+            <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
+              달빛 서가 <span className="ml-1 font-mono tabular-nums">{selectedCount}/{totalCards}</span>장
             </span>
           </div>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
@@ -528,13 +568,102 @@ function TarotAlbumHero({
             <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? `선택 ${selectedCount}장 PDF` : "선택 카드 PDF"} />
           </div>
         </div>
-        <div className="relative mx-auto hidden w-full max-w-[250px] lg:block" aria-hidden>
-          <MoonlitCardPlaceholder title="연이의 비밀 카드첩" cardBackUrl={cardBackUrl} large />
-          <span className="absolute -right-6 top-8 h-28 w-20 rotate-6 rounded-2xl border border-champagne-gold/15 bg-white/[0.045] shadow-[0_0_26px_rgba(156,135,212,.14)]" />
-          <span className="absolute -left-5 bottom-12 h-24 w-16 -rotate-6 rounded-2xl border border-moonveil-silver/15 bg-white/[0.04]" />
+        <div className="relative mx-auto mt-2 w-full max-w-[264px] lg:mt-0" aria-hidden>
+          <div
+            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[188px] w-[144px] sm:h-[200px] sm:w-[154px]"
+            style={{ transformOrigin: "50% 92%", animation: "tarotCharacterIdle 4.8s ease-in-out infinite" }}
+          >
+            <span
+              className="absolute left-1/2 top-[44%] h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ background: "radial-gradient(circle, rgba(255,246,214,.22), rgba(216,179,108,0) 62%)", mixBlendMode: "screen", animation: "tarotCharacterAura 5.2s ease-in-out infinite" }}
+            />
+            <Image
+              src={yeoniCharacterUrl}
+              alt=""
+              fill
+              sizes="160px"
+              unoptimized
+              className="object-contain object-bottom drop-shadow-[0_12px_18px_rgba(0,0,0,.45)]"
+            />
+          </div>
+          <div className="relative z-10">
+            <TarotCardFan cardBackUrl={cardBackUrl} />
+          </div>
         </div>
       </div>
     </header>
+  );
+}
+
+function MoonlitPetalField({ density = "normal" }: { density?: "normal" | "rich" }) {
+  const petalCount = density === "rich" ? 5 : 3;
+  const starCount = density === "rich" ? 7 : 4;
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {Array.from({ length: petalCount }).map((_, index) => (
+        <span
+          key={`petal-${index}`}
+          className="absolute block h-3 w-2.5"
+          style={{
+            left: `${9 + index * (82 / petalCount)}%`,
+            top: "-5%",
+            borderRadius: "62% 62% 55% 55% / 74% 74% 40% 40%",
+            background: "linear-gradient(158deg, rgba(244,190,209,.82), rgba(234,208,137,.66))",
+            mixBlendMode: "screen",
+            opacity: 0.5,
+            animation: `tarotPetalDrift ${6.4 + index * 1.1}s linear ${index * 1.4}s infinite`,
+          }}
+        />
+      ))}
+      {Array.from({ length: starCount }).map((_, index) => (
+        <span
+          key={`star-${index}`}
+          className="absolute block h-1 w-1 rounded-full"
+          style={{
+            left: `${11 + index * (78 / starCount)}%`,
+            top: `${14 + (index % 3) * 24}%`,
+            background: "radial-gradient(circle, rgba(237,239,245,.95), rgba(237,239,245,0) 70%)",
+            boxShadow: "0 0 7px rgba(232,213,163,.7)",
+            animation: `tarotTwinkle ${2.3 + (index % 3) * 0.7}s ease-in-out ${index * 0.4}s infinite alternate`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function TarotCardFan({ cardBackUrl }: { cardBackUrl: string }) {
+  const offsets = [-2, -1, 0, 1, 2];
+  return (
+    <div className="group relative mx-auto flex h-[260px] w-full items-center justify-center sm:h-[300px]">
+      <span className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-champagne-gold/12 blur-3xl transition-all duration-500 group-hover:bg-champagne-gold/20" aria-hidden />
+      <div className="relative h-[220px] w-[150px] transition-transform duration-500 ease-out group-hover:scale-[1.03] sm:h-[248px] sm:w-[168px]">
+        {offsets.map((offset) => {
+          const distance = Math.abs(offset);
+          return (
+            <span
+              key={offset}
+              className="absolute inset-0 overflow-hidden rounded-2xl border border-champagne-gold/25 bg-midnight-ink shadow-[0_0_40px_-5px_rgba(216,179,108,0.35),0_0_80px_-20px_rgba(156,135,212,0.25)]"
+              style={{
+                transform: `translateX(${offset * 27}px) translateY(${distance * 14}px) rotate(${offset * 8}deg) scale(${1 - distance * 0.05})`,
+                opacity: 1 - distance * 0.2,
+                zIndex: 5 - distance,
+              }}
+            >
+              <Image
+                src={cardBackUrl}
+                alt=""
+                fill
+                sizes="168px"
+                unoptimized
+                className="object-cover"
+              />
+              <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-white/5" />
+            </span>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -676,20 +805,29 @@ function TarotAlbumGrid({
   cards,
   selectedCardIds,
   imageFailedById,
+  flippedById,
+  revealedById,
+  prefersReducedMotion,
   cardBackUrl,
   onImageError,
   onSelectCard,
   onTogglePdfCard,
+  onFlipCard,
+  onCoverCard,
 }: {
   cards: TarotAlbumStoryCard[];
   selectedCardIds: Record<string, boolean>;
   imageFailedById: Record<string, boolean>;
+  flippedById: Record<string, boolean>;
+  revealedById: Record<string, boolean>;
+  prefersReducedMotion: boolean;
   cardBackUrl: string;
   onImageError: (card: TarotAlbumStoryCard) => void;
   onSelectCard: (card: TarotAlbumStoryCard) => void;
   onTogglePdfCard: (card: TarotAlbumStoryCard) => void;
+  onFlipCard: (card: TarotAlbumStoryCard) => void;
+  onCoverCard: (card: TarotAlbumStoryCard) => void;
 }) {
-  const prefersReducedMotion = usePrefersReducedMotion();
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6" aria-live="polite">
       {cards.map((card, index) => (
@@ -698,11 +836,16 @@ function TarotAlbumGrid({
           card={card}
           selectedForPdf={Boolean(selectedCardIds[card.id])}
           imageFailed={Boolean(imageFailedById[card.id])}
+          flipped={Boolean(flippedById[card.id])}
+          revealed={Boolean(revealedById[card.id])}
+          prefersReducedMotion={prefersReducedMotion}
           cardBackUrl={cardBackUrl}
           onImageError={onImageError}
           onSelectCard={onSelectCard}
           onTogglePdfCard={onTogglePdfCard}
-          staggerDelay={prefersReducedMotion ? 0 : index * 60}
+          onFlipCard={onFlipCard}
+          onCoverCard={onCoverCard}
+          staggerDelay={prefersReducedMotion ? 0 : Math.min(index, 12) * 55}
         />
       ))}
     </div>
@@ -713,30 +856,55 @@ function TarotAlbumCardItem({
   card,
   selectedForPdf,
   imageFailed,
+  flipped,
+  revealed,
+  prefersReducedMotion,
   cardBackUrl,
   onImageError,
   onSelectCard,
   onTogglePdfCard,
+  onFlipCard,
+  onCoverCard,
   staggerDelay = 0,
 }: {
   card: TarotAlbumStoryCard;
   selectedForPdf: boolean;
   imageFailed: boolean;
+  flipped: boolean;
+  revealed: boolean;
+  prefersReducedMotion: boolean;
   cardBackUrl: string;
   onImageError: (card: TarotAlbumStoryCard) => void;
   onSelectCard: (card: TarotAlbumStoryCard) => void;
   onTogglePdfCard: (card: TarotAlbumStoryCard) => void;
+  onFlipCard: (card: TarotAlbumStoryCard) => void;
+  onCoverCard: (card: TarotAlbumStoryCard) => void;
   staggerDelay?: number;
 }) {
+  const [burst, setBurst] = useState(false);
+  const burstTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (burstTimer.current) window.clearTimeout(burstTimer.current);
+  }, []);
+
+  const handleReveal = useCallback(() => {
+    onFlipCard(card);
+    if (prefersReducedMotion) return;
+    setBurst(true);
+    if (burstTimer.current) window.clearTimeout(burstTimer.current);
+    burstTimer.current = window.setTimeout(() => setBurst(false), 840);
+  }, [card, onFlipCard, prefersReducedMotion]);
+
   return (
     <article
-      className="group relative overflow-hidden rounded-2xl border border-champagne-gold/15 bg-white/[0.05] p-2 text-left shadow-[0_18px_44px_rgba(0,0,0,.24)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-champagne-gold/40 hover:shadow-moon-glow focus-within:ring-2 focus-within:ring-champagne-gold/45 animate-moon-rise"
+      className="group relative overflow-hidden rounded-2xl border border-champagne-gold/15 bg-midnight-ink/40 p-2 text-left shadow-[0_18px_44px_rgba(0,0,0,.24)] backdrop-blur-md transition-all duration-300 animate-moon-rise hover:-translate-y-1 hover:border-champagne-gold/40 hover:shadow-moon-glow focus-within:ring-2 focus-within:ring-champagne-gold/45"
       style={{ animationDelay: `${staggerDelay}ms` }}
     >
       <button
         type="button"
         className={cx(
-          "absolute right-3 top-3 z-10 grid h-9 w-9 place-items-center rounded-full border backdrop-blur-xl transition focus:outline-none focus:ring-2 focus:ring-champagne-gold/50",
+          "absolute right-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full border backdrop-blur-xl transition focus:outline-none focus:ring-2 focus:ring-champagne-gold/50",
           selectedForPdf
             ? "border-champagne-gold/55 bg-champagne-gold/22 text-champagne-gold"
             : "border-white/15 bg-black/30 text-moonveil-silver hover:border-champagne-gold/35 hover:text-champagne-gold",
@@ -747,39 +915,114 @@ function TarotAlbumCardItem({
       >
         {selectedForPdf ? <MoonPhaseSeal full /> : <MoonPhaseSeal />}
       </button>
-      <button
-        type="button"
-        className="block w-full text-left focus:outline-none"
-        onClick={() => onSelectCard(card)}
-        aria-label={`${card.titleKo} ${card.titleEn} 카드 자세히 보기`}
-      >
-        <span className="relative block aspect-[2/3] overflow-hidden rounded-xl border border-champagne-gold/18 bg-midnight-ink">
-          {card.imageSrc && !imageFailed ? (
+      {flipped ? (
+        <button
+          type="button"
+          className="absolute left-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/30 text-moonveil-silver backdrop-blur-xl transition hover:border-champagne-gold/35 hover:text-champagne-gold focus:outline-none focus:ring-2 focus:ring-champagne-gold/50"
+          aria-label={`${card.titleKo} 카드 다시 덮기`}
+          onClick={() => onCoverCard(card)}
+        >
+          <RotateCcw size={15} aria-hidden />
+        </button>
+      ) : null}
+
+      <div className="cdFlipViewport relative block w-full">
+        <div className={cx("cdFlipInner", flipped && "is-flipped", burst && "is-burst")}>
+          <button
+            type="button"
+            className="cdFlipFace cdFlipBack block border border-champagne-gold/18 bg-midnight-ink text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-champagne-gold/60"
+            style={{ pointerEvents: flipped ? "none" : "auto" }}
+            aria-hidden={flipped}
+            tabIndex={flipped ? -1 : 0}
+            aria-label={`${card.titleKo} 카드 펼쳐 앞면 보기`}
+            onClick={handleReveal}
+          >
             <Image
-              src={card.imageSrc}
-              alt={`${card.titleKo} ${card.titleEn} 타로 카드`}
-              className="object-cover transition duration-500 group-hover:scale-[1.025]"
+              src={cardBackUrl}
+              alt=""
               fill
               sizes="(max-width: 640px) 48vw, (max-width: 1280px) 25vw, 180px"
               unoptimized
               loading="lazy"
-              onError={() => onImageError(card)}
+              className="object-cover"
             />
-          ) : (
-            <MoonlitCardPlaceholder title={card.titleKo} cardBackUrl={cardBackUrl} />
-          )}
-          <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
-          <span className="pointer-events-none absolute inset-0 rounded-xl ring-1 ring-inset ring-champagne-gold/0 transition group-hover:ring-champagne-gold/34 group-focus-within:ring-champagne-gold/34" />
+            <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,179,108,.16),transparent_46%)]" />
+            <span className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-full border border-champagne-gold/25 bg-black/45 px-2 py-1 text-[0.62rem] font-black text-champagne-gold opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
+              <Sparkles size={11} aria-hidden />
+              탭하여 펼치기
+            </span>
+          </button>
+
+          <button
+            type="button"
+            className="cdFlipFace cdFlipFront block border border-champagne-gold/24 bg-midnight-ink text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-champagne-gold/60"
+            style={{ pointerEvents: flipped ? "auto" : "none" }}
+            aria-hidden={!flipped}
+            tabIndex={flipped ? 0 : -1}
+            aria-label={`${card.titleKo} ${card.titleEn} 카드 자세히 보기`}
+            onClick={() => onSelectCard(card)}
+          >
+            {!revealed ? (
+              <span className="cdShimmer absolute inset-0" />
+            ) : card.imageSrc && !imageFailed ? (
+              <Image
+                src={card.imageSrc}
+                alt={`${card.titleKo} ${card.titleEn} 타로 카드`}
+                className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                fill
+                sizes="(max-width: 640px) 48vw, (max-width: 1280px) 25vw, 180px"
+                unoptimized
+                loading="lazy"
+                onError={() => onImageError(card)}
+              />
+            ) : (
+              <MoonlitCardPlaceholder title={card.titleKo} cardBackUrl={cardBackUrl} />
+            )}
+            <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100" />
+            <span className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-champagne-gold/0 transition group-hover:ring-champagne-gold/34 group-focus-within:ring-champagne-gold/34" />
+          </button>
+        </div>
+        {burst && !prefersReducedMotion ? <CardPetalBurst /> : null}
+      </div>
+
+      <span className="mt-3 grid gap-1 px-1 pb-1">
+        <strong className="truncate font-premium text-sm font-black leading-tight text-pearl-mist sm:text-[0.96rem]">{card.titleKo}</strong>
+        <em className="truncate text-[0.72rem] font-semibold not-italic text-moonveil-silver">{card.titleEn}</em>
+        <span className="mt-1 inline-flex w-fit rounded-full border border-champagne-gold/18 bg-champagne-gold/8 px-2 py-1 text-[0.68rem] font-extrabold text-champagne-gold">
+          {card.suitLabel}
         </span>
-        <span className="mt-3 grid gap-1 px-1 pb-1">
-          <strong className="truncate font-premium text-sm font-black leading-tight text-pearl-mist sm:text-[0.96rem]">{card.titleKo}</strong>
-          <em className="truncate text-[0.72rem] font-semibold not-italic text-moonveil-silver/72">{card.titleEn}</em>
-          <span className="mt-1 inline-flex w-fit rounded-full border border-champagne-gold/18 bg-champagne-gold/8 px-2 py-1 text-[0.68rem] font-extrabold text-champagne-gold/78">
-            {card.suitLabel}
-          </span>
-        </span>
-      </button>
+      </span>
     </article>
+  );
+}
+
+function CardPetalBurst() {
+  const petals = Array.from({ length: 7 });
+  return (
+    <span className="pointer-events-none absolute left-1/2 top-[42%] z-20 block" aria-hidden>
+      {petals.map((_, index) => {
+        const angle = (index / petals.length) * Math.PI * 2;
+        const distance = 40 + (index % 3) * 11;
+        const x = Math.cos(angle) * distance;
+        const y = Math.sin(angle) * distance;
+        const rotation = (index % 2 ? 1 : -1) * (80 + index * 12);
+        return (
+          <span
+            key={index}
+            className="absolute left-0 top-0 block h-2.5 w-2"
+            style={{
+              borderRadius: "62% 62% 55% 55% / 74% 74% 40% 40%",
+              background: "linear-gradient(158deg, rgba(244,190,209,.95), rgba(234,208,137,.85))",
+              boxShadow: "0 0 8px rgba(232,213,163,.5)",
+              ["--cd-pb-x" as string]: `${x}px`,
+              ["--cd-pb-y" as string]: `${y}px`,
+              ["--cd-pb-r" as string]: `${rotation}deg`,
+              animation: "tarotPetalBurst .82s cubic-bezier(.2,.7,.3,1) both",
+            } as CSSProperties}
+          />
+        );
+      })}
+    </span>
   );
 }
 
@@ -809,6 +1052,8 @@ function TarotAlbumLockPanel({
   lockDialogue,
   honeyDropUrl,
   cardBackUrl,
+  yeoniCutoutUrl,
+  previewCards,
   onUnlock,
 }: {
   currentHoneyDrops: number;
@@ -819,45 +1064,62 @@ function TarotAlbumLockPanel({
   lockDialogue: string;
   honeyDropUrl: string;
   cardBackUrl: string;
+  yeoniCutoutUrl: string;
+  previewCards: TarotAlbumStoryCard[];
   onUnlock: () => void;
 }) {
   const honeyCountText = isHoneyLoading ? "확인 중" : `${currentHoneyDrops}개`;
 
   return (
     <div className="grid flex-1 place-items-center py-6">
-      <TarotAlbumGardenMotionStyles />
-      <div className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-twilight-violet/24 bg-deep-indigo/90 px-5 py-8 text-center shadow-[0_0_80px_rgba(156,135,212,0.2)] backdrop-blur-2xl sm:px-8 sm:py-10">
-        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-8%,rgba(237,239,245,.15),transparent_34%),radial-gradient(circle_at_16%_82%,rgba(156,135,212,.12),transparent_38%),linear-gradient(145deg,#1B2340_0%,#2A2560_58%,#3D3570_100%)]" aria-hidden />
-        <span className="pointer-events-none absolute -right-10 top-8 h-40 w-40 rounded-full bg-pearl-mist/16 blur-3xl" aria-hidden />
-        <div className="relative mx-auto mb-6 w-40 sm:w-48" aria-hidden>
-          <span className="absolute -right-14 -top-8 h-28 w-28 rounded-full bg-pearl-mist/22 blur-2xl" style={{ animation: "tarotMoonGlow 6.4s ease-in-out infinite" }} />
-          <span className="absolute -right-5 -top-2 h-20 w-20 rounded-full bg-pearl-mist/80 shadow-[0_0_34px_rgba(237,239,245,.32)]">
-            <span className="absolute -right-2 top-0 h-20 w-20 rounded-full bg-deep-indigo" />
-          </span>
-          <MoonlitCardPlaceholder title="스토리 잠금" cardBackUrl={cardBackUrl} large gardenSeal />
-          <BloomSeal canBloom={canUnlock} />
+      <div className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-twilight-violet/24 bg-midnight-ink/62 px-5 py-9 text-center shadow-[0_0_80px_rgba(156,135,212,0.2)] backdrop-blur-2xl sm:px-8 sm:py-12">
+        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_-8%,rgba(237,239,245,.14),transparent_36%),radial-gradient(circle_at_16%_84%,rgba(156,135,212,.12),transparent_40%)]" aria-hidden />
+        <span className="pointer-events-none absolute -right-10 top-8 h-40 w-40 rounded-full bg-pearl-mist/12 blur-3xl" aria-hidden />
+        <MoonlitPetalField density="rich" />
+
+        <div className="pointer-events-none absolute -bottom-2 left-0 hidden w-40 opacity-55 sm:block lg:w-48" aria-hidden>
+          <div className="relative aspect-[3/4] w-full">
+            <Image src={yeoniCutoutUrl} alt="" fill sizes="192px" unoptimized className="object-contain object-bottom drop-shadow-[0_0_28px_rgba(156,135,212,.28)]" />
+          </div>
         </div>
+
+        <div className="relative mx-auto mb-7 grid h-52 w-40 place-items-center sm:h-60 sm:w-48" aria-hidden>
+          <span className="absolute -right-10 -top-6 h-24 w-24 rounded-full bg-pearl-mist/70 shadow-[0_0_40px_rgba(237,239,245,.34)]" style={{ animation: "tarotMoonGlow 6.4s ease-in-out infinite" }}>
+            <span className="absolute -right-3 top-0 h-24 w-24 rounded-full bg-midnight-ink" />
+          </span>
+          <span className="absolute h-44 w-44 rounded-full bg-champagne-gold/12 blur-3xl sm:h-52 sm:w-52" />
+          <div className="relative h-52 w-[9.2rem] sm:h-60 sm:w-40" style={{ animation: "tarotGentleFloat 4s ease-in-out infinite" }}>
+            <span className="absolute inset-0 overflow-hidden rounded-[1.4rem] border border-champagne-gold/35 bg-midnight-ink shadow-[0_0_40px_-5px_rgba(216,179,108,0.4),0_0_90px_-20px_rgba(156,135,212,0.32)]">
+              <Image src={cardBackUrl} alt="" fill sizes="160px" unoptimized className="object-cover" />
+              <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_32%,rgba(216,179,108,.2),transparent_46%)]" />
+            </span>
+            <BloomSeal canBloom={canUnlock} />
+          </div>
+          <span className="absolute left-1/2 top-1/2 h-2 w-2 rounded-full bg-champagne-gold shadow-[0_0_10px_rgba(232,213,163,.9)]" style={{ animation: "tarotOrbit 9s linear infinite", ["--cd-orbit-r" as string]: "92px" } as CSSProperties} />
+          <span className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-pearl-mist shadow-[0_0_8px_rgba(237,239,245,.9)]" style={{ animation: "tarotOrbit 12s linear infinite reverse", ["--cd-orbit-r" as string]: "76px" } as CSSProperties} />
+        </div>
+
         <div className="relative">
           <p className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-twilight-violet/38 bg-twilight-violet/10 px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.16em] text-champagne-gold shadow-[0_0_24px_rgba(156,135,212,.18)]">
             <Lock size={13} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </p>
-          <h2 id="tarotAlbumTitle" className="break-keep bg-gradient-to-r from-champagne-gold to-twilight-violet bg-clip-text font-premium text-4xl font-black leading-tight text-transparent sm:text-5xl">
-            달빛 봉인이 걸린 카드첩
+          <h2 id="tarotAlbumTitle" className="break-keep font-premium text-4xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl">
+            연이의 비밀 카드첩
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
-            꿀방울 10개를 모으면 연이가 아껴둔 타로 카드 앨범과 78장의 이야기를 열어드려요.
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-pearl-mist sm:text-base">
+            카드를 열어보세요. 한 장 한 장에 담긴 연이의 이야기가 손님을 기다리고 있어요. 꿀방울 10개를 모으면 78장의 타로 도감이 달빛 아래 펼쳐집니다.
           </p>
           <div className="mx-auto mt-6 grid max-w-lg grid-cols-2 gap-3">
             <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
               <span className="relative mx-auto mb-1 block h-5 w-5 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${honeyDropUrl}")` }} aria-hidden />
               <span className="relative block text-xs font-extrabold text-moonveil-silver">현재 꿀방울</span>
-              <strong className="relative mt-1 block font-premium text-2xl font-mono text-champagne-gold">{honeyCountText}</strong>
+              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{honeyCountText}</strong>
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
               <Flower2 className="relative mx-auto mb-1 text-twilight-violet" size={20} strokeWidth={1.7} aria-hidden />
               <span className="relative block text-xs font-extrabold text-moonveil-silver">해금 필요</span>
-              <strong className="relative mt-1 block font-premium text-2xl font-mono text-champagne-gold">{TAROT_ALBUM_UNLOCK_COST}개</strong>
+              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{TAROT_ALBUM_UNLOCK_COST}개</strong>
             </div>
           </div>
           <HoneyDropProgress current={currentHoneyDrops} total={TAROT_ALBUM_UNLOCK_COST} />
@@ -881,13 +1143,36 @@ function TarotAlbumLockPanel({
             </span>
             <p>"{unlockMessage || lockDialogue}"</p>
           </div>
+
+          {previewCards.length ? (
+            <div className="relative mx-auto mt-7 max-w-xl">
+              <div className="flex items-center justify-center gap-2 sm:gap-3" aria-hidden>
+                {previewCards.map((card, index) => (
+                  <span
+                    key={card.id}
+                    className="relative aspect-[2/3] w-12 overflow-hidden rounded-lg border border-champagne-gold/20 bg-midnight-ink sm:w-16"
+                    style={{ transform: `translateY(${Math.abs(index - 2) * 6}px)` }}
+                  >
+                    {card.imageSrc ? (
+                      <Image src={card.imageSrc} alt="" fill sizes="64px" unoptimized loading="lazy" className="scale-110 object-cover blur-[10px] brightness-[.32]" />
+                    ) : null}
+                  </span>
+                ))}
+              </div>
+              <span className="pointer-events-none absolute inset-0 grid place-items-center">
+                <span className="rounded-full border border-champagne-gold/30 bg-midnight-ink/80 px-4 py-1.5 text-[0.72rem] font-black text-champagne-gold backdrop-blur-md">
+                  78장의 이야기가 기다리고 있어요
+                </span>
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
 
-function TarotAlbumGardenMotionStyles() {
+function TarotAlbumMotionStyles() {
   return (
     <style>{`
       @keyframes tarotMoonGlow {
@@ -899,9 +1184,89 @@ function TarotAlbumGardenMotionStyles() {
         70% { opacity: 1; transform: scale(1.14) rotate(4deg); }
         100% { opacity: 1; transform: scale(1) rotate(0deg); }
       }
+      @keyframes tarotPetalDrift {
+        0% { opacity: 0; transform: translate3d(0, -24px, 0) rotate(0deg); }
+        12% { opacity: .6; }
+        88% { opacity: .42; }
+        100% { opacity: 0; transform: translate3d(26px, 320px, 0) rotate(240deg); }
+      }
+      @keyframes tarotTwinkle {
+        from { opacity: .2; transform: scale(.65); }
+        to { opacity: .92; transform: scale(1.12); }
+      }
+      @keyframes tarotGentleFloat {
+        0%, 100% { transform: translateY(-6px); }
+        50% { transform: translateY(6px); }
+      }
+      @keyframes tarotGoldShimmer {
+        0% { background-position: -180% 0; }
+        100% { background-position: 180% 0; }
+      }
+      @keyframes tarotOrbit {
+        from { transform: rotate(0deg) translateX(var(--cd-orbit-r, 78px)) rotate(0deg); }
+        to { transform: rotate(360deg) translateX(var(--cd-orbit-r, 78px)) rotate(-360deg); }
+      }
+      @keyframes tarotPetalBurst {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(.2) rotate(0deg); }
+        24% { opacity: 1; }
+        100% { opacity: 0; transform: translate(calc(-50% + var(--cd-pb-x, 0px)), calc(-50% + var(--cd-pb-y, 0px))) scale(1) rotate(var(--cd-pb-r, 90deg)); }
+      }
+      @keyframes tarotFlipGlow {
+        0% { box-shadow: 0 0 0 rgba(216,179,108,0); }
+        42% { box-shadow: 0 0 60px -4px rgba(216,179,108,.5), 0 0 90px -20px rgba(156,135,212,.4); }
+        100% { box-shadow: 0 0 22px -6px rgba(216,179,108,.16); }
+      }
+      @keyframes tarotCharacterIdle {
+        0%, 100% { transform: translateY(0) rotate(-1.3deg) scale(1); }
+        50% { transform: translateY(-7px) rotate(1.3deg) scale(1.022); }
+      }
+      @keyframes tarotCharacterAura {
+        0%, 100% { opacity: .42; transform: translate(-50%, -50%) scale(.94); }
+        50% { opacity: .72; transform: translate(-50%, -50%) scale(1.08); }
+      }
+
+      .cdFlipViewport { perspective: 1000px; }
+      .cdFlipInner {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        transform-style: preserve-3d;
+        transition: transform .62s cubic-bezier(.4, 0, .2, 1);
+      }
+      .cdFlipInner.is-flipped { transform: rotateY(180deg); }
+      .cdFlipFace {
+        position: absolute;
+        inset: 0;
+        border-radius: .75rem;
+        overflow: hidden;
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
+      }
+      .cdFlipFront { transform: rotateY(180deg); }
+      .cdFlipInner.is-burst { animation: tarotFlipGlow .8s cubic-bezier(.4, 0, .2, 1) both; }
+
+      .cdShimmer {
+        background-image: linear-gradient(110deg, rgba(216,179,108,.06) 20%, rgba(216,179,108,.22) 42%, rgba(237,239,245,.28) 50%, rgba(216,179,108,.22) 58%, rgba(216,179,108,.06) 80%);
+        background-size: 220% 100%;
+        animation: tarotGoldShimmer 1.8s ease-in-out infinite;
+      }
+
       @media (prefers-reduced-motion: reduce) {
+        .cdFlipInner, .cdFlipInner.is-flipped { transform: none; transition: none; }
+        .cdFlipInner.is-burst { animation: none; }
+        .cdFlipFace { backface-visibility: visible; -webkit-backface-visibility: visible; transition: opacity .3s ease; }
+        .cdFlipFront { transform: none; opacity: 0; }
+        .cdFlipInner.is-flipped .cdFlipFront { opacity: 1; }
+        .cdFlipInner.is-flipped .cdFlipBack { opacity: 0; }
+        .cdShimmer { animation-duration: 1ms; animation-iteration-count: 1; }
         [style*="tarotMoonGlow"],
-        [style*="tarotLavenderBloom"] {
+        [style*="tarotLavenderBloom"],
+        [style*="tarotPetalDrift"],
+        [style*="tarotTwinkle"],
+        [style*="tarotGentleFloat"],
+        [style*="tarotCharacterIdle"],
+        [style*="tarotCharacterAura"],
+        [style*="tarotOrbit"] {
           animation-duration: 1ms !important;
           animation-iteration-count: 1 !important;
         }
@@ -1286,7 +1651,7 @@ function TarotAlbumPdfRender({
         zIndex: -1,
       }}
     >
-      <PdfCoverPage count={cards.length} />
+      <PdfCoverPage count={cards.length} cardBackUrl={cardBackUrl} />
       <PdfTocPage groups={groupedCards} />
       {cards.map((card, index) => (
         <PdfCardPage
@@ -1334,25 +1699,35 @@ function PdfPageShell({
   );
 }
 
-function PdfCoverPage({ count }: { count: number }) {
+function PdfCoverPage({ count, cardBackUrl }: { count: number; cardBackUrl: string }) {
   const createdAt = new Intl.DateTimeFormat("ko-KR", { dateStyle: "long" }).format(new Date());
   return (
     <PdfPageShell>
-      <div style={{ display: "grid", minHeight: 990, alignContent: "center", gap: 26 }}>
-        <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>CODE DESTINY · 운명 찻집</p>
-        <h1 style={{ margin: 0, maxWidth: 560, color: "#EDEFF5", fontSize: 58, lineHeight: 1.08, fontWeight: 950 }}>
-          달빛 타로 카드 앨범
-        </h1>
-        <p style={{ margin: 0, maxWidth: 560, color: "rgba(156,135,212,.9)", fontSize: 21, lineHeight: 1.7, fontWeight: 700 }}>
-          연이가 카드 이야기를 한 장씩 엮어, 오늘의 마음 곁에 오래 머무는 타로 도감으로 묶었습니다.
-        </p>
-        <div style={{ display: "flex", gap: 12, marginTop: 20 }}>
-          <span style={{ border: "1px solid rgba(216,179,108,.28)", borderRadius: 999, padding: "10px 16px", color: "#D8B36C", fontSize: 13, fontWeight: 900 }}>
-            카드 {count}장
-          </span>
-          <span style={{ border: "1px solid rgba(156,135,212,.22)", borderRadius: 999, padding: "10px 16px", color: "#9C87D4", fontSize: 13, fontWeight: 900 }}>
-            생성일 {createdAt}
-          </span>
+      <div style={{ display: "grid", minHeight: 990, alignContent: "center", gridTemplateColumns: "minmax(0,1fr) 214px", alignItems: "center", gap: 40 }}>
+        <div style={{ display: "grid", gap: 22 }}>
+          <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>CODE DESTINY · 운명 찻집</p>
+          <h1 style={{ margin: 0, maxWidth: 460, color: "#EDEFF5", fontSize: 56, lineHeight: 1.1, fontWeight: 950, letterSpacing: "-0.01em" }}>
+            달빛 타로 카드 앨범
+          </h1>
+          <p style={{ margin: 0, maxWidth: 440, color: "rgba(200,170,255,.92)", fontSize: 20, lineHeight: 1.75, fontWeight: 700 }}>
+            연이가 카드 이야기를 한 장씩 엮어, 오늘의 마음 곁에 오래 머무는 타로 도감으로 묶었습니다.
+          </p>
+          <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
+            <span style={{ border: "1px solid rgba(216,179,108,.32)", borderRadius: 999, padding: "10px 16px", color: "#D8B36C", fontSize: 13, fontWeight: 900 }}>
+              카드 {count}장
+            </span>
+            <span style={{ border: "1px solid rgba(156,135,212,.26)", borderRadius: 999, padding: "10px 16px", color: "#C8AAFF", fontSize: 13, fontWeight: 900 }}>
+              생성일 {createdAt}
+            </span>
+          </div>
+        </div>
+        <div style={{ position: "relative", justifySelf: "center" }}>
+          <img
+            src={cardBackUrl}
+            crossOrigin="anonymous"
+            alt=""
+            style={{ width: 196, height: 274, objectFit: "cover", borderRadius: 22, border: "1px solid rgba(216,179,108,.4)", boxShadow: "0 0 44px -6px rgba(216,179,108,.42), 0 30px 60px rgba(0,0,0,.4)" }}
+          />
         </div>
       </div>
     </PdfPageShell>

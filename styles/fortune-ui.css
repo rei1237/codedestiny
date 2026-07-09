@@ -12274,6 +12274,46 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               background-size: 20px 20px; background-position: 0 0, 10px 10px;
             }
             .oracle-back-m::after { content: '⚛'; color: rgba(255,255,255,0.25); animation: pulse 2.5s infinite; }
+            /* 연이 모드 전용 — 명리학 타로 카드 뒷면을 연이 타로 카드 아트 + 신비 애니메이션으로 (네오 모드는 원본 인디고 도트 패턴 유지) */
+            body:not(.neo-mode) .oracle-back-m {
+              overflow: hidden; display: block; font-size: 0;
+              background: #14102b url("https://assets.code-destiny.com/DestinyCafe/nobackground/%EC%97%B0%EC%9D%B4%20%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C-Photoroom.png") center / cover no-repeat;
+              border: 2px solid rgba(216,179,108,0.55);
+              box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 22px rgba(216,179,108,0.26), 0 0 46px rgba(156,135,212,0.18);
+              animation: tarotBackGlow 4.6s ease-in-out infinite;
+            }
+            body:not(.neo-mode) .oracle-back-m::before {
+              content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+              background: radial-gradient(circle at 50% 26%, rgba(255,246,214,0.24), transparent 56%);
+              mix-blend-mode: screen; animation: tarotBackAura 5s ease-in-out infinite;
+            }
+            body:not(.neo-mode) .oracle-back-m::after {
+              content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+              background: linear-gradient(115deg, transparent 42%, rgba(255,246,214,0.42) 50%, transparent 58%);
+              background-size: 300% 100%; mix-blend-mode: screen;
+              animation: tarotBackShimmer 6s ease-in-out infinite;
+            }
+            @keyframes tarotBackGlow {
+              0%, 100% { box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 18px rgba(216,179,108,0.2), 0 0 40px rgba(156,135,212,0.12); }
+              50% { box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 32px rgba(216,179,108,0.42), 0 0 68px rgba(156,135,212,0.3); }
+            }
+            @keyframes tarotBackAura {
+              0%, 100% { opacity: 0.35; transform: scale(0.96); }
+              50% { opacity: 0.82; transform: scale(1.03); }
+            }
+            @keyframes tarotBackShimmer {
+              0% { background-position: 160% 0; opacity: 0; }
+              28% { opacity: 0.85; }
+              60% { opacity: 0; }
+              100% { background-position: -80% 0; opacity: 0; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+              body:not(.neo-mode) .oracle-back-m,
+              body:not(.neo-mode) .tarot-placeholder-back { animation: none !important; }
+              body:not(.neo-mode) .oracle-back-m::before,
+              body:not(.neo-mode) .oracle-back-m::after,
+              body:not(.neo-mode) .tarot-placeholder-back::before { animation: none !important; }
+            }
             .oracle-front-m {
               z-index: 1; transform: rotateY(180deg); background-size: cover; background-position: center;
               border: 2px solid #ffd700; box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
@@ -12345,6 +12385,19 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
               background-size: 16px 16px; background-position: 0 0, 8px 8px;
               border: 2px solid rgba(99,102,241,0.6);
               box-shadow: inset 0 0 30px rgba(99,102,241,0.15), 0 0 20px rgba(0,0,0,0.4);
+            }
+            /* 연이 모드 전용 — 스프레드 카드 뒷면도 동일한 연이 타로 카드 아트 + 신비 애니메이션 (네오 모드는 원본 유지) */
+            body:not(.neo-mode) .tarot-placeholder-back {
+              overflow: hidden;
+              background: #14102b url("https://assets.code-destiny.com/DestinyCafe/nobackground/%EC%97%B0%EC%9D%B4%20%ED%83%80%EB%A1%9C%20%EC%B9%B4%EB%93%9C-Photoroom.png") center / cover no-repeat;
+              border: 2px solid rgba(216,179,108,0.5);
+              box-shadow: inset 0 0 26px rgba(99,102,241,0.12), 0 0 18px rgba(216,179,108,0.24), 0 0 34px rgba(156,135,212,0.16);
+              animation: tarotBackGlow 4.6s ease-in-out infinite;
+            }
+            body:not(.neo-mode) .tarot-placeholder-back::before {
+              content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+              background: radial-gradient(circle at 50% 26%, rgba(255,246,214,0.22), transparent 56%);
+              mix-blend-mode: screen; animation: tarotBackAura 5s ease-in-out infinite;
             }
             .tarot-placeholder-back::before {
               content: '✦'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
@@ -16853,4 +16906,52 @@ button,.tog-btn,.btn-main,.btn-sub,.dw-item,.feature-card,
   letter-spacing: 0 !important;
   word-break: keep-all;
   overflow-wrap: break-word;
+}
+
+/* ===== 메인 히어로 연이 스프라이트7 캐릭터 — 은은한 생동감 (연이 모드 전용, 네오 모드 미적용) ===== */
+@keyframes cdYeonIdle {
+  0%, 100% { transform: translateY(0) rotate(-1.3deg) scale(1); }
+  50%      { transform: translateY(-7px) rotate(1.3deg) scale(1.022); }
+}
+@keyframes cdYeonAura {
+  0%, 100% { opacity: 0.42; transform: translate(-50%, -50%) scale(0.94); }
+  50%      { opacity: 0.72; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+/* 데스크톱: 히어로 우측 '자는 연이' → 스프라이트7 캐릭터로 교체 (연이 모드에서만) */
+body:not(.neo-mode) .moon-hero__picture--mascot { overflow: visible !important; }
+body:not(.neo-mode) .moon-hero__picture--mascot > img { opacity: 0 !important; }
+body:not(.neo-mode) .moon-hero__picture--mascot .moon-hero__zzz { display: none !important; }
+body:not(.neo-mode) .moon-hero__picture--mascot::before {
+  content: ""; position: absolute; left: 50%; top: 46%;
+  width: 122%; height: 122%; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 246, 214, 0.22), rgba(216, 179, 108, 0) 62%);
+  mix-blend-mode: screen; pointer-events: none;
+  animation: cdYeonAura 5.2s ease-in-out infinite;
+}
+body:not(.neo-mode) .moon-hero__picture--mascot::after {
+  content: ""; position: absolute; inset: 0;
+  background: url("https://assets.code-destiny.com/DestinyCafe/nobackground/%EC%97%B0%EC%9D%B4%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B87-Photoroom.png") center bottom / contain no-repeat;
+  transform-origin: 50% 92%; will-change: transform;
+  animation: cdYeonIdle 4.8s ease-in-out infinite;
+}
+
+/* 모바일: 히어로 비주얼이 숨겨지므로 카피 하단에 캐릭터를 은은히 노출 (연이 모드에서만) */
+@media (max-width: 860px) {
+  body:not(.neo-mode) .moon-hero__copy { position: relative; }
+  body:not(.neo-mode) .moon-hero__copy::after {
+    content: ""; display: block; width: 140px; height: 152px; margin: 4px auto -6px;
+    background:
+      url("https://assets.code-destiny.com/DestinyCafe/nobackground/%EC%97%B0%EC%9D%B4%20%EC%8A%A4%ED%94%84%EB%9D%BC%EC%9D%B4%ED%8A%B87-Photoroom.png") center bottom / contain no-repeat,
+      radial-gradient(circle at 50% 44%, rgba(255, 246, 214, 0.16), transparent 60%);
+    filter: drop-shadow(0 12px 12px rgba(72, 45, 72, 0.24));
+    transform-origin: 50% 92%; will-change: transform; pointer-events: none;
+    animation: cdYeonIdle 4.8s ease-in-out infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:not(.neo-mode) .moon-hero__picture--mascot::before,
+  body:not(.neo-mode) .moon-hero__picture--mascot::after,
+  body:not(.neo-mode) .moon-hero__copy::after { animation: none !important; }
 }
