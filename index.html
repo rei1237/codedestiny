@@ -6318,13 +6318,6 @@ html:not(.neo-mode) .moon-hero__stars{display:none}
 /* 브랜드 로고 슬롯(모바일/데스크톱 공통) */
 html.neo-mode #honeypigLogo{border-radius:16px!important;object-fit:contain!important;
   box-shadow:0 0 40px -5px rgba(196,181,253,.38),0 0 80px -20px rgba(147,51,234,.26)!important}
-/* 자는 연이 마스코트(데스크톱 히어로 비주얼) → 네오 캐릭터 + 글로우 + 등장 */
-body.neo-mode .moon-hero .moon-hero__picture--mascot img,
-html.neo-mode .moon-hero .moon-hero__picture--mascot img{
-  border-radius:16px!important;object-fit:contain!important;
-  box-shadow:0 0 40px -5px rgba(196,181,253,.4),0 0 80px -20px rgba(147,51,234,.28)!important;
-  animation:cdHeroCharIn .7s ease both!important}
-@keyframes cdHeroCharIn{0%{opacity:0;transform:scale(.95)}100%{opacity:1;transform:scale(1)}}
 
 /* ── 네오 카테고리 활성 칩: One Accent(라벤더)로 정합 ── */
 body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__chip[aria-selected="true"],
@@ -6345,12 +6338,10 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__chip.is-active{
 /* ── 접근성: 모션 감소 존중 ── */
 .cd-reduced-motion .moon-hero__petal,.cd-reduced-motion .moon-hero__star,
 .cd-reduced-motion .moon-hero__stars::before,
-.cd-reduced-motion .moon-hero .moon-hero__picture--mascot img{animation:none!important}
 .cd-reduced-motion .moon-hero__petal{opacity:.26}
 .cd-reduced-motion .moon-hero__star{opacity:.55}
 @media (prefers-reduced-motion:reduce){
   .moon-hero__petal,.moon-hero__star,.moon-hero__stars::before,
-  .moon-hero .moon-hero__picture--mascot img{animation:none!important}
   .moon-hero__petal{opacity:.26}
   .moon-hero__star{opacity:.55}
 }
@@ -29266,7 +29257,6 @@ if (document.readyState === 'loading') {
   var lbl = document.getElementById('themeToggleLabel');
   var cbDesktop = document.getElementById('themeCheckboxDesktop');
   var heroMascot = document.getElementById('honeypigLogo');
-  var heroPictureMascot = document.querySelector('.moon-hero .moon-hero__picture--mascot img');
   var switchRoot = document.querySelector('.cd-mobile-appbar .theme-switch-wrapper') || document.querySelector('.theme-switch-wrapper');
   var switchRootDesktop = document.querySelector('.theme-switch-wrapper--desktop');
   var pigLogoSrc = '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=build-b8b2e4a88556';
@@ -29307,39 +29297,14 @@ if (document.readyState === 'loading') {
     });
   }
 
-  function installPictureMascotFallback() {
-    if (!heroPictureMascot || heroPictureMascot.__cdNeoFallbackBound) return;
-    heroPictureMascot.__cdNeoFallbackBound = true;
-    heroPictureMascot.addEventListener('error', function () {
-      var src = heroPictureMascot.getAttribute('src') || '';
-      if (src.indexOf('assets.code-destiny.com') !== -1 && heroPictureMascot.dataset.cdPigSrc) {
-        heroPictureMascot.setAttribute('src', heroPictureMascot.dataset.cdPigSrc);
-      }
-    });
-  }
-
   function syncHeroMascot(isNeo) {
     if (!heroMascot) return;
     installHeroMascotFallback();
-    installPictureMascotFallback();
     var applySrc = function () {
       heroMascot.setAttribute('src', isNeo ? neoLogoSrc : pigLogoSrc);
       if (isNeo) { heroMascot.removeAttribute('srcset'); }
       else { heroMascot.setAttribute('srcset', pigLogoSrcset); }
       heroMascot.setAttribute('alt', isNeo ? themeCopy('home.themeToggle.neoLogoAlt', '네오 모드 로고') : themeCopy('home.themeToggle.pigLogoAlt', '꿀꿀 연이 로고'));
-      /* 자는 연이 마스코트도 네오에서 전략실 네오로 교체(우선 적용), 연이 복귀 시 원복 */
-      if (heroPictureMascot) {
-        if (isNeo) {
-          if (!heroPictureMascot.dataset.cdPigSrc) {
-            heroPictureMascot.dataset.cdPigSrc = heroPictureMascot.getAttribute('src') || '';
-          }
-          if ((heroPictureMascot.getAttribute('src') || '').indexOf('assets.code-destiny.com') === -1) {
-            heroPictureMascot.setAttribute('src', neoLogoSrc);
-          }
-        } else if (heroPictureMascot.dataset.cdPigSrc) {
-          heroPictureMascot.setAttribute('src', heroPictureMascot.dataset.cdPigSrc);
-        }
-      }
       if (heroMascot.__cdMorphed) {
         requestAnimationFrame(function () { heroMascot.style.opacity = '1'; });
       }
