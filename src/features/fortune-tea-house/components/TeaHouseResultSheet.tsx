@@ -611,8 +611,8 @@ export default function TeaHouseResultSheet({
             ) : null}
             <AssetImage
               className={styles.resultSectionMascot}
-              src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
-              fallbackSrc={fortuneTeaHouseAssets.yeoni.transparent.bust}
+              src={fortuneTeaHouseAssets.pig.transparent.base2}
+              fallbackSrc={fortuneTeaHouseAssets.cutout.flowerPig}
               alt=""
             />
             {result.yeoniReading.advice ? (
