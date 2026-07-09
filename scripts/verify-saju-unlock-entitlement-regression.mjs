@@ -470,6 +470,72 @@ assert.equal(failureUi.uiState, "error", "access API 실패 시 오류 상태 �
 assert.notEqual(SAJU_KEYS.COMPAT, SAJU_KEYS.DAEUN, "궁합 contentKey는 대운과 분리");
 assert.notEqual(SAJU_KEYS.COMPAT, SAJU_KEYS.FULL, "궁합 contentKey는 종합 풀이와 분리");
 
+// --- 재잠김/이력유실 버그 회귀: destinyProfilesCurrentId CAS 가드 ---
+// worker/routes/user.js·profile.js의 실제 로직을 그대로 미러링한다.
+function resolveCasGuardedCurrentId({ storedCurrentId, validRequestedId, validStoredId, baseCurrentId }) {
+  const isIntentionalSwitch = Boolean(validRequestedId) && validRequestedId !== validStoredId;
+  const switchIsSafe = !storedCurrentId || baseCurrentId === storedCurrentId || storedCurrentId === validRequestedId;
+  const currentIdChanged = isIntentionalSwitch && switchIsSafe;
+  return {
+    currentId: currentIdChanged ? validRequestedId : (validStoredId || validRequestedId || ""),
+    accepted: currentIdChanged,
+  };
+}
+
+const staleTabSwitch = resolveCasGuardedCurrentId({
+  storedCurrentId: "profile-a",
+  validStoredId: "profile-a",
+  validRequestedId: "profile-b",
+  baseCurrentId: "", // 스테일 탭은 서버의 최신 currentId를 모른다
+});
+assert.equal(staleTabSwitch.accepted, false, "스테일 탭의 currentId 전환은 거부된다");
+assert.equal(staleTabSwitch.currentId, "profile-a", "스테일 탭 거부 시 서버 저장값 유지");
+
+const freshTabSwitch = resolveCasGuardedCurrentId({
+  storedCurrentId: "profile-a",
+  validStoredId: "profile-a",
+  validRequestedId: "profile-b",
+  baseCurrentId: "profile-a", // 이 탭은 전환 직전 서버 최신값을 알고 있었다
+});
+assert.equal(freshTabSwitch.accepted, true, "최신 상태를 아는 탭의 전환은 수용된다");
+assert.equal(freshTabSwitch.currentId, "profile-b", "정상 전환 시 요청된 프로필로 변경");
+
+const firstEverSwitch = resolveCasGuardedCurrentId({
+  storedCurrentId: "",
+  validStoredId: "",
+  validRequestedId: "profile-a",
+  baseCurrentId: "",
+});
+assert.equal(firstEverSwitch.accepted, true, "최초 프로필 선택(저장값 없음)은 항상 수용된다");
+
+// --- 재잠김/이력유실 버그 회귀: 교차 프로필 잠금 해제 누수 차단 ---
+// worker/routes/billing.js resolveProfileScopedUnlocks의 실제 필터 로직을 그대로 미러링한다.
+function isProfileScopedUnlockKeySim(key) {
+  return Object.values(SAJU_FEATURE_KEYS).includes(key);
+}
+function resolveProfileScopedUnlocksSim({ accountFeatureKeys, legacyProfileKeys, entitlementFeatureKeys }) {
+  return Array.from(new Set([
+    ...accountFeatureKeys.filter((key) => !isProfileScopedUnlockKeySim(key)),
+    ...legacyProfileKeys,
+    ...entitlementFeatureKeys,
+  ]));
+}
+
+const leakedAccountArray = [SAJU_FEATURE_KEYS.DAEUN]; // 프로필 A 구매가 계정 전역 배열에도 반영된 상태 시뮬레이션
+const profileBResolved = resolveProfileScopedUnlocksSim({
+  accountFeatureKeys: leakedAccountArray,
+  legacyProfileKeys: [],
+  entitlementFeatureKeys: [], // 프로필 B는 실제 entitlement 없음
+});
+assert.equal(profileBResolved.includes(SAJU_FEATURE_KEYS.DAEUN), false, "계정 전역 배열의 프로필 스코프 키는 다른 프로필로 새어나가지 않는다");
+
+const accountWideResolved = resolveProfileScopedUnlocksSim({
+  accountFeatureKeys: ["premiumDivinationPack"],
+  legacyProfileKeys: [],
+  entitlementFeatureKeys: [],
+});
+assert.equal(accountWideResolved.includes("premiumDivinationPack"), true, "계정 전역 스코프 키는 정상적으로 union된다");
+
 const root = process.cwd();
 const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
 for (const marker of [
@@ -515,5 +581,48 @@ for (const marker of [
 ]) {
   assert.ok(billingSource.includes(marker), `billing/access marker exists: ${marker}`);
 }
+assert.ok(
+  billingSource.includes(".filter((key) => !isProfileScopedUnlockKey(key))"),
+  "resolveProfileScopedUnlocks가 계정 전역 배열에서 프로필 스코프 키를 걸러낸다",
+);
+
+const fortuneSource = fs.readFileSync(path.join(root, "worker/routes/fortune.js"), "utf8");
+assert.ok(
+  fortuneSource.includes("withMongoRetry(env, () => getUnlockedContentSnapshot("),
+  "resolvePersistedUnlockFeatures가 entitlement 조회를 withMongoRetry로 감싼다",
+);
+assert.ok(
+  !fortuneSource.includes("entitlementKeys = [];"),
+  "일시적 Mongo 에러를 빈 배열(미구매)로 삼키던 코드가 제거되었다",
+);
+assert.ok(
+  !/catch \(e\) \{\s*unlockedFeatures = \[\];\s*\}/.test(fortuneSource),
+  "handleBalance가 더 이상 에러를 삼켜 unlockedFeatures를 빈 배열로 덮어쓰지 않는다",
+);
+
+const userRouteSource = fs.readFileSync(path.join(root, "worker/routes/user.js"), "utf8");
+for (const marker of ["baseCurrentId", "switchIsSafe", "destinyProfilesCurrentIdUpdatedAt"]) {
+  assert.ok(userRouteSource.includes(marker), `user.js CAS marker exists: ${marker}`);
+}
+
+const profileRouteSource = fs.readFileSync(path.join(root, "worker/routes/profile.js"), "utf8");
+for (const marker of ["baseCurrentId", "staleSwitchIgnored", "switchIsSafe"]) {
+  assert.ok(profileRouteSource.includes(marker), `profile.js CAS marker exists: ${marker}`);
+}
+
+const userSessionCacheSource = fs.readFileSync(path.join(root, "app/_lib/user-session-cache.ts"), "utf8");
+assert.ok(userSessionCacheSource.includes("cacheGeneration"), "user-session-cache.ts에 generation 토큰 가드가 존재한다");
+
+const billingClientSource = fs.readFileSync(path.join(root, "app/_lib/billing-client.ts"), "utf8");
+assert.ok(billingClientSource.includes("billingBalanceRecentByUser"), "billing-client.ts의 balance 캐시가 유저별로 스코프된다");
+assert.ok(billingClientSource.includes("cd:auth-changed"), "billing-client.ts가 로그인/로그아웃 시 balance 캐시를 무효화한다");
+
+assert.ok(fs.existsSync(path.join(root, "app/_lib/use-content-unlock.ts")), "공용 useContentUnlock 훅 파일이 존재한다");
+
+const loveSimulationSource = fs.readFileSync(path.join(root, "app/saju/love-simulation/LoveSimulationClient.tsx"), "utf8");
+assert.ok(
+  loveSimulationSource.includes('status === "ready"'),
+  "LoveSimulationClient가 확정(ready) 상태에서만 미구매 리다이렉트를 판단한다",
+);
 
 console.log("[saju-unlock-entitlement-regression] OK");

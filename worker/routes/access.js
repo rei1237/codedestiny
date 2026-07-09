@@ -299,9 +299,11 @@ async function handleStatus(request, env) {
   if (!contentKey) throw createHttpError(400, "Content key is required.", { code: "MISSING_CONTENT_KEY" });
 
   await connectDb(env);
-  await verifyProfileOwnership({ userId, profileId });
-
-  const doc = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  // 일시적 풀 초기화에도 해금 상태를 정확히 반환하도록 조회를 재시도로 감싼다(handleUnlocks와 동일 패턴).
+  const doc = await withMongoRetry(env, async () => {
+    await verifyProfileOwnership({ userId, profileId });
+    return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  });
   return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc }));
 }
 
@@ -332,9 +334,10 @@ async function handleConfirm(request, env) {
   if (!source) throw createHttpError(400, "Unlock source is invalid.", { code: "INVALID_UNLOCK_SOURCE" });
 
   await connectDb(env);
-  await verifyProfileOwnership({ userId, profileId });
-
-  const existing = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  const existing = await withMongoRetry(env, async () => {
+    await verifyProfileOwnership({ userId, profileId });
+    return findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey, featureKey });
+  });
   if (existing) {
     return json(toUnlockStatusPayload({ userId, profileId, serviceKey, contentKey, doc: existing }));
   }

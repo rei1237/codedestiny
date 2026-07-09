@@ -14,6 +14,7 @@ import {
 } from "../_lib/paid-attempt-session";
 import { usePayment } from "./usePayment";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
 
 type CoinGateContext = {
   transactionId: string;
@@ -354,7 +355,15 @@ export function useCoinGate() {
         }
       }
 
-      setPaymentMessage(coinGateText("checkingEntitlements"));
+      // 해금(영구 잠금 해제) 기능만 "기존 잠금 해제 내역 확인" 문구를 쓰고,
+      // 1회당 결제(per-use)는 중립적인 이용권 확인 문구를 재사용한다(잘못된 해제 안내 방지).
+      setPaymentMessage(
+        coinGateText(
+          resolvePaidFeatureBillingType(input.featureKey) === "unlock"
+            ? "checkingEntitlements"
+            : "checkingPass",
+        ),
+      );
 
       const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,

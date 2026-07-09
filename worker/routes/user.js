@@ -430,6 +430,8 @@ async function handleSyncDestinyProfiles(request, auth) {
   const subscription = resolveSubscriptionPolicy(user);
   const normalizedProfiles = normalizeProfileList(body?.profiles || []);
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
+  const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
+  const storedCurrentId = sanitizeProfileId(user.destinyProfilesCurrentId);
   const existingProfiles = await listUserProfiles(auth.userId);
   const existingIds = new Set(existingProfiles.map((profile) => String(profile?.profileId || profile?.id || "")));
   const nextIdSet = new Set(normalizedProfiles.map((profile) => String(profile?.profileId || "")));
@@ -512,12 +514,26 @@ async function handleSyncDestinyProfiles(request, auth) {
   }
 
   const profiles = await listUserProfiles(auth.userId);
-  const currentId = resolveCurrentId(requestedCurrentId, profiles) || profiles[0]?.id || "";
+  // 다른 탭/스테일 클라이언트가 오래된 currentId로 sync를 호출해 서버의 "현재 프로필" 포인터를
+  // 엉뚱한 프로필로 덮어쓰면, 프로필 스코프 잠금 콘텐츠 조회가 잘못된 profileId로 필터링되어
+  // 이미 결제한 콘텐츠가 잠긴 것처럼 보인다. 이를 막기 위해 currentId 전환은 클라이언트가 보낸
+  // baseCurrentId(그 클라이언트가 마지막으로 알고 있던 서버 값)가 서버 저장값과 일치할 때만 수용한다.
+  const validStoredId = resolveCurrentId(storedCurrentId, profiles);
+  const validRequestedId = resolveCurrentId(requestedCurrentId, profiles);
+  const isIntentionalSwitch = Boolean(validRequestedId) && validRequestedId !== validStoredId;
+  const switchIsSafe = !storedCurrentId || baseCurrentId === storedCurrentId;
+  const currentIdChanged = isIntentionalSwitch && switchIsSafe;
+  const currentId = currentIdChanged
+    ? validRequestedId
+    : (validStoredId || validRequestedId || profiles[0]?.id || "");
   const updateSet = {
     destinyProfilesCurrentId: currentId,
     destinyProfilesLockedCurrentId: "",
     destinyProfilesLockedAt: null,
   };
+  if (currentIdChanged || (!validStoredId && currentId)) {
+    updateSet.destinyProfilesCurrentIdUpdatedAt = new Date();
+  }
 
   await User.updateOne(
     { _id: auth.userId },

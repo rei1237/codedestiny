@@ -48,6 +48,7 @@ const userSchema = new mongoose.Schema({
   },
   destinyProfiles: { type: [mongoose.Schema.Types.Mixed], default: [] },
   destinyProfilesCurrentId: { type: String, default: "" },
+  destinyProfilesCurrentIdUpdatedAt: { type: Date, default: null },
   destinyProfilesLockedCurrentId: { type: String, default: "" },
   destinyProfilesLockedAt: { type: Date, default: null },
   tamagotchi: { type: mongoose.Schema.Types.Mixed, default: null },

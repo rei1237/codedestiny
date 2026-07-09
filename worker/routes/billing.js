@@ -2098,8 +2098,11 @@ async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeature
   const legacyProfileKeys = keys
     .map((key) => String(key || "").trim())
     .filter(isProfileScopedUnlockKey);
+  // 계정 전역 배열(User.unlockedFeatures/paidFeatures)은 어떤 프로필에서 구매했는지 모른다.
+  // 프로필 스코프 키(예: section_daewun)까지 여기서 그대로 union하면 프로필 A의 구매가
+  // 프로필 B 조회에도 해제로 새어나간다 — 계정 전역으로 취급해도 되는 키만 union한다.
   const unlockedFeatures = Array.from(new Set([
-    ...normalizeUnlockedFeatureList(accountFeatureKeys),
+    ...normalizeUnlockedFeatureList(accountFeatureKeys).filter((key) => !isProfileScopedUnlockKey(key)),
     ...legacyProfileKeys,
     ...normalizeUnlockedFeatureList(entitlementSnapshot.featureKeys),
   ]));

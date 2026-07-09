@@ -17,6 +17,7 @@ import {
   type LoadingStage,
   type PaymentType,
 } from "@/constants/loadingMessages";
+import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -380,18 +381,39 @@ const reactPaidFeatureGateRecent = new Map<string, {
   requestId: string;
   expiresAt: number;
 }>();
-let billingBalanceInFlight: Promise<BillingResult<BillingBalanceData>> | null = null;
-let billingBalanceRecent: { result: BillingResult<BillingBalanceData>; expiresAt: number } | null = null;
+// 유저별로 스코프하지 않으면 공유 기기/빠른 계정 전환 시 이전 유저의 balance/unlockMap이
+// 그대로 반환될 수 있다 — 캐시 키를 로그인 유저 스코프로 구분한다.
+const billingBalanceInFlightByUser = new Map<string, Promise<BillingResult<BillingBalanceData>>>();
+const billingBalanceRecentByUser = new Map<string, { result: BillingResult<BillingBalanceData>; expiresAt: number }>();
 let billingBalanceCacheVersion = 0;
 let paidServiceRuntimePromise: Promise<PaidServiceRuntimeGate | null> | null = null;
 let reactPaymentChoiceInFlight: { promise: Promise<PaymentChoiceMode>; startedAt: number } | null = null;
 
-function invalidateBillingBalanceCache() {
+function resolveBillingBalanceUserKey(): string {
+  if (typeof window === "undefined") return "guest";
+  return resolveAuthScopeFromUser(readSanitizedAuthUser()) || "guest";
+}
+
+export function invalidateBillingBalanceCache() {
   billingBalanceCacheVersion += 1;
-  billingBalanceRecent = null;
-  billingBalanceInFlight = null;
+  billingBalanceRecentByUser.clear();
+  billingBalanceInFlightByUser.clear();
   paymentEligibilityInFlight.clear();
   paymentEligibilityRecent.clear();
+}
+
+type BillingClientRuntimeWindow = Window & { __cdBillingBalanceAuthListenerInstalled?: boolean };
+
+if (typeof window !== "undefined") {
+  const runtimeWindow = window as BillingClientRuntimeWindow;
+  if (!runtimeWindow.__cdBillingBalanceAuthListenerInstalled) {
+    runtimeWindow.__cdBillingBalanceAuthListenerInstalled = true;
+    window.addEventListener("cd:auth-changed", (event) => {
+      const detail = event instanceof CustomEvent ? (event.detail as Record<string, unknown> | null) : null;
+      const kind = String(detail?.event || "").toLowerCase();
+      if (kind === "login" || kind === "logout") invalidateBillingBalanceCache();
+    });
+  }
 }
 
 function debugEntitlement(...args: unknown[]) {
@@ -2127,7 +2149,13 @@ function resolvePaymentWaitKind(input: {
   if (mode === "MEMBERSHIP_PASS" || /\b(membership_pass|license_pass|subscription_pass|family_pass|pass_applied)\b/.test(haystack)) return "pass";
   if (mode === "DIRECT_KRW" || /direct_krw|one[-_ ]?time|single|단건|원화|카드|checkout/.test(haystack)) return "single";
   if (/subscription|구독|플랜|달빛 이용권 결제|이용권 결제/.test(haystack)) return "subscription";
-  if (/unlock|잠금|해제|권한|premium|pdf|리포트/.test(haystack)) return "unlock";
+  // '잠금 해제(영구 해금)' 문구는 콘텐츠 유형이 실제로 재열람형(unlock/PDF 리포트)일 때만 쓴다.
+  // featureKey를 레지스트리로 판정(권위 소스). 과거의 넓은 정규식(권한/premium/pdf/리포트/잠금/해제)은
+  // per-use 상태 문구의 '이용 권한 확인' 같은 표현까지 unlock으로 오분류해 1회당 결제에도
+  // "콘텐츠 잠금 해제를 반영하고 있습니다" 류의 잘못된 안내를 냈다.
+  const featureBillingType = input.featureKey ? resolvePaidFeatureBillingType(input.featureKey) : "per-use";
+  if (featureBillingType === "unlock" || featureBillingType === "pdf") return "unlock";
+  if (/\bunlock\b|잠금 해제|해금/.test(haystack)) return "unlock";
   return "payment";
 }
 
@@ -3601,16 +3629,19 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
   unlockedFeatures: string[];
   unlockMap: Record<string, boolean>;
 }>> {
+  const userKey = resolveBillingBalanceUserKey();
   if (options.force === true) invalidateBillingBalanceCache();
   const now = Date.now();
-  if (billingBalanceRecent && billingBalanceRecent.expiresAt > now) {
-    if (options.emit !== false) emitBillingBalanceUpdated(billingBalanceRecent.result.data as Record<string, unknown> | null, "balance-cache");
-    return billingBalanceRecent.result;
+  const recent = billingBalanceRecentByUser.get(userKey);
+  if (recent && recent.expiresAt > now) {
+    if (options.emit !== false) emitBillingBalanceUpdated(recent.result.data as Record<string, unknown> | null, "balance-cache");
+    return recent.result;
   }
-  if (billingBalanceInFlight) return billingBalanceInFlight;
+  const pending = billingBalanceInFlightByUser.get(userKey);
+  if (pending) return pending;
 
   const cacheVersion = billingBalanceCacheVersion;
-  billingBalanceInFlight = (async () => {
+  const inFlightPromise = (async () => {
     const response = await authFetchBilling("/api/billing/balance", { method: "GET" });
     const parsed = await parseBillingResponse<BillingBalanceData>(response);
 
@@ -3627,19 +3658,20 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
       const cacheableBalance = parsed.data.authenticated !== false && parsed.data.degraded !== true;
       if (cacheableBalance && options.emit !== false) emitBillingBalanceUpdated(parsed.data as BillingBalanceData & Record<string, unknown>, "balance");
       if (cacheableBalance && cacheVersion === billingBalanceCacheVersion) {
-        billingBalanceRecent = {
+        billingBalanceRecentByUser.set(userKey, {
           result: parsed,
           expiresAt: Date.now() + BILLING_BALANCE_RECENT_TTL_MS,
-        };
+        });
       }
     }
 
     return parsed;
   })().finally(() => {
-    if (cacheVersion === billingBalanceCacheVersion) billingBalanceInFlight = null;
+    if (cacheVersion === billingBalanceCacheVersion) billingBalanceInFlightByUser.delete(userKey);
   });
 
-  return billingBalanceInFlight;
+  billingBalanceInFlightByUser.set(userKey, inFlightPromise);
+  return inFlightPromise;
 }
 
 async function runServiceExecutionApi(

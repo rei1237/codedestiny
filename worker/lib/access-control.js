@@ -1,4 +1,4 @@
-import { connectDb } from "./db.js";
+import { connectDb, withMongoRetry } from "./db.js";
 import { CONTENT_ENTITLEMENT_SOURCES, User, PointHistory } from "./models.js";
 import {
   findActivePaidContentUnlock,
@@ -61,10 +61,10 @@ function buildPremiumUnlockCandidateKeys({
   ]);
 }
 
-async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [] } = {}) {
+async function findPremiumContentEntitlement({ userId, profileId, candidateKeys = [], env = {} } = {}) {
   for (let i = 0; i < candidateKeys.length; i += 1) {
     const featureKey = candidateKeys[i];
-    const unlock = await findActivePaidContentUnlock({ userId, profileId, featureKey });
+    const unlock = await withMongoRetry(env, () => findActivePaidContentUnlock({ userId, profileId, featureKey }));
     if (unlock?._id) return { unlock, featureKey };
   }
   return null;
@@ -920,6 +920,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     userId: user._id,
     profileId,
     candidateKeys: entitlementCandidateKeys,
+    env,
   });
   if (entitlementUnlock?.unlock?._id) {
     logPremiumAccessDecision({

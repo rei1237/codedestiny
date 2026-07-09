@@ -1286,6 +1286,7 @@ async function handleCreateProfile(request, auth) {
 async function handleUpdateCurrent(request, auth) {
   const body = await readJson(request);
   const requestedCurrentId = sanitizeProfileId(body?.currentId);
+  const baseCurrentId = sanitizeProfileId(body?.baseCurrentId);
   if (!requestedCurrentId) {
     return json({ ok: false, message: "currentId媛 ?꾩슂?⑸땲??" }, { status: 400 });
   }
@@ -1300,6 +1301,21 @@ async function handleUpdateCurrent(request, auth) {
     .lean();
   if (!user) {
     return json({ ok: false, message: "?ъ슜?먮? 李얠쓣 ???놁뒿?덈떎." }, { status: 404 });
+  }
+
+  // 스테일 탭이 오래된 currentId를 기준으로 전환을 요청하면 서버의 "현재 프로필" 포인터가
+  // 실제로 보고 있는/결제한 프로필과 어긋나 프로필 스코프 잠금 콘텐츠가 잘못 조회된다.
+  // 이 탭이 마지막으로 알고 있던 서버 currentId(baseCurrentId)가 서버 저장값과 일치할 때만 전환을 수용한다.
+  const storedCurrentId = sanitizeProfileId(user.destinyProfilesCurrentId);
+  const switchIsSafe = !storedCurrentId || baseCurrentId === storedCurrentId || storedCurrentId === requestedCurrentId;
+  if (!switchIsSafe) {
+    const staleProfiles = await listUserProfiles(auth.userId);
+    return json({
+      ok: true,
+      currentId: storedCurrentId,
+      staleSwitchIgnored: true,
+      profiles: markCurrentProfile(staleProfiles, storedCurrentId),
+    });
   }
 
   const subscription = resolveSubscriptionPolicy(user);
@@ -1325,7 +1341,7 @@ async function handleUpdateCurrent(request, auth) {
     }, { status: 403 });
   }
 
-  const updateSet = { destinyProfilesCurrentId: requestedCurrentId };
+  const updateSet = { destinyProfilesCurrentId: requestedCurrentId, destinyProfilesCurrentIdUpdatedAt: new Date() };
   if (isSingleMode) {
     updateSet.destinyProfilesLockedCurrentId = requestedCurrentId;
     updateSet.destinyProfilesLockedAt = new Date();
