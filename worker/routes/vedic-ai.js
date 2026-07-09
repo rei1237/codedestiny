@@ -827,27 +827,6 @@ function buildFirstPrompt(input, chart) {
   ].join("\n");
 }
 
-function buildFollowUpPrompt(consultation, question) {
-  const recentMessages = (consultation.messages || []).slice(-8).map((message) => ({
-    role: message.role,
-    content: message.content,
-  }));
-  return [
-    "이전 상담 맥락과 계산된 베다 차트를 유지하면서 사용자의 추가 질문에 답하세요.",
-    "새 천체 위치나 다샤를 계산하지 말고, 저장된 VedicChartResult JSON 값만 해석하세요.",
-    "별의 이름을 나열하는 대신, 지금의 선택과 감정 흐름으로 부드럽게 풀어 주세요.",
-    "",
-    `상담 주제: ${consultation.topic}`,
-    `추가 질문: ${question}`,
-    "",
-    "계산된 VedicChartResult 데이터:",
-    JSON.stringify(compactChartForPrompt(consultation.vedicChart || {}), null, 2),
-    "",
-    "최근 상담 맥락:",
-    JSON.stringify(recentMessages, null, 2),
-  ].join("\n");
-}
-
 function sanitizeAssistantText(value) {
   let text = cleanMultiline(value, MAX_ASSISTANT_TEXT_CHARS);
   text = text.replace(/\bPDF\b/gi, "상담문");
@@ -1338,46 +1317,6 @@ async function handleStart(request, env) {
   return promise;
 }
 
-async function handleMessage(request, env) {
-  if (request.method !== "POST") return methodNotAllowed();
-  const body = await readJson(request);
-  const auth = await getOptionalUserFromRequest(request, env);
-  if (!auth?.userId) return loginRequired();
-  const consultationId = clean(body.consultationId || body.sessionId, 120);
-  const content = clean(body.message || body.question, 1800);
-  if (!consultationId || content.length < 2) return invalidInput("상담에 이어서 물어볼 내용을 입력해 주세요.");
-
-  await connectDb(env);
-  const consultation = await VedicAiConsultation.findOne({
-    userId: String(auth.userId),
-    id: consultationId,
-    status: "completed",
-  });
-  if (!consultation) return notFound();
-
-  const context = {
-    route: new URL(request.url).pathname,
-    requestId: consultation.idempotencyKey,
-    serviceType: FEATURE_KEY,
-    focusArea: "",
-    questionLength: content.length,
-  };
-
-  try {
-    logVedicAi("LLM Generate Start", context);
-    const { content: answer, meta } = await callConsultationLlm(env, buildFollowUpPrompt(consultation.toObject(), content), context);
-    consultation.messages.push({ role: "user", content, createdAt: new Date() });
-    consultation.messages.push({ role: "assistant", content: answer, createdAt: new Date() });
-    consultation.llmMeta = meta;
-    await consultation.save();
-    logVedicAi("LLM Generate Success", { ...context, provider: meta.provider, model: meta.model });
-    return json({ ok: true, consultation: consultationPayload(consultation.toObject()) });
-  } catch (error) {
-    logVedicAi("LLM Error", { ...context, ...errorPayload(error, env) }, "error");
-    return serverError(MESSAGES.llmFailed, 503, "LLM_FAILED");
-  }
-}
-
 async function handleResult(request, env) {
   if (request.method !== "GET") return methodNotAllowed();
   const auth = await getOptionalUserFromRequest(request, env);
@@ -1430,7 +1369,6 @@ export async function handleVedicAiRoutes(request, env) {
   const path = getRoutePath(request, "/api/vedic-ai");
   if (path === "/ensure-access") return handleEnsureAccess(request, env);
   if (path === "/start") return handleStart(request, env);
-  if (path === "/message") return handleMessage(request, env);
   if (path === "/result" || path.startsWith("/result/")) return handleResult(request, env);
   return notFound();
 }

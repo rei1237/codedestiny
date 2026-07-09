@@ -180,6 +180,79 @@ const DASHA_COLORS: Record<string, string> = {
   Venus: "#f9a8d4", Saturn: "#818cf8", Rahu: "#94a3b8", Ketu: "#a78bfa",
 };
 
+const GRAHA_KO: Record<string, string> = {
+  Sun: "태양", Moon: "달", Mars: "화성", Mercury: "수성", Jupiter: "목성",
+  Venus: "금성", Saturn: "토성", Rahu: "라후", Ketu: "케투",
+};
+
+// 조티시 자연 길성/흉성 분류. 길성(부드러운 흐름): 목성·금성·수성·달. 흉성(도전적 흐름): 토성·화성·태양·라후·케투.
+const BENEFIC_GRAHAS = new Set(["Jupiter", "Venus", "Mercury", "Moon", "목성", "금성", "수성", "달"]);
+
+type GrahaNature = "benefic" | "malefic";
+
+export function getGrahaMeta(lord: string): { ko: string; nature: GrahaNature } {
+  const key = String(lord ?? "").trim();
+  const ko = GRAHA_KO[key] || key;
+  const nature: GrahaNature = BENEFIC_GRAHAS.has(key) ? "benefic" : "malefic";
+  return { ko, nature };
+}
+
+const NATURE_LABEL: Record<GrahaNature, string> = {
+  benefic: "길성 · 부드러운 흐름",
+  malefic: "흉성 · 도전적 흐름",
+};
+
+// 그라하 성정(길성/흉성)을 나타내는 작은 색 점. 색만으로 구분되지 않도록 스크린리더 텍스트를 함께 제공.
+export function GrahaNatureDot({ nature }: { nature: GrahaNature }) {
+  return (
+    <i className={`${styles.grahaNatureDot} ${nature === "benefic" ? styles.grahaNatureBenefic : styles.grahaNatureMalefic}`} aria-hidden="true">
+      <span className={styles.srOnly}>{NATURE_LABEL[nature]}</span>
+    </i>
+  );
+}
+
+const YEAR_MS = 365.2425 * 24 * 60 * 60 * 1000;
+
+// 마하다샤 진행률 링. 현재 날짜가 마하다샤 전체 기간(예: 토성 19년) 중 어디쯤인지를
+// progress = (now - start) / (end - start) 로 계산해 원형 링으로 표현한다.
+export function DashaProgressRing({ lord, startDate, endDate }: { lord: string; startDate: string; endDate: string }) {
+  const start = Date.parse(startDate);
+  const end = Date.parse(endDate);
+  const now = Date.now();
+  const meta = getGrahaMeta(lord);
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+
+  const totalMs = end - start;
+  const elapsedMs = Math.min(totalMs, Math.max(0, now - start));
+  const progress = elapsedMs / totalMs;
+  const elapsedYears = elapsedMs / YEAR_MS;
+  const totalYears = totalMs / YEAR_MS;
+  const percent = Math.round(progress * 100);
+
+  const radius = 30;
+  const circumference = 2 * Math.PI * radius;
+  const dashOffset = circumference * (1 - progress);
+
+  return (
+    <div className={styles.dashaRing} role="img" aria-label={`${meta.ko} 마하다샤 진행률 ${percent}퍼센트, 전체 ${totalYears.toFixed(0)}년 중 ${elapsedYears.toFixed(1)}년 경과`}>
+      <svg viewBox="0 0 72 72" className={styles.dashaRingSvg} aria-hidden="true">
+        <circle cx="36" cy="36" r={radius} className={styles.dashaRingTrack} />
+        <circle
+          cx="36"
+          cy="36"
+          r={radius}
+          className={styles.dashaRingProgress}
+          strokeDasharray={circumference}
+          strokeDashoffset={dashOffset}
+          transform="rotate(-90 36 36)"
+        />
+      </svg>
+      <span className={styles.dashaRingPercent} aria-hidden="true">{percent}%</span>
+    </div>
+  );
+}
+
 export function DashaTimeline({ chart }: { chart: AnyRecord }) {
   const periods = useMemo(() => readDashaPeriods(chart), [chart]);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
@@ -193,10 +266,6 @@ export function DashaTimeline({ chart }: { chart: AnyRecord }) {
     return Number.isFinite(start) && Number.isFinite(end) && now >= start && now <= end;
   });
   const selected = selectedIndex != null ? periods[selectedIndex] : (currentIndex >= 0 ? periods[currentIndex] : null);
-  const grahaKo = (lord: string) => ({
-    Sun: "태양", Moon: "달", Mars: "화성", Mercury: "수성", Jupiter: "목성",
-    Venus: "금성", Saturn: "토성", Rahu: "라후", Ketu: "케투",
-  } as Record<string, string>)[lord] || lord;
 
   return (
     <section className={styles.dashaTimelineCard} aria-label="빈쇼타리 다샤 타임라인">
@@ -210,6 +279,7 @@ export function DashaTimeline({ chart }: { chart: AnyRecord }) {
             const width = Math.max(4, (period.durationYears / totalYears) * 100);
             const isCurrent = index === currentIndex;
             const isSelected = selectedIndex === index || (selectedIndex == null && isCurrent);
+            const meta = getGrahaMeta(period.lord);
             let currentOffset = 0;
             if (isCurrent) {
               const start = Date.parse(period.startDate);
@@ -226,9 +296,9 @@ export function DashaTimeline({ chart }: { chart: AnyRecord }) {
                 className={`${styles.dashaSegment} ${isSelected ? styles.dashaSegmentSelected : ""}`}
                 style={{ width: `${width}%`, background: DASHA_COLORS[period.lord] || "#7c7f93" }}
                 onClick={() => setSelectedIndex(selectedIndex === index ? null : index)}
-                aria-label={`${grahaKo(period.lord)} 다샤 ${period.startDate}부터 ${period.endDate}까지 ${period.durationYears}년${isCurrent ? ", 현재 진행 중" : ""}`}
+                aria-label={`${meta.ko} 다샤(${NATURE_LABEL[meta.nature]}) ${period.startDate}부터 ${period.endDate}까지 ${period.durationYears}년${isCurrent ? ", 현재 진행 중" : ""}`}
               >
-                <span>{grahaKo(period.lord)}</span>
+                <span>{meta.ko}</span>
                 {isCurrent ? <i className={styles.dashaNowMarker} style={{ left: `${currentOffset}%` }} aria-hidden="true">▼</i> : null}
               </button>
             );
@@ -237,7 +307,8 @@ export function DashaTimeline({ chart }: { chart: AnyRecord }) {
       </div>
       {selected ? (
         <p className={styles.dashaSelectedInfo}>
-          <strong>{grahaKo(selected.lord)} 마하다샤</strong> · {selected.startDate} ~ {selected.endDate} ({selected.durationYears}년)
+          <GrahaNatureDot nature={getGrahaMeta(selected.lord).nature} />
+          <strong>{getGrahaMeta(selected.lord).ko} 마하다샤</strong> · {selected.startDate} ~ {selected.endDate} ({selected.durationYears}년)
           {currentIndex >= 0 && periods[currentIndex] === selected ? " · 지금 이 흐름 안에 있습니다" : ""}
         </p>
       ) : null}

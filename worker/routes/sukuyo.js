@@ -3,7 +3,7 @@ import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, no
 import { requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
   Payment,
@@ -1882,23 +1882,23 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
   };
 }
 
-async function findSukuyoYearlyUnlock({ userId, profileId, targetYear }) {
+async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
-  const primary = await findActivePaidContentUnlock({
+  const primary = await withMongoRetry(env, () => findActivePaidContentUnlock({
     userId,
     profileId,
     serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
     contentKey,
-  });
+  }));
   if (primary?._id) return primary;
 
   for (const serviceKey of ["ziwei", "saju"]) {
-    const legacy = await findActivePaidContentUnlock({
+    const legacy = await withMongoRetry(env, () => findActivePaidContentUnlock({
       userId,
       profileId,
       serviceKey,
       contentKey,
-    });
+    }));
     if (!legacy?._id) continue;
     try {
       const source = Object.values(CONTENT_ENTITLEMENT_SOURCES).includes(legacy.source)
@@ -1938,7 +1938,7 @@ async function handleSukuyoYearlyFortune(request, env) {
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
   const fullResult = buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear });
-  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  const unlock = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
   const unlocked = Boolean(unlock?._id);
   return json({
     ok: true,
@@ -1966,7 +1966,7 @@ async function handleSukuyoYearlyUnlock(request, env) {
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
-  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
   const contentKey = sukuyoYearlyContentKey(targetYear);
   if (existing?._id) {
     return json({
@@ -2211,7 +2211,7 @@ async function handleSukuyoYearlyVerifyPayment(request, env) {
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
-  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear });
+  const existing = await findSukuyoYearlyUnlock({ userId: auth.userId, profileId: profile.profileId, targetYear, env });
   if (existing?._id) {
     return json({
       ok: true,

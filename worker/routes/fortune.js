@@ -1870,10 +1870,10 @@ function isRepairableConsumeArrayShapeError(error) {
   return /recentConsumeRequestIds|unlockedFeatures/i.test(message);
 }
 
-async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "") {
+async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "", env = {}) {
   const scopedProfileId = sanitizeProfileBindingId(profileId);
   if (userId && scopedProfileId) {
-    const scopedKeys = await PointHistory.distinct("featureKey", {
+    const scopedKeys = await withMongoRetry(env, () => PointHistory.distinct("featureKey", {
       userId,
       kind: "deduct",
       featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
@@ -1881,26 +1881,22 @@ async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId 
         { "metadata.profileId": scopedProfileId },
         { "metadata.selectedProfileId": scopedProfileId },
       ],
-    });
+    }));
     // KRW 단건결제 해금은 PointHistory deduct 기록 없이 ContentEntitlement에만 남으므로 병합한다.
-    let entitlementKeys = [];
-    try {
-      const snapshot = await getUnlockedContentSnapshot({ userId, profileId: scopedProfileId });
-      entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
-    } catch (e) {
-      entitlementKeys = [];
-    }
+    // (일시적 Mongo 오류는 여기서 삼키지 않는다 — 호출부의 degraded 폴백이 처리하도록 그대로 전파한다.)
+    const snapshot = await withMongoRetry(env, () => getUnlockedContentSnapshot({ userId, profileId: scopedProfileId }));
+    const entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
     return normalizePersistentUnlockKeys([...scopedKeys, ...entitlementKeys]);
   }
 
   const fromUser = normalizePersistentUnlockKeys(currentUnlocks);
   if (fromUser.length || !userId) return fromUser;
 
-  const historyKeys = await PointHistory.distinct("featureKey", {
+  const historyKeys = await withMongoRetry(env, () => PointHistory.distinct("featureKey", {
     userId,
     kind: "deduct",
     featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
-  });
+  }));
   const inferred = normalizePersistentUnlockKeys(historyKeys);
   if (inferred.length) {
     await User.updateOne(
@@ -2088,7 +2084,7 @@ async function handleConsume(auth) {
   });
 }
 
-async function handleBalance(auth) {
+async function handleBalance(auth, env) {
   const user = await findUserByIdRaw(auth.userId, {
     points: 1,
     unlockedFeatures: 1,
@@ -2107,12 +2103,10 @@ async function handleBalance(auth) {
     });
   }
 
-  let unlockedFeatures = [];
-  try {
-    unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures, user.destinyProfilesCurrentId);
-  } catch (e) {
-    unlockedFeatures = [];
-  }
+  // 일시적 Mongo 오류를 여기서 "미구매(빈 배열)"로 삼키면 정상 200 응답이 되어 클라이언트가
+  // 이미 결제한 콘텐츠를 잠긴 것으로 오인한다. 에러는 그대로 던져 호출부의 degraded 폴백
+  // (buildDbFallbackBalance)이 처리하게 한다.
+  const unlockedFeatures = await resolvePersistedUnlockFeatures(auth.userId, user.unlockedFeatures, user.destinyProfilesCurrentId, env);
   const points = Number(user.points || 0);
 
   return json({
@@ -5170,7 +5164,7 @@ export async function handleFortuneRoutes(request, env) {
 
       trace.authVerified = true;
       try {
-        if (isBalanceRoute) return await handleBalance(auth);
+        if (isBalanceRoute) return await handleBalance(auth, env);
         return await handleSubscriptionStatus(request, env, auth);
       } catch (error) {
         if (isBalanceRoute) return buildDbFallbackBalance(auth, error);

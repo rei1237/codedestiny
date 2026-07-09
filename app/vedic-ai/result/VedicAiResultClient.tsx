@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
@@ -57,9 +57,6 @@ function formatDate(value?: string) {
 
 export default function VedicAiResultClient() {
   const [view, setView] = useState<ViewState>({ kind: "loading" });
-  const [chatInput, setChatInput] = useState("");
-  const [chatBusy, setChatBusy] = useState(false);
-  const [error, setError] = useState("");
   const [viewAll, setViewAll] = usePagedViewerMode("vedicAiViewerModeV1");
 
   useEffect(() => {
@@ -110,31 +107,6 @@ export default function VedicAiResultClient() {
       cancelled = true;
     };
   }, []);
-
-  async function handleSendMessage() {
-    if (view.kind !== "detail" || chatBusy || chatInput.trim().length < 2) return;
-    const message = chatInput.trim();
-    setChatInput("");
-    setError("");
-    setChatBusy(true);
-    try {
-      const response = await authFetch("/api/vedic-ai/message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consultationId: view.consultation.id, message }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (data?.ok && data.consultation) {
-        setView({ kind: "detail", consultation: data.consultation as Consultation });
-        return;
-      }
-      throw new Error();
-    } catch {
-      setError("추가 질문을 보내는 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요.");
-    } finally {
-      setChatBusy(false);
-    }
-  }
 
   const backLink = (
     <Link href="/vedic-ai/" className={styles.resultListItem} style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
@@ -246,29 +218,20 @@ export default function VedicAiResultClient() {
           })}
         </div>
 
-        {error ? (
-          <div className={styles.errorBox}><span>{error}</span></div>
-        ) : null}
-
-        <div className={styles.chatInput}>
-          <textarea
-            value={chatInput}
-            onChange={(event) => setChatInput(event.target.value)}
-            maxLength={1800}
-            disabled={chatBusy}
-            placeholder="저장된 차트 그대로, 이어서 더 묻고 싶은 말을 적어 주세요."
-          />
-          <button
-            type="button"
-            onClick={() => void handleSendMessage()}
-            disabled={chatBusy || chatInput.trim().length < 2}
-            aria-label="추가 질문 보내기"
-          >
-            {chatBusy ? <Loader2 className={styles.spin} size={18} /> : <Send size={18} />}
-          </button>
-        </div>
-
-        <div style={{ marginTop: "1rem" }}>{backLink}</div>
+        <footer className={styles.resultFooter}>
+          <span className={styles.resultFooterRule} aria-hidden="true" />
+          <p className={styles.resultFooterNote}>별의 지도는 저장되어 언제든 다시 열람할 수 있습니다.</p>
+          <div className={styles.resultFooterActions}>
+            <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
+              <ArrowLeft size={16} aria-hidden="true" />
+              <span>베다점 AI 상담으로 돌아가기</span>
+            </Link>
+            <Link href="/" className={styles.resultFooterSecondary}>
+              <Home size={16} aria-hidden="true" />
+              <span>홈</span>
+            </Link>
+          </div>
+        </footer>
       </section>
     </main>
   );

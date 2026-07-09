@@ -19,6 +19,14 @@ const ASPECT_COLOR: Record<NormalizedAspect["type"], string> = {
   sextile: "rgba(74,222,128,0.5)",
 };
 
+// "기본" 점성술(js/saju-engine.js _astroBuildNatalWheelCard)과 동일한 4축 컨벤션: ASC=금색/MC=청색/DSC=핑크/IC=녹색.
+const ANGLE_AXIS_COLOR: Record<"ASC" | "MC" | "DSC" | "IC", string> = {
+  ASC: "rgba(251,191,36,0.92)",
+  MC: "rgba(125,211,252,0.88)",
+  DSC: "rgba(244,114,182,0.68)",
+  IC: "rgba(134,239,172,0.68)",
+};
+
 export default function AstrologyChartWheel({ chart, className = "" }: { chart: RawWesternChart; className?: string }) {
   const data = normalizeChartData(chart);
   const ascRotation = data.angles.asc?.absoluteDegree ?? 0;
@@ -109,11 +117,29 @@ export default function AstrologyChartWheel({ chart, className = "" }: { chart: 
         );
       })}
 
-      {data.angles.asc && (
-        <text x={CENTER - SIGN_RING_R - 8} y={CENTER} textAnchor="end" dominantBaseline="middle" fontSize="11" fill="rgba(251,191,36,0.85)" fontWeight="700">
-          ASC
-        </text>
-      )}
+      {/* 4대 축(ASC/MC/DSC/IC) — "기본" 컨벤션과 동일한 색상으로 각도선+라벨 표시 */}
+      {[
+        data.angles.asc && { key: "ASC" as const, degree: data.angles.asc.absoluteDegree },
+        data.angles.mc && { key: "MC" as const, degree: data.angles.mc.absoluteDegree },
+        data.angles.asc && { key: "DSC" as const, degree: data.angles.asc.absoluteDegree + 180 },
+        data.angles.mc && { key: "IC" as const, degree: data.angles.mc.absoluteDegree + 180 },
+      ]
+        .filter((axis): axis is { key: "ASC" | "MC" | "DSC" | "IC"; degree: number } => Boolean(axis))
+        .map((axis) => {
+          const angle = chartDegreeToSvgAngle(axis.degree, ascRotation);
+          const inner = polarToCartesian(CENTER, CENTER, ASPECT_RING_R, angle);
+          const outer = polarToCartesian(CENTER, CENTER, SIGN_RING_R, angle);
+          const label = polarToCartesian(CENTER, CENTER, SIGN_RING_R - 8, angle);
+          const color = ANGLE_AXIS_COLOR[axis.key];
+          return (
+            <g key={axis.key}>
+              <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={color} strokeWidth="1.5" />
+              <text x={label.x} y={label.y} textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="700" fill={color}>
+                {axis.key}
+              </text>
+            </g>
+          );
+        })}
     </svg>
   );
 }

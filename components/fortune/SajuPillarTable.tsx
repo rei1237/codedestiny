@@ -46,7 +46,11 @@ export default function SajuPillarTable({ pillars, className = "" }: { pillars: 
             ) : (
               <p className="mt-1.5 py-2 text-xs opacity-60">{pillar.ganji || "-"}</p>
             )}
-            {pillar.tenGod && <p className="mt-1.5 text-[11px] opacity-70">{pillar.tenGod}</p>}
+            {pillar.tenGod && (
+              <span className="mt-1.5 inline-block rounded-full bg-[linear-gradient(135deg,#FF8BA7,#FFB7B2)] px-2 py-0.5 text-[10px] font-bold text-white">
+                {pillar.tenGod}
+              </span>
+            )}
           </div>
         );
       })}

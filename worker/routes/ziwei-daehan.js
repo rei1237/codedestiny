@@ -1,5 +1,5 @@
 import { requireAuth } from "../lib/auth.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { json, methodNotAllowed, notFound, readJson, getRoutePath } from "../lib/http.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
@@ -61,15 +61,17 @@ async function getDaehanPurchase(userId, profileId) {
   return collection.findOne({ userId: String(userId), profileId: String(profileId) });
 }
 
-async function isDaehanPurchased(userId, profileId) {
+async function isDaehanPurchased(userId, profileId, env = {}) {
   if (!userId || !profileId) return false;
-  const purchase = await getDaehanPurchase(userId, profileId);
-  if (purchase) return true;
-  return hasUnlockedContent({
-    userId: String(userId),
-    profileId: String(profileId),
-    serviceKey: DAEHAN_SERVICE_KEY,
-    contentKey: DAEHAN_CONTENT_KEY,
+  return withMongoRetry(env, async () => {
+    const purchase = await getDaehanPurchase(userId, profileId);
+    if (purchase) return true;
+    return hasUnlockedContent({
+      userId: String(userId),
+      profileId: String(profileId),
+      serviceKey: DAEHAN_SERVICE_KEY,
+      contentKey: DAEHAN_CONTENT_KEY,
+    });
   });
 }
 
@@ -106,7 +108,7 @@ async function handleDaehanStatus(request, env) {
   }
 
   const [isPurchased, balance] = await Promise.all([
-    isDaehanPurchased(auth.userId, profileId),
+    isDaehanPurchased(auth.userId, profileId, env),
     getUserCoinBalance(auth.userId),
   ]);
 
@@ -128,7 +130,7 @@ async function handleDaehanUnlock(request, env) {
     return json({ ok: false, error: "MISSING_PROFILE_ID", message: "프로필을 먼저 선택해 주세요." }, { status: 400 });
   }
 
-  const alreadyPurchased = await isDaehanPurchased(auth.userId, profileId);
+  const alreadyPurchased = await isDaehanPurchased(auth.userId, profileId, env);
   const initialBalance = await getUserCoinBalance(auth.userId);
   if (alreadyPurchased) {
     return json({
@@ -162,7 +164,7 @@ async function handleDaehanUnlock(request, env) {
   if (!updatedUser) {
     const current = await getUserCoinBalance(auth.userId);
     if (requestId && current.recentConsumeRequestIds.includes(requestId)) {
-      const purchased = await isDaehanPurchased(auth.userId, profileId);
+      const purchased = await isDaehanPurchased(auth.userId, profileId, env);
       if (!purchased) {
         return json({
           ok: false,

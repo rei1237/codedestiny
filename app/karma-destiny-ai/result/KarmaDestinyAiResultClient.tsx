@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import AiResultProse from "@/components/fortune/AiResultProse";
@@ -100,6 +100,91 @@ function buildChapterText(chapter: Chapter) {
   ].filter(Boolean).join("\n");
 }
 
+/* ── 불교 업보 컨셉 라인아트 모티프 (전부 인라인 SVG → html2canvas PDF 캡처 안전, 장식이므로 aria-hidden) ── */
+
+// 길상매듭(연결매듭) — "업의 매듭". unravel(0~1)이 오를수록 아래 실가닥이 풀려 늘어지고 코어 글로우가 강해진다.
+function KnotMark({ unravel = 1, className = "" }: { unravel?: number; className?: string }) {
+  const value = Math.max(0, Math.min(1, unravel));
+  return (
+    <svg
+      className={`kdai-knot ${className}`.trim()}
+      style={{ "--kdai-unravel": value } as CSSProperties}
+      viewBox="0 0 120 120"
+      fill="none"
+      aria-hidden="true"
+    >
+      <g className="kdai-knot__core" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M60 26c-11.5 0-19 8.2-19 18 0 7.2 4.8 12 11 12 5.4 0 8.8-3.4 8.8-8.2" />
+        <path d="M60 26c11.5 0 19 8.2 19 18 0 7.2-4.8 12-11 12-5.4 0-8.8-3.4-8.8-8.2" />
+        <path d="M26 60c0-11.5 8.2-19 18-19 7.2 0 12 4.8 12 11 0 5.4-3.4 8.8-8.2 8.8" />
+        <path d="M94 60c0-11.5-8.2-19-18-19-7.2 0-12 4.8-12 11 0 5.4 3.4 8.8 8.2 8.8" />
+        <circle cx="60" cy="60" r="6.6" />
+      </g>
+      <g className="kdai-knot__loose" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <path d="M52 82c-3 9-6.5 15-11 21" />
+        <path d="M68 82c3 9 6.5 15 11 21" />
+      </g>
+    </svg>
+  );
+}
+
+// 염주(念珠) — 완료 구슬은 채워진 금색, 미완료는 빈 구슬. layout으로 가로열/세로열 전환.
+function MalaBeads({ total, filled, layout = "row", className = "" }: { total: number; filled: number; layout?: "row" | "column"; className?: string }) {
+  return (
+    <div className={`kdai-mala kdai-mala--${layout} ${className}`.trim()} data-total={total} aria-hidden="true">
+      {Array.from({ length: total }).map((_, index) => (
+        <span key={index} className={`kdai-mala__bead ${index < filled ? "is-filled" : ""}`.trim()} />
+      ))}
+    </div>
+  );
+}
+
+// 연꽃 — 핵심 키워드 마커.
+function LotusIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 4c1.9 2 2.8 4.3 2.8 6.8 0 1.4-.4 2.7-1.1 3.9M12 4c-1.9 2-2.8 4.3-2.8 6.8 0 1.4.4 2.7 1.1 3.9" />
+      <path d="M12 14.7c1.5-2.3 3.6-3.6 6-3.9-.2 2.6-1.6 4.7-4 6M12 14.7c-1.5-2.3-3.6-3.6-6-3.9.2 2.6 1.6 4.7 4 6" />
+      <path d="M5 13.5c-1 .6-1.8 1.4-2.4 2.5C4.8 17.6 8 18.4 12 18.4s7.2-.8 9.4-2.4c-.6-1.1-1.4-1.9-2.4-2.5" />
+    </svg>
+  );
+}
+
+// 두루마리 경전 — 총 글자 수 마커.
+function ScrollIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M7 5.5C7 4.4 6.1 3.5 5 3.5S3 4.4 3 5.5v1c0 .8.7 1.5 1.5 1.5H6" />
+      <path d="M6 3.5h11c1.1 0 2 .9 2 2v11" />
+      <path d="M17 20.5c1.1 0 2-.9 2-2s-.9-2-2-2H8.5" />
+      <path d="M6 3.5v14c0 1.7 1.3 3 3 3h8" />
+      <path d="M8.5 8.5h6M8.5 12h6" />
+    </svg>
+  );
+}
+
+// 법륜(法輪) — 현재 과제 마커.
+function DharmaWheelIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <circle cx="12" cy="12" r="2.4" />
+      <path d="M12 3.5v6.1M12 14.4v6.1M3.5 12h6.1M14.4 12h6.1M6 6l4.3 4.3M13.7 13.7 18 18M18 6l-4.3 4.3M10.3 13.7 6 18" />
+    </svg>
+  );
+}
+
+// 챕터 사이 장식 구분선(연꽃 + 매듭 글리프) — 각 장을 독립 페이지처럼 분리.
+function ChapterDivider() {
+  return (
+    <div className="kdai-divider" aria-hidden="true">
+      <span className="kdai-divider__line" />
+      <LotusIcon className="kdai-divider__lotus" />
+      <span className="kdai-divider__line" />
+    </div>
+  );
+}
+
 function KarmaDestinyResultInner() {
   const searchParams = useSearchParams();
   const sessionId = searchParams?.get("sessionId") || searchParams?.get("reportId") || searchParams?.get("attemptId") || searchParams?.get("idempotencyKey") || "";
@@ -110,6 +195,9 @@ function KarmaDestinyResultInner() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [openChapters, setOpenChapters] = useState<Set<string>>(new Set());
+  const [expandedBodies, setExpandedBodies] = useState<Set<string>>(new Set());
+  const [activeChapterId, setActiveChapterId] = useState("");
+  const [exporting, setExporting] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const batchInFlightRef = useRef(false);
   // 서버가 진척 없이 generating을 반복 반환할 때 generate-batch POST가 무한 폭주(Cloudflare 1015)하지 않도록
@@ -197,6 +285,34 @@ function KarmaDestinyResultInner() {
     setOpenChapters((prev) => (prev.size ? prev : new Set(chapters.map((chapter) => chapter.id))));
   }, [chapters, result?.status]);
 
+  // 스크롤 스파이 — 화면 상단 근처에 걸린 챕터를 현재 읽는 장으로 표시(염주 레일/목차 동기화).
+  useEffect(() => {
+    if (result?.status !== "completed" || !chapters.length || typeof IntersectionObserver === "undefined") return;
+    const visible = new Map<string, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visible.set(entry.target.id, entry.intersectionRatio);
+          else visible.delete(entry.target.id);
+        }
+        let bestId = "";
+        let bestRatio = 0;
+        for (const [id, ratio] of visible) {
+          if (ratio > bestRatio) {
+            bestRatio = ratio;
+            bestId = id;
+          }
+        }
+        if (bestId) setActiveChapterId(bestId);
+      },
+      { rootMargin: "-12% 0px -70% 0px", threshold: [0.01, 0.25, 0.5] },
+    );
+    const nodes = chapters.map((chapter) => document.getElementById(chapter.id)).filter((node): node is HTMLElement => Boolean(node));
+    nodes.forEach((node) => observer.observe(node));
+    setActiveChapterId((prev) => prev || chapters[0]?.id || "");
+    return () => observer.disconnect();
+  }, [chapters, result?.status]);
+
   const copyText = async (text: string, message: string) => {
     await navigator.clipboard.writeText(text);
     setNotice(message);
@@ -211,6 +327,11 @@ function KarmaDestinyResultInner() {
     const element = document.getElementById("karma-premium-report");
     if (!element || downloading) return;
     setDownloading(true);
+    // 접힌 "더 읽기" 본문·미개봉 챕터가 PDF에서 잘리지 않도록 전 챕터를 펼친 뒤 캡처한다.
+    setOpenChapters(new Set(chapters.map((chapter) => chapter.id)));
+    setExpandedBodies(new Set(chapters.map((chapter) => chapter.id)));
+    setExporting(true);
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const safeName = userName.replace(/[\\/:*?"<>|]/g, "_");
@@ -228,12 +349,22 @@ function KarmaDestinyResultInner() {
     } catch {
       setError("PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
     } finally {
+      setExporting(false);
       setDownloading(false);
     }
   };
 
   const toggleChapter = (id: string) => {
     setOpenChapters((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleBody = (id: string) => {
+    setExpandedBodies((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -274,13 +405,18 @@ function KarmaDestinyResultInner() {
 
       {isGenerating && (
         <section className="kdai-generation" aria-live="polite">
-          <div className="kdai-generation__seal" aria-hidden="true">業</div>
-          <span>Premium Karma Report</span>
-          <h1>{progress.stageLabel || "운명의 실타래를 펼치는 중"}</h1>
-          <p>{progress.currentChapterTitle || "장문 리포트를 순서대로 쓰고 있습니다."}</p>
-          <div className="kdai-progress">
-            <div style={{ width: `${percent}%` }} />
+          <div className="kdai-generation__seal" aria-hidden="true">
+            <KnotMark unravel={percent / 100} className="kdai-generation__knot" />
+            <span className="kdai-generation__glyph">業</span>
           </div>
+          <span>Premium Karma Report</span>
+          <h1>{progress.stageLabel || "업의 매듭을 푸는 중"}</h1>
+          <p>{progress.currentChapterTitle || "장(章)을 순서대로 엮어 장문 리포트를 짓고 있습니다."}</p>
+          <MalaBeads
+            total={Number(progress.totalChapters || 16)}
+            filled={Number(progress.completedChapters || 0)}
+            className="kdai-generation__mala"
+          />
           <strong>{percent}% · {Number(progress.completedChapters || 0)} / {Number(progress.totalChapters || 16)}장</strong>
           <button type="button" onClick={() => void continueGeneration()} disabled={continuing}>
             {continuing ? <Loader2 size={17} className="kdai-spin" /> : <RefreshCw size={17} />}
@@ -295,19 +431,31 @@ function KarmaDestinyResultInner() {
           <aside className={`kdai-toc ${tocOpen ? "is-open" : ""}`}>
             <div className="kdai-toc__head">
               <strong>목차</strong>
+              <span className="kdai-toc__count">{chapters.length}장</span>
               <button type="button" onClick={() => setTocOpen(false)} aria-label="목차 닫기"><X size={17} /></button>
             </div>
-            <nav>
-              {chapters.map((chapter) => (
-                <a key={chapter.id} href={`#${chapter.id}`} onClick={() => setTocOpen(false)}>
-                  <span>{chapter.order}</span>
-                  {chapter.title}
-                </a>
-              ))}
+            <nav className="kdai-toc__rail">
+              {chapters.map((chapter) => {
+                const active = activeChapterId === chapter.id;
+                return (
+                  <a
+                    key={chapter.id}
+                    href={`#${chapter.id}`}
+                    className={active ? "is-active" : ""}
+                    aria-current={active ? "true" : undefined}
+                    onClick={() => setTocOpen(false)}
+                  >
+                    <span className="kdai-toc__bead" aria-hidden="true" />
+                    <span className="kdai-toc__order">{String(chapter.order).padStart(2, "0")}</span>
+                    <span className="kdai-toc__title">{chapter.title}</span>
+                  </a>
+                );
+              })}
             </nav>
           </aside>
 
-          <section id="karma-premium-report" className="kdai-report">
+          <section id="karma-premium-report" className="kdai-report" data-kdai-exporting={exporting ? "true" : undefined}>
+            <div className="kdai-mandala" aria-hidden="true" />
             <header className="kdai-report-hero" data-kdai-pdf-page>
               <Link href="/karma-destiny-ai" className="kdai-back"><ArrowLeft size={17} /> 다시 보기</Link>
               <div className="kdai-report-hero__mark" aria-hidden="true">業</div>
@@ -325,19 +473,27 @@ function KarmaDestinyResultInner() {
             </header>
 
             <section className="kdai-summary-grid" data-kdai-pdf-page>
-              <article>
+              <article className="kdai-plaque">
+                <ScrollIcon className="kdai-plaque__icon" />
                 <span>총 글자 수</span>
                 <strong>{Number(result?.totalCharCount || 0).toLocaleString("ko-KR")}자</strong>
               </article>
-              <article>
+              <article className="kdai-plaque">
+                <span className="kdai-plaque__icon" aria-hidden="true">
+                  <MalaBeads total={Math.min(8, chapters.length)} filled={Math.min(8, chapters.length)} className="kdai-plaque__mala" />
+                </span>
                 <span>완성된 장</span>
                 <strong>{chapters.length}장</strong>
               </article>
-              <article>
+              <article className="kdai-plaque">
+                <LotusIcon className="kdai-plaque__icon" />
                 <span>핵심 키워드</span>
-                <strong>{keywords.join(" · ")}</strong>
+                <strong className="kdai-plaque__keywords">
+                  {keywords.map((keyword) => <em key={keyword}>{keyword}</em>)}
+                </strong>
               </article>
-              <article>
+              <article className="kdai-plaque">
+                <DharmaWheelIcon className="kdai-plaque__icon" />
                 <span>현재 과제</span>
                 <strong>{result?.summaryCards?.currentTask || "반복된 장면에서 다른 선택을 세우는 일"}</strong>
               </article>
@@ -351,29 +507,48 @@ function KarmaDestinyResultInner() {
               </ol>
             </section>
 
-            {chapters.map((chapter) => {
+            {chapters.map((chapter, index) => {
               const open = openChapters.has(chapter.id);
+              const expanded = expandedBodies.has(chapter.id);
+              const longBody = (chapter.content || "").length > 360;
+              const clamp = longBody && !expanded && !exporting;
               return (
-                <article id={chapter.id} className="kdai-chapter" data-kdai-pdf-page key={chapter.id}>
-                  <button type="button" className="kdai-chapter__head" onClick={() => toggleChapter(chapter.id)}>
-                    <span>{String(chapter.order).padStart(2, "0")}</span>
-                    <h2>{chapter.title}</h2>
-                    {open ? <ChevronUp size={19} /> : <ChevronDown size={19} />}
-                  </button>
-                  {open && (
-                    <div className="kdai-chapter__body">
-                      {chapter.highlightQuotes?.[0] && <blockquote>{chapter.highlightQuotes[0]}</blockquote>}
-                      <AiResultProse value={chapter.content} className="text-[#fff7df]/90" />
-                      <div className="kdai-core-box">
-                        <strong>이번 장의 핵심</strong>
-                        {(chapter.keyTakeaways || []).slice(0, 3).map((item) => <span key={item}>{item}</span>)}
+                <Fragment key={chapter.id}>
+                  {index > 0 && <ChapterDivider />}
+                  <article id={chapter.id} className={`kdai-chapter ${open ? "is-open" : ""}`.trim()} data-kdai-pdf-page>
+                    <button type="button" className="kdai-chapter__head" onClick={() => toggleChapter(chapter.id)} aria-expanded={open}>
+                      <span className="kdai-chapter__num">{String(chapter.order).padStart(2, "0")}</span>
+                      <h2>{chapter.title}</h2>
+                      {open ? <ChevronUp size={19} /> : <ChevronDown size={19} />}
+                    </button>
+                    {open && (
+                      <div className="kdai-chapter__body">
+                        {chapter.highlightQuotes?.[0] && (
+                          <blockquote className="kdai-sutra">{chapter.highlightQuotes[0]}</blockquote>
+                        )}
+                        <div className={`kdai-chapter__prose ${clamp ? "is-clamped" : ""}`.trim()}>
+                          <AiResultProse value={chapter.content} className="text-[#fff7df]/90" />
+                        </div>
+                        {longBody && (
+                          <button type="button" className="kdai-more-toggle" onClick={() => toggleBody(chapter.id)} aria-expanded={expanded}>
+                            <span>{expanded ? "본문 접기" : "본문 더 읽기"}</span>
+                            {expanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                          </button>
+                        )}
+                        <div className="kdai-core-box">
+                          <div className="kdai-core-box__head">
+                            <LotusIcon className="kdai-core-box__icon" />
+                            <strong>이번 장의 핵심</strong>
+                          </div>
+                          {(chapter.keyTakeaways || []).slice(0, 3).map((item) => <span key={item}>{item}</span>)}
+                        </div>
+                        <button type="button" className="kdai-copy-chapter" onClick={() => void copyText(buildChapterText(chapter), `${chapter.order}장을 복사했습니다.`)}>
+                          <Copy size={16} /> 이 장 복사
+                        </button>
                       </div>
-                      <button type="button" className="kdai-copy-chapter" onClick={() => void copyText(buildChapterText(chapter), `${chapter.order}장을 복사했습니다.`)}>
-                        <Copy size={16} /> 이 장 복사
-                      </button>
-                    </div>
-                  )}
-                </article>
+                    )}
+                  </article>
+                </Fragment>
               );
             })}
 
@@ -441,17 +616,23 @@ function ResultStyles() {
         }
 
         .kdai-generation__seal {
+          position: relative;
           display: grid;
-          width: 116px;
-          height: 116px;
+          width: 158px;
+          height: 158px;
           place-items: center;
-          border: 1px solid rgba(248, 208, 111, .42);
-          border-radius: 50%;
           color: #f8d06f;
-          background: rgba(9, 8, 24, .72);
-          box-shadow: 0 0 60px rgba(248, 208, 111, .22), inset 0 0 42px rgba(126, 34, 206, .22);
+        }
+
+        .kdai-generation__glyph {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
           font-family: CodeDestinyDecorative, serif;
-          font-size: 48px;
+          font-size: 30px;
+          color: rgba(255, 233, 168, .92);
+          text-shadow: 0 0 22px rgba(248, 208, 111, .55);
         }
 
         .kdai-generation span,
@@ -478,22 +659,6 @@ function ResultStyles() {
           margin: 0;
           color: rgba(255, 247, 223, .78);
           line-height: 1.75;
-        }
-
-        .kdai-progress {
-          overflow: hidden;
-          width: min(520px, 86vw);
-          height: 10px;
-          border: 1px solid rgba(248, 208, 111, .28);
-          border-radius: 999px;
-          background: rgba(255, 255, 255, .08);
-        }
-
-        .kdai-progress div {
-          height: 100%;
-          border-radius: inherit;
-          background: linear-gradient(90deg, #f8d06f, #ef4444, #a78bfa);
-          transition: width .4s ease;
         }
 
         button,
@@ -556,34 +721,6 @@ function ResultStyles() {
           display: grid;
           gap: 4px;
           padding: 10px;
-        }
-
-        .kdai-toc a {
-          display: grid;
-          grid-template-columns: 28px minmax(0, 1fr);
-          gap: 9px;
-          align-items: center;
-          border-radius: 8px;
-          padding: 9px;
-          color: rgba(255, 247, 223, .82);
-          text-decoration: none;
-          line-height: 1.38;
-        }
-
-        .kdai-toc a:hover {
-          background: rgba(248, 208, 111, .1);
-          color: #fff6dd;
-        }
-
-        .kdai-toc a span {
-          display: grid;
-          width: 28px;
-          height: 28px;
-          place-items: center;
-          border: 1px solid rgba(248, 208, 111, .22);
-          border-radius: 50%;
-          color: #f8d06f;
-          font-size: .8rem;
         }
 
         .kdai-report {
@@ -652,7 +789,7 @@ function ResultStyles() {
         .kdai-summary-grid span {
           display: block;
           margin-bottom: 9px;
-          color: rgba(255, 247, 223, .62);
+          color: rgba(255, 247, 223, .78);
           font-size: .82rem;
         }
 
@@ -721,13 +858,18 @@ function ResultStyles() {
         }
 
         .kdai-chapter__body blockquote {
-          margin: 0 0 22px;
-          border-left: 3px solid #f8d06f;
-          padding: 10px 0 10px 18px;
+          position: relative;
+          margin: 0 0 24px;
+          border: 0;
+          border-left: 2px solid rgba(248, 208, 111, .85);
+          padding: 8px 0 8px 20px;
           color: #ffe9a8;
           font-family: CodeDestinyPremium, CodeDestinyBody, serif;
-          font-size: 1.08rem;
-          line-height: 1.75;
+          font-style: italic;
+          font-size: 1.12rem;
+          line-height: 1.85;
+          letter-spacing: -0.01em;
+          text-wrap: balance;
         }
 
         .kdai-core-box {
@@ -818,6 +960,311 @@ function ResultStyles() {
 
         @keyframes kdaiSpin {
           to { transform: rotate(360deg); }
+        }
+
+        /* ───────── 불교 업보 모티프 레이어 ───────── */
+
+        /* 길상매듭 — unravel(0~1)이 오를수록 실가닥이 풀리고 글로우가 강해진다 */
+        .kdai-knot {
+          color: #f8d06f;
+          filter: drop-shadow(0 0 calc(6px + 20px * var(--kdai-unravel, 1)) rgba(248, 208, 111, calc(.22 + .38 * var(--kdai-unravel, 1))));
+          transition: filter .5s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .kdai-knot__core {
+          opacity: calc(.72 + .28 * var(--kdai-unravel, 1));
+          transition: opacity .5s cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .kdai-knot__loose {
+          opacity: var(--kdai-unravel, 1);
+          transform-origin: 60px 82px;
+          transform: scaleY(calc(.35 + .65 * var(--kdai-unravel, 1)));
+          transition: transform .5s cubic-bezier(.22, 1, .36, 1), opacity .5s ease;
+        }
+
+        /* 염주 */
+        .kdai-mala {
+          display: flex;
+          gap: 8px;
+        }
+
+        .kdai-mala--row {
+          flex-flow: row wrap;
+          align-items: center;
+          justify-content: center;
+          max-width: min(560px, 90vw);
+        }
+
+        .kdai-mala--column {
+          flex-direction: column;
+        }
+
+        .kdai-mala__bead {
+          width: 13px;
+          height: 13px;
+          border-radius: 50%;
+          border: 1px solid rgba(248, 208, 111, .5);
+          background: rgba(255, 255, 255, .05);
+          transition: background .4s ease, box-shadow .4s ease, border-color .4s ease;
+        }
+
+        .kdai-mala__bead.is-filled {
+          border-color: #f8d06f;
+          background: radial-gradient(circle at 35% 30%, #ffe9a8, #e0a83c);
+          box-shadow: 0 0 10px rgba(248, 208, 111, .5);
+        }
+
+        .kdai-generation__mala {
+          margin: 6px 0 2px;
+        }
+
+        /* 목차 — 세로 염주 레일 + 스크롤 스파이 */
+        .kdai-toc__count {
+          margin: 0 auto 0 10px;
+          color: #f8d06f;
+          font-size: .74rem;
+          letter-spacing: .04em;
+        }
+
+        .kdai-toc__rail {
+          position: relative;
+        }
+
+        .kdai-toc__rail::before {
+          content: "";
+          position: absolute;
+          top: 22px;
+          bottom: 22px;
+          left: 22px;
+          width: 1px;
+          background: linear-gradient(180deg, transparent, rgba(248, 208, 111, .3) 12%, rgba(248, 208, 111, .3) 88%, transparent);
+        }
+
+        .kdai-toc__rail a {
+          position: relative;
+          display: grid;
+          grid-template-columns: 26px 24px minmax(0, 1fr);
+          gap: 8px;
+          align-items: center;
+          border-radius: 8px;
+          padding: 8px 9px;
+          color: rgba(255, 247, 223, .84);
+          text-decoration: none;
+          line-height: 1.4;
+        }
+
+        .kdai-toc__rail a:hover {
+          background: rgba(248, 208, 111, .08);
+          color: #fff6dd;
+        }
+
+        .kdai-toc__bead {
+          justify-self: center;
+          width: 11px;
+          height: 11px;
+          border-radius: 50%;
+          border: 1px solid rgba(248, 208, 111, .55);
+          background: rgba(8, 6, 18, .92);
+          transition: background .3s ease, box-shadow .3s ease, transform .3s ease;
+        }
+
+        .kdai-toc__order {
+          color: rgba(248, 208, 111, .82);
+          font-size: .74rem;
+        }
+
+        .kdai-toc__title {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        .kdai-toc__rail a.is-active {
+          background: rgba(248, 208, 111, .12);
+          color: #fff6dd;
+        }
+
+        .kdai-toc__rail a.is-active .kdai-toc__bead {
+          background: radial-gradient(circle at 35% 30%, #ffe9a8, #e0a83c);
+          box-shadow: 0 0 12px rgba(248, 208, 111, .6);
+          transform: scale(1.18);
+        }
+
+        .kdai-toc__rail a.is-active::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: 8px;
+          bottom: 8px;
+          width: 2px;
+          border-radius: 2px;
+          background: #f8d06f;
+          box-shadow: 0 0 10px rgba(248, 208, 111, .55);
+        }
+
+        /* 현판/석판 요약 카드 */
+        .kdai-plaque {
+          position: relative;
+          display: grid;
+          gap: 7px;
+          align-content: start;
+        }
+
+        .kdai-plaque::before {
+          content: "";
+          position: absolute;
+          inset: 6px;
+          border: 1px solid rgba(248, 208, 111, .14);
+          border-radius: 5px;
+          pointer-events: none;
+        }
+
+        .kdai-plaque__icon {
+          width: 26px;
+          height: 26px;
+          color: #f8d06f;
+        }
+
+        .kdai-plaque__mala {
+          gap: 5px;
+        }
+
+        .kdai-plaque__mala .kdai-mala__bead {
+          width: 9px;
+          height: 9px;
+        }
+
+        .kdai-plaque__keywords {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+
+        .kdai-plaque__keywords em {
+          border: 1px solid rgba(248, 208, 111, .3);
+          border-radius: 999px;
+          padding: 3px 10px;
+          color: #ffe9a8;
+          font-size: .86rem;
+          font-style: normal;
+        }
+
+        /* 챕터 열림 번호 글로우 */
+        .kdai-chapter.is-open .kdai-chapter__num {
+          border-color: rgba(248, 208, 111, .7);
+          background: radial-gradient(circle at 40% 30%, rgba(255, 233, 168, .32), transparent 70%);
+          box-shadow: 0 0 16px rgba(248, 208, 111, .35);
+          color: #ffe9a8;
+        }
+
+        /* 본문 클램프 + 더보기 */
+        .kdai-chapter__prose {
+          position: relative;
+        }
+
+        .kdai-chapter__prose.is-clamped {
+          max-height: 12.5em;
+          overflow: hidden;
+          -webkit-mask-image: linear-gradient(180deg, #000 62%, transparent);
+          mask-image: linear-gradient(180deg, #000 62%, transparent);
+        }
+
+        .kdai-more-toggle {
+          min-height: 42px;
+          margin-top: 12px;
+          padding: 0 16px;
+          border-color: rgba(248, 208, 111, .3);
+          color: #ffe9a8;
+          background: rgba(248, 208, 111, .08);
+          font-size: .9rem;
+        }
+
+        .kdai-more-toggle:hover {
+          background: rgba(248, 208, 111, .14);
+        }
+
+        /* 이번 장의 핵심 헤더 */
+        .kdai-core-box__head {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .kdai-core-box__icon {
+          width: 20px;
+          height: 20px;
+          color: #f8d06f;
+        }
+
+        /* 챕터 구분선 */
+        .kdai-divider {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          margin: 4px clamp(12px, 4vw, 40px);
+          color: rgba(248, 208, 111, .55);
+        }
+
+        .kdai-divider__line {
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(248, 208, 111, .3), transparent);
+        }
+
+        .kdai-divider__lotus {
+          width: 24px;
+          height: 24px;
+          opacity: .8;
+        }
+
+        /* 배경 만다라 (≤5% opacity) */
+        .kdai-mandala {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          opacity: .04;
+          background-image:
+            repeating-conic-gradient(from 0deg at 50% 22%, #f8d06f 0 .6deg, transparent .6deg 15deg),
+            radial-gradient(circle at 50% 22%, transparent 0 29%, rgba(248, 208, 111, .7) 29.4% 30%, transparent 30.4%);
+          background-repeat: no-repeat;
+          background-size: 640px 640px;
+          background-position: center top;
+          mask-image: radial-gradient(circle at 50% 22%, #000, transparent 58%);
+          -webkit-mask-image: radial-gradient(circle at 50% 22%, #000, transparent 58%);
+        }
+
+        .kdai-report > *:not(.kdai-mandala) {
+          position: relative;
+          z-index: 1;
+        }
+
+        /* PDF 캡처 시 접힌 본문 전부 펼침 */
+        .kdai-report[data-kdai-exporting="true"] .kdai-chapter__prose.is-clamped {
+          max-height: none;
+          -webkit-mask-image: none;
+          mask-image: none;
+        }
+
+        .kdai-report[data-kdai-exporting="true"] .kdai-more-toggle {
+          display: none;
+        }
+
+        @media (max-width: 960px) {
+          .kdai-generation__mala {
+            max-width: 92vw;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .kdai-knot,
+          .kdai-knot__core,
+          .kdai-knot__loose,
+          .kdai-mala__bead,
+          .kdai-toc__bead {
+            transition: none;
+          }
         }
       `}</style>
     </>

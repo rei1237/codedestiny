@@ -19,7 +19,10 @@ import { PriceBadge } from "@/app/components/PriceBadge";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtures/sukuyo-compatibility";
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
+import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
+
+const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
 
 type CalendarType = "solar" | "lunar";
 type ConsultationType = "personal" | "compatibility";
@@ -150,6 +153,13 @@ const BAR_LABELS: Record<ScoreKey, string> = {
   growth: "성장 시너지",
   stability: "장기 안정도",
 };
+type ScoreTier = "good" | "normal" | "caution";
+const SCORE_TIER_LABEL: Record<ScoreTier, string> = { good: "좋음", normal: "보통", caution: "가꾸는 중" };
+function scoreStatus(score: number): ScoreTier {
+  if (score >= 16) return "good";
+  if (score >= 14) return "normal";
+  return "caution";
+}
 const MOON_PARTICLES = [
   { top: 12, left: 18, delay: 0.2, opacity: 0.68 },
   { top: 22, left: 74, delay: 1.1, opacity: 0.44 },
@@ -627,10 +637,12 @@ function ScoreBarChart({ scores }: { scores: CompatResult["meta"]["scores"] }) {
     <div className={styles.scoreBars}>
       {(Object.entries(BAR_LABELS) as [ScoreKey, string][]).map(([key, label]) => {
         const score = scores[key] || 0;
+        const tier = scoreStatus(score);
         return (
           <div key={key} className={styles.scoreBarRow}>
             <div>
               <span>{label}</span>
+              <span className={styles.scoreBadge} data-tier={tier}>{SCORE_TIER_LABEL[tier]}</span>
               <strong>{score} / 20</strong>
             </div>
             <i><b style={{ width: `${(score / 20) * 100}%` }} /></i>
@@ -681,7 +693,7 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
       <SukuyoWheel
         myHanja={meta.person_a.sukuyo_hanja}
         partnerHanja={meta.person_b.sukuyo_hanja}
-        relationLabel={`${meta.relation.type_a_to_b} · 거리 ${meta.relation.distance}숙`}
+        relationLabel={`${meta.relation.type_a_to_b} · ${meta.relation.intensity} · 거리 ${meta.relation.distance}숙`}
         className={styles.starLineSvg}
       />
       <div className={styles.summaryGauge}>
@@ -705,6 +717,59 @@ function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
   );
 }
 
+function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; section: { title: string; body: string } }) {
+  return (
+    <article className={styles.readingSection}>
+      <div>
+        <span>{SECTION_ICONS[sectionKey] || "✦"}</span>
+        <h3>{section.title}</h3>
+      </div>
+      <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
+    </article>
+  );
+}
+
+function ScoreDetailSection({ scores }: { scores: CompatResult["meta"]["scores"] }) {
+  const entries = (Object.entries(BAR_LABELS) as [ScoreKey, string][]).map(([key, label]) => ({
+    key,
+    label,
+    score: scores[key] || 0,
+  }));
+  const top = entries.reduce((best, item) => (item.score > best.score ? item : best));
+  const bottom = entries.reduce((worst, item) => (item.score < worst.score ? item : worst));
+  return (
+    <section className={styles.scoreDetailSection} aria-label="항목별 지표">
+      <h2>항목별 지표</h2>
+      <div className={styles.chartGrid}>
+        <ScoreRadarChart scores={scores} />
+        <ScoreBarChart scores={scores} />
+      </div>
+      <p className={styles.sectionCaption}>최고 지표 {top.label} {top.score}점 · 보완 지표 {bottom.label} {bottom.score}점</p>
+    </section>
+  );
+}
+
+function CompareSection({ a, b }: { a: CompatPersonMeta; b: CompatPersonMeta }) {
+  const compareKeys: (keyof CompatPersonMeta)[] = ["sukuyo", "group", "element", "yin_yang", "guardian", "keyword"];
+  const sameCount = compareKeys.filter((key) => a[key] === b[key]).length;
+  return (
+    <section className={styles.compareSection} aria-label="두 사람 비교">
+      <h2>두 사람 비교</h2>
+      <TraitCompareTable a={a} b={b} />
+      <p className={styles.sectionCaption}>{compareKeys.length}개 항목 중 {sameCount}개 일치</p>
+    </section>
+  );
+}
+
+function QuoteWelcomeCard({ quote }: { quote: string }) {
+  return (
+    <section className={styles.welcomeQuoteCard} aria-label="첫 방문 환영 문구">
+      <span aria-hidden="true">☾</span>
+      <p>{quote}</p>
+    </section>
+  );
+}
+
 function CompatResultModal({ result, onClose, onDownloadError }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
@@ -712,8 +777,35 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
   const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
   const [activeChapter, setActiveChapter] = useState(0);
   const [showAll, setShowAll] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [hasSeenQuote, setHasSeenQuote] = useState(false);
   const chapterBodyRef = useRef<HTMLDivElement | null>(null);
+  const initialSeenRef = useRef<boolean | null>(null);
   useBodyScrollLock(true);
+
+  useEffect(() => {
+    // StrictMode 등으로 effect가 두 번 실행돼도, 최초 1회 판정한 값을 ref에 고정해
+    // 두 번째 실행이 "방금 자신이 쓴 값"을 다시 읽어 뒤집는 것을 방지한다.
+    if (initialSeenRef.current === null) {
+      let seen = false;
+      try {
+        seen = window.localStorage.getItem(QUOTE_SEEN_STORAGE_KEY) === "true";
+      } catch {
+        // 저장소 접근 불가 시 매번 카드 노출(기본값) 유지
+      }
+      initialSeenRef.current = seen;
+      if (!seen) {
+        try {
+          window.localStorage.setItem(QUOTE_SEEN_STORAGE_KEY, "true");
+        } catch {
+          // best-effort
+        }
+      }
+    }
+    setHasSeenQuote(initialSeenRef.current);
+    setMounted(true);
+  }, []);
 
   const openChapter = (index: number) => {
     if (index < 0 || index >= chapterEntries.length) return;
@@ -778,62 +870,86 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
       </header>
 
       <div className={styles.modalBody}>
+        {mounted && !hasSeenQuote && (
+          <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
+        )}
         <CompatSummaryHeader meta={meta} />
-        {showAll ? (
-          <div className={styles.chapterStage} ref={chapterBodyRef}>
-            {chapterEntries.map(([key, section]) => (
-              <article key={key} className={styles.readingSection}>
-                <div>
-                  <span>{SECTION_ICONS[key] || "✦"}</span>
-                  <h3>{section.title}</h3>
-                </div>
-                <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
-              </article>
-            ))}
-          </div>
-        ) : (
-          <>
-            <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+        <ScoreDetailSection scores={meta.scores} />
+        <CompareSection a={meta.person_a} b={meta.person_b} />
+        <section className={styles.detailDisclosure} aria-label="상세 해설">
+          <button
+            type="button"
+            aria-expanded={detailOpen}
+            aria-controls="compat-detail-panel"
+            className={styles.detailToggleButton}
+            onClick={() => setDetailOpen((prev) => !prev)}
+          >
+            {detailOpen ? "상세 해설 접기" : "자세히 보기 · 12장 전체 해설"}
+          </button>
+          {!detailOpen && (
+            <nav className={styles.chapterNav} aria-label="12장 미리보기 — 눌러서 펼치기">
               {chapterEntries.map(([key, section], index) => (
                 <button
                   key={key}
                   type="button"
-                  className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}`}
-                  onClick={() => openChapter(index)}
-                  aria-current={index === activeChapter ? "true" : undefined}
-                  aria-label={`${index + 1}장 ${section.title}`}
+                  className={styles.chapterChip}
+                  onClick={() => { setDetailOpen(true); openChapter(index); }}
+                  aria-label={`${index + 1}장 ${section.title} 펼치기`}
                 >
                   <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
                   {index + 1}장
                 </button>
               ))}
             </nav>
-            <div className={styles.chapterStage} ref={chapterBodyRef}>
-              <article className={styles.readingSection}>
-                <div>
-                  <span>{SECTION_ICONS[chapterEntries[activeChapter]?.[0] || ""] || "✦"}</span>
-                  <h3>{chapterEntries[activeChapter]?.[1]?.title || ""}</h3>
+          )}
+          <div id="compat-detail-panel" hidden={!detailOpen}>
+            {showAll ? (
+              <div className={styles.chapterStage} ref={chapterBodyRef}>
+                {chapterEntries.map(([key, section]) => (
+                  <ChapterReadingArticle key={key} sectionKey={key} section={section} />
+                ))}
+              </div>
+            ) : (
+              <>
+                <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+                  {chapterEntries.map(([key, section], index) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}`}
+                      onClick={() => openChapter(index)}
+                      aria-current={index === activeChapter ? "true" : undefined}
+                      aria-label={`${index + 1}장 ${section.title}`}
+                    >
+                      <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
+                      {index + 1}장
+                    </button>
+                  ))}
+                </nav>
+                <div className={styles.chapterStage} ref={chapterBodyRef}>
+                  {chapterEntries[activeChapter] && (
+                    <ChapterReadingArticle sectionKey={chapterEntries[activeChapter][0]} section={chapterEntries[activeChapter][1]} />
+                  )}
                 </div>
-                <div className={styles.readingBody}><AiResultProse value={chapterEntries[activeChapter]?.[1]?.body} /></div>
-              </article>
-            </div>
-            <div className={styles.chapterPager}>
-              <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0} aria-label="이전 장으로">
-                이전 장
-              </button>
-              <span>{activeChapter + 1} / {chapterEntries.length}</span>
-              {activeChapter < chapterEntries.length - 1 ? (
-                <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} aria-label="다음 장 열기">
-                  다음 장 열기
-                </button>
-              ) : (
-                <button type="button" className={styles.chapterNextButton} onClick={onClose} aria-label="결과 닫기">
-                  여운 남기고 닫기
-                </button>
-              )}
-            </div>
-          </>
-        )}
+                <div className={styles.chapterPager}>
+                  <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0} aria-label="이전 장으로">
+                    이전 장
+                  </button>
+                  <span>{activeChapter + 1} / {chapterEntries.length}</span>
+                  {activeChapter < chapterEntries.length - 1 ? (
+                    <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} aria-label="다음 장 열기">
+                      다음 장 열기
+                    </button>
+                  ) : (
+                    <button type="button" className={styles.chapterNextButton} onClick={onClose} aria-label="결과 닫기">
+                      여운 남기고 닫기
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </section>
       </div>
 
       {/* PDF 저장용 전체 렌더 — 화면 밖에 배치해 html2canvas 캡처에만 사용 */}
@@ -873,13 +989,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
         {readingPages.map((group, pageIndex) => (
           <section key={pageIndex} className={`${styles.pdfPage} ${styles.pdfReadingPage}`} data-pdf-section>
             {group.map(([key, section]) => (
-              <article key={key} className={styles.readingSection}>
-                <div>
-                  <span>{SECTION_ICONS[key] || "✦"}</span>
-                  <h3>{section.title}</h3>
-                </div>
-                <div className={styles.readingBody}><AiResultProse value={section.body} /></div>
-              </article>
+              <ChapterReadingArticle key={key} sectionKey={key} section={section} />
             ))}
           </section>
         ))}
@@ -890,6 +1000,22 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
           <p>이 해석은 숙요점 상징 체계를 바탕으로 관계의 흐름을 비추는 참고용 상담입니다. 현실의 선택, 동의, 경계, 건강과 법률·재정 판단은 당사자의 충분한 대화와 전문 검토를 함께 따라야 합니다.</p>
         </footer>
       </div>
+    </div>
+  );
+}
+
+function countFilledPersonFields(value: PersonForm) {
+  return [value.birthDate, value.gender, value.calendarType].filter(Boolean).length;
+}
+
+function FormProgressIndicator({ filled, total }: { filled: number; total: number }) {
+  const percent = Math.round((filled / total) * 100);
+  return (
+    <div className={styles.progressBar} role="status" aria-live="polite">
+      <div className={styles.progressTrack}>
+        <div className={styles.progressFill} style={{ transform: `scaleX(${percent / 100})` }} />
+      </div>
+      <span className={styles.progressLabel}>{filled}/{total}개 항목 입력됨</span>
     </div>
   );
 }
@@ -1068,6 +1194,8 @@ export default function SukuyoCompatibilityAiClient() {
   const personAComplete = !getPersonValidationMessage("a", personA);
   const personBComplete = !getPersonValidationMessage("b", personB);
   const bothComplete = personAComplete && personBComplete;
+  const filledCount = countFilledPersonFields(personA) + countFilledPersonFields(personB);
+  const filledPercent = Math.round((filledCount / 6) * 100);
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
@@ -1213,25 +1341,36 @@ export default function SukuyoCompatibilityAiClient() {
           <label htmlFor={`${prefix}-birth-time`}>
             출생시간 <span className={styles.labelOptional}>선택</span>
           </label>
-          <div className={styles.timeControl}>
-            <input
-              id={`${prefix}-birth-time`}
-              type="time"
-              value={value.birthTimeUnknown ? "" : value.birthTime}
-              onChange={(event) => updatePerson(target, { birthTime: event.target.value, birthTimeUnknown: false })}
-              disabled={busy || value.birthTimeUnknown}
-              className={value.birthTimeUnknown ? styles.timeInputMuted : undefined}
-            />
+          <div className={styles.segmented} role="group" aria-label={`${owner} 출생시간 인지 여부`}>
             <button
               type="button"
-              className={value.birthTimeUnknown ? styles.timeUnknownActive : styles.timeUnknownButton}
-              onClick={() => updatePerson(target, { birthTimeUnknown: !value.birthTimeUnknown, birthTime: "" })}
+              className={value.birthTimeUnknown ? styles.segment : styles.segmentActive}
+              onClick={() => updatePerson(target, { birthTimeUnknown: false })}
+              disabled={busy}
+              aria-pressed={!value.birthTimeUnknown}
+            >
+              시간 알아요
+            </button>
+            <button
+              type="button"
+              className={value.birthTimeUnknown ? styles.segmentActive : styles.segment}
+              onClick={() => updatePerson(target, { birthTimeUnknown: true, birthTime: "" })}
               disabled={busy}
               aria-pressed={value.birthTimeUnknown}
             >
-              시간 모름
+              시간 몰라요
             </button>
           </div>
+          {!value.birthTimeUnknown && (
+            <input
+              id={`${prefix}-birth-time`}
+              type="time"
+              value={value.birthTime}
+              onChange={(event) => updatePerson(target, { birthTime: event.target.value })}
+              disabled={busy}
+              className={styles.timeInputStandalone}
+            />
+          )}
           <span className={styles.fieldHint}>숙요점은 시간 없이도 봐요. 알면 조금 더 정밀해져요.</span>
         </div>
         <div className={styles.fieldWide}>
@@ -1291,7 +1430,6 @@ export default function SukuyoCompatibilityAiClient() {
                   className={styles.insightCard}
                   initial={reduceMotion ? false : { opacity: 0, y: 14 }}
                   animate={reduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                  whileHover={reduceMotion ? undefined : { y: -4, scale: 1.012 }}
                   transition={{ duration: 0.32, delay: 0.16 + index * 0.06, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -1308,9 +1446,10 @@ export default function SukuyoCompatibilityAiClient() {
             <>
               <div className={styles.panelHeader}>
                 <p><Sparkles size={15} /> Moonlight Compatibility</p>
-                <h2>두 사람의 달빛 자리를 엽니다</h2>
-                <span>숙요점의 본명숙과 관계 거리를 바탕으로 서로의 끌림, 갈등, 마음의 속도를 AI 상담 형식으로 차분히 풀어드립니다.</span>
+                <h2>나와 상대의 별자리를 채워주세요</h2>
+                <span>생년월일, 성별, 달력 기준만 있으면 시작할 수 있어요. 출생시간은 몰라도 괜찮아요.</span>
               </div>
+              <FormProgressIndicator filled={filledCount} total={6} />
               <div className={styles.duoGrid}>
                 <div className={`${styles.duoCard}${personAComplete ? ` ${styles.duoCardComplete}` : ""}`}>
                   <header className={styles.duoCardHead}>
@@ -1342,21 +1481,26 @@ export default function SukuyoCompatibilityAiClient() {
                 </div>
               </div>
 
-              <div className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`} aria-hidden="true">
+              <m.div
+                className={`${styles.resultTeaser}${bothComplete ? ` ${styles.resultTeaserReady}` : ""}`}
+                aria-hidden="true"
+                animate={reduceMotion ? undefined : { scale: bothComplete ? [1, 1.03, 1] : 1 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <div className={styles.teaserGauge}>
-                  <span />
-                  <em>궁합 게이지</em>
+                  <span style={{ background: `conic-gradient(#ffe8b6 ${filledPercent * 3.6}deg, rgba(255,255,255,.08) 0deg)` }} />
+                  <em>{filledCount}/6 · {filledPercent}%</em>
                 </div>
                 <div className={styles.teaserLine}>
-                  <i /><b /><i />
+                  <i className={personAComplete ? styles.teaserDotReady : undefined} />
+                  <b />
+                  <i className={personBComplete ? styles.teaserDotReady : undefined} />
                 </div>
                 <p>{bothComplete ? "두 별의 자리가 모두 채워졌어요. 이제 달빛 궁합을 열 수 있습니다." : "두 별의 자리가 채워지면 미리보기가 선명해져요."}</p>
-              </div>
+              </m.div>
 
-              <div className="flex items-center justify-end">
-                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="상담 이용 가격 " />
-              </div>
               <div className={styles.actions}>
+                <PriceBadge featureKey="sukuyo-compatibility-ai" fallbackCoins={300} prefix="상담 이용 가격 " className={styles.priceBadgeInline} />
                 <button type="button" className={styles.primaryButton} onClick={handleSubmit} disabled={busy || !bothComplete}>
                   {busy ? <Loader2 size={18} className={styles.spin} /> : <Sparkles size={18} />}
                   달빛 궁합 열기

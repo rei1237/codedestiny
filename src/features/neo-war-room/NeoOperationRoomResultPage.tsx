@@ -946,7 +946,9 @@ export default function NeoOperationRoomResultPage() {
 
 function LionBadgeStamp({ badgeIndex, className = "" }: { badgeIndex: number; className?: string }) {
   const badgeGate = useSpritePlaybackGate<HTMLSpanElement>();
-  const stampAsset = badgeGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
+  // "오늘의 등급"(C~EX, 0~9 순환)에는 등급별로 실제 다른 그림인 grades 시트를 써야 한다.
+  // resultStamp는 별개 자산(단일 도장 모티프)이라 어느 인덱스를 넣어도 같은 컷처럼 보였다.
+  const stampAsset = badgeGate.isMobile ? neoWarRoomAssets.badges.gradesMobile : neoWarRoomAssets.badges.grades;
   return (
     <span ref={badgeGate.ref} className={`${styles.badgeStampFrame} ${className}`} style={getBadgeStampStyle(badgeIndex)}>
       {badgeGate.canLoad ? (
@@ -1470,47 +1472,16 @@ function Section({ title, body, list }: { title: string; body?: string; list?: s
   );
 }
 
-// 팩폭 콜아웃 스프라이트 — 로컬 투명 webp s1 시퀀스 8프레임(이미 슬라이스됨)을 순환해 말하는 애니메이션.
-const NEO_CALLOUT_FRAMES = ["f01", "f02", "f03", "f04", "f05", "f06", "f07", "f08"].map(
-  (frame) => `/neo-operation-room/sprites/transparent/neo-transparent-s1-${frame}.webp`,
-);
-const NEO_CALLOUT_FRAME_INTERVAL_MS = 260;
+// 팩폭 콜아웃 이미지 — 재생속도 이슈로 프레임 애니메이션 대신 기본 이미지 한 장만 고정 노출.
+const NEO_CALLOUT_IMAGE = "/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp";
 
-// 팩폭 한줄 요약을 네오 스티커(프레임 애니메이션) 옆에 배치해 시선이 쉬는 지점을 만든다.
+// 팩폭 한줄 요약을 네오 스티커(고정 이미지) 옆에 배치해 시선이 쉬는 지점을 만든다.
 function NeoBluntCallout({ text }: { text: string }) {
-  const spriteGate = useSpritePlaybackGate<HTMLElement>();
-  const [frameIndex, setFrameIndex] = useState(0);
-
-  // 프레임을 미리 디코드해 두어 src 교체 시 깜빡임을 없앤다 (window.Image = DOM 생성자, next/image 아님).
-  useEffect(() => {
-    if (!spriteGate.canLoad || typeof window === "undefined") return;
-    NEO_CALLOUT_FRAMES.forEach((src) => {
-      const preloader = new window.Image();
-      preloader.decoding = "async";
-      preloader.src = src;
-    });
-  }, [spriteGate.canLoad]);
-
-  useEffect(() => {
-    if (!spriteGate.canAnimate) return undefined;
-    const timer = window.setInterval(() => {
-      setFrameIndex((current) => (current + 1) % NEO_CALLOUT_FRAMES.length);
-    }, NEO_CALLOUT_FRAME_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [spriteGate.canAnimate]);
-
-  // 애니메이션이 멈춘 상태(모션 최소화·오프스크린·백그라운드)에서는 첫 프레임(f01)만 정적으로 노출.
-  const activeIndex = spriteGate.canAnimate ? frameIndex % NEO_CALLOUT_FRAMES.length : 0;
-
   return (
     <div className={styles.neoAside}>
-      <figure
-        ref={spriteGate.ref}
-        className={styles.neoAsideSprite}
-        data-playing={spriteGate.canAnimate ? "true" : "false"}
-      >
+      <figure className={styles.neoAsideSprite} data-playing="false">
         <Image
-          src={NEO_CALLOUT_FRAMES[activeIndex]}
+          src={NEO_CALLOUT_IMAGE}
           width={362}
           height={543}
           alt="팩폭 한마디를 건네는 네오"

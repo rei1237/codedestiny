@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, ArrowLeft, BookOpen, Download, Loader2, ScrollText, Sparkles } from "lucide-react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { AlertCircle, ArrowLeft, BookOpen, ChevronDown, Download, Lightbulb, Loader2, ScrollText, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
@@ -12,6 +12,8 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
+import { splitGanji, tenGodOfStem, FIVE_ELEMENT_TOKENS, type FiveElement } from "@/lib/five-element-colors";
+import styles from "./LifeBookAiResultClient.module.css";
 
 type LifeBookMessage = {
   role: "user" | "assistant";
@@ -90,7 +92,30 @@ type LifeBookReportJson = {
   finalMessage?: string;
 };
 
-const CANONICAL_TEN_GODS = ["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"];
+// 십성을 5개 카테고리(비겁/식상/재성/관성/인성)로 묶어 시각적으로 군집화한다.
+const TEN_GOD_GROUPS: Array<{ label: string; members: string[] }> = [
+  { label: "비겁", members: ["비견", "겁재"] },
+  { label: "식상", members: ["식신", "상관"] },
+  { label: "재성", members: ["편재", "정재"] },
+  { label: "관성", members: ["편관", "정관"] },
+  { label: "인성", members: ["편인", "정인"] },
+];
+
+const FIVE_ELEMENT_ORDER: FiveElement[] = ["목", "화", "토", "금", "수"];
+
+const ROMAN_NUMERALS = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"];
+function toRoman(num: number) {
+  return ROMAN_NUMERALS[num - 1] || String(num);
+}
+
+function fiveElementDistribution(record?: Record<string, unknown> | null) {
+  const entries = FIVE_ELEMENT_ORDER.map((element) => ({
+    element,
+    value: Number(record?.[element]) || 0,
+  }));
+  const max = Math.max(1, ...entries.map((entry) => entry.value));
+  return entries.map((entry) => ({ ...entry, ratio: entry.value / max }));
+}
 
 const FALLBACK_CHAPTERS = [
   "타고난 사주의 원형",
@@ -126,12 +151,6 @@ function formatCalendar(value?: string) {
 
 function formatSajuValue(value: unknown, fallback = "계산 제한") {
   return toText(value) || fallback;
-}
-
-function recordEntries(record?: Record<string, unknown> | null) {
-  return Object.entries(record || {})
-    .map(([key, value]) => ({ key, value: toText(value) }))
-    .filter((entry) => entry.key && entry.value);
 }
 
 function extractJsonReport(content: string): LifeBookReportJson | null {
@@ -320,15 +339,21 @@ function LifeBookResultContent() {
   const generatedAt = toText(result?.updatedAt || result?.createdAt);
   const userName = toText(birth.name) || "당신";
   const isGenerating = result?.status === "generating";
+  const dayStem = splitGanji(formatSajuValue(saju?.dayPillar)).stem;
+  const tenGodOf = (ganji: string) => {
+    const stem = splitGanji(ganji).stem;
+    return stem && dayStem ? tenGodOfStem(dayStem, stem) || undefined : undefined;
+  };
   const pillarRows = [
-    { label: "년주", ganji: formatSajuValue(saju?.yearPillar) },
-    { label: "월주", ganji: formatSajuValue(saju?.monthPillar) },
-    { label: "일주", ganji: formatSajuValue(saju?.dayPillar), emphasis: true },
-    { label: "시주", ganji: formatSajuValue(saju?.hourPillar, birth.birthTimeUnknown ? "출생시간 모름" : "계산 제한") },
+    { label: "년주", ganji: formatSajuValue(saju?.yearPillar), tenGod: tenGodOf(formatSajuValue(saju?.yearPillar)) },
+    { label: "월주", ganji: formatSajuValue(saju?.monthPillar), tenGod: tenGodOf(formatSajuValue(saju?.monthPillar)) },
+    { label: "일주", ganji: formatSajuValue(saju?.dayPillar), emphasis: true, tenGod: "일간" },
+    { label: "시주", ganji: formatSajuValue(saju?.hourPillar, birth.birthTimeUnknown ? "출생시간 모름" : "계산 제한"), tenGod: tenGodOf(formatSajuValue(saju?.hourPillar)) },
   ];
   const dayMasterValue = formatSajuValue(saju?.dayMaster);
-  const fiveElementEntries = recordEntries(saju?.fiveElements);
-  const tenGodEntries = recordEntries(saju?.tenGods);
+  const hasFiveElements = Boolean(saju?.fiveElements && Object.keys(saju.fiveElements).length);
+  const elementDistribution = fiveElementDistribution(saju?.fiveElements);
+  const hasTenGods = Boolean(saju?.tenGods && Object.keys(saju.tenGods).length);
 
   async function handlePdfDownload() {
     const element = document.getElementById("life-book-result-document");
@@ -413,77 +438,93 @@ function LifeBookResultContent() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             새로운 인생의 책 만들기
           </Link>
-          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 text-sm font-black text-[#171007] transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60">
+          {/* 빠른 저장(보조) — 봉인 CTA는 마지막 장에 별도로 있다 */}
+          <button
+            type="button"
+            onClick={() => void handlePdfDownload()}
+            disabled={pdfLoading}
+            aria-label="PDF로 빠르게 저장"
+            title="PDF로 빠르게 저장"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-amber-200/25 bg-black/20 text-amber-100 transition hover:bg-amber-50/10 disabled:cursor-not-allowed disabled:opacity-60"
+          >
             {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
-            PDF로 저장하기
           </button>
         </div>
         {pdfError && <div className="mb-4 rounded-2xl border border-rose-200/25 bg-rose-950/30 px-4 py-3 text-sm font-bold text-rose-100">{pdfError}</div>}
 
         <article id="life-book-result-document" className="rounded-3xl border border-amber-200/20 bg-amber-50/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
-          <header data-life-book-pdf-page className="relative overflow-hidden rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7">
+          <header data-life-book-pdf-page className={`relative overflow-hidden rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 sm:p-7 ${styles.leatherTexture}`}>
             <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#b47b25] via-[#f2d07a] to-[#b47b25]" aria-hidden="true" />
             <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
               인생의 책 AI 상담 리포트
             </p>
-            <h1 className="mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl">{report.title}</h1>
+            <h1 className={`mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>
             <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-200/85">主人公 · {userName}</p>
-            <div className="mt-5 grid gap-2 text-sm text-[#f0dec0] sm:grid-cols-2 lg:grid-cols-4">
-              <span>이름: {userName}</span>
-              <span>생년월일: {birth.birthDate || "미입력"}</span>
-              <span>출생시간: {birth.birthTimeUnknown ? "모름" : birth.birthTime || "미입력"}</span>
-              <span>생성일: {generatedAt ? generatedAt.slice(0, 10) : "확인 중"}</span>
-              <span>성별: {formatGender(birth.gender)}</span>
-              <span>달력 기준: {formatCalendar(birth.calendarType)}</span>
-              <span>일간: {saju?.dayMaster || "계산 제한"}</span>
-              <span>강조 영역: {result?.topic || "전체 인생 흐름"}</span>
-            </div>
+            <dl className="mt-5 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                ["이름", userName],
+                ["생년월일", birth.birthDate || "미입력"],
+                ["출생시간", birth.birthTimeUnknown ? "모름" : birth.birthTime || "미입력"],
+                ["생성일", generatedAt ? generatedAt.slice(0, 10) : "확인 중"],
+                ["성별", formatGender(birth.gender)],
+                ["달력 기준", formatCalendar(birth.calendarType)],
+                ["일간", saju?.dayMaster || "계산 제한"],
+                ["강조 영역", result?.topic || "전체 인생 흐름"],
+              ].map(([label, value]) => (
+                <div key={label}>
+                  <dt className="text-[11px] font-bold uppercase tracking-[0.08em] text-amber-200/70">{label}</dt>
+                  <dd className="mt-0.5 text-sm font-semibold text-amber-50">{value}</dd>
+                </div>
+              ))}
+            </dl>
           </header>
 
           <div className="mt-5 grid gap-5 lg:grid-cols-[300px_1fr]">
-            <aside className="h-fit rounded-3xl border border-amber-200/20 bg-[#100a08]/75 p-4 lg:sticky lg:top-6">
-              <div className="flex items-center gap-2 text-sm font-black text-amber-200">
-                <ScrollText className="h-4 w-4" aria-hidden="true" />
-                목차
-              </div>
-              <nav className="mt-4 grid gap-2">
-                {report.chapters.map((chapter, index) => (
-                  <button
-                    type="button"
-                    key={`${chapter.title}-${index}`}
-                    aria-label={`${index + 1}장 ${chapter.title}(으)로 이동`}
-                    onClick={() => {
-                      if (viewAll) {
-                        document.getElementById(`chapter-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-                        return;
-                      }
-                      setChapterPage(index);
-                      document.getElementById("life-book-chapter-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                    }}
-                    className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] px-3 py-2 text-left text-sm font-bold text-[#f4dfbd] transition hover:bg-amber-50/12"
-                  >
-                    <span className="mr-2 text-amber-200">{String(index + 1).padStart(2, "0")}</span>
-                    {chapter.title}
-                  </button>
-                ))}
-              </nav>
-
-              <div className="mt-5 rounded-2xl border border-amber-200/15 bg-black/20 p-3">
-                <p className="text-xs font-black uppercase tracking-[0.14em] text-amber-200">십성</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {CANONICAL_TEN_GODS.map((name) => (
-                    <span key={name} className={`rounded-full border px-2.5 py-1 text-xs font-bold ${saju?.tenGods?.[name] ? "border-amber-200/35 bg-amber-100/15 text-amber-50" : "border-amber-100/10 bg-black/20 text-[#9d8b71]"}`}>
-                      {name}{saju?.tenGods?.[name] ? ` ${saju.tenGods[name]}` : ""}
-                    </span>
-                  ))}
+            <aside className={`h-fit rounded-3xl border border-amber-200/20 bg-[#100a08]/75 p-4 lg:sticky lg:top-6 ${styles.leatherTexture}`}>
+              <details className={styles.tocAccordion} open>
+                <summary>
+                  <span className="flex items-center gap-2 text-sm font-black text-amber-200">
+                    <ScrollText className="h-4 w-4" aria-hidden="true" />
+                    차례
+                  </span>
+                  <ChevronDown className={`h-4 w-4 text-amber-200/70 ${styles.tocChevron}`} aria-hidden="true" />
+                </summary>
+                <div className={styles.tocAccordionBody}>
+                  <nav className={styles.tocList} aria-label="장 목차">
+                    {report.chapters.map((chapter, index) => {
+                      const active = !viewAll && index === chapterPage;
+                      return (
+                        <button
+                          type="button"
+                          key={`${chapter.title}-${index}`}
+                          aria-label={`${index + 1}장 ${chapter.title}(으)로 이동`}
+                          aria-current={active ? "true" : undefined}
+                          data-active={active ? "true" : "false"}
+                          onClick={() => {
+                            if (viewAll) {
+                              document.getElementById(`chapter-${index + 1}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                              return;
+                            }
+                            setChapterPage(index);
+                            document.getElementById("life-book-chapter-deck")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }}
+                          className={styles.tocRow}
+                        >
+                          <span className={styles.tocNum}>{String(index + 1).padStart(2, "0")}</span>
+                          <span className={styles.tocTitle}>{chapter.title}</span>
+                          <span className={styles.tocLeader} aria-hidden="true" />
+                        </button>
+                      );
+                    })}
+                  </nav>
                 </div>
-              </div>
+              </details>
             </aside>
 
             <section className="grid gap-4">
-              <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5">
+              <section data-life-book-pdf-page className={`rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5 ${styles.leatherTexture}`}>
                 <div className="flex items-center gap-2 text-amber-200">
                   <ScrollText className="h-5 w-5" aria-hidden="true" />
                   <h2 className="text-xl font-black">기본 명식</h2>
@@ -493,59 +534,102 @@ function LifeBookResultContent() {
                 <div className="mt-4 grid gap-4 lg:grid-cols-2">
                   <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
                     <h3 className="text-sm font-black text-amber-200">오행 분포</h3>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {fiveElementEntries.length ? fiveElementEntries.map((entry) => (
-                        <span key={entry.key} className="rounded-full border border-amber-200/20 bg-amber-100/10 px-3 py-1 text-xs font-bold text-[#f4e6cb]">
-                          {entry.key} {entry.value}
-                        </span>
-                      )) : <span className="text-sm text-[#eadbb9]">계산 가능한 오행 값이 제한되어 있습니다.</span>}
-                    </div>
+                    {hasFiveElements ? (
+                      <div className="mt-3 grid gap-2">
+                        {elementDistribution.map((entry) => {
+                          const token = FIVE_ELEMENT_TOKENS[entry.element];
+                          return (
+                            <div key={entry.element} className={styles.elementBarRow}>
+                              <span className="text-sm font-black" style={{ color: token.color }}>{token.hanja}</span>
+                              <div className={styles.elementBarTrack}>
+                                <div
+                                  className={styles.elementBarFill}
+                                  style={{ "--fill-ratio": entry.ratio, background: token.color } as CSSProperties}
+                                />
+                              </div>
+                              <span className="text-right text-xs font-bold text-[#f4e6cb]">{entry.value}</span>
+                            </div>
+                          );
+                        })}
+                        <p className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-amber-200/60">
+                          {FIVE_ELEMENT_ORDER.map((element) => (
+                            <span key={element} className="inline-flex items-center gap-1">
+                              <span className="h-2 w-2 rounded-full" style={{ background: FIVE_ELEMENT_TOKENS[element].color }} aria-hidden="true" />
+                              {element}
+                            </span>
+                          ))}
+                        </p>
+                      </div>
+                    ) : <p className="mt-3 text-sm text-[#eadbb9]">계산 가능한 오행 값이 제한되어 있습니다.</p>}
                   </div>
                   <div className="rounded-2xl border border-amber-200/15 bg-black/20 p-4">
                     <h3 className="text-sm font-black text-amber-200">십성 분포</h3>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {tenGodEntries.length ? tenGodEntries.map((entry) => (
-                        <span key={entry.key} className="rounded-full border border-amber-200/20 bg-amber-100/10 px-3 py-1 text-xs font-bold text-[#f4e6cb]">
-                          {entry.key} {entry.value}
-                        </span>
-                      )) : <span className="text-sm text-[#eadbb9]">계산 가능한 십성 값이 제한되어 있습니다.</span>}
-                    </div>
+                    {hasTenGods ? (
+                      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        {TEN_GOD_GROUPS.map((group) => {
+                          const present = group.members.filter((name) => Number(saju?.tenGods?.[name]) > 0);
+                          return (
+                            <div key={group.label} className={styles.tenGodGroup}>
+                              <p className={styles.tenGodGroupLabel}>{group.label}</p>
+                              <div className="mt-1.5 flex flex-wrap gap-1">
+                                {group.members.map((name) => {
+                                  const count = Number(saju?.tenGods?.[name]) || 0;
+                                  const active = count > 0;
+                                  return (
+                                    <span
+                                      key={name}
+                                      className={`rounded-full border px-2 py-0.5 text-[11px] font-bold ${active ? "border-amber-200/35 bg-amber-100/15 text-amber-50" : "border-amber-100/10 bg-transparent text-[rgba(232,218,190,0.4)]"}`}
+                                    >
+                                      {name}{active ? ` ${count}` : ""}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                              {!present.length && <span className="sr-only">해당 없음</span>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : <p className="mt-3 text-sm text-[#eadbb9]">계산 가능한 십성 값이 제한되어 있습니다.</p>}
                   </div>
                 </div>
               </section>
 
               {report.coreSummary && (
-                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5">
-                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Core Summary</p>
-                  <h2 className="mt-2 text-2xl font-black text-amber-50">{report.coreSummary.oneLine || "삶의 중심 문장"}</h2>
+                <section data-life-book-pdf-page className={`rounded-3xl p-5 ${styles.paperPage} ${styles.paperTexture}`}>
+                  <p className={`text-xs font-bold uppercase tracking-[0.18em] ${styles.paperAccent}`}>Core Summary</p>
+                  <h2 className={`mt-2 text-2xl font-black ${styles.chapterTitle}`}>{report.coreSummary.oneLine || "삶의 중심 문장"}</h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    <div className="rounded-2xl bg-black/20 p-3 text-sm text-[#eadbb9]">{report.coreSummary.lifeTheme || "삶의 주제가 차분히 드러납니다."}</div>
-                    <div className="rounded-2xl bg-black/20 p-3 text-sm text-[#eadbb9]">강한 기운: {report.coreSummary.strongestElement || "계산 기반 해석"}</div>
-                    <div className="rounded-2xl bg-black/20 p-3 text-sm text-[#eadbb9]">보완점: {report.coreSummary.neededBalance || "균형을 살피는 흐름"}</div>
+                    <div className={`rounded-2xl border p-3 text-sm ${styles.paperMuted} ${styles.paperDivider}`}>{report.coreSummary.lifeTheme || "삶의 주제가 차분히 드러납니다."}</div>
+                    <div className={`rounded-2xl border p-3 text-sm ${styles.paperMuted} ${styles.paperDivider}`}>강한 기운: {report.coreSummary.strongestElement || "계산 기반 해석"}</div>
+                    <div className={`rounded-2xl border p-3 text-sm ${styles.paperMuted} ${styles.paperDivider}`}>보완점: {report.coreSummary.neededBalance || "균형을 살피는 흐름"}</div>
                   </div>
                 </section>
               )}
 
-              <div id="life-book-chapter-deck" className="scroll-mt-6 text-amber-100">
+              <div id="life-book-chapter-deck" className="scroll-mt-6">
                 <PagedResultViewer
                   pages={report.chapters.map((chapter, index): ResultViewerPage => ({
                     id: `chapter-page-${index + 1}`,
                     label: `${chapter.chapterNumber || index + 1}장`,
                     content: (
-                      <section id={`chapter-${index + 1}`} data-life-book-pdf-page className="scroll-mt-6 rounded-3xl border border-amber-200/20 bg-[#fff8ed12] p-5 shadow-inner shadow-amber-200/5">
-                        <div className="mb-4 flex items-center gap-3">
-                          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-amber-200/30 bg-amber-100/10 text-sm font-black text-amber-200">
-                            {String(chapter.chapterNumber || index + 1).padStart(2, "0")}
-                          </span>
-                          <h2 className="text-2xl font-black text-amber-50">{chapter.title}</h2>
+                      <section id={`chapter-${index + 1}`} data-life-book-pdf-page className={`scroll-mt-6 rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
+                        <div className="mb-5 flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b pb-4" style={{ borderColor: "rgba(43,28,16,0.16)" }}>
+                          <span className={styles.chapterNumeral} aria-hidden="true">{toRoman(chapter.chapterNumber || index + 1)}</span>
+                          <h2 className={`text-2xl font-black leading-snug ${styles.chapterTitle}`}>{chapter.title}</h2>
                         </div>
-                        {chapter.summary && <p className="mb-4 rounded-2xl border border-amber-200/15 bg-black/20 p-3 text-sm leading-6 text-[#f2dfba]">{toText(chapter.summary)}</p>}
-                        <AiResultProse value={chapter.content} className="mx-auto text-[#f4e6cb]" />
+                        {chapter.summary && (
+                          <p className={`mb-4 rounded-2xl border px-4 py-3 text-sm font-semibold leading-6 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.05)" }}>
+                            {toText(chapter.summary)}
+                          </p>
+                        )}
+                        <AiResultProse value={chapter.content} className={styles.chapterProse} />
                         {Array.isArray(chapter.advice) && chapter.advice.length > 0 && (
-                          <div className="mt-4 grid gap-2">
+                          <div className="mt-5 grid gap-2">
                             {chapter.advice.map((advice, adviceIndex) => (
-                              <div key={`advice-${adviceIndex}`} className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3 text-sm font-bold text-[#eadbb9]">
-                                {toText(advice)}
+                              <div key={`advice-${adviceIndex}`} className={`flex items-start gap-2.5 rounded-2xl border px-4 py-3 text-sm font-bold ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.05)" }}>
+                                <Lightbulb className={`mt-0.5 h-4 w-4 shrink-0 ${styles.paperAccent}`} aria-hidden="true" />
+                                <span>{toText(advice)}</span>
                               </div>
                             ))}
                           </div>
@@ -563,21 +647,22 @@ function LifeBookResultContent() {
               </div>
 
               {report.expertReadings.length > 0 && (
-                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/20 bg-[#100a08]/80 p-5">
-                  <div className="flex items-center gap-2 text-amber-200">
+                <section data-life-book-pdf-page className={`rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
+                  <div className={`flex items-center gap-2 ${styles.paperAccent}`}>
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
-                    <h2 className="text-xl font-black">명식의 깊은 판독</h2>
+                    <h2 className={`text-xl font-black ${styles.chapterTitle}`}>명식의 깊은 판독</h2>
                   </div>
-                  <div className="mt-4 grid gap-4">
+                  <div className="mt-4 grid gap-5">
                     {report.expertReadings.map((reading, index) => (
-                      <div key={`${reading.title || "reading"}-${index}`} className="rounded-2xl border border-amber-200/15 bg-amber-50/[0.06] p-4">
-                        <h3 className="text-lg font-black text-amber-50">{reading.title || `깊은 판독 ${index + 1}`}</h3>
-                        <AiResultProse value={reading.content} className="mt-3 text-[#f4e6cb]" />
+                      <div key={`${reading.title || "reading"}-${index}`} className={`rounded-2xl border p-4 ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.04)" }}>
+                        <h3 className={`text-lg font-black ${styles.chapterTitle}`}>{reading.title || `깊은 판독 ${index + 1}`}</h3>
+                        <AiResultProse value={reading.content} className="mt-3" />
                         {Array.isArray(reading.guidance) && reading.guidance.length > 0 && (
                           <div className="mt-4 grid gap-2">
                             {reading.guidance.map((guide, guideIndex) => (
-                              <div key={`${guide}-${guideIndex}`} className="rounded-2xl border border-amber-200/15 bg-black/20 px-4 py-3 text-sm font-bold text-[#eadbb9]">
-                                {guide}
+                              <div key={`${guide}-${guideIndex}`} className={`flex items-start gap-2.5 rounded-2xl border px-4 py-3 text-sm font-bold ${styles.paperDivider}`} style={{ background: "rgba(43,28,16,0.06)" }}>
+                                <Lightbulb className={`mt-0.5 h-4 w-4 shrink-0 ${styles.paperAccent}`} aria-hidden="true" />
+                                <span>{guide}</span>
                               </div>
                             ))}
                           </div>
@@ -589,26 +674,27 @@ function LifeBookResultContent() {
               )}
 
               {report.finalMessage && (
-                <section data-life-book-pdf-page className="rounded-3xl border border-amber-200/25 bg-amber-100/10 p-5">
-                  <div className="flex items-center gap-2 text-amber-200">
+                <section data-life-book-pdf-page className={`rounded-3xl p-5 sm:p-7 ${styles.paperPage} ${styles.paperTexture}`}>
+                  <div className={`flex items-center gap-2 ${styles.paperAccent}`}>
                     <Sparkles className="h-5 w-5" aria-hidden="true" />
-                    <h2 className="text-xl font-black">마지막 문장</h2>
+                    <h2 className={`text-xl font-black ${styles.chapterTitle}`}>마지막 문장</h2>
                   </div>
-                  <AiResultProse value={report.finalMessage} className="mt-3 text-[#f4e6cb]" />
+                  <AiResultProse value={report.finalMessage} className="mt-3" />
                 </section>
               )}
 
-              <section className="rounded-3xl border border-amber-200/20 bg-[#100a08]/70 p-6 text-center">
+              <section className={`rounded-3xl border border-amber-200/20 bg-[#100a08]/70 p-6 text-center ${styles.leatherTexture}`}>
                 <p className="text-sm font-black uppercase tracking-[0.2em] text-amber-200">— 마지막 장 —</p>
                 <p className="mx-auto mt-3 max-w-xl text-[15px] leading-8 text-[#eadbb9]">
                   {userName}님의 책은 여기서 잠시 덮이지만, 이야기는 오늘의 선택에서 다시 이어집니다.
-                  마음에 남는 장이 있다면 PDF로 간직해 두세요.
+                  마음에 남는 장이 있다면 이 책을 봉인해 간직해 두세요.
                 </p>
-                <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-                  <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-200 px-5 text-sm font-black text-[#171007] disabled:opacity-60">
-                    이 책을 PDF로 간직하기
+                <div className="mt-5 flex flex-col items-center gap-3">
+                  <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#f2d07a] to-[#b47b25] px-7 text-[15px] font-black text-[#171007] shadow-lg shadow-black/30 transition hover:-translate-y-0.5 disabled:opacity-60">
+                    {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <BookOpen className="h-4 w-4" aria-hidden="true" />}
+                    이 책을 봉인해 간직하기
                   </button>
-                  <Link href="/life-book-ai" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-amber-200/30 bg-black/25 px-5 text-sm font-bold text-amber-50 transition hover:bg-amber-50/10">
+                  <Link href="/life-book-ai" className="text-xs font-bold text-amber-200/60 underline decoration-dotted underline-offset-4 transition hover:text-amber-100">
                     소중한 사람의 책도 열어 보기
                   </Link>
                 </div>

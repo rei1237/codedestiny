@@ -49,6 +49,9 @@ export function buildAstrologyPreviewPayload(state: DevPreviewState) {
   ];
   const signAt = (absDegree: number) => ZODIAC[Math.floor(((absDegree % 360) + 360) % 360 / 30)];
   const ascDegree = 93.1;
+  // 하우스가 ASC 기준 30°씩 등분된 단순화 모델이므로, MC도 같은 모델에서 10하우스 커스프와 일치시킨다.
+  const mcDegree = (ascDegree + 9 * 30) % 360;
+  const mcSign = signAt(mcDegree);
 
   return {
     ok: true,
@@ -62,6 +65,7 @@ export function buildAstrologyPreviewPayload(state: DevPreviewState) {
       sun: { sign: "aries", signKo: "양자리", degree: 21.4, house: 10 },
       moon: { sign: "cancer", signKo: "게자리", degree: 8.2, house: 1 },
       ascendant: { sign: "cancer", signKo: "게자리", degree: 3.1, house: 1 },
+      mc: { sign: mcSign.sign, signKo: mcSign.signKo, degree: mcDegree % 30, house: 10 },
       chartRuler: "달",
       planets: [
         { name: "Sun", label: "태양", sign: "aries", signKo: "양자리", degree: 21.4, house: 10 },

@@ -37,3 +37,28 @@ export function splitGanji(ganji: string): { stem: string; branch: string } {
   const trimmed = String(ganji || "").trim();
   return { stem: trimmed.charAt(0), branch: trimmed.charAt(1) };
 }
+
+const STEM_POLARITY: Record<string, "yang" | "yin"> = {
+  갑: "yang", 을: "yin",
+  병: "yang", 정: "yin",
+  무: "yang", 기: "yin",
+  경: "yang", 신: "yin",
+  임: "yang", 계: "yin",
+};
+
+const ELEMENT_PRODUCES: Record<FiveElement, FiveElement> = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
+const ELEMENT_CONTROLS: Record<FiveElement, FiveElement> = { 목: "토", 화: "금", 토: "수", 금: "목", 수: "화" };
+
+/** 일간(dayStem) 기준 targetStem의 십신을 계산한다 (worker/routes/new-year-ai.js의 tenGodFor와 동일한 공식). */
+export function tenGodOfStem(dayStem: string, targetStem: string): string | null {
+  const dayElement = elementOfStem(dayStem);
+  const targetElement = elementOfStem(targetStem);
+  if (!dayElement || !targetElement) return null;
+  const samePolarity = STEM_POLARITY[dayStem.charAt(0)] === STEM_POLARITY[targetStem.charAt(0)];
+  if (targetElement === dayElement) return samePolarity ? "비견" : "겁재";
+  if (ELEMENT_PRODUCES[dayElement] === targetElement) return samePolarity ? "식신" : "상관";
+  if (ELEMENT_CONTROLS[dayElement] === targetElement) return samePolarity ? "편재" : "정재";
+  if (ELEMENT_CONTROLS[targetElement] === dayElement) return samePolarity ? "편관" : "정관";
+  if (ELEMENT_PRODUCES[targetElement] === dayElement) return samePolarity ? "편인" : "정인";
+  return null;
+}

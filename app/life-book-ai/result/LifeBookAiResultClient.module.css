@@ -1,0 +1,242 @@
+/* 인생의 책 결과화면 전용 — "가죽 표지 + 종이 내지" 물성 대비.
+   표지(다크 브라운/블랙: 헤더·목차·기본 명식·CTA)는 Tailwind 유틸리티로 이미 처리되어 있고,
+   여기서는 Tailwind로 표현하기 어려운 구조적 효과(그레인 텍스처, 드롭캡, 목차 리더선, 책갈피, 반응형 아코디언)만 다룬다. */
+
+@property --grain-opacity {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0.05;
+}
+
+.leatherTexture,
+.paperTexture {
+  position: relative;
+  isolation: isolate;
+}
+
+.leatherTexture::before,
+.paperTexture::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+.leatherTexture::before {
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+}
+
+.paperTexture::before {
+  opacity: 0.1;
+  mix-blend-mode: multiply;
+}
+
+.leatherTexture > *,
+.paperTexture > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── 종이 내지(세피아) — 해석(AI 상담문) 전용 표면 ───────────── */
+.paperPage {
+  background: linear-gradient(178deg, #f6ecd6 0%, #efe1c2 100%);
+  color: #2b1c10;
+  border: 1px solid rgba(43, 28, 16, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.6), 0 10px 26px rgba(20, 12, 4, 0.28);
+}
+
+.paperPage :global(.prose) {
+  color: #2b1c10;
+}
+
+.paperMuted {
+  color: #5c4630;
+}
+
+.paperAccent {
+  color: #8a5a2b;
+}
+
+.paperDivider {
+  border-color: rgba(43, 28, 16, 0.16);
+}
+
+/* 챕터 오프닝 첫 문단 드롭캡 — 첫 블록이 일반 문단(p)일 때만 자연스럽게 적용된다 */
+.chapterProse :global(p:first-of-type)::first-letter {
+  float: left;
+  font-family: var(--font-display, serif);
+  font-size: 3.6em;
+  line-height: 0.82;
+  padding: 0.03em 0.09em 0 0;
+  color: #8a5a2b;
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chapterProse :global(p:first-of-type)::first-letter {
+    transition: color 200ms ease;
+  }
+}
+
+.chapterNumeral {
+  font-family: var(--font-display, serif);
+  font-size: clamp(2.4rem, 6vw, 3.4rem);
+  font-weight: 700;
+  line-height: 1;
+  color: #8a5a2b;
+  letter-spacing: 0.01em;
+}
+
+.chapterTitle {
+  font-family: var(--font-display, serif);
+}
+
+/* ── 목차 — 실제 책 차례처럼: 점선 리더 + 책갈피 인디케이터 ───── */
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tocRow {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 10px 10px 14px;
+  border-radius: 10px;
+  text-align: left;
+  color: #f4dfbd;
+  transition: background-color 150ms ease;
+}
+
+.tocRow:hover {
+  background: rgba(250, 232, 189, 0.06);
+}
+
+.tocRow[data-active="true"] {
+  background: rgba(250, 232, 189, 0.09);
+}
+
+.tocRow[data-active="true"]::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: -3px;
+  width: 6px;
+  height: 26px;
+  background: linear-gradient(180deg, #f2d07a, #b47b25);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+}
+
+.tocNum {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #e8c374;
+  font-variant-numeric: tabular-nums;
+}
+
+.tocTitle {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tocLeader {
+  flex: 1;
+  align-self: center;
+  min-width: 12px;
+  border-bottom: 1px dotted rgba(232, 195, 116, 0.4);
+  transform: translateY(-2px);
+}
+
+/* ── 목차 반응형: 모바일에서는 상단 접이식 아코디언 ─────────── */
+.tocAccordion summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+}
+
+.tocAccordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.tocChevron {
+  transition: transform 200ms ease;
+}
+
+.tocAccordion[open] .tocChevron {
+  transform: rotate(180deg);
+}
+
+.tocAccordionBody {
+  margin-top: 16px;
+}
+
+@media (min-width: 1024px) {
+  .tocAccordion summary {
+    display: none;
+  }
+
+  .tocAccordionBody {
+    margin-top: 12px;
+  }
+}
+
+/* ── 오행 분포 — 가로 미니 바 차트 ───────────────────────────── */
+.elementBarRow {
+  display: grid;
+  grid-template-columns: 28px 1fr 22px;
+  align-items: center;
+  gap: 10px;
+}
+
+.elementBarTrack {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.elementBarFill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  transform: scaleX(var(--fill-ratio, 0));
+  transform-origin: left;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .elementBarFill {
+    transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .elementBarFill {
+    transition: none;
+  }
+}
+
+/* ── 십성 5분류 그룹 ──────────────────────────────────────────── */
+.tenGodGroup {
+  border-radius: 16px;
+  border: 1px solid rgba(250, 232, 189, 0.12);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 10px 12px;
+}
+
+.tenGodGroupLabel {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: rgba(232, 218, 190, 0.6);
+}

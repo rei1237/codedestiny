@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Clock3, Compass, Loader2, MapPin, Moon, Send, Sparkles, Star } from "lucide-react";
+import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
@@ -14,13 +14,13 @@ import {
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
-import { DashaTimeline, HeroChartPreview, NorthIndianChart } from "./VedicChartVisuals";
+import { DashaProgressRing, DashaTimeline, getGrahaMeta, GrahaNatureDot, HeroChartPreview, NorthIndianChart } from "./VedicChartVisuals";
 import styles from "./VedicAiClient.module.css";
 
 type Gender = "male" | "female" | "unknown" | "";
 type CalendarType = "solar" | "lunar" | "";
 type FocusArea = "overall" | "love" | "money" | "career" | "health" | "relationship" | "spirituality" | "custom";
-type Phase = "idle" | "access" | "payment" | "start" | "chat";
+type Phase = "idle" | "access" | "payment" | "start";
 type Message = {
   role: "user" | "assistant";
   content: string;
@@ -814,6 +814,60 @@ function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
   );
 }
 
+// "라그나, Lagna"처럼 "한글, 산스크리트" 한 덩어리로 온 라벨을 한글 주 라벨 + 산스크리트 캡션으로 분리.
+function splitBilingual(label: string): { ko: string; sans: string } {
+  const raw = String(label ?? "").trim();
+  const comma = raw.indexOf(",");
+  if (comma === -1) return { ko: raw, sans: "" };
+  return { ko: raw.slice(0, comma).trim(), sans: raw.slice(comma + 1).trim() };
+}
+
+// LLM 본문은 핵심 문구를 **굵게**로 반환한다(worker/routes/vedic-ai.js 시스템 프롬프트).
+// 인라인 **...** 마크만 <strong>으로 렌더링해 훑어보기 쉽게 한다.
+function renderRichText(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, index) => {
+    const bold = /^\*\*([^*]+)\*\*$/.exec(part);
+    return bold ? <strong key={index}>{bold[1]}</strong> : <span key={index}>{part}</span>;
+  });
+}
+
+// 요약 메달리온 카드의 라인 글리프 아이콘 (currentColor 골드 stroke).
+function SummaryGlyph({ kind }: { kind: "lagna" | "rashi" | "nakshatra" }) {
+  const common = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "aria-hidden": true as const, className: styles.medallionGlyph };
+  if (kind === "lagna") {
+    // 떠오르는 태양선
+    return (
+      <svg {...common}>
+        <line x1="3" y1="18" x2="21" y2="18" strokeWidth="1.3" strokeLinecap="round" />
+        <path d="M7.5 18a4.5 4.5 0 0 1 9 0" strokeWidth="1.3" strokeLinecap="round" />
+        <line x1="12" y1="5" x2="12" y2="7.2" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="5.4" y1="7.6" x2="6.8" y2="9" strokeWidth="1.2" strokeLinecap="round" />
+        <line x1="18.6" y1="7.6" x2="17.2" y2="9" strokeWidth="1.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === "rashi") {
+    // 별자리 기호 (연결된 별점)
+    return (
+      <svg {...common}>
+        <polyline points="4,9 10,15 15,7 20,12" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx="4" cy="9" r="1.4" strokeWidth="1.1" />
+        <circle cx="10" cy="15" r="1.4" strokeWidth="1.1" />
+        <circle cx="15" cy="7" r="1.4" strokeWidth="1.1" />
+        <circle cx="20" cy="12" r="1.4" strokeWidth="1.1" />
+      </svg>
+    );
+  }
+  // nakshatra — 별무리
+  return (
+    <svg {...common}>
+      <path d="M9 4l.9 2.1L12 7l-2.1.9L9 10l-.9-2.1L6 7l2.1-.9z" strokeWidth="1" strokeLinejoin="round" />
+      <path d="M17 9l.7 1.6 1.6.7-1.6.7L17 14l-.7-1.6-1.6-.7 1.6-.7z" strokeWidth="1" strokeLinejoin="round" />
+      <path d="M11 15l.6 1.4 1.4.6-1.4.6L11 20l-.6-1.4-1.4-.6 1.4-.6z" strokeWidth="1" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function StructuredReadingResult({
   reading,
   chart,
@@ -855,39 +909,63 @@ export function StructuredReadingResult({
     }
   }
 
+  const dashaLord = chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha);
+  const dashaStart = chartDisplayValue(currentMahadasha.startDate);
+  const dashaEnd = chartDisplayValue(currentMahadasha.endDate);
+  const dashaMeta = getGrahaMeta(String(currentMahadasha.lord || dasha.currentLord || ""));
+
   return (
     <div className={styles.structuredResult} id="vedic-result-body">
       <div className={styles.structuredHeader}>
-        <div>
+        <div className={styles.structuredHeaderTitle}>
           <p>Jyotish · 조티시 베다 점성술</p>
           <h2>{name || "상담자"}님의 별의 지도</h2>
         </div>
-        <button type="button" onClick={() => void handlePdfDownload()} disabled={isExportingPdf} aria-label="PDF로 저장">
-          {isExportingPdf ? "저장 중…" : "↓ PDF"}
+        <button type="button" className={styles.pdfButton} onClick={() => void handlePdfDownload()} disabled={isExportingPdf} aria-label="PDF로 저장">
+          {isExportingPdf ? <Loader2 className={styles.spin} size={16} aria-hidden="true" /> : <Download size={16} aria-hidden="true" />}
+          <span>{isExportingPdf ? "저장 중…" : "PDF 저장"}</span>
         </button>
       </div>
 
-      <section className={styles.chartSummaryCard}>
-        <article>
-          <span>라그나, Lagna</span>
+      <section className={styles.chartSummaryCard} aria-label="라그나·라시·나크샤트라 요약">
+        <article className={styles.medallion}>
+          <span className={styles.medallionRing}><SummaryGlyph kind="lagna" /></span>
+          <span className={styles.medallionKo}>라그나</span>
+          <em className={styles.medallionSans}>Lagna</em>
           <strong>{chartDisplayValue(lagna.rashiKo, lagna.rashi, lagna.signKo, lagna.sign)}</strong>
           <small>{joinChartValues(lagna.degreeInRashi || lagna.degree, lagna.nakshatra, lagna.pada ? `${lagna.pada}파다` : "")}</small>
         </article>
-        <article>
-          <span>라시, Rashi</span>
+        <article className={styles.medallion}>
+          <span className={styles.medallionRing}><SummaryGlyph kind="rashi" /></span>
+          <span className={styles.medallionKo}>라시</span>
+          <em className={styles.medallionSans}>Rashi</em>
           <strong>{joinChartValues(chartPointSign(sun), chartPointSign(moon))}</strong>
           <small>Sun · Moon</small>
         </article>
-        <article>
-          <span>나크샤트라, Nakshatra</span>
+        <article className={styles.medallion}>
+          <span className={styles.medallionRing}><SummaryGlyph kind="nakshatra" /></span>
+          <span className={styles.medallionKo}>나크샤트라</span>
+          <em className={styles.medallionSans}>Nakshatra</em>
           <strong>{chartDisplayValue(moonNakshatra.name, moon.nakshatra)}</strong>
           <small>{joinChartValues(moonNakshatra.pada ? `${moonNakshatra.pada}파다` : moon.pada ? `${moon.pada}파다` : "", moonNakshatra.lord)}</small>
         </article>
       </section>
 
       <div className={styles.dashaBanner}>
-        <span>다샤, Dasha · 빈쇼타리 다샤, Vimshottari Dasha</span>
-        <strong>{chartDisplayValue(currentMahadasha.lord, dasha.currentLord, dasha.currentMahadasha)} · {chartDisplayValue(currentMahadasha.startDate)} ~ {chartDisplayValue(currentMahadasha.endDate)}</strong>
+        <div className={styles.dashaBannerLabel}>
+          <span className={styles.cardLabelKo}>다샤</span>
+          <em className={styles.cardLabelSans}>Vimshottari Dasha</em>
+        </div>
+        <div className={styles.dashaBannerBody}>
+          <DashaProgressRing lord={dashaLord} startDate={dashaStart} endDate={dashaEnd} />
+          <div className={styles.dashaBannerText}>
+            <strong>
+              <GrahaNatureDot nature={dashaMeta.nature} />
+              {dashaLord} 마하다샤
+            </strong>
+            <small>{dashaStart} ~ {dashaEnd}</small>
+          </div>
+        </div>
       </div>
 
       <NorthIndianChart chart={chart} />
@@ -907,14 +985,18 @@ export function StructuredReadingResult({
 
       {sectionEntries.map(([key, rawSection]) => {
         const section = asRecord(rawSection);
+        const { ko, sans } = splitBilingual(toText(section.title) || key);
         return (
           <article className={styles.structuredSection} key={key}>
-            <div>
-              <span>{SECTION_GLYPHS[key] || "✦"}</span>
-              <h3>{toText(section.title) || key}</h3>
+            <div className={styles.structuredSectionHead}>
+              <span className={styles.sectionBadge} aria-hidden="true">{SECTION_GLYPHS[key] || "✦"}</span>
+              <h3>
+                <span className={styles.sectionTitleKo}>{ko}</span>
+                {sans ? <em className={styles.sectionTitleSans}>{sans}</em> : null}
+              </h3>
             </div>
             {splitIntoParagraphs(toText(section.body)).map((paragraph, paragraphIndex) => (
-              <p key={paragraphIndex}>{paragraph}</p>
+              <p key={paragraphIndex}>{renderRichText(paragraph)}</p>
             ))}
           </article>
         );
@@ -929,7 +1011,6 @@ export default function VedicAiClient() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [chatInput, setChatInput] = useState("");
   const [geocoding, setGeocoding] = useState(false);
   const [geocode, setGeocode] = useState<GeocodeState>(() => {
     const initial = buildInitialForm();
@@ -990,14 +1071,12 @@ export default function VedicAiClient() {
   }
 
   const busy = phase === "access" || phase === "payment" || phase === "start";
-  const chatBusy = phase === "chat";
   const validationMessage = validateForm(form);
 
   const phaseText = useMemo(() => {
     if (phase === "access") return "베다 상담 권한을 확인하는 중...";
     if (phase === "payment") return "결제 정보를 확인하는 중...";
     if (phase === "start") return "나크샤트라의 빛을 읽는 중...";
-    if (phase === "chat") return "행성의 흐름과 질문을 다시 연결하는 중...";
     return "";
   }, [phase]);
 
@@ -1180,30 +1259,6 @@ export default function VedicAiClient() {
       }
     } finally {
       submitBusyRef.current = false;
-      setPhase("idle");
-    }
-  }
-
-  async function handleSendMessage() {
-    if (!consultation || chatBusy || chatInput.trim().length < 2) return;
-    const message = chatInput.trim();
-    setChatInput("");
-    setError("");
-    setPhase("chat");
-    try {
-      const { status, data } = await postJson<StartResult>(
-        "/api/vedic-ai/message",
-        { consultationId: consultation.id, message },
-      );
-      if (data.ok && data.consultation) {
-        setConsultation(data.consultation);
-        return;
-      }
-      throw new Error(toText(data.reason) || (status === 401 ? "LOGIN_REQUIRED" : "SERVER_ERROR"));
-    } catch (caught) {
-      const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
-      setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
-    } finally {
       setPhase("idle");
     }
   }
@@ -1417,13 +1472,6 @@ export default function VedicAiClient() {
                     </article>
                   );
                 })}
-              </div>
-
-              <div className={styles.chatInput}>
-                <textarea value={chatInput} onChange={(event) => setChatInput(event.target.value)} maxLength={1800} disabled={chatBusy} placeholder="이어지는 흐름에서 더 묻고 싶은 말을 적어 주세요." />
-                <button type="button" onClick={() => void handleSendMessage()} disabled={chatBusy || chatInput.trim().length < 2} aria-label="추가 질문 보내기">
-                  {chatBusy ? <Loader2 className={styles.spin} size={18} /> : <Send size={18} />}
-                </button>
               </div>
             </>
           )}

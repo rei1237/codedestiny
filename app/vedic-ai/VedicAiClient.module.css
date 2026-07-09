@@ -712,40 +712,6 @@
   background: rgba(139, 92, 246, 0.14);
 }
 
-.chatInput {
-  position: sticky;
-  bottom: 0.75rem;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 3rem;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
-  background: linear-gradient(180deg, rgba(5, 10, 25, 0), rgba(5, 10, 25, 0.96) 32%);
-}
-
-.chatInput textarea {
-  min-height: 4rem;
-  border: 1px solid rgba(246, 214, 126, 0.22);
-  border-radius: 8px;
-  background: rgba(2, 6, 23, 0.46);
-  color: #fff8e7;
-  padding: 0.75rem;
-  resize: vertical;
-}
-
-.chatInput button {
-  border: 0;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #f8e7b4, #c4b5fd);
-  color: #130b23;
-  cursor: pointer;
-}
-
-.chatInput button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
 .structuredResult {
   display: grid;
   gap: 1.2rem;
@@ -753,93 +719,289 @@
 
 .structuredHeader {
   position: sticky;
-  top: 0;
-  z-index: 1;
+  top: calc(env(safe-area-inset-top, 0px) + 3.25rem);
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 0.8rem 0 1rem;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  padding: 0.9rem 0 0.9rem;
   background: rgba(5, 10, 25, 0.92);
   backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(196, 181, 253, 0.16);
+  border-bottom: 1px solid rgba(246, 214, 126, 0.22);
+}
+
+.structuredHeaderTitle {
+  min-width: 0;
+  flex: 1 1 14rem;
 }
 
 .structuredHeader p {
-  margin: 0 0 0.25rem;
-  color: rgba(196, 181, 253, 0.48);
-  font-size: 0.78rem;
+  margin: 0 0 0.3rem;
+  color: rgba(246, 214, 126, 0.62);
+  font-size: 0.72rem;
+  font-variant: small-caps;
+  letter-spacing: 0.16em;
 }
 
 .structuredHeader h2 {
   margin: 0;
-  color: rgba(196, 181, 253, 0.92);
-  font-size: 0.98rem;
+  color: #fdf3d6;
+  font-size: clamp(1.05rem, 3.6vw, 1.35rem);
   font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
-.structuredHeader button {
-  border: 1px solid rgba(251, 191, 36, 0.28);
-  border-radius: 8px;
-  background: rgba(251, 191, 36, 0.1);
-  color: rgba(251, 191, 36, 0.86);
-  padding: 0.5rem 0.8rem;
+.pdfButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(246, 214, 126, 0.5);
+  border-radius: 999px;
+  background: rgba(246, 214, 126, 0.12);
+  color: #f6d67e;
+  padding: 0.5rem 0.95rem;
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.structuredHeader button:disabled {
+.pdfButton:hover {
+  background: rgba(246, 214, 126, 0.2);
+  border-color: rgba(246, 214, 126, 0.72);
+}
+
+.pdfButton:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 .chartSummaryCard {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
-  padding: 1rem;
-  border: 1px solid rgba(196, 181, 253, 0.2);
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.13), rgba(246, 214, 126, 0.07));
+  padding: 1.15rem 1rem;
+  border: 1px solid rgba(246, 214, 126, 0.22);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(30, 22, 60, 0.6), rgba(12, 8, 28, 0.66));
+  overflow: hidden;
 }
 
-.chartSummaryCard article {
+/* 코스믹 스타맵 모티프 — 트윙클 점 + 가느다란 금색 별자리선 (낮은 밀도) */
+.chartSummaryCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 22% 30%, rgba(255, 244, 210, 0.5) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 74% 66%, rgba(199, 210, 254, 0.4) 0 1px, transparent 1.6px),
+    linear-gradient(118deg, transparent 0 46%, rgba(246, 214, 126, 0.14) 47% 47.6%, transparent 49%);
+  background-size: 96px 96px, 128px 128px, 100% 100%;
+  opacity: 0.5;
+}
+
+.medallion {
+  position: relative;
+  z-index: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
+  gap: 0.18rem;
 }
 
-.chartSummaryCard span,
-.dashaBanner span {
-  display: block;
-  color: rgba(255, 255, 255, 0.34);
-  font-size: 0.76rem;
+.medallionRing {
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  margin-bottom: 0.35rem;
+  border-radius: 50%;
+  border: 1px solid rgba(246, 214, 126, 0.55);
+  background: radial-gradient(circle, rgba(246, 214, 126, 0.14), rgba(12, 8, 28, 0.2));
+  color: #f6d67e;
+  box-shadow: 0 0 18px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
+}
+
+.medallionGlyph {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.medallionKo {
+  color: #f4eeff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.medallionSans {
+  color: rgba(246, 214, 126, 0.7);
+  font-size: 0.68rem;
+  font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
 }
 
 .chartSummaryCard strong {
   display: block;
-  margin-top: 0.3rem;
-  color: rgba(196, 181, 253, 0.94);
+  margin-top: 0.35rem;
+  color: #e7defb;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .chartSummaryCard small {
   display: block;
-  margin-top: 0.25rem;
-  color: rgba(255, 255, 255, 0.32);
+  margin-top: 0.15rem;
+  color: rgba(220, 214, 254, 0.5);
+  font-size: 0.74rem;
+}
+
+/* ── 이중언어 라벨 위계 (한글 주 라벨 + 산스크리트 캡션) ── */
+.cardLabelKo {
+  color: #f4eeff;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.cardLabelSans {
+  color: rgba(246, 214, 126, 0.7);
+  font-size: 0.72rem;
+  font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
 }
 
 .dashaBanner {
+  position: relative;
   display: grid;
-  gap: 0.25rem;
+  gap: 0.5rem;
   justify-items: center;
-  padding: 0.9rem;
-  border-top: 1px solid rgba(196, 181, 253, 0.14);
-  border-bottom: 1px solid rgba(246, 214, 126, 0.14);
+  padding: 1.1rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(246, 214, 126, 0.2);
+  background: linear-gradient(135deg, rgba(30, 22, 60, 0.5), rgba(12, 8, 28, 0.6));
+  overflow: hidden;
 }
 
-.dashaBanner strong {
-  color: rgba(251, 191, 36, 0.86);
+.dashaBanner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 84% 26%, rgba(255, 244, 210, 0.42) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 14% 72%, rgba(199, 210, 254, 0.36) 0 1px, transparent 1.6px);
+  background-size: 118px 118px, 150px 150px;
+  opacity: 0.5;
+}
+
+.dashaBannerLabel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.dashaBannerBody {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.dashaBannerText {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.dashaBannerText strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #f6d67e;
   font-size: 1.05rem;
-  font-weight: 500;
+  font-weight: 600;
+}
+
+.dashaBannerText small {
+  color: rgba(220, 214, 254, 0.6);
+  font-size: 0.82rem;
+}
+
+/* ── 마하다샤 진행률 링 ── */
+.dashaRing {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(3.6rem, 16vw, 4.5rem);
+  flex: 0 0 auto;
+}
+
+.dashaRingSvg {
+  width: 100%;
+  height: auto;
+}
+
+.dashaRingTrack {
+  fill: none;
+  stroke: rgba(196, 181, 253, 0.22);
+  stroke-width: 6;
+}
+
+.dashaRingProgress {
+  fill: none;
+  stroke: #f6d67e;
+  stroke-width: 6;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dashaRingPercent {
+  position: absolute;
+  color: #f6d67e;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+/* ── 그라하 성정(길성/흉성) 점 ── */
+.grahaNatureDot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.grahaNatureBenefic {
+  background: #86efac;
+  box-shadow: 0 0 8px rgba(134, 239, 172, 0.5);
+}
+
+.grahaNatureMalefic {
+  background: #d1637a;
+  box-shadow: 0 0 8px rgba(124, 31, 46, 0.55);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .basicChartData {
@@ -1001,37 +1163,97 @@
 }
 
 .structuredSection {
+  position: relative;
   display: grid;
   gap: 0.75rem;
-  padding-bottom: 1.4rem;
-  border-bottom: 1px solid rgba(196, 181, 253, 0.14);
+  padding: 1.1rem 1.1rem 1.2rem 1.35rem;
+  border: 1px solid rgba(246, 214, 126, 0.16);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(24, 18, 48, 0.5), rgba(10, 7, 22, 0.55));
+  overflow: hidden;
 }
 
-.structuredSection div {
+/* 왼쪽 세로 강조선 (골드→마룬→투명) */
+.structuredSection::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(246, 214, 126, 0.85), rgba(124, 31, 46, 0.35), transparent);
+}
+
+/* 코스믹 스타맵 모티프 (섹션마다 다른 위치) */
+.structuredSection::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at 90% 12%, rgba(255, 244, 210, 0.36) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 8% 88%, rgba(199, 210, 254, 0.3) 0 1px, transparent 1.6px);
+  background-size: 140px 140px, 170px 170px;
+  opacity: 0.42;
+}
+
+.structuredSectionHead {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
 }
 
-.structuredSection span {
-  color: transparent;
-  background-image: linear-gradient(135deg, #a78bfa, #fbbf24);
-  background-clip: text;
-  font-size: 1.45rem;
+.sectionBadge {
+  display: grid;
+  place-items: center;
+  width: 2.3rem;
+  height: 2.3rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 1px solid rgba(246, 214, 126, 0.6);
+  background: radial-gradient(circle, rgba(246, 214, 126, 0.16), rgba(12, 8, 28, 0.25));
+  color: #f6d67e;
+  font-size: 1.15rem;
+  box-shadow: 0 0 14px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.14);
 }
 
 .structuredSection h3 {
   margin: 0;
-  color: rgba(196, 181, 253, 0.88);
-  font-size: 0.98rem;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.sectionTitleKo {
+  color: #f4eeff;
+  font-size: 1rem;
   font-weight: 600;
 }
 
+.sectionTitleSans {
+  color: rgba(246, 214, 126, 0.68);
+  font-size: 0.76rem;
+  font-style: italic;
+  font-variant: small-caps;
+  letter-spacing: 0.08em;
+}
+
 .structuredSection p {
+  position: relative;
+  z-index: 1;
   margin: 0;
-  color: rgba(220, 214, 254, 0.72);
-  line-height: 2.05;
+  color: rgba(220, 214, 254, 0.78);
+  line-height: 2;
   white-space: pre-wrap;
+}
+
+.structuredSection strong {
+  color: #f6d67e;
+  font-weight: 700;
 }
 
 .spin {
@@ -1161,7 +1383,7 @@
   .formPanel,
   .summaryGrid,
   .chartCards,
-  .chatInput,
+  .resultFooter,
   .emptyState {
     display: none !important;
   }
@@ -1183,7 +1405,7 @@
   }
 
   .resultPanel::before,
-  .structuredHeader button {
+  .pdfButton {
     display: none;
   }
 
@@ -1237,20 +1459,60 @@
 
 .rashiChartCard,
 .dashaTimelineCard {
+  position: relative;
   margin-top: 1.1rem;
-  border: 1px solid rgba(139, 92, 246, 0.28);
+  border: 1px solid rgba(246, 214, 126, 0.28);
   border-radius: 18px;
   background: linear-gradient(160deg, rgba(30, 20, 60, 0.72), rgba(12, 8, 28, 0.85));
   padding: 1rem 1.1rem 1.2rem;
+  overflow: hidden;
+}
+
+/* 라시 차트 프레임 — 표준 차트 위에 얹는 얇은 금색 얀트라 이중 테두리 (차트 구조/숫자는 불변) */
+.rashiChartCard::before {
+  content: "";
+  position: absolute;
+  inset: 0.5rem;
+  z-index: 0;
+  pointer-events: none;
+  border: 1px solid rgba(246, 214, 126, 0.3);
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 3px rgba(124, 31, 46, 0.12);
+}
+
+/* 우하단 아스트로랍/천구 방사링 (시그니처 모티프, 은은) */
+.rashiChartCard::after {
+  content: "";
+  position: absolute;
+  right: -4rem;
+  bottom: -4rem;
+  z-index: 0;
+  width: 12rem;
+  height: 12rem;
+  pointer-events: none;
+  border-radius: 50%;
+  opacity: 0.5;
+  background:
+    repeating-conic-gradient(from 0deg, rgba(246, 214, 126, 0.14) 0deg 2deg, transparent 2deg 14deg),
+    radial-gradient(circle, transparent 0 60%, rgba(196, 181, 253, 0.14) 61% 62%, transparent 63%);
 }
 
 .rashiChartHeader {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
   gap: 0.4rem;
   margin-bottom: 0.8rem;
+}
+
+.rashiChartBody,
+.dashaTrackWrap,
+.dashaSelectedInfo {
+  position: relative;
+  z-index: 1;
 }
 
 .rashiChartHeader span {
@@ -1410,6 +1672,10 @@
 }
 
 .dashaSelectedInfo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
   margin: 0.7rem 0 0;
   font-size: 0.8rem;
   color: rgba(236, 233, 255, 0.85);
@@ -1507,5 +1773,88 @@
   .rashiDetailPane p,
   .rashiDetailPane small {
     color: #111827;
+  }
+}
+
+/* ── 결과 마무리 영역 (이어서 질문 입력창 대체) ─────────────── */
+
+/* 플로팅 뒤로가기/홈 내비(AppChrome)가 상단 좌측에 고정되므로, 결과 라우트 콘텐츠는
+   내비 높이만큼 위 여백을 확보해 헤더 타이틀과 겹치지 않게 한다. */
+[data-vedic-ai-page="result-route-v20260704"] .resultPanel {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 3.5rem);
+}
+
+.resultFooter {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  margin-top: 1.6rem;
+  padding-top: 1.6rem;
+}
+
+.resultFooterRule {
+  width: min(18rem, 70%);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(246, 214, 126, 0.55), rgba(124, 31, 46, 0.4), rgba(246, 214, 126, 0.55), transparent);
+}
+
+.resultFooterNote {
+  margin: 0;
+  text-align: center;
+  color: rgba(220, 214, 254, 0.6);
+  font-size: 0.84rem;
+}
+
+.resultFooterActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.resultFooterPrimary,
+.resultFooterSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.7rem 1.2rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.resultFooterPrimary {
+  border: 1px solid rgba(246, 214, 126, 0.55);
+  background: rgba(246, 214, 126, 0.12);
+  color: #f6d67e;
+}
+
+.resultFooterPrimary:hover {
+  background: rgba(246, 214, 126, 0.2);
+  border-color: rgba(246, 214, 126, 0.78);
+}
+
+.resultFooterSecondary {
+  border: 1px solid rgba(196, 181, 253, 0.32);
+  background: rgba(24, 18, 48, 0.5);
+  color: rgba(228, 222, 255, 0.86);
+}
+
+.resultFooterSecondary:hover {
+  border-color: rgba(196, 181, 253, 0.6);
+  background: rgba(30, 22, 60, 0.62);
+}
+
+@media (max-width: 520px) {
+  .resultFooterActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .resultFooterPrimary,
+  .resultFooterSecondary {
+    justify-content: center;
   }
 }

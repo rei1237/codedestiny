@@ -10,6 +10,7 @@
   line-height: var(--cd-prose-line-height, 1.75);
   letter-spacing: var(--cd-prose-letter-spacing, -0.01em);
   color: var(--cd-prose-body-color, inherit);
+  font-family: var(--cd-prose-font-family, var(--font-premium, var(--font-display, inherit)));
 }
 
 .paragraph {
