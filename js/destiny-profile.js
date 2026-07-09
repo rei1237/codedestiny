@@ -609,11 +609,12 @@
       _dpEnsureScopedStorageReady();
       try {
         var scope = _dpEnsureScopedStorageReady();
+        var baseCurrentId = _dpCurrentId;
         _dpCurrentId = _dpResolveCurrentIdFromProfiles(_dpProfiles, id || '');
         if (_dpCurrentId) _dpMarkPendingCurrentProfile(_dpCurrentId);
         _dpWriteStoredProfileState(scope, _dpProfiles, _dpCurrentId);
         _dpPublishCurrentProfile();
-        _dpSetCurrentOnServerDebounced(_dpCurrentId);
+        _dpSetCurrentOnServerDebounced(_dpCurrentId, baseCurrentId);
       } catch(e) {}
     },
     add: function(profile) {
@@ -1317,6 +1318,7 @@
   window.__dpHasLoginSession = _dpHasLoginSession;
 
   var _dpSetCurrentTimer = null;
+  var _dpPendingSwitchBaseId = null;
   var _dpLoadFromServerPending = null;
   var _dpProfileServerReadyNotified = false;
   var _dpPendingCurrentProfileId = '';
@@ -1375,8 +1377,9 @@
     } catch (_) {}
   }
 
-  function _dpSetCurrentOnServer(currentId) {
+  function _dpSetCurrentOnServer(currentId, baseCurrentId) {
     var nextId = String(currentId || '').trim();
+    var baseId = String(baseCurrentId || '').trim();
     if (!_dpHasSessionHint() || !nextId) return;
     _dpVerifyLoginSession(false).then(function(ok) {
       if (!ok) return;
@@ -1385,7 +1388,7 @@
         credentials: 'include',
         cache: 'no-store',
         headers: _dpBuildAuthHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ currentId: nextId })
+        body: JSON.stringify({ currentId: nextId, baseCurrentId: baseId })
       }).then(function(res) {
         var data = res && res.data ? res.data : null;
         if (res && res.status === 403 && data && data.code === 'PROFILE_SINGLE_LOCKED') {
@@ -1407,18 +1410,32 @@
           });
           return;
         }
+        // 다른 탭이 먼저 전환한 뒤라 서버가 이 전환을 거부(staleSwitchIgnored)했다면,
+        // 서버가 돌려준 authoritative currentId로 로컬 상태를 정정한다.
+        if (data && data.staleSwitchIgnored && data.currentId) {
+          _dpClearPendingCurrentProfile(nextId);
+          _dpSetProfileState(_dpGetProfileScope(), _dpProfiles, data.currentId);
+          renderMasterCard(DPStorage.current());
+          renderProfileList();
+          return;
+        }
         if (data && data.profileAccess) _dpApplyProfileAccess(data.profileAccess);
         if (String((data && data.currentId) || nextId || '').trim() === nextId) _dpClearPendingCurrentProfile(nextId);
       }).catch(function() {});
     }).catch(function() {});
   }
 
-  function _dpSetCurrentOnServerDebounced(currentId) {
+  function _dpSetCurrentOnServerDebounced(currentId, baseCurrentId) {
     var nextId = String(currentId || '').trim();
+    if (_dpPendingSwitchBaseId === null) {
+      _dpPendingSwitchBaseId = String(baseCurrentId || '').trim();
+    }
     if (_dpSetCurrentTimer) clearTimeout(_dpSetCurrentTimer);
     _dpSetCurrentTimer = setTimeout(function() {
       _dpSetCurrentTimer = null;
-      _dpSetCurrentOnServer(nextId);
+      var baseId = _dpPendingSwitchBaseId || '';
+      _dpPendingSwitchBaseId = null;
+      _dpSetCurrentOnServer(nextId, baseId);
     }, 240);
   }
 

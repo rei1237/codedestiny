@@ -4320,7 +4320,25 @@ function _sibylText(key) {
 
     modal.classList.add('sb-open');
     document.body.style.overflow = 'hidden';
+    _bindSibylScrollLockGuard();
   };
+
+  // 모달을 정상 close 하지 않고 이탈(페이지 이동/뒤로가기/해시 변경)해도
+  // 스크롤락(body overflow:hidden)이 영구히 남지 않도록 하는 이중 안전장치.
+  function _bindSibylScrollLockGuard() {
+    if (window.__cdSibylScrollGuardBound) return;
+    window.__cdSibylScrollGuardBound = true;
+    var releaseIfClosed = function() {
+      var modal = _q('sibylModal');
+      if (modal && modal.classList.contains('sb-open')) return;
+      try { document.body.style.overflow = ''; } catch (_) {}
+    };
+    window.addEventListener('pagehide', function() {
+      try { document.body.style.overflow = ''; } catch (_) {}
+    });
+    window.addEventListener('popstate', releaseIfClosed);
+    window.addEventListener('hashchange', releaseIfClosed);
+  }
 
   window.closeSibylModal = function() {
     var modal = _q('sibylModal');

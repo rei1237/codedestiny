@@ -712,6 +712,35 @@ input.inp[type="datetime-local"]::-webkit-date-and-time-value{
 .bg-metal{background:var(--metal-bg);color:var(--metal-tx)}
 .bg-water{background:var(--water-bg);color:var(--water-tx)}
 
+/* ─── 24절기 (二十四節氣) ─── */
+.terms24-intro{font-size:.86rem;line-height:1.65;color:var(--text-main,#4A4A4A);opacity:.82;margin:-4px 0 16px}
+.terms24-intro b{color:var(--point-color,var(--pink,#FF85A2));font-weight:700;opacity:1}
+.terms24-wrap{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.terms24-season{border-radius:14px;padding:12px 12px 13px;background:var(--card-bg,#fff);
+  border:1px solid var(--border-color,rgba(255,183,178,.2));position:relative;overflow:hidden}
+.terms24-season::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:var(--sea,var(--pink,#FF85A2));opacity:.85}
+.terms24-season-head{display:flex;align-items:center;gap:5px;font-weight:700;font-size:.9rem;
+  margin-bottom:10px;color:var(--sea,var(--text-main,#4A4A4A))}
+.terms24-season-head span{margin-left:auto;font-size:.72rem;font-weight:700;opacity:.55;font-family:'Noto Serif KR',serif}
+.terms24-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.terms24-item{display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 3px;
+  border-radius:10px;background:var(--card-glass,rgba(255,255,255,.6));
+  border:1px solid var(--border-color,rgba(255,183,178,.16));transition:transform .15s ease}
+.terms24-name{font-size:.82rem;font-weight:700;color:var(--text-main,#4A4A4A);
+  display:flex;align-items:baseline;gap:3px;line-height:1.1}
+.terms24-name i{font-style:normal;font-size:.58rem;opacity:.45;font-weight:500;font-family:'Noto Serif KR',serif}
+.terms24-date{font-size:.68rem;color:var(--text-main,#4A4A4A);opacity:.62;font-variant-numeric:tabular-nums}
+.terms24-season--spring{--sea:#2e9e6b}
+.terms24-season--summer{--sea:#e0564e}
+.terms24-season--autumn{--sea:#c99a3a}
+.terms24-season--winter{--sea:#4f78c9}
+.terms24-item.is-current{background:var(--card-bg,#fff);border-color:var(--point-color,var(--pink,#FF85A2));
+  box-shadow:0 0 0 1.5px var(--point-color,var(--pink,#FF85A2)),0 4px 16px rgba(255,133,162,.22)}
+.terms24-item.is-current .terms24-name{color:var(--point-color,var(--pink,#FF85A2))}
+.terms24-item.is-current .terms24-date{color:var(--point-color,var(--pink,#FF85A2));opacity:.9}
+.terms24-cur-tag{display:block;font-size:.56rem;font-weight:700;color:var(--point-color,var(--pink,#FF85A2));margin-top:1px;letter-spacing:.02em}
+@media (max-width:480px){.terms24-wrap{grid-template-columns:1fr}}
+
 /* ─── 핵심 십성 ─── */
 .ts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
 .ts-card{background:linear-gradient(135deg,#FFFBF8,#FFF8F5);border:2px solid #FFE8E0;
