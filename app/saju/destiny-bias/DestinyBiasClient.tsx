@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { useContentUnlock } from "@/app/_lib/use-content-unlock";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -296,7 +297,9 @@ export default function DestinyBiasClient() {
   const [toast, setToast] = useState("");
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [canUsePremiumTheme, setCanUsePremiumTheme] = useState(false);
+  const [premiumByTier, setPremiumByTier] = useState(false);
+  const { unlocked: destinyBiasUnlocked } = useContentUnlock(["destiny-bias-theme-premium"]);
+  const canUsePremiumTheme = premiumByTier || destinyBiasUnlocked["destiny-bias-theme-premium"] === true;
   const [isLowSpec, setIsLowSpec] = useState(false);
 
   const [coinModal, setCoinModal] = useState<{
@@ -366,14 +369,9 @@ export default function DestinyBiasClient() {
       .then((response) => {
         if (!response.ok || !response.data) return;
         const tier = String((response.data.user as Record<string, unknown> | null)?.profileSubscriptionTier || "").toLowerCase();
-        const premiumByTier = tier === "premium" || tier === "vvip";
-        const unlockMap = response.data.unlockMap || {};
-        const premiumByFeature = Boolean(unlockMap["destiny-bias-theme-premium"]);
-        setCanUsePremiumTheme(premiumByTier || premiumByFeature);
+        setPremiumByTier(tier === "premium" || tier === "vvip");
       })
-      .catch(() => {
-        setCanUsePremiumTheme(false);
-      });
+      .catch(() => {});
   }, []);
 
   useEffect(() => {

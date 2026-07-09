@@ -666,7 +666,9 @@ export default function KkulkkulManseryukMain() {
     if (snapshot.monthlyStoneBalance !== null) {
       setCurrentMonthlyStoneBalance(snapshot.monthlyStoneBalance);
     }
-    if (options.updateUnlocks === true) {
+    // degraded 응답(일시적 DB 오류로 인한 폴백)은 "미구매"를 의미하지 않는다 — 이 값으로
+    // unlock 상태를 덮어쓰면 결제 직후 낙관적으로 켠 잠금 해제가 재잠김으로 보일 수 있다.
+    if (options.updateUnlocks === true && snapshot.normalized?.degraded !== true) {
       const restored = buildUnlockStateFromPayload(snapshot.normalized);
       setUnlockedFeatures((prev) => ({
         ...prev,

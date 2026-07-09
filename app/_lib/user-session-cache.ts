@@ -46,6 +46,10 @@ const SUBSCRIPTION_STATUS_CACHE_TTL_MS = 180_000;
 const cache = new Map<string, CachedResponse>();
 const inFlight = new Map<string, Promise<Response>>();
 const subscribers = new Set<() => void>();
+// invalidateMatching()이 캐시 맵을 비워도 이미 날아간 in-flight 요청은 취소되지 않는다.
+// 결제 직후 무효화가 발생한 뒤 결제 전에 시작된 오래된 GET이 나중에 응답하면, 이 카운터가
+// 무효화 시점 이후임을 표시해 rememberResponse가 그 스테일 응답으로 캐시를 재오염하지 않게 막는다.
+let cacheGeneration = 0;
 
 let snapshot: UserAccessSnapshot = {
   userKey: "guest",
@@ -287,6 +291,7 @@ function invalidateMatching(predicate: (entry: CachedResponse) => boolean) {
     if (predicate(entry)) cache.delete(key);
   });
   inFlight.clear();
+  cacheGeneration += 1;
 }
 
 export function getUserAccessSnapshot(): UserAccessSnapshot {
@@ -296,6 +301,7 @@ export function getUserAccessSnapshot(): UserAccessSnapshot {
 export function invalidateUserAccessCache(reason = "manual") {
   cache.clear();
   inFlight.clear();
+  cacheGeneration += 1;
   setSnapshot({
     userKey: resolveUserKey(),
     profileStatus: "idle",
@@ -455,13 +461,20 @@ export function installUserAccessFetchCache() {
     }
 
     updateStatus(kind, "loading", null);
+    const requestGeneration = cacheGeneration;
     const request = nativeFetch(input, init)
       .then((response) => {
         if (response.status === 401 || response.status === 403) {
           invalidateUserAccessCache(`auth-status-${response.status}`);
           return response;
         }
-        rememberResponse(cacheKey, response, parsedUrl.toString(), kind, userKey);
+        if (requestGeneration === cacheGeneration) {
+          rememberResponse(cacheKey, response, parsedUrl.toString(), kind, userKey);
+        } else {
+          // 이 요청이 뜬 이후 무효화가 발생했다 — 응답이 스테일할 수 있으므로 원본은
+          // 그대로 반환하되 공유 캐시는 오염시키지 않는다.
+          updateStatus(kind, "ready", null);
+        }
         return response;
       })
       .catch((error) => {
