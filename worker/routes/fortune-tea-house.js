@@ -3,7 +3,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { Lunar, Solar } from "lunar-javascript";
 import { createHash } from "node:crypto";
 import { getCurrentUser } from "../lib/auth.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -3178,8 +3178,11 @@ async function readHoneyDropsState(request, env) {
 
   try {
     await connectDb(env);
-    const { wallets } = honeyCollections();
-    const doc = await wallets.findOne({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    // 일시적 풀 초기화에도 꿀방울 잔액을 정확히 반환하도록 조회를 재시도로 감싼다(access.js와 동일 패턴).
+    const doc = await withMongoRetry(env, async () => {
+      const { wallets } = honeyCollections();
+      return wallets.findOne({ userId: String(auth.userId), serviceScope: FORTUNE_TEA_HOUSE_SCOPE });
+    });
     return honeyStatePayload(doc, { authenticated: true });
   } catch (error) {
     console.warn("[fortune-tea-house/honey-drops] disabled", error);
