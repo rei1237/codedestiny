@@ -139,7 +139,38 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 지식재산권 / Intellectual Property</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>7. 공정이용 및 비정상 이용 제한 / Fair Use and Restriction of Abnormal Use</h2>
+        <p style={{ lineHeight: 1.75 }}>
+          이용자는 유효한 이용권 계약기간 동안 아래에서 정하는 비정상 이용에 해당하지 않는 한 추가 요금 없이 이용권이 적용되는 서비스를 이용할 수 있습니다(이하 &quot;정액 무제한 이용&quot;).
+          Pass holders may use covered services without additional charge for the pass validity period, unless their use qualifies as abnormal use under this section.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          비정상 이용이란 직전 30일간 이용자 1인의 서비스 이용 횟수가 같은 기간 전체 이용자 평균 이용 횟수의 10배 이상에 해당하면서, 동시에 다음 각 호 중 하나 이상의 사정이 객관적 자료로 확인되는 경우를 말합니다.
+          단순히 이용 횟수가 많다는 사정만으로는 비정상 이용으로 판단하지 않습니다.
+          (1) 매크로, 스크립트, 봇 등 자동화 수단을 이용한 서비스 호출이 로그로 확인되는 경우 (2) 사람의 직접 조작으로는 도달하기 어려운 균일하고 반복적인 시간 간격으로 요청이 지속되는 경우
+          (3) 동일 계정으로 짧은 시간 내 다수의 IP 주소 또는 기기에서 반복 접속이 발생하는 경우 (4) 1인 이용자용 계정을 제3자와 공유·대여하여 다수인이 이용함으로써 제1호부터 제3호에 준하는 이상 트래픽이 발생하는 경우.
+          Abnormal use means account activity at least 10 times the average per-user volume over the trailing 30 days, combined with objective evidence such as automation tools,
+          bot-like request intervals, abnormal concurrent access from multiple IPs or devices, or account sharing — high volume alone is not sufficient.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          회사는 비정상 이용이 확인된 이용자에게 판단 근거와 시정 요청 사항을 이메일 또는 앱 내 알림으로 통지하고, 통지일로부터 7일 이상의 기간을 정하여 소명 기회를 부여합니다.
+          소명이 없거나 소명 후에도 비정상 이용이 반복되는 경우, 회사는 계약을 즉시 해지하지 않고 먼저 해당 기능의 이용 속도 제한 등 최소한의 조치를 시행합니다.
+          제한 조치 이후에도 비정상 이용이 반복·지속되어 정상적인 계약 목적 달성이 어려운 경우에 한하여, 7일 이상의 기간을 정한 시정 최고 후에도 시정되지 않으면 이용계약의 전부 또는 일부를 해지할 수 있습니다.
+          Before any restriction, we notify the account holder of the basis for our determination and provide at least 7 days to respond.
+          We apply rate-limiting or partial feature restriction before considering termination, and termination follows a further cure notice of at least 7 days.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          이용자는 경고, 제한 또는 해지 통지를 받은 날로부터 14일 이내에 고객센터를 통해 이의를 제기하고 소명자료를 제출할 수 있으며, 회사는 접수일로부터 5영업일 이내 검토 결과를 통지합니다.
+          You may appeal any warning, restriction, or termination within 14 days of notice; we respond within 5 business days.
+        </p>
+        <p style={{ lineHeight: 1.75 }}>
+          이의제기 결과 정당한 사유 없는 제한으로 확인되는 경우, 회사는 지체 없이 제한을 해제하고 제한 기간에 상응하는 이용권 기간 연장 또는 아래 환불 및 청약철회 안내에 따른 부분·전액 환불 등으로 보상합니다.
+          If a restriction is found unjustified, we promptly lift it and compensate the user via pass-period extension or refund under the Refund and Withdrawal section.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 지식재산권 / Intellectual Property</h2>
         <p style={{ lineHeight: 1.75 }}>
           서비스와 관련된 텍스트, 디자인, 코드, 데이터 구성요소 등 일체의 권리는 Code Destiny 또는 정당한 권리자에게 귀속됩니다.
           You may not reproduce, distribute, or commercially exploit content without permission unless allowed by law.
@@ -147,7 +178,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>8. 서비스 성격 및 한계 / Nature and Limitations</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 서비스 성격 및 한계 / Nature and Limitations</h2>
         <p style={{ lineHeight: 1.75 }}>
           운세/타로 결과는 오락 및 참고 목적의 정보이며, 법률/의료/투자/세무 등 전문 자문을 대체하지 않습니다.
           Fortune interpretations are informational entertainment content and do not guarantee outcomes.
@@ -157,7 +188,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>9. 면책 / Disclaimer</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>10. 면책 / Disclaimer</h2>
         <p style={{ lineHeight: 1.75 }}>
           회사는 천재지변, 통신장애, 플랫폼/브라우저 문제, 제3자 서비스 중단 등 불가항력 사유로 인한 손해에 대해 책임을 지지 않습니다.
           We do not warrant uninterrupted, error-free service at all times.
@@ -165,7 +196,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>10. 책임 제한 / Limitation of Liability</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 책임 제한 / Limitation of Liability</h2>
         <p style={{ lineHeight: 1.75 }}>
           관련 법령이 허용하는 최대 범위 내에서 회사의 책임은 제한되며, 간접손해/특별손해/결과적 손해에 대한 책임은 배제될 수 있습니다.
           Nothing in these Terms excludes liability that cannot be excluded under applicable law.
@@ -173,7 +204,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section id="refund-policy" style={{ ...sectionStyle, marginBottom: "14px", scrollMarginTop: "116px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>11. 환불 및 청약철회 안내 / Refund and Withdrawal Guide</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 환불 및 청약철회 안내 / Refund and Withdrawal Guide</h2>
         <p style={{ lineHeight: 1.75 }}>
           Code Destiny의 유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제입니다.
           월정석은 이용권 또는 이벤트로 지급되는 보너스 혜택이며 별도 구매·충전 상품이 아니므로 현금 환불 대상 결제 상품으로 보지 않습니다.
@@ -211,7 +242,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>12. 무료 체험 및 유료 이용권 이용 / Free Trial and Paid Pass Use</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>13. 무료 체험 및 유료 이용권 이용 / Free Trial and Paid Pass Use</h2>
         <p style={{ lineHeight: 1.75 }}>
           무료 체험 기간 중이라도 멤버십 전용 콘텐츠를 열람하여 서비스 이용이 개시된 경우,
           이후 동일 콘텐츠 또는 유료 이용권에 대한 단순 변심 환불은 제한될 수 있습니다.
@@ -227,7 +258,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>13. 약관 변경 / Changes to Terms</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>14. 약관 변경 / Changes to Terms</h2>
         <p style={{ lineHeight: 1.75 }}>
           약관이 변경될 경우 시행일과 주요 변경사항을 서비스 내 공지합니다. 변경 후 서비스를 계속 이용하면 개정 약관에 동의한 것으로 간주됩니다.
           Material changes will be announced with a reasonable prior notice period when required.
@@ -235,7 +266,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>14. 준거법 및 관할 / Governing Law and Jurisdiction</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>15. 준거법 및 관할 / Governing Law and Jurisdiction</h2>
         <p style={{ lineHeight: 1.75 }}>
           본 약관은 대한민국 법령을 준거법으로 하며, 관련 분쟁은 관련 법령에 따른 관할 법원에 제기합니다.
           These Terms are governed by the laws of the Republic of Korea.
@@ -243,7 +274,7 @@ export default function TermsOfServicePage() {
       </section>
 
       <section style={sectionStyle}>
-        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>15. 문의 / Contact</h2>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>16. 문의 / Contact</h2>
         <p style={{ lineHeight: 1.75 }}>
           서비스명: Code Destiny
           <br />
