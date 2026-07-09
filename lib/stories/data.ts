@@ -104,7 +104,8 @@ import { nc9 } from "./chapters/chapter-09";
 import { nc10 } from "./chapters/chapter-10";
 import { nc11 } from "./chapters/chapter-11";
 import { nc12 } from "./chapters/chapter-12";
-export const mockStories: Array<IStory | IChapter> = [
+import storyOverridesJson from "./overrides.generated.json";
+const baseStories: Array<IStory | IChapter> = [
   {
     _id: "story-code-destiny",
     title: "Code Destiny",
@@ -122,7 +123,7 @@ export const mockStories: Array<IStory | IChapter> = [
   },
 ]
 
-export const mockChapters: IChapter[] = [
+const baseChapters: IChapter[] = [
   {
     _id: "code-destiny-prologue",
     storyId: "story-code-destiny",
@@ -280,6 +281,39 @@ export const mockChapters: IChapter[] = [
     createdAt: "2026-06-20T00:00:00.000Z",
   },
 ]
+
+// 관리자(꽃 admin)에서 발행한 수정본을 빌드 시 베이스 시드 위에 병합한다.
+// scripts/fetch-content-overrides.mjs가 overrides.generated.json을 갱신한다(기본값은 빈 객체).
+type StoryOverrideFields = { title?: string; description?: string };
+type ChapterOverrideFields = { title?: string; content?: string };
+
+const storyOverrides: Record<string, StoryOverrideFields> =
+  (storyOverridesJson as { stories?: Record<string, StoryOverrideFields> }).stories ?? {};
+const chapterOverrides: Record<string, ChapterOverrideFields> =
+  (storyOverridesJson as { chapters?: Record<string, ChapterOverrideFields> }).chapters ?? {};
+
+export const mockStories: Array<IStory | IChapter> = baseStories.map((story) => {
+  if ("storyId" in story) return story;
+  const override = storyOverrides[(story as IStory).slug];
+  if (!override) return story;
+  return {
+    ...story,
+    title: override.title || story.title,
+    description: override.description || (story as IStory).description,
+  };
+});
+
+export const mockChapters: IChapter[] = baseChapters.map((chapter) => {
+  const override = chapterOverrides[chapter._id];
+  if (!override) return chapter;
+  const content = override.content || chapter.content;
+  return {
+    ...chapter,
+    title: override.title || chapter.title,
+    content,
+    wordCount: content.replace(/\s+/g, "").length,
+  };
+});
 
 function isStoryRecord(story: IStory | IChapter): story is IStory {
   const candidate = story as unknown as Record<string, unknown>;

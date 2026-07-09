@@ -48,6 +48,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # 관리자(꽃 admin)에서 발행한 파일 기반 콘텐츠 수정본을 빌드에 병합 (fail-soft: 실패해도 배포 진행)
+      - name: Fetch content overrides
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGODB_DB_NAME: ${{ secrets.MONGODB_DB_NAME }}
+        run: node scripts/fetch-content-overrides.mjs
+
       - name: Sync public static artifacts
         run: npm run sync:public
 

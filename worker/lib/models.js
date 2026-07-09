@@ -1295,6 +1295,20 @@ insightSchema.index({ isFeatured: 1, updatedAt: -1 });
 
 export const Insight = mongoose.models.Insight || mongoose.model("Insight", insightSchema);
 
+// 파일 기반 정적 콘텐츠(유명인 사주/소설)의 관리자 수정본. 빌드 시
+// scripts/fetch-content-overrides.mjs가 published 문서만 내려받아 베이스 시드 위에 병합한다.
+const contentOverrideSchema = new mongoose.Schema({
+  source: { type: String, enum: ["famous-saju", "story", "chapter"], required: true },
+  key: { type: String, required: true, trim: true },
+  fields: { type: mongoose.Schema.Types.Mixed, default: {} },
+  status: { type: String, enum: ["draft", "published"], default: "draft" },
+  updatedBy: { type: String, default: "", trim: true },
+}, { timestamps: true });
+
+contentOverrideSchema.index({ source: 1, key: 1 }, { unique: true });
+
+export const ContentOverride = mongoose.models.ContentOverride || mongoose.model("ContentOverride", contentOverrideSchema);
+
 const destinyBiasCardSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   title: { type: String, default: "", trim: true, maxlength: 160 },

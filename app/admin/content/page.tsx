@@ -9,6 +9,7 @@ import Link from "next/link";
 import {
   Archive,
   Bold,
+  BookOpen,
   Clock,
   ExternalLink,
   Eye,
@@ -1226,6 +1227,9 @@ export default function AdminContentPage() {
               <p className="text-xs text-slate-400">{pagination.total.toLocaleString("ko-KR")}개</p>
             </div>
             <div className="flex gap-2">
+              <Link href="/admin/site-content" className={editorButtonClass()} title="사이트 콘텐츠 편집(유명인 사주·소설)" aria-label="사이트 콘텐츠 편집">
+                <BookOpen className="h-4 w-4" />
+              </Link>
               <button type="button" onClick={startNewPost} className={editorButtonClass()} title="새 글">
                 <Plus className="h-4 w-4" />
               </button>

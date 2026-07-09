@@ -1,9 +1,9 @@
 import { getEnv } from "../lib/env.js";
 import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, withMongoRetry } from "../lib/db.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { Insight, PointHistory } from "../lib/models.js";
+import { ContentOverride, Insight, PointHistory } from "../lib/models.js";
 import {
   FEATURE_KEY_PRICE_TABLE,
   FRONTEND_PAID_FEATURE_KEYS,
@@ -26,6 +26,12 @@ import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../li
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 import { requestKasiLegacyCalendarMethod } from "./kasi.js";
 import { Lunar, Solar } from "lunar-javascript";
+
+// 관리자 READ 전용 Mongo 재시도 래퍼. 풀 초기화/네트워크 타임아웃 순간에도 조회가 성공하도록
+// 기본(1회)보다 여유 있게 재시도한다. 쓰기에는 사용하지 않는다.
+function adminMongoRead(env, operation) {
+  return withMongoRetry(env, operation, { retries: 2 });
+}
 
 const ADMIN_ENTRY_PASSWORD_SHA256_LIST = [
   // current admin entry password: kangta!7989
@@ -3026,7 +3032,6 @@ function resolveListSort(sort) {
 
 async function handleInsightsList(request, env) {
   await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const { status, includeTrash, search, sort, page, pageSize } = parseQuery(request.url);
   const query = {};
@@ -3047,14 +3052,14 @@ async function handleInsightsList(request, env) {
 
   const sortSpec = resolveListSort(sort);
 
-  const [items, totalCount] = await Promise.all([
+  const [items, totalCount] = await adminMongoRead(env, async () => Promise.all([
     Insight.find(query)
       .sort(sortSpec)
       .skip((page - 1) * pageSize)
       .limit(pageSize)
       .lean(),
     Insight.countDocuments(query),
-  ]);
+  ]));
 
   return json({
     ok: true,
@@ -3099,12 +3104,11 @@ async function handleInsightsCreate(request, env) {
 
 async function handleInsightsGetById(path, request, env) {
   await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const id = parseInsightId(path);
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
-  const item = await Insight.findById(id).lean();
+  const item = await adminMongoRead(env, async () => Insight.findById(id).lean());
   if (!item) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   return json({ ok: true, item });
@@ -3211,7 +3215,7 @@ function parseAdminContentPathIdentifier(path) {
   }
 }
 
-async function findContentByAdminPath(path) {
+async function findContentByAdminPath(path, env) {
   const token = parseAdminContentPathIdentifier(path);
   if (!token) return null;
 
@@ -3219,16 +3223,16 @@ async function findContentByAdminPath(path) {
   const lowered = trimmed.toLowerCase();
 
   if (/^[a-f0-9]{24}$/i.test(trimmed)) {
-    const byId = await Insight.findById(trimmed).lean();
+    const byId = await adminMongoRead(env, async () => Insight.findById(trimmed).lean());
     if (byId) return byId;
   }
 
   const slugCandidates = [...new Set([trimmed, lowered].filter(Boolean))];
-  return Insight.findOne({ slug: { $in: slugCandidates } }).lean();
+  return adminMongoRead(env, async () => Insight.findOne({ slug: { $in: slugCandidates } }).lean());
 }
 
-async function resolveAdminContentId(path) {
-  const found = await findContentByAdminPath(path);
+async function resolveAdminContentId(path, env) {
+  const found = await findContentByAdminPath(path, env);
   return found ? String(found?._id || "") : "";
 }
 
@@ -3318,7 +3322,6 @@ function buildContentListQuery(filters) {
 
 async function handleContentList(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const filters = parseContentListQuery(request.url);
   const query = buildContentListQuery(filters);
@@ -3332,14 +3335,14 @@ async function handleContentList(request, env) {
     filters,
   });
 
-  const [items, total] = await Promise.all([
+  const [items, total] = await adminMongoRead(env, async () => Promise.all([
     Insight.find(query)
       .sort(sort)
       .skip((filters.page - 1) * filters.limit)
       .limit(filters.limit)
       .lean(),
     Insight.countDocuments(query),
-  ]);
+  ]));
 
   const mappedItems = items.map((item) => toContentItem(item));
   const totalPages = Math.max(1, Math.ceil(total / filters.limit));
@@ -3430,9 +3433,8 @@ async function handleContentCreate(request, env) {
 
 async function handleContentGetById(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
-  const found = await findContentByAdminPath(path);
+  const found = await findContentByAdminPath(path, env);
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const item = toContentItem(found);
@@ -3450,12 +3452,11 @@ async function handleContentGetById(path, request, env) {
 
 async function handleContentGetBySlug(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const slug = parseAdminContentSlug(path);
   if (!slug) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
-  const found = await Insight.findOne({ slug }).lean();
+  const found = await adminMongoRead(env, async () => Insight.findOne({ slug }).lean());
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const item = toContentItem(found);
@@ -3475,7 +3476,7 @@ async function handleContentPatch(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const existing = await findContentByAdminPath(path);
+  const existing = await findContentByAdminPath(path, env);
   if (!existing) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
   const id = String(existing?._id || "");
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -3547,7 +3548,7 @@ async function handleContentDelete(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const existing = await findContentByAdminPath(path);
+  const existing = await findContentByAdminPath(path, env);
   const id = String(existing?._id || "");
   if (!existing || !id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
@@ -3636,12 +3637,11 @@ function buildRestorePayloadFromRevision(revision) {
 
 async function handleContentRevisions(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
-  const id = await resolveAdminContentId(path.replace(/\/revisions$/i, ""));
+  const id = await resolveAdminContentId(path.replace(/\/revisions$/i, ""), env);
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
-  const found = await Insight.findById(id).lean();
+  const found = await adminMongoRead(env, async () => Insight.findById(id).lean());
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const revisions = (Array.isArray(found.revisionHistory) ? found.revisionHistory : [])
@@ -3677,7 +3677,7 @@ async function handleContentRestore(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
   await connectDb(env);
 
-  const id = await resolveAdminContentId(path.replace(/\/restore$/i, ""));
+  const id = await resolveAdminContentId(path.replace(/\/restore$/i, ""), env);
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const existing = await Insight.findById(id).lean();
@@ -4051,9 +4051,8 @@ async function purgeCloudflareContentCache(env, urls = []) {
 
 async function handleContentPublishStatus(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
-  const found = await findContentByAdminPath(path.replace(/\/publish-status$/i, ""));
+  const found = await findContentByAdminPath(path.replace(/\/publish-status$/i, ""), env);
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
   const id = String(found?._id || "");
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -4076,9 +4075,8 @@ async function handleContentPublishStatus(path, request, env) {
 
 async function handleContentCachePurge(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
-  const purgeRecord = await findContentByAdminPath(path.replace(/\/cache-purge$/i, ""));
+  const purgeRecord = await findContentByAdminPath(path.replace(/\/cache-purge$/i, ""), env);
   if (!purgeRecord) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
   const id = String(purgeRecord?._id || "");
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -4112,9 +4110,12 @@ async function handleContentCachePurge(path, request, env) {
 
 async function handleContentDiag(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  const dbConn = await connectDb(env);
+  const dbConn = await adminMongoRead(env, async () => connectDb(env));
 
-  const collections = await dbConn.db.listCollections({}, { nameOnly: true }).toArray();
+  const collections = await adminMongoRead(env, async () => {
+    const conn = await connectDb(env);
+    return conn.db.listCollections({}, { nameOnly: true }).toArray();
+  });
   const names = new Set(collections.map((item) => String(item?.name || "")));
   const origin = resolvePublicOrigin(request, env);
   const now = new Date();
@@ -4134,7 +4135,7 @@ async function handleContentDiag(request, env) {
     dynamicSitemap,
     dynamicRss,
     dynamicInsightsRss,
-  ] = await Promise.all([
+  ] = await adminMongoRead(env, async () => Promise.all([
     Insight.countDocuments({}),
     Insight.countDocuments({
       $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
@@ -4169,7 +4170,7 @@ async function handleContentDiag(request, env) {
     fetchContentFeedHeaderStatus(`${origin}/sitemap.xml`),
     fetchContentFeedHeaderStatus(`${origin}/rss.xml`),
     fetchContentFeedHeaderStatus(`${origin}/insights/rss.xml`),
-  ]);
+  ]));
 
   logAdminContent("diag_success", {
     endpoint: "/api/admin/content/diag",
@@ -4454,6 +4455,183 @@ async function handleAdminPaymentDiagnostics(request, env) {
   });
 }
 
+const CONTENT_OVERRIDE_FIELD_KEYS = {
+  "famous-saju": ["shortDescription", "heroCopy", "summary", "conclusion", "seoTitle", "seoDescription"],
+  story: ["title", "description"],
+  chapter: ["title", "content"],
+};
+const CONTENT_OVERRIDE_STATUS_SET = new Set(["draft", "published"]);
+const CONTENT_OVERRIDE_MAX_CONTENT_LENGTH = 200000;
+const CONTENT_OVERRIDE_MAX_FIELD_LENGTH = 4000;
+
+function parseSiteContentOverridePath(path) {
+  const matched = String(path || "").match(/^\/site-content\/overrides\/([a-z-]+)\/([^/]+)$/i);
+  if (!matched) return null;
+
+  const source = String(matched[1] || "").toLowerCase();
+  if (!CONTENT_OVERRIDE_FIELD_KEYS[source]) return null;
+
+  let key = "";
+  try {
+    key = decodeURIComponent(String(matched[2] || "")).trim();
+  } catch (e) {
+    return null;
+  }
+  if (!key || key.length > 240) return null;
+
+  return { source, key };
+}
+
+function normalizeOverrideFields(source, rawFields) {
+  const allowed = CONTENT_OVERRIDE_FIELD_KEYS[source] || [];
+  const fields = {};
+  for (const fieldKey of allowed) {
+    const value = rawFields?.[fieldKey];
+    if (typeof value !== "string") continue;
+    const maxLength = fieldKey === "content" ? CONTENT_OVERRIDE_MAX_CONTENT_LENGTH : CONTENT_OVERRIDE_MAX_FIELD_LENGTH;
+    const normalized = value.length > maxLength ? value.slice(0, maxLength) : value;
+    if (!normalized.trim()) continue;
+    fields[fieldKey] = normalized;
+  }
+  return fields;
+}
+
+function toContentOverrideItem(doc) {
+  return {
+    source: String(doc?.source || ""),
+    key: String(doc?.key || ""),
+    fields: doc?.fields && typeof doc.fields === "object" ? doc.fields : {},
+    status: String(doc?.status || "draft"),
+    updatedAt: doc?.updatedAt || null,
+  };
+}
+
+async function handleSiteContentOverrideList(request, env) {
+  await authorizeAdminRequest(request, env);
+
+  const sourceRaw = String(new URL(request.url).searchParams.get("source") || "").toLowerCase();
+  const query = CONTENT_OVERRIDE_FIELD_KEYS[sourceRaw] ? { source: sourceRaw } : {};
+
+  const items = await adminMongoRead(env, async () =>
+    ContentOverride.find(query).sort({ updatedAt: -1 }).limit(500).lean());
+
+  return json({ ok: true, items: items.map((item) => toContentOverrideItem(item)) });
+}
+
+async function handleSiteContentOverrideGet(path, request, env) {
+  await authorizeAdminRequest(request, env);
+
+  const parsed = parseSiteContentOverridePath(path);
+  if (!parsed) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const doc = await adminMongoRead(env, async () =>
+    ContentOverride.findOne({ source: parsed.source, key: parsed.key }).lean());
+
+  return json({ ok: true, item: doc ? toContentOverrideItem(doc) : null });
+}
+
+async function handleSiteContentOverrideUpsert(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const parsed = parseSiteContentOverridePath(path);
+  if (!parsed) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const fields = normalizeOverrideFields(parsed.source, body?.fields);
+  if (!Object.keys(fields).length) {
+    throw createHttpError(400, "수정할 필드가 없습니다.", { code: "VALIDATION_ERROR" });
+  }
+
+  const update = { fields, updatedBy: String(adminContext.userId || "flower-admin") };
+  const statusRaw = String(body?.status || "").toLowerCase();
+  if (statusRaw) {
+    if (!CONTENT_OVERRIDE_STATUS_SET.has(statusRaw)) {
+      throw createHttpError(400, "status는 draft 또는 published여야 합니다.", { code: "VALIDATION_ERROR" });
+    }
+    update.status = statusRaw;
+  }
+
+  const doc = await ContentOverride.findOneAndUpdate(
+    { source: parsed.source, key: parsed.key },
+    { $set: update },
+    { new: true, upsert: true, setDefaultsOnInsert: true },
+  ).lean();
+
+  return json({ ok: true, item: toContentOverrideItem(doc) });
+}
+
+async function handleSiteContentOverridePublishStatus(path, request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const parsed = parseSiteContentOverridePath(path.replace(/\/publish-status$/i, ""));
+  if (!parsed) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const statusRaw = String(body?.status || "").toLowerCase();
+  if (!CONTENT_OVERRIDE_STATUS_SET.has(statusRaw)) {
+    throw createHttpError(400, "status는 draft 또는 published여야 합니다.", { code: "VALIDATION_ERROR" });
+  }
+
+  const doc = await ContentOverride.findOneAndUpdate(
+    { source: parsed.source, key: parsed.key },
+    { $set: { status: statusRaw } },
+    { new: true },
+  ).lean();
+  if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  return json({ ok: true, item: toContentOverrideItem(doc) });
+}
+
+async function handleSiteContentOverrideDelete(path, request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const parsed = parseSiteContentOverridePath(path);
+  if (!parsed) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const doc = await ContentOverride.findOneAndDelete({ source: parsed.source, key: parsed.key }).lean();
+  if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  return json({ ok: true, item: toContentOverrideItem(doc) });
+}
+
+async function handleSiteDeploy(request, env) {
+  await authorizeAdminRequest(request, env);
+
+  const token = String(getEnv(env, "GITHUB_DEPLOY_TOKEN") || "").trim();
+  if (!token) {
+    throw createHttpError(503, "GITHUB_DEPLOY_TOKEN이 설정되지 않아 사이트 반영을 트리거할 수 없습니다.", { code: "DEPLOY_TOKEN_MISSING" });
+  }
+
+  const repo = String(getEnv(env, "GITHUB_DEPLOY_REPO") || "").trim() || "rei1237/codedestiny";
+  const workflow = "cloudflare-pages-deploy.yml";
+
+  let response;
+  try {
+    response = await fetch(`https://api.github.com/repos/${repo}/actions/workflows/${workflow}/dispatches`, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: "application/vnd.github+json",
+        "content-type": "application/json",
+        "user-agent": "code-destiny-worker",
+        "x-github-api-version": "2022-11-28",
+      },
+      body: JSON.stringify({ ref: "main" }),
+    });
+  } catch (e) {
+    throw createHttpError(502, "GitHub 배포 트리거 요청에 실패했습니다.", { code: "DEPLOY_DISPATCH_FAILED" });
+  }
+
+  if (response.status !== 204) {
+    throw createHttpError(502, `GitHub 배포 트리거가 거부되었습니다. (status ${response.status})`, { code: "DEPLOY_DISPATCH_FAILED" });
+  }
+
+  return json({ ok: true, repo, workflow, triggeredAt: new Date().toISOString() });
+}
+
 export async function handleAdminRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
@@ -4486,6 +4664,28 @@ export async function handleAdminRoutes(request, env) {
 
     if (path === "/prompt-lab/geocode") {
       if (method === "GET") return await handleAdminPromptLabGeocode(request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/site-deploy") {
+      if (method === "POST") return await handleSiteDeploy(request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/site-content/overrides") {
+      if (method === "GET") return await handleSiteContentOverrideList(request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/site-content\/overrides\/[a-z-]+\/[^/]+\/publish-status$/i.test(path)) {
+      if (method === "POST") return await handleSiteContentOverridePublishStatus(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/site-content\/overrides\/[a-z-]+\/[^/]+$/i.test(path)) {
+      if (method === "GET") return await handleSiteContentOverrideGet(path, request, env);
+      if (method === "PUT") return await handleSiteContentOverrideUpsert(path, request, env);
+      if (method === "DELETE") return await handleSiteContentOverrideDelete(path, request, env);
       return methodNotAllowed();
     }
 

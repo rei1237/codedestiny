@@ -6,6 +6,7 @@ import {
   getCelebrityAnnotation,
   getCelebrityBySlug,
   getCelebrityStaticSlugs,
+  getFamousSajuArticleOverride,
   getCelebritiesByCategory,
   publishedCelebritySajuSeeds,
   type CelebritySajuAnnotation,
@@ -2960,7 +2961,17 @@ export function calculateCelebritySaju(celebrity: CelebritySajuSeed) {
 }
 
 export function buildCelebrityReading(celebrity: CelebritySajuSeed) {
-  return buildFamousSajuArticle(celebrity, calculateFamousSaju(celebrity));
+  const article = buildFamousSajuArticle(celebrity, calculateFamousSaju(celebrity));
+  const override = getFamousSajuArticleOverride(celebrity.slug);
+  if (!override) return article;
+  return {
+    ...article,
+    heroCopy: override.heroCopy || article.heroCopy,
+    summary: override.summary || article.summary,
+    conclusion: override.conclusion || article.conclusion,
+    seoTitle: override.seoTitle || article.seoTitle,
+    seoDescription: override.seoDescription || article.seoDescription,
+  };
 }
 
 export function getCelebritySajuPage(slug: string) {

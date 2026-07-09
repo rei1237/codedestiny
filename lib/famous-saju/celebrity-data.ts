@@ -1,3 +1,5 @@
+import famousOverridesJson from "./overrides.generated.json";
+
 export type BirthStatus = "verified" | "public" | "uncertain" | "unknown";
 export type BirthTimeStatus = "verified" | "unknown" | "estimated_not_used";
 export type FamousSajuCategory = "historical" | "entertainer" | "sports" | "business" | "politics" | "creator" | "other";
@@ -267,12 +269,31 @@ function isDateUncertain(category: string, birthDate: string) {
   return category === "역사 위인" && Number.isFinite(year) && year < 1900;
 }
 
+// 관리자(꽃 admin)에서 발행한 수정본. scripts/fetch-content-overrides.mjs가
+// overrides.generated.json을 빌드 시 갱신한다(기본값은 빈 객체).
+export type FamousSajuArticleOverride = {
+  shortDescription?: string;
+  heroCopy?: string;
+  summary?: string;
+  conclusion?: string;
+  seoTitle?: string;
+  seoDescription?: string;
+};
+
+const famousSajuOverrides: Record<string, FamousSajuArticleOverride> =
+  (famousOverridesJson as { items?: Record<string, FamousSajuArticleOverride> }).items ?? {};
+
+export function getFamousSajuArticleOverride(slug: string): FamousSajuArticleOverride | null {
+  return famousSajuOverrides[slug] || null;
+}
+
 export const celebritySajuSeeds: CelebritySajuSeed[] = rawSeeds.map(([slug, name, category, country, birthDate, birthTime, tags = [], nameEn]) => {
   const categoryKey = toFamousSajuCategory(category);
   const aliases = buildAliases(slug, name, nameEn);
   const birthCalendar: FamousSajuBirthCalendar = "solar";
   const isBirthTimeKnown = Boolean(birthTime);
-  const shortDescription = `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
+  const shortDescription = famousSajuOverrides[slug]?.shortDescription
+    || `${name}의 공개 생년월일을 바탕으로 일간, 오행, 직업적 흐름을 살펴보는 유명인 사주 분석입니다.`;
 
   return {
     id: slug,
