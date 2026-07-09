@@ -1,9 +1,21 @@
 import { createHttpError, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { Lunar, Solar } from "lunar-javascript";
 
-const PRIMARY_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
-const SECONDARY_KASI_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
+const SPCDE_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
+const LRSR_CLD_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
+const PRIMARY_KASI_BASE_URL = SPCDE_INFO_BASE_URL;
+const SECONDARY_KASI_BASE_URL = LRSR_CLD_INFO_BASE_URL;
 const ALLOWED_METHODS = new Set(["getLunCalInfo", "getSolCalInfo", "get24DivisionsInfo"]);
+
+// 각 KASI 오퍼레이션이 실제로 속한 서비스 base URL.
+// 음양력 변환은 LrsrCldInfoService, 24절기 등 특일정보는 SpcdeInfoService 소속이다.
+// 잘못된 서비스에 먼저 붙으면 존재하지 않는 오퍼레이션이라 낭비·타임아웃이 발생하므로
+// 메서드별 정답 서비스를 우선 시도한다.
+const METHOD_SERVICE_BASE_URL = {
+  getLunCalInfo: LRSR_CLD_INFO_BASE_URL,
+  getSolCalInfo: LRSR_CLD_INFO_BASE_URL,
+  get24DivisionsInfo: SPCDE_INFO_BASE_URL,
+};
 const LEGACY_CACHE_TTL_MS = 1000 * 60 * 30;
 const CALENDAR_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const BREAKER_FAILURE_THRESHOLD = 3;
@@ -99,7 +111,89 @@ function computeLocalCalendarFallback(method, params) {
     }];
   }
 
+  if (method === "get24DivisionsInfo") {
+    return computeLocalSolarTerms(params?.solYear);
+  }
+
   return null;
+}
+
+// lunar-javascript의 절기 이름 → 한국어 표기 매핑(24절기 전체).
+// getJieQiTable은 연 경계 절기를 한자 대신 로마자 키(예: DONG_ZHI)로도 돌려주므로 둘 다 매핑한다.
+const JIEQI_NAME_TO_KO = {
+  // 한자(간체/번체)
+  "冬至": "동지", "小寒": "소한", "大寒": "대한", "立春": "입춘",
+  "雨水": "우수", "惊蛰": "경칩", "驚蟄": "경칩", "春分": "춘분",
+  "清明": "청명", "淸明": "청명", "谷雨": "곡우", "穀雨": "곡우",
+  "立夏": "입하", "小满": "소만", "小滿": "소만", "芒种": "망종", "芒種": "망종",
+  "夏至": "하지", "小暑": "소서", "大暑": "대서", "立秋": "입추",
+  "处暑": "처서", "處暑": "처서", "白露": "백로", "秋分": "추분",
+  "寒露": "한로", "霜降": "상강", "立冬": "입동", "小雪": "소설", "大雪": "대설",
+  // 로마자(연 경계 절기)
+  "DONG_ZHI": "동지", "XIAO_HAN": "소한", "DA_HAN": "대한", "LI_CHUN": "입춘",
+  "YU_SHUI": "우수", "JING_ZHE": "경칩", "CHUN_FEN": "춘분", "QING_MING": "청명",
+  "GU_YU": "곡우", "LI_XIA": "입하", "XIAO_MAN": "소만", "MANG_ZHONG": "망종",
+  "XIA_ZHI": "하지", "XIAO_SHU": "소서", "DA_SHU": "대서", "LI_QIU": "입추",
+  "CHU_SHU": "처서", "BAI_LU": "백로", "QIU_FEN": "추분", "HAN_LU": "한로",
+  "SHUANG_JIANG": "상강", "LI_DONG": "입동", "XIAO_XUE": "소설", "DA_XUE": "대설",
+};
+
+// KASI 24절기 업스트림 장애 시 lunar-javascript getJieQiTable로 해당 연도의 절기를 로컬 계산한다.
+// lunar-javascript 절기 시각은 CST(UTC+8) 기준이므로 KST(UTC+9)로 +1시간 보정한다
+// (참조: js/core/kasi-calendar-service.js `_fallbackSolarTerms`).
+function computeLocalSolarTerms(solYearRaw) {
+  const solYear = toInt(solYearRaw);
+  if (!solYear) return null;
+
+  let table;
+  try {
+    table = Solar.fromYmdHms(solYear, 1, 1, 12, 0, 0).getLunar().getJieQiTable();
+  } catch (e) {
+    return null;
+  }
+  if (!table || typeof table !== "object") return null;
+
+  const byName = new Map();
+  Object.keys(table).forEach((rawName) => {
+    const koName = JIEQI_NAME_TO_KO[String(rawName || "").trim()];
+    if (!koName) return;
+    const solar = table[rawName];
+    if (!solar || typeof solar.getYear !== "function") return;
+
+    const y = toInt(solar.getYear());
+    const mo = toInt(solar.getMonth());
+    const d = toInt(solar.getDay());
+    if (!y || !mo || !d) return;
+    const hh = toInt(typeof solar.getHour === "function" ? solar.getHour() : 0, 0);
+    const mi = toInt(typeof solar.getMinute === "function" ? solar.getMinute() : 0, 0);
+    const ss = toInt(typeof solar.getSecond === "function" ? solar.getSecond() : 0, 0);
+
+    // 컴포넌트를 UTC로 간주해 +1시간 → KST 컴포넌트로 재해석(로컬 타임존 영향 배제)
+    const kst = new Date(Date.UTC(y, mo - 1, d, hh, mi, ss) + 3600 * 1000);
+    const ky = kst.getUTCFullYear();
+    if (ky !== solYear) return; // 요청 연도(1~12월)의 절기만 반환
+    const km = kst.getUTCMonth() + 1;
+    const kd = kst.getUTCDate();
+    const kh = kst.getUTCHours();
+    const kmin = kst.getUTCMinutes();
+
+    // 같은 절기가 한자·로마자 키로 중복될 수 있으므로 이름 기준 1건으로 정리한다.
+    if (byName.has(koName)) return;
+    byName.set(koName, {
+      dateName: koName,
+      solYear: String(ky),
+      solMonth: pad2(km),
+      solDay: pad2(kd),
+      locdate: `${ky}${pad2(km)}${pad2(kd)}`,
+      kst: `${pad2(kh)}${pad2(kmin)}`,
+      time: `${pad2(kh)}:${pad2(kmin)}`,
+    });
+  });
+
+  const rows = Array.from(byName.values());
+  if (!rows.length) return null;
+  rows.sort((a, b) => String(a.locdate).localeCompare(String(b.locdate)));
+  return rows;
 }
 
 function normalizeCalendarType(value) {
@@ -176,16 +270,48 @@ function normalizeSolarTermRows(rows = [], fallbackYear = null) {
         || "",
       ).trim();
 
-      const year = toInt(row?.solYear ?? row?.year, fallbackYear);
-      const month = toInt(row?.solMonth ?? row?.month, null);
-      const day = toInt(row?.solDay ?? row?.day, null);
+      // 실제 KASI get24DivisionsInfo(SpcdeInfoService)는 날짜를 locdate(YYYYMMDD),
+      // 절입 시각을 kst(HHMM)로 반환한다. 로컬 폴백 rows는 solYear/solMonth/solDay(+locdate/kst)를
+      // 함께 담으므로 두 형식을 모두 수용한다.
+      let year = toInt(row?.solYear ?? row?.year, null);
+      let month = toInt(row?.solMonth ?? row?.month, null);
+      let day = toInt(row?.solDay ?? row?.day, null);
+      const locdate = String(row?.locdate ?? "").trim();
+      if ((!year || !month || !day) && /^\d{8}$/.test(locdate)) {
+        year = year || toInt(locdate.slice(0, 4), null);
+        month = month || toInt(locdate.slice(4, 6), null);
+        day = day || toInt(locdate.slice(6, 8), null);
+      }
+      if (!year) year = toInt(fallbackYear, null);
       if (!name || !year || !month || !day) return null;
 
-      return {
+      const date = `${year}-${pad2(month)}-${pad2(day)}`;
+      const out = {
         name,
-        date: `${year}-${pad2(month)}-${pad2(day)}`,
+        date,
         julianDay: idx + 1,
       };
+
+      // 절입 시각(kst "HHMM" 또는 time "HH:MM") 보존 — 경계 근처 정밀 판정(월주/연주)용.
+      const timeRaw = String(row?.kst ?? row?.time ?? "").trim();
+      let hour = null;
+      let minute = null;
+      if (/^\d{3,4}$/.test(timeRaw)) {
+        const padded = timeRaw.padStart(4, "0");
+        hour = toInt(padded.slice(0, 2), null);
+        minute = toInt(padded.slice(2, 4), null);
+      } else {
+        const hm = timeRaw.match(/^(\d{1,2}):(\d{2})/);
+        if (hm) {
+          hour = toInt(hm[1], null);
+          minute = toInt(hm[2], null);
+        }
+      }
+      if (hour !== null && minute !== null) {
+        out.time = `${pad2(hour)}:${pad2(minute)}`;
+        out.isoLocal = `${date}T${pad2(hour)}:${pad2(minute)}:00`;
+      }
+      return out;
     })
     .filter(Boolean);
 
@@ -217,10 +343,13 @@ function normalizeCalendarInput(body) {
   };
 }
 
-function buildBaseUrlCandidates(env) {
+function buildBaseUrlCandidates(env, method) {
   const configured = String(env.KASI_API_BASE_URL || "").trim();
+  // 메서드에 맞는 서비스를 우선 시도하고, 그 다음 나머지를 폴백 후보로 둔다.
+  const preferred = METHOD_SERVICE_BASE_URL[String(method || "")] || PRIMARY_KASI_BASE_URL;
   return Array.from(new Set([
     configured,
+    preferred,
     PRIMARY_KASI_BASE_URL,
     SECONDARY_KASI_BASE_URL,
   ].map((value) => String(value || "").trim().replace(/\/+$/, "")).filter(Boolean)));
@@ -263,6 +392,40 @@ function parseXmlItems(xmlText) {
   }
 
   return rows;
+}
+
+// data.go.kr는 서비스키 미등록/쿼터초과/서비스 오류 시 <resultCode>/<item>이 없는
+// <OpenAPI_ServiceResponse><cmmMsgHeader><returnAuthMsg>...</returnAuthMsg><returnReasonCode>...
+// 형태의 에러 봉투를 반환한다. 이를 구체 사유로 해석해 "파싱 실패"로 뭉개지 않도록 한다.
+const KASI_UPSTREAM_REASON_CODE_MAP = {
+  SERVICE_KEY_IS_NOT_REGISTERED_ERROR: "KASI_KEY_NOT_REGISTERED",
+  LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR: "KASI_QUOTA_EXCEEDED",
+  SERVICE_ACCESS_DENIED_ERROR: "KASI_ACCESS_DENIED",
+  DEADLINE_HAS_EXPIRED_ERROR: "KASI_KEY_EXPIRED",
+  UNREGISTERED_IP_ERROR: "KASI_IP_NOT_REGISTERED",
+};
+
+function extractUpstreamErrorEnvelope(rawText) {
+  const text = String(rawText || "");
+  if (!text.trim()) return null;
+
+  const returnAuthMsg = extractXmlTagText(text, "returnAuthMsg");
+  const returnReasonCode = extractXmlTagText(text, "returnReasonCode");
+  const errMsg = extractXmlTagText(text, "errMsg");
+  const hasEnvelope = /OpenAPI_ServiceResponse|cmmMsgHeader/i.test(text)
+    || returnAuthMsg || returnReasonCode || errMsg;
+  if (!hasEnvelope) return null;
+
+  const authKey = String(returnAuthMsg || "").trim().toUpperCase();
+  const code = KASI_UPSTREAM_REASON_CODE_MAP[authKey] || "KASI_UPSTREAM_ERROR";
+  const messageParts = [errMsg, returnAuthMsg].map((v) => String(v || "").trim()).filter(Boolean);
+  return {
+    code,
+    returnAuthMsg: returnAuthMsg || null,
+    returnReasonCode: returnReasonCode || null,
+    errMsg: errMsg || null,
+    message: messageParts.length ? messageParts.join(": ") : "KASI 업스트림 오류 봉투",
+  };
 }
 
 function normalizePayloadFromRaw(rawText) {
@@ -333,8 +496,8 @@ async function fetchKasiUpstream(env, method, params) {
     throw createHttpError(503, "KASI circuit is open", { code: "KASI_CIRCUIT_OPEN" });
   }
 
-  const kasiBaseUrls = buildBaseUrlCandidates(env);
-  const timeoutMs = Math.max(1000, Number(env.KASI_PROXY_TIMEOUT_MS || 4500));
+  const kasiBaseUrls = buildBaseUrlCandidates(env, method);
+  const timeoutMs = Math.max(1000, Number(env.KASI_PROXY_TIMEOUT_MS || 6500));
 
   const decoded = decodeServiceKeyCandidate(env.KASI_SERVICE_KEY);
   const candidates = Array.from(new Set([decoded, String(env.KASI_SERVICE_KEY || "").trim()].filter(Boolean)));
@@ -374,10 +537,24 @@ async function fetchKasiUpstream(env, method, params) {
           const parsed = normalizePayloadFromRaw(rawText);
           const payload = parsed.payload;
           if (!payload && String(rawText || "").trim()) {
+            // data.go.kr 에러 봉투(키 미등록/쿼터초과 등)면 구체 사유로 승격한다.
+            const envelope = extractUpstreamErrorEnvelope(rawText);
+            const snippet = String(rawText).replace(/\s+/g, " ").trim().slice(0, 200);
+            if (envelope) {
+              throw createHttpError(503, `KASI 업스트림 오류: ${envelope.message}`, {
+                code: envelope.code,
+                returnAuthMsg: envelope.returnAuthMsg,
+                returnReasonCode: envelope.returnReasonCode,
+                upstreamStatus: response.status,
+                upstreamBase: kasiBaseUrl,
+                upstreamSnippet: snippet,
+              });
+            }
             throw createHttpError(503, "KASI 응답 파싱 실패(JSON/XML 아님)", {
               code: "KASI_PARSE_ERROR",
               upstreamStatus: response.status,
               upstreamBase: kasiBaseUrl,
+              upstreamSnippet: snippet,
             });
           }
 
@@ -474,6 +651,9 @@ async function requestLegacyMethod(env, methodRaw, paramsRaw) {
     } catch (error) {
       const localRows = computeLocalCalendarFallback(method, params);
       if (localRows) {
+        const detail = error?.payload && typeof error.payload === "object" ? error.payload : {};
+        const diag = [error?.message || "unknown error", detail.returnAuthMsg, detail.upstreamSnippet]
+          .map((v) => String(v || "").trim()).filter(Boolean).join(" | ");
         return {
           ok: true,
           method,
@@ -482,7 +662,8 @@ async function requestLegacyMethod(env, methodRaw, paramsRaw) {
           source: "local",
           maintenance: false,
           fallbackRecommended: true,
-          warnings: [`KASI 업스트림 응답 실패로 로컬 계산으로 대체되었습니다: ${error?.message || "unknown error"}`],
+          upstreamReason: detail.code || error?.code || null,
+          warnings: [`KASI 업스트림 응답 실패로 로컬 계산으로 대체되었습니다: ${diag}`],
         };
       }
       throw error;
@@ -528,17 +709,44 @@ async function requestCalendarSummary(env, inputRaw) {
   if (inflight) return inflight;
 
   const task = (async () => {
+    const buildLocalFallback = (reason) => {
+      const localRows = computeLocalSolarTerms(input.year);
+      const solarTerms = normalizeSolarTermRows(localRows || [], input.year);
+      if (!solarTerms.length) return null;
+      return {
+        ok: true,
+        source: "local",
+        dateKey,
+        solar: { year: input.year, month: input.month, day: input.day },
+        solarTerms,
+        maintenance: false,
+        fallbackRecommended: true,
+        warnings: [`KASI 24절기 업스트림 실패로 로컬 계산으로 대체되었습니다: ${reason || "unknown error"}`],
+      };
+    };
+
     if (isCircuitOpen()) {
+      const local = buildLocalFallback("KASI circuit is open");
+      if (local) return local;
       throw createHttpError(503, "KASI circuit is open", { code: "KASI_CIRCUIT_OPEN" });
     }
 
-    const upstream = await fetchKasiUpstream(env, "get24DivisionsInfo", {
-      solYear: String(input.year),
-      numOfRows: "30",
-    });
+    let solarTerms = [];
+    try {
+      const upstream = await fetchKasiUpstream(env, "get24DivisionsInfo", {
+        solYear: String(input.year),
+        numOfRows: "30",
+      });
+      solarTerms = normalizeSolarTermRows(upstream?.rows || [], input.year);
+    } catch (error) {
+      const local = buildLocalFallback(error?.message);
+      if (local) return local;
+      throw error;
+    }
 
-    const solarTerms = normalizeSolarTermRows(upstream?.rows || [], input.year);
     if (!solarTerms.length) {
+      const local = buildLocalFallback("KASI solar terms unavailable");
+      if (local) return local;
       throw createHttpError(503, "KASI solar terms unavailable", { code: "KASI_SOLAR_TERMS_UNAVAILABLE" });
     }
 
@@ -605,13 +813,18 @@ export async function handleKasiRoutes(request, env = {}) {
       }, { status: 400 });
     }
 
+    // createHttpError는 부가 정보를 error.payload에 담으므로 진단 필드를 그쪽에서 읽는다.
+    const payload = (error && typeof error.payload === "object") ? error.payload : {};
     return json({
       ok: false,
       maintenance: false,
       fallbackRecommended: false,
-      code: error?.code || "KASI_UNAVAILABLE",
+      code: error?.code || payload.code || "KASI_UNAVAILABLE",
       message: error?.message || "KASI 기준 음양력/절기 데이터를 확인할 수 없습니다.",
       detail: error?.message || null,
+      returnAuthMsg: payload.returnAuthMsg || null,
+      returnReasonCode: payload.returnReasonCode || null,
+      upstreamSnippet: payload.upstreamSnippet || null,
     }, { status: Number(error?.status || 503) || 503 });
   }
 }

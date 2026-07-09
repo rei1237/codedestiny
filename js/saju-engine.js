@@ -5289,6 +5289,7 @@ async function calculate(){
       + timeCorrectionStr;
 
     try { renderManse(p); } catch(e) { console.error('Manse 에러:', e); }
+    try { render24Terms(pillarDateCtx || primaryDateCtx || window.G_KASI_CONTEXT, p); } catch(e) { console.error('Terms24 에러:', e); }
     try { renderIlju(p); } catch(e) { console.error('Ilju 에러:', e); }
     try { renderTenshin(p); } catch(e) { console.error('Tenshin 에러:', e); }
     try { renderJohu(johu); } catch(e) { console.error('Johu 에러:', e); }
@@ -8775,6 +8776,108 @@ function bindManseCharTap(container){
     event.preventDefault();
     openManseCharDetail(node);
   });
+}
+
+// 24절기: lunar-javascript 절기 이름(한자/로마자) → 한국어
+var ST24_NAME_TO_KO = {
+  '冬至':'동지','小寒':'소한','大寒':'대한','立春':'입춘','雨水':'우수','惊蛰':'경칩','驚蟄':'경칩','春分':'춘분',
+  '清明':'청명','淸明':'청명','谷雨':'곡우','穀雨':'곡우','立夏':'입하','小满':'소만','小滿':'소만','芒种':'망종','芒種':'망종',
+  '夏至':'하지','小暑':'소서','大暑':'대서','立秋':'입추','处暑':'처서','處暑':'처서','白露':'백로','秋分':'추분',
+  '寒露':'한로','霜降':'상강','立冬':'입동','小雪':'소설','大雪':'대설',
+  'DONG_ZHI':'동지','XIAO_HAN':'소한','DA_HAN':'대한','LI_CHUN':'입춘','YU_SHUI':'우수','JING_ZHE':'경칩','CHUN_FEN':'춘분','QING_MING':'청명',
+  'GU_YU':'곡우','LI_XIA':'입하','XIAO_MAN':'소만','MANG_ZHONG':'망종','XIA_ZHI':'하지','XIAO_SHU':'소서','DA_SHU':'대서','LI_QIU':'입추',
+  'CHU_SHU':'처서','BAI_LU':'백로','QIU_FEN':'추분','HAN_LU':'한로','SHUANG_JIANG':'상강','LI_DONG':'입동','XIAO_XUE':'소설','DA_XUE':'대설'
+};
+var ST24_HANJA = {
+  '입춘':'立春','우수':'雨水','경칩':'驚蟄','춘분':'春分','청명':'淸明','곡우':'穀雨',
+  '입하':'立夏','소만':'小滿','망종':'芒種','하지':'夏至','소서':'小暑','대서':'大暑',
+  '입추':'立秋','처서':'處暑','백로':'白露','추분':'秋分','한로':'寒露','상강':'霜降',
+  '입동':'立冬','소설':'小雪','대설':'大雪','동지':'冬至','소한':'小寒','대한':'大寒'
+};
+// 월지(月支) → 해당 달을 여는 절입(節入) 절기 (한자·한글 키 모두 지원)
+var ST24_BRANCH_TO_JIEIP = {
+  '寅':'입춘','卯':'경칩','辰':'청명','巳':'입하','午':'망종','未':'소서','申':'입추','酉':'백로','戌':'한로','亥':'입동','子':'대설','丑':'소한',
+  '인':'입춘','묘':'경칩','진':'청명','사':'입하','오':'망종','미':'소서','신':'입추','유':'백로','술':'한로','해':'입동','자':'대설','축':'소한'
+};
+
+// 특정 연도의 24절기를 lunar-javascript로 로컬 계산 (KST +1h 보정, 워커 폴백과 동일 로직)
+function computeSolarTermsForYear(year){
+  var y0 = parseInt(year, 10);
+  if(!y0 || typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return null;
+  var table;
+  try { table = Solar.fromYmdHms(y0, 1, 1, 12, 0, 0).getLunar().getJieQiTable(); }
+  catch(e){ return null; }
+  if(!table || typeof table !== 'object') return null;
+
+  var byName = {};
+  Object.keys(table).forEach(function(raw){
+    var ko = ST24_NAME_TO_KO[String(raw || '').trim()];
+    if(!ko) return;
+    var s = table[raw];
+    if(!s || typeof s.getYear !== 'function') return;
+    var mo = s.getMonth(), d = s.getDay();
+    var hh = (typeof s.getHour === 'function' ? s.getHour() : 0) || 0;
+    var mi = (typeof s.getMinute === 'function' ? s.getMinute() : 0) || 0;
+    // lunar-javascript 절기 시각은 CST(UTC+8) → KST(UTC+9)로 +1시간 보정
+    var kst = new Date(Date.UTC(s.getYear(), mo - 1, d, hh, mi, 0) + 3600 * 1000);
+    if(kst.getUTCFullYear() !== y0) return;
+    if(byName[ko]) return;
+    byName[ko] = { name: ko, month: kst.getUTCMonth() + 1, day: kst.getUTCDate(), hour: kst.getUTCHours(), minute: kst.getUTCMinutes() };
+  });
+
+  var rows = [];
+  for(var k in byName){ if(Object.prototype.hasOwnProperty.call(byName, k)) rows.push(byName[k]); }
+  rows.sort(function(a, b){ return (a.month - b.month) || (a.day - b.day); });
+  return rows;
+}
+
+// 사주 기본 결과에 태어난 해의 24절기 카드를 렌더 (생월 절입 강조)
+function render24Terms(ctx, p){
+  var card = document.getElementById('terms24Card');
+  var grid = document.getElementById('terms24Grid');
+  if(!card || !grid) return;
+
+  var year = null;
+  try { if(ctx && ctx.solar && ctx.solar.year) year = parseInt(ctx.solar.year, 10); } catch(e){}
+  if(!year && window.G_KASI_CONTEXT && window.G_KASI_CONTEXT.solar) year = parseInt(window.G_KASI_CONTEXT.solar.year, 10);
+
+  var terms = computeSolarTermsForYear(year);
+  if(!terms || !terms.length){ card.style.display = 'none'; return; }
+
+  var byName = {};
+  terms.forEach(function(t){ byName[t.name] = t; });
+
+  var monthBranch = (p && p.m && p.m.j) ? String(p.m.j).trim() : null;
+  var currentTerm = monthBranch ? ST24_BRANCH_TO_JIEIP[monthBranch] : null;
+
+  var SEASONS = [
+    { key:'spring', emoji:'🌱', label:'봄', el:'木', names:['입춘','우수','경칩','춘분','청명','곡우'] },
+    { key:'summer', emoji:'☀️', label:'여름', el:'火', names:['입하','소만','망종','하지','소서','대서'] },
+    { key:'autumn', emoji:'🍂', label:'가을', el:'金', names:['입추','처서','백로','추분','한로','상강'] },
+    { key:'winter', emoji:'❄️', label:'겨울', el:'水', names:['입동','소설','대설','동지','소한','대한'] }
+  ];
+
+  var html = '';
+  SEASONS.forEach(function(s){
+    html += '<div class="terms24-season terms24-season--' + s.key + '">';
+    html += '<div class="terms24-season-head">' + s.emoji + ' ' + s.label + '<span>' + s.el + '</span></div>';
+    html += '<div class="terms24-grid">';
+    s.names.forEach(function(n){
+      var t = byName[n];
+      var hanja = ST24_HANJA[n] || '';
+      var dateStr = t ? (t.month + '.' + t.day) : '—';
+      var isCur = (n === currentTerm);
+      html += '<div class="terms24-item' + (isCur ? ' is-current' : '') + '">'
+        + '<span class="terms24-name">' + n + (hanja ? '<i>' + hanja + '</i>' : '') + '</span>'
+        + '<span class="terms24-date">' + dateStr + '</span>'
+        + (isCur ? '<span class="terms24-cur-tag">내 생월</span>' : '')
+        + '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  grid.innerHTML = html;
+  card.style.display = '';
 }
 
 function renderManse(p){

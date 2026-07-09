@@ -207,7 +207,7 @@ export interface SolarTermBoundaryLocal {
   minute: number;
   second: number;
   isoLocal: string;
-  source: "lunar-javascript" | "validated-table" | "fixed-fallback";
+  source: "kasi" | "lunar-javascript" | "validated-table" | "fixed-fallback";
 }
 
 export interface DaewoonStartLocal {
@@ -304,6 +304,11 @@ export interface LocalSajuInput {
   usingCurrentLocation?: boolean;
   birthplace?: string;
   luckPillars?: Array<{ scope?: "daewoon" | "annual" | "monthly" | "daily" | string; stem?: StemKr; branch?: BranchKr; ganji?: string; label?: string }>;
+  // KASI(한국천문연구원) 권위 데이터 주입(어댑터가 /api/kasi/calendar로 프리페치해 채운다).
+  // 음력 입력의 KASI 양력 변환 결과. 있으면 resolveSolarDate가 이를 우선한다.
+  kasiSolarDate?: { year: number; month: number; day: number };
+  // KASI 24절기 원본(한글 절기명 + KST isoLocal). 여러 해가 섞여 있어도 되며, 연·節 기준으로 버킷팅한다.
+  kasiSolarTerms?: Array<{ name?: string; isoLocal?: string }>;
 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -337,6 +342,21 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
 }
 
 function resolveSolarDate(input: LocalSajuInput) {
+  // KASI 음양력 변환 결과가 있으면 권위 값으로 우선한다(로컬 lunar-javascript 변환보다 우선).
+  const kasiSolar = input.kasiSolarDate;
+  if (
+    kasiSolar
+    && Number.isFinite(kasiSolar.year)
+    && Number.isFinite(kasiSolar.month)
+    && Number.isFinite(kasiSolar.day)
+  ) {
+    return {
+      year: Number(kasiSolar.year),
+      month: Number(kasiSolar.month),
+      day: Number(kasiSolar.day),
+    };
+  }
+
   if (input.calendarType === "lunar") {
     const lunarMonth = input.lunarLeap ? -Math.abs(input.month) : Math.abs(input.month);
     const lunar = Lunar.fromYmd(input.year, lunarMonth, input.day);
@@ -591,7 +611,79 @@ function buildTableSolarTermBoundary(
   };
 }
 
-function getSolarTermBoundaries(year: number, timezoneOffsetMinutes: number): SolarTermBoundaryLocal[] {
+// KASI 24절기 중 월 경계가 되는 12개 節(jie)의 한글명 → JIE_BOUNDARY_NAMES 인덱스.
+// 나머지 12개 氣(우수·춘분 등)는 월 경계가 아니므로 무시한다.
+const KASI_JIE_NAME_TO_INDEX: Record<string, number> = {
+  "소한": 0,
+  "입춘": 1,
+  "경칩": 2,
+  "청명": 3,
+  "입하": 4,
+  "망종": 5,
+  "소서": 6,
+  "입추": 7,
+  "백로": 8,
+  "한로": 9,
+  "입동": 10,
+  "대설": 11,
+};
+
+// KASI 절기(한글명 + KST isoLocal)를 연도별 12節 경계 배열로 변환한다.
+// KASI isoLocal은 이미 KST 벽시계 시각이므로 CST 오프셋 보정 없이 그대로 벽시계 파트로 사용한다.
+// 12개 節은 모두 같은 양력 연도(1월 소한 ~ 12월 대설) 안에 들어오므로 양력 연도로 버킷팅한다.
+function buildKasiSolarTermBoundariesByYear(
+  kasiSolarTerms: Array<{ name?: string; isoLocal?: string }> | undefined,
+): Map<number, SolarTermBoundaryLocal[]> {
+  const byYear = new Map<number, SolarTermBoundaryLocal[]>();
+  if (!Array.isArray(kasiSolarTerms) || !kasiSolarTerms.length) return byYear;
+
+  for (const term of kasiSolarTerms) {
+    const name = String(term?.name || "").trim();
+    const index = KASI_JIE_NAME_TO_INDEX[name];
+    if (index == null) continue;
+    const iso = String(term?.isoLocal || "").trim();
+    const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/);
+    if (!m) continue;
+
+    const parts = {
+      year: Number(m[1]),
+      month: Number(m[2]),
+      day: Number(m[3]),
+      hour: Number(m[4]),
+      minute: Number(m[5]),
+      second: Number(m[6] || 0),
+    };
+    if (!Number.isFinite(parts.year) || !Number.isFinite(parts.month) || !Number.isFinite(parts.day)) continue;
+
+    const boundary: SolarTermBoundaryLocal = {
+      index,
+      name: JIE_BOUNDARY_NAMES[index],
+      solarLongitude: JIE_SOLAR_LONGITUDES[index],
+      ...parts,
+      isoLocal: formatIsoLocal(parts),
+      source: "kasi",
+    };
+
+    const bucket = byYear.get(parts.year) || [];
+    if (!bucket.some((b) => b.index === index)) {
+      bucket.push(boundary);
+      byYear.set(parts.year, bucket);
+    }
+  }
+
+  byYear.forEach((bucket) => bucket.sort((a, b) => a.index - b.index));
+  return byYear;
+}
+
+function getSolarTermBoundaries(
+  year: number,
+  timezoneOffsetMinutes: number,
+  kasiByYear?: Map<number, SolarTermBoundaryLocal[]>,
+): SolarTermBoundaryLocal[] {
+  // KASI가 해당 연도의 12節을 모두 제공하면 권위 데이터로 최우선 사용한다.
+  const kasi = kasiByYear?.get(year);
+  if (kasi && kasi.length >= 12) return kasi;
+
   try {
     const boundaries = buildSolarTermBoundariesFromLunar(year, timezoneOffsetMinutes);
     if (boundaries.length >= 12) return boundaries;
@@ -606,12 +698,16 @@ function getSolarTermBoundaries(year: number, timezoneOffsetMinutes: number): So
   return MONTH_BOUNDARIES.map((boundary, index) => buildTableSolarTermBoundary(year, boundary, index, "fixed-fallback"));
 }
 
-function getSolarTermWindow(corrected: { year: number; month: number; day: number; hour: number; minute: number }, timezoneOffsetMinutes: number) {
+function getSolarTermWindow(
+  corrected: { year: number; month: number; day: number; hour: number; minute: number },
+  timezoneOffsetMinutes: number,
+  kasiByYear?: Map<number, SolarTermBoundaryLocal[]>,
+) {
   const birthMs = wallTimeToInstantMs(corrected, timezoneOffsetMinutes);
   const candidates = [
-    ...getSolarTermBoundaries(corrected.year - 1, timezoneOffsetMinutes),
-    ...getSolarTermBoundaries(corrected.year, timezoneOffsetMinutes),
-    ...getSolarTermBoundaries(corrected.year + 1, timezoneOffsetMinutes),
+    ...getSolarTermBoundaries(corrected.year - 1, timezoneOffsetMinutes, kasiByYear),
+    ...getSolarTermBoundaries(corrected.year, timezoneOffsetMinutes, kasiByYear),
+    ...getSolarTermBoundaries(corrected.year + 1, timezoneOffsetMinutes, kasiByYear),
   ].sort((a, b) => boundaryInstantMs(a, timezoneOffsetMinutes) - boundaryInstantMs(b, timezoneOffsetMinutes));
   if (!candidates.length) {
     const fallback = buildTableSolarTermBoundary(corrected.year, MONTH_BOUNDARIES[0], 0, "fixed-fallback");
@@ -640,8 +736,12 @@ function getSolarTermWindow(corrected: { year: number; month: number; day: numbe
   };
 }
 
-function getYearPillar(corrected: { year: number; month: number; day: number; hour: number; minute: number }, timezoneOffsetMinutes: number) {
-  const ipchun = getSolarTermBoundaries(corrected.year, timezoneOffsetMinutes)[1]
+function getYearPillar(
+  corrected: { year: number; month: number; day: number; hour: number; minute: number },
+  timezoneOffsetMinutes: number,
+  kasiByYear?: Map<number, SolarTermBoundaryLocal[]>,
+) {
+  const ipchun = getSolarTermBoundaries(corrected.year, timezoneOffsetMinutes, kasiByYear)[1]
     || buildTableSolarTermBoundary(corrected.year, MONTH_BOUNDARIES[1], 1, "fixed-fallback");
   const pillarYear = wallTimeToInstantMs(corrected, timezoneOffsetMinutes) >= boundaryInstantMs(ipchun, timezoneOffsetMinutes)
     ? corrected.year
@@ -5147,8 +5247,9 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   const trueSolarTimeUsed = Boolean(correctedByTrueSolar);
   const zashiMode = normalizeZashiMode(input);
 
-  const yearPillarResult = getYearPillar(corrected, timezoneInfo.offsetMinutes);
-  const solarTermWindow = getSolarTermWindow(corrected, timezoneInfo.offsetMinutes);
+  const kasiByYear = buildKasiSolarTermBoundariesByYear(input.kasiSolarTerms);
+  const yearPillarResult = getYearPillar(corrected, timezoneInfo.offsetMinutes, kasiByYear);
+  const solarTermWindow = getSolarTermWindow(corrected, timezoneInfo.offsetMinutes, kasiByYear);
   const monthPillar = getMonthPillar(yearPillarResult.pillar.stem, solarTermWindow.active);
   const dayPillarDate = getDayPillarDate(corrected, zashiMode);
   const dayPillar = getDayPillar(dayPillarDate);
