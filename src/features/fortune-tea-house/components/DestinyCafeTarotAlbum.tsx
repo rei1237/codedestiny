@@ -200,7 +200,7 @@ export default function DestinyCafeTarotAlbum({
   const backgroundDesktopUrl = fortuneTeaHouseAssets.backgrounds.mainDesktop;
   const backgroundMobileUrl = fortuneTeaHouseAssets.backgrounds.mainMobile;
   const yeoniCutoutUrl = fortuneTeaHouseAssets.yeoni.transparent.bust;
-  const yeoniCharacterUrl = fortuneTeaHouseAssets.yeoni.transparent.sprite7CharacterR2;
+  const yeoniCharacterUrl = fortuneTeaHouseAssets.yeoni.transparent.sleepingR2;
   const previewCards = useMemo(
     () => albumCards.filter((card) => card.arcana === "major").slice(0, 5),
     [albumCards],

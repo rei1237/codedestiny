@@ -116,6 +116,7 @@ export const fortuneTeaHouseAssets = {
       tarotCard: "/images/fortune-tea-house/yeoni-tarot-card-back-photoroom.webp",
       tarotCardBackR2: teaHouseNoBackgroundAsset("연이 타로 카드-Photoroom.png"),
       sprite7CharacterR2: teaHouseNoBackgroundAsset("연이 스프라이트7-Photoroom.png"),
+      sleepingR2: "/fuctionassets/%EC%9E%90%EB%8A%94%20%EC%97%B0%EC%9D%B4.png",
       tarotCardAnim: teaHouseAsset("연이 타로 카드 24 프레임-Photoroom.png"),
     },
   },
