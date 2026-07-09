@@ -72,7 +72,80 @@
       "Bash(curl -sv \"http://localhost:3005/flower/astrology\" -o \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\32eac362-9646-4381-9442-e80cf6b920ea\\\\scratchpad\\\\flower_astrology.html\")",
       "Bash(node --check \"c:/Users/user/Downloads/codedestiny-main/js/services/destiny-flower-engine.js\")",
       "Bash(node --input-type=module --check)",
-      "Bash(node scripts/_tmp-astro-wheel.mjs)"
+      "Bash(node scripts/_tmp-astro-wheel.mjs)",
+      "Bash(mkdir -p /tmp/neo-assets)",
+      "Bash(curl -sL -o \"/tmp/neo-assets/grades.png\" \"https://assets.code-destiny.com/DestinyWar/%EC%82%AC%EC%9E%90%20%ED%9C%98%EC%9E%A5%20c%EB%B6%80%ED%84%B0ex-Photoroom.png\")",
+      "Bash(curl -sL -o \"/tmp/neo-assets/resultstamp.png\" \"https://assets.code-destiny.com/DestinyWar/%EC%82%AC%EC%9E%90%20%ED%9C%98%EC%9E%A5%20%EB%8F%84%EC%9E%A5-Photoroom.png\")",
+      "Bash(file /tmp/neo-assets/*.png)",
+      "Bash(rm -rf /tmp/neo-assets)",
+      "Bash(node --check worker/routes/new-year-ai.js)",
+      "Bash(grep -iE \"assert|PASS|FAIL|ok$|error|MISSING_CATEGORIES|category\")",
+      "Bash(node --check scripts/verify-new-year-ai-flow.mjs)",
+      "Bash(curl -s -D - -o /dev/null \"http://localhost:3001/astrology-ai/result?preview=success\" --max-time 60)",
+      "Bash(node \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\61583250-05d9-4a80-b1c0-f0b8e219fcf5\\\\scratchpad\\\\verify-round2.mjs\")",
+      "Bash(node .tmp-verify/verify-round2.mjs)",
+      "Bash(cp .tmp-verify/verify-round2.mjs /tmp/x.mjs)",
+      "Bash(cp \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\61583250-05d9-4a80-b1c0-f0b8e219fcf5\\\\scratchpad\\\\verify-round2.mjs\" .tmp-verify/verify-round2.mjs)",
+      "Bash(git check-ignore *)",
+      "Bash(node .claude/skills/impeccable/scripts/pin.mjs pin audit)",
+      "Bash(node .claude/skills/impeccable/scripts/pin.mjs pin critique)",
+      "Bash(node .claude/skills/impeccable/scripts/pin.mjs pin polish)",
+      "Bash(curl -s -o /dev/null -w \"live.js status: %{http_code}\\\\n\" http://localhost:8400/live.js --max-time 3)",
+      "Bash(curl -s -D - -o /dev/null --max-time 3 http://localhost:3000/)",
+      "Bash(node .claude/skills/impeccable/scripts/live-status.mjs)",
+      "Bash(curl -s -D - -o /tmp/cd_home.html --max-time 10 http://localhost:3000/)",
+      "Bash(echo \"tsc exit: $?\")",
+      "Bash(npx --no-install playwright --version)",
+      "Bash(node \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/9278478b-d292-4a28-86c9-efe23f760e7e/scratchpad/shot.mjs\")",
+      "Bash(node .claude/skills/impeccable/scripts/context.mjs --target app/love-secret-ai/result/LoveSecretAiResultClient.tsx)",
+      "Bash(node _tmp_shot.mjs)",
+      "Bash(node .claude/skills/impeccable/scripts/live-browser.js --help)",
+      "Bash(node \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/shot.mjs\")",
+      "Bash(NODE_PATH=\"c:/Users/user/Downloads/codedestiny-main/node_modules\" node --experimental-loader)",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/shot.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_shot_tmp.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_shot_tmp.mjs\")",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/probe.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_probe_tmp.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_probe_tmp.mjs\")",
+      "Bash(node \"C:\\\\Users\\\\user\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-user-Downloads-codedestiny-main\\\\3d32f2e6-9be7-4fa4-b993-0a2f983dab56\\\\scratchpad\\\\nyai-domain-check.mjs\")",
+      "Bash(node \"C:\\\\Users\\\\user\\\\Downloads\\\\codedestiny-main\\\\_nyai_domain_check.mjs\")",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/crop.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_crop_tmp.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_crop_tmp.mjs\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:3000/love-secret-ai/result?preview=success\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -L \"http://localhost:3000/love-secret-ai/result?preview=success\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:3000/love-secret-ai/result\")",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/point.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_point_tmp.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_point_tmp.mjs\")",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/circle.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_circle_tmp.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_circle_tmp.mjs\")",
+      "Bash(cp \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/c5e0ae62-de1c-40bc-8617-b9764dd30501/scratchpad/point2.mjs\" \"c:/Users/user/Downloads/codedestiny-main/_p2.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_p2.mjs\")",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(git --no-pager diff --stat app/_lib/billing-client.ts app/hooks/useCoinGate.ts lib/payment/feature-billing-type.ts)",
+      "Bash(node --check worker/routes/kasi.js)",
+      "Bash(node \"C:/Users/user/AppData/Local/Temp/claude/c--Users-user-Downloads-codedestiny-main/6cb2ad1d-cedc-4cec-bd6d-e4e40c07117a/scratchpad/kasi_terms_test.mjs\")",
+      "Bash(node \"c:/Users/user/Downloads/codedestiny-main/_kasi_terms_test.mjs\")",
+      "Bash(node scripts/verify-kasi-calendar-conversion.cjs --mock)",
+      "Bash(node scripts/test-saju-solar-term-regression.mjs)",
+      "Bash(curl -s -m 25 -X POST 'https://code-destiny.com/api/kasi/calendar' -H 'Content-Type: application/json' -d '{\"method\":\"get24DivisionsInfo\",\"params\":{\"solYear\":\"1990\",\"numOfRows\":\"30\"}}' -w '\\\\n---HTTP:%{http_code} time:%{time_total}s---\\\\n')",
+      "Bash(curl -s -m 25 -X POST 'https://code-destiny.com/api/kasi/calendar' -H 'Content-Type: application/json' -d '{\"method\":\"getLunCalInfo\",\"params\":{\"solYear\":\"1997\",\"solMonth\":\"02\",\"solDay\":\"10\"}}' -w '\\\\n---HTTP:%{http_code} time:%{time_total}s---\\\\n')"
+    ],
+    "additionalDirectories": [
+      "\\tmp"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
     ]
   }
 }

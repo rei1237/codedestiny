@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-09T00:00:00.000Z",
+  "title": "Design System: Code Destiny",
+  "extensions": {
+    "colorMeta": {
+      "yeon-accent": { "role": "primary", "displayName": "Rose Crimson", "canonical": "#b31955" },
+      "yeon-gold": { "role": "secondary", "displayName": "Champagne Gold — Yeon", "canonical": "#ead089" },
+      "neo-accent": { "role": "primary", "displayName": "Twilight Violet", "canonical": "#c4b5fd" },
+      "neo-gold": { "role": "secondary", "displayName": "Champagne Gold — Neo", "canonical": "#e8d5a3" },
+      "yeon-bg": { "role": "neutral", "displayName": "Yeon Cream", "canonical": "#fffaf7" },
+      "yeon-text": { "role": "neutral", "displayName": "Yeon Ink", "canonical": "#3c1830" },
+      "neo-bg": { "role": "neutral", "displayName": "Neo Midnight Ink", "canonical": "#0a0818" },
+      "neo-text": { "role": "neutral", "displayName": "Neo Pearl Violet", "canonical": "#f4eeff" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "페이지/섹션 헤딩 전용." },
+      "premium": { "displayName": "Premium", "purpose": "AI 상담 결과 장문 프로즈(AiResultProse) 전용." },
+      "body": { "displayName": "Body", "purpose": "일반 본문, 한글 가독성 우선 시스템 폰트 스택." },
+      "label": { "displayName": "Label", "purpose": "토글/칩 등 소형 인터랙티브 라벨." }
+    },
+    "shadows": [
+      { "name": "yeon-ambient", "value": "0 12px 24px rgba(150,72,104,.12), inset 0 1px 0 rgba(255,255,255,.9)", "purpose": "연이 카드/표면의 은은한 로즈 톤 그림자." },
+      { "name": "neo-ambient", "value": "0 14px 26px rgba(0,0,0,.34), inset 0 1px 0 rgba(228,214,255,.12)", "purpose": "네오 카드/표면의 그림자." },
+      { "name": "violet-neon", "value": "0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35)", "purpose": "네오 인터랙티브 요소의 기본 글로우." },
+      { "name": "violet-neon-focus", "value": "0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45)", "purpose": "포커스 상태 글로우." },
+      { "name": "moon-glow", "value": "0 0 40px -5px rgba(216,179,108,.35), 0 0 80px -20px rgba(156,135,212,.25)", "purpose": "네오 시그니처 글로우, 신비 요소(달/별자리)에 사용." }
+    ],
+    "motion": [
+      { "name": "ease-page-turn", "value": "ease", "purpose": "PagedResultViewer 페이지 전환 (300ms)." },
+      { "name": "ease-fade-in-up", "value": "cubic-bezier(0.18, 0.83, 0.34, 1)", "purpose": "등장 애니메이션 기본 이징." },
+      { "name": "glow-pulse", "value": "glow-pulse 2.2s ease-in-out infinite", "purpose": "바이올렛 네온 펄스 (tailwind.config.js keyframes)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button (Yeon)",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "연이 모드 CTA 버튼 — 크림/골드/로즈 그라디언트.",
+      "html": "<button class=\"ds-btn-primary-yeon\">지금 확인하기</button>",
+      "css": ".ds-btn-primary-yeon { background: linear-gradient(135deg, #fff8dc 0%, #ead089 48%, #f4bed1 100%); color: #3c1830; padding: 12px 28px; border-radius: 999px; border: none; font-weight: 700; box-shadow: 0 12px 24px rgba(150,72,104,.12); transition: transform 0.2s, box-shadow 0.2s; } .ds-btn-primary-yeon:hover { transform: translateY(-2px); } .ds-btn-primary-yeon:focus-visible { outline: 2px solid #b31955; outline-offset: 2px; }"
+    },
+    {
+      "name": "Primary Button (Neo)",
+      "kind": "button",
+      "refersTo": "button-primary-neo",
+      "description": "네오 모드 CTA 버튼 — 바이올렛/골드 글로우.",
+      "html": "<button class=\"ds-btn-primary-neo\">지금 확인하기</button>",
+      "css": ".ds-btn-primary-neo { background: linear-gradient(145deg, rgba(56,47,118,.98), rgba(31,24,74,.92), rgba(246,211,132,.9)); color: #090718; padding: 12px 28px; border-radius: 999px; border: none; font-weight: 700; box-shadow: 0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35); transition: box-shadow 0.2s; } .ds-btn-primary-neo:hover, .ds-btn-primary-neo:focus-visible { box-shadow: 0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45); }"
+    },
+    {
+      "name": "Toggle Pill",
+      "kind": "chip",
+      "refersTo": "toggle-pill",
+      "description": "PagedResultViewer의 페이지/전체보기 모드 토글.",
+      "html": "<div class=\"ds-toggle-pill\"><button aria-pressed=\"true\">페이지</button><button aria-pressed=\"false\">전체</button></div>",
+      "css": ".ds-toggle-pill { display: inline-flex; gap: 4px; padding: 4px; border: 1px solid currentColor; border-radius: 999px; opacity: .92; } .ds-toggle-pill button { border: 0; background: transparent; color: inherit; font-size: .78rem; font-weight: 700; padding: 6px 12px; border-radius: 999px; cursor: pointer; opacity: .62; } .ds-toggle-pill button[aria-pressed='true'] { opacity: 1; background: color-mix(in srgb, currentColor 18%, transparent); }"
+    },
+    {
+      "name": "Result Card",
+      "kind": "card",
+      "description": "AI 상담 결과를 담는 표면 — 연이/네오 공용 구조, 색만 페르소나별로 교체.",
+      "html": "<div class=\"ds-card\"><p>결과 본문…</p></div>",
+      "css": ".ds-card { background: rgba(255,255,255,.96); color: #3c1830; border: 1px solid rgba(216,63,120,.16); border-radius: 16px; padding: 24px; box-shadow: 0 12px 24px rgba(150,72,104,.12), inset 0 1px 0 rgba(255,255,255,.9); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "달빛 아래 두 권의 책",
+    "overview": "Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권의 책을 가진 서재다. 낮에는 연이의 밝은 꽃 표지(크림·로즈·골드)가, 밤에는 네오의 달빛 다크 표지(미드나잇 잉크·라벤더·샴페인 골드)가 같은 이야기를 다른 조명으로 들려준다. 두 표지는 서로 다른 무드지만 같은 목소리 — 따뜻함, 명리학·점성술에 근거한 전문성, 그리고 몰입감 있는 신비로움 — 를 낸다.",
+    "keyCharacteristics": [
+      "하나의 서비스, 두 개의 표지(연이/네오) — 절대 반쪽만 전환되지 않는다",
+      "그림자보다 글로우: 깊이는 회색 드롭섀도가 아니라 브랜드 색 글로우로 표현",
+      "구조(레이아웃 CSS)와 색(caller className)의 분리",
+      "부드러운 필(pill) 형태의 인터랙티브 요소"
+    ],
+    "rules": [
+      { "name": "The Two Covers Rule", "body": "배경만 바꾸고 텍스트 색을 조정하지 않는 반쪽 전환은 금지. cd-* 토큰 세트는 항상 bg/surface/text/accent/gold를 통째로 같이 교체한다.", "section": "colors" },
+      { "name": "The One Accent Rule", "body": "각 모드는 강조색을 하나만 쓴다(연이=Rose Crimson, 네오=Twilight Violet). 골드는 보조 포인트로만.", "section": "colors" },
+      { "name": "The Quiet Body Rule", "body": "본문/Body는 항상 시스템 한글 폰트 스택을 우선 로드하고, 브랜드 서체는 헤딩과 상담 결과 프로즈에만 국한한다.", "section": "typography" },
+      { "name": "The Glow-Not-Shadow Rule", "body": "회색 드롭섀도 대신 브랜드 색 글로우로 깊이를 표현한다. 평상시는 플랫, 상태 변화에서만 글로우가 등장한다.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do 연이/네오 전환 시 bg·surface·text·accent·gold를 한 세트로 같이 바꾼다",
+      "Do 상태 변화(hover/focus)에서만 글로우를 올린다",
+      "Do 인터랙티브 소형 요소는 pill(999px)로 통일한다",
+      "Do 본문 텍스트는 명암비 4.5:1 이상을 유지한다"
+    ],
+    "donts": [
+      "Don't 제네릭 AI SaaS 룩(그라디언트 텍스트, 사이드스트라이프, 동일 카드 그리드, eyebrow/번호 스캐폴딩)을 쓰지 않는다",
+      "Don't 클리셰 타로 사이트의 상투적 보라 그라디언트 배경을 쓰지 않는다",
+      "Don't 배경만 다크로 바꾸고 텍스트 색은 그대로 두는 반쪽 오버라이드를 하지 않는다",
+      "Don't 회색 드롭섀도를 기본 그림자로 쓰지 않는다",
+      "Don't 강조색을 모드당 2개 이상 쓰지 않는다"
+    ]
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "hook": {
+    "enabled": true,
+    "limits": {
+      "maxFindings": 5,
+      "maxChars": 8000
+    }
+  },
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-color",
+        "value": "#fbbf24",
+        "reason": "User confirmed #fbbf24 is intentional",
+        "createdAt": "2026-07-09T00:32:36.647Z"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "#ffffff",
+        "reason": "User confirmed #ffffff is intentional",
+        "createdAt": "2026-07-09T00:32:36.752Z"
+      }
+    ]
+  }
+}
