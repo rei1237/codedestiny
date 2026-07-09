@@ -3032,6 +3032,7 @@ function resolveListSort(sort) {
 
 async function handleInsightsList(request, env) {
   await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const { status, includeTrash, search, sort, page, pageSize } = parseQuery(request.url);
   const query = {};
@@ -3104,6 +3105,7 @@ async function handleInsightsCreate(request, env) {
 
 async function handleInsightsGetById(path, request, env) {
   await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const id = parseInsightId(path);
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -3322,6 +3324,7 @@ function buildContentListQuery(filters) {
 
 async function handleContentList(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const filters = parseContentListQuery(request.url);
   const query = buildContentListQuery(filters);
@@ -3433,6 +3436,7 @@ async function handleContentCreate(request, env) {
 
 async function handleContentGetById(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const found = await findContentByAdminPath(path, env);
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -3452,6 +3456,7 @@ async function handleContentGetById(path, request, env) {
 
 async function handleContentGetBySlug(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const slug = parseAdminContentSlug(path);
   if (!slug) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -3637,6 +3642,7 @@ function buildRestorePayloadFromRevision(revision) {
 
 async function handleContentRevisions(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const id = await resolveAdminContentId(path.replace(/\/revisions$/i, ""), env);
   if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -4051,6 +4057,7 @@ async function purgeCloudflareContentCache(env, urls = []) {
 
 async function handleContentPublishStatus(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const found = await findContentByAdminPath(path.replace(/\/publish-status$/i, ""), env);
   if (!found) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -4075,6 +4082,7 @@ async function handleContentPublishStatus(path, request, env) {
 
 async function handleContentCachePurge(path, request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const purgeRecord = await findContentByAdminPath(path.replace(/\/cache-purge$/i, ""), env);
   if (!purgeRecord) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
@@ -4110,7 +4118,7 @@ async function handleContentCachePurge(path, request, env) {
 
 async function handleContentDiag(request, env) {
   const adminContext = await authorizeAdminRequest(request, env);
-  const dbConn = await adminMongoRead(env, async () => connectDb(env));
+  const dbConn = await connectDb(env);
 
   const collections = await adminMongoRead(env, async () => {
     const conn = await connectDb(env);
@@ -4508,6 +4516,7 @@ function toContentOverrideItem(doc) {
 
 async function handleSiteContentOverrideList(request, env) {
   await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const sourceRaw = String(new URL(request.url).searchParams.get("source") || "").toLowerCase();
   const query = CONTENT_OVERRIDE_FIELD_KEYS[sourceRaw] ? { source: sourceRaw } : {};
@@ -4520,6 +4529,7 @@ async function handleSiteContentOverrideList(request, env) {
 
 async function handleSiteContentOverrideGet(path, request, env) {
   await authorizeAdminRequest(request, env);
+  await connectDb(env);
 
   const parsed = parseSiteContentOverridePath(path);
   if (!parsed) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
