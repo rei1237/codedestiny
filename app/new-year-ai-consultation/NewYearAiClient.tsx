@@ -16,6 +16,7 @@ import AiResultProse from "@/components/fortune/AiResultProse";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
+import { splitGanji, tenGodOfStem } from "@/lib/five-element-colors";
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -84,6 +85,15 @@ type EnsureAccessResult =
   | { ok: false; reason: "INVALID_INPUT"; message: string }
   | { ok: false; reason?: string; message?: string };
 
+type MonthDomainSignal = { level: string; basis: string };
+type MonthlyDomains = {
+  overall?: MonthDomainSignal;
+  money?: MonthDomainSignal;
+  love?: MonthDomainSignal;
+  career?: MonthDomainSignal;
+  health?: MonthDomainSignal;
+};
+
 type MonthlyFlowRow = {
   month: number;
   pillar: string;
@@ -92,6 +102,7 @@ type MonthlyFlowRow = {
   domain: string;
   relationToDayBranch: string;
   timing: string;
+  domains?: MonthlyDomains | null;
 };
 
 type TargetYearInfo = {
@@ -149,6 +160,12 @@ const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string; prompt: s
   { value: "custom", label: "직접 질문", glyph: "問", prompt: "새해에 가장 깊게 들여다보고 싶은 흐름을 그대로 적어 주세요." },
 ];
 
+const QUESTION_PLACEHOLDER_EXAMPLES = [
+  "이직해도 될까요?",
+  "올해 재회 가능성이 있을까요?",
+  "이 사업을 계속해야 할까요?",
+];
+
 function getFocusOption(value: FocusAreaType) {
   return FOCUS_AREA_OPTIONS.find((option) => option.value === value) || FOCUS_AREA_OPTIONS[0];
 }
@@ -187,6 +204,11 @@ function createIdempotencyKey() {
   return `nyai-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
+function isGenuineCustomQuestion(question: string) {
+  const trimmed = question.trim();
+  return trimmed.length > 0 && !FOCUS_AREA_OPTIONS.some((option) => option.prompt === trimmed);
+}
+
 function buildConsultationPayload(form: ConsultationForm) {
   const focusOption = getFocusOption(form.focusArea);
   return {
@@ -200,6 +222,7 @@ function buildConsultationPayload(form: ConsultationForm) {
     targetYear: Number(form.targetYear),
     focusArea: form.focusArea,
     question: form.question.trim() || focusOption.prompt,
+    hasCustomQuestion: isGenuineCustomQuestion(form.question),
     locale: "ko",
   };
 }
@@ -287,8 +310,36 @@ function splitAssistantSections(content: string) {
   });
 }
 
-function AssistantMessageContent({ content }: { content: string }) {
-  const sections = splitAssistantSections(content);
+type ParsedSection = { title: string; body: string };
+type MonthLetter = { ganji: string; keyword: string; body: string };
+
+const QUESTION_ANSWER_TITLE = "질문에 대한 답변";
+const MONTH_LETTER_HEADING_RE = /^(\d{1,2})월\s*[·∙・-]\s*(\S+)\s*[·∙・-]\s*(.+)$/;
+const CATEGORY_TITLE_PREFIXES = ["연애·재회", "재물·수입", "직업·이직", "건강·멘탈", "가족·관계", "학업·성장"];
+
+function classifySections(sections: ParsedSection[]) {
+  const monthLetters = new Map<number, MonthLetter>();
+  const restSections: ParsedSection[] = [];
+  let questionAnswer: ParsedSection | null = null;
+  for (const section of sections) {
+    if (!questionAnswer && section.title.includes(QUESTION_ANSWER_TITLE)) {
+      questionAnswer = section;
+      continue;
+    }
+    const monthMatch = section.title.match(MONTH_LETTER_HEADING_RE);
+    const month = monthMatch ? Number(monthMatch[1]) : NaN;
+    if (monthMatch && month >= 1 && month <= 12 && !monthLetters.has(month)) {
+      monthLetters.set(month, { ganji: monthMatch[2], keyword: monthMatch[3], body: section.body });
+      continue;
+    }
+    restSections.push(section);
+  }
+  const isCategorySection = (title: string) => CATEGORY_TITLE_PREFIXES.some((prefix) => title.startsWith(prefix));
+  restSections.sort((a, b) => Number(isCategorySection(b.title)) - Number(isCategorySection(a.title)));
+  return { questionAnswer, monthLetters, restSections };
+}
+
+function AssistantMessageContent({ content, sections }: { content: string; sections: ParsedSection[] }) {
   if (!sections.length) {
     return <AiResultProse value={content} />;
   }
@@ -304,11 +355,66 @@ function AssistantMessageContent({ content }: { content: string }) {
   );
 }
 
+function NewYearQuestionAnswerCard({ name, question, answer }: { name: string; question: string; answer: string }) {
+  return (
+    <section className="nyai-question-answer" data-pdf-section="question-answer" aria-label="나만의 질문에 대한 답변">
+      <span className="nyai-eyebrow">{name ? `${name}님의 질문` : "나만의 질문"}</span>
+      <blockquote className="nyai-qa-question">“{question}”</blockquote>
+      <AiResultProse value={answer} className="nyai-qa-answer" />
+    </section>
+  );
+}
+
+function MonthlyLetterAccordion({ rows, letters }: { rows: MonthlyFlowRow[]; letters: Map<number, MonthLetter> }) {
+  const months = rows.length === 12
+    ? rows.map((row) => row.month)
+    : Array.from(letters.keys()).sort((a, b) => a - b);
+  if (!months.length) return null;
+  return (
+    <section className="nyai-letter-accordion" data-pdf-section="monthly-letters" aria-label="새해 상담 편지지 — 월을 누르면 펼쳐집니다">
+      <div className="nyai-month-head">
+        <strong>새해 상담 편지지</strong>
+        <span>월을 누르면 그 달의 편지가 펼쳐집니다</span>
+      </div>
+      <div className="nyai-letter-grid">
+        {months.map((month) => {
+          const row = rows.find((item) => item.month === month);
+          const letter = letters.get(month);
+          const ganji = letter?.ganji || row?.pillar || "";
+          const keyword = letter?.keyword || row?.domain || "흐름";
+          return (
+            <details className="nyai-letter-card" key={month}>
+              <summary>
+                <span className="nyai-letter-month">{month}월</span>
+                {ganji ? <span className="nyai-letter-ganji">{ganji}</span> : null}
+                <span className="nyai-letter-keyword">{keyword}</span>
+              </summary>
+              <div className="nyai-letter-body">
+                {letter?.body ? (
+                  <AiResultProse value={letter.body} />
+                ) : (
+                  <p>이 달의 상세 문단은 아래 편지 전체에서 확인해 주세요.</p>
+                )}
+              </div>
+            </details>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
   if (!profile) return null;
   const pillars = Array.isArray(profile.pillars) ? profile.pillars.filter((item) => item.value) : [];
   const birth = profile.birthInfo || {};
   const highlights = profile.monthlyHighlights || {};
+  const dayStem = splitGanji(pillars.find((item) => item.label === "일주")?.value || "").stem;
+  const tenGodOf = (label: string, ganji: string) => {
+    if (label === "일주") return "일간";
+    const stem = splitGanji(ganji).stem;
+    return stem && dayStem ? tenGodOfStem(dayStem, stem) || undefined : undefined;
+  };
   return (
     <section className="nyai-saju-profile" data-pdf-section="saju-profile">
       <div className="nyai-saju-head">
@@ -320,7 +426,7 @@ function SajuProfilePanel({ profile }: { profile: SajuProfile | null }) {
       </div>
       <SajuPillarTable
         className="nyai-pillar-grid"
-        pillars={pillars.map((pillar) => ({ label: pillar.label, ganji: pillar.value }))}
+        pillars={pillars.map((pillar) => ({ label: pillar.label, ganji: pillar.value, tenGod: tenGodOf(pillar.label, pillar.value) }))}
       />
       <div className="nyai-saju-facts">
         <span>일간 {profile.dayMaster || "미산출"}</span>
@@ -428,15 +534,54 @@ function quarterSummaries(rows: MonthlyFlowRow[]) {
   });
 }
 
-function MonthlyFlowCalendar({ rows }: { rows: MonthlyFlowRow[] }) {
+const DOMAIN_ORDER: { key: keyof MonthlyDomains; label: string; glyph: string }[] = [
+  { key: "overall", label: "총운", glyph: "✦" },
+  { key: "money", label: "재물", glyph: "◈" },
+  { key: "love", label: "애정", glyph: "❤" },
+  { key: "career", label: "직업", glyph: "▲" },
+  { key: "health", label: "건강", glyph: "✚" },
+];
+const DOMAIN_LEVEL_CLASS: Record<string, string> = { 강: "strong", 중: "mid", 약: "weak" };
+
+function MonthDomainCards({ domains }: { domains: MonthlyDomains }) {
+  const cards = DOMAIN_ORDER.map((item) => ({ ...item, signal: domains[item.key] })).filter((item) => item.signal);
+  if (!cards.length) return null;
+  return (
+    <div className="nyai-domain-grid" role="list" aria-label="도메인별 강약과 근거">
+      {cards.map(({ key, label, glyph, signal }) => {
+        const level = signal?.level || "중";
+        return (
+          <div className="nyai-domain-card" role="listitem" key={key}>
+            <div className="nyai-domain-top">
+              <span className="nyai-domain-glyph" aria-hidden="true">{glyph}</span>
+              <span className="nyai-domain-label">{label}</span>
+              <span className={`nyai-domain-level nyai-domain-level--${DOMAIN_LEVEL_CLASS[level] || "mid"}`}>{level}</span>
+            </div>
+            <div
+              className={`nyai-domain-bar nyai-domain-bar--${DOMAIN_LEVEL_CLASS[level] || "mid"}`}
+              role="img"
+              aria-label={`${label} ${level}`}
+            >
+              <i />
+            </div>
+            {signal?.basis ? <p className="nyai-domain-basis">{signal.basis}</p> : null}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MonthlyFlowCalendar({ rows, letters }: { rows: MonthlyFlowRow[]; letters: Map<number, MonthLetter> }) {
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   if (rows.length !== 12) return null;
   const selected = selectedMonth ? rows.find((row) => row.month === selectedMonth) : null;
+  const selectedLetter = selected ? letters.get(selected.month) : null;
   return (
-    <section className="nyai-month-calendar" data-pdf-section="monthly-calendar" aria-label="월별 운세 캘린더 — 달을 누르면 해설이 열립니다">
+    <section className="nyai-month-calendar" data-pdf-section="monthly-calendar" aria-label="월별 운세 캘린더 — 달을 누르면 도메인별 운세가 열립니다">
       <div className="nyai-month-head">
         <strong>12개월 운세 캘린더</strong>
-        <span>달을 누르면 그 달의 간지와 흐름이 열립니다</span>
+        <span>달을 누르면 총운·재물·애정·직업·건강과 그 달의 조언이 열립니다</span>
       </div>
       <div className="nyai-quarter-row">
         {quarterSummaries(rows).map((item) => (
@@ -456,6 +601,7 @@ function MonthlyFlowCalendar({ rows }: { rows: MonthlyFlowRow[] }) {
             className={`nyai-month-cell nyai-month-cell--${row.timing === "기회" ? "opportunity" : row.timing === "주의" ? "caution" : "maintain"}${selectedMonth === row.month ? " is-selected" : ""}`}
             onClick={() => setSelectedMonth(selectedMonth === row.month ? null : row.month)}
             aria-label={`${row.month}월 ${row.pillar} ${row.timing}`}
+            aria-pressed={selectedMonth === row.month}
           >
             <strong>{row.month}월</strong>
             <span>{row.pillar}</span>
@@ -466,10 +612,16 @@ function MonthlyFlowCalendar({ rows }: { rows: MonthlyFlowRow[] }) {
       {selected ? (
         <div className="nyai-month-detail">
           <strong>{selected.month}월 · {selected.pillar} ({selected.element})</strong>
-          <p>
-            십신 {selected.tenGod || "미산출"} — {selected.domain || "생활 리듬 조정"}.
-            {" "}{selected.relationToDayBranch}
-          </p>
+          <p className="nyai-month-meta">십신 {selected.tenGod || "미산출"} — {selected.domain || "생활 리듬 조정"}. {selected.relationToDayBranch}</p>
+          {selected.domains ? (
+            <MonthDomainCards domains={selected.domains} />
+          ) : null}
+          {selectedLetter?.body ? (
+            <div className="nyai-month-letter">
+              <span className="nyai-month-letter-label">{selected.month}월 조언 편지</span>
+              <AiResultProse value={selectedLetter.body} />
+            </div>
+          ) : null}
         </div>
       ) : (
         <p className="nyai-month-hint">색은 계산된 판정입니다 — 밝은 칸은 기회, 붉은 칸은 주의, 회색 칸은 정비의 달.</p>
@@ -580,8 +732,8 @@ const NYAI_SEASON_CSS = `
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 8px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: var(--nyai-radius-pill, 999px);
   border: 1px solid rgba(255, 226, 191, 0.25);
   background: rgba(46, 19, 15, 0.55);
   color: inherit;
@@ -695,7 +847,11 @@ const NYAI_SEASON_CSS = `
 }
 .nyai-month-cell--caution small { color: #fca5a5; }
 
-.nyai-month-cell--maintain small { opacity: 0.6; }
+.nyai-month-cell--maintain {
+  border-color: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.14);
+}
+.nyai-month-cell--maintain small { color: rgba(226, 232, 240, 0.85); opacity: 0.85; }
 
 .nyai-month-cell.is-selected {
   transform: translateY(-2px);
@@ -724,6 +880,172 @@ const NYAI_SEASON_CSS = `
   margin: 0;
   font-size: 11px;
   opacity: 0.6;
+}
+
+.nyai-month-meta {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+  opacity: 0.8;
+}
+
+.nyai-domain-grid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.nyai-domain-card {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 226, 191, 0.18);
+  background: rgba(255, 226, 191, 0.05);
+  padding: 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nyai-domain-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nyai-domain-glyph { font-size: 12px; opacity: 0.75; }
+.nyai-domain-label { font-size: 12.5px; font-weight: 700; }
+.nyai-domain-level {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 1px 7px;
+  border-radius: 999px;
+}
+.nyai-domain-level--strong { color: var(--nyai-accent, #fbbf24); background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.16)); }
+.nyai-domain-level--mid { color: inherit; background: rgba(255, 226, 191, 0.12); opacity: 0.9; }
+.nyai-domain-level--weak { color: inherit; background: rgba(148, 163, 184, 0.16); opacity: 0.8; }
+
+.nyai-domain-bar {
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 226, 191, 0.12);
+  overflow: hidden;
+}
+.nyai-domain-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.nyai-domain-bar--strong i { width: 100%; background: var(--nyai-accent, #fbbf24); }
+.nyai-domain-bar--mid i { width: 60%; background: rgba(255, 226, 191, 0.5); }
+.nyai-domain-bar--weak i { width: 32%; background: rgba(148, 163, 184, 0.55); }
+
+.nyai-domain-basis {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  opacity: 0.82;
+}
+
+.nyai-month-letter {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 226, 191, 0.16);
+  display: grid;
+  gap: 6px;
+}
+
+.nyai-month-letter-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-question-answer {
+  border: 2px solid var(--nyai-accent, #fbbf24);
+  border-radius: var(--nyai-radius-md, 16px);
+  padding: 16px;
+  background: var(--nyai-accent-soft, rgba(251, 191, 36, 0.1));
+  display: grid;
+  gap: 10px;
+}
+
+.nyai-qa-question {
+  margin: 0;
+  padding: 0.1em 0 0.1em 1em;
+  border-left: 3px solid var(--nyai-accent, #fbbf24);
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.nyai-letter-accordion {
+  border: 1px solid rgba(255, 226, 191, .22);
+  border-radius: var(--nyai-radius-md, 16px);
+  padding: 14px;
+  background: rgba(31, 12, 9, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.nyai-letter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.nyai-letter-card {
+  grid-column: span 1;
+  border-radius: var(--nyai-radius-md, 16px);
+  border: 1px solid rgba(255, 226, 191, .18);
+  background: rgba(255, 226, 191, .05);
+}
+
+.nyai-letter-card[open] {
+  grid-column: 1 / -1;
+  border-color: var(--nyai-accent, #fbbf24);
+}
+
+.nyai-letter-card summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.nyai-letter-card summary::-webkit-details-marker { display: none; }
+
+.nyai-letter-month {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.nyai-letter-ganji {
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.nyai-letter-keyword {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--nyai-accent, #fbbf24);
+  flex-basis: 100%;
+}
+
+.nyai-letter-card[open] .nyai-letter-keyword {
+  flex-basis: auto;
+}
+
+.nyai-letter-body {
+  padding: 0 12px 14px;
+  font-size: 13px;
 }
 
 .nyai-recent-list {
@@ -764,6 +1086,7 @@ const NYAI_SEASON_CSS = `
   .nyai-quarter-row { grid-template-columns: repeat(2, 1fr); }
   .nyai-month-grid { grid-template-columns: repeat(3, 1fr); }
   .nyai-year-chips { grid-template-columns: 1fr 1fr; }
+  .nyai-letter-grid { grid-template-columns: repeat(2, 1fr); }
 }
 `;
 
@@ -869,6 +1192,13 @@ export default function NewYearAiConsultationPage() {
     [form.focusArea],
   );
   const assistantMessages = useMemo(() => messages.filter((message) => message.role === "assistant"), [messages]);
+  const userQuestionText = useMemo(() => messages.find((message) => message.role === "user")?.content || "", [messages]);
+  const [placeholderTick, setPlaceholderTick] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setPlaceholderTick((tick) => tick + 1), 2800);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const resetAttempt = useCallback(() => {
     if (isBusy) return;
@@ -1123,6 +1453,7 @@ export default function NewYearAiConsultationPage() {
       <section className="nyai-panel nyai-intro" aria-label="신년운세 AI 상담">
         <div className="nyai-orbit" aria-hidden="true" />
         <div className="nyai-consult-card" aria-label="상담 준비 요약">
+          <span className="nyai-eyebrow">상담 대상자 요약</span>
           <div className="nyai-consult-year">
             <span>상담 연도</span>
             <strong>{form.targetYear || "미정"}</strong>
@@ -1140,8 +1471,8 @@ export default function NewYearAiConsultationPage() {
           </div>
         </div>
         <div className="nyai-intro-copy">
-          <div className="nyai-kicker"><Moon size={16} /> 신년운세 AI 상담</div>
-          <h1>신년운세 AI 상담</h1>
+          <span className="nyai-eyebrow">서비스 소개</span>
+          <h1><Moon size={20} aria-hidden="true" /> 신년운세 AI 상담</h1>
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
           <div className="nyai-hero-badges" aria-label="상담 구성">
             <span>사주 원국</span>
@@ -1273,17 +1604,23 @@ export default function NewYearAiConsultationPage() {
               ))}
             </div>
           </div>
-          <label className="nyai-topic">
-            명리학자에게 맡길 질문
-            <textarea
-              value={form.question}
-              onChange={updateField("question")}
-              placeholder={selectedFocusOption.prompt}
-              minLength={form.focusArea === "custom" ? 2 : undefined}
-              maxLength={1000}
-              required={form.focusArea === "custom"}
-            />
-          </label>
+          <div className="nyai-question-card">
+            <div className="nyai-question-head">
+              <strong>이 질문에 최우선으로 답해드립니다</strong>
+              <span>구체적으로 적을수록 더 정확한 답변을 받을 수 있어요</span>
+            </div>
+            <label className="nyai-topic">
+              명리학자에게 맡길 질문
+              <textarea
+                value={form.question}
+                onChange={updateField("question")}
+                placeholder={QUESTION_PLACEHOLDER_EXAMPLES[placeholderTick % QUESTION_PLACEHOLDER_EXAMPLES.length]}
+                minLength={form.focusArea === "custom" ? 2 : undefined}
+                maxLength={1000}
+                required={form.focusArea === "custom"}
+              />
+            </label>
+          </div>
           {notice && <p className="nyai-notice">{notice}</p>}
           {error && <p className="nyai-error">{error}</p>}
           <div className="flex items-center justify-end">
@@ -1336,16 +1673,31 @@ export default function NewYearAiConsultationPage() {
                   </div>
                 )}
               </div>
-            ) : assistantMessages.map((message, index) => (
-              <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
-                {index === 0 && <SajuProfilePanel profile={sajuProfile} />}
-                {index === 0 && <MonthlyFlowCalendar rows={monthlyFlow} />}
-                <article className="nyai-message nyai-message--assistant">
-                  <span>새해 상담 편지</span>
-                  <AssistantMessageContent content={message.content} />
-                </article>
-              </div>
-            ))}
+            ) : assistantMessages.map((message, index) => {
+              const sections = splitAssistantSections(message.content);
+              const classified = classifySections(sections);
+              const showQuestionCard = index === 0
+                && Boolean(classified.questionAnswer)
+                && isGenuineCustomQuestion(userQuestionText);
+              return (
+                <div className="nyai-result-bundle" key={`${message.role}-${index}`}>
+                  {showQuestionCard && (
+                    <NewYearQuestionAnswerCard
+                      name={form.userName.trim()}
+                      question={userQuestionText}
+                      answer={classified.questionAnswer?.body || ""}
+                    />
+                  )}
+                  {index === 0 && <SajuProfilePanel profile={sajuProfile} />}
+                  {index === 0 && <MonthlyFlowCalendar rows={monthlyFlow} letters={classified.monthLetters} />}
+                  {index === 0 && <MonthlyLetterAccordion rows={monthlyFlow} letters={classified.monthLetters} />}
+                  <article className="nyai-message nyai-message--assistant">
+                    <span>새해 상담 편지</span>
+                    <AssistantMessageContent content={message.content} sections={classified.restSections} />
+                  </article>
+                </div>
+              );
+            })}
           </div>
         </section>
       </section>
@@ -1353,6 +1705,9 @@ export default function NewYearAiConsultationPage() {
       <style>{NYAI_SEASON_CSS}</style>
       <style>{`
         .nyai-page {
+          --nyai-radius-md: 16px;
+          --nyai-radius-pill: 999px;
+          --nyai-label-size: 0.78rem;
           min-height: 100vh;
           padding: clamp(18px, 3vw, 42px);
           color: #fff7e3;
@@ -1382,12 +1737,12 @@ export default function NewYearAiConsultationPage() {
 
         .nyai-panel {
           border: 1px solid rgba(246, 203, 115, .28);
-          border-radius: 8px;
+          border-radius: var(--nyai-radius-md);
           background:
             linear-gradient(180deg, rgba(255, 248, 226, .14), rgba(67, 17, 22, .74)),
             repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 1px, transparent 1px 12px),
             rgba(29, 18, 16, .86);
-          box-shadow: 0 24px 70px rgba(28, 5, 8, .38), inset 0 1px 0 rgba(255, 244, 205, .12);
+          box-shadow: 0 12px 28px rgba(120, 32, 20, .22), inset 0 1px 0 rgba(255, 244, 205, .12);
           backdrop-filter: blur(16px);
         }
 
@@ -1464,35 +1819,31 @@ export default function NewYearAiConsultationPage() {
           bottom: 18px;
         }
 
+        .nyai-eyebrow {
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: .08em;
+          color: rgba(255, 224, 154, .58);
+        }
+
         .nyai-consult-card {
           position: relative;
           z-index: 1;
           display: grid;
-          align-content: space-between;
-          gap: 18px;
+          align-content: start;
+          gap: 14px;
           min-height: 300px;
           overflow: hidden;
           padding: 18px;
-          border: 1px solid rgba(255, 222, 144, .34);
-          border-radius: 8px;
-          background:
-            radial-gradient(circle at 18% 10%, rgba(255, 223, 133, .22), transparent 34%),
-            linear-gradient(155deg, rgba(62, 18, 15, .72), rgba(17, 12, 11, .82));
-        }
-
-        .nyai-consult-card::before {
-          content: "";
-          position: absolute;
-          inset: 12px;
-          border: 1px solid rgba(255, 229, 160, .18);
-          border-radius: 8px;
-          pointer-events: none;
+          border: 1px solid rgba(255, 222, 144, .22);
+          border-radius: var(--nyai-radius-md, 16px);
+          background: rgba(46, 19, 15, .3);
         }
 
         .nyai-consult-year span {
           display: block;
           color: rgba(255, 237, 192, .72);
-          font-size: 12px;
+          font-size: var(--nyai-label-size, 0.78rem);
           font-weight: 900;
           letter-spacing: .14em;
           text-transform: uppercase;
@@ -1534,14 +1885,23 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-intro-copy h1 {
+          display: flex;
+          align-items: center;
+          gap: 10px;
           max-width: 780px;
-          margin: 14px 0 12px;
+          margin: 8px 0 12px;
           font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
           font-size: clamp(36px, 5.2vw, 72px);
           line-height: 1.08;
           letter-spacing: 0;
           color: #fff0bf;
           text-shadow: 0 12px 34px rgba(48, 6, 10, .42);
+        }
+
+        .nyai-intro-copy h1 svg {
+          flex-shrink: 0;
+          width: 0.6em;
+          height: 0.6em;
         }
 
         .nyai-intro-copy p {
@@ -1570,18 +1930,12 @@ export default function NewYearAiConsultationPage() {
           font-weight: 800;
         }
 
-        .nyai-kicker,
         .nyai-status,
         .nyai-form-title,
         .nyai-chat-title {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-        }
-
-        .nyai-kicker {
-          color: #ffe09a;
-          font-weight: 700;
         }
 
         .nyai-status {
@@ -1684,8 +2038,8 @@ export default function NewYearAiConsultationPage() {
         .nyai-form label {
           display: grid;
           gap: 7px;
-          color: rgba(255, 247, 227, .78);
-          font-size: 13px;
+          color: rgba(255, 247, 227, .92);
+          font-size: var(--nyai-label-size, 0.78rem);
           font-weight: 700;
         }
 
@@ -1753,15 +2107,16 @@ export default function NewYearAiConsultationPage() {
           align-items: center;
           gap: 7px;
           min-height: 36px;
-          padding: 0 11px;
-          border: 1px solid rgba(253, 230, 138, .28);
-          border-radius: 8px;
-          background: rgba(255, 255, 255, .08);
-          color: #fef3c7;
+          padding: 0 12px;
+          border: 1px solid rgba(253, 230, 138, .16);
+          border-radius: var(--nyai-radius-pill);
+          background: rgba(255, 255, 255, .04);
+          color: rgba(254, 243, 199, .68);
           font: inherit;
           font-size: 13px;
           font-weight: 850;
           cursor: pointer;
+          transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
         }
 
         .nyai-category-chip span {
@@ -1777,18 +2132,43 @@ export default function NewYearAiConsultationPage() {
         }
 
         .nyai-category-chip.is-active {
-          border-color: rgba(253, 230, 138, .72);
-          background: rgba(245, 158, 11, .2);
+          border-color: rgba(253, 230, 138, .9);
+          background: rgba(245, 158, 11, .32);
           color: #fff7ed;
-          box-shadow: 0 0 0 3px rgba(245, 158, 11, .1);
+          font-weight: 900;
+          box-shadow: 0 0 0 3px rgba(245, 158, 11, .16), 0 0 18px rgba(245, 158, 11, .22);
+        }
+
+        .nyai-question-card {
+          margin-top: 14px;
+          padding: 14px;
+          border: 1px solid rgba(245, 158, 11, .38);
+          border-radius: var(--nyai-radius-md);
+          background: rgba(245, 158, 11, .08);
+        }
+
+        .nyai-question-head {
+          display: grid;
+          gap: 3px;
+          margin-bottom: 10px;
+        }
+
+        .nyai-question-head strong {
+          font-size: 15px;
+          color: #fcd34d;
+        }
+
+        .nyai-question-head span {
+          font-size: var(--nyai-label-size, 0.78rem);
+          color: rgba(255, 247, 227, .78);
         }
 
         .nyai-topic {
-          margin-top: 12px;
+          margin-top: 0;
         }
 
         .nyai-form textarea {
-          min-height: 132px;
+          min-height: 168px;
           padding: 12px;
           resize: vertical;
           line-height: 1.6;
@@ -1822,12 +2202,18 @@ export default function NewYearAiConsultationPage() {
           gap: 8px;
           min-height: 46px;
           border: 0;
-          border-radius: 8px;
+          border-radius: var(--nyai-radius-pill);
           color: #2a100f;
           background: linear-gradient(135deg, #ffe8a8, #d89a38 48%, #ffd976);
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 12px 28px rgba(74, 17, 13, .26);
+          box-shadow: 0 8px 18px rgba(74, 17, 13, .18);
+          transition: box-shadow .15s ease, transform .15s ease;
+        }
+
+        .nyai-primary:hover:not(:disabled),
+        .nyai-primary:focus-visible:not(:disabled) {
+          box-shadow: 0 0 0 3px rgba(255, 217, 118, .28), 0 10px 26px rgba(74, 17, 13, .3);
         }
 
         .nyai-primary {
@@ -1892,7 +2278,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-saju-profile {
           padding: 15px;
           border: 1px solid rgba(178, 238, 222, .24);
-          border-radius: 8px;
+          border-radius: var(--nyai-radius-md);
           background:
             linear-gradient(180deg, rgba(178, 238, 222, .11), rgba(255, 250, 235, .045)),
             rgba(25, 42, 37, .36);
@@ -2008,7 +2394,7 @@ export default function NewYearAiConsultationPage() {
         .nyai-result-section {
           padding: 15px;
           border: 1px solid rgba(255, 224, 154, .22);
-          border-radius: 8px;
+          border-radius: var(--nyai-radius-md);
           background:
             linear-gradient(180deg, rgba(255, 250, 235, .1), rgba(255, 250, 235, .045)),
             rgba(46, 19, 15, .34);

@@ -168,6 +168,8 @@ assert(fortuneData?.advancedSajuSummary?.johu, "new-year-ai fortune data should 
 assert(fortuneData?.advancedSajuSummary?.daewoonSewoon, "new-year-ai fortune data should include daewoon-sewoon summary");
 assert(Array.isArray(fortuneData?.advancedSajuSummary?.annualInteractions), "new-year-ai fortune data should include annual interactions");
 assert(fortuneData?.monthlyFlow?.some((row) => row.timing === "기회" || row.timing === "주의"), "new-year-ai monthly flow should include timing labels");
+assert(fortuneData?.advancedSajuSummary?.domainSignals?.relationship, "new-year-ai domain signals should include relationship sentence");
+assert(fortuneData?.advancedSajuSummary?.domainSignals?.study, "new-year-ai domain signals should include study sentence");
 const firstPrompt = route.__newYearAiTestUtils.buildFirstPrompt(normalized.input, fortuneData);
 assert(firstPrompt.includes("[계산된 사주와 세운 데이터]"), "new-year-ai first prompt should include computed fortune data");
 assert(firstPrompt.includes("처음 입력한 더 깊게 보고 싶은 흐름"), "new-year-ai first prompt should use the initial deep-flow question");
@@ -177,6 +179,8 @@ assert(firstPrompt.includes("전체 본문 합계는 공백을 제외하고 10,0
 assert(firstPrompt.includes("권장 분량은 12,000~18,000자"), "new-year-ai prompt should guide the rough expected length");
 assert(firstPrompt.includes("각 항목마다 10,000자를 쓰지 말고"), "new-year-ai prompt should not require 10k chars per section");
 assert(firstPrompt.includes("단순히 문장을 길게 늘이지 말고"), "new-year-ai prompt should require expert additions instead of filler");
+assert(firstPrompt.includes("[카테고리별 참고 신호"), "new-year-ai prompt should surface per-category domain signals");
+assert(firstPrompt.includes("**연애·재회**, **재물·수입**, **직업·이직**, **건강·멘탈**, **가족·관계**, **학업·성장**"), "new-year-ai prompt should require the 6 category subsections");
 const systemPrompt = route.__newYearAiTestUtils.buildSystemPrompt();
 assert(systemPrompt.includes("최고 수준의 명리학자"), "new-year-ai system prompt should strengthen expert saju voice");
 assert(systemPrompt.includes("격국과 용신·기신, 조후, 대운의 배경"), "new-year-ai system prompt should include advanced saju lenses");
@@ -190,6 +194,12 @@ assert(mockQuality.totalChars >= 10000, "mock consultation should be at least 10
 assert(mockQuality.totalChars <= 20000, "mock consultation should stay under 20k total chars");
 assert(mockQuality.sectionCount >= 6, "mock consultation should include enough substantial sections");
 assert(mockQuality.missingTopics.length === 0, "mock consultation should cover all required expert topics");
+
+const categoryCoveredText = `${mockConsultationText}\n\n**연애·재회**\n연애 재회 문단.\n\n**재물·수입**\n재물 수입 문단.\n\n**직업·이직**\n직업 이직 문단.\n\n**건강·멘탈**\n건강 멘탈 문단.\n\n**가족·관계**\n가족 관계 문단.\n\n**학업·성장**\n학업 성장 문단.`;
+const categoryCoveredQuality = route.__newYearAiTestUtils.validateFortuneDataConsistency(categoryCoveredText, fortuneData);
+assert(!categoryCoveredQuality.some((issue) => issue.startsWith("MISSING_CATEGORIES")), `text covering all 6 categories should not raise MISSING_CATEGORIES: ${categoryCoveredQuality.join(", ")}`);
+const categoryMissingQuality = route.__newYearAiTestUtils.validateFortuneDataConsistency(mockConsultationText, fortuneData);
+assert(categoryMissingQuality.some((issue) => issue.startsWith("MISSING_CATEGORIES")), "text missing category subsections should raise MISSING_CATEGORIES");
 
 const mockSajuProfile = route.__newYearAiTestUtils.buildBasicSajuProfile({
   id: "nyai-test-session",

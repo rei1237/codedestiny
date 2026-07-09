@@ -36,6 +36,15 @@ const NEW_YEAR_AI_REQUIRED_TOPIC_PATTERNS = Object.freeze({
   monthly: /월별|월운|1월|2월|3월|4월|5월|6월|7월|8월|9월|10월|11월|12월/,
   practice: /선택|실천|조언|정돈|회복|관리/,
 });
+// 월별 흐름과 별개로 요구하는 6개 카테고리 소제목 — 라벨 중 하나라도 있으면 해당 카테고리는 다룬 것으로 인정한다.
+const NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS = Object.freeze({
+  love: ["연애", "재회"],
+  money: ["재물", "수입"],
+  career: ["직업", "이직"],
+  health: ["건강", "멘탈"],
+  relationship: ["가족", "관계"],
+  study: ["학업", "성장"],
+});
 
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|기능/i;
 const FOCUS_AREA_LABELS = Object.freeze({
@@ -118,6 +127,8 @@ const TEN_GOD_DOMAIN = {
   편인: "새 공부와 관점 전환",
   정인: "보호, 문서, 회복",
 };
+const MONTHLY_DOMAIN_KEYS = ["overall", "money", "love", "career", "health"];
+const MONTHLY_DOMAIN_LABELS = { overall: "총운", money: "재물", love: "애정", career: "직업", health: "건강" };
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -381,8 +392,121 @@ function buildDomainSignals({ annualTenGod, yongshin, johu, monthlyFlow }) {
     money: `${yongshin.coreYongshinKo}이 살아나는 달에는 수입의 숨통이 열리고, ${yongshin.gisinKo}이 과한 달에는 지출을 줄이는 쪽이 안정적입니다.`,
     love: "합이 드는 달에는 관계가 가까워지고, 충이 드는 달에는 오래 미룬 대화가 표면으로 올라옵니다.",
     health: `${johu.urgentElementKo} 조절이 컨디션의 핵심이며, 수면과 호흡의 리듬을 먼저 다듬는 편이 좋습니다.`,
+    relationship: `${domain}과 맞닿은 인간관계 신호가 강해, 오래된 인연은 ${annualTenGod || "세운"}의 흐름 속에서 다시 정비되고 새 인연은 조직·모임을 통해 이어지기 쉽습니다.`,
+    study: `${yongshin.coreYongshinKo}을 채우는 시기에 집중력과 몰입도가 오르고, ${johu.urgentElementKo}이 흐트러지는 시기엔 무리한 목표보다 리듬 회복을 먼저 다루는 편이 낫습니다.`,
     opportunityMonths,
     cautionMonths,
+  };
+}
+
+function levelFromScore(score) {
+  if (score >= 1) return "강";
+  if (score <= -1) return "약";
+  return "중";
+}
+
+// 일간을 극하는 오행(=관성 오행)을 찾는다.
+function officerElementOf(dayElement) {
+  for (const [element, controlled] of Object.entries(CONTROLS)) {
+    if (controlled === dayElement) return element;
+  }
+  return "";
+}
+
+// 한 달의 간지·십신·일지 관계를 명식(용신/기신/조후)과 대조해 5개 도메인의 강약과 근거를 확정한다.
+// 조언 문장이 아니라 사실 진술(근거)만 만든다 — 조언 서술은 LLM 상담문이 담당한다.
+function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch }, ctx) {
+  const { dayElement, yongshin, johu, targetTenGod, gender } = ctx;
+  const core = yongshin.coreYongshinKo;
+  const heesin = yongshin.heesinKo;
+  const gisin = yongshin.gisinKo;
+  const urgent = johu.urgentElementKo;
+  const branchElement = BRANCH_ELEMENT[branch] || "";
+  const hasHap = /합/.test(relationToDayBranch);
+  const hasChung = /충/.test(relationToDayBranch);
+  const wealthElement = CONTROLS[dayElement] || "";
+  const officerElement = officerElementOf(dayElement);
+  const supportsYongshin = element === core || element === heesin || branchElement === core;
+  const feedsGisin = element === gisin || branchElement === gisin;
+
+  let overall = 0;
+  if (supportsYongshin) overall += 1;
+  if (feedsGisin) overall -= 1;
+  if (hasHap) overall += 1;
+  if (hasChung) overall -= 1;
+  const overallBasis = supportsYongshin
+    ? `월지 기운이 용신 ${core}을 살려 흐름이 트이는 달`
+    : feedsGisin
+      ? `기신 ${gisin}이 강해져 속도를 조절할 달`
+      : hasChung
+        ? "일지와 부딪혀 변화·정비가 잦은 달"
+        : hasHap
+          ? "일지와 어울려 관계·협력이 매끄러운 달"
+          : "큰 굴곡 없이 기존 리듬을 다지는 달";
+
+  const moneyStar = tenGod === "정재" || tenGod === "편재";
+  const moneyElementLive = element === wealthElement || branchElement === wealthElement;
+  let money = 0;
+  if (moneyStar) money += 1;
+  if (moneyElementLive) money += 1;
+  if (wealthElement === gisin) money -= 1;
+  const moneyBasis = moneyStar
+    ? `${tenGod}이 드러나 수입·지출이 크게 움직이는 달`
+    : moneyElementLive
+      ? `재성 ${wealthElement} 기운이 실려 재물 활동이 늘어나는 달`
+      : "재물은 큰 출입 없이 관리 중심으로 흐르는 달";
+
+  const loveElement = gender === "male" ? wealthElement : officerElement;
+  const loveStar = gender === "male"
+    ? (tenGod === "정재" || tenGod === "편재")
+    : (tenGod === "정관" || tenGod === "편관");
+  const loveElementLive = loveStar || element === loveElement || branchElement === loveElement;
+  let love = 0;
+  if (hasHap) love += 1;
+  if (hasChung) love -= 1;
+  if (loveElementLive) love += 1;
+  const loveBasis = hasHap
+    ? "배우자궁 일지에 합이 들어 관계가 가까워지는 달"
+    : hasChung
+      ? "배우자궁 일지가 흔들려 미룬 대화가 올라오는 달"
+      : loveElementLive
+        ? `인연을 뜻하는 ${loveElement} 기운이 살아나는 달`
+        : "관계는 큰 파동 없이 잔잔하게 이어지는 달";
+
+  const officerStar = tenGod === "정관" || tenGod === "편관";
+  const outputStar = tenGod === "식신" || tenGod === "상관";
+  let career = 0;
+  if (officerStar) career += 1;
+  if (outputStar) career += 1;
+  if (tenGod && tenGod === targetTenGod) career += 1;
+  if (hasChung) career -= 1;
+  const careerBasis = officerStar
+    ? `${tenGod}이 올라와 평판·조직·책임이 부각되는 달`
+    : outputStar
+      ? `${tenGod}이 살아나 실력과 표현이 결과로 이어지는 달`
+      : tenGod && tenGod === targetTenGod
+        ? "세운과 같은 결이 겹쳐 일의 방향이 또렷해지는 달"
+        : "직업 운은 흐름을 유지하며 내실을 다지는 달";
+
+  const healthElementLive = element === urgent || branchElement === urgent;
+  let health = 0;
+  if (healthElementLive) health += 1;
+  if (feedsGisin) health -= 1;
+  if (hasChung) health -= 1;
+  const healthBasis = healthElementLive
+    ? `조후 급용신 ${urgent}이 채워져 컨디션이 안정되는 달`
+    : hasChung
+      ? "변동의 여파로 피로·리듬 관리가 필요한 달"
+      : feedsGisin
+        ? `${gisin} 기운이 과해 무리보다 회복이 우선인 달`
+        : "건강은 큰 이상 없이 리듬을 지키면 좋은 달";
+
+  return {
+    overall: { level: levelFromScore(overall), basis: overallBasis },
+    money: { level: levelFromScore(money), basis: moneyBasis },
+    love: { level: levelFromScore(love), basis: loveBasis },
+    career: { level: levelFromScore(career), basis: careerBasis },
+    health: { level: levelFromScore(health), basis: healthBasis },
   };
 }
 
@@ -429,6 +553,13 @@ function calculateNewYearFortuneData(input) {
   const gyeokguk = buildGyeokgukSummary(dayMaster, monthPillar);
   const yongshin = buildYongshinSummary(dayMaster, fiveElements);
   const johu = buildJohuSummary(monthBranch, fiveElements);
+  const domainContext = {
+    dayElement: STEM_ELEMENT[dayMaster] || "",
+    yongshin,
+    johu,
+    targetTenGod,
+    gender: birth.gender,
+  };
   const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
     const monthPillar = toKoreanGanzi(Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi());
@@ -453,6 +584,7 @@ function calculateNewYearFortuneData(input) {
       stemRelationToDayMaster: describeStemRelation(dayMaster, stem),
       relationToDayBranch: branchRelation,
       timing,
+      domains: buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranch: branchRelation }, domainContext),
     };
   });
   const daewoonSewoon = buildDaewoonSewoonSummary({
@@ -574,6 +706,7 @@ function normalizeConsultationInput(body = {}) {
   const focusArea = normalizeFocusArea(body.focusArea ?? body.topicArea ?? body.domain);
   const question = clean(body.question ?? body.topic ?? body.consultationTopic, 1000);
   const topic = question || `${FOCUS_AREA_LABELS[focusArea] || FOCUS_AREA_LABELS.overall} 중심의 ${year || ""}년 신년운세`;
+  const hasCustomQuestion = Boolean(body.hasCustomQuestion) && question.length >= 2;
 
   if (rawYear === undefined || rawYear === null || clean(rawYear) === "") {
     return { ok: false, message: "상담할 연도를 선택해 주세요." };
@@ -602,6 +735,7 @@ function normalizeConsultationInput(body = {}) {
     focusArea,
     question,
     topic,
+    hasCustomQuestion,
   };
 
   return {
@@ -1045,12 +1179,32 @@ function buildCanonicalNewYearFacts(fortuneData = {}) {
     lines.push(`세운이 가장 강하게 닿는 원국 자리: ${trigger.pillar} ${trigger.ganji} — 천간 ${trigger.heavenlyStem} / 지지 ${trigger.earthlyBranch}`);
   }
   if (monthly.length) {
-    lines.push("월별 확정 스펙 (달마다 이 간지·십신·판정을 본문에 그대로 인용해 서로 다른 조언으로 쓸 것):");
+    lines.push("월별 확정 스펙 (달마다 이 간지·십신·판정과 도메인 강약을 근거로, 두드러진 축을 서로 다른 조언으로 쓸 것):");
     monthly.forEach((row) => {
-      lines.push(`- ${row.month}월 ${row.pillar} · ${row.tenGod || "십신 미산출"} · ${row.timing} · ${row.relationToDayBranch}`);
+      const d = row.domains || {};
+      const domainDigest = MONTHLY_DOMAIN_KEYS
+        .map((key) => d[key]?.level ? `${MONTHLY_DOMAIN_LABELS[key]}${d[key].level}` : "")
+        .filter(Boolean)
+        .join("·");
+      const domainPart = domainDigest ? ` | ${domainDigest}` : "";
+      lines.push(`- ${row.month}월 ${row.pillar} · ${row.tenGod || "십신 미산출"} · ${row.timing} · ${row.relationToDayBranch}${domainPart}`);
     });
   }
   return lines;
+}
+
+// 카테고리별 소제목 작성의 출발점이 되는 6개 도메인 신호를 프롬프트에서 바로 보이도록 정리한다.
+function buildDomainSignalLines(fortuneData = {}) {
+  const domainSignals = fortuneData.advancedSajuSummary?.domainSignals || {};
+  const entries = [
+    ["연애·재회", domainSignals.love],
+    ["재물·수입", domainSignals.money],
+    ["직업·이직", domainSignals.career],
+    ["건강·멘탈", domainSignals.health],
+    ["가족·관계", domainSignals.relationship],
+    ["학업·성장", domainSignals.study],
+  ];
+  return entries.filter(([, signal]) => signal).map(([label, signal]) => `- ${label}: ${signal}`);
 }
 
 function buildFirstPrompt(input, fortuneData) {
@@ -1071,20 +1225,32 @@ function buildFirstPrompt(input, fortuneData) {
     `- 집중 상담 분야: ${FOCUS_AREA_LABELS[input.focusArea] || FOCUS_AREA_LABELS.overall}`,
     `- 처음 입력한 더 깊게 보고 싶은 흐름: ${input.question || "전체 흐름 중심"}`,
     "",
+    ...(input.hasCustomQuestion ? [
+      "[사용자가 직접 남긴 질문 — 최우선으로 답할 것]",
+      `"${input.question}"`,
+      "이 질문은 사용자가 가장 궁금해하는 개인화된 질문입니다. 아래 답변 맨 앞에 반드시 소제목 **질문에 대한 답변**을 굵게 쓰고, 그 아래에 이 질문에 대한 직접적이고 구체적인 결론을 먼저 씁니다. 범용적인 총론과 겹치지 않게, 이 질문의 단어와 맥락에 특화된 근거와 조언을 담으세요.",
+      "",
+    ] : []),
     "[계산된 사주와 세운 데이터]",
     JSON.stringify(fortuneData, null, 2),
     "",
     "[계산 확정값 — 본문에서 이 값과 다르게 서술하는 것을 금지]",
     ...buildCanonicalNewYearFacts(fortuneData),
     "",
+    "[카테고리별 참고 신호 — 아래 6번 항목에서 각 소제목 문단의 출발점으로 삼되, 표현은 자연스럽게 재구성할 것]",
+    ...buildDomainSignalLines(fortuneData),
+    "",
     "첫 답변은 아래 흐름을 모두 자연스럽게 포함하세요.",
+    ...(input.hasCustomQuestion ? [
+      "0. 다른 무엇보다 먼저, 소제목 **질문에 대한 답변**을 굵게 쓰고 사용자가 직접 남긴 질문에 직접적이고 구체적으로 답합니다. 이 답변을 마친 뒤에 아래 1번부터 이어갑니다.",
+    ] : []),
     "1. 타고난 성향 총론을 가장 먼저 씁니다. 일간·월령·격국·오행 분포를 근거로 이 사람이 타고난 기질과 성향이 어떤지 전반적으로 짚어, 상담자가 '나를 정확히 봤다'고 느끼도록 신뢰를 먼저 세웁니다.",
     "2. 새해 전체 운의 핵심 결론을 말합니다.",
     "3. 원국의 격국, 용신·기신, 조후가 올해 어떤 방식으로 쓰이는지 쉽게 풀어냅니다.",
     "4. 대운의 배경 위에 세운이 어떤 사건성과 선택 압력을 일으키는지 짚습니다. 이때 세운 간지와, 세운이 원국의 어느 기둥과 합·충하는지를 본문에 직접 인용해 근거로 삼습니다.",
-    "5. 사용자가 선택한 집중 상담 분야를 가장 깊게 다루고, 질문이 있으면 그 질문에 직접 답합니다.",
-    "6. 일, 돈, 관계, 몸과 마음의 흐름은 집중 분야를 해치지 않는 선에서 균형 있게 비춥니다.",
-    "7. 월별 흐름에서는 1월부터 12월까지 열두 달을 하나도 빠뜨리지 않고 각각 최소 한 문단씩 씁니다. 각 달은 위 월별 확정 스펙의 월주 간지와 십신을 본문에 직접 언급하고, 판정(기회/주의/정비)에 맞는 조언을 이웃한 달과 겹치지 않게 다르게 씁니다.",
+    "5. 사용자가 선택한 집중 상담 분야를 가장 깊게 다룹니다.",
+    "6. 월별 흐름과는 별개로, 다음 6개 소제목을 **굵게** 표시해 각각 최소 한 문단 이상 씁니다(순서는 자유롭게 정하되 6개 모두 반드시 포함): **연애·재회**, **재물·수입**, **직업·이직**, **건강·멘탈**, **가족·관계**, **학업·성장**. 집중 분야로 고른 항목을 가장 깊게 쓰고 나머지도 위 카테고리별 참고 신호를 근거로 자연스럽게 채웁니다.",
+    "7. 월별 흐름에서는 1월부터 12월까지 열두 달을 하나도 빠뜨리지 않고 각각 최소 한 문단씩 씁니다. 각 달 문단은 반드시 `**{월}월 · {그 달의 월주 간지} · {4~8자 핵심 키워드}**` 형식의 소제목으로 시작하세요(예: **3월 · 병인 · 관계 재정비**). 키워드는 그 달의 조언을 한눈에 요약하는 짧은 표현이어야 합니다. 이어지는 본문에서는 위 월별 확정 스펙의 월주 간지와 십신을 직접 언급하고, 판정(기회/주의/정비)에 맞는 조언을 이웃한 달과 겹치지 않게 다르게 씁니다. 또한 각 달의 도메인 강약(총운·재물·애정·직업·건강) 중 그 달에 두드러진 축(강하거나 약한 것)을 근거로 삼아, 해당 도메인에 대한 구체적인 실천 조언을 문단 안에 자연스럽게 녹여 쓰세요. 다섯 도메인을 매달 기계적으로 나열하지 말고, 그 달에 의미 있는 축을 골라 이야기하듯 풀어냅니다.",
     "8. 조심해야 할 패턴은 겁주지 말고, 피해야 할 선택과 회복 방법을 함께 말합니다.",
     "9. 마지막에는 사용자가 올해 붙잡을 수 있는 현실 조언과 새해를 여는 한 줄을 남깁니다.",
     "",
@@ -1115,13 +1281,19 @@ function countConsultationChars(text) {
 }
 
 // 세운·월운 계산값 대비 본문 정합성 검증 (fortuneData가 있을 때만 동작)
-function validateFortuneDataConsistency(cleaned, fortuneData) {
+function validateFortuneDataConsistency(cleaned, fortuneData, hasCustomQuestion = false) {
   const issues = [];
+  if (hasCustomQuestion && !cleaned.includes("질문에 대한 답변")) issues.push("QUESTION_ANSWER_SECTION_MISSING");
   if (!fortuneData || typeof fortuneData !== "object") return issues;
 
   const missingMonths = Array.from({ length: 12 }, (_, index) => index + 1)
     .filter((month) => !new RegExp(`(?<![0-9])${month}\\s*월`).test(cleaned));
   if (missingMonths.length) issues.push(`MISSING_MONTHS:${missingMonths.join(",")}`);
+
+  const missingCategories = Object.entries(NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS)
+    .filter(([, labels]) => !labels.some((label) => cleaned.includes(label)))
+    .map(([category]) => category);
+  if (missingCategories.length) issues.push(`MISSING_CATEGORIES:${missingCategories.join(",")}`);
 
   const annualPillar = clean(fortuneData.targetYear?.pillar);
   if (annualPillar && !cleaned.includes(annualPillar)) issues.push("ANNUAL_PILLAR_UNSTATED");
@@ -1159,7 +1331,7 @@ function validateConsultationQuality(text, options = {}) {
   if (FORBIDDEN_RESULT_PATTERN.test(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
   if (sections.length < 6) issues.push(`SECTION_COUNT:${sections.length}/6`);
   if (missingTopics.length) issues.push(`MISSING_EXPERT_TOPICS:${missingTopics.join("|")}`);
-  issues.push(...validateFortuneDataConsistency(cleaned, options.fortuneData));
+  issues.push(...validateFortuneDataConsistency(cleaned, options.fortuneData, options.hasCustomQuestion));
   return {
     ok: issues.length === 0,
     text: cleaned,
@@ -1174,9 +1346,18 @@ function validateConsultationQuality(text, options = {}) {
 
 function describeConsistencyIssuesForRepair(issues = [], fortuneData = null) {
   const lines = [];
+  if (issues.includes("QUESTION_ANSWER_SECTION_MISSING")) {
+    lines.push("사용자가 직접 남긴 질문에 대한 답변이 빠졌습니다. 본문 맨 앞에 소제목 **질문에 대한 답변**을 굵게 쓰고 그 질문에 직접적이고 구체적으로 답한 뒤, 나머지 내용을 이어가세요.");
+  }
   const missingMonths = issues.find((issue) => issue.startsWith("MISSING_MONTHS:"));
   if (missingMonths) {
     lines.push(`빠진 달이 있습니다(${missingMonths.split(":")[1]}월). 1월부터 12월까지 모든 달을 각각 최소 한 문단씩 쓰세요.`);
+  }
+  const missingCategories = issues.find((issue) => issue.startsWith("MISSING_CATEGORIES:"));
+  if (missingCategories) {
+    const labels = missingCategories.split(":")[1].split(",")
+      .map((category) => NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS[category]?.[0]).filter(Boolean);
+    lines.push(`빠진 카테고리 소제목이 있습니다(${labels.join(", ")}). 월별 흐름과 별개로 연애·재회, 재물·수입, 직업·이직, 건강·멘탈, 가족·관계, 학업·성장 6개 소제목을 각각 최소 한 문단씩 굵게 표시해 보강하세요.`);
   }
   if (issues.includes("ANNUAL_PILLAR_UNSTATED") && fortuneData?.targetYear?.pillar) {
     lines.push(`올해의 세운 간지 "${fortuneData.targetYear.pillar}"를 본문에 직접 언급하며 해석하세요.`);
@@ -1340,8 +1521,8 @@ async function generateConsultationText(env, prompt, options = {}) {
   }
 
   const fortuneData = options.fortuneData || null;
-  let quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
-  const EXPANDABLE_ISSUE_PATTERN = /^(MIN_TOTAL_CHARS|SECTION_COUNT|MISSING_EXPERT_TOPICS|MISSING_MONTHS|ANNUAL_PILLAR_UNSTATED|MONTHLY_PILLAR_CITATIONS|SEWOON_INTERACTION_UNSTATED)/;
+  let quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData, hasCustomQuestion: options.hasCustomQuestion });
+  const EXPANDABLE_ISSUE_PATTERN = /^(MIN_TOTAL_CHARS|SECTION_COUNT|MISSING_EXPERT_TOPICS|MISSING_MONTHS|MISSING_CATEGORIES|ANNUAL_PILLAR_UNSTATED|MONTHLY_PILLAR_CITATIONS|SEWOON_INTERACTION_UNSTATED|QUESTION_ANSWER_SECTION_MISSING)/;
   const shouldExpand = quality.issues.some((issue) => EXPANDABLE_ISSUE_PATTERN.test(issue));
   if (shouldExpand) {
     const expansion = await callGeminiText(env, buildConsultationExpansionPrompt(quality.text, minTotalChars, maxTotalChars, quality.issues, fortuneData), {
@@ -1359,7 +1540,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       finalText = expansionText;
       finalProvider = clean(expansion?.provider || finalProvider);
       finalModel = clean(expansion?.model || finalModel);
-      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData, hasCustomQuestion: options.hasCustomQuestion });
     }
   }
 
@@ -1379,7 +1560,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       finalText = compressedText;
       finalProvider = clean(compressed?.provider || finalProvider);
       finalModel = clean(compressed?.model || finalModel);
-      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData });
+      quality = validateConsultationQuality(finalText, { minTotalChars, maxTotalChars, fortuneData, hasCustomQuestion: options.hasCustomQuestion });
     }
   }
 
@@ -1472,6 +1653,19 @@ function buildBasicSajuProfile(doc = {}) {
   };
 }
 
+function publicMonthlyDomains(domains) {
+  if (!domains || typeof domains !== "object") return null;
+  const result = {};
+  for (const key of MONTHLY_DOMAIN_KEYS) {
+    const signal = domains[key];
+    if (!signal || typeof signal !== "object") continue;
+    const level = clean(signal.level);
+    const basis = clean(signal.basis);
+    if (level || basis) result[key] = { level, basis };
+  }
+  return Object.keys(result).length ? result : null;
+}
+
 function publicMonthlyFlow(doc) {
   const fortuneData = doc?.llmMeta?.fortuneData && typeof doc.llmMeta.fortuneData === "object" ? doc.llmMeta.fortuneData : null;
   const rows = Array.isArray(fortuneData?.monthlyFlow) ? fortuneData.monthlyFlow : [];
@@ -1483,6 +1677,7 @@ function publicMonthlyFlow(doc) {
     domain: clean(row.domain),
     relationToDayBranch: clean(row.relationToDayBranch),
     timing: clean(row.timing),
+    domains: publicMonthlyDomains(row.domains),
   })).filter((row) => row.month >= 1 && row.month <= 12);
 }
 
@@ -1748,6 +1943,7 @@ async function handleStart(request, env) {
       maxTotalChars: NEW_YEAR_AI_MAX_TOTAL_CHARS,
       maxOutputTokens: NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       fortuneData,
+      hasCustomQuestion: normalized.input.hasCustomQuestion,
       logContext: safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }),
     });
     if (access.deferredUsage) {
