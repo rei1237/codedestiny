@@ -133,7 +133,11 @@
       "Bash(node .claude/skills/impeccable/scripts/context.mjs)",
       "Bash(python3 -)",
       "Bash(node --input-type=module -e \"import\\('./worker/routes/admin.js'\\).then\\(\\(\\)=>console.log\\('syntax OK'\\)\\).catch\\(e=>{console.error\\(e.message.split\\('\\\\n'\\).slice\\(0,5\\).join\\('\\\\n'\\)\\);process.exit\\(1\\)}\\)\")",
-      "Bash(grep -n \"resolveJsonModule\\\\|\\\\\"paths\\\\\"\\\\|@/\\\\*\" tsconfig.json)"
+      "Bash(grep -n \"resolveJsonModule\\\\|\\\\\"paths\\\\\"\\\\|@/\\\\*\" tsconfig.json)",
+      "Bash(python3 -c ' *)",
+      "Bash(python3 -c \"import sys; print\\(sys.version\\)\")",
+      "Bash(pip3 --version)",
+      "Bash(pip --version)"
     ],
     "additionalDirectories": [
       "\\tmp"

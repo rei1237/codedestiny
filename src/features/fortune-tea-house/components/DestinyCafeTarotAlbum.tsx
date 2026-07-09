@@ -200,7 +200,7 @@ export default function DestinyCafeTarotAlbum({
   const backgroundDesktopUrl = fortuneTeaHouseAssets.backgrounds.mainDesktop;
   const backgroundMobileUrl = fortuneTeaHouseAssets.backgrounds.mainMobile;
   const yeoniCutoutUrl = fortuneTeaHouseAssets.yeoni.transparent.bust;
-  const yeoniCharacterUrl = fortuneTeaHouseAssets.yeoni.transparent.sprite7CharacterR2;
+  const yeoniPoseFrames = fortuneTeaHouseAssets.yeoni.transparent.tarotPoseFrames;
   const previewCards = useMemo(
     () => albumCards.filter((card) => card.arcana === "major").slice(0, 5),
     [albumCards],
@@ -375,7 +375,7 @@ export default function DestinyCafeTarotAlbum({
       aria-labelledby="tarotAlbumTitle"
       onMouseDown={handleBackdropMouseDown}
     >
-      <TarotAlbumMotionStyles />
+      <TarotAlbumMotionStyles yeoniPoseFrames={yeoniPoseFrames} />
       <div className="pointer-events-none fixed inset-0" aria-hidden>
         <div className="absolute inset-0 hidden bg-cover bg-center sm:block" style={{ backgroundImage: `url("${backgroundDesktopUrl}")` }} />
         <div className="absolute inset-0 bg-cover bg-center sm:hidden" style={{ backgroundImage: `url("${backgroundMobileUrl}")` }} />
@@ -404,7 +404,7 @@ export default function DestinyCafeTarotAlbum({
               totalCards={albumCards.length}
               selectedCount={selectedCount}
               cardBackUrl={cardBackUrl}
-              yeoniCharacterUrl={yeoniCharacterUrl}
+              yeoniPoseFrames={yeoniPoseFrames}
               pdfBusy={isPdfBusy}
               onDownloadAll={() => handleDownloadPdf("all")}
               onDownloadSelected={() => handleDownloadPdf("selected")}
@@ -517,7 +517,7 @@ function TarotAlbumHero({
   totalCards,
   selectedCount,
   cardBackUrl,
-  yeoniCharacterUrl,
+  yeoniPoseFrames,
   pdfBusy,
   onDownloadAll,
   onDownloadSelected,
@@ -526,7 +526,7 @@ function TarotAlbumHero({
   totalCards: number;
   selectedCount: number;
   cardBackUrl: string;
-  yeoniCharacterUrl: string;
+  yeoniPoseFrames: readonly string[];
   pdfBusy: boolean;
   onDownloadAll: () => void;
   onDownloadSelected: () => void;
@@ -570,20 +570,23 @@ function TarotAlbumHero({
         </div>
         <div className="relative mx-auto mt-2 w-full max-w-[264px] lg:mt-0" aria-hidden>
           <div
-            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[188px] w-[144px] sm:h-[200px] sm:w-[154px]"
+            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[176px] w-[176px] sm:h-[188px] sm:w-[188px]"
             style={{ transformOrigin: "50% 92%", animation: "tarotCharacterIdle 4.8s ease-in-out infinite" }}
           >
             <span
               className="absolute left-1/2 top-[44%] h-[130%] w-[130%] -translate-x-1/2 -translate-y-1/2 rounded-full"
               style={{ background: "radial-gradient(circle, rgba(255,246,214,.22), rgba(216,179,108,0) 62%)", mixBlendMode: "screen", animation: "tarotCharacterAura 5.2s ease-in-out infinite" }}
             />
-            <Image
-              src={yeoniCharacterUrl}
-              alt=""
-              fill
-              sizes="160px"
-              unoptimized
-              className="object-contain object-bottom drop-shadow-[0_12px_18px_rgba(0,0,0,.45)]"
+            <span
+              aria-hidden
+              className="absolute inset-0 drop-shadow-[0_12px_18px_rgba(0,0,0,.45)]"
+              style={{
+                backgroundImage: `url("${yeoniPoseFrames[0]}")`,
+                backgroundRepeat: "no-repeat",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                animation: "tarotCharacterPoseCycle 6s linear infinite",
+              }}
             />
           </div>
           <div className="relative z-10">
@@ -1172,7 +1175,8 @@ function TarotAlbumLockPanel({
   );
 }
 
-function TarotAlbumMotionStyles() {
+function TarotAlbumMotionStyles({ yeoniPoseFrames }: { yeoniPoseFrames: readonly string[] }) {
+  const [f1, f2, f3, f4] = yeoniPoseFrames;
   return (
     <style>{`
       @keyframes tarotMoonGlow {
@@ -1224,6 +1228,13 @@ function TarotAlbumMotionStyles() {
         0%, 100% { opacity: .42; transform: translate(-50%, -50%) scale(.94); }
         50% { opacity: .72; transform: translate(-50%, -50%) scale(1.08); }
       }
+      @keyframes tarotCharacterPoseCycle {
+        0%, 20%   { background-image: url("${f1}"); }
+        25%, 45%  { background-image: url("${f2}"); }
+        50%, 70%  { background-image: url("${f3}"); }
+        75%, 95%  { background-image: url("${f4}"); }
+        100%      { background-image: url("${f1}"); }
+      }
 
       .cdFlipViewport { perspective: 1000px; }
       .cdFlipInner {
@@ -1266,6 +1277,7 @@ function TarotAlbumMotionStyles() {
         [style*="tarotGentleFloat"],
         [style*="tarotCharacterIdle"],
         [style*="tarotCharacterAura"],
+        [style*="tarotCharacterPoseCycle"],
         [style*="tarotOrbit"] {
           animation-duration: 1ms !important;
           animation-iteration-count: 1 !important;
