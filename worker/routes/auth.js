@@ -2337,6 +2337,14 @@ async function handleLogin(request, env) {
 }
 
 async function handleMe(request, env) {
+  // 확정적 미인증(만료/무효 토큰·유저없음·철회) 응답에는 만료 쿠키 삭제 헤더를 부착해
+  // 클라이언트의 유령 로그인 힌트(fortune_auth_role 등)를 서버가 직접 정리한다.
+  // 일시 오류(degraded)·토큰 폴백 경로에서는 호출하지 않는다(로그인 유지).
+  const unauthenticatedJson = (body, init) => {
+    const res = json(body, init);
+    clearAuthCookies(res, request, env);
+    return res;
+  };
   try {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
@@ -2354,7 +2362,7 @@ async function handleMe(request, env) {
 
     const userId = String(auth.userId || "");
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+      return unauthenticatedJson({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
     }
     const objectId = new mongoose.Types.ObjectId(userId);
 
@@ -2419,10 +2427,10 @@ async function handleMe(request, env) {
       throw error;
     }
     if (!user) {
-      return json({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
+      return unauthenticatedJson({ ok: false, code: "unauthorized", message: "User not found." }, { status: 401 });
     }
     if (isWithdrawnAuthUser(user)) {
-      return json({ ok: false, code: "unauthorized", message: "User is not active." }, { status: 401 });
+      return unauthenticatedJson({ ok: false, code: "unauthorized", message: "User is not active." }, { status: 401 });
     }
 
     return json({
@@ -2444,7 +2452,7 @@ async function handleMe(request, env) {
       || error?.name === "JsonWebTokenError";
 
     if (unauthorized) {
-      return json({
+      return unauthenticatedJson({
         ok: true,
         message: "No active authenticated session.",
         authenticated: false,
