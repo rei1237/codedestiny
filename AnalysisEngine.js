@@ -365,7 +365,16 @@ class AnalysisEngine {
     return Math.atan2(p2.y - p1.y, p2.x - p1.x) * (180 / Math.PI);
   }
 
-  extractGeometricFeatures(landmarks) {
+  extractGeometricFeatures(landmarks, aspect) {
+    // ── 종횡비 보정 ──
+    // MediaPipe 랜드마크는 정규화 좌표(x=px/이미지폭, y=px/이미지높이)라, 비정사각형 이미지에서는
+    // faceRatio = (실제 가로/세로) × (이미지높이/이미지폭) 으로 왜곡된다. 세로형 셀카(4:5)면 갸름한
+    // 얼굴이 넓게(곰상으로) 측정됨. x·z에 (W/H)를 곱해 실제 기하비로 복원한다(정사각형이면 A=1, 무변화).
+    const A = (typeof aspect === 'number' && isFinite(aspect) && aspect > 0) ? aspect : 1;
+    if (A !== 1) {
+      landmarks = landmarks.map((p) => ({ x: p.x * A, y: p.y, z: (p.z || 0) * A }));
+    }
+
     const LEFT_EYE_OUT = landmarks[226];
     const LEFT_EYE_IN = landmarks[133];
     const LEFT_EYE_TOP = landmarks[159];
@@ -1186,8 +1195,8 @@ class AnalysisEngine {
     }
   }
 
-async analyze(landmarksData, expressionData) {
-    const features = this.extractGeometricFeatures(landmarksData);
+async analyze(landmarksData, expressionData, imageAspect) {
+    const features = this.extractGeometricFeatures(landmarksData, imageAspect);
     const qualityScore = Math.max(45, Math.min(100, Number(features.qualityScore || 100)));
     
           // --- 6차원 유클리디안-중력장 거리 연산 (절대 좌표 매핑 복원 & 스케일 최적화) ---

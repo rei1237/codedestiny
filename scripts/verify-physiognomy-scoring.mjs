@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const analysis = readFileSync(resolve(root, 'AnalysisEngine.js'), 'utf8');
@@ -73,5 +74,36 @@ assert.equal(winner(mk({ faceRatio: 0.86, eyeSlant: 2, eyeRatio: 2.4 }), 60), 'd
 assert.equal(winner(mk({ faceRatio: 0.86, eyeSlant: 2, eyeRatio: 2.4 }), 20), 'dog', '둥금 남성 → 강아지');
 assert.equal(genderBonus('bear', mk({ faceRatio: 0.76, eyeSlant: -1 }), 20), 0, '갸름 얼굴엔 곰 floor 미지급');
 assert.ok(genderBonus('bear', mk({ faceRatio: 0.90, eyeSlant: 0.5, noseWidthRatio: 1.10 }), 20) > 0, '넓은 얼굴엔 곰 floor 지급');
+
+// ── 종횡비 보정 (문제 1-B): 같은 얼굴이 이미지 종횡비와 무관하게 동일 faceRatio를 내야 함 ──
+// AnalysisEngine.js를 window-stub 환경에서 실제 로드해 extractGeometricFeatures를 호출한다.
+assert.match(analysis, /extractGeometricFeatures\(landmarks, aspect\)/, 'extractGeometricFeatures에 aspect 파라미터');
+assert.match(analysis, /landmarks = landmarks\.map\(\(p\) => \(\{ x: p\.x \* A, y: p\.y, z: \(p\.z \|\| 0\) \* A \}\)\)/, '종횡비 보정(x·z × W/H)');
+assert.match(analysis, /analyze\(landmarksData, expressionData, imageAspect\)/, 'analyze가 imageAspect 수신');
+assert.match(ui, /window\.faceAnalysisEngine\.analyze\(analysisLandmarks, expressionData, imageAspect\)/, '프론트가 imageAspect 전달');
+
+const dom = new JSDOM('<!doctype html><body></body>');
+const engine = new Function('window', 'document', analysis + '\nreturn window.faceAnalysisEngine;')(dom.window, dom.window.document);
+assert.ok(engine && typeof engine.extractGeometricFeatures === 'function', '엔진 로드 실패');
+const mkLm = (W, H, r) => {
+  const L = 400, Wd = L * r;
+  const lm = Array.from({ length: 468 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
+  lm[10] = { x: 0.5, y: (500 - L / 2) / H, z: 0 };
+  lm[152] = { x: 0.5, y: (500 + L / 2) / H, z: 0 };
+  lm[149] = { x: (500 - Wd / 2) / W, y: 0.6, z: 0 };
+  lm[378] = { x: (500 + Wd / 2) / W, y: 0.6, z: 0 };
+  return lm;
+};
+const truth = 0.72; // 실제 갸름한 얼굴
+const sq = engine.extractGeometricFeatures(mkLm(1000, 1000, truth), 1);
+const portRaw = engine.extractGeometricFeatures(mkLm(800, 1000, truth), 1);     // 세로형, 보정 미적용
+const port = engine.extractGeometricFeatures(mkLm(800, 1000, truth), 800 / 1000); // 세로형, 보정
+const land = engine.extractGeometricFeatures(mkLm(1000, 800, truth), 1000 / 800); // 가로형, 보정
+assert.ok(portRaw.faceRatio > 0.88, `보정 없는 세로형 셀카는 곰 영역으로 팽창(재현): ${portRaw.faceRatio.toFixed(3)}`);
+for (const [label, f] of [['정사각', sq], ['세로형보정', port], ['가로형보정', land]]) {
+  assert.ok(Math.abs(f.faceRatio - truth) < 0.01, `${label} faceRatio ≈ ${truth} (실제 ${f.faceRatio.toFixed(3)})`);
+}
+const spread = Math.max(sq.faceRatio, port.faceRatio, land.faceRatio) - Math.min(sq.faceRatio, port.faceRatio, land.faceRatio);
+assert.ok(spread < 0.01, `종횡비 불변(편차 ${spread.toFixed(4)})`);
 
 console.log('[verify-physiognomy-scoring] ok');

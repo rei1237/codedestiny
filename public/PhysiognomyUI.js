@@ -1737,8 +1737,15 @@ window.startCapture = async function() {
     }
 
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
+    // 종횡비 보정용: 랜드마크 소스 이미지의 W/H를 전달해 정규화 좌표 왜곡(세로형 셀카가 갸름 얼굴을 넓게 측정)을 교정
+    const _phyAspectSrc = (typeof currentMode !== 'undefined' && currentMode === 'file')
+      ? (_phyAnalysisSourceEl || document.getElementById('phyImage'))
+      : document.getElementById('phyVideo');
+    const _phyImgW = _phyAspectSrc ? (_phyAspectSrc.naturalWidth || _phyAspectSrc.videoWidth || _phyAspectSrc.width || 0) : 0;
+    const _phyImgH = _phyAspectSrc ? (_phyAspectSrc.naturalHeight || _phyAspectSrc.videoHeight || _phyAspectSrc.height || 0) : 0;
+    const imageAspect = (_phyImgW > 0 && _phyImgH > 0) ? (_phyImgW / _phyImgH) : 1;
     const result = await withTimeout(
-      window.faceAnalysisEngine.analyze(analysisLandmarks, expressionData),
+      window.faceAnalysisEngine.analyze(analysisLandmarks, expressionData, imageAspect),
       45000,
       'ANALYSIS_TIMEOUT'
     );
