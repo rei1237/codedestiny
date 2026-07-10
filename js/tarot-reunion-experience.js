@@ -6,6 +6,24 @@
 (function () {
   "use strict";
 
+  // 재회운 등대 타로 UI 문자열(파일 내 하드코딩 — love 파일의 POSITION_LABELS 패턴과 동일).
+  // POSITION_META/GUIDE_LABELS와 5장 스프레드 순서에 정합.
+  var REUNION_TEXT = {
+    positionPastBond: "남아 있는 감정의 온기",
+    positionTheirNow: "상대의 지금 마음",
+    positionOutsideFactor: "연락이 멈춘 배경",
+    positionTheirHeart: "말 너머 상대의 속마음",
+    positionOutcome: "관계 회복의 조건",
+    cardLabelPrefix: "카드",
+    aiPromptAria: "재회운 타로 AI 프롬프트",
+    lightboxCloseAria: "닫기",
+    cardImageAlt: "재회운 타로 카드 이미지",
+    shareTitle: "재회운 등대 타로",
+  };
+  function tarotReunionText(key) {
+    return Object.prototype.hasOwnProperty.call(REUNION_TEXT, key) ? REUNION_TEXT[key] : "";
+  }
+
   var POSITION_META = [
     { key: "past_bond", label: tarotReunionText("positionPastBond"), labelPos: "bottom" },
     { key: "their_now", label: tarotReunionText("positionTheirNow"), labelPos: "top" },
