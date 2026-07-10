@@ -67,6 +67,59 @@ function relationFromForwardDistance(forwardDistance) {
   return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
 }
 
+// 방향별 역할(내 자리/상대 자리) 해설 — relationFromForwardDistance의 aRole/bRole을
+// 표시·프롬프트 층에서 그대로 쓰기 위한 정본 프로필. (별도 12항 근사표를 만들지 말 것)
+const SUKUYO_ROLE_PROFILES = {
+  명: { han: "命", meaning: "같은 리듬을 비추는 거울의 자리" },
+  업: { han: "業", meaning: "오래된 숙제를 되짚게 하는 자리" },
+  태: { han: "胎", meaning: "새 마음을 품고 시작하게 하는 자리" },
+  영: { han: "榮", meaning: "상대를 빛나게 하고 베풀게 되는 자리" },
+  친: { han: "親", meaning: "가까이 기대며 마음을 붙이는 자리" },
+  우: { han: "友", meaning: "곁을 지키는 동반의 자리" },
+  쇠: { han: "衰", meaning: "기운을 내어주다 쉽게 소모되는 자리" },
+  안: { han: "安", meaning: "안심과 편안함을 건네는 자리" },
+  괴: { han: "壞", meaning: "흔들림과 변화를 일으키는 자리" },
+  성: { han: "成", meaning: "일을 이루도록 밀어주는 자리" },
+  위: { han: "危", meaning: "긴장과 자극을 일으키는 자리" },
+};
+
+// forward/reverse 실거리와 정본 역할 배정을 묶어 방향 비대칭 해설을 만든다.
+// (a≠b면 forward+reverse=27 — 가까운 방향은 끌림의 속도, 먼 방향은 회복의 간격을 만든다)
+function describeSukuyoDirectionalRelation(forwardDistance, reverseDistance) {
+  const forward = normalizeIndex(forwardDistance);
+  const reverse = normalizeIndex(reverseDistance);
+  if (forward == null || reverse == null) return null;
+  const relation = relationFromForwardDistance(forward);
+  if (!relation) return null;
+  const aProfile = SUKUYO_ROLE_PROFILES[relation.aRole] || { han: "", meaning: "확인된 자리" };
+  const bProfile = SUKUYO_ROLE_PROFILES[relation.bRole] || { han: "", meaning: "확인된 자리" };
+  let directionalDistanceGuide;
+  if (forward === 0 && reverse === 0) {
+    directionalDistanceGuide = "두 사람은 같은 자리에서 만나는 동숙이라 다가감과 되돌아옴의 간격이 똑같이 짧습니다. 익숙함이 빠른 만큼 변화의 신호도 함께 무뎌질 수 있어요.";
+  } else {
+    const myPathNear = forward <= reverse;
+    const near = Math.min(forward, reverse);
+    const far = Math.max(forward, reverse);
+    const nearSubject = myPathNear ? "내가 상대에게 다가가는 길" : "상대가 나에게 다가오는 길";
+    const farSubject = myPathNear ? "상대에게서 나에게 돌아오는 길" : "나에게서 상대에게 돌아가는 길";
+    directionalDistanceGuide = `27숙의 바퀴에서 ${nearSubject}은 ${near}칸으로 짧고, ${farSubject}은 ${far}칸으로 깁니다. 끌림은 짧은 쪽 속도로 빨리 붙지만, 서운함이 풀리는 회복은 긴 쪽 ${far}칸의 결을 따라 더 천천히 돌아옵니다.`;
+  }
+  return {
+    forwardDistance: forward,
+    reverseDistance: reverse,
+    relationType: relation.relationType,
+    aRole: relation.aRole,
+    aRoleHan: aProfile.han,
+    aRoleLabel: `${relation.aRole}(${aProfile.han})`,
+    aRoleMeaning: aProfile.meaning,
+    bRole: relation.bRole,
+    bRoleHan: bProfile.han,
+    bRoleLabel: `${relation.bRole}(${bProfile.han})`,
+    bRoleMeaning: bProfile.meaning,
+    directionalDistanceGuide,
+  };
+}
+
 function distanceLabelByRule(shortestDistance, relationType) {
   const d = Number(shortestDistance);
   if (relationType === "명" && d === 0) return "동숙";
@@ -163,4 +216,5 @@ function buildSukuyoAiCompatibility(personASukuyo, personBSukuyo) {
 export {
   buildSukuyoAiCompatibility,
   buildSukuyoFromLunar,
+  describeSukuyoDirectionalRelation,
 };

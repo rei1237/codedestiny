@@ -101,6 +101,14 @@ export type FortuneTeaSajuTenGodSnapshot = {
   source: "existing-saju-engine" | "fallback" | "unavailable";
 };
 
+export type FortuneTeaSajuDaewoonRow = {
+  pillar: string;
+  label?: string;
+  startAge?: number;
+  startYear?: number;
+  isCurrent?: boolean;
+};
+
 export type FortuneTeaSajuSnapshot = {
   available: boolean;
   dayMaster?: string;
@@ -116,6 +124,10 @@ export type FortuneTeaSajuSnapshot = {
   strongElements?: string[];
   weakElements?: string[];
   usefulElements?: string[];
+  // 프롬프트 factInput용 심화 사실 — 엔진이 이미 계산하지만 버려지던 값(빈 필드 수복)
+  monthBranch?: string;
+  season?: string;
+  daewoon?: FortuneTeaSajuDaewoonRow[];
   coreSummary?: string;
   caution?: string;
 };
@@ -228,6 +240,7 @@ export type FortuneTeaSukuyoRelationDetail = {
   intensity?: string;
   userToPartnerMeaning?: string;
   partnerToUserMeaning?: string;
+  directionalDistanceGuide?: string;
 };
 
 export type FortuneTeaSukuyoScoreSummary = {
@@ -315,6 +328,9 @@ export type FortuneTeaHouseConsultResponse = {
     primaryTenGod?: FortuneTeaSajuTenGodReading;
     secondaryTenGods?: FortuneTeaSajuSecondaryTenGod[];
     deepSections?: FortuneTeaSajuDeepSection[];
+    monthBranch?: string;
+    season?: string;
+    daewoon?: FortuneTeaSajuDaewoonRow[];
     caution?: string;
     cautionReading?: string;
     actionPrescription?: string;

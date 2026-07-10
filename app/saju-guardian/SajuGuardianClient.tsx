@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
+import { showToast } from "@/app/components/Toast";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
@@ -126,7 +126,6 @@ const SAJU_GUARDIAN_SESSION_MARK = "1";
 const SAJU_GUARDIAN_VERIFICATION_RETRY_MS = 800;
 const SAJU_GUARDIAN_TILE_LOCK_SCOPE_KEY = "fortune_auth_user";
 const SAJU_GUARDIAN_TILE_LOCKS_PREFIX = "cd_tile_locks_v2";
-const SAJU_GUARDIAN_IMAGE_SRC = "/fuctionassets/saju-guardian-animal-v20260615.webp";
 const SAJU_GUARDIAN_HANDOFF_KEY = "cd_saju_guardian_handoff_v20260628";
 const SAJU_GUARDIAN_HANDOFF_MARKER = "saju-guardian-main-saju-handoff-v20260628";
 const SAJU_GUARDIAN_HANDOFF_TTL_MS = 30 * 60 * 1000;
@@ -1273,6 +1272,29 @@ function LoadingScreen({ tx }: { tx: SajuGuardianTx }) {
   );
 }
 
+/* ─────────────────────── 소환진 SVG 플레이스홀더 ───────────────────── */
+function GuardianSummoningCircle({ spinning = false, message }: { spinning?: boolean; message?: string }) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+      <svg viewBox="0 0 400 400" className="h-3/4 w-3/4 max-w-[320px]" aria-hidden="true">
+        <circle cx="200" cy="200" r="180" fill="none" stroke="#b31955" strokeWidth="1.5" opacity="0.6" />
+        <circle cx="200" cy="200" r="140" fill="none" stroke="#ead089" strokeWidth="0.8" opacity="0.4" />
+        <g transform-origin="200 200" className={spinning ? "animate-spin-slow" : undefined}>
+          <text x="200" y="40" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☰</text>
+          <text x="340" y="130" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☱</text>
+          <text x="340" y="280" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☲</text>
+          <text x="200" y="375" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☳</text>
+          <text x="60" y="280" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☴</text>
+          <text x="60" y="130" textAnchor="middle" fontSize="18" fill="#b31955" opacity="0.7">☵</text>
+        </g>
+        <circle cx="200" cy="200" r="80" fill="rgba(179,25,85,0.08)" stroke="#b31955" strokeWidth="1" />
+        <text x="200" y="215" textAnchor="middle" fontSize="48" fill="#b31955" opacity="0.3">神</text>
+      </svg>
+      {message ? <p className="text-xs font-semibold text-amber-100/80">{message}</p> : null}
+    </div>
+  );
+}
+
 function GuardianSealDisplay({
   guardianSeal,
   guardianArchetype,
@@ -1362,13 +1384,25 @@ function ResultCard({
   data,
   onReset,
   tx,
+  birthYear,
+  birthMonth,
+  birthDay,
+  birthHour,
 }: {
   data: ApiResult;
   onReset: () => void;
   tx: SajuGuardianTx;
+  birthYear: string;
+  birthMonth: string;
+  birthDay: string;
+  birthHour: string;
 }) {
   const [activePanel, setActivePanel] = useState("seal");
   const [promptCopied, setPromptCopied] = useState(false);
+  const [guardianImage, setGuardianImage] = useState<{
+    status: "idle" | "loading" | "ready" | "error";
+    base64?: string;
+  }>({ status: "idle" });
 
   if (!data.result) {
     return (
@@ -1404,6 +1438,38 @@ function ResultCard({
   const hourStem = result.fourPillars?.hour?.stem || "";
   const hourBranch = result.fourPillars?.hour?.branch || "";
   const hasBirthTime = result.hasBirthTime === true;
+
+  const handleGenerateGuardianImage = async () => {
+    setGuardianImage({ status: "loading" });
+    try {
+      const response = await fetch("/api/guardian/generate-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          sajuData: {
+            year: Number(birthYear) || 0,
+            month: Number(birthMonth) || 0,
+            day: Number(birthDay) || 0,
+            hour: birthHour !== "" ? Number(birthHour) : undefined,
+            stem: dayStem,
+            branch: dayBranch,
+            elements: result.dominantElement,
+          },
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload?.ok || !payload?.imageBase64) {
+        setGuardianImage({ status: "error" });
+        showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+        return;
+      }
+      setGuardianImage({ status: "ready", base64: payload.imageBase64 });
+    } catch {
+      setGuardianImage({ status: "error" });
+      showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
+    }
+  };
   const stemPolarity = STEM_POLARITY[dayStem] || "양";
   const elementReading = ELEMENT_GUARDIAN_READING[result.dominantElement] || ELEMENT_GUARDIAN_READING.토;
   const monthElement = STEM_TO_ELEMENT[monthStem] || result.secondaryElement || result.dominantElement;
@@ -1609,14 +1675,19 @@ function ResultCard({
       <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col gap-5 px-4 py-5 sm:px-6 lg:px-8">
         <section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
           <div className="relative min-h-[520px] overflow-hidden rounded-lg border border-amber-200/20 bg-slate-950 shadow-2xl shadow-black/40">
-            <Image
-              src={SAJU_GUARDIAN_IMAGE_SRC}
-              alt={tx("사주 가디언 소환진")}
-              fill
-              priority
-              className="object-cover opacity-[0.88]"
-              sizes="(max-width: 1024px) 100vw, 44vw"
-            />
+            {guardianImage.status === "ready" && guardianImage.base64 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={`data:image/png;base64,${guardianImage.base64}`}
+                alt={tx("사주 가디언 소환진")}
+                className="absolute inset-0 h-full w-full object-cover opacity-[0.88]"
+              />
+            ) : (
+              <GuardianSummoningCircle
+                spinning={guardianImage.status === "loading"}
+                message={guardianImage.status === "loading" ? tx("수호신을 소환하는 중...") : undefined}
+              />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/42 to-transparent" />
             <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
               <p className="text-xs font-black tracking-[0.18em] text-amber-200">{tx("수호 인장")}</p>
@@ -1627,6 +1698,14 @@ function ResultCard({
                 {guardianSeal}이 명식의 중심에 섭니다. 일주가 뿌리를 세우고, 월지와 시지가 현실의 방향과 하루의 리듬을 조용히 밝혀 줍니다.
               </p>
               <div className="mt-5 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={handleGenerateGuardianImage}
+                  disabled={guardianImage.status === "loading"}
+                  className="rounded-lg border border-amber-200/30 bg-amber-200/12 px-4 py-2.5 text-xs font-black text-amber-100 transition hover:bg-amber-200/18 disabled:opacity-50"
+                >
+                  {guardianImage.status === "loading" ? tx("소환 중...") : tx("소환진 깨우기")}
+                </button>
                 <button
                   type="button"
                   onClick={onReset}
@@ -2048,7 +2127,17 @@ export default function SajuGuardianPage() {
 
   /* ── 결과 화면 ── */
   if (phase === "result" && apiData) {
-    return <ResultCard data={apiData} onReset={handleReset} tx={tx} />;
+    return (
+      <ResultCard
+        data={apiData}
+        onReset={handleReset}
+        tx={tx}
+        birthYear={birthYear}
+        birthMonth={birthMonth}
+        birthDay={birthDay}
+        birthHour={birthHour}
+      />
+    );
   }
 
   /* ── 에러 화면 ── */
@@ -2110,15 +2199,8 @@ export default function SajuGuardianPage() {
         </div>
 
         <div className="max-w-md mx-auto px-4 pb-12 space-y-6">
-          <div className="relative w-full aspect-square max-w-sm mx-auto mt-6 rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/60 border-4 border-white/80">
-            <Image
-              src={SAJU_GUARDIAN_IMAGE_SRC}
-              alt={tx("사주 가디언 소환진")}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, 384px"
-            />
+          <div className="relative w-full aspect-square max-w-sm mx-auto mt-6 rounded-3xl overflow-hidden shadow-2xl shadow-pink-200/60 border-4 border-white/80 bg-gradient-to-br from-pink-50 via-rose-50 to-violet-100">
+            <GuardianSummoningCircle />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
             <div className="absolute bottom-4 left-4 right-4 text-center">
               <span className="inline-block bg-white/90 backdrop-blur-sm text-slate-800 font-bold text-sm rounded-full px-4 py-1.5 shadow-sm">

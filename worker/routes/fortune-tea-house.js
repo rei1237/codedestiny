@@ -4,7 +4,8 @@ import { Lunar, Solar } from "lunar-javascript";
 import { createHash } from "node:crypto";
 import { getCurrentUser } from "../lib/auth.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
+import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
+import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { toDisplayText } from "../../lib/llm-text.js";
@@ -513,20 +514,6 @@ const FORTUNE_TEA_SUKUYO_STABLE_GROUP_HANJA = new Set(["角", "亢", "氐", "房
 const FORTUNE_TEA_SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜", "參"]);
 const FORTUNE_TEA_SUKUYO_ELEMENT_CREATE = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const FORTUNE_TEA_SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
-const FORTUNE_TEA_SUKUYO_RELATION_12 = [
-  { name: "안", han: "安", meaning: "동숙·완벽한 공명" },
-  { name: "위", han: "危", meaning: "근접·날카로운 긴장" },
-  { name: "괴", han: "壞", meaning: "파괴적 변화 유발" },
-  { name: "복", han: "福", meaning: "복과 이익의 관계" },
-  { name: "명", han: "命", meaning: "운명적 연결" },
-  { name: "이", han: "利", meaning: "실익과 협력" },
-  { name: "쇠", han: "衰", meaning: "에너지 소진 위험" },
-  { name: "우", han: "友", meaning: "우정·동반의 결속" },
-  { name: "아", han: "我", meaning: "자기 투영·미러링" },
-  { name: "원", han: "怨", meaning: "원한·업보의 얽힘" },
-  { name: "친", han: "親", meaning: "깊은 친밀감" },
-  { name: "비", han: "非", meaning: "이질적 공존" },
-];
 
 function cleanTextOr(value, fallback, maxLength = 80) {
   return cleanText(value, maxLength) || fallback;
@@ -656,15 +643,6 @@ function fortuneTeaSukuyoKeyword(sukuyo = {}) {
   return words.slice(0, 3).join(" · ") || "직관 · 조율 · 성장";
 }
 
-function fortuneTeaSukuyoRelationByDistance(distance) {
-  const normalized = ((Math.floor(Number(distance) || 0) % 27) + 27) % 27;
-  const item = FORTUNE_TEA_SUKUYO_RELATION_12[Math.min(normalized, 11)] || FORTUNE_TEA_SUKUYO_RELATION_12[11];
-  return {
-    label: `${item.name}(${item.han})`,
-    meaning: item.meaning,
-  };
-}
-
 function fortuneTeaSukuyoIntensity(shortestDistance, relationType) {
   const distance = Number(shortestDistance);
   if (distance <= 3 || ["안괴", "업태"].includes(relationType)) return "강렬";
@@ -768,8 +746,14 @@ function buildFortuneTeaSukuyoCompatibility(request) {
     const forwardDistance = Number(compatibility.forwardDistance);
     const reverseDistance = Number(compatibility.reverseDistance);
     const shortestDistance = Number(compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance);
-    const forwardRelation = fortuneTeaSukuyoRelationByDistance(forwardDistance);
-    const reverseRelation = fortuneTeaSukuyoRelationByDistance(reverseDistance);
+    // 방향 라벨은 정본 링 매핑(aRole/bRole)에서만 파생한다 — 별도 12항 근사표 금지(정본과 어긋나 모순 노출됐던 지점).
+    const directional = describeSukuyoDirectionalRelation(forwardDistance, reverseDistance) || {
+      aRoleLabel: "확인된 자리",
+      aRoleMeaning: "확인된 방향의 결만 살핍니다.",
+      bRoleLabel: "확인된 자리",
+      bRoleMeaning: "확인된 방향의 결만 살핍니다.",
+      directionalDistanceGuide: "두 사람의 거리 계산이 열리는 대로 다가감과 회복의 간격을 함께 살핍니다.",
+    };
     const intensity = fortuneTeaSukuyoIntensity(shortestDistance, relationType);
     const scores = buildFortuneTeaSukuyoScoreSummary(userSukuyo, partnerSukuyo, compatibility, relationType, intensity);
     const userElement = normalizeFortuneTeaSukuyoElement(userSukuyo.element);
@@ -785,7 +769,7 @@ function buildFortuneTeaSukuyoCompatibility(request) {
       available: true,
       calculationSource: "sukuyo-compatibility-ai-calculation",
       title: `${user.sukuyoName || "나의 본명숙"}과 ${partner.sukuyoName || "상대의 본명숙"}이 만나는 ${relationType}의 달빛`,
-      summary: `${user.name}의 ${user.sukuyoName || "본명숙"}과 ${partner.name}의 ${partner.sukuyoName || "본명숙"}은 ${distancePhrase}에서 ${relationType} 관계로 맞닿습니다. ${guide.tone} ${forwardRelation.label}으로 다가가고 ${reverseRelation.label}으로 되돌아오는 방향이라, 같은 마음이라도 표현 속도는 다르게 느껴질 수 있어요. ${distanceGuide} 지금은 ${questionFocus}을 중심으로 끌림과 조심해야 할 리듬을 함께 보아야 합니다.`,
+      summary: `${user.name}의 ${user.sukuyoName || "본명숙"}과 ${partner.name}의 ${partner.sukuyoName || "본명숙"}은 ${distancePhrase}에서 ${relationType} 관계로 맞닿습니다. ${guide.tone} 이 관계에서 나는 ${directional.aRoleLabel}, 상대는 ${directional.bRoleLabel}의 자리에 서기에 같은 마음도 표현되는 결은 서로 다르게 나타날 수 있어요. ${distanceGuide} 지금은 ${questionFocus}을 중심으로 끌림과 조심해야 할 리듬을 함께 보아야 합니다.`,
       relationshipType: cleanText(input.relationshipType, 80),
       focus: questionFocus,
       currentSituation: cleanText(input.currentSituation, 300),
@@ -816,11 +800,12 @@ function buildFortuneTeaSukuyoCompatibility(request) {
         },
       },
       relationDetail: {
-        typeAToB: forwardRelation.label,
-        typeBToA: reverseRelation.label,
+        typeAToB: directional.aRoleLabel,
+        typeBToA: directional.bRoleLabel,
         intensity,
-        userToPartnerMeaning: forwardRelation.meaning,
-        partnerToUserMeaning: reverseRelation.meaning,
+        userToPartnerMeaning: `나는 상대에게 ${directional.aRoleMeaning}입니다.`,
+        partnerToUserMeaning: `상대는 나에게 ${directional.bRoleMeaning}입니다.`,
+        directionalDistanceGuide: directional.directionalDistanceGuide,
       },
       relationType,
       relationTypeHan: cleanText(compatibility.relationTypeHan, 12),
@@ -841,15 +826,15 @@ function buildFortuneTeaSukuyoCompatibility(request) {
       strengths: [
         `${user.sukuyoName || "나의 숙"}은 ${user.keywords?.slice(0, 2).join(" · ") || "감정의 결"}로 먼저 다가가고, ${partner.sukuyoName || "상대의 숙"}은 ${partner.keywords?.slice(0, 2).join(" · ") || "관계의 온도"}로 응답해 첫 끌림의 결을 만듭니다.`,
         `${relationType} 관계에서는 ${guide.strengths[0]} 여기에 ${elementHarmonyRelation}의 오행 결이 더해져 대화의 온도를 맞출 여지가 생깁니다.`,
-        `${forwardRelation.label}과 ${reverseRelation.label}의 방향은 한쪽만 맞추는 관계보다 서로의 속도를 확인할 때 장점이 살아난다는 것을 가리킵니다.`,
+        `내가 서는 ${directional.aRoleLabel}의 자리와 상대가 서는 ${directional.bRoleLabel}의 자리는, 한쪽만 맞추는 관계보다 서로의 속도를 확인할 때 장점이 살아난다는 것을 가리킵니다.`,
         ...guide.strengths,
       ].slice(0, 3),
       cautions: [
-        `${distanceSubject} 가까워지는 속도와 회복에 필요한 간격이 다를 수 있음을 보여줍니다.`,
+        directional.directionalDistanceGuide || `${distanceSubject} 가까워지는 속도와 회복에 필요한 간격이 다를 수 있음을 보여줍니다.`,
         ...guide.cautions,
         categoryGuide,
       ].slice(0, 3),
-      adviceKeywords: [relationType, distanceLabel, forwardRelation.label, reverseRelation.label, ...guide.keywords].slice(0, 5),
+      adviceKeywords: [relationType, distanceLabel, directional.aRoleLabel, directional.bRoleLabel, ...guide.keywords].slice(0, 5),
       roleGuide: {
         userAction: cleanTextOr(compatibility.roleActionGuide?.meAction, guide.keywords[0], 180),
         partnerAction: cleanTextOr(compatibility.roleActionGuide?.otherAction, guide.keywords[1] || "상대의 속도 존중", 180),
@@ -1497,6 +1482,103 @@ function combineSajuFactText(...values) {
     .join(" · ");
 }
 
+// fallback.saju의 pillars(문자열 맵 또는 pillarBoard 배열)에서 간지 문자열을 꺼낸다.
+function fortuneTeaSajuPillarGanji(saju, key) {
+  const pillars = saju?.pillars;
+  if (Array.isArray(pillars)) {
+    const row = pillars.find((item) => item?.key === key) || {};
+    return cleanText(row.ganji || `${row.heavenlyStem || ""}${row.earthlyBranch || ""}`, 12);
+  }
+  if (pillars && typeof pillars === "object") {
+    const value = pillars[key];
+    if (typeof value === "string") return cleanText(value, 12);
+    if (value && typeof value === "object") return cleanText(value.ganji, 12);
+  }
+  return "";
+}
+
+// 독립 "AI 사주 생성" 기능의 순수 파생(지장간 투간/투출·도충·개고·십성 확정표)을
+// 찻집 명식(pillars 간지 + 대운 목록)에 그대로 적용한다 — 같은 워커 번들 재사용, 재계산 없음.
+function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
+  const pillarGanji = {
+    year: fortuneTeaSajuPillarGanji(saju, "year"),
+    month: fortuneTeaSajuPillarGanji(saju, "month"),
+    day: fortuneTeaSajuPillarGanji(saju, "day"),
+    hour: fortuneTeaSajuPillarGanji(saju, "hour"),
+  };
+  if (!pillarGanji.day) return undefined;
+  try {
+    const sajuResultLike = {
+      pillars: {
+        year: { ganji: pillarGanji.year },
+        month: { ganji: pillarGanji.month },
+        day: { ganji: pillarGanji.day },
+        hour: { ganji: pillarGanji.hour },
+      },
+      daewoon: Array.isArray(saju?.daewoon)
+        ? saju.daewoon.map((row) => ({ ganji: row?.pillar, label: row?.label, age: row?.startAge, year: row?.startYear }))
+        : [],
+    };
+    const advanced = buildSajuAdvancedFactors(sajuResultLike, undefined);
+    const elementWeights = Array.isArray(saju?.fiveElements)
+      ? Object.fromEntries(saju.fiveElements.map((item) => [item?.key, Number(item?.value) || 0]))
+      : undefined;
+    const { factSnapshot } = buildSajuMyeongsikFactSnapshot({
+      sajuResult: sajuResultLike,
+      question: request?.question,
+      advancedFactors: advanced,
+      weights: elementWeights,
+    });
+    const stemLine = ["year", "month", "hour"]
+      .map((key) => {
+        const row = factSnapshot.heavenlyStemTenGods?.[key];
+        return row?.stem ? `${row.label} ${row.stem}${row.stemKorean ? `(${row.stemKorean})` : ""}=${row.tenGod}` : "";
+      })
+      .filter(Boolean)
+      .join(" · ");
+    const hiddenLine = ["year", "month", "day", "hour"]
+      .map((key) => {
+        const row = factSnapshot.hiddenStemsByBranch?.[key];
+        if (!row?.branch) return "";
+        const list = (row.hiddenStems || [])
+          .map((item) => `${item.stem}${item.stemKorean ? `(${item.stemKorean})` : ""}:${item.tenGod || "십성 미상"}`)
+          .join("/");
+        return `${row.label} ${row.branch}${row.branchKorean ? `(${row.branchKorean})` : ""}[${list}]`;
+      })
+      .filter(Boolean)
+      .join(" · ");
+    const combinedCounts = Object.entries(factSnapshot.tenGodDistribution?.combined || {})
+      .filter(([, value]) => Number(value) > 0)
+      .map(([tenGod, value]) => `${tenGod} ${value}`)
+      .join(", ");
+    const doChung = advanced?.doChung?.exists
+      ? `${advanced.doChung.repeatedBranch} 반복 ${advanced.doChung.repeatedCount}회 → ${advanced.doChung.inducedOppositeBranch} 도충 유도`
+      : "도충 조건 뚜렷하지 않음";
+    const openings = (advanced?.earthStorageOpenings || [])
+      .slice(0, 4)
+      .map((row) => `${row.sourceBranch}-${row.triggerBranch} ${row.relationType}/${row.openingStrength}`);
+    const luckRows = (factSnapshot.luck?.luckRows || [])
+      .slice(0, 10)
+      .map((row) => `${row.scope === "daewoon" ? "대운" : row.scope === "sewoon" ? "세운" : row.scope} ${row.label}`)
+      .join(" | ");
+    return {
+      tenGodFixedTable: (factSnapshot.fixedTenGodTable || [])
+        .map((row) => `${row.stem}${row.stemKorean ? `(${row.stemKorean})` : ""}=${row.tenGod}`)
+        .join(" | "),
+      tenGodTableRule: "십성 판정은 위 확정표만 사용한다. 표와 다른 십성을 새로 계산하거나 언급하지 않는다.",
+      heavenlyStemTenGods: stemLine,
+      hiddenStemsByBranch: hiddenLine,
+      tenGodDistributionCombined: combinedCounts,
+      hiddenStemExposures: (advanced?.hiddenStemExposures || []).slice(0, 6).map((row) => row.summaryForPrompt).filter(Boolean),
+      doChung,
+      earthStorageOpenings: openings.length ? openings : ["뚜렷한 개고 없음"],
+      luckRows,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 function buildSajuFactInput(request, saju, rule) {
   const monthSeason = combineSajuFactText(
     firstSajuFactText(saju, ["monthBranch", "wolji", "monthlyBranch", "monthPillar", "monthPillarText"]),
@@ -1549,6 +1631,75 @@ function buildSajuFactInput(request, saju, rule) {
       actionPrescription: cleanMultiline(saju?.actionPrescription, 800),
       uncertaintyRule: "비어 있는 항목은 추측하지 말고, 확인된 항목끼리만 연결한다.",
     },
+    // 명식 심화 사실(십성 확정표·지장간·투간/투출·도충·개고·운 흐름) — 독립 AI 사주 생성 로직 재사용.
+    myeongsikFacts: buildFortuneTeaSajuMyeongsikFacts(request, saju),
+  };
+}
+
+// 카드 구조(아르카나/수트/원소/코트)를 cardId 패턴에서 파생한다 — 78장 데이터 수기 편집 없이
+// thinkingOrder가 요구하는 비율·편중·원소 근거를 "추론"이 아닌 "입력 사실"로 공급하기 위한 것.
+// (클라 덱 id 규칙: major_NN_slug / minor_{suit}_NN — src/features/fortune-tea-house/data/tarotCards.ts)
+const TAROT_SUIT_PROFILES = {
+  wands: { ko: "완드", element: "불", theme: "추진력과 열정" },
+  cups: { ko: "컵", element: "물", theme: "감정과 관계" },
+  swords: { ko: "소드", element: "공기", theme: "생각과 갈등" },
+  pentacles: { ko: "펜타클", element: "흙", theme: "현실과 자원" },
+};
+const TAROT_SPREAD_SEQUENCE_RULES = {
+  three: "3장은 현재→흐름→조언의 시간 축이다. 현재 카드가 놓은 장면을 흐름 카드가 밀고 가는지 꺾는지 먼저 판정하고, 조언 카드는 그 모멘텀을 살릴지 늦출지의 기준으로 읽는다.",
+  five: "5장에서 현재↔상대/상황은 같은 장면의 두 시점 대비이고, 장애↔가능성은 서로 긴장하는 짝이다. 장애 카드가 가능성 카드를 어떻게 제한하는지, 조언 카드가 그 긴장을 어느 쪽으로 중재하는지 연결해 읽는다.",
+};
+
+function describeTarotCardStructure(card = {}) {
+  const cardId = String(card.cardId || "");
+  const suitKey = cardId.includes("_cups_")
+    ? "cups"
+    : cardId.includes("_swords_")
+      ? "swords"
+      : cardId.includes("_wands_")
+        ? "wands"
+        : cardId.includes("_pentacles_")
+          ? "pentacles"
+          : "";
+  const suit = suitKey ? TAROT_SUIT_PROFILES[suitKey] : null;
+  const number = Number(card.number);
+  return {
+    arcana: suit ? "마이너" : "메이저",
+    suitKo: suit ? suit.ko : "",
+    element: suit ? suit.element : "",
+    suitTheme: suit ? suit.theme : "",
+    rank: suit && Number.isFinite(number) ? number : undefined,
+    isCourt: Boolean(suit) && number >= 11 && number <= 14,
+  };
+}
+
+function buildTarotSpreadDigest(cards, spread) {
+  const structures = cards.map((card) => describeTarotCardStructure(card));
+  const majorCount = structures.filter((item) => item.arcana === "메이저").length;
+  const suitCounts = {};
+  structures.forEach((item) => {
+    if (item.suitKo) suitCounts[item.suitKo] = (suitCounts[item.suitKo] || 0) + 1;
+  });
+  const repeatedSuits = Object.entries(suitCounts).filter(([, count]) => count >= 2).map(([ko, count]) => `${ko} ${count}장`);
+  const courtCount = structures.filter((item) => item.isCourt).length;
+  const reversedCount = cards.filter((card) => card.orientation === "reversed").length;
+  const elements = structures.map((item) => item.element).filter(Boolean);
+  const first = cards[0];
+  const last = cards[cards.length - 1];
+  return {
+    majorMinorRatio: `메이저 ${majorCount}장 / 마이너 ${cards.length - majorCount}장${majorCount > cards.length / 2 ? " — 메이저 우세: 개인의 의지보다 큰 흐름이 국면을 끌고 간다" : ""}`,
+    suitBalance: repeatedSuits.length
+      ? `수트 편중: ${repeatedSuits.join(", ")} — 반복 수트의 주제가 이번 질문의 무게중심이다`
+      : "수트 편중 없음 — 주제가 분산되어 있어 카드 사이의 연결이 관건이다",
+    courtPresence: courtCount ? `코트 카드 ${courtCount}장 — 특정 인물이나 태도의 영향이 크게 작동한다` : "코트 카드 없음",
+    orientationBalance: `정방향 ${cards.length - reversedCount}장 / 역방향 ${reversedCount}장${reversedCount >= Math.ceil(cards.length / 2) && reversedCount > 0 ? " — 역방향 우세: 지연·내면화·재조정의 결이 강하다" : ""}`,
+    elementFlow: elements.length
+      ? `마이너 원소 구성(순서대로): ${elements.join(" → ")} (완드=불, 컵=물, 소드=공기, 펜타클=흙)`
+      : "마이너 원소 없음 — 메이저 원형 에너지 중심의 배열",
+    firstToLast: first && last && cards.length > 1
+      ? `첫 카드 ${first.nameKo}(${tarotOrientationLabel(first.orientation)})에서 마지막 카드 ${last.nameKo}(${tarotOrientationLabel(last.orientation)})로 흐르는 변화를 하나의 서사로 잇는다`
+      : "",
+    sequenceRule: TAROT_SPREAD_SEQUENCE_RULES[spread] || TAROT_SPREAD_SEQUENCE_RULES.three,
   };
 }
 
@@ -1580,20 +1731,30 @@ function buildTarotFactInput(request, fallback, rule) {
         ? "역방향은 카드의 힘이 막히거나 과잉되거나 안쪽으로 접힌 상태다. 지연, 재조정, 경계, 숨은 감정을 함께 본다."
         : "정방향은 카드의 상징이 비교적 자연스럽게 드러나는 상태다. 강점, 현재 흐름, 사용할 수 있는 자원을 함께 본다.",
     },
-    spreadCards: cards.map((card, index) => ({
-      order: index + 1,
-      positionId: cleanText(card.positionId, 80),
-      positionLabel: cleanText(card.positionLabel, 80),
-      positionMeaning: cleanMultiline(card.positionMeaning, 240),
-      cardId: cleanText(card.cardId, 120),
-      nameKo: cleanText(card.nameKo, 80),
-      nameEn: cleanText(card.nameEn, 80),
-      orientation: card.orientation,
-      orientationLabel: tarotOrientationLabel(card.orientation),
-      keywords: Array.isArray(card.keywords) ? card.keywords.slice(0, 5) : [],
-      traditionalMeaning: cleanMultiline(card.meaning, 500),
-      existingReading: cleanMultiline(card.reading, 500),
-    })),
+    spreadDigest: buildTarotSpreadDigest(cards, spread),
+    spreadCards: cards.map((card, index) => {
+      const structure = describeTarotCardStructure(card);
+      return {
+        order: index + 1,
+        positionId: cleanText(card.positionId, 80),
+        positionLabel: cleanText(card.positionLabel, 80),
+        positionMeaning: cleanMultiline(card.positionMeaning, 240),
+        cardId: cleanText(card.cardId, 120),
+        nameKo: cleanText(card.nameKo, 80),
+        nameEn: cleanText(card.nameEn, 80),
+        orientation: card.orientation,
+        orientationLabel: tarotOrientationLabel(card.orientation),
+        arcana: structure.arcana,
+        suit: structure.suitKo || undefined,
+        element: structure.element || undefined,
+        suitTheme: structure.suitTheme || undefined,
+        rank: structure.rank,
+        isCourt: structure.isCourt || undefined,
+        keywords: Array.isArray(card.keywords) ? card.keywords.slice(0, 5) : [],
+        traditionalMeaning: cleanMultiline(card.meaning, 500),
+        existingReading: cleanMultiline(card.reading, 500),
+      };
+    }),
     categoryReadingFocus: rule.focus,
     requiredCategoryTerms: rule.requiredTerms,
     uncertaintyRule: "입력된 카드와 위치 의미 밖의 카드를 만들지 않는다. 상대 마음, 재회, 금전 결과는 확정하지 않고 카드가 보여주는 조건과 선택 방향으로 말한다.",
@@ -1676,6 +1837,7 @@ function buildSukuyoFactInput(request, fallback) {
       typeBToA: cleanText(relationDetail.typeBToA, 80),
       userToPartnerMeaning: cleanText(relationDetail.userToPartnerMeaning, 120),
       partnerToUserMeaning: cleanText(relationDetail.partnerToUserMeaning, 120),
+      directionalDistanceGuide: cleanText(relationDetail.directionalDistanceGuide, 300),
       intensity: cleanText(relationDetail.intensity, 40),
       direction: cleanText(compatibility.direction, 80),
     },
@@ -1768,15 +1930,21 @@ function buildCategorySajuDeepSections(request, saju = {}, rule = resolveSajuCat
     "관계에서는 내 마음이 원하는 속도와 상대가 실제로 보여 준 속도를 분리해 보는 것이 필요합니다.",
     "몸과 마음이 지친 날에는 큰 결정을 미루고 수면, 식사, 정리 같은 기본 리듬을 먼저 회복하세요.",
   ];
+  const sectionCount = rule.requiredSections.length;
   return rule.requiredSections.map((title, index) => {
     const focus = rule.focus[index % rule.focus.length];
-    const angle = angleGuides[index % angleGuides.length];
-    const action = actionGuides[index % actionGuides.length];
+    // 반복 경감: 같은 오프너·명식 사실·행동 문장이 아홉 섹션에 통째로 되풀이되지 않게
+    // 역할별로 배치한다 — 오프너/연이의 태도는 첫 섹션, 명식 사실은 앞쪽 두 곳, 행동 조언은 처방 계열 마지막 섹션들만.
+    const opener = index === 0 ? `${nickname}의 질문 "${question}"은 ${rule.category}의 찻잔에서 ${rule.concept}으로 열립니다. ` : "";
+    const factLine = index <= 2 ? `명식의 중심은 ${dayMaster}이고, 오행은 ${elements}, 십성은 ${tenGods}의 결로 드러납니다. ${timeLimit} ` : "";
+    const angle = index < angleGuides.length ? `${angleGuides[index]} ` : "";
+    const yeoniLine = index === 0 ? " 연이는 여기서 결론을 단정하지 않고, 손님이 실제로 확인할 수 있는 신호와 마음이 만들어낸 해석을 나누어 봅니다." : "";
+    const action = index >= sectionCount - 3 ? ` ${actionGuides[index % actionGuides.length]}` : "";
     return {
       id: `${rule.resultKey}-${index + 1}`,
       title,
       tone: index <= 1 ? "summary" : index <= 3 ? "element" : index <= 5 ? "flow" : index <= 7 ? "advice" : "caution",
-      body: `${nickname}의 질문 "${question}"은 ${rule.category}의 찻잔에서 ${rule.concept}으로 열립니다. 이 대목에서는 ${title}을 먼저 보겠습니다. 명식의 중심은 ${dayMaster}이고, 오행은 ${elements}, 십성은 ${tenGods}의 결로 드러납니다. ${timeLimit} ${angle} ${focus}을 기준으로 보면 지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을 분명히 세우는 일입니다. 연이는 여기서 결론을 단정하지 않고, 손님이 실제로 확인할 수 있는 신호와 마음이 만들어낸 해석을 나누어 봅니다. ${action}`,
+      body: `${opener}이 대목에서는 ${title}을 먼저 보겠습니다. ${factLine}${angle}${focus}을 기준으로 보면 지금 필요한 것은 감정을 키우는 말보다 조건, 경계, 다음 행동을 분명히 세우는 일입니다.${yeoniLine}${action}`,
     };
   });
 }
@@ -1949,7 +2117,7 @@ function buildMinimalDraft(request) {
     ? sukuyoDistanceGuide(sukuyoCompatibility.distanceTier, sukuyoCompatibility.distanceLabel)
     : "아직 거리 계산이 열리지 않은 부분은 연이가 지어내지 않고 비워둡니다.";
   const sukuyoDirectionLine = sukuyoAvailable
-    ? `${sukuyoCompatibility.relationDetail?.typeAToB || "확인된 방향"}으로 다가가고 ${sukuyoCompatibility.relationDetail?.typeBToA || "되돌아오는 방향"}으로 반응하는 흐름입니다.`
+    ? `이 관계에서 나는 ${sukuyoCompatibility.relationDetail?.typeAToB || "확인된 자리"}, 상대는 ${sukuyoCompatibility.relationDetail?.typeBToA || "확인된 자리"}의 자리에 서는 흐름입니다.`
     : "확인된 이름과 질문 안에서만 관계의 온도를 살핍니다.";
   const selectedSynthesisSummary = consultationMode === "sukuyo"
     ? sukuyoAvailable
@@ -1962,8 +2130,8 @@ function buildMinimalDraft(request) {
       : "비어 있는 숙요 계산값이나 상대의 속마음은 지어내지 않고, 확인된 두 사람의 정보와 질문만 따라 읽어 봅니다."
     : synthesisBridge;
   const selectedYeoniIntro = consultationMode === "sukuyo"
-    ? "찻잔 위에 내려앉은 달빛처럼, 연이는 두 사람의 숙이 서로를 바라보는 거리를 먼저 살펴봅니다."
-    : "연이는 먼저 당신의 질문에 머문 온도를 차분히 읽어 봅니다.";
+    ? "어서 오세요, 달빛이 고인 운명의 찻집이에요. 따뜻한 차 한 잔 두고, 찻잔 위에 내려앉은 달빛처럼 연이는 두 사람의 숙이 서로를 바라보는 거리를 먼저 살펴봅니다."
+    : "어서 오세요, 달빛이 고인 운명의 찻집이에요. 따뜻한 차 한 잔 드시면서 잠시 쉬어가세요. 연이는 먼저 당신의 질문에 머문 온도를 차분히 읽어 봅니다.";
   const selectedYeoniMain = consultationMode === "sukuyo"
     ? sukuyoAvailable
       ? `${request.question}라는 물음은 두 사람의 관계가 단순히 좋고 나쁜지가 아니라, 어떤 거리에서 서로를 덜 다치게 만날 수 있는지를 묻고 있어요. ${sukuyoCompatibility.summary} ${sukuyoCompatibility.scores ? `영역 점수는 ${sukuyoCompatibility.scores.total}점, ${sukuyoCompatibility.scores.label}으로 모이지만 점수보다 중요한 것은 ${sukuyoCompatibility.distanceLabel || "거리"}와 ${sukuyoCompatibility.relationType || "관계 유형"}이 만드는 반복 패턴입니다. ` : ""}${sukuyoDistanceLine}`
@@ -2226,6 +2394,9 @@ function mergeLlmResult(fallback, parsed) {
       primaryTenGod: fallback.saju.primaryTenGod,
       secondaryTenGods: fallback.saju.secondaryTenGods,
       deepSections: parsedDeepSections.length ? parsedDeepSections : fallback.saju.deepSections,
+      monthBranch: fallback.saju.monthBranch,
+      season: fallback.saju.season,
+      daewoon: fallback.saju.daewoon,
       cautionReading: fallback.saju.cautionReading,
       actionPrescription: fallback.saju.actionPrescription,
       oneLineAdvice: cleanMultiline(safeParsed.saju?.oneLineAdvice, 400) || fallback.saju.oneLineAdvice,
@@ -2602,6 +2773,8 @@ function assertConsultQuality(result, fallback) {
 
 const sharedOutputRules = [
   "상담문은 베타 안내나 결과 설명이 아니라, 연이가 바로 앞에서 조용히 말해 주는 상담처럼 쓴다.",
+  "yeoniReading.intro는 손님을 맞이하는 짧은 환영 인사(어서 오세요 류)로 문을 열고, 이번 질문을 어떻게 읽을지 한두 문장으로 잇는다. 환영 인사는 intro에서 한 번만 하고 다른 필드에서 반복하지 않는다.",
+  "같은 논지, 같은 조언, 같은 금지 문구를 여러 필드에서 반복하지 않는다. 각 주제는 가장 알맞은 필드 한 곳에서 깊게 다루고, 다른 필드는 새로운 정보를 더할 때만 그 주제를 한 줄로 잇는다. 문장 단위 재사용은 실패다.",
   "100% 확정, 공포 조장, 의료/법률/금융 판단, 상대방 속마음 단정, 현실 판단 흐리기 유도는 금지한다.",
   "시스템 문구, 프롬프트 원문, 모델명, 제공자 이름, 형식 설명은 결과 문장에 절대 쓰지 않는다.",
   "같은 주어 반복을 줄이고 전문적이지만 다정한 한국어 상담 문장으로 쓴다.",
@@ -2714,6 +2887,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "십성 배치가 만드는 표현·현실·절제·생각·자아의 균형을 본다.",
               "지지 합충형해파가 실제 생활에서 만드는 마찰과 조화 지점을 찾는다.",
               "지금 대운·세운이 이 질문에 순풍인지 역풍인지 판정한다.",
+              "myeongsikFacts가 있으면 십성 확정표(tenGodFixedTable)를 벗어난 십성을 만들지 말고, 지장간 투간/투출·개고·도충·운 흐름(luckRows) 사실을 해당 챕터의 근거로 자연스럽게 인용한다.",
               "위 근거들을 손님의 질문 한 문장과 연결해 하나의 이야기로 엮는다.",
             ],
             resultFlow: [
@@ -2732,7 +2906,8 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "손님이 읽고 위로받았다고 느낄 수 있는가.",
             ],
             sectionRule: "saju.deepSections는 requiredDeepSections의 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·월지/계절·오행·십성·천간/지지 관계·현재 운의 흐름·질문 중 확인된 근거를 2개 이상 자연스럽게 연결한다.",
-            evidenceUseOrder: ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조", "천간·지지 관계", "대운·세운·월운", "찻잔 카테고리"],
+            repetitionRule: "같은 조언과 같은 문장을 여러 챕터·필드에서 반복하지 않는다. 구체 행동·금지 행동 목록은 actionPrescription에만, 단계 플랜은 choiceSimulation에만 두고, '찻집의 처방' 챕터는 그 플랜을 손님의 생활 장면으로 풀어내는 서사에 집중한다. 나머지 챕터는 해석과 명리 근거에 집중한다.",
+            evidenceUseOrder: ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "천간·지지 관계와 개고·도충(myeongsikFacts)", "대운·세운·월운(myeongsikFacts.luckRows)", "찻잔 카테고리"],
             personalizationRule: "누구에게나 맞는 위로 대신 '왜 이 질문이 이 명식에서 지금 커졌는지'와 '현실에서 어떤 행동을 줄이거나 시작할지'를 함께 쓴다.",
             uncertaintyRule: "sajuFactInput에 없는 항목은 만들지 않는다. 부족한 항목은 단정하지 말고 입력된 정보만으로 볼 수 있는 범위를 밝힌다.",
             topicCoverageRule: "가능한 경우 성향과 마음의 패턴, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운의 흐름, 조심할 점, 지금 바로 할 수 있는 행동 조언을 모두 건드린다.",
@@ -2763,26 +2938,26 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "사용자 질문을 상담 유형으로 분류하고 선택된 찻잔의 분위기를 확인한다.",
               "각 카드를 반드시 포지션의 의미와 결합해 읽는다. 같은 카드도 위치가 다르면 다르게 말한다.",
               "정/역방향을 정확히 반영한다. 역방향을 기계적으로 나쁘게 보지 말고 내면화, 지연, 과잉, 재조정 중 어느 결인지 다층적으로 본다.",
-              "메이저/마이너 아르카나 비율, 수트 편중, 코트 카드 등장을 전체 흐름의 신호로 읽는다.",
-              "카드의 숫자와 원소(불/물/공기/흙)의 상호작용을 근거로 삼는다.",
-              "카드들 사이의 이야기를 엮는다. 나열이 아니라 하나의 서사로.",
+              "메이저/마이너 비율, 수트 편중, 코트 카드, 정/역 비율은 spreadDigest에 계산되어 있다 — 스스로 다시 세지 말고 그 값을 그대로 인용해 전체 흐름의 신호로 읽는다.",
+              "카드의 숫자(rank)와 원소(element: 완드=불, 컵=물, 소드=공기, 펜타클=흙)는 spreadCards에 적힌 값을 근거로 상호작용을 읽는다. spreadDigest.elementFlow의 원소 흐름도 함께 본다.",
+              "카드들 사이의 이야기를 엮는다. 나열이 아니라 하나의 서사로 — spreadDigest.sequenceRule의 위치 관계와 firstToLast의 변화 방향을 따른다.",
               "확정 예언이 아니라 조건부 흐름으로 말하고, 마지막에는 실제 행동 조언을 준다.",
             ],
             toneRule: "타로는 정해진 미래가 아니라 지금의 에너지임을 자연스럽게 전제한다. 탑, 죽음, 악마 같은 부정적 카드는 상징의 본뜻(변화, 전환, 집착의 직면)으로 풀어 위로한다.",
             fieldStructure: {
-              "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 전통 의미, 질문 맥락을 4-6문장으로 연결한다.",
-              "synthesis.summary": "스프레드 전체 흐름. 카드 위치들을 나열하지 말고 현재 상황, 숨은 감정, 선택 포인트를 2-4문장으로 묶는다.",
+              "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 전통 의미, 질문 맥락을 4-6문장으로 연결한다. 카드의 전통 의미를 정의하는 자리는 여기(와 카드별 리딩)뿐이다.",
+              "synthesis.summary": "스프레드 전체 흐름의 정본 요약. 카드 위치들을 나열하지 말고 현재 상황, 숨은 감정, 선택 포인트를 2-4문장으로 묶는다. yeoniReading.main과 같은 문장을 쓰지 않는다.",
               "synthesis.sajuTarotBridge": "이름과 달라도 타로-only 전체 흐름 리딩으로 쓴다. 사주 언급 없이 카드들이 함께 만드는 이야기를 정리한다.",
-              "yeoniReading.intro": "찻집 감성의 짧은 카드 오픈 멘트와 질문자의 마음의 향.",
-              "yeoniReading.main": "카드별 해석의 핵심. 전통 의미와 이번 질문에서의 의미를 구분해 쓴다.",
-              "yeoniReading.advice": "현실 조언. 지금 움직일지 기다릴지, 해야 할 행동과 피해야 할 행동을 분리한다.",
-              "yeoniReading.caution": "주의점. 희망 고문, 단정, 충동 연락, 충동 소비, 성급한 이직처럼 카테고리에 맞는 위험을 짚는다.",
-              choiceSimulation: "카테고리별 행동 플랜. 4개 item으로 각 단계의 행동, 기대되는 변화, 조심할 점을 카드 근거와 함께 쓴다.",
-              actionPrescription: "오늘 바로 할 수 있는 행동과 하지 말아야 할 행동을 4-6문장으로 정리한다.",
-              closingLine: "연이의 마지막 메시지. 찻집의 차와 카드 이미지를 담아 한두 문장으로 마무리한다.",
+              "yeoniReading.intro": "손님을 맞이하는 환영 인사(어서 오세요 류)로 시작하는 찻집 감성의 카드 오픈 멘트와 질문자의 마음의 향.",
+              "yeoniReading.main": "카드들이 함께 만드는 이야기와 이번 질문에서의 의미. 카드별 전통 의미를 여기서 다시 정의하지 않는다(이미 tarot.reading과 카드별 리딩에 있다). 새로 더할 것은 카드 사이의 연결과 질문에 대한 답의 결이다.",
+              "yeoniReading.advice": "연이의 방향 제시. 지금 움직일지 기다릴지의 판단 기준을 다정하게 건네되, 구체적인 할 행동/금지 행동 목록은 나열하지 않는다(그 목록은 actionPrescription 한 곳에만 둔다).",
+              "yeoniReading.caution": "감정이 만들 수 있는 위험 신호만 짧게 짚는다(희망 고문, 단정, 충동). actionPrescription이나 choiceSimulation과 같은 금지 문구를 반복하면 실패다.",
+              choiceSimulation: "카테고리별 행동 플랜의 유일한 단계 목록. 4개 item으로 각 단계의 행동, 기대되는 변화, 조심할 점을 카드 근거와 함께 쓴다. 각 item의 조심할 점은 그 단계 고유의 리스크만 쓰고 전역 금지 문구를 되풀이하지 않는다.",
+              actionPrescription: "오늘 바로 할 수 있는 행동과 하지 말아야 할 행동을 4-6문장으로 정리한다. 결과 전체에서 구체 행동·금지 행동 목록을 담는 유일한 자리다.",
+              closingLine: "연이의 마지막 메시지. 찻집의 차와 카드 이미지를 담아 한두 문장으로 마무리한다. 위 조언을 요약 반복하지 않는다.",
             },
-            categorySectionRule: "requiredDeepSections의 의미가 결과 필드 전반에 모두 드러나야 한다. 섹션 제목을 그대로 쓰지 않아도 되지만, 누락된 주제가 있으면 실패다.",
-            cardByCardRule: "tarotFactInput.spreadCards의 각 카드는 positionLabel, positionMeaning, cardName, orientationLabel, traditionalMeaning을 반영한다. 카드가 1장뿐이면 그 한 장을 깊게 읽고, 3장 이상이면 위치별 의미를 전체 흐름에 연결한다.",
+            categorySectionRule: "requiredDeepSections의 주제는 각각 가장 알맞은 필드 한 곳에서 깊게 다뤄 결과 전체에서 빠짐없이 등장해야 한다. 섹션 제목을 그대로 쓰지 않아도 되지만, 주제가 누락되어도 실패이고 같은 주제를 같은 문장으로 여러 필드에 반복해도 실패다.",
+            cardByCardRule: "tarotFactInput.spreadCards의 각 카드는 positionLabel, positionMeaning, cardName, orientationLabel, traditionalMeaning에 더해 arcana, suit, element, rank(코트 여부)를 반영한다. 카드가 1장뿐이면 그 한 장을 깊게 읽고, 3장 이상이면 spreadDigest.sequenceRule과 firstToLast의 서사를 따라 위치별 의미를 전체 흐름에 연결한다.",
             orientationRule: "정방향/역방향은 반드시 문장 안에 드러낸다. 역방향을 단순히 나쁘다고 말하지 말고 막힘, 지연, 과잉, 내면화, 재조정 중 어떤 흐름인지 질문 맥락으로 풀어준다.",
             questionReflectionRule: "사용자의 실제 질문 문장을 상담 본문 안에서 자연스럽게 되받아라. 전체 문장을 기계적으로 복사하지 말고, 핵심 단어와 고민의 방향이 tarot.reading, yeoniReading, actionPrescription 중 최소 한 곳에 살아 있어야 한다.",
             emotionRule: "emotionAnalysis 수치는 상대방 마음이 아니라 질문자의 마음의 향이다. 각 description에 카드와 질문 맥락에서 왜 그 수치가 나왔는지 짧은 근거를 붙인다.",
@@ -2815,8 +2990,8 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "사용자 질문과 relationshipType을 먼저 확인한다.",
               "사용자 본명숙과 상대 본명숙을 확인하고 이름을 바꾸지 않는다.",
               "전달받은 관계 유형(영친/안괴/업태/성위/우쇠/명 등)과 relationGuide를 중심 해석 축으로 삼되, 새 관계명이나 거리값을 계산해 만들지 않는다.",
-              "typeAToB와 typeBToA의 방향별 의미를 서로 다르게 풀어 양방향 비대칭을 놓치지 않는다.",
-              "distanceLabel, distanceTier, shortestDistance로 가까워지는 속도와 회복 간격을 해석한다.",
+              "typeAToB와 typeBToA는 정본 링 매핑이 정한 두 사람의 '자리'다. 각 자리의 의미(userToPartnerMeaning/partnerToUserMeaning)를 서로 다르게 풀어 양방향 비대칭을 놓치지 않는다.",
+              "distanceLabel, distanceTier, shortestDistance에 더해 forwardDistance/reverseDistance의 실제 칸수 차이와 directionalDistanceGuide로 가까워지는 속도와 회복 간격을 해석한다.",
               "각 숙의 고유 성격과 오행 조화를 두 사람의 기질 조화 근거로 쓴다.",
               "scores와 elementHarmony는 좋고 나쁨이 아니라 조율 포인트로 쓴다.",
               "달이 각 숙에 머무는 결을 서정적으로 곁들이되, 계산값을 새로 만들지 않는다.",
@@ -2834,13 +3009,13 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "sukuyoCompatibility.cautions": "충돌 포인트 3개. 불안 조장 없이 반복될 수 있는 말투, 거리감, 역할 차이를 짚는다.",
               "synthesis.summary": "전체 관계 흐름. 좋다/나쁘다보다 끌림과 조율 조건을 묶는다.",
               "synthesis.sajuTarotBridge": "이름과 달라도 숙요점-only 전체 리딩으로 쓴다. 사주와 타로 언급 없이 27숙 인연의 흐름을 정리한다.",
-              "yeoniReading.intro": "찻잔 위 달빛처럼 짧은 첫 인사.",
-              "yeoniReading.main": "두 사람의 숙, 관계 유형, 거리감, 방향별 관계가 만드는 끌림과 첫인상.",
-              "yeoniReading.advice": "관계 카테고리에 맞는 현실 조언. 지금 할 행동과 하지 말아야 할 행동을 구분한다.",
-              "yeoniReading.caution": "관계의 위험 신호. 단정하지 않고 조율할 지점으로 말한다.",
-              choiceSimulation: "관계 운영 선택지 3-4개. 연락, 거리두기, 기준 합의, 역할 조율 중 카테고리에 맞게 구성한다.",
-              actionPrescription: "오늘 바로 할 수 있는 행동과 피해야 할 말을 4-6문장으로 쓴다.",
-              closingLine: "달빛, 찻잔, 붉은 실 중 하나의 이미지로 마지막 한 줄을 남긴다.",
+              "yeoniReading.intro": "손님을 맞이하는 환영 인사(어서 오세요 류)로 시작하는, 찻잔 위 달빛처럼 짧은 첫 인사.",
+              "yeoniReading.main": "두 사람의 숙, 관계 유형, 거리감, 방향별 자리(typeAToB/typeBToA)가 만드는 끌림과 첫인상. summary와 같은 문장을 반복하지 않는다.",
+              "yeoniReading.advice": "관계 카테고리에 맞는 방향 제시. 어느 쪽으로 마음을 옮길지의 기준을 건네되, 구체적인 할 행동/금지 행동 목록은 나열하지 않는다(그 목록은 actionPrescription 한 곳에만 둔다).",
+              "yeoniReading.caution": "관계의 감정 위험 신호만 짧게 짚는다. 단정하지 않고 조율할 지점으로 말하며, actionPrescription과 같은 금지 문구를 반복하지 않는다.",
+              choiceSimulation: "관계 운영 선택지 3-4개의 유일한 단계 목록. 연락, 거리두기, 기준 합의, 역할 조율 중 카테고리에 맞게 구성하고, 각 선택지의 조심할 점은 그 선택지 고유의 리스크만 쓴다.",
+              actionPrescription: "오늘 바로 할 수 있는 행동과 피해야 할 말을 4-6문장으로 쓴다. 결과 전체에서 구체 행동·금지 목록을 담는 유일한 자리다.",
+              closingLine: "달빛, 찻잔, 붉은 실 중 하나의 이미지로 마지막 한 줄을 남긴다. 위 조언을 요약 반복하지 않는다.",
             },
             relationTypeRule: {
               영친: "친밀감, 익숙함, 보호감, 정서적 연결과 소홀해지는 문제를 함께 쓴다.",
@@ -2850,7 +3025,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               우쇠: "힘의 균형, 주도권, 보호와 의존, 현실적 거리감을 중심으로 말한다.",
               명: "닮은 리듬과 익숙함을 보되 방심과 변화 신호 누락을 함께 짚는다.",
             },
-            distanceRule: "same/near/middle/far와 distanceLabel을 반드시 문장에 반영한다. 가까운 거리는 빠른 끌림과 예민함, 중간 거리는 조율과 확인, 먼 거리는 시간과 약속의 간격으로 풀어준다.",
+            distanceRule: "same/near/middle/far와 distanceLabel을 반드시 문장에 반영한다. 가까운 거리는 빠른 끌림과 예민함, 중간 거리는 조율과 확인, 먼 거리는 시간과 약속의 간격으로 풀어준다. relation.forwardDistance와 relation.reverseDistance가 다르면 relation.directionalDistanceGuide를 근거로 '다가가는 속도'와 '회복의 간격'의 비대칭을 실제 칸수로 구분해 말한다 — 두 방향을 하나의 거리처럼 뭉뚱그리면 실패다.",
             categoryAdviceRule: sukuyoFactInput?.categoryAdviceRule,
             uncertaintyRule: "sukuyoFactInput에 없는 숙, 관계 유형, 거리, 방향 의미는 만들지 않는다. 불명확한 항목은 입력값 기준으로만 조심스럽게 말한다.",
             noGenericAdvice: ["궁합이 좋습니다", "궁합이 나쁩니다", "천생연분입니다", "최악입니다", "무조건 헤어져야 합니다", "상대도 같은 마음입니다"],

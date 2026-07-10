@@ -1,5 +1,5 @@
 import { Lunar, Solar } from "lunar-javascript";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "@/worker/lib/sukuyo-ai-calculation.js";
+import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "@/worker/lib/sukuyo-ai-calculation.js";
 import type {
   FortuneTeaHouseCalendarType,
   FortuneTeaHouseConsultRequest,
@@ -76,21 +76,6 @@ const SUKUYO_STABLE_GROUP_HANJA = new Set(["角", "亢", "氐", "房", "心", "�
 const SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜", "參"]);
 const SUKUYO_ELEMENT_CREATE: Record<string, string> = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const SUKUYO_ELEMENT_CONTROL: Record<string, string> = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
-const SUKUYO_RELATION_12 = [
-  { name: "안", han: "安", meaning: "동숙·완벽한 공명" },
-  { name: "위", han: "危", meaning: "근접·날카로운 긴장" },
-  { name: "괴", han: "壞", meaning: "파괴적 변화 유발" },
-  { name: "복", han: "福", meaning: "복과 이익의 관계" },
-  { name: "명", han: "命", meaning: "운명적 연결" },
-  { name: "이", han: "利", meaning: "실익과 협력" },
-  { name: "쇠", han: "衰", meaning: "에너지 소진 위험" },
-  { name: "우", han: "友", meaning: "우정·동반의 결속" },
-  { name: "아", han: "我", meaning: "자기 투영·미러링" },
-  { name: "원", han: "怨", meaning: "원한·업보의 얽힘" },
-  { name: "친", han: "親", meaning: "깊은 친밀감" },
-  { name: "비", han: "非", meaning: "이질적 공존" },
-];
-
 function cleanText(value: unknown, fallback: string, maxLength = 80) {
   const text = String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
   return text || fallback;
@@ -235,16 +220,6 @@ function sukuyoKeyword(sukuyo: any) {
   return words.slice(0, 3).join(" · ") || "직관 · 조율 · 성장";
 }
 
-function relationByDirectionalDistance(distance: unknown) {
-  const normalized = ((Math.floor(Number(distance) || 0) % 27) + 27) % 27;
-  const item = SUKUYO_RELATION_12[Math.min(normalized, 11)] || SUKUYO_RELATION_12[11];
-  return {
-    label: `${item.name}(${item.han})`,
-    meaning: item.meaning,
-    rawDistance: normalized,
-  };
-}
-
 function relationIntensity(shortestDistance: unknown, relationType: string) {
   const distance = Number(shortestDistance);
   if (distance <= 3 || ["안괴", "업태"].includes(relationType)) return "강렬";
@@ -360,8 +335,14 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
     const forwardDistance = Number(compatibility?.forwardDistance);
     const reverseDistance = Number(compatibility?.reverseDistance);
     const shortestDistance = Number(compatibility?.shortestDistance ?? compatibility?.distanceMetrics?.shortestDistance);
-    const forwardRelation = relationByDirectionalDistance(forwardDistance);
-    const reverseRelation = relationByDirectionalDistance(reverseDistance);
+    // 방향 라벨은 정본 링 매핑(aRole/bRole)에서만 파생한다 — 워커와 동일 공유 모듈 사용(드리프트 방지).
+    const directional = describeSukuyoDirectionalRelation(forwardDistance, reverseDistance) || {
+      aRoleLabel: "확인된 자리",
+      aRoleMeaning: "확인된 방향의 결만 살핍니다.",
+      bRoleLabel: "확인된 자리",
+      bRoleMeaning: "확인된 방향의 결만 살핍니다.",
+      directionalDistanceGuide: "두 사람의 거리 계산이 열리는 대로 다가감과 회복의 간격을 함께 살핍니다.",
+    };
     const intensity = relationIntensity(shortestDistance, relationType);
     const tier = distanceTier(shortestDistance);
     const scores = buildScoreSummary(userSukuyo, partnerSukuyo, compatibility, relationType, intensity);
@@ -377,7 +358,7 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
       available: true,
       calculationSource: "sukuyo-compatibility-ai-calculation",
       title: `${user.sukuyoName || "나의 본명숙"}과 ${partner.sukuyoName || "상대의 본명숙"}이 만나는 ${relationType}의 달빛`,
-      summary: `${user.name}의 ${user.sukuyoName || "본명숙"}과 ${partner.name}의 ${partner.sukuyoName || "본명숙"}은 ${distancePhrase}에서 ${relationType} 관계로 맞닿습니다. ${guide.tone} ${forwardRelation.label}으로 다가가고 ${reverseRelation.label}으로 되돌아오는 방향이라, 같은 마음이라도 표현 속도는 다르게 느껴질 수 있어요. ${distanceGuide} 지금은 ${questionFocus}을 중심으로 끌림과 조심해야 할 리듬을 함께 보아야 합니다.`,
+      summary: `${user.name}의 ${user.sukuyoName || "본명숙"}과 ${partner.name}의 ${partner.sukuyoName || "본명숙"}은 ${distancePhrase}에서 ${relationType} 관계로 맞닿습니다. ${guide.tone} 이 관계에서 나는 ${directional.aRoleLabel}, 상대는 ${directional.bRoleLabel}의 자리에 서기에 같은 마음도 표현되는 결은 서로 다르게 나타날 수 있어요. ${distanceGuide} 지금은 ${questionFocus}을 중심으로 끌림과 조심해야 할 리듬을 함께 보아야 합니다.`,
       relationshipType: cleanText(input.relationshipType, "인연", 40),
       focus: questionFocus,
       currentSituation: cleanText(input.currentSituation, "", 220),
@@ -408,11 +389,12 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
         },
       },
       relationDetail: {
-        typeAToB: forwardRelation.label,
-        typeBToA: reverseRelation.label,
+        typeAToB: directional.aRoleLabel,
+        typeBToA: directional.bRoleLabel,
         intensity,
-        userToPartnerMeaning: forwardRelation.meaning,
-        partnerToUserMeaning: reverseRelation.meaning,
+        userToPartnerMeaning: `나는 상대에게 ${directional.aRoleMeaning}입니다.`,
+        partnerToUserMeaning: `상대는 나에게 ${directional.bRoleMeaning}입니다.`,
+        directionalDistanceGuide: directional.directionalDistanceGuide,
       },
       relationType,
       relationTypeHan: cleanText(compatibility?.relationTypeHan, "", 12),
@@ -433,15 +415,15 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
       strengths: [
         `${user.sukuyoName || "나의 숙"}은 ${user.keywords?.slice(0, 2).join(" · ") || "감정의 결"}로 먼저 다가가고, ${partner.sukuyoName || "상대의 숙"}은 ${partner.keywords?.slice(0, 2).join(" · ") || "관계의 온도"}로 응답해 첫 끌림의 결을 만듭니다.`,
         `${relationType} 관계에서는 ${guide.strengths[0]} 여기에 ${elementHarmonyRelation}의 오행 결이 더해져 대화의 온도를 맞출 여지가 생깁니다.`,
-        `${forwardRelation.label}과 ${reverseRelation.label}의 방향은 한쪽만 맞추는 관계보다 서로의 속도를 확인할 때 장점이 살아난다는 것을 가리킵니다.`,
+        `내가 서는 ${directional.aRoleLabel}의 자리와 상대가 서는 ${directional.bRoleLabel}의 자리는, 한쪽만 맞추는 관계보다 서로의 속도를 확인할 때 장점이 살아난다는 것을 가리킵니다.`,
         ...guide.strengths,
       ].slice(0, 3),
       cautions: [
-        `${distanceSubject} 가까워지는 속도와 회복에 필요한 간격이 다를 수 있음을 보여줍니다.`,
+        directional.directionalDistanceGuide || `${distanceSubject} 가까워지는 속도와 회복에 필요한 간격이 다를 수 있음을 보여줍니다.`,
         ...guide.cautions,
         categoryGuide,
       ].slice(0, 3),
-      adviceKeywords: [relationType, distanceLabel, forwardRelation.label, reverseRelation.label, ...guide.keywords].slice(0, 5),
+      adviceKeywords: [relationType, distanceLabel, directional.aRoleLabel, directional.bRoleLabel, ...guide.keywords].slice(0, 5),
       roleGuide: {
         userAction: cleanText(compatibility?.roleActionGuide?.meAction, guide.keywords[0], 180),
         partnerAction: cleanText(compatibility?.roleActionGuide?.otherAction, guide.keywords[1] || "상대의 속도 존중", 180),

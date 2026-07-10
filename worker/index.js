@@ -389,6 +389,7 @@ const handleCelestialHarmonyRoutes = createLazyRouteHandler("./routes/celestial-
 const handlePaymentRoutes = createLazyRouteHandler("./routes/payments.js", () => import("./routes/payments.js"), "handlePaymentRoutes", "payments");
 const handleMusicRoutes = createLazyRouteHandler("./routes/music.js", () => import("./routes/music.js"), "handleMusicRoutes", "api/music");
 const handleLifeBookAiRoutes = createLazyRouteHandler("./routes/life-book-ai.js", () => import("./routes/life-book-ai.js"), "handleLifeBookAiRoutes", "api/life-book-ai");
+const handleSajuGuardianImageRoutes = createLazyRouteHandler("./routes/guardian-image.js", () => import("./routes/guardian-image.js"), "handleSajuGuardianImageRoutes", "api/guardian");
 const handleLoveSecretAiRoutes = createLazyRouteHandler("./routes/love-secret-ai.js", () => import("./routes/love-secret-ai.js"), "handleLoveSecretAiRoutes", "api/love-secret-ai");
 const handleSajuNewYearRoutes = createLazyRouteHandler("./routes/saju-new-year.js", () => import("./routes/saju-new-year.js"), "handleSajuNewYearRoutes");
 const handleNewYearAiRoutes = createLazyRouteHandler("./routes/new-year-ai.js", () => import("./routes/new-year-ai.js"), "handleNewYearAiRoutes", "api/new-year-ai");
@@ -1294,6 +1295,10 @@ export default {
 
       if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {
         return runAiRouteWithSecurity(request, env, "life-book-ai", handleLifeBookAiRoutes);
+      }
+
+      if (url.pathname === "/api/guardian" || url.pathname.startsWith("/api/guardian/")) {
+        return runAiRouteWithSecurity(request, env, "guardian", handleSajuGuardianImageRoutes);
       }
 
       if (url.pathname === "/api/dream" || url.pathname.startsWith("/api/dream/")) {

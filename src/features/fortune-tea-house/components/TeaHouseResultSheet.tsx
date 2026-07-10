@@ -402,6 +402,16 @@ export default function TeaHouseResultSheet({
           <strong className={styles.resultYeoniOpening}>{yeoniOpening}</strong>
         </header>
 
+        {/* 연이의 환영 인사(yeoniReading.intro)를 결과의 첫마디로 승격 — 아래 리딩 섹션에서는 중복 렌더하지 않는다. */}
+        {result.yeoniReading.intro ? (
+          <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="yeoniGreetingTitle">
+            <h3 id="yeoniGreetingTitle">연이의 첫 인사</h3>
+            <div className={styles.yeoniReadingItem}>
+              <LlmParagraphs text={result.yeoniReading.intro} />
+            </div>
+          </section>
+        ) : null}
+
         <div className={styles.resultSummaryGrid}>
           <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
             <span>선택한 찻잔</span>
@@ -599,11 +609,6 @@ export default function TeaHouseResultSheet({
             <AssetImage className={styles.resultSectionMascot} src={fortuneTeaHouseAssets.yeoni.transparent.bust} alt="" />
           )}
           <div className={styles.yeoniReadingGrid}>
-            {result.yeoniReading.intro ? (
-              <div className={styles.yeoniReadingItem}>
-                <LlmParagraphs text={result.yeoniReading.intro} />
-              </div>
-            ) : null}
             {result.yeoniReading.main ? (
               <div className={styles.yeoniReadingItem}>
                 <LlmParagraphs text={result.yeoniReading.main} />

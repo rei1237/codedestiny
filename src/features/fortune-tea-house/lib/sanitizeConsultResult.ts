@@ -1,5 +1,6 @@
 import { toDisplayText } from "@/lib/llm-text";
 import type { FortuneTeaHouseConsultResponse } from "../data/consult";
+import { ensureFirstSpreadCardConsistency } from "./validateConsultResult";
 
 // 이미 저장·캐시된 오염 결과(빈 문자열, 객체 값, "68%" 같은 문자열 퍼센트)도
 // 결과 화면에서 React child 크래시/게이지 붕괴 없이 렌더되도록 표시용 필드를 1회 정규화한다.
@@ -34,6 +35,12 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
           .filter((section) => section.body),
       }
     : result.saju;
+  const tarot = {
+    ...result.tarot,
+    keywords: textList(result.tarot?.keywords),
+    meaning: text(result.tarot?.meaning),
+    reading: text(result.tarot?.reading),
+  };
   const sukuyo = result.sukuyoCompatibility
     ? {
         ...result.sukuyoCompatibility,
@@ -62,19 +69,19 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
       resultPrelude: text(result.teaCup?.resultPrelude) || undefined,
     },
     saju,
-    tarot: {
-      ...result.tarot,
-      keywords: textList(result.tarot?.keywords),
-      meaning: text(result.tarot?.meaning),
-      reading: text(result.tarot?.reading),
-    },
-    tarotSpreadCards: result.tarotSpreadCards?.map((card) => ({
-      ...card,
-      positionLabel: text(card.positionLabel),
-      positionMeaning: text(card.positionMeaning),
-      reading: text(card.reading) || undefined,
-      keywords: textList(card.keywords),
-    })),
+    tarot,
+    // 첫 스프레드 카드는 대표 카드(result.tarot)와 같은 정체성으로 노출되므로,
+    // 과거 저장분의 헤더-본문 카드 불일치(P0)도 재서빙 시 여기서 함께 복구한다.
+    tarotSpreadCards: ensureFirstSpreadCardConsistency(
+      result.tarotSpreadCards?.map((card) => ({
+        ...card,
+        positionLabel: text(card.positionLabel),
+        positionMeaning: text(card.positionMeaning),
+        reading: text(card.reading) || undefined,
+        keywords: textList(card.keywords),
+      })),
+      tarot,
+    ),
     sukuyoCompatibility: sukuyo,
     emotionAnalysis: (result.emotionAnalysis || [])
       .map((item) => ({

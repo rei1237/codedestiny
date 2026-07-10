@@ -957,7 +957,7 @@ function buildSajuHiddenStemExposures(hiddenStems, pillarRows, luckRows, power) 
   });
 }
 
-function buildSajuAdvancedFactors(sajuResult, engineContext) {
+export function buildSajuAdvancedFactors(sajuResult, engineContext) {
   const pillarRows = normalizeSajuPillarRows(sajuResult);
   const dayStem = pillarRows.find((row) => row.position === "day")?.stem || engineContext?.quantum?.dayStem || "";
   const luckRows = normalizeSajuLuckRows(sajuResult, engineContext);

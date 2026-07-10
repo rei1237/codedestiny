@@ -444,11 +444,11 @@ function buildTarotYeoniReading(params: {
     ? "상대가 차단이나 거절 의사를 보였다면, 오늘은 보낼 문장을 만들지 않는 편이 맞아요. 멈춤이 예의가 되는 자리입니다."
     : rule.messageGuide;
   return {
-    intro: `${teaCupName}의 향에서 가장 크게 흔들리는 지점은 ${rule.innerLens} ${profile.emotionalPattern} 감정이 진하더라도 오늘은 바로 행동으로 옮기기보다 현실 신호를 먼저 살펴야 합니다. 연이는 이 카드를 마음의 결론보다 현재 온도를 보여주는 작은 등불로 볼게요.`,
+    intro: `어서 오세요, 달빛이 고인 운명의 찻집이에요. ${teaCupName} 한 잔 곁에 두고 잠시 숨을 고르셔도 좋아요. 이 찻잔의 향에서 가장 크게 흔들리는 지점은 ${rule.innerLens} ${profile.emotionalPattern} 감정이 진하더라도 오늘은 바로 행동으로 옮기기보다 현실 신호를 먼저 살펴야 합니다. 연이는 이 카드를 마음의 결론보다 현재 온도를 보여주는 작은 등불로 볼게요.`,
     main: `${rule.possibilityLens} ${profile.advice} ${profile.nameKr} ${orientationLabel(profile.orientation)}의 상징은 ${profile.coreSymbol}을 품고 있어, 지금 흐름이 왜 크게 느껴지는지 비춥니다. 이 카드는 상황을 한 번에 뒤집으라는 뜻보다, 감정과 행동 사이에 놓인 기준을 다시 세우라는 의미가 강합니다. 가능성은 ${rule.actionQuestion}에 대한 기준이 있을 때 더 분명해집니다.`,
     advice: shouldStopContact
       ? `${rule.actionQuestion}: 이 질문에서는 멈춤이 먼저입니다. 거절이나 불편함의 신호가 있었다면 오늘 할 일은 보내지 않기, 반응을 시험하지 않기, 안전한 거리를 지키기입니다.`
-      : `${rule.actionQuestion}: 조건부로 보아야 합니다. ${messageExample} 오늘 해도 되는 행동은 기준 세우기, 짧게 확인하기, 반응이 없을 때 멈출 선을 정하기입니다. 흐름을 거칠게 만드는 행동은 ${profile.avoidAction}`,
+      : `${rule.actionQuestion}: 조건부로 보아야 합니다. ${messageExample} 오늘 해도 되는 행동은 기준 세우기, 짧게 확인하기, 반응이 없을 때 멈출 선을 정하기입니다.`,
     caution: `오늘의 금지 행동은 ${rule.forbiddenActions.join(", ")}입니다. 행동하기 전에는 이 선택이 가능성을 넓히는지, 압력을 높이는지 한 번만 물어보세요.`,
   };
 }
@@ -505,7 +505,7 @@ function buildSukuyoCategoryGuide(request: FortuneTeaHouseConsultRequest, compat
 
 function buildSukuyoDirectionLine(compatibility: ReturnType<typeof buildFortuneTeaSukuyoCompatibility>) {
   if (!compatibility.available) return "확인된 이름과 질문 안에서만 관계의 온도를 살핍니다.";
-  return `${compatibility.relationDetail?.typeAToB || "확인된 방향"}으로 다가가고 ${compatibility.relationDetail?.typeBToA || "되돌아오는 방향"}으로 반응하는 흐름입니다.`;
+  return `이 관계에서 나는 ${compatibility.relationDetail?.typeAToB || "확인된 자리"}, 상대는 ${compatibility.relationDetail?.typeBToA || "확인된 자리"}의 자리에 서는 흐름입니다.`;
 }
 
 function buildUnavailableSajuSnapshot(reason = "사주 계산이 잠시 흐려져 오늘은 확인된 질문과 찻잔의 결을 중심으로 읽었습니다."): FortuneTeaSajuSnapshot {
@@ -687,7 +687,9 @@ function safeBuildTarotSpreadCards(request: FortuneTeaHouseConsultRequest, seed:
             positionId: first.positionId,
             positionLabel: first.positionLabel,
             positionMeaning: first.positionMeaning,
-            reading: first.reading || `${first.positionLabel} 자리에서 ${representative.nameKo} ${orientationLabel(representative.orientation)}이 떠올라 ${first.positionMeaning}을 비춥니다. 이 카드는 ${representative.meaning}`,
+            // 첫 카드 정체성을 대표 카드로 덮으므로 해설도 반드시 대표 카드 기준으로 재생성한다.
+            // first.reading을 그대로 두면 원래 뽑힌 다른 카드의 문장이 남아 헤더-본문 불일치(P0)가 생긴다.
+            reading: `${first.positionLabel} 자리에는 ${representative.nameKo}이 ${orientationLabel(representative.orientation)}으로 떠올라 ${representative.keywords.slice(0, 2).join(", ")}의 결을 비춥니다. ${first.positionMeaning}을 비추는 이 자리에서, 이 카드는 ${representative.meaning}`,
           },
           ...rest,
         ] as FortuneTeaTarotSpreadCard[],
@@ -801,7 +803,7 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
   const sukuyoSynthesisBridge = sukuyoCompatibility.available
     ? `오늘은 숙요점 궁합의 달빛만 따라갑니다. ${sukuyoCompatibility.relationType || "인연"} 관계와 ${sukuyoCompatibility.distanceLabel || "거리"}의 결, ${sukuyoDirectionLine} ${sukuyoDistanceLine}`
     : "오늘은 확인된 이름과 질문만 손님 앞에 두겠습니다. 27숙의 자리가 열리지 않은 부분은 연이가 꾸미지 않고 비워둘게요.";
-  const sukuyoYeoniIntro = "찻잔 위에 내려앉은 달빛처럼, 연이는 두 사람의 숙이 서로를 바라보는 거리를 먼저 살펴봅니다.";
+  const sukuyoYeoniIntro = "어서 오세요, 달빛이 고인 운명의 찻집이에요. 따뜻한 차 한 잔 두고, 찻잔 위에 내려앉은 달빛처럼 연이는 두 사람의 숙이 서로를 바라보는 거리를 먼저 살펴봅니다.";
   const sukuyoYeoniMain = sukuyoCompatibility.available
     ? `${questionSummary}라는 물음은 두 사람의 관계가 단순히 좋고 나쁜지가 아니라, 어떤 거리에서 서로를 덜 다치게 만날 수 있는지를 묻고 있어요. ${sukuyoCompatibility.summary} ${sukuyoCompatibility.scores ? `기본 숙요점 점수는 ${sukuyoCompatibility.scores.total}점, ${sukuyoCompatibility.scores.label}으로 모이지만 점수보다 중요한 것은 ${sukuyoCompatibility.distanceLabel || "거리"}와 ${sukuyoCompatibility.relationType || "관계 유형"}이 만드는 반복 패턴입니다. ` : ""}${sukuyoDistanceLine}`
     : "지금은 두 사람의 숙요 계산값이 충분히 열리지 않아 관계 유형을 단정하지 않습니다. 다만 질문에 남아 있는 온도만 보아도, 결론을 재촉하기보다 확인된 말과 실제 행동을 나누어 볼 필요가 있습니다.";
@@ -926,7 +928,7 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
           emotion("회복", clarity, "오늘 바로 바꿀 수 있는 작은 기준을 찾으려는 힘이 천천히 올라옵니다.", "green"),
         ],
     yeoniReading: {
-      intro: consultationMode === "tarot" ? tarotYeoniReading.intro : consultationMode === "sukuyo" ? sukuyoYeoniIntro : `연이가 당신의 고민을 차분히 읽어보았어요. 오늘의 답은 단순히 좋다, 나쁘다로 나뉘지 않아요. 지금 중요한 건 ${nickname}의 마음이 어디에서 가장 크게 흔들리고 있는지를 보는 거예요.`,
+      intro: consultationMode === "tarot" ? tarotYeoniReading.intro : consultationMode === "sukuyo" ? sukuyoYeoniIntro : `어서 오세요, 달빛이 고인 운명의 찻집이에요. 따뜻한 차 한 잔 드시면서 잠시 쉬어가세요. 연이가 당신의 고민을 차분히 읽어보았어요. 오늘의 답은 단순히 좋다, 나쁘다로 나뉘지 않아요. 지금 중요한 건 ${nickname}의 마음이 어디에서 가장 크게 흔들리고 있는지를 보는 거예요.`,
       main: consultationMode === "tarot" ? tarotYeoniReading.main : selectedYeoniMain,
       advice: consultationMode === "tarot" ? tarotYeoniReading.advice : selectedYeoniAdvice,
       caution: consultationMode === "tarot" ? tarotYeoniReading.caution : selectedYeoniCaution,

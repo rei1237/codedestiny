@@ -4,6 +4,7 @@ import type {
   FortuneTeaFiveElementKey,
   FortuneTeaHouseConsultRequest,
   FortuneTeaSajuBirthSummary,
+  FortuneTeaSajuDaewoonRow,
   FortuneTeaSajuPillar,
   FortuneTeaSajuPillarKey,
   FortuneTeaSajuSnapshot,
@@ -110,7 +111,64 @@ type SajuProfile = {
     yong?: unknown;
     hee?: unknown;
   };
+  daewoon?: {
+    directionLabel?: string;
+    list?: Array<{
+      index?: number;
+      pillar?: string;
+      startAgeDecimal?: number;
+      startAgeDisplay?: string;
+      endAgeDisplay?: string;
+      estimatedStartYear?: number;
+      estimatedEndYear?: number;
+    }>;
+  };
 };
+
+// 월지 → 계절 (엔진 pillar가 한글/한자 어느 쪽이든 매칭되도록 양쪽 표기 수록)
+const BRANCH_SEASONS: Record<string, string> = {
+  인: "봄", 묘: "봄", 진: "봄(환절)", 사: "여름", 오: "여름", 미: "여름(환절)",
+  신: "가을", 유: "가을", 술: "가을(환절)", 해: "겨울", 자: "겨울", 축: "겨울(환절)",
+  寅: "봄", 卯: "봄", 辰: "봄(환절)", 巳: "여름", 午: "여름", 未: "여름(환절)",
+  申: "가을", 酉: "가을", 戌: "가을(환절)", 亥: "겨울", 子: "겨울", 丑: "겨울(환절)",
+};
+
+function monthBranchFromProfile(profile: SajuProfile) {
+  const month = profile.pillars?.month;
+  const branch = text(month?.branchKo) || text(month?.branch) || text(month?.earthlyBranch);
+  if (branch) return branch;
+  const ganji = text(month?.ganji);
+  return ganji ? Array.from(ganji).slice(-1).join("") : "";
+}
+
+function seasonFromMonthBranch(monthBranch: string) {
+  for (const char of Array.from(monthBranch)) {
+    if (BRANCH_SEASONS[char]) return BRANCH_SEASONS[char];
+  }
+  return "";
+}
+
+// 엔진이 계산한 대운 목록을 프롬프트 factInput용 행으로 축약한다 (현재 대운 표시 포함).
+function buildDaewoonSnapshot(profile: SajuProfile): FortuneTeaSajuDaewoonRow[] | undefined {
+  const rows = profile.daewoon?.list;
+  if (!Array.isArray(rows) || !rows.length) return undefined;
+  const nowYear = new Date().getFullYear();
+  const mapped = rows.slice(0, 8).map((row) => {
+    const pillar = text(row?.pillar);
+    const startYear = Number(row?.estimatedStartYear);
+    const endYear = Number(row?.estimatedEndYear);
+    const isCurrent = Number.isFinite(startYear) && Number.isFinite(endYear) && nowYear >= startYear && nowYear <= endYear;
+    const ageRange = [text(row?.startAgeDisplay), text(row?.endAgeDisplay)].filter(Boolean).join("~");
+    return {
+      pillar,
+      label: `${row?.index ? `${row.index}대운 ` : ""}${pillar}${ageRange ? ` ${ageRange}` : ""}${isCurrent ? " (현재 대운)" : ""}`,
+      startAge: Number.isFinite(Number(row?.startAgeDecimal)) ? Math.floor(Number(row?.startAgeDecimal)) : undefined,
+      startYear: Number.isFinite(startYear) ? startYear : undefined,
+      isCurrent: isCurrent || undefined,
+    };
+  }).filter((row) => row.pillar);
+  return mapped.length ? mapped : undefined;
+}
 
 function text(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -414,6 +472,7 @@ export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultReque
       },
     }) as SajuProfile;
 
+    const monthBranch = monthBranchFromProfile(profile);
     const snapshot: FortuneTeaSajuSnapshot = {
       available: true,
       dayMaster: profile.dayMaster?.stemKo ? `${profile.dayMaster.stemKo}${profile.dayMaster.elementKo ? `(${profile.dayMaster.elementKo})` : ""}` : undefined,
@@ -429,6 +488,9 @@ export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultReque
       strongElements: listElements(profile.fiveElements?.strongest),
       weakElements: listElements(profile.fiveElements?.lacking),
       usefulElements: [...listElements(profile.usefulGods?.yong), ...listElements(profile.usefulGods?.hee)].filter((value, index, array) => array.indexOf(value) === index),
+      monthBranch: monthBranch || undefined,
+      season: seasonFromMonthBranch(monthBranch) || undefined,
+      daewoon: buildDaewoonSnapshot(profile),
       caution: birth.unknownTime ? "출생시간이 없어 시주의 세밀한 결은 제외하고 큰 흐름 중심으로 읽었습니다." : undefined,
     };
 
@@ -521,6 +583,9 @@ export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request
         }
       : undefined,
     secondaryTenGods,
+    monthBranch: snapshot.monthBranch,
+    season: snapshot.season,
+    daewoon: snapshot.daewoon,
     caution: snapshot.caution,
     cautionReading: buildCautionReading(snapshot),
     actionPrescription: primaryTenGodMeta
