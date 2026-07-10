@@ -1923,6 +1923,9 @@ window.showPastLifePhysiognomy = function showPastLifePhysiognomy() {
     alert('먼저 관상 분석을 완료해주세요.');
     return;
   }
+  // 솔로 전생 관상은 궁합 모드가 아니다 — stale 플래그가 남아 궁합 타이틀로 엇갈리는 것을 방지
+  compatMode = false;
+  pastLifeCompatMode = false;
   if (!window.faceAnalysisEngine || typeof window.faceAnalysisEngine.calculatePastLifePhysiognomy !== 'function') {
     alert('전생 관상 엔진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.');
     return;
