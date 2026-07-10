@@ -24,6 +24,8 @@
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
   var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
   var TAROT_API_TIMEOUT_MS = 12000;
+  // love-reading은 서버가 LLM 상담문을 동기 생성한다(서버 상한 ~42s). draw보다 넉넉히 대기하되 프리뷰 터널 60s 컷 아래로 둔다.
+  var TAROT_READING_API_TIMEOUT_MS = 55000;
   var RELATIONSHIP_POSITIONS = ["position_1", "position_2", "position_3", "position_4", "position_5", "position_6"];
   var LOCAL_RELATIONSHIP_DECK = [
     { cardId: "M00", name: "The Fool", nameKr: "바보" },
@@ -409,7 +411,8 @@
     return out;
   }
 
-  function postJsonWithTimeout(url, body) {
+  function postJsonWithTimeout(url, body, timeoutMs) {
+    var effectiveTimeout = Number(timeoutMs) > 0 ? Number(timeoutMs) : TAROT_API_TIMEOUT_MS;
     var supportsAbort = typeof AbortController === "function";
     if (!supportsAbort) {
       return Promise.race([
@@ -422,7 +425,7 @@
         new Promise(function (_, reject) {
           setTimeout(function () {
             reject(new Error("Tarot API timeout"));
-          }, TAROT_API_TIMEOUT_MS);
+          }, effectiveTimeout);
         }),
       ]);
     }
@@ -430,7 +433,7 @@
     var controller = new AbortController();
     var timeoutId = setTimeout(function () {
       controller.abort();
-    }, TAROT_API_TIMEOUT_MS);
+    }, effectiveTimeout);
 
     return fetch(url, {
       method: "POST",
@@ -450,7 +453,7 @@
       });
   }
 
-  function callTarotApi(endpoint, payload) {
+  function callTarotApi(endpoint, payload, timeoutMs) {
     var bases = buildTarotApiBaseCandidates();
     var body = JSON.stringify(payload || {});
     var index = 0;
@@ -464,7 +467,7 @@
         url: url,
         payload: payload || {},
       };
-      return postJsonWithTimeout(url, body)
+      return postJsonWithTimeout(url, body, timeoutMs)
         .then(function (res) {
           if (!res.ok) {
             return res.text().catch(function () { return ""; }).then(function (rawBody) {
@@ -1216,7 +1219,7 @@
     callTarotApi("love-reading", {
       cards: drawnForApi,
       locale: getTarotLoveLocale(),
-    })
+    }, TAROT_READING_API_TIMEOUT_MS)
       .then(function (data) {
         if (!data.reading) throw new Error("No reading data");
         state.reading = data.reading;
