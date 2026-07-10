@@ -19,6 +19,19 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "ziwei-chart-guide",
   "ziwei-minggong",
   "ziwei-life-palaces",
+  "ziwei-career-palace-action",
+  "ziwei-vs-saju",
+  "ziwei-star-brightness",
+  "sukuyo-27-mansions",
+  "sukuyo-vs-saju-compatibility",
+  "sukuyo-eishin",
+  "sukuyo-antai",
+  "sukuyo-ankai",
+  "sukuyo-myeongseong",
+  "sukuyo-wiseong",
+  "sukuyo-compatibility-guide",
+  "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
+  "sukuyo-useo",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [

@@ -95,6 +95,17 @@
 # 자미두수 12궁 전체 해석 → ziwei-life-palaces
 /insights/ziwei-palaces-career-finance-love              /insights/ziwei-life-palaces                             301
 /insights/ziwei-wealth-career                             /insights/ziwei-life-palaces                             301
+# 자미두수 사화 → ziwei-four-transformations-lu-quan-ke-ji-guide
+/insights/ziwei-sihua                                     /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
+/insights/ziwei-lucun-and-huaji-practical                 /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
+# 자미두수 궁합(부처궁) → ziwei-compatibility-palace-method
+/insights/ziwei-love-compatibility                        /insights/ziwei-compatibility-palace-method              301
+# 자미두수 궁별 실천 체크(직업·승진) → ziwei-career-palace-action
+/insights/ziwei-monthly-action-checklist-by-palace        /insights/ziwei-career-palace-action                     301
+/insights/ziwei-promotion-signals-practical-guide         /insights/ziwei-career-palace-action                     301
+# 숙요점이란(재정비) → sukuyo-what-is
+/insights/sukuyo-lunar-mansion-primer                      /insights/sukuyo-what-is                                 301
+/insights/sukuyo-what-is-27-lunar-mansions                  /insights/sukuyo-what-is                                 301
 
 # 샘플 페이지 단축 경로
 /sample/saju                    /sample/saju-result.html         301

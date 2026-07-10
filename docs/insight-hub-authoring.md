@@ -74,12 +74,12 @@
 - `ziwei-what-is` ⟵ `ziwei-doushu-stars-intro`, `ziwei-doushu-complete-beginner-guide` — **통합 완료**
 - `ziwei-minggong` ⟵ `ziwei-minggong-self-analysis-checklist` — **통합 완료**
 - `ziwei-chart-guide`, `ziwei-14-main-stars-complete-guide` — **저자 투입 완료**(통합 없음)
-- `ziwei-four-transformations-lu-quan-ke-ji-guide` ⟵ `ziwei-sihua`
-- `ziwei-compatibility-palace-method` ⟵ `ziwei-love-compatibility`
+- `ziwei-four-transformations-lu-quan-ke-ji-guide` ⟵ `ziwei-sihua`, `ziwei-lucun-and-huaji-practical` — **통합 완료**
+- `ziwei-compatibility-palace-method` ⟵ `ziwei-love-compatibility` — **통합 완료**
 - 12궁 `ziwei-life-palaces` ⟵ `ziwei-palaces-career-finance-love`, `ziwei-wealth-career` — **통합 완료**(2026-07-10, 재분류: 최초 ziwei-what-is에 잘못 배치됐던 12궁 전체 해석 원고를 이 슬러그로 이전)
-- 실천 체크 `ziwei-career-palace-action` / `ziwei-monthly-action-checklist-by-palace` / `ziwei-promotion-signals-practical-guide` **[확정필요: 통합]**
+- 실천 체크 `ziwei-career-palace-action` ⟵ `ziwei-monthly-action-checklist-by-palace`, `ziwei-promotion-signals-practical-guide` — **통합 완료**
 - 개별 주성 시리즈 유지(권장): `ziwei-14-main-stars-complete-guide`, `ziwei-ziwei-star-beginner-guide`, `ziwei-tianfu-star-wealth-and-stability`, `ziwei-tiandong-meaning-and-palaces`, `ziwei-wugok-meaning-and-palaces`, `ziwei-sun-moon-balance`, `ziwei-star-combinations-for-beginners`
-- 단독 유지: `ziwei-chart-guide`, `ziwei-star-brightness`, `ziwei-lucun-and-huaji-practical`, `ziwei-decade-and-annual-flow-reading-guide`, `ziwei-vs-saju`
+- 단독 유지: `ziwei-chart-guide`, `ziwei-star-brightness`, `ziwei-decade-and-annual-flow-reading-guide`, `ziwei-vs-saju`
 - 재분류: `asia-divination-traditions-deep-guide` → **기타(세계 점술)**
 
 ### 숙요점 (현 26편) — 이미 2편 저자 투입 완료
@@ -131,7 +131,7 @@
 
 운영자가 canonical 글을 공급하는 대로 `[x]`. 각 항목 = `<slug> — 주제 [통합: 흡수될 슬러그]`.
 우선순위: 사주 → 자미두수 → 숙요점 재정비 → 타로 → 점성술 → 베다점 → 나머지.
-진행(2026-07-10): **사주 18/18 완료** · 자미두수 5/17(명궁·명반·12궁 전체 해석·14주성·자미두수란 완료).
+진행(2026-07-10): **사주 18/18 완료** · **자미두수 17/17 완료**.
 
 ### 완료
 - [x] `sukuyo-what-is` — 숙요점이란(달자리로 나를 읽는 법)
@@ -157,7 +157,7 @@
 - ~~`monthly-fortune-journal-and-feedback-loop`~~ — 삭제(요청, 2026-07-10) → `/insights/saju`로 301, 소스는 통합 리다이렉트로 비노출
 - [x] `money-luck-habits-and-saju-finance-rules` — 재물운 습관·사주 재정 규칙(오행·십성별 재정 스타일 표, 10대 재정 규칙)
 
-### 자미두수 (17, 5편 완료 2026-07-10)
+### 자미두수 (17, 17편 완료 2026-07-10)
 - [x] `ziwei-what-is` — 자미두수란(기존 SEO 원고로 복원. 아래 재분류 참고) [통합 완료: ziwei-doushu-stars-intro, ziwei-doushu-complete-beginner-guide]
 - [x] `ziwei-chart-guide` — 명반 보는 법 5단계
 - [x] `ziwei-minggong` — 명궁 해석 통합(7단계) [통합 완료: ziwei-minggong-self-analysis-checklist]
@@ -168,30 +168,39 @@
 > 제목만 보고 `ziwei-what-is`에 넣었으나, 본문이 실제로는 명궁~부모궁 12개 궁 전체를 ①~⑫로 상세 해설하는
 > 내용이라 `ziwei-life-palaces`(12궁 전체 해석)의 취지에 정확히 부합함을 확인. 해당 원고를 `ziwei-life-palaces`로
 > 이전하고, `ziwei-what-is`는 기존에 있던 개관형 SEO 원고(14주성·12궁 개관·삼방사정·사화·사주와의 차이)로 복원.
-- [ ] `ziwei-ziwei-star-beginner-guide` — 자미성
-- [ ] `ziwei-tianfu-star-wealth-and-stability` — 천부성
-- [ ] `ziwei-tiandong-meaning-and-palaces` — 천동성
-- [ ] `ziwei-wugok-meaning-and-palaces` — 무곡성
-- [ ] `ziwei-sun-moon-balance` — 태양·태음 균형
-- [ ] `ziwei-star-combinations-for-beginners` — 별 조합 입문
-- [ ] `ziwei-four-transformations-lu-quan-ke-ji-guide` — 사화(화록·화권·화과·화기) [통합: ziwei-sihua, ziwei-lucun-and-huaji-practical]
-- [ ] `ziwei-star-brightness` — 별 밝기(묘·왕·리·평·함)
-- [ ] `ziwei-compatibility-palace-method` — 궁합(부처궁) [통합: ziwei-love-compatibility]
-- [ ] `ziwei-decade-and-annual-flow-reading-guide` — 대한·유년 흐름
-- [ ] `ziwei-career-palace-action` — 궁별 실천 체크(직업·승진) [통합: ziwei-monthly-action-checklist-by-palace, ziwei-promotion-signals-practical-guide]
-- [ ] `ziwei-vs-saju` — 자미두수 vs 사주
+- [x] `ziwei-ziwei-star-beginner-guide` — 자미성(기본의미·성격·장단점·재물운·직업운·조합·궁위·개운법 20장)
+- [x] `ziwei-tianfu-star-wealth-and-stability` — 천부성(재물창고·안정과 신뢰·직업운·조합·궁위·개운법 21장)
+- [x] `ziwei-tiandong-meaning-and-palaces` — 천동성(복덕·행복·온화함·직업운·조합·궁위·개운법 21장)
+- [x] `ziwei-wugok-meaning-and-palaces` — 무곡성(재성·결단력·실행력·직업운·조합·궁위·개운법 21장)
+- [x] `ziwei-sun-moon-balance` — 태양·태음 균형
+- [x] `ziwei-star-combinations-for-beginners` — 별 조합 입문
+- [x] `ziwei-four-transformations-lu-quan-ke-ji-guide` — 사화(화록·화권·화과·화기) [통합 완료: ziwei-sihua, ziwei-lucun-and-huaji-practical]
+- [x] `ziwei-star-brightness` — 별 밝기(묘·왕·리·평·함)
+- [x] `ziwei-compatibility-palace-method` — 궁합(부처궁) [통합 완료: ziwei-love-compatibility]
+- [x] `ziwei-decade-and-annual-flow-reading-guide` — 대한·유년 흐름
+- [x] `ziwei-career-palace-action` — 궁별 실천 체크(직업·승진) [통합 완료: ziwei-monthly-action-checklist-by-palace, ziwei-promotion-signals-practical-guide]
+- [x] `ziwei-vs-saju` — 자미두수 vs 사주
 
-### 숙요점 (재정비, 완료 2편 제외 22)
-- [ ] `sukuyo-what-is` 재정비 [통합: sukuyo-lunar-mansion-primer, sukuyo-what-is-27-lunar-mansions] (기존 완료본에 흡수)
-- [ ] `sukuyo-compatibility-guide` — 궁합 총정리 [통합: sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide]
-- [ ] `sukuyo-27-mansions` — 27수 전체 해석
-- [ ] `sukuyo-eishin` — 영친관계 / `sukuyo-antai` — 업태관계 / `sukuyo-ankai` — 안괴관계
-- [ ] `sukuyo-bonmyeongsuk-vs-wolmyeongsuk` — 본명숙 vs 월명숙
-- [ ] `sukuyo-love` — 연애 궁합 / `sukuyo-marriage` — 결혼 궁합 / `sukuyo-vs-saju-compatibility` — 숙요 vs 사주 궁합
-- [ ] `sukuyo-three-group-types-guide` — 근·중·원 3분류
-- [ ] `sukuyo-love-communication-rules` · `sukuyo-friendship-teamwork-guide` · `sukuyo-day-by-day-rhythm-usage`
-- [ ] `sukuyo-beginner-terms-easy-dictionary` · `sukuyo-qa-most-asked-questions` · `sukuyo-27-guardian-animals-origin-guide`
-- [ ] `sukuyo-conflict-repair-dialogue-templates` · `sukuyo-boundary-setting-practical-guide` · `sukuyo-couple-finance-rhythm-guide` · `relationship-luck-and-communication-rules`
+### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 19편 완료 2026-07-10)
+- [x] `sukuyo-what-is` 재정비 [통합 완료: sukuyo-lunar-mansion-primer, sukuyo-what-is-27-lunar-mansions]
+- [x] `sukuyo-compatibility-guide` — 궁합 총정리(6유형 개관, "우쇠"로 용어 통일) [통합 대상 sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide는 아직 미통합]
+- [x] `sukuyo-27-mansions` — 27수 전체 해석
+- [x] `sukuyo-eishin` — 영친관계 / [x] `sukuyo-antai` — 업태관계 / [x] `sukuyo-ankai` — 안괴관계
+- [x] `sukuyo-bonmyeongsuk-vs-wolmyeongsuk` — 본명숙 vs 월명숙
+- [ ] `sukuyo-love` — 연애 궁합 / `sukuyo-marriage` — 결혼 궁합(기존 SEO 원고 유지, 별도 원고 미제공) / [x] `sukuyo-vs-saju-compatibility` — 숙요 vs 사주 궁합(범위 확장: 숙요점·사주 전반 비교)
+- [x] `sukuyo-three-group-types-guide` — 근·중·원 3분류
+- [x] `sukuyo-love-communication-rules` · [x] `sukuyo-friendship-teamwork-guide` · [x] `sukuyo-day-by-day-rhythm-usage`
+  ("제8편 실천가이드" 원고 — sukuyo-love/marriage와 제목 불일치 확인 후 섹션별로 재분류하여 삽입)
+- [x] `sukuyo-beginner-terms-easy-dictionary` · [x] `sukuyo-qa-most-asked-questions` · [ ] `sukuyo-27-guardian-animals-origin-guide`(원고 있음, 기존 정밀 나크샤트라 요니 매칭표와 내용 충돌로 삽입 보류·확인 대기)
+- [x] `sukuyo-conflict-repair-dialogue-templates` · [x] `sukuyo-boundary-setting-practical-guide` · [x] `sukuyo-couple-finance-rhythm-guide` · [x] `relationship-luck-and-communication-rules`
+
+**확장분(2026-07-10, 사용자가 6유형 관계론으로 확장 집필)** — 기존 영친·업태·안괴 3유형에 이어
+사이트의 6유형 궁합 프레임(`sukuyo-compatibility-guide`: 명·영친·우쇠·안괴·위성·업태)을 완성하는 나머지 유형:
+- [x] `sukuyo-myeongseong` — 명성관계(命成關係, 신규 슬러그)
+- [x] `sukuyo-wiseong` — 위성관계(危成關係, 신규 슬러그 — 기존 프레임의 "위성"이 처음으로 전용 페이지를 가짐)
+- [x] `sukuyo-useo` — 우쇠관계(友衰關係, 신규 슬러그) — 사용자가 "성쇠(成衰)"로 표기해 보낸 원고를
+  전부 "우쇠(友衰)"로 정정해 삽입. 16~20번 섹션 일부가 메시지 길이 제한으로 누락되어, 이후 도착한
+  "심화편"(21~30+최종결론)과 중복되는 주제를 병합·재구성해 20개 섹션으로 완성(내용 손실 없음, 번호만 재부여).
 
 ### 타로 (14)
 - [ ] `tarot-major-arcana-22-complete-meanings` — 메이저 22장 완전 해설 [통합: tarot-major-arcana-symbols, tarot-major-arcana-0-to-21-with-images]
