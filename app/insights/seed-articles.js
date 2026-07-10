@@ -6,6 +6,21 @@ const SITE_ORIGIN = "https://code-destiny.com";
 const DEFAULT_FEATURED_IMAGE = "/icons/꿀꿀 운세 로고.webp";
 const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}${DEFAULT_FEATURED_IMAGE}`;
 
+// 손수 쓴 본문(contentHtml)을 템플릿으로 덮지 않고 그대로 렌더할 슬러그.
+// 저자 글을 새로 넣을 때는 이 Set에 등록하는 대신 글 객체에 `useOriginalContent: true`
+// 플래그만 달면 된다(아래 buildSeedArticle 참고). Set은 seo-growth의 article() 헬퍼처럼
+// 임의 필드를 버려 플래그를 못 다는 소스의 하위호환용으로 유지한다.
+// 나머지 글은 기존 buildMysticSections 템플릿을 유지한다(애드센스 길이 게이트 영향 최소화).
+const ORIGINAL_CONTENT_SLUGS = new Set([
+  "sukuyo-what-is",
+  "sukuyo-bonmyeongsuk-how-to-find",
+  "manseoryeok-what-is",
+  "ziwei-what-is",
+  "ziwei-chart-guide",
+  "ziwei-minggong",
+  "ziwei-life-palaces",
+]);
+
 const INSIGHT_IMAGE_PROFILES = [
   {
     id: "ziwei",
@@ -813,9 +828,18 @@ function buildSeedArticle(article, index) {
   const resolvedImage = resolveSeedImage(article, index, title);
   const category = inferCategoryLabel(article);
   const tags = normalizeTags(article);
-  const rewrittenSections = buildMysticSections(article, category, tags);
-  const contentHtml = `<article><h1>${escapeHtml(title)}</h1>${renderSectionsToHtml(rewrittenSections)}</article>`;
-  const excerpt = buildMysticExcerpt(article, category, tags);
+  const useOriginalContent =
+    (ORIGINAL_CONTENT_SLUGS.has(slug) || article?.useOriginalContent === true) &&
+    Boolean(String(article?.contentHtml || "").trim());
+  const rewrittenSections = useOriginalContent
+    ? (Array.isArray(article?.sections) ? article.sections : [])
+    : buildMysticSections(article, category, tags);
+  const contentHtml = useOriginalContent
+    ? String(article.contentHtml)
+    : `<article><h1>${escapeHtml(title)}</h1>${renderSectionsToHtml(rewrittenSections)}</article>`;
+  const excerpt = useOriginalContent
+    ? (String(article?.description || "").trim() || buildMysticExcerpt(article, category, tags))
+    : buildMysticExcerpt(article, category, tags);
   const description = excerpt;
   const author =
     typeof article?.author === "object" && article?.author
@@ -834,7 +858,10 @@ function buildSeedArticle(article, index) {
     : (internalLinks.length > 0 ? internalLinks : [{ href: ctaServiceRoute || "/insights", label: ctaLabel }]);
 
   const seoTitle = String(article?.metaTitle || article?.seoTitle || `${title} — 상담가의 비밀 노트로 읽는 운의 흐름`).trim();
-  const seoDescription = normalizeSeoDescription(String(article?.metaDescription || article?.seoDescription || buildMysticSeoDescription(article, category, tags)), slug || title, title);
+  const seoDescriptionSource = useOriginalContent
+    ? (article?.metaDescription || article?.seoDescription || article?.description || buildMysticSeoDescription(article, category, tags))
+    : (article?.metaDescription || article?.seoDescription || buildMysticSeoDescription(article, category, tags));
+  const seoDescription = normalizeSeoDescription(String(seoDescriptionSource), slug || title, title);
 
   return {
     slug,
@@ -892,7 +919,7 @@ const MERGED_INSIGHT_ARTICLES = [...SEO_GROWTH_ARTICLES, ...INSIGHT_ARTICLES];
 export const INSIGHT_SEED_ARTICLES = Array.from(
   new Map(
     MERGED_INSIGHT_ARTICLES
-      .filter((article) => String(article?.slug || "").trim())
+      .filter((article) => String(article?.slug || "").trim() && article?.category !== "통합 리다이렉트")
       .map((article) => [String(article.slug).trim().toLowerCase(), article]),
   ).values(),
 )

@@ -67,6 +67,7 @@ const excludedInsightCategories = new Set([
   "기술 SEO",
   "운영 체크리스트",
   "법률/운영",
+  "통합 리다이렉트",
 ]);
 const staticCanonicalAliasPaths = new Set(
   STATIC_CANONICAL_ROUTES.flatMap((route) => route.aliases || [])
