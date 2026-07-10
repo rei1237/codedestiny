@@ -757,7 +757,7 @@ export default function SunHealingTarot() {
       <div
         className="pointer-events-none fixed inset-0 opacity-95"
         style={{
-          backgroundImage: "linear-gradient(115deg, rgba(255,252,239,0.9) 0%, rgba(255,245,216,0.82) 45%, rgba(255,225,168,0.66) 100%), url('/fuctionassets/healing.webp')",
+          backgroundImage: "linear-gradient(115deg, rgba(255,252,239,0.5) 0%, rgba(255,245,216,0.42) 45%, rgba(255,225,168,0.3) 100%), url('/fuctionassets/healing.webp')",
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
@@ -765,7 +765,7 @@ export default function SunHealingTarot() {
       <div
         className="pointer-events-none fixed inset-0"
         style={{
-          background: "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.82) 0%, rgba(255,255,255,0) 30%), radial-gradient(circle at 80% 8%, rgba(125,211,252,0.24) 0%, rgba(125,211,252,0) 28%), radial-gradient(circle at 52% 100%, rgba(251,191,36,0.32) 0%, rgba(251,191,36,0) 46%), linear-gradient(180deg, rgba(255,250,235,0.34) 0%, rgba(255,250,235,0.76) 100%)",
+          background: "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%), radial-gradient(circle at 80% 8%, rgba(125,211,252,0.24) 0%, rgba(125,211,252,0) 28%), radial-gradient(circle at 52% 100%, rgba(251,191,36,0.32) 0%, rgba(251,191,36,0) 46%), linear-gradient(180deg, rgba(255,250,235,0.18) 0%, rgba(255,250,235,0.5) 100%)",
         }}
       />
       <div
