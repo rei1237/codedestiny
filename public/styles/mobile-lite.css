@@ -81,8 +81,7 @@
     -webkit-backdrop-filter: blur(18px) saturate(1.15) !important;
   }
 
-  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__brand,
-  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__actions {
+  html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__brand {
     display: inline-flex !important;
     align-items: center !important;
     min-width: 0 !important;
@@ -143,6 +142,9 @@
   }
 
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-appbar__actions {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
     gap: 6px !important;
     flex-shrink: 0 !important;
   }

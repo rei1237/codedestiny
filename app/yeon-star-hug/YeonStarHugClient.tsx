@@ -1489,7 +1489,8 @@ function buildHeartCardSvg(
   emotionKey: EmotionKey,
   emotionLabel: string,
   consultation: ConsultationResult,
-  spriteFrame: number
+  spriteFrame: number,
+  oneLineMessage: string
 ) {
   const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
   const mainSize = 146;
@@ -1502,10 +1503,10 @@ function buildHeartCardSvg(
   const mainSpriteY = 152 - mainCellY * mainScale;
   const subSpriteX = 842 - mainCellX * subScale;
   const subSpriteY = 1180 - mainCellY * subScale;
-  const safeWarmMessage = sanitizeYeonHeartStarText(consultation.warmMessage);
+  const safeOneLineMessage = sanitizeYeonHeartStarText(oneLineMessage);
   const safeLuckyItem = sanitizeYeonHeartStarText(consultation.luckyItem);
   const safeConcernKeywords = consultation.concernKeywords.map((keyword) => sanitizeYeonHeartStarText(keyword));
-  const messageLines = wrapByLength(safeWarmMessage, 24).slice(0, 3);
+  const messageLines = wrapByLength(safeOneLineMessage, 24).slice(0, 3);
   const messageText = messageLines
     .map((line, index) => {
       const y = 612 + index * 74;
@@ -1519,7 +1520,7 @@ function buildHeartCardSvg(
     : "감정 중심 리딩";
 
   return `
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label={yeonStarHugText("yeonStar.aria-label.001")}>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="${yeonStarHugText("yeonStar.aria-label.001")}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#ffe8f5"/>
@@ -1590,23 +1591,23 @@ function buildHeartCardSvg(
   </g>
 
   <rect x="86" y="92" width="388" height="58" rx="29" fill="#ffffff"/>
-  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.001")}</text>
+  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.001")}</text>
 
-  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">{yeonStarHugText("yeonStar.text.002")}</text>
+  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">${yeonStarHugText("yeonStar.text.002")}</text>
   <text x="86" y="268" fill="#6b7280" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(consultation.sign)} · ${escapeXml(emotionLabel)}</text>
 
   <rect x="830" y="152" width="146" height="146" rx="32" fill="#fff7fb" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonMainClip)">
     <image href="${SPRITE_SHEET}" x="${mainSpriteX}" y="${mainSpriteY}" width="${SPRITE_IMAGE_WIDTH * mainScale}" height="${SPRITE_IMAGE_HEIGHT * mainScale}" preserveAspectRatio="none"/>
   </g>
-  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.003")}</text>
+  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.003")}</text>
 
   <rect x="86" y="336" width="908" height="446" rx="30" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.004")}</text>
+  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.004")}</text>
   ${messageText}
 
   <rect x="86" y="814" width="908" height="266" rx="30" fill="#ffffff" stroke="#f9a8d4"/>
-  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.005")}</text>
+  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.005")}</text>
   <circle cx="222" cy="952" r="72" fill="#fffdf6" stroke="#fde68a"/>
   ${renderHeartSymbolGlyph(heartSymbol.id, 222, 952)}
   <text x="324" y="930" fill="#be185d" font-size="35" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(heartSymbol.name)}</text>
@@ -1617,8 +1618,8 @@ function buildHeartCardSvg(
   <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(safeLuckyItem)}</text>
 
   <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">{yeonStarHugText("yeonStar.text.006")}</text>
-  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">{yeonStarHugText("yeonStar.text.007")}</text>
+  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.006")}</text>
+  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${yeonStarHugText("yeonStar.text.007")}</text>
 
   <rect x="842" y="1180" width="118" height="118" rx="26" fill="#ffffff" fill-opacity="0.5" stroke="#f9a8d4"/>
   <g clip-path="url(#yeonSubClip)">
@@ -1803,16 +1804,17 @@ export default function YeonStarHugPage() {
 
   const cardSvg = useMemo(
     () => {
-      if (!consultation) return "";
+      if (!consultation || !reading) return "";
       return buildHeartCardSvg(
         today,
         selectedEmotion,
         activeEmotion.label,
         consultation,
-        getCardSpriteFrame(consultation.sign, selectedEmotion, consultation.concernCategory, consultation.concernDomain, consultation.astroSignal)
+        getCardSpriteFrame(consultation.sign, selectedEmotion, consultation.concernCategory, consultation.concernDomain, consultation.astroSignal),
+        reading.displayCard.oneLineMessage
       );
     },
-    [today, activeEmotion.label, consultation, selectedEmotion]
+    [today, activeEmotion.label, consultation, selectedEmotion, reading]
   );
 
   const speechSpriteFrame = useMemo(() => {
@@ -2295,38 +2297,32 @@ export default function YeonStarHugPage() {
 
         <section className="grid gap-3 rounded-3xl border border-white/45 bg-white/75 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.14)] backdrop-blur-sm md:grid-cols-3">
           <article>
-            <h2 className="text-base font-black text-slate-700">무엇을 비추나요</h2>
+            <h2 className="text-base font-black text-slate-700">결과 저장하고 다시 보기</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              선택한 감정, 별자리, 고민 문장을 함께 놓고 오늘 강하게 떠오르는 마음의 결을 읽습니다. 결과는 확정된 예언보다
-              지금의 감정이 어디에서 지치고 어디에서 회복되는지 살피는 다정한 상담에 가깝습니다.
+              카드 이미지를 저장하면 오늘 뽑힌 행운 상징과 한 문장이 그대로 남아요. 하루가 지난 뒤 다시 열어보면 지금과
+              다르게 읽히는 부분이 있는지 확인해 보세요.
             </p>
           </article>
           <article>
-            <h2 className="text-base font-black text-slate-700">어떤 상황에 좋나요</h2>
+            <h2 className="text-base font-black text-slate-700">행운 상징 6종 미리보기</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              관계의 말투, 일상의 피로, 선택 앞의 망설임처럼 누군가에게 부드럽게 정리받고 싶은 마음이 있을 때 참고하기 좋습니다.
-              고민을 한 문장으로 적으면 키워드와 작은 실천 순서가 더 자연스럽게 열립니다.
+              네잎 클로버(작은 행운이 동시에 열리는 날), 달과 별(감정을 다독이는 치유), 연꽃(흔들림 속 회복력), 황금 열쇠(막힌
+              흐름을 푸는 해답), 나비(관계와 마음의 가벼운 변화), 혜성(정체를 돌파하는 용기) — 오늘 카드에 어떤 상징이 나올지는
+              감정과 고민에 따라 달라져요.
             </p>
           </article>
           <article>
-            <h2 className="text-base font-black text-slate-700">읽을 때의 약속</h2>
+            <h2 className="text-base font-black text-slate-700">오늘 다시 확인하면 결과가 바뀌나요?</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              이 상담은 엔터테인먼트와 자기 성찰을 위한 참고 자료입니다. 건강, 법률, 재정, 관계의 중대한 결정은 결과 하나로
-              단정하지 말고 현실적인 정보와 전문가의 도움을 함께 확인하세요.
+              네, 감정 선택이나 고민 문장을 바꾸면 리딩이 새로 계산돼요. 같은 날 여러 번 확인해도 괜찮지만, 가장 처음
+              마음에 남은 문장을 기준으로 삼는 걸 추천해요.
             </p>
           </article>
           <article className="md:col-span-3">
-            <h2 className="text-base font-black text-slate-700">더 부드럽게 사용하는 법</h2>
+            <h2 className="text-base font-black text-slate-700">공유 전 확인할 것</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              마음이 복잡한 날에는 긴 설명보다 지금 가장 크게 느껴지는 감정 하나를 먼저 고르는 편이 좋습니다. 고민 문장은
-              “왜 이렇게 힘들까”에서 멈추기보다 “오늘 내가 덜 상처받기 위해 확인할 것은 무엇일까”처럼 스스로를 지키는 방향으로
-              적어 보세요. 결과에 나온 작은 행동은 하루를 바꾸는 주문이 아니라 마음을 안정시키는 짧은 리듬입니다. 잘 맞는 문장은
-              기록해 두고, 불편하거나 과하게 느껴지는 문장은 현실의 판단과 대화 속에서 다시 조정해 주세요.
-            </p>
-            <p className="mt-2 text-xs leading-6 text-slate-600">
-              감정이 강한 날일수록 결과를 운명처럼 붙잡기보다 지금 필요한 돌봄의 언어로 받아들이는 것이 좋습니다. 별자리와 달의
-              흐름은 분위기를 비추는 배경이고, 실제 선택은 사용자의 상황과 관계, 몸의 컨디션, 주변의 도움을 함께 보며 정하는 편이
-              더 안전합니다. 오늘의 작은 문장이 마음을 덜 흔들리게 해 준다면 그것만으로도 충분한 안내가 됩니다.
+              카드를 다른 사람과 공유하기 전에 이름·생년월일이 원치 않게 드러나진 않는지 한 번 더 확인하세요. 별자리 리딩은
+              참고용 상담이니, 무겁게 받아들이기보다 오늘의 기분을 가볍게 나누는 용도로 활용해 주세요.
             </p>
           </article>
         </section>

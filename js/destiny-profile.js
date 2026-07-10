@@ -6670,8 +6670,16 @@
       _dpClearGlobalProfileBridge();
       _dpPublishCurrentProfile();
 
-      if (_dpHasSessionHint()) renderProfileLoadingCard();
-      else _dpEnsureScopedStorageReady();
+      // init()과 동일하게 SWR식으로: 스코프 캐시가 있으면 로딩 카드로 되돌리지 않고
+      // 마스터 카드를 유지한 채 백그라운드 갱신만 한다(이미 본 카드가 재로딩되는 증상 방지).
+      // 로딩 카드는 "세션 힌트는 있으나 캐시가 없을 때"만 노출.
+      var _dpScopedCurrent = DPStorage.current();
+      if (_dpHasSessionHint()) {
+        if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
+        else renderProfileLoadingCard();
+      } else {
+        _dpEnsureScopedStorageReady();
+      }
       _dpLoadSubCache();
       _dpUpdateSaveBtn();
       if (!_dpHasSessionHint()) renderMasterCard(DPStorage.current());
