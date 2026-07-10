@@ -32,6 +32,8 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "sukuyo-compatibility-guide",
   "sukuyo-bonmyeongsuk-vs-wolmyeongsuk",
   "sukuyo-useo",
+  "sukuyo-love",
+  "sukuyo-marriage",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [

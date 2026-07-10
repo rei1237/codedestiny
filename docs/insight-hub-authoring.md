@@ -181,13 +181,16 @@
 - [x] `ziwei-career-palace-action` — 궁별 실천 체크(직업·승진) [통합 완료: ziwei-monthly-action-checklist-by-palace, ziwei-promotion-signals-practical-guide]
 - [x] `ziwei-vs-saju` — 자미두수 vs 사주
 
-### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 20편 완료 2026-07-10)
+### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 22편 전체 완료 2026-07-10)
 - [x] `sukuyo-what-is` 재정비 [통합 완료: sukuyo-lunar-mansion-primer, sukuyo-what-is-27-lunar-mansions]
 - [x] `sukuyo-compatibility-guide` — 궁합 총정리(6유형 개관, "우쇠"로 용어 통일) [통합 대상 sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide는 아직 미통합]
 - [x] `sukuyo-27-mansions` — 27수 전체 해석
 - [x] `sukuyo-eishin` — 영친관계 / [x] `sukuyo-antai` — 업태관계 / [x] `sukuyo-ankai` — 안괴관계
 - [x] `sukuyo-bonmyeongsuk-vs-wolmyeongsuk` — 본명숙 vs 월명숙
-- [ ] `sukuyo-love` — 연애 궁합 / `sukuyo-marriage` — 결혼 궁합(기존 SEO 원고 유지, 별도 원고 미제공) / [x] `sukuyo-vs-saju-compatibility` — 숙요 vs 사주 궁합(범위 확장: 숙요점·사주 전반 비교)
+- [x] `sukuyo-love` — 연애 궁합 / [x] `sukuyo-marriage` — 결혼 궁합
+  (기존 SEO 원고를 폐기하고 6유형 완전 가이드와 같은 톤·구조로 재작성 — 유형별 절을 "연애/결혼에서의
+  모습"으로 재구성해 6편 원문과 지문 중복 없이 새로 서술, `ORIGINAL_CONTENT_SLUGS`로 전환)
+- [x] `sukuyo-vs-saju-compatibility` — 숙요 vs 사주 궁합(범위 확장: 숙요점·사주 전반 비교)
 - [x] `sukuyo-three-group-types-guide` — 근·중·원 3분류
 - [x] `sukuyo-love-communication-rules` · [x] `sukuyo-friendship-teamwork-guide` · [x] `sukuyo-day-by-day-rhythm-usage`
   ("제8편 실천가이드" 원고 — sukuyo-love/marriage와 제목 불일치 확인 후 섹션별로 재분류하여 삽입)
