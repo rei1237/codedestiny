@@ -69,7 +69,7 @@ styleLink.textContent = `
     display: none;
     flex-direction: column;
     color: #fff;
-    font-family: 'Pretendard', sans-serif;
+    font-family: var(--font-body, 'Pretendard', sans-serif);
     backdrop-filter: blur(8px);
     overscroll-behavior: contain;
   }
@@ -383,15 +383,15 @@ styleLink.textContent = `
     transform: translateY(0);
   }
   .phy-section-details {
-    border: 1px solid #dbe4ef;
+    border: 1px solid var(--cd-border, #dbe4ef);
     border-radius: 14px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    background: var(--cd-surface, linear-gradient(180deg, #ffffff 0%, #f8fbff 100%));
     overflow: hidden;
-    box-shadow: 0 9px 20px rgba(148,163,184,0.16);
+    box-shadow: var(--cd-shadow, 0 9px 20px rgba(148,163,184,0.16));
   }
   .phy-section-details[open] {
-    border-color: #cbd5e1;
-    box-shadow: 0 12px 28px rgba(148,163,184,0.2);
+    border-color: var(--cd-border, #cbd5e1);
+    box-shadow: var(--cd-shadow, 0 12px 28px rgba(148,163,184,0.2));
   }
   .phy-section-summary {
     list-style: none;
@@ -403,8 +403,8 @@ styleLink.textContent = `
     gap: 10px;
     font-size: 0.93rem;
     font-weight: 800;
-    color: #0f172a;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    color: var(--cd-text, #0f172a);
+    background: var(--cd-surface-2, linear-gradient(180deg, #ffffff 0%, #f8fafc 100%));
   }
   .phy-section-summary::-webkit-details-marker { display: none; }
   .phy-section-title-wrap {
@@ -427,19 +427,19 @@ styleLink.textContent = `
   }
   .phy-section-title {
     font-size: 0.9rem;
-    color: #0f172a;
+    color: var(--cd-text, #0f172a);
     font-weight: 800;
   }
   .phy-section-hint {
     font-size: 0.72rem;
-    color: #64748b;
+    color: var(--cd-text-muted, #64748b);
     font-weight: 700;
     white-space: nowrap;
   }
   .phy-section-body {
     padding: 3px 14px 14px;
     font-size: 0.88rem;
-    color: #334155;
+    color: var(--cd-text, #334155);
     line-height: 1.65;
   }
   .phy-section-body p {

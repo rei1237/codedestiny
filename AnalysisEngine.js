@@ -2093,7 +2093,7 @@ async analyze(landmarksData, expressionData) {
       };
 
       const expertReportHtml = `
-      <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
+      <div style="font-family: var(--font-body, 'Pretendard', sans-serif); color: #333; line-height: 1.6;">
         
         <div style="margin-bottom: 15px; background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
             <div style="font-weight: 800; font-size: 1.1rem; color: #065f46; margin-bottom: 5px;"> 👑 ${bestMatch.emoji} ${bestMatch.name} 관상 총평</div>
@@ -2778,7 +2778,7 @@ async analyze(landmarksData, expressionData) {
 
     // 궁합 HTML 생성
     const compatHtml = `
-      <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
+      <div style="font-family: var(--font-body, 'Pretendard', sans-serif); color: #333; line-height: 1.6;">
         
         <!-- 궁합 메인 헤더 -->
         <div style="text-align:center; margin-bottom:20px;">
