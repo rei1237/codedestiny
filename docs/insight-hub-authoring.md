@@ -181,7 +181,7 @@
 - [x] `ziwei-career-palace-action` — 궁별 실천 체크(직업·승진) [통합 완료: ziwei-monthly-action-checklist-by-palace, ziwei-promotion-signals-practical-guide]
 - [x] `ziwei-vs-saju` — 자미두수 vs 사주
 
-### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 19편 완료 2026-07-10)
+### 숙요점 (재정비, 완료 2편 제외 21 + 확장분 4, 20편 완료 2026-07-10)
 - [x] `sukuyo-what-is` 재정비 [통합 완료: sukuyo-lunar-mansion-primer, sukuyo-what-is-27-lunar-mansions]
 - [x] `sukuyo-compatibility-guide` — 궁합 총정리(6유형 개관, "우쇠"로 용어 통일) [통합 대상 sukuyo-compatibility-simple-checklist, sukuyo-compatibility-rhythm-guide는 아직 미통합]
 - [x] `sukuyo-27-mansions` — 27수 전체 해석
@@ -191,7 +191,9 @@
 - [x] `sukuyo-three-group-types-guide` — 근·중·원 3분류
 - [x] `sukuyo-love-communication-rules` · [x] `sukuyo-friendship-teamwork-guide` · [x] `sukuyo-day-by-day-rhythm-usage`
   ("제8편 실천가이드" 원고 — sukuyo-love/marriage와 제목 불일치 확인 후 섹션별로 재분류하여 삽입)
-- [x] `sukuyo-beginner-terms-easy-dictionary` · [x] `sukuyo-qa-most-asked-questions` · [ ] `sukuyo-27-guardian-animals-origin-guide`(원고 있음, 기존 정밀 나크샤트라 요니 매칭표와 내용 충돌로 삽입 보류·확인 대기)
+- [x] `sukuyo-beginner-terms-easy-dictionary` · [x] `sukuyo-qa-most-asked-questions` · [x] `sukuyo-27-guardian-animals-origin-guide`
+  (원전엔 동물 배정 근거 없음을 명시 + 한국식 상징표(각숙=늑대 등, 비표준 caveat 포함) + 기존 나크샤트라
+  요니 체계를 "원전에 실제 있는 유일한 동물 배정"으로 구분해 병기)
 - [x] `sukuyo-conflict-repair-dialogue-templates` · [x] `sukuyo-boundary-setting-practical-guide` · [x] `sukuyo-couple-finance-rhythm-guide` · [x] `relationship-luck-and-communication-rules`
 
 **확장분(2026-07-10, 사용자가 6유형 관계론으로 확장 집필)** — 기존 영친·업태·안괴 3유형에 이어
