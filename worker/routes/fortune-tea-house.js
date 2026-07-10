@@ -3255,6 +3255,66 @@ async function saveFortuneTeaHouseResult({ auth, resultId, consultRequest, resul
   return results.findOne({ userId, resultId });
 }
 
+const FORTUNE_TEA_HOUSE_HISTORY_LIST_LIMIT = 20;
+
+function publicFortuneTeaResultListItem(doc) {
+  const resultId = cleanText(doc?.resultId, 180);
+  if (!resultId) return null;
+  return {
+    resultId,
+    consultationMode: normalizeConsultationMode(doc?.consultationMode),
+    questionSummary: cleanMultiline(doc?.questionSummary, 200),
+    createdAt: dateIso(doc?.createdAt),
+  };
+}
+
+async function readFortuneTeaHouseResultsList(request, env) {
+  const auth = await getCurrentUser(request, env);
+  if (!auth?.userId) return { ok: false, status: 401, message: "잠시 후 다시 확인해주세요." };
+
+  await connectDb(env);
+  const userId = String(auth.userId);
+  const docs = await withMongoRetry(env, async () => {
+    const { results } = honeyCollections();
+    return results
+      .find({ userId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: "completed" })
+      .project({ resultId: 1, consultationMode: 1, questionSummary: 1, createdAt: 1 })
+      .sort({ createdAt: -1 })
+      .limit(FORTUNE_TEA_HOUSE_HISTORY_LIST_LIMIT)
+      .toArray();
+  });
+  return { ok: true, items: docs.map(publicFortuneTeaResultListItem).filter(Boolean) };
+}
+
+async function handleFortuneTeaHouseResultsList(request, env) {
+  const outcome = await readFortuneTeaHouseResultsList(request, env);
+  if (!outcome.ok) return json({ ok: false, message: outcome.message }, { status: outcome.status });
+  return json({ ok: true, items: outcome.items });
+}
+
+async function readFortuneTeaHouseResultDetail(request, env, resultId) {
+  const auth = await getCurrentUser(request, env);
+  if (!auth?.userId) return { ok: false, status: 401, message: "잠시 후 다시 확인해주세요." };
+
+  await connectDb(env);
+  const userId = String(auth.userId);
+  const doc = await withMongoRetry(env, async () => {
+    const { results } = honeyCollections();
+    return results.findOne({ userId, resultId, serviceScope: FORTUNE_TEA_HOUSE_SCOPE, status: "completed" });
+  });
+  const result = doc ? publicFortuneTeaStoredResult(doc, { resultId }) : null;
+  if (!result) return { ok: false, status: 404, message: "상담 기록을 찾을 수 없어요." };
+  return { ok: true, result };
+}
+
+async function handleFortuneTeaHouseResultDetail(request, env, path) {
+  const resultId = cleanText(decodeURIComponent(path.slice("/results/".length)), 180);
+  if (!resultId) return json({ ok: false, message: "상담 기록을 찾을 수 없어요." }, { status: 404 });
+  const outcome = await readFortuneTeaHouseResultDetail(request, env, resultId);
+  if (!outcome.ok) return json({ ok: false, message: outcome.message }, { status: outcome.status });
+  return json({ ok: true, result: outcome.result });
+}
+
 async function grantHoneyDropReward(auth, resultId, consultationMode) {
   if (!auth?.userId) return null;
 
@@ -4031,6 +4091,14 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}) {
 
     if (method === "POST" && (path === "/results/honey-letter" || /^\/results\/[^/]+\/honey-letter$/.test(path))) {
       return await handleHoneyLetter(request, env, path);
+    }
+
+    if (method === "GET" && path === "/results") {
+      return await handleFortuneTeaHouseResultsList(request, env);
+    }
+
+    if (method === "GET" && /^\/results\/[^/]+$/.test(path)) {
+      return await handleFortuneTeaHouseResultDetail(request, env, path);
     }
 
     if (method === "POST" && path === "/honey-drops/tarot-album/unlock") {

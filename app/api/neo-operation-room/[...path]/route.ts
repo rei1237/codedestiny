@@ -10,6 +10,9 @@ export function generateStaticParams() {
     { path: ["start"] },
     { path: ["refine"] },
     { path: ["result"] },
+    { path: ["badges"] },
+    { path: ["badges", "balance"] },
+    { path: ["badges", "unlock-benefits"] },
   ];
 }
 

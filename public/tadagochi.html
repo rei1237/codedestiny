@@ -321,23 +321,23 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .fortune-petmsg{border-radius:10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.22);padding:8px 10px;font-size:11px;line-height:1.55;color:var(--text)}
 
-.fortune-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fortune-grid{display:flex;flex-direction:column;gap:9px}
 
-.fortune-grid.compact{grid-template-columns:1fr}
+.fortune-grid.compact{gap:9px}
 
-.fortune-card{border-radius:12px;border:1px solid var(--cb);background:linear-gradient(170deg,rgba(255,255,255,.95),rgba(255,255,255,.82));padding:9px 10px;box-shadow:0 1px 5px rgba(0,0,0,.04)}
+.fortune-card{border-radius:14px;border:1px solid var(--cb);background:linear-gradient(170deg,rgba(255,255,255,.96),rgba(255,255,255,.84));padding:12px 13px;box-shadow:0 2px 8px rgba(0,0,0,.045)}
 
-.fortune-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.fortune-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 
-.fortune-card-emoji{font-size:13px;line-height:1;flex-shrink:0}
+.fortune-card-emoji{font-size:15px;line-height:1;flex-shrink:0}
 
-.fortune-card h4{font-size:11px;color:var(--acc);font-weight:800;line-height:1.35;margin:0 0 4px}
+.fortune-card h4{font-size:13px;color:var(--acc);font-weight:800;line-height:1.35;margin:0;flex:1;min-width:0}
 
-.fortune-card-score{margin-left:auto;font-size:10px;font-weight:800;color:var(--acc);opacity:.9}
+.fortune-detail{font-size:13px;line-height:1.62;color:var(--text);margin:0 0 8px;white-space:pre-wrap;word-break:keep-all}
 
-.fortune-detail{font-size:11.5px;line-height:1.55;color:var(--text);margin:0 0 4px;white-space:pre-wrap}
+.fortune-advice{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.5;color:var(--acc);margin:0;padding:8px 10px;border-radius:10px;background:var(--adim);border:1px solid var(--cb);word-break:keep-all}
 
-.fortune-advice{font-size:10.5px;line-height:1.45;color:var(--acc);opacity:.88;margin:0}
+.fortune-advice .fa-ico{flex-shrink:0;line-height:1.4}
 
 .fortune-card p{font-size:11.5px;line-height:1.55;color:var(--text);margin:0;white-space:pre-wrap}
 
@@ -348,6 +348,61 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 .fortune-tab-btn{padding:5px 11px;border-radius:999px;border:1px solid var(--cb);background:transparent;color:#777;font-size:11px;font-weight:700;white-space:nowrap;transition:all .15s}
 
 .fortune-tab-btn.on{border-color:var(--acc);background:var(--adim);color:var(--acc)}
+
+/* ── 운세 채팅 폴리싱 (impeccable) ─────────────────────────────────────── */
+.chat-header{display:flex;align-items:center;gap:11px;padding:14px 16px 12px;border-bottom:1px solid var(--cb)}
+.chat-back{width:40px;height:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;line-height:1;border-radius:50%;border:1.5px solid var(--cb);background:rgba(255,255,255,.7);color:var(--acc);cursor:pointer;transition:background .16s,box-shadow .16s,transform .12s}
+.chat-back:hover{background:#fff;box-shadow:0 0 0 4px var(--adim)}
+.chat-back:active{transform:scale(.92)}
+.chat-back:focus-visible{outline:none;box-shadow:0 0 0 3px var(--al)}
+.chat-avatar{width:40px;height:40px;flex-shrink:0;border-radius:50%;padding:2px;background:radial-gradient(circle at 50% 34%,var(--adim),rgba(255,255,255,.55));box-shadow:0 0 0 1.5px var(--al),0 4px 14px var(--al);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.chat-avatar img{width:100%;height:100%;object-fit:contain;animation:idle 3.5s ease-in-out infinite}
+.chat-title-txt{font-size:1.02rem;font-weight:800;color:var(--acc);line-height:1.15;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-sub{font-size:11px;color:var(--acc);opacity:.55;line-height:1.3;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chat-remain-badge{flex-shrink:0;display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;background:var(--adim);border:1.5px solid var(--cb);color:var(--acc);font-size:11px;font-weight:800;line-height:1;white-space:nowrap;transition:background .2s,border-color .2s,color .2s}
+.chat-remain-badge .crb-ico{font-size:12px}
+.chat-remain-badge #chat-remain{font-size:13px;font-weight:900}
+.chat-remain-badge .crb-unit{opacity:.72;font-weight:700}
+.chat-remain-badge.low{background:rgba(245,158,11,.14);border-color:rgba(245,158,11,.5);color:#b45309}
+.chat-remain-badge.zero{background:rgba(0,0,0,.05);border-color:rgba(0,0,0,.1);color:#9ca3af}
+
+/* 점수 링 (점수대별 컬러코딩: ≥80 에메랄드 / 55~79 앰버 / <55 로즈) */
+.score-ring{width:38px;height:38px;flex-shrink:0;margin-left:auto;border-radius:50%;display:grid;place-items:center;position:relative;background:conic-gradient(var(--sc) calc(var(--sp,0)*1%),var(--sc-track,rgba(0,0,0,.08)) 0)}
+.score-ring::before{content:'';position:absolute;inset:3px;border-radius:50%;background:linear-gradient(170deg,#fff,#fdfcff)}
+.score-ring>span{position:relative;font-size:12px;font-weight:900;color:var(--sc-ink,var(--acc));letter-spacing:-.02em}
+.score-ring--sm{width:30px;height:30px;margin-left:0}
+.score-ring--sm>span{font-size:10.5px}
+.fortune-head-score{display:inline-flex;align-items:center;gap:6px}
+
+/* 빠른 질문 칩 */
+.quick-chips{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;padding:2px 12px 9px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.quick-chips::-webkit-scrollbar{display:none}
+.quick-chips::after{content:'';flex:0 0 4px}
+.quick-chip{flex-shrink:0;padding:7px 13px;border-radius:999px;border:1.5px solid var(--cb);background:rgba(255,255,255,.85);color:var(--acc);font-family:'Noto Sans KR';font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;transition:background .14s,border-color .14s,transform .12s}
+.quick-chip:hover{background:var(--adim);border-color:var(--al)}
+.quick-chip:active{transform:scale(.94);background:var(--c1)}
+
+/* 봇 아바타 (연속 메시지에서 생략) */
+.bot-ava{width:28px;height:28px;flex-shrink:0;margin-top:4px;border-radius:50%;overflow:hidden}
+.bot-ava.spacer{visibility:hidden}
+
+/* 결과 저장/공유 버튼 */
+.fortune-share{align-self:flex-start;display:inline-flex;align-items:center;gap:5px;margin-top:2px;padding:6px 12px;border-radius:999px;border:1.5px solid var(--cb);background:rgba(255,255,255,.85);color:var(--acc);font-family:'Noto Sans KR';font-size:11px;font-weight:700;cursor:pointer;transition:background .14s,border-color .14s,transform .12s}
+.fortune-share:hover{background:var(--adim);border-color:var(--al)}
+.fortune-share:active{transform:scale(.95)}
+.fortune-share:disabled{opacity:.5;cursor:default}
+
+/* 스켈레톤 로딩 */
+.chat-skel{display:flex;flex-direction:column;gap:9px;width:100%}
+.chat-skel .skel-head{font-size:0.78rem;font-weight:700;color:var(--acc)}
+.skel-card{border-radius:12px;border:1px solid var(--cb);background:rgba(255,255,255,.65);padding:11px 12px;display:flex;flex-direction:column;gap:9px}
+.skel-line{height:11px;border-radius:6px;background:linear-gradient(90deg,rgba(0,0,0,.06) 25%,rgba(0,0,0,.12) 37%,rgba(0,0,0,.06) 63%);background-size:400% 100%;animation:skel 1.4s ease infinite}
+@keyframes skel{0%{background-position:100% 0}100%{background-position:-100% 0}}
+
+@media (prefers-reduced-motion:reduce){
+  .chat-avatar img{animation:none}
+  .skel-line{animation:none}
+}
 
 @keyframes chat-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
@@ -557,9 +612,9 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       <div class="tchip" data-t="moon"       onclick="pT('moon')"      ><div class="tegg"><img id="te-moon"       src="/fuctionassets/tadagochi/%EB%8B%AC%20%EC%BB%A8%EC%85%89/%EB%8B%AC%20%EC%BB%A8%EC%85%89%20%EC%95%8C.png"></div><span style="color:#92400e">🌙달</span></div>
 
-      <div class="tchip" data-t="strawberry" onclick="pT('strawberry')"><div class="tegg"><img id="te-strawberry" src="/fuctionassets/tadagochi/%EB%94%B8%EA%B8%B0%20%EC%BB%A8%EC%85%89/%EB%94%B8%EA%B8%B0%20%EC%95%8C.webp"></div><span style="color:#be123c">🍓딸기</span></div>
+      <div class="tchip" data-t="strawberry" onclick="pT('strawberry')"><div class="tegg"><img id="te-strawberry" src="/fuctionassets/tadagochi-local/%EB%94%B8%EA%B8%B0%20%EC%BB%A8%EC%85%89/%EB%94%B8%EA%B8%B0%20%EC%95%8C-Photoroom.webp"></div><span style="color:#be123c">🍓딸기</span></div>
 
-      <div class="tchip" data-t="cherry"     onclick="pT('cherry')"    ><div class="tegg"><img id="te-cherry"     src="/fuctionassets/tadagochi/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.webp"></div><span style="color:#9d174d">🌸벚꽃</span></div>
+      <div class="tchip" data-t="cherry"     onclick="pT('cherry')"    ><div class="tegg"><img id="te-cherry"     src="/fuctionassets/tadagochi-local/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.png"></div><span style="color:#9d174d">🌸벚꽃</span></div>
 
       <div class="tchip" data-t="star"       onclick="pT('star')"      ><div class="tegg"><img id="te-star"       src="/fuctionassets/tadagochi/%EA%B2%80%EC%9D%80%20%EB%B3%84%20%EC%BB%A8%EC%85%89/%EA%B2%80%EC%9D%80%EB%B3%84%20%EC%95%8C-Photoroom.png"></div><span style="color:#92400e">⭐별</span></div>
 
@@ -798,17 +853,23 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
 <div class="chat-modal" id="chat-modal">
 
-  <div class="flex items-center gap-3 px-4 pt-4 pb-3 shrink-0 border-b" style="border-color:var(--cb)">
+  <div class="chat-header">
 
-    <button onclick="closeChat()" class="text-xl opacity-50 hover:opacity-100 transition-opacity">←</button>
+    <button onclick="closeChat()" class="chat-back" aria-label="뒤로 가기">←</button>
 
-    <div class="pet-wrap" style="width:38px;height:38px"><img id="chat-pet-ico" src="" class="pet-img" style="animation:none"></div>
+    <div class="chat-avatar"><img id="chat-pet-ico" src="" alt="운세 다마 캐릭터"></div>
 
     <div class="flex-1 min-w-0">
 
-      <div class="font-g text-base font-bold truncate" id="chat-title" style="color:var(--acc)">운세 상담</div>
+      <div class="chat-title-txt font-g" id="chat-title">운세 상담</div>
 
-      <div class="font-n text-[11px]" style="color:var(--acc);opacity:.5">오늘 남은 운세 <span id="chat-remain" class="font-black">5</span>회</div>
+      <div class="chat-sub font-n">오늘의 운세 상담</div>
+
+    </div>
+
+    <div class="chat-remain-badge" id="chat-remain-badge" title="오늘 남은 운세 횟수">
+
+      <span class="crb-ico" aria-hidden="true">🔮</span><span id="chat-remain" class="font-black">5</span><span class="crb-unit">회 남음</span>
 
     </div>
 
@@ -830,13 +891,21 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
   <div class="chat-log flex-1 overflow-y-auto flex flex-col" id="chat-log"></div>
 
+  <div class="quick-chips" id="quick-chips">
+    <button class="quick-chip" type="button" onclick="quickAsk('오늘 총운이 궁금해')">✨ 오늘 총운</button>
+    <button class="quick-chip" type="button" onclick="quickAsk('오늘 조심할 점을 알려줘')">⚠️ 조심할 점</button>
+    <button class="quick-chip" type="button" onclick="quickAsk('오늘 행운의 시간은 언제야?')">🍀 행운 시간</button>
+    <button class="quick-chip" type="button" onclick="quickAsk('오늘 연애운은 어때?')">💕 연애운</button>
+    <button class="quick-chip" type="button" onclick="quickAsk('오늘 재물운은 어때?')">💰 재물운</button>
+  </div>
+
   <div class="chat-input-wrap shrink-0">
 
     <div class="flex gap-2 items-center">
 
       <input id="chat-inp" class="chat-input" placeholder="선택한 운세에 대해 궁금한 점을 입력해줘..." maxlength="120" onkeydown="if(event.key==='Enter')sendChat()">
 
-      <button onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px">전송</button>
+      <button id="chat-send" onclick="sendChat()" class="btn-acc flex-shrink-0" style="padding:10px 16px;font-size:14px;border-radius:99px" aria-label="질문 전송">전송</button>
 
     </div>
 
@@ -1048,8 +1117,8 @@ function calcFortuneScore(birthYear,element){
 
 // Use stable on-disk egg assets to avoid broken inline/base64 placeholders.
 EGG.moon = '/fuctionassets/tadagochi/%EB%8B%AC%20%EC%BB%A8%EC%85%89/%EB%8B%AC%20%EC%BB%A8%EC%85%89%20%EC%95%8C.png';
-EGG.strawberry = '/fuctionassets/tadagochi/%EB%94%B8%EA%B8%B0%20%EC%BB%A8%EC%85%89/%EB%94%B8%EA%B8%B0%20%EC%95%8C.webp';
-EGG.cherry = '/fuctionassets/tadagochi/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.webp';
+EGG.strawberry = '/fuctionassets/tadagochi-local/%EB%94%B8%EA%B8%B0%20%EC%BB%A8%EC%85%89/%EB%94%B8%EA%B8%B0%20%EC%95%8C-Photoroom.webp';
+EGG.cherry = '/fuctionassets/tadagochi-local/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.png';
 EGG.star = '/fuctionassets/tadagochi/%EA%B2%80%EC%9D%80%20%EB%B3%84%20%EC%BB%A8%EC%85%89/%EA%B2%80%EC%9D%80%EB%B3%84%20%EC%95%8C-Photoroom.png';
 EGG.angel = '/fuctionassets/tadagochi/%EC%B2%9C%EC%82%AC%20%EC%BB%A8%EC%85%89/%EC%B2%9C%EC%82%AC%20%EC%95%8C-Photoroom.webp';
 
@@ -1909,7 +1978,17 @@ function downloadTali(){
 var chatCat='general';
 var _chatCatPlaceholders={general:'예: 오늘 전체적인 흐름이 궁금해',saju:'예: 오늘 이직운이 어떤지 사주로 봐줘',ziwei:'예: 오늘 인간관계 흐름을 자미두수로 알려줘',astrology:'예: 오늘 연애 흐름을 점성술로 자세히 알려줘',tarot:'예: 오늘 중요한 선택을 타로로 봐줘'};
 
-function updateChatRemain(){var el=document.getElementById('chat-remain');if(el) el.textContent=Math.max(0,5-G.chatCount);}
+function updateChatRemain(){
+  var n=Math.max(0,5-G.chatCount);
+  var el=document.getElementById('chat-remain'); if(el) el.textContent=n;
+  var badge=document.getElementById('chat-remain-badge');
+  if(badge){badge.classList.toggle('low',n>0&&n<=1);badge.classList.toggle('zero',n===0);badge.setAttribute('aria-label','오늘 남은 운세 '+n+'회');}
+  var locked=n===0;
+  var inp=document.getElementById('chat-inp');
+  if(inp){inp.disabled=locked;inp.placeholder=locked?'오늘 운세 5회를 모두 사용했어요 · 내일 다시 만나요 💤':(_chatCatPlaceholders[chatCat]||'선택한 운세에 대해 궁금한 점을 입력해줘...');}
+  var sendBtn=document.getElementById('chat-send'); if(sendBtn){sendBtn.disabled=locked;}
+  var chips=document.getElementById('quick-chips'); if(chips){chips.style.opacity=locked?'.4':'';chips.style.pointerEvents=locked?'none':'';}
+}
 
 var _reqId=0; // 중복 응답 방지용 요청 ID
 
@@ -1959,18 +2038,6 @@ function pickGeneral(subCat){
   var q={general_full:'전체 종합 운세 알려줘',saju:'사주로 오늘 운세 봐줘',ziwei:'자미두수로 오늘 운세 봐줘',astrology:'점성술로 오늘 운세 봐줘',tarot:'타로로 오늘 운세 봐줘'}[subCat]||'오늘 운세 알려줘';
   var inp=document.getElementById('chat-inp'); if(inp) inp.value=q;
   sendChat(subCat);
-}
-
-function addLoadingMsg(text){
-  var log=document.getElementById('chat-log');
-  var icoSrc=document.getElementById('chat-pet-ico').src||'';
-  var d=document.createElement('div'); d.className='flex gap-2 items-start';
-  d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
-    +'<div class="chat-bubble bot font-n" style="display:flex;flex-direction:column;gap:6px">'
-    +'<div style="font-size:0.78rem;font-weight:700;color:var(--acc)">'+escHtml(text)+'</div>'
-    +'<div style="display:flex;gap:5px;align-items:center"><span class="animate-bounce" style="animation-delay:0s;font-size:1rem;color:var(--acc)">•</span><span class="animate-bounce" style="animation-delay:.2s;font-size:1rem;color:var(--acc)">•</span><span class="animate-bounce" style="animation-delay:.4s;font-size:1rem;color:var(--acc)">•</span></div>'
-    +'</div>';
-  log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 }
 
 function clampScore(v){
@@ -2223,6 +2290,20 @@ function buildFortuneResultByCategory(cat,meta){
   return buildTamaGeneralResult(meta);
 }
 
+function scoreTierVars(sc){
+  var s=Math.max(0,Math.min(100,parseInt(sc,10)||0));
+  var c,ink;
+  if(s>=80){c='#10b981';ink='#047857';}       // 에메랄드 (고득점)
+  else if(s>=55){c='#f59e0b';ink='#b45309';}  // 앰버 (안정)
+  else {c='#f43f5e';ink='#be123c';}           // 로즈 (주의)
+  return '--sp:'+s+';--sc:'+c+';--sc-ink:'+ink+';--sc-track:rgba(0,0,0,.08)';
+}
+
+function scoreRingHtml(sc,small){
+  var s=Math.max(0,Math.min(100,parseInt(sc,10)||0));
+  return '<span class="score-ring'+(small?' score-ring--sm':'')+'" style="'+scoreTierVars(s)+'" role="img" aria-label="점수 '+s+'점"><span>'+s+'</span></span>';
+}
+
 function renderFortuneCardsHtml(result,compact){
   var categories=(result.categories||[]);
   if(!categories.length && Array.isArray(result.cards)){
@@ -2238,13 +2319,13 @@ function renderFortuneCardsHtml(result,compact){
     });
   }
   var cards=categories.map(function(card){
-    var advice=card.advice?'<p class="fortune-advice">조언 · '+escHtml(card.advice)+'</p>':'';
+    var advice=card.advice?'<p class="fortune-advice"><span class="fa-ico" aria-hidden="true">💡</span><span>'+escHtml(card.advice)+'</span></p>':'';
     return ''
       +'<article class="fortune-card">'
         +'<div class="fortune-card-head">'
-          +'<span class="fortune-card-emoji">'+escHtml(card.emoji||'🔹')+'</span>'
+          +'<span class="fortune-card-emoji" aria-hidden="true">'+escHtml(card.emoji||'🔹')+'</span>'
           +'<h4>'+(escHtml(card.title||'포인트'))+'</h4>'
-          +'<span class="fortune-card-score">'+escHtml(String(card.score||0))+'점</span>'
+          +scoreRingHtml(card.score||0,false)
         +'</div>'
         +'<p class="fortune-detail">'+escHtml(card.detail||card.text||'')+'</p>'
         +advice
@@ -2257,7 +2338,7 @@ function renderFortuneCardsHtml(result,compact){
   var petHtml=result.petMessage?'<div class="fortune-petmsg">'+escHtml(result.petMessage)+'</div>':'';
   return ''
     +'<div class="fortune-wrap">'
-      +'<div class="fortune-head"><span>'+escHtml(result.systemLabel||'🔮 종합')+'</span><span>'+escHtml(String(result.score||0))+'점 · '+escHtml(result.fortune||'평')+'</span></div>'
+      +'<div class="fortune-head"><span>'+escHtml(result.systemLabel||'🔮 종합')+'</span><span class="fortune-head-score">'+scoreRingHtml(result.score||0,true)+'<span>'+escHtml(result.fortune||'평')+'</span></span></div>'
       +'<div class="fortune-meta">'
         +(result.date?'<span class="fortune-pill">'+escHtml(result.date)+'</span>':'')
         +'<span class="fortune-pill">'+escHtml(result.focusLabel||'전반')+' 포커스</span>'
@@ -2271,14 +2352,70 @@ function renderFortuneCardsHtml(result,compact){
     +'</div>';
 }
 
+var _fShareSeq=0;
+
+// 연속 봇 메시지에서는 아바타를 생략(직전 행이 봇이면 자리만 확보)
+function botAvatarHtml(icoSrc){
+  var log=document.getElementById('chat-log');
+  var last=log&&log.lastElementChild;
+  var cont=last&&last.classList&&last.classList.contains('bot-row');
+  if(cont) return '<div class="bot-ava spacer" aria-hidden="true"></div>';
+  return '<div class="bot-ava"><img src="'+icoSrc+'" alt="" style="width:100%;height:100%;object-fit:contain"></div>';
+}
+
+function fortuneShareBtnHtml(targetId){
+  return '<button class="fortune-share" type="button" onclick="shareFortune(\''+targetId+'\',this)" aria-label="운세 결과 이미지로 저장하기"><span aria-hidden="true">📸</span> 이미지로 저장</button>';
+}
+
+function shareFortune(targetId,btn){
+  var node=document.getElementById(targetId);
+  if(!node){toast('저장할 결과를 찾지 못했어요');return;}
+  if(typeof html2canvas==='undefined'){toast('이미지 저장을 준비 중이에요, 잠시 후 다시 시도해줘 📸');return;}
+  if(btn) btn.disabled=true;
+  html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(function(c){
+    var fname='운세다마_'+getTodayKey()+'.png';
+    function fallbackDownload(){var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=fname;a.click();toast('이미지로 저장했어요 📸');if(btn)btn.disabled=false;}
+    if(c.toBlob){
+      c.toBlob(function(blob){
+        var file=(blob&&window.File)?new File([blob],fname,{type:'image/png'}):null;
+        if(file&&navigator.canShare&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'운세 다마 결과'}).catch(function(){}).then(function(){if(btn)btn.disabled=false;});
+        }else{fallbackDownload();}
+      },'image/png');
+    }else{fallbackDownload();}
+  }).catch(function(){toast('이미지 저장에 실패했어요 😢');if(btn)btn.disabled=false;});
+}
+
+// 운세 생성 대기용 스켈레톤(타이핑 인디케이터 대체)
+function addFortuneSkeletonMsg(text,compact){
+  var log=document.getElementById('chat-log');
+  var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  var card='<div class="skel-card"><div class="skel-line" style="width:52%"></div><div class="skel-line" style="width:96%"></div><div class="skel-line" style="width:86%"></div></div>';
+  var card2='<div class="skel-card"><div class="skel-line" style="width:44%"></div><div class="skel-line" style="width:92%"></div><div class="skel-line" style="width:78%"></div></div>';
+  var d=document.createElement('div'); d.className='flex gap-2 items-start bot-row';
+  d.innerHTML=''
+    +botAvatarHtml(icoSrc)
+    +'<div class="font-n" style="flex:1">'
+      +'<div class="chat-skel">'
+        +'<div class="skel-head">'+escHtml(text||'운세를 정리하는 중이야...')+'</div>'
+        +card+(compact?'':card2)
+      +'</div>'
+    +'</div>';
+  log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
+}
+
 function addFortuneResultMsg(result){
   var log=document.getElementById('chat-log');
   var icoSrc=document.getElementById('chat-pet-ico').src||'';
+  var tid='fres_'+(++_fShareSeq);
   var wrap=document.createElement('div');
-  wrap.className='flex gap-2 items-start';
+  wrap.className='flex gap-2 items-start bot-row';
   wrap.innerHTML=''
-    +'<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
-    +'<div class="font-n" style="flex:1">'+renderFortuneCardsHtml(result,false)+'</div>';
+    +botAvatarHtml(icoSrc)
+    +'<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:8px">'
+      +'<div id="'+tid+'">'+renderFortuneCardsHtml(result,false)+'</div>'
+      +fortuneShareBtnHtml(tid)
+    +'</div>';
   log.appendChild(wrap);
   log.scrollTop=log.scrollHeight;
 }
@@ -2300,14 +2437,18 @@ function addGeneralFortuneMsg(bundle){
   var panes=tabs.map(function(t,idx){
     return '<div data-tab-pane="'+tabId+'" data-key="'+t.key+'" style="display:'+(idx===0?'block':'none')+'">'+renderFortuneCardsHtml(t.result,true)+'</div>';
   }).join('');
+  var tid='fres_'+(++_fShareSeq);
   var wrap=document.createElement('div');
-  wrap.className='flex gap-2 items-start';
+  wrap.className='flex gap-2 items-start bot-row';
   wrap.innerHTML=''
-    +'<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+    +botAvatarHtml(icoSrc)
     +'<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:10px">'
-      +summaryHtml
-      +'<div class="fortune-tabs">'+btns+'</div>'
-      +panes
+      +'<div id="'+tid+'" style="display:flex;flex-direction:column;gap:10px">'
+        +summaryHtml
+        +'<div class="fortune-tabs">'+btns+'</div>'
+        +panes
+      +'</div>'
+      +fortuneShareBtnHtml(tid)
     +'</div>';
   log.appendChild(wrap);
   log.scrollTop=log.scrollHeight;
@@ -2400,7 +2541,7 @@ function sendChat(forceCat){
   var baseMeta=createFortuneMeta(cat,baseScore,baseFortune,G.petName,zName,todayLabel,q);
 
   if(cat==='general'){
-    var generalLoading=addLoadingMsg('종합 운세 분석 중... 시스템별 결과를 분리 카드로 정리하고 있어 🔮');
+    var generalLoading=addFortuneSkeletonMsg('종합 운세 분석 중… 시스템별 결과를 카드로 정리하고 있어 🔮',false);
     setTimeout(function(){
       if(thisReq!==_reqId) return;
       if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
@@ -2430,7 +2571,7 @@ function sendChat(forceCat){
     astrology:'행성·트랜짓 분석 중 ⭐ 잠시만 기다려줘!',
     tarot:'타로 카드 3장 배열 중 🃏 잠시만 기다려줘!'
   };
-  var botEl = LOAD_TEXT[cat] ? addLoadingMsg(LOAD_TEXT[cat]) : addLoadingMsg('운세를 정리하는 중이야...');
+  var botEl = addFortuneSkeletonMsg(LOAD_TEXT[cat]||'운세를 정리하는 중이야…',false);
   setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
@@ -2457,13 +2598,15 @@ function addBotMsg(text,isTyping){
 
   var log=document.getElementById('chat-log');
 
-  var d=document.createElement('div'); d.className='flex gap-2 items-end';
+  var d=document.createElement('div'); d.className='flex gap-2 items-end bot-row';
 
   var icoSrc=document.getElementById('chat-pet-ico').src||'';
 
-  if(isTyping) d.innerHTML='<div class="pet-wrap" style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div><div class="chat-bubble bot font-n"><span style="display:inline-flex;gap:4px"><span class="animate-bounce" style="animation-delay:0s">•</span><span class="animate-bounce" style="animation-delay:.15s">•</span><span class="animate-bounce" style="animation-delay:.3s">•</span></span></div>';
+  var ava=botAvatarHtml(icoSrc);
 
-  else d.innerHTML='<div class="pet-wrap" style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div><div class="chat-bubble bot font-n">'+escHtml(text)+'</div>';
+  if(isTyping) d.innerHTML=ava+'<div class="chat-bubble bot font-n"><span style="display:inline-flex;gap:4px"><span class="animate-bounce" style="animation-delay:0s">•</span><span class="animate-bounce" style="animation-delay:.15s">•</span><span class="animate-bounce" style="animation-delay:.3s">•</span></span></div>';
+
+  else d.innerHTML=ava+'<div class="chat-bubble bot font-n">'+escHtml(text)+'</div>';
 
   log.appendChild(d); log.scrollTop=log.scrollHeight; return d;
 
@@ -2490,14 +2633,14 @@ function addFullReportMsg(fullText){
   });
   // 파싱 실패 시 plain text로
   if(sections.length===0){
-    var d=document.createElement('div'); d.className='flex gap-2 items-start';
-    d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>'
+    var d=document.createElement('div'); d.className='flex gap-2 items-start bot-row';
+    d.innerHTML=botAvatarHtml(icoSrc)
       +'<div class="chat-bubble bot font-n" style="white-space:pre-wrap">'+escHtml(fullText)+'</div>';
     log.appendChild(d); log.scrollTop=log.scrollHeight; return;
   }
   // 카드 래퍼
-  var wrap=document.createElement('div'); wrap.className='flex gap-2 items-start';
-  var petDiv='<div style="width:28px;height:28px;flex-shrink:0;margin-top:4px"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div>';
+  var wrap=document.createElement('div'); wrap.className='flex gap-2 items-start bot-row';
+  var petDiv=botAvatarHtml(icoSrc);
   var cardsHtml='<div class="font-n" style="flex:1;display:flex;flex-direction:column;gap:8px;">';
   sections.forEach(function(s){
     var emo=s.head.charAt(0)+s.head.charAt(1);
@@ -2514,10 +2657,9 @@ function addFullReportMsg(fullText){
 
 function addBotMsgTyped(fullText){
   var log=document.getElementById('chat-log');
-  var d=document.createElement('div'); d.className='flex gap-2 items-end';
+  var d=document.createElement('div'); d.className='flex gap-2 items-end bot-row';
   var icoSrc=document.getElementById('chat-pet-ico').src||'';
-  var safe=escHtml(fullText);
-  d.innerHTML='<div style="width:28px;height:28px;flex-shrink:0;overflow:hidden;"><img src="'+icoSrc+'" style="width:100%;height:100%;object-fit:contain"></div><div class="chat-bubble bot font-n" id="_tw_b"></div>';
+  d.innerHTML=botAvatarHtml(icoSrc)+'<div class="chat-bubble bot font-n" id="_tw_b"></div>';
   log.appendChild(d); log.scrollTop=log.scrollHeight;
   var bubble=d.querySelector('#_tw_b'); bubble.removeAttribute('id');
   var i=0;

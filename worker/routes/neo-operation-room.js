@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   MonthlyCreditLedger,
   NeoOperationRoomConsultation,
@@ -1117,6 +1117,190 @@ function publicSession(doc) {
   };
 }
 
+// ── 사자 휘장(배지) 서버 지갑 ─────────────────────────────────────────────
+// 꿀방울(fortune-tea-house)과 동일한 "지갑+멱등 원장" 패턴. 코인/월정석 등 결제 재화와
+// 완전히 분리된 무료 보상 재화이므로 models.js를 건드리지 않고 raw 컬렉션으로 자기완결 구현한다.
+const NEO_BADGE_SCOPE = "NEO_OPERATION_ROOM";
+const NEO_BADGE_LETTER_COST = 5; // 편지/PDF 해금에 필요한 휘장 수(프론트 NEO_LETTER_BADGE_COST와 동일)
+const NEO_BADGE_GRADE_COUNT = 10; // 휘장 등급 이미지 종류
+
+function neoBadgeCollections() {
+  const db = mongoose.connection.db;
+  return {
+    wallets: db.collection("neo_operation_room_badge_wallets"),
+    ledgers: db.collection("neo_operation_room_badge_ledgers"),
+  };
+}
+
+function neoBadgePayload(doc, extra = {}) {
+  const balance = Math.max(0, Math.floor(Number(doc?.balance ?? 0)));
+  const totalEarned = Math.max(0, Math.floor(Number(doc?.totalEarned ?? 0)));
+  const totalSpent = Math.max(0, Math.floor(Number(doc?.totalSpent ?? 0)));
+  return {
+    serviceScope: NEO_BADGE_SCOPE,
+    balance,
+    totalEarned,
+    totalSpent,
+    // 방금 받은 휘장의 등급 인덱스(가장 최근 적립분). 장식용 스탬프 이미지 선택에만 쓰인다.
+    currentBadgeIndex: totalEarned > 0 ? (totalEarned - 1) % NEO_BADGE_GRADE_COUNT : 0,
+    letterCost: NEO_BADGE_LETTER_COST,
+    unlocked: balance >= NEO_BADGE_LETTER_COST,
+    authenticated: true,
+    ...extra,
+  };
+}
+
+// 상담 1회당 휘장 1개 적립 — 멱등 원장(_id: earn:userId:sessionId)으로 중복 적립을 막는다.
+async function grantNeoResultBadge(userId, sessionId) {
+  const cleanUserId = clean(userId);
+  const cleanSessionId = clean(sessionId, 180);
+  if (!cleanUserId || !cleanSessionId) return false;
+  const now = new Date();
+  const { wallets, ledgers } = neoBadgeCollections();
+  let earned = false;
+  try {
+    await ledgers.insertOne({
+      _id: `earn:${cleanUserId}:${cleanSessionId}`,
+      userId: cleanUserId,
+      type: "earn",
+      amount: 1,
+      reason: "NEO_OPERATION_ROOM_CONSULTATION_REWARD",
+      serviceScope: NEO_BADGE_SCOPE,
+      relatedSessionId: cleanSessionId,
+      createdAt: now,
+    });
+    earned = true;
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+  }
+  if (earned) {
+    await wallets.updateOne(
+      { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE },
+      {
+        $inc: { balance: 1, totalEarned: 1 },
+        $set: { lastEarnedAt: now, updatedAt: now },
+        $setOnInsert: { createdAt: now },
+      },
+      { upsert: true },
+    );
+  }
+  return earned;
+}
+
+// 최초 조회 시 서버 상담기록 기준으로 과거 완료 상담 수만큼 1회 backfill(사용자 선택).
+// migratedAt 가드로 이후 조회에서는 건너뛴다. grant가 멱등이라 중간 실패 후 재실행돼도 안전.
+async function ensureNeoBadgeBackfill(userId) {
+  const cleanUserId = clean(userId);
+  if (!cleanUserId) return;
+  const { wallets } = neoBadgeCollections();
+  const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
+  if (wallet?.migratedAt) return;
+  const sessions = await NeoOperationRoomConsultation.find({ userId: cleanUserId, status: "completed" })
+    .select("id")
+    .lean();
+  for (const session of sessions) {
+    await grantNeoResultBadge(cleanUserId, session?.id);
+  }
+  const now = new Date();
+  await wallets.updateOne(
+    { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE },
+    { $set: { migratedAt: now, updatedAt: now }, $setOnInsert: { createdAt: now } },
+    { upsert: true },
+  );
+}
+
+// 계정 귀속 휘장 잔량 조회(달빛 앨범 방식). 미인증은 401이 아니라 authenticated:false로 반환하고,
+// 프론트 가드가 이를 검사해 정상 잔량을 0으로 덮지 않는다(꿀방울 회귀 방지와 동일 원칙).
+async function readNeoBadgeState(request, env) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) {
+    return neoBadgePayload(null, { authenticated: false });
+  }
+  try {
+    await connectDb(env);
+    const doc = await withMongoRetry(env, async () => {
+      await ensureNeoBadgeBackfill(auth.userId);
+      const { wallets } = neoBadgeCollections();
+      return wallets.findOne({ userId: clean(auth.userId), serviceScope: NEO_BADGE_SCOPE });
+    });
+    return neoBadgePayload(doc, { authenticated: true });
+  } catch (error) {
+    console.warn("[neo-operation-room/badges] read failed", clean(error?.message || error, 300));
+    return neoBadgePayload(null, { authenticated: true, disabled: true });
+  }
+}
+
+// 특정 세션 로드용: 이 세션 휘장 적립 보장 + 잔량 + 이 세션 편지/PDF 해금 여부.
+// 상담 완료 결과를 여는 첫 로드에서 적립되며(awardedNow=true → "새 휘장 수여" 연출),
+// 재조회 시에는 멱등이라 awardedNow=false. 결과 조회는 반드시 발생하므로 "상담 1회당 1개"가 보장된다.
+async function readNeoBadgeForSession(userId, sessionId) {
+  const cleanUserId = clean(userId);
+  if (!cleanUserId) return neoBadgePayload(null, { authenticated: false });
+  const cleanSessionId = clean(sessionId, 180);
+  const awardedNow = await grantNeoResultBadge(cleanUserId, cleanSessionId);
+  await ensureNeoBadgeBackfill(cleanUserId);
+  const { wallets, ledgers } = neoBadgeCollections();
+  const [wallet, spend] = await Promise.all([
+    wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE }),
+    cleanSessionId ? ledgers.findOne({ _id: `spend:${cleanUserId}:${cleanSessionId}` }) : Promise.resolve(null),
+  ]);
+  return neoBadgePayload(wallet, { authenticated: true, benefitsUnlocked: Boolean(spend), awardedNow });
+}
+
+// 휘장 5개로 편지/PDF 해금. 멱등 원장(_id: spend:userId:sessionId)으로 동일 세션 이중 차감을 막는다.
+async function spendNeoBadges(request, env, sessionId) {
+  const auth = await getOptionalUserFromRequest(request, env);
+  if (!auth?.userId) return { ok: false, reason: "LOGIN_REQUIRED", badge: neoBadgePayload(null, { authenticated: false }) };
+  const cleanSessionId = clean(sessionId, 180);
+  if (!cleanSessionId) return { ok: false, reason: "missing_key", badge: neoBadgePayload(null, { authenticated: true }) };
+  await connectDb(env);
+  const cleanUserId = clean(auth.userId);
+  await ensureNeoBadgeBackfill(cleanUserId);
+  const { wallets, ledgers } = neoBadgeCollections();
+  const spendId = `spend:${cleanUserId}:${cleanSessionId}`;
+
+  // 이미 이 세션으로 해금했으면(멱등) 재차감 없이 성공.
+  const existingSpend = await ledgers.findOne({ _id: spendId });
+  if (existingSpend) {
+    const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
+    return { ok: true, badge: neoBadgePayload(wallet, { authenticated: true, benefitsUnlocked: true }) };
+  }
+
+  const now = new Date();
+  // 원자 조건부 차감: 잔액이 5 이상일 때만 modifiedCount=1.
+  const deducted = await wallets.updateOne(
+    { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE, balance: { $gte: NEO_BADGE_LETTER_COST } },
+    { $inc: { balance: -NEO_BADGE_LETTER_COST, totalSpent: NEO_BADGE_LETTER_COST }, $set: { updatedAt: now } },
+  );
+  if (!deducted.modifiedCount) {
+    const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
+    return { ok: false, reason: "not_enough", badge: neoBadgePayload(wallet, { authenticated: true }) };
+  }
+
+  try {
+    await ledgers.insertOne({
+      _id: spendId,
+      userId: cleanUserId,
+      type: "spend",
+      amount: NEO_BADGE_LETTER_COST,
+      reason: "NEO_OPERATION_ROOM_BENEFIT_UNLOCK",
+      serviceScope: NEO_BADGE_SCOPE,
+      relatedSessionId: cleanSessionId,
+      createdAt: now,
+    });
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+    // 동시 요청이 먼저 이 세션을 해금함 — 방금 뺀 5를 되돌려 이중 차감을 막는다.
+    await wallets.updateOne(
+      { userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE },
+      { $inc: { balance: NEO_BADGE_LETTER_COST, totalSpent: -NEO_BADGE_LETTER_COST }, $set: { updatedAt: new Date() } },
+    );
+  }
+
+  const wallet = await wallets.findOne({ userId: cleanUserId, serviceScope: NEO_BADGE_SCOPE });
+  return { ok: true, badge: neoBadgePayload(wallet, { authenticated: true, benefitsUnlocked: true }) };
+}
+
 async function handleEnsureAccess(request, env) {
   const body = await readJson(request);
   const normalized = normalizeInput(body);
@@ -1315,7 +1499,14 @@ async function handleResult(request, env, pathId = "") {
       message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
     }, { status: 409 });
   }
-  return json(publicSession(consultation));
+  // 완료 세션을 여는 바로 그 로드에서 휘장 잔량이 항상 정확히 보이도록 적립(멱등)+backfill 후 payload에 싣는다.
+  let badge = null;
+  try {
+    badge = await withMongoRetry(env, () => readNeoBadgeForSession(auth.userId, consultation.id));
+  } catch (error) {
+    console.warn("[neo-operation-room/result] badge attach failed", clean(error?.message || error, 300));
+  }
+  return json({ ...publicSession(consultation), badge });
 }
 
 async function handleRefine(request, env) {
@@ -1413,6 +1604,13 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/refine") return await handleRefine(request, env);
+    if (method === "GET" && (path === "/badges" || path === "/badges/balance")) {
+      return json({ ok: true, badge: await readNeoBadgeState(request, env) });
+    }
+    if (method === "POST" && path === "/badges/unlock-benefits") {
+      const body = await readJson(request);
+      return json(await spendNeoBadges(request, env, body?.sessionId));
+    }
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {

@@ -1339,13 +1339,16 @@
   border-radius: 0;
   overflow: visible;
   isolation: isolate;
-  background-image: var(--honey-icon-image);
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
   filter:
     drop-shadow(0 10px 12px rgba(5, 2, 14, 0.24))
     drop-shadow(0 0 18px rgba(255, 218, 118, 0.42));
+}
+
+.honeyCounterIcon svg {
+  width: 78%;
+  height: 78%;
+  display: block;
+  overflow: visible;
 }
 
 .honeyCounterIcon::before {
@@ -1382,7 +1385,7 @@
   min-width: 0;
 }
 
-.honeyCounter span {
+.honeyCounter div span {
   display: block;
   color: rgba(255, 239, 176, 0.84);
   font-family: var(--tea-font-playful);
@@ -9379,7 +9382,7 @@
     width: 26px;
   }
 
-  .honeyCounter span {
+  .honeyCounter div span {
     font-size: 0.5rem;
   }
 
@@ -16453,11 +16456,12 @@
   .page[data-stage="landing"] .landingVisual {
     align-self: end;
     width: min(100%, 340px);
-    min-height: clamp(152px, 28dvh, 218px);
+    min-height: clamp(174px, 30dvh, 240px);
   }
 
   .page[data-stage="landing"] .landingPigMascot {
     width: 166px;
+    margin-bottom: 22px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
@@ -16517,11 +16521,12 @@
   }
 
   .page[data-stage="landing"] .landingVisual {
-    min-height: clamp(150px, 24dvh, 184px);
+    min-height: clamp(168px, 26dvh, 202px);
   }
 
   .page[data-stage="landing"] .landingPigMascot {
     width: 138px;
+    margin-bottom: 18px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
@@ -16556,11 +16561,12 @@
   }
 
   .page[data-stage="landing"] .landingVisual {
-    min-height: 150px;
+    min-height: 164px;
   }
 
   .page[data-stage="landing"] .landingPigMascot {
     width: 118px;
+    margin-bottom: 14px;
   }
 
   .page[data-stage="landing"] .landingSpeechWrap {
@@ -16610,7 +16616,7 @@
     width: 24px;
   }
 
-  .honeyCounter span {
+  .honeyCounter div span {
     display: none;
   }
 

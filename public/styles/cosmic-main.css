@@ -1750,7 +1750,7 @@ body:not(.neo-mode) .moon-hero{
         body.neo-mode .moon-hero__cta:hover{transform:translateY(-1px)!important;border-color:rgba(248,200,75,.5)!important}
         body:not(.neo-mode) .moon-start-card,body:not(.neo-mode) .moon-collection-nav,body:not(.neo-mode) .feat-collection{background:linear-gradient(150deg,rgba(255,255,255,.82),rgba(255,244,252,.72) 52%,rgba(236,248,255,.74))!important;border-color:rgba(244,114,182,.2)!important;box-shadow:0 16px 34px rgba(148,92,120,.12),inset 0 1px 0 rgba(255,255,255,.82)!important}
         body:not(.neo-mode) .moon-start-card strong,body:not(.neo-mode) .moon-collection-nav .moon-preview-card__name,body:not(.neo-mode) .feat-collection__title,body:not(.neo-mode) .feat-collection__grid .tarot-tile__title{color:#4c1d5f!important;text-shadow:none!important}
-        body:not(.neo-mode) .moon-start-card span:not(.moon-start-card__media):not(.moon-start-card__badge),body:not(.neo-mode) .moon-collection-nav .moon-preview-card__meta,body:not(.neo-mode) .feat-collection__subtitle,body:not(.neo-mode) .feat-collection__lede,body:not(.neo-mode) .tarot-tile__desc{color:#5b4966!important;text-shadow:none!important}
+        body:not(.neo-mode) .moon-start-card span:not(.moon-start-card__media):not(.moon-start-card__badge),body:not(.neo-mode) .moon-collection-nav .moon-preview-card__meta,body:not(.neo-mode) .feat-collection__subtitle,body:not(.neo-mode) .feat-collection__lede{color:#5b4966!important;text-shadow:none!important}
         body:not(.neo-mode) .feat-collection{border-color:rgba(243,221,154,.2)!important;background:linear-gradient(145deg,rgba(12,9,2,.9),rgba(22,16,4,.84))!important;box-shadow:0 18px 40px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,244,194,.1)!important}
         body:not(.neo-mode) .feat-collection::before{background:linear-gradient(120deg,transparent 0 48%,rgba(255,247,221,.045) 50%,transparent 57%),radial-gradient(1px 1px at 18% 18%,rgba(255,247,221,.56),transparent),radial-gradient(1px 1px at 76% 26%,rgba(248,200,75,.5),transparent),radial-gradient(1px 1px at 88% 74%,rgba(243,221,154,.48),transparent)!important}
         body:not(.neo-mode) .feat-collection__header{background:linear-gradient(135deg,rgba(15,11,3,.82),rgba(42,31,7,.58))!important;border-color:rgba(243,221,154,.18)!important;box-shadow:inset 0 1px 0 rgba(255,244,194,.1)!important}
@@ -1902,6 +1902,28 @@ body:not(.neo-mode) .moon-hero{
 
         body:not(.neo-mode) .moon-hero__moon,
         body.neo-mode .moon-hero__moon{position:absolute!important;right:30px!important;top:12px!important;z-index:6!important;width:112px!important;height:112px!important;overflow:visible!important;border-radius:50%!important;background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.96) 0 4%,transparent 5%),radial-gradient(circle at 38% 64%,rgba(125,84,42,.2) 0 5%,transparent 6%),radial-gradient(circle at 18% 70%,rgba(114,78,40,.16) 0 3%,transparent 4%),radial-gradient(circle at 34% 32%,#fffbe6 0%,#f6d985 36%,#d99b34 64%,#825323 100%)!important;box-shadow:0 0 34px rgba(255,231,166,.42),0 0 70px rgba(196,181,253,.2),0 18px 34px rgba(4,5,18,.22),inset -14px -10px 24px rgba(97,63,28,.3),inset 9px 8px 18px rgba(255,255,255,.44)!important;animation:cdHeroMoonCrescentFloat 7.2s ease-in-out infinite!important;transform-origin:50% 50%!important}
+        /* ── 네오 달빛 통합: 모바일 히어로 달을 골드-브라운 → 샴페인·실버 문라이트로 승격(네오 라벤더 팔레트 정합).
+           크레이터 다층·냉색, 라벤더+샴페인 헤일로, 하드 크레센트(#0d0b08) → 소프트 터미네이터.
+           성능: blur 필터 없이 그라디언트·box-shadow(합성 레이어)만 사용. 연이(위 공유 규칙)는 무변경. ── */
+        body.neo-mode .moon-hero__moon{
+          background:
+            radial-gradient(circle at 30% 24%, rgba(255,255,255,.96) 0 3%, transparent 6%),
+            radial-gradient(circle at 62% 40%, rgba(108,100,140,.20) 0 4%, transparent 5%),
+            radial-gradient(circle at 40% 66%, rgba(108,100,140,.17) 0 5%, transparent 6%),
+            radial-gradient(circle at 24% 52%, rgba(108,100,140,.13) 0 3%, transparent 4%),
+            radial-gradient(circle at 70% 66%, rgba(108,100,140,.14) 0 3%, transparent 4%),
+            radial-gradient(circle at 34% 30%, #fffdf6 0%, #f4ecd6 32%, #ddd4c2 58%, #b9b2cc 82%, #8d88a6 100%) !important;
+          box-shadow:
+            0 0 30px rgba(232,213,163,.40),
+            0 0 66px rgba(196,181,253,.30),
+            0 16px 34px rgba(6,9,27,.28),
+            inset -13px -11px 26px rgba(66,60,94,.34),
+            inset 10px 9px 20px rgba(255,255,255,.5) !important;
+        }
+        body.neo-mode .moon-hero__moon::after{
+          background: radial-gradient(122% 118% at 16% 32%, transparent 44%, rgba(44,38,70,.32) 72%, rgba(18,14,34,.58) 100%) !important;
+          filter: none !important;
+        }
         body:not(.neo-mode) .moon-hero__moon svg,
         body.neo-mode .moon-hero__moon svg{display:none!important}
         body:not(.neo-mode) .moon-hero__moon::before,

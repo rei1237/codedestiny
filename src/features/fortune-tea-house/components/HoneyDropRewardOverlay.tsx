@@ -1,7 +1,7 @@
 "use client";
 
 import { BookOpen, Send } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
 import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -278,6 +278,7 @@ function HoneyPigQnaPanel() {
 export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, onOpenTarotAlbum, onRequestRefresh }: HoneyDropRewardOverlayProps) {
   const [showInfo, setShowInfo] = useState(false);
   const [honeyModeActive, setHoneyModeActive] = useState(false);
+  const honeyDropGradientId = useId();
   const count = honeyDrops?.currentHoneyDrops ?? 0;
   const unlocked = count >= 10 || Boolean(honeyDrops?.unlocked);
   const tarotAlbumUnlocked = Boolean(honeyDrops?.tarotAlbumUnlocked);
@@ -285,9 +286,6 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
   const albumProgressPercent = `${albumProgress * 10}%`;
   const showBurst = burstKey > 0 && Boolean(honeyDrops?.earnedThisResult);
   const albumStatusLabel = tarotAlbumUnlocked ? "열림" : `${albumProgress}/10`;
-  const honeyIconStyle = {
-    "--honey-icon-image": `url("${fortuneTeaHouseAssets.rewards.honeyDropCounter}")`,
-  } as CSSProperties;
   const albumProgressStyle = {
     "--honey-album-progress": albumProgressPercent,
   } as CSSProperties;
@@ -309,7 +307,22 @@ export default function HoneyDropRewardOverlay({ honeyDrops, burstKey, message, 
             setShowInfo((current) => !current);
           }}
         >
-          <span className={styles.honeyCounterIcon} style={honeyIconStyle} aria-hidden />
+          <span className={styles.honeyCounterIcon} aria-hidden>
+            <svg viewBox="0 0 18 22" aria-hidden>
+              <defs>
+                <linearGradient id={honeyDropGradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#fff3c4" />
+                  <stop offset="55%" stopColor="#ffce54" />
+                  <stop offset="100%" stopColor="#e9a63a" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M9 1.4C9 1.4 2.4 9.2 2.4 13.6a6.6 6.6 0 0 0 13.2 0C15.6 9.2 9 1.4 9 1.4Z"
+                fill={`url(#${honeyDropGradientId})`}
+              />
+              <ellipse cx="6.4" cy="12.3" rx="1.5" ry="2.4" fill="#fff8df" opacity="0.55" />
+            </svg>
+          </span>
           <div>
             <span>꿀방울</span>
             <strong>{count}개</strong>

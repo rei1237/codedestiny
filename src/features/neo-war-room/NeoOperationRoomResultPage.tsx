@@ -72,26 +72,30 @@ type NeoResultSession = {
   realityCheck?: { selectedChecks?: string[]; freeform?: string } | null;
   generationError?: { message?: string } | null;
   refinementError?: { message?: string } | null;
+  badge?: NeoBadgeState | null;
   resultUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 };
 
 type NeoResultPreviewMode = "" | "loading" | "briefing" | "reality" | "refined";
-type NeoBadgeVault = {
-  count: number;
-  totalAwarded: number;
-  awards: Record<string, number>;
+// 사자 휘장 서버 상태(계정 귀속 지갑). 미인증 응답은 authenticated:false로 오므로
+// 프론트 가드가 이를 검사해 정상 잔량을 0으로 덮지 않는다(꿀방울과 동일 원칙).
+type NeoBadgeState = {
+  balance?: number;
+  totalEarned?: number;
+  totalSpent?: number;
+  currentBadgeIndex?: number;
+  unlocked?: boolean;
+  benefitsUnlocked?: boolean;
+  awardedNow?: boolean;
+  authenticated?: boolean;
+  disabled?: boolean;
 };
 type NeoBadgeAwardState = {
   count: number;
   currentBadgeIndex: number;
   awardedNow: boolean;
-};
-type NeoBenefitSpendResult = {
-  ok: boolean;
-  count: number;
-  reason?: "missing_key" | "not_enough";
 };
 
 const realityCheckOptions = [
@@ -105,8 +109,6 @@ const realityCheckOptions = [
 ] as const;
 
 const NEO_RESULT_PREVIEW_MODES = new Set<NeoResultPreviewMode>(["loading", "briefing", "reality", "refined"]);
-const NEO_BADGE_VAULT_STORAGE_KEY = "neoOperationRoomLionBadgeVaultV1";
-const NEO_LETTER_GRANTS_STORAGE_KEY = "neoOperationRoomLetterGrantsV1";
 const NEO_LETTER_BADGE_COST = 5;
 const NEO_RESULT_BADGE_COLUMNS = 4;
 const NEO_RESULT_BADGE_ROWS = 3;
@@ -311,136 +313,19 @@ function getRefinedStuckPoint(refined?: NeoRefinedOrder | null): { title?: strin
   return {};
 }
 
-function readNeoStorageRecord(key: string) {
-  if (typeof window === "undefined") return {};
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(key) || "{}");
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
-  } catch {
-    return {};
-  }
-}
-
-function readNeoBadgeVault(): NeoBadgeVault {
-  const vault = readNeoStorageRecord(NEO_BADGE_VAULT_STORAGE_KEY);
-  const rawAwards = vault.awards && typeof vault.awards === "object" && !Array.isArray(vault.awards)
-    ? vault.awards as Record<string, unknown>
-    : {};
-  const awards = Object.entries(rawAwards).reduce<Record<string, number>>((nextAwards, [key, value]) => {
-    const badgeIndex = Number(value);
-    if (Number.isInteger(badgeIndex) && badgeIndex >= 0 && badgeIndex < NEO_RESULT_BADGE_COUNT) {
-      nextAwards[key] = badgeIndex;
-    }
-    return nextAwards;
-  }, {});
-  const count = Number(vault.count);
-  const totalAwarded = Number(vault.totalAwarded);
+// 서버 배지 payload → 화면 상태. 미인증(authenticated:false)·일시 오류(disabled)·부재(null)면
+// 정상 잔량을 0으로 덮지 않도록 null을 반환해 이전 값을 유지한다(꿀방울과 동일 원칙).
+function toBadgeAwardState(badge: NeoBadgeState | null | undefined): NeoBadgeAwardState | null {
+  if (!badge || badge.authenticated === false || badge.disabled) return null;
   return {
-    count: Number.isFinite(count) && count > 0 ? Math.floor(count) : 0,
-    totalAwarded: Number.isFinite(totalAwarded) && totalAwarded > 0 ? Math.floor(totalAwarded) : Object.keys(awards).length,
-    awards,
+    count: Math.max(0, Math.floor(Number(badge.balance ?? 0))),
+    currentBadgeIndex: Math.max(0, Math.floor(Number(badge.currentBadgeIndex ?? 0))),
+    awardedNow: Boolean(badge.awardedNow),
   };
 }
 
-function writeNeoBadgeVault(vault: NeoBadgeVault) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(NEO_BADGE_VAULT_STORAGE_KEY, JSON.stringify({
-    count: Math.max(0, Math.floor(vault.count)),
-    totalAwarded: Math.max(0, Math.floor(vault.totalAwarded)),
-    awards: vault.awards,
-  }));
-}
-
-function getNeoResultKeys(session: NeoResultSession, attemptId: string) {
-  const resultAttemptId = session.resultUrl?.split("attemptId=")[1];
-  const keys = [
-    session.sessionId,
-    session.id,
-    attemptId,
-    resultAttemptId ? decodeURIComponent(resultAttemptId) : "",
-    session.resultUrl,
-  ];
-  return Array.from(new Set(keys.map((key) => String(key || "").trim()).filter(Boolean)));
-}
-
-function awardNeoResultBadge(resultKeys: string[], enabled: boolean): NeoBadgeAwardState {
-  const vault = readNeoBadgeVault();
-  const resultKey = resultKeys[0] || "";
-  if (!enabled || !resultKey) {
-    return {
-      count: vault.count,
-      currentBadgeIndex: 0,
-      awardedNow: false,
-    };
-  }
-  const existingBadgeIndex = resultKeys
-    .map((key) => vault.awards[key])
-    .find((badgeIndex) => Number.isInteger(badgeIndex));
-  if (typeof existingBadgeIndex === "number" && Number.isInteger(existingBadgeIndex)) {
-    return {
-      count: vault.count,
-      currentBadgeIndex: existingBadgeIndex,
-      awardedNow: false,
-    };
-  }
-  const currentBadgeIndex = vault.totalAwarded % NEO_RESULT_BADGE_COUNT;
-  const nextVault = {
-    count: Math.min(999, vault.count + 1),
-    totalAwarded: vault.totalAwarded + 1,
-    awards: resultKeys.reduce<Record<string, number>>((nextAwards, key) => ({
-      ...nextAwards,
-      [key]: currentBadgeIndex,
-    }), vault.awards),
-  };
-  writeNeoBadgeVault(nextVault);
-  return {
-    count: nextVault.count,
-    currentBadgeIndex,
-    awardedNow: true,
-  };
-}
-
-function hasNeoBenefitGrant(keys: string[]) {
-  const grants = readNeoStorageRecord(NEO_LETTER_GRANTS_STORAGE_KEY);
-  return keys.some((key) => Boolean(grants[key]));
-}
-
-function writeNeoBenefitGrant(keys: string[]) {
-  if (typeof window === "undefined") return;
-  const grants = readNeoStorageRecord(NEO_LETTER_GRANTS_STORAGE_KEY);
-  const grant = {
-    spentAt: new Date().toISOString(),
-    cost: NEO_LETTER_BADGE_COST,
-    benefits: ["pdf", "neoLetter"],
-  };
-  keys.forEach((key) => {
-    grants[key] = grant;
-  });
-  window.localStorage.setItem(NEO_LETTER_GRANTS_STORAGE_KEY, JSON.stringify(grants));
-}
-
-function spendNeoBenefitBadges(keys: string[]): NeoBenefitSpendResult {
-  const vault = readNeoBadgeVault();
-  if (!keys.length) return { ok: false, count: vault.count, reason: "missing_key" };
-  if (hasNeoBenefitGrant(keys)) return { ok: true, count: vault.count };
-  if (vault.count < NEO_LETTER_BADGE_COST) return { ok: false, count: vault.count, reason: "not_enough" };
-  writeNeoBadgeVault({
-    ...vault,
-    count: vault.count - NEO_LETTER_BADGE_COST,
-  });
-  writeNeoBenefitGrant(keys);
-  return { ok: true, count: vault.count - NEO_LETTER_BADGE_COST };
-}
-
-function getNeoBenefitKeys(session: NeoResultSession, attemptId: string) {
-  const keys = [
-    session.sessionId,
-    session.id,
-    attemptId,
-    session.resultUrl?.split("attemptId=")[1] ? decodeURIComponent(session.resultUrl.split("attemptId=")[1]) : "",
-    session.resultUrl,
-  ];
-  return Array.from(new Set(keys.map((key) => String(key || "").trim()).filter(Boolean)));
+function getSessionId(session: NeoResultSession) {
+  return String(session.sessionId || session.id || "").trim();
 }
 
 function getBadgeStampStyle(index: number) {
@@ -636,28 +521,41 @@ export default function NeoOperationRoomResultPage() {
     }
   }
 
-  function handleUnlockNeoBenefits() {
+  async function handleUnlockNeoBenefits() {
     if (!session || benefitUnlocking || neoBenefitsUnlocked) return;
     if (isLocalPreview) {
       setBenefitUnlockError("미리보기에서는 사자 휘장이 실제로 움직이지 않는다.");
       return;
     }
+    const sessionId = getSessionId(session);
+    if (!sessionId) {
+      setBenefitUnlockError("이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라.");
+      return;
+    }
     setBenefitUnlocking(true);
     setBenefitUnlockError("");
-    const spendResult = spendNeoBenefitBadges(getNeoBenefitKeys(session, attemptId));
-    setBadgeAward((current) => ({
-      ...current,
-      count: spendResult.count,
-    }));
-    if (spendResult.ok) {
-      setNeoBenefitsUnlocked(true);
-      setPdfError("");
-    } else {
-      setBenefitUnlockError(spendResult.reason === "missing_key"
-        ? "이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라."
-        : "사자 휘장 5개가 모이면 PDF와 네오의 편지가 열린다.");
+    try {
+      const response = await authFetch("/api/neo-operation-room/badges/unlock-benefits", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { ok?: boolean; reason?: string; badge?: NeoBadgeState };
+      const nextAward = toBadgeAwardState(data.badge);
+      if (nextAward) setBadgeAward((current) => ({ ...current, count: nextAward.count, currentBadgeIndex: nextAward.currentBadgeIndex }));
+      if (response.ok && data?.ok) {
+        setNeoBenefitsUnlocked(true);
+        setPdfError("");
+      } else {
+        setBenefitUnlockError(data?.reason === "missing_key"
+          ? "이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라."
+          : "사자 휘장 5개가 모이면 PDF와 네오의 편지가 열린다.");
+      }
+    } catch {
+      setBenefitUnlockError("휘장을 사용하는 중 문제가 생겼다. 잠시 후 다시 시도해라.");
+    } finally {
+      setBenefitUnlocking(false);
     }
-    setBenefitUnlocking(false);
   }
 
   async function handlePdfDownload() {
@@ -761,8 +659,19 @@ export default function NeoOperationRoomResultPage() {
       setNeoBenefitsUnlocked(false);
       return;
     }
-    setBadgeAward(awardNeoResultBadge(getNeoResultKeys(session, attemptId), !isLocalPreview));
-    setNeoBenefitsUnlocked(hasNeoBenefitGrant(getNeoBenefitKeys(session, attemptId)));
+    if (isLocalPreview) {
+      setBadgeAward({ count: 0, currentBadgeIndex: 0, awardedNow: false });
+      setNeoBenefitsUnlocked(false);
+      setBenefitUnlockError("");
+      return;
+    }
+    // 휘장 잔량/해금 여부는 서버(session.badge)가 원천. 적립(멱등)은 서버가 이 세션 로드에서 처리한다.
+    // 미인증/일시오류로 badge가 없거나 authenticated:false면 이전 값을 유지(0으로 덮지 않음).
+    const nextAward = toBadgeAwardState(session.badge);
+    if (nextAward) setBadgeAward(nextAward);
+    if (session.badge && session.badge.authenticated !== false) {
+      setNeoBenefitsUnlocked(Boolean(session.badge.benefitsUnlocked));
+    }
     setBenefitUnlockError("");
   }, [attemptId, isFailed, isGenerating, isLocalPreview, session]);
 

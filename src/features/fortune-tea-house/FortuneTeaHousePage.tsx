@@ -12,7 +12,7 @@ import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
-import { teaHouseCtaCopy, type TeaHouseStage } from "./data/story";
+import type { TeaHouseStage } from "./data/story";
 import type { TeaHouseCup } from "./data/teaCups";
 import { buildFortuneTeaHouseConsultResult } from "./lib/buildConsultResult";
 import {
@@ -74,6 +74,7 @@ type FortuneTeaBillingGateResult = Awaited<ReturnType<RunBillingCoinGate>>;
 type FortuneTeaBillingGateData = NonNullable<FortuneTeaBillingGateResult["data"]>;
 
 const DestinyCafeTarotAlbum = lazy(() => import("./components/DestinyCafeTarotAlbum"));
+const TeaHouseHistoryPanel = lazy(() => import("./components/TeaHouseHistoryPanel"));
 const FortuneTeaHouseDebugPanel = lazy(() => import("./components/FortuneTeaHouseDebugPanel"));
 const QuestionInputScene = lazy(() => import("./components/QuestionInputScene"));
 const ScentLoadingScene = lazy(() => import("./components/ScentLoadingScene"));
@@ -387,6 +388,35 @@ function TarotAlbumLoadingDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
+function TeaHouseHistoryLoadingDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-[70] grid min-h-screen place-items-center bg-[radial-gradient(circle_at_top,#2A174A_0%,#0B1020_42%,#050611_100%)] px-5 text-[#F8F1DC]"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="fortuneTeaHistoryLoadingTitle"
+    >
+      <button
+        type="button"
+        className="fixed right-4 top-4 z-[75] grid h-11 w-11 place-items-center rounded-full border border-amber-200/25 bg-white/[0.07] text-amber-50 shadow-[0_16px_40px_rgba(0,0,0,.35)]"
+        onClick={onClose}
+        aria-label="상담 기록 닫기"
+      >
+        <span aria-hidden>×</span>
+      </button>
+      <section className="w-full max-w-sm rounded-[28px] border border-amber-100/15 bg-white/[0.07] p-6 text-center shadow-[0_24px_80px_rgba(0,0,0,.42)]">
+        <span className="mx-auto mb-4 block h-11 w-11 rounded-full bg-[radial-gradient(circle_at_36%_34%,#fff8d8_0_18%,#efd489_42%,rgba(239,212,137,.12)_70%)] shadow-[0_0_24px_rgba(239,212,137,.24)]" aria-hidden />
+        <h2 id="fortuneTeaHistoryLoadingTitle" className="text-base font-black">
+          상담 기록을 여는 중이에요.
+        </h2>
+        <p className="mt-2 text-sm leading-6 text-amber-50/70">
+          지난 이야기를 조금만 기다려 주세요.
+        </p>
+      </section>
+    </div>
+  );
+}
+
 export default function FortuneTeaHousePage() {
   const [stage, setStage] = useState<TeaHouseStage>("landing");
   const [notice, setNotice] = useState("");
@@ -401,6 +431,7 @@ export default function FortuneTeaHousePage() {
   const [consultResult, setConsultResult] = useState<FortuneTeaHouseConsultResponse | null>(null);
   const [honeyDrops, setHoneyDrops] = useState<FortuneTeaHouseHoneyDropsState | null>(null);
   const [isTarotAlbumOpen, setIsTarotAlbumOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [honeyRewardBurstKey, setHoneyRewardBurstKey] = useState(0);
   const [honeyRewardMessage, setHoneyRewardMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -506,27 +537,47 @@ export default function FortuneTeaHousePage() {
     };
   }, [clearGenerationProgressTimer]);
 
-  const refreshHoneyDrops = useCallback(async () => {
+  const refreshHoneyDrops = useCallback(async (): Promise<boolean> => {
     try {
       const response = await authFetch("/api/fortune-tea-house/honey-drops/balance", { cache: "no-store" });
-      if (!response.ok) return;
+      if (!response.ok) return false;
       const payload = (await response.json().catch(() => null)) as { ok?: boolean; honeyDrops?: FortuneTeaHouseHoneyDropsState } | null;
       const serverHoneyDrops = payload?.ok ? normalizeHoneyDropsState(payload.honeyDrops) : null;
-      // 일시적 DB 오류(disabled)로 반환된 0값은 실제 잔량을 덮지 않는다.
-      if (serverHoneyDrops && !serverHoneyDrops.disabled) setHoneyDrops(serverHoneyDrops);
+      // 일시적 DB 오류(disabled)나 미인증(authenticated:false, 쿠키/토큰 정착 전 레이스)으로
+      // 반환된 0값은 실제 잔량을 덮지 않는다 — 미인증은 실패로 처리해 부트스트랩 백오프가 재시도한다.
+      if (serverHoneyDrops && !serverHoneyDrops.disabled && serverHoneyDrops.authenticated) {
+        setHoneyDrops(serverHoneyDrops);
+        return true;
+      }
+      return false;
     } catch {
-      void 0;
+      return false;
     }
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    let retryTimerId: number | null = null;
+
+    // 모바일은 네트워크 흔들림·워커 콜드 스타트(MongoPoolCleared → disabled)로 첫 잔량 조회가
+    // 실패하기 쉽다. 단발 조회로 끝내면 잔량이 계속 비어 보이므로, 성공할 때까지 짧은 백오프로
+    // 몇 차례 자가 재시도한다(데스크탑은 첫 시도 성공 → 재시도 없음).
+    const bootstrap = async (attempt: number) => {
+      if (cancelled) return;
+      const succeeded = await refreshHoneyDrops();
+      if (succeeded || cancelled || attempt >= 3) return;
+      retryTimerId = window.setTimeout(() => void bootstrap(attempt + 1), 800 * (attempt + 1));
+    };
+
     const idleWindow = window as BrowserIdleWindow;
-    const idleCallbackId = idleWindow.requestIdleCallback?.(() => void refreshHoneyDrops(), { timeout: 2500 }) ?? null;
-    const fallbackTimerId = idleCallbackId === null ? window.setTimeout(() => void refreshHoneyDrops(), 1200) : null;
+    const idleCallbackId = idleWindow.requestIdleCallback?.(() => void bootstrap(0), { timeout: 2500 }) ?? null;
+    const fallbackTimerId = idleCallbackId === null ? window.setTimeout(() => void bootstrap(0), 1200) : null;
 
     return () => {
+      cancelled = true;
       if (idleCallbackId !== null) idleWindow.cancelIdleCallback?.(idleCallbackId);
       if (fallbackTimerId !== null) window.clearTimeout(fallbackTimerId);
+      if (retryTimerId !== null) window.clearTimeout(retryTimerId);
     };
   }, [refreshHoneyDrops]);
 
@@ -712,10 +763,6 @@ export default function FortuneTeaHousePage() {
     setIsSubmitting(false);
     setSubmitError("");
     setStage("landing");
-  }
-
-  function showReadyNotice(message: string = teaHouseCtaCopy.notice) {
-    setNotice(message);
   }
 
   function selectTeaCup(cup: TeaHouseCup) {
@@ -914,8 +961,8 @@ export default function FortuneTeaHousePage() {
       const resultId = payload.result.resultId || attemptId;
       const serverHoneyDrops = normalizeHoneyDropsState(payload.honeyDrops);
       const nextResult = { ...payload.result, resultId, consultationMode: nextQuestionInput.consultationMode };
-      // 적립 실패(disabled) 시 반환되는 0값으로 실제 잔량을 덮지 않는다.
-      if (serverHoneyDrops && !serverHoneyDrops.disabled) setHoneyDrops(serverHoneyDrops);
+      // 적립 실패(disabled)나 미인증 응답의 0값으로 실제 잔량을 덮지 않는다.
+      if (serverHoneyDrops && !serverHoneyDrops.disabled && serverHoneyDrops.authenticated) setHoneyDrops(serverHoneyDrops);
       if (serverHoneyDrops?.earnedThisResult) {
         setHoneyRewardMessage(pickHoneyDropMessage(serverHoneyDrops));
         setHoneyRewardBurstKey((key) => key + 1);
@@ -1010,7 +1057,7 @@ export default function FortuneTeaHousePage() {
           hasSeenPrologue={hasSeenEntryPrologue}
           onEnter={enterTeaHouse}
           onReplayPrologue={replayEntryPrologue}
-          onShowHistory={() => showReadyNotice("상담 기록은 아직 준비 중이에요.")}
+          onShowHistory={() => setIsHistoryOpen(true)}
         />
       );
     }
@@ -1112,6 +1159,20 @@ export default function FortuneTeaHousePage() {
             honeyDrops={honeyDrops}
             onClose={() => setIsTarotAlbumOpen(false)}
             onHoneyDropsChange={setHoneyDrops}
+          />
+        </Suspense>
+      ) : null}
+
+      {isHistoryOpen ? (
+        <Suspense fallback={<TeaHouseHistoryLoadingDialog onClose={() => setIsHistoryOpen(false)} />}>
+          <TeaHouseHistoryPanel
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            onSelectResult={(result) => {
+              setConsultResult(result);
+              setIsHistoryOpen(false);
+              goToStage("result");
+            }}
           />
         </Suspense>
       ) : null}
