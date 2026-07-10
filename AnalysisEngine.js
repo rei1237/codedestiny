@@ -1325,7 +1325,8 @@ async analyze(landmarksData, expressionData) {
           let catBonus = 0;
           if (features.eyeSlant <= -4.0) catBonus += 500;
           else if (features.eyeSlant <= -2.5) catBonus += 300;
-          if (features.faceRatio >= 0.79 && features.faceRatio <= 0.86) catBonus += 300;
+          if (features.faceRatio <= 0.86) catBonus += 300;   // 하한 제거: 갸름할수록 고양이 우대(기존 >=0.79 게이트가 갸름 얼굴을 배제하던 역설 제거)
+          if (features.faceRatio <= 0.80) catBonus += 150;   // 매우 갸름한 얼굴 추가 보강
           if (features.eyeRatio <= 2.6) catBonus += 200;
           c.totalScore += catBonus;
         }
@@ -1536,7 +1537,7 @@ async analyze(landmarksData, expressionData) {
           let bearBonus = 0;
           if (features.faceRatio >= 0.88) bearBonus += 220;
           if (features.noseWidthRatio >= 1.05) bearBonus += 180;
-          if (Math.abs(features.eyeSlant) <= 1.5) bearBonus += 140;
+          if (features.faceRatio >= 0.85 && Math.abs(features.eyeSlant) <= 1.5) bearBonus += 140; // 넓은 얼굴에만: 갸름+중립눈매가 곰으로 새는 경로 차단
           c.totalScore += bearBonus;
         }
         // ── 악어상 ──
@@ -1604,7 +1605,7 @@ async analyze(landmarksData, expressionData) {
           if (c.animal.id === 'bear' || c.animal.id === 'hamster') {
             if (features.faceRatio >= 0.87) bonus += 290;
             else if (features.faceRatio >= 0.84) bonus += 145;
-            bonus += 145;
+            if (features.faceRatio >= 0.84) bonus += 145; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
           }
           // 5) 눈이 매우 크면 → 사슴상
           if (c.animal.id === 'deer') {
@@ -1677,13 +1678,22 @@ async analyze(landmarksData, expressionData) {
             if (features.mouthCurve > 0) bonus += 150;
             bonus += 250;
           }
+          // 1-b) 고양이상 — 갸름한 얼굴 + 올라간/중립 눈매 (남성형 블록에 cat 분기가 누락돼 갸름한 남성 얼굴이 곰으로 오판되던 문제 보완, dog와 대칭)
+          if (c.animal.id === 'cat') {
+            if (features.faceRatio <= 0.82) bonus += 550;
+            else if (features.faceRatio <= 0.85) bonus += 300;
+            if (features.eyeSlant <= -2.0) bonus += 350;
+            else if (features.eyeSlant <= -0.5) bonus += 150;
+            if (features.eyeRatio <= 2.6) bonus += 200;
+            bonus += 250;
+          }
           // 2) 곰상 — 넓고 큰 얼굴, 두꺼운 코
           if (c.animal.id === 'bear') {
             if (features.faceRatio >= 0.87) bonus += 290;
             else if (features.faceRatio >= 0.84) bonus += 145;
             if (features.noseWidthRatio >= 1.00) bonus += 220;
             else if (features.noseWidthRatio >= 0.93) bonus += 110;
-            bonus += 145;
+            if (features.faceRatio >= 0.84) bonus += 145; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
           }
           // 3) 악어상 — 넓은 하관 + 큰 입 + 넓은 미간
           if (c.animal.id === 'crocodile') {
