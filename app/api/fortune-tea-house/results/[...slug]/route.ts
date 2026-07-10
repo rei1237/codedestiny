@@ -4,12 +4,16 @@ export const runtime = "nodejs";
 export const dynamic = "force-static";
 export const revalidate = false;
 
-// Optional catch-all covers both /results (collection) and /results/:resultId
-// (detail) with a single route file, avoiding the file-vs-directory export
-// collision Next hits when a route.ts and a sibling [dynamic]/route.ts both
-// claim the same parent path under output:"export".
+// Required (non-optional) catch-all so the export never needs a zero-segment
+// entry: an optional [[...slug]] with {slug: []} still asks Next to write a
+// file named exactly "results" while the nested entry needs "results/" as a
+// directory — the same file-vs-directory collision as the old sibling
+// route.ts + [resultId]/route.ts pair. Dropping the empty-slug param avoids
+// that entirely; the bare /results path is never served from this static
+// export anyway (dev rewrites all /api/* elsewhere, prod's Worker zone
+// intercepts /api/* before Pages ever serves this output).
 export function generateStaticParams() {
-  return [{ slug: [] }, { slug: ["placeholder"] }];
+  return [{ slug: ["placeholder"] }];
 }
 
 function isStaticExportBuild() {
