@@ -16113,6 +16113,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
   var perUseApproved = Object.create(null);
   var TILE_LOCKS_KEY = 'cd_tile_locks_v2';
   var SAJU_ACCESS_CHECKING_MESSAGE = '잠금 해제 상태 확인 중';
+  var SAJU_PASS_CHECKING_MESSAGE = '이용권 확인 중';
   var SAJU_UNLOCK_REFLECTING_MESSAGE = '결제가 확인되었습니다. 콘텐츠 잠금 해제를 반영하는 중입니다.';
   var SAJU_UNLOCK_COMPLETE_MESSAGE = '잠금 해제가 완료되었습니다.';
   var SAJU_UNLOCK_MANUAL_REFRESH_LABEL = '잠금 상태 다시 확인';
@@ -18505,8 +18506,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       return {
         pass: {
           eyebrow: _cdPaymentI18n(prefix + '.pass.eyebrow', 'MOONLIGHT PASS CHECK'),
-          title: _cdPaymentI18n(prefix + '.pass.title', SAJU_ACCESS_CHECKING_MESSAGE),
-          message: _cdPaymentI18n(prefix + '.pass.message', SAJU_ACCESS_CHECKING_MESSAGE),
+          title: _cdPaymentI18n(prefix + '.pass.title', SAJU_PASS_CHECKING_MESSAGE),
+          message: _cdPaymentI18n(prefix + '.pass.message', '보유 이용권으로 바로 열 수 있는지 확인하고 있어요.'),
           meta: _cdPaymentI18n(prefix + '.pass.meta', '가능하면 결제창 없이 곧바로 이어집니다.')
         },
         'pass-applied': {
@@ -18920,7 +18921,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     if (status === 'checkingEntitlement') {
       paymentType = _cdPaymentTypeFromWaitKind(kind, 'pass');
       copy = _cdLoadingCopy('access_check', paymentType);
-      return { title: copy.title, message: SAJU_ACCESS_CHECKING_MESSAGE, mode: _cdPaymentModeFromType(paymentType, false) };
+      return { title: copy.title, message: (kind === 'unlock' ? SAJU_ACCESS_CHECKING_MESSAGE : SAJU_PASS_CHECKING_MESSAGE), mode: _cdPaymentModeFromType(paymentType, false) };
     }
     if (status === 'hasEntitlement') {
       paymentType = _cdPaymentTypeFromWaitKind(kind, 'pass');
@@ -19244,7 +19245,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       featureId: key,
       requestId: requestId,
       status: String((options && options.status) || 'checkingEntitlement'),
-      message: String((options && options.message) || SAJU_ACCESS_CHECKING_MESSAGE),
+      message: String((options && options.message) || SAJU_PASS_CHECKING_MESSAGE),
       startedAt: _cdPaidFeatureInFlight[key].startedAt
     }));
     return { key: key, requestId: requestId };
@@ -21603,8 +21604,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     }
     if (state === 'checking') {
       title.textContent = SAJU_ACCESS_CHECKING_MESSAGE;
-      desc.textContent = SAJU_ACCESS_CHECKING_MESSAGE;
-      btn.textContent = SAJU_ACCESS_CHECKING_MESSAGE;
+      desc.textContent = '기존 결제·해금 내역을 확인하고 있어요.';
+      btn.textContent = '확인 중…';
       btn.disabled = true;
       return;
     }
@@ -21677,7 +21678,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       if (btn && checking) {
         if (!btn.dataset.defaultButton) btn.dataset.defaultButton = btn.textContent || '';
         btn.disabled = true;
-        btn.textContent = SAJU_ACCESS_CHECKING_MESSAGE;
+        btn.textContent = '확인 중…';
         btn.style.opacity = '0.78';
         btn.style.cursor = 'wait';
       } else if (btn && !unlocked && btn.dataset.defaultButton) {
