@@ -168,6 +168,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "vedic-ai-consultation": { cost: 300, amountKRW: 30000, reason: "베다점 AI 상담" },
   "physiognomy-compatibility": { cost: 50, reason: "관상 궁합 분석" },
   "physiognomy-pastlife-compatibility": { cost: 50, reason: "전생 관상 궁합 분석" },
+  "physiognomy-ogwan-mole-deep": { cost: 50, reason: "오관·점 정밀 분석" },
   "tarot-year-fortune": { cost: 30, reason: "십이지신 천운 타로" },
   "tarot-love-relationship": { cost: 50, reason: "우리는 무슨 사이? 타로 리딩" },
   "tarot-reunion-reading": { cost: 50, reason: "재회운 타로 리딩" },
@@ -356,6 +357,7 @@ export const PAID_FEATURE_BILLING_TYPES = Object.freeze({
 const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "physiognomy-compatibility",
   "physiognomy-pastlife-compatibility",
+  "physiognomy-ogwan-mole-deep",
   "tarot-year-fortune",
   "tarot-love-relationship",
   "tarot-reunion-reading",
