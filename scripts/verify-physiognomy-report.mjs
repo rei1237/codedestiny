@@ -1,0 +1,102 @@
+// 관상 리포트 회귀 검증 (jsdom 기반)
+//   - 문제3: 섹션 중복 출력 없이 독립 분리되는가 (총평/성격 분리, 미닫힘 div, 파서 폴백)
+//   - 문제4: 오관 정식 5부위(眉·眼·鼻·口·耳) + 경합 균일 + 오관/점 프리미엄 게이트 등록
+// 파서 로직은 PhysiognomyUI.js 원본과 1:1 복제하되, 소스에 핵심 로직이 실재하는지 문자열로 함께 검증해 drift를 막는다.
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { JSDOM } from 'jsdom';
+
+const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const read = (p) => readFileSync(resolve(root, p), 'utf8');
+
+// ── 1. 루트/public 사본 동기화 ──
+for (const base of ['AnalysisEngine.js', 'PhysiognomyUI.js']) {
+  assert.equal(read(base), read(`public/${base}`), `${base}: 루트와 public/ 사본이 동일해야 함`);
+}
+
+const engine = read('AnalysisEngine.js');
+const ui = read('PhysiognomyUI.js');
+const registry = read('worker/lib/paid-feature-registry.js');
+
+// ── 2. 문제3: 총평/성격 분리 + 파서 정합 ──
+assert.match(engine, /관상 총평<\/div>\s*<div style="[^"]*">\$\{phySummary\}<\/div>/, '총평 본문은 phySummary(요약)여야 함');
+assert.match(engine, /상세 성격 분석[\s\S]*?\$\{bestMatch\.description\}/, 'description 전체는 상세 성격 블록에');
+assert.doesNotMatch(engine, /관상 총평<\/div>\s*<div style="[^"]*">\$\{bestMatch\.description\}/, '총평에 description 통째 금지');
+assert.match(ui, /const sectionNode = findSectionBlockFromHeading\(headingNode, host\);/, '파서 폴백(parentElement) 제거 유지');
+for (const kw of ['상세 성격 분석', '점\\(痣\\)', '참고사항']) {
+  assert.match(ui, new RegExp(`'${kw}'`), `headingKeywords에 '${kw}' 정합`);
+}
+
+// ── 3. 문제4: 오관 5부위 + 게이트 등록 ──
+for (const f of ['browSlant: browSlant', 'BROW_TYPES_JSON', 'let bestBrow', 'EAR_TYPES_JSON', 'let bestEar', 'const renderOgwanLi']) {
+  assert.match(engine, new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `AnalysisEngine: ${f}`);
+}
+for (const [icon, part] of [['🌙','미상\\(눈썹\\)'],['👁️','안상\\(눈\\)'],['👃','비상\\(코\\)'],['👄','구상\\(입\\)'],['👂','이상\\(귀\\)']]) {
+  assert.match(engine, new RegExp(`renderOgwanLi\\('${icon}', '${part}'`), `오관 렌더: ${part}`);
+}
+assert.match(registry, /"physiognomy-ogwan-mole-deep":\s*\{\s*cost:\s*50/, '오관·점 프리미엄 가격표 등록');
+assert.match(registry, /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"physiognomy-ogwan-mole-deep"/, '오관·점 회당결제 목록 등록');
+assert.match(ui, /featureKey: 'physiognomy-ogwan-mole-deep'/, '프론트 게이트 featureKey 배선');
+
+// ── 4. jsdom: 파서가 섹션을 중복 없이 분리 ──
+const dom = new JSDOM('<!doctype html><body></body>');
+const { document } = dom.window;
+const toPlainText = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+const normalizeSectionTitle = (raw, i) => {
+  const clean = toPlainText(raw).replace(/^[^ㄱ-힣A-Za-z0-9]+/, '');
+  if (!clean) return `카테고리 ${i + 1}`;
+  return clean.length <= 36 ? clean : `${clean.slice(0, 36)}...`;
+};
+const findSectionBlockFromHeading = (node, rootEl) => {
+  let cur = node;
+  while (cur && cur !== rootEl) {
+    const st = String(cur.getAttribute && cur.getAttribute('style') || '');
+    if (/margin-bottom\s*:\s*(10|12|14|15|18)px/i.test(st) && /padding\s*:/i.test(st)) return cur;
+    cur = cur.parentElement;
+  }
+  return null;
+};
+const createExpertReportSections = (html) => {
+  const host = document.createElement('div');
+  host.innerHTML = html;
+  const kw = ['관상 총평','상세 성격 분석','오관(五官)','영혼의 그림자','점(痣)','삶의 지혜','동물상 매칭','참고사항','안심하세요'];
+  const nodes = Array.from(host.querySelectorAll('div, strong, h1, h2, h3, h4')).filter((n) => kw.some((k) => toPlainText(n.textContent).includes(k)));
+  const out = [];
+  const seen = new Set();
+  nodes.forEach((h) => {
+    const sn = findSectionBlockFromHeading(h, host);
+    if (!sn || seen.has(sn)) return;
+    seen.add(sn);
+    out.push({ title: normalizeSectionTitle(h.textContent, out.length), body: sn.innerHTML });
+  });
+  return out;
+};
+
+const desc = `<strong>[성격 및 특징]</strong><br> 둥글고 선한 눈매. 인싸형.<br><br><strong>[연애 및 결혼]</strong><br> 헌신적.<br><br><strong>[진로 및 직업]</strong><br> 서비스직.<br><br><strong>[재물운]</strong><br> 인복이 재물로.`;
+const sampleHtml = `
+  <div style="font-family:'Pretendard',sans-serif;">
+    <div style="margin-bottom: 15px; padding:15px;"><div>👑 🐶 강아지상 관상 총평</div><div>둥글고 선한 눈매.</div></div>
+    <div style="margin-bottom: 15px; padding:15px;"><div>📖 강아지상 상세 성격 분석</div><div>${desc}</div></div>
+    <div style="margin-bottom: 15px; padding:12px;"><div>오관(五官) 정밀 확률 분석</div><ul><li>🌙 미상(눈썹)</li></ul></div>
+    <div style="margin-bottom: 15px; padding:15px;"><div>📜 삶의 지혜 (Advise)</div><p>겸손.</p></div>
+    <div style="margin-bottom: 15px; padding:15px;"><div>🐾 이면의 현대적 동물상 매칭</div><p>강아지상.</p></div>
+    <div style="margin-bottom:15px; padding:15px;"><div>✨ 피부와 점(痣) 분석</div><div>길점 1개.</div></div>
+    <div style="margin-bottom: 15px; padding:12px;"><div>✅ 안심하세요!</div><div>흉상 없음.</div></div>
+  </div>`;
+const sections = createExpertReportSections(sampleHtml);
+assert.equal(sections.length, 7, `7개 독립 섹션이어야 함 (실제 ${sections.length})`);
+assert.equal(new Set(sections.map((s) => s.body)).size, sections.length, '섹션 body 중복 없음');
+const total = sections.find((s) => s.title.includes('총평'));
+assert.ok(total && !total.body.includes('연애 및 결혼') && !total.body.includes('오관(五官)'), '총평이 다른 섹션을 삼키지 않음');
+
+// ── 5. 게이트 프리미엄 판별 (순수 함수 복제) ──
+const isPremium = (title) => { const t = String(title || ''); return t.includes('오관') || t.includes('점(痣)') || t.includes('피부와 점'); };
+assert.ok(isPremium('오관(五官) 정밀 확률 분석'), '오관=프리미엄');
+assert.ok(isPremium('피부와 점(痣) 분석 (面痣 분석)'), '점=프리미엄');
+assert.ok(!isPremium('강아지상 관상 총평 둥글고'), '총평=무료');
+assert.ok(!isPremium('강아지상 상세 성격 분석'), '상세 성격=무료');
+assert.ok(!isPremium('삶의 지혜 (Advise)'), '삶의 지혜=무료');
+
+console.log('[verify-physiognomy-report] PASS — 7섹션 무중복, 오관 5부위, 오관·점 프리미엄 게이트 등록');

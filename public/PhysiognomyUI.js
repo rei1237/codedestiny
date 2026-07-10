@@ -53,6 +53,7 @@ let compatMode = false;        // 궁합 모드 활성화 여부
 let pastLifeCompatMode = false;
 let firstAnalysisResult = null; // 첫 번째 사람 분석 결과 저장
 let secondAnalysisResult = null; // 두 번째 사람 분석 결과 저장
+let ogwanMoleUnlocked = false;   // 오관·점 프리미엄(회당 5,000원) 잠금 해제 여부 — 새 분석마다 리셋
 
 if(document.getElementById('phy-styles')) document.getElementById('phy-styles').remove();
 if(document.getElementById('physiognomy-app')) document.getElementById('physiognomy-app').remove();
@@ -491,6 +492,48 @@ styleLink.textContent = `
     0% { transform: scale(0.8); opacity: 0.5; }
     100% { transform: scale(1.2); opacity: 1; }
   }
+  .phy-premium-lock {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .phy-premium-blur {
+    filter: blur(6px);
+    pointer-events: none;
+    user-select: none;
+    max-height: 220px;
+    overflow: hidden;
+    opacity: 0.7;
+  }
+  .phy-premium-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    text-align: center;
+    padding: 18px 14px;
+    background: linear-gradient(180deg, rgba(240,253,244,0.55) 0%, rgba(236,253,245,0.92) 60%);
+  }
+  .phy-premium-lock-icon { font-size: 1.7rem; }
+  .phy-premium-lock-title { font-weight: 800; font-size: 1.02rem; color: #065f46; }
+  .phy-premium-lock-desc { font-size: 0.85rem; color: #047857; line-height: 1.5; max-width: 320px; }
+  .phy-premium-cta {
+    margin-top: 4px;
+    padding: 10px 18px;
+    border: none;
+    border-radius: 999px;
+    font-weight: 800;
+    font-size: 0.92rem;
+    color: #ffffff;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .phy-premium-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,185,129,0.35); }
+  .phy-premium-lock-note { font-size: 0.72rem; color: #64748b; margin-top: 2px; }
 `;
 document.head.appendChild(styleLink);
 
@@ -980,12 +1023,14 @@ function createExpertReportSections(result) {
 
   const headingKeywords = [
     '관상 총평',
+    '상세 성격 분석',
     '오관(五官)',
     '영혼의 그림자',
-    '안좋은 관상 정밀 분석',
-    '점(痣) 위치별 관상 해석',
+    '점(痣)',
     '삶의 지혜',
-    '동물상 매칭'
+    '동물상 매칭',
+    '참고사항',
+    '안심하세요'
   ];
 
   const headingNodes = Array.from(host.querySelectorAll('div, strong, h1, h2, h3, h4')).filter((node) => {
@@ -997,7 +1042,11 @@ function createExpertReportSections(result) {
   const seen = new Set();
 
   headingNodes.forEach((headingNode) => {
-    const sectionNode = findSectionBlockFromHeading(headingNode, host) || headingNode.parentElement;
+    // 섹션 박스(margin-bottom + padding)를 못 찾으면 건너뛴다.
+    // 최상위 wrapper div도 자식 텍스트 때문에 헤딩 키워드에 매칭되는데,
+    // parentElement 폴백을 쓰면 host(전체)를 섹션으로 잡아 전체 내용이 통째로
+    // 중복 렌더되므로 폴백을 제거한다.
+    const sectionNode = findSectionBlockFromHeading(headingNode, host);
     if (!sectionNode || seen.has(sectionNode)) return;
 
     seen.add(sectionNode);
@@ -1098,6 +1147,37 @@ function renderCategoryNav(sections) {
   setActiveSectionChip(0);
 }
 
+// 오관·점(痣) 섹션은 프리미엄(회당 5,000원). 미해금 시 본문을 블러+CTA로 대체한다.
+function isPremiumOgwanMoleSection(title) {
+  const t = String(title || '');
+  return t.includes('오관') || t.includes('점(痣)') || t.includes('피부와 점');
+}
+
+function buildLockedSectionHtml(section) {
+  return `
+    <div class="phy-premium-lock">
+      <div class="phy-premium-blur" aria-hidden="true">${section.body}</div>
+      <div class="phy-premium-overlay">
+        <div class="phy-premium-lock-icon">🔒</div>
+        <div class="phy-premium-lock-title">정밀 분석 잠금</div>
+        <div class="phy-premium-lock-desc">오관(五官) 5부위 정밀 확률·경합 분석과 피부·점(痣) 해석 전체를 열람합니다.</div>
+        <button type="button" class="phy-premium-cta" aria-label="오관·점 정밀 분석을 5,000원에 열람">🔓 5,000원에 정밀 분석 보기</button>
+        <div class="phy-premium-lock-note">전생 관상과는 별개인 프리미엄 심화 분석입니다.</div>
+      </div>
+    </div>`;
+}
+
+function triggerOgwanMoleUnlock() {
+  if (typeof window._cdCoinGatePerUse !== 'function') {
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return;
+  }
+  window._cdCoinGatePerUse(50, '오관·점 정밀 분석', function () {
+    ogwanMoleUnlocked = true;
+    if (firstAnalysisResult) renderResult(firstAnalysisResult);
+  }, null, { featureKey: 'physiognomy-ogwan-mole-deep', serviceKey: 'physiognomy' });
+}
+
 function renderSectionCards(container, sections) {
   if (!container) return;
   clearSectionRenderTimers();
@@ -1109,21 +1189,30 @@ function renderSectionCards(container, sections) {
       const card = document.createElement('section');
       card.className = 'phy-section-card';
 
+      const locked = isPremiumOgwanMoleSection(section.title) && !ogwanMoleUnlocked;
+
       const details = document.createElement('details');
       details.className = 'phy-section-details';
       details.id = `phySectionDetails-${index}`;
-      if (index < 3) details.open = true;
+      if (index < 3 || locked) details.open = true; // 잠긴 프리미엄 섹션은 열어 CTA를 노출
       details.addEventListener('toggle', () => {
         if (details.open) setActiveSectionChip(index);
       });
 
+      const hint = locked ? '🔒 프리미엄' : (index < 3 ? '핵심' : '자세히 보기');
       const summary = document.createElement('summary');
       summary.className = 'phy-section-summary';
-      summary.innerHTML = `<span class="phy-section-title-wrap"><span class="phy-section-index">${index + 1}</span><span class="phy-section-title">${section.title}</span></span><span class="phy-section-hint">${index < 3 ? '핵심' : '자세히 보기'}</span>`;
+      summary.innerHTML = `<span class="phy-section-title-wrap"><span class="phy-section-index">${index + 1}</span><span class="phy-section-title">${section.title}</span></span><span class="phy-section-hint">${hint}</span>`;
 
       const body = document.createElement('div');
       body.className = 'phy-section-body';
-      body.innerHTML = section.body;
+      if (locked) {
+        body.innerHTML = buildLockedSectionHtml(section);
+        const cta = body.querySelector('.phy-premium-cta');
+        if (cta) cta.addEventListener('click', triggerOgwanMoleUnlock);
+      } else {
+        body.innerHTML = section.body;
+      }
 
       details.appendChild(summary);
       details.appendChild(body);
@@ -1439,6 +1528,7 @@ window.resetPhysiognomyApp = function(preserveCompat) {
   isAnalyzing = false;
   analysisComplete = false;
   landmarksData = null;
+  ogwanMoleUnlocked = false; // 새 분석은 오관·점 정밀 분석을 다시 결제해야 함(회당 결제)
   if (!preserveCompat) {
     compatMode = false;
     pastLifeCompatMode = false;

@@ -430,6 +430,23 @@ class AnalysisEngine {
 
     const earHeight = this.calculateDistance(EAR_LEFT_TOP, EAR_LEFT_BOTTOM);
 
+    // ── 눈썹(眉相) 지표: 오관 정식 5부위(眉·眼·鼻·口·耳) 완성을 위해 추가 ──
+    // MediaPipe FaceMesh 눈썹 하단 라인: 왼쪽 inner=55/outer=46/mid=52, 오른쪽 inner=285/outer=276/mid=282
+    const LEFT_BROW_INNER = landmarks[55];
+    const LEFT_BROW_OUTER = landmarks[46];
+    const LEFT_BROW_MID   = landmarks[52];
+    const RIGHT_BROW_INNER = landmarks[285];
+    const RIGHT_BROW_OUTER = landmarks[276];
+    const RIGHT_BROW_MID   = landmarks[282];
+    // 눈썹 기울기: 바깥끝이 안끝보다 위(y작음)면 음수=검미(올라간 눈썹), 양수=팔자미(처진 눈썹)
+    const browSlant = (((LEFT_BROW_OUTER.y - LEFT_BROW_INNER.y) + (RIGHT_BROW_OUTER.y - RIGHT_BROW_INNER.y)) / 2) * 100;
+    // 눈썹 곡률(아치): 중앙이 양끝보다 위(y작음)면 양수=아치/초승달, 0에 가까우면 일자
+    const leftBrowArch  = (((LEFT_BROW_INNER.y + LEFT_BROW_OUTER.y) / 2) - LEFT_BROW_MID.y) * 100;
+    const rightBrowArch = (((RIGHT_BROW_INNER.y + RIGHT_BROW_OUTER.y) / 2) - RIGHT_BROW_MID.y) * 100;
+    const browArch = (leftBrowArch + rightBrowArch) / 2;
+    // 눈썹-눈 거리(눈 높이 대비): 넓으면 여유·부귀, 좁으면 성급
+    const browEyeGap = ((Math.abs(LEFT_BROW_MID.y - LEFT_EYE_TOP.y) + Math.abs(RIGHT_BROW_MID.y - RIGHT_EYE_TOP.y)) / 2) / (eyeHeight || 1);
+
     const upper_len = this.calculateDistance(FOREHEAD, GLABELLA);
     const middle_len = this.calculateDistance(GLABELLA, NOSE_TIP);
     const lower_len = this.calculateDistance(NOSE_TIP, CHIN);
@@ -465,6 +482,9 @@ class AnalysisEngine {
       mouthWidth: mouthWidth,
       earRatio: earHeight / (faceLength||1),
       earPosition: EAR_LEFT_TOP.y < LEFT_EYE_OUT.y ? "high" : "normal",
+      browSlant: browSlant,
+      browArch: browArch,
+      browEyeGap: browEyeGap,
       jawSquareness: faceWidth / (faceLength || 1),
       qualityScore: qualityScore,
       // 여성형 판별용 추가 수치
@@ -1855,6 +1875,33 @@ async analyze(landmarksData, expressionData) {
     eyes.sort((a,b) => b.prob - a.prob);
     let bestEye = eyes[0];
 
+    // --- 0. 정밀 미상(眉相) 분석 (형제·감정·기개의 척도) ---
+    // browSlant: 음수=올라감(검미), 양수=처짐(팔자미) / browArch: 양수=아치(초승달), 0=일자
+    const BROW_TYPES_JSON = [
+      { tag: 'ilja',  name: '일자미(一字眉)', tier: 'good',
+        desc: '붓으로 그은 듯 곧고 반듯한 눈썹. 결단력과 강직한 의지가 뚜렷하여 한번 정한 길을 뚝심 있게 밀고 나가는 상.',
+        slant: 0, arch: 0.3 },
+      { tag: 'yueyp', name: '유엽미(柳葉眉)', tier: 'good',
+        desc: '버들잎처럼 부드럽게 흐르는 눈썹. 온화하고 인정이 두터워 인덕(人德)이 쌓이고 대인관계가 원만한 귀상.',
+        slant: 1.2, arch: 2.4 },
+      { tag: 'geom',  name: '검미(劍眉)', tier: 'good',
+        desc: '칼끝처럼 바깥으로 힘차게 뻗어 오른 눈썹. 기개와 용맹이 넘쳐 큰 조직을 이끄는 무장·리더의 기운.',
+        slant: -3.2, arch: 1.0 },
+      { tag: 'ami',   name: '아미(蛾眉)', tier: 'good',
+        desc: '초승달처럼 가늘고 곱게 휘어진 눈썹. 총명하고 감수성이 빼어나며 예술·미적 감각이 탁월한 상.',
+        slant: 1.5, arch: 3.6 },
+      { tag: 'palja', name: '팔자미(八字眉)', tier: 'bad',
+        desc: '안쪽이 높고 바깥쪽이 아래로 처진 여덟 팔(八) 자 눈썹. 근심이 얼굴에 배어 고독하기 쉽고 결단이 늦어지는 흉미(凶眉).',
+        slant: 4.2, arch: -1.2 }
+    ];
+    let brows = BROW_TYPES_JSON.map(t => ({
+      ...t,
+      prob: calcKarma(features.browSlant - t.slant, 3.2, features.browArch - t.arch, 2.4, t.tier === 'bad') *
+            (t.tier === 'good' ? 1.12 : 0.72)   // 좋은 눈썹 +12%, 흉미 -28%
+    }));
+    brows.sort((a,b) => b.prob - a.prob);
+    let bestBrow = brows[0];
+
     // --- 2. 정밀 비상(鼻相) 분석 (재물의 척도) ---
     // nr: 코 비율 (높을수록 콧대가 높고 좁음 / 낮을수록 납작하고 넓음)
     // 관상 유형 JSON: { tag, name, desc, tier, targetNr, w1 }
@@ -1911,21 +1958,27 @@ async analyze(landmarksData, expressionData) {
     let bestMouth = mouths[0];
 
     // --- 4. 정밀 이상(耳相) 분석 ---
-    // 귀 위치(earPosition) + 귀 비율(earRatio)로 4가지 분기
-    let earText = "";
-    if (features.earPosition === "high") {
-      if (features.earRatio > 0.22) {
-        earText = "귀의 윗부분이 눈썹보다 높이 솟아(과목·高耳) 지혜와 학문의 기운이 충만하며, 두툼한 수주(귓볼)가 재복을 든든히 받쳐 주어 <b>학자·귀인(貴人)의 옥이(玉耳)</b>입니다. 초년부터 이름을 떨치고 중만년에 부귀가 쌓입니다.";
-      } else {
-        earText = "귀가 높이 달렸으나(과목상) 귓볼이 빈약하여 <b>두뇌는 탁월하나 재물이 잘 모이지 않는</b> 아쉬운 기운입니다. 지식 노동에서 뛰어난 성과를 내지만, 이를 경제적 성과로 전환하는 금전 감각을 별도로 키워야 합니다.";
-      }
-    } else {
-      if (features.earRatio > 0.22) {
-        earText = "귀가 눈 높이와 수평을 이루며 수주(귓볼)가 넉넉하고 두툼합니다. <b>뛰어난 현실 감각에 탄탄한 재물복</b>이 겹쳐진 안정된 중년의 상입니다.";
-      } else {
-        earText = "귀가 낮고 작으며 귓볼이 빈약하여 조상·부모의 음덕이 희박하고 <b>초·중년의 고생이 많은 이소박(耳小薄)에 가까운 상</b>입니다. 건강 관리와 독립적 경제력 확보에 특별히 유의해야 합니다.";
-      }
-    }
+    // 귀 위치(earPosition high/normal) + 귀 비율(earRatio)로 4가지 유형 분류 + 경합 산출
+    const EAR_TYPES_JSON = [
+      { tag: 'jade',  name: '옥이(玉耳)',   tier: 'good',    high: true,  targetRatio: 0.28,
+        desc: '귀의 윗부분이 눈썹보다 높이 솟아(과목·高耳) 지혜와 학문의 기운이 충만하며, 두툼한 수주(귓볼)가 재복을 든든히 받쳐 주어 <b>학자·귀인(貴人)의 옥이(玉耳)</b>입니다. 초년부터 이름을 떨치고 중만년에 부귀가 쌓입니다.' },
+      { tag: 'gomok', name: '과목귀(高耳)', tier: 'neutral', high: true,  targetRatio: 0.16,
+        desc: '귀가 높이 달렸으나(과목상) 귓볼이 빈약하여 <b>두뇌는 탁월하나 재물이 잘 모이지 않는</b> 아쉬운 기운입니다. 지식 노동에서 뛰어난 성과를 내지만, 이를 경제적 성과로 전환하는 금전 감각을 별도로 키워야 합니다.' },
+      { tag: 'level', name: '수주이(垂珠耳)', tier: 'good',   high: false, targetRatio: 0.28,
+        desc: '귀가 눈 높이와 수평을 이루며 수주(귓볼)가 넉넉하고 두툼합니다. <b>뛰어난 현실 감각에 탄탄한 재물복</b>이 겹쳐진 안정된 중년의 상입니다.' },
+      { tag: 'thin',  name: '이소박(耳小薄)', tier: 'bad',    high: false, targetRatio: 0.14,
+        desc: '귀가 낮고 작으며 귓볼이 빈약하여 조상·부모의 음덕이 희박하고 <b>초·중년의 고생이 많은 이소박(耳小薄)에 가까운 상</b>입니다. 건강 관리와 독립적 경제력 확보에 특별히 유의해야 합니다.' }
+    ];
+    const earIsHigh = features.earPosition === 'high';
+    let ears = EAR_TYPES_JSON.map(t => {
+      const ratioDiff = (features.earRatio - t.targetRatio) * 100;
+      const posPenalty = (earIsHigh === t.high) ? 0 : 7;
+      return { ...t, prob: calcKarma(ratioDiff, 1.1, posPenalty, 1.0, t.tier === 'bad') *
+                          (t.tier === 'good' ? 1.1 : t.tier === 'bad' ? 0.72 : 1.0) };
+    });
+    ears.sort((a, b) => b.prob - a.prob);
+    let bestEar = ears[0];
+    let earText = bestEar.desc;
 
     // --- 5. 심화 조화 분석 (상생 / 상극) ---
     let harmonyText = "안면 오관(五官)이 각자의 자리에서 무난한 균형을 유지하고 있어 인생 전반이 크게 기울지 않는 평원(平原)의 격국입니다.";
@@ -1994,34 +2047,62 @@ async analyze(landmarksData, expressionData) {
           <div style="font-size:0.82rem; color:#065f46; background:${m.type === 'good' ? '#ecfdf5' : '#fef2f2'}; padding:6px 8px; border-radius:5px;">💡 <b>조언:</b> ${m.advice}</div>
         </div>`).join('');
 
+      // 총평용 한 줄 요약: description의 [성격 및 특징] 첫 문장만 추출
+      // (총평 박스에 description 전체를 넣으면 아래 "상세 성격 분석"과 중복 인상을 주므로 분리)
+      const phySummary = (() => {
+        const marker = '<strong>[성격 및 특징]</strong><br>';
+        const d = String(bestMatch.description || '');
+        const s = d.indexOf(marker);
+        const fallback = `${bestMatch.name}의 기운이 이번 분석에서 가장 선명하게 감지되었습니다.`;
+        if (s < 0) return fallback;
+        const rest = d.slice(s + marker.length);
+        const e = rest.indexOf('<br><br><strong>');
+        const chunk = e >= 0 ? rest.slice(0, e) : rest;
+        const plain = chunk.replace(/<br\s*\/?\s*>/gi, ' ').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+        const first = (plain.match(/^[^.!?。]*[.!?。]/) || [plain])[0].trim();
+        return first || fallback;
+      })();
+
+      // 오관 항목 렌더 헬퍼: 미·안·비·구·이 5부위를 동일 규칙으로 그리고 경합 분석을 균일 표기
+      const ogwanBadge = (tier) => tier === 'bad'
+        ? { label: '凶相', badgeBg: '#fee2e2', badgeFg: '#b91c1c', accent: '#ef4444', head: '#991b1b', liBg: '#fff1f2' }
+        : tier === 'warning'
+        ? { label: '주의', badgeBg: '#fef3c7', badgeFg: '#92400e', accent: '#f59e0b', head: '#92400e', liBg: '#fffbeb' }
+        : tier === 'neutral'
+        ? { label: '中相', badgeBg: '#ede9fe', badgeFg: '#7c3aed', accent: '#8b5cf6', head: '#6b21a8', liBg: '#f8fafc' }
+        : { label: '吉相', badgeBg: '#dbeafe', badgeFg: '#1d4ed8', accent: '#3b82f6', head: '#1d4ed8', liBg: '#f8fafc' };
+      const renderOgwanLi = (icon, part, best, rivals) => {
+        const b = ogwanBadge(best.tier);
+        const rivalText = (rivals || []).filter(Boolean).map(r => `${r.name}(${r.prob.toFixed(1)}%)`).join(', ');
+        return `
+            <li style="margin-bottom: 12px; background: ${b.liBg}; padding: 10px; border-radius: 6px; border-left: 3px solid ${b.accent};">
+               <div style="font-weight:700; color:${b.head}; margin-bottom:4px; font-size: 1rem;">${icon} ${part} - ${best.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${b.badgeBg}; color:${b.badgeFg};">${b.label}</span> [${best.prob.toFixed(1)}% 일치]</div>
+               <div style="font-size:0.9rem; color:#475569; line-height:1.5;">${best.desc}</div>
+               ${rivalText ? `<div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">*경합 분석: ${rivalText}</div>` : ''}
+            </li>`;
+      };
+
       const expertReportHtml = `
       <div style="font-family: 'Pretendard', sans-serif; color: #333; line-height: 1.6;">
         
         <div style="margin-bottom: 15px; background: #f0fdf4; padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
             <div style="font-weight: 800; font-size: 1.1rem; color: #065f46; margin-bottom: 5px;"> 👑 ${bestMatch.emoji} ${bestMatch.name} 관상 총평</div>
-            <div style="font-size: 0.95rem; color: #1e293b; line-height: 1.6;">${bestMatch.description}</div>
+            <div style="font-size: 0.95rem; color: #1e293b; line-height: 1.6;">${phySummary}</div>
+        </div>
 
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 15px; background: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #d1fae5;">
+            <div style="font-weight: 800; font-size: 1.05rem; color: #065f46; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;"> 📖 ${bestMatch.name} 상세 성격 분석</div>
+            <div style="font-size: 0.95rem; color: #1e293b; line-height: 1.6;">${bestMatch.description}</div>
+        </div>
+
+        <div style="margin-bottom: 15px; padding: 12px; background: #f8fafc; border-radius: 10px;">
           <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; margin-bottom: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 5px;"> 오관(五官) 정밀 확률 분석</div>
           <ul style="padding-left: 0; list-style: none; font-size: 0.95rem; color: #475569; margin: 0;">
-            <li style="margin-bottom: 12px; background: ${bestEye.tier === 'bad' ? '#fff1f2' : bestEye.tier === 'warning' ? '#fffbeb' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestEye.tier === 'bad' ? '#ef4444' : bestEye.tier === 'warning' ? '#f59e0b' : '#3b82f6'};">
-               <div style="font-weight:700; color:${bestEye.tier === 'bad' ? '#991b1b' : bestEye.tier === 'warning' ? '#92400e' : '#3b82f6'}; margin-bottom:4px; font-size: 1rem;">👁️ 안상(눈) - ${bestEye.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestEye.tier === 'bad' ? '#fee2e2' : bestEye.tier === 'warning' ? '#fef3c7' : '#dbeafe'}; color:${bestEye.tier === 'bad' ? '#b91c1c' : bestEye.tier === 'warning' ? '#92400e' : '#1d4ed8'};">${bestEye.tier === 'bad' ? '凶相' : bestEye.tier === 'warning' ? '주의' : '吉相'}</span> [${bestEye.prob.toFixed(1)}% 일치]</div>
-               ${bestEye.desc}
-               <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">*경합 분석: ${eyes[1].name}(${eyes[1].prob.toFixed(1)}%), ${eyes[2].name}(${eyes[2].prob.toFixed(1)}%)</div>
-            </li>
-            <li style="margin-bottom: 12px; background: ${bestNose.tier === 'bad' ? '#fff1f2' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestNose.tier === 'bad' ? '#ef4444' : '#8b5cf6'};">
-               <div style="font-weight:700; color:${bestNose.tier === 'bad' ? '#991b1b' : '#8b5cf6'}; margin-bottom:4px; font-size: 1rem;">👃 비상(코) - ${bestNose.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestNose.tier === 'bad' ? '#fee2e2' : '#ede9fe'}; color:${bestNose.tier === 'bad' ? '#b91c1c' : '#7c3aed'};">${bestNose.tier === 'bad' ? '凶相' : bestNose.tier === 'neutral' ? '中相' : '吉相'}</span> [${bestNose.prob.toFixed(1)}% 일치]</div>
-               ${bestNose.desc}
-               <div style="font-size:0.8rem; color:#94a3b8; margin-top:4px;">*경합 분석: ${noses[1].name}(${noses[1].prob.toFixed(1)}%)</div>
-            </li>
-            <li style="margin-bottom: 12px; background: ${bestMouth.tier === 'bad' ? '#fff1f2' : '#f8fafc'}; padding: 10px; border-radius: 6px; border-left: 3px solid ${bestMouth.tier === 'bad' ? '#ef4444' : '#ec4899'};">
-               <div style="font-weight:700; color:${bestMouth.tier === 'bad' ? '#991b1b' : '#ec4899'}; margin-bottom:4px; font-size: 1rem;">👄 구상(입) - ${bestMouth.name} <span style="font-size:0.82rem; font-weight:600; padding:2px 7px; border-radius:10px; background:${bestMouth.tier === 'bad' ? '#fee2e2' : '#fce7f3'}; color:${bestMouth.tier === 'bad' ? '#b91c1c' : '#db2777'};">${bestMouth.tier === 'bad' ? '凶相' : bestMouth.tier === 'neutral' ? '中相' : '吉相'}</span> [${bestMouth.prob.toFixed(1)}% 일치]</div>
-               ${bestMouth.desc}
-            </li>
-            <li style="margin-bottom: 6px; background: #f8fafc; padding: 10px; border-radius: 6px;">
-               <div style="font-weight:700; color:#f59e0b; margin-bottom:4px; font-size: 1rem;">👂 이상(귀/수주)의 통찰</div>
-               ${earText}
-            </li>
+            ${renderOgwanLi('🌙', '미상(눈썹)', bestBrow, [brows[1], brows[2]])}
+            ${renderOgwanLi('👁️', '안상(눈)', bestEye, [eyes[1], eyes[2]])}
+            ${renderOgwanLi('👃', '비상(코)', bestNose, [noses[1], noses[2]])}
+            ${renderOgwanLi('👄', '구상(입)', bestMouth, [mouths[1], mouths[2]])}
+            ${renderOgwanLi('👂', '이상(귀)', bestEar, [ears[1], ears[2]])}
           </ul>
         </div>
 
