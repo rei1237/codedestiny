@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-1c832aec7597'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-1c832aec7597'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-1c832aec7597'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-d4458ba48dd8'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-d4458ba48dd8'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-d4458ba48dd8'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-1c832aec7597')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-d4458ba48dd8')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-1c832aec7597'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-1c832aec7597'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-d4458ba48dd8'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-d4458ba48dd8'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-1c832aec7597'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-1c832aec7597'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-d4458ba48dd8'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d4458ba48dd8'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -104,14 +104,14 @@ const __lazyActionLoaders = {
   closeLoveSecretModal: () => Promise.resolve(),
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-1c832aec7597').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-d4458ba48dd8').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-1c832aec7597')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-d4458ba48dd8')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -673,6 +673,19 @@ export function bindGlobalActions(root) {
         __releaseCollectionImagesChunked(collection);
       }
       return;
+    }
+
+    // 시빌라 진입 타일과 타로/기능 컬렉션 타일은 SEO/크롤용 <a href>이지만 모달·프리뷰를
+    // 제자리에서 열어야 한다. 앵커 기본 이동을 막지 않으면 클릭 시 제자리 오픈과 전체 페이지
+    // 이동이 동시에 발생해 리딩이 안 열리는 회귀가 생긴다(커밋 49118133에서 button→a 전환 후 노출).
+    if (actionEl.tagName === 'A'
+      && actionEl.getAttribute('href')
+      && event && event.cancelable
+      && !(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      && (event.button === undefined || event.button === 0)
+      && (action === 'openSibylModal'
+        || actionEl.closest('.tarot-collection__grid, .feat-collection__grid'))) {
+      event.preventDefault();
     }
 
     __invokeAction(action, actionEl, event);
