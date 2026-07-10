@@ -4,6 +4,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-static";
 export const revalidate = false;
 
+// Optional catch-all covers both /results (collection) and /results/:resultId
+// (detail) with a single route file, avoiding the file-vs-directory export
+// collision Next hits when a route.ts and a sibling [dynamic]/route.ts both
+// claim the same parent path under output:"export".
+export function generateStaticParams() {
+  return [{ slug: [] }, { slug: ["placeholder"] }];
+}
+
 function isStaticExportBuild() {
   return process.env.NODE_ENV === "production";
 }
@@ -23,6 +31,6 @@ function toPlainRequest(request: Request): Request {
   try {
     return new Request(request.url, { method: "GET", headers: request.headers });
   } catch {
-    return new Request("http://localhost/api/fortune-tea-house/results", { method: "GET" });
+    return new Request(request.url, { method: "GET" });
   }
 }
