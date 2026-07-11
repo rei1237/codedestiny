@@ -40,7 +40,6 @@ function destinyMeetingPlacePageText(key: keyof typeof DESTINY_MEETING_PLACE_PAG
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
 const FEATURE_COST = 100;
-const FEATURE_MEMBERSHIP_CREDIT_COST = FEATURE_COST * 10;
 const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 const PREFILL_KEY = "cd.destinyMeetingPlace.prefill.v1";
 
@@ -161,14 +160,14 @@ export default function DestinyMeetingPlacePage() {
         message: destinyMeetingPlacePageText("destinyMeetingPage.002"),
       });
 
+      // 클라이언트 cost/coinPrice를 넘기면 snapshotPassServerCheckFirst가 켜져 서버 이용권
+      // 프로브를 건너뛰고 로컬 스냅샷만 신뢰한다(→ '이용권 확인이 제대로 안 됨'). 정상 형제
+      // destiny-bias처럼 가격은 서버 정본(가격표 destiny_meeting_place=100)에 맡겨 프로브를 강제한다.
       const gate = await runBillingCoinGate({
         featureKey: FEATURE_KEY,
         reason: FEATURE_REASON,
         forceDeduct: true,
         requestId,
-        cost: FEATURE_COST,
-        coinPrice: FEATURE_COST,
-        membershipCreditCost: FEATURE_MEMBERSHIP_CREDIT_COST,
       });
 
       if (!gate.ok) {

@@ -1704,7 +1704,10 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE"
     // 이용권 상태 일시 확인 불가(503) — 서버가 응답에 paymentOptions(단건+월정석)를 동봉하므로
     // 하드 에러 대신 결제 폴백을 연다.
-    || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE";
+    || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
+    // 클라이언트 abort 타임아웃(9s/45s)으로 합성된 503 — 이용권 확인이 지연으로 실패해도
+    // dead-end 대신 결제창(단건+월정석)을 열어 사용자가 결제 선택지를 갖게 한다.
+    || normalizedCode === "BILLING_REQUEST_TIMEOUT";
 }
 
 // useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지
@@ -3108,7 +3111,13 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   try {
     const { getAuthState, refreshAuth } = await import("./auth-store");
     if (!getAuthState().isAuthenticated) {
-      await refreshAuth({ force: true, silent: true });
+      // refreshAuth가 느린 /만료 세션에서 무한 대기하면 게이트가 첫 상태 emit 전
+      // '이용권 확인 중'에서 영구 고착한다. 상한(4s)을 걸어 예열이 늦어도 진행시키고,
+      // 최종 접근 판정은 서버가 한다(아래 catch 정책과 동일).
+      await Promise.race([
+        refreshAuth({ force: true, silent: true }),
+        new Promise<void>((resolve) => globalThis.setTimeout(resolve, 4000)),
+      ]);
     }
   } catch {
     // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버가 한다.
@@ -3665,6 +3674,8 @@ export async function purchaseFeature(input: {
   reportId?: string;
   sessionId?: string;
   reportSessionId?: string;
+  profileId?: string;
+  selectedProfileId?: string;
 }) {
   return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
 }

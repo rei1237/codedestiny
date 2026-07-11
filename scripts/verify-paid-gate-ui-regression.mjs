@@ -184,6 +184,41 @@ assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
 assertContains(billingClientSource, "const monthlyApplied = candidates.some(isMonthlyCreditAccessType);", "React monthly-credit success is resolved before pass success");
 assertContains(billingClientSource, "resolveAppliedBillingPayment(runtimeData, requestedMode, passFirstEligible", "React coin-gate success uses applied payment resolver");
+// 이용권 확인이 실패/지연으로 죽어도 결제창(단건+월정석)이 열려야 한다 — 폴백 대상 코드 보강 회귀 방지.
+const reactPaymentFallbackSource = section(
+  billingClientSource,
+  "function shouldOpenRuntimePaymentFallback(",
+  "function shouldRedirectToLoginAfterBilling(",
+  "React runtime payment fallback",
+);
+assertContains(reactPaymentFallbackSource, 'normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary pass-status 503");
+assertContains(reactPaymentFallbackSource, 'normalizedCode === "BILLING_REQUEST_TIMEOUT"', "React payment fallback opens on client abort timeout 503");
+
+// 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
+const reactAuthPrewarmSource = section(
+  billingClientSource,
+  "게이트 진입 전 인증을 예열한다.",
+  "const activeAttempt = beginPaidAttempt(",
+  "React billing auth pre-warm",
+);
+assertContains(reactAuthPrewarmSource, "Promise.race([", "React billing auth pre-warm is time-bounded");
+assertContains(reactAuthPrewarmSource, "refreshAuth({ force: true, silent: true })", "React billing auth pre-warm still refreshes");
+
+// openPaidFeatureGate + runBillingCoinGate 패턴 기능도 공통 게이트를 거쳐야 한다(직접 PortOne/points 직행 금지).
+const gateRunBillingFeatureSources = [
+  { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
+  { label: "destiny-bias", source: readFileSync(resolve(root, "app/saju/destiny-bias/DestinyBiasClient.tsx"), "utf8") },
+  { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
+];
+for (const feature of gateRunBillingFeatureSources) {
+  assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);
+  assertContains(feature.source, "runBillingCoinGate", `${feature.label} routes through common billing gate`);
+  assertBefore(feature.source, "openPaidFeatureGate(", "runBillingCoinGate(", `${feature.label} opens gate before billing`);
+  assertNotContains(feature.source, "window.PortOne.requestPayment", `${feature.label} must not run custom PortOne checkout`);
+  assertNotContains(feature.source, 'fetch("/api/billing/coin-gate"', `${feature.label} must not bypass common coin-gate`);
+  assertNotContains(feature.source, "/points?source=", `${feature.label} must not jump straight to charge page`);
+}
+
 const reactWaitKindSource = section(billingClientSource, "function resolvePaymentWaitKind(", "function formatLoadingMessage", "React payment wait kind");
 assertBefore(reactWaitKindSource, 'if (mode === "MOONLIGHT_STONE"', 'if (mode === "MEMBERSHIP_PASS"', "React wait kind checks monthly before pass");
 assertContains(reactWaitKindSource, "membership_credit", "React wait kind treats membership_credit as monthly");
