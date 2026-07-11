@@ -50,9 +50,10 @@ export default function MayaPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
       <main className="min-h-screen bg-[#071611] px-5 py-10 text-[#f8edd0]">
-        <section className="mx-auto max-w-3xl rounded-3xl border border-[#d8b56d]/30 bg-[#10251d]/80 p-6 shadow-sm">
+        <MayaRouteClient />
+        <section className="mx-auto mt-10 max-w-3xl rounded-3xl border border-[#d8b56d]/30 bg-[#10251d]/80 p-6 shadow-sm">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d8b56d]">Maya Calendar</p>
-          <h1 className="mt-3 text-3xl font-black text-[#fff4cf]">마야 달력과 오늘의 시간 문양</h1>
+          <h2 className="mt-3 text-3xl font-black text-[#fff4cf]">마야 달력과 오늘의 시간 문양</h2>
           <p className="mt-4 text-sm leading-7 text-[#f3dfad]">
             선택한 날짜의 Long Count, Tzolk&apos;in, Haab 흐름을 한 달의 리듬 안에서 살펴봅니다. 마야의 시간은
             단순한 숫자보다 반복되는 주기와 상징의 결을 통해 하루의 분위기를 비춥니다. 같은 날짜라도 달의 위치,
@@ -85,7 +86,6 @@ export default function MayaPage() {
             오늘의 첫 걸음을 조금 더 선명하게 보도록 돕습니다.
           </p>
         </section>
-        <MayaRouteClient />
       </main>
     </>
   );

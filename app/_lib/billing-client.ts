@@ -214,6 +214,8 @@ type RuntimeApiWindow = Window & {
   __cdRestoreCanonicalPaymentMode?: () => unknown;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
+    holdOpen?: (requestId?: string, maxMs?: number) => void;
+    release?: (requestId?: string) => void;
   };
 };
 
@@ -1705,6 +1707,18 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE";
 }
 
+// useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지
+// 마친 뒤에도 남은 "진짜 미로그인/세션 만료"만 걸러 로그인 유도한다. 일시적 503(AUTH_REFRESH_TEMPORARY_FAILURE
+// 등)은 status가 401/403이 아니고 결제 폴백(shouldOpenRuntimePaymentFallback) 대상이라 여기 걸리지 않는다.
+function shouldRedirectToLoginAfterBilling(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 401
+    || status === 403
+    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "LOGIN_REQUIRED"
+    || normalizedCode === "UNAUTHORIZED";
+}
+
 function normalizeAccessReason(value: unknown) {
   return toText(value).trim().toLowerCase();
 }
@@ -2634,6 +2648,29 @@ export function updatePaidFeatureGate(input: {
   });
 }
 
+export function holdPaidFeatureGateOpen(input: { requestId?: string; maxMs?: number }) {
+  if (typeof window === "undefined") return;
+  const requestId = toText(input.requestId);
+  if (!requestId) return;
+  const gate = (window as RuntimeApiWindow).__cdPaidFeatureGate;
+  if (gate && typeof gate.holdOpen === "function") {
+    gate.holdOpen(requestId, input.maxMs);
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: { action: "hold", requestId, maxMs: input.maxMs } }));
+}
+
+export function releasePaidFeatureGate(requestId?: string) {
+  if (typeof window === "undefined") return;
+  const normalizedRequestId = requestId ? toText(requestId) : undefined;
+  const gate = (window as RuntimeApiWindow).__cdPaidFeatureGate;
+  if (gate && typeof gate.release === "function") {
+    gate.release(normalizedRequestId);
+    return;
+  }
+  window.dispatchEvent(new CustomEvent("cd:paid-feature-gate", { detail: { action: "release", requestId: normalizedRequestId } }));
+}
+
 type PaidFeatureGateCheckInput = {
   categoryKey?: string;
   subFeatureKey?: string;
@@ -3440,6 +3477,17 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     } else {
       const code = String(parsed.error?.code || "").toUpperCase();
       const status = parsed.status === 402 || code === "INSUFFICIENT_COINS" ? "readyToPay" : "error";
+      if (shouldRedirectToLoginAfterBilling(parsed.status, code)) {
+        // authFetch의 401 자동 갱신까지 실패한 진짜 미로그인/만료 세션 — 유료 화면 공통 계약대로
+        // 세션을 정리하고 로그인 페이지로 유도한다. runBillingCoinGate를 직접 호출하는 화면 전반에 적용된다.
+        // 정적 import는 auth-store↔billing-client 순환을 피하려 동적 import 사용(위 인증 예열부와 동일).
+        try {
+          const { handleSessionInvalidated } = await import("./auth-store");
+          handleSessionInvalidated({ redirect: true });
+        } catch {
+          // 세션 무효화 실패는 삼킨다 — 아래 에러 반환 흐름으로 이어진다.
+        }
+      }
       if (shouldInvalidateSubscriptionSnapshot(parsed.status, code)) {
         clearSubscriptionSnapshotForUser();
         void fetchPaymentEligibility({
