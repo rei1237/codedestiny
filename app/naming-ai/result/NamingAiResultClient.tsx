@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, Check, Copy, Download, ScrollText } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { handleSessionInvalidated } from "@/app/_lib/auth-store";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { readNamingRetryPayload, clearNamingRetryPayload } from "../retryHandoff";
 import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
@@ -237,6 +239,7 @@ export default function NamingAiResultClient() {
         if (alive) {
           setResult(payload.result);
           setPending(false);
+          clearNamingRetryPayload(executionId); // 결과 수렴 완료 — 재시도 핸드오프 페이로드 정리.
         }
       } catch (caught) {
         // 여기 도달하면 fetch/JSON 파싱 자체가 실패한 일시 네트워크 오류다 —
@@ -322,6 +325,42 @@ export default function NamingAiResultClient() {
       ),
     [sections],
   );
+
+  // 실패 상태의 "다시 시도": 폼에서 넘겨준 재시도 페이로드가 있으면 같은 이용권/결제 증거로 /generate를
+  // 재호출해 재생성한다(백그라운드 실패/stale 레코드를 인계 → coin-gate 미호출 → 추가 차감 없음).
+  // 페이로드가 없으면(URL 직접 진입) 재폴링만 한다. 어느 경우든 폴링 이펙트를 재실행해 상태에 수렴시킨다.
+  async function handleRetry() {
+    const payload = readNamingRetryPayload(executionId);
+    if (payload) {
+      setFailed(false);
+      setError("");
+      setPending(true);
+      setLoading(true);
+      const access = (payload.access || {}) as Record<string, unknown>;
+      try {
+        const res = await authFetch("/api/naming-prompt/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            paymentId: access.paymentId,
+            inputHash: payload.inputHash,
+            input: payload.input,
+            paymentContext: access.raw,
+            accessGrant: access.accessGrant,
+            consume: access.consume,
+            payment: access.payment,
+          }),
+        });
+        if (res.status === 401 || res.status === 403) {
+          handleSessionInvalidated({ redirect: true });
+          return;
+        }
+      } catch {
+        // 네트워크 오류는 아래 폴링 재개에서 흡수한다.
+      }
+    }
+    setRetryKey((key) => key + 1);
+  }
 
   async function handleCopyPrompt() {
     if (!result?.generatedPrompt) return;
@@ -444,7 +483,7 @@ export default function NamingAiResultClient() {
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setRetryKey((key) => key + 1)}
+                  onClick={handleRetry}
                   className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-black text-[#0a0818] transition hover:bg-[#d5cafe] ${VIOLET_GLOW}`}
                 >
                   다시 시도

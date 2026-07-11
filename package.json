@@ -71,6 +71,7 @@
     "verify:monthly-credit-lots": "node scripts/verify-monthly-credit-lots.mjs",
     "verify:monthly-credit-expiry": "node scripts/verify-monthly-credit-expiry-flow.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
+    "verify:payment-policy-md": "node scripts/verify-payment-policy-md.mjs",
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:naming-prompt": "node scripts/verify-naming-prompt-flow.mjs",
     "verify:physiognomy-report": "node scripts/verify-physiognomy-report.mjs",

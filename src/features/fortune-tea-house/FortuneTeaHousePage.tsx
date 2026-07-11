@@ -128,6 +128,7 @@ type FortuneTeaConsultPostBody = FortuneTeaHouseConsultRequest & Record<string, 
 const FORTUNE_TEA_FEATURE_KEY_BY_MODE: Record<FortuneTeaHouseConsultMode, string> = {
   tarot: "fortune-tea-house-tarot-consultation",
   saju: "fortune-tea-house-saju-consultation",
+  sajuCompatibility: "fortune-tea-house-saju-compatibility-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
 };
 
@@ -314,7 +315,7 @@ const FORTUNE_TEA_PROGRESS_STEPS: FortuneTeaProgressStep[] = [
 ];
 
 function progressMessageForMode(step: FortuneTeaProgressStep, mode: FortuneTeaHouseConsultMode): string {
-  if (mode === "saju") return step.message;
+  if (mode === "saju" || mode === "sajuCompatibility") return step.message;
   if (mode === "sukuyo" && step.percent >= 35) {
     if (step.percent < 50) return "두 사람의 달빛 자리를 맞추고 있어요.";
     if (step.percent < 70) return "27숙의 거리와 관계 온도를 살피는 중이에요.";
@@ -824,6 +825,7 @@ export default function FortuneTeaHousePage() {
         calendarType: nextQuestionInput.calendarType,
         tarotSpread: nextQuestionInput.tarotSpread,
         sukuyo: nextQuestionInput.sukuyo,
+        sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
       });
       localPreviewResult = localDraft;
@@ -845,6 +847,7 @@ export default function FortuneTeaHousePage() {
         calendarType: nextQuestionInput.calendarType,
         tarotSpread: nextQuestionInput.tarotSpread,
         sukuyo: nextQuestionInput.sukuyo,
+        sajuCompatibility: nextQuestionInput.sajuCompatibility,
         question: nextQuestionInput.question,
       };
       const attemptId = createFortuneTeaAttemptId(requestPayload);
@@ -974,6 +977,8 @@ export default function FortuneTeaHousePage() {
         setNotice(
           nextQuestionInput.consultationMode === "saju"
             ? "연이가 사주의 드러난 흐름을 먼저 짚어 상담을 이어갔어요."
+            : nextQuestionInput.consultationMode === "sajuCompatibility"
+              ? "연이가 두 사람의 사주 명식을 먼저 짚어 상담을 이어갔어요."
             : nextQuestionInput.consultationMode === "sukuyo"
               ? "연이가 27숙 인연의 흐름을 먼저 짚어 상담을 이어갔어요."
               : "연이가 타로의 향을 먼저 엮어 상담을 이어갔어요.",
@@ -981,7 +986,7 @@ export default function FortuneTeaHousePage() {
       } else if (payload.generationMeta?.degraded) {
         setNotice("연이가 오늘은 향을 끝까지 우려내지 못해, 읽을 수 있는 부분부터 정성껏 담아 전했어요.");
       }
-      if (nextQuestionInput.consultationMode === "saju" || nextQuestionInput.consultationMode === "sukuyo") {
+      if (nextQuestionInput.consultationMode !== "tarot") {
         logSubmitStep("go result");
         goToStage("result");
         return;
@@ -1006,7 +1011,7 @@ export default function FortuneTeaHousePage() {
         };
         setConsultResult(nextResult);
         setNotice("로컬 UI 확인 모드로 상담 결과 초안을 열었어요. API 응답은 나중에 다시 확인해 주세요.");
-        if (nextQuestionInput.consultationMode === "saju" || nextQuestionInput.consultationMode === "sukuyo") {
+        if (nextQuestionInput.consultationMode !== "tarot") {
           goToStage("result");
           return;
         }

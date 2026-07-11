@@ -98,6 +98,10 @@ for (const marker of [
   'status: "generation_failed"',
   "{ status: 202 }",
   "{ status: 503 }",
+  // 즉시-202 + waitUntil 백그라운드 생성(ziwei-ai와 동일 패턴 — 동기 장기요청 500 방지).
+  "async function handleGenerate(request, env, ctx",
+  "if (ctx?.waitUntil)",
+  "ctx.waitUntil(runGeneration()",
 ]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
 }
@@ -114,7 +118,7 @@ assertIncludes(
 
 // ---- 5. worker/index.js: AI 라우트 보안 래퍼 적용 확인 ----
 const workerIndex = read("worker/index.js");
-assertIncludes("worker/index.js", workerIndex, 'runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes)');
+assertIncludes("worker/index.js", workerIndex, 'runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes, ctx)');
 
 // ---- 6. 진입점 등록 확인 ----
 assertIncludes("app/_lib/serviceSections.js", read("app/_lib/serviceSections.js"), '"/naming-ai"');
@@ -136,7 +140,6 @@ for (const file of [
 const formClient = read("app/naming-ai/NamingAiClient.tsx");
 for (const marker of [
   '"/api/naming-prompt/checkout"',
-  '"/api/naming-prompt/verify-payment"',
   '"/api/naming-prompt/generate"',
   "runBillingCoinGate",
   "beginPaidFeatureGateCheck",
@@ -146,7 +149,8 @@ for (const marker of [
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
 }
 // sajuEvidence는 더 이상 클라이언트가 계산/전송하지 않는다 — 서버 자체 계산 폴백에 맡긴다.
-for (const marker of ["sajuEvidence:", "buildNamingSajuEvidence", "namingSajuEvidence"]) {
+// verify-payment 선검사는 제거됐다 — /generate가 접근권을 직접 검증하므로 이용권 검사는 서버 1회뿐이어야 한다.
+for (const marker of ["sajuEvidence:", "buildNamingSajuEvidence", "namingSajuEvidence", '"/api/naming-prompt/verify-payment"']) {
   assertNotIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
 }
 

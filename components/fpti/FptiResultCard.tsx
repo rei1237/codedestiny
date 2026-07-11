@@ -319,6 +319,8 @@ async function fetchServerDeepReport(result: FptiAnalysisResult, signature: stri
         reportSignature: signature,
         reportId: signature,
         sessionId: signature,
+        profileId: signature,
+        selectedProfileId: signature,
         result,
       }),
       cache: "no-store",
@@ -579,7 +581,17 @@ export default function FptiResultCard({ result }: Props) {
         }
 
         const dbUnlocked = hasFptiPremiumUnlock(balance.data as unknown as Record<string, unknown>);
-        if (!dbUnlocked) {
+        // FPTI 프리미엄은 생년월일 시그니처 스코프 잠금이라 계정 전역 unlockMap엔 잡히지 않는다.
+        // 서버 심층 리포트 조회가 성공하면(이미 해금 상태) 그 자체가 이 시그니처 보유 증거이므로,
+        // 계정 전역 미보유여도 시그니처 스코프 해금을 복원한다(크로스 디바이스·캐시 삭제 대비).
+        let unlockedReport: FptiDeepReport | null = null;
+        try {
+          unlockedReport = await fetchServerDeepReport(result, signature);
+        } catch {
+          unlockedReport = null;
+        }
+        if (cancelled) return;
+        if (!dbUnlocked && !unlockedReport) {
           setAccessState({ isUnlocked: false });
           setDeepReport(normalizeDeepReport(createInitialDeepReport(result), false));
           return;
@@ -591,26 +603,18 @@ export default function FptiResultCard({ result }: Props) {
           transactionId: stored?.access?.transactionId,
           unlockedAt: stored?.access?.unlockedAt || new Date().toISOString(),
         };
-        try {
-          const unlockedReport = await fetchServerDeepReport(result, signature)
-            || buildFptiDeepReport({ result }, { unlocked: true });
-          setAccessState(nextAccess);
-          setDeepReport(normalizeDeepReport(unlockedReport, true));
-          setActiveChapter(0);
-          setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
-          safeWriteStored({
-            version: 1,
-            scope,
-            signature,
-            access: nextAccess,
-            report: normalizeDeepReport(unlockedReport, true),
-          });
-        } catch (e) {
-          // Fallback if unlock fails
-          setAccessState(nextAccess);
-          setDeepReport(normalizeDeepReport(resolveUnlockReport(result), true));
-          setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
-        }
+        const finalReport = unlockedReport || buildFptiDeepReport({ result }, { unlocked: true });
+        setAccessState(nextAccess);
+        setDeepReport(normalizeDeepReport(finalReport, true));
+        setActiveChapter(0);
+        setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
+        safeWriteStored({
+          version: 1,
+          scope,
+          signature,
+          access: nextAccess,
+          report: normalizeDeepReport(finalReport, true),
+        });
       } catch {
         // Keep current state when balance sync fails.
       } finally {
@@ -643,6 +647,9 @@ export default function FptiResultCard({ result }: Props) {
         requestId: requestIdStable,
         reportId: signature,
         sessionId: signature,
+        // 생년월일 파생 시그니처를 프로필 스코프 키로 넘겨 결제분을 영구 해금으로 저장한다.
+        profileId: signature,
+        selectedProfileId: signature,
       });
 
       if (!purchase.ok) {

@@ -1536,6 +1536,7 @@
       "purchase": "Menyemak kelulusan pembayaran dan hak akses."
     },
     "price5000": "5,000 KRW",
+    "perUse5000": "Setiap guna · 5,000 KRW",
     "permanentUnlockApprox5000": "Buka kunci kekal · kira-kira 5,000 KRW",
     "viewNow": "Lihat sekarang →",
     "permanentUnlock5000": "Buka kunci kekal untuk 5,000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "Sepuluh tuhan menggambarkan, sebagai sepuluh aksara, bagaimana huruf lain berkaitan dengan hari anda dilahirkan. Melihat watak yang dikumpulkan dalam carta anda membantu mendedahkan personaliti, bakat dan gaya cinta yang tersembunyi dengan jelas."
     },
     "premiumShowcase": {
-      "aria": "Lihat butiran untuk tiga tafsiran saju premium",
+      "aria": "Lihat butiran tafsiran saju premium",
       "eyebrow": "ANALISIS PREMIUM",
-      "title": "Tiga bacaan mendalam untuk aliran takdir yang lebih besar",
-      "subtitle": "Daewun, bacaan penuh, dan keserasian berkumpul di satu tempat supaya tekstur kehidupan menjadi lebih jelas.",
-      "expand": "Buka tiga bacaan",
+      "title": "Dua tafsiran mendalam untuk aliran besar takdir",
+      "subtitle": "Daewun dan tafsiran penuh dibuka secara kekal, ditambah analisis keserasian setiap guna, supaya tekstur kehidupan menjadi lebih jelas.",
+      "expand": "Buka kad tafsiran",
       "permanent": "Buka kunci kekal",
+      "perUse": "Bayaran setiap guna",
+      "compatCta": "Lihat keserasian →",
       "daewun": {
         "title": "Analisis Daewun",
         "desc": "Aliran daewun sepuluh tahun disepadukan melalui kekuatan sokongan, keseimbangan bermusim dan corak berikut. Ia menunjukkan bila untuk bergerak ke hadapan dan bila untuk bertahan.",

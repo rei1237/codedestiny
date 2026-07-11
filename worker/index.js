@@ -1124,7 +1124,8 @@ export default {
       }
 
       if (url.pathname === "/api/naming-prompt" || url.pathname.startsWith("/api/naming-prompt/")) {
-        return runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes);
+        // ctx: 작명 생성(generate)을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달(ziwei-ai와 동일 패턴).
+        return runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes, ctx);
       }
 
       if (url.pathname === "/api/access" || url.pathname.startsWith("/api/access/")) {
@@ -1274,14 +1275,14 @@ export default {
       }
 
       if (url.pathname === "/api/love-secret-ai" || url.pathname.startsWith("/api/love-secret-ai/")) {
-        return runAiRouteWithSecurity(request, env, "love-secret-ai", handleLoveSecretAiRoutes);
+        return runAiRouteWithSecurity(request, env, "love-secret-ai", handleLoveSecretAiRoutes, ctx);
       }
 
       if (url.pathname === "/api/saju-new-year" || url.pathname.startsWith("/api/saju-new-year/")) {
         return withCorsHeaders(request, env, await handleSajuNewYearRoutes(request, env));
       }
       if (url.pathname === "/api/new-year-ai" || url.pathname.startsWith("/api/new-year-ai/")) {
-        return runAiRouteWithSecurity(request, env, "new-year-ai", handleNewYearAiRoutes);
+        return runAiRouteWithSecurity(request, env, "new-year-ai", handleNewYearAiRoutes, ctx);
       }
 
       if (url.pathname === "/api/karma-destiny-ai" || url.pathname.startsWith("/api/karma-destiny-ai/")) {
@@ -1297,7 +1298,7 @@ export default {
       }
 
       if (url.pathname === "/api/life-book-ai" || url.pathname.startsWith("/api/life-book-ai/")) {
-        return runAiRouteWithSecurity(request, env, "life-book-ai", handleLifeBookAiRoutes);
+        return runAiRouteWithSecurity(request, env, "life-book-ai", handleLifeBookAiRoutes, ctx);
       }
 
       if (url.pathname === "/api/guardian" || url.pathname.startsWith("/api/guardian/")) {
@@ -1358,7 +1359,7 @@ export default {
         url.pathname === "/api/astrology-ai"
         || url.pathname.startsWith("/api/astrology-ai/")
       ) {
-        return runAiRouteWithSecurity(request, env, "astrology-ai", handleAstrologyAiRoutes);
+        return runAiRouteWithSecurity(request, env, "astrology-ai", handleAstrologyAiRoutes, ctx);
       }
 
 

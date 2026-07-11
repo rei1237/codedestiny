@@ -1536,6 +1536,7 @@
       "purchase": "Checking payment approval and access rights."
     },
     "price5000": "5,000 KRW",
+    "perUse5000": "Per use · 5,000 KRW",
     "permanentUnlockApprox5000": "Permanent unlock · about 5,000 KRW",
     "viewNow": "View now →",
     "permanentUnlock5000": "Permanent unlock for 5,000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "The ten gods describe, as ten characters, how the other letters relate to the day you were born. Seeing which characters gather in your chart helps reveal hidden personality, talent, and love style clearly."
     },
     "premiumShowcase": {
-      "aria": "View details for three premium saju interpretations",
+      "aria": "View details for premium saju interpretations",
       "eyebrow": "PREMIUM ANALYSIS",
-      "title": "Three deep readings for the larger flow of destiny",
-      "subtitle": "Daewun, full reading, and compatibility gather in one place so the texture of life becomes clearer.",
-      "expand": "Open three readings",
+      "title": "Two deep readings for the larger flow of destiny",
+      "subtitle": "Daewun and the full reading unlock permanently, with per-use compatibility added, so the texture of life becomes clearer.",
+      "expand": "Open the readings",
       "permanent": "Permanent unlock",
+      "perUse": "Per-use payment",
+      "compatCta": "See compatibility →",
       "daewun": {
         "title": "Daewun analysis",
         "desc": "The ten-year daewun flow is integrated through support strength, seasonal balance, and following pattern. It shows when to move forward and when to hold steady.",

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
@@ -1840,7 +1840,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
 }
 
-async function handleStart(request, env) {
+async function handleStart(request, env, ctx) {
   const route = "/api/new-year-ai/start";
   logNewYearAi("Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
@@ -1937,6 +1937,9 @@ async function handleStart(request, env) {
     }
   }
 
+  // 결제/이용권 확인·"생성중" 문서 기록이 끝난 이 시점에 즉시 202를 돌려주고, LLM 생성은 백그라운드(waitUntil)에서 완주한다.
+  // 클라는 /result 폴링으로 수렴한다(ziwei·찻집과 동일). 실패 시 환불·generation_failed 기록은 아래 catch가 백그라운드에서도 수행한다.
+  const runGeneration = async () => {
   try {
     const generated = await generateConsultationText(env, buildFirstPrompt(normalized.input, fortuneData), {
       minLength: 1000,
@@ -2027,6 +2030,15 @@ async function handleStart(request, env) {
     }, "warn");
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }
+  };
+
+  if (ctx?.waitUntil) {
+    // 실패는 위 catch에서 이미 환불·기록됐다 — 여기서는 미처리 rejection만 삼킨다.
+    ctx.waitUntil(runGeneration().catch(() => {}));
+    return json({ ok: true, sessionId, status: "generating", message: "올해의 흐름을 읽고 있습니다" }, { status: 202 });
+  }
+  // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지.
+  return await runGeneration();
 }
 
 async function handleMessage(request, env) {
@@ -2090,13 +2102,13 @@ async function handleResult(request, env) {
   return json(publicSession(doc));
 }
 
-export async function handleNewYearAiRoutes(request, env = {}) {
+export async function handleNewYearAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/new-year-ai");
 
   try {
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
-    if (method === "POST" && path === "/start") return await handleStart(request, env);
+    if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
@@ -2104,8 +2116,8 @@ export async function handleNewYearAiRoutes(request, env = {}) {
   } catch (error) {
     console.error("[new-year-ai]", clean(error?.code || error?.message || error, 500));
     logNewYearAi("Error", safeLogPayload({ route: "/api/new-year-ai", env, error }), "error");
-    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
-    if (isTransientMongoError(error)) {
+    // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
         retryable: true,

@@ -28,7 +28,7 @@ const SUKUYO_MIN_RESULT_CHARS = 5000;
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
 const TAROT_ALBUM_UNLOCK_COST = 10;
-const VALID_HONEY_CONSULTATION_MODES = new Set(["tarot", "saju", "sukuyo"]);
+const VALID_HONEY_CONSULTATION_MODES = new Set(["tarot", "saju", "sajuCompatibility", "sukuyo"]);
 const FORTUNE_TEA_HOUSE_FEATURE_KEYS = Object.freeze({
   tarot: "fortune-tea-house-tarot-consultation",
   saju: "fortune-tea-house-saju-consultation",
@@ -415,7 +415,13 @@ function checkRateLimit(request) {
 }
 
 function normalizeConsultationMode(value) {
-  return value === "saju" ? "saju" : value === "sukuyo" ? "sukuyo" : "tarot";
+  return value === "saju" ? "saju" : value === "sajuCompatibility" ? "sajuCompatibility" : value === "sukuyo" ? "sukuyo" : "tarot";
+}
+
+// 사주 궁합은 사주 딥리딩 파이프라인(deepSections·게이지·QA·프롬프트)을 그대로 공유한다.
+// 단독 사주와 다른 지점(결제 키·상대 명식 주입·궁합 프롬프트·상대 QA)만 별도로 분기한다.
+function isSajuFamilyMode(mode) {
+  return mode === "saju" || mode === "sajuCompatibility";
 }
 
 function normalizeTarotSpread(value) {
@@ -460,6 +466,30 @@ function normalizeSukuyoInput(value) {
   return {
     user: normalizeSukuyoPerson(source.user, "나"),
     partner: normalizeSukuyoPerson(source.partner, "상대"),
+    relationshipType: cleanText(source.relationshipType, 80),
+    focus: cleanText(source.focus, 80),
+    currentSituation: cleanMultiline(source.currentSituation, 800),
+  };
+}
+
+function normalizeSajuCompatPerson(value, fallbackName) {
+  const source = value && typeof value === "object" ? value : {};
+  const birthTimeUnknown = source.birthTimeUnknown === true;
+  return {
+    name: cleanText(source.name || fallbackName, 40),
+    birthDate: cleanText(source.birthDate, 20),
+    birthTime: birthTimeUnknown ? "" : cleanText(source.birthTime, 12),
+    birthTimeUnknown,
+    calendarType: source.calendarType === "lunar" ? "lunar" : "solar",
+    gender: cleanText(source.gender, 20),
+  };
+}
+
+function normalizeSajuCompatInput(value) {
+  const source = value && typeof value === "object" ? value : {};
+  return {
+    user: normalizeSajuCompatPerson(source.user, "나"),
+    partner: normalizeSajuCompatPerson(source.partner, "상대"),
     relationshipType: cleanText(source.relationshipType, 80),
     focus: cleanText(source.focus, 80),
     currentSituation: cleanMultiline(source.currentSituation, 800),
@@ -886,6 +916,7 @@ function normalizeRequest(body) {
     gender: cleanText(body?.gender, 20),
     calendarType,
     sukuyo: consultationMode === "sukuyo" ? normalizeSukuyoInput(body?.sukuyo) : undefined,
+    sajuCompatibility: consultationMode === "sajuCompatibility" ? normalizeSajuCompatInput(body?.sajuCompatibility) : undefined,
   };
 }
 
@@ -893,12 +924,14 @@ function resolveFortuneTeaHouseFeatureKey(body = {}, consultRequest = {}) {
   const explicit = cleanText(body?.featureKey || body?.payment?.featureKey || body?._paymentContext?.featureKey, 120);
   if (explicit && FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS.has(explicit)) {
     if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.sukuyo && consultRequest.consultationMode !== "sukuyo") return "";
-    if ((explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju || explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility) && consultRequest.consultationMode !== "saju") return "";
+    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility && consultRequest.consultationMode !== "sajuCompatibility") return "";
+    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju && consultRequest.consultationMode !== "saju") return "";
     if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot && consultRequest.consultationMode !== "tarot") return "";
     return explicit;
   }
 
   if (consultRequest.consultationMode === "sukuyo") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sukuyo;
+  if (consultRequest.consultationMode === "sajuCompatibility") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility;
   if (consultRequest.consultationMode === "saju") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju;
   return FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot;
 }
@@ -1613,7 +1646,30 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
   }
 }
 
-function buildSajuFactInput(request, saju, rule) {
+// 사주 궁합에서 상대 명식을 프롬프트 factInput에 주입한다. 상대 명식은 클라가 계산해 draftResult.sajuCompatibility.partner.saju로 넘겨준다.
+function buildSajuPartnerProfile(request, fallback) {
+  const partner = fallback?.sajuCompatibility?.partner;
+  const partnerSaju = partner?.saju;
+  if (!partner || !partnerSaju || partnerSaju.available !== true) return undefined;
+  return {
+    name: cleanText(partner.name, 40) || "상대",
+    gender: cleanText(partner.gender, 20),
+    birthDate: cleanText(partner.birthDate, 20),
+    birthTime: partner.birthTimeUnknown ? "" : cleanText(partner.birthTime, 20),
+    birthTimeUnknown: partner.birthTimeUnknown === true,
+    calendarType: partner.calendarType,
+    dayMaster: cleanText(partnerSaju.dayMaster, 80),
+    pillars: normalizeSajuFactText(partnerSaju.pillars),
+    fiveElementsBalance: normalizeSajuFactText(partnerSaju.fiveElements || partnerSaju.strongElements),
+    tenGodsBalance: combineSajuFactText(partnerSaju.tenGods, partnerSaju.tenGodSnapshot?.tenGodLabels),
+    strongElements: normalizeSajuFactText(partnerSaju.strongElements),
+    monthSeason: combineSajuFactText(partnerSaju.monthBranch, partnerSaju.season),
+    coreSummary: cleanMultiline(partnerSaju.coreSummary, 800),
+    myeongsikFacts: buildFortuneTeaSajuMyeongsikFacts(request, partnerSaju),
+  };
+}
+
+function buildSajuFactInput(request, saju, rule, fallback) {
   const monthSeason = combineSajuFactText(
     firstSajuFactText(saju, ["monthBranch", "wolji", "monthlyBranch", "monthPillar", "monthPillarText"]),
     firstSajuFactText(saju, ["season", "seasonStrength", "seasonalEnergy", "monthEnergy", "monthlyEnergy", "birthSeason"]),
@@ -1650,7 +1706,7 @@ function buildSajuFactInput(request, saju, rule) {
       calendarType: request.calendarType || saju?.birthSummary?.calendarType,
       birthPlace: cleanText(request.birthPlace || saju?.birthSummary?.birthPlace, 120),
     },
-    partnerProfile: undefined,
+    partnerProfile: buildSajuPartnerProfile(request, fallback),
     sajuFacts: {
       dayMaster: cleanText(saju?.dayMaster, 80),
       pillars: normalizeSajuFactText(saju?.pillars),
@@ -2115,26 +2171,26 @@ function buildFallbackSajuDeepSections(request, saju = {}) {
 function buildMinimalDraft(request) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const sajuRule = resolveSajuCategoryRule(request);
-  const modeLabel = consultationMode === "saju" ? "사주" : consultationMode === "sukuyo" ? "숙요점 궁합" : "타로";
-  const synthesisTitle = consultationMode === "saju" ? "연이가 읽은 사주의 결" : consultationMode === "sukuyo" ? "연이가 읽은 27숙 인연의 흐름" : "연이가 읽은 타로의 장면";
+  const modeLabel = consultationMode === "sajuCompatibility" ? "사주 궁합" : consultationMode === "saju" ? "사주" : consultationMode === "sukuyo" ? "숙요점 궁합" : "타로";
+  const synthesisTitle = consultationMode === "sajuCompatibility" ? "연이가 읽은 사주 궁합의 결" : consultationMode === "saju" ? "연이가 읽은 사주의 결" : consultationMode === "sukuyo" ? "연이가 읽은 27숙 인연의 흐름" : "연이가 읽은 타로의 장면";
   const synthesisSummary =
-    consultationMode === "saju"
+    isSajuFamilyMode(consultationMode)
       ? "오늘은 드러난 출생정보 안에서 확인되는 사주의 흐름만 차분히 살핍니다."
       : consultationMode === "sukuyo"
         ? "오늘은 두 사람의 27숙 인연의 흐름만 따라 관계의 온도를 살핍니다."
       : "오늘은 현재 질문과 카드의 상징만 따라가며 마음의 방향을 살핍니다.";
   const synthesisBridge =
-    consultationMode === "saju"
+    isSajuFamilyMode(consultationMode)
       ? "비어 있는 시간이나 기운은 지어내지 않고, 확인된 사주의 결 안에서 오늘 붙잡을 기준을 읽어 봅니다."
       : consultationMode === "sukuyo"
         ? "비어 있는 숙요 계산값이나 상대의 속마음은 지어내지 않고, 확인된 두 사람의 정보와 질문만 따라 읽어 봅니다."
       : "사주를 근거로 삼지 않고, 찻잔 위에 떠오른 카드의 장면과 지금 질문만 따라 다음 한 걸음을 읽어 봅니다.";
   const sajuFallbackSummary =
-    consultationMode === "saju"
+    isSajuFamilyMode(consultationMode)
       ? "드러난 출생정보가 충분한 자리까지만 살피고, 비어 있는 흐름은 지어내지 않습니다."
       : "오늘은 사주를 열지 않고, 찻잔과 타로 그리고 지금 적어 주신 질문의 기운을 중심으로 읽습니다.";
   const sajuFallbackPoint =
-    consultationMode === "saju"
+    isSajuFamilyMode(consultationMode)
       ? "확인된 출생정보와 질문의 결 안에서 마음의 방향을 살핍니다."
       : "현재 질문과 찻잔의 결을 중심으로 마음의 방향을 살핍니다.";
   const teaCup = {
@@ -2233,15 +2289,15 @@ function buildMinimalDraft(request) {
         birthPlace: cleanText(request.birthPlace, 120) || undefined,
         timezone: cleanText(request.timezone, 80) || undefined,
       },
-      deepSections: consultationMode === "saju" ? buildFallbackSajuDeepSections(request) : undefined,
-      oneLineAdvice: consultationMode === "saju" ? "오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요." : undefined,
+      deepSections: isSajuFamilyMode(consultationMode) ? buildFallbackSajuDeepSections(request) : undefined,
+      oneLineAdvice: isSajuFamilyMode(consultationMode) ? "오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요." : undefined,
       tenGodSnapshot: { available: false, tenGodLabels: [], reason: "사주 초안이 전달되지 않았습니다.", source: "unavailable" },
     },
     tarot,
     tarotSpread,
     tarotSpreadCards: buildMinimalTarotSpreadCards(tarotSpread, tarot),
     sukuyoCompatibility,
-    emotionAnalysis: consultationMode === "saju"
+    emotionAnalysis: isSajuFamilyMode(consultationMode)
       ? buildSajuCategoryGauges(request, { birthSummary: { birthTimeUnknown: request.birthTimeUnknown === true } })
       : [
           { label: "기대", value: 66, description: "아직 마음 한쪽에는 다시 부드럽게 열리고 싶은 빛이 남아 있습니다.", tone: "gold" },
@@ -2262,7 +2318,7 @@ function buildMinimalDraft(request) {
     },
     choiceSimulation: selectedChoiceSimulation,
     actionPrescription: selectedActionPrescription,
-    luckyKeywords: consultationMode === "saju"
+    luckyKeywords: isSajuFamilyMode(consultationMode)
       ? [request.selectedTeaCupName, sajuRule.category, "명식 근거", "오늘의 기준"]
       : consultationMode === "sukuyo"
         ? [request.selectedTeaCupName, "인연", "속도 확인"]
@@ -2313,7 +2369,7 @@ function normalizeDraftResult(candidate, request) {
   const normalizedDeepLength = normalizedDeepSections.map((section) => section.body).join("\n").replace(/\s/g, "").length;
   const requiredSajuSections = getSajuRequiredSectionTitles(request);
   const hasRequiredSajuTitles = requiredSajuSections.every((title) => normalizedDeepSections.some((section) => section.title === title));
-  if (request.consultationMode === "saju") {
+  if (isSajuFamilyMode(request.consultationMode)) {
     mergedSaju.deepSections = normalizedDeepSections.length >= requiredSajuSections.length && normalizedDeepLength >= getSajuMinResultChars(request) && hasRequiredSajuTitles
       ? normalizedDeepSections
       : buildFallbackSajuDeepSections(request, mergedSaju);
@@ -2322,7 +2378,7 @@ function normalizeDraftResult(candidate, request) {
       400,
     ) || "오늘은 답을 서두르기보다, 내 마음이 오래 머문 이유와 지금 지켜야 할 기준을 한 잔의 차처럼 천천히 나누어 보세요.";
   }
-  const normalizedEmotionAnalysis = request.consultationMode === "saju"
+  const normalizedEmotionAnalysis = isSajuFamilyMode(request.consultationMode)
     ? buildSajuCategoryGauges(request, mergedSaju)
     : Array.isArray(draft.emotionAnalysis) && draft.emotionAnalysis.length ? draft.emotionAnalysis : fallback.emotionAnalysis;
   return {
@@ -2335,6 +2391,8 @@ function normalizeDraftResult(candidate, request) {
     tarotSpread: normalizeTarotSpread(draft.tarotSpread || request.tarotSpread),
     tarotSpreadCards: Array.isArray(draft.tarotSpreadCards) && draft.tarotSpreadCards.length ? draft.tarotSpreadCards : fallback.tarotSpreadCards,
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, draft.sukuyoCompatibility),
+    // 사주 궁합의 두 사람 명식 스냅샷(user/partner)은 클라 초안에서 온다 — 워커는 이 구조를 보존한다.
+    sajuCompatibility: draft.sajuCompatibility && typeof draft.sajuCompatibility === "object" ? draft.sajuCompatibility : fallback.sajuCompatibility,
     emotionAnalysis: normalizedEmotionAnalysis,
     yeoniReading: draft.yeoniReading && typeof draft.yeoniReading === "object" ? { ...fallback.yeoniReading, ...draft.yeoniReading } : fallback.yeoniReading,
     synthesis: draft.synthesis && typeof draft.synthesis === "object" ? { ...fallback.synthesis, ...draft.synthesis } : fallback.synthesis,
@@ -2452,6 +2510,8 @@ function mergeLlmResult(fallback, parsed) {
     tarotSpread: fallback.tarotSpread,
     tarotSpreadCards: fallback.tarotSpreadCards,
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, safeParsed.sukuyoCompatibility),
+    // 사주 궁합 두 사람 명식 스냅샷은 결정적 계산값이므로 LLM 출력으로 덮지 않고 fallback 구조를 보존한다.
+    sajuCompatibility: fallback.sajuCompatibility,
     emotionAnalysis: mergeEmotionAnalysis(safeParsed.emotionAnalysis, fallback.emotionAnalysis),
     yeoniReading: {
       ...fallback.yeoniReading,
@@ -2796,8 +2856,17 @@ function assertConsultQuality(result, fallback) {
   if (!Array.isArray(result.luckyKeywords) || result.luckyKeywords.length < 2) {
     throw new Error("fortune tea house quality failed: luckyKeywords");
   }
-  if (fallback.consultationMode === "saju") {
+  if (isSajuFamilyMode(fallback.consultationMode)) {
     assertSajuDeepQuality(result, fallback);
+  }
+  // 사주 궁합은 상대 명식 해석이 서사에 실제로 담겼는지 확인한다(본인 위주로 흐르는 것을 차단).
+  if (fallback.consultationMode === "sajuCompatibility" && fallback.sajuCompatibility?.available) {
+    const joined = collectConsultText(result);
+    const partner = fallback.sajuCompatibility.partner || {};
+    const partnerName = cleanText(partner.name, 60);
+    if (partnerName && !joined.includes(partnerName)) {
+      throw new Error("fortune tea house quality failed: saju compat partner not interpreted");
+    }
   }
   if (fallback.consultationMode === "tarot") {
     assertTarotDeepQuality(result, fallback);
@@ -2817,13 +2886,24 @@ const sharedOutputRules = [
 ];
 
 function buildSystemPrompt(consultationMode = "tarot") {
-  if (consultationMode === "saju") {
+  if (isSajuFamilyMode(consultationMode)) {
+    const compatLines = consultationMode === "sajuCompatibility"
+      ? [
+          "이번 상담은 사주 '궁합' 상담이다. selfProfile은 본인, partnerProfile은 상대의 명식이다. 두 사람 각각의 사주를 산출·해석한 뒤 두 명식을 대조해 궁합을 푼다.",
+          "partnerProfile(상대 명식)의 일간·오행·십성을 본인과 동등한 분량과 깊이로 반드시 해석한다. 본인만 풀고 상대를 한두 줄로 요약만 하는 것은 실패다.",
+          "두 일간의 오행 관계(상생/상극/동류/보완), 오행의 보완과 충돌, 십성 대조를 근거로 두 사람이 어디서 맞물리고 어디서 부딪히는지 짚고, 관계의 운 흐름과 현실 조언을 함께 준다.",
+          "글의 흐름은 ①본인 사주 핵심 → ②상대 사주 핵심 → ③두 명식의 상호작용·궁합 → ④관계 운의 흐름과 조언 순서로, 어느 한쪽으로 치우치지 않게 쓴다. 상대는 partnerProfile.name의 이름으로 부른다.",
+        ]
+      : [];
     return [
       ...yeoniPersonaPrompt,
-      "이번 상담은 사주 상담이다. 타로 카드, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
+      consultationMode === "sajuCompatibility"
+        ? "이번 상담은 사주 궁합 상담이다. 타로 카드, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다."
+        : "이번 상담은 사주 상담이다. 타로 카드, 점성술, 숙요점, 자미두수는 언급하지도 근거로 쓰지도 않는다.",
       "연이는 명리학 30년의 대가다. 원국을 전문가의 깊이로 읽되, 손님에게는 연이의 온기로 풀어 건넨다.",
       ...baseSajuSystemPrompt,
       ...sajuSafetyRules,
+      ...compatLines,
       "해석은 반드시 이 순서로 사고하되 결과는 자연스러운 이야기로 푼다: 1) 일간이 월지 계절에서 힘을 얻는지 잃는지와 생극제화, 2) 오행 분포의 과다/부족과 보완 지점, 3) 십성 배치가 만드는 표현(식상)·현실(재성)·절제(관성)·생각(인성)·자아(비겁)의 균형, 4) 지지 합충형해파가 실제 생활에서 만드는 마찰과 조화, 5) 지금 대운·세운이 순풍인지 역풍인지.",
       "각 강점과 주의점에는 명리학적 근거를 최소 1개씩 붙인다. '일간이 ○인데 월지가 ○라서 이런 흐름이 생겨요'처럼 근거를 밝혀서 푼다.",
       "주의점은 위협이 아니라 '이 부분만 알고 있으면 돼요'의 온도로 말한다.",
@@ -2879,18 +2959,24 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
   const sajuRule = resolveSajuCategoryRule(request);
   const tarotRule = resolveTarotCategoryRule(request);
   const requiredSajuSections = getSajuRequiredSectionTitles(request);
-  const sajuFactInput = consultationMode === "saju" ? buildSajuFactInput(request, fallback.saju, sajuRule) : undefined;
+  const isSajuCompat = consultationMode === "sajuCompatibility";
+  const partnerName = cleanText(fallback?.sajuCompatibility?.partner?.name, 40) || "상대";
+  const sajuFactInput = isSajuFamilyMode(consultationMode) ? buildSajuFactInput(request, fallback.saju, sajuRule, fallback) : undefined;
   const tarotFactInput = consultationMode === "tarot" ? buildTarotFactInput(request, fallback, tarotRule) : undefined;
   const sukuyoFactInput = consultationMode === "sukuyo" ? buildSukuyoFactInput(request, fallback) : undefined;
   const focusRule =
-    consultationMode === "saju"
-      ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
+    isSajuCompat
+      ? `사주 궁합 상담만 작성한다. sajuFactInput.selfProfile(본인)과 sajuFactInput.partnerProfile(상대 ${partnerName})의 두 명식을 각각 일간·오행·십성 근거로 해석하고 대조한다. 상대 명식(partnerProfile) 해석을 본인과 동등한 분량으로 반드시 포함하고, 타로·점성술·숙요점은 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}과 두 일간의 상생·상극 관계다.`
+      : consultationMode === "saju"
+        ? `사주 상담만 작성한다. ${sajuRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${sajuRule.concept}"이다. 기존 사주 초안, 일간, 월지/계절, 오행, 십성, 천간·지지 관계, 현재 운, 출생정보 안에서 확인되는 흐름만 말하고 타로 카드는 상담 근거로 쓰지 않는다. 우선 해석 렌즈는 ${sajuRule.focus.join(", ")}이다.`
       : consultationMode === "sukuyo"
         ? "숙요점 궁합 상담만 작성한다. sukuyoFactInput의 사용자 본명숙, 상대 본명숙, 관계 유형, 거리, 방향별 관계, 오행 조화, 영역 점수, 관계 카테고리만 근거로 삼고 타로 카드와 사주 오행·십성은 상담 근거로 쓰지 않는다."
       : `타로 상담만 작성한다. ${tarotRule.category} 카테고리의 관점으로만 쓴다. 상담 컨셉은 "${tarotRule.concept}"이다. tarotFactInput의 카드명, 정방향/역방향, 전통 의미, 배열법, 위치 의미를 바꾸지 말고 질문 맥락과 연결해 실제 리딩처럼 쓴다. 우선 해석 렌즈는 ${tarotRule.focus.join(", ")}이다.`;
   const bridgeRule =
-    consultationMode === "saju"
-      ? "synthesis.sajuTarotBridge는 이름과 달라도 사주-only 요약으로 쓴다. 타로, 카드, card라는 단어를 상담 근거처럼 쓰지 않는다."
+    isSajuCompat
+      ? "synthesis.sajuTarotBridge는 이름과 달라도 사주 궁합-only 요약으로 쓴다. 두 사람의 명식이 만나는 결을 한두 문장으로 잇고 타로, 카드, 점성술, 숙요점을 근거처럼 쓰지 않는다."
+      : consultationMode === "saju"
+        ? "synthesis.sajuTarotBridge는 이름과 달라도 사주-only 요약으로 쓴다. 타로, 카드, card라는 단어를 상담 근거처럼 쓰지 않는다."
       : consultationMode === "sukuyo"
         ? "synthesis.sajuTarotBridge는 이름과 달라도 숙요점 궁합-only 요약으로 쓴다. 타로, 카드, 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다."
       : "synthesis.sajuTarotBridge는 이름과 달라도 타로-only 요약으로 쓴다. 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다.";
@@ -2906,7 +2992,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
       sajuFactInput,
       tarotFactInput,
       sukuyoFactInput,
-      sajuQualityRule: consultationMode === "saju"
+      sajuQualityRule: isSajuFamilyMode(consultationMode)
         ? {
             category: sajuRule.category,
             resultKey: sajuRule.resultKey,
@@ -2914,8 +3000,20 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             targetKoreanChars: SAJU_TARGET_RESULT_CHARS,
             lengthRule: `공백 제외 ${getSajuMinResultChars(request)}자 이상, 전체 ${SAJU_TARGET_RESULT_CHARS}자 안팎으로 쓴다. 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.`,
             requiredDeepSections: requiredSajuSections,
-            categorySchema: sajuResultSchemaByCategory[sajuRule.id],
-            thinkingOrder: [
+            categorySchema: isSajuCompat ? undefined : sajuResultSchemaByCategory[sajuRule.id],
+            compatibilityRule: isSajuCompat
+              ? `본인(selfProfile)과 상대(partnerProfile, ${partnerName})의 두 명식을 각각 해석한 뒤 대조한다. deepSections 안에서 상대 명식(일간·오행·십성) 해석을 본인과 동등한 분량으로 반드시 다루고, 두 일간의 상생·상극·동류·보완과 십성 대조로 궁합을 푼다. 상대를 요약만 하고 본인 위주로 흐르면 실패다.`
+              : undefined,
+            thinkingOrder: isSajuCompat
+              ? [
+                  "본인(selfProfile) 일간이 월지 계절에서 힘을 얻는지 잃는지, 오행 분포, 십성 배치를 먼저 정리한다.",
+                  `상대(partnerProfile, ${partnerName})의 일간·오행·십성을 본인과 같은 깊이로 정리한다.`,
+                  "두 일간의 오행 관계(상생/상극/동류/보완)와 오행의 보완·충돌을 판정한다.",
+                  "십성 대조로 두 사람의 표현·현실·절제·생각 방식이 어디서 맞고 어디서 어긋나는지 본다.",
+                  "두 사람의 현재 대운·세운이 관계에 순풍인지 역풍인지 본다.",
+                  "위 근거들을 질문 한 문장과 연결해 하나의 궁합 이야기로 엮는다.",
+                ]
+              : [
               "일간이 월지 계절에서 힘을 얻는지 잃는지, 생극제화의 방향을 먼저 본다.",
               "오행 분포의 과다/부족과 그것이 삶에서 나타나는 장면을 본다.",
               "십성 배치가 만드는 표현·현실·절제·생각·자아의 균형을 본다.",
@@ -2924,7 +3022,18 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "myeongsikFacts가 있으면 십성 확정표(tenGodFixedTable)를 벗어난 십성을 만들지 말고, 지장간 투간/투출·개고·도충·운 흐름(luckRows) 사실을 해당 챕터의 근거로 자연스럽게 인용한다.",
               "위 근거들을 손님의 질문 한 문장과 연결해 하나의 이야기로 엮는다.",
             ],
-            resultFlow: [
+            resultFlow: isSajuCompat
+              ? [
+                  "먼저 본인(selfProfile)이 어떤 사람인지 일간·월지/계절·오행·십성 근거로 짚는다.",
+                  `이어서 상대(${partnerName}, partnerProfile)가 어떤 사람인지 본인과 동등한 분량으로 같은 근거로 짚는다. 상대 명식을 한두 줄로 요약만 하지 않는다.`,
+                  "두 사람의 마음·행동 패턴(십성)이 관계에서 어떻게 만나고 어긋나는지 대조한다.",
+                  "두 명식이 함께일 때 살아나는 강점 2~3가지를 명리 근거와 함께 짚는다.",
+                  "부딪히기 쉬운 지점 2~3가지를 위협이 아니라 '이 부분만 알면 돼요'의 온도로 짚는다.",
+                  "두 사람의 대운·세운이 관계에 부는 순풍·역풍을 짚는다.",
+                  "찻집의 처방: 두 사람이 오늘부터 할 수 있는 관계 실천을 준다.",
+                  "연이의 한마디: 따뜻한 제안 하나로 마무리한다.",
+                ]
+              : [
               "타고난 결: 손님이 어떤 사람인지 타고난 성향부터 먼저 짚는다. 일간과 월지/계절, 오행 분포를 근거로 '일간이 ○인데 월지가 ○라서'처럼 근거를 밝혀, 신뢰가 서도록 성향을 전반적으로 풀어준다.",
               "첫 잔: 인사와 첫인상. 앞서 읽은 성향을 이어받아, 그런 손님이 이 질문을 들고 온 이유를 한 폭의 그림처럼 짧게 연다.",
               "마음의 물길: 십성 배치가 만드는 마음과 행동의 패턴을 현실 장면으로 풀어준다.",
@@ -2952,7 +3061,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             birthTimeUnknownRule: "출생시간이 없거나 birthTimeUnknown이 true이면 세부 시주 해석 제한을 명시하고, 생년월일 중심의 큰 흐름으로 말한다.",
             stateGaugeRule: "emotionAnalysis는 감정 분석이 아니라 선택된 찻잔의 상태 게이지로 쓴다. label은 categoryGaugeLabels 중에서만 사용하고, description에는 일간·오행·십성 중 최소 하나의 근거를 붙인다.",
             categoryGaugeLabels: sajuRule.gauges.map(([label]) => label),
-            partnerRule: "partnerProfile이 없으면 상대 마음, 궁합, 상대 명식을 단정하지 말고 내 사주 기준의 관계 흐름으로 제한한다.",
+            partnerRule: isSajuCompat
+              ? `partnerProfile(상대 ${partnerName})의 일간·오행·십성을 반드시 본인과 동등한 분량으로 해석하고, 두 명식을 대조해 궁합과 관계 흐름을 푼다. 상대를 요약만 하고 본인 위주로 흐르면 실패다.`
+              : "partnerProfile이 없으면 상대 마음, 궁합, 상대 명식을 단정하지 말고 내 사주 기준의 관계 흐름으로 제한한다.",
           }
         : undefined,
       tarotQualityRule: consultationMode === "tarot"
@@ -3021,7 +3132,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         ? {
             lengthRule: "전체 10000~15000자 분량으로, 챕터마다 호흡이 있는 문단으로 깊게 쓴다. 지식을 뽐내지 않고 손님 눈높이로 푼다.",
             resultFlow: [
-              "두 별의 타고난 결: 관계를 논하기 전에, 사용자의 본명숙과 상대의 본명숙이 각각 어떤 타고난 성향·기질인지 성수(星宿)의 상징과 함께 먼저 짚어준다. 각 숙의 성격이 실제 성향으로 어떻게 드러나는지 풀어, 신뢰가 서도록 성향부터 전반적으로 소개한다.",
+              "두 별의 타고난 결: 관계를 논하기 전에, 사용자의 본명숙과 상대의 본명숙이 각각 어떤 타고난 성향·기질인지 성수(星宿)의 상징과 함께 먼저 짚어준다. 사용자와 상대에게 비슷한 분량의 문단을 각각 배분해, 어느 한쪽만 자세히 풀고 다른 쪽을 한두 줄로 요약하지 않는다. 각 숙의 성격이 실제 성향으로 어떻게 드러나는지 풀어, 신뢰가 서도록 성향부터 전반적으로 소개한다.",
               "두 사람의 인연 관계: 앞서 읽은 두 사람의 타고난 결을 바탕으로, 전달받은 숙 거리와 관계 유형 판정을 근거로 이 관계가 어떤 결인지 푼다. '사용자의 ○숙에서 상대의 △숙은 ○ 자리에 있어요, 그래서...'처럼 근거를 밝힌다.",
               "방향의 정직함: typeAToB와 typeBToA가 다르면 한쪽이 주는 관계인지, 양방향인지 정직하게 설명한다.",
               "서로에게 주는 것: 각 숙의 고유 성격을 근거로 관계의 강점을 푼다.",
@@ -3079,6 +3190,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             },
             distanceRule: "same/near/middle/far와 distanceLabel을 반드시 문장에 반영한다. 가까운 거리는 빠른 끌림과 예민함, 중간 거리는 조율과 확인, 먼 거리는 시간과 약속의 간격으로 풀어준다. relation.forwardDistance와 relation.reverseDistance가 다르면 relation.directionalDistanceGuide를 근거로 '다가가는 속도'와 '회복의 간격'의 비대칭을 실제 칸수로 구분해 말한다 — 두 방향을 하나의 거리처럼 뭉뚱그리면 실패다.",
             categoryAdviceRule: sukuyoFactInput?.categoryAdviceRule,
+            balanceRule: "사용자와 상대 두 사람의 본명숙 해석은 반드시 동등한 비중·분량으로 쓴다. 상대의 본명숙(sukuyoFactInput.partner.sukuyoName) 성향·기질을 사용자와 같은 깊이로 서술하고, 상대를 요약만 하거나 사용자 위주로 흐르는 것은 실패다. summary·yeoniReading.main·strengths 어디에서든 상대의 본명숙이 실제 성향으로 해석되어야 한다.",
             uncertaintyRule: "sukuyoFactInput에 없는 숙, 관계 유형, 거리, 방향 의미는 만들지 않는다. 불명확한 항목은 입력값 기준으로만 조심스럽게 말한다.",
             noGenericAdvice: ["궁합이 좋습니다", "궁합이 나쁩니다", "천생연분입니다", "최악입니다", "무조건 헤어져야 합니다", "상대도 같은 마음입니다"],
           }
@@ -3107,7 +3219,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         sessionTitle: "string",
         questionSummary: "string",
         teaCup: "preserve",
-        saju: consultationMode === "saju"
+        saju: isSajuFamilyMode(consultationMode)
           ? `available/title/summary/keyPoints preserve/birthSummary preserve/dayMaster preserve/pillars preserve/fiveElements preserve/primaryTenGod preserve/secondaryTenGods preserve/deepSections required with exact category titles for ${sajuRule.resultKey}/cautionReading preserve/actionPrescription preserve/oneLineAdvice/tenGodSnapshot preserve`
           : "omit — 초안 값이 그대로 유지된다",
         tarot: consultationMode === "tarot" ? "preserve card fields, improve only reading" : "omit — 초안 값이 그대로 유지된다",
@@ -3119,7 +3231,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         emotionAnalysis: "4-5 items with label/value/description/tone",
         yeoniReading: "intro/main/advice/caution",
         synthesis: "title/summary/sajuTarotBridge",
-        choiceSimulation: consultationMode === "tarot" ? `4 items for ${tarotRule.requiredSections.find((section) => /플랜/.test(section)) || "category-specific action plan"}` : consultationMode === "saju" ? "3-4 category-specific practical choices; include the plan window named in saju.deepSections" : "3-4 sukuyo relationship operation choices",
+        choiceSimulation: consultationMode === "tarot" ? `4 items for ${tarotRule.requiredSections.find((section) => /플랜/.test(section)) || "category-specific action plan"}` : isSajuFamilyMode(consultationMode) ? "3-4 category-specific practical choices; include the plan window named in saju.deepSections" : "3-4 sukuyo relationship operation choices",
         actionPrescription: "string",
         luckyKeywords: "string[]",
         closingLine: "string",
@@ -3153,9 +3265,9 @@ async function generateConsultResult(request, fallback, env) {
   const maxAttempts = 2;
   // 잘림(MAX_TOKENS) 발생 시 다음 시도에서 출력 토큰을 상향해 긴 상담문이 완결되도록 한다.
   // gemini-2.5-flash 출력 상한 아래(40k)로 캡, 잘림이 없으면 base 토큰 그대로 유지.
-  const baseMaxOutputTokens = consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000;
+  const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000;
   const maxOutputTokensCap = 40000;
-  const timeoutMs = consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000;
+  const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000;
   let lastError = null;
   let lastCandidate = null;
   let truncationRetries = 0;
@@ -3777,7 +3889,7 @@ function buildHoneyLetterPrompt(resultDoc, attempt = 0) {
       questionSummary: result.questionSummary || resultDoc.questionSummary,
       teaCup: result.teaCup,
       tarot: resultDoc.consultationMode === "tarot" ? result.tarot : undefined,
-      saju: resultDoc.consultationMode === "saju" ? {
+      saju: isSajuFamilyMode(resultDoc.consultationMode) ? {
         dayMaster: result.saju?.dayMaster,
         dominantElements: result.saju?.dominantElements,
         primaryTenGod: result.saju?.primaryTenGod,
@@ -3833,7 +3945,7 @@ function assertHoneyLetterQuality(letter, resultDoc) {
       throw new Error("honey letter quality failed: tarot evidence");
     }
   }
-  if (resultDoc.consultationMode === "saju") {
+  if (isSajuFamilyMode(resultDoc.consultationMode)) {
     const evidence = [
       result.saju?.dayMaster,
       result.saju?.primaryTenGod?.nameKo,

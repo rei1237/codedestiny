@@ -8,6 +8,7 @@ import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/Page
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLoveSecretPreviewPayload } from "@/lib/dev-preview/fixtures/love-secret";
 import styles from "./LoveSecretAiResultClient.module.css";
@@ -336,7 +337,8 @@ export default function LoveSecretAiResultClient() {
           ? buildDevPreviewResponse(buildLoveSecretPreviewPayload(previewState), previewState === "failed" ? 503 : 200)
           : await authFetch(buildResultEndpoint());
         const payload = await response.json().catch(() => ({})) as Consultation;
-        if (response.status === 202) {
+        // 일시적 DB/인증 장애(503·retryable)는 202와 동일하게 재폴링해 자가 복구한다(하드 종료 금지).
+        if (response.status === 202 || isRetriableResultPollFailure(response.status, payload)) {
           if (!alive) return;
           attempts += 1;
           if (attempts >= maxAttempts) {

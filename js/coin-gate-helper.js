@@ -5,7 +5,7 @@
     return;
   }
 
-  const COIN_GATE_TIMEOUT_MS = 25000;
+  const COIN_GATE_TIMEOUT_MS = 45000;
   const COIN_GATE_HELPER_TEXT_TRANSLATIONS = {
     ko: {
       premiumPdf: '프리미엄 PDF',

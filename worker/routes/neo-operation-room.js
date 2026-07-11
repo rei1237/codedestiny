@@ -284,6 +284,24 @@ async function verifyAccessToken(env, token) {
   return payload;
 }
 
+// 폴링(/result)에서 로그인 세션이 일시적으로 확인되지 않을 때, 헤더/쿼리의 네오 액세스 토큰으로 신원을 폴백한다.
+// 서명·TTL·serviceKey/featureKey가 검증된 토큰의 userId만 신뢰하며, 그 값으로 자기 세션만 조회한다(조회 전용).
+async function resolveResultUserIdFromToken(request, env) {
+  const url = new URL(request.url);
+  const token = clean(
+    request.headers.get("x-neo-operation-room-access-token") || url.searchParams.get("accessToken"),
+    2048,
+  );
+  if (!token) return "";
+  try {
+    const payload = await verifyAccessToken(env, token);
+    const userId = clean(payload?.userId);
+    return mongoose.Types.ObjectId.isValid(userId) ? userId : "";
+  } catch (error) {
+    return "";
+  }
+}
+
 async function loadUser(userId) {
   if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
   return User.findById(userId)
@@ -1458,7 +1476,25 @@ async function handleResult(request, env, pathId = "") {
   const rawId = pathId || url.searchParams.get("attemptId") || url.searchParams.get("id") || "";
   const resultId = clean(decodeURIComponent(rawId), 120);
   if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 로그아웃 유발 401/하드 500이
+  // 아니라 재시도 가능한 503으로 흘려보내 클라가 계속 폴링하도록 한다(찻집과 동일한 완충).
+  let auth = null;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    return json({
+      ok: false,
+      retryable: true,
+      reason: "DB_DEGRADED",
+      message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: 503 });
+  }
+  // 로그인 쿠키 판정이 흔들려도, ensure-access가 발급한 서명 액세스 토큰(userId 포함)으로 신원을 확정한다.
+  // 토큰의 userId로만 자기 세션을 조회하므로 타인 데이터 접근이 불가능하다(이용권/월정석 경로 강화).
+  if (!auth) {
+    const fallbackUserId = await resolveResultUserIdFromToken(request, env);
+    if (fallbackUserId) auth = { userId: fallbackUserId };
+  }
   if (!auth) return loginRequired();
   await connectDb(env);
   const consultation = await NeoOperationRoomConsultation.findOne({

@@ -232,7 +232,9 @@
 }
 
 .entryBrief {
-  display: grid;
+  /* 히어로 하단 브리핑 카드(상담 방식/입력 흐름 등)는 노출하지 않는다.
+     서버 렌더 텍스트는 DOM에 남아 SEO 콘텐츠 게이트에는 영향 없음. */
+  display: none;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   max-width: 560px;

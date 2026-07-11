@@ -9,6 +9,7 @@ import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
 import { buildLifeBookPreviewPayload } from "@/lib/dev-preview/fixtures/life-book";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
@@ -285,6 +286,13 @@ function LifeBookResultContent() {
       rateLimitStreakRef.current = 0;
       if (response.status === 202 && payload?.status === "generating") {
         setResult(payload);
+        setError("");
+        setLoading(false);
+        return;
+      }
+      if (isRetriableResultPollFailure(response.status, payload)) {
+        // 일시적 DB/인증 장애 — 하드 종료하지 말고 "생성 중"으로 두어 폴링이 계속 재시도(자가 복구)하게 한다.
+        setResult((prev) => prev ?? { status: "generating", message: "인생의 책을 준비하고 있습니다." });
         setError("");
         setLoading(false);
         return;

@@ -458,60 +458,9 @@ function ensureIfaCoinGate(){
       }catch(_e){ resolve(false); }
       return;
     }
-    // fallback: destiny-profile.js 미로드 환경에서 직접 처리
-    var tk = '';
-    try { tk = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-    if (!tk) {
-      alert('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.');
-      resolve(false); return;
-    }
-    var bal = 0;
-    try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); bal = Number(_u && _u.points) || 0; } catch(_) {}
-    if (bal < IFA_COIN_COST) {
-      alert('🪙 IFÀ 오라클 리딩\n\n' + (IFA_COIN_COST * 100).toLocaleString('ko-KR') + '원 결제가 필요합니다.\n현재 보유 원화 가치: ' + (bal * 100).toLocaleString('ko-KR') + '원\n\n결제 후 다시 시도해 주세요.');
-      resolve(false); return;
-    }
-    if (!confirm('IFÀ 오라클 리딩\n\n이용할 때마다 결제 권한 확인이 필요합니다.\n\n진행하시겠습니까?')) {
-      resolve(false); return;
-    }
-    var requestId = 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-    setIfaPaymentPending(true,'IFÀ 오라클 리딩 결제를 확인하는 중입니다...');
-    fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + tk},
-      body: JSON.stringify({
-        categoryKey: 'oracle',
-        subFeatureKey: 'ifa-oracle',
-        featureKey: 'ifa-oracle',
-        reason: 'IFÀ 오라클 리딩',
-        forceDeduct: true,
-        requestId: requestId
-      })
-    })
-    .then(function(r){ return r.json().then(function(d){ return {ok: r.ok, data: d}; }); })
-    .then(function(res){
-      if (res.ok) {
-        try {
-          var _u2 = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
-          var _coinData = (res.data && res.data.data) || {};
-          var _coinUser = _coinData.user || (_coinData.consume && _coinData.consume.user) || null;
-          _u2.points = (_coinUser && typeof _coinUser.points === 'number')
-            ? _coinUser.points
-            : Math.max(0, bal - IFA_COIN_COST);
-          localStorage.setItem('fortune_auth_user', JSON.stringify(_u2));
-        } catch(_) {}
-        resolve(true);
-      } else {
-        var _msg =
-          (res.data && res.data.error && res.data.error.message) ||
-          (res.data && res.data.message) ||
-          '원화 결제 확인에 실패했습니다.';
-        alert(_msg);
-        resolve(false);
-      }
-    })
-    .catch(function(){ alert('결제 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.'); resolve(false); })
-    .finally(function(){ setIfaPaymentPending(false); });
+    // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct) 대신 안내.
+    alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    resolve(false);
   });
 }
 
@@ -558,16 +507,17 @@ function getInterp(l,r,cat){
 
 async function cast(){
   if(busy)return;
+  busy=true;                       // 게이트 확인 전에 재진입 잠금(더블탭 무력화)
+  const castBtn=el("castBtn");
+  castBtn.disabled=true;            // 즉시 비활성화
   const gateOk=await ensureIfaCoinGate();
   if(!gateOk){
+    busy=false;                     // 게이트 미통과 시 잠금·버튼 원복
+    castBtn.disabled=false;
     setPhase("의식이 보류되었습니다 • 결제 권한 확인 후 다시 시도해 주세요");
     return;
   }
-  busy=true;
   startAmbience();
-
-  const castBtn=el("castBtn");
-  castBtn.disabled=true;
   el("opon").classList.add("spin");
   el("reveal").style.display="none";
   el("oracleBox").style.display="none";

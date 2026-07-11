@@ -1536,6 +1536,7 @@
       "purchase": "Vérification de l'approbation du paiement et des droits d'accès."
     },
     "price5000": "5 000 KRW",
+    "perUse5000": "À l’usage · 5 000 KRW",
     "permanentUnlockApprox5000": "Déverrouillage permanent · environ 5 000 KRW",
     "viewNow": "Voir maintenant →",
     "permanentUnlock5000": "Déverrouillage permanent pour 5 000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "Les dix dieux décrivent, sous forme de dix caractères, comment les autres lettres se rapportent au jour de votre naissance. Voir quels personnages se rassemblent dans votre thème aide à révéler clairement la personnalité, le talent et le style amoureux cachés."
     },
     "premiumShowcase": {
-      "aria": "Afficher les détails de trois interprétations premium du saju",
+      "aria": "Voir les détails des interprétations saju premium",
       "eyebrow": "ANALYSE PREMIUM",
-      "title": "Trois lectures profondes pour le flux plus large du destin",
-      "subtitle": "Daewun, lecture complète et compatibilité sont rassemblés en un seul endroit pour que la texture de la vie devienne plus claire.",
-      "expand": "Ouvrir trois lectures",
+      "title": "Deux lectures approfondies pour le grand flux du destin",
+      "subtitle": "Le daewun et la lecture complète se déverrouillent définitivement, avec l’analyse de compatibilité à l’usage, pour rendre la texture de la vie plus nette.",
+      "expand": "Ouvrir les lectures",
       "permanent": "Déverrouillage permanent",
+      "perUse": "Paiement à l’usage",
+      "compatCta": "Voir la compatibilité →",
       "daewun": {
         "title": "Analyse Daewun",
         "desc": "Le flux daewun sur dix ans est intégré à travers la force de soutien, l'équilibre saisonnier et le modèle suivant. Il montre quand avancer et quand rester stable.",

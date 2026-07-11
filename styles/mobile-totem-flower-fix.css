@@ -89,6 +89,15 @@
   color: rgba(229, 210, 255, 0.96) !important;
 }
 
+/* 연이(밝은 꽃) 모드: 근백색/라벤더 대신 진한 로즈로 크림 배경 대비 확보 (라이트 전용 오버라이드) */
+body:not(.neo-mode) #inputPage .fc-toggle-hint__text {
+  color: #8e3f63 !important;
+  text-shadow: none !important;
+}
+body:not(.neo-mode) #inputPage .fc-toggle-hint__arrow {
+  color: #8e3f63 !important;
+}
+
 /* 컬렉션 래퍼 보조 레이어/배경 제거 + 스크롤 UX 개선 */
 #inputPage .feature-card-grid::before,
 #inputPage .feature-card-grid::after,

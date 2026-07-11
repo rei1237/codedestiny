@@ -86,7 +86,13 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 **핵심 요약**:
 - **이용권**(30일, 구독형이나 자동갱신 없음) → **월정석**(이벤트 지급, 구매 불가, 구독 아님) → **코인**(레거시 내부 단위) 순으로 게이팅
-- **모든 유료 결제는 이용권 선검사 후 미커버 시에만 결제창 노출** — 결제창은 단건결제(KRW)+월정석 2옵션 동등 제시. 결제창/PortOne 직행 및 서버 runtimeGate `paymentMode` 하드코딩 금지 — [flow 문서 결제창 노출 규칙](docs/payment-policy-flow.md) 참고
+- 🔒 **[필수·예외없음] 모든 유료 결제 게이팅 순서** — 신규/수정 불문 모든 유료 기능은 반드시 아래 순서를 그대로 따른다. 이 순서를 벗어나는 결제 구현은 금지이며, 발견 시 즉시 사용자에게 보고한다(작업 중 우연히 마주쳐도 그냥 지나치지 말 것):
+  1. **이용권(pass) 선(先)검사** — 서버 `canUseByPass`/`buildPassPaymentDecision`(정본: `worker/routes/billing.js`)로 이용권 커버 여부를 먼저 판정. 커버되면 **결제창 없이 무료 통과**.
+  2. **미커버 시에만 결제창 노출** — 결제창에는 **단건결제(KRW, PortOne)와 월정석(월정석 잔액 기반)이 항상 함께, 동등 우선순위로** 표시되어야 한다(`equalPriorityMethods: ["DIRECT_KRW","MOONLIGHT_STONE"]`). 한쪽만 노출하거나 한쪽으로 직행하면 안 된다.
+  3. **단건 결제(PortOne)는 사용자가 결제창에서 '단건'을 고른 이후에만** 실행(`_cdRunDirectKrwCheckout`/`_dpRunDirectKrwCheckout`에 도달). 그 이전 단계에서 `paymentMode: "DIRECT_KRW"`를 게이트에 강제하지 않는다.
+  - **금지 패턴(=위반, 발견 시 보고 대상)**: ① 이용권 선검사 없이 결제창/PortOne/`openChargeModal`/`/points`로 직행 ② 결제창에 단건 또는 월정석 한쪽만 노출 ③ 서버 runtimeGate/paymentPayload에 `paymentMode:"DIRECT_KRW"` 하드코딩(선검사 스킵+월정석 옵션 소거 — 과거 ziwei-ai에서 제거된 결함) ④ 공유 게이트(`useCoinGate`/`_cdOpenPaidServiceGate`/정적 결제 모달) 우회하는 커스텀 체크아웃.
+  - **예외**: 프로필 카드 추가/삭제(D유형, `passExcluded`)만 이용권 결제 불가라 선검사 없이 곧바로 결제창(단건/월정석)을 연다 — 그래도 두 결제수단은 동등 노출.
+  - **검증**: 결제 관련 수정 시 `npm run verify:billing-pass-policy`·`verify:portone-single-payment`·`verify:paid-gate-ui`(+ `node scripts/verify-ai-prompt-billing-policy.mjs`)를 먼저 실행. 상세 규칙은 [flow 문서 결제창 노출 규칙](docs/payment-policy-flow.md) 참고.
 - **코인은 폐지된 개념** — 서버 내부 계산에만 남아있고, 사용자에게는 항상 통화(현재 KRW, `1코인=100원` 고정 — `worker/lib/billing-policy.js`, 프론트는 `lib/payment/coin-pricing.ts`)로 환산해 표시. 신규 UI 작성 시 `coinPrice`/`cost`를 그대로 렌더링하지 말 것
 - 신규 유료 기능은 "재열람 가능한 고정 콘텐츠"인지 "매번 생성되는 개인화 결과"인지에 따라 잠금 콘텐츠(`unlock.*`, `forceDeduct: true`) 또는 회당 결제(`PER_USE_PAID_FEATURE_KEY_LIST`)로 등록 — 판별 기준은 [content-access 문서](docs/payment-policy-content-access.md) 참고
 

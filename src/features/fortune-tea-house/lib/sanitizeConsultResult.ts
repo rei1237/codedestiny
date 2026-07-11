@@ -57,6 +57,25 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
           : undefined,
       }
     : result.sukuyoCompatibility;
+  // sajuCompatibility는 텍스트 필드만 sanitize하고 user/partner 명식 구조는 보존한다(숙요와 동일 규칙).
+  const sajuCompat = result.sajuCompatibility
+    ? {
+        ...result.sajuCompatibility,
+        title: text(result.sajuCompatibility.title),
+        summary: text(result.sajuCompatibility.summary),
+        adviceKeywords: textList(result.sajuCompatibility.adviceKeywords),
+        interaction: result.sajuCompatibility.interaction
+          ? {
+              ...result.sajuCompatibility.interaction,
+              summary: text(result.sajuCompatibility.interaction.summary) || undefined,
+              elementHarmony: text(result.sajuCompatibility.interaction.elementHarmony) || undefined,
+              dayMasterRelation: text(result.sajuCompatibility.interaction.dayMasterRelation) || undefined,
+              strengths: textList(result.sajuCompatibility.interaction.strengths),
+              cautions: textList(result.sajuCompatibility.interaction.cautions),
+            }
+          : undefined,
+      }
+    : result.sajuCompatibility;
   return {
     ...result,
     sessionTitle: text(result.sessionTitle) || result.teaCup?.name || "운명의 찻집 상담",
@@ -83,6 +102,7 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
       tarot,
     ),
     sukuyoCompatibility: sukuyo,
+    sajuCompatibility: sajuCompat,
     emotionAnalysis: (result.emotionAnalysis || [])
       .map((item) => ({
         ...item,

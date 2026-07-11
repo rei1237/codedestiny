@@ -27,7 +27,7 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
   const teaChatGate = useSpritePlaybackGate<HTMLDivElement>();
   const chatLines = useMemo(
     () =>
-      consultationMode === "saju"
+      consultationMode === "saju" || consultationMode === "sajuCompatibility"
         ? [
             "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요.",
             "찻잎이 태어난 계절의 흐름을 우려내고 있어요. 조금만 기다려 주세요.",
@@ -56,7 +56,9 @@ export default function ScentLoadingScene({ selectedCup, consultationMode = "tar
   }, [chatLines]);
   const chatLine = chatLines[chatLineIndex];
   const loadingTitle =
-    consultationMode === "saju"
+    consultationMode === "sajuCompatibility"
+      ? "연이가 두 사람의 사주 궁합을 살피고 있어요"
+      : consultationMode === "saju"
       ? "연이가 사주의 향을 살피고 있어요"
       : consultationMode === "sukuyo"
         ? "연이가 27숙 인연의 흐름을 살피고 있어요"

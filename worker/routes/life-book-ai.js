@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
@@ -1937,7 +1937,7 @@ async function handleResult(request, env, pathId = "") {
   return json(payload, { headers: { "Cache-Control": "private, max-age=300" } });
 }
 
-async function handleStart(request, env, route = "/api/life-book-ai/generate") {
+async function handleStart(request, env, route = "/api/life-book-ai/generate", ctx) {
   logLifeBookAi("LLM Generate Start", { route });
   const body = await readJson(request);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -2205,6 +2205,10 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       }
     }
 
+    // 결제/이용권 확인·명식 계산·"생성중" 문서 기록이 끝난 이 시점에 즉시 202를 돌려주고,
+    // LLM 생성은 백그라운드(waitUntil)에서 완주한다. 클라는 /result 폴링으로 수렴한다(ziwei·찻집과 동일 패턴).
+    // 실패 시 환불(restoreAccessBeforeGenerationFailure)·generation_failed 기록은 아래 catch가 백그라운드에서도 그대로 수행한다.
+    const runGeneration = async () => {
     try {
       const providerCallCount = await reserveProviderCallOnce({
         userId: auth.userId,
@@ -2355,6 +2359,15 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
       if (clean(error?.code) === "DEFERRED_USAGE_APPLY_FAILED") return paymentVerifyFailed();
       return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
     }
+    };
+
+    if (ctx?.waitUntil) {
+      // 실패는 위 catch에서 이미 환불·기록됐다 — 여기서는 미처리 rejection만 삼킨다.
+      ctx.waitUntil(runGeneration().catch(() => {}));
+      return json({ ok: true, sessionId, status: "generating", message: `${orderName}을 완성하는 중입니다.` }, { status: 202 });
+    }
+    // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지.
+    return await runGeneration();
   })().catch((error) => {
     logLifeBookAi("LLM Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "server_error", env, error }), "error");
     return serverError();
@@ -2365,7 +2378,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   return pending;
 }
 
-export async function handleLifeBookAiRoutes(request, env = {}) {
+export async function handleLifeBookAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/life-book-ai");
   const route = `/api/life-book-ai${path}`;
@@ -2377,7 +2390,7 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/life-book-ai/prepare" : "/api/life-book-ai/ensure-access");
     }
     if (method === "POST" && (path === "/generate" || path === "/start")) {
-      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start");
+      return await handleStart(request, env, path === "/generate" ? "/api/life-book-ai/generate" : "/api/life-book-ai/start", ctx);
     }
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
@@ -2387,8 +2400,9 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
       message: clean(error?.message || error, 500),
       ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
     }, "error");
-    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
-    if (isTransientMongoError(error)) {
+    // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    // (surfaceDbInfraError로 재-throw된 인증 인프라 에러는 isAuthDbInfraError에만 걸리므로 함께 검사)
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
         retryable: true,

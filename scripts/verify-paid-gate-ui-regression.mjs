@@ -173,12 +173,12 @@ assertContains(billingClientSource, "export function completePaidFeatureGateChec
 assertContains(billingClientSource, "export function failPaidFeatureGateCheck", "React paid feature gate failure helper");
 assertContains(billingClientSource, 'status: cancelled ? "cancelled" : "error"', "React paid feature gate cancellation status");
 assertContains(billingClientSource, 'status: runtimeCode === "PAYMENT_CANCELLED" ? "cancelled" : "paymentFailed"', "React runtime cancellation is not payment failure");
-assertContains(billingClientSource, "const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;", "React checkout timeout is long enough for PG setup");
-assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;", "React confirm timeout is long enough for payment verification");
+assertContains(billingClientSource, "const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;", "React checkout timeout is long enough for PG setup");
+assertContains(billingClientSource, "const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;", "React confirm timeout is long enough for payment verification");
 assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/coin-gate")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React coin gate uses confirm timeout");
 assertContains(billingClientSource, 'normalizedPath.startsWith("/api/billing/confirm")) return BILLING_FETCH_CONFIRM_TIMEOUT_MS;', "React billing confirm uses confirm timeout");
 assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "React payment verification must not use shared 14s mutation timeout");
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-6adf6f1d205e"', "React paid runtime cache key includes profile sync fix");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-timeout-7f1c2a9d"', "React paid runtime cache key includes profile sync fix");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");

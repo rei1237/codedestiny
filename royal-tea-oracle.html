@@ -1559,7 +1559,6 @@ async function runRoyalTeaGate() {
   var requestId = 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   if (typeof window._cdCoinGatePerUse === 'function') {
     var granted = false;
-    setRoyalTeaPaymentPending(true, '영국 홍차점 리딩 결제를 확인하는 중입니다...');
     try {
       var gateResult = window._cdCoinGatePerUse(COST, '영국 홍차점 리딩', function(_transactionId, payload) {
         granted = true;
@@ -1586,37 +1585,12 @@ async function runRoyalTeaGate() {
     } catch(e) {
       window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       return false;
-    } finally {
-      setRoyalTeaPaymentPending(false);
     }
   }
 
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(e) {}
-  if (!token) {
-    window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
-    return false;
-  }
-  setRoyalTeaPaymentPending(true, '영국 홍차점 리딩 결제를 확인하는 중입니다...');
-  try {
-    var r = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: COST, coinPrice: COST, reason: '영국 홍차점 리딩', featureKey: 'royal-tea-oracle', serviceKey: 'royal-tea-oracle', action: 'openRoyalTeaOracle', paymentMode: 'COIN', forceDeduct: true, requestId: requestId })
-    });
-    var d = await r.json().catch(function() { return {}; });
-    if (!r.ok) {
-      window.alert((d && d.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
-      return false;
-    }
-    syncRoyalTeaBilling(d);
-    return true;
-  } catch(e) {
-    return false;
-  } finally {
-    setRoyalTeaPaymentPending(false);
-  }
+  // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct/COIN) 대신 안내.
+  window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+  return false;
 }
 
 async function startReading() {

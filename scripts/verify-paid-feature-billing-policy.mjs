@@ -42,6 +42,7 @@ const expectedCosts = {
   "compat-saju-compatibility": 50,
   "compat-sukuyo-compatibility": 100,
   "premium-sukuyo-compat-extra": 120,
+  "sukuyo-relationship-encyclopedia": 50,
   "physiognomy-compatibility": 50,
   "physiognomy-pastlife-compatibility": 50,
   "profile-card-manage": 50,
@@ -122,9 +123,21 @@ for (const featureKey of [
   "animal-destiny-unlock",
   "rpt_specialCharmCard",
   "fun.quantumLotto.ritualReport",
+  "sukuyo-relationship-encyclopedia",
+  "premium-fpti-report",
 ]) {
   assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.UNLOCK, `${featureKey} must be an unlock feature`);
   assert.equal(isUnlockPaidFeatureKey(featureKey), true, `${featureKey} must persist unlock entitlement`);
+}
+
+// FPTI 프리미엄 리포트: PDF 회당 과금 → 생년월일 시그니처 스코프 영구 잠금으로 전환됨.
+assert.equal(isPerUsePaidFeatureKey("premium-fpti-report"), false, "premium-fpti-report must be a locked unlock, not per-use/pdf");
+
+// 숙요 인연 도감은 잠금(영구 해금), 나머지 숙요 관계 3종은 회당 결제로 유지되어야 한다.
+assert.equal(isPerUsePaidFeatureKey("sukuyo-relationship-encyclopedia"), false, "sukuyo relationship encyclopedia must be a locked unlock, not per-use");
+for (const perUseKey of ["sukuyo-symbolic-comparison", "sukuyo-past-life-reading", "compat-sukuyo-compatibility"]) {
+  assert.equal(isPerUsePaidFeatureKey(perUseKey), true, `${perUseKey} must stay per-use paid`);
+  assert.equal(isUnlockPaidFeatureKey(perUseKey), false, `${perUseKey} must not persist unlock entitlement`);
 }
 
 assert.match(billingSource, /isUnlockPaidFeatureKey/, "worker billing must use registry unlock classification");

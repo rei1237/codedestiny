@@ -6,6 +6,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -400,6 +401,8 @@ async function pollZiweiResult(sessionId: string): Promise<ApiResult> {
       throw new Error("요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.");
     }
     const data = (await response.json().catch(() => ({}))) as ApiResult;
+    // 일시적 DB/인증 장애(503·retryable)는 하드 종료하지 말고 계속 폴링해 자가 복구한다.
+    if (isRetriableResultPollFailure(response.status, data)) continue;
     if (!response.ok) throw new Error(mapError(data, response.status));
     return data;
   }

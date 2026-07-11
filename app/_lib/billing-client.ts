@@ -339,11 +339,11 @@ const BILLING_COIN_GATE_RECENT_TTL_MS = 10_000;
 const BILLING_BALANCE_RECENT_TTL_MS = 15_000;
 const PAYMENT_ELIGIBILITY_RECENT_TTL_MS = 15_000;
 const REACT_PAID_FEATURE_GATE_RECENT_TTL_MS = 10_000;
-const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 9000;
-const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 30000;
-const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 45000;
+const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
+const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
+const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-6adf6f1d205e";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-timeout-7f1c2a9d";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
@@ -986,7 +986,7 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-backdrop{position:fixed;inset:0;z-index:2147483004;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 2%,rgba(250,230,160,.2),transparent 30%),radial-gradient(circle at 16% 18%,rgba(147,197,253,.14),transparent 28%),radial-gradient(circle at 88% 74%,rgba(196,181,253,.16),transparent 30%),linear-gradient(145deg,rgba(7,11,34,.86),rgba(13,18,52,.88) 48%,rgba(21,16,42,.9));padding:18px;backdrop-filter:blur(16px) saturate(130%)}
     .cd-react-payment-choice-dialog{position:relative;isolation:isolate;width:min(440px,100%);max-height:calc(100dvh - 36px);border:1px solid rgba(255,242,184,.34);border-radius:24px;background:radial-gradient(circle at 50% -8%,rgba(250,230,160,.16),transparent 34%),radial-gradient(circle at 18% 20%,rgba(147,197,253,.1),transparent 32%),linear-gradient(155deg,rgba(7,12,34,.98),rgba(14,22,56,.985) 48%,rgba(33,24,64,.97));box-shadow:0 30px 82px rgba(0,0,0,.56),0 0 46px rgba(147,197,253,.14),0 0 34px rgba(250,230,160,.1),inset 0 1px 0 rgba(255,255,255,.16);padding:18px 20px 20px;color:#f8fafc;overflow:auto;overflow-x:hidden;scrollbar-width:thin}
     .cd-react-payment-choice-dialog>*{position:relative;z-index:1}
-    .cd-react-payment-choice-dialog::before{content:"";position:absolute;right:-38px;top:-50px;width:166px;height:166px;border-radius:999px;background:radial-gradient(circle at 64% 35%,rgba(8,12,32,.96) 0 33%,transparent 34%),radial-gradient(circle at 38% 32%,rgba(255,242,184,.66) 0 18%,rgba(247,215,122,.28) 19% 38%,rgba(219,234,254,.09) 39% 66%,transparent 68%);filter:blur(.3px);opacity:.7;box-shadow:0 0 42px rgba(250,230,160,.16),0 0 70px rgba(147,197,253,.08);pointer-events:none;z-index:0}
+    .cd-react-payment-choice-dialog::before{content:"";position:absolute;right:-58px;top:-62px;width:132px;height:132px;border-radius:999px;background:radial-gradient(circle at 64% 35%,rgba(8,12,32,.96) 0 33%,transparent 34%),radial-gradient(circle at 38% 32%,rgba(255,242,184,.6) 0 18%,rgba(247,215,122,.24) 19% 38%,rgba(219,234,254,.08) 39% 66%,transparent 68%);filter:blur(.3px);opacity:.5;box-shadow:0 0 42px rgba(250,230,160,.12),0 0 70px rgba(147,197,253,.06);pointer-events:none;z-index:0}
     .cd-react-payment-choice-dialog::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 12% 13%,rgba(255,255,255,.8) 0 1px,transparent 2px),radial-gradient(circle at 76% 18%,rgba(186,230,253,.72) 0 1px,transparent 2px),radial-gradient(circle at 20% 58%,rgba(221,214,254,.58) 0 1px,transparent 2px),radial-gradient(circle at 88% 70%,rgba(254,243,199,.62) 0 1px,transparent 2px),radial-gradient(circle at 44% 3%,rgba(255,242,184,.16),transparent 24%);pointer-events:none;opacity:.78;z-index:0}
     .cd-react-payment-choice-visual{position:relative;width:112px;height:96px;margin:0 auto 8px;pointer-events:none;animation:cdReactPaymentMoonFloat 6.8s ease-in-out infinite}
     .cd-react-payment-choice-aura,.cd-react-payment-choice-glass,.cd-react-payment-choice-crescent,.cd-react-payment-choice-stars,.cd-react-payment-choice-reflect{position:absolute;pointer-events:none}
@@ -1015,9 +1015,11 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-option:disabled{cursor:not-allowed;opacity:.52}
     .cd-react-payment-choice-option--recommended{border-color:rgba(255,224,130,.74);background:linear-gradient(145deg,rgba(255,247,219,.16),rgba(250,230,160,.06));box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 16px 34px rgba(2,6,23,.3),0 0 26px rgba(250,220,150,.18)}
     .cd-react-payment-choice-option--recommended:hover{border-color:rgba(255,232,150,.9)}
-    .cd-react-payment-choice-recommend{position:absolute;top:10px;right:10px;display:inline-flex;align-items:center;padding:2px 9px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34);z-index:2}
-    .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:5px;font-size:15px;line-height:1.35;color:#fff}
+    .cd-react-payment-choice-cardhead{position:relative;display:flex;align-items:center;gap:8px;margin-bottom:9px}
+    .cd-react-payment-choice-recommend{margin-left:auto;flex:none;display:inline-flex!important;width:auto;align-items:center;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,#ffe9a8,#f6be6a);color:#3a2606;font-size:10.5px;font-weight:900;letter-spacing:.02em;box-shadow:0 4px 12px rgba(246,190,106,.34)}
+    .cd-react-payment-choice-option strong{position:relative;display:block;margin-top:0;font-size:15px;line-height:1.35;color:#fff}
     .cd-react-payment-choice-option span{position:relative;display:block;color:rgba(229,236,255,.78);font-size:12px;line-height:1.5}
+    .cd-react-payment-choice-option strong+span{margin-top:4px}
     .cd-react-payment-choice-badge{display:inline-flex!important;align-items:center;width:auto;border:1px solid rgba(255,242,184,.28);border-radius:999px;background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(219,234,254,.07));backdrop-filter:blur(8px);padding:3px 9px;color:#fff7db!important;font-size:11px!important;font-weight:900;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 0 18px rgba(250,230,160,.08)}
     .cd-react-payment-choice-glyph{margin-right:5px;font-size:12px;line-height:1;filter:drop-shadow(0 0 6px rgba(250,230,160,.32))}
     .cd-react-payment-choice-amount{color:#ffe9a8;font-size:16.5px;font-weight:900;letter-spacing:.01em;text-shadow:0 0 14px rgba(250,220,150,.3)}
@@ -1085,42 +1087,41 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
   const monthlyCanUse = monthlyCost > 0 && monthlyBalance >= monthlyCost;
   // 월정석은 정적 결제창과 동일하게 잔량과 무관히 항상 노출하고, 부족하면 숨기지 않고 비활성(회색)으로 둔다.
-  const canShowMonthly = (!allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit"))
-    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("MOONLIGHT_STONE"));
+  // equalPriorityMethods 목록에 없다고 버튼을 제거하지 않는다(서버가 잔량 부족 시 목록에서 빼도 회색으로 노출).
+  const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit");
   const monthlyDisabled = !monthlyCanUse;
   if (!canShowDirect && !canShowMonthly) canShowDirect = true;
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
   const passLimit = Math.max(0, Math.floor(toNumber(membershipCoverage?.passLimit ?? membershipCoverage?.freeLimit, 0)));
-  const passLabel = passTier
-    ? `${passTier.toUpperCase()} 이용권`
-    : "이용권 확인 완료";
+  // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
+  // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).
+  const hasActivePassTier = Boolean(passTier && passTier !== "free");
+  // 무료/미보유 등급을 "FREE 이용권"으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
+  // 활성 유료 등급일 때만 등급명을 배지로 노출하고, 그 외에는 중립적인 상점 라벨을 쓴다.
+  const passLabel = hasActivePassTier ? `${passTier.toUpperCase()} 이용권` : "달빛 이용권 상점";
   const passHint = formatMembershipPassLimitLabel(passTier, passLimit);
-  const passStoreTitle = passTier && passTier !== "free" ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
-  const passStoreHint = passTier && passTier !== "free"
+  const passStoreTitle = hasActivePassTier ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
+  const passStoreHint = hasActivePassTier
     ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
     : "달빛 이용권을 구매하면 한도 이하 기능은 결제창 없이 바로 열립니다.";
 
   const directButtonHtml = canShowDirect ? `
-          <button type="button" class="cd-react-payment-choice-option" data-mode="direct">
-            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">💳</span>${billingClientText("billingClient.text.003")}</span>
+          <button type="button" class="cd-react-payment-choice-option" data-mode="direct" aria-label="단건 결제 ${formatPaymentWon(directAmount)}">
+            <span class="cd-react-payment-choice-cardhead"><span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">💳</span>${billingClientText("billingClient.text.003")}</span></span>
             <strong>단건 결제 · <span class="cd-react-payment-choice-amount">${formatPaymentWon(directAmount)}</span></strong>
             <span>${billingClientText("billingClient.text.004")}</span>
           </button>` : "";
   const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""}>
-            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span>
+          <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? " (잔량 부족)" : ""}">
+            <span class="cd-react-payment-choice-cardhead"><span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span></span>
             <strong>월정석 사용 · <span class="cd-react-payment-choice-amount">${monthlyCost.toLocaleString("ko-KR")}</span> 이벤트 재화</strong>
             <span>${monthlyDisabled ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요." : `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`}</span>
           </button>` : "";
-  // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
-  // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).
-  const hasActivePassTier = Boolean(passTier && passTier !== "free");
   const passStoreFirst = canShowPassStore && !hasActivePassTier;
   const passStoreButtonHtml = canShowPassStore ? `
-          <button type="button" class="cd-react-payment-choice-option${passStoreFirst ? " cd-react-payment-choice-option--recommended" : ""}" data-mode="pass-store"${passStoreFirst ? ' aria-label="달빛 이용권 상점 (추천)"' : ""}>
-            ${passStoreFirst ? '<span class="cd-react-payment-choice-recommend">추천</span>' : ""}
-            <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>
+          <button type="button" class="cd-react-payment-choice-option${passStoreFirst ? " cd-react-payment-choice-option--recommended" : ""}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${passStoreFirst ? " (추천)" : ""}">
+            <span class="cd-react-payment-choice-cardhead"><span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${passStoreFirst ? '<span class="cd-react-payment-choice-recommend">추천</span>' : ""}</span>
             <strong>${escapePaymentText(passStoreTitle)}</strong>
             <span>${escapePaymentText(passStoreHint)} ${escapePaymentText(passHint)}</span>
           </button>` : "";

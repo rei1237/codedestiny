@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
@@ -79,8 +80,15 @@ export default function VedicAiResultClient() {
         for (let attempt = 0; attempt < 40; attempt += 1) {
           const response = await authFetch(path);
           if (response.status === 401) {
+            // authFetch가 일시 401을 503으로 이미 흡수하므로, 여기 도달한 401은 확정 로그아웃이다.
             if (!cancelled) setView({ kind: "login" });
             return;
+          }
+          if (isRetriableResultPollFailure(response.status)) {
+            // 일시적 DB/인증 장애(503)는 미조회 화면으로 종착하지 말고 202처럼 재폴링해 자가 복구한다.
+            if (cancelled) return;
+            await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
+            continue;
           }
           if (id && response.status === 202) {
             if (cancelled) return;

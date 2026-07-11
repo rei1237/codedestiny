@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js";
+import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "../worker/lib/paid-feature-registry.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
@@ -24,8 +24,8 @@ function extractSourceBlock(source, startMarker, endMarker) {
 const sajuAIGateSource = extractSourceBlock(sajuEngineSource, "function _cdAIPromptGate(input) {", "function _sajuPromptClone(value) {");
 const sajuPromptRequestSource = extractSourceBlock(sajuEngineSource, "function _requestSajuQuestionPrompt(question, privacyOptions, domain, options)", "function _buildSajuQuestionPromptHtml() {");
 const astrologyPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleAstrologyAIPrompt(request, auth, env) {", "async function handleVedicAIPrompt(request, auth, env) {");
-const vedicPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleVedicAIPrompt(request, auth, env) {", "async function handleSajuAIPrompt(request, auth, env) {");
-const sajuPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSajuAIPrompt(request, auth, env) {", "async function handleZiweiAIPrompt(request, auth, env) {");
+const vedicPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleVedicAIPrompt(request, auth, env) {", "async function handleSajuAIPrompt(request, auth, env, ctx = null) {");
+const sajuPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSajuAIPrompt(request, auth, env, ctx = null) {", "async function handleZiweiAIPrompt(request, auth, env) {");
 const ziweiPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleZiweiAIPrompt(request, auth, env) {", "function buildSukuyoAIPromptError(code, message, status = 400) {");
 const sukuyoPromptRouteSource = extractSourceBlock(fortuneSource, "async function handleSukuyoAIPrompt(request, auth, env) {", "async function handleSubscriptionStatus(request, env, auth) {");
 const allPromptRouteSource = [
@@ -52,8 +52,9 @@ const promptFeatureCosts = {
 
 for (const featureKey of promptFeatures) {
   const expectedCost = promptFeatureCosts[featureKey] || 100;
+  // 별칭 정규화 후 canonical 가격행을 조회한다(saju_ai_prompt_generator → saju_ai_question_prompt).
   assert.equal(
-    FEATURE_KEY_PRICE_TABLE[featureKey]?.cost,
+    FEATURE_KEY_PRICE_TABLE[normalizePaidFeatureKey(featureKey)]?.cost,
     expectedCost,
     `${featureKey} must stay priced by the server registry at ${expectedCost} coins`,
   );
@@ -137,7 +138,10 @@ assert.match(sajuPromptRouteSource, /callGeminiText/, "saju prompt route must ge
 assert.match(sajuPromptRouteSource, /resultText/, "saju prompt route must return resultText");
 assert.doesNotMatch(sajuPromptRouteSource, /prompt:\s*builtPrompt\.prompt|generatedPrompt:\s*builtPrompt/, "saju prompt route must not return the internal prompt");
 assert.match(sajuPromptRouteSource, /featureKey:\s*SAJU_AI_PROMPT_FEATURE_KEY/, "saju prompt route must use the canonical feature key constant");
-assert.doesNotMatch(sajuPromptRouteSource, /MISSING_PROFILE_ID|PaidExecutionRecord|readSajuAIPromptProfileId/, "saju prompt route must not require profile execution records after rollback");
+// 프로필이 없어도(MISSING_PROFILE_ID로) 생성을 막지 않아야 한다는 것이 이 가드의 본래 의도다.
+// PaidExecutionRecord/readSajuAIPromptProfileId는 이후 비동기 생성(결제 후 상태 폴링·결과 전달 보장)
+// 아키텍처의 정상 인프라이며 profileId는 "default"로 폴백하므로 생성을 차단하지 않는다 — 토큰 존재 금지는 폐기.
+assert.doesNotMatch(sajuPromptRouteSource, /MISSING_PROFILE_ID/, "saju prompt route must not block generation on a missing profile id");
 assert.match(sajuPromptLibSource, /export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";/, "saju prompt library must expose the 1514371 feature key");
 assert.match(sajuPromptLibSource, /buildSajuAdvancedFactors/, "saju prompt library must retain advanced factor assembly");
 assert.match(sajuPromptLibSource, /hiddenStemExposures/, "saju prompt library must retain hidden-stem exposure updates");

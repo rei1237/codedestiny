@@ -5992,45 +5992,9 @@ async function _vedicCompatCoinGate(cost, reason){
     }
   }
 
-  var token = '';
-  try { token = localStorage.getItem('fortune_auth_token') || ''; } catch(_) {}
-  if (!token) {
-    if (window.confirm('🔒 로그인이 필요한 서비스입니다.\n로그인 후 이용해 주세요.')) {
-      window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
-    }
-    return false;
-  }
-
-  if(_vedicCompatChargeInFlight){
-    window.alert('결제 요청 처리 중입니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  }
-  _vedicCompatChargeInFlight=true;
-  _vedicSetPaymentPending(true, '베다 궁합 결제를 확인하는 중입니다...');
-
-  try {
-    var resp = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials:'include',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({ cost: cost, coinPrice: cost, reason: reason, featureKey: 'vedic-compatibility-per-use', serviceKey:'vedic-compatibility', action:'calculateVedicCompatibility', paymentMode:'COIN', forceDeduct: true, requestId: requestId })
-    });
-    var data = await resp.json().catch(function(){return {};});
-    if (!resp.ok) {
-      window.alert((data && data.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
-      if (resp.status === 401 || resp.status === 403) window.location.href = '/login?next=' + encodeURIComponent(location.pathname + location.search);
-      return false;
-    }
-    syncVedicBilling(data,'');
-    return true;
-  } catch(e) {
-    console.error('[vedic compat coin-gate]', e);
-    window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  } finally {
-    _vedicSetPaymentPending(false);
-    _vedicCompatChargeInFlight=false;
-  }
+  // 공유 결제 게이트(destiny-profile.js) 미로드: 정책 우회 차감(직접 coin-gate/forceDeduct/COIN) 대신 안내.
+  window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+  return false;
 }
 
 async function doCompatCalc(){

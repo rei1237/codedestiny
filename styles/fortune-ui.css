@@ -9669,12 +9669,15 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   background: radial-gradient(ellipse at 50% 20%, rgba(255, 231, 193, 0.34), transparent 62%);
 }
 .df-studio-close {
-  position: absolute;
-  top: 14px;
-  right: 14px;
+  position: sticky;
+  top: 8px;
   z-index: 8;
-  width: 36px;
-  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0 0 -44px auto;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -9684,7 +9687,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   border: 1px solid rgba(15, 23, 42, 0.1);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
   color: #334155;
-  font-size: 1rem;
+  font-size: 1.1rem;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 .df-studio-close:hover,
@@ -9733,7 +9736,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   gap: 8px;
 }
 .df-studio-source-tabs .df-source-tab {
-  min-height: 40px;
+  min-height: 44px;
   font-size: 0.76rem;
   letter-spacing: 0;
   border: 1px solid rgba(181, 142, 223, 0.38);
@@ -10695,7 +10698,7 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
     width: 100%;
   }
   .df-studio-source-tabs {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

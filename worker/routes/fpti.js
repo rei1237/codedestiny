@@ -1112,6 +1112,9 @@ async function handleDeepReport(request, env) {
   const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
     reportId: reportSignature,
     sessionId: reportSignature,
+    // 생년월일 파생 시그니처를 프로필 스코프 키로 사용해 결제 후 영구 해금 상태를 유지한다.
+    profileId: reportSignature,
+    selectedProfileId: reportSignature,
   });
   if (!access?.ok) {
     return json(
@@ -1174,6 +1177,9 @@ async function handleReadDeepReport(request, env) {
   const access = await requirePremiumReportAccess(env, auth.userId, "fptiPremium", {
     reportId: reportSignature,
     sessionId: reportSignature,
+    // 생년월일 파생 시그니처를 프로필 스코프 키로 사용해 결제 후 영구 해금 상태를 유지한다.
+    profileId: reportSignature,
+    selectedProfileId: reportSignature,
   });
   if (!access?.ok) {
     return json(

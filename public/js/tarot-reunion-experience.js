@@ -288,7 +288,22 @@
         url: url,
         payload: payload || {},
       };
-      return postJsonWithTimeout(url, body)
+      // fetch()의 AbortController 타임아웃은 응답 "헤더" 단계까지만 보호하고,
+      // res.json() 본문 파싱은 보호 밖이라 본문이 지연/차단되면 무한 대기한다.
+      // 요청+파싱 전체에 별도 데드라인을 걸어 반드시 settle(성공/reject)되게 해
+      // 결과 화면이 스켈레톤에 영구 정지되는 것을 막는다.
+      var overallTimer = null;
+      var overallDeadline = new Promise(function (_, reject) {
+        overallTimer = setTimeout(function () {
+          reject(createTarotApiError("Tarot API timeout", {
+            endpoint: endpoint,
+            base: base || "",
+            url: url,
+            phase: "overall",
+          }));
+        }, TAROT_API_TIMEOUT_MS + 3000);
+      });
+      var request = postJsonWithTimeout(url, body)
         .then(function (res) {
           if (!res.ok) {
             return res.text().catch(function () { return ""; }).then(function (rawBody) {
@@ -321,8 +336,14 @@
             });
           }
           return data;
+        });
+      return Promise.race([request, overallDeadline])
+        .then(function (data) {
+          if (overallTimer) { clearTimeout(overallTimer); overallTimer = null; }
+          return data;
         })
         .catch(function (error) {
+          if (overallTimer) { clearTimeout(overallTimer); overallTimer = null; }
           logTarotApiError("request_failed", requestDebug, error);
           throw error;
         });
@@ -1096,35 +1117,62 @@
       cardsContainer.classList.remove("tarot-reunion-result-cards--visible");
     }
 
+    // 결과가 렌더도 실패도 하지 않은 채 스켈레톤에 영구 정지되는 것을 막는 안전망.
+    // 전송 데드라인(requestWithBase)이 이미 요청을 반드시 settle시키지만,
+    // 어떤 경로로도 사용자가 로딩 화면에 갇히지 않도록 하드 워치독을 둔다.
+    var settled = false;
+    var watchdogId = setTimeout(function () {
+      failTarotReunionReading(new Error("Tarot Reunion reading watchdog timeout"));
+    }, TAROT_API_TIMEOUT_MS + 8000);
+
+    function markSettled() {
+      if (settled) return false;
+      settled = true;
+      if (watchdogId) { clearTimeout(watchdogId); watchdogId = null; }
+      return true;
+    }
+
+    function failTarotReunionReading(err) {
+      if (!markSettled()) return;
+      console.error("Tarot Reunion reading error:", err);
+      if (draw) draw.classList.add("is-active");
+      if (result) result.classList.remove("is-active");
+      if (rc) {
+        rc.innerHTML = "";
+        rc.removeAttribute("aria-busy");
+      }
+      rollbackCoinBestEffort(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY).then(function (rolledBack) {
+        state.hasAccess = false;
+        if (rolledBack) {
+          alert("해석 생성이 지연되거나 오류가 발생해 결제 금액을 복구했습니다. 다시 시도해 주세요.");
+        } else {
+          alert("해석 생성 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        }
+      });
+    }
+
     callTarotApi("reading", {
       category: "reunion",
       spreadType: "reunion_lighthouse_five_card",
       cards: drawnForApi,
     })
       .then(function (data) {
-        if (!data.reading) throw new Error("No reading data");
+        if (settled) return;
+        if (!data || !data.reading) {
+          failTarotReunionReading(new Error("No reading data"));
+          return;
+        }
+        // renderTarotReunionResult가 예외를 던지면 아래 .catch가 복구 경로를 태우도록
+        // markSettled()는 렌더가 성공적으로 끝난 뒤에 호출한다.
         state.reading = data.reading;
         state.consultingHighlights = Array.isArray(data.consultingHighlights) ? data.consultingHighlights : [];
         state.engineMeta = data.engineMeta && typeof data.engineMeta === "object" ? data.engineMeta : null;
         if (rc) rc.removeAttribute("aria-busy");
         renderTarotReunionResult();
+        markSettled();
       })
       .catch(function (err) {
-        console.error("Tarot Reunion reading error:", err);
-        if (draw) draw.classList.add("is-active");
-        if (result) result.classList.remove("is-active");
-        if (rc) {
-          rc.innerHTML = "";
-          rc.removeAttribute("aria-busy");
-        }
-        rollbackCoinBestEffort(REUNION_COIN_COST, REUNION_REASON, REUNION_FEATURE_KEY).then(function (rolledBack) {
-          state.hasAccess = false;
-          if (rolledBack) {
-            alert("해석 생성 오류가 발생해 결제 금액을 복구했습니다. 다시 시도해 주세요.");
-          } else {
-            alert("해석 생성 중 오류가 발생했습니다. 결과 페이지 진입이 차단되었습니다. 잠시 후 다시 시도해 주세요.");
-          }
-        });
+        failTarotReunionReading(err);
       });
   }
 

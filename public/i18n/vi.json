@@ -1536,6 +1536,7 @@
       "purchase": "Kiểm tra quyền truy cập và phê duyệt thanh toán."
     },
     "price5000": "5.000 KRW",
+    "perUse5000": "Mỗi lần · 5.000 KRW",
     "permanentUnlockApprox5000": "Mở khóa vĩnh viễn · khoảng 5.000 KRW",
     "viewNow": "Xem ngay →",
     "permanentUnlock5000": "Mở khóa vĩnh viễn với giá 5.000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "Mười vị thần mô tả, bằng mười ký tự, các chữ cái khác liên quan đến ngày bạn được sinh ra như thế nào. Việc xem những nhân vật nào tụ tập trong biểu đồ của bạn giúp bộc lộ rõ ​​ràng tính cách, tài năng và phong cách tình yêu tiềm ẩn."
     },
     "premiumShowcase": {
-      "aria": "Xem chi tiết về ba cách diễn giải saju cao cấp",
+      "aria": "Xem chi tiết các luận giải saju cao cấp",
       "eyebrow": "PHÂN TÍCH CAO CẤP",
-      "title": "Ba bài đọc sâu cho dòng vận mệnh lớn hơn",
-      "subtitle": "Daewun, khả năng đọc đầy đủ và khả năng tương thích tập trung ở một nơi để kết cấu cuộc sống trở nên rõ ràng hơn.",
-      "expand": "Mở ba bài đọc",
+      "title": "Hai luận giải chuyên sâu cho dòng chảy lớn của vận mệnh",
+      "subtitle": "Daewun và luận giải tổng hợp mở khóa vĩnh viễn, cùng phân tích tương thích theo lần, để kết cấu cuộc đời trở nên rõ ràng hơn.",
+      "expand": "Mở thẻ luận giải",
       "permanent": "Mở khóa vĩnh viễn",
+      "perUse": "Thanh toán theo lần",
+      "compatCta": "Xem khả năng tương thích →",
       "daewun": {
         "title": "Phân tích Daewun",
         "desc": "Dòng daewun mười năm được tích hợp thông qua sức mạnh hỗ trợ, cân bằng theo mùa và mô hình sau. Nó cho thấy khi nào nên tiến về phía trước và khi nào nên giữ vững.",

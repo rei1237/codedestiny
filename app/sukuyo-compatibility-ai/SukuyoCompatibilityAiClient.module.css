@@ -2462,42 +2462,18 @@
   color: #ffe8b6;
 }
 
-.chapterStage {
-  min-height: 300px;
-  display: grid;
-  gap: 1.25rem;
+/* ── 책장 뷰어 테마 (골드-온-다크) — 색만 caller가 주입, 구조는 PagedResultViewer ── */
+.pagedViewer {
+  color: #ffe8b6;
+  margin-top: 0.2rem;
+}
+
+.pagedPage {
   border: 1px solid rgba(200, 168, 255, 0.2);
   border-radius: 16px;
   padding: 1.1rem 1.2rem;
   background: rgba(10, 7, 26, 0.55);
-}
-
-.chapterPager {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
-  margin-top: 0.9rem;
-}
-
-.chapterPager > span { font-size: 0.72rem; color: rgba(255, 247, 232, 0.55); }
-
-.chapterPager button {
-  padding: 0.55rem 1rem;
-  border-radius: 12px;
-  border: 1px solid rgba(200, 168, 255, 0.3);
-  background: rgba(18, 12, 38, 0.6);
-  color: rgba(255, 247, 232, 0.85);
-  font-size: 0.8rem;
-  cursor: pointer;
-}
-
-.chapterPager button:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.chapterNextButton {
-  border-color: rgba(255, 232, 182, 0.65) !important;
-  background: rgba(255, 232, 182, 0.12) !important;
-  color: #ffe8b6 !important;
+  box-shadow: 0 0 0 1px rgba(255, 232, 182, 0.06), 0 22px 48px -30px rgba(200, 168, 255, 0.55);
 }
 
 /* ── PDF 저장용 전체 렌더 (화면 밖) ─────────────────────── */

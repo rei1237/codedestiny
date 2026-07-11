@@ -26,7 +26,8 @@ type PaidAttemptEventName =
   | "PaidAttempt.RedirectBlocked"
   | "PaidAttempt.AuthHydrating"
   | "PaidAttempt.RestoreAttempted"
-  | "PaidAttempt.RestoreFailed";
+  | "PaidAttempt.RestoreFailed"
+  | "PaidAttempt.Failed";
 
 type EventPayload = {
   route?: string;
@@ -346,7 +347,7 @@ export function markPaidAttemptResultRendered() {
 export function markPaidAttemptFailed(reason = "") {
   const next = patchActivePaidAttempt({ paymentStatus: "failed", generationStatus: "failed" });
   if (!next) return;
-  logPaidAttemptEvent("PaidAttempt.RestoreFailed", {
+  logPaidAttemptEvent("PaidAttempt.Failed", {
     attemptId: next.attemptId,
     featureKey: next.featureKey,
     paymentStatus: next.paymentStatus,

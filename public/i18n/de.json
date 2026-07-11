@@ -1536,6 +1536,7 @@
       "purchase": "Zahlungsgenehmigung und Zugriffsrechte prüfen."
     },
     "price5000": "5.000 KRW",
+    "perUse5000": "Pro Nutzung · 5.000 KRW",
     "permanentUnlockApprox5000": "Dauerhafte Freischaltung · ca. 5.000 KRW",
     "viewNow": "Jetzt ansehen →",
     "permanentUnlock5000": "Dauerhafte Freischaltung für 5.000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "Die zehn Götter beschreiben als zehn Zeichen, wie sich die anderen Buchstaben auf den Tag Ihrer Geburt beziehen. Wenn Sie sehen, welche Charaktere sich in Ihrem Horoskop versammeln, können Sie verborgene Persönlichkeiten, Talente und Liebesstile deutlich erkennen."
     },
     "premiumShowcase": {
-      "aria": "Details zu drei Premium-Saju-Interpretationen anzeigen",
+      "aria": "Details der Premium-Saju-Deutungen ansehen",
       "eyebrow": "PREMIUM-ANALYSE",
-      "title": "Drei tiefe Lesarten für den größeren Fluss des Schicksals",
-      "subtitle": "Daewun, vollständige Lektüre und Kompatibilität vereinen sich an einem Ort, damit die Struktur des Lebens klarer wird.",
-      "expand": "Öffnen Sie drei Lesungen",
+      "title": "Zwei Tiefdeutungen für den großen Fluss des Schicksals",
+      "subtitle": "Daewun und die Gesamtdeutung werden dauerhaft freigeschaltet, ergänzt durch die Kompatibilität pro Nutzung, damit die Struktur des Lebens klarer wird.",
+      "expand": "Deutungen öffnen",
       "permanent": "Dauerhafte Entsperrung",
+      "perUse": "Zahlung pro Nutzung",
+      "compatCta": "Kompatibilität ansehen →",
       "daewun": {
         "title": "Daewun-Analyse",
         "desc": "Der zehnjährige Daewun-Fluss wird durch die Stärke der Unterstützung, das saisonale Gleichgewicht und das folgende Muster integriert. Es zeigt an, wann man vorwärts gehen und wann man ruhig bleiben sollte.",

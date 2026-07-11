@@ -1368,7 +1368,7 @@ async function handleVerifyPayment(request, env) {
   });
 }
 
-async function handleGenerate(request, env) {
+async function handleGenerate(request, env, ctx = null) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
   const input = normalizeInput(body.input || {});
@@ -1416,49 +1416,74 @@ async function handleGenerate(request, env) {
     }, { status: 202 });
   }
 
-  try {
-    const generated = await generateNamingResult(env, generatedPrompt);
-    // 이름 카드 블록을 본문에서 분리한다. 파싱 실패 시 카드 없이 원문 그대로(조용한 강등).
-    const parsed = parseNamingResultCards(generated.text);
-    const generatedAt = new Date();
-    const execution = await upsertExecutionRecord(
-      env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, parsed.cleanText, generatedAt,
-      { provider: generated.provider, model: generated.model, nameCards: parsed.cards, finalPick: parsed.finalPick },
-    );
-    if (payment?._id) {
-      await mirrorNamingResultToPayment(payment._id, {
-        version: RESULT_VERSION,
-        productType: PRODUCT_TYPE,
-        inputHash,
-        sajuEvidenceHash: sajuEvidence.evidenceHash,
-        inputSnapshot: input,
-        sajuSnapshot,
-        generatedPrompt,
-        generatedResult: parsed.cleanText,
-        nameCards: parsed.cards,
-        finalPick: parsed.finalPick,
-        provider: generated.provider,
-        model: generated.model,
-        generatedAt: generatedAt.toISOString(),
-      });
+  // LLM 생성 + 결과 저장 파이프라인. 성공 시 실행 레코드를 반환하고, 실패 시 generation_failed 기록·
+  // 접근권 회복(월정석 환불/단건·이용권은 재시도로 회복)을 마친 뒤 재throw한다. 이 클로저는 즉시-202
+  // 백그라운드(waitUntil)와 동기 폴백 양쪽에서 그대로 재사용되므로, 실패 처리를 반드시 내부에 둔다.
+  const runGeneration = async () => {
+    try {
+      const generated = await generateNamingResult(env, generatedPrompt);
+      // 이름 카드 블록을 본문에서 분리한다. 파싱 실패 시 카드 없이 원문 그대로(조용한 강등).
+      const parsed = parseNamingResultCards(generated.text);
+      const generatedAt = new Date();
+      const execution = await upsertExecutionRecord(
+        env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, parsed.cleanText, generatedAt,
+        { provider: generated.provider, model: generated.model, nameCards: parsed.cards, finalPick: parsed.finalPick },
+      );
+      if (payment?._id) {
+        await mirrorNamingResultToPayment(payment._id, {
+          version: RESULT_VERSION,
+          productType: PRODUCT_TYPE,
+          inputHash,
+          sajuEvidenceHash: sajuEvidence.evidenceHash,
+          inputSnapshot: input,
+          sajuSnapshot,
+          generatedPrompt,
+          generatedResult: parsed.cleanText,
+          nameCards: parsed.cards,
+          finalPick: parsed.finalPick,
+          provider: generated.provider,
+          model: generated.model,
+          generatedAt: generatedAt.toISOString(),
+        });
+      }
+      return execution;
+    } catch (error) {
+      await markNamingGenerationFailed(env, claim.executionId, error);
+      // 월정석은 하드 환불되지만 단건결제/이용권은 환불이 아니라 재시도로 회복한다 —
+      // 같은 결제/이용권 증거로 /generate를 다시 호출하면 실패 레코드를 인계해 추가 차감 없이 재생성한다.
+      await restoreNamingAccessOnFailure(env, auth, access);
+      throw error;
     }
+  };
+
+  // 결제/이용권 확인이 끝난 이 시점에 즉시 202를 돌려주고, LLM 생성은 백그라운드(waitUntil)에서 완주한다.
+  // 클라이언트(폼→결과 페이지)는 /result 폴링으로 수렴하므로 동기 장기요청(엣지 타임아웃→500)을 피하면서도
+  // 연결이 끊겨도 유료 결과가 유실되지 않는다(ziwei-ai와 동일 패턴).
+  if (ctx?.waitUntil) {
+    ctx.waitUntil(runGeneration().catch(() => {}));
+    return json({
+      ok: true,
+      status: "generating",
+      executionId: claim.executionId,
+      message: NAMING_GENERATING_MESSAGE,
+    }, { status: 202 });
+  }
+
+  // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지(201 결과 / 503 재시도 신호).
+  try {
+    const execution = await runGeneration();
     return json({
       ok: true,
       idempotent: false,
       result: serializeExecutionResult(execution),
     }, { status: 201 });
-  } catch (error) {
-    await markNamingGenerationFailed(env, claim.executionId, error);
-    const restored = await restoreNamingAccessOnFailure(env, auth, access);
-    // 월정석은 하드 환불되지만 단건결제/이용권은 환불이 아니라 재시도로 회복한다 —
-    // 같은 결제/이용권 증거로 /generate를 다시 호출하면 실패 레코드를 인계해 추가 차감 없이 재생성한다.
+  } catch {
     // retryable을 명시해 클라이언트가 무결과로 멈추지 않고 자동 재시도하도록 신호한다.
     return json({
       ok: false,
       reason: "LLM_ERROR",
       code: "LLM_GENERATION_FAILED",
       message: NAMING_LLM_ERROR_MESSAGE,
-      restored: Boolean(restored?.refunded),
       retryable: true,
     }, { status: 503 });
   }
@@ -1509,13 +1534,13 @@ async function handleResult(request, env, id) {
   return json({ ok: true, result });
 }
 
-export async function handleNamingPromptRoutes(request, env) {
+export async function handleNamingPromptRoutes(request, env, ctx = null) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/naming-prompt");
     if (method === "POST" && path === "/checkout") return handleCheckout(request, env);
     if (method === "POST" && path === "/verify-payment") return handleVerifyPayment(request, env);
-    if (method === "POST" && path === "/generate") return handleGenerate(request, env);
+    if (method === "POST" && path === "/generate") return handleGenerate(request, env, ctx);
     if (method === "GET" && path.startsWith("/result/")) return handleResult(request, env, decodeURIComponent(path.slice("/result/".length)));
     if (["POST", "GET"].includes(method)) {
       return json({ ok: false, message: "Naming prompt route not found.", code: "NOT_FOUND" }, { status: 404 });

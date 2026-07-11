@@ -16,6 +16,7 @@ import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import TeaHouseSajuResultPanel from "./TeaHouseSajuResultPanel";
+import TeaHouseSajuCompatResultPanel from "./TeaHouseSajuCompatResultPanel";
 import TeaHouseSukuyoResultPanel from "./TeaHouseSukuyoResultPanel";
 import TenGodSymbolCard from "./TenGodSymbolCard";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -202,7 +203,9 @@ export default function TeaHouseResultSheet({
     : fortuneTeaHouseAssets.cutout.flowerPig;
   const consultationMode = result.consultationMode || "tarot";
   const isTarotMode = consultationMode === "tarot";
-  const isSajuMode = consultationMode === "saju";
+  const isSajuCompatMode = consultationMode === "sajuCompatibility";
+  // 사주 궁합은 사주 딥리딩 chrome을 그대로 공유한다(사주 계열). 궁합 전용 구조는 isSajuCompatMode로 추가한다.
+  const isSajuMode = consultationMode === "saju" || isSajuCompatMode;
   const isSukuyoMode = consultationMode === "sukuyo";
   const direction = result.tarot.orientation === "upright" ? "정방향" : "역방향";
   const tarotSpreadCards = result.tarotSpreadCards?.length
@@ -421,9 +424,9 @@ export default function TeaHouseResultSheet({
           <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
             <span>상담 방식</span>
             <strong>
-              {isSajuMode ? "사주" : isSukuyoMode ? "숙요점 궁합" : "타로"}
+              {isSajuCompatMode ? "사주 궁합" : isSajuMode ? "사주" : isSukuyoMode ? "숙요점 궁합" : "타로"}
             </strong>
-            <p>{isSajuMode ? "출생정보와 기본 기운 중심" : isSukuyoMode ? "27숙 거리와 관계 리듬 중심" : "선택된 카드와 현재 질문 중심"}</p>
+            <p>{isSajuCompatMode ? "두 사람의 명식 대조 중심" : isSajuMode ? "출생정보와 기본 기운 중심" : isSukuyoMode ? "27숙 거리와 관계 리듬 중심" : "선택된 카드와 현재 질문 중심"}</p>
           </div>
           {isTarotMode ? (
             <div className={`${resultGlassCardUi} ${resultLiftCardUi}`}>
@@ -478,6 +481,7 @@ export default function TeaHouseResultSheet({
           </p>
         </section>
 
+        {isSajuCompatMode ? <TeaHouseSajuCompatResultPanel result={result} /> : null}
         {isSajuMode ? <TeaHouseSajuResultPanel result={result} onShowTarot={onShowTarot} onEditBirthInfo={onEditBirthInfo} showTarotAction={false} /> : null}
         {isSukuyoMode ? <TeaHouseSukuyoResultPanel result={result} /> : null}
 

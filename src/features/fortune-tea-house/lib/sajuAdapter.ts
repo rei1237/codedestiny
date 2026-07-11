@@ -218,11 +218,15 @@ function normalizeCalendarType(request: FortuneTeaHouseConsultRequest) {
   return "solar";
 }
 
-function normalizeGender(request: FortuneTeaHouseConsultRequest) {
-  const value = text(request.gender) || text(request.birthInfo);
-  if (/(남성|남자|남\b|male|man)/i.test(value)) return "male";
-  if (/(여성|여자|여\b|female|woman)/i.test(value)) return "female";
+function normalizeGenderValue(value?: string) {
+  const v = text(value);
+  if (/(남성|남자|남\b|male|man)/i.test(v)) return "male";
+  if (/(여성|여자|여\b|female|woman)/i.test(v)) return "female";
   return "";
+}
+
+function normalizeGender(request: FortuneTeaHouseConsultRequest) {
+  return normalizeGenderValue(text(request.gender) || text(request.birthInfo));
 }
 
 function normalizeBirthInput(request: FortuneTeaHouseConsultRequest): NormalizedBirthInput | null {
@@ -237,6 +241,30 @@ function normalizeBirthInput(request: FortuneTeaHouseConsultRequest): Normalized
     birthTime: birthTime || undefined,
     calendarType: normalizeCalendarType(request),
     gender: normalizeGender(request) || undefined,
+    unknownTime: explicitUnknownTime || !birthTime,
+  };
+}
+
+// 임의의 출생 정보(본인/상대)를 받아 명식 스냅샷 입력으로 정규화한다 — 궁합에서 상대 명식 계산에 재사용.
+export type FortuneTeaSajuBirthParts = {
+  name?: string;
+  birthDate?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  calendarType?: "solar" | "lunar";
+  gender?: string;
+};
+
+function normalizeBirthParts(parts: FortuneTeaSajuBirthParts): NormalizedBirthInput | null {
+  const birthDate = parseBirthDate(text(parts.birthDate));
+  if (!birthDate) return null;
+  const explicitUnknownTime = parts.birthTimeUnknown === true;
+  const birthTime = explicitUnknownTime ? "" : parseBirthTime(text(parts.birthTime));
+  return {
+    birthDate,
+    birthTime: birthTime || undefined,
+    calendarType: parts.calendarType === "lunar" ? "lunar" : "solar",
+    gender: normalizeGenderValue(parts.gender) || undefined,
     unknownTime: explicitUnknownTime || !birthTime,
   };
 }
@@ -449,19 +477,10 @@ function buildCoreSummary(snapshot: FortuneTeaSajuSnapshot) {
   return `${dayMaster}을 중심으로 보면 ${strong}, ${weak}.`;
 }
 
-export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultRequest): FortuneTeaSajuSnapshot {
-  const birth = normalizeBirthInput(request);
-  if (!birth) {
-    return {
-      available: false,
-      coreSummary: "출생정보가 충분하지 않아 오늘은 현재 고민과 타로, 찻잔의 흐름을 중심으로 읽어드릴게요.",
-      tenGodSnapshot: normalizeTenGodSnapshot(),
-    };
-  }
-
+function snapshotFromNormalizedBirth(birth: NormalizedBirthInput, name: string): FortuneTeaSajuSnapshot {
   try {
     const profile = buildSajuProfile({
-      name: text(request.nickname) || "손님",
+      name: name || "손님",
       gender: birth.gender,
       birth: {
         calendarType: birth.calendarType,
@@ -506,6 +525,31 @@ export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultReque
       caution: "사주 계산이 잠시 흐려져 오늘은 확인된 질문과 찻잔의 결을 더 중심에 두었습니다.",
     };
   }
+}
+
+export function buildFortuneTeaSajuSnapshot(request: FortuneTeaHouseConsultRequest): FortuneTeaSajuSnapshot {
+  const birth = normalizeBirthInput(request);
+  if (!birth) {
+    return {
+      available: false,
+      coreSummary: "출생정보가 충분하지 않아 오늘은 현재 고민과 타로, 찻잔의 흐름을 중심으로 읽어드릴게요.",
+      tenGodSnapshot: normalizeTenGodSnapshot(),
+    };
+  }
+  return snapshotFromNormalizedBirth(birth, text(request.nickname));
+}
+
+// 궁합에서 상대(또는 본인)의 명식을 top-level 요청 필드와 무관하게 계산한다.
+export function buildFortuneTeaSajuSnapshotFromParts(parts: FortuneTeaSajuBirthParts): FortuneTeaSajuSnapshot {
+  const birth = normalizeBirthParts(parts);
+  if (!birth) {
+    return {
+      available: false,
+      coreSummary: "출생정보가 충분하지 않아 이 사람의 명식은 열지 않고, 확인된 정보만 조심스럽게 읽었습니다.",
+      tenGodSnapshot: normalizeTenGodSnapshot(),
+    };
+  }
+  return snapshotFromNormalizedBirth(birth, text(parts.name));
 }
 
 export function buildSajuResultSection(snapshot: FortuneTeaSajuSnapshot, request?: FortuneTeaHouseConsultRequest) {

@@ -5,8 +5,9 @@ import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
-import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
+import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -502,18 +503,34 @@ function toReadableAssistantText(content: string): string {
   return text;
 }
 
-function AssistantMessageBody({ content }: { content: string }) {
-  const readable = toReadableAssistantText(content);
-  const paragraphs = splitIntoParagraphs(readable);
-  const lines = paragraphs.length ? paragraphs : (readable ? [readable] : []);
-  if (!lines.length) return null;
-  return (
-    <>
-      {lines.map((para, idx) => (
-        <p key={idx}>{para}</p>
-      ))}
-    </>
-  );
+// 구조화 파싱이 실패한 폴백 원문을 소제목 없는 장문 상담으로 보고, 문단을 묶어 책장 페이지로 나눈다.
+// 각 페이지 본문은 정상 챕터와 동일한 .readingBody 타이포(볼드=골드)로 렌더한다.
+const FALLBACK_PARAGRAPHS_PER_PAGE = 4;
+
+function buildFallbackReadingPages(consultation: Consultation): ResultViewerPage[] {
+  const assistantText = consultation.messages
+    .filter((item) => item.role === "assistant")
+    .map((item) => toReadableAssistantText(item.content))
+    .filter(Boolean)
+    .join("\n\n");
+  // 원문 문단 경계(\n\n)로만 나눈다 — 긴 문단의 문장 청킹·볼드·번호목록은 AiResultProse가 처리한다.
+  const paragraphs = assistantText.split(/\n{2,}/).map((part) => part.trim()).filter(Boolean);
+  const source = paragraphs.length ? paragraphs : (assistantText.trim() ? [assistantText.trim()] : []);
+  if (!source.length) return [];
+  const pages: ResultViewerPage[] = [];
+  for (let index = 0; index < source.length; index += FALLBACK_PARAGRAPHS_PER_PAGE) {
+    const slice = source.slice(index, index + FALLBACK_PARAGRAPHS_PER_PAGE);
+    pages.push({
+      id: `sukuyo-reading-${index}`,
+      label: `${pages.length + 1}장`,
+      content: (
+        <div className={styles.readingBody}>
+          <AiResultProse value={slice.join("\n\n")} />
+        </div>
+      ),
+    });
+  }
+  return pages;
 }
 
 function MoonLoadingScreen() {
@@ -581,7 +598,7 @@ function MoonLoadingScreen() {
       <div className={styles.loadingBar}>
         <span />
       </div>
-      <p className={styles.loadingFoot}>상담문은 길게 써 내려가느라 최대 1분 정도 걸릴 수 있어요. 화면을 닫지 말고 잠시 기다려 주세요.</p>
+      <p className={styles.loadingFoot}>상담문을 한 자 한 자 길게 엮느라 5분에서 길게는 10분까지 걸릴 수 있어요. 화면을 닫지 말고 편히 기다려 주세요.</p>
     </div>
   );
 }
@@ -776,11 +793,10 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
   const chapterEntries = useMemo(() => Object.entries(sections), [sections]);
   const [activeChapter, setActiveChapter] = useState(0);
-  const [showAll, setShowAll] = useState(false);
+  const [chapterViewAll, setChapterViewAll] = usePagedViewerMode("sukuyoCompatChapterViewerV1");
   const [detailOpen, setDetailOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [hasSeenQuote, setHasSeenQuote] = useState(false);
-  const chapterBodyRef = useRef<HTMLDivElement | null>(null);
   const initialSeenRef = useRef<boolean | null>(null);
   useBodyScrollLock(true);
 
@@ -810,19 +826,7 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
   const openChapter = (index: number) => {
     if (index < 0 || index >= chapterEntries.length) return;
     setActiveChapter(index);
-    chapterBodyRef.current?.scrollTo?.({ top: 0 });
   };
-
-  useEffect(() => {
-    if (showAll) return;
-    const handleKey = (event: KeyboardEvent) => {
-      if (event.key === "ArrowLeft") openChapter(activeChapter - 1);
-      if (event.key === "ArrowRight") openChapter(activeChapter + 1);
-    };
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeChapter, showAll, chapterEntries.length]);
 
   const handlePDF = async () => {
     const element = document.getElementById("compat-result-body");
@@ -858,9 +862,6 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
           <button type="button" onClick={handlePDF} disabled={isDownloading}>
             {isDownloading ? <Loader2 size={16} className={styles.spin} /> : <Download size={16} />}
             PDF 저장
-          </button>
-          <button type="button" onClick={() => setShowAll((prev) => !prev)} aria-pressed={showAll}>
-            {showAll ? "한 장씩 보기" : "전체 보기"}
           </button>
           <button type="button" onClick={onClose} aria-label="결과 닫기">
             <X size={16} />
@@ -903,51 +904,35 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
             </nav>
           )}
           <div id="compat-detail-panel" hidden={!detailOpen}>
-            {showAll ? (
-              <div className={styles.chapterStage} ref={chapterBodyRef}>
-                {chapterEntries.map(([key, section]) => (
-                  <ChapterReadingArticle key={key} sectionKey={key} section={section} />
-                ))}
-              </div>
-            ) : (
-              <>
-                <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
-                  {chapterEntries.map(([key, section], index) => (
-                    <button
-                      key={key}
-                      type="button"
-                      className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}`}
-                      onClick={() => openChapter(index)}
-                      aria-current={index === activeChapter ? "true" : undefined}
-                      aria-label={`${index + 1}장 ${section.title}`}
-                    >
-                      <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
-                      {index + 1}장
-                    </button>
-                  ))}
-                </nav>
-                <div className={styles.chapterStage} ref={chapterBodyRef}>
-                  {chapterEntries[activeChapter] && (
-                    <ChapterReadingArticle sectionKey={chapterEntries[activeChapter][0]} section={chapterEntries[activeChapter][1]} />
-                  )}
-                </div>
-                <div className={styles.chapterPager}>
-                  <button type="button" onClick={() => openChapter(activeChapter - 1)} disabled={activeChapter === 0} aria-label="이전 장으로">
-                    이전 장
-                  </button>
-                  <span>{activeChapter + 1} / {chapterEntries.length}</span>
-                  {activeChapter < chapterEntries.length - 1 ? (
-                    <button type="button" className={styles.chapterNextButton} onClick={() => openChapter(activeChapter + 1)} aria-label="다음 장 열기">
-                      다음 장 열기
-                    </button>
-                  ) : (
-                    <button type="button" className={styles.chapterNextButton} onClick={onClose} aria-label="결과 닫기">
-                      여운 남기고 닫기
-                    </button>
-                  )}
-                </div>
-              </>
-            )}
+            <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+              {chapterEntries.map(([key, section], index) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`${styles.chapterChip}${index === activeChapter ? ` ${styles.chapterChipActive}` : ""}`}
+                  onClick={() => openChapter(index)}
+                  aria-current={index === activeChapter ? "true" : undefined}
+                  aria-label={`${index + 1}장 ${section.title}`}
+                >
+                  <span aria-hidden="true">{SECTION_ICONS[key] || "✦"}</span>
+                  {index + 1}장
+                </button>
+              ))}
+            </nav>
+            <PagedResultViewer
+              pages={chapterEntries.map(([key, section], index) => ({
+                id: key,
+                label: `${index + 1}장`,
+                content: <ChapterReadingArticle sectionKey={key} section={section} />,
+              }))}
+              deckLabel="달빛 궁합 12장 해설"
+              className={styles.pagedViewer}
+              pageClassName={styles.pagedPage}
+              viewAll={chapterViewAll}
+              onViewAllChange={setChapterViewAll}
+              activePage={activeChapter}
+              onPageChange={setActiveChapter}
+            />
           </div>
         </section>
       </div>
@@ -1062,6 +1047,11 @@ export default function SukuyoCompatibilityAiClient() {
   const busy = phase === "access" || phase === "payment" || phase === "start";
   const consultationType: ConsultationType = "compatibility";
   const result = useMemo(() => latestAssistantJson(consultation), [consultation]);
+  const [fallbackViewAll, setFallbackViewAll] = usePagedViewerMode("sukuyoCompatFallbackViewerV1");
+  const fallbackPages = useMemo<ResultViewerPage[]>(
+    () => (consultation && !result ? buildFallbackReadingPages(consultation) : []),
+    [consultation, result],
+  );
 
   useEffect(() => {
     if (result) setResultOpen(true);
@@ -1543,16 +1533,16 @@ export default function SukuyoCompatibilityAiClient() {
                 )}
               </div>
 
-              <div className={styles.chatList}>
-                {consultation.messages.map((item, index) => (
-                  <article key={`${item.role}-${index}`} className={item.role === "assistant" ? styles.assistantMessage : styles.userMessage}>
-                    <span>{item.role === "assistant" ? "상담" : "나"}</span>
-                    {item.role === "assistant"
-                      ? <AssistantMessageBody content={item.content} />
-                      : <p>{item.content}</p>}
-                  </article>
-                ))}
-              </div>
+              {fallbackPages.length > 0 && (
+                <PagedResultViewer
+                  pages={fallbackPages}
+                  deckLabel="달빛 상담문"
+                  className={styles.pagedViewer}
+                  pageClassName={styles.pagedPage}
+                  viewAll={fallbackViewAll}
+                  onViewAllChange={setFallbackViewAll}
+                />
+              )}
             </div>
           ) : (
             <div className={styles.resultPanel}>

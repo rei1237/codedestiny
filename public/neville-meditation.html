@@ -1269,6 +1269,7 @@ let audioFadeTimer = null;
 let musicPanelClosed = false;
 const MEDITATION_TARGET_VOLUME = 0.55;
 let _sessionBootInFlight = false;
+let _sessionBootStartedAt = 0;
 
 const THETA_PRESETS = {
   mystic: {
@@ -1553,36 +1554,41 @@ async function _consumeMeditationCoin(cost, reason) {
 
 /* ═══════════════════════════ START ═══════════════════════════ */
 async function startCourse(mins) {
-  if (_sessionBootInFlight) return;
+  // 재진입 가드: 60초 이상 묵은 가드는 stale로 간주해 복구(게이트 hang 대비)
+  if (_sessionBootInFlight && (Date.now() - _sessionBootStartedAt) < 60000) return;
   _sessionBootInFlight = true;
-  var cost = Number(mins) >= 60 ? 50 : 30;
-  var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스');
-  if (!paid) {
+  _sessionBootStartedAt = Date.now();
+  try {
+    var cost = Number(mins) >= 60 ? 50 : 30;
+    var paid = await _consumeMeditationCoin(cost, 'openNevilleMeditationPage ' + mins + '분 코스');
+    if (!paid) return;
+
+    stopLoadingMeteors();
+    course = COURSES[mins];
+    elapsed = 0; msgIdx = 0; paused = false; finished = false;
+    clearInterval(timerID);
+    if (typTO) clearTimeout(typTO);
+
+    showScreen('meditation');
+    setMusicPanelClosed(false);
+    audioShouldPlay = true;
+    safePlayTheta();
+    setTimeout(() => {
+      // 이전 세션 텍스트 초기화
+      const g = document.getElementById('guidance');
+      g.innerHTML = '';
+      g.style.opacity = '1';
+      document.getElementById('pauseBtn').textContent = '일시정지';
+      updateHUD();
+      checkMsgs();
+      startTicker();
+    }, 1400);
+  } catch (err) {
+    console.error('[neville meditation] start course failed', err);
+    window.alert('명상 세션을 시작하는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
+  } finally {
     _sessionBootInFlight = false;
-    return;
   }
-
-  stopLoadingMeteors();
-  course = COURSES[mins];
-  elapsed = 0; msgIdx = 0; paused = false; finished = false;
-  clearInterval(timerID);
-  if (typTO) clearTimeout(typTO);
-
-  showScreen('meditation');
-  setMusicPanelClosed(false);
-  audioShouldPlay = true;
-  safePlayTheta();
-  setTimeout(() => {
-    // 이전 세션 텍스트 초기화
-    const g = document.getElementById('guidance');
-    g.innerHTML = '';
-    g.style.opacity = '1';
-    document.getElementById('pauseBtn').textContent = '일시정지';
-    updateHUD();
-    checkMsgs();
-    startTicker();
-    _sessionBootInFlight = false;
-  }, 1400);
 }
 
 function startTicker() {

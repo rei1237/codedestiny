@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -1647,12 +1648,16 @@ export default function NeoOperationRoomPage() {
     window.setTimeout(reveal, BRIEFING_SEAL_DELAY_MS);
   }
 
-  async function pollPendingBriefing(resultId: string) {
+  async function pollPendingBriefing(resultId: string, accessToken = "") {
+    // 로그인 쿠키 판정이 일시적으로 흔들려도 이미 인가된 세션의 결과 조회는 이어지도록,
+    // ensure-access가 발급한 네오 액세스 토큰을 폴링 헤더로 함께 보내 서버 신원 폴백을 가능케 한다.
+    const pollHeaders: Record<string, string> = { Accept: "application/json" };
+    if (accessToken) pollHeaders["x-neo-operation-room-access-token"] = accessToken;
     for (let attempt = 0; attempt < PENDING_RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
       await new Promise((resolve) => window.setTimeout(resolve, PENDING_RESULT_POLL_INTERVAL_MS));
       try {
         const response = await authFetch(`${API_ENDPOINTS.result}?attemptId=${encodeURIComponent(resultId)}`, {
-          headers: { Accept: "application/json" },
+          headers: pollHeaders,
         });
         const data = (await response.json().catch(() => ({}))) as NeoSession & { status?: string; reason?: string };
         if (data.ok && data.initialBriefing) {
@@ -1663,10 +1668,14 @@ export default function NeoOperationRoomPage() {
         if (response.status === 409 || toText(data.status) === "failed" || toText(data.status) === "generation_failed") {
           throw new Error(toText(data.reason) === "CALCULATION_ERROR" ? "CALCULATION_ERROR" : "LLM_ERROR");
         }
+        // 일시적 DB/인증 장애(503·retryable)는 계속 폴링해 자가 복구한다(찻집과 동일 완충).
+        if (isRetriableResultPollFailure(response.status, data)) continue;
+        // authFetch 세션 리프레시까지 실패한 확정 401은 삼키지 말고 종료한다 — 삼키면 92%에서 무한 폴링(고착).
+        if (response.status === 401) throw new Error("LOGIN_REQUIRED");
         // 그 외(202 generating 등)는 계속 폴링한다.
       } catch (caught) {
         // 위에서 던진 실패 코드는 그대로 전파하고, 일시적 네트워크 오류만 삼켜 재시도한다.
-        if (caught instanceof Error && (caught.message === "LLM_ERROR" || caught.message === "CALCULATION_ERROR")) throw caught;
+        if (caught instanceof Error && (caught.message === "LLM_ERROR" || caught.message === "CALCULATION_ERROR" || caught.message === "LOGIN_REQUIRED")) throw caught;
       }
     }
     // 폴링 예산 소진 — 생성이 아직 진행 중일 수 있으니 결과 화면에서 확인하도록 안내한다.
@@ -1676,6 +1685,8 @@ export default function NeoOperationRoomPage() {
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
     setFlowPhase("generating");
     setStatusMessage("운명의 작전 지도를 펼치는 중이다.");
+    // ensure-access가 발급한 네오 액세스 토큰(이용권/월정석 경로에만 존재)을 폴링에도 실어 서버 신원 폴백을 돕는다.
+    const pollAccessToken = toText(access.accessToken);
     // /start는 세션을 만든 뒤 즉시 202를 반환하고 실제 생성은 서버 백그라운드에서 진행된다.
     // 연결 자체가 끊겨 postJson이 거부되더라도 생성은 계속되므로, 폴링으로 완료를 수렴시킨다.
     const started = await postJson<NeoSession | { ok?: false; reason?: string; message?: string }>(
@@ -1685,7 +1696,7 @@ export default function NeoOperationRoomPage() {
     ).catch(() => null);
     if (!started) {
       setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
-      await pollPendingBriefing(idempotencyKey);
+      await pollPendingBriefing(idempotencyKey, pollAccessToken);
       return;
     }
     const { response, data } = started;
@@ -1696,7 +1707,7 @@ export default function NeoOperationRoomPage() {
     if (response.status === 202) {
       const pendingId = toText((data as { sessionId?: string }).sessionId) || idempotencyKey;
       setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
-      await pollPendingBriefing(pendingId);
+      await pollPendingBriefing(pendingId, pollAccessToken);
       return;
     }
     throw new Error(toText((data as { reason?: string }).reason) || "SERVER_ERROR");

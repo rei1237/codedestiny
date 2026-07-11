@@ -12,7 +12,7 @@ import {
 } from "@/app/_lib/profile-card-storage";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getFortuneTeaHouseConsultPriceLabel, getFortuneTeaHouseResultButtonLabel } from "../data/consultPricing";
-import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSukuyoInput, FortuneTeaTarotSpread } from "../data/consult";
+import type { FortuneTeaHouseCalendarType, FortuneTeaHouseConsultMode, FortuneTeaHouseQuestionInput, FortuneTeaHouseSajuCompatInput, FortuneTeaHouseSukuyoInput, FortuneTeaTarotSpread } from "../data/consult";
 import { type TeaHouseCup } from "../data/teaCups";
 import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
@@ -66,6 +66,17 @@ const consultModeOptions: Array<{
     suitedFor: "내 성향과 타이밍, 오래 반복되는 고민의 뿌리를 보고 싶은 때",
     image: fortuneTeaHouseAssets.consultModes.saju,
     alt: "운명의 찻집 사주 상담 이미지",
+  },
+  {
+    id: "sajuCompatibility",
+    title: "사주 궁합 상담",
+    eyebrow: "두 명식이 나란히 놓이는 저녁",
+    description: "두 사람의 사주 명식을 각각 산출해 나란히 놓고, 두 흐름이 만나는 결을 함께 읽습니다.",
+    promise: "나의 명식, 상대의 명식, 두 사람이 맞물리고 조율할 지점",
+    reads: "두 사람의 일간·오행·십성, 상생과 상극의 결, 관계의 운 흐름",
+    suitedFor: "연인·부부·재회 등 사주로 두 사람의 궁합을 깊이 보고 싶은 때",
+    image: fortuneTeaHouseAssets.consultModes.saju,
+    alt: "두 사람의 사주 궁합 이미지",
   },
   {
     id: "sukuyo",
@@ -243,6 +254,27 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     focus: initialInput?.sukuyo?.focus || "앞으로의 흐름",
     currentSituation: initialInput?.sukuyo?.currentSituation || "",
   }));
+  const [sajuCompatInput, setSajuCompatInput] = useState<FortuneTeaHouseSajuCompatInput>(() => ({
+    user: {
+      name: initialInput?.sajuCompatibility?.user?.name || initialInput?.nickname || "",
+      birthDate: initialInput?.sajuCompatibility?.user?.birthDate || "",
+      birthTime: initialInput?.sajuCompatibility?.user?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sajuCompatibility?.user?.birthTimeUnknown),
+      calendarType: initialInput?.sajuCompatibility?.user?.calendarType || "solar",
+      gender: initialInput?.sajuCompatibility?.user?.gender || "",
+    },
+    partner: {
+      name: initialInput?.sajuCompatibility?.partner?.name || "",
+      birthDate: initialInput?.sajuCompatibility?.partner?.birthDate || "",
+      birthTime: initialInput?.sajuCompatibility?.partner?.birthTime || "",
+      birthTimeUnknown: Boolean(initialInput?.sajuCompatibility?.partner?.birthTimeUnknown),
+      calendarType: initialInput?.sajuCompatibility?.partner?.calendarType || "solar",
+      gender: initialInput?.sajuCompatibility?.partner?.gender || "",
+    },
+    relationshipType: initialInput?.sajuCompatibility?.relationshipType || "연인",
+    focus: initialInput?.sajuCompatibility?.focus || "앞으로의 흐름",
+    currentSituation: initialInput?.sajuCompatibility?.currentSituation || "",
+  }));
   const [question, setQuestion] = useState(initialInput?.question || "");
   const [error, setError] = useState("");
 
@@ -263,6 +295,18 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
         ...current.user,
         name: option.name || current.user.name,
         birthDate: option.birthDate || current.user.birthDate,
+        calendarType: option.calendarType || current.user.calendarType,
+        gender: option.gender || current.user.gender,
+      },
+    }));
+    setSajuCompatInput((current) => ({
+      ...current,
+      user: {
+        ...current.user,
+        name: option.name || current.user.name,
+        birthDate: option.birthDate || current.user.birthDate,
+        birthTime: option.birthTimeUnknown ? "" : option.birthTime || current.user.birthTime,
+        birthTimeUnknown: option.birthTimeUnknown,
         calendarType: option.calendarType || current.user.calendarType,
         gender: option.gender || current.user.gender,
       },
@@ -380,40 +424,111 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
       : `${relationshipType} 관계에서 ${focus}이 궁금해요.`;
   }
 
+  function updateSajuCompatPerson(target: "user" | "partner", patch: Partial<FortuneTeaHouseSajuCompatInput["user"]>) {
+    setSajuCompatInput((current) => ({
+      ...current,
+      [target]: {
+        ...current[target],
+        ...patch,
+      },
+    }));
+  }
+
+  function updateSajuCompatMeta(patch: Partial<Omit<FortuneTeaHouseSajuCompatInput, "user" | "partner">>) {
+    setSajuCompatInput((current) => ({
+      ...current,
+      ...patch,
+    }));
+  }
+
+  function normalizedSajuCompatInput(): FortuneTeaHouseSajuCompatInput {
+    return {
+      user: {
+        name: sajuCompatInput.user.name?.trim(),
+        birthDate: sajuCompatInput.user.birthDate,
+        birthTime: sajuCompatInput.user.birthTimeUnknown ? "" : sajuCompatInput.user.birthTime,
+        birthTimeUnknown: Boolean(sajuCompatInput.user.birthTimeUnknown),
+        calendarType: sajuCompatInput.user.calendarType || "solar",
+        gender: sajuCompatInput.user.gender,
+      },
+      partner: {
+        name: sajuCompatInput.partner.name?.trim(),
+        birthDate: sajuCompatInput.partner.birthDate,
+        birthTime: sajuCompatInput.partner.birthTimeUnknown ? "" : sajuCompatInput.partner.birthTime,
+        birthTimeUnknown: Boolean(sajuCompatInput.partner.birthTimeUnknown),
+        calendarType: sajuCompatInput.partner.calendarType || "solar",
+        gender: sajuCompatInput.partner.gender,
+      },
+      relationshipType: sajuCompatInput.relationshipType || "연인",
+      focus: sajuCompatInput.focus || "앞으로의 흐름",
+      currentSituation: sajuCompatInput.currentSituation?.trim(),
+    };
+  }
+
+  function buildSajuCompatAutoQuestion(input = normalizedSajuCompatInput()) {
+    const relationshipType = input.relationshipType || "연인";
+    const focus = input.focus || "앞으로의 흐름";
+    const currentSituation = input.currentSituation?.trim();
+    return currentSituation
+      ? `${relationshipType} 관계의 사주 궁합 ${focus}: ${currentSituation}`
+      : `${relationshipType} 관계에서 두 사람의 사주 궁합과 ${focus}이 궁금해요.`;
+  }
+
   function buildInput(nextQuestion: string): FortuneTeaHouseQuestionInput {
     const nextSukuyoInput = normalizedSukuyoInput();
+    const nextSajuCompatInput = normalizedSajuCompatInput();
+    const isCompat = consultationMode === "sajuCompatibility";
+    // 사주 궁합은 본인 명식을 궁합 폼의 '나' 값으로 계산한다(단독 사주 top-level 필드가 아니라).
+    const effectiveBirthDate = isCompat ? nextSajuCompatInput.user.birthDate || "" : birthDate;
+    const effectiveBirthTimeUnknown = isCompat ? Boolean(nextSajuCompatInput.user.birthTimeUnknown) : birthTimeUnknown;
+    const effectiveBirthTime = effectiveBirthTimeUnknown ? "" : isCompat ? nextSajuCompatInput.user.birthTime || "" : birthTime;
+    const effectiveGender = isCompat ? nextSajuCompatInput.user.gender || "" : gender;
+    const effectiveCalendarType = isCompat ? nextSajuCompatInput.user.calendarType || "solar" : calendarType;
     const birthInfoSummary = [
-      consultationMode === "sukuyo" ? `${nextSukuyoInput.user.name || "나"} ${nextSukuyoInput.user.birthDate || ""}` : birthDate ? birthDate.replaceAll("-", ".") : "",
-      consultationMode === "sukuyo" ? `${nextSukuyoInput.partner.name || "상대"} ${nextSukuyoInput.partner.birthDate || ""}` : birthTimeUnknown ? "출생시간 미상" : birthTime ? birthTime : "",
-      consultationMode === "sukuyo" ? nextSukuyoInput.relationshipType || "" : gender === "male" ? "남성" : gender === "female" ? "여성" : "",
-      consultationMode === "sukuyo" ? nextSukuyoInput.focus || "" : calendarType === "lunar" ? "음력" : "양력",
-      consultationMode === "sukuyo" ? "" : birthPlace,
+      consultationMode === "sukuyo"
+        ? `${nextSukuyoInput.user.name || "나"} ${nextSukuyoInput.user.birthDate || ""}`
+        : isCompat
+          ? `${nextSajuCompatInput.user.name || "나"} ${nextSajuCompatInput.user.birthDate || ""}`
+          : effectiveBirthDate ? effectiveBirthDate.replaceAll("-", ".") : "",
+      consultationMode === "sukuyo"
+        ? `${nextSukuyoInput.partner.name || "상대"} ${nextSukuyoInput.partner.birthDate || ""}`
+        : isCompat
+          ? `${nextSajuCompatInput.partner.name || "상대"} ${nextSajuCompatInput.partner.birthDate || ""}`
+          : effectiveBirthTimeUnknown ? "출생시간 미상" : effectiveBirthTime ? effectiveBirthTime : "",
+      consultationMode === "sukuyo" ? nextSukuyoInput.relationshipType || "" : isCompat ? nextSajuCompatInput.relationshipType || "" : effectiveGender === "male" ? "남성" : effectiveGender === "female" ? "여성" : "",
+      consultationMode === "sukuyo" ? nextSukuyoInput.focus || "" : isCompat ? nextSajuCompatInput.focus || "" : effectiveCalendarType === "lunar" ? "음력" : "양력",
+      consultationMode === "sukuyo" || isCompat ? "" : birthPlace,
     ]
       .filter(Boolean)
       .join(" ");
     return {
       consultationMode,
-      nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : nickname.trim(),
+      nickname: consultationMode === "sukuyo" ? nextSukuyoInput.user.name || nickname.trim() : isCompat ? nextSajuCompatInput.user.name || nickname.trim() : nickname.trim(),
       concernTopic: selectedCup.topic,
       birthInfo: birthInfoSummary,
       profileId: consultationMode === "saju" ? profileId : undefined,
-      birthDate,
-      birthTime: birthTimeUnknown ? "" : birthTime,
-      birthTimeUnknown: consultationMode === "saju" ? birthTimeUnknown : undefined,
+      birthDate: effectiveBirthDate,
+      birthTime: effectiveBirthTime,
+      birthTimeUnknown: consultationMode === "saju" || isCompat ? effectiveBirthTimeUnknown : undefined,
       birthPlace: consultationMode === "saju" ? birthPlace.trim() : undefined,
       timezone: consultationMode === "saju" ? timezone.trim() : undefined,
-      gender,
-      calendarType,
+      gender: effectiveGender,
+      calendarType: effectiveCalendarType,
       tarotSpread: consultationMode === "tarot" ? tarotSpread : undefined,
       sukuyo: consultationMode === "sukuyo" ? nextSukuyoInput : undefined,
+      sajuCompatibility: isCompat ? nextSajuCompatInput : undefined,
       question: nextQuestion,
     };
   }
 
   function submitCurrentQuestion() {
     if (isSubmitting) return;
-    const nextQuestion = consultationMode === "sukuyo" && question.trim().length < 4
-      ? buildSukuyoAutoQuestion()
+    const nextQuestion = question.trim().length < 4
+      ? consultationMode === "sukuyo"
+        ? buildSukuyoAutoQuestion()
+        : consultationMode === "sajuCompatibility"
+          ? buildSajuCompatAutoQuestion()
+          : question.trim()
       : question.trim();
     if (nextQuestion.length < 4) {
       setError("연이가 읽을 수 있도록 마음을 조금만 더 적어 주세요.");
@@ -422,6 +537,13 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
     if (consultationMode === "saju" && !birthDate) {
       setError("사주로 보려면 생년월일을 먼저 찻잔 위에 올려 주세요.");
       return;
+    }
+    if (consultationMode === "sajuCompatibility") {
+      const nextSajuCompatInput = normalizedSajuCompatInput();
+      if (!nextSajuCompatInput.user.birthDate || !nextSajuCompatInput.partner.birthDate) {
+        setError("사주 궁합을 보려면 두 사람의 생년월일을 모두 올려 주세요.");
+        return;
+      }
     }
     if (consultationMode === "sukuyo") {
       const nextSukuyoInput = normalizedSukuyoInput();
@@ -780,6 +902,219 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
             사주는 보이는 정보만 읽습니다. 모르는 시간이나 기운은 연이가 지어내지 않아요.
           </p>
         </section>
+        ) : consultationMode === "sajuCompatibility" ? (
+          <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="sajuCompatBirthSectionTitle">
+            <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>
+              <span>C</span>
+              <div>
+                <h3 id="sajuCompatBirthSectionTitle">두 사람의 명식을 나란히 놓아요</h3>
+                <p>사주 궁합은 두 사람의 생년월일로 각각의 명식을 산출한 뒤, 두 흐름이 만나는 결을 함께 읽습니다. 출생시간을 모르면 시주 없이 큰 흐름 중심으로 봅니다.</p>
+              </div>
+            </div>
+
+            <div className={styles.sukuyoPairGrid}>
+              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+                <span>나의 명식</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserName">
+                    이름 또는 닉네임
+                    <input
+                      id="fortuneTeaSajuCompatUserName"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.user.name || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { name: event.target.value })}
+                      placeholder="나"
+                      autoComplete="nickname"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
+                    생년월일
+                    <input
+                      id="fortuneTeaSajuCompatUserBirthDate"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      type="date"
+                      value={sajuCompatInput.user.birthDate || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { birthDate: event.target.value })}
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
+                    출생시간
+                    <input
+                      id="fortuneTeaSajuCompatUserBirthTime"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      type="time"
+                      value={sajuCompatInput.user.birthTime || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.user.birthTimeUnknown })}
+                      disabled={isSubmitting || sajuCompatInput.user.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatUserTimeUnknown">
+                    <input
+                      id="fortuneTeaSajuCompatUserTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sajuCompatInput.user.birthTimeUnknown)}
+                      onChange={(event) => updateSajuCompatPerson("user", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.user.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>출생시간 미상</span>
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserCalendar">
+                    양력/음력
+                    <select
+                      id="fortuneTeaSajuCompatUserCalendar"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.user.calendarType || "solar"}
+                      onChange={(event) => updateSajuCompatPerson("user", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">양력</option>
+                      <option value="lunar">음력</option>
+                    </select>
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserGender">
+                    성별
+                    <select
+                      id="fortuneTeaSajuCompatUserGender"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.user.gender || ""}
+                      onChange={(event) => updateSajuCompatPerson("user", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">선택</option>
+                      <option value="female">여성</option>
+                      <option value="male">남성</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+
+              <article className={`${styles.sukuyoPersonCard} ${sukuyoCardUi}`}>
+                <span>상대의 명식</span>
+                <div className={`${styles.questionFieldGrid} ${styles.sukuyoPersonFieldGrid}`}>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerName">
+                    이름 또는 닉네임
+                    <input
+                      id="fortuneTeaSajuCompatPartnerName"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.partner.name || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { name: event.target.value })}
+                      placeholder="상대"
+                      autoComplete="off"
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
+                    생년월일
+                    <input
+                      id="fortuneTeaSajuCompatPartnerBirthDate"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      type="date"
+                      value={sajuCompatInput.partner.birthDate || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { birthDate: event.target.value })}
+                      disabled={isSubmitting}
+                    />
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
+                    출생시간
+                    <input
+                      id="fortuneTeaSajuCompatPartnerBirthTime"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      type="time"
+                      value={sajuCompatInput.partner.birthTime || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { birthTime: event.target.value, birthTimeUnknown: event.target.value ? false : sajuCompatInput.partner.birthTimeUnknown })}
+                      disabled={isSubmitting || sajuCompatInput.partner.birthTimeUnknown}
+                    />
+                  </label>
+                  <label className={styles.birthTimeUnknownToggle} htmlFor="fortuneTeaSajuCompatPartnerTimeUnknown">
+                    <input
+                      id="fortuneTeaSajuCompatPartnerTimeUnknown"
+                      type="checkbox"
+                      checked={Boolean(sajuCompatInput.partner.birthTimeUnknown)}
+                      onChange={(event) => updateSajuCompatPerson("partner", { birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : sajuCompatInput.partner.birthTime })}
+                      disabled={isSubmitting}
+                    />
+                    <span>출생시간 미상</span>
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerCalendar">
+                    양력/음력
+                    <select
+                      id="fortuneTeaSajuCompatPartnerCalendar"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.partner.calendarType || "solar"}
+                      onChange={(event) => updateSajuCompatPerson("partner", { calendarType: event.target.value === "lunar" ? "lunar" : "solar" })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="solar">양력</option>
+                      <option value="lunar">음력</option>
+                    </select>
+                  </label>
+                  <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerGender">
+                    성별
+                    <select
+                      id="fortuneTeaSajuCompatPartnerGender"
+                      className={`${styles.questionInput} ${questionInputUi}`}
+                      value={sajuCompatInput.partner.gender || ""}
+                      onChange={(event) => updateSajuCompatPerson("partner", { gender: event.target.value })}
+                      disabled={isSubmitting}
+                    >
+                      <option value="">선택</option>
+                      <option value="female">여성</option>
+                      <option value="male">남성</option>
+                    </select>
+                  </label>
+                </div>
+              </article>
+            </div>
+
+            <div className={styles.sukuyoMetaGrid}>
+              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatRelationship">
+                관계 유형
+                <select
+                  id="fortuneTeaSajuCompatRelationship"
+                  className={`${styles.questionInput} ${questionInputUi}`}
+                  value={sajuCompatInput.relationshipType || "연인"}
+                  onChange={(event) => updateSajuCompatMeta({ relationshipType: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoRelationshipTypes.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </label>
+              <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatFocus">
+                가장 궁금한 지점
+                <select
+                  id="fortuneTeaSajuCompatFocus"
+                  className={`${styles.questionInput} ${questionInputUi}`}
+                  value={sajuCompatInput.focus || "앞으로의 흐름"}
+                  onChange={(event) => updateSajuCompatMeta({ focus: event.target.value })}
+                  disabled={isSubmitting}
+                >
+                  {sukuyoFocusOptions.map((item) => (
+                    <option key={item} value={item}>{item}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatSituation">
+              지금 관계의 분위기 <span className={styles.optionalFieldMark}>선택</span>
+              <textarea
+                id="fortuneTeaSajuCompatSituation"
+                className={`${styles.questionTextarea} ${styles.sukuyoSituationTextarea} ${questionTextareaUi}`}
+                value={sajuCompatInput.currentSituation || ""}
+                onChange={(event) => updateSajuCompatMeta({ currentSituation: event.target.value })}
+                placeholder="요즘 서로의 속도가 달라 고민이에요."
+                rows={3}
+                disabled={isSubmitting}
+              />
+            </label>
+            <p className={styles.birthOptionalNotice}>
+              사주 궁합은 두 사람의 명식만 근거로 삼습니다. 모르는 시간이나 상대의 속마음은 연이가 지어내지 않아요.
+            </p>
+          </section>
         ) : consultationMode === "sukuyo" ? (
           <section className={`${styles.questionFormSection} ${questionSectionUi}`} aria-labelledby="sukuyoBirthSectionTitle">
             <div className={`${styles.questionSectionHeader} ${questionHeaderUi}`}>

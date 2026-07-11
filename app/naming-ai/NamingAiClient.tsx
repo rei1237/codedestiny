@@ -16,6 +16,7 @@ import {
   type DraftNameCandidate,
   type NamingRecommendationInput,
 } from "./namingRecommendations";
+import { stashNamingRetryPayload } from "./retryHandoff";
 
 const FEATURE_KEY = "premium-naming-prompt";
 const AMOUNT_KRW = 30000;
@@ -341,22 +342,10 @@ export default function NamingAiClient() {
     access: ReturnType<typeof extractNamingAccess>;
   }) {
     const { input, inputHash, access } = args;
-    setPhase("verifying");
-    const verifyRes = await postJson("/api/naming-prompt/verify-payment", {
-      paymentId: access.paymentId,
-      inputHash,
-      paymentContext: access.raw,
-      accessGrant: access.accessGrant,
-      consume: access.consume,
-      payment: access.payment,
-    });
-    assertAuthorized(verifyRes.status);
-    if (verifyRes.status === 402) throw new Error("PAYMENT_FAILED");
-    if (!verifyRes.data?.ok) throw new Error(String(verifyRes.data?.code || "PAYMENT_FAILED"));
-
     setPhase("generating");
-    // /generate는 결제 검증 후 같은 요청 안에서 LLM을 동기 호출한다(최대 150초). 이미 같은 건이
-    // 생성중이면 202+executionId만 오는데, 그 경우도 결과 페이지가 폴링을 이어받는다.
+    // /generate가 이용권/결제 접근권을 직접 검증(verifyNamingAccess→canAccessPaidFeature)하므로 별도
+    // verify-payment 선검사는 두지 않는다(이용권 중복 검사 제거 — 서버 검사 1회). 접근권 성공 시 즉시
+    // 202+executionId가 오고 LLM 생성은 백그라운드(waitUntil)에서 완주하며, 결과 페이지가 폴링을 이어받는다.
     const genRes = await postJson<{
       ok: boolean;
       code?: string;
@@ -375,6 +364,7 @@ export default function NamingAiClient() {
     });
 
     assertAuthorized(genRes.status);
+    if (genRes.status === 402) throw new Error("PAYMENT_FAILED");
     if (genRes.status === 503 || genRes.data?.reason === "LLM_ERROR") {
       throw new Error("LLM_ERROR");
     }
@@ -382,6 +372,9 @@ export default function NamingAiClient() {
     if (!genRes.data?.ok || !executionId) {
       throw new Error(String(genRes.data?.code || "GENERATE_FAILED"));
     }
+    // 백그라운드 생성이 실패하면 실패 표면이 결과 페이지로 넘어간다 — 결과 페이지가 추가 차감 없이
+    // 재생성(= /generate 재호출)할 수 있도록 재시도 페이로드를 executionId 키로 넘긴다.
+    stashNamingRetryPayload(executionId, { input, inputHash, access });
     retryRef.current = null;
     window.location.assign(`/naming-ai/result?executionId=${encodeURIComponent(executionId)}`);
   }

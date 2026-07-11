@@ -2,7 +2,7 @@ import type { TarotOrientation } from "./tarotCards";
 import type { TenGodId } from "./tenGods";
 
 export type TeaHouseEmotionTone = "pink" | "purple" | "blue" | "gold" | "green";
-export type FortuneTeaHouseConsultMode = "tarot" | "saju" | "sukuyo";
+export type FortuneTeaHouseConsultMode = "tarot" | "saju" | "sajuCompatibility" | "sukuyo";
 export type FortuneTeaHouseCalendarType = "solar" | "lunar";
 export type FortuneTeaHouseServiceScope = "FORTUNE_TEA_HOUSE";
 export type FortuneTeaTarotSpread = "three" | "five";
@@ -17,6 +17,24 @@ export type FortuneTeaHouseSukuyoPersonInput = {
 export type FortuneTeaHouseSukuyoInput = {
   user: FortuneTeaHouseSukuyoPersonInput;
   partner: FortuneTeaHouseSukuyoPersonInput;
+  relationshipType?: string;
+  focus?: string;
+  currentSituation?: string;
+};
+
+export type FortuneTeaHouseSajuCompatPersonInput = {
+  name?: string;
+  birthDate?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  calendarType?: FortuneTeaHouseCalendarType;
+  gender?: string;
+  birthPlace?: string;
+};
+
+export type FortuneTeaHouseSajuCompatInput = {
+  user: FortuneTeaHouseSajuCompatPersonInput;
+  partner: FortuneTeaHouseSajuCompatPersonInput;
   relationshipType?: string;
   focus?: string;
   currentSituation?: string;
@@ -40,6 +58,7 @@ export type FortuneTeaHouseConsultRequest = {
   calendarType?: FortuneTeaHouseCalendarType;
   tarotSpread?: FortuneTeaTarotSpread;
   sukuyo?: FortuneTeaHouseSukuyoInput;
+  sajuCompatibility?: FortuneTeaHouseSajuCompatInput;
   selectedTeaCupId: string;
   selectedTeaCupName: string;
   selectedTeaCupTopic: string;
@@ -61,6 +80,7 @@ export type FortuneTeaHouseQuestionInput = {
   calendarType?: FortuneTeaHouseCalendarType;
   tarotSpread?: FortuneTeaTarotSpread;
   sukuyo?: FortuneTeaHouseSukuyoInput;
+  sajuCompatibility?: FortuneTeaHouseSajuCompatInput;
   question: string;
 };
 
@@ -295,6 +315,49 @@ export type FortuneTeaSukuyoCompatibilitySnapshot = {
   };
 };
 
+export type FortuneTeaSajuCompatPersonSnapshot = {
+  name: string;
+  birthDate?: string;
+  birthTime?: string;
+  birthTimeUnknown?: boolean;
+  calendarType?: FortuneTeaHouseCalendarType;
+  gender?: string;
+  dayMaster?: string;
+  pillars?: {
+    year?: string;
+    month?: string;
+    day?: string;
+    hour?: string;
+  };
+  dominantElements?: string[];
+  primaryTenGod?: string;
+  keyPoints?: string[];
+  // 워커 프롬프트 factInput 주입용 — 상대 명식 전체 스냅샷을 함께 실어 보낸다.
+  saju?: FortuneTeaSajuSnapshot;
+};
+
+export type FortuneTeaSajuCompatInteraction = {
+  dayMasterRelation?: string;
+  elementHarmony?: string;
+  summary?: string;
+  strengths?: string[];
+  cautions?: string[];
+};
+
+export type FortuneTeaSajuCompatibilitySnapshot = {
+  available: boolean;
+  calculationSource?: string;
+  title: string;
+  summary: string;
+  relationshipType?: string;
+  focus?: string;
+  currentSituation?: string;
+  user: FortuneTeaSajuCompatPersonSnapshot;
+  partner: FortuneTeaSajuCompatPersonSnapshot;
+  interaction?: FortuneTeaSajuCompatInteraction;
+  adviceKeywords?: string[];
+};
+
 export type FortuneTeaHouseConsultResponse = {
   resultId?: string;
   consultationMode?: FortuneTeaHouseConsultMode;
@@ -351,6 +414,7 @@ export type FortuneTeaHouseConsultResponse = {
   tarotSpread?: FortuneTeaTarotSpread;
   tarotSpreadCards?: FortuneTeaTarotSpreadCard[];
   sukuyoCompatibility?: FortuneTeaSukuyoCompatibilitySnapshot;
+  sajuCompatibility?: FortuneTeaSajuCompatibilitySnapshot;
   emotionAnalysis: Array<{
     label: string;
     value: number;

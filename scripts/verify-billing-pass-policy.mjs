@@ -336,8 +336,8 @@ assert.equal(noPassCard.canUseByPass, false, "no pass card regression: pass unav
 assert.equal(noPassCard.canUseByMonthly, false, "no pass card regression: monthly insufficient");
 assert.equal(noPassCard.canUseByCard, true, "no pass card regression: card usable");
 assert.equal(noPassCard.recommendedMethod, "PAYMENT_CHOICE", "no pass card regression: paid choice shell remains neutral");
-assert.deepEqual(noPassCard.recommendedMethods, ["DIRECT_KRW"], "no pass card regression: only available paid method is card");
-assert.deepEqual(noPassCard.equalPriorityMethods, ["DIRECT_KRW"], "no pass card regression: unavailable monthly is not promoted");
+assert.deepEqual(noPassCard.recommendedMethods, ["DIRECT_KRW", "MOONLIGHT_STONE"], "no pass card regression: card and monthly stay equal paid choices even when monthly balance is short");
+assert.deepEqual(noPassCard.equalPriorityMethods, ["DIRECT_KRW", "MOONLIGHT_STONE"], "no pass card regression: monthly stays visible (disabled via canUseByMonthly=false) instead of being removed from the choice list");
 assert.deepEqual(finalAccess(noPassCard, "card"), {
   ok: true,
   accessMethod: "CARD",

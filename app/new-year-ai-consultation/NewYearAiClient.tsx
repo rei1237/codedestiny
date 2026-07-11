@@ -9,6 +9,8 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
+import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
@@ -264,13 +266,16 @@ async function pollNewYearResult(sessionId: string): Promise<ConsultationResult>
     await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
     let response: Response;
     try {
-      response = await fetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`, { credentials: "include" });
+      // authFetch로 폴링해 세션 리프레시가 일시 실패한 401을 재시도 가능한 503으로 흡수한다(plain fetch는 완충 없음).
+      response = await authFetch(`/api/new-year-ai/result?sessionId=${encodeURIComponent(sessionId)}`);
     } catch {
       continue;
     }
     if (response.status === 202) continue;
     if (response.status === 429) throw new Error(SERVER_ERROR_MESSAGE);
     const payload = (await response.json().catch(() => ({}))) as ConsultationResult;
+    // 일시적 DB/인증 장애(503·retryable)는 하드 종료하지 말고 계속 폴링해 자가 복구한다.
+    if (isRetriableResultPollFailure(response.status, payload)) continue;
     if (!response.ok) throw new Error(payload.message || LLM_ERROR_MESSAGE);
     return payload;
   }

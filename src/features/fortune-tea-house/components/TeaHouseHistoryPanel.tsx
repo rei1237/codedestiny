@@ -21,6 +21,7 @@ type TeaHouseHistoryPanelProps = {
 const CONSULTATION_MODE_META: Record<FortuneTeaHouseConsultMode, { label: string; icon: typeof Sparkles }> = {
   tarot: { label: "타로", icon: Sparkles },
   saju: { label: "사주", icon: Moon },
+  sajuCompatibility: { label: "사주 궁합", icon: Heart },
   sukuyo: { label: "숙요점 궁합", icon: Heart },
 };
 

@@ -79,11 +79,6 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "saju-guardian-unlock",
   "destiny_meeting_place",
   "palm-reading-general",
-  "palm-reading-love",
-  "palm-reading-wealth",
-  "palm-reading-career",
-  "palm-reading-personality",
-  "palm-reading-relationship",
   "palm-reading-ai-consult",
   "life-book-ai-consultation",
   "new-year-ai-consultation",
@@ -226,17 +221,11 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   destiny_meeting_place: { cost: 100, reason: "사주로 보는 인연의 장소 1회 분석" },
   premiumTarot: { cost: 100, reason: "프리미엄 타로 리딩" },
   "palm-reading-general": { cost: 50, reason: "손금 전체운 분석" },
-  "palm-reading-love": { cost: 30, reason: "손금 연애운 분석" },
-  "palm-reading-wealth": { cost: 30, reason: "손금 재물운 분석" },
-  "palm-reading-career": { cost: 30, reason: "손금 직업운 분석" },
-  "palm-reading-personality": { cost: 30, reason: "손금 성격 분석" },
-  "palm-reading-relationship": { cost: 30, reason: "손금 관계 패턴 분석" },
   "palm-reading-ai-consult": { cost: 50, reason: "손금 AI 상담 생성" },
   "life-book-ai-consultation": { cost: 300, amountKRW: 30000, reason: "인생의 책 AI 상담" },
   "astrology-ai-consultation": { cost: 300, amountKRW: 30000, reason: "점성술 AI 상담" },
   "neo-operation-room-consultation": { cost: 300, amountKRW: 30000, reason: "네오의 팩폭 작전실" },
   "saju_ai_question_prompt": { cost: 200, reason: "사주 AI 상담 결과 생성" },
-  "saju_ai_prompt_generator": { cost: 200, reason: "사주 AI 상담 결과 생성" },
   "ziwei_ai_prompt_generator": { cost: 100, reason: "자미두수 AI 질문 프롬프트 생성" },
   "astrology_ai_prompt_generator": { cost: 100, reason: "점성술 AI 질문 프롬프트 생성" },
   "vedic_ai_prompt_generator": { cost: 100, reason: "베다 점성술 AI 질문 프롬프트 생성" },
@@ -267,7 +256,6 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "premium-fpti-report": { cost: 200, reason: "FPTI 프리미엄 리포트 생성" },
   tetogen_deep_report: { cost: 100, reason: "테토 에겐 상세 리포트 해금" },
   "premium-naming-prompt": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
-  "premium-naming-report": { cost: 300, amountKRW: 30000, reason: "사주 맞춤 작명 프롬프트 생성" },
   "premium-sukuyo-compat-extra": { cost: 120, reason: "숙요점 정밀 궁합 확장 분석" },
   "premium-veda-compatibility-addon": { cost: 300, reason: "프리미엄 베다점 궁합 확장 분석 추가" },
   "destiny-bias-analyze": { cost: 50, reason: "최애운명 심화 분석" },
@@ -412,14 +400,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny_meeting_place",
   "premiumTarot",
   "palm-reading-general",
-  "palm-reading-love",
-  "palm-reading-wealth",
-  "palm-reading-career",
-  "palm-reading-personality",
-  "palm-reading-relationship",
   "palm-reading-ai-consult",
   "saju_ai_question_prompt",
-  "saju_ai_prompt_generator",
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
@@ -440,9 +422,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "profile-card-manage",
 ]);
 
-const PDF_PAID_FEATURE_KEY_LIST = Object.freeze([
-  "premium-fpti-report",
-]);
+const PDF_PAID_FEATURE_KEY_LIST = Object.freeze([]);
 
 const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "premium-sibyl-dominator",
@@ -475,6 +455,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
   "sukuyo-relationship-encyclopedia",
+  "premium-fpti-report",
 ]);
 
 export const PER_USE_PAID_FEATURE_KEYS = Object.freeze([...PER_USE_PAID_FEATURE_KEY_LIST].sort());

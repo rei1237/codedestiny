@@ -11026,7 +11026,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var statusPill = document.querySelector('[data-sy-radar-status-pill]');
     var submitBtn = form.querySelector('.sy-radar-submit');
     if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.relationshipRadar.key)) {
-      statusPill.textContent = '해금 완료';
+      statusPill.textContent = '열람 완료';
       statusPill.classList.add('is-unlocked');
     }
     form.addEventListener('submit', function(event) {
@@ -11111,7 +11111,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           if (resultHost) resultHost.innerHTML = SukuyoRadarEngine.render(radarResult);
           if (status) status.textContent = '인연 레이더가 열렸습니다.';
           if (statusPill) {
-            statusPill.textContent = '해금 완료';
+            statusPill.textContent = '열람 완료';
             statusPill.classList.add('is-unlocked');
           }
         } catch (error) {
@@ -11649,7 +11649,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var statusPill = document.querySelector('[data-sy-past-life-status-pill]');
     var submitBtn = form.querySelector('.sy-past-life-submit');
     if (statusPill && syIsPaidSukuyoFeatureUnlocked(SY_PAID_FEATURES.pastLifeReading.key)) {
-      statusPill.textContent = '해금 완료';
+      statusPill.textContent = '열람 완료';
       statusPill.classList.add('is-unlocked');
     }
     form.addEventListener('submit', function(event) {
@@ -11712,9 +11712,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               resultHost.innerHTML = SukuyoPastLifeEngine.render(result, unlocked);
               if (unlocked) syBindSukuyoPastLifeAiPrompt(resultHost);
             }
-            if (status) status.textContent = unlocked ? '숙요 전생 인연 리딩이 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 전생 서사는 해금 후 이어집니다.';
+            if (status) status.textContent = unlocked ? '숙요 전생 인연 리딩이 열렸습니다.' : '무료 미리보기가 열렸습니다. 전체 전생 서사는 결제 후 이어집니다.';
             if (statusPill && unlocked) {
-              statusPill.textContent = '해금 완료';
+              statusPill.textContent = '열람 완료';
               statusPill.classList.add('is-unlocked');
             }
           };

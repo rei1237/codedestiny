@@ -2552,6 +2552,8 @@ export default function TarotPromptMakerPage() {
   useEffect(() => {
     let active = true;
     const controller = new AbortController();
+    // 응답 지연 시 "이용권 확인 중"에 갇히지 않도록 프리체크에도 타임아웃을 건다.
+    const timeoutId = window.setTimeout(() => controller.abort(), 8000);
     async function loadBillingSnapshot() {
       setBillingLoading(true);
       try {
@@ -2564,14 +2566,16 @@ export default function TarotPromptMakerPage() {
         const canUseByPass = Boolean(paymentOptions.canUseByPass || data.canUseByPass);
         setBillingSnapshot({ requiredCoins: Number(data.requiredCoins || 0), canAccess: Boolean(data.canAccess || canUseByPass), freeBySubscription: Boolean(data.freeBySubscription || canUseByPass), canUseByPass, subscriptionTier: String(data.subscriptionTier || "free"), accessReason: String(data.accessReason || "").trim().toLowerCase() });
       } catch {
+        // 타임아웃/네트워크 실패는 재시도 가능 상태로 두고, 게이팅은 실제 결제 게이트가 서버에서 재판정한다.
         if (!active) return;
         setBillingSnapshot(null);
       } finally {
+        window.clearTimeout(timeoutId);
         if (active) setBillingLoading(false);
       }
     }
     loadBillingSnapshot();
-    return () => { active = false; controller.abort(); };
+    return () => { active = false; window.clearTimeout(timeoutId); controller.abort(); };
   }, [feedbackCopy.subscriptionReason]);
 
   function resetDrawState() {

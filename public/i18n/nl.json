@@ -1536,6 +1536,7 @@
       "purchase": "Controle van betalingsgoedkeuring en toegangsrechten."
     },
     "price5000": "5.000 KRW",
+    "perUse5000": "Per gebruik · 5.000 KRW",
     "permanentUnlockApprox5000": "Permanente ontgrendeling · ongeveer 5.000 KRW",
     "viewNow": "Nu bekijken →",
     "permanentUnlock5000": "Permanente ontgrendeling voor 5.000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "De tien goden beschrijven als tien karakters hoe de andere letters verband houden met de dag waarop je werd geboren. Als u ziet welke karakters zich in uw diagram verzamelen, kunt u verborgen persoonlijkheid, talent en liefdesstijl duidelijk onthullen."
     },
     "premiumShowcase": {
-      "aria": "Bekijk details voor drie premium saju-interpretaties",
+      "aria": "Details van premium saju-duidingen bekijken",
       "eyebrow": "PREMIUMANALYSE",
-      "title": "Drie diepe lezingen voor de grotere stroom van het lot",
-      "subtitle": "Daewun, volledig lezen en compatibiliteit komen op één plek samen, zodat de textuur van het leven duidelijker wordt.",
-      "expand": "Open drie metingen",
+      "title": "Twee diepgaande duidingen voor de grote stroom van het lot",
+      "subtitle": "Daewun en de volledige duiding worden permanent ontgrendeld, aangevuld met compatibiliteit per gebruik, zodat de textuur van het leven duidelijker wordt.",
+      "expand": "De duidingen openen",
       "permanent": "Permanente ontgrendeling",
+      "perUse": "Betaling per gebruik",
+      "compatCta": "Compatibiliteit bekijken →",
       "daewun": {
         "title": "Daewun-analyse",
         "desc": "De tienjarige daewun-stroom wordt geïntegreerd door middel van ondersteuningskracht, seizoensevenwicht en het volgende patroon. Het laat zien wanneer we vooruit moeten gaan en wanneer we standvastig moeten blijven.",

@@ -90,6 +90,7 @@ const PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   ...SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
   ...ZIWEI_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY,
   [SUKYO_YEARLY_FORTUNE_PRODUCT_KEY]: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+  "premium-fpti-report": "fpti.deepReport",
 });
 
 const PROFILE_UNLOCK_FEATURE_BY_CONTENT_KEY = Object.freeze(
@@ -691,7 +692,9 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   const passExcluded = isPassExcludedPricing(pricing) && !isProfileCardManage;
   const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
-  const equalPriorityPaidMethods = ["DIRECT_KRW", ...(monthlyCovered ? ["MOONLIGHT_STONE"] : [])];
+  // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
+  // 커버 여부는 canUseByMonthly 플래그로만 전달하고, 목록에서 제거하지 않는다.
+  const equalPriorityPaidMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
   return {
     coinCost,
@@ -3822,7 +3825,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   });
 
   if (passExcludedForPricing && coinPaymentRequested) {
-    const musicPaymentMethods = ["DIRECT_KRW", ...(paymentDecision.canUseByMonthly ? ["MOONLIGHT_STONE"] : [])];
+    // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출(부족 시 클라이언트가 비활성 처리).
+    const musicPaymentMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
     return failure(402, "PAYMENT_REQUIRED", "음악 트랙은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
@@ -4822,7 +4826,18 @@ async function readBillingSnapshot(request, env, options = {}) {
     includeUnlocks = true,
   } = options || {};
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  // 인증 해석 중 일시적 DB 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 infra 에러로
+  // 로그인 이용권 보유자가 조용히 게스트로 강등돼 결제창이 뜨는 문제를 막는다.
+  // infra 에러는 표면화(surfaceDbInfraError)해 withMongoRetry로 흡수하고, 토큰 미부착/무효 등
+  // 진짜 미인증은 종전대로 null → 게스트로 처리한다.
+  let auth = null;
+  try {
+    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true }));
+  } catch (error) {
+    if (!isAuthDbInfraError(error)) throw error;
+    // 재시도 후에도 지속되는 infra 에러만 여기 도달 — 종전 동작대로 게스트 스냅샷으로 강등한다.
+    auth = null;
+  }
   if (!auth?.userId) {
     return {
       authenticated: false,

@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
@@ -1085,7 +1085,7 @@ async function handleEnsureAccess(request, env) {
   }
   logVedicAi("LLM Payload Validated", { ...context, validationResult: "success" });
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return loginRequired();
   const requestId = idempotencyKey || `vedic-ai-${auth.userId}-${normalized.inputHash.slice(0, 16)}-${Date.now()}-${randomSuffix()}`;
   const pricing = getPricing();
@@ -1305,7 +1305,7 @@ async function handleStart(request, env) {
   }
   logVedicAi("LLM Payload Validated", { ...context, validationResult: "success" });
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return loginRequired();
   if (!idempotencyKey) return invalidInput(MESSAGES.invalidInput);
   getPricing();
@@ -1320,7 +1320,7 @@ async function handleStart(request, env) {
 
 async function handleResult(request, env) {
   if (request.method !== "GET") return methodNotAllowed();
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return loginRequired();
 
   const path = getRoutePath(request, "/api/vedic-ai");
@@ -1374,8 +1374,8 @@ export async function handleVedicAiRoutes(request, env) {
     if (path === "/result" || path.startsWith("/result/")) return await handleResult(request, env);
     return notFound();
   } catch (error) {
-    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
-    if (isTransientMongoError(error)) {
+    // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
         retryable: true,
@@ -1383,7 +1383,8 @@ export async function handleVedicAiRoutes(request, env) {
         message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
       }, { status: 503 });
     }
-    throw error;
+    // 비일시 에러를 전역 라우터로 re-throw하면 오도성 catch-all 500이 나가므로, 로컬 serverError로 통일한다.
+    return serverError();
   }
 }
 

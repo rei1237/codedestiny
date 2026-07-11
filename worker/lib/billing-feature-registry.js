@@ -21,11 +21,6 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
     featureKey: "palm-reading",
     subFeatures: Object.freeze({
       general: Object.freeze({ featureKey: "palm-reading-general", cost: 50, reason: "손금 전체운 분석" }),
-      love: Object.freeze({ featureKey: "palm-reading-love", cost: 30, reason: "손금 연애운 분석" }),
-      wealth: Object.freeze({ featureKey: "palm-reading-wealth", cost: 30, reason: "손금 재물운 분석" }),
-      career: Object.freeze({ featureKey: "palm-reading-career", cost: 30, reason: "손금 직업운 분석" }),
-      personality: Object.freeze({ featureKey: "palm-reading-personality", cost: 30, reason: "손금 성격 분석" }),
-      relationship: Object.freeze({ featureKey: "palm-reading-relationship", cost: 30, reason: "손금 관계 패턴 분석" }),
       aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 AI 상담 생성" }),
     }),
   }),
@@ -55,11 +50,6 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
 const LEGACY_FEATURE_ALIAS_MAP = Object.freeze({
   // Palm
   "palm-reading-general": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "general" }),
-  "palm-reading-love": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "love" }),
-  "palm-reading-wealth": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "wealth" }),
-  "palm-reading-career": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "career" }),
-  "palm-reading-personality": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "personality" }),
-  "palm-reading-relationship": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "relationship" }),
   "palm-reading-ai-consult": Object.freeze({ categoryKey: "palm-reading", subFeatureKey: "aiConsult" }),
 
   // Rune

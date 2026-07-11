@@ -11,6 +11,7 @@ import { drawTarotCard, drawTarotOrientation, getTarotCardById, getTarotCounselP
 import { getTeaHouseCupById } from "../data/teaCups";
 import { buildFortuneTeaPrompt } from "./buildFortuneTeaPrompt";
 import { buildSajuResultSection, buildFortuneTeaSajuSnapshot } from "./sajuAdapter";
+import { buildFortuneTeaSajuCompatibility } from "./sajuCompatibilityAdapter";
 import { buildFortuneTeaSukuyoCompatibility } from "./sukuyoCompatibilityAdapter";
 import { buildFortuneTeaTarotSnapshot, buildFortuneTeaTarotSpreadCards, normalizeFortuneTeaTarotSpread } from "./tarotAdapter";
 import { ensureConsultResultConsistency } from "./validateConsultResult";
@@ -733,13 +734,17 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
     reading: registeredCup?.reading || `${compactText(request.selectedTeaCupName, "이 찻잔")}은 ${compactText(request.selectedTeaCupTopic, "마음의 흐름")}을 조용히 비춥니다.`,
     resultPrelude: registeredCup?.resultPrelude,
   };
-  const consultationMode = request.consultationMode === "saju" ? "saju" : request.consultationMode === "sukuyo" ? "sukuyo" : "tarot";
+  // 사주 궁합은 서사 폴백을 단독 사주와 동일 경로로 태워, 클라 초안이 사주 딥리딩 구조를 그대로 갖게 한다.
+  // (실제 결과 서사는 워커 LLM이 상대 명식을 포함해 재생성한다.)
+  const isSajuCompat = request.consultationMode === "sajuCompatibility";
+  const consultationMode = request.consultationMode === "saju" || isSajuCompat ? "saju" : request.consultationMode === "sukuyo" ? "sukuyo" : "tarot";
   const seed = `${nickname}|${concernTopic}|${birthInfo}|${teaCup.id}|${teaCup.name}|${teaCup.topic}|${question}`;
   const sajuSnapshot = safeBuildSajuSnapshot(request);
   const sajuSection = safeBuildSajuSection(sajuSnapshot, request);
   const tarotSnapshot = safeBuildTarotSnapshot(request, seed);
   const tarotSpreadResult = safeBuildTarotSpreadCards(request, seed, tarotSnapshot);
   const sukuyoCompatibility = buildFortuneTeaSukuyoCompatibility(request);
+  const sajuCompatibility = isSajuCompat ? buildFortuneTeaSajuCompatibility(request) : undefined;
   const promptSignature = safePromptSignature(seed, () => buildFortuneTeaPrompt({ request, teaCup, sajuSnapshot, tarotSnapshot }));
   const direction = orientationLabel(tarotSnapshot.orientation);
   const tarotCard = getTarotCardById(tarotSnapshot.cardId) || drawTarotCard(seed);
@@ -884,8 +889,8 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
       : `다만 ${tarotSnapshot.nameKo} ${direction}은 감정이 강할수록 판단이 한쪽으로 기울 수 있음을 함께 비춥니다. 마음이 오래 머물렀다는 이유만으로 그 자리에 계속 있어야 한다는 뜻은 아니에요. 오늘은 확인된 사실과 마음이 만든 해석을 같은 줄에 섞지 않는 편이 좋습니다.`;
 
   const result: FortuneTeaHouseConsultResponse = {
-    consultationMode,
-    sessionTitle: `${teaCup.name}가 비춘 오늘의 ${consultationMode === "saju" ? "사주" : consultationMode === "sukuyo" ? "숙요점 궁합" : "타로"} 상담 기록`,
+    consultationMode: isSajuCompat ? "sajuCompatibility" : consultationMode,
+    sessionTitle: `${teaCup.name}가 비춘 오늘의 ${isSajuCompat ? "사주 궁합" : consultationMode === "saju" ? "사주" : consultationMode === "sukuyo" ? "숙요점 궁합" : "타로"} 상담 기록`,
     questionSummary,
     teaCup,
     saju: consultationMode === "saju"
@@ -910,6 +915,7 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
     tarotSpread: tarotSpreadResult.tarotSpread,
     tarotSpreadCards: tarotSpreadResult.tarotSpreadCards,
     sukuyoCompatibility,
+    sajuCompatibility,
     emotionAnalysis: consultationMode === "tarot"
       ? tarotEmotionAnalysis
       : consultationMode === "sukuyo"
@@ -934,7 +940,7 @@ export function buildFortuneTeaHouseConsultResult(request: FortuneTeaHouseConsul
       caution: consultationMode === "tarot" ? tarotYeoniReading.caution : selectedYeoniCaution,
     },
     synthesis: {
-      title: consultationMode === "tarot" ? tarotSynthesis.title : consultationMode === "saju" ? "연이가 읽은 사주의 결" : consultationMode === "sukuyo" ? "연이가 읽은 27숙 인연의 흐름" : "연이가 읽은 타로의 장면",
+      title: consultationMode === "tarot" ? tarotSynthesis.title : isSajuCompat ? "연이가 읽은 사주 궁합의 결" : consultationMode === "saju" ? "연이가 읽은 사주의 결" : consultationMode === "sukuyo" ? "연이가 읽은 27숙 인연의 흐름" : "연이가 읽은 타로의 장면",
       summary: consultationMode === "tarot" ? tarotSynthesis.summary : selectedSynthesisSummary,
       sajuTarotBridge: consultationMode === "tarot" ? tarotSynthesis.sajuTarotBridge : selectedSajuTarotBridge,
     },

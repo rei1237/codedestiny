@@ -1536,6 +1536,7 @@
       "purchase": "Comprobando la aprobación del pago y los derechos de acceso."
     },
     "price5000": "5000 KRW",
+    "perUse5000": "Por uso · 5000 KRW",
     "permanentUnlockApprox5000": "Desbloqueo permanente · alrededor de 5000 KRW",
     "viewNow": "Ver ahora →",
     "permanentUnlock5000": "Desbloqueo permanente por 5000 KRW",
@@ -3314,12 +3315,14 @@
       "explainBody": "Los diez dioses describen, como diez caracteres, cómo se relacionan las otras letras con el día en que naciste. Ver qué personajes se reúnen en tu gráfico ayuda a revelar claramente la personalidad, el talento y el estilo de amor ocultos."
     },
     "premiumShowcase": {
-      "aria": "Ver detalles de tres interpretaciones premium de saju",
+      "aria": "Ver detalles de las interpretaciones saju premium",
       "eyebrow": "ANÁLISIS PRIMA",
-      "title": "Tres lecturas profundas para el flujo más amplio del destino",
-      "subtitle": "Daewun, la lectura completa y la compatibilidad se reúnen en un solo lugar para que la textura de la vida se vuelva más clara.",
-      "expand": "Abrir tres lecturas",
+      "title": "Dos lecturas profundas para el gran flujo del destino",
+      "subtitle": "El daewun y la lectura completa se desbloquean de forma permanente, con la compatibilidad por uso, para que la textura de la vida se vea más clara.",
+      "expand": "Abrir las lecturas",
       "permanent": "Desbloqueo permanente",
+      "perUse": "Pago por uso",
+      "compatCta": "Ver compatibilidad →",
       "daewun": {
         "title": "Análisis de Daeyun",
         "desc": "El flujo daewun de diez años se integra a través de la fuerza del soporte, el equilibrio estacional y el siguiente patrón. Muestra cuándo avanzar y cuándo mantenerse firme.",

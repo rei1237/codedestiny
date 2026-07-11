@@ -669,7 +669,7 @@
 
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_LOCAL_DEV_API_ORIGIN = '';
-  var _DP_FETCH_TIMEOUT_MS = 9000;
+  var _DP_FETCH_TIMEOUT_MS = 20000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
   var _dpApiCooldownUntil = Object.create(null);
@@ -844,7 +844,7 @@
   function _dpFetchWithTimeout(url, init, timeoutMs) {
     var ms = Number(timeoutMs);
     if (!isFinite(ms) || ms <= 0) ms = _DP_FETCH_TIMEOUT_MS;
-    ms = Math.max(2000, Math.min(20000, Math.floor(ms)));
+    ms = Math.max(2000, Math.min(60000, Math.floor(ms)));
 
     if (typeof AbortController === 'undefined') {
       return fetch(url, init);
@@ -2081,6 +2081,15 @@
     overlay.style.display = show ? 'flex' : 'none';
   }
 
+  // 독립(정적) 페이지 폴백: index.html 인라인 canonical(_cdSetCoinGateOverlay)이 없는 환경에서도
+  // 이용권 확인/결제 대기 오버레이가 표준 방식으로 뜨도록 자체 완결형 오버레이로 브리지한다.
+  // (메인 앱은 canonical이 먼저 등록되므로 이 심이 설치되지 않는다.)
+  if (typeof window._cdSetCoinGateOverlay !== 'function') {
+    window._cdSetCoinGateOverlay = function (isOpen, message, mode) {
+      _dpSetStandalonePaymentOverlay(!!isOpen, message);
+    };
+  }
+
   function _cdIsAdminLikeUser() {
     var FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
     try {
@@ -2557,12 +2566,15 @@
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
       if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
+        // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
+        _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
         var passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
           title: title,
           coinPrice: coinPrice,
           cost: coinPrice,
           requestId: requestId
         }));
+        _dpSetPaymentPending(false);
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
           return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
         }
@@ -6870,6 +6882,73 @@
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;
 
+  // 독립(정적) 페이지용 자체 결제 선택 모달 스타일(1회 주입).
+  function _dpEnsureStandalonePaymentChoiceStyle() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('cdStandalonePaymentChoiceStyle')) return;
+    var style = document.createElement('style');
+    style.id = 'cdStandalonePaymentChoiceStyle';
+    style.textContent = [
+      '#cdStandalonePaymentChoice{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(4,6,14,.72);backdrop-filter:blur(8px);}',
+      '#cdStandalonePaymentChoice .cdpc-card{width:min(420px,100%);border-radius:18px;border:1px solid rgba(214,166,75,.34);background:linear-gradient(160deg,rgba(24,18,34,.98),rgba(10,14,26,.98));box-shadow:0 24px 60px rgba(0,0,0,.5);padding:22px 20px;color:#f4ecdf;font-family:inherit;}',
+      '#cdStandalonePaymentChoice .cdpc-title{margin:0 0 4px;font-size:18px;font-weight:800;}',
+      '#cdStandalonePaymentChoice .cdpc-sub{margin:0 0 18px;font-size:13px;color:rgba(244,236,223,.72);word-break:keep-all;}',
+      '#cdStandalonePaymentChoice .cdpc-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:0 0 10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(214,166,75,.4);background:rgba(214,166,75,.08);color:#f7efe0;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;}',
+      '#cdStandalonePaymentChoice .cdpc-btn:hover{background:rgba(214,166,75,.16);transform:translateY(-1px);}',
+      '#cdStandalonePaymentChoice .cdpc-btn .cdpc-amt{font-size:14px;font-weight:800;color:#ead089;white-space:nowrap;}',
+      '#cdStandalonePaymentChoice .cdpc-cancel{display:block;width:100%;margin-top:6px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(244,236,223,.66);font-size:13px;cursor:pointer;}',
+      '#cdStandalonePaymentChoice .cdpc-cancel:hover{color:#f4ecdf;}'
+    ].join('');
+    document.head.appendChild(style);
+  }
+
+  // 독립(정적) 페이지 전용 결제 선택 모달. 단건결제(DIRECT_KRW)와 월정석(MOONLIGHT_STONE)을 항상 동등 노출한다.
+  // 이용권 선검사는 호출부(_cdOpenPaidServiceGate)에서 이미 끝난 뒤 열리므로 pass-first 순서를 지키며,
+  // 실제 결제 실행은 기존 배관(_cdRunDirectKrwCheckout / _dpRunMonthlyCreditFromMainGate)이 담당한다.
+  // 반환: 'direct' | 'monthly' | 'cancel'.
+  function _dpRenderStandalonePaymentChoice(options) {
+    if (typeof document === 'undefined') return Promise.resolve('cancel');
+    var opts = options || {};
+    var cost = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+    var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (cost * 100))));
+    var monthlyStones = Math.max(0, Math.floor(Number(opts.membershipCreditCost || cost)));
+    var title = String(opts.title || opts.reason || '유료 서비스').trim();
+    _dpEnsureStandalonePaymentChoiceStyle();
+    return new Promise(function(resolve) {
+      var settled = false;
+      var root = document.createElement('div');
+      root.id = 'cdStandalonePaymentChoice';
+      root.setAttribute('role', 'dialog');
+      root.setAttribute('aria-modal', 'true');
+      root.setAttribute('aria-label', '결제 방법 선택');
+      root.innerHTML =
+        '<div class="cdpc-card">' +
+          '<p class="cdpc-title">결제 방법을 선택해 주세요</p>' +
+          '<p class="cdpc-sub"></p>' +
+          '<button type="button" class="cdpc-btn" data-cdpc="direct"><span>단건 결제</span><span class="cdpc-amt">' + amountKrw.toLocaleString('ko-KR') + '원</span></button>' +
+          '<button type="button" class="cdpc-btn" data-cdpc="monthly"><span>월정석 사용</span><span class="cdpc-amt">' + monthlyStones.toLocaleString('ko-KR') + '석</span></button>' +
+          '<button type="button" class="cdpc-cancel" data-cdpc="cancel">닫기</button>' +
+        '</div>';
+      var subEl = root.querySelector('.cdpc-sub');
+      if (subEl) subEl.textContent = title;
+      function finish(choice) {
+        if (settled) return;
+        settled = true;
+        try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
+        if (root.parentNode) root.parentNode.removeChild(root);
+        resolve(choice === 'direct' || choice === 'monthly' ? choice : 'cancel');
+      }
+      function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
+      root.addEventListener('click', function(e) {
+        var hit = e.target && e.target.closest ? e.target.closest('[data-cdpc]') : null;
+        if (hit) { finish(hit.getAttribute('data-cdpc')); return; }
+        if (e.target === root) finish('cancel'); // 배경 클릭 = 취소
+      });
+      document.addEventListener('keydown', onKey, true);
+      document.body.appendChild(root);
+    });
+  }
+
   if (typeof window.__cdRestoreCanonicalPaymentMode === 'function') {
     try { window.__cdRestoreCanonicalPaymentMode(); } catch (_) {}
   }
@@ -6883,7 +6962,8 @@
       if (typeof canonical === 'function' && canonical !== _dpCanonicalPaymentChoice && canonical.__cdSupportsPassChoice === true) {
         return canonical(options || {});
       }
-      return Promise.resolve('cancel');
+      // canonical 모달이 없는 독립(정적) 페이지: 정책준수 자체 결제 선택 모달(단건/월정석 동등)을 연다.
+      return _dpRenderStandalonePaymentChoice(options || {});
     };
     _dpCanonicalPaymentChoice.__cdSupportsPassChoice = true;
     window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;

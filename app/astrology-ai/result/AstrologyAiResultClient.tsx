@@ -6,6 +6,7 @@ import { AlertCircle, ArrowLeft, Download, Loader2, Moon, Sparkles, Stars } from
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -254,7 +255,8 @@ export default function AstrologyAiResultClient() {
         for (let attempt = 0; attempt < 40; attempt += 1) {
           const response = await authFetch(`/api/astrology-ai/result/${encodeURIComponent(resultId)}`);
           const payload = await response.json().catch(() => ({}));
-          if (response.status === 202) {
+          // 일시적 DB/인증 장애(503·retryable)는 202와 동일하게 재폴링해 자가 복구한다(하드 종료 금지).
+          if (response.status === 202 || isRetriableResultPollFailure(response.status, payload)) {
             if (!alive) return;
             await new Promise((resolve) => window.setTimeout(resolve, attempt < 2 ? 3000 : 8000));
             continue;
