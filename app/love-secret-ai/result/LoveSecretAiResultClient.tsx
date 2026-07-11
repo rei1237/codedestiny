@@ -324,7 +324,9 @@ export default function LoveSecretAiResultClient() {
     let alive = true;
     let timer = 0;
     let attempts = 0;
-    const maxAttempts = 45; // 2.2s * 45 ≈ 1.6분 상한 — 무한 폴링(Cloudflare 1015) 방지
+    // 서버 최악 파이프라인(초기 150s + grounding 재시도 150s ≈ 300s)보다 짧으면 완료·저장된 유료 결과에
+    // 거짓 "지연" 표시가 뜬다(버그). 상한을 넘겨 폴링하되, 2.5s 간격이라 CF rate-limit(10s/100)엔 여유가 크다.
+    const maxAttempts = 140; // 첫 프로브(0.7s) + 2.5s * 139 ≈ 350s 상한 — 무한 폴링 방지 유지
     async function loadResult() {
       setLoading(true);
       setError("");
@@ -344,7 +346,8 @@ export default function LoveSecretAiResultClient() {
           }
           setPending(true);
           setLoading(true);
-          timer = window.setTimeout(loadResult, 2200);
+          // 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 즉시 잡고, 이후 2.5s 간격으로 최악치까지 커버한다.
+          timer = window.setTimeout(loadResult, attempts <= 1 ? 700 : 2500);
           return;
         }
         if (!response.ok || payload?.ok === false) throw new Error(toText(payload?.message) || "저장된 상담 결과를 불러오지 못했습니다.");

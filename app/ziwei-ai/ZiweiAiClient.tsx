@@ -381,9 +381,10 @@ function sleep(ms: number) {
 }
 
 // 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
-// 자미두수는 분량이 가장 커(본문 2만~3만자) 최악 ~8분 — 60회(≈7.8분), 1req/3~8s.
-const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
-const RESULT_POLL_MAX_ATTEMPTS = 60;
+// 자미두수는 분량이 가장 커(본문 2만~3만자) 최악 ~8분(240s + grounding 재시도) — 65회로 커버, 1req/0.7~8s.
+// 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 즉시 잡고, 이후 3~8s로 램프한다.
+const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 65;
 
 async function pollZiweiResult(sessionId: string): Promise<ApiResult> {
   for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {

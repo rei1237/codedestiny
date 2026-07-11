@@ -175,8 +175,59 @@ async function hasSinglePaymentAccess(user, userId, featureCandidates, env = {})
   return Boolean(payment);
 }
 
+// canAccessPaidFeature 결정을 짧게 메모이즈한다.
+// ensure-access → consult POST → 매 폴링마다 같은 (user, feature) 판정을 위해 User.findById + Payment.exists
+// 2회 Mongo 왕복을 반복하던 것(코인/월정석 결제자는 항상 PAYMENT_REQUIRED 후 evidence 조회)을 제거한다.
+// billing.js의 결제-접근 결정 캐시와 같은 globalThis 객체(__paidAccessDecisionCache)를 공유하고,
+// 키 첫 세그먼트를 userId로 두므로 payments.js/billing.js가 grant/consume/refund 시 호출하는
+// invalidateForUser(userId)(prefix `${uid}|` 전체 삭제)가 이 항목도 함께 무효화한다 — 별도 무효화 배선이
+// 필요 없고, 프로덕션에서 검증된 billing 캐시와 동일한 stale 프로파일(더 짧은 TTL)을 갖는다.
+// billing 키(6세그먼트)와 세그먼트 수가 달라 절대 충돌하지 않는다.
+const PAID_FEATURE_ACCESS_CACHE_TTL_MS = 3000;
+const PAID_FEATURE_ACCESS_CACHE_MAX_ENTRIES = 2500;
+const sharedPaidAccessDecisionCache = globalThis.__paidAccessDecisionCache
+  || (globalThis.__paidAccessDecisionCache = { entries: new Map(), lastPruneAt: 0 });
+
+function buildFeatureAccessCacheKey(userId, effectiveFeatureKey, coinCost) {
+  return `${cleanText(userId)}|pfa:${cleanText(effectiveFeatureKey)}|${Math.max(0, Math.floor(Number(coinCost || 0)))}`;
+}
+
+function readFeatureAccessDecisionFromCache(cacheKey) {
+  if (!cacheKey) return null;
+  const entry = sharedPaidAccessDecisionCache.entries.get(cacheKey);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    sharedPaidAccessDecisionCache.entries.delete(cacheKey);
+    return null;
+  }
+  return entry.decision || null;
+}
+
+function writeFeatureAccessDecisionToCache(cacheKey, decision) {
+  if (!cacheKey || !decision) return decision;
+  const now = Date.now();
+  if (sharedPaidAccessDecisionCache.lastPruneAt + 2000 < now) {
+    sharedPaidAccessDecisionCache.lastPruneAt = now;
+    for (const [key, entry] of sharedPaidAccessDecisionCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) sharedPaidAccessDecisionCache.entries.delete(key);
+    }
+  }
+  if (sharedPaidAccessDecisionCache.entries.size > PAID_FEATURE_ACCESS_CACHE_MAX_ENTRIES) {
+    const earliestKey = sharedPaidAccessDecisionCache.entries.keys().next().value;
+    if (earliestKey) sharedPaidAccessDecisionCache.entries.delete(earliestKey);
+  }
+  sharedPaidAccessDecisionCache.entries.set(cacheKey, { decision, createdAt: now, expiresAt: now + PAID_FEATURE_ACCESS_CACHE_TTL_MS });
+  return decision;
+}
+
 export async function canAccessPaidFeature(userId, featureKey, options = {}) {
   const env = options.env || {};
+  let featureAccessCacheKey = "";
+  const finalize = (decision) => {
+    logPaidAccessDecision(env, decision);
+    if (featureAccessCacheKey) writeFeatureAccessDecisionToCache(featureAccessCacheKey, decision);
+    return decision;
+  };
   const requestedFeatureKey = cleanText(featureKey);
   const normalizedFeatureKey = normalizePaidFeatureKey(requestedFeatureKey) || requestedFeatureKey;
 
@@ -188,8 +239,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       paymentRequired: false,
       shouldOpenPayment: false,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   await connectDb(env);
@@ -203,6 +253,12 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
   const pricing = pricingResult.ok ? pricingResult.pricing : null;
   const effectiveFeatureKey = cleanText(pricing?.featureKey || normalizedFeatureKey);
   const featureCandidates = normalizeFeatureCandidates(effectiveFeatureKey);
+  // 캐시 히트 시 아래 User.findById + Payment.exists 2회 왕복을 건너뛴다(무효화는 invalidateForUser가 담당).
+  featureAccessCacheKey = cleanText(userId)
+    ? buildFeatureAccessCacheKey(userId, effectiveFeatureKey, resolveCoinCost(pricing || {}))
+    : "";
+  const cachedFeatureAccessDecision = readFeatureAccessDecisionFromCache(featureAccessCacheKey);
+  if (cachedFeatureAccessDecision) return cachedFeatureAccessDecision;
   // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
   const user = await withMongoRetry(env, () => User.findById(userId)
     .select("paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
@@ -218,8 +274,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       shouldOpenPayment: false,
       pricing,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   if (await hasSinglePaymentAccess(user, userId, featureCandidates, env)) {
@@ -232,8 +287,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       accessSource: "paidFeatures",
       pricing,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   const coinCost = resolveCoinCost(pricing || {});
@@ -252,8 +306,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       pricing,
       pass,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   if (!passExcluded && canUseByPass(pass, coinCost)) {
@@ -268,8 +321,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       pricing,
       pass,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   const monthlySubscription = resolveMonthlySubscription(user);
@@ -286,8 +338,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       monthlySubscription,
       pass,
     });
-    logPaidAccessDecision(env, decision);
-    return decision;
+    return finalize(decision);
   }
 
   const decision = buildDecision({
@@ -303,8 +354,7 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
     monthlySubscription,
     pass,
   });
-  logPaidAccessDecision(env, decision);
-  return decision;
+  return finalize(decision);
 }
 
 export const __paidFeatureAccessTestUtils = {

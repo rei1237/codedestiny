@@ -251,7 +251,9 @@ function LifeBookResultContent() {
   const [exportExpand, setExportExpand] = useState(false);
   const [chapterPage, setChapterPage] = useState(0);
   const [pollAttempts, setPollAttempts] = useState(0);
-  const maxPollAttempts = 45;
+  // 서버 최악(본 생성 180s + 완성 repair 180s ≈ 360s)보다 짧으면 완료·저장된 유료 결과에
+  // 거짓 "지연 실패"가 뜬다(버그). 상한을 넘겨 폴링(3.2s 간격이라 CF rate-limit 여유 큼).
+  const maxPollAttempts = 125; // 3.2s * 125 ≈ 400s 상한 — terminal 종료 유지
   const pollIntervalMs = 3200;
   // 429 응답 연속 횟수 — CF rate-limit(10초당 100회) 회피용 지수 백오프 계수
   const rateLimitStreakRef = useRef(0);
@@ -313,10 +315,12 @@ function LifeBookResultContent() {
       return;
     }
     const backoffFactor = Math.min(8, 2 ** rateLimitStreakRef.current);
+    // 첫 폴은 빠르게(0.8s) 프로브해 조기 완료를 즉시 잡고, 이후 3.2s 간격으로 최악치까지 커버한다.
+    const effectiveIntervalMs = (pollAttempts === 0 ? 800 : pollIntervalMs) * backoffFactor;
     const timer = window.setInterval(() => {
       setPollAttempts((prev) => prev + 1);
       void loadResult();
-    }, pollIntervalMs * backoffFactor);
+    }, effectiveIntervalMs);
     return () => window.clearInterval(timer);
   }, [loadResult, result?.status, pollAttempts, maxPollAttempts]);
 

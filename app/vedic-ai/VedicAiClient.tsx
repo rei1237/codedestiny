@@ -349,7 +349,8 @@ function sleep(ms: number) {
 
 // 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
 // CF rate-limit(10초당 100회) 대비 최대 1req/3~8s, 상한 40회(≈5분, 서버 신선도 창 420s 이내).
-const RESULT_POLL_BACKOFF_MS = [3000, 5000, 8000];
+// 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 즉시 잡고, 이후 3~8s로 램프한다.
+const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
 const RESULT_POLL_MAX_ATTEMPTS = 40;
 
 async function pollVedicResult(sessionId: string): Promise<StartResult> {

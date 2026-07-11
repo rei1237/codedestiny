@@ -3096,7 +3096,9 @@ async function generateConsultResult(request, fallback, env) {
   }
 
   const consultationMode = normalizeConsultationMode(request.consultationMode);
-  const maxAttempts = 3;
+  // 하드 실패(LLM/JSON/잘림)만 재시도한다. 소프트 품질게이트 미스는 아래 catch에서 즉시 degrade로
+  // 빠지므로, 재시도 상한은 2로 캡해 최악 지연(구 3회 풀 재생성 225~360s)을 줄인다.
+  const maxAttempts = 2;
   // 잘림(MAX_TOKENS) 발생 시 다음 시도에서 출력 토큰을 상향해 긴 상담문이 완결되도록 한다.
   // gemini-2.5-flash 출력 상한 아래(40k)로 캡, 잘림이 없으면 base 토큰 그대로 유지.
   const baseMaxOutputTokens = consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000;
@@ -3108,6 +3110,8 @@ async function generateConsultResult(request, fallback, env) {
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     const maxOutputTokens = Math.min(maxOutputTokensCap, Math.round(baseMaxOutputTokens * (1 + 0.3 * truncationRetries)));
+    let attemptTruncated = false;
+    let reachedQualityGate = false;
     try {
       const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt, lastError?.message || lastError), {
         systemPrompt: buildSystemPrompt(consultationMode),
@@ -3123,11 +3127,12 @@ async function generateConsultResult(request, fallback, env) {
 
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
       // 잘렸으면 다음 시도에서 토큰을 늘린다(extractJson가 곧 throw해도 카운터는 반영됨).
-      if (ai.truncated) truncationRetries += 1;
+      if (ai.truncated) { truncationRetries += 1; attemptTruncated = true; }
       const parsed = extractJson(ai.text);
       const result = mergeLlmResult(fallback, parsed);
       // 품질 게이트 실패에도 렌더 가능한 최선 후보를 보존한다 (결제 후 결과 유실 방지).
       lastCandidate = result;
+      reachedQualityGate = true;
       assertConsultQuality(result, fallback);
 
       return {
@@ -3141,6 +3146,9 @@ async function generateConsultResult(request, fallback, env) {
       };
     } catch (error) {
       lastError = error;
+      // 소프트 미스(이번 시도가 렌더 가능한 후보를 냈으나 품질게이트만 불통과, 잘림 아님)는
+      // 다음 시도도 같은 결정론적 이유로 실패할 확률이 높다 — 풀 재생성 낭비 대신 즉시 degrade로 배출한다.
+      if (reachedQualityGate && !attemptTruncated && hasRenderableLlmText(lastCandidate)) break;
       if (attempt + 1 < maxAttempts) continue;
     }
   }

@@ -446,15 +446,28 @@ export default function LoveRelationshipTarot() {
       }));
 
       const executeReading = async () => {
-        const res = await fetch("/api/tarot/love-reading", {
-          method: "POST",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            cards: payloadCards,
-            locale,
-          }),
-        });
+        // 서버는 42s 데드라인에 로컬 폴백으로라도 확정 응답을 준다. 연결이 끊겨 무한 대기(정적 스피너)로
+        // 멈추지 않도록 55s(서버 42s + 여유)에 중단한다 — 중단돼도 paidAccessGrantedRef가 남아 재시도는 무과금.
+        const controller = new AbortController();
+        const timeoutId = window.setTimeout(() => controller.abort(), 55000);
+        let res: Response;
+        try {
+          res = await fetch("/api/tarot/love-reading", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              cards: payloadCards,
+              locale,
+            }),
+            signal: controller.signal,
+          });
+        } catch (err: any) {
+          if (err?.name === "AbortError") throw new Error(copy.readingError);
+          throw err;
+        } finally {
+          window.clearTimeout(timeoutId);
+        }
         const data = await res.json();
         if (!res.ok || data?.ok === false) {
           throw new Error(data?.message || copy.readingError);
