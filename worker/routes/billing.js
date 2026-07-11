@@ -4588,13 +4588,22 @@ async function handleDevPaymentTester(request, env) {
   } else if (action === "monthly") {
     const patch = buildDevFreePatch(now);
     const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // 월정석 지급분별(lot) 만료 도입 — dev 시드도 지급일+30일 lot을 동반 생성해야
+    // 크론 스윕이 대상을 찾고 소멸이 성립한다(스칼라-only 지급은 만료가 시작조차 안 됨).
+    const granted = applyGrantLot([], {
+      lotId: `dev-monthly:${now.getTime()}`,
+      amount: 999999,
+      grantedAt: now,
+      now: now.getTime(),
+    });
     await User.findByIdAndUpdate(auth.userId, {
       $set: {
         ...patch,
         profileSubscription: {
           ...patch.profileSubscription,
-          membershipCreditBalance: 999999,
+          membershipCreditBalance: granted.balance,
           membershipCreditGranted: 999999,
+          membershipCreditLots: granted.lots,
         },
         monthlySubscription: {
           active: true,
@@ -4839,7 +4848,8 @@ async function readBillingSnapshot(request, env, options = {}) {
     const unlockedFeatures = Array.from(new Set(scopedUnlocks.unlockedFeatures));
     const unlockMap = { ...scopedUnlocks.unlockMap };
     const balance = Number(effectiveUser?.points || 0);
-    const membershipCreditBalance = Math.max(0, Math.floor(Number(sub?.membershipCreditBalance || 0)));
+    // 스칼라 캐시 대신 활성(미만료) lot 합계로 표시 잔액 산출 — 아직 스윕 안 된 만료분을 즉시 제외한다.
+    const membershipCreditBalance = Math.max(0, Math.floor(Number(ensureLotsForBalance(sub || {}, Date.now()).balance || 0)));
     // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
     const monthlyStoneExpiresAt = resolveNextExpiry(sub?.membershipCreditLots);
     const membership = {

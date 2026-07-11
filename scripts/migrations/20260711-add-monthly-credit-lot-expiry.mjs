@@ -89,7 +89,16 @@ async function backfillLots() {
       };
       return {
         updateOne: {
-          filter: { _id: doc._id, "profileSubscription.membershipCreditLotsVersion": version },
+          // 버전 가드: 낙관적 락. 단, 레거시(pre-lot) 유저는 이 필드가 아예 없으므로
+          // `field: 0` 로는 매칭되지 않는다(MongoDB에서 missing ≠ 0). 필드 부재도 함께 허용해야
+          // 실제 백필이 반영된다($inc는 missing→1로 올림).
+          filter: {
+            _id: doc._id,
+            $or: [
+              { "profileSubscription.membershipCreditLotsVersion": version },
+              { "profileSubscription.membershipCreditLotsVersion": { $exists: false } },
+            ],
+          },
           update: {
             $set: {
               "profileSubscription.membershipCreditLots": [lot],

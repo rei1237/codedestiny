@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import { connectDb, mongoose } from "../worker/lib/db.js";
 import { User } from "../worker/lib/models.js";
 import { hashPassword } from "../worker/lib/password.js";
+import { applyGrantLot } from "../worker/lib/monthly-credit-lots.js";
 
 const TARGET_EMAIL = "hanyuzu@example.com";
 const TARGET_PASSWORD = "test!1234";
@@ -40,6 +41,14 @@ async function main() {
     const existing = await User.findOne({ email: TARGET_EMAIL }).select("+passwordHash");
 
     if (!existing) {
+      const now = new Date();
+      // 월정석은 지급분별(lot) 만료 회계 — 스칼라만 쓰면 크론 스윕이 못 잡아 소멸이 시작조차 안 됨.
+      const granted = applyGrantLot([], {
+        lotId: `hanyuzu-seed:${now.getTime()}`,
+        amount: TARGET_MOON_STONE_BALANCE,
+        grantedAt: now,
+        now: now.getTime(),
+      });
       const created = await User.create({
         email: TARGET_EMAIL,
         name: "hanyuzu",
@@ -48,7 +57,9 @@ async function main() {
         gender: "OTHER",
         passwordHash,
         profileSubscription: {
-          membershipCreditBalance: TARGET_MOON_STONE_BALANCE,
+          membershipCreditBalance: granted.balance,
+          membershipCreditGranted: TARGET_MOON_STONE_BALANCE,
+          membershipCreditLots: granted.lots,
         },
         role: "user",
       });
@@ -63,9 +74,18 @@ async function main() {
     const beforeMoonStone = resolveMoonstoneBalance(existing);
     const needBalanceUpdate = beforeMoonStone !== TARGET_MOON_STONE_BALANCE;
 
+    const now = new Date();
+    // 강제 세팅 잔액을 지급분별(lot) 만료 회계로 백킹 — 스칼라만 두면 30일 소멸이 동작하지 않는다.
+    const granted = applyGrantLot([], {
+      lotId: `hanyuzu-seed:${now.getTime()}`,
+      amount: TARGET_MOON_STONE_BALANCE,
+      grantedAt: now,
+      now: now.getTime(),
+    });
     const updatePayload = {
       passwordHash,
-      "profileSubscription.membershipCreditBalance": TARGET_MOON_STONE_BALANCE,
+      "profileSubscription.membershipCreditBalance": granted.balance,
+      "profileSubscription.membershipCreditLots": granted.lots,
     };
     if (needBalanceUpdate) {
       updatePayload["profileSubscription.membershipCreditGranted"] = TARGET_MOON_STONE_BALANCE;

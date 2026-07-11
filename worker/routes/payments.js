@@ -5130,7 +5130,7 @@ function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
   const granted = Math.max(0, Math.floor(Number(sub.membershipCreditGranted || 0)));
   if (granted <= 0) return null;
 
-  const balance = Math.max(0, Math.floor(Number(sub.membershipCreditBalance || 0)));
+  const balance = Math.max(0, Math.floor(Number(ensureLotsForBalance(sub, Date.now()).balance || 0)));
   const used = Math.max(0, Math.floor(Number(sub.membershipCreditUsed || 0)));
   const userId = String(auth?.userId || safeUser?._id || "").trim();
   const sourceId = `membership-credit-grant-summary:${userId || "unknown"}`;
@@ -5237,7 +5237,8 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const subscriptions = buildSubscriptionSummary(safeUser.profileSubscription);
   const balance = Number(safeUser.points || 0);
   const profileSubscription = safeUser.profileSubscription || {};
-  const monthlyCredits = Number(profileSubscription.membershipCreditBalance || 0);
+  // 스칼라 캐시 대신 활성(미만료) lot 합계로 표시 잔액 산출 — 아직 스윕 안 된 만료분을 즉시 제외한다.
+  const monthlyCredits = Math.max(0, Math.floor(Number(ensureLotsForBalance(profileSubscription, Date.now()).balance || 0)));
   // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
   const monthlyStoneExpiresAt = resolveNextExpiry(profileSubscription.membershipCreditLots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
