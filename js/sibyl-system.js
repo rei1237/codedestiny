@@ -102,6 +102,11 @@ function _sibylText(key) {
   });
   var _sibylUiState = SibylState.LOADING;
   var _sibylLastPaidContext = null;
+  // 결제 진입 병목 완화: 모달 오픈 시 받은 unlock-status/가격을 짧게 재사용해
+  // 버튼 클릭 시 중복 왕복을 없앤다.
+  var SIBYL_UNLOCK_STATUS_TTL_MS = 15000;
+  var _sibylUnlockStatusCache = null; // { key, at, promise }
+  var _sibylPricingPrefetch = null;   // { key, promise }
   var SIBYL_DEFAULT_RISK_SCORE = 45;
   var SIBYL_DEFAULT_APTITUDE_SCORE = 520;
   var SIBYL_DEFAULT_STABILITY_SCORE = 55;
@@ -559,7 +564,7 @@ function _sibylText(key) {
     if (_openCachedDominatorReport(profile, fallbackAnalysis)) {
       _syncSibylUnlockButton(profile, { ok: true, unlocked: true });
       if (!_isAdminBypassUser()) {
-        _resolveSibylUnlockStatus().then(function(unlockStatus) {
+        _resolveSibylUnlockStatus(profile).then(function(unlockStatus) {
           _syncSibylUnlockButton(profile, unlockStatus);
         }).catch(function(err) {
           _sibylLogWarn('[SIBYL] unlock-state post-cache check failed', {
@@ -573,7 +578,7 @@ function _sibylText(key) {
 
     if (_isAdminBypassUser()) return false;
 
-    var unlockStatus = await _resolveSibylUnlockStatus();
+    var unlockStatus = await _resolveSibylUnlockStatus(profile);
     _syncSibylUnlockButton(profile, unlockStatus);
     if (!(unlockStatus && unlockStatus.ok && unlockStatus.unlocked)) return false;
     return _openCachedDominatorReport(profile, fallbackAnalysis);
@@ -3509,6 +3514,19 @@ function _sibylText(key) {
     };
   }
 
+  // 결제창 진입 지연 완화: 모달 오픈 시 가격을 미리 받아 두고 게이트에서 재사용.
+  function _prefetchSibylPricing(profile) {
+    var key = _sibylProfileCacheKey(profile) || 'account';
+    if (_sibylPricingPrefetch && _sibylPricingPrefetch.key === key) return _sibylPricingPrefetch.promise;
+    var promise = _resolveSibylPricing().catch(function(err) {
+      // 실패 시 프리페치 캐시를 비워 게이트에서 정식 조회하도록 한다.
+      if (_sibylPricingPrefetch && _sibylPricingPrefetch.key === key) _sibylPricingPrefetch = null;
+      throw err;
+    });
+    _sibylPricingPrefetch = { key: key, promise: promise };
+    return promise;
+  }
+
   async function _resolveSibylBalance() {
     var balanceRes = await _fetchApiJson('/api/billing/balance');
     if (!balanceRes.ok) {
@@ -3519,7 +3537,7 @@ function _sibylText(key) {
     return Number.isFinite(balance) ? balance : 0;
   }
 
-  async function _resolveSibylUnlockStatus() {
+  async function _fetchSibylUnlockStatus() {
     var statusRes = await _fetchApiJson('/api/billing/unlock-status?featureKey=' + encodeURIComponent(SIBYL_FEATURE_KEY));
     if (!statusRes.ok) {
       return {
@@ -3536,6 +3554,33 @@ function _sibylText(key) {
       pricing: statusData && statusData.pricing ? statusData.pricing : null,
       currentBalance: Number(statusData && statusData.currentBalance || 0)
     };
+  }
+
+  // unlock-status는 계정 단위라 짧은 TTL 캐시로 재사용한다.
+  // opts.force=true면 캐시 무시(결제 직후 등), opts.profile은 캐시 키 스코프.
+  function _resolveSibylUnlockStatus(profile, opts) {
+    var options = opts || {};
+    var key = _sibylProfileCacheKey(profile) || 'account';
+    var now = Date.now();
+    if (!options.force
+      && _sibylUnlockStatusCache
+      && _sibylUnlockStatusCache.key === key
+      && (now - _sibylUnlockStatusCache.at) < SIBYL_UNLOCK_STATUS_TTL_MS) {
+      return _sibylUnlockStatusCache.promise;
+    }
+    var promise = _fetchSibylUnlockStatus().then(function(status) {
+      // 실패 응답은 캐시하지 않아 다음 시도에서 재조회되게 한다.
+      if (!status || !status.ok) {
+        if (_sibylUnlockStatusCache && _sibylUnlockStatusCache.key === key) _sibylUnlockStatusCache = null;
+      }
+      return status;
+    });
+    _sibylUnlockStatusCache = { key: key, at: now, promise: promise };
+    return promise;
+  }
+
+  function _invalidateSibylUnlockStatusCache() {
+    _sibylUnlockStatusCache = null;
   }
 
   function _isSibylMembershipPassPayload(payload) {
@@ -3566,7 +3611,13 @@ function _sibylText(key) {
   }
 
   async function _runSibylCoinGate(payloadHash) {
-    var pricing = await _resolveSibylPricing();
+    var pricing;
+    if (_sibylPricingPrefetch && _sibylPricingPrefetch.promise) {
+      try { pricing = await _sibylPricingPrefetch.promise; }
+      catch (_) { pricing = await _resolveSibylPricing(); }
+    } else {
+      pricing = await _resolveSibylPricing();
+    }
     var requestId = _createRequestId('sibyl-coin-gate');
 
     if (typeof window._cdOpenPaidServiceGate === 'function') {
@@ -3701,7 +3752,8 @@ function _sibylText(key) {
         };
       } else {
         _setSibylState(SibylState.PROCESSING_PAYMENT, '>> 결제 상태를 확인하는 중입니다…');
-        var unlockStatus = await _resolveSibylUnlockStatus();
+        // 모달 오픈 시 조회한 unlock-status를 재사용(중복 왕복 제거).
+        var unlockStatus = await _resolveSibylUnlockStatus(currentProfile);
 
         if (!unlockStatus || !unlockStatus.ok) {
           if (_openCachedDominatorReport(currentProfile, currentData)) {
@@ -3739,6 +3791,14 @@ function _sibylText(key) {
       _sibylLastPaidContext = paymentContext;
       _setSibylState(SibylState.GENERATING_REPORT, '>> 도미네이터 리포트를 생성하는 중입니다…');
       await _generateDominatorReport(paymentContext);
+      // 신규 결제/이용권 통과 후 서버 잠금해제 상태를 재조회해 버튼을 즉시 갱신
+      // (다른 기기/캐시 삭제 후에도 "저장된 리포트 열기"로 유지되도록).
+      if (!_isAdminBypassUser() && !(paymentContext && paymentContext.unlocked)) {
+        _invalidateSibylUnlockStatusCache();
+        _resolveSibylUnlockStatus(currentProfile, { force: true }).then(function(st) {
+          _syncSibylUnlockButton(currentProfile, st);
+        }).catch(function() {});
+      }
       _restoreUnlockBtn();
     } catch (error) {
       _sibylLogError('[SIBYL] premium unlock failed', error);
@@ -4302,6 +4362,11 @@ function _sibylText(key) {
       if (profileChip && profile && profile.birth) {
         var b = profile.birth;
         profileChip.textContent = '대상: ' + (b.year || '--') + '.' + (b.month || '--') + '.' + (b.day || '--') + ' · ' + ((profile.gender || 'F') === 'M' ? '남성' : '여성');
+      }
+
+      // 결제 진입 지연 완화: 가격을 미리 백그라운드로 받아 둔다(게이트에서 재사용).
+      if (!_isAdminBypassUser()) {
+        _prefetchSibylPricing(profile).catch(function() {});
       }
 
       // Run scan animation then render free section

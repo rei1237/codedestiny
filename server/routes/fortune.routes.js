@@ -296,6 +296,7 @@ const PERSISTENT_UNLOCK_KEY_SET = new Set([
   "premium-sukuyo",
   "premium-veda",
   "premium-naming",
+  "premium-sibyl-dominator",
 ]);
 
 function isPersistentUnlockFeatureKey(rawKey) {

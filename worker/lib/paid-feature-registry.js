@@ -383,7 +383,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "fortune-tea-house-sukuyo-compatibility-consultation",
   "sukuyo-symbolic-comparison",
   "sukuyo-extreme-t-relationship",
-  "sukuyo-relationship-encyclopedia",
   "sukuyo-past-life-reading",
   "sukuyo-monthly-fortune",
   "sukuyo-compatibility-ai",
@@ -435,7 +434,6 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "vedic_prashna_prompt",
   "astro_monthly_transit",
   "astro_yearly_transit",
-  "premium-sibyl-dominator",
   "premium-sukuyo-compat-extra",
   "premium-veda-compatibility-addon",
   "destiny-bias-analyze",
@@ -447,6 +445,7 @@ const PDF_PAID_FEATURE_KEY_LIST = Object.freeze([
 ]);
 
 const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
+  "premium-sibyl-dominator",
   "section_daewun",
   "section_summary",
   "section_compat",
@@ -475,6 +474,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "astro_stellar_growth_room",
   "fun.quantumLotto.ritualReport",
   "sukyo_yearly_fortune_unlock",
+  "sukuyo-relationship-encyclopedia",
 ]);
 
 export const PER_USE_PAID_FEATURE_KEYS = Object.freeze([...PER_USE_PAID_FEATURE_KEY_LIST].sort());

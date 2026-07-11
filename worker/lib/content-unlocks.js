@@ -142,6 +142,7 @@ function resolvePaidContentServiceKey(featureKey, fallback = "") {
   if (key.includes("celestial")) return "celestial_harmony";
   if (key.includes("destiny-bias")) return "destiny_bias";
   if (key.includes("animal-destiny")) return "animal_destiny";
+  if (key.includes("sibyl") || key.includes("dominator")) return "saju";
   return cleanKey(fallback || "paid_content", 80);
 }
 
