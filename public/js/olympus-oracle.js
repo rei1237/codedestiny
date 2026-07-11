@@ -7,10 +7,19 @@
     return offset;
   }
 
+  var SIGN_KEYS = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
+
   function tropicalDegreeToSign(deg) {
     var normalized = ((deg % 360) + 360) % 360;
-    var signs = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
-    return signs[Math.floor(normalized / 30)];
+    return SIGN_KEYS[Math.floor(normalized / 30)];
+  }
+
+  function lonToPlacement(lon) {
+    var normalized = ((lon % 360) + 360) % 360;
+    return {
+      key: SIGN_KEYS[Math.floor(normalized / 30)],
+      deg: Math.round((normalized % 30) * 10) / 10
+    };
   }
 
   function ensureSwissBridgeLoaded() {
@@ -48,7 +57,7 @@
     });
   }
 
-  function computeSunSignWithSwissBridge(payload) {
+  function computePlacementsWithSwissBridge(payload) {
     return ensureSwissBridgeLoaded().then(function(ok) {
       if (!ok) throw new Error('swisseph bridge unavailable');
 
@@ -74,13 +83,37 @@
       if (!Number.isFinite(baseMs)) throw new Error('invalid payload datetime');
 
       var jdUT = (baseMs + (utcHour * 3600000)) / 86400000 + 2440587.5;
-      var sunId = Number.isFinite(Number(swe.SE_SUN)) ? Number(swe.SE_SUN) : 0;
       var flags = Number(swe.SEFLG_SWIEPH || 0) | Number(swe.SEFLG_SPEED || 0);
-      var raw = calcFn.call(swe, jdUT, sunId, flags);
-      var lon = Array.isArray(raw) ? Number(raw[0]) : Number(raw && raw[0]);
-      if (!Number.isFinite(lon)) throw new Error('invalid swisseph sun longitude');
+      var planetIds = {
+        sun: Number.isFinite(Number(swe.SE_SUN)) ? Number(swe.SE_SUN) : 0,
+        moon: Number.isFinite(Number(swe.SE_MOON)) ? Number(swe.SE_MOON) : 1,
+        mercury: Number.isFinite(Number(swe.SE_MERCURY)) ? Number(swe.SE_MERCURY) : 2,
+        venus: Number.isFinite(Number(swe.SE_VENUS)) ? Number(swe.SE_VENUS) : 3,
+        mars: Number.isFinite(Number(swe.SE_MARS)) ? Number(swe.SE_MARS) : 4,
+        jupiter: Number.isFinite(Number(swe.SE_JUPITER)) ? Number(swe.SE_JUPITER) : 5,
+        saturn: Number.isFinite(Number(swe.SE_SATURN)) ? Number(swe.SE_SATURN) : 6
+      };
 
-      return tropicalDegreeToSign(lon);
+      var placements = {};
+      Object.keys(planetIds).forEach(function(name) {
+        var raw = calcFn.call(swe, jdUT, planetIds[name], flags);
+        var lonDeg = Array.isArray(raw) ? Number(raw[0]) : Number(raw && raw[0]);
+        if (!Number.isFinite(lonDeg)) throw new Error('invalid swisseph ' + name + ' longitude');
+        placements[name] = lonToPlacement(lonDeg);
+      });
+
+      var geoLat = Number(payload && payload.lat);
+      var geoLon = Number(payload && payload.lon);
+      var housesFn = swe.swe_houses || swe.houses;
+      if (typeof housesFn === 'function' && Number.isFinite(geoLat) && Number.isFinite(geoLon)) {
+        try {
+          var h = housesFn.call(swe, jdUT, geoLat, geoLon, 'P');
+          var ascLon = h && h.ascmc ? Number(h.ascmc[0]) : NaN;
+          if (Number.isFinite(ascLon)) placements.asc = lonToPlacement(ascLon);
+        } catch (e) {}
+      }
+
+      return placements;
     });
   }
 
@@ -160,6 +193,7 @@
     if (!year || !month || !day) return null;
     var hour = Number(birth && birth.hour);
     var minute = Number(birth && birth.minute);
+    var timeKnown = Number.isFinite(hour);
     if (!Number.isFinite(hour)) hour = 12;
     if (!Number.isFinite(minute)) minute = 0;
 
@@ -169,6 +203,7 @@
       day: day,
       hour: hour,
       minute: minute,
+      timeKnown: timeKnown,
       date: year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0'),
       time: String(hour).padStart(2, '0') + ':' + String(minute).padStart(2, '0')
     };
@@ -208,20 +243,27 @@
       lon: Number.isFinite(lon) ? lon : 126.9780
     };
 
-    computeSunSignWithSwissBridge(payload).then(function(sunKey) {
-      commitAndMove({
-        name: currentProfile && currentProfile.name ? currentProfile.name : '',
-        date: parsed.date,
-        time: parsed.time,
-        sunKey: sunKey
-      });
+    var baseProfile = {
+      name: currentProfile && currentProfile.name ? currentProfile.name : '',
+      date: parsed.date,
+      time: parsed.time,
+      timeKnown: parsed.timeKnown !== false
+    };
+
+    computePlacementsWithSwissBridge(payload).then(function(placements) {
+      commitAndMove(Object.assign({}, baseProfile, {
+        sunKey: placements.sun.key,
+        placements: placements,
+        calc: 'swiss'
+      }));
     }).catch(function(err) {
       console.error('[olympus] Swiss calculation failed', {
         errorMessage: String((err && err.message) || err || 'unknown')
       });
       if (typeof window._toast === 'function') {
-        window._toast('⚠️ Swiss 라이브러리 계산에 실패했습니다. 잠시 후 다시 시도해 주세요.', 'warn');
+        window._toast('⚠️ 정밀 천문 계산에 실패해 간이 계산으로 진행합니다.', 'warn');
       }
+      commitAndMove(Object.assign({}, baseProfile, { calc: 'approx' }));
     });
     return true;
   }
@@ -232,4 +274,5 @@
 
   window.openOlympusOracleModal = openOlympusOracleModal;
   window.closeOlympusOracleModal = closeOlympusOracleModal;
+  window.__olympusComputePlacements = computePlacementsWithSwissBridge;
 })();

@@ -63,6 +63,7 @@ const CHROMELESS_ROUTES = [
   "/sukuyo-compatibility-ai",
   "/saju-guardian",
   "/premium-unlock",
+  "/olympus",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
@@ -75,6 +76,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/fortune-tea-house",
   "/fortune/prompt-hub",
+  "/olympus",
 ];
 
 function useFooterInView(enabled: boolean) {

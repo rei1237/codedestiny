@@ -55,6 +55,81 @@ const ELEMENTS = {
 };
 
 /* ════════════════════════════════════════════════════════
+   전문 점성술 테이블 — 모달리티 / 어스펙트 / 밸런스 / 트랜짓
+════════════════════════════════════════════════════════ */
+const MODALITIES = {
+  cardinal:{name:"활동궁 (Cardinal)",short:"활동",desc:"계절을 여는 별자리입니다. 시작·개척·방향 설정에 강하고, 판을 새로 짜는 순간에 에너지가 살아납니다."},
+  fixed:{name:"고정궁 (Fixed)",short:"고정",desc:"계절을 지키는 별자리입니다. 지속·축적·완성에 강하고, 한번 잡은 것을 끝까지 끌고 가는 힘이 있습니다."},
+  mutable:{name:"변화궁 (Mutable)",short:"변화",desc:"계절을 넘기는 별자리입니다. 적응·전환·확산에 강하고, 변수 많은 국면에서 오히려 유연하게 살아남습니다."},
+};
+const modalityOf=(key)=>["cardinal","fixed","mutable"][SIGNS.findIndex(s=>s.key===key)%3];
+
+const ELEMENT_BALANCE_READING = {
+  fire:{dom:"불 원소가 우세합니다. 결단과 추진이 빠른 대신 과열과 번아웃이 약점입니다. 시작한 일에 마무리 루틴을 의식적으로 붙이세요.",
+        lack:"불 원소가 부족합니다. 신중하지만 시동이 늦게 걸리는 편이니, 하루 하나 '즉시 실행' 항목을 만들어 결단 근육을 길러 주세요."},
+  earth:{dom:"흙 원소가 우세합니다. 현실 감각과 지구력이 강점이지만 변화 앞에서 굳어질 수 있습니다. 분기마다 작은 새 시도를 일부러 끼워 넣으세요.",
+         lack:"흙 원소가 부족합니다. 아이디어와 감정은 풍부한데 실행의 뼈대가 약해질 수 있으니, 계획을 숫자와 마감으로 고정하는 습관이 필요합니다."},
+  air:{dom:"공기 원소가 우세합니다. 판을 읽는 사고력과 언어 감각이 강점이지만, 생각이 많아 결정이 밀릴 수 있습니다. 선택지는 3개까지만 두세요.",
+       lack:"공기 원소가 부족합니다. 몰입은 깊은데 객관화가 늦어질 수 있으니, 중요한 결정 전에 제3자의 시선 하나를 반드시 거치세요."},
+  water:{dom:"물 원소가 우세합니다. 공감과 직관이 강점이지만 감정 과부하가 약점입니다. 감정이 올라온 날에는 결정을 하루 미루는 규칙을 세우세요.",
+         lack:"물 원소가 부족합니다. 판단은 명료하지만 자신과 타인의 감정 신호를 놓치기 쉬우니, 관계에서는 결론보다 공감 문장을 먼저 꺼내 보세요."},
+};
+const MODALITY_BALANCE_READING = {
+  cardinal:{dom:"활동궁이 우세합니다. 시작하는 힘이 탁월한 대신 벌여 놓은 일이 쌓이기 쉽습니다. '새 시작 1개당 마무리 1개' 규칙이 잘 맞습니다.",
+            lack:"활동궁이 부족합니다. 판을 여는 첫수가 늦어질 수 있으니, 완벽한 준비 대신 '가장 작은 첫 행동'을 정해 두면 흐름이 풀립니다."},
+  fixed:{dom:"고정궁이 우세합니다. 버티는 힘과 완성도가 강점이지만 방향 전환이 늦습니다. 손절 기준을 미리 문장으로 적어 두는 것이 보험입니다.",
+         lack:"고정궁이 부족합니다. 시작과 전환은 빠른데 지속이 약할 수 있으니, 반복 루틴을 환경(장소·시간 고정)으로 강제하는 편이 유리합니다."},
+  mutable:{dom:"변화궁이 우세합니다. 적응력이 탁월한 대신 우선순위가 자주 바뀝니다. 주간 단위로 '바꾸지 않을 것 1가지'를 먼저 정하세요.",
+           lack:"변화궁이 부족합니다. 계획대로 가는 힘은 강하지만 돌발 변수에 흔들릴 수 있으니, 플랜 B를 형식적으로라도 한 줄 준비해 두세요."},
+};
+
+const PLANET_LABELS = {
+  sun:{ko:"태양",emoji:"☀️"},moon:{ko:"달",emoji:"🌙"},mercury:{ko:"수성",emoji:"🗣️"},
+  venus:{ko:"금성",emoji:"💘"},mars:{ko:"화성",emoji:"🔥"},jupiter:{ko:"목성",emoji:"⚡"},saturn:{ko:"토성",emoji:"⏳"},
+};
+const ASPECT_DEFS = [
+  {angle:0,orb:6,name:"합",en:"Conjunction",sym:"☌",quality:"두 에너지가 한 몸처럼 붙어 강하게 증폭됩니다. 이 조합의 주제가 인생에서 자주, 강하게 등장합니다."},
+  {angle:60,orb:5,name:"육합",en:"Sextile",sym:"⚹",quality:"서로를 부드럽게 돕는 각도입니다. 의식적으로 쓸 때만 열리는 '노력형 행운'의 통로입니다."},
+  {angle:90,orb:6,name:"사각",en:"Square",sym:"□",quality:"부딪히며 단련되는 각도입니다. 갈등으로 시작하지만, 다루는 법을 익히면 가장 강한 성장 동력이 됩니다."},
+  {angle:120,orb:6,name:"삼합",en:"Trine",sym:"△",quality:"힘 들이지 않고 흐르는 재능의 각도입니다. 너무 자연스러워 본인만 모르는 강점이 되기 쉽습니다."},
+  {angle:180,orb:6,name:"충",en:"Opposition",sym:"☍",quality:"시소처럼 맞서는 각도입니다. 한쪽에 쏠리면 반작용이 오고, 균형점을 찾으면 시야가 크게 넓어집니다."},
+];
+const PLANET_PAIR_THEMES = {
+  "sun-moon":"의지와 감정 — 겉으로 미는 방향과 속마음이 만나는 방식",
+  "sun-mercury":"의지와 사고 — 결심을 말과 논리로 옮기는 방식",
+  "sun-venus":"의지와 애정 — 자존감과 관계 욕구의 연결",
+  "sun-mars":"의지와 추진 — 목표를 행동으로 점화하는 방식",
+  "sun-jupiter":"의지와 확장 — 기회를 알아보고 키우는 그릇",
+  "sun-saturn":"의지와 책임 — 야망에 구조와 인내를 붙이는 방식",
+  "moon-mercury":"감정과 사고 — 기분을 언어로 번역하는 능력",
+  "moon-venus":"감정과 애정 — 사랑받는다고 느끼는 조건",
+  "moon-mars":"감정과 추진 — 감정이 행동으로 옮겨붙는 속도",
+  "moon-jupiter":"감정과 확장 — 낙관과 정서적 여유의 크기",
+  "moon-saturn":"감정과 책임 — 감정을 절제하고 견디는 방식",
+  "mercury-venus":"사고와 애정 — 말로 매력을 만드는 재능",
+  "mercury-mars":"사고와 추진 — 말과 논리의 공격력",
+  "mercury-jupiter":"사고와 확장 — 큰 그림을 그리는 사고의 스케일",
+  "mercury-saturn":"사고와 책임 — 신중하고 구조적인 판단력",
+  "venus-mars":"애정과 욕망 — 끌림과 표현의 온도 차",
+  "venus-jupiter":"애정과 확장 — 관계·재물이 함께 커지는 통로",
+  "venus-saturn":"애정과 책임 — 사랑의 지속력과 헌신의 형태",
+  "mars-jupiter":"추진과 확장 — 과감한 승부의 크기와 타이밍",
+  "mars-saturn":"추진과 책임 — 액셀과 브레이크의 갈등과 조율",
+  "jupiter-saturn":"확장과 책임 — 성장 욕구와 현실 감각의 균형",
+};
+
+const TRANSIT_MOON_READING = {
+  same:"오늘의 달이 당신의 태양과 같은 원소를 지나갑니다. 몸과 마음의 결이 자연스럽게 맞는 날 — 미뤄 둔 일을 진행하기 좋습니다.",
+  support:"오늘의 달이 당신의 태양을 밀어주는 원소를 지나갑니다. 협업과 대화에서 순풍이 붙는 날이니 연락과 제안을 먼저 꺼내 보세요.",
+  tension:"오늘의 달이 당신의 태양과 결이 다른 원소를 지나갑니다. 감정 반응이 평소와 어긋날 수 있으니, 중요한 결정은 오전보다 오후에 두세요.",
+};
+const elementRelation=(a,b)=>{
+  if(a===b) return "same";
+  if((a==="fire"&&b==="air")||(a==="air"&&b==="fire")||(a==="earth"&&b==="water")||(a==="water"&&b==="earth")) return "support";
+  return "tension";
+};
+
+/* ════════════════════════════════════════════════════════
    타짜 — 인생 베팅 스타일 데이터
 ════════════════════════════════════════════════════════ */
 const TAZZA_STYLE = {
@@ -492,15 +567,71 @@ function getSign(m,d){
   if((m===1&&d>=20)||(m===2&&d<=18)) return "aquarius";
   return "pisces";
 }
-function calcPlacements(dateStr,timeStr,userName,sunKeyOverride){
+const isValidSignKey=(k)=>SIGNS.some(s=>s.key===k);
+const decanOf=(deg)=>(deg==null||!Number.isFinite(deg))?null:(deg<10?1:deg<20?2:3);
+const decanSignOf=(key,deg)=>{
+  const dc=decanOf(deg); if(!dc) return null;
+  const si=SIGNS.findIndex(s=>s.key===key); if(si<0) return null;
+  return { decan:dc, sign:SIGNS[(si+4*(dc-1))%12] };
+};
+
+function buildAspects(real){
+  if(!real) return [];
+  const order=["sun","moon","mercury","venus","mars","jupiter","saturn"];
+  const lons={};
+  order.forEach((p)=>{
+    const pl=real[p];
+    if(!pl||!isValidSignKey(pl.key)||!Number.isFinite(Number(pl.deg))) return;
+    lons[p]=SIGNS.findIndex(s=>s.key===pl.key)*30+Number(pl.deg);
+  });
+  const found=[];
+  for(let i=0;i<order.length;i++){
+    for(let j=i+1;j<order.length;j++){
+      const a=order[i], b=order[j];
+      if(!(a in lons)||!(b in lons)) continue;
+      let sep=Math.abs(lons[a]-lons[b])%360;
+      if(sep>180) sep=360-sep;
+      ASPECT_DEFS.forEach((def)=>{
+        const diff=Math.abs(sep-def.angle);
+        if(diff<=def.orb) found.push({a,b,def,orb:Math.round(diff*10)/10,theme:PLANET_PAIR_THEMES[`${a}-${b}`]||""});
+      });
+    }
+  }
+  return found.sort((x,y)=>x.orb-y.orb).slice(0,5);
+}
+
+function buildBalance(planetList){
+  const elems={fire:0,earth:0,air:0,water:0};
+  const mods={cardinal:0,fixed:0,mutable:0};
+  planetList.forEach((p)=>{ elems[p.elem]+=1; mods[modalityOf(p.key)]+=1; });
+  const rank=(obj)=>Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+  const eRank=rank(elems), mRank=rank(mods);
+  return {
+    elems, mods, total:planetList.length,
+    domElem:eRank[0][0], lackElem:eRank[eRank.length-1][0],
+    domMod:mRank[0][0], lackMod:mRank[mRank.length-1][0],
+  };
+}
+
+function calcPlacements(dateStr,timeStr,userName,sunKeyOverride,realPlacements){
   const d=new Date(dateStr), m=d.getMonth()+1, day=d.getDate(), y=d.getFullYear();
   const h=timeStr?parseInt(timeStr.split(":")[0]):12;
-  const hasOverride = sunKeyOverride && SIGNS.some(s=>s.key===sunKeyOverride);
-  const sk=hasOverride?sunKeyOverride:getSign(m,day), si=SIGNS.findIndex(s=>s.key===sk);
-  const mk=SIGNS[(si+(day%6)+2)%12].key, rk=SIGNS[(si+(h%4)+1)%12].key;
-  const vk=SIGNS[(si+2)%12].key, mrk=SIGNS[(si+5)%12].key;
-  const jupk=SIGNS[(si+3)%12].key, satk=SIGNS[(si+7)%12].key, merk=SIGNS[(si+1)%12].key;
-  const make=(key,planet,god,emoji,pType)=>({...SIGNS.find(s=>s.key===key),planet,god,emoji,pd:PD[key][pType]});
+  const real=realPlacements&&typeof realPlacements==="object"?realPlacements:null;
+  const realKey=(p)=>(real&&real[p]&&isValidSignKey(real[p].key))?real[p].key:null;
+  const realDeg=(p)=>{
+    const v=real&&real[p]?Number(real[p].deg):NaN;
+    return Number.isFinite(v)?v:null;
+  };
+  const hasOverride = sunKeyOverride && isValidSignKey(sunKeyOverride);
+  const sk=realKey("sun")||(hasOverride?sunKeyOverride:getSign(m,day)), si=SIGNS.findIndex(s=>s.key===sk);
+  const mk=realKey("moon")||SIGNS[(si+(day%6)+2)%12].key;
+  const rk=realKey("asc")||SIGNS[(si+(h%4)+1)%12].key;
+  const vk=realKey("venus")||SIGNS[(si+2)%12].key;
+  const mrk=realKey("mars")||SIGNS[(si+5)%12].key;
+  const jupk=realKey("jupiter")||SIGNS[(si+3)%12].key;
+  const satk=realKey("saturn")||SIGNS[(si+7)%12].key;
+  const merk=realKey("mercury")||SIGNS[(si+1)%12].key;
+  const make=(key,planet,god,emoji,pType,degSrc)=>({...SIGNS.find(s=>s.key===key),planet,god,emoji,pd:PD[key][pType],deg:degSrc?realDeg(degSrc):null});
   const futures=[
     `앞으로 3개월, ${SIGNS[si].name} 에너지가 최고조. 지금이 고백 타이밍. 망설이면 다음 기회는 목성 역행 이후 (약 8개월 후).`,
     `금성이 ${SIGNS[(si+2)%12].name} 위에 머무는 시기. 좋아하는 사람에게 먼저 연락하면 성공률 73%.`,
@@ -511,14 +642,14 @@ function calcPlacements(dateStr,timeStr,userName,sunKeyOverride){
   const satElem=SIGNS.find(s=>s.key===satk).elem;
   const merElem=SIGNS.find(s=>s.key===merk).elem;
   const sunElem=SIGNS[si].elem;
-  const sun=make(sk,"태양","아폴론","☀️","sun");
-  const moon=make(mk,"달","아르테미스","🌙","moon");
-  const rising=make(rk,"상승궁","헤르메스","⬆️","rising");
-  const venus=make(vk,"금성","아프로디테","💘","venus");
-  const mars=make(mrk,"화성","아레스","🔥","mars");
-  const jupiter=make(jupk,"목성","제우스","⚡","sun");
-  const saturn=make(satk,"토성","크로노스","⏳","moon");
-  const mercury=make(merk,"수성","헤르메스","🗣️","rising");
+  const sun=make(sk,"태양","아폴론","☀️","sun","sun");
+  const moon=make(mk,"달","아르테미스","🌙","moon","moon");
+  const rising=make(rk,"상승궁","헤르메스","⬆️","rising","asc");
+  const venus=make(vk,"금성","아프로디테","💘","venus","venus");
+  const mars=make(mrk,"화성","아레스","🔥","mars","mars");
+  const jupiter=make(jupk,"목성","제우스","⚡","sun","jupiter");
+  const saturn=make(satk,"토성","크로노스","⏳","moon","saturn");
+  const mercury=make(merk,"수성","헤르메스","🗣️","rising","mercury");
   const element=ELEMENTS[sunElem];
   const futureFlow=futures[(y+m+day)%4];
   const tazza={ style:TAZZA_STYLE[sunElem], luck:JUPITER_LUCK[jupElem], trap:SATURN_TRAP[satElem] };
@@ -538,6 +669,7 @@ function calcPlacements(dateStr,timeStr,userName,sunKeyOverride){
     tazza,
     devil:DEVIL_MAP[sk],
   });
+  const planetList=[sun,moon,rising,venus,mars,jupiter,saturn,mercury];
   return {
     sun,
     moon,
@@ -559,6 +691,10 @@ function calcPlacements(dateStr,timeStr,userName,sunKeyOverride){
     premium,
     sunKey:sk,
     birthDay:day, birthMonth:m, birthYear:y,
+    calcMode:real?"swiss":"approx",
+    risingApprox:!realKey("asc"),
+    balance:buildBalance(planetList),
+    aspects:buildAspects(real),
   };
 }
 function getCompat(ea,eb){
@@ -639,18 +775,18 @@ function buildPremiumPlaces(ctx){
     "피해야 할 장소",
   ];
   const base = [
-    { name:"깊은 물빛이 보이는 강변 산책로", cats:["회복 장소","혼자 가면 좋은 장소"], elems:["water","air"], actions:"혼자 걷기, 생각 정리, 음성 메모", luck:"감정 정리운과 관계 회복운", caution:"사람이 몰리는 주말 오후는 피하세요", avoidTime:"주말 오후" },
-    { name:"시야가 열린 조용한 루프탑 카페", cats:["집중 장소","영감이 오는 장소"], elems:["air","fire"], actions:"계획 수립, 노트북 작업, 기획 메모", luck:"아이디어 실현운과 실행 타이밍운", caution:"카페인 과다로 리듬이 깨지지 않게 90분 단위로 쉬세요", avoidTime:"야간 피로 누적 시간" },
-    { name:"햇빛이 오래 머무는 식물 온실", cats:["회복 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], actions:"호흡 정리, 다음 달 목표 3개 작성", luck:"재생운과 건강 리셋운", caution:"한 번에 많은 결정을 하지 말고 1개만 확정하세요", avoidTime:"과열된 한낮" },
-    { name:"작은 독립서점의 창가 좌석", cats:["집중 장소","영감이 오는 장소"], elems:["earth","air"], actions:"자료 조사, 공부, 문장 정리", luck:"학습운과 문서 성과운", caution:"완벽주의로 오래 붙잡지 말고 2시간 타이머를 거세요", avoidTime:"폐점 직전" },
-    { name:"로컬 재래시장 새벽 구간", cats:["금전운이 살아나는 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], actions:"가격 감각 익히기, 현실 아이디어 수집", luck:"현금 흐름운과 사업 감각운", caution:"충동 지출 대신 예산 한도를 먼저 정하세요", avoidTime:"점심 이후 혼잡 시간" },
-    { name:"공예 작업실이 모인 골목", cats:["영감이 오는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","earth"], actions:"창작 시도, 취향 탐색, 협업 대화", luck:"창작운과 인연 연결운", caution:"비교 심리가 올라오면 기록만 하고 판단은 미루세요", avoidTime:"피곤한 저녁" },
-    { name:"조용한 사찰길 혹은 오래된 성곽길", cats:["인간관계를 정리하기 좋은 장소","혼자 가면 좋은 장소"], elems:["earth","water"], actions:"관계 우선순위 정리, 미련 정리 노트", luck:"관계 정리운과 마음 안정운", caution:"죄책감으로 결정을 번복하지 않도록 기준을 미리 적어두세요", avoidTime:"폭우/강풍 시간" },
-    { name:"아침 첫차 시간의 해변 산책로", cats:["새로운 시작에 좋은 장소","회복 장소"], elems:["water","fire"], actions:"새 출발 선언, 짧은 러닝, 호흡", luck:"출발운과 결단력운", caution:"밤샘 후 방문은 피로를 키울 수 있습니다", avoidTime:"수면 부족한 날" },
-    { name:"작은 재즈바의 오픈 직후 좌석", cats:["연애운이 열리는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","air"], actions:"깊은 대화, 관계 속도 조절", luck:"호감 신호 감지운과 관계 심화운", caution:"감정 과열 상태에서 중요한 약속은 보류하세요", avoidTime:"자정 이후" },
-    { name:"도시 전망이 보이는 코워킹 라운지", cats:["금전운이 살아나는 장소","집중 장소"], elems:["air","earth"], actions:"제안서 작성, 예산 계획, 협업 미팅", luck:"수입 확장운과 협업 성과운", caution:"멀티태스킹 과부하를 막기 위해 1순위 작업만 먼저 진행하세요", avoidTime:"점심 직후 저집중 구간" },
-    { name:"인파가 과밀한 소음형 쇼핑몰", cats:["피해야 할 장소"], elems:["fire"], actions:"필요한 일만 빠르게 끝내고 이탈", luck:"불필요한 소모 차단운", caution:"자극 과부하로 판단이 흐려지기 쉬우니 체류 시간을 40분 이내로 제한하세요", avoidTime:"주말 피크타임" },
-    { name:"의견이 충돌하기 쉬운 폐쇄형 모임 공간", cats:["피해야 할 장소","인간관계를 정리하기 좋은 장소"], elems:["air"], actions:"감정 토론 대신 사실 확인만 진행", luck:"갈등 손실 최소화운", caution:"결론을 강요하면 오해가 커집니다. 기록 중심으로 짧게 끝내세요", avoidTime:"피로 누적 저녁" },
+    { name:"깊은 물빛이 보이는 강변 산책로", cats:["회복 장소","혼자 가면 좋은 장소"], elems:["water","air"], reasonCore:"흐르는 물을 눈에 담는 것만으로 과열된 생각이 가라앉는 공간입니다. 물의 리듬이 감정의 파고를 정돈해 주어, 결론이 안 나던 고민이 걷는 동안 저절로 정리됩니다.", actions:"혼자 걷기, 생각 정리, 음성 메모", luck:"감정 정리운과 관계 회복운", caution:"사람이 몰리는 주말 오후는 피하세요", avoidTime:"주말 오후" },
+    { name:"시야가 열린 조용한 루프탑 카페", cats:["집중 장소","영감이 오는 장소"], elems:["air","fire"], reasonCore:"높은 시야는 공기 원소의 사고 회로를 여는 스위치입니다. 시선이 멀리 닿는 곳에서는 눈앞의 급한 일 대신 판 전체가 보이기 시작합니다.", actions:"계획 수립, 노트북 작업, 기획 메모", luck:"아이디어 실현운과 실행 타이밍운", caution:"카페인 과다로 리듬이 깨지지 않게 90분 단위로 쉬세요", avoidTime:"야간 피로 누적 시간" },
+    { name:"햇빛이 오래 머무는 식물 온실", cats:["회복 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], reasonCore:"빛과 흙이 함께 있는 공간은 소모된 생기를 다시 채우는 재생의 자리입니다. 자라는 것들 곁에서는 몸의 회복 속도가 눈에 띄게 빨라집니다.", actions:"호흡 정리, 다음 달 목표 3개 작성", luck:"재생운과 건강 리셋운", caution:"한 번에 많은 결정을 하지 말고 1개만 확정하세요", avoidTime:"과열된 한낮" },
+    { name:"작은 독립서점의 창가 좌석", cats:["집중 장소","영감이 오는 장소"], elems:["earth","air"], reasonCore:"낮은 소음과 일정한 밀도의 공간은 산만해진 수성 에너지를 한 점으로 모아 줍니다. 활자 곁에서는 생각이 문장으로 정리되는 속도가 빨라집니다.", actions:"자료 조사, 공부, 문장 정리", luck:"학습운과 문서 성과운", caution:"완벽주의로 오래 붙잡지 말고 2시간 타이머를 거세요", avoidTime:"폐점 직전" },
+    { name:"로컬 재래시장 새벽 구간", cats:["금전운이 살아나는 장소","새로운 시작에 좋은 장소"], elems:["earth","fire"], reasonCore:"돈이 실제로 도는 현장은 흙 원소의 현실 감각을 깨우는 곳입니다. 관념적인 재테크 고민이 여기서는 구체적인 숫자와 감각으로 바뀝니다.", actions:"가격 감각 익히기, 현실 아이디어 수집", luck:"현금 흐름운과 사업 감각운", caution:"충동 지출 대신 예산 한도를 먼저 정하세요", avoidTime:"점심 이후 혼잡 시간" },
+    { name:"공예 작업실이 모인 골목", cats:["영감이 오는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","earth"], reasonCore:"손으로 만드는 사람들의 밀도가 높은 골목은 창작 감각을 전염시키는 공간입니다. 완성물이 아니라 과정을 구경하는 것만으로 막힌 영감이 풀립니다.", actions:"창작 시도, 취향 탐색, 협업 대화", luck:"창작운과 인연 연결운", caution:"비교 심리가 올라오면 기록만 하고 판단은 미루세요", avoidTime:"피곤한 저녁" },
+    { name:"조용한 사찰길 혹은 오래된 성곽길", cats:["인간관계를 정리하기 좋은 장소","혼자 가면 좋은 장소"], elems:["earth","water"], reasonCore:"오래된 길은 시간의 축을 길게 늘여 주는 공간입니다. 수백 년 된 돌담 옆에서는 지금의 인간관계 고민이 제 크기로 보이고, 정리할 것과 지킬 것이 갈립니다.", actions:"관계 우선순위 정리, 미련 정리 노트", luck:"관계 정리운과 마음 안정운", caution:"죄책감으로 결정을 번복하지 않도록 기준을 미리 적어두세요", avoidTime:"폭우/강풍 시간" },
+    { name:"아침 첫차 시간의 해변 산책로", cats:["새로운 시작에 좋은 장소","회복 장소"], elems:["water","fire"], reasonCore:"하루가 시작되기 전의 바다는 결심을 봉인하는 자리입니다. 수평선과 새 빛이 같이 있는 시간대는 '오늘부터'라는 말에 실제 무게를 실어 줍니다.", actions:"새 출발 선언, 짧은 러닝, 호흡", luck:"출발운과 결단력운", caution:"밤샘 후 방문은 피로를 키울 수 있습니다", avoidTime:"수면 부족한 날" },
+    { name:"작은 재즈바의 오픈 직후 좌석", cats:["연애운이 열리는 장소","누군가와 함께 가면 좋은 장소"], elems:["water","air"], reasonCore:"음악이 대화의 속도를 늦춰 주는 공간입니다. 서두르지 않는 리듬 속에서는 금성의 언어 — 미묘한 호감 신호가 잘 들리고, 관계의 온도를 정확히 잴 수 있습니다.", actions:"깊은 대화, 관계 속도 조절", luck:"호감 신호 감지운과 관계 심화운", caution:"감정 과열 상태에서 중요한 약속은 보류하세요", avoidTime:"자정 이후" },
+    { name:"도시 전망이 보이는 코워킹 라운지", cats:["금전운이 살아나는 장소","집중 장소"], elems:["air","earth"], reasonCore:"일하는 사람들의 밀도가 만드는 긴장감은 목성의 확장 에너지를 실무로 번역해 주는 환경입니다. 전망과 책상이 같이 있는 곳에서 제안서의 스케일이 커집니다.", actions:"제안서 작성, 예산 계획, 협업 미팅", luck:"수입 확장운과 협업 성과운", caution:"멀티태스킹 과부하를 막기 위해 1순위 작업만 먼저 진행하세요", avoidTime:"점심 직후 저집중 구간" },
+    { name:"인파가 과밀한 소음형 쇼핑몰", cats:["피해야 할 장소"], elems:["fire"], reasonCore:"자극이 사방에서 쏟아지는 공간은 지금의 당신에게 판단력 누수 구간입니다. 소음과 인파는 불 원소의 충동 회로를 자극해 계획에 없던 소비와 결정을 부릅니다.", actions:"필요한 일만 빠르게 끝내고 이탈", luck:"불필요한 소모 차단운", caution:"자극 과부하로 판단이 흐려지기 쉬우니 체류 시간을 40분 이내로 제한하세요", avoidTime:"주말 피크타임" },
+    { name:"의견이 충돌하기 쉬운 폐쇄형 모임 공간", cats:["피해야 할 장소","인간관계를 정리하기 좋은 장소"], elems:["air"], reasonCore:"출구 없는 방에서의 감정 토론은 수성의 말이 화성의 무기로 바뀌기 가장 쉬운 조건입니다. 지금 흐름에서는 말로 이겨도 관계에서 잃는 판이 됩니다.", actions:"감정 토론 대신 사실 확인만 진행", luck:"갈등 손실 최소화운", caution:"결론을 강요하면 오해가 커집니다. 기록 중심으로 짧게 끝내세요", avoidTime:"피로 누적 저녁" },
   ];
 
   const ranked = base.map((item, idx)=>{
@@ -673,15 +809,27 @@ function buildPremiumPlaces(ctx){
     if (!picks.includes(r)) picks.push(r);
   });
 
-  return picks.slice(0, 10).map((p)=>({
-    name:p.name,
-    category:p.cats[0],
-    reason:`${ctx.sun.name} 태양의 방향성은 ${ctx.element.name} 방식으로 추진력을 만들고, ${ctx.moon.name} 달은 정서 회복을 요구합니다. ${ctx.rising.name} 상승궁의 대외 리듬까지 함께 보면 이 공간은 에너지를 소모하지 않고 집중 혹은 회복을 동시에 만들기 좋습니다. 현재 흐름인 "${ctx.future}"와도 맞물려 실행력과 정서 안정의 균형을 잡아줍니다.`,
-    actions:p.actions,
-    luckOpen:p.luck,
-    caution:p.caution,
-    avoidTime:p.avoidTime,
-  }));
+  return picks.slice(0, 10).map((p)=>{
+    const matched=[];
+    if (p.elems.includes(sunElem)) matched.push(`태양(${ctx.sun.name})의 ${ctx.element.name} 기질`);
+    if (p.elems.includes(moonElem)) matched.push(`달(${ctx.moon.name})의 정서 리듬`);
+    if (p.elems.includes(risingElem)) matched.push(`상승궁(${ctx.rising.name})의 대외 리듬`);
+    const isAvoid=p.cats[0]==="피해야 할 장소";
+    const matchLine=isAvoid
+      ? "당신의 현재 배치에서는 이곳의 자극이 득보다 손실로 기울기 쉬우니, 목적 없이 머무는 시간을 줄이는 것이 상책입니다."
+      : matched.length
+        ? `특히 ${matched.join("과 ")}이 이 공간의 결과 맞아, 머무는 시간만큼 소모 없이 회복과 집중이 쌓입니다.`
+        : "당신의 현재 흐름에서 에너지 소모 없이 머물 수 있는 안전 지대입니다.";
+    return {
+      name:p.name,
+      category:p.cats[0],
+      reason:`${p.reasonCore} ${matchLine}`,
+      actions:p.actions,
+      luckOpen:p.luck,
+      caution:p.caution,
+      avoidTime:p.avoidTime,
+    };
+  });
 }
 
 function buildPremiumTazzaGuide(ctx){
@@ -761,6 +909,20 @@ const CSS=`
 .ov-wide{width:min(100%,960px);margin:0 auto;padding:clamp(16px,2.2vw,28px) clamp(14px,2vw,22px) clamp(56px,6vw,76px);}
 .ov-main-title{font-size:clamp(28px,3.2vw,40px)!important;}
 .ov-main-subtitle{font-size:clamp(15px,1.7vw,22px)!important;}
+/* ── 타입 스케일 ── */
+.ov-h1{font-size:clamp(26px,5vw,38px);line-height:1.18;}
+.ov-sec-title{font-size:clamp(19px,2.6vw,24px);line-height:1.3;color:#F0D060;font-weight:700;}
+.ov-card-title{font-size:17px;line-height:1.45;color:#F0D060;font-weight:700;}
+.ov-eyebrow{font-size:11px;letter-spacing:3px;color:rgba(201,168,76,.62);}
+.ov-body{font-size:14px;line-height:1.85;color:rgba(239,228,192,.82);}
+.ov-sub{font-size:12.5px;line-height:1.7;color:rgba(239,228,192,.58);}
+.ov-label{font-size:11px;letter-spacing:1px;color:rgba(201,168,76,.78);}
+/* ── 섹션 헤더 ── */
+.shead{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+.shead-ico{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:21px;background:rgba(201,168,76,.08);border:1px solid rgba(201,168,76,.22);flex-shrink:0;}
+.shead-ico.crimson{background:rgba(220,20,60,.08);border-color:rgba(220,20,60,.28);}
+/* ── 스티키 탭 ── */
+.ov-tabs{position:sticky;top:0;z-index:5;display:flex;gap:6px;padding:10px 0 12px;margin-bottom:16px;background:linear-gradient(180deg,rgba(4,2,26,.96) 60%,rgba(4,2,26,0));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);}
 .cosmos{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
 .star{position:absolute;border-radius:50%;animation:tw var(--d) ease-in-out infinite alternate;}
 @keyframes tw{from{opacity:.05;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
@@ -780,7 +942,7 @@ const CSS=`
 .gbx{border:1px solid rgba(201,168,76,.75);box-shadow:0 0 60px rgba(201,168,76,.12),inset 0 0 40px rgba(201,168,76,.03);}
 .glow{text-shadow:0 0 30px rgba(240,208,80,.5),0 0 60px rgba(240,208,80,.18);color:#F5DC70;}
 .glow2{text-shadow:0 0 20px rgba(240,208,80,.35);color:#F0D060;}
-.scard{background:rgba(4,2,26,.95);border-radius:16px;padding:clamp(16px,2.1vw,24px);margin-bottom:12px;position:relative;overflow:hidden;}
+.scard{background:rgba(4,2,26,.95);border-radius:16px;padding:clamp(18px,2.4vw,28px);margin-bottom:20px;position:relative;overflow:hidden;}
 .scard::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,#C9A84C 30%,#F5DC70 50%,#C9A84C 70%,transparent);}
 .pc{background:rgba(255,255,255,.03);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .3s;border:1px solid rgba(201,168,76,.15);}
 .pc:hover,.pc.act{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.55);transform:translateY(-2px);}
@@ -788,13 +950,13 @@ const CSS=`
 .btn-g:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,168,76,.4);}
 .btn-o{background:transparent;color:#C9A84C;border:1px solid rgba(201,168,76,.45);border-radius:8px;padding:10px 18px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:.02em;}
 .btn-o:hover{background:rgba(201,168,76,.1);border-color:rgba(201,168,76,.7);}
-.btn-tab{background:transparent;border:1px solid rgba(201,168,76,.22);border-radius:8px;padding:8px 14px;font-family:var(--font-body);font-size:12px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:.02em;color:rgba(240,228,192,.55);}
+.btn-tab{background:transparent;border:1px solid rgba(201,168,76,.22);border-radius:10px;padding:11px 14px;min-height:44px;font-family:var(--font-body);font-size:13px;font-weight:600;cursor:pointer;transition:all .3s;letter-spacing:.02em;color:rgba(240,228,192,.62);}
 .btn-tab.act{background:rgba(201,168,76,.14);border-color:rgba(201,168,76,.6);color:#C9A84C;}
 .inp{background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.3);border-radius:8px;padding:11px 14px;color:#EFE4C0;font-family:var(--font-body);font-size:15px;width:100%;outline:none;transition:all .3s;-webkit-appearance:none;color-scheme:dark;}
 .inp:focus{border-color:rgba(201,168,76,.7);box-shadow:0 0 0 3px rgba(201,168,76,.07);}
 .inp::placeholder{color:rgba(239,228,192,.2);}
 .sbar{background:rgba(255,255,255,.07);border-radius:4px;height:5px;overflow:hidden;}
-.sfill{height:100%;border-radius:4px;background:linear-gradient(90deg,#6B2A00,#C9A84C,#F5DC70);transition:width 1.2s cubic-bezier(.34,1.56,.64,1);}
+.sfill{height:100%;border-radius:4px;background:linear-gradient(90deg,#6B2A00,#C9A84C,#F5DC70);transition:width 1.2s cubic-bezier(.22,1,.36,1);}
 @keyframes unroll{from{max-height:0;opacity:0}to{max-height:1200px;opacity:1}}
 .scroll-reveal{animation:unroll .8s cubic-bezier(.25,.46,.45,.94) forwards;overflow:hidden;}
 .ring{width:64px;height:64px;border:2px solid rgba(201,168,76,.15);border-top-color:#C9A84C;border-radius:50%;animation:spin 1s linear infinite;}
@@ -807,7 +969,7 @@ const CSS=`
 @keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.3)}50%{box-shadow:0 0 0 12px rgba(201,168,76,0)}}
 @keyframes oracleGlow{0%,100%{box-shadow:0 0 20px rgba(201,168,76,.08)}50%{box-shadow:0 0 40px rgba(201,168,76,.18)}}
 .oglow{animation:oracleGlow 4s ease-in-out infinite;}
-.fi{animation:fi .6s cubic-bezier(.34,1.2,.64,1) forwards;}
+.fi{animation:fi .6s cubic-bezier(.22,1,.36,1) forwards;}
 @keyframes fi{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 .su{animation:su .5s ease forwards;}
 @keyframes su{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -832,7 +994,7 @@ const CSS=`
 .chat-bubble-me{background:rgba(201,168,76,.15);border-radius:14px 14px 4px 14px;padding:9px 13px;max-width:75%;align-self:flex-end;border:1px solid rgba(201,168,76,.25);}
 .chat-bubble-boss{background:rgba(255,255,255,.06);border-radius:14px 14px 14px 4px;padding:9px 13px;max-width:75%;border:1px solid rgba(255,255,255,.1);}
 .gauge-bar{height:10px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.07);}
-.gauge-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.34,1.56,.64,1);}
+.gauge-fill{height:100%;border-radius:5px;transition:width 1.2s cubic-bezier(.22,1,.36,1);}
 /* ── 일본 티켓 ── */
 .ticket-bg{background:linear-gradient(135deg,rgba(20,6,0,.98),rgba(8,4,20,.98));border:1px solid rgba(201,168,76,.4);position:relative;}
 .ticket-hole{width:20px;height:20px;border-radius:50%;background:#04021A;border:1px solid rgba(201,168,76,.3);}
@@ -845,10 +1007,16 @@ const CSS=`
   .ov-home{top:22px;left:22px;font-size:12px;padding:10px 16px;}
 }
 @media (max-width: 768px){
-  .ov-home{top:10px;left:10px;font-size:10px;padding:7px 11px;}
-  .ov-wide{padding:12px 10px 48px;}
-  .planet-grid{grid-template-columns:repeat(3,1fr)!important;gap:6px!important;}
+  .ov-home{top:10px;left:10px;font-size:11px;padding:8px 12px;}
+  .ov-wide{padding:12px 12px 48px;}
+  .planet-grid{grid-template-columns:repeat(4,1fr)!important;gap:6px!important;}
   .scard{border-radius:14px;}
+  .shead-ico{width:38px;height:38px;font-size:18px;border-radius:10px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .star,.ember,.shooting,.lb,.ring,.ring2,.compat-ring,.oglow,.blood-seal,.blood-drip{animation:none!important;}
+  .fi,.su,.scroll-reveal{animation-duration:.01ms!important;}
+  .sfill,.gauge-fill{transition:none!important;}
 }
 ::-webkit-scrollbar{width:3px;}
 ::-webkit-scrollbar-thumb{background:rgba(201,168,76,.25);border-radius:2px;}
@@ -908,26 +1076,71 @@ function Divider(){
   );
 }
 
+function SectionHead({icon,kicker,title,tone}){
+  const crimson=tone==='crimson';
+  return(
+    <div className="shead">
+      <div className={`shead-ico${crimson?' crimson':''}`} aria-hidden="true">{icon}</div>
+      <div>
+        <p className="cin ov-eyebrow" style={crimson?{color:'rgba(220,20,60,.62)'}:undefined}>{kicker}</p>
+        <h3 className="ov-sec-title" style={crimson?{color:'#DC143C'}:undefined}>{title}</h3>
+      </div>
+    </div>
+  );
+}
+
+/* 정밀 천문 계산 함수(/js/olympus-oracle.js의 window.__olympusComputePlacements) 로더 */
+function ensureOracleCompute(){
+  if (typeof window==='undefined') return Promise.reject(new Error('no window'));
+  if (typeof window.__olympusComputePlacements==='function') return Promise.resolve(window.__olympusComputePlacements);
+  return new Promise((resolve,reject)=>{
+    const settle=()=>{
+      if (typeof window.__olympusComputePlacements==='function') resolve(window.__olympusComputePlacements);
+      else reject(new Error('olympus compute fn missing'));
+    };
+    const existing=document.querySelector('script[src*="/js/olympus-oracle.js"]');
+    if (existing){ setTimeout(settle,800); return; }
+    const s=document.createElement('script');
+    s.src='/js/olympus-oracle.js';
+    s.async=true;
+    s.onload=settle;
+    s.onerror=()=>reject(new Error('olympus oracle script load failed'));
+    document.head.appendChild(s);
+  });
+}
+
+/* 직접 입력(date/time 문자열) → Swiss 계산 payload (서울 좌표·KST 기본) */
+function buildSwissPayload(dateStr,timeStr){
+  const parts=String(dateStr||'').split('-').map(Number);
+  if (parts.length<3||parts.some(n=>!Number.isFinite(n))) return null;
+  const t=String(timeStr||'').split(':').map(Number);
+  return {
+    year:parts[0], month:parts[1], day:parts[2],
+    hour:Number.isFinite(t[0])?t[0]:12, minute:Number.isFinite(t[1])?t[1]:0,
+    timezone:9, lat:37.5665, lon:126.9780,
+  };
+}
+
 /* ════════════════════════════════════════════════════════
    INTRO / INPUT / ORACLE-INPUT / LOADING
 ════════════════════════════════════════════════════════ */
 function Intro({onStart,onOracle}){
   return(
     <div className="rel fi ov-stage" style={{textAlign:'center'}}>
-      <p className="cin" style={{fontSize:9,letterSpacing:8,color:'rgba(201,168,76,.45)',marginBottom:10}}>CODE : DESTINY</p>
+      <p className="cin ov-eyebrow" style={{letterSpacing:8,marginBottom:10}}>CODE : DESTINY</p>
       <div style={{fontSize:18,margin:'8px 0',letterSpacing:16,color:'rgba(201,168,76,.5)'}}>⊹ ✦ ⊹</div>
       <h1 className="cind glow ov-main-title" style={{fontWeight:700,letterSpacing:4,lineHeight:1.2,marginBottom:6}}>OLYMPUS</h1>
       <h2 className="cin ov-main-subtitle" style={{fontWeight:400,color:'#C9A84C',letterSpacing:6,marginBottom:4}}>VIP LOUNGE</h2>
-      <p style={{fontSize:11,color:'rgba(239,228,192,.32)',letterSpacing:4,marginBottom:30}}>별로 보는 인생 스포일러</p>
-      <div className="gbx ov-shell" style={{borderRadius:20,padding:'26px 22px',background:'rgba(4,2,26,.98)',marginBottom:22}}>
-        <p className="cin" style={{fontSize:9,color:'rgba(201,168,76,.45)',letterSpacing:4,marginBottom:14}}>8대 행성 완전 분석</p>
+      <p style={{fontSize:13,color:'rgba(239,228,192,.45)',letterSpacing:4,marginBottom:30}}>별로 보는 인생 스포일러</p>
+      <div className="gbx ov-shell" style={{borderRadius:20,padding:'28px 24px',background:'rgba(4,2,26,.98)',marginBottom:22}}>
+        <p className="cin ov-label" style={{letterSpacing:4,marginBottom:14}}>스위스 천문력 기반 8대 배치 분석</p>
         <div style={{marginBottom:18}}>
-          {[["☀️","태양/달/상승","나의 본질"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🏢","오피스","직장 생존기"],["🗾","아스트로맵","일본 여행 스팟"]].map(([e,t,s],i,a)=>(
-            <div key={i} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<a.length-1?'1px solid rgba(201,168,76,.07)':'none'}}>
-              <span style={{fontSize:16,minWidth:22}}>{e}</span>
+          {[["☀️","태양/달/상승","나의 본질 — 실측 천문 계산"],["📐","밸런스/어스펙트","원소·모달리티와 행성 각도"],["💘","금성/화성","사랑과 욕망"],["🃏","타짜","인생 베팅 스타일"],["👹","악마","운명의 계약서"],["🗾","아스트로맵","오피스 생존기 & 일본 여행 스팟"]].map(([e,t,s],i,a)=>(
+            <div key={i} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:i<a.length-1?'1px solid rgba(201,168,76,.07)':'none'}}>
+              <span style={{fontSize:18,minWidth:26}}>{e}</span>
               <div style={{textAlign:'left'}}>
-                <div style={{fontSize:11,color:'rgba(201,168,76,.8)'}}>{t}</div>
-                <div style={{fontSize:10,color:'rgba(239,228,192,.32)',marginTop:1}}>{s}</div>
+                <div style={{fontSize:14,fontWeight:600,color:'rgba(201,168,76,.85)'}}>{t}</div>
+                <div style={{fontSize:12.5,color:'rgba(239,228,192,.5)',marginTop:2}}>{s}</div>
               </div>
             </div>
           ))}
@@ -966,9 +1179,9 @@ function Input({onSubmit,onBack}){
       <div className="gbx ov-shell" style={{borderRadius:20,padding:'30px 22px',background:'rgba(4,2,26,.98)'}}>
         <button className="btn-o" onClick={onBack} style={{padding:'6px 12px',fontSize:10,marginBottom:16}}>← 돌아가기</button>
         <div style={{textAlign:'center',marginBottom:22}}>
-          <p className="cin" style={{fontSize:9,letterSpacing:5,color:'rgba(201,168,76,.5)',marginBottom:8}}>ORACLE INPUT</p>
-          <h2 className="cin glow2" style={{fontSize:18,letterSpacing:2}}>신탁 정보 입력</h2>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.32)',marginTop:6}}>신들이 너의 우주 좌표를 계산합니다</p>
+          <p className="cin ov-eyebrow" style={{letterSpacing:5,marginBottom:8}}>ORACLE INPUT</p>
+          <h2 className="cin glow2" style={{fontSize:'clamp(20px,2.6vw,24px)',letterSpacing:2}}>신탁 정보 입력</h2>
+          <p style={{fontSize:13.5,color:'rgba(239,228,192,.5)',marginTop:8}}>스위스 천문력으로 당신의 우주 좌표를 계산합니다</p>
         </div>
         <Divider/>
         <div style={{display:'flex',flexDirection:'column',gap:13}}>
@@ -983,7 +1196,7 @@ function Input({onSubmit,onBack}){
           <div>
             <label className="cin" style={labelStyle}>태어난 시간 (선택)</label>
             <input type="time" value={time} onChange={e=>setTime(e.target.value)} style={timeStyle}/>
-            <p style={{fontSize:10,color:'rgba(239,228,192,.2)',marginTop:5,paddingLeft:2}}>입력 시 상승궁 정밀도 상승 — 모르면 비워두세요</p>
+            <p style={{fontSize:12,color:'rgba(239,228,192,.42)',marginTop:6,paddingLeft:2}}>입력 시 상승궁(어센던트)까지 실측 계산됩니다 — 모르면 비워두세요</p>
           </div>
         </div>
         {err&&<p style={{color:'#E85D1B',fontSize:11,marginTop:8,textAlign:'center'}}>{err}</p>}
@@ -1010,9 +1223,9 @@ function OracleInput({onSubmit,onBack}){
       <div className="gbx ov-shell" style={{borderRadius:20,padding:'30px 22px',background:'rgba(4,2,26,.98)'}}>
         <button className="btn-o" onClick={onBack} style={{padding:'6px 12px',fontSize:10,marginBottom:16}}>← 돌아가기</button>
         <div style={{textAlign:'center',marginBottom:22}}>
-          <div style={{fontSize:30,marginBottom:8}}>🔮</div>
-          <p className="cin" style={{fontSize:9,letterSpacing:5,color:'rgba(201,168,76,.5)',marginBottom:7}}>DAILY PROPHECY</p>
-          <h2 className="cin glow2" style={{fontSize:17,letterSpacing:2}}>오늘의 신탁</h2>
+          <div style={{fontSize:32,marginBottom:8}}>🔮</div>
+          <p className="cin ov-eyebrow" style={{letterSpacing:5,marginBottom:7}}>DAILY PROPHECY</p>
+          <h2 className="cin glow2" style={{fontSize:'clamp(20px,2.6vw,24px)',letterSpacing:2}}>오늘의 신탁</h2>
         </div>
         <Divider/>
         <div>
@@ -1037,8 +1250,8 @@ function Loading(){
         <div className="ring2"/><div className="ring" style={{position:'absolute',top:8,left:8}}/>
         <div style={{position:'absolute',top:'50%',left:'50%',transform:'translate(-50%,-50%)',fontSize:26}}>⚡</div>
       </div>
-      <h2 className="cin glow2" style={{fontSize:16,marginBottom:8}}>신탁 생성 중</h2>
-      <p style={{fontSize:12,color:'rgba(201,168,76,.8)',height:18}}>{ps[ph]}</p>
+      <h2 className="cin glow2" style={{fontSize:'clamp(19px,2.6vw,23px)',marginBottom:10}}>신탁 생성 중</h2>
+      <p style={{fontSize:13.5,color:'rgba(201,168,76,.85)',height:20}}>{ps[ph]}</p>
       <div style={{display:'flex',gap:5,justifyContent:'center',marginTop:22}}>
         {ps.map((_,i)=><div key={i} style={{width:i<=ph?16:5,height:4,borderRadius:2,background:i<=ph?'#C9A84C':'rgba(201,168,76,.15)',transition:'all .4s'}}/>)}
       </div>
@@ -1052,38 +1265,32 @@ function DailyOracleResult({data,onBack}){
   const today=new Date(),ds=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
   return(
     <div className="rel ov-wide">
-      <div className="fi" style={{textAlign:'center',padding:'24px 0 18px'}}>
-        <p className="cin" style={{fontSize:8,letterSpacing:6,color:'rgba(201,168,76,.4)',marginBottom:10}}>{ds} 신탁</p>
-        <div style={{fontSize:44,marginBottom:8}}>{signInfo.sym}</div>
-        <h1 className="cind glow" style={{fontSize:19,marginBottom:4}}>{signInfo.name}</h1>
-        <p style={{fontSize:12,color:'#C9A84C',letterSpacing:2,marginBottom:4}}>{signInfo.god}의 수호</p>
+      <div className="fi" style={{textAlign:'center',padding:'26px 0 18px'}}>
+        <p className="cin ov-eyebrow" style={{letterSpacing:6,marginBottom:10}}>{ds} 신탁</p>
+        <div style={{fontSize:50,marginBottom:10,lineHeight:1}}>{signInfo.sym}</div>
+        <h1 className="cind glow ov-h1" style={{marginBottom:6}}>{signInfo.name}</h1>
+        <p style={{fontSize:14,color:'#C9A84C',letterSpacing:2,marginBottom:4}}>{signInfo.god}의 수호</p>
         <div style={{display:'inline-flex',alignItems:'center',gap:8,background:element.dark,border:`1px solid ${ec[elemKey]}28`,borderRadius:20,padding:'5px 14px',marginTop:8}}>
           <span style={{fontSize:13}}>{element.emoji}</span><span style={{fontSize:11,color:ec[elemKey]}}>{element.faction}</span>
         </div>
       </div>
       <Divider/>
       <div className="scard gb oglow scroll-reveal" style={{background:'rgba(12,8,2,.98)'}}>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:14}}>
-          <div style={{fontSize:24}}>{oracle.icon}</div>
-          <div>
-            <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:3}}>{oracle.god}의 신탁</p>
-            <h3 className="cin" style={{fontSize:14,color:'#F5DC70'}}>{signInfo.name}의 오늘 — {oracle.theme}</h3>
-          </div>
-        </div>
+        <SectionHead icon={oracle.icon} kicker={`${oracle.god}의 신탁`} title={`${signInfo.name}의 오늘 — ${oracle.theme}`}/>
         <div className="oracle-scroll">
-          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:4,marginBottom:10,textAlign:'center'}}>✦ PROPHETIA ✦</p>
-          <p style={{fontSize:14,lineHeight:2.1,color:'rgba(239,228,192,.9)',textAlign:'center',fontStyle:'italic'}}>{oracle.prophecy}</p>
+          <p className="cin ov-eyebrow" style={{letterSpacing:4,marginBottom:10,textAlign:'center'}}>✦ PROPHETIA ✦</p>
+          <p style={{fontSize:15,lineHeight:2.05,color:'rgba(239,228,192,.9)',textAlign:'center',fontStyle:'italic'}}>{oracle.prophecy}</p>
         </div>
         <Divider/>
-        <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:13,border:'1px solid rgba(201,168,76,.12)'}}>
-          <p className="cin" style={{fontSize:8,color:'#C9A84C',letterSpacing:3,marginBottom:7}}>⚡ 오늘의 지령</p>
-          <p style={{fontSize:13,color:'rgba(239,228,192,.8)',lineHeight:1.8}}>{oracle.action}</p>
+        <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:14,border:'1px solid rgba(201,168,76,.12)'}}>
+          <p className="cin ov-label" style={{marginBottom:7}}>⚡ 오늘의 지령</p>
+          <p className="ov-body">{oracle.action}</p>
         </div>
         <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginTop:12}}>
           {[{l:"행운의 색",v:oracle.lucky},{l:"행운의 수",v:oracle.num},{l:"황금 시간",v:oracle.time}].map((it,i)=>(
-            <div key={i} style={{background:'rgba(255,255,255,.03)',borderRadius:8,padding:'9px 6px',textAlign:'center',border:'1px solid rgba(201,168,76,.1)'}}>
-              <p style={{fontSize:9,color:'rgba(201,168,76,.5)',marginBottom:3}}>{it.l}</p>
-              <p style={{fontSize:12,fontWeight:600,color:'#F0D060'}}>{it.v}</p>
+            <div key={i} style={{background:'rgba(255,255,255,.03)',borderRadius:10,padding:'11px 8px',textAlign:'center',border:'1px solid rgba(201,168,76,.1)'}}>
+              <p style={{fontSize:11,color:'rgba(201,168,76,.6)',marginBottom:4}}>{it.l}</p>
+              <p style={{fontSize:14,fontWeight:600,color:'#F0D060'}}>{it.v}</p>
             </div>
           ))}
         </div>
@@ -1100,28 +1307,35 @@ function DailyOracleResult({data,onBack}){
 function TabResult({result,onReset}){
   const [tab,setTab]=useState('profile');
   const tabs=[{k:'profile',l:'내 신탁'},{k:'compat',l:'궁합'},{k:'oracle',l:'오늘 운세'}];
+  const swiss=result.calcMode==='swiss';
   return(
     <div className="rel ov-wide">
-      <div className="fi" style={{textAlign:'center',padding:'18px 0 14px'}}>
-        <p className="cin" style={{fontSize:8,letterSpacing:6,color:'rgba(201,168,76,.38)',marginBottom:7}}>ORACLE COMPLETE</p>
-        <div style={{fontSize:38,marginBottom:6}}>{result.sun.sym}</div>
-        <h1 className="cind glow" style={{fontSize:19,marginBottom:3}}>{result.name}의 신탁</h1>
-        <p style={{fontSize:13,color:'#C9A84C'}}>{result.sun.name} ✦ {result.sun.dates}</p>
-        <div style={{display:'inline-flex',alignItems:'center',gap:7,background:result.element.dark,border:'1px solid rgba(201,168,76,.22)',borderRadius:20,padding:'4px 13px',marginTop:8}}>
-          <span style={{fontSize:12}}>{result.element.emoji}</span>
-          <span style={{fontSize:10,color:'rgba(201,168,76,.9)'}}>{result.element.faction}</span>
+      <div className="fi" style={{textAlign:'center',padding:'26px 0 18px'}}>
+        <p className="cin ov-eyebrow" style={{letterSpacing:6,marginBottom:10}}>ORACLE COMPLETE</p>
+        <div style={{fontSize:52,marginBottom:10,lineHeight:1}}>{result.sun.sym}</div>
+        <h1 className="cind glow ov-h1" style={{marginBottom:6}}>{result.name}의 신탁</h1>
+        <p style={{fontSize:15,color:'#C9A84C'}}>{result.sun.name} ✦ {result.sun.dates}</p>
+        <div style={{display:'flex',justifyContent:'center',gap:8,flexWrap:'wrap',marginTop:12}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:7,background:result.element.dark,border:'1px solid rgba(201,168,76,.22)',borderRadius:20,padding:'6px 14px'}}>
+            <span style={{fontSize:13}}>{result.element.emoji}</span>
+            <span style={{fontSize:12,color:'rgba(201,168,76,.9)'}}>{result.element.faction}</span>
+          </div>
+          <div style={{display:'inline-flex',alignItems:'center',gap:6,background:'rgba(201,168,76,.06)',border:'1px solid rgba(201,168,76,.22)',borderRadius:20,padding:'6px 14px'}}>
+            <span style={{fontSize:12}}>{swiss?'🔭':'📐'}</span>
+            <span style={{fontSize:11,color:'rgba(239,228,192,.65)'}}>{swiss?'스위스 천문력 정밀 계산':'간이 계산 (근사치)'}</span>
+          </div>
         </div>
       </div>
-      <div style={{display:'flex',gap:5,marginBottom:14}}>
-        {tabs.map(t=><button key={t.k} className={`btn-tab${tab===t.k?' act':''}`} onClick={()=>setTab(t.k)} style={{flex:1}}>{t.l}</button>)}
+      <div className="ov-tabs" role="tablist">
+        {tabs.map(t=><button key={t.k} role="tab" aria-selected={tab===t.k} aria-label={`${t.l} 탭`} className={`btn-tab${tab===t.k?' act':''}`} onClick={()=>setTab(t.k)} style={{flex:1}}>{t.l}</button>)}
       </div>
       {tab==='profile' && <ProfileTab result={result}/>}
       {tab==='compat'  && <CompatTab myResult={result}/>}
       {tab==='oracle'  && <OracleTab result={result}/>}
       <Divider/>
       <div style={{textAlign:'center',paddingTop:4}}>
-        <button className="btn-o" onClick={onReset}>다른 사람 분석하기</button>
-        <p style={{fontSize:9,color:'rgba(239,228,192,.16)',marginTop:12,lineHeight:1.9}}>* 올림포스 신들의 유희입니다. 실제 인생 결정에 사용 시 신들은 책임지지 않습니다.</p>
+        <button className="btn-o" onClick={onReset} aria-label="처음으로 돌아가 다른 사람 분석하기">다른 사람 분석하기</button>
+        <p style={{fontSize:11,color:'rgba(239,228,192,.3)',marginTop:14,lineHeight:1.9}}>* 올림포스 신들의 유희입니다. 실제 인생 결정에 사용 시 신들은 책임지지 않습니다.</p>
       </div>
     </div>
   );
@@ -1132,31 +1346,48 @@ function TabResult({result,onReset}){
 ════════════════════════════════════════════════════════ */
 function ProfileTab({result}){
   const [ap,setAp]=useState(0);
-  const planets=[result.sun,result.moon,result.rising,result.venus,result.mars];
+  const planets=[result.sun,result.moon,result.rising,result.venus,result.mars,result.mercury,result.jupiter,result.saturn];
+  const sel=planets[ap];
+  const selDecan=decanSignOf(sel.key,sel.deg);
+  const fmtDeg=(p)=>Number.isFinite(p.deg)?` ${Math.floor(p.deg)}°`:'';
   return(
     <div>
-      {/* 5행성 */}
-      <p className="cin" style={{fontSize:8,letterSpacing:3,color:'rgba(201,168,76,.38)',textAlign:'center',marginBottom:8}}>5대 행성 배치</p>
-      <div className="planet-grid" style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:5,marginBottom:8}}>
+      {/* 8행성 배치 */}
+      <p className="cin ov-label" style={{textAlign:'center',marginBottom:10}}>8대 배치 — 행성이 머무는 별자리</p>
+      <div className="planet-grid" style={{display:'grid',gridTemplateColumns:'repeat(8,1fr)',gap:5,marginBottom:10}}>
         {planets.map((p,i)=>(
-          <div key={i} className={`pc${ap===i?' act':''}`} onClick={()=>setAp(i)}>
-            <div style={{fontSize:14,marginBottom:2}}>{p.emoji}</div>
-            <div className="cin" style={{fontSize:8,color:'#C9A84C',lineHeight:1.2}}>{p.planet}</div>
-            <div style={{fontSize:10,marginTop:1}}>{p.sym}</div>
-          </div>
+          <button key={i} className={`pc${ap===i?' act':''}`} onClick={()=>setAp(i)} aria-label={`${p.planet} ${p.name} 상세 보기`} style={{font:'inherit',color:'inherit'}}>
+            <div style={{fontSize:15,marginBottom:2}}>{p.emoji}</div>
+            <div className="cin" style={{fontSize:9,color:'#C9A84C',lineHeight:1.25}}>{p.planet}</div>
+            <div style={{fontSize:11,marginTop:2,color:'rgba(239,228,192,.8)'}}>{p.sym}{fmtDeg(p)}</div>
+          </button>
         ))}
       </div>
       <div className="scard gb fi" key={ap} style={{marginBottom:14}}>
-        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:9}}>
-          <span style={{fontSize:20}}>{planets[ap].emoji}</span>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+          <span style={{fontSize:24}}>{sel.emoji}</span>
           <div>
-            <p className="cin" style={{fontSize:8,color:'#C9A84C',letterSpacing:2}}>{planets[ap].planet} — {planets[ap].god}</p>
-            <p style={{fontSize:14,fontWeight:600}}>{planets[ap].name} {planets[ap].sym}</p>
+            <p className="cin ov-label">{sel.planet} — {sel.god}</p>
+            <p className="ov-card-title">{sel.name} {sel.sym}{Number.isFinite(sel.deg)?` · ${sel.deg.toFixed(1)}°`:''}</p>
           </div>
         </div>
-        <p style={{color:'#F5DC70',fontWeight:600,fontSize:12,marginBottom:6,lineHeight:1.5}}>"{planets[ap].pd.h}"</p>
-        <p style={{fontSize:12,color:'rgba(239,228,192,.75)',lineHeight:1.85}}>{planets[ap].pd.t}</p>
+        <p style={{color:'#F5DC70',fontWeight:600,fontSize:14,marginBottom:8,lineHeight:1.6}}>"{sel.pd.h}"</p>
+        <p className="ov-body">{sel.pd.t}</p>
+        <div style={{display:'flex',flexWrap:'wrap',gap:6,marginTop:12}}>
+          <span style={{fontSize:11.5,color:'rgba(201,168,76,.8)',background:'rgba(201,168,76,.06)',border:'1px solid rgba(201,168,76,.18)',borderRadius:20,padding:'4px 11px'}}>{MODALITIES[modalityOf(sel.key)].short}궁 · {ELEMENTS[sel.elem].name}</span>
+          {selDecan&&(
+            <span style={{fontSize:11.5,color:'rgba(201,168,76,.8)',background:'rgba(201,168,76,.06)',border:'1px solid rgba(201,168,76,.18)',borderRadius:20,padding:'4px 11px'}}>
+              {selDecan.decan}데칸{selDecan.decan>1?` — ${selDecan.sign.name} 결 가미`:' — 순수 발현'}
+            </span>
+          )}
+          {sel.planet==='상승궁'&&result.risingApprox&&(
+            <span style={{fontSize:11.5,color:'rgba(239,228,192,.5)',background:'rgba(255,255,255,.03)',border:'1px solid rgba(201,168,76,.14)',borderRadius:20,padding:'4px 11px'}}>출생 시간 입력 시 정밀 계산</span>
+          )}
+        </div>
       </div>
+
+      <BalanceSection balance={result.balance}/>
+      <AspectSection aspects={result.aspects}/>
 
       <PremiumOracleSection result={result}/>
 
@@ -1165,19 +1396,16 @@ function ProfileTab({result}){
 
       {/* SECTION 2 — 아프로디테의 픽 */}
       <div className="scard gb">
-        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:11}}>
-          <span style={{fontSize:17}}>💘</span>
-          <div><p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>SECTION 2</p><h3 style={{fontSize:13,color:'#F0D060'}}>아프로디테의 픽</h3></div>
-        </div>
+        <SectionHead icon="💘" kicker="SECTION 2" title="아프로디테의 픽"/>
         {[{e:"💘",l:"연애·플러팅 스타일",t:result.venus.pd.t},{e:"🔥",l:"욕망·행동력 스위치",t:result.mars.pd.t}].map((it,i)=>(
-          <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:7,padding:'10px 12px',borderLeft:'2px solid rgba(232,93,27,.38)',marginBottom:i<1?8:0}}>
-            <p style={{fontSize:10,color:'#E85D1B',marginBottom:4}}>{it.e} {it.l}</p>
-            <p style={{fontSize:12,color:'rgba(239,228,192,.75)',lineHeight:1.8}}>{it.t}</p>
+          <div key={i} style={{background:'rgba(232,93,27,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(232,93,27,.18)',marginBottom:i<1?10:0}}>
+            <p style={{fontSize:13,color:'#E85D1B',fontWeight:600,marginBottom:5}}>{it.e} {it.l}</p>
+            <p className="ov-body">{it.t}</p>
           </div>
         ))}
-        <div style={{marginTop:10,background:result.element.dark,borderRadius:7,padding:12,border:'1px solid rgba(201,168,76,.1)'}}>
-          <p style={{fontSize:10,color:'rgba(201,168,76,.75)',marginBottom:5}}>{result.element.emoji} {result.element.faction} 연애 특징</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.68)',lineHeight:1.8}}>{result.element.love}</p>
+        <div style={{marginTop:10,background:result.element.dark,borderRadius:10,padding:14,border:'1px solid rgba(201,168,76,.1)'}}>
+          <p style={{fontSize:13,color:'rgba(201,168,76,.85)',fontWeight:600,marginBottom:5}}>{result.element.emoji} {result.element.faction} 연애 특징</p>
+          <p className="ov-body" style={{color:'rgba(239,228,192,.75)'}}>{result.element.love}</p>
         </div>
       </div>
 
@@ -1195,19 +1423,93 @@ function ProfileTab({result}){
 
       {/* 운명의 수레바퀴 */}
       <div className="scard gb">
-        <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:11}}>
-          <span style={{fontSize:17}}>🎡</span>
-          <div><p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>BONUS</p><h3 style={{fontSize:13,color:'#F0D060'}}>운명의 수레바퀴</h3></div>
+        <SectionHead icon="🎡" kicker="BONUS" title="운명의 수레바퀴"/>
+        <div style={{background:'rgba(201,168,76,.04)',borderRadius:10,padding:14,border:'1px solid rgba(201,168,76,.13)',marginBottom:12}}>
+          <p className="cin ov-label" style={{marginBottom:7}}>☽ 이번 시즌 우주 흐름</p>
+          <p style={{fontSize:14.5,color:'rgba(239,228,192,.88)',lineHeight:1.9,fontStyle:'italic'}}>{result.future}</p>
         </div>
-        <div style={{background:'rgba(201,168,76,.04)',borderRadius:9,padding:14,border:'1px solid rgba(201,168,76,.13)',marginBottom:10}}>
-          <p className="cin" style={{fontSize:9,color:'#C9A84C',marginBottom:7,letterSpacing:1}}>☽ 이번 시즌 우주 흐름</p>
-          <p style={{fontSize:13,color:'rgba(239,228,192,.85)',lineHeight:1.9,fontStyle:'italic'}}>{result.future}</p>
-        </div>
-        <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+        <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
           {["이달의 럭키 데이: 보름달 전후","연락 타이밍: 오후 7–9시","피할 요일: 수요일"].map((tag,i)=>(
-            <div key={i} style={{fontSize:10,color:'rgba(201,168,76,.6)',background:'rgba(201,168,76,.05)',border:'1px solid rgba(201,168,76,.16)',borderRadius:20,padding:'3px 10px'}}>{tag}</div>
+            <div key={i} style={{fontSize:12,color:'rgba(201,168,76,.75)',background:'rgba(201,168,76,.05)',border:'1px solid rgba(201,168,76,.16)',borderRadius:20,padding:'5px 12px'}}>{tag}</div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
+   원소·모달리티 밸런스 (전문 섹션)
+════════════════════════════════════════════════════════ */
+function BalanceSection({balance}){
+  if(!balance) return null;
+  const ec={fire:'#E85D1B',earth:'#7AB540',air:'#5BA3C9',water:'#4A8FD4'};
+  const elemRows=['fire','earth','air','water'].map((k)=>({k,label:ELEMENTS[k].name,emoji:ELEMENTS[k].emoji,v:balance.elems[k],c:ec[k]}));
+  const modRows=['cardinal','fixed','mutable'].map((k)=>({k,label:MODALITIES[k].name,v:balance.mods[k],c:'#C9A84C'}));
+  const Bar=({rows})=>(
+    <div style={{display:'flex',flexDirection:'column',gap:9}}>
+      {rows.map((r)=>(
+        <div key={r.k}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:4}}>
+            <span style={{fontSize:13,color:'rgba(239,228,192,.8)'}}>{r.emoji?`${r.emoji} `:''}{r.label}</span>
+            <span className="mono" style={{fontSize:13,fontWeight:700,color:r.c}}>{r.v}<span style={{fontSize:10,color:'rgba(239,228,192,.4)',fontWeight:400}}>/{balance.total}</span></span>
+          </div>
+          <div className="sbar"><div className="sfill" style={{width:`${(r.v/balance.total)*100}%`,background:`linear-gradient(90deg,${r.c}55,${r.c})`}}/></div>
+        </div>
+      ))}
+    </div>
+  );
+  return(
+    <div className="scard gb">
+      <SectionHead icon="⚖️" kicker="CHART BALANCE" title="원소·모달리티 밸런스"/>
+      <p className="ov-sub" style={{marginBottom:14}}>8개 배치가 4원소(기질)와 3모달리티(행동 양식)에 어떻게 분포하는지 봅니다. 쏠림과 결핍이 곧 당신의 기본 설정값입니다.</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(240px,1fr))',gap:16,marginBottom:14}}>
+        <div style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.12)'}}>
+          <p className="cin ov-label" style={{marginBottom:10}}>4원소 분포</p>
+          <Bar rows={elemRows}/>
+        </div>
+        <div style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.12)'}}>
+          <p className="cin ov-label" style={{marginBottom:10}}>3모달리티 분포</p>
+          <Bar rows={modRows}/>
+          <p className="ov-sub" style={{marginTop:10}}>{MODALITIES[balance.domMod].desc}</p>
+        </div>
+      </div>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.14)'}}>
+          <p className="cin ov-label" style={{marginBottom:5}}>우세 — {ELEMENTS[balance.domElem].emoji} {ELEMENTS[balance.domElem].name} · {MODALITIES[balance.domMod].short}궁</p>
+          <p className="ov-body">{ELEMENT_BALANCE_READING[balance.domElem].dom} {MODALITY_BALANCE_READING[balance.domMod].dom}</p>
+        </div>
+        <div style={{background:'rgba(255,255,255,.02)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.1)'}}>
+          <p className="cin ov-label" style={{marginBottom:5}}>보완 — {ELEMENTS[balance.lackElem].emoji} {ELEMENTS[balance.lackElem].name} · {MODALITIES[balance.lackMod].short}궁</p>
+          <p className="ov-body">{ELEMENT_BALANCE_READING[balance.lackElem].lack} {MODALITY_BALANCE_READING[balance.lackMod].lack}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════
+   행성 어스펙트 (전문 섹션 — 실계산 시에만 노출)
+════════════════════════════════════════════════════════ */
+function AspectSection({aspects}){
+  if(!Array.isArray(aspects)||aspects.length===0) return null;
+  return(
+    <div className="scard gb">
+      <SectionHead icon="📐" kicker="MAJOR ASPECTS" title="행성 어스펙트"/>
+      <p className="ov-sub" style={{marginBottom:14}}>실측 황경으로 계산한 행성 간 각도입니다. 오브(오차)가 작을수록 그 조합의 주제가 인생에서 강하게 작동합니다.</p>
+      <div style={{display:'flex',flexDirection:'column',gap:8}}>
+        {aspects.map((a,i)=>(
+          <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'13px 15px',border:'1px solid rgba(201,168,76,.13)'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:6,flexWrap:'wrap'}}>
+              <span className="ov-card-title" style={{fontSize:16}}>
+                {PLANET_LABELS[a.a].emoji} {PLANET_LABELS[a.a].ko} <span style={{color:'#C9A84C'}}>{a.def.sym}</span> {PLANET_LABELS[a.b].emoji} {PLANET_LABELS[a.b].ko}
+              </span>
+              <span style={{fontSize:11.5,color:'rgba(201,168,76,.85)',background:'rgba(201,168,76,.07)',border:'1px solid rgba(201,168,76,.2)',borderRadius:20,padding:'3px 10px'}}>{a.def.name} {a.def.angle}° · 오브 {a.orb}°</span>
+            </div>
+            {a.theme&&<p style={{fontSize:13,color:'#F5DC70',marginBottom:5,lineHeight:1.6}}>{a.theme}</p>}
+            <p className="ov-body">{a.def.quality}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -1228,67 +1530,65 @@ function PremiumOracleSection({result}){
   const activeInsight = insightMap[insightTab];
 
   return(
-    <div className="scard gb" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:12}}>
-        <span style={{fontSize:17}}>⚡</span>
-        <div>
-          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>PREMIUM DOSSIER</p>
-          <h3 style={{fontSize:13,color:'#F0D060'}}>올림푸스 신탁 확장 리포트</h3>
-        </div>
-      </div>
+    <div className="scard gb">
+      <SectionHead icon="⚡" kicker="PREMIUM DOSSIER" title="올림푸스 신탁 확장 리포트"/>
 
-      <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.14)',marginBottom:10}}>
-        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>핵심 요약</p>
+      <div style={{background:'rgba(201,168,76,.05)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.14)',marginBottom:12}}>
+        <p className="cin ov-label" style={{marginBottom:8}}>핵심 요약</p>
         {premium.summary.map((p,i)=>(
-          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.85,marginBottom:i<premium.summary.length-1?8:0}}>{p}</p>
+          <p key={i} className="ov-body" style={{marginBottom:i<premium.summary.length-1?10:0}}>{p}</p>
         ))}
       </div>
 
-      <div style={{display:'flex',gap:6,marginBottom:10,flexWrap:'wrap'}}>
+      <div style={{display:'flex',gap:6,marginBottom:12,flexWrap:'wrap'}}>
         {['sun','moon','rising','synthesis'].map((k)=>(
-          <button key={k} className={`btn-tab${insightTab===k?' act':''}`} onClick={()=>setInsightTab(k)} style={{flex:'1 1 120px',padding:'8px 10px'}}>
+          <button key={k} className={`btn-tab${insightTab===k?' act':''}`} onClick={()=>setInsightTab(k)} aria-label={`${insightMap[k].label} 보기`} style={{flex:'1 1 120px'}}>
             {insightMap[k].icon} {insightMap[k].label}
           </button>
         ))}
       </div>
 
-      <div style={{background:'rgba(255,255,255,.02)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.12)',marginBottom:10}}>
-        <p className="cin" style={{fontSize:9,color:'rgba(201,168,76,.7)',letterSpacing:2,marginBottom:7}}>{activeInsight.icon} {activeInsight.label}</p>
+      <div style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.12)',marginBottom:16}}>
+        <p className="cin ov-label" style={{marginBottom:8}}>{activeInsight.icon} {activeInsight.label}</p>
         {activeInsight.items.map((p,i)=>(
-          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.85,marginBottom:i<activeInsight.items.length-1?8:0}}>{p}</p>
+          <p key={i} className="ov-body" style={{marginBottom:i<activeInsight.items.length-1?10:0}}>{p}</p>
         ))}
       </div>
 
-      <div style={{marginBottom:10}}>
-        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>추천 장소 리스트 (10선)</p>
-        <div style={{display:'flex',flexDirection:'column',gap:7}}>
-          {premium.places.map((pl,i)=>(
-            <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(201,168,76,.11)'}}>
-              <div style={{display:'flex',justifyContent:'space-between',gap:8,alignItems:'center'}}>
-                <div>
-                  <p style={{fontSize:12,color:'#F0D060',fontWeight:600}}>{pl.name}</p>
-                  <p style={{fontSize:10,color:'rgba(201,168,76,.6)',marginTop:2}}>{pl.category}</p>
-                  <p style={{fontSize:11,color:'rgba(239,228,192,.75)',lineHeight:1.75,marginTop:5}}><b style={{color:'#C9A84C'}}>추천 이유</b> {pl.reason}</p>
+      <div style={{marginBottom:16}}>
+        <h4 className="ov-sec-title" style={{fontSize:'clamp(18px,2.3vw,21px)',marginBottom:4}}>추천 장소 10선</h4>
+        <p className="ov-sub" style={{marginBottom:12}}>당신의 태양·달·상승궁 원소와 결이 맞는 공간을 골랐습니다. 운은 장소의 결을 따라 흐릅니다.</p>
+        <div style={{display:'flex',flexDirection:'column',gap:10}}>
+          {premium.places.map((pl,i)=>{
+            const avoid=pl.category==='피해야 할 장소';
+            return(
+              <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:12,padding:'14px 16px',border:`1px solid ${avoid?'rgba(220,20,60,.25)':'rgba(201,168,76,.13)'}`}}>
+                <span style={{display:'inline-block',fontSize:11.5,color:avoid?'rgba(255,120,140,.9)':'rgba(201,168,76,.85)',background:avoid?'rgba(220,20,60,.08)':'rgba(201,168,76,.07)',border:`1px solid ${avoid?'rgba(220,20,60,.25)':'rgba(201,168,76,.2)'}`,borderRadius:20,padding:'3px 10px',marginBottom:8}}>{avoid?'⚠️ ':''}{pl.category}</span>
+                <div style={{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start'}}>
+                  <p className="ov-card-title">{pl.name}</p>
+                  <button className="btn-o" onClick={()=>setOpenPlace(openPlace===i?null:i)} aria-label={`${pl.name} 상세 정보 ${openPlace===i?'접기':'펼치기'}`} aria-expanded={openPlace===i} style={{padding:'8px 14px',fontSize:12,whiteSpace:'nowrap',flexShrink:0}}>{openPlace===i?'접기':'상세'}</button>
                 </div>
-                <button className="btn-o" onClick={()=>setOpenPlace(openPlace===i?null:i)} style={{padding:'6px 10px',fontSize:10,whiteSpace:'nowrap'}}>{openPlace===i?'접기':'상세'}</button>
+                <p className="ov-body" style={{marginTop:6}}>{pl.reason}</p>
+                {openPlace===i&&(
+                  <div className="fi" style={{marginTop:10,paddingTop:10,borderTop:'1px solid rgba(201,168,76,.15)',display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'8px 16px'}}>
+                    {[["좋은 행동",pl.actions],["열어주는 운",pl.luckOpen],["피해야 할 시간대",pl.avoidTime],["주의할 점",pl.caution]].map(([l,v])=>(
+                      <div key={l}>
+                        <p className="cin ov-label" style={{marginBottom:3}}>{l}</p>
+                        <p style={{fontSize:13.5,color:'rgba(239,228,192,.82)',lineHeight:1.7}}>{v}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              {openPlace===i&&(
-                <div className="fi" style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(201,168,76,.15)'}}>
-                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>좋은 행동</b> {pl.actions}</p>
-                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>열어주는 운</b> {pl.luckOpen}</p>
-                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:6}}><b style={{color:'#C9A84C'}}>피해야 할 시간대</b> {pl.avoidTime}</p>
-                  <p style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75}}><b style={{color:'#C9A84C'}}>주의할 점</b> {pl.caution}</p>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      <div style={{background:'rgba(12,8,2,.7)',borderRadius:10,padding:'11px 13px',border:'1px solid rgba(201,168,76,.15)'}}>
-        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:7}}>최종 신탁 문장</p>
+      <div style={{background:'rgba(12,8,2,.7)',borderRadius:12,padding:'14px 16px',border:'1px solid rgba(201,168,76,.15)'}}>
+        <p className="cin ov-label" style={{marginBottom:8}}>최종 신탁 문장</p>
         {premium.finalOracles.map((line,i)=>(
-          <p key={i} style={{fontSize:12,color:'rgba(239,228,192,.84)',lineHeight:1.8,marginBottom:i<premium.finalOracles.length-1?7:0}}>{i+1}. {line}</p>
+          <p key={i} className="ov-body" style={{marginBottom:i<premium.finalOracles.length-1?8:0}}>{i+1}. {line}</p>
         ))}
       </div>
     </div>
@@ -1309,17 +1609,11 @@ function FakbokSection({fakbok,result}){
   const tabColors={sun:'rgba(240,180,30,.7)',moon:'rgba(80,120,200,.7)',rising:'rgba(90,180,160,.7)'};
   const borderColors={sun:'rgba(240,180,30,.3)',moon:'rgba(80,120,200,.3)',rising:'rgba(90,180,160,.3)'};
   return(
-    <div className="scard gb" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:14}}>
-        <span style={{fontSize:17}}>⚠️</span>
-        <div>
-          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>SECTION 1</p>
-          <h3 style={{fontSize:13,color:'#F0D060'}}>팩폭 주의보</h3>
-        </div>
-      </div>
+    <div className="scard gb">
+      <SectionHead icon="⚠️" kicker="SECTION 1" title="팩폭 주의보"/>
       {/* 별자리 타이틀 */}
-      <div style={{background:'rgba(201,168,76,.06)',borderRadius:9,padding:'10px 13px',border:'1px solid rgba(201,168,76,.15)',marginBottom:12,textAlign:'center'}}>
-        <p style={{fontSize:12,color:'#F5DC70',fontWeight:600,lineHeight:1.6}}>{fakbok.title}</p>
+      <div style={{background:'rgba(201,168,76,.06)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.15)',marginBottom:12,textAlign:'center'}}>
+        <p style={{fontSize:14,color:'#F5DC70',fontWeight:600,lineHeight:1.6}}>{fakbok.title}</p>
       </div>
       {/* 행성 탭 */}
       <div style={{display:'flex',gap:5,marginBottom:12}}>
@@ -1352,26 +1646,28 @@ function FakbokSection({fakbok,result}){
       <div style={{display:'flex',flexDirection:'column',gap:7}}>
         {activeItems.map((item,i)=>(
           <div key={`${activeTab}-${i}`} onClick={()=>setExpandedIdx(expandedIdx===i?null:i)}
-            style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'11px 13px',borderLeft:`2px solid ${expandedIdx===i?tabColors[activeTab]:'rgba(201,168,76,.2)'}`,cursor:'pointer',transition:'all .25s',border:`1px solid ${expandedIdx===i?borderColors[activeTab]:'rgba(201,168,76,.08)'}`,borderLeft:`2px solid ${expandedIdx===i?tabColors[activeTab]:'rgba(201,168,76,.2)'}`}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <p style={{fontSize:11,color:expandedIdx===i?tabColors[activeTab]:'#C9A84C',fontWeight:600}}>{item.label}</p>
-              <span style={{fontSize:10,color:'rgba(239,228,192,.3)',transform:expandedIdx===i?'rotate(180deg)':'none',transition:'transform .2s'}}>▼</span>
+            role="button" tabIndex={0} aria-expanded={expandedIdx===i}
+            onKeyDown={(e)=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setExpandedIdx(expandedIdx===i?null:i);}}}
+            style={{background:expandedIdx===i?'rgba(255,255,255,.035)':'rgba(255,255,255,.02)',borderRadius:10,padding:'13px 15px',cursor:'pointer',transition:'all .25s',border:`1px solid ${expandedIdx===i?borderColors[activeTab]:'rgba(201,168,76,.12)'}`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+              <p style={{fontSize:13.5,color:expandedIdx===i?tabColors[activeTab]:'#C9A84C',fontWeight:600,lineHeight:1.5}}>{item.label}</p>
+              <span aria-hidden="true" style={{fontSize:11,color:'rgba(239,228,192,.35)',transform:expandedIdx===i?'rotate(180deg)':'none',transition:'transform .2s',flexShrink:0}}>▼</span>
             </div>
             {expandedIdx===i&&(
-              <p className="fi" style={{fontSize:12,color:'rgba(239,228,192,.82)',lineHeight:1.9,marginTop:9}}>{item.text}</p>
+              <p className="fi ov-body" style={{marginTop:10}}>{item.text}</p>
             )}
           </div>
         ))}
       </div>
       {/* 조합 분석 + 트리거 */}
       <div style={{marginTop:12,display:'flex',flexDirection:'column',gap:7}}>
-        <div style={{background:'rgba(240,180,30,.04)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(240,180,30,.15)'}}>
-          <p style={{fontSize:10,color:'rgba(240,180,30,.8)',marginBottom:5}}>🔮 행성 조합 분석</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.75)',lineHeight:1.85}}>{fakbok.combo}</p>
+        <div style={{background:'rgba(240,180,30,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(240,180,30,.15)'}}>
+          <p style={{fontSize:13,fontWeight:600,color:'rgba(240,180,30,.85)',marginBottom:5}}>🔮 행성 조합 분석</p>
+          <p className="ov-body">{fakbok.combo}</p>
         </div>
-        <div style={{background:'rgba(220,20,60,.04)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(220,20,60,.18)'}}>
-          <p style={{fontSize:10,color:'rgba(220,20,60,.8)',marginBottom:5}}>💣 본성 폭발 트리거</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.75)',lineHeight:1.85}}>{fakbok.trigger}</p>
+        <div style={{background:'rgba(220,20,60,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(220,20,60,.18)'}}>
+          <p style={{fontSize:13,fontWeight:600,color:'rgba(220,20,60,.85)',marginBottom:5}}>💣 본성 폭발 트리거</p>
+          <p className="ov-body">{fakbok.trigger}</p>
         </div>
       </div>
     </div>
@@ -1385,11 +1681,8 @@ function TazzaSection({data,marsSign,jupSign,satSign,guide}){
   useEffect(()=>{const t=setTimeout(()=>setShowOdds(true),400);return()=>clearTimeout(t);},[]);
   const cards=['🀇','🀈','🀉','🀊','🀋'];
   return(
-    <div className="scard tazza-bg" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:14}}>
-        <span style={{fontSize:17}}>🃏</span>
-        <div><p className="cin" style={{fontSize:8,color:'rgba(220,20,60,.6)',letterSpacing:2}}>SECTION 3</p><h3 style={{fontSize:13,color:'#DC143C'}}>타짜: 인생 베팅 가이드</h3></div>
-      </div>
+    <div className="scard tazza-bg">
+      <SectionHead icon="🃏" kicker="SECTION 3" title="타짜: 인생 베팅 가이드" tone="crimson"/>
       {/* 패 테이블 */}
       <div className="tazza-felt" style={{borderRadius:10,padding:'14px 12px',border:'1px solid rgba(0,80,0,.4)',marginBottom:14}}>
         <div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:12}}>
@@ -1400,9 +1693,9 @@ function TazzaSection({data,marsSign,jupSign,satSign,guide}){
           ))}
         </div>
         <div style={{textAlign:'center'}}>
-          <p className="cin" style={{fontSize:9,color:'rgba(220,20,60,.7)',letterSpacing:3,marginBottom:4}}>MARS — {marsSign.name}</p>
-          <p className="cin" style={{fontSize:16,color:'#DC143C',fontWeight:700,marginBottom:6}}>{style.title}</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.7)',lineHeight:1.85,fontStyle:'italic'}}>"{style.dialogue}"</p>
+          <p className="cin" style={{fontSize:11,color:'rgba(220,20,60,.7)',letterSpacing:3,marginBottom:5}}>MARS — {marsSign.name}</p>
+          <p className="cin" style={{fontSize:19,color:'#DC143C',fontWeight:700,marginBottom:8}}>{style.title}</p>
+          <p style={{fontSize:13.5,color:'rgba(239,228,192,.75)',lineHeight:1.85,fontStyle:'italic'}}>"{style.dialogue}"</p>
         </div>
       </div>
       {/* 오늘의 배당률 */}
@@ -1427,7 +1720,7 @@ function TazzaSection({data,marsSign,jupSign,satSign,guide}){
             <p className="mono" style={{fontSize:20,color:'#FFD700'}}>{luck.lv}%</p>
             <p style={{fontSize:9,color:'rgba(255,215,0,.5)'}}>LUCK INDEX</p>
           </div>
-          <p style={{fontSize:11,color:'rgba(239,228,192,.65)',lineHeight:1.7}}>{luck.txt}</p>
+          <p style={{fontSize:13,color:'rgba(239,228,192,.72)',lineHeight:1.75}}>{luck.txt}</p>
         </div>
         <div style={{background:'rgba(80,0,0,.4)',borderRadius:8,padding:11,border:'1px solid rgba(180,0,0,.3)'}}>
           <p className="cin" style={{fontSize:8,color:'rgba(220,20,60,.7)',letterSpacing:2,marginBottom:6}}>⚠️ 토성 함정 — {satSign.name}</p>
@@ -1435,7 +1728,7 @@ function TazzaSection({data,marsSign,jupSign,satSign,guide}){
             <p className="cin" style={{fontSize:14,color:'#DC143C',fontWeight:700}}>{trap.trap}</p>
             <p style={{fontSize:9,color:'rgba(220,20,60,.5)'}}>WEAKNESS</p>
           </div>
-          <p style={{fontSize:11,color:'rgba(239,228,192,.65)',lineHeight:1.7}}>{trap.txt}</p>
+          <p style={{fontSize:13,color:'rgba(239,228,192,.72)',lineHeight:1.75}}>{trap.txt}</p>
         </div>
       </div>
       <div style={{marginTop:12,background:'rgba(0,0,0,.4)',borderRadius:8,padding:'8px 12px',border:'1px solid rgba(220,20,60,.15)'}}>
@@ -1447,13 +1740,13 @@ function TazzaSection({data,marsSign,jupSign,satSign,guide}){
           {guide.map((item,i)=>(
             <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'10px 12px',border:'1px solid rgba(220,20,60,.2)'}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
-                <p style={{fontSize:12,color:'#DC143C',fontWeight:700}}>{item.title}</p>
-                <button className="btn-o" onClick={()=>setOpenGuide(openGuide===i?null:i)} style={{padding:'5px 9px',fontSize:10,borderColor:'rgba(220,20,60,.45)',color:'#DC143C'}}>{openGuide===i?'접기':'보기'}</button>
+                <p style={{fontSize:14.5,color:'#DC143C',fontWeight:700,lineHeight:1.5}}>{item.title}</p>
+                <button className="btn-o" onClick={()=>setOpenGuide(openGuide===i?null:i)} aria-label={`${item.title} ${openGuide===i?'접기':'펼치기'}`} aria-expanded={openGuide===i} style={{padding:'8px 13px',fontSize:12,borderColor:'rgba(220,20,60,.45)',color:'#DC143C',flexShrink:0}}>{openGuide===i?'접기':'보기'}</button>
               </div>
               {openGuide===i&&(
-                <div className="fi" style={{marginTop:8,paddingTop:8,borderTop:'1px solid rgba(220,20,60,.2)'}}>
+                <div className="fi" style={{marginTop:10,paddingTop:10,borderTop:'1px solid rgba(220,20,60,.2)'}}>
                   {item.paragraphs.map((txt,pIdx)=>(
-                    <p key={pIdx} style={{fontSize:11,color:'rgba(239,228,192,.78)',lineHeight:1.75,marginBottom:pIdx<item.paragraphs.length-1?6:0}}>{txt}</p>
+                    <p key={pIdx} className="ov-body" style={{marginBottom:pIdx<item.paragraphs.length-1?8:0}}>{txt}</p>
                   ))}
                 </div>
               )}
@@ -1473,11 +1766,8 @@ function DevilSection({devil,rising,mercury}){
   const [confirming,setConfirming]=useState(false);
   const drips=Array.from({length:6},(_,i)=>i);
   return(
-    <div className="scard blood-bg" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:14}}>
-        <span style={{fontSize:17}}>👹</span>
-        <div><p className="cin" style={{fontSize:8,color:'rgba(180,0,0,.7)',letterSpacing:2}}>SECTION 4</p><h3 style={{fontSize:13,color:'#DC143C'}}>행성과의 위험한 계약서</h3></div>
-      </div>
+    <div className="scard blood-bg">
+      <SectionHead icon="👹" kicker="SECTION 4" title="행성과의 위험한 계약서" tone="crimson"/>
       {/* 피 방울 — transform-only animation, no reflow */}
       <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:14,height:22,alignItems:'flex-start',overflow:'hidden'}}>
         {drips.map(i=><div key={i} className="blood-drip" style={{animationDelay:`${i*.4}s`}}/>)}
@@ -1497,16 +1787,16 @@ function DevilSection({devil,rising,mercury}){
       <div style={{background:'rgba(10,0,0,.8)',borderRadius:10,padding:16,border:'1px solid rgba(180,0,0,.3)'}}>
         <p className="cin" style={{fontSize:8,color:'rgba(180,0,0,.5)',letterSpacing:4,marginBottom:12,textAlign:'center'}}>✦ PACTUM DIABOLI ✦</p>
         <div className="contract-line">
-          <p className="cin" style={{fontSize:9,color:'rgba(220,20,60,.7)',marginBottom:6,letterSpacing:1}}>제1조 — 부여된 능력</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.85}}>{devil.power}</p>
+          <p className="cin" style={{fontSize:12,color:'rgba(220,20,60,.8)',fontWeight:600,marginBottom:6,letterSpacing:1}}>제1조 — 부여된 능력</p>
+          <p className="ov-body">{devil.power}</p>
         </div>
         <div style={{marginBottom:12}}>
-          <p className="cin" style={{fontSize:9,color:'rgba(220,20,60,.7)',marginBottom:6,letterSpacing:1}}>제2조 — 계약의 대가</p>
-          <p style={{fontSize:12,color:'rgba(239,228,192,.7)',lineHeight:1.85,fontStyle:'italic'}}>"{devil.price}"</p>
+          <p className="cin" style={{fontSize:12,color:'rgba(220,20,60,.8)',fontWeight:600,marginBottom:6,letterSpacing:1}}>제2조 — 계약의 대가</p>
+          <p className="ov-body" style={{fontStyle:'italic'}}>"{devil.price}"</p>
         </div>
-        <div style={{background:'rgba(180,0,0,.08)',borderRadius:7,padding:'10px 12px',border:'1px solid rgba(180,0,0,.2)',marginBottom:12}}>
-          <p className="cin" style={{fontSize:8,color:'rgba(180,0,0,.6)',letterSpacing:2,marginBottom:5}}>수성({mercury.name}) 특약</p>
-          <p style={{fontSize:11,color:'rgba(239,228,192,.6)',lineHeight:1.75}}>{mercury.pd.t}</p>
+        <div style={{background:'rgba(180,0,0,.08)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(180,0,0,.2)',marginBottom:12}}>
+          <p className="cin" style={{fontSize:12,color:'rgba(220,20,60,.7)',fontWeight:600,letterSpacing:1,marginBottom:5}}>수성({mercury.name}) 특약</p>
+          <p style={{fontSize:13.5,color:'rgba(239,228,192,.72)',lineHeight:1.8}}>{mercury.pd.t}</p>
         </div>
         {/* 서명 */}
         <div style={{borderTop:'1px solid rgba(180,0,0,.3)',paddingTop:14,textAlign:'center'}}>
@@ -1566,14 +1856,8 @@ function OfficeSection({office,sunName,mercName}){
   const villainColor=(v)=>v>=70?'#E85D1B':v>=50?'#C9A84C':'#7AB540';
   const quitColor=(v)=>v>=70?'#DC143C':v>=50?'#C9A84C':'#4A8FD4';
   return(
-    <div className="scard gb" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:14}}>
-        <span style={{fontSize:17}}>🏢</span>
-        <div>
-          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>SECTION 5</p>
-          <h3 style={{fontSize:13,color:'#F0D060'}}>올림포스 오피스 생존기</h3>
-        </div>
-      </div>
+    <div className="scard gb">
+      <SectionHead icon="🏢" kicker="SECTION 5" title="올림포스 오피스 생존기"/>
 
       {/* 직급 배지 */}
       <div style={{background:'rgba(201,168,76,.06)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.18)',marginBottom:12}}>
@@ -1611,15 +1895,15 @@ function OfficeSection({office,sunName,mercName}){
           </span>
         </div>
         <div style={{background:'rgba(201,168,76,.06)',borderRadius:8,padding:'9px 12px',marginBottom:10,border:'1px solid rgba(201,168,76,.12)'}}>
-          <p style={{fontSize:10,color:'rgba(201,168,76,.7)',marginBottom:3}}>📌 상황</p>
-          <p style={{fontSize:13,color:'#F0D060',fontWeight:600}}>{scene.sit}</p>
+          <p style={{fontSize:12,color:'rgba(201,168,76,.75)',marginBottom:4}}>📌 상황</p>
+          <p style={{fontSize:14.5,color:'#F0D060',fontWeight:600,lineHeight:1.55}}>{scene.sit}</p>
         </div>
         <div style={{display:'flex',alignItems:'flex-start',gap:8,marginBottom:10}}>
           <div style={{width:32,height:32,borderRadius:8,background:'rgba(180,0,0,.25)',border:'1px solid rgba(220,20,60,.3)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,flexShrink:0}}>👔</div>
           <div style={{flex:1}}>
             <p style={{fontSize:9,color:'rgba(220,20,60,.6)',marginBottom:4}}>{scene.bossSign}</p>
             <div className="chat-bubble-boss" style={{maxWidth:'100%',display:'inline-block'}}>
-              <p style={{fontSize:12,color:'rgba(239,228,192,.85)',lineHeight:1.7}}>{scene.boss}</p>
+              <p style={{fontSize:13.5,color:'rgba(239,228,192,.85)',lineHeight:1.7}}>{scene.boss}</p>
             </div>
           </div>
         </div>
@@ -1632,7 +1916,7 @@ function OfficeSection({office,sunName,mercName}){
                 style={{display:'flex',justifyContent:'flex-end',cursor:'pointer'}}>
                 <div className={chatReplyIdx===i?'chat-bubble-me':''}
                   style={{maxWidth:'85%',padding:'8px 12px',borderRadius:'14px 14px 4px 14px',background:chatReplyIdx===i?'rgba(201,168,76,.18)':'rgba(255,255,255,.03)',border:chatReplyIdx===i?'1px solid rgba(201,168,76,.35)':'1px solid rgba(255,255,255,.07)',transition:'all .2s',cursor:'pointer'}}>
-                  <p style={{fontSize:12,color:chatReplyIdx===i?'rgba(239,228,192,.95)':'rgba(239,228,192,.45)',lineHeight:1.6}}>{reply}</p>
+                  <p style={{fontSize:13.5,color:chatReplyIdx===i?'rgba(239,228,192,.95)':'rgba(239,228,192,.5)',lineHeight:1.65}}>{reply}</p>
                 </div>
               </div>
             ))}
@@ -1643,7 +1927,7 @@ function OfficeSection({office,sunName,mercName}){
           <div style={{flex:1}}>
             <p style={{fontSize:9,color:'rgba(100,160,255,.6)',marginBottom:4}}>{scene.colSign}</p>
             <div className="chat-bubble-boss" style={{maxWidth:'100%',display:'inline-block'}}>
-              <p style={{fontSize:12,color:'rgba(239,228,192,.8)',lineHeight:1.7}}>{scene.colleague}</p>
+              <p style={{fontSize:13.5,color:'rgba(239,228,192,.8)',lineHeight:1.7}}>{scene.colleague}</p>
             </div>
           </div>
         </div>
@@ -1653,11 +1937,11 @@ function OfficeSection({office,sunName,mercName}){
       </div>
 
       {/* 오늘의 팁 */}
-      <div style={{background:'rgba(255,255,255,.02)',borderRadius:8,padding:'11px 13px',borderLeft:'2px solid rgba(201,168,76,.3)',marginBottom:10}}>
-        <p style={{fontSize:10,color:'#C9A84C',marginBottom:5}}>
+      <div style={{background:'rgba(201,168,76,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.16)',marginBottom:10}}>
+        <p style={{fontSize:13,fontWeight:600,color:'#C9A84C',marginBottom:5}}>
           📅 {dayLabels[today.getDay()]} 팁
         </p>
-        <p style={{fontSize:12,color:'rgba(239,228,192,.78)',lineHeight:1.85}}>{tip}</p>
+        <p className="ov-body">{tip}</p>
       </div>
 
       {/* 요일별 팁 전체 보기 */}
@@ -1686,11 +1970,8 @@ function JapanSection({japan,elemKey}){
   const ec={fire:'#E85D1B',earth:'#7AB540',air:'#5BA3C9',water:'#4A8FD4'};
   const color=ec[elemKey];
   return(
-    <div className="scard gb" style={{marginBottom:12}}>
-      <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:14}}>
-        <span style={{fontSize:17}}>🗾</span>
-        <div><p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:2}}>SECTION 6</p><h3 style={{fontSize:13,color:'#F0D060'}}>운명의 좌표: 일본 여행 스팟</h3></div>
-      </div>
+    <div className="scard gb">
+      <SectionHead icon="🗾" kicker="SECTION 6" title="운명의 좌표: 일본 여행 스팟"/>
       {/* 항공권 티켓 */}
       <div className="ticket-bg" style={{borderRadius:12,padding:0,marginBottom:12,overflow:'hidden'}}>
         <div style={{padding:'14px 16px',background:'rgba(201,168,76,.06)'}}>
@@ -1740,8 +2021,8 @@ function JapanSection({japan,elemKey}){
                 <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:4}}>
                   <span style={{fontSize:9,background:`${color}20`,color:color,border:`1px solid ${color}30`,borderRadius:10,padding:'2px 8px'}}>{spot.type}</span>
                 </div>
-                <p style={{fontSize:12,color:'#F0D060',fontWeight:600,marginBottom:3}}>{spot.name}</p>
-                <p style={{fontSize:10,color:'rgba(201,168,76,.6)'}}>🎁 {spot.item}</p>
+                <p className="ov-card-title" style={{fontSize:15.5,marginBottom:4}}>{spot.name}</p>
+                <p style={{fontSize:12.5,color:'rgba(201,168,76,.7)'}}>🎁 {spot.item}</p>
               </div>
               <div style={{textAlign:'right',marginLeft:8}}>
                 <p style={{fontSize:10,color:'rgba(239,228,192,.3)',marginBottom:2}}>좌표</p>
@@ -1788,7 +2069,7 @@ function CompatTab({myResult}){
   return(
     <div>
       <div className="scard gb" style={{marginBottom:12}}>
-        <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:3,marginBottom:12}}>나의 배치</p>
+        <p className="cin ov-label" style={{marginBottom:12}}>나의 배치</p>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <div className="compat-ring" style={{width:50,height:50,background:myResult.element.dark,border:`2px solid ${ec[myResult.elemKey]}38`,margin:'0 auto'}}>
             <span style={{fontSize:20}}>{myResult.sun.sym}</span>
@@ -1800,7 +2081,7 @@ function CompatTab({myResult}){
         </div>
       </div>
       <div className="scard gbs">
-        <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:3,marginBottom:12}}>상대방 정보</p>
+        <p className="cin ov-label" style={{marginBottom:12}}>상대방 정보</p>
         <div style={{display:'flex',flexDirection:'column',gap:12}}>
           <div>
             <label className="cin" style={{fontSize:9,color:'rgba(201,168,76,.6)',letterSpacing:2,display:'block',marginBottom:5}}>이름 (선택)</label>
@@ -1851,14 +2132,14 @@ function CompatResult({myResult,pResult,compat,onReset,ec}){
           <p style={{fontSize:10,color:'rgba(201,168,76,.65)'}}>{pResult.sun.name}</p>
         </div>
       </div>
-      <div className="scard gbs oglow" style={{textAlign:'center',marginBottom:12}}>
-        <p className="cin glow2" style={{fontSize:16,marginBottom:3}}>{compat.title}</p>
-        <p className="cin" style={{fontSize:9,color:'#C9A84C',letterSpacing:2,marginBottom:10}}>{compat.sub}</p>
+      <div className="scard gbs oglow" style={{textAlign:'center'}}>
+        <p className="cin glow2" style={{fontSize:'clamp(19px,2.6vw,23px)',marginBottom:5}}>{compat.title}</p>
+        <p className="cin" style={{fontSize:12,color:'#C9A84C',letterSpacing:2,marginBottom:10}}>{compat.sub}</p>
         <Divider/>
-        <p style={{fontSize:12,color:'rgba(239,228,192,.78)',lineHeight:1.9}}>{compat.detail.synergy}</p>
+        <p className="ov-body">{compat.detail.synergy}</p>
       </div>
-      <div className="scard gb" style={{marginBottom:12}}>
-        <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.45)',letterSpacing:3,marginBottom:12}}>행성별 케미 분석</p>
+      <div className="scard gb">
+        <p className="cin ov-label" style={{marginBottom:12}}>행성별 케미 분석</p>
         {bars.map((b,i)=>(
           <div key={i} style={{marginBottom:i<bars.length-1?12:0}}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
@@ -1872,12 +2153,12 @@ function CompatResult({myResult,pResult,compat,onReset,ec}){
           </div>
         ))}
       </div>
-      <div className="scard gb" style={{marginBottom:12}}>
-        <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.45)',letterSpacing:3,marginBottom:10}}>신화적 해석</p>
+      <div className="scard gb">
+        <p className="cin ov-label" style={{marginBottom:10}}>신화적 해석</p>
         {[{i:"☀️",l:"태양자리",t:compat.detail.sun},{i:"🌙",l:"달자리",t:compat.detail.moon},{i:"💘",l:"연애 스타일",t:compat.detail.love},{i:"⚠️",l:"주의 사항",t:compat.detail.warning}].map((it,i)=>(
-          <div key={i} style={{background:'rgba(255,255,255,.02)',borderRadius:7,padding:'9px 11px',borderLeft:'2px solid rgba(201,168,76,.22)',marginBottom:i<3?7:0}}>
-            <p style={{fontSize:10,color:'#C9A84C',marginBottom:4}}>{it.i} {it.l}</p>
-            <p style={{fontSize:12,color:'rgba(239,228,192,.73)',lineHeight:1.8}}>{it.t}</p>
+          <div key={i} style={{background:'rgba(201,168,76,.04)',borderRadius:10,padding:'12px 14px',border:'1px solid rgba(201,168,76,.14)',marginBottom:i<3?8:0}}>
+            <p style={{fontSize:13,fontWeight:600,color:'#C9A84C',marginBottom:5}}>{it.i} {it.l}</p>
+            <p className="ov-body">{it.t}</p>
           </div>
         ))}
       </div>
@@ -1891,42 +2172,59 @@ function CompatResult({myResult,pResult,compat,onReset,ec}){
 ════════════════════════════════════════════════════════ */
 function OracleTab({result}){
   const {daily,sun,element,elemKey}=result;
+  const [transit,setTransit]=useState(null);
   const today=new Date(),ds=`${today.getFullYear()}년 ${today.getMonth()+1}월 ${today.getDate()}일`;
+  useEffect(()=>{
+    let alive=true;
+    const payload={year:today.getFullYear(),month:today.getMonth()+1,day:today.getDate(),hour:today.getHours(),minute:today.getMinutes(),timezone:9,lat:37.5665,lon:126.9780};
+    ensureOracleCompute()
+      .then((fn)=>fn(payload))
+      .then((r)=>{ if(alive&&r&&r.moon&&SIGNS.some(s=>s.key===r.moon.key)) setTransit(r); })
+      .catch(()=>{});
+    return()=>{alive=false;};
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[]);
+  const tMoon=transit?SIGNS.find(s=>s.key===transit.moon.key):null;
+  const tRelation=tMoon?elementRelation(elemKey,tMoon.elem):null;
   return(
     <div>
-      <div style={{textAlign:'center',marginBottom:12}}>
-        <p style={{fontSize:11,color:'rgba(201,168,76,.48)',letterSpacing:3}}>{ds}</p>
-        <p className="cin" style={{fontSize:8,color:'rgba(239,228,192,.28)',marginTop:3}}>델포이 신전의 피티아가 전합니다</p>
+      <div style={{textAlign:'center',marginBottom:16}}>
+        <p style={{fontSize:13,color:'rgba(201,168,76,.6)',letterSpacing:3}}>{ds}</p>
+        <p className="cin ov-sub" style={{marginTop:4}}>델포이 신전의 피티아가 전합니다</p>
       </div>
       <div className="scard gb oglow">
-        <div style={{display:'flex',alignItems:'center',gap:9,marginBottom:12}}>
-          <div style={{fontSize:26}}>{daily.icon}</div>
-          <div>
-            <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:3}}>{daily.god}의 신탁</p>
-            <h3 className="cin" style={{fontSize:13,color:'#F5DC70'}}>{sun.name}에게 전하는 오늘의 예언</h3>
-          </div>
-        </div>
+        <SectionHead icon={daily.icon} kicker={`${daily.god}의 신탁`} title={`${sun.name}에게 전하는 오늘의 예언`}/>
         <div className="oracle-scroll scroll-reveal">
-          <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.5)',letterSpacing:4,marginBottom:10,textAlign:'center'}}>✦ PROPHETIA ✦</p>
-          <p style={{fontSize:14,lineHeight:2.1,color:'rgba(239,228,192,.9)',textAlign:'center',fontStyle:'italic'}}>{daily.prophecy}</p>
+          <p className="cin ov-eyebrow" style={{letterSpacing:4,marginBottom:10,textAlign:'center'}}>✦ PROPHETIA ✦</p>
+          <p style={{fontSize:15,lineHeight:2.05,color:'rgba(239,228,192,.9)',textAlign:'center',fontStyle:'italic'}}>{daily.prophecy}</p>
         </div>
         <Divider/>
-        <div style={{background:'rgba(201,168,76,.05)',borderRadius:9,padding:12,border:'1px solid rgba(201,168,76,.11)'}}>
-          <p className="cin" style={{fontSize:8,color:'#C9A84C',letterSpacing:3,marginBottom:7}}>⚡ 오늘의 지령</p>
-          <p style={{fontSize:13,color:'rgba(239,228,192,.82)',lineHeight:1.8}}>{daily.action}</p>
+        <div style={{background:'rgba(201,168,76,.05)',borderRadius:10,padding:14,border:'1px solid rgba(201,168,76,.11)'}}>
+          <p className="cin ov-label" style={{marginBottom:7}}>⚡ 오늘의 지령</p>
+          <p className="ov-body">{daily.action}</p>
         </div>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:7,marginTop:11}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginTop:12}}>
           {[{l:"행운의 색",v:daily.lucky},{l:"행운의 수",v:daily.num},{l:"황금 시간",v:daily.time}].map((it,i)=>(
-            <div key={i} style={{background:'rgba(255,255,255,.03)',borderRadius:8,padding:'9px 6px',textAlign:'center',border:'1px solid rgba(201,168,76,.1)'}}>
-              <p style={{fontSize:9,color:'rgba(201,168,76,.48)',marginBottom:3}}>{it.l}</p>
-              <p style={{fontSize:12,fontWeight:600,color:'#F0D060'}}>{it.v}</p>
+            <div key={i} style={{background:'rgba(255,255,255,.03)',borderRadius:10,padding:'11px 8px',textAlign:'center',border:'1px solid rgba(201,168,76,.1)'}}>
+              <p style={{fontSize:11,color:'rgba(201,168,76,.6)',marginBottom:4}}>{it.l}</p>
+              <p style={{fontSize:14,fontWeight:600,color:'#F0D060'}}>{it.v}</p>
             </div>
           ))}
         </div>
       </div>
+      {tMoon&&(
+        <div className="scard gb fi">
+          <SectionHead icon="🌙" kicker="TODAY'S TRANSIT" title="오늘의 트랜짓 — 실측 달 위치"/>
+          <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:10,flexWrap:'wrap'}}>
+            <span className="ov-card-title">달 ☽ {tMoon.name} {tMoon.sym}{Number.isFinite(transit.moon.deg)?` · ${Math.floor(transit.moon.deg)}°`:''}</span>
+            <span style={{fontSize:11.5,color:'rgba(201,168,76,.8)',background:'rgba(201,168,76,.06)',border:'1px solid rgba(201,168,76,.18)',borderRadius:20,padding:'4px 11px'}}>{ELEMENTS[tMoon.elem].emoji} {ELEMENTS[tMoon.elem].name} 통과 중</span>
+          </div>
+          <p className="ov-body">{TRANSIT_MOON_READING[tRelation]}</p>
+        </div>
+      )}
       <div className="scard gb" style={{background:element.dark}}>
-        <p className="cin" style={{fontSize:8,color:'rgba(201,168,76,.45)',letterSpacing:3,marginBottom:10}}>{element.faction} 원소 신탁</p>
-        <p style={{fontSize:13,color:'rgba(239,228,192,.85)',lineHeight:2,fontStyle:'italic'}}>"{element.oracle}"</p>
+        <p className="cin ov-label" style={{marginBottom:10}}>{element.faction} 원소 신탁</p>
+        <p style={{fontSize:14.5,color:'rgba(239,228,192,.88)',lineHeight:2,fontStyle:'italic'}}>"{element.oracle}"</p>
       </div>
     </div>
   );
@@ -1939,9 +2237,31 @@ export default function OlympusVIPLounge(){
   const [screen,setScreen]=useState('intro');
   const [result,setResult]=useState(null);
   const [dailyData,setDailyData]=useState(null);
-  const handleInput=({name,date,time,sunKey})=>{
+  const handleInput=({name,date,time,sunKey,placements,timeKnown})=>{
     setScreen('loading');
-    setTimeout(()=>{setResult(calcPlacements(date,time,name||'당신',sunKey));setScreen('result');},3200);
+    const real=placements&&typeof placements==='object'?{...placements}:null;
+    // 출생 시간을 모르는 프로필(정오 기본값 계산)의 상승궁은 근사치이므로 제외
+    if (real&&timeKnown===false) delete real.asc;
+    const minWait=new Promise((res)=>setTimeout(res,3200));
+    const computed=real
+      ? Promise.resolve(real)
+      : (()=>{ // 직접 입력 경로: 로딩 연출 동안 Swiss 실계산 시도, 실패 시 간이 계산 폴백
+          const payload=buildSwissPayload(date,time);
+          if (!payload) return Promise.resolve(null);
+          const timeout=new Promise((res)=>setTimeout(()=>res(null),9000));
+          const calc=ensureOracleCompute()
+            .then((fn)=>fn(payload))
+            .then((r)=>{
+              if (r&&!time) { const rest={...r}; delete rest.asc; return rest; } // 시간 미입력 → 상승궁 실계산 불가
+              return r;
+            })
+            .catch(()=>null);
+          return Promise.race([calc,timeout]);
+        })();
+    Promise.all([computed,minWait]).then(([realPlacements])=>{
+      setResult(calcPlacements(date,time,name||'당신',sunKey,realPlacements));
+      setScreen('result');
+    });
   };
   useEffect(()=>{
     if (typeof window === 'undefined') return;
