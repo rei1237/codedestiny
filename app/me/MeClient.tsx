@@ -7,7 +7,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
-import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
+import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
@@ -461,6 +461,7 @@ export default function MePage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [busyAction, setBusyAction] = useState<string>("");
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
+  const [monthlyStoneExpiresAt, setMonthlyStoneExpiresAt] = useState<string | null>(null);
   const [isCreateProfileOpen, setIsCreateProfileOpen] = useState(false);
   const [createDraft, setCreateDraft] = useState<ProfileCreateDraft>(buildCreateDraft());
   const [viewingProfile, setViewingProfile] = useState<DestinyProfile | null>(null);
@@ -478,6 +479,7 @@ export default function MePage() {
   const profileLimitLabel = isUnlimitedProfilePlan ? "무제한" : String(profileLimit);
   const slotPercent = isUnlimitedProfilePlan ? 100 : Math.min(100, Math.round((profiles.length / profileLimit) * 100));
   const monthlyStoneBalanceLabel = formatMonthlyStoneBalance(monthlyStoneBalance);
+  const monthlyStoneExpiresLine = monthlyStoneBalance > 0 ? formatMonthlyStoneExpiry(monthlyStoneExpiresAt) : null;
   const hasEnoughMonthlyStonesForProfileAction = monthlyStoneBalance >= PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST;
   const canCreateInitialProfileForFree = profiles.length === 0;
   const createRequiresProfileActionPayment = !isFamilyProfilePlan && !canCreateInitialProfileForFree;
@@ -567,12 +569,14 @@ export default function MePage() {
       }>(response);
       const data = payload.data || {};
       setMonthlyStoneBalance(resolveMonthlyStoneBalance(data, data.membership) ?? 0);
+      setMonthlyStoneExpiresAt(resolveMonthlyStoneExpiresAt(data, data.membership));
       const nextPoints = Number(data.legacyCoinBalance ?? data.balance ?? payload.user?.points ?? user?.points ?? 0);
       if (Number.isFinite(nextPoints)) {
         setUser((prev) => prev ? { ...prev, points: Math.max(0, Math.floor(nextPoints)) } : prev);
       }
     } catch {
       setMonthlyStoneBalance(0);
+      setMonthlyStoneExpiresAt(null);
     }
   }, [apiBase, user?.points]);
 
@@ -1261,6 +1265,9 @@ export default function MePage() {
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-300">이용권 혜택</p>
                     <p className="mt-0.5 text-xl font-black tracking-tight text-amber-100">{monthlyStoneBalanceLabel}</p>
+                    {monthlyStoneExpiresLine ? (
+                      <p className="mt-0.5 text-[11px] font-bold text-amber-200">⏳ {monthlyStoneExpiresLine}</p>
+                    ) : null}
                     <p className="mt-1 text-[11px] leading-5 text-slate-300">프로필 카드 관리와 프리미엄 기능에 사용할 수 있는 이용권 혜택입니다.</p>
                   </div>
                 </div>

@@ -35,7 +35,7 @@ import {
   User,
 } from "../lib/models.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
-import { MONTHLY_CREDIT_TTL_MS, applyGrantLot, deductLotsFIFO, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
+import { MONTHLY_CREDIT_TTL_MS, applyGrantLot, deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import {
   applyPdfPassDiscountToPricing,
@@ -4840,6 +4840,8 @@ async function readBillingSnapshot(request, env, options = {}) {
     const unlockMap = { ...scopedUnlocks.unlockMap };
     const balance = Number(effectiveUser?.points || 0);
     const membershipCreditBalance = Math.max(0, Math.floor(Number(sub?.membershipCreditBalance || 0)));
+    // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
+    const monthlyStoneExpiresAt = resolveNextExpiry(sub?.membershipCreditLots);
     const membership = {
       tier: entitlement.isActive ? entitlement.tier : String(sub?.tier || "free"),
       passTier: entitlement.passTier || null,
@@ -4854,6 +4856,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       source: entitlement.source,
       expiresAt: entitlement.expiresAt || sub?.expiresAt || null,
       monthlyStoneBalance: membershipCreditBalance,
+      monthlyStoneExpiresAt,
       membershipCreditBalance,
       membershipCreditGranted: Number(sub?.membershipCreditGranted || 0),
       membershipCreditUsed: Number(sub?.membershipCreditUsed || 0),
@@ -4871,6 +4874,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       coins: Number.isFinite(balance) ? balance : 0,
       membershipCreditBalance,
       monthlyStoneBalance: membershipCreditBalance,
+      monthlyStoneExpiresAt,
       monthlyCredits: membershipCreditBalance,
       monthlyCreditsAsCoins: membershipCreditBalance / MEMBERSHIP_CREDIT_PER_COIN,
       membership,

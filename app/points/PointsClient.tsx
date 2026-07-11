@@ -16,7 +16,7 @@ import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
-import { resolveMonthlyStoneBalance } from "../_lib/monthly-stone";
+import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -1195,6 +1195,7 @@ function normalizeMePayload(payload: MeResponse) {
     user,
     balance: Number.isFinite(balance) ? balance : 0,
     monthlyStoneBalance,
+    monthlyStoneExpiresAt: resolveMonthlyStoneExpiresAt(node, payload),
     payments,
     monthlyCreditLedgers,
     subscription,
@@ -1824,15 +1825,18 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg" |
 
 function MonthlyCreditBonusCard({
   balance,
+  expiresAt,
   ledgers,
   copy,
   formatLocale,
 }: {
   balance: number;
+  expiresAt?: string | null;
   ledgers: MonthlyCreditLedgerItem[];
   copy: PointsPageCopy;
   formatLocale: string;
 }) {
+  const expiresLine = balance > 0 ? formatMonthlyStoneExpiry(expiresAt) : null;
   return (
     <section
       aria-label={copy.monthlyBonusAria}
@@ -1850,6 +1854,9 @@ function MonthlyCreditBonusCard({
           <p className="text-xs font-bold text-[#ffe8a3]">현재 사용 가능</p>
           <p className="mt-1 text-2xl font-black text-white">{formatMonthlyCreditValue(balance, copy, formatLocale)}</p>
           <p className="mt-1 text-[11px] font-bold text-rose-100">구매·충전 불가</p>
+          {expiresLine ? (
+            <p className="mt-1 text-[11px] font-bold text-[#ffe8a3]">⏳ {expiresLine}</p>
+          ) : null}
         </div>
       </div>
 
@@ -2143,6 +2150,7 @@ function MoonlightActivePassCard({
 
 function MoonlightMonthlyCreditCard({
   balance,
+  expiresAt,
   ledgers,
   copy,
   formatLocale,
@@ -2151,6 +2159,7 @@ function MoonlightMonthlyCreditCard({
   onRetry,
 }: {
   balance: number;
+  expiresAt?: string | null;
   ledgers: MonthlyCreditLedgerItem[];
   copy: PointsPageCopy;
   formatLocale: string;
@@ -2158,6 +2167,7 @@ function MoonlightMonthlyCreditCard({
   hasError: boolean;
   onRetry: () => void;
 }) {
+  const expiresLine = balance > 0 ? formatMonthlyStoneExpiry(expiresAt) : null;
   if (isLoading) {
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
@@ -2225,6 +2235,9 @@ function MoonlightMonthlyCreditCard({
           <p className="moonstone-counter__value mt-1 text-5xl font-black leading-none">{Math.max(0, Math.floor(Number(balance || 0))).toLocaleString(formatLocale)}</p>
           <p className="moonstone-counter__label mt-3 text-sm font-black text-white">현재 사용 가능</p>
           <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-gold)]">이벤트 전용 재화</p>
+          {expiresLine ? (
+            <p className="moonstone-counter__note mt-1 text-xs font-bold text-[color:var(--moon-glow)]">⏳ {expiresLine}</p>
+          ) : null}
         </div>
       </div>
 
@@ -2596,6 +2609,7 @@ export default function PointsPage() {
   const [showStarBurst, setShowStarBurst] = useState(false);
   const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
   const [monthlyStoneBalance, setMonthlyStoneBalance] = useState(0);
+  const [monthlyStoneExpiresAt, setMonthlyStoneExpiresAt] = useState<string | null>(null);
   const [monthlyCreditLedgers, setMonthlyCreditLedgers] = useState<MonthlyCreditLedgerItem[]>([]);
   const [pointStateStatus, setPointStateStatus] = useState<PointStateStatus>("idle");
   const [pointStateError, setPointStateError] = useState<string | null>(null);
@@ -2811,6 +2825,7 @@ export default function PointsPage() {
         : [];
       setPaymentHistory(normalizedPayments);
       setMonthlyStoneBalance(normalized.monthlyStoneBalance);
+      setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
       setMonthlyCreditLedgers(
         Array.isArray(normalized.monthlyCreditLedgers)
           ? normalized.monthlyCreditLedgers.filter((entry) => entry && typeof entry === "object").slice(0, 8)
@@ -4028,6 +4043,7 @@ export default function PointsPage() {
         />
         <MoonlightMonthlyCreditCard
           balance={monthlyStoneBalance}
+          expiresAt={monthlyStoneExpiresAt}
           ledgers={monthlyCreditLedgers}
           copy={copy}
           formatLocale={formatLocale}
@@ -4124,6 +4140,7 @@ export default function PointsPage() {
 
         <MonthlyCreditBonusCard
           balance={monthlyStoneBalance}
+          expiresAt={monthlyStoneExpiresAt}
           ledgers={monthlyCreditLedgers}
           copy={copy}
           formatLocale={formatLocale}

@@ -28,7 +28,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
-import { deductLotsFIFO, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
+import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
@@ -5238,6 +5238,8 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   const balance = Number(safeUser.points || 0);
   const profileSubscription = safeUser.profileSubscription || {};
   const monthlyCredits = Number(profileSubscription.membershipCreditBalance || 0);
+  // 가장 이른 소멸 예정일(미만료 lot 중 가장 빨리 만료되는 것). 없으면 null.
+  const monthlyStoneExpiresAt = resolveNextExpiry(profileSubscription.membershipCreditLots);
   const mappedMonthlyCreditLedgers = buildMonthlyCreditLedgerTimeline(auth, safeUser, monthlyCreditLedgers, pointHistories);
 
   return {
@@ -5251,6 +5253,7 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
       monthlyStoneBalance: monthlyCredits,
       monthlyCredits,
       membershipCreditBalance: monthlyCredits,
+      monthlyStoneExpiresAt,
       monthlyCreditLedgers: mappedMonthlyCreditLedgers,
     },
     user: {
