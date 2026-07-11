@@ -65,6 +65,8 @@ type ApiResult = {
   accessType?: string;
   consultation?: Consultation;
   paymentPayload?: Record<string, unknown>;
+  sessionId?: string;
+  status?: string;
 };
 
 const ERROR_TEXT: Record<string, string> = {
@@ -98,6 +100,29 @@ async function postJson<T>(url: string, body: Record<string, unknown>, idempoten
   }, { retryOn401: false });
   const data = await response.json().catch(() => ({}));
   return { status: response.status, data: data as T };
+}
+
+const ZIWEI_RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
+const ZIWEI_RESULT_POLL_MAX_ATTEMPTS = 65; // 최악 ~8분(초기 240s + repair 240s) 커버, 첫 폴은 0.7s 프로브
+
+// 서버가 202(생성 중)를 주면 /result를 폴링해 완료 결과로 수렴한다. 동시 제출·연결 순단에도
+// 저장된 유료 결과를 회수하고, 향후 서버 백그라운드(waitUntil) 전환과도 호환된다.
+async function pollZiweiConsultResult(sessionId: string): Promise<Consultation> {
+  for (let attempt = 0; attempt < ZIWEI_RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, ZIWEI_RESULT_POLL_BACKOFF_MS[Math.min(attempt, ZIWEI_RESULT_POLL_BACKOFF_MS.length - 1)]));
+    let response: Response;
+    try {
+      response = await authFetch(`/api/ziwei-ai/result?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false });
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) throw new Error("요청이 잠시 몰렸어요. 잠시 후 다시 시도해 주세요.");
+    const data = (await response.json().catch(() => ({}))) as ApiResult;
+    if (!response.ok || !data.consultation) throw new Error(toText(data.message) || ERROR_TEXT.SERVER_ERROR);
+    return data.consultation;
+  }
+  throw new Error("상담 생성이 평소보다 오래 걸리고 있어요. 잠시 후 다시 열어 주세요.");
 }
 
 function runtimePayload(result: unknown) {
@@ -256,6 +281,13 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
     const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/generate", { ...payload, ...extra, idempotencyKey }, idempotencyKey);
     if (data.ok && data.consultation) {
       setConsultation(data.consultation);
+      setPhase("ready");
+      return;
+    }
+    // 생성이 진행 중(202: 동시 제출·재시도, 향후 서버 백그라운드 전환)이면 결과를 버리지 말고 /result 폴링으로 수렴한다.
+    if (status === 202 && data.ok && data.sessionId) {
+      const consultation = await pollZiweiConsultResult(data.sessionId);
+      setConsultation(consultation);
       setPhase("ready");
       return;
     }
