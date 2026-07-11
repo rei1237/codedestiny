@@ -4831,12 +4831,41 @@ async function readBillingSnapshot(request, env, options = {}) {
   // infra 에러는 표면화(surfaceDbInfraError)해 withMongoRetry로 흡수하고, 토큰 미부착/무효 등
   // 진짜 미인증은 종전대로 null → 게스트로 처리한다.
   let auth = null;
+  let authInfraError = null;
   try {
-    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true }));
+    // attemptTimeoutMS 기본(7s)이 서버선택 타임아웃(8s)보다 짧아, 콜드 아이솔레이트에서 연결이
+    // 자기 선택창 안에 있는데도 op-래퍼가 먼저 잘라 이용권 확인이 실패→게스트 강등되던 문제를 막는다.
+    // 유료 게이트 핵심 읽기라 콜드 연결까지 완료되도록 상한을 11s로 넓힌다(웜 요청은 영향 없음).
+    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true }), { attemptTimeoutMS: 11000 });
   } catch (error) {
     if (!isAuthDbInfraError(error)) throw error;
-    // 재시도 후에도 지속되는 infra 에러만 여기 도달 — 종전 동작대로 게스트 스냅샷으로 강등한다.
-    auth = null;
+    // 재시도 후에도 지속되는 infra 에러 = 토큰은 있으나 DB 장애로 확인 불가(진짜 게스트는 throw 없이 null).
+    // 종전엔 auth=null로 게스트 강등 → 이용권 보유자에게 결제창이 떠 버렸다(핵심 결함).
+    // degraded로 표면화해 호출자(handleUnlockStatus 등)가 503(일시 확인불가·재시도)로 응답하게 한다.
+    authInfraError = error;
+  }
+  if (authInfraError) {
+    return {
+      authenticated: false,
+      authUserId: "",
+      balance: 0,
+      membershipCreditBalance: 0,
+      monthlyStoneBalance: 0,
+      monthlyCredits: 0,
+      monthlyCreditsAsCoins: 0,
+      membership: null,
+      subscription: { isActive: false, tier: "free", passTier: null, freeLimit: 0 },
+      currentProfileId: "",
+      user: null,
+      unlockedFeatures: [],
+      unlockMap: {},
+      degraded: true,
+      error: {
+        code: "AUTH_DB_UNAVAILABLE",
+        message: "Billing auth check temporarily unavailable.",
+        errorDetails: buildBillingErrorDetails("billing-snapshot-auth", authInfraError),
+      },
+    };
   }
   if (!auth?.userId) {
     return {
@@ -4860,6 +4889,7 @@ async function readBillingSnapshot(request, env, options = {}) {
   try {
     // 일시적 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 Mongo 에러가 나도
     // degraded(부정확) 대신 정확한 스냅샷을 돌려주도록 쿼리 전체를 재시도로 감싼다.
+    // attemptTimeoutMS를 11s로 넓혀 콜드 연결까지 완료되게 한다(위 인증 경로와 동일 사유).
     return await withMongoRetry(env, async () => {
     // User 문서를 1회만 조회하고, legacy seed 필요 시에만 원자적 write를 수행한다.
     // (기존에는 seed 함수가 내부에서 동일 문서를 또 findById 해 User를 2회 읽었음)
@@ -4931,7 +4961,7 @@ async function readBillingSnapshot(request, env, options = {}) {
       unlockMap,
       degraded: false,
     };
-    });
+    }, { attemptTimeoutMS: 11000 });
   } catch (error) {
     logBillingRouteError("billing-snapshot", error, request);
     const fallbackBalance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;

@@ -2265,7 +2265,7 @@ function combineTarotAndTenGod(card, tenGod, category, orientation) {
   var cardMeaning = dir === 'reversed'
     ? cardName + '의 역행은 겉으로 밀어붙일수록 마음의 압력이 커지는 장면입니다. ' + cardSymbol + ' ' + profile.shadow + ' ' + categoryLens.focus
     : cardName + '의 순행은 이미 품고 있던 힘을 현실로 꺼내는 장면입니다. ' + cardSymbol + ' ' + profile.psych + ' ' + categoryLens.focus;
-  var tenGodInterpretation = mainTenGod + '은 ' + tenGodContext + ' ' + (dir === 'reversed' ? '역행이라 속도를 낮추고, 마음 안에서 꼬인 기준부터 풀어야 합니다.' : '순행이라 오늘의 말과 행동 속에서 비교적 또렷하게 드러납니다.');
+  var tenGodInterpretation = tenGodContext + ' ' + (dir === 'reversed' ? '역행이라 속도를 낮추고, 마음 안에서 꼬인 기준부터 풀어야 합니다.' : '순행이라 오늘의 말과 행동 속에서 비교적 또렷하게 드러납니다.');
 
   var combinedReading = cardSubject + '의 상징은 ' + mainTenGod + '의 결과 맞물려 ' + comboArchetype + '으로 드러납니다. ' +
     bridge + ' 특히 ' + catKo + '에서는 ' + categoryLens.theme + '을 먼저 기준으로 삼으세요.';

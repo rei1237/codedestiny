@@ -342,6 +342,86 @@ html,body{background:var(--bg);color:var(--txt);font-family:'Cormorant Garamond'
 .ai-sp:nth-child(3){animation-delay:.36s;}
 @keyframes aiSp{0%,80%,100%{opacity:.2;transform:scale(1);}40%{opacity:1;transform:scale(1.5);}}
 
+/* ═══════════════════════════════════════════════
+   STAGE 4 · RESULT SCREEN LAYOUT (hand-written — Tailwind 미로드 대체)
+═══════════════════════════════════════════════ */
+#rs-inner{position:relative;margin:0 auto;max-width:72rem;padding:32px 16px 80px;}
+@media(min-width:640px){#rs-inner{padding-left:24px;padding-right:24px;}}
+@media(min-width:1024px){#rs-inner{padding-left:32px;padding-right:32px;}}
+#rs-glow{pointer-events:none;position:absolute;left:32px;right:32px;top:0;height:13rem;border-radius:9999px;background:rgba(212,168,67,.1);filter:blur(48px);}
+
+#rs-topbar{position:relative;margin-bottom:32px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;}
+#rs-logo{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.35em;color:rgba(240,200,110,.85);}
+@media(min-width:640px){#rs-logo{font-size:.8rem;}}
+#rs-close{display:inline-flex;align-items:center;gap:8px;border-radius:12px;border:1px solid rgba(212,168,67,.35);background:rgba(18,10,3,.8);padding:8px 16px;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.26em;color:rgba(240,200,150,.75);cursor:pointer;transition:border-color .2s,color .2s;}
+#rs-close:hover{border-color:rgba(212,168,67,.7);color:rgba(255,240,210,.95);}
+
+.rs-hairline{height:1px;flex:1;background:linear-gradient(to right,rgba(240,220,160,.28),transparent);}
+
+#rs-question{position:relative;margin-bottom:32px;overflow:hidden;border-radius:16px;border:1px solid rgba(212,168,67,.3);background:linear-gradient(135deg,rgba(212,168,67,.12),rgba(26,18,8,.7) 55%,rgba(9,6,3,.95));padding:20px;box-shadow:0 0 45px rgba(212,168,67,.08);}
+@media(min-width:640px){#rs-question{padding:24px 28px;}}
+#rs-q-accent{pointer-events:none;position:absolute;left:0;top:0;height:100%;width:4px;background:linear-gradient(to bottom,transparent,rgba(212,168,67,.8),transparent);}
+#rs-q-head{margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+#rs-q-tag{font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.32em;color:rgba(240,200,110,.8);white-space:nowrap;}
+#rs-q-txt{font-family:'Cormorant Garamond',serif;font-size:1.25rem;font-style:italic;line-height:1.6;color:rgba(248,240,220,.95);}
+@media(min-width:640px){#rs-q-txt{font-size:1.5rem;}}
+
+.rs-sec{position:relative;margin-bottom:32px;}
+.rs-sec-head{margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.rs-numeral{font-family:'Cinzel',serif;font-size:1.25rem;color:var(--gold3);text-shadow:0 0 10px rgba(212,168,67,.35);flex-shrink:0;}
+.rs-sec-title{font-family:'Cinzel',serif;font-size:1.125rem;letter-spacing:.06em;color:rgba(240,220,160,.9);}
+@media(min-width:640px){.rs-sec-title{font-size:1.25rem;}}
+.rs-sec-sub{font-family:'Cormorant Garamond',serif;font-size:1rem;font-style:italic;color:rgba(230,200,140,.65);}
+
+#rs-guide{margin-bottom:20px;border-radius:16px;border:1px solid rgba(212,168,67,.25);background:rgba(15,9,4,.85);padding:16px;box-shadow:0 18px 34px rgba(0,0,0,.5);}
+@media(min-width:640px){#rs-guide{padding:20px 24px;}}
+#rs-guide-title{margin-bottom:16px;display:flex;align-items:center;gap:12px;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.3em;color:rgba(240,200,110,.8);}
+#rs-guide-grid{display:grid;gap:12px;}
+@media(min-width:768px){#rs-guide-grid{grid-template-columns:repeat(3,1fr);}}
+.rs-guide-item{border-radius:12px;border:1px solid rgba(212,168,67,.25);background:rgba(40,28,8,.2);padding:16px;text-align:center;}
+.rs-guide-icon{margin-bottom:4px;font-size:1.5rem;color:var(--gold3);}
+.rs-guide-name{font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.2em;color:rgba(240,220,170,.9);}
+.rs-guide-desc{margin-top:8px;font-family:'Cormorant Garamond',serif;font-size:.875rem;line-height:1.5;font-style:italic;color:rgba(235,210,160,.72);}
+
+#cards-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+@media(min-width:768px){#cards-grid{grid-template-columns:repeat(3,1fr);}}
+
+#rs-ai{position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(212,168,67,.35);background:linear-gradient(135deg,rgba(212,168,67,.1),rgba(18,12,5,.85) 55%,rgba(8,5,3,.95));padding:20px;box-shadow:0 12px 40px rgba(0,0,0,.55);}
+@media(min-width:640px){#rs-ai{padding:28px;}}
+#rs-ai-glow{pointer-events:none;position:absolute;left:-80px;top:-96px;height:14rem;width:14rem;border-radius:9999px;background:rgba(212,168,67,.1);filter:blur(48px);}
+#rs-ai-q{position:relative;z-index:10;margin-bottom:16px;display:flex;align-items:center;gap:12px;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.26em;color:rgba(240,200,110,.85);}
+#rs-ai-loading{position:relative;z-index:10;}
+.ai-sp-lbl{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.2em;color:rgba(235,210,150,.6);}
+#rs-ai-txt{position:relative;z-index:10;min-height:2.6em;white-space:pre-wrap;font-family:'Cormorant Garamond',serif;font-size:1.2rem;line-height:1.95;color:rgba(248,240,220,.95);}
+#rs-advice{position:relative;z-index:10;margin-top:20px;border-left:2px solid rgba(212,168,67,.4);padding-left:16px;}
+#rs-advice-txt{font-family:'Cormorant Garamond',serif;font-size:1.125rem;font-style:italic;line-height:1.6;color:rgba(240,200,110,.9);}
+
+#rs-again{position:relative;margin:0 auto;display:inline-flex;align-items:center;justify-content:center;gap:12px;overflow:hidden;border-radius:12px;border:1px solid rgba(212,168,67,.5);background:rgba(212,168,67,.1);padding:12px 28px;font-family:'Cinzel',serif;font-size:.75rem;text-transform:uppercase;letter-spacing:.28em;color:rgba(245,225,180,.95);cursor:pointer;transition:background .2s,box-shadow .2s;}
+#rs-again:hover{background:rgba(212,168,67,.2);box-shadow:0 0 34px rgba(212,168,67,.35);}
+
+/* fig cards (buildFigCard) */
+.alc-card{position:relative;overflow:hidden;border-radius:16px;border:1px solid rgba(212,168,67,.3);background:linear-gradient(155deg,rgba(26,18,8,.85),rgba(11,7,3,.95));box-shadow:0 14px 36px rgba(0,0,0,.45);transition:transform .3s,box-shadow .3s;}
+.alc-card:hover{transform:translateY(-4px);box-shadow:0 20px 45px rgba(0,0,0,.6);}
+.alc-card.card-past{border-color:rgba(125,211,252,.35);}
+.alc-card.card-present{border-color:rgba(212,168,67,.4);}
+.alc-card.card-judge{border-color:rgba(234,215,120,.6);}
+.rs-card-topglow{pointer-events:none;position:absolute;left:20px;right:20px;top:0;height:1px;background:linear-gradient(to right,transparent,rgba(240,220,160,.7),transparent);}
+.rs-card-badge{display:flex;align-items:flex-start;gap:12px;border-bottom:1px solid rgba(240,220,160,.2);padding:16px 16px 12px;}
+.rs-card-icon{font-size:1.25rem;line-height:1;color:rgba(240,220,160,.9);}
+.rs-card-role{display:block;font-family:'Cinzel',serif;font-size:11px;text-transform:uppercase;letter-spacing:.24em;color:rgba(240,220,160,.85);}
+.rs-card-roledesc{margin-top:4px;display:block;font-family:'Cormorant Garamond',serif;font-size:.875rem;font-style:italic;line-height:1.35;color:rgba(235,210,160,.7);}
+.rs-fig{padding:16px 16px 0;text-align:center;}
+.rs-dots{margin-bottom:16px;display:flex;justify-content:center;gap:12px;}
+.rs-dot-col{display:flex;min-height:18px;align-items:center;justify-content:center;}
+.rs-dot-pair{display:flex;align-items:center;gap:6px;}
+.rs-sigil{margin-bottom:8px;display:block;font-size:1.875rem;color:var(--gold3);text-shadow:0 0 12px rgba(212,168,67,.45);}
+.rs-sigil.is-judge{font-size:2.25rem;color:rgba(240,220,160,.95);text-shadow:0 0 16px rgba(212,168,67,.6);}
+.rs-name{margin-bottom:4px;font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.05em;color:rgba(240,220,160,.9);}
+.rs-name.is-judge{font-size:1.125rem;color:rgba(248,240,210,.95);}
+.rs-el{font-family:'Cinzel',serif;font-size:10px;text-transform:uppercase;letter-spacing:.24em;color:rgba(240,200,110,.65);}
+.rs-interp{padding:12px 16px 20px;font-family:'Cormorant Garamond',serif;font-size:1.02rem;line-height:2;color:rgba(240,220,170,.85);}
+.rs-interp.is-judge{font-size:1.08rem;color:rgba(248,240,220,.95);}
+
 /* TOOLTIP */
 #tip{
   position:fixed;pointer-events:none;z-index:700;
@@ -451,93 +531,92 @@ button,input,select,textarea{font-family:var(--font-body)!important}
      STAGE 4 · RESULT SCREEN
 ══════════════════════════════════════ -->
 <div id="result-screen">
-  <div id="rs-inner" class="relative mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8">
-    <div class="pointer-events-none absolute inset-x-8 top-0 h-52 rounded-full bg-amber-400/10 blur-3xl"></div>
+  <div id="rs-inner">
+    <div id="rs-glow"></div>
 
-    <div id="rs-topbar" class="relative mb-8 flex flex-wrap items-center justify-between gap-3">
-      <div id="rs-logo" class="font-['Cinzel_Decorative'] text-xs tracking-[0.35em] text-amber-300/85 sm:text-sm">⚗ CODEX ALCHEMICUS</div>
-      <button id="rs-close" onclick="closeResult()" class="inline-flex items-center gap-2 rounded-xl border border-amber-300/35 bg-[#120a03]/80 px-4 py-2 font-['Cinzel'] text-[11px] uppercase tracking-[0.26em] text-amber-200/75 transition hover:border-amber-300/70 hover:text-amber-100">✕ <span>다시 점치다</span></button>
+    <div id="rs-topbar">
+      <div id="rs-logo">⚗ CODEX ALCHEMICUS</div>
+      <button id="rs-close" onclick="closeResult()">✕ <span>다시 점치다</span></button>
     </div>
 
-    <div id="rs-question" class="relative mb-8 overflow-hidden rounded-2xl border border-amber-300/30 bg-gradient-to-br from-amber-400/12 via-[#1a1208]/70 to-[#090603]/95 px-5 py-5 shadow-[0_0_45px_rgba(212,168,67,0.08)] sm:px-7 sm:py-6">
-      <div class="pointer-events-none absolute left-0 top-0 h-full w-1 bg-gradient-to-b from-transparent via-amber-300/80 to-transparent"></div>
-      <div class="mb-2 flex items-center gap-3">
-        <span id="rs-q-tag" class="font-['Cinzel'] text-[10px] uppercase tracking-[0.32em] text-amber-300/80">귀하의 질문</span>
-        <span class="h-px flex-1 bg-gradient-to-r from-amber-200/25 to-transparent"></span>
+    <div id="rs-question">
+      <div id="rs-q-accent"></div>
+      <div id="rs-q-head">
+        <span id="rs-q-tag">귀하의 질문</span>
+        <span class="rs-hairline"></span>
       </div>
-      <p id="rs-q-txt" class="font-['Cormorant_Garamond'] text-xl italic leading-relaxed text-amber-50/95 sm:text-2xl"></p>
+      <p id="rs-q-txt"></p>
     </div>
 
-    <section id="sec-cards" class="relative mb-8">
-      <div class="mb-5 flex items-center gap-3">
-        <div class="font-['Cinzel_Decorative'] text-xl text-amber-300 drop-shadow-[0_0_10px_rgba(212,168,67,0.35)]">I</div>
+    <section id="sec-cards" class="rs-sec">
+      <div class="rs-sec-head">
+        <div class="rs-numeral">I</div>
         <div>
-          <h2 class="font-['Cinzel_Decorative'] text-lg tracking-[0.06em] text-amber-200 sm:text-xl">세 개의 도가니</h2>
-          <p class="font-['Cormorant_Garamond'] text-base italic text-amber-200/65">과거의 원인, 현재의 흐름, 그리고 운명의 최종 판결</p>
+          <h2 class="rs-sec-title">세 개의 도가니</h2>
+          <p class="rs-sec-sub">과거의 원인, 현재의 흐름, 그리고 운명의 최종 판결</p>
         </div>
-        <span class="h-px flex-1 bg-gradient-to-r from-amber-300/30 to-transparent"></span>
+        <span class="rs-hairline"></span>
       </div>
 
-      <div id="rs-guide" class="mb-5 rounded-2xl border border-amber-300/25 bg-[#0f0904]/85 px-4 py-4 shadow-[0_18px_34px_rgba(0,0,0,0.5)] sm:px-6 sm:py-5">
-        <div id="rs-guide-title" class="mb-4 flex items-center gap-3 font-['Cinzel'] text-[11px] uppercase tracking-[0.3em] text-amber-300/80">
+      <div id="rs-guide">
+        <div id="rs-guide-title">
           <span>◈ 각 도가니의 의미</span>
-          <span class="h-px flex-1 bg-gradient-to-r from-amber-300/25 to-transparent"></span>
+          <span class="rs-hairline"></span>
         </div>
-        <div class="grid gap-3 md:grid-cols-3">
-          <article class="rounded-xl border border-sky-300/25 bg-sky-950/20 px-4 py-4 text-center">
-            <div class="mb-1 font-['Cinzel_Decorative'] text-2xl text-sky-200">🜁</div>
-            <h3 class="font-['Cinzel'] text-[11px] uppercase tracking-[0.2em] text-sky-100/85">제1 도가니 · 원인</h3>
-            <p class="mt-2 font-['Cormorant_Garamond'] text-sm leading-relaxed italic text-sky-100/70">질문의 배경과 뿌리. 무엇이 지금의 상황을 만들었는지 보여줍니다.</p>
+        <div id="rs-guide-grid">
+          <article class="rs-guide-item">
+            <div class="rs-guide-icon">🜁</div>
+            <h3 class="rs-guide-name">제1 도가니 · 원인</h3>
+            <p class="rs-guide-desc">질문의 배경과 뿌리. 무엇이 지금의 상황을 만들었는지 보여줍니다.</p>
           </article>
-          <article class="rounded-xl border border-amber-300/25 bg-amber-950/20 px-4 py-4 text-center">
-            <div class="mb-1 font-['Cinzel_Decorative'] text-2xl text-amber-200">🜃</div>
-            <h3 class="font-['Cinzel'] text-[11px] uppercase tracking-[0.2em] text-amber-100/85">제2 도가니 · 흐름</h3>
-            <p class="mt-2 font-['Cormorant_Garamond'] text-sm leading-relaxed italic text-amber-100/70">현재 작동 중인 힘. 지금 이 순간의 에너지 균형을 나타냅니다.</p>
+          <article class="rs-guide-item">
+            <div class="rs-guide-icon">🜃</div>
+            <h3 class="rs-guide-name">제2 도가니 · 흐름</h3>
+            <p class="rs-guide-desc">현재 작동 중인 힘. 지금 이 순간의 에너지 균형을 나타냅니다.</p>
           </article>
-          <article class="rounded-xl border border-yellow-300/30 bg-yellow-900/20 px-4 py-4 text-center">
-            <div class="mb-1 font-['Cinzel_Decorative'] text-2xl text-yellow-200">☉</div>
-            <h3 class="font-['Cinzel'] text-[11px] uppercase tracking-[0.2em] text-yellow-100/90">재판관 · 신탁</h3>
-            <p class="mt-2 font-['Cormorant_Garamond'] text-sm leading-relaxed italic text-yellow-100/75">두 도가니가 합쳐진 최종 판결. 질문에 대한 핵심 결론입니다.</p>
+          <article class="rs-guide-item">
+            <div class="rs-guide-icon">☉</div>
+            <h3 class="rs-guide-name">재판관 · 신탁</h3>
+            <p class="rs-guide-desc">두 도가니가 합쳐진 최종 판결. 질문에 대한 핵심 결론입니다.</p>
           </article>
         </div>
       </div>
 
-      <div id="cards-grid" class="grid grid-cols-1 gap-4 md:grid-cols-3"></div>
+      <div id="cards-grid"></div>
     </section>
 
-    <section id="sec-ai" class="relative mb-8">
-      <div class="mb-4 flex items-center gap-3">
-        <div class="font-['Cinzel_Decorative'] text-xl text-amber-300 drop-shadow-[0_0_10px_rgba(212,168,67,0.35)]">II</div>
+    <section id="sec-ai" class="rs-sec">
+      <div class="rs-sec-head">
+        <div class="rs-numeral">II</div>
         <div>
-          <h2 class="font-['Cinzel_Decorative'] text-lg tracking-[0.06em] text-amber-200 sm:text-xl">현자의 신탁</h2>
-          <p class="font-['Cormorant_Garamond'] text-base italic text-amber-200/65">질문과 형상을 종합한 개인화된 판결</p>
+          <h2 class="rs-sec-title">현자의 신탁</h2>
+          <p class="rs-sec-sub">질문과 형상을 종합한 개인화된 판결</p>
         </div>
-        <span class="h-px flex-1 bg-gradient-to-r from-amber-300/30 to-transparent"></span>
+        <span class="rs-hairline"></span>
       </div>
 
-      <div id="rs-ai" class="relative overflow-hidden rounded-2xl border border-amber-300/35 bg-gradient-to-br from-amber-300/10 via-[#120c05]/85 to-[#080503]/95 p-5 shadow-[0_12px_40px_rgba(0,0,0,0.55)] sm:p-7">
-        <div class="pointer-events-none absolute -left-20 -top-24 h-56 w-56 rounded-full bg-amber-300/10 blur-3xl"></div>
-        <div id="rs-ai-q" class="relative z-10 mb-4 flex items-center gap-3 font-['Cinzel'] text-[11px] uppercase tracking-[0.26em] text-amber-300/85">
+      <div id="rs-ai">
+        <div id="rs-ai-glow"></div>
+        <div id="rs-ai-q">
           <span>✦ 신탁의 답변</span>
-          <span class="h-px flex-1 bg-gradient-to-r from-amber-200/35 to-transparent"></span>
+          <span class="rs-hairline"></span>
         </div>
 
-        <div id="rs-ai-loading" class="relative z-10">
+        <div id="rs-ai-loading">
           <div class="ai-sp"></div><div class="ai-sp"></div><div class="ai-sp"></div>
-          <span class="ai-sp-lbl font-['Cinzel'] text-[11px] tracking-[0.2em] text-amber-200/60">현자가 운명의 실타래를 읽고 있습니다…</span>
+          <span class="ai-sp-lbl">현자가 운명의 실타래를 읽고 있습니다…</span>
         </div>
 
-        <div id="rs-ai-txt" class="relative z-10 min-h-[2.6em] whitespace-pre-wrap font-['Cormorant_Garamond'] text-[1.2rem] leading-[1.95] text-amber-50/95"></div>
+        <div id="rs-ai-txt"></div>
 
-        <div id="rs-advice" style="display:none;" class="relative z-10 mt-5 border-l-2 border-amber-300/40 pl-4">
-          <div id="rs-advice-txt" class="font-['Cormorant_Garamond'] text-lg italic leading-relaxed text-amber-300/90"></div>
+        <div id="rs-advice" style="display:none;">
+          <div id="rs-advice-txt"></div>
         </div>
       </div>
     </section>
 
-    <button id="rs-again" onclick="restartOracle()" class="group relative mx-auto inline-flex items-center justify-center gap-3 overflow-hidden rounded-xl border border-amber-300/50 bg-amber-300/10 px-7 py-3 font-['Cinzel'] text-xs uppercase tracking-[0.28em] text-amber-100 transition hover:bg-amber-300/20 hover:shadow-[0_0_34px_rgba(212,168,67,0.35)]">
+    <button id="rs-again" onclick="restartOracle()">
       <span>✦</span><span>새로운 질문을 올리다</span><span>✦</span>
-      <span class="pointer-events-none absolute -left-full top-0 h-full w-full bg-gradient-to-r from-transparent via-amber-200/20 to-transparent transition-all duration-700 group-hover:left-full"></span>
     </button>
   </div>
 </div>
@@ -1027,40 +1106,35 @@ function animateReveal(figs,chart){
 function buildFigCard(figRows,roleClass,roleIcon,roleName,roleDesc,interp){
   const fd=findFig(figRows);
   const card=document.createElement('div');
-  const toneByRole={
-    'card-past':'border-sky-300/35 from-sky-900/25 to-[#0f0904]/92',
-    'card-present':'border-amber-300/35 from-amber-900/25 to-[#0f0904]/92',
-    'card-judge':'border-yellow-300/60 from-yellow-900/35 to-[#140d05]/95'
-  };
-  card.className=`alc-card ${roleClass} group relative overflow-hidden rounded-2xl border bg-gradient-to-br p-0 shadow-[0_14px_36px_rgba(0,0,0,0.45)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)] ${toneByRole[roleClass]||'border-amber-300/30 from-[#1a1208] to-[#0b0703]'}`;
+  card.className=`alc-card ${roleClass}`;
 
   const topGlow=document.createElement('div');
-  topGlow.className='pointer-events-none absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-amber-200/70 to-transparent';
+  topGlow.className='rs-card-topglow';
   card.appendChild(topGlow);
 
   const badge=document.createElement('div');
-  badge.className='flex items-start gap-3 border-b border-amber-200/20 px-4 pb-3 pt-4';
-  badge.innerHTML=`<span class="text-xl leading-none text-amber-200/90">${roleIcon}</span>
+  badge.className='rs-card-badge';
+  badge.innerHTML=`<span class="rs-card-icon">${roleIcon}</span>
   <div>
-    <span class="block font-['Cinzel'] text-[11px] uppercase tracking-[0.24em] text-amber-200/85">${roleName}</span>
-    <span class="mt-1 block font-['Cormorant_Garamond'] text-sm italic leading-snug text-amber-100/70">${roleDesc}</span>
+    <span class="rs-card-role">${roleName}</span>
+    <span class="rs-card-roledesc">${roleDesc}</span>
   </div>`;
   card.appendChild(badge);
 
   const fig=document.createElement('div');
-  fig.className='px-4 pt-4 text-center';
+  fig.className='rs-fig';
   const dotsRow=document.createElement('div');
-  dotsRow.className='mb-4 flex justify-center gap-3';
+  dotsRow.className='rs-dots';
   figRows.forEach(val=>{
     const col=document.createElement('div');
-    col.className='flex min-h-[18px] items-center justify-center';
+    col.className='rs-dot-col';
     if(val===1){
       const d=document.createElement('span');
       d.className='cf-dot';
       col.appendChild(d);
     }else{
       const p=document.createElement('div');
-      p.className='flex items-center gap-1.5';
+      p.className='rs-dot-pair';
       [0,1].forEach(()=>{
         const d=document.createElement('span');
         d.className='cf-dot-dim';
@@ -1073,31 +1147,22 @@ function buildFigCard(figRows,roleClass,roleIcon,roleName,roleDesc,interp){
   fig.appendChild(dotsRow);
 
   const sigil=document.createElement('span');
-  sigil.className=roleClass==='card-judge'
-    ? 'mb-2 block text-4xl text-amber-200 drop-shadow-[0_0_16px_rgba(212,168,67,0.6)]'
-    : 'mb-2 block text-3xl text-amber-300 drop-shadow-[0_0_12px_rgba(212,168,67,0.45)]';
+  sigil.className=roleClass==='card-judge' ? 'rs-sigil is-judge' : 'rs-sigil';
   sigil.textContent=fd?fd.sig:'?';
 
   const nm=document.createElement('div');
-  nm.className=roleClass==='card-judge'
-    ? "mb-1 font-['Cinzel_Decorative'] text-lg tracking-[0.05em] text-amber-100"
-    : "mb-1 font-['Cinzel_Decorative'] text-base tracking-[0.05em] text-amber-200";
+  nm.className=roleClass==='card-judge' ? 'rs-name is-judge' : 'rs-name';
   nm.textContent=fd?fd.nm||fd.en:'Unknown';
 
   const el=document.createElement('div');
-  el.className="font-['Cinzel'] text-[10px] uppercase tracking-[0.24em] text-amber-300/65";
+  el.className='rs-el';
   el.textContent=(fd?fd.el:'')+(fd?` · ${fd.ar}`:'');
   fig.append(sigil,nm,el);
   card.appendChild(fig);
 
   const itp=document.createElement('div');
-  itp.className='px-4 pb-5 pt-3';
-  const itxt=document.createElement('div');
-  itxt.className=roleClass==='card-judge'
-    ? "font-['Cormorant_Garamond'] text-[1.08rem] leading-8 text-amber-50/95"
-    : "font-['Cormorant_Garamond'] text-[1.02rem] leading-8 text-amber-100/85";
-  itxt.textContent=interp.m;
-  itp.appendChild(itxt);
+  itp.className=roleClass==='card-judge' ? 'rs-interp is-judge' : 'rs-interp';
+  itp.textContent=interp.m;
   card.appendChild(itp);
 
   return card;

@@ -1406,6 +1406,7 @@ function renderReportDashboard() {
         targetEl.style.display = '';
       }
       slot.appendChild(targetEl);
+      _sajuFunForceRevealFateScroll(targetEl);
     }
   });
 
@@ -1433,6 +1434,7 @@ function renderReportDashboard() {
         if (targetEl.style.display === 'none') targetEl.style.display = '';
         slot.innerHTML = '';
         slot.appendChild(targetEl);
+        _sajuFunForceRevealFateScroll(targetEl);
         return false;
       });
 
@@ -1443,6 +1445,23 @@ function renderReportDashboard() {
 
     setTimeout(retryAttach, 220);
   }
+}
+
+/* 대시보드 슬롯으로 이동된 콘텐츠 섹션은 스크롤 등장(fate-scroll) 숨김이 부적절하다.
+   접힌 토글 안에서는 IntersectionObserver 리빌이 불안정해 opacity:0으로 남으므로 강제 해제한다. */
+function _sajuFunForceRevealFateScroll(root) {
+  if (!root || !root.classList) return;
+  var nodes = [root];
+  if (root.querySelectorAll) {
+    var hidden = root.querySelectorAll('.fate-scroll-section-hidden');
+    for (var i = 0; i < hidden.length; i++) nodes.push(hidden[i]);
+  }
+  nodes.forEach(function (el) {
+    if (el.classList && el.classList.contains('fate-scroll-section-hidden')) {
+      el.classList.remove('fate-scroll-section-hidden');
+      el.classList.add('fate-scroll-section-visible');
+    }
+  });
 }
 
 function syncReportBlockHeight(block) {
@@ -1516,6 +1535,7 @@ function toggleReportFeatureCard(btn) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
       _sajuFunEnsureHealthReportBlockReady(block);
+      _sajuFunForceRevealFateScroll(block);
       _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);
     } else {
