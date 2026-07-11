@@ -1,7 +1,6 @@
 /**
  * 자기 기준 회복 타로 — 5-Card Self-Trust Spread
- * API: POST /api/tarot/draw (spreadType: self_esteem_levelup_five_card)
- *      POST /api/tarot/reading (category: general, spreadType: self_esteem_levelup_five_card, cards)
+ * 무료 기능: 드로우와 리딩 모두 클라이언트 로컬에서 생성 (서버 API·인증·결제 게이트 미사용)
  */
 (function () {
   "use strict";
@@ -24,7 +23,7 @@
     "다섯 번째 카드를 열고, 오늘 다시 붙잡을 기준을 만나 주세요.",
   ];
 
-  /* Client-side fallback deck (78 cards) when API is unavailable */
+  /* Client-side deck (78 cards) — 이 기능의 유일한 드로우 소스 */
   var FALLBACK_DECK = (function () {
     var majors = [
       ["M00", "The Fool", "바보"], ["M01", "The Magician", "마법사"], ["M02", "The High Priestess", "여사제"],
@@ -51,7 +50,6 @@
   })();
 
   var state = { cards: [], revealedCount: 0, reading: null };
-  var TAROT_API_TIMEOUT_MS = 12000;
   var TAROT_SELF_ESTEEM_COPY_BY_LOCALE = {
     ko: {
       positions: {
@@ -386,24 +384,6 @@
     return "";
   }
 
-  function createTarotApiError(message, details) {
-    var err = new Error(message);
-    if (details && typeof details === "object") {
-      Object.keys(details).forEach(function (key) {
-        err[key] = details[key];
-      });
-    }
-    return err;
-  }
-
-  function logTarotApiError(stage, details, error) {
-    var safeDetails = details || {};
-    console.error("[Tarot API Debug] " + stage, safeDetails, error);
-    if (error && error.responseBody) {
-      console.error("[Tarot API Debug] responseBody:", error.responseBody);
-    }
-  }
-
   function getTarotApiBase() {
     var runtimeBase = getRuntimeEnvApiBase();
     if (runtimeBase) return runtimeBase;
@@ -423,155 +403,6 @@
       if (host.endsWith(".pages.dev")) return "https://code-destiny.com";
     }
     return "https://code-destiny.com";
-  }
-
-  function buildTarotApiBaseCandidates() {
-    var out = [];
-    var seen = Object.create(null);
-    function add(raw) {
-      var normalized = String(raw || "").trim();
-      if (!normalized) normalized = "";
-      else normalized = normalized.replace(/\/+$/, "");
-      if (seen[normalized]) return;
-      seen[normalized] = true;
-      out.push(normalized);
-    }
-
-    // Always try same-origin API first (Cloudflare Pages/OpenNext safe path).
-    add("");
-    if (typeof window !== "undefined") {
-      var sameOrigin = String(location.origin || "").replace(/\/+$/, "");
-      if (sameOrigin) add(sameOrigin);
-    }
-
-    add(getRuntimeEnvApiBase());
-    add(getTarotApiBase());
-
-    if (typeof window !== "undefined") {
-      var host = String(location.hostname || "").toLowerCase();
-      if (host === "localhost" || host === "127.0.0.1") {
-        add("http://localhost:3000");
-        add("http://localhost:4000");
-      }
-      if (host !== "code-destiny.com" && host !== "www.code-destiny.com") add("https://code-destiny.com");
-    } else {
-      add("http://localhost:3000");
-      add("http://localhost:4000");
-    }
-
-    return out;
-  }
-
-  function postJsonWithTimeout(url, body) {
-    var supportsAbort = typeof AbortController === "function";
-    if (!supportsAbort) {
-      return Promise.race([
-        fetch(url, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: body,
-          cache: "no-store",
-        }),
-        new Promise(function (_, reject) {
-          setTimeout(function () { reject(new Error("Tarot API timeout")); }, TAROT_API_TIMEOUT_MS);
-        }),
-      ]);
-    }
-    var controller = new AbortController();
-    var timeoutId = setTimeout(function () { controller.abort(); }, TAROT_API_TIMEOUT_MS);
-    return fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: body,
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .catch(function (error) {
-        if (error && error.name === "AbortError") throw new Error("Tarot API timeout");
-        throw error;
-      })
-      .finally(function () { clearTimeout(timeoutId); });
-  }
-
-  function callTarotApi(endpoint, payload) {
-    var bases = buildTarotApiBaseCandidates();
-    var body = JSON.stringify(payload || {});
-    var index = 0;
-    var lastError = null;
-
-    function requestWithBase(base) {
-      var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
-      var requestDebug = {
-        endpoint: endpoint,
-        base: base || "(relative)",
-        url: url,
-        payload: payload || {},
-      };
-      return postJsonWithTimeout(url, body)
-        .then(function (res) {
-          if (!res.ok) {
-            return res.text().catch(function () { return ""; }).then(function (rawBody) {
-              throw createTarotApiError("Tarot API HTTP error: " + res.status, {
-                status: res.status,
-                statusText: res.statusText,
-                endpoint: endpoint,
-                base: base || "",
-                url: url,
-                responseBody: String(rawBody || "").slice(0, 500),
-              });
-            });
-          }
-          return res.json().catch(function (parseError) {
-            throw createTarotApiError("Tarot API JSON parse error", {
-              endpoint: endpoint,
-              base: base || "",
-              url: url,
-              parseError: parseError && parseError.message ? parseError.message : String(parseError || ""),
-            });
-          });
-        })
-        .then(function (data) {
-          if (!data || data.ok === false) {
-            throw createTarotApiError("Invalid API response", {
-              endpoint: endpoint,
-              base: base || "",
-              url: url,
-              responseData: data,
-            });
-          }
-          return data;
-        })
-        .catch(function (error) {
-          logTarotApiError("request_failed", requestDebug, error);
-          throw error;
-        });
-    }
-
-    function tryNext() {
-      if (index >= bases.length) {
-        throw lastError || new Error("Tarot API request failed");
-      }
-      var base = bases[index++];
-      return requestWithBase(base).catch(function (error) {
-        lastError = error;
-        if (index < bases.length) {
-          console.error("[Tarot API Debug] retry_next_base", {
-            endpoint: endpoint,
-            failedBase: base || "(relative)",
-            nextBase: bases[index] || "(relative)",
-          });
-        }
-        return tryNext();
-      });
-    }
-
-    return tryNext().catch(function (error) {
-      logTarotApiError("all_candidates_failed", {
-        endpoint: endpoint,
-        baseCandidates: bases,
-      }, error);
-      throw error;
-    });
   }
 
   function normalizeTarotShortName(cardName) {
@@ -898,17 +729,8 @@
     var panel = document.querySelector(".tarot-self-esteem-panel");
     if (panel) panel.classList.add("ritual-burst");
 
-    callTarotApi("draw", { spreadType: "self_esteem_levelup_five_card" })
-      .then(function (data) {
-        if (!data.cards || data.cards.length !== 5) throw new Error("Invalid draw");
-        applyCardsAndShowDrawStage(data.cards);
-      })
-      .catch(function (err) {
-        console.warn("Tarot Self-Esteem API fallback:", err);
-        if (panel) panel.classList.remove("ritual-burst");
-        var fallback = drawFallbackCards();
-        applyCardsAndShowDrawStage(fallback);
-      });
+    /* 무료 기능: 서버 드로우와 확률 분포가 동일하므로 네트워크 왕복 없이 로컬 덱에서 즉시 뽑는다 */
+    applyCardsAndShowDrawStage(drawFallbackCards());
   }
 
   function renderTarotSelfEsteemCards() {
@@ -1064,31 +886,8 @@
   }
 
   function buildFallbackReading() {
-    return buildLocalizedFallbackReading();
-    var r = {
-      opening: "다섯 장의 카드는 눈치 보기의 뿌리와 마음을 지키는 기준을 차례로 비춥니다. 어두운 터널 끝의 작은 빛처럼, 지금의 마음이 다시 자기 편으로 돌아오는 길을 보여드립니다.",
-      pastDebuff: "",
-      innerMonster: "",
-      currentDamage: "",
-      mindShield: "",
-      levelupMastery: "",
-      positionInsights: [],
-    };
-    state.cards.forEach(function (c) {
-      var label = POSITION_LABELS[c.position] || "";
-      var cardLabel = (c.nameKr || c.name) + (c.orientation === "reversed" ? " (역)" : "");
-      var interp = getClientInterpretation(c, c.orientation || "upright", "general");
-      var msg = buildProfessionalPositionMessage(c.position, c, interp);
-      r.positionInsights.push({ title: label, cardLabel: cardLabel, subtitle: label, message: msg, keywords: [] });
-      if (c.position === "past_debuff") r.pastDebuff = msg;
-      else if (c.position === "inner_monster") r.innerMonster = msg;
-      else if (c.position === "current_damage") r.currentDamage = msg;
-      else if (c.position === "mind_shield") r.mindShield = msg;
-      else if (c.position === "levelup_mastery") r.levelupMastery = msg;
-    });
-    r.levelupGuidance = "✨ 다섯 장의 카드가 모두 열렸습니다. 당신의 자존감은 거창한 결심보다 작은 선택을 지킬 때 단단해집니다. 오늘 얻은 통찰을 하나의 행동으로 옮기며, 마음의 기준을 천천히 회복해 보세요.";
-    r.actionPlan = ["오늘 하루 'NO'라고 말해도 괜찮은 상황 한 가지를 찾아 실행해 보세요.", "타인의 시선 대신 '내가 진짜 원하는 것'을 한 문장으로 적어보세요.", "눈치 보느라 참았던 감정이 있다면, 안전한 사람에게 한 번 말해 보세요.", "매일 아침 거울을 보며 '나는 충분히 가치 있어'라고 3번 말해 보세요.", "이 리딩에서 가장 마음에 와닿은 카드 한 장의 메시지를 메모해 두고, 힘들 때 꺼내 읽어 보세요."];
-    return r;
+    /* positionReadings까지 채워야 결과 화면에 카드별 해석이 렌더된다 (빈 positionInsights만 돌려주면 결과가 비어 보임) */
+    return completeSelfEsteemReadingPayload(buildLocalizedFallbackReading(), state.cards);
   }
 
   function cleanReadingText(value) {
@@ -1111,7 +910,8 @@
   }
 
   function buildPositionFields(pos, card, item, idx) {
-    return buildLocalizedPositionFields(pos, card, item, idx);
+    /* 한국어는 아래 포지션별 심층 템플릿을 사용, 그 외 로케일은 공용 로컬라이즈 경로 사용 */
+    if (tarotSelfEsteemCurrentLang() !== "ko") return buildLocalizedPositionFields(pos, card, item, idx);
     var source = cleanReadingText(
       (item && (item.easyAnswer || item.whyThisHappens || item.recoveryReframe || item.selfEsteemImpact || item.message || item.interpretation)) || ""
     );
@@ -1265,177 +1065,15 @@
     });
   }
 
-  function normalizeSelfEsteemReadingPayload(reading, cards) {
-    var src = reading || {};
-    if (Array.isArray(src.positionReadings) && src.positionReadings.length) {
-      return completeSelfEsteemReadingPayload(Object.assign({}, src, {
-        positionReadings: src.positionReadings.map(function (item, idx) {
-          return Object.assign({}, item, {
-            positionIndex: Number(item && item.positionIndex ? item.positionIndex : idx + 1),
-            positionKey: String(item && item.positionKey || (cards[idx] && cards[idx].position) || "").trim(),
-            positionTitle: String(item && item.positionTitle || tarotSelfEsteemPositionLabel((cards[idx] && cards[idx].position) || "", idx) || "").trim(),
-          });
-        }),
-        topSummary: src.topSummary && typeof src.topSummary === "object" ? src.topSummary : {},
-        levelupGuide: src.levelupGuide && typeof src.levelupGuide === "object" ? src.levelupGuide : {},
-        levelupQuests: Array.isArray(src.levelupQuests) ? src.levelupQuests : [],
-        opening: String(src.opening || "").trim(),
-      }), cards);
-    }
-    if (
-      src.pastDebuff ||
-      src.innerMonster ||
-      src.currentDamage ||
-      src.mindShield ||
-      src.levelupMastery ||
-      (Array.isArray(src.positionInsights) && src.positionInsights.length)
-    ) {
-      return completeSelfEsteemReadingPayload(src, cards);
-    }
-
-    var byPos = Object.create(null);
-    (Array.isArray(cards) ? cards : []).forEach(function (c) {
-      if (c && c.position) byPos[c.position] = c;
-    });
-
-    var narratives = Array.isArray(src.cardNarratives) ? src.cardNarratives : [];
-    var titleMap = {
-      past_debuff: tarotSelfEsteemPositionLabel("past_debuff"),
-      inner_monster: tarotSelfEsteemPositionLabel("inner_monster"),
-      current_damage: tarotSelfEsteemPositionLabel("current_damage"),
-      mind_shield: tarotSelfEsteemPositionLabel("mind_shield"),
-      levelup_mastery: tarotSelfEsteemPositionLabel("levelup_mastery"),
-    };
-
-    var out = {
-      opening: src.story || tarotSelfEsteemText("fallbackOpening"),
-      pastDebuff: "",
-      innerMonster: "",
-      currentDamage: "",
-      mindShield: "",
-      levelupMastery: "",
-      levelupGuidance: src.advice || "",
-      positionInsights: [],
-      actionPlan: [],
-    };
-
-    narratives.forEach(function (n) {
-      var pos = n && n.position;
-      if (!pos || !titleMap[pos]) return;
-      var c = byPos[pos] || {};
-      var cardLabel = (c.nameKr || c.name || n.cardId || "") + (c.orientation === "reversed" ? " (" + tarotSelfEsteemOrientationLabel("reversed") + ")" : "");
-      var msg = buildProfessionalPositionMessage(pos, c, String((n && n.interpretation) || "").trim());
-      if (!msg) return;
-      out.positionInsights.push({
-        position: pos,
-        title: titleMap[pos],
-        subtitle: titleMap[pos],
-        cardLabel: cardLabel,
-        message: msg,
-        keywords: [],
-      });
-      if (pos === "past_debuff") out.pastDebuff = msg;
-      else if (pos === "inner_monster") out.innerMonster = msg;
-      else if (pos === "current_damage") out.currentDamage = msg;
-      else if (pos === "mind_shield") out.mindShield = msg;
-      else if (pos === "levelup_mastery") out.levelupMastery = msg;
-    });
-
-    if (!out.positionInsights.length && !out.levelupGuidance && !out.opening) {
-      return buildFallbackReading();
-    }
-    if (!out.levelupGuidance) {
-      out.levelupGuidance = tarotSelfEsteemText("fallbackGuidance");
-    }
-    if (!out.actionPlan.length) {
-      out.actionPlan = [tarotSelfEsteemText("fallbackActionOne"), tarotSelfEsteemText("fallbackActionTwo")];
-    }
-    out.topSummary = {
-      flowLine: String(out.levelupGuidance || out.opening || tarotSelfEsteemText("fiveCardFlow")),
-      corePattern: String(out.pastDebuff || tarotSelfEsteemText("corePatternField")),
-      rootCause: String(out.opening || tarotSelfEsteemText("rootCauseField")),
-      mainDamage: String(out.currentDamage || tarotSelfEsteemText("mainDamageField")),
-      recoveryKey: tarotSelfEsteemText("recoveryKeyField"),
-      automaticThought: String(out.innerMonster || tarotSelfEsteemText("automaticThoughtField")),
-      todayAction: String(out.actionPlan[0] || tarotSelfEsteemText("fallbackActionOne")),
-    };
-    out.levelupGuide = {
-      flow: String(out.levelupGuidance || out.opening || tarotSelfEsteemText("fallbackGuidance")),
-      rootPattern: String(out.pastDebuff || tarotSelfEsteemText("rootPatternField")),
-      woundStory: String(out.currentDamage || tarotSelfEsteemText("woundStoryField")),
-      recoveryPath: String(out.mindShield || tarotSelfEsteemText("recoveryPathField")),
-      boundaryPractice: String(out.levelupMastery || tarotSelfEsteemText("boundaryPracticeField")),
-      sevenDayQuest: [
-        tarotSelfEsteemText("fallbackActionOne"),
-        tarotSelfEsteemText("fallbackActionTwo"),
-        tarotSelfEsteemText("fallbackActionThree"),
-        tarotSelfEsteemText("fallbackActionFour"),
-        tarotSelfEsteemText("fallbackActionFive"),
-      ],
-      practiceSentence: tarotSelfEsteemText("fallbackActionOne"),
-    };
-    out.positionReadings = (Array.isArray(out.positionInsights) ? out.positionInsights : []).map(function (item, idx) {
-      return {
-        positionIndex: idx + 1,
-        positionKey: String(item.position || item.key || POSITION_ORDER[idx] || `position_${idx + 1}`),
-        positionTitle: String(item.title || item.subtitle || tarotSelfEsteemPositionLabel(item.position, idx)),
-        question: String(item.question || ""),
-        cardName: String(item.cardLabel || ""),
-        cardNameEn: String(item.cardLabel || ""),
-        cardCode: "",
-        orientation: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? "reversed" : "upright",
-        orientationLabel: /\(역\)|역방향/.test(String(item.cardLabel || "")) ? tarotSelfEsteemOrientationLabel("reversed") : tarotSelfEsteemOrientationLabel("upright"),
-        keywords: Array.isArray(item.keywords) ? item.keywords.slice(0, 5) : [],
-        easyAnswer: String(item.message || ""),
-        whyThisHappens: String(item.message || ""),
-        realLifeExample: String(item.message || ""),
-        woundPattern: String(item.message || ""),
-        selfEsteemImpact: String(item.message || ""),
-        recoveryReframe: String(item.message || ""),
-        actionPractice: String(item.message || ""),
-        caution: String(item.message || ""),
-        innerSentence: String(item.message || ""),
-        healingSentence: String(item.message || ""),
-        cardMeaning: String(item.message || ""),
-        patternAnalysis: String(item.message || ""),
-        recoveryAdvice: String(item.message || ""),
-        interpretation: String(item.message || ""),
-        advice: String(item.message || ""),
-        todayAction: String(item.message || ""),
-      };
-    });
-    return completeSelfEsteemReadingPayload(out, cards);
-  }
-
   function showTarotSelfEsteemFinalReading() {
     if (state.revealedCount < 5 || !state.cards.length) return;
-    var drawnForApi = state.cards.map(function (c) {
-      return { cardId: c.cardId || c.id, position: c.position, orientation: c.orientation };
-    });
-
-    callTarotApi("reading", {
-      category: "general",
-      spreadType: "self_esteem_levelup_five_card",
-      cards: drawnForApi,
-    })
-      .then(function (data) {
-        if (!data.reading) throw new Error("No reading data");
-        state.reading = normalizeSelfEsteemReadingPayload(data.reading, state.cards);
-        var draw = byId("tarotSelfEsteemDrawStage");
-        var result = byId("tarotSelfEsteemResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        renderTarotSelfEsteemResult();
-      })
-      .catch(function (err) {
-        console.warn("Tarot Self-Esteem reading fallback:", err);
-        state.reading = buildFallbackReading();
-        var draw = byId("tarotSelfEsteemDrawStage");
-        var result = byId("tarotSelfEsteemResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-        renderTarotSelfEsteemResult();
-      });
+    /* 무료 기능: 인증이 강제되는 /api/tarot/reading 대신 로컬 결정적 리딩으로 즉시 결과 표시 */
+    state.reading = buildFallbackReading();
+    var draw = byId("tarotSelfEsteemDrawStage");
+    var result = byId("tarotSelfEsteemResultStage");
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.add("is-active");
+    renderTarotSelfEsteemResult();
   }
 
   function escapeHtml(s) {

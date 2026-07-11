@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -680,11 +680,12 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
 async function createOrReusePaymentPayload({ env, auth, user, pricing, idempotencyKey, inputHash }) {
   const config = getPortOnePublicConfig(env || {});
 
-  const existing = await Payment.findOne({
+  // 결제 read만 재시도 — Payment.create(쓰기)는 이중결제 위험으로 래핑하지 않는다.
+  const existing = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     idempotencyKey,
     paymentType: "digital_content",
-  }).sort({ createdAt: -1 }).lean();
+  }).sort({ createdAt: -1 }).lean());
 
   if (existing) {
     if (clean(existing.featureKey) !== FEATURE_KEY || clean(existing?.pricingSnapshot?.inputHash) !== inputHash) {
@@ -761,13 +762,13 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   const normalizedPaymentId = clean(paymentId, 160);
   if (!normalizedPaymentId) return { ok: false };
 
-  const order = await Payment.findOne({
+  const order = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     merchantUid: normalizedPaymentId,
     featureKey: FEATURE_KEY,
     paymentType: "digital_content",
     accessType: "single_purchase",
-  }).lean();
+  }).lean());
   if (!order) return { ok: false };
   if (clean(order?.pricingSnapshot?.inputHash) !== inputHash || clean(order.idempotencyKey) !== idempotencyKey) return { ok: false };
 
@@ -1918,6 +1919,15 @@ export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[ziwei-ai]", clean(error?.code || error?.message || error, 500));
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }

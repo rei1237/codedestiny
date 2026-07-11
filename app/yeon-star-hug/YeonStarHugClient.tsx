@@ -1493,53 +1493,60 @@ function buildHeartCardSvg(
   oneLineMessage: string
 ) {
   const dateLabel = `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(2, "0")}.${String(date.getDate()).padStart(2, "0")}`;
-  const mainSize = 146;
-  const subSize = 118;
+
+  // 부적 상단 중앙에 놓일 단 하나의 연이 이미지(수호 메달) 좌표 계산
+  const medallionSize = 180;
+  const medallionCx = 540;
+  const medallionCy = 424;
+  const medallionScale = medallionSize / SPRITE_CELL_SIZE;
   const mainCellX = (spriteFrame % SPRITE_GRID_COLS) * SPRITE_CELL_SIZE;
   const mainCellY = Math.floor(spriteFrame / SPRITE_GRID_COLS) * SPRITE_CELL_SIZE;
-  const mainScale = mainSize / SPRITE_CELL_SIZE;
-  const subScale = subSize / SPRITE_CELL_SIZE;
-  const mainSpriteX = 830 - mainCellX * mainScale;
-  const mainSpriteY = 152 - mainCellY * mainScale;
-  const subSpriteX = 842 - mainCellX * subScale;
-  const subSpriteY = 1180 - mainCellY * subScale;
+  const medallionSpriteX = medallionCx - medallionSize / 2 - mainCellX * medallionScale;
+  const medallionSpriteY = medallionCy - medallionSize / 2 - mainCellY * medallionScale;
+
   const safeOneLineMessage = sanitizeYeonHeartStarText(oneLineMessage);
   const safeLuckyItem = sanitizeYeonHeartStarText(consultation.luckyItem);
-  const safeConcernKeywords = consultation.concernKeywords.map((keyword) => sanitizeYeonHeartStarText(keyword));
-  const messageLines = wrapByLength(safeOneLineMessage, 24).slice(0, 3);
-  const messageText = messageLines
+  const heartSymbol = pickHeartSymbols(consultation, emotionKey)[0];
+
+  // 축복 문구는 짧게 두 줄까지만 중앙 정렬
+  const blessingLines = wrapByLength(safeOneLineMessage, 18).slice(0, 2);
+  const blessingText = blessingLines
     .map((line, index) => {
-      const y = 612 + index * 74;
-      return `<text x="128" y="${y}" fill="#374151" font-size="48" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(line)}</text>`;
+      const y = 1000 + index * 58;
+      return `<text x="540" y="${y}" text-anchor="middle" fill="#4b2f3b" font-size="42" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(line)}</text>`;
     })
     .join("");
 
-  const heartSymbol = pickHeartSymbols(consultation, emotionKey)[0];
-  const keywordLine = safeConcernKeywords.length > 0
-    ? safeConcernKeywords.join(", ")
-    : "감정 중심 리딩";
+  // 중앙 행운 상징 글리프를 부적 코어 크기로 확대(혜성은 꼬리가 있어 좌측으로 살짝 보정)
+  const emblemShiftX = heartSymbol.id === "comet" ? -42 : 0;
+  const symbolEmblem = `<g transform="translate(${540 + emblemShiftX} 720) scale(2.0)">${renderHeartSymbolGlyph(heartSymbol.id, 0, 0)}</g>`;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="${yeonStarHugText("yeonStar.aria-label.001")}">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ffe8f5"/>
-      <stop offset="50%" stop-color="#f2e8ff"/>
-      <stop offset="100%" stop-color="#fff5de"/>
+      <stop offset="0%" stop-color="#fff3f8"/>
+      <stop offset="52%" stop-color="#fff8f0"/>
+      <stop offset="100%" stop-color="#fff2d6"/>
     </linearGradient>
     <linearGradient id="goldBorder" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f9d98c"/>
-      <stop offset="45%" stop-color="#ffd8ef"/>
-      <stop offset="100%" stop-color="#f7c873"/>
+      <stop offset="0%" stop-color="#f6d68a"/>
+      <stop offset="50%" stop-color="#ead089"/>
+      <stop offset="100%" stop-color="#dfb15c"/>
     </linearGradient>
     <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.94"/>
-      <stop offset="100%" stop-color="#fff7fd" stop-opacity="0.9"/>
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#fff7fb" stop-opacity="0.92"/>
     </linearGradient>
     <linearGradient id="chip" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#fb7185"/>
       <stop offset="100%" stop-color="#f472b6"/>
     </linearGradient>
+    <radialGradient id="aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff6d8" stop-opacity="0.95"/>
+      <stop offset="68%" stop-color="#ffeccb" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#ffeccb" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="symbolLeaf" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#86efac"/>
       <stop offset="100%" stop-color="#22c55e"/>
@@ -1567,64 +1574,53 @@ function buildHeartCardSvg(
     <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
       <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#f9a8d4" flood-opacity="0.35"/>
     </filter>
-    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#f5d0fe" flood-opacity="0.65"/>
-    </filter>
     <filter id="symbolGlow" x="-40%" y="-40%" width="180%" height="180%">
       <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#fda4af" flood-opacity="0.45"/>
     </filter>
-    <clipPath id="yeonMainClip">
-      <rect x="830" y="152" width="146" height="146" rx="32"/>
-    </clipPath>
-    <clipPath id="yeonSubClip">
-      <rect x="842" y="1180" width="118" height="118" rx="26"/>
+    <clipPath id="yeonMedallionClip">
+      <circle cx="${medallionCx}" cy="${medallionCy}" r="90"/>
     </clipPath>
   </defs>
 
   <rect width="1080" height="1350" fill="url(#bg)" rx="48"/>
-  <rect x="28" y="28" width="1024" height="1294" rx="44" fill="none" stroke="url(#goldBorder)" stroke-width="3"/>
-  <circle cx="940" cy="120" r="120" fill="#ffffff" fill-opacity="0.35" filter="url(#glow)"/>
-  <circle cx="160" cy="1180" r="180" fill="#fff7d6" fill-opacity="0.62"/>
-
   <g filter="url(#soft)">
-    <rect x="54" y="54" width="972" height="1242" rx="40" fill="url(#panel)"/>
+    <rect x="60" y="60" width="960" height="1230" rx="40" fill="url(#panel)"/>
+  </g>
+  <rect x="40" y="40" width="1000" height="1270" rx="42" fill="none" stroke="url(#goldBorder)" stroke-width="5"/>
+  <rect x="62" y="62" width="956" height="1226" rx="34" fill="none" stroke="#e9c987" stroke-opacity="0.55" stroke-width="2"/>
+
+  <polygon points="${buildStarPoints(122, 124, 13, 5)}" fill="url(#goldBorder)" opacity="0.9"/>
+  <polygon points="${buildStarPoints(958, 124, 13, 5)}" fill="url(#goldBorder)" opacity="0.9"/>
+  <polygon points="${buildStarPoints(122, 1226, 13, 5)}" fill="url(#goldBorder)" opacity="0.9"/>
+  <polygon points="${buildStarPoints(958, 1226, 13, 5)}" fill="url(#goldBorder)" opacity="0.9"/>
+
+  <rect x="360" y="112" width="360" height="52" rx="26" fill="#ffffff" stroke="#f4c8dc"/>
+  <text x="540" y="146" text-anchor="middle" fill="#db2777" font-size="25" letter-spacing="4" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.001")}</text>
+
+  <text x="540" y="238" text-anchor="middle" fill="#e0396a" font-size="62" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">${yeonStarHugText("yeonStar.text.002")}</text>
+  <text x="540" y="288" text-anchor="middle" fill="#8a6472" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(consultation.sign)} · ${escapeXml(emotionLabel)}</text>
+
+  <circle cx="${medallionCx}" cy="${medallionCy}" r="106" fill="url(#aura)"/>
+  <circle cx="${medallionCx}" cy="${medallionCy}" r="96" fill="#fff7fb" stroke="url(#goldBorder)" stroke-width="5"/>
+  <g clip-path="url(#yeonMedallionClip)">
+    <image href="${SPRITE_SHEET}" x="${medallionSpriteX}" y="${medallionSpriteY}" width="${SPRITE_IMAGE_WIDTH * medallionScale}" height="${SPRITE_IMAGE_HEIGHT * medallionScale}" preserveAspectRatio="none"/>
   </g>
 
-  <rect x="86" y="92" width="388" height="58" rx="29" fill="#ffffff"/>
-  <text x="118" y="128" fill="#ec4899" font-size="29" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.001")}</text>
+  <circle cx="540" cy="720" r="152" fill="url(#aura)"/>
+  <circle cx="540" cy="720" r="120" fill="#fffdf6" stroke="#efd58a" stroke-width="3"/>
+  <polygon points="${buildStarPoints(392, 638, 11, 4)}" fill="#f6c76a" opacity="0.85"/>
+  <polygon points="${buildStarPoints(690, 660, 9, 3)}" fill="#f6c76a" opacity="0.75"/>
+  <polygon points="${buildStarPoints(410, 806, 8, 3)}" fill="#f6c76a" opacity="0.7"/>
+  <polygon points="${buildStarPoints(676, 792, 11, 4)}" fill="#f6c76a" opacity="0.8"/>
+  ${symbolEmblem}
+  <text x="540" y="936" text-anchor="middle" fill="#be185d" font-size="46" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">${escapeXml(heartSymbol.name)}</text>
 
-  <text x="86" y="214" fill="#f43f5e" font-size="66" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="800">${yeonStarHugText("yeonStar.text.002")}</text>
-  <text x="86" y="268" fill="#6b7280" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(dateLabel)} · ${escapeXml(consultation.sign)} · ${escapeXml(emotionLabel)}</text>
+  ${blessingText}
 
-  <rect x="830" y="152" width="146" height="146" rx="32" fill="#fff7fb" stroke="#f9a8d4"/>
-  <g clip-path="url(#yeonMainClip)">
-    <image href="${SPRITE_SHEET}" x="${mainSpriteX}" y="${mainSpriteY}" width="${SPRITE_IMAGE_WIDTH * mainScale}" height="${SPRITE_IMAGE_HEIGHT * mainScale}" preserveAspectRatio="none"/>
-  </g>
-  <text x="830" y="328" fill="#db2777" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.003")}</text>
+  <rect x="180" y="1116" width="720" height="80" rx="40" fill="url(#chip)"/>
+  <text x="540" y="1166" text-anchor="middle" fill="#ffffff" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템 · ${escapeXml(safeLuckyItem)}</text>
 
-  <rect x="86" y="336" width="908" height="446" rx="30" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="124" y="404" fill="#be185d" font-size="33" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.004")}</text>
-  ${messageText}
-
-  <rect x="86" y="814" width="908" height="266" rx="30" fill="#ffffff" stroke="#f9a8d4"/>
-  <text x="124" y="878" fill="#db2777" font-size="31" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.005")}</text>
-  <circle cx="222" cy="952" r="72" fill="#fffdf6" stroke="#fde68a"/>
-  ${renderHeartSymbolGlyph(heartSymbol.id, 222, 952)}
-  <text x="324" y="930" fill="#be185d" font-size="35" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${escapeXml(heartSymbol.name)}</text>
-  <text x="324" y="978" fill="#4b5563" font-size="30" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${escapeXml(heartSymbol.whisper)}</text>
-  <text x="324" y="1022" fill="#7c3aed" font-size="27" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">키워드: ${escapeXml(keywordLine)}</text>
-
-  <rect x="86" y="1100" width="908" height="80" rx="22" fill="url(#chip)"/>
-  <text x="128" y="1152" fill="#ffffff" font-size="32" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">오늘의 오라 아이템: ${escapeXml(safeLuckyItem)}</text>
-
-  <rect x="86" y="1190" width="908" height="102" rx="24" fill="#fff7fb" stroke="#fbcfe8"/>
-  <text x="126" y="1240" fill="#be185d" font-size="28" font-family="Pretendard, Apple SD Gothic Neo, sans-serif" font-weight="700">${yeonStarHugText("yeonStar.text.006")}</text>
-  <text x="126" y="1272" fill="#6b7280" font-size="24" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${yeonStarHugText("yeonStar.text.007")}</text>
-
-  <rect x="842" y="1180" width="118" height="118" rx="26" fill="#ffffff" fill-opacity="0.5" stroke="#f9a8d4"/>
-  <g clip-path="url(#yeonSubClip)">
-    <image href="${SPRITE_SHEET}" x="${subSpriteX}" y="${subSpriteY}" width="${SPRITE_IMAGE_WIDTH * subScale}" height="${SPRITE_IMAGE_HEIGHT * subScale}" preserveAspectRatio="none"/>
-  </g>
+  <text x="540" y="1256" text-anchor="middle" fill="#a9748c" font-size="22" font-family="Pretendard, Apple SD Gothic Neo, sans-serif">${yeonStarHugText("yeonStar.text.007")}</text>
 </svg>
 `.trim();
 }

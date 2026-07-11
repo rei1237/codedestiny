@@ -15,7 +15,7 @@ import PalmLineOverlay, {
 } from "@/app/palm-reading/PalmLineOverlay";
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
-import { openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 const PALM_DESTINY_TEXT_TRANSLATIONS = {
@@ -1930,9 +1930,6 @@ export default function PalmDestinyMain() {
     const initialPurpose = activeAnalysisPurpose;
     const initialSubFeatureKey = PALM_BILLING_SUB_FEATURE_BY_PURPOSE[initialPurpose] || "general";
     const billingRequestId = `palm-reading:${initialSubFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    const billingCheckRequestId = `${billingRequestId}:check`;
-    const billingChargeRequestId = `${billingRequestId}:charge`;
-    let activeBillingGateRequestId = billingCheckRequestId;
 
     const handleCoinGateFailure = (coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>, requestIdForGate: string) => {
       const coinGateCode = String(coinGateResult.error?.code || "").toUpperCase();
@@ -1977,25 +1974,16 @@ export default function PalmDestinyMain() {
       openPaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingCheckRequestId,
+        requestId: billingRequestId,
         message: palmDestinyText("palmDestiny.message.002"),
       });
-
-      const entitlementCheckResult = await runBillingCoinGate({
+      holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
+      updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingCheckRequestId,
-        payloadHash: `${requestSignature}:check`,
-        forceDeduct: false,
+        requestId: billingRequestId,
+        message: "손바닥 사진을 분석하고 있어요",
       });
-
-      if (!entitlementCheckResult.ok) {
-        handleCoinGateFailure(entitlementCheckResult, billingCheckRequestId);
-        return;
-      }
-
-      const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
-      setSubmitMessage(`이용권 확인이 끝났습니다. 사진을 분석합니다... (${formatKrwFromCoins(Math.max(0, serverCost))})`);
 
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
         leftHand.file ? fileToDataUrl(leftHand.file) : Promise.resolve(null),
@@ -2076,7 +2064,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: activeBillingGateRequestId,
+          requestId: billingRequestId,
           status: "error",
           message: mapPalmAnalyzeError({ status: response.status, code, reasonCode, message }),
         });
@@ -2163,7 +2151,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: activeBillingGateRequestId,
+          requestId: billingRequestId,
           status: "error",
           message: palmDestinyText("palmDestiny.message.003"),
         });
@@ -2171,18 +2159,17 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      activeBillingGateRequestId = billingChargeRequestId;
-      setSubmitMessage(`분석 결과를 확인했습니다. 이용권을 확정하고 있습니다... (${formatKrwFromCoins(Math.max(0, serverCost))})`);
+      setSubmitMessage("분석 결과를 확인했습니다. 이용권을 확인하고 있습니다...");
       const coinGateResult = await runBillingCoinGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: billingChargeRequestId,
+        requestId: billingRequestId,
         payloadHash: `${requestSignature}:charge`,
         forceDeduct: true,
       });
 
       if (!coinGateResult.ok) {
-        handleCoinGateFailure(coinGateResult, billingChargeRequestId);
+        handleCoinGateFailure(coinGateResult, billingRequestId);
         return;
       }
 
@@ -2246,7 +2233,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: activeBillingGateRequestId,
+          requestId: billingRequestId,
           status: "error",
           message: palmDestinyText("palmDestiny.message.004"),
         });
@@ -2258,7 +2245,7 @@ export default function PalmDestinyMain() {
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
-          requestId: activeBillingGateRequestId,
+          requestId: billingRequestId,
           status: "error",
           message: palmDestinyText("palmDestiny.message.005"),
         });
@@ -2269,12 +2256,13 @@ export default function PalmDestinyMain() {
       updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
-        requestId: activeBillingGateRequestId,
+        requestId: billingRequestId,
         status: "error",
         message: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`,
       });
       setSubmitMessage(`분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`);
     } finally {
+      releasePaidFeatureGate(billingRequestId);
       if (requestIdRef.current === requestId) {
         setIsSubmitting(false);
         lastCompletedSignatureRef.current = requestSignature;
@@ -2322,9 +2310,6 @@ export default function PalmDestinyMain() {
     }
 
     const billingRequestId = `palm-reading:ai-consult:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-    const billingCheckRequestId = `${billingRequestId}:check`;
-    const billingChargeRequestId = `${billingRequestId}:charge`;
-    let activeBillingGateRequestId = billingCheckRequestId;
 
     const handleCoinGateFailure = (
       coinGateResult: Awaited<ReturnType<typeof runBillingCoinGate>>,
@@ -2377,24 +2362,15 @@ export default function PalmDestinyMain() {
 
       openPaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingCheckRequestId,
+        requestId: billingRequestId,
         message: palmDestinyText("palmDestiny.message.006"),
       });
-
-      const entitlementCheckResult = await runBillingCoinGate({
+      holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
+      updatePaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingCheckRequestId,
-        payloadHash: `${requestSignature}:check`,
-        forceDeduct: false,
+        requestId: billingRequestId,
+        message: "AI 상담을 준비하고 있어요",
       });
-
-      if (!entitlementCheckResult.ok) {
-        handleCoinGateFailure(entitlementCheckResult, billingCheckRequestId);
-        return;
-      }
-
-      const serverCost = Number(entitlementCheckResult.data?.pricing?.cost || 0);
-      setSubmitMessage(`AI 상담 가격은 ${Math.max(0, serverCost * 100).toLocaleString("ko-KR")}원입니다.`);
 
       const requestBody = JSON.stringify({
         action: "ai_prompt",
@@ -2459,7 +2435,7 @@ export default function PalmDestinyMain() {
         const mappedMessage = mapPalmAnalyzeError({ status: response.status, code, reasonCode, message });
         updatePaidFeatureGate({
           featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-          requestId: activeBillingGateRequestId,
+          requestId: billingRequestId,
           status: "error",
           message: mappedMessage,
         });
@@ -2472,16 +2448,15 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      activeBillingGateRequestId = billingChargeRequestId;
       const coinGateResult = await runBillingCoinGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
-        requestId: billingChargeRequestId,
+        requestId: billingRequestId,
         payloadHash: `${requestSignature}:charge`,
         forceDeduct: true,
       });
 
       if (!coinGateResult.ok) {
-        handleCoinGateFailure(coinGateResult, billingChargeRequestId);
+        handleCoinGateFailure(coinGateResult, billingRequestId);
         return;
       }
 
@@ -2542,6 +2517,7 @@ export default function PalmDestinyMain() {
       }));
       setSubmitMessage(message);
     } finally {
+      releasePaidFeatureGate(billingRequestId);
       if (requestIdRef.current === requestId) {
         submitLockedRef.current = false;
         lastCompletedSignatureRef.current = requestSignature;

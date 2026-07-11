@@ -76,8 +76,13 @@ export type DestinyBiasResultViewModel = {
     charmSignals: string[];
     longTermSignals: string[];
   };
+  bottomNotice: string;
+  elementDistribution: {
+    user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+    favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+  };
   detailedTabs: Array<{
-    id: "summary" | "chemistry" | "emotion" | "fanBias" | "stability" | "caution" | "advice";
+    id: "chemi" | "element" | "dayMaster" | "branch" | "booster";
     label: string;
     shortLabel: string;
     title: string;

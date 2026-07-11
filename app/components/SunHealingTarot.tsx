@@ -2,15 +2,11 @@
 
 import { AnimatePresence, m } from "framer-motion";
 import {
-  Footprints,
-  HeartHandshake,
   Clipboard,
-  Lightbulb,
   Loader2,
   RotateCcw,
   Share2,
   Sparkles,
-  Telescope,
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -84,112 +80,29 @@ type EngineMetaDto = {
   cardCount?: number;
 };
 
+type ReadingFetchResult = {
+  reading: HealingReadingDto | null;
+  highlights: string[];
+  engineMeta: EngineMetaDto | null;
+};
+
 type Stage = "intro" | "spread" | "result";
 
 type SectionTone = "neutral" | "warm" | "focus";
 
-type ReadingSection = {
-  key: keyof HealingReadingDto;
-  title: string;
-  tone: SectionTone;
-  icon: React.ComponentType<{ className?: string }>;
-};
-
 const SPREAD_TYPE = "healing_rising_four_card" as const;
 const SPREAD_CARD_COUNT = 4 as const;
-const CHAR_DELAY_MS = 12;
-const SECTION_GAP_MS = 320;
-const INITIAL_TEXT_BURST_CHARS = 72;
-const DRAW_ENDPOINT = "/api/tarot/draw";
 const READING_ENDPOINT = "/api/tarot/reading";
 const API_TIMEOUT_MS = 30000;
+// lib/tarot/spreads.mjs의 healing_rising_four_card 포지션 키와 동일해야 한다.
+const HEALING_POSITIONS = ["hidden_truth", "embrace_pain", "silver_lining", "step_forward"] as const;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
 const SHARE_TITLE = "태양 회복 타로";
 const SHARE_TEXT_PREFIX = "태양 회복 타로가 건넨 메시지입니다.\n\n";
 
-const SUN_HEALING_TAROT_TEXT_TRANSLATIONS = {
-  ko: {
-    "section.firstLight": "지금 가장 먼저 비친 빛",
-    "section.prologue": "새벽빛 프롤로그",
-    "section.sunMessages": "네 장의 태양 메시지",
-    "section.hiddenTruth": "1. 마음이 지친 진짜 자리",
-    "section.emotionalTemperature": "2. 감정의 온도",
-    "section.recoveryClue": "3. 회복의 단서",
-    "section.recoveryAction": "4. 오늘의 회복 행동",
-    "section.integration": "종합 풀이: 마음에 빛이 돌아오는 흐름",
-    "section.routine": "오늘의 회복 루틴",
-  },
-  en: {
-    "section.firstLight": "The First Light Showing Now",
-    "section.prologue": "Dawnlight Prologue",
-    "section.sunMessages": "Four Solar Messages",
-    "section.hiddenTruth": "1. Where the Heart Is Truly Tired",
-    "section.emotionalTemperature": "2. Emotional Temperature",
-    "section.recoveryClue": "3. A Clue for Recovery",
-    "section.recoveryAction": "4. Today's Recovery Action",
-    "section.integration": "Full Reading: How Light Returns to the Heart",
-    "section.routine": "Today's Recovery Routine",
-  },
-  ja: {
-    "section.firstLight": "いま最初に差し込む光",
-    "section.prologue": "夜明け色のプロローグ",
-    "section.sunMessages": "四枚の太陽メッセージ",
-    "section.hiddenTruth": "1. 心が本当に疲れている場所",
-    "section.emotionalTemperature": "2. 感情の温度",
-    "section.recoveryClue": "3. 回復の手がかり",
-    "section.recoveryAction": "4. 今日の回復アクション",
-    "section.integration": "総合リーディング：心に光が戻る流れ",
-    "section.routine": "今日の回復ルーティン",
-  },
-  "zh-CN": {
-    "section.firstLight": "此刻最先照进来的光",
-    "section.prologue": "晨光序章",
-    "section.sunMessages": "四张太阳讯息",
-    "section.hiddenTruth": "1. 内心真正疲惫的位置",
-    "section.emotionalTemperature": "2. 情绪的温度",
-    "section.recoveryClue": "3. 复原的线索",
-    "section.recoveryAction": "4. 今日复原行动",
-    "section.integration": "综合解读：光如何回到心里",
-    "section.routine": "今日复原练习",
-  },
-  "zh-TW": {
-    "section.firstLight": "此刻最先照進來的光",
-    "section.prologue": "晨光序章",
-    "section.sunMessages": "四張太陽訊息",
-    "section.hiddenTruth": "1. 內心真正疲憊的位置",
-    "section.emotionalTemperature": "2. 情緒的溫度",
-    "section.recoveryClue": "3. 復原的線索",
-    "section.recoveryAction": "4. 今日復原行動",
-    "section.integration": "綜合解讀：光如何回到心裡",
-    "section.routine": "今日復原練習",
-  },
-} as const;
-
-type SunHealingTarotTextKey = keyof typeof SUN_HEALING_TAROT_TEXT_TRANSLATIONS.ko;
-
-function sunHealingTarotText(key: SunHealingTarotTextKey): string {
-  return SUN_HEALING_TAROT_TEXT_TRANSLATIONS.ko[key] || SUN_HEALING_TAROT_TEXT_TRANSLATIONS.en[key] || "Translation pending";
-}
-
-const READING_SECTIONS: ReadingSection[] = [
-  { key: "consultingHighlights", title: sunHealingTarotText("section.firstLight"), tone: "focus", icon: Sparkles },
-  { key: "opening", title: sunHealingTarotText("section.prologue"), tone: "neutral", icon: Sparkles },
-  { key: "cardDeepDive", title: sunHealingTarotText("section.sunMessages"), tone: "focus", icon: Telescope },
-  { key: "hiddenTruth", title: sunHealingTarotText("section.hiddenTruth"), tone: "focus", icon: Telescope },
-  { key: "embracePain", title: sunHealingTarotText("section.emotionalTemperature"), tone: "warm", icon: HeartHandshake },
-  { key: "silverLining", title: sunHealingTarotText("section.recoveryClue"), tone: "focus", icon: Lightbulb },
-  { key: "stepForward", title: sunHealingTarotText("section.recoveryAction"), tone: "warm", icon: Footprints },
-  { key: "integrationMessage", title: sunHealingTarotText("section.integration"), tone: "neutral", icon: Sparkles },
-  { key: "actionPlan", title: sunHealingTarotText("section.routine"), tone: "focus", icon: Sparkles },
-];
-
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
-}
-
-async function sleep(ms: number) {
-  await new Promise((r) => setTimeout(r, ms));
 }
 
 function safeCardTitle(card?: TarotCardDto, idx?: number) {
@@ -197,14 +110,6 @@ function safeCardTitle(card?: TarotCardDto, idx?: number) {
   if (!base) return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
   const isRev = String(card?.orientation || "").toLowerCase() === "reversed";
   return isRev ? `${base} (역방향)` : `${base} (정방향)`;
-}
-
-function readingFingerprint(text: string) {
-  return String(text || "")
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/[.,!?~`'"()\[\]{}:;\-_/\\]/g, "")
-    .slice(0, 120);
 }
 
 const TAROT_IMAGE_MAP: Record<string, string> = {
@@ -241,6 +146,54 @@ function cardImageUrl(card?: TarotCardDto) {
   const local = String(card?.localImageUrl || "").trim();
   if (local && !local.includes("/fuctionassets/")) return local;
   return `/tarot-cards/thefool.webp`;
+}
+
+// 카드 표기명은 lib/tarot/tarot-cards.mjs(nameKo/nameEn)와 동일해야 한다.
+// (엔진 직접 import는 rich-card-meanings 대용량 모듈이 클라 번들에 딸려와 금지)
+const MAJOR_CARD_NAMES: Record<string, [string, string]> = {
+  M00: ["바보", "The Fool"], M01: ["마법사", "The Magician"], M02: ["여사제", "The High Priestess"],
+  M03: ["여황제", "The Empress"], M04: ["황제", "The Emperor"], M05: ["교황", "The Hierophant"],
+  M06: ["연인", "The Lovers"], M07: ["전차", "The Chariot"], M08: ["힘", "Strength"],
+  M09: ["은둔자", "The Hermit"], M10: ["운명의 수레바퀴", "Wheel of Fortune"], M11: ["정의", "Justice"],
+  M12: ["매달린 사람", "The Hanged Man"], M13: ["죽음", "Death"], M14: ["절제", "Temperance"],
+  M15: ["악마", "The Devil"], M16: ["탑", "The Tower"], M17: ["별", "The Star"],
+  M18: ["달", "The Moon"], M19: ["태양", "The Sun"], M20: ["심판", "Judgement"], M21: ["세계", "The World"],
+};
+const SUIT_NAMES: Record<string, [string, string]> = {
+  W: ["완드", "Wands"], C: ["컵", "Cups"], S: ["소드", "Swords"], P: ["펜타클", "Pentacles"],
+};
+const RANK_NAMES: [string, string][] = [
+  ["에이스", "Ace"], ["투", "Two"], ["쓰리", "Three"], ["포", "Four"], ["파이브", "Five"],
+  ["식스", "Six"], ["세븐", "Seven"], ["에잇", "Eight"], ["나인", "Nine"], ["텐", "Ten"],
+  ["페이지", "Page"], ["나이트", "Knight"], ["퀸", "Queen"], ["킹", "King"],
+];
+
+function cardNamesOf(cardId: string): [string, string] {
+  const major = MAJOR_CARD_NAMES[cardId];
+  if (major) return major;
+  const suit = SUIT_NAMES[cardId[0]];
+  const rank = RANK_NAMES[Number(cardId.slice(1)) - 1];
+  if (suit && rank) return [`${suit[0]} ${rank[0]}`, `${rank[1]} of ${suit[1]}`];
+  return [cardId, cardId];
+}
+
+function drawHealingCards(): TarotCardDto[] {
+  const pool = Object.keys(TAROT_IMAGE_MAP);
+  for (let i = pool.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return HEALING_POSITIONS.map((position, idx) => {
+    const cardId = pool[idx];
+    const [nameKr, name] = cardNamesOf(cardId);
+    return {
+      cardId,
+      name,
+      nameKr,
+      position,
+      orientation: Math.random() < 0.5 ? "reversed" : "upright",
+    };
+  });
 }
 
 function SunHero() {
@@ -549,12 +502,10 @@ export default function SunHealingTarot() {
   const [reading, setReading] = useState<HealingReadingDto | null>(null);
   const [consultingHighlights, setConsultingHighlights] = useState<string[]>([]);
   const [engineMeta, setEngineMeta] = useState<EngineMetaDto | null>(null);
-  const [tapToReveal, setTapToReveal] = useState(false);
-  const [, setTyped] = useState<Record<string, string>>({});
-  const [, setTypingSection] = useState<string | null>(null);
   const [glowingCard, setGlowingCard] = useState<number | null>(null);
   const [aiPromptCopyStatus, setAiPromptCopyStatus] = useState("");
   const abortRef = useRef<AbortController | null>(null);
+  const readingPromiseRef = useRef<Promise<ReadingFetchResult> | null>(null);
 
 
   const progressPct = useMemo(() => clamp((revealedCount / SPREAD_CARD_COUNT) * 100, 0, 100), [revealedCount]);
@@ -563,47 +514,51 @@ export default function SunHealingTarot() {
     window.location.assign("/");
   }, []);
 
-  const start = useCallback(async () => {
-    setLoading(true);
-    setReading(null);
-    setConsultingHighlights([]);
-    setEngineMeta(null);
-    setTapToReveal(false);
-    setTyped({});
-    setTypingSection(null);
-    setAiPromptCopyStatus("");
-    setRevealedCount(0);
+  const requestReading = useCallback(async (cardsToRead: TarotCardDto[]): Promise<ReadingFetchResult> => {
     abortRef.current?.abort();
     const ac = new AbortController();
     abortRef.current = ac;
-    let timedOut = false;
-    const timeoutId = window.setTimeout(() => {
-      timedOut = true;
-      ac.abort();
-    }, API_TIMEOUT_MS);
+    const timeoutId = window.setTimeout(() => ac.abort(), API_TIMEOUT_MS);
     try {
-      const res = await fetch(DRAW_ENDPOINT, {
+      const payloadCards = cardsToRead.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
+      const res = await fetch(READING_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ spreadType: SPREAD_TYPE }),
+        body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
         signal: ac.signal,
       });
+      if (res.status === 401 || res.status === 403) throw new Error("LOGIN_REQUIRED");
       const data = await res.json();
-      if (!res.ok || data?.ok === false) throw new Error(data?.message || "draw failed");
-      const drawn = Array.isArray(data?.cards) ? (data.cards as TarotCardDto[]) : [];
-      if (drawn.length < SPREAD_CARD_COUNT) throw new Error("draw payload incomplete");
-      setCards(drawn.slice(0, SPREAD_CARD_COUNT));
-      setStage("spread");
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError" && !timedOut) return;
-      console.error(error);
-      alert(timedOut ? "카드 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 시작해 주세요." : "카드를 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      if (!res.ok || data?.ok === false) throw new Error(data?.message || "reading failed");
+      const nextReading = (data?.reading || null) as HealingReadingDto | null;
+      const highlights = Array.isArray(data?.consultingHighlights) ? data.consultingHighlights.map((line: unknown) => String(line || "").trim()).filter(Boolean).slice(0, 4) : [];
+      if (nextReading) nextReading.consultingHighlights = highlights;
+      return {
+        reading: nextReading,
+        highlights,
+        engineMeta: data?.engineMeta && typeof data.engineMeta === "object" ? (data.engineMeta as EngineMetaDto) : null,
+      };
     } finally {
       window.clearTimeout(timeoutId);
       if (abortRef.current === ac) abortRef.current = null;
-      setLoading(false);
     }
   }, []);
+
+  const start = useCallback(() => {
+    setReading(null);
+    setConsultingHighlights([]);
+    setEngineMeta(null);
+    setAiPromptCopyStatus("");
+    setRevealedCount(0);
+    abortRef.current?.abort();
+    // 카드 뽑기는 서버 왕복 없이 즉시 처리하고, 해석은 카드를 뒤집는 동안 미리 받아 둔다.
+    const drawn = drawHealingCards();
+    setCards(drawn);
+    setStage("spread");
+    const prefetch = requestReading(drawn);
+    prefetch.catch(() => {});
+    readingPromiseRef.current = prefetch;
+  }, [requestReading]);
 
 
   const canFlip = useCallback((idx: number) => idx === revealedCount && idx < SPREAD_CARD_COUNT && stage === "spread" && !loading, [loading, revealedCount, stage]);
@@ -620,44 +575,34 @@ export default function SunHealingTarot() {
 
     setLoading(true);
     setAiPromptCopyStatus("");
-    abortRef.current?.abort();
-    const ac = new AbortController();
-    abortRef.current = ac;
-    let timedOut = false;
-    const timeoutId = window.setTimeout(() => {
-      timedOut = true;
-      ac.abort();
-    }, API_TIMEOUT_MS);
     try {
-      const payloadCards = cards.map((c) => ({ cardId: c.cardId, position: c.position, orientation: c.orientation }));
-      const res = await fetch(READING_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ category: "healing", spreadType: SPREAD_TYPE, cards: payloadCards }),
-        signal: ac.signal,
-      });
-      const data = await res.json();
-      if (!res.ok || data?.ok === false) throw new Error(data?.message || "reading failed");
-      const nextReading = (data?.reading || null) as HealingReadingDto | null;
-      const highlights = Array.isArray(data?.consultingHighlights) ? data.consultingHighlights.map((line: unknown) => String(line || "").trim()).filter(Boolean).slice(0, 4) : [];
-      if (nextReading) nextReading.consultingHighlights = highlights;
-      setReading(nextReading);
-      setConsultingHighlights(highlights);
-      setEngineMeta(data?.engineMeta && typeof data.engineMeta === "object" ? (data.engineMeta as EngineMetaDto) : null);
+      const pending = readingPromiseRef.current;
+      readingPromiseRef.current = null;
+      let result: ReadingFetchResult;
+      try {
+        result = pending ? await pending : await requestReading(cards);
+      } catch (error) {
+        if (error instanceof Error && error.message === "LOGIN_REQUIRED") throw error;
+        // 프리페치가 실패했으면 한 번 새로 요청한다.
+        result = await requestReading(cards);
+      }
+      setReading(result.reading);
+      setConsultingHighlights(result.highlights);
+      setEngineMeta(result.engineMeta);
       setStage("result");
-      setTapToReveal(false);
-      setTyped({});
-      setTypingSection(null);
     } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError" && !timedOut) return;
       console.error(error);
-      alert(timedOut ? "해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요." : "해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      if (error instanceof Error && error.message === "LOGIN_REQUIRED") {
+        alert("회복 리딩을 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+      } else if (error instanceof DOMException && error.name === "AbortError") {
+        alert("해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요.");
+      } else {
+        alert("해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      }
     } finally {
-      window.clearTimeout(timeoutId);
-      if (abortRef.current === ac) abortRef.current = null;
       setLoading(false);
     }
-  }, [cards, revealedCount]);
+  }, [cards, requestReading, revealedCount]);
 
 
   const share = useCallback(async () => {
@@ -679,38 +624,6 @@ export default function SunHealingTarot() {
       alert("공유를 지원하지 않는 환경입니다.");
     }
   }, [consultingHighlights, reading]);
-
-  useEffect(() => {
-    if (!reading || tapToReveal || stage !== "result") return;
-    let cancelled = false;
-    const seen = new Set<string>();
-    async function typeInto(key: string, title: string, text: string) {
-      setTypingSection(title);
-      const initial = text.slice(0, INITIAL_TEXT_BURST_CHARS);
-      setTyped((prev) => ({ ...prev, [key]: initial }));
-      for (let i = initial.length; i < text.length; i += 1) {
-        if (cancelled) return;
-        setTyped((prev) => ({ ...prev, [key]: (prev[key] || "") + text[i] }));
-        await sleep(CHAR_DELAY_MS);
-      }
-      setTypingSection(null);
-    }
-    (async () => {
-      for (let i = 0; i < READING_SECTIONS.length; i += 1) {
-        if (cancelled) return;
-        const section = READING_SECTIONS[i];
-        const raw = reading[section.key];
-        const text = Array.isArray(raw) ? raw.map((v) => `• ${v}`).join("\n") : String(raw || "").trim();
-        if (!text) continue;
-        const fp = readingFingerprint(text);
-        if (fp.length > 18 && seen.has(fp)) continue;
-        if (fp.length > 18) seen.add(fp);
-        await typeInto(String(section.key), section.title, text);
-        if (i < READING_SECTIONS.length - 1) await sleep(SECTION_GAP_MS);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [reading, stage, tapToReveal]);
 
   const POSITION_LABELS = ["마음이 지친 자리", "감정의 온도", "회복의 단서", "오늘의 회복 행동"] as const;
   const POSITION_LABELS_SHORT = ["자리", "온도", "단서", "행동"] as const;
@@ -752,10 +665,10 @@ export default function SunHealingTarot() {
 
   return (
     <main
-      className="relative min-h-[100dvh] overflow-x-hidden bg-[#fff7e6] px-0 py-0 text-stone-900"
+      className="relative overflow-x-hidden bg-[#fff7e6] px-0 py-0 text-stone-900"
     >
       <div
-        className="pointer-events-none fixed inset-0 opacity-95"
+        className="pointer-events-none absolute inset-0 opacity-95"
         style={{
           backgroundImage: "linear-gradient(115deg, rgba(255,252,239,0.5) 0%, rgba(255,245,216,0.42) 45%, rgba(255,225,168,0.3) 100%), url('/fuctionassets/healing.webp')",
           backgroundSize: "cover",
@@ -763,18 +676,18 @@ export default function SunHealingTarot() {
         }}
       />
       <div
-        className="pointer-events-none fixed inset-0"
+        className="pointer-events-none absolute inset-0"
         style={{
           background: "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 32%), radial-gradient(circle at 80% 8%, rgba(125,211,252,0.24) 0%, rgba(125,211,252,0) 28%), radial-gradient(circle at 52% 100%, rgba(251,191,36,0.32) 0%, rgba(251,191,36,0) 46%), linear-gradient(180deg, rgba(255,250,235,0.18) 0%, rgba(255,250,235,0.5) 100%)",
         }}
       />
       <div
-        className="pointer-events-none fixed inset-0 opacity-[0.18] mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-multiply"
         style={{
           backgroundImage: "repeating-linear-gradient(0deg, rgba(120,83,30,0.18) 0px, rgba(120,83,30,0.18) 1px, transparent 1px, transparent 5px), repeating-linear-gradient(90deg, rgba(255,255,255,0.36) 0px, rgba(255,255,255,0.36) 1px, transparent 1px, transparent 7px)",
         }}
       />
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-7">
+      <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-7">
         <header className="mb-5 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-700/80">태양 회복 리딩</p>
@@ -786,10 +699,10 @@ export default function SunHealingTarot() {
         </header>
         <AnimatePresence mode="wait">
           {stage === "intro" ? (
-            <m.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_420px] lg:py-0">
+            <m.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid items-center gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_420px]">
               <div className="max-w-[760px]">
                 <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/80">마음을 데우는 타로 방</p>
-                <h2 className="mt-4 max-w-[720px] font-serif text-[34px] font-semibold leading-[1.14] text-amber-950 drop-shadow-[0_10px_30px_rgba(255,255,255,0.64)] sm:text-[44px] md:text-[64px]">
+                <h2 className="mt-4 max-w-[720px] font-serif text-[34px] font-semibold leading-[1.14] text-amber-950 drop-shadow-[0_10px_30px_rgba(255,255,255,0.64)] sm:text-[42px] md:text-[52px]">
                   마음이 돌아올 자리를 <br className="hidden md:block" />조용히 밝혀드립니다
                 </h2>
                 <p className="mt-6 max-w-[640px] text-[16px] leading-8 text-stone-700 md:text-[18px]">

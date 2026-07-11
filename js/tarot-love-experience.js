@@ -18,7 +18,9 @@
   var GUIDE_ORDER = [0, 1, 2, 3, 4, 5];
 
   var refs = {};
-  var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false };
+  var state = { cards: [], revealedCount: 0, reading: null, hasAccess: false, paymentInFlight: false, readingPromise: null, readingResult: null };
+  // 리셋/모달 닫힘 이후 도착하는 늦은 draw·프리페치 응답이 새 세션을 덮지 않도록 하는 세대 카운터.
+  var flowSeq = 0;
   var LOVE_COIN_COST = 50;
   var LOVE_REASON = "우리는 무슨 사이? 타로 리딩";
   var LOVE_FEATURE_KEY = "tarot-love-relationship";
@@ -120,6 +122,8 @@
       promptNotReady: "복사할 프롬프트가 아직 열리지 않았습니다.",
       promptCopied: "프롬프트가 복사되었습니다.",
       copyBlocked: "복사 권한이 막혀 직접 선택해 복사해 주세요.",
+      loadingTitle: "연이가 두 사람 사이의 흐름을 읽고 있어요…",
+      loadingSub: "카드 여섯 장의 결을 하나의 상담으로 엮는 중입니다. 잠시만 기다려 주세요.",
       shareHeader: "💕 [우리는 무슨 사이?] 💕",
       shareCta: "👉 무료 타로 보러가기: https://code-destiny.com",
       shareTitle: "💕 우리는 무슨 사이?",
@@ -187,6 +191,8 @@
       promptNotReady: "The prompt is not open yet.",
       promptCopied: "Prompt copied.",
       copyBlocked: "Copy permission is blocked. Please select and copy it manually.",
+      loadingTitle: "Reading the flow between you two…",
+      loadingSub: "Weaving the six cards into one consultation. This takes just a moment.",
       shareHeader: "💕 [What Are We?] 💕",
       shareCta: "👉 Try a free tarot reading: https://code-destiny.com",
       shareTitle: "💕 What Are We?",
@@ -254,6 +260,8 @@
       promptNotReady: "コピーするプロンプトはまだ開いていません。",
       promptCopied: "プロンプトをコピーしました。",
       copyBlocked: "コピー権限がブロックされています。手動で選択してコピーしてください。",
+      loadingTitle: "二人の間に流れる気配を読んでいます…",
+      loadingSub: "6枚のカードをひとつのリーディングに紡いでいます。少々お待ちください。",
       shareHeader: "💕 [私たちはどんな関係？] 💕",
       shareCta: "👉 無料タロットを見る: https://code-destiny.com",
       shareTitle: "💕 私たちはどんな関係？",
@@ -1010,18 +1018,24 @@
     if (!overlay) return;
     overlay.style.display = "none";
     overlay.classList.remove("is-open");
+    flowSeq++;
     state.hasAccess = false;
     state.paymentInFlight = false;
+    state.readingPromise = null;
+    state.readingResult = null;
     if (window._perf && window._perf.unlockBody) window._perf.unlockBody();
     else document.body.style.overflow = "";
   }
 
   function resetTarotLoveFlow() {
+    flowSeq++;
     state.cards = [];
     state.revealedCount = 0;
     state.reading = null;
     state.hasAccess = false;
     state.paymentInFlight = false;
+    state.readingPromise = null;
+    state.readingResult = null;
 
     var intro = byId("tarotLoveIntroStage");
     var draw = byId("tarotLoveDrawStage");
@@ -1040,44 +1054,38 @@
     var draw = byId("tarotLoveDrawStage");
     if (!intro || !draw) return;
 
+    var seq = ++flowSeq;
     var panel = document.querySelector(".tarot-love-panel");
     if (panel) panel.classList.add("ritual-burst");
 
+    // 클릭 즉시 로컬 덱으로 뽑아 화면을 전환한다 — 서버 draw 왕복(비로그인 401 재시도 포함)을 기다리지 않는다.
+    state.cards = normalizeRelationshipCards(createLocalRelationshipCards());
+    state.revealedCount = 0;
+    state.readingPromise = null;
+    state.readingResult = null;
+    intro.classList.remove("is-active");
+    draw.classList.add("is-active");
+    renderTarotLoveCards();
+    updateTarotLoveSpreadGuide();
+    var btn = byId("tarotLoveFinalBtn");
+    if (btn) btn.disabled = true;
+    if (panel) {
+      setTimeout(function () { panel.classList.remove("ritual-burst"); }, 800);
+    }
+
+    // 서버 78장 덱은 백그라운드로 받아, 아직 카드를 한 장도 뒤집기 전이면 교체한다(전부 뒷면이라 시각 변화 없음).
     callTarotApi("draw", { spreadType: "relationship_six_card" })
       .then(function (data) {
+        if (seq !== flowSeq || state.revealedCount > 0) return;
         var normalizedCards = normalizeRelationshipCards(data.cards);
-        if (normalizedCards.length !== 6) throw new Error("Invalid draw");
+        if (normalizedCards.length !== 6) return;
         state.cards = normalizedCards;
-        state.revealedCount = 0;
-
-        intro.classList.remove("is-active");
-        draw.classList.add("is-active");
-        if (panel) {
-          setTimeout(function () { panel.classList.remove("ritual-burst"); }, 800);
-        }
-
         renderTarotLoveCards();
         updateTarotLoveSpreadGuide();
-        var btn = byId("tarotLoveFinalBtn");
-        if (btn) btn.disabled = true;
       })
       .catch(function (err) {
+        // 로컬 카드로 이미 진행 중이므로 조용히 무시한다.
         console.error("Tarot Love draw error:", err);
-        var p = document.querySelector(".tarot-love-panel");
-        if (p) p.classList.remove("ritual-burst");
-        var fallbackCards = createLocalRelationshipCards();
-        if (fallbackCards.length === 6) {
-          state.cards = normalizeRelationshipCards(fallbackCards);
-          state.revealedCount = 0;
-          intro.classList.remove("is-active");
-          draw.classList.add("is-active");
-          renderTarotLoveCards();
-          updateTarotLoveSpreadGuide();
-          var btn = byId("tarotLoveFinalBtn");
-          if (btn) btn.disabled = true;
-          return;
-        }
-        alert("카드를 뽑는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
       });
   }
 
@@ -1184,6 +1192,9 @@
     ensureLoveFrontImage(cardEl, state.cards[idx]);
 
     state.revealedCount++;
+    // 첫 장을 뒤집는 순간 카드가 확정되므로(서버 덱 교체는 미플립 상태에서만),
+    // 결제 진행과 겹치도록 리딩 생성을 미리 시작해 결제 후 대기를 줄인다.
+    if (state.revealedCount === 1) prefetchTarotLoveReading();
     updateTarotLoveSpreadGuide();
 
     if (state.revealedCount >= 6) {
@@ -1200,12 +1211,7 @@
     });
   }
 
-  function _runTarotLoveFinalReading() {
-    if (!state.hasAccess) {
-      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
-      return;
-    }
-
+  function requestTarotLoveReading() {
     var normalizedCards = normalizeRelationshipCards(state.cards);
     state.cards = normalizedCards;
     var drawnForApi = normalizedCards.map(function (c) {
@@ -1216,30 +1222,84 @@
       };
     });
 
-    callTarotApi("love-reading", {
+    return callTarotApi("love-reading", {
       cards: drawnForApi,
       locale: getTarotLoveLocale(),
-    }, TAROT_READING_API_TIMEOUT_MS)
+    }, TAROT_READING_API_TIMEOUT_MS).then(function (data) {
+      if (!data.reading) throw new Error("No reading data");
+      return data;
+    });
+  }
+
+  // 결제 전 프리페치 — 실패해도 alert·롤백 없이 조용히 버리고, 결제 승인 시점에 새 요청으로 재시도된다.
+  function prefetchTarotLoveReading() {
+    if (state.readingPromise || state.readingResult) return;
+    var seq = flowSeq;
+    var promise = requestTarotLoveReading().then(function (data) {
+      if (seq === flowSeq) state.readingResult = data;
+      return data;
+    });
+    promise.catch(function () {
+      // 비로그인 401 등 결제 전 실패는 삼킨다(unhandled rejection 방지). 소비는 _run 쪽 catch가 담당.
+      if (seq === flowSeq && state.readingPromise === promise) state.readingPromise = null;
+    });
+    state.readingPromise = promise;
+  }
+
+  function renderTarotLoveLoading() {
+    var container = byId("tarotLoveReadingContent");
+    if (!container) return;
+    var copy = getTarotLoveCopy();
+    container.innerHTML =
+      '<div class="tarot-love-loading" role="status" aria-live="polite">' +
+      '<span class="tarot-love-loading-orb" aria-hidden="true"></span>' +
+      '<p class="tarot-love-loading-title">' + escapeHtml(copy.loadingTitle) + '</p>' +
+      '<p class="tarot-love-loading-sub">' + escapeHtml(copy.loadingSub) + '</p>' +
+      '</div>';
+  }
+
+  function _runTarotLoveFinalReading() {
+    if (!state.hasAccess) {
+      window.alert("결제가 확인되지 않아 결과를 표시할 수 없습니다.");
+      return;
+    }
+
+    var seq = flowSeq;
+    var draw = byId("tarotLoveDrawStage");
+    var result = byId("tarotLoveResultStage");
+    // 결제 확인 즉시 결과 스테이지로 전환하고, 생성이 끝날 때까지 로딩 상태를 보여준다.
+    if (draw) draw.classList.remove("is-active");
+    if (result) result.classList.add("is-active");
+    renderTarotLoveLoading();
+
+    var pending;
+    if (state.readingResult) {
+      pending = Promise.resolve(state.readingResult);
+    } else if (state.readingPromise) {
+      // 프리페치가 진행 중이면 그대로 기다리고, 늦게 실패하면(비로그인 401 등) 로그인된 현재 상태로 한 번 새로 요청한다.
+      pending = state.readingPromise.catch(function () {
+        return requestTarotLoveReading();
+      });
+    } else {
+      pending = requestTarotLoveReading();
+    }
+
+    pending
       .then(function (data) {
-        if (!data.reading) throw new Error("No reading data");
+        if (seq !== flowSeq) return;
         state.reading = data.reading;
-
-        var draw = byId("tarotLoveDrawStage");
-        var result = byId("tarotLoveResultStage");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.add("is-active");
-
         renderTarotLoveResult();
       })
       .catch(function (err) {
         console.error("Tarot Love reading error:", err);
-        var draw = byId("tarotLoveDrawStage");
-        var result = byId("tarotLoveResultStage");
-        var container = byId("tarotLoveReadingContent");
-        if (draw) draw.classList.remove("is-active");
-        if (result) result.classList.remove("is-active");
-        if (draw) draw.classList.add("is-active");
-        if (container) container.innerHTML = "";
+        if (seq === flowSeq) {
+          var draw2 = byId("tarotLoveDrawStage");
+          var result2 = byId("tarotLoveResultStage");
+          var container = byId("tarotLoveReadingContent");
+          if (result2) result2.classList.remove("is-active");
+          if (draw2) draw2.classList.add("is-active");
+          if (container) container.innerHTML = "";
+        }
 
         rollbackCoinBestEffort(LOVE_COIN_COST, LOVE_REASON, LOVE_FEATURE_KEY).then(function (rolledBack) {
           state.hasAccess = false;

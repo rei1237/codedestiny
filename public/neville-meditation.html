@@ -390,15 +390,6 @@
       letter-spacing:0.03em;
       min-height:1.8em;
     }
-    .yt-player {
-      width:1px;
-      height:1px;
-      opacity:0;
-      pointer-events:none;
-      position:absolute;
-      left:-9999px;
-      top:-9999px;
-    }
     .music-panel-opener {
       position:sticky;
       top:calc(8px + env(safe-area-inset-top));
@@ -797,17 +788,17 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     </div>
     <div class="music-panel__row">
       <select class="music-panel__select" id="thetaPreset" aria-label="Theta 명상 배경음 프리셋 선택" onchange="changeThetaPreset()">
-        <option value="mystic">Mystic Theta - Cosmic Temple</option>
-        <option value="healing">528Hz Theta - Healing Sanctuary</option>
-        <option value="deep">Deep Theta - Night Ocean</option>
+        <option value="mystic">별빛 사원 · Cosmic Temple</option>
+        <option value="healing">고요한 성소 · Still Sanctuary</option>
+        <option value="deep">깊은 밤 · Deep Night</option>
       </select>
     </div>
     <div class="music-panel__row">
       <button class="music-panel__btn" id="musicToggleBtn" type="button" onclick="toggleThetaMusic()">음악 켜기</button>
       <button class="music-panel__btn" type="button" onclick="nextThetaTrack()">다음 곡</button>
     </div>
-    <div class="music-panel__status" id="musicStatus">유튜브 API 연결을 확인하는 중입니다. 세션 시작 시 재생되고 명상 단계에 맞춰 자동 전환됩니다.</div>
-    <div id="ytPlayer" class="yt-player" aria-hidden="true"></div>
+    <div class="music-panel__status" id="musicStatus">세션을 시작하면 배경 명상 음악이 흐르고, 명상 단계에 맞춰 부드럽게 전환됩니다.</div>
+    <audio id="meditationAudio" loop preload="none" aria-hidden="true"></audio>
   </div>
   <button class="music-panel-opener" id="musicPanelOpener" type="button" onclick="openMusicPanel()" hidden>사운드 열기</button>
 
@@ -853,7 +844,6 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
 </div>
 
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
 /* ═══════════════════════════ STAR CANVAS ═══════════════════════════ */
 const cvs = document.getElementById('cosmos');
@@ -990,7 +980,7 @@ const COURSES = {
       {t:150, tx:'내뱉으십시오...'},
       {t:166, tx:'네 번째 호흡.\n더 깊이, 더 천천히...'},
       {t:188, tx:'다섯 번째 호흡.\n마지막 호흡 사이클입니다.\n몸 전체가 부드러워집니다...'},
-      {t:218, tx:'자율신경계가 이완 모드로 전환되었습니다.\n뇌는 이제 안전하다는 신호를 받았습니다.\n잠재의식의 문이 열리고 있습니다.'},
+      {t:218, tx:'온몸의 긴장이 풀리고 깊은 이완으로 들어섰습니다.\n마음은 이제 안전하다고 느낍니다.\n잠재의식의 문이 천천히 열리고 있습니다.'},
       {t:240, tx:'이미 이루어진 감사함을 느끼면서\n이제 당신의 몸을 하나씩 꺼 나가겠습니다.'},
       {t:258, tx:'당신이 원하는 것이 이미 현실이라는 것을\n이 한 시간 동안 완전히 체험합니다.'},
       {t:275, tx:'몸의 모든 긴장을 내려놓으십시오.\n완전한 이완이 최고의 재프로그래밍입니다.'},
@@ -1021,7 +1011,7 @@ const COURSES = {
       {t:814, tx:'한 번 더 자연스러운 호흡을 합니다.\n들이쉬면서 가능성을... 내쉬면서 한계를...'},
       {t:836, tx:'당신의 몸이 이제 잠들어 있지만\n의식은 완전히 깨어 있습니다.'},
       {t:858, tx:'이것이 가장 강력한 상태입니다.\n네빌 고다드가 수천 번 강조한 바로 그 상태.'},
-      {t:880, tx:'이 상태에서 당신은\n무엇이던 될 수 있는 순수한 에너지입니다.'},
+      {t:880, tx:'이 상태에서 당신은\n무엇이든 될 수 있는 순수한 에너지입니다.'},
       {t:902, tx:'소망이 이미 실현된 순간으로 가겠습니다.\n준비가 되었습니까?'},
       {t:924, tx:'이미 일어난 일을 기억해내듯\n자연스럽게 그 장면 속으로 들어가십시오.'},
       {t:946, tx:'억지로 만들려 하지 마십시오.\n자연스럽게, 편안하게, 흐르듯이.'},
@@ -1270,48 +1260,59 @@ let typTO = null;
 let targetTxt = '';
 let charIdx = 0;
 let fading = false;
-let ytPlayer = null;
-let ytReady = false;
-let ytShouldPlay = false;
-let ytPendingPlay = false;
-let ytPresetKey = 'mystic';
-let ytCurrentPhaseIdx = -1;
-let ytCurrentTrackIdx = 0;
-let ytCurrentTrack = null;
+let audioShouldPlay = false;
+let audioPresetKey = 'mystic';
+let audioCurrentPhaseIdx = -1;
+let audioCurrentTrackIdx = 0;
+let audioCurrentTitle = '';
+let audioFadeTimer = null;
 let musicPanelClosed = false;
+const MEDITATION_TARGET_VOLUME = 0.55;
 let _sessionBootInFlight = false;
 
 const THETA_PRESETS = {
   mystic: {
-    title: 'Mystic Theta',
-    fallbackQuery: 'theta meditation music creative commons no copyright',
+    title: '별빛 사원',
     tracks: [
-      { id: '1ZYbU82GVz4', label: 'Celestial Theta Field' },
-      { id: 'hHW1oY26kxQ', label: 'Mystic Breath Loop' },
-      { id: 'a9LDPn-MO4I', label: 'Temple Theta Drift' }
+      { title: 'The Stars Remember Your Name', label: '별들이 당신의 이름을 기억합니다' },
+      { title: 'Starlight Drift', label: '별빛의 표류' },
+      { title: 'Moonlit Temple Gate', label: '달빛 사원의 문' },
+      { title: 'Zero Point', label: '제로 포인트' }
     ]
   },
   healing: {
-    title: '528Hz Theta',
-    fallbackQuery: '528hz theta meditation music creative commons',
+    title: '고요한 성소',
     tracks: [
-      { id: 'lFcSrYw-ARY', label: 'Healing 528 Resonance' },
-      { id: '7NOSDKb0HlU', label: 'Theta DNA Calm' },
-      { id: '2OEL4P1Rz04', label: 'Golden Sanctuary 528' }
+      { title: 'Still Lake Mind', label: '고요한 호수의 마음' },
+      { title: 'Still Lake Dawn', label: '고요한 호수의 새벽' },
+      { title: 'The Memory of Water', label: '물의 기억' },
+      { title: 'Crystal Garden', label: '수정의 정원' },
+      { title: 'First Light on Water', label: '수면 위 첫 빛' }
     ]
   },
   deep: {
-    title: 'Deep Theta',
-    fallbackQuery: 'deep theta binaural beats no copyright',
+    title: '깊은 밤',
     tracks: [
-      { id: '3oXhLdeuxDw', label: 'Night Ocean Theta' },
-      { id: 'UfcAVejslrU', label: 'Moon Tide Binaural' },
-      { id: '5qap5aO4i9A', label: 'Endless Deep Focus' }
+      { title: 'Moonlit River Return', label: '달빛 강의 귀환' },
+      { title: 'Moonlit Forest Temple', label: '달빛 숲 사원' },
+      { title: 'Rain Window Renewal', label: '빗물 창가의 회복' },
+      { title: 'Flowing Light', label: '흐르는 빛' },
+      { title: 'Midnight Pulse', label: '자정의 맥동' }
     ]
   }
 };
 
-/* ═══════════════════════════ YOUTUBE THETA MUSIC ═══════════════════════════ */
+/* ═══════════════════════════ R2 MEDITATION AUDIO ═══════════════════════════ */
+// 사주 다이어리와 동일하게 R2 명상 음원을 <audio>로 재생한다(CSP 이미 허용, YouTube 미사용).
+const R2_MEDITATION_BASE = 'https://music.code-destiny.com/Meditation/';
+function buildMeditationTrackUrl(title) {
+  return R2_MEDITATION_BASE + encodeURIComponent(title + '.mp3');
+}
+
+function getMeditationAudio() {
+  return document.getElementById('meditationAudio');
+}
+
 function updateMusicStatus(msg) {
   const el = document.getElementById('musicStatus');
   if (el) el.textContent = msg;
@@ -1320,12 +1321,7 @@ function updateMusicStatus(msg) {
 function updateMusicToggleLabel() {
   const btn = document.getElementById('musicToggleBtn');
   if (!btn) return;
-  btn.textContent = ytShouldPlay ? '음악 끄기' : '음악 켜기';
-}
-
-function getSelectedThetaQuery() {
-  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
-  return preset.fallbackQuery;
+  btn.textContent = audioShouldPlay ? '음악 끄기' : '음악 켜기';
 }
 
 function getThetaPresetKey() {
@@ -1342,131 +1338,120 @@ function getCurrentPhaseIndex() {
 }
 
 function getTrackForPhase(phaseIdx) {
-  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const preset = THETA_PRESETS[audioPresetKey] || THETA_PRESETS.mystic;
   const list = Array.isArray(preset.tracks) ? preset.tracks : [];
   if (!list.length) return null;
-  const normalized = Math.max(0, phaseIdx);
-  const idx = normalized % list.length;
-  ytCurrentTrackIdx = idx;
+  const idx = Math.max(0, phaseIdx) % list.length;
+  audioCurrentTrackIdx = idx;
   return list[idx] || null;
 }
 
-function loadThetaFallbackSearch() {
-  if (!ytPlayer || !ytReady) return;
+// 급격한 컷을 피하기 위해 볼륨을 목표치까지 ~800ms에 걸쳐 부드럽게 올린다.
+function fadeMeditationAudioTo(target) {
+  const audio = getMeditationAudio();
+  if (!audio) return;
+  if (audioFadeTimer) { clearInterval(audioFadeTimer); audioFadeTimer = null; }
+  const start = audio.volume;
+  const steps = 16;
+  let i = 0;
+  audioFadeTimer = setInterval(() => {
+    i += 1;
+    const v = start + (target - start) * (i / steps);
+    audio.volume = Math.max(0, Math.min(1, v));
+    if (i >= steps) { clearInterval(audioFadeTimer); audioFadeTimer = null; audio.volume = Math.max(0, Math.min(1, target)); }
+  }, 50);
+}
+
+function playMeditationTrack(track, fade) {
+  const audio = getMeditationAudio();
+  if (!audio || !track || !track.title) return;
+  if (track.title === audioCurrentTitle && !audio.paused) return; // 이미 재생 중이면 재로딩하지 않음
+  audioCurrentTitle = track.title;
   try {
-    ytPlayer.loadPlaylist({
-      listType: 'search',
-      list: getSelectedThetaQuery(),
-      index: 0,
-      startSeconds: 0,
-      suggestedQuality: 'small'
-    });
-    updateMusicStatus('고정 트랙 로드 실패로 검색 기반 Theta 배경음으로 전환했습니다.');
+    audio.src = buildMeditationTrackUrl(track.title);
+    audio.loop = true;
+    audio.volume = fade ? 0 : MEDITATION_TARGET_VOLUME;
+    const played = audio.play();
+    if (played && typeof played.then === 'function') {
+      played.then(() => { if (fade) fadeMeditationAudioTo(MEDITATION_TARGET_VOLUME); })
+            .catch(() => {
+              audioShouldPlay = false;
+              updateMusicToggleLabel();
+              updateMusicStatus('자동 재생이 제한되었습니다. 음악 켜기를 눌러 시작해 주세요.');
+            });
+    } else if (fade) {
+      fadeMeditationAudioTo(MEDITATION_TARGET_VOLUME);
+    }
   } catch (_) {
-    updateMusicStatus('YouTube 트랙을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
+    updateMusicStatus('배경음을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.');
   }
 }
 
 function loadThetaTrackByPhase(phaseIdx) {
   const track = getTrackForPhase(phaseIdx);
-  if (!track || !track.id) {
-    loadThetaFallbackSearch();
-    return;
-  }
-  ytCurrentTrack = track;
-  try {
-    ytPlayer.loadVideoById({
-      videoId: track.id,
-      startSeconds: 0,
-      suggestedQuality: 'small'
-    });
-    const phaseText = course && course.phases && course.phases[phaseIdx] ? course.phases[phaseIdx].name : '현재 단계';
-    updateMusicStatus(`${phaseText} 단계: ${track.label} 재생 중`);
-  } catch (_) {
-    loadThetaFallbackSearch();
-  }
+  if (!track) return;
+  playMeditationTrack(track, true);
+  const phaseText = course && course.phases && course.phases[phaseIdx] ? course.phases[phaseIdx].name : '현재 단계';
+  updateMusicStatus(`${phaseText} · ${track.label}`);
 }
 
 function safePlayTheta() {
-  if (!ytReady || !ytPlayer) {
-    ytPendingPlay = true;
-    updateMusicStatus('유튜브 플레이어 연결 중... 잠시 후 재생됩니다.');
-    return;
-  }
-  try {
-    const phaseIdx = getCurrentPhaseIndex();
-    ytCurrentPhaseIdx = phaseIdx;
-    loadThetaTrackByPhase(phaseIdx);
-    ytShouldPlay = true;
-    ytPendingPlay = false;
-    updateMusicToggleLabel();
-  } catch (err) {
-    ytPendingPlay = true;
-    updateMusicStatus('자동 재생이 제한되었습니다. 음악 켜기를 눌러 시작해 주세요.');
-  }
+  audioShouldPlay = true;
+  const phaseIdx = getCurrentPhaseIndex();
+  audioCurrentPhaseIdx = phaseIdx;
+  loadThetaTrackByPhase(phaseIdx);
+  updateMusicToggleLabel();
 }
 
 function pauseTheta() {
-  if (ytPlayer && ytReady) {
-    try { ytPlayer.pauseVideo(); } catch (_) {}
-  }
-  ytShouldPlay = false;
+  const audio = getMeditationAudio();
+  if (audio) { try { audio.pause(); } catch (_) {} }
+  audioShouldPlay = false;
   updateMusicToggleLabel();
-  updateMusicStatus('Theta 배경음 일시정지');
+  updateMusicStatus('배경음을 잠시 멈췄습니다.');
 }
 
 function toggleThetaMusic() {
-  if (!ytShouldPlay) {
-    safePlayTheta();
+  if (audioShouldPlay) {
+    pauseTheta();
     return;
   }
-  pauseTheta();
+  const audio = getMeditationAudio();
+  if (audio && audioCurrentTitle && audio.currentTime > 0) {
+    // 이미 로드된 트랙이 있으면 이어서 재생한다.
+    audioShouldPlay = true;
+    const played = audio.play();
+    if (played && typeof played.catch === 'function') played.catch(() => {});
+    fadeMeditationAudioTo(MEDITATION_TARGET_VOLUME);
+    updateMusicToggleLabel();
+    updateMusicStatus('배경음을 다시 켰습니다.');
+    return;
+  }
+  safePlayTheta();
 }
 
 function changeThetaPreset() {
-  ytPresetKey = getThetaPresetKey();
-  ytCurrentPhaseIdx = -1;
-  if (!ytReady || !ytPlayer) {
-    updateMusicStatus('프리셋 변경이 저장되었습니다. 플레이어 연결 후 적용됩니다.');
-    return;
-  }
-  try {
+  audioPresetKey = getThetaPresetKey();
+  audioCurrentPhaseIdx = getCurrentPhaseIndex();
+  audioCurrentTrackIdx = 0;
+  const preset = THETA_PRESETS[audioPresetKey] || THETA_PRESETS.mystic;
+  if (audioShouldPlay) {
     loadThetaTrackByPhase(getCurrentPhaseIndex());
-    ytShouldPlay = true;
-    updateMusicToggleLabel();
-    const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
-    updateMusicStatus(`${preset.title} 프리셋으로 변경했습니다.`);
-  } catch (_) {
-    updateMusicStatus('프리셋 변경 중 오류가 발생했습니다. 다시 시도해 주세요.');
+  } else {
+    updateMusicStatus(`${preset.title} 사운드로 바꿨습니다.`);
   }
 }
 
 function nextThetaTrack() {
-  if (!ytReady || !ytPlayer) {
-    updateMusicStatus('플레이어 연결을 확인하는 중입니다. 잠시 후 다시 시도해 주세요.');
-    return;
-  }
-  const preset = THETA_PRESETS[ytPresetKey] || THETA_PRESETS.mystic;
+  const preset = THETA_PRESETS[audioPresetKey] || THETA_PRESETS.mystic;
   const tracks = Array.isArray(preset.tracks) ? preset.tracks : [];
-  if (!tracks.length) {
-    loadThetaFallbackSearch();
-    return;
-  }
-  try {
-    ytCurrentTrackIdx = (ytCurrentTrackIdx + 1) % tracks.length;
-    const track = tracks[ytCurrentTrackIdx];
-    ytCurrentTrack = track;
-    ytPlayer.loadVideoById({
-      videoId: track.id,
-      startSeconds: 0,
-      suggestedQuality: 'small'
-    });
-    ytShouldPlay = true;
-    updateMusicToggleLabel();
-    updateMusicStatus(`다음 트랙: ${track.label}`);
-  } catch (_) {
-    loadThetaFallbackSearch();
-  }
+  if (!tracks.length) return;
+  audioCurrentTrackIdx = (audioCurrentTrackIdx + 1) % tracks.length;
+  const track = tracks[audioCurrentTrackIdx];
+  audioShouldPlay = true;
+  playMeditationTrack(track, true);
+  updateMusicToggleLabel();
+  updateMusicStatus(`다음 곡 · ${track.label}`);
 }
 
 function setMusicPanelClosed(closed) {
@@ -1484,53 +1469,6 @@ function closeMusicPanel() {
 function openMusicPanel() {
   setMusicPanelClosed(false);
 }
-
-function onYouTubeIframeAPIReady() {
-  const mount = document.getElementById('ytPlayer');
-  if (!mount || !window.YT || !window.YT.Player) return;
-  ytPlayer = new window.YT.Player('ytPlayer', {
-    width: '1',
-    height: '1',
-    playerVars: {
-      autoplay: 0,
-      controls: 0,
-      rel: 0,
-      modestbranding: 1,
-      playsinline: 1,
-      iv_load_policy: 3
-    },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        ytPresetKey = getThetaPresetKey();
-        updateMusicStatus('유튜브 플레이어 준비 완료. 단계별 Theta 배경음이 자동 전환됩니다.');
-        updateMusicToggleLabel();
-        if (ytPendingPlay || ytShouldPlay) {
-          safePlayTheta();
-        } else {
-          const track = getTrackForPhase(0);
-          if (track && track.id) {
-            try {
-              ytPlayer.cueVideoById({
-                videoId: track.id,
-                startSeconds: 0,
-                suggestedQuality: 'small'
-              });
-            } catch (_) {
-              loadThetaFallbackSearch();
-            }
-          } else {
-            loadThetaFallbackSearch();
-          }
-        }
-      },
-      onError: () => {
-        loadThetaFallbackSearch();
-      }
-    }
-  });
-}
-window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
 
 /* ═══════════════════════════ SCREEN HELPERS ═══════════════════════════ */
 function showScreen(id) {
@@ -1554,110 +1492,22 @@ function _isAdminMeditationSession() {
   }
 }
 
-async function _resolveMeditationAuthToken() {
-  var token = '';
-  try { localStorage.removeItem('fortune_auth_token'); sessionStorage.removeItem('fortune_auth_token'); } catch (_) {}
-
-  try {
-    var authRes = await fetch('/api/auth/me', { method: 'GET', credentials: 'include', cache: 'no-store' });
-    if (!authRes.ok) return '';
-    var authData = await authRes.json().catch(function(){ return null; });
-    if (authData && authData.user && typeof authData.user === 'object') {
-      try { localStorage.setItem('fortune_auth_user', JSON.stringify(authData.user)); } catch (_) {}
-      return '__cookie_session__';
-    }
-  } catch (_) {}
-
-  return '';
-}
-
-function _getMeditationAuthToken() {
-  try { localStorage.removeItem('fortune_auth_token'); sessionStorage.removeItem('fortune_auth_token'); } catch (_) {}
-  return '';
-}
-
-function _redirectLoginForMeditation() {
-  if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-    window.__cdOpenLoginRequiredModal({ reason: 'mobile_auth_resync', redirectTo: window.location.pathname });
-    return;
-  }
-  window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
-}
-
-var _cdMeditationPayToastTimer = null;
-
-function _ensureMeditationPaymentUi() {
-  if (document.getElementById('cdMeditationPayUiStyle')) return;
-
-  var style = document.createElement('style');
-  style.id = 'cdMeditationPayUiStyle';
-  style.textContent =
-    '.cd-mpay-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,6,18,.62);backdrop-filter:blur(2px);z-index:2147483000}' +
-    '.cd-mpay-overlay.is-show{display:flex}' +
-    '.cd-mpay-box{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;background:rgba(6,12,30,.94);border:1px solid rgba(255,255,255,.14);color:#f8fafc;box-shadow:0 20px 48px rgba(0,0,0,.45)}' +
-    '.cd-mpay-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.28);border-top-color:#fbbf24;border-radius:50%;animation:cdMpaySpin .75s linear infinite}' +
-    '.cd-mpay-message{font-size:14px;font-weight:700;letter-spacing:.01em}' +
-    '.cd-mpay-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;pointer-events:none;z-index:2147483001;padding:10px 14px;border-radius:999px;background:rgba(10,25,18,.95);border:1px solid rgba(74,222,128,.4);color:#bbf7d0;font-size:13px;font-weight:700;transition:opacity .2s ease,transform .2s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}' +
-    '.cd-mpay-toast.is-show{opacity:1;transform:translate(-50%,0)}' +
-    '@keyframes cdMpaySpin{to{transform:rotate(360deg)}}';
-  document.head.appendChild(style);
-
-  var overlay = document.createElement('div');
-  overlay.id = 'cdMeditationPayOverlay';
-  overlay.className = 'cd-mpay-overlay';
-  overlay.innerHTML =
-    '<div class="cd-mpay-box">' +
-    '<div class="cd-mpay-spinner" aria-hidden="true"></div>' +
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>' +
-    '</div>';
-  document.body.appendChild(overlay);
-
-  var toast = document.createElement('div');
-  toast.id = 'cdMeditationPayToast';
-  toast.className = 'cd-mpay-toast';
-  toast.setAttribute('aria-live', 'polite');
-  document.body.appendChild(toast);
-}
-
-function _showMeditationPaymentUi(message) {
-  _ensureMeditationPaymentUi();
-  var overlay = document.getElementById('cdMeditationPayOverlay');
-  var text = document.getElementById('cdMeditationPayMessage');
-  if (text) text.textContent = message || '네빌 고다드 명상 코스 결제를 확인하는 중입니다...';
-  if (overlay) overlay.classList.add('is-show');
-}
-
-function _hideMeditationPaymentUi() {
-  var overlay = document.getElementById('cdMeditationPayOverlay');
-  if (overlay) overlay.classList.remove('is-show');
-}
-
-function _showMeditationDeductedUi(cost, balanceAfter) {
-  _ensureMeditationPaymentUi();
-  var toast = document.getElementById('cdMeditationPayToast');
-  if (!toast) return;
-
-  var msg = '이용 권한 확인 완료';
-  if (typeof balanceAfter === 'number' && Number.isFinite(balanceAfter)) {
-    msg += ' · 잔여 가치 ' + Number(balanceAfter).toLocaleString('ko-KR');
-  }
-  toast.textContent = msg;
-  toast.classList.add('is-show');
-
-  if (_cdMeditationPayToastTimer) clearTimeout(_cdMeditationPayToastTimer);
-  _cdMeditationPayToastTimer = setTimeout(function () {
-    toast.classList.remove('is-show');
-  }, 2300);
-}
-
+// 다른 회당 결제(관상·영국홍차 등)와 동일하게 공유 게이트를 그대로 호출한다.
+// 이용권 선검사 → 결제창(단건 KRW + 월정석)·완료 UI는 모두 공유 게이트가 렌더한다.
 async function _consumeMeditationCoin(cost, reason) {
   if (_isAdminMeditationSession()) return true;
 
+  if (typeof window._cdCoinGatePerUse !== 'function') {
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return false;
+  }
+
   var requestId = 'neville:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-  function syncNevilleBilling(payload, txId) {
+
+  // 결제 성공 시 로컬 잔액 스냅샷만 최신화한다(사용자 피드백 UI는 공유 게이트 담당).
+  function syncNevilleBilling(payload) {
     var source = payload && typeof payload === 'object' ? payload : {};
     var data = source.data && typeof source.data === 'object' ? source.data : {};
-    var consume = source.consume && typeof source.consume === 'object' ? source.consume : (data.consume && typeof data.consume === 'object' ? data.consume : {});
     var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
     if (Number.isFinite(nextBalance) && nextBalance >= 0) {
       try {
@@ -1666,22 +1516,18 @@ async function _consumeMeditationCoin(cost, reason) {
         localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser));
       } catch (_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
-      _showMeditationDeductedUi(cost, nextBalance);
-    } else {
-      _showMeditationDeductedUi(cost, null);
     }
-    return String(txId || source.transactionId || source.paymentId || source.purchaseId || consume.transactionId || consume._id || requestId);
   }
 
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    var granted = false;
-    _showMeditationPaymentUi('네빌 고다드 명상 코스 결제 권한을 확인하는 중입니다...');
+  return await new Promise(function (resolve) {
+    var settled = false;
+    function done(v) { if (!settled) { settled = true; resolve(v); } }
     try {
-      var gateResult = window._cdCoinGatePerUse(cost, reason, function(transactionId, payload) {
-        granted = true;
-        syncNevilleBilling(payload, transactionId);
-      }, function() {
-        granted = false;
+      var gateResult = window._cdCoinGatePerUse(cost, reason, function (transactionId, payload) {
+        syncNevilleBilling(payload);
+        done(true);
+      }, function () {
+        done(false);
       }, {
         featureKey: 'neville-meditation',
         serviceKey: 'neville-meditation',
@@ -1689,54 +1535,20 @@ async function _consumeMeditationCoin(cost, reason) {
         forceDeduct: true,
         requestId: requestId
       });
-      if (gateResult && typeof gateResult.then === 'function') gateResult = await gateResult;
-      if (!granted && gateResult && typeof gateResult === 'object') {
-        var payload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
-        var status = String(gateResult.status || payload.status || '').toLowerCase();
-        if (status === 'granted' || status === 'paid' || status === 'success' || payload.accessGrant || payload.premiumAccessToken || payload.consume) {
-          granted = true;
-          syncNevilleBilling(payload, gateResult.transactionId);
-        }
+      if (gateResult && typeof gateResult.then === 'function') {
+        gateResult.then(function (result) {
+          if (result && result.status === 'granted') {
+            syncNevilleBilling(result.payload || result);
+            done(true);
+          } else {
+            done(false);
+          }
+        }).catch(function () { done(false); });
       }
-      return granted;
     } catch (_) {
-      window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      return false;
-    } finally {
-      _hideMeditationPaymentUi();
+      done(false);
     }
-  }
-
-  var token = await _resolveMeditationAuthToken();
-  if (!token) {
-    _redirectLoginForMeditation();
-    return false;
-  }
-
-  _showMeditationPaymentUi('네빌 고다드 명상 코스 결제를 확인하는 중입니다...');
-  try {
-    var r = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cost: cost, coinPrice: cost, reason: reason, featureKey: 'neville-meditation', serviceKey: 'neville-meditation', action: 'openNevilleMeditationPage', paymentMode: 'COIN', forceDeduct: true, requestId: requestId })
-    });
-    var d = {};
-    try { d = await r.json(); } catch (_) { d = {}; }
-
-    if (r.status === 402 || !r.ok) {
-      window.alert((d && d.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
-      return false;
-    }
-
-    syncNevilleBilling(d, '');
-    return true;
-  } catch (_) {
-    window.alert('결제 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  } finally {
-    _hideMeditationPaymentUi();
-  }
+  });
 }
 
 /* ═══════════════════════════ START ═══════════════════════════ */
@@ -1758,7 +1570,7 @@ async function startCourse(mins) {
 
   showScreen('meditation');
   setMusicPanelClosed(false);
-  ytShouldPlay = true;
+  audioShouldPlay = true;
   safePlayTheta();
   setTimeout(() => {
     // 이전 세션 텍스트 초기화
@@ -1816,17 +1628,42 @@ function updateHUD() {
   `;
 
   // 명상 단계가 바뀌면 배경음도 자동 전환합니다.
-  if (ytShouldPlay && ytReady && phaseIdx !== ytCurrentPhaseIdx) {
-    ytCurrentPhaseIdx = phaseIdx;
+  if (audioShouldPlay && phaseIdx !== audioCurrentPhaseIdx) {
+    audioCurrentPhaseIdx = phaseIdx;
     loadThetaTrackByPhase(phaseIdx);
   }
 }
 
 /* ═══════════════════════════ MESSAGES ═══════════════════════════ */
+// 호흡 유도에 맞춘 느린 타이핑 기본값(ms). 각 안내는 다음 안내가 뜨기 전에 반드시 끝나야 하므로,
+// 남은 시간이 부족하면 typingSpeedFactor로 자동 압축해 줄이 겹치는 것을 막는다.
+const TYPE_BASE_DELAY = 84;      // 기본 글자
+const TYPE_NEWLINE_DELAY = 620;  // 줄바꿈 = 한 번의 호흡
+const TYPE_PUNCT_DELAY = 340;    // 마침표·쉼표·말줄임표
+const TYPE_EMPHASIS_DELAY = 260; // 느낌표·물음표
+let typingSpeedFactor = 1;
+
+function estimateTypingMs(text) {
+  let ms = 0;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    ms += (ch === '\n' ? TYPE_NEWLINE_DELAY
+          : '.,。·'.includes(ch) ? TYPE_PUNCT_DELAY
+          : '!?'.includes(ch) ? TYPE_EMPHASIS_DELAY
+          : TYPE_BASE_DELAY);
+  }
+  return ms;
+}
+
 function checkMsgs() {
   const msgs = course.msgs;
   if (msgIdx >= msgs.length) return;
   if (elapsed >= msgs[msgIdx].t) {
+    // 다음 안내까지 남은 시간에 맞춰 타이핑 속도를 정한다(페이드 420ms + 여유 900ms 확보).
+    const next = msgs[msgIdx + 1];
+    const windowMs = next ? Math.max(1200, (next.t - msgs[msgIdx].t) * 1000 - 1320) : 60000;
+    const naturalMs = estimateTypingMs(msgs[msgIdx].tx);
+    typingSpeedFactor = naturalMs > windowMs ? Math.max(0.4, windowMs / naturalMs) : 1;
     showMsg(msgs[msgIdx].tx);
     msgIdx++;
   }
@@ -1866,12 +1703,12 @@ function typeNext(el) {
     el.innerHTML = html + '<span class="cursor"></span>';
     charIdx++;
     const ch = targetTxt[charIdx - 1];
-    // 느린 타이핑: 줄바꿈 320ms, 마침표/쉼표 등 220ms, 느낌표 180ms, 기본 48~62ms
-    const delay = ch === '\n' ? 380
-          : '.,。·'.includes(ch) ? 260
-          : '!'.includes(ch) ? 180
-          : 58 + Math.random() * 16;
-    typTO = setTimeout(() => typeNext(el), delay);
+    // 호흡에 맞춘 느린 타이핑. 남은 시간이 부족하면 typingSpeedFactor가 자동으로 압축한다.
+    const base = ch === '\n' ? TYPE_NEWLINE_DELAY
+          : '.,。·'.includes(ch) ? TYPE_PUNCT_DELAY
+          : '!?'.includes(ch) ? TYPE_EMPHASIS_DELAY
+          : TYPE_BASE_DELAY + Math.random() * 20;
+    typTO = setTimeout(() => typeNext(el), base * typingSpeedFactor);
   }
 }
 

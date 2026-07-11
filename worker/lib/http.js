@@ -208,7 +208,11 @@ export async function handleRouteError(error, context = {}) {
   }
 
   const isConfigError = /mongo_uri|mongodb_uri|required for worker-native|connection timed out/i.test(errorText);
-  const isDbUnavailable = /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText);
+  // 에러명(Mongo*)과 풀-클리어 메시지도 DB 일시장애로 판정 — MongoPoolClearedError는
+  // 메시지에 "mongo"가 없을 수 있어 메시지 정규식만으로는 놓친다(500으로 새는 원인).
+  const isDbUnavailable = /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText)
+    || /^Mongo/.test(String(error?.name || ""))
+    || /pool .*was cleared|was cleared because|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT/i.test(errorText);
 
   if (isDbUnavailable || isConfigError) {
     return json({

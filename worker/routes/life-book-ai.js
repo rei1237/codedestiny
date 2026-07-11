@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -468,7 +468,9 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     return { ok: true, accessType: "admin", accessSource: "admin", paymentId: "" };
   }
 
-  const paidPayment = await findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId });
+  // canAccessPaidFeature(481)는 내부에 자체 withMongoRetry가 있어 통째 래핑 시 바깥 상한이
+  // 안쪽 재시도를 절단한다 — 커버 안 된 read(findPaidPayment)만 개별 래핑.
+  const paidPayment = await withMongoRetry(pricing.env, () => findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId }));
   if (paidPayment) {
     const storedHash = clean(paidPayment?.pricingSnapshot?.inputHash);
     if (storedHash && storedHash !== inputHash) return { ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput };
@@ -1643,7 +1645,8 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   }
 
   await connectDb(env);
-  const user = await loadBillingUser(auth.userId);
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
   const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, input: normalized.input });
@@ -1707,14 +1710,14 @@ async function resolveStartAccess({ request, env, auth, body, normalized, idempo
     }
   }
 
-  const billingGateAccess = await resolveBillingGateAccess({
+  const billingGateAccess = await withMongoRetry(env, () => resolveBillingGateAccess({
     env,
     auth,
     body,
     idempotencyKey,
     inputHash: normalized.inputHash,
     consultationType: normalized.input.consultationType,
-  });
+  }));
   if (billingGateAccess?.ok) return billingGateAccess;
 
   return { ok: false, reason: "PAYMENT_VERIFY_FAILED" };
@@ -2384,6 +2387,15 @@ export async function handleLifeBookAiRoutes(request, env = {}) {
       message: clean(error?.message || error, 500),
       ...(isDevelopmentEnv(env) ? { stack: clean(error?.stack, 2000) } : {}),
     }, "error");
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }

@@ -1,4 +1,4 @@
-import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
+import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
@@ -2648,7 +2648,9 @@ async function handleRefresh(request, env) {
   }
 
   try {
-    await withAuthOpTimeout(connectDb(env), getAuthConnectTimeoutMs(env), "auth_refresh_connect_db");
+    // 풀 초기화(MongoPoolClearedError) 버스트에서 1회 실패로 즉시 503을 내지 않도록
+    // withMongoRetry로 감싼다(내부에서 connectDb + per-attempt 타임아웃 + 재연결·재시도).
+    await withMongoRetry(env, async () => {});
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_db_degraded", error);
@@ -2670,15 +2672,14 @@ async function handleRefresh(request, env) {
   // 경쟁과 revokedAt 재확인 분기를 하나의 원자 연산으로 대체한다.
   let session;
   try {
-    session = await withAuthOpTimeout(
-      RefreshTokenSession.findOneAndUpdate(
-        { tokenHash, revokedAt: null },
-        { $set: { revokedAt: new Date() } },
-        { returnDocument: "before" },
-      ).lean(),
-      getAuthOpTimeoutMs(env),
-      "auth_refresh_find_session",
-    );
+    // withMongoRetry는 타임아웃(실행됐을 수 있는 모호 케이스)은 재시도하지 않고 풀-클리어류만
+    // 재시도하므로 회전 선점 write에 안전하다. 만에 하나 1차 성공 후 재시도되어도 아래
+    // grace window 분기가 방금 회전된 세션을 수용한다.
+    session = await withMongoRetry(env, () => RefreshTokenSession.findOneAndUpdate(
+      { tokenHash, revokedAt: null },
+      { $set: { revokedAt: new Date() } },
+      { returnDocument: "before" },
+    ).lean());
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_session_degraded", error);
@@ -2748,7 +2749,7 @@ async function handleRefresh(request, env) {
 
   let user;
   try {
-    user = await User.collection.findOne(
+    user = await withMongoRetry(env, () => User.collection.findOne(
       { _id: new mongoose.Types.ObjectId(userId) },
       {
         projection: {
@@ -2768,7 +2769,7 @@ async function handleRefresh(request, env) {
           status: 1,
         },
       },
-    );
+    ));
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       logAuthDiagnostic(request, env, "/api/auth/refresh", "", "refresh_user_lookup_degraded", error);

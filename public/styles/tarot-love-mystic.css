@@ -1425,3 +1425,48 @@
     display: none;
   }
 }
+
+/* ===== 결제 확인 후 리딩 생성 대기 상태 ===== */
+.tarot-love-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 260px;
+  padding: 36px 22px;
+  text-align: center;
+}
+.tarot-love-loading-orb {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 30%, rgba(255, 226, 246, 0.95), rgba(255, 122, 190, 0.75) 46%, rgba(126, 44, 128, 0.55) 100%);
+  box-shadow: 0 0 22px rgba(255, 120, 190, 0.55), 0 0 46px rgba(168, 84, 210, 0.35);
+  animation: tarotLoveLoadingPulse 1.6s ease-in-out infinite;
+}
+@keyframes tarotLoveLoadingPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.14); opacity: 1; }
+}
+.tarot-love-loading-title {
+  font-size: 1.06rem;
+  font-weight: 800;
+  color: #ffe8f8;
+  margin: 0;
+  text-shadow: 0 0 12px rgba(255, 120, 180, 0.25);
+  word-break: keep-all;
+}
+.tarot-love-loading-sub {
+  font-size: 0.92rem;
+  color: rgba(255, 234, 248, 0.78);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 34ch;
+  word-break: keep-all;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tarot-love-loading-orb {
+    animation: none;
+  }
+}

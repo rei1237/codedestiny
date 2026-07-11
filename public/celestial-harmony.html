@@ -236,6 +236,93 @@
       background: transparent;
       color: rgba(255, 255, 255, .68);
     }
+    .celestial-pay-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: radial-gradient(circle at 50% 40%, rgba(24, 18, 48, .72), rgba(4, 5, 16, .93));
+      backdrop-filter: blur(6px);
+    }
+    .celestial-pay-modal {
+      position: relative;
+      width: min(420px, 100%);
+      border-radius: 18px;
+      border: 1px solid rgba(245, 208, 111, .34);
+      background: linear-gradient(160deg, rgba(24, 18, 48, .96), rgba(8, 10, 28, .97));
+      box-shadow: 0 22px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(245, 208, 111, .12);
+      padding: 22px 20px 18px;
+      text-align: center;
+      color: #fef3c7;
+    }
+    .celestial-pay-close {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: 0;
+      color: rgba(255, 255, 255, .6);
+      font-size: 1.4rem;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .celestial-pay-kicker {
+      margin: 0 0 .25rem;
+      font-size: .7rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: rgba(253, 230, 138, .78);
+    }
+    .celestial-pay-title {
+      margin: 0 0 .35rem;
+      font-size: 1.28rem;
+      font-weight: 800;
+      color: #fde68a;
+    }
+    .celestial-pay-desc {
+      margin: 0 0 1rem;
+      font-size: .82rem;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, .74);
+    }
+    .celestial-pay-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .18rem;
+      width: 100%;
+      border-radius: 13px;
+      padding: .8rem .9rem;
+      margin-bottom: .6rem;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+    .celestial-pay-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+    .celestial-pay-btn__label { font-size: .96rem; font-weight: 800; }
+    .celestial-pay-btn__meta { font-size: .72rem; opacity: .82; }
+    .celestial-pay-btn--direct {
+      background: linear-gradient(120deg, #92400e, #d97706);
+      border-color: rgba(245, 158, 11, .45);
+      color: #fef3c7;
+    }
+    .celestial-pay-btn--monthly {
+      background: linear-gradient(120deg, #5b21b6, #7c3aed);
+      border-color: rgba(167, 139, 250, .45);
+      color: #ede9fe;
+    }
+    .celestial-pay-cancel {
+      margin-top: .25rem;
+      background: transparent;
+      border: 0;
+      color: rgba(255, 255, 255, .55);
+      font-size: .78rem;
+      cursor: pointer;
+    }
+    .celestial-pay-cancel:hover { color: rgba(255, 255, 255, .82); }
     .premium-status-panel {
       margin-top: 1.1rem;
       border-radius: 14px;
@@ -904,6 +991,65 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       }
       return headers;
     }
+
+    // 독립 정적 페이지에는 결제수단 선택 모달(정본: billing-client.ts / index.html 인라인)이 없어
+    // destiny-profile.js의 stub이 즉시 'cancel'을 반환 → 결제창이 뜨지 않는다.
+    // 이 페이지 스코프에서만 실제 2옵션(단건 KRW + 월정석) 모달을 정의해
+    // 기존 _cdOpenPaidServiceGate → _cdRunDirectKrwCheckout / 월정석 파이프라인이 끝까지 동작하게 한다.
+    // 반환값은 선택 문자열('direct'|'monthly'|'cancel')뿐 — 실제 결제 실행은 _cdOpenPaidServiceGate가 담당.
+    (function installCelestialPaymentChooser(){
+      // SPA에 내장되어 정본 chooser가 존재하면 덮어쓰지 않는다.
+      if(window.__cdChooseServicePaymentModeCanonical) return;
+      function chooseCelestialPaymentMode(options){
+        var opts = options && typeof options==='object' ? options : {};
+        var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
+        var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || opts.amountKRW || opts.paymentAmount || (coinPrice*100))));
+        var priceLabel = amountKrw>0 ? amountKrw.toLocaleString('ko-KR') + '원' : '';
+        return new Promise(function(resolve){
+          var settled=false;
+          function done(choice){ if(settled) return; settled=true; cleanup(); resolve(choice); }
+          var overlay=document.createElement('div');
+          overlay.className='celestial-pay-overlay';
+          overlay.setAttribute('role','dialog');
+          overlay.setAttribute('aria-modal','true');
+          overlay.setAttribute('aria-label','결제 수단 선택');
+          overlay.innerHTML=
+            '<div class="celestial-pay-modal">'+
+              '<button type="button" class="celestial-pay-close" aria-label="닫기">&times;</button>'+
+              '<p class="celestial-pay-kicker">결제 수단 선택</p>'+
+              '<h3 class="celestial-pay-title">천체의 선율 리딩</h3>'+
+              '<p class="celestial-pay-desc">11행성 심층 리딩과 별빛 통합 오라클을 여는 결제 수단을 선택해 주세요.</p>'+
+              '<button type="button" class="celestial-pay-btn celestial-pay-btn--direct" data-choice="direct">'+
+                '<span class="celestial-pay-btn__label">단건 결제</span>'+
+                (priceLabel?('<span class="celestial-pay-btn__meta">'+priceLabel+' · 카드/간편결제</span>'):'')+
+              '</button>'+
+              '<button type="button" class="celestial-pay-btn celestial-pay-btn--monthly" data-choice="monthly">'+
+                '<span class="celestial-pay-btn__label">월정석 사용</span>'+
+                '<span class="celestial-pay-btn__meta">보유한 월정석으로 이용</span>'+
+              '</button>'+
+              '<button type="button" class="celestial-pay-cancel" data-choice="cancel">다음에 할게요</button>'+
+            '</div>';
+          function onClick(ev){
+            var t=ev.target;
+            if(t===overlay){ done('cancel'); return; }
+            var btn=t&&t.closest?t.closest('[data-choice]'):null;
+            if(btn){ done(btn.getAttribute('data-choice')||'cancel'); return; }
+            if(t&&t.closest&&t.closest('.celestial-pay-close')){ done('cancel'); }
+          }
+          function onKey(ev){ if(ev.key==='Escape') done('cancel'); }
+          function cleanup(){
+            overlay.removeEventListener('click', onClick);
+            document.removeEventListener('keydown', onKey);
+            if(overlay.parentNode) overlay.parentNode.removeChild(overlay);
+          }
+          overlay.addEventListener('click', onClick);
+          document.addEventListener('keydown', onKey);
+          document.body.appendChild(overlay);
+        });
+      }
+      chooseCelestialPaymentMode.__cdSupportsPassChoice = true;
+      window._cdChooseServicePaymentMode = chooseCelestialPaymentMode;
+    }());
 
     function validateReadingSchema(result){
       var r = result && typeof result==='object' ? result : {};
@@ -1610,7 +1756,17 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           }
         );
         if(gateResult&&typeof gateResult.then==='function') gateResult=await gateResult;
-        if(gateGranted || (gateResult&&gateResult.ok!==false)){
+        // 취소({status:'cancelled'})를 성공으로 오판하지 않도록 엄격 판정.
+        // 실제 grant는 콜백으로 gateGranted=true가 되거나, 결과에 결제 증빙이 담긴 경우만 인정.
+        var gateStatus=clean(gateResult&&gateResult.status).toLowerCase();
+        var gateHasProof=Boolean(gateResult&&typeof gateResult==='object' && (
+          gateStatus==='granted' || gateStatus==='paid' || gateStatus==='success' ||
+          gateResult.accessGrant || gateResult.consume || gateResult.premiumAccessToken ||
+          (gateResult.payload && typeof gateResult.payload==='object' && (
+            gateResult.payload.accessGrant || gateResult.payload.consume || gateResult.payload.premiumAccessToken
+          ))
+        ));
+        if(gateGranted || gateHasProof){
           var source=gatePayload || (gateResult&&gateResult.payload) || gateResult;
           var gateNormalized=extractCoinGateResult(source, body);
           assertPaymentProof(gateNormalized);
@@ -1924,6 +2080,12 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         var status = Number(err && err.status || 0);
         var code = clean((err && err.code) || (err && err.payload && err.payload.code) || '');
         var recoverable = hasAccess && (currentReportId || currentTransactionId);
+        if(code==='PAYMENT_CANCELLED' && !hasAccess){
+          // 사용자가 결제창을 닫은 경우 — 실패가 아니라 취소이므로 중립 안내 후 종료.
+          setLoading(false,'');
+          updatePremiumStatus('premium ready','결제를 취소했습니다. 준비되면 다시 리딩을 열 수 있습니다.','payment',['draw']);
+          return;
+        }
         if(status===401 || code==='UNAUTHORIZED'){
           updatePremiumStatus('premium issue','결제 확인 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.','payment',['draw']);
         } else if(!hasAccess){

@@ -299,6 +299,22 @@
     return getCookie("fortune_auth_token") || "";
   }
 
+  // 회당 결제(월정석 차감 등) 직후 게이트가 저장해 둔 프리미엄 액세스 토큰.
+  // 서버는 이 토큰으로 방금 결제를 인정한다(이용권/단건결제는 서버 상태로 이미 판별됨).
+  function getPremiumAccessToken() {
+    try {
+      if (window.__cdPremiumAccessToken) return String(window.__cdPremiumAccessToken);
+    } catch (_) {}
+    try {
+      var s = sessionStorage.getItem("cd_premium_access_token") || "";
+      if (s) return s;
+    } catch (_) {}
+    try {
+      return localStorage.getItem("cd_premium_access_token") || "";
+    } catch (_) {}
+    return "";
+  }
+
   function clearLoadingTimer() {
     if (!state.loadingTimer) return;
     clearInterval(state.loadingTimer);
@@ -731,8 +747,20 @@
     var overlay = $(OVERLAY_ID);
     if (!overlay) return;
 
+    // 결제/이용권 게이트는 승인 후 같은 액션(psychoDreamStartAnalysis)을 다시 호출한다.
+    // 이때 게이트가 세팅해 둔 승인 신호(data-pvw-bypass 또는 cd_pa_* 세션 플래그)를 소비해
+    // 게이트를 재실행하지 않고 실제 분석 요청으로 넘어간다. (신호가 없으면 최초 진입 → 게이트 실행)
     var analyzeBtn = $("psychoDreamAnalyzeBtn");
-    if (analyzeBtn && analyzeBtn.getAttribute("data-pvw-bypass") !== "1" && typeof window.__cdRunPerUseCoinGateFromTile === "function") {
+    var gateApproved = false;
+    try {
+      if (analyzeBtn && analyzeBtn.getAttribute("data-pvw-bypass") === "1") gateApproved = true;
+      if (sessionStorage.getItem("cd_pa_psychoDreamStartAnalysis") === "1") {
+        gateApproved = true;
+        // 1회만 소비해 회당 결제 성격을 유지한다(다음 분석은 다시 게이트를 거친다).
+        sessionStorage.removeItem("cd_pa_psychoDreamStartAnalysis");
+      }
+    } catch (_) {}
+    if (!gateApproved && analyzeBtn && typeof window.__cdRunPerUseCoinGateFromTile === "function") {
       if (window.__cdRunPerUseCoinGateFromTile(analyzeBtn)) return;
     }
 
@@ -767,10 +795,11 @@
 
       var res = null;
       try {
+        var premiumAccessToken = getPremiumAccessToken();
         res = await fetch(getPsychoAnalysisUrl(), {
           method: "POST",
           headers: headers,
-          body: JSON.stringify({ dreamText: dreamText }),
+          body: JSON.stringify({ dreamText: dreamText, premiumAccessToken: premiumAccessToken || undefined }),
           signal: controller ? controller.signal : undefined,
         });
       } finally {
@@ -869,6 +898,9 @@
 
   window.openPsychoDreamModal = function openPsychoDreamModal() {
     injectFreudsStudyStyles();
+
+    // 이전 세션에서 남은 승인 신호가 있으면 게이트를 건너뛰고 무료로 분석되므로 진입 시 제거한다.
+    try { sessionStorage.removeItem("cd_pa_psychoDreamStartAnalysis"); } catch (_) {}
 
     resetUI();
     setOverlayVisible(true);

@@ -471,7 +471,6 @@
     }
     .music-panel__btn:hover{border-color:rgba(168,85,247,0.55);color:var(--cosmic);background:rgba(168,85,247,0.06)}
     .music-panel__status{font-size:0.66rem;line-height:1.65;color:rgba(210,190,245,0.7);min-height:1.8em}
-    .yt-player{width:1px;height:1px;opacity:0;pointer-events:none;position:absolute;left:-9999px;top:-9999px}
 
     .music-opener{
       position:sticky;top:calc(6px + env(safe-area-inset-top));
@@ -789,7 +788,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   </div>
 
   <!-- Music opener button -->
-  <button class="music-opener" id="musicOpener" type="button">Theta Music</button>
+  <button class="music-opener" id="musicOpener" type="button">명상 음악</button>
 
   <!-- Music panel -->
   <div class="music-panel is-closed" id="musicPanel">
@@ -799,20 +798,15 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     </div>
     <div class="music-panel__row">
       <select class="music-panel__select" id="musicSelect">
-        <option value="theta wave deep meditation lofi">🎵 세타파 딥 명상 로파이</option>
-        <option value="cosmic lofi theta waves 4hz meditation">🌌 코스믹 로파이 4Hz 세타파</option>
-        <option value="deep alpha theta binaural beats focus">🧠 알파/세타 바이노럴 비츠</option>
-        <option value="space ambient lofi meditation relaxation">🚀 우주 앰비언트 로파이</option>
-        <option value="528hz solfeggio healing frequency meditation">✨ 528Hz 솔페지오 힐링</option>
-        <option value="quantum field meditation music 432hz">⚛️ 432Hz 양자장 명상</option>
-        <option value="lofi chill beats deep focus subconscious">💜 딥 포커스 무의식 로파이</option>
-        <option value="neville goddard theta reprogramming sleep">🌙 오토제닉 잠재의식 세션</option>
+        <option value="mystic">🌌 별빛 사원 · Cosmic Temple</option>
+        <option value="healing">✨ 고요한 성소 · Still Sanctuary</option>
+        <option value="deep">🌙 깊은 밤 · Deep Night</option>
       </select>
       <button class="music-panel__btn" id="musicSearch" type="button">▶ 재생</button>
       <button class="music-panel__btn" id="musicNext" type="button">⟳</button>
     </div>
-    <div class="music-panel__status" id="musicStatus">YouTube에서 세타파 음악을 재생합니다</div>
-    <div class="yt-player" id="ytPlayer"></div>
+    <div class="music-panel__status" id="musicStatus">R2 명상 음원이 흐릅니다 · ▶ 재생으로 켜고 ⟳ 로 다음 곡</div>
+    <audio id="meditationAudio" loop preload="none" aria-hidden="true"></audio>
   </div>
 
   <!-- Cosmic Orb -->
@@ -1383,7 +1377,7 @@ function _typeText(txt,cb){
     if(i<txt.length){
       displayed+=txt[i++];
       _guidanceEl.innerHTML=displayed+cursor;
-      _typeTimer=setTimeout(tick,68+Math.random()*28);
+      _typeTimer=setTimeout(tick,82+Math.random()*24);
     }else{
       _guidanceEl.innerHTML=txt+cursor;
       _typing=false;
@@ -1467,160 +1461,60 @@ function _isAdminMeditationSession(){
   }
 }
 
-async function _resolveMeditationAuthToken(){
-  var token='';
-  try{localStorage.removeItem('fortune_auth_token');sessionStorage.removeItem('fortune_auth_token');}catch(_){ }
-
-  try{
-    var authRes=await fetch('/api/auth/me',{method:'GET',credentials:'include',cache:'no-store'});
-    if(!authRes.ok)return '';
-    var authData=await authRes.json().catch(function(){return null;});
-    if(authData&&authData.user&&typeof authData.user==='object'){
-      try{localStorage.setItem('fortune_auth_user',JSON.stringify(authData.user));}catch(_){ }
-      return '__cookie_session__';
-    }
-  }catch(_){ }
-
-  return '';
-}
-
-function _getMeditationAuthToken(){
-  try{localStorage.removeItem('fortune_auth_token');sessionStorage.removeItem('fortune_auth_token');}catch(_){ }
-  return '';
-}
-
-function _redirectLoginForMeditation(){
-  if(typeof window.__cdOpenLoginRequiredModal==='function'){
-    window.__cdOpenLoginRequiredModal({reason:'mobile_auth_resync',redirectTo:window.location.pathname});
-    return;
-  }
-  window.location.replace('/login?next='+encodeURIComponent(window.location.pathname));
-}
-
-var _cdMeditationPayToastTimer=null;
-
-function _ensureMeditationPaymentUi(){
-  if(document.getElementById('cdMeditationPayUiStyle'))return;
-
-  var style=document.createElement('style');
-  style.id='cdMeditationPayUiStyle';
-  style.textContent=
-    '.cd-mpay-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,6,18,.62);backdrop-filter:blur(2px);z-index:2147483000}'+
-    '.cd-mpay-overlay.is-show{display:flex}'+
-    '.cd-mpay-box{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;background:rgba(6,12,30,.94);border:1px solid rgba(255,255,255,.14);color:#f8fafc;box-shadow:0 20px 48px rgba(0,0,0,.45)}'+
-    '.cd-mpay-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.28);border-top-color:#fbbf24;border-radius:50%;animation:cdMpaySpin .75s linear infinite}'+
-    '.cd-mpay-message{font-size:14px;font-weight:700;letter-spacing:.01em}'+
-    '.cd-mpay-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;pointer-events:none;z-index:2147483001;padding:10px 14px;border-radius:999px;background:rgba(10,25,18,.95);border:1px solid rgba(74,222,128,.4);color:#bbf7d0;font-size:13px;font-weight:700;transition:opacity .2s ease,transform .2s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}'+
-    '.cd-mpay-toast.is-show{opacity:1;transform:translate(-50%,0)}'+
-    '@keyframes cdMpaySpin{to{transform:rotate(360deg)}}';
-  document.head.appendChild(style);
-
-  var overlay=document.createElement('div');
-  overlay.id='cdMeditationPayOverlay';
-  overlay.className='cd-mpay-overlay';
-  overlay.innerHTML=
-    '<div class="cd-mpay-box">'+
-    '<div class="cd-mpay-spinner" aria-hidden="true"></div>'+
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>'+
-    '</div>';
-  document.body.appendChild(overlay);
-
-  var toast=document.createElement('div');
-  toast.id='cdMeditationPayToast';
-  toast.className='cd-mpay-toast';
-  toast.setAttribute('aria-live','polite');
-  document.body.appendChild(toast);
-}
-
-function _showMeditationPaymentUi(message){
-  _ensureMeditationPaymentUi();
-  var overlay=document.getElementById('cdMeditationPayOverlay');
-  var text=document.getElementById('cdMeditationPayMessage');
-  if(text)text.textContent=message||'코즈믹 소울 명상 결제를 확인하는 중입니다...';
-  if(overlay)overlay.classList.add('is-show');
-}
-
-function _hideMeditationPaymentUi(){
-  var overlay=document.getElementById('cdMeditationPayOverlay');
-  if(overlay)overlay.classList.remove('is-show');
-}
-
-function _showMeditationAccessGrantedUi(balanceAfter){
-  _ensureMeditationPaymentUi();
-  var toast=document.getElementById('cdMeditationPayToast');
-  if(!toast)return;
-
-  var msg='이용 권한 확인 완료';
-  if(typeof balanceAfter==='number'&&Number.isFinite(balanceAfter)){
-    msg+=' · 잔여 가치 '+Number(balanceAfter).toLocaleString('ko-KR');
-  }
-  toast.textContent=msg;
-  toast.classList.add('is-show');
-
-  if(_cdMeditationPayToastTimer)clearTimeout(_cdMeditationPayToastTimer);
-  _cdMeditationPayToastTimer=setTimeout(function(){
-    toast.classList.remove('is-show');
-  },2300);
-}
-
+// 다른 회당 결제(관상·영국홍차 등)와 동일하게 공유 게이트를 그대로 호출한다.
+// 이용권 선검사 → 결제창(단건 KRW + 월정석)·완료 UI는 모두 공유 게이트가 렌더한다.
 async function _consumeMeditationCoin(cost,reason){
   if(_isAdminMeditationSession())return true;
 
-  var token=await _resolveMeditationAuthToken();
-  if(!token){
-    _redirectLoginForMeditation();
-    return false;
-  }
-
   if(typeof window._cdCoinGatePerUse!=='function'){
-    window.alert('결제 게이트를 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
     return false;
   }
 
-  var granted=false;
-  try{
-    var requestId='cosmic-soul-meditation:'+cost+':'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
-    var result=window._cdCoinGatePerUse(
-      cost,
-      reason,
-      function(_transactionId,payload){
-        granted=true;
-        var data=payload&&payload.data?payload.data:payload;
-        var user=data&&data.user?data.user:null;
-        var balanceAfter=Number(user&&user.points);
-        if(Number.isFinite(balanceAfter)){
-          try{
-            var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
-            u.points=balanceAfter;
-            localStorage.setItem('fortune_auth_user',JSON.stringify(u));
-          }catch(_){ }
-          if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(balanceAfter);
-        }
-        _showMeditationAccessGrantedUi(Number.isFinite(balanceAfter)?balanceAfter:null);
-      },
-      function(){granted=false;},
-      {
-        featureKey:'cosmic-soul-meditation',
-        serviceKey:'cosmic-soul-meditation',
-        action:'openCosmicSoulMeditation',
-        forceDeduct:true,
-        requestId:requestId
-      }
-    );
-    if(result&&typeof result.then==='function'){
-      result=await result;
+  var requestId='cosmic-soul-meditation:'+cost+':'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,9);
+
+  function _syncBalance(payload){
+    var data=payload&&payload.data?payload.data:payload;
+    var user=data&&data.user?data.user:null;
+    var balanceAfter=Number(user&&user.points);
+    if(Number.isFinite(balanceAfter)){
+      try{
+        var u=JSON.parse(localStorage.getItem('fortune_auth_user')||'{}');
+        u.points=balanceAfter;
+        localStorage.setItem('fortune_auth_user',JSON.stringify(u));
+      }catch(_){ }
+      if(typeof window.__cdSetGoldenBalance==='function')window.__cdSetGoldenBalance(balanceAfter);
     }
-    if(result==null){
-      return granted===true;
-    }
-    if(result&&result.ok===false)return false;
-    granted=true;
-    return true;
-  }catch(err){
-    console.error('[cosmic meditation][billing]',err);
-    window.alert('결제 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
   }
+
+  return await new Promise(function(resolve){
+    var settled=false;
+    function done(v){if(!settled){settled=true;resolve(v);}}
+    try{
+      var result=window._cdCoinGatePerUse(
+        cost,
+        reason,
+        function(_transactionId,payload){_syncBalance(payload);done(true);},
+        function(){done(false);},
+        {
+          featureKey:'cosmic-soul-meditation',
+          serviceKey:'cosmic-soul-meditation',
+          action:'openCosmicSoulMeditation',
+          forceDeduct:true,
+          requestId:requestId
+        }
+      );
+      if(result&&typeof result.then==='function'){
+        result.then(function(r){
+          if(r&&r.status==='granted'){_syncBalance(r.payload||r);done(true);}
+          else{done(false);}
+        }).catch(function(){done(false);});
+      }
+    }catch(err){
+      console.error('[cosmic meditation][billing]',err);
+      done(false);
+    }
+  });
 }
 
 /* ─── Timer ─── */
@@ -1683,6 +1577,7 @@ async function _startSession(mode){
     _buildSchedule();
     _buildTimeline();
     _showScreen('meditation');
+    try{_searchAndPlay();}catch(_){ }
     _applyPhase(_phases[0]);
     _updateTimeline(0);
     var initialLines=_composePhaseLines(_phases[0]);
@@ -1701,6 +1596,7 @@ async function _startSession(mode){
 
 /* ─── Screen transitions ─── */
 function _showScreen(which){
+  if(which!=='meditation'){try{_stopMeditationAudio();}catch(_){ }}
   Object.keys(_screens).forEach(function(k){
     var s=_screens[k];
     if(!s)return;
@@ -1829,7 +1725,14 @@ if(journalSave&&journalInput){
 }
 
 /* ─── Music panel ─── */
-var _ytApiReady=false,_ytPlayer=null,_currentVideoId=null;
+// 사주 다이어리와 동일하게 R2 명상 음원을 <audio>로 재생한다(CSP 이미 허용, YouTube 미사용).
+var R2_MEDITATION_BASE='https://music.code-destiny.com/Meditation/';
+function _r2TrackUrl(title){return R2_MEDITATION_BASE+encodeURIComponent(title+'.mp3');}
+var R2_TRACK_GROUPS={
+  mystic:['The Stars Remember Your Name','Starlight Drift','Moonlit Temple Gate','Zero Point'],
+  healing:['Still Lake Mind','Still Lake Dawn','The Memory of Water','Crystal Garden','First Light on Water'],
+  deep:['Moonlit River Return','Moonlit Forest Temple','Rain Window Renewal','Flowing Light','Midnight Pulse']
+};
 var _musicPanel=document.getElementById('musicPanel');
 var _musicOpener=document.getElementById('musicOpener');
 var _musicClose=document.getElementById('musicClose');
@@ -1837,56 +1740,62 @@ var _musicSearch=document.getElementById('musicSearch');
 var _musicNext=document.getElementById('musicNext');
 var _musicSelect=document.getElementById('musicSelect');
 var _musicStatus=document.getElementById('musicStatus');
+var _meditationAudio=document.getElementById('meditationAudio');
+var _vidQueue=[];var _vidIdx=0;var _audioFadeTimer=null;var _audioCurrentTitle='';
+var MEDITATION_TARGET_VOLUME=0.55;
 
-var YT_SEARCH_IDS={
-  'theta wave deep meditation lofi':['jfKfPfyJRdk','5qap5aO4i9A','DWcJFNfaw9c'],
-  'cosmic lofi theta waves 4hz meditation':['WPni755-Krg','KBIoZ4pGVAQ','g4IDjWBRPMY'],
-  'deep alpha theta binaural beats focus':['lE6RYpe9IT0','EEObuDrwGW4','ygEzI7nfRgE'],
-  'space ambient lofi meditation relaxation':['IRzBQl_QDXM','n61ULEU7CO0','hHW1oY26kxQ'],
-  '528hz solfeggio healing frequency meditation':['LiqGtwHMPP8','5_0mxknDhxA','FMMfhvfCj_4'],
-  'quantum field meditation music 432hz':['t3217H8JppI','dIOhS6Mfmxs','kCHhZHLQxAo'],
-  'lofi chill beats deep focus subconscious':['4oStw0r33so','rUxyKA_-grg','YLO7tCdBVrk'],
-  'neville goddard theta reprogramming sleep':['KXdFE2kaTEg','bVj5xCr_pFc','X3UGKIVVJ-o']
-};
-var _vidQueue=[];var _vidIdx=0;
-
-function _loadYouTubeAPI(){
-  if(document.getElementById('yt-api-script'))return;
-  window.onYouTubeIframeAPIReady=function(){_ytApiReady=true;};
-  var s=document.createElement('script');s.id='yt-api-script';
-  s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);
+// 급격한 컷을 피하기 위해 볼륨을 목표치까지 ~800ms에 걸쳐 부드럽게 올린다.
+function _fadeAudioTo(target){
+  if(!_meditationAudio)return;
+  if(_audioFadeTimer){clearInterval(_audioFadeTimer);_audioFadeTimer=null;}
+  var start=_meditationAudio.volume;var steps=16;var i=0;
+  _audioFadeTimer=setInterval(function(){
+    i++;var v=start+(target-start)*(i/steps);
+    _meditationAudio.volume=Math.max(0,Math.min(1,v));
+    if(i>=steps){clearInterval(_audioFadeTimer);_audioFadeTimer=null;_meditationAudio.volume=Math.max(0,Math.min(1,target));}
+  },50);
 }
 
-function _playVideo(videoId){
-  if(!videoId)return;
-  var container=document.getElementById('ytPlayer');
-  if(!container)return;
-  if(_ytPlayer&&_ytApiReady){
-    try{_ytPlayer.loadVideoById(videoId);return;}catch(e){}
-  }
-  container.innerHTML='<iframe width="1" height="1" src="https://www.youtube.com/embed/'+videoId+'?autoplay=1&loop=1&playlist='+videoId+'&controls=0&enablejsapi=1" frameborder="0" allow="autoplay;encrypted-media" allowfullscreen style="position:absolute;left:-9999px;top:-9999px;"></iframe>';
-  _currentVideoId=videoId;
+function _stopMeditationAudio(){
+  if(_audioFadeTimer){clearInterval(_audioFadeTimer);_audioFadeTimer=null;}
+  if(_meditationAudio){try{_meditationAudio.pause();}catch(_){ }}
+}
+
+function _playR2Track(title){
+  if(!_meditationAudio||!title)return;
+  if(title===_audioCurrentTitle&&!_meditationAudio.paused)return;
+  _audioCurrentTitle=title;
+  try{
+    _meditationAudio.src=_r2TrackUrl(title);
+    _meditationAudio.loop=true;
+    _meditationAudio.volume=0;
+    var played=_meditationAudio.play();
+    if(played&&typeof played.then==='function'){
+      played.then(function(){_fadeAudioTo(MEDITATION_TARGET_VOLUME);})
+            .catch(function(){if(_musicStatus)_musicStatus.textContent='자동 재생이 제한되었습니다. ▶ 재생을 눌러 시작해 주세요.';});
+    }else{_fadeAudioTo(MEDITATION_TARGET_VOLUME);}
+  }catch(_){if(_musicStatus)_musicStatus.textContent='배경음을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.';}
 }
 
 function _searchAndPlay(){
-  var q=_musicSelect?_musicSelect.value:'theta wave deep meditation lofi';
-  var ids=YT_SEARCH_IDS[q];
-  if(ids&&ids.length){
-    _vidQueue=ids.slice();_vidIdx=0;
-    _playVideo(_vidQueue[0]);
-    if(_musicStatus)_musicStatus.textContent='재생 중: '+_musicSelect.options[_musicSelect.selectedIndex].text;
+  var key=_musicSelect?_musicSelect.value:'mystic';
+  var list=R2_TRACK_GROUPS[key]||R2_TRACK_GROUPS.mystic;
+  if(list&&list.length){
+    _vidQueue=list.slice();_vidIdx=0;
+    _playR2Track(_vidQueue[0]);
+    if(_musicStatus&&_musicSelect)_musicStatus.textContent='재생 중: '+_musicSelect.options[_musicSelect.selectedIndex].text;
   }
 }
 
 function _nextTrack(){
-  if(!_vidQueue.length)return;
+  if(!_vidQueue.length){_searchAndPlay();return;}
   _vidIdx=(_vidIdx+1)%_vidQueue.length;
-  _playVideo(_vidQueue[_vidIdx]);
-  if(_musicStatus)_musicStatus.textContent='다음 트랙으로 전환됩니다…';
+  _playR2Track(_vidQueue[_vidIdx]);
+  if(_musicStatus)_musicStatus.textContent='다음 곡으로 전환됩니다…';
 }
 
 if(_musicOpener)_musicOpener.addEventListener('click',function(){
-  if(_musicPanel){_musicPanel.classList.toggle('is-closed');if(!_musicPanel.classList.contains('is-closed'))_loadYouTubeAPI();}
+  if(_musicPanel){_musicPanel.classList.toggle('is-closed');}
 });
 if(_musicClose)_musicClose.addEventListener('click',function(){if(_musicPanel)_musicPanel.classList.add('is-closed');});
 if(_musicSearch)_musicSearch.addEventListener('click',_searchAndPlay);

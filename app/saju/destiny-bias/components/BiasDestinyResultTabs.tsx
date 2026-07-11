@@ -9,7 +9,7 @@ type Props = {
 };
 
 type TabItem = {
-  id: "summary" | "chemistry" | "emotion" | "fanBias" | "stability" | "caution" | "advice";
+  id: "chemi" | "element" | "dayMaster" | "branch" | "booster";
   label: string;
   shortLabel: string;
   title: string;
@@ -45,17 +45,15 @@ export default function BiasDestinyResultTabs({ vm }: Props) {
 
     const baseKeywords = [...vm.moodKeywords, ...vm.matchingTags, ...vm.connectionKeyword, ...vm.stageChemistryKeywords].filter(Boolean);
     return [
-      { id: "summary", label: "요약", shortLabel: "요약", title: "이번 케미 요약", content: compact(vm.chemistrySummary, "요약을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.todayMission },
-      { id: "chemistry", label: "케미", shortLabel: "케미", title: "케미 근거", content: compact(vm.compatibilityDetail, "케미 근거를 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.cheerPoint },
-      { id: "emotion", label: "감정", shortLabel: "감정", title: "감정선", content: compact(vm.energyConnectionDetail, "감정선을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.fansignMessage },
-      { id: "fanBias", label: "팬심", shortLabel: "팬심", title: "팬심 몰입", content: compact(vm.biasPersonalityReport, "팬심 리딩을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.cheerPoint },
-      { id: "stability", label: "안정", shortLabel: "안정", title: "안정/장기", content: compact(vm.biasEnergySummary, "안정 리딩을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.todayMission },
-      { id: "caution", label: "주의", shortLabel: "주의", title: "주의 포인트", content: compact(vm.destinySignal, "주의 포인트를 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.compatibilityDetail },
-      { id: "advice", label: "조언", shortLabel: "조언", title: "실전 조언", content: compact(vm.oneLineDestinyMessage, "조언을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.todayMission },
+      { id: "chemi", label: "한줄 케미", shortLabel: "케미", title: "한줄 케미 요약", content: compact(vm.oneLineDestinyMessage, "한줄 케미를 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.chemistrySummary },
+      { id: "element", label: "오행 궁합", shortLabel: "오행", title: "오행 궁합 분석", content: compact(vm.compatibilityDetail, "오행 궁합을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.cheerPoint },
+      { id: "dayMaster", label: "일간 관계", shortLabel: "일간", title: "일간으로 보는 관계의 결", content: compact(vm.biasPersonalityReport, "일간 관계를 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.fansignMessage },
+      { id: "branch", label: "지지 케미", shortLabel: "지지", title: "지지 케미 포인트", content: compact(vm.energyConnectionDetail, "지지 케미를 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.todayMission },
+      { id: "booster", label: "부스터 팁", shortLabel: "부스터", title: "케미 부스터 팁", content: compact(vm.biasEnergySummary, "부스터 팁을 준비 중입니다."), keywords: baseKeywords.slice(0, 5), action: vm.todayMission },
     ];
   }, [vm]);
 
-  const [activeTabId, setActiveTabId] = useState<string>(tabs[0]?.id || "summary");
+  const [activeTabId, setActiveTabId] = useState<string>(tabs[0]?.id || "chemi");
   const activeTab = tabs.find((tab) => tab.id === activeTabId) || tabs[0];
 
   return (

@@ -1,4 +1,15 @@
 import { parseBirthDate } from "./birthEnergy";
+import {
+  BOTTOM_NOTICE,
+  buildOneLineChemi,
+  buildElementCompat,
+  buildDayMasterRelation,
+  buildBranchChemi,
+  buildBoosterTips,
+  type ContentElementKey,
+  type ElementRelation,
+  type BranchKind,
+} from "./favoriteDestinyContent";
 
 type ElementKey = "wood" | "fire" | "earth" | "metal" | "water";
 type YinYang = "yin" | "yang";
@@ -39,13 +50,11 @@ export type FavoriteDestinyImageCard = {
 };
 
 export type FavoriteDestinyTab =
-  | "summary"
-  | "chemistry"
-  | "emotion"
-  | "fanBias"
-  | "stability"
-  | "caution"
-  | "advice";
+  | "chemi"
+  | "element"
+  | "dayMaster"
+  | "branch"
+  | "booster";
 
 export type FavoriteDestinyTabResult = {
   id: FavoriteDestinyTab;
@@ -88,6 +97,11 @@ export type FavoriteDestinyReading = {
   };
   tabs: FavoriteDestinyTabResult[];
   summary: string;
+  bottomNotice: string;
+  elementDistribution: {
+    user: Record<ElementKey, number>;
+    favorite: Record<ElementKey, number>;
+  };
   meta: {
     engineVersion: string;
     apiUsed: false;
@@ -110,35 +124,6 @@ type BasicChart = {
   elementScores: Record<ElementKey, number>;
 };
 
-const FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS = {
-  ko: {
-    "favoriteDestiny.001": "요약",
-    "favoriteDestiny.002": "운명 스테이지 요약",
-    "favoriteDestiny.003": "핵심 케미",
-    "favoriteDestiny.004": "케미",
-    "favoriteDestiny.005": "사주 케미 해설",
-    "favoriteDestiny.006": "사주 케미 근거",
-    "favoriteDestiny.007": "감정",
-    "favoriteDestiny.008": "강하게 끌리는 포인트",
-    "favoriteDestiny.009": "감정선 & 덕심 분석",
-    "favoriteDestiny.010": "팬심",
-    "favoriteDestiny.011": "팬심 몰입도",
-    "favoriteDestiny.012": "덕심 포인트",
-    "favoriteDestiny.013": "안정",
-    "favoriteDestiny.014": "오래가는 힘",
-    "favoriteDestiny.015": "장기 지속력",
-    "favoriteDestiny.016": "주의",
-    "favoriteDestiny.017": "조심해야 할 감정 패턴",
-    "favoriteDestiny.018": "과몰입 주의보",
-    "favoriteDestiny.019": "조언",
-    "favoriteDestiny.020": "✨ 오늘의 덕질/관계 조언",
-    "favoriteDestiny.021": "실행 포인트",
-  },
-} as const;
-
-function favoriteDestinyReadingText(key: keyof typeof FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS.ko) {
-  return FAVORITE_DESTINY_READING_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-}
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"] as const;
 const BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"] as const;
 
@@ -198,6 +183,8 @@ const SIX_HARMONY = new Set(["자축", "인해", "묘술", "진유", "사신", "
 const BRANCH_CLASH = new Set(["자오", "축미", "인신", "묘유", "진술", "사해"]);
 const BRANCH_HARM = new Set(["자미", "축오", "인사", "묘진", "신해", "유술"]);
 const BRANCH_BREAK = new Set(["자유", "묘오", "진축", "미술", "인해", "사신"]);
+// 형(刑) — 충/파와 겹치지 않는 대표 조합(인사·사신 삼형, 축술·술미 삼형, 자묘 상형, 자형)
+const BRANCH_PUNISH = new Set(["인사", "사신", "축술", "술미", "자묘", "진진", "오오", "유유", "해해"]);
 
 const CHARM_BRANCH = new Set(["자", "오", "묘", "유"]);
 const MYSTIC_BRANCH = new Set(["진", "술", "축", "미"]);
@@ -414,43 +401,69 @@ export function buildFavoriteDestinyFromSaju(
   const favoriteChart = buildChart(favoriteChartInput.birthDate);
 
   const dayMasterRelation = relationLabel(userChart.dayElement, favoriteChart.dayElement);
-  const dayBranchPair = branchPair(userChart.dayBranch, favoriteChart.dayBranch);
-  const reverseDayBranchPair = branchPair(favoriteChart.dayBranch, userChart.dayBranch);
+
+  // 오행 관계(나 일간 기준 최애 일간) — 콘텐츠 분기용
+  const rawRelation = relationBetween(userChart.dayElement, favoriteChart.dayElement);
+  const elementRelation: ElementRelation = rawRelation === "neutral" ? "same" : (rawRelation as ElementRelation);
+
+  // 지지: 두 사람의 년지+일지(4개)를 한글로 변환해 교차 조합 판정
+  const koUser = { year: BRANCH_META[userChart.yearBranch].ko, day: BRANCH_META[userChart.dayBranch].ko };
+  const koFav = { year: BRANCH_META[favoriteChart.yearBranch].ko, day: BRANCH_META[favoriteChart.dayBranch].ko };
+  const crossBranchPairs: Array<[string, string]> = [
+    [koUser.day, koFav.day],
+    [koUser.year, koFav.year],
+    [koUser.day, koFav.year],
+    [koUser.year, koFav.day],
+  ];
+  const branchKinds = new Set<BranchKind>();
+  for (const [a, b] of crossBranchPairs) {
+    const p1 = branchPair(a, b);
+    const p2 = branchPair(b, a);
+    if (SIX_HARMONY.has(p1) || SIX_HARMONY.has(p2)) branchKinds.add("harmony");
+    if (BRANCH_CLASH.has(p1) || BRANCH_CLASH.has(p2)) branchKinds.add("clash");
+    if (BRANCH_HARM.has(p1) || BRANCH_HARM.has(p2)) branchKinds.add("harm");
+    if (BRANCH_BREAK.has(p1) || BRANCH_BREAK.has(p2)) branchKinds.add("break");
+    if (BRANCH_PUNISH.has(p1) || BRANCH_PUNISH.has(p2)) branchKinds.add("punish");
+  }
 
   const harmonySignals: string[] = [];
   const conflictSignals: string[] = [];
   const charmSignals: string[] = [];
   const longTermSignals: string[] = [];
 
-  if (SIX_HARMONY.has(dayBranchPair) || SIX_HARMONY.has(reverseDayBranchPair)) {
-    harmonySignals.push("일지 육합 신호 (같이 있을 때 편안함)");
-  }
-  if (BRANCH_CLASH.has(dayBranchPair) || BRANCH_CLASH.has(reverseDayBranchPair)) {
-    conflictSignals.push("일지 충 신호 (설렘과 긴장 동시 상승)");
-  }
-  if (BRANCH_HARM.has(dayBranchPair) || BRANCH_HARM.has(reverseDayBranchPair)) {
-    conflictSignals.push("일지 해 신호 (오해가 쌓이기 쉬움)");
-  }
-  if (BRANCH_BREAK.has(dayBranchPair) || BRANCH_BREAK.has(reverseDayBranchPair)) {
-    conflictSignals.push("일지 파 신호 (기대치 차이 주의)");
-  }
+  if (branchKinds.has("harmony")) harmonySignals.push("지지 합 신호 (같이 있을 때 편안함)");
+  if (branchKinds.has("clash")) conflictSignals.push("지지 충 신호 (설렘과 자극 동시 상승)");
+  if (branchKinds.has("harm")) conflictSignals.push("지지 해 신호 (가끔 오해 주의)");
+  if (branchKinds.has("break")) conflictSignals.push("지지 파 신호 (기대치 차이 주의)");
+  if (branchKinds.has("punish")) conflictSignals.push("지지 형 신호 (다름을 이해하면 깊어짐)");
 
-  if (CHARM_BRANCH.has(favoriteChart.dayBranch)) {
-    charmSignals.push("도화 성향 (자꾸 눈길이 가는 매력)");
-  }
-  if (MYSTIC_BRANCH.has(favoriteChart.dayBranch)) {
-    charmSignals.push("화개 성향 (가까운 듯 멀어 신비한 매력)");
-  }
-  if (MYSTIC_BRANCH.has(userChart.dayBranch) && MYSTIC_BRANCH.has(favoriteChart.dayBranch)) {
+  if (CHARM_BRANCH.has(koFav.day)) charmSignals.push("도화 성향 (자꾸 눈길이 가는 매력)");
+  if (MYSTIC_BRANCH.has(koFav.day)) charmSignals.push("화개 성향 (가까운 듯 신비로운 매력)");
+  if (MYSTIC_BRANCH.has(koUser.day) && MYSTIC_BRANCH.has(koFav.day)) {
     charmSignals.push("귀문 계열 거리감 (해석 과열 주의)");
   }
-
-  if (LONG_TERM_BRANCH.has(userChart.dayBranch) || LONG_TERM_BRANCH.has(favoriteChart.dayBranch)) {
+  if (LONG_TERM_BRANCH.has(koUser.day) || LONG_TERM_BRANCH.has(koFav.day)) {
     longTermSignals.push("토 기운 축 (루틴형 장기 응원 적합)");
   }
 
-  const tenGodRelation = tenGodLabel(userChart.dayStem, favoriteChart.dayStem);
+  const tenGodRelation = tenGodLabel(userChart.dayStem, favoriteChart.dayStem); // 나 기준 최애
+  const reverseTenGod = tenGodLabel(favoriteChart.dayStem, userChart.dayStem); // 최애 기준 나
   const fiveElementBalance = `${ELEMENT_LABEL[userChart.dayElement]}-${ELEMENT_LABEL[favoriteChart.dayElement]} 중심`;
+
+  // ⑤ 부스터: 두 사람 오행 분포 합산에서 옅은(부족한) 기운 추출
+  const combinedElements: Record<ElementKey, number> = {
+    wood: (userChart.elementScores.wood || 0) + (favoriteChart.elementScores.wood || 0),
+    fire: (userChart.elementScores.fire || 0) + (favoriteChart.elementScores.fire || 0),
+    earth: (userChart.elementScores.earth || 0) + (favoriteChart.elementScores.earth || 0),
+    metal: (userChart.elementScores.metal || 0) + (favoriteChart.elementScores.metal || 0),
+    water: (userChart.elementScores.water || 0) + (favoriteChart.elementScores.water || 0),
+  };
+  const sortedElements = (Object.entries(combinedElements) as Array<[ElementKey, number]>).sort((a, b) => a[1] - b[1]);
+  const minElementValue = sortedElements[0][1];
+  const deficientEls: ContentElementKey[] =
+    minElementValue >= 1.2
+      ? []
+      : sortedElements.filter(([, v]) => v <= minElementValue + 0.1).slice(0, 2).map(([k]) => k as ContentElementKey);
 
   const elementGap = Math.abs((userChart.elementScores[userChart.dayElement] || 0) - (favoriteChart.elementScores[favoriteChart.dayElement] || 0));
 
@@ -474,6 +487,11 @@ export function buildFavoriteDestinyFromSaju(
     emotion += 3;
     longTerm += 5;
     communication -= 4;
+  }
+  if (dayMasterRelation.includes("주도형") || dayMasterRelation.includes("훈련형")) {
+    // 상극(서로 자극이 되는 관계): 설렘 자극은 크되 감정 안정은 소폭 조정 — 바닥은 총점 하한(40)이 방어
+    excitement += 4;
+    emotion -= 2;
   }
 
   excitement += conflictSignals.length * 9;
@@ -518,7 +536,7 @@ export function buildFavoriteDestinyFromSaju(
 
   scores.total = clamp(
     scores.emotion * 0.2 + scores.excitement * 0.16 + scores.stability * 0.2 + scores.fanBias * 0.16 + scores.longTerm * 0.16 + scores.communication * 0.12,
-    20,
+    40,
     99
   );
 
@@ -551,17 +569,6 @@ export function buildFavoriteDestinyFromSaju(
     }) as Array<[string, number]>
   ).sort((a, b) => b[1] - a[1])[0];
 
-  const weakestAxis = (
-    Object.entries({
-      감정: scores.emotion,
-      설렘: scores.excitement,
-      안정: scores.stability,
-      팬심: scores.fanBias,
-      장기: scores.longTerm,
-      소통: scores.communication,
-    }) as Array<[string, number]>
-  ).sort((a, b) => a[1] - b[1])[0];
-
   const generatedAt = options?.generatedAt || new Date().toISOString();
   const createdDate = generatedAt.slice(0, 10);
   const cardId = options?.cardId || `FD-${generatedAt.replace(/\D/g, "").slice(0, 12)}`;
@@ -585,113 +592,111 @@ export function buildFavoriteDestinyFromSaju(
 
   const branchRelationText = `${BRANCH_META[userChart.dayBranch].ko}-${BRANCH_META[favoriteChart.dayBranch].ko}`;
 
+  // ① 한줄 케미 요약
+  const oneLineChemiText = buildOneLineChemi({
+    userEl: userChart.dayElement,
+    favEl: favoriteChart.dayElement,
+    relation: elementRelation,
+    favName: favoriteChartInput.name,
+  });
+  // ② 오행 궁합 분석
+  const elementCompatText = buildElementCompat({
+    userEl: userChart.dayElement,
+    favEl: favoriteChart.dayElement,
+    relation: elementRelation,
+    favName: favoriteChartInput.name,
+  });
+  // ③ 일간으로 보는 관계의 결
+  const dayMasterText = buildDayMasterRelation({
+    forwardTenGod: tenGodRelation,
+    reverseTenGod,
+    favName: favoriteChartInput.name,
+  });
+  // ④ 지지 케미 포인트
+  const branchChemi = buildBranchChemi({ kinds: Array.from(branchKinds), favName: favoriteChartInput.name });
+  const branchUsedSignals = [...harmonySignals, ...conflictSignals];
+  // ⑤ 케미 부스터 팁
+  const boosterText = buildBoosterTips({ deficientEls, favName: favoriteChartInput.name });
+  const boosterLabels = deficientEls.length ? deficientEls.map((el) => `${ELEMENT_LABEL[el]} 보충`) : ["오행 균형"];
+
   const tabs: FavoriteDestinyTabResult[] = [
     {
-      id: "summary",
-      label: favoriteDestinyReadingText("favoriteDestiny.001"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.001"),
-      title: favoriteDestinyReadingText("favoriteDestiny.002"),
+      id: "chemi",
+      label: "한줄 케미",
+      shortLabel: "케미",
+      title: "한줄 케미 요약",
       keywords,
       sections: [
         {
-          title: favoriteDestinyReadingText("favoriteDestiny.003"),
-          usedSignals: [dayMasterRelation, branchRelationText],
-          text: `${ELEMENT_LABEL[userChart.dayElement]}-${ELEMENT_LABEL[favoriteChart.dayElement]} 축은 ${elementPairMeme(userChart.dayElement, favoriteChart.dayElement)}으로 읽혀요. 지금 조합은 ${chemistryType}이고 궁합은 ${scores.total}점. 첫인상 한방보다 볼수록 스며들어 코어팬 모드가 켜지는 타입입니다.`,
+          title: "우리 케미 한 줄",
+          usedSignals: [dayMasterRelation, fiveElementBalance],
+          text: oneLineChemiText,
         },
       ],
     },
     {
-      id: "chemistry",
-      label: favoriteDestinyReadingText("favoriteDestiny.004"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.004"),
-      title: favoriteDestinyReadingText("favoriteDestiny.005"),
+      id: "element",
+      label: "오행 궁합",
+      shortLabel: "오행",
+      title: "오행 궁합 분석",
       keywords,
       sections: [
         {
-          title: favoriteDestinyReadingText("favoriteDestiny.006"),
-          usedSignals: [dayMasterRelation, `일지:${branchRelationText}`, fiveElementBalance, `십성:${tenGodRelation}`],
-          text: `일간은 ${dayMasterRelation}, 일지는 ${branchRelationText}, 오행은 ${fiveElementBalance} 결입니다. ${harmonySignals.length > 0 ? "초반부터 합이 잘 맞는 라이브형" : "처음엔 낯가리다 후반에 폭발하는 역주행형"}이라 입덕 포인트가 뒤로 갈수록 커져요.`,
+          title: "오행으로 보는 케미",
+          usedSignals: [fiveElementBalance, dayMasterRelation],
+          text: elementCompatText,
         },
       ],
     },
     {
-      id: "emotion",
-      label: favoriteDestinyReadingText("favoriteDestiny.007"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.007"),
-      title: favoriteDestinyReadingText("favoriteDestiny.008"),
+      id: "dayMaster",
+      label: "일간 관계",
+      shortLabel: "일간",
+      title: "일간으로 보는 관계의 결",
       keywords,
       sections: [
         {
-          title: favoriteDestinyReadingText("favoriteDestiny.009"),
-          usedSignals: conflictSignals.length ? conflictSignals : ["완충 신호"],
-          text: `감정 ${scores.emotion}점, 설렘 ${scores.excitement}점이라 덕통사고와 안정 코어팬 지수가 동시에 들어와요. ${conflictSignals.length ? "치명적인 텐션 때문에 뇌피셜이 과열되기 쉬운 조합" : "잔광이 길게 남아 현생 중에도 계속 생각나는 조합"}이라 시간과 애정이 자연스럽게 몰립니다.`,
+          title: "서로에게 어떤 사람일까",
+          usedSignals: [`나→최애:${tenGodRelation}`, `최애→나:${reverseTenGod}`],
+          text: dayMasterText,
         },
       ],
     },
     {
-      id: "fanBias",
-      label: favoriteDestinyReadingText("favoriteDestiny.010"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.010"),
-      title: favoriteDestinyReadingText("favoriteDestiny.011"),
+      id: "branch",
+      label: "지지 케미",
+      shortLabel: "지지",
+      title: "지지 케미 포인트",
       keywords,
       sections: [
         {
-          title: favoriteDestinyReadingText("favoriteDestiny.012"),
-          usedSignals: charmSignals.length ? charmSignals : ["기본 매력 신호"],
-          text: `팬심 ${scores.fanBias}점. ${charmSignals.length ? "도화/화개 포인트가 살아 있어서 직캠 1개만 봐도 도파민이 바로 치솟는 타입" : "자극보다 여운으로 스며드는 타입이라 N회차 후 코어팬 확정"}입니다.`,
-          action: "오늘 덕질 로그에 최애 레전드 순간 1개만 저장하고, 내일 다시 보면 입덕 포인트가 더 선명해져요 📌",
+          title: "바탕 기운의 맞물림",
+          usedSignals: branchUsedSignals.length ? branchUsedSignals : ["특별한 충돌 없음"],
+          text: branchChemi.text,
+          action: branchChemi.action,
         },
       ],
     },
     {
-      id: "stability",
-      label: favoriteDestinyReadingText("favoriteDestiny.013"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.013"),
-      title: favoriteDestinyReadingText("favoriteDestiny.014"),
+      id: "booster",
+      label: "부스터 팁",
+      shortLabel: "부스터",
+      title: "케미 부스터 팁",
       keywords,
       sections: [
         {
-          title: favoriteDestinyReadingText("favoriteDestiny.015"),
-          usedSignals: longTermSignals.length ? longTermSignals : ["루틴 보완 필요"],
-          text: `안정 ${scores.stability}점은 꾸준한 코어팬 지수, 장기 ${scores.longTerm}점은 덕질 지속력입니다. ${longTermSignals.length ? "현생-덕질 밸런스를 잘 타서 길게 달릴수록 더 맛이 나는 궁합" : "단기 과열보다 일정한 루틴이 붙을 때 진가가 터지는 궁합"}이에요.`,
-          action: "주 2~3회 '짧고 굵게' 덕질 타임을 잡으면 만족도랑 지속력이 같이 올라갑니다 🔥",
-        },
-      ],
-    },
-    {
-      id: "caution",
-      label: favoriteDestinyReadingText("favoriteDestiny.016"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.016"),
-      title: favoriteDestinyReadingText("favoriteDestiny.017"),
-      keywords,
-      sections: [
-        {
-          title: favoriteDestinyReadingText("favoriteDestiny.018"),
-          usedSignals: conflictSignals.length ? conflictSignals : ["갈등 과열 낮음"],
-          text: `${conflictSignals.length ? "🚨 텐션 과열 구간! ${branchRelationText} 신호가 강하게 들어오면 혼자 떡밥 세계관 확장하다 멘탈이 털릴 수 있어요." : "🚨 큰 충돌은 약하지만, 입덕 부정기 모드에서 혼자 상상 서사를 과하게 돌리면 에너지가 훅 빠질 수 있어요."}`,
-          action: "떡밥 없는 날엔 과감히 현생 1퀘스트 클리어하고 돌아오면 케미 밸런스가 다시 살아납니다 🎯",
-        },
-      ],
-    },
-    {
-      id: "advice",
-      label: favoriteDestinyReadingText("favoriteDestiny.019"),
-      shortLabel: favoriteDestinyReadingText("favoriteDestiny.019"),
-      title: favoriteDestinyReadingText("favoriteDestiny.020"),
-      keywords,
-      sections: [
-        {
-          title: favoriteDestinyReadingText("favoriteDestiny.021"),
-          usedSignals: [dayMasterRelation, `소통:${scores.communication}`],
-          text: `오늘의 승부수는 소통 ${scores.communication}점 라인을 살리는 것. 길게 앓기보다 한 번 제대로 도파민 채우는 덕질이 이 조합에 더 잘 맞아요.`,
-          action: "오늘의 미션: 최애 레전드 직캠 1개만 보고 깔끔하게 종료! 굵고 짧은 덕질이 오늘 운을 최상으로 끌어올립니다 🚀",
+          title: "오늘의 케미 부스터",
+          usedSignals: boosterLabels,
+          text: boosterText,
+          action: "부스터 아이템 하나만 오늘 곁에 둬 보세요. 작은 습관이 두 사람의 결을 부드럽게 이어줘요 ✨",
         },
       ],
     },
   ];
 
+  const gradeWord = scores.total >= 78 ? "찰떡같이 잘 맞는" : scores.total >= 60 ? "은근히 잘 통하는" : "천천히 깊어지는";
   const summary = sanitizeFavoriteDestinyText(
-    `이번 팬-아이돌 궁합은 ${chemistryType} 무드로 읽히며, 사주 기준 ${dayMasterRelation}과 ${branchRelationText} 신호가 핵심입니다. 설렘(${scores.excitement})과 코어팬 안정(${scores.stability}) 밸런스를 잡으면 덕질 만족도가 크게 올라갑니다.`
+    `${favoriteChartInput.name}와 당신은 ${gradeWord} '${chemistryType}' 케미예요. 사주로 보면 ${fiveElementBalance} 흐름이 핵심이고, 서로의 다른 기운을 채워줄수록 더 좋아지는 궁합이에요.`
   );
 
   return {
@@ -721,8 +726,13 @@ export function buildFavoriteDestinyFromSaju(
     },
     tabs,
     summary,
+    bottomNotice: BOTTOM_NOTICE,
+    elementDistribution: {
+      user: userChart.elementScores,
+      favorite: favoriteChart.elementScores,
+    },
     meta: {
-      engineVersion: "favorite-destiny-v1",
+      engineVersion: "favorite-destiny-v2",
       apiUsed: false,
       calculationBased: true,
     },

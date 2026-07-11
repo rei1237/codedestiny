@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { fetchBillingFeaturePricing, runBillingCoinGate } from "@/app/_lib/billing-client";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
 const GOOGLE_FONTS = "";
 
@@ -80,10 +81,10 @@ function useRuneDraw() {
 
 // ─── SPREAD LABELS ────────────────────────────────────────────────────────────
 const SPREAD_OPTIONS = [
-  { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언", cost: "30코인" },
-  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", cost: "50코인" },
-  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", cost: "70코인" },
-  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", cost: "120코인" },
+  { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언", costCoins: 30 },
+  { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", costCoins: 50 },
+  { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", costCoins: 70 },
+  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", costCoins: 120 },
 ];
 
 const SPREAD_LABELS = {
@@ -111,6 +112,7 @@ const RUNE_FALLBACK_FEATURE_BY_SPREAD = Object.freeze({
 
 const RUNE_AI_PROMPT_SUB_FEATURE = "ai-prompt";
 const RUNE_AI_PROMPT_FEATURE_KEY = "stonehenge-runes-ai-prompt";
+const RUNE_AI_PROMPT_COST_COINS = 30;
 
 const RUNE_PREPAID_MARKER_KEY = "cd_prepaid_rune_once";
 const RUNE_PREPAID_MARKER_TTL_MS = 10 * 60 * 1000;
@@ -132,154 +134,10 @@ function consumeRunePrepaidMarker() {
   }
 }
 
-function syncRuneCoinBalanceFromGate(coinGateResult) {
-  const remainingPoints = Number(
-    coinGateResult.data?.balance
-      ?? coinGateResult.data?.user?.points
-      ?? NaN,
-  );
-
-  try {
-    if (Number.isFinite(remainingPoints)) {
-      localStorage.setItem("fortune_user_points", String(remainingPoints));
-      const authRaw = localStorage.getItem("fortune_auth_user") || "";
-      const authUser = authRaw ? JSON.parse(authRaw) : {};
-      authUser.points = remainingPoints;
-      localStorage.setItem("fortune_auth_user", JSON.stringify(authUser));
-      if (typeof window.__cdSetGoldenBalance === "function") {
-        window.__cdSetGoldenBalance(remainingPoints);
-      }
-    }
-  } catch {}
-}
-
-async function consumeRunePerUseCoin(spreadCount) {
-  if (typeof window === "undefined") return false;
-  if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
-  if (consumeRunePrepaidMarker()) return true;
-
-  const subFeatureKey = RUNE_BILLING_SUB_FEATURE_BY_SPREAD[spreadCount] || "spread-3";
-  const fallbackFeatureKey = RUNE_FALLBACK_FEATURE_BY_SPREAD[spreadCount] || "stonehenge-runes-triad";
-
-  let requiredCoins = 0;
-  try {
-    const pricingResult = await fetchBillingFeaturePricing({
-      categoryKey: "stonehenge-runes",
-      subFeatureKey,
-    });
-    if (pricingResult.ok && pricingResult.data?.pricing) {
-      requiredCoins = Number(pricingResult.data.pricing.cost || 0);
-    }
-  } catch (_e) {
-    requiredCoins = 0;
-  }
-
-  let token = "";
-  try {
-    token = String(localStorage.getItem("fortune_auth_token") || "");
-  } catch (_e) {}
-
-  if (!token) {
-    if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-      window.location.href = "/login?next=%2Foracle%2Frune";
-    }
-    return false;
-  }
-
-  const coinGateResult = await runBillingCoinGate({
-    categoryKey: "stonehenge-runes",
-    subFeatureKey,
-    featureKey: fallbackFeatureKey,
-    requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
-    forceDeduct: true,
-  });
-
-  if (!coinGateResult.ok) {
-    const code = String(coinGateResult.error?.code || "").toUpperCase();
-    if (code === "AUTH_REQUIRED") {
-      if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-        window.location.href = "/login?next=%2Foracle%2Frune";
-      }
-      return false;
-    }
-    if (code === "INSUFFICIENT_COINS") {
-      const costMessage = requiredCoins > 0 ? ` (필요 코인: ${requiredCoins})` : "";
-      window.alert(`코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.${costMessage}`);
-      return false;
-    }
-    if (code === "PRICE_NOT_FOUND") {
-      window.alert("룬점 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
-      return false;
-    }
-    window.alert(coinGateResult.error?.message || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-    return false;
-  }
-
-  syncRuneCoinBalanceFromGate(coinGateResult);
-
-  return true;
-}
-
-async function consumeRuneAiPromptCoin(payloadHash) {
-  if (typeof window === "undefined") return false;
-  if (typeof window.__cdIsAdminLikeUser === "function" && window.__cdIsAdminLikeUser()) return true;
-
-  let requiredCoins = 30;
-  try {
-    const pricingResult = await fetchBillingFeaturePricing({
-      categoryKey: "stonehenge-runes",
-      subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
-      featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
-    });
-    if (pricingResult.ok && pricingResult.data?.pricing) {
-      requiredCoins = Number(pricingResult.data.pricing.cost || requiredCoins);
-    }
-  } catch {}
-
-  let token = "";
-  try {
-    token = String(localStorage.getItem("fortune_auth_token") || "");
-  } catch {}
-
-  if (!token) {
-    if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-      window.location.href = "/login?next=%2Foracle%2Frune";
-    }
-    return false;
-  }
-
-  const coinGateResult = await runBillingCoinGate({
-    categoryKey: "stonehenge-runes",
-    subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
-    featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
-    requestId: `rune-ai-prompt:${payloadHash}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
-    payloadHash,
-    forceDeduct: true,
-  });
-
-  if (!coinGateResult.ok) {
-    const code = String(coinGateResult.error?.code || "").toUpperCase();
-    if (code === "AUTH_REQUIRED") {
-      if (window.confirm("로그인이 필요합니다. 로그인 페이지로 이동할까요?")) {
-        window.location.href = "/login?next=%2Foracle%2Frune";
-      }
-      return false;
-    }
-    if (code === "INSUFFICIENT_COINS") {
-      const costMessage = requiredCoins > 0 ? ` (필요 코인: ${requiredCoins})` : "";
-      window.alert(`코인이 부족합니다. 코인을 충전한 뒤 다시 시도해 주세요.${costMessage}`);
-      return false;
-    }
-    if (code === "PRICE_NOT_FOUND") {
-      window.alert("AI 질문문 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요.");
-      return false;
-    }
-    window.alert(coinGateResult.error?.message || "코인 차감에 실패했습니다. 잠시 후 다시 시도해 주세요.");
-    return false;
-  }
-
-  syncRuneCoinBalanceFromGate(coinGateResult);
-  return true;
+function isRuneAdminBypass() {
+  return typeof window !== "undefined"
+    && typeof window.__cdIsAdminLikeUser === "function"
+    && window.__cdIsAdminLikeUser();
 }
 
 const RUNE_GUIDE = {
@@ -747,12 +605,11 @@ function buildRuneAiQuestionPrompt({ drawnRunes, spread, spreadInsight }) {
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 export default function StonehengeRune() {
   const { drawnRunes, isDrawing, phase, drawRunes, reset } = useRuneDraw();
+  const { ensurePaidAccess, isPaying } = useCoinGate();
   const [spread, setSpread] = useState(null);
   const [selectedRune, setSelectedRune] = useState(null);
   const [visibleCards, setVisibleCards] = useState([]);
-  const [isPaying, setIsPaying] = useState(false);
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [copyState, setCopyState] = useState("");
 
@@ -780,15 +637,44 @@ export default function StonehengeRune() {
 
   const handleDraw = async () => {
     if (!spread || isDrawing || isPaying) return;
-    setIsPaying(true);
-    const paid = await consumeRunePerUseCoin(spread);
-    setIsPaying(false);
-    if (!paid) return;
-    setSelectedRune(null);
-    setIsPromptModalOpen(false);
-    setAiPrompt("");
-    setCopyState("");
-    drawRunes(spread);
+
+    const startDraw = () => {
+      setSelectedRune(null);
+      setIsPromptModalOpen(false);
+      setAiPrompt("");
+      setCopyState("");
+      drawRunes(spread);
+    };
+
+    // 관리자·선불 마커는 서버 차감 없이 바로 뽑는다(기존 우회 유지).
+    if (isRuneAdminBypass() || consumeRunePrepaidMarker()) {
+      startDraw();
+      return;
+    }
+
+    const subFeatureKey = RUNE_BILLING_SUB_FEATURE_BY_SPREAD[spread] || "spread-3";
+    const fallbackFeatureKey = RUNE_FALLBACK_FEATURE_BY_SPREAD[spread] || "stonehenge-runes-triad";
+
+    const result = await ensurePaidAccess({
+      categoryKey: "stonehenge-runes",
+      subFeatureKey,
+      featureKey: fallbackFeatureKey,
+      reason: "스톤헨지 룬점",
+      forceDeduct: true,
+      requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      onPaid: async () => {
+        startDraw();
+      },
+    });
+
+    if (!result.ok) {
+      if (result.code === "AUTH_REQUIRED") {
+        window.location.href = "/login?next=%2Foracle%2Frune";
+        return;
+      }
+      if (result.code === "PAYMENT_CANCELLED" || result.code === "PAYMENT_IN_PROGRESS") return;
+      window.alert(result.message || "결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   };
 
   const handleResetRunes = () => {
@@ -916,18 +802,42 @@ export default function StonehengeRune() {
   const spreadInsight = getSpreadInsight();
 
   const handleGenerateAiPrompt = async () => {
-    if (!drawnRunes.length || isGeneratingPrompt) return;
+    if (!drawnRunes.length || isPaying) return;
     const promptText = buildRuneAiQuestionPrompt({ drawnRunes, spread, spreadInsight });
     const payloadHash = createRunePromptPayloadHash(promptText);
 
-    setIsGeneratingPrompt(true);
-    const paid = await consumeRuneAiPromptCoin(payloadHash);
-    setIsGeneratingPrompt(false);
-    if (!paid) return;
+    const revealPrompt = () => {
+      setAiPrompt(promptText);
+      setCopyState("");
+      setIsPromptModalOpen(false);
+    };
 
-    setAiPrompt(promptText);
-    setCopyState("");
-    setIsPromptModalOpen(false);
+    if (isRuneAdminBypass()) {
+      revealPrompt();
+      return;
+    }
+
+    const result = await ensurePaidAccess({
+      categoryKey: "stonehenge-runes",
+      subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
+      featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
+      reason: "룬 AI 질문문",
+      payloadHash,
+      forceDeduct: true,
+      requestId: `rune-ai-prompt:${payloadHash}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
+      onPaid: async () => {
+        revealPrompt();
+      },
+    });
+
+    if (!result.ok) {
+      if (result.code === "AUTH_REQUIRED") {
+        window.location.href = "/login?next=%2Foracle%2Frune";
+        return;
+      }
+      if (result.code === "PAYMENT_CANCELLED" || result.code === "PAYMENT_IN_PROGRESS") return;
+      window.alert(result.message || "결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    }
   };
 
   const handleCopyAiPrompt = async () => {
@@ -2119,7 +2029,7 @@ export default function StonehengeRune() {
                 <span className="sr-spread-btn-rune">{option.rune}</span>
                 <span className="sr-spread-btn-name">{option.name}</span>
                 <span className="sr-spread-btn-desc">{option.desc}</span>
-                <span className="sr-spread-btn-desc">{option.cost}</span>
+                <span className="sr-spread-btn-desc">{formatKrwFromCoins(option.costCoins)}</span>
               </button>
             ))}
           </div>
@@ -2132,7 +2042,7 @@ export default function StonehengeRune() {
             disabled={!spread || isDrawing || isPaying}
           >
             {isPaying
-              ? "코인을 결제하는 중..."
+              ? "결제를 확인하는 중..."
               : isDrawing
                 ? "룬을 소환하는 중..."
                 : spread
@@ -2264,7 +2174,7 @@ export default function StonehengeRune() {
                     <p className="sr-ai-prompt-kicker">AI QUESTION RITUAL</p>
                     <h3>AI에게 더 깊이 물어보기</h3>
                   </div>
-                  <span className="sr-ai-prompt-price">30코인</span>
+                  <span className="sr-ai-prompt-price">{formatKrwFromCoins(RUNE_AI_PROMPT_COST_COINS)}</span>
                 </div>
                 <p className="sr-ai-prompt-desc">
                   이 룬의 흐름을 AI에게 더 깊이 물을 수 있는 질문문으로 정리합니다.
@@ -2289,9 +2199,9 @@ export default function StonehengeRune() {
                     type="button"
                     className="sr-ai-prompt-button"
                     onClick={() => setIsPromptModalOpen(true)}
-                    disabled={isGeneratingPrompt}
+                    disabled={isPaying}
                   >
-                    {isGeneratingPrompt ? "질문문을 여는 중..." : "AI 질문문 생성하기"}
+                    {isPaying ? "질문문을 여는 중..." : "AI 질문문 생성하기"}
                   </button>
                 )}
               </section>
@@ -2300,17 +2210,17 @@ export default function StonehengeRune() {
                 <div className="sr-ai-modal-overlay" onClick={() => setIsPromptModalOpen(false)} role="presentation">
                   <div className="sr-ai-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="AI 질문문 생성 확인">
                     <button type="button" className="sr-ai-modal-close" onClick={() => setIsPromptModalOpen(false)} aria-label="닫기">✕</button>
-                    <p className="sr-ai-modal-kicker">30코인</p>
+                    <p className="sr-ai-modal-kicker">{formatKrwFromCoins(RUNE_AI_PROMPT_COST_COINS)}</p>
                     <h3>AI에게 건넬 문장을 엽니다</h3>
                     <p>
-                      이 룬의 흐름을 AI에게 더 깊이 물을 수 있는 질문문으로 정리합니다. 30코인이 사용됩니다.
+                      이 룬의 흐름을 AI에게 더 깊이 물을 수 있는 질문문으로 정리합니다. {formatKrwFromCoins(RUNE_AI_PROMPT_COST_COINS)}이 사용됩니다.
                     </p>
                     <div className="sr-ai-modal-actions">
                       <button type="button" className="sr-ai-modal-btn ghost" onClick={() => setIsPromptModalOpen(false)}>
                         닫기
                       </button>
-                      <button type="button" className="sr-ai-modal-btn" onClick={handleGenerateAiPrompt} disabled={isGeneratingPrompt}>
-                        {isGeneratingPrompt ? "정리하는 중..." : "30코인 사용하기"}
+                      <button type="button" className="sr-ai-modal-btn" onClick={handleGenerateAiPrompt} disabled={isPaying}>
+                        {isPaying ? "정리하는 중..." : `${formatKrwFromCoins(RUNE_AI_PROMPT_COST_COINS)}으로 확인하기`}
                       </button>
                     </div>
                   </div>

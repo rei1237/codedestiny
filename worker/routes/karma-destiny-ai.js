@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { KarmaDestinyAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -1563,10 +1563,11 @@ async function handleEnsureAccess(request, env) {
   }
 
   await connectDb(env);
-  const user = await loadBillingUser(auth.userId);
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
-  const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
+  const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
   if (access.ok) {
     logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -1611,7 +1612,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
 
-  const billing = await findBillingGateEvidence({ userId: auth.userId, idempotencyKey, body });
+  const billing = await withMongoRetry(env, () => findBillingGateEvidence({ userId: auth.userId, idempotencyKey, body }));
   if (billing?.ok) return {
     ...billing,
     usageAlreadyApplied: billing.usageAlreadyApplied === true,
@@ -1690,7 +1691,7 @@ async function handleStart(request, env) {
   logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
   logKarmaAi("LLM Payment Guard Passed", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
 
-  const existing = await KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  const existing = await withMongoRetry(env, () => KarmaDestinyAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
@@ -2090,6 +2091,15 @@ export async function handleKarmaDestinyAiRoutes(request, env = {}) {
   } catch (error) {
     console.error("[karma-destiny-ai]", clean(error?.code || error?.message || error, 500));
     logKarmaAi("LLM Error", safeLogPayload({ route: "/api/karma-destiny-ai", env, error }), "error");
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }

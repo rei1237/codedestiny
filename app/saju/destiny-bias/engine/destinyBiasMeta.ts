@@ -69,7 +69,7 @@ export function getDestinyGrade(score: number): GradeMeta {
     };
   }
 
-  if (score >= 75) {
+  if (score >= 78) {
     return {
       destinyGrade: "SPECIAL",
       gradeTitle: "Stage Chemistry",
@@ -77,7 +77,7 @@ export function getDestinyGrade(score: number): GradeMeta {
     };
   }
 
-  if (score >= 60) {
+  if (score >= 66) {
     return {
       destinyGrade: "RARE",
       gradeTitle: "Gentle Harmony",
@@ -85,7 +85,7 @@ export function getDestinyGrade(score: number): GradeMeta {
     };
   }
 
-  if (score >= 40) {
+  if (score >= 54) {
     return {
       destinyGrade: "MOOD MATCH",
       gradeTitle: "Growing Link",

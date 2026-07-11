@@ -64,6 +64,7 @@ const CHROMELESS_ROUTES = [
   "/saju-guardian",
   "/premium-unlock",
   "/olympus",
+  "/oracle/rune",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [

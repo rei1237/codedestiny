@@ -3,7 +3,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { Lunar, Solar } from "lunar-javascript";
 import { createHash } from "node:crypto";
 import { getCurrentUser } from "../lib/auth.js";
-import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -1243,6 +1243,15 @@ function buildFortuneTeaPaymentRequiredResponse({ featureKey, pricing, accessDec
   }, { status });
 }
 
+function buildFortuneTeaAccessDegradedResponse() {
+  return json({
+    ok: false,
+    retryable: true,
+    reason: "ACCESS_CHECK_DEGRADED",
+    message: "일시적인 연결 문제로 이용권 확인이 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+  }, { status: 503 });
+}
+
 async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultRequest) {
   const featureKey = resolveFortuneTeaHouseFeatureKey(body, consultRequest);
   if (!featureKey) {
@@ -1293,10 +1302,20 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     };
   }
 
-  const accessDecision = await canAccessPaidFeature(auth.userId, featureKey, {
-    env,
-    reason: pricingResult.pricing.reason,
-  });
+  // 풀 초기화 버스트에서 access 판정의 일시적 Mongo 에러가 최상위 catch로 흘러
+  // 재시도 신호 없는 일반 503이 되지 않도록, retryable 503으로 변환한다.
+  let accessDecision;
+  try {
+    accessDecision = await canAccessPaidFeature(auth.userId, featureKey, {
+      env,
+      reason: pricingResult.pricing.reason,
+    });
+  } catch (error) {
+    if (isTransientMongoError(error)) {
+      return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+    }
+    throw error;
+  }
   if (isReusableFortuneTeaAccessDecision(accessDecision)) {
     return {
       ok: true,
@@ -1308,7 +1327,15 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     };
   }
 
-  const billingEvidenceAccess = await resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey });
+  let billingEvidenceAccess;
+  try {
+    billingEvidenceAccess = await resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, featureKey });
+  } catch (error) {
+    if (isTransientMongoError(error)) {
+      return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+    }
+    throw error;
+  }
   if (billingEvidenceAccess?.reason === "FEATURE_MISMATCH") {
     return {
       ok: false,

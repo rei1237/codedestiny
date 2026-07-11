@@ -332,16 +332,32 @@
       }
 
       if (typeof window._cdCoinGatePerUse === 'function') {
-        window._cdCoinGatePerUse(
-          _TC_COIN_COST,
-          _tcText('paymentReason'),
-          function() { resolve(true); },
-          function() { resolve(false); },
-          {
-            featureKey: _TC_FEATURE_KEY,
-            requestId: 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
-          }
-        );
+        try {
+          window._cdCoinGatePerUse(
+            _TC_COIN_COST,
+            _tcText('paymentReason'),
+            function() { resolve(true); },
+            function() { resolve(false); },
+            {
+              featureKey: _TC_FEATURE_KEY,
+              requestId: 'juyuk:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+            }
+          );
+        } catch (_err) {
+          alert(_tcText('gateUnavailable'));
+          resolve(false);
+        }
+        return;
+      }
+
+      // 결제 게이트가 없으면(주로 미로그인) 로그인 유도, 그 외에는 로드 실패 안내
+      var hasAuthToken = false;
+      try { hasAuthToken = !!localStorage.getItem('fortune_auth_token'); } catch (_) { hasAuthToken = false; }
+      if (!hasAuthToken) {
+        if (window.confirm(_tcText('loginConfirm'))) {
+          window.location.href = '/login?next=%2F';
+        }
+        resolve(false);
         return;
       }
 
@@ -382,7 +398,12 @@
 
       if (_heatPct >= 100) {
         clearInterval(_pressInterval);
-        if (msg) msg.textContent = '결제를 확인하고 있습니다...';
+        // 충전 완료 → 결제 확인 단계. 여기서 상태를 CHARGING에서 VERIFYING으로 바꿔야
+        // 결제창을 조작하려 손을 뗄 때 발생하는 touchend/mouseup(tcEndPress)·
+        // mouseleave(tcCancelPress)가 흐름을 리셋하지 않는다(둘 다 CHARGING만 처리).
+        _TC_STATE = 'VERIFYING';
+        if (bar) bar.style.width = '100%';
+        if (msg) msg.textContent = _tcText('paymentChecking');
         _tcConsumePerUseCoin().then(function(ok) {
           if (!ok) {
             _TC_STATE = 'IDLE';

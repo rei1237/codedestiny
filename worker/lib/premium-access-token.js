@@ -30,6 +30,8 @@ export function resolvePremiumAccessReportType(featureKey = "", reason = "") {
   const reportTypeByFeatureKey = {
     "premium-fpti-report": "fptiPremium",
     premium_fpti_report: "fptiPremium",
+    "dream-psycho-analysis": "dreamPsychoAnalysis",
+    dream_psycho_analysis: "dreamPsychoAnalysis",
   };
 
   if (reportTypeByFeatureKey[canonicalKey]) {

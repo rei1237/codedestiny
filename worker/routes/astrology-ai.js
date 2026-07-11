@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   AstrologyAiConsultation,
   MonthlyCreditLedger,
@@ -454,7 +454,8 @@ async function loadUser(userId) {
 
 async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash) {
   await connectDb(env);
-  const user = await loadUser(auth.userId);
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const user = await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "" };
@@ -567,7 +568,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   const ctx = billingContextFromBody(body);
-  const paidPayment = await hasPaidPayment(auth, ctx.paymentId, idempotencyKey);
+  const paidPayment = await withMongoRetry(env, () => hasPaidPayment(auth, ctx.paymentId, idempotencyKey));
   if (paidPayment) {
     return {
       ok: true,
@@ -578,7 +579,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY") {
-    if (await hasMonthlyConsume(auth, ctx, idempotencyKey)) {
+    if (await withMongoRetry(env, () => hasMonthlyConsume(auth, ctx, idempotencyKey))) {
       return {
         ok: true,
         accessType: "subscription",
@@ -605,7 +606,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     }
   }
 
-  const user = await loadUser(auth.userId);
+  const user = await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "", source: "server" };
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
@@ -1563,6 +1564,15 @@ export async function handleAstrologyAiRoutes(request, env = {}) {
     return methodNotAllowed();
   } catch (error) {
     console.error("[astrology-ai]", clean(error?.stack || error?.message || error, 1200));
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }

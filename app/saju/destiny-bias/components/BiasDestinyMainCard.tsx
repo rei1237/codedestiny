@@ -39,8 +39,8 @@ export default function BiasDestinyMainCard({ vm, biasImageUrl }: Props) {
             </div>
             <div className="group relative rounded-2xl border border-purple-200/35 bg-[linear-gradient(135deg,rgba(168,85,247,0.12),rgba(147,51,234,0.08))] p-3 transition hover:border-purple-200/55 hover:bg-[linear-gradient(135deg,rgba(168,85,247,0.18),rgba(147,51,234,0.12))] shadow-[0_8px_24px_rgba(168,85,247,0.1),inset_0_1px_2px_rgba(255,255,255,0.06)]">
               <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_20%,rgba(168,85,247,0.1),transparent_50%)]" aria-hidden />
-              <p className="relative text-[11px] tracking-[0.14em] text-purple-100/80">조심해야 할 감정 패턴</p>
-              <p className="relative mt-1 line-clamp-2 min-w-0 break-keep text-sm font-semibold leading-6 text-white/92">{fallbackText(vm.destinySignal)}</p>
+              <p className="relative text-[11px] tracking-[0.14em] text-purple-100/80">관계의 결</p>
+              <p className="relative mt-1 line-clamp-2 min-w-0 break-keep text-sm font-semibold leading-6 text-white/92">{fallbackText(vm.biasPersonalityReport)}</p>
             </div>
           </div>
 

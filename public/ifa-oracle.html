@@ -7,6 +7,7 @@
 <meta name="description" content="요루바 256 오두의 흐름으로 질문의 방향을 읽는 IFA 오라클입니다." />
 <link rel="canonical" href="https://code-destiny.com/ifa-oracle.html" />
 <meta name="robots" content="index,follow" />
+<script src="/js/destiny-profile.js?v=build-1bcb12c9e742"></script>
 <style>
 :root{
   --bg-void:#080503;
@@ -448,7 +449,15 @@ function ensureIfaCoinGate(){
     if (IFA_COIN_COST <= 0) { resolve(true); return; }
     if (typeof window._cdCoinGatePerUse === "function") {
       try{
-        window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); });
+        window._cdCoinGatePerUse(IFA_COIN_COST, "IFÀ 오라클 리딩", function(){ resolve(true); }, function(){ resolve(false); }, {
+          categoryKey: 'oracle',
+          subFeatureKey: 'ifa-oracle',
+          featureKey: 'ifa-oracle',
+          serviceKey: 'ifa-oracle',
+          action: 'openIfaOracle',
+          forceDeduct: true,
+          requestId: 'ifa:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+        });
       }catch(_e){ resolve(false); }
       return;
     }

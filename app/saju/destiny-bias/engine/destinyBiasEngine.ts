@@ -86,8 +86,13 @@ export type DestinyBiasAnalyzeResult = {
     charmSignals: string[];
     longTermSignals: string[];
   };
+  bottomNotice: string;
+  elementDistribution: {
+    user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+    favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+  };
   detailedTabs: Array<{
-    id: "summary" | "chemistry" | "emotion" | "fanBias" | "stability" | "caution" | "advice";
+    id: "chemi" | "element" | "dayMaster" | "branch" | "booster";
     label: string;
     shortLabel: string;
     title: string;
@@ -158,21 +163,22 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     throw new Error(`최애운명 리딩 검증 실패: ${validation.errors[0] || "알 수 없는 오류"}`);
   }
 
+  // 5섹션 매핑 (① 한줄케미 / ② 오행궁합 / ③ 일간관계 / ④ 지지케미 / ⑤ 부스터)
+  const chemiTab = reading.tabs.find((tab) => tab.id === "chemi");
+  const elementTab = reading.tabs.find((tab) => tab.id === "element");
+  const dayMasterTab = reading.tabs.find((tab) => tab.id === "dayMaster");
+  const branchTab = reading.tabs.find((tab) => tab.id === "branch");
+  const boosterTab = reading.tabs.find((tab) => tab.id === "booster");
+
   const userEnergyType = `${reading.sajuSignals.dayMasterRelation || "중립형"} / ${reading.sajuSignals.dayBranchRelation || "일지미상"}`;
   const biasEnergyType = `${reading.chemistryType} · ${reading.sajuSignals.fiveElementBalance || "오행균형"}`;
 
   const gradeMeta = getDestinyGrade(reading.scores.total);
   const auraMeta = getAuraTheme(`${userName}:${biasName}:${biasEnergyType}`, reading.scores.total);
   const pairingAlias = getPairingAlias(userName, biasName, reading.scores.total);
-  const fansignMessage = sanitizeFavoriteDestinyText(
-    reading.tabs.find((tab) => tab.id === "advice")?.sections[0]?.text ||
-    getFansignMessage(`${userName}:${biasName}:${input.relationMood}`, reading.scores.total)
-  );
+  const fansignMessage = sanitizeFavoriteDestinyText(getFansignMessage(`${userName}:${biasName}:${input.relationMood}`, reading.scores.total));
   const stageAuraComment = getStageAuraComment(reading.scores.total, auraMeta.auraType);
-  const cheerPoint = sanitizeFavoriteDestinyText(
-    reading.tabs.find((tab) => tab.id === "fanBias")?.sections[0]?.action ||
-    getCheerPoint(reading.scores.total, input.relationMood)
-  );
+  const cheerPoint = sanitizeFavoriteDestinyText(getCheerPoint(reading.scores.total, input.relationMood));
   const moodKeywords = getMoodKeywords(`${userName}:${biasName}:${input.biasMood}:${input.relationMood}`, 3);
   const matchingTags = [...moodKeywords, ...reading.imageCard.keywords].slice(0, 6);
   const linkedArtist = normalizeName(input.linkedArtistName || "", `${biasName} Stage Line`);
@@ -207,7 +213,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     auraMaterial: auraMeta.auraMaterial,
     destinyGrade: gradeMeta.destinyGrade,
     destinyMessage: sanitizeFavoriteDestinyText(reading.imageCard.oneLineLink),
-    destinySignal: sanitizeFavoriteDestinyText(reading.tabs.find((tab) => tab.id === "caution")?.sections[0]?.text || ""),
+    destinySignal: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
     fansignMessage,
     destinyId,
     issuedAt,
@@ -230,14 +236,6 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     totalScore: reading.scores.total,
     connectionKeywords: reading.imageCard.keywords,
   });
-
-  const summaryTab = reading.tabs.find((tab) => tab.id === "summary");
-  const chemistryTab = reading.tabs.find((tab) => tab.id === "chemistry");
-  const emotionTab = reading.tabs.find((tab) => tab.id === "emotion");
-  const cautionTab = reading.tabs.find((tab) => tab.id === "caution");
-  const adviceTab = reading.tabs.find((tab) => tab.id === "advice");
-  const stabilityTab = reading.tabs.find((tab) => tab.id === "stability");
-  const fanBiasTab = reading.tabs.find((tab) => tab.id === "fanBias");
 
   return {
     userName,
@@ -263,24 +261,26 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     matchingTags,
     connectionKeyword: reading.imageCard.keywords,
     chemistrySummary: sanitizeFavoriteDestinyText(reading.summary),
-    compatibilityDetail: sanitizeFavoriteDestinyText(summaryTab?.sections[0]?.text || ""),
-    energyConnectionDetail: sanitizeFavoriteDestinyText(emotionTab?.sections[0]?.text || ""),
-    biasPersonalityReport: sanitizeFavoriteDestinyText(chemistryTab?.sections[0]?.text || ""),
-    compatibilityReport: sanitizeFavoriteDestinyText(summaryTab?.sections[0]?.text || ""),
-    energyConnectionReport: sanitizeFavoriteDestinyText(emotionTab?.sections[0]?.text || ""),
-    oneLineDestinyMessage: sanitizeFavoriteDestinyText(reading.imageCard.oneLineLink),
+    compatibilityDetail: sanitizeFavoriteDestinyText(elementTab?.sections[0]?.text || ""),
+    energyConnectionDetail: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
+    biasPersonalityReport: sanitizeFavoriteDestinyText(dayMasterTab?.sections[0]?.text || ""),
+    compatibilityReport: sanitizeFavoriteDestinyText(elementTab?.sections[0]?.text || ""),
+    energyConnectionReport: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
+    oneLineDestinyMessage: sanitizeFavoriteDestinyText(chemiTab?.sections[0]?.text || reading.imageCard.oneLineLink),
     stageAuraComment,
-    destinySignal: sanitizeFavoriteDestinyText(cautionTab?.sections[0]?.text || ""),
+    destinySignal: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
     fansignMessage,
     stageChemistryKeywords,
-    todayMission: sanitizeFavoriteDestinyText(adviceTab?.sections[0]?.action || ""),
+    todayMission: sanitizeFavoriteDestinyText(boosterTab?.sections[0]?.action || ""),
     cheerPoint,
     biasEnergySvg,
-    biasEnergySummary: sanitizeFavoriteDestinyText(stabilityTab?.sections[0]?.text || ""),
+    biasEnergySummary: sanitizeFavoriteDestinyText(boosterTab?.sections[0]?.text || ""),
     destinyId,
     issuedAt,
     cardSvg,
     chemistryType: reading.chemistryType,
+    bottomNotice: reading.bottomNotice,
+    elementDistribution: reading.elementDistribution,
     birthDataStatus: {
       user: reading.user.birthDataStatus,
       favorite: reading.favorite.birthDataStatus,

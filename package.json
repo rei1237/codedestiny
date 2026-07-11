@@ -96,6 +96,7 @@
     "verify:i18n-runtime": "node scripts/verify-i18n-runtime-readiness.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
+    "verify:tarot-love-flow": "node scripts/verify-tarot-love-instant-flow.mjs",
     "verify:mobile-feature-coverage": "node scripts/verify-mobile-feature-coverage.mjs",
     "verify:mobile-entry-actions": "node scripts/verify-mobile-entry-actions.mjs",
     "verify:mobile-runtime-readiness": "node scripts/verify-mobile-runtime-readiness.mjs",

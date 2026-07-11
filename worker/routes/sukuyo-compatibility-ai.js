@@ -1,6 +1,6 @@
 import { Lunar, Solar } from "lunar-javascript";
 import { requireAuth } from "../lib/auth.js";
-import { connectDb } from "../lib/db.js";
+import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
@@ -730,8 +730,9 @@ function buildPaymentPayload(idempotencyKey) {
 }
 
 async function resolveUser(auth, env) {
-  await connectDb(env);
-  return User.findById(auth.userId).select("role").lean();
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도
+  // (withMongoRetry가 내부에서 connectDb 호출).
+  return withMongoRetry(env, () => User.findById(auth.userId).select("role").lean());
 }
 
 function paymentIdFromBody(body = {}) {
@@ -769,7 +770,7 @@ function paymentIdFromBody(body = {}) {
 async function hasPaidPayment(env, auth, paymentId) {
   if (!paymentId) return false;
   await connectDb(env);
-  const payment = await Payment.exists({
+  const payment = await withMongoRetry(env, () => Payment.exists({
     userId: auth.userId,
     $or: [
       { impUid: paymentId },
@@ -780,7 +781,7 @@ async function hasPaidPayment(env, auth, paymentId) {
     featureKey: FEATURE_KEY,
     paymentType: "digital_content",
     status: { $in: ["paid", "success", "fulfilled"] },
-  });
+  }));
   return Boolean(payment);
 }
 
@@ -1003,7 +1004,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
   const user = await resolveUser(auth, env);
   const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
   if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
-  const billingEvidence = await resolveBillingUsageEvidence(env, auth, body);
+  const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, body));
   if (billingEvidence?.ok) return billingEvidence;
   const paidPaymentId = paymentIdFromBody(body);
   if (await hasPaidPayment(env, auth, paidPaymentId)) return { ok: true, accessType: "paid", paymentId: paidPaymentId };
@@ -1720,6 +1721,15 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
       requestId: request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
       errorMessage: clean(error?.message || error, 500),
     }, error, env);
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.serverFailed }, { status: 500 });
   }
 }

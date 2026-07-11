@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -1779,10 +1779,11 @@ async function handleEnsureAccess(request, env) {
   }
 
   await connectDb(env);
-  const user = await loadBillingUser(auth.userId);
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
-  const access = await resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
+  const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
   if (access.ok) {
     logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -1827,16 +1828,16 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
 
-  const user = await loadBillingUser(auth.userId);
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  const billingAccess = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
+  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }));
   if (billingAccess?.ok) {
     return {
       ...billingAccess,
       usageAlreadyApplied: billingAccess.usageAlreadyApplied === true,
     };
   }
-  return resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body });
+  return withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
 }
 
 async function handleStart(request, env) {
@@ -1891,7 +1892,7 @@ async function handleStart(request, env) {
     return serverError(SERVER_ERROR_MESSAGE, 500);
   }
 
-  const existing = await NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean();
+  const existing = await withMongoRetry(env, () => NewYearAiConsultation.findOne({ userId: clean(auth.userId), idempotencyKey }).lean());
   if (existing && clean(existing.inputHash) !== normalized.inputHash) {
     return invalidInput("같은 요청 키로 다른 상담 정보를 사용할 수 없습니다.", 409);
   }
@@ -2103,6 +2104,15 @@ export async function handleNewYearAiRoutes(request, env = {}) {
   } catch (error) {
     console.error("[new-year-ai]", clean(error?.code || error?.message || error, 500));
     logNewYearAi("Error", safeLogPayload({ route: "/api/new-year-ai", env, error }), "error");
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return serverError();
   }
 }

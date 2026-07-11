@@ -6866,6 +6866,7 @@ function _buildSajuQuestionPromptHtml() {
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
     +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
     +     '<button data-saju-ai-regenerate type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">다시 상담 받기</button>'
+    +     '<button data-saju-ai-resume type="button" style="display:none;background:rgba(255,255,255,.08);color:#fff7df;border:1px solid rgba(230,196,112,.44);padding:11px 13px;border-radius:8px;font-size:0.78rem;font-weight:800;cursor:pointer;">이전 상담문 이어보기</button>'
     +   '</div>'
     +   '<div data-saju-ai-output-panel style="position:relative;display:none;margin-top:14px;border-radius:8px;border:1px solid rgba(230,196,112,.38);background:linear-gradient(180deg,rgba(255,252,243,.98),rgba(255,247,223,.95));box-shadow:0 18px 34px rgba(0,0,0,.2);overflow:hidden;">'
     +     '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(113,63,18,.16);padding:12px 13px;background:rgba(120,53,15,.06);flex-wrap:wrap;"><div><strong style="font-size:0.9rem;color:#2a2117;line-height:1.42;">명식이 열어 준 상담문</strong><div data-saju-ai-save-state style="margin-top:3px;font-size:.7rem;color:#7c5a20;font-weight:800;">내부 명식 기준으로 해석되었습니다</div></div><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;"><button data-saju-ai-save-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#2a2117;color:#fff7df;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">저장하기</button><button data-saju-ai-copy-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">내용 복사</button><button data-saju-ai-share-result type="button" style="border:1px solid rgba(113,63,18,.24);background:#fff7df;color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">공유하기</button><button data-saju-ai-reset-result type="button" style="border:1px solid rgba(113,63,18,.24);background:rgba(255,255,255,.66);color:#2a2117;border-radius:8px;padding:7px 10px;font-size:0.72rem;font-weight:900;cursor:pointer;">다시 질문하기</button></div></div>'
@@ -6929,6 +6930,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var countEl = rootEl.querySelector('[data-saju-ai-count]');
   var generateBtn = rootEl.querySelector('[data-saju-ai-generate]');
   var regenerateBtn = rootEl.querySelector('[data-saju-ai-regenerate]');
+  var resumeBtn = rootEl.querySelector('[data-saju-ai-resume]');
   var outputEl = rootEl.querySelector('[data-saju-ai-output]');
   var outputPanel = rootEl.querySelector('[data-saju-ai-output-panel]');
   var outputTextEl = rootEl.querySelector('[data-saju-ai-output-text]');
@@ -7296,6 +7298,17 @@ function _bindSajuQuestionPromptCard(rootEl) {
       if (!keepWaiting) setLoading(false);
     });
   }
+  function resumePendingJob() {
+    if (isLoading) return;
+    var job = activePendingJob;
+    if (!job || (!job.requestId && !job.jobId && !job.executionId)) return;
+    if (resumeBtn) resumeBtn.style.display = 'none';
+    accessConfirmed = true; // 이미 결제 완료된 작업 — '결제/이용권 확인 중' 단계를 건너뛴다
+    setLoading(true);
+    setProgress(15, '이전 상담문을 이어받는 중', false); // startProgress 초기 문구를 같은 tick에 덮어씀(깜빡임 없음)
+    _sajuPromptSetStatus(statusEl, '이전에 진행하던 상담문을 이어서 불러오고 있어요.', 'info');
+    pollPendingJob(job, true);
+  }
 
   inputEl.addEventListener('input', function() {
     clearPaidEvidence();
@@ -7303,6 +7316,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
   });
   generateBtn.addEventListener('click', handleGenerate);
   regenerateBtn.addEventListener('click', handleGenerate);
+  if (resumeBtn) resumeBtn.addEventListener('click', resumePendingJob);
   copyBtn.addEventListener('click', function() {
     _sajuPromptCopyText(outputEl.value).then(function() {
       _sajuPromptSetStatus(statusEl, '상담문을 복사했습니다.', 'success');
@@ -7389,10 +7403,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
       lastPaidEvidenceKey = requestKey(restoredJob.question || '', restoredJob.domain || '');
     }
     updateCount();
-    setProgress(15, '이전 상담 생성 상태를 다시 확인하고 있어요', false);
-    _sajuPromptSetStatus(statusEl, '새로고침 전 진행 중이던 상담문을 이어받고 있습니다.', 'info');
-    setLoading(true);
-    pollPendingJob(restoredJob, true);
+    if (resumeBtn) resumeBtn.style.display = 'inline-flex';
+    _sajuPromptSetStatus(statusEl, '이전에 진행하던 상담문이 있어요. ‘이전 상담문 이어보기’를 누르면 결제 재청구 없이 이어서 불러옵니다.', 'info');
   } else {
     var savedResult = _sajuPromptReadSavedResult(currentProfileId);
     if (savedResult) {
@@ -8842,6 +8854,49 @@ function computeSolarTermsForYear(year){
   return rows;
 }
 
+// 24절기 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장 — 스킬트리 카드와 동일 패턴)
+function _ensureTerms24Style(){
+  if(document.getElementById('cd-terms24-style-v20260711'))return;
+  var style=document.createElement('style');
+  style.id='cd-terms24-style-v20260711';
+  style.textContent=[
+    '#terms24Card .terms24-intro{font-size:.86rem;line-height:1.72;color:#70445c;opacity:.92;margin:-2px 0 16px}',
+    '#terms24Card .terms24-intro b{color:#b31955;font-weight:800;opacity:1}',
+    '#terms24Card #terms24Grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}',
+    '#terms24Card .t24-season{position:relative;border-radius:18px;padding:13px 12px 14px;overflow:hidden;background:linear-gradient(160deg,#fffdfb,#fff5f0);border:1px solid var(--sea-line,rgba(179,25,85,.14));box-shadow:0 6px 18px rgba(179,25,85,.06),inset 0 1px 0 rgba(255,255,255,.72)}',
+    '#terms24Card .t24-season::before{content:"";position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--sea,#b31955),transparent);opacity:.9}',
+    '#terms24Card .t24-season-head{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:5px 12px;border-radius:999px;background:var(--sea-soft,rgba(179,25,85,.08));border:1px solid var(--sea-line,rgba(179,25,85,.14));font-weight:800;font-size:.9rem;color:var(--sea,#b31955);letter-spacing:-.01em}',
+    '#terms24Card .t24-season-head .t24-el{font-family:"Noto Serif KR",serif;font-size:.74rem;font-weight:700;opacity:.72;margin-left:2px;padding-left:7px;border-left:1px solid var(--sea-line,rgba(179,25,85,.2))}',
+    '#terms24Card .t24-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}',
+    '#terms24Card .t24-item{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:58px;padding:9px 4px;border-radius:13px;background:rgba(255,255,255,.72);border:1px solid rgba(179,25,85,.1);transition:transform .16s ease,box-shadow .16s ease}',
+    '#terms24Card .t24-item:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(179,25,85,.1)}',
+    '#terms24Card .t24-name{display:flex;align-items:baseline;gap:3px;font-size:.82rem;font-weight:800;color:#3c1830;line-height:1.1}',
+    '#terms24Card .t24-name i{font-style:normal;font-family:"Noto Serif KR",serif;font-size:.6rem;font-weight:500;opacity:.5}',
+    '#terms24Card .t24-date{font-size:.68rem;color:#70445c;opacity:.72;font-variant-numeric:tabular-nums}',
+    '#terms24Card .t24-item.is-current{background:linear-gradient(160deg,#fff,var(--sea-soft,rgba(179,25,85,.1)));border-color:var(--sea,#b31955);box-shadow:0 0 0 1.5px var(--sea,#b31955),0 8px 20px rgba(0,0,0,.1)}',
+    '#terms24Card .t24-item.is-current .t24-name{color:var(--sea,#b31955)}',
+    '#terms24Card .t24-item.is-current .t24-date{color:var(--sea,#b31955);opacity:.95}',
+    '#terms24Card .t24-tag{margin-top:2px;padding:1px 8px;border-radius:999px;background:var(--sea,#b31955);color:#fff;font-size:.56rem;font-weight:800;letter-spacing:.02em;line-height:1.6}',
+    '#terms24Card .t24-season--spring{--sea:#2e9e6b;--sea-soft:rgba(46,158,107,.1);--sea-line:rgba(46,158,107,.24)}',
+    '#terms24Card .t24-season--summer{--sea:#e0564e;--sea-soft:rgba(224,86,78,.1);--sea-line:rgba(224,86,78,.24)}',
+    '#terms24Card .t24-season--autumn{--sea:#c99a3a;--sea-soft:rgba(201,154,58,.12);--sea-line:rgba(201,154,58,.26)}',
+    '#terms24Card .t24-season--winter{--sea:#4f78c9;--sea-soft:rgba(79,120,201,.1);--sea-line:rgba(79,120,201,.24)}',
+    '@media (max-width:480px){#terms24Card #terms24Grid{grid-template-columns:1fr}}',
+    /* ── 네오(달빛 다크) 대비 오버라이드 — 배경·글자색 함께 전환 ── */
+    'body.neo-mode #terms24Card .terms24-intro{color:#c9bce0;opacity:.92}',
+    'body.neo-mode #terms24Card .terms24-intro b{color:#e9c46a}',
+    'body.neo-mode #terms24Card .t24-season{background:linear-gradient(160deg,rgba(26,22,52,.72),rgba(18,15,40,.66));border-color:rgba(148,163,184,.22);box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}',
+    'body.neo-mode #terms24Card .t24-item{background:rgba(38,32,66,.6);border-color:rgba(148,163,184,.16)}',
+    'body.neo-mode #terms24Card .t24-name{color:#ece7f7}',
+    'body.neo-mode #terms24Card .t24-name i{color:#b9a9d6;opacity:.8}',
+    'body.neo-mode #terms24Card .t24-date{color:#c3b6de;opacity:.82}',
+    'body.neo-mode #terms24Card .t24-item.is-current{background:linear-gradient(160deg,rgba(46,38,80,.9),rgba(44,33,74,.7));border-color:#e9c46a;box-shadow:0 0 0 1.5px #e9c46a,0 8px 20px rgba(233,196,106,.24)}',
+    'body.neo-mode #terms24Card .t24-item.is-current .t24-name,body.neo-mode #terms24Card .t24-item.is-current .t24-date{color:#f5dea0;opacity:1}',
+    'body.neo-mode #terms24Card .t24-tag{background:#e9c46a;color:#1a1630}'
+  ].join('');
+  document.head.appendChild(style);
+}
+
 // 사주 기본 결과에 태어난 해의 24절기 카드를 렌더 (생월 절입 강조)
 function render24Terms(ctx, p){
   var card = document.getElementById('terms24Card');
@@ -8854,6 +8909,8 @@ function render24Terms(ctx, p){
 
   var terms = computeSolarTermsForYear(year);
   if(!terms || !terms.length){ card.style.display = 'none'; return; }
+
+  _ensureTerms24Style();
 
   var byName = {};
   terms.forEach(function(t){ byName[t.name] = t; });
@@ -8870,18 +8927,18 @@ function render24Terms(ctx, p){
 
   var html = '';
   SEASONS.forEach(function(s){
-    html += '<div class="terms24-season terms24-season--' + s.key + '">';
-    html += '<div class="terms24-season-head">' + s.emoji + ' ' + s.label + '<span>' + s.el + '</span></div>';
-    html += '<div class="terms24-grid">';
+    html += '<div class="t24-season t24-season--' + s.key + '">';
+    html += '<div class="t24-season-head">' + s.emoji + ' ' + s.label + '<span class="t24-el">' + s.el + '</span></div>';
+    html += '<div class="t24-grid">';
     s.names.forEach(function(n){
       var t = byName[n];
       var hanja = ST24_HANJA[n] || '';
       var dateStr = t ? (t.month + '.' + t.day) : '—';
       var isCur = (n === currentTerm);
-      html += '<div class="terms24-item' + (isCur ? ' is-current' : '') + '">'
-        + '<span class="terms24-name">' + n + (hanja ? '<i>' + hanja + '</i>' : '') + '</span>'
-        + '<span class="terms24-date">' + dateStr + '</span>'
-        + (isCur ? '<span class="terms24-cur-tag">내 생월</span>' : '')
+      html += '<div class="t24-item' + (isCur ? ' is-current' : '') + '">'
+        + '<span class="t24-name">' + n + (hanja ? '<i>' + hanja + '</i>' : '') + '</span>'
+        + '<span class="t24-date">' + dateStr + '</span>'
+        + (isCur ? '<span class="t24-tag">내 생월</span>' : '')
         + '</div>';
     });
     html += '</div></div>';
@@ -9113,50 +9170,178 @@ function renderJohu(johu) {
     document.getElementById('johuContent').innerHTML = contentHTML;
 }
 
+// 억부/종격 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장)
+function _ensureUkbuStyle(){
+  if(document.getElementById('cd-ukbu-style-v20260711'))return;
+  var style=document.createElement('style');
+  style.id='cd-ukbu-style-v20260711';
+  style.textContent=[
+    '#ukbuCard .uk-wrap{display:flex;flex-direction:column;gap:12px}',
+    '#ukbuCard .uk-card{position:relative;border-radius:16px;padding:15px 15px 16px;overflow:hidden;background:linear-gradient(160deg,#fffdfb,#fff5f0);border:1px solid rgba(179,25,85,.12);box-shadow:0 6px 18px rgba(179,25,85,.06),inset 0 1px 0 rgba(255,255,255,.72)}',
+    '#ukbuCard .uk-card.is-strong{background:linear-gradient(160deg,#fff8f3,#fff0ea);border-color:rgba(224,86,78,.24)}',
+    '#ukbuCard .uk-card.is-weak{background:linear-gradient(160deg,#f6faff,#eef4ff);border-color:rgba(79,120,201,.24)}',
+    '#ukbuCard .uk-card.is-jong{background:linear-gradient(160deg,#faf5ff,#f3ebff);border-color:rgba(124,58,237,.24)}',
+    '#ukbuCard .uk-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:13px}',
+    '#ukbuCard .uk-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:999px;font-weight:800;font-size:.9rem;color:#fff;white-space:nowrap}',
+    '#ukbuCard .uk-badge.b-strong{background:linear-gradient(135deg,#f0724a,#e0564e)}',
+    '#ukbuCard .uk-badge.b-weak{background:linear-gradient(135deg,#5b8de0,#4f78c9)}',
+    '#ukbuCard .uk-badge.b-jong{background:linear-gradient(135deg,#9b5de5,#7c3aed)}',
+    '#ukbuCard .uk-tagline{font-size:.82rem;font-weight:700;color:#70445c}',
+    '#ukbuCard .uk-block{margin-top:13px;padding-top:13px;border-top:1px dashed rgba(179,25,85,.16)}',
+    '#ukbuCard .uk-block:first-child{margin-top:0;padding-top:0;border-top:0}',
+    '#ukbuCard .uk-head{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:800;color:#b31955;margin-bottom:7px;letter-spacing:-.01em}',
+    '#ukbuCard .uk-body{font-size:.86rem;line-height:1.82;color:#4a2a3e}',
+    '#ukbuCard .uk-body b{color:#b31955;font-weight:800}',
+    '#ukbuCard .uk-yongshin{display:flex;flex-wrap:wrap;gap:7px;margin-top:2px}',
+    '#ukbuCard .uk-el{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:11px;font-size:.8rem;font-weight:800;border:1px solid}',
+    '#ukbuCard .uk-el.good{background:rgba(46,158,107,.1);border-color:rgba(46,158,107,.32);color:#1f7a4d}',
+    '#ukbuCard .uk-el.bad{background:rgba(224,86,78,.08);border-color:rgba(224,86,78,.28);color:#c0392b}',
+    '#ukbuCard .uk-el small{font-weight:700;opacity:.72;font-size:.72rem}',
+    '#ukbuCard .uk-note{margin-top:12px;padding:11px 13px;border-radius:12px;background:linear-gradient(135deg,rgba(234,208,137,.22),rgba(234,208,137,.08));border:1px solid rgba(200,160,60,.32);font-size:.82rem;line-height:1.72;color:#7a5a1e}',
+    '#ukbuCard .uk-note b{color:#8a6a1e}',
+    /* ── 네오(달빛 다크) 대비 오버라이드 ── */
+    'body.neo-mode #ukbuCard .uk-card{background:linear-gradient(160deg,rgba(26,22,52,.72),rgba(18,15,40,.66));border-color:rgba(148,163,184,.2);box-shadow:0 6px 18px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.05)}',
+    'body.neo-mode #ukbuCard .uk-card.is-strong{border-color:rgba(240,114,74,.34)}',
+    'body.neo-mode #ukbuCard .uk-card.is-weak{border-color:rgba(122,158,240,.34)}',
+    'body.neo-mode #ukbuCard .uk-card.is-jong{border-color:rgba(167,139,250,.4)}',
+    'body.neo-mode #ukbuCard .uk-tagline{color:#c9bce0}',
+    'body.neo-mode #ukbuCard .uk-block{border-top-color:rgba(148,163,184,.2)}',
+    'body.neo-mode #ukbuCard .uk-head{color:#e9c46a}',
+    'body.neo-mode #ukbuCard .uk-body{color:#e2dcf2}',
+    'body.neo-mode #ukbuCard .uk-body b{color:#f5dea0}',
+    'body.neo-mode #ukbuCard .uk-el.good{background:rgba(46,158,107,.16);border-color:rgba(74,214,164,.4);color:#7ee6b4}',
+    'body.neo-mode #ukbuCard .uk-el.bad{background:rgba(224,86,78,.16);border-color:rgba(240,140,130,.4);color:#f2a79e}',
+    'body.neo-mode #ukbuCard .uk-note{background:linear-gradient(135deg,rgba(233,196,106,.16),rgba(233,196,106,.05));border-color:rgba(233,196,106,.3);color:#ecd9a3}',
+    'body.neo-mode #ukbuCard .uk-note b{color:#f5dea0}'
+  ].join('');
+  document.head.appendChild(style);
+}
+
+// 일간(천간) 10종의 타고난 결 — 한 줄 요약
+var _UKBU_DAY_STEM_NOTE={
+  '甲':'하늘로 곧게 뻗는 큰 나무처럼 추진력과 리더십이 강하고 자존심이 높습니다',
+  '乙':'바람에 유연하게 휘는 화초·넝쿨처럼 부드럽지만 끈질기고 생활력이 강합니다',
+  '丙':'만물을 비추는 태양처럼 밝고 열정적이며 표현력과 존재감이 큽니다',
+  '丁':'어둠을 밝히는 촛불·달빛처럼 섬세하고 따뜻하며 속이 깊습니다',
+  '戊':'모든 것을 품는 큰 산·대지처럼 듬직하고 신용이 두터우며 중심이 단단합니다',
+  '己':'씨앗을 키우는 기름진 밭처럼 실속 있고 포용력이 크며 현실 감각이 뛰어납니다',
+  '庚':'제련을 기다리는 원석·강철처럼 결단력과 의리가 강하고 승부욕이 큽니다',
+  '辛':'세공된 보석·예리한 칼처럼 예민하고 자존심이 높으며 미적 감각이 뛰어납니다',
+  '壬':'큰 강·바다처럼 지혜롭고 사고가 넓으며 융통성과 포용력이 큽니다',
+  '癸':'이슬·옹달샘처럼 총명하고 감수성이 예민하며 은근한 생명력이 있습니다'
+};
+
+// 월지(月支) 오행과 일간 오행의 관계로 득령/실령 판정 서술
+function _ukbuMonthRelation(dayEl,mjEl){
+  if(!dayEl||!mjEl)return null;
+  if(mjEl===dayEl)return{tag:'득령(得令)',txt:'태어난 달의 기운이 일간과 같은 오행이라 뿌리가 단단합니다'};
+  if(mjEl===parentOf(dayEl))return{tag:'득령(得令)',txt:'태어난 달이 일간을 낳아 길러 주는 인성(印星)의 달이라 힘을 크게 받습니다'};
+  if(KE[mjEl]===dayEl)return{tag:'실령(失令)',txt:'태어난 달이 일간을 극하는 관살(官殺)의 달이라 기운이 눌립니다'};
+  if(SHENG[dayEl]===mjEl)return{tag:'실령(失令)',txt:'일간이 달의 기운으로 힘을 내보내는 식상(食傷)의 달이라 에너지가 새어 나갑니다'};
+  if(KE[dayEl]===mjEl)return{tag:'실령(失令)',txt:'일간이 달의 기운을 극해 다스리는 재성(財星)의 달이라 힘을 쓰는 자리입니다'};
+  return{tag:'평(平)',txt:'태어난 달과 일간의 관계가 중립적입니다'};
+}
+
+// 오행을 일간 기준 십성 계열로 환산
+function _ukbuTenGod(dayEl,el){
+  if(el===dayEl)return'비겁(比劫)';
+  if(el===parentOf(dayEl))return'인성(印星)';
+  if(el===SHENG[dayEl])return'식상(食傷)';
+  if(el===KE[dayEl])return'재성(財星)';
+  if(KE[el]===dayEl)return'관성(官星)';
+  return'';
+}
+
+// 종격 이름 → 한 줄 성격 설명
+function _ukbuJongKind(name){
+  var n=String(name||'');
+  if(/곡직/.test(n))return'목(木)이 가득한 종왕격(從旺格) — 곧게 뻗는 성장·기획의 기운을 그대로 밀고 나갈 때 빛납니다';
+  if(/염상/.test(n))return'화(火)가 가득한 종왕격(從旺格) — 밝게 타오르는 열정과 표현력을 극대화할 때 빛납니다';
+  if(/가색/.test(n))return'토(土)가 가득한 종왕격(從旺格) — 두텁게 쌓고 지키는 안정·포용의 기운을 따를 때 빛납니다';
+  if(/종혁/.test(n))return'금(金)이 가득한 종왕격(從旺格) — 결단하고 다듬는 강인함을 그대로 쓸 때 빛납니다';
+  if(/윤하/.test(n))return'수(水)가 가득한 종왕격(從旺格) — 흐르고 지혜로운 유연함을 극대화할 때 빛납니다';
+  if(/종강/.test(n))return'나를 낳아 주는 인성(印星)이 압도적인 종강격(從强格) — 배움·후원의 큰 기운에 올라타는 격입니다';
+  if(/종아/.test(n))return'내가 낳는 식상(食傷)이 압도적인 종아격(從兒格) — 재능·표현으로 세상에 내보내는 기운을 따르는 격입니다';
+  if(/종재/.test(n))return'내가 다스리는 재성(財星)이 압도적인 종재격(從財格) — 재물·현실 성취의 흐름에 순응하는 격입니다';
+  if(/종살|종관/.test(n))return'나를 다스리는 관살(官殺)이 압도적인 종살격(從殺格) — 권력·조직의 큰 힘에 올라타는 격입니다';
+  if(/화격|화기/.test(n))return'천간이 합하여 하나의 기운으로 변한 화격(化格) — 변화된 그 기운을 중심으로 사는 격입니다';
+  return'한 가지 기운이 사주를 지배하는 특수격으로, 그 기세에 순응할 때 가장 빛납니다';
+}
+
 function renderUkbu(p){
   var pw=G_POWER,jg=G_JONG,dg=p.d.g;
+  var host=document.getElementById('ukbuSection');
+  if(!host)return;
+  _ensureUkbuStyle();
+
   var dayEl=(GAN[dg]&&GAN[dg].e)||'earth';
-  var html='';
+  var dayName=(GAN[dg]&&GAN[dg].n)||dg;
+  var mjEl=(p.m&&p.m.j&&JI[p.m.j])?JI[p.m.j].e:null;
+  var html='<div class="uk-wrap">';
 
   if(jg&&jg.isJong){
-    html+='<div class="jong-box">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
-      '<span class="power-badge pb-jong">🌀 '+jg.name+'</span>'+
-      '<span style="font-size:.85rem;font-weight:700;color:#6A1B9A">'+EL_E[jg.dominant]+' '+EL_K[jg.dominant]+' '+jg.pct+'% 지배</span>'+
-      '</div>'+
-      '<div style="font-size:.84rem;color:#4A148C;line-height:1.78">'+
-      '<b>종격 사주</b>는 일반 억부법이 적용되지 않습니다.<br>'+
-      EL_K[jg.dominant]+' 기운이 <b>더 강해지는 대운</b>이 길(吉), <b>약해지는 대운</b>이 흉(凶)입니다.<br>'+
-      '<span style="color:#9C27B0">→ 당신의 강점인 '+EL_K[jg.dominant]+' 에너지를 극한까지 활용하는 것이 성공의 열쇠입니다.</span>'+
-      '</div>'+
+    html+='<div class="uk-card is-jong">'+
+      '<div class="uk-top"><span class="uk-badge b-jong">🌀 '+jg.name+'</span>'+
+      '<span class="uk-tagline">'+EL_E[jg.dominant]+' '+EL_K[jg.dominant]+' 기운 '+jg.pct+'% 지배</span></div>'+
+      '<div class="uk-block"><div class="uk-head">🌀 종격(從格)이란</div>'+
+      '<div class="uk-body">한 가지 오행이 사주 전체를 압도할 만큼 강하면, 그 기세를 억지로 누르지 않고 <b>순응</b>하는 것이 오히려 답이 됩니다. 그래서 종격에는 일반적인 신강·신약(억부) 잣대를 적용하지 않습니다.</div></div>'+
+      '<div class="uk-block"><div class="uk-head">📌 당신의 격</div>'+
+      '<div class="uk-body"><b>'+jg.name+'</b> — '+_ukbuJongKind(jg.name)+'.</div></div>'+
+      '<div class="uk-block"><div class="uk-head">🧭 대운·세운 방향</div>'+
+      '<div class="uk-body"><b>'+EL_K[jg.dominant]+'</b> 기운을 더 <b>북돋는 운</b>이 오면 크게 길(吉)하고, 그 기세를 <b>거스르는 운</b>이 오면 흉(凶)합니다. 이것저것 분산하지 말고, 타고난 강점 한 가지를 극한까지 밀어붙이세요. 그게 당신 인생의 열쇠입니다.</div></div>'+
+      (jg.isGaJong
+        ?'<div class="uk-note">⚠️ <b>가종격(假從格)</b>입니다 — 일간을 돕는 미약한 뿌리가 남아 있어, 대운의 흐름에 따라 진종격(眞從格)으로 굳어질 수도, 일반 사주(내격)로 돌아올 수도 있습니다. 실제 살아온 길흉과 대조해 확인해 보세요.</div>'
+        :'<div class="uk-note">✓ <b>진종격(眞從格)</b>에 가깝습니다 — 지배 오행에 온전히 순응하는 흐름이 뚜렷합니다.</div>')+
       '</div>';
+  }else if(pw){
+    var strong=!!pw.isStrong;
+    var rel=_ukbuMonthRelation(dayEl,mjEl);
+    var yong=(pw.yongshin||[]).filter(Boolean);
+    var ki=(pw.kijishin||[]).filter(Boolean);
+    var yongChips=yong.map(function(e,i){
+      return '<span class="uk-el good">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||(i===0?'용신':'희신'))+'</small></span>';
+    }).join('');
+    var kiChips=ki.map(function(e){
+      return '<span class="uk-el bad">'+EL_E[e]+' '+EL_K[e]+' <small>'+(_ukbuTenGod(dayEl,e)||'기신')+'</small></span>';
+    }).join('');
+
+    html+='<div class="uk-card '+(strong?'is-strong':'is-weak')+'">'+
+      '<div class="uk-top"><span class="uk-badge '+(strong?'b-strong':'b-weak')+'">'+(strong?'🔥 신강(身强)':'💧 신약(身弱)')+' '+pw.score+'점</span>'+
+      '<span class="uk-tagline">'+(strong?'에너지가 넘치는 주체형':'섬세하고 공감력이 뛰어난 감성형')+'</span></div>'+
+
+      '<div class="uk-block"><div class="uk-head">⚖️ 왜 '+(strong?'신강':'신약')+'인가</div>'+
+      '<div class="uk-body">'+
+      (rel?'태어난 달의 기운(월령)을 보면 <b>'+rel.tag+'</b> — '+rel.txt+'. ':'')+
+      '여기에 나머지 일곱 글자가 일간을 돕는 힘과 극하는 힘을 저울질한 <b>억부 점수 '+pw.score+'점</b>을 합쳐 보면, '+dayName+' 일간이 '+
+      (strong
+        ?'스스로 버틸 힘이 넉넉한 <b>신강</b>으로 판정됩니다. 뿌리가 튼튼해 밀어붙이는 힘이 강한 사주예요.'
+        :'외부의 압박에 비해 자체 힘이 다소 부족한 <b>신약</b>으로 판정됩니다. 약점이 아니라 섬세함과 유연함의 바탕이니 오해하지 마세요.')+
+      '</div></div>'+
+
+      '<div class="uk-block"><div class="uk-head">🌱 일간(日干) '+dayName+'의 결</div>'+
+      '<div class="uk-body">'+(_UKBU_DAY_STEM_NOTE[dg]||'타고난 기질이 뚜렷한 일간입니다')+'. '+
+      (strong
+        ?'기운이 왕성한 만큼 힘을 <b>밖으로 써서 덜어낼 때</b> 오히려 빛납니다. 성취를 나누고, 사람을 돕고, 책임을 맡으세요. 혼자 다 쥐려 하면 탈이 납니다.'
+        :'자존감이 채워지는 자리에서 힘이 납니다. <b>무리해서 앞장서기보다</b> 나를 알아주는 사람·환경 곁에서 실력을 키우세요. 때가 오면 반드시 쓰입니다.')+
+      '</div></div>'+
+
+      '<div class="uk-block"><div class="uk-head">🌟 나를 살리는 기운 · 조심할 기운</div>'+
+      '<div class="uk-yongshin">'+yongChips+kiChips+'</div>'+
+      '<div class="uk-body" style="margin-top:9px">초록으로 표시한 <b>용신·희신</b>의 오행이 대운·세운으로 들어올 때 일이 풀리고 귀인이 옵니다. 붉게 표시한 <b>기신·구신</b>이 강해지는 시기엔 한 템포 늦추고, 무리한 확장이나 큰 결정은 미루세요.</div></div>'+
+
+      '<div class="uk-block"><div class="uk-head">🧭 대운 방향 한눈에</div>'+
+      '<div class="uk-body">'+
+      (strong
+        ?'<b>식상(食傷)·재(財)·관(官)</b> 운 — 즉 기운을 밖으로 쓰고 성취로 바꾸는 흐름에서 사회적 성공이 터집니다.'
+        :'<b>비겁(比劫)·인성(印星)</b> 운 — 즉 나를 채우고 지지해 주는 흐름에서 자존감과 귀인이 함께 옵니다.')+
+      '</div></div>'+
+      '</div>';
+  }else{
+    html+='<div class="uk-card"><div class="uk-body">억부 계산 중이거나 사주 데이터가 부족합니다. 잠시 후 다시 확인해 주세요.</div></div>';
   }
 
-  if(pw){
-    var boxCls=jg&&jg.isJong?'':(pw.isStrong?'ukbu-strong':'ukbu-weak');
-    html+='<div class="ukbu-box '+boxCls+'">'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">'+
-      '<span class="power-badge '+(pw.isStrong?'pb-strong':'pb-weak')+'">'+(pw.isStrong?'🔥 신강(身强)':'💧 신약(身弱)')+' '+pw.score+'점</span>'+
-      '<span style="font-size:.82rem;color:#555">'+(pw.isStrong?'에너지가 넘치는 주체적 성격':'섬세하고 공감 능력이 탁월한 성격')+'</span>'+
-      '</div>'+
-      '<div style="font-size:.84rem;color:#555;line-height:1.78">'+
-      '<b>'+((GAN[dg]&&GAN[dg].n)||dg)+' 일간</b>으로 '+(pw.isStrong
-        ?'타고난 에너지가 왕성합니다. 설기·극(剋) 운에서 사회적 유연함과 인간관계가 꽃을 피웁니다.'
-        :'섬세한 감수성이 특별한 매력입니다. 생(生)·비(比) 운에서 자존감이 높아지고 귀인이 나타납니다.')+
-      '</div>'+
-      '<div class="yn-row">'+
-      '🌟 <b>용신:</b> '+
-      (jg&&jg.isJong
-        ?[jg.dominant,jg.parEl].filter(Boolean).map(function(e){return EL_E[e]+EL_K[e];}).join(' ')
-        :pw.yongshin.map(function(e){return EL_E[e]+EL_K[e];}).join(' &nbsp;'))+
-      ' &nbsp;&nbsp; 🚧 <b>기신:</b> '+
-      (jg&&jg.isJong?'약화 기운 주의'
-        :pw.kijishin.map(function(e){return EL_E[e]+EL_K[e];}).join(' &nbsp;'))+
-      '</div>'+
-      '</div>';
-  }
-
-  document.getElementById('ukbuSection').innerHTML=html;
+  html+='</div>';
+  host.innerHTML=html;
 }
 
 /* ─── 60갑자 일주 고유능력 DB (INNATE ABILITY) ─── */
@@ -14620,6 +14805,747 @@ function buildZwSummaryTableHtml(palace) {
       +'<tbody>'+rows+'</tbody>'
       +'</table></div>'
     +'</details>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   자미두수 심화 해설 콘텐츠 엔진 (유료 4개 섹션 확장 — ziwei-deep-content-v20260711)
+   12궁 정밀 / 부부궁 심화 / 생애 총론·연간 흐름 / 상징 보조층에서 공유.
+   전부 결정적(정적) 조합 생성 — LLM·네트워크 호출 없음.
+═══════════════════════════════════════════════════════════════════════ */
+var ZW_STAR_CORE_PROFILE = {
+  '자미': {
+    essence: '중심에 서야 힘이 나는 제왕의 별',
+    self: '스스로 정한 기준이 곧 법인 사람입니다. 남의 지시를 받는 위치에서는 시들고, 방향을 정하는 자리에서 살아납니다.',
+    people: '관계에서도 중심 역할을 맡아야 편안합니다. 먼저 존중을 표하는 상대에게는 아낌없이 베풀지만, 함부로 대하는 사람과는 조용히 거리를 둡니다.',
+    money: '돈 자체보다 돈이 주는 지위와 선택권을 원합니다. 품위 유지 지출이 커지기 쉬우니 고정 저축부터 먼저 떼어 두세요.',
+    work: '실무형보다 총괄형입니다. 사람을 배치하고 방향을 결정하는 역할에서 성과가 나고, 잡무에 매몰되면 급격히 지칩니다.',
+    shadow: '대접받지 못하면 서운함이 쌓이고, 자존심이 결정을 늦춥니다.',
+    advice: '작은 조직이라도 좋으니 당신이 방향을 정하는 자리를 확보하세요. 실무는 위임하고 결정만 쥐는 구조가 맞습니다.',
+    life: ['젊은 시절에는 기대만큼 대접받지 못한다는 갈증이 오히려 동력이 됩니다. 자존심이 꺾이는 경험 하나하나가 그릇을 넓히는 수업입니다.',
+      '사람과 조직을 얻는 중년에 격이 완성됩니다. 직함이 아니라 사람들이 따르는 무게로 전성기를 확인하게 됩니다.',
+      '후반에는 군림하는 어른이 아니라 길을 열어주는 어른이 될 때 명예가 오래갑니다.'],
+    spouse: '주관이 뚜렷하고 품위를 중시하는 배우자입니다. 존중받는다고 느끼면 한없이 든든하지만, 무시당한다고 느끼면 차갑게 닫힙니다.',
+    spousePath: '직장·모임에서 리더 역할을 하는 사람, 격식 있는 자리의 소개로 이어지는 인연이 많습니다.',
+    loveNeed: '존중과 인정',
+    loveFriction: '자존심 싸움'
+  },
+  '천기': {
+    essence: '쉼 없이 궁리하는 지혜와 변통의 별',
+    self: '머릿속에 늘 서너 개의 시나리오가 돌아갑니다. 눈치와 상황 판단이 빠르지만, 그만큼 신경 소모도 큽니다.',
+    people: '대화가 통해야 마음을 엽니다. 관계의 문제를 혼자 분석하다 오해를 키우기 쉬우니, 결론은 상대와 함께 내리세요.',
+    money: '재테크 정보와 타이밍 감각은 좋지만 잦은 매매와 변경이 수익률을 깎습니다. 원칙을 정해 두고 예외를 줄이세요.',
+    work: '기획·분석·참모 역할에서 대체 불가입니다. 실행 단계는 추진력 있는 파트너와 짝을 이루면 완성도가 배가됩니다.',
+    shadow: '생각이 많아 실행이 늦어지고, 걱정을 미리 사서 합니다.',
+    advice: '계획은 3안까지만 만들고 그중 하나를 기한 안에 실행하세요. 생각에 마감시간을 정하는 것이 이 별의 개운법입니다.',
+    life: ['일찍부터 눈치와 재주로 제 몫을 하지만, 잦은 진로 변경이 젊은 날의 수업료가 됩니다.',
+      '경험이 데이터로 쌓이는 중년부터 판단이 무르익어 참모·전략가로서 몸값이 오릅니다.',
+      '후반에는 지식을 사람에게 물려주는 역할에서 가장 큰 보람을 얻습니다.'],
+    spouse: '머리 회전이 빠르고 대화가 잘 통하는 배우자입니다. 다만 마음의 갈피가 자주 흔들려, 확신을 얻기까지 시간이 필요합니다.',
+    spousePath: '공부 모임·업무 협업처럼 머리를 함께 쓰는 자리에서 연결되는 인연이 많습니다.',
+    loveNeed: '대화와 지적 교감',
+    loveFriction: '변덕과 과잉 분석'
+  },
+  '태양': {
+    essence: '주변을 비추고 베푸는 발산의 별',
+    self: '숨기지 못하는 사람입니다. 감정도 재능도 밖으로 드러나고, 인정받을 때 에너지가 차오릅니다.',
+    people: '먼저 베풀고 먼저 나섭니다. 다만 받은 사람이 당연하게 여기기 시작하면 마음이 급격히 식으니, 관계에도 상호성이 필요합니다.',
+    money: '벌 때 크게 벌지만 쓸 때도 시원하게 씁니다. 명예를 위한 지출과 투자를 구분하는 것이 자산 관리의 핵심입니다.',
+    work: '공적인 무대, 이름이 걸리는 일에서 힘이 납니다. 뒤에서 지원만 하는 역할에 묶이면 아깝게 소모됩니다.',
+    shadow: '남 일에 에너지를 다 쓰고 정작 자기 실속을 놓칩니다.',
+    advice: '베푸는 것의 절반은 반드시 나에게 돌아오는 구조(보수·지분·명예)로 설계하세요. 공짜 헌신은 이 별을 소모시킵니다.',
+    life: ['이른 나이부터 눈에 띄는 자리에 서고, 그만큼 시기와 구설도 함께 옵니다.',
+      '중년에 공적인 성취가 정점을 찍되, 건강과 가정을 소홀히 하면 절반의 성공에 그칩니다.',
+      '후반에는 비추던 빛을 거두어 자신을 돌보는 법을 배워야 온전한 결실이 됩니다.'],
+    spouse: '활동적이고 바깥일이 많은 배우자입니다. 가정보다 사회 역할이 앞설 때가 있어, 함께 뛰는 동반자형 관계가 맞습니다.',
+    spousePath: '공적 활동·직장·봉사 모임처럼 밝은 무대에서 만나는 인연이 많습니다.',
+    loveNeed: '함께 성장하는 동반자 관계',
+    loveFriction: '집보다 바깥이 앞서는 시간 배분'
+  },
+  '무곡': {
+    essence: '숫자와 결단으로 승부하는 재성(財星)',
+    self: '군더더기 없는 실행형입니다. 결정이 빠르고 뒤돌아보지 않지만, 미뤄 둔 감정이 한꺼번에 몰려올 때가 있습니다.',
+    people: '말보다 행동으로 증명하는 스타일이라, 표현을 기대하는 상대에게는 오해를 삽니다. 짧아도 좋으니 마음을 말로 옮기는 연습이 필요합니다.',
+    money: '14주성 중 손꼽히는 재성입니다. 벌어들이는 힘도, 지키는 힘도 강합니다. 다만 돈 문제로 사람과 각을 세우면 더 큰 것을 잃습니다.',
+    work: '금융·제조·기술처럼 결과가 숫자로 보이는 분야에서 강합니다. 결단이 필요한 순간 당신이 나서면 조직이 움직입니다.',
+    shadow: '정서 표현이 짧아 관계가 건조해지고, 손익으로만 판단해 사람을 놓칩니다.',
+    advice: '돈이 되는 일에는 과감하되, 사람에게는 계산기를 내려놓으세요. 일주일에 한 번은 성과와 무관한 안부를 전하세요.',
+    life: ['젊어서부터 제 손으로 벌어 서는 자수성가형 곡선입니다. 남에게 기대지 않는 힘이 초년의 재산입니다.',
+      '중년에 자산과 결단력이 맞물리며 재물의 축이 완성됩니다.',
+      '후반의 과제는 돈이 아니라 정 — 쌓은 것을 나누는 연습이 노년의 외로움을 막아줍니다.'],
+    spouse: '말수는 적어도 책임감이 강한 배우자입니다. 애정을 말 대신 행동과 부양으로 증명합니다.',
+    spousePath: '일터·거래처처럼 실무 현장에서 신뢰가 쌓여 시작되는 인연이 많습니다.',
+    loveNeed: '신뢰와 실질적 안정',
+    loveFriction: '무뚝뚝함이 낳는 오해'
+  },
+  '천동': {
+    essence: '복을 타고나 유연하게 흘러가는 복덕의 별',
+    self: '낙천과 유연함이 기본값입니다. 위기에도 잘 웃지만, 그 미소 뒤로 결정을 미루는 습관이 숨어 있습니다.',
+    people: '누구와도 잘 지내는 무던함이 큰 자산입니다. 다만 싫은 소리를 못 해 속으로 손해를 참는 일이 잦습니다.',
+    money: '큰 욕심 없이도 필요한 만큼은 들어오는 복이 있습니다. 대신 목돈은 자동이체·강제 저축처럼 시스템으로 모아야 합니다.',
+    work: '분위기를 부드럽게 만드는 조율자입니다. 서비스·상담·복지 분야에 강하고, 극한 경쟁 구조에서는 소모가 큽니다.',
+    shadow: '안락함에 안주해 결정적 순간에 미루고 피합니다.',
+    advice: '편안함이 위험 신호일 수 있습니다. 1년에 하나는 일부러 어려운 목표를 걸어 근육을 유지하세요.',
+    life: ['유년과 청년기는 큰 풍파 없이 흘러가지만, 그래서 절실함이 늦게 옵니다.',
+      '중년의 어느 지점에서 스스로 한계를 걸고 도전할 때 인생의 밀도가 달라집니다.',
+      '후반에는 타고난 복덕이 다시 살아나, 주변과 함께 누리는 안온한 결말을 맺습니다.'],
+    spouse: '순하고 다정한, 함께 있으면 쉬어지는 배우자입니다. 대신 추진력은 당신이 보태야 할 수 있습니다.',
+    spousePath: '동네·취미·지인 소개처럼 일상 동선에서 자연스럽게 스며드는 인연이 많습니다.',
+    loveNeed: '편안함과 정서적 안전',
+    loveFriction: '결정 미루기'
+  },
+  '염정': {
+    essence: '열정과 통제가 공존하는 이중성의 별',
+    self: '차가운 머리와 뜨거운 피가 한 몸에 삽니다. 평소엔 전략가, 몰입하면 승부사가 됩니다.',
+    people: '애정과 증오의 폭이 큰 만큼 관계의 밀도도 높습니다. 좋아하는 사람에게 전부를 걸기 전에, 상대의 속도를 확인하세요.',
+    money: '돈의 흐름을 읽는 눈이 좋지만 승부성 지출(투기·베팅)에 문이 열려 있습니다. 잃어도 되는 한도를 미리 정하세요.',
+    work: '조직 내 역학을 읽고 판을 설계하는 능력이 뛰어납니다. 권한과 책임이 분명한 자리에서 가장 빛납니다.',
+    shadow: '감정이 극단으로 흐르면 관계와 일을 한 번에 태웁니다.',
+    advice: '몰입할 대상을 일에 두면 대성하고, 감정에 두면 소모됩니다. 화가 나는 날의 결정은 다음 날로 미루세요.',
+    life: ['청년기는 욕망과 규범 사이의 줄다리기로 진폭이 큽니다. 그 긴장이 곧 성장통입니다.',
+      '몰입할 무대를 찾은 중년에 승부사의 기질이 성취로 바뀝니다.',
+      '후반에는 통제하려는 힘을 내려놓을수록 관계와 명예가 함께 부드러워집니다.'],
+    spouse: '매력이 강하고 애증이 분명한 배우자입니다. 관계의 온도차가 크므로, 규칙을 함께 정하면 오래갑니다.',
+    spousePath: '일터의 긴장감 속에서, 혹은 강렬한 첫인상으로 시작되는 인연이 많습니다.',
+    loveNeed: '강한 유대와 분명한 애정',
+    loveFriction: '질투와 감정 기복'
+  },
+  '천부': {
+    essence: '쌓고 지키는 창고(府)의 별',
+    self: '웬만한 일에는 흔들리지 않는 묵직함이 있습니다. 안정을 만들어내는 능력이 곧 당신의 카리스마입니다.',
+    people: '품이 넓어 사람들이 기대옵니다. 다만 다 받아주다 보면 정작 자기 요구를 말할 자리가 없어집니다.',
+    money: '모으고 지키는 데 타고났습니다. 잃지 않는 투자가 체질이고, 큰 레버리지는 오히려 운을 거스릅니다.',
+    work: '재무·관리·운영처럼 살림을 맡는 자리에서 신뢰가 쌓입니다. 조직의 금고지기이자 최후의 보루가 되는 사람입니다.',
+    shadow: '지키는 데 익숙해 기회 앞에서 보수적으로 굳습니다.',
+    advice: '자산의 10%는 새로운 시도에 배정하세요. 창고는 채우는 것만큼 순환시켜야 커집니다.',
+    life: ['일찍부터 듬직하다는 평을 들으며 안정적으로 쌓아 올라갑니다.',
+      '중년에는 조직과 집안의 기둥이 되어, 지키는 역할의 정점에 섭니다.',
+      '후반의 관건은 굳어지지 않는 것 — 새로운 것을 하나씩 들이는 유연함이 곳간을 더 키웁니다.'],
+    spouse: '포용력 있고 생활이 안정된 배우자입니다. 크게 흔들리지 않는 대신 표현이 담백합니다.',
+    spousePath: '가족 소개·오랜 지인처럼 안정된 환경을 통해 이어지는 인연이 많습니다.',
+    loveNeed: '안정된 생활 기반',
+    loveFriction: '변화 회피'
+  },
+  '태음': {
+    essence: '달빛처럼 스미는 직관과 심미의 별',
+    self: '겉은 잔잔하고 속은 깊습니다. 혼자만의 시간에서 회복하고, 밤이 될수록 감각이 살아납니다.',
+    people: '상대의 기분을 먼저 읽고 맞춰주는 섬세함이 있습니다. 그만큼 무신경한 상대에게 상처도 깊게 받습니다.',
+    money: '부동산·적립식 투자처럼 조용히 불어나는 자산과 인연이 깊습니다. 화려한 단타보다 시간을 이기는 투자가 맞습니다.',
+    work: '기획·디자인·재무·연구처럼 정교함이 필요한 일에 강합니다. 시끄러운 최전선보다 뒤에서 완성도를 만드는 자리가 맞습니다.',
+    shadow: '속마음을 쌓아두다 한 번에 서늘하게 돌아섭니다.',
+    advice: '서운함은 3일 안에 말로 꺼내세요. 담아둔 감정은 이 별에서 이자가 붙습니다.',
+    life: ['젊은 날에는 속내를 알 수 없다는 말을 듣지만, 그 깊이가 후일의 자산이 됩니다.',
+      '중년에 감각과 재정 운용이 무르익어, 조용히 부를 쌓는 시기가 옵니다.',
+      '후반에는 내면의 풍요가 바깥의 성취를 넘어서며, 정서적으로 가장 충만한 장을 맞습니다.'],
+    spouse: '감성이 깊고 배려가 세밀한 배우자입니다. 표현은 잔잔하지만 마음의 결은 오래갑니다.',
+    spousePath: '조용한 자리, 정서적 교감이 있는 공간에서 천천히 깊어지는 인연이 많습니다.',
+    loveNeed: '세심한 배려와 정서 교감',
+    loveFriction: '말하지 않은 서운함'
+  },
+  '탐랑': {
+    essence: '욕망과 매력, 다재다능의 별',
+    self: '호기심과 매력이 무기입니다. 어디서든 금세 어울리지만, 진짜 원하는 것이 무엇인지는 스스로도 헷갈릴 때가 있습니다.',
+    people: '인맥의 폭이 넓고 분위기를 띄우는 재주가 있습니다. 다만 깊이보다 폭으로만 흐르면 정작 기댈 사람이 안 보입니다.',
+    money: '벌 기회도 쓸 유혹도 많은 별입니다. 수입의 일부를 손대지 못하는 계좌로 분리하는 것이 필수입니다.',
+    work: '영업·엔터테인먼트·트렌드 산업처럼 사람과 욕망을 다루는 분야에서 독보적입니다. 지루한 반복 업무는 최악의 조합입니다.',
+    shadow: '관심사가 넓어 마무리가 약하고, 유혹에 문이 넓습니다.',
+    advice: '시작한 것 하나를 끝내기 전에 새 판을 벌이지 마세요. 끝맺음이 이 별의 격을 결정합니다.',
+    life: ['청년기는 다양한 경험과 인연으로 화려하지만 산만합니다. 그 방황도 재료가 됩니다.',
+      '흩어진 재주가 하나의 전문성으로 수렴되는 중년에 큰 기회가 옵니다.',
+      '후반에는 욕망의 방향이 사람과 취향으로 옮겨가며, 삶을 즐길 줄 아는 어른으로 완성됩니다.'],
+    spouse: '매력적이고 인기가 많은 배우자입니다. 함께 즐길 줄 알지만, 경계선 관리가 관계의 핵심 과제입니다.',
+    spousePath: '모임·취미·화려한 자리처럼 사람이 모이는 곳에서 만나는 인연이 많습니다.',
+    loveNeed: '즐거움과 신선한 자극',
+    loveFriction: '외부 유혹과 경계선'
+  },
+  '거문': {
+    essence: '어둠 속을 꿰뚫는 언변과 통찰의 별',
+    self: '그냥 넘어가지 못하는 사람입니다. 이상한 것은 이상하다고 말해야 직성이 풀리고, 그 통찰이 곧 밥벌이가 됩니다.',
+    people: '말로 가까워지고 말로 멀어집니다. 옳은 말도 아프게 하면 빚이 됩니다. 지적보다 질문으로 바꿔 말하세요.',
+    money: '말과 지식이 돈이 되는 구조(강의·자문·콘텐츠)를 만들면 수입이 안정됩니다. 구설에 얽힌 돈거래는 반드시 피하세요.',
+    work: '분석·법률·교육·방송처럼 언어와 논리로 승부하는 분야가 천직입니다. 어물쩍 넘어가는 조직 문화에서는 답답함이 큽니다.',
+    shadow: '날카로운 말이 구설과 오해를 부릅니다.',
+    advice: '비판은 대안과 함께, 지적은 1:1로 하세요. 같은 말도 순서를 바꾸면 이 별의 흉이 길로 바뀝니다.',
+    life: ['젊은 시절의 구설과 오해가 오히려 말의 힘을 벼립니다.',
+      '중년에 전문성과 언변이 만나 이름값이 오르는 정점이 옵니다.',
+      '후반에는 날 선 말이 지혜로운 말로 바뀔 때, 사람들이 조언을 구하러 찾아오는 어른이 됩니다.'],
+    spouse: '논리적이고 할 말은 하는 배우자입니다. 대화가 깊은 대신, 말다툼도 정면으로 붙는 편입니다.',
+    spousePath: '토론·업무 협상처럼 말이 오가는 자리에서 시작되는 인연이 많습니다.',
+    loveNeed: '솔직하고 깊은 대화',
+    loveFriction: '말의 날카로움'
+  },
+  '천상': {
+    essence: '옥새를 받드는 조화와 보좌의 별',
+    self: '균형 감각이 몸에 밴 사람입니다. 어느 자리에서든 품위를 지키지만, 정작 자기 욕구는 뒤로 미룹니다.',
+    people: '중재자이자 조언자로 신뢰받습니다. 다만 모두에게 좋은 사람이 되려다 정작 자기 편을 못 만들 수 있습니다.',
+    money: '수입은 안정 지향, 지출은 체면 지향입니다. 관계 유지 비용이 커지지 않게 예산선을 그어 두세요.',
+    work: '행정·법무·보좌·품질 관리처럼 정확함과 신뢰가 생명인 자리에서 오래갑니다. 2인자 자리에서 1인자를 만드는 재능이 있습니다.',
+    shadow: '남의 기준에 맞추다 자기 목소리를 잃습니다.',
+    advice: '회의에서 첫 번째로 의견을 말하는 연습을 하세요. 당신의 균형 감각은 앞에 설 때 더 값집니다.',
+    life: ['일찍부터 신뢰를 얻어 꾸준히 올라가는 계단형 곡선입니다.',
+      '중년에는 핵심 보좌·중재 역할로 없어서는 안 될 사람이 됩니다.',
+      '후반의 과제는 자기 이름의 무대 — 남을 빛내던 재능으로 마지막에는 자신의 결과물을 남기세요.'],
+    spouse: '예의 바르고 균형 잡힌 배우자입니다. 극단이 없어 편안하지만, 속마음은 먼저 열어줘야 깊어집니다.',
+    spousePath: '주변의 추천과 소개, 신뢰 네트워크로 이어지는 인연이 많습니다.',
+    loveNeed: '상호 존중과 예의',
+    loveFriction: '속마음 표현 부족'
+  },
+  '천량': {
+    essence: '어른의 그늘, 원칙과 구원의 별',
+    self: '나이보다 어른스럽다는 말을 듣고 자랐을 겁니다. 위기에서 오히려 침착해지는 해결사 기질이 있습니다.',
+    people: '사람들이 어려울 때 당신을 찾습니다. 돕는 것은 복이지만, 남의 짐을 대신 지는 것과 함께 드는 것은 다릅니다.',
+    money: '큰 부보다 잃지 않는 안정과 보험적 자산 관리가 체질입니다. 남의 빚보증과 대납은 이 별의 최대 금기입니다.',
+    work: '의료·교육·감사·법조·공공 영역처럼 사람을 지키는 일에서 명예가 쌓입니다. 원칙을 지킬 수 있는 조직을 고르세요.',
+    shadow: '훈계가 길어지고, 남의 위험을 스스로 끌어들여 해결하려 합니다.',
+    advice: '남의 불을 꺼주기 전에 내 집 소화기를 먼저 채우세요. 도움에도 순서가 필요합니다.',
+    life: ['어릴 때부터 애어른 소리를 들으며 책임을 일찍 배웁니다.',
+      '중년에는 위기 해결의 공로가 쌓여 명망이 높아집니다.',
+      '후반은 이 별의 황금기 — 지켜온 원칙이 존경으로 돌아오고, 베푼 그늘이 유산이 됩니다.'],
+    spouse: '연상이거나 정신적으로 어른스러운 배우자입니다. 든든한 보호자형이지만, 잔소리도 세트로 옵니다.',
+    spousePath: '나이 차가 있는 만남, 멘토 관계, 어려울 때 도움을 준 인연으로 발전하는 경우가 많습니다.',
+    loveNeed: '신뢰와 정신적 의지',
+    loveFriction: '가르치려는 말투'
+  },
+  '칠살': {
+    essence: '홀로 적진을 뚫는 장군의 별',
+    self: '정면 돌파형입니다. 돌아가는 길을 견디지 못하고, 위기 앞에서 오히려 눈이 맑아집니다.',
+    people: '겉은 서늘해도 제 사람에게는 의리로 다합니다. 다만 통보식 결정이 가까운 사람에게는 상처가 됩니다.',
+    money: '벌 때 크게 벌고 잃을 때도 크게 잃는 진폭형입니다. 승부 자금과 생활 자금의 계좌를 반드시 분리하세요.',
+    work: '개척·창업·구조조정·현장 지휘처럼 깃발을 꽂는 일이 맞습니다. 관리형 안정 조직에 오래 있으면 병이 납니다.',
+    shadow: '독단으로 치달아 주변과 각을 세웁니다.',
+    advice: '큰 승부 전에 단 한 사람에게라도 계획을 말하고 반론을 들어보세요. 그 5분이 실패 확률을 절반으로 줄입니다.',
+    life: ['청년기는 부딪히고 깨지며 배우는 실전의 연속입니다.',
+      '결정적 승부처를 통과한 중년에 단번에 계단을 뛰어오릅니다.',
+      '후반에는 창끝을 내려놓고 후진을 세우는 장수가 될 때, 성취가 흩어지지 않고 남습니다.'],
+    spouse: '독립적이고 화끈한 배우자입니다. 서로의 영역을 인정하는 순간 최강의 전우가 됩니다.',
+    spousePath: '빠르게 불붙는 인연, 위기나 도전 상황에서 만나는 경우가 많습니다.',
+    loveNeed: '독립성 존중',
+    loveFriction: '통보식 결정'
+  },
+  '파군': {
+    essence: '부수고 다시 세우는 변혁의 별',
+    self: '리셋 버튼을 두려워하지 않는 사람입니다. 남들이 끝이라 부르는 지점에서 당신의 시작이 열립니다.',
+    people: '관계도 낡으면 갈아엎고 싶어집니다. 소중한 인연일수록 부수기 전에, 고쳐 쓸 수 있는지 한 번만 더 살펴보세요.',
+    money: '들어오고 나가는 진폭이 큰 편입니다. 전환기 투자에는 강하지만, 안정기 재테크는 시스템이나 배우자에게 맡기는 편이 낫습니다.',
+    work: '신사업·구조 전환·재건처럼 판을 새로 짜는 일에서 탁월합니다. 유지·보수만 하는 자리는 재능 낭비입니다.',
+    shadow: '멀쩡한 것도 뒤집고 싶어져 소모가 큽니다.',
+    advice: '바꾸기 전에 "지킬 것 3가지"를 먼저 적으세요. 보존 목록이 있을 때 파군의 파괴력은 창조력이 됩니다.',
+    life: ['청년기의 파도가 유난히 높아, 몇 번의 갈아엎기가 인생 수업이 됩니다.',
+      '부수고 세운 경험이 자산이 되는 중년에 재기와 확장이 겹칩니다.',
+      '후반에는 바꾸는 힘을 지키는 힘으로 전환할 때, 비로소 물결이 잔잔한 풍요에 닿습니다.'],
+    spouse: '틀에 얽매이지 않는, 개성 강한 배우자입니다. 관계의 형태도 남들과 다를 수 있음을 받아들이면 자유로워집니다.',
+    spousePath: '이직·이사·큰 변화 같은 인생의 전환점에서 만나는 인연이 많습니다.',
+    loveNeed: '변화를 함께 즐길 자유',
+    loveFriction: '안정 욕구와의 충돌'
+  }
+};
+var ZW_PALACE_DEEP_FRAME = {
+  '명궁':   { q: '나는 어떤 사람이고, 인생의 기본 태도는 무엇인가', field: 'self',   label: '기질 발현' },
+  '형제궁': { q: '가장 가까운 사람들과 어떻게 협력하는가',          field: 'people', label: '관계 발현' },
+  '부부궁': { q: '배우자·파트너와 어떤 약속을 맺는가',              field: 'people', label: '관계 발현' },
+  '자녀궁': { q: '무엇을 낳고 기르는가 — 자녀·작품·후배',           field: 'people', label: '생산 발현' },
+  '재백궁': { q: '돈을 어떻게 벌고 어떻게 쓰는가',                  field: 'money',  label: '재물 발현' },
+  '질액궁': { q: '몸과 컨디션은 어떤 리듬으로 움직이는가',          field: 'self',   label: '컨디션 발현' },
+  '천이궁': { q: '바깥 무대에서 나는 어떻게 평가받는가',            field: 'work',   label: '대외 발현' },
+  '노복궁': { q: '동료·아랫사람 운은 어떻게 흐르는가',              field: 'people', label: '인맥 발현' },
+  '관록궁': { q: '커리어의 성취는 어떤 방식으로 오는가',            field: 'work',   label: '직업 발현' },
+  '전택궁': { q: '자산과 생활 기반은 어떻게 쌓이는가',              field: 'money',  label: '자산 발현' },
+  '복덕궁': { q: '내 마음은 무엇으로 채워지는가',                   field: 'self',   label: '내면 발현' },
+  '부모궁': { q: '윗사람·문서 인연은 어떻게 작동하는가',            field: 'people', label: '후원 발현' }
+};
+var ZW_BR_DEEP_PHRASE = {
+  '묘': '지금 배치에서 이 별은 가장 밝은 상태(묘)라, 장점이 그대로 실력이 됩니다.',
+  '득': '힘을 얻은 상태(득지)라 장점이 안정적으로 발현됩니다.',
+  '리': '이로운 자리(리)여서, 방향만 맞추면 충분히 힘을 냅니다.',
+  '평': '평탄한 상태(평)라 과신도 비관도 금물 — 꾸준함이 성패를 가릅니다.',
+  '함': '빛이 약해진 상태(함)여서 장점보다 그림자가 먼저 나오기 쉽습니다. 주의점을 먼저 읽으세요.'
+};
+var ZW_AUX_STAR_EFFECT = {
+  '천괴': '어려울 때 손을 내미는 윗사람·남성 귀인의 도움이 붙습니다',
+  '천월': '실질적 도움을 주는 여성 귀인·실무 조력이 붙습니다',
+  '좌보': '묵묵히 곁을 지키는 조력자가 힘을 보탭니다',
+  '우필': '융통성 있는 지원군이 우회로를 열어줍니다',
+  '문창': '문서·시험·글 재능이 빛을 더합니다',
+  '문곡': '말과 예술 감각이 매력을 더합니다',
+  '녹존': '꾸준히 쌓이는 재록(財祿)이 바닥을 받쳐줍니다',
+  '천마': '이동과 변화가 기회로 연결되는 역마의 활력이 붙습니다'
+};
+var ZW_BAD_STAR_EFFECT = {
+  '경양': '날카로운 칼끝 — 서두른 말과 결정이 상처를 냅니다. 한 템포 늦추세요',
+  '타라': '바퀴에 걸린 돌 — 일이 늘어지고 반복됩니다. 마감을 두 번 확인하세요',
+  '화성': '갑자기 붙는 불 — 돌발 변수와 욱하는 감정을 조심하세요',
+  '영성': '속에서 타는 불 — 겉은 조용해도 스트레스가 쌓입니다. 배출구를 만드세요',
+  '지공': '허공에 뜬 생각 — 이상은 높지만 현실 회수가 약해집니다. 계획에 숫자를 넣으세요',
+  '지겁': '빠져나가는 구멍 — 예상 밖 지출과 손실 경로를 점검하세요'
+};
+var ZW_SIHUA_DEEP_PHRASE = {
+  '화록': '재물과 인연의 문이 이 궁에서 열립니다. 여기서 생기는 기회는 사소해 보여도 실익으로 연결될 확률이 높으니, 들어오는 제안을 기록하고 회수 구조(보수·지분·재방문)로 이어 두세요.',
+  '화권': '주도권의 깃발이 이 궁에 꽂혔습니다. 이 영역에서는 눈치 보지 말고 먼저 기준을 제시하세요. 다만 권한이 커지는 만큼 견제도 따라오니, 공을 나누는 말 한마디를 세트로 챙기세요.',
+  '화과': '이름과 평판이 쌓이는 자리입니다. 이 영역의 결과물은 반드시 기록·문서·공개 형태로 남기세요. 시험·자격·발표처럼 평가받는 일에 유리한 바람이 붑니다.',
+  '화기': '얽힘과 정산의 숙제가 걸린 자리입니다. 이 영역에서는 말·계약·돈 문제를 두 번 확인하고, 애매한 약속은 반드시 문장으로 남기세요. 잘 관리하면 오히려 가장 단단해지는 궁이 됩니다.'
+};
+var ZW_DEEP_GAN_LIST = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var ZW_DEEP_GAN_KO = { '甲':'갑','乙':'을','丙':'병','丁':'정','戊':'무','己':'기','庚':'경','辛':'신','壬':'임','癸':'계' };
+var ZW_DEEP_ZHI_LIST = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+var ZW_DEEP_ZHI_KO = { '子':'자','丑':'축','寅':'인','卯':'묘','辰':'진','巳':'사','午':'오','未':'미','申':'신','酉':'유','戌':'술','亥':'해' };
+var ZW_DEEP_GAN_SIHUA = {
+  '甲': { '화록':'염정', '화권':'파군', '화과':'무곡', '화기':'태양' },
+  '乙': { '화록':'천기', '화권':'천량', '화과':'자미', '화기':'태음' },
+  '丙': { '화록':'천동', '화권':'천기', '화과':'문창', '화기':'염정' },
+  '丁': { '화록':'태음', '화권':'천동', '화과':'천기', '화기':'거문' },
+  '戊': { '화록':'탐랑', '화권':'태음', '화과':'우필', '화기':'천기' },
+  '己': { '화록':'무곡', '화권':'탐랑', '화과':'천량', '화기':'문곡' },
+  '庚': { '화록':'태양', '화권':'무곡', '화과':'태음', '화기':'천동' },
+  '辛': { '화록':'거문', '화권':'태양', '화과':'문곡', '화기':'문창' },
+  '壬': { '화록':'천량', '화권':'자미', '화과':'좌보', '화기':'무곡' },
+  '癸': { '화록':'파군', '화권':'거문', '화과':'태음', '화기':'탐랑' }
+};
+function zwDeepEsc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function zwDeepPalaceEntry(pd, pName) {
+  var rows = (pd && Array.isArray(pd.palaceStarData)) ? pd.palaceStarData : [];
+  for (var i = 0; i < rows.length; i += 1) {
+    if (rows[i] && rows[i].palace === pName) return rows[i];
+  }
+  return null;
+}
+function zwDeepPalaceBranchIdx(pd, pName) {
+  var zhi = pd && pd.palaces ? pd.palaces[pName] : '';
+  var idx = ZW_DEEP_ZHI_LIST.indexOf(zhi);
+  if (idx >= 0) return idx;
+  return pd && pd.palacesByIndex ? pd.palacesByIndex.indexOf(pName) : -1;
+}
+function zwDeepMainStars(entry) {
+  return (entry && Array.isArray(entry.stars)) ? entry.stars.filter(function(s){ return s && s.name && ZW_STAR_CORE_PROFILE[s.name]; }) : [];
+}
+function zwDeepStarNames(entry) {
+  var names = [];
+  if (!entry) return names;
+  ['stars','auxStars','badStars'].forEach(function(k){
+    (entry[k] || []).forEach(function(s){ if (s && s.name) names.push(s.name); });
+  });
+  return names;
+}
+function zwDeepBrTag(strength) {
+  var c = { '묘':'#4ade80','득':'#60a5fa','리':'#f59e0b','평':'#94a3b8','함':'#f87171' };
+  var b = c[strength] ? strength : '평';
+  return '<span style="color:'+c[b]+';border:1px solid '+c[b]+'44;border-radius:999px;padding:1px 7px;font-size:0.68rem;font-weight:800;">'+b+'</span>';
+}
+function zwDeepCardShell(icon, title, sub, bodyHtml, accent, open) {
+  var color = accent || '#c4b5fd';
+  return '<details '+(open ? 'open ' : '')+'style="background:rgba(15,23,42,0.5);border:1px solid '+color+'33;border-radius:11px;margin-bottom:9px;overflow:hidden;">'
+    +'<summary style="list-style:none;cursor:pointer;padding:11px 13px;">'
+      +'<div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">'
+        +'<span style="color:#f8fafc;font-size:0.9rem;font-weight:900;">'+icon+' '+zwDeepEsc(title)+'</span>'
+        +'<span style="color:#94a3b8;font-size:0.72rem;">'+sub+'</span>'
+      +'</div>'
+    +'</summary>'
+    +'<div style="padding:2px 13px 12px;color:#e2e8f0;font-size:0.84rem;line-height:1.78;">'+bodyHtml+'</div>'
+  +'</details>';
+}
+function zwDeepSectionHead(title, desc, accent) {
+  var color = accent || '#c4b5fd';
+  return '<div style="margin:14px 0 10px;">'
+    +'<div style="color:'+color+';font-size:0.95rem;font-weight:900;">'+zwDeepEsc(title)+'</div>'
+    +'<div style="color:#94a3b8;font-size:0.74rem;line-height:1.6;margin-top:3px;">'+zwDeepEsc(desc)+'</div>'
+  +'</div>';
+}
+
+/* ── 12궁 정밀 해설 (ziwei_twelve_palaces) ── */
+function buildZwTwelvePalaceDeepHtml(pd) {
+  try {
+    if (!pd || !Array.isArray(pd.palaceStarData) || !pd.palaceStarData.length) return '';
+    var cards = '';
+    for (var pi = 0; pi < ZW_PALACE_ORDER.length; pi += 1) {
+      var pName = ZW_PALACE_ORDER[pi];
+      var frame = ZW_PALACE_DEEP_FRAME[pName];
+      var entry = zwDeepPalaceEntry(pd, pName);
+      if (!frame || !entry) continue;
+      var mains = zwDeepMainStars(entry);
+      var branchIdx = zwDeepPalaceBranchIdx(pd, pName);
+      var body = '';
+      body += '<div style="color:#c4b5fd;font-size:0.78rem;margin-bottom:8px;">이 궁이 답하는 질문 — <b style="color:#e9d5ff;">'+zwDeepEsc(frame.q)+'</b></div>';
+      body += '<div style="color:#cbd5e1;font-size:0.78rem;line-height:1.7;margin-bottom:10px;">'+zwDeepEsc(ZW_GUNG_BRIEF[pName] || '')+'</div>';
+      if (mains.length) {
+        mains.slice(0, 2).forEach(function(st){
+          var prof = ZW_STAR_CORE_PROFILE[st.name];
+          var brPhrase = ZW_BR_DEEP_PHRASE[st.strength] || ZW_BR_DEEP_PHRASE['평'];
+          body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(196,181,253,0.18);border-radius:10px;padding:10px 11px;margin-bottom:8px;">'
+            +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:5px;">'
+              +'<b style="color:#fde68a;font-size:0.88rem;">'+zwDeepEsc(st.name)+'</b>'
+              +zwDeepBrTag(st.strength)
+              +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성(대궁 차용)</span>' : '')
+              +'<span style="color:#a5b4fc;font-size:0.72rem;">'+zwDeepEsc(prof.essence)+'</span>'
+            +'</div>'
+            +'<div style="margin-bottom:4px;"><b style="color:#c4b5fd;">'+zwDeepEsc(frame.label)+':</b> '+zwDeepEsc(prof[frame.field])+'</div>'
+            +'<div style="color:#94a3b8;font-size:0.78rem;">'+zwDeepEsc(brPhrase)
+            +(st.borrowed ? ' 차성은 원성보다 한 단계 보수적으로 읽습니다.' : '')+'</div>'
+            +(st.strength === '함' || st.strength === '평'
+              ? '<div style="color:#fca5a5;font-size:0.78rem;margin-top:4px;"><b>그림자:</b> '+zwDeepEsc(prof.shadow)+'</div>'
+              : '')
+          +'</div>';
+        });
+      } else {
+        body += '<div style="background:rgba(2,6,23,0.38);border:1px solid rgba(148,163,184,0.2);border-radius:10px;padding:10px 11px;margin-bottom:8px;color:#cbd5e1;">'
+          +'이 궁은 <b style="color:#e2e8f0;">공궁(空宮)</b>입니다. 고정된 성향보다 환경과 상대에 따라 유연하게 반응하는 축이라, 기준을 스스로 세우는 것이 가장 중요한 개운법입니다. 판단할 때는 마주 보는 대궁의 별을 빌려(차성) 보수적으로 읽습니다.'
+        +'</div>';
+      }
+      var auxNames = (entry.auxStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_AUX_STAR_EFFECT[n]; });
+      var badNames = (entry.badStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_BAD_STAR_EFFECT[n]; });
+      if (auxNames.length) {
+        body += '<div style="margin-bottom:6px;"><b style="color:#93c5fd;">받쳐주는 별:</b> '
+          + auxNames.slice(0, 3).map(function(n){ return '<b>'+zwDeepEsc(n)+'</b> — '+zwDeepEsc(ZW_AUX_STAR_EFFECT[n]); }).join(' · ')
+        +'</div>';
+      }
+      if (badNames.length) {
+        body += '<div style="margin-bottom:6px;"><b style="color:#fca5a5;">긴장을 만드는 별:</b> '
+          + badNames.slice(0, 3).map(function(n){ return '<b>'+zwDeepEsc(n)+'</b> — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[n]); }).join(' · ')
+        +'</div>';
+      }
+      var sihuaHits = [];
+      ['stars','auxStars'].forEach(function(k){
+        (entry[k] || []).forEach(function(s){ if (s && s.sihua && ZW_SIHUA_DEEP_PHRASE[s.sihua]) sihuaHits.push(s); });
+      });
+      sihuaHits.slice(0, 2).forEach(function(s){
+        var col = ZW_SIHUA_COLOR[s.sihua] || '#c4b5fd';
+        body += '<div style="background:rgba(2,6,23,0.3);border-left:none;border:1px solid '+col+'33;border-radius:9px;padding:8px 10px;margin-bottom:6px;font-size:0.8rem;">'
+          +'<b style="color:'+col+';">'+zwDeepEsc(s.name)+' '+zwDeepEsc(s.sihua)+'</b> — '+zwDeepEsc(ZW_SIHUA_DEEP_PHRASE[s.sihua])
+        +'</div>';
+      });
+      if (branchIdx >= 0 && pd.palacesByIndex) {
+        var oppIdx = (branchIdx + 6) % 12, triA = (branchIdx + 4) % 12, triB = (branchIdx + 8) % 12;
+        var relNames = [oppIdx, triA, triB].map(function(idx){
+          var rp = pd.palacesByIndex[idx] || '';
+          var re = zwDeepPalaceEntry(pd, rp);
+          var rs = zwDeepMainStars(re);
+          return zwDeepEsc(rp) + (rs.length ? '(' + zwDeepEsc(rs.map(function(s){ return s.name; }).slice(0, 2).join('·')) + ')' : '(공궁)');
+        });
+        var relStarsAll = [oppIdx, triA, triB].reduce(function(acc, idx){
+          return acc.concat(zwDeepStarNames(zwDeepPalaceEntry(pd, pd.palacesByIndex[idx] || '')));
+        }, zwDeepStarNames(entry));
+        var relHasGi = ['stars','auxStars'].some(function(k){
+          return [entry].concat([oppIdx, triA, triB].map(function(idx){ return zwDeepPalaceEntry(pd, pd.palacesByIndex[idx] || ''); }))
+            .some(function(e){ return e && (e[k] || []).some(function(s){ return s && s.sihua === '화기'; }); });
+        });
+        var relGoodCnt = relStarsAll.filter(function(n){ return ZW_AUX_STAR_EFFECT[n]; }).length;
+        var relSummary = relHasGi
+          ? '흐름에 제동 장치가 하나 걸려 있어, 속도 조절이 필요한 구조입니다.'
+          : (relGoodCnt >= 2
+            ? '받쳐주는 손이 많은 안정 구조입니다. 협력을 끌어들일수록 결과가 커집니다.'
+            : '스스로 균형을 만들어야 하는 자율 구조입니다. 기준과 루틴이 곧 귀인입니다.');
+        body += '<div style="margin-bottom:6px;color:#cbd5e1;font-size:0.79rem;"><b style="color:#a5b4fc;">삼방사정:</b> 이 궁은 홀로 작동하지 않습니다. 정면의 '+relNames[0]+' 기류가 마주 들어오고, '+relNames[1]+' · '+relNames[2]+' 두 궁이 삼합으로 힘을 보탭니다. 네 궁을 겹쳐 읽으면 — '+zwDeepEsc(relSummary)+'</div>';
+      }
+      var adviceProf = mains.length ? ZW_STAR_CORE_PROFILE[mains[0].name] : null;
+      body += '<div style="background:linear-gradient(120deg,rgba(110,231,183,0.1),rgba(2,6,23,0.2));border:1px solid rgba(110,231,183,0.24);border-radius:9px;padding:8px 10px;color:#d1fae5;font-size:0.8rem;">'
+        +'<b>실전 조언:</b> '+zwDeepEsc(adviceProf ? adviceProf.advice : '이 궁의 결정은 혼자 정하지 말고, 신뢰하는 한 사람의 의견을 거쳐 확정하세요. 공궁 축은 검증 절차가 곧 힘입니다.')
+      +'</div>';
+      var chipStars = mains.length
+        ? mains.map(function(s){ return zwDeepEsc(s.name)+'('+zwDeepEsc(s.strength)+')'; }).join(' · ')
+        : '공궁';
+      cards += zwDeepCardShell(ZW_PALACE_ICON[pName] || '◆', zwDisplayPalaceName(pName), chipStars, body, pName === '명궁' ? '#fde68a' : '#c4b5fd', pName === '명궁');
+    }
+    if (!cards) return '';
+    return '<div data-cd-marker="ziwei-12palace-deep-v20260711" style="padding:12px 12px 6px;border-top:1px solid rgba(139,92,246,0.25);">'
+      + zwDeepSectionHead('12궁 정밀 해설 — 궁별 심층 리딩', '위 요약 지도의 근거를 궁마다 펼쳐 설명합니다. 각 카드는 주성의 본질과 밝기(묘·득·리·평·함), 보조성·흉성, 사화, 삼방사정을 겹쳐 읽은 결과입니다.', '#6ee7b7')
+      + cards
+      + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:8px 2px 6px;">읽는 순서 팁: 명궁 → 관록궁 → 재백궁 → 부부궁을 먼저 읽고, 나머지 궁은 지금 고민과 닿는 곳부터 여세요. 같은 별도 궁과 밝기에 따라 전혀 다르게 작동합니다.</div>'
+    +'</div>';
+  } catch (_deepErr) { return ''; }
+}
+
+/* ── 부부궁 심화 상담 (ziwei_love_deep) ── */
+function buildZwSpouseDeepHtml(pd) {
+  try {
+    var entry = zwDeepPalaceEntry(pd, '부부궁');
+    var mingEntry = zwDeepPalaceEntry(pd, '명궁');
+    if (!entry) return '';
+    var mains = zwDeepMainStars(entry);
+    var mingMains = zwDeepMainStars(mingEntry);
+    var badNames = (entry.badStars || []).map(function(s){ return s.name; }).filter(function(n){ return ZW_BAD_STAR_EFFECT[n]; });
+    var hasGi = ['stars','auxStars'].some(function(k){ return (entry[k] || []).some(function(s){ return s && s.sihua === '화기'; }); });
+    var risk = (hasGi || badNames.length >= 2) ? 'high' : (badNames.length === 1 ? 'mid' : 'low');
+    var html = '<div data-cd-marker="ziwei-spouse-deep-v20260711" style="margin-top:12px;">';
+    html += zwDeepSectionHead('전문가 심층 상담 — 배우자의 얼굴, 관계의 시간표', '부부궁의 별 배치와 대한 흐름을 근거로, 상담실에서 드리는 수준의 관계 해설을 이어갑니다.', '#f9a8d4');
+
+    var spouseBody = '';
+    if (mains.length) {
+      mains.slice(0, 2).forEach(function(st){
+        var prof = ZW_STAR_CORE_PROFILE[st.name];
+        spouseBody += '<div style="margin-bottom:8px;">'
+          +'<div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px;"><b style="color:#fecdd3;font-size:0.87rem;">'+zwDeepEsc(st.name)+'</b>'+zwDeepBrTag(st.strength)
+          +(st.borrowed ? '<span style="color:#facc15;font-size:0.68rem;font-weight:800;">차성 — 대궁(관록궁)에서 빌려 읽음</span>' : '')+'</div>'
+          +'<div style="margin-bottom:3px;"><b style="color:#f9a8d4;">배우자의 결:</b> '+zwDeepEsc(prof.spouse)+'</div>'
+          +'<div style="color:#cbd5e1;font-size:0.8rem;"><b style="color:#fbcfe8;">만나는 길:</b> '+zwDeepEsc(prof.spousePath)+'</div>'
+        +'</div>';
+      });
+    } else {
+      spouseBody += '<div style="color:#cbd5e1;">부부궁이 공궁이라 배우자상이 하나로 고정되어 있지 않습니다. 이는 나쁜 신호가 아니라, 만나는 시기와 환경에 따라 인연의 얼굴이 크게 달라진다는 뜻입니다. 그래서 "어떤 사람을 고르느냐"보다 "어느 시기에, 어떤 상태의 나로 만나느냐"가 훨씬 중요합니다. 아래 시기 상담을 먼저 읽으세요.</div>';
+    }
+    html += zwDeepCardShell('💞', '배우자상 정밀 리딩', mains.length ? mains.map(function(s){ return zwDeepEsc(s.name); }).join('·') : '공궁 — 시기 중심 해석', spouseBody, '#f9a8d4', true);
+
+    if (mingMains.length && mains.length) {
+      var a = ZW_STAR_CORE_PROFILE[mingMains[0].name];
+      var b = ZW_STAR_CORE_PROFILE[mains[0].name];
+      var chemBody = '<div style="margin-bottom:5px;">나(명궁 <b style="color:#fde68a;">'+zwDeepEsc(mingMains[0].name)+'</b>)의 관계 언어는 <b style="color:#fef3c7;">"'+zwDeepEsc(a.loveNeed)+'"</b>이고, 배우자 자리(부부궁 <b style="color:#fecdd3;">'+zwDeepEsc(mains[0].name)+'</b>)의 약속 조건은 <b style="color:#ffe4e6;">"'+zwDeepEsc(b.loveNeed)+'"</b>입니다.</div>'
+        +'<div style="margin-bottom:5px;">이 두 언어가 서로 번역되는 동안 관계는 깊어지고, 번역을 멈추는 순간 각자 외로워집니다. 갈등의 불씨는 주로 <b style="color:#fda4af;">"'+zwDeepEsc(b.loveFriction)+'"</b>에서 시작되고, 나의 <b style="color:#fda4af;">"'+zwDeepEsc(a.loveFriction)+'"</b> 반응이 그 불을 키웁니다.</div>'
+        +'<div style="color:#d1fae5;background:rgba(110,231,183,0.08);border:1px solid rgba(110,231,183,0.22);border-radius:8px;padding:7px 9px;font-size:0.8rem;"><b>처방:</b> 싸움이 시작되면 누가 옳은지 정하지 말고, 지금 상대가 "'+zwDeepEsc(b.loveNeed)+'"의 결핍을 말하고 있는 건 아닌지 먼저 확인하세요. 결핍을 짚어주는 한 문장이 논쟁 열 마디를 이깁니다.</div>';
+      html += zwDeepCardShell('⚗️', '명궁 × 부부궁 케미', zwDeepEsc(mingMains[0].name)+' × '+zwDeepEsc(mains[0].name), chemBody, '#c084fc', false);
+    }
+
+    var stageMeet = mains.length
+      ? '이 인연은 '+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].spousePath)+' 시작 단계에서는 서로의 장점만 보이므로, 오히려 상대의 "'+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].loveFriction)+'" 신호를 한 번쯤 담담하게 관찰해 두세요. 콩깍지 시기의 메모가 훗날의 나침반이 됩니다.'
+      : '공궁 배치는 시작이 조용한 편입니다. 첫인상보다 세 번째 만남의 편안함을 기준으로 판단하세요.';
+    var stageConflict = risk === 'high'
+      ? '이 명반의 갈등기는 짧고 굵게 오는 유형입니다. '+(hasGi ? '부부궁에 화기(忌)가 걸려 있어 말과 정산(돈·집안일·시간) 문제가 얽히기 쉽습니다. ' : '')+(badNames.length ? '특히 '+zwDeepEsc(badNames.join('·'))+'의 긴장이 감정 폭발의 방아쇠가 됩니다. ' : '')+'규칙 하나만 지키세요 — 감정이 올라온 날은 결론을 내리지 않는다. 다음 날 같은 주제를 다시 꺼내면 대화의 절반은 이미 풀려 있습니다.'
+      : (risk === 'mid'
+        ? '갈등은 대체로 한 가지 패턴('+zwDeepEsc(badNames[0] || '')+' — '+zwDeepEsc(ZW_BAD_STAR_EFFECT[badNames[0]] || '작은 마찰')+')으로 반복됩니다. 패턴을 상대와 공유하는 것 자체가 절반의 해결입니다.'
+        : '큰 흉성 압박이 없는 배치라, 갈등기는 극적인 사건보다 "권태와 무심함"으로 옵니다. 문제가 없다는 것이 곧 관리가 필요 없다는 뜻은 아닙니다. 계절마다 한 번, 관계의 안부를 묻는 대화를 일부러 만드세요.');
+    var stageSettle = mains.length
+      ? '정착기의 핵심은 "'+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].loveNeed)+'"의 꾸준한 공급입니다. 이벤트보다 생활 속 반복(말투·역할 분담·기념 방식)으로 설계하세요. '+zwDeepEsc(ZW_STAR_CORE_PROFILE[mains[0].name].spouse)
+      : '정착기에는 두 사람만의 규칙 문서(돈·집안일·부모님·휴식)를 만들면 공궁의 유연함이 그대로 강점이 됩니다.';
+    var scenarioBody = '<div style="display:grid;gap:7px;">'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fbcfe8;">1단계 · 만남기</b><br>'+stageMeet+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#fda4af;">2단계 · 갈등기</b><br>'+stageConflict+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:9px;padding:8px 10px;"><b style="color:#f9a8d4;">3단계 · 정착기</b><br>'+stageSettle+'</div>'
+    +'</div>';
+    html += zwDeepCardShell('🗺️', '연애 → 결혼 전개 시나리오', risk === 'high' ? '집중 관리형' : (risk === 'mid' ? '패턴 관리형' : '온도 유지형'), scenarioBody, '#fda4af', false);
+
+    var daList = Array.isArray(pd.daHanList) ? pd.daHanList : [];
+    var birthYear = 0;
+    try { birthYear = Number((window._ziweiBirth || {}).year) || 0; } catch (_by) {}
+    var nowYear = new Date().getFullYear();
+    var curAge = birthYear > 0 ? (nowYear - birthYear + 1) : 0;
+    var timingRows = '';
+    daList.forEach(function(dh){
+      if (!dh || (dh.palaceName !== '부부궁' && dh.palaceName !== '관록궁')) return;
+      var isSpouse = dh.palaceName === '부부궁';
+      var isNow = curAge > 0 && curAge >= dh.startAge && curAge <= dh.endAge;
+      timingRows += '<div style="display:flex;gap:9px;align-items:flex-start;background:rgba(2,6,23,0.3);border:1px solid '+(isNow ? 'rgba(253,224,71,0.5)' : 'rgba(244,114,182,0.18)')+';border-radius:9px;padding:8px 10px;margin-bottom:6px;">'
+        +'<b style="color:'+(isNow ? '#fde047' : '#f9a8d4')+';white-space:nowrap;font-size:0.82rem;">'+dh.startAge+'~'+dh.endAge+'세'+(isNow ? ' · 지금' : '')+'</b>'
+        +'<span style="font-size:0.8rem;color:#e2e8f0;">'
+        +(isSpouse
+          ? '대한이 <b>부부궁</b>을 지나는 10년 — 관계가 인생의 주제로 올라옵니다. 만남·결혼·관계 재정비 등 부부궁의 숙제가 실제 사건으로 나타나기 쉬운 구간이라, 공식화(결혼·동거·재약속)를 진지하게 검토하기 좋은 시기입니다.'
+          : '대한이 <b>관록궁</b>(부부궁의 대궁)을 지나는 10년 — 일과 관계가 정면으로 마주 봅니다. 커리어의 변화가 관계의 조건을 바꾸는 시기이니, 큰 결정(이직·개업)은 배우자와의 합의를 먼저 만드세요.')
+        +'</span>'
+      +'</div>';
+    });
+    if (timingRows) {
+      html += zwDeepCardShell('⏳', '공식화 시기 상담', curAge > 0 ? '현재 ' + curAge + '세 기준' : '대한 기준', '<div>'+timingRows+'<div style="color:#94a3b8;font-size:0.72rem;">대한(10년 운) 기준의 큰 흐름입니다. 특정 연도의 판단은 아래 연간 흐름 장과 겹쳐 읽으세요.</div></div>', '#fbcfe8', false);
+    }
+
+    var script1, script2, script3;
+    if (badNames.indexOf('경양') >= 0 || badNames.indexOf('타라') >= 0) {
+      script1 = '"방금 그 말은 나한테 좀 아프게 닿았어. 공격하려던 게 아니라는 건 알아."';
+      script2 = '"우리 이 얘기, 지금 결론 내지 말고 내일 저녁에 다시 하자. 도망가는 게 아니라 잘 매듭짓고 싶어서야."';
+      script3 = '"고마웠던 걸 말 안 하고 지나갔네. 지난주에 ○○해준 거, 나 진짜 좋았어."';
+    } else if (badNames.indexOf('화성') >= 0 || badNames.indexOf('영성') >= 0) {
+      script1 = '"나 지금 화가 올라와서 말이 세질 것 같아. 20분만 걷고 와서 다시 얘기할게."';
+      script2 = '"네가 갑자기 그렇게 하면 나는 놀라. 미리 한마디만 해주면 나는 다 맞출 수 있어."';
+      script3 = '"오늘은 아무 문제 없이 그냥 좋다. 이런 날이 있다는 걸 말해두고 싶었어."';
+    } else if (badNames.indexOf('지공') >= 0 || badNames.indexOf('지겁') >= 0) {
+      script1 = '"돈 얘기를 미루면 우리 둘 다 불안해지더라. 이번 주말에 30분만 가계 회의하자."';
+      script2 = '"현실이 빠듯해도 네 탓이 아니야. 우리가 구조를 같이 고치면 되는 문제야."';
+      script3 = '"막연히 걱정하지 말고, 딱 하나만 정하자 — 이번 달에 우리가 지킬 숫자 하나."';
+    } else {
+      script1 = '"요즘 우리 사이에 아무 일도 없는데, 그래서 오히려 네 마음이 궁금해."';
+      script2 = '"서운한 게 생기면 3일 안에 말하기로 하자. 나도 그렇게 할게."';
+      script3 = '"우리가 잘 지내는 이유를 하나씩 말해보자. 나부터 할게 — ○○."';
+    }
+    var scriptBody = '<div style="color:#cbd5e1;font-size:0.79rem;margin-bottom:7px;">이 명반의 갈등 유형에 맞춰 고른, 실제로 입 밖에 낼 수 있는 문장들입니다. 외우지 말고 당신의 말투로 바꿔 쓰세요.</div>'
+      +'<div style="display:grid;gap:6px;">'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script1)+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script2)+'</div>'
+      +'<div style="background:rgba(2,6,23,0.34);border-radius:8px;padding:8px 10px;font-size:0.83rem;color:#ffe4e6;">'+zwDeepEsc(script3)+'</div>'
+      +'</div>';
+    html += zwDeepCardShell('💬', '갈등 유형별 대화 스크립트', badNames.length ? zwDeepEsc(badNames.join('·'))+' 대응' : '온도 유지 대화', scriptBody, '#fecdd3', false);
+
+    html += '</div>';
+    return html;
+  } catch (_spouseErr) { return ''; }
+}
+
+/* ── 생애 총론 확장 (ziwei_life_yearly_flow 전반부) ── */
+function buildZwGrandLifeDeepHtml(pd) {
+  try {
+    var mingEntry = zwDeepPalaceEntry(pd, '명궁');
+    var mingMains = zwDeepMainStars(mingEntry);
+    var html = '<div data-cd-marker="ziwei-grand-life-deep-v20260711" style="margin-bottom:16px;">';
+    html += zwDeepSectionHead('생애 서사 — 명궁 주성이 그리는 긴 곡선', '10년 단위 대한을 세 개의 막으로 묶고, 명궁 주성의 장기 곡선을 붙여 읽습니다.', '#f9a8d4');
+    if (mingMains.length) {
+      var prof = ZW_STAR_CORE_PROFILE[mingMains[0].name];
+      var lifeArr = prof.life || [];
+      html += '<div style="display:grid;gap:7px;margin-bottom:12px;">'
+        +'<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(196,181,253,0.2);border-radius:9px;padding:9px 11px;"><b style="color:#c4b5fd;">성장 곡선</b><br><span style="font-size:0.83rem;">'+zwDeepEsc(lifeArr[0] || '')+'</span></div>'
+        +'<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(253,230,138,0.2);border-radius:9px;padding:9px 11px;"><b style="color:#fde68a;">전성기 조건</b><br><span style="font-size:0.83rem;">'+zwDeepEsc(lifeArr[1] || '')+'</span></div>'
+        +'<div style="background:rgba(2,6,23,0.36);border:1px solid rgba(110,231,183,0.2);border-radius:9px;padding:9px 11px;"><b style="color:#6ee7b7;">후반 수렴점</b><br><span style="font-size:0.83rem;">'+zwDeepEsc(lifeArr[2] || '')+'</span></div>'
+      +'</div>';
+    }
+    var daList = Array.isArray(pd.daHanList) ? pd.daHanList : [];
+    if (daList.length >= 3) {
+      var acts = [
+        { name: '초년의 장 (1~3대한)', list: daList.slice(0, 3), color: '#93c5fd', note: '기질이 세상과 처음 부딪히며 형태를 잡는 시기입니다.' },
+        { name: '중년의 장 (4~7대한)', list: daList.slice(3, 7), color: '#fde68a', note: '인생의 본 경기가 열리는 시기 — 성취의 축이 여기서 결정됩니다.' },
+        { name: '후반의 장 (8대한~)', list: daList.slice(7), color: '#6ee7b7', note: '쌓은 것을 수렴하고 물려주는 시기입니다.' }
+      ];
+      var actHtml = '';
+      acts.forEach(function(act){
+        if (!act.list.length) return;
+        var span = act.list[0].startAge + '~' + act.list[act.list.length - 1].endAge + '세';
+        var palaceSeq = act.list.map(function(dh){ return dh.palaceName; }).filter(Boolean);
+        var themeLine = palaceSeq.map(function(pn){ return '<b style="color:#e9d5ff;">' + zwDeepEsc(zwDisplayPalaceName(pn)) + '</b>(' + zwDeepEsc(ZW_GUNG_DEF[pn] || '') + ')'; }).join(' → ');
+        actHtml += '<div style="background:rgba(2,6,23,0.32);border:1px solid '+act.color+'33;border-radius:9px;padding:9px 11px;margin-bottom:7px;">'
+          +'<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;"><b style="color:'+act.color+';">'+zwDeepEsc(act.name)+'</b><span style="color:#94a3b8;font-size:0.75rem;">'+span+'</span></div>'
+          +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.7;margin-top:4px;">대한 경로: '+themeLine+'</div>'
+          +'<div style="font-size:0.8rem;color:#e2e8f0;margin-top:4px;">'+zwDeepEsc(act.note)+' 이 시기의 대한이 지나는 궁들이 곧 그 시절의 시험 과목입니다. 위 경로의 영역에서 사건이 몰릴 때 "왜 하필 지금 이 일이"라고 묻지 말고, 시기의 숙제라고 받아들이면 소모가 절반으로 줄어듭니다.</div>'
+        +'</div>';
+      });
+      html += actHtml;
+    }
+    var axisDefs = [
+      { label: '재물 운용', palace: '재백궁', field: 'money', color: '#fde68a' },
+      { label: '커리어 운용', palace: '관록궁', field: 'work', color: '#93c5fd' },
+      { label: '관계 운용', palace: '부부궁', field: 'people', color: '#f9a8d4' },
+      { label: '마음 운용', palace: '복덕궁', field: 'self', color: '#6ee7b7' }
+    ];
+    var axisHtml = '';
+    axisDefs.forEach(function(ax){
+      var e = zwDeepPalaceEntry(pd, ax.palace);
+      var ms = zwDeepMainStars(e);
+      var text = ms.length
+        ? '('+zwDeepEsc(ms[0].name)+') '+zwDeepEsc(ZW_STAR_CORE_PROFILE[ms[0].name][ax.field])
+        : '(공궁) 이 축은 고정된 방식이 없는 만큼, 좋은 습관 하나가 곧 팔자가 됩니다. 검증된 루틴을 정해 꾸준히 유지하세요.';
+      axisHtml += '<div style="background:rgba(2,6,23,0.32);border:1px solid '+ax.color+'2e;border-radius:9px;padding:8px 10px;"><b style="color:'+ax.color+';font-size:0.8rem;">'+zwDeepEsc(ax.label)+'</b><div style="font-size:0.79rem;color:#e2e8f0;line-height:1.7;margin-top:3px;">'+text+'</div></div>';
+    });
+    html += '<div style="margin-top:4px;"><div style="color:#c4b5fd;font-size:0.82rem;font-weight:900;margin-bottom:6px;">평생 운용 원칙 4축</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:7px;">'+axisHtml+'</div></div>';
+    html += '</div>';
+    return html;
+  } catch (_grandErr) { return ''; }
+}
+
+/* ── 연간 흐름 정밀 (ziwei_life_yearly_flow 후반부) ── */
+function buildZwYearlyFlowDeepHtml(pd) {
+  try {
+    if (!pd || !Array.isArray(pd.palaceStarData)) return '';
+    var nowYear = new Date().getFullYear();
+    var cards = '';
+    function findStarPalace(starName) {
+      var rows = pd.palaceStarData;
+      for (var i = 0; i < rows.length; i += 1) {
+        var e = rows[i];
+        var all = [].concat(e.stars || [], e.auxStars || []);
+        for (var j = 0; j < all.length; j += 1) {
+          if (all[j] && all[j].name === starName) return e.palace;
+        }
+      }
+      return '';
+    }
+    for (var y = nowYear; y < nowYear + 3; y += 1) {
+      var gan = ZW_DEEP_GAN_LIST[((y - 4) % 10 + 10) % 10];
+      var zhiIdx = ((y - 4) % 12 + 12) % 12;
+      var zhi = ZW_DEEP_ZHI_LIST[zhiIdx];
+      var yearLabel = y + '년 ' + (ZW_DEEP_GAN_KO[gan] || '') + (ZW_DEEP_ZHI_KO[zhi] || '') + '년(' + gan + zhi + ')';
+      var flowMingPalace = pd.palacesByIndex ? (pd.palacesByIndex[zhiIdx] || '') : '';
+      var sihuaSet = ZW_DEEP_GAN_SIHUA[gan] || {};
+      var rokStar = sihuaSet['화록'], giStar = sihuaSet['화기'], kwonStar = sihuaSet['화권'], kwaStar = sihuaSet['화과'];
+      var rokPalace = rokStar ? findStarPalace(rokStar) : '';
+      var giPalace = giStar ? findStarPalace(giStar) : '';
+      var kwonPalace = kwonStar ? findStarPalace(kwonStar) : '';
+      var kwaPalace = kwaStar ? findStarPalace(kwaStar) : '';
+      var body = '';
+      if (flowMingPalace) {
+        body += '<div style="margin-bottom:6px;"><b style="color:#c4b5fd;">올해의 무대(유년 명궁):</b> 내 명반의 <b style="color:#e9d5ff;">'+zwDeepEsc(zwDisplayPalaceName(flowMingPalace))+'</b> 자리 — '+zwDeepEsc(ZW_GUNG_DEF[flowMingPalace] || '')+' 영역이 한 해의 기본 무대가 됩니다.</div>';
+      }
+      body += '<div style="margin-bottom:6px;"><b style="color:#4ade80;">기회의 문(화록):</b> '
+        + (rokPalace
+          ? '<b>'+zwDeepEsc(rokStar)+'</b> 별이 있는 <b style="color:#d1fae5;">'+zwDeepEsc(zwDisplayPalaceName(rokPalace))+'</b>에서 열립니다. '+zwDeepEsc(ZW_GUNG_DEF[rokPalace] || '')+' 쪽에서 들어오는 제안과 인연을 흘려보내지 마세요.'
+          : '올해의 화록 별('+zwDeepEsc(rokStar || '-')+')이 내 명반에서 뚜렷하지 않아, 재물 기회는 크게 요동치지 않습니다. 기존 흐름을 지키는 해입니다.')
+        +'</div>';
+      if (kwonPalace || kwaPalace) {
+        body += '<div style="margin-bottom:6px;"><b style="color:#60a5fa;">힘이 실리는 곳:</b> '
+          + (kwonPalace ? '화권이 <b>'+zwDeepEsc(zwDisplayPalaceName(kwonPalace))+'</b>에 실려 이 영역에서 주도권을 잡기 좋고' : '화권의 직접 작용은 약하고')
+          + (kwaPalace ? ', 화과가 <b>'+zwDeepEsc(zwDisplayPalaceName(kwaPalace))+'</b>에 실려 평판·문서·평가 운이 붙습니다.' : ', 명예 운은 스스로 만들어야 하는 해입니다.')
+        +'</div>';
+      }
+      body += '<div style="margin-bottom:6px;"><b style="color:#f87171;">조심할 문(화기):</b> '
+        + (giPalace
+          ? '<b>'+zwDeepEsc(giStar)+'</b> 별이 있는 <b style="color:#fecaca;">'+zwDeepEsc(zwDisplayPalaceName(giPalace))+'</b>에 얽힘이 걸립니다. '+zwDeepEsc(ZW_GUNG_DEF[giPalace] || '')+' 영역의 말·계약·정산은 두 번 확인하고, 애매한 약속은 문장으로 남기세요.'
+          : '올해의 화기 별('+zwDeepEsc(giStar || '-')+')이 내 명반에서 뚜렷하지 않아, 직접적인 얽힘 신호는 약합니다. 기본기를 지키면 무난합니다.')
+        +'</div>';
+      var strategy;
+      if (rokPalace && giPalace) strategy = zwDisplayPalaceName(rokPalace)+' 쪽에서 벌고, '+zwDisplayPalaceName(giPalace)+' 쪽에서 지키는 해입니다. 확장과 방어의 영역을 섞지 마세요.';
+      else if (rokPalace) strategy = '방어보다 확장에 무게를 둬도 좋은 해입니다. '+zwDisplayPalaceName(rokPalace)+' 영역에 시간을 우선 배정하세요.';
+      else if (giPalace) strategy = '새 판보다 정리와 점검이 남는 해입니다. '+zwDisplayPalaceName(giPalace)+' 영역의 묵은 숙제를 먼저 끝내세요.';
+      else strategy = '큰 파도가 없는 해일수록 루틴이 성적을 만듭니다. 한 가지 목표를 정해 꾸준히 미세요.';
+      body += '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(253,230,138,0.22);border-radius:8px;padding:7px 10px;color:#fde68a;font-size:0.8rem;"><b>한 줄 전략:</b> '+zwDeepEsc(strategy)+'</div>';
+      cards += zwDeepCardShell(y === nowYear ? '📍' : '📅', yearLabel, y === nowYear ? '올해' : (y === nowYear + 1 ? '내년' : '내후년'), body, y === nowYear ? '#fde68a' : '#c4b5fd', y === nowYear);
+    }
+    return '<div data-cd-marker="ziwei-yearly-flow-deep-v20260711" style="margin-top:4px;">'
+      + zwDeepSectionHead('연간 흐름 정밀 — 3개년 유년(流年) 리딩', '해마다 바뀌는 천간 사화(화록·화권·화과·화기)를 내 명반 위에 겹쳐, 연도별 기회와 주의 영역을 짚습니다.', '#c084fc')
+      + cards
+      + '<div style="color:#64748b;font-size:0.7rem;line-height:1.55;margin:6px 2px 0;">유년 해석은 대한(10년 흐름)이라는 큰 물길 안의 물결입니다. 대한과 유년의 신호가 겹치는 영역일수록 체감이 강해집니다.</div>'
+    +'</div>';
+  } catch (_yearErr) { return ''; }
+}
+
+/* ── 상징 보조층 확장 (ziwei_symbolic_layer) ── */
+function buildZwSymbolicDeepHtml(ctx) {
+  try {
+    if (!ctx || !ctx.ming) return '';
+    var mingProf = ZW_STAR_CORE_PROFILE[ctx.ming.star] || null;
+    var shenProf = ZW_STAR_CORE_PROFILE[ctx.shen && ctx.shen.star] || null;
+    var html = '<div data-cd-marker="ziwei-symbolic-deep-v20260711" style="margin-top:12px;">';
+    html += zwDeepSectionHead('인장 서사 — 상징을 생활 언어로 풀기', '위 인장 카드들이 왜 당신의 명반에서 나왔는지, 그리고 일상에서 어떻게 쓰는지 이어서 설명합니다.', '#fde68a');
+
+    var sealRows = [
+      { icon: '☀️', title: '본명 인장 · ' + (ctx.ming.god || '-'), accent: '#fde68a',
+        origin: '명궁('+(ctx.ming.palaceName || '-')+')의 주성 '+(ctx.ming.star || '공궁')+'에서 길어 올린 상징입니다.',
+        meaning: mingProf ? mingProf.essence + ' — ' + mingProf.self : '공궁 명궁은 정해진 얼굴이 없는 대신, 어떤 상징이든 배울 수 있는 그릇을 뜻합니다.',
+        use: mingProf ? '중요한 결정을 앞둔 날, 이 인장의 언어로 자문하세요 — "지금 나는 ' + mingProf.essence + '답게 움직이고 있는가?"' : '결정을 앞둔 날에는 기준 문장을 먼저 적고 움직이세요.' },
+      { icon: '🏛️', title: '현실축 인장 · ' + ((ctx.shen && ctx.shen.god) || '-'), accent: '#93c5fd',
+        origin: '신궁/현실축('+((ctx.shen && ctx.shen.palaceName) || '-')+')의 '+((ctx.shen && ctx.shen.star) || '공궁')+'에서 나온 상징입니다. 본명 인장이 "타고난 나"라면, 이 인장은 "세상이 쓰는 나"입니다.',
+        meaning: shenProf ? shenProf.work : '현실 무대에서의 역할은 고정돼 있지 않으니, 지금 맡은 자리의 규칙을 먼저 익히는 것이 유리합니다.',
+        use: '일이 풀리지 않을 때는 본명 인장이 아니라 이 인장의 방식으로 접근을 바꿔 보세요. 기질과 역할은 다른 도구입니다.' },
+      { icon: '🔥', title: '사화 인장 · ' + ((ctx.sihua && ctx.sihua.name) || '-'), accent: '#c4b5fd',
+        origin: (ctx.sihua && ctx.sihua.basis) ? ctx.sihua.basis : '태어난 해의 천간이 명반에 새긴 흐름의 인장입니다.',
+        meaning: '사화는 별에 계절을 입힙니다. 같은 재능도 사화의 방향에 따라 돈이 되기도, 숙제가 되기도 합니다.',
+        use: '올해 계획을 세울 때 이 인장이 가리키는 영역(위 사화 근거 궁)을 첫 페이지에 두세요.' },
+      { icon: '🌑', title: '그림자 인장 · ' + ((ctx.shadow && ctx.shadow.name) || '-'), accent: '#fca5a5',
+        origin: (ctx.shadow && ctx.shadow.basis) ? ctx.shadow.basis : '명반에서 가장 어두워지기 쉬운 지점을 표시한 인장입니다.',
+        meaning: mingProf ? '그림자는 결함이 아니라 과용된 장점입니다. 당신의 경우 — ' + mingProf.shadow : '그림자는 결함이 아니라 과용된 장점입니다.',
+        use: '컨디션이 무너진 날, 이 인장이 켜졌는지 먼저 확인하세요. 그림자를 이름으로 부르는 순간 절반은 힘을 잃습니다.' }
+    ];
+    sealRows.forEach(function(row){
+      html += '<div style="background:rgba(2,6,23,0.36);border:1px solid '+row.accent+'30;border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="color:'+row.accent+';font-weight:900;font-size:0.86rem;margin-bottom:5px;">'+row.icon+' '+zwDeepEsc(row.title)+'</div>'
+        +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.72;margin-bottom:3px;"><b style="color:#e2e8f0;">유래:</b> '+zwDeepEsc(row.origin)+'</div>'
+        +'<div style="font-size:0.79rem;color:#cbd5e1;line-height:1.72;margin-bottom:3px;"><b style="color:#e2e8f0;">의미:</b> '+zwDeepEsc(row.meaning)+'</div>'
+        +'<div style="font-size:0.79rem;color:#d1fae5;line-height:1.72;"><b>활용:</b> '+zwDeepEsc(row.use)+'</div>'
+      +'</div>';
+    });
+
+    if (mingProf) {
+      html += '<div style="background:linear-gradient(120deg,rgba(250,204,21,0.08),rgba(248,113,113,0.08));border:1px solid rgba(250,204,21,0.22);border-radius:10px;padding:10px 12px;margin-bottom:8px;">'
+        +'<div style="color:#fde68a;font-weight:900;font-size:0.85rem;margin-bottom:5px;">⚖️ 빛과 그림자의 긴장</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;">본명 인장('+zwDeepEsc(ctx.ming.god || '-')+')과 그림자 인장('+zwDeepEsc((ctx.shadow && ctx.shadow.name) || '-')+')은 같은 에너지의 앞뒷면입니다. '
+        +zwDeepEsc(mingProf.essence)+'의 힘이 지나치게 당겨지면 "'+zwDeepEsc(mingProf.shadow)+'"의 형태로 뒤집힙니다. 그래서 이 명반의 균형추는 단순합니다 — '
+        +zwDeepEsc(mingProf.advice)+'</div>'
+      +'</div>';
+    }
+
+    var domains = Array.isArray(ctx.domains) ? ctx.domains.slice() : [];
+    if (domains.length) {
+      domains.sort(function(a, b){ return (b.score || 0) - (a.score || 0); });
+      var top = domains[0], low = domains[domains.length - 1];
+      html += '<div style="background:rgba(2,6,23,0.34);border:1px solid rgba(196,181,253,0.2);border-radius:10px;padding:10px 12px;">'
+        +'<div style="color:#c4b5fd;font-weight:900;font-size:0.85rem;margin-bottom:5px;">🧭 생활 적용 가이드</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;margin-bottom:4px;"><b style="color:#86efac;">순풍 영역 — '+zwDeepEsc(top.label)+'('+(top.score || 0)+'):</b> '+zwDeepEsc(top.good || '')+' 이번 분기의 새로운 시도는 이 영역에 먼저 배정하세요.</div>'
+        +'<div style="font-size:0.8rem;color:#e2e8f0;line-height:1.75;"><b style="color:#fca5a5;">역풍 영역 — '+zwDeepEsc(low.label)+'('+(low.score || 0)+'):</b> '+zwDeepEsc(low.care || '')+' 이 영역은 확장보다 점검 주기를 짧게 가져가는 것이 상징의 처방입니다.</div>'
+      +'</div>';
+    }
+    html += '</div>';
+    return html;
+  } catch (_symErr) { return ''; }
 }
 
 // ┌─────────────────────────────────────────────────────────────────────────┐
@@ -20920,6 +21846,7 @@ function renderZiwei(p, natal, targetId) {
           + '<div style="color:#94a3b8;font-size:0.72rem;line-height:1.5;margin-top:3px;">명궁·관록궁·재백궁·부부궁을 먼저 보고, 전체 12궁은 펼쳐 확인합니다.</div>'
           + '</div>'
           + buildZwSummaryTableHtml(pd)
+          + buildZwTwelvePalaceDeepHtml(pd)
           + '</div>';
 
         var curDaHan = (pd.daHan && pd.daHan[idx]) ? pd.daHan[idx] : "알 수 없음";
@@ -22570,6 +23497,15 @@ function renderZiwei(p, natal, targetId) {
           +'</div>'
           +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:8px;">'+olympusCategoryHtml+'</div>'
         +'</section>';
+        try {
+          sec_olympus_ziwei += buildZwSymbolicDeepHtml({
+            ming: { star: natalOlympus.primaryStar, god: natalOlympus.god, palaceName: natalOlympusSignal.palaceName },
+            shen: { star: natalRealityOlympus.primaryStar, god: natalRealityOlympus.god, palaceName: natalRealitySignal.palaceName },
+            sihua: natalSihuaSeal,
+            shadow: natalShadowSeal,
+            domains: Object.keys(ZW_FLOW_DOMAIN_META).map(function(k){ var m = ZW_FLOW_DOMAIN_META[k]; return { label: m.label, score: zwFlowDomainScore(natalOlympusSignal, k), good: m.good, care: m.care }; })
+          });
+        } catch (_symWireErr) {}
         var sec_grand = '<div style="background:linear-gradient(135deg,rgba(88,28,220,0.15),rgba(20,10,50,0.8));padding:18px;border-radius:10px;margin-bottom:20px;border:1px solid rgba(139,92,246,0.3);">'
           +'<h2 style="color:#F9A8D4;font-size:1.2rem;margin-top:0;border-bottom:1px solid rgba(249,168,212,0.3);padding-bottom:8px;">🌟 생애 총론(生涯 總論)</h2>'
           +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.88rem;margin-bottom:12px;">'
@@ -23246,80 +24182,10 @@ function renderZiwei(p, natal, targetId) {
           var msg = shell.querySelector('[data-zw-paid-gate-message]');
           if (msg) msg.textContent = unlocked ? '잠금 해제됨' : '';
         }
-        function zwSetBasicPaidGateChecking(shell, checking) {
-          if (!shell) return;
-          shell.classList.toggle('cd-section-gate--checking', !!checking);
-          if (checking) shell.classList.toggle('cd-section-gate--error', false);
-          var msg = shell.querySelector('[data-zw-paid-gate-message]');
-          if (msg) msg.textContent = checking ? '이용권을 확인하고 있습니다.' : '';
-        }
-        function zwSetBasicPaidGateError(shell) {
-          if (!shell || shell.classList.contains('cd-section-gate--unlocked')) return;
-          shell.classList.toggle('cd-section-gate--checking', false);
-          shell.classList.toggle('cd-section-gate--error', true);
-          var msg = shell.querySelector('[data-zw-paid-gate-message]');
-          if (msg) msg.textContent = '이용권 확인이 지연되고 있습니다. 버튼을 누르면 다시 확인합니다.';
-        }
-        function zwResolveCurrentProfileIdForGate() {
-          try {
-            var currentProfile = window.__cdCurrentDestinyProfile
-              || (window.DestinyProfileManager && window.DestinyProfileManager.storage && typeof window.DestinyProfileManager.storage.current === 'function'
-                ? window.DestinyProfileManager.storage.current()
-                : null);
-            var currentId = String((currentProfile && (currentProfile.profileId || currentProfile.id)) || '').trim();
-            if (currentId) return currentId.slice(0, 80).replace(/\s+/g, '_');
-          } catch (_) {}
-          try {
-            var activeProfile = window.__cdActiveBirthProfile || window.__destinyFlowerSajuSnapshot || null;
-            var activeId = String((activeProfile && (activeProfile.profileId || activeProfile.id)) || '').trim();
-            if (activeId) return activeId.slice(0, 80).replace(/\s+/g, '_');
-          } catch (_) {}
-          return '';
-        }
-        function zwCheckBasicPaidGateServer(shell) {
-          if (!shell || shell.getAttribute('data-status-checked') === 'true') return;
-          shell.setAttribute('data-status-checked', 'true');
-          var key = String(shell.getAttribute('data-unlock-key') || '').trim();
-          if (!key || typeof window.fetchJsonWithAuth !== 'function') {
-            zwSetBasicPaidGateChecking(shell, false);
-            return;
-          }
-          var params = new URLSearchParams();
-          params.set('featureKey', key);
-          params.set('serviceKey', 'ziwei');
-          var profileId = zwResolveCurrentProfileIdForGate();
-          if (profileId) params.set('profileId', profileId);
-          zwSetBasicPaidGateChecking(shell, true);
-          window.fetchJsonWithAuth('/api/billing/unlock-status?' + params.toString(), { method:'GET' }).then(function(result) {
-            if (!shell.classList.contains('cd-section-gate--unlocked')) zwSetBasicPaidGateChecking(shell, false);
-            if (!result || result.ok === false) {
-              shell.removeAttribute('data-status-checked');
-              return;
-            }
-            var payload = (result && result.payload) || {};
-            var data = payload.data && typeof payload.data === 'object' ? payload.data : payload;
-            var unlocked = !!(payload.unlocked || data.unlocked || data.canAccess || (data.accessDecision && data.accessDecision.accessGranted));
-            if (!unlocked && data.unlockMap && data.unlockMap[key] === true) unlocked = true;
-            if (unlocked) zwSetBasicPaidGateUnlocked(shell, true);
-          }).catch(function(){
-            shell.removeAttribute('data-status-checked');
-            zwSetBasicPaidGateError(shell);
-          });
-        }
-        function zwWatchBasicPaidGate(shell) {
-          if (!shell) return;
-          var key = String(shell.getAttribute('data-unlock-key') || '').trim();
-          var tries = 0;
-          var timer = setInterval(function() {
-            tries += 1;
-            if (zwBasicPaidFeatureUnlocked(key)) {
-              clearInterval(timer);
-              zwSetBasicPaidGateUnlocked(shell, true);
-              return;
-            }
-            if (tries >= 30) clearInterval(timer);
-          }, 400);
-        }
+        // 잠금 상태의 단일 소유자는 index.html의 unlockedFeatureMap이다.
+        // 이 게이트는 수동적 뷰: 초기 렌더 시 현재 상태를 반영하고, 이후에는
+        // cd:unlocks-changed 이벤트(결제 확정/서버 스냅샷 싱크 시 발행)로만 해금 방향 갱신한다.
+        // 재잠금(로그아웃 등)은 index.html의 applyDynamicPaidContentGates가 담당한다.
         function zwBindBasicPaidGates(root) {
           var host = root || document;
           host.querySelectorAll('.zw-basic-paid-gate').forEach(function(shell) {
@@ -23327,17 +24193,17 @@ function renderZiwei(p, natal, targetId) {
             shell.setAttribute('data-bound', 'true');
             var key = String(shell.getAttribute('data-unlock-key') || '').trim();
             zwSetBasicPaidGateUnlocked(shell, zwBasicPaidFeatureUnlocked(key));
-            if (!shell.classList.contains('cd-section-gate--unlocked')) zwCheckBasicPaidGateServer(shell);
-            var btn = shell.querySelector('[data-action="unlockPremiumFeature"]');
-            if (btn) btn.addEventListener('click', function() {
-              shell.removeAttribute('data-status-checked');
-              zwCheckBasicPaidGateServer(shell);
-              zwWatchBasicPaidGate(shell);
-            });
-            window.setTimeout(function() {
-              if (zwBasicPaidFeatureUnlocked(key)) zwSetBasicPaidGateUnlocked(shell, true);
-            }, 900);
           });
+          if (!window.__zwBasicPaidGateEventsBound) {
+            window.__zwBasicPaidGateEventsBound = true;
+            window.addEventListener('cd:unlocks-changed', function() {
+              document.querySelectorAll('.zw-basic-paid-gate').forEach(function(shell) {
+                if (shell.classList.contains('cd-section-gate--unlocked')) return;
+                var k = String(shell.getAttribute('data-unlock-key') || '').trim();
+                if (k && zwBasicPaidFeatureUnlocked(k)) zwSetBasicPaidGateUnlocked(shell, true);
+              });
+            });
+          }
         }
         function zwBasicPaidGateHtml(featureKey, cost, title, desc, bodyHtml, accent, contentKey) {
           var color = accent || '#c4b5fd';
@@ -23370,7 +24236,7 @@ function renderZiwei(p, natal, targetId) {
           +loveTimingRibbon
           +'<div style="position:relative;z-index:1;margin-top:9px;background:rgba(2,6,23,0.34);border:1px solid rgba(251,191,36,0.18);border-radius:9px;padding:9px 10px;color:#fde68a;font-size:0.78rem;line-height:1.6;">'+loveTimingShortText+'</div>'
         +'</div>';
-        var sec_love_deep_reading = sec_love_compat_spread + sec_love;
+        var sec_love_deep_reading = sec_love_compat_spread + sec_love + buildZwSpouseDeepHtml(pd);
         var ziweiReadingStack = '<section data-cd-marker="ziwei-reading-stack-v20260615-step2" style="margin-bottom:18px;">'
           +'<div style="margin:0 0 9px;color:#fef3c7;font-size:0.84rem;font-weight:900;letter-spacing:0.01em;">기본 해석 3가지</div>'
           +zwReadingPanel('타고난 성향과 현실 작동축', '01 기본 기질 · 명궁/신궁', sec_persona, true, '#fde68a', ziweiPersonaPreview)
@@ -23385,7 +24251,7 @@ function renderZiwei(p, natal, targetId) {
           +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 10,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
           +zwReadingPanel('상징 보조층', '유료 상징 · 10,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 100, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')
-          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 10,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 100, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', sec_grand + sec_ziwei_flow, '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
+          +zwReadingPanel('생애 총론과 연간 흐름', '보조 흐름 · 10,000원', zwBasicPaidGateHtml('ziwei_life_yearly_flow', 100, '생애 총론과 연간 흐름', '장기 성향과 연간 흐름을 함께 엽니다.', buildZwGrandLifeDeepHtml(pd) + sec_grand + sec_ziwei_flow + buildZwYearlyFlowDeepHtml(pd), '#c084fc', 'ziwei.lifeYearlyFlow'), false, '#c084fc', '장기 성향과 연간 흐름을 기존 방식으로 확인합니다.')
         +'</section>';
 
         var contentHtml = '';

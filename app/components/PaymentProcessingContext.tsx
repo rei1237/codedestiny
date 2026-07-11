@@ -573,6 +573,7 @@ function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale)
 function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdRef = useRef<{ requestId: string; until: number } | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [state, setState] = useState<PaidFeatureGateState>({
@@ -593,7 +594,22 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       if (requestId && prev.requestId && requestId !== prev.requestId) return prev;
       return { ...prev, open: false, status: "idle", message: PAID_GATE_DEFAULT_MESSAGE };
     });
+    if (!requestId || !holdRef.current || holdRef.current.requestId === requestId) {
+      holdRef.current = null;
+    }
     emitCoinGateOverlay(false);
+  }, []);
+
+  const holdOpen = useCallback((requestId?: string, maxMs?: number) => {
+    const id = String(requestId || "").trim();
+    if (!id) return;
+    const cap = Number.isFinite(Number(maxMs)) && Number(maxMs) > 0 ? Math.min(Number(maxMs), 120000) : 12000;
+    holdRef.current = { requestId: id, until: nowForPaidGate() + cap };
+  }, []);
+
+  const release = useCallback((requestId?: string) => {
+    if (requestId && holdRef.current && holdRef.current.requestId !== String(requestId)) return;
+    holdRef.current = null;
   }, []);
 
   const open = useCallback((detail: PaidFeatureGateDetail) => {
@@ -676,6 +692,12 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     const requestedStatus = detail.status || "checkingEntitlement";
     const activeLocale = getCurrentLoadingLocale();
     setLocale(activeLocale);
+    if (/^(error|paymentFailed|noEntitlement|readyToPay|cancelled)$/.test(requestedStatus)) {
+      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
+      if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {
+        holdRef.current = null;
+      }
+    }
     if (isExternalPaymentWindowStatus(requestedStatus)) {
       setState((prev) => {
         if (detail.requestId && prev.requestId && detail.requestId !== prev.requestId) return prev;
@@ -742,8 +764,20 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   useEffect(() => {
     if (!state.open) return;
     if (!["hasEntitlement", "paymentSuccess"].includes(state.status)) return;
-    closeTimerRef.current = setTimeout(() => close(state.requestId), state.status === "hasEntitlement" ? 1600 : 1100);
+    let cancelled = false;
+    const tryClose = () => {
+      if (cancelled) return;
+      const hold = holdRef.current;
+      if (hold && hold.requestId === state.requestId && nowForPaidGate() < hold.until) {
+        closeTimerRef.current = setTimeout(tryClose, 400);
+        return;
+      }
+      if (hold && hold.requestId === state.requestId) holdRef.current = null;
+      close(state.requestId);
+    };
+    closeTimerRef.current = setTimeout(tryClose, state.status === "hasEntitlement" ? 1600 : 1100);
     return () => {
+      cancelled = true;
       if (closeTimerRef.current) {
         clearTimeout(closeTimerRef.current);
         closeTimerRef.current = null;
@@ -774,16 +808,26 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         open: (detail: PaidFeatureGateDetail) => number;
         update: (detail: PaidFeatureGateDetail) => void;
         close: (requestId?: string) => void;
+        holdOpen: (requestId?: string, maxMs?: number) => void;
+        release: (requestId?: string) => void;
         preload: () => void;
       };
     };
     const runtimeWindow = window as PaidGateWindow;
-    runtimeWindow.__cdPaidFeatureGate = { open, update, close, preload };
+    runtimeWindow.__cdPaidFeatureGate = { open, update, close, holdOpen, release, preload };
 
     const onGateEvent = (event: Event) => {
-      const detail = (event as CustomEvent<PaidFeatureGateDetail & { action?: string }>).detail || {};
+      const detail = (event as CustomEvent<PaidFeatureGateDetail & { action?: string; maxMs?: number }>).detail || {};
       if (detail.action === "close") {
         close(detail.requestId);
+        return;
+      }
+      if (detail.action === "hold") {
+        holdOpen(detail.requestId, detail.maxMs);
+        return;
+      }
+      if (detail.action === "release") {
+        release(detail.requestId);
         return;
       }
       if (detail.action === "update") {
@@ -800,7 +844,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
         delete runtimeWindow.__cdPaidFeatureGate;
       }
     };
-  }, [close, open, preload, update]);
+  }, [close, holdOpen, open, preload, release, update]);
 
   const contextValue = useMemo(() => ({ state, open, update, close, preload }), [close, open, preload, state, update]);
   const copy = resolvePaidGateCopy(state, locale);

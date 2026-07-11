@@ -126,7 +126,7 @@ const DECK_SIZE = 78;
 const GRID_COUNT = 24;
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const COSMIC_PANEL = "rounded-[1.6rem] border border-indigo-300/20 bg-slate-950/45 backdrop-blur-xl shadow-[0_18px_65px_rgba(76,29,149,0.45)]";
-const COSMIC_CARD = "rounded-2xl border border-cyan-300/20 bg-slate-950/42 backdrop-blur-lg";
+const COSMIC_CARD = "rounded-2xl border border-cyan-300/20 bg-slate-950/40 backdrop-blur-lg";
 
 const MAJOR = ["The Fool","The Magician","The High Priestess","The Empress","The Emperor",
   "The Hierophant","The Lovers","The Chariot","Strength","The Hermit","Wheel of Fortune",
@@ -398,7 +398,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             <div className="absolute bottom-0 right-2 w-2 h-2 rounded-full"
               style={{ background: "#818cf8", boxShadow: "0 0 8px #818cf8" }} />
           </m.div>
-          <m.div className="absolute inset-[-5px] rounded-full border-2 border-purple-500/18"
+          <m.div className="absolute inset-[-5px] rounded-full border-2 border-purple-500/20"
             animate={{ scale: [1, 1.12, 1], opacity: [0.4, 0, 0.4] }}
             transition={{ duration: 2.8, repeat: Infinity }} />
         </m.div>
@@ -453,7 +453,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           <span className="relative z-10">🔮 마음의 문 열기</span>
         </m.button>
 
-        <m.p className="mt-5 text-[10px] text-purple-500/38 tracking-widest"
+        <m.p className="mt-5 text-[10px] text-purple-500/40 tracking-widest"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
           ✦ 그 사람의 말, 행동, 침묵을 조용히 떠올리며 시작하세요 ✦
         </m.p>
@@ -502,7 +502,7 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
 
       {/* Header */}
       <div className={`flex-shrink-0 pt-5 pb-3 px-4 text-center mx-auto mt-3 w-[min(100%,34rem)] ${COSMIC_PANEL}`}>
-        <p className="text-[10px] tracking-[0.42em] text-purple-400/58 uppercase mb-1">Between Words Tarot</p>
+        <p className="text-[10px] tracking-[0.42em] text-purple-400/60 uppercase mb-1">Between Words Tarot</p>
         <m.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {round === "main"
@@ -625,7 +625,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
             </m.h2>
           </AnimatePresence>
           {!allRevealed && (
-            <m.p className="text-xs text-purple-400/38 mt-1"
+            <m.p className="text-xs text-purple-400/40 mt-1"
               animate={{ opacity: [0.38, 0.65, 0.38] }} transition={{ duration: 1.6, repeat: Infinity }}>
               {POSITIONS[revealedCount]?.meaning}
             </m.p>
@@ -793,9 +793,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
   const [aiPromptMsg, setAiPromptMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
   const LUXE_PANEL = "rounded-[1.5rem] border border-amber-200/25 bg-[linear-gradient(145deg,rgba(36,20,10,0.84),rgba(22,14,22,0.9)_48%,rgba(10,10,18,0.92))] backdrop-blur-xl shadow-[0_24px_70px_rgba(0,0,0,0.58),0_0_28px_rgba(251,191,36,0.14)]";
-  const LUXE_CARD = "rounded-[1.2rem] border border-amber-100/18 bg-[linear-gradient(150deg,rgba(30,20,16,0.78),rgba(16,16,26,0.82))] backdrop-blur-lg";
+  const LUXE_CARD = "rounded-[1.2rem] border border-amber-100/20 bg-[linear-gradient(150deg,rgba(30,20,16,0.78),rgba(16,16,26,0.82))] backdrop-blur-lg";
   const summaryCard = reading.summaryCard || {};
   const innerHeartSummary = reading.innerHeartSummary || {};
+  const emotionalTemp = Math.min(5, Math.max(1, Math.round(Number(summaryCard.emotionalTemperature)) || 3));
   const insightDeck = useMemo(
     () => (Array.isArray(reading.insightDeck) ? reading.insightDeck.slice(0, 6) : []),
     [reading.insightDeck],
@@ -1018,10 +1019,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/35 bg-amber-200/10 text-lg text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.38)]">
             ✦
           </div>
-          <p className="text-[11px] tracking-[0.55em] text-amber-200/72 uppercase mb-2">Between Words Tarot · 관계 간격 리딩</p>
+          <p className="text-[11px] tracking-[0.55em] text-amber-200/70 uppercase mb-2">Between Words Tarot · 관계 간격 리딩</p>
           <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
             말과 행동 사이의 온도가{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-100 to-rose-200">열렸습니다</span>
+            <span className="text-amber-200">열렸습니다</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mt-2.5">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-400/45 max-w-[72px]" />
@@ -1049,7 +1050,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
-                <span className="text-[8px] text-amber-100/58">{pos.label}</span>
+                <span className="text-[8px] text-amber-100/60">{pos.label}</span>
               </m.div>
             );
           })}
@@ -1071,19 +1072,33 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               </div>
               <h3 className="text-sm font-bold text-amber-50 tracking-wide">마음의 문턱</h3>
             </div>
-            <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
+            <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
           </m.div>
 
           {/* Summary card */}
-          <m.article className="rounded-2xl border border-amber-300/28 p-5 sm:p-6"
+          <m.article className="rounded-2xl border border-amber-300/30 p-5 sm:p-6"
             style={{ background: "linear-gradient(130deg,rgba(120,53,15,0.28),rgba(146,64,14,0.12),rgba(30,41,59,0.3))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
             <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>관계 간격의 전체 기류</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-sm">
-              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                감정 온도: <b>{summaryCard.emotionalTemperatureText || `${summaryCard.emotionalTemperature || 3} / 5`}</b>
+            <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2.5 text-stone-100/95 text-sm">
+              <div className="flex items-center justify-between mb-1.5">
+                <span>감정 온도</span>
+                <b>{summaryCard.emotionalTemperatureText || `${emotionalTemp} / 5`}</b>
               </div>
+              <div className="flex gap-1" role="img" aria-label={`감정 온도 5단계 중 ${emotionalTemp}단계`}>
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <div key={n} className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
+                    <m.div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400"
+                      style={{ transformOrigin: "left" }}
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: visibleCount >= 4 && n <= emotionalTemp ? 1 : 0 }}
+                      transition={{ duration: 0.4, delay: 0.15 + n * 0.06 }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
                 다시 열릴 여지: <b>{summaryCard.reApproachChance || "중간"}</b>
               </div>
@@ -1101,41 +1116,27 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               오늘 건넬 태도: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
             </p>
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
-              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92">
+              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90">
                 관계의 현재 문턱: <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
               </div>
-              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92">
+              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90">
                 침묵의 그림자: <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
               </div>
-              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/92 sm:col-span-2">
+              <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90 sm:col-span-2">
                 흐름을 누르는 힘: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
-              </div>
-            </div>
-            <div className="mt-4 grid grid-cols-1 gap-2 text-[12px]">
-              <div className="rounded-xl border border-cyan-300/20 bg-cyan-500/10 px-3 py-2 text-cyan-50/95">
-                감정 온도: <b>{innerHeartSummary.emotionalTemperature || "감정과 방어가 동시에 움직이는 흐름"}</b>
-              </div>
-              <div className="rounded-xl border border-indigo-300/20 bg-indigo-500/10 px-3 py-2 text-indigo-50/95">
-                가장 깊은 카드 결: <b>{innerHeartSummary.hiddenCore || "말 아래 남은 감정과 망설임이 동시에 작동합니다."}</b>
-              </div>
-              <div className="rounded-xl border border-amber-300/20 bg-amber-500/10 px-3 py-2 text-amber-50/95">
-                다시 닿을 여지: <b>{innerHeartSummary.contactPossibility || "압박 없는 접점에서 반응 가능성이 열립니다."}</b>
-              </div>
-              <div className="rounded-xl border border-emerald-300/20 bg-emerald-500/10 px-3 py-2 text-emerald-50/95">
-                오늘 내가 취할 태도: <b>{innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</b>
               </div>
             </div>
           </m.article>
 
           {/* Insight card draw */}
           {insightDeck.length > 0 && (
-            <m.article className="rounded-2xl border border-amber-200/24 p-5 sm:p-6"
+            <m.article className="rounded-2xl border border-amber-200/25 p-5 sm:p-6"
               style={{ background: "linear-gradient(130deg,rgba(51,28,22,0.65),rgba(59,39,26,0.5),rgba(30,41,59,0.35))" }}
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: visibleCount >= 5 ? 1 : 0, y: visibleCount >= 5 ? 0 : 14 }}>
               <div className="flex items-center justify-between gap-3 mb-3">
                 <h3 className="text-base sm:text-lg font-black text-amber-50">숨은 감정 보조 카드</h3>
-                <span className="text-[11px] text-amber-100/78 tracking-wide">한 장씩 열어 마음의 단서를 확인하세요</span>
+                <span className="text-[11px] text-amber-100/80 tracking-wide">한 장씩 열어 마음의 단서를 확인하세요</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
@@ -1160,9 +1161,9 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                       whileTap={{ scale: 0.98 }}>
                       {opened ? (
                         <>
-                          <p className="text-[10px] text-amber-100/78 mb-1 tracking-[0.12em] uppercase">{card.category}</p>
+                          <p className="text-[10px] text-amber-100/80 mb-1 tracking-[0.12em] uppercase">{card.category}</p>
                           <p className="text-sm text-stone-50 font-semibold leading-5">{card.title}</p>
-                          <p className="text-[11px] text-amber-100/84 mt-2">{card.icon || "🃏"} 열림</p>
+                          <p className="text-[11px] text-amber-100/85 mt-2">{card.icon || "🃏"} 열림</p>
                         </>
                       ) : (
                         <>
@@ -1178,13 +1179,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 
               {activeInsight && (
                 <m.div
-                  className="rounded-xl border border-white/12 bg-black/20 p-4"
+                  className="rounded-xl border border-white/10 bg-black/20 p-4"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   key={activeInsight.id}>
                   <div className="flex items-center justify-between gap-3 mb-2.5">
                     <div>
-                      <p className="text-[10px] text-indigo-200/72 tracking-[0.16em] uppercase">{activeInsight.category}</p>
+                      <p className="text-[10px] text-indigo-200/70 tracking-[0.16em] uppercase">{activeInsight.category}</p>
                       <h4 className="text-sm sm:text-base font-bold text-indigo-50 mt-1">{activeInsight.icon || "🃏"} {activeInsight.title}</h4>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${RISK_LEVEL_CLASS[activeInsight.riskLevel || "중간"] || RISK_LEVEL_CLASS["중간"]}`}>
@@ -1195,12 +1196,12 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                     <p className="text-sm text-indigo-100/95 leading-7">드러난 결: {activeInsight.headline}</p>
                   )}
                   {activeInsight.summary && (
-                    <p className="text-sm text-indigo-100/86 leading-7 mt-1.5">{activeInsight.summary}</p>
+                    <p className="text-sm text-indigo-100/85 leading-7 mt-1.5">{activeInsight.summary}</p>
                   )}
                   {(Array.isArray(activeInsight.bullets) && activeInsight.bullets.length > 0) && (
                     <div className="mt-2.5 space-y-1.5">
                       {activeInsight.bullets.map((line, idx) => (
-                        <p key={`${activeInsight.id}-line-${idx}`} className="text-[13px] text-indigo-100/78 leading-6">• {line}</p>
+                        <p key={`${activeInsight.id}-line-${idx}`} className="text-[13px] text-indigo-100/80 leading-6">• {line}</p>
                       ))}
                     </div>
                   )}
@@ -1251,7 +1252,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   </div>
                 </div>
               </div>
-              <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">
+              <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] sm:pl-12 whitespace-pre-line">
                 {s.summary || s.content}
               </p>
               {Array.isArray(s.keywords) && s.keywords.length > 0 && (
@@ -1264,11 +1265,15 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 </div>
               )}
               <div className="sm:pl-12 mt-3 grid grid-cols-1 gap-2">
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드의 얼굴:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>카드가 비춘 장면:</b> {s.cardMeaning || s.summary || s.content}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>이 자리의 속삭임:</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>남은 감정의 결:</b> {s.emotionalReading || s.summary || "감정과 방어가 함께 작동하는 흐름"}</p>
-                <p className="text-[13px] sm:text-sm text-purple-100/86 leading-7"><b>말하지 못한 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>카드의 얼굴:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
+                {s.cardMeaning && s.cardMeaning !== (s.summary || s.content) && (
+                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>카드가 비춘 장면:</b> {s.cardMeaning}</p>
+                )}
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>이 자리의 속삭임:</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
+                {s.emotionalReading && s.emotionalReading !== (s.summary || s.content) && (
+                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>남은 감정의 결:</b> {s.emotionalReading}</p>
+                )}
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>말하지 못한 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
                 <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>조심할 그림자:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
                 <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 건넬 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
               </div>
@@ -1277,7 +1282,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 
           {/* Suggested messages */}
           {suggestedMessages.length > 0 && (
-            <m.article className="rounded-2xl border border-cyan-300/24 p-5 sm:p-6"
+            <m.article className="rounded-2xl border border-cyan-300/25 p-5 sm:p-6"
               style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(109,40,217,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= 14 ? 1 : 0, y: visibleCount >= 14 ? 0 : 16 }}>
@@ -1286,7 +1291,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 {suggestedMessages.map((item, idx) => (
                   <div key={`msg-${idx}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
                     <p className="text-[11px] text-cyan-200/75 mb-1">{item.tone || `메시지 ${idx + 1}`}</p>
-                    <p className="text-sm text-cyan-50/92 leading-7">“{item.text}”</p>
+                    <p className="text-sm text-cyan-50/90 leading-7">“{item.text}”</p>
                   </div>
                 ))}
               </div>
@@ -1307,7 +1312,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 </div>
                 <h4 className="text-sm sm:text-base font-bold text-amber-50">현실적인 행동 가이드</h4>
               </div>
-              <p className="text-[15px] sm:text-base text-stone-100/92 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
+              <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </m.article>
           )}
 
@@ -1318,9 +1323,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             transition={{ duration: 0.38 }}>
             <h4 className="text-sm sm:text-base font-bold text-amber-50 mb-3">전체 종합 상담</h4>
             <div className="space-y-2">
-              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>관계의 위험 신호:</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>다시 닿을 여지:</b> {innerHeartSummary.contactPossibility || "부담을 낮춘 접점에서 반응 가능성이 열립니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/92 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>겉말 아래 남은 감정:</b> {innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>관계의 위험 신호:</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>오늘 내가 취할 태도:</b> {innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
               <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>오라클 메시지:</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
             </div>
           </m.article>
@@ -1331,7 +1337,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             initial={{ opacity: 0 }}
             animate={{ opacity: visibleCount >= 16 ? 1 : 0 }}
             transition={{ duration: 0.4 }}>
-            <p className="text-[10px] tracking-[0.45em] text-amber-100/58 uppercase mb-3">One Line Conclusion</p>
+            <p className="text-[10px] tracking-[0.45em] text-amber-100/60 uppercase mb-3">One Line Conclusion</p>
             <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] italic">{reading.oneLineConclusion || reading.closing}</p>
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-amber-600/35" />
@@ -1347,46 +1353,51 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
         <m.div className="mt-6 w-full max-w-2xl"
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
-          <div className={`${LUXE_CARD} p-3 sm:p-4`}>
-            <p className="text-[11px] text-amber-100/72 mb-3 tracking-[0.24em] uppercase text-center">리딩 저장과 공유</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div className={`${LUXE_CARD} p-4 sm:p-5`}>
+            <p className="text-[11px] text-amber-100/70 mb-3 tracking-[0.24em] uppercase text-center">리딩 저장과 공유</p>
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={handleSaveImage}
+                className="px-4 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-500/20 text-amber-50 shadow-[0_0_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 transition-colors"
+              >
+                {mindScanTarotText("mindScanTarot.010")}
+              </button>
               <button
                 type="button"
                 onClick={handleShare}
-                className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-500/18 text-amber-50 hover:bg-amber-400/26 transition-colors"
+                className="px-4 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-500/20 text-amber-50 shadow-[0_0_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 transition-colors"
               >
-                🔗 공유하기
+                {mindScanTarotText("mindScanTarot.011")}
+              </button>
+            </div>
+            <div className="mt-2.5 grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
+              >
+                {mindScanTarotText("mindScanTarot.012")}
+              </button>
+              <button
+                type="button"
+                onClick={handleKakaoShare}
+                className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
+              >
+                {mindScanTarotText("mindScanTarot.013")}
               </button>
               <button
                 type="button"
                 onClick={handleGoHome}
-                className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-rose-200/38 bg-rose-300/16 text-rose-50 hover:bg-rose-300/24 transition-colors"
+                className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
               >
-                🏠 홈으로 가기
+                {mindScanTarotText("mindScanTarot.014")}
               </button>
             </div>
           </div>
         </m.div>
-
-        {/* Action buttons */}
-        <m.div className="mt-6 w-full max-w-2xl flex flex-wrap gap-2 justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: visibleCount >= 15 ? 1 : 0 }}>
-          {[
-            { label: mindScanTarotText("mindScanTarot.010"), fn: handleSaveImage, cls: "border-emerald-400/22 bg-emerald-500/8 text-emerald-100 hover:bg-emerald-500/18" },
-            { label: mindScanTarotText("mindScanTarot.011"),       fn: handleShare,     cls: "border-fuchsia-400/22 bg-fuchsia-500/8 text-fuchsia-100 hover:bg-fuchsia-500/18" },
-            { label: mindScanTarotText("mindScanTarot.012"), fn: handleCopy,      cls: "border-amber-400/22 bg-amber-500/8 text-amber-100 hover:bg-amber-500/18" },
-            { label: mindScanTarotText("mindScanTarot.013"), fn: handleKakaoShare, cls: "border-yellow-300/35 bg-yellow-300/12 text-yellow-100 hover:bg-yellow-300/22" },
-            { label: mindScanTarotText("mindScanTarot.014"), fn: handleGoHome, cls: "border-cyan-300/28 bg-cyan-400/10 text-cyan-100 hover:bg-cyan-400/20" },
-          ].map(b => (
-            <button key={b.label} type="button" onClick={b.fn}
-              className={`px-5 py-2.5 rounded-xl text-xs font-semibold tracking-wide border transition-colors ${b.cls}`}>
-              {b.label}
-            </button>
-          ))}
-        </m.div>
         {shareMsg && (
-          <m.p className="mt-2 text-xs text-purple-200/62"
+          <m.p className="mt-2 text-xs text-purple-200/60"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {shareMsg}
           </m.p>
@@ -1399,15 +1410,15 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: visibleCount >= 16 ? 1 : 0, y: visibleCount >= 16 ? 0 : 14 }}
           transition={{ duration: 0.38 }}>
-          <p className="text-[10px] tracking-[0.4em] text-amber-100/62 uppercase mb-3 text-center">Next Oracle Prompt</p>
+          <p className="text-[10px] tracking-[0.4em] text-amber-100/60 uppercase mb-3 text-center">Next Oracle Prompt</p>
           <h4 className="text-base sm:text-lg font-black text-amber-50 mb-2 text-center" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
             말과 행동 사이의 온도를 한 번 더 비추기
           </h4>
-          <p className="text-[13px] sm:text-sm text-stone-100/78 leading-7 mb-3 text-center">
+          <p className="text-[13px] sm:text-sm text-stone-100/80 leading-7 mb-3 text-center">
             방금 열린 다섯 자리의 결을 그대로 건네면, 상대의 말과 행동 사이에 남은 신호를 더 깊게 이어 볼 수 있습니다.
           </p>
           <textarea
-            className="min-h-[230px] max-h-[44dvh] w-full resize-y rounded-2xl border border-amber-200/22 bg-black/28 p-3 text-[12px] sm:text-[13px] leading-7 text-stone-100/90 outline-none focus:border-amber-200/48 focus:ring-2 focus:ring-amber-200/18"
+            className="min-h-[230px] max-h-[44dvh] w-full resize-y rounded-2xl border border-amber-200/20 bg-black/40 p-3 text-[12px] sm:text-[13px] leading-7 text-stone-100/90 outline-none focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20"
             value={aiPromptText}
             readOnly
             aria-label={mindScanTarotText("mindScanTarot.015")}
@@ -1419,14 +1430,14 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-400/20 text-amber-50 hover:bg-amber-400/30 transition-colors">
               질문문 복사
             </button>
-            <span className="min-h-5 text-center sm:text-left text-xs text-amber-100/78" aria-live="polite">
+            <span className="min-h-5 text-center sm:text-left text-xs text-amber-100/80" aria-live="polite">
               {aiPromptMsg}
             </span>
           </div>
         </m.article>
 
         <button type="button" onClick={onRestart}
-          className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/78 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
+          className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/80 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
           🔄 다시 카드 열기
         </button>
       </div>

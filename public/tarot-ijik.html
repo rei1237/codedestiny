@@ -1340,35 +1340,6 @@ const IJIK_COIN_COST = 50;
 
 let _ijikLastCoinTx = '';
 
-function setIjikPaymentPending(show, message) {
-  var text = String(message || '').trim() || '5,000원 결제를 확인하는 중입니다.';
-  try {
-    if (typeof window._cdSetCoinGateOverlay === 'function') {
-      window._cdSetCoinGateOverlay(!!show, text);
-      return;
-    }
-  } catch (_) {}
-
-  var overlay = document.getElementById('cdStandalonePaymentOverlay');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.id = 'cdStandalonePaymentOverlay';
-    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 50%, rgba(15,23,42,.78), rgba(2,6,23,.92));backdrop-filter:blur(8px);padding:16px;';
-    overlay.innerHTML = '<div style="width:min(420px,100%);border-radius:20px;border:1px solid rgba(125,211,252,.42);background:linear-gradient(135deg, rgba(15,23,42,.92), rgba(30,41,59,.94));box-shadow:0 24px 54px rgba(2,6,23,.5);padding:22px 18px;color:rgba(226,232,240,.98);text-align:center;"><div style="width:44px;height:44px;margin:0 auto 12px;border-radius:999px;border:3px solid rgba(125,211,252,.22);border-top-color:rgba(125,211,252,.96);animation:cdStandalonePaymentSpin .9s linear infinite"></div><p style="margin:0;font-size:19px;font-weight:800;color:rgba(224,242,254,.98)">5,000원 결제 확인 중...</p><p style="margin:9px 0 0;font-size:14px;color:rgba(186,230,253,.95)">리딩 권한과 결제 상태를 안전하게 확인하고 있습니다.</p><p id="cdStandalonePaymentOverlayStatus" style="margin:13px 0 0;border-radius:12px;border:1px solid rgba(167,243,208,.3);background:linear-gradient(135deg, rgba(15,23,42,.44), rgba(6,78,59,.3));padding:8px 10px;color:rgba(220,252,231,.98);font-size:13px;font-weight:600">5,000원 결제를 확인하는 중입니다.</p></div>';
-    document.body.appendChild(overlay);
-    if (!document.getElementById('cdStandalonePaymentOverlayStyle')) {
-      var style = document.createElement('style');
-      style.id = 'cdStandalonePaymentOverlayStyle';
-      style.textContent = '@keyframes cdStandalonePaymentSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}';
-      document.head.appendChild(style);
-    }
-  }
-
-  var status = document.getElementById('cdStandalonePaymentOverlayStatus');
-  if (status) status.textContent = text;
-  overlay.style.display = show ? 'flex' : 'none';
-}
-
 const TAROT_LOCAL_BASE = '/tarot-cards/';
 const TAROT_CARD_IMAGE_BY_ID = {
   M00: 'thefool.jpeg', M01: 'themagician.jpeg', M02: 'thehighpriestess.jpeg', M03: 'theempress.jpeg',
@@ -1788,120 +1759,75 @@ async function initDeckFromApi() {
 }
 
 // ─── PAYMENT GATE (1회 5,000원) ───
+// 다른 회당 결제(요가·영국홍차·관상 등)와 동일하게 공유 게이트를 그대로 호출한다.
+// 이용권 선검사 → 결제창(단건 KRW + 월정석) → 완료 UI는 모두 공유 게이트가 렌더한다.
+function _isAdminIjikSession() {
+  try {
+    var adminToken = sessionStorage.getItem('flower_admin_token') || '';
+    return !!(adminToken && /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/.test(adminToken));
+  } catch (_) {
+    return false;
+  }
+}
+
 async function ijikCoinGate(cost, reason) {
-  var _ADMIN_TOKEN_RE = /^[A-Za-z0-9_\-]{20,}\.[0-9a-f]{64}$/;
-  var isAdminLike = false;
-  try { if (window.__cdAdminBypass) isAdminLike = true; } catch(_) {}
-  if (!isAdminLike) {
-    try {
-      var _rawAdmin = localStorage.getItem('fortune_auth_user') || '';
-      if (_rawAdmin) {
-        var _adminUser = JSON.parse(_rawAdmin);
-        if (_adminUser && _adminUser.role === 'admin') isAdminLike = true;
-      }
-    } catch(_) {}
+  if (_isAdminIjikSession()) return true;
+
+  if (typeof window._cdCoinGatePerUse !== 'function') {
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return false;
   }
-  var plan = '';
-  try { var _u = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null'); plan = (_u && _u.plan) ? String(_u.plan) : ''; } catch(_) {}
-  if (plan === 'unlimited' || plan === 'premium') return true;
-  if (!isAdminLike) {
-    try {
-      var _sTok = String(sessionStorage.getItem('flower_admin_token') || '');
-      if (_ADMIN_TOKEN_RE.test(_sTok)) isAdminLike = true;
-    } catch(_) {}
-  }
-  if (!isAdminLike) {
-    try {
-      var _lTok = String(localStorage.getItem('flower_admin_token') || '');
-      if (_ADMIN_TOKEN_RE.test(_lTok)) isAdminLike = true;
-    } catch(_) {}
-  }
-  if (isAdminLike) return true;
+
   var title = String(reason || '커리어 전환 타로 리딩').trim() || '커리어 전환 타로 리딩';
   var requestId = 'tarot-ijik:req:' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
-  var granted = false;
-  var grantTxId = '';
-  function markGranted(txId, payload) {
-    granted = true;
+
+  // 환불 플로우가 참조하는 마지막 거래 id와 로컬 잔액 스냅샷만 최신화한다(결제 UI는 공유 게이트 담당).
+  function syncIjikBilling(payload, txId) {
     var source = payload && typeof payload === 'object' ? payload : {};
     var data = source.data && typeof source.data === 'object' ? source.data : {};
     var consume = source.consume && typeof source.consume === 'object' ? source.consume : (data.consume && typeof data.consume === 'object' ? data.consume : {});
-    grantTxId = String(txId || source.transactionId || source.paymentId || source.purchaseId || consume.transactionId || consume._id || requestId);
-    _ijikLastCoinTx = grantTxId;
+    _ijikLastCoinTx = String(txId || source.transactionId || source.paymentId || source.purchaseId || consume.transactionId || consume._id || requestId);
     var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
     if (Number.isFinite(nextBalance) && nextBalance >= 0) {
-      try { var nextUser = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {}; nextUser.points = nextBalance; localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser)); } catch(_) {}
+      try {
+        var nextUser = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+        nextUser.points = nextBalance;
+        localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser));
+      } catch (_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
     }
   }
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    setIjikPaymentPending(true, '이직 타로 결제 권한을 확인하는 중입니다...');
-    try {
-      var gateResult = await window._cdCoinGatePerUse(cost, title, function(transactionId, payload) {
-        markGranted(transactionId, payload);
-      }, null, {
-        featureKey: 'tarot-ijik',
-        serviceKey: 'tarot-ijik',
-        action: 'getReading',
-        reason: title,
-        cost: cost,
-        coinPrice: cost,
-        requestId: requestId,
-        forceDeduct: true
-      });
-      if (!granted && gateResult && typeof gateResult === 'object') {
-        var status = String(gateResult.status || '').toLowerCase();
-        var payload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
-        if (status === 'granted' || status === 'paid' || status === 'success' || payload.accessGrant || payload.premiumAccessToken || payload.consume) {
-          markGranted(gateResult.transactionId, payload);
-        }
-      }
-      return granted;
-    } catch(e) {
-      console.error('[tarot-ijik coin-gate]', e);
-      window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      return false;
-    } finally {
-      setIjikPaymentPending(false);
-    }
-  }
 
-  setIjikPaymentPending(true, '이직 타로 결제를 확인하는 중입니다...');
-  try {
-    const resp = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        cost: cost,
-        coinPrice: cost,
-        reason: title,
+  return await new Promise(function (resolve) {
+    var settled = false;
+    function done(v) { if (!settled) { settled = true; resolve(v); } }
+    try {
+      var gateResult = window._cdCoinGatePerUse(cost, title, function (transactionId, payload) {
+        syncIjikBilling(payload, transactionId);
+        done(true);
+      }, function () {
+        done(false);
+      }, {
         featureKey: 'tarot-ijik',
         serviceKey: 'tarot-ijik',
         action: 'getReading',
-        paymentMode: 'COIN',
         forceDeduct: true,
         requestId: requestId
-      })
-    });
-    const data = await resp.json().catch(function() { return {}; });
-    if (!resp.ok) {
-      if (resp.status === 401 || resp.status === 403) {
-        window.location.href = '/login?next=' + encodeURIComponent(location.pathname);
-        return false;
+      });
+      if (gateResult && typeof gateResult.then === 'function') {
+        gateResult.then(function (result) {
+          if (result && result.status === 'granted') {
+            syncIjikBilling(result.payload || result, result.transactionId);
+            done(true);
+          } else {
+            done(false);
+          }
+        }).catch(function () { done(false); });
       }
-      window.alert((data && data.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
-      return false;
+    } catch (_) {
+      done(false);
     }
-    markGranted('', data);
-    return true;
-  } catch(e) {
-    console.error('[tarot-ijik coin-gate]', e);
-    window.alert('오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  } finally {
-    setIjikPaymentPending(false);
-  }
+  });
 }
 
 async function _ijikAutoRefundCoin(cost, sourceTransactionId) {

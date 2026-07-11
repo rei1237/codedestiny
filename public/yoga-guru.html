@@ -1408,85 +1408,20 @@ function _getMeditationAuthToken() {
   return '';
 }
 
-function _redirectLoginForMeditation() {
-  if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-    window.__cdOpenLoginRequiredModal({ reason: 'mobile_auth_resync', redirectTo: window.location.pathname });
-    return;
-  }
-  window.location.replace('/login?next=' + encodeURIComponent(window.location.pathname));
-}
-
-var _cdMeditationPayToastTimer = null;
 var _cdYogaLastTx = '';
 
-function _ensureMeditationPaymentUi() {
-  if (document.getElementById('cdMeditationPayUiStyle')) return;
-
-  var style = document.createElement('style');
-  style.id = 'cdMeditationPayUiStyle';
-  style.textContent =
-    '.cd-mpay-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(3,6,18,.62);backdrop-filter:blur(2px);z-index:2147483000}' +
-    '.cd-mpay-overlay.is-show{display:flex}' +
-    '.cd-mpay-box{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:14px;background:rgba(6,12,30,.94);border:1px solid rgba(255,255,255,.14);color:#f8fafc;box-shadow:0 20px 48px rgba(0,0,0,.45)}' +
-    '.cd-mpay-spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.28);border-top-color:#fbbf24;border-radius:50%;animation:cdMpaySpin .75s linear infinite}' +
-    '.cd-mpay-message{font-size:14px;font-weight:700;letter-spacing:.01em}' +
-    '.cd-mpay-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,14px);opacity:0;pointer-events:none;z-index:2147483001;padding:10px 14px;border-radius:999px;background:rgba(10,25,18,.95);border:1px solid rgba(74,222,128,.4);color:#bbf7d0;font-size:13px;font-weight:700;transition:opacity .2s ease,transform .2s ease;box-shadow:0 12px 30px rgba(0,0,0,.35)}' +
-    '.cd-mpay-toast.is-show{opacity:1;transform:translate(-50%,0)}' +
-    '@keyframes cdMpaySpin{to{transform:rotate(360deg)}}';
-  document.head.appendChild(style);
-
-  var overlay = document.createElement('div');
-  overlay.id = 'cdMeditationPayOverlay';
-  overlay.className = 'cd-mpay-overlay';
-  overlay.innerHTML =
-    '<div class="cd-mpay-box">' +
-    '<div class="cd-mpay-spinner" aria-hidden="true"></div>' +
-    '<div id="cdMeditationPayMessage" class="cd-mpay-message">원화 결제 처리 중...</div>' +
-    '</div>';
-  document.body.appendChild(overlay);
-
-  var toast = document.createElement('div');
-  toast.id = 'cdMeditationPayToast';
-  toast.className = 'cd-mpay-toast';
-  toast.setAttribute('aria-live', 'polite');
-  document.body.appendChild(toast);
-}
-
-function _showMeditationPaymentUi(message) {
-  _ensureMeditationPaymentUi();
-  var overlay = document.getElementById('cdMeditationPayOverlay');
-  var text = document.getElementById('cdMeditationPayMessage');
-  if (text) text.textContent = message || '요가 구루 명상 코스 결제를 확인하는 중입니다...';
-  if (overlay) overlay.classList.add('is-show');
-}
-
-function _hideMeditationPaymentUi() {
-  var overlay = document.getElementById('cdMeditationPayOverlay');
-  if (overlay) overlay.classList.remove('is-show');
-}
-
-function _showMeditationDeductedUi(cost, balanceAfter) {
-  _ensureMeditationPaymentUi();
-  var toast = document.getElementById('cdMeditationPayToast');
-  if (!toast) return;
-
-  var msg = '이용 권한 확인 완료';
-  if (typeof balanceAfter === 'number' && Number.isFinite(balanceAfter)) {
-    msg += ' · 잔여 가치 ' + Number(balanceAfter).toLocaleString('ko-KR');
-  }
-  toast.textContent = msg;
-  toast.classList.add('is-show');
-
-  if (_cdMeditationPayToastTimer) clearTimeout(_cdMeditationPayToastTimer);
-  _cdMeditationPayToastTimer = setTimeout(function () {
-    toast.classList.remove('is-show');
-  }, 2300);
-}
-
+// 다른 회당 결제(관상·영국홍차 등)와 동일하게 공유 게이트를 그대로 호출한다.
+// 이용권 선검사 → 결제창(단건 KRW + 월정석)·완료 UI는 모두 공유 게이트가 렌더한다.
 async function _consumeMeditationCoin(cost, reason) {
   if (_isAdminMeditationSession()) return true;
 
+  if (typeof window._cdCoinGatePerUse !== 'function') {
+    window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.');
+    return false;
+  }
+
   var requestId = 'yoga:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
+  // 환불 플로우가 참조하는 마지막 거래 id와 로컬 잔액 스냅샷만 최신화한다(피드백 UI는 공유 게이트 담당).
   function syncYogaBilling(payload, txId) {
     var source = payload && typeof payload === 'object' ? payload : {};
     var data = source.data && typeof source.data === 'object' ? source.data : {};
@@ -1500,21 +1435,18 @@ async function _consumeMeditationCoin(cost, reason) {
         localStorage.setItem('fortune_auth_user', JSON.stringify(nextUser));
       } catch (_) {}
       if (typeof window.__cdSetGoldenBalance === 'function') window.__cdSetGoldenBalance(nextBalance);
-      _showMeditationDeductedUi(cost, nextBalance);
-    } else {
-      _showMeditationDeductedUi(cost, null);
     }
   }
 
-  if (typeof window._cdCoinGatePerUse === 'function') {
-    var granted = false;
-    _showMeditationPaymentUi('요가 구루 명상 코스 결제 권한을 확인하는 중입니다...');
+  return await new Promise(function (resolve) {
+    var settled = false;
+    function done(v) { if (!settled) { settled = true; resolve(v); } }
     try {
-      var gateResult = window._cdCoinGatePerUse(cost, reason, function(transactionId, payload) {
-        granted = true;
+      var gateResult = window._cdCoinGatePerUse(cost, reason, function (transactionId, payload) {
         syncYogaBilling(payload, transactionId);
-      }, function() {
-        granted = false;
+        done(true);
+      }, function () {
+        done(false);
       }, {
         featureKey: 'yoga-guru-per-use',
         serviceKey: 'yoga-guru',
@@ -1522,54 +1454,20 @@ async function _consumeMeditationCoin(cost, reason) {
         forceDeduct: true,
         requestId: requestId
       });
-      if (gateResult && typeof gateResult.then === 'function') gateResult = await gateResult;
-      if (!granted && gateResult && typeof gateResult === 'object') {
-        var payload = gateResult.payload && typeof gateResult.payload === 'object' ? gateResult.payload : gateResult;
-        var status = String(gateResult.status || payload.status || '').toLowerCase();
-        if (status === 'granted' || status === 'paid' || status === 'success' || payload.accessGrant || payload.premiumAccessToken || payload.consume) {
-          granted = true;
-          syncYogaBilling(payload, gateResult.transactionId);
-        }
+      if (gateResult && typeof gateResult.then === 'function') {
+        gateResult.then(function (result) {
+          if (result && result.status === 'granted') {
+            syncYogaBilling(result.payload || result, result.transactionId);
+            done(true);
+          } else {
+            done(false);
+          }
+        }).catch(function () { done(false); });
       }
-      return granted;
     } catch (_) {
-      window.alert('결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.');
-      return false;
-    } finally {
-      _hideMeditationPaymentUi();
+      done(false);
     }
-  }
-
-  var token = await _resolveMeditationAuthToken();
-  if (!token) {
-    _redirectLoginForMeditation();
-    return false;
-  }
-
-  _showMeditationPaymentUi('요가 구루 명상 코스 결제를 확인하는 중입니다...');
-  try {
-    var r = await fetch('/api/billing/coin-gate', {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cost: cost, coinPrice: cost, reason: reason, featureKey: 'yoga-guru-per-use', serviceKey: 'yoga-guru', action: 'openYogaGuru', paymentMode: 'COIN', forceDeduct: true, requestId: requestId })
-    });
-    var d = {};
-    try { d = await r.json(); } catch (_) { d = {}; }
-
-    if (r.status === 402 || !r.ok) {
-      window.alert((d && d.message) || '결제를 완료하지 못했습니다. 다시 시도해 주세요.');
-      return false;
-    }
-
-    syncYogaBilling(d, '');
-    return true;
-  } catch (_) {
-    window.alert('결제 처리 중 네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.');
-    return false;
-  } finally {
-    _hideMeditationPaymentUi();
-  }
+  });
 }
 
 async function _refundMeditationCoinForApiFailure(cost, sourceTxId, reasonTag) {

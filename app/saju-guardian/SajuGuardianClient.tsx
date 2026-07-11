@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { showToast } from "@/app/components/Toast";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
@@ -392,6 +394,10 @@ const SAJU_GUARDIAN_TEXT_COPY: Partial<Record<LoadingLocale, Record<string, stri
     "일": "Day",
     "태어난 시간 (선택)": "Birth Time (Optional)",
     "시간을 모르면 건너뛰세요": "Skip if you do not know the time",
+    "프로필 카드에서 불러오기": "Load from profile card",
+    "프로필 카드에서 출생 정보 불러오기": "Load birth info from profile card",
+    "프로필 카드의 출생 정보를 불러왔어요.": "Birth info loaded from your profile card.",
+    "프로필 카드에 저장된 출생 정보가 없어요.": "No birth info saved on your profile card.",
     "년": "",
     "시": ":00",
     "오전": "AM",
@@ -760,6 +766,22 @@ const YEARS = Array.from({ length: 100 }, (_, i) => 2024 - i);
 const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+function seedToGuardianBirthFields(seed: AiPrefillSeed | null): { year: string; month: string; day: string; hour: string } | null {
+  if (!seed) return null;
+  const digits = String(seed.birthDate || "").replace(/\D/g, "");
+  if (digits.length !== 8) return null;
+  const year = Number(digits.slice(0, 4));
+  const month = Number(digits.slice(4, 6));
+  const day = Number(digits.slice(6, 8));
+  if (!YEARS.includes(year) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+  let hour = "";
+  if (!seed.birthTimeUnknown && /^\d{2}:\d{2}$/.test(String(seed.birthTime || ""))) {
+    const parsedHour = Number(String(seed.birthTime).slice(0, 2));
+    if (parsedHour >= 0 && parsedHour <= 23) hour = String(parsedHour);
+  }
+  return { year: String(year), month: String(month), day: String(day), hour };
+}
 
 const ELEMENT_EMOJI: Record<string, string> = {
   목: "🌿",
@@ -1906,9 +1928,38 @@ export default function SajuGuardianPage() {
   const [birthHour, setBirthHour] = useState("");
   const [apiData, setApiData] = useState<ApiResult | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
+  const birthTouchedRef = useRef(false);
 
   const isFormValid = birthYear && birthMonth && birthDay;
   const tx = useCallback((value: string) => translateSajuGuardianText(value, locale), [locale]);
+
+  const applyProfileSeed = useCallback((seed: AiPrefillSeed | null) => {
+    const fields = seedToGuardianBirthFields(seed);
+    if (!fields) return false;
+    setBirthYear(fields.year);
+    setBirthMonth(fields.month);
+    setBirthDay(fields.day);
+    if (fields.hour) setBirthHour(fields.hour);
+    return true;
+  }, []);
+
+  // 서버에서 프로필 카드가 뒤늦게 도착해도, 사용자가 직접 고르기 전이라면 폼에 반영
+  useEffect(() => {
+    if (!profileSeed || birthTouchedRef.current) return;
+    applyProfileSeed(profileSeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion]);
+
+  const loadFromProfileCard = useCallback(() => {
+    void reloadProfileSeed().then((seed) => {
+      if (applyProfileSeed(seed)) {
+        showToast(tx("프로필 카드의 출생 정보를 불러왔어요."), "success");
+      } else {
+        showToast(tx("프로필 카드에 저장된 출생 정보가 없어요."), "error");
+      }
+    });
+  }, [applyProfileSeed, reloadProfileSeed, tx]);
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
@@ -2322,25 +2373,44 @@ export default function SajuGuardianPage() {
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-6 border border-white/60 shadow-xl shadow-pink-100/50 space-y-4">
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={loadFromProfileCard}
+              aria-label={tx("프로필 카드에서 출생 정보 불러오기")}
+              className="rounded-full border border-pink-200 bg-pink-50/80 px-3.5 py-1.5 text-xs font-bold text-pink-500 transition-colors hover:bg-pink-100"
+            >
+              {tx("프로필 카드에서 불러오기")}
+            </button>
+          </div>
           <div className="grid grid-cols-3 gap-3">
             <SelectField
               label={tx("태어난 년도")}
               value={birthYear}
-              onChange={setBirthYear}
+              onChange={(value) => {
+                birthTouchedRef.current = true;
+                setBirthYear(value);
+              }}
               placeholder={tx("년도")}
               options={YEARS.map((y) => ({ value: String(y), label: `${y}${tx("년")}` }))}
             />
             <SelectField
               label={tx("월")}
               value={birthMonth}
-              onChange={setBirthMonth}
+              onChange={(value) => {
+                birthTouchedRef.current = true;
+                setBirthMonth(value);
+              }}
               placeholder={tx("월")}
               options={MONTHS.map((m) => ({ value: String(m), label: locale === "ko" ? `${m}월` : `Month ${m}` }))}
             />
             <SelectField
               label={tx("일")}
               value={birthDay}
-              onChange={setBirthDay}
+              onChange={(value) => {
+                birthTouchedRef.current = true;
+                setBirthDay(value);
+              }}
               placeholder={tx("일")}
               options={DAYS.map((d) => ({ value: String(d), label: locale === "ko" ? `${d}일` : `Day ${d}` }))}
             />
@@ -2349,7 +2419,10 @@ export default function SajuGuardianPage() {
           <SelectField
             label={tx("태어난 시간 (선택)")}
             value={birthHour}
-            onChange={setBirthHour}
+            onChange={(value) => {
+              birthTouchedRef.current = true;
+              setBirthHour(value);
+            }}
             placeholder={tx("시간을 모르면 건너뛰세요")}
             options={HOURS.map((h) => ({
               value: String(h),

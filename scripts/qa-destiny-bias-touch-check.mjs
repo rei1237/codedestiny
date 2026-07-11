@@ -26,9 +26,9 @@ const checks = [
     includes: ["fixed inset-x-0 bottom-0", "md:hidden"],
   },
   {
-    name: "result tab and photocard ui wired",
+    name: "result gauge/sections and photocard ui wired",
     file: "app/saju/destiny-bias/DestinyBiasClient.tsx",
-    includes: ["BiasDestinyMainCard", "BiasDestinyResultTabs", "BiasDestinyStageSummary"],
+    includes: ["BiasDestinyMainCard", "BiasDestinyScoreGauge", "BiasDestinyElementChart", "BiasDestinyFiveSections"],
   },
 ];
 

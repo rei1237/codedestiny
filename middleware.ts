@@ -142,8 +142,6 @@ const STATIC_PREFIXES = [
 const SERVICE_ROUTE_ACTIONS = new Map([
   ["/tarot", "openTarotModal"],
   ["/tarot/love", "openTarotLoveModal"],
-  ["/tarot/healing", "openTarotHealingModal"],
-  ["/tarot/healing/start", "openTarotHealingModal"],
   ["/tarot/self-esteem", "openTarotSelfEsteemModal"],
   ["/tarot/reunion", "openTarotReunionModal"],
   ["/tarot/year", "openTarotYearFortuneModal"],

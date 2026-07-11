@@ -1,10 +1,12 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { requireAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 
 const DREAM_PSYCHO_FEATURE_KEY = "dream-psycho-analysis";
 const DREAM_PSYCHO_FEATURE_REASON = "정신분석 해몽";
+const DREAM_PSYCHO_REPORT_TYPE = "dreamPsychoAnalysis";
 const DREAM_PSYCHO_GEMINI_MODEL_KEYS = Object.freeze([
   "DREAM_PSYCHO_GEMINI_MODEL",
   "PSYCHO_DREAM_GEMINI_MODEL",
@@ -30,15 +32,25 @@ export function __resetDreamPsychoAccessVerifierForTest() {
   dreamPsychoAccessVerifier = verifyPsychoDreamAccess;
 }
 
-async function verifyPsychoDreamAccess(request, env = {}) {
+async function verifyPsychoDreamAccess(request, env = {}, body = {}) {
   let auth;
   try {
-    auth = await requireAuth(request, env);
+    // allowDbFallback: true — 유효한 JWT는 Mongo 풀 초기화 등 일시적 DB 오류에도 신뢰하고
+    // (authDbFallback 플래그만 붙여) 인증을 통과시킨다. 실제로 로그인이 안 된 요청만 null.
+    auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true });
   } catch (error) {
-    if (Number(error?.status) === 401) {
-      return { ok: false, status: 401, code: "LOGIN_REQUIRED", message: "로그인 후 정신분석 해몽을 이용해 주세요." };
+    if (isAuthDbInfraError(error)) {
+      return {
+        ok: false,
+        status: 503,
+        code: "AUTH_TEMPORARILY_UNAVAILABLE",
+        message: "일시적인 오류로 로그인 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      };
     }
     throw error;
+  }
+  if (!auth) {
+    return { ok: false, status: 401, code: "LOGIN_REQUIRED", message: "로그인 후 정신분석 해몽을 이용해 주세요." };
   }
 
   const decision = await canAccessPaidFeature(auth.userId, DREAM_PSYCHO_FEATURE_KEY, {
@@ -52,6 +64,24 @@ async function verifyPsychoDreamAccess(request, env = {}) {
       accessType: String(decision.licenseType || decision.accessSource || "paid").trim(),
       accessSource: String(decision.accessSource || decision.reason || "").trim(),
     };
+  }
+
+  // canAccessPaidFeature는 회당 결제(월정석 차감 등)를 판정하지 않고 항상 PAYMENT_REQUIRED를 준다
+  // (지속 엔티틀먼트만 확인하는 설계). 결제 직후 발급된 프리미엄 액세스 토큰으로 그 결제를 인정한다.
+  const premiumAccessToken = String(body?.premiumAccessToken || "").trim();
+  if (premiumAccessToken) {
+    const tokenCheck = await verifyPremiumAccessToken(premiumAccessToken, env, {
+      userId: auth.userId,
+      reportType: DREAM_PSYCHO_REPORT_TYPE,
+    });
+    if (tokenCheck.ok && String(tokenCheck.payload?.featureKey || "").trim() === DREAM_PSYCHO_FEATURE_KEY) {
+      return {
+        ok: true,
+        auth,
+        accessType: "single_payment",
+        accessSource: "premium_access_token",
+      };
+    }
   }
 
   return {
@@ -818,10 +848,19 @@ function buildPsychoPrompt(body, dreamText, tone) {
     `- symbolsInDream: ${symbols}`,
     "",
     "[출력 규칙]",
-    "- 반드시 다섯 장으로 나누어 쓰세요.",
-    "- Chapter 1부터 Chapter 5까지 순서와 제목을 지키세요.",
-    "- 각 장에는 짧은 소제목과 자연스러운 해석 문장을 함께 적으세요.",
-    "- 마지막 장에는 오늘 바로 할 수 있는 작은 행동을 반드시 넣으세요.",
+    "- 반드시 아래 다섯 장 제목을 순서대로, 글자 하나도 바꾸지 말고 정확히 그대로 사용하세요:",
+    "  ## Chapter 1. 꿈의 장면과 핵심 상징",
+    "  ## Chapter 2. 정신분석적 해석 — 무의식의 소망과 갈등",
+    "  ## Chapter 3. 융 심리학적 해석 — 내면의 원형과 통합",
+    "  ## Chapter 4. 영적 상징 해몽 — 꿈이 전하는 신비한 메시지",
+    "  ## Chapter 5. 현실 조언과 치유의 방향",
+    "- 각 장 안에는 아래 소제목 문구를 정확히 그대로(글자 변경 없이) 한 번씩 포함하고, 그 앞뒤로 자연스러운 해석 문장을 충분히 덧붙이세요:",
+    "  · Chapter 1 안에: \"꿈의 핵심 장면 요약\"",
+    "  · Chapter 2 안에: \"프로이트식 소망 충족 관점\"",
+    "  · Chapter 3 안에: \"그림자와 아니마/아니무스의 작용\"",
+    "  · Chapter 4 안에: \"이 꿈이 건네는 신비로운 문장\"",
+    "  · Chapter 5 안에: \"오늘 할 수 있는 작은 행동\"",
+    "- 다섯 장을 고르게, 공백 제외 500자 이상 충분한 분량으로 채우세요.",
     "- 결과에는 시스템 메시지, JSON, API, LLM, payload, fallback 같은 말이 섞이지 않게 하세요.",
   ].join("\n");
 }
@@ -1002,6 +1041,9 @@ async function handlePsychoAnalysis(request, env = {}) {
     modelEnvKeys: DREAM_PSYCHO_GEMINI_MODEL_KEYS,
     temperature: 0.72,
     maxOutputTokens: 6144,
+    // thinking 예산을 끄지 않으면 긴 마크다운 출력이 thinking 토큰에 밀려 잘려 나가
+    // 뒷장(Chapter 5 등)이 누락되고 품질 게이트에서 탈락해 폴백으로 새는 경우가 있었다.
+    thinkingBudget: 0,
     timeoutMs: Number(env.DREAM_PSYCHO_PROVIDER_TIMEOUT_MS || env.DREAM_PROVIDER_TIMEOUT_MS || 55000),
     totalTimeoutMs: Number(env.DREAM_PSYCHO_TOTAL_TIMEOUT_MS || 30000),
   });

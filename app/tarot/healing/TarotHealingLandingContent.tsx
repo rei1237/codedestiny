@@ -517,6 +517,10 @@ export default function TarotHealingLandingContent() {
         </div>
       </section>
 
+      <section id="healing-tarot-reading" aria-label={copy.readingLabel}>
+        <TarotHealingClient />
+      </section>
+
       <section className="border-y border-amber-200/70 bg-white/70">
         <div className="mx-auto grid max-w-5xl gap-6 px-5 py-10 md:grid-cols-3">
           {copy.steps.map(([step, title, body]) => (
@@ -564,9 +568,6 @@ export default function TarotHealingLandingContent() {
         </div>
       </section>
 
-      <section id="healing-tarot-reading" aria-label={copy.readingLabel}>
-        <TarotHealingClient />
-      </section>
     </main>
   );
 }

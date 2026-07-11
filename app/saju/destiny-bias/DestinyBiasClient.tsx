@@ -12,12 +12,13 @@ import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import BiasDestinyHero from "./components/BiasDestinyHero";
 import BiasDestinyInputPanel from "./components/BiasDestinyInputPanel";
+import BiasDestinyElementChart from "./components/BiasDestinyElementChart";
+import BiasDestinyFiveSections from "./components/BiasDestinyFiveSections";
 import BiasDestinyMainCard from "./components/BiasDestinyMainCard";
-import BiasDestinyResultTabs from "./components/BiasDestinyResultTabs";
+import BiasDestinyScoreGauge from "./components/BiasDestinyScoreGauge";
 import BiasDestinyShareCard from "./components/BiasDestinyShareCard";
 import BiasDestinySpotlightBackground from "./components/BiasDestinySpotlightBackground";
 import BiasDestinyStageLoading from "./components/BiasDestinyStageLoading";
-import BiasDestinyStageSummary from "./components/BiasDestinyStageSummary";
 import DestinyBiasCoinModal from "./components/DestinyBiasCoinModal";
 import DestinyBiasProgress from "./components/DestinyBiasProgress";
 import DestinyBiasActionBar from "./components/DestinyBiasActionBar";
@@ -1411,9 +1412,8 @@ export default function DestinyBiasClient() {
                 <div className="relative z-10">
                   <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">FAN CONCERT DESTINY REPORT</p>
                   <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와의 최애운명 메인 리포트</h2>
-                  <p className="mt-2 max-w-3xl text-sm leading-7 text-white/88">
-                    오늘 당신과 최애 사이에는 은은하지만 선명한 공명이 흐르고 있어요.
-                    무대 위의 잔광처럼, 이 인연은 시간이 지날수록 더 깊게 울립니다.
+                  <p className="mt-2 max-w-3xl break-keep text-sm leading-7 text-white/88">
+                    {resultVm.chemistrySummary}
                   </p>
                   <div className="mt-3 inline-flex">
                     <FansignEditionBadge editionLabel={resultVm.editionLabel} destinyGrade={resultVm.destinyGrade} />
@@ -1421,11 +1421,13 @@ export default function DestinyBiasClient() {
                 </div>
               </article>
 
+              <BiasDestinyScoreGauge vm={resultVm} />
+
               <BiasDestinyMainCard vm={resultVm} biasImageUrl={biasImageDataUrl} />
 
-              <BiasDestinyResultTabs vm={resultVm} />
+              <BiasDestinyElementChart vm={resultVm} />
 
-              <BiasDestinyStageSummary vm={resultVm} />
+              <BiasDestinyFiveSections vm={resultVm} />
 
               <BiasDestinyShareCard vm={resultVm} />
 
@@ -1453,6 +1455,10 @@ export default function DestinyBiasClient() {
                   onTryAnother={handleTryAnotherBias}
                 />
               </section>
+
+              <p className="pt-1 text-center text-[11px] leading-5 text-white/55">
+                {resultVm.bottomNotice}
+              </p>
             </section>
           ) : null}
 

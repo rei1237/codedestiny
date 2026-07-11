@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -571,7 +571,8 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   const likelyAccessType = readEvidenceAccessType(evidence, body);
   await connectDb(env);
 
-  const user = await loadBillingUser(userObjectId);
+  // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
+  const user = await withMongoRetry(env, () => loadBillingUser(userObjectId));
   if (likelyAccessType === "pass") {
     const pass = normalizeHoneyPassEntitlement(user || {});
     if (canUseByPass(pass, pricing.coinPrice)) {
@@ -585,7 +586,7 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
     }
   }
 
-  const direct = await findDirectPayment(userObjectId, ids, idempotencyKey);
+  const direct = await withMongoRetry(env, () => findDirectPayment(userObjectId, ids, idempotencyKey));
   if (direct) {
     return {
       accessType: "paid",
@@ -599,14 +600,14 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   }
 
   if (likelyAccessType === "subscription") {
-    const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing);
+    const monthly = await withMongoRetry(env, () => findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing));
     if (monthly) return monthly;
   }
 
-  const point = await findPointEvidence(userObjectId, ids, idempotencyKey, pricing);
+  const point = await withMongoRetry(env, () => findPointEvidence(userObjectId, ids, idempotencyKey, pricing));
   if (point) return point;
 
-  const monthly = await findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing);
+  const monthly = await withMongoRetry(env, () => findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing));
   if (monthly) return monthly;
 
   return null;
@@ -1091,12 +1092,12 @@ async function handleEnsureAccess(request, env) {
   logVedicAi("LLM Access Check Start", { ...context, requestId });
 
   await connectDb(env);
-  const existing = await VedicAiConsultation.findOne({
+  const existing = await withMongoRetry(env, () => VedicAiConsultation.findOne({
     userId: String(auth.userId),
     idempotencyKey: requestId,
     inputHash: normalized.inputHash,
     status: "completed",
-  }).lean();
+  }).lean());
   if (existing) {
     const accessToken = await createAccessToken(env, {
       userId: String(auth.userId),
@@ -1115,7 +1116,7 @@ async function handleEnsureAccess(request, env) {
     });
   }
 
-  const user = await loadBillingUser(auth.userId);
+  const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (isAdmin(auth, user)) {
     const accessToken = await createAccessToken(env, {
       userId: String(auth.userId),
@@ -1203,10 +1204,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   const pricing = getPricing();
   const context = routeLogContext(request, body, normalized, idempotencyKey);
   await connectDb(env);
-  const existing = await VedicAiConsultation.findOne({
+  const existing = await withMongoRetry(env, () => VedicAiConsultation.findOne({
     userId: String(auth.userId),
     idempotencyKey,
-  });
+  }));
   if (existing?.status === "completed" && existing.inputHash === normalized.inputHash) {
     return json({ ok: true, consultation: consultationPayload(existing.toObject()) });
   }
@@ -1367,10 +1368,23 @@ async function handleResult(request, env) {
 
 export async function handleVedicAiRoutes(request, env) {
   const path = getRoutePath(request, "/api/vedic-ai");
-  if (path === "/ensure-access") return handleEnsureAccess(request, env);
-  if (path === "/start") return handleStart(request, env);
-  if (path === "/result" || path.startsWith("/result/")) return handleResult(request, env);
-  return notFound();
+  try {
+    if (path === "/ensure-access") return await handleEnsureAccess(request, env);
+    if (path === "/start") return await handleStart(request, env);
+    if (path === "/result" || path.startsWith("/result/")) return await handleResult(request, env);
+    return notFound();
+  } catch (error) {
+    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
+    if (isTransientMongoError(error)) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
+    throw error;
+  }
 }
 
 export const __vedicAiTestUtils = {
