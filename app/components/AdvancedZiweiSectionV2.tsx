@@ -1,5 +1,11 @@
 "use client";
 
+// ┌───────────────────────────────────────────────────────────────────────────┐
+// │ [심화(深化/advanced) 자미두수 명반] 라우트 /ziwei/chart 가 마운트하는 본체.  │
+// │ 파일명에 "Advanced"가 붙으면 = 심화 자미두수. 기본(基本) 자미두수 명반은     │
+// │ 여기가 아니라 js/saju-engine.js 의 renderZiwei()/zw-* 격자다(메인 index.html│
+// │ 사주·자미 모달). 12궁 4×4 격자·팔레트는 기본 명반과 디자인 레퍼런스를 공유.  │
+// └───────────────────────────────────────────────────────────────────────────┘
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { m } from "framer-motion";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
@@ -378,6 +384,32 @@ const ZIWEI_STRENGTH_COPY: Record<string, string> = {
   "▲": "상황에 따라 힘이 달라지는 별의 상태",
   "△": "무난하지만 방향에 따라 달라지는 흐름",
   X: "별의 에너지가 눌리거나 왜곡되기 쉬운 상태",
+};
+
+// 12궁 전통 명반 배치 — 지지(한글)를 4×4 격자 위치로 매핑(기본 명반 saju-engine.js zw-cell-N과 동일 배열).
+// 중앙 2×2(2/2~4/4)는 자미 성도 패널. ZHI_LIST(app/_lib/ziwei-engine.ts)는 한글 지지를 쓴다.
+const ZIWEI_BRANCH_GRID_AREA: Record<string, string> = {
+  사: "1 / 1", 오: "1 / 2", 미: "1 / 3", 신: "1 / 4",
+  진: "2 / 1", 유: "2 / 4",
+  묘: "3 / 1", 술: "3 / 4",
+  인: "4 / 1", 축: "4 / 2", 자: "4 / 3", 해: "4 / 4",
+};
+
+// 별 세기 기호(◎ O ▲ △ X)별 색 토큰
+const ZIWEI_STRENGTH_TONE: Record<string, string> = {
+  "◎": "text-emerald-300",
+  O: "text-sky-300",
+  "▲": "text-amber-300",
+  "△": "text-slate-300",
+  X: "text-rose-300",
+};
+
+// 사화 pill 색 위계 — 록=록빛/권=권세/과=명예/기=주의(기본 명반과 동일 의미)
+const ZIWEI_SIHUA_PILL: Record<string, string> = {
+  화록: "border-lime-300/40 bg-lime-300/12 text-lime-100",
+  화권: "border-fuchsia-300/40 bg-fuchsia-300/12 text-fuchsia-100",
+  화과: "border-sky-300/40 bg-sky-300/12 text-sky-100",
+  화기: "border-rose-300/45 bg-rose-300/14 text-rose-100",
 };
 
 const COUNSELING_TRACK_ICON_MAP: Record<ZiweiConsultationTrackId, string> = {
@@ -1899,28 +1931,28 @@ export default function AdvancedZiweiSectionV2({
         <StagePanel className="p-5 sm:p-7 lg:p-8">
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="space-y-5">
-              <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM REPORT</p>
+              <p className="text-[11px] font-semibold tracking-[0.32em] text-amber-100/80">ZIWEI PREMIUM REPORT</p>
               <h1 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
               <p className="font-premium max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
                 명궁·신궁의 축, 주성의 묘왕평함, 사화와 삼방사정, 대한·유년의 흐름을 함께 대조해 삶의 우선순위를 상담하듯 풀어드립니다.
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-400">명궁</p>
-                  <p className="mt-1 text-lg font-black text-cyan-100">{chart.mingGong}</p>
+                <div className="rounded-2xl border border-amber-200/20 bg-black/20 px-4 py-3">
+                  <p className="text-[11px] text-slate-300">명궁</p>
+                  <p className="mt-1 text-lg font-black text-amber-100">{chart.mingGong}</p>
+                </div>
+                <div className="rounded-2xl border border-sky-200/20 bg-black/20 px-4 py-3">
+                  <p className="text-[11px] text-slate-300">신궁</p>
+                  <p className="mt-1 text-lg font-black text-sky-100">{chart.shenGong}</p>
+                </div>
+                <div className="rounded-2xl border border-violet-200/20 bg-black/20 px-4 py-3">
+                  <p className="text-[11px] text-slate-300">오행국</p>
+                  <p className="mt-1 text-lg font-black text-violet-100">{chart.juInfo}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-400">신궁</p>
-                  <p className="mt-1 text-lg font-black text-cyan-100">{chart.shenGong}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-400">오행국</p>
-                  <p className="mt-1 text-lg font-black text-cyan-100">{chart.juInfo}</p>
-                </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-400">올해 흐름</p>
-                  <p className="mt-1 text-lg font-black text-cyan-100">{chart.yearGan}{chart.yearZhi}</p>
+                  <p className="text-[11px] text-slate-300">올해 흐름</p>
+                  <p className="mt-1 text-lg font-black text-amber-50">{chart.yearGan}{chart.yearZhi}</p>
                 </div>
               </div>
 
@@ -2056,49 +2088,89 @@ export default function AdvancedZiweiSectionV2({
               </div>
               <p className="text-xs text-slate-300">선택한 궁: {sectionTitle(activeSection)}</p>
             </div>
-            <div className="mt-5 grid grid-cols-2 gap-2 md:hidden">
-              {chart.palaces.map((palace) => {
-                const active = palace.id === orbitActivePalaceId;
-                const stars = palace.mainStars.slice(0, 2).map((s) => s.name).join(" · ") || "무주성궁";
-                return (
-                  <button
-                    key={`mobile-${palace.id}`}
-                    type="button"
-                    onClick={() => loadSection(palace.id)}
-                    className={`min-h-[5.25rem] rounded-2xl border px-3 py-3 text-left transition ${active ? "border-cyan-200/65 bg-cyan-200/15 text-white" : "border-white/10 bg-black/30 text-slate-200"}`}
-                  >
-                    <p className="text-xs font-semibold">{palace.name} · {palace.earthlyBranch}</p>
-                    <p className="mt-1 text-[11px] leading-5 text-slate-300">{stars}</p>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="relative mx-auto mt-5 hidden aspect-square w-full max-w-[36rem] rounded-full border border-white/10 bg-black/15 p-4 md:block">
-              <div className="absolute inset-[16%] rounded-full border border-cyan-100/15 bg-[radial-gradient(circle,rgba(56,189,248,0.10),rgba(4,8,18,0.0)_72%)]" />
-              <div className="absolute inset-[31%] rounded-full border border-white/10 bg-white/6" />
-              {chart.palaces.map((palace, index) => {
-                const angle = (index / chart.palaces.length) * Math.PI * 2 - Math.PI / 2;
-                const left = `${50 + Math.cos(angle) * 38}%`;
-                const top = `${50 + Math.sin(angle) * 38}%`;
-                const active = palace.id === orbitActivePalaceId;
-                const stars = palace.mainStars.slice(0, 2).map((s) => s.name).join(" · ") || "무주성궁";
-                return (
-                  <button
-                    key={palace.id}
-                    type="button"
-                    onClick={() => loadSection(palace.id)}
-                    className={`absolute z-10 w-[6.4rem] -translate-x-1/2 -translate-y-1/2 rounded-2xl border px-3 py-2 text-left shadow-[0_0_24px_rgba(255,255,255,0.05)] transition lg:w-[7.4rem] ${active ? "border-cyan-200/65 bg-cyan-200/15 text-white" : "border-white/10 bg-black/30 text-slate-200 hover:border-cyan-100/30 hover:bg-black/45"}`}
-                    style={{ left, top }}
-                  >
-                    <p className="text-[11px] font-semibold">{palace.name}</p>
-                    <p className="mt-1 text-[10px] leading-4 text-slate-300">{stars}</p>
-                  </button>
-                );
-              })}
-              <div className="absolute inset-1/2 z-20 flex w-28 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-amber-200/25 bg-amber-200/10 px-4 py-3 text-center text-[11px] font-semibold text-amber-50 shadow-[0_0_32px_rgba(251,191,36,0.18)]">
-                명반 중심의
-                <br />
-                판독 축
+            {/* 12궁 전통 4×4 명반 — 기본 명반(saju-engine.js zw-* 격자)과 동일한 지지 배치/팔레트 레퍼런스 */}
+            <div className="mt-5 overflow-x-auto pb-1">
+              <div
+                className="relative mx-auto aspect-square w-full min-w-[19rem] max-w-[38rem] gap-1.5"
+                style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gridTemplateRows: "repeat(4, minmax(0, 1fr))" }}
+              >
+                {chart.palaces.map((palace) => {
+                  const area = ZIWEI_BRANCH_GRID_AREA[palace.earthlyBranch];
+                  if (!area) return null;
+                  const active = palace.id === orbitActivePalaceId;
+                  const isMeng = palace.id === "ming";
+                  const isShen = !!chart.shenGong && palace.earthlyBranch === chart.shenGong && !isMeng;
+                  const sihuaLabels = Array.from(
+                    new Set((palace.fourTransformations || []).map((t) => transformationTypeToLabel(t.type)).filter(Boolean)),
+                  );
+                  const hasHuaji = sihuaLabels.includes("화기");
+                  const mains = palace.mainStars || [];
+                  const subs = (palace.subStars || []).slice(0, 3);
+                  const roleClass = active
+                    ? "border-amber-200/70 bg-gradient-to-br from-indigo-500/25 to-violet-600/20 shadow-[0_0_26px_rgba(196,181,253,0.32)]"
+                    : isMeng
+                      ? "border-amber-300/55 bg-black/30 shadow-[0_0_20px_rgba(232,213,163,0.18)]"
+                      : isShen
+                        ? "border-sky-300/45 bg-black/30 shadow-[0_0_18px_rgba(125,211,252,0.16)]"
+                        : hasHuaji
+                          ? "border-rose-300/45 bg-black/30"
+                          : "border-violet-300/20 bg-black/25 hover:border-violet-200/45 hover:bg-black/35";
+                  return (
+                    <button
+                      key={palace.id}
+                      type="button"
+                      onClick={() => loadSection(palace.id)}
+                      style={{ gridArea: area }}
+                      aria-label={`${palace.name} ${palace.earthlyBranch}`}
+                      className={`group relative flex min-h-0 flex-col overflow-hidden rounded-xl border p-2 text-left transition duration-200 ${roleClass}`}
+                    >
+                      <div className="flex items-start justify-between gap-1">
+                        <span className="text-[11px] font-black leading-tight text-white sm:text-xs">{palace.name}</span>
+                        {palace.dahan ? <span className="shrink-0 text-[9px] font-semibold text-amber-200/85">{palace.dahan}</span> : null}
+                      </div>
+                      {sihuaLabels.length ? (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {sihuaLabels.map((label) => (
+                            <span key={label} className={`rounded-full border px-1.5 py-px text-[8px] font-bold ${ZIWEI_SIHUA_PILL[label] || "border-white/15 bg-white/10 text-white"}`}>
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <div className="mt-1 flex min-h-0 flex-col gap-0.5">
+                        {mains.length ? (
+                          mains.map((star, i) => (
+                            <span key={`${star.name}-${i}`} className="flex items-baseline gap-0.5 text-[11px] font-bold leading-tight text-amber-50">
+                              {star.name}
+                              {star.strengthSymbol ? (
+                                <span className={`text-[10px] font-black ${ZIWEI_STRENGTH_TONE[star.strengthSymbol] || "text-slate-200"}`}>{star.strengthSymbol}</span>
+                              ) : null}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[10px] italic text-white/50">공궁</span>
+                        )}
+                        {subs.length ? (
+                          <span className="text-[9px] leading-snug text-violet-100/85">{subs.map((s) => s.name).join(" ")}</span>
+                        ) : null}
+                      </div>
+                      <span className="pointer-events-none absolute bottom-1 right-1.5 text-[11px] font-black text-white/45">{palace.earthlyBranch}</span>
+                    </button>
+                  );
+                })}
+                <div
+                  style={{ gridArea: "2 / 2 / 4 / 4" }}
+                  className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_28%,rgba(232,213,163,0.2),transparent_58%),radial-gradient(circle_at_30%_80%,rgba(167,139,250,0.2),transparent_56%),linear-gradient(160deg,rgba(40,28,84,0.85),rgba(15,13,42,0.92))] p-3 text-center shadow-[inset_0_0_28px_rgba(232,213,163,0.18)]"
+                >
+                  <p className="text-[10px] font-black tracking-[0.16em] text-amber-100/90">紫微星圖</p>
+                  <p className="mt-1 text-sm font-black text-amber-100 sm:text-base">자미 성도 명반</p>
+                  <div className="mt-2 flex flex-wrap justify-center gap-1">
+                    <span className="rounded-full border border-amber-300/45 bg-amber-300/12 px-2 py-0.5 text-[9px] font-bold text-amber-100">명궁 {chart.mingGong}</span>
+                    <span className="rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[9px] font-bold text-sky-100">신궁 {chart.shenGong}</span>
+                    <span className="rounded-full border border-violet-300/45 bg-violet-300/12 px-2 py-0.5 text-[9px] font-bold text-violet-100">오행국 {chart.juInfo}</span>
+                  </div>
+                  <p className="mt-2 hidden text-[9px] leading-snug text-indigo-100/80 sm:block">별빛이 강한 궁일수록 명반에서 선명하게 작동하는 운명의 축입니다.</p>
+                </div>
               </div>
             </div>
           </StagePanel>

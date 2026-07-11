@@ -14622,6 +14622,16 @@ function buildZwSummaryTableHtml(palace) {
     +'</details>';
 }
 
+// ┌─────────────────────────────────────────────────────────────────────────┐
+// │ [기본(基本) 자미두수 명반 렌더러]                                          │
+// │ 메인 index.html 사주/자미 모달의 4×4 전통 명반(zw-* 클래스)이 여기서 그려짐.│
+// │ ⚠ 이 파일이 "기본 명반"이다. `/ziwei/*`, `app/components/*Ziwei*.tsx`,     │
+// │   `app/_lib/ziwei-*` 는 별개의 "심화(深化)" 자미두수(→ 라우트 /ziwei/chart,│
+// │   app/components/AdvancedZiweiSectionV2.tsx). 기본 명반을 고치려면 여기다.  │
+// │ CSS는 같은 파일 위쪽 `<style>` 블록의 .zw-* 규칙. 루트/`public/` 2벌 미러 → │
+// │   반드시 동기화(cp). 셀 위계·팔레트(네오=네이비·퍼플+라벤더+샴페인 골드)는  │
+// │   심화 명반과 공유하는 디자인 레퍼런스.                                     │
+// └─────────────────────────────────────────────────────────────────────────┘
 function renderZiwei(p, natal, targetId) {
   var birth = window._ziweiBirth || { year:0, month:1, day:1, hour:12, minute:0 };
   var palace = calcZiweiPalaces(birth.year, birth.month, birth.day, birth.hour, birth.minute);
@@ -14959,13 +14969,13 @@ function renderZiwei(p, natal, targetId) {
     .zw-grid-wrap {
       flex: 1.4;
       background:
-        radial-gradient(circle at 12% 15%, rgba(250, 204, 21, 0.18), transparent 34%),
-        radial-gradient(circle at 88% 12%, rgba(125, 211, 252, 0.18), transparent 32%),
-        radial-gradient(circle at 86% 84%, rgba(59, 130, 246, 0.18), transparent 38%),
-        radial-gradient(circle at 48% 50%, rgba(196, 181, 253, 0.13), transparent 58%),
-        linear-gradient(140deg, #050816 0%, #130a2c 43%, #081731 100%);
+        radial-gradient(circle at 12% 15%, rgba(232, 213, 163, 0.16), transparent 36%),
+        radial-gradient(circle at 88% 12%, rgba(167, 139, 250, 0.20), transparent 34%),
+        radial-gradient(circle at 86% 84%, rgba(139, 92, 246, 0.20), transparent 40%),
+        radial-gradient(circle at 48% 50%, rgba(196, 181, 253, 0.16), transparent 60%),
+        linear-gradient(140deg, #080614 0%, #150a2e 46%, #0b0a24 100%);
       padding: 15px;
-      border-radius: 16px;
+      border-radius: 18px;
       box-shadow:
         inset 0 0 32px rgba(0,0,0,0.82),
         inset 0 0 0 1px rgba(167,139,250,0.24),
@@ -15017,7 +15027,7 @@ function renderZiwei(p, natal, targetId) {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       grid-template-rows: repeat(4, minmax(85px, auto));
-      gap: 5px;
+      gap: 6px;
       width: 100%;
       position: relative;
       z-index: 1;
@@ -15028,11 +15038,11 @@ function renderZiwei(p, natal, targetId) {
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(186, 165, 255, 0.26);
-      border-radius: 10px;
-      padding: 6px;
+      border-radius: 13px;
+      padding: 7px;
       display: flex;
       flex-direction: column;
-      transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background-color 0.24s ease;
+      transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.24s ease, background-color 0.24s ease;
       cursor: pointer;
       min-height: 100px;
       height: auto;
@@ -15076,8 +15086,8 @@ function renderZiwei(p, natal, targetId) {
       box-shadow: inset 0 0 22px rgba(250,204,21,0.1), 0 0 18px rgba(250,204,21,0.12);
     }
     .zw-cell-power-mid {
-      border-color: rgba(125, 211, 252, 0.36);
-      box-shadow: inset 0 0 18px rgba(125,211,252,0.08);
+      border-color: rgba(167, 139, 250, 0.42);
+      box-shadow: inset 0 0 18px rgba(167,139,250,0.10);
     }
     .zw-cell-power-low {
       border-color: rgba(148, 163, 184, 0.24);
@@ -15153,14 +15163,14 @@ function renderZiwei(p, natal, targetId) {
       text-align: center;
       border-radius: 18px;
       background:
-        radial-gradient(circle at 52% 26%, rgba(252, 211, 77, 0.26), transparent 58%),
-        radial-gradient(circle at 28% 78%, rgba(147, 197, 253, 0.2), transparent 54%),
-        radial-gradient(circle at 74% 46%, rgba(196, 181, 253, 0.14), transparent 56%),
-        linear-gradient(160deg, rgba(36, 28, 78, 0.76), rgba(12, 23, 54, 0.88));
+        radial-gradient(circle at 52% 26%, rgba(232, 213, 163, 0.26), transparent 58%),
+        radial-gradient(circle at 28% 78%, rgba(167, 139, 250, 0.22), transparent 54%),
+        radial-gradient(circle at 74% 46%, rgba(196, 181, 253, 0.16), transparent 56%),
+        linear-gradient(160deg, rgba(40, 28, 84, 0.80), rgba(15, 13, 42, 0.90));
       box-shadow:
-        inset 0 0 34px rgba(250,204,21,0.24),
-        0 0 24px rgba(125,211,252,0.18),
-        0 0 40px rgba(56, 189, 248, 0.12);
+        inset 0 0 34px rgba(232,213,163,0.22),
+        0 0 24px rgba(167,139,250,0.20),
+        0 0 40px rgba(139, 92, 246, 0.14);
       color: #fff;
       padding: 10px;
       word-break: keep-all; /* 번역 대응 */
@@ -15206,7 +15216,7 @@ function renderZiwei(p, natal, targetId) {
     .zw-center-orbit-two {
       width: 58%;
       aspect-ratio: 1;
-      border-color: rgba(125, 211, 252, 0.2);
+      border-color: rgba(167, 139, 250, 0.24);
       animation: zwOrbitSlow 24s linear reverse infinite;
     }
     .zw-center-seal {
@@ -15223,11 +15233,11 @@ function renderZiwei(p, natal, targetId) {
       font-size: 0.78rem;
       font-weight: 900;
       letter-spacing: 0.04em;
-      border: 1px solid rgba(250,204,21,0.44);
+      border: 1px solid rgba(232,213,163,0.5);
       background:
-        radial-gradient(circle at 50% 28%, rgba(255,255,255,0.18), transparent 35%),
-        linear-gradient(145deg, rgba(120, 53, 15, 0.54), rgba(49, 46, 129, 0.46));
-      box-shadow: inset 0 0 18px rgba(250,204,21,0.18), 0 0 22px rgba(250,204,21,0.18);
+        radial-gradient(circle at 50% 28%, rgba(255,255,255,0.2), transparent 38%),
+        linear-gradient(145deg, rgba(232, 213, 163, 0.28), rgba(76, 46, 129, 0.5));
+      box-shadow: inset 0 0 18px rgba(232,213,163,0.2), 0 0 22px rgba(167,139,250,0.2);
     }
     .zw-center-legend {
       position: relative;
@@ -15398,7 +15408,7 @@ function renderZiwei(p, natal, targetId) {
       white-space: normal;
       max-width: 100%;
     }
-    .zw-star-aux { color: #9bdfff; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
+    .zw-star-aux { color: #c8aaff; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
     .zw-star-bad { color: #ff8b8b; text-shadow: 0 1px 1px rgba(0,0,0,0.55); }
     .zw-empty { font-size: 0.75rem; color: rgba(255,255,255,0.4); font-style: italic; margin-top: 4px; }
     .zw-dahan { font-size: 0.7rem; color: #10B981; position: absolute; top: 8px; right: 6px; font-weight: 700; background: rgba(16, 185, 129, 0.15); padding: 1px 4px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.3); line-height: 1.2; z-index: 3; }
@@ -16888,7 +16898,7 @@ function renderZiwei(p, natal, targetId) {
       }
       .zw-grid-wrap::-webkit-scrollbar { height: 5px; }
       .zw-grid-wrap::-webkit-scrollbar-thumb {
-        background: linear-gradient(90deg, rgba(250,204,21,0.5), rgba(125,211,252,0.5));
+        background: linear-gradient(90deg, rgba(232,213,163,0.5), rgba(167,139,250,0.5));
         border-radius: 999px;
       }
       .zw-chart-mobile-note {
@@ -16937,10 +16947,10 @@ function renderZiwei(p, natal, targetId) {
         padding: 8px 6px;
         border-radius: 10px;
         background:
-          radial-gradient(circle at 50% 24%, rgba(252, 211, 77, 0.2), transparent 56%),
-          radial-gradient(circle at 50% 76%, rgba(147, 197, 253, 0.16), transparent 62%),
-          radial-gradient(circle, rgba(212,175,55,0.14) 0%, rgba(20,25,45,0.92) 72%);
-        border: 1px solid rgba(212,175,55,0.45);
+          radial-gradient(circle at 50% 24%, rgba(232, 213, 163, 0.2), transparent 56%),
+          radial-gradient(circle at 50% 76%, rgba(167, 139, 250, 0.18), transparent 62%),
+          radial-gradient(circle, rgba(232,213,163,0.14) 0%, rgba(18,16,40,0.93) 72%);
+        border: 1px solid rgba(232,213,163,0.42);
         display: flex;
         flex-direction: column;
         justify-content: center;
