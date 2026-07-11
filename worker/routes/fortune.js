@@ -651,6 +651,61 @@ async function findSajuAIExecutionForRead({ auth, jobId = "", resultId = "", req
   }).lean();
 }
 
+// 생성 시작 시점에 "generating" 실행 레코드를 기록한다 — 클라이언트 /status 폴링이 404(JOB_NOT_FOUND)
+// 대신 202(진행 중)로 수렴하고, 백그라운드(waitUntil) 생성의 완료/실패도 레코드로 전달된다.
+// 식별자(executionId·requestId·profileId)와 과금 필드는 완료 저장(saveSajuAIConsultationResultRecord)의
+// $setOnInsert와 동일 정본을 쓴다 — 불일치 시 폴링이 레코드를 못 찾아 404가 재발한다.
+async function beginSajuAIConsultationGeneratingRecord({ auth, body, profileId, requestId, resultId, consumePayload, paymentIdentity, chargedCoins, membershipCreditCost }) {
+  const userId = String(auth?.userId || "").trim();
+  const normalizedProfileId = String(profileId || "default").trim() || "default";
+  const normalizedRequestId = String(requestId || "").trim();
+  if (!userId || !normalizedRequestId) return null;
+  const now = new Date();
+  const accessMethod = normalizeSajuAIPromptAccessMethod(consumePayload, body);
+  const executionId = buildSajuAIPromptExecutionId({ userId, profileId: normalizedProfileId, requestId: normalizedRequestId });
+  const paymentId = String(paymentIdentity?.paymentId || "").trim();
+  const orderId = String(paymentIdentity?.orderId || normalizedRequestId).trim();
+  await PaidExecutionRecord.findOneAndUpdate(
+    {
+      userId,
+      featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+      profileId: normalizedProfileId,
+      requestId: normalizedRequestId,
+    },
+    {
+      $setOnInsert: {
+        executionId,
+        requestId: normalizedRequestId,
+        userId,
+        featureId: SAJU_AI_PROMPT_FEATURE_KEY,
+        profileId: normalizedProfileId,
+        accessMode: SAJU_AI_PROMPT_ACCESS_MODE,
+        accessMethod,
+        amountCoins: accessMethod === "single" ? Math.max(0, Math.floor(Number(chargedCoins || 0))) : 0,
+        amountKRW: accessMethod === "single" && Number(chargedCoins || 0) > 0 ? SAJU_AI_PROMPT_AMOUNT_KRW : 0,
+        monthlyDeductedAmount: accessMethod === "monthly" ? Math.max(0, Math.floor(Number(membershipCreditCost || 0))) : 0,
+        paymentId: paymentId && paymentId !== normalizedRequestId ? paymentId : "",
+        orderId,
+        consumedAt: now,
+        idempotencyKey: executionId.slice(0, 180),
+      },
+      $set: {
+        status: "generating",
+        resultId: String(resultId || "").trim(),
+        result: {
+          progress: buildSajuAIProgress(10, "generating", "명식의 흐름을 읽고 있어요"),
+          order: { paymentStatus: "PAID", accessMethod },
+        },
+      },
+      $unset: { error: "", completedAt: "" },
+    },
+    { upsert: true },
+  ).catch((error) => {
+    console.warn("[fortune][saju-ai-prompt] begin generating record failed:", error?.message || error);
+  });
+  return executionId;
+}
+
 async function saveSajuAIConsultationResultRecord({ auth, body, profileId, requestId, resultId, resultPayload, builtPrompt, consumePayload, paymentIdentity, promptDigest }) {
   const userId = String(auth?.userId || "").trim();
   const normalizedProfileId = String(profileId || readSajuAIPromptProfileId(body, body?.sajuResult) || "default").trim() || "default";
@@ -3885,7 +3940,7 @@ async function handleVedicAIPrompt(request, auth, env) {
   }
 }
 
-async function handleSajuAIPrompt(request, auth, env) {
+async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
   const sajuResult = body?.sajuResult;
@@ -4035,6 +4090,34 @@ async function handleSajuAIPrompt(request, auth, env) {
     );
   }
 
+  // 같은 requestId 재-POST는 완료본 재열람(즉시 200) 또는 진행 중 재연결(202)로 흡수한다.
+  // 위 소비 위임은 requestId 멱등이라 재차감이 없고, stale(생성 최악치 초과) 레코드만 아래 begin이 인계한다.
+  const sajuExecutionId = buildSajuAIPromptExecutionId({ userId: String(auth?.userId || "").trim(), profileId, requestId });
+  try {
+    const existingExecution = await findSajuAIExecutionForRead({ auth, jobId: sajuExecutionId, resultId, requestId, profileId });
+    if (existingExecution?.status === "completed") {
+      const stored = normalizeSajuAIStoredResult(existingExecution);
+      if (stored) return json(stored);
+    }
+    if (existingExecution?.status === "generating" && !isSajuAIPromptStaleGeneratingExecution(existingExecution)) {
+      return json(buildSajuAIStatusPayload(existingExecution), { status: 202 });
+    }
+  } catch (error) {
+    console.warn("[fortune][saju-ai-prompt] execution reconnect lookup failed:", error?.message || error);
+  }
+  // 생성 시작 표시 — 이 레코드가 있어야 클라이언트 /status 폴링이 404 대신 202로 수렴한다.
+  await beginSajuAIConsultationGeneratingRecord({
+    auth,
+    body,
+    profileId,
+    requestId,
+    resultId,
+    consumePayload,
+    paymentIdentity,
+    chargedCoins,
+    membershipCreditCost,
+  });
+
   logSajuAIPromptStage("LLM_JOB_STARTED", {
     userId: auth.userId,
     requestId,
@@ -4054,6 +4137,9 @@ async function handleSajuAIPrompt(request, auth, env) {
     keyExtra: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
   };
 
+  // LLM 생성 전체(성공 저장·실패 환불·레코드 마킹 포함)를 클로저로 묶는다 — ctx가 있으면 즉시 202 후
+  // 백그라운드(waitUntil)에서 완주하고, 없으면(테스트/로컬) 기존 동기 계약 그대로 이 Response를 반환한다.
+  const runGeneration = async () => {
   try {
     let finalAi = null;
     let finalText = "";
@@ -4265,6 +4351,20 @@ async function handleSajuAIPrompt(request, auth, env) {
       errorName: error?.name || error?.code || "Error",
       errorMessage: error?.message || error,
     });
+    // 백그라운드(waitUntil) 실행에서도 실패가 클라이언트 /status 폴링에 전달되도록 레코드에 기록한다.
+    await PaidExecutionRecord.updateOne(
+      { executionId: sajuExecutionId },
+      {
+        $set: {
+          status: "generation_failed",
+          error: {
+            code: "LLM_GENERATION_RETRYABLE",
+            message: String(error?.message || error || "generation failed").slice(0, 500),
+          },
+          "result.progress": buildSajuAIProgress(0, "failed", "상담 생성에 실패했어요. 결제 권한은 보존되니 다시 시도해 주세요."),
+        },
+      },
+    ).catch(() => {});
     return buildSajuAILlmRetryableError({
       chargedCoins,
       membershipCreditCost,
@@ -4276,6 +4376,25 @@ async function handleSajuAIPrompt(request, auth, env) {
       resultId,
     });
   }
+  };
+
+  if (ctx?.waitUntil) {
+    // 즉시 202 — 생성은 백그라운드에서 완주하고, 실패 시 위 catch가 환불+레코드 기록까지 수행한다.
+    // 클라이언트(saju-engine)는 이 바디의 jobId/resultId로 /status 폴링을 시작해 수렴한다.
+    ctx.waitUntil(runGeneration().catch(() => {}));
+    return json({
+      ok: true,
+      status: "generating",
+      jobId: sajuExecutionId,
+      executionId: sajuExecutionId,
+      resultId,
+      requestId,
+      progress: 10,
+      stepMessage: "명식의 흐름을 읽고 있어요",
+    }, { status: 202 });
+  }
+  // 폴백(ctx 없는 테스트/로컬): 기존 동기 계약 유지.
+  return await runGeneration();
 }
 
 async function handleSajuAIConsultationStatus(request, auth, path = "") {
@@ -5136,7 +5255,7 @@ async function handleSubscriptionCancel(request, auth) {
   });
 }
 
-export async function handleFortuneRoutes(request, env) {
+export async function handleFortuneRoutes(request, env, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/fortune");
   const trace = {
@@ -5221,7 +5340,7 @@ export async function handleFortuneRoutes(request, env) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
       trace.authVerified = true;
-      return await handleSajuAIPrompt(request, auth, env);
+      return await handleSajuAIPrompt(request, auth, env, ctx);
     }
 
     if (method === "GET" && (path === "/saju-ai-consultation/status" || path.startsWith("/saju-ai-consultation/status/"))) {

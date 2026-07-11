@@ -1164,7 +1164,8 @@ export default {
       }
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
-        return withCorsHeaders(request, env, await handleFortuneRoutes(request, env));
+        // ctx: 사주 AI 상담 생성을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달.
+        return withCorsHeaders(request, env, await handleFortuneRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {
