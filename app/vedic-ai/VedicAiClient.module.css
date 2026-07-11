@@ -480,6 +480,19 @@
   filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.6));
 }
 
+/* 각 궤도의 행성을 SVG 중심(160,160) 기준으로 CSS 회전 — JS setInterval 리렌더 제거(GPU transform). */
+.cosmosOrbitSpin {
+  transform-box: view-box;
+  transform-origin: 160px 160px;
+  animation: mandalaDrift linear infinite;
+  will-change: transform;
+}
+
+/* 중앙 글리프 미세 호흡감 */
+.cosmosOrbitGlyph {
+  animation: cosmosCoreBreath 6s ease-in-out infinite;
+}
+
 .cosmosLoadingText {
   display: grid;
   gap: 0.45rem;
@@ -494,6 +507,11 @@
   color: rgba(255, 255, 255, 0.28);
   font-size: 0.78rem;
   text-transform: uppercase;
+}
+
+/* 스테이지 전환 시 라벨/서브텍스트 크로스페이드(React key 리마운트로 매 스테이지 재생) */
+.cosmosLabelSwap {
+  animation: cosmosLabelFade 0.62s cubic-bezier(0.18, 0.83, 0.34, 1) both;
 }
 
 .cosmosStageDots {
@@ -767,12 +785,21 @@
   font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: background-color 0.24s cubic-bezier(0.18, 0.83, 0.34, 1),
+    border-color 0.24s cubic-bezier(0.18, 0.83, 0.34, 1),
+    transform 0.24s cubic-bezier(0.18, 0.83, 0.34, 1),
+    box-shadow 0.24s cubic-bezier(0.18, 0.83, 0.34, 1);
 }
 
 .pdfButton:hover {
   background: rgba(246, 214, 126, 0.2);
   border-color: rgba(246, 214, 126, 0.72);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(246, 214, 126, 0.16);
+}
+
+.pdfButton:active {
+  transform: translateY(0);
 }
 
 .pdfButton:disabled {
@@ -828,6 +855,19 @@
   background: radial-gradient(circle, rgba(246, 214, 126, 0.14), rgba(12, 8, 28, 0.2));
   color: #f6d67e;
   box-shadow: 0 0 18px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
+  animation: medallionRingGlow 5.4s ease-in-out infinite;
+}
+
+/* 요약 링의 은은한 idle 글로우 호흡 — 어포던스가 아닌 생동감용 */
+@keyframes medallionRingGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 18px rgba(246, 214, 126, 0.12), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
+  }
+
+  50% {
+    box-shadow: 0 0 26px rgba(246, 214, 126, 0.24), inset 0 0 0 3px rgba(124, 31, 46, 0.16);
+  }
 }
 
 .medallionGlyph {
@@ -1292,6 +1332,48 @@
   to {
     transform: translateY(-14px);
     opacity: 0.72;
+  }
+}
+
+@keyframes cosmosCoreBreath {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 16px rgba(167, 139, 250, 0.55));
+  }
+
+  50% {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 26px rgba(167, 139, 250, 0.8));
+  }
+}
+
+@keyframes cosmosLabelFade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 결과 블록 순차 진입(stagger) — animation-delay는 인라인으로 주입 */
+.revealItem {
+  animation: revealRise 0.62s cubic-bezier(0.18, 0.83, 0.34, 1) both;
+}
+
+@keyframes revealRise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -1856,5 +1938,45 @@
   .resultFooterPrimary,
   .resultFooterSecondary {
     justify-content: center;
+  }
+}
+
+/* ── 동작 줄이기(prefers-reduced-motion) 전면 대응 ── */
+@media (prefers-reduced-motion: reduce) {
+  /* 무한 앰비언트 회전·부유·트윙클·글로우 정지 */
+  .shell::before,
+  .hero::after,
+  .starLayer,
+  .mandalaStage::before,
+  .mandalaStage::after,
+  .mandalaCore,
+  .orbitOne,
+  .orbitTwo,
+  .emptyMandala,
+  .loadingMandala,
+  .cosmosStars span,
+  .cosmosOrbitSpin,
+  .cosmosOrbitGlyph,
+  .medallionRing,
+  .heroChartPreview,
+  .spin {
+    animation: none !important;
+  }
+
+  /* 진입 stagger·라벨 크로스페이드는 즉시 표시 */
+  .revealItem,
+  .cosmosLabelSwap {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  /* 링·점수바·진행바 등 값 변화는 트랜지션 없이 즉시 반영 */
+  .dashaRingProgress,
+  .scorePanel b,
+  .cosmosProgress span,
+  .cosmosStageDots i,
+  .pdfButton {
+    transition: none !important;
   }
 }

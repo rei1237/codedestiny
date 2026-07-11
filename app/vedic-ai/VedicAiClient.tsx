@@ -731,7 +731,6 @@ function scoreValue(value: unknown) {
 
 function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
   const [stage, setStage] = useState(0);
-  const [angle, setAngle] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -742,11 +741,9 @@ function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
       acc += duration;
       return timer;
     });
-    const rotationTimer = window.setInterval(() => setAngle((current) => (current + 0.3) % 360), 16);
     const progressTimer = window.setInterval(() => setProgress((current) => Math.min(current + 0.35, 95)), 80);
     return () => {
       timers.forEach(window.clearTimeout);
-      window.clearInterval(rotationTimer);
       window.clearInterval(progressTimer);
     };
   }, []);
@@ -777,28 +774,34 @@ function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
             <circle key={orbit.r} cx="160" cy="160" r={orbit.r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
           ))}
           {COSMOS_ORBITS.map((orbit, index) => {
-            const theta = (angle * orbit.speed + index * 60) * Math.PI / 180;
+            // 초기 각도 오프셋(index*60°)만 정적으로 배치하고, 실제 공전은 CSS로 각 궤도를 회전시킨다.
+            const theta = (index * 60) * Math.PI / 180;
             const px = 160 + orbit.r * Math.cos(theta);
             const py = 160 + orbit.r * Math.sin(theta);
             return (
-              <circle
+              <g
                 key={`${orbit.r}-${index}`}
-                cx={px}
-                cy={py}
-                r={orbit.size / 2}
-                fill={orbit.color}
-                style={{ filter: `drop-shadow(0 0 5px ${orbit.color})` }}
-              />
+                className={styles.cosmosOrbitSpin}
+                style={{ animationDuration: `${(19.2 / orbit.speed).toFixed(1)}s` }}
+              >
+                <circle
+                  cx={px}
+                  cy={py}
+                  r={orbit.size / 2}
+                  fill={orbit.color}
+                  style={{ filter: `drop-shadow(0 0 5px ${orbit.color})` }}
+                />
+              </g>
             );
           })}
           <circle cx="160" cy="160" r="28" fill="rgba(124,58,237,0.14)" stroke="rgba(139,92,246,0.32)" strokeWidth="1" />
         </svg>
-        <span>{activeStage.glyph}</span>
+        <span className={styles.cosmosOrbitGlyph}>{activeStage.glyph}</span>
       </div>
 
       <div className={styles.cosmosLoadingText}>
-        <strong>{activeStage.label || fallbackText}</strong>
-        <span>{activeStage.sub}</span>
+        <strong key={`label-${stage}`} className={styles.cosmosLabelSwap}>{activeStage.label || fallbackText}</strong>
+        <span key={`sub-${stage}`} className={styles.cosmosLabelSwap}>{activeStage.sub}</span>
       </div>
 
       <div className={styles.cosmosStageDots}>
@@ -928,7 +931,7 @@ export function StructuredReadingResult({
         </button>
       </div>
 
-      <section className={styles.chartSummaryCard} aria-label="라그나·라시·나크샤트라 요약">
+      <section className={`${styles.chartSummaryCard} ${styles.revealItem}`} style={{ animationDelay: "0ms" }} aria-label="라그나·라시·나크샤트라 요약">
         <article className={styles.medallion}>
           <span className={styles.medallionRing}><SummaryGlyph kind="lagna" /></span>
           <span className={styles.medallionKo}>라그나</span>
@@ -952,7 +955,7 @@ export function StructuredReadingResult({
         </article>
       </section>
 
-      <div className={styles.dashaBanner}>
+      <div className={`${styles.dashaBanner} ${styles.revealItem}`} style={{ animationDelay: "70ms" }}>
         <div className={styles.dashaBannerLabel}>
           <span className={styles.cardLabelKo}>다샤</span>
           <em className={styles.cardLabelSans}>Vimshottari Dasha</em>
@@ -969,12 +972,18 @@ export function StructuredReadingResult({
         </div>
       </div>
 
-      <NorthIndianChart chart={chart} />
-      <DashaTimeline chart={chart} />
+      <div className={styles.revealItem} style={{ animationDelay: "140ms" }}>
+        <NorthIndianChart chart={chart} />
+      </div>
+      <div className={styles.revealItem} style={{ animationDelay: "210ms" }}>
+        <DashaTimeline chart={chart} />
+      </div>
 
-      <BasicVedicChartData chart={chart} />
+      <div className={styles.revealItem} style={{ animationDelay: "280ms" }}>
+        <BasicVedicChartData chart={chart} />
+      </div>
 
-      <section className={styles.scorePanel}>
+      <section className={`${styles.scorePanel} ${styles.revealItem}`} style={{ animationDelay: "350ms" }}>
         {Object.entries(SCORE_LABELS).map(([key, label]) => (
           <div key={key}>
             <span>{label}({key})</span>
@@ -984,11 +993,11 @@ export function StructuredReadingResult({
         ))}
       </section>
 
-      {sectionEntries.map(([key, rawSection]) => {
+      {sectionEntries.map(([key, rawSection], index) => {
         const section = asRecord(rawSection);
         const { ko, sans } = splitBilingual(toText(section.title) || key);
         return (
-          <article className={styles.structuredSection} key={key}>
+          <article className={`${styles.structuredSection} ${styles.revealItem}`} style={{ animationDelay: `${420 + index * 70}ms` }} key={key}>
             <div className={styles.structuredSectionHead}>
               <span className={styles.sectionBadge} aria-hidden="true">{SECTION_GLYPHS[key] || "✦"}</span>
               <h3>
@@ -1417,7 +1426,7 @@ export default function VedicAiClient() {
               <div className={styles.summaryHeader}>
                 <span>베다점 핵심 지표</span>
               </div>
-              <div className={styles.summaryGrid}>
+              <div className={`${styles.summaryGrid} ${styles.revealItem}`} style={{ animationDelay: "0ms" }}>
                 <article><span>라그나, Lagna</span><strong>{summary.lagna || toText(lagna.signKo || lagna.sign) || "출생시간 필요"}</strong></article>
                 <article><span>달의 나크샤트라, Moon Nakshatra</span><strong>{summary.nakshatra || toText(moon.nakshatra) || "-"}</strong></article>
                 <article><span>현재 다샤, Current Dasha</span><strong>{summary.currentDasha || "-"}</strong></article>
@@ -1425,11 +1434,11 @@ export default function VedicAiClient() {
                 <article><span>주요 바바</span><strong>{summary.majorBhavas?.length ? summary.majorBhavas.join(", ") : "-"}</strong></article>
               </div>
 
-              <div className={styles.keywordRow}>
+              <div className={`${styles.keywordRow} ${styles.revealItem}`} style={{ animationDelay: "70ms" }}>
                 {(summary.keywords || []).slice(0, 4).map((keyword) => <span key={keyword}>{keyword}</span>)}
               </div>
 
-              <div className={styles.chartCards}>
+              <div className={`${styles.chartCards} ${styles.revealItem}`} style={{ animationDelay: "140ms" }}>
                 <article>
                   <span>D1 Rashi</span>
                   <strong>{planetSummary(chart, "Sun") || "태양의 흐름"}</strong>
