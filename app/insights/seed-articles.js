@@ -43,6 +43,8 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "vedic-what-is",
   "vedic-lagna-what-is",
   "nakshatra-what-is",
+  "saju-compatibility-how-to",
+  "new-year-fortune-framework",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [

@@ -106,13 +106,13 @@
 - `vedic-dasha-transit-remedy-practical-guide` ⟵ `vedic-dasha-monthly-action-guide` [완료]
 - 개별 유지(전부 AI 저술 완료): `vedic-what-is`, `vedic-lagna-what-is`, `nakshatra-what-is`, `vedic-astrology-navamsa-basics`, `vedic-astrology-12-rasi-complete-personality-guide`, `vedic-compatibility-synastry-basics`, `vedic-retrograde-planets-practical-decoding`, `vedic-moon-sign-emotion-routine-guide`, `vedic-transit-journal-template-90days`
 
-### 궁합 (현 5편)
-- `saju-compatibility-how-to` ⟵ `saju-compatibility-fun-method`, `goonghap-compatibility-basics-complete` **[확정필요]**
-- 개별 유지: `byeongo-year-love-winning-strategy`, `ten-gods-practical-map-love-work-money`
+### 궁합 (9/9 완료 — 통합 맵 확정·실행 완료 2026-07-11)
+- `saju-compatibility-how-to` ⟵ `saju-compatibility-fun-method`, `goonghap-compatibility-basics-complete` [완료]
+- 개별 유지(AI 저술 완료): `ten-gods-practical-map-love-work-money`
 
-### 기타 / 신년 / 오늘 (현 5편)
-- 세계 점술 시리즈 유지: `world-strange-divination-guide-including-pig-oracle`, `middle-east-divination-traditions-deep-guide`, `africa-divination-traditions-deep-guide` (+ 재분류 편입 `asia-…`, `europe-…`)
-- 단독 유지: `new-year-fortune-framework`(신년), `how-to-raise-luck-daily-routine-practical-guide`(오늘)
+### 기타 / 신년 / 오늘 (AI 저술 완료 2026-07-11)
+- 세계 점술 시리즈(전부 완료): `world-strange-divination-guide-including-pig-oracle`, `asia-divination-traditions-deep-guide`, `europe-divination-traditions-deep-guide`, `middle-east-divination-traditions-deep-guide`, `africa-divination-traditions-deep-guide`
+- 단독 유지(완료): `new-year-fortune-framework`(신년), `how-to-raise-luck-daily-routine-practical-guide`(오늘)
 
 ---
 
@@ -243,12 +243,16 @@ AI가 직접 저술해 달라고 명시적으로 요청(기존 "저자 직접 �
 - [x] `vedic-compatibility-synastry-basics` — 궁합 / `vedic-retrograde-planets-practical-decoding` — 역행 행성
 - [x] `vedic-moon-sign-emotion-routine-guide` — 달자리 감정 루틴 / `vedic-transit-journal-template-90days` — 트랜짓 90일 저널
 
-### 궁합 (2) · 기타/신년/오늘 (7)
-- [ ] `saju-compatibility-how-to` — 사주 궁합 보는 법 [통합: saju-compatibility-fun-method, goonghap-compatibility-basics-complete]
-- [ ] `ten-gods-practical-map-love-work-money` — 십성 실전(연애·일·돈)
-- [ ] `world-strange-divination-guide-including-pig-oracle` · `asia-divination-traditions-deep-guide` · `europe-divination-traditions-deep-guide` · `middle-east-divination-traditions-deep-guide` · `africa-divination-traditions-deep-guide` — 세계 점술 시리즈(자미/타로에서 기타로 재분류)
-- [ ] `new-year-fortune-framework` — 신년운세 프레임
-- [ ] `how-to-raise-luck-daily-routine-practical-guide` — 운 높이는 데일리 루틴
+### 궁합 (2) · 기타/신년/오늘 (7) — 9/9 완료 2026-07-11
+- [x] `saju-compatibility-how-to` — 사주 궁합 보는 법 [통합 완료: saju-compatibility-fun-method, goonghap-compatibility-basics-complete]
+- [x] `ten-gods-practical-map-love-work-money` — 십성 실전(연애·일·돈)
+- [x] `world-strange-divination-guide-including-pig-oracle` · `asia-divination-traditions-deep-guide` · `europe-divination-traditions-deep-guide` · `middle-east-divination-traditions-deep-guide` · `africa-divination-traditions-deep-guide` — 세계 점술 시리즈(자미/타로에서 기타로 재분류)
+- [x] `new-year-fortune-framework` — 신년운세 프레임
+- [x] `how-to-raise-luck-daily-routine-practical-guide` — 운 높이는 데일리 루틴
+
+**2026-07-11 배치 완료**: 타로12·점성술8·베다점10·궁합기타9 총 39편 AI 저술 배치가 모두 완료되었습니다.
+사용자가 "각 분야 최고의 운세 전문가로서" 요청한 예외적 AI 자동 저술로, Agent 도구 병렬 디스패치로
+카테고리별 초안을 작성하고 삽입·검증·리다이렉트·커밋을 순차 진행했습니다.
 
 > 실제 리다이렉트·소스 제거는 각 canonical 글을 공급받아 삽입할 때 함께 실행한다(§1-3 절차).
 > 그때까지 흡수 대상 old 슬러그는 템플릿으로 정상 노출 유지.
