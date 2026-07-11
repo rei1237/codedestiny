@@ -1609,7 +1609,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
   logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   logLifeBookAction("entitlement_check", {
     route,
@@ -1820,7 +1820,7 @@ async function handleResult(request, env, pathId = "") {
   const sessionId = clean(pathId || url.searchParams.get("sessionId") || url.searchParams.get("consultationId"), 120);
   if (!attemptId && !sessionId) return invalidInput(MESSAGES.resultNotFound, 404);
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1951,7 +1951,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate") {
   if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
   logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   logLifeBookAction("generate_start", {
     route,

@@ -1307,7 +1307,7 @@ async function handleEnsureAccess(request, env) {
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
   console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey });
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) {
     console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "LOGIN_REQUIRED" });
     return loginRequired();
@@ -1342,7 +1342,7 @@ async function handleStart(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1474,7 +1474,7 @@ async function handleResult(request, env, pathId = "") {
   }
   if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1510,7 +1510,7 @@ async function handleMessage(request, env) {
   const sessionId = clean(body?.sessionId || body?.consultationId, 120);
   const message = clean(body?.message || body?.question, 1400);
   if (!sessionId || message.length < 2) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);

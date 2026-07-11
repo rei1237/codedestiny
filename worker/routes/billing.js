@@ -1,7 +1,7 @@
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
-import { getOptionalUserFromRequest } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import {
   buildPremiumAccessCookie,
   createPremiumAccessToken,
@@ -2756,7 +2756,26 @@ async function requireBillingAuth(request, env, pricing = {}) {
     return { ok: true, auth: null };
   }
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  let auth;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    // 로그인 사용자가 DB 풀 초기화 등 일시적 장애로 인증 확인이 안 되는 순간을
+    // 확정 401(로그아웃 유발)로 뭉개지 않고 재시도 가능한 503으로 응답한다.
+    if (isAuthDbInfraError(error)) {
+      return {
+        ok: false,
+        response: failure(
+          503,
+          "AUTH_STATUS_TEMPORARILY_UNAVAILABLE",
+          "로그인 상태를 일시적으로 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+          undefined,
+          { retryable: true },
+        ),
+      };
+    }
+    throw error;
+  }
   if (auth) {
     return { ok: true, auth };
   }

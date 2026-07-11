@@ -276,7 +276,7 @@ async function handlePrepare(request, env) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   const pricing = getPricing();
 
@@ -326,7 +326,7 @@ async function handleGenerate(request, env) {
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   const access = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);

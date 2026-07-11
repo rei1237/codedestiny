@@ -1,4 +1,4 @@
-import { requireUserFromRequest } from "./auth.js";
+import { resolvePaidRouteAuth } from "./auth.js";
 import { createHttpError } from "./http.js";
 import {
   COIN_GATE_PER_USE_REASON_COSTS,
@@ -275,16 +275,10 @@ export function resolveServerCoinPricing({ env, productSpec, requestedCost, feat
 }
 
 export async function resolvePigCoinConsumeAuth(request, env) {
-  let auth = null;
-  try {
-    auth = await requireUserFromRequest(request, env);
-  } catch (error) {
-    if (Number(error?.status) === 401) {
-      auth = null;
-    } else {
-      throw error;
-    }
-  }
+  // 로그인 사용자가 DB 풀 초기화 등 일시적 장애로 인증 확인이 안 될 때는 401(로그아웃 유발)이
+  // 아니라 resolvePaidRouteAuth가 던지는 503(재시도 가능)이 그대로 전파되도록 둔다.
+  // 진짜 게스트(토큰 없음/무효)는 null을 돌려주므로 아래에서 기존 401 유지.
+  const auth = await resolvePaidRouteAuth(request, env);
 
   if (!auth) {
     throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });

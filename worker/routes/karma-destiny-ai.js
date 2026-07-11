@@ -1542,7 +1542,7 @@ async function handleEnsureAccess(request, env) {
   logKarmaAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   const pricing = getPricing();
@@ -1676,7 +1676,7 @@ async function handleStart(request, env) {
   logKarmaAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "ok", env }));
   if (idempotencyKey.length < 12) return invalidInput("요청 키가 누락되었습니다. 화면을 새로고침한 뒤 다시 시도해 주세요.");
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1821,7 +1821,7 @@ async function handleGenerateBatch(request, env) {
   const sessionId = clean(body?.sessionId || body?.reportId || body?.attemptId || body?.idempotencyKey, 180);
   if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -2005,7 +2005,7 @@ async function handleResult(request, env, path) {
   const identifier = clean(pathId || url.searchParams.get("sessionId") || url.searchParams.get("reportId") || url.searchParams.get("attemptId") || url.searchParams.get("idempotencyKey"), 180);
   if (!identifier) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -2023,7 +2023,7 @@ async function handleMessage(request, env) {
   if (!sessionId) return invalidInput("상담 세션을 찾을 수 없습니다.", 404);
   if (message.length < 2) return invalidInput("추가 질문을 입력해 주세요.");
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);

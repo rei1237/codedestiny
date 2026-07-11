@@ -376,10 +376,21 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
       if (isNoUriError) {
         return { ...tokenAuth, authDbFallback: true };
       }
+      // JWT는 유효한데 DB 조회만 일시적으로 실패한 케이스. 옵트인 호출자(유료 라우트)에는
+      // null(→ 확정 401 "로그인 필요")로 뭉개지 말고 원본 에러를 던져 상위에서 503으로 강등한다.
+      if (options.surfaceDbInfraError === true && isAuthDbInfraError(dbError)) {
+        throw dbError;
+      }
       return null;
     }
   } catch (error) {
     logAuthError("verify-access-token", error, { hasToken: true });
+    // 내부 DB catch가 옵트인(surfaceDbInfraError)으로 re-throw한 infra 에러가 이 외부 catch에
+    // 다시 잡혀 null로 뭉개지지 않도록 표면화한다. verifyJwt 실패(=진짜 잘못된 토큰)는
+    // isAuthDbInfraError가 false라 그대로 null 반환(기존 동작).
+    if (options.surfaceDbInfraError === true && isAuthDbInfraError(error)) {
+      throw error;
+    }
     return null;
   }
 }
@@ -436,10 +447,11 @@ async function verifyRefreshSessionToAuth(request, env, options = {}) {
     return normalizeAuthResultFromUser(user);
   } catch (error) {
     logAuthError("verify-refresh-session-db", error, { hasRefreshToken: true, userId });
-    // Only a request that already tolerates DB blips (e.g. /api/auth/me) gets the raw
-    // infra error rethrown, so the caller can report "degraded" instead of a hard sign-out.
+    // Only a request that already tolerates DB blips (e.g. /api/auth/me) or explicitly
+    // opts in (surfaceDbInfraError, e.g. paid routes) gets the raw infra error rethrown,
+    // so the caller can report "degraded"/503 instead of a hard sign-out.
     // Every other route keeps failing closed to null, unchanged from prior behavior.
-    if (options.allowDbFallback === true && isAuthDbInfraError(error)) {
+    if ((options.allowDbFallback === true || options.surfaceDbInfraError === true) && isAuthDbInfraError(error)) {
       throw error;
     }
     return null;
@@ -487,20 +499,22 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
     const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
     const allowTokenDbFallback = options?.allowDbFallback === true || isAuthMeRequest(request);
+    const surfaceDbInfraError = options?.surfaceDbInfraError === true;
+    const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError };
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
     if (flowerAdminAuth) return flowerAdminAuth;
 
-    const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env, { allowDbFallback: allowTokenDbFallback });
+    const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env, verifyOptions);
     if (bearerAuth) return bearerAuth;
 
     if (accessCookieToken && accessCookieToken !== bearerToken) {
-      const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env, { allowDbFallback: allowTokenDbFallback });
+      const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env, verifyOptions);
       if (cookieAuth) return cookieAuth;
     }
 
     if (refreshCookieToken) {
-      const refreshAuth = await verifyRefreshSessionToAuth(request, env, { allowDbFallback: allowTokenDbFallback });
+      const refreshAuth = await verifyRefreshSessionToAuth(request, env, verifyOptions);
       if (refreshAuth) return refreshAuth;
     }
 
@@ -513,7 +527,7 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
     // Let callers that already tolerate DB blips (e.g. /api/auth/me, /api/subscription/status)
     // see a raw DB-infra error so they can report "degraded" instead of getting collapsed
     // into a generic 401 that looks like a real sign-out.
-    if ((options?.allowDbFallback === true || isAuthMeRequest(request)) && isAuthDbInfraError(error)) throw error;
+    if ((options?.allowDbFallback === true || options?.surfaceDbInfraError === true || isAuthMeRequest(request)) && isAuthDbInfraError(error)) throw error;
     logAuthError("get-optional-user", error, {
       hasAuthorizationHeader: Boolean(request?.headers?.get("Authorization")),
       hasCookieHeader: Boolean(request?.headers?.get("Cookie")),
@@ -523,9 +537,28 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
 }
 
 export async function requireUserFromRequest(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
+  // surfaceDbInfraError: 로그인 사용자가 일시적 DB 장애로 확인이 안 될 때 null→확정 401(로그아웃)로
+  // 뭉개지 않고 원본 infra 에러를 던진다. 진짜 게스트(토큰 없음/무효)는 여전히 null→401.
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
+}
+
+// 유료/인증필요 라우트 전용 인증 해석. 로그인 사용자가 DB 풀 초기화 같은 일시적 장애로
+// 인증이 확인 안 될 때, null(→확정 401 "로그인 필요")로 강등되지 않고 503(재시도 가능)으로
+// 표면화한다. 진짜 게스트(토큰 없음/무효)는 그대로 null을 돌려주므로 호출자는 기존 401 유지.
+export async function resolvePaidRouteAuth(request, env) {
+  try {
+    return await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    if (isAuthDbInfraError(error)) {
+      throw createHttpError(503, "로그인 상태를 일시적으로 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", {
+        code: "AUTH_STATUS_TEMPORARILY_UNAVAILABLE",
+        retryable: true,
+      });
+    }
+    throw error;
+  }
 }
 
 export async function getServerUser(request, env) {

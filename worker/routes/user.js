@@ -595,7 +595,7 @@ export async function handleUserRoutes(request, env) {
     const path = getRoutePath(request, "/api/user");
 
     if (method === "GET" && path === "/tamagotchi") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }
@@ -638,7 +638,7 @@ export async function handleUserRoutes(request, env) {
     }
 
     if (method === "GET" && path === "/destiny-profiles") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }

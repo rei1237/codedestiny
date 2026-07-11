@@ -2,7 +2,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
-import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
@@ -5317,7 +5317,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/ziwei/ai-prompt") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildZiweiAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5326,7 +5326,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/sukuyo/ai-prompt") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildSukuyoAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5335,7 +5335,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt" || path === "/saju-ai-consultation/create")) {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5344,7 +5344,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "GET" && (path === "/saju-ai-consultation/status" || path.startsWith("/saju-ai-consultation/status/"))) {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5353,7 +5353,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "GET" && (path === "/saju-ai-consultation/result" || path.startsWith("/saju-ai-consultation/result/"))) {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5362,7 +5362,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/astrology/ai-prompt") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildAstrologyAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5371,7 +5371,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/vedic/ai-prompt") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildVedicAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5380,7 +5380,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/vedic/prashna/snapshot") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5389,7 +5389,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "POST" && path === "/vedic/prashna/generate") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }
@@ -5398,7 +5398,7 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
     }
 
     if (method === "GET" && path === "/vedic/prashna/result") {
-      const auth = await getOptionalUserFromRequest(request, env);
+      const auth = await resolvePaidRouteAuth(request, env);
       if (!auth) {
         return buildVedicPrashnaError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
       }

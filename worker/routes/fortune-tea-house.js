@@ -2,7 +2,7 @@ import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJ
 import { callGeminiText } from "../lib/gemini.js";
 import { Lunar, Solar } from "lunar-javascript";
 import { createHash } from "node:crypto";
-import { getCurrentUser } from "../lib/auth.js";
+import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
@@ -1269,7 +1269,14 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     };
   }
 
-  const auth = await getCurrentUser(request, env);
+  let auth;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    // 일시적 DB 장애는 401(로그아웃 유발) 대신 재시도 가능한 degraded 응답으로 흘려보낸다.
+    if (isTransientMongoError(error)) return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
+    throw error;
+  }
   if (!auth?.userId) {
     return {
       ok: false,
@@ -3497,7 +3504,13 @@ function publicFortuneTeaResultListItem(doc) {
 }
 
 async function readFortuneTeaHouseResultsList(request, env) {
-  const auth = await getCurrentUser(request, env);
+  let auth;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
+    throw error;
+  }
   if (!auth?.userId) return { ok: false, status: 401, message: "잠시 후 다시 확인해주세요." };
 
   await connectDb(env);
@@ -3521,7 +3534,13 @@ async function handleFortuneTeaHouseResultsList(request, env) {
 }
 
 async function readFortuneTeaHouseResultDetail(request, env, resultId) {
-  const auth = await getCurrentUser(request, env);
+  let auth;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
+    throw error;
+  }
   if (!auth?.userId) return { ok: false, status: 401, message: "잠시 후 다시 확인해주세요." };
 
   await connectDb(env);

@@ -1243,7 +1243,7 @@ async function readNeoBadgeForSession(userId, sessionId) {
 
 // 휘장 5개로 편지/PDF 해금. 멱등 원장(_id: spend:userId:sessionId)으로 동일 세션 이중 차감을 막는다.
 async function spendNeoBadges(request, env, sessionId) {
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth?.userId) return { ok: false, reason: "LOGIN_REQUIRED", badge: neoBadgePayload(null, { authenticated: false }) };
   const cleanSessionId = clean(sessionId, 180);
   if (!cleanSessionId) return { ok: false, reason: "missing_key", badge: neoBadgePayload(null, { authenticated: true }) };
@@ -1301,7 +1301,7 @@ async function handleEnsureAccess(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   const pricing = getPricing();
   const access = await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);
@@ -1330,7 +1330,7 @@ async function handleStart(request, env, ctx = null) {
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);
@@ -1458,7 +1458,7 @@ async function handleResult(request, env, pathId = "") {
   const rawId = pathId || url.searchParams.get("attemptId") || url.searchParams.get("id") || "";
   const resultId = clean(decodeURIComponent(rawId), 120);
   if (!resultId) return invalidInput(RESULT_NOT_FOUND_MESSAGE, 404);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
   await connectDb(env);
   const consultation = await NeoOperationRoomConsultation.findOne({
@@ -1507,7 +1507,7 @@ async function handleRefine(request, env) {
   const body = await readJson(request);
   const normalized = normalizeRealityCheckInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   if (!auth) return loginRequired();
 
   await connectDb(env);

@@ -931,7 +931,9 @@ async function handleEnsureAccess(request, env) {
   let auth = null;
   try {
     auth = await requireAuth(request, env);
-  } catch (_) {
+  } catch (error) {
+    // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
+    if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED" }, { status: 401 });
   }
   const normalized = normalizeInput(body);
@@ -1444,7 +1446,9 @@ async function handleStart(request, env) {
   let auth = null;
   try {
     auth = await requireAuth(request, env);
-  } catch (_) {
+  } catch (error) {
+    // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
+    if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
   const body = await readJson(request);
@@ -1614,7 +1618,9 @@ async function handleMessage(request, env) {
   let auth = null;
   try {
     auth = await requireAuth(request, env);
-  } catch (_) {
+  } catch (error) {
+    // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
+    if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
   const body = await readJson(request);
@@ -1661,7 +1667,9 @@ async function handleResult(request, env) {
   let auth = null;
   try {
     auth = await requireAuth(request, env);
-  } catch (_) {
+  } catch (error) {
+    // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
+    if (isTransientMongoError(error)) throw error;
     return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
   }
   const url = new URL(request.url);
