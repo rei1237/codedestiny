@@ -576,6 +576,29 @@ export default function MePage() {
     }
   }, [apiBase, user?.points]);
 
+  /* ── 월정석 잔량 실시간 반영: 차감/지급 표준 브로드캐스트 구독 ─────────── */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const applyFromDetail = (detail: unknown) => {
+      const next = resolveMonthlyStoneBalance(detail);
+      if (next !== null) setMonthlyStoneBalance(next); // null이면(잔량 없는 이벤트) 유지
+    };
+    const onBillingBalanceUpdated = (event: Event) => {
+      applyFromDetail((event as CustomEvent<Record<string, unknown>>)?.detail || {});
+    };
+    const onAuthChanged = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>)?.detail;
+      if (String((detail as { event?: unknown } | undefined)?.event || "").toLowerCase() !== "monthlystonebalance") return;
+      applyFromDetail(detail);
+    };
+    window.addEventListener("cd:billing-balance-updated", onBillingBalanceUpdated as EventListener);
+    window.addEventListener("cd:auth-changed", onAuthChanged as EventListener);
+    return () => {
+      window.removeEventListener("cd:billing-balance-updated", onBillingBalanceUpdated as EventListener);
+      window.removeEventListener("cd:auth-changed", onAuthChanged as EventListener);
+    };
+  }, []);
+
   const loadProfileState = useCallback(async () => {
     clearProfileState();
     const response = await authFetch(`${apiBase}/api/profile`, {

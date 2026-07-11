@@ -1843,7 +1843,7 @@ function MonthlyCreditBonusCard({
           <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">보너스 월정석</p>
           <h3 className="mt-1 text-lg font-black text-white">월정석 잔량</h3>
           <p className="mt-1 text-sm text-slate-200">
-            월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
+            월정석은 달빛 이용권과 이벤트로 지급되는 보너스 혜택이며, 월정석 자체는 별도로 구매하거나 충전할 수 없습니다. 받은 날로부터 30일간만 유효하고, 그 안에 쓰지 않은 지급분은 소멸합니다.
           </p>
         </div>
         <div className="rounded-[18px] border border-[#f3dd9a]/48 bg-[#f3dd9a]/18 px-4 py-3 text-left sm:text-right">
@@ -2208,6 +2208,9 @@ function MoonlightMonthlyCreditCard({
           <h2 className="mt-2 text-2xl font-black text-white">월정석이란?</h2>
           <p className="mt-3 text-sm font-semibold leading-7 text-[color:var(--moon-silver)]">
             특별한 날, 카카오톡 공유, 운영 이벤트를 통해서만 얻을 수 있는 보너스 재화입니다. 월정석 자체는 별도로 구매하거나 충전할 수 없습니다.
+          </p>
+          <p className="mt-2 text-xs font-semibold leading-6 text-[color:var(--moon-glow)]">
+            월정석은 받은 날로부터 30일간만 쓸 수 있고, 그 안에 안 쓰면 사라져요. 나눠 받았다면 각각 받은 날을 기준으로 따로 만료되고, 쓸 때는 먼저 만료되는 것부터 빠져나갑니다.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             {["특별한 날", "카카오톡 공유", "운영 이벤트"].map((source) => (
@@ -2873,6 +2876,29 @@ export default function PointsPage() {
       console.warn("[points-page] shop summary unavailable", error);
     });
   }, [fetchMyPointState, isBooting]);
+
+  /* ── 월정석 잔량 실시간 반영: 차감/지급 표준 브로드캐스트 구독 ─────────── */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const applyFromDetail = (detail: unknown) => {
+      const next = resolveMonthlyStoneBalance(detail);
+      if (next !== null) setMonthlyStoneBalance(next); // null이면(잔량 없는 이벤트) 유지
+    };
+    const onBillingBalanceUpdated = (event: Event) => {
+      applyFromDetail((event as CustomEvent<Record<string, unknown>>)?.detail || {});
+    };
+    const onAuthChanged = (event: Event) => {
+      const detail = (event as CustomEvent<Record<string, unknown>>)?.detail;
+      if (String((detail as { event?: unknown } | undefined)?.event || "").toLowerCase() !== "monthlystonebalance") return;
+      applyFromDetail(detail);
+    };
+    window.addEventListener("cd:billing-balance-updated", onBillingBalanceUpdated as EventListener);
+    window.addEventListener("cd:auth-changed", onAuthChanged as EventListener);
+    return () => {
+      window.removeEventListener("cd:billing-balance-updated", onBillingBalanceUpdated as EventListener);
+      window.removeEventListener("cd:auth-changed", onAuthChanged as EventListener);
+    };
+  }, []);
 
   /* ── 이용권 상태 로드 ─────────────────────────────────────────────── */
   useEffect(() => {
@@ -3930,7 +3956,7 @@ export default function PointsPage() {
               <p className="font-black text-white">30일 이용권 조건</p>
               <p className="mt-1">결제 완료 즉시 계정에 활성화되며, 서버 결제 검증 성공 시각부터 30일간 유지됩니다.</p>
               <p className="mt-1 font-bold text-[#f3dd9a]">월정석 또는 원화 결제로 30일 혜택을 활성화할 수 있습니다.</p>
-              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다.</p>
+              <p className="mt-1 font-bold text-[#cab8ff]">보유한 보너스 월정석은 30일 이용권 활성화에 사용할 수 있으며, 월정석 자체는 구매·충전하거나 현금 환불할 수 없습니다. 월정석은 각 지급분이 지급일로부터 30일간만 유효하고, 미사용분은 소멸합니다.</p>
               <p className="mt-1">원화 결제된 30일 이용권은 유료 기능 이용 전 결제일로부터 7일 이내 환불 요청이 가능하며, 이용권 혜택 사용이 시작된 부분은 환불이 제한될 수 있습니다.</p>
               <a href="/terms#refund-policy" target="_blank" rel="noreferrer" className="mt-2 inline-flex font-black text-[#cab8ff] underline">
                 자세한 환불 규정 보기

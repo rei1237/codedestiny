@@ -526,8 +526,41 @@ function seedBootstrapFromVerifiedCache() {
   });
 }
 
+// 소비(차감) 시 billing-client가 쏘는 표준 브로드캐스트(cd:billing-balance-updated)를 받아,
+// 네트워크 없이 스토어의 월정석 잔량을 즉시 갱신한다(차감 즉시·정확 반영). detail에서 잔량을
+// 못 뽑으면(코인만 실린 이벤트 등) 무시한다 — 월정석을 0으로 지우는 회귀 방지.
+function handleBillingBalanceUpdatedEvent(event: Event) {
+  try {
+    const detail = (event as CustomEvent<Record<string, unknown>>)?.detail || {};
+    const resolved = resolveMonthlyStoneBalance(detail);
+    if (resolved === null) return;
+    if (!state.user) return; // 미로그인 사용자에게 유령 유저를 만들지 않는다.
+    const merged = mergeAuthUsers(state.user, {
+      monthlyStoneBalance: resolved,
+      profileSubscription: {
+        monthlyStoneBalance: resolved,
+        membershipCreditBalance: resolved,
+      },
+    });
+    const safe = resolveSafeUser(merged); // localStorage 스냅샷도 갱신(결제창·타 탭 storage 반영)
+    if (safe) applyResolvedUser(safe);
+  } catch {
+    // best-effort
+  }
+}
+
+// 소비 외 서버 변경(지급/만료/타 기기)도 탭 복귀 시 빠르게 반영. refreshAuth는 1.5s 쿨다운을 존중.
+function refreshBalanceOnForeground() {
+  if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+  if (!state.user) return;
+  refreshAuth({ silent: true }).catch(() => {});
+}
+
 if (typeof window !== "undefined") {
   seedBootstrapFromVerifiedCache();
+  window.addEventListener("cd:billing-balance-updated", handleBillingBalanceUpdatedEvent as EventListener);
+  document.addEventListener("visibilitychange", refreshBalanceOnForeground);
+  window.addEventListener("focus", refreshBalanceOnForeground);
 }
 
 function clearAuthStateHard() {
