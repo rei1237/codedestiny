@@ -1169,7 +1169,8 @@ export default {
       }
 
       if (url.pathname === "/api/fortune-tea-house" || url.pathname.startsWith("/api/fortune-tea-house/")) {
-        return runAiRouteWithSecurity(request, env, "fortune-tea-house", handleFortuneTeaHouseRoutes);
+        // ctx: consult 생성을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달.
+        return runAiRouteWithSecurity(request, env, "fortune-tea-house", handleFortuneTeaHouseRoutes, ctx);
       }
 
       if (url.pathname === "/api/fpti" || url.pathname.startsWith("/api/fpti/")) {

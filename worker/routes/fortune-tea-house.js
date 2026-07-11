@@ -4117,7 +4117,7 @@ async function handleEnsureAccess(request, env) {
   });
 }
 
-async function handleConsult(request, env) {
+async function handleConsult(request, env, ctx = null) {
   if (!checkRateLimit(request)) {
     return json(
       { ok: false, message: "찻잔이 잠시 뜨거워졌어요. 잠시 후 다시 건네주세요." },
@@ -4168,6 +4168,10 @@ async function handleConsult(request, env) {
       }, { status: 202 });
     }
   }
+  // 생성→차감(apply)→저장→리워드 전체를 클로저로 묶는다 — ctx가 있고 로그인 사용자면(생성 레코드로
+  // 재-POST 폴링 수렴 가능) 즉시 202 후 백그라운드(waitUntil)에서 완주하고, 아니면 기존 동기 계약 유지.
+  // apply/cancel·markFailed가 클로저 안에 함께 있어 차감은 여전히 '생성 성공 후'에만 일어난다.
+  const runGeneration = async () => {
   let generated;
   try {
     generated = await generateConsultResult(consultRequest, fallback, env);
@@ -4258,9 +4262,25 @@ async function handleConsult(request, env) {
     honeyDrops,
     generationMeta: generated.generationMeta,
   });
+  };
+
+  if (ctx?.waitUntil && access.auth?.userId) {
+    // 로그인 사용자는 begin이 잡아둔 생성 레코드로 재-POST 폴링이 수렴한다(위 cached/inProgress 분기).
+    // 실패 시에도 위 catch가 cancel(차감 취소)+markFailed까지 수행하므로 여기서는 미처리 rejection만 삼킨다.
+    ctx.waitUntil(runGeneration().catch(() => {}));
+    return json({
+      ok: true,
+      status: "generating",
+      retryable: true,
+      resultId,
+      message: "결제는 확인되었고 상담문을 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
+    }, { status: 202 });
+  }
+  // 익명 사용자(생성 레코드가 없어 폴링 수렴 불가) 또는 ctx 없는 환경(테스트): 기존 동기 계약 유지.
+  return await runGeneration();
 }
 
-export async function handleFortuneTeaHouseRoutes(request, env = {}) {
+export async function handleFortuneTeaHouseRoutes(request, env = {}, ctx = null) {
   let traceMethod = "GET";
   let tracePath = "/api/fortune-tea-house";
   try {
@@ -4293,7 +4313,7 @@ export async function handleFortuneTeaHouseRoutes(request, env = {}) {
     }
 
     if (method === "POST" && path === "/consult") {
-      return await handleConsult(request, env);
+      return await handleConsult(request, env, ctx);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

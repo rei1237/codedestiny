@@ -217,8 +217,10 @@ async function postFortuneTeaEnsureAccessRequest(body: FortuneTeaConsultPostBody
 }
 
 // 서버가 202(생성 중)를 주면 같은 resultId로 상한 있는 폴링을 해 완료 결과로 수렴시킨다.
-// CF Block-Infinite-Loop rate-limit(10s/100회) 가드: 최대 11회·지수 백오프(1s→8s, 총 ~59s), 429/취소 시 즉시 종료.
-const FORTUNE_TEA_POLL_BACKOFFS_MS = [1000, 1500, 2500, 4000, 6000, 8000, 8000, 8000, 8000, 8000, 8000];
+// 서버가 즉시-202 + 백그라운드 생성으로 전환되어 폴링이 유일한 전달로가 됐다 — 상한이 생성 최악치
+// (타로 ~150s·사주 ~200s·숙요 ~240s)보다 짧으면 완료된 유료 결과에 거짓 "지연"이 뜬다.
+// 첫 폴 0.7s 프로브 후 8s 간격으로 ~263s 커버(36회, 1req/8s라 CF rate-limit 10s/100회에 여유 큼).
+const FORTUNE_TEA_POLL_BACKOFFS_MS = [700, 1500, 2500, 4000, 6000, ...Array(31).fill(8000)];
 async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCancelled: () => boolean) {
   for (let attempt = 0; attempt < FORTUNE_TEA_POLL_BACKOFFS_MS.length; attempt += 1) {
     await new Promise((resolve) => window.setTimeout(resolve, FORTUNE_TEA_POLL_BACKOFFS_MS[attempt]));
