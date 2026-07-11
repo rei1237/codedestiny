@@ -102,9 +102,9 @@
 - 개별 유지(전부 AI 저술 완료): `astrology-vs-saju-differences`, `astrology-synastry-compatibility-fun-guide`, `astrology-mercury-retrograde-practical-guide`, `new-moon-full-moon-fortune-routine`, `career-luck-interview-exam-prep-strategy`, `sleep-rhythm-energy-and-luck-connection`
 - 제외/재분류 검토: `structured-data-for-fortune-sites`, `fortune-content-for-adsense-what-google-likes`(§3)
 
-### 베다점 (현 11편)
-- `vedic-dasha-transit-remedy-practical-guide` ⟵ `vedic-dasha-monthly-action-guide` **[확정필요]**
-- 개별 유지: `vedic-what-is`, `vedic-lagna-what-is`, `nakshatra-what-is`, `vedic-astrology-navamsa-basics`, `vedic-astrology-12-rasi-complete-personality-guide`, `vedic-compatibility-synastry-basics`, `vedic-retrograde-planets-practical-decoding`, `vedic-moon-sign-emotion-routine-guide`, `vedic-transit-journal-template-90days`
+### 베다점 (10/10 완료 — 통합 맵 확정·실행 완료 2026-07-11)
+- `vedic-dasha-transit-remedy-practical-guide` ⟵ `vedic-dasha-monthly-action-guide` [완료]
+- 개별 유지(전부 AI 저술 완료): `vedic-what-is`, `vedic-lagna-what-is`, `nakshatra-what-is`, `vedic-astrology-navamsa-basics`, `vedic-astrology-12-rasi-complete-personality-guide`, `vedic-compatibility-synastry-basics`, `vedic-retrograde-planets-practical-decoding`, `vedic-moon-sign-emotion-routine-guide`, `vedic-transit-journal-template-90days`
 
 ### 궁합 (현 5편)
 - `saju-compatibility-how-to` ⟵ `saju-compatibility-fun-method`, `goonghap-compatibility-basics-complete` **[확정필요]**
@@ -236,12 +236,12 @@ AI가 직접 저술해 달라고 명시적으로 요청(기존 "저자 직접 �
 - [x] `career-luck-interview-exam-prep-strategy` — 면접·시험 운 전략
 - [x] `sleep-rhythm-energy-and-luck-connection` — 수면 리듬·운 연결
 
-### 베다점 (10)
-- [ ] `vedic-what-is` — 베다 점성술이란 / `vedic-lagna-what-is` — 라그나 / `nakshatra-what-is` — 나크샤트라
-- [ ] `vedic-astrology-navamsa-basics` — 나밤샤 / `vedic-astrology-12-rasi-complete-personality-guide` — 12라시
-- [ ] `vedic-dasha-transit-remedy-practical-guide` — 다샤·트랜짓·레머디 [통합: vedic-dasha-monthly-action-guide]
-- [ ] `vedic-compatibility-synastry-basics` — 궁합 / `vedic-retrograde-planets-practical-decoding` — 역행 행성
-- [ ] `vedic-moon-sign-emotion-routine-guide` — 달자리 감정 루틴 / `vedic-transit-journal-template-90days` — 트랜짓 90일 저널
+### 베다점 (10/10 완료 2026-07-11)
+- [x] `vedic-what-is` — 베다 점성술이란 / `vedic-lagna-what-is` — 라그나 / `nakshatra-what-is` — 나크샤트라
+- [x] `vedic-astrology-navamsa-basics` — 나밤샤 / `vedic-astrology-12-rasi-complete-personality-guide` — 12라시
+- [x] `vedic-dasha-transit-remedy-practical-guide` — 다샤·트랜짓·레머디 [통합 완료: vedic-dasha-monthly-action-guide]
+- [x] `vedic-compatibility-synastry-basics` — 궁합 / `vedic-retrograde-planets-practical-decoding` — 역행 행성
+- [x] `vedic-moon-sign-emotion-routine-guide` — 달자리 감정 루틴 / `vedic-transit-journal-template-90days` — 트랜짓 90일 저널
 
 ### 궁합 (2) · 기타/신년/오늘 (7)
 - [ ] `saju-compatibility-how-to` — 사주 궁합 보는 법 [통합: saju-compatibility-fun-method, goonghap-compatibility-basics-complete]

@@ -40,6 +40,9 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "today-tarot-routine",
   "astrology-birth-chart-guide",
   "astrology-houses-what-is",
+  "vedic-what-is",
+  "vedic-lagna-what-is",
+  "nakshatra-what-is",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [
