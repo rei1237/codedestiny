@@ -1,7 +1,11 @@
 name = "code-destiny-web"
 main = "index.js"
 compatibility_date = "2026-05-02"
-compatibility_flags = ["nodejs_compat"]
+# no_handle_cross_request_promise_resolution: 전역 공유 MongoDB(mongoose) 연결의 백그라운드
+# 토폴로지 모니터 프로미스가 '최초 연결 요청' 컨텍스트에 묶여, 이후 다른 요청이 연결을 재사용할 때
+# Cloudflare가 교차 요청 continuation을 취소해 DB 작업이 멈추던(→ "operation timed out"·결과 미완료)
+# 문제를 해소한다. 공유 인프라(커넥션 풀)에 대한 Cloudflare 권장 설정.
+compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]
 workers_dev = true
 routes = [
   { pattern = "api.code-destiny.com", custom_domain = true },
