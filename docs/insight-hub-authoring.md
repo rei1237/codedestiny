@@ -207,9 +207,9 @@
   전부 "우쇠(友衰)"로 정정해 삽입. 16~20번 섹션 일부가 메시지 길이 제한으로 누락되어, 이후 도착한
   "심화편"(21~30+최종결론)과 중복되는 주제를 병합·재구성해 20개 섹션으로 완성(내용 손실 없음, 번호만 재부여).
 
-### 타로 (14)
-- [ ] `tarot-major-arcana-22-complete-meanings` — 메이저 22장 완전 해설 [통합: tarot-major-arcana-symbols, tarot-major-arcana-0-to-21-with-images]
-- [ ] `tarot-how-to-read` — 타로 보는 법·질문 설계 [통합: how-to-ask-better-fortune-questions, tarot-love-question-design]
+### 타로 (14, 2편 완료 2026-07-11)
+- [x] `tarot-major-arcana-22-complete-meanings` — 메이저 22장 완전 해설 [통합 완료: tarot-major-arcana-symbols, tarot-major-arcana-0-to-21-with-images]
+- [x] `tarot-how-to-read` — 타로 보는 법·질문 설계 [통합 완료: tarot-love-question-design. how-to-ask-better-fortune-questions는 코드베이스에 존재하지 않아 병합 대상 없음]
 - [ ] `tarot-reversed-card-framework` — 역방향 프레임
 - [ ] `tarot-spread-design-principles` — 스프레드 설계 원칙
 - [ ] `tarot-minor-arcana-four-suits-practical-guide` — 마이너 4수트

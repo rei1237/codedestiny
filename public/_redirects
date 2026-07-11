@@ -106,6 +106,11 @@
 # 숙요점이란(재정비) → sukuyo-what-is
 /insights/sukuyo-lunar-mansion-primer                      /insights/sukuyo-what-is                                 301
 /insights/sukuyo-what-is-27-lunar-mansions                  /insights/sukuyo-what-is                                 301
+# 메이저 아르카나 22장 완전 해설 → tarot-major-arcana-22-complete-meanings
+/insights/tarot-major-arcana-symbols                        /insights/tarot-major-arcana-22-complete-meanings        301
+/insights/tarot-major-arcana-0-to-21-with-images             /insights/tarot-major-arcana-22-complete-meanings        301
+# 타로 보는 법 & 질문 설계 → tarot-how-to-read
+/insights/tarot-love-question-design                        /insights/tarot-how-to-read                              301
 
 # 샘플 페이지 단축 경로
 /sample/saju                    /sample/saju-result.html         301
