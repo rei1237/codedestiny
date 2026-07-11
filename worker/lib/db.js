@@ -270,11 +270,19 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // 존재하므로, 죽은 소켓에서 Mongo 작업 프로미스가 멈춰도 Cloudflare의 "hung"(대기 I/O 없는 미해결
   // 프로미스) 데드락 감지가 발동하지 않는다. 상한 초과 시 즉시 예외를 던져 호출부의 degraded 폴백이
   // 빠르게 응답하게 하고(재시도로 또 hang을 만들지 않도록 타임아웃은 재시도하지 않는다).
-  const attemptTimeoutMS = clampTimeoutMs(
-    options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "7000"),
-    7000,
-    1500,
-    12000,
+  // op-래퍼 상한이 서버선택 타임아웃보다 짧으면, 콜드 아이솔레이트에서 연결이 자기 선택창(기본 8s)
+  // 안인데도 op-래퍼가 먼저 잘라 "MongoDB operation timed out"으로 무조건 실패한다(→ 전 라우트 503).
+  // 서버선택창 + 쿼리 여유(3.5s)를 하한으로 강제해, env 설정과 무관하게 이 미스매치를 구조적으로 차단한다.
+  const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
+  const attemptTimeoutFloorMS = serverSelectionTimeoutMS + 3500;
+  const attemptTimeoutMS = Math.max(
+    attemptTimeoutFloorMS,
+    clampTimeoutMs(
+      options.attemptTimeoutMS != null ? options.attemptTimeoutMS : getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS", "12000"),
+      12000,
+      1500,
+      18000,
+    ),
   );
 
   let lastError = null;
