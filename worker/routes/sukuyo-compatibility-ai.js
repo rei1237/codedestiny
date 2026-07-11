@@ -1,5 +1,5 @@
 import { Lunar, Solar } from "lunar-javascript";
-import { requireAuth } from "../lib/auth.js";
+import { requireAuth, isAuthDbInfraError } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -1714,6 +1714,11 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
       return await handleResult(request, env);
     } catch (error) {
       logSukyoAi("[Sukyo AI LLM Error]", { route: "/api/sukuyo-compatibility-ai/result", errorMessage: clean(error?.message || error, 500) }, error, env);
+      // 폴링은 이미 인가된 세션의 결과 조회다. 일시적 DB/인증 장애를 하드 500으로 내리면 폴링이 종료돼
+      // 로그아웃/실패로 굳으므로, 재시도 가능한 503으로 흘려보내 클라가 자가복구하게 한다(전 AI 라우트 정본).
+      if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
+        return json({ ok: false, retryable: true, reason: "DB_DEGRADED", message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요." }, { status: 503 });
+      }
       return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.serverFailed }, { status: 500 });
     }
   }
@@ -1729,8 +1734,8 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
       requestId: request.headers.get("idempotency-key") || request.headers.get("x-idempotency-key"),
       errorMessage: clean(error?.message || error, 500),
     }, error, env);
-    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
-    if (isTransientMongoError(error)) {
+    // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(전 AI 라우트 정본).
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
         retryable: true,

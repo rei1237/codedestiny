@@ -116,6 +116,17 @@ export async function connectDb(env = {}) {
       lastHealthyAt = Date.now();
       return mongoose.connection;
     } catch (e) {
+      // ping 실패가 곧 '죽은 연결'을 뜻하지는 않는다(Cloudflare 아이솔레이트가 유휴 후 재개될 때
+      // 순간적으로 느려 ping이 상한을 넘길 수 있다). 연결 상태(readyState)가 여전히 1이면 공유 연결을
+      // 절대 disconnect하지 않는다 — 프로덕션 tail 실측에서 이 disconnect가 동시 요청(4초 폴링+생성)까지
+      // 끊어 재연결 폭풍(resetMonitorState 반복·timeout listener 누수·쿼리 serverSelection 타임아웃)을
+      // 일으키는 주범이었다. 드라이버 SDAM이 개별 소켓을 스스로 치유하도록 연결을 그대로 반환하고,
+      // lastHealthyAt만 무효화해 다음 요청이 다시 ping하게 한다(단, 연결 객체는 유지).
+      if (mongoose.connection.readyState === 1) {
+        lastHealthyAt = 0;
+        return mongoose.connection;
+      }
+      // 실제로 끊어진 경우에만 리셋(이때는 아래 콜드 연결 루프가 재수립).
       await resetMongooseConnection();
       connectPromise = null;
       lastHealthyAt = 0;
