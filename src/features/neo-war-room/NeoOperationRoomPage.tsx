@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -820,6 +820,7 @@ const errorCopy: Record<string, string> = {
   CALCULATION_ERROR: "운명의 계산 지도를 펼치는 중 문제가 생겼다. 출생정보를 다시 확인해라.",
   LLM_ERROR: "작전 브리핑 작성에 실패했다. 이용권이나 결제 권한은 보존되니 다시 시도해라.",
   GENERATION_PENDING: "작전 브리핑을 아직 작성 중이다. 이용권은 그대로 유지되니, 잠시 후 결과 화면에서 확인해라.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정하다. 이용권은 그대로 보존되니, 잠시 후 다시 시도해라.",
   SERVER_ERROR: "작전실 연결에 문제가 생겼다. 잠시 후 다시 시도해라.",
 };
 
@@ -1804,7 +1805,11 @@ export default function NeoOperationRoomPage() {
     });
 
     try {
-      const { response, data } = await postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, payload, idempotencyKey);
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
+      const { response, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, payload, idempotencyKey),
+        { onRetry: () => setStatusMessage("연결이 잠시 불안정하다. 이용권을 다시 확인하는 중이다.") },
+      );
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
@@ -1823,6 +1828,8 @@ export default function NeoOperationRoomPage() {
       }
       if (data.reason === "LOGIN_REQUIRED" || response.status === 401) throw new Error("LOGIN_REQUIRED");
       if (data.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
+      if (isRetriableResultPollFailure(response.status, data)) throw new Error("TEMPORARY_UNAVAILABLE");
       if (data.reason !== "PAYMENT_REQUIRED") throw new Error(data.reason || "SERVER_ERROR");
 
       setFlowPhase("payment");
@@ -1865,10 +1872,12 @@ export default function NeoOperationRoomPage() {
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       // 생성 단계(LLM/계산/지연) 실패는 결제·이용권 문제가 아니므로 게이트 문구를 분리한다(오표시 방지).
       const isGenerationCode = code === "LLM_ERROR" || code === "CALCULATION_ERROR" || code === "GENERATION_PENDING";
+      // 일시적 접속 장애도 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
+      const isTransientCode = code === "TEMPORARY_UNAVAILABLE";
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: isGenerationCode ? "작전 브리핑 생성 실패" : "이용권 확인 실패",
+        title: isGenerationCode ? "작전 브리핑 생성 실패" : isTransientCode ? "잠시 후 다시 시도" : "이용권 확인 실패",
         reason: FEATURE_TITLE,
         paymentMode: "MEMBERSHIP_PASS",
         message: errorCopy[code] || errorCopy.SERVER_ERROR,

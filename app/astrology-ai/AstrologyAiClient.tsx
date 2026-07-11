@@ -6,6 +6,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -121,6 +122,7 @@ const ERROR_TEXT: Record<string, string> = {
   LLM_ERROR: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
   GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
   RATE_LIMITED: "요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정합니다. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
 const PROGRESS_STEPS = [
@@ -470,7 +472,10 @@ export default function AstrologyAiClient() {
     });
     try {
       console.info("[AstrologyAI] access check started", { requestId: idempotencyKey });
-      const { response, data } = await postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, buildPayload(), idempotencyKey);
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
+      const { response, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, buildPayload(), idempotencyKey),
+      );
       if (data.ok) {
         console.info("[AstrologyAI] access check success", { requestId: idempotencyKey, accessType: data.accessType });
         completePaidFeatureGateCheck({
@@ -487,6 +492,8 @@ export default function AstrologyAiClient() {
       const accessResult = data as Exclude<EnsureAccessResult, { ok: true }>;
       if (accessResult.reason === "LOGIN_REQUIRED" || response.status === 401) throw new Error("LOGIN_REQUIRED");
       if (accessResult.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
+      if (isRetriableResultPollFailure(response.status, accessResult)) throw new Error("TEMPORARY_UNAVAILABLE");
       if (accessResult.reason !== "PAYMENT_REQUIRED") throw new Error("SERVER_ERROR");
 
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
@@ -521,11 +528,13 @@ export default function AstrologyAiClient() {
       } else {
         console.error("[AstrologyAI] generation empty result", { requestId: idempotencyKey, code });
       }
+      // 일시적 접속 장애는 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
+      const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "RATE_LIMITED";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: "이용권 확인 실패",
+        title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패",
         reason: FEATURE_TITLE,
         paymentMode: "MEMBERSHIP_PASS",
         message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,

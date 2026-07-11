@@ -1067,21 +1067,27 @@ async function handleGetProfiles(auth, env) {
   const access = resolveSingleProfileAccess(user, profiles, subscription);
   const currentId = access.currentId;
 
-  if (subscription.isActive) {
-    const updateSet = {};
-    if (currentId && currentId !== String(user.destinyProfilesCurrentId || "")) updateSet.destinyProfilesCurrentId = currentId;
-    if (user.destinyProfilesLockedCurrentId || user.destinyProfilesLockedAt) {
-      updateSet.destinyProfilesLockedCurrentId = "";
-      updateSet.destinyProfilesLockedAt = null;
+  // currentId 정리 write는 부기성 side-effect이므로, 일시적 풀 초기화로 실패해도
+  // 이미 확보한 읽기 결과(프로필/구독)를 503으로 죽이지 않고 조용히 넘어간다(다음 요청에서 정리됨).
+  try {
+    if (subscription.isActive) {
+      const updateSet = {};
+      if (currentId && currentId !== String(user.destinyProfilesCurrentId || "")) updateSet.destinyProfilesCurrentId = currentId;
+      if (user.destinyProfilesLockedCurrentId || user.destinyProfilesLockedAt) {
+        updateSet.destinyProfilesLockedCurrentId = "";
+        updateSet.destinyProfilesLockedAt = null;
+      }
+      if (Object.keys(updateSet).length > 0) {
+        await User.updateOne({ _id: auth.userId }, { $set: updateSet });
+      }
+    } else if (profiles.length <= 1 && currentId && currentId !== String(user.destinyProfilesLockedCurrentId || "")) {
+      await User.updateOne(
+        { _id: auth.userId },
+        { $set: { destinyProfilesCurrentId: currentId, destinyProfilesLockedCurrentId: currentId, destinyProfilesLockedAt: new Date() } },
+      );
     }
-    if (Object.keys(updateSet).length > 0) {
-      await User.updateOne({ _id: auth.userId }, { $set: updateSet });
-    }
-  } else if (profiles.length <= 1 && currentId && currentId !== String(user.destinyProfilesLockedCurrentId || "")) {
-    await User.updateOne(
-      { _id: auth.userId },
-      { $set: { destinyProfilesCurrentId: currentId, destinyProfilesLockedCurrentId: currentId, destinyProfilesLockedAt: new Date() } },
-    );
+  } catch (writeError) {
+    console.warn("[profile] currentId 정리 write 스킵(일시적 DB 장애)", String(writeError?.message || writeError).slice(0, 200));
   }
 
   return json({
@@ -1094,14 +1100,15 @@ async function handleGetProfiles(auth, env) {
   });
 }
 
-async function handleGetProfileDetail(auth, profileIdRaw) {
+async function handleGetProfileDetail(auth, profileIdRaw, env) {
   const profileId = sanitizeProfileId(profileIdRaw);
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "조회할 프로필 카드 ID가 필요합니다." }, { status: 400 });
 
-  const [profile, user] = await Promise.all([
+  // 일시적 풀 초기화에도 프로필 상세 조회가 1회 실패로 죽지 않도록 재시도로 감싼다.
+  const [profile, user] = await withMongoRetry(env, () => Promise.all([
     ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
     User.findById(auth.userId).select("destinyProfilesCurrentId").lean(),
-  ]);
+  ]));
 
   if (!profile) {
     return json({ ok: false, code: "PROFILE_NOT_FOUND", message: "프로필 카드를 찾을 수 없습니다." }, { status: 404 });
@@ -1120,14 +1127,15 @@ async function handleGetProfileDetail(auth, profileIdRaw) {
   });
 }
 
-async function handleGetCurrentProfile(auth) {
-  const user = await User.findById(auth.userId)
+async function handleGetCurrentProfile(auth, env) {
+  // 일시적 풀 초기화에도 현재 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
+  const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean();
+    .lean());
   if (!user) return json({ ok: false, message: "User not found." }, { status: 404 });
 
   const subscription = resolveSubscriptionPolicy(user);
-  const profiles = await listUserProfiles(auth.userId);
+  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const access = resolveSingleProfileAccess(user, profiles, subscription);
   const currentId = access.currentId;
   const markedProfiles = markCurrentProfile(access.profiles, currentId);
@@ -1519,12 +1527,12 @@ export async function handleProfileRoutes(request, env) {
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
-    if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth);
+    if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth, env);
     if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth);
 
     const profileMatch = path.match(/^\/([^/]+)$/);
     if (profileMatch && method === "GET") {
-      return await handleGetProfileDetail(auth, profileMatch[1]);
+      return await handleGetProfileDetail(auth, profileMatch[1], env);
     }
     if (profileMatch && (method === "PATCH" || method === "PUT")) {
       return await handleUpdateProfile(request, auth, profileMatch[1]);

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { m, useReducedMotion } from "framer-motion";
 import { CalendarDays, Download, HeartHandshake, Loader2, Moon, Orbit, Sparkles, X } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
@@ -345,6 +346,7 @@ const ERROR_TEXT: Record<string, string> = {
   SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
 function makeIdempotencyKey() {
@@ -1244,10 +1246,14 @@ export default function SukuyoCompatibilityAiClient() {
       paymentMode: "MEMBERSHIP_PASS",
     });
     try {
-      const { data } = await postJson<EnsureAccessResult>(
-        "/api/sukuyo-compatibility-ai/prepare",
-        { ...payload, idempotencyKey },
-        idempotencyKey,
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패로 굳지 않게.
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<EnsureAccessResult>(
+          "/api/sukuyo-compatibility-ai/prepare",
+          { ...payload, idempotencyKey },
+          idempotencyKey,
+        ),
+        { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
       if (data.ok) {
         completePaidFeatureGateCheck({
@@ -1264,6 +1270,8 @@ export default function SukuyoCompatibilityAiClient() {
       const denied = data as Exclude<EnsureAccessResult, { ok: true }>;
       if (denied.reason === "LOGIN_REQUIRED") throw new Error("LOGIN_REQUIRED");
       if (denied.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
+      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
+      if (isRetriableResultPollFailure(status, denied)) throw new Error("TEMPORARY_UNAVAILABLE");
       if (denied.reason !== "PAYMENT_REQUIRED") throw new Error(toText(denied.reason) || "SERVER_ERROR");
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
@@ -1281,11 +1289,13 @@ export default function SukuyoCompatibilityAiClient() {
       const paymentCancelled = code === "PAYMENT_CANCELLED";
       // 이용권/결제 단계 실패에만 "이용권" 제목을 쓴다 — LLM/서버 오류까지 이용권 실패로 보이던 오표기 방지.
       const entitlementFailure = paymentCancelled || code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_REQUIRED" || code === "LOGIN_REQUIRED";
+      // 일시적 접속 장애는 이용권/생성 결함이 아니므로 별도 문구로 안내한다.
+      const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "NETWORK_ERROR";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: entitlementFailure ? "이용권 확인 실패" : "상담 생성 실패",
+        title: isTransient ? "잠시 후 다시 시도" : entitlementFailure ? "이용권 확인 실패" : "상담 생성 실패",
         reason: "숙요점 궁합 AI 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,

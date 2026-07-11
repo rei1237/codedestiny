@@ -10,6 +10,7 @@ import HoneyDropRewardOverlay from "./components/HoneyDropRewardOverlay";
 import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
+import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import type { TeaHouseStage } from "./data/story";
@@ -865,7 +866,22 @@ export default function FortuneTeaHousePage() {
       // 이용권 판정은 체크 전용 ensure-access로 먼저 끝낸다 (네오 전략실 ensureAccess 패턴).
       // 접근 판정과 LLM 생성을 분리해 "이용권 확인" 게이트가 생성까지 덮지 않게 한다.
       logSubmitStep("ensure access start");
-      const accessCheck = await postFortuneTeaEnsureAccessRequest(requestPayloadWithAttempt);
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED / ACCESS_CHECK_DEGRADED 등)는 재시도로 흡수한다.
+      // (찻집은 즉시응답 방식이라 선검사 실패가 곧바로 하드 종료로 굳던 사각지대였다.)
+      // data 필드는 헬퍼의 재시도 판정용이며, 아래 로직은 기존대로 .response/.payload를 쓴다.
+      const accessCheck = await runAccessCheckWithTransientRetry(
+        async () => {
+          const r = await postFortuneTeaEnsureAccessRequest(requestPayloadWithAttempt);
+          return { response: r.response, payload: r.payload, data: r.payload };
+        },
+        {
+          onRetry: () => setGenerationProgress((current) => ({
+            ...current,
+            label: "다시 확인",
+            message: "연결이 잠시 불안정해요. 이용권을 다시 확인하는 중이에요.",
+          })),
+        },
+      );
       if (consultRunRef.current !== consultRunId) return;
       let billingEvidenceBody: FortuneTeaConsultPostBody | null = null;
       if (accessCheck.response.ok && accessCheck.payload.ok) {

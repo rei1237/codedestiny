@@ -24,3 +24,41 @@ export function isRetriableResultPollFailure(
   const reason = payload && typeof payload.reason === "string" ? payload.reason : "";
   return RETRYABLE_POLL_REASONS.has(reason);
 }
+
+// 선검사(ensure-access/prepare) 단계는 폴링과 달리 완충이 없어, 일시적 503(DB_DEGRADED 등)이
+// 그대로 "이용권 확인 실패"로 굳어졌다(간헐적으로 "안 되다가 갑자기 됨"의 원인). 폴링과 동일한
+// 재시도 판정(isRetriableResultPollFailure)을 재사용해, 일시적 실패에만 바운디드 백오프로 재시도한다.
+// 확정 실패(PAYMENT_REQUIRED·LOGIN_REQUIRED·INVALID_INPUT 등)와 성공은 즉시 반환한다.
+// 호출부마다 응답 래퍼가 조금씩 다르므로(status 톱레벨 vs response.status) 둘 다 수용한다.
+export type AccessCheckAttemptResult = {
+  status?: number;
+  response?: { status?: number; ok?: boolean };
+  data?: { ok?: unknown; reason?: unknown; retryable?: unknown } | null;
+};
+
+function readAttemptStatus(result: AccessCheckAttemptResult | null | undefined): number {
+  return result?.response?.status ?? result?.status ?? 0;
+}
+
+export async function runAccessCheckWithTransientRetry<T extends AccessCheckAttemptResult>(
+  attempt: (attemptIndex: number) => Promise<T>,
+  options: {
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    onRetry?: (info: { attempt: number; delayMs: number }) => void;
+  } = {},
+): Promise<T> {
+  const maxAttempts = Math.max(1, Math.min(6, Math.floor(options.maxAttempts ?? 4)));
+  const baseDelayMs = Math.max(0, Math.floor(options.baseDelayMs ?? 900));
+  let last = await attempt(0);
+  for (let i = 1; i < maxAttempts; i += 1) {
+    if (last?.data && (last.data as { ok?: unknown }).ok === true) return last;
+    // 일시적 실패가 아니면(확정 실패/성공) 재시도하지 않는다.
+    if (!isRetriableResultPollFailure(readAttemptStatus(last), last?.data ?? null)) return last;
+    const delayMs = Math.round(baseDelayMs * Math.pow(1.8, i - 1));
+    options.onRetry?.({ attempt: i, delayMs });
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    last = await attempt(i);
+  }
+  return last;
+}

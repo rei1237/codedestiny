@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
@@ -1645,8 +1645,8 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
     return methodNotAllowed();
   } catch (error) {
     console.error("[neo-operation-room]", clean(error?.stack || error?.message || error, 1200));
-    // 풀 초기화 버스트 등 일시적 DB 오류는 재시도 신호와 함께 503으로 — 하드 500 방지.
-    if (isTransientMongoError(error)) {
+    // 풀 초기화 버스트/인증 조회 중 일시 DB 장애는 재시도 신호와 함께 503으로 — 하드 500 방지(다른 AI 라우트와 동일 정본).
+    if (isTransientMongoError(error) || isAuthDbInfraError(error)) {
       return json({
         ok: false,
         retryable: true,

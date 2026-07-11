@@ -16,6 +16,7 @@
 import { useMemo, useRef, useState } from "react";
 import { Loader2, Sparkles, Stars } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import {
   beginPaidFeatureGateCheck,
@@ -79,6 +80,7 @@ const ERROR_TEXT: Record<string, string> = {
   CUSTOM_QUESTION_REQUIRED: "별궁에 묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
   SERVER_ERROR: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
 function createIdempotencyKey() {
@@ -316,7 +318,11 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
       const payload = buildPayload(idempotencyKey);
       beginPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS" });
       gateStarted = true;
-      const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey);
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey),
+        { onRetry: () => setError("") },
+      );
       if (data.ok) {
         completePaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인 완료", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS", message: "별궁의 흐름을 읽고 있습니다." });
         await generate(idempotencyKey, payload, { accessToken: data.accessToken, accessType: data.accessType });
@@ -324,6 +330,8 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
       }
       if (data.reason === "LOGIN_REQUIRED" || status === 401) throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
       if (data.reason === "INVALID_INPUT") throw new Error(mapError(data, status));
+      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
+      if (isRetriableResultPollFailure(status, data)) throw new Error(ERROR_TEXT.TEMPORARY_UNAVAILABLE);
       if (data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
 
       setPhase("payment");
@@ -337,9 +345,10 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
       await generate(idempotencyKey, payload, extractPayment(gate, idempotencyKey));
     } catch (caught) {
       const message = caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR;
+      const isTransient = message === ERROR_TEXT.TEMPORARY_UNAVAILABLE || message === ERROR_TEXT.NETWORK_ERROR;
       setError(message);
       if (gateStarted) {
-        failPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인 실패", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS", message, cancelled: message === ERROR_TEXT.PAYMENT_CANCELLED });
+        failPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS", message, cancelled: message === ERROR_TEXT.PAYMENT_CANCELLED });
       }
       setPhase("idle");
       idempotencyRef.current = "";

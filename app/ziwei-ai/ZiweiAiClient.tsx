@@ -6,7 +6,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { Download, Loader2, Moon, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
-import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -166,6 +166,7 @@ const ERROR_TEXT: Record<string, string> = {
   SERVER_ERROR: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   LLM_ERROR: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
 const PREVIEW_PALACES = ["명궁", "부모궁", "복덕궁", "전택궁", "형제궁", "관록궁", "부부궁", "노복궁", "자녀궁", "천이궁", "재백궁", "질액궁"];
@@ -821,7 +822,11 @@ export default function ZiweiAiPage() {
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
-      const { status, data } = await postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey);
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<ApiResult>("/api/ziwei-ai/prepare", payload, idempotencyKey),
+        { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
+      );
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
@@ -836,6 +841,8 @@ export default function ZiweiAiPage() {
       }
       if (data.reason === "LOGIN_REQUIRED" || status === 401) throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
       if (data.reason === "INVALID_INPUT") throw new Error(mapError(data, status));
+      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
+      if (isRetriableResultPollFailure(status, data)) throw new Error(ERROR_TEXT.TEMPORARY_UNAVAILABLE);
       if (data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
 
       setPhase("payment");
@@ -854,12 +861,14 @@ export default function ZiweiAiPage() {
     } catch (caught) {
       const message = caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR;
       const paymentCancelled = message === ERROR_TEXT.PAYMENT_CANCELLED;
+      // 일시적 접속 장애는 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
+      const isTransient = message === ERROR_TEXT.TEMPORARY_UNAVAILABLE || message === ERROR_TEXT.NETWORK_ERROR;
       setError(message);
       if (gateStarted) {
         failPaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
-          title: "이용권 확인 실패",
+          title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패",
           reason: "자미두수 AI 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message,

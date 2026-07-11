@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
   beginPaidFeatureGateCheck,
@@ -186,6 +187,7 @@ const ERROR_TEXT: Record<string, string> = {
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   SERVER_ERROR: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
+  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
 
 const SECTION_TITLES = [
@@ -1205,10 +1207,14 @@ export default function VedicAiClient() {
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
-      const { data } = await postJson<EnsureAccessResult>(
-        "/api/vedic-ai/ensure-access",
-        { ...buildPayload(form, requestId), idempotencyKey: requestId },
-        requestId,
+      // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패·결제창 오노출로 굳지 않게.
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<EnsureAccessResult>(
+          "/api/vedic-ai/ensure-access",
+          { ...buildPayload(form, requestId), idempotencyKey: requestId },
+          requestId,
+        ),
+        { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중입니다.") },
       );
 
       if (data.ok) {
@@ -1233,6 +1239,12 @@ export default function VedicAiClient() {
 
       if (data.reason === "LOGIN_REQUIRED") throw new Error("LOGIN_REQUIRED");
       if (data.reason === "INVALID_INPUT") throw new Error("PREPARE_FAILED");
+      // 가드 신설: 일시적 503/DB_DEGRADED가 빈 paymentPayload로 결제창에 오낙하하지 않도록,
+      // PAYMENT_REQUIRED가 아닌 일시적 실패는 과금 없이 소프트 종료한다.
+      if (data.reason !== "PAYMENT_REQUIRED" && isRetriableResultPollFailure(status, data)) {
+        throw new Error("TEMPORARY_UNAVAILABLE");
+      }
+      if (data.reason !== "PAYMENT_REQUIRED") throw new Error("PREPARE_FAILED");
 
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
@@ -1255,12 +1267,14 @@ export default function VedicAiClient() {
         pendingAccessRef.current = null;
         requestIdRef.current = "";
       }
+      // 일시적 접속 장애는 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
+      const isTransient = code === "TEMPORARY_UNAVAILABLE" || code === "NETWORK_ERROR";
       setError(ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR);
       if (gateStarted) {
         failPaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
           requestId,
-          title: "이용권 확인 실패",
+          title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패",
           reason: "베다 점성술 AI 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
