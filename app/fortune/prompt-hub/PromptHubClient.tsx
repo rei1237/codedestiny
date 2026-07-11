@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import { Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -718,6 +718,8 @@ type PromptHubCopy = {
   waitingForInput: string;
   copyDone: string;
   copyPrompt: string;
+  openInChatGpt: string;
+  chatGptPopupBlocked: string;
   regenerate: string;
   editInput: string;
   collapse: string;
@@ -754,6 +756,8 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   waitingForInput: "Waiting for {tool} input.",
   copyDone: "Copied",
   copyPrompt: "Copy Prompt",
+  openInChatGpt: "Open in ChatGPT",
+  chatGptPopupBlocked: "Popup blocked. Please allow popups and try again.",
   regenerate: "Generate Again",
   editInput: "Edit Input",
   collapse: "Collapse",
@@ -944,6 +948,8 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   waitingForInput: "{tool} 입력을 기다리고 있습니다.",
   copyDone: "복사 완료",
   copyPrompt: "프롬프트 복사",
+  openInChatGpt: "ChatGPT로 열기",
+  chatGptPopupBlocked: "팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.",
   regenerate: "다시 생성",
   editInput: "입력 수정",
   collapse: "접기",
@@ -1113,6 +1119,7 @@ export default function ComprehensivePromptHubPage() {
       }, {} as Record<ToolId, boolean>),
   );
   const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
+  const [chatGptPopupBlockedToolId, setChatGptPopupBlockedToolId] = useState<ToolId | null>(null);
   const [heroImageError, setHeroImageError] = useState(false);
   const resultPanelRef = useRef<HTMLElement | null>(null);
 
@@ -1236,6 +1243,21 @@ export default function ComprehensivePromptHubPage() {
     await copyTextToClipboard(currentResult.prompt);
     setCopiedToolId(activeToolId);
     window.setTimeout(() => setCopiedToolId(null), 1600);
+  }
+
+  async function openCurrentToolPromptInChatGpt() {
+    if (!currentResult?.prompt) {
+      setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
+      return;
+    }
+    const opened = window.open("https://chatgpt.com/", "_blank", "noopener,noreferrer");
+    if (!opened) {
+      setChatGptPopupBlockedToolId(activeToolId);
+      window.setTimeout(() => setChatGptPopupBlockedToolId(null), 3200);
+      return;
+    }
+    setChatGptPopupBlockedToolId(null);
+    await copyCurrentToolPrompt();
   }
 
   function toggleCurrentResultExpanded() {
@@ -1779,6 +1801,15 @@ export default function ComprehensivePromptHubPage() {
                     </button>
                     <button
                       type="button"
+                      onClick={openCurrentToolPromptInChatGpt}
+                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                      style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    >
+                      <ExternalLink size={16} />
+                      {copiedToolId === activeToolId ? copy.copyDone : copy.openInChatGpt}
+                    </button>
+                    <button
+                      type="button"
                       onClick={generateCurrentToolPrompt}
                       className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
                       style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
@@ -1803,6 +1834,11 @@ export default function ComprehensivePromptHubPage() {
                       {isCurrentResultExpanded ? copy.collapse : copy.expandAll}
                     </button>
                   </div>
+                  {chatGptPopupBlockedToolId === activeToolId ? (
+                    <p role="alert" className="mt-2 text-xs font-bold text-rose-600 dark:text-rose-400">
+                      {copy.chatGptPopupBlocked}
+                    </p>
+                  ) : null}
                   <pre
                     className={`mt-4 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-950 p-4 text-sm font-medium leading-7 text-slate-50 motion-safe:animate-scale-in ${isCurrentResultExpanded ? "max-h-[680px]" : "max-h-[300px]"}`}
                   >

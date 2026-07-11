@@ -348,87 +348,77 @@
 /* ==============================================================
    이집트 신탁 (Kemet Oracle) - 헤르메스 트리스메기스투스 신탁 시스템
 ============================================================== */
-const KEMET_AI_PROMPT_FEATURE_KEY = "egyptian_oracle_ai_prompt";
-const KEMET_AI_PROMPT_COST = 30;
 const KEMET_ORACLE_COPY = {
   ko: {
-    promptReason: "이집트 신탁 AI 질문 프롬프트 생성",
     readingReason: "이집트 신탁 리딩",
-    promptReady: "프롬프트가 열렸습니다. 그대로 복사해 원하는 AI에게 건네면 됩니다.",
+    promptReady: "이 신탁과 함께 열린 AI 질문문입니다. 그대로 복사해 원하는 AI에게 건네면 됩니다.",
     gateUnavailable: "결제 확인 모듈이 아직 준비되지 않았습니다.\n잠시 후 새로고침한 뒤 다시 시도해 주세요.",
     gateError: "결제 확인 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-    checkingButton: "30코인 확인 중...",
-    checkingStatus: "이 신탁의 흐름을 열기 전 30코인 결제를 확인하고 있습니다.",
-    paymentNotCompleted: "결제가 완료되지 않아 프롬프트를 열지 않았습니다.",
-    generateButton: "AI에게 더 깊이 묻기 · 30코인",
     copyNotReady: "복사할 프롬프트가 아직 열리지 않았습니다.",
     copied: "프롬프트가 복사되었습니다.",
     copyFailed: "복사에 실패했습니다. 문장을 직접 선택해 복사해 주세요.",
     kicker: "AI ORACLE PROMPT",
     promptTitle: "AI에게 건넬 이집트 신탁 질문문",
-    promptLead: "이 신탁의 상징과 세 장의 흐름을 바탕으로, AI에게 더 깊이 물을 수 있는 문장을 엽니다. 30코인이 사용됩니다.",
+    promptLead: "이 신탁의 상징과 세 장의 흐름을 바탕으로, AI에게 더 깊이 물을 수 있는 문장을 함께 엽니다.",
     copyButton: "프롬프트 복사",
-    pendingStatus: "질문문은 결제 확인 뒤 이 자리에서 바로 열립니다.",
+    openButton: "ChatGPT로 열기",
+    popupBlocked: "팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.",
+    openedAndCopied: "ChatGPT가 새 탭에서 열렸고 프롬프트도 복사되었습니다. 붙여 넣어 실행하세요.",
+    openedCopyFailed: "ChatGPT는 열렸습니다. 프롬프트 복사에 실패해 직접 복사해 주세요.",
     promptAria: "이집트 신탁 AI 질문 프롬프트",
   },
   en: {
-    promptReason: "Egyptian oracle AI question prompt",
     readingReason: "Egyptian oracle reading",
-    promptReady: "Your prompt is open. Copy it as it is and bring it to the AI you prefer.",
+    promptReady: "Here is the AI question opened together with this oracle. Copy it as it is and bring it to the AI you prefer.",
     gateUnavailable: "The payment check module is not ready yet.\nPlease refresh and try again in a moment.",
     gateError: "An error occurred while checking payment. Please try again shortly.",
-    checkingButton: "Checking 30 coins...",
-    checkingStatus: "Checking the 30-coin payment before opening this oracle flow.",
-    paymentNotCompleted: "Payment was not completed, so the prompt was not opened.",
-    generateButton: "Ask AI more deeply · 30 coins",
     copyNotReady: "The prompt is not open yet.",
     copied: "Prompt copied.",
     copyFailed: "Copy failed. Please select and copy the text manually.",
     kicker: "AI ORACLE PROMPT",
     promptTitle: "Egyptian oracle question for AI",
-    promptLead: "Based on this oracle's symbols and three-card flow, open a deeper question for AI. 30 coins will be used.",
+    promptLead: "Based on this oracle's symbols and three-card flow, a deeper question for AI opens together with it.",
     copyButton: "Copy prompt",
-    pendingStatus: "The question will open here after payment is confirmed.",
+    openButton: "Open ChatGPT",
+    popupBlocked: "The popup was blocked. Please allow popups and try again.",
+    openedAndCopied: "ChatGPT opened in a new tab and the prompt was copied. Paste it to continue.",
+    openedCopyFailed: "ChatGPT opened. Copying failed, please copy manually.",
     promptAria: "Egyptian oracle AI question prompt",
   },
   ja: {
-    promptReason: "エジプト神託AI質問プロンプト生成",
     readingReason: "エジプト神託リーディング",
-    promptReady: "プロンプトが開きました。このままコピーして、お好きなAIに渡してください。",
+    promptReady: "この神託とともに開いたAI質問文です。このままコピーして、お好きなAIに渡してください。",
     gateUnavailable: "決済確認モジュールがまだ準備できていません。\nしばらくしてから更新し、もう一度お試しください。",
     gateError: "決済確認中にエラーが発生しました。しばらくしてからもう一度お試しください。",
-    checkingButton: "30コイン確認中...",
-    checkingStatus: "この神託の流れを開く前に、30コイン決済を確認しています。",
-    paymentNotCompleted: "決済が完了していないため、プロンプトを開きませんでした。",
-    generateButton: "AIにさらに深く尋ねる · 30コイン",
     copyNotReady: "コピーするプロンプトはまだ開いていません。",
     copied: "プロンプトをコピーしました。",
     copyFailed: "コピーに失敗しました。文章を直接選択してコピーしてください。",
     kicker: "AI ORACLE PROMPT",
     promptTitle: "AIに渡すエジプト神託の質問文",
-    promptLead: "この神託の象徴と三枚の流れをもとに、AIへさらに深く尋ねる文を開きます。30コインが使用されます。",
+    promptLead: "この神託の象徴と三枚の流れをもとに、AIへさらに深く尋ねる文をあわせて開きます。",
     copyButton: "プロンプトをコピー",
-    pendingStatus: "質問文は決済確認後、この場所に開きます。",
+    openButton: "ChatGPTを開く",
+    popupBlocked: "ポップアップがブロックされました。許可してからもう一度お試しください。",
+    openedAndCopied: "ChatGPTが新しいタブで開き、プロンプトもコピーされました。貼り付けて実行してください。",
+    openedCopyFailed: "ChatGPTは開きました。コピーに失敗したため、手動でコピーしてください。",
     promptAria: "エジプト神託AI質問プロンプト",
   },
   zh: {
-    promptReason: "埃及神谕 AI 提问提示生成",
     readingReason: "埃及神谕解读",
-    promptReady: "提示已开启。请直接复制并交给你想使用的 AI。",
+    promptReady: "这是与本次神谕一同开启的 AI 提问。请直接复制并交给你想使用的 AI。",
     gateUnavailable: "支付确认模块尚未准备好。\n请稍后刷新后重试。",
     gateError: "支付确认时发生错误。请稍后再试。",
-    checkingButton: "正在确认 30 枚硬币...",
-    checkingStatus: "正在开启这道神谕前确认 30 枚硬币支付。",
-    paymentNotCompleted: "支付未完成，因此未开启提示。",
-    generateButton: "向 AI 更深入提问 · 30 枚硬币",
     copyNotReady: "可复制的提示尚未开启。",
     copied: "提示已复制。",
     copyFailed: "复制失败。请手动选择文字并复制。",
     kicker: "AI ORACLE PROMPT",
     promptTitle: "交给 AI 的埃及神谕提问",
-    promptLead: "依据这道神谕的象征与三张牌的流向，开启可向 AI 深入追问的句子。将使用 30 枚硬币。",
+    promptLead: "依据这道神谕的象征与三张牌的流向，一并开启可向 AI 深入追问的句子。",
     copyButton: "复制提示",
-    pendingStatus: "支付确认后，提问会在这里开启。",
+    openButton: "打开 ChatGPT",
+    popupBlocked: "弹窗被拦截。请允许弹窗后重试。",
+    openedAndCopied: "ChatGPT 已在新标签页打开，提示也已复制。粘贴后即可继续。",
+    openedCopyFailed: "ChatGPT 已打开。复制失败，请手动复制。",
     promptAria: "埃及神谕 AI 提问提示",
   },
 };
@@ -632,85 +622,6 @@ function setKemetAiPromptStatus(panel, message, tone) {
   status.setAttribute('data-tone', tone || 'info');
 }
 
-function revealKemetAiPrompt(panel) {
-  if (!panel) return;
-  var output = panel.querySelector('[data-kemet-ai-prompt-output]');
-  var copyBtn = panel.querySelector('[data-kemet-ai-prompt-copy]');
-  var generateBtn = panel.querySelector('[data-kemet-ai-prompt-generate]');
-  panel.dataset.generated = '1';
-  if (output) output.style.display = 'block';
-  if (copyBtn) copyBtn.style.display = 'inline-flex';
-  if (generateBtn) generateBtn.style.display = 'none';
-  setKemetAiPromptStatus(panel, getKemetOracleCopy().promptReady, 'success');
-}
-
-function consumeKemetAiPromptCoin() {
-  return new Promise(function(resolve) {
-    var settled = false;
-    function done(ok) {
-      if (settled) return;
-      settled = true;
-      resolve(!!ok);
-    }
-    if (typeof window._cdCoinGatePerUse !== 'function') {
-      alert(getKemetOracleCopy().gateUnavailable);
-      done(false);
-      return;
-    }
-    try {
-      var requestId = KEMET_AI_PROMPT_FEATURE_KEY + ':' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
-      var result = window._cdCoinGatePerUse(
-        KEMET_AI_PROMPT_COST,
-        getKemetOracleCopy().promptReason,
-        function() { done(true); },
-        function() { done(false); },
-        {
-          featureKey: KEMET_AI_PROMPT_FEATURE_KEY,
-          categoryKey: 'oracle',
-          subFeatureKey: KEMET_AI_PROMPT_FEATURE_KEY,
-          requestId: requestId,
-          amountKrw: KEMET_AI_PROMPT_COST * 100
-        }
-      );
-      if (result && typeof result.then === 'function') {
-        result.then(function(payload) {
-          if (payload && payload.status === 'granted') done(true);
-        }).catch(function() { done(false); });
-      }
-    } catch (_err) {
-      alert(getKemetOracleCopy().gateError);
-      done(false);
-    }
-  });
-}
-
-function generateKemetAiPrompt(button) {
-  var panel = findKemetAiPromptPanel(button);
-  if (!panel) return;
-  if (panel.dataset.generated === '1') {
-    revealKemetAiPrompt(panel);
-    return;
-  }
-  var prevText = button ? button.textContent : '';
-  var copy = getKemetOracleCopy();
-  if (button) {
-    button.disabled = true;
-    button.textContent = copy.checkingButton;
-  }
-  setKemetAiPromptStatus(panel, copy.checkingStatus, 'info');
-  consumeKemetAiPromptCoin().then(function(ok) {
-    if (!ok) {
-      setKemetAiPromptStatus(panel, copy.paymentNotCompleted, 'warn');
-      return;
-    }
-    revealKemetAiPrompt(panel);
-  }).finally(function() {
-    if (!button) return;
-    button.disabled = false;
-    if (panel.dataset.generated !== '1') button.textContent = prevText || copy.generateButton;
-  });
-}
-
 function copyKemetText(text) {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     return navigator.clipboard.writeText(text);
@@ -747,6 +658,32 @@ function copyKemetAiPrompt(button) {
     setKemetAiPromptStatus(panel, copy.copied, 'success');
   }).catch(function() {
     setKemetAiPromptStatus(panel, copy.copyFailed, 'warn');
+  });
+}
+
+function openKemetAiChat(button) {
+  var panel = findKemetAiPromptPanel(button);
+  var output = panel ? panel.querySelector('[data-kemet-ai-prompt-output]') : null;
+  var text = output ? output.value : '';
+  var copy = getKemetOracleCopy();
+  if (!text.trim()) {
+    setKemetAiPromptStatus(panel, copy.copyNotReady, 'warn');
+    return;
+  }
+  var opened = null;
+  try {
+    opened = window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+  } catch (_err) {
+    opened = null;
+  }
+  if (!opened) {
+    setKemetAiPromptStatus(panel, copy.popupBlocked, 'warn');
+    return;
+  }
+  copyKemetText(text).then(function() {
+    setKemetAiPromptStatus(panel, copy.openedAndCopied, 'success');
+  }).catch(function() {
+    setKemetAiPromptStatus(panel, copy.openedCopyFailed, 'warn');
   });
 }
 
@@ -1065,11 +1002,11 @@ function showKemetSpread(userInput, selectedIndices) {
           </div>
         </div>
         <div class="km-ai-prompt-actions">
-          <button class="km-ai-prompt-btn" type="button" data-action="generateKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-generate data-feature-key="${KEMET_AI_PROMPT_FEATURE_KEY}" data-coin-cost="${KEMET_AI_PROMPT_COST}">${promptCopy.generateButton}</button>
-          <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy style="display:none;">${promptCopy.copyButton}</button>
+          <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy>${promptCopy.copyButton}</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-kemet-ai-prompt-open>${promptCopy.openButton}</button>
         </div>
-        <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>${promptCopy.pendingStatus}</p>
-        <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="${promptCopy.promptAria}" style="display:none;">${safeAiPromptText}</textarea>
+        <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>${promptCopy.promptReady}</p>
+        <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="${promptCopy.promptAria}">${safeAiPromptText}</textarea>
       </div>
 
       <div style="width:100%; text-align:center; padding:10px 0 6px;">

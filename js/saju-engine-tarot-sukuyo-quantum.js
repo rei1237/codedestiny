@@ -14500,6 +14500,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var generateBtn = rootEl.querySelector('[data-sy-ai-generate]');
     var regenerateBtn = rootEl.querySelector('[data-sy-ai-regenerate]');
     var copyBtn = rootEl.querySelector('[data-sy-ai-copy]');
+    var openBtn = rootEl.querySelector('[data-sy-ai-open]');
     var outputEl = rootEl.querySelector('[data-sy-ai-output]');
     var statusEl = rootEl.querySelector('[data-sy-ai-status]');
 
@@ -14634,6 +14635,17 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         setStatus('복사에 실패했습니다. 텍스트를 직접 선택해 복사해 주세요.', 'error');
       });
     });
+
+    if (openBtn) {
+      openBtn.addEventListener('click', function() {
+        var text = String(outputEl.value || '').trim();
+        if (!text) {
+          setStatus('열어볼 프롬프트가 없습니다.', 'error');
+          return;
+        }
+        syOpenAiChat(text, statusEl);
+      });
+    }
 
     updateCount();
     updateBalanceText();
@@ -15623,6 +15635,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">프롬프트 무료 생성</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
+                  <button data-sy-ai-open type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">ChatGPT로 열기</button>
                 </div>
                 <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
