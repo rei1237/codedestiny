@@ -1688,8 +1688,8 @@ export default function NeoOperationRoomPage() {
     setStatusMessage("운명의 작전 지도를 펼치는 중이다.");
     // ensure-access가 발급한 네오 액세스 토큰(이용권/월정석 경로에만 존재)을 폴링에도 실어 서버 신원 폴백을 돕는다.
     const pollAccessToken = toText(access.accessToken);
-    // /start는 세션을 만든 뒤 즉시 202를 반환하고 실제 생성은 서버 백그라운드에서 진행된다.
-    // 연결 자체가 끊겨 postJson이 거부되더라도 생성은 계속되므로, 폴링으로 완료를 수렴시킨다.
+    // /start는 브리핑 생성을 '동기'로 마친 뒤 완료 결과(200)를 바로 돌려준다(아래 initialBriefing 처리).
+    // 드물게 연결이 끊겨 postJson이 거부되거나 서버가 202를 주면, 폴백으로 폴링해 완료를 수렴시킨다.
     const started = await postJson<NeoSession | { ok?: false; reason?: string; message?: string }>(
       API_ENDPOINTS.start,
       { ...payload, ...access },

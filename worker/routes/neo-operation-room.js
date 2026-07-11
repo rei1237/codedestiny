@@ -1415,60 +1415,58 @@ async function handleStart(request, env, ctx = null) {
     }
   }
 
-  // 환불형 실행은 202 응답 전에 등록한다 — 백그라운드가 도중에 축출돼도 실행 레코드가 남아
-  // 타임아웃 크론(service-execution-task, 600s)이 미완 실행을 환불한다.
   await startRefundableExecution(env, auth, access, idempotencyKey, sessionId, pricing);
 
-  // 14개 챕터 LLM 브리핑은 요청 연결과 분리해 백그라운드(waitUntil)에서 생성한다(연결이 끊겨도 완주).
-  // 프론트는 /result 폴링으로 완료/실패를 수렴하고, 크레딧 차감은 생성 성공 후에만 이뤄진다(이중 과금 방지).
-  const runGeneration = async () => {
-    try {
-      const generated = await generateBriefing(env, normalized, methodSummary);
-      await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
-      await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
-      await NeoOperationRoomConsultation.updateOne(
-        { id: sessionId },
-        {
-          $set: {
-            status: "completed",
-            methodSummary,
-            initialBriefing: generated.briefing,
-            messages: [
-              { role: "user", content: normalized.input.question, createdAt: now },
-              { role: "assistant", content: JSON.stringify(generated.briefing), createdAt: new Date() },
-            ],
-            llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
-            generationError: null,
+  // 14챕터 LLM 브리핑을 요청 안에서 '동기'로 생성해 완료 결과를 바로 반환한다.
+  // 비동기(waitUntil)+/result 폴링 방식은, 하나의 공유 MongoDB 연결을 여러 요청 컨텍스트가 재사용하게 만들어
+  // Cloudflare Workers의 요청 간 I/O 격리("Cannot perform I/O on behalf of a different request")와 충돌 →
+  // 생성 DB 쓰기가 취소·타임아웃돼 결과가 영영 'generating'에 고착되던 문제가 있었다. 생성 전체(연결+LLM+쓰기)를
+  // 한 요청 안에서 끝내는 동기 방식은 이 제약에 걸리지 않는다(비동기 전환 전 잘 되던 방식). 계산 검증은 위에서 완료.
+  try {
+    const generated = await generateBriefing(env, normalized, methodSummary);
+    await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
+    await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);
+    const completed = await NeoOperationRoomConsultation.findOneAndUpdate(
+      { id: sessionId },
+      {
+        $set: {
+          status: "completed",
+          methodSummary,
+          initialBriefing: generated.briefing,
+          messages: [
+            { role: "user", content: normalized.input.question, createdAt: now },
+            { role: "assistant", content: JSON.stringify(generated.briefing), createdAt: new Date() },
+          ],
+          llmMeta: { provider: generated.provider, model: generated.model, completedAt: new Date().toISOString() },
+          generationError: null,
+        },
+      },
+      { new: true },
+    ).lean();
+    await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
+    return json(publicSession(completed));
+  } catch (error) {
+    await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
+    await NeoOperationRoomConsultation.updateOne(
+      { id: sessionId },
+      {
+        $set: {
+          status: "generation_failed",
+          generationError: {
+            code: clean(error?.code || "GENERATION_FAILED", 80),
+            message: clean(error?.message || error, 500),
+            at: new Date().toISOString(),
           },
         },
-      );
-      await completeRefundableExecution(env, auth, idempotencyKey, sessionId);
-    } catch (error) {
-      await failRefundableExecution(env, auth, idempotencyKey, sessionId, error);
-      await NeoOperationRoomConsultation.updateOne(
-        { id: sessionId },
-        {
-          $set: {
-            status: "generation_failed",
-            generationError: {
-              code: clean(error?.code || "GENERATION_FAILED", 80),
-              message: clean(error?.message || error, 500),
-              at: new Date().toISOString(),
-            },
-          },
-        },
-      ).catch(() => {});
-    }
-  };
-
-  // ctx가 있으면 응답 반환 후 백그라운드 실행(Workers 표준), 없으면(테스트/폴백) 동기 실행.
-  if (ctx?.waitUntil) {
-    ctx.waitUntil(runGeneration());
-  } else {
-    await runGeneration();
+      },
+    ).catch(() => {});
+    const isCalculationError = clean(error?.code).includes("BIRTH") || clean(error?.code).includes("CHART") || Number(error?.status) === 422;
+    return json({
+      ok: false,
+      reason: isCalculationError ? "CALCULATION_ERROR" : "LLM_ERROR",
+      message: isCalculationError ? CALCULATION_ERROR_MESSAGE : LLM_ERROR_MESSAGE,
+    }, { status: isCalculationError ? 422 : 503 });
   }
-
-  return json({ ok: true, sessionId, status: "generating", message: "운명의 작전 지도를 펼치는 중이다." }, { status: 202 });
 }
 
 async function handleResult(request, env, pathId = "") {
