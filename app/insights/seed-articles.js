@@ -35,6 +35,9 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "sukuyo-love",
   "sukuyo-marriage",
   "tarot-how-to-read",
+  "tarot-reunion-reading",
+  "tarot-partner-mind-reading",
+  "today-tarot-routine",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [

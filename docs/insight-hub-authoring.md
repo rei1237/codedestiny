@@ -89,11 +89,11 @@
 - 관계 유형 개별 유지: `sukuyo-eishin`, `sukuyo-antai`, `sukuyo-ankai`, `sukuyo-27-mansions`, `sukuyo-bonmyeongsuk-vs-wolmyeongsuk`
 - 나머지 실용편 유지: `sukuyo-love`, `sukuyo-marriage`, `sukuyo-vs-saju-compatibility`, `sukuyo-three-group-types-guide`, `sukuyo-love-communication-rules`, `sukuyo-friendship-teamwork-guide`, `sukuyo-day-by-day-rhythm-usage`, `sukuyo-beginner-terms-easy-dictionary`, `sukuyo-qa-most-asked-questions`, `sukuyo-27-guardian-animals-origin-guide`, `sukuyo-conflict-repair-dialogue-templates`, `sukuyo-boundary-setting-practical-guide`, `sukuyo-couple-finance-rhythm-guide`, `relationship-luck-and-communication-rules`
 
-### 타로 (현 21편)
-- `tarot-major-arcana-22-complete-meanings` ⟵ `tarot-major-arcana-symbols`, `tarot-major-arcana-0-to-21-with-images`
-- `tarot-how-to-read` ⟵ `how-to-ask-better-fortune-questions`, `tarot-love-question-design` **[확정필요]**
-- `saju-and-tarot-combined-reading-framework` ⟵ `tarot-vs-saju` **[확정필요]**
-- 개별 유지: `tarot-reversed-card-framework`, `tarot-spread-design-principles`, `tarot-minor-arcana-four-suits-practical-guide`, `tarot-court-cards-personality-and-relationship-guide`, `tarot-practical-reading-casebook-by-question`, `tarot-career-reading-7-question-framework`, `tarot-anxiety-safe-reading-method`, `tarot-reunion-reading`, `tarot-partner-mind-reading`, `tarot-compatibility-reading-game`, `today-tarot-routine`
+### 타로 (14/14 완료 — 통합 맵 확정·실행 완료 2026-07-11)
+- `tarot-major-arcana-22-complete-meanings` ⟵ `tarot-major-arcana-symbols`, `tarot-major-arcana-0-to-21-with-images` [완료]
+- `tarot-how-to-read` ⟵ `tarot-love-question-design` [완료. `how-to-ask-better-fortune-questions`는 코드베이스에 존재하지 않아 병합 대상 없었음]
+- `saju-and-tarot-combined-reading-framework` ⟵ `tarot-vs-saju` [완료]
+- 개별 유지(전부 저자/AI 원고 완료): `tarot-reversed-card-framework`, `tarot-spread-design-principles`, `tarot-minor-arcana-four-suits-practical-guide`, `tarot-court-cards-personality-and-relationship-guide`, `tarot-practical-reading-casebook-by-question`, `tarot-career-reading-7-question-framework`, `tarot-anxiety-safe-reading-method`, `tarot-reunion-reading`, `tarot-partner-mind-reading`, `tarot-compatibility-reading-game`, `today-tarot-routine`
 - 재분류: `europe-divination-traditions-deep-guide` → **기타**. 제외 검토: `adsense-ready-content-checklist`(§3)
 
 ### 점성술 (현 12편)
@@ -207,19 +207,24 @@
   전부 "우쇠(友衰)"로 정정해 삽입. 16~20번 섹션 일부가 메시지 길이 제한으로 누락되어, 이후 도착한
   "심화편"(21~30+최종결론)과 중복되는 주제를 병합·재구성해 20개 섹션으로 완성(내용 손실 없음, 번호만 재부여).
 
-### 타로 (14, 2편 완료 2026-07-11)
+### 타로 (14/14 완료 2026-07-11)
 - [x] `tarot-major-arcana-22-complete-meanings` — 메이저 22장 완전 해설 [통합 완료: tarot-major-arcana-symbols, tarot-major-arcana-0-to-21-with-images]
 - [x] `tarot-how-to-read` — 타로 보는 법·질문 설계 [통합 완료: tarot-love-question-design. how-to-ask-better-fortune-questions는 코드베이스에 존재하지 않아 병합 대상 없음]
-- [ ] `tarot-reversed-card-framework` — 역방향 프레임
-- [ ] `tarot-spread-design-principles` — 스프레드 설계 원칙
-- [ ] `tarot-minor-arcana-four-suits-practical-guide` — 마이너 4수트
-- [ ] `tarot-court-cards-personality-and-relationship-guide` — 코트 카드
-- [ ] `tarot-practical-reading-casebook-by-question` — 질문별 실전 케이스북
-- [ ] `tarot-career-reading-7-question-framework` — 직업 리딩 7질문
-- [ ] `tarot-anxiety-safe-reading-method` — 불안 안전 리딩
-- [ ] `tarot-reunion-reading` — 재회 리딩 / `tarot-partner-mind-reading` — 상대 속마음 / `tarot-compatibility-reading-game` — 궁합 게임
-- [ ] `today-tarot-routine` — 오늘의 타로 루틴
-- [ ] `saju-and-tarot-combined-reading-framework` — 사주+타로 통합 리딩 [통합: tarot-vs-saju]
+- [x] `tarot-reversed-card-framework` — 역방향 프레임
+- [x] `tarot-spread-design-principles` — 스프레드 설계 원칙
+- [x] `tarot-minor-arcana-four-suits-practical-guide` — 마이너 4수트
+- [x] `tarot-court-cards-personality-and-relationship-guide` — 코트 카드
+- [x] `tarot-practical-reading-casebook-by-question` — 질문별 실전 케이스북
+- [x] `tarot-career-reading-7-question-framework` — 직업 리딩 7질문
+- [x] `tarot-anxiety-safe-reading-method` — 불안 안전 리딩
+- [x] `tarot-reunion-reading` — 재회 리딩 / `tarot-partner-mind-reading` — 상대 속마음 / `tarot-compatibility-reading-game` — 궁합 게임
+- [x] `today-tarot-routine` — 오늘의 타로 루틴
+- [x] `saju-and-tarot-combined-reading-framework` — 사주+타로 통합 리딩 [통합 완료: tarot-vs-saju]
+
+**2026-07-11 배치**: 사용자가 "각 분야 최고의 운세 전문가로서" 39편(타로12·점성술8·베다점10·궁합기타9) 전체를
+AI가 직접 저술해 달라고 명시적으로 요청(기존 "저자 직접 투입" 원칙의 예외). 타로 12편은 Agent 도구
+병렬 디스패치로 초안 작성 후 삽입·검증 완료. 나머지 3개 카테고리(점성술·베다점·궁합기타)도 동일 방식으로
+자동 연속 진행 중.
 
 ### 점성술 (8)
 - [ ] `astrology-birth-chart-guide` — 출생차트(태양·달·상승궁) [통합: sun-moon-rising-difference]
