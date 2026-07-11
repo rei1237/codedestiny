@@ -6958,6 +6958,8 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var pollErrorStreak = 0;
   var lastPaidEvidence = null;
   var lastPaidEvidenceKey = '';
+  // 게이트(이용권/결제) 확인이 끝나기 전에는 진행바가 '생성 단계'로 앞서 나가지 않게 막는 플래그.
+  var accessConfirmed = false;
   var activePendingJob = null;
   var currentResultPayload = null;
 
@@ -7004,6 +7006,11 @@ function _bindSajuQuestionPromptCard(rootEl) {
     clearInterval(progressTimer);
     setProgress(Math.max(0, progressPercent || 0), '결제/이용권 확인 중', false);
     progressTimer = setInterval(function() {
+      // 이용권/결제 확인(게이트)이 끝나기 전에는 '결제/이용권 확인 중'에 머물러, 생성 단계로 먼저 진입하지 않는다.
+      if (!accessConfirmed) {
+        setProgress(Math.min(12, progressPercent + 1), '결제/이용권 확인 중', false);
+        return;
+      }
       var cap = activePendingJob ? 85 : 65;
       var next = Math.min(cap, progressPercent + (progressPercent < 45 ? 5 : 3));
       var message = next >= 65 ? 'AI 상담문 생성 중' : next >= 45 ? '명식 핵심 구조 해석 중' : next >= 30 ? '질문 의도 분석 중' : next >= 15 ? '사주 명식 불러오는 중' : '결제/이용권 확인 중';
@@ -7191,6 +7198,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
       _sajuPromptSetStatus(statusEl, '생성을 취소했습니다. 결제 전 설정을 다시 확인할 수 있습니다.', 'info');
       return;
     }
+    accessConfirmed = false;
     setLoading(true);
     setProgress(0, '결제/이용권 확인 중', false);
     var keepWaiting = false;
@@ -7208,9 +7216,12 @@ function _bindSajuQuestionPromptCard(rootEl) {
         });
       },
       onJobRequestReady: function(job) {
+        // 게이트(이용권/결제) 통과 후에만 생성 단계로 진입한다.
+        accessConfirmed = true;
         rememberPendingJob(job);
         setProgress(15, '사주 명식 불러오는 중', false);
-        pollPendingJob(activePendingJob, true);
+        // 서버는 동기 응답이라, /status 폴링은 서버가 실제로 pending(202)을 돌려줄 때만 시작한다(아래 .then).
+        // 여기서 미리 폴링하면 서버에 없는 /status를 404치다 POLL_TIMEOUT 거짓 실패를 내므로 시작하지 않는다.
       },
       onRetry: function() {
         setProgress(65, 'AI 상담문을 다시 가다듬는 중', false);
