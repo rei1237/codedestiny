@@ -31,6 +31,12 @@
     var startX = Math.max(0, Math.floor((arenaW - gridW) / 2));
     var startY = Math.max(10, Math.round(15 * scale));
     var arenaH = Math.max(300, startY + rows * cardH + (rows - 1) * gapY + Math.round(14 * scale));
+    // 원형 배치는 아레나 정중앙 기준 + 카드가 아레나 밖으로 나가지 않도록 반지름 클램프
+    var circleR = Math.min(
+      Math.max(90, Math.round(Math.min(arenaW, arenaH) * 0.35)),
+      Math.floor((arenaW - cardW) / 2) - 4,
+      Math.floor((arenaH - cardH) / 2) - 4
+    );
     return {
       arenaW: arenaW,
       arenaH: arenaH,
@@ -42,7 +48,9 @@
       startY: startY,
       cx: arenaW / 2 - cardW / 2,
       cy: Math.max(48, Math.round(arenaH * 0.35) - cardH / 2),
-      circleR: Math.max(90, Math.round(Math.min(arenaW, arenaH) * 0.35))
+      circleCx: arenaW / 2,
+      circleCy: arenaH / 2,
+      circleR: circleR
     };
   }
 
@@ -84,16 +92,16 @@
     kcgCards = [];
 
     var layout = _kcgApplyArenaLayout();
-    var cx = layout.cx, cy = layout.cy, R = layout.circleR;
+    var cx = layout.circleCx, cy = layout.circleCy, R = layout.circleR;
     for(var i = 0; i < KCG_TOTAL; i++) {
       var card = _kcgMakeCard(i);
       arena.appendChild(card);
       kcgCards.push(card);
 
-      // 원형 배치
+      // 원형 배치 — 아레나 정중앙 기준, 카드 좌상단으로 환산
       var angle = (2 * Math.PI / KCG_TOTAL) * i - Math.PI / 2;
-      var x = cx + R * Math.cos(angle) - 35;
-      var y = cy + R * Math.sin(angle) - 50;
+      var x = cx + R * Math.cos(angle) - layout.cardW / 2;
+      var y = cy + R * Math.sin(angle) - layout.cardH / 2;
       _kcgSetPos(card, x, y, 0, 1, 0);
     }
 
@@ -448,7 +456,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 나일강의 태양이 대지를 살찌우듯, 당신의 재물운에 왕성한 상승 기운이 깃들어 있습니다. 지금은 새로운 시작에 적합한 시기이나, <strong>밤이 낮을 반드시 따르듯 변동에도 대비해 무리한 확장은 삼가십시오.</strong>",
     career: "<strong>세트의 시련:</strong> 라의 태양 배(Mandjet)가 하늘을 가로지르듯, 당신의 목표를 향한 항해는 이미 시작되었습니다. <strong>주변의 회의적인 시선에 흔들리지 말고, 스스로 믿는 방향으로 거침없이 나아가십시오.</strong>",
     heka: "🌅 새벽, 떠오르는 태양을 바라보며 '나는 나의 빛을 세상에 드러낼 용기가 있다'고 세 번 되뇌십시오. 오래 미뤄온 일 하나를 지금 바로 시작하십시오—라의 태양 배는 지체 없이 항해합니다.",
-    papyrus: "태양은 매일 밤 저승의 심연을 통과하면서도 반드시 아침에 떠오른다—당신의 의지도 그러하다."
+    papyrus: "태양은 매일 밤 저승의 심연을 통과하면서도 반드시 아침에 떠오른다—당신의 의지도 그러하다.",
+    essence: "드러나는 빛",
+    positional: {
+      past: "지나온 시간에는 스스로 빛을 감추고 남의 그늘에 서 있던 날들이 있었습니다. <strong>그때 눌러두었던 열망이 사그라지지 않고 지금의 원동력이 되었음</strong>을 라의 원반이 증언합니다.",
+      present: "지금은 태양이 정오에 이른 순간입니다—감출 수 있는 것이 아무것도 없습니다. <strong>미뤄온 결정을 이번 주 안에 매듭짓고, 당신의 이름을 걸고 나서십시오.</strong>",
+      future: "머지않아 당신의 이름이 밖으로 불려 나가는 국면이 옵니다. <strong>그 빛이 부담스러워 물러서면 기회는 다른 사람의 것이 됩니다</strong>—드러날 준비를 지금부터 하십시오."
+    }
   },
   {
     god: "오시리스 (Osiris)", role: "부활과 재생의 신", icon: "𓁹",
@@ -457,7 +471,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 나일강의 진흙 속에서 연꽃이 피어나듯, 지금은 재물이 정체된 것처럼 보여도 땅 아래에서 뿌리가 단단히 자라고 있습니다. <strong>조급한 결정보다 장기적 안목으로 자산을 지키십시오</strong>—오시리스의 풍요는 기다리는 자에게 옵니다.",
     career: "<strong>세트의 시련:</strong> 옛 방식을 내려놓고 새로운 역할을 기꺼이 받아들일 때, <strong>당신은 오시리스처럼 더 강한 모습으로 되살아날 것입니다.</strong> 현재의 실패는 끝이 아닌, 성장을 위한 신성한 설계입니다.",
     heka: "🌿 백색 린넨 위에 당신이 버려야 할 낡은 믿음 하나를 적고, 그것을 접어 서랍 깊이 넣어두십시오. 이 작은 의식이 새로운 시작의 봉인이 됩니다—오시리스도 먼저 내려놓음으로써 부활했습니다.",
-    papyrus: "오시리스는 죽어서야 비로소 진정한 왕이 되었다—가장 깊은 밤 뒤에 별이 더욱 빛난다."
+    papyrus: "오시리스는 죽어서야 비로소 진정한 왕이 되었다—가장 깊은 밤 뒤에 별이 더욱 빛난다.",
+    essence: "죽음을 지나는 부활",
+    positional: {
+      past: "이미 한 번 무너져 본 경험이 당신의 뿌리에 있습니다. <strong>그 상실은 실패의 기록이 아니라, 다시 세워질 것의 설계도였습니다.</strong>",
+      present: "지금 당신은 조각난 것을 다시 잇는 한가운데에 있습니다. <strong>서두르지 마십시오</strong>—이시스가 오시리스를 온전히 모으는 데도 긴 강을 오르내려야 했습니다.",
+      future: "앞으로의 흐름은 '끝난 줄 알았던 것의 되살아남'입니다. <strong>지금 정리하고 있는 그 일이 형태를 바꿔 더 단단하게 돌아올 것이니, 문을 완전히 닫지는 마십시오.</strong>"
+    }
   },
   {
     god: "이시스 (Isis)", role: "마법과 치유의 여신", icon: "𓆗",
@@ -466,7 +486,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 이시스는 마법의 언어 헤카(Heka)로 불운을 번창으로 바꾸었습니다. 지금 당신의 재정은 창의적 아이디어와 긴밀히 연결되어 있습니다. <strong>머리가 아닌 직관을 믿고 움직이십시오</strong>—예상치 못한 곳에서 문이 열릴 것입니다.",
     career: "<strong>세트의 시련:</strong> 이시스는 다양한 신의 비밀을 알고 있었습니다. <strong>혼자 해결하려 하지 말고 주변의 지혜를 빌리는 것이 현명합니다.</strong> 당신이 가진 지식과 네트워크를 총동원하십시오.",
     heka: "🕊️ 두 손을 가슴 위에 얹고 눈을 감으십시오. '나는 이미 치유받고 있으며, 내 안에 모든 답이 있다'고 세 번 깊이 호흡하며 읊조리십시오—이시스의 날개가 당신을 감쌉니다.",
-    papyrus: "이시스는 세상 끝까지 달려가 사랑하는 이의 조각을 모았다—진심은 반드시 길을 알고 있다."
+    papyrus: "이시스는 세상 끝까지 달려가 사랑하는 이의 조각을 모았다—진심은 반드시 길을 알고 있다.",
+    essence: "회복시키는 사랑의 마법",
+    positional: {
+      past: "지나온 시간 속에서 당신은 누군가를, 혹은 스스로를 묵묵히 치유해 왔습니다. <strong>그 돌봄의 힘이 지금 당신이 가진 가장 큰 자산으로 쌓여 있습니다.</strong>",
+      present: "지금은 바깥의 해답을 찾아 헤맬 때가 아니라 <strong>내면의 힘을 믿을 때</strong>입니다. 이미 알고 있는 그 답을 오늘 실행에 옮기십시오.",
+      future: "다가올 국면에서 <strong>당신의 진심과 끈기가 닫혀 있던 문을 엽니다.</strong> 포기하지 않고 찾아다니는 사람에게 길이 열린다는 것—그것이 이시스의 법칙입니다."
+    }
   },
   {
     god: "호루스 (Horus)", role: "수호와 통찰의 신", icon: "𓅃",
@@ -475,7 +501,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 호루스가 세트와의 싸움에서 결국 왕권을 되찾았듯, <strong>오래 지연된 보상이나 계약이 결실을 맺을 신호가 보입니다.</strong> 포기하지 않은 당신의 인내가 정당한 보상을 불러올 것입니다.",
     career: "<strong>세트의 시련:</strong> 자잘한 문제에 발목 잡히지 말고 큰 그림을 그리십시오. <strong>당신이 옳다고 믿는다면, 물러서지 마십시오</strong>—하늘을 지배하는 매처럼 전략적 시야가 곧 승리입니다.",
     heka: "🦅 오늘 당신이 회피해온 문제 하나를 종이에 써서 내려다보십시오. 문제를 직시하는 것만으로 이미 절반은 해결됩니다—호루스의 눈은 어둠 속에서도 빛납니다.",
-    papyrus: "호루스의 눈은 상처를 입었기에 오히려 더 멀리, 더 깊이 볼 수 있게 되었다."
+    papyrus: "호루스의 눈은 상처를 입었기에 오히려 더 멀리, 더 깊이 볼 수 있게 되었다.",
+    essence: "상처가 벼려낸 통찰",
+    positional: {
+      past: "지난날의 상처와 다툼이 당신에게 남긴 것은 흉터가 아니라 시야입니다. <strong>그때 잃은 것 덕분에 지금 당신은 남들이 못 보는 것을 봅니다.</strong>",
+      present: "지금은 매처럼 높이 올라 전체 판을 조망할 때입니다. <strong>눈앞의 자잘한 승부에 힘을 빼지 말고, 어디로 향하는 싸움인지부터 확인하십시오.</strong>",
+      future: "오래 끌어온 다툼이나 지연된 인정이 당신 쪽으로 기우는 흐름이 보입니다. <strong>정당함을 증명할 기록과 근거를 미리 갖춰 두십시오</strong>—왕권은 준비된 호루스에게 돌아왔습니다."
+    }
   },
   {
     god: "세트 (Set)", role: "혼돈과 변혁의 신", icon: "𓃣",
@@ -484,7 +516,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 지금 당신 앞에 놓인 변동성 높은 기회는 큰 이익도 큰 손실도 줄 수 있습니다. <strong>사막을 건너는 대상(隊商)처럼, 충분한 여유 자금 없이는 모험에 나서지 마십시오.</strong>",
     career: "<strong>세트의 시련:</strong> 직장이나 프로젝트에서 예상치 못한 충돌이 나타날 수 있습니다. <strong>폭풍을 피하려 할수록 더 크게 몰아칩니다—정면 돌파 후에 새로운 질서가 도래합니다.</strong>",
     heka: "⚡ 오늘 당신을 가장 불편하게 만드는 것을 향해 '나는 이 변화를 기꺼이 받아들인다'고 말해보십시오. 세트의 폭풍은 맞서는 자에게 길을 열어줍니다.",
-    papyrus: "세트의 사막이 없다면 오시리스의 부활도 없다—모든 혼돈은 새 질서의 어머니다."
+    papyrus: "세트의 사막이 없다면 오시리스의 부활도 없다—모든 혼돈은 새 질서의 어머니다.",
+    essence: "질서를 낳는 폭풍",
+    positional: {
+      past: "당신이 지나온 혼란과 단절은 무의미한 파괴가 아니었습니다. <strong>그 폭풍이 낡은 것을 쓸어냈기에 지금 새로 세울 자리가 비어 있는 것입니다.</strong>",
+      present: "지금 겪는 흔들림은 무너짐의 신호가 아니라 재배치의 진통입니다. <strong>폭풍의 한가운데서는 버티는 것이 아니라 방향을 트는 것이 살길입니다.</strong>",
+      future: "머지않아 예상 밖의 변수가 판을 흔들 것입니다. <strong>미리 여유 자금과 두 번째 계획을 준비해 두십시오</strong>—남들에게 위기인 그 폭풍이 당신에게는 기회가 됩니다."
+    }
   },
   {
     god: "토트 (Thoth)", role: "지혜와 기록의 신", icon: "𓁟",
@@ -493,7 +531,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 지금은 새로운 수익보다 현재의 재정 상황을 정확히 파악하고 기록하는 것이 먼저입니다. <strong>숫자를 아는 자가 숫자를 지배합니다</strong>—토트의 파피루스처럼 모든 것을 기록하십시오.",
     career: "<strong>세트의 시련:</strong> 토트가 신들과 인간 사이의 중재자였듯, 지금 당신에게는 소통과 협상의 기술이 요구됩니다. <strong>당신의 전문 지식을 명확히 정리하고 표현할 준비를 하십시오—지식이 곧 가장 큰 무기입니다.</strong>",
     heka: "📝 오늘 잠들기 전 노트에 오늘의 감정, 결정, 그리고 내일의 의도를 한 문장씩 적어보십시오. 토트는 기록하는 자의 편에 서며, 기록된 의지는 반드시 현실이 됩니다.",
-    papyrus: "기록되지 않은 진실은 바람에 흩어지는 사막의 모래일 뿐—생각을 글로 쓸 때 비로소 운명이 된다."
+    papyrus: "기록되지 않은 진실은 바람에 흩어지는 사막의 모래일 뿐—생각을 글로 쓸 때 비로소 운명이 된다.",
+    essence: "기록하는 지혜",
+    positional: {
+      past: "지나온 시간에 당신이 배우고 기록하고 삼켜온 것들이 헛되지 않았습니다. <strong>그 축적이 지금 당신 판단력의 바닥짐이 되어 있습니다.</strong>",
+      present: "지금은 감정으로 반응할 때가 아니라 정확히 파악하고 적을 때입니다. <strong>상황을 종이에 옮겨 적는 순간, 뒤엉킨 문제의 절반은 이미 풀립니다.</strong>",
+      future: "다가올 국면의 승부처는 말과 글, 그리고 협상입니다. <strong>당신이 아는 것을 명확한 언어로 정리해 두십시오</strong>—기록된 지혜가 결정적 순간에 당신을 변호합니다."
+    }
   },
   {
     god: "아누비스 (Anubis)", role: "심판과 인도의 신", icon: "𓃢",
@@ -502,7 +546,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 지금은 오래된 지출 습관, 투자, 부채를 점검해야 할 시간입니다. <strong>과거의 재정적 실수를 인정하고 하나씩 정리하십시오</strong>—청산이 곧 번영의 문을 엽니다.",
     career: "<strong>세트의 시련:</strong> 현재의 직업이나 프로젝트가 끝나가고 있다면, 그것은 더 나은 다음 단계로의 초대입니다. <strong>고대 이집트인들이 죽음을 두려워하지 않았듯, 마무리를 두려워하지 마십시오.</strong>",
     heka: "⚖️ 오늘 당신의 삶에서 '이미 끝났지만 아직 눈을 감지 못한 것' 하나를 조용히 보내주십시오. '수고했다, 이제 가도 좋다'고 마음속으로 말하십시오—아누비스가 그 영혼을 인도합니다.",
-    papyrus: "아누비스는 판결하지 않는다, 다만 정직하게 달아볼 뿐이다—당신의 진심은 이미 깃털보다 가볍다."
+    papyrus: "아누비스는 판결하지 않는다, 다만 정직하게 달아볼 뿐이다—당신의 진심은 이미 깃털보다 가볍다.",
+    essence: "정직한 마무리",
+    positional: {
+      past: "당신은 이미 하나의 챕터를 지나왔습니다. <strong>아직 마음이 그 문 앞을 서성인다면, 미련이 아니라 제대로 된 작별 인사를 하지 못했기 때문입니다.</strong>",
+      present: "지금은 무엇을 끝내고 무엇을 데려갈지 저울에 올릴 시간입니다. <strong>정직하게 달아 보십시오</strong>—무게를 속이면 다음 문이 열리지 않습니다.",
+      future: "머지않아 명확한 마무리와 새로운 시작이 함께 옵니다. <strong>끝을 두려워하지 마십시오</strong>—아누비스는 잃게 하는 신이 아니라 건너가게 하는 신입니다."
+    }
   },
   {
     god: "하토르 (Hathor)", role: "사랑과 풍요의 여신", icon: "𓁷",
@@ -511,7 +561,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 하토르는 음악, 예술, 풍요의 여신입니다. 지금 당신의 재물운은 창조적 활동과 긴밀히 연결되어 있습니다. <strong>좋아하는 일을 수익과 연결하려는 시도가 가장 큰 결실을 맺을 것입니다.</strong>",
     career: "<strong>세트의 시련:</strong> 하토르의 에너지는 딱딱한 경쟁보다 부드러운 협력과 어울립니다. <strong>사람들을 편안하게 만드는 당신의 감성이 가장 강력한 무기임을 과소평가하지 마십시오.</strong>",
     heka: "🎶 오늘 하루, 당신에게 기쁨을 주는 사소한 것 하나를 허락하십시오. 좋아하는 음악, 맛있는 음식, 가벼운 산책—하토르는 소소한 기쁨의 문을 두드리는 자에게 찾아옵니다.",
-    papyrus: "하토르는 선물을 들고 매일 당신의 문 앞에 서 있다—열지 않는 것은 당신의 선택이다."
+    papyrus: "하토르는 선물을 들고 매일 당신의 문 앞에 서 있다—열지 않는 것은 당신의 선택이다.",
+    essence: "흘러넘치는 기쁨",
+    positional: {
+      past: "지나온 시간 속에 당신이 누리지 못하고 미뤄둔 기쁨들이 있습니다. <strong>그 억눌린 즐거움이 지금의 갈증으로 남아 있음</strong>을 하토르는 알고 있습니다.",
+      present: "지금은 풍요가 흘러들 수 있도록 문을 여는 때입니다. <strong>스스로에게 인색하게 굴지 마십시오</strong>—기쁨을 허락하는 사람에게 사람과 기회가 모입니다.",
+      future: "다가올 흐름에 새로운 인연과 결실의 기운이 실려 있습니다. <strong>다만 하토르의 선물은 문 앞까지만 옵니다—여는 것은 언제나 당신의 몫입니다.</strong>"
+    }
   },
   {
     god: "바스테트 (Bastet)", role: "보호와 직관의 여신", icon: "𓃠",
@@ -520,7 +576,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 바스테트가 집과 곡물 창고를 쥐로부터 지켰듯, 지금은 재산을 늘리기보다 지키는 데 집중할 때입니다. <strong>직관이 말리는 투자나 파트너십은 보류하십시오.</strong>",
     career: "<strong>세트의 시련:</strong> 밤에 빛나는 고양이의 눈처럼, 당신은 남들이 지나치는 것을 보는 혜안이 있습니다. <strong>지금은 드러내기보다 관찰하는 시간입니다</strong>—때를 기다리는 인내가 결정적인 기회를 포착하게 합니다.",
     heka: "🐱 오늘 당신의 직감이 말하는 것 하나를 실행하십시오. 논리가 아니라 느낌을 따르는 연습이 바스테트의 수호를 깨웁니다—고양이는 결코 서두르지 않지만 언제나 정확합니다.",
-    papyrus: "고양이는 결코 서두르지 않는다—그러나 반드시 필요한 순간에는 번개처럼 나타난다."
+    papyrus: "고양이는 결코 서두르지 않는다—그러나 반드시 필요한 순간에는 번개처럼 나타난다.",
+    essence: "고요한 직관의 수호",
+    positional: {
+      past: "지난 시간, 당신의 직감은 여러 번 위험을 알렸고 대부분 옳았습니다. <strong>그때 무시했던 신호와 따랐던 신호를 돌아보면 지금 판단의 기준이 보입니다.</strong>",
+      present: "지금은 나서기보다 지키고 관찰할 때입니다. <strong>서두르는 쪽이 지는 국면이니, 고양이처럼 조용히 지켜보다 확실한 순간에만 움직이십시오.</strong>",
+      future: "머지않아 논리로는 설명되지 않는 예감이 중요한 갈림길에서 당신을 부를 것입니다. <strong>그 직감을 흘려보내지 마십시오</strong>—밤눈은 바스테트가 당신에게 준 무기입니다."
+    }
   },
   {
     god: "세크메트 (Sekhmet)", role: "불꽃과 치유의 여신", icon: "𓁦",
@@ -529,7 +591,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 불꽃처럼 빠른 수익을 노리는 충동적 결정은 지금 당장 멈추십시오. <strong>감정이 안정될 때까지 중요한 금전 결정을 미루십시오</strong>—세크메트의 파괴적 에너지는 가장 먼저 재물을 삼킵니다.",
     career: "<strong>세트의 시련:</strong> 세크메트는 또한 치유의 여신이기도 합니다. 직장에서의 번아웃을 겪고 있다면, 그것은 <strong>몸과 마음이 휴식을 요청하는 신호입니다—싸우기 전에 먼저 자신을 치유하십시오.</strong>",
     heka: "🔥 타오르는 분노나 좌절감을 종이에 거침없이 쏟아내십시오. 다 쓴 뒤 그 종이를 찢어버리십시오—세크메트의 불꽃을 종이 위에서 태우고 평화로운 하토르로 돌아오십시오.",
-    papyrus: "세크메트는 멸망시키러 왔다가 춤추며 돌아갔다—가장 강한 분노도 사랑 앞에 녹아든다."
+    papyrus: "세크메트는 멸망시키러 왔다가 춤추며 돌아갔다—가장 강한 분노도 사랑 앞에 녹아든다.",
+    essence: "다스려야 할 불꽃",
+    positional: {
+      past: "지나온 시간에 삼켜둔 분노와 소진이 아직 몸 안에 열기로 남아 있습니다. <strong>그 불은 당신이 얼마나 진심으로 임했는지의 증거이기도 합니다.</strong>",
+      present: "지금 끓어오르는 에너지는 억누를 것이 아니라 겨눌 곳을 정해줘야 합니다. <strong>화가 아니라 과제 하나에 그 불을 쏟으십시오</strong>—방향 잃은 불꽃은 가장 먼저 자신을 태웁니다.",
+      future: "앞으로 강한 추진력이 필요한 국면이 옵니다. <strong>그 전에 먼저 쉬고 회복하십시오</strong>—세크메트는 파괴의 여신이기 이전에 치유의 여신입니다."
+    }
   },
   {
     god: "마아트 (Ma'at)", role: "진실과 우주 질서의 여신", icon: "𓆄",
@@ -538,7 +606,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 마아트는 공정하고 정직한 거래를 주관합니다. <strong>부정직한 방법을 통한 이익은 반드시 그에 상응하는 손실로 돌아옵니다</strong>—정직하고 투명한 재정 활동만이 진정한 번영을 가져다줍니다.",
     career: "<strong>세트의 시련:</strong> 마아트의 법칙은 직장에서도 통합니다. 부당함을 느낀다면, <strong>조용히 참는 것보다 정당한 채널을 통해 목소리를 높이십시오</strong>—공정하게 일하고 공정하게 인정받으십시오.",
     heka: "⚖️ 오늘 하루 단 한 가지—거짓말을 하지 않겠다고 결심하십시오. 마아트는 가장 작은 진실에서 시작하며, 우주는 그 진실한 하루를 정확히 기억합니다.",
-    papyrus: "깃털 하나의 무게를 속일 수 없듯—우주는 언제나 정확하게 기억한다."
+    papyrus: "깃털 하나의 무게를 속일 수 없듯—우주는 언제나 정확하게 기억한다.",
+    essence: "깃털 하나의 균형",
+    positional: {
+      past: "당신이 지나오며 뿌린 정직과 성실은 사라지지 않고 저울 한쪽에 고스란히 쌓여 있습니다. <strong>지금 받는 대접이 부당하게 느껴진다면, 그 무게는 반드시 되돌아옵니다.</strong>",
+      present: "지금은 기울어진 균형을 바로잡을 때입니다. <strong>일과 쉼, 주는 것과 받는 것—어느 한쪽으로 쏠린 저울을 오늘 솔직하게 들여다보십시오.</strong>",
+      future: "다가올 국면에서 모든 것이 제 무게대로 판가름 납니다. <strong>지름길의 유혹이 오더라도 정직한 경로를 지키십시오</strong>—마아트의 저울은 시간이 걸려도 틀리지 않습니다."
+    }
   },
   {
     god: "아문 (Amun)", role: "숨겨진 자, 신들의 왕", icon: "𓇋",
@@ -547,7 +621,13 @@ const KEMET_GODS = [
     wealth: "<strong>나일강의 범람:</strong> 아문의 힘은 드러낼 때보다 숨겨져 있을 때 더 강합니다. <strong>당신의 재정 계획이나 투자 전략을 섣불리 공개하지 마십시오</strong>—비밀스럽게 준비한 프로젝트가 가장 크게 폭발합니다.",
     career: "<strong>세트의 시련:</strong> 은밀한 준비가 가장 완벽한 실행을 만듭니다. <strong>지금은 성과를 자랑할 때가 아니라 다음 큰 도약을 위해 조용히 실력을 쌓을 때입니다</strong>—아문-라가 그러했듯.",
     heka: "🌬️ 오늘 당신이 아무에게도 말하지 않은 가장 큰 꿈을 노트에 적으십시오. 아문에게 바치는 가장 강력한 기도는 스스로도 인정하지 않았던 욕망을 솔직하게 드러내는 것입니다.",
-    papyrus: "아문은 이름이 없어도 모든 바람 속에 있다—당신의 가장 조용한 소망이 가장 강한 기도다."
+    papyrus: "아문은 이름이 없어도 모든 바람 속에 있다—당신의 가장 조용한 소망이 가장 강한 기도다.",
+    essence: "숨겨진 힘",
+    positional: {
+      past: "지나온 시간, 보이지 않는 곳에서 당신을 지탱해준 힘과 조력이 있었습니다. <strong>우연처럼 보였던 도움들은 우연이 아니었습니다.</strong>",
+      present: "지금은 드러내는 때가 아니라 조용히 쌓는 때입니다. <strong>계획을 섣불리 꺼내 보이지 말고, 바람처럼 소리 없이 준비를 완성하십시오.</strong>",
+      future: "머지않아 표면 아래 숨어 있던 진실이 드러나며 판이 새로 읽힙니다. <strong>보이는 것만으로 결정하지 말고 한 겹 아래를 확인한 뒤 움직이십시오.</strong>"
+    }
   }
 ];
 
@@ -578,37 +658,57 @@ function buildKemetAiPrompt(data) {
   var catKey = data.catKey;
 
   return [
-    '나는 이집트 신탁에서 다음 흐름을 받았습니다.',
+    '[역할]',
+    '당신은 고대 이집트 케메트 신탁과 신화 상징 해석에 정통한 상담가입니다. 라, 오시리스, 이시스를 비롯한 십이 주신의 상징 체계와 헤카(주술 언어)의 전통을 깊이 이해하고 있으며, 신들의 상징을 현실의 언어로 번역해 질문자가 오늘 실제로 움직일 수 있도록 돕는 것이 당신의 일입니다.',
     '',
-    '내가 올린 물음',
+    '[나의 질문]',
     question,
     '',
-    '신들이 드러낸 세 장',
-    '과거의 뿌리: ' + pastGod.god + ' — ' + pastGod.role,
-    stripKemetHtml(pastGod.nileOracle),
+    '[신탁 결과 — 세 장의 카드]',
+    '1) 과거의 뿌리: ' + pastGod.god + ' — ' + pastGod.role,
+    '   카드의 의미: ' + stripKemetHtml(pastGod.nileOracle),
+    '   과거 자리 해석: ' + stripKemetHtml(pastGod.positional.past),
+    '2) 현재의 흐름: ' + presentGod.god + ' — ' + presentGod.role,
+    '   카드의 의미: ' + stripKemetHtml(presentGod.nileOracle),
+    '   현재 자리 해석: ' + stripKemetHtml(presentGod.positional.present),
+    '3) 미래의 명령: ' + futureGod.god + ' — ' + futureGod.role,
+    '   카드의 의미: ' + stripKemetHtml(futureGod.nileOracle),
+    '   미래 자리 해석: ' + stripKemetHtml(futureGod.positional.future),
     '',
-    '현재의 흐름: ' + presentGod.god + ' — ' + presentGod.role,
-    stripKemetHtml(presentGod.nileOracle),
+    '[질문의 초점: ' + data.catLabel + ' (' + data.catSymbol + ')]',
+    '과거(' + pastGod.god + '): ' + stripKemetHtml(pastGod[catKey]),
+    '현재(' + presentGod.god + '): ' + stripKemetHtml(presentGod[catKey]),
+    '미래(' + futureGod.god + '): ' + stripKemetHtml(futureGod[catKey]),
     '',
-    '미래의 명령: ' + futureGod.god + ' — ' + futureGod.role,
-    stripKemetHtml(futureGod.nileOracle),
-    '',
-    '물음의 중심',
-    data.catLabel + ' / ' + data.catSymbol,
-    stripKemetHtml(pastGod[catKey]),
-    stripKemetHtml(presentGod[catKey]),
-    stripKemetHtml(futureGod[catKey]),
-    '',
-    '오늘의 헤카',
+    '[오늘의 헤카(영적 처방)]',
     stripKemetHtml(pastGod.heka),
     stripKemetHtml(presentGod.heka),
     stripKemetHtml(futureGod.heka),
     '',
-    '파피루스에 남은 문장',
+    '[파피루스에 남은 문장]',
     presentGod.papyrus,
     '',
-    '이 신탁을 바탕으로 지금 내 삶에서 무엇을 받아들이고 무엇을 정리해야 하는지 비춰 주세요. 관계, 일, 돈, 감정의 현실 흐름을 함께 살피되, 이집트 신탁 상담가가 조용히 말하듯 전문적이고 신비롭지만 현실적인 문장으로 답해 주세요. 선택의 방향, 조심할 점, 오늘 바로 옮길 행동을 분명하게 열어 주세요.'
+    '[답변 지침]',
+    '다음 순서와 원칙으로 답해 주세요.',
+    '1. 첫 문단에서 내 질문에 대한 답을 결론부터 분명하게 말해 주세요. 얼버무리거나 양쪽을 다 열어두는 화법은 쓰지 마세요.',
+    '2. 과거→현재→미래 세 카드를 나열하지 말고, 하나로 이어지는 이야기로 종합해 내 질문과 상황에 비추어 해석해 주세요. 위 카드 문구를 그대로 반복하지 마세요.',
+    '3. 갈림길이 있다면 어느 쪽을 권하는지, 그 이유와 조심할 점을 구체적인 상황을 들어 짚어 주세요.',
+    '4. 오늘 바로 실행할 수 있는 행동 한 가지를 명확하게 제시해 주세요.',
+    '5. 마지막은 파피루스에 새길 만한 한 문장으로 맺어 주세요.',
+    '문체: 따뜻한 존댓말로, 돌려 말하지 않는 직설적인 조언체를 쓰세요. 신비로운 분위기는 지키되 뜬구름 잡는 추상적 표현 대신 현실의 단어를 쓰세요. 분량은 800~1200자 내외.'
   ].join('\n');
+}
+
+function buildKemetSynthesis(pastGod, presentGod, futureGod, catKey) {
+  var pastName = pastGod.god.split(' ')[0];
+  var presentName = presentGod.god.split(' ')[0];
+  var futureName = futureGod.god.split(' ')[0];
+  var catClosing = {
+    love: '사랑의 자리에서 이 흐름을 읽으면—과거의 매듭을 인정하는 것에서 시작해, 지금의 진심을 감추지 않을 때 다가올 인연의 문이 열립니다.',
+    wealth: '재물의 자리에서 이 흐름을 읽으면—지나온 손익에서 배운 것을 기준 삼아, 지금은 큰 판보다 단단한 판을 고르십시오. 다가올 결실은 준비된 그릇만큼 담깁니다.',
+    career: '성취의 자리에서 이 흐름을 읽으면—지나온 시련이 이미 당신의 자격을 증명했습니다. 지금의 선택이 방향을 정하니, 다가올 국면에서는 물러서지 말고 이름을 걸고 나서십시오.'
+  }[catKey] || '';
+  return '세 신이 함께 그린 지도는 이렇게 읽힙니다. 당신의 이야기는 <strong>' + pastGod.essence + '</strong>(' + pastName + ')에서 출발해, 지금 <strong>' + presentGod.essence + '</strong>(' + presentName + ')의 한가운데를 지나고 있으며, 이 강물은 <strong>' + futureGod.essence + '</strong>(' + futureName + ')을 향해 흐릅니다. 과거를 부정하지 말고 딛고 서십시오—지금의 자리가 그 위에 세워졌고, 다가올 문은 지금의 태도가 엽니다.<br><br>' + catClosing;
 }
 
 function findKemetAiPromptPanel(node) {
@@ -798,8 +898,8 @@ function showKemetSpread(userInput, selectedIndices) {
   // 질문 카테고리 감지
   var q = (userInput || '').toLowerCase();
   var catKey = 'career';
-  if (/연애|사랑|남친|여친|남자|여자|결혼|이별|재회|짝사랑|썸|연인|관계|고백|헤어|외로/.test(q)) catKey = 'love';
-  else if (/돈|재물|재산|투자|주식|사업|부자|월급|수익|경제|빚|대출|부채|카드|알바|알바비|재정/.test(q)) catKey = 'wealth';
+  if (/연애|사랑|남친|여친|남자|여자|결혼|이별|재회|짝사랑|썸|연인|관계|고백|헤어|외로|소개팅|권태기|배우자|남편|아내|이혼/.test(q)) catKey = 'love';
+  else if (/돈|재물|재산|투자|주식|사업|부자|월급|수익|경제|빚|대출|부채|카드|알바|알바비|재정|코인|청약|적금|매매|부동산|연봉|재테크|로또|펀드|창업/.test(q)) catKey = 'wealth';
 
   var catLabel = catKey === 'love' ? '사랑과 관계' : catKey === 'wealth' ? '풍요와 재물' : '성취와 갈등';
   var catSymbol = catKey === 'love' ? '이시스의 축복' : catKey === 'wealth' ? '나일강의 범람' : '세트의 시련';
@@ -816,6 +916,7 @@ function showKemetSpread(userInput, selectedIndices) {
   });
   var safeAiPromptText = escapeKemetHtml(aiPromptText);
   var promptCopy = getKemetOracleCopy();
+  var synthesisHtml = buildKemetSynthesis(pastGod, presentGod, futureGod, catKey);
 
   resultDiv.innerHTML = `
     <style>
@@ -901,6 +1002,7 @@ function showKemetSpread(userInput, selectedIndices) {
                 <div class="km-card-name">${pastGod.god}</div>
                 <div class="km-card-role">${pastGod.role}</div>
                 <div class="km-card-oracle">${pastGod.nileOracle}</div>
+                <div class="km-card-oracle" style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(212,175,55,0.25);"><strong style="color:#d4af37;">⏳ 過去의 자리에서</strong> — ${pastGod.positional.past}</div>
               </div>
             </div>
             <div class="km-card-item">
@@ -912,6 +1014,7 @@ function showKemetSpread(userInput, selectedIndices) {
                 <div class="km-card-name">${presentGod.god}</div>
                 <div class="km-card-role">${presentGod.role}</div>
                 <div class="km-card-oracle">${presentGod.nileOracle}</div>
+                <div class="km-card-oracle" style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(212,175,55,0.25);"><strong style="color:#d4af37;">👁️ 現在의 자리에서</strong> — ${presentGod.positional.present}</div>
               </div>
             </div>
             <div class="km-card-item">
@@ -923,9 +1026,21 @@ function showKemetSpread(userInput, selectedIndices) {
                 <div class="km-card-name">${futureGod.god}</div>
                 <div class="km-card-role">${futureGod.role}</div>
                 <div class="km-card-oracle">${futureGod.nileOracle}</div>
+                <div class="km-card-oracle" style="margin-top:10px; padding-top:10px; border-top:1px dashed rgba(212,175,55,0.25);"><strong style="color:#d4af37;">✨ 未來의 자리에서</strong> — ${futureGod.positional.future}</div>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- SECTION: 세 신의 합 — 신탁의 종합 -->
+      <div class="km-section">
+        <div class="km-section-head">
+          <span class="km-section-icon">𓋹</span>
+          <span class="km-section-title">세 신의 합: 신탁의 종합</span>
+        </div>
+        <div class="km-section-body">
+          <div class="km-card-oracle" style="font-size:.93rem;">${synthesisHtml}</div>
         </div>
       </div>
 

@@ -23,6 +23,7 @@ const jsMirrorPairs = [
   ["js/mobile-performance-bootstrap.js", "public/js/mobile-performance-bootstrap.js"],
   ["js/sibyl-system.js", "public/js/sibyl-system.js"],
   ["js/mobile-interaction-patch.js", "public/js/mobile-interaction-patch.js"],
+  ["js/oracle-kcg.js", "public/js/oracle-kcg.js"],
 ];
 
 const runtimeVersionRegex = /index-inline-runtime\.js\?v=([^"'\s>]+)/;
