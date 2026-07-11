@@ -1,5 +1,6 @@
 import { connectDb, mongoose, resetMongooseConnection, resolveMongoDbName } from "../lib/db.js";
 import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
+import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
 import {
   ACCESS_COOKIE_NAME,
@@ -60,12 +61,22 @@ const OAUTH_CODE_GUARD_TTL_MS = 10 * 60 * 1000;
 const OAUTH_CODE_EXCHANGE_GUARDS = new Map();
 
 function buildSignupProfileSubscription(now = new Date()) {
+  const grantedAt = now instanceof Date ? now : new Date(now);
   return {
     tier: "free",
     source: "event",
     membershipCreditBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
     membershipCreditGranted: SIGNUP_MONTHLY_CREDIT_GRANT,
     membershipCreditUsed: 0,
+    // 월정석은 지급일로부터 30일간만 유효 — 가입 지급분을 lot으로 기록(지급일+30일 소멸).
+    membershipCreditLots: [{
+      lotId: "signup",
+      amount: SIGNUP_MONTHLY_CREDIT_GRANT,
+      remaining: SIGNUP_MONTHLY_CREDIT_GRANT,
+      grantedAt,
+      expiresAt: new Date(grantedAt.getTime() + MONTHLY_CREDIT_TTL_MS),
+    }],
+    membershipCreditLotsVersion: 0,
     signupMembershipCreditGrantedAt: now,
     legacyCoinCreditSeeded: true,
     legacyCoinCreditSeededPoints: 0,
@@ -352,6 +363,19 @@ async function applyKakaoReferralReward(request, env, newUser, referralCapture =
             $add: [
               { $ifNull: ["$profileSubscription.membershipCreditGranted", 0] },
               REFERRAL_REWARD_MONTHLY_CREDIT,
+            ],
+          },
+          // 추천 보상 월정석도 지급일+30일에 개별 소멸하는 lot으로 적립(피추천인당 1 lot, 멱등키 = referee id).
+          "profileSubscription.membershipCreditLots": {
+            $concatArrays: [
+              { $ifNull: ["$profileSubscription.membershipCreditLots", []] },
+              [{
+                lotId: `referral:${String(newUserObjectId)}`,
+                amount: REFERRAL_REWARD_MONTHLY_CREDIT,
+                remaining: REFERRAL_REWARD_MONTHLY_CREDIT,
+                grantedAt: now,
+                expiresAt: new Date(now.getTime() + MONTHLY_CREDIT_TTL_MS),
+              }],
             ],
           },
           "referralProgram.rewardDayKey": dayKey,

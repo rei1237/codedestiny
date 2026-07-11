@@ -1,5 +1,6 @@
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
@@ -127,7 +128,11 @@ async function sha256Hex(text) {
 }
 
 const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
-const SAJU_AI_PROMPT_STALE_GENERATING_MS = 2 * 60 * 1000;
+// 생성 최악치(하드실패 재시도 + 완성 repair)는 약 210~330s다. 구 120s는 이보다 짧아, 진행 중인
+// 정상 생성을 "stale"로 오판→실패 처리→이중 생성/이중 과금할 위험이 있으므로 찻집 락(390s)과 동형으로 상향한다.
+// (현재 sync 흐름에선 stale 체커 isSajuAIPromptStaleGeneratingExecution가 미배선이라 무효이며,
+//  Phase 2에서 generating 레코드 + 폴링을 부활시킬 때 이 값이 유효해진다.)
+const SAJU_AI_PROMPT_STALE_GENERATING_MS = 390 * 1000;
 const SAJU_AI_PROMPT_TITLE = "사주 AI 상담 결과";
 const SAJU_AI_PROMPT_AMOUNT_KRW = calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE);
 const SAJU_AI_RESULT_SYSTEM_PROMPT = [
@@ -825,12 +830,12 @@ async function refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, req
     return { attempted: true, refundOk: false };
   }
 
-  await User.findByIdAndUpdate(userId, {
-    $inc: {
-      "profileSubscription.membershipCreditBalance": ctx.membershipCreditCost,
-      "profileSubscription.membershipCreditUsed": -ctx.membershipCreditCost,
-    },
-    ...(ctx.purchaseId ? { $pull: { recentConsumeRequestIds: ctx.purchaseId } } : {}),
+  // 복원분은 신규 30일 lot으로 재적립(lotId로 멱등). recentConsumeRequestIds도 정리.
+  await restoreMonthlyCreditLot({
+    userId,
+    lotId: `fortune-refund:${String(ctx.transactionId || ctx.purchaseId || "")}`,
+    amount: ctx.membershipCreditCost,
+    pullRequestId: ctx.purchaseId || "",
   });
 
   if (ctx.transactionId && isObjectIdLike(ctx.transactionId)) {
@@ -4156,6 +4161,10 @@ async function handleSajuAIPrompt(request, auth, env) {
       }
       finalAi = ai;
       lastValidation = validation;
+      // 소프트 미스(십성 검증 등은 못 넘겼지만 렌더 가능한 상담문이 나옴)는 2번째 풀 생성(120s+90s repair)이
+      // 같은 결정론적 이유로 또 실패할 확률이 높다 — 낭비 대신 즉시 degrade(루프 종료)로 배출한다.
+      // 하드 실패(렌더 가능한 텍스트조차 없음)일 때만 다음 시도로 넘어간다.
+      if (hasRenderableLlmText(lastValidation?.text, { minChars: 400 })) break;
     }
 
     // 경량 보장 계약: 십성 검증 등 품질 기준 미통과라도, LLM이 렌더 가능한 상담문을 냈다면

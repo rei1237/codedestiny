@@ -4,6 +4,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
@@ -1476,16 +1477,8 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
     const refundSourceId = `life-book-ai-restore:${access.evidenceId}`.slice(0, 180);
     const existing = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_GRANT", sourceId: refundSourceId }).lean();
     if (existing) return true;
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
-      {
-        $inc: {
-          "profileSubscription.membershipCreditBalance": access.amount,
-          "profileSubscription.membershipCreditUsed": -access.amount,
-        },
-      },
-      { new: true, projection: { profileSubscription: 1 } },
-    ).lean();
+    // 복원분은 신규 30일 lot으로 재적립. lotId=refundSourceId로 멱등.
+    const updatedUser = await restoreMonthlyCreditLot({ userId, lotId: refundSourceId, amount: access.amount });
     if (!updatedUser) return false;
     const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
     await MonthlyCreditLedger.create({
@@ -1526,29 +1519,21 @@ async function applyUsageOnce({ request, env, userId, sessionId, access, idempot
     const sourceId = `${SERVICE_KEY}:${sessionId}`;
     const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
     if (!ledger) {
-      const beforeUser = await User.findById(userId).select("profileSubscription.membershipCreditBalance").lean();
-      const beforeBalance = Math.max(0, Math.floor(Number(beforeUser?.profileSubscription?.membershipCreditBalance || 0)));
-      const updated = await User.findOneAndUpdate(
-        { _id: userId, "profileSubscription.membershipCreditBalance": { $gte: pricing.membershipCreditCost } },
-        {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": -pricing.membershipCreditCost,
-            "profileSubscription.membershipCreditUsed": pricing.membershipCreditCost,
-          },
-        },
-        { new: true },
-      ).select("profileSubscription.membershipCreditBalance").lean();
-      if (!updated) {
+      // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
+      const consume = await consumeMonthlyCreditLots({ userId, amount: pricing.membershipCreditCost });
+      if (!consume.ok) {
         const error = new Error("membership credit balance is insufficient");
         error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
         throw error;
       }
+      const afterBalance = Math.max(0, Math.floor(Number(consume.balance || 0)));
+      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(pricing.membershipCreditCost || 0)));
       await MonthlyCreditLedger.create({
         userId,
         type: "MONTHLY_CREDIT_SPEND",
         amount: pricing.membershipCreditCost,
         beforeBalance,
-        afterBalance: Math.max(0, Math.floor(Number(updated?.profileSubscription?.membershipCreditBalance || 0))),
+        afterBalance,
         reason: orderName,
         sourceId,
         serviceKey: FEATURE_KEY,

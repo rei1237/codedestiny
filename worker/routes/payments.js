@@ -28,6 +28,7 @@ import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed,
 import { buildConfigErrorBody, evaluateFeatureKeyHealth } from "../lib/key-health.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKrwAmount } from "../lib/billing-policy.js";
+import { deductLotsFIFO, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
@@ -3689,7 +3690,9 @@ async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body
     }, { status: 409 });
   }
 
-  const currentMonthlyCredits = Math.max(0, Math.floor(Number(existingUser?.profileSubscription?.membershipCreditBalance || 0)));
+  // 월정석은 지급일+30일 만료(지급분별) — 만료분을 제외한 "유효 잔액"으로 사용 가능 여부를 판정한다.
+  const ensuredExisting = ensureLotsForBalance(existingUser?.profileSubscription, now.getTime());
+  const currentMonthlyCredits = ensuredExisting.balance;
   if (currentMonthlyCredits < requiredMonthlyCredits) {
     return json({
       message: "이용권 혜택이 부족합니다.",
@@ -3752,45 +3755,62 @@ async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body
     }
   }
 
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      "profileSubscription.membershipCreditBalance": { $gte: requiredMonthlyCredits },
-      recentConsumeRequestIds: { $ne: requestId },
-      ...subscriptionUpdateGuard,
-    },
-    {
-      $set: {
-        "profileSubscription.tier": tier,
-        "profileSubscription.passTier": tier,
-        "profileSubscription.planId": plan.planId,
-        "profileSubscription.durationMonths": plan.durationMonths,
-        "profileSubscription.productType": plan.productType,
-        "profileSubscription.profileLimit": plan.profileLimit,
-        "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
-        "profileSubscription.source": "pass",
-        "profileSubscription.startedAt": now,
-        "profileSubscription.expiresAt": expiresAt,
-        "profileSubscription.cancelAtPeriodEnd": false,
-        "profileSubscription.cancelRequestedAt": null,
-        "profileSubscription.customerUid": customerUid,
-        "profileSubscription.paymentMethod": "monthly_credit",
-        "profileSubscription.nextBillingAt": null,
-        "profileSubscription.lastBillingAt": now,
-        "profileSubscription.lastBillingStatus": "success",
-        "profileSubscription.lastBillingError": "",
-        "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || now,
+  // 월정석 지급분별(lot) FIFO 차감 + 이용권 활성화를 한 번의 원자적 write로 처리한다.
+  // 단일 $inc로는 FIFO 배열 갱신이 불가하므로 버전 가드 기반 낙관적 write + 재시도로 경합을 처리한다.
+  const PASS_BUY_MAX_ATTEMPTS = 5;
+  let updatedUser = null;
+  for (let attempt = 0; attempt < PASS_BUY_MAX_ATTEMPTS; attempt += 1) {
+    const freshSub = attempt === 0
+      ? (existingUser?.profileSubscription || {})
+      : ((await User.findById(auth.userId).select("profileSubscription recentConsumeRequestIds").lean())?.profileSubscription || {});
+    const ensuredForWrite = ensureLotsForBalance(freshSub, now.getTime());
+    const deduction = deductLotsFIFO(ensuredForWrite.lots, requiredMonthlyCredits, now.getTime());
+    if (!deduction.ok) break; // 유효 월정석 부족 → 아래 !updatedUser 블록이 insufficient로 분류
+    const lotsVersion = Math.floor(Number(freshSub.membershipCreditLotsVersion || 0));
+    updatedUser = await User.findOneAndUpdate(
+      {
+        _id: auth.userId,
+        "profileSubscription.membershipCreditLotsVersion": lotsVersion,
+        recentConsumeRequestIds: { $ne: requestId },
+        ...subscriptionUpdateGuard,
       },
-      $inc: {
-        "profileSubscription.membershipCreditBalance": -requiredMonthlyCredits,
-        "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
+      {
+        $set: {
+          "profileSubscription.tier": tier,
+          "profileSubscription.passTier": tier,
+          "profileSubscription.planId": plan.planId,
+          "profileSubscription.durationMonths": plan.durationMonths,
+          "profileSubscription.productType": plan.productType,
+          "profileSubscription.profileLimit": plan.profileLimit,
+          "profileSubscription.maxCoveredCoin": Number(plan.maxCoveredCoin || 0),
+          "profileSubscription.freeLimit": Number(plan.maxCoveredCoin || 0),
+          "profileSubscription.passLimit": Number(plan.maxCoveredCoin || 0),
+          "profileSubscription.source": "pass",
+          "profileSubscription.startedAt": now,
+          "profileSubscription.expiresAt": expiresAt,
+          "profileSubscription.cancelAtPeriodEnd": false,
+          "profileSubscription.cancelRequestedAt": null,
+          "profileSubscription.customerUid": customerUid,
+          "profileSubscription.paymentMethod": "monthly_credit",
+          "profileSubscription.nextBillingAt": null,
+          "profileSubscription.lastBillingAt": now,
+          "profileSubscription.lastBillingStatus": "success",
+          "profileSubscription.lastBillingError": "",
+          "profileSubscription.firstSubAt": existingUser?.profileSubscription?.firstSubAt || now,
+          "profileSubscription.membershipCreditLots": deduction.lots,
+          "profileSubscription.membershipCreditBalance": deduction.balance,
+        },
+        $inc: {
+          "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
+          "profileSubscription.membershipCreditLotsVersion": 1,
+        },
+        $addToSet: { recentConsumeRequestIds: requestId },
       },
-      $addToSet: { recentConsumeRequestIds: requestId },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
+      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+    if (updatedUser) break;
+    // null: 버전 충돌/멱등/구독 가드 미충족 → 재시도(멱등·insufficient·conflict는 아래 블록이 재분류).
+  }
 
   if (!updatedUser) {
     const currentUser = await User.findById(auth.userId).select("points profileSubscription recentConsumeRequestIds").lean();

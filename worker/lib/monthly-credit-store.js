@@ -1,0 +1,96 @@
+// 월정석 lot의 DB 반영(서버 전용) — 순수 회계는 monthly-credit-lots.js, 여기선 User 문서 write.
+import { User } from "./models.js";
+import { applyGrantLot, deductLotsFIFO, ensureLotsForBalance } from "./monthly-credit-lots.js";
+
+const MAX_ATTEMPTS = 5;
+
+// 월정석 지급분별(lot) FIFO 차감: 만료분은 제외하고 오래된 지급분부터 소진한다.
+// 여러 라우트에 흩어진 인라인 차감(구독형 접근)을 이 헬퍼로 통일해 lot/스칼라 정합을 보장한다.
+// 반환: { ok, balance(차감 후 유효잔액|부족 시 현재 유효잔액), user(갱신본|null), reason }
+export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId = "" } = {}) {
+  const need = Math.max(0, Math.floor(Number(amount || 0)));
+  if (!userId) return { ok: false, reason: "USER_NOT_FOUND", balance: 0, user: null };
+  if (need <= 0) return { ok: true, reason: "NOOP", balance: null, user: null };
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    const current = await User.findById(userId).select("profileSubscription recentConsumeRequestIds").lean();
+    if (!current?._id) return { ok: false, reason: "USER_NOT_FOUND", balance: 0, user: null };
+    // 멱등: 이미 처리된 요청이면 재차감하지 않는다.
+    if (pushRequestId && Array.isArray(current.recentConsumeRequestIds) && current.recentConsumeRequestIds.includes(pushRequestId)) {
+      return { ok: false, reason: "ALREADY_PROCESSED", balance: null, user: current };
+    }
+    const sub = current.profileSubscription || {};
+    const ensured = ensureLotsForBalance(sub, Date.now());
+    const deduction = deductLotsFIFO(ensured.lots, need, Date.now());
+    if (!deduction.ok) return { ok: false, reason: "INSUFFICIENT", balance: ensured.balance, user: current };
+    const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
+    const updated = await User.findOneAndUpdate(
+      {
+        _id: userId,
+        "profileSubscription.membershipCreditLotsVersion": version,
+        ...(pushRequestId ? { recentConsumeRequestIds: { $ne: pushRequestId } } : {}),
+      },
+      {
+        $set: {
+          "profileSubscription.membershipCreditLots": deduction.lots,
+          "profileSubscription.membershipCreditBalance": deduction.balance,
+        },
+        $inc: {
+          "profileSubscription.membershipCreditUsed": need,
+          "profileSubscription.membershipCreditLotsVersion": 1,
+        },
+        ...(pushRequestId ? { $addToSet: { recentConsumeRequestIds: pushRequestId } } : {}),
+      },
+      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+    if (updated) return { ok: true, reason: "OK", balance: deduction.balance, user: updated };
+    // 버전 충돌 → 재조회 후 재시도.
+  }
+  return { ok: false, reason: "CONTENDED", balance: null, user: null };
+}
+
+// 환불/재지급: 복원 금액을 신규 30일 lot으로 적립하고(기존 lot의 만료는 되살리지 않음),
+// membershipCreditUsed를 되돌린다. lotId로 멱등(중복 lot 방지). 버전 가드 낙관적 write + 재시도.
+// 반환: 갱신된 user(lean) | null(유저 없음/경합 소진).
+export async function restoreMonthlyCreditLot({
+  userId,
+  lotId,
+  amount,
+  decrementUsed = true,
+  pullRequestId = "",
+} = {}) {
+  const restoreAmount = Math.max(0, Math.floor(Number(amount || 0)));
+  if (!userId || restoreAmount <= 0) return null;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
+    const current = await User.findById(userId).select("profileSubscription").lean();
+    if (!current?._id) return null;
+    const sub = current.profileSubscription || {};
+    const ensured = ensureLotsForBalance(sub, Date.now());
+    const granted = applyGrantLot(ensured.lots, {
+      lotId,
+      amount: restoreAmount,
+      grantedAt: new Date(),
+      now: Date.now(),
+    });
+    const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
+    const updated = await User.findOneAndUpdate(
+      { _id: userId, "profileSubscription.membershipCreditLotsVersion": version },
+      {
+        $set: {
+          "profileSubscription.membershipCreditLots": granted.lots,
+          "profileSubscription.membershipCreditBalance": granted.balance,
+        },
+        $inc: {
+          "profileSubscription.membershipCreditLotsVersion": 1,
+          ...(decrementUsed ? { "profileSubscription.membershipCreditUsed": -restoreAmount } : {}),
+        },
+        ...(pullRequestId ? { $pull: { recentConsumeRequestIds: pullRequestId } } : {}),
+      },
+      { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
+    ).lean();
+    if (updated) return updated;
+    // 버전 충돌 → 재조회 후 재시도.
+  }
+  return null;
+}

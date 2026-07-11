@@ -1109,7 +1109,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""}>
             <span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span>
             <strong>월정석 사용 · <span class="cd-react-payment-choice-amount">${monthlyCost.toLocaleString("ko-KR")}</span> 이벤트 재화</strong>
-            <span>${monthlyDisabled ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요." : `보유 월정석에서 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다.`}</span>
+            <span>${monthlyDisabled ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요." : `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`}</span>
           </button>` : "";
   // 이용권이 없는 사용자에게는 달빛 이용권 상점을 결제 선택지 맨 위에 우선 노출하고
   // "추천" 배지/하이라이트로 위계를 준다(단건결제/월정석/게이팅은 그대로 유지).

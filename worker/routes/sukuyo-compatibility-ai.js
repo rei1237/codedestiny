@@ -4,7 +4,8 @@ import { connectDb } from "../lib/db.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
-import { buildSukuyoAiCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-ai-calculation.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -37,20 +38,6 @@ const SUKUYO_RISK_GROUP_HANJA = new Set(["奎", "婁", "胃", "昴", "畢", "觜
 const SUKUYO_FIVE_ELEMENTS = new Set(["목", "화", "토", "금", "수"]);
 const SUKUYO_ELEMENT_CREATE = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
-const SUKUYO_RELATION_12 = [
-  { name: "안", han: "安", meaning: "동숙·완벽한 공명" },
-  { name: "위", han: "危", meaning: "근접·날카로운 긴장" },
-  { name: "괴", han: "壞", meaning: "파괴적 변화 유발" },
-  { name: "복", han: "福", meaning: "복과 이익의 관계" },
-  { name: "명", han: "命", meaning: "운명적 연결" },
-  { name: "이", han: "利", meaning: "실익과 협력" },
-  { name: "쇠", han: "衰", meaning: "에너지 소진 위험" },
-  { name: "우", han: "友", meaning: "우정·동반의 결속" },
-  { name: "아", han: "我", meaning: "자기 투영·미러링" },
-  { name: "원", han: "怨", meaning: "원한·업보의 얽힘" },
-  { name: "친", han: "親", meaning: "깊은 친밀감" },
-  { name: "비", han: "非", meaning: "이질적 공존" },
-];
 const SUKUYO_SECTION_SPECS = [
   { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1000, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이" },
   { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 900, guide: "두 사람의 숙, 오행, 음양, 수호신이 회의실, 데이트, 갈등 상황에서 어떻게 드러나는지 생활 장면으로 풀이" },
@@ -411,25 +398,27 @@ function seasonalStrength(element, season) {
   return "평";
 }
 
-function relationByDirectionalDistance(distance) {
-  const normalized = ((Math.floor(Number(distance) || 0) % 27) + 27) % 27;
-  const item = SUKUYO_RELATION_12[Math.min(normalized, 11)] || SUKUYO_RELATION_12[11];
-  return {
-    ...item,
-    rawDistance: normalized,
-    label: `${item.name}(${item.han})`,
-  };
-}
-
+// 방향별 관계는 정본 링 매핑(sukuyo-ai-calculation.js)에서만 파생한다.
+// (옛 12항 근사표 + min(,11) 클램프는 한쪽 방향을 늘 "비(非)"로 고정하고 정본과 어긋나던 버그였음)
 function buildCompatibilityRelationMeta(compatibility = {}) {
   const forwardDistance = Number(compatibility.forwardDistance);
   const reverseDistance = Number(compatibility.reverseDistance);
   const shortestDistance = Number(compatibility.shortestDistance ?? compatibility.distanceMetrics?.shortestDistance);
-  const forward = relationByDirectionalDistance(Number.isFinite(forwardDistance) ? forwardDistance : 0);
-  const reverse = relationByDirectionalDistance(Number.isFinite(reverseDistance) ? reverseDistance : 0);
+  const directional = describeSukuyoDirectionalRelation(
+    Number.isFinite(forwardDistance) ? forwardDistance : 0,
+    Number.isFinite(reverseDistance) ? reverseDistance : 0,
+  ) || {
+    aRoleLabel: "확인된 자리",
+    aRoleMeaning: "확인된 방향의 결",
+    bRoleLabel: "확인된 자리",
+    bRoleMeaning: "확인된 방향의 결",
+    forwardDistance: 0,
+    reverseDistance: 0,
+    directionalDistanceGuide: "두 사람의 거리 계산이 열리는 대로 다가감과 회복의 간격을 함께 살핍니다.",
+  };
   const distance = Number.isFinite(shortestDistance)
     ? Math.min(Math.max(0, Math.floor(shortestDistance)), 13)
-    : Math.min(forward.rawDistance, reverse.rawDistance);
+    : Math.min(directional.forwardDistance, directional.reverseDistance);
   const traditional = clean(compatibility.relationType || "");
   const intensity = distance <= 3 || ["안괴", "업태"].includes(traditional)
     ? "강렬"
@@ -437,14 +426,15 @@ function buildCompatibilityRelationMeta(compatibility = {}) {
       ? "잔잔"
       : "보통";
   return {
-    type_a_to_b: forward.label,
-    type_b_to_a: reverse.label,
+    type_a_to_b: directional.aRoleLabel,
+    type_b_to_a: directional.bRoleLabel,
     distance,
     intensity,
     directional_meaning: {
-      a_to_b: forward.meaning,
-      b_to_a: reverse.meaning,
+      a_to_b: directional.aRoleMeaning,
+      b_to_a: directional.bRoleMeaning,
     },
+    directional_distance_guide: directional.directionalDistanceGuide,
     traditional_relation: traditional,
     traditional_relation_hanja: clean(compatibility.relationTypeHan || ""),
   };
@@ -494,7 +484,7 @@ function buildSukuyoScoreMeta(personA, personB, relation, compatibility = {}) {
     destiny: 15 + relationBoost + (distance === 0 ? 2 : distance <= 4 ? 1 : 0),
     harmony: 15 + (harmonyType === "상생" ? 2 : harmonyType === "동류" ? 1 : harmonyType === "상극" ? -2 : 0),
     emotion: 15 + (personA.yin_yang !== personB.yin_yang ? 1 : 0) + (personA.guardian === personB.guardian ? 1 : 0) - (distance >= 9 ? 1 : 0),
-    growth: 15 + (["괴(壞)", "위(危)", "원(怨)"].includes(relation.type_a_to_b) ? 2 : 0) + (chemistryScore >= 82 ? 1 : 0),
+    growth: 15 + (["안괴", "업태"].includes(relation.traditional_relation) ? 2 : 0) + (chemistryScore >= 82 ? 1 : 0),
     stability: 15 + (stabilityScore >= 82 ? 2 : stabilityScore <= 66 ? -2 : 0) - (relation.intensity === "강렬" ? 1 : 0),
   });
 }
@@ -543,6 +533,7 @@ function buildSukuyoCompatibilityPromptContext(input, calculation) {
   const season = currentKstSeason();
   const personAElement = normalizeSukuyoFiveElement(calculation.personASukuyo?.element);
   const personBElement = normalizeSukuyoFiveElement(calculation.personBSukuyo?.element);
+  const relationMeta = buildCompatibilityRelationMeta(calculation.compatibility);
   return {
     user_input: {
       relationshipType: input.relationshipType,
@@ -572,10 +563,15 @@ function buildSukuyoCompatibilityPromptContext(input, calculation) {
         strengths: calculation.personBSukuyo?.strengths,
         shadows: calculation.personBSukuyo?.shadows,
       },
-      relation: buildCompatibilityRelationMeta(calculation.compatibility),
+      relation: relationMeta,
       relationLogic: {
-        guide: "관계 유형은 두 본명숙 사이의 방향별 거리로 확정된 값이다. 아래 12유형 정의를 유형 이름과 함께 논거로 인용하고, 정의에 없는 의미를 지어내지 않는다.",
-        definitions: SUKUYO_RELATION_12.map((item) => ({ type: `${item.name}(${item.han})`, meaning: item.meaning })),
+        guide: "관계 유형과 두 사람의 방향별 자리(역할)는 두 본명숙 사이의 순행/역행 거리로 확정된 값이다. 아래 정의를 논거로 인용하되, 정의에 없는 의미를 지어내지 않는다. 순행 방향과 역행 방향의 자리가 다르면 방향별로 다르게 해석한다.",
+        relationType: relationMeta.traditional_relation,
+        directionalRoles: {
+          a_to_b: { role: relationMeta.type_a_to_b, meaning: relationMeta.directional_meaning.a_to_b },
+          b_to_a: { role: relationMeta.type_b_to_a, meaning: relationMeta.directional_meaning.b_to_a },
+        },
+        directionalDistanceGuide: relationMeta.directional_distance_guide,
       },
       traditionalCompatibility: calculation.compatibility,
       elementHarmony: {
@@ -1349,11 +1345,11 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
       );
       if (!marked.modifiedCount) return false;
       if (refundCredit > 0) {
-        await User.findByIdAndUpdate(userId, {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": refundCredit,
-            "profileSubscription.membershipCreditUsed": -refundCredit,
-          },
+        // 복원분은 신규 30일 lot으로 재적립(lotId=원장 id로 멱등).
+        await restoreMonthlyCreditLot({
+          userId,
+          lotId: `sukuyo-refund:${String(ledger._id)}`,
+          amount: refundCredit,
         }).catch(() => {});
       }
       return true;

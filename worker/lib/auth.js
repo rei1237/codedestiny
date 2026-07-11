@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { connectDb, mongoose, withMongoRetry } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
 import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
+import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
 
 export const JWT_ISSUER = "code-destiny-api";
 export const ACCESS_COOKIE_NAME = "fortune_auth_token";
@@ -582,7 +583,15 @@ function normalizeAuthProfileSubscription(user = {}) {
   const passLimit = isActive
     ? readNonNegativeInteger(entitlement.maxCoveredCoin || rawSub.maxCoveredCoin || rawSub.passLimit || rawSub.freeLimit || PASS_LIMITS[activeTier] || 0)
     : 0;
-  const membershipCreditBalance = readNonNegativeInteger(rawSub.monthlyStoneBalance ?? rawSub.membershipCreditBalance, 0);
+  // 월정석은 지급일+30일 만료(지급분별) — 만료분을 제외한 "유효 잔액"만 노출한다(지연소멸, 읽기 전용).
+  // lot이 프로젝션에 없으면 스칼라를 활성으로 간주(백필-계산). 실제 소멸·정리는 소비/크론이 영속화한다.
+  const scalarForBackfill = readNonNegativeInteger(rawSub.membershipCreditBalance ?? rawSub.monthlyStoneBalance, 0);
+  const lotState = ensureLotsForBalance(
+    { membershipCreditLots: rawSub.membershipCreditLots, membershipCreditBalance: scalarForBackfill },
+    Date.now(),
+  );
+  const membershipCreditBalance = readNonNegativeInteger(lotState.balance, 0);
+  const monthlyStoneExpiresAt = resolveNextExpiry(lotState.lots, Date.now());
   const membershipCreditGranted = readNonNegativeInteger(rawSub.membershipCreditGranted, 0);
   const membershipCreditUsed = readNonNegativeInteger(rawSub.membershipCreditUsed, 0);
 
@@ -608,6 +617,7 @@ function normalizeAuthProfileSubscription(user = {}) {
     maxCoveredCoin: passLimit,
     membershipCreditBalance,
     monthlyStoneBalance: membershipCreditBalance,
+    monthlyStoneExpiresAt,
     membershipCreditGranted,
     membershipCreditUsed,
     snapshotSource: "auth_me",

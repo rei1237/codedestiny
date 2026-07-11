@@ -11,6 +11,7 @@ import {
   PointHistory,
   User,
 } from "../lib/models.js";
+import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -1149,29 +1150,21 @@ async function applyUsageOnce({ userId, sessionId, accessType, pricing, source }
     const sourceId = `${SERVICE_KEY}:${sessionId}`;
     const ledger = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_SPEND", sourceId }).lean();
     if (!ledger) {
-      const beforeUser = await User.findById(userId).select("profileSubscription.membershipCreditBalance").lean();
-      const beforeBalance = Math.max(0, Math.floor(Number(beforeUser?.profileSubscription?.membershipCreditBalance || 0)));
-      const updated = await User.findOneAndUpdate(
-        { _id: userId, "profileSubscription.membershipCreditBalance": { $gte: pricing.membershipCreditCost } },
-        {
-          $inc: {
-            "profileSubscription.membershipCreditBalance": -pricing.membershipCreditCost,
-            "profileSubscription.membershipCreditUsed": pricing.membershipCreditCost,
-          },
-        },
-        { new: true },
-      ).select("profileSubscription.membershipCreditBalance").lean();
-      if (!updated) {
+      // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
+      const consume = await consumeMonthlyCreditLots({ userId, amount: pricing.membershipCreditCost });
+      if (!consume.ok) {
         const error = new Error("membership credit balance is insufficient");
         error.code = "MEMBERSHIP_CREDIT_CONSUME_FAILED";
         throw error;
       }
+      const afterBalance = Math.max(0, Math.floor(Number(consume.balance || 0)));
+      const beforeBalance = afterBalance + Math.max(0, Math.floor(Number(pricing.membershipCreditCost || 0)));
       await MonthlyCreditLedger.create({
         userId,
         type: "MONTHLY_CREDIT_SPEND",
         amount: pricing.membershipCreditCost,
         beforeBalance,
-        afterBalance: Math.max(0, Math.floor(Number(updated?.profileSubscription?.membershipCreditBalance || 0))),
+        afterBalance,
         reason: TITLE,
         sourceId,
         serviceKey: FEATURE_KEY,

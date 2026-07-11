@@ -175,6 +175,14 @@ function profileSubscriptionForState(state, now) {
         ...base,
         membershipCreditBalance: 999999,
         membershipCreditGranted: 999999,
+        // 월정석 지급분별 만료 도입 — 개발 시드도 지급일+30일 lot으로 부여.
+        membershipCreditLots: [{
+          lotId: "dev-monthly-seed",
+          amount: 999999,
+          remaining: 999999,
+          grantedAt: now,
+          expiresAt: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000),
+        }],
       };
     }
     return base;

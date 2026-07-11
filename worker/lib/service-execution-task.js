@@ -1,5 +1,6 @@
 import { connectDb, mongoose } from "./db.js";
 import { CONTENT_ENTITLEMENT_STATUSES, MonthlyCreditLedger, Payment, PointHistory, ServiceExecutionTransaction, User } from "./models.js";
+import { restoreMonthlyCreditLot } from "./monthly-credit-store.js";
 import { cancelPortOnePayment } from "./portone.js";
 import { revokePaymentContentAccess } from "./content-unlocks.js";
 
@@ -692,16 +693,8 @@ async function runMonthlyCreditRefund({
   );
   if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
 
-  const updatedUser = await User.findByIdAndUpdate(
-    userId,
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": amount,
-        "profileSubscription.membershipCreditUsed": -amount,
-      },
-    },
-    { returnDocument: "after", projection: { profileSubscription: 1 } },
-  ).lean();
+  // 복원분은 신규 30일 lot으로 재적립(원래 lot의 만료를 되살리지 않음). lotId=refundSourceId로 멱등.
+  const updatedUser = await restoreMonthlyCreditLot({ userId, lotId: refundSourceId, amount });
   if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
 
   const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));

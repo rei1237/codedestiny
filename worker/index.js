@@ -1124,7 +1124,7 @@ export default {
       }
 
       if (url.pathname === "/api/naming-prompt" || url.pathname.startsWith("/api/naming-prompt/")) {
-        return withCorsHeaders(request, env, await handleNamingPromptRoutes(request, env));
+        return runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes);
       }
 
       if (url.pathname === "/api/access" || url.pathname.startsWith("/api/access/")) {
@@ -1472,10 +1472,12 @@ export default {
     const { runDailyFortuneTask } = await import("./lib/daily-fortune-task.js");
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
     const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
+    const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
     ctx.waitUntil(Promise.all([
       runDailyFortuneTask(env),
       runCardSubscriptionBillingTask(env),
       runServiceExecutionTimeoutTask(env),
+      runMonthlyCreditExpiryTask(env),
     ]));
   },
 };

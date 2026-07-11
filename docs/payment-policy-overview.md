@@ -14,7 +14,9 @@
 ### 월정석
 - 이벤트·프로모션으로 지급되는 충전형 포인트
 - 사용자가 직접 구매 불가
+- **유효기간 30일 · 지급분별 소멸**: 월정석은 **각 지급분(가입/추천/이벤트 등)이 지급된 날로부터 30일간만 유효**하며, 그 기간 내에 사용하지 않은 지급분은 **자동 소멸**한다. 여러 번 나눠 지급받은 경우 각 지급분은 자기 지급일 기준으로 개별 만료하고, 사용 시에는 **오래된(먼저 만료되는) 지급분부터 차감(FIFO)** 한다. 소멸된 월정석은 복구·환불되지 않는다.
 - **구독이 아님** — 이용권(아래)과 절대 혼동하지 말 것. 코드: `membership_credit` / `moonlight_stone`, `MonthlyCreditLedger`
+- 구현: 지급분은 `profileSubscription.membershipCreditLots[]`(각 `{ lotId, amount, remaining, grantedAt, expiresAt }`)에 기록되며, 스칼라 `membershipCreditBalance`는 "미만료 lot 잔량 합계"의 파생 캐시다. 만료 판정·차감은 `worker/lib/monthly-credit-lots.js`, 지급/차감/환불 DB 반영은 `worker/lib/monthly-credit-store.js`, 미사용분 소멸 스윕은 매일 크론 `worker/lib/monthly-credit-expiry-task.js`(원장 `MONTHLY_CREDIT_EXPIRE`)가 담당한다. TTL 상수 = 30일(`MONTHLY_CREDIT_TTL_MS`).
 
 ### 이용권
 - 구매 방식: 단건 구매(1회 결제) 후 **30일간 지속**

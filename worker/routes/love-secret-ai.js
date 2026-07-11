@@ -4,6 +4,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
@@ -861,17 +862,13 @@ async function refundBillingGateMonthlyCredit({ userId, evidence = {}, reason = 
   }).lean();
   if (existing) return { refunded: true, idempotent: true };
 
-  const updatedUser = await User.findByIdAndUpdate(
+  // 복원분은 신규 30일 lot으로 재적립. lotId=refundSourceId로 멱등, recentConsumeRequestIds도 정리.
+  const updatedUser = await restoreMonthlyCreditLot({
     userId,
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": amount,
-        "profileSubscription.membershipCreditUsed": -amount,
-      },
-      ...(evidence.purchaseId ? { $pull: { recentConsumeRequestIds: evidence.purchaseId } } : {}),
-    },
-    { new: true, projection: { profileSubscription: 1 } },
-  ).lean();
+    lotId: refundSourceId,
+    amount,
+    pullRequestId: evidence.purchaseId || "",
+  });
   if (!updatedUser) return { refunded: false };
 
   const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));

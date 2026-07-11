@@ -73,6 +73,20 @@ const userSchema = new mongoose.Schema({
     membershipCreditBalance: { type: Number, default: 0, min: 0 },
     membershipCreditGranted: { type: Number, default: 0, min: 0 },
     membershipCreditUsed: { type: Number, default: 0, min: 0 },
+    // 월정석 지급분별(lot) 만료: 각 지급분이 지급일+30일에 개별 소멸, FIFO 차감.
+    // lot 배열이 신뢰 원천이고 membershipCreditBalance는 "미만료 lot.remaining 합계" 파생 캐시.
+    membershipCreditLots: {
+      type: [{
+        _id: false,
+        lotId: { type: String, default: "", trim: true, maxlength: 180 },
+        amount: { type: Number, default: 0, min: 0 },
+        remaining: { type: Number, default: 0, min: 0 },
+        grantedAt: { type: Date, default: null },
+        expiresAt: { type: Date, default: null },
+      }],
+      default: [],
+    },
+    membershipCreditLotsVersion: { type: Number, default: 0, min: 0 },
     legacyCoinCreditSeeded: { type: Boolean, default: false },
     legacyCoinCreditSeededAt: { type: Date, default: null },
     legacyCoinCreditSeededPoints: { type: Number, default: 0, min: 0 },
@@ -256,7 +270,7 @@ const monthlyCreditLedgerSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   type: {
     type: String,
-    enum: ["MONTHLY_CREDIT_GRANT", "MONTHLY_CREDIT_SPEND"],
+    enum: ["MONTHLY_CREDIT_GRANT", "MONTHLY_CREDIT_SPEND", "MONTHLY_CREDIT_EXPIRE"],
     required: true,
     index: true,
   },
@@ -1078,6 +1092,11 @@ neoOperationRoomConsultationSchema.index({ userId: 1, createdAt: -1 });
     },
   );
 });
+
+// 월정석 만료 스윕(runMonthlyCreditExpiryTask)이 만료 예정 lot을 가진 유저만 좁혀 조회하도록.
+// NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
+// scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs를 DB에 1회 실행할 것.
+userSchema.index({ "profileSubscription.membershipCreditLots.expiresAt": 1 });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);

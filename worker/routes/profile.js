@@ -1,6 +1,8 @@
 ﻿import { connectDb, withMongoRetry } from "../lib/db.js";
 import { requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
+import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   normalizeHoneyPassEntitlement,
@@ -917,16 +919,12 @@ async function refundProfileMutationCreditIfNeeded(auth, { action, profileId, re
   const coins = Math.max(0, Math.floor(Math.abs(Number(evidence.delta || PROFILE_CARD_MANAGE_COST))));
   if (credit <= 0) return;
 
-  const updatedUser = await User.findOneAndUpdate(
-    { _id: auth.userId },
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": credit,
-        "profileSubscription.membershipCreditUsed": -credit,
-      },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
+  // 프로필 카드 변경 실패 → 차감했던 월정석을 신규 30일 lot으로 복원(lotId로 멱등).
+  const updatedUser = await restoreMonthlyCreditLot({
+    userId: auth.userId,
+    lotId: `profile-mutation-refund:${String(evidence._id)}`,
+    amount: credit,
+  });
 
   await PointHistory.create({
     userId: auth.userId,
@@ -970,17 +968,28 @@ async function seedProfileLegacyCreditIfNeeded(authUserId) {
   if (!user?._id || sub?.legacyCoinCreditSeeded || legacyPoints <= 0) return user;
 
   const legacyCredit = calculateMembershipCreditCost(legacyPoints);
+  // 레거시 전환분도 지급일+30일 소멸 lot으로 적립(+기존 미lot 잔액 백필)해 유실을 막는다.
+  const seededAt = new Date();
+  const ensuredSeed = ensureLotsForBalance(sub, seededAt.getTime());
+  const seededLots = applyGrantLot(ensuredSeed.lots, {
+    lotId: "legacy-seed",
+    amount: legacyCredit,
+    grantedAt: seededAt,
+    now: seededAt.getTime(),
+  });
   return User.findOneAndUpdate(
     { _id: authUserId, "profileSubscription.legacyCoinCreditSeeded": { $ne: true } },
     {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": legacyCredit,
-        "profileSubscription.membershipCreditGranted": legacyCredit,
-      },
       $set: {
+        "profileSubscription.membershipCreditBalance": seededLots.balance,
+        "profileSubscription.membershipCreditLots": seededLots.lots,
         "profileSubscription.legacyCoinCreditSeeded": true,
-        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+        "profileSubscription.legacyCoinCreditSeededAt": seededAt,
         "profileSubscription.legacyCoinCreditSeededPoints": legacyPoints,
+      },
+      $inc: {
+        "profileSubscription.membershipCreditGranted": legacyCredit,
+        "profileSubscription.membershipCreditLotsVersion": 1,
       },
     },
     { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
@@ -1005,22 +1014,12 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
 
   await seedProfileLegacyCreditIfNeeded(auth.userId);
 
-  const updatedUser = await User.findOneAndUpdate(
-    {
-      _id: auth.userId,
-      "profileSubscription.membershipCreditBalance": { $gte: PROFILE_CARD_MANAGE_MEMBERSHIP_COST },
-    },
-    {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-        "profileSubscription.membershipCreditUsed": PROFILE_CARD_MANAGE_MEMBERSHIP_COST,
-      },
-    },
-    { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
-  ).lean();
-  if (!updatedUser) {
+  // 월정석 지급분별(lot) FIFO 차감(만료분 제외) — 스칼라 직접 차감 대신 lot 회계로 통일.
+  const consume = await consumeMonthlyCreditLots({ userId: auth.userId, amount: PROFILE_CARD_MANAGE_MEMBERSHIP_COST });
+  if (!consume.ok) {
     return { ok: false, response: profileCardActionPaymentRequiredResponse(action, paymentRequestId, profileId) };
   }
+  const updatedUser = consume.user;
 
   const history = await PointHistory.create({
     userId: auth.userId,

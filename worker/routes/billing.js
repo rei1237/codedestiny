@@ -35,6 +35,8 @@ import {
   User,
 } from "../lib/models.js";
 import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, KRW_PER_COIN, MEMBERSHIP_CREDIT_PER_COIN } from "../lib/billing-policy.js";
+import { MONTHLY_CREDIT_TTL_MS, applyGrantLot, deductLotsFIFO, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import {
   applyPdfPassDiscountToPricing,
   isPdfFeaturePricing,
@@ -1156,20 +1158,32 @@ async function seedMembershipCreditFromUserDoc(authUserId, user) {
     : 0;
   if (legacyCredit <= 0) return null;
 
+  const seededAt = new Date();
+  // 레거시 포인트→월정석 1회 전환분도 지급일+30일 소멸 lot으로 적립(seed 가드로 멱등).
+  // 백필까지 겸함: lot이 아직 없고 스칼라 잔액만 있던 유저의 기존 잔액도 lot으로 흡수해 유실을 막는다.
+  const ensuredSeed = ensureLotsForBalance(sub, seededAt.getTime());
+  const seededLots = applyGrantLot(ensuredSeed.lots, {
+    lotId: "legacy-seed",
+    amount: legacyCredit,
+    grantedAt: seededAt,
+    now: seededAt.getTime(),
+  });
   return User.findOneAndUpdate(
     {
       _id: authUserId,
       "profileSubscription.legacyCoinCreditSeeded": { $ne: true },
     },
     {
-      $inc: {
-        "profileSubscription.membershipCreditBalance": legacyCredit,
-        "profileSubscription.membershipCreditGranted": legacyCredit,
-      },
       $set: {
+        "profileSubscription.membershipCreditBalance": seededLots.balance,
+        "profileSubscription.membershipCreditLots": seededLots.lots,
         "profileSubscription.legacyCoinCreditSeeded": true,
-        "profileSubscription.legacyCoinCreditSeededAt": new Date(),
+        "profileSubscription.legacyCoinCreditSeededAt": seededAt,
         "profileSubscription.legacyCoinCreditSeededPoints": Math.floor(legacyPoints),
+      },
+      $inc: {
+        "profileSubscription.membershipCreditGranted": legacyCredit,
+        "profileSubscription.membershipCreditLotsVersion": 1,
       },
     },
     {
@@ -1291,23 +1305,65 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
 
-  const deductFilter = {
-    _id: authUserId,
-    "profileSubscription.membershipCreditBalance": { $gte: requiredCredit },
-    ...(purchaseId ? { recentConsumeRequestIds: { $ne: purchaseId } } : {}),
-  };
-  const deductUpdate = {
-    $inc: {
-      "profileSubscription.membershipCreditBalance": -requiredCredit,
-      "profileSubscription.membershipCreditUsed": requiredCredit,
-    },
-    ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
+  // 월정석 지급분별(lot) FIFO 차감: 만료 lot은 제외(지연소멸)하고 오래된 지급분부터 소진한다.
+  // 단일 $inc로는 FIFO 배열 갱신이 불가하므로, 버전 가드 기반 낙관적 read-modify-write + 재시도로
+  // 동시 차감/지급과의 경합을 안전하게 처리한다.
+  const LOT_DEDUCT_MAX_ATTEMPTS = 5;
+  let deductPreImage = null;
+  const applyLotDeduction = async (session = null) => {
+    for (let attempt = 0; attempt < LOT_DEDUCT_MAX_ATTEMPTS; attempt += 1) {
+      const query = User.findById(authUserId).select("points profileSubscription recentConsumeRequestIds");
+      if (session) query.session(session);
+      const current = await query.lean();
+      if (!current?._id) return null;
+      // 멱등: 이미 처리된 purchaseId면 재차감하지 않는다(상위 원장/이력 가드와 이중 방어).
+      if (purchaseId && Array.isArray(current.recentConsumeRequestIds) && current.recentConsumeRequestIds.includes(purchaseId)) {
+        return null;
+      }
+      const sub = current.profileSubscription || {};
+      // 지연 백필: 마이그레이션 이전(잔액만 있고 lot 없음) 유저를 위해 즉석 30일 lot 합성.
+      const ensured = ensureLotsForBalance(sub, Date.now());
+      const deduction = deductLotsFIFO(ensured.lots, requiredCredit, Date.now());
+      if (!deduction.ok) return null; // 유효(미만료) 월정석 부족 → 결제창으로 폴백
+      const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
+      const writeFilter = {
+        _id: authUserId,
+        "profileSubscription.membershipCreditLotsVersion": version,
+        ...(purchaseId ? { recentConsumeRequestIds: { $ne: purchaseId } } : {}),
+      };
+      const writeUpdate = {
+        $set: {
+          "profileSubscription.membershipCreditLots": deduction.lots,
+          "profileSubscription.membershipCreditBalance": deduction.balance,
+        },
+        $inc: {
+          "profileSubscription.membershipCreditUsed": requiredCredit,
+          "profileSubscription.membershipCreditLotsVersion": 1,
+        },
+        ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
+      };
+      const writeOpts = { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } };
+      if (session) writeOpts.session = session;
+      const updated = await User.findOneAndUpdate(writeFilter, writeUpdate, writeOpts).lean();
+      if (updated) {
+        // 보상(saga)용 pre-image: 실패 시 차감 전 lot/잔액을 정확히 되돌린다.
+        deductPreImage = { lots: ensured.lots, balance: ensured.balance };
+        return updated;
+      }
+      // 버전 충돌(동시 차감/지급) → 재조회 후 재시도.
+    }
+    return null;
   };
   const compensateDeduct = async () => {
+    if (!deductPreImage) return;
     await User.findByIdAndUpdate(authUserId, {
+      $set: {
+        "profileSubscription.membershipCreditLots": deductPreImage.lots,
+        "profileSubscription.membershipCreditBalance": deductPreImage.balance,
+      },
       $inc: {
-        "profileSubscription.membershipCreditBalance": requiredCredit,
         "profileSubscription.membershipCreditUsed": -requiredCredit,
+        "profileSubscription.membershipCreditLotsVersion": 1,
       },
       ...(purchaseId ? { $pull: { recentConsumeRequestIds: purchaseId } } : {}),
     }).catch(() => {});
@@ -1375,11 +1431,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     let outcome = null;
     try {
       await session.withTransaction(async () => {
-        const updatedUser = await User.findOneAndUpdate(deductFilter, deductUpdate, {
-          returnDocument: "after",
-          projection: { points: 1, profileSubscription: 1 },
-          session,
-        }).lean();
+        const updatedUser = await applyLotDeduction(session);
         if (!updatedUser) { outcome = null; return; }
         const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
         const [history] = await PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session });
@@ -1395,10 +1447,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   // Fallback when transactions are unavailable: best-effort with manual compensation (saga),
   // preserving the pre-transaction behavior.
   const runSpendWithCompensation = async () => {
-    const updatedUser = await User.findOneAndUpdate(deductFilter, deductUpdate, {
-      returnDocument: "after",
-      projection: { points: 1, profileSubscription: 1 },
-    }).lean();
+    const updatedUser = await applyLotDeduction(null);
     if (!updatedUser) return null;
     const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
     const history = await PointHistory.create(buildHistoryPayload(updatedUser?.points, monthlyCredits)).catch(async (error) => {
@@ -3553,12 +3602,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               const refundCredit = Math.max(0, Math.floor(Number(membershipConsume.requiredMonthlyCredits || membershipConsume.membershipCreditCost || 0)));
               const refundPurchaseId = String(membershipConsume.purchaseId || requestId || "").trim();
               if (refundCredit > 0) {
-                await User.findByIdAndUpdate(authCheck.auth.userId, {
-                  $inc: {
-                    "profileSubscription.membershipCreditBalance": refundCredit,
-                    "profileSubscription.membershipCreditUsed": -refundCredit,
-                  },
-                  ...(refundPurchaseId ? { $pull: { recentConsumeRequestIds: refundPurchaseId } } : {}),
+                // 복원분은 신규 30일 lot으로 재적립(lotId로 멱등). recentConsumeRequestIds도 정리.
+                await restoreMonthlyCreditLot({
+                  userId: authCheck.auth.userId,
+                  lotId: `unlock-refund:${String(membershipConsume.ledgerId || membershipConsume.transactionId || refundPurchaseId)}`,
+                  amount: refundCredit,
+                  pullRequestId: refundPurchaseId || "",
                 }).catch(() => {});
                 await PointHistory.updateOne(
                   { _id: membershipConsume.transactionId, userId: authCheck.auth.userId },
