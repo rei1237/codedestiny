@@ -96,11 +96,11 @@
 - 개별 유지(전부 저자/AI 원고 완료): `tarot-reversed-card-framework`, `tarot-spread-design-principles`, `tarot-minor-arcana-four-suits-practical-guide`, `tarot-court-cards-personality-and-relationship-guide`, `tarot-practical-reading-casebook-by-question`, `tarot-career-reading-7-question-framework`, `tarot-anxiety-safe-reading-method`, `tarot-reunion-reading`, `tarot-partner-mind-reading`, `tarot-compatibility-reading-game`, `today-tarot-routine`
 - 재분류: `europe-divination-traditions-deep-guide` → **기타**. 제외 검토: `adsense-ready-content-checklist`(§3)
 
-### 점성술 (현 12편)
-- `astrology-houses-what-is` ⟵ `astrology-houses-quick-guide`
-- `astrology-birth-chart-guide` ⟵ `sun-moon-rising-difference` **[확정필요]**
-- 개별 유지: `astrology-vs-saju-differences`, `astrology-synastry-compatibility-fun-guide`, `astrology-mercury-retrograde-practical-guide`, `new-moon-full-moon-fortune-routine`
-- 제외/재분류 검토: `structured-data-for-fortune-sites`, `fortune-content-for-adsense-what-google-likes`(§3), `career-luck-interview-exam-prep-strategy`·`sleep-rhythm-energy-and-luck-connection`(사주/루틴으로 재분류 **[확정필요]**)
+### 점성술 (8/8 완료 — 통합 맵 확정·실행 완료 2026-07-11)
+- `astrology-houses-what-is` ⟵ `astrology-houses-quick-guide` [완료]
+- `astrology-birth-chart-guide` ⟵ `sun-moon-rising-difference` [완료]
+- 개별 유지(전부 AI 저술 완료): `astrology-vs-saju-differences`, `astrology-synastry-compatibility-fun-guide`, `astrology-mercury-retrograde-practical-guide`, `new-moon-full-moon-fortune-routine`, `career-luck-interview-exam-prep-strategy`, `sleep-rhythm-energy-and-luck-connection`
+- 제외/재분류 검토: `structured-data-for-fortune-sites`, `fortune-content-for-adsense-what-google-likes`(§3)
 
 ### 베다점 (현 11편)
 - `vedic-dasha-transit-remedy-practical-guide` ⟵ `vedic-dasha-monthly-action-guide` **[확정필요]**
@@ -226,15 +226,15 @@ AI가 직접 저술해 달라고 명시적으로 요청(기존 "저자 직접 �
 병렬 디스패치로 초안 작성 후 삽입·검증 완료. 나머지 3개 카테고리(점성술·베다점·궁합기타)도 동일 방식으로
 자동 연속 진행 중.
 
-### 점성술 (8)
-- [ ] `astrology-birth-chart-guide` — 출생차트(태양·달·상승궁) [통합: sun-moon-rising-difference]
-- [ ] `astrology-houses-what-is` — 하우스 입문 [통합: astrology-houses-quick-guide]
-- [ ] `astrology-vs-saju-differences` — 점성술 vs 사주
-- [ ] `astrology-synastry-compatibility-fun-guide` — 시나스트리 궁합
-- [ ] `astrology-mercury-retrograde-practical-guide` — 수성 역행 실전
-- [ ] `new-moon-full-moon-fortune-routine` — 신월·보름 루틴
-- [ ] `career-luck-interview-exam-prep-strategy` — 면접·시험 운 전략
-- [ ] `sleep-rhythm-energy-and-luck-connection` — 수면 리듬·운 연결
+### 점성술 (8/8 완료 2026-07-11)
+- [x] `astrology-birth-chart-guide` — 출생차트(태양·달·상승궁) [통합 완료: sun-moon-rising-difference]
+- [x] `astrology-houses-what-is` — 하우스 입문 [통합 완료: astrology-houses-quick-guide]
+- [x] `astrology-vs-saju-differences` — 점성술 vs 사주
+- [x] `astrology-synastry-compatibility-fun-guide` — 시나스트리 궁합
+- [x] `astrology-mercury-retrograde-practical-guide` — 수성 역행 실전
+- [x] `new-moon-full-moon-fortune-routine` — 신월·보름 루틴
+- [x] `career-luck-interview-exam-prep-strategy` — 면접·시험 운 전략
+- [x] `sleep-rhythm-energy-and-luck-connection` — 수면 리듬·운 연결
 
 ### 베다점 (10)
 - [ ] `vedic-what-is` — 베다 점성술이란 / `vedic-lagna-what-is` — 라그나 / `nakshatra-what-is` — 나크샤트라

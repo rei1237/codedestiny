@@ -38,6 +38,8 @@ const ORIGINAL_CONTENT_SLUGS = new Set([
   "tarot-reunion-reading",
   "tarot-partner-mind-reading",
   "today-tarot-routine",
+  "astrology-birth-chart-guide",
+  "astrology-houses-what-is",
 ]);
 
 const INSIGHT_IMAGE_PROFILES = [

@@ -113,6 +113,10 @@
 /insights/tarot-love-question-design                        /insights/tarot-how-to-read                              301
 # 사주+타로 통합 리딩 → saju-and-tarot-combined-reading-framework
 /insights/tarot-vs-saju                                     /insights/saju-and-tarot-combined-reading-framework      301
+# 네이탈 차트 완전 가이드(3축 통합) → astrology-birth-chart-guide
+/insights/sun-moon-rising-difference                        /insights/astrology-birth-chart-guide                    301
+# 점성술 하우스란 완전 가이드 → astrology-houses-what-is
+/insights/astrology-houses-quick-guide                      /insights/astrology-houses-what-is                       301
 
 # 샘플 페이지 단축 경로
 /sample/saju                    /sample/saju-result.html         301
