@@ -196,16 +196,21 @@
     }
 
     // Always try same-origin API first (Cloudflare Pages/OpenNext safe path).
+    // "" (relative) already targets location.origin — do not add the origin again,
+    // otherwise every failure is retried twice against the same URL.
     add("");
-    if (typeof window !== "undefined") {
-      var sameOrigin = String(location.origin || "").replace(/\/+$/, "");
-      if (sameOrigin) add(sameOrigin);
+    var sameOrigin = typeof window !== "undefined" ? String(location.origin || "").replace(/\/+$/, "") : "";
+
+    function addIfNotSameOrigin(raw) {
+      var normalized = normalizeApiBase(raw);
+      if (!normalized || normalized === sameOrigin) return;
+      add(normalized);
     }
 
     var runtimeBase = getRuntimeEnvApiBase();
-    if (isSafeTarotApiBase(runtimeBase)) add(runtimeBase);
+    if (isSafeTarotApiBase(runtimeBase)) addIfNotSameOrigin(runtimeBase);
     var computedBase = getTarotApiBase();
-    if (isSafeTarotApiBase(computedBase)) add(computedBase);
+    if (isSafeTarotApiBase(computedBase)) addIfNotSameOrigin(computedBase);
 
     if (typeof window !== "undefined") {
       var host = String(location.hostname || "").toLowerCase();
@@ -221,13 +226,20 @@
     return out;
   }
 
+  function buildTarotApiHeaders() {
+    var headers = { "Content-Type": "application/json" };
+    var token = getAuthToken();
+    if (token) headers.Authorization = "Bearer " + token;
+    return headers;
+  }
+
   function postJsonWithTimeout(url, body) {
     var supportsAbort = typeof AbortController === "function";
     if (!supportsAbort) {
       return Promise.race([
         fetch(url, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: buildTarotApiHeaders(),
           body: body,
           cache: "no-store",
         }),
@@ -246,7 +258,7 @@
 
     return fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: buildTarotApiHeaders(),
       body: body,
       cache: "no-store",
       signal: controller.signal,
@@ -323,6 +335,11 @@
       var base = bases[index++];
       return requestWithBase(base).catch(function (error) {
         lastError = error;
+        // 401/403 is a definitive auth verdict — every candidate resolves to the
+        // same origin, so retrying other bases only adds latency.
+        if (error && (error.status === 401 || error.status === 403)) {
+          throw error;
+        }
         if (index < bases.length) {
           console.error("[Tarot API Debug] retry_next_base", {
             endpoint: endpoint,
@@ -846,12 +863,25 @@
     if (!intro || !draw) return;
     var panel = document.querySelector(".tarot-reunion-panel");
     if (panel) panel.classList.add("ritual-burst");
+    var invokeBtn = document.querySelector(".tarot-reunion-btn--invoke");
+    var invokeBtnLabel = invokeBtn ? invokeBtn.textContent : "";
+    if (invokeBtn) {
+      if (invokeBtn.disabled) return;
+      invokeBtn.disabled = true;
+      invokeBtn.textContent = "🕯️ 등대의 불을 밝히는 중...";
+    }
+    function restoreInvokeBtn() {
+      if (!invokeBtn) return;
+      invokeBtn.disabled = false;
+      invokeBtn.textContent = invokeBtnLabel;
+    }
 
     callTarotApi("draw", { spreadType: "reunion_lighthouse_five_card" })
       .then(function (data) {
         if (!data.cards || data.cards.length !== 5) throw new Error("Invalid draw");
         state.cards = data.cards;
         state.revealedCount = 0;
+        restoreInvokeBtn();
         intro.classList.remove("is-active");
         draw.classList.add("is-active");
         renderTarotReunionCards();
@@ -860,8 +890,13 @@
       })
       .catch(function (err) {
         console.error("Tarot Reunion draw error:", err);
+        restoreInvokeBtn();
         if (panel) panel.classList.remove("ritual-burst");
-        alert("카드를 뽑는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        if (err && (err.status === 401 || err.status === 403)) {
+          alert("로그인이 필요한 기능입니다. 로그인 후 다시 시도해 주세요.");
+        } else {
+          alert("카드를 뽑는 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        }
       });
   }
 

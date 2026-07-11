@@ -1350,7 +1350,9 @@ export async function handleTarotRoutes(request, env = {}) {
 
     // Mindscan reading is finalized by coin-gate and must not fail at result generation
     // due to auth token drift between runtime environments.
-    if (path !== "/mindscan") {
+    // /draw is a free stateless random card draw (no DB/cost) — requiring auth here
+    // blocked logged-out users from ever reaching the card stage on static tarot pages.
+    if (path !== "/mindscan" && path !== "/draw") {
       await requireAuth(request, env);
     }
 

@@ -259,7 +259,7 @@ export default function TarotReunionClient() {
 
   return (
     <>
-      <Script src="/js/tarot-reunion-experience.js?v=build-1bcb12c9e742" strategy="afterInteractive" onLoad={openReunionExperienceWhenReady} />
+      <Script src="/js/tarot-reunion-experience.js?v=build-3a3676872a13" strategy="afterInteractive" onLoad={openReunionExperienceWhenReady} />
 
       <div
         id="tarotReunionOverlay"
