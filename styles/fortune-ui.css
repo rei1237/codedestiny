@@ -928,7 +928,7 @@ input:checked + .slider .paw-pad {
    display는 JS에서 flex로 열 때만 적용 — .modal-overlay-shell의 display:none과 충돌하지 않게 여기서는 지정하지 않음 */
 .modal-overlay-juyuk{position:fixed;inset:0;z-index:99998;background:#080401;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 .modal-overlay-sukuyo{position:fixed;inset:0;z-index:99998;background:#0a0c19;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
-.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:#0a0a14;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
+.modal-overlay-astro{position:fixed;inset:0;z-index:99998;background:radial-gradient(ellipse at 50% -10%, #16123a 0%, #0a0818 52%, #070510 100%);overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 .modal-overlay-ziwei{position:fixed;inset:0;z-index:99998;background:#090515;overflow:hidden;flex-direction:column;height:100dvh;max-height:100dvh;min-height:0}
 
 .modal-top-nav{
@@ -946,7 +946,7 @@ input:checked + .slider .paw-pad {
 }
 .modal-top-nav-juyuk{background:rgba(8,4,1,0.97);border-bottom:1px solid rgba(180,130,30,0.3)}
 .modal-top-nav-sukuyo{background:rgba(10,12,25,0.97);border-bottom:1px solid rgba(167,139,250,0.3)}
-.modal-top-nav-astro{background:rgba(10,10,20,0.97);border-bottom:1px solid rgba(125,42,232,0.3)}
+.modal-top-nav-astro{background:rgba(10,8,24,0.97);border-bottom:1px solid rgba(196,181,253,0.28)}
 .modal-top-nav-ziwei{background:rgba(9,5,21,0.97);border-bottom:1px solid rgba(232,121,249,0.3)}
 
 .modal-nav-home{
@@ -966,7 +966,7 @@ input:checked + .slider .paw-pad {
 }
 .modal-nav-home-juyuk{color:rgba(220,185,80,0.9)}
 .modal-nav-home-sukuyo{color:rgba(180,150,255,0.9)}
-.modal-nav-home-astro{color:rgba(160,130,255,0.9)}
+.modal-nav-home-astro{color:rgba(196,181,253,0.92)}
 .modal-nav-home-ziwei{color:rgba(232,121,249,0.9)}
 
 .modal-nav-title{
@@ -977,7 +977,7 @@ input:checked + .slider .paw-pad {
 }
 .modal-nav-title-juyuk{color:rgba(255,200,70,0.65)}
 .modal-nav-title-sukuyo{color:rgba(167,139,250,0.65)}
-.modal-nav-title-astro{color:rgba(125,42,232,0.65)}
+.modal-nav-title-astro{color:rgba(232,213,163,0.72)}
 .modal-nav-title-ziwei{color:rgba(232,121,249,0.65)}
 
 .modal-nav-close{
@@ -997,7 +997,7 @@ input:checked + .slider .paw-pad {
 }
 .modal-nav-close-juyuk{border:1px solid rgba(220,185,80,0.45);color:rgba(220,185,80,0.9)}
 .modal-nav-close-sukuyo{border:1px solid rgba(180,150,255,0.4);color:rgba(180,150,255,0.9)}
-.modal-nav-close-astro{border:1px solid rgba(160,130,255,0.4);color:rgba(160,130,255,0.9)}
+.modal-nav-close-astro{border:1px solid rgba(196,181,253,0.4);color:rgba(196,181,253,0.92)}
 .modal-nav-close-ziwei{border:1px solid rgba(232,121,249,0.45);color:rgba(232,121,249,0.9)}
 
 .modal-sheet-base{flex:1 1 auto;min-height:0;position:relative;z-index:1;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior-y:auto;overscroll-behavior-x:none;width:100%;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word}
@@ -12877,15 +12877,30 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       .ilju-v2-toggle {
         width: 100%;
-        min-height: 44px;
-        border: none;
-        border-radius: 12px;
-        background: linear-gradient(135deg, #334155, #0f172a);
-        color: #f8fafc;
-        font-size: .82rem;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: 1px solid rgba(179, 25, 85, 0.16);
+        border-radius: 14px;
+        padding: 0 18px;
+        background: linear-gradient(135deg, #fff3f8, #fffaf7);
+        color: #b31955;
+        font-size: .86rem;
         font-weight: 800;
+        letter-spacing: -.01em;
         cursor: pointer;
-        margin: 2px 0 8px;
+        margin: 4px 0 8px;
+        transition: background .2s ease, box-shadow .2s ease, border-color .2s ease, transform .1s ease;
+      }
+      .ilju-v2-toggle:hover {
+        background: linear-gradient(135deg, #ffe9f2, #fff3ee);
+        border-color: rgba(179, 25, 85, 0.3);
+        box-shadow: 0 6px 18px rgba(179, 25, 85, 0.12);
+      }
+      .ilju-v2-toggle:active {
+        transform: translateY(1px);
       }
       .ilju-v2-detail-wrap {
         overflow: hidden;
@@ -12930,6 +12945,16 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       }
       body.neo-mode .ilju-v2 .ilju-v2-bar-track {
         background: rgba(51, 65, 85, 0.7);
+      }
+      body.neo-mode .ilju-v2-toggle {
+        background: linear-gradient(135deg, #26203f, #161129);
+        color: #f5dea0;
+        border-color: rgba(233, 196, 106, 0.35);
+      }
+      body.neo-mode .ilju-v2-toggle:hover {
+        background: linear-gradient(135deg, #2f2750, #1c1533);
+        border-color: rgba(233, 196, 106, 0.5);
+        box-shadow: 0 6px 18px rgba(233, 196, 106, 0.14);
       }
 
       /* --- SACRED MIRROR & TAROT NOIR THEME (NEO MODE) --- */
@@ -13696,30 +13721,31 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .astro-card {
           margin-bottom: 25px;
           border-radius: 20px;
-          background: linear-gradient(135deg, #12121a 0%, #1e1e2f 100%);
-          border: 1px solid rgba(125, 42, 232, 0.4);
+          background: linear-gradient(160deg, rgba(24,20,52,0.94) 0%, rgba(12,9,28,0.96) 100%);
+          border: 1px solid rgba(196,181,253,0.26);
           padding: 0;
-          color: #e0e0e0;
-          box-shadow: 0 10px 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(125,42,232,0.1);
+          color: #e8e2f5;
+          box-shadow: 0 0 40px -5px rgba(216,179,108,0.28), 0 0 80px -20px rgba(156,135,212,0.28), inset 0 1px 0 rgba(232,213,163,0.08);
           font-family: 'Gowun Dodum', 'Pretendard', sans-serif;
           position: relative;
           overflow: hidden;
         }
-        .astro-header { 
-          background: linear-gradient(135deg, #1e003b, #300063);
-          padding: 18px 24px; font-weight: 800; color: #d1c4e9; font-size: 1.3rem; 
+        .astro-header {
+          background: radial-gradient(120% 160% at 50% 0%, rgba(196,181,253,0.12), rgba(12,9,28,0) 68%), rgba(13,10,32,0.55);
+          padding: 18px 24px; font-weight: 800; color: #e8d5a3; font-size: 1.3rem;
           display: flex; align-items: center; justify-content: center; letter-spacing: 1px;
-          border-bottom: 1px dashed rgba(125,42,232,0.6);
+          border-bottom: 1px solid rgba(232,213,163,0.34);
+          text-shadow: 0 0 20px rgba(196,181,253,0.35);
         }
         .astro-body { padding: 24px; display: grid; gap: 24px; }
-        .astro-section { 
-          background: rgba(0,0,0,0.35); padding: 20px; border-radius: 16px; 
-          border-left: 5px solid #7d2ae8; display: flex; flex-direction: column; gap: 12px;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        .astro-section {
+          background: rgba(255,255,255,0.035); padding: 20px; border-radius: 16px;
+          border: 1px solid rgba(196,181,253,0.16); display: flex; flex-direction: column; gap: 12px;
+          box-shadow: 0 2px 14px rgba(0,0,0,0.32);
         }
-        .astro-subhead { 
-          display: flex; align-items: center; font-weight: bold; color: #ea80fc; 
-          font-size: 1.2rem; border-bottom: 1px dashed rgba(234,128,252,0.3); 
+        .astro-subhead {
+          display: flex; align-items: center; font-weight: bold; color: #e8d5a3;
+          font-size: 1.2rem; border-bottom: 1px solid rgba(196,181,253,0.22);
           padding-bottom: 8px; margin-bottom: 5px;
         }
         .astro-planet { color: #f48fb1; font-weight: 800; display: inline-flex; align-items: center; }
@@ -13730,11 +13756,71 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
           letter-spacing: 0.2px; word-break: keep-all; 
         }
         .astro-tags { display: flex; gap: 10px; margin-top: 5px; flex-wrap: wrap; align-items: center; }
-        .astro-tag { background: rgba(125,42,232,0.25); color: #e1bee7; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; border:1px solid rgba(125,42,232,0.4); display: flex; align-items: center; }
-        .astro-core { 
-          background: linear-gradient(90deg, rgba(125,42,232,0.15), rgba(0,0,0,0)); 
-          padding: 15px; border-radius: 12px; font-style: italic; color:#ce93d8; margin-top: 10px;
-          border-left: 3px solid #ce93d8; line-height: 1.6;
+        .astro-tag { background: rgba(196,181,253,0.16); color: #d9ccff; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; border:1px solid rgba(196,181,253,0.34); display: flex; align-items: center; }
+        .astro-core {
+          background: linear-gradient(90deg, rgba(196,181,253,0.12), rgba(232,213,163,0.04));
+          padding: 15px; border-radius: 12px; font-style: italic; color:#d9ccff; margin-top: 10px;
+          border: 1px solid rgba(196,181,253,0.2); line-height: 1.6;
+        }
+        /* ── 서양 점성술 모달 우주 배경 레이어 (별밭·성운·별의 비) — astro 전용 장식, aria-hidden ── */
+        .astro-cosmos { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+        .astro-cosmos__nebula {
+          position:absolute; inset:-20%;
+          background:
+            radial-gradient(38% 30% at 22% 18%, rgba(156,135,212,0.16), rgba(156,135,212,0) 70%),
+            radial-gradient(34% 26% at 82% 30%, rgba(232,213,163,0.09), rgba(232,213,163,0) 72%),
+            radial-gradient(46% 40% at 60% 88%, rgba(120,105,190,0.12), rgba(120,105,190,0) 74%);
+          animation: astroNebulaDrift 26s ease-in-out infinite alternate;
+          will-change: transform, opacity;
+        }
+        .astro-cosmos__stars {
+          position:absolute; inset:0;
+          background-image:
+            radial-gradient(1.4px 1.4px at 12% 22%, rgba(255,255,255,0.9), transparent 60%),
+            radial-gradient(1.2px 1.2px at 28% 68%, rgba(232,213,163,0.85), transparent 60%),
+            radial-gradient(1.5px 1.5px at 44% 12%, rgba(255,255,255,0.85), transparent 60%),
+            radial-gradient(1.1px 1.1px at 58% 82%, rgba(196,181,253,0.9), transparent 60%),
+            radial-gradient(1.3px 1.3px at 72% 34%, rgba(255,255,255,0.8), transparent 60%),
+            radial-gradient(1.6px 1.6px at 86% 60%, rgba(232,213,163,0.8), transparent 60%),
+            radial-gradient(1.1px 1.1px at 8% 84%, rgba(196,181,253,0.75), transparent 60%),
+            radial-gradient(1.2px 1.2px at 92% 14%, rgba(255,255,255,0.8), transparent 60%),
+            radial-gradient(1px 1px at 36% 44%, rgba(255,255,255,0.6), transparent 60%),
+            radial-gradient(1px 1px at 66% 58%, rgba(255,255,255,0.6), transparent 60%);
+          animation: twinkle 6s ease-in-out infinite;
+        }
+        .astro-meteor {
+          position:absolute; width:var(--w,2px); height:var(--h,110px); border-radius:999px;
+          background:linear-gradient(to bottom, transparent 0%, transparent 12%,
+            var(--gc2,rgba(178,158,236,0.22)) 35%, var(--gc1,rgba(210,196,255,0.6)) 65%,
+            var(--hc,rgba(255,246,224,0.95)) 90%, var(--hc,#fff6e0) 100%);
+          box-shadow:0 0 6px 1px var(--gc1,rgba(210,196,255,0.3));
+          transform-origin:top center; transform:rotate(-42deg) translateY(-220px); opacity:0;
+          animation:meteorFall var(--dur,3s) ease-in var(--delay,0s) infinite;
+          pointer-events:none; will-change:transform,opacity;
+        }
+        .astro-meteor::after {
+          content:''; position:absolute; bottom:-4px; left:50%; transform:translateX(-50%);
+          width:6px; height:6px; border-radius:50%;
+          background:radial-gradient(circle, #fff 0%, var(--hc,rgba(255,246,224,0.92)) 45%, transparent 100%);
+          box-shadow:0 0 8px 3px var(--hc,rgba(255,246,224,0.9)), 0 0 22px 7px var(--gc1,rgba(196,181,253,0.5));
+        }
+        .astro-meteor-1 { top:2%;  left:16%; --delay:0s;   --dur:3.4s; --h:120px; --hc:rgba(255,246,224,0.95); --gc1:rgba(232,213,163,0.6); --gc2:rgba(232,213,163,0.28); }
+        .astro-meteor-2 { top:6%;  left:60%; --delay:2.2s; --dur:3.0s; --h:100px; --hc:rgba(245,240,255,1);   --gc1:rgba(210,196,255,0.62);--gc2:rgba(178,158,236,0.3); }
+        .astro-meteor-3 { top:1%;  left:82%; --delay:4.0s; --dur:3.8s; --h:135px; --hc:rgba(255,246,224,0.95); --gc1:rgba(232,213,163,0.58);--gc2:rgba(232,213,163,0.26); }
+        .astro-meteor-4 { top:14%; left:34%; --delay:1.3s; --dur:3.6s; --h:90px;  --hc:rgba(230,222,255,0.92); --gc1:rgba(196,181,253,0.55);--gc2:rgba(156,135,212,0.28); }
+        .astro-meteor-5 { top:4%;  left:46%; --delay:5.6s; --dur:3.2s; --h:110px; --hc:rgba(255,246,224,0.9);  --gc1:rgba(210,196,255,0.55);--gc2:rgba(178,158,236,0.26); }
+        @keyframes astroNebulaDrift {
+          0%   { transform:translate3d(-2%,-1%,0) scale(1);   opacity:0.85; }
+          100% { transform:translate3d(2%,2%,0)  scale(1.06); opacity:1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .astro-meteor { display:none !important; }
+          .astro-cosmos__nebula, .astro-cosmos__stars { animation:none !important; }
+        }
+        @media (pointer: coarse) {
+          .astro-meteor-4, .astro-meteor-5 { display:none !important; }
+          .astro-meteor { box-shadow:none !important; }
+          .astro-meteor::after { box-shadow:0 0 8px 2px var(--hc,rgba(255,246,224,0.9)) !important; }
         }
         .astro-expert {
           position: relative; overflow: hidden; margin-top: 10px; padding: 20px; border-radius: 18px;
