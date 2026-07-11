@@ -9,6 +9,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLoveSecretAiSaju, normalizeLoveSecretAiInput } from "../lib/love-secret-ai-calculation.js";
 import {
@@ -759,12 +760,16 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
     keyExtra: "love-secret-ai-v1",
   };
   const callOnce = async (prompt) => {
-    const ai = await callGeminiText(env, prompt, {
+    // 15개 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) —
+    // plain callGeminiText는 잘림에 무방비라 잘리면 그대로 INVALID_LLM_JSON 하드 실패였다.
+    // 잘림 반응형 재시도 헬퍼(JSON 모드 강제 + 잘리면 토큰 상향 재생성)로 교체.
+    const ai = await callGeminiJsonWithRetry(env, prompt, {
       systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
       temperature: 0.72,
-      // 15개 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) —
-      // 구 상한 14000은 최소 분량조차 못 담아 잘림→INVALID_LLM_JSON이 났다.
-      maxOutputTokens: 32000,
+      // 동기 POST 라우트라 왕복 시간을 묶기 위해 재시도는 1회로 제한(총 2회 시도).
+      attempts: 2,
+      baseTokens: 32000,
+      capTokens: Math.round(32000 * 1.3),
       // 32,000토큰(gemini-2.5-flash ~200tok/s ≈ 160s) — 구 90s는 목표 분량대 상단에서 잘렸다.
       timeoutMs: Number(env?.LOVE_SECRET_AI_TIMEOUT_MS) || 150000,
       taskType: "fortune",

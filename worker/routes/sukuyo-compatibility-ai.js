@@ -1630,7 +1630,8 @@ async function handleMessage(request, env) {
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: 2600,
-    timeoutMs: Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS || env.PREMIUM_GEMINI_TIMEOUT_MS || 55000),
+    // PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에서 뺀다 — 초기 상담 경로(위)와 동일한 45초 단락 함정 방지.
+    timeoutMs: Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000,
   });
   const provider = clean(ai?.provider || "");
   const model = clean(ai?.model || "");
