@@ -1466,12 +1466,8 @@ async function handleStart(request, env, ctx) {
   }
   };
 
-  if (ctx?.waitUntil) {
-    // 실패는 위 catch에서 이미 환불·기록됐다 — 여기서는 미처리 rejection만 삼킨다.
-    ctx.waitUntil(runGeneration().catch(() => {}));
-    return json({ ok: true, sessionId, status: "generating", message: "행성과 별자리의 흐름을 읽고 있습니다" }, { status: 202 });
-  }
-  // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지.
+  // 동기 생성: 요청 안에서 완결해 완료 결과를 바로 반환한다. waitUntil 백그라운드+/result 폴링은 공유 DB 연결을
+  // 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
   return await runGeneration();
 }
 

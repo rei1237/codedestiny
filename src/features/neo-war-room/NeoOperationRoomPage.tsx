@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
@@ -2727,11 +2727,23 @@ export default function NeoOperationRoomPage() {
                 {briefingRevealStep >= 5 && displayBriefing.sevenDayMission?.length ? (
                   <div className={`${styles.missionGrid} ${styles.revealBlock}`}>
                     <strong>7일 작전</strong>
-                    {displayBriefing.sevenDayMission.map((item) => (
-                      <article key={`${item.day}-${item.mission}`}>
-                        <span>DAY {item.day}</span>
-                        <p>{item.mission}</p>
-                      </article>
+                    {displayBriefing.sevenDayMission.map((item, idx, arr) => (
+                      <Fragment key={`${item.day}-${item.mission}`}>
+                        <article>
+                          <span>DAY {item.day}</span>
+                          <p>{item.mission}</p>
+                        </article>
+                        {idx === Math.floor(arr.length / 2) - 1 ? (
+                          <NeoWarRoomAssetImage
+                            asset={NEO_INTRO_PORTRAIT}
+                            alt=""
+                            className={styles.missionBust}
+                            imageClassName={styles.missionBustImg}
+                            sizes="(max-width: 720px) 92vw, 640px"
+                            style={{ background: "linear-gradient(180deg, rgba(19, 16, 42, 0.72), rgba(10, 8, 24, 0.86))" }}
+                          />
+                        ) : null}
+                      </Fragment>
                     ))}
                   </div>
                 ) : null}

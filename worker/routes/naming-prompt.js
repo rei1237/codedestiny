@@ -1456,20 +1456,8 @@ async function handleGenerate(request, env, ctx = null) {
     }
   };
 
-  // 결제/이용권 확인이 끝난 이 시점에 즉시 202를 돌려주고, LLM 생성은 백그라운드(waitUntil)에서 완주한다.
-  // 클라이언트(폼→결과 페이지)는 /result 폴링으로 수렴하므로 동기 장기요청(엣지 타임아웃→500)을 피하면서도
-  // 연결이 끊겨도 유료 결과가 유실되지 않는다(ziwei-ai와 동일 패턴).
-  if (ctx?.waitUntil) {
-    ctx.waitUntil(runGeneration().catch(() => {}));
-    return json({
-      ok: true,
-      status: "generating",
-      executionId: claim.executionId,
-      message: NAMING_GENERATING_MESSAGE,
-    }, { status: 202 });
-  }
-
-  // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지(201 결과 / 503 재시도 신호).
+  // 동기 생성: 요청 안에서 완결해 완료(201) 결과를 바로 반환한다. waitUntil 백그라운드+/result 폴링은 공유 DB
+  // 연결을 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
   try {
     const execution = await runGeneration();
     return json({

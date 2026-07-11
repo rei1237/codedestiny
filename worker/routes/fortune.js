@@ -4380,22 +4380,8 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
   }
   };
 
-  if (ctx?.waitUntil) {
-    // 즉시 202 — 생성은 백그라운드에서 완주하고, 실패 시 위 catch가 환불+레코드 기록까지 수행한다.
-    // 클라이언트(saju-engine)는 이 바디의 jobId/resultId로 /status 폴링을 시작해 수렴한다.
-    ctx.waitUntil(runGeneration().catch(() => {}));
-    return json({
-      ok: true,
-      status: "generating",
-      jobId: sajuExecutionId,
-      executionId: sajuExecutionId,
-      resultId,
-      requestId,
-      progress: 10,
-      stepMessage: "명식의 흐름을 읽고 있어요",
-    }, { status: 202 });
-  }
-  // 폴백(ctx 없는 테스트/로컬): 기존 동기 계약 유지.
+  // 동기 생성: 요청 안에서 완결해 완료 결과를 바로 반환한다. waitUntil 백그라운드+/status 폴링은 공유 DB 연결을
+  // 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
   return await runGeneration();
 }
 

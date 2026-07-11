@@ -4440,19 +4440,8 @@ async function handleConsult(request, env, ctx = null) {
   });
   };
 
-  if (ctx?.waitUntil && access.auth?.userId) {
-    // 로그인 사용자는 begin이 잡아둔 생성 레코드로 재-POST 폴링이 수렴한다(위 cached/inProgress 분기).
-    // 실패 시에도 위 catch가 cancel(차감 취소)+markFailed까지 수행하므로 여기서는 미처리 rejection만 삼킨다.
-    ctx.waitUntil(runGeneration().catch(() => {}));
-    return json({
-      ok: true,
-      status: "generating",
-      retryable: true,
-      resultId,
-      message: "결제는 확인되었고 상담문을 생성 중입니다. 잠시 뒤 같은 요청으로 다시 확인해 주세요.",
-    }, { status: 202 });
-  }
-  // 익명 사용자(생성 레코드가 없어 폴링 수렴 불가) 또는 ctx 없는 환경(테스트): 기존 동기 계약 유지.
+  // 동기 생성: 요청 안에서 완결해 완료 결과를 바로 반환한다. waitUntil 백그라운드+재-POST 폴링은 공유 DB 연결을
+  // 여러 요청이 재사용하게 만들어 Cloudflare Workers 요청 간 I/O 격리로 결과가 고착되던 문제가 있어 쓰지 않는다(네오와 동일).
   return await runGeneration();
 }
 
