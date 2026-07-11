@@ -2940,17 +2940,19 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const reportSessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || resolvePaidReportSessionFallback(pricing, reportId, requestId)).trim();
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
-  const profileResolvePromise = authCheck?.auth?.userId ? withDbAccessTimeout(
+  // 이용권/프로필 조회(READ)도 일시적 풀 초기화(MongoPoolClearedError)에 '일시 불가'로
+  // 떨어지지 않도록 재시도로 감싼다(재시도 소진 시 degrade 마커는 기존 유지).
+  const profileResolvePromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
     resolveBillingProfileId(authCheck.auth.userId, body, env),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
-  ).catch((error) => {
+  )).catch((error) => {
     if (!isDatabaseUnavailableError(error)) {
       throw error;
     }
     return createPassLookupUnavailableMarker("profile_lookup", error);
   }) : Promise.resolve("");
-  const subscriptionPassPromise = authCheck?.auth?.userId ? withDbAccessTimeout(
+  const subscriptionPassPromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
     getMembershipPassForBillingRequest(
       request,
       env,
@@ -2958,7 +2960,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     ),
     PAID_PASS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PASS_RESOLVE_TIMEOUT",
-  ).catch((error) => {
+  )).catch((error) => {
     if (!isDatabaseUnavailableError(error)) {
       throw error;
     }

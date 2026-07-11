@@ -1699,7 +1699,10 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT"
     || normalizedCode === "INSUFFICIENT_COINS"
     // 합성 503(authFetch transient 리프레시)로 402/paymentRequired가 마스킹돼도 결제 폴백을 연다.
-    || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
+    || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE"
+    // 이용권 상태 일시 확인 불가(503) — 서버가 응답에 paymentOptions(단건+월정석)를 동봉하므로
+    // 하드 에러 대신 결제 폴백을 연다.
+    || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE";
 }
 
 function normalizeAccessReason(value: unknown) {
