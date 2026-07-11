@@ -155,13 +155,25 @@ export async function connectDb(env = {}) {
     return [4, 0];
   })();
 
-  let lastError = null;
+  // 동시 요청 스탬피드 방지: 이미 진행 중인 연결 시도가 있으면 새 연결을 발사하지 않고 그것을 공유한다.
+  // (프로덕션 tail 실측: 폴링+생성이 겹치면 여러 요청이 각자 mongoose.connect + SRV DNS 조회를 동시에
+  //  쏴 리졸버가 순간 거부 → "querySRV EBADQUERY" 폭주. 아래 단일 공유 프로미스로 콜드 연결을 1회로 합친다.)
+  if (connectPromise) {
+    try {
+      await connectPromise;
+      if (mongoose.connection.readyState === 1) return mongoose.connection;
+    } catch (e) {
+      // 진행 중이던 시도가 실패했으면 아래에서 새 시도를 시작한다.
+    }
+  }
 
-  for (let familyIndex = 0; familyIndex < familyCandidates.length; familyIndex += 1) {
-    const ipFamily = familyCandidates[familyIndex];
-
-    for (let attempt = 0; attempt <= retryCount; attempt += 1) {
-      if (!connectPromise) {
+  // 전체 재시도(패밀리×attempt) 흐름을 하나의 프로미스로 감싼다 → 동시 호출자는 이걸 await만 하고
+  // 각자 연결을 만들지 않는다(스탬피드 근절). 성공/실패로 settle되면 finally에서 정리한다.
+  connectPromise = (async () => {
+    let lastError = null;
+    for (let familyIndex = 0; familyIndex < familyCandidates.length; familyIndex += 1) {
+      const ipFamily = familyCandidates[familyIndex];
+      for (let attempt = 0; attempt <= retryCount; attempt += 1) {
         console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
         const connectOptions = {
           dbName: resolveMongoDbName(env) || undefined,
@@ -176,67 +188,49 @@ export async function connectDb(env = {}) {
           connectOptions.family = ipFamily;
         }
 
-        const connectTask = mongoose.connect(uri, connectOptions);
-
-        connectTask
-          .then(() => console.log(`[db-connect] mongodb connected successfully. family=${ipFamily}`))
-          .catch((err) => {
-            console.error(`[db-connect-error] mongodb connection failed. family=${ipFamily}:`, err.message);
-          });
-
-        connectPromise = withTimeout(
-          connectTask,
-          guardTimeoutMS,
-          "MongoDB connection timed out in Worker.",
-        ).catch(async (error) => {
-          console.error(`[db-connect-error] connection promise failed. family=${ipFamily}:`, error.message);
-          await resetMongooseConnection();
-          throw error;
-        });
-      }
-
-      try {
-        await connectPromise;
-      } catch (error) {
-        lastError = error;
-        connectPromise = null;
-        await resetMongooseConnection();
-
         const isLastAttemptForFamily = attempt >= retryCount;
         const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
+
+        try {
+          await withTimeout(
+            mongoose.connect(uri, connectOptions),
+            guardTimeoutMS,
+            "MongoDB connection timed out in Worker.",
+          );
+        } catch (error) {
+          lastError = error;
+          console.error(`[db-connect-error] mongodb connection failed. family=${ipFamily}:`, error.message);
+          await resetMongooseConnection();
+          if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
+            await sleep(retryBaseDelayMS * (attempt + 1));
+            continue;
+          }
+          break;
+        }
+
+        if (mongoose.connection.readyState === 1) {
+          console.log(`[db-connect] mongodb connected successfully. family=${ipFamily}`);
+          lastHealthyAt = Date.now();
+          return mongoose.connection;
+        }
+
+        lastError = new Error("MongoDB connection is not ready in Worker.");
+        await resetMongooseConnection();
         if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
-          const delayMs = retryBaseDelayMS * (attempt + 1);
-          await sleep(delayMs);
+          await sleep(retryBaseDelayMS * (attempt + 1));
           continue;
         }
-        break;
-      } finally {
-        if (mongoose.connection.readyState !== 1) {
-          connectPromise = null;
-        }
-      }
-
-      if (mongoose.connection.readyState === 1) {
-        lastHealthyAt = Date.now();
-        return mongoose.connection;
-      }
-
-      lastError = new Error("MongoDB connection is not ready in Worker.");
-      connectPromise = null;
-      await resetMongooseConnection();
-
-      const isLastAttemptForFamily = attempt >= retryCount;
-      const hasMoreFamilyCandidates = familyIndex < familyCandidates.length - 1;
-      if (!isLastAttemptForFamily || hasMoreFamilyCandidates) {
-        const delayMs = retryBaseDelayMS * (attempt + 1);
-        await sleep(delayMs);
-        continue;
       }
     }
-  }
+    if (lastError) throw lastError;
+    throw new Error("MongoDB connection is not ready in Worker.");
+  })();
 
-  if (lastError) throw lastError;
-  throw new Error("MongoDB connection is not ready in Worker.");
+  try {
+    return await connectPromise;
+  } finally {
+    connectPromise = null;
+  }
 }
 
 // stateless Worker에서 웜 연결을 재사용하다 백그라운드 모니터 타임아웃 등으로 풀이 초기화되면
