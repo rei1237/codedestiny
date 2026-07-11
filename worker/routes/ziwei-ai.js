@@ -1624,7 +1624,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
-async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
+async function handleStart(request, env, route = "/api/ziwei-ai/generate", ctx = null) {
   logZiweiAi("Generate Start", safeLogPayload({ route, env }));
   const body = await readJson(request);
   const idempotencyKey = readIdempotencyKey(request, body);
@@ -1709,6 +1709,10 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
     }
   }
 
+  // 결제/이용권 확인이 끝난 이 시점에 즉시 202를 돌려주고, LLM 생성은 백그라운드(waitUntil)에서 완주한다.
+  // 클라이언트(패널·페이지)는 /result 폴링으로 수렴하므로 연결이 끊겨도 유료 결과가 유실되지 않는다(neo와 동일 패턴).
+  // 실패 시 환불(restorePrepaidAccessOnFailure)·generation_failed 기록은 아래 catch가 백그라운드에서도 그대로 수행한다.
+  const runGeneration = async () => {
   try {
     const logContext = safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env });
     const generationOptions = {
@@ -1762,7 +1766,7 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
       provider: generated.provider,
       model: generated.model,
     });
-    return json(publicConsultation(completed));
+    return completed;
   } catch (error) {
     logZiweiAi("Error", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env, error }), "error");
     const restored = await restorePrepaidAccessOnFailure({ userId: auth.userId, access, idempotencyKey, pricing, error });
@@ -1784,6 +1788,19 @@ async function handleStart(request, env, route = "/api/ziwei-ai/generate") {
         },
       },
     ).catch(() => {});
+    throw error;
+  }
+  };
+
+  if (ctx?.waitUntil) {
+    // 실패는 위 catch에서 이미 환불·기록됐다 — 여기서는 미처리 rejection만 삼킨다.
+    ctx.waitUntil(runGeneration().catch(() => {}));
+    return json({ ok: true, sessionId, status: "generating", message: "별궁의 흐름을 읽고 있습니다" }, { status: 202 });
+  }
+  // 폴백(ctx 없는 테스트/로컬 하네스): 기존 동기 계약 유지.
+  try {
+    return json(publicConsultation(await runGeneration()));
+  } catch {
     return json({ ok: false, reason: "LLM_ERROR", message: MESSAGES.llmFailed }, { status: 503 });
   }
 }
@@ -1884,7 +1901,7 @@ async function handleResult(request, env) {
   return json(publicConsultation(consultation));
 }
 
-export async function handleZiweiAiRoutes(request, env = {}) {
+export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/ziwei-ai");
 
@@ -1894,7 +1911,7 @@ export async function handleZiweiAiRoutes(request, env = {}) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
     }
     if (method === "POST" && (path === "/generate" || path === "/start")) {
-      return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start");
+      return await handleStart(request, env, path === "/generate" ? "/api/ziwei-ai/generate" : "/api/ziwei-ai/start", ctx);
     }
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
     if (["GET", "POST"].includes(method)) return notFound();

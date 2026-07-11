@@ -1234,7 +1234,8 @@ export default {
       }
 
       if (url.pathname === "/api/ziwei-ai" || url.pathname.startsWith("/api/ziwei-ai/")) {
-        return runAiRouteWithSecurity(request, env, "ziwei-ai", handleZiweiAiRoutes);
+        // ctx: 생성(generate)을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달(neo와 동일 패턴).
+        return runAiRouteWithSecurity(request, env, "ziwei-ai", handleZiweiAiRoutes, ctx);
       }
 
       // 심화 자미두수 PDF (ZIWEI_DEEP_PDF)
