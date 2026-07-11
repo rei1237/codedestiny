@@ -13,7 +13,7 @@ const htmlFiles = {
 const requiredHtmlMarkers = [
   'class="post-saju-services-intro"',
   'data-action="openTarotHealingModal"',
-  'data-action="gotoNamingPremium"',
+  'href="/naming-ai"',
   'href="/privacy-policy"',
   'id="cdAdminFlowerBtn"',
 ];

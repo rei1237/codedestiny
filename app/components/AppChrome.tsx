@@ -57,6 +57,7 @@ const CHROMELESS_ROUTES = [
   "/new-year-ai-consultation",
   "/life-book-ai",
   "/love-secret-ai",
+  "/naming-ai",
   "/astrology-ai",
   "/vedic-ai",
   "/sukuyo-compatibility-ai",

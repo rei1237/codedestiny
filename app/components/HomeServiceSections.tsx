@@ -57,6 +57,7 @@ const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/saju/sibyl": "/saju/sibyl",
   "/life-book-ai": "/life-book-ai",
   "/love-secret-ai": "/love-secret-ai",
+  "/naming-ai": "/naming-ai",
   "/saju/love-simulation": "/saju/love-simulation",
   "/saju/destiny-bias": "/index.html?action=openDestinyBias",
   "/saju/animal-destiny": "/saju/animal-destiny",

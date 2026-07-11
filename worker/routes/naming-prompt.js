@@ -5,6 +5,10 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { callGeminiText } from "../lib/gemini.js";
+import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
+import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -12,7 +16,10 @@ const LEGACY_FEATURE_KEY = "premium-naming-report";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const CURRENCY = "KRW";
-const RESULT_VERSION = "naming-prompt-v20260626";
+const RESULT_VERSION = "naming-result-v20260712";
+const NAMING_LLM_ERROR_MESSAGE = "작명 결과 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+const NAMING_GENERATING_MESSAGE = "작명 결과를 생성하고 있습니다";
+const NAMING_GENERATION_FRESHNESS_MS = 210000;
 const SAJU_EVIDENCE_SOURCE = "main-shell-saju-engine";
 const ALLOWED_FEATURE_KEYS = new Set([FEATURE_KEY, LEGACY_FEATURE_KEY, "naming_prompt", "namingPrompt", "premiumNamingPrompt"]);
 const PASS_ACCESS_TYPES = new Set(["membership_pass", "subscription_pass", "family", "family_pass", "license_pass"]);
@@ -24,6 +31,17 @@ const ELEMENT_LABELS = Object.freeze({
   metal: "금(金)",
   water: "수(水)",
 });
+
+const GENDER_LABELS = Object.freeze({
+  M: "남성",
+  F: "여성",
+  OTHER: "기타/미지정",
+});
+
+function resolveGenderLabel(gender) {
+  const key = clean(gender, 20).toUpperCase();
+  return GENDER_LABELS[key] || clean(gender, 20) || "미입력";
+}
 
 const SOUND_FIVE_ELEMENTS = Object.freeze({
   "木": ["ㄱ", "ㅋ"],
@@ -272,6 +290,11 @@ function normalizeSajuEvidence(raw) {
 }
 
 async function resolveSajuEvidence(input, rawEvidence, claimedHash = "") {
+  if (!rawEvidence || typeof rawEvidence !== "object" || Array.isArray(rawEvidence)) {
+    // 메인 셸 사주 엔진 스냅샷을 미리 계산해 오지 않은 클라이언트(예: naming-ai Next.js 페이지)는
+    // buildSajuContext()의 기존 서버 자체 계산 폴백(buildFallbackSajuContext)을 그대로 쓴다.
+    return { evidence: null, evidenceHash: "", baseInputHash: await buildInputHash(input) };
+  }
   const evidence = normalizeSajuEvidence(rawEvidence);
   const baseInputHash = await buildInputHash(input);
   if (evidence.inputHash && evidence.inputHash !== baseInputHash) {
@@ -503,66 +526,54 @@ function buildPreferenceContext(input) {
   return parts.length ? parts.join(" / ") : "미입력";
 }
 
-function soundFiveElementsTable() {
-  const rows = Object.entries(SOUND_FIVE_ELEMENTS)
-    .map(([element, initials]) => `| ${element} | ${initials.join(", ")} |`)
+function soundFiveElementsList() {
+  return Object.entries(SOUND_FIVE_ELEMENTS)
+    .map(([element, initials]) => `- ${element}: ${initials.join(", ")}`)
     .join("\n");
-  return `| 오행 | 초성 |\n|---|---|\n${rows}`;
 }
 
 function buildGeneratedPrompt(input, saju) {
   const hasSeedNames = Boolean(input.currentName || input.desiredNames.length || input.desiredSyllables.length);
   const preferenceContext = buildPreferenceContext(input);
   const calendarLabel = input.calendarType === "lunar" || input.calendarType === "lunar_leap" ? "음력" : "양력";
+  const genderLabel = resolveGenderLabel(input.gender);
+  const genderKey = clean(input.gender, 20).toUpperCase();
+
+  const genderNote = genderKey === "M" || genderKey === "F"
+    ? `2. **성별 어울림 우선**: 이 아이는 ${genderLabel}입니다. 모든 추천 이름·한자·소리는 한국 사회에서 ${genderLabel}에게 자연스럽게 어울리는 것이어야 합니다. 사용자가 입력한 분위기·이미지 선호가 성별과 충돌하면 성별 어울림을 우선하고 왜 그렇게 조정했는지 설명하세요. 특정 성별에 강하게 치우친 관습적 한자·어감(예: 여성 전용 한자를 남아에게, 남성 전용 한자를 여아에게)은 배제하세요.`
+    : "2. **성별 어울림 우선**: 성별이 기타/미지정으로 입력되었습니다. 특정 성별에 강하게 치우치지 않는 이름을 우선 고려하되, 사용자가 입력한 분위기·이미지 선호를 최대한 반영하세요.";
 
   const timeNote = input.birthTimeUnknown
-    ? "\n7. **출생시간 미상**: 시주(時柱)가 확정되지 않았으므로, 시주에 크게 의존하는 판단(시주 천간의 통근 여부 등)은 \"시간 확인 시 재검토 권장\"으로 유보하고, 년·월·일주 기반 분석은 그대로 진행하세요."
+    ? "\n9. **출생시간 미상**: 시주(時柱)가 확정되지 않았으므로, 시주에 크게 의존하는 판단(시주 천간의 통근 여부 등)은 \"시간 확인 시 재검토 권장\"으로 유보하고, 년·월·일주 기반 분석은 그대로 진행하세요."
     : "";
   const hanjaNote = input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja)
     ? "\n- 한글 이름만 입력된 후보는 한자 획수와 수리 풀이를 한자 조합이 확정된 뒤 최종 판단하세요."
     : "";
   const seedNote = hasSeedNames
-    ? "\n8. **사용자 후보 이름 있음**: 아래 [사용자 이름 선호]의 후보 이름들을 먼저 평가한 뒤, 추가로 더 좋은 이름 3~5개를 새로 제안하세요. 무료 입력 단계의 초안이 있었다면 참고안으로만 보고 반드시 사주와 작명 원칙으로 다시 검토하세요."
-    : "\n8. **신규 제안 모드**: 사용자가 후보 이름을 제시하지 않았으므로, 아래 사주 분석과 선호를 바탕으로 최적의 이름 5~7개를 새로 제안하세요.";
+    ? "\n10. **사용자 후보 이름 있음**: 아래 [사용자 이름 선호]의 후보 이름들을 4장에서 먼저 평가한 뒤, 더 좋은 이름 3~5개를 새로 제안해 함께 다루세요. 무료 입력 단계의 초안이 있었다면 참고안으로만 보고 반드시 사주와 작명 원칙으로 다시 검토하세요."
+    : "\n10. **신규 제안 모드**: 사용자가 후보 이름을 제시하지 않았으므로, 아래 사주 분석과 선호를 바탕으로 최적의 이름 5~7개를 새로 제안하세요.";
 
-  const candidateRequestLines = hasSeedNames
-    ? [
-        "3. **후보 이름 평가**: 사용자가 제시한 후보 이름 각각을 사주 보완도(용신·희신 반영), 소리오행 흐름(상생 여부), 한자 의미·자원오행, 수리(원형이정 4격) 길흉, 현대적 사용성(어감·놀림 소지)의 5개 축으로 평가하세요.",
-        "4. **추가 제안**: 후보 평가 후, 더 좋은 대안을 3~5개 새로 제안하세요. 한글만 입력된 후보는 가능한 한자 조합을 여러 개 제시하고 장단점을 비교하세요.",
-      ]
-    : [
-        "3. **이름 제안**: 위 기준을 종합해 최적의 이름 5~7개를 새로 제안하세요.",
-        "4. **각 이름 상세 분석**: 제안한 이름마다 소리오행 흐름, 수리 4격 계산, 한자 자원오행, 사주 보완 방향을 구체적으로 밝히세요. 가능한 한자 조합을 여러 개 제시하고 장단점을 비교하세요.",
-      ];
+  const candidateChapterNote = hasSeedNames
+    ? "사용자가 제시한 후보 이름을 먼저 다루고, 이어서 새로 제안하는 이름을 다루세요. 각 이름을 사주 보완도(용신·희신 반영), 소리오행 흐름, 한자 의미·자원오행, 수리(원형이정 4격) 길흉, 현대적 사용성(어감·놀림 소지)의 다섯 축으로 평가하세요."
+    : "새로 제안하는 이름 5~7개를 하나씩 다루세요. 각 이름을 사주 보완도(용신·희신 반영), 소리오행 흐름, 한자 의미·자원오행, 수리(원형이정 4격) 길흉, 현대적 사용성(어감·놀림 소지)의 다섯 축으로 평가하세요.";
 
-  const candidateOutputSection = hasSeedNames
-    ? `## 4. 후보 이름 평가
-
-| 후보 이름 | 한자 | 사주 보완 | 소리오행 | 수리(4격) | 현대적 사용성 | 종합 |
-|---|---|---|---|---|---|---|
-
-### 각 후보 상세 평가
-후보별 장단점을 2~3줄로 짚어주세요.`
-    : `## 4. 제안 이름 목록
-
-| 순위 | 이름(한글) | 한자 | 뜻 | 사주 보완 | 소리오행 | 수리(4격) | 종합 |
-|---|---|---|---|---|---|---|---|`;
-
-  return `당신은 대한민국 최고의 작명 전문가입니다. 30년 이상 실무 경험을 쌓은 사주명리학자이자 성명학자로서, 수만 건의 작명과 개명을 해왔습니다. 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다.
+  return `당신은 대한민국 최고의 작명 전문가입니다. 30년 이상 실무 경험을 쌓은 사주명리학자이자 성명학자로서, 수만 건의 작명과 개명을 해왔습니다. 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다. 지금부터 한 아이(또는 새 출발을 준비하는 한 사람)를 위해, 부모에게 직접 건네는 한 권의 "작명첩"을 씁니다.
 
 ## 핵심 원칙 — 반드시 지킬 것
 
 1. **용신(用神) 최우선**: 이름의 모든 요소(한자의 자원오행, 소리오행, 수리)는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. 수리(획수)만 좋고 사주에 맞지 않는 이름은 낮게 평가하세요.
-2. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 제공된 용신 후보를 검증하되, 판단이 다르다면 근거와 함께 수정하세요.
-3. **인명용 한자만 사용**: 대법원 인명용 한자에 없는 글자는 후보에서 배제하고, 확실하지 않은 한자는 "인명용 확인 필요"로 표기하세요.
-4. **전통 + 현대 균형**: 한자의 뜻과 오행이 좋아도 현대 한국에서 부르기 어색하거나, 놀림 소지가 있거나, 발음이 어려운 이름은 피하세요.
-5. **불확실하면 단정하지 마세요**: 획수 계산이 불확실한 한자, 오행 배속이 논쟁적인 글자는 "검증 필요"로 명시하세요.
-6. **후보를 무조건 부정하지 마세요**: 사용자가 제시한 후보는 정성적으로 평가하되, 문제가 있으면 구체적인 대안과 함께 설명하세요.${timeNote}${seedNote}${hanjaNote}
+${genderNote}
+3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 제공된 용신 후보를 검증하되, 판단이 다르다면 근거와 함께 수정하세요.
+4. **인명용 한자만 사용**: 대법원 인명용 한자에 없는 글자는 후보에서 배제하고, 확실하지 않은 한자는 "인명용 확인 필요"로 표기하세요.
+5. **전통 + 현대 균형**: 한자의 뜻과 오행이 좋아도 현대 한국에서 부르기 어색하거나, 놀림 소지가 있거나, 발음이 어려운 이름은 피하세요.
+6. **불확실하면 단정하지 마세요**: 획수 계산이 불확실한 한자, 오행 배속이 논쟁적인 글자는 "검증 필요"로 명시하세요.
+7. **후보를 무조건 부정하지 마세요**: 사용자가 제시한 후보는 정성적으로 평가하되, 문제가 있으면 구체적인 대안과 함께 설명하세요.
+8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}
 
 ---
 
 ## [사용자 정보]
-- 성별: ${input.gender}
+- 성별: ${genderLabel}
 - 성씨: ${input.familyName}
 - 생년월일: ${input.birthDate} (${calendarLabel}${input.isLeapMonth ? ", 윤달" : ""})
 - 출생시간: ${input.birthTimeUnknown ? "미상 (시주 미확정)" : input.birthTime}
@@ -619,7 +630,7 @@ function buildGeneratedPrompt(input, saju) {
 ## [한국 작명 기준]
 
 ### A. 소리오행 (초성 기준)
-${soundFiveElementsTable()}
+${soundFiveElementsList()}
 성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요.
 
 ### B. 수리오행 (원형이정 4격)
@@ -650,58 +661,40 @@ ${desiredNamesMarkdown(input.desiredNames)}
 
 ---
 
-## [분석 및 작명 요청]
-1. **용신 검증**: 위 용신/희신/기신 후보를 검증하세요. 동의하면 그대로, 다르면 근거와 함께 수정하세요.
-2. **오행 방향 확정**: 이름에 담을 오행(자원오행·소리오행)과 피할 오행을 명확히 정하세요.
-${candidateRequestLines.join("\n")}
-5. **TOP 3 선정**: 종합 점수가 가장 높은 3개를 선정하고, 각각 왜 좋은지 한 문단으로 설명하세요.
-6. **최종 1순위 추천**: 최종 1개를 확정하고, 추천 이유를 확신 있게 써주세요. 기계적 서술이 아니라 작명가가 직접 말하듯 구체적으로 써주세요.
-   - 좋은 예: "준서(俊瑞)를 추천합니다. 사주에 부족한 金 기운을 '준(俊)'의 자원오행이 채워주고, 소리오행도 土→金으로 상생합니다. '뛰어날 준, 상서로울 서' — 빼어나면서도 복된 기운을 가진 이름입니다."
-   - 나쁜 예: "오행 균형이 좋고 수리가 길해서 추천합니다."
-7. **피해야 할 이름 유형**: 이 사주에서 특히 피해야 할 오행·한자·발음 패턴을 짧게 정리하세요.
-8. **실제 선택 조언**: 호적 등록, 한자 확정, 인명용 검증 방법 등 현실적인 조언을 한 문단으로 써주세요.
+## [출력 형식 — 작명첩 8장]
+아래 8개 장을 정확히 이 헤딩(## 숫자. 제목)으로 쓰세요. 한 장 한 장이 충실해야 합니다(장마다 최소 3문단 이상, 4장은 이름마다 충분히). 표는 금지, 소제목(###)과 목록·문장만 사용하세요.
 
----
+## 1. 작명가의 총평
+(이 사주를 처음 펼쳐 본 작명가의 첫인상. 어떤 기운을 타고났고, 이름이 무엇을 채워줘야 하는지를 부모에게 말하듯 서너 문단으로.)
 
-## [출력 형식]
-아래 형식을 정확히 따르세요.
+## 2. 사주 풀이와 용신 검증
+(명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 검증한 결과를 동의/수정 근거와 함께. 목록 활용.)
 
-# 사주 맞춤 작명 분석 결과
+## 3. 이 아이의 작명 원칙
+(이 사주에 맞춘 구체적 기준 — 담을 오행과 피할 오행, 소리 흐름 방향, 수리 우선순위, 성별·선호 반영 방침.)
 
-## 1. 핵심 요약
-(이 사주의 특징과 이름에 담아야 할 핵심 기운을 3줄 이내로)
+## 4. 이름 후보 상세
+(${candidateChapterNote}
+각 이름은 "### 이름(漢字)" 소제목으로 시작하고, 아래 항목을 목록으로 짚은 뒤 종합평을 문장으로 쓰세요:
+- 뜻: 각 글자의 훈음과 이름 전체의 의미
+- 자원오행: 사주 보완 관계
+- 소리오행: 성씨부터의 초성 흐름과 상생 여부
+- 수리: 원격·형격·이격·정격 수와 길흉
+- 이름감: 현대적 어감, 부르기 좋은지, 유의점)
 
-## 2. 용신·희신 검증 결과
-(제공된 용신을 검증한 결과. 동의/수정 여부와 근거)
+## 5. 세 이름을 나란히 놓고
+(TOP 3를 골라 서로 비교. 어떤 아이로 자라길 바라는지에 따라 어느 이름이 맞는지, 각각의 결이 어떻게 다른지 문장으로.)
 
-## 3. 작명 오행 방향
-(이름에 담을 오행, 피할 오행, 조후 반영 여부)
+## 6. 최종 추천
+(최종 1개를 확정하고, 작명가가 직접 말하듯 확신 있게. 좋은 예: "준서(俊瑞)를 추천합니다. 사주에 부족한 金 기운을 '준(俊)'의 자원오행이 채워주고, 소리오행도 土→金으로 상생합니다. '뛰어날 준, 상서로울 서' — 빼어나면서도 복된 기운을 가진 이름입니다." 나쁜 예: "오행 균형이 좋고 수리가 길해서 추천합니다.")
 
-${candidateOutputSection}
+## 7. 피해야 할 이름
+(이 사주에서 특히 피할 오행·발음·한자 패턴과 그 이유. 실제 예시 이름 두어 개와 함께.)
 
-## 5. 한자 조합 상세
-(각 추천 이름의 한자 획수, 부수, 자원오행, 인명용 여부)
+## 8. 이름을 올리기 전에
+(출생신고·개명 절차에서 확인할 것 — 대법원 인명용 한자 조회 방법, 가족관계등록부 표기, 한자 확정 시 유의점 — 현실 조언 한두 문단.)
 
-## 6. 소리오행 흐름 분석
-(성씨~이름 초성의 오행 흐름이 상생인지 분석)
-
-## 7. 수리오행 · 원형이정 계산
-(원격·형격·이격·정격 각각의 수리와 길흉 판정)
-
-## 8. 자원오행 분석
-(한자 뜻·부수에서 비롯되는 오행과 사주 보완 관계)
-
-## 9. TOP 3 추천
-(종합 1~3위. 각각 왜 좋은지 한 문단)
-
-## 10. 최종 1순위 추천
-(확신 있는 어조로. 이름 + 한자 + 뜻 + 추천 이유)
-
-## 11. 피해야 할 이름 유형
-(이 사주에서 특히 피할 오행·발음·한자 패턴)
-
-## 12. 실제 선택 조언
-(호적 등록, 한자 확정, 인명용 검증 등 현실 조언)`;
+${NAME_CARD_BLOCK_CONTRACT}`;
 }
 
 function buildCheckoutPayload(inputHash, sajuEvidenceHash = "") {
@@ -1027,28 +1020,44 @@ function buildExecutionId(auth, inputHash, access = {}) {
 
 function serializeExecutionResult(record) {
   const namingPrompt = record?.result?.namingPrompt || record?.result || null;
-  if (!namingPrompt?.generatedPrompt) return null;
+  // 구버전 작명 흐름은 generatedResult 없이 generatedPrompt(프롬프트 문자열)만 저장했다 —
+  // 그 레코드가 null로 떨어지면 기존 구매자가 결제한 결과를 다시 못 본다. 프롬프트로 폴백 렌더.
+  const generatedResult = String(namingPrompt?.generatedResult || namingPrompt?.generatedPrompt || "");
+  if (!generatedResult) return null;
   return {
     id: String(record.executionId || record._id || ""),
     paymentId: String(record.paymentId || ""),
     inputHash: clean(namingPrompt.inputHash, 160),
     generatedPrompt: String(namingPrompt.generatedPrompt || ""),
+    generatedResult,
+    nameCards: Array.isArray(namingPrompt.nameCards) ? namingPrompt.nameCards : [],
+    finalPick: namingPrompt.finalPick || null,
+    provider: clean(namingPrompt.provider, 40),
+    model: clean(namingPrompt.model, 80),
     inputSnapshot: namingPrompt.inputSnapshot || null,
     sajuSnapshot: namingPrompt.sajuSnapshot || null,
     generatedAt: namingPrompt.generatedAt || record.completedAt || null,
     paidAt: namingPrompt.paidAt || record.consumedAt || record.createdAt || null,
     accessMethod: String(record.accessMethod || ""),
+    status: String(record.status || ""),
   };
 }
 
 function serializeResult(payment) {
   const namingPrompt = payment?.pricingSnapshot?.namingPrompt || null;
-  if (!namingPrompt?.generatedPrompt) return null;
+  // 구버전 레코드(generatedPrompt만 존재) 재열람 보존 — serializeExecutionResult와 동일 폴백.
+  const generatedResult = String(namingPrompt?.generatedResult || namingPrompt?.generatedPrompt || "");
+  if (!generatedResult) return null;
   return {
     id: String(payment.merchantUid || payment._id || ""),
     paymentId: String(payment.merchantUid || ""),
     inputHash: clean(namingPrompt.inputHash, 160),
     generatedPrompt: String(namingPrompt.generatedPrompt || ""),
+    generatedResult,
+    nameCards: Array.isArray(namingPrompt.nameCards) ? namingPrompt.nameCards : [],
+    finalPick: namingPrompt.finalPick || null,
+    provider: clean(namingPrompt.provider, 40),
+    model: clean(namingPrompt.model, 80),
     inputSnapshot: namingPrompt.inputSnapshot || null,
     sajuSnapshot: namingPrompt.sajuSnapshot || null,
     generatedAt: namingPrompt.generatedAt || null,
@@ -1056,11 +1065,11 @@ function serializeResult(payment) {
   };
 }
 
-async function findExecutionResultForUser(env, auth, id) {
+async function findExecutionRecordForUser(env, auth, id) {
   await connectDb(env);
   const normalized = clean(id, 180);
   if (!normalized) return null;
-  const record = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
+  return withMongoRetry(env, () => PaidExecutionRecord.findOne({
     userId: String(auth.userId || ""),
     featureId: FEATURE_KEY,
     $or: [
@@ -1071,12 +1080,214 @@ async function findExecutionResultForUser(env, auth, id) {
       { idempotencyKey: normalized },
     ],
   }).lean());
+}
+
+async function findExecutionResultForUser(env, auth, id) {
+  const record = await findExecutionRecordForUser(env, auth, id);
   return record ? serializeExecutionResult(record) : null;
 }
 
-async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, generatedAt) {
+function buildExecutionBaseFields(auth, access, inputHash, executionId) {
+  return {
+    executionId,
+    requestId: clean(access.requestId || access.evidenceId || executionId, 160),
+    userId: String(auth.userId || ""),
+    featureId: FEATURE_KEY,
+    profileId: clean(access.profileId || "default", 120) || "default",
+    accessMode: "per_use",
+    accessMethod: access.accessMethod || "single",
+    amountCoins: COIN_PRICE,
+    amountKRW: access.accessMethod === "single" ? AMOUNT_KRW : 0,
+    monthlyDeductedAmount: access.accessMethod === "monthly" ? COIN_PRICE : 0,
+    paymentId: clean(access.paymentId, 160),
+    orderId: clean(access.evidenceId, 160),
+    idempotencyKey: `${FEATURE_KEY}:${auth.userId}:${inputHash}:${clean(access.evidenceId || access.paymentId || access.requestId, 80)}`.slice(0, 180),
+  };
+}
+
+// 결제 검증 성공 직후, LLM 호출 전에 "생성중"으로 먼저 선점한다(장애 복구·동시 재요청 dedup).
+// love-secret-ai.js와 동일한 "동기 우선 실행 + 재진입만 202" 패턴.
+async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, now) {
   await connectDb(env);
   const executionId = buildExecutionId(auth, inputHash, access);
+  const base = buildExecutionBaseFields(auth, access, inputHash, executionId);
+  const before = await PaidExecutionRecord.findOneAndUpdate(
+    { executionId },
+    {
+      $setOnInsert: {
+        ...base,
+        consumedAt: now,
+        status: "generating",
+        result: {
+          namingPrompt: {
+            version: RESULT_VERSION,
+            productType: PRODUCT_TYPE,
+            inputHash,
+            inputSnapshot: input,
+            sajuSnapshot,
+            generatedPrompt,
+            generatedResult: "",
+            generatedAt: null,
+            accessMethod: access.accessMethod,
+            evidenceId: access.evidenceId,
+          },
+        },
+      },
+    },
+    { upsert: true, returnDocument: "before" },
+  ).lean();
+
+  if (!before) return { state: "claimed", executionId };
+  if (before.status === "completed" && before.result?.namingPrompt?.generatedResult) {
+    return { state: "completed", result: serializeExecutionResult(before) };
+  }
+  const updatedAtMs = new Date(before.updatedAt || before.createdAt || 0).getTime();
+  const fresh = Number.isFinite(updatedAtMs) && (Date.now() - updatedAtMs) < NAMING_GENERATION_FRESHNESS_MS;
+  if (before.status === "generating" && fresh) {
+    return { state: "in_flight", executionId };
+  }
+  // 실패했거나 오래된 generating 잔재 → 소유권을 되찾아 재생성.
+  await PaidExecutionRecord.updateOne(
+    { executionId },
+    {
+      $set: {
+        status: "generating",
+        error: null,
+        "result.namingPrompt.generatedPrompt": generatedPrompt,
+        "result.namingPrompt.generatedResult": "",
+      },
+    },
+  );
+  return { state: "claimed", executionId };
+}
+
+async function generateNamingResult(env, prompt) {
+  const timeoutMs = Number(env?.NAMING_PROMPT_TIMEOUT_MS) || 150000;
+  const baseTokens = Number(env?.NAMING_PROMPT_MAX_OUTPUT_TOKENS) || 20000;
+  const callAt = (maxOutputTokens) => callGeminiText(env, prompt, {
+    taskType: "fortune",
+    temperature: 0.72,
+    // env.PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에 넣지 않는다 — 45초 단락 함정(다른 -ai 라우트들 반복 경고).
+    timeoutMs,
+    maxOutputTokens,
+    fallbackToWorkersAI: false,
+  });
+  let ai = await callAt(baseTokens);
+  // 잘림(MAX_TOKENS)은 이름 카드 블록(nameCards/finalPick)을 통째로 날려 유료 결과를 반쪽으로 만든다 —
+  // 잘렸으면 토큰캡을 30% 올려 1회 재생성해 완결본을 확보한다(더 긴 후보만 채택).
+  if (ai?.ok && ai.truncated === true) {
+    const retry = await callAt(Math.round(baseTokens * 1.3));
+    if (retry?.ok && (String(retry.text || "").length > String(ai.text || "").length)) ai = retry;
+  }
+  if (!ai?.ok || !hasRenderableLlmText(ai.text, { minChars: 300 })) {
+    const error = new Error(ai?.message || ai?.error || "LLM_GENERATION_FAILED");
+    error.code = "LLM_GENERATION_FAILED";
+    error.status = 503;
+    throw error;
+  }
+  return {
+    text: clean(ai.text, 60000),
+    provider: clean(ai.provider, 40),
+    model: clean(ai.model, 80),
+    truncated: ai.truncated === true,
+  };
+}
+
+async function markNamingGenerationFailed(env, executionId, error) {
+  await connectDb(env);
+  await PaidExecutionRecord.updateOne(
+    { executionId },
+    {
+      $set: {
+        status: "generation_failed",
+        error: { message: clean(error?.message, 300), code: clean(error?.code, 80) },
+      },
+    },
+  ).catch(() => {});
+}
+
+// 월정석만 하드 환불한다(love-secret-ai.js와 동일 전략). 단건/이용권은 환불하지 않고 재시도로 회복 —
+// 같은 결제/이용권 증거로 /generate를 다시 호출하면 재생성된다(추가 차감 없음).
+async function refundNamingMonthlyCredit(env, auth, access) {
+  const evidence = access?.evidence;
+  if (!evidence?.evidenceId) return { refunded: false };
+  await connectDb(env);
+
+  let amount = 0;
+  let ledgerId = "";
+  let pointHistoryId = "";
+  if (evidence.source === "monthly_ledger" && isObjectId(evidence.evidenceId)) {
+    const ledger = await MonthlyCreditLedger.findOne({ _id: evidence.evidenceId, userId: auth.userId }).lean();
+    if (!ledger) return { refunded: false };
+    amount = Math.abs(Math.floor(Number(ledger.amount || 0)));
+    ledgerId = String(ledger._id);
+    pointHistoryId = clean(ledger.metadata?.pointHistoryId, 160);
+  } else if (evidence.source === "monthly_history" && isObjectId(evidence.evidenceId)) {
+    const history = await PointHistory.findOne({ _id: evidence.evidenceId, userId: auth.userId }).lean();
+    if (!history) return { refunded: false };
+    amount = Math.abs(Math.floor(Number(history.delta || 0)));
+    pointHistoryId = String(history._id);
+  } else {
+    return { refunded: false };
+  }
+  if (!amount) return { refunded: false };
+
+  const refundSourceId = `naming-prompt-refund:${evidence.evidenceId}`.slice(0, 180);
+  const existingRefund = await MonthlyCreditLedger.findOne({
+    userId: auth.userId,
+    type: "MONTHLY_CREDIT_GRANT",
+    sourceId: refundSourceId,
+  }).lean();
+  if (existingRefund) return { refunded: true, idempotent: true };
+
+  const updatedUser = await restoreMonthlyCreditLot({ userId: auth.userId, lotId: refundSourceId, amount });
+  if (!updatedUser) return { refunded: false };
+
+  const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+  await MonthlyCreditLedger.create({
+    userId: auth.userId,
+    type: "MONTHLY_CREDIT_GRANT",
+    amount,
+    beforeBalance: Math.max(0, afterBalance - amount),
+    afterBalance,
+    reason: "작명 AI 결과 생성 실패 환불",
+    sourceId: refundSourceId,
+    serviceKey: FEATURE_KEY,
+    metadata: { source: "naming-prompt", refundFor: evidence.evidenceId, refundedAt: new Date() },
+  }).catch((error) => {
+    if (error?.code !== 11000) throw error;
+  });
+
+  if (ledgerId) {
+    await MonthlyCreditLedger.updateOne(
+      { _id: ledgerId, userId: auth.userId },
+      { $set: { "metadata.refundedForUnlockFailure": true, "metadata.refundedAt": new Date() } },
+    ).catch(() => {});
+  }
+  if (pointHistoryId && isObjectId(pointHistoryId)) {
+    await PointHistory.updateOne(
+      { _id: pointHistoryId, userId: auth.userId },
+      { $set: { "metadata.monthlyCreditRefundedForUnlockFailure": true, "metadata.monthlyCreditRefundedAt": new Date() } },
+    ).catch(() => {});
+  }
+  return { refunded: true };
+}
+
+async function restoreNamingAccessOnFailure(env, auth, access) {
+  if (access?.accessMethod === "monthly") {
+    return refundNamingMonthlyCredit(env, auth, access).catch(() => ({ refunded: false }));
+  }
+  return { refunded: false };
+}
+
+async function mirrorNamingResultToPayment(paymentId, snapshot) {
+  await Payment.findByIdAndUpdate(paymentId, { $set: { "pricingSnapshot.namingPrompt": snapshot } }).lean().catch(() => {});
+}
+
+async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, generatedResult, generatedAt, llmMeta = {}) {
+  await connectDb(env);
+  const executionId = buildExecutionId(auth, inputHash, access);
+  const base = buildExecutionBaseFields(auth, access, inputHash, executionId);
   const result = {
     namingPrompt: {
       version: RESULT_VERSION,
@@ -1085,6 +1296,11 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
       inputSnapshot: input,
       sajuSnapshot,
       generatedPrompt,
+      generatedResult,
+      nameCards: Array.isArray(llmMeta.nameCards) ? llmMeta.nameCards : [],
+      finalPick: llmMeta.finalPick || null,
+      provider: clean(llmMeta.provider, 40),
+      model: clean(llmMeta.model, 80),
       generatedAt: generatedAt.toISOString(),
       paidAt: generatedAt.toISOString(),
       accessMethod: access.accessMethod,
@@ -1094,25 +1310,11 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
   const record = await PaidExecutionRecord.findOneAndUpdate(
     { executionId },
     {
-      $setOnInsert: {
-        executionId,
-        requestId: clean(access.requestId || access.evidenceId || executionId, 160),
-        userId: String(auth.userId || ""),
-        featureId: FEATURE_KEY,
-        profileId: clean(access.profileId || "default", 120) || "default",
-        accessMode: "per_use",
-        accessMethod: access.accessMethod || "single",
-        amountCoins: COIN_PRICE,
-        amountKRW: access.accessMethod === "single" ? AMOUNT_KRW : 0,
-        monthlyDeductedAmount: access.accessMethod === "monthly" ? COIN_PRICE : 0,
-        paymentId: clean(access.paymentId, 160),
-        orderId: clean(access.evidenceId, 160),
-        consumedAt: generatedAt,
-        idempotencyKey: `${FEATURE_KEY}:${auth.userId}:${inputHash}:${clean(access.evidenceId || access.paymentId || access.requestId, 80)}`.slice(0, 180),
-      },
+      $setOnInsert: { ...base, consumedAt: generatedAt },
       $set: {
         status: "completed",
         completedAt: generatedAt,
+        error: null,
         result,
       },
     },
@@ -1199,44 +1401,110 @@ async function handleGenerate(request, env) {
 
   const sajuSnapshot = buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash);
   const generatedPrompt = buildGeneratedPrompt(input, sajuSnapshot);
-  const generatedAt = new Date();
-  if (payment?._id) {
-    await Payment.findByIdAndUpdate(
-      payment._id,
-      {
-        $set: {
-          "pricingSnapshot.namingPrompt": {
-            version: RESULT_VERSION,
-            productType: PRODUCT_TYPE,
-            inputHash,
-            sajuEvidenceHash: sajuEvidence.evidenceHash,
-            inputSnapshot: input,
-            sajuSnapshot,
-            generatedPrompt,
-            generatedAt: generatedAt.toISOString(),
-          },
-        },
-      },
-      { returnDocument: "after" },
-    ).lean();
-  }
-  const execution = await upsertExecutionRecord(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, generatedAt);
+  const claimedAt = new Date();
 
-  return json({
-    ok: true,
-    idempotent: false,
-    result: serializeExecutionResult(execution),
-  }, { status: 201 });
+  const claim = await beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, claimedAt);
+  if (claim.state === "completed") {
+    return json({ ok: true, idempotent: true, result: claim.result });
+  }
+  if (claim.state === "in_flight") {
+    return json({
+      ok: true,
+      status: "generating",
+      executionId: claim.executionId,
+      message: NAMING_GENERATING_MESSAGE,
+    }, { status: 202 });
+  }
+
+  try {
+    const generated = await generateNamingResult(env, generatedPrompt);
+    // 이름 카드 블록을 본문에서 분리한다. 파싱 실패 시 카드 없이 원문 그대로(조용한 강등).
+    const parsed = parseNamingResultCards(generated.text);
+    const generatedAt = new Date();
+    const execution = await upsertExecutionRecord(
+      env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, parsed.cleanText, generatedAt,
+      { provider: generated.provider, model: generated.model, nameCards: parsed.cards, finalPick: parsed.finalPick },
+    );
+    if (payment?._id) {
+      await mirrorNamingResultToPayment(payment._id, {
+        version: RESULT_VERSION,
+        productType: PRODUCT_TYPE,
+        inputHash,
+        sajuEvidenceHash: sajuEvidence.evidenceHash,
+        inputSnapshot: input,
+        sajuSnapshot,
+        generatedPrompt,
+        generatedResult: parsed.cleanText,
+        nameCards: parsed.cards,
+        finalPick: parsed.finalPick,
+        provider: generated.provider,
+        model: generated.model,
+        generatedAt: generatedAt.toISOString(),
+      });
+    }
+    return json({
+      ok: true,
+      idempotent: false,
+      result: serializeExecutionResult(execution),
+    }, { status: 201 });
+  } catch (error) {
+    await markNamingGenerationFailed(env, claim.executionId, error);
+    const restored = await restoreNamingAccessOnFailure(env, auth, access);
+    // 월정석은 하드 환불되지만 단건결제/이용권은 환불이 아니라 재시도로 회복한다 —
+    // 같은 결제/이용권 증거로 /generate를 다시 호출하면 실패 레코드를 인계해 추가 차감 없이 재생성한다.
+    // retryable을 명시해 클라이언트가 무결과로 멈추지 않고 자동 재시도하도록 신호한다.
+    return json({
+      ok: false,
+      reason: "LLM_ERROR",
+      code: "LLM_GENERATION_FAILED",
+      message: NAMING_LLM_ERROR_MESSAGE,
+      restored: Boolean(restored?.refunded),
+      retryable: true,
+    }, { status: 503 });
+  }
 }
 
 async function handleResult(request, env, id) {
   const auth = await requireAuth(request, env);
-  let result = await findExecutionResultForUser(env, auth, id);
-  if (!result) {
-    const payment = await findPaymentForUser(env, auth, id);
-    verifyPaymentShape(payment);
-    result = serializeResult(payment);
+  const record = await findExecutionRecordForUser(env, auth, id);
+  if (record) {
+    if (record.status === "generating") {
+      // 생성 isolate가 도중에 죽으면 레코드가 generating으로 고착돼 GET /result가 영원히 202를 준다.
+      // freshness 창을 넘긴 generating은 재개 불가로 보고 재시도 신호를 준다 —
+      // 클라이언트가 같은 결제/이용권 증거로 /generate를 다시 호출하면 beginNamingGeneration이 인계·재생성한다.
+      const updatedAtMs = Date.parse(record.updatedAt || record.consumedAt || record.createdAt || "");
+      const stale = Number.isFinite(updatedAtMs) && (Date.now() - updatedAtMs) > NAMING_GENERATION_FRESHNESS_MS;
+      if (stale) {
+        return json({
+          ok: false,
+          reason: "GENERATION_STALLED",
+          status: "generating",
+          retryable: true,
+          executionId: id,
+          message: NAMING_LLM_ERROR_MESSAGE,
+        }, { status: 503 });
+      }
+      return json({
+        ok: true,
+        status: "generating",
+        executionId: id,
+        message: NAMING_GENERATING_MESSAGE,
+      }, { status: 202 });
+    }
+    if (record.status === "generation_failed") {
+      return json({
+        ok: false,
+        reason: "LLM_ERROR",
+        status: "generation_failed",
+        message: NAMING_LLM_ERROR_MESSAGE,
+      }, { status: 503 });
+    }
+    const result = serializeExecutionResult(record);
+    if (result) return json({ ok: true, result });
   }
+  const payment = await findPaymentForUser(env, auth, id);
+  verifyPaymentShape(payment);
+  const result = serializeResult(payment);
   if (!result) throw createHttpError(404, "생성된 작명 프롬프트를 찾을 수 없습니다.", { code: "RESULT_NOT_FOUND" });
   return json({ ok: true, result });
 }

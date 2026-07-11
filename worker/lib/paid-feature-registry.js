@@ -427,6 +427,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "life-book-ai-consultation",
   "karma-destiny-ai-consultation",
   "ziwei-ai-consultation",
+  "premium-naming-prompt",
   "ziwei-deep-pdf",
   "ziwei_ai_prompt_generator",
   "astrology_ai_prompt_generator",
