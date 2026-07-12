@@ -2568,13 +2568,23 @@
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
         // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
         _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
-        var passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
-          title: title,
-          coinPrice: coinPrice,
-          cost: coinPrice,
-          requestId: requestId
-        }));
-        _dpSetPaymentPending(false);
+        // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
+        await _dpWaitForPaymentOverlayPaint();
+        var passShownAt = Date.now();
+        var passFirst;
+        try {
+          passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+            title: title,
+            coinPrice: coinPrice,
+            cost: coinPrice,
+            requestId: requestId
+          }));
+        } finally {
+          // 최소 표시 시간 보장(초고속 응답에도 "이용권 확인 중"이 보이도록) + 예외 시에도 오버레이가 멈추지 않고 닫히도록.
+          var passShownElapsed = Date.now() - passShownAt;
+          if (passShownElapsed < 550) await new Promise(function(resolve) { setTimeout(resolve, 550 - passShownElapsed); });
+          _dpSetPaymentPending(false);
+        }
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
           return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
         }
