@@ -1409,13 +1409,17 @@ async function autoRefundSinglePaymentDeliveryFailure(env, payment, reasonCode, 
   }
 }
 
-// billing.js의 결제-접근 결정 캐시(globalThis 공유)를 해당 유저 단위로 무효화한다.
+// billing.js의 결제-접근 결정 캐시 + 표시용 잔량 캐시(둘 다 globalThis 공유)를 해당 유저 단위로 무효화한다.
 // import 순환(billing.js→payments.js)을 피하려고 캐시 객체에 붙은 메서드를 직접 호출한다.
+// 결제/환불로 잠금해제 상태나 잔량이 바뀌므로 두 캐시를 함께 무효화해 결제 직후 stale 응답을 막는다.
 function invalidatePaidAccessDecisionCacheForUser(userId) {
   const uid = String(userId || "").trim();
   if (!uid) return;
   try {
     globalThis.__paidAccessDecisionCache?.invalidateForUser?.(uid);
+  } catch {}
+  try {
+    globalThis.__billingBalanceCache?.invalidateForUser?.(uid);
   } catch {}
 }
 

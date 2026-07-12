@@ -43,7 +43,12 @@ export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId =
       },
       { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
     ).lean();
-    if (updated) return { ok: true, reason: "OK", balance: deduction.balance, user: updated };
+    if (updated) {
+      // 월정석 잔량이 바뀌었으니 billing.js의 표시용 잔량 캐시(globalThis 공유)를 즉시 무효화한다
+      // — 결제 직후 결제창 재개폐에서 stale 잔량이 뜨지 않게 한다. import 순환 없이 globalThis로 접근.
+      try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
+      return { ok: true, reason: "OK", balance: deduction.balance, user: updated };
+    }
     // 버전 충돌 → 재조회 후 재시도.
   }
   return { ok: false, reason: "CONTENDED", balance: null, user: null };
@@ -89,7 +94,10 @@ export async function restoreMonthlyCreditLot({
       },
       { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
     ).lean();
-    if (updated) return updated;
+    if (updated) {
+      try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
+      return updated;
+    }
     // 버전 충돌 → 재조회 후 재시도.
   }
   return null;

@@ -6947,11 +6947,13 @@
 
   // 정적/외부 페이지 공용: 월정석 잔량 정본 조회(/api/billing/balance?moonlightStone=1).
   // 반환 Promise<{ ok, degraded, signedOut, balance }>. degrade(503)·미인증은 ok:false로 구분해 '확인 필요'로 처리한다.
-  function _dpFetchMoonlightStoneBalance() {
+  function _dpFetchMoonlightStoneBalance(opts) {
     if (typeof _dpFetchJsonWithFallback !== 'function') {
       return Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
     }
-    return _dpFetchJsonWithFallback('/api/billing/balance?moonlightStone=1&compact=1', {
+    // opts.fresh=true(수동 재조회)면 서버 표시용 잔량 캐시를 우회해 항상 최신값을 읽는다.
+    var _balUrl = '/api/billing/balance?moonlightStone=1&compact=1' + ((opts && opts.fresh) ? '&fresh=1' : '');
+    return _dpFetchJsonWithFallback(_balUrl, {
       method: 'GET',
       credentials: 'include',
       cache: 'no-store',
@@ -7064,14 +7066,15 @@
           else { monthlyBtn.removeAttribute('disabled'); monthlyBtn.classList.remove('cdpc-btn--disabled'); }
         }
       }
-      function refreshStandaloneMoonbal() {
+      function refreshStandaloneMoonbal(fresh) {
         if (settled || moonbalBusy) return;
         moonbalBusy = true;
         var refreshBtn = root.querySelector('[data-cdpc="monthly-refresh"]');
         if (refreshBtn) refreshBtn.disabled = true;
         if (moonbalText) moonbalText.textContent = '월정석 잔량을 확인하고 있습니다.';
+        // 수동 재조회(fresh=true)는 서버 캐시를 우회해 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
         var fetcher = (typeof window._dpFetchMoonlightStoneBalance === 'function')
-          ? window._dpFetchMoonlightStoneBalance()
+          ? window._dpFetchMoonlightStoneBalance({ fresh: fresh === true })
           : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
         fetcher.then(function(res) {
           if (settled) return;
@@ -7097,7 +7100,7 @@
         var hit = e.target && e.target.closest ? e.target.closest('[data-cdpc]') : null;
         if (hit) {
           var act = hit.getAttribute('data-cdpc');
-          if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(); return; }
+          if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
           finish(act);
           return;

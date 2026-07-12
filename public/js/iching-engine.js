@@ -544,6 +544,21 @@
     ];
     var aIdx = hexName ? hexName.charCodeAt(0) % aphorisms.length : 0;
 
+    // ── AI(ChatGPT) 심층 상담용 주역 전문가 프롬프트 (무료 · 결제 게이트 없음) ──
+    var _tcAiPrompt =
+      '당신은 30년 경력의 주역(周易)·64괘 해석 전문가입니다. 아래는 한 사람이 거북점(龜卜)으로 뽑은 괘와 그 물음입니다. ' +
+      '이 괘의 상·하 성분과 괘상(卦象)의 원리에 근거해, 점술이 아니라 삶의 지침으로서 따뜻하되 직설적인 존댓말 조언을 해 주세요.\n\n' +
+      '[질문] ' + (qStr || '(구체적 질문 없이 오늘의 길을 물음)') + '\n' +
+      '[뽑힌 대성괘] ' + hexName + '\n' +
+      '[상괘(현재의 표면)] ' + upper.name + ' (' + upper.nat + '/' + upper.elem + ')\n' +
+      '[하괘(내면의 뿌리)] ' + lower.name + ' (' + lower.nat + '/' + lower.elem + ')\n' +
+      '[괘의 핵심] ' + wisdom.summary + '\n' +
+      '[전해진 조언] ' + wisdom.advice + '\n' +
+      '[기운의 방향] ' + (isAdvance ? '나아감(進)' : '멈춤(止)') + '\n' +
+      '[갈무리 격언] ' + aphorisms[aIdx] + '\n\n' +
+      '위 정보만 근거로 다음을 다뤄 주세요: ① 이 괘가 질문에 대해 지금 무엇을 말하는지 ② 당장 취할 행동과 피할 행동 ' +
+      '③ 시기·흐름의 조언(참고) ④ 마음가짐 한 줄. 없는 사실은 지어내지 말고, 마지막에 전통 주역 관점의 참고 해석임을 한 문장으로 밝혀 주세요.';
+
     var html = ''
       + '<div class="tc-ink-bloom-wrap">'
         + '<div class="tc-ink-hex" style="filter:url(#inkFilter) drop-shadow(0 0 12px rgba(255,200,40,.6))">' + hexChar + '</div>'
@@ -589,6 +604,8 @@
         + '</div>'
       + '</div>'
 
+      + '<div id="tcAiPrompt" style="margin-top:4px;"></div>'
+
       + '<button class="tc-scroll-top-btn" onclick="(function(){var o=document.getElementById(\u0027juyukModalOverlay\u0027);if(o)window.scrollTo({top:o.offsetTop,behavior:\u0027smooth\u0027});})()" title="' + _tcText('scrollTopTitle') + '">' + _tcText('scrollTopButton') + '</button>'
       + '<button class="tc-share-btn" id="tcShareBtn" onclick="tcShareResult()">' + _tcText('shareButton') + '</button>'
       + '<button class="tc-redo-btn" onclick="tcReset()">' + _tcText('redoButton') + '</button>'
@@ -597,6 +614,20 @@
     resultEl.innerHTML = html;
     resultEl.classList.add('show');
     resultEl.scrollTop = 0;
+
+    // 공용 AI 프롬프트 카드(복사 + ChatGPT 열기) 마운트 — 무료, 결제 게이트 미호출
+    if (window.cdEnsureCompatLlmReady) {
+      window.cdEnsureCompatLlmReady(function () {
+        var host = _tcEl('tcAiPrompt');
+        if (host && window.CompatLlm && window.CompatLlm.mountCard) {
+          window.CompatLlm.mountCard(host, {
+            idPrefix: 'cdLlmJuyuk',
+            title: '🔮 이 괘를 AI에게 더 물어보기',
+            getPrompt: function () { return _tcAiPrompt; }
+          });
+        }
+      });
+    }
 
     // 결과 표시 후 shell 버튼 touch-action 해제 → CSS 클래스 + inline style 이중으로 완전 보장
     var shellBtn = _tcEl('tcShellBtn');

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>천체의 선율 타로 | Celestial Harmony Tarot</title>
-  <script src="/js/destiny-profile.js?v=build-1bcb12c9e742"></script>
+  <script src="/js/destiny-profile.js?v=build-moonbal-fresh-1a2b3"></script>
 <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -1062,14 +1062,15 @@ button,input,select,textarea{font-family:var(--font-body)!important}
               else { celMonthlyBtn.removeAttribute('disabled'); celMonthlyBtn.classList.remove('celestial-pay-btn--disabled'); }
             }
           }
-          function refreshCelMoonbal(){
+          function refreshCelMoonbal(fresh){
             if(settled || celMoonbalBusy) return;
             celMoonbalBusy = true;
             var rb = overlay.querySelector('[data-choice="monthly-refresh"]');
             if(rb) rb.disabled = true;
             if(celMoonbalText) celMoonbalText.textContent = '월정석 잔량을 확인하고 있습니다.';
+            // 수동 재조회(fresh=true)는 서버 캐시를 우회해 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
             var fetcher = (typeof window._dpFetchMoonlightStoneBalance==='function')
-              ? window._dpFetchMoonlightStoneBalance()
+              ? window._dpFetchMoonlightStoneBalance({ fresh: fresh===true })
               : Promise.resolve({ ok:false, degraded:true, signedOut:false, balance:0 });
             fetcher.then(function(res){
               if(settled) return;
@@ -1087,7 +1088,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
             var btn=t&&t.closest?t.closest('[data-choice]'):null;
             if(btn){
               var choice = btn.getAttribute('data-choice')||'cancel';
-              if(choice==='monthly-refresh'){ ev.preventDefault(); refreshCelMoonbal(); return; }
+              if(choice==='monthly-refresh'){ ev.preventDefault(); refreshCelMoonbal(true); return; }
               if(btn.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
               done(choice); return;
             }
