@@ -3053,9 +3053,8 @@ async function handleKakaoReferralShare(request, env) {
     return json({ ok: false, message: "로그인이 필요합니다." }, { status: 401 });
   }
 
-  await connectDb(env);
   const objectId = new mongoose.Types.ObjectId(String(auth.userId));
-  const user = await User.collection.findOne(
+  const user = await withMongoRetry(env, () => User.collection.findOne(
     { _id: objectId },
     {
       projection: {
@@ -3065,7 +3064,7 @@ async function handleKakaoReferralShare(request, env) {
       },
       maxTimeMS: 8000,
     },
-  );
+  ));
   if (!user) return json({ ok: false, message: "사용자 정보를 찾을 수 없습니다." }, { status: 404 });
 
   const referralCode = await ensureReferralCodeForUser(user, env);

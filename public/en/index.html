@@ -4080,7 +4080,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
     isolation:isolate!important;
     position:relative!important;
     /* 바로 위 프로필 카드(#dpMasterCard, 좌우 16px)와 좌우 가장자리 정렬 통일 → 우측 치우침 방지 */
-    margin:12px 16px 0!important;
+    width:auto!important;margin:12px 16px 0!important;
     padding:14px 12px!important;
     border-radius:24px!important;
     border:1px solid rgba(216,63,120,.18)!important;
@@ -4945,6 +4945,10 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form .cd-mobile-saju-detail-toggle::after{background:linear-gradient(135deg,#c4b5fd,#e8d5a3)!important;color:#160f2b!important}
   html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form #run-btn{color:#160f2b!important;background:linear-gradient(135deg,#c4b5fd 0%,#a78bfa 52%,#e8d5a3 100%)!important;border:1px solid rgba(196,181,253,.55)!important;box-shadow:0 16px 30px rgba(147,51,234,.28),0 0 20px rgba(196,181,253,.2),inset 0 1px 0 rgba(255,255,255,.34)!important}
   html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form :is(#dpSaveBtn,#dpKakaoReferralShareBtn,.moon-submit-btn:not(.moon-submit-btn--primary)){background:rgba(196,181,253,.08)!important;border:1px solid rgba(196,181,253,.24)!important;color:rgba(230,224,255,.85)!important;text-shadow:none!important}
+  /* 카카오 공유: 네오 모드에서도 카카오 옐로우 유지(가독성) · cd-kakao-neo-yellow-v20260712 */
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form #dpKakaoReferralShareBtn{background:#FEE500!important;border:1px solid #f4d400!important;color:#191600!important;box-shadow:0 12px 24px rgba(254,229,0,.24),inset 0 1px 0 rgba(255,255,255,.5)!important}
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form #dpKakaoReferralShareBtn .main-txt{color:#191600!important}
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form #dpKakaoReferralShareBtn .sub-txt{color:rgba(25,22,0,.72)!important}
 
   /* ── 네오(달빛): 카드/컬렉션 다크 정합 + 가독성 ── */
   html.cd-mobile-runtime body.neo-mode :is(.tarot-tile,.feature-card):not(.prem-card):not(.pvc-prem-card){background:linear-gradient(150deg,rgba(21,17,44,.97),rgba(11,9,26,.99))!important;border:1px solid rgba(196,181,253,.26)!important;box-shadow:0 12px 26px rgba(0,0,0,.35),inset 0 1px 0 rgba(228,214,255,.1)!important}
