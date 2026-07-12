@@ -304,6 +304,9 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
     ),
   );
 
+  // op-타임아웃 메시지는 아래 withTimeout 던짐과 catch의 판별이 공유한다(문자열 드리프트 방지).
+  const operationTimeoutMessage = "MongoDB operation timed out in Worker.";
+
   let lastError = null;
   for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
     try {
@@ -313,15 +316,26 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
           return await operation();
         })(),
         attemptTimeoutMS,
-        "MongoDB operation timed out in Worker.",
+        operationTimeoutMessage,
       );
     } catch (error) {
       lastError = error;
-      if (attempt >= maxRetries || !isTransientMongoError(error)) throw error;
-      // 다음 시도에서 강제로 재연결하도록 웜 상태를 무효화한다.
-      lastHealthyAt = 0;
-      connectPromise = null;
-      await resetMongooseConnection();
+      // 연결 레벨 실패(일시적 에러 또는 op-타임아웃)는 웜 커넥션이 죽었을 수 있으므로, 던지기 전에
+      // 웜 상태를 무효화해 다음 시도/다음 요청이 콜드 재연결로 자가복구하게 한다(일반 쿼리 에러엔
+      // 리셋하지 않는다 — 불필요한 재연결 폭풍 방지). op-타임아웃 메시지는 isTransientMongoError에
+      // 잡히지 않아 과거엔 리셋 없이 throw됐고, 죽은 웜 커넥션이 stateless Worker 아이솔레이트에 잔존해
+      // 그 아이솔레이트로 가는 모든 유료/인증 요청을 계속 11.5s hang→503/500으로 만들었다(지속성의 원인).
+      const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
+      const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
+      const willRetry = attempt < maxRetries && isTransientMongoError(error);
+      if (isConnectionLevelFailure) {
+        lastHealthyAt = 0;
+        connectPromise = null;
+        await resetMongooseConnection();
+      }
+      // op-타임아웃은 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 → hung-detection 재유발
+      // 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되, 다음 요청이 깨끗한 연결로 복구된다.
+      if (!willRetry) throw error;
       await sleep(baseDelayMS * (attempt + 1));
     }
   }
