@@ -1454,7 +1454,30 @@ function normalizeDeepSections(value) {
     .filter((section) => section.title && section.body.length >= 60);
 }
 
+// 사주 궁합 전용 규칙 — 단독 사주의 자기중심 섹션 골격 대신 두 사람의 명식을 각각 세우고
+// 대조하는 섹션 골격을 쓴다. 이 규칙 하나가 프롬프트 requiredDeepSections·검증기·gauges·폴백 빌더에
+// 모두 전파된다(consultationMode === "sajuCompatibility"일 때만 반환).
+const teaCompatSajuRule = {
+  id: "sajuCompatibility",
+  aliases: [],
+  resultKey: "sajuCompatibilityReading",
+  category: "사주 궁합",
+  concept: "두 사람의 사주를 각각 독립적으로 읽은 뒤 두 명식을 대조해 궁합과 질문에 답하는 상담",
+  minChars: SAJU_MIN_RESULT_CHARS,
+  focus: ["두 일간의 상생·상극·동류·보완", "오행의 보완과 충돌", "십성 대조가 만드는 마음·행동 방식", "배우자궁·일지 관계", "두 사람의 현재 대운·세운이 관계에 부는 순풍·역풍", "질문에 대한 두 사람 관점의 답"],
+  requiredSections: ["당신의 사주", "상대방의 사주", "두 사람의 궁합", "질문에 대한 답", "함께일 때의 강점", "미리 알아둘 주의점", "지금 이 시기 관계의 운", "찻집의 처방", "연이의 한마디"],
+  gauges: [
+    ["관계 온도", "pink", 58, "두 일간의 상생·상극이 관계의 기본 온도를 만듭니다."],
+    ["표현의 합", "gold", 54, "식상 흐름은 두 사람이 마음을 꺼내 서로 맞추는 방식을 보여줍니다."],
+    ["긴장 지점", "purple", 52, "관성 흐름은 관계에서 책임과 부담이 걸리는 자리를 비춥니다."],
+    ["신뢰 안정", "green", 50, "서로 보완되는 오행은 오래 갈수록 쌓이는 안정감을 보여줍니다."],
+    ["미련·기다림", "blue", 52, "인성 흐름은 관계에서 마음이 오래 머무는 자리를 보여줍니다."],
+  ],
+  requiredTerms: ["궁합", "상대"],
+};
+
 function resolveSajuCategoryRule(value = {}) {
+  if (cleanText(value.consultationMode, 40) === "sajuCompatibility") return teaCompatSajuRule;
   const id = cleanText(value.selectedTeaCupId || value.teaCup?.id, 80);
   if (teaCategorySajuPromptMap[id]) return teaCategorySajuPromptMap[id];
   const source = [
@@ -1646,26 +1669,37 @@ function buildFortuneTeaSajuMyeongsikFacts(request, saju) {
   }
 }
 
-// 사주 궁합에서 상대 명식을 프롬프트 factInput에 주입한다. 상대 명식은 클라가 계산해 draftResult.sajuCompatibility.partner.saju로 넘겨준다.
-function buildSajuPartnerProfile(request, fallback) {
-  const partner = fallback?.sajuCompatibility?.partner;
-  const partnerSaju = partner?.saju;
-  if (!partner || !partnerSaju || partnerSaju.available !== true) return undefined;
+// 궁합에서 십성 확정표가 다른 사람 서술로 새지 않도록, 확정표 규칙을 사람 이름으로 스코프한다.
+function scopeMyeongsikTableRule(facts, name) {
+  if (!facts) return facts;
   return {
-    name: cleanText(partner.name, 40) || "상대",
-    gender: cleanText(partner.gender, 20),
-    birthDate: cleanText(partner.birthDate, 20),
-    birthTime: partner.birthTimeUnknown ? "" : cleanText(partner.birthTime, 20),
-    birthTimeUnknown: partner.birthTimeUnknown === true,
-    calendarType: partner.calendarType,
-    dayMaster: cleanText(partnerSaju.dayMaster, 80),
-    pillars: normalizeSajuFactText(partnerSaju.pillars),
-    fiveElementsBalance: normalizeSajuFactText(partnerSaju.fiveElements || partnerSaju.strongElements),
-    tenGodsBalance: combineSajuFactText(partnerSaju.tenGods, partnerSaju.tenGodSnapshot?.tenGodLabels),
-    strongElements: normalizeSajuFactText(partnerSaju.strongElements),
-    monthSeason: combineSajuFactText(partnerSaju.monthBranch, partnerSaju.season),
-    coreSummary: cleanMultiline(partnerSaju.coreSummary, 800),
-    myeongsikFacts: buildFortuneTeaSajuMyeongsikFacts(request, partnerSaju),
+    ...facts,
+    tenGodTableRule: `이 표는 ${name}의 십성 확정표다. ${name}의 십성만 이 표로 판정하고, 다른 사람의 십성에는 절대 쓰지 않는다.`,
+  };
+}
+
+// 사주 궁합에서 한 사람(본인/상대)의 명식을 프롬프트 factInput에 대칭으로 주입한다.
+// 두 사람 모두 클라가 draftResult.sajuCompatibility.{user,partner}.saju로 계산해 넘겨준다(동일 스냅샷 형태).
+function buildSajuPersonProfile(request, personEntry, defaultName = "상대") {
+  const person = personEntry;
+  const personSaju = person?.saju;
+  if (!person || !personSaju || personSaju.available !== true) return undefined;
+  const name = cleanText(person.name, 40) || defaultName;
+  return {
+    name,
+    gender: cleanText(person.gender, 20),
+    birthDate: cleanText(person.birthDate, 20),
+    birthTime: person.birthTimeUnknown ? "" : cleanText(person.birthTime, 20),
+    birthTimeUnknown: person.birthTimeUnknown === true,
+    calendarType: person.calendarType,
+    dayMaster: cleanText(personSaju.dayMaster, 80),
+    pillars: normalizeSajuFactText(personSaju.pillars),
+    fiveElementsBalance: normalizeSajuFactText(personSaju.fiveElements || personSaju.strongElements),
+    tenGodsBalance: combineSajuFactText(personSaju.tenGods, personSaju.tenGodSnapshot?.tenGodLabels),
+    strongElements: normalizeSajuFactText(personSaju.strongElements),
+    monthSeason: combineSajuFactText(personSaju.monthBranch, personSaju.season),
+    coreSummary: cleanMultiline(personSaju.coreSummary, 800),
+    myeongsikFacts: scopeMyeongsikTableRule(buildFortuneTeaSajuMyeongsikFacts(request, personSaju), name),
   };
 }
 
@@ -1691,22 +1725,41 @@ function buildSajuFactInput(request, saju, rule, fallback) {
     saju?.tenGodSnapshot?.tenGodLabels,
     firstSajuFactText(saju, ["tenGods", "tenGodBalance", "tenGodStructure"]),
   );
+  // 사주 궁합: 본인(selfProfile)과 상대(partnerProfile)를 동일한 완전 명식 형태로 대칭 주입한다.
+  // 두 사람 모두 클라가 sajuCompatibility.{user,partner}.saju(동일 스냅샷 형태)로 계산해 넘겨준다.
+  const isCompat = (rule?.id === "sajuCompatibility") || normalizeConsultationMode(request?.consultationMode) === "sajuCompatibility";
+  const partnerProfile = buildSajuPersonProfile(request, fallback?.sajuCompatibility?.partner, "상대");
+  const selfPersonProfile = isCompat ? buildSajuPersonProfile(request, fallback?.sajuCompatibility?.user, "나") : undefined;
+  const baseSelfProfile = {
+    name: cleanText(request.nickname || saju?.birthSummary?.nickname, 40),
+    gender: cleanText(request.gender || saju?.birthSummary?.gender, 20),
+    birthDate: cleanText(request.birthDate || saju?.birthSummary?.birthDate, 20),
+    birthTime: request.birthTimeUnknown ? "" : cleanText(request.birthTime || saju?.birthSummary?.birthTime, 20),
+    birthTimeUnknown: request.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true,
+    calendarType: request.calendarType || saju?.birthSummary?.calendarType,
+    birthPlace: cleanText(request.birthPlace || saju?.birthSummary?.birthPlace, 120),
+  };
+  // 궁합이고 본인 명식이 확보되면 본인도 상대와 동등한 완전 명식으로 채운다(출생지는 base에서 유지).
+  const selfProfile = selfPersonProfile
+    ? { ...baseSelfProfile, ...selfPersonProfile, birthPlace: baseSelfProfile.birthPlace }
+    : baseSelfProfile;
+  const dataCheck = isCompat
+    ? {
+        selfDayMaster: selfProfile?.dayMaster || "",
+        partnerDayMaster: partnerProfile?.dayMaster || "",
+        sameDayMaster: Boolean(selfProfile?.dayMaster && partnerProfile?.dayMaster && selfProfile.dayMaster === partnerProfile.dayMaster),
+        guidance: "먼저 두 사람의 일간을 대조하라. 일간이 다르면 성향·오행·십성 서술이 서로 달라야 한다. 일간이 같아도 월지·시주·오행 분포·십성 배치는 다르므로 반드시 구분해 서술한다. 본인과 상대 서술이 같아지면 데이터 매핑 오류이니 selfProfile과 partnerProfile을 처음부터 다시 대조한다.",
+      }
+    : undefined;
   return {
-    consultationMode: "saju",
+    consultationMode: isCompat ? "sajuCompatibility" : "saju",
     teaId: request.selectedTeaCupId || saju?.teaCup?.id,
     teaName: request.selectedTeaCupName || saju?.teaCup?.name,
     teaCategory: rule.category,
     userQuestion: request.question,
-    selfProfile: {
-      name: cleanText(request.nickname || saju?.birthSummary?.nickname, 40),
-      gender: cleanText(request.gender || saju?.birthSummary?.gender, 20),
-      birthDate: cleanText(request.birthDate || saju?.birthSummary?.birthDate, 20),
-      birthTime: request.birthTimeUnknown ? "" : cleanText(request.birthTime || saju?.birthSummary?.birthTime, 20),
-      birthTimeUnknown: request.birthTimeUnknown === true || saju?.birthSummary?.birthTimeUnknown === true,
-      calendarType: request.calendarType || saju?.birthSummary?.calendarType,
-      birthPlace: cleanText(request.birthPlace || saju?.birthSummary?.birthPlace, 120),
-    },
-    partnerProfile: buildSajuPartnerProfile(request, fallback),
+    dataCheck,
+    selfProfile,
+    partnerProfile,
     sajuFacts: {
       dayMaster: cleanText(saju?.dayMaster, 80),
       pillars: normalizeSajuFactText(saju?.pillars),
@@ -1719,10 +1772,13 @@ function buildSajuFactInput(request, saju, rule, fallback) {
       currentLuckSummary: cleanMultiline(luckFlow || saju?.summary, 1200),
       caution: cleanMultiline(saju?.cautionReading || saju?.caution, 800),
       actionPrescription: cleanMultiline(saju?.actionPrescription, 800),
-      uncertaintyRule: "비어 있는 항목은 추측하지 말고, 확인된 항목끼리만 연결한다.",
+      uncertaintyRule: isCompat
+        ? "sajuFacts는 본인(selfProfile)의 명식 사실이다. 상대 명식에는 쓰지 않는다. 비어 있는 항목은 추측하지 말고 확인된 항목끼리만 연결한다."
+        : "비어 있는 항목은 추측하지 말고, 확인된 항목끼리만 연결한다.",
     },
     // 명식 심화 사실(십성 확정표·지장간·투간/투출·도충·개고·운 흐름) — 독립 AI 사주 생성 로직 재사용.
-    myeongsikFacts: buildFortuneTeaSajuMyeongsikFacts(request, saju),
+    // 궁합에서는 사람별 확정표(selfProfile/partnerProfile.myeongsikFacts)만 쓰고, 전역 확정표는 두지 않는다(유출 방지).
+    myeongsikFacts: isCompat ? undefined : buildFortuneTeaSajuMyeongsikFacts(request, saju),
   };
 }
 
@@ -2862,10 +2918,23 @@ function assertConsultQuality(result, fallback) {
   // 사주 궁합은 상대 명식 해석이 서사에 실제로 담겼는지 확인한다(본인 위주로 흐르는 것을 차단).
   if (fallback.consultationMode === "sajuCompatibility" && fallback.sajuCompatibility?.available) {
     const joined = collectConsultText(result);
-    const partner = fallback.sajuCompatibility.partner || {};
+    const compat = fallback.sajuCompatibility;
+    const partner = compat.partner || {};
     const partnerName = cleanText(partner.name, 60);
     if (partnerName && !joined.includes(partnerName)) {
       throw new Error("fortune tea house quality failed: saju compat partner not interpreted");
+    }
+    // 상대 일간(천간)이 본문에 실제로 등장하는지 확인 — 이름만 언급하고 명식은 본인 사주인 경우를 차단.
+    // 포맷 기인 false negative를 피하려 dayMaster의 맨 천간 글자만 비교하고, 실패는 상위 degrade가 흡수한다.
+    const stemOf = (dayMaster) => (String(dayMaster || "").match(/[갑을병정무기경신임계]/) || [""])[0];
+    const partnerStem = stemOf(partner.saju?.dayMaster);
+    const selfStem = stemOf(compat.user?.saju?.dayMaster);
+    if (partner.saju?.available === true && partnerStem && !joined.includes(partnerStem)) {
+      throw new Error("fortune tea house quality failed: saju compat partner ilgan missing");
+    }
+    // 두 일간이 다른데 본인 천간이 본문에 전혀 없으면 본인 명식을 상대 것으로 오인했을 가능성 — 함께 확인한다.
+    if (partnerStem && selfStem && partnerStem !== selfStem && compat.user?.saju?.available === true && !joined.includes(selfStem)) {
+      throw new Error("fortune tea house quality failed: saju compat self ilgan missing");
     }
   }
   if (fallback.consultationMode === "tarot") {
@@ -2889,10 +2958,14 @@ function buildSystemPrompt(consultationMode = "tarot") {
   if (isSajuFamilyMode(consultationMode)) {
     const compatLines = consultationMode === "sajuCompatibility"
       ? [
-          "이번 상담은 사주 '궁합' 상담이다. selfProfile은 본인, partnerProfile은 상대의 명식이다. 두 사람 각각의 사주를 산출·해석한 뒤 두 명식을 대조해 궁합을 푼다.",
+          "이번 상담은 사주 '궁합' 상담이다. selfProfile은 본인, partnerProfile은 상대의 명식이며 서로 다른 사람의 서로 다른 데이터다. 두 사람 각각의 사주를 독립적으로 산출·해석한 뒤 두 명식을 대조해 궁합을 푼다. 한 사람의 사주로 두 사람을 풀거나, 본인 사주를 상대 사주로 서술하는 것은 상담 실패다.",
+          "먼저 dataCheck.selfDayMaster와 dataCheck.partnerDayMaster를 대조하라. 두 일간이 다르면 본인과 상대의 성향·오행·십성 서술이 서로 달라야 한다. 두 일간이 같아도 월지·시주·오행 분포·십성 배치는 다르므로 반드시 구분해 서술한다. 두 사람 서술이 같아지면 데이터 매핑 오류이니 처음부터 다시 대조한다.",
+          "상대 명식(partnerProfile)의 일간·오행·십성은 오직 partnerProfile 데이터만으로 서술한다. 본인 명식은 selfProfile과 sajuFacts 데이터만으로 서술한다. 두 데이터를 섞지 않는다.",
+          "십성은 사람별 확정표만 쓴다: 본인 십성은 selfProfile.myeongsikFacts.tenGodFixedTable만, 상대 십성은 partnerProfile.myeongsikFacts.tenGodFixedTable만 사용하고, 한쪽 표를 다른 사람에게 쓰지 않는다.",
           "partnerProfile(상대 명식)의 일간·오행·십성을 본인과 동등한 분량과 깊이로 반드시 해석한다. 본인만 풀고 상대를 한두 줄로 요약만 하는 것은 실패다.",
           "두 일간의 오행 관계(상생/상극/동류/보완), 오행의 보완과 충돌, 십성 대조를 근거로 두 사람이 어디서 맞물리고 어디서 부딪히는지 짚고, 관계의 운 흐름과 현실 조언을 함께 준다.",
-          "글의 흐름은 ①본인 사주 핵심 → ②상대 사주 핵심 → ③두 명식의 상호작용·궁합 → ④관계 운의 흐름과 조언 순서로, 어느 한쪽으로 치우치지 않게 쓴다. 상대는 partnerProfile.name의 이름으로 부른다.",
+          "글의 흐름은 ①본인 사주 핵심 → ②상대 사주 핵심 → ③두 명식의 상호작용·궁합 → ④질문에 대한 답(두 사람 관점 모두) → ⑤관계 운의 흐름과 조언 순서로, 어느 한쪽으로 치우치지 않게 쓴다. 상대는 partnerProfile.name의 이름으로 부른다.",
+          "출력 직전 반드시 자기검증한다: (1)'상대방의 사주' 섹션이 본인과 다른 문장인가, (2)상대 일간·오행이 partnerProfile 기준인가, (3)'두 사람의 궁합' 섹션이 두 명식을 실제 교차 분석했는가, (4)'질문에 대한 답'에 두 사람 관점이 모두 담겼는가. 하나라도 아니면 다시 쓴다.",
         ]
       : [];
     return [
@@ -3006,8 +3079,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               : undefined,
             thinkingOrder: isSajuCompat
               ? [
-                  "본인(selfProfile) 일간이 월지 계절에서 힘을 얻는지 잃는지, 오행 분포, 십성 배치를 먼저 정리한다.",
-                  `상대(partnerProfile, ${partnerName})의 일간·오행·십성을 본인과 같은 깊이로 정리한다.`,
+                  "STEP0(데이터 검증): dataCheck.selfDayMaster와 dataCheck.partnerDayMaster를 대조한다. 다르면 두 서술이 달라야 하고, 같아도 월지·시주·오행·십성으로 구분한다. selfProfile과 partnerProfile을 절대 혼동하지 않는다.",
+                  "본인(selfProfile) 일간이 월지 계절에서 힘을 얻는지 잃는지, 오행 분포, 십성 배치를 selfProfile·sajuFacts만으로 정리한다. 십성은 selfProfile.myeongsikFacts.tenGodFixedTable만 쓴다.",
+                  `상대(partnerProfile, ${partnerName})의 일간·오행·십성을 partnerProfile만으로, 본인과 같은 깊이로 정리한다. 십성은 partnerProfile.myeongsikFacts.tenGodFixedTable만 쓴다.`,
                   "두 일간의 오행 관계(상생/상극/동류/보완)와 오행의 보완·충돌을 판정한다.",
                   "십성 대조로 두 사람의 표현·현실·절제·생각 방식이 어디서 맞고 어디서 어긋나는지 본다.",
                   "두 사람의 현재 대운·세운이 관계에 순풍인지 역풍인지 본다.",
@@ -3024,14 +3098,15 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             ],
             resultFlow: isSajuCompat
               ? [
-                  "먼저 본인(selfProfile)이 어떤 사람인지 일간·월지/계절·오행·십성 근거로 짚는다.",
-                  `이어서 상대(${partnerName}, partnerProfile)가 어떤 사람인지 본인과 동등한 분량으로 같은 근거로 짚는다. 상대 명식을 한두 줄로 요약만 하지 않는다.`,
-                  "두 사람의 마음·행동 패턴(십성)이 관계에서 어떻게 만나고 어긋나는지 대조한다.",
-                  "두 명식이 함께일 때 살아나는 강점 2~3가지를 명리 근거와 함께 짚는다.",
-                  "부딪히기 쉬운 지점 2~3가지를 위협이 아니라 '이 부분만 알면 돼요'의 온도로 짚는다.",
-                  "두 사람의 대운·세운이 관계에 부는 순풍·역풍을 짚는다.",
-                  "찻집의 처방: 두 사람이 오늘부터 할 수 있는 관계 실천을 준다.",
-                  "연이의 한마디: 따뜻한 제안 하나로 마무리한다.",
+                  "'당신의 사주': 본인(selfProfile)이 어떤 사람인지 일간·월지/계절·오행 분포·십성 근거로 충분히 짚는다. 이 섹션은 오직 본인 데이터(selfProfile·sajuFacts)만 쓴다.",
+                  `'상대방의 사주': 상대(${partnerName}, partnerProfile)가 어떤 사람인지 본인과 동등한 분량으로 같은 틀(일간·월지/계절·오행·십성)로 짚는다. 오직 partnerProfile 데이터만 쓰고, 본인 명식과 반드시 다른 내용이어야 한다. 한두 줄 요약은 실패다.`,
+                  "'두 사람의 궁합': 두 일간의 오행 관계(상생/상극/동류/보완), 오행의 보완·충돌, 십성 대조로 두 사람이 어디서 맞물리고 어디서 부딪히는지 실제로 교차 분석한다. 한 사람 사주만 반복하지 않는다.",
+                  "'질문에 대한 답': 손님의 질문에 직접 답하되, 본인 사주와 상대 사주가 그 답에 각각 어떻게 작용하는지 두 사람 관점을 모두 밝힌다.",
+                  "'함께일 때의 강점': 두 명식이 함께일 때 살아나는 강점 2~3가지를 명리 근거와 함께 짚는다.",
+                  "'미리 알아둘 주의점': 부딪히기 쉬운 지점 2~3가지를 위협이 아니라 '이 부분만 알면 돼요'의 온도로 짚는다.",
+                  "'지금 이 시기 관계의 운': 두 사람의 대운·세운이 관계에 부는 순풍·역풍을 짚는다.",
+                  "'찻집의 처방': 두 사람이 오늘부터 할 수 있는 관계 실천을 준다.",
+                  "'연이의 한마디': 따뜻한 제안 하나로 마무리한다.",
                 ]
               : [
               "타고난 결: 손님이 어떤 사람인지 타고난 성향부터 먼저 짚는다. 일간과 월지/계절, 오행 분포를 근거로 '일간이 ○인데 월지가 ○라서'처럼 근거를 밝혀, 신뢰가 서도록 성향을 전반적으로 풀어준다.",
@@ -3043,16 +3118,28 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
               "찻집의 처방: 실천 가능한 행동 플랜을 날짜 감각과 함께 준다.",
               "연이의 한마디: 실천 가능한 따뜻한 제안 하나로 마무리한다.",
             ],
-            qualityChecklist: [
-              "각 강점/주의점에 명리학적 근거가 최소 1개씩 붙어 있는가.",
-              "일반론이 아니라 이 원국에서만 나오는 이야기인가.",
-              "손님이 읽고 위로받았다고 느낄 수 있는가.",
-            ],
+            qualityChecklist: isSajuCompat
+              ? [
+                  "'상대방의 사주' 섹션이 '당신의 사주' 섹션과 다른 문장·다른 명식 내용인가.",
+                  "상대 일간·오행·십성이 partnerProfile 기준으로 서술됐는가(본인 명식을 상대 것으로 쓰지 않았는가).",
+                  "'두 사람의 궁합' 섹션이 두 명식을 실제 교차 분석했는가(한 명 사주만 반복하지 않았는가).",
+                  "'질문에 대한 답'에 본인과 상대 두 사람 관점이 모두 담겼는가.",
+                  "각 강점/주의점에 명리학적 근거가 최소 1개씩 붙어 있는가.",
+                ]
+              : [
+                  "각 강점/주의점에 명리학적 근거가 최소 1개씩 붙어 있는가.",
+                  "일반론이 아니라 이 원국에서만 나오는 이야기인가.",
+                  "손님이 읽고 위로받았다고 느낄 수 있는가.",
+                ],
             sectionRule: "saju.deepSections는 requiredDeepSections의 제목을 정확히 title로 쓰고, 각 body는 실제 입력값·일간·월지/계절·오행·십성·천간/지지 관계·현재 운의 흐름·질문 중 확인된 근거를 2개 이상 자연스럽게 연결한다.",
             repetitionRule: "같은 조언과 같은 문장을 여러 챕터·필드에서 반복하지 않는다. 구체 행동·금지 행동 목록은 actionPrescription에만, 단계 플랜은 choiceSimulation에만 두고, '찻집의 처방' 챕터는 그 플랜을 손님의 생활 장면으로 풀어내는 서사에 집중한다. 나머지 챕터는 해석과 명리 근거에 집중한다.",
             sectionLengthRule: "각 deepSection body는 요구 하한을 넘겨 대략 250~350자 안팎으로 쓰되, 분량은 아래 evidenceDistribution의 서로 다른 근거로 채운다. 같은 명식 사실을 여러 챕터에서 되풀이해 길이를 늘리지 않는다.",
-            evidenceDistribution: "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현), '삐걱대는 결'=개고·도충·합충형해파와 치우친 오행, '지금 이 시기'=대운/세운(luckRows)의 순풍·역풍. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
-            evidenceUseOrder: ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "천간·지지 관계와 개고·도충(myeongsikFacts)", "대운·세운·월운(myeongsikFacts.luckRows)", "찻잔 카테고리"],
+            evidenceDistribution: isSajuCompat
+              ? "섹션마다 서로 다른 근거를 나눠 쓴다: '당신의 사주'=selfProfile의 일간·월지/계절·오행·selfProfile.myeongsikFacts 십성 확정표, '상대방의 사주'=partnerProfile의 일간·월지/계절·오행·partnerProfile.myeongsikFacts 십성 확정표, '두 사람의 궁합'=두 일간의 상생·상극과 오행 보완·충돌·십성 대조, '지금 이 시기 관계의 운'=두 사람의 대운/세운 순풍·역풍. 본인 근거와 상대 근거를 섞지 않는다."
+              : "챕터마다 myeongsikFacts의 서로 다른 근거를 나눠 쓴다: '타고난 결/마음의 물길'=일간·월지/계절·오행·십성 확정표, '잘 풀리는 결'=강하게 드러난 십성과 지장간 투간(성향·재능으로 발현), '삐걱대는 결'=개고·도충·합충형해파와 치우친 오행, '지금 이 시기'=대운/세운(luckRows)의 순풍·역풍. 한 챕터에서 쓴 근거를 다른 챕터에서 그대로 되풀이하지 않는다.",
+            evidenceUseOrder: isSajuCompat
+              ? ["사용자 질문", "본인 일간(selfProfile)", "상대 일간(partnerProfile)", "각자의 월지/계절", "각자의 오행 과다/부족", "두 명식의 십성 대조(사람별 확정표 준수)", "두 일간의 상생·상극·동류·보완", "두 사람의 대운·세운", "찻잔 카테고리"]
+              : ["사용자 질문", "일간", "월지/계절", "오행 과다/부족", "십성 구조(myeongsikFacts.tenGodFixedTable 준수)", "지장간과 투간/투출(myeongsikFacts)", "천간·지지 관계와 개고·도충(myeongsikFacts)", "대운·세운·월운(myeongsikFacts.luckRows)", "찻잔 카테고리"],
             personalizationRule: "누구에게나 맞는 위로 대신 '왜 이 질문이 이 명식에서 지금 커졌는지'와 '현실에서 어떤 행동을 줄이거나 시작할지'를 함께 쓴다.",
             uncertaintyRule: "sajuFactInput에 없는 항목은 만들지 않는다. 부족한 항목은 단정하지 말고 입력된 정보만으로 볼 수 있는 범위를 밝힌다.",
             topicCoverageRule: "가능한 경우 성향과 마음의 패턴, 일과 재능, 돈과 현실 감각, 연애와 관계, 현재 운의 흐름, 조심할 점, 지금 바로 할 수 있는 행동 조언을 모두 건드린다.",
@@ -3062,7 +3149,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             stateGaugeRule: "emotionAnalysis는 감정 분석이 아니라 선택된 찻잔의 상태 게이지로 쓴다. label은 categoryGaugeLabels 중에서만 사용하고, description에는 일간·오행·십성 중 최소 하나의 근거를 붙인다.",
             categoryGaugeLabels: sajuRule.gauges.map(([label]) => label),
             partnerRule: isSajuCompat
-              ? `partnerProfile(상대 ${partnerName})의 일간·오행·십성을 반드시 본인과 동등한 분량으로 해석하고, 두 명식을 대조해 궁합과 관계 흐름을 푼다. 상대를 요약만 하고 본인 위주로 흐르면 실패다.`
+              ? `partnerProfile(상대 ${partnerName})의 일간·오행·십성을 오직 partnerProfile 데이터만으로, 본인과 동등한 분량으로 반드시 해석한다. 상대 십성은 partnerProfile.myeongsikFacts.tenGodFixedTable만 쓰고 본인 확정표를 상대에게 쓰지 않는다. 두 명식을 대조해 궁합과 관계 흐름을 푼다. 상대를 요약만 하거나 본인 사주를 상대 사주로 서술하면 실패다.`
               : "partnerProfile이 없으면 상대 마음, 궁합, 상대 명식을 단정하지 말고 내 사주 기준의 관계 흐름으로 제한한다.",
           }
         : undefined,
