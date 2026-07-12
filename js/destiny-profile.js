@@ -6892,6 +6892,43 @@
 
   window.generateGuardianAvatar = window.dpGenerateGuardianAvatar;
 
+  // 정적/외부 페이지 공용: 월정석 잔량 정본 조회(/api/billing/balance?moonlightStone=1).
+  // 반환 Promise<{ ok, degraded, signedOut, balance }>. degrade(503)·미인증은 ok:false로 구분해 '확인 필요'로 처리한다.
+  function _dpFetchMoonlightStoneBalance() {
+    if (typeof _dpFetchJsonWithFallback !== 'function') {
+      return Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
+    }
+    return _dpFetchJsonWithFallback('/api/billing/balance?moonlightStone=1&compact=1', {
+      method: 'GET',
+      credentials: 'include',
+      cache: 'no-store',
+      headers: _dpBuildAuthHeaders()
+    }, {
+      allowWorkerFallback: false,
+      retryOn401: true,
+      timeoutMs: _DP_FETCH_TIMEOUT_MS
+    }).then(function(result) {
+      if (!result || !result.ok) {
+        var signedOut = !!(result && (result.status === 401 || result.status === 403));
+        return { ok: false, degraded: !signedOut, signedOut: signedOut, balance: 0 };
+      }
+      var data = (result.data && typeof result.data === 'object') ? result.data : {};
+      if (data.degraded === true || (data.raw && data.raw.degraded === true)) {
+        return { ok: false, degraded: true, signedOut: false, balance: 0 };
+      }
+      var membership = (data.membership && typeof data.membership === 'object') ? data.membership : {};
+      var raw = (data.monthlyStoneBalance != null) ? data.monthlyStoneBalance
+        : (data.membershipCreditBalance != null) ? data.membershipCreditBalance
+        : (membership.monthlyStoneBalance != null) ? membership.monthlyStoneBalance : 0;
+      var bal = Math.floor(Number(raw));
+      if (!isFinite(bal) || bal < 0) bal = 0;
+      return { ok: true, degraded: false, signedOut: data.authenticated === false, balance: bal };
+    }).catch(function() {
+      return { ok: false, degraded: true, signedOut: false, balance: 0 };
+    });
+  }
+  try { window._dpFetchMoonlightStoneBalance = _dpFetchMoonlightStoneBalance; } catch (_) {}
+
   // 독립(정적) 페이지용 자체 결제 선택 모달 스타일(1회 주입).
   function _dpEnsureStandalonePaymentChoiceStyle() {
     if (typeof document === 'undefined') return;
@@ -6906,6 +6943,13 @@
       '#cdStandalonePaymentChoice .cdpc-btn{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:0 0 10px;padding:14px 16px;border-radius:12px;border:1px solid rgba(214,166,75,.4);background:rgba(214,166,75,.08);color:#f7efe0;font-size:15px;font-weight:700;cursor:pointer;transition:background .15s,transform .1s;}',
       '#cdStandalonePaymentChoice .cdpc-btn:hover{background:rgba(214,166,75,.16);transform:translateY(-1px);}',
       '#cdStandalonePaymentChoice .cdpc-btn .cdpc-amt{font-size:14px;font-weight:800;color:#ead089;white-space:nowrap;}',
+      '#cdStandalonePaymentChoice .cdpc-btn--disabled{opacity:.5;cursor:not-allowed;}',
+      '#cdStandalonePaymentChoice .cdpc-btn--disabled:hover{background:rgba(214,166,75,.08);transform:none;}',
+      '#cdStandalonePaymentChoice .cdpc-moonbal{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid rgba(214,166,75,.22);background:rgba(214,166,75,.05);}',
+      '#cdStandalonePaymentChoice .cdpc-moonbal-text{flex:1;min-width:0;font-size:12px;line-height:1.45;color:rgba(244,236,223,.78);}',
+      '#cdStandalonePaymentChoice .cdpc-moonbal-refresh{flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(214,166,75,.5);background:rgba(214,166,75,.12);color:#ead089;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}',
+      '#cdStandalonePaymentChoice .cdpc-moonbal-refresh:hover{background:rgba(214,166,75,.2);}',
+      '#cdStandalonePaymentChoice .cdpc-moonbal-refresh:disabled{opacity:.55;cursor:progress;}',
       '#cdStandalonePaymentChoice .cdpc-cancel{display:block;width:100%;margin-top:6px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(244,236,223,.66);font-size:13px;cursor:pointer;}',
       '#cdStandalonePaymentChoice .cdpc-cancel:hover{color:#f4ecdf;}'
     ].join('');
@@ -6937,10 +6981,57 @@
           '<p class="cdpc-sub"></p>' +
           '<button type="button" class="cdpc-btn" data-cdpc="direct"><span>단건 결제</span><span class="cdpc-amt">' + amountKrw.toLocaleString('ko-KR') + '원</span></button>' +
           '<button type="button" class="cdpc-btn" data-cdpc="monthly"><span>월정석 사용</span><span class="cdpc-amt">' + monthlyStones.toLocaleString('ko-KR') + '석</span></button>' +
+          '<div class="cdpc-moonbal">' +
+            '<span class="cdpc-moonbal-text" data-cdpc-moonbal-text>월정석 잔량을 확인하고 있습니다.</span>' +
+            '<button type="button" class="cdpc-moonbal-refresh" data-cdpc="monthly-refresh">월정석 재조회</button>' +
+          '</div>' +
           '<button type="button" class="cdpc-cancel" data-cdpc="cancel">닫기</button>' +
         '</div>';
       var subEl = root.querySelector('.cdpc-sub');
       if (subEl) subEl.textContent = title;
+      var monthlyBtn = root.querySelector('[data-cdpc="monthly"]');
+      var moonbalText = root.querySelector('[data-cdpc-moonbal-text]');
+      var moonbalBusy = false;
+      // 월정석 잔량을 모달을 닫지 않고 제자리 갱신한다. 미확정/실패는 '확인 필요'로 두고(0으로 오인 금지),
+      // 알려진 잔량이 필요분보다 적을 때만 월정석 버튼을 비활성화한다(단건 결제는 항상 가능).
+      function applyStandaloneMoonbal(state, balance) {
+        var known = state === 'fresh' && isFinite(balance) && balance >= 0;
+        var insufficient = known && balance < monthlyStones;
+        if (moonbalText) {
+          moonbalText.textContent = state === 'signed-out'
+            ? '로그인 후 월정석 잔량을 확인할 수 있어요.'
+            : state === 'error'
+              ? '월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요.'
+              : known
+                ? ('보유 월정석 ' + Math.floor(balance).toLocaleString('ko-KR') + '석' + (insufficient ? ' · 잔량 부족(원화 단건 결제 가능)' : ''))
+                : '월정석 잔량 확인이 필요하면 재조회를 눌러 주세요.';
+        }
+        if (monthlyBtn) {
+          if (insufficient) { monthlyBtn.setAttribute('disabled', 'disabled'); monthlyBtn.classList.add('cdpc-btn--disabled'); }
+          else { monthlyBtn.removeAttribute('disabled'); monthlyBtn.classList.remove('cdpc-btn--disabled'); }
+        }
+      }
+      function refreshStandaloneMoonbal() {
+        if (settled || moonbalBusy) return;
+        moonbalBusy = true;
+        var refreshBtn = root.querySelector('[data-cdpc="monthly-refresh"]');
+        if (refreshBtn) refreshBtn.disabled = true;
+        if (moonbalText) moonbalText.textContent = '월정석 잔량을 확인하고 있습니다.';
+        var fetcher = (typeof window._dpFetchMoonlightStoneBalance === 'function')
+          ? window._dpFetchMoonlightStoneBalance()
+          : Promise.resolve({ ok: false, degraded: true, signedOut: false, balance: 0 });
+        fetcher.then(function(res) {
+          if (settled) return;
+          if (res && res.ok) applyStandaloneMoonbal('fresh', res.balance);
+          else if (res && res.signedOut) applyStandaloneMoonbal('signed-out', 0);
+          else applyStandaloneMoonbal('error', 0);
+        }).catch(function() {
+          if (!settled) applyStandaloneMoonbal('error', 0);
+        }).finally(function() {
+          moonbalBusy = false;
+          if (refreshBtn && !settled) refreshBtn.disabled = false;
+        });
+      }
       function finish(choice) {
         if (settled) return;
         settled = true;
@@ -6951,11 +7042,19 @@
       function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
       root.addEventListener('click', function(e) {
         var hit = e.target && e.target.closest ? e.target.closest('[data-cdpc]') : null;
-        if (hit) { finish(hit.getAttribute('data-cdpc')); return; }
+        if (hit) {
+          var act = hit.getAttribute('data-cdpc');
+          if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(); return; }
+          if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
+          finish(act);
+          return;
+        }
         if (e.target === root) finish('cancel'); // 배경 클릭 = 취소
       });
       document.addEventListener('keydown', onKey, true);
       document.body.appendChild(root);
+      // 자동 1회 재조회: 열리는 즉시 최신 월정석 잔량을 채운다(수동 버튼과 별개).
+      refreshStandaloneMoonbal();
     });
   }
 

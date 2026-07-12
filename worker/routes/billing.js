@@ -680,8 +680,12 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   const activeEntitlement = resolveActivePassPolicyWithProfileFallback({ profileSubscription, ...(entitlement || {}) });
   const coinCost = resolvePricingCoinCost(pricing);
   const passLimitValue = Number(activeEntitlement?.maxCoveredCoin || 0);
+  // 결제창 초기 월정석 잔량은 /balance·/unlock-status와 동일하게 lot 정본(미만료 lot 합계)에서 계산한다.
+  // 원시 스칼라 캐시(membershipCreditBalance)는 만료 미반영으로 stale/오차가 있어 직접 쓰지 않는다.
+  // overrides.monthlyBalance가 명시되면 그대로 우선(호출부가 이미 계산해 넘긴 경우).
+  const lotDerivedMonthlyBalance = ensureLotsForBalance(profileSubscription || {}, Date.now()).balance;
   const monthlyBalance = Math.max(0, Math.floor(Number(
-    overrides.monthlyBalance ?? profileSubscription?.membershipCreditBalance ?? 0,
+    overrides.monthlyBalance ?? lotDerivedMonthlyBalance ?? 0,
   )));
   const membershipCreditCost = Math.max(0, Math.floor(Number(
     pricing?.membershipCreditCost || calculateMembershipCreditCost(coinCost),
@@ -4405,6 +4409,25 @@ async function handleBillingSnapshotBalance(request, env) {
     includeUnlocks: !isCompactRequest,
   });
   if (snapshot?.degraded === true) {
+    // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
+    // (클라가 '확인 필요 · 재조회'로 처리). 일반 /balance 호출은 기존처럼 200+degraded 폴백을 유지해
+    // fetchBillingBalance·MeClient·PointsClient 등 다른 소비자에 회귀를 주지 않는다.
+    if (isMoonlightStoneRequest) {
+      return failure(
+        503,
+        "BALANCE_SNAPSHOT_UNAVAILABLE",
+        "월정석 잔량을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        undefined,
+        {
+          status: "error",
+          degraded: true,
+          membershipCreditBalance: 0,
+          monthlyCredits: 0,
+          monthlyCreditsAsCoins: 0,
+        },
+        snapshot?.error?.errorDetails || snapshot?.error?.details,
+      );
+    }
     return success({
       ...snapshot,
       raw: {
@@ -4414,22 +4437,6 @@ async function handleBillingSnapshotBalance(request, env) {
         errorDetails: snapshot?.error?.errorDetails || snapshot?.error?.details || null,
       },
     }, "Billing balance fallback loaded.");
-  }
-  if (snapshot?.degraded === true) {
-    return failure(
-      503,
-      "BALANCE_SNAPSHOT_UNAVAILABLE",
-      "이용권 혜택을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-      undefined,
-      {
-        status: "error",
-        degraded: true,
-        membershipCreditBalance: 0,
-        monthlyCredits: 0,
-        monthlyCreditsAsCoins: 0,
-        },
-        snapshot?.error?.details,
-      );
   }
   return success({
     ...snapshot,

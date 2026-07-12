@@ -16615,7 +16615,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var hasProvidedMonthlyBalance = Number.isFinite(providedMonthlyBalance) && providedMonthlyBalance >= 0;
     var cachedMonthlyBalance = _cdGetMonthlyCreditBalance();
     var monthlyBalanceFresh = hasProvidedMonthlyBalance || monthlyCreditSyncState === 'fresh' || (Number.isFinite(cachedMonthlyBalance) && cachedMonthlyBalance > 0);
-    var shouldShowMonthlyBalanceRefresh = allowMonthlyChoice && opts.skipBalanceRefresh !== true && hasAuthSessionHint();
+    var shouldShowMonthlyBalanceRefresh = allowMonthlyChoice && opts.skipBalanceRefresh !== true;
     var monthlyBalance = hasProvidedMonthlyBalance
       ? Math.floor(providedMonthlyBalance)
       : (monthlyBalanceFresh ? cachedMonthlyBalance : 0);
@@ -16945,6 +16945,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       document.body.appendChild(modal);
       var first = modal.querySelector('[data-mode="direct"]') || modal.querySelector('[data-mode="monthly"]:not([disabled])') || (allowPassChoice ? (modal.querySelector('[data-mode="pass"]:not([disabled])') || modal.querySelector('[data-mode="pass-store"]:not([disabled])')) : null);
       if (first && typeof first.focus === 'function') first.focus();
+      // 자동 1회 재조회: 잔량이 아직 확정되지 않았으면(조회 실패/미확정으로 결제창이 열린 경우) 조용히 최신 잔량을 채운다.
+      if (allowMonthlyChoice && !monthlyBalanceFresh) { try { void refreshDirectMonthlyBalance({ silent: true }); } catch (_autoRefreshError) {} }
     });
   }
 

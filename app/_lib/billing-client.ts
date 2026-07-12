@@ -1029,6 +1029,12 @@ function ensureReactPaymentChoiceStyles() {
     .cd-react-payment-choice-status{min-height:18px;margin-top:12px;color:#f3dd9a;font-size:13px;line-height:1.45}
     .cd-react-payment-choice-actions{display:flex;justify-content:flex-end;margin-top:14px}
     .cd-react-payment-choice-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);padding:9px 15px;color:#f8fafc;cursor:pointer;font-weight:900}
+    .cd-react-payment-choice-moonbal-current{color:rgba(191,219,254,.94)!important;font-weight:800!important;font-size:12px!important;margin-top:4px}
+    .cd-react-payment-choice-moonbal{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding:8px 11px;border:1px solid rgba(147,197,253,.28);border-radius:12px;background:linear-gradient(145deg,rgba(12,40,67,.5),rgba(22,27,58,.4))}
+    .cd-react-payment-choice-moonbal-text{flex:1;min-width:0;color:rgba(219,234,254,.86);font-size:12px;line-height:1.45}
+    .cd-react-payment-choice-moonbal-refresh{flex:none;border:1px solid rgba(147,197,253,.5);border-radius:999px;background:rgba(147,197,253,.14);padding:7px 13px;color:#e0f2fe;cursor:pointer;font-size:12px;font-weight:900;white-space:nowrap;transition:background .15s ease,border-color .15s ease}
+    .cd-react-payment-choice-moonbal-refresh:hover{background:rgba(147,197,253,.24);border-color:rgba(147,197,253,.72)}
+    .cd-react-payment-choice-moonbal-refresh:disabled{opacity:.55;cursor:progress}
     @media(max-width:640px){.cd-react-payment-choice-backdrop{align-items:flex-start;padding:10px;background:linear-gradient(145deg,rgba(7,11,34,.94),rgba(18,18,48,.96));backdrop-filter:none}.cd-react-payment-choice-dialog{width:100%;max-height:calc(100dvh - 20px);border-radius:20px;padding:12px;box-shadow:0 18px 42px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.14)}.cd-react-payment-choice-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.42;box-shadow:0 0 24px rgba(250,230,160,.1)}.cd-react-payment-choice-dialog::after{opacity:.42}.cd-react-payment-choice-visual{width:94px;height:78px;margin-bottom:6px}.cd-react-payment-choice-aura--outer{width:78px;height:78px}.cd-react-payment-choice-aura--inner{width:60px;height:60px;box-shadow:0 0 18px rgba(250,230,160,.1)}.cd-react-payment-choice-glass{left:15px;top:7px;width:64px;height:64px;backdrop-filter:none}.cd-react-payment-choice-reflect{filter:none;opacity:.64}.cd-react-payment-choice-badge{backdrop-filter:none}.cd-react-payment-choice-crescent{left:29px;top:20px;width:39px;height:39px;box-shadow:0 0 16px rgba(250,230,160,.24),inset -6px -4px 10px rgba(196,181,253,.14)}.cd-react-payment-choice-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-react-payment-choice-title{font-size:20px}.cd-react-payment-choice-sub{font-size:12.5px;line-height:1.5}.cd-react-payment-choice-option{padding:12px 13px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 8px 20px rgba(2,6,23,.2)}.cd-react-payment-choice-option strong{font-size:14px}.cd-react-payment-choice-option span{font-size:11.5px}}
     @media(prefers-reduced-motion:reduce){.cd-react-payment-choice-visual{animation:none!important}.cd-react-payment-choice-option{transition:none}.cd-react-payment-choice-option:hover{transform:none}}
   `;
@@ -1084,8 +1090,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const canShowPassRefresh = canShowPassStore;
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
-  const monthlyBalance = Math.max(0, Math.floor(toNumber(opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance, 0)));
-  const monthlyCanUse = monthlyCost > 0 && monthlyBalance >= monthlyCost;
+  const providedMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
+  const hasProvidedMonthlyBalance = typeof providedMonthlyBalanceRaw === "number" && Number.isFinite(providedMonthlyBalanceRaw) && providedMonthlyBalanceRaw >= 0;
+  const monthlyBalance = Math.max(0, Math.floor(toNumber(providedMonthlyBalanceRaw, 0)));
+  // 스냅샷 잔량이 제공되지 않았으면(=조회 실패/미확정) '잔량 부족'이 아니라 '확인 필요'로 취급한다.
+  // 초기 오인을 막고, 모달이 열릴 때 자동 1회 재조회로 실제 잔량을 채운다.
+  const monthlyCanUse = hasProvidedMonthlyBalance && monthlyCost > 0 && monthlyBalance >= monthlyCost;
   // 월정석은 정적 결제창과 동일하게 잔량과 무관히 항상 노출하고, 부족하면 숨기지 않고 비활성(회색)으로 둔다.
   // equalPriorityMethods 목록에 없다고 버튼을 제거하지 않는다(서버가 잔량 부족 시 목록에서 빼도 회색으로 노출).
   const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit");
@@ -1112,11 +1122,18 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
             <strong>단건 결제 · <span class="cd-react-payment-choice-amount">${formatPaymentWon(directAmount)}</span></strong>
             <span>${billingClientText("billingClient.text.004")}</span>
           </button>` : "";
+  const monthlyCurrentLabel = hasProvidedMonthlyBalance ? `보유 월정석 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+  const monthlyDescInitial = monthlyCanUse
+    ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
+    : (hasProvidedMonthlyBalance
+      ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
+      : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
   const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? " (잔량 부족)" : ""}">
+          <button type="button" class="cd-react-payment-choice-option${monthlyDisabled ? " is-disabled" : ""}" data-mode="monthly"${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="월정석 사용${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}">
             <span class="cd-react-payment-choice-cardhead"><span class="cd-react-payment-choice-badge"><span class="cd-react-payment-choice-glyph" aria-hidden="true">🌙</span>${billingClientText("billingClient.text.005")}</span></span>
             <strong>월정석 사용 · <span class="cd-react-payment-choice-amount">${monthlyCost.toLocaleString("ko-KR")}</span> 이벤트 재화</strong>
-            <span>${monthlyDisabled ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요." : `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${monthlyAfterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`}</span>
+            <span data-monthly-desc>${monthlyDescInitial}</span>
+            <span class="cd-react-payment-choice-moonbal-current" data-monthly-current>${monthlyCurrentLabel}</span>
           </button>` : "";
   const passStoreFirst = canShowPassStore && !hasActivePassTier;
   const passStoreButtonHtml = canShowPassStore ? `
@@ -1128,9 +1145,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const paymentChoiceButtonsHtml = passStoreFirst
     ? `${passStoreButtonHtml}${directButtonHtml}${monthlyButtonHtml}`
     : `${directButtonHtml}${monthlyButtonHtml}${passStoreButtonHtml}`;
+  // 월정석이 결제 옵션인 한 잔량 상태 + '월정석 재조회' 버튼을 항상 노출한다(결제 버튼 바깥이라 비활성과 무관히 동작).
+  const moonlightRefreshRowHtml = canShowMonthly ? `
+        <div class="cd-react-payment-choice-moonbal" data-moonbal-row>
+          <span class="cd-react-payment-choice-moonbal-text" data-monthly-balance-text>${escapePaymentText(hasProvidedMonthlyBalance ? `월정석 잔여 확인 완료 · 현재 ${monthlyBalance.toLocaleString("ko-KR")} 이벤트 재화` : "월정석 잔량을 불러오는 중입니다. 안 보이면 재조회를 눌러 주세요.")}</span>
+          <button type="button" class="cd-react-payment-choice-moonbal-refresh" data-mode="monthly-refresh">월정석 재조회</button>
+        </div>` : "";
 
   return new Promise((resolve) => {
     let settled = false;
+    let removeBalanceListener: (() => void) | null = null;
     const modal = document.createElement("div");
     modal.className = "cd-react-payment-choice-backdrop";
     modal.dataset.cdReactPaymentChoice = "1";
@@ -1152,6 +1176,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <div class="cd-react-payment-choice-grid">
           ${paymentChoiceButtonsHtml}
         </div>
+        ${moonlightRefreshRowHtml}
         <div class="cd-react-payment-choice-status" data-payment-status role="status" aria-live="polite"></div>
         <div class="cd-react-payment-choice-actions">
           ${canShowPassRefresh ? `<button type="button" class="cd-react-payment-choice-cancel" data-mode="refresh">${billingClientText("billingClient.text.006")}</button>` : ""}
@@ -1163,6 +1188,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     const close = (mode: PaymentChoiceMode) => {
       if (settled) return;
       settled = true;
+      if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       unlockBodyScroll();
       modal.parentNode?.removeChild(modal);
       resolve(mode);
@@ -1182,13 +1208,81 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       }
     };
 
+    let moonlightRefreshBusy = false;
+    // 월정석 잔량 UI를 모달을 닫지 않고 제자리 갱신한다. state!=="fresh"면 '확인 필요'로 두어 조회 실패를 0으로 오인하지 않는다.
+    // 단건 결제 버튼은 어떤 상태에서도 건드리지 않아 사용자가 막히지 않는다(CLAUDE.md 동등 노출).
+    const applyMoonlightBalance = (rawBalance: number | null, state: "fresh" | "error" | "signed-out") => {
+      if (settled) return;
+      const known = state === "fresh" && typeof rawBalance === "number" && Number.isFinite(rawBalance) && rawBalance >= 0;
+      const balance = known ? Math.floor(rawBalance as number) : 0;
+      const canUse = known && monthlyCost > 0 && balance >= monthlyCost;
+      const afterBalance = Math.max(0, balance - monthlyCost);
+      const monthlyButton = modal.querySelector<HTMLButtonElement>('[data-mode="monthly"]');
+      const currentNode = modal.querySelector<HTMLElement>("[data-monthly-current]");
+      const descNode = modal.querySelector<HTMLElement>("[data-monthly-desc]");
+      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      if (currentNode) currentNode.textContent = known ? `보유 월정석 ${balance.toLocaleString("ko-KR")} 이벤트 재화` : "보유 월정석 · 확인 필요";
+      if (balanceText) {
+        balanceText.textContent = state === "signed-out"
+          ? "로그인 후 월정석 잔량을 확인할 수 있어요."
+          : state === "error"
+            ? "월정석 잔량을 확인하지 못했어요. 다시 시도해 주세요."
+            : `월정석 잔여 확인 완료 · 현재 ${balance.toLocaleString("ko-KR")} 이벤트 재화`;
+      }
+      if (monthlyButton) {
+        monthlyButton.disabled = !canUse;
+        monthlyButton.classList.toggle("is-disabled", !canUse);
+        monthlyButton.setAttribute("aria-disabled", canUse ? "false" : "true");
+        monthlyButton.setAttribute("aria-label", `월정석 사용${canUse ? "" : (known ? " (잔량 부족)" : " (잔량 확인 필요)")}`);
+        if (descNode) {
+          descNode.textContent = canUse
+            ? `보유 월정석에서 먼저 만료되는 지급분부터 차감됩니다. 사용 후 ${afterBalance.toLocaleString("ko-KR")}이 남습니다. 월정석은 지급일로부터 30일간만 유효합니다.`
+            : (known
+              ? "월정석 이벤트 재화 잔량이 부족합니다. 원화 단건 결제로 진행할 수 있어요."
+              : "월정석 잔량 확인이 필요합니다. 원화 단건 결제는 계속 이용할 수 있어요.");
+        }
+      }
+    };
+    // '월정석 재조회': 정본 잔량 fetcher를 강제 재조회(캐시 무효·degrade 미캐시)해 제자리 갱신. degrade/미인증은 '확인 필요'로.
+    const refreshMonthlyBalance = async () => {
+      if (settled || moonlightRefreshBusy) return;
+      moonlightRefreshBusy = true;
+      const refreshBtn = modal.querySelector<HTMLButtonElement>('[data-mode="monthly-refresh"]');
+      const balanceText = modal.querySelector<HTMLElement>("[data-monthly-balance-text]");
+      if (refreshBtn) refreshBtn.disabled = true;
+      if (balanceText) balanceText.textContent = "월정석 잔량을 확인하고 있습니다.";
+      try {
+        const result = await fetchBillingBalance({ force: true });
+        if (settled) return;
+        if (!result.ok || !result.data || result.data.degraded === true) {
+          applyMoonlightBalance(null, "error");
+        } else if (result.data.authenticated === false) {
+          applyMoonlightBalance(null, "signed-out");
+        } else {
+          const bal = toNumber(result.data.monthlyStoneBalance ?? result.data.membershipCreditBalance ?? result.data.balance, 0);
+          applyMoonlightBalance(bal, "fresh");
+        }
+      } catch {
+        if (!settled) applyMoonlightBalance(null, "error");
+      } finally {
+        moonlightRefreshBusy = false;
+        if (refreshBtn && !settled) refreshBtn.disabled = false;
+      }
+    };
+
     lockBodyScroll();
     modal.addEventListener("click", (event) => {
       if (event.target === modal) close("cancel");
     });
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
-        const mode = toText(button.dataset.mode) as PaymentChoiceMode;
+        const rawMode = toText(button.dataset.mode);
+        if (rawMode === "monthly-refresh") {
+          // 월정석 재조회는 모달을 닫지 않고 잔량만 제자리 갱신한다(결제 선택 모드가 아님).
+          void refreshMonthlyBalance();
+          return;
+        }
+        const mode = rawMode as PaymentChoiceMode;
         if (mode === "cancel") {
           close("cancel");
           return;
@@ -1257,6 +1351,19 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
     (modal.querySelector<HTMLButtonElement>(".cd-react-payment-choice-option")
       || modal.querySelector<HTMLButtonElement>('[data-mode="direct"]'))?.focus();
+    if (canShowMonthly) {
+      // 다른 화면(내 정보/포인트)이나 재조회가 잔량을 갱신하면 결제창도 제자리 반영한다.
+      const onBalanceEvent = (event: Event) => {
+        const detail = (event as CustomEvent).detail as Record<string, unknown> | undefined;
+        if (!detail) return;
+        const bal = resolveMonthlyStoneBalance(detail);
+        if (typeof bal === "number" && Number.isFinite(bal) && bal >= 0) applyMoonlightBalance(bal, "fresh");
+      };
+      window.addEventListener("cd:billing-balance-updated", onBalanceEvent);
+      removeBalanceListener = () => window.removeEventListener("cd:billing-balance-updated", onBalanceEvent);
+      // 자동 1회 재조회: 스냅샷 잔량이 없으면(조회 실패로 결제창이 열린 경우) 조용히 최신 잔량을 채운다.
+      if (!hasProvidedMonthlyBalance) void refreshMonthlyBalance();
+    }
   });
 }
 
