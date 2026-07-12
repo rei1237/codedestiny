@@ -6,6 +6,7 @@ import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
 const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {
@@ -1590,6 +1591,7 @@ export default function MindScanTarot() {
 
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-mindscan",
+        cost: lookupServerCoinPrice("tarot-mindscan"),
         reason: "말과 행동 사이 타로 리딩",
         forceDeduct: true,
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,

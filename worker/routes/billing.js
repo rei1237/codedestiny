@@ -1,7 +1,7 @@
 import { getRequestMeta, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { handleFortuneRoutes } from "./fortune.js";
 import { handlePaymentRoutes } from "./payments.js";
-import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import {
   buildPremiumAccessCookie,
   createPremiumAccessToken,
@@ -237,6 +237,67 @@ function writePaidAccessDecisionToCache(cacheKey, decision, priceCoin) {
     priceCoin: Number.isFinite(Number(priceCoin)) ? Math.max(0, Math.floor(Number(priceCoin))) : 0,
   });
   return decision;
+}
+
+// ── 결제창 월정석 잔량 표시용 짧은 TTL 캐시 ──────────────────────────────
+// /api/billing/balance는 결제창을 열 때마다 Mongo를 신선 조회한다(인증 1회 + User.findById 1회 = 2 왕복,
+// 각 ~11.5s 상한). op-timeout 시 즉시 503으로 표면화돼 잔량이 "확인 필요"로 뜬다. 유저별로 healthy 응답을
+// 몇 초 캐시해 재개폐/버스트를 collapse한다(paidAccessDecisionCache와 동일 패턴, globalThis 공유).
+// 정확성: healthy(authenticated·비degraded)만 저장하고, 결제/환불 시 payments.js가 invalidateForUser로 즉시 무효화한다.
+const BILLING_BALANCE_CACHE_TTL_MS = 5000;
+const BILLING_BALANCE_CACHE_MAX_ENTRIES = 2500;
+const billingBalanceCache = globalThis.__billingBalanceCache
+  || (globalThis.__billingBalanceCache = {
+    entries: new Map(),
+    lastPruneAt: 0,
+  });
+
+function invalidateBillingBalanceCacheForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return 0;
+  const prefix = `${uid}|`;
+  let removed = 0;
+  for (const key of billingBalanceCache.entries.keys()) {
+    if (key.startsWith(prefix)) {
+      billingBalanceCache.entries.delete(key);
+      removed += 1;
+    }
+  }
+  return removed;
+}
+billingBalanceCache.invalidateForUser = invalidateBillingBalanceCacheForUser;
+
+function readBillingBalanceFromCache(cacheKey) {
+  if (!cacheKey) return null;
+  const now = Date.now();
+  const entry = billingBalanceCache.entries.get(cacheKey);
+  if (!entry) return null;
+  if (entry.expiresAt <= now) {
+    billingBalanceCache.entries.delete(cacheKey);
+    return null;
+  }
+  return entry.snapshot || null;
+}
+
+function writeBillingBalanceToCache(cacheKey, snapshot) {
+  if (!cacheKey || !snapshot) return snapshot;
+  const now = Date.now();
+  if (billingBalanceCache.lastPruneAt + 2000 < now) {
+    billingBalanceCache.lastPruneAt = now;
+    for (const [key, entry] of billingBalanceCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) billingBalanceCache.entries.delete(key);
+    }
+  }
+  if (billingBalanceCache.entries.size > BILLING_BALANCE_CACHE_MAX_ENTRIES) {
+    const earliestKey = billingBalanceCache.entries.keys().next().value;
+    if (earliestKey) billingBalanceCache.entries.delete(earliestKey);
+  }
+  billingBalanceCache.entries.set(cacheKey, {
+    snapshot,
+    createdAt: now,
+    expiresAt: now + Math.max(1000, Math.floor(BILLING_BALANCE_CACHE_TTL_MS)),
+  });
+  return snapshot;
 }
 
 const SAJU_PDF_GENERATION_FEATURE_KEYS = new Set([]);
@@ -4404,9 +4465,31 @@ async function handleBillingSnapshotBalance(request, env) {
   const isMoonlightStoneRequest = billingUrl.searchParams.get("moonlightStone") === "1";
   const isCompactRequest = billingUrl.searchParams.get("compact") === "1" || isMoonlightStoneRequest;
   const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : !isCompactRequest;
+  const includeUnlocks = !isCompactRequest;
+  // 수동 "재조회"(fresh=1)는 항상 서버 캐시를 우회해 최신값을 읽는다. 자동 조회는 캐시를 허용해 빠르게 응답한다.
+  const isFresh = billingUrl.searchParams.get("fresh") === "1";
+
+  // 표시용 잔량 캐시: 유효 access 토큰이 있으면 Mongo 없이 로컬 JWT 검증만으로 userId를 얻어 캐시 키를 만든다.
+  // 토큰이 없거나(게스트) fresh 요청이면 캐시를 쓰지 않는다.
+  const cacheUserId = isFresh ? "" : await peekAccessTokenUserId(request, env).catch(() => "");
+  const cacheKey = cacheUserId
+    ? `${cacheUserId}|${isCompactRequest ? "c" : "f"}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}`
+    : "";
+  if (cacheKey) {
+    const cachedSnapshot = readBillingBalanceFromCache(cacheKey);
+    if (cachedSnapshot) {
+      // 캐시에는 healthy(비degraded) 스냅샷만 들어오므로 정상 응답 경로로만 되돌린다(Mongo 0회).
+      return success({
+        ...cachedSnapshot,
+        raw: { source: "billing_snapshot", degraded: false, cached: true },
+      }, "Billing balance loaded.");
+    }
+  }
+
   const snapshot = await readBillingSnapshot(request, env, {
     seedLegacyCredit,
-    includeUnlocks: !isCompactRequest,
+    includeUnlocks,
+    allowCache: false, // /balance는 아래 자체 표시용 캐시(compact 세그먼트 포함)를 쓰므로 함수 내부 캐시는 끈다.
   });
   if (snapshot?.degraded === true) {
     // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
@@ -4437,6 +4520,18 @@ async function handleBillingSnapshotBalance(request, env) {
         errorDetails: snapshot?.error?.errorDetails || snapshot?.error?.details || null,
       },
     }, "Billing balance fallback loaded.");
+  }
+  // healthy(비degraded·로그인) 스냅샷만 캐시에 저장한다. degraded/게스트를 캐시하면 "확인 필요"가 굳는다.
+  // 신원 일치 확인: 스냅샷의 실제 인증 유저가 캐시 키(로컬 JWT peek) userId와 같을 때만 저장한다
+  // — flower-admin 토큰 등으로 peek 신원과 스냅샷 신원이 어긋나는 경우 교차 캐시를 원천 차단.
+  if (
+    cacheKey
+    && snapshot
+    && snapshot.authenticated !== false
+    && snapshot.degraded !== true
+    && String(snapshot.authUserId || "") === cacheUserId
+  ) {
+    writeBillingBalanceToCache(cacheKey, snapshot);
   }
   return success({
     ...snapshot,
@@ -4831,7 +4926,21 @@ async function readBillingSnapshot(request, env, options = {}) {
   const {
     seedLegacyCredit = true,
     includeUnlocks = true,
+    allowCache = true,
   } = options || {};
+
+  // 스냅샷 캐시(표시·판정 공용): 유효 access 토큰이 있으면 Mongo 없이 로컬 JWT로 userId를 얻어 캐시 키를 만든다.
+  // 히트 시 인증·조회 왕복 전부 스킵(Mongo 0회) — 503 주범인 인증 라운드트립까지 회피. 게스트/allowCache:false는 미사용.
+  // 키에 seed/unlocks 플래그를 넣어(멱등 seed 스킵 방지·unlock 유무 구분) 다른 옵션 결과가 섞이지 않게 한다.
+  // (/balance는 자체 표시용 캐시가 있어 allowCache:false로 넘겨 이중 캐시를 피한다.)
+  const snapshotCacheUserId = allowCache ? await peekAccessTokenUserId(request, env).catch(() => "") : "";
+  const snapshotCacheKey = snapshotCacheUserId
+    ? `${snapshotCacheUserId}|${seedLegacyCredit ? "s" : "-"}|${includeUnlocks ? "u" : "-"}`
+    : "";
+  if (snapshotCacheKey) {
+    const cachedSnapshot = readBillingBalanceFromCache(snapshotCacheKey);
+    if (cachedSnapshot) return cachedSnapshot;
+  }
 
   // 인증 해석 중 일시적 DB 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 infra 에러로
   // 로그인 이용권 보유자가 조용히 게스트로 강등돼 결제창이 뜨는 문제를 막는다.
@@ -4897,7 +5006,7 @@ async function readBillingSnapshot(request, env, options = {}) {
     // 일시적 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 Mongo 에러가 나도
     // degraded(부정확) 대신 정확한 스냅샷을 돌려주도록 쿼리 전체를 재시도로 감싼다.
     // attemptTimeoutMS를 11s로 넓혀 콜드 연결까지 완료되게 한다(위 인증 경로와 동일 사유).
-    return await withMongoRetry(env, async () => {
+    const freshSnapshot = await withMongoRetry(env, async () => {
     // User 문서를 1회만 조회하고, legacy seed 필요 시에만 원자적 write를 수행한다.
     // (기존에는 seed 함수가 내부에서 동일 문서를 또 findById 해 User를 2회 읽었음)
     const user = await User.findById(auth.userId)
@@ -4969,6 +5078,19 @@ async function readBillingSnapshot(request, env, options = {}) {
       degraded: false,
     };
     }, { attemptTimeoutMS: 11000 });
+    // healthy(로그인·비degraded)이고 신원(로컬 JWT peek == 실제 authUserId)이 일치할 때만 캐시에 저장한다
+    // — flower-admin 등으로 peek 신원과 스냅샷 신원이 어긋나면 교차 캐시를 원천 차단. 다른 3개 호출자
+    // (probe·saju-entitlements·unlock-status)도 이 캐시로 인증·조회 왕복을 절감한다. TTL이 stale 상한.
+    if (
+      snapshotCacheKey
+      && freshSnapshot
+      && freshSnapshot.authenticated !== false
+      && freshSnapshot.degraded !== true
+      && String(freshSnapshot.authUserId || "") === snapshotCacheUserId
+    ) {
+      writeBillingBalanceToCache(snapshotCacheKey, freshSnapshot);
+    }
+    return freshSnapshot;
   } catch (error) {
     logBillingRouteError("billing-snapshot", error, request);
     const fallbackBalance = Number.isFinite(Number(auth?.points)) ? Number(auth.points) : 0;

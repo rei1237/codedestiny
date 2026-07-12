@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { RefreshCw, Save, Share2 } from "lucide-react";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
 import { authFetch } from "../../_lib/auth-client";
@@ -957,6 +958,7 @@ export default function NumerologyTarotClient() {
     try {
       const paymentResult = await ensurePaidAccess({
         featureKey: NUMEROLOGY_READING_FEATURE_KEY,
+        cost: lookupServerCoinPrice(NUMEROLOGY_READING_FEATURE_KEY),
         reason: "수비학 타로 상담",
         forceDeduct: true,
         requestId,

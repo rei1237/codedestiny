@@ -443,7 +443,7 @@ assertContains(indexSource, "MONTHLY_CREDIT_SYNC_FRESH_TTL_MS = 15000", "monthly
 assertContains(indexSource, "monthlyCreditSyncPromise", "monthly credit sync in-flight dedupe");
 assertNotContains(indexSource, "retry=1&reason=", "monthly credit sync avoids third retry request");
 assertNotContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck must not bypass equal-priority payment choice");
-assertContains(indexSource, "CD_PASS_CHECK_MIN_OVERLAY_MS = 900", "membership pass check overlay has minimum visible duration");
+assertContains(indexSource, "CD_PASS_CHECK_MIN_OVERLAY_MS = 400", "membership pass check overlay has minimum visible duration");
 assertContains(indexSource, "_cdWaitForPaidPassCheckMinimum(passOverlayStartedAt)", "membership pass check waits before closing or switching result UI");
 assertContains(indexSource, "closePassCheckOverlay", "membership pass check close path is centralized");
 assertNotContains(indexSource, "function showChoiceWait", "payment choice does not open duplicate wait overlay before checkout handler");

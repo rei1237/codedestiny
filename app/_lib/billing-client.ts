@@ -343,7 +343,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-timeout-7f1c2a9d";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-moonbal-fresh-1a2b3";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
@@ -1244,7 +1244,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       }
     };
     // '월정석 재조회': 정본 잔량 fetcher를 강제 재조회(캐시 무효·degrade 미캐시)해 제자리 갱신. degrade/미인증은 '확인 필요'로.
-    const refreshMonthlyBalance = async () => {
+    const refreshMonthlyBalance = async (refreshOpts: { fresh?: boolean } = {}) => {
       if (settled || moonlightRefreshBusy) return;
       moonlightRefreshBusy = true;
       const refreshBtn = modal.querySelector<HTMLButtonElement>('[data-mode="monthly-refresh"]');
@@ -1252,7 +1252,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (refreshBtn) refreshBtn.disabled = true;
       if (balanceText) balanceText.textContent = "월정석 잔량을 확인하고 있습니다.";
       try {
-        const result = await fetchBillingBalance({ force: true });
+        // 수동 재조회는 서버 캐시까지 우회(fresh)해 항상 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
+        const result = await fetchBillingBalance({ force: true, fresh: refreshOpts.fresh === true });
         if (settled) return;
         if (!result.ok || !result.data || result.data.degraded === true) {
           applyMoonlightBalance(null, "error");
@@ -1279,7 +1280,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         const rawMode = toText(button.dataset.mode);
         if (rawMode === "monthly-refresh") {
           // 월정석 재조회는 모달을 닫지 않고 잔량만 제자리 갱신한다(결제 선택 모드가 아님).
-          void refreshMonthlyBalance();
+          // 사용자가 직접 눌렀으므로 서버 캐시를 우회(fresh)해 최신값을 읽는다.
+          void refreshMonthlyBalance({ fresh: true });
           return;
         }
         const mode = rawMode as PaymentChoiceMode;
@@ -3137,6 +3139,23 @@ async function fetchPaymentEligibilityUncached(input: {
   };
 }
 
+// 진입 시 구독 스냅샷을 미리 워밍한다(멤버십 상태 프로브 1회 → saveSubscriptionSnapshotForUser 경유 저장).
+// 이미 신선한 스냅샷이 있으면 재요청하지 않는다. index.html의 app-entry 워밍(_cdRefreshSubscriptionSnapshotFromServer)의
+// React 대응물 — 유료 화면 진입 시 호출하면 첫 유료 액션이 낙관적 즉시 허용(snapshotPassServerCheckFirst) 경로로 들어간다.
+let subscriptionWarmInFlight = false;
+export async function warmSubscriptionSnapshotOnEntry(): Promise<void> {
+  if (typeof window === "undefined" || subscriptionWarmInFlight) return;
+  if (readSubscriptionSnapshotForUser()) return; // 이미 신선한 스냅샷 보유 → 재요청 불필요.
+  subscriptionWarmInFlight = true;
+  try {
+    await fetchPaymentEligibility({ featureKey: "membership-status-refresh", reason: "app-entry" }, { phase: "full" });
+  } catch {
+    // 워밍 실패는 무시 — 첫 유료 액션이 서버 판정으로 폴백한다.
+  } finally {
+    subscriptionWarmInFlight = false;
+  }
+}
+
 export async function fetchPaymentEligibility(input: {
   productId?: string;
   serviceType?: string;
@@ -3906,7 +3925,7 @@ export async function purchaseFeature(input: {
   return runBillingCoinGate(input as Parameters<typeof runBillingCoinGate>[0]);
 }
 
-export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean } = {}): Promise<BillingResult<{
+export async function fetchBillingBalance(options: { force?: boolean; emit?: boolean; fresh?: boolean } = {}): Promise<BillingResult<{
   authenticated: boolean;
   degraded?: boolean;
   balance: number;
@@ -3930,7 +3949,9 @@ export async function fetchBillingBalance(options: { force?: boolean; emit?: boo
 
   const cacheVersion = billingBalanceCacheVersion;
   const inFlightPromise = (async () => {
-    const response = await authFetchBilling("/api/billing/balance", { method: "GET" });
+    // fresh=1은 서버의 표시용 잔량 캐시를 우회한다(수동 "재조회"에서만 사용). 자동 조회는 캐시를 허용해 빠르게 응답.
+    const balanceUrl = options.fresh === true ? "/api/billing/balance?fresh=1" : "/api/billing/balance";
+    const response = await authFetchBilling(balanceUrl, { method: "GET" });
     const parsed = await parseBillingResponse<BillingBalanceData>(response);
 
     if (parsed.ok && parsed.data) {

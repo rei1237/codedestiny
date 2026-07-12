@@ -6,6 +6,7 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 import { showToast } from "../../components/Toast";
 import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { useCoinGate } from "../../hooks/useCoinGate";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import {
   buildLocalizedRecommendedQuestionsForSpread,
   DIFFICULTY_LABEL,
@@ -2726,6 +2727,7 @@ export default function TarotPromptMakerPage() {
       }
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
+        cost: lookupServerCoinPrice("tarot-prompt-maker"),
         reason: feedbackCopy.subscriptionReason,
         requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         onPaid: ({ chargedCoins, requiredCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {

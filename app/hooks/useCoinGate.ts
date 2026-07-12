@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import {
   PAID_SERVICE_RUNTIME_SRC,
   runBillingCoinGate,
+  warmSubscriptionSnapshotOnEntry,
 } from "../_lib/billing-client";
 import {
   logPaidAttemptEvent,
@@ -310,6 +311,12 @@ export function useCoinGate() {
   const { startPayment, endPayment, setPaymentMessage } = usePayment();
   const inFlightRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
+
+  // 유료 화면 진입 시 구독 스냅샷을 1회 워밍(인증 상태일 때만)해 첫 유료 액션이 낙관적 즉시 허용 경로로
+  // 들어가게 한다. 이미 신선한 스냅샷/진행 중이면 warm 내부에서 조기 반환한다(중복 요청 없음).
+  useEffect(() => {
+    if (getAuthState().isAuthenticated) void warmSubscriptionSnapshotOnEntry();
+  }, []);
 
   const ensurePaidAccess = useCallback(async (input: EnsurePaidAccessInput): Promise<EnsurePaidAccessResult> => {
     if (inFlightRef.current) {

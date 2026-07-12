@@ -52,7 +52,7 @@ const stableServiceAsset = (publicPath: string) => getAssetUrlFromPublicPath(pub
 
 type PriceSpec = { cost?: number };
 
-function lookupServerCoinPrice(featureKey?: string): number | undefined {
+export function lookupServerCoinPrice(featureKey?: string): number | undefined {
   if (!featureKey) return undefined;
   const normalized = normalizePaidFeatureKey(featureKey);
   const direct = (FEATURE_KEY_PRICE_TABLE as Record<string, PriceSpec>)[normalized] || (FEATURE_KEY_PRICE_TABLE as Record<string, PriceSpec>)[featureKey];

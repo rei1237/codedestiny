@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type DrawnCard = {
@@ -489,6 +490,7 @@ export default function LoveRelationshipTarot() {
 
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-love-relationship",
+        cost: lookupServerCoinPrice("tarot-love-relationship"),
         reason: copy.paymentReason,
         forceDeduct: true,
         requestId: `tarot-love-relationship:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,

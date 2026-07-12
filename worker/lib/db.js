@@ -6,6 +6,9 @@ let connectPromise = null;
 // 마지막으로 연결 건강을 확인한 시각(ping 성공 또는 신규 연결 성공).
 // 웜 커넥션 재사용 시 매 요청 ping 왕복을 피하기 위해 유휴 임계 이내면 ping을 생략한다.
 let lastHealthyAt = 0;
+// 마지막으로 전역 풀 disconnect(resetMongooseConnection)를 실행한 시각. op-타임아웃 버스트가
+// 동시에 여러 번 disconnect해 아이솔레이트 공유 풀을 반복 절단(재연결 폭풍)하는 것을 쿨다운으로 막는다.
+let lastPoolResetAt = 0;
 
 function extractDbNameFromUri(uri) {
   try {
@@ -97,6 +100,10 @@ export async function connectDb(env = {}) {
   const serverSelectionTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SERVER_SELECTION_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
   const connectTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_CONNECT_TIMEOUT_MS", "8000"), 8000, 2000, 15000);
   const socketTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_SOCKET_TIMEOUT_MS", "20000"), 20000, 5000, 45000);
+  // 유휴 소켓을 드라이버가 능동적으로 닫아, Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓을 풀이
+  // 보유하는 것을 근절한다(Atlas 유휴 컷보다 짧게). 이 설정 부재가 '웜 쿼리 op-타임아웃 다발·콜드 성공'의
+  // 1차 근본 원인이었다 — 유휴 후 재개된 아이솔레이트가 죽은 소켓 위에서 쿼리를 매달았기 때문.
+  const maxIdleTimeMS = clampTimeoutMs(getEnv(env, "MONGO_MAX_IDLE_TIME_MS", "60000"), 60000, 10000, 300000);
   const retryCount = clampInt(getEnv(env, "MONGO_WORKER_CONNECT_RETRIES", "2"), 2, 0, 4);
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
@@ -169,6 +176,7 @@ export async function connectDb(env = {}) {
           serverSelectionTimeoutMS,
           connectTimeoutMS,
           socketTimeoutMS,
+          maxIdleTimeMS,
           bufferCommands: false,
           autoIndex: false,
           // Cloudflare Workers는 요청 간 I/O 격리로 '한 요청에서 만든 스트림/소켓'을 다른 요청이 쓰면 막는다.
@@ -331,7 +339,14 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
       if (isConnectionLevelFailure) {
         lastHealthyAt = 0;
         connectPromise = null;
-        await resetMongooseConnection();
+        // 전역 disconnect는 아이솔레이트 공유 풀을 끊어 동시 요청까지 절단하므로(재연결 폭풍), 쿨다운을 둔다:
+        // op-타임아웃 버스트가 disconnect를 1회만 유발하게 해 동시 요청 연쇄 절단을 막는다. maxIdleTimeMS가
+        // 좀비를 근절하므로 이 disconnect 자체가 드물어지며, connectDb의 좀비-보존 정책과도 정합한다.
+        const poolResetCooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
+        if (Date.now() - lastPoolResetAt >= poolResetCooldownMS) {
+          lastPoolResetAt = Date.now();
+          await resetMongooseConnection();
+        }
       }
       // op-타임아웃은 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 → hung-detection 재유발
       // 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되, 다음 요청이 깨끗한 연결로 복구된다.

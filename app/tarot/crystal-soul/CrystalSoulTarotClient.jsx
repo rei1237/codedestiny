@@ -6,6 +6,7 @@ import { Copy, Gem as GemIcon, Home, Loader2, RotateCcw, Share2, Sparkles } from
 import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
 import CrystalGem, { GEM_META, getGemColor } from "@/src/components/crystal/CrystalGem";
 import { useRubInteraction } from "@/src/components/crystal/useRubInteraction";
+import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
 import { useCoinGate } from "../../hooks/useCoinGate";
 
 const CRYSTAL_COST = 50;
@@ -1023,6 +1024,7 @@ export default function CrystalSoulTarotClient() {
     try {
       const result = await ensurePaidAccess({
         featureKey: "tarot-crystal-soul-reading",
+        cost: lookupServerCoinPrice("tarot-crystal-soul-reading"),
         reason: copy.paymentReason,
         forceDeduct: true,
         requestId: `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,

@@ -15810,7 +15810,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
   })();
 </script>
 
-<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-85d96b174d0c" data-marker="profile-card-date-input-v20260624"></script>
+<script defer fetchpriority="high" src="/js/destiny-profile.js?v=build-moonbal-fresh-1a2b3" data-marker="profile-card-date-input-v20260624"></script>
 <script defer src="/js/mobile-interaction-patch.js?v=build-b1e31d8ae62f" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
@@ -16828,7 +16828,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
         if (!silent) status(_cdPaymentI18n('payment.directModal.monthlyBalance.refreshing', '월정석 잔량을 다시 조회하고 있습니다.'), false);
         var refreshed = false;
         try {
-          refreshed = await syncGoldenMonthlyCreditsFromPaymentsMe({ forceAuthProbe: true, reason: 'payment-modal-refresh' });
+          refreshed = await syncGoldenMonthlyCreditsFromPaymentsMe({ forceAuthProbe: true, reason: 'payment-modal-refresh', fresh: !silent });
           if (!refreshed) {
             refreshed = await syncBalanceFromServer({ forceAuthProbe: true, reason: 'payment-modal-refresh-fallback' });
           }
@@ -20821,8 +20821,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     }
   }
 
-  var CD_PASS_CHECK_MIN_OVERLAY_MS = 900;
-  var CD_PASS_CHECK_EXTRA_OVERLAY_MS = 500;
+  var CD_PASS_CHECK_MIN_OVERLAY_MS = 400;
+  var CD_PASS_CHECK_EXTRA_OVERLAY_MS = 0;
   var CD_PAID_PRECHECK_TTL_MS = 30000;
   var _cdPaidPrecheckCache = new Map();
   var _cdPaidPrecheckInFlight = new Map();
@@ -21604,6 +21604,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var opts = options && typeof options === 'object' ? options : {};
     var forceAuthProbe = !!opts.forceAuthProbe;
     var forceRefresh = opts.forceRefresh === true;
+    // fresh=true(수동 재조회)면 서버 표시용 잔량 캐시를 우회해 항상 최신값을 읽는다(자동 조회는 캐시 허용).
+    var fresh = opts.fresh === true;
     var reason = String(opts.reason || 'moonlight-stone-balance').slice(0, 80);
     if (!hasAuthSessionHint() && !forceAuthProbe) {
       monthlyCreditSyncState = 'signed-out';
@@ -21629,7 +21631,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
         }
         var stamp = Date.now();
         var paths = [
-          '/api/billing/balance?moonlightStone=1&compact=1&reason=' + encodeURIComponent(reason) + '&_=' + stamp,
+          '/api/billing/balance?moonlightStone=1&compact=1&reason=' + encodeURIComponent(reason) + (fresh ? '&fresh=1' : '') + '&_=' + stamp,
           '/api/payments/me?moonlightStone=1&reason=' + encodeURIComponent(reason) + '&_=' + (stamp + 1)
         ];
         for (var i = 0; i < paths.length; i += 1) {
