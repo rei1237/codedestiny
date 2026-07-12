@@ -171,6 +171,11 @@ export async function connectDb(env = {}) {
           socketTimeoutMS,
           bufferCommands: false,
           autoIndex: false,
+          // Cloudflare Workers는 요청 간 I/O 격리로 '한 요청에서 만든 스트림/소켓'을 다른 요청이 쓰면 막는다.
+          // 드라이버 기본 'stream' 모니터는 요청 수명을 넘겨 지속되는 ReadableStream을 만들어, 다른 요청이 연결을
+          // 재사용할 때 "Cannot perform I/O on behalf of a different request"(→ Mongo 에러로 분류 안 돼 500)를
+          // 유발했다. 'poll' 모드는 짧은 개별 하트비트만 써 이 지속 스트림을 만들지 않는다(서버리스/엣지 권장).
+          serverMonitoringMode: "poll",
         };
         if (ipFamily === 4 || ipFamily === 6) {
           connectOptions.family = ipFamily;
@@ -255,7 +260,10 @@ export function isTransientMongoError(error) {
     return true;
   }
   const message = String(error.message || "");
-  return /pool .*was cleared|was cleared because|connection .*timed out|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT|server selection timed out|connection is not ready/i.test(message);
+  // "Cannot perform I/O on behalf of a different request"(Cloudflare Workers 요청 간 I/O 격리): 이전 요청이
+  // 만든 연결 I/O를 이 요청이 재사용할 때 발생. 재시도 시 이 요청 컨텍스트에서 새 연결을 세우면 회복되므로
+  // 일시적으로 분류해, 500 하드에러 대신 503(재시도)로 완충한다(serverMonitoringMode:poll로 발생 자체도 저감).
+  return /pool .*was cleared|was cleared because|connection .*timed out|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT|server selection timed out|connection is not ready|cannot perform i\/o|different request/i.test(message);
 }
 
 // 일시적 Mongo 에러에 대해 연결을 재확인/재수립하고 작업을 재시도한다.
