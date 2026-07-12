@@ -1,11 +1,12 @@
 name = "code-destiny-web"
 main = "index.js"
 compatibility_date = "2026-05-02"
-# no_handle_cross_request_promise_resolution: 전역 공유 MongoDB(mongoose) 연결의 백그라운드
-# 토폴로지 모니터 프로미스가 '최초 연결 요청' 컨텍스트에 묶여, 이후 다른 요청이 연결을 재사용할 때
-# Cloudflare가 교차 요청 continuation을 취소해 DB 작업이 멈추던(→ "operation timed out"·결과 미완료)
-# 문제를 해소한다. 공유 인프라(커넥션 풀)에 대한 Cloudflare 권장 설정.
-compatibility_flags = ["nodejs_compat", "no_handle_cross_request_promise_resolution"]
+# no_handle_cross_request_promise_resolution 플래그는 제거했다: 이 플래그가 켜지면 교차 요청 프로미스를
+# 취소하지 않고 '영원히 대기'시켜, 이전 요청 컨텍스트의 I/O에 묶인 프로미스가 완료되지 못해 Cloudflare가
+# "Promise will never complete"로 요청을 죽였다(hang → 500). 플래그를 끄면(기본값) 교차 요청 프로미스는
+# 빠르게 취소되고, withMongoRetry가 이 요청 컨텍스트에서 새 연결을 세워 재시도해 자가복구한다.
+# (스트리밍 모니터의 교차요청 I/O는 db.js serverMonitoringMode:"poll"로 이미 근원 제거.)
+compatibility_flags = ["nodejs_compat"]
 workers_dev = true
 routes = [
   { pattern = "api.code-destiny.com", custom_domain = true },
