@@ -1039,6 +1039,14 @@ function InitialBriefingDocument({
       id: "briefing-judgement",
       label: "네오의 판단",
       when: Boolean(toDisplayText(briefing.neoOpening) || toDisplayText(repeatedChoice.description)),
+      // "네오의 첫 판단" 페이지는 홀수라 cadence 삽화 대상에서 빠진다. 인접한 "긴급 작전"이
+      // s1-f01을 받으므로 중복감을 피해 다른 시퀀스를 직접 배정한다(로컬 webp 재사용).
+      breakImage: {
+        src: "/neo-operation-room/sprites/transparent/neo-transparent-s3-f01.webp",
+        width: 362,
+        height: 543,
+        className: styles.neoBustBreak,
+      },
       content: (
         <>
           <Section title="네오의 첫 판단" body={briefing.neoOpening} />
@@ -1172,7 +1180,7 @@ function InitialBriefingDocument({
   ];
   const pages: ResultViewerPage[] = pageCandidates
     .filter((page) => page.when)
-    .map((page) => ({ id: page.id, label: page.label, content: page.content }));
+    .map((page) => ({ id: page.id, label: page.label, content: page.content, breakImage: page.breakImage }));
   return (
     <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>

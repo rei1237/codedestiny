@@ -401,7 +401,7 @@
   padding-left: 14px;
   color: rgba(255, 248, 229, 0.92);
   font-size: 1.02rem;
-  font-weight: 760;
+  font-weight: 560;
   line-height: 1.75;
   word-break: keep-all;
 }
@@ -488,7 +488,7 @@
   margin: 0;
   color: rgba(239, 244, 252, 0.88);
   font-size: 0.97rem;
-  font-weight: 720;
+  font-weight: 540;
   line-height: 1.72;
   word-break: keep-all;
   white-space: pre-line;
@@ -499,7 +499,7 @@
   padding-left: 18px;
   color: rgba(239, 244, 252, 0.86);
   font-size: 0.94rem;
-  font-weight: 740;
+  font-weight: 540;
   line-height: 1.7;
   display: grid;
   gap: 6px;
@@ -551,13 +551,15 @@
   max-width: 62ch;
   border: 1px solid rgba(185, 34, 43, 0.54);
   border-radius: 8px;
-  padding: 16px;
-  background: rgba(85, 13, 22, 0.34);
-  color: #ffe0b1;
-  font-family: var(--font-display);
-  font-size: 1.12rem;
-  font-weight: 950;
-  line-height: 1.65;
+  padding: 16px 18px;
+  /* 장문 팩폭 가독성 — 배경 대비를 높이고 본문은 body 폰트+중간 무게로 낮춰 눈 피로를 줄인다.
+     골드 라벨(.blunt::before)은 볼드 유지. */
+  background: rgba(85, 13, 22, 0.5);
+  color: #fff7de;
+  font-family: var(--font-body);
+  font-size: 1.06rem;
+  font-weight: 560;
+  line-height: 1.8;
   word-break: keep-all;
 }
 
@@ -581,6 +583,11 @@
 .blunt p + p,
 .badgeBlock p + p {
   margin-top: 10px;
+}
+
+/* 팩폭 장문은 문단 사이를 조금 더 벌려 호흡을 준다 */
+.blunt p + p {
+  margin-top: 14px;
 }
 
 /* 팩폭 한줄 옆 네오 스티커 콜아웃 — 시선이 쉬는 지점(로컬 webp 재사용) */

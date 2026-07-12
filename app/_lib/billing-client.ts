@@ -3405,26 +3405,38 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       markPaymentRequestedOnce();
       const optimisticTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
       const optimisticFeatureKey = toText(input.featureKey || featureId);
-      const optimisticOverlay = resolvePaymentWaitOverlay("hasEntitlement", undefined, {
-        paymentMode: "MEMBERSHIP_PASS",
-        featureKey: featureId,
-        reason: input.reason,
-        accessType: "membership_pass",
-        passTier: optimisticTier,
-        subscriptionTier: optimisticTier,
-      });
-      emitPaidFeatureGate("update", {
-        featureId,
-        featureKey: featureId,
-        requestId: gateRequestId,
-        status: "hasEntitlement",
-        message: optimisticOverlay.message,
-        paymentMode: "MEMBERSHIP_PASS",
-        reason: input.reason,
-        accessType: "membership_pass",
-        passTier: optimisticTier,
-        subscriptionTier: optimisticTier,
-      });
+      // 낙관 경로도 "확인 중 → 적용 완료" 2단계 UX를 유지한다. checkingEntitlement는 위쪽 open()에서
+      // 이미 표시 중이므로, 한 프레임 이상 노출되도록 짧게 지연한 뒤 hasEntitlement(적용 완료)로 전환하고,
+      // hold로 완료 프레임의 최소 노출 창을 표시한다. 합성 grant는 즉시 반환하므로 콘텐츠 생성은 완료
+      // 표시와 병렬로 진행된다(서버 왕복 없이 얻은 속도 유지 + 사라졌던 완료 UI 복원).
+      const emitOptimisticPassApplied = () => {
+        const optimisticOverlay = resolvePaymentWaitOverlay("hasEntitlement", undefined, {
+          paymentMode: "MEMBERSHIP_PASS",
+          featureKey: featureId,
+          reason: input.reason,
+          accessType: "membership_pass",
+          passTier: optimisticTier,
+          subscriptionTier: optimisticTier,
+        });
+        holdPaidFeatureGateOpen({ requestId: gateRequestId, maxMs: 1200 });
+        emitPaidFeatureGate("update", {
+          featureId,
+          featureKey: featureId,
+          requestId: gateRequestId,
+          status: "hasEntitlement",
+          message: optimisticOverlay.message,
+          paymentMode: "MEMBERSHIP_PASS",
+          reason: input.reason,
+          accessType: "membership_pass",
+          passTier: optimisticTier,
+          subscriptionTier: optimisticTier,
+        });
+      };
+      if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
+        window.setTimeout(emitOptimisticPassApplied, 450);
+      } else {
+        emitOptimisticPassApplied();
+      }
       void recordMembershipPassInBackground(input, activeAttempt.attemptId);
       // payment-succeeded/callback 마커는 여기서 호출하지 않는다: 실제 결제(pass 적용·기록)는 백그라운드
       // coin-gate에서 서버 검증과 함께 일어나므로, 검증 전 성공 마킹은 부정확하고 verify 가드(검증→성공 순서)를

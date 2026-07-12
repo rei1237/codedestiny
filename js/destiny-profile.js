@@ -2040,6 +2040,7 @@
       '  color: rgba(242, 228, 192, 0.96);',
       '  font-size: 13px;',
       '  font-weight: 600;',
+      '  white-space: pre-line;',
       '}',
       '@media (max-width: 480px) {',
       '  #cdStandalonePaymentOverlay .cd-standalone-payment-card { padding: 20px 16px; border-radius: 18px; }',
@@ -2060,9 +2061,9 @@
     overlay.id = 'cdStandalonePaymentOverlay';
     overlay.innerHTML = [
       '<div class="cd-standalone-payment-card" role="alertdialog" aria-modal="true" aria-live="assertive">',
-      '  <div class="cd-standalone-payment-spinner" aria-hidden="true"></div>',
-      '  <p class="cd-standalone-payment-title">이용권 확인 중</p>',
-      '  <p class="cd-standalone-payment-desc">보유 이용권으로 바로 열 수 있는지 확인하고 있어요.</p>',
+      '  <div class="cd-standalone-payment-spinner" id="cdStandalonePaymentOverlaySpinner" aria-hidden="true"></div>',
+      '  <p class="cd-standalone-payment-title" id="cdStandalonePaymentOverlayTitle">이용권 확인 중</p>',
+      '  <p class="cd-standalone-payment-desc" id="cdStandalonePaymentOverlayDesc">보유 이용권으로 바로 열 수 있는지 확인하고 있어요.</p>',
       '  <p class="cd-standalone-payment-status" id="cdStandalonePaymentOverlayStatus">가능하면 결제창 없이 곧바로 이어집니다.</p>',
       '</div>'
     ].join('');
@@ -2070,13 +2071,20 @@
     return overlay;
   }
 
-  function _dpSetStandalonePaymentOverlay(show, message) {
+  function _dpSetStandalonePaymentOverlay(show, message, mode) {
     if (typeof document === 'undefined') return;
     var overlay = _dpEnsureStandalonePaymentOverlay();
     if (!overlay) return;
+    var isApplied = String(mode || '') === 'pass-applied';
+    var titleEl = document.getElementById('cdStandalonePaymentOverlayTitle');
+    var descEl = document.getElementById('cdStandalonePaymentOverlayDesc');
+    var spinnerEl = document.getElementById('cdStandalonePaymentOverlaySpinner');
     var statusEl = document.getElementById('cdStandalonePaymentOverlayStatus');
+    if (titleEl) titleEl.textContent = isApplied ? '이용권 적용 완료' : '이용권 확인 중';
+    if (descEl) descEl.textContent = isApplied ? '보유한 이용권으로 이번 콘텐츠가 열렸습니다.' : '보유 이용권으로 바로 열 수 있는지 확인하고 있어요.';
+    if (spinnerEl) spinnerEl.style.display = isApplied ? 'none' : '';
     if (statusEl) {
-      statusEl.textContent = String(message || '').trim() || '결제가 진행 중입니다.';
+      statusEl.textContent = String(message || '').trim() || (isApplied ? '추가 결제 없이 바로 이어집니다.' : '결제가 진행 중입니다.');
     }
     overlay.style.display = show ? 'flex' : 'none';
   }
@@ -2086,8 +2094,21 @@
   // (메인 앱은 canonical이 먼저 등록되므로 이 심이 설치되지 않는다.)
   if (typeof window._cdSetCoinGateOverlay !== 'function') {
     window._cdSetCoinGateOverlay = function (isOpen, message, mode) {
-      _dpSetStandalonePaymentOverlay(!!isOpen, message);
+      _dpSetStandalonePaymentOverlay(!!isOpen, message, mode);
     };
+  }
+
+  // "이용권 적용 완료" 오버레이를 표시하고 최소 노출(~1.2s) 후 자동으로 닫는다(정본 _cdShowPassAppliedOverlay 미러).
+  // 콘텐츠 생성(onGranted)은 이 표시와 병렬로 진행되므로, 완료 UI를 보장하면서도 체감 지연을 최소화한다.
+  var _dpPassAppliedHideTimer = 0;
+  function _dpShowPassAppliedOverlay(message) {
+    if (typeof window === 'undefined' || typeof window._cdSetCoinGateOverlay !== 'function') return;
+    try { window._cdSetCoinGateOverlay(true, message || _dpText('passAppliedOverlay'), 'pass-applied'); } catch (_) {}
+    try { if (_dpPassAppliedHideTimer) clearTimeout(_dpPassAppliedHideTimer); } catch (_) {}
+    _dpPassAppliedHideTimer = window.setTimeout(function () {
+      _dpPassAppliedHideTimer = 0;
+      try { window._cdSetCoinGateOverlay(false); } catch (_) {}
+    }, 1200);
   }
 
   function _cdIsAdminLikeUser() {
@@ -2528,12 +2549,9 @@
       var result = { status: _dpExtractBillingData(payload).alreadyUnlocked === true ? 'already_unlocked' : 'pass_applied', payload: payload, requestId: requestId };
       _dpStorePaidPassGateResult(cacheKey, result);
       try {
-        if (result.status === 'pass_applied') {
+        if (result.status === 'pass_applied' || result.status === 'already_unlocked') {
           if (typeof window._cdShowMembershipFreeNotice === 'function') window._cdShowMembershipFreeNotice({ title: title, coinPrice: coinPrice, payload: payload });
-          else if (typeof window._cdSetCoinGateOverlay === 'function') {
-            window._cdSetCoinGateOverlay(true, _dpText('passAppliedOverlay'), 'pass-applied');
-            window.setTimeout(function() { window._cdSetCoinGateOverlay(false); }, 1600);
-          }
+          else if (typeof window._cdSetCoinGateOverlay === 'function') _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           else if (typeof window._cdShowSubscriptionShieldNotice === 'function') window._cdShowSubscriptionShieldNotice({ message: _dpText('subscriptionIncluded'), requiredCoins: coinPrice });
         }
       } catch (_) {}
@@ -2606,10 +2624,15 @@
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
       if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
-        // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복·오버레이·최소표시(550ms) 없이
-        // 즉시 통과하고 coin-gate는 백그라운드로 기록한다(정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정).
+        // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
+        // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
+        // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
         if (!_dpOptimisticPassDisabled() && _dpReadActiveMembershipCoverage(coinPrice)) {
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
+          _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
+          await _dpWaitForPaymentOverlayPaint();
+          await new Promise(function (resolve) { setTimeout(resolve, 450); });
+          _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
         // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
@@ -2629,7 +2652,10 @@
           // 최소 표시 시간 보장(초고속 응답에도 "이용권 확인 중"이 보이도록) + 예외 시에도 오버레이가 멈추지 않고 닫히도록.
           var passShownElapsed = Date.now() - passShownAt;
           if (passShownElapsed < 550) await new Promise(function(resolve) { setTimeout(resolve, 550 - passShownElapsed); });
-          _dpSetPaymentPending(false);
+          // pass 적용 성공 시엔 적용 완료 오버레이(_dpApplyMembershipPassBeforePayment 내부 _dpShowPassAppliedOverlay,
+          // 자체 ~1.2s 후 자동 닫힘)를 유지해 "적용 완료" 프레임이 즉시 덮여 사라지지 않도록 한다. 미커버·에러만 닫는다.
+          var passGrantedInFlight = passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked');
+          if (!passGrantedInFlight) _dpSetPaymentPending(false);
         }
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
           return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
