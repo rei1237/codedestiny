@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny — Hindi premium localization (hi.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "संपर्क करें",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "ईमेल",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": ": admin@code-destiny.com",
     "addressLabel": "पता",
     "officeAddressLabel": "कार्यालय का पता",
     "addressValue": ": 37 सैबिबोंगडोंग-रो, बिबोंग-मायऑन, ह्योहेंग-गु, ह्वासेओंग-सी, ग्योंगगी-डो, 101-1207"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

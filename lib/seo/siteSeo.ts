@@ -49,7 +49,7 @@ export const siteSeo = {
     logo: "https://code-destiny.com/og/code-destiny-og.png",
   },
   contact: {
-    email: "support@code-destiny.com",
+    email: "admin@code-destiny.com",
     contactType: "customer support",
     availableLanguage: ["Korean"],
   },

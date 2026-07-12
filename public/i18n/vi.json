@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny - Vietnamese premium localization (vi.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "Liên hệ",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "Email",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Địa chỉ",
     "officeAddressLabel": "Địa chỉ văn phòng",
     "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Kyunggi-do, 101-1207"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

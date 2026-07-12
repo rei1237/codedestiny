@@ -1136,6 +1136,26 @@ body {
 	color: rgba(200, 175, 255, 0.7);
 	line-height: 1.35;
 }
+/* ─── 타일 절제 폴리시: 호버 이미지 줌 · 탭 피드백 · 모션 접근성 (양테마 중립) ─── */
+.tarot-tile__img {
+	transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+	will-change: transform;
+}
+.tarot-tile:hover .tarot-tile__img {
+	transform: scale(1.05);
+}
+.tarot-tile:active {
+	transform: translateY(-1px) scale(0.985);
+	transition-duration: 0.12s;
+}
+@media (prefers-reduced-motion: reduce) {
+	.tarot-tile,
+	.tarot-tile:hover,
+	.tarot-tile:active,
+	.tarot-tile:hover .tarot-tile__img { transition: none; transform: none; }
+	.tarot-tile__img-wrap::after,
+	.tarot-tile--ijik .tarot-tile__img-wrap::before { animation: none; }
+}
 
 @media (max-width: 768px) {
 	.logo-area { padding: 32px 12px 28px; }

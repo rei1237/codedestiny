@@ -290,6 +290,13 @@ assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "d
 assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
 assertContains(destinyProfileSource, "_dpSetPaymentPending(false);\n      var rsp = await window.PortOne.requestPayment(requestData);", "destiny runtime hides payment overlay immediately before PG window");
+// 정적 폴백 오버레이가 결제수단별 안내를 렌더하는지(월정석·단건·완료 제목 전환 + 완료 프레임) 회귀 방지.
+assertContains(destinyProfileSource, "function _dpResolveStandaloneOverlayCopy", "destiny fallback overlay copy is mode-aware");
+assertContains(destinyProfileSource, "title: '월정석 사용 중'", "destiny fallback monthly overlay title");
+assertContains(destinyProfileSource, "title: '결제 진행 중'", "destiny fallback direct payment overlay title");
+assertContains(destinyProfileSource, "title: '결제 완료'", "destiny fallback payment-complete overlay title");
+assertContains(destinyProfileSource, "if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'))", "destiny fallback shows monthly completion frame");
+assertContains(destinyProfileSource, "_dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'))", "destiny fallback shows direct completion frame");
 
 assertContains(paymentsRouteSource, "fetchPortOnePayment", "server PortOne verification");
 assertContains(paymentsRouteSource, "merchantUid", "merchantUid duplicate key");

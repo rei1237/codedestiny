@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny — English premium localization (en.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "Contact",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "Email",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Address",
     "officeAddressLabel": "Office address",
     "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

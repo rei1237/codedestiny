@@ -221,7 +221,7 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "달빛 이용권은 30일 상품이며 자동결제 상품이 아니고, 만료 후 다시 구매해야 합니다.",
       "이용권 결제 후 유료 기능을 이용하지 않은 경우 결제일로부터 7일 이내 환불 요청이 가능하며, 이용이 시작된 뒤에는 환불이 제한될 수 있습니다.",
       "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
-      "민원담당자: 박병하 (050-6664-7398) · seongbae555@gmail.com",
+      "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
     ],
   },
   en: {
@@ -302,7 +302,7 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "Moonlight Pass is a 30-day product, not an auto-renewing subscription, and must be purchased again after expiration.",
       "If no paid feature has been used after purchasing a pass, a refund request is available within 7 days of payment; refunds may be limited after usage begins.",
       "Pass benefit activity and payment history show up to the latest 20 records. Contact support if you need older records.",
-      "Support contact: Byeongha Park (050-6664-7398) · seongbae555@gmail.com",
+      "Support contact: Byeongha Park (050-6664-7398) · admin@code-destiny.com",
     ],
   },
   ja: null as unknown as PointHistoryCopy,

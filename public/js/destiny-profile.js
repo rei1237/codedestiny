@@ -37,6 +37,8 @@
       apiConnectionFailed: 'API 연결에 실패했습니다. 잠시 후 다시 시도해 주세요.',
       networkError: '네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.',
       passAppliedOverlay: '이용권이 적용되었습니다.\n이번 콘텐츠는 보유한 이용권으로 무료 이용됩니다.\n추가 결제 없이 바로 열어드릴게요.',
+      monthlyAppliedOverlay: '월정석 사용이 완료되었습니다.\n보유한 월정석으로 이번 콘텐츠를 이용합니다.\n바로 열어드릴게요.',
+      paymentCompleteOverlay: '결제가 완료되었습니다.\n콘텐츠를 여는 중입니다.\n잠시만 기다려 주세요.',
       subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
       openProfileList: '프로필 목록 열기',
       profileCardManage: '프로필 카드 관리',
@@ -48,6 +50,8 @@
       apiConnectionFailed: 'API connection failed. Please try again soon.',
       networkError: 'A network error occurred. Please try again soon.',
       passAppliedOverlay: 'Your pass has been applied.\nThis content is free with your current pass.\nIt will open without any extra payment.',
+      monthlyAppliedOverlay: 'Your Moonlight Stones have been used.\nThis content is unlocked with your Moonlight Stones.\nOpening it now.',
+      paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
       subscriptionIncluded: 'Using your pass with no additional payment.',
       openProfileList: 'Open profile list',
       profileCardManage: 'Manage profile cards',
@@ -59,6 +63,8 @@
       apiConnectionFailed: 'API接続に失敗しました。少し後でもう一度お試しください。',
       networkError: 'ネットワークエラーが発生しました。少し後でもう一度お試しください。',
       passAppliedOverlay: '利用券が適用されました。\nこのコンテンツはお持ちの利用券で無料で利用できます。\n追加決済なしですぐに開きます。',
+      monthlyAppliedOverlay: '月精石の使用が完了しました。\nこのコンテンツはお持ちの月精石で利用します。\nすぐに開きます。',
+      paymentCompleteOverlay: '決済が完了しました。\nコンテンツを開いています。\n少々お待ちください。',
       subscriptionIncluded: '利用券で追加決済なしに利用します。',
       openProfileList: 'プロフィール一覧を開く',
       profileCardManage: 'プロフィールカード管理',
@@ -70,6 +76,8 @@
       apiConnectionFailed: 'API 连接失败。请稍后再试。',
       networkError: '发生网络错误。请稍后再试。',
       passAppliedOverlay: '已应用使用券。\n本内容可使用当前持有的使用券免费查看。\n无需额外付款，将立即开启。',
+      monthlyAppliedOverlay: '月精石使用完成。\n本内容将使用您持有的月精石。\n即将为您开启。',
+      paymentCompleteOverlay: '支付完成。\n正在为您开启内容。\n请稍候。',
       subscriptionIncluded: '使用券已生效，无需额外付款。',
       openProfileList: '打开个人资料列表',
       profileCardManage: '管理个人资料卡',
@@ -81,6 +89,8 @@
       apiConnectionFailed: 'API 連線失敗。請稍後再試。',
       networkError: '發生網路錯誤。請稍後再試。',
       passAppliedOverlay: '已套用使用券。\n本內容可使用目前持有的使用券免費查看。\n無需額外付款，將立即開啟。',
+      monthlyAppliedOverlay: '月精石使用完成。\n本內容將使用您持有的月精石。\n即將為您開啟。',
+      paymentCompleteOverlay: '付款完成。\n正在為您開啟內容。\n請稍候。',
       subscriptionIncluded: '使用券已生效，無需額外付款。',
       openProfileList: '開啟個人資料列表',
       profileCardManage: '管理個人資料卡',
@@ -2071,20 +2081,39 @@
     return overlay;
   }
 
+  // 결제수단별 오버레이 카피(제목/설명/완료여부). 'done'이면 스피너를 숨겨 완료 상태로 보이게 한다.
+  function _dpResolveStandaloneOverlayCopy(mode) {
+    switch (String(mode || '')) {
+      case 'pass-applied':
+        return { title: '이용권 적용 완료', desc: '보유한 이용권으로 이번 콘텐츠가 열렸습니다.', done: true, fallback: '추가 결제 없이 바로 이어집니다.' };
+      case 'payment-complete':
+        return { title: '결제 완료', desc: '결제가 확인되어 콘텐츠를 여는 중입니다.', done: true, fallback: '곧 콘텐츠가 열립니다.' };
+      case 'monthly':
+      case 'subscription':
+        return { title: '월정석 사용 중', desc: '보유한 월정석으로 이용 권한을 확인하고 있어요.', done: false, fallback: '월정석 잔량을 확인하고 있습니다.' };
+      case 'card':
+      case 'checkout':
+      case 'confirm':
+        return { title: '결제 진행 중', desc: '결제를 안전하게 진행하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
+      default:
+        return { title: '이용권 확인 중', desc: '보유 이용권으로 바로 열 수 있는지 확인하고 있어요.', done: false, fallback: '결제가 진행 중입니다.' };
+    }
+  }
+
   function _dpSetStandalonePaymentOverlay(show, message, mode) {
     if (typeof document === 'undefined') return;
     var overlay = _dpEnsureStandalonePaymentOverlay();
     if (!overlay) return;
-    var isApplied = String(mode || '') === 'pass-applied';
+    var copy = _dpResolveStandaloneOverlayCopy(mode);
     var titleEl = document.getElementById('cdStandalonePaymentOverlayTitle');
     var descEl = document.getElementById('cdStandalonePaymentOverlayDesc');
     var spinnerEl = document.getElementById('cdStandalonePaymentOverlaySpinner');
     var statusEl = document.getElementById('cdStandalonePaymentOverlayStatus');
-    if (titleEl) titleEl.textContent = isApplied ? '이용권 적용 완료' : '이용권 확인 중';
-    if (descEl) descEl.textContent = isApplied ? '보유한 이용권으로 이번 콘텐츠가 열렸습니다.' : '보유 이용권으로 바로 열 수 있는지 확인하고 있어요.';
-    if (spinnerEl) spinnerEl.style.display = isApplied ? 'none' : '';
+    if (titleEl) titleEl.textContent = copy.title;
+    if (descEl) descEl.textContent = copy.desc;
+    if (spinnerEl) spinnerEl.style.display = copy.done ? 'none' : '';
     if (statusEl) {
-      statusEl.textContent = String(message || '').trim() || (isApplied ? '추가 결제 없이 바로 이어집니다.' : '결제가 진행 중입니다.');
+      statusEl.textContent = String(message || '').trim() || copy.fallback;
     }
     overlay.style.display = show ? 'flex' : 'none';
   }
@@ -2098,17 +2127,23 @@
     };
   }
 
-  // "이용권 적용 완료" 오버레이를 표시하고 최소 노출(~1.2s) 후 자동으로 닫는다(정본 _cdShowPassAppliedOverlay 미러).
+  // 결제 완료(이용권 적용/월정석 사용/단건 결제) 오버레이를 표시하고 최소 노출(~1.2s) 후 자동으로 닫는다.
   // 콘텐츠 생성(onGranted)은 이 표시와 병렬로 진행되므로, 완료 UI를 보장하면서도 체감 지연을 최소화한다.
-  var _dpPassAppliedHideTimer = 0;
-  function _dpShowPassAppliedOverlay(message) {
+  var _dpPaymentDoneHideTimer = 0;
+  function _dpShowPaymentDoneOverlay(message, mode) {
     if (typeof window === 'undefined' || typeof window._cdSetCoinGateOverlay !== 'function') return;
-    try { window._cdSetCoinGateOverlay(true, message || _dpText('passAppliedOverlay'), 'pass-applied'); } catch (_) {}
-    try { if (_dpPassAppliedHideTimer) clearTimeout(_dpPassAppliedHideTimer); } catch (_) {}
-    _dpPassAppliedHideTimer = window.setTimeout(function () {
-      _dpPassAppliedHideTimer = 0;
+    try { window._cdSetCoinGateOverlay(true, message || '', String(mode || 'pass-applied')); } catch (_) {}
+    try { if (_dpPaymentDoneHideTimer) clearTimeout(_dpPaymentDoneHideTimer); } catch (_) {}
+    _dpPaymentDoneHideTimer = window.setTimeout(function () {
+      _dpPaymentDoneHideTimer = 0;
       try { window._cdSetCoinGateOverlay(false); } catch (_) {}
     }, 1200);
+  }
+  function _dpShowPassAppliedOverlay(message) {
+    _dpShowPaymentDoneOverlay(message || _dpText('passAppliedOverlay'), 'pass-applied');
+  }
+  function _dpShowPaymentCompleteOverlay(message) {
+    _dpShowPaymentDoneOverlay(message || _dpText('paymentCompleteOverlay'), 'payment-complete');
   }
 
   function _cdIsAdminLikeUser() {
@@ -2693,6 +2728,8 @@
       if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
       else _dpSetPaymentPending(true, title + ' 단건 결제창을 여는 중입니다.', 'card');
       var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
+      // 월정석 완료 프레임 표시(단건은 _cdRunDirectKrwCheckout 내부에서 이미 표시). 완료 오버레이 표시 중 onGranted(생성)는 병렬 진행.
+      if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'));
       var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
       if (typeof opts.onGranted === 'function') opts.onGranted(txId, payload || {}, { status: choice === 'monthly' ? 'monthly_paid' : 'direct_paid' });
       return { status: 'granted', transactionId: txId, payload: payload || {} };
@@ -2908,7 +2945,8 @@
         })),
       });
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
-      _dpSetPaymentPending(true, '\uACB0\uC81C\uAC00 \uC644\uB8CC\uB418\uC5C8\uC2B5\uB2C8\uB2E4. \uCF58\uD150\uCE20\uB97C \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4.', 'payment-complete');
+      // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
+      _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       await _dpWaitForPaymentOverlayPaint();
       return confirmRes.payload;
     };

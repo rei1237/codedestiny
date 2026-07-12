@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny — Malay premium localization (ms.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "Kenalan",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-mel",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Alamat",
     "officeAddressLabel": "Alamat pejabat",
     "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

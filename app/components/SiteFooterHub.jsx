@@ -143,7 +143,7 @@ const BUSINESS_INFO_ROWS = [
   { key: "siteFooter.007", value: "372-23-02329" },
   { key: "siteFooter.008", value: "제 2026-화성호-0264 호" },
   { key: "siteFooter.009", value: "050-6664-7398" },
-  { key: "siteFooter.010", value: "seongbae555@gmail.com" },
+  { key: "siteFooter.010", value: "admin@code-destiny.com" },
   { key: "siteFooter.011", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
 ];
 

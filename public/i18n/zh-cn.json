@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny - Chinese Simplified premium localization (zh-cn.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "联系方式",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "邮箱",
-    "emailValue": "：seongbae555@gmail.com",
+    "emailValue": "：admin@code-destiny.com",
     "addressLabel": "地址",
     "officeAddressLabel": "营业地址",
     "addressValue": ": 京畿道华城市孝恒区飞峰面新飞峰东路 37 号 101-1207"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

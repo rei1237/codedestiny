@@ -45,7 +45,7 @@ async function sendEmail({ to, subject, html, text }) {
     throw new Error('Resend API 키(EMAILAPI_KEY)가 설정되지 않았습니다.');
   }
   const payload = {
-    from: 'Code Destiny <noreply@code-destiny.com>',
+    from: 'Code Destiny <admin@code-destiny.com>',
     to: Array.isArray(to) ? to : [to],
     subject,
     html: html || '<pre>' + (text || '') + '</pre>',

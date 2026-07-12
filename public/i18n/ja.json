@@ -1,4 +1,4 @@
-{
+﻿{
   "_comment": "Code Destiny — Japanese premium localization (ja.json)",
   "_version": "1.0.0",
   "brand": {
@@ -4122,7 +4122,7 @@
     "contactLabel": "連絡先",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "メール",
-    "emailValue": ": seongbae555@gmail.com",
+    "emailValue": ": admin@code-destiny.com",
     "addressLabel": "住所",
     "officeAddressLabel": "事業所住所",
     "addressValue": ": 101-1207 京畿道華城市孝興区飛峰面セビ峰洞路37"
@@ -4486,3 +4486,4 @@
     }
   }
 }
+

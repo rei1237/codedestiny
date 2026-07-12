@@ -1252,8 +1252,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       if (refreshBtn) refreshBtn.disabled = true;
       if (balanceText) balanceText.textContent = "월정석 잔량을 확인하고 있습니다.";
       try {
-        // 수동 재조회는 서버 캐시까지 우회(fresh)해 항상 최신값을 읽고, 자동 조회는 캐시를 허용해 빠르게 응답한다.
-        const result = await fetchBillingBalance({ force: true, fresh: refreshOpts.fresh === true });
+        // 수동 재조회는 서버 캐시까지 우회(fresh)해 항상 최신값을 읽고, 자동 조회는 신선한 클라 캐시를 존중해 빠르게 응답한다.
+        // (force를 fresh에 연동: 수동=강제 재조회, 자동=클라 캐시 히트 시 여분 /balance 왕복 생략.)
+        const result = await fetchBillingBalance({ force: refreshOpts.fresh === true, fresh: refreshOpts.fresh === true });
         if (settled) return;
         if (!result.ok || !result.data || result.data.degraded === true) {
           applyMoonlightBalance(null, "error");
@@ -3319,13 +3320,21 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
   const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
   const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
-  const initialGateStatus: PaidFeatureGateRuntimeStatus = passDisabled ? "paymentPreparing" : "checkingEntitlement";
+  // 명시 결제모드(월정석·비네이티브 단건)는 첫 프레임을 "이용권 확인 중"이 아니라 결제수단에 맞는 준비 상태로 연다.
+  // (명시 이용권·일반 pass-first 경로는 기존 "이용권 확인 중" 유지.)
+  const explicitMonthlyMode = requestedMode === "MOONLIGHT_STONE";
+  const explicitDirectMode = requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling;
+  const initialGateStatus: PaidFeatureGateRuntimeStatus =
+    (passDisabled || explicitMonthlyMode || explicitDirectMode) ? "paymentPreparing" : "checkingEntitlement";
+  const initialGateMessage = explicitMonthlyMode
+    ? "월정석 사용 권한을 확인하고 있어요."
+    : ((passDisabled || explicitDirectMode) ? billingClientText("billingClient.message.021") : billingClientText("billingClient.message.005"));
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,
     requestId: gateRequestId,
     status: initialGateStatus,
-    message: passDisabled ? billingClientText("billingClient.message.021") : billingClientText("billingClient.message.005"),
+    message: initialGateMessage,
     paymentMode: input.paymentMode,
     reason: input.reason,
   });

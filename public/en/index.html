@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -328,6 +328,8 @@
 <!-- ═══ DNS Prefetch 및 리소스 힌트 ═══ -->
 <link rel="dns-prefetch" href="https://cdn.example.com">
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
+<!-- 조기 테마·모바일 런타임 클래스 확정 (FOUC 방지: 렌더차단 CSS 이전 · cd-early-runtime-class-hoist-v20260712) -->
+<script>(function(){try{var d=document.documentElement,ua=String(navigator.userAgent||'').toLowerCase(),mm=window.matchMedia;if(localStorage.getItem('fortuneThemeModeStateV1')==='neo')d.classList.add('neo-mode');if((mm&&mm('(max-width: 768px), (hover: none) and (pointer: coarse)').matches)||/android|iphone|ipad|ipod|mobile/i.test(ua))d.classList.add('cd-mobile-runtime');if((mm&&mm('(max-width: 900px)').matches)||/android|iphone|ipad|ipod/i.test(ua))d.classList.add('mobile-safe-render');}catch(e){}})();</script>
 <link rel="stylesheet" href="/styles/theme-tokens.css?v=build-85d96b174d0c">
 <link rel="stylesheet" href="/styles/core-ui.css?v=build-85d96b174d0c">
 <link rel="stylesheet" href="/styles/fortune-ui.css?v=build-85d96b174d0c">
@@ -2083,7 +2085,7 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
   html,
   body,
   .wrap,
-  #inputPage{max-width:100vw!important;overflow-x:clip!important}
+  #inputPage{max-width:100%!important;overflow-x:clip!important}
   .logo-cosmos,
   .moon-hero__constellation,
   .moon-hero__portal,
@@ -5145,7 +5147,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   html:not(.neo-mode) .membership-recap-cta__btn{background:linear-gradient(135deg,#d83f78,#b31955)!important;border-color:rgba(179,25,85,.3)!important;color:#fff!important;box-shadow:0 12px 26px rgba(179,25,85,.3),inset 0 1px 0 rgba(255,255,255,.24)!important}
   html:not(.neo-mode) .membership-recap-cta__btn:hover{box-shadow:0 16px 32px rgba(179,25,85,.4),inset 0 1px 0 rgba(255,255,255,.3)!important}
   /* 기타 점술 컬렉션(#miscCollection) — cosmic-main.css/core-ui.css의 다크 코스믹 규칙과 로드 순서 충돌을 피하기 위해 이중 ID로 라이트 톤을 확정 */
-  html:not(.neo-mode) #miscCollection#miscCollection{background:linear-gradient(150deg,#ffffff,#fff4f9 55%,#fdfaf3)!important;border-color:rgba(216,63,120,.18)!important;box-shadow:0 18px 40px rgba(179,25,85,.1),inset 0 1px 0 rgba(255,255,255,.7)!important}
+  html:not(.neo-mode) #miscCollection#miscCollection{background:linear-gradient(150deg,#f9d4e3,#f2b8d0 55%,#f7cdc4)!important;border-color:rgba(179,25,85,.30)!important;box-shadow:0 18px 40px rgba(179,25,85,.16),inset 0 1px 0 rgba(255,255,255,.55)!important}
   html:not(.neo-mode) #miscCollection#miscCollection::before,html:not(.neo-mode) #miscCollection#miscCollection::after{display:none!important}
   html:not(.neo-mode) #miscCollection#miscCollection .fc-star{display:none!important}
   html:not(.neo-mode) #miscCollection#miscCollection .feat-collection__header{background:transparent!important;border-bottom-color:rgba(216,63,120,.18)!important}
@@ -5154,7 +5156,8 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   html:not(.neo-mode) #miscCollection#miscCollection .feat-collection__featureline{background:linear-gradient(120deg,rgba(255,244,249,.9),rgba(255,255,255,.9))!important;border-color:rgba(179,25,85,.24)!important;color:#8a1f47!important;text-shadow:none!important}
   html:not(.neo-mode) #miscCollection#miscCollection .fc-div-gem{color:#b31955!important}
   html:not(.neo-mode) #miscCollection#miscCollection .fc-div-line{background:linear-gradient(90deg,transparent,rgba(179,25,85,.5),transparent)!important}
-  html:not(.neo-mode) #miscCollection#miscCollection .fc-toggle-hint{color:#3c1830!important;background:linear-gradient(135deg,#fff8dc,#f4bed1)!important;border-color:rgba(179,25,85,.28)!important;box-shadow:0 6px 14px rgba(179,25,85,.16),inset 0 1px 0 rgba(255,255,255,.7)!important}
+  html:not(.neo-mode) #miscCollection#miscCollection .fc-toggle-hint{color:#fff!important;background:linear-gradient(135deg,#d83f78,#b31955)!important;border-color:rgba(179,25,85,.35)!important;box-shadow:0 8px 18px rgba(179,25,85,.28),inset 0 1px 0 rgba(255,255,255,.25)!important}
+  html:not(.neo-mode) #miscCollection#miscCollection .fc-toggle-hint :is(.fc-toggle-hint__text,.fc-toggle-hint__arrow){color:#fff!important}
   html:not(.neo-mode) #miscCollection#miscCollection .fc-closed-peek__gem{color:rgba(179,25,85,.4)!important}
   html:not(.neo-mode) #miscCollection#miscCollection .feat-collection__grid .tarot-tile{background:linear-gradient(160deg,#ffffff,#fff6fb 60%,#fdf6ec)!important;border-color:rgba(216,63,120,.16)!important;box-shadow:0 8px 20px rgba(179,25,85,.08)!important}
   html:not(.neo-mode) #miscCollection#miscCollection .feat-collection__grid .tarot-tile__body{background:transparent!important}
@@ -5626,7 +5629,6 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
       <div id="dfStudioHistoryList" class="df-studio-history-list" role="list"></div>
     </section>
     <div class="df-studio-actions">
-      <button class="df-studio-btn df-studio-btn--secondary" type="button" data-action="closeDestinyFlowerStudio" data-cd-trans data-key="home.destinyFlowerStudio.close">✕ 닫기</button>
       <button class="df-studio-btn df-studio-btn--primary" type="button" data-action="goHomeFromDestinyFlower" data-cd-trans data-key="home.destinyFlowerStudio.home">🏠 홈화면으로 바로가기</button>
     </div>
   </section>
@@ -11875,7 +11877,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/UNSETAMA2.webp" data-img-alt="다마고치 운명의 알 — 나만의 사주 캐릭터 키우기" data-cd-trans-attr="data-img-alt:home.tiles.destinyEggAlt">
                     <img class="tarot-tile__img is-loaded" src="/fuctionassets/UNSETAMA2.webp" alt="다마고치 운명의 알" data-cd-trans-attr="alt:home.tiles.destinyEggImgAlt" width="200" height="150" loading="lazy" decoding="async" fetchpriority="low" sizes="(max-width: 768px) 92px, 200px">
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.destinyEggTitle">🥚 운명의 알</span>
@@ -11891,7 +11893,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/fortuneteller%20fish.webp" data-img-alt="포춘텔러 물고기 — 손바닥 위 붉은 물고기의 운명 리딩" data-cd-trans-attr="data-img-alt:home.tiles.fortuneFishAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">🎭</span></div>
                     <span class="tarot-tile__badge tarot-tile__badge--new">NEW</span>
-                    <span class="tarot-tile__coin-badge" data-cd-trans data-key="home.tiles.price3000">1회 3,000원</span>
+                    <span class="tarot-tile__coin-badge tarot-tile__coin-badge--free" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
                   </div>
                   <div class="tarot-tile__body">
                     <span class="tarot-tile__title" data-cd-trans data-key="home.tiles.fortuneFishTitle">🐟 포춘텔러 물고기</span>
@@ -15776,7 +15778,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
         <strong data-cd-trans="business.companyLabel">상호명</strong><span data-cd-trans="business.companyValue">: 코드 데스티니 (Code Destiny)</span> | <strong data-cd-trans="business.representativeLabel">대표자</strong><span data-cd-trans="business.representativeValue">: 박병하</span> | <strong data-cd-trans="business.registrationLabel">사업자등록번호</strong><span data-cd-trans="business.registrationValue">: 372-23-02329</span> | <strong data-cd-trans="business.mailOrderLabel">통신판매업 신고번호</strong><span data-cd-trans="business.mailOrderValue">: 제 2026-화성호-0264 호</span>
       </p>
       <p style="margin: 4px 0;">
-        <strong data-cd-trans="business.contactLabel">연락처</strong><span data-cd-trans="business.contactValue">: 050-6664-7398</span> | <strong data-cd-trans="business.emailLabel">이메일</strong><span data-cd-trans="business.emailValue">: seongbae555@gmail.com</span>
+        <strong data-cd-trans="business.contactLabel">연락처</strong><span data-cd-trans="business.contactValue">: 050-6664-7398</span> | <strong data-cd-trans="business.emailLabel">이메일</strong><span data-cd-trans="business.emailValue">: admin@code-destiny.com</span>
       </p>
       <p style="margin: 4px 0;">
         <strong data-cd-trans="business.officeAddressLabel">사업장 주소</strong><span data-cd-trans="business.addressValue">: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호</span>
@@ -28525,3 +28527,4 @@ window.lazyOpenModal = function(tplId, modalId, openFn) {
 <script async src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"b8c0c9800e9749bb9d3c225ee7393003","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script></body>
 
 </html>
+

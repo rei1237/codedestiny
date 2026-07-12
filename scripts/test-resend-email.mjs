@@ -7,7 +7,7 @@ async function main() {
   try {
     const result = await resend.emails.send({
       from: 'onboarding@resend.dev',
-      to: 'seongbae555@gmail.com',
+      to: 'admin@code-destiny.com',
       subject: 'Hello World',
       html: '<p>Congrats on sending your <strong>first email</strong>!</p>'
     });
