@@ -40,6 +40,11 @@ type EnsurePaidAccessInput = {
   forceDeduct?: boolean;
   requestId?: string;
   skipAuthCheck?: boolean;
+  // 가격을 넘기면 runBillingCoinGate의 스냅샷 기반 빠른 이용권 선검사가 켜져
+  // 이용권 보유자는 서버 왕복 없이 즉시 무료 통과한다(넘기지 않으면 기존대로 서버 판정).
+  coinPrice?: number;
+  cost?: number;
+  amountKRW?: number;
   onPaid?: (context: CoinGateContext) => Promise<void> | void;
 };
 
@@ -373,6 +378,9 @@ export function useCoinGate() {
         payloadHash: input.payloadHash,
         forceDeduct: input.forceDeduct,
         requestId: input.requestId,
+        coinPrice: input.coinPrice,
+        cost: input.cost,
+        amountKRW: input.amountKRW,
       });
 
       if (!chargeResult.ok || !chargeResult.data) {

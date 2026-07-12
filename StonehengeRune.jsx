@@ -84,7 +84,7 @@ const SPREAD_OPTIONS = [
   { count: 1, rune: "ᚢ", name: "1-룬", desc: "오늘의 조언", costCoins: 30 },
   { count: 3, rune: "ᚦ", name: "3-룬 · 노른의 예언", desc: "과거 · 현재 · 미래", costCoins: 50 },
   { count: 5, rune: "ᛃ", name: "5-룬 · 심층 해석", desc: "성향 + 주의 포인트 포함", costCoins: 70 },
-  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", costCoins: 120 },
+  { count: 12, rune: "ᛞ", name: "12-룬 · 연간 대점", desc: "1년 종합 흐름", costCoins: 100 },
 ];
 
 const SPREAD_LABELS = {
@@ -101,6 +101,15 @@ const RUNE_BILLING_SUB_FEATURE_BY_SPREAD = Object.freeze({
   3: "spread-3",
   5: "spread-5",
   12: "spread-12",
+});
+
+// 스프레드별 코인 가격(SPREAD_OPTIONS.costCoins와 반드시 일치). 결제 게이트에 넘겨
+// 스냅샷 기반 빠른 이용권 선검사를 켠다 — 이용권 보유자는 서버 왕복 없이 즉시 통과.
+const RUNE_COST_BY_SPREAD = Object.freeze({
+  1: 30,
+  3: 50,
+  5: 70,
+  12: 100,
 });
 
 const RUNE_FALLBACK_FEATURE_BY_SPREAD = Object.freeze({
@@ -660,6 +669,7 @@ export default function StonehengeRune() {
       subFeatureKey,
       featureKey: fallbackFeatureKey,
       reason: "스톤헨지 룬점",
+      coinPrice: RUNE_COST_BY_SPREAD[spread],
       forceDeduct: true,
       requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
       onPaid: async () => {
@@ -822,6 +832,7 @@ export default function StonehengeRune() {
       subFeatureKey: RUNE_AI_PROMPT_SUB_FEATURE,
       featureKey: RUNE_AI_PROMPT_FEATURE_KEY,
       reason: "룬 AI 질문문",
+      coinPrice: RUNE_AI_PROMPT_COST_COINS,
       payloadHash,
       forceDeduct: true,
       requestId: `rune-ai-prompt:${payloadHash}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,

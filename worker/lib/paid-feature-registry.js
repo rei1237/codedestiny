@@ -212,7 +212,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "stonehenge-runes-single": { cost: 30, reason: "스톤헨지 룬 1-룬 리딩" },
   "stonehenge-runes-triad": { cost: 50, reason: "스톤헨지 룬 3-룬 리딩" },
   "stonehenge-runes-deep": { cost: 70, reason: "스톤헨지 룬 5-룬 리딩" },
-  "stonehenge-runes-yearly": { cost: 120, reason: "스톤헨지 룬 12-룬 리딩" },
+  "stonehenge-runes-yearly": { cost: 100, reason: "스톤헨지 룬 12-룬 리딩" },
   "stonehenge-runes-ai-prompt": { cost: 30, reason: "스톤헨지 룬 AI 질문문 생성" },
   "animal-totem-basic": { cost: 30, reason: "애니멀 토템 리딩" },
   "animal-totem-deep": { cost: 60, reason: "애니멀 토템 심화 리딩" },
