@@ -119,12 +119,12 @@ const PAID_ACCESS_DECISION_CACHE_MAX_ENTRIES = 2500;
 const PAID_ACCESS_DECISION_DB_TIMEOUT_MS = 1400;
 const PAID_PASS_DECISION_DB_TIMEOUT_MS = 10000;
 function billingRateLimitForPath(path = "", method = "GET") {
-  if (path === "/coin-gate" || path === "/checkout") return { limit: 5, windowSeconds: 10 * 60 };
-  if (path === "/confirm") return { limit: 10, windowSeconds: 10 * 60 };
-  if (path.startsWith("/coin-gate/deferred/") || path.startsWith("/executions/")) return { limit: 3, windowSeconds: 60 };
-  if (path === "/access") return method === "GET" ? { limit: 60, windowSeconds: 60 } : { limit: 20, windowSeconds: 60 };
+  if (path === "/coin-gate" || path === "/checkout") return { limit: 20, windowSeconds: 60 };
+  if (path === "/confirm") return { limit: 20, windowSeconds: 60 };
+  if (path.startsWith("/coin-gate/deferred/") || path.startsWith("/executions/")) return { limit: 15, windowSeconds: 60 };
+  if (path === "/access") return method === "GET" ? { limit: 100, windowSeconds: 60 } : { limit: 30, windowSeconds: 60 };
   if (path === "/dev-payment-tester") return { limit: 10, windowSeconds: 10 * 60 };
-  return { limit: 20, windowSeconds: 60 };
+  return { limit: 60, windowSeconds: 60 };
 }
 
 function isBillingSecurityPath(path = "", method = "GET") {

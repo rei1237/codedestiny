@@ -41,7 +41,7 @@ async function enforceProfileRouteSecurity(request, env, auth, method, path) {
     endpoint: `profile:${method}:${path}`,
     allowedMethods: [method],
     requireJson: method !== "DELETE",
-    rateLimit: { limit: 10, windowSeconds: 10 * 60 },
+    rateLimit: { limit: 60, windowSeconds: 60 },
     rateLimitKey: `${auth?.userId || auth?.id || "anonymous"}:profile:${method}`,
   });
 }

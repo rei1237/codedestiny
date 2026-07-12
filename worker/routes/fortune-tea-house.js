@@ -13,8 +13,8 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 
-const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = 12;
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const RATE_LIMIT_MAX_REQUESTS = 20;
 const requestBuckets = new Map();
 const GEMINI_KEY_NAMES = ["GEMINIF_API_KEY", "GEMINI_API_KEY", "GOOGLE_GEMINI_API_KEY"];
 const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|콘텐츠 블록|서비스 결과|\bAPI\b|\bJSON\b|\bpayload\b|\bschema\b/i;

@@ -102,7 +102,9 @@
 
   function shouldRetryRequest(status, error) {
     if (Number(status || 0) >= 500) return true;
-    if (status === 408 || status === 425 || status === 429) return true;
+    // 429는 재시도 대상에서 제외 — 같은 IP라 대체 호스트로 바꿔도 어차피 rate-limit이므로
+    // 재시도는 부하만 늘린다(백오프 없는 즉시 재요청 방지). 즉시 429를 반환한다.
+    if (status === 408 || status === 425) return true;
     if (error && error.name === 'AbortError') return true;
     if (error instanceof TypeError && !status) return true;
     var message = String((error && error.message) || '').toLowerCase();

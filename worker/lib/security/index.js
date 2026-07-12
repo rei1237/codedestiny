@@ -391,8 +391,8 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
   const allowedMethods = isRead ? ["GET"] : ["POST"];
   const endpoint = `ai:${cleanText(serviceKey, 80)}:${action}`;
   const rateLimit = isRead
-    ? { limit: 60, windowSeconds: 60 }
-    : { limit: 3, windowSeconds: 60 };
+    ? { limit: 100, windowSeconds: 60 }
+    : { limit: 15, windowSeconds: 60 };
   const primary = await enforceSensitiveEndpointSecurity({
     env,
     request,
@@ -412,7 +412,7 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
       userId: resolvedUserId,
       endpoint: `${endpoint}:daily`,
       key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:start:daily`,
-      limit: 20,
+      limit: 60,
       windowSeconds: 24 * 60 * 60,
     });
     if (!daily.ok) return daily;

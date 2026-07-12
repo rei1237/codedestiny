@@ -184,15 +184,15 @@ function isDigitalContentPaymentRequest(body = {}) {
 
 function paymentRateLimitForPath(path = "") {
   if (path === "/confirm" || path === "/subscription/confirm" || path === "/single/complete") {
-    return { limit: 10, windowSeconds: 10 * 60 };
+    return { limit: 20, windowSeconds: 60 };
   }
   if (path === "/prepare" || path === "/subscription/prepare" || path === "/single/start") {
-    return { limit: 5, windowSeconds: 10 * 60 };
+    return { limit: 15, windowSeconds: 60 };
   }
   if (path === "/cancel" || path === "/single/cancel" || path === "/report-failure") {
-    return { limit: 5, windowSeconds: 10 * 60 };
+    return { limit: 15, windowSeconds: 60 };
   }
-  return { limit: 10, windowSeconds: 10 * 60 };
+  return { limit: 20, windowSeconds: 60 };
 }
 
 async function enforcePaymentRouteSecurity(request, env, auth, path) {
