@@ -1706,9 +1706,31 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     // 이용권 상태 일시 확인 불가(503) — 서버가 응답에 paymentOptions(단건+월정석)를 동봉하므로
     // 하드 에러 대신 결제 폴백을 연다.
     || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
+    // 인증/스냅샷 DB 일시 장애(503) — 서버가 infra 실패를 게스트 세탁 대신 degraded로 표면화하며
+    // 응답에 paymentOptions(단건+월정석)를 동봉한다(worker/routes/billing.js readBillingSnapshot·requireBillingAuth).
+    // runBillingCoinGate의 transient 재시도가 소진된 뒤에도 남으면 dead-end 대신 결제 폴백을 연다.
+    || normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"
+    || normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"
+    || normalizedCode === "AUTH_DB_UNAVAILABLE"
     // 클라이언트 abort 타임아웃(9s/45s)으로 합성된 503 — 이용권 확인이 지연으로 실패해도
     // dead-end 대신 결제창(단건+월정석)을 열어 사용자가 결제 선택지를 갖게 한다.
     || normalizedCode === "BILLING_REQUEST_TIMEOUT";
+}
+
+// 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
+const COIN_GATE_TRANSIENT_MAX_RETRIES = 2;
+const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 800;
+
+// 코인게이트가 워커-DB 일시 장애로 돌려주는 degraded-503만 재시도 대상으로 본다.
+// 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
+// 서버(canUseByPass)가 하며, 여기서는 인프라 blip만 흡수한다.
+function isRetryableBillingInfraDegraded(status: number, code?: string) {
+  if (status !== 503) return false;
+  const normalizedCode = toText(code).toUpperCase();
+  return normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"
+    || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
+    || normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"
+    || normalizedCode === "AUTH_DB_UNAVAILABLE";
 }
 
 // useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지
@@ -3407,20 +3429,34 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       subscriptionTier: processingPassTier,
     });
 
-    const response = await authFetchBilling("/api/billing/coin-gate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ...(input || {}),
-        paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
-        forceDeduct: passAccessEligible ? false : input.forceDeduct,
-        attemptId: activeAttempt.attemptId,
-      }),
-    });
+    const runCoinGateRequest = async () => {
+      const response = await authFetchBilling("/api/billing/coin-gate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...(input || {}),
+          paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
+          forceDeduct: passAccessEligible ? false : input.forceDeduct,
+          attemptId: activeAttempt.attemptId,
+        }),
+      });
+      return parseBillingResponse<BillingCoinGateData>(response);
+    };
 
-    const parsed = await parseBillingResponse<BillingCoinGateData>(response);
+    // 워커-DB 일시 장애로 인증/이용권 확인이 순간 실패(degraded-503)하면, 이용권 보유자가 무료 통과할
+    // 기회를 살리려 짧게 재시도한다(재시도-우선). degraded-503은 과금 전 확인 실패라 재요청이 안전하고,
+    // 동일 attemptId를 재사용해 서버 멱등 병합과 정합을 유지한다. 재시도 중 200(pass covered)이면 아래
+    // 성공 분기로 무료 통과하고, 확정 응답(402/401 등)이면 즉시 중단해 기존 분기가 처리한다. 소진 후에도
+    // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
+    let parsed = await runCoinGateRequest();
+    for (let retryIndex = 1; retryIndex <= COIN_GATE_TRANSIENT_MAX_RETRIES; retryIndex += 1) {
+      if (!isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)) break;
+      const backoffMs = Math.round(COIN_GATE_TRANSIENT_BASE_DELAY_MS * Math.pow(1.8, retryIndex - 1));
+      await new Promise((resolve) => setTimeout(resolve, backoffMs));
+      parsed = await runCoinGateRequest();
+    }
 
     if (parsed.ok && parsed.data) {
       if (!hasVerifiedBillingAccess(parsed.data, input.featureKey || featureId)) {

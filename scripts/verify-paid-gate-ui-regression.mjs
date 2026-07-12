@@ -193,6 +193,13 @@ const reactPaymentFallbackSource = section(
 );
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary pass-status 503");
 assertContains(reactPaymentFallbackSource, 'normalizedCode === "BILLING_REQUEST_TIMEOUT"', "React payment fallback opens on client abort timeout 503");
+// 서버 degraded 표면화(680114ad)로 새로 내려오는 인증/스냅샷 503도 dead-end 대신 결제창을 열어야 한다.
+assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"', "React payment fallback opens on temporary auth-status 503");
+assertContains(reactPaymentFallbackSource, 'normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"', "React payment fallback opens on degraded balance snapshot 503");
+assertContains(reactPaymentFallbackSource, 'normalizedCode === "AUTH_DB_UNAVAILABLE"', "React payment fallback opens on degraded auth-db 503");
+// degraded-503은 결제창을 열기 전에 먼저 재시도해 이용권 보유자의 무료 통과를 살린다(재시도-우선).
+assertContains(billingClientSource, "function isRetryableBillingInfraDegraded(", "React coin-gate has transient-degraded retry predicate");
+assertContains(billingClientSource, "isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)", "React coin-gate retries the request on transient degraded 503");
 
 // 인증 예열이 무한 대기하면 게이트가 '이용권 확인 중'에서 고착한다 — Promise.race 상한 회귀 방지.
 const reactAuthPrewarmSource = section(
