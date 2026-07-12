@@ -2725,6 +2725,16 @@ export default function NeoOperationRoomPage() {
                   </div>
                 ) : null}
                 {briefingRevealStep >= 5 && displayBriefing.sevenDayMission?.length ? (
+                  <NeoWarRoomAssetImage
+                    asset={NEO_PROLOGUE_LION}
+                    alt=""
+                    className={`${styles.missionSeal} ${styles.revealBlock}`}
+                    imageClassName={styles.missionSealImg}
+                    sizes="148px"
+                    style={{ background: "radial-gradient(circle at 50% 46%, rgba(232, 213, 163, 0.22), rgba(167, 139, 250, 0.1) 46%, transparent 68%)" }}
+                  />
+                ) : null}
+                {briefingRevealStep >= 5 && displayBriefing.sevenDayMission?.length ? (
                   <div className={`${styles.missionGrid} ${styles.revealBlock}`}>
                     <strong>7일 작전</strong>
                     {displayBriefing.sevenDayMission.map((item, idx, arr) => (
@@ -2757,6 +2767,16 @@ export default function NeoOperationRoomPage() {
                       </article>
                     ))}
                   </div>
+                ) : null}
+                {briefingRevealStep >= 6 && displayBriefing.realityCheckQuestions?.length ? (
+                  <NeoWarRoomAssetImage
+                    asset={NEO_PROLOGUE_LION}
+                    alt=""
+                    className={`${styles.missionSeal} ${styles.revealBlock}`}
+                    imageClassName={styles.missionSealImg}
+                    sizes="148px"
+                    style={{ background: "radial-gradient(circle at 50% 46%, rgba(232, 213, 163, 0.22), rgba(167, 139, 250, 0.1) 46%, transparent 68%)" }}
+                  />
                 ) : null}
                 {briefingRevealStep >= 7 && displayBriefing.badge?.description ? (
                   <div className={`${styles.badgeAward} ${styles.revealBlock}`}>
