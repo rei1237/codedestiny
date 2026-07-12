@@ -2514,7 +2514,13 @@
     var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
     var cached = _dpTakePaidPassGateResult(cacheKey);
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
-    var res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
+    var res;
+    try {
+      res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
+    } catch (passCheckError) {
+      // 네트워크/타임아웃 등으로 이용권 확인 자체가 실패 — '이용권 없음'으로 오인해 결제창으로 강등하지 않고 일시 오류로 표면화.
+      return { status: 'error', code: 'PASS_CHECK_UNAVAILABLE', error: passCheckError, requestId: requestId };
+    }
     var payload = res && res.payload ? res.payload : res;
     var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
     var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
@@ -2534,6 +2540,13 @@
       return result;
     }
     if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') return { status: 'payment_required', payload: payload, requestId: requestId };
+    // 진짜 미보유(402/미커버)만 결제창으로 유도한다. 5xx·degraded·인증 일시장애·비2xx 응답을 '이용권 없음'으로
+    // 오인해 결제창으로 강등하면 이용권 보유자가 결제창으로 세탁된다 — 정상 게이트(index.html PASS_APPLY_FAILED)와
+    // 동일하게 일시 오류로 구분해 결제창 대신 재시도로 유도한다.
+    var passCheckDegraded = !!(payload && (payload.degraded === true || (payload.data && payload.data.degraded === true)));
+    if (statusCode >= 500 || passCheckDegraded || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'BALANCE_SNAPSHOT_UNAVAILABLE' || (res && res.ok === false)) {
+      return { status: 'error', code: code || 'PASS_CHECK_UNAVAILABLE', payload: payload, requestId: requestId };
+    }
     return { status: 'payment_required', payload: payload, requestId: requestId };
   }
 
@@ -2587,6 +2600,13 @@
         }
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
           return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
+        }
+        if (passFirst && passFirst.status === 'error') {
+          // 이용권 확인이 일시적으로 실패 — 결제창으로 강등하지 않고 재시도하도록 안내한다(호출부 catch가 표면화).
+          var passUnavailableError = new Error('이용권 상태를 잠시 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+          passUnavailableError.code = passFirst.code || 'PASS_CHECK_UNAVAILABLE';
+          passUnavailableError.status = 503;
+          throw passUnavailableError;
         }
       }
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
