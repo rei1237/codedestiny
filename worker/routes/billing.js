@@ -5119,7 +5119,9 @@ const MEMBERSHIP_STATUS_PROBE_FEATURE_KEY = "membership-status-refresh";
 // membership-status-refresh 상태 조회: 가격표 없이 스냅샷에서 이용권 커버리지만 200으로 반환한다.
 // 응답 필드는 `_cdRefreshMembershipCoverage`의 unlock-status 성공 분기가 읽는 계약에 맞춘다.
 async function handleMembershipStatusProbe(request, env) {
-  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false });
+  // 이용권 상태 프로브는 unlockMap을 사용하지 않으므로 unlock 조회(프로필 스코프 2 RTT)를 건너뛴다.
+  // (handleSajuAnalysisEntitlements와 동일 패턴 — pass/월정석 커버리지만 필요.)
+  const data = await readBillingSnapshot(request, env, { seedLegacyCredit: false, includeUnlocks: false });
   if (data?.degraded === true) {
     return failure(
       503,

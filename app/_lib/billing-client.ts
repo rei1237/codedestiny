@@ -3207,6 +3207,42 @@ async function registerDeferredBillingUsage(
   return await parseBillingResponse<BillingCoinGateData>(response);
 }
 
+// 낙관적 pass 즉시 허용의 정확성 안전장치(정적 destiny-profile 경로와 동일 정책).
+// 백그라운드 coin-gate가 실제로는 미커버(만료 등)로 밝혀지면 잠시 낙관적 허용을 끄고 세션을 갱신한다.
+let optimisticPassDisabledUntil = 0;
+function isOptimisticPassTemporarilyDisabled() { return Date.now() < optimisticPassDisabledUntil; }
+function disableOptimisticPassBriefly() { optimisticPassDisabledUntil = Date.now() + 60_000; }
+
+// 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
+// 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 낙관적 허용을 잠시 끄고 세션을 갱신한다.
+async function recordMembershipPassInBackground(input: BillingCoinGateInput, attemptId: string) {
+  try {
+    const response = await authFetchBilling("/api/billing/coin-gate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...(input || {}), paymentMode: "MEMBERSHIP_PASS", forceDeduct: false, attemptId }),
+    });
+    const parsed = await parseBillingResponse<BillingCoinGateData>(response);
+    if (parsed.ok && parsed.data) {
+      invalidateBillingBalanceCache();
+      normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
+      emitBillingBalanceUpdated(parsed.data as BillingCoinGateData & Record<string, unknown>, "coin-gate");
+      return;
+    }
+    const code = String(parsed.error?.code || "").toUpperCase();
+    if (parsed.status === 402 || code === "MEMBERSHIP_PASS_NOT_COVERED" || code === "PAYMENT_REQUIRED") {
+      disableOptimisticPassBriefly();
+      try {
+        const { refreshAuth } = await import("./auth-store");
+        void refreshAuth({ force: true, silent: true });
+      } catch {}
+    }
+    // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+  } catch {
+    // 네트워크 실패 무시.
+  }
+}
+
 export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
@@ -3343,6 +3379,52 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       hasValidPass: Boolean(passFirstEligible),
       shouldShowPayment: Boolean(!passFirstEligible && knownCoinCost > 0 && input.forceDeduct !== false),
     });
+    // 낙관적 pass 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면(snapshotPassServerCheckFirst) coin-gate
+    // 왕복을 기다리지 않고 즉시 pass 통과를 반환하고, coin-gate는 백그라운드로 기록한다(정적 경로와 동일 정책).
+    // 정확성: 잔액은 실제 현재 값(pass는 무료라 불변), 백그라운드 미커버(402) 시 낙관적 허용 비활성화+세션 갱신.
+    if (snapshotPassServerCheckFirst && passAccessEligible && !explicitPaymentMode && input.forceDeduct !== false && !isOptimisticPassTemporarilyDisabled()) {
+      markPaymentRequestedOnce();
+      const optimisticTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
+      const optimisticFeatureKey = toText(input.featureKey || featureId);
+      const optimisticOverlay = resolvePaymentWaitOverlay("hasEntitlement", undefined, {
+        paymentMode: "MEMBERSHIP_PASS",
+        featureKey: featureId,
+        reason: input.reason,
+        accessType: "membership_pass",
+        passTier: optimisticTier,
+        subscriptionTier: optimisticTier,
+      });
+      emitPaidFeatureGate("update", {
+        featureId,
+        featureKey: featureId,
+        requestId: gateRequestId,
+        status: "hasEntitlement",
+        message: optimisticOverlay.message,
+        paymentMode: "MEMBERSHIP_PASS",
+        reason: input.reason,
+        accessType: "membership_pass",
+        passTier: optimisticTier,
+        subscriptionTier: optimisticTier,
+      });
+      void recordMembershipPassInBackground(input, activeAttempt.attemptId);
+      // payment-succeeded/callback 마커는 여기서 호출하지 않는다: 실제 결제(pass 적용·기록)는 백그라운드
+      // coin-gate에서 서버 검증과 함께 일어나므로, 검증 전 성공 마킹은 부정확하고 verify 가드(검증→성공 순서)를
+      // 위반한다. 낙관적 경로는 합성 grant만 반환하고, 이후 onPaid의 생성 마커가 진행 상태를 이어간다.
+      // 잔액은 낙관적 응답에 싣지 않는다(user.points는 폐지된 레거시 코인이라 읽지 않음). pass는 무료라 잔액이
+      // 변하지 않고, 백그라운드 coin-gate 성공 시 emitBillingBalanceUpdated가 서버 정본 잔액으로 UI를 갱신한다.
+      return {
+        ok: true,
+        status: 200,
+        data: {
+          freeBySubscription: true,
+          balance: null,
+          pricing: { cost: knownInputCoinCost, coinPrice: knownInputCoinCost, featureKey: optimisticFeatureKey },
+          consume: { accessType: "membership_pass", accessMethod: "PASS", paymentMode: "MEMBERSHIP_PASS", featureKey: optimisticFeatureKey, transactionId: `opt-pass-${gateRequestId}` },
+          subscriptionTier: optimisticTier,
+        } as unknown as BillingCoinGateData,
+        raw: {},
+      } as BillingResult<BillingCoinGateData>;
+    }
     if (eligibility) {
       const eligibilityPassReady = accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true);
       const eligibilityStatus: PaidFeatureGateRuntimeStatus = eligibilityPassReady

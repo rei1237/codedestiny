@@ -2569,6 +2569,33 @@
     return { status: 'granted', transactionId: txId, payload: payload || {}, access: granted };
   }
 
+  // 낙관적 pass 즉시 허용의 정확성 안전장치: 백그라운드 기록이 실제로는 미커버(만료 등)로 밝혀지면
+  // 잠시 낙관적 허용을 끄고(세션 갱신 전까지) 서버 판정으로 폴백시킨다.
+  var _dpOptimisticPassDisabledUntil = 0;
+  function _dpDisableOptimisticPassBriefly() { _dpOptimisticPassDisabledUntil = Date.now() + 60000; }
+  function _dpOptimisticPassDisabled() { return Date.now() < _dpOptimisticPassDisabledUntil; }
+
+  // 낙관적 즉시 허용 후 서버에 pass 사용을 기록(fire-and-forget). pass는 무료라 기록 실패해도 금전영향 0.
+  // 서버가 미커버(402)로 응답하면 로컬 스냅샷이 낡은 것이므로 세션을 갱신하고 낙관적 허용을 잠시 비활성화한다.
+  function _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId) {
+    try {
+      var bgRequestId = String(requestId || '').trim() || ('opt-pass-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8));
+      _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, bgRequestId, 'MEMBERSHIP_PASS')) })
+        .then(function(res) {
+          var payload = res && res.payload ? res.payload : res;
+          if (res && res.ok && _dpIsMembershipPassGrantedPayload(payload)) return; // 서버도 pass 확인 — 정합.
+          var statusCode = Number((res && res.status) || (payload && payload.status) || 0);
+          var code = String((payload && (payload.code || payload.errorCode)) || '').toUpperCase();
+          if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+            _dpDisableOptimisticPassBriefly();
+            try { _dpRefreshAuthSessionSilently({}); } catch (_) {}
+          }
+          // 5xx/degraded는 일시장애 — 무시(재시도 불필요).
+        })
+        .catch(function() {});
+    } catch (_) {}
+  }
+
   window.__cdApplyMembershipPassBeforePayment = window.__cdApplyMembershipPassBeforePayment || _dpApplyMembershipPassBeforePayment;
 
   if (typeof window._cdOpenPaidServiceGate !== 'function') {
@@ -2579,6 +2606,12 @@
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
       if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
+        // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복·오버레이·최소표시(550ms) 없이
+        // 즉시 통과하고 coin-gate는 백그라운드로 기록한다(정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정).
+        if (!_dpOptimisticPassDisabled() && _dpReadActiveMembershipCoverage(coinPrice)) {
+          _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
+          return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
+        }
         // 이용권 확인 중 표준 로딩 오버레이 노출(독립 페이지도 공용 심 경유로 표시).
         _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
         // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
