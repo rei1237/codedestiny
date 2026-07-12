@@ -157,7 +157,7 @@ assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/p
 assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
 assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
 assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
-assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp", "paid gate sprite uses honey fortune logo");
+assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png", "paid gate sprite uses branded mascot image");
 assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");
@@ -252,7 +252,7 @@ assertNotContains(paymentProcessingContextSource, 'document.body.style.overflow 
 const reactProviderStatusOverlaySource = section(paymentProcessingContextSource, "function resolvePaidFeatureStatusOverlay(", "function nowForPaidGate", "React provider paid status overlay");
 assertBefore(reactProviderStatusOverlaySource, "isMonthlyPaidFeatureDetail(resolvedDetail)", "isPassPaidFeatureDetail(resolvedDetail)", "React provider resolves monthly success before pass success");
 assertContains(reactProviderStatusOverlaySource, 'return { message: "월정석이 깃들고 있어요", mode: "payment-complete" };', "React provider monthly success copy");
-assertContains(loadingMessagesSource, 'title: "월정석이 깃들고 있어요"', "React payment loading monthly success title");
+assertContains(loadingMessagesSource, 'title: "연이의 월정석 · 깃들고 있어요"', "React payment loading monthly success title");
 assertNotContains(loadingMessagesSource, 'title: "이용권이 활성화되고 있어요"', "React payment loading must not show pass copy for monthly success");
 const reactProviderOpenSource = section(paymentProcessingContextSource, "const open = useCallback", "const update = useCallback", "React provider open");
 assertBefore(reactProviderOpenSource, "if (isExternalPaymentWindowStatus(status))", "if (paymentLoadingOwnsPaidFeatureStatus(status))", "React provider closes overlays before opening payment loading");
@@ -309,7 +309,7 @@ const fortuneTeaSubmitSource = section(
   "} catch (error) {",
   "fortune tea house submit flow"
 );
-assertBefore(fortuneTeaSubmitSource, "await beginFortuneTeaAccessGate", "postFortuneTeaConsultRequest({", "fortune tea house opens paid gate before consult API");
+assertBefore(fortuneTeaSubmitSource, "await beginFortuneTeaAccessGate", "postFortuneTeaConsultRequest(initialConsultBody", "fortune tea house opens paid gate before consult API");
 assertContains(fortuneTeaSubmitSource, "accessGateStarted = true", "fortune tea house tracks paid gate state");
 assertContains(fortuneTeaHouseSource, "await completeFortuneTeaAccessGate", "fortune tea house completes paid gate after access");
 assertContains(fortuneTeaHouseSource, "await failFortuneTeaAccessGate", "fortune tea house shows paid gate failure");

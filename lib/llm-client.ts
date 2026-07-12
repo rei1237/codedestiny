@@ -1,5 +1,5 @@
-import { withLLMCache } from "./llm-cache";
-import type { LLMCacheConfig } from "./llm-cache";
+import { withLLMCache } from "./llm-cache.ts";
+import type { LLMCacheConfig } from "./llm-cache.ts";
 
 export interface LLMRequest {
   prompt: string;
