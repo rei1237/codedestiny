@@ -536,6 +536,29 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
   }
 }
 
+// 표시용(잔량 캐시 키 등) 경량 인증: DB를 전혀 건드리지 않고 access 토큰(bearer→쿠키)의
+// JWT 서명만 로컬 검증해 userId를 얻는다. 유효한 토큰이 없으면 "" 반환(게스트 → 캐시 미사용).
+// 실제 인증/권한 판정에는 쓰지 말 것 — 토큰 유효성만 볼 뿐 유저 활성/탈퇴 여부는 확인하지 않는다.
+export async function peekAccessTokenUserId(request, env) {
+  const secret = getAccessTokenSecret(env);
+  if (!secret) return "";
+  const issuer = getJwtIssuer(env);
+  const audience = getJwtAudience(env);
+  const bearerToken = getHeaderBearerToken(request);
+  const accessCookieToken = cookieValue(request, ACCESS_COOKIE_NAME);
+  for (const token of [bearerToken, accessCookieToken]) {
+    if (!token) continue;
+    try {
+      const payload = await verifyJwt(token, secret, { issuer, audience });
+      const userId = extractTokenUserId(payload);
+      if (userId) return userId;
+    } catch (_) {
+      // 무효/만료 토큰은 조용히 다음 후보로 넘어간다(게스트 취급).
+    }
+  }
+  return "";
+}
+
 export async function requireUserFromRequest(request, env) {
   // surfaceDbInfraError: 로그인 사용자가 일시적 DB 장애로 확인이 안 될 때 null→확정 401(로그아웃)로
   // 뭉개지 않고 원본 infra 에러를 던진다. 진짜 게스트(토큰 없음/무효)는 여전히 null→401.
