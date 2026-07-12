@@ -222,6 +222,40 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     }];
   }
 
+  if (reportType === "geomancyOracle") {
+    return [
+      {
+        featureKey: "geomancy",
+        reason: "지오맨시 오라클 리딩",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "지오맨시 오라클 리딩",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "yogaGuruCourse") {
+    return [
+      {
+        featureKey: "yoga-guru-per-use",
+        reason: "요가 구루",
+        minCost: 30,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "요가 구루",
+        minCost: 30,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "sukuyoPastLifeReading") {
     return [
       {
@@ -1022,7 +1056,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  if (normalizedReportType === "celestialHarmony" && alternativeRules.length) {
+  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;

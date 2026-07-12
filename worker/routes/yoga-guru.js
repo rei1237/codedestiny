@@ -1,6 +1,9 @@
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { requireAuth } from "../lib/auth.js";
+import { requirePremiumReportAccess } from "../lib/access-control.js";
+import { withPdfFastDbEnv } from "../lib/pdf-runtime.js";
 
 function clean(value) {
   return String(value || "").trim();
@@ -303,6 +306,40 @@ async function handleGenerateYogaCourse(request, env) {
 
   if (!systemPrompt || !userPrompt) {
     return json({ ok: false, message: "systemPrompt와 userPrompt가 필요합니다." }, { status: 400 });
+  }
+
+  // 결제 확인을 Gemini 호출 이전에 서버에서 강제한다(클라 우회 직접 호출 시 무료 LLM 생성 차단).
+  let auth;
+  try {
+    auth = await requireAuth(request, env);
+  } catch (e) {
+    if (Number(e?.status) === 401) {
+      return json({ ok: false, code: "UNAUTHORIZED", message: "로그인 후 요가 구루를 이용해 주세요." }, { status: 401 });
+    }
+    throw e;
+  }
+  const access = await requirePremiumReportAccess(withPdfFastDbEnv(env), auth.userId, "yogaGuruCourse", {
+    ...(body || {}),
+    featureKey: "yoga-guru-per-use",
+    reportType: "yogaGuruCourse",
+    transactionId: clean(body?.transactionId),
+    purchaseId: clean(body?.purchaseId),
+    requestId: clean(body?.requestId),
+    sessionId: clean(body?.sessionId),
+    premiumAccessToken: clean(
+      request.headers.get("x-premium-access-token")
+      || body?.premiumAccessToken
+      || cookieValue(request, "cd_premium_access")
+      || "",
+    ) || undefined,
+    _accessRoute: "/api/yoga-guru",
+  });
+  if (!access?.ok) {
+    return json({
+      ok: false,
+      code: access?.code || "PAYMENT_REQUIRED",
+      message: Number(access?.status) === 401 ? "로그인 후 요가 구루를 이용해 주세요." : "결제 확인이 필요합니다.",
+    }, { status: Number(access?.status || 402) });
   }
 
   const prompt = [

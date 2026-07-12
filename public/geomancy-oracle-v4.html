@@ -801,6 +801,24 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 
 const GEOMANCY_COIN_COST = 50;
 const GEOMANCY_FEATURE_KEY = 'openGeomancyOracle';
+
+// 결제 증빙: 서버 게이트(requirePremiumReportAccess)가 최근 차감을 매칭하도록 생성 API에 forward한다.
+var geomancyPayEvidence = {};
+function _captureGeomancyEvidence(transactionId, payload) {
+  try {
+    var src = payload && typeof payload === 'object' ? payload : {};
+    var grant = src.accessGrant && typeof src.accessGrant === 'object' ? src.accessGrant : {};
+    var consume = src.consume && typeof src.consume === 'object' ? src.consume : {};
+    var tx = String(transactionId || src.transactionId || consume.transactionId || grant.transactionId || grant.purchaseId || grant.evidenceId || '').trim();
+    geomancyPayEvidence = {
+      transactionId: tx,
+      purchaseId: String(grant.purchaseId || src.purchaseId || tx || '').trim(),
+      requestId: String(src.requestId || grant.requestId || consume.requestId || '').trim(),
+      sessionId: String(src.sessionId || grant.sessionId || src.reportSessionId || '').trim(),
+      reportId: String(src.reportId || grant.reportId || '').trim(),
+    };
+  } catch (_e) { geomancyPayEvidence = {}; }
+}
 let geomancyPayingInFlight = false;
 
 function setGeomancyPaymentPending(show, message) {
@@ -848,6 +866,7 @@ function consumeGeomancyPerUseCoin() {
           '지오맨시 흙점 리딩',
           function(_transactionId, payload) {
             granted = true;
+            _captureGeomancyEvidence(_transactionId, payload);
             var source = payload && typeof payload === 'object' ? payload : {};
             var data = source.data && typeof source.data === 'object' ? source.data : {};
             var nextBalance = Number(source.balance ?? data.balance ?? (source.user && source.user.points) ?? (data.user && data.user.points));
@@ -1296,10 +1315,14 @@ function buildLocalCombinedOracle(causeData,flowData,judgeData,t){
 async function fetchOracle(q,cards,t){
   if(!cards||!cards.judge)return null;
   try{
+    var _authToken='';try{_authToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
+    const _headers={'Content-Type':'application/json'};
+    if(_authToken)_headers['Authorization']='Bearer '+_authToken;
     const r=await fetch('/api/oracle/geomancy',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
+      credentials:'include',
+      headers:_headers,
+      body:JSON.stringify(Object.assign({
         question:q,
         theme:t,
         cards:{
@@ -1307,7 +1330,7 @@ async function fetchOracle(q,cards,t){
           flow:toOracleCardPayload(cards.flow,t,'흐름'),
           judge:toOracleCardPayload(cards.judge,t,'신탁'),
         },
-      })
+      }, geomancyPayEvidence || {}))
     });
     if(!r.ok)return null;
     const data=await r.json();

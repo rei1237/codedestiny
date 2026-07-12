@@ -1429,6 +1429,23 @@ var _cdYogaLastTx = '';
 
 // 다른 회당 결제(관상·영국홍차 등)와 동일하게 공유 게이트를 그대로 호출한다.
 // 이용권 선검사 → 결제창(단건 KRW + 월정석)·완료 UI는 모두 공유 게이트가 렌더한다.
+// 결제 증빙: 서버 게이트(requirePremiumReportAccess)가 최근 차감을 매칭하도록 생성 API에 forward한다.
+var yogaPayEvidence = {};
+function _captureYogaEvidence(transactionId, payload) {
+  try {
+    var src = payload && typeof payload === 'object' ? payload : {};
+    var grant = src.accessGrant && typeof src.accessGrant === 'object' ? src.accessGrant : {};
+    var consume = src.consume && typeof src.consume === 'object' ? src.consume : {};
+    var tx = String(transactionId || src.transactionId || consume.transactionId || grant.transactionId || grant.purchaseId || grant.evidenceId || '').trim();
+    yogaPayEvidence = {
+      transactionId: tx,
+      purchaseId: String(grant.purchaseId || src.purchaseId || tx || '').trim(),
+      requestId: String(src.requestId || grant.requestId || consume.requestId || '').trim(),
+      sessionId: String(src.sessionId || grant.sessionId || '').trim(),
+    };
+  } catch (_e) { yogaPayEvidence = {}; }
+}
+
 async function _consumeMeditationCoin(cost, reason) {
   if (_isAdminMeditationSession()) return true;
 
@@ -1460,6 +1477,7 @@ async function _consumeMeditationCoin(cost, reason) {
     function done(v) { if (!settled) { settled = true; resolve(v); } }
     try {
       var gateResult = window._cdCoinGatePerUse(cost, reason, function (transactionId, payload) {
+        _captureYogaEvidence(transactionId, payload);
         syncYogaBilling(payload, transactionId);
         done(true);
       }, function () {
@@ -1474,6 +1492,7 @@ async function _consumeMeditationCoin(cost, reason) {
       if (gateResult && typeof gateResult.then === 'function') {
         gateResult.then(function (result) {
           if (result && result.status === 'granted') {
+            _captureYogaEvidence(result.transactionId, result.payload || result);
             syncYogaBilling(result.payload || result, result.transactionId);
             done(true);
           } else {
@@ -2096,13 +2115,17 @@ async function postYogaGuruOnce(url, payload, timeoutMs) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   try {
+    var _yogaAuthToken='';try{_yogaAuthToken=localStorage.getItem('fortune_auth_token')||'';}catch(_e){}
+    const _yogaHeaders={
+      'Content-Type': 'application/json',
+      'Accept': 'application/json, text/plain;q=0.9, */*;q=0.8',
+      'Cache-Control': 'no-store'
+    };
+    if(_yogaAuthToken)_yogaHeaders['Authorization']='Bearer '+_yogaAuthToken;
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json, text/plain;q=0.9, */*;q=0.8',
-        'Cache-Control': 'no-store'
-      },
+      credentials: 'include',
+      headers: _yogaHeaders,
       signal: controller.signal,
       body: JSON.stringify(payload)
     });
@@ -2139,7 +2162,7 @@ async function invokeYogaGuruApi(systemPrompt, userPrompt) {
   const candidates = [`${apiBase}/api/yoga-guru`, '/api/yoga-guru'];
   const endpointList = [...new Set(candidates.map((x) => String(x || '').replace(/\/$/, '')))].filter(Boolean);
 
-  const payload = { systemPrompt, userPrompt };
+  const payload = Object.assign({ systemPrompt, userPrompt }, yogaPayEvidence || {});
   const maxAttempts = 3;
   let lastErr = null;
 

@@ -333,6 +333,27 @@ for (const feature of reactGateFirstFeatureSources) {
   assertBefore(gateFirstFlowSource, feature.api, feature.checkout, `${feature.label} checks entitlement before checkout gate`);
 }
 
+// oracle(지오맨시)·yoga-guru: 서버가 결제를 Gemini(callGeminiText) 호출 이전에 검증해야 한다.
+// 클라 우회로 /api/oracle/geomancy·/api/yoga-guru를 직접 호출해 무료 LLM 생성하는 것을 차단.
+const oracleRouteSource = readFileSync(resolve(root, "worker/routes/oracle.js"), "utf8");
+const yogaGuruRouteSource = readFileSync(resolve(root, "worker/routes/yoga-guru.js"), "utf8");
+const accessControlSource = readFileSync(resolve(root, "worker/lib/access-control.js"), "utf8");
+const geomancyClientSource = readFileSync(resolve(root, "public/geomancy-oracle-v4.html"), "utf8");
+const yogaClientSource = readFileSync(resolve(root, "public/yoga-guru.html"), "utf8");
+const oracleHandlerSource = oracleRouteSource.slice(oracleRouteSource.indexOf("export async function handleOracleRoutes"));
+assertBefore(oracleHandlerSource, "requireAuth(request, env)", "buildGeomancyOracle(env, payload)", "oracle verifies auth before generating");
+assertBefore(oracleHandlerSource, "requirePremiumReportAccess(", "buildGeomancyOracle(env, payload)", "oracle verifies payment before generating");
+const yogaHandlerSource = yogaGuruRouteSource.slice(yogaGuruRouteSource.indexOf("async function handleGenerateYogaCourse"));
+assertBefore(yogaHandlerSource, "requireAuth(request, env)", "callGeminiText", "yoga-guru verifies auth before Gemini");
+assertBefore(yogaHandlerSource, "requirePremiumReportAccess(", "callGeminiText", "yoga-guru verifies payment before Gemini");
+assertContains(accessControlSource, 'reportType === "geomancyOracle"', "access-control has geomancy payment rule");
+assertContains(accessControlSource, 'reportType === "yogaGuruCourse"', "access-control has yoga payment rule");
+assertContains(accessControlSource, '["celestialHarmony", "geomancyOracle", "yogaGuruCourse"].includes(normalizedReportType)', "recent-payment-window fallback covers geomancy/yoga");
+assertContains(geomancyClientSource, "geomancyPayEvidence", "geomancy client forwards payment evidence");
+assertContains(geomancyClientSource, "credentials:'include'", "geomancy client sends auth credentials");
+assertContains(yogaClientSource, "yogaPayEvidence", "yoga client forwards payment evidence");
+assertContains(yogaClientSource, "credentials: 'include'", "yoga client sends auth credentials");
+
 for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, 'id="cd-main-shell-critical-v20260604"', "critical CSS marker mirrored");
   assertContains(source, 'data-marker="moonstone-pass-ui-v20260605-starlight-cta"', "glass CSS marker mirrored");
