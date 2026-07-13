@@ -126,8 +126,8 @@ JSON 외 어떤 텍스트도, 마크다운 블록도 포함하지 않습니다.
       "body": "600~800자 산문. 현재 다샤 행성의 의미, 이 주기가 삶의 어느 영역을 활성화하는지, 앞으로 올 다샤의 예고를 통합 서술. '지금 당신은 ~의 계절을 살고 있습니다'로 시작. 구체적인 연도와 행성 이름 포함."
     },
     "karma": {
-      "title": "業 — 이 생의 카르마적 과제",
-      "body": "500~700자 산문. 나크샤트라 지배 행성들의 조합에서 읽히는 이 생의 반복 패턴과 영혼의 과제를 서술. 베다 점성술의 다르마(Dharma)·목샤(Moksha) 관점에서 서술."
+      "title": "業 — 라후·케투가 가리키는 이 생의 카르마",
+      "body": "600~800자 산문. 라후(Rahu)의 라시·나크샤트라·하우스를 '이번 생에서 집착하며 확장·성장해야 할 영역'으로, 케투(Ketu)의 라시·나크샤트라·하우스를 '전생에서 이미 익숙해 내려놓아야 할 카르마'로 명확히 대비하여 통합 서술. 두 축이 어느 삶의 무대(하우스)에서 당기고 미는지 구체적으로 짚고, 나크샤트라 지배 행성 조합도 함께 고려. 베다 점성술의 다르마(Dharma)·목샤(Moksha) 관점에서 마무리."
     },
     "topic": {
       "title": "問 — 지금 질문에 대한 답",
@@ -149,7 +149,7 @@ JSON 외 어떤 텍스트도, 마크다운 블록도 포함하지 않습니다.
 - '~할 수 있습니다' 한 단락 2회 이상 금지
 - 불릿·번호 나열 금지
 - 마지막 질문 유도 절대 금지
-- 전체 분량: 3,500~5,000자
+- 전체 분량: 3,600~5,100자
 `.trim();
 }
 
@@ -170,12 +170,24 @@ function buildVedicUserPrompt(name: string, gender: string, chart: any, topic: s
 - 나크샤트라: ${chart.sun.nakshatra.name} ${chart.sun.nakshatra.pada}파다
 - 나크샤트라 지배성: ${chart.sun.nakshatra.lord}
 - 상징: ${chart.sun.nakshatra.symbol}
+- 하우스: ${chart.sun.house}번째 바바(Bhava)
 
 【달(Chandra)】
 - 라시: ${chart.moon.rashi.name}  |  황경: ${chart.moon.degree}°
 - 나크샤트라: ${chart.moon.nakshatra.name} ${chart.moon.nakshatra.pada}파다
 - 나크샤트라 지배성: ${chart.moon.nakshatra.lord}
 - 상징: ${chart.moon.nakshatra.symbol}
+- 하우스: ${chart.moon.house}번째 바바(Bhava)
+
+【라후(Rahu) — 이번 생의 확장 방향】
+- 라시: ${chart.rahu.rashi.name}  |  황경: ${chart.rahu.degree}°
+- 나크샤트라: ${chart.rahu.nakshatra.name} ${chart.rahu.nakshatra.pada}파다 (지배성 ${chart.rahu.nakshatra.lord})
+- 하우스: ${chart.rahu.house}번째 바바(Bhava)
+
+【케투(Ketu) — 전생에서 이어진 카르마】
+- 라시: ${chart.ketu.rashi.name}  |  황경: ${chart.ketu.degree}°
+- 나크샤트라: ${chart.ketu.nakshatra.name} ${chart.ketu.nakshatra.pada}파다 (지배성 ${chart.ketu.nakshatra.lord})
+- 하우스: ${chart.ketu.house}번째 바바(Bhava)
 
 【Vimshottari Dasha】
 - 현재 주기 행성: ${chart.dasha.currentLord}

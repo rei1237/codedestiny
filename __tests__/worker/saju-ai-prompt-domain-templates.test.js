@@ -85,7 +85,7 @@ describe("Saju AI prompt domain templates", () => {
       domain: "life_direction",
     });
 
-    expect(built.promptVersion).toBe("saju-myeongsik-ai-v4");
+    expect(built.promptVersion).toBe("saju-myeongsik-ai-v5");
     expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "壬")?.tenGod).toBe("상관");
     expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸")?.tenGod).toBe("식신");
     expect(built.factCard).toContain("壬(임):상관");
@@ -169,5 +169,68 @@ describe("Saju AI prompt domain templates", () => {
       sajuResult: buildBaseSajuResult(),
       domain: "unknown_domain",
     })).toThrow("UNKNOWN_SAJU_DOMAIN");
+  });
+
+  test("격국/십이운성이 fact card에 텍스트로 주입된다 (甲일간 寅월 → 건록격)", () => {
+    const built = sajuPrompt.buildSajuAIPromptWithDomain({
+      question: "내 명식의 전체 흐름과 격국을 자세히 알려줘",
+      sajuResult: buildBaseSajuResult(),
+      domain: "life_direction",
+    });
+
+    // 甲 일간 · 월지 寅(본기 甲=비견) → 건록 자리 → 건록격
+    const gyeok = built.factSnapshot.majorStructures.gyeokguk;
+    expect(gyeok.finalGyeokguk).toBe("건록격");
+    expect(gyeok.finalType).toBe("특수격");
+    expect(built.factCard).toContain("10. 격국");
+    expect(built.factCard).toContain("십이운성");
+    // 년지 未는 甲 기준 묘
+    expect(built.factCard).toContain("십이운성 묘");
+    // 결속값·도메인 라인에 격국이 실림
+    expect(built.prompt).toContain("건록격");
+  });
+
+  test("월지 정기 관성이 투출되면 정관격/편관격으로 잡는다", () => {
+    const base = buildBaseSajuResult();
+    // 甲 일간, 월지 酉(본기 辛=정관), 辛을 년간에 투출
+    base.pillars = {
+      y: { g: "辛", j: "未" },
+      m: { g: "乙", j: "酉" },
+      d: { g: "甲", j: "辰", gE: "목" },
+      h: { g: "戊", j: "辰" },
+    };
+    const built = sajuPrompt.buildSajuAIPromptWithDomain({
+      question: "내 명식의 격국과 직업 방향을 알려줘",
+      sajuResult: base,
+      domain: "career",
+    });
+    const gyeok = built.factSnapshot.majorStructures.gyeokguk;
+    expect(gyeok.finalGyeokguk).toBe("정관격");
+    expect(gyeok.finalType).toBe("일반격");
+  });
+
+  test("종격이면 jong.name을 그대로 격국으로 존중한다", () => {
+    const base = buildBaseSajuResult();
+    base.jong = { isJong: true, name: "종재격" };
+    const built = sajuPrompt.buildSajuAIPromptWithDomain({
+      question: "내 명식이 종격인지와 그 흐름을 알려줘",
+      sajuResult: base,
+      domain: "life_direction",
+    });
+    const gyeok = built.factSnapshot.majorStructures.gyeokguk;
+    expect(gyeok.finalGyeokguk).toBe("종재격");
+    expect(gyeok.finalType).toBe("특수격");
+  });
+
+  test("power/jong 없이 buildSajuAdvancedFactors를 호출해도 격국이 안전하게 반환된다", () => {
+    const base = buildBaseSajuResult();
+    delete base.power;
+    delete base.jong;
+    const advanced = sajuPrompt.buildSajuAdvancedFactors(base, undefined);
+    expect(advanced.gyeokguk).toBeDefined();
+    expect(typeof advanced.gyeokguk.finalGyeokguk).toBe("string");
+    expect(Array.isArray(advanced.twelveLifeStages)).toBe(true);
+    // 용신/기신 정보가 없으면 격국 활성화 시기는 참고용 note로 대체
+    expect(advanced.gyeokguk.luckTiming.note).toContain("참고용");
   });
 });

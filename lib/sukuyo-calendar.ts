@@ -41,6 +41,29 @@ export type SukuyoCalendarDay = {
   love: string;
   workMoney: string;
   advice: string;
+  // 로그인 + 프로필 본명수가 있을 때만 채워지는 그날의 개인화 길흉(서버 계산).
+  dayFortune?: SukuyoDayFortune | null;
+};
+
+export type SukuyoDayFortuneTier =
+  | "pivotal"
+  | "great-auspicious"
+  | "auspicious"
+  | "caution"
+  | "great-caution";
+
+export type SukuyoDayFortune = {
+  relationType: string;
+  relationTypeHan: string;
+  aRole: string;
+  bRole: string;
+  roleHan: string;
+  forwardDistance: number;
+  tier: SukuyoDayFortuneTier;
+  tierLabel: string;
+  score: number;
+  headline: string;
+  advice: string;
 };
 
 export type SukuyoCalendarMonth = {
@@ -51,6 +74,8 @@ export type SukuyoCalendarMonth = {
   today: string;
   firstWeekdayIndex: number;
   daysInMonth: number;
+  // 뷰어가 로그인 + 프로필 본명수를 가져 개인화 길흉이 채워졌는지 여부.
+  viewerHasMansion?: boolean;
   days: SukuyoCalendarDay[];
 };
 

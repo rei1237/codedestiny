@@ -107,6 +107,9 @@ export default function TermsContent() {
           Code Destiny의 유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제입니다. 월정석은 이용권 또는 이벤트로 지급되는 보너스 혜택이며 별도 구매·충전 상품이 아니므로 현금 환불 대상 결제 상품으로 보지 않습니다.
         </p>
         <p>
+          <strong>재화 등의 공급시기: 모든 유료 서비스는 결제(대금 지급)가 완료되어 승인이 확인되는 즉시 제공됩니다.</strong> 별도의 배송 절차 없이 결제 승인 시점부터 서비스 이용이 시작되며, 30일 이용권 역시 결제 검증이 완료된 시각부터 즉시 적용됩니다. Supply timing: all paid services are provided immediately upon confirmed payment approval, with no separate delivery step; the 30-day pass likewise takes effect immediately once payment is verified.
+        </p>
+        <p>
           월정석은 <strong>각 지급분이 지급된 날로부터 30일간만 유효</strong>하며, 그 기간 내에 사용하지 않은 지급분은 자동으로 소멸합니다. 여러 번 나눠 지급받은 월정석은 각 지급분이 자기 지급일을 기준으로 개별 만료하고, 사용 시에는 먼저 만료되는(오래된) 지급분부터 차감됩니다. 소멸된 월정석은 복구되지 않으며 현금 환불 대상이 아닙니다.
         </p>
         <p>

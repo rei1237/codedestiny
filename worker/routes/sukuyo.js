@@ -1,8 +1,9 @@
 import { Solar } from "lunar-javascript";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { requireAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, requireAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
+import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import {
   CONTENT_ENTITLEMENT_SOURCES,
@@ -176,7 +177,7 @@ function buildSukuyoCalendarInterpretation(sukuyo = {}) {
   };
 }
 
-function buildSukuyoCalendarDay(year, month, day, todayKey) {
+function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = null) {
   const solar = Solar.fromYmdHms(year, month, day, 12, 0, 0);
   const lunar = solar.getLunar();
   const lunarMonthRaw = Number(lunar.getMonth());
@@ -217,15 +218,17 @@ function buildSukuyoCalendarDay(year, month, day, todayKey) {
     love: reading.love,
     workMoney: reading.workMoney,
     advice: reading.advice,
+    // 본명수(로그인+프로필)가 있을 때만 그날의 개인화 길흉을 붙인다. 없으면 null.
+    dayFortune: Number.isInteger(myMansionIndex) ? judgeDayFortune(myMansionIndex, mansionIndex) : null,
   };
 }
 
-function buildSukuyoCalendarMonth(yearInput, monthInput) {
+function buildSukuyoCalendarMonth(yearInput, monthInput, myMansionIndex = null) {
   const { year, month } = normalizeSukuyoCalendarYearMonth(yearInput, monthInput);
   const today = getSukuyoCalendarTodayKey();
   const daysInMonth = getSukuyoCalendarDaysInMonth(year, month);
   const days = Array.from({ length: daysInMonth }, (_, index) =>
-    buildSukuyoCalendarDay(year, month, index + 1, today)
+    buildSukuyoCalendarDay(year, month, index + 1, today, myMansionIndex)
   );
   return {
     year,
@@ -235,14 +238,39 @@ function buildSukuyoCalendarMonth(yearInput, monthInput) {
     today,
     firstWeekdayIndex: getSukuyoCalendarWeekdayIndex(year, month, 1),
     daysInMonth,
+    viewerHasMansion: Number.isInteger(myMansionIndex),
     days,
   };
 }
 
-async function handleSukuyoCalendar(request) {
+// 로그인 + 프로필 생년월일이 있으면 본명수(27수) 인덱스를 도출. 익명이거나 DB 블립이면 null.
+// 달력은 공개 화면이므로 인증/DB 실패로 절대 깨지지 않게 전부 삼킨다.
+async function resolveSukuyoViewerMansionIndex(request, env) {
+  try {
+    const auth = await getOptionalUserFromRequest(request, env);
+    if (!auth?.userId) return null;
+    await connectDb(env);
+    const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+    const profileId = clean(user?.destinyProfilesCurrentId);
+    const profile = profileId
+      ? await ProfileCard.findOne({ userId: auth.userId, profileId }).lean()
+      : await ProfileCard.findOne({ userId: auth.userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+    const lunar = resolveSukuyoLunarFromProfile(profile);
+    if (!lunar) return null;
+    const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" });
+    const index = Number(natal?.index);
+    return Number.isInteger(index) && index >= 0 && index <= 26 ? index : null;
+  } catch (error) {
+    console.warn("[sukuyo-calendar-personalize-skip]", error?.message || error);
+    return null;
+  }
+}
+
+async function handleSukuyoCalendar(request, env) {
   try {
     const url = new URL(request.url);
-    const calendar = buildSukuyoCalendarMonth(url.searchParams.get("year"), url.searchParams.get("month"));
+    const myMansionIndex = await resolveSukuyoViewerMansionIndex(request, env);
+    const calendar = buildSukuyoCalendarMonth(url.searchParams.get("year"), url.searchParams.get("month"), myMansionIndex);
     return json({
       ok: true,
       ...calendar,
@@ -2255,7 +2283,7 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
 
     if (path === "/calendar") {
       if (method !== "GET") return methodNotAllowed();
-      return await handleSukuyoCalendar(request);
+      return await handleSukuyoCalendar(request, env);
     }
 
     if (path === "/yearly-fortune") {

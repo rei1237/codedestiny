@@ -381,7 +381,7 @@ var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
     "sq_7471_prop_label": "영친",
     "sq_7480_prop_label": "업태",
     "sq_7489_prop_label": "우쇠",
-    "sq_7498_prop_label": "위성",
+    "sq_7498_prop_label": "성위",
     "sq_7507_prop_label": "안괴",
     "sq_7774_attr_aria_label": "기본 숙요점 결과 보기",
     "sq_8402_attr_aria_label": "숙요 본성 심화 해석",
@@ -8547,7 +8547,7 @@ function syBuildBasicReading(canonicalData, sData, daily, guardian) {
       },
       {
         label: _sajuQuantumText("sq_7498_prop_label"),
-        han: '危成',
+        han: '成危',
         essence: '서로 다른 관점이 현실의 성취를 자극하는 인연입니다.',
         light: '일, 목표, 생활 기반을 함께 다룰 때 서로의 부족한 면을 보완합니다.',
         shadow: '속도와 판단 기준이 어긋나면 가까이 있어도 거리감이 생길 수 있습니다.',
@@ -8639,7 +8639,7 @@ function syNormalizeRelationMiniMapLabel(label) {
   if (raw.indexOf('영친') >= 0 || raw.indexOf('榮親') >= 0 || raw.indexOf('栄親') >= 0) return '영친';
   if (raw.indexOf('업태') >= 0 || raw.indexOf('業胎') >= 0) return '업태';
   if (raw.indexOf('우쇠') >= 0 || raw.indexOf('友衰') >= 0) return '우쇠';
-  if (raw.indexOf('위성') >= 0 || raw.indexOf('성위') >= 0 || raw.indexOf('危成') >= 0) return '위성';
+  if (raw.indexOf('성위') >= 0 || raw.indexOf('위성') >= 0 || raw.indexOf('成危') >= 0 || raw.indexOf('危成') >= 0) return '성위';
   if (raw.indexOf('안괴') >= 0 || raw.indexOf('安壞') >= 0) return '안괴';
   if (raw.indexOf('명') >= 0 || raw.indexOf('命') >= 0) return '명';
   return raw;
@@ -10529,7 +10529,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         var isDriving = [4, 13, 22].includes(D);
         var mg5 = magnetism(tier, 65);
         base = {
-          type: isDriving ? '위성(危成) — 내가 이끄는 동맹' : '위성(危成) — 상대가 이끄는 동맹',
+          type: isDriving ? '성위(成危) — 내가 이끄는 동맹' : '성위(成危) — 상대가 이끄는 동맹',
           typeLabel: isDriving ? '나의 드라이브 · 成' : '상대의 드라이브 · 成',
           stamp: isDriving ? '주도지합 (主導之合)' : '수행지합 (隨行之合)',
           score: 65, temperature: 58, magnetism: mg5,
@@ -12150,7 +12150,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       caution: '불편한 감정을 미루면 거리감으로 번질 수 있습니다. 다정함과 솔직함을 함께 쓰는 대화 습관이 필요합니다.'
     },
     seongwi: {
-      label: '위성(危成)',
+      label: '성위(成危)',
       badgeDesc: '목표 지향의 동맹형 인연',
       lead: '함께 목표를 향할 때 빛나는 관계입니다. 역할 분담이 선명할수록 시너지가 강해지며, 결과를 만들어내는 힘이 큽니다.',
       firstMeet: '상대의 추진력이나 실행 방식에 빠르게 눈길이 갑니다. 감정보다 가능성을 먼저 보는 만남입니다.',
@@ -12539,8 +12539,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       '친': { base: 82, type: '영친 안정월', focus: '보호와 신뢰', relation: '관계에서는 돌봄과 감사 표현이 인연을 깊게 만듭니다.', work: '일과 돈은 기존 자원, 단골, 익숙한 역할에서 안정됩니다.', caution: '편안함에 기대어 필요한 결정을 늦추지 마세요.' },
       '우': { base: 70, type: '우쇠 교류월', focus: '대화와 조율', relation: '관계에서는 가벼운 대화가 뜻밖의 문을 엽니다.', work: '일과 돈은 정보 교환과 일정 조율에서 실마리가 생깁니다.', caution: '말이 많아질수록 핵심 약속은 짧게 남기세요.' },
       '쇠': { base: 58, type: '우쇠 정리월', focus: '거리와 회복', relation: '관계에서는 무리한 친밀감보다 편안한 거리가 복을 지킵니다.', work: '일과 돈은 보류, 정산, 재배치가 유리합니다.', caution: '감정의 피로를 성급한 결론으로 바꾸지 마세요.' },
-      '성': { base: 78, type: '위성 성취월', focus: '성과와 역할', relation: '관계에서는 역할을 분명히 나눌수록 신뢰가 살아납니다.', work: '일과 돈은 마감, 발표, 계약처럼 결과가 보이는 일에 힘이 붙습니다.', caution: '성과 욕심이 사람의 마음을 앞지르지 않게 하세요.' },
-      '위': { base: 62, type: '위성 조심월', focus: '판단과 균형', relation: '관계에서는 기대치를 낮추고 확인 질문을 부드럽게 건네세요.', work: '일과 돈은 큰 확장보다 조건 검토와 위험 분리가 먼저입니다.', caution: '확신이 약한 일은 하룻밤 더 두고 결정하세요.' },
+      '성': { base: 78, type: '성위 성취월', focus: '성과와 역할', relation: '관계에서는 역할을 분명히 나눌수록 신뢰가 살아납니다.', work: '일과 돈은 마감, 발표, 계약처럼 결과가 보이는 일에 힘이 붙습니다.', caution: '성과 욕심이 사람의 마음을 앞지르지 않게 하세요.' },
+      '위': { base: 62, type: '성위 조심월', focus: '판단과 균형', relation: '관계에서는 기대치를 낮추고 확인 질문을 부드럽게 건네세요.', work: '일과 돈은 큰 확장보다 조건 검토와 위험 분리가 먼저입니다.', caution: '확신이 약한 일은 하룻밤 더 두고 결정하세요.' },
       '안': { base: 54, type: '안괴 경계월', focus: '감정 파동 관리', relation: '관계에서는 가까워질수록 말의 온도를 낮추는 것이 좋습니다.', work: '일과 돈은 충동적 변경보다 손실 차단이 우선입니다.', caution: '불안이 올라올수록 증거와 감정을 분리해 보세요.' },
       '괴': { base: 46, type: '안괴 재정비월', focus: '중단과 재설계', relation: '관계에서는 억지 화해보다 침묵의 시간을 두는 편이 낫습니다.', work: '일과 돈은 무리한 추진을 멈추고 구조를 다시 짜야 합니다.', caution: '강한 말, 큰 지출, 즉흥 약속은 피하세요.' },
       '업': { base: 60, type: '업태 숙제월', focus: '반복 인연과 책임', relation: '관계에서는 오래된 패턴이 다시 올라오니 같은 반응을 반복하지 마세요.', work: '일과 돈은 밀린 책임을 정리할 때 다음 문이 열립니다.', caution: '남의 몫까지 떠안지 않도록 경계를 세우세요.' },
@@ -13715,7 +13715,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var relationKey = syRelationKeyFromType(syRelationTextFromRel(rel));
     if (relationKey === 'ankai') return '安壞';
     if (relationKey === 'usei') return '友衰';
-    if (relationKey === 'seongwi') return '危成';
+    if (relationKey === 'seongwi') return '成危';
     if (relationKey === 'yeongchin') return '榮親';
     if (relationKey === 'life') return '命';
     if (relationKey === 'taegeuk') return '業胎';

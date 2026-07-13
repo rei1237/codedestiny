@@ -40,6 +40,8 @@
       monthlyAppliedOverlay: '월정석 사용이 완료되었습니다.\n보유한 월정석으로 이번 콘텐츠를 이용합니다.\n바로 열어드릴게요.',
       paymentCompleteOverlay: '결제가 완료되었습니다.\n콘텐츠를 여는 중입니다.\n잠시만 기다려 주세요.',
       subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
+      serviceTermDisclaimer: '결제 완료 후 즉시 서비스가 제공됩니다. 구매한 서비스는 결제가 확인되는 순간부터 이용이 시작됩니다.',
+      paymentBeforeWarning: '⚠️ 이 서비스는 결제 완료 후 즉시 제공되며, 구매 확인 후에는 환불이 불가능합니다.',
       openProfileList: '프로필 목록 열기',
       profileCardManage: '프로필 카드 관리',
       loginRequiredConfirm: '🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?',
@@ -53,6 +55,8 @@
       monthlyAppliedOverlay: 'Your Moonlight Stones have been used.\nThis content is unlocked with your Moonlight Stones.\nOpening it now.',
       paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
       subscriptionIncluded: 'Using your pass with no additional payment.',
+      serviceTermDisclaimer: 'The service is provided immediately upon payment completion. Your purchased service begins the moment payment is confirmed.',
+      paymentBeforeWarning: '⚠️ This service is provided immediately upon payment completion, and refunds are not possible after purchase confirmation.',
       openProfileList: 'Open profile list',
       profileCardManage: 'Manage profile cards',
       loginRequiredConfirm: '🔒 Profile cards can only be created after login.\nMove to the login page?',
@@ -66,6 +70,8 @@
       monthlyAppliedOverlay: '月精石の使用が完了しました。\nこのコンテンツはお持ちの月精石で利用します。\nすぐに開きます。',
       paymentCompleteOverlay: '決済が完了しました。\nコンテンツを開いています。\n少々お待ちください。',
       subscriptionIncluded: '利用券で追加決済なしに利用します。',
+      serviceTermDisclaimer: '決済完了後、サービスが即座に提供されます。購入したサービスは、決済が確認された時点から利用が開始されます。',
+      paymentBeforeWarning: '⚠️ このサービスは決済完了後に即座に提供されるため、購入確認後の返金はできません。',
       openProfileList: 'プロフィール一覧を開く',
       profileCardManage: 'プロフィールカード管理',
       loginRequiredConfirm: '🔒 プロフィールカードはログイン後にのみ作成できます。\nログインページへ移動しますか？',
@@ -79,6 +85,8 @@
       monthlyAppliedOverlay: '月精石使用完成。\n本内容将使用您持有的月精石。\n即将为您开启。',
       paymentCompleteOverlay: '支付完成。\n正在为您开启内容。\n请稍候。',
       subscriptionIncluded: '使用券已生效，无需额外付款。',
+      serviceTermDisclaimer: '付款完成后，服务将立即提供。购买的服务在付款确认的那一刻开始使用。',
+      paymentBeforeWarning: '⚠️ 本服务在完成付款后立即提供，购买确认后无法退款。',
       openProfileList: '打开个人资料列表',
       profileCardManage: '管理个人资料卡',
       loginRequiredConfirm: '🔒 个人资料卡只能在登录后创建。\n要前往登录页面吗？',
@@ -92,6 +100,8 @@
       monthlyAppliedOverlay: '月精石使用完成。\n本內容將使用您持有的月精石。\n即將為您開啟。',
       paymentCompleteOverlay: '付款完成。\n正在為您開啟內容。\n請稍候。',
       subscriptionIncluded: '使用券已生效，無需額外付款。',
+      serviceTermDisclaimer: '付款完成後，服務將立即提供。購買的服務在付款確認的那一刻開始使用。',
+      paymentBeforeWarning: '⚠️ 本服務在完成付款後立即提供，購買確認後無法退款。',
       openProfileList: '開啟個人資料列表',
       profileCardManage: '管理個人資料卡',
       loginRequiredConfirm: '🔒 個人資料卡只能在登入後建立。\n要前往登入頁面嗎？',
@@ -6439,12 +6449,7 @@
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        var _vdTarget = '/vedic-astrology.html';
-        try {
-          var _vp = encodeURIComponent(JSON.stringify(forVedic));
-          _vdTarget += (_vdTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;
-        } catch (_) {}
-        window.location.href = _vdTarget;
+        window.location.href = '/vedic/jyotish';
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
@@ -7070,7 +7075,8 @@
       '#cdStandalonePaymentChoice .cdpc-moonbal-refresh:hover{background:rgba(214,166,75,.2);}',
       '#cdStandalonePaymentChoice .cdpc-moonbal-refresh:disabled{opacity:.55;cursor:progress;}',
       '#cdStandalonePaymentChoice .cdpc-cancel{display:block;width:100%;margin-top:6px;padding:11px;border-radius:10px;border:1px solid rgba(255,255,255,.14);background:transparent;color:rgba(244,236,223,.66);font-size:13px;cursor:pointer;}',
-      '#cdStandalonePaymentChoice .cdpc-cancel:hover{color:#f4ecdf;}'
+      '#cdStandalonePaymentChoice .cdpc-cancel:hover{color:#f4ecdf;}',
+      '#cdStandalonePaymentChoice .cdpc-legal{margin:10px 0 0;font-size:11px;line-height:1.42;color:rgba(244,236,223,.56);word-break:keep-all;}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -7104,6 +7110,7 @@
             '<span class="cdpc-moonbal-text" data-cdpc-moonbal-text>월정석 잔량을 확인하고 있습니다.</span>' +
             '<button type="button" class="cdpc-moonbal-refresh" data-cdpc="monthly-refresh">월정석 재조회</button>' +
           '</div>' +
+          '<p class="cdpc-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
           '<button type="button" class="cdpc-cancel" data-cdpc="cancel">닫기</button>' +
         '</div>';
       var subEl = root.querySelector('.cdpc-sub');

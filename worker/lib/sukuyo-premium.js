@@ -1,3 +1,8 @@
+import {
+  normalizeIndex,
+  relationFromForwardDistance,
+} from "./sukuyo-relation-core.js";
+
 const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const SUKUYO_MANSIONS = [
@@ -38,15 +43,6 @@ const SUKUYO_FORBIDDEN_REPEATED_PHRASES = [
   "오늘부터 7일 동안은 큰 결심보다 작은 반복을 우선하세요.",
   "1주차에는 관찰, 2주차에는 정리, 3주차에는 실험, 4주차에는 고정이 핵심입니다.",
 ];
-
-const SUKUYO_RELATION_HAN = {
-  "명": "命",
-  "업태": "業胎",
-  "영친": "榮親",
-  "안괴": "安壞",
-  "우쇠": "友衰",
-  "위성": "危成",
-};
 
 const SUKUYO_PERSONAL_CHAPTER_META = [
   { key: "P1", num: 1, title: "본명숙 원형 해독 — 나의 27숙 정체성", subtitle: "사용자의 본명숙 자체를 정확하게 설명" },
@@ -109,12 +105,6 @@ function toDateString(year, month, day) {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-function normalizeIndex(index) {
-  const n = Number(index);
-  if (!Number.isFinite(n)) return null;
-  return ((Math.floor(n) % 27) + 27) % 27;
-}
-
 function getSukuyoByIndex(index) {
   const idx = normalizeIndex(index);
   return idx == null ? null : SUKUYO_MANSIONS[idx] || null;
@@ -139,29 +129,6 @@ function buildSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, options = {}) {
     isLeapMonth: Boolean(options.isLeapMonth),
     source: String(options.source || "kasi-api"),
   };
-}
-
-function relationFromForwardDistance(forwardDistance) {
-  const d = normalizeIndex(forwardDistance);
-  if (d == null) return null;
-
-  if (d === 0) return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
-  if ([9].includes(d)) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "업", bRole: "태" };
-  if ([18].includes(d)) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "태", bRole: "업" };
-
-  if ([1, 10, 19].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "영", bRole: "친" };
-  if ([8, 17, 26].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "친", bRole: "영" };
-
-  if ([2, 11, 20].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "우", bRole: "쇠" };
-  if ([7, 16, 25].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "쇠", bRole: "우" };
-
-  if ([3, 12, 21].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "안", bRole: "괴" };
-  if ([6, 15, 24].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "괴", bRole: "안" };
-
-  if ([4, 13, 22].includes(d)) return { relationType: "위성", relationTypeHan: SUKUYO_RELATION_HAN["위성"], aRole: "위", bRole: "성" };
-  if ([5, 14, 23].includes(d)) return { relationType: "위성", relationTypeHan: SUKUYO_RELATION_HAN["위성"], aRole: "성", bRole: "위" };
-
-  return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
 }
 
 function distanceLabelByRule(shortestDistance, relationType) {
@@ -256,7 +223,7 @@ function buildRoleActionGuide(relationType, aRole, bRole, shortestDistance, forw
   } else if (relationType === "우쇠") {
     meAction = `A(${aRole})는 불편 감정을 미루지 말고 짧은 체크인으로 해소하세요.`;
     otherAction = `B(${bRole})는 정서적 안정 신호를 반복해 피로를 낮추세요.`;
-  } else if (relationType === "위성") {
+  } else if (relationType === "성위") {
     meAction = `A(${aRole})는 역할 목표와 감정 목표를 분리해 운영하세요.`;
     otherAction = `B(${bRole})는 성과보다 감정 온도를 먼저 점검하세요.`;
   }
@@ -406,7 +373,7 @@ function buildCompatibilityFromIndices(aIndexRaw, bIndexRaw) {
   const stabilityScore = clampScore(82 - shortestDistance * 2 + (rel.relationType === "영친" ? 10 : rel.relationType === "우쇠" ? 4 : 0));
   const growthScore = clampScore(76 + (rel.relationType === "안괴" ? 12 : rel.relationType === "업태" ? 10 : 4) - shortestDistance);
   const conflictScore = clampScore(34 + shortestDistance * 3 + (rel.relationType === "안괴" ? 20 : rel.relationType === "업태" ? 14 : 0));
-  const communicationScore = clampScore(78 - shortestDistance * 2 + (rel.relationType === "영친" ? 8 : rel.relationType === "위성" ? 6 : 0));
+  const communicationScore = clampScore(78 - shortestDistance * 2 + (rel.relationType === "영친" ? 8 : rel.relationType === "성위" ? 6 : 0));
   const distanceMetrics = buildDistanceMetrics(forwardDistance, reverseDistance, shortestDistance, distanceLabel);
   const roleActionGuide = buildRoleActionGuide(rel.relationType, rel.aRole, rel.bRole, shortestDistance, forwardDistance);
   const elementHarmony = buildElementHarmony(aStar, bStar, rel.relationType, shortestDistance);
@@ -562,7 +529,7 @@ function validateCanonicalSukuyoCompatibility(canonical) {
   if (reportType === "compatibility" && !Number.isFinite(Number(compatibility?.forwardDistance))) missingFields.push("compatibility.forwardDistance");
   if (reportType === "compatibility" && !Number.isFinite(Number(compatibility?.reverseDistance))) missingFields.push("compatibility.reverseDistance");
 
-  const allowed = new Set(["명", "업태", "영친", "안괴", "우쇠", "위성"]);
+  const allowed = new Set(["명", "업태", "영친", "안괴", "우쇠", "성위"]);
   const hasRelationType = reportType === "compatibility"
     ? allowed.has(String(compatibility?.relationType || ""))
     : true;

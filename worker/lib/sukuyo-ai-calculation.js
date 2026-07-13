@@ -1,3 +1,9 @@
+import {
+  SUKUYO_ROLE_PROFILES,
+  normalizeIndex,
+  relationFromForwardDistance,
+} from "./sukuyo-relation-core.js";
+
 const SUKUYO_MONTH_START = [11, 13, 15, 17, 19, 21, 23, 25, 0, 2, 4, 7];
 
 const SUKUYO_MANSIONS = [
@@ -30,58 +36,10 @@ const SUKUYO_MANSIONS = [
   { nameKo: "진", nameHan: "軫", direction: "남방", element: "수", keywords: ["정리", "종결", "전환"], strengths: ["정리력", "마무리"], shadows: ["과경계", "결정 지연"] },
 ];
 
-const SUKUYO_RELATION_HAN = {
-  "명": "命",
-  "업태": "業胎",
-  "영친": "榮親",
-  "안괴": "安壞",
-  "우쇠": "友衰",
-  "위성": "危成",
-};
-
-function normalizeIndex(index) {
-  const n = Number(index);
-  if (!Number.isFinite(n)) return null;
-  return ((Math.floor(n) % 27) + 27) % 27;
-}
-
 function getSukuyoByIndex(index) {
   const idx = normalizeIndex(index);
   return idx == null ? null : SUKUYO_MANSIONS[idx] || null;
 }
-
-function relationFromForwardDistance(forwardDistance) {
-  const d = normalizeIndex(forwardDistance);
-  if (d == null) return null;
-  if (d === 0) return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
-  if (d === 9) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "업", bRole: "태" };
-  if (d === 18) return { relationType: "업태", relationTypeHan: SUKUYO_RELATION_HAN["업태"], aRole: "태", bRole: "업" };
-  if ([1, 10, 19].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "영", bRole: "친" };
-  if ([8, 17, 26].includes(d)) return { relationType: "영친", relationTypeHan: SUKUYO_RELATION_HAN["영친"], aRole: "친", bRole: "영" };
-  if ([2, 11, 20].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "우", bRole: "쇠" };
-  if ([7, 16, 25].includes(d)) return { relationType: "우쇠", relationTypeHan: SUKUYO_RELATION_HAN["우쇠"], aRole: "쇠", bRole: "우" };
-  if ([3, 12, 21].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "안", bRole: "괴" };
-  if ([6, 15, 24].includes(d)) return { relationType: "안괴", relationTypeHan: SUKUYO_RELATION_HAN["안괴"], aRole: "괴", bRole: "안" };
-  if ([4, 13, 22].includes(d)) return { relationType: "위성", relationTypeHan: SUKUYO_RELATION_HAN["위성"], aRole: "위", bRole: "성" };
-  if ([5, 14, 23].includes(d)) return { relationType: "위성", relationTypeHan: SUKUYO_RELATION_HAN["위성"], aRole: "성", bRole: "위" };
-  return { relationType: "명", relationTypeHan: SUKUYO_RELATION_HAN["명"], aRole: "명", bRole: "명" };
-}
-
-// 방향별 역할(내 자리/상대 자리) 해설 — relationFromForwardDistance의 aRole/bRole을
-// 표시·프롬프트 층에서 그대로 쓰기 위한 정본 프로필. (별도 12항 근사표를 만들지 말 것)
-const SUKUYO_ROLE_PROFILES = {
-  명: { han: "命", meaning: "같은 리듬을 비추는 거울의 자리" },
-  업: { han: "業", meaning: "오래된 숙제를 되짚게 하는 자리" },
-  태: { han: "胎", meaning: "새 마음을 품고 시작하게 하는 자리" },
-  영: { han: "榮", meaning: "상대를 빛나게 하고 베풀게 되는 자리" },
-  친: { han: "親", meaning: "가까이 기대며 마음을 붙이는 자리" },
-  우: { han: "友", meaning: "곁을 지키는 동반의 자리" },
-  쇠: { han: "衰", meaning: "기운을 내어주다 쉽게 소모되는 자리" },
-  안: { han: "安", meaning: "안심과 편안함을 건네는 자리" },
-  괴: { han: "壞", meaning: "흔들림과 변화를 일으키는 자리" },
-  성: { han: "成", meaning: "일을 이루도록 밀어주는 자리" },
-  위: { han: "危", meaning: "긴장과 자극을 일으키는 자리" },
-};
 
 // forward/reverse 실거리와 정본 역할 배정을 묶어 방향 비대칭 해설을 만든다.
 // (a≠b면 forward+reverse=27 — 가까운 방향은 끌림의 속도, 먼 방향은 회복의 간격을 만든다)
@@ -159,7 +117,7 @@ function buildRoleGuide(relationType, aRole, bRole, shortestDistance) {
   if (relationType === "영친") return { meAction: "호감과 돌봄이 자연스럽지만, 한쪽만 계속 맞추는 흐름은 피해야 합니다.", otherAction: "따뜻함을 당연하게 여기지 말고 고마움을 말로 확인하는 편이 좋습니다." };
   if (relationType === "우쇠") return { meAction: "친밀함과 경쟁심이 함께 움직이므로 비교보다 각자의 장점을 인정해야 합니다.", otherAction: "자존심이 다칠 때 침묵으로 벌주지 않는 대화가 중요합니다." };
   if (relationType === "업태") return { meAction: "강한 끌림과 숙제 같은 감정이 함께 오므로 속도를 천천히 잡아야 합니다.", otherAction: "반복되는 패턴을 운명으로만 밀어붙이지 말고 현실의 선택으로 다뤄야 합니다." };
-  if (relationType === "위성") return { meAction: "긴장감과 성장 욕구가 함께 생기니 역할 균형을 분명히 해야 합니다.", otherAction: "서로를 바꾸려 하기보다 각자의 기준을 설명하는 것이 좋습니다." };
+  if (relationType === "성위") return { meAction: "긴장감과 성장 욕구가 함께 생기니 역할 균형을 분명히 해야 합니다.", otherAction: "서로를 바꾸려 하기보다 각자의 기준을 설명하는 것이 좋습니다." };
   return { meAction: "닮은 리듬이 강하므로 편안함 속에서도 감정 표현을 미루지 않는 것이 좋습니다.", otherAction: "익숙함 때문에 상대의 변화를 놓치지 않도록 주기적으로 마음을 확인하세요." };
 }
 

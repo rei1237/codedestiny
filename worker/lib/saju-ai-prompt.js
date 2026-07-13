@@ -9,12 +9,16 @@ import {
   buildSajuCalibrationPromptLines,
   buildSajuCalibrationDigest,
 } from "./saju-calibration.js";
+import {
+  buildGyeokgukAnalysis,
+  buildTwelveLifeStagesForPillars,
+} from "./saju-gyeokguk.js";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
 export const SAJU_AI_PROMPT_FEATURE_KEY = "saju_ai_prompt_generator";
 export const SAJU_AI_PROMPT_PRICE = 200;
-export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v4";
+export const SAJU_AI_PROMPT_VERSION = "saju-myeongsik-ai-v5";
 export { SAJU_PROMPT_TEMPLATES, getSajuPromptTemplate, classifyQuestionToSajuDomain };
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
@@ -972,11 +976,25 @@ export function buildSajuAdvancedFactors(sajuResult, engineContext) {
     power: sajuResult?.power,
     config: promptConfig,
   });
+  const twelveLifeStages = buildTwelveLifeStagesForPillars(pillarRows, dayStem);
+  const gyeokguk = buildGyeokgukAnalysis({
+    pillarRows,
+    dayStem,
+    hiddenStems,
+    hiddenStemExposures,
+    power: sajuResult?.power,
+    jong: sajuResult?.jong,
+    luckRows,
+    doChung,
+    earthStorageOpenings,
+  });
   return {
     hiddenStems,
     hiddenStemExposures,
     doChung,
     earthStorageOpenings,
+    twelveLifeStages,
+    gyeokguk,
     promptConfig,
   };
 }
@@ -1049,7 +1067,8 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
   const luck = f.luck || {};
   const formatPillar = (key) => {
     const row = pillars[key] || {};
-    return `${row.label || key}: ${row.pillar || ""}${row.stemTenGod ? ` / 천간 ${row.stemTenGod}` : ""}`;
+    const stage = row.twelveLifeStageKo ? ` / 십이운성 ${row.twelveLifeStageKo}` : "";
+    return `${row.label || key}: ${row.pillar || ""}${row.stemTenGod ? ` / 천간 ${row.stemTenGod}` : ""}${stage}`;
   };
   const formatHidden = (key) => {
     const row = hidden[key] || {};
@@ -1068,6 +1087,19 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
   const doChung = major.doChung?.exists
     ? `${major.doChung.repeatedBranch} 반복 ${major.doChung.repeatedCount}회, 유도 충 ${major.doChung.inducedOppositeBranch}`
     : "도충 조건 뚜렷하지 않음";
+  const gyeok = major.gyeokguk || {};
+  const gyeokCandidates = Array.isArray(gyeok.candidates) && gyeok.candidates.length
+    ? gyeok.candidates.map((row) => `${row.name}(${row.tenGod}/${row.exposed ? "투출" : "미투출"}, ${row.score}점)`).join(" | ")
+    : DEFAULT_TEXT;
+  const gyeokBreaks = Array.isArray(gyeok.breakFactors) && gyeok.breakFactors.length
+    ? gyeok.breakFactors.map((row) => `${row.type}: ${row.detail}`).join(" | ")
+    : "뚜렷한 파격 없음";
+  const gyeokActivated = Array.isArray(gyeok.luckTiming?.activated) && gyeok.luckTiming.activated.length
+    ? gyeok.luckTiming.activated.map((row) => `${row.scope} ${row.label}`).join(" | ")
+    : (gyeok.luckTiming?.note || DEFAULT_TEXT);
+  const gyeokBroken = Array.isArray(gyeok.luckTiming?.broken) && gyeok.luckTiming.broken.length
+    ? gyeok.luckTiming.broken.map((row) => `${row.scope} ${row.label}`).join(" | ")
+    : (gyeok.luckTiming?.note || DEFAULT_TEXT);
   const daewun = Array.isArray(luck.daewun) && luck.daewun.length
     ? luck.daewun.slice(0, 6).map((row) => `${row.age || "?"}세 ${row.gan || ""}${row.zhi || ""} ${row.score == null ? "" : `${row.score}점`}`).join(" | ")
     : DEFAULT_TEXT;
@@ -1123,10 +1155,18 @@ function buildSajuMyeongsikFactCard(factSnapshot, question) {
     `- 용신 후보: ${Array.isArray(yong.yongshin) && yong.yongshin.length ? yong.yongshin.join(", ") : DEFAULT_TEXT}`,
     `- 기신 후보: ${Array.isArray(yong.kijishin) && yong.kijishin.length ? yong.kijishin.join(", ") : DEFAULT_TEXT}`,
     "",
-    "10. 운 흐름",
+    "10. 격국",
+    `- 최종 격국: ${gyeok.finalGyeokguk || DEFAULT_TEXT} (${gyeok.finalType || DEFAULT_TEXT})`,
+    `- 판단 근거: ${gyeok.judgmentReason || DEFAULT_TEXT}`,
+    `- 격국 후보: ${gyeokCandidates}`,
+    `- 파격 요소: ${gyeokBreaks}`,
+    `- 대운/세운 중 격국 활성화 시기: ${gyeokActivated}`,
+    `- 대운/세운 중 파격 주의 시기: ${gyeokBroken}`,
+    "",
+    "11. 운 흐름",
     `- 대운: ${daewun}`,
     "",
-    "11. 이용자 질문",
+    "12. 이용자 질문",
     `- 질문: ${String(question || f.question || "").trim()}`,
   ].join("\n");
 }
@@ -1147,6 +1187,12 @@ export function buildSajuMyeongsikFactSnapshot({
   const dayRow = pillarRows.find((row) => row.position === "day") || {};
   const dayStem = dayRow.stem || engineContext?.quantum?.dayStem || "";
   const hiddenRows = Array.isArray(advancedFactors?.hiddenStems) ? advancedFactors.hiddenStems : buildSajuHiddenStemItems(pillarRows, dayStem);
+  const twelveLifeStageRows = Array.isArray(advancedFactors?.twelveLifeStages) && advancedFactors.twelveLifeStages.length
+    ? advancedFactors.twelveLifeStages
+    : buildTwelveLifeStagesForPillars(pillarRows, dayStem);
+  const twelveLifeStageByPosition = Object.fromEntries(
+    twelveLifeStageRows.filter((row) => row.position).map((row) => [row.position, row.stageKo || row.stage || ""]),
+  );
   const heavenlyCounts = emptyTenGodCounts();
   const hiddenWeightedCounts = emptyTenGodCounts();
   const combinedCounts = emptyTenGodCounts();
@@ -1170,6 +1216,7 @@ export function buildSajuMyeongsikFactSnapshot({
       branchElement: row.branchElement || "",
       branchElementKo: ELEMENT_KO_BY_KEY[row.branchElement] || row.branchElement || "",
       stemTenGod,
+      twelveLifeStageKo: twelveLifeStageByPosition[row.position] || "",
     };
     heavenlyStemTenGods[row.position] = {
       label: stemLabel,
@@ -1229,6 +1276,18 @@ export function buildSajuMyeongsikFactSnapshot({
       hiddenStemExposures: Array.isArray(advancedFactors?.hiddenStemExposures) ? advancedFactors.hiddenStemExposures : [],
       doChung: advancedFactors?.doChung || { exists: false },
       earthStorageOpenings: Array.isArray(advancedFactors?.earthStorageOpenings) ? advancedFactors.earthStorageOpenings : [],
+      twelveLifeStages: twelveLifeStageRows,
+      gyeokguk: advancedFactors?.gyeokguk || buildGyeokgukAnalysis({
+        pillarRows,
+        dayStem,
+        hiddenStems: hiddenRows,
+        hiddenStemExposures: Array.isArray(advancedFactors?.hiddenStemExposures) ? advancedFactors.hiddenStemExposures : [],
+        power,
+        jong,
+        luckRows: normalizeSajuLuckRows(sajuResult, engineContext),
+        doChung: advancedFactors?.doChung,
+        earthStorageOpenings: advancedFactors?.earthStorageOpenings,
+      }),
       interactions: cleanFactObject(
         sajuResult?.interactions
           || sajuResult?.advancedFactors?.interactions
@@ -1719,12 +1778,13 @@ function buildSajuAdvancedFactorLines(advancedFactors, questionType) {
   ];
 }
 
-function buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext }) {
+function buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext, gyeokguk }) {
   const marker = engineContext.marker || SAJU_AI_PROMPT_ENGINE_CONTEXT_MARKER;
+  const gyeokText = gyeokguk?.finalGyeokguk ? toText(gyeokguk.finalGyeokguk) : "미정";
   return [
     `명식 고정선: 이 질문문은 연주 ${pillars.yearPillar}, 월주 ${pillars.monthPillar}, 일주 ${pillars.dayPillar}, 시주 ${pillars.hourPillar}와 일간 ${pillars.dayStem}에 묶입니다.`,
     `재사용 경계: 다른 명식에는 그대로 옮기지 말고 일간·월지·조후·용신·기신·대운 퀀텀 흐름을 새로 맞춘 뒤 다시 세우세요.`,
-    `핵심 결속값: 오행 목${weights.wood}/화${weights.fire}/토${weights.earth}/금${weights.metal}/수${weights.water}, 조후 ${toText(johu.type)}, 용신 ${toArrayText(power.yongshin)}, 기신 ${toArrayText(power.kijishin)}, 종격 ${jong.isJong ? toText(jong.name, "종격") : "일반격"}.`,
+    `핵심 결속값: 오행 목${weights.wood}/화${weights.fire}/토${weights.earth}/금${weights.metal}/수${weights.water}, 조후 ${toText(johu.type)}, 용신 ${toArrayText(power.yongshin)}, 기신 ${toArrayText(power.kijishin)}, 종격 ${jong.isJong ? toText(jong.name, "종격") : "일반격"}, 격국 ${gyeokText}.`,
     `엔진 표식: ${marker}`,
   ];
 }
@@ -1880,7 +1940,7 @@ export function buildSajuAIPromptWithDomain({
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
   const engineContextLines = buildSajuEngineContextLines(engineContext);
   const advancedFactorLines = buildSajuAdvancedFactorLines(advancedFactors, questionType);
-  const bindingLines = buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext });
+  const bindingLines = buildSajuPromptBindingLines({ pillars, weights, johu, power, jong, engineContext, gyeokguk: advancedFactors?.gyeokguk });
   const analysisAngles = uniqueStringArray((template.analysisAngles || []).concat(
     SAJU_AI_PROMPT_MASTERY_ANGLES,
     buildSajuAnalysisAngles(questionType, normalizedQuestion),
@@ -1898,7 +1958,8 @@ export function buildSajuAIPromptWithDomain({
     "- 십성, 오행, 천간/지지 관계를 직접 추측하거나 재계산하지 마세요.",
     "- 내부 십성표와 다른 십성으로 바꾸지 마세요.",
     "- 예: 신금(辛) 일간에게 임수(壬)는 식신이 아니라 상관입니다.",
-    "- fact card 밖의 출생 개인정보나 존재하지 않는 신살·관계·격국을 새로 만들지 마세요.",
+    "- 격국·십이운성은 위 명식 사실 카드(10. 격국, 2. 사주 원국)에 확정값이 있습니다. 이와 다른 격국을 새로 만들지 말고, 격국의 활성화/파격 시기는 대운·세운 라인과 연결해 시기별 행동지침으로 풀어주세요.",
+    "- fact card 밖의 출생 개인정보나 존재하지 않는 신살·관계를 새로 만들지 마세요.",
     "",
     `도메인: ${template.domainKo}`,
     `질문 유형: ${questionTypeLabel}`,
@@ -1913,6 +1974,7 @@ export function buildSajuAIPromptWithDomain({
     `신강/신약: ${typeof power.isStrong === "boolean" ? (power.isStrong ? "신강" : "신약") : DEFAULT_TEXT}`,
     `용신/기신 후보: ${toArrayText(power.yongshin)} / ${toArrayText(power.kijishin)}`,
     `종격 여부: ${jong.isJong ? `예 (${toText(jong.name, "종격")})` : "아니오"}`,
+    `격국: ${toText(advancedFactors?.gyeokguk?.finalGyeokguk)} (${toText(advancedFactors?.gyeokguk?.finalType)})`,
     `핵심 키워드 가중치: ${keywordWeightLines.join(" | ")}`,
     `질문별 명리 관문: ${questionFocusAngles.join(" | ") || DEFAULT_TEXT}`,
     ...engineContextLines,

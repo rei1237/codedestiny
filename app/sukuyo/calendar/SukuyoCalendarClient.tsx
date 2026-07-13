@@ -10,9 +10,6 @@ type CalendarResponse = SukuyoCalendarMonth & {
 };
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
-const GREAT_AUSPICIOUS_WORDS = ["성취", "보호", "창조", "결실", "명예", "리더십", "매력", "영감"];
-const AUSPICIOUS_WORDS = ["시작", "개척", "안정", "신뢰", "지혜", "조율", "연결", "교류", "재정", "약속", "공정"];
-const INAUSPICIOUS_WORDS = ["긴장", "경계", "비움", "거리", "전환", "몰입", "감정"];
 
 const MANSION_PROFILES = [
   { direction: "동방 청룡", animal: "청룡", color: "청색" },
@@ -147,6 +144,15 @@ const MOON_CALENDAR_STYLES = `
 .moon-calendar-day.day--inauspicious{
   background:var(--moon-inauspicious);
   border:.5px solid var(--moon-inauspicious-border);
+  border-radius:6px;
+}
+.moon-calendar-day.day--great-inauspicious{
+  background:var(--moon-inauspicious);
+  border:1px solid var(--moon-inauspicious-border);
+  border-radius:6px;
+}
+.moon-calendar-day.day--pivotal{
+  border:.5px solid var(--moon-accent-border);
   border-radius:6px;
 }
 .moon-calendar-day.day--other-month{
@@ -322,20 +328,28 @@ function getMansionProfile(day: SukuyoCalendarDay) {
   return MANSION_PROFILES[Math.max(0, Math.floor(day.mansionIndex / 7))] || MANSION_PROFILES[0];
 }
 
+// 서버가 본명수 대비로 계산한 그날의 길흉 tier를 CSS 톤 클래스로 매핑.
+// 본명수가 없으면(비로그인/프로필 없음) dayFortune이 null → "plain"(배지 없음).
 function getDayTone(day: SukuyoCalendarDay) {
-  const source = day.keywords.join(" ");
-  if (GREAT_AUSPICIOUS_WORDS.some((word) => source.includes(word))) return "great-auspicious";
-  if (INAUSPICIOUS_WORDS.some((word) => source.includes(word))) return "inauspicious";
-  if (AUSPICIOUS_WORDS.some((word) => source.includes(word))) return "auspicious";
-  return "plain";
+  switch (day.dayFortune?.tier) {
+    case "great-auspicious": return "great-auspicious";
+    case "auspicious": return "auspicious";
+    case "pivotal": return "pivotal";
+    case "caution": return "inauspicious";
+    case "great-caution": return "great-inauspicious";
+    default: return "plain";
+  }
 }
 
 function getDayBadge(day: SukuyoCalendarDay) {
-  const tone = getDayTone(day);
-  if (tone === "great-auspicious") return "대길 ★";
-  if (tone === "auspicious") return "길";
-  if (tone === "inauspicious") return "흉";
-  return "";
+  switch (day.dayFortune?.tier) {
+    case "great-auspicious": return "대길 ★";
+    case "auspicious": return "길";
+    case "pivotal": return "명일 ◆";
+    case "caution": return "흉";
+    case "great-caution": return "대흉";
+    default: return "";
+  }
 }
 
 export default function SukuyoCalendarClient() {
@@ -544,10 +558,10 @@ export default function SukuyoCalendarClient() {
                     <span className="moon-calendar-day__number">
                       <span>{cell.day.day}</span>
                     </span>
-                    {tone === "great-auspicious" ? <span className="moon-calendar-day__star">★</span> : null}
+                    {tone === "great-auspicious" || tone === "pivotal" ? <span className="moon-calendar-day__star">{tone === "pivotal" ? "◆" : "★"}</span> : null}
                   </span>
                   <span className="moon-calendar-day__name">{formatMansionLabel(cell.day)}</span>
-                  {badge ? <span className={classNames("moon-calendar-day__badge", tone === "inauspicious" && "is-inauspicious")}>{badge}</span> : null}
+                  {badge ? <span className={classNames("moon-calendar-day__badge", (tone === "inauspicious" || tone === "great-inauspicious") && "is-inauspicious")}>{badge}</span> : null}
                 </button>
               );
             })
@@ -563,6 +577,9 @@ export default function SukuyoCalendarClient() {
             <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__square is-plain" />평일</span>
           </div>
           <p className="moon-calendar-legend__scale">★ 대길 · 길 · 평 · 흉 · 대흉</p>
+          {calendar && calendar.viewerHasMansion === false ? (
+            <p className="moon-calendar-legend__scale">로그인하고 프로필을 등록하면 내 본명수 기준의 날짜별 길흉을 볼 수 있어요.</p>
+          ) : null}
         </footer>
 
         <aside className="moon-calendar-detail" id="selected-sukuyo-reading" aria-label="선택한 날짜의 숙요 흐름">
@@ -585,6 +602,12 @@ export default function SukuyoCalendarClient() {
                 이날의 운세 보기
               </button>
               <div className="moon-calendar-notes">
+                {selectedDay.dayFortune ? (
+                  <DetailBlock
+                    title={`나의 길흉 — ${selectedDay.dayFortune.tierLabel}`}
+                    body={`${selectedDay.dayFortune.headline}. ${selectedDay.dayFortune.advice}`}
+                  />
+                ) : null}
                 <DetailBlock title="숙의 핵심 성향" body={selectedDay.core} />
                 <DetailBlock title="오늘 사용 포인트" body={selectedDay.usagePoint} />
                 <DetailBlock title="주의할 결" body={selectedDay.caution} />
