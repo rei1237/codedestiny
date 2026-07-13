@@ -1336,6 +1336,56 @@ function hasExplicitlyUnverifiedSocialEmail(profile) {
   return Boolean(profile?.email) && profile?.emailVerified === false;
 }
 
+// OAuth 공급자(네이버·카카오·구글) 토큰/프로필 fetch용 타임아웃+제한적 재시도 래퍼.
+// 국내 호스팅 공급자 API의 지연 편차가 그대로 로그인 실패로 표면화되던 문제를 흡수한다.
+// (kasi.js의 AbortController+setTimeout(abort) 패턴 재사용)
+const OAUTH_PROVIDER_FETCH_TIMEOUT_MS = 8000;
+const OAUTH_PROVIDER_FETCH_RETRIES = 1;
+
+async function fetchOAuthProvider(url, init = {}, options = {}) {
+  const timeoutMs = Number(options.timeoutMs) > 0 ? Number(options.timeoutMs) : OAUTH_PROVIDER_FETCH_TIMEOUT_MS;
+  const retries = Number.isFinite(options.retries) ? Math.max(0, Math.floor(options.retries)) : OAUTH_PROVIDER_FETCH_RETRIES;
+
+  let lastError = null;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timer = setTimeout(() => {
+      if (controller) {
+        try {
+          controller.abort();
+        } catch (_) {}
+      }
+    }, timeoutMs);
+
+    try {
+      const response = await fetch(url, {
+        ...init,
+        signal: controller ? controller.signal : undefined,
+      });
+      // 5xx는 공급자 일시 장애로 보고 남은 시도가 있으면 재시도. 마지막 시도면 그대로
+      // 반환해 호출부가 기존 방식대로 실패를 판정한다. 4xx(잘못된 code 등)는 재시도 무의미.
+      if (response.status >= 500 && attempt < retries) {
+        lastError = new Error(`oauth_provider_http_${response.status}`);
+        await sleep(150 * (attempt + 1));
+        continue;
+      }
+      return response;
+    } catch (error) {
+      // abort(타임아웃)·네트워크 오류만 재시도 대상.
+      lastError = error;
+      if (attempt < retries) {
+        await sleep(150 * (attempt + 1));
+        continue;
+      }
+      throw error;
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  throw lastError || new Error("oauth_provider_fetch_failed");
+}
+
 async function exchangeCodeForAccessToken(provider, code, request, env, stateToken, redirectUriOverride) {
   const cfg = buildProviderConfig(provider, request, env);
   if (!cfg.clientId || ((provider === "google" || provider === "naver") && !cfg.clientSecret)) {
@@ -1354,7 +1404,7 @@ async function exchangeCodeForAccessToken(provider, code, request, env, stateTok
   if (cfg.clientSecret) tokenParams.client_secret = cfg.clientSecret;
   if (provider === "naver") tokenParams.state = stateToken;
 
-  const response = await fetch(cfg.tokenEndpoint, {
+  const response = await fetchOAuthProvider(cfg.tokenEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -1373,7 +1423,7 @@ async function exchangeCodeForAccessToken(provider, code, request, env, stateTok
 
 async function fetchSocialProfile(provider, accessToken, request, env) {
   const cfg = buildProviderConfig(provider, request, env);
-  const response = await fetch(cfg.userInfoEndpoint, {
+  const response = await fetchOAuthProvider(cfg.userInfoEndpoint, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -1394,9 +1444,9 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   return mapped;
 }
 
-async function findOrCreateSocialUser(provider, profile, env) {
-  const socialField = `socialAccounts.${provider}.id`;
-
+// 기존 소셜/이메일 유저 조회 + 연결 로직. findOrCreateSocialUser의 최초 조회와,
+// 동시 생성 경합(E11000) 발생 시의 재조회 양쪽에서 재사용한다.
+async function findExistingSocialUser(provider, profile, socialField) {
   let user = await User.findOne({ [socialField]: profile.providerId });
   if (user) {
     if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
@@ -1429,33 +1479,53 @@ async function findOrCreateSocialUser(provider, profile, env) {
     }
   }
 
+  return null;
+}
+
+async function findOrCreateSocialUser(provider, profile, env) {
+  const socialField = `socialAccounts.${provider}.id`;
+
+  const existing = await findExistingSocialUser(provider, profile, socialField);
+  if (existing) return existing;
+
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
   const joinedAt = new Date();
   const profilePhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
-  const createdUser = await User.create({
-    name: profile.name || `${provider} user`,
-    email: profile.email || fallbackEmail,
-    profileImage: String(profile.image || ""),
-    ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
-    passwordHash: "",
-    birthDate: "1900-01-01",
-    birthTime: "00:00",
-    gender: "OTHER",
-    role: "user",
-    points: 0,
-    profileSubscription: buildSignupProfileSubscription(joinedAt),
-    joinedAt,
-    localAuth: {
-      enabled: false,
-      activatedAt: null,
-    },
-    socialAccounts: {
-      [provider]: {
-        id: profile.providerId,
-        connectedAt: new Date(),
+  let createdUser;
+  try {
+    createdUser = await User.create({
+      name: profile.name || `${provider} user`,
+      email: profile.email || fallbackEmail,
+      profileImage: String(profile.image || ""),
+      ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
+      passwordHash: "",
+      birthDate: "1900-01-01",
+      birthTime: "00:00",
+      gender: "OTHER",
+      role: "user",
+      points: 0,
+      profileSubscription: buildSignupProfileSubscription(joinedAt),
+      joinedAt,
+      localAuth: {
+        enabled: false,
+        activatedAt: null,
       },
-    },
-  });
+      socialAccounts: {
+        [provider]: {
+          id: profile.providerId,
+          connectedAt: new Date(),
+        },
+      },
+    });
+  } catch (error) {
+    // 동시 소셜 로그인 경합: 다른 요청이 같은 providerId/email로 먼저 유저를 만들어
+    // 중복키(E11000)가 나면, 이미 생성된 유저를 재조회해 흡수한다(두 번째 요청도 정상 로그인).
+    if (error && (error.code === 11000 || String(error.message || "").includes("E11000"))) {
+      const raced = await findExistingSocialUser(provider, profile, socialField);
+      if (raced) return raced;
+    }
+    throw error;
+  }
   await withOptionalAuthSideEffect(recordMonthlyCreditGrantLedger({
     userId: createdUser._id,
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
@@ -1471,6 +1541,34 @@ async function findOrCreateSocialUser(provider, profile, env) {
     },
   }), Math.min(getAuthOpTimeoutMs(env), 2000), `auth_social_${provider}_signup_credit_ledger`);
   return { user: createdUser, created: true };
+}
+
+// 소셜 유저 조회/생성을 일시 DB 장애(pool-clear·네트워크 버스트·op-타임아웃)에 대해
+// 재시도로 흡수한다. handleOAuthComplete/handleLogin과 동일한 3회 루프 패턴을 재사용한다.
+// 인프라 오류가 아닌 정상 거부(_account_withdrawn·_email_unverified)는 재시도 없이 전파된다.
+async function resolveSocialUserWithRetry(provider, profile, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      return await withAuthOpTimeout(
+        findOrCreateSocialUser(provider, profile, env),
+        timeoutMs,
+        "auth_social_resolve_user",
+      );
+    } catch (error) {
+      lastError = error;
+      const infraFailure = isAuthInfraFailure(error, ["auth_social_resolve_user"]);
+      if (infraFailure && attempt < 3) {
+        console.warn(`[auth/social] transient infra failure resolving ${provider} user, retrying:`, error);
+        resetMongooseConnection().catch(() => {});
+        await sleep(150 * attempt);
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw lastError;
 }
 
 function isLocalAuthEnabled(user) {
@@ -3231,7 +3329,7 @@ async function handleOAuthCallback(request, env, provider) {
         String(statePayload.redirectUri || ""),
       );
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env);
       const user = socialUser.user;
       const grant = await signSocialGrant({
         userId: String(user._id),
@@ -3276,7 +3374,7 @@ async function handleOAuthCallback(request, env, provider) {
       );
       logKakaoCallbackMarker(request, provider, "exchangeSuccess");
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      const socialUser = await findOrCreateSocialUser(provider, socialProfile, env);
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env);
       const user = socialUser.user;
       logKakaoCallbackMarker(request, provider, "userResolved");
 
@@ -3312,7 +3410,11 @@ async function handleOAuthCallback(request, env, provider) {
 
       const appAccessToken = await signAuthToken(user, env);
       const nextRefresh = await issueRefreshTokenForUser(user._id, env);
-      await createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt);
+      await withAuthOpTimeout(
+        createRefreshSession(request, env, user._id, nextRefresh.tokenHash, nextRefresh.expiresAt),
+        getAuthOpTimeoutMs(env),
+        "auth_social_kakao_issue_session",
+      );
       const response = redirect(redirectTarget);
       appendAuthCookies(response, request, env, appAccessToken, nextRefresh.refreshToken);
       appendAuthRoleCookie(response, request, env, user);
