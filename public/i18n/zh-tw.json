@@ -4157,7 +4157,8 @@
     "chapterPreviewLabel": "章節預覽",
     "requiredInfoLabel": "生成前所需資訊",
     "outcomesLabel": "結果中可查看的內容",
-    "startNow": "立即開始 →"
+    "startNow": "立即開始 →",
+    "paywallNote": "所有付費服務於付款（購買）完成後立即提供，服務開始後依相關法令，撤回購買之權利可能受到限制。"
   },
   "mbti": {
     "compat": {

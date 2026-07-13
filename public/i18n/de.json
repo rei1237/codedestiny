@@ -4157,7 +4157,8 @@
     "chapterPreviewLabel": "Kapitelvorschau",
     "requiredInfoLabel": "Informationen, die vor der Erstellung benötigt werden",
     "outcomesLabel": "Was Sie im Ergebnis sehen können",
-    "startNow": "Jetzt starten →"
+    "startNow": "Jetzt starten →",
+    "paywallNote": "Alle kostenpflichtigen Dienste werden unmittelbar nach Abschluss der Zahlung (des Kaufs) bereitgestellt; nach Beginn der Bereitstellung kann das Widerrufsrecht gemäß den geltenden Gesetzen eingeschränkt sein."
   },
   "mbti": {
     "compat": {
