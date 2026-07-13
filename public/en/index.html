@@ -13132,7 +13132,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
                   </div>
                 </a>
 
-                <a class="tarot-tile tarot-tile--destiny-bias" href="/saju/destiny-bias" data-action="openDestinyBias" data-coin-cost="50" data-feature-key="destiny-bias-analyze" data-fallback-href="/saju/destiny-bias" data-service-detail-href="/services/bias-destiny" aria-label="최애운명 시작" data-cd-trans-attr="aria-label:home.tiles.favoriteDestinyAria">
+                <a class="tarot-tile tarot-tile--destiny-bias" href="/saju/destiny-bias/" data-action="openDestinyBias" data-coin-cost="50" data-feature-key="destiny-bias-analyze" data-fallback-href="/saju/destiny-bias/" data-service-detail-href="/services/bias-destiny" aria-label="최애운명 시작" data-cd-trans-attr="aria-label:home.tiles.favoriteDestinyAria">
                   <div class="tarot-tile__img-wrap" data-img-src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp" data-img-alt="최애운명 대표 이미지" data-cd-trans-attr="data-img-alt:home.tiles.favoriteDestinyAlt">
                     <div class="tarot-tile__img-placeholder" aria-hidden="true"><span class="tile-ph-gem">✨</span></div>
                     <img class="tarot-tile__img" src="/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp" alt="최애운명 대표 이미지" width="200" height="150" loading="lazy" decoding="async" data-cd-trans-attr="alt:home.tiles.favoriteDestinyImgAlt">
@@ -16406,6 +16406,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       '.cd-direct-payment-status{min-height:16px;margin:9px 0 0;color:#f3dd9a;font-size:12px;line-height:1.4;position:relative;z-index:1}',
       '.cd-direct-payment-note{position:relative;z-index:1;margin:0 0 10px;padding:11px 13px;border-radius:16px;background:linear-gradient(135deg,rgba(10,17,42,.76),rgba(20,28,66,.6));border:1px solid rgba(219,234,254,.22);color:#dbeafe;font-size:12.5px;line-height:1.45;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 0 22px rgba(147,197,253,.06)}',
       '.cd-direct-payment-note strong{display:block;margin-bottom:3px;color:#ffffff;font-size:15px;line-height:1.28}',
+      '.cd-direct-payment-legal{position:relative;z-index:1;margin:8px 0 0;padding:0;color:rgba(219,234,254,.68);font-size:11px;line-height:1.42}',
       '.cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}',
       '.cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}',
       '@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{margin-top:25px;font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option dl{margin-top:8px}.cd-direct-payment-option div{padding-top:7px}.cd-direct-payment-option dt{font-size:10.5px}.cd-direct-payment-option dd{font-size:12px}.cd-direct-payment-badge{left:12px;top:10px;min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}',
@@ -16721,6 +16722,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
           passButtonHtml +
           '</div>' +
           '<div class="cd-direct-payment-status" data-payment-status></div>' +
+          '<p class="cd-direct-payment-legal">' + escapeHtml(_cdPaymentI18n('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.')) + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + escapeHtml(_cdPaymentI18n('common.cancel', '취소')) + '</button></div>' +
         '</div>';
       function status(message, isError) {
@@ -24804,6 +24806,8 @@ function updateBadge() {
       return false;
     }
     if (action === 'toggleRptCard') {
+      // 프리뷰 CTA → _onCta 의 tile.click() 은 합성 클릭(detail 0)이라 스크롤 억제 대상이 아님
+      if (event && event.type === 'click' && event.detail === 0) return false;
       if (event && event.type === 'touchend' && __cdLastTouch.moved) return true;
       if (event && event.type === 'click' && __cdLastTouch.moved && (now - __cdLastTouch.t) <= 480) return true;
       return false;
@@ -25050,9 +25054,9 @@ function updateBadge() {
     }
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // .tarot-tile / .lifebook-tile / .lovebible-tile / .rpt-v2-toggle-btn 직접 클릭은 Preview 패널 우선 시도
+        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭은 Preview 패널 우선 시도
         // Preview 미연동 시 결제 게이트로 즉시 폴백
-        if (((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('rpt-v2-toggle-btn')) && !actionNode.classList.contains('prem-card')) && !actionNode.getAttribute('data-pvw-cta-bypass')) {
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-cta-bypass')) {
           var _clickPreviewHandled = false;
           try {
             if (typeof window._cdOpenTilePreview === 'function') {
@@ -26045,7 +26049,6 @@ function updateBadge() {
     rpt_quantumCard:{featureId:'rpt_quantumCard',category:'사주',badge:'심화 분석',headline:'합화·용신·천기까지 한 번에 정리하는 명리 전략 지도를 펼쳐보세요.',subheadline:'단순 해석을 넘어, 오행 합화·용신 보정·천기 전략까지 종합한 심화 명리 분석입니다.',painPoints:['사주 기본을 이해했는데 심화 전략이 필요할 때','같은 십성을 여럿이 갖는 경우의 복잡한 해석이 필요할 때','단기 흐름과 장기 구조를 함께 보고 싶을 때'],unlockBenefits:['오행 합화와 용신 중심의 재정리','천기 지도와 주요 포인트','장기 흐름과 단기 선택 기준','영구 해금 후 언제든 다시 확인 가능'],previewText:'퀀텀 명리는 길흉을 재단정하지 않고, 내 사주 구조에서 정말 강하게 작동하는 에너지와 해석 기준을 명확히 합니다.',trustNotes:['심화 분석은 참고용입니다.','용신 해석은 유파에 따라 다를 수 있습니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'퀀텀 명리 열기'},
     rpt_skillTreeCard:{featureId:'rpt_skillTreeCard',category:'사주',badge:'RPG 분석',headline:'내 사주를 RPG 캐릭터의 능력치로 시각화해 성장 경로를 찾아보세요.',subheadline:'강점 스탯과 취약 스탯을 게임처럼 표시해, 어느 영역을 먼저 키워야 할지 명확하게 보여주는 리포트입니다.',painPoints:['내 강점과 약점을 명확하게 구분하고 싶을 때','능력치처럼 직관적으로 사주를 이해하고 싶을 때','어디부터 성장 투자를 시작할지 모를 때'],unlockBenefits:['8가지 능력치 레벨 시각화','타고난 강점 스탯과 취약 스탯 확인','스탯별 성장 루트와 레벨업 전략','레벨 달성 시 보상 미션 제공'],previewText:'RPG 스킬 트리는 미래를 보장하지 않고, 지금 내 능력치가 어디에 몰려 있는지와 어느 영역이 성장 여지가 있는지 보여줍니다.',trustNotes:['게임은 참고용 분석입니다.','능력치는 개인의 노력으로 변할 수 있습니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'스킬 트리 펼쳐보기'},
     'animal-destiny-unlock':{featureId:'animal-destiny-unlock',category:'사주',badge:'성향 분석',headline:'내 사주의 십이운성 에너지가 어떤 동물 아키타입으로 표현되는지 만나보세요.',subheadline:'사주 기본 흐름을 동물 성향으로 번역해, 성격·연애·직업·관계·오늘의 미션을 한 번에 정리하는 리포트입니다.',painPoints:['내 사주 성격을 더 직관적인 동물로 이해하고 싶을 때','십이운성의 의미를 동물 행동으로 생생하게 배우고 싶을 때','성격·연애·직업 3가지 각도에서 동시에 분석받고 싶을 때'],unlockBenefits:['나의 수호 동물 아키타입 확정','동물 성향 기반 성격·연애·직업 분석','관계 궁합 동물 타입 정리','오늘 행동 미션과 피해야 할 패턴'],previewText:'동물 테스트는 실제 변신을 보장하지 않고, 내 사주 에너지가 어떤 동물의 본능과 가장 가까운지를 재미있게 읽어줍니다.',trustNotes:['테스트는 참고용 분석입니다.','동물은 상징이며 성격 분류의 절대 기준이 아닙니다.','기존 결제 정책을 따릅니다.'],ctaLabel:'수호 동물 소환하기'},
-    destiny_meeting_place:{featureId:'destiny_meeting_place',category:'사주',badge:'장소 리딩',headline:'내 인연이 열리는 장소, 국가, 시기, 운명의 아이템을 감성 리포트로 확인해보세요.',subheadline:'사주 오행과 용신 흐름으로 인연의 특별한 장면과 장소, 그 속에서 만날 사람을 정확히 예측하는 리딩입니다.',painPoints:['만남이 일어날 특정 장소나 환경이 궁금할 때','인연을 부르는 국가·도시·계절을 알고 싶을 때','운명의 만남을 위한 아이템 힌트가 필요할 때'],unlockBenefits:['인연이 열리는 장소와 환경','만남의 국가·도시·시기·계절','운명의 아이템과 색상','인연을 부르는 행동과 준비'],previewText:'장소 리딩은 절대적인 예언이 아니라, 내 사주 오행이 가장 편하게 호흡하는 장면과 배경을 드러냅니다.',trustNotes:['리딩은 참고용입니다.','실제 여행·이주는 현실적 여건과 함께 판단해주세요.','기존 결제 정책을 따릅니다.'],ctaLabel:'인연의 장소 열기'},
     openJuyukModal:{inherit:'openKemetModal'},
     openIfaOracle:{inherit:'openKemetModal'},
     openRuneOracle:{inherit:'openKemetModal'},
