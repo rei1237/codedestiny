@@ -1084,8 +1084,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       ?? paymentOptions?.recommendedMethods,
   );
   const hasEqualPriorityMethods = equalPriorityMethods.length > 0;
-  let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"))
-    && (!hasEqualPriorityMethods || equalPriorityMethods.includes("DIRECT_KRW"));
+  // equalPriorityMethods는 '동등 노출' 신호 — 목록에 있으면 노출을 보장만 하고, 없다고 제거하지 않는다.
+  // (과거: DIRECT_KRW가 목록에 없으면 단건 버튼을 없애 단건/월정석 중 하나만 뜨는 정책 위반. 아래 monthly와
+  //  대칭으로, 실제 노출 제한은 allowedPaymentModes만 담당한다.)
+  let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"));
   const canShowPassStore = !isMusicTrackPayment && opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const canShowPassRefresh = canShowPassStore;
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
@@ -1100,6 +1102,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // equalPriorityMethods 목록에 없다고 버튼을 제거하지 않는다(서버가 잔량 부족 시 목록에서 빼도 회색으로 노출).
   const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit");
   const monthlyDisabled = !monthlyCanUse;
+  // 서버가 DIRECT_KRW를 동등 노출로 지정하면 단건 버튼 노출을 보장한다(제거는 하지 않음 — monthly와 대칭).
+  if (hasEqualPriorityMethods && equalPriorityMethods.includes("DIRECT_KRW")) canShowDirect = true;
   if (!canShowDirect && !canShowMonthly) canShowDirect = true;
   const monthlyAfterBalance = Math.max(0, monthlyBalance - monthlyCost);
   const passTier = toText(membershipCoverage?.tier || membershipCoverage?.passTier || "");
@@ -1824,7 +1828,13 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
     || normalizedCode === "AUTH_DB_UNAVAILABLE"
     // 클라이언트 abort 타임아웃(9s/45s)으로 합성된 503 — 이용권 확인이 지연으로 실패해도
     // dead-end 대신 결제창(단건+월정석)을 열어 사용자가 결제 선택지를 갖게 한다.
-    || normalizedCode === "BILLING_REQUEST_TIMEOUT";
+    || normalizedCode === "BILLING_REQUEST_TIMEOUT"
+    // 일부 AI 라우트가 돌려주는 degrade 코드.
+    || normalizedCode === "DB_DEGRADED"
+    // 요구사항: 이용권 확인 실패 시 무조건 결제창. 위 명시 코드 외에도, 로그인 유도 대상(401/403 →
+    // shouldRedirectToLoginAfterBilling)이 아닌 서버/인프라 5xx는 dead-end 대신 결제창을 연다.
+    // (미상 degrade 코드까지 흡수 — status>=500은 401/403을 포함하지 않는다.)
+    || status >= 500;
 }
 
 // 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
@@ -1840,7 +1850,11 @@ function isRetryableBillingInfraDegraded(status: number, code?: string) {
   return normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"
     || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
     || normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"
-    || normalizedCode === "AUTH_DB_UNAVAILABLE";
+    || normalizedCode === "AUTH_DB_UNAVAILABLE"
+    || normalizedCode === "DB_DEGRADED"
+    // 코드 없는 503(일부 AI 라우트의 degrade는 reason만 담고 code가 비어 옴)도 인프라 blip으로 보고
+    // 짧게 재시도한다. 재시도 소진 후에도 남으면 shouldOpenRuntimePaymentFallback이 결제창을 연다.
+    || normalizedCode === "";
 }
 
 // useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지

@@ -652,10 +652,14 @@ export default function LoveSecretAiPage() {
       }
       if (access.reason === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
       if (access.reason === "INVALID_INPUT") throw new Error(access.message || INVALID_INPUT_MESSAGE);
-      if (isPaymentRequiredResult(access)) {
+      // 이용권 확인 앞단의 일시 장애(degraded)면 dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 확인 실패 시 무조건 결제창).
+      // runLoveSecretPaymentGate가 billing.js coin-gate로 pass를 재검사(재시도 포함)해 보유자면 무료통과, 미커버/장애면 결제창.
+      const passGateDegraded = (access as Record<string, unknown>).retryable === true || String(access.reason) === "DB_DEGRADED";
+      if (isPaymentRequiredResult(access) || passGateDegraded) {
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setPhase("payment");
-        const payment = await runLoveSecretPaymentGate(access.paymentPayload, idempotencyKey);
+        const gatePayload = (isPaymentRequiredResult(access) ? access.paymentPayload : {}) as BillingPaymentPayload;
+        const payment = await runLoveSecretPaymentGate(gatePayload, idempotencyKey);
         await startConsultation(buildPayload(form, idempotencyKey), idempotencyKey, payment);
         return;
       }

@@ -1270,9 +1270,10 @@ export default function SukuyoCompatibilityAiClient() {
       const denied = data as Exclude<EnsureAccessResult, { ok: true }>;
       if (denied.reason === "LOGIN_REQUIRED") throw new Error("LOGIN_REQUIRED");
       if (denied.reason === "INVALID_INPUT") throw new Error("INVALID_INPUT");
-      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
-      if (isRetriableResultPollFailure(status, denied)) throw new Error("TEMPORARY_UNAVAILABLE");
-      if (denied.reason !== "PAYMENT_REQUIRED") throw new Error(toText(denied.reason) || "SERVER_ERROR");
+      // 재시도를 소진하고도 일시적 장애가 지속되면, dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 이용권 확인
+      // 실패 시 무조건 결제창). runBillingCoinGate가 billing.js coin-gate로 pass를 재검사(W2 재시도)해 처리한다.
+      const passGateDegraded = isRetriableResultPollFailure(status, denied);
+      if (!passGateDegraded && denied.reason !== "PAYMENT_REQUIRED") throw new Error(toText(denied.reason) || "SERVER_ERROR");
       setNotice(ERROR_TEXT.PAYMENT_REQUIRED);
       setPhase("payment");
       const paymentPayload = asRecord("paymentPayload" in denied ? denied.paymentPayload : {});

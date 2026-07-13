@@ -841,13 +841,16 @@ export default function ZiweiAiPage() {
       }
       if (data.reason === "LOGIN_REQUIRED" || status === 401) throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
       if (data.reason === "INVALID_INPUT") throw new Error(mapError(data, status));
-      // 재시도를 소진하고도 일시적 장애가 지속되면 과금 없이 소프트 종료(이용권 결함으로 오인하지 않게).
-      if (isRetriableResultPollFailure(status, data)) throw new Error(ERROR_TEXT.TEMPORARY_UNAVAILABLE);
-      if (data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
+      // 재시도를 소진하고도 일시적 장애가 지속되면, dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 이용권 확인
+      // 실패 시 무조건 결제창). runBillingCoinGate가 billing.js coin-gate로 pass를 재검사(W2 재시도 포함)해 보유자면
+      // 무료 통과, 미커버/장애 지속이면 결제창을 연다. degrade면 paymentPayload가 없어도 buildBillingGateInput의
+      // FEATURE_COST 기본값으로 게이트를 구성한다.
+      const passGateDegraded = isRetriableResultPollFailure(status, data);
+      if (!passGateDegraded && data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
 
       setPhase("payment");
       setNotice("결제창을 확인해 주세요");
-      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(data.paymentPayload), idempotencyKey));
+      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey));
 
       if (!isPaymentGranted(gate)) {
         const code = String(gate.error?.code || "").toUpperCase();

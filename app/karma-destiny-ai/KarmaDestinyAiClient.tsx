@@ -805,11 +805,15 @@ export default function KarmaDestinyAiPage() {
       const denied = access as Exclude<EnsureAccessResult, { ok: true }>;
       if (denied.reason === "LOGIN_REQUIRED") throw new Error(LOGIN_REQUIRED_MESSAGE);
       if (denied.reason === "INVALID_INPUT") throw new Error(denied.message);
-      if (denied.reason === "PAYMENT_REQUIRED" && "paymentPayload" in denied) {
+      // 이용권 확인 앞단의 일시 장애(degraded)면 dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 확인 실패 시 무조건 결제창).
+      // runCommonBillingGate가 billing.js coin-gate로 pass를 재검사(재시도 포함)해 보유자면 무료통과, 미커버/장애면 결제창.
+      const passGateDegraded = (denied as Record<string, unknown>).retryable === true || String(denied.reason) === "DB_DEGRADED";
+      if (denied.reason === "PAYMENT_REQUIRED" || passGateDegraded) {
         paymentAttempted = true;
-        setNotice(denied.message || PAYMENT_REQUIRED_MESSAGE);
+        setNotice(("message" in denied && denied.message) || PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
-        const billingEvidence = await runCommonBillingGate(denied.paymentPayload, idempotencyKey);
+        const gatePayload = ("paymentPayload" in denied ? denied.paymentPayload : {}) as BillingGatePayload;
+        const billingEvidence = await runCommonBillingGate(gatePayload, idempotencyKey);
         await startConsultation(payload, idempotencyKey, billingEvidence);
         return;
       }

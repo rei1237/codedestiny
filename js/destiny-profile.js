@@ -2667,7 +2667,12 @@
       var title = String(opts.title || opts.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4').trim();
       var coinPrice = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
       var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
-      if (typeof window._cdChooseServicePaymentMode !== 'function') throw new Error('\uACB0\uC81C \uC120\uD0DD\uCC3D\uC744 \uC5F4 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.');
+      if (typeof window._cdChooseServicePaymentMode !== 'function') {
+        // \uACB0\uC81C \uC120\uD0DD\uCC3D \uD568\uC218 \uBBF8\uC124\uCE58(\uADF9\uB2E8\uC801 \uB85C\uB4DC\uC21C\uC11C)\uB77C\uB3C4 throw\uB85C dead-end\uD558\uC9C0 \uC54A\uACE0, \uC774 \uD30C\uC77C\uC774 \uC81C\uACF5\uD558\uB294
+        // \uC815\uCC45\uC900\uC218 \uACB0\uC81C \uC120\uD0DD \uBAA8\uB2EC(_dpCanonicalPaymentChoice\u2192\uB3C5\uB9BD \uBAA8\uB2EC \uD3F4\uBC31)\uB85C \uC989\uC2DC \uC790\uAE30\uC218\uBCF5\uD574
+        // \uACB0\uC81C\uCC3D(\uB2E8\uAC74+\uC6D4\uC815\uC11D)\uC774 \uBC18\uB4DC\uC2DC \uC5F4\uB9AC\uB3C4\uB85D \uD55C\uB2E4.
+        if (typeof _dpCanonicalPaymentChoice === 'function') window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
+      }
       if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
@@ -2693,6 +2698,18 @@
             cost: coinPrice,
             requestId: requestId
           }));
+          // 인프라/degraded로 이용권 확인이 실패(status:'error')하면 짧게 최대 2회 재시도(동일 requestId 재사용,
+          // 지수 백오프 800ms→1.44s)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
+          // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
+          for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error'; _dpPassRetry += 1) {
+            await new Promise(function(resolve) { setTimeout(resolve, Math.round(800 * Math.pow(1.8, _dpPassRetry - 1))); });
+            passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
+              title: title,
+              coinPrice: coinPrice,
+              cost: coinPrice,
+              requestId: requestId
+            }));
+          }
         } finally {
           // 최소 표시 시간 보장(초고속 응답에도 "이용권 확인 중"이 보이도록) + 예외 시에도 오버레이가 멈추지 않고 닫히도록.
           var passShownElapsed = Date.now() - passShownAt;
@@ -2705,13 +2722,9 @@
         if (passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked')) {
           return _dpBuildPaidGateGrantedResult(passFirst, requestId, opts.onGranted);
         }
-        if (passFirst && passFirst.status === 'error') {
-          // 이용권 확인이 일시적으로 실패 — 결제창으로 강등하지 않고 재시도하도록 안내한다(호출부 catch가 표면화).
-          var passUnavailableError = new Error('이용권 상태를 잠시 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
-          passUnavailableError.code = passFirst.code || 'PASS_CHECK_UNAVAILABLE';
-          passUnavailableError.status = 503;
-          throw passUnavailableError;
-        }
+        // passFirst.status === 'error'(재시도 후에도 인프라/degraded로 이용권 확인 실패)면 throw하지 않고
+        // 결제창(단건+월정석)으로 fall-through한다(아래 _cdChooseServicePaymentMode). 요구사항: 이용권 확인
+        // 실패 시 무조건 결제창 노출. 결제창 내 '이용권 다시 확인' 버튼으로 실제 보유자는 그 자리에서 재검증한다.
       }
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
       if (!choice || choice === 'cancel') {

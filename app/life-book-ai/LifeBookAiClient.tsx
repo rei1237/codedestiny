@@ -461,10 +461,17 @@ export default function LifeBookAiClient() {
         setStatus("error");
         return;
       }
-      if (denied.reason === "PAYMENT_REQUIRED") {
+      // 이용권 확인 앞단의 일시 장애(degraded)면 dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 확인 실패 시 무조건 결제창).
+      const passGateDegraded = (denied as Record<string, unknown>).retryable === true || String(denied.reason) === "DB_DEGRADED";
+      if (denied.reason === "PAYMENT_REQUIRED" || passGateDegraded) {
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
-        const billingInput = buildBillingGateInput(asRecord("paymentPayload" in denied ? denied.paymentPayload : undefined), requestId);
+        // degrade면 서버 paymentPayload가 없어 buildBillingGateInput의 가격검증(cost>0)에서 throw되므로,
+        // 서버 레지스트리(life-book-ai-consultation: 300코인/₩30,000/월정석 3,000)와 동일한 폴백 가격을 주입한다.
+        // 실제 금액은 runBillingCoinGate→billing.js coin-gate가 featureKey로 재확정한다.
+        const degradedFallbackPayload = { runtimeGate: { cost: 300, coinPrice: 300, amountKRW: 30000, membershipCreditCost: 3000 } };
+        const gatePayloadSource = "paymentPayload" in denied ? denied.paymentPayload : (passGateDegraded ? degradedFallbackPayload : undefined);
+        const billingInput = buildBillingGateInput(asRecord(gatePayloadSource), requestId);
         const gate = await runBillingCoinGate(billingInput);
         if (!gate.ok || !gate.data) {
           const code = String(gate.error?.code || "").toUpperCase();

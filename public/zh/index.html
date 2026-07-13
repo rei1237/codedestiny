@@ -16608,11 +16608,14 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var allowDirectChoice = paymentModeAllowed(['direct', 'card', 'single', 'single_purchase', 'direct_krw']);
     var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit']);
     var allowPassChoice = opts.disablePassChoice !== true && paymentModeAllowed(['pass', 'membership', 'membership_pass']);
+    // equalPriorityMethods는 '동등 노출' 신호 — 목록에 있으면 노출을 '보장'만 하고, 없다고 '제거'하지는 않는다.
+    // (과거: 목록에 빠진 쪽을 제거 → 단건/월정석 중 하나만 뜨는 정책 위반. 실제 노출 제한은 allowedPaymentModes만
+    //  담당하고, 월정석은 잔량 부족 시 회색 비활성으로 둔다. billing.js buildPassPaymentDecision 주석과 동일 계약.)
     if (hasEqualPriorityMethods) {
-      allowDirectChoice = allowDirectChoice && equalPriorityMethods.indexOf('DIRECT_KRW') >= 0;
-      allowMonthlyChoice = allowMonthlyChoice && equalPriorityMethods.indexOf('MOONLIGHT_STONE') >= 0;
+      if (equalPriorityMethods.indexOf('DIRECT_KRW') >= 0) allowDirectChoice = true;
+      if (equalPriorityMethods.indexOf('MOONLIGHT_STONE') >= 0) allowMonthlyChoice = true;
     }
-    if (!allowDirectChoice && !allowMonthlyChoice && !allowPassChoice) allowDirectChoice = true;
+    if (!allowDirectChoice && !allowMonthlyChoice && !allowPassChoice) { allowDirectChoice = true; allowMonthlyChoice = true; }
     var providedMonthlyBalance = Number(
       opts.monthlyBalance !== undefined
         ? opts.monthlyBalance
@@ -17817,7 +17820,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       }
 
       if (shouldRunPassFirst) {
-        passFirstAccess = await _cdResolvePaidContentAccess({
+        var _cdPassFirstAccessOptions = {
           title: title,
           reason: opts.reason || title,
           coinPrice: coinPrice,
@@ -17845,18 +17848,24 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
           forceRefreshMembershipCoverage: opts.forcePassFirst === true || !passFirstCoverage || passFirstCoverage.canUseByPass !== true,
           requireServerPassCheck: true,
           fastPassOnly: false
-        });
+        };
+        passFirstAccess = await _cdResolvePaidContentAccess(_cdPassFirstAccessOptions);
+        // \uC778\uD504\uB77C/degraded\uB85C \uC774\uC6A9\uAD8C \uD655\uC778\uC774 \uC2E4\uD328(status:'error')\uD558\uBA74, \uC774\uC6A9\uAD8C \uBCF4\uC720\uC790\uAC00 \uBB34\uB8CC \uD1B5\uACFC\uD560 \uAE30\uD68C\uB97C \uC0B4\uB9AC\uB824
+        // \uC9E7\uAC8C \uCD5C\uB300 2\uD68C \uC7AC\uC2DC\uB3C4\uD55C\uB2E4(\uB3D9\uC77C requestId \uC7AC\uC0AC\uC6A9, \uC9C0\uC218 \uBC31\uC624\uD504 800ms\u21921.44s). \uC7AC\uC2DC\uB3C4 \uC911 pass \uCEE4\uBC84\uAC00
+        // \uD655\uC778\uB418\uBA74 \uC544\uB798 bypass \uBD84\uAE30\uAC00 \uBB34\uB8CC \uD1B5\uACFC\uC2DC\uD0A8\uB2E4. \uC18C\uC9C4 \uD6C4\uC5D0\uB3C4 error\uBA74 throw\uD558\uC9C0 \uC54A\uACE0 \uACB0\uC81C\uCC3D(\uB2E8\uAC74+\uC6D4\uC815\uC11D)
+        // \uD750\uB984\uC73C\uB85C fall-through\uD55C\uB2E4(\uC694\uAD6C\uC0AC\uD56D: \uC774\uC6A9\uAD8C \uD655\uC778 \uC2E4\uD328 \uC2DC \uBB34\uC870\uAC74 \uACB0\uC81C\uCC3D \uB178\uCD9C \u2014 dead-end \uAE08\uC9C0).
+        for (var _cdPassRetry = 1; _cdPassRetry <= 2 && passFirstAccess && passFirstAccess.status === 'error'; _cdPassRetry += 1) {
+          await new Promise(function(resolve) { setTimeout(resolve, Math.round(800 * Math.pow(1.8, _cdPassRetry - 1))); });
+          passFirstAccess = await _cdResolvePaidContentAccess(_cdPassFirstAccessOptions);
+        }
         if (_cdIsPassBypassAccess(passFirstAccess)) {
           if (passFirstAccess && passFirstAccess.status === 'pass_applied') {
             await _cdCompletePassGateBeforeContinue({ requestId: requestId, message: '\uC774\uC6A9\uAD8C\uC73C\uB85C \uC5F4\uB78C\uB418\uC5C8\uC2B5\uB2C8\uB2E4.' });
           }
           return finishGranted(_cdBuildPassBypassPayload(passFirstAccess, requestId), passFirstAccess);
         }
-        if (passFirstAccess && passFirstAccess.status === 'error') {
-          var passErrorMessage = passFirstAccess.message || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.';
-          endSharedPaidGate('error', passErrorMessage);
-          throw new Error(passErrorMessage);
-        }
+        // status==='error'\uAC00 \uC7AC\uC2DC\uB3C4 \uD6C4\uC5D0\uB3C4 \uB0A8\uC73C\uBA74 throw\uD558\uC9C0 \uC54A\uACE0 \uACB0\uC81C\uCC3D\uC73C\uB85C fall-through\uD55C\uB2E4(\uC544\uB798 _cdChooseServicePaymentMode).
+        // \uACB0\uC81C\uCC3D \uC790\uCCB4\uC5D0 '\uC774\uC6A9\uAD8C \uB2E4\uC2DC \uD655\uC778' \uBC84\uD2BC\uC774 \uC788\uC5B4 \uC2E4\uC81C \uC774\uC6A9\uAD8C \uBCF4\uC720\uC790\uB294 \uADF8 \uC790\uB9AC\uC5D0\uC11C \uC7AC\uAC80\uC99D\uD560 \uC218 \uC788\uB2E4.
       }
 
       console.log('[이용권 체크]', {

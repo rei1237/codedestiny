@@ -1326,7 +1326,9 @@ export default function NewYearAiConsultationPage() {
       if (denied.reason === "LOGIN_REQUIRED") {
         throw new Error(LOGIN_REQUIRED_MESSAGE);
       }
-      if (denied.reason === "PAYMENT_REQUIRED") {
+      // 이용권 확인 앞단의 일시 장애(degraded)면 dead-end 대신 결제창(단건+월정석)을 연다(요구사항: 확인 실패 시 무조건 결제창).
+      const passGateDegraded = (denied as Record<string, unknown>).retryable === true || String(denied.reason) === "DB_DEGRADED";
+      if (denied.reason === "PAYMENT_REQUIRED" || passGateDegraded) {
         paymentAttempted = true;
         setNotice(PAYMENT_REQUIRED_MESSAGE);
         setStatus("payment");
