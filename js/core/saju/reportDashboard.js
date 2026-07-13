@@ -1209,7 +1209,17 @@ function _sajuFunEnsureHealthReportBlockReady(block) {
     slot.appendChild(targetEl);
   }
 
-  return _sajuFunEnsureHealthReportRendered(targetEl);
+  var rendered = _sajuFunEnsureHealthReportRendered(targetEl);
+
+  // 강제 reveal: IntersectionObserver가 감지하지 못한 .ent-reveal 요소를 즉시 표시
+  if (rendered && block.querySelectorAll) {
+    var revealEls = block.querySelectorAll('.ent-reveal:not(.is-visible)');
+    for (var i = 0; i < revealEls.length; i += 1) {
+      revealEls[i].classList.add('is-visible');
+    }
+  }
+
+  return rendered;
 }
 
 function _sajuFunHasRenderableContent(targetEl) {
