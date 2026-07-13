@@ -34,7 +34,7 @@ function PhotocardSurface({
   const hasImage = Boolean(biasImageUrl);
   const relationHeadline = `${vm.userName} x ${vm.biasName}`;
   const relationSignal = `${vm.chemistryType || "잔잔응원형"} · ${vm.totalScore}점`;
-  const oneLine = String(vm.oneLineDestinyMessage || vm.chemistrySummary || "").replace(/\s+/g, " ").trim().slice(0, 45);
+  const oneLine = String(vm.cardCaption || vm.chemistryType || "").replace(/\s+/g, " ").trim();
   const cardKeywords = (Array.isArray(vm.stageChemistryKeywords) ? vm.stageChemistryKeywords : []).filter(Boolean).slice(0, 3);
   const imageWrapClass = resolveImageWrapClass(hasImage, imageAspectRatio, exportMode);
   const bodyClassName = exportMode

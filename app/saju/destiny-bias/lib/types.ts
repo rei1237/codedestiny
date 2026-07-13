@@ -47,6 +47,7 @@ export type DestinyBiasResultViewModel = {
   compatibilityReport: string;
   energyConnectionReport: string;
   oneLineDestinyMessage: string;
+  cardCaption: string;
   stageAuraComment: string;
   destinySignal: string;
   fansignMessage: string;
@@ -80,6 +81,12 @@ export type DestinyBiasResultViewModel = {
   elementDistribution: {
     user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
     favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+  };
+  mzLayer: {
+    relationMbti: { type: string; desc: string };
+    pastLife: { title: string; story: string };
+    gradeMeme: string;
+    hashtags: string[];
   };
   detailedTabs: Array<{
     id: "chemi" | "element" | "dayMaster" | "branch" | "booster";

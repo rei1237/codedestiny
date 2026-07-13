@@ -15,6 +15,7 @@ import BiasDestinyInputPanel from "./components/BiasDestinyInputPanel";
 import BiasDestinyElementChart from "./components/BiasDestinyElementChart";
 import BiasDestinyFiveSections from "./components/BiasDestinyFiveSections";
 import BiasDestinyMainCard from "./components/BiasDestinyMainCard";
+import BiasDestinyMzZone from "./components/BiasDestinyMzZone";
 import BiasDestinyScoreGauge from "./components/BiasDestinyScoreGauge";
 import BiasDestinyShareCard from "./components/BiasDestinyShareCard";
 import BiasDestinySpotlightBackground from "./components/BiasDestinySpotlightBackground";
@@ -275,6 +276,8 @@ export default function DestinyBiasClient() {
   const [activeCelebCategory, setActiveCelebCategory] = useState<DestinyBiasCelebCategory>("전체");
   const [activeAnimeSeries, setActiveAnimeSeries] = useState("전체 작품");
   const [selectedCelebPresetId, setSelectedCelebPresetId] = useState("");
+  const CELEB_PAGE_SIZE = 24;
+  const [celebVisibleCount, setCelebVisibleCount] = useState(CELEB_PAGE_SIZE);
   const [biasImageDataUrl, setBiasImageDataUrl] = useState("");
   const [biasImageName, setBiasImageName] = useState("");
   const [biasImageError, setBiasImageError] = useState("");
@@ -345,6 +348,11 @@ export default function DestinyBiasClient() {
       if (!keyword) return true;
       return preset.searchText.includes(keyword);
     });
+  }, [activeAnimeSeries, activeCelebCategory, biasPresetQuery]);
+
+  // 필터/검색이 바뀌면 더보기 노출 개수 초기화
+  useEffect(() => {
+    setCelebVisibleCount(CELEB_PAGE_SIZE);
   }, [activeAnimeSeries, activeCelebCategory, biasPresetQuery]);
 
   useEffect(() => {
@@ -1240,7 +1248,7 @@ export default function DestinyBiasClient() {
                   ) : null}
 
                   <div className={`${styles.celebListGrid} mt-3`}>
-                    {filteredCelebPresets.slice(0, 24).map((preset) => {
+                    {filteredCelebPresets.slice(0, celebVisibleCount).map((preset) => {
                       const selected = preset.id === selectedCelebPresetId;
                       return (
                         <button
@@ -1266,6 +1274,18 @@ export default function DestinyBiasClient() {
                       );
                     })}
                   </div>
+
+                  {filteredCelebPresets.length > celebVisibleCount ? (
+                    <div className="mt-3 flex justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setCelebVisibleCount((prev) => prev + CELEB_PAGE_SIZE)}
+                        className="rounded-full border border-cyan-200/40 bg-cyan-300/10 px-5 py-2 text-sm font-semibold text-cyan-50 transition hover:border-cyan-200/60 hover:bg-cyan-300/20"
+                      >
+                        더보기 ({celebVisibleCount}/{filteredCelebPresets.length})
+                      </button>
+                    </div>
+                  ) : null}
 
                   {filteredCelebPresets.length === 0 ? (
                     <p className="mt-3 text-sm text-white/68">검색 결과가 없어요. 이름 일부나 그룹명으로 다시 찾아보세요.</p>
@@ -1428,6 +1448,8 @@ export default function DestinyBiasClient() {
               <BiasDestinyElementChart vm={resultVm} />
 
               <BiasDestinyFiveSections vm={resultVm} />
+
+              <BiasDestinyMzZone vm={resultVm} />
 
               <BiasDestinyShareCard vm={resultVm} />
 

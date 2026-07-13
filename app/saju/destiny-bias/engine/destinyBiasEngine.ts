@@ -60,6 +60,7 @@ export type DestinyBiasAnalyzeResult = {
   compatibilityReport: string;
   energyConnectionReport: string;
   oneLineDestinyMessage: string;
+  cardCaption: string;
   stageAuraComment: string;
   destinySignal: string;
   fansignMessage: string;
@@ -90,6 +91,12 @@ export type DestinyBiasAnalyzeResult = {
   elementDistribution: {
     user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
     favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
+  };
+  mzLayer: {
+    relationMbti: { type: string; desc: string };
+    pastLife: { title: string; story: string };
+    gradeMeme: string;
+    hashtags: string[];
   };
   detailedTabs: Array<{
     id: "chemi" | "element" | "dayMaster" | "branch" | "booster";
@@ -267,6 +274,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     compatibilityReport: sanitizeFavoriteDestinyText(elementTab?.sections[0]?.text || ""),
     energyConnectionReport: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
     oneLineDestinyMessage: sanitizeFavoriteDestinyText(chemiTab?.sections[0]?.text || reading.imageCard.oneLineLink),
+    cardCaption: sanitizeFavoriteDestinyText(reading.imageCard.oneLineLink || reading.imageCard.shortMood),
     stageAuraComment,
     destinySignal: sanitizeFavoriteDestinyText(branchTab?.sections[0]?.text || ""),
     fansignMessage,
@@ -281,6 +289,7 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     chemistryType: reading.chemistryType,
     bottomNotice: reading.bottomNotice,
     elementDistribution: reading.elementDistribution,
+    mzLayer: reading.mzLayer,
     birthDataStatus: {
       user: reading.user.birthDataStatus,
       favorite: reading.favorite.birthDataStatus,

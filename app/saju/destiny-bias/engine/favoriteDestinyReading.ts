@@ -6,9 +6,15 @@ import {
   buildDayMasterRelation,
   buildBranchChemi,
   buildBoosterTips,
+  buildRelationMbti,
+  buildPastLifeStory,
+  buildGradeMeme,
+  buildHashtags,
+  josa,
   type ContentElementKey,
   type ElementRelation,
   type BranchKind,
+  type RelationMbti,
 } from "./favoriteDestinyContent";
 
 type ElementKey = "wood" | "fire" | "earth" | "metal" | "water";
@@ -101,6 +107,12 @@ export type FavoriteDestinyReading = {
   elementDistribution: {
     user: Record<ElementKey, number>;
     favorite: Record<ElementKey, number>;
+  };
+  mzLayer: {
+    relationMbti: RelationMbti;
+    pastLife: { title: string; story: string };
+    gradeMeme: string;
+    hashtags: string[];
   };
   meta: {
     engineVersion: string;
@@ -696,8 +708,33 @@ export function buildFavoriteDestinyFromSaju(
 
   const gradeWord = scores.total >= 78 ? "찰떡같이 잘 맞는" : scores.total >= 60 ? "은근히 잘 통하는" : "천천히 깊어지는";
   const summary = sanitizeFavoriteDestinyText(
-    `${favoriteChartInput.name}와 당신은 ${gradeWord} '${chemistryType}' 케미예요. 사주로 보면 ${fiveElementBalance} 흐름이 핵심이고, 서로의 다른 기운을 채워줄수록 더 좋아지는 궁합이에요.`
+    `${josa(favoriteChartInput.name, "와과")} 당신은 ${gradeWord} '${chemistryType}' 케미예요. 사주로 보면 ${fiveElementBalance} 흐름이 핵심이고, 서로의 다른 기운을 채워줄수록 더 좋아지는 궁합이에요.`
   );
+
+  // MZ 재미 레이어 (정적 계산)
+  const gradeMeme = buildGradeMeme(scores.total);
+  const mzLayer = {
+    relationMbti: buildRelationMbti({
+      userEl: userChart.dayElement,
+      favEl: favoriteChart.dayElement,
+      relation: elementRelation,
+      userYin: userChart.yinYang === "yin",
+      favYin: favoriteChart.yinYang === "yin",
+      tenGod: tenGodRelation,
+      hasHarmony: harmonySignals.length > 0,
+      hasClash: conflictSignals.length > 0,
+      favName: favoriteChartInput.name,
+    }),
+    pastLife: buildPastLifeStory({ tenGod: tenGodRelation, favName: favoriteChartInput.name }),
+    gradeMeme,
+    hashtags: buildHashtags({
+      userEl: userChart.dayElement,
+      favEl: favoriteChart.dayElement,
+      relation: elementRelation,
+      chemistryType,
+      gradeMeme,
+    }),
+  };
 
   return {
     reportType: "FAVORITE_DESTINY",
@@ -731,6 +768,7 @@ export function buildFavoriteDestinyFromSaju(
       user: userChart.elementScores,
       favorite: favoriteChart.elementScores,
     },
+    mzLayer,
     meta: {
       engineVersion: "favorite-destiny-v2",
       apiUsed: false,

@@ -9,6 +9,26 @@ export type ElementRelation = "same" | "generates" | "generated_by" | "controls"
 
 export const BOTTOM_NOTICE = "이 콘텐츠는 전통 명리학을 재미있게 재해석한 엔터테인먼트입니다 🌙";
 
+// 한글 조사 자동 선택 (받침 유무). 이름이 한글이 아니면(영문 등) 받침 없는 형태 사용.
+function hasBatchim(word: string): boolean {
+  const last = String(word || "").trim().slice(-1);
+  if (!last) return false;
+  const code = last.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return false; // 한글 음절이 아니면 받침 없음 취급
+  return (code - 0xac00) % 28 !== 0;
+}
+export function josa(word: string, type: "와과" | "을를" | "이가" | "은는" | "아야"): string {
+  const map: Record<string, [string, string]> = {
+    와과: ["과", "와"],
+    을를: ["을", "를"],
+    이가: ["이", "가"],
+    은는: ["은", "는"],
+    아야: ["아", "야"],
+  };
+  const [withB, withoutB] = map[type];
+  return `${word}${hasBatchim(word) ? withB : withoutB}`;
+}
+
 type ElementInfo = {
   ko: string; // 목/화/토/금/수
   han: string; // 木/火/土/金/水
@@ -132,13 +152,13 @@ export function buildOneLineChemi(params: {
     return `${u.nature} 같은 당신이, ${f.nature} 같은 ${favName}에게 ${gen(userEl, favEl)} 따뜻한 응원이 되어주는 사이예요 ${f.emoji}`;
   }
   if (relation === "generated_by") {
-    return `${f.nature} 같은 ${favName}가, ${u.nature} 같은 당신을 ${gen(favEl, userEl)} 든든하게 채워주는 사이예요 ${u.emoji}`;
+    return `${f.nature} 같은 ${josa(favName, "이가")}, ${u.nature} 같은 당신을 ${gen(favEl, userEl)} 든든하게 채워주는 사이예요 ${u.emoji}`;
   }
   if (relation === "controls") {
     return `${u.nature} 같은 당신과 ${f.nature} 같은 ${favName}, ${ctrl(userEl, favEl)} 서로를 기분 좋게 자극하는 사이예요 ${u.emoji}${f.emoji}`;
   }
   // controlled_by
-  return `${f.nature} 같은 ${favName}와 ${u.nature} 같은 당신, ${ctrl(favEl, userEl)} 서로를 한 뼘씩 자라게 하는 사이예요 ${u.emoji}${f.emoji}`;
+  return `${f.nature} 같은 ${josa(favName, "와과")} ${u.nature} 같은 당신, ${ctrl(favEl, userEl)} 서로를 한 뼘씩 자라게 하는 사이예요 ${u.emoji}${f.emoji}`;
 }
 
 // ② 오행 궁합 분석
@@ -157,16 +177,16 @@ export function buildElementCompat(params: {
     return `당신의 중심 기운은 ${u.gloss}이에요. ${favName}도 같은 ${u.ko} 기운을 타고났죠. 같은 결을 가진 두 사람이라, 취향도 템포도 비슷해서 편안한 동지 같은 궁합이에요. 가끔은 둘 다 비슷한 지점에서 지칠 수 있으니, 서로 다른 기운을 하나씩 채워주면 더 단단해져요 ${u.emoji}`;
   }
   if (relation === "generates") {
-    return `당신의 중심 기운은 ${u.gloss}이에요. ${favName}는 ${f.gloss}을 지녔는데, ${notation} — ${gen(userEl, favEl)}, 당신의 ${u.easy}이 ${favName}에게 진짜 힘이 되어주는 구조예요. 응원하는 당신이 곧 ${favName}의 에너지원이 되는, 주는 기쁨이 큰 궁합이에요 ${f.emoji}`;
+    return `당신의 중심 기운은 ${u.gloss}이에요. ${josa(favName, "은는")} ${f.gloss}을 지녔는데, ${notation} — ${gen(userEl, favEl)}, 당신의 ${u.easy}이 ${favName}에게 진짜 힘이 되어주는 구조예요. 응원하는 당신이 곧 ${favName}의 에너지원이 되는, 주는 기쁨이 큰 궁합이에요 ${f.emoji}`;
   }
   if (relation === "generated_by") {
-    return `당신의 중심 기운은 ${u.gloss}이에요. ${favName}는 ${f.gloss}을 지녔는데, ${notation} — ${gen(favEl, userEl)}, ${favName}의 ${f.easy}이 당신을 가만히 채워주는 구조예요. ${favName}를 보는 것만으로 마음이 충전되는, 받는 위로가 큰 궁합이에요 ${u.emoji}`;
+    return `당신의 중심 기운은 ${u.gloss}이에요. ${josa(favName, "은는")} ${f.gloss}을 지녔는데, ${notation} — ${gen(favEl, userEl)}, ${favName}의 ${f.easy}이 당신을 가만히 채워주는 구조예요. ${josa(favName, "을를")} 보는 것만으로 마음이 충전되는, 받는 위로가 큰 궁합이에요 ${u.emoji}`;
   }
   if (relation === "controls") {
-    return `당신의 중심 기운은 ${u.gloss}이에요. ${favName}는 ${f.gloss}을 지녔죠. ${notation} 관계라 얼핏 결이 반대 같지만, 부딪히는 게 아니라 ${ctrl(userEl, favEl)} 서로에게 없는 부분을 자극해 주는 사이예요. 다른 에너지라서 오히려 배울 게 많은, 자극이 되는 궁합이에요 ${f.emoji}`;
+    return `당신의 중심 기운은 ${u.gloss}이에요. ${josa(favName, "은는")} ${f.gloss}을 지녔죠. ${notation} 관계라 얼핏 결이 반대 같지만, 부딪히는 게 아니라 ${ctrl(userEl, favEl)} 서로에게 없는 부분을 자극해 주는 사이예요. 다른 에너지라서 오히려 배울 게 많은, 자극이 되는 궁합이에요 ${f.emoji}`;
   }
   // controlled_by
-  return `당신의 중심 기운은 ${u.gloss}이에요. ${favName}는 ${f.gloss}을 지녔죠. ${notation} 관계라 결이 달라 보여도, ${ctrl(favEl, userEl)} ${favName}가 당신의 균형을 잡아주는 흐름이에요. 서로 다른 기운이 만나 시야가 넓어지는, 성장의 궁합이에요 ${u.emoji}`;
+  return `당신의 중심 기운은 ${u.gloss}이에요. ${josa(favName, "은는")} ${f.gloss}을 지녔죠. ${notation} 관계라 결이 달라 보여도, ${ctrl(favEl, userEl)} ${josa(favName, "이가")} 당신의 균형을 잡아주는 흐름이에요. 서로 다른 기운이 만나 시야가 넓어지는, 성장의 궁합이에요 ${u.emoji}`;
 }
 
 // 십성 → 관계 유형 번역 (10종)
@@ -243,7 +263,7 @@ export function buildDayMasterRelation(params: {
   const fwd = TEN_GOD_ROLE[params.forwardTenGod as TenGod] || TEN_GOD_ROLE["비견"];
   const rev = TEN_GOD_ROLE[params.reverseTenGod as TenGod] || TEN_GOD_ROLE["비견"];
   const intro = `일간(日干) — 태어난 날의 기운으로 보는 '나라는 사람의 중심'이에요. 이 둘이 만나면 이런 결이 흘러요.`;
-  return `${intro} 나에게 ${favName}는 '${fwd.type}' — ${fwd.asFavorite}. 반대로 ${favName}에게 나는 '${rev.type}' — ${rev.asMe}. 서로가 서로에게 다른 역할이 되어주는 게 이 관계의 매력이에요 ✨`;
+  return `${intro} 나에게 ${josa(favName, "은는")} '${fwd.type}' — ${fwd.asFavorite}. 반대로 ${favName}에게 나는 '${rev.type}' — ${rev.asMe}. 서로가 서로에게 다른 역할이 되어주는 게 이 관계의 매력이에요 ✨`;
 }
 
 // ④ 지지(地支) 케미 포인트
@@ -261,7 +281,7 @@ export function buildBranchChemi(params: { kinds: BranchKind[]; favName: string 
   }
   const lines: string[] = [];
   if (has("harmony")) {
-    lines.push(`${favName}와 자연스럽게 통하는 포인트가 있어요! 바탕 기운이 서로 손을 맞잡는 '합(合)' 신호라, 함께 있을 때 유독 편안하고 안정감이 들어요 🤝`);
+    lines.push(`${josa(favName, "와과")} 자연스럽게 통하는 포인트가 있어요! 바탕 기운이 서로 손을 맞잡는 '합(合)' 신호라, 함께 있을 때 유독 편안하고 안정감이 들어요 🤝`);
   }
   if (has("clash")) {
     lines.push(`서로 다른 방향을 바라보는 '충(沖)' 신호가 있어요. 부딪힘이 아니라, 덕분에 내가 못 보던 시야가 넓어지는 자극제 같은 관계예요`);
@@ -275,6 +295,92 @@ export function buildBranchChemi(params: { kinds: BranchKind[]; favName: string 
       ? "엇갈리는 날엔 '왜 저럴까' 대신 '나랑 결이 다르구나' 하고 한 박자 쉬어가면, 케미가 금세 다시 살아나요 🎯"
       : "잘 통하는 이 흐름을 놓치지 말고, 좋았던 순간을 기록해 두면 오래오래 힘이 돼요 📌",
   };
+}
+
+// ───────────────────────── MZ 재미 레이어 ─────────────────────────
+
+export type RelationMbti = { type: string; desc: string };
+
+// 관계 MBTI — 오행/음양/십성/지지 신호로 4글자 도출(재미용)
+export function buildRelationMbti(params: {
+  userEl: ContentElementKey;
+  favEl: ContentElementKey;
+  relation: ElementRelation;
+  userYin: boolean; // 일간 음(陰)이면 true
+  favYin: boolean;
+  tenGod: string; // 나 기준 최애 십성
+  hasHarmony: boolean;
+  hasClash: boolean;
+  favName: string;
+}): RelationMbti {
+  const { userEl, favEl, relation, userYin, favYin, tenGod, hasHarmony, hasClash, favName } = params;
+  const EI = relation === "controls" || relation === "controlled_by" ? "I" : "E";
+  const isNvibe = [userEl, favEl].some((e) => e === "fire" || e === "wood");
+  const NS = isNvibe ? "N" : "S";
+  const FT = ["편인", "정인", "식신", "상관"].includes(tenGod) ? "F" : "T";
+  const PJ = hasClash ? "P" : hasHarmony ? "J" : userYin === favYin ? "J" : "P";
+  const type = `${EI}${NS}${FT}${PJ}`;
+  const vibe: Record<string, string> = {
+    E: "에너지가 도는",
+    I: "고요히 깊어지는",
+    N: "영감을 주고받는",
+    S: "현실이 잘 맞는",
+    F: "마음으로 통하는",
+    T: "쿨하게 조율되는",
+    P: "즉흥적으로 튀는",
+    J: "안정적으로 이어지는",
+  };
+  const desc = `${josa(favName, "와과")}는 ${vibe[EI]}·${vibe[NS]}·${vibe[FT]}·${vibe[PJ]} 케미예요.`;
+  return { type, desc };
+}
+
+// 전생 서사 — 십성 관계 5종
+export function buildPastLifeStory(params: { tenGod: string; favName: string }): { title: string; story: string } {
+  const { tenGod, favName } = params;
+  if (["편인", "정인"].includes(tenGod)) {
+    return { title: "전생엔 스승과 제자", story: `전생에 둘은 스승과 제자였을지도 몰라요. 그래서 ${favName}만 보면 배우고 싶고, 마음이 편안해지는 거예요 📖` };
+  }
+  if (["편재", "정재"].includes(tenGod)) {
+    return { title: "전생엔 주군과 책사", story: `전생에 둘은 큰일을 함께 도모한 주군과 책사 사이. 지금도 ${josa(favName, "와과")} 함께라면 뭐든 이뤄낼 것 같은 기분이 들어요 ♟️` };
+  }
+  if (["편관", "정관"].includes(tenGod)) {
+    return { title: "전생엔 선의의 라이벌", story: `전생에 둘은 서로를 성장시킨 선의의 라이벌이었어요. 그래서 ${josa(favName, "을를")} 보면 나도 더 잘하고 싶어지는 거죠 ⚔️` };
+  }
+  if (["식신", "상관"].includes(tenGod)) {
+    return { title: "전생엔 예술가와 뮤즈", story: `전생에 둘은 예술가와 뮤즈였을 거예요. ${josa(favName, "이가")} 내 안의 끼와 영감을 자꾸 끌어내는 이유예요 🎨` };
+  }
+  return { title: "전생엔 생사를 함께한 전우", story: `전생에 둘은 어깨를 나란히 한 전우였어요. 그래서 ${josa(favName, "이가")} 유독 내 편 같고 든든한 거예요 🤝` };
+}
+
+// 케미 등급 밈 (점수 → MZ 한글 등급)
+export function buildGradeMeme(score: number): string {
+  if (score >= 90) return "소울메이트각 💞";
+  if (score >= 78) return "찐친각 🤝";
+  if (score >= 66) return "썸타는각 💓";
+  if (score >= 54) return "천천히 스며드는각 🌱";
+  return "은은한 인연각 ✨";
+}
+
+// 공유 해시태그 — 오행관계 + 케미유형 + 등급
+export function buildHashtags(params: {
+  userEl: ContentElementKey;
+  favEl: ContentElementKey;
+  relation: ElementRelation;
+  chemistryType: string;
+  gradeMeme: string;
+}): string[] {
+  const { userEl, favEl, relation, chemistryType, gradeMeme } = params;
+  const u = ELEMENT_INFO[userEl].ko;
+  const f = ELEMENT_INFO[favEl].ko;
+  const rel =
+    relation === "generates" ? `${u}생${f}케미` :
+    relation === "generated_by" ? `${f}생${u}케미` :
+    relation === "controls" ? `${u}극${f}자극케미` :
+    relation === "controlled_by" ? `${f}극${u}성장케미` :
+    `${u}${f}쌍둥이케미`;
+  const gradeTag = gradeMeme.replace(/\s+/g, "").replace(/[^가-힣A-Za-z0-9]/g, "");
+  const tags = [rel, `${chemistryType}`, gradeTag, "최애운명"];
+  return Array.from(new Set(tags.filter(Boolean))).slice(0, 4);
 }
 
 // ⑤ 케미 부스터 팁
