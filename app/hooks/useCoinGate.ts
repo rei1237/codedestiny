@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
 import {
   PAID_SERVICE_RUNTIME_SRC,
+  loadPaidServiceRuntimeGate,
   runBillingCoinGate,
   warmSubscriptionSnapshotOnEntry,
 } from "../_lib/billing-client";
@@ -315,7 +316,12 @@ export function useCoinGate() {
   // 유료 화면 진입 시 구독 스냅샷을 1회 워밍(인증 상태일 때만)해 첫 유료 액션이 낙관적 즉시 허용 경로로
   // 들어가게 한다. 이미 신선한 스냅샷/진행 중이면 warm 내부에서 조기 반환한다(중복 요청 없음).
   useEffect(() => {
-    if (getAuthState().isAuthenticated) void warmSubscriptionSnapshotOnEntry();
+    if (getAuthState().isAuthenticated) {
+      void warmSubscriptionSnapshotOnEntry();
+      // 첫 유료 액션의 결제 런타임 스크립트(destiny-profile.js — 내부에서 PortOne SDK를 프리로드) 로드 지연을
+      // 숨기려 인증 상태면 유휴 프리워밍한다(async 주입; 이미 로드/진행 중이면 내부에서 조기 반환 — 중복 없음).
+      void loadPaidServiceRuntimeGate();
+    }
   }, []);
 
   const ensurePaidAccess = useCallback(async (input: EnsurePaidAccessInput): Promise<EnsurePaidAccessResult> => {

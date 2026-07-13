@@ -51,6 +51,7 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
     "billingClient.message.019": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
     "billingClient.message.020": "서버 권한 검증에 실패했습니다. 결제 내역 확인 후 다시 시도해 주세요.",
     "billingClient.message.021": "결제 가능 상태를 확인하고 있습니다.",
+    "billingClient.message.022": "단건 결제를 준비하는 중입니다.",
   },
 } as const;
 
@@ -3342,7 +3343,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     (passDisabled || explicitMonthlyMode || explicitDirectMode) ? "paymentPreparing" : "checkingEntitlement";
   const initialGateMessage = explicitMonthlyMode
     ? "월정석 사용 권한을 확인하고 있어요."
-    : ((passDisabled || explicitDirectMode) ? billingClientText("billingClient.message.021") : billingClientText("billingClient.message.005"));
+    : (explicitDirectMode
+      ? billingClientText("billingClient.message.022")
+      : (passDisabled ? billingClientText("billingClient.message.021") : billingClientText("billingClient.message.005")));
   emitPaidFeatureGate("open", {
     featureId,
     featureKey: featureId,

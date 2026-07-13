@@ -1268,14 +1268,20 @@ function isTransactionUnsupported(error) {
     .test(String(error?.message || ""));
 }
 
-async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}) {
+async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}, knownProfileSubscription = null) {
   const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
   if (!Number.isInteger(requiredCredit) || requiredCredit <= 0) return null;
   const profileMutationMetadata = buildProfileCardMutationMetadata(body);
 
   await connectDb(env);
-  await seedMembershipCreditForExistingPassIfNeeded(authUserId);
+  // legacy 포인트→월정석 seed는 이미 seed된 유저(대다수)에겐 확정 no-op이다. step2 pass 조회가 이미 가져온
+  // profileSubscription으로 seed 완료(legacyCoinCreditSeeded===true)가 확인되면 전용 findById를 생략한다
+  // (핫패스 왕복 절감). 시딩은 단조(true→false 불가)라 시간차도 안전. 플래그 확인 불가/미시드면 기존대로 seed해
+  // 회귀를 막는다. 실제 차감·백필은 applyLotDeduction의 트랜잭션 read가 담당(격리성 그대로 유지).
+  if (knownProfileSubscription?.legacyCoinCreditSeeded !== true) {
+    await seedMembershipCreditForExistingPassIfNeeded(authUserId);
+  }
 
   const featureKey = String(pricing?.featureKey || body?.featureKey || "").trim();
   const normalizedRequestId = String(requestId || "").trim();
@@ -3630,7 +3636,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         reportId,
         sessionId: reportSessionId,
         reportSessionId,
-      });
+      }, subscriptionPass?.profileSubscription || null);
       if (membershipConsume) {
         logPaidAccessStage("MONTHLY_DEDUCT_SUCCESS", {
           requestId,

@@ -1279,6 +1279,19 @@ async function fetchPortOnePaymentConfig(apiBase: string): Promise<PortOnePaymen
   };
 }
 
+// PortOne 결제 config(스토어/채널 키)는 세션 내 안정값이라 promise를 메모이즈해 반복 조회를 없앤다.
+// 결제창 오픈 임계경로에서 재조회 왕복을 제거하고, 실패는 캐시하지 않아 다음 시도에 재조회한다.
+let portOneConfigCachePromise: Promise<PortOnePaymentConfig> | null = null;
+function fetchPortOnePaymentConfigCached(apiBase: string): Promise<PortOnePaymentConfig> {
+  if (!portOneConfigCachePromise) {
+    portOneConfigCachePromise = fetchPortOnePaymentConfig(apiBase).catch((error) => {
+      portOneConfigCachePromise = null;
+      throw error;
+    });
+  }
+  return portOneConfigCachePromise;
+}
+
 function readPendingOrder() {
   if (typeof window === "undefined") return null;
   try {
@@ -2643,7 +2656,13 @@ export default function PointsPage() {
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
-  }, [pendingSubscriptionPaymentPlan?.id]);
+    // 결제방식 모달이 열리면 PortOne SDK와 결제 config를 미리 워밍해 '원화 결제' 클릭 시 즉시 창이 뜨게 한다.
+    // (ensurePortoneSdk는 멱등, config는 세션 캐시 — 프리페치 실패는 무시하고 실제 결제 시 재시도.)
+    if (pendingSubscriptionPaymentPlan) {
+      void ensurePortoneSdk().catch(() => {});
+      void fetchPortOnePaymentConfigCached(apiBase).catch(() => {});
+    }
+  }, [pendingSubscriptionPaymentPlan?.id, apiBase]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3429,13 +3448,12 @@ export default function PointsPage() {
         paymentMethod: selectedMethod,
       });
 
-      await ensurePortoneSdk();
+      // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
+      const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
 
       if (!window.PortOne?.requestPayment) {
         throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
       }
-
-      const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
@@ -3596,11 +3614,11 @@ export default function PointsPage() {
         return;
       }
 
-      await ensurePortoneSdk();
+      // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
+      const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
       if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
 
       const order = prepareData.order;
-      const paymentConfig = await fetchPortOnePaymentConfig(apiBase);
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");

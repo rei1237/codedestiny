@@ -17786,6 +17786,11 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     }
 
     try {
+      // 결제방식 모달이 월정석을 노출할 수 있으므로, 이용권 확인과 병렬로 월정석 잔량을 미리 워밍한다
+      // (15s 클라 TTL·in-flight dedup·서버 5s 캐시로 거의 무료). 모달 오픈 시 '확인 필요' 대신 즉시 잔량 표시.
+      if (typeof syncGoldenMonthlyCreditsFromPaymentsMe === 'function') {
+        try { void syncGoldenMonthlyCreditsFromPaymentsMe({ forceAuthProbe: false, fresh: false }); } catch (_) {}
+      }
       if (shouldRunPassFirst) {
         if (paidGateToken) updateSharedPaidGate('checkingEntitlement', passAccessMessage);
         else if (typeof _cdSetCoinGateOverlay === 'function') _cdSetCoinGateOverlay(true, passAccessMessage, 'pass');
@@ -17959,7 +17964,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       if (choice === 'monthly') {
         updateSharedPaidGate('paymentProcessing', '월정석 이벤트 재화 사용 권한을 확인하고 있습니다.', { paymentMode: 'MOONLIGHT_STONE' });
       } else {
-        updateSharedPaidGate('paymentPreparing', '단건 결제시에도 결제를 준비 중입니다.', { paymentMode: 'DIRECT_KRW' });
+        updateSharedPaidGate('paymentPreparing', '단건 결제를 준비하는 중입니다.', { paymentMode: 'DIRECT_KRW' });
       }
       var paidPayload = choice === 'monthly'
         ? await _cdRunMonthlyCreditGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, featureKey: featureKey || undefined, contentKey: opts.contentKey || undefined, requestId: requestId, internalMainGate: true, __cdPaymentGateAuthorized: true }))
@@ -19441,7 +19446,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     if (path.indexOf('/api/billing/coin-gate') === 0) {
       if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass', message: _cdPaymentI18n('payment.pending.passCheck', '이용권을 확인하고 있습니다.') };
       if (bodyMode === 'MOONLIGHT_STONE' || bodyMode === 'MONTHLY_CREDIT') return { type: 'payment', mode: 'monthly', message: _cdPaymentI18n('payment.pending.monthly', '월정석 사용 중입니다. 보유 이벤트 재화 잔량을 확인하고 있어요.') };
-      if (bodyMode === 'DIRECT_KRW') return { type: 'payment', mode: 'card', message: _cdPaymentI18n('payment.pending.direct', '단건 결제시에도 결제를 준비 중입니다.') };
+      if (bodyMode === 'DIRECT_KRW') return { type: 'payment', mode: 'card', message: _cdPaymentI18n('payment.pending.direct', '단건 결제를 준비하는 중입니다.') };
       if (/pdf|리포트|report/.test(bodyText)) return { type: 'payment', mode: 'payment', message: _cdPaymentI18n('payment.pending.pdfGeneration', 'PDF 생성을 위한 결제 권한을 확인하고 있습니다.') };
       if (/unlock|잠금|해제|권한/.test(bodyText)) return { type: 'payment', mode: 'unlock-saving', message: _cdPaymentI18n('payment.pending.unlockSaving', '콘텐츠 잠금 해제를 준비하고 있습니다.') };
       return { type: 'payment', mode: 'pass', message: _cdPaymentI18n('payment.pending.passChecking', '이용권 확인 중입니다.') };
@@ -19449,7 +19454,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     if (path.indexOf('/api/payments/subscription/prepare') === 0) return { type: 'payment', mode: 'subscription', message: _cdPaymentI18n('payment.pending.subscriptionPrepare', '원화 기준 이용권 결제 정보를 준비하고 있습니다.') };
     if (path.indexOf('/api/payments/subscription/confirm') === 0 && (bodyMode === 'MONTHLY_CREDIT' || bodyMode === 'MONTHLY_CREDIT_PAYMENT' || bodyMode === 'MONTHLY')) return { type: 'payment', mode: 'monthly', message: _cdPaymentI18n('payment.pending.monthly', '월정석 사용 중입니다. 보유 이벤트 재화 잔량을 확인하고 있어요.') };
     if (path.indexOf('/api/payments/subscription/confirm') === 0 || path.indexOf('/api/fortune/pig-coin/profile-subscription/subscribe') === 0) return { type: 'payment', mode: 'subscription', message: _cdPaymentI18n('payment.pending.subscriptionConfirm', '이용권 결제 승인과 활성화를 확인하고 있습니다.') };
-    if (path.indexOf('/api/billing/checkout') === 0 || path.indexOf('/api/payments/prepare') === 0) return { type: 'payment', mode: 'checkout', message: _cdPaymentI18n('payment.pending.direct', '단건 결제시에도 결제를 준비 중입니다.') };
+    if (path.indexOf('/api/billing/checkout') === 0 || path.indexOf('/api/payments/prepare') === 0) return { type: 'payment', mode: 'checkout', message: _cdPaymentI18n('payment.pending.direct', '단건 결제를 준비하는 중입니다.') };
     if (path.indexOf('/api/billing/confirm') === 0 || path.indexOf('/api/payments/confirm') === 0) return { type: 'payment', mode: 'confirm', message: _cdPaymentI18n('payment.pending.confirm', '결제 승인을 서버에서 검증하고 있습니다.') };
     if (path.indexOf('/api/billing/purchase') === 0 || path.indexOf('/api/billing/charge') === 0) return { type: 'payment', mode: 'payment', message: _cdPaymentI18n('payment.pending.purchase', '결제 승인과 이용 권한을 확인하고 있습니다.') };
     return null;
@@ -23819,7 +23824,7 @@ function updateBadge() {
         return;
       }
       if (paymentChoice === 'direct') {
-        _cdUpdatePaidFeatureGate({ requestId: unlockGateToken.requestId, status: 'paymentPreparing', message: '단건 결제시에도 결제를 준비 중입니다.', cost: cost });
+        _cdUpdatePaidFeatureGate({ requestId: unlockGateToken.requestId, status: 'paymentPreparing', message: '단건 결제를 준비하는 중입니다.', cost: cost });
         _unlockOverlayOpened = true;
         var directPayload = await _cdRunDirectKrwCheckout({
           title: button.textContent || '유료 서비스',
@@ -24608,7 +24613,7 @@ function updateBadge() {
           return false;
         }
         if (perUseChoice === 'direct') {
-          _cdUpdatePaidFeatureGate({ requestId: paidGateToken.requestId, status: 'paymentPreparing', message: '단건 결제시에도 결제를 준비 중입니다.', cost: tileCoinCost });
+          _cdUpdatePaidFeatureGate({ requestId: paidGateToken.requestId, status: 'paymentPreparing', message: '단건 결제를 준비하는 중입니다.', cost: tileCoinCost });
           var perUseDirectPayload = await _cdRunDirectKrwCheckout({
             title: fname,
             categoryKey: 'main-tile',
@@ -25232,7 +25237,7 @@ function updateBadge() {
             return;
           }
           if (tilePaymentChoice === 'direct') {
-            _cdUpdatePaidFeatureGate({ requestId: _tileLockGateToken.requestId, status: 'paymentPreparing', message: '단건 결제시에도 결제를 준비 중입니다.', cost: tileLockCost });
+            _cdUpdatePaidFeatureGate({ requestId: _tileLockGateToken.requestId, status: 'paymentPreparing', message: '단건 결제를 준비하는 중입니다.', cost: tileLockCost });
             _unlockOverlayOpened = true;
             var tileDirectPayload = await _cdRunDirectKrwCheckout({
               title: fname,

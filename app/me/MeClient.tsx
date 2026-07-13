@@ -784,10 +784,9 @@ export default function MePage() {
       throw new Error(preparePayload.message || "결제 요청을 준비하지 못했습니다.");
     }
 
-    await ensurePortoneSdk();
+    // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬).
+    const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfig()]);
     if (!window.PortOne?.requestPayment) throw new Error("PortOne V2 결제 SDK를 사용할 수 없습니다.");
-
-    const paymentConfig = await fetchPortOnePaymentConfig();
     const redirectUrl = new URL("/me", window.location.origin);
     redirectUrl.searchParams.set("portone_redirect", "1");
     const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, user);

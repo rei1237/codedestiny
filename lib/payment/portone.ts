@@ -368,8 +368,8 @@ export async function requestPortOneSinglePayment(
   }
 
   try {
-    await ensurePortoneSdk();
-    const config = await fetchConfig(apiBase);
+    // SDK 로드와 config 조회는 상호 독립이라 병렬로 진행해 단건결제 창 오픈 지연을 줄인다(순차 2왕복 → 병렬).
+    const [, config] = await Promise.all([ensurePortoneSdk(), fetchConfig(apiBase)]);
     const storeId = manualStoreId?.trim() || config.storeId;
     const channelKey = manualChannelKey?.trim() || config.channelKey;
 
