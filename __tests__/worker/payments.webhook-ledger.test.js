@@ -130,6 +130,55 @@ describe("PortOne webhook event ledger", () => {
     expect(duplicateResult.payload.ignored).toBe(true);
     expect(Payment.findOneAndUpdate).not.toHaveBeenCalled();
   });
+
+  test("Transaction.Paid webhook with ctx returns an immediate ack and defers heavy work to waitUntil", async () => {
+    const body = { type: "Transaction.Paid", data: { paymentId: "pay_ack_001" } };
+
+    PaymentWebhookEvent.create = jest.fn().mockResolvedValue({ _id: "evt-doc-ack" });
+    PaymentWebhookEvent.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+    // 주문 없음 → 백그라운드 처리는 404로 실패 확정된다(포트원 조회까지 가지 않음).
+    Payment.findOne = jest.fn().mockReturnValue(queryResult(null));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+
+    const deferred = [];
+    const ctx = { waitUntil: jest.fn((promise) => deferred.push(promise)) };
+
+    const response = await testUtils.handleWebhook(await buildWebhookRequest(body, "evt_ack_001"), env, ctx);
+    const result = await readResponse(response);
+
+    // 즉시-ack: 백그라운드가 만드는 404가 아니라 200 accepted가 반환되어야 한다(포트원 웹훅 타임아웃 방지).
+    expect(result.status).toBe(200);
+    expect(result.payload.accepted).toBe(true);
+    expect(result.payload.type).toBe("Transaction.Paid");
+    expect(ctx.waitUntil).toHaveBeenCalledTimes(1);
+
+    // 백그라운드 처리를 완료시키면 이벤트가 failed로 확정된다(다음 재조정에서 재처리 대상).
+    await Promise.all(deferred);
+    expect(Payment.findOne).toHaveBeenCalled();
+    expect(PaymentWebhookEvent.findByIdAndUpdate).toHaveBeenCalledWith("evt-doc-ack", expect.objectContaining({
+      $set: expect.objectContaining({ status: "failed" }),
+    }));
+  });
+
+  test("Transaction.Paid webhook without ctx falls back to inline processing", async () => {
+    const body = { type: "Transaction.Paid", data: { paymentId: "pay_inline_001" } };
+
+    PaymentWebhookEvent.create = jest.fn().mockResolvedValue({ _id: "evt-doc-inline" });
+    PaymentWebhookEvent.findByIdAndUpdate = jest.fn().mockResolvedValue({});
+    // 주문 없음 → 인라인 경로는 실제 결과(404)를 그대로 반환한다(즉시-ack 아님).
+    Payment.findOne = jest.fn().mockReturnValue(queryResult(null));
+    PaymentFailureLog.create = jest.fn().mockResolvedValue({});
+
+    const response = await testUtils.handleWebhook(await buildWebhookRequest(body, "evt_inline_001"), env);
+    const result = await readResponse(response);
+
+    expect(result.status).toBe(404);
+    expect(result.payload.accepted).toBeUndefined();
+    expect(Payment.findOne).toHaveBeenCalled();
+    expect(PaymentWebhookEvent.findByIdAndUpdate).toHaveBeenCalledWith("evt-doc-inline", expect.objectContaining({
+      $set: expect.objectContaining({ status: "failed" }),
+    }));
+  });
 });
 
 describe("single payment entitlement consistency", () => {

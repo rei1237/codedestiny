@@ -1107,12 +1107,14 @@ export default {
       }
 
       if (url.pathname === "/api/webhooks/portone" || url.pathname === "/api/payments/portone/webhook") {
+        // ctx: 단건 결제(Transaction.Paid) 웹훅을 즉시-2xx ack + waitUntil 백그라운드 처리로 돌려
+        // 포트원 웹훅 타임아웃(재전송 실패)을 없애기 위해 전달한다.
         const rewrittenRequest = rewriteRequestPath(request, "/api/payments/webhook");
-        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env));
+        return withCorsHeaders(request, env, await handlePaymentRoutes(rewrittenRequest, env, ctx));
       }
 
       if (url.pathname === "/api/payments" || url.pathname.startsWith("/api/payments/")) {
-        return withCorsHeaders(request, env, await handlePaymentRoutes(request, env));
+        return withCorsHeaders(request, env, await handlePaymentRoutes(request, env, ctx));
       }
 
       if (url.pathname === "/api/billing" || url.pathname.startsWith("/api/billing/")) {
@@ -1477,11 +1479,16 @@ export default {
     const { runCardSubscriptionBillingTask } = await import("./lib/subscription-billing-task.js");
     const { runServiceExecutionTimeoutTask } = await import("./lib/service-execution-task.js");
     const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
+    // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
+    const { runWebhookReconcileTask } = await import("./routes/payments.js");
     ctx.waitUntil(Promise.all([
       runDailyFortuneTask(env),
       runCardSubscriptionBillingTask(env),
       runServiceExecutionTimeoutTask(env),
       runMonthlyCreditExpiryTask(env),
+      runWebhookReconcileTask(env).catch((error) => {
+        console.error("[webhook-reconcile] task failed:", error?.message || error);
+      }),
     ]));
   },
 };

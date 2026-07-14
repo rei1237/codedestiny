@@ -3183,7 +3183,7 @@ async function settlePaymentByImpUid({
   return settlementResult;
 }
 
-async function handleWebhook(request, env) {
+async function handleWebhook(request, env, ctx) {
   /*
    * PortOne 관리자 콘솔 설정:
    * 결제 연동 → 연동 관리 → 결제알림(Webhook) 관리
@@ -3258,6 +3258,25 @@ async function handleWebhook(request, env) {
   const reservation = await reservePortOneWebhookEvent({ request, eventType, paymentId, body });
   if (!reservation.ok) return reservation.response;
 
+  // Transaction.Paid만 포트원 단건조회(최대 8s)+지급 검증으로 무거워 포트원 웹훅 타임아웃(=재전송 실패
+  // 반복)을 유발한다. ctx가 있으면 서명검증·이벤트예약까지만 동기로 끝내고 즉시 2xx로 ack한 뒤, 무거운
+  // 검증·지급은 waitUntil 백그라운드로 분리한다. 즉시-ack으로 포트원 재전송에 기대지 못하게 된 신뢰성은
+  // scheduled()의 재조정 태스크(runWebhookReconcileTask)가 대체한다(가상계좌 단독 건 지급 공백 방어).
+  // ctx가 없는 경로(단위 테스트 등)는 기존 인라인 처리로 폴백한다.
+  if (eventType === PORTONE_WEBHOOK_EVENTS.PAID && ctx && typeof ctx.waitUntil === "function") {
+    ctx.waitUntil(
+      settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event: reservation.event })
+        .catch(() => {}),
+    );
+    return json({ ok: true, accepted: true, type: eventType, paymentId });
+  }
+
+  return settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event: reservation.event });
+}
+
+// 예약된 포트원 웹훅 이벤트를 실제 처리하고 결과(2xx/비-2xx)에 따라 processed/failed로 확정한다.
+// handleWebhook의 인라인 폴백 경로, waitUntil 백그라운드 경로, 재조정 크론이 공유한다.
+async function settleReservedWebhookEvent({ request, env, eventType, paymentId, body, event }) {
   try {
     let response;
     if (eventType === PORTONE_WEBHOOK_EVENTS.PAID) {
@@ -3277,21 +3296,76 @@ async function handleWebhook(request, env) {
       response = json({ ok: true, ignored: true, type: eventType });
     }
     // 성공(2xx) 응답일 때만 processed로 확정한다. 502(PortOne 조회 실패) 같은 비-2xx를 processed로
-    // 마킹하면 PortOne 재전송이 멱등성 계층에서 영구 차단돼 미지급 결제가 남는다. 실패는 failed로
-    // 남겨 다음 재전송에서 재처리되게 한다.
+    // 마킹하면 재조정 재처리가 멱등성 계층에서 영구 차단돼 미지급 결제가 남는다. 실패는 failed로 남겨
+    // 재조정 크론이 다시 집어가게 한다.
     if (isSuccessfulWebhookResponse(response)) {
-      await markPortOneWebhookEventProcessed(reservation.event, response);
+      await markPortOneWebhookEventProcessed(event, response);
     } else {
       await markPortOneWebhookEventFailed(
-        reservation.event,
+        event,
         new Error(`Webhook handler returned non-success status ${Number(response?.status || 0)}.`),
       );
     }
     return response;
   } catch (error) {
-    await markPortOneWebhookEventFailed(reservation.event, error);
+    await markPortOneWebhookEventFailed(event, error);
     throw error;
   }
+}
+
+// 재조정 크론 진입점: 백그라운드 실패/유실로 미처리 상태에 머문 Transaction.Paid 웹훅 이벤트를
+// 재클레임해 재처리한다. 즉시-ack 전환으로 포트원 재전송에 기대지 못하게 된 신뢰성을 대체하며,
+// 사용자가 없는 가상계좌 입금 완료 건이 특히 이 경로에 의존한다. attempts 상한으로 폭주를 막는다.
+export async function runWebhookReconcileTask(env, { limit = 20, maxAttempts = 10 } = {}) {
+  await connectDb(env);
+  const staleCutoff = new Date(Date.now() - WEBHOOK_STALE_PROCESSING_MS);
+  const candidates = await PaymentWebhookEvent.find({
+    provider: "portone",
+    eventType: PORTONE_WEBHOOK_EVENTS.PAID,
+    attempts: { $lt: maxAttempts },
+    $or: [
+      { status: "failed" },
+      { status: "processing", lastAttemptAt: { $lte: staleCutoff } },
+    ],
+  })
+    .sort({ lastAttemptAt: 1 })
+    .limit(limit)
+    .lean();
+
+  const summary = { scanned: candidates.length, processed: 0, failed: 0, skipped: 0 };
+  for (const candidate of candidates) {
+    // 원자적 재클레임: 늦게 도착한 waitUntil이나 동시 크론이 같은 이벤트를 두 번 잡지 않도록
+    // 조회 시점의 status/lastAttemptAt를 조건에 걸어 한 실행만 이기게 한다.
+    const claimed = await PaymentWebhookEvent.findOneAndUpdate(
+      { _id: candidate._id, status: candidate.status, lastAttemptAt: candidate.lastAttemptAt },
+      { $set: { status: "processing", lastAttemptAt: new Date() }, $inc: { attempts: 1 } },
+      { returnDocument: "after" },
+    ).lean();
+    if (!claimed) { summary.skipped += 1; continue; }
+    if (!claimed.paymentId) {
+      await markPortOneWebhookEventFailed(claimed, new Error("Reconcile skipped: missing paymentId."));
+      summary.failed += 1;
+      continue;
+    }
+    try {
+      // 포트원 단건조회로 재검증하므로 웹훅 본문(payload)은 불필요. 최소 합성 요청만 넘긴다.
+      const syntheticRequest = new Request("https://internal.reconcile/api/payments/webhook", { method: "POST" });
+      const response = await settleReservedWebhookEvent({
+        request: syntheticRequest,
+        env,
+        eventType: PORTONE_WEBHOOK_EVENTS.PAID,
+        paymentId: claimed.paymentId,
+        body: {},
+        event: claimed,
+      });
+      if (isSuccessfulWebhookResponse(response)) summary.processed += 1;
+      else summary.failed += 1;
+    } catch (_error) {
+      // settleReservedWebhookEvent가 이미 failed로 마킹했다.
+      summary.failed += 1;
+    }
+  }
+  return summary;
 }
 
 async function handleDigitalContentPrepare(request, auth, body) {
@@ -5456,7 +5530,7 @@ function handlePaymentConfig(env) {
   });
 }
 
-export async function handlePaymentRoutes(request, env) {
+export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
   const portoneEnvConfig = getPortOneConfig(env);
@@ -5493,7 +5567,7 @@ export async function handlePaymentRoutes(request, env) {
     if (method === "POST" && path === "/webhook") {
       await connectDb(env);
       trace.dbConnected = true;
-      return await handleWebhook(request, env);
+      return await handleWebhook(request, env, ctx);
     }
 
     const auth = await requireAuth(request, env);
