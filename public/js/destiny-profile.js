@@ -5118,6 +5118,18 @@
     var max = (typeof maxAttempts === 'number' && maxAttempts > 0) ? maxAttempts : 60;
     var delay = (typeof delayMs === 'number' && delayMs > 0) ? delayMs : 250;
 
+    /* 모바일에서 프로필 경로로 첫 진입 시 사주 엔진(saju-engine.js 등)이 아직 lazy-load 되지
+       않아 window.checkPrivacyAndCalculate 스텁이 조용히 지연/실패할 수 있다. 엔진 로드를
+       능동적으로 트리거하고 실패는 사용자에게 표면화한다(스텁 자체 catch는 무음). */
+    if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
+      try {
+        window.__cdEnsureSajuCoreLoaded().catch(function(err) {
+          console.error('[DP] 사주 엔진 로드 실패:', err);
+          _toast('⚠️ 사주 계산 엔진을 불러오지 못했습니다. 네트워크 확인 후 다시 시도해 주세요.', 'warn');
+        });
+      } catch (e) {}
+    }
+
     function tick() {
       attempts += 1;
       if (typeof window.checkPrivacyAndCalculate === 'function') {
@@ -5182,6 +5194,13 @@
     /* 시각 피드백 먼저 */
     spawnStardust(document.getElementById('dpMasterCard'));
     _toast(_fortuneStartMessage(profile.name, fortuneType || 'saju'), 'success');
+
+    /* 모바일에서 엔진 로드/계산 완료 전까지 화면이 그대로라 "이동이 안 된" 것처럼 보인다.
+       즉시 입력 영역으로 스크롤해 로딩 스피너·전환이 사용자 시야에 들어오게 한다. */
+    var inputSectionEl = document.querySelector('.input-section');
+    if (inputSectionEl && typeof inputSectionEl.scrollIntoView === 'function') {
+      try { inputSectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+    }
 
     /* ① 폼 데이터 주입 */
     var nameEl = document.getElementById('nameInput');
