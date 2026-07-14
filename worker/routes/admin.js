@@ -273,9 +273,11 @@ function normalizeAdminTimeCorrectionPolicy(value) {
 
 function normalizeAdminDayChangePolicy(value) {
   const text = String(value || "").trim().toLowerCase();
-  if (text === "midnight") return "MIDNIGHT";
   if (text === "late_zi_next_day") return "LATE_ZI_NEXT_DAY";
-  return "TRUE_SOLAR_ZI_NEXT_DAY";
+  if (text === "true_solar_zi_next_day") return "TRUE_SOLAR_ZI_NEXT_DAY";
+  // 일주(日柱)는 KST 민용일 기준이 정책 기본값(정적/모던 엔진 및 워커 런타임 기본과 동일).
+  // 진태양시/균시차 보정은 시주에만 적용하며 일주 날짜 경계를 자정 너머로 밀지 않는다.
+  return "MIDNIGHT";
 }
 
 function adminPromptNeedsCoordinates(service) {

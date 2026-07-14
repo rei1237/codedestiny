@@ -7,6 +7,40 @@
 (function() {
   'use strict';
 
+  /* 출생지 드롭다운에서 저장된 좌표에 '가장 가까운' 도시 옵션을 선택한다.
+     모든 한국 도시가 option.value='Asia/Seoul'로 동일하고, 인접 도시(예: 대구 128.60°E·부산 129.08°E)는
+     경도 차가 1도 미만이라, 과거의 "경도차<1도 첫 매칭"은 목록에서 앞선 도시로 오선택됐다(대구 선택→부산).
+     tz가 일치하는 옵션 중 경도(+위도) 거리가 최소인 옵션을 고르므로 특정 도시 하드코딩 없이 전 지역이 정확히 복원된다. */
+  function _dpSelectBirthPlaceOption(countrySel, tz, lng, lat) {
+    if (!countrySel || !tz) return false;
+    var targetLng = Number(lng);
+    var hasLng = isFinite(targetLng);
+    var targetLat = Number(lat);
+    var hasLat = isFinite(targetLat);
+    var bestIdx = -1;
+    var bestScore = Infinity;
+    var tzFallbackIdx = -1;
+    for (var i = 0; i < countrySel.options.length; i++) {
+      var opt = countrySel.options[i];
+      if (opt.value !== tz) continue;
+      if (tzFallbackIdx < 0) tzFallbackIdx = i;
+      if (!hasLng) continue;
+      var optLng = parseFloat(opt.getAttribute('data-long'));
+      if (!isFinite(optLng)) continue;
+      var score = Math.abs(optLng - targetLng);
+      if (hasLat) {
+        var optLat = parseFloat(opt.getAttribute('data-lat'));
+        if (isFinite(optLat)) score += Math.abs(optLat - targetLat);
+      }
+      if (score < bestScore) { bestScore = score; bestIdx = i; }
+    }
+    var chosen = bestIdx >= 0 ? bestIdx : tzFallbackIdx;
+    if (chosen < 0) return false;
+    countrySel.selectedIndex = chosen;
+    try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    return true;
+  }
+
   /* ── 스토리지 키 ── */
   var NS       = 'FORTUNE_APP_USER_PROFILES';
   var KEY_LIST = NS + '.list';
@@ -5217,22 +5251,10 @@
     if (hourEl) hourEl.value = (b.hour !== undefined && b.hour !== null) ? b.hour : 12;
     if (minEl)  minEl.value  = (b.minute !== undefined && b.minute !== null) ? b.minute : 0;
 
-    /* ② 장소 선택 — tz + 경도 정밀 매칭, 폴백 tz-only */
+    /* ② 장소 선택 — tz 일치 옵션 중 좌표 최근접 매칭(전 지역 정확 복원), 폴백 tz-only */
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
-      var matched = false;
-      for (var i = 0; i < countrySel.options.length; i++) {
-        var opt = countrySel.options[i];
-        if (opt.value === l.tz && profileLng !== null && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - profileLng) < 1) {
-          countrySel.selectedIndex = i; matched = true; break;
-        }
-      }
-      if (!matched) {
-        for (var j = 0; j < countrySel.options.length; j++) {
-          if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
-        }
-      }
-      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      _dpSelectBirthPlaceOption(countrySel, l.tz, profileLng, (l.lat != null ? l.lat : l.latitude));
     }
 
     /* ③ 성별 동기화 */
@@ -5444,25 +5466,7 @@
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
       var lng = (l.lng !== undefined && l.lng !== null) ? Number(l.lng) : Number(l.lon);
-      var matched = false;
-      for (var i = 0; i < countrySel.options.length; i++) {
-        var opt = countrySel.options[i];
-        var optLng = parseFloat(opt.getAttribute('data-long') || '0');
-        if (opt.value === l.tz && isFinite(lng) && Math.abs(optLng - lng) < 1) {
-          countrySel.selectedIndex = i;
-          matched = true;
-          break;
-        }
-      }
-      if (!matched) {
-        for (var j = 0; j < countrySel.options.length; j++) {
-          if (countrySel.options[j].value === l.tz) {
-            countrySel.selectedIndex = j;
-            break;
-          }
-        }
-      }
-      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+      _dpSelectBirthPlaceOption(countrySel, l.tz, lng, (l.lat != null ? l.lat : l.latitude));
     }
     if (window.setGender) window.setGender(profile.gender || 'F');
     window._gender = profile.gender || 'F';
@@ -6230,19 +6234,7 @@
     }
     var countrySel = document.getElementById('birthCountry');
     if (countrySel && l.tz) {
-      var matched = false;
-      for (var i = 0; i < countrySel.options.length; i++) {
-        var opt = countrySel.options[i];
-        if (opt.value === l.tz && Math.abs(parseFloat(opt.getAttribute('data-long') || 0) - l.lng) < 1) {
-          countrySel.selectedIndex = i; matched = true; break;
-        }
-      }
-      if (!matched) {
-        for (var j = 0; j < countrySel.options.length; j++) {
-          if (countrySel.options[j].value === l.tz) { countrySel.selectedIndex = j; break; }
-        }
-      }
-      try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      _dpSelectBirthPlaceOption(countrySel, l.tz, l.lng, (l.lat != null ? l.lat : l.latitude));
     }
     if (window.setGender) window.setGender(p.gender || 'F');
     window._gender = p.gender || 'F';

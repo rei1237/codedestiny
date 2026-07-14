@@ -730,11 +730,16 @@ function _captureBirthFormSnapshot() {
     if (hourVal === '' && profileBirth && profileBirth.hour != null) hourVal = String(profileBirth.hour);
     if (minuteVal === '' && profileBirth && profileBirth.minute != null) minuteVal = String(profileBirth.minute);
 
+    var countryOpt = (countryEl && countryEl.selectedIndex >= 0) ? countryEl.options[countryEl.selectedIndex] : null;
     return {
       birthDate: dateEl ? _cdBirthDateInputDigits(dateEl.value || '') : '',
       birthHour: hourVal,
       birthMinute: minuteVal,
       birthCountry: countryEl ? String(countryEl.value || '') : '',
+      // 도시 식별용 라벨/경도도 함께 저장한다. value(tz)는 모든 한국 도시가 'Asia/Seoul'로 동일해
+      // value만으로 복원하면 목록 첫 도시로 붕괴하므로 라벨/경도로 정확히 되돌린다.
+      birthCountryLabel: countryOpt ? String(countryOpt.text || '') : '',
+      birthCountryLong: countryOpt ? String(countryOpt.getAttribute('data-long') || '') : '',
       calType: calType
     };
   } catch (_) {
@@ -752,7 +757,31 @@ function _applyBirthFormSnapshot(snapshot) {
     if (dateEl && snapshot.birthDate) dateEl.value = _cdBirthDateInputDigits(snapshot.birthDate);
     if (hourEl && snapshot.birthHour !== '') hourEl.value = snapshot.birthHour;
     if (minuteEl && snapshot.birthMinute !== '') minuteEl.value = snapshot.birthMinute;
-    if (countryEl && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
+    if (countryEl) {
+      // 도시 복원: 라벨(고유) → 경도 최근접 → value 순. value(tz)만으로는 모든 한국 도시가
+      // 'Asia/Seoul'로 동일해 첫 도시로 붕괴하므로 라벨/경도로 정확히 되돌린다.
+      var restoredCountry = false;
+      if (snapshot.birthCountryLabel) {
+        for (var _ci = 0; _ci < countryEl.options.length; _ci++) {
+          if (String(countryEl.options[_ci].text || '') === snapshot.birthCountryLabel) { countryEl.selectedIndex = _ci; restoredCountry = true; break; }
+        }
+      }
+      if (!restoredCountry && snapshot.birthCountryLong != null && snapshot.birthCountryLong !== '') {
+        var _wantLong = parseFloat(snapshot.birthCountryLong);
+        if (isFinite(_wantLong)) {
+          var _bestCi = -1, _bestDiff = Infinity;
+          for (var _cj = 0; _cj < countryEl.options.length; _cj++) {
+            if (snapshot.birthCountry && countryEl.options[_cj].value !== snapshot.birthCountry) continue;
+            var _oLong = parseFloat(countryEl.options[_cj].getAttribute('data-long'));
+            if (!isFinite(_oLong)) continue;
+            var _d = Math.abs(_oLong - _wantLong);
+            if (_d < _bestDiff) { _bestDiff = _d; _bestCi = _cj; }
+          }
+          if (_bestCi >= 0) { countryEl.selectedIndex = _bestCi; restoredCountry = true; }
+        }
+      }
+      if (!restoredCountry && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
+    }
 
     if (snapshot.calType) {
       var calTypeBtns = document.getElementsByName('calType');

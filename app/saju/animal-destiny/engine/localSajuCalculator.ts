@@ -5251,8 +5251,12 @@ export function calculateLocalSaju(input: LocalSajuInput): LocalSajuResult {
   const yearPillarResult = getYearPillar(corrected, timezoneInfo.offsetMinutes, kasiByYear);
   const solarTermWindow = getSolarTermWindow(corrected, timezoneInfo.offsetMinutes, kasiByYear);
   const monthPillar = getMonthPillar(yearPillarResult.pillar.stem, solarTermWindow.active);
-  const dayPillarDate = getDayPillarDate(corrected, zashiMode);
+  // 일주(日柱)는 표준시 민용일(달력 날짜) 기준으로 판정한다. 경도/균시차(진태양시) 보정은
+  // 시주(時柱)에만 적용하며, 일주 날짜 경계를 자정 너머로 밀지 않는다.
+  // (예: 1981-01-27 00:30 대구는 진태양시로 전날 23:52가 되지만 일주는 1/27=을사가 정답)
+  const dayPillarDate = getDayPillarDate(standardClock, zashiMode);
   const dayPillar = getDayPillar(dayPillarDate);
+  // 시지(時支)는 진태양시 보정된 시각의 2시간지, 시간(時干)은 민용일 일간에서 오자둔으로 파생된다.
   const hourPillar = input.hasTime
     ? getHourPillar(dayPillar.stem, corrected)
     : null;
