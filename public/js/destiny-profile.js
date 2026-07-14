@@ -7093,6 +7093,9 @@
       '#cdStandalonePaymentChoice .cdpc-btn .cdpc-amt{font-size:14px;font-weight:800;color:#ead089;white-space:nowrap;}',
       '#cdStandalonePaymentChoice .cdpc-btn--disabled{opacity:.5;cursor:not-allowed;}',
       '#cdStandalonePaymentChoice .cdpc-btn--disabled:hover{background:rgba(214,166,75,.08);transform:none;}',
+      '#cdStandalonePaymentChoice .cdpc-pass{border-color:rgba(255,242,184,.66);background:linear-gradient(145deg,rgba(46,42,30,.55),rgba(28,32,66,.45));}',
+      '#cdStandalonePaymentChoice .cdpc-pass:hover{background:linear-gradient(145deg,rgba(46,42,30,.72),rgba(28,32,66,.6));}',
+      '#cdStandalonePaymentChoice .cdpc-pass .cdpc-amt{color:#ffe8a3;}',
       '#cdStandalonePaymentChoice .cdpc-moonbal{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 10px;padding:9px 12px;border-radius:10px;border:1px solid rgba(214,166,75,.22);background:rgba(214,166,75,.05);}',
       '#cdStandalonePaymentChoice .cdpc-moonbal-text{flex:1;min-width:0;font-size:12px;line-height:1.45;color:rgba(244,236,223,.78);}',
       '#cdStandalonePaymentChoice .cdpc-moonbal-refresh{flex:none;padding:6px 12px;border-radius:999px;border:1px solid rgba(214,166,75,.5);background:rgba(214,166,75,.12);color:#ead089;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;}',
@@ -7134,6 +7137,7 @@
             '<span class="cdpc-moonbal-text" data-cdpc-moonbal-text>월정석 잔량을 확인하고 있습니다.</span>' +
             '<button type="button" class="cdpc-moonbal-refresh" data-cdpc="monthly-refresh">월정석 재조회</button>' +
           '</div>' +
+          '<button type="button" class="cdpc-btn cdpc-pass" data-cdpc="pass-store"><span>달빛 이용권 상점</span><span class="cdpc-amt">바로가기 →</span></button>' +
           '<p class="cdpc-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
           '<button type="button" class="cdpc-cancel" data-cdpc="cancel">닫기</button>' +
         '</div>';
@@ -7196,6 +7200,14 @@
         if (hit) {
           var act = hit.getAttribute('data-cdpc');
           if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
+          if (act === 'pass-store') {
+            // 달빛 이용권 상점 바로가기: 충전 모달이 있으면 우선 열고, 없으면 /points로 이동. 모달은 닫는다.
+            e.preventDefault();
+            finish('cancel');
+            try { if (typeof window.__cdOpenChargeModal === 'function') { window.__cdOpenChargeModal(); return; } } catch (_) {}
+            try { window.location.assign('/points?source=standalone-payment-pass-store'); } catch (_) { window.location.href = '/points?source=standalone-payment-pass-store'; }
+            return;
+          }
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
           finish(act);
           return;

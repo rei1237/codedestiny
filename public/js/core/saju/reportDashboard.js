@@ -1343,6 +1343,11 @@ function renderReportDashboard() {
     var lockKey = b.lockKey || ('rpt_' + b.target);
     var shouldAttachTileLock = b.coinCost > 0 && b.mainLock !== false;
     var coinAttrs = shouldAttachTileLock ? (' data-tile-lock-key="' + lockKey + '" data-tile-lock-cost="' + b.coinCost + '"') : '';
+    // 회당결제(mainLock:false) direct-action은 타일락 속성이 안 붙어 게이트가 안 돌던 dead-end를 막는다:
+    // data-coin-cost/data-feature-key를 부여해 회당결제 게이트(_cdRunPerUseCoinGate)로 라우팅한다.
+    if (!shouldAttachTileLock && b.coinCost > 0 && b.mainLock === false && _rptIsDirectAction(b.action)) {
+      coinAttrs = ' data-coin-cost="' + b.coinCost + '" data-feature-key="' + lockKey + '"';
+    }
     if (_rptIsDirectAction(b.action)) {
       gridHtml += '<button class="rpt-v2-toggle-btn" type="button" data-action="' + b.action + '"' + coinAttrs + ' aria-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';

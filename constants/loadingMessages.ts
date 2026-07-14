@@ -11,7 +11,7 @@ export const LOADING_MESSAGES = {
   },
   access_check: {
     subscription: { title: "연이의 월정석 · 정보를 확인하는 중이에요", sub: "안전하게 접근 권한을 맞춰보고 있어요" },
-    single: { title: "잔액을 확인하는 중이에요", sub: "결제 가능 여부를 살피고 있어요" },
+    single: { title: "단건으로 카드 결제를 준비 중이에요", sub: "결제 가능 여부를 살피고 있어요" },
     pass: { title: "이용권을 확인하는 중이에요", sub: "이용 가능 여부를 살피고 있어요" },
   },
 } as const;
@@ -41,7 +41,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Checking moonstone access", sub: "Confirming your access safely" },
-      single: { title: "Checking your balance", sub: "Confirming whether payment can continue" },
+      single: { title: "Preparing your card payment", sub: "Confirming whether payment can continue" },
       pass: { title: "Checking your pass", sub: "Confirming whether your pass can be used" },
     },
   },
@@ -58,7 +58,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "月光石の情報を確認しています", sub: "安全にご利用状況を確認しています" },
-      single: { title: "残高を確認しています", sub: "お支払いに進めるか確認しています" },
+      single: { title: "カード決済を準備しています", sub: "お支払いに進めるか確認しています" },
       pass: { title: "利用券を確認しています", sub: "利用券を使えるか確認しています" },
     },
   },
@@ -75,7 +75,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "正在确认月光石信息", sub: "正在安全确认使用权限" },
-      single: { title: "正在确认余额", sub: "正在确认是否可以继续支付" },
+      single: { title: "正在准备银行卡支付", sub: "正在确认是否可以继续支付" },
       pass: { title: "正在确认通行券", sub: "正在确认通行券是否可用" },
     },
   },
@@ -92,7 +92,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "正在確認月光石資訊", sub: "正在安全確認使用權限" },
-      single: { title: "正在確認餘額", sub: "正在確認是否可以繼續付款" },
+      single: { title: "正在準備信用卡付款", sub: "正在確認是否可以繼續付款" },
       pass: { title: "正在確認通行券", sub: "正在確認通行券是否可用" },
     },
   },
@@ -109,7 +109,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Đang kiểm tra thông tin đá trăng", sub: "Đang xác nhận quyền truy cập an toàn" },
-      single: { title: "Đang kiểm tra số dư", sub: "Đang xác nhận có thể tiếp tục thanh toán" },
+      single: { title: "Đang chuẩn bị thanh toán bằng thẻ", sub: "Đang xác nhận có thể tiếp tục thanh toán" },
       pass: { title: "Đang kiểm tra vé sử dụng", sub: "Đang xác nhận vé có thể dùng được" },
     },
   },
@@ -126,7 +126,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "मूनस्टोन जानकारी जाँची जा रही है", sub: "आपकी पहुँच सुरक्षित रूप से पुष्टि की जा रही है" },
-      single: { title: "शेष राशि जाँची जा रही है", sub: "भुगतान जारी रह सकता है या नहीं, यह देखा जा रहा है" },
+      single: { title: "आपका कार्ड भुगतान तैयार किया जा रहा है", sub: "भुगतान जारी रह सकता है या नहीं, यह देखा जा रहा है" },
       pass: { title: "पास जाँचा जा रहा है", sub: "पास इस्तेमाल हो सकता है या नहीं, यह देखा जा रहा है" },
     },
   },
@@ -143,7 +143,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Comprobando la piedra lunar", sub: "Confirmando tu acceso de forma segura" },
-      single: { title: "Comprobando tu saldo", sub: "Confirmando si el pago puede continuar" },
+      single: { title: "Preparando tu pago con tarjeta", sub: "Confirmando si el pago puede continuar" },
       pass: { title: "Comprobando tu pase", sub: "Confirmando si tu pase puede usarse" },
     },
   },
@@ -160,7 +160,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Vérification de la pierre de lune", sub: "Confirmation sécurisée de votre accès" },
-      single: { title: "Vérification du solde", sub: "Confirmation de la poursuite du paiement" },
+      single: { title: "Préparation de votre paiement par carte", sub: "Confirmation de la poursuite du paiement" },
       pass: { title: "Vérification du pass", sub: "Confirmation de l'utilisation du pass" },
     },
   },
@@ -177,7 +177,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Mondstein-Information wird geprüft", sub: "Dein Zugang wird sicher bestätigt" },
-      single: { title: "Guthaben wird geprüft", sub: "Es wird bestätigt, ob die Zahlung fortgesetzt werden kann" },
+      single: { title: "Kartenzahlung wird vorbereitet", sub: "Es wird bestätigt, ob die Zahlung fortgesetzt werden kann" },
       pass: { title: "Pass wird geprüft", sub: "Es wird bestätigt, ob dein Pass genutzt werden kann" },
     },
   },
@@ -194,7 +194,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Maansteeninformatie wordt gecontroleerd", sub: "Je toegang wordt veilig bevestigd" },
-      single: { title: "Saldo wordt gecontroleerd", sub: "We bevestigen of de betaling kan doorgaan" },
+      single: { title: "Kaartbetaling wordt voorbereid", sub: "We bevestigen of de betaling kan doorgaan" },
       pass: { title: "Pas wordt gecontroleerd", sub: "We bevestigen of je pas kan worden gebruikt" },
     },
   },
@@ -211,7 +211,7 @@ const LOCALIZED_LOADING_MESSAGES: Record<Exclude<LoadingLocale, "ko">, LoadingMe
     },
     access_check: {
       subscription: { title: "Menyemak maklumat batu bulan", sub: "Akses anda sedang disahkan dengan selamat" },
-      single: { title: "Menyemak baki", sub: "Mengesahkan sama ada bayaran boleh diteruskan" },
+      single: { title: "Menyediakan pembayaran kad anda", sub: "Mengesahkan sama ada bayaran boleh diteruskan" },
       pass: { title: "Menyemak pas", sub: "Mengesahkan sama ada pas anda boleh digunakan" },
     },
   },

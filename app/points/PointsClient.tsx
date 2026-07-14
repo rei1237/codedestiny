@@ -3405,7 +3405,7 @@ export default function PointsPage() {
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
     setIsProcessing(true);
-    setProcessingStage("잔액을 확인하는 중이에요", "payment");
+    setProcessingStage("단건으로 카드 결제를 준비 중이에요", "payment");
 
     try {
       const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {

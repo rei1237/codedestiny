@@ -3373,6 +3373,19 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       && initialSnapshotPassLimit > 0
       && (initialSnapshot.tier === "family" || knownInputCoinCost <= initialSnapshotPassLimit),
     );
+    // 무-이용권 즉시 모달(fast-path): 워밍된 스냅샷이 '무이용권'(none) 또는 '가격>이용권한도'(active·초과)로 커버
+    // 불가가 확실하면, 차단형 eligibility 서버 왕복을 건너뛰고 곧장 결제 런타임(모달)로 진입한다. 권위 검증은
+    // 실제 결제(coin-gate forceDeduct) 시. 드문 stale-none 보유자는 결제창의 이용권 확인/상점 버튼으로 구제.
+    const snapshotSaysNoPassFast = Boolean(
+      !explicitPaymentMode
+      && !passDisabled
+      && knownInputCoinCost > 0
+      && initialSnapshot
+      && (
+        initialSnapshot.state === "none"
+        || (initialSnapshot.state === "active" && initialSnapshotPassLimit > 0 && initialSnapshot.tier !== "family" && knownInputCoinCost > initialSnapshotPassLimit)
+      ),
+    );
     const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));
@@ -3391,7 +3404,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // unlock-status를 pass/full 2회 호출하던 구조를 단일 full 조회로 통합한다.
     // full 응답에 이미 pass 커버 정보(access.canAccess / pass.canUse)가 포함되므로
     // 별도 pass 프로브 왕복이 불필요하며, 유료 액션마다 발생하던 요청 2배 증폭을 제거한다.
-    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst
+    const eligibilityResult = explicitPaymentMode || snapshotPassServerCheckFirst || snapshotSaysNoPassFast
       ? null
       : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
@@ -3517,7 +3530,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       });
     }
 
-    if (!explicitPaymentMode && !passFirstEligible && eligibility && knownCoinCost > 0 && input.forceDeduct !== false) {
+    if (!explicitPaymentMode && !passFirstEligible && (eligibility || snapshotSaysNoPassFast) && knownCoinCost > 0 && input.forceDeduct !== false) {
       markPaymentRequestedOnce();
       emitPaidFeatureGate("update", {
         featureId,

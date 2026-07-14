@@ -17852,6 +17852,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
           membershipCoverage: passFirstCoverage || opts.membershipCoverage,
           forceRefreshMembershipCoverage: opts.forcePassFirst === true || !passFirstCoverage || passFirstCoverage.canUseByPass !== true,
           requireServerPassCheck: true,
+          allowSnapshotFastPath: true,
           fastPassOnly: false
         };
         passFirstAccess = await _cdResolvePaidContentAccess(_cdPassFirstAccessOptions);
@@ -18984,7 +18985,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     },
     access_check: {
       subscription: { title: '월정석 사용 준비 중입니다', sub: '보유 이벤트 재화 잔량을 먼저 살피고 있어요' },
-      single: { title: '잔액을 확인하는 중이에요', sub: '결제 내역을 안전하게 대조하고 있어요' },
+      single: { title: '단건으로 카드 결제를 준비 중이에요', sub: '결제 내역을 안전하게 대조하고 있어요' },
       pass: { title: '이용권을 확인하는 중이에요', sub: '회원 등급과 이용권 상태를 함께 맞추고 있어요' }
     }
   };
@@ -20778,6 +20779,16 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var fastPassOnly = !forceRefreshMembershipCoverage && (item.fastPassOnly === true || item.skipNetworkCoverage === true);
     var localFamilyAccess = _cdBuildLocalFamilyTestPassAccess(Object.assign({}, item, { featureKey: featureKey || item.featureKey }), coinCost, coverage, requestId);
     if (localFamilyAccess) return localFamilyAccess;
+    // 무-이용권 즉시 모달(fast-path): 진입 시 워밍된 구독 스냅샷이 '무이용권'(state:none) 또는 '가격>이용권한도'로
+    // 커버 불가가 확실하면, 서버 pass-check 왕복을 기다리지 않고 즉시 payment_required를 반환해 결제창을 바로 연다.
+    // 스냅샷 none-TTL이 짧아 안전하고, 드문 stale-none 보유자는 결제창의 '이용권 다시 확인'(forceRefreshMembershipCoverage
+    // 재검사, allowSnapshotFastPath 미설정)으로 서버 재검증되어 무료 통과된다. 진입 pass-first 호출에만 opt-in한다.
+    if (item.allowSnapshotFastPath === true && coinCost > 0 && typeof _cdCoverageFromSubscriptionSnapshot === 'function') {
+      var _cdSnapCoverage = _cdCoverageFromSubscriptionSnapshot(coinCost);
+      if (_cdSnapCoverage && _cdSnapCoverage.canUseByPass === false) {
+        return { status: 'payment_required', reason: _cdSnapCoverage.source || 'subscription_snapshot_none', membershipCoverage: _cdSnapCoverage };
+      }
+    }
     if (coinCost > 0 && !requireServerPassCheck && (!coverage || forceRefreshMembershipCoverage) && !fastPassOnly) {
       coverage = await _cdRefreshMembershipCoverage(coinCost, {
         categoryKey: item.categoryKey,
@@ -24508,6 +24519,10 @@ function updateBadge() {
         _cdUpdatePaidFeatureGate({ requestId: paidGateToken.requestId, status: 'error', message: '로그인 확인이 필요합니다.', cost: tileCoinCost });
         return false;
       }
+      // 결제창이 월정석을 노출할 수 있으므로 이용권 확인과 병렬로 월정석 잔량을 미리 워밍한다(공유 게이트와 동일).
+      if (typeof syncGoldenMonthlyCreditsFromPaymentsMe === 'function') {
+        try { void syncGoldenMonthlyCreditsFromPaymentsMe({ forceAuthProbe: false, fresh: false }); } catch (_) {}
+      }
       var titleEl = actionNode.querySelector('.tarot-tile__title');
       var fname = titleEl ? titleEl.textContent.trim() : '서비스';
       if (consumeInFlight) {
@@ -24548,13 +24563,19 @@ function updateBadge() {
           reason: fname + ' 이용',
           requestId: perUseRequestId,
           membershipCoverage: membershipCoverage,
-          requireServerPassCheck: true
+          requireServerPassCheck: true,
+          allowSnapshotFastPath: true
         };
         var passAccessCacheKey = _cdBuildPassAccessCacheKey(passAccessRequest, fname, tileCoinCost);
         var passAccess = typeof _cdResolvePaidContentAccess === 'function'
           ? await _cdResolvePaidContentAccess(passAccessRequest)
           : { status: 'payment_required' };
         if (!passAccess) passAccess = { status: 'payment_required' };
+        // 인프라/degraded로 확인 실패 시 짧게 2회 재시도(공유 게이트와 동일 백오프). 소진 후에도 error면 아래에서 결제창으로 fall-through.
+        for (var _puPassRetry = 1; _puPassRetry <= 2 && passAccess && passAccess.status === 'error'; _puPassRetry += 1) {
+          await new Promise(function(resolve){ setTimeout(resolve, Math.round(800 * Math.pow(1.8, _puPassRetry - 1))); });
+          passAccess = (typeof _cdResolvePaidContentAccess === 'function' ? await _cdResolvePaidContentAccess(passAccessRequest) : { status: 'payment_required' }) || { status: 'payment_required' };
+        }
         if (passAccess.status === 'already_unlocked' || passAccess.status === 'pass_applied') {
           var passPayload = passAccess.payload || _cdToCoinPayload(passAccess.rawPayload || {});
           syncAuthUserBillingSnapshot(passAccess.rawPayload || passPayload, userBalance);
@@ -24570,11 +24591,8 @@ function updateBadge() {
           _cdInvokeUnlockedTileAction(action, actionNode);
           return true;
         }
-        if (passAccess.status === 'error') {
-          _cdUpdatePaidFeatureGate({ requestId: paidGateToken.requestId, status: 'error', message: passAccess.message || '이용권 확인에 실패했습니다.', cost: tileCoinCost });
-          window.alert(passAccess.message || '이용권 확인에 실패했습니다.');
-          return false;
-        }
+        // 재시도 후에도 error(인프라/degraded)면 dead-end(alert)하지 않고 결제창(단건+월정석)으로 fall-through한다
+        // (요구사항: 확인 실패 시 무조건 결제창). 결제창 내 '이용권 다시 확인'으로 실제 보유자는 재검증 가능.
         var perUseChoice = await _cdChooseServicePaymentMode({
 
           title: fname,
@@ -25120,6 +25138,10 @@ function updateBadge() {
           _cdEndPaidFeatureInFlight(_tileLockGateToken);
           return;
         }
+        // 결제창이 월정석을 노출할 수 있으므로 이용권 확인과 병렬로 월정석 잔량을 미리 워밍한다(공유 게이트와 동일).
+        if (typeof syncGoldenMonthlyCreditsFromPaymentsMe === 'function') {
+          try { void syncGoldenMonthlyCreditsFromPaymentsMe({ forceAuthProbe: false, fresh: false }); } catch (_) {}
+        }
         if (isTileKeyUnlocked(tileLockKey)) {
           applyTileLockVisuals();
           _cdUpdatePaidFeatureGate({ requestId: _tileLockGateToken.requestId, status: 'hasEntitlement', message: '이미 해금된 기능입니다.', cost: tileLockCost });
@@ -25160,10 +25182,27 @@ function updateBadge() {
               membershipCoverage: tileMembershipCoverage,
               featureKey: tileLockKey,
               requestId: tileRequestId,
-              requireServerPassCheck: true
+              requireServerPassCheck: true,
+              allowSnapshotFastPath: true
             })
             : { status: 'payment_required' };
           if (!tilePassAccess) tilePassAccess = { status: 'payment_required' };
+          // 인프라/degraded로 확인 실패 시 짧게 2회 재시도(공유 게이트와 동일 백오프). 소진 후에도 error면 아래에서 결제창으로 fall-through.
+          for (var _tlPassRetry = 1; _tlPassRetry <= 2 && tilePassAccess && tilePassAccess.status === 'error'; _tlPassRetry += 1) {
+            await new Promise(function(resolve){ setTimeout(resolve, Math.round(800 * Math.pow(1.8, _tlPassRetry - 1))); });
+            tilePassAccess = (typeof _cdResolvePaidContentAccess === 'function' ? await _cdResolvePaidContentAccess({
+              title: fname,
+              reason: fname + ' 영구 잠금 해제',
+              coinPrice: tileLockCost,
+              cost: tileLockCost,
+              amountKrw: tileLockCost * 100,
+              membershipCoverage: tileMembershipCoverage,
+              featureKey: tileLockKey,
+              requestId: tileRequestId,
+              requireServerPassCheck: true,
+              allowSnapshotFastPath: true
+            }) : { status: 'payment_required' }) || { status: 'payment_required' };
+          }
           if (tilePassAccess.status === 'already_unlocked' || tilePassAccess.status === 'pass_applied') {
             var tilePassPayload = tilePassAccess.payload || _cdToCoinPayload(tilePassAccess.rawPayload || {});
             syncAuthUserBillingSnapshot(tilePassAccess.rawPayload || tilePassPayload, userBalance);
@@ -25192,11 +25231,8 @@ function updateBadge() {
             _cdInvokeUnlockedTileAction(action, actionNode);
             return;
           }
-          if (tilePassAccess.status === 'error') {
-            _cdUpdatePaidFeatureGate({ requestId: _tileLockGateToken.requestId, status: 'error', message: tilePassAccess.message || '이용권 확인에 실패했습니다.', cost: tileLockCost });
-            window.alert(tilePassAccess.message || '이용권 확인에 실패했습니다.');
-            return;
-          }
+          // 재시도 후에도 error(인프라/degraded)면 dead-end(alert)하지 않고 결제창(단건+월정석)으로 fall-through한다
+          // (요구사항: 확인 실패 시 무조건 결제창). 결제창 내 '이용권 다시 확인'으로 실제 보유자는 재검증 가능.
           var tilePaymentChoice = await _cdChooseServicePaymentMode({
             title: fname,
             coinPrice: tileLockCost,

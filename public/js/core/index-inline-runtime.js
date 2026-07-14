@@ -3,7 +3,7 @@ const INDEX_RUNTIME_TEXT_TRANSLATIONS = {
     "indexRuntime.message.001": "월정석 정보를 확인하는 중이에요",
     "indexRuntime.message.002": "월정석이 활성화되고 있어요\n곧 이용 가능해져요",
     "indexRuntime.message.003": "월정석이 활성화되고 있어요\n곧 이용 가능해져요",
-    "indexRuntime.message.004": "잔액을 확인하는 중이에요",
+    "indexRuntime.message.004": "단건으로 카드 결제를 준비 중이에요",
     "indexRuntime.message.005": "결제가 완료됐어요\n결과를 불러오는 중이에요",
     "indexRuntime.message.006": "이용권을 확인하는 중이에요",
     "indexRuntime.message.007": "처리 중이에요\n잠시만 기다려 주세요",
