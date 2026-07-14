@@ -8444,6 +8444,10 @@ window.openSajuLifeBookBuilder = openSajuLifeBookBuilder;
 
 (function() {
   function onFsChange() {
+    // 명리 타로 3카드 결제는 결제창을 띄우려 의도적으로 풀스크린을 종료한다. 이때는 사용자가 모달을 닫은
+    // 것이 아니므로 타로 화면을 닫지 않는다(결제 후 _myeongriTarotRestoreFullscreen이 복원). 실제 닫기는
+    // 플래그가 false라 아래 로직이 그대로 동작한다.
+    if (window.__cdMyeongriTarotPaymentInFlight) return;
     var isFs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
     if (!isFs) {
       var overlay = document.getElementById('tarotModalOverlay');

@@ -876,6 +876,10 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
     return true;
   }
   myeongriTarotThreeCardPaymentPending = true;
+  // 결제창을 띄우려고 아래에서 풀스크린을 종료하는데, 전역 fullscreenchange 핸들러(onFsChange)가 이를
+  // '사용자가 모달을 닫음'으로 오인해 타로 화면을 닫고 상태를 초기화한다. 결제 구간 동안만 그 자동 닫힘을
+  // 억제하도록 window 플래그를 세운다(모듈 로컬 변수는 전역 핸들러가 못 읽음).
+  window.__cdMyeongriTarotPaymentInFlight = true;
   var finalBtn = document.getElementById('tarotFinalBtn');
   var originalText = finalBtn ? finalBtn.textContent : '';
   if (finalBtn) {
@@ -911,6 +915,7 @@ function requireMyeongriTarotThreeCardPayment(onGranted) {
     window.alert(message);
   }).then(function() {
     myeongriTarotThreeCardPaymentPending = false;
+    window.__cdMyeongriTarotPaymentInFlight = false;
     if (finalBtn) {
       finalBtn.disabled = false;
       finalBtn.textContent = originalText || '흐름 리딩 보기 · 5,000원';
