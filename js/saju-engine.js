@@ -5328,7 +5328,14 @@ async function calculate(){
     if (btnNewSajuEl) btnNewSajuEl.style.display = 'block';
     requestAnimationFrame(function () {
       setTimeout(function () {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        /* 결과 영역을 화면에 보여준다. window.scrollTo(0)은 맨 위만 보여서
+           페이지가 길 경우 결과 영역이 보이지 않을 수 있다. */
+        if (resultPageEl && typeof resultPageEl.scrollIntoView === 'function') {
+          try { resultPageEl.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+          catch (e) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }, 50);
     });
 
