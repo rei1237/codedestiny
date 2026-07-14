@@ -1353,7 +1353,10 @@ function renderReportDashboard() {
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '</button>';
     } else {
-      gridHtml += '<button class="rpt-v2-toggle-btn" type="button"' + (b.coinCost > 0 ? ' data-action="toggleRptCard"' : ' onclick="toggleReportFeatureCard(this)"') + coinAttrs + ' aria-expanded="false" data-label="' + b.cta + '">';
+      // 무료(비직접) 카드에도 기능 상세 프리뷰 팝업이 뜨도록 마커 부여:
+      // data-feature-key=문구 조회 키, data-pvw-free=프리뷰 인터셉터 매칭용. 인라인 onclick은 유지(CTA 재클릭 시 토글).
+      var freeAttrs = (b.coinCost > 0) ? '' : (' data-feature-key="rpt_' + b.target + '" data-pvw-free="1"');
+      gridHtml += '<button class="rpt-v2-toggle-btn" type="button"' + (b.coinCost > 0 ? ' data-action="toggleRptCard"' : ' onclick="toggleReportFeatureCard(this)"') + coinAttrs + freeAttrs + ' aria-expanded="false" data-label="' + b.cta + '">';
       gridHtml += '<span class="rpt-v2-toggle-label">' + b.cta + '</span>';
       gridHtml += '<span class="rpt-v2-toggle-arrow" aria-hidden="true">▼</span>';
       gridHtml += '</button>';
