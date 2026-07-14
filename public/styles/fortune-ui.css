@@ -790,6 +790,9 @@ input:checked + .slider .paw-pad {
   font-size:1rem;font-size:max(1rem, 16px);background:#FAFAFA;transition:all .25s;font-family:inherit;
   -webkit-appearance:none;appearance:none;min-height:48px;}
 .inp:focus{outline:none;border-color:var(--pink-l);background:#fff;box-shadow:0 0 0 4px rgba(255,183,178,.15)}
+/* 궁합 보기: 연이 모드에서 텍스트/select 입력 글자색·placeholder 대비 확보 */
+body:not(.neo-mode) #compatCard .inp{color:#3c1830}
+body:not(.neo-mode) #compatCard .inp::placeholder{color:#9a7d8c}
 /* iOS 줌 방지: 모든 input/select/textarea 16px 이상 유지 */
 @media (max-width:768px){
   input,select,textarea{font-size:max(1rem,16px)!important;}

@@ -1390,6 +1390,44 @@ function _applyTrueSolarTimeCorrection(input) {
   };
 }
 
+// ── 일주(日柱)·시주(時柱) 민용일 기준 계산 헬퍼 ──
+// 정책: 일주는 KST 민용일(달력 날짜) 기준으로 판정하고, 진태양시/균시차 보정은 시주에만 적용한다.
+// _applyTrueSolarTimeCorrection 이 자정을 넘겨 전날로 밀어낸 보정일(dayOffset)이 일주로 새면
+// 하루 밀림(예: 1981-01-27 00:30 → 을사가 정답이나 전날 갑진으로 오출력)이 발생하므로,
+// 일진은 항상 원본 달력 날짜로 계산한다(60갑자는 연속 순환이라 절기/음력과 달리 예외가 없음).
+var _CD_STEMS_HANJA = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var _CD_BRANCHES_HANJA = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+
+function _cdCivilDayPillar(year, month, day, hour) {
+  var y = Number(year), m = Number(month), d = Number(day);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d)) return null;
+  // 야자시(夜子時): 23시대 출생은 익일 일진 (기존 KasiEngine.getGanji 규칙과 동일하게 원본 시각에 적용)
+  if (Number(hour) >= 23) {
+    var shifted = new Date(Date.UTC(y, m - 1, d) + 86400000);
+    y = shifted.getUTCFullYear(); m = shifted.getUTCMonth() + 1; d = shifted.getUTCDate();
+  }
+  var serial = Math.floor(Date.UTC(y, m - 1, d) / 86400000) + 17;
+  return {
+    g: _CD_STEMS_HANJA[((serial % 10) + 10) % 10],
+    j: _CD_BRANCHES_HANJA[((serial % 12) + 12) % 12]
+  };
+}
+
+function _cdHourPillarFromDayStem(dayStemHanja, correctedHour) {
+  var h = Number(correctedHour);
+  if (!Number.isFinite(h)) h = 0;
+  // 시지(時支): 진태양시 보정 시각의 2시간지. 자시는 23:00~00:59로 자정을 감싸므로 날짜와 무관하게 산출.
+  var branchIndex = Math.floor((h + 1) / 2) % 12;
+  var dayStemIndex = _CD_STEMS_HANJA.indexOf(dayStemHanja);
+  if (dayStemIndex < 0) return null;
+  // 시간(時干): 오자둔(五鼠遁) — 민용일 일간으로 자시 천간을 정하고 시지만큼 진행
+  var ziStemStart = [0, 2, 4, 6, 8][dayStemIndex % 5];
+  return {
+    g: _CD_STEMS_HANJA[(ziStemStart + branchIndex) % 10],
+    j: _CD_BRANCHES_HANJA[branchIndex]
+  };
+}
+
 function buildFallbackDateContext(input, reason) {
   try {
     var calType = normalizeCalendarTypeInput(input.calendarType || input.calType || 'solar');
@@ -2866,6 +2904,13 @@ window.computeProfileForModal = function(profile) {
     var mg=bazi.getMonthGan(), mz=bazi.getMonthZhi();
     var dg=bazi.getDayGan(),   dz=bazi.getDayZhi();
     var hg=bazi.getTimeGan(),  hz=bazi.getTimeZhi();
+    // 일주는 민용일(원본 달력 날짜) 기준, 시주는 오자둔(민용일 일간)+진태양시 보정 시각으로 재정한다.
+    var _cdDay = _cdCivilDayPillar(year, month, day, hour);
+    if (_cdDay) {
+      dg = _cdDay.g; dz = _cdDay.j;
+      var _cdHour = _cdHourPillarFromDayStem(dg, corrH);
+      if (_cdHour) { hg = _cdHour.g; hz = _cdHour.j; }
+    }
     var p = {
       y:{g:yg,j:yz,gE:(GAN[yg]||{}).e,jE:(JI[yz]||{}).e},
       m:{g:mg,j:mz,gE:(GAN[mg]||{}).e,jE:(JI[mz]||{}).e},
@@ -5175,6 +5220,18 @@ async function calculate(){
       pillarError.userMessage = 'KASI 기준 사주 원국 간지 계산값을 확인할 수 없습니다.';
       pillarError.code = 'KASI_PILLAR_MISSING';
       throw pillarError;
+    }
+    // 일주(日柱)는 민용일(원본 달력 날짜) 기준으로 재정한다. 진태양시 보정이 자정을 넘겨 밀어낸
+    // 보정일이 일주로 새면 하루 밀림(예: 을사→갑진)이 발생하므로 원본 달력 날짜로 일진을 계산하고,
+    // 시주(時柱)는 민용일 일간 기준 오자둔 + 진태양시 보정 시각의 2시간지로 파생한다.
+    var _cdCivilDay = _cdCivilDayPillar(year, month, day, hour);
+    if (_cdCivilDay) {
+      kasiDayPair = _cdCivilDay;
+      var _cdCivilHour = _cdHourPillarFromDayStem(_cdCivilDay.g, correctedHour);
+      if (_cdCivilHour) kasiHourPair = _cdCivilHour;
+      // 다운스트림(G_KASI_PILLARS/진단 표시)도 민용일 일주·시주와 일치시킨다.
+      if (normalizedKasiPillars && normalizedKasiPillars.day) normalizedKasiPillars.day.ganji = kasiDayPair.g + kasiDayPair.j;
+      if (_cdCivilHour && normalizedKasiPillars && normalizedKasiPillars.hour) normalizedKasiPillars.hour.ganji = kasiHourPair.g + kasiHourPair.j;
     }
     var bazi = {
       getYearGan: function() { return kasiYearPair.g; },
@@ -26258,7 +26315,7 @@ function setCeleb(c){
     return;
   }
   document.getElementById('compatName').value=profile.name;
-  document.getElementById('compatBirthDate').value=_cdBirthDateInputDigits(profile.birth);
+  document.getElementById('compatBirthDate').value=_cdNormalizeBirthDateInput(profile.birth);
   document.getElementById('compatBirthHour').value=profile.hour;
   document.getElementById('compatBirthMinute').value=profile.minute;
   /* 양/음력 라디오 프리뷰도 업데이트 */
