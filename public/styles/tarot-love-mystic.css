@@ -1456,6 +1456,11 @@
   margin: 0;
   text-shadow: 0 0 12px rgba(255, 120, 180, 0.25);
   word-break: keep-all;
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+.tarot-love-loading-title.is-fading {
+  opacity: 0;
+  transform: translateY(4px);
 }
 .tarot-love-loading-sub {
   font-size: 0.92rem;
@@ -1465,8 +1470,75 @@
   max-width: 34ch;
   word-break: keep-all;
 }
+/* 뽑은 카드 6장을 뒷면으로 늘어놓고 순차 시머 — "읽히는 중" 연출 */
+.tarot-love-loading-cards {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 4px;
+}
+.tarot-love-loading-card {
+  width: 26px;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 180, 220, 0.25);
+  background: linear-gradient(160deg, #2a0a2e 0%, #1a051d 50%, #120316 100%);
+  box-shadow: inset 0 0 12px rgba(255, 80, 150, 0.1);
+  position: relative;
+  overflow: hidden;
+  animation: tarotLoveLoadingCardGlow 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--tl-i, 0) * 0.28s);
+}
+.tarot-love-loading-card::after {
+  content: "✦";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  color: rgba(255, 190, 225, 0.4);
+}
+@keyframes tarotLoveLoadingCardGlow {
+  0%, 100% { opacity: 0.42; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); box-shadow: inset 0 0 12px rgba(255, 80, 150, 0.1), 0 0 14px rgba(255, 120, 190, 0.4); }
+}
+/* 인디터미네이트 진행바 — 생성 시간이 가변이라 가짜 퍼센트 대신 흐르는 시머 */
+.tarot-love-loading-bar {
+  width: 148px;
+  max-width: 70%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 200, 230, 0.14);
+  overflow: hidden;
+  margin-top: 4px;
+}
+.tarot-love-loading-bar > span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, transparent, rgba(255, 138, 196, 0.95), transparent);
+  animation: tarotLoveLoadingBar 1.5s ease-in-out infinite;
+}
+@keyframes tarotLoveLoadingBar {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .tarot-love-loading-orb {
+  .tarot-love-loading-orb,
+  .tarot-love-loading-card,
+  .tarot-love-loading-bar > span {
     animation: none;
+  }
+  .tarot-love-loading-card {
+    opacity: 0.85;
+  }
+  .tarot-love-loading-title {
+    transition: none;
+  }
+  .tarot-love-loading-bar > span {
+    width: 100%;
+    background: rgba(255, 138, 196, 0.5);
   }
 }

@@ -124,6 +124,12 @@
       copyBlocked: "복사 권한이 막혀 직접 선택해 복사해 주세요.",
       loadingTitle: "연이가 두 사람 사이의 흐름을 읽고 있어요…",
       loadingSub: "카드 여섯 장의 결을 하나의 상담으로 엮는 중입니다. 잠시만 기다려 주세요.",
+      loadingStages: [
+        "카드 여섯 장을 펼치는 중…",
+        "두 사람 사이의 온도를 읽는 중…",
+        "엇갈린 마음의 결을 잇는 중…",
+        "연이가 상담을 다듬는 중…",
+      ],
       shareHeader: "💕 [우리는 무슨 사이?] 💕",
       shareCta: "👉 무료 타로 보러가기: https://code-destiny.com",
       shareTitle: "💕 우리는 무슨 사이?",
@@ -193,6 +199,12 @@
       copyBlocked: "Copy permission is blocked. Please select and copy it manually.",
       loadingTitle: "Reading the flow between you two…",
       loadingSub: "Weaving the six cards into one consultation. This takes just a moment.",
+      loadingStages: [
+        "Laying out the six cards…",
+        "Reading the warmth between you two…",
+        "Weaving the crossed feelings together…",
+        "Yeoni is refining the reading…",
+      ],
       shareHeader: "💕 [What Are We?] 💕",
       shareCta: "👉 Try a free tarot reading: https://code-destiny.com",
       shareTitle: "💕 What Are We?",
@@ -262,6 +274,12 @@
       copyBlocked: "コピー権限がブロックされています。手動で選択してコピーしてください。",
       loadingTitle: "二人の間に流れる気配を読んでいます…",
       loadingSub: "6枚のカードをひとつのリーディングに紡いでいます。少々お待ちください。",
+      loadingStages: [
+        "6枚のカードを広げています…",
+        "二人の間の温度を読んでいます…",
+        "すれ違う想いの結を繋いでいます…",
+        "ヨニがリーディングを整えています…",
+      ],
       shareHeader: "💕 [私たちはどんな関係？] 💕",
       shareCta: "👉 無料タロットを見る: https://code-destiny.com",
       shareTitle: "💕 私たちはどんな関係？",
@@ -342,12 +360,25 @@
     return err;
   }
 
-  function logTarotApiError(stage, details, error) {
-    var safeDetails = details || {};
-    console.error("[Tarot API Debug] " + stage, safeDetails, error);
-    if (error && error.responseBody) {
-      console.error("[Tarot API Debug] responseBody:", error.responseBody);
-    }
+  function tarotApiConsole(method, args) {
+    try {
+      var c = typeof console !== "undefined" ? console : null;
+      if (!c) return;
+      var fn = typeof c[method] === "function" ? c[method] : (typeof c.log === "function" ? c.log : null);
+      if (fn) fn.apply(c, args);
+    } catch (e) {}
+  }
+  // 재시도 중 진단은 console.debug(기본 콘솔에서 숨김)로만 남겨 스팸을 없앤다.
+  function logTarotApiDebug(stage, details) {
+    tarotApiConsole("debug", ["[Tarot API] " + stage, details || {}]);
+  }
+  // 모든 재시도가 소진돼 사용자에게 실제 실패가 보이는 경우에만 한 줄 경고.
+  function logTarotApiGiveUp(endpoint, error) {
+    var status = error && typeof error.status === "number" ? error.status : "(network)";
+    tarotApiConsole("warn", ["[Tarot API] " + endpoint + " 요청 실패(재시도 소진, status=" + status + ")"]);
+  }
+  function waitMs(ms) {
+    return new Promise(function (resolve) { setTimeout(resolve, Math.max(0, Number(ms) || 0)); });
   }
 
   function getTarotApiBase() {
@@ -463,18 +494,12 @@
 
   function callTarotApi(endpoint, payload, timeoutMs) {
     var bases = buildTarotApiBaseCandidates();
+    var primaryBase = bases.length ? bases[0] : "";
+    var fallbackBases = bases.slice(1);
     var body = JSON.stringify(payload || {});
-    var index = 0;
-    var lastError = null;
 
     function requestWithBase(base) {
       var url = (base ? base + "/api/tarot/" : "/api/tarot/") + endpoint;
-      var requestDebug = {
-        endpoint: endpoint,
-        base: base || "(relative)",
-        url: url,
-        payload: payload || {},
-      };
       return postJsonWithTimeout(url, body, timeoutMs)
         .then(function (res) {
           if (!res.ok) {
@@ -508,36 +533,59 @@
             });
           }
           return data;
-        })
-        .catch(function (error) {
-          logTarotApiError("request_failed", requestDebug, error);
-          throw error;
         });
     }
 
-    function tryNext() {
-      if (index >= bases.length) {
-        throw lastError || new Error("Tarot API request failed");
-      }
-      var base = bases[index++];
-      return requestWithBase(base).catch(function (error) {
-        lastError = error;
-        if (index < bases.length) {
-          console.error("[Tarot API Debug] retry_next_base", {
+    function hasHttpStatus(error) {
+      return !!(error && typeof error.status === "number");
+    }
+    // 401/403/400/422 등 결정적 4xx(429 제외)는 다른 base로 가거나 재시도해도 고쳐지지 않는다.
+    function isNonRetryable(error) {
+      var status = hasHttpStatus(error) ? error.status : 0;
+      return status >= 400 && status < 500 && status !== 429;
+    }
+    // 503/5xx·429 = 서버가 일시적 과부하/DB 블립을 응답한 경우. 같은 엔드포인트를 짧은 백오프로
+    // 재시도하면 서버 아이솔레이트/풀이 자가복구해 대개 성공한다(간헐 503을 사용자에게 안 보이게 흡수).
+    function isTimeRetryable(error) {
+      var status = hasHttpStatus(error) ? error.status : 0;
+      return status === 429 || (status >= 500 && status < 600);
+    }
+
+    var MAX_ATTEMPTS = 3;
+    var BACKOFF_MS = [400, 1000];
+
+    function attempt(n) {
+      return requestWithBase(primaryBase).catch(function (error) {
+        if (isNonRetryable(error)) throw error;
+
+        if (isTimeRetryable(error) && n + 1 < MAX_ATTEMPTS) {
+          var delay = BACKOFF_MS[Math.min(n, BACKOFF_MS.length - 1)] + Math.floor(Math.random() * 200);
+          logTarotApiDebug("transient_retry", {
             endpoint: endpoint,
-            failedBase: base || "(relative)",
-            nextBase: bases[index] || "(relative)",
+            status: error.status,
+            attempt: n + 1,
+            maxAttempts: MAX_ATTEMPTS,
+            delayMs: delay,
           });
+          return waitMs(delay).then(function () { return attempt(n + 1); });
         }
-        return tryNext();
+
+        // 네트워크/타임아웃(HTTP 응답 없음) 또는 시간축 재시도 소진 시: 상대경로가 막혔을 수 있으니
+        // 대체 origin을 1회만 시도(과거 base 폴백 의도 유지). 그래도 실패하면 원 에러를 던진다.
+        if (fallbackBases.length) {
+          return requestWithBase(fallbackBases[0]).catch(function () { throw error; });
+        }
+        throw error;
       });
     }
 
-    return tryNext().catch(function (error) {
-      logTarotApiError("all_candidates_failed", {
-        endpoint: endpoint,
-        baseCandidates: bases,
-      }, error);
+    return attempt(0).catch(function (error) {
+      if (isNonRetryable(error)) {
+        // 예상 범위의 결정적 실패(예: 401 로그인 필요) — 호출측이 처리한다. 조용히 debug만.
+        logTarotApiDebug("request_rejected", { endpoint: endpoint, status: error.status });
+      } else {
+        logTarotApiGiveUp(endpoint, error);
+      }
       throw error;
     });
   }
@@ -1234,6 +1282,9 @@
   // 결제 전 프리페치 — 실패해도 alert·롤백 없이 조용히 버리고, 결제 승인 시점에 새 요청으로 재시도된다.
   function prefetchTarotLoveReading() {
     if (state.readingPromise || state.readingResult) return;
+    // 비로그인 상태에서는 love-reading이 인증(requireAuth)에서 401로 확정 실패하므로 프리페치하지 않는다.
+    // 결제 후 인증된 상태에서 _runTarotLoveFinalReading가 정식 요청한다(지연 단축 이점은 로그인 유저에게 유지).
+    if (!getAuthToken()) return;
     var seq = flowSeq;
     var promise = requestTarotLoveReading().then(function (data) {
       if (seq === flowSeq) state.readingResult = data;
@@ -1246,16 +1297,52 @@
     state.readingPromise = promise;
   }
 
+  var tarotLoveLoadingTimer = null;
+  function stopTarotLoveLoadingCycle() {
+    if (tarotLoveLoadingTimer) {
+      clearInterval(tarotLoveLoadingTimer);
+      tarotLoveLoadingTimer = null;
+    }
+  }
+
   function renderTarotLoveLoading() {
     var container = byId("tarotLoveReadingContent");
     if (!container) return;
+    stopTarotLoveLoadingCycle();
     var copy = getTarotLoveCopy();
+    var stages = (copy.loadingStages && copy.loadingStages.length) ? copy.loadingStages : [copy.loadingTitle];
+    var cardCount = (state.cards && state.cards.length) ? state.cards.length : 6;
+    var cardsHtml = "";
+    for (var i = 0; i < cardCount; i++) {
+      cardsHtml += '<span class="tarot-love-loading-card" style="--tl-i:' + i + '"></span>';
+    }
     container.innerHTML =
       '<div class="tarot-love-loading" role="status" aria-live="polite">' +
+      '<div class="tarot-love-loading-cards" aria-hidden="true">' + cardsHtml + '</div>' +
       '<span class="tarot-love-loading-orb" aria-hidden="true"></span>' +
-      '<p class="tarot-love-loading-title">' + escapeHtml(copy.loadingTitle) + '</p>' +
+      '<p class="tarot-love-loading-title" data-tl-stage>' + escapeHtml(stages[0]) + '</p>' +
       '<p class="tarot-love-loading-sub">' + escapeHtml(copy.loadingSub) + '</p>' +
+      '<div class="tarot-love-loading-bar" aria-hidden="true"><span></span></div>' +
       '</div>';
+
+    if (stages.length > 1) {
+      var idx = 0;
+      tarotLoveLoadingTimer = setInterval(function () {
+        var titleEl = container.querySelector("[data-tl-stage]");
+        // 결과/에러로 innerHTML이 교체되면 요소가 사라지므로 사이클을 정리한다.
+        if (!titleEl || (typeof document !== "undefined" && document.body && !document.body.contains(titleEl))) {
+          stopTarotLoveLoadingCycle();
+          return;
+        }
+        idx = (idx + 1) % stages.length;
+        titleEl.classList.add("is-fading");
+        setTimeout(function () {
+          if (typeof document !== "undefined" && document.body && !document.body.contains(titleEl)) return;
+          titleEl.textContent = stages[idx];
+          titleEl.classList.remove("is-fading");
+        }, 260);
+      }, 2600);
+    }
   }
 
   function _runTarotLoveFinalReading() {
@@ -1287,10 +1374,12 @@
     pending
       .then(function (data) {
         if (seq !== flowSeq) return;
+        stopTarotLoveLoadingCycle();
         state.reading = data.reading;
         renderTarotLoveResult();
       })
       .catch(function (err) {
+        stopTarotLoveLoadingCycle();
         console.error("Tarot Love reading error:", err);
         if (seq === flowSeq) {
           var draw2 = byId("tarotLoveDrawStage");

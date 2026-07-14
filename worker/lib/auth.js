@@ -2,7 +2,7 @@ import { getEnv } from "./env.js";
 import { cookieValue, createHttpError, getRequestMeta } from "./http.js";
 import { signJwt, verifyJwt } from "./jwt.js";
 import { createHash } from "node:crypto";
-import { connectDb, mongoose, withMongoRetry } from "./db.js";
+import { connectDb, mongoose, withMongoRetry, isTransientMongoError } from "./db.js";
 import { RefreshTokenSession, User } from "./models.js";
 import { normalizeHoneyPassEntitlement, PASS_LIMITS } from "./profile-limits.js";
 import { ensureLotsForBalance, resolveNextExpiry } from "./monthly-credit-lots.js";
@@ -195,6 +195,9 @@ function isAuthMeRequest(request) {
 }
 
 export function isAuthDbInfraError(error) {
+  // 이름으로만 식별되는 일시적 DB 에러(MongoPoolClearedError, "Cannot perform I/O ... different request" 등)를
+  // 메시지 텍스트만 보면 놓쳐 로그인 유저를 하드 401로 세탁했다. db.js·http.js와 동일한 판별로 정렬한다.
+  if (isTransientMongoError(error)) return true;
   const text = String(error?.message || "").toLowerCase();
   if (!text) return false;
   return (

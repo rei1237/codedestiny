@@ -67,14 +67,23 @@ win.fetch = function (url, init) {
   return entry.promise;
 };
 win._cdCoinGatePerUse = (cost, reason, onOk) => onOk();
+// 로그인 유저 시나리오 — 프리페치는 인증된 유저에게만 발사된다(비로그인은 love-reading이 401 확정이라 스킵).
+try {
+  win.localStorage.setItem("fortune_auth_token", "verify-token");
+} catch (e) {
+  Object.defineProperty(win, "localStorage", {
+    value: { getItem: () => "verify-token", setItem() {}, removeItem() {}, clear() {} },
+    configurable: true,
+  });
+}
 
 const flush = async (turns = 4) => {
   for (let i = 0; i < turns; i += 1) await new Promise((r) => setTimeout(r, 0));
 };
 const calls = (endpoint) => fetchCalls.filter((c) => c.url.includes(endpoint));
 const pendingCalls = (endpoint) => calls(endpoint).filter((c) => !c.settled);
-// callTarotApi는 base 후보 2개("" + origin)를 순회 재시도하므로 정확히 2회만 거절한다
-// (그 이상 돌면 실패 직후 발사되는 복구 요청까지 죽여 버린다).
+// 네트워크 레벨 실패(HTTP status 없음)는 callTarotApi가 상대경로(primary) 1회 + 대체 origin 폴백 1회를
+// 시도하므로 정확히 2회 거절하면 소진된다(5xx만 시간축 재시도 대상이며, 목은 status 없는 거절이라 해당 없음).
 const failEndpoint = async (endpoint) => {
   for (let i = 0; i < 2; i += 1) {
     pendingCalls(endpoint).forEach((c) => c.rejectWith(new Error("mock fail")));
