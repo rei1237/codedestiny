@@ -204,7 +204,10 @@ type RuntimeApiWindow = Window & {
       productId: string;
       productType?: string;
       idempotencyKey?: string;
+      obfuscatedAccountId?: string;
+      obfuscatedProfileId?: string;
     }) => Promise<Record<string, unknown>>;
+    consume?: (input: { purchaseToken: string }) => Promise<Record<string, unknown>>;
   };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
@@ -2201,30 +2204,53 @@ async function runNativeAppStorePayment(input: BillingCoinGateInput, context: {
   }
 
   const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
-  const productQuery = toQuery({
-    featureKey,
-    categoryKey: input.categoryKey,
-    subFeatureKey: input.subFeatureKey,
-    reason: input.reason,
-    productType: input.productType,
+
+  // 결제 의도를 먼저 서버에 남긴다. 앱은 가격대 티어 SKU를 쓰므로 productId 하나에 여러
+  // 기능이 매달린다 — 결제 도중 앱이 죽으면 이 기록 없이는 무엇을 사려던 건지 복구할 수 없다.
+  // 응답의 obfuscatedAccountId는 구매를 로그인 계정에 귀속시켜 토큰 선점을 막는다.
+  const intentResponse = await authFetchBilling("/api/app-store/google/intent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...(input || {}),
+      featureKey,
+      requestId: context.requestId,
+      idempotencyKey: input.idempotencyKey || context.requestId,
+    }),
   });
-  const productResponse = await authFetchBilling(`/api/app-store/products?${productQuery}`, { method: "GET" });
-  const productParsed = await parseBillingResponse<{
+  const intentParsed = await parseBillingResponse<{
+    intentId?: string;
+    obfuscatedAccountId?: string;
     product?: {
       productId?: string;
       productType?: string;
       featureKey?: string;
+      freeInApp?: boolean;
     };
-    pricing?: BillingFeaturePricing;
-  }>(productResponse);
+  }>(intentResponse);
 
-  const product = productParsed.data?.product;
+  // 앱에서 무료로 여는 저가 콘텐츠는 Play 상품 자체가 없다 — 결제창 대신 무료 지급으로 보낸다.
+  if (intentParsed.error?.code === "APP_STORE_PRODUCT_FREE_IN_APP") {
+    const freeResponse = await authFetchBilling("/api/app-store/free-grant", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...(input || {}),
+        featureKey,
+        requestId: context.requestId,
+        idempotencyKey: input.idempotencyKey || context.requestId,
+      }),
+    });
+    return parseBillingResponse<BillingCoinGateData>(freeResponse);
+  }
+
+  const product = intentParsed.data?.product;
   const productId = toText(product?.productId);
-  if (!productParsed.ok || !productId) {
+  if (!intentParsed.ok || !productId) {
     return nativeAppStoreFailure(
-      productParsed.error?.code || "APP_STORE_PRODUCT_UNAVAILABLE",
-      productParsed.error?.message || productParsed.message || "앱 결제 상품을 불러오지 못했습니다.",
-      productParsed.status || 503,
+      intentParsed.error?.code || "APP_STORE_PRODUCT_UNAVAILABLE",
+      intentParsed.error?.message || intentParsed.message || "앱 결제 상품을 불러오지 못했습니다.",
+      intentParsed.status || 503,
     );
   }
 
@@ -2235,6 +2261,8 @@ async function runNativeAppStorePayment(input: BillingCoinGateInput, context: {
       productId,
       productType: toText(product?.productType || input.productType || "inapp"),
       idempotencyKey: input.idempotencyKey || context.requestId,
+      obfuscatedAccountId: toText(intentParsed.data?.obfuscatedAccountId),
+      obfuscatedProfileId: featureKey.slice(0, 64),
     });
   } catch (error) {
     return nativeAppStoreFailure(
@@ -2273,7 +2301,33 @@ async function runNativeAppStorePayment(input: BillingCoinGateInput, context: {
     }),
   });
 
-  return parseBillingResponse<BillingCoinGateData>(verifyResponse);
+  const verified = await parseBillingResponse<BillingCoinGateData>(verifyResponse);
+  await consumeNativePurchaseIfNeeded(verified, toText(purchaseResult?.purchaseToken));
+  return verified;
+}
+
+/**
+ * 회당 결제(PER_USE) 상품은 지급이 끝나면 반드시 소비해야 한다.
+ * 소비하지 않으면 Play가 "이미 보유 중"으로 판단해 다음 구매를 막는다 — 티어 SKU라
+ * 같은 가격대의 다른 기능까지 함께 막힌다.
+ *
+ * 소비 실패는 지급을 되돌리지 않는다. 서버가 이미 승인(acknowledge)해 자동 환불은 없고,
+ * 앱 재시작 시 queryPurchasesAsync 복구 경로가 다시 소비를 시도한다.
+ */
+async function consumeNativePurchaseIfNeeded(
+  verified: BillingResult<BillingCoinGateData>,
+  purchaseToken: string,
+) {
+  if (!verified.ok || !purchaseToken || typeof window === "undefined") return;
+  const appPurchase = asRecord((verified.raw as Record<string, unknown>)?.data)
+    ? asRecord(asRecord((verified.raw as Record<string, unknown>)?.data)?.appPurchase)
+    : null;
+  if (appPurchase?.shouldConsume !== true) return;
+  try {
+    await (window as RuntimeApiWindow).CodeDestinyNative?.consume?.({ purchaseToken });
+  } catch (error) {
+    debugEntitlement("[billing] native consume failed", error);
+  }
 }
 
 function runtimeNow() {

@@ -10,6 +10,43 @@ type NativePurchaseInput = {
   productId: string;
   productType?: string;
   idempotencyKey?: string;
+  obfuscatedAccountId?: string;
+  obfuscatedProfileId?: string;
+};
+
+type NativeConsumeInput = {
+  purchaseToken: string;
+};
+
+type NativeConsumeResult = {
+  ok?: boolean;
+  purchaseToken?: string;
+  message?: string;
+  code?: string;
+};
+
+type NativeQueryProductsInput = {
+  productIds: string[];
+  productType?: string;
+};
+
+type NativeProductDetails = {
+  productId?: string;
+  productType?: string;
+  title?: string;
+  name?: string;
+  description?: string;
+  formattedPrice?: string;
+  priceAmountMicros?: number;
+  priceCurrencyCode?: string;
+};
+
+type NativeQueryProductsResult = {
+  ok?: boolean;
+  provider?: string;
+  products?: NativeProductDetails[];
+  message?: string;
+  code?: string;
 };
 
 type NativePurchaseResult = {
@@ -60,6 +97,8 @@ type CapacitorRuntime = {
     CodeDestinyBilling?: {
       purchase?: (input: NativePurchaseInput) => Promise<NativePurchaseResult>;
       restore?: (input: NativeRestoreInput) => Promise<NativeRestoreResult>;
+      consume?: (input: NativeConsumeInput) => Promise<NativeConsumeResult>;
+      queryProducts?: (input: NativeQueryProductsInput) => Promise<NativeQueryProductsResult>;
     };
     App?: {
       addListener?: (
@@ -80,6 +119,8 @@ declare global {
     CodeDestinyNative?: {
       purchase(input: NativePurchaseInput): Promise<NativePurchaseResult>;
       restore(input?: NativeRestoreInput): Promise<NativeRestoreResult>;
+      consume(input: NativeConsumeInput): Promise<NativeConsumeResult>;
+      queryProducts(input: NativeQueryProductsInput): Promise<NativeQueryProductsResult>;
       openAuth(input: NativeAuthInput): Promise<NativeAuthResult>;
     };
   }
@@ -183,6 +224,29 @@ export default function MobileAppRuntimeBridge() {
           };
         }
         return plugin.restore(input);
+      },
+      async consume(input) {
+        const plugin = getNativeBillingPlugin();
+        if (!plugin?.consume) {
+          return {
+            ok: false,
+            code: "NATIVE_BILLING_UNAVAILABLE",
+            message: "Native billing consume is not available yet.",
+          };
+        }
+        return plugin.consume(input);
+      },
+      async queryProducts(input) {
+        const plugin = getNativeBillingPlugin();
+        if (!plugin?.queryProducts) {
+          return {
+            ok: false,
+            code: "NATIVE_BILLING_UNAVAILABLE",
+            message: "Native billing product query is not available yet.",
+            products: [],
+          };
+        }
+        return plugin.queryProducts(input);
       },
       async openAuth(input) {
         const provider = String(input?.provider || "").trim().toLowerCase();

@@ -3,8 +3,17 @@ import { getEnv } from "../lib/env.js";
 import { Payment, User } from "../lib/models.js";
 import { requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getBillingFeaturePricing, listBillingFeatures } from "../lib/billing-feature-registry.js";
+import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { getPaidFeatureBillingType, isPerUsePaidFeatureKey, PAID_FEATURE_BILLING_TYPES } from "../lib/paid-feature-registry.js";
+import {
+  APP_PASS_DURATION_DAYS,
+  findAppStoreProductById,
+  isAppFreeCoinPrice,
+  resolveAppContentTier,
+  resolveAppPassProduct,
+} from "../lib/app-store-pricing.js";
+import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 let cachedGoogleAccessToken = null;
@@ -128,38 +137,128 @@ function readProductMap(env) {
   }
 }
 
+function resolveProductCoinPrice(pricing, body = {}) {
+  const coinPrice = Math.floor(Number(pricing?.coinPrice ?? pricing?.cost ?? body?.coinPrice ?? body?.cost ?? 0));
+  return Number.isFinite(coinPrice) && coinPrice > 0 ? coinPrice : 0;
+}
+
+/**
+ * 기능 → Play 상품.
+ *
+ * 앱은 가격대 티어 SKU를 쓴다(웹 코인가 → 티어 → productId). 티어에 없는 가격대면
+ * fail-closed로 던진다 — 임의 상품으로 결제시키면 Play 등록가와 서버 기록이 어긋난다.
+ * 가격표 누락은 scripts/verify-app-store-pricing.mjs가 배포 전에 잡는다.
+ */
 function resolveProduct(pricing, env, body = {}) {
   const featureKey = cleanText(pricing?.featureKey || body.featureKey);
+  const billingType = getPaidFeatureBillingType(featureKey);
+  const coinPrice = resolveProductCoinPrice(pricing, body);
+
+  // 웹 ₩500 이하 기능은 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않고
+  // 앱에서만 무료로 통과시킨다(웹은 유료 그대로).
+  if (isAppFreeCoinPrice(coinPrice)) {
+    return {
+      provider: "GOOGLE_PLAY",
+      kind: "free",
+      productId: "",
+      productType: "inapp",
+      featureKey,
+      billingType,
+      coinPrice,
+      amountKRW: 0,
+      freeInApp: true,
+      subscriptionTier: "",
+      passTier: "",
+    };
+  }
+
+  // env 오버라이드(GOOGLE_PLAY_PRODUCT_MAP) — 기존 동작 호환용. 티어 표보다 우선한다.
   const map = readProductMap(env);
   const mapped = map[featureKey] || map[productKey(featureKey)] || null;
-  const prefix = cleanText(getEnv(env, "GOOGLE_PLAY_PRODUCT_PREFIX")) || "code_destiny";
-  const mappedProductId = typeof mapped === "string" ? mapped : (mapped?.productId || mapped?.id);
-  const mappedProductType = typeof mapped === "object" && mapped ? mapped.productType : "";
-  const productId = cleanText(mappedProductId || `${prefix}.${productKey(featureKey)}`);
-  const productType = normalizeGoogleProductType(mappedProductType || body.productType);
+  if (mapped) {
+    const mappedProductId = cleanText(typeof mapped === "string" ? mapped : (mapped?.productId || mapped?.id));
+    if (mappedProductId) {
+      const mappedProductType = typeof mapped === "object" && mapped ? mapped.productType : "";
+      const known = findAppStoreProductById(mappedProductId);
+      return {
+        provider: "GOOGLE_PLAY",
+        kind: known?.kind || "content",
+        productId: mappedProductId,
+        productType: normalizeGoogleProductType(mappedProductType || body.productType),
+        featureKey,
+        billingType,
+        coinPrice,
+        amountKRW: Number(known?.amountKRW || 0),
+        freeInApp: false,
+        subscriptionTier: cleanText(mapped?.subscriptionTier || body.subscriptionTier),
+        passTier: cleanText(mapped?.passTier || mapped?.subscriptionTier),
+      };
+    }
+  }
+
+  const tier = resolveAppContentTier(coinPrice);
+  if (!tier) {
+    const error = new Error("Google Play tier is not registered for this price.");
+    error.code = "APP_STORE_TIER_NOT_REGISTERED";
+    error.status = 503;
+    throw error;
+  }
+
   return {
     provider: "GOOGLE_PLAY",
-    productId,
-    productType,
+    kind: "content",
+    productId: tier.productId,
+    productType: "inapp",
     featureKey,
-    subscriptionTier: cleanText(mapped?.subscriptionTier || body.subscriptionTier),
+    billingType,
+    coinPrice,
+    amountKRW: tier.amountKRW,
+    freeInApp: false,
+    subscriptionTier: "",
+    passTier: "",
   };
 }
 
-function listProductResolveCandidates() {
-  const listed = listBillingFeatures();
-  const candidates = [];
-  if (Array.isArray(listed?.legacyFeatureTable)) candidates.push(...listed.legacyFeatureTable);
-  if (Array.isArray(listed?.categories)) {
-    for (const category of listed.categories) {
-      candidates.push(category);
-      if (Array.isArray(category?.subFeatures)) candidates.push(...category.subFeatures);
-    }
+/** 이용권(30일, 자동갱신 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
+function resolveAppPassPurchaseProduct(body = {}) {
+  const passTier = cleanText(body.passTier || body.subscriptionTier).toLowerCase();
+  const pass = resolveAppPassProduct(passTier);
+  if (!pass) {
+    const error = new Error("Google Play pass product is not registered for this tier.");
+    error.code = "APP_STORE_PASS_TIER_UNKNOWN";
+    error.status = 400;
+    throw error;
   }
-  return candidates;
+  return {
+    provider: "GOOGLE_PLAY",
+    kind: "pass",
+    productId: pass.productId,
+    productType: "inapp",
+    featureKey: `app-pass-${pass.passTier}`,
+    billingType: PAID_FEATURE_BILLING_TYPES.UNLOCK,
+    coinPrice: 0,
+    amountKRW: pass.amountKRW,
+    freeInApp: false,
+    subscriptionTier: pass.passTier,
+    passTier: pass.passTier,
+  };
 }
 
-function resolveProductByProductId(env, body = {}) {
+function isPerUseProduct(product) {
+  return product?.billingType === PAID_FEATURE_BILLING_TYPES.PER_USE;
+}
+
+/**
+ * productId → 서버 기능 역해석.
+ *
+ * 가격대 티어 SKU라 productId 하나에 여러 featureKey가 매달린다(예: cd_content_tier_02 ←
+ * 50코인 기능 54개). 따라서 티어 SKU는 "이 유저가 이 상품으로 열어둔 결제 의도"를 먼저 보고,
+ * 그것만으로 확정한다. 후보를 순회해 아무거나 첫 매치를 고르면 엉뚱한 기능을 지급하게 된다.
+ *
+ * 명시적 featureKey(= verify 정상 경로)가 있으면 그대로 쓰고, 없을 때(= 고아 구매 복구)만
+ * 의도 기록을 조회한다.
+ */
+async function resolveProductByProductId(env, body = {}, auth = null) {
   const requestedProductId = cleanText(body.productId);
   if (!requestedProductId) {
     const error = new Error("Google Play productId is required.");
@@ -171,9 +270,16 @@ function resolveProductByProductId(env, body = {}) {
   if (cleanText(body.featureKey)) {
     const pricing = resolvePricing(body);
     const product = resolveProduct(pricing, env, body);
-    if (product.productId === requestedProductId) return { pricing, product };
+    if (product.productId === requestedProductId) return { pricing, product, intent: null };
   }
 
+  const knownProduct = findAppStoreProductById(requestedProductId);
+  if (knownProduct?.kind === "pass") {
+    const product = resolveAppPassPurchaseProduct({ passTier: knownProduct.passTier });
+    return { pricing: buildPassPricingShape(knownProduct), product, intent: null };
+  }
+
+  // env 오버라이드 매핑(기존 호환) — 1:1 매핑이라 역해석이 안전하다.
   const map = readProductMap(env);
   for (const [mapKey, mapped] of Object.entries(map)) {
     const mappedProductId = cleanText(typeof mapped === "string" ? mapped : (mapped?.productId || mapped?.id));
@@ -181,25 +287,88 @@ function resolveProductByProductId(env, body = {}) {
     const featureKey = cleanText(typeof mapped === "object" && mapped ? mapped.featureKey : "") || cleanText(mapKey);
     const pricing = resolvePricing({ ...body, featureKey });
     const product = resolveProduct(pricing, env, { ...body, featureKey });
-    if (product.productId === requestedProductId) return { pricing, product };
+    if (product.productId === requestedProductId) return { pricing, product, intent: null };
   }
 
-  for (const feature of listProductResolveCandidates()) {
-    try {
-      const featureKey = cleanText(feature?.featureKey);
-      if (!featureKey) continue;
-      const pricing = resolvePricing({ ...body, featureKey });
-      const product = resolveProduct(pricing, env, { ...body, featureKey });
-      if (product.productId === requestedProductId) return { pricing, product };
-    } catch (e) {
-      void e;
-    }
+  const intent = auth ? await findOpenPurchaseIntent(env, auth.userId, requestedProductId) : null;
+  if (intent) {
+    const pricing = resolvePricing({ ...body, featureKey: intent.featureKey });
+    const product = resolveProduct(pricing, env, { ...body, featureKey: intent.featureKey });
+    if (product.productId === requestedProductId) return { pricing, product, intent };
   }
 
-  const error = new Error("Google Play product is not mapped to a server billing feature.");
-  error.code = "APP_STORE_PRODUCT_MAP_REQUIRED";
-  error.status = 400;
+  const error = new Error("Google Play purchase could not be matched to a feature. Open the feature again to retry.");
+  error.code = "APP_STORE_INTENT_NOT_FOUND";
+  error.status = 409;
   throw error;
+}
+
+function buildPassPricingShape(pass) {
+  return {
+    categoryKey: "app-membership-pass",
+    categoryLabel: "이용권",
+    subFeatureKey: pass.passTier,
+    featureKey: `app-pass-${pass.passTier}`,
+    cost: 0,
+    coinPrice: 0,
+    displayUnit: "KRW",
+    displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
+    reason: `App membership pass (${pass.passTier})`,
+    currency: "KRW",
+    amountKRW: pass.amountKRW,
+    cashPrice: pass.amountKRW,
+    membershipCreditCost: 0,
+  };
+}
+
+async function findOpenPurchaseIntent(env, userId, productId) {
+  await connectDb(env);
+  return AppPurchaseIntent.findOne({
+    userId: new mongoose.Types.ObjectId(String(userId)),
+    productId: cleanText(productId),
+    status: "OPEN",
+  }).sort({ createdAt: -1 }).lean();
+}
+
+async function settlePurchaseIntent(env, userId, productId, tokenHash) {
+  try {
+    await connectDb(env);
+    await AppPurchaseIntent.findOneAndUpdate(
+      {
+        userId: new mongoose.Types.ObjectId(String(userId)),
+        productId: cleanText(productId),
+        status: "OPEN",
+      },
+      { $set: { status: "SETTLED", settledPurchaseTokenHash: cleanText(tokenHash) } },
+      { sort: { createdAt: -1 } },
+    );
+  } catch (e) {
+    // 의도 기록은 고아 구매 복구용 힌트일 뿐이다. 정산 실패가 지급을 막아선 안 된다.
+    void e;
+  }
+}
+
+/**
+ * 계정 대조. obfuscatedAccountId는 launchBillingFlow에서 앱이 주입한 userId 해시다.
+ * 이게 없으면 남의 purchaseToken을 먼저 POST하는 쪽이 콘텐츠를 가져갈 수 있다
+ * (Payment.impUid 유니크는 '두 번째'만 막지 '첫 번째 선점'은 막지 못한다).
+ */
+async function assertPurchaseBelongsToUser(auth, googlePurchase) {
+  const claimed = cleanText(googlePurchase?.obfuscatedExternalAccountId);
+  // 이 가드 도입 이전 클라이언트가 만든 구매는 값이 비어 있다 — 하위호환으로 통과시킨다.
+  if (!claimed) return;
+  const expected = await obfuscatedAccountIdForUser(auth.userId);
+  if (claimed === expected) return;
+  const error = new Error("Google Play purchase belongs to a different account.");
+  error.code = "GOOGLE_PLAY_PURCHASE_ACCOUNT_MISMATCH";
+  error.status = 409;
+  throw error;
+}
+
+export async function obfuscatedAccountIdForUser(userId) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`cd-account:${String(userId || "")}`));
+  // Play 제약: 64자 이하.
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("").slice(0, 64);
 }
 
 function resolvePricing(input = {}) {
@@ -300,6 +469,22 @@ async function acknowledgeGooglePurchase(env, { packageName, productId, productT
 
 async function handleProducts(request, env) {
   const url = new URL(request.url);
+
+  // 이용권 스토어는 featureKey가 아니라 passTier로 조회한다.
+  const passTier = cleanText(url.searchParams.get("passTier"));
+  if (passTier) {
+    const pass = resolveAppPassProduct(passTier);
+    if (!pass) return json({ ok: false, code: "APP_STORE_PASS_TIER_UNKNOWN", message: "Unknown pass tier." }, { status: 400 });
+    return json({
+      ok: true,
+      data: {
+        provider: "GOOGLE_PLAY",
+        product: resolveAppPassPurchaseProduct({ passTier }),
+        pricing: buildPassPricingShape(pass),
+      },
+    });
+  }
+
   const pricing = resolvePricing({
     categoryKey: url.searchParams.get("categoryKey"),
     subFeatureKey: url.searchParams.get("subFeatureKey"),
@@ -315,6 +500,107 @@ async function handleProducts(request, env) {
       provider: "GOOGLE_PLAY",
       product,
       pricing,
+    },
+  });
+}
+
+/**
+ * 앱에서 무료로 통과시키는 저가 콘텐츠의 접근 허가.
+ *
+ * 웹 ₩500 이하는 인상해도 Play KRW 최저 판매가를 밑돌 수 있어 SKU를 만들지 않았다.
+ * 결제가 없으니 Payment 기록도 남기지 않고 접근만 열어준다. "무료인지"는 서버 가격표로만
+ * 판정한다 — 클라이언트가 무료라고 주장하는 것을 믿으면 전 기능이 공짜가 된다.
+ */
+async function handleFreeGrant(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const pricing = resolvePricing(body);
+  const product = resolveProduct(pricing, env, body);
+
+  if (!product.freeInApp) {
+    return json({ ok: false, code: "APP_STORE_PRODUCT_NOT_FREE", message: "This product requires payment." }, { status: 400 });
+  }
+
+  const requestId = cleanText(body.requestId || body.idempotencyKey).slice(0, 120);
+  return json({
+    ok: true,
+    message: "Free in app.",
+    data: {
+      provider: "GOOGLE_PLAY",
+      freeInApp: true,
+      pricing,
+      consume: {
+        transactionId: `free:${product.featureKey}:${requestId}`,
+        purchaseId: `free:${product.featureKey}:${requestId}`,
+        featureKey: product.featureKey,
+        chargedCoins: 0,
+        accessType: "single_purchase",
+        accessMethod: "FREE_IN_APP",
+        paymentMethod: "FREE_IN_APP",
+        amountKRW: 0,
+        requestId,
+      },
+      accessGrant: {
+        ok: true,
+        accessType: "single_purchase",
+        accessMethod: "FREE_IN_APP",
+        paymentMethod: "FREE_IN_APP",
+        featureKey: product.featureKey,
+        requestId,
+        reportId: cleanText(body.reportId),
+        sessionId: cleanText(body.sessionId || body.reportSessionId),
+        paidAt: new Date().toISOString(),
+      },
+      balance: 0,
+      user: { id: String(auth.userId || "") },
+      unlockMap: { [product.featureKey]: true },
+      freeBySubscription: false,
+    },
+  });
+}
+
+/**
+ * 결제 의도 기록. launchBillingFlow 직전에 호출한다.
+ *
+ * 티어 SKU라 productId만으로는 featureKey를 알 수 없어, 결제 도중 앱이 죽은 고아 구매를
+ * 복구할 때 이 기록이 유일한 단서가 된다.
+ */
+async function handleGoogleIntent(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const isPassPurchase = Boolean(cleanText(body.passTier));
+  const product = isPassPurchase
+    ? resolveAppPassPurchaseProduct(body)
+    : resolveProduct(resolvePricing(body), env, body);
+
+  if (product.freeInApp) {
+    return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
+  }
+
+  await connectDb(env);
+  const now = Date.now();
+  const intent = await AppPurchaseIntent.create({
+    userId: new mongoose.Types.ObjectId(String(auth.userId)),
+    featureKey: product.featureKey,
+    productId: product.productId,
+    productType: product.productType,
+    passTier: cleanText(product.passTier),
+    requestId: cleanText(body.requestId || body.idempotencyKey).slice(0, 120),
+    profileId: cleanText(body.profileId || body.selectedProfileId).slice(0, 120),
+    reportId: cleanText(body.reportId).slice(0, 120),
+    sessionId: cleanText(body.sessionId || body.reportSessionId).slice(0, 120),
+    status: "OPEN",
+    expiresAt: new Date(now + APP_PURCHASE_INTENT_TTL_MS),
+  });
+
+  return json({
+    ok: true,
+    data: {
+      provider: "GOOGLE_PLAY",
+      intentId: String(intent._id || ""),
+      product,
+      // 앱은 이 값을 launchBillingFlow의 obfuscatedAccountId로 주입해야 한다.
+      obfuscatedAccountId: await obfuscatedAccountIdForUser(auth.userId),
     },
   });
 }
@@ -345,6 +631,7 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
   const impUid = `google:${tokenHash}`;
   const merchantUid = cleanText(body.orderId) || `google:${product.productId}:${tokenHash.slice(0, 24)}`;
   const requestId = cleanText(body.requestId || body.idempotencyKey || merchantUid).slice(0, 120);
+  const appAmountKRW = Number(product.amountKRW || 0);
   const existing = await Payment.findOne({ impUid }).lean();
   if (existing) {
     const existingUserId = String(existing.userId || "");
@@ -356,11 +643,7 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       error.status = 409;
       throw error;
     }
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $addToSet: { unlockedFeatures: product.featureKey, paidFeatures: product.featureKey } },
-      { returnDocument: "after", projection: { points: 1, unlockedFeatures: 1, profileSubscription: 1 } },
-    ).lean();
+    const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now });
     return { payment: existing, user, requestId, idempotent: true };
   }
 
@@ -369,7 +652,9 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
     impUid,
     merchantUid,
     idempotencyKey: cleanText(body.idempotencyKey || requestId),
-    paymentAmount: Number(pricing.amountKRW || pricing.cashPrice || 0),
+    // 실제 청구액은 웹가가 아니라 Play에 등록된 앱 티어 가격이다. 웹가를 기록하면
+    // 정산 대조가 통째로 어긋난다(웹 ₩10,000 기능이 앱에선 ₩12,900).
+    paymentAmount: appAmountKRW,
     expectedChargedPoints: Number(pricing.coinPrice || pricing.cost || 0),
     chargedPoints: 0,
     featureKey: product.featureKey,
@@ -387,6 +672,12 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       productType: product.productType,
       packageName: cleanText(body.packageName),
       requestId,
+      // 웹가는 대조용으로 남기고, 앱 확정가를 정본으로 덮어쓴다.
+      webAmountKRW: Number(pricing.amountKRW || pricing.cashPrice || 0),
+      amountKRW: appAmountKRW,
+      cashPrice: appAmountKRW,
+      appBillingType: product.billingType || "",
+      appProductKind: product.kind || "content",
     },
     metadata: {
       provider: "GOOGLE_PLAY",
@@ -397,8 +688,8 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
     paymentMethod: "GOOGLE_PLAY",
     status: "success",
     orderState: "PAID_VERIFIED",
-    paymentType: product.productType === "subs" ? "membership_pass" : "digital_content",
-    subscriptionTier: product.subscriptionTier || "",
+    paymentType: product.kind === "pass" ? "membership_pass" : "digital_content",
+    subscriptionTier: cleanText(product.passTier || product.subscriptionTier),
     rawPortOne: {
       provider: "GOOGLE_PLAY",
       purchaseTokenHash: tokenHash,
@@ -406,22 +697,43 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
     },
   });
 
+  const user = await applyEntitlementUpdate({ userId, product, googlePurchase, now });
+
+  return { payment: payment.toObject ? payment.toObject() : payment, user, requestId, idempotent: false };
+}
+
+const USER_ENTITLEMENT_PROJECTION = { points: 1, unlockedFeatures: 1, profileSubscription: 1 };
+
+/**
+ * 구매 → 권한 반영.
+ *
+ * 회당 결제(PER_USE)는 unlockedFeatures에 넣지 않는다. 넣으면 그 기능이 영구 해금으로
+ * 굳어 두 번째 구매가 아예 불가능해진다(웹 coin-gate도 PER_USE는 권한을 남기지 않고
+ * accessGrant만 발급한다). 앱에서의 재구매는 클라이언트 consume()이 열어준다.
+ */
+function buildEntitlementUpdate({ product, googlePurchase, now }) {
+  if (isPerUseProduct(product)) return null;
+
   const update = {
     $addToSet: {
       unlockedFeatures: product.featureKey,
       paidFeatures: product.featureKey,
     },
   };
-  if (product.productType === "subs" && product.subscriptionTier) {
+
+  // 이용권은 30일·자동갱신 없음이라 Play `inapp`으로 판다. `subs`가 아니므로
+  // productType이 아니라 passTier로 판정해야 한다.
+  const passTier = cleanText(product.passTier || product.subscriptionTier);
+  if (product.kind === "pass" && passTier) {
     const expiresAt = googlePurchase?.expiryTimeMillis
       ? new Date(Number(googlePurchase.expiryTimeMillis))
-      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      : new Date(now.getTime() + APP_PASS_DURATION_DAYS * 24 * 60 * 60 * 1000);
     update.$set = {
-      "profileSubscription.tier": product.subscriptionTier,
+      "profileSubscription.tier": passTier,
       "profileSubscription.source": "card",
       "profileSubscription.planId": product.productId,
       "profileSubscription.productType": "membership_pass",
-      "profileSubscription.passTier": product.subscriptionTier,
+      "profileSubscription.passTier": passTier,
       "profileSubscription.status": "active",
       "profileSubscription.subscriptionStatus": "active",
       "profileSubscription.membershipStatus": "active",
@@ -432,23 +744,36 @@ async function persistGooglePurchase({ auth, env, pricing, product, body, google
       "profileSubscription.lastBillingStatus": "success",
     };
   }
-  const user = await User.findByIdAndUpdate(userId, update, {
-    returnDocument: "after",
-    projection: { points: 1, unlockedFeatures: 1, profileSubscription: 1 },
-  }).lean();
+  return update;
+}
 
-  return { payment: payment.toObject ? payment.toObject() : payment, user, requestId, idempotent: false };
+async function applyEntitlementUpdate({ userId, product, googlePurchase, now }) {
+  const update = buildEntitlementUpdate({ product, googlePurchase, now });
+  if (!update) {
+    return User.findById(userId, USER_ENTITLEMENT_PROJECTION).lean();
+  }
+  return User.findByIdAndUpdate(userId, update, {
+    returnDocument: "after",
+    projection: USER_ENTITLEMENT_PROJECTION,
+  }).lean();
 }
 
 async function handleGoogleVerify(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
-  const pricing = resolvePricing(body);
-  const product = resolveProduct(pricing, env, body);
+  const isPassPurchase = Boolean(cleanText(body.passTier));
+  const pricing = isPassPurchase
+    ? buildPassPricingShape(resolveAppPassProduct(cleanText(body.passTier)) || {})
+    : resolvePricing(body);
+  const product = isPassPurchase ? resolveAppPassPurchaseProduct(body) : resolveProduct(pricing, env, body);
   const requestedProductId = cleanText(body.productId);
   const purchaseToken = cleanText(body.purchaseToken);
   const packageName = cleanText(body.packageName || getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
 
+  // 앱에서 무료로 통과시키는 저가 콘텐츠는 Play 상품 자체가 없다.
+  if (product.freeInApp) {
+    return json({ ok: false, code: "APP_STORE_PRODUCT_FREE_IN_APP", message: "This content is free in the app." }, { status: 400 });
+  }
   if (!purchaseToken) return json({ ok: false, code: "PURCHASE_TOKEN_REQUIRED", message: "purchaseToken is required." }, { status: 400 });
   if (requestedProductId !== product.productId) {
     return json({ ok: false, code: "APP_STORE_PRODUCT_MISMATCH", message: "Google Play product does not match server pricing." }, { status: 400 });
@@ -460,6 +785,7 @@ async function handleGoogleVerify(request, env) {
     productType: product.productType,
     purchaseToken,
   });
+  await assertPurchaseBelongsToUser(auth, googlePurchase);
   const persisted = await persistGooglePurchase({
     auth,
     env,
@@ -468,6 +794,7 @@ async function handleGoogleVerify(request, env) {
     body: { ...body, packageName },
     googlePurchase,
   });
+  await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
   const acknowledged = await acknowledgeGooglePurchase(env, {
     packageName,
     productId: product.productId,
@@ -498,7 +825,7 @@ async function handleGoogleVerify(request, env) {
         accessType: "single_purchase",
         accessMethod: "DIRECT_KRW",
         paymentMethod: "GOOGLE_PLAY",
-        amountKRW: Number(pricing.amountKRW || pricing.cashPrice || 0),
+        amountKRW: Number(product.amountKRW || 0),
         requestId: persisted.requestId,
       },
       accessGrant,
@@ -517,6 +844,15 @@ async function handleGoogleVerify(request, env) {
         productId: product.productId,
         productType: product.productType,
         acknowledged: acknowledged || isAcknowledgedPurchase(googlePurchase),
+      },
+      // 클라이언트는 이 값으로 consume 여부를 판단한다. PER_USE를 소비하지 않으면
+      // 다음 구매가 ITEM_ALREADY_OWNED로 막힌다.
+      appPurchase: {
+        billingType: product.billingType || "",
+        shouldConsume: isPerUseProduct(product),
+        purchaseToken,
+        productId: product.productId,
+        amountKRW: Number(product.amountKRW || 0),
       },
       freeBySubscription: false,
     },
@@ -546,18 +882,19 @@ async function handleGoogleRestore(request, env) {
           throw error;
         }
 
-        const { pricing, product } = resolveProductByProductId(env, {
+        const { pricing, product } = await resolveProductByProductId(env, {
           ...body,
           ...nativePurchase,
           productId,
           productType,
-        });
+        }, auth);
         const googlePurchase = await verifyGooglePurchase(env, {
           packageName,
           productId: product.productId,
           productType: product.productType,
           purchaseToken,
         });
+        await assertPurchaseBelongsToUser(auth, googlePurchase);
         const persisted = await persistGooglePurchase({
           auth,
           env,
@@ -581,12 +918,16 @@ async function handleGoogleRestore(request, env) {
           purchaseToken,
           googlePurchase,
         });
+        await settlePurchaseIntent(env, auth.userId, product.productId, await purchaseTokenHash(purchaseToken));
         restoredPurchases.push({
           id: String(persisted.payment?._id || ""),
           featureKey: product.featureKey,
           productId: product.productId,
           productType: product.productType,
           acknowledged: acknowledged || isAcknowledgedPurchase(googlePurchase),
+          // 고아 PER_USE 구매는 지급 후 반드시 소비시켜야 다음 구매가 열린다.
+          shouldConsume: isPerUseProduct(product),
+          purchaseToken,
         });
       } catch (error) {
         failedPurchases.push({
@@ -604,7 +945,10 @@ async function handleGoogleRestore(request, env) {
     paymentMethod: "GOOGLE_PLAY",
     status: "success",
   }).sort({ createdAt: -1 }).limit(200).lean();
-  const featureKeys = Array.from(new Set(rows.map((row) => cleanText(row.featureKey)).filter(Boolean)));
+  // 복원은 '영구 해금'만 되돌린다. 회당 결제(PER_USE)는 1회 소비로 끝난 거래라
+  // 여기서 다시 unlockedFeatures에 넣으면 결제 없이 영구 무료가 되어버린다.
+  const restorableRows = rows.filter((row) => !isPerUsePaidFeatureKey(cleanText(row.featureKey)));
+  const featureKeys = Array.from(new Set(restorableRows.map((row) => cleanText(row.featureKey)).filter(Boolean)));
   if (featureKeys.length) {
     await User.findByIdAndUpdate(
       auth.userId,
@@ -613,7 +957,7 @@ async function handleGoogleRestore(request, env) {
   }
   for (const purchase of restoredPurchases) {
     const featureKey = cleanText(purchase.featureKey);
-    if (featureKey && !featureKeys.includes(featureKey)) featureKeys.push(featureKey);
+    if (featureKey && !purchase.shouldConsume && !featureKeys.includes(featureKey)) featureKeys.push(featureKey);
   }
   return json({
     ok: true,
@@ -622,11 +966,12 @@ async function handleGoogleRestore(request, env) {
       restoredFeatures: featureKeys,
       purchases: [
         ...restoredPurchases,
-        ...rows.map((row) => ({
+        ...restorableRows.map((row) => ({
           id: String(row._id || ""),
           featureKey: row.featureKey,
           productId: row.productId,
-          productType: row.paymentType === "membership_pass" ? "subs" : "inapp",
+          // 이용권도 자동갱신이 없어 Play `inapp`으로 판다 — subs는 쓰지 않는다.
+          productType: "inapp",
           createdAt: row.createdAt,
         })),
       ],
@@ -667,13 +1012,21 @@ function extractGoogleRtdnNotification(body) {
   const decoded = decodeBase64Json(body?.message?.data);
   const subscription = decoded?.subscriptionNotification || null;
   const oneTime = decoded?.oneTimeProductNotification || null;
+  // 환불/취소/차지백은 voidedPurchaseNotification으로 온다. 이걸 읽지 않으면 환불이
+  // 조용히 무시되어 콘텐츠가 회수되지 않는다.
+  const voided = decoded?.voidedPurchaseNotification || null;
+  const test = decoded?.testNotification || null;
   return {
     raw: decoded,
     packageName: cleanText(decoded?.packageName),
-    purchaseToken: cleanText(subscription?.purchaseToken || oneTime?.purchaseToken),
+    purchaseToken: cleanText(subscription?.purchaseToken || oneTime?.purchaseToken || voided?.purchaseToken),
     productId: cleanText(subscription?.subscriptionId || oneTime?.sku),
-    productType: subscription ? "subs" : "inapp",
+    orderId: cleanText(voided?.orderId),
+    productType: subscription || Number(voided?.productType) === 2 ? "subs" : "inapp",
     notificationType: subscription?.notificationType || oneTime?.notificationType || "",
+    // voided는 조회 없이 곧바로 회수한다 — Google이 이미 환불을 확정한 상태다.
+    voided: Boolean(voided),
+    isTest: Boolean(test),
   };
 }
 
@@ -726,7 +1079,9 @@ async function revokeGoogleEntitlement({ payment, googlePurchase, notification }
   const update = featureKey
     ? { $pull: { unlockedFeatures: featureKey, paidFeatures: featureKey } }
     : {};
-  if (notification.productType === "subs") {
+  // 이용권은 Play `inapp`으로 팔므로 notification.productType이 아니라 결제 기록의
+  // paymentType으로 판정해야 한다(subs로 보면 이용권 환불 시 구독이 안 끊긴다).
+  if (payment.paymentType === "membership_pass" || notification.productType === "subs") {
     update.$set = {
       "profileSubscription.status": "cancelled",
       "profileSubscription.subscriptionStatus": "cancelled",
@@ -742,6 +1097,10 @@ async function handleGoogleRtdn(request, env) {
   requireGoogleRtdnToken(request, env);
   const body = await readJson(request);
   const notification = extractGoogleRtdnNotification(body);
+  // Play Console "테스트 알림 보내기"는 구매 토큰이 없다 — 200으로 ack해야 연결이 확인된다.
+  if (notification.isTest) {
+    return json({ ok: true, data: { provider: "GOOGLE_PLAY", test: true } });
+  }
   if (!notification.purchaseToken) {
     return json({ ok: true, data: { provider: "GOOGLE_PLAY", ignored: true, reason: "purchaseToken_missing" } });
   }
@@ -756,6 +1115,25 @@ async function handleGoogleRtdn(request, env) {
   const packageName = notification.packageName
     || cleanText(getEnv(env, "GOOGLE_PLAY_PACKAGE_NAME") || getEnv(env, "CODE_DESTINY_ANDROID_PACKAGE_ID") || "com.codedestiny.app");
   const productId = notification.productId || cleanText(payment.productId || payment.pricingSnapshot?.productId);
+
+  // 환불/취소/차지백은 Google이 이미 확정한 사실이라 재조회 없이 곧바로 회수한다.
+  // (소비된 구매는 products.get이 실패할 수 있어 조회에 기대면 회수를 놓친다)
+  if (notification.voided) {
+    await revokeGoogleEntitlement({ payment, googlePurchase: null, notification });
+    return json({
+      ok: true,
+      data: {
+        provider: "GOOGLE_PLAY",
+        active: false,
+        voided: true,
+        featureKey: cleanText(payment.featureKey),
+        productId,
+        productType: notification.productType,
+        notificationType: notification.notificationType,
+      },
+    });
+  }
+
   if (!productId) {
     return json({ ok: true, data: { provider: "GOOGLE_PLAY", ignored: true, reason: "productId_missing" } });
   }
@@ -799,6 +1177,8 @@ export async function handleAppStoreRoutes(request, env) {
     const method = request.method.toUpperCase();
     path = getRoutePath(request, "/api/app-store");
     if (method === "GET" && path === "/products") return await handleProducts(request, env);
+    if (method === "POST" && path === "/free-grant") return await handleFreeGrant(request, env);
+    if (method === "POST" && path === "/google/intent") return await handleGoogleIntent(request, env);
     if (method === "POST" && path === "/google/verify") return await handleGoogleVerify(request, env);
     if (method === "POST" && path === "/google/restore") return await handleGoogleRestore(request, env);
     if (method === "POST" && path === "/google/rtdn") return await handleGoogleRtdn(request, env);

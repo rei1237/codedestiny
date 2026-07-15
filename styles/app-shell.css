@@ -1,0 +1,251 @@
+/*
+ * 앱(Android) 셸 전용 토큰·스크롤·모션.
+ * /app 이하 라우트에서만 쓴다. 연이/네오 분기는 도입하지 않는다(신규 기능은 일반 다크모드만).
+ */
+
+.cd-app-shell {
+  /* 순수 검정/흰색은 쓰지 않는다 — 미묘한 색조를 얹은 뉴트럴이라야 화면이 싸구려로 안 보인다. */
+  --cd-app-bg: #0a0d1c;
+  --cd-app-bg-raised: #111527;
+  --cd-app-bg-sunken: #070915;
+  --cd-app-ink: #f4f1ea;
+  --cd-app-ink-muted: #a8a596;
+  --cd-app-ink-subtle: #6f6d63;
+  --cd-app-line: rgba(244, 241, 234, 0.09);
+  --cd-app-line-strong: rgba(244, 241, 234, 0.16);
+  --cd-app-gold: #e8d5a3;
+  --cd-app-gold-deep: #b99b56;
+  --cd-app-accent: #9db4d8;
+  /* 골드 표면 위 글자색. 골드는 라이트/다크 모두 밝은 톤이라 이 값은 양 모드 공통이다. */
+  --cd-app-on-gold: #241f2e;
+
+  /* 8px 그리드 */
+  --cd-app-space-1: 4px;
+  --cd-app-space-2: 8px;
+  --cd-app-space-3: 16px;
+  --cd-app-space-4: 24px;
+  --cd-app-space-5: 32px;
+  --cd-app-space-6: 48px;
+
+  --cd-app-radius-sm: 10px;
+  --cd-app-radius-md: 16px;
+  --cd-app-radius-lg: 24px;
+  --cd-app-radius-pill: 999px;
+
+  /* 단일 하드 섀도 대신 2~3겹 — 가까운 것은 진하고 좁게, 먼 것은 옅고 넓게. */
+  --cd-app-shadow-1: 0 1px 2px rgba(3, 5, 12, 0.42), 0 4px 10px rgba(3, 5, 12, 0.28);
+  --cd-app-shadow-2: 0 1px 2px rgba(3, 5, 12, 0.46), 0 6px 16px rgba(3, 5, 12, 0.32), 0 18px 40px rgba(3, 5, 12, 0.22);
+  --cd-app-shadow-3: 0 2px 4px rgba(3, 5, 12, 0.5), 0 12px 28px rgba(3, 5, 12, 0.36), 0 32px 68px rgba(3, 5, 12, 0.28);
+
+  --cd-app-ease: cubic-bezier(0.2, 0, 0, 1);
+  --cd-app-dur: 240ms;
+
+  --cd-app-tab-h: 60px;
+
+  color: var(--cd-app-ink);
+  background-color: var(--cd-app-bg);
+  /* 단색 배경 대신 아주 낮은 대비의 그라데이션으로 깊이를 준다. */
+  background-image:
+    radial-gradient(120% 80% at 50% -10%, rgba(232, 213, 163, 0.07), transparent 60%),
+    radial-gradient(90% 60% at 12% 8%, rgba(157, 180, 216, 0.05), transparent 55%),
+    linear-gradient(180deg, #0c0f20 0%, var(--cd-app-bg) 42%, var(--cd-app-bg-sunken) 100%);
+  background-attachment: fixed;
+
+  min-height: 100dvh;
+  /* 한글 가독성 */
+  line-height: 1.7;
+  letter-spacing: -0.015em;
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-color-scheme: light) {
+  .cd-app-shell {
+    --cd-app-bg: #f7f5f0;
+    --cd-app-bg-raised: #fffdf8;
+    --cd-app-bg-sunken: #efece4;
+    --cd-app-ink: #241f2e;
+    --cd-app-ink-muted: #5f5866;
+    --cd-app-ink-subtle: #8b8492;
+    --cd-app-line: rgba(36, 31, 46, 0.1);
+    --cd-app-line-strong: rgba(36, 31, 46, 0.18);
+    --cd-app-gold: #9a7b31;
+    --cd-app-gold-deep: #7d6224;
+    --cd-app-accent: #4a6491;
+    --cd-app-shadow-1: 0 1px 2px rgba(60, 24, 48, 0.08), 0 4px 10px rgba(60, 24, 48, 0.06);
+    --cd-app-shadow-2: 0 1px 2px rgba(60, 24, 48, 0.09), 0 6px 16px rgba(60, 24, 48, 0.08), 0 18px 40px rgba(60, 24, 48, 0.06);
+    --cd-app-shadow-3: 0 2px 4px rgba(60, 24, 48, 0.1), 0 12px 28px rgba(60, 24, 48, 0.1), 0 32px 68px rgba(60, 24, 48, 0.08);
+    background-image:
+      radial-gradient(120% 80% at 50% -10%, rgba(154, 123, 49, 0.06), transparent 60%),
+      radial-gradient(90% 60% at 12% 8%, rgba(74, 100, 145, 0.04), transparent 55%),
+      linear-gradient(180deg, #fffdf8 0%, var(--cd-app-bg) 46%, var(--cd-app-bg-sunken) 100%);
+  }
+}
+
+/* 스크롤 — 앱에서 가장 티나는 부분이라 규칙을 못박는다.
+   스크롤 컨테이너는 문서 하나뿐이다. 중첩 스크롤을 만들면 제스처가 서로 먹는다. */
+html.cd-app-html,
+html.cd-app-html body {
+  /* 당겨서 새로고침·바운스가 WebView에서 오작동한다. */
+  overscroll-behavior-y: contain;
+  /* 가로 스크롤은 어떤 경우에도 생기면 안 된다. */
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* 길게 눌러 텍스트 선택/컨텍스트 메뉴가 뜨면 앱 같지 않다. */
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html.cd-app-html body {
+  margin: 0;
+  /* 세로 스크롤만 브라우저에 맡기고 나머지 제스처는 앱이 가져간다. */
+  touch-action: pan-y;
+}
+
+/* 입력 요소는 선택 가능해야 한다. */
+.cd-app-shell input,
+.cd-app-shell textarea,
+.cd-app-shell [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  /* iOS/일부 WebView는 16px 미만이면 포커스 시 확대한다. */
+  font-size: max(16px, 1rem);
+}
+
+/* 타이포 위계 3단 */
+.cd-app-title {
+  font-size: 1.5rem;
+  line-height: 1.3;
+  letter-spacing: -0.025em;
+  font-weight: 800;
+  margin: 0;
+}
+
+.cd-app-heading {
+  font-size: 1rem;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  margin: 0;
+}
+
+.cd-app-body {
+  font-size: 0.875rem;
+  line-height: 1.75;
+  letter-spacing: -0.01em;
+  color: var(--cd-app-ink-muted);
+  margin: 0;
+}
+
+/* 금액·잔량은 자릿수가 흔들리면 지저분하다. */
+.cd-app-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* 표면 */
+.cd-app-surface {
+  background-color: var(--cd-app-bg-raised);
+  background-image: linear-gradient(160deg, rgba(255, 255, 255, 0.04), transparent 60%);
+  border: 1px solid var(--cd-app-line);
+  border-radius: var(--cd-app-radius-lg);
+  box-shadow: var(--cd-app-shadow-2);
+}
+
+/* 상단 앱바 — 스크롤 시 블러로 가라앉는다. */
+.cd-app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  padding-top: env(safe-area-inset-top);
+  background-color: color-mix(in srgb, var(--cd-app-bg) 82%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom: 1px solid var(--cd-app-line);
+  transition: border-color var(--cd-app-dur) var(--cd-app-ease);
+}
+
+/* 하단 탭바 */
+.cd-app-tabbar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 40;
+  padding-bottom: env(safe-area-inset-bottom);
+  background-color: color-mix(in srgb, var(--cd-app-bg) 88%, transparent);
+  backdrop-filter: blur(18px) saturate(1.4);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  border-top: 1px solid var(--cd-app-line);
+}
+
+/* 탭바가 콘텐츠 마지막 줄을 가리지 않도록. */
+.cd-app-scroll {
+  padding-bottom: calc(var(--cd-app-tab-h) + var(--cd-app-space-4) + env(safe-area-inset-bottom));
+}
+
+/* 터치 타겟 48dp */
+.cd-app-tap {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* 모션 — transform/opacity만. 레이아웃 속성을 애니메이트하면 스크롤 중 프레임이 떨어진다. */
+@keyframes cdAppEnter {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+.cd-app-enter {
+  animation: cdAppEnter var(--cd-app-dur) var(--cd-app-ease) both;
+}
+
+.cd-app-press {
+  transition: transform 140ms var(--cd-app-ease), opacity 140ms var(--cd-app-ease);
+}
+
+.cd-app-press:active {
+  transform: scale(0.975);
+  opacity: 0.9;
+}
+
+/* 스켈레톤 */
+@keyframes cdAppShimmer {
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(100%, 0, 0); }
+}
+
+.cd-app-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--cd-app-bg-raised);
+  border-radius: var(--cd-app-radius-md);
+}
+
+.cd-app-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent, rgba(244, 241, 234, 0.06), transparent);
+  animation: cdAppShimmer 1.4s var(--cd-app-ease) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-app-enter,
+  .cd-app-skeleton::after {
+    animation: none;
+  }
+  .cd-app-press {
+    transition: none;
+  }
+}
+
+/* 시스템 폰트 200% 확대에서도 탭바 라벨이 무너지지 않도록. */
+@media (min-resolution: 0.001dpcm) {
+  .cd-app-tabbar__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+  }
+}

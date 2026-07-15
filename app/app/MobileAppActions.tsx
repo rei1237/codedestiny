@@ -2,26 +2,12 @@
 
 import { useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { consumeNativePurchase, restoreNativePurchases } from "@/app/app/_lib/native-billing";
 
 type NativeProvider = "google" | "naver" | "kakao";
 
-type NativePurchaseResult = {
-  productId?: string;
-  productType?: string;
-  purchaseToken?: string;
-  packageName?: string;
-  orderId?: string;
-  purchaseState?: number | string;
-  acknowledged?: boolean;
-};
-
 type NativeBridge = {
   openAuth?: (input: { provider: NativeProvider; nextPath?: string }) => Promise<{ ok?: boolean; message?: string }>;
-  restore?: (input?: { productType?: "inapp" | "subs" | "all" }) => Promise<{
-    ok?: boolean;
-    message?: string;
-    purchases?: NativePurchaseResult[];
-  }>;
 };
 
 function getNativeBridge() {
@@ -38,26 +24,31 @@ export default function MobileAppActions() {
     if (result && result.ok === false) setStatus(result.message || "로그인을 시작할 수 없습니다.");
   }
 
+  // 미완료 구매는 PurchaseRecoveryBoot가 앱 시작·포그라운드 복귀마다 자동 복구한다.
+  // 이 버튼은 사용자가 직접 확인하고 싶을 때를 위한 보조 수단이다.
   async function restorePurchases() {
     setBusy(true);
     setStatus("구매 내역을 확인하고 있습니다.");
     try {
-      const nativeResult = await getNativeBridge()?.restore?.({ productType: "all" });
-      if (!nativeResult?.ok) {
-        setStatus(nativeResult?.message || "구매 복원을 시작할 수 없습니다.");
-        return;
-      }
-
+      const purchases = await restoreNativePurchases();
       const response = await authFetch("/api/app-store/google/restore", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ purchases: nativeResult.purchases || [] }),
+        body: JSON.stringify({ purchases }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.ok) {
         setStatus(payload?.message || "구매 복원에 실패했습니다.");
         return;
       }
+
+      // 회당 결제는 지급 후 소비해야 재구매가 열린다.
+      for (const purchase of payload?.data?.purchases || []) {
+        if (purchase?.shouldConsume === true && purchase?.purchaseToken) {
+          await consumeNativePurchase(String(purchase.purchaseToken));
+        }
+      }
+
       const restored = Array.isArray(payload?.data?.restoredFeatures) ? payload.data.restoredFeatures.length : 0;
       setStatus(restored > 0 ? `복원 완료: ${restored}개 권한` : "복원할 구매 권한이 없습니다.");
     } catch (error) {
@@ -68,14 +59,19 @@ export default function MobileAppActions() {
   }
 
   return (
-    <section className="grid gap-3 rounded-[18px] border border-white/10 bg-white/[0.055] p-4">
+    <section className="cd-app-surface grid gap-3 p-4" aria-label="계정 및 구매">
       <div className="grid grid-cols-3 gap-2">
         {(["google", "naver", "kakao"] as const).map((provider) => (
           <button
             key={provider}
             type="button"
             onClick={() => void startAuth(provider)}
-            className="min-h-11 rounded-xl border border-white/10 bg-slate-950/65 px-2 text-xs font-black uppercase text-slate-100"
+            className="cd-app-tap cd-app-press rounded-[var(--cd-app-radius-md)] px-2 text-xs font-black uppercase"
+            style={{
+              border: "1px solid var(--cd-app-line-strong)",
+              background: "var(--cd-app-bg-sunken)",
+              color: "var(--cd-app-ink)",
+            }}
           >
             {provider}
           </button>
@@ -84,12 +80,14 @@ export default function MobileAppActions() {
       <button
         type="button"
         disabled={busy}
+        aria-busy={busy}
         onClick={() => void restorePurchases()}
-        className="min-h-11 rounded-xl bg-[#f3d680] px-3 text-sm font-black text-[#111827] disabled:opacity-60"
+        className="cd-app-tap cd-app-press rounded-[var(--cd-app-radius-md)] px-3 text-sm font-black disabled:opacity-50"
+        style={{ background: "var(--cd-app-gold)", color: "var(--cd-app-on-gold)" }}
       >
         구매 복원
       </button>
-      {status ? <p className="m-0 text-xs font-semibold leading-5 text-slate-200/80">{status}</p> : null}
+      {status ? <p className="cd-app-body" role="status" aria-live="polite">{status}</p> : null}
     </section>
   );
 }
