@@ -3548,7 +3548,7 @@ export default function PointsPage() {
     }
   };
 
-  /* ── 갤럭시아 결제 성공 핸들러 ─────────────────────────────────── */
+  /* ── 이용권(30일) 결제 핸들러 — PortOne V2 · KG이니시스 ─────────── */
   const handleSubscribe = async (plan: SubscriptionPlan) => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;

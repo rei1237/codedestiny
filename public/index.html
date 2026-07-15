@@ -17413,7 +17413,10 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     });
     if (!checkoutRes.ok) {
       var checkoutMessage = (checkoutRes.payload && (checkoutRes.payload.message || (checkoutRes.payload.error && checkoutRes.payload.error.message))) || '결제 준비에 실패했습니다.';
-      throw new Error(checkoutMessage);
+      var checkoutError = new Error(checkoutMessage);
+      checkoutError.status = Number(checkoutRes.status || (checkoutRes.payload && checkoutRes.payload.status) || 0);
+      checkoutError.code = String((checkoutRes.payload && (checkoutRes.payload.code || (checkoutRes.payload.error && checkoutRes.payload.error.code))) || '').trim();
+      throw checkoutError;
     }
     var checkoutData = _cdExtractBillingData(checkoutRes.payload);
     var order = _cdFindCheckoutOrder(checkoutRes.payload);
@@ -17567,7 +17570,9 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var rsp = await window.PortOne.requestPayment(requestData);
     var paymentId = String((rsp && rsp.paymentId) || order.merchantUid || '').trim();
     if (!rsp || rsp.code || !paymentId) {
-      throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
+      var abortError = new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
+      abortError.__cdPaymentAborted = true;
+      throw abortError;
     }
 
     if (typeof _cdUpdatePaidFeatureGate === 'function') {
@@ -17723,6 +17728,22 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     if (accessSource === 'coin_payment') return '코인 결제가 완료되어 열람되었습니다.';
     if (accessSource === 'free') return '열람이 완료되었습니다.';
     return '열람이 완료되었습니다.';
+  }
+
+  function _cdShouldReofferPaymentChoice(error) {
+    if (!error) return false;
+    var status = Number(error.status || 0);
+    var code = String(error.code || '').toUpperCase();
+    var msg = String(error.message || '').toLowerCase();
+    if (status === 401 || status === 403) return false;
+    if (['AUTH_REQUIRED', 'LOGIN_REQUIRED', 'UNAUTHORIZED'].indexOf(code) >= 0) return false;
+    if (status === 402 || status >= 500) return true;
+    if (['PAYMENT_REQUIRED', 'MEMBERSHIP_PASS_NOT_COVERED', 'PRICE_EXCEEDS_PASS_LIMIT', 'INSUFFICIENT_COINS', 'INSUFFICIENT_MONTHLY_CREDITS', 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE', 'PASS_STATUS_TEMPORARILY_UNAVAILABLE', 'BALANCE_SNAPSHOT_UNAVAILABLE', 'AUTH_DB_UNAVAILABLE', 'AUTH_REFRESH_TEMPORARY_FAILURE', 'DB_DEGRADED', 'BILLING_REQUEST_TIMEOUT'].indexOf(code) >= 0) return true;
+    if (msg.indexOf('database is temporarily unavailable') >= 0) return true;
+    return false;
+  }
+  function _cdIsAbortedPaymentError(error) {
+    return !!(error && (error.__cdPaymentAborted === true || String(error.code || '').toUpperCase() === 'PAYMENT_CANCELLED'));
   }
 
   async function _cdOpenPaidServiceGate(options) {
@@ -17882,8 +17903,11 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
         shouldShowPayment: !_cdIsPassBypassAccess(passFirstAccess)
       });
 
+      var _cdReofferDirectOnly = false;
+      var _cdLastRecoverableError = null;
+      for (var _cdGateAttempt = 0; _cdGateAttempt < 4; _cdGateAttempt += 1) {
       closeSharedPaidGate();
-      var choice = await _cdChooseServicePaymentMode(Object.assign({}, opts, {
+      var choice = await _cdChooseServicePaymentMode(Object.assign({}, opts, _cdReofferDirectOnly ? { allowedPaymentModes: 'direct,pass', equalPriorityMethods: ['DIRECT_KRW'] } : {}, {
         title: title,
         coinPrice: coinPrice,
         cost: coinPrice,
@@ -17968,9 +17992,29 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       } else {
         updateSharedPaidGate('paymentPreparing', '단건 결제를 준비하는 중입니다.', { paymentMode: 'DIRECT_KRW' });
       }
-      var paidPayload = choice === 'monthly'
-        ? await _cdRunMonthlyCreditGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, featureKey: featureKey || undefined, contentKey: opts.contentKey || undefined, requestId: requestId, internalMainGate: true, __cdPaymentGateAuthorized: true }))
-        : await _cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, amountKrw: amountKrw, featureKey: featureKey || undefined, contentKey: opts.contentKey || undefined, requestId: requestId, skipPassProbe: true, forceDirectPayment: true, internalMainGate: true, __cdPaymentGateAuthorized: true, __cdDirectPaymentChoiceConfirmed: true }));
+      var paidPayload;
+      try {
+        paidPayload = choice === 'monthly'
+          ? await _cdRunMonthlyCreditGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, featureKey: featureKey || undefined, contentKey: opts.contentKey || undefined, requestId: requestId, internalMainGate: true, __cdPaymentGateAuthorized: true }))
+          : await _cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, amountKrw: amountKrw, featureKey: featureKey || undefined, contentKey: opts.contentKey || undefined, requestId: requestId, skipPassProbe: true, forceDirectPayment: true, internalMainGate: true, __cdPaymentGateAuthorized: true, __cdDirectPaymentChoiceConfirmed: true }));
+      } catch (_cdLeafError) {
+        if (_cdIsAbortedPaymentError(_cdLeafError)) {
+          endSharedPaidGate('noEntitlement', '결제를 취소했습니다.');
+          if (typeof opts.onCancel === 'function') opts.onCancel();
+          return { status: 'cancelled', reason: 'payment_aborted' };
+        }
+        if (_cdShouldReofferPaymentChoice(_cdLeafError)) {
+          _cdLastRecoverableError = _cdLeafError;
+          if (choice === 'monthly') {
+            _cdReofferDirectOnly = true;
+            try { window.__cdMonthlyCreditGateInFlight = null; } catch (_) {}
+          } else {
+            try { window.__cdDirectKrwCheckoutInFlight = null; } catch (_) {}
+          }
+          continue;
+        }
+        throw _cdLeafError;
+      }
       var paidData = _cdExtractBillingData(paidPayload);
       var paidAccess = _cdIsMembershipFreePayload(paidPayload)
         ? { status: 'pass_applied', accessSource: 'license_pass', paymentIntentType: 'none' }
@@ -17982,6 +18026,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
             paymentIntentType: choice === 'monthly' ? 'monthly_subscription' : 'single_payment'
           });
       return finishGranted(paidPayload, paidAccess);
+      }
+      throw (_cdLastRecoverableError || new Error('결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.'));
     } catch (error) {
       _cdClearPaidPrecheckCache('paid-gate-error');
       if (paidGateToken) endSharedPaidGate('error', String((error && error.message) || '\uC774\uC6A9\uAD8C \uD655\uC778\uC5D0 \uC2E4\uD328\uD588\uC2B5\uB2C8\uB2E4.'));

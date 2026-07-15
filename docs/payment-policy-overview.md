@@ -8,7 +8,7 @@
 ## 1. 결제 수단 및 단위
 
 ### 단건 결제 (KRW)
-- 서비스 이용 시마다 PG사(PortOne V2 / Galaxia Moneytree)를 통해 원화로 결제
+- 서비스 이용 시마다 PG사(PortOne V2 · KG이니시스)를 통해 원화로 결제
 - 가격 단위: **원(KRW)**
 
 ### 월정석

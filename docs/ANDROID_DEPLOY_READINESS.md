@@ -9,7 +9,6 @@
 | `google-services.json` | Firebase/FCM 푸시 알림 | Firebase Console | `apps/mobile/android/app/build.gradle:123-128` (파일 없으면 google-services 플러그인 자동 비활성화) | 없음, 웹/워커 코드에 FCM 연동 전무 | 선택 — 푸시 알림 기능 도입 시에만 필요 |
 | `NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY` | 카카오 로그인/SDK | Kakao Developers | `app/components/KakaoSdk.tsx`, `worker/routes/auth.js` | 웹과 동일 값 사용 중 | **필수** — 앱 전용 키해시 추가 불필요(로그인은 `com.codedestiny.app://auth` 커스텀 스킴 딥링크로 처리, AndroidManifest에 이미 등록됨) |
 | `NEXT_PUBLIC_PORTONE_IMP_CODE` / `_STORE_ID` / `_CHANNEL_KEY` / `_TOSS_CHANNEL_KEY` / `_PG_CARD` / `_MOBILE_REDIRECT_PATH` | PortOne 결제 SDK | PortOne 콘솔 | `lib/payment/portone.ts`, GitHub Actions `cloudflare-pages-deploy.yml` | 웹 배포 시 이미 주입됨 | **필수** — 앱은 static export 산출물을 그대로 번들링하므로 앱 전용 값 불필요 |
-| Galaxia Moneytree 키 | 결제 PG | — | 해당 없음(문서 언급만) | 코드 미구현 | 해당 없음 |
 | App Links SHA-256 fingerprint / `.well-known/assetlinks.json` | Digital Asset Links (TWA/App Links) | Play Console 서명 정보 | 해당 없음 | 미사용 — Capacitor WebView 방식이라 Android App Links 불필요, 인증은 커스텀 스킴 딥링크만 사용 | 해당 없음 |
 | AdMob 앱 ID/광고 단위 ID | 네이티브 광고 | AdMob 콘솔 | 해당 없음 | 코드/env 참조 없음 | 해당 없음 |
 | `applicationId` | 앱 패키지 식별자 | — | `apps/mobile/android/app/build.gradle` | `com.codedestiny.app`로 확정 | 필수(이미 완료) |

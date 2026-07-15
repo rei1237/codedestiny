@@ -78,6 +78,7 @@
     "verify:auth-public-origin": "node scripts/verify-auth-public-origin.mjs",
     "verify:worker-security-guards": "node scripts/verify-worker-security-guards.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
+    "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",
