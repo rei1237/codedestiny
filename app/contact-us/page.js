@@ -76,7 +76,7 @@ export default function ContactUsPage() {
             </section>
 
             <section className="policy-embed-section">
-              <h2 className="policy-embed-heading">개인정보 요청 안내</h2>
+              <h2 className="policy-embed-heading">개인정보 요청 안내 / Privacy Request Guide</h2>
               <p>
                 개인정보 관련 요청 시 본인 확인을 위해 최소한의 추가 정보를 요청할 수 있습니다. 법령상 보존 의무가 있는 데이터는 즉시 삭제가 제한될 수 있으며, 처리 결과를 회신 메일로 안내합니다. We will process valid requests as promptly as reasonably possible.
               </p>
@@ -89,7 +89,7 @@ export default function ContactUsPage() {
           <section className="policy-panel policy-doc__form-panel">
             <h2 className="policy-panel__title">간단 문의 폼</h2>
             <p className="policy-doc__note policy-doc__note--lead">
-              민감정보, 비밀번호, 결제정보 등 불필요한 개인정보는 입력하지 마세요.
+              민감정보, 비밀번호, 결제정보 등 불필요한 개인정보는 입력하지 마세요. Please avoid sharing unnecessary sensitive data.
             </p>
             <ContactForm supportEmail={SUPPORT_EMAIL} />
           </section>
