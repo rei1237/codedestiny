@@ -18,6 +18,9 @@ import {
   type PaymentType,
 } from "@/constants/loadingMessages";
 import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
+// 앱 가격표 정본. import가 없는 순수 테이블이라 클라이언트 번들에 안전하게 들어간다
+// (미러를 두면 Play Console 등록가와 조용히 어긋나므로 정본을 직접 읽는다).
+import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -55,7 +58,18 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   },
 } as const;
 
+// 앱에서는 외부 결제(PortOne/이니시스)를 언급하면 안 되고, 실제로도 Play Billing으로 결제된다.
+// 결제수단을 알리는 문구만 앱용으로 갈아끼운다.
+const BILLING_CLIENT_TEXT_APP_OVERRIDES: Partial<Record<keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko, string>> = {
+  "billingClient.text.003": "Google Play 결제",
+  "billingClient.text.004": "Google Play로 결제합니다. 결제 성공 후 서버 검증을 거쳐 열립니다.",
+};
+
 function billingClientText(key: keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko) {
+  if (isMobileAppRuntime()) {
+    const appText = BILLING_CLIENT_TEXT_APP_OVERRIDES[key];
+    if (appText) return appText;
+  }
   return BILLING_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 
@@ -198,17 +212,9 @@ type RuntimeApiWindow = Window & {
   Capacitor?: {
     isNativePlatform?: () => boolean;
   };
-  CodeDestinyNative?: {
-    purchase?: (input: {
-      featureKey: string;
-      productId: string;
-      productType?: string;
-      idempotencyKey?: string;
-      obfuscatedAccountId?: string;
-      obfuscatedProfileId?: string;
-    }) => Promise<Record<string, unknown>>;
-    consume?: (input: { purchaseToken: string }) => Promise<Record<string, unknown>>;
-  };
+  // 앱 결제 가드(scripts/app-payment-guard.js). 앱 빌드에서만 주입되며, 정본 게이트의
+  // 단건 결제 leaf를 Play Billing으로 바꿔친다.
+  __cdAppPaymentGuard?: { installed?: boolean };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
@@ -876,10 +882,21 @@ function formatCoinValueWon(amount: number): string {
   return formatPaymentWon(Math.max(0, Math.floor(Number(amount || 0))) * 100);
 }
 
+/**
+ * 이용권 커버 한도 안내.
+ *
+ * 한도는 코인으로 관리되고(canUseByPass), 원화는 표시용이다. 앱에서는 같은 기능이 더
+ * 비싸므로 웹가(코인×100)를 그대로 보여주면 결제창 금액과 어긋난다 — 앱 확정가로 바꾼다.
+ * 이용권은 30일 기간만 있고 사용 횟수 제한이 없으므로 그 점을 문구로 못박는다.
+ */
 function formatMembershipPassLimitLabel(tier: unknown, limit: number): string {
   const normalizedTier = toText(tier).toLowerCase();
-  if (normalizedTier === "family" || limit >= 999999999) return "모든 유료 기능 이용 가능";
-  if (limit > 0) return `${formatCoinValueWon(limit)} 이하 기능은 이용권으로 바로 열립니다.`;
+  if (normalizedTier === "family" || limit >= 999999999) return "모든 유료 기능을 횟수 제한 없이 이용할 수 있습니다.";
+  if (limit > 0) {
+    const appCoverageKRW = isMobileAppRuntime() ? resolveAppPassCoverageKRW(limit) : null;
+    const coverageLabel = appCoverageKRW ? formatPaymentWon(appCoverageKRW) : formatCoinValueWon(limit);
+    return `${coverageLabel} 이하 기능은 이용권으로 횟수 제한 없이 바로 열립니다.`;
+  }
   return "현재 서비스는 이용권 적용 범위 밖이라 결제가 필요합니다.";
 }
 
@@ -1975,23 +1992,43 @@ async function runPaidServiceRuntimePayment(input: BillingCoinGateInput, context
   if (input.forceDeduct === false) return null;
 
   const requestedMode = normalizePaymentMode(input.paymentMode);
-  if (isMobileAppRuntime()) {
-    if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE") return null;
-    return runNativeAppStorePayment(input, {
-      featureId: context.featureId,
-      requestId: context.requestId,
-      eligibility: context.eligibility,
-    });
-  }
-
   if (requestedMode === "MEMBERSHIP_PASS" || requestedMode === "MOONLIGHT_STONE" || requestedMode === "DIRECT_KRW") return null;
 
   const runtimeGate = context.runtimeGate || await loadPaidServiceRuntimeGate();
   if (!runtimeGate) return null;
 
   const cost = resolveKnownCoinCost(input, context.eligibility);
-  const amountKRW = resolveKnownAmountKRW(input, context.eligibility, cost);
   const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
+
+  // 앱은 정본 게이트를 그대로 쓴다(이용권 선검사 → 결제창에 단건+월정석 동등 노출).
+  // 바뀌는 건 표시 금액뿐 — 같은 기능이 Play에서는 더 비싸므로 웹가를 그대로 보여주면
+  // 결제창 금액과 실제 청구액이 어긋난다. 단건을 고르면 앱 결제 가드가 Play Billing으로 보낸다.
+  let amountKRW = resolveKnownAmountKRW(input, context.eligibility, cost);
+  if (isMobileAppRuntime()) {
+    // 앱에서 단건 결제를 Play Billing으로 바꿔치는 것은 결제 가드다(scripts/app-payment-guard.js,
+    // 빌드 시 모든 HTML에 주입). 가드가 없으면 정본 게이트의 원래 구현(PortOne)이 열려
+    // Play 정책을 위반한다 — 결제를 여는 대신 막는다. (build:mobile:app이 주입을 보장하고
+    // verify-app-no-portone.mjs가 배포 전에 검사하므로 정상 빌드에서는 도달하지 않는다.)
+    if ((window as RuntimeApiWindow).__cdAppPaymentGuard?.installed !== true) {
+      return nativeAppStoreFailure(
+        "APP_PAYMENT_GUARD_MISSING",
+        "앱 결제를 준비하지 못했습니다. 앱을 다시 시작해 주세요.",
+      );
+    }
+
+    const appAmountKRW = await fetchAppStoreAmountKRW(input, featureKey);
+    // fail-closed: 앱가를 확인 못 했으면 웹가를 띄우지 않는다. 틀린 금액을 보여주느니
+    // 재시도를 안내하는 편이 낫다(사용자가 3,000원인 줄 알고 눌렀는데 3,900원이 청구된다).
+    if (appAmountKRW === null) {
+      return nativeAppStoreFailure(
+        "APP_STORE_PRICE_UNAVAILABLE",
+        "앱 결제 금액을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      );
+    }
+    // Play 최저가를 밑도는 저가 콘텐츠는 앱에서 무료다 — 결제창을 띄우지 않는다.
+    if (appAmountKRW === 0) return runAppStoreFreeGrant(input, featureKey, context.requestId);
+    amountKRW = appAmountKRW;
+  }
   const reason = toText(input.reason || featureKey);
   const membershipCoverage = buildRuntimeMembershipCoverage(context.eligibility);
   const passAlreadyChecked = Boolean(context.eligibility && !isSubscriptionSnapshotEligibility(context.eligibility));
@@ -2165,7 +2202,8 @@ function toQuery(input: Record<string, unknown>) {
   return params.toString();
 }
 
-function isMobileAppRuntime() {
+/** 앱(Capacitor) 런타임 판별 — 결제·표시 분기의 단일 진입점. 사본을 만들지 말 것. */
+export function isMobileAppRuntime() {
   if (process.env.NEXT_PUBLIC_RUNTIME_TARGET === "mobile-app") return true;
   if (typeof window === "undefined") return false;
   const runtimeWindow = window as RuntimeApiWindow;
@@ -2177,6 +2215,58 @@ function isMobileAppRuntime() {
   }
 }
 
+/**
+ * 앱 결제창에 표시할 금액(Play 확정가)을 서버에서 받아온다.
+ *
+ * 클라이언트가 값을 지어내면 결제창 금액과 Play 청구액이 어긋나므로 서버 가격표만 믿는다.
+ *
+ * 반환: 금액(원) | 0(앱에서 무료 전환된 저가 콘텐츠) | null(확인 실패 → 호출부가 fail-closed)
+ */
+async function fetchAppStoreAmountKRW(input: BillingCoinGateInput, featureKey: string): Promise<number | null> {
+  try {
+    const query = toQuery({
+      featureKey,
+      categoryKey: input.categoryKey,
+      subFeatureKey: input.subFeatureKey,
+      reason: input.reason,
+      productType: input.productType,
+    });
+    const response = await authFetchBilling(`/api/app-store/products?${query}`, { method: "GET" });
+    const parsed = await parseBillingResponse<{
+      product?: { amountKRW?: number; freeInApp?: boolean };
+    }>(response);
+    if (!parsed.ok || !parsed.data?.product) return null;
+    if (parsed.data.product.freeInApp === true) return 0;
+    const amountKRW = Math.floor(toNumber(parsed.data.product.amountKRW, 0));
+    return amountKRW > 0 ? amountKRW : null;
+  } catch (error) {
+    debugEntitlement("[billing] app store price lookup failed", error);
+    return null;
+  }
+}
+
+/**
+ * 앱에서 무료로 전환된 저가 콘텐츠의 접근 허가.
+ * 무료 판정은 서버 가격표가 한다 — 클라이언트 주장은 믿지 않는다.
+ */
+async function runAppStoreFreeGrant(
+  input: BillingCoinGateInput,
+  featureKey: string,
+  requestId: string,
+): Promise<BillingResult<BillingCoinGateData>> {
+  const response = await authFetchBilling("/api/app-store/free-grant", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...(input || {}),
+      featureKey,
+      requestId,
+      idempotencyKey: input.idempotencyKey || requestId,
+    }),
+  });
+  return parseBillingResponse<BillingCoinGateData>(response);
+}
+
 function nativeAppStoreFailure(code: string, message: string, status = 503): BillingResult<BillingCoinGateData> {
   return {
     ok: false,
@@ -2186,148 +2276,6 @@ function nativeAppStoreFailure(code: string, message: string, status = 503): Bil
     error: { code, message },
     raw: { code, message },
   };
-}
-
-async function runNativeAppStorePayment(input: BillingCoinGateInput, context: {
-  featureId: string;
-  requestId: string;
-  eligibility: PaymentEligibility | null;
-}): Promise<BillingResult<BillingCoinGateData>> {
-  if (typeof window === "undefined") {
-    return nativeAppStoreFailure("NATIVE_RUNTIME_UNAVAILABLE", "앱 결제 연결을 확인할 수 없습니다.");
-  }
-
-  const runtimeWindow = window as RuntimeApiWindow;
-  const purchase = runtimeWindow.CodeDestinyNative?.purchase;
-  if (typeof purchase !== "function") {
-    return nativeAppStoreFailure("NATIVE_BILLING_UNAVAILABLE", "앱 결제 연결이 아직 준비되지 않았습니다.");
-  }
-
-  const featureKey = toText(input.featureKey || input.subFeatureKey || context.featureId);
-
-  // 결제 의도를 먼저 서버에 남긴다. 앱은 가격대 티어 SKU를 쓰므로 productId 하나에 여러
-  // 기능이 매달린다 — 결제 도중 앱이 죽으면 이 기록 없이는 무엇을 사려던 건지 복구할 수 없다.
-  // 응답의 obfuscatedAccountId는 구매를 로그인 계정에 귀속시켜 토큰 선점을 막는다.
-  const intentResponse = await authFetchBilling("/api/app-store/google/intent", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      ...(input || {}),
-      featureKey,
-      requestId: context.requestId,
-      idempotencyKey: input.idempotencyKey || context.requestId,
-    }),
-  });
-  const intentParsed = await parseBillingResponse<{
-    intentId?: string;
-    obfuscatedAccountId?: string;
-    product?: {
-      productId?: string;
-      productType?: string;
-      featureKey?: string;
-      freeInApp?: boolean;
-    };
-  }>(intentResponse);
-
-  // 앱에서 무료로 여는 저가 콘텐츠는 Play 상품 자체가 없다 — 결제창 대신 무료 지급으로 보낸다.
-  if (intentParsed.error?.code === "APP_STORE_PRODUCT_FREE_IN_APP") {
-    const freeResponse = await authFetchBilling("/api/app-store/free-grant", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...(input || {}),
-        featureKey,
-        requestId: context.requestId,
-        idempotencyKey: input.idempotencyKey || context.requestId,
-      }),
-    });
-    return parseBillingResponse<BillingCoinGateData>(freeResponse);
-  }
-
-  const product = intentParsed.data?.product;
-  const productId = toText(product?.productId);
-  if (!intentParsed.ok || !productId) {
-    return nativeAppStoreFailure(
-      intentParsed.error?.code || "APP_STORE_PRODUCT_UNAVAILABLE",
-      intentParsed.error?.message || intentParsed.message || "앱 결제 상품을 불러오지 못했습니다.",
-      intentParsed.status || 503,
-    );
-  }
-
-  let purchaseResult: Record<string, unknown> | null = null;
-  try {
-    purchaseResult = await purchase({
-      featureKey,
-      productId,
-      productType: toText(product?.productType || input.productType || "inapp"),
-      idempotencyKey: input.idempotencyKey || context.requestId,
-      obfuscatedAccountId: toText(intentParsed.data?.obfuscatedAccountId),
-      obfuscatedProfileId: featureKey.slice(0, 64),
-    });
-  } catch (error) {
-    return nativeAppStoreFailure(
-      toText((error as { code?: string })?.code || "APP_STORE_PURCHASE_FAILED"),
-      toText((error as { message?: string })?.message || "앱 결제가 완료되지 않았습니다."),
-      402,
-    );
-  }
-
-  if (purchaseResult?.ok === false) {
-    return nativeAppStoreFailure(
-      toText(purchaseResult.code || "APP_STORE_PURCHASE_FAILED"),
-      toText(purchaseResult.message || "앱 결제가 완료되지 않았습니다."),
-      402,
-    );
-  }
-
-  const verifyResponse = await authFetchBilling("/api/app-store/google/verify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      ...(input || {}),
-      featureKey,
-      productId,
-      productType: product?.productType || input.productType || "inapp",
-      requestId: context.requestId,
-      idempotencyKey: input.idempotencyKey || context.requestId,
-      purchaseToken: purchaseResult?.purchaseToken,
-      packageName: purchaseResult?.packageName,
-      orderId: purchaseResult?.orderId,
-      purchaseState: purchaseResult?.purchaseState,
-      acknowledged: purchaseResult?.acknowledged,
-      provider: "GOOGLE_PLAY",
-    }),
-  });
-
-  const verified = await parseBillingResponse<BillingCoinGateData>(verifyResponse);
-  await consumeNativePurchaseIfNeeded(verified, toText(purchaseResult?.purchaseToken));
-  return verified;
-}
-
-/**
- * 회당 결제(PER_USE) 상품은 지급이 끝나면 반드시 소비해야 한다.
- * 소비하지 않으면 Play가 "이미 보유 중"으로 판단해 다음 구매를 막는다 — 티어 SKU라
- * 같은 가격대의 다른 기능까지 함께 막힌다.
- *
- * 소비 실패는 지급을 되돌리지 않는다. 서버가 이미 승인(acknowledge)해 자동 환불은 없고,
- * 앱 재시작 시 queryPurchasesAsync 복구 경로가 다시 소비를 시도한다.
- */
-async function consumeNativePurchaseIfNeeded(
-  verified: BillingResult<BillingCoinGateData>,
-  purchaseToken: string,
-) {
-  if (!verified.ok || !purchaseToken || typeof window === "undefined") return;
-  const appPurchase = asRecord((verified.raw as Record<string, unknown>)?.data)
-    ? asRecord(asRecord((verified.raw as Record<string, unknown>)?.data)?.appPurchase)
-    : null;
-  if (appPurchase?.shouldConsume !== true) return;
-  try {
-    await (window as RuntimeApiWindow).CodeDestinyNative?.consume?.({ purchaseToken });
-  } catch (error) {
-    debugEntitlement("[billing] native consume failed", error);
-  }
 }
 
 function runtimeNow() {

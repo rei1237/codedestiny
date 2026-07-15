@@ -11,8 +11,10 @@ import {
   findAppStoreProductById,
   isAppFreeCoinPrice,
   resolveAppContentTier,
+  resolveAppPassCoverageKRW,
   resolveAppPassProduct,
 } from "../lib/app-store-pricing.js";
+import { PASS_LIMITS } from "../lib/profile-limits.js";
 import { AppPurchaseIntent, APP_PURCHASE_INTENT_TTL_MS } from "../lib/app-store-models.js";
 
 const GOOGLE_ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
@@ -219,7 +221,7 @@ function resolveProduct(pricing, env, body = {}) {
   };
 }
 
-/** 이용권(30일, 자동갱신 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
+/** 이용권(30일, 자동갱신 없음, 사용 횟수 제한 없음)은 Play `subs`가 아니라 `inapp`으로 등록한다. */
 function resolveAppPassPurchaseProduct(body = {}) {
   const passTier = cleanText(body.passTier || body.subscriptionTier).toLowerCase();
   const pass = resolveAppPassProduct(passTier);
@@ -229,6 +231,10 @@ function resolveAppPassPurchaseProduct(body = {}) {
     error.status = 400;
     throw error;
   }
+  // 커버 한도는 웹 정본(PASS_LIMITS, 코인)에서 읽고 앱 확정가로 환산해 내려준다 —
+  // 클라이언트가 코인×100(웹가)으로 계산하면 앱 결제창 금액과 어긋난다.
+  const coinLimit = Number(PASS_LIMITS[pass.passTier] || 0);
+  const isUnlimited = coinLimit >= 999999999;
   return {
     provider: "GOOGLE_PLAY",
     kind: "pass",
@@ -241,6 +247,11 @@ function resolveAppPassPurchaseProduct(body = {}) {
     freeInApp: false,
     subscriptionTier: pass.passTier,
     passTier: pass.passTier,
+    durationDays: APP_PASS_DURATION_DAYS,
+    // 이용권은 기간만 있고 사용 횟수 제한이 없다.
+    usageLimited: false,
+    coverageCoin: isUnlimited ? null : coinLimit,
+    coverageKRW: isUnlimited ? null : resolveAppPassCoverageKRW(coinLimit),
   };
 }
 

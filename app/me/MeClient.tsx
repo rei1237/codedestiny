@@ -8,6 +8,8 @@ import { getApiBaseUrl } from "../_lib/api-config";
 import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
+import { isMobileAppRuntime } from "../_lib/billing-client";
+import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
@@ -395,9 +397,14 @@ function formatProfileSubscriptionDaysLeft(raw?: string | null) {
 
 function profileSubscriptionBenefit(subscription: ProfileSubscription) {
   if (!subscription.isActive) return "단건 결제 또는 이용권 혜택으로 이용";
-  if (subscription.tier === "family") return "모든 유료 기능 이용 가능";
+  if (subscription.tier === "family") return "모든 유료 기능 횟수 제한 없이 이용";
   const freeLimit = Number(subscription.freeLimit || 0);
-  return freeLimit > 0 ? `${(freeLimit * 100).toLocaleString("ko-KR")}원 이하 기능 이용 가능` : "이용권 혜택 적용 중";
+  if (freeLimit <= 0) return "이용권 혜택 적용 중";
+  // freeLimit은 코인 한도다. 웹은 코인×100이지만 앱에서는 같은 기능이 더 비싸므로
+  // 앱 확정가를 보여줘야 결제창 금액과 맞는다.
+  const appCoverageKRW = isMobileAppRuntime() ? resolveAppPassCoverageKRW(freeLimit) : null;
+  const coverageKRW = appCoverageKRW || freeLimit * 100;
+  return `${coverageKRW.toLocaleString("ko-KR")}원 이하 기능 횟수 제한 없이 이용`;
 }
 
 function formatMonthlyStoneBalance(monthlyStoneBalance?: number) {

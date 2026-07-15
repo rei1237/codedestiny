@@ -16,10 +16,16 @@ import {
   listAppContentTiers,
   listAppPassProducts,
   resolveAppContentTier,
+  resolveAppPassCoverageKRW,
 } from "../worker/lib/app-store-pricing.js";
+import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
 
 const MIN_MARKUP = 1.2;
 const MAX_MARKUP = 1.3;
+// 이용권 인상률 허용 오차 — 이용권가는 "그 등급이 커버하는 금액의 상승률"을 따라가야 한다.
+// 콘텐츠 티어처럼 20~30% 밴드로 재면 안 된다(커버가 +30.0% 오른 등급은 이용권도 +30%대가
+// 되는 게 정상인데 밴드 상한에 걸린다). 판정 기준을 커버 상승률로 바꾼다.
+const PASS_MARKUP_TOLERANCE = 0.02;
 
 const failures = [];
 const notes = [];
@@ -65,10 +71,38 @@ for (const tier of listAppContentTiers()) {
     failures.push(`앱 티어 ${tier.productId}: 인상률 ${((markup - 1) * 100).toFixed(1)}% — 20~30% 밴드 이탈 (웹 ₩${tier.webAmountKRW.toLocaleString("ko-KR")} → 앱 ₩${tier.amountKRW.toLocaleString("ko-KR")})`);
   }
 }
+// 이용권가는 커버 금액 상승률을 따라가야 한다(값과 혜택의 비례).
 for (const pass of listAppPassProducts()) {
   const markup = pass.amountKRW / pass.webAmountKRW;
-  if (markup < MIN_MARKUP || markup > MAX_MARKUP) {
-    failures.push(`이용권 ${pass.productId}: 인상률 ${((markup - 1) * 100).toFixed(1)}% — 20~30% 밴드 이탈 (웹 ₩${pass.webAmountKRW.toLocaleString("ko-KR")} → 앱 ₩${pass.amountKRW.toLocaleString("ko-KR")})`);
+  const coverageAppKRW = resolveAppPassCoverageKRW(pass.coinLimit);
+  if (!coverageAppKRW) {
+    // family: 커버 티어가 없으므로 콘텐츠 티어 밴드로 잰다.
+    if (markup < MIN_MARKUP || markup > MAX_MARKUP) {
+      failures.push(`이용권 ${pass.productId}: 인상률 ${((markup - 1) * 100).toFixed(1)}% — 20~30% 밴드 이탈`);
+    }
+    continue;
+  }
+  const coverageWebKRW = pass.coinLimit * 100;
+  const coverageMarkup = coverageAppKRW / coverageWebKRW;
+  const drift = Math.abs(markup - coverageMarkup);
+  if (drift > PASS_MARKUP_TOLERANCE) {
+    failures.push(
+      `이용권 ${pass.productId}: 가격 인상률 ${((markup - 1) * 100).toFixed(1)}%가 커버 상승률 ${((coverageMarkup - 1) * 100).toFixed(1)}%와 어긋남`
+      + ` (커버 ₩${coverageWebKRW.toLocaleString("ko-KR")}→₩${coverageAppKRW.toLocaleString("ko-KR")}, 이용권 ₩${pass.webAmountKRW.toLocaleString("ko-KR")}→₩${pass.amountKRW.toLocaleString("ko-KR")})`,
+    );
+  }
+}
+
+// 이용권의 coinLimit이 웹 정본(PASS_LIMITS)과 같은가 — 어긋나면 앱이 잘못된 커버 금액을 표시한다.
+for (const pass of listAppPassProducts()) {
+  const webLimit = PASS_LIMITS[pass.passTier];
+  const isUnlimited = Number(webLimit) >= 999999999;
+  if (isUnlimited) {
+    if (pass.coinLimit !== null) failures.push(`이용권 ${pass.productId}: 웹은 무제한인데 coinLimit=${pass.coinLimit}`);
+    continue;
+  }
+  if (pass.coinLimit !== webLimit) {
+    failures.push(`이용권 ${pass.productId}: coinLimit ${pass.coinLimit} ≠ 웹 PASS_LIMITS ${webLimit} — 앱 커버 표시가 웹과 어긋난다`);
   }
 }
 

@@ -641,7 +641,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         profile3: "프로필 최대 3개 생성",
-        under3000: "3,000원 이하 유료 기능 이용 가능",
+        under3000: "3,000원 이하 유료 기능 횟수 제한 없이 이용",
         over3000Single: "30일 동안 스탠다드 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -649,7 +649,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         profile7: "프로필 최대 7개 생성",
-        under5000: "5,000원 이하 유료 기능 이용 가능",
+        under5000: "5,000원 이하 유료 기능 횟수 제한 없이 이용",
         over5000Single: "30일 동안 프리미엄 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -657,7 +657,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
-        under10000: "10,000원 이하 유료 기능 이용 가능",
+        under10000: "10,000원 이하 유료 기능 횟수 제한 없이 이용",
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -747,7 +747,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         profile3: "Create up to 3 profiles",
-        under3000: "Use paid features up to KRW 3,000",
+        under3000: "Unlimited use of paid features up to KRW 3,000",
         over3000Single: "Standard benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -755,7 +755,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         profile7: "Create up to 7 profiles",
-        under5000: "Use paid features up to KRW 5,000",
+        under5000: "Unlimited use of paid features up to KRW 5,000",
         over5000Single: "Premium benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -763,7 +763,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "Create up to 15 profiles",
-        under10000: "Use paid features up to KRW 10,000",
+        under10000: "Unlimited use of paid features up to KRW 10,000",
         over10000Single: "VVIP benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",

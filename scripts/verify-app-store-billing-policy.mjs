@@ -11,9 +11,15 @@
 //
 // 실행: node scripts/verify-app-store-billing-policy.mjs
 
-import { resolveAppContentTier, resolveAppPassProduct } from "../worker/lib/app-store-pricing.js";
+import { promises as fs } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { resolveAppContentTier, resolveAppPassCoverageKRW, resolveAppPassProduct } from "../worker/lib/app-store-pricing.js";
 import { getPaidFeatureBillingType, PAID_FEATURE_BILLING_TYPES } from "../worker/lib/paid-feature-registry.js";
 import { getBillingFeaturePricing } from "../worker/lib/billing-feature-registry.js";
+import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const failures = [];
 
@@ -119,9 +125,54 @@ check("voidedPurchaseNotification → purchaseToken 추출 + voided=true", voide
 const testSample = extractVoided({ testNotification: { version: "1.0" } });
 check("testNotification → isTest=true (200 ack 대상)", testSample.isTest === true);
 
+console.log("\n[7] 앱도 웹과 같은 게이팅(이용권 → 단건+월정석 결제창)을 타는가");
+// 앱이 결제창을 건너뛰고 Play로 직행하면 월정석이 도달 불가해진다(CLAUDE.md 금지 패턴 ②).
+// 과거 billing-client.ts에 그런 short-circuit이 있었으므로 되살아나지 않게 소스로 막는다.
+const billingClient = await fs.readFile(path.join(ROOT, "app", "_lib", "billing-client.ts"), "utf8");
+const runtimePaymentFn = billingClient.slice(
+  billingClient.indexOf("async function runPaidServiceRuntimePayment"),
+  billingClient.indexOf("function runtimeNow"),
+);
+check(
+  "앱 런타임이 결제창을 건너뛰고 네이티브로 직행하지 않는다",
+  !/isMobileAppRuntime\(\)\s*\)\s*\{[^}]*return\s+runNativeAppStorePayment/s.test(runtimePaymentFn),
+  "runPaidServiceRuntimePayment에 앱 short-circuit이 되살아났다",
+);
+check(
+  "앱도 정본 게이트(_cdOpenPaidServiceGate)를 거친다",
+  runtimePaymentFn.includes("loadPaidServiceRuntimeGate") && runtimePaymentFn.includes("equalPriorityMethods"),
+);
+check(
+  "앱 표시 금액을 확인 못 하면 결제창을 열지 않는다 (fail-closed)",
+  runtimePaymentFn.includes("APP_STORE_PRICE_UNAVAILABLE"),
+);
+check(
+  "결제 가드가 없으면 결제를 열지 않는다 (PortOne 누출 차단)",
+  runtimePaymentFn.includes("APP_PAYMENT_GUARD_MISSING"),
+);
+
+console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
+for (const [tier, expectedKRW] of [["standard", 3900], ["premium", 6000], ["vvip", 12900]]) {
+  const coverage = resolveAppPassCoverageKRW(PASS_LIMITS[tier]);
+  check(
+    `${tier}: 웹 ₩${(PASS_LIMITS[tier] * 100).toLocaleString("ko-KR")} → 앱 ₩${expectedKRW.toLocaleString("ko-KR")}`,
+    coverage === expectedKRW,
+    `실제=${coverage}`,
+  );
+}
+check("family(무제한): 커버 티어 없음 → null", resolveAppPassCoverageKRW(PASS_LIMITS.family) === null);
+
+console.log("\n[9] 이용권에 존재하지 않는 '횟수' 개념을 안내하지 않는가");
+// 이용권은 30일 기간만 있고 사용 횟수 제한이 없다(canUseByPass에 횟수 개념 자체가 없음).
+for (const relPath of ["app/page.js"]) {
+  const source = await fs.readFile(path.join(ROOT, relPath), "utf8");
+  const claimsPassCount = /이용권\s*횟수/.test(source.replace(/^\s*\/\/.*$/gm, ""));
+  check(`${relPath}: '이용권 횟수' 표기 없음`, !claimsPassCount);
+}
+
 if (failures.length) {
   console.error(`\n[실패] 앱 결제 정책 검증 ${failures.length}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);
   process.exit(1);
 }
-console.log("\n[통과] 앱 결제 정책 검증 — PER_USE 재구매 가능·UNLOCK 해금·이용권 inapp·앱가 기록·fail-closed·환불 해석\n");
+console.log("\n[통과] 앱 결제 정책 검증 — 이용권→단건+월정석 게이팅·PER_USE 재구매·앱가 기록·커버 파생·fail-closed·환불 해석\n");

@@ -65,7 +65,7 @@
    * destiny-profile.js의 원본과 동일하게 "결제 확인 응답 payload"를 반환해야
    * 이후 콘텐츠 지급 흐름이 그대로 이어진다.
    */
-  async function runPlayBillingCheckout(options) {
+  async function runPlayBillingCheckoutCore(options) {
     var opts = options || {};
     var featureKey = readFeatureKey(opts);
     var native = nativeBilling();
@@ -140,6 +140,22 @@
     return verify.payload;
   }
 
+  // 중복 실행 방지.
+  //
+  // destiny-profile.js는 자기 _cdRunDirectKrwCheckout를 single-flight 래퍼로 감싸는데
+  // (`__cdSinglePaymentGuard`), 아래에서 이 전역을 접근자로 고정해 버리므로 그 래퍼가
+  // 붙지 못한다. 그래서 같은 보호를 여기서 직접 한다 — 버튼 연타로 intent가 두 번
+  // 나가고 결제 시트가 두 번 뜨는 것을 막는다.
+  var inFlight = null;
+
+  function runPlayBillingCheckout(options) {
+    if (inFlight) return inFlight;
+    inFlight = Promise.resolve()
+      .then(function () { return runPlayBillingCheckoutCore(options); })
+      .finally(function () { inFlight = null; });
+    return inFlight;
+  }
+
   // --- PortOne SDK 무력화 -------------------------------------------------
   // SDK 스크립트가 어떻게든 로드되더라도 window.PortOne에 자리잡지 못하게 한다.
   try {
@@ -182,6 +198,20 @@
       set: function () { /* noop */ },
     });
   } catch (e) { /* noop */ }
+
+  // --- 외부 결제 언급 문구 차단 -------------------------------------------
+  // destiny-profile.js는 402 안내에 '포트원 V2 KG이니시스 결제로 진행됩니다.' 같은 문장을
+  // alert로 덧붙인다(js/destiny-profile.js:3398). 그 파일은 웹·앱 공용이라 수정할 수 없으므로,
+  // 앱에서는 표시 직전에 그 문장만 걷어낸다. 실제 결제는 Play Billing으로 이뤄지므로
+  // 외부 PG를 안내하면 사실과 다르고 Play 정책에도 걸린다.
+  var EXTERNAL_PAYMENT_SENTENCE = /\n*[^\n]*(포트원|PortOne|이니시스|KG이니시스)[^\n]*\n?/gi;
+  var nativeAlert = window.alert ? window.alert.bind(window) : null;
+  if (nativeAlert) {
+    window.alert = function (message) {
+      var text = String(message == null ? "" : message);
+      return nativeAlert(text.replace(EXTERNAL_PAYMENT_SENTENCE, "\n").replace(/\n{3,}/g, "\n\n").trim());
+    };
+  }
 
   // --- /points 이탈 차단 ---------------------------------------------------
   // 정적 페이지 곳곳의 <a href="/points">는 빌드 시 제거하지만, 런타임에서 만들어지는

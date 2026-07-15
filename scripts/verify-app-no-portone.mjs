@@ -102,6 +102,45 @@ const clickEvent = new window.MouseEvent("click", { bubbles: true, cancelable: t
 window.__cdTestAnchor.dispatchEvent(clickEvent);
 check("/points 링크 클릭이 차단됨 (preventDefault)", clickEvent.defaultPrevented === true);
 
+// 외부 결제를 언급하는 안내 문구가 걸러지는가.
+// destiny-profile.js가 402 안내에 '포트원 V2 KG이니시스…'를 alert로 덧붙이는데(웹·앱 공용이라
+// 수정 불가), 앱에서는 사실과 다르고 Play 정책에도 걸리므로 가드가 걷어내야 한다.
+// 가드는 설치 시점의 alert를 감싸므로, alert를 먼저 갈아끼운 새 창에서 확인한다.
+const alertDom = new JSDOM("<!doctype html><html><head></head><body></body></html>", {
+  url: "https://code-destiny.com/saju/basic/",
+  runScripts: "outside-only",
+});
+let captured = "";
+alertDom.window.alert = (message) => { captured = String(message); };
+alertDom.window.fetch = async () => ({ ok: true, json: async () => ({ ok: true, data: {} }) });
+alertDom.window.eval(guardSource);
+alertDom.window.alert("단건 결제가 필요합니다.\n\n단건 결제 기준: 5,000원\n포트원 V2 KG이니시스 결제로 진행됩니다.");
+check(
+  "402 안내에서 외부 결제(포트원/이니시스) 문장이 제거됨",
+  !/포트원|PortOne|이니시스/i.test(captured) && captured.includes("단건 결제가 필요합니다"),
+  `실제 표시=${JSON.stringify(captured)}`,
+);
+
+// 연타 중복 결제 방지 — 가드가 _cdRunDirectKrwCheckout를 고정하면서 destiny-profile.js의
+// single-flight 래퍼(:3012)가 붙지 못하므로, 같은 보호를 가드가 직접 해야 한다.
+// (가드는 네이티브 브리지가 없으면 intent 전에 실패하므로 가짜 브리지를 붙인다)
+alertDom.window.CodeDestinyNative = {
+  purchase: async () => ({ ok: true, purchaseToken: "test-token" }),
+  consume: async () => ({ ok: true }),
+};
+let intentCalls = 0;
+alertDom.window.fetch = async (url) => {
+  if (String(url).includes("/google/intent")) intentCalls += 1;
+  // 첫 호출이 끝나기 전에 두 번째가 들어오는지 보려고 응답을 지연시킨다.
+  await new Promise((resolve) => { alertDom.window.setTimeout(resolve, 20); });
+  return { ok: false, json: async () => ({ ok: false, message: "stop" }) };
+};
+await Promise.all([
+  alertDom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: "x", coinPrice: 30 }).catch(() => null),
+  alertDom.window.__cdAppPaymentGuard.runPlayBillingCheckout({ featureKey: "x", coinPrice: 30 }).catch(() => null),
+]);
+check("연타 시 결제 의도(intent)가 1회만 전송됨", intentCalls === 1, `intent 호출 ${intentCalls}회`);
+
 // --- 2) 가드가 PortOne을 호출하지 않는가 (소스 검사) ---------------------
 console.log("\n[2] 가드 자체가 외부 결제를 호출하지 않는가");
 check("가드에 cdn.portone.io 참조 없음", !guardSource.includes("cdn.portone.io"));

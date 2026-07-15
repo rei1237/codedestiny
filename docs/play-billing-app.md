@@ -51,12 +51,16 @@
 
 ### 이용권 4개
 
-| productId | 확정가(KRW) | 웹가 | 인상률 | 커버 한도 |
-|---|---|---|---|---|
-| `cd_pass_standard_30d` | 12,000 | 9,900 | +21.2% | 3,000원 이하 |
-| `cd_pass_premium_30d` | 37,900 | 29,900 | +26.8% | 5,000원 이하 |
-| `cd_pass_vvip_30d` | 73,900 | 59,000 | +25.3% | 10,000원 이하 |
-| `cd_pass_family_30d` | 369,000 | 300,000 | +23.0% | 전체 |
+30일 · **사용 횟수 제한 없음** · 자동 갱신 없음. 이용권가는 커버 금액이 오른 비율만큼 올린다.
+커버 한도는 웹 정본(`PASS_LIMITS`, 코인)에서 앱가로 파생된다(`resolveAppPassCoverageKRW`) —
+**커버하는 기능 집합은 앱·웹이 동일**하고(코인으로 판정) 표시 금액만 다르다.
+
+| productId | 확정가(KRW) | 웹가 | 인상률 | 커버 한도(앱 표시) | 웹 표시 |
+|---|---|---|---|---|---|
+| `cd_pass_standard_30d` | 12,900 | 9,900 | +30.3% | 3,900원 이하 | 3,000원 이하 |
+| `cd_pass_premium_30d` | 35,900 | 29,900 | +20.1% | 6,000원 이하 | 5,000원 이하 |
+| `cd_pass_vvip_30d` | 75,900 | 59,000 | +28.6% | 12,900원 이하 | 10,000원 이하 |
+| `cd_pass_family_30d` | 369,000 | 300,000 | +23.0% | 전체 | 전체 |
 
 > `family`는 고액 상품이라 심사에서 환불 정책 고지를 엄격히 본다.
 
@@ -95,9 +99,16 @@ Android 릴리스 키는 [ANDROID_DEPLOY_READINESS.md](ANDROID_DEPLOY_READINESS.
 
 ## 결제 흐름
 
+**앱도 웹과 같은 게이팅을 탄다.** 앱이라고 결제창을 건너뛰고 Play로 직행하면 월정석이
+도달 불가해진다(CLAUDE.md 금지 패턴 ②). 앱에서 바뀌는 것은 **표시 금액과 단건 결제의 실행
+수단**뿐이다.
+
 ```
-이용권 선검사 (커버 → 결제 없이 통과)
+이용권 선검사 (커버 → 결제창 없이 무료 통과)          ← 웹·앱 동일
       ↓ 미커버
+결제창: 단건 결제 + 월정석 (동등 노출)                ← 웹·앱 동일. 금액만 앱 확정가로 표시
+      ├─ 월정석 선택 → 서버 차감 (결제 아님 → Play Billing 대상 아님)
+      └─ 단건 선택 ↓
 POST /api/app-store/google/intent   ← 의도 기록(티어 SKU 역해석용) + obfuscatedAccountId 발급
       ↓
 launchBillingFlow (Play 결제 시트)
@@ -106,6 +117,15 @@ POST /api/app-store/google/verify   ← purchases.products.get 검증 → 지급
       ↓
 consume()  ← PER_USE만. 안 하면 다음 구매가 ITEM_ALREADY_OWNED로 막힌다
 ```
+
+**단건 결제가 Play로 가는 지점**: 정본 게이트(`js/destiny-profile.js`)의 `_cdRunDirectKrwCheckout`를
+앱 결제 가드(`scripts/app-payment-guard.js`)가 접근자로 고정해 Play Billing 구현으로 바꿔친다.
+게이트 자체(이용권 선검사·결제창)는 웹 코드 그대로 재사용한다.
+
+**fail-closed 2가지** (`app/_lib/billing-client.ts`):
+- 가드가 없으면(`__cdAppPaymentGuard` 미설치) 결제를 열지 않는다 — 열면 원래 구현인 PortOne이 뜬다.
+- 앱 표시 금액(`/api/app-store/products`)을 확인 못 하면 결제창을 열지 않는다 — 웹가를 띄우면
+  결제창 금액과 Play 청구액이 어긋난다.
 
 **PER_USE와 UNLOCK의 차이가 핵심이다.**
 - `PER_USE`(회당 결제): `unlockedFeatures`에 넣지 않는다. 소비해야 재구매가 열린다.
