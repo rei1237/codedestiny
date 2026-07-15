@@ -134,6 +134,7 @@ const coreRoutes = [
   { path: "/contact", changefreq: "yearly", priority: 0.6 },
   { path: "/privacy", changefreq: "yearly", priority: 0.55 },
   { path: "/terms", changefreq: "yearly", priority: 0.55 },
+  { path: "/account/delete", changefreq: "yearly", priority: 0.5 },
   { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/editorial-policy", changefreq: "yearly", priority: 0.54 },

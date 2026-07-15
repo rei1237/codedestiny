@@ -993,37 +993,42 @@ export default function SignupPage() {
           outline-offset: -2px;
         }
 
-        /* ── Policy Embed Styles ── */
-        :global(.policy-embed-body) {
+        /* ── Policy Embed Styles ──
+           문서 스케일 기본값은 styles/globals.css의 .policy-embed-* 가 정본이다.
+           여기서는 좁은 동의 스크롤 영역(200px)에 맞춘 축소값만 .lc-scroll-area로 스코프해
+           덮어쓴다 — 전역으로 새어나가면 /privacy·/terms 본문까지 11.5px로 줄어든다. */
+        :global(.lc-scroll-area .policy-embed-body) {
+          max-width: none;
           font-size: 11.5px;
           line-height: 1.72;
           color: rgba(226, 232, 240, 0.9);
         }
-        :global(.policy-embed-date) {
+        :global(.lc-scroll-area .policy-embed-date) {
           font-size: 10.5px;
           color: rgba(148, 163, 184, 0.8);
           margin-bottom: 10px;
         }
-        :global(.policy-embed-section) {
+        :global(.lc-scroll-area .policy-embed-section) {
           margin-bottom: 12px;
           padding-bottom: 10px;
           border-bottom: 1px solid rgba(148, 163, 184, 0.12);
         }
-        :global(.policy-embed-section:last-child) {
+        :global(.lc-scroll-area .policy-embed-section:last-child) {
           border-bottom: none;
           margin-bottom: 0;
+          padding-bottom: 0;
         }
-        :global(.policy-embed-h3) {
+        :global(.lc-scroll-area .policy-embed-heading) {
           font-size: 11px;
           font-weight: 700;
           color: rgba(196, 181, 253, 0.9);
           margin-bottom: 5px;
           letter-spacing: 0.01em;
         }
-        :global(.policy-embed-body p) {
+        :global(.lc-scroll-area .policy-embed-body p) {
           margin-bottom: 5px;
         }
-        :global(.policy-embed-body p:last-child) {
+        :global(.lc-scroll-area .policy-embed-body p:last-child) {
           margin-bottom: 0;
         }
 

@@ -1,132 +1,168 @@
 /**
- * 개인정보처리방침 콘텐츠 전용 컴포넌트
- * — iframe 없이 회원가입 페이지에서 인라인으로 임베드하기 위한 컴포넌트
- * — 독립 페이지(/privacy-policy)에서도 재사용 가능
+ * 개인정보처리방침 정본 (시행일 2026-06-21)
+ * — 이 파일이 방침 본문의 유일한 원본이다.
+ *   독립 페이지(/privacy, /privacy-policy)와 회원가입 동의 화면(app/signup/SignupClient.tsx)이
+ *   모두 이 컴포넌트를 렌더하므로, 동의한 문서와 공개된 문서가 항상 일치한다.
+ * — PRIVACY_POLICY_SECTIONS는 목차(policy-doc__toc)와 본문이 공유한다. 여기만 고치면 둘 다 따라온다.
  */
-import { SUPPORT_EMAIL } from "../../lib/site-policy-config";
+import { OPERATOR_NAME, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 
-const PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS = {
-  ko: {
-    operator: "운영자(개인정보처리자): Code Destiny / Operator / Data Controller: Code Destiny",
-    requiredInfoLabel: "운세 서비스 제공을 위한 필수 정보:",
+export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-06-21";
+
+export const PRIVACY_POLICY_SECTIONS = [
+  {
+    id: "principles",
+    heading: "1. 기본 원칙",
+    body: (
+      <>
+        <p>
+          Code Destiny는 운세, 리포트, 상담형 콘텐츠를 제공하는 과정에서 필요한 개인정보를 최소한으로 처리하며, 수집 목적과 보관 기간을 명확히 알리기 위해 이 방침을 공개합니다.
+        </p>
+        <p>
+          개인정보 처리자: {OPERATOR_NAME}
+          <br />
+          사이트: https://code-destiny.com
+        </p>
+      </>
+    ),
   },
-  en: {
-    operator: "Operator / Data Controller: Code Destiny",
-    requiredInfoLabel: "Required information for providing fortune services:",
+  {
+    id: "collected-data",
+    heading: "2. 수집 항목과 이용 목적",
+    body: (
+      <>
+        <p>
+          생년월일, 성별, 출생시간, 출생지 등 운세 계산에 필요한 입력값은 사주, 점성술, 타로, 숙요점, 리포트 결과를 생성하기 위해 사용됩니다. 이메일, 프로필 정보, 문의 내용은 계정 관리, 고객 응대, 알림 발송, 부정 이용 방지에 사용될 수 있습니다.
+        </p>
+        <p>
+          결제 정보는 결제 처리, 환불, 영수증 발행, 이용권 확인을 위해 결제 대행사와 함께 처리될 수 있으며, Code Destiny는 카드번호 전체와 같은 민감한 결제 원문을 직접 저장하지 않습니다.
+        </p>
+      </>
+    ),
   },
-  ja: {
-    operator: "運営者（個人情報取扱者）: Code Destiny",
-    requiredInfoLabel: "占いサービス提供に必要な情報:",
+  {
+    id: "automatic-data",
+    heading: "3. 자동으로 처리되는 정보",
+    body: (
+      <p>
+        접속 IP, 브라우저와 운영체제 정보, 접속 시간, 언어 설정, 기기 식별 정보, 쿠키와 로컬 저장소 값, 페이지 이용 기록이 서비스 안정성, 보안 점검, 오류 분석, 이용 통계 확인을 위해 처리될 수 있습니다.
+      </p>
+    ),
   },
-};
+  {
+    id: "cookies-and-ads",
+    heading: "4. 쿠키, 광고 식별자, Google 광고 고지",
+    body: (
+      <>
+        <p>
+          Code Destiny는 로그인 유지, 보안, 이용 통계, 광고 제공을 위해 쿠키와 유사 기술을 사용할 수 있습니다. Google을 포함한 제3자 광고 파트너는 광고 제공의 결과로 이용자의 브라우저에 쿠키를 저장하거나 읽을 수 있으며, 웹 비콘, IP 주소, 광고 식별자와 같은 정보를 사용할 수 있습니다.
+        </p>
+        <p>
+          Google과 그 파트너는 이용자의 이전 방문 기록을 바탕으로 맞춤 광고를 제공할 수 있습니다. 이용자는 브라우저 설정, 기기 광고 설정,{" "}
+          <a href="https://adssettings.google.com/" target="_blank" rel="noopener noreferrer">
+            Google 광고 설정
+          </a>
+          에서 맞춤 광고를 관리할 수 있습니다.
+        </p>
+        <p>
+          Google이 파트너 사이트와 앱의 정보를 사용하는 방식은{" "}
+          <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
+            Google 파트너 사이트/앱 데이터 사용 안내
+          </a>
+          에서 확인할 수 있습니다.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: "third-party",
+    heading: "5. 제3자 제공과 처리 위탁",
+    body: (
+      <p>
+        Code Destiny는 이용자의 동의 없이 개인정보를 판매하지 않습니다. 다만 결제 처리, 클라우드 호스팅, 보안, 분석, 이메일 발송, 광고 제공처럼 서비스 운영에 필요한 경우에는 해당 목적에 필요한 범위에서 외부 처리자 또는 광고 파트너가 정보를 처리할 수 있습니다.
+      </p>
+    ),
+  },
+  {
+    id: "retention",
+    heading: "6. 보관 기간",
+    body: (
+      <p>
+        입력값과 결과 데이터는 서비스 제공, 재열람, 오류 대응에 필요한 기간 동안 보관되며, 이용자가 삭제를 요청하거나 목적이 달성되면 지체 없이 파기합니다. 문의 기록은 분쟁 대응을 위해 최대 3년, 접속 로그는 보안과 부정 이용 방지를 위해 최대 3개월, 결제 기록은 관계 법령이 요구하는 기간 동안 보관될 수 있습니다.
+      </p>
+    ),
+  },
+  {
+    id: "user-rights",
+    heading: "7. 이용자 권리",
+    body: (
+      <p>
+        이용자는 개인정보 열람, 정정, 삭제, 처리 정지, 동의 철회를 요청할 수 있습니다. 요청은 합리적인 본인 확인 절차 후 관련 법령이 허용하는 범위에서 처리합니다.
+      </p>
+    ),
+  },
+  {
+    id: "children",
+    heading: "8. 아동 개인정보",
+    body: (
+      <p>
+        Code Destiny는 만 13세 미만 아동을 대상으로 하지 않습니다. 만 13세 미만 아동의 개인정보가 수집되었다고 판단되면 아래 문의처로 알려 주십시오. 확인 후 필요한 삭제 조치를 진행합니다.
+      </p>
+    ),
+  },
+  {
+    id: "sensitive-interpretation",
+    heading: "9. 민감한 해석과 광고 타겟팅",
+    body: (
+      <p>
+        건강, 재정, 관계, 법률성 해석은 사용자의 자기 이해를 돕는 참고 콘텐츠로만 제공됩니다. Code Destiny는 이러한 민감한 해석 내용을 이용해 사용자를 불안하게 만들거나, 개인 맞춤 광고 타겟팅과 부적절하게 연결하지 않도록 주의합니다.
+      </p>
+    ),
+  },
+  {
+    id: "security",
+    heading: "10. 보안 조치",
+    body: (
+      <p>
+        접근 권한 제한, 전송 구간 보호, 로그 점검, 부정 이용 탐지 등 합리적인 기술적·관리적 보호 조치를 적용합니다. 다만 인터넷 전송과 저장 방식은 절대적인 안전을 보장할 수 없으므로 지속적으로 개선합니다.
+      </p>
+    ),
+  },
+  {
+    id: "changes",
+    heading: "11. 방침 변경",
+    body: (
+      <p>
+        이 방침은 법령, 서비스, 광고 파트너 정책 변경에 따라 개정될 수 있습니다. 중요한 변경 사항은 이 페이지에 반영하며, 필요한 경우 서비스 내 공지 또는 별도 안내로 알립니다.
+      </p>
+    ),
+  },
+  {
+    id: "contact",
+    heading: "12. 개인정보 문의",
+    body: (
+      <p>
+        개인정보 열람, 정정, 삭제, 처리 정지, 광고·쿠키 관련 문의는 아래 이메일로 연락해 주십시오.
+        <br />
+        <a href={SUPPORT_MAILTO}>{SUPPORT_EMAIL}</a>
+      </p>
+    ),
+  },
+];
 
 export default function PrivacyPolicyContent() {
   return (
     <div className="policy-embed-body">
-      <p className="policy-embed-date">시행일: 2026-03-16 / Effective Date: 2026-03-16</p>
+      <p className="policy-embed-date">
+        시행일: {PRIVACY_POLICY_EFFECTIVE_DATE} / Effective Date: {PRIVACY_POLICY_EFFECTIVE_DATE}
+      </p>
 
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">1. 총칙 / General Notice</h3>
-        <p>
-          Code Destiny(https://code-destiny.com, 이하 &ldquo;서비스&rdquo;)는 이용자의 개인정보를 중요하게 생각하며 관련 법령(예: 대한민국 개인정보 보호법, 정보통신망법 등)을 준수하기 위해 노력합니다. This Privacy Policy explains what data we process, why we process it, how long we keep it, and how you can exercise your rights.
-        </p>
-        <p>{PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS.ko.operator}</p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">2. 처리 목적 및 법적 근거 / Purpose and Legal Basis</h3>
-        <p>
-          서비스는 운세/타로 결과 제공, 개인화된 화면 제공, 서비스 개선, 보안 및 부정 이용 방지, 고객 문의 대응, 법적 의무 이행 목적에서 개인정보를 처리합니다. We process personal data based on your consent, contract-like necessity for service delivery, legitimate interests (security/analytics), and legal obligations where applicable.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">3. 수집하는 정보 항목 / Categories of Data We Process</h3>
-        <p>
-          <strong>{PRIVACY_POLICY_CONTENT_TEXT_TRANSLATIONS.ko.requiredInfoLabel}</strong> 생년월일, 출생시간, 성별. 이 정보는 사주·자미두수·타로·주역 등 개인 맞춤형 운세 결과 산정 목적에만 사용되며, 서버에 안전하게 저장됩니다. 해당 정보는 운세 풀이 이외의 다른 목적(ex: 마케팅, 제3자 판매 등)으로 이용하지 않습니다.
-        </p>
-        <p>
-          추가 수집 항목: 접속기기 정보(IP, 브라우저/OS, 언어, 접속시간), 로그 정보, 쿠키/로컬스토리지 식별자, 문의 시 제공되는 이메일 및 메시지 내용이 포함될 수 있습니다. We do not intentionally collect sensitive personal data beyond what is required for the fortune analysis experience.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">4. 쿠키, 분석 및 광고 / Cookies, Analytics and Ads</h3>
-        <p>
-          서비스는 원활한 기능 제공과 이용 패턴 분석을 위해 쿠키 및 유사 기술을 사용할 수 있습니다. Google AdSense 등 제3자 파트너가 광고 제공과 측정을 위해 쿠키, 웹 비콘, IP 주소, 광고 식별자 또는 유사 식별자를 사용할 수 있으며, 이용자는 브라우저 설정 및 Google 광고 설정 페이지를 통해 맞춤 광고를 관리할 수 있습니다.
-        </p>
-        <p>
-          Google을 포함한 제3자 광고 사업자는 이용자의 이전 방문 기록에 기반한 맞춤 광고를 제공할 수 있습니다.
-        </p>
-        <p>
-          Google 파트너 사이트 및 앱에서 데이터가 사용되는 방식은{" "}
-          <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener noreferrer">
-            Google 파트너 사이트 데이터 사용 안내
-          </a>
-          에서 확인할 수 있습니다.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">5. 개인정보의 제3자 제공 및 처리위탁 / Third-Party Sharing</h3>
-        <p>
-          원칙적으로 이용자 동의 없이 개인정보를 제3자에게 판매하지 않습니다. 광고, 호스팅, 분석, 이메일 처리 등 서비스 운영을 위해 신뢰 가능한 수탁사에 처리 위탁이 이루어질 수 있습니다.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">6. 국외 이전 가능성 / International Data Transfers</h3>
-        <p>
-          클라우드 인프라 또는 분석/광고 도구의 특성상 데이터가 해외 서버에서 처리될 수 있습니다. We take reasonable measures to protect transferred data through standard contractual and technical safeguards where available.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">7. 보유기간 및 파기 / Retention and Deletion</h3>
-        <p>
-          운세 서비스 제공을 위해 수집한 생년월일·출생시간·성별 정보는 회원 탈퇴 또는 이용자의 개인정보 삭제 요청 시 지체 없이 삭제됩니다. 해당 정보는 운세 풀이 목적 이외에는 사용되지 않습니다.
-        </p>
-        <p>
-          그 외 개인정보는 수집 목적 달성 시 지체 없이 삭제하며, 관련 법령이 보관을 요구하는 경우 해당 기간 동안 안전하게 보관 후 파기합니다. 예시: 소비자 불만/분쟁 처리 기록(최대 3년), 접속 로그(최대 3개월).
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">8. 이용자 권리와 행사 방법 / Your Rights</h3>
-        <p>
-          이용자는 개인정보 열람, 정정, 삭제, 처리정지, 동의 철회를 요청할 수 있습니다. Requests are handled without undue delay after reasonable identity verification.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">9. 아동의 개인정보 / Children&apos;s Privacy</h3>
-        <p>
-          서비스는 원칙적으로 만 13세 미만 아동을 대상으로 하지 않으며, 관련 정보가 수집된 사실을 인지한 경우 지체 없이 삭제 조치합니다.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">10. 안전성 확보 조치 / Security Measures</h3>
-        <p>
-          접근권한 최소화, 접근통제, 로그 모니터링, 전송 구간 보호 등 합리적인 기술적/관리적 보호조치를 운영합니다.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">11. 정책 변경 / Changes to this Policy</h3>
-        <p>
-          본 방침은 법령 또는 서비스 변경에 따라 개정될 수 있으며, 중요한 변경 사항은 서비스 내 공지 또는 링크된 페이지를 통해 안내합니다.
-        </p>
-      </section>
-
-      <section className="policy-embed-section">
-        <h3 className="policy-embed-h3">12. 개인정보 문의처 / Privacy Contact</h3>
-        <p>
-          서비스명: Code Destiny<br />
-          사이트: https://code-destiny.com<br />
-          개인정보 보호 문의: {SUPPORT_EMAIL}
-        </p>
-      </section>
+      {PRIVACY_POLICY_SECTIONS.map((section) => (
+        <section key={section.id} id={section.id} className="policy-embed-section">
+          <h2 className="policy-embed-heading">{section.heading}</h2>
+          {section.body}
+        </section>
+      ))}
     </div>
   );
 }

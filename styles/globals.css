@@ -280,6 +280,368 @@
 	}
 }
 
+/*
+ * 법적 문서 표면 — /privacy, /terms, /contact, /account/delete 공용.
+ * App Router 셸은 body { background: #020617 } 다크 고정이고 --cd-bg를 참조하지 않으므로
+ * 여기서 --cd-* 토큰을 쓰면 연이 모드에서 어두운 글자가 어두운 배경에 얹혀 깨진다.
+ * 강조색은 다크 셸에 맞춰 Twilight Violet(#c4b5fd) 하나만 쓴다(One Accent Rule).
+ *
+ * .policy-embed-* 는 회원가입 동의 화면(app/signup/SignupClient.tsx)의 임베드와 공유한다.
+ * 여기 값이 문서 스케일 기본값이고, 좁은 스크롤 영역용 축소값은 signup 쪽에서
+ * .lc-scroll-area 로 스코프해 덮어쓴다.
+ */
+@layer components {
+	.policy-doc {
+		width: min(1080px, calc(100% - 32px));
+		margin-inline: auto;
+		padding: 36px 0 72px;
+	}
+	.policy-doc__head {
+		padding-bottom: 22px;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+	}
+	.policy-doc__title {
+		margin: 0;
+		font-family: var(--font-display);
+		/* CodeDestinyDisplay(Mulmaru)는 w400만 존재하고 body에 font-synthesis: none이
+		   걸려 있어 700/800을 줘도 굵어지지 않는다. 위계는 크기·색으로 만든다. */
+		font-weight: 400;
+		font-size: clamp(2rem, 5vw, 2.75rem);
+		line-height: 1.28;
+		letter-spacing: -0.01em;
+		color: #f8fafc;
+		text-wrap: balance;
+	}
+	.policy-doc__meta {
+		margin: 12px 0 0;
+		font-size: 0.875rem;
+		color: #9fb0cc;
+	}
+	.policy-doc__lede {
+		margin: 14px 0 0;
+		max-width: 68ch;
+		line-height: 1.75;
+		color: #c3cfe4;
+		word-break: keep-all;
+		text-wrap: pretty;
+	}
+	.policy-doc__layout {
+		display: grid;
+		gap: 28px;
+		align-items: start;
+		margin-top: 28px;
+	}
+	/* 목차가 없는 문서(/contact, /account/delete)용 — 사이드바 그리드를 쓰지 않는다 */
+	.policy-doc__single {
+		margin-top: 28px;
+	}
+	.policy-doc__body {
+		min-width: 0;
+	}
+	.policy-doc__form-panel {
+		max-width: 68ch;
+	}
+	.policy-embed-body + .policy-panel {
+		margin-top: 32px;
+		max-width: 68ch;
+	}
+	.policy-doc__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-bottom: 14px;
+	}
+	.policy-doc__note {
+		margin: 0;
+		max-width: 68ch;
+		font-size: 0.875rem;
+		line-height: 1.7;
+		color: #9fb0cc;
+		word-break: keep-all;
+		text-wrap: pretty;
+	}
+	.policy-doc__note--lead {
+		margin-bottom: 16px;
+	}
+	.policy-btn + .policy-doc__note {
+		margin-top: 14px;
+	}
+	.policy-doc__inline-btn {
+		border: 0;
+		background: none;
+		padding: 0;
+		font: inherit;
+		color: #c4b5fd;
+		text-decoration: underline;
+		text-underline-offset: 3px;
+		cursor: pointer;
+	}
+	.policy-doc__inline-btn:hover {
+		color: #ddd4ff;
+	}
+	.policy-doc__inline-btn:focus-visible {
+		outline: 2px solid #c4b5fd;
+		outline-offset: 2px;
+		border-radius: 3px;
+	}
+	.policy-doc__toc-title {
+		margin: 0 0 10px;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: #9fb0cc;
+	}
+	.policy-doc__toc-list {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.policy-doc__toc-link {
+		display: block;
+		border: 1px solid rgba(148, 163, 184, 0.3);
+		border-radius: 999px;
+		padding: 5px 12px;
+		font-size: 0.8125rem;
+		line-height: 1.5;
+		color: #a9b8d4;
+		text-decoration: none;
+		transition:
+			color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.policy-doc__toc-link:hover {
+		color: #f1f5fc;
+		border-color: rgba(196, 181, 253, 0.55);
+		background: rgba(196, 181, 253, 0.12);
+	}
+	.policy-doc__toc-link:focus-visible {
+		outline: 2px solid #c4b5fd;
+		outline-offset: 2px;
+	}
+	@media (min-width: 1024px) {
+		.policy-doc__layout {
+			grid-template-columns: 224px minmax(0, 1fr);
+			gap: 48px;
+		}
+		.policy-doc__toc {
+			position: sticky;
+			top: 116px;
+			max-height: calc(100dvh - 140px);
+			overflow-y: auto;
+		}
+		.policy-doc__toc-list {
+			display: grid;
+			gap: 2px;
+		}
+		.policy-doc__toc-link {
+			border: 1px solid transparent;
+			border-radius: 8px;
+			padding: 6px 10px;
+		}
+	}
+
+	/* 문서 본문 — 독립 페이지와 가입 동의 임베드가 공유하는 정본 스타일 */
+	.policy-embed-body {
+		max-width: 68ch;
+		font-family: var(--font-body);
+		font-size: 1rem;
+		line-height: 1.75;
+		color: #dbe4f3;
+		word-break: keep-all;
+		text-wrap: pretty;
+	}
+	.policy-embed-date {
+		margin: 0 0 20px;
+		font-size: 0.875rem;
+		color: #9fb0cc;
+	}
+	.policy-embed-section {
+		margin: 0 0 28px;
+		padding: 0 0 24px;
+		border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+	}
+	.policy-embed-section:last-child {
+		margin-bottom: 0;
+		padding-bottom: 0;
+		border-bottom: none;
+	}
+	.policy-embed-heading {
+		margin: 0 0 10px;
+		font-size: 1.125rem;
+		font-weight: 700;
+		line-height: 1.45;
+		letter-spacing: -0.005em;
+		color: #f1f5fc;
+		text-wrap: balance;
+	}
+	.policy-embed-body p {
+		margin: 0 0 12px;
+	}
+	.policy-embed-body p:last-child {
+		margin-bottom: 0;
+	}
+	.policy-embed-body ul {
+		margin: 0 0 12px;
+		padding-left: 1.1em;
+		list-style: disc;
+	}
+	.policy-embed-body li {
+		margin-bottom: 6px;
+	}
+	.policy-embed-body a {
+		color: #c4b5fd;
+		text-underline-offset: 3px;
+		text-decoration-thickness: 1px;
+		transition: color 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.policy-embed-body a:hover {
+		color: #ddd4ff;
+	}
+	.policy-embed-body a:focus-visible {
+		outline: 2px solid #c4b5fd;
+		outline-offset: 2px;
+		border-radius: 3px;
+	}
+	/* 고정 헤더(≈116px) 아래로 앵커가 숨지 않도록. 임베드(좁은 스크롤 영역)에는 적용하지 않는다. */
+	.policy-doc .policy-embed-section {
+		scroll-margin-top: 116px;
+	}
+	/* 시행일은 문서 헤더(.policy-doc__meta)가 이미 보여준다. 본문 상단의 날짜는
+	   가입 동의 임베드처럼 헤더가 없는 맥락을 위한 것이므로 독립 페이지에서는 중복이다. */
+	.policy-doc .policy-embed-date {
+		display: none;
+	}
+	.policy-doc__related {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+		margin-top: 36px;
+		padding-top: 24px;
+		border-top: 1px solid rgba(148, 163, 184, 0.2);
+	}
+	.policy-doc__related .policy-doc__toc-link {
+		border: 1px solid rgba(148, 163, 184, 0.3);
+		border-radius: 999px;
+		padding: 7px 14px;
+	}
+
+	/* 액션이 실제로 놓이는 단일 패널 — 문서 본문은 카드로 감싸지 않는다 */
+	.policy-panel {
+		border: 1px solid rgba(148, 163, 184, 0.28);
+		border-radius: 16px;
+		background: rgba(15, 23, 42, 0.5);
+		padding: 20px;
+	}
+	.policy-panel--warn {
+		border-color: rgba(248, 113, 113, 0.42);
+		background: rgba(69, 10, 10, 0.32);
+	}
+	.policy-panel__title {
+		margin: 0 0 8px;
+		font-size: 1rem;
+		font-weight: 700;
+		color: #f1f5fc;
+	}
+	.policy-field {
+		display: grid;
+		gap: 6px;
+		margin-bottom: 14px;
+	}
+	.policy-label {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #c3cfe4;
+	}
+	.policy-input {
+		width: 100%;
+		border: 1px solid rgba(148, 163, 184, 0.38);
+		border-radius: 10px;
+		background: rgba(2, 6, 23, 0.66);
+		padding: 10px 12px;
+		font: inherit;
+		font-size: 0.9375rem;
+		color: #e9edf7;
+		transition:
+			border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.policy-input::placeholder {
+		color: #8092b0;
+	}
+	.policy-input:hover {
+		border-color: rgba(196, 181, 253, 0.45);
+	}
+	.policy-input:focus-visible {
+		outline: none;
+		border-color: #c4b5fd;
+		box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.24);
+	}
+	.policy-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		min-height: 44px;
+		border: 1px solid transparent;
+		border-radius: 999px;
+		padding: 10px 22px;
+		font: inherit;
+		font-size: 0.9375rem;
+		font-weight: 700;
+		cursor: pointer;
+		text-decoration: none;
+		transition:
+			background-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			border-color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+			box-shadow 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.policy-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 3px rgba(196, 181, 253, 0.45);
+	}
+	.policy-btn--primary {
+		background: #c4b5fd;
+		color: #0f0a24;
+	}
+	.policy-btn--primary:hover {
+		background: #d6cbff;
+		box-shadow: 0 0 24px rgba(147, 51, 234, 0.35);
+	}
+	.policy-btn--ghost {
+		border-color: rgba(148, 163, 184, 0.42);
+		background: transparent;
+		color: #dbe4f3;
+	}
+	.policy-btn--ghost:hover {
+		border-color: rgba(196, 181, 253, 0.6);
+		color: #f1f5fc;
+	}
+	.policy-btn--danger {
+		background: #dc2626;
+		color: #fff;
+	}
+	.policy-btn--danger:hover {
+		background: #ef4444;
+	}
+	.policy-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+		box-shadow: none;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.policy-doc__toc-link,
+		.policy-embed-body a,
+		.policy-input,
+		.policy-btn {
+			transition: none;
+		}
+	}
+}
+
 /* ─── Veda Nebula: Cosmic Orbit ─── */
 @layer components {
 	.veda-orbit-root {
