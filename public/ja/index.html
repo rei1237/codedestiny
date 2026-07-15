@@ -21646,7 +21646,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     var opts = options && typeof options === 'object' ? options : {};
     var forceAuthProbe = !!opts.forceAuthProbe;
     var forceRefresh = opts.forceRefresh === true;
-    // fresh=true(수동 재조회)면 서버 표시용 잔량 캐시를 우회해 항상 최신값을 읽는다(자동 조회는 캐시 허용).
+    // fresh=true(수동 재조회)면 서버 표시용 잔량 캐시 + 클라 15s 단락·in-flight dedup까지 우회해 항상 최신값을 읽는다(자동 조회는 캐시 허용).
     var fresh = opts.fresh === true;
     var reason = String(opts.reason || 'moonlight-stone-balance').slice(0, 80);
     if (!hasAuthSessionHint() && !forceAuthProbe) {
@@ -21654,12 +21654,12 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
       monthlyCreditLastSyncedAt = 0;
       return false;
     }
-    if (!forceRefresh && monthlyCreditSyncState === 'fresh' && balanceHydratedFromServer && Date.now() - monthlyCreditLastSyncedAt < MONTHLY_CREDIT_SYNC_FRESH_TTL_MS) {
+    if (!forceRefresh && !fresh && monthlyCreditSyncState === 'fresh' && balanceHydratedFromServer && Date.now() - monthlyCreditLastSyncedAt < MONTHLY_CREDIT_SYNC_FRESH_TTL_MS) {
       updateBadge();
       if (document.getElementById('goldenGrainChargeModal')) ChargeModal();
       return true;
     }
-    if (!forceRefresh && monthlyCreditSyncPromise) return monthlyCreditSyncPromise;
+    if (!forceRefresh && !fresh && monthlyCreditSyncPromise) return monthlyCreditSyncPromise;
     monthlyCreditSyncState = 'checking';
     monthlyCreditSyncPromise = (async function() {
       try {
