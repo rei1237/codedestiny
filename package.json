@@ -82,6 +82,7 @@
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",
+    "verify:love-compat": "node scripts/verify-love-compat-determinism.mjs",
     "verify:love-secret-llm": "node scripts/verify-love-secret-ai-flow.mjs",
     "verify:astro-premium-llm": "node scripts/verify-astrology-ai-flow.mjs",
     "verify:astrology-ai-flow": "node scripts/verify-astrology-ai-flow.mjs",

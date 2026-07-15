@@ -5,8 +5,14 @@ import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
 import { INITIAL_STATS, LOVE_CHARACTERS, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
-import { applyEffects, getRelationshipMetrics, resolveResult } from "../_utils/loveCodeScoring";
+import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
+import { computeCompatibilityProfile } from "../_engine/compatibilityEngine";
+import { normalizeSajuForPerson } from "../_engine/normalizeSaju";
+import { getCharacterNormalizedSaju } from "../_data/characterCharts";
+import { WEIGHTS } from "../_config/weights.config";
+import type { CompatibilityProfile } from "../_engine/compatibilityTypes";
+import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
 
@@ -278,30 +284,6 @@ const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, minute) => minute);
 const MIN_PLAYABLE_SCENES = 10;
 const LOVE_CODE_HERO_ASSET = "/fuctionassets/love code.webp";
-
-const KO_ELEMENT_TO_CODE: Record<string, LoveCharacter["element"]> = {
-  목: "wood",
-  화: "fire",
-  토: "earth",
-  금: "metal",
-  수: "water",
-};
-
-const GENERATING_ELEMENT: Record<LoveCharacter["element"], LoveCharacter["element"]> = {
-  wood: "fire",
-  fire: "earth",
-  earth: "metal",
-  metal: "water",
-  water: "wood",
-};
-
-const CONTROLLING_ELEMENT: Record<LoveCharacter["element"], LoveCharacter["element"]> = {
-  wood: "earth",
-  earth: "water",
-  water: "fire",
-  fire: "metal",
-  metal: "wood",
-};
 
 const ELEMENT_LOVE_NARRATIVE: Record<LoveCharacter["element"], { label: string; atmosphere: string; harmony: string; shadow: string; datePulse: string }> = {
   wood: {
@@ -575,55 +557,48 @@ function readCurrentProfileSeed(): ProfileSeed | null {
   }
 }
 
-function normalizeSajuElement(value: unknown): LoveCharacter["element"] | null {
-  const raw = String(value || "").trim();
-  if (raw === "wood" || raw === "fire" || raw === "earth" || raw === "metal" || raw === "water") return raw;
-  return KO_ELEMENT_TO_CODE[raw] ?? null;
+function pad2Digit(value: number): string {
+  return String(Math.max(0, Math.min(99, Math.floor(Number(value) || 0)))).padStart(2, "0");
 }
 
-function normalizeSajuDayMaster(value: unknown) {
-  const raw = String(value || "");
-  const matched = ["갑목", "을목", "병화", "정화", "무토", "기토", "경금", "신금", "임수", "계수"].find((dayMaster) => raw.includes(dayMaster));
-  return matched || "";
-}
-
-function buildInitialCompatibilityEffects(userSaju: unknown, character: LoveCharacter): Partial<LoveStats> {
-  const record = userSaju && typeof userSaju === "object" ? (userSaju as Record<string, unknown>) : {};
-  const userDayMaster = normalizeSajuDayMaster(record.dayMasterName ?? record.dayMaster ?? record.dayPillar);
-  const userElement = normalizeSajuElement(record.dayMasterElement);
-  const profile = character.sajuMatchProfile;
-  const effects: Partial<LoveStats> = {};
-
-  const addEffect = (key: keyof LoveStats, value: number) => {
-    effects[key] = (effects[key] ?? 0) + value;
+// 프로필 시드 → 기본 사주 분석과 동일한 AnimalDestinyInput. 일주 계산 경로를 100% 일치시키기 위한 어댑터.
+function profileSeedToAnimalInput(seed: ProfileSeed): AnimalDestinyInput | null {
+  const parts = parseProfileSeedBirthDate(seed.birthDate);
+  if (!parts || !parts.year || !parts.month || !parts.day) return null;
+  return {
+    name: seed.name,
+    birthDate: `${parts.year}-${pad2Digit(parts.month)}-${pad2Digit(parts.day)}`,
+    birthTime: seed.hasTime ? `${pad2Digit(seed.hour)}:${pad2Digit(seed.minute)}` : undefined,
+    gender: seed.gender === "남" ? "male" : "female",
+    calendarType: seed.calendarType === "lunar" || seed.calendarType === "lunar_leap" ? "lunar" : "solar",
+    lunarLeap: seed.calendarType === "lunar_leap",
   };
+}
 
-  if (userDayMaster && userDayMaster === character.dayMaster) {
-    addEffect("affection", 8);
-    addEffect("trust", 4);
-  } else if (userDayMaster && profile?.primaryDayMasters?.includes(userDayMaster)) {
-    addEffect("affection", 5);
-    addEffect("chemistry", 3);
-  }
-
-  if (userElement && userElement === character.element) {
-    addEffect("chemistry", 6);
-    addEffect("stability", 3);
-  } else if (userElement && (GENERATING_ELEMENT[userElement] === character.element || GENERATING_ELEMENT[character.element] === userElement)) {
-    addEffect("trust", 4);
-    addEffect("stability", 4);
-    addEffect("tension", -2);
-  } else if (userElement && (CONTROLLING_ELEMENT[userElement] === character.element || CONTROLLING_ELEMENT[character.element] === userElement)) {
-    addEffect("affection", -3);
-    addEffect("stability", -3);
-    addEffect("tension", 5);
-  }
-
-  if (userElement && profile?.elementBias?.includes(userElement)) {
-    addEffect("chemistry", 3);
-  }
-
-  return effects;
+// 상대 입력 필드 → 동일 AnimalDestinyInput.
+function partnerFieldsToAnimalInput(fields: {
+  name: string;
+  birthDate: string;
+  calType: PartnerCalendarType;
+  hour: string;
+  minute: string;
+  hasTime: boolean;
+  gender: PartnerGender;
+}): AnimalDestinyInput | null {
+  const digits = String(fields.birthDate || "").replace(/\D/g, "");
+  if (digits.length < 8) return null;
+  const year = Number(digits.slice(0, 4));
+  const month = Number(digits.slice(4, 6));
+  const day = Number(digits.slice(6, 8));
+  if (!year || !month || !day) return null;
+  return {
+    name: fields.name?.trim() || "상대",
+    birthDate: `${year}-${pad2Digit(month)}-${pad2Digit(day)}`,
+    birthTime: fields.hasTime ? `${pad2Digit(Number(fields.hour))}:${pad2Digit(Number(fields.minute))}` : undefined,
+    gender: fields.gender === "male" ? "male" : "female",
+    calendarType: fields.calType === "lunar" || fields.calType === "lunar_leap" ? "lunar" : "solar",
+    lunarLeap: fields.calType === "lunar_leap",
+  };
 }
 
 function CharacterPortrait({ character, mode }: { character: LoveCharacter; mode: "card" | "stage" | "result" }) {
@@ -1116,45 +1091,44 @@ function getSajuCompatibilityScore(stats: LoveStats) {
   return Math.max(0, Math.min(100, raw));
 }
 
-function resolveSajuCompatibilityGrade(score: number) {
-  if (score >= 86) return "상급 궁합";
-  if (score >= 74) return "안정 성장궁합";
-  if (score >= 62) return "설렘 조율궁합";
-  if (score >= 48) return "거리 조절궁합";
-  return "냉각 주의궁합";
-}
-
-function buildSajuCompatibilityVerdict(character: LoveCharacter, stats: LoveStats, entryMode: "preset" | "sajuMatch", coupleCompatibility?: SajuCoupleCompatibility | null): SajuCompatibilityVerdict {
-  const playScore = getSajuCompatibilityScore(stats);
-  const score = coupleCompatibility ? Math.round(coupleCompatibility.score * 0.58 + playScore * 0.42) : playScore;
-  const grade = resolveSajuCompatibilityGrade(score);
-  const source = entryMode === "sajuMatch" ? "상대 사주 입력 기반" : `${character.dayMaster} 일간 캐릭터 기준`;
-  const elementLabel = ELEMENT_LOVE_NARRATIVE[character.element].label;
-  const chips = coupleCompatibility
-    ? [...coupleCompatibility.chips.slice(0, 3), `데이트 반응 ${playScore}점`]
-    : [
-        `${character.dayMaster} 일간`,
-        elementLabel,
-        `긴장 ${stats.tension}`,
-        `신뢰 ${stats.trust}`,
-      ];
-  const reasons = coupleCompatibility?.reasons?.length
-    ? coupleCompatibility.reasons
-    : [
-        `${character.dayMaster} 일간의 연애 결은 ${DAY_MASTER_LOVE_NARRATIVE[character.dayMaster].attraction}`,
-        `${elementLabel} 기운은 ${ELEMENT_LOVE_NARRATIVE[character.element].harmony}`,
-      ];
+// 결과 궁합 카드는 오직 결정론 프로필에서만 파생된다(선택지·stats 미참조).
+function buildSajuCompatibilityVerdict(profile: CompatibilityProfile): SajuCompatibilityVerdict {
+  const dims = profile.dimensions;
+  const chips = [
+    `끌림 ${dims.attraction.score}`,
+    `안정 ${dims.stability.score}`,
+    `소통 ${dims.communication.score}`,
+    `지속 ${dims.longevity.score}`,
+    `갈등 ${dims.conflict.score}`,
+  ];
+  const reasons = profile.indicators
+    .filter((indicator) => indicator.evidence)
+    .slice()
+    .sort((a, b) => Math.abs(b.weighted) - Math.abs(a.weighted))
+    .slice(0, 4)
+    .map((indicator) => indicator.evidence);
+  const frictionIndicator = profile.indicators
+    .filter((indicator) => indicator.rawScore < 0)
+    .slice()
+    .sort((a, b) => a.weighted - b.weighted)[0];
+  const risk = frictionIndicator
+    ? frictionIndicator.evidence
+    : "큰 마찰 신호는 약해요. 익숙함에 기대 확인을 생략하지 않는 것이 관건이에요.";
+  const dateTip = dims.conflict.score >= 60
+    ? "결론을 서두르기보다 짧고 자주 확인하는 대화로 긴장을 낮춰 보세요."
+    : dims.attraction.score >= 66
+      ? "끌림이 좋은 조합이라, 첫 만남부터 서로의 취향을 확인하는 코스가 잘 맞아요."
+      : "조용한 공간에서 생활 리듬부터 맞춰 보면 안정감이 빠르게 쌓여요.";
+  const body = `${profile.coreVerdict}. 두 사람의 사주로 계산된 ${profile.grade}이며, 다시 봐도 점수는 같아요.${profile.dataGaps.length ? ` (${profile.dataGaps.join(" ")})` : ""}`;
 
   return {
-    score,
-    grade,
+    score: profile.score,
+    grade: profile.grade,
     chips,
-    reasons,
-    risk: coupleCompatibility?.risk || `${character.dislikes.behaviors[0]}이 반복되면 궁합 점수가 빠르게 흔들립니다.`,
-    dateTip: coupleCompatibility?.dateTip || `${character.name}에게는 ${character.bestApproach}`,
-    body: coupleCompatibility
-      ? `${coupleCompatibility.summary} 데이트 선택까지 반영하면 최종 체감 궁합은 ${grade}입니다.`
-      : `${source}으로 보면 이 궁합은 ${grade}입니다. ${character.name}에게는 ${character.bestApproach} ${character.trustTriggers[0]}이 관계의 뿌리를 만듭니다.`,
+    reasons: reasons.length ? reasons : ["두 사람의 사주 신호를 종합해 읽었어요."],
+    risk,
+    dateTip,
+    body,
   };
 }
 
@@ -1437,6 +1411,9 @@ export const LoveSimulationEngine: React.FC = () => {
   const [matchError, setMatchError] = useState("");
   const [isMatching, setIsMatching] = useState(false);
   const [initialCompatibilityNote, setInitialCompatibilityNote] = useState("");
+  // Layer 1 — 두 사람의 사주만으로 결정되는 궁합 프로필. 선택지/stats와 무관하게 진입 시 1회 계산해 고정.
+  const [profile, setProfile] = useState<CompatibilityProfile | null>(null);
+  const [profileStatus, setProfileStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
 
   useEffect(() => {
     const syncLocale = (event?: Event) => {
@@ -1474,7 +1451,9 @@ export const LoveSimulationEngine: React.FC = () => {
     setSelectedId(id);
     setEntryMode(mode);
     setSceneIndex(0);
-    setStats(nextCoupleCompatibility ? applyEffects(INITIAL_STATS, nextCoupleCompatibility.statEffects) : INITIAL_STATS);
+    setStats(INITIAL_STATS);
+    setProfile(null);
+    setProfileStatus("loading");
     setCoupleCompatibility(nextCoupleCompatibility);
     setInitialCompatibilityNote(
       nextCoupleCompatibility
@@ -1488,56 +1467,63 @@ export const LoveSimulationEngine: React.FC = () => {
     setScreen("play");
   };
 
+  // 진입 시 두 사람의 명식으로 궁합 프로필을 1회 계산해 고정한다.
+  // 사주 계산은 기본 사주 분석(animal-destiny)과 동일한 경로(normalizeSajuForPerson)를 쓴다. 선택지/stats와 무관.
   useEffect(() => {
-    if (screen !== "play" || !character) return;
-    if (entryMode === "sajuMatch" && coupleCompatibility) return;
+    if ((screen !== "play" && screen !== "result") || !character) return;
 
     let cancelled = false;
-    const profileSeed = readCurrentProfileSeed();
-    if (!profileSeed) {
-      setInitialCompatibilityNote("프로필 카드 생년월일을 연결하면 초반 궁합 흐름에 반영됩니다.");
-      return;
-    }
-
-    const profileBirth = parseProfileSeedBirthDate(profileSeed.birthDate);
-    if (!profileBirth) {
-      setInitialCompatibilityNote("프로필 카드 생년월일을 연결하면 초반 궁합 흐름에 반영됩니다.");
-      return;
-    }
+    setProfileStatus("loading");
 
     void (async () => {
-      try {
-        const userSaju = await fetchSajuPillar({
-          name: profileSeed.name || "나",
-          gender: profileSeed.gender,
-          year: profileBirth.year,
-          month: profileBirth.month,
-          day: profileBirth.day,
-          hour: profileSeed.hour,
-          minute: profileSeed.minute,
-          hasTime: profileSeed.hasTime,
-          calendarType: profileSeed.calendarType,
-          timezone: profileSeed.timezone,
-        });
-        if (cancelled) return;
+      const seed = readCurrentProfileSeed();
+      const selfInput = seed ? profileSeedToAnimalInput(seed) : null;
+      const partnerInput =
+        entryMode === "sajuMatch"
+          ? partnerFieldsToAnimalInput({
+              name: partnerName,
+              birthDate: partnerBirthDate,
+              calType: partnerCalType,
+              hour: partnerHour,
+              minute: partnerMinute,
+              hasTime: partnerHasTime,
+              gender: partnerGender,
+            })
+          : null;
 
-        const effects = buildInitialCompatibilityEffects(userSaju, character);
-        const hasEffects = Object.values(effects).some((value) => Number(value || 0) !== 0);
-        if (hasEffects) {
-          setStats((current) => applyEffects(current, effects));
-          setInitialCompatibilityNote("프로필 카드 사주가 초반 궁합 흐름에 반영됐습니다.");
-        } else {
-          setInitialCompatibilityNote("프로필 카드 사주는 확인됐고, 초반 흐름은 중립으로 시작합니다.");
-        }
-      } catch {
-        if (!cancelled) setInitialCompatibilityNote("프로필 카드 사주를 불러오지 못해 기본 흐름으로 시작합니다.");
+      const [selfNorm, partnerNorm] = await Promise.all([
+        selfInput ? normalizeSajuForPerson(selfInput) : Promise.resolve(null),
+        entryMode === "sajuMatch"
+          ? partnerInput
+            ? normalizeSajuForPerson(partnerInput)
+            : Promise.resolve(null)
+          : Promise.resolve(getCharacterNormalizedSaju(character.id)),
+      ]);
+      if (cancelled) return;
+
+      if (selfNorm && partnerNorm) {
+        setProfile(Object.freeze(computeCompatibilityProfile(selfNorm, partnerNorm, WEIGHTS)));
+        setProfileStatus("ready");
+        setInitialCompatibilityNote(
+          entryMode === "sajuMatch"
+            ? "두 사람의 사주로 궁합을 계산했어요. 선택은 결과를 바꾸지 않아요."
+            : "내 사주와 캐릭터의 사주로 궁합을 계산했어요. 선택은 결과를 바꾸지 않아요.",
+        );
+      } else {
+        setProfile(null);
+        setProfileStatus("error");
+        setInitialCompatibilityNote(
+          !selfNorm
+            ? "내 생년월일을 프로필에 연결하면 결정론적 궁합을 계산할 수 있어요."
+            : "상대의 생년월일을 확인하지 못했어요. 입력값을 다시 확인해 주세요.",
+        );
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [character, coupleCompatibility, entryMode, screen]);
+  }, [character, entryMode, screen, partnerName, partnerBirthDate, partnerCalType, partnerHour, partnerMinute, partnerHasTime, partnerGender]);
 
   const handleChoice = (choice: LoveChoice) => {
     if (!currentScene || selectedChoice) return;
@@ -2104,14 +2090,41 @@ export const LoveSimulationEngine: React.FC = () => {
   }
 
   if (screen === "result" && character) {
-    const result = resolveResult(stats, locale);
+    if (profileStatus === "loading" || profileStatus === "idle") {
+      return (
+        <section className="flex min-h-[100svh] items-center justify-center bg-[#0b0710] p-6 text-center text-white">
+          <div className="max-w-sm space-y-3">
+            <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-white/25 border-t-rose-200" />
+            <p className="text-sm font-bold text-rose-50">두 사람의 사주로 궁합을 계산하고 있어요…</p>
+          </div>
+        </section>
+      );
+    }
+    if (!profile) {
+      return (
+        <section className="flex min-h-[100svh] items-center justify-center bg-[#0b0710] p-6 text-center text-white">
+          <div className="max-w-sm space-y-4">
+            <p className="text-base font-bold leading-7 text-rose-50">
+              {initialCompatibilityNote || "궁합을 계산할 사주 정보를 확인하지 못했어요."}
+            </p>
+            <button onClick={resetToSelect} className="rounded-lg bg-white px-5 py-3 text-sm font-bold text-zinc-950">
+              다시 선택하기
+            </button>
+          </div>
+        </section>
+      );
+    }
+    const result = {
+      title: profile.coreVerdict,
+      body: `${profile.grade} · ${profile.score}점 — 두 사람의 사주로 계산된 결과예요. 다시 봐도 점수는 같고, 이야기 순서만 달라집니다.`,
+    };
     const choiceAnalysis = analyzeChoiceLogs(choiceLog);
     const characterResultSummary = CHARACTER_RESULT_SUMMARIES[character.id];
     const customAdvice = buildCustomAdvice(character, choiceAnalysis);
     const myeongliCoda = buildMyeongliResultCoda(character);
     const riskCoda = buildMyeongliRiskCoda(character);
     const sajuEntrySummary = buildSajuEntrySummary(entryMode, character);
-    const sajuCompatibility = buildSajuCompatibilityVerdict(character, stats, entryMode, coupleCompatibility);
+    const sajuCompatibility = buildSajuCompatibilityVerdict(profile);
     const dateOutcome = buildDateOutcome(character, stats, choiceAnalysis, choiceLog);
     const finalRelationshipType = resolveFinalRelationshipType(stats, copy);
     const recentChoiceRecaps = buildRecentChoiceRecaps(choiceLog, scenes);
@@ -2184,8 +2197,14 @@ export const LoveSimulationEngine: React.FC = () => {
                 </ResultCard>
               </div>
 
-              <div className="mt-7 grid gap-4 sm:grid-cols-3">
-                {metrics.map((metric) => (
+              <div className="mt-7 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
+                {[
+                  { label: "끌림", value: profile.dimensions.attraction.score },
+                  { label: "안정성", value: profile.dimensions.stability.score },
+                  { label: "소통", value: profile.dimensions.communication.score },
+                  { label: "지속성", value: profile.dimensions.longevity.score },
+                  { label: "갈등 관리", value: 100 - profile.dimensions.conflict.score },
+                ].map((metric) => (
                   <MetricBar key={metric.label} label={metric.label} value={metric.value} />
                 ))}
               </div>

@@ -33,7 +33,7 @@ const SAJU_ADAPTER_TEXT_TRANSLATIONS = {
   },
 } as const;
 
-function parseBirthDate(input: string) {
+export function parseBirthDate(input: string) {
   const raw = String(input || "").trim();
   const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) {
@@ -47,7 +47,7 @@ function parseBirthDate(input: string) {
   };
 }
 
-function parseBirthTime(input?: string) {
+export function parseBirthTime(input?: string) {
   const raw = String(input || "").trim();
   if (!raw) {
     return {
@@ -154,7 +154,7 @@ async function tryFetchExternalSajuEngine(input: AnimalDestinyInput): Promise<Sa
 
 const KASI_CALENDAR_ENDPOINT = "/api/kasi/calendar";
 
-interface KasiPrefetchResult {
+export interface KasiPrefetchResult {
   kasiSolarDate?: { year: number; month: number; day: number };
   kasiSolarTerms?: Array<{ name: string; isoLocal: string }>;
 }
@@ -192,7 +192,7 @@ async function postKasiCalendar(body: unknown): Promise<Record<string, unknown> 
  * - 음력 입력: getSolCalInfo로 양력 변환 → kasiSolarDate
  * - 24절기: 양력 출생연도 Y-1, Y, Y+1을 조회 → kasiSolarTerms(검증된 KASI 소스만)
  */
-async function prefetchKasiContext(input: AnimalDestinyInput): Promise<KasiPrefetchResult> {
+export async function prefetchKasiContext(input: AnimalDestinyInput): Promise<KasiPrefetchResult> {
   if (typeof window === "undefined") return {};
 
   const result: KasiPrefetchResult = {};
@@ -244,11 +244,15 @@ async function prefetchKasiContext(input: AnimalDestinyInput): Promise<KasiPrefe
   return result;
 }
 
-function calculateLocalResult(input: AnimalDestinyInput, kasi?: KasiPrefetchResult): SajuEngineResult {
+/**
+ * 기본 사주 분석과 동일한 옵션으로 로컬 명식(natalAnalysis 포함 full result)을 계산한다.
+ * calculateLocalResult(동물점)와 러브심 궁합 엔진이 이 단일 함수를 공유해 일주 로직을 100% 일치시킨다.
+ */
+export function computeNatalFromInput(input: AnimalDestinyInput, kasi?: KasiPrefetchResult) {
   const { year, month, day } = parseBirthDate(input.birthDate);
   const { hour, minute, hasTime } = parseBirthTime(input.birthTime);
 
-  const local = calculateLocalSaju({
+  return calculateLocalSaju({
     year,
     month,
     day,
@@ -260,6 +264,10 @@ function calculateLocalResult(input: AnimalDestinyInput, kasi?: KasiPrefetchResu
     kasiSolarDate: kasi?.kasiSolarDate,
     kasiSolarTerms: kasi?.kasiSolarTerms,
   });
+}
+
+function calculateLocalResult(input: AnimalDestinyInput, kasi?: KasiPrefetchResult): SajuEngineResult {
+  const local = computeNatalFromInput(input, kasi);
 
   return {
     dayStem: local.dayStem,
