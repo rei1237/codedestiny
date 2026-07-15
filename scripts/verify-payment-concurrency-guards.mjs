@@ -82,7 +82,7 @@ assert.match(
 );
 assert.match(
   paymentsSource,
-  /\}\s*else\s*\{\s*await markPortOneWebhookEventFailed\(\s*reservation\.event/,
+  /\}\s*else\s*\{\s*await markPortOneWebhookEventFailed\(\s*event\b/,
   "handleWebhook 은 비-2xx 응답을 failed 로 마킹해 재시도를 유지해야 한다",
 );
 

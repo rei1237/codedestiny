@@ -2599,6 +2599,10 @@ async function settlePaymentByImpUid({
   const expectedAmount = Number.isInteger(Number(requestedAmount))
     ? Number(requestedAmount)
     : Number(paymentRecord?.paymentAmount || 0);
+  // 신뢰할 수 있는 기대금액(클라 검증 금액 or 준비된 주문 금액)이 있었는지 — ensurePaymentRecord가
+  // PortOne 금액으로 폴백(2611)하기 '이전' 시점의 값으로 판정한다. 이 값이 없으면 이후 금액 대조가
+  // PortOne↔PortOne 순환이 되어 실질 검증이 사라진다(fail-closed 가드에서 사용).
+  const hasVerifiableExpectedAmount = expectedAmount > 0;
   const expectedChargedPoints = Number.isInteger(Number(requestedChargePoints))
     ? Number(requestedChargePoints)
     : Number(paymentRecord?.expectedChargedPoints || 0);
@@ -2885,6 +2889,37 @@ async function settlePaymentByImpUid({
       ok: false,
       status: 410,
       message: "선불형 잔액 결제는 더 이상 처리하지 않습니다. 상품별 원화 단건 결제를 이용해 주세요.",
+    };
+  }
+
+  // 금액 대조 정본화(fail-closed): 위 두 대조(2759 클라·2800 서버)는 모두 조건부라, 신뢰할 기대금액이
+  // 전혀 없으면(클라 금액 없음 + 준비된 주문 금액 없음) 조용히 건너뛰어진다. 그 경우 ensurePaymentRecord가
+  // 기대금액을 PortOne 금액으로 채워(2611) 대조가 순환·무의미해지므로, 잠금 콘텐츠는 절대 확정하지 않는다.
+  // 현재 정상 플로우(준비 주문은 항상 실금액 기록, 신규 레코드는 point_charge라 위에서 410 차단)에서는
+  // 도달 불가능한 방어선이며, 상위 불변식이 깨질 때만 발동한다. PortOne은 정상(paid)이므로 실패로
+  // 확정하지 않고(상태 불일치 방지) 준비 주문 기반 재조회(webhook/reconcile)에 맡기도록 보류한다.
+  if (!hasVerifiableExpectedAmount) {
+    await writeFailureLog({
+      request,
+      userId: ownerUserId,
+      impUid,
+      merchantUid,
+      source,
+      stage: "amount_match",
+      code: "amount_unverifiable",
+      message: "No trusted expected amount to verify against PortOne amount.",
+      status: 409,
+      portOneAmount,
+      payload: body,
+      rawPortOne: portOnePayment,
+    });
+
+    return {
+      ok: false,
+      status: 409,
+      code: "AMOUNT_UNVERIFIABLE",
+      pendingUnlock: true,
+      message: "결제 금액 확인에 필요한 주문 정보가 없어 아직 처리를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.",
     };
   }
 

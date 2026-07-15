@@ -1643,6 +1643,15 @@ function buildBillingErrorDetails(stage, error, extras = {}) {
 }
 
 function passEvidenceFailure(error, { pricing, requestId, profileId, stage = "pass-access-record" } = {}) {
+  logPaidAccessStage("INFRA_503_PASS_EVIDENCE", {
+    requestId,
+    featureKey: String(pricing?.featureKey || ""),
+    profileId: profileId || undefined,
+    httpStatus: 503,
+    scope: stage,
+    errorName: String(error?.name || ""),
+    errorMessage: String(error?.message || ""),
+  });
   return failure(
     503,
     "PAID_ACCESS_VERIFY_RETRYABLE",
@@ -2593,6 +2602,11 @@ function logPaidAccessStage(stage, details = {}) {
     paymentId: String(details.paymentId || ""),
     orderId: String(details.orderId || ""),
     idempotencyKey: String(details.idempotencyKey || ""),
+    // 503 진단용: 어느 체크포인트(httpStatus)에서, 어떤 조회 범위(scope)가,
+    // 얼마나(elapsedMs) 걸려 실패했는지 정량화하기 위한 필드.
+    scope: String(details.scope || ""),
+    httpStatus: Number(details.httpStatus || 0),
+    elapsedMs: Number(details.elapsedMs || 0),
     errorName: String(details.errorName || ""),
     errorMessage: String(details.errorMessage || ""),
     stack: String(details.stack || ""),
@@ -2837,6 +2851,13 @@ async function requireBillingAuth(request, env, pricing = {}) {
     // 로그인 사용자가 DB 풀 초기화 등 일시적 장애로 인증 확인이 안 되는 순간을
     // 확정 401(로그아웃 유발)로 뭉개지 않고 재시도 가능한 503으로 응답한다.
     if (isAuthDbInfraError(error)) {
+      logPaidAccessStage("INFRA_503_AUTH", {
+        featureKey: String(pricing?.featureKey || ""),
+        httpStatus: 503,
+        scope: "auth",
+        errorName: String(error?.name || ""),
+        errorMessage: String(error?.message || ""),
+      });
       return {
         ok: false,
         response: failure(
@@ -3035,6 +3056,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   const persistProfileUnlockEntitlement = shouldPersistProfileUnlockEntitlement(pricing);
   // 이용권/프로필 조회(READ)도 일시적 풀 초기화(MongoPoolClearedError)에 '일시 불가'로
   // 떨어지지 않도록 재시도로 감싼다(재시도 소진 시 degrade 마커는 기존 유지).
+  const lookupStartedAt = Date.now();
   const profileResolvePromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
     resolveBillingProfileId(authCheck.auth.userId, body, env),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
@@ -3063,10 +3085,21 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     profileResolvePromise,
     subscriptionPassPromise,
   ]);
+  const lookupElapsedMs = Date.now() - lookupStartedAt;
   const lookupUnavailable = isPassLookupUnavailableMarker(profileLookupResult)
     ? profileLookupResult
     : (isPassLookupUnavailableMarker(subscriptionPassLookupResult) ? subscriptionPassLookupResult : null);
   if (lookupUnavailable) {
+    logPaidAccessStage("INFRA_503_PASS_LOOKUP", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      httpStatus: 503,
+      scope: lookupUnavailable.scope,
+      elapsedMs: lookupElapsedMs,
+      errorName: String(lookupUnavailable.error?.name || ""),
+      errorMessage: String(lookupUnavailable.error?.message || ""),
+    });
     return buildPassStatusTemporarilyUnavailableFailure(pricing, {
       scope: lookupUnavailable.scope,
       errorDetails: buildBillingErrorDetails("coin-gate-pass-lookup", lookupUnavailable.error, {
@@ -3117,6 +3150,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     priceCoin: Number(pricing?.coinPrice || pricing?.cost || 0),
     paymentOptions: paymentDecision,
   });
+  let accessDecisionElapsedMs = 0;
   if (persistProfileUnlockEntitlement) {
     logPaidAccessStage("ACCESS_CHECK_START", {
       requestId,
@@ -3140,6 +3174,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       passLimit: featurePolicyDecision.passLimit,
       idempotencyKey: body?.idempotencyKey || body?.purchaseId || body?.orderId || requestId,
     });
+    const accessDecisionStartedAt = Date.now();
     accessDecision = await resolvePaidContentAccess(env, {
       userId: authCheck.auth.userId,
       profileId,
@@ -3150,8 +3185,20 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       subscriptionPass: subscriptionPassForDecision,
       body: scopedBody,
     });
+    accessDecisionElapsedMs = Date.now() - accessDecisionStartedAt;
   }
   if (isTemporaryUnavailableAccessDecision(accessDecision)) {
+    logPaidAccessStage("INFRA_503_ACCESS_DECISION", {
+      requestId,
+      userId: authCheck.auth.userId,
+      featureKey: pricing?.featureKey,
+      profileId: profileId || undefined,
+      httpStatus: 503,
+      scope: accessDecision.scope || "coin_gate_access_decision",
+      elapsedMs: accessDecisionElapsedMs,
+      errorName: String(accessDecision.errorDetails?.name || ""),
+      errorMessage: String(accessDecision.errorDetails?.message || accessDecision.reason || ""),
+    });
     return buildPassStatusTemporarilyUnavailableFailure(pricing, {
       profileId: profileId || undefined,
       profileSubscription: subscriptionPassForDecision?.profileSubscription || null,

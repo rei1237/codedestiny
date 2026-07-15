@@ -1516,14 +1516,20 @@ async function handleDeleteProfile(request, auth, profileIdRaw) {
 }
 
 export async function handleProfileRoutes(request, env) {
+  // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
+  // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
+  const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false };
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
     const auth = await requireUserFromRequest(request, env);
+    trace.authPresent = true;
+    trace.authVerified = true;
     const security = await enforceProfileRouteSecurity(request, env, auth, method, path);
     if (!security.ok) return security.response;
 
     await connectDb(env);
+    trace.dbConnected = true;
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
     if (method === "POST" && path === "/") return await handleCreateProfile(request, auth);
@@ -1547,10 +1553,7 @@ export async function handleProfileRoutes(request, env) {
     return handleRouteError(error, {
       env,
       request,
-      trace: {
-        route: "profile",
-        method: request.method,
-      },
+      trace,
     });
   }
 }
