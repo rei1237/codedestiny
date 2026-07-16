@@ -1,5 +1,5 @@
 // 월정석 lot의 DB 반영(서버 전용) — 순수 회계는 monthly-credit-lots.js, 여기선 User 문서 write.
-import { User } from "./models.js";
+import { RECENT_CONSUME_REQUEST_ID_CAP, User } from "./models.js";
 import { applyGrantLot, deductLotsFIFO, ensureLotsForBalance } from "./monthly-credit-lots.js";
 
 const MAX_ATTEMPTS = 5;
@@ -39,7 +39,12 @@ export async function consumeMonthlyCreditLots({ userId, amount, pushRequestId =
           "profileSubscription.membershipCreditUsed": need,
           "profileSubscription.membershipCreditLotsVersion": 1,
         },
-        ...(pushRequestId ? { $addToSet: { recentConsumeRequestIds: pushRequestId } } : {}),
+        // 중복 방지는 위 필터의 `$ne: pushRequestId` 가드가 담당한다($push는 스스로 못 막는다).
+        ...(pushRequestId ? {
+          $push: {
+            recentConsumeRequestIds: { $each: [pushRequestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+          },
+        } : {}),
       },
       { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
     ).lean();

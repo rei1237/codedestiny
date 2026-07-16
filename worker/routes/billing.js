@@ -30,6 +30,7 @@ import {
   PaidExecutionRecord,
   Payment,
   PointHistory,
+  RECENT_CONSUME_REQUEST_ID_CAP,
   SAJU_LOCKED_CONTENT_KEYS,
   ServiceExecutionTransaction,
   User,
@@ -690,11 +691,21 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
           "profileSubscription.freeLimit": coveredCoinLimit,
           "profileSubscription.passLimit": coveredCoinLimit,
           "profileSubscription.updatedAt": now,
+          // 파이프라인 업데이트라 $push/$slice 연산자를 못 쓴다 → 집계 표현식으로 append + 상한.
+          // $setUnion이 아니라 $concatArrays인 이유: $setUnion은 집합 연산이라 순서를 보장하지 않아
+          // $slice(-N)과 조합하면 '최근 N개'가 아니라 '정렬 후 뒤 N개'가 남아 마커 의미가 붕괴한다.
+          // 중복은 위 updateQuery의 `$ne: idempotencyMarker` 가드가 막는다(마커가 있으면 문서 자체가
+          // 매치되지 않아 write가 일어나지 않음) — $setUnion의 dedup은 애초에 불필요한 이중장치였다.
           ...(idempotencyMarker ? {
             recentConsumeRequestIds: {
-              $setUnion: [
-                { $ifNull: ["$recentConsumeRequestIds", []] },
-                [idempotencyMarker],
+              $slice: [
+                {
+                  $concatArrays: [
+                    { $ifNull: ["$recentConsumeRequestIds", []] },
+                    [idempotencyMarker],
+                  ],
+                },
+                -RECENT_CONSUME_REQUEST_ID_CAP,
               ],
             },
           } : {}),
@@ -1268,6 +1279,15 @@ function isTransactionUnsupported(error) {
     .test(String(error?.message || ""));
 }
 
+// 환불된 SPEND 원장의 sourceId를 무효화 표식으로 바꿔 유니크 키({userId,type,sourceId})를 비운다.
+// 이게 없으면 환불 뒤 같은 purchaseId로 재구매할 때 원장 create가 영구히 E11000 → 500이 되어
+// 사용자가 결과를 영영 못 받는다(행은 삭제하지 않는다 — 감사 추적 보존, 원본은 metadata.purchaseId에 있음).
+// ledgerId를 '앞에' 두는 게 핵심: sourceId가 최대 180자라 뒤에 붙이면 절단이 유일성을 깨뜨릴 수 있다.
+// Date.now() 금지 — 재실행해도 같은 값이어야 마이그레이션/self-heal이 멱등하다.
+function buildRefundedSpendSourceId(sourceId, ledgerId) {
+  return `refunded:${String(ledgerId || "")}:${String(sourceId || "")}`.slice(0, 180);
+}
+
 async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requestId, body = {}, knownProfileSubscription = null) {
   const coinPrice = resolvePricingCoinCost(pricing, resolvePricingCoinCost(body));
   const requiredCredit = resolveMonthlyCreditCostForBilling(pricing, body);
@@ -1342,6 +1362,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       featureKey,
       "metadata.accessType": "membership_credit",
       "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+      // 원장 write 실패로 차감이 보상(compensateDeduct)된 이력도 제외해야 한다 — 안 그러면 다음 재시도가
+      // 이 이력에 매치돼 차감도 원장도 없이 idempotent 성공으로 무상 해금된다(매출 누수).
+      // fortune.js가 이미 이 플래그들을 모두 제외하는 정본이고, billing만 비대칭으로 빠져 있었다.
+      "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
       $or: [
         { "metadata.purchaseId": purchaseId },
         { "metadata.idempotencyKey": purchaseId },
@@ -1385,6 +1409,27 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   const idempotentSpend = await readIdempotentSpendResult();
   if (idempotentSpend) return idempotentSpend;
 
+  // 환불된 원장이 유니크 키를 아직 점유 중이면 표식 sourceId로 옮겨 키를 비운다(재구매 가능하게).
+  // 정상 경로에선 환불 시점에 이미 비워지므로, 여기 오는 건 그때 updateOne이 삼켜졌거나 isolate가
+  // 복원~재기입 사이에서 죽은 경우다(self-heal).
+  // 🔒 안전 계약: 필터의 refundedForUnlockFailure:true — 미환불 원장은 절대 건드리지 않는다.
+  //    (미환불 행을 옮기면 유효한 차감의 원장이 유실된다.)
+  const releaseRefundedSpendSourceId = async () => {
+    if (!purchaseId) return false;
+    const refundedLedger = await MonthlyCreditLedger.findOne({
+      userId: authUserId,
+      type: "MONTHLY_CREDIT_SPEND",
+      sourceId: purchaseId,
+      "metadata.refundedForUnlockFailure": true,
+    }).select("_id").lean();
+    if (!refundedLedger?._id) return false;
+    const released = await MonthlyCreditLedger.updateOne(
+      { _id: refundedLedger._id, userId: authUserId, "metadata.refundedForUnlockFailure": true },
+      { $set: { sourceId: buildRefundedSpendSourceId(purchaseId, refundedLedger._id) } },
+    ).catch(() => null);
+    return Number(released?.modifiedCount || 0) > 0;
+  };
+
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
   const profileId = cleanProfileId(body?.profileId || body?.selectedProfileId);
@@ -1427,7 +1472,14 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
           "profileSubscription.membershipCreditUsed": requiredCredit,
           "profileSubscription.membershipCreditLotsVersion": 1,
         },
-        ...(purchaseId ? { $addToSet: { recentConsumeRequestIds: purchaseId } } : {}),
+        // $push는 $addToSet과 달리 스스로 중복을 막지 않는다 — 중복 방지는 위 writeFilter의
+        // `recentConsumeRequestIds: { $ne: purchaseId }` 가드가 담당한다(같은 원자적 findOneAndUpdate).
+        // 가드와 push 값이 어긋나면 즉시 이중 차감이므로 둘을 항상 같은 변수로 유지할 것.
+        ...(purchaseId ? {
+          $push: {
+            recentConsumeRequestIds: { $each: [purchaseId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+          },
+        } : {}),
       };
       const writeOpts = { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } };
       if (session) writeOpts.session = session;
@@ -1564,12 +1616,30 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     return { ok: true, updatedUser, monthlyCredits, history, ledger };
   };
 
+  // 기존 txn→saga 폴백(동작 불변). 아래 E11000 복구가 이 단위를 1회 재실행할 수 있어 함수로 감쌌다.
+  const runSpend = async () => {
+    try {
+      return await runSpendWithTransaction();
+    } catch (error) {
+      if (!isTransactionUnsupported(error)) throw error;
+      return await runSpendWithCompensation();
+    }
+  };
+
   let spendOutcome;
   try {
-    spendOutcome = await runSpendWithTransaction();
+    spendOutcome = await runSpend();
   } catch (error) {
-    if (!isTransactionUnsupported(error)) throw error;
-    spendOutcome = await runSpendWithCompensation();
+    if (Number(error?.code) !== 11000) throw error;
+    // 원장 유니크 키 충돌. 여기 닿는 시점엔 두 경로 모두 차감이 이미 롤백돼 있다
+    // (txn은 abort가, saga는 compensateDeduct가) → 돈이 안 움직였으므로 안전하게 판별·재시도할 수 있다.
+    // (payments.js의 11000 처리와 취지는 같으나 상황이 다르다: 거기선 차감이 이미 커밋돼 '롤백할까'가
+    //  질문이지만, 여기선 롤백이 끝나 있어 원장-잔액 불일치가 구조적으로 불가능하다.)
+    const replayed = await readIdempotentSpendResult();
+    if (replayed) return replayed; // 미환불 원장 = 진짜 재시도 → 재차감 없이 기존 결과를 되돌린다
+    // 환불된 원장이 키를 점유 중이면 비우고 딱 1회만 재시도한다(무한루프 금지).
+    if (!await releaseRefundedSpendSourceId()) throw error;
+    spendOutcome = await runSpend();
   }
   if (!spendOutcome?.ok) {
     const failureReason = String(spendOutcome?.reason || "CONTENDED");
@@ -3808,6 +3878,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
                     { _id: membershipConsume.ledgerId, userId: authCheck.auth.userId },
                     {
                       $set: {
+                        // 유니크 키({userId,type,sourceId})를 비운다 — 플래그만 찍고 키를 점유한 채 두면
+                        // 같은 purchaseId 재구매가 원장 create에서 영구히 E11000 → 500이 되어
+                        // 사용자가 결과를 영영 못 받는다. 원본 purchaseId는 metadata.purchaseId에 남는다.
+                        sourceId: buildRefundedSpendSourceId(refundPurchaseId, membershipConsume.ledgerId),
                         "metadata.refundedForUnlockFailure": true,
                         "metadata.refundedAt": new Date(),
                         "metadata.unlockFailureMessage": String(error?.message || "").slice(0, 500),
@@ -4161,7 +4235,12 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     };
     const coinDeductUpdate = {
       $inc: { points: -requiredCoins },
-      ...(coinPurchaseId ? { $addToSet: { recentConsumeRequestIds: coinPurchaseId } } : {}),
+      // 중복 방지는 위 필터의 `$ne: coinPurchaseId` 가드가 담당한다($push는 스스로 못 막는다).
+      ...(coinPurchaseId ? {
+        $push: {
+          recentConsumeRequestIds: { $each: [coinPurchaseId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+        },
+      } : {}),
     };
     const compensateCoinDeduct = async () => {
       await User.findByIdAndUpdate(authCheck.auth.userId, {
@@ -6183,6 +6262,7 @@ export const __billingTestUtils = {
   buildPaidContentAccessDecision,
   buildPassPaymentDecision,
   buildMembershipPassFromStatusSnapshot,
+  buildRefundedSpendSourceId,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

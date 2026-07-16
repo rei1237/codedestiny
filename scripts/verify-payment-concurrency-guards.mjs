@@ -13,6 +13,19 @@ import { resolve } from "node:path";
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
+const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
+const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
+const monthlyCreditStoreSource = readFileSync(resolve(root, "worker/lib/monthly-credit-store.js"), "utf8");
+const ziweiDaehanSource = readFileSync(resolve(root, "worker/routes/ziwei-daehan.js"), "utf8");
+
+// 멱등 마커를 write하는 소스 전량 — 상한/페어링 assert가 전수 검사한다.
+const MARKER_WRITE_SOURCES = {
+  "billing.js": billingSource,
+  "payments.js": paymentsSource,
+  "fortune.js": fortuneSource,
+  "ziwei-daehan.js": ziweiDaehanSource,
+  "monthly-credit-store.js": monthlyCreditStoreSource,
+};
 
 const paymentsMod = await import("../worker/routes/payments.js");
 const {
@@ -20,6 +33,10 @@ const {
   isSuccessfulWebhookResponse,
   WEBHOOK_STALE_PROCESSING_MS,
 } = paymentsMod.__paymentsTestUtils;
+
+const billingMod = await import("../worker/routes/billing.js");
+const { buildRefundedSpendSourceId } = billingMod.__billingTestUtils;
+const { RECENT_CONSUME_REQUEST_ID_CAP } = await import("../worker/lib/models.js");
 
 const now = 1_710_000_000_000;
 
@@ -114,10 +131,20 @@ assert.match(
   const fakeUser = {
     async findOneAndUpdate(filter, update) {
       const hasBalance = userDoc.points >= (filter.points?.$gte ?? 0);
-      const notConsumed = !userDoc.recentConsumeRequestIds.includes(reqId);
+      // 구현과 동일하게, 중복 방지는 필터의 $ne 가드가 담당한다($push는 스스로 못 막는다).
+      const notConsumed = !userDoc.recentConsumeRequestIds.includes(filter.recentConsumeRequestIds?.$ne ?? reqId);
       if (!hasBalance || !notConsumed) return { lean: async () => null };
       userDoc.points += update.$inc.points;
-      if (update.$addToSet) userDoc.recentConsumeRequestIds.push(reqId);
+      // $push + $each + $slice(-N) 의미론을 그대로 재현한다(구현이 $addToSet에서 이걸로 바뀌었다).
+      const push = update.$push?.recentConsumeRequestIds;
+      if (push) {
+        userDoc.recentConsumeRequestIds.push(...(push.$each ?? []));
+        if (Number.isFinite(push.$slice)) {
+          userDoc.recentConsumeRequestIds = push.$slice < 0
+            ? userDoc.recentConsumeRequestIds.slice(push.$slice)
+            : userDoc.recentConsumeRequestIds.slice(0, push.$slice);
+        }
+      }
       return { lean: async () => ({ points: userDoc.points }) };
     },
     async findByIdAndUpdate(_id, update) {
@@ -134,9 +161,12 @@ assert.match(
     },
   };
 
-  // 구현된 runCoinSpendWithCompensation 과 동일한 순서의 보상 로직.
-  const deductFilter = { points: { $gte: cost } };
-  const deductUpdate = { $inc: { points: -cost }, $addToSet: { recentConsumeRequestIds: reqId } };
+  // 구현된 runCoinSpendWithCompensation 과 동일한 순서·형태의 보상 로직.
+  const deductFilter = { points: { $gte: cost }, recentConsumeRequestIds: { $ne: reqId } };
+  const deductUpdate = {
+    $inc: { points: -cost },
+    $push: { recentConsumeRequestIds: { $each: [reqId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP } },
+  };
   const compensate = async () => {
     await fakeUser.findByIdAndUpdate("u1", {
       $inc: { points: cost },
@@ -231,5 +261,119 @@ assert.doesNotMatch(
   /await User\.findByIdAndUpdate\(auth\.userId, \{\s*\$set: \{ profileSubscription: existingUser\.profileSubscription \|\| \{\} \},\s*\$pull: \{ recentConsumeRequestIds: requestId \},\s*\}\)\.catch/,
   "무조건적 profileSubscription 전체 치환 롤백은 제거되어야 한다",
 );
+
+// ── 시나리오 6c: billing.js 월정석 원장 — 환불 후 재구매가 영구 500이 되면 안 된다 ──────────
+// 배경: 환불은 원장을 삭제하지 않고 플래그만 찍는데, {userId,type,sourceId} unique 인덱스는 그 플래그를
+// 모른다. sourceId를 비워주지 않으면 같은 purchaseId 재구매가 원장 create에서 영원히 E11000 → 500이 되어
+// 사용자가 결과를 영영 못 받는다(6a는 payments.js만 검사해 billing.js는 무방비였다).
+
+// 행위: 표식 sourceId 생성기 (소스 정규식보다 강한 계약 고정)
+assert.equal(
+  buildRefundedSpendSourceId("p1", "64f0a1"),
+  buildRefundedSpendSourceId("p1", "64f0a1"),
+  "표식 sourceId는 결정적이어야 한다(Date.now 금지 — 재실행/self-heal이 멱등해야 함)",
+);
+assert.ok(
+  buildRefundedSpendSourceId("x".repeat(160), "a".repeat(24)).length <= 180,
+  "표식 sourceId는 스키마 maxlength(180)를 넘으면 안 된다(updateOne은 validator를 안 돌려 조용히 드리프트)",
+);
+assert.notEqual(
+  buildRefundedSpendSourceId("p1", "id1"),
+  buildRefundedSpendSourceId("p1", "id2"),
+  "유일성은 ledgerId가 담당해야 한다",
+);
+assert.notEqual(
+  buildRefundedSpendSourceId("p1", "id1"),
+  "p1",
+  "표식 sourceId는 원본과 달라야 유니크 키가 실제로 해제된다",
+);
+assert.notEqual(
+  buildRefundedSpendSourceId("x".repeat(300), "idA"),
+  buildRefundedSpendSourceId("x".repeat(300), "idB"),
+  "180자 절단이 유일성을 깨면 안 된다(ledgerId를 앞에 두는 이유)",
+);
+
+// 6c-1. 환불은 유니크 키를 비워야 한다(플래그만 찍고 키를 점유한 채 두면 재구매가 영구 500).
+assert.match(
+  billingSource,
+  /\$set: \{[\s\S]{0,400}?sourceId: buildRefundedSpendSourceId\([\s\S]{0,200}?"metadata\.refundedForUnlockFailure": true/,
+  "환불 시 원장 sourceId를 표식으로 재기입해 유니크 키를 해제해야 한다",
+);
+// 6c-2. 중복 원장(11000)은 롤백 없이 기존 원장 재사용 (payments 6a와 대칭).
+assert.match(
+  billingSource,
+  /if \(Number\(error\?\.code\) !== 11000\) throw error;[\s\S]{0,600}?readIdempotentSpendResult\(\)/,
+  "billing.js도 중복 원장(11000)을 재차감이 아니라 기존 원장 재사용으로 처리해야 한다",
+);
+// 6c-3. self-heal은 '환불된' 원장만 건드려야 한다 — 미환불 행을 옮기면 유효한 차감의 원장이 유실된다.
+assert.match(
+  billingSource,
+  /releaseRefundedSpendSourceId = async \(\)[\s\S]{0,500}?"metadata\.refundedForUnlockFailure": true/,
+  "releaseRefundedSpendSourceId는 refundedForUnlockFailure:true 로 좁혀 미환불 원장을 보호해야 한다",
+);
+// 6c-4. 원장 write 실패로 보상된 이력도 멱등 가드에서 제외해야 한다(무상 해금 방지, fortune.js와 대칭).
+assert.match(
+  billingSource,
+  /"metadata\.monthlyCreditRefundedForUnlockFailure": \{ \$ne: true \},[\s\S]{0,400}?"metadata\.monthlyCreditRefundedForLedgerFailure": \{ \$ne: true \}/,
+  "보상된(ForLedgerFailure) 이력도 제외해야 무상 해금이 안 생긴다",
+);
+// 6c-5. 환불은 삭제가 아니라 재기입+플래그여야 한다(감사 추적 보존).
+assert.doesNotMatch(
+  billingSource,
+  /MonthlyCreditLedger\.(deleteOne|deleteMany|findByIdAndDelete)/,
+  "환불이 원장을 삭제하면 안 된다(감사 추적 보존 — 재기입+플래그로 처리)",
+);
+
+// ── 시나리오 7: 멱등 마커 배열 상한 (무한 누적 병목) ──────────────────────────
+// recentConsumeRequestIds는 결제 차감 핫패스에서 매 재시도마다 통째로 조회된다. 상한이 없으면
+// 무한 누적된다(특히 이용권 무료 통과도 마커를 남겨 지출 없이 커진다).
+assert.match(
+  modelsSource,
+  /export const RECENT_CONSUME_REQUEST_ID_CAP = 200;/,
+  "마커 상한은 models.js의 단일 정본(200 — server/routes/fortune.routes.js와 동일)이어야 한다",
+);
+for (const [label, source] of Object.entries(MARKER_WRITE_SOURCES)) {
+  assert.doesNotMatch(
+    source,
+    /\$addToSet: \{ recentConsumeRequestIds/,
+    `${label}: $addToSet은 $slice를 지원하지 않아 상한을 못 건다 — $push+$each+$slice로 전환해야 한다`,
+  );
+  assert.match(
+    source,
+    /\$slice: -RECENT_CONSUME_REQUEST_ID_CAP/,
+    `${label}: 마커 push에 상한($slice)이 걸려 있어야 한다`,
+  );
+  // 페어링 락: $push는 스스로 중복을 못 막으므로 짝이 되는 $ne 가드가 반드시 있어야 한다.
+  const pushes = (source.match(/\$push: \{\s*recentConsumeRequestIds/g) || []).length;
+  const guards = (source.match(/recentConsumeRequestIds: \{ \$ne:/g) || []).length;
+  assert.ok(
+    pushes <= guards,
+    `${label}: 마커 $push(${pushes})마다 $ne 가드(${guards})가 있어야 한다 — 없으면 즉시 이중 차감`,
+  );
+}
+// 파이프라인 경로(이용권 무료 통과)는 업데이트 연산자를 못 써 집계 표현식을 쓴다.
+// $setUnion은 순서를 보장하지 않아 $slice(-N)과 조합하면 '최근 N개'가 아니게 된다.
+assert.doesNotMatch(
+  billingSource.replace(/\/\/[^\n]*/g, ""),
+  /\$setUnion/,
+  "마커 파이프라인은 $setUnion(순서 미보장)이 아니라 $concatArrays를 써야 한다",
+);
+assert.match(
+  billingSource,
+  /\$slice: \[\s*\{\s*\$concatArrays: \[[\s\S]{0,200}?recentConsumeRequestIds[\s\S]{0,200}?-RECENT_CONSUME_REQUEST_ID_CAP/,
+  "이용권 무료 통과 파이프라인도 $concatArrays + $slice로 순서 보존 + 상한을 지켜야 한다",
+);
+// 행위: 상한이 실제로 최고참을 축출하고 최신을 남기며 순서를 보존하는가.
+{
+  let arr = [];
+  for (let i = 0; i < RECENT_CONSUME_REQUEST_ID_CAP + 1; i += 1) {
+    arr.push(`req-${i}`);
+    arr = arr.slice(-RECENT_CONSUME_REQUEST_ID_CAP);
+  }
+  assert.equal(arr.length, RECENT_CONSUME_REQUEST_ID_CAP, "상한을 넘겨도 길이는 CAP으로 유지돼야 한다");
+  assert.equal(arr[arr.length - 1], `req-${RECENT_CONSUME_REQUEST_ID_CAP}`, "최신 마커가 남아야 한다");
+  assert.equal(arr[0], "req-1", "최고참부터 축출돼야 한다(순서 보존)");
+  assert.ok(!arr.includes("req-0"), "축출된 최고참은 사라져야 한다");
+}
 
 console.log("[verify-payment-concurrency-guards] OK");

@@ -1,5 +1,5 @@
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
-import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord } from "../lib/models.js";
+import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
@@ -2528,7 +2528,12 @@ async function handlePigCoinConsume(request, auth, options = {}) {
   };
   const deductUpdate = {
     $inc: { points: -cost },
-    ...(coinRequestId ? { $addToSet: { recentConsumeRequestIds: coinRequestId } } : {}),
+    // 중복 방지는 위 필터의 `$ne: coinRequestId` 가드가 담당한다($push는 스스로 못 막는다).
+    ...(coinRequestId ? {
+      $push: {
+        recentConsumeRequestIds: { $each: [coinRequestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+      },
+    } : {}),
   };
   const buildCoinHistoryDoc = (pointsAfter) => ({
     userId: auth.userId,

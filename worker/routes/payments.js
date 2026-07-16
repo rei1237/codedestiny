@@ -11,6 +11,7 @@ import {
   MonthlyCreditLedger,
   PointHistory,
   ProfileCard,
+  RECENT_CONSUME_REQUEST_ID_CAP,
   SAJU_LOCKED_CONTENT_KEYS,
   User,
 } from "../lib/models.js";
@@ -3917,7 +3918,10 @@ async function handleSubscriptionMonthlyCreditConfirm(request, env, auth, { body
           "profileSubscription.membershipCreditUsed": requiredMonthlyCredits,
           "profileSubscription.membershipCreditLotsVersion": 1,
         },
-        $addToSet: { recentConsumeRequestIds: requestId },
+        // 중복 방지는 위 필터의 `$ne: requestId` 가드가 담당한다($push는 스스로 못 막는다).
+        $push: {
+          recentConsumeRequestIds: { $each: [requestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+        },
       },
       { returnDocument: "after", projection: { points: 1, profileSubscription: 1 } },
     ).lean();

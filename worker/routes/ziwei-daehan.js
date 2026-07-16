@@ -5,6 +5,7 @@ import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SOURCES,
   PointHistory,
+  RECENT_CONSUME_REQUEST_ID_CAP,
   User,
 } from "../lib/models.js";
 import { hasUnlockedContent, upsertContentUnlock } from "../lib/content-unlocks.js";
@@ -156,7 +157,12 @@ async function handleDaehanUnlock(request, env) {
     },
     {
       $inc: { points: -DAEHAN_COST },
-      ...(requestId ? { $addToSet: { recentConsumeRequestIds: requestId } } : {}),
+      // 중복 방지는 위 필터의 `$ne: requestId` 가드가 담당한다($push는 스스로 못 막는다).
+      ...(requestId ? {
+        $push: {
+          recentConsumeRequestIds: { $each: [requestId], $slice: -RECENT_CONSUME_REQUEST_ID_CAP },
+        },
+      } : {}),
     },
     { returnDocument: "after", projection: { points: 1, recentConsumeRequestIds: 1 } },
   ).lean();
