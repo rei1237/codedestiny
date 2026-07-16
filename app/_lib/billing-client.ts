@@ -1118,7 +1118,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyBalance = Math.max(0, Math.floor(toNumber(providedMonthlyBalanceRaw, 0)));
   // 스냅샷 잔량이 제공되지 않았으면(=조회 실패/미확정) '잔량 부족'이 아니라 '확인 필요'로 취급한다.
   // 초기 오인을 막고, 모달이 열릴 때 자동 1회 재조회로 실제 잔량을 채운다.
-  const monthlyCanUse = hasProvidedMonthlyBalance && monthlyCost > 0 && monthlyBalance >= monthlyCost;
+  // 미확정을 '부족'과 같이 비활성으로 묶으면 재조회가 계속 실패할 때 월정석이 영구 회색이 돼 결제 자체가
+  // 불가능해지므로, 미확정이면 시도를 허용한다(정적 결제창 canUseMonthly와 동일 계약). 최종 판정은 서버가
+  // 하고, 부족하면 lot 정본 잔량을 실은 402가 와서 1왕복에 수렴한다.
+  const monthlyCanUse = monthlyCost > 0 && (!hasProvidedMonthlyBalance || monthlyBalance >= monthlyCost);
   // 월정석은 정적 결제창과 동일하게 잔량과 무관히 항상 노출하고, 부족하면 숨기지 않고 비활성(회색)으로 둔다.
   // equalPriorityMethods 목록에 없다고 버튼을 제거하지 않는다(서버가 잔량 부족 시 목록에서 빼도 회색으로 노출).
   const canShowMonthly = !allowedPaymentModes || allowedPaymentModes.includes("monthly") || allowedPaymentModes.includes("moonlight_stone") || allowedPaymentModes.includes("membership_credit");
@@ -1866,13 +1869,20 @@ const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 800;
 // 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
 // 서버(canUseByPass)가 하며, 여기서는 인프라 blip만 흡수한다.
 function isRetryableBillingInfraDegraded(status: number, code?: string) {
-  if (status !== 503) return false;
   const normalizedCode = toText(code).toUpperCase();
+  // 409 = 월정석 차감은 끝났는데 원장이 아직 안 보이는 짧은 창(sibling 커밋 직전). 동일 requestId로 재요청하면
+  // 서버가 원장을 찾아 idempotent 성공을 돌려주므로, 재시도가 유일한 해소 경로이며 이중 차감 위험은 없다.
+  // 여기서 재시도하지 않으면 돈은 빠진 채 dead-end가 된다.
+  if (status === 409 && normalizedCode === "MONTHLY_CREDIT_CONSUME_IN_PROGRESS") return true;
+  if (status !== 503) return false;
   return normalizedCode === "AUTH_STATUS_TEMPORARILY_UNAVAILABLE"
     || normalizedCode === "PASS_STATUS_TEMPORARILY_UNAVAILABLE"
     || normalizedCode === "BALANCE_SNAPSHOT_UNAVAILABLE"
     || normalizedCode === "AUTH_DB_UNAVAILABLE"
     || normalizedCode === "DB_DEGRADED"
+    // 월정석 lot 차감이 동시 갱신과 경합해 write를 못 한 경우. 5회 write가 모두 실패한 '미차감' 상태라
+    // 재요청이 이중 차감을 만들지 않는다(차감이 끝난 replay는 서버가 409로 따로 구분해 여기 오지 않는다).
+    || normalizedCode === "MONTHLY_CREDIT_CONTENDED"
     // 코드 없는 503(일부 AI 라우트의 degrade는 reason만 담고 code가 비어 옴)도 인프라 blip으로 보고
     // 짧게 재시도한다. 재시도 소진 후에도 남으면 shouldOpenRuntimePaymentFallback이 결제창을 연다.
     || normalizedCode === "";
@@ -3701,6 +3711,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           paymentMode: passAccessEligible ? "MEMBERSHIP_PASS" : (requestedMode || input.paymentMode),
           forceDeduct: passAccessEligible ? false : input.forceDeduct,
           attemptId: activeAttempt.attemptId,
+          // 서버 멱등 키. 서버(resolveRequestId)는 body.requestId/Idempotency-Key 헤더만 읽고, 없으면 요청마다
+          // 난수를 만든다 — attemptId는 읽지 않는다. 주입하지 않으면 아래 재시도마다 purchaseId가 달라져
+          // 원장 멱등 가드가 미스되고 월정석이 이중 차감된다. gateRequestId는 게이트 호출당 1회 고정이라
+          // (재시도 내 안정 · 게이트마다 신규) 정적 게이트의 requestId와 같은 의미 스코프를 가진다.
+          requestId: gateRequestId,
         }),
       });
       return parseBillingResponse<BillingCoinGateData>(response);
@@ -3708,7 +3723,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
 
     // 워커-DB 일시 장애로 인증/이용권 확인이 순간 실패(degraded-503)하면, 이용권 보유자가 무료 통과할
     // 기회를 살리려 짧게 재시도한다(재시도-우선). degraded-503은 과금 전 확인 실패라 재요청이 안전하고,
-    // 동일 attemptId를 재사용해 서버 멱등 병합과 정합을 유지한다. 재시도 중 200(pass covered)이면 아래
+    // 동일 requestId를 재사용해 서버 멱등 병합과 정합을 유지한다. 재시도 중 200(pass covered)이면 아래
     // 성공 분기로 무료 통과하고, 확정 응답(402/401 등)이면 즉시 중단해 기존 분기가 처리한다. 소진 후에도
     // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
     let parsed = await runCoinGateRequest();

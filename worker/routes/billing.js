@@ -1293,6 +1293,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     || normalizedRequestId
     || "",
   ).trim().slice(0, 160);
+  // 멱등 재조회: 동일 purchaseId가 이미 처리됐으면 재차감 없이 기존 결과를 되돌린다.
+  // 진입부 선검사와 ALREADY_PROCESSED 해소기가 공용으로 쓴다 — 해소기는 sibling 요청이 커밋한 원장을
+  // 관찰해야 하므로 반드시 트랜잭션 세션 '밖'에서 호출할 것(세션 안이면 스냅샷 격리로 못 본다).
+  const readIdempotentSpendResult = async () => {
   if (purchaseId) {
     const existingLedger = await MonthlyCreditLedger.findOne({
       userId: authUserId,
@@ -1306,6 +1310,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         .lean();
       const currentCredit = Number(currentUser?.profileSubscription?.membershipCreditBalance ?? existingLedger?.afterBalance ?? 0);
       return {
+        ok: true,
         transactionId: String(existingLedger?.metadata?.pointHistoryId || existingLedger?._id || ""),
         ledgerId: String(existingLedger?._id || ""),
         requestId: normalizedRequestId,
@@ -1350,6 +1355,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
         .lean();
       const currentCredit = Number(currentUser?.profileSubscription?.membershipCreditBalance ?? existing?.metadata?.remainingMembershipCredit ?? 0);
       return {
+        ok: true,
         transactionId: String(existing?._id || ""),
         requestId: normalizedRequestId,
         purchaseId,
@@ -1374,6 +1380,10 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       };
     }
   }
+    return null;
+  };
+  const idempotentSpend = await readIdempotentSpendResult();
+  if (idempotentSpend) return idempotentSpend;
 
   const reportId = String(body?.reportId || body?.accessGrant?.reportId || "").trim();
   const sessionId = String(body?.sessionId || body?.reportSessionId || body?.accessGrant?.sessionId || "").trim();
@@ -1389,16 +1399,19 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       const query = User.findById(authUserId).select("points profileSubscription recentConsumeRequestIds");
       if (session) query.session(session);
       const current = await query.lean();
-      if (!current?._id) return null;
+      if (!current?._id) return { ok: false, reason: "USER_NOT_FOUND" };
       // 멱등: 이미 처리된 purchaseId면 재차감하지 않는다(상위 원장/이력 가드와 이중 방어).
+      // '이미 차감됨'을 '잔량 부족'과 뭉뚱그리면 차감이 끝난 재시도가 402로 나가 결제창이 다시 열린다
+      // — 반드시 구분해서 상위가 원장 재조회로 성공을 되돌릴 수 있게 한다.
       if (purchaseId && Array.isArray(current.recentConsumeRequestIds) && current.recentConsumeRequestIds.includes(purchaseId)) {
-        return null;
+        return { ok: false, reason: "ALREADY_PROCESSED" };
       }
       const sub = current.profileSubscription || {};
       // 지연 백필: 마이그레이션 이전(잔액만 있고 lot 없음) 유저를 위해 즉석 30일 lot 합성.
       const ensured = ensureLotsForBalance(sub, Date.now());
       const deduction = deductLotsFIFO(ensured.lots, requiredCredit, Date.now());
-      if (!deduction.ok) return null; // 유효(미만료) 월정석 부족 → 결제창으로 폴백
+      // 유효(미만료) 월정석 부족 → 결제창으로 폴백. lot 정본 잔액을 실어 상위 402가 스칼라 대신 이 값을 쓴다.
+      if (!deduction.ok) return { ok: false, reason: "INSUFFICIENT", balance: ensured.balance };
       const version = Math.floor(Number(sub.membershipCreditLotsVersion || 0));
       const writeFilter = {
         _id: authUserId,
@@ -1422,11 +1435,12 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       if (updated) {
         // 보상(saga)용 pre-image: 실패 시 차감 전 lot/잔액을 정확히 되돌린다.
         deductPreImage = { lots: ensured.lots, balance: ensured.balance };
-        return updated;
+        return { ok: true, user: updated };
       }
       // 버전 충돌(동시 차감/지급) → 재조회 후 재시도.
     }
-    return null;
+    // 5회 모두 write 실패 = 미차감. 잔량 부족이 아니므로 402가 아니라 일시 오류로 표면화해야 한다.
+    return { ok: false, reason: "CONTENDED" };
   };
   const compensateDeduct = async () => {
     if (!deductPreImage) return;
@@ -1505,12 +1519,15 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     let outcome = null;
     try {
       await session.withTransaction(async () => {
-        const updatedUser = await applyLotDeduction(session);
-        if (!updatedUser) { outcome = null; return; }
+        // withTransaction은 일시적 오류 시 콜백을 재실행한다 — 이전 시도의 결과가 남지 않게 매 진입마다 리셋.
+        outcome = null;
+        const deducted = await applyLotDeduction(session);
+        if (!deducted?.ok) { outcome = { ok: false, reason: deducted?.reason || "CONTENDED", balance: deducted?.balance }; return; }
+        const updatedUser = deducted.user;
         const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
         const [history] = await PointHistory.create([buildHistoryPayload(updatedUser?.points, monthlyCredits)], { session });
         const [ledger] = await MonthlyCreditLedger.create([buildLedgerPayload(history?._id, monthlyCredits)], { session });
-        outcome = { updatedUser, monthlyCredits, history, ledger };
+        outcome = { ok: true, updatedUser, monthlyCredits, history, ledger };
       });
       return outcome;
     } finally {
@@ -1521,8 +1538,9 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
   // Fallback when transactions are unavailable: best-effort with manual compensation (saga),
   // preserving the pre-transaction behavior.
   const runSpendWithCompensation = async () => {
-    const updatedUser = await applyLotDeduction(null);
-    if (!updatedUser) return null;
+    const deducted = await applyLotDeduction(null);
+    if (!deducted?.ok) return { ok: false, reason: deducted?.reason || "CONTENDED", balance: deducted?.balance };
+    const updatedUser = deducted.user;
     const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
     const history = await PointHistory.create(buildHistoryPayload(updatedUser?.points, monthlyCredits)).catch(async (error) => {
       await compensateDeduct();
@@ -1543,7 +1561,7 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
       ).catch(() => {});
       throw error;
     });
-    return { updatedUser, monthlyCredits, history, ledger };
+    return { ok: true, updatedUser, monthlyCredits, history, ledger };
   };
 
   let spendOutcome;
@@ -1553,10 +1571,29 @@ async function consumeMembershipCreditIfAvailable(env, authUserId, pricing, requ
     if (!isTransactionUnsupported(error)) throw error;
     spendOutcome = await runSpendWithCompensation();
   }
-  if (!spendOutcome) return null;
+  if (!spendOutcome?.ok) {
+    const failureReason = String(spendOutcome?.reason || "CONTENDED");
+    // 이미 차감된 purchaseId면 sibling이 커밋했거나 커밋 직전이다. 원장 write는 user 문서 커밋 '이후'라
+    // 관찰 창이 존재하므로, 세션 밖에서 짧게 재조회해 성공(idempotent)으로 되돌린다. 여기서 402를 내면
+    // 돈은 빠진 채 "월정석 부족"이 떠서 결제창이 다시 열린다(= 이번 버그의 본체).
+    if (failureReason === "ALREADY_PROCESSED") {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, 150));
+        const replayed = await readIdempotentSpendResult();
+        if (replayed) return replayed;
+      }
+    }
+    return { ok: false, reason: failureReason, balance: spendOutcome?.balance };
+  }
   const { updatedUser, monthlyCredits, history, ledger } = spendOutcome;
+  // 잔량/접근 결정이 바뀌었으니 표시용 캐시를 즉시 무효화한다. 이게 없으면 결제 직후 /balance가 5초간
+  // 차감 전 잔량을, ensure-access가 미해금 판정을 돌려줘 클라가 "결제 안 됐다"고 오인한다.
+  // (payments.js:1419-1422가 원화 결제에서 지키는 계약과 동일 — 월정석 인라인 차감만 빠져 있었다.)
+  try { globalThis.__billingBalanceCache?.invalidateForUser?.(authUserId); } catch {}
+  try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authUserId); } catch {}
 
   return {
+    ok: true,
     transactionId: String(history?._id || ""),
     ledgerId: String(ledger?._id || ""),
     requestId: String(requestId || ""),
@@ -3660,7 +3697,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       if (deferUsage) {
         const requiredMonthlyCredits = resolveMonthlyCreditCostForBilling(pricing, scopedBody);
         const currentUser = await User.findById(authCheck.auth.userId).select("profileSubscription points").lean();
-        const monthlyCredits = Math.max(0, Math.floor(Number(currentUser?.profileSubscription?.membershipCreditBalance || 0)));
+        // 스칼라가 아니라 lot 정본으로 판정한다(만료 lot 제외) — 아래 실제 차감(deductLotsFIFO)과 같은 기준.
+        const monthlyCredits = Math.max(0, Math.floor(Number(
+          ensureLotsForBalance(currentUser?.profileSubscription || {}, Date.now()).balance || 0,
+        )));
         if (monthlyCredits < requiredMonthlyCredits) {
           return failure(402, "INSUFFICIENT_MONTHLY_CREDITS", "이용권 선택액이 부족합니다.", undefined, {
             pricing,
@@ -3684,7 +3724,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
         sessionId: reportSessionId,
         reportSessionId,
       }, subscriptionPass?.profileSubscription || null);
-      if (membershipConsume) {
+      if (membershipConsume?.ok) {
         logPaidAccessStage("MONTHLY_DEDUCT_SUCCESS", {
           requestId,
           userId: authCheck.auth.userId,
@@ -3726,6 +3766,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
               paymentId: membershipConsume.transactionId || requestId,
               coinAmount: Number(membershipConsume.coinPrice || 0),
             });
+            // 해금 저장 직후 재무효화: 차감~저장 사이에 다른 요청이 '미해금' 결정을 캐시에 재적재할 수 있다.
+            try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
             logPaidAccessStage("UNLOCK_SAVE_SUCCESS", {
               requestId,
               userId: authCheck.auth.userId,
@@ -3773,6 +3815,9 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
                     },
                   ).catch(() => {});
                 }
+                // 환불로 잔량/접근 결정이 되돌아갔다 — restoreMonthlyCreditLot은 잔량 캐시만 무효화하므로
+                // 접근 결정 캐시는 여기서 직접 무효화한다(해금 실패분이 '해금됨'으로 남지 않게).
+                try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
               }
             }
             return failure(
@@ -3852,6 +3897,29 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           user: membershipConsume.user,
         }, "월정석으로 이번 생성 권한이 저장되었습니다.");
       }
+      // 차감 실패 사유를 구분해 응답한다. 이 구분이 없으면 '이미 차감됨'·'경합'까지 402(월정석 부족)로 나가
+      // 결제창이 다시 열린다 — 402는 진짜 잔량 부족(INSUFFICIENT)일 때만이며, 그 경로는 아래 폴스루가 맡는다.
+      const membershipConsumeReason = String(membershipConsume?.reason || "");
+      if (membershipConsumeReason === "ALREADY_PROCESSED") {
+        // 차감은 끝났는데 원장이 아직 안 보인다(sibling 커밋 직전). 여기서 결제 선택지를 실은 402를 내면
+        // 사용자가 카드로 한 번 더 결제해 월정석+카드 이중과금이 된다. 재시도 가능한 409로 표면화하면
+        // 클라가 '동일 requestId'로 재요청해 원장이 뜨는 순간 idempotent 성공을 받는다.
+        return failure(409, "MONTHLY_CREDIT_CONSUME_IN_PROGRESS", "월정석 사용을 처리하는 중입니다. 잠시 후 다시 시도해 주세요.", undefined, {
+          pricing,
+          retryable: true,
+          canUseByCard: false,
+        });
+      }
+      if (membershipConsumeReason === "CONTENDED") {
+        // 5회 write가 모두 경합으로 실패 = 미차감. 재시도가 안전하므로 일시 오류로 표면화한다.
+        return failure(503, "MONTHLY_CREDIT_CONTENDED", "월정석 사용이 일시적으로 지연되고 있습니다. 잠시 후 다시 시도해 주세요.", undefined, {
+          pricing,
+          retryable: true,
+        });
+      }
+      if (membershipConsumeReason === "USER_NOT_FOUND") {
+        return failure(401, "AUTH_REQUIRED", "로그인이 필요합니다.");
+      }
     } catch (error) {
       logBillingRouteError("membership-credit-consume", error, request, {
         featureKey: String(pricing?.featureKey || ""),
@@ -3867,13 +3935,16 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
 
     if (monthlyBalanceRequested) {
-      let monthlyCredits = Number(subscriptionPassForDecision?.profileSubscription?.membershipCreditBalance);
-      if (!Number.isFinite(monthlyCredits)) {
-        const currentUser = await User.findById(authCheck.auth.userId)
-          .select("profileSubscription")
-          .lean();
-        monthlyCredits = Number(currentUser?.profileSubscription?.membershipCreditBalance || 0);
-      }
+      // lot 정본으로 읽는다. subscriptionPassForDecision의 스칼라는 (a) 차감 시도 '이전' 캡처값이고
+      // (b) buildMembershipPassFromBillingSnapshot이 만든 객체엔 membershipCreditLots가 없어 만료 lot을
+      // 반영하지 못한다. 그 값을 쓰면 "부족하다면서 잔량은 충분한" 자기모순 402가 나가 클라가 재제안 루프에 빠진다.
+      const currentUser = await User.findById(authCheck.auth.userId)
+        .select("profileSubscription")
+        .lean();
+      let monthlyCredits = Number(
+        ensureLotsForBalance(currentUser?.profileSubscription || {}, Date.now()).balance,
+      );
+      if (!Number.isFinite(monthlyCredits)) monthlyCredits = 0;
       monthlyCredits = Math.max(0, Math.floor(monthlyCredits));
       const requiredMonthlyCredits = resolveMonthlyCreditCostForBilling(pricing, scopedBody);
       const normalizedCoinCost = resolvePricingCoinCost(pricing, resolvePricingCoinCost(scopedBody));
@@ -3900,6 +3971,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
           monthlyBalance: monthlyCredits,
           canUseByMonthly: false,
         },
+        // paymentDecision 스프레드가 top-level에 canUseByMonthly:true를 실을 수 있다. top-level만 읽는
+        // 소비자가 "월정석 가능"으로 오인해 재제안 루프를 만들지 않도록 스프레드 뒤에서 명시적으로 덮는다.
+        monthlyBalance: monthlyCredits,
+        canUseByMonthly: false,
         accessGrant: null,
         requiredMonthlyCredits,
         currentMonthlyCredits: monthlyCredits,

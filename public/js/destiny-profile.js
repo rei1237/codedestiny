@@ -7117,7 +7117,9 @@
     var opts = options || {};
     var cost = Math.max(0, Math.floor(Number(opts.coinPrice || opts.cost || 0)));
     var amountKrw = Math.max(0, Math.floor(Number(opts.amountKrw || (cost * 100))));
-    var monthlyStones = Math.max(0, Math.floor(Number(opts.membershipCreditCost || cost)));
+    // 월정석 필요분 = 코인 × MEMBERSHIP_CREDIT_PER_COIN(10). *10이 빠지면 500석짜리를 50석으로 표시하고
+    // 아래 insufficient 판정까지 오염돼 '잔량 충분'으로 오인 → 클릭 → 서버 402가 된다.
+    var monthlyStones = Math.max(0, Math.floor(Number(opts.membershipCreditCost || (cost * 10))));
     var title = String(opts.title || opts.reason || '유료 서비스').trim();
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
