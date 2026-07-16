@@ -9935,6 +9935,33 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <div class="sy-guardian-meta"><span>연결된 숙요</span><strong>${sData ? sData.mansion : '미상'}</strong></div>
       </div>`;
 
+    html += `<div class="sy-card" id="sySoloAiConsultCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.18), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.32); box-shadow:0 20px 44px rgba(76,29,149,0.3); border-radius:14px; padding:18px 16px;">
+      <div class="sy-sec-title" style="color:#ddd6fe;">🌙 월하의 숙요 AI 상담</div>
+      <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">궁금한 점을 입력하면 당신의 숙요(宿) 데이터를 바탕으로 맞춤 상담 답변을 바로 드립니다. (1회 10,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
+      <textarea data-sy-ai-question maxlength="1000" placeholder="예: 요즘 진로를 어떻게 잡아야 할지 고민이에요." style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+        <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
+        <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
+        <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원 AI 상담 받기</button>
+        <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
+        <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
+        <button data-sy-ai-open type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">ChatGPT로 열기</button>
+      </div>
+      <div data-sy-ai-answer style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.32);background:linear-gradient(160deg,rgba(8,13,30,0.82),rgba(22,28,64,0.72));overflow-wrap:anywhere;"></div>
+      <details data-sy-ai-prompt-wrap style="display:none;margin-top:11px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;background:rgba(8,13,30,0.5);padding:8px 12px;">
+        <summary style="cursor:pointer;font-size:0.78rem;font-weight:800;color:#c4b5fd;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>
+        <div style="font-size:0.72rem;color:#e9d5ff;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>
+        <textarea data-sy-ai-output readonly style="margin-top:6px;width:100%;min-height:180px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.78rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
+      </details>
+      <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
+      <div style="margin-top:14px;border-top:1px solid rgba(196,181,253,0.2);padding-top:12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:0.8rem;color:#e9d5ff;">상대와의 숙요 궁합도 볼 수 있어요.</span>
+        <button type="button" data-sy-open-compat style="background:linear-gradient(135deg,#db2777,#7c3aed);color:#fff;border:1px solid rgba(244,114,182,0.5);padding:9px 14px;border-radius:10px;font-size:0.8rem;font-weight:800;cursor:pointer;">💞 숙요 궁합 보러 가기</button>
+      </div>
+    </div>`;
+
     html += `<div class="sy-card sy-cta-card">
       <div class="sy-cta-row">
         <p>오늘의 달빛 리딩이 마음에 들었다면, 더 깊은 리딩으로 인연·직업·감정 주기를 길게 확인해보세요.</p>
@@ -9946,6 +9973,19 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       window.__cdParkSukuyoCalendarPanel();
     }
     area.innerHTML = html;
+    // 기본 숙요 프로필 단독 AI 상담 패널 바인딩 + 궁합 진입점 배선.
+    try {
+      var sySoloConsultCard = document.getElementById('sySoloAiConsultCard');
+      if (sySoloConsultCard && typeof window.syBindSukuyoPromptComposer === 'function') {
+        window.syBindSukuyoPromptComposer(sySoloConsultCard, { preferCompatibility: false, freePrompt: false, generateLabel: '10,000원 AI 상담 받기' });
+      }
+      var sySoloCompatBtn = sySoloConsultCard ? sySoloConsultCard.querySelector('[data-sy-open-compat]') : null;
+      if (sySoloCompatBtn) {
+        sySoloCompatBtn.addEventListener('click', function() {
+          try { window.location.href = '/sukuyo-compatibility-ai'; } catch (_e) {}
+        });
+      }
+    } catch (_sySoloConsultErr) {}
     if (typeof window.__cdPlaceSukuyoCalendarBelowWheel === 'function') {
       window.__cdPlaceSukuyoCalendarBelowWheel();
     }
@@ -14449,40 +14489,46 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     return syPromptGate({
       featureKey: 'sukuyo_ai_prompt_generator',
-      reason: '숙요점 AI 질문 프롬프트 생성',
-      cost: 0,
+      reason: '숙요점 AI 상담',
+      cost: 100,
       requestId: 'sukuyo-ai-prompt:' + requestNonce,
       categoryKey: 'sukuyo'
     }).then(function(gateResult) {
       if (!gateResult.ok) return syPromptGateFailureResult(gateResult);
       var evidence = syPromptGateEvidence(gateResult);
-      return fetch('/api/fortune/sukuyo/ai-prompt', {
-        method: 'POST',
-        credentials: 'include',
-        cache: 'no-store',
-        headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce) }),
-        body: JSON.stringify({
-          question: question,
-          domain: domain,
-          basicResult: basicResult,
-          compatibilityResult: compatibilityResult,
-          requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
-          accessGrant: evidence.accessGrant,
-          accessDecision: evidence.accessDecision,
-          freeBySubscription: evidence.freeBySubscription,
-          consume: evidence.consume,
-          payment: evidence.payment,
-          _paymentContext: evidence._paymentContext
-        })
-      }).then(function(res) {
-        return res.json().catch(function() { return {}; }).then(function(payload) {
-          return {
-            ok: res.ok && payload && payload.ok !== false,
-            status: res.status,
-            payload: payload || {}
-          };
+      // 게이트(결제)는 1회만. 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+      var doFetch = function() {
+        return fetch('/api/fortune/sukuyo/ai-prompt', {
+          method: 'POST',
+          credentials: 'include',
+          cache: 'no-store',
+          headers: syBuildFortuneAuthHeaders({ 'idempotency-key': evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce) }),
+          body: JSON.stringify({
+            question: question,
+            domain: domain,
+            basicResult: basicResult,
+            compatibilityResult: compatibilityResult,
+            requestId: evidence.requestId || ('sukuyo-ai-prompt:' + requestNonce),
+            accessGrant: evidence.accessGrant,
+            accessDecision: evidence.accessDecision,
+            freeBySubscription: evidence.freeBySubscription,
+            consume: evidence.consume,
+            payment: evidence.payment,
+            _paymentContext: evidence._paymentContext
+          })
+        }).then(function(res) {
+          return res.json().catch(function() { return {}; }).then(function(payload) {
+            return {
+              ok: res.ok && payload && payload.ok !== false,
+              status: res.status,
+              payload: payload || {}
+            };
+          });
         });
-      });
+      };
+      return (typeof window !== 'undefined' && typeof window._cdRetryTransientPost === 'function')
+        ? window._cdRetryTransientPost(doFetch)
+        : doFetch();
     }).catch(function(error) {
       return {
         ok: false,
@@ -14507,6 +14553,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var copyBtn = rootEl.querySelector('[data-sy-ai-copy]');
     var openBtn = rootEl.querySelector('[data-sy-ai-open]');
     var outputEl = rootEl.querySelector('[data-sy-ai-output]');
+    var answerEl = rootEl.querySelector('[data-sy-ai-answer]');
+    var promptWrap = rootEl.querySelector('[data-sy-ai-prompt-wrap]');
     var statusEl = rootEl.querySelector('[data-sy-ai-status]');
 
     if (!questionEl || !generateBtn || !regenerateBtn || !copyBtn || !outputEl || !statusEl) return;
@@ -14515,8 +14563,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     var isLoading = false;
     var isFreePrompt = opts.freePrompt === true;
-    var generateLabel = opts.generateLabel || '무료 프롬프트 생성';
-    var loadingLabel = opts.loadingLabel || '프롬프트 생성 중...';
+    var generateLabel = opts.generateLabel || '10,000원 AI 상담 받기';
+    var loadingLabel = opts.loadingLabel || 'AI 상담 생성 중...';
 
     function setStatus(message, tone) {
       statusEl.textContent = String(message || '');
@@ -14577,29 +14625,43 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
 
       setLoading(true);
-      setStatus('숙요 데이터를 분석해 질문 맞춤 프롬프트를 생성하고 있습니다...', 'info');
+      setStatus('숙요 데이터를 분석해 질문에 대한 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
 
       syRequestSukuyoPromptByQuestion(question, { preferCompatibility: !!opts.preferCompatibility }).then(function(result) {
         var payload = result && result.payload ? result.payload : {};
-        if (result && result.ok && typeof payload.prompt === 'string' && payload.prompt.trim()) {
-          outputEl.style.display = 'block';
-          outputEl.value = payload.prompt;
-          outputEl.scrollTop = 0;
-          copyBtn.style.display = 'inline-flex';
+        var resultText = String(payload.resultText || '').trim();
+        var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
+        if (result && result.ok && (resultText || bonusPrompt)) {
+          if (resultText && answerEl) {
+            answerEl.innerHTML = (window._cdRenderConsultAnswerHtml
+              ? window._cdRenderConsultAnswerHtml(resultText)
+              : '<p style="color:#ede9fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
+            answerEl.style.display = 'block';
+            try { answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_e) {}
+          }
+          // 프롬프트 무료 동봉 — 답변을 본 사용자에게 함께 제공.
+          if (bonusPrompt) {
+            outputEl.style.display = 'block';
+            outputEl.value = bonusPrompt;
+            outputEl.scrollTop = 0;
+            if (promptWrap) promptWrap.style.display = 'block';
+            copyBtn.style.display = 'inline-flex';
+            if (openBtn) openBtn.style.display = 'inline-flex';
+          }
           regenerateBtn.style.display = 'inline-flex';
 
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           var balanceAfter = Number(payload.balanceAfter);
           if (balanceEl && isFreePrompt) {
-            balanceEl.textContent = '무료 생성 완료';
+            balanceEl.textContent = '무료 상담입니다';
           } else if (balanceEl && Number.isFinite(balanceAfter)) {
             balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
           }
 
           if (payload.compatibilityUsed) {
-            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + '궁합 데이터까지 반영해 프롬프트를 생성했습니다.', 'success');
+            setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + '궁합 데이터까지 반영해 상담 답변을 완성했습니다.', 'success');
           } else {
-            var hint = String(payload.compatibilityHint || '궁합 데이터가 없어 기본 숙요점 기준으로 생성했습니다.');
+            var hint = String(payload.compatibilityHint || '기본 숙요점 기준으로 상담 답변을 완성했습니다.');
             setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + hint, 'success');
           }
           return;
@@ -14654,8 +14716,15 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
     updateCount();
     updateBalanceText();
-    setStatus('질문 입력 후 버튼을 누르면 무료로 프롬프트를 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
+
+  // 전역(renderSukuyo)에서 기본 프로필용 단독 상담 패널을 바인딩할 수 있도록 노출.
+  try {
+    if (typeof window !== 'undefined') {
+      window.syBindSukuyoPromptComposer = syBindSukuyoPromptComposer;
+    }
+  } catch (_syExposeErr) {}
 
   function syCopyText(text) {
     if (!text) {
@@ -15629,20 +15698,25 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               ${ankaiBadge}
 
               <div class="sy-sec" id="syCompatAiPromptCard" style="background:radial-gradient(140% 135% at 8% 0%, rgba(196,181,253,0.2), transparent 44%), linear-gradient(145deg, rgba(22,28,64,0.9), rgba(15,23,42,0.94)); border:1px solid rgba(196,181,253,0.35); box-shadow:0 20px 44px rgba(76,29,149,0.34); border-radius:14px;">
-                <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 질문 프롬프트</div>
-                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 담아, AI에게 이어 묻기 좋은 프롬프트를 무료로 정리합니다.</div>
+                <div class="sy-sec-title" style="color:#ddd6fe;">💫 궁합 전용 AI 상담</div>
+                <div style="font-size:0.84rem;color:#e9d5ff;line-height:1.72;margin-bottom:10px;">질문을 입력하면 방금 계산된 궁합 데이터(거리·관계유형·카르마)를 반영한 상담 답변을 바로 드립니다. (1회 10,000원) 답변에 쓰인 프롬프트도 추가 비용 없이 함께 제공됩니다.</div>
                 <textarea data-sy-ai-question maxlength="1000" placeholder="${syCanonicalEsc(_sajuQuantumText("sq_14399_attr_placeholder"))}" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
                   <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
-                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">프롬프트 무료 생성</button>
-                  <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>
+                  <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 AI 상담 받기</button>
+                  <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
                   <button data-sy-ai-open type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">ChatGPT로 열기</button>
                 </div>
-                <textarea data-sy-ai-output readonly style="display:none;margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
+                <div data-sy-ai-answer style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.32);background:linear-gradient(160deg,rgba(8,13,30,0.82),rgba(22,28,64,0.72));overflow-wrap:anywhere;"></div>
+                <details data-sy-ai-prompt-wrap style="display:none;margin-top:11px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;background:rgba(8,13,30,0.5);padding:8px 12px;">
+                  <summary style="cursor:pointer;font-size:0.78rem;font-weight:800;color:#c4b5fd;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>
+                  <div style="font-size:0.72rem;color:#e9d5ff;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>
+                  <textarea data-sy-ai-output readonly style="margin-top:6px;width:100%;min-height:180px;border-radius:12px;border:1px solid rgba(16,185,129,0.45);background:rgba(2,24,19,0.58);color:#ecfdf5;padding:12px;font-size:0.78rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>
+                </details>
                 <div data-sy-ai-status style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>
               </div>
 
@@ -15671,7 +15745,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
 
           var compatAiPromptCard = rd.querySelector('#syCompatAiPromptCard');
           if (compatAiPromptCard && typeof syBindSukuyoPromptComposer === 'function') {
-            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '프롬프트 무료 생성', freePrompt: true });
+            syBindSukuyoPromptComposer(compatAiPromptCard, { preferCompatibility: true, generateLabel: '10,000원 AI 상담 받기', freePrompt: false });
           }
 
           // innerHTML 완성 후 display:block — 빈 컨테이너 레이아웃 계산 1회 절약

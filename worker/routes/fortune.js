@@ -3768,8 +3768,19 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
+    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
+    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
+    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    if (!consultation.ok) {
+      const genError = new Error(consultation.error || "Astrology AI consultation generation failed.");
+      genError.code = "LLM_GENERATION_RETRYABLE";
+      throw genError;
+    }
+
     return json({
       ok: true,
+      resultText: consultation.text,
+      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
       prompt: builtPrompt.prompt,
       generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
       title: builtPrompt.title || "점성술 심층 질문 프롬프트",
@@ -3784,6 +3795,8 @@ async function handleAstrologyAIPrompt(request, auth, env) {
       featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
       compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
+      model: consultation.model,
+      provider: consultation.provider,
     });
   } catch (error) {
     if (chargedCoins > 0 && sourceTransactionId) {
@@ -3796,7 +3809,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
             featureKey: ASTROLOGY_AI_PROMPT_FEATURE_KEY,
             sourceTransactionId,
             requestId: `refund:${requestId}`.slice(0, 120),
-            reason: "Astrology AI prompt generation failed auto-refund",
+            reason: "Astrology AI consultation generation failed auto-refund",
           }),
         });
         await handlePigCoinRefund(refundRequest, auth);
@@ -3806,9 +3819,17 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     }
 
     console.error("[fortune][astrology-ai-prompt] request failed:", error);
+    // 일시 인프라(Mongo/네트워크) 오류만 503(자동재시도). LLM 생성 실패(이미 환불)는 500(수동재시도).
+    if (error?.code !== "LLM_GENERATION_RETRYABLE" && isAIPromptTransientDbError(error)) {
+      return buildAstrologyAIPromptError(
+        "SERVICE_TEMPORARILY_UNAVAILABLE",
+        "일시적인 오류로 처리가 지연되고 있어요. 잠시 후 자동으로 다시 시도합니다.",
+        503,
+      );
+    }
     return buildAstrologyAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
+      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -3900,8 +3921,19 @@ async function handleVedicAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
+    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
+    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
+    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    if (!consultation.ok) {
+      const genError = new Error(consultation.error || "Vedic AI consultation generation failed.");
+      genError.code = "LLM_GENERATION_RETRYABLE";
+      throw genError;
+    }
+
     return json({
       ok: true,
+      resultText: consultation.text,
+      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
       prompt: builtPrompt.prompt,
       generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
       title: builtPrompt.title || "베다 점성술 심층 질문 프롬프트",
@@ -3917,6 +3949,8 @@ async function handleVedicAIPrompt(request, auth, env) {
       balanceAfter,
       compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
       compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+      model: consultation.model,
+      provider: consultation.provider,
     });
   } catch (error) {
     if (chargedCoins > 0 && sourceTransactionId) {
@@ -3929,7 +3963,7 @@ async function handleVedicAIPrompt(request, auth, env) {
             featureKey: VEDIC_AI_PROMPT_FEATURE_KEY,
             sourceTransactionId,
             requestId: `refund:${requestId}`.slice(0, 120),
-            reason: "Vedic AI prompt generation failed auto-refund",
+            reason: "Vedic AI consultation generation failed auto-refund",
           }),
         });
         await handlePigCoinRefund(refundRequest, auth);
@@ -3939,9 +3973,17 @@ async function handleVedicAIPrompt(request, auth, env) {
     }
 
     console.error("[fortune][vedic-ai-prompt] request failed:", error);
+    // 일시 인프라(Mongo/네트워크) 오류만 503(자동재시도). LLM 생성 실패(이미 환불)는 500(수동재시도).
+    if (error?.code !== "LLM_GENERATION_RETRYABLE" && isAIPromptTransientDbError(error)) {
+      return buildVedicAIPromptError(
+        "SERVICE_TEMPORARILY_UNAVAILABLE",
+        "일시적인 오류로 처리가 지연되고 있어요. 잠시 후 자동으로 다시 시도합니다.",
+        503,
+      );
+    }
     return buildVedicAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
+      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -4424,6 +4466,104 @@ async function handleSajuAIConsultationResult(request, auth, path = "") {
   return json(stored);
 }
 
+// 일시적 인프라(Mongo 버스트/op-타임아웃/네트워크) 오류 판별 — 사주와 동일 시그니처 재사용.
+// ⚠️ LLM 생성 실패(code: LLM_GENERATION_RETRYABLE)는 메시지에 "timeout"이 섞일 수 있으므로
+//    호출부에서 반드시 code로 먼저 제외한 뒤에만 이 판별을 적용한다(자동재시도 이중차감 방지).
+function isAIPromptTransientDbError(error) {
+  return isSajuAIPromptDbUnavailableError(error);
+}
+
+// ── 기본 코스믹 상담(자미두수·베다·점성술·숙요점) 공용 LLM 생성 ──────────────
+// 사주 상담(handleSajuAIPrompt)과 동일한 "질문 → 서버가 직접 답변 생성" 계약을,
+// 사주 전용 십성/챕터 검증 없이 일반화한다. 각 기능의 builtPrompt.generatedPrompt는
+// 이미 [답변 형식]까지 포함한 완결형 LLM 지시문(buildFortuneQuestionPromptPackage)이므로
+// 가볍게 감싸 그대로 호출하고, 잘림은 이어쓰기 repair로 완결시킨다(중간 끊김 방지).
+const FEATURE_AI_RESULT_SYSTEM_PROMPT = [
+  "당신은 해당 분야(자미두수·베다 점성술·서양 점성술·숙요점 등)의 최고 수준 상담가입니다.",
+  "제공된 명반/차트/데이터만 근거로 상담하고, 없는 수치를 지어내거나 임의로 재계산하지 않습니다.",
+  "짧은 운세 문장이 아니라 실제 유료 상담처럼 깊이 있게, 질문에 먼저 답한 뒤 근거와 흐름을 풀어 줍니다.",
+  "겁주거나 단정하지 말고 가능성과 경향성 중심으로, 따뜻하지만 명확한 존댓말 조언체로 씁니다.",
+  "각 항목을 끝까지 닫고 마지막 문장까지 자연스럽게 완결하며, 중간에 끊기지 않게 합니다.",
+  "'프롬프트', '기능', '내부 지시문', '분석 데이터' 같은 메타 표현은 쓰지 말고, 전문가가 직접 상담하듯 작성하세요.",
+].join("\n");
+
+function buildFeatureAiResultPrompt(builtPrompt, options = {}) {
+  const internalPrompt = String(builtPrompt?.generatedPrompt || builtPrompt?.prompt || "").trim();
+  const repairReason = String(options?.repairReason || "").trim();
+  return [
+    "아래는 최종 상담 결과를 만들기 위한 생성 지시문입니다. 사용자에게는 보여주지 않습니다.",
+    "이 지시문을 그대로 따라, 사용자에게 건네는 최종 상담문만 한국어로 작성하세요.",
+    "지시문 안의 [답변 형식] 순서를 지키되, 첫 부분에서 타고난 성향 총론을 먼저 짚어 신뢰가 서게 시작하세요.",
+    "각 항목을 끝까지 닫고, 마지막 문장까지 자연스럽게 완결하세요. 중간에 끊기면 안 됩니다.",
+    repairReason ? `이전 생성문 보정 사유: ${repairReason}` : "",
+    "생성 지시문:",
+    internalPrompt,
+  ].filter(Boolean).join("\n\n").trim();
+}
+
+function buildFeatureAiCompletionRepairPrompt(partialText) {
+  return [
+    "아래 상담문은 중간에 끊겼거나 마지막까지 완성되지 않았습니다.",
+    "기존 내용을 반복하지 말고, 끊긴 지점 이후부터 자연스럽게 이어서 남은 부분과 마무리를 완성하세요.",
+    "'프롬프트', '기능' 같은 메타 표현은 쓰지 마세요.",
+    "기존 상담문:",
+    String(partialText || "").trim(),
+    "이어쓰기 지시: 위 내용을 반복하지 말고 이어질 본문만 작성하고, 마지막은 따뜻하지만 가볍지 않게 닫으세요.",
+  ].filter(Boolean).join("\n\n").trim();
+}
+
+// 반환: { ok, text, model, provider, truncated }. ok=false면 호출부(핸들러)가 throw해
+// 기존 결제 환불 catch 경로로 넘겨 결제 후 무결과를 막는다.
+async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATURE_AI_RESULT_SYSTEM_PROMPT, baseTokens = 16000 } = {}) {
+  let finalAi = null;
+  let finalText = "";
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const prompt = buildFeatureAiResultPrompt(builtPrompt, {
+      repairReason: attempt > 0 ? "이전 응답이 중간에 끊겼거나 비었습니다. 처음부터 끝까지 완결해 주세요." : "",
+    });
+    const ai = await callGeminiText(env, prompt, {
+      systemPrompt,
+      taskType: "fortune",
+      temperature: attempt > 0 ? 0.5 : 0.56,
+      // 단일 질문 상담(약 9개 섹션) 기준 넉넉한 상한 — 늘어난 분량이 중간에 잘리지 않게 한다.
+      maxOutputTokens: baseTokens,
+      timeoutMs: 120000,
+    });
+    const text = normalizeSajuAIResultText(ai?.text);
+    if (!ai?.ok || !text) {
+      finalAi = ai;
+      continue;
+    }
+    finalAi = ai;
+    finalText = text;
+    // 잘림(MAX_TOKENS)이나 미완결이면 이어쓰기 repair로 완결(결과 말미가 끊기지 않도록).
+    if (ai.truncated || detectSajuAIIncompleteResult(text).incomplete) {
+      const repairAi = await callGeminiText(env, buildFeatureAiCompletionRepairPrompt(text), {
+        systemPrompt,
+        taskType: "fortune",
+        temperature: 0.42,
+        maxOutputTokens: ai.truncated ? 12000 : 8000,
+        timeoutMs: 90000,
+      });
+      if (repairAi?.ok && String(repairAi.text || "").trim()) {
+        finalText = normalizeSajuAIResultText(`${text}\n\n${repairAi.text}`);
+        finalAi = { ...ai, repairProvider: repairAi.provider, repairModel: repairAi.model };
+      }
+    }
+    if (hasRenderableLlmText(finalText, { minChars: 400 })) break;
+  }
+  if (!finalAi?.ok || !hasRenderableLlmText(finalText, { minChars: 200 })) {
+    return { ok: false, error: finalAi?.message || finalAi?.error || "AI 상담 생성에 실패했습니다." };
+  }
+  return {
+    ok: true,
+    text: finalText,
+    model: finalAi.model || undefined,
+    provider: finalAi.provider || undefined,
+    truncated: Boolean(finalAi.truncated),
+  };
+}
+
 async function handleZiweiAIPrompt(request, auth, env) {
   const body = await readJson(request);
   const question = String(body?.question || "").trim();
@@ -4439,14 +4579,28 @@ async function handleZiweiAIPrompt(request, auth, env) {
   }
 
   const preflightRequestId = String(body?.requestId || "").trim().slice(0, 120);
-  const preflightAccess = await findAIPromptPaidAccessEvidence({
-    auth,
-    featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
-    body,
-    requestId: preflightRequestId,
-    cost: ZIWEI_AI_PROMPT_PRICE,
-    env,
-  });
+  // 선검사 read를 withMongoRetry로 감싸 일시적 Mongo 버스트를 흡수하고,
+  // 소진 시엔 하드 500이 아니라 재시도 가능한 503으로 표면화(프론트 자동재시도 대상).
+  let preflightAccess = null;
+  try {
+    preflightAccess = await withMongoRetry(env, () => findAIPromptPaidAccessEvidence({
+      auth,
+      featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
+      body,
+      requestId: preflightRequestId,
+      cost: ZIWEI_AI_PROMPT_PRICE,
+      env,
+    }));
+  } catch (error) {
+    if (isAIPromptTransientDbError(error)) {
+      return buildZiweiAIPromptError(
+        "PAID_ACCESS_VERIFY_RETRYABLE",
+        "결제·이용권을 확인하는 중 일시적인 지연이 있어요. 잠시 후 자동으로 다시 시도합니다.",
+        503,
+      );
+    }
+    throw error;
+  }
   if (!preflightAccess) {
     return buildZiweiAIPromptError(
       "PAYMENT_REQUIRED",
@@ -4526,8 +4680,19 @@ async function handleZiweiAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
+    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
+    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
+    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    if (!consultation.ok) {
+      const genError = new Error(consultation.error || "Ziwei AI consultation generation failed.");
+      genError.code = "LLM_GENERATION_RETRYABLE";
+      throw genError;
+    }
+
     return json({
       ok: true,
+      resultText: consultation.text,
+      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
       prompt: generatedPrompt,
       generatedPrompt,
       title: builtPrompt.title || "자미두수 심층 질문 프롬프트",
@@ -4541,6 +4706,8 @@ async function handleZiweiAIPrompt(request, auth, env) {
       chargedCoins,
       featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
       balanceAfter,
+      model: consultation.model,
+      provider: consultation.provider,
     });
   } catch (error) {
     if (chargedCoins > 0 && sourceTransactionId) {
@@ -4553,7 +4720,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
             featureKey: ZIWEI_AI_PROMPT_FEATURE_KEY,
             sourceTransactionId,
             requestId: `refund:${requestId}`.slice(0, 120),
-            reason: "Ziwei AI prompt generation failed auto-refund",
+            reason: "Ziwei AI consultation generation failed auto-refund",
           }),
         });
         await handlePigCoinRefund(refundRequest, auth);
@@ -4563,9 +4730,17 @@ async function handleZiweiAIPrompt(request, auth, env) {
     }
 
     console.error("[fortune][ziwei-ai-prompt] request failed:", error);
+    // 일시 인프라(Mongo/네트워크) 오류만 503(자동재시도). LLM 생성 실패(이미 환불)는 500(수동재시도).
+    if (error?.code !== "LLM_GENERATION_RETRYABLE" && isAIPromptTransientDbError(error)) {
+      return buildZiweiAIPromptError(
+        "SERVICE_TEMPORARILY_UNAVAILABLE",
+        "일시적인 오류로 처리가 지연되고 있어요. 잠시 후 자동으로 다시 시도합니다.",
+        503,
+      );
+    }
     return buildZiweiAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
+      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -4657,8 +4832,19 @@ async function handleSukuyoAIPrompt(request, auth, env) {
 
   try {
     if (SUKUYO_AI_PROMPT_PRICE <= 0) {
+      // 기본 숙요점 질문 상담은 무료(price 0) — 서버가 직접 답변을 생성한다.
+      const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+      if (!consultation.ok) {
+        return buildSukuyoAIPromptError(
+          "LLM_GENERATION_RETRYABLE",
+          "AI 상담 생성이 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+          503,
+        );
+      }
       return json({
         ok: true,
+        resultText: consultation.text,
+        // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
         prompt: builtPrompt.prompt,
         generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
         title: builtPrompt.title || "월하의 숙요 동물 프롬프트",
@@ -4675,6 +4861,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
         accessMethod: "FREE",
         compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
         compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+        model: consultation.model,
+        provider: consultation.provider,
       });
     }
 
@@ -4714,8 +4902,19 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     const balanceAfterRaw = Number(consumePayload?.user?.points);
     const balanceAfter = Number.isFinite(balanceAfterRaw) ? balanceAfterRaw : undefined;
 
+    // 결제 통과 후 서버가 직접 상담 답변을 생성한다(사주 상담과 동일 계약).
+    // 실패 시 throw → 아래 catch가 자동 환불(결제 후 무결과 방지).
+    const consultation = await runFeatureAiConsultation(env, { builtPrompt });
+    if (!consultation.ok) {
+      const genError = new Error(consultation.error || "Sukuyo AI consultation generation failed.");
+      genError.code = "LLM_GENERATION_RETRYABLE";
+      throw genError;
+    }
+
     return json({
       ok: true,
+      resultText: consultation.text,
+      // 결과를 본 사용자에게 생성 프롬프트도 추가 비용 없이 동봉한다.
       prompt: builtPrompt.prompt,
       generatedPrompt: builtPrompt.generatedPrompt || builtPrompt.prompt,
       title: builtPrompt.title || "숙요점 심층 질문 프롬프트",
@@ -4731,6 +4930,8 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       balanceAfter,
       compatibilityUsed: Boolean(builtPrompt.compatibilityUsed),
       compatibilityHint: String(builtPrompt.compatibilityHint || ""),
+      model: consultation.model,
+      provider: consultation.provider,
     });
   } catch (error) {
     if (chargedCoins > 0 && sourceTransactionId) {
@@ -4743,7 +4944,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
             featureKey: SUKUYO_AI_PROMPT_FEATURE_KEY,
             sourceTransactionId,
             requestId: `refund:${requestId}`.slice(0, 120),
-            reason: "Sukuyo AI prompt generation failed auto-refund",
+            reason: "Sukuyo AI consultation generation failed auto-refund",
           }),
         });
         await handlePigCoinRefund(refundRequest, auth);
@@ -4753,9 +4954,17 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     }
 
     console.error("[fortune][sukuyo-ai-prompt] request failed:", error);
+    // 일시 인프라(Mongo/네트워크) 오류만 503(자동재시도). LLM 생성 실패(이미 환불)는 500(수동재시도).
+    if (error?.code !== "LLM_GENERATION_RETRYABLE" && isAIPromptTransientDbError(error)) {
+      return buildSukuyoAIPromptError(
+        "SERVICE_TEMPORARILY_UNAVAILABLE",
+        "일시적인 오류로 처리가 지연되고 있어요. 잠시 후 자동으로 다시 시도합니다.",
+        503,
+      );
+    }
     return buildSukuyoAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "프롬프트 생성 중 오류가 발생했습니다. 결제 권한이 생성되었다면 자동 복구를 시도했습니다.",
+      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }

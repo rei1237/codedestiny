@@ -6593,6 +6593,94 @@ function _sajuPromptRenderChapters(text) {
   return html || '<section style="padding:14px;"><p style="margin:0;color:#1f2a19;">상담문을 불러오지 못했습니다.</p></section>';
 }
 
+// 기본 코스믹 상담(자미두수·점성술·베다·숙요) 공용 답변 렌더.
+// 어두운 코스믹 패널용 밝은 텍스트를 쓰고, 잘린 JSON 원문이 새어도 중괄호를
+// 노출하지 않도록 방어한다(문자열 값만 추출/치환). window에도 노출해 숙요 엔진에서 재사용한다.
+function _cdRenderConsultAnswerHtml(text) {
+  var raw = String(text || '').replace(/\r\n/g, '\n').trim();
+  raw = raw.replace(/```[a-zA-Z]*\n?/g, '').replace(/```/g, '').trim();
+  // JSON 방어: 프로즈 라우트지만 완전/잘린 JSON이 새어도 사람 문장만 남긴다(중괄호 노출 금지).
+  if (/^[\[{]/.test(raw)) {
+    var extracted = '';
+    try {
+      var parsed = JSON.parse(raw);
+      var collected = [];
+      (function walk(v) {
+        if (typeof v === 'string') { if (v.trim()) collected.push(v.trim()); }
+        else if (Array.isArray(v)) { v.forEach(walk); }
+        else if (v && typeof v === 'object') { Object.keys(v).forEach(function(k) { walk(v[k]); }); }
+      })(parsed);
+      extracted = collected.join('\n\n');
+    } catch (_) {
+      extracted = raw.replace(/"[a-zA-Z_][\w]*"\s*:/g, ' ').replace(/[{}\[\]"]/g, ' ').replace(/[ \t]+/g, ' ').replace(/\s*,\s*/g, '\n').trim();
+    }
+    if (extracted) raw = extracted;
+  }
+  if (!raw) return '<p style="margin:0;color:#e9d5ff;">상담문을 불러오지 못했습니다. 다시 시도해 주세요.</p>';
+  var lines = raw.split(/\n+/);
+  var html = '';
+  lines.forEach(function(line) {
+    var t = String(line || '').trim();
+    if (!t) return;
+    t = t.replace(/^#{1,4}\s*/, '');
+    var headMatch = t.match(/^(\d{1,2})\s*[.)]\s*(.+)$/);
+    var boldMatch = t.match(/^\*\*(.+?)\*\*\s*[:：]?\s*$/);
+    if (headMatch && headMatch[2].length <= 40) {
+      html += '<h4 style="margin:17px 0 8px;color:#fde68a;font-size:0.95rem;font-weight:900;line-height:1.5;word-break:keep-all;">'
+        + _sajuPromptEscapeHtml(headMatch[1] + '. ' + headMatch[2].replace(/\*\*/g, '')) + '</h4>';
+    } else if (boldMatch) {
+      html += '<h4 style="margin:17px 0 8px;color:#fde68a;font-size:0.95rem;font-weight:900;line-height:1.5;word-break:keep-all;">'
+        + _sajuPromptEscapeHtml(boldMatch[1]) + '</h4>';
+    } else {
+      html += '<p style="margin:0 0 11px;color:#ede9fe;font-size:0.86rem;line-height:1.86;word-break:keep-all;">'
+        + _sajuPromptEscapeHtml(t).replace(/\*\*(.+?)\*\*/g, '<strong style="color:#ffffff;">$1</strong>') + '</p>';
+    }
+  });
+  return html || '<p style="margin:0;color:#e9d5ff;">상담문을 불러오지 못했습니다.</p>';
+}
+try { if (typeof window !== 'undefined') window._cdRenderConsultAnswerHtml = _cdRenderConsultAnswerHtml; } catch (_) {}
+
+// 유료 상담 생성 POST의 일시 인프라 503/네트워크 오류를 동일 requestId로 자동 재시도(멱등 소비라 이중차감 없음).
+// 확정 응답(200/402/401/400)은 즉시 반환. LLM 생성 실패는 서버가 500으로 내려 여기서 재시도되지 않는다.
+function _cdIsTransientConsultResult(result) {
+  if (!result) return true;
+  if (Number(result.status || 0) === 503) return true;
+  var code = String((result.payload && result.payload.code) || '').toUpperCase();
+  return code === 'SERVICE_TEMPORARILY_UNAVAILABLE'
+    || code === 'PAID_ACCESS_VERIFY_RETRYABLE'
+    || code === 'DB_DEGRADED'
+    || code === 'BALANCE_SNAPSHOT_UNAVAILABLE'
+    || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE';
+}
+function _cdRetryTransientPost(fetchFn, opts) {
+  var o = opts || {};
+  var maxAttempts = Math.max(1, o.maxAttempts || 3);
+  var baseDelayMs = o.baseDelayMs || 900;
+  function attempt(n) {
+    return Promise.resolve().then(fetchFn).then(function(result) {
+      if (n < maxAttempts && _cdIsTransientConsultResult(result)) {
+        return new Promise(function(resolve) { setTimeout(resolve, baseDelayMs * n); })
+          .then(function() { return attempt(n + 1); });
+      }
+      return result;
+    }).catch(function(err) {
+      // 네트워크 예외(fetch reject)도 전이로 간주해 백오프 재시도.
+      if (n < maxAttempts) {
+        return new Promise(function(resolve) { setTimeout(resolve, baseDelayMs * n); })
+          .then(function() { return attempt(n + 1); });
+      }
+      throw err;
+    });
+  }
+  return attempt(1);
+}
+try {
+  if (typeof window !== 'undefined') {
+    window._cdRetryTransientPost = _cdRetryTransientPost;
+    window._cdIsTransientConsultResult = _cdIsTransientConsultResult;
+  }
+} catch (_) {}
+
 function _sajuPromptBuildResultSummaryHtml(payload) {
   var item = payload && typeof payload === 'object' ? payload : {};
   var text = String(item.resultText || '').replace(/\s+/g, ' ').trim();
@@ -11839,9 +11927,9 @@ function renderAstroInsightLegacyNeon() {
 
     var astroAiPromptSectionHtml = ''
       + '<div class="astro-section astro-prompt-panel" id="astroAiPromptSection" style="border:1px solid rgba(125,211,252,0.35);background:linear-gradient(145deg,rgba(2,6,23,.96),rgba(10,20,42,.94));box-shadow:0 24px 54px rgba(15,23,42,0.45), inset 0 1px 0 rgba(255,255,255,0.08);border-radius:16px;">'
-      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Prompt Forge</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 질문 문장 만들기</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 10,000원</span></div>'
+      + '<div class="astro-section-title-row"><div><div class="astro-section-kicker">Cosmic Consultation</div><div class="astro-subhead" style="margin-bottom:8px;color:#bae6fd;">🌌 점성술 AI 상담</div></div><span class="astro-price-pill astro-price-pill--prompt">1회 10,000원</span></div>'
       + '<p class="astro-birth-lead" style="margin-bottom:9px;color:#e2e8f0;">'
-      + '현재 차트 해석을 바탕으로 질문 맞춤 상담 프롬프트를 생성합니다. 시너스트리 궁합을 본 뒤에는 방금 계산한 궁합 데이터가 함께 반영됩니다.'
+      + '현재 차트 해석을 바탕으로 질문에 대한 맞춤 상담 답변을 바로 드립니다. 시너스트리 궁합을 본 뒤에는 방금 계산한 궁합 데이터가 함께 반영되고, 답변에 쓰인 프롬프트도 무료로 함께 제공됩니다.'
       + '</p>'
       + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">'
       + '  <span style="font-size:11px;color:#93c5fd;border:1px solid rgba(125,211,252,.28);padding:3px 8px;border-radius:999px;background:rgba(14,116,144,.2);">이용권 · 단건결제 · 월정석 보너스</span>'
@@ -11853,14 +11941,17 @@ function renderAstroInsightLegacyNeon() {
       + '  <span style="font-size:11px;color:#93c5fd;">최소 '+ASTROLOGY_AI_PROMPT_MIN_LENGTH+'자 입력</span>'
       + '</div>'
       + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">'
-      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">10,000원으로 맞춤 프롬프트 생성</button>'
+      + '  <button id="astroAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#0ea5e9,#2563eb 62%,#4f46e5);color:#fff;border:1px solid rgba(125,211,252,.45);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px rgba(37,99,235,.38);">10,000원으로 AI 상담 받기</button>'
       + '  <button id="astroAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#0f172a,#0ea5e9);color:#fff;border:1px solid rgba(125,211,252,.42);border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '</div>'
       + '<div id="astroAiPromptStatus" style="margin-top:8px;font-size:12px;color:#cbd5e1;line-height:1.6;"></div>'
-      + '<div id="astroAiPromptOutputWrap" style="display:none;margin-top:10px;border:1px solid rgba(56,189,248,.32);border-radius:12px;background:rgba(2,18,38,.66);padding:11px;">'
-      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a5f3fc;font-weight:700;margin-bottom:6px;">질문 유형: 일반</div>'
-      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:190px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:12px;line-height:1.66;box-sizing:border-box;resize:vertical;"></textarea>'
-      + '</div>'
+      + '<div id="astroAiPromptAnswer" style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(56,189,248,.3);background:linear-gradient(160deg,rgba(2,18,38,.82),rgba(10,20,42,.74));overflow-wrap:anywhere;"></div>'
+      + '<details id="astroAiPromptOutputWrap" style="display:none;margin-top:11px;border:1px solid rgba(56,189,248,.28);border-radius:12px;background:rgba(2,18,38,.5);padding:9px 12px;">'
+      + '  <summary style="cursor:pointer;font-size:12px;font-weight:800;color:#7dd3fc;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
+      + '  <div style="font-size:11px;color:#bae6fd;margin:8px 0 4px;line-height:1.55;">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
+      + '  <div id="astroAiPromptType" style="font-size:11px;color:#a5f3fc;font-weight:700;margin:6px 0;">질문 유형: 일반</div>'
+      + '  <textarea id="astroAiPromptOutput" readonly style="width:100%;min-height:180px;border-radius:10px;border:1px solid rgba(125,211,252,.34);background:rgba(2,6,23,.75);color:#e0f2fe;padding:10px;font-size:12px;line-height:1.6;box-sizing:border-box;resize:vertical;"></textarea>'
+      + '</details>'
       + '</div>';
 
     var astroActionHubHtml = ''
@@ -11872,7 +11963,7 @@ function renderAstroInsightLegacyNeon() {
       + '<p class="astro-action-hub__lead">정밀 차트, 프롬프트, 직접 입력 궁합, 유명인 궁합 실험실을 한 화면에서 순서대로 볼 수 있게 배치했습니다. 궁합 계산은 실행 시 5,000원 결제 후 열립니다.</p>'
       + '<div class="astro-action-hub__constellation" aria-hidden="true"><span>☉</span><i></i><span>☽</span><i></i><span>ASC</span><i></i><span>♀</span><i></i><span>♂</span></div>'
       + '<div class="astro-action-hub__grid">'
-      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>질문 프롬프트 생성</strong><span>차트 기반 상담 문장을 바로 작성합니다.</span><em>아래에 표시됨</em></button>'
+      + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroAiPromptSection" aria-controls="astroAiPromptSection"><span class="astro-action-hub__glyph">✦</span><strong>AI 상담 받기</strong><span>차트 기반 맞춤 답변을 바로 생성합니다.</span><em>아래에 표시됨</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="asDirect_name" aria-controls="asDirect_name"><span class="astro-action-hub__glyph">☍</span><strong>상대 직접 입력 궁합 · 5,000원</strong><span>출생 정보와 도시로 두 사람의 시나스트리를 엽니다.</span><em>결제 후 분석</em></button>'
       + '<button type="button" class="astro-action-hub__btn" data-astro-open-target="astroSynastrySection" aria-controls="astroSynastrySection"><span class="astro-action-hub__glyph">✧</span><strong>유명인 궁합 실험실 · 5,000원</strong><span>셀럽 차트와 나의 별자리 합을 비교합니다.</span><em>결제 후 분석</em></button>'
       + '</div>'
@@ -13100,7 +13191,11 @@ function renderAstroInsightLegacyNeon() {
         categoryKey: 'astrology'
       }).then(function(gateResult) {
         if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-        return runAt(0, Object.assign({}, body, _cdAIPromptGateEvidence(gateResult)));
+        var _astroFinalBody = Object.assign({}, body, _cdAIPromptGateEvidence(gateResult));
+        // 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
+        return (typeof _cdRetryTransientPost === 'function')
+          ? _cdRetryTransientPost(function() { return runAt(0, _astroFinalBody); })
+          : runAt(0, _astroFinalBody);
       });
     }
 
@@ -13112,6 +13207,7 @@ function renderAstroInsightLegacyNeon() {
       var statusEl = document.getElementById('astroAiPromptStatus');
       var outputWrap = document.getElementById('astroAiPromptOutputWrap');
       var outputEl = document.getElementById('astroAiPromptOutput');
+      var answerEl = document.getElementById('astroAiPromptAnswer');
       var typeEl = document.getElementById('astroAiPromptType');
       var balanceEl = document.getElementById('astroAiPromptCoinBalance');
 
@@ -13125,7 +13221,7 @@ function renderAstroInsightLegacyNeon() {
         generateBtn.disabled = inFlight;
         inputEl.disabled = inFlight;
         generateBtn.style.opacity = inFlight ? '0.72' : '1';
-        generateBtn.textContent = inFlight ? '생성 중...' : '10,000원으로 맞춤 프롬프트 생성';
+        generateBtn.textContent = inFlight ? 'AI 상담 생성 중...' : '10,000원으로 AI 상담 받기';
       }
 
       function updateCount() {
@@ -13148,7 +13244,7 @@ function renderAstroInsightLegacyNeon() {
 
         var context = _astroBuildPromptContext();
         setLoading(true);
-        _astroSetPromptStatus(statusEl, '이용권과 결제 수단을 확인하고 프롬프트를 생성하고 있습니다...', 'info');
+        _astroSetPromptStatus(statusEl, '이용권과 결제 수단을 확인하고 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
 
         _astroRequestAIPrompt({
           question: question,
@@ -13156,11 +13252,23 @@ function renderAstroInsightLegacyNeon() {
           compatibilityResult: context.compatibilityResult
         }).then(function(result) {
           var payload = result.payload || {};
-          if (result.ok && payload.ok === true && typeof payload.prompt === 'string' && payload.prompt.trim()) {
-            outputWrap.style.display = 'block';
-            outputEl.value = payload.prompt;
-            outputEl.scrollTop = 0;
-            copyBtn.style.display = 'inline-flex';
+          var resultText = String(payload.resultText || '').trim();
+          var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
+          if (result.ok && payload.ok === true && (resultText || bonusPrompt)) {
+            if (resultText && answerEl) {
+              answerEl.innerHTML = (window._cdRenderConsultAnswerHtml
+                ? window._cdRenderConsultAnswerHtml(resultText)
+                : '<p style="color:#e0f2fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
+              answerEl.style.display = 'block';
+              answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+            // 프롬프트 무료 동봉.
+            if (bonusPrompt) {
+              outputWrap.style.display = 'block';
+              outputEl.value = bonusPrompt;
+              outputEl.scrollTop = 0;
+              copyBtn.style.display = 'inline-flex';
+            }
 
             var qType = String(payload.questionType || 'general');
             typeEl.textContent = '질문 유형: ' + _astroQuestionTypeLabel(qType);
@@ -13173,7 +13281,7 @@ function renderAstroInsightLegacyNeon() {
 
             _astroSetPromptStatus(
               statusEl,
-              '결제 확인이 완료되어 프롬프트가 생성되었습니다.',
+              'AI 상담이 완성되었습니다. 결제 확인이 완료되었습니다.',
               'success'
             );
             return;
@@ -13219,7 +13327,7 @@ function renderAstroInsightLegacyNeon() {
 
       inputEl.addEventListener('input', updateCount);
       updateCount();
-      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영해 프롬프트를 생성합니다.', 'info');
+      _astroSetPromptStatus(statusEl, '질문을 입력하면 10,000원 결제 확인 후 현재 차트와 최근 궁합 결과를 반영한 상담 답변을 생성합니다.', 'info');
     }
     _astroMountPromptSection();
 
@@ -19977,14 +20085,14 @@ function renderZiwei(p, natal, targetId) {
     return ''
       + '<div class="zw-detail-panel" id="zwDeepAiPromptPanel" style="border:1px solid rgba(192,132,252,0.32);background:radial-gradient(140% 130% at 8% 0%, rgba(168,85,247,0.2), transparent 44%), radial-gradient(130% 130% at 100% 100%, rgba(16,185,129,0.18), transparent 40%), linear-gradient(145deg,rgba(24,24,55,0.93),rgba(8,20,28,0.92));box-shadow:0 24px 50px rgba(88,28,135,0.34), inset 0 1px 0 rgba(255,255,255,0.07);border-radius:16px;">'
       + '  <div class="zw-dp-header">'
-      + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 프롬프트</div>'
-      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 기반으로 질문별 고품질 상담 프롬프트를 생성합니다. (1회 10,000원)</div>'
+      + '    <div class="zw-dp-title" style="color:#f5d0fe">👑 자미두수 궁성 맞춤 AI 상담</div>'
+      + '    <div class="zw-dp-subtitle" style="color:#e9d5ff">기본 명반 데이터를 바탕으로 질문에 대한 맞춤 상담 답변을 바로 생성해 드립니다. (1회 10,000원)</div>'
       + '  </div>'
       + '  <div style="font-size:0.78rem;line-height:1.62;color:#e9d5ff;margin-bottom:10px">'
-      + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영해 프롬프트를 생성합니다.'
+      + '    연애, 소송, 직업, 돈, 인간관계, 건강, 인생 방향 질문을 입력하면 질문 분류+명반 핵심궁을 반영한 상담 답변을 드립니다.'
       + '  </div>'
       + '  <div style="font-size:0.74rem;line-height:1.58;color:#fef3c7;background:rgba(120,53,15,0.3);border:1px solid rgba(251,191,36,0.32);border-radius:10px;padding:8px 10px;margin-bottom:10px">'
-      + '    생성된 프롬프트에는 생년월일·출생시간·명반 요약이 포함될 수 있습니다. 외부 AI에 붙여 넣기 전 필요한 정보만 남겨 사용하세요.'
+      + '    답변 생성에는 명반 요약이 사용됩니다. 답변과 함께 상담에 쓰인 프롬프트도 추가 비용 없이 아래에 제공됩니다.'
       + '  </div>'
       + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
       + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
@@ -19992,11 +20100,16 @@ function renderZiwei(p, natal, targetId) {
       + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
-      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 프롬프트 생성</button>'
-      + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 생성</button>'
+      + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 상담 받기</button>'
+      + '    <button id="zwDeepAiPromptRegenerateBtn" type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#312e81);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담 받기</button>'
       + '    <button id="zwDeepAiPromptCopyBtn" type="button" style="display:none;background:linear-gradient(135deg,#6d28d9,#4338ca);color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>'
       + '  </div>'
-      + '  <textarea id="zwDeepAiPromptText" readonly style="margin-top:10px;width:100%;min-height:220px;border-radius:12px;border:1px solid rgba(52,211,153,0.42);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;display:none"></textarea>'
+      + '  <div id="zwDeepAiAnswer" style="display:none;margin-top:12px;padding:15px 16px;border-radius:14px;border:1px solid rgba(52,211,153,0.3);background:linear-gradient(160deg,rgba(6,20,30,0.78),rgba(20,14,44,0.72));overflow-wrap:anywhere;"></div>'
+      + '  <details id="zwDeepAiPromptWrap" style="display:none;margin-top:12px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;padding:8px 12px;background:rgba(10,15,30,0.5);">'
+      + '    <summary style="cursor:pointer;font-size:0.78rem;font-weight:800;color:#c4b5fd;">📋 이 상담에 쓰인 프롬프트 보기 (무료 제공)</summary>'
+      + '    <div style="font-size:0.72rem;color:#e9d5ff;margin:8px 0 4px;line-height:1.55">원하는 다른 AI에도 그대로 붙여 넣어 다시 활용할 수 있어요.</div>'
+      + '    <textarea id="zwDeepAiPromptText" readonly style="margin-top:6px;width:100%;min-height:180px;border-radius:12px;border:1px solid rgba(52,211,153,0.42);background:rgba(2,24,19,0.56);color:#ecfdf5;padding:12px;font-size:0.78rem;line-height:1.6;resize:vertical;box-sizing:border-box;"></textarea>'
+      + '  </details>'
       + '  <div id="zwDeepAiPromptStatus" style="margin-top:8px;font-size:0.76rem;color:#ddd6fe;"></div>'
       + '</div>';
   }
@@ -20011,6 +20124,8 @@ function renderZiwei(p, natal, targetId) {
     var balanceEl = panel.querySelector('#zwDeepAiPromptBalance');
     var statusEl = panel.querySelector('#zwDeepAiPromptStatus');
     var outputEl = panel.querySelector('#zwDeepAiPromptText');
+    var answerEl = panel.querySelector('#zwDeepAiAnswer');
+    var promptWrap = panel.querySelector('#zwDeepAiPromptWrap');
     var generateBtn = panel.querySelector('#zwDeepAiPromptGenerateBtn');
     var regenerateBtn = panel.querySelector('#zwDeepAiPromptRegenerateBtn');
     var copyBtn = panel.querySelector('#zwDeepAiPromptCopyBtn');
@@ -20036,8 +20151,8 @@ function renderZiwei(p, natal, targetId) {
       regenerateBtn.disabled = isLoading;
       questionEl.disabled = isLoading;
       generateBtn.textContent = isLoading
-        ? '프롬프트 생성 중...'
-        : ((_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원으로 AI 프롬프트 생성');
+        ? 'AI 상담 생성 중...'
+        : ((_ZW_AI_PROMPT_COST * 100).toLocaleString('ko-KR') + '원으로 AI 상담 받기');
       generateBtn.style.opacity = isLoading ? '0.7' : '1';
       regenerateBtn.style.opacity = isLoading ? '0.7' : '1';
     }
@@ -20095,7 +20210,7 @@ function renderZiwei(p, natal, targetId) {
       }
 
       setLoading(true);
-      setStatus('명반 데이터를 바탕으로 프롬프트를 생성하고 있습니다...', 'info');
+      setStatus('명반 데이터를 바탕으로 상담 답변을 작성하고 있습니다. 최대 1~2분 정도 걸릴 수 있어요...', 'info');
 
       var requestNonce = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
 
@@ -20123,8 +20238,9 @@ function renderZiwei(p, natal, targetId) {
         });
       }
 
+      // 게이트(결제)는 1회만. 게이트 통과 후 생성 POST만 일시 503/네트워크 시 동일 requestId로 자동 재시도.
       var promptRequest = paidPayload
-        ? Promise.resolve().then(function() {
+        ? _cdRetryTransientPost(function() {
           return requestPromptWithEvidence(_cdAIPromptGateEvidence({
             ok: true,
             status: 200,
@@ -20141,16 +20257,29 @@ function renderZiwei(p, natal, targetId) {
           categoryKey: 'ziwei'
         }).then(function(gateResult) {
           if (!gateResult.ok) return _cdAIPromptFailureResult(gateResult);
-          return requestPromptWithEvidence(_cdAIPromptGateEvidence(gateResult));
+          var ev = _cdAIPromptGateEvidence(gateResult);
+          return _cdRetryTransientPost(function() { return requestPromptWithEvidence(ev); });
         });
 
       promptRequest.then(function(result) {
         var payload = result.payload || {};
-        if (result.ok && payload.ok === true && typeof payload.prompt === 'string') {
-          outputEl.style.display = 'block';
-          outputEl.value = payload.prompt;
-          outputEl.scrollTop = 0;
-          copyBtn.style.display = 'inline-flex';
+        var resultText = String(payload.resultText || '').trim();
+        var bonusPrompt = String(payload.generatedPrompt || payload.prompt || '').trim();
+        if (result.ok && payload.ok === true && (resultText || bonusPrompt)) {
+          if (resultText && answerEl) {
+            answerEl.innerHTML = (window._cdRenderConsultAnswerHtml
+              ? window._cdRenderConsultAnswerHtml(resultText)
+              : '<p style="color:#ede9fe;white-space:pre-wrap;">' + resultText.replace(/[<>&]/g, '') + '</p>');
+            answerEl.style.display = 'block';
+            answerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          // 프롬프트 무료 동봉 — 결과를 본 사용자에게 상담에 쓰인 프롬프트를 함께 제공.
+          if (bonusPrompt) {
+            outputEl.value = bonusPrompt;
+            outputEl.scrollTop = 0;
+            if (promptWrap) promptWrap.style.display = 'block';
+            copyBtn.style.display = 'inline-flex';
+          }
           regenerateBtn.style.display = 'inline-flex';
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
           var balanceAfter = Number(payload.balanceAfter);
@@ -20159,8 +20288,8 @@ function renderZiwei(p, natal, targetId) {
           }
           setStatus(
             chargedCoins > 0
-              ? ('프롬프트가 생성되었습니다. ' + (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제가 확인되었습니다.')
-              : '프롬프트가 생성되었습니다.',
+              ? ('AI 상담이 완성되었습니다. ' + (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제가 확인되었습니다.')
+              : 'AI 상담이 완성되었습니다.',
             'success'
           );
           return;
@@ -20216,7 +20345,7 @@ function renderZiwei(p, natal, targetId) {
 
     updateCount();
     updateBalance();
-    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 프롬프트를 생성합니다.', 'info');
+    setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
   function _zwPortfolioBuildModalHtml(row, summary) {

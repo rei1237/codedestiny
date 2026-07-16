@@ -41,13 +41,15 @@ const promptFeatures = [
   "ziwei_ai_prompt_generator",
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
+  "sukuyo_ai_prompt_generator",
 ];
-const freePromptFeatures = ["sukuyo_ai_prompt_generator"];
+const freePromptFeatures = [];
 const promptFeatureCosts = {
   saju_ai_prompt_generator: 200,
   ziwei_ai_prompt_generator: 100,
   astrology_ai_prompt_generator: 100,
   vedic_ai_prompt_generator: 100,
+  sukuyo_ai_prompt_generator: 100,
 };
 
 for (const featureKey of promptFeatures) {
