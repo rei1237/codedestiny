@@ -213,22 +213,107 @@
     };
   }
 
-  // --- /points 이탈 차단 ---------------------------------------------------
-  // 정적 페이지 곳곳의 <a href="/points">는 빌드 시 제거하지만, 런타임에서 만들어지는
-  // 링크·리다이렉트까지 잡으려면 클릭 단계에서 한 번 더 막아야 한다.
+  // --- 앱에 없는 라우트 처리 ------------------------------------------------
+  //
+  // scripts/build-mobile-app.mjs가 이 라우트들의 파일을 앱 번들에서 지운다.
+  // 링크가 남아 있으면 그대로 404이므로 여기서 걷어낸다(양쪽이 짝을 이룬다).
+  //
+  //   redirect 있음 : 앱에 대체 화면이 있다 → 클릭을 그쪽으로 돌린다.
+  //   redirect 없음 : 대체 화면이 없다(SEO 전용 문서) → 링크 자체를 제거한다.
+  var PRUNED_ROUTES = [
+    { pattern: /^\/points(\/|\?|#|$)/, redirect: "/app/store/" },
+    { pattern: /^\/premium-unlock(\/|\?|#|$)/, redirect: "/app/store/" },
+    { pattern: /^\/insights(\/|\?|#|$)/, redirect: null },
+    { pattern: /^\/famous-saju(\/|\?|#|$)/, redirect: null },
+  ];
+
+  function toPath(href) {
+    return String(href || "").replace(/^https?:\/\/[^/]+/, "");
+  }
+
+  function matchPrunedRoute(href) {
+    var path = toPath(href);
+    if (!path || path.charAt(0) !== "/") return null;
+    for (var i = 0; i < PRUNED_ROUTES.length; i += 1) {
+      if (PRUNED_ROUTES[i].pattern.test(path)) return PRUNED_ROUTES[i];
+    }
+    return null;
+  }
+
+  // 홈의 SEO 섹션은 앵커만 지우면 제목만 남은 빈 껍데기가 된다 — 섹션째 걷어낸다.
+  // body의 부모가 곧 섹션 카드 컨테이너다(index.html: 토글 헤더 + 본문을 감싼 div).
+  var PRUNED_SECTION_BODY_IDS = ["cd-insights-body", "cd-famous-body"];
+
+  function removePrunedSections() {
+    for (var i = 0; i < PRUNED_SECTION_BODY_IDS.length; i += 1) {
+      var body = document.getElementById(PRUNED_SECTION_BODY_IDS[i]);
+      if (!body) continue;
+      var section = body.parentElement;
+      // 부모가 없거나 body/html까지 올라갔으면 구조가 바뀐 것 — 본문만 지우고 만다.
+      if (!section || section === document.body || section === document.documentElement) {
+        body.remove();
+        continue;
+      }
+      section.remove();
+    }
+  }
+
+  function scrubPrunedLinks(root) {
+    if (!root || !root.querySelectorAll) return;
+    var anchors = root.querySelectorAll("a[href]");
+    for (var i = 0; i < anchors.length; i += 1) {
+      var route = matchPrunedRoute(anchors[i].getAttribute("href"));
+      // 대체 화면이 있는 링크(/points)는 남겨두고 클릭만 돌린다 — 사용자가 이용권을
+      // 사려다 버튼이 사라지면 그게 더 나쁘다.
+      if (!route || route.redirect) continue;
+      anchors[i].remove();
+    }
+  }
+
+  function applyPrunedRouteCleanup() {
+    removePrunedSections();
+    scrubPrunedLinks(document);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyPrunedRouteCleanup);
+  } else {
+    applyPrunedRouteCleanup();
+  }
+
+  // 나중에 JS가 붙이는 링크(예: index.html의 유명인 카드 그리드)도 같은 규칙으로 걷어낸다.
+  try {
+    new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i += 1) {
+        var added = mutations[i].addedNodes;
+        for (var j = 0; j < added.length; j += 1) {
+          if (added[j].nodeType !== 1) continue;
+          scrubPrunedLinks(added[j]);
+          if (added[j].matches && added[j].matches("a[href]")) {
+            var route = matchPrunedRoute(added[j].getAttribute("href"));
+            if (route && !route.redirect) added[j].remove();
+          }
+        }
+      }
+    }).observe(document.documentElement, { childList: true, subtree: true });
+  } catch (e) { /* noop */ }
+
+  // 백스톱 — 위를 다 뚫고 나온 클릭(동적 href 변경 등)은 여기서 막는다.
   document.addEventListener("click", function (event) {
     var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
     if (!anchor) return;
-    var href = String(anchor.getAttribute("href") || "");
-    if (!/^\/?points(\/|\?|#|$)/.test(href.replace(/^https?:\/\/[^/]+/, ""))) return;
+    var route = matchPrunedRoute(anchor.getAttribute("href"));
+    if (!route) return;
     event.preventDefault();
     event.stopPropagation();
-    openAppStore();
+    if (route.redirect) window.location.assign(route.redirect);
   }, true);
 
   window.__cdAppPaymentGuard = {
     installed: true,
     runPlayBillingCheckout: runPlayBillingCheckout,
     openAppStore: openAppStore,
+    prunedRoutes: PRUNED_ROUTES,
+    applyPrunedRouteCleanup: applyPrunedRouteCleanup,
   };
 })();

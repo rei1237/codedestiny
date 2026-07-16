@@ -11,6 +11,8 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM } from "jsdom";
+// 죽은 자산 판정 규칙은 빌드가 정본이다 — 여기서 다시 구현하면 두 규칙이 갈라진다.
+import { buildReferencedNameIndex } from "./build-mobile-app.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -161,6 +163,37 @@ if (DIST) {
       check(`${label} 라우트 제거됨`, !(await exists(path.join(DIST, prefix, "points"))));
     }
 
+    // SEO 전용 문서 — 앱 사용자는 도달하지 않는데 압축 후 28MB를 차지한다.
+    for (const route of ["insights", "famous-saju"]) {
+      check(`/${route} 라우트 제거됨`, !(await exists(path.join(DIST, route))));
+    }
+
+    // 참조되는 자산은 살아남아야 한다 — 프루닝이 실사용 자산을 먹으면 앱에서 이미지가 깨진다.
+    // (다마고치는 index.html이 /tadagochi로 링크하는 실제 기능이고, tadagochi.html이
+    //  fuctionassets/tadagochi* 이미지를 쓴다. 한때 이걸 '참조 0건'으로 오판했다.)
+    check(
+      "실사용 자산 존치: fuctionassets/tadagochi (다마고치)",
+      await exists(path.join(DIST, "fuctionassets", "tadagochi")),
+      "tadagochi.html이 쓰는 이미지가 사라졌다",
+    );
+    check("실사용 페이지 존치: /tadagochi", await exists(path.join(DIST, "tadagochi.html")));
+
+    // 죽은 PNG 원본(webp 쌍 존재 + 참조 0건)이 남아있지 않은가.
+    // 빌드와 같은 판정 함수를 쓴다 — 규칙을 두 번 쓰면 갈라진다.
+    // 참조가 있는 PNG는 남는 게 맞으므로(fail-safe), '참조 0건인데 남은 것'만 잡는다.
+    const referencedNames = await buildReferencedNameIndex(DIST);
+    const deadSurvivors = [];
+    for (const png of await walk(DIST, (file) => file.toLowerCase().endsWith(".png"))) {
+      if (!(await exists(`${png.slice(0, -4)}.webp`))) continue;
+      if (referencedNames.has(path.basename(png))) continue;
+      deadSurvivors.push(path.relative(DIST, png).replace(/\\/g, "/"));
+    }
+    check(
+      "죽은 PNG 원본(webp 쌍 + 참조 0건) 제거됨",
+      deadSurvivors.length === 0,
+      deadSurvivors.slice(0, 3).join(", "),
+    );
+
     const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
     const missingGuard = [];
     const directSdkTag = [];
@@ -182,6 +215,73 @@ if (DIST) {
       directSdkTag.length === 0,
       directSdkTag.slice(0, 5).join(", "),
     );
+
+    // --- 4) 실제 페이지에 가드를 돌려 링크가 사라지는지 -------------------
+    //
+    // 라우트 파일을 지웠으니 링크가 남으면 그대로 404다. 정적 문자열 검사로는
+    // "가드가 정말 지우는가"를 볼 수 없어 실제 산출물 HTML에 가드를 실행한다.
+    // 페이지 자체 스크립트는 돌리지 않는다(1.9MB 인라인 JS라 느리고 불안정) —
+    // 정적 앵커만 봐도 충분하고, 동적 생성분은 가드의 MutationObserver가 맡는다.
+    console.log("\n[4] 실제 산출물 페이지에서 프루닝 링크가 사라지는가 (jsdom)");
+    const pagesToCheck = [
+      ["index.html", "홈(루트 셸)"],
+      [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
+    ];
+
+    for (const [relPath, label] of pagesToCheck) {
+      const full = path.join(DIST, relPath);
+      if (!(await exists(full))) {
+        check(`${label}: 파일 존재`, false, `${relPath} 없음`);
+        continue;
+      }
+      const pageDom = new JSDOM(await fs.readFile(full, "utf8"), {
+        url: "https://code-destiny.com/",
+        runScripts: "outside-only",
+      });
+      const pageWindow = pageDom.window;
+      pageWindow.fetch = async () => ({ ok: true, json: async () => ({ ok: true, data: {} }) });
+
+      const beforeCount = pageWindow.document.querySelectorAll(
+        'a[href^="/insights"], a[href^="/famous-saju"]',
+      ).length;
+
+      pageWindow.eval(guardSource);
+      // 가드는 DOMContentLoaded에 정리를 건다 — jsdom은 이미 로드가 끝나 있어
+      // 즉시 실행되지만, 확실히 하려고 한 번 더 부른다(멱등).
+      pageWindow.__cdAppPaymentGuard.applyPrunedRouteCleanup();
+
+      const afterCount = pageWindow.document.querySelectorAll(
+        'a[href^="/insights"], a[href^="/famous-saju"]',
+      ).length;
+
+      check(
+        `${label}: 프루닝 링크 0건 (가드 실행 전 ${beforeCount}건)`,
+        afterCount === 0,
+        `남은 링크 ${afterCount}건`,
+      );
+
+      if (relPath === "index.html") {
+        // 섹션째 사라져야 한다 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
+        for (const id of ["cd-insights-body", "cd-famous-body", "fsp-grid"]) {
+          check(`홈: #${id} 제거됨`, !pageWindow.document.getElementById(id));
+        }
+        // 과잉 제거 감시 — 섹션 부모를 지우다 홈을 통째로 날리면 안 된다.
+        // (.cd-section-body는 index.html에 2개뿐이고 둘 다 프루닝 대상이라 기준이 못 된다)
+        check(
+          "홈: 모바일 홈 허브가 살아있음 (과잉 제거 없음)",
+          Boolean(pageWindow.document.getElementById("cdMobileDestinyHub")),
+        );
+        const survivingFeatureLinks = pageWindow.document.querySelectorAll(
+          'a[href^="/oracle/"], a[href^="/fortune-tea-house"], a[href^="/saju"], a[href^="/tarot"]',
+        ).length;
+        check(
+          `홈: 기능 진입 링크가 살아있음 (${survivingFeatureLinks}건)`,
+          survivingFeatureLinks > 0,
+          "기능 링크까지 사라졌다 — 앵커 제거가 과했다",
+        );
+      }
+      pageWindow.close();
+    }
   }
 } else {
   console.log("\n[3] dist 검증 생략 (--dist 미지정)");

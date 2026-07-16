@@ -133,6 +133,34 @@ consume()  ← PER_USE만. 안 하면 다음 구매가 ITEM_ALREADY_OWNED로 막
 
 티어 SKU라 같은 티어의 **다른 기능**도 소비 실패에 함께 막힌다 — 소비는 선택이 아니다.
 
+## 앱 번들 프루닝 (173MB → 108MB)
+
+`scripts/build-mobile-app.mjs`가 앱 빌드에서만 걷어낸다. **웹 자산은 건드리지 않는다.**
+
+| 대상 | 절감(압축 후) | 근거 |
+|---|---|---|
+| `/insights`, `/famous-saju` (+로케일) | ~28 MB | SEO 전용 문서. 앱 사용자는 도달할 일이 없다 |
+| webp 쌍이 있는 죽은 PNG 원본 25개 | ~36 MB | `X.png`와 `X.webp`가 같이 있는데 `X.png`는 dist 어디서도 참조되지 않는다(`-photoroom` 등 배경제거 툴 원본) |
+
+**자산은 목록으로 지우지 않는다 — 반드시 참조 검사를 거친다.** `buildReferencedNameIndex()`가 dist의 모든 텍스트 파일에서 파일명을 색인해 대조하고, 참조가 하나라도 잡히면 남긴다(fail-safe). 지운 목록은 빌드 로그에 남으므로 이미지가 깨지면 거기부터 본다.
+
+> ⚠️ 한때 `fuctionassets/tadagochi*`(25MB)를 "참조 0건"으로 보고 하드코딩 목록에 넣었다가 다마고치 기능을 깨뜨릴 뻔했다. `tadagochi.html`이 그 이미지를 쓰고 `index.html`이 `/tadagochi`로 링크한다. 목록 방식은 이런 오판을 걸러낼 수 없어서 규칙 기반으로만 간다. `verify-app-no-portone.mjs`가 다마고치 자산 **존치**를 검사한다.
+
+### 링크 제거 — 라우트를 지우면 링크도 지워야 한다
+
+파일만 지우고 링크를 두면 그대로 404다. `scripts/app-payment-guard.js`의 `PRUNED_ROUTES`가 빌드의 `REMOVED_ROUTE_DIRS`와 짝을 이룬다:
+
+- **대체 화면 있음**(`/points`, `/premium-unlock`) → 링크는 두고 클릭만 `/app/store`로 돌린다.
+- **대체 화면 없음**(`/insights`, `/famous-saju`) → 링크 자체를 제거한다.
+
+`/insights` 링크는 푸터(`SiteFooterHub`)·가이드 칩·`SajuBasicPage`(앱 탭!) 등 공용 컴포넌트에 흩어져 있어, 각각 고치면 웹까지 바뀐다. 그래서 런타임 가드가 걷어낸다:
+1. 홈의 SEO 섹션(`#cd-insights-body`·`#cd-famous-body`)은 **부모째** 제거 — 앵커만 지우면 제목만 남은 빈 카드가 된다.
+2. 흩어진 앵커 제거.
+3. `MutationObserver`로 나중에 붙는 링크(유명인 카드 그리드)도 처리.
+4. 클릭 백스톱.
+
+**검증**: `verify-app-no-portone.mjs`가 실제 산출물(`dist/index.html`, `dist/saju/basic/index.html`)을 jsdom으로 열어 가드를 돌리고, 프루닝 링크 **0건**·기능 링크 **존치**·홈 허브 **존치**를 확인한다.
+
 ## 배포 절차
 
 ```bash
