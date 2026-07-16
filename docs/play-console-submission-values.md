@@ -110,7 +110,67 @@
 > (`resolveAppPassCoverageKRW`) — 웹 한도가 바뀌면 앱 표기도 자동으로 따라간다.
 > `cd_pass_family_30d`은 고액 상품이라 심사에서 환불 정책 고지를 엄격히 본다.
 
-### 2-3. SKU를 만들지 않는 것
+### 2-3. 등록 절차 (17개)
+
+#### 0) AAB 업로드가 **먼저** — 이걸 안 하면 인앱 상품 메뉴가 잠긴다
+
+Play는 **BILLING 권한이 든 AAB가 트랙에 올라와 있어야** 인앱 상품 생성을 허용한다.
+우리 앱은 `com.android.vending.BILLING`이 Billing 라이브러리에서 자동 병합되므로 매니페스트 손댈 것은 없다.
+
+```bash
+npm run mobile:android:sync      # 가드 주입·/points 제거·PortOne 부재 검증 → cap sync
+npm run mobile:android:open      # Android Studio → Build > Generate Signed Bundle (release)
+```
+→ Play Console → 테스트 → **내부 테스트** 트랙에 `.aab` 업로드.
+
+> 서명 키가 없으면 `bundleRelease`가 실패한다 → [4절](#4-앱-서명-키-로컬--커밋-금지) 참고.
+
+#### 1) CSV 일괄 등록은 폐지됐다
+
+Play Console의 인앱 상품 **Import/Export(CSV)는 2025-05-19부로 없어졌다**
+([공식 문서](https://support.google.com/googleplay/android-developer/answer/1153481)).
+남은 길은 **API 등록**(권장) 또는 **수동 17회 입력**뿐이다.
+
+#### 2) 권장 — API 일괄 등록
+
+가격을 손으로 옮기면 Play 등록가와 서버 정산 기준(`worker/lib/app-store-pricing.js`)이 조용히 어긋난다.
+`purchases.products.get`은 가격을 돌려주지 않아 **런타임에 불일치를 잡을 방법이 없다.**
+아래 스크립트는 정본에서 바로 등록하므로 애초에 어긋날 수 없다.
+
+```bash
+# 서비스 계정 없이도 등록 예정 목록을 볼 수 있다
+npm run play:products:dry
+
+# 서비스 계정 JSON을 .env.local 에 넣은 뒤 (GOOGLE_PLAY_SERVICE_ACCOUNT_JSON='{...}')
+npm run play:products:dry        # 기존 상품과 대조 — 무엇이 생성/변경되는지 표시
+npm run play:products:apply      # 실제 등록
+npm run play:products:dry        # 재실행 → '변경 없음'만 나오면 Play ↔ 코드 일치 증명
+```
+
+- 서비스 계정에 **'상품 관리' 권한**이 필요하다. 결제 검증용 '재무 데이터 보기'만으로는 403이 난다
+  (Play Console → 사용자 및 권한 → 해당 서비스 계정 → 권한 편집).
+- 재실행해도 안전하다(upsert). 가격을 바꾸면 다시 돌려 동기화한다.
+- **주의**: 이미 수동으로 만든 상품이 있으면 스크립트 값으로 덮어쓴다.
+
+#### 3) 대안 — 수동 등록
+
+Play Console → **수익 창출 → 제품 → 인앱 상품 → 상품 만들기**, [2-1](#2-1-콘텐츠-티어-13개--단건-결제의-가격대-그릇)·[2-2](#2-2-이용권-4개)의 표를 그대로 17회 입력.
+
+| 입력란 | 값 |
+|---|---|
+| 상품 ID | 표의 `cd_*` — **생성 후 변경 불가**. 오타 시 삭제 후 재생성 |
+| 이름 | 표의 이름 (≤55자) |
+| 설명 | 표의 설명 (≤200자) |
+| 가격 | 표의 KRW. 기본 통화 KRW, 나머지 국가는 자동 환산 허용 |
+| 상태 | **활성** (활성화하지 않으면 앱에서 조회되지 않는다) |
+
+전부 **인앱 상품(one-time)** 이다 — 이용권도 자동 갱신이 없어 정기 결제가 아니다.
+소모성/비소모성은 Console 선택 항목이 아니며 앱이 `consume()` 호출로 정한다.
+
+> 수동으로 넣었다면 마지막에 `npm run play:products:dry`를 돌려 **'변경 없음'**만 나오는지 확인할 것.
+> 하나라도 다르면 오타이거나 가격이 어긋난 것이다.
+
+### 2-4. SKU를 만들지 않는 것
 
 | 대상 | 처리 | 이유 |
 |---|---|---|
