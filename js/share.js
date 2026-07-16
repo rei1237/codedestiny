@@ -410,7 +410,7 @@ if (typeof window !== 'undefined') {
 
 function getShareText(){
   var name=USER_NAME||'사용자';
-  var base=window.location.href.split('?')[0];
+  var base=cdBuildShareUrl('saju');
   return name+'님의 사주 분석 결과를 확인해보세요! 🐷✨\n꿀꿀 만세력\n'+base;
 }
 function showToast(msg){
@@ -418,11 +418,99 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2500);
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   공유 링크형 유입 — 결과 공유 링크가 "결제 유도 지점"으로 딥링크되고,
+   로그인 사용자의 리퍼럴 코드가 링크에 실려 추천 가입 보상까지 이어지게 한다.
+   · 딥링크: 기존 ?action= 디스패처(legacy-action-launcher.js) 재사용
+   · 리퍼럴: 기존 /api/auth/referral/kakao-share 엔드포인트 재사용(서버 무변경)
+   ─────────────────────────────────────────────────────────────────── */
+// contentId → 홈 셸에서 해당 기능을 여는 검증된 data-action (빈 값이면 홈=사주 입력).
+var CD_SHARE_ACTION_MAP = {
+  saju: '',
+  tarot: 'openTarotModal',
+  astro: 'openAstroModal',
+  sukuyo: 'openSukuyoModal',
+  ziwei: 'openZiweiModal',
+  lovesecret: '',
+  lifebook: ''
+};
+var CD_SHARE_REFERRAL_SESSION_KEY = 'cd_share_referral_v1';
+var __cdShareReferral = null; // { ref, rs, via } | {} (없음)
+
+function cdReadCachedReferral(){
+  if (__cdShareReferral) return __cdShareReferral;
+  try {
+    var cached = sessionStorage.getItem(CD_SHARE_REFERRAL_SESSION_KEY);
+    if (cached) { __cdShareReferral = JSON.parse(cached) || {}; return __cdShareReferral; }
+  } catch (_) {}
+  return null;
+}
+
+// 세션당 1회만 인증 엔드포인트를 호출해 리퍼럴 파라미터를 미리 확보한다.
+// (navigator.share 는 user-activation 이 필요하므로 공유 시점엔 동기 조회만 하도록 사전 프라이밍)
+function cdPrimeReferralParams(){
+  try {
+    if (cdReadCachedReferral()) return;
+    var token = '';
+    try { token = localStorage.getItem('fortune_auth_token') || ''; } catch (_) {}
+    if (!token) { __cdShareReferral = {}; return; } // 비로그인: 리퍼럴 없이 딥링크만
+    var base = (typeof getApiBaseUrl === 'function') ? getApiBaseUrl() : '';
+    fetch(base + '/api/auth/referral/kakao-share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: '{}'
+    })
+      .then(function(res){ return res.ok ? res.json() : null; })
+      .then(function(data){
+        if (data && data.ok && data.referralCode) {
+          __cdShareReferral = { ref: data.referralCode, rs: data.referralShareToken || '', via: 'kakao_reward' };
+          try { sessionStorage.setItem(CD_SHARE_REFERRAL_SESSION_KEY, JSON.stringify(__cdShareReferral)); } catch (_) {}
+        } else {
+          __cdShareReferral = {};
+        }
+      })
+      .catch(function(){ __cdShareReferral = {}; });
+  } catch (_) { __cdShareReferral = {}; }
+}
+
+// contentId 로 "결제 유도 지점" 딥링크 URL을 만든다(리퍼럴 파라미터 자동 부착).
+function cdBuildShareUrl(contentId){
+  var origin = 'https://code-destiny.com';
+  try {
+    if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin;
+  } catch (_) {}
+  var action = Object.prototype.hasOwnProperty.call(CD_SHARE_ACTION_MAP, contentId) ? CD_SHARE_ACTION_MAP[contentId] : '';
+  var qs = [];
+  if (action) qs.push('action=' + encodeURIComponent(action));
+  var r = cdReadCachedReferral() || {};
+  if (r.ref) {
+    qs.push('ref=' + encodeURIComponent(r.ref));
+    if (r.rs) qs.push('rs=' + encodeURIComponent(r.rs));
+    qs.push('via=' + encodeURIComponent(r.via || 'kakao_reward'));
+  }
+  return origin + '/' + (qs.length ? ('?' + qs.join('&')) : '');
+}
+
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'complete') {
+    cdPrimeReferralParams();
+  } else {
+    window.addEventListener('load', function(){ cdPrimeReferralParams(); });
+  }
+  // 로그인/로그아웃 시 캐시를 비우고 다시 프라이밍(계정 전환 정합).
+  window.addEventListener('cd:auth-changed', function(){
+    try { sessionStorage.removeItem(CD_SHARE_REFERRAL_SESSION_KEY); } catch (_) {}
+    __cdShareReferral = null;
+    cdPrimeReferralParams();
+  });
+}
+
 function shareKakao(){
   shareWithReward(function(){
     var text=getShareText();
     if(navigator.share){
-      navigator.share({title:_shareText("share.001"),text:text,url:window.location.href}).catch(function(){});
+      navigator.share({title:_shareText("share.001"),text:text,url:cdBuildShareUrl('saju')}).catch(function(){});
       return;
     }
     var encoded=encodeURIComponent(text);
@@ -441,9 +529,10 @@ function shareTarotKakao(){
     var cName    = document.getElementById('tarotCardName').innerText || '운명의 카드';
     var cFortune = document.getElementById('destinyFortune').innerText || '';
     var cOracle  = document.getElementById('tarotOracleText').innerText || '';
-    var text = '🔮 [연이의 꿀꿀 타로] 🔮\n\n' + cName + '\n\n' + cFortune + '\n\n' + cOracle + '\n\n👉 무료 타로 보러가기: https://code-destiny.com';
+    var tarotUrl = cdBuildShareUrl('tarot');
+    var text = '🔮 [연이의 꿀꿀 타로] 🔮\n\n' + cName + '\n\n' + cFortune + '\n\n' + cOracle + '\n\n👉 무료 타로 보러가기: ' + tarotUrl;
     if(navigator.share){
-      navigator.share({title:_shareText("share.002"),text:text,url:'https://code-destiny.com'}).catch(function(){});
+      navigator.share({title:_shareText("share.002"),text:text,url:tarotUrl}).catch(function(){});
       return;
     }
     var a=document.createElement('a');a.href='kakaotalk://send?text='+encodeURIComponent(text);a.click();
@@ -457,7 +546,7 @@ function shareAstroKakao() {
       : (window.USER_NAME || '나');
     var section = document.getElementById('astroResult');
     var preview = section ? _trimShareText(section.innerText, 240) : '';
-    var base = window.location.href.split('?')[0];
+    var base = cdBuildShareUrl('astro');
     var text = '✨ [점성술 코즈믹 차트 결과 공유]\n\n'
       + name + '님의 점성술 분석 결과입니다.\n'
       + (preview ? ('\n' + preview + '\n') : '\n')
@@ -501,7 +590,7 @@ function shareSukuyoKakao() {
       var section = document.getElementById('sukuyoSection');
       preview = section ? _trimShareText(section.innerText, 180) : '';
     }
-    var base = window.location.href.split('?')[0];
+    var base = cdBuildShareUrl('sukuyo');
     var text = '[무료 기본 숙요점 결과]\n\n'
       + name + '님의 기본 숙요점 요약입니다.\n'
       + (preview ? ('\n' + preview + '\n') : '\n')
@@ -526,7 +615,7 @@ function shareZiweiKakao() {
       : (window.USER_NAME || '나');
     var section = document.getElementById('ziweiModalSection');
     var preview = section ? _trimShareText(section.innerText, 240) : '';
-    var base = window.location.href.split('?')[0];
+    var base = cdBuildShareUrl('ziwei');
     var text = '🌌 [자미두수 명반 결과 공유]\n\n'
       + name + '님의 자미두수 결과입니다.\n'
       + (preview ? ('\n' + preview + '\n') : '\n')
@@ -546,7 +635,7 @@ function shareZiweiKakao() {
 function shareLifeBookKakao() {
   var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
     || (window.USER_NAME || '사용자');
-  var base = window.location.href.split('?')[0];
+  var base = cdBuildShareUrl('lifebook');
   var text = '사주 [인생의 책 결과]\n\n'
     + name + '님의 인생의 책 결과를 공유합니다.\n\n'
     + '매력적인 문장으로 정리한 인생의 책 요약입니다.\n\n'
@@ -567,7 +656,7 @@ function shareLoveSecretKakao() {
   shareWithReward(function () {
     var name = (window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.name)
       || (window.USER_NAME || '사용자');
-    var base = window.location.href.split('?')[0];
+    var base = cdBuildShareUrl('lovesecret');
     var text = '💕 [연애 비책 — 운명이 설계한 사랑의 지도]\n\n'
       + name + '님만을 위한 사주 명리학자의 10가지 연애 전략을 받았어요!\n\n'
       + '🔑 연애 자아 분석 · 💘 매력 해독 · ⚔️ 밀당 전략 · 🌿 개운 처방전\n\n'

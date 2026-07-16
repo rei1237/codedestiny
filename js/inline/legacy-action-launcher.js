@@ -3,11 +3,36 @@
  * Runs after window "load" so deferred bundles have registered globals.
  */
 (function launchLegacyActionFromQuery() {
+  // SignupClient.tsx 의 검증 규칙과 동일: 코드 6~24자 [A-Z0-9_-] 대문자, 토큰 24~1800자.
+  function captureReferralFromQuery(params) {
+    try {
+      var refCode = String(params.get("ref") || params.get("referralCode") || "").trim().toUpperCase();
+      if (!/^[A-Z0-9_-]{6,24}$/.test(refCode)) return;
+      var refTokenRaw = String(params.get("rs") || params.get("referralShareToken") || "").trim();
+      var refToken = (refTokenRaw.length >= 24 && refTokenRaw.length <= 1800) ? refTokenRaw : "";
+      var refSource = String(params.get("via") || params.get("referralSource") || "").trim().toLowerCase() || "kakao_reward";
+      var payload = {
+        referralCode: refCode,
+        referralShareToken: refToken,
+        referralSource: refSource,
+        capturedAt: new Date().toISOString()
+      };
+      try { localStorage.setItem("cd_pending_referral_v1", JSON.stringify(payload)); } catch (_) {}
+      try { document.cookie = "cd_ref=" + encodeURIComponent(refCode) + "; path=/; max-age=2592000; samesite=lax"; } catch (_) {}
+    } catch (_) {}
+  }
+
   function startPolling() {
     try {
       var loc = window.location;
       if (!loc) return;
       var params = new URLSearchParams(loc.search || "");
+
+      // 공유 링크형 유입: 홈/기능 어디로 떨어지든 리퍼럴을 승계한다.
+      // (기존엔 /signup 에서만 캡처 → 홈 랜딩 시 추천 보상이 유실되던 사각지대 보강)
+      // 저장 규격은 app/signup/SignupClient.tsx 의 cd_pending_referral_v1 / cd_ref 쿠키와 동일해야 한다.
+      captureReferralFromQuery(params);
+
       var action = params.get("action");
       if (!action) return;
 
