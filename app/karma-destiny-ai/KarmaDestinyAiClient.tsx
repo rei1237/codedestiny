@@ -6,6 +6,8 @@ import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
+  holdPaidFeatureGateOpen,
+  releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -715,6 +717,8 @@ export default function KarmaDestinyAiPage() {
     access: Record<string, unknown>,
   ) => {
     setStatus("reading");
+    // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+    releasePaidFeatureGate(idempotencyKey);
     const { payload: result } = await postJson<ConsultationResult>("/api/karma-destiny-ai/start", {
       ...payload,
       ...access,
@@ -787,6 +791,9 @@ export default function KarmaDestinyAiPage() {
       reason: "운명의 업 AI 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
+    // 확인 완료 후 다음 화면(생성 로딩)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+    // release는 startConsultation의 setStatus("reading")에서 호출한다(안전장치 상한 8초).
+    holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/karma-destiny-ai/ensure-access", payload, idempotencyKey);

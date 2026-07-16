@@ -262,8 +262,9 @@ async function ensureFortuneTeaAuthReady() {
 }
 
 async function beginFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
-  const { beginPaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
+  const { beginPaidFeatureGateCheck, holdPaidFeatureGateOpen } = await import("@/app/_lib/billing-client") as {
     beginPaidFeatureGateCheck: BeginPaidFeatureGateCheck;
+    holdPaidFeatureGateOpen: typeof import("@/app/_lib/billing-client")["holdPaidFeatureGateOpen"];
   };
   beginPaidFeatureGateCheck({
     featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
@@ -272,6 +273,16 @@ async function beginFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attem
     reason: "운명 찻집 상담",
     paymentMode: "MEMBERSHIP_PASS",
   });
+  // 확인 완료 후 다음 화면(찻집 테마 로딩 scentLoading)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+  // release는 scentLoading 전환 직전(releaseFortuneTeaAccessGate)에서 호출한다(안전장치 상한 8초).
+  holdPaidFeatureGateOpen({ requestId: attemptId, maxMs: 8000 });
+}
+
+async function releaseFortuneTeaAccessGate(attemptId: string) {
+  const { releasePaidFeatureGate } = await import("@/app/_lib/billing-client") as {
+    releasePaidFeatureGate: typeof import("@/app/_lib/billing-client")["releasePaidFeatureGate"];
+  };
+  releasePaidFeatureGate(attemptId);
 }
 
 async function completeFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
@@ -926,6 +937,8 @@ export default function FortuneTeaHousePage() {
       // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
       await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
       accessGateStarted = false;
+      // 다음 화면(scentLoading)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(찻집 로딩과 이중 표시 방지).
+      void releaseFortuneTeaAccessGate(attemptId);
       goToStage("scentLoading");
 
       logSubmitStep("api result start");

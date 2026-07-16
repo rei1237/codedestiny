@@ -21,6 +21,8 @@ import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
+  holdPaidFeatureGateOpen,
+  releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -571,6 +573,8 @@ export default function LoveSecretAiPage() {
     access: Record<string, unknown>,
   ) {
     setPhase("generating");
+    // 다음 화면(생성 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+    releasePaidFeatureGate(idempotencyKey);
     setProgressIndex(0);
     markPaidAttemptGenerationStarted("love_secret_ai_generate_start");
     const attemptId = activeAttemptId();
@@ -635,6 +639,9 @@ export default function LoveSecretAiPage() {
       reason: "연애 비책 AI 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
+    // 확인 완료 후 다음 화면(생성 중 상태)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+    // release는 startConsultation의 setPhase("generating")에서 호출한다(안전장치 상한 8초).
+    holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
 
     try {
       const { payload: access } = await postJson<EnsureAccessResult>("/api/love-secret-ai/prepare", payload, idempotencyKey);

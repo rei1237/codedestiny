@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { fetchBillingBalance, holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import DestinyMeetingPlaceLoading from "@/components/fortune/destiny-meeting-place/DestinyMeetingPlaceLoading";
@@ -159,6 +159,9 @@ export default function DestinyMeetingPlacePage() {
         paymentMode: "pass",
         message: destinyMeetingPlacePageText("destinyMeetingPage.002"),
       });
+      // 확인 완료 후 다음 화면(생성 로딩/결과)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+      // release는 아래 setIsLoading(true) 및 finally에서 호출한다(안전장치 상한 8초).
+      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
       // 클라이언트 cost/coinPrice를 넘기면 snapshotPassServerCheckFirst가 켜져 서버 이용권
       // 프로브를 건너뛰고 로컬 스냅샷만 신뢰한다(→ '이용권 확인이 제대로 안 됨'). 정상 형제
@@ -190,6 +193,8 @@ export default function DestinyMeetingPlacePage() {
       setChargedCoins(Number.isFinite(charged) && charged > 0 ? charged : pricingCost);
 
       setIsLoading(true);
+      // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+      releasePaidFeatureGate(requestId);
       await new Promise((resolve) => setTimeout(resolve, 900));
 
       const next = generateDestinyMeetingPlaceResult(resolved.sajuResult);
@@ -206,6 +211,8 @@ export default function DestinyMeetingPlacePage() {
 
       toast.success(destinyMeetingPlacePageText("destinyMeetingPage.005"));
     } finally {
+      // 실패로 조기 반환한 경로 등 모든 종료 경로에서 hold를 확실히 해제(안전장치).
+      releasePaidFeatureGate(requestId);
       setIsCharging(false);
       setIsLoading(false);
     }

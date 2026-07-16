@@ -10,6 +10,8 @@ import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
+  holdPaidFeatureGateOpen,
+  releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -1143,6 +1145,8 @@ export default function VedicAiClient() {
 
   async function startConsultation(requestId: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
+    // 다음 화면(생성 로딩)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+    releasePaidFeatureGate(requestId);
     const { status, data } = await postJson<StartResult>(
       "/api/vedic-ai/start",
       { ...buildPayload(form, requestId), ...access, idempotencyKey: requestId },
@@ -1207,6 +1211,9 @@ export default function VedicAiClient() {
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
+      // 확인 완료 후 다음 화면(생성 로딩 또는 결과)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+      // release는 startConsultation의 setPhase("start") 및 결과 직접 렌더 지점에서 호출한다(안전장치 상한 8초).
+      holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
       // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 실패·결제창 오노출로 굳지 않게.
       const { status, data } = await runAccessCheckWithTransientRetry(
         () => postJson<EnsureAccessResult>(
@@ -1229,6 +1236,8 @@ export default function VedicAiClient() {
         if (data.consultation) {
           setConsultation(data.consultation);
           rememberConsultationUrl(data.consultation.id);
+          // 결과 화면이 곧바로 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+          releasePaidFeatureGate(requestId);
           requestIdRef.current = "";
           pendingAccessRef.current = null;
           return;

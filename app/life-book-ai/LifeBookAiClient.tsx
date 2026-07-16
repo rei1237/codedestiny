@@ -20,6 +20,8 @@ import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
+  holdPaidFeatureGateOpen,
+  releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
@@ -374,6 +376,8 @@ export default function LifeBookAiClient() {
     access: { accessToken?: string; billingGate?: Record<string, unknown> },
   ) => {
     setStatus("generating");
+    // 다음 화면(집필 중 상태)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다.
+    releasePaidFeatureGate(idempotencyKey);
     const result = await postJson<ConsultationResult>("/api/life-book-ai/generate", {
       ...payload,
       ...access,
@@ -434,6 +438,9 @@ export default function LifeBookAiClient() {
       reason: "인생의 책 AI 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
+    // 확인 완료 후 다음 화면(집필 중 상태)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
+    // release는 generateConsultation의 setStatus("generating")에서 호출한다(안전장치 상한 8초).
+    holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
     try {
       const access = await postJson<PrepareResult>("/api/life-book-ai/prepare", payload, requestId);
