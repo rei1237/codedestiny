@@ -3292,7 +3292,9 @@
       "iljuTitle": "私の日柱プロファイリング",
       "tenGodsTitle": "保有する十神 — タップで詳細分析",
       "johuTitle": "寒暖燥湿 調候分析",
-      "ukbuTitle": "抑扶・従格分析"
+      "ukbuTitle": "抑扶・従格分析",
+      "currentSeasonTitle": "🍃 今この時期 · 今年のわたし",
+      "currentSeasonIntro": "四柱推命で最も多い質問は「では今、今年はどうなの？」です。まず、今あなたが通っている人生の季節（大運）と今年の流れ（歳運）を無料でお伝えします。"
     },
     "ilju": {
       "dashboard": "デイピラー ダッシュボード",

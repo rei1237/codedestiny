@@ -3292,7 +3292,9 @@
       "iljuTitle": "我的日柱画像",
       "tenGodsTitle": "拥有的十神 — 点击查看详情",
       "johuTitle": "寒暖燥湿调候分析",
-      "ukbuTitle": "抑扶与从格分析"
+      "ukbuTitle": "抑扶与从格分析",
+      "currentSeasonTitle": "🍃 此刻的时运 · 今年的我",
+      "currentSeasonIntro": "四柱中最常被问到的是“那现在、今年怎么样？”。我们先免费为你点出你正在经历的人生季节（大运）和今年的走势（岁运）。"
     },
     "ilju": {
       "dashboard": "日支柱仪表板",

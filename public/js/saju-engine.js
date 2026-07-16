@@ -5414,6 +5414,7 @@ async function calculate(){
       function() { try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); } },
       function() { try { renderSajuQuestionPromptGenerator(); } catch(e) { console.error('SajuQuestionPrompt 에러:', e); } },
       function() { try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); } },
+      function() { try { renderCurrentSeasonSummary(bazi); } catch(e) { console.error('CurrentSeasonSummary 에러:', e); } },
       function() {
         try {
           var _dailyMonthlyPromise = renderDailyMonthlyFortune(p);
@@ -27805,6 +27806,77 @@ function renderDaewun(bazi){
     if(grid)grid.innerHTML='<p style="font-size:.83rem;color:#999">대운 데이터 연결을 다시 준비하고 있습니다.</p>';
     renderLifeGraph(bazi);
   }
+}
+
+// ── 무료 진입 후크: "지금 내 시기 · 올해의 나" 요약 ──────────────────────
+// 현재 대운 1칸 + 올해 세운만 무료로 노출한다. 전체 10년 대운표/연운 상세/종합
+// 풀이는 유료(section_daewun·section_summary)로 유지되므로 여기서 렌더하지 않는다.
+// 계산은 renderDaewun이 채운 window.G_DAEWUN과 세운 산출(showDwDetail 패턴)을 재사용.
+function renderCurrentSeasonSummary(bazi){
+  try{
+    var card=document.getElementById('currentSeasonCard');
+    var box=document.getElementById('currentSeasonSummary');
+    if(!card||!box)return;
+    var dw=Array.isArray(window.G_DAEWUN)?window.G_DAEWUN:[];
+    var age=CURRENT_AGE||0;
+    // 현재 소속 대운 = 시작나이 <= 현재나이 중 시작나이가 가장 큰 칸
+    var cur=null;
+    dw.forEach(function(row){
+      if(!row)return;
+      if(Number(row.age)<=age){ if(!cur||Number(row.age)>=Number(cur.age)) cur=row; }
+    });
+    if(!cur&&dw.length)cur=dw[0];
+
+    // 올해 세운 (showDwDetail 연운 루프와 동일 패턴 재사용)
+    var nowYear=new Date().getFullYear();
+    var yg='',yz='';
+    try{
+      var ySolar=Solar.fromYmdHms(nowYear,6,15,12,0,0);
+      var yBazi=ySolar.getLunar().getEightChar();
+      try{
+        var _sj=KasiEngine.getGanji(new Date(nowYear,5,15,12,0,0));
+        if(_sj&&_sj.secha){ yBazi.getYearGan=function(){return _sj.secha[0];}; yBazi.getYearZhi=function(){return _sj.secha[1];}; }
+      }catch(e){}
+      yg=yBazi.getYearGan();yz=yBazi.getYearZhi();
+    }catch(e){}
+
+    var parts=[];
+    if(cur){
+      var cgd=GAN[cur.g]||{e:'earth',n:'?'},cjd=JI[cur.j]||{e:'water',a:'?'};
+      var cEv=evalDaewun(cur.g,cur.j);
+      var cStart=Number(cur.age),cEnd=cStart+9;
+      parts.push(
+        '<div style="background:#fff;padding:13px 14px;border-radius:12px;margin-bottom:10px;border:1px solid #FFE0D6">'+
+        '<div style="font-size:.82rem;color:#888;margin-bottom:4px">지금 내가 지나는 시기 (현재 대운)</div>'+
+        '<div style="font-size:1.05rem;font-weight:700;color:#333;margin-bottom:6px">'+
+          '<span class="dw-tag '+cEv.tagCls+'" style="margin-right:6px">'+cEv.emoji+'</span>'+
+          cur.g+cur.j+' <span style="font-size:.82rem;font-weight:400;color:#999">('+cgd.n+' '+cjd.a+') · 만 '+(cStart-1)+'~'+(cEnd-1)+'세</span></div>'+
+        '<div style="font-size:.86rem;color:#555;line-height:1.7">'+(cEv.evalSummary||cEv.label||'')+'</div>'+
+        '</div>');
+    }
+    if(yg&&yz){
+      var ygd=GAN[yg]||{e:'earth',n:'?'},yzd=JI[yz]||{e:'water',a:'?'};
+      var yEv=evalDaewun(yg,yz);
+      var yGaeun=getDetailedGaeun(ygd.e,yEv.score>=60);
+      parts.push(
+        '<div style="background:#fff;padding:13px 14px;border-radius:12px;margin-bottom:10px;border:1px solid #FFE0D6">'+
+        '<div style="font-size:.82rem;color:#888;margin-bottom:4px">'+nowYear+'년 · 올해의 나 (세운)</div>'+
+        '<div style="font-size:1.05rem;font-weight:700;color:#333;margin-bottom:6px">'+
+          '<span class="dw-tag '+yEv.tagCls+'" style="margin-right:6px">'+yEv.emoji+'</span>'+
+          yg+yz+' <span style="font-size:.82rem;font-weight:400;color:#999">('+ygd.n+' '+yzd.a+')</span></div>'+
+        '<div style="font-size:.86rem;color:#555;line-height:1.7;margin-bottom:8px">'+(yEv.evalSummary||yEv.label||'')+'</div>'+
+        '<div class="gaeun-grid" style="margin-top:2px">'+
+        '<div class="gaeun-box"><div class="gaeun-icon">💘</div><div class="gaeun-title">연애운</div><div class="gaeun-content">'+yGaeun.love+'</div></div>'+
+        '<div class="gaeun-box"><div class="gaeun-icon">💰</div><div class="gaeun-title">재물운</div><div class="gaeun-content">'+yGaeun.wealth+'</div></div>'+
+        '<div class="gaeun-box"><div class="gaeun-icon">💼</div><div class="gaeun-title">커리어</div><div class="gaeun-content">'+yGaeun.career+'</div></div>'+
+        '</div>'+
+        '</div>');
+    }
+    if(!parts.length)return;
+    parts.push('<div style="font-size:.8rem;color:#999;line-height:1.6;padding:2px 2px 0">※ 여기까지는 무료입니다. 10년 대운의 전체 흐름·연도별 세운 상세·종합 풀이는 아래 프리미엄에서 이어집니다.</div>');
+    box.innerHTML=parts.join('');
+    card.style.display='block';
+  }catch(err){ console.error('올해의 나 요약 오류',err); }
 }
 
 function showDwDetail(age,gan,zhi,evaluation,score){

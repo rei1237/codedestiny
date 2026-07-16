@@ -3292,7 +3292,9 @@
       "iljuTitle": "Mijn dagpijlerprofilering",
       "tenGodsTitle": "Bezat tien goden: tik voor details",
       "johuTitle": "Analyse van seizoenswarmte en droogte",
-      "ukbuTitle": "Ondersteuningssterkte en volgende patroonanalyse"
+      "ukbuTitle": "Ondersteuningssterkte en volgende patroonanalyse",
+      "currentSeasonTitle": "🍃 Waar ik nu sta · Ik dit jaar",
+      "currentSeasonIntro": "De meestgestelde vraag in Saju is: “En nu, hoe zit dit jaar?” We beginnen gratis met het levensseizoen dat je doormaakt (je grote geluksscyclus) en de stroom van dit jaar."
     },
     "ilju": {
       "dashboard": "DAGPIJLERDASHBOARD",

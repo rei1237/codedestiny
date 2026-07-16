@@ -3292,7 +3292,9 @@
       "iljuTitle": "Hồ sơ trụ cột trong ngày của tôi",
       "tenGodsTitle": "Sở hữu mười vị thần — nhấn để biết chi tiết",
       "johuTitle": "Phân tích độ ấm và độ khô theo mùa",
-      "ukbuTitle": "Sức mạnh hỗ trợ và phân tích mẫu sau"
+      "ukbuTitle": "Sức mạnh hỗ trợ và phân tích mẫu sau",
+      "currentSeasonTitle": "🍃 Thời vận hiện tại · Tôi trong năm nay",
+      "currentSeasonIntro": "Trong Tứ Trụ, câu hỏi thường gặp nhất là “Vậy bây giờ, năm nay thì sao?”. Chúng tôi bắt đầu miễn phí với mùa đời bạn đang đi qua (đại vận) và dòng chảy của năm nay (tuế vận)."
     },
     "ilju": {
       "dashboard": "BẢNG ĐIỀU KHIỂN TRỤC NGÀY",

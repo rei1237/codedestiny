@@ -8074,6 +8074,181 @@ function syReadingOverrideByIndex(index, key) {
   return syEnsureSentenceEnding(String(scope[key] || '').trim());
 }
 
+// 궁합 도감(인연 상대 27수)용 손필사 오버라이드. 기존 궁합 렌더는 관계유형 6종
+// (명/업태/영친/우쇠/안괴/성위) 문장만 27상대에 복제해 상대별 개성이 없었다.
+// 이 표는 "상대 수(target)가 관계에서 어떤 사람인가"를 27수 성향에 맞춰 저작하고,
+// buildEntry가 관계유형 6종 서술(관계 축)과 직조해 27상대가 각기 다르게 읽히게 한다.
+// 필드가 비면 buildEntry가 기존 관계유형 문장으로 폴백하므로 회귀 위험이 없다.
+// 인덱스 0~26은 SUKUYO_MANSIONS(worker/lib/sukuyo-premium.js) 순서와 동일(0 각 … 26 진).
+var SY_MANSION_COMPAT_OVERRIDES = {
+  0: { relationalNature: '먼저 문을 열고 방향을 제시하는 사람이라, 함께 있으면 멈춰 있던 일이 움직입니다.', loveAsPartner: '표현을 아끼지 않고 앞장서 다가오지만, 시작의 설렘이 식지 않게 꾸준함을 함께 채워야 오래갑니다.', conflictStyle: '마음이 앞서 약속을 크게 벌여 놓고 감당이 벅차질 때 마찰이 생깁니다.', bondAdvice: '새로 벌인 일을 함께 마무리하는 리듬을 만들면, 이 인연의 추진력이 든든한 힘이 됩니다.' },
+  1: { relationalNature: '기준과 품위를 지키는 사람이라, 곁에 있으면 관계에 반듯한 선이 세워집니다.', loveAsPartner: '쉽게 흔들리지 않는 신뢰를 주지만, 원칙이 방어로 굳으면 다정함이 줄어드니 마음의 문을 함께 열어야 합니다.', conflictStyle: '자존심이 상하거나 선을 침범당했다고 느낄 때 대화가 차갑게 얼어붙습니다.', bondAdvice: '서로의 경계를 존중하되 애정 표현을 의식적으로 남기면, 이 인연은 오래 단단합니다.' },
+  2: { relationalNature: '천천히 신뢰를 쌓아 뿌리를 내리는 사람이라, 함께 있으면 관계에 안정된 기반이 생깁니다.', loveAsPartner: '요란하지 않아도 한결같이 곁을 지키지만, 감정을 안으로만 쌓아 두면 답답해지니 속마음을 자주 꺼내게 해야 합니다.', conflictStyle: '쌓아둔 서운함이 한 번에 터지거나, 변화의 속도가 안 맞을 때 부딪힙니다.', bondAdvice: '서두르지 말고 시간을 들여 믿음을 쌓으면, 이 인연은 흔들리지 않는 버팀목이 됩니다.' },
+  3: { relationalNature: '주도적으로 이끌고 사람을 품는 힘이 있어, 곁에 있으면 든든한 보호를 느낍니다.', loveAsPartner: '책임감 있게 관계를 이끌지만, 주도가 지배로 넘어가면 숨이 막히니 서로의 결정권을 나눠야 합니다.', conflictStyle: '주도권이 부딪히거나 자기 방식을 강요당한다고 느낄 때 갈등이 커집니다.', bondAdvice: '이끄는 힘을 존중하되 대등한 목소리를 함께 두면, 이 인연은 서로를 키우는 관계가 됩니다.' },
+  4: { relationalNature: '속을 깊이 들여다보고 본심을 읽는 사람이라, 함께 있으면 마음이 통하는 느낌이 큽니다.', loveAsPartner: '진심을 깊게 나누지만, 넘겨짚거나 의심이 커지면 서로 지치니 사실을 차분히 확인하는 습관이 필요합니다.', conflictStyle: '말하지 않은 마음을 오해하거나 감정이 극단으로 치달을 때 부딪힙니다.', bondAdvice: '짐작 대신 솔직한 대화로 마음을 맞추면, 이 인연은 누구보다 깊이 이어집니다.' },
+  5: { relationalNature: '쉽게 포기하지 않고 다시 일어서는 끈기가 있어, 함께 있으면 어려운 시기를 버티는 힘이 됩니다.', loveAsPartner: '묵묵히 곁을 지키며 관계를 회복시키지만, 혼자 다 짊어지려다 지치니 쉼을 함께 챙겨야 합니다.', conflictStyle: '지치고 소진됐을 때 마음의 문을 닫아 버리며 거리가 생깁니다.', bondAdvice: '무리하지 않는 속도로 함께 회복의 리듬을 만들면, 이 인연은 오래 지속됩니다.' },
+  6: { relationalNature: '넓게 탐색하고 새로운 것을 즐기는 사람이라, 함께 있으면 세계가 넓어집니다.', loveAsPartner: '자유롭고 유쾌하게 곁을 채우지만, 마음이 분산되면 정착이 어려우니 함께할 중심을 세워야 합니다.', conflictStyle: '구속받는다고 느끼거나 관심이 여러 곳으로 흩어질 때 어긋납니다.', bondAdvice: '서로의 자유를 인정하되 돌아올 자리를 만들어 두면, 이 인연은 답답함 없이 오래갑니다.' },
+  7: { relationalNature: '방향을 설계하고 이끌어 주는 사람이라, 곁에 있으면 길이 또렷해집니다.', loveAsPartner: '든든한 조언으로 관계를 안내하지만, 가르침이 앞서면 대화가 막히니 먼저 들어주는 태도가 필요합니다.', conflictStyle: '조언이 훈계처럼 느껴지거나 자기 판단만 고집할 때 부딪힙니다.', bondAdvice: '가르치기보다 함께 배우는 자세를 나누면, 이 인연은 서로를 성장시킵니다.' },
+  8: { relationalNature: '세심하게 다듬고 끝까지 책임지는 사람이라, 함께 있으면 관계가 정성스럽게 완성됩니다.', loveAsPartner: '섬세한 배려로 마음을 채우지만, 완벽을 좇다 스스로를 몰아세우니 있는 그대로를 인정해 줘야 합니다.', conflictStyle: '예민함이 자기검열로 굳거나 사소한 흠을 크게 볼 때 긴장이 생깁니다.', bondAdvice: '작은 완성을 함께 기뻐하면, 이 인연은 정성으로 오래 빛납니다.' },
+  9: { relationalNature: '내면을 깊이 성찰하는 사람이라, 함께 있으면 삶을 돌아보게 하는 여백이 생깁니다.', loveAsPartner: '조용히 깊은 마음을 나누지만, 혼자 가라앉으면 거리가 생기니 함께 밖으로 나오는 시간이 필요합니다.', conflictStyle: '고립되거나 공허함에 잠길 때 관계에서 멀어집니다.', bondAdvice: '혼자만의 시간을 존중하되 곁을 지켜 주면, 이 인연은 잔잔하게 깊어집니다.' },
+  10: { relationalNature: '위기 앞에서 판을 바꾸는 용기가 있어, 함께 있으면 전환의 힘을 얻습니다.', loveAsPartner: '결단력 있게 관계를 이끌지만, 긴장과 통제가 세지면 지치니 안전한 거리를 함께 지켜야 합니다.', conflictStyle: '극단으로 치닫거나 통제하려 할 때 위태로운 마찰이 생깁니다.', bondAdvice: '위기를 함께 넘기는 신뢰를 쌓으면, 이 인연은 어떤 변화에도 단단합니다.' },
+  11: { relationalNature: '새로 짓고 시작하는 힘이 있어, 함께 있으면 없던 판이 열립니다.', loveAsPartner: '설레는 시작을 잘 열지만 마무리가 약하니, 벌인 것을 함께 여미는 습관을 채워야 합니다.', conflictStyle: '급하게 전개하거나 마무리를 미룰 때 어긋남이 생깁니다.', bondAdvice: '시작한 것을 끝까지 함께 짓는 리듬을 만들면, 이 인연은 창조적인 힘이 됩니다.' },
+  12: { relationalNature: '사이를 잇고 중재하는 사람이라, 곁에 있으면 관계가 부드럽게 조율됩니다.', loveAsPartner: '화합을 잘 이끌지만, 남을 맞추다 자기를 잃기 쉬우니 내 마음도 챙기게 도와야 합니다.', conflictStyle: '혼자 희생하거나 갈등을 회피할 때 서운함이 쌓입니다.', bondAdvice: '맞춰 주는 마음에 고마움을 표현하면, 이 인연은 서로에게 편안한 쉼터가 됩니다.' },
+  13: { relationalNature: '격과 기준을 세우는 사람이라, 함께 있으면 관계에 품위가 생깁니다.', loveAsPartner: '예의 바르게 신뢰를 쌓지만, 원칙이 경직되면 답답하니 새 방식에도 함께 귀를 열어야 합니다.', conflictStyle: '규칙과 방식이 부딪히거나 변화를 거부할 때 갈등이 생깁니다.', bondAdvice: '전통을 존중하되 유연함을 함께 두면, 이 인연은 오래 반듯합니다.' },
+  14: { relationalNature: '사람을 잘 잇고 어울리는 사람이라, 곁에 있으면 인연의 폭이 넓어집니다.', loveAsPartner: '친화력으로 관계를 밝히지만, 넓히다 깊이가 얕아지니 둘만의 결을 함께 다져야 합니다.', conflictStyle: '관심이 여러 곳으로 흩어지거나 씀씀이가 커질 때 어긋납니다.', bondAdvice: '넓은 인연 속에서도 서로를 우선하면, 이 인연은 따뜻하게 이어집니다.' },
+  15: { relationalNature: '자원을 관리하고 준비하는 사람이라, 함께 있으면 생활의 기반이 든든해집니다.', loveAsPartner: '실속 있게 미래를 챙기지만, 너무 재고 불안해하면 답답하니 작은 실행을 함께 옮겨야 합니다.', conflictStyle: '돈과 계획을 두고 과하게 따지거나 불안이 커질 때 부딪힙니다.', bondAdvice: '함께 미래를 설계하고 실행하면, 이 인연은 안정된 삶의 동반이 됩니다.' },
+  16: { relationalNature: '사람을 세심히 관찰하고 돌보는 눈이 있어, 곁에 있으면 살뜰히 보살핌을 받습니다.', loveAsPartner: '약한 곳을 잘 챙기지만, 재고 따지다 사람을 밀어낼 수 있으니 판단보다 품는 마음을 먼저 두어야 합니다.', conflictStyle: '지나치게 분별하거나 선을 그을 때 거리감이 생깁니다.', bondAdvice: '관찰의 눈에 따뜻한 신뢰를 얹으면, 이 인연은 서로를 지켜 주는 관계가 됩니다.' },
+  17: { relationalNature: '끝을 보는 근면함이 있어, 함께 있으면 벌인 일이 결실로 맺힙니다.', loveAsPartner: '성실하게 관계를 지키지만, 자기 방식만 고집하면 답답하니 여지를 함께 두어야 합니다.', conflictStyle: '완고하게 밀어붙이거나 방식을 굽히지 않을 때 부딪힙니다.', bondAdvice: '묵묵한 성실함을 알아주면, 이 인연은 믿음직한 동반이 됩니다.' },
+  18: { relationalNature: '말로 설득하고 표현하는 힘이 있어, 곁에 있으면 소통이 시원하게 트입니다.', loveAsPartner: '다정한 말로 마음을 채우지만, 말이 날카로워지면 상처가 되니 한 번 더 다듬어 건네야 합니다.', conflictStyle: '말이 앞서거나 옳은 말로 상대를 몰아세울 때 마찰이 생깁니다.', bondAdvice: '따뜻한 말을 자주 나누면, 이 인연은 대화로 깊어집니다.' },
+  19: { relationalNature: '변화를 즐기고 빠르게 돌파하는 사람이라, 함께 있으면 정체된 것이 움직입니다.', loveAsPartner: '새로운 자극으로 관계를 신선하게 하지만, 속도가 빠르면 부딪히니 서로의 리듬을 맞춰야 합니다.', conflictStyle: '충돌을 두려워하지 않다 소진되거나 속도가 안 맞을 때 어긋납니다.', bondAdvice: '변화의 에너지를 함께 조율하면, 이 인연은 서로를 성장시키는 힘이 됩니다.' },
+  20: { relationalNature: '이치를 세우고 공정하게 판단하는 사람이라, 곁에 있으면 관계가 반듯하게 정리됩니다.', loveAsPartner: '논리로 오해를 잘 풀지만, 냉정함이 앞서면 서먹해지니 따뜻함을 한 겹 얹어야 합니다.', conflictStyle: '옳고 그름을 따지다 감정을 눌러 버릴 때 거리가 생깁니다.', bondAdvice: '이성에 다정함을 더하면, 이 인연은 맑고 든든하게 이어집니다.' },
+  21: { relationalNature: '감수성이 풍부하고 마음을 어루만지는 사람이라, 함께 있으면 위로를 받습니다.', loveAsPartner: '섬세하게 마음을 보듬지만, 기복과 불안에 흔들리기 쉬우니 안정된 리듬을 함께 지켜야 합니다.', conflictStyle: '감정이 요동치거나 불안이 커질 때 관계가 흔들립니다.', bondAdvice: '감정의 파도를 함께 다독이면, 이 인연은 서로를 치유하는 관계가 됩니다.' },
+  22: { relationalNature: '한번 마음을 주면 깊이 몰입하는 사람이라, 함께 있으면 진하고 끈끈한 정을 느낍니다.', loveAsPartner: '헌신적으로 곁을 지키지만, 집착으로 기울면 서로 소모되니 손을 조금 느슨히 두어야 합니다.', conflictStyle: '붙들려는 마음이 집착이 되거나 감정 소모가 클 때 부딪힙니다.', bondAdvice: '깊은 마음에 여유를 더하면, 이 인연은 오래 단단하게 이어집니다.' },
+  23: { relationalNature: '앞장서 이끌고 주목을 모으는 힘이 있어, 곁에 있으면 든든한 리더십을 느낍니다.', loveAsPartner: '결단력 있게 관계를 이끌지만, 과열되거나 지배하려 하면 지치니 한 박자 늦추는 여유가 필요합니다.', conflictStyle: '주도권을 두고 겨루거나 이기려 몰아붙일 때 갈등이 커집니다.', bondAdvice: '이끄는 힘에 배려를 더하면, 이 인연은 함께 빛나는 관계가 됩니다.' },
+  24: { relationalNature: '밝게 표현하고 사람을 끌어당기는 매력이 있어, 함께 있으면 분위기가 환해집니다.', loveAsPartner: '화사하게 마음을 채우지만, 과시나 분산으로 흐르면 얕아지니 하나를 깊게 나눠야 합니다.', conflictStyle: '겉모습에 치우치거나 관심이 흩어질 때 어긋남이 생깁니다.', bondAdvice: '밝은 매력에 진심을 담으면, 이 인연은 오래 사랑받는 관계가 됩니다.' },
+  25: { relationalNature: '격과 예의를 갖춰 완성도를 높이는 사람이라, 곁에 있으면 관계가 품격 있게 여물어 갑니다.', loveAsPartner: '정중한 배려로 신뢰를 쌓지만, 비판이 앞서면 긴장되니 먼저 인정과 여유를 건네야 합니다.', conflictStyle: '지적이 앞서거나 기준이 까다로워질 때 긴장이 생깁니다.', bondAdvice: '완성의 눈에 따뜻한 인정을 더하면, 이 인연은 오래 품위 있게 이어집니다.' },
+  26: { relationalNature: '매듭을 짓고 다음으로 넘어가게 하는 사람이라, 함께 있으면 관계가 깔끔하게 정리됩니다.', loveAsPartner: '곱게 마음을 돌보지만, 지나치게 재거나 결정을 미루면 답답하니 함께 매듭을 지어야 합니다.', conflictStyle: '과하게 경계하거나 결정을 미룰 때 흐름이 막힙니다.', bondAdvice: '끝맺음의 힘에 신뢰를 더하면, 이 인연은 새 시작으로 이어집니다.' },
+};
+
+// SY_MANSION_COMPAT_OVERRIDES 의 로케일 번역(ja/en). 미번역 로케일(zh-CN/zh-TW/vi/…)은
+// syCompatOverrideByIndex 가 ko 원문으로 폴백하므로 회귀가 없다. 후속으로 zh 등을 채운다.
+var SY_MANSION_COMPAT_I18N = {
+  ja: {
+    0: { relationalNature: "まず扉を開いて方向を示す人なので、一緒にいると止まっていた物事が動き出します。", loveAsPartner: "表現を惜しまず自分から近づきますが、始まりのときめきが冷めないよう二人で根気を添えると長続きします。", conflictStyle: "気持ちが先走って約束を大きく広げ、抱えきれなくなると摩擦が生まれます。", bondAdvice: "新しく始めたことを一緒に仕上げるリズムを作れば、この縁の推進力が頼もしい支えになります。" },
+    1: { relationalNature: "基準と品位を守る人なので、そばにいると関係にきちんとした一線が引かれます。", loveAsPartner: "簡単には揺るがない信頼をくれますが、原則が守りに固まると優しさが減るので、心の扉も一緒に開く必要があります。", conflictStyle: "自尊心が傷ついたり一線を越えられたと感じると、会話が冷たく凍りつきます。", bondAdvice: "互いの境界を尊重しつつ愛情表現を意識して残せば、この縁は長く揺るぎません。" },
+    2: { relationalNature: "時間をかけて信頼を積み根を張る人なので、一緒にいると関係に安定した土台ができます。", loveAsPartner: "派手ではなくとも一途にそばを守りますが、感情を内にため込むと息苦しくなるので、本音をこまめに引き出してあげてください。", conflictStyle: "ためこんだ寂しさが一度に噴き出したり、変化の速度が合わないときにぶつかります。", bondAdvice: "焦らず時間をかけて信頼を積めば、この縁は揺るがない支柱になります。" },
+    3: { relationalNature: "主導して人を包み込む力があり、そばにいると頼もしい守りを感じます。", loveAsPartner: "責任感を持って関係を導きますが、主導が支配に変わると息が詰まるので、決定権を分け合う必要があります。", conflictStyle: "主導権がぶつかったり自分のやり方を強いられたと感じると、対立が大きくなります。", bondAdvice: "導く力を尊重しつつ対等な声も一緒に置けば、この縁は互いを育てる関係になります。" },
+    4: { relationalNature: "内面を深く見つめ本心を読む人なので、一緒にいると心が通じ合う感覚が大きいです。", loveAsPartner: "真心を深く分かち合いますが、推し量りや疑いが募ると互いに疲れるので、事実を落ち着いて確かめる習慣が要ります。", conflictStyle: "口に出さない気持ちを誤解したり、感情が極端に走るときにぶつかります。", bondAdvice: "推測ではなく率直な対話で心を合わせれば、この縁は誰よりも深くつながります。" },
+    5: { relationalNature: "簡単に諦めず立ち上がる粘りがあり、一緒にいると苦しい時期を耐える力になります。", loveAsPartner: "黙ってそばを守り関係を立て直しますが、一人で抱え込んで疲れるので、休みを一緒に取ってあげてください。", conflictStyle: "疲れ切ったとき心の扉を閉ざして距離ができます。", bondAdvice: "無理のない速さで回復のリズムを一緒に作れば、この縁は長く続きます。" },
+    6: { relationalNature: "広く探索し新しいものを楽しむ人なので、一緒にいると世界が広がります。", loveAsPartner: "自由で朗らかにそばを満たしますが、心が散ると落ち着きにくいので、共に戻る中心を作る必要があります。", conflictStyle: "束縛されたと感じたり関心があちこちに散るときにすれ違います。", bondAdvice: "互いの自由を認めつつ帰る場所を作っておけば、この縁は息苦しさなく長く続きます。" },
+    7: { relationalNature: "方向を設計して導いてくれる人なので、そばにいると道がはっきりします。", loveAsPartner: "頼もしい助言で関係を導きますが、教えが先に立つと会話が詰まるので、まず聴く姿勢が要ります。", conflictStyle: "助言が説教に聞こえたり、自分の判断だけに固執するときにぶつかります。", bondAdvice: "教えるより共に学ぶ姿勢を分かち合えば、この縁は互いを成長させます。" },
+    8: { relationalNature: "細やかに整え最後まで責任を持つ人なので、一緒にいると関係が丁寧に仕上がります。", loveAsPartner: "繊細な気遣いで心を満たしますが、完璧を追って自分を追い込むので、ありのままを認めてあげてください。", conflictStyle: "神経質さが自己検閲に固まったり、小さな欠点を大きく見るとき緊張が生まれます。", bondAdvice: "小さな完成を一緒に喜べば、この縁は真心で長く輝きます。" },
+    9: { relationalNature: "内面を深く省みる人なので、一緒にいると人生を振り返る余白が生まれます。", loveAsPartner: "静かに深い心を分かち合いますが、一人で沈むと距離ができるので、一緒に外へ出る時間が要ります。", conflictStyle: "孤立したり空虚さに沈むとき、関係から遠のきます。", bondAdvice: "一人の時間を尊重しつつそばを守れば、この縁は静かに深まります。" },
+    10: { relationalNature: "危機の前で局面を変える勇気があり、一緒にいると転換の力を得ます。", loveAsPartner: "決断力で関係を導きますが、緊張と制御が強まると疲れるので、安全な距離を一緒に守る必要があります。", conflictStyle: "極端に走ったり制御しようとするとき、危うい摩擦が生じます。", bondAdvice: "危機を共に越える信頼を積めば、この縁はどんな変化にも揺るぎません。" },
+    11: { relationalNature: "新しく築き始める力があり、一緒にいると無かった局面が開きます。", loveAsPartner: "ときめく始まりは上手ですが仕上げが弱いので、広げたことを一緒に締める習慣を添える必要があります。", conflictStyle: "急に展開したり仕上げを後回しにするとき、すれ違いが生じます。", bondAdvice: "始めたことを最後まで一緒に築くリズムを作れば、この縁は創造的な力になります。" },
+    12: { relationalNature: "間をつなぎ仲裁する人なので、そばにいると関係が柔らかく整います。", loveAsPartner: "調和を上手に導きますが、人に合わせて自分を失いがちなので、自分の心も守れるよう助けてあげてください。", conflictStyle: "一人で犠牲になったり対立を避けるとき、寂しさが積もります。", bondAdvice: "合わせてくれる心に感謝を伝えれば、この縁は互いにとって安らげる居場所になります。" },
+    13: { relationalNature: "格と基準を立てる人なので、一緒にいると関係に品位が生まれます。", loveAsPartner: "礼儀正しく信頼を積みますが、原則が硬直すると息苦しいので、新しいやり方にも一緒に耳を開く必要があります。", conflictStyle: "規則ややり方がぶつかったり変化を拒むとき、対立が生じます。", bondAdvice: "伝統を尊重しつつ柔軟さも一緒に置けば、この縁は長くきちんと続きます。" },
+    14: { relationalNature: "人をよくつなぎ和む人なので、そばにいると縁の幅が広がります。", loveAsPartner: "親しみやすさで関係を明るくしますが、広げるうち深さが浅くなるので、二人だけの結びを一緒に固める必要があります。", conflictStyle: "関心があちこちに散ったり出費が大きくなるとき、すれ違います。", bondAdvice: "広い縁の中でも互いを優先すれば、この縁は温かく続きます。" },
+    15: { relationalNature: "資源を管理し備える人なので、一緒にいると生活の土台が頼もしくなります。", loveAsPartner: "堅実に将来を整えますが、あまりに計り不安がると息苦しいので、小さな実行を一緒に運ぶ必要があります。", conflictStyle: "お金や計画をめぐって過度に計ったり不安が募るとき、ぶつかります。", bondAdvice: "共に将来を設計し実行すれば、この縁は安定した暮らしの伴になります。" },
+    16: { relationalNature: "人を細やかに観察し世話する目があり、そばにいると手厚く見守られます。", loveAsPartner: "弱いところをよく気遣いますが、計り見定めて人を遠ざけかねないので、判断より包む心を先に置く必要があります。", conflictStyle: "過度に見極めたり線を引くとき、距離感が生まれます。", bondAdvice: "観察の目に温かい信頼を添えれば、この縁は互いを守り合う関係になります。" },
+    17: { relationalNature: "最後までやり抜く勤勉さがあり、一緒にいると広げた物事が実を結びます。", loveAsPartner: "誠実に関係を守りますが、自分のやり方に固執すると息苦しいので、余地を一緒に残す必要があります。", conflictStyle: "頑固に押し通したりやり方を曲げないとき、ぶつかります。", bondAdvice: "黙々とした誠実さを認めてあげれば、この縁は頼もしい伴になります。" },
+    18: { relationalNature: "言葉で説得し表現する力があり、そばにいると意思疎通が気持ちよく開きます。", loveAsPartner: "優しい言葉で心を満たしますが、言葉が鋭くなると傷になるので、もう一度整えて渡す必要があります。", conflictStyle: "言葉が先走ったり正論で相手を追い詰めるとき、摩擦が生じます。", bondAdvice: "温かい言葉をこまめに交わせば、この縁は対話で深まります。" },
+    19: { relationalNature: "変化を楽しみ素早く突破する人なので、一緒にいると停滞したものが動きます。", loveAsPartner: "新しい刺激で関係を新鮮にしますが、速度が速いとぶつかるので、互いのリズムを合わせる必要があります。", conflictStyle: "衝突を恐れず消耗したり速度が合わないとき、すれ違います。", bondAdvice: "変化のエネルギーを一緒に調律すれば、この縁は互いを成長させる力になります。" },
+    20: { relationalNature: "理を立て公正に判断する人なので、そばにいると関係がきちんと整います。", loveAsPartner: "論理で誤解をよく解きますが、冷静さが先に立つとよそよそしくなるので、温かさを一枚重ねる必要があります。", conflictStyle: "是非を問い詰めて感情を抑え込むとき、距離ができます。", bondAdvice: "理性に優しさを添えれば、この縁は澄んで頼もしく続きます。" },
+    21: { relationalNature: "感受性が豊かで心を撫でる人なので、一緒にいると慰められます。", loveAsPartner: "繊細に心を包みますが、浮き沈みと不安に揺れやすいので、安定したリズムを一緒に守る必要があります。", conflictStyle: "感情が波立ったり不安が募るとき、関係が揺れます。", bondAdvice: "感情の波を一緒に宥めれば、この縁は互いを癒やす関係になります。" },
+    22: { relationalNature: "一度心を寄せると深く没入する人なので、一緒にいると濃く粘り強い情を感じます。", loveAsPartner: "献身的にそばを守りますが、執着に傾くと互いに消耗するので、手を少し緩めて置く必要があります。", conflictStyle: "つなぎ止めたい気持ちが執着になったり感情の消耗が大きいとき、ぶつかります。", bondAdvice: "深い心にゆとりを添えれば、この縁は長く固く続きます。" },
+    23: { relationalNature: "先頭に立ち注目を集める力があり、そばにいると頼もしい統率を感じます。", loveAsPartner: "決断力で関係を導きますが、過熱したり支配しようとすると疲れるので、一拍緩める余裕が要ります。", conflictStyle: "主導権を競ったり勝とうと押し込むとき、対立が大きくなります。", bondAdvice: "導く力に思いやりを添えれば、この縁は共に輝く関係になります。" },
+    24: { relationalNature: "明るく表現し人を惹きつける魅力があり、一緒にいると雰囲気が華やぎます。", loveAsPartner: "華やかに心を満たしますが、誇示や散漫に流れると浅くなるので、一つを深く分かち合う必要があります。", conflictStyle: "見た目に偏ったり関心が散るとき、すれ違いが生じます。", bondAdvice: "明るい魅力に真心を込めれば、この縁は長く愛される関係になります。" },
+    25: { relationalNature: "格と礼を備えて完成度を高める人なので、そばにいると関係が品よく熟していきます。", loveAsPartner: "丁重な気遣いで信頼を積みますが、批判が先に立つと張り詰めるので、まず認めとゆとりを渡す必要があります。", conflictStyle: "指摘が先に立ったり基準が厳しくなるとき、緊張が生まれます。", bondAdvice: "完成の目に温かい肯定を添えれば、この縁は長く品よく続きます。" },
+    26: { relationalNature: "結び目をつけて次へ進ませる人なので、一緒にいると関係が清々しく整います。", loveAsPartner: "そっと心を世話しますが、計りすぎたり決断を先送りすると息苦しいので、一緒に結びをつける必要があります。", conflictStyle: "過度に警戒したり決断を先延ばしにするとき、流れが滞ります。", bondAdvice: "締めくくる力に信頼を添えれば、この縁は新たな始まりへつながります。" },
+  },
+  en: {
+    0: { relationalNature: "This person opens the door first and sets a direction, so being with them gets stalled things moving again.", loveAsPartner: "They approach openly and take the lead, but you must build steadiness together so the early spark doesn't fade.", conflictStyle: "Friction shows when their heart races ahead, over-promising until it's too much to carry.", bondAdvice: "Build a rhythm of finishing together what you start, and this bond's drive becomes a dependable strength." },
+    1: { relationalNature: "They uphold standards and dignity, so beside them a clean boundary forms in the relationship.", loveAsPartner: "They offer trust that doesn't easily waver, but when principle hardens into defense warmth fades, so open your hearts together.", conflictStyle: "When pride is hurt or a line is crossed, the conversation freezes over.", bondAdvice: "Respect each other's boundaries yet keep affection deliberate, and this bond stays firm for the long run." },
+    2: { relationalNature: "They build trust slowly and put down roots, so together a stable foundation forms.", loveAsPartner: "They stay by you steadily rather than loudly, but bottling up feelings makes them tense, so draw out their true heart often.", conflictStyle: "Friction comes when stored-up hurt bursts at once, or when the pace of change doesn't match.", bondAdvice: "Take your time building trust without rushing, and this bond becomes an unshakable pillar." },
+    3: { relationalNature: "They lead and embrace others, so beside them you feel a reliable protection.", loveAsPartner: "They guide the relationship responsibly, but when leadership turns to control it suffocates, so share the say between you.", conflictStyle: "Conflict grows when authority clashes or they feel their way is being forced.", bondAdvice: "Respect their leading strength but keep an equal voice too, and this bond grows both of you." },
+    4: { relationalNature: "They see deep inside and read true intentions, so together the sense of mutual understanding runs strong.", loveAsPartner: "They share sincerity deeply, but guessing or suspicion tires you both, so keep the habit of calmly checking the facts.", conflictStyle: "Friction arises from misreading unspoken feelings or emotions swinging to extremes.", bondAdvice: "Align hearts through honest talk instead of assumptions, and this bond runs deeper than any other." },
+    5: { relationalNature: "They don't give up easily and rise again, so together you gain strength to endure hard times.", loveAsPartner: "They quietly stay and mend the relationship, but carrying it all alone wears them out, so rest together.", conflictStyle: "When drained, they shut the door and distance appears.", bondAdvice: "Build a recovery rhythm together at an unforced pace, and this bond lasts." },
+    6: { relationalNature: "They explore widely and enjoy the new, so together your world expands.", loveAsPartner: "They fill your side freely and brightly, but a scattered heart struggles to settle, so build a center to return to together.", conflictStyle: "You drift apart when they feel confined or their attention scatters everywhere.", bondAdvice: "Honor each other's freedom yet make a place to return to, and this bond lasts without feeling stifled." },
+    7: { relationalNature: "They map the direction and guide, so beside them the path grows clear.", loveAsPartner: "They steer with dependable advice, but when teaching comes first talk stalls, so listen first.", conflictStyle: "Friction comes when advice sounds like lecturing or they cling to their own judgment.", bondAdvice: "Share a posture of learning together rather than teaching, and this bond grows you both." },
+    8: { relationalNature: "They refine carefully and stay responsible to the end, so together the relationship is finished with care.", loveAsPartner: "They fill your heart with delicate consideration, but chasing perfection drives them hard, so accept them as they are.", conflictStyle: "Tension arises when sensitivity hardens into self-criticism or small flaws loom large.", bondAdvice: "Celebrate small completions together, and this bond shines long through sincerity." },
+    9: { relationalNature: "They reflect deeply within, so together a space opens to look back on life.", loveAsPartner: "They share a quiet, deep heart, but sinking alone creates distance, so make time to step outside together.", conflictStyle: "They drift from the relationship when isolated or sunk in emptiness.", bondAdvice: "Respect their solitude yet stay by them, and this bond quietly deepens." },
+    10: { relationalNature: "They have the courage to turn the tide in a crisis, so together you gain the power to pivot.", loveAsPartner: "They lead with decisiveness, but rising tension and control wear you out, so keep a safe distance together.", conflictStyle: "Dangerous friction arises when they run to extremes or try to control.", bondAdvice: "Build trust that crosses crises together, and this bond holds firm through any change." },
+    11: { relationalNature: "They have the power to build and begin anew, so together a fresh chapter opens.", loveAsPartner: "They open exciting beginnings well but finish weakly, so add a habit of closing together what you start.", conflictStyle: "You drift when things develop too fast or finishing keeps getting postponed.", bondAdvice: "Build a rhythm of finishing together what you start, and this bond becomes a creative force." },
+    12: { relationalNature: "They connect and mediate, so beside them the relationship softens into harmony.", loveAsPartner: "They lead harmony well but lose themselves adapting to others, so help them guard their own heart too.", conflictStyle: "Hurt piles up when they sacrifice alone or avoid conflict.", bondAdvice: "Express thanks for their accommodating heart, and this bond becomes a restful refuge for you both." },
+    13: { relationalNature: "They set standards and form, so together the relationship gains dignity.", loveAsPartner: "They build trust with courtesy, but rigid principle stifles, so open your ears to new ways together.", conflictStyle: "Conflict arises when rules or methods clash or they resist change.", bondAdvice: "Respect tradition yet keep flexibility too, and this bond stays proper for the long run." },
+    14: { relationalNature: "They connect people well and put others at ease, so beside them your circle widens.", loveAsPartner: "They brighten the bond with warmth, but widening thins the depth, so firm up the two of you together.", conflictStyle: "You drift when attention scatters or spending grows large.", bondAdvice: "Even amid a wide circle, put each other first, and this bond stays warm." },
+    15: { relationalNature: "They manage resources and prepare, so together your life's foundation grows dependable.", loveAsPartner: "They shape the future soundly, but over-calculating and worrying stifles, so move small steps forward together.", conflictStyle: "Friction comes when they over-weigh money and plans or anxiety builds.", bondAdvice: "Design and act on the future together, and this bond becomes a steady companion in life." },
+    16: { relationalNature: "They observe and care for people closely, so beside them you're watched over with care.", loveAsPartner: "They tend the weak spots well, but weighing and judging can push people away, so put an embracing heart before judgment.", conflictStyle: "Distance forms when they discern too much or draw lines.", bondAdvice: "Add warm trust to their watchful eye, and this bond becomes one that protects each other." },
+    17: { relationalNature: "They have the diligence to see things through, so together what you begin bears fruit.", loveAsPartner: "They keep the relationship faithfully, but clinging to their own way stifles, so leave room together.", conflictStyle: "Friction comes when they push through stubbornly or won't bend their method.", bondAdvice: "Recognize their quiet diligence, and this bond becomes a dependable companion." },
+    18: { relationalNature: "They have the power to persuade and express in words, so beside them communication opens pleasantly.", loveAsPartner: "They fill your heart with kind words, but sharp words wound, so smooth them once more before offering.", conflictStyle: "Friction arises when words race ahead or they corner you with being right.", bondAdvice: "Trade warm words often, and this bond deepens through conversation." },
+    19: { relationalNature: "They enjoy change and break through fast, so together stagnant things start moving.", loveAsPartner: "They keep the bond fresh with new stimulation, but their speed can collide, so match each other's rhythm.", conflictStyle: "You drift when they burn out unafraid of conflict or the pace doesn't match.", bondAdvice: "Tune the energy of change together, and this bond becomes a force that grows you both." },
+    20: { relationalNature: "They set order and judge fairly, so beside them the relationship stays neat.", loveAsPartner: "They untangle misunderstandings with logic, but cool reason first turns it distant, so add a layer of warmth.", conflictStyle: "Distance forms when they press right and wrong and suppress feeling.", bondAdvice: "Add warmth to reason, and this bond stays clear and dependable." },
+    21: { relationalNature: "They're richly sensitive and soothe the heart, so together you find comfort.", loveAsPartner: "They cradle your heart delicately, but sway with ups, downs, and anxiety, so keep a steady rhythm together.", conflictStyle: "The relationship wavers when emotions surge or anxiety builds.", bondAdvice: "Soothe the waves of feeling together, and this bond becomes one that heals you both." },
+    22: { relationalNature: "Once their heart turns to you they immerse deeply, so together you feel a thick, tenacious affection.", loveAsPartner: "They stay devotedly, but leaning into obsession drains you both, so loosen your grip a little.", conflictStyle: "Friction comes when the wish to hold on turns to clinging or emotional drain grows large.", bondAdvice: "Add ease to their deep heart, and this bond lasts long and firm." },
+    23: { relationalNature: "They lead from the front and draw attention, so beside them you feel dependable command.", loveAsPartner: "They lead with decisiveness, but overheating or trying to dominate tires you, so keep the ease to slow a beat.", conflictStyle: "Conflict grows when they compete for the lead or push to win.", bondAdvice: "Add care to their leading strength, and this bond becomes one that shines together." },
+    24: { relationalNature: "They express brightly and draw people in, so together the mood turns radiant.", loveAsPartner: "They fill your heart splendidly, but drifting into display or scatter goes shallow, so share one thing deeply.", conflictStyle: "You drift when they lean on appearance or attention scatters.", bondAdvice: "Put sincerity into their bright charm, and this bond stays long beloved." },
+    25: { relationalNature: "They add form and courtesy to raise the polish, so beside them the relationship ripens with grace.", loveAsPartner: "They build trust with courteous care, but criticism first makes it tense, so offer acknowledgment and ease first.", conflictStyle: "Tension arises when critique comes first or standards turn strict.", bondAdvice: "Add warm affirmation to their finishing eye, and this bond stays gracious for the long run." },
+    26: { relationalNature: "They tie things off and move you onward, so together the relationship settles cleanly.", loveAsPartner: "They tend your heart gently, but over-weighing or delaying decisions stifles, so tie the knot together.", conflictStyle: "The flow stalls when they guard too much or postpone decisions.", bondAdvice: "Add trust to their power to conclude, and this bond leads on to a new beginning." },
+  },
+  "zh-CN": {
+    0: { relationalNature: "总是率先打开局面、指明方向的人，在一起时停滞的事情会重新动起来。", loveAsPartner: "不吝表达、主动靠近，但要一起补上恒心，别让最初的心动冷却，才能长久。", conflictStyle: "当他心急把承诺铺得太大、无力承担时，就会产生摩擦。", bondAdvice: "把新开的事一起收尾、形成节奏，这段缘分的冲劲就会成为可靠的支撑。" },
+    1: { relationalNature: "坚守标准与品格的人，在身边时关系会立起端正的界线。", loveAsPartner: "给你不易动摇的信任，但原则一旦僵成防备，温柔就减少，要一起打开心门。", conflictStyle: "当自尊受伤或界线被越过时，对话会冷冷冻结。", bondAdvice: "尊重彼此的界线，同时有意留下爱的表达，这段缘分便长久稳固。" },
+    2: { relationalNature: "慢慢累积信任、扎下根来的人，在一起时关系会有稳固的根基。", loveAsPartner: "不张扬却始终守在身边，但把情绪往里憋会闷，要常常帮他把心里话说出来。", conflictStyle: "当积压的委屈一次爆发，或变化的节奏不合时，就会碰撞。", bondAdvice: "不急躁、花时间累积信任，这段缘分就会成为不动摇的支柱。" },
+    3: { relationalNature: "善于主导并包容他人，在身边时能感到可靠的守护。", loveAsPartner: "有责任感地带领关系，但主导一旦变成支配就会让人喘不过气，要分享决定权。", conflictStyle: "当主导权相撞、或觉得被强加自己的方式时，冲突会变大。", bondAdvice: "尊重他带领的力量，同时保留对等的声音，这段缘分会彼此成就。" },
+    4: { relationalNature: "深入洞察、能读懂本心的人，在一起时心意相通的感觉很强。", loveAsPartner: "深切分享真心，但一味揣测或猜疑会让彼此疲惫，需要冷静核实事实的习惯。", conflictStyle: "当误解未说出口的心意、或情绪走向极端时，就会碰撞。", bondAdvice: "用坦诚的对话而非猜测来对齐心意，这段缘分会比谁都更深。" },
+    5: { relationalNature: "不轻易放弃、能重新站起的坚韧，在一起时是熬过艰难时期的力量。", loveAsPartner: "默默守护、修复关系，但独自扛太多会累，要一起安排休息。", conflictStyle: "当筋疲力尽时，他会关上心门，距离便产生。", bondAdvice: "以不勉强的节奏一起建立恢复的韵律，这段缘分就能长久。" },
+    6: { relationalNature: "广泛探索、乐于尝新的人，在一起时世界会变宽。", loveAsPartner: "自由开朗地填满身边，但心一散就难安定，要一起立起共同的中心。", conflictStyle: "当感到被束缚、或注意力散向各处时，就会错位。", bondAdvice: "承认彼此的自由，同时留一个可以回来的位置，这段缘分便不压抑地长久。" },
+    7: { relationalNature: "为你设计方向、引路的人，在身边时道路会更清晰。", loveAsPartner: "以可靠的建议带领关系，但说教在前对话就会卡住，要先学会倾听。", conflictStyle: "当建议听起来像训诫、或只固执己见时，就会碰撞。", bondAdvice: "分享一起学习而非只是教导的姿态，这段缘分会彼此成长。" },
+    8: { relationalNature: "细致打磨、负责到底的人，在一起时关系会被精心地完成。", loveAsPartner: "以细腻的体贴填满心，但追求完美会逼迫自己，要接纳他本来的样子。", conflictStyle: "当敏感僵成自我检视、或把小瑕疵放大时，就会紧张。", bondAdvice: "一起为小小的完成而喜悦，这段缘分便以真心长久闪耀。" },
+    9: { relationalNature: "深入自省的人，在一起时会生出回顾人生的余白。", loveAsPartner: "安静地分享深沉的心，但独自下沉就会疏远，需要一起走出去的时间。", conflictStyle: "当孤立或陷入空虚时，会从关系中远离。", bondAdvice: "尊重他独处的时间，同时守在身边，这段缘分会静静加深。" },
+    10: { relationalNature: "在危机前有扭转局面的勇气，在一起时能获得转变的力量。", loveAsPartner: "以决断带领关系，但紧张与掌控一强就会累，要一起守住安全的距离。", conflictStyle: "当走向极端或试图掌控时，会生出危险的摩擦。", bondAdvice: "累积一起跨越危机的信任，这段缘分在任何变化中都稳固。" },
+    11: { relationalNature: "有从头开创的力量，在一起时会打开原本没有的局面。", loveAsPartner: "很会开启令人心动的开始，但收尾偏弱，要一起补上把展开之事收束的习惯。", conflictStyle: "当急着展开、或把收尾一再推后时，就会错位。", bondAdvice: "建立把开始之事一起筑到最后的节奏，这段缘分就成为创造的力量。" },
+    12: { relationalNature: "连接彼此、居中调停的人，在身边时关系会柔和地被理顺。", loveAsPartner: "很会引导和谐，却容易迁就他人而迷失自己，要帮他也守住自己的心。", conflictStyle: "当独自牺牲或回避冲突时，委屈会积累。", bondAdvice: "对他迁就的心表达感谢，这段缘分便成为彼此安心的港湾。" },
+    13: { relationalNature: "确立格调与标准的人，在一起时关系会生出品格。", loveAsPartner: "以礼积累信任，但原则一僵化就会闷，要一起对新方式敞开耳朵。", conflictStyle: "当规则和方式相撞、或拒绝改变时，就会冲突。", bondAdvice: "尊重传统的同时也一起保留灵活，这段缘分便长久端正。" },
+    14: { relationalNature: "善于连接、令人融洽的人，在身边时缘分的幅度会变宽。", loveAsPartner: "以亲和照亮关系，但越铺越广就会变浅，要一起把两人的结更牢固。", conflictStyle: "当注意力散向各处、或花销变大时，就会错位。", bondAdvice: "在广阔的缘分中也把彼此放在优先，这段缘分便温暖延续。" },
+    15: { relationalNature: "管理资源、善于准备的人，在一起时生活的根基会更可靠。", loveAsPartner: "踏实地打理未来，但过度盘算与不安会让人闷，要一起把小小的行动落地。", conflictStyle: "当为钱和计划过度计较、或不安加剧时，就会碰撞。", bondAdvice: "一起设计并执行未来，这段缘分就成为稳定生活的伴侣。" },
+    16: { relationalNature: "细致观察、照料他人的眼光，在身边时会被周到地守护。", loveAsPartner: "很会照顾弱处，但过度衡量评判会把人推远，要把包容的心放在评判之前。", conflictStyle: "当过度分辨或划清界线时，会生出距离感。", bondAdvice: "在观察的眼光里加上温暖的信任，这段缘分便成为彼此守护的关系。" },
+    17: { relationalNature: "有做到底的勤勉，在一起时展开之事会结出果实。", loveAsPartner: "诚实地守护关系，但固执己见就会闷，要一起留出余地。", conflictStyle: "当固执硬推、或不肯让步方式时，就会碰撞。", bondAdvice: "认可他默默的诚实，这段缘分便成为可靠的伴。" },
+    18: { relationalNature: "有以言语说服与表达的力量，在身边时沟通会畅快地打开。", loveAsPartner: "用温柔的话填满心，但话一尖锐就会成伤，要再修一遍再说出口。", conflictStyle: "当言语抢先、或用正确的话把人逼到角落时，就会摩擦。", bondAdvice: "常常交换温暖的话语，这段缘分便在对话中加深。" },
+    19: { relationalNature: "乐于变化、快速突破的人，在一起时停滞之物会动起来。", loveAsPartner: "用新的刺激让关系新鲜，但速度太快就会撞，要合上彼此的节奏。", conflictStyle: "当不惧冲突而消耗、或节奏不合时，就会错位。", bondAdvice: "一起调和变化的能量，这段缘分就成为彼此成长的力量。" },
+    20: { relationalNature: "确立道理、公正判断的人，在身边时关系会被理得端正。", loveAsPartner: "以逻辑善于化解误会，但冷静抢先就会显得疏远，要再叠上一层温暖。", conflictStyle: "当追问是非、把情绪压下去时，就会生出距离。", bondAdvice: "在理性里加上温柔，这段缘分便清澈而可靠地延续。" },
+    21: { relationalNature: "感受力丰富、能抚慰人心的人，在一起时会得到慰藉。", loveAsPartner: "细腻地包裹你的心，但容易随起伏与不安摇摆，要一起守住稳定的节奏。", conflictStyle: "当情绪起波澜、或不安加剧时，关系会摇动。", bondAdvice: "一起安抚情绪的浪，这段缘分便成为彼此疗愈的关系。" },
+    22: { relationalNature: "一旦倾心便深深投入的人，在一起时能感到浓而坚韧的情。", loveAsPartner: "献身地守护，但一偏向执着就会彼此消耗，要把手稍微放松些。", conflictStyle: "当想抓住的心变成执着、或情绪消耗过大时，就会碰撞。", bondAdvice: "在深情里加上从容，这段缘分便长久而牢固。" },
+    23: { relationalNature: "站在前头、聚拢目光的力量，在身边时能感到可靠的统率。", loveAsPartner: "以决断带领关系，但过热或想支配就会累，要有放慢一拍的从容。", conflictStyle: "当争夺主导、或为求胜而硬推时，冲突会变大。", bondAdvice: "在带领的力量里加上体谅，这段缘分便成为一起发光的关系。" },
+    24: { relationalNature: "明亮表达、吸引众人的魅力，在一起时气氛会变华丽。", loveAsPartner: "华丽地填满心，但流于炫耀或散漫就会变浅，要把一件事深深分享。", conflictStyle: "当偏重外表、或注意力散开时，就会错位。", bondAdvice: "在明亮的魅力里注入真心，这段缘分便长久被爱。" },
+    25: { relationalNature: "具备格调与礼数、提升完成度的人，在身边时关系会有品地成熟。", loveAsPartner: "以郑重的体贴积累信任，但批评抢先就会紧绷，要先递上认可与从容。", conflictStyle: "当指正抢先、或标准变严苛时，就会紧张。", bondAdvice: "在追求完成的眼光里加上温暖的肯定，这段缘分便长久有品。" },
+    26: { relationalNature: "善于打结、推你迈向下一步的人，在一起时关系会清爽地被理顺。", loveAsPartner: "轻柔地照料你的心，但过度盘算或拖延决定就会闷，要一起把结打上。", conflictStyle: "当过度戒备、或把决定一再推后时，流动就会停滞。", bondAdvice: "在收束的力量里加上信任，这段缘分便通向新的开始。" },
+  },
+  "zh-TW": {
+    0: { relationalNature: "總是率先打開局面、指明方向的人，在一起時停滯的事情會重新動起來。", loveAsPartner: "不吝表達、主動靠近，但要一起補上恆心，別讓最初的心動冷卻，才能長久。", conflictStyle: "當他心急把承諾鋪得太大、無力承擔時，就會產生摩擦。", bondAdvice: "把新開的事一起收尾、形成節奏，這段緣分的衝勁就會成為可靠的支撐。" },
+    1: { relationalNature: "堅守標準與品格的人，在身邊時關係會立起端正的界線。", loveAsPartner: "給你不易動搖的信任，但原則一旦僵成防備，溫柔就減少，要一起打開心門。", conflictStyle: "當自尊受傷或界線被越過時，對話會冷冷凍結。", bondAdvice: "尊重彼此的界線，同時有意留下愛的表達，這段緣分便長久穩固。" },
+    2: { relationalNature: "慢慢累積信任、扎下根來的人，在一起時關係會有穩固的根基。", loveAsPartner: "不張揚卻始終守在身邊，但把情緒往裡憋會悶，要常常幫他把心裡話說出來。", conflictStyle: "當積壓的委屈一次爆發，或變化的節奏不合時，就會碰撞。", bondAdvice: "不急躁、花時間累積信任，這段緣分就會成為不動搖的支柱。" },
+    3: { relationalNature: "善於主導並包容他人，在身邊時能感到可靠的守護。", loveAsPartner: "有責任感地帶領關係，但主導一旦變成支配就會讓人喘不過氣，要分享決定權。", conflictStyle: "當主導權相撞、或覺得被強加自己的方式時，衝突會變大。", bondAdvice: "尊重他帶領的力量，同時保留對等的聲音，這段緣分會彼此成就。" },
+    4: { relationalNature: "深入洞察、能讀懂本心的人，在一起時心意相通的感覺很強。", loveAsPartner: "深切分享真心，但一味揣測或猜疑會讓彼此疲憊，需要冷靜核實事實的習慣。", conflictStyle: "當誤解未說出口的心意、或情緒走向極端時，就會碰撞。", bondAdvice: "用坦誠的對話而非猜測來對齊心意，這段緣分會比誰都更深。" },
+    5: { relationalNature: "不輕易放棄、能重新站起的堅韌，在一起時是熬過艱難時期的力量。", loveAsPartner: "默默守護、修復關係，但獨自扛太多會累，要一起安排休息。", conflictStyle: "當筋疲力盡時，他會關上心門，距離便產生。", bondAdvice: "以不勉強的節奏一起建立恢復的韻律，這段緣分就能長久。" },
+    6: { relationalNature: "廣泛探索、樂於嘗新的人，在一起時世界會變寬。", loveAsPartner: "自由開朗地填滿身邊，但心一散就難安定，要一起立起共同的中心。", conflictStyle: "當感到被束縛、或注意力散向各處時，就會錯位。", bondAdvice: "承認彼此的自由，同時留一個可以回來的位置，這段緣分便不壓抑地長久。" },
+    7: { relationalNature: "為你設計方向、引路的人，在身邊時道路會更清晰。", loveAsPartner: "以可靠的建議帶領關係，但說教在前對話就會卡住，要先學會傾聽。", conflictStyle: "當建議聽起來像訓誡、或只固執己見時，就會碰撞。", bondAdvice: "分享一起學習而非只是教導的姿態，這段緣分會彼此成長。" },
+    8: { relationalNature: "細緻打磨、負責到底的人，在一起時關係會被精心地完成。", loveAsPartner: "以細膩的體貼填滿心，但追求完美會逼迫自己，要接納他本來的樣子。", conflictStyle: "當敏感僵成自我檢視、或把小瑕疵放大時，就會緊張。", bondAdvice: "一起為小小的完成而喜悅，這段緣分便以真心長久閃耀。" },
+    9: { relationalNature: "深入自省的人，在一起時會生出回顧人生的餘白。", loveAsPartner: "安靜地分享深沉的心，但獨自下沉就會疏遠，需要一起走出去的時間。", conflictStyle: "當孤立或陷入空虛時，會從關係中遠離。", bondAdvice: "尊重他獨處的時間，同時守在身邊，這段緣分會靜靜加深。" },
+    10: { relationalNature: "在危機前有扭轉局面的勇氣，在一起時能獲得轉變的力量。", loveAsPartner: "以決斷帶領關係，但緊張與掌控一強就會累，要一起守住安全的距離。", conflictStyle: "當走向極端或試圖掌控時，會生出危險的摩擦。", bondAdvice: "累積一起跨越危機的信任，這段緣分在任何變化中都穩固。" },
+    11: { relationalNature: "有從頭開創的力量，在一起時會打開原本沒有的局面。", loveAsPartner: "很會開啟令人心動的開始，但收尾偏弱，要一起補上把展開之事收束的習慣。", conflictStyle: "當急著展開、或把收尾一再推後時，就會錯位。", bondAdvice: "建立把開始之事一起築到最後的節奏，這段緣分就成為創造的力量。" },
+    12: { relationalNature: "連接彼此、居中調停的人，在身邊時關係會柔和地被理順。", loveAsPartner: "很會引導和諧，卻容易遷就他人而迷失自己，要幫他也守住自己的心。", conflictStyle: "當獨自犧牲或迴避衝突時，委屈會積累。", bondAdvice: "對他遷就的心表達感謝，這段緣分便成為彼此安心的港灣。" },
+    13: { relationalNature: "確立格調與標準的人，在一起時關係會生出品格。", loveAsPartner: "以禮積累信任，但原則一僵化就會悶，要一起對新方式敞開耳朵。", conflictStyle: "當規則和方式相撞、或拒絕改變時，就會衝突。", bondAdvice: "尊重傳統的同時也一起保留靈活，這段緣分便長久端正。" },
+    14: { relationalNature: "善於連接、令人融洽的人，在身邊時緣分的幅度會變寬。", loveAsPartner: "以親和照亮關係，但越鋪越廣就會變淺，要一起把兩人的結更牢固。", conflictStyle: "當注意力散向各處、或花銷變大時，就會錯位。", bondAdvice: "在廣闊的緣分中也把彼此放在優先，這段緣分便溫暖延續。" },
+    15: { relationalNature: "管理資源、善於準備的人，在一起時生活的根基會更可靠。", loveAsPartner: "踏實地打理未來，但過度盤算與不安會讓人悶，要一起把小小的行動落地。", conflictStyle: "當為錢和計劃過度計較、或不安加劇時，就會碰撞。", bondAdvice: "一起設計並執行未來，這段緣分就成為穩定生活的伴侶。" },
+    16: { relationalNature: "細緻觀察、照料他人的眼光，在身邊時會被周到地守護。", loveAsPartner: "很會照顧弱處，但過度衡量評判會把人推遠，要把包容的心放在評判之前。", conflictStyle: "當過度分辨或劃清界線時，會生出距離感。", bondAdvice: "在觀察的眼光裡加上溫暖的信任，這段緣分便成為彼此守護的關係。" },
+    17: { relationalNature: "有做到底的勤勉，在一起時展開之事會結出果實。", loveAsPartner: "誠實地守護關係，但固執己見就會悶，要一起留出餘地。", conflictStyle: "當固執硬推、或不肯讓步方式時，就會碰撞。", bondAdvice: "認可他默默的誠實，這段緣分便成為可靠的伴。" },
+    18: { relationalNature: "有以言語說服與表達的力量，在身邊時溝通會暢快地打開。", loveAsPartner: "用溫柔的話填滿心，但話一尖銳就會成傷，要再修一遍再說出口。", conflictStyle: "當言語搶先、或用正確的話把人逼到角落時，就會摩擦。", bondAdvice: "常常交換溫暖的話語，這段緣分便在對話中加深。" },
+    19: { relationalNature: "樂於變化、快速突破的人，在一起時停滯之物會動起來。", loveAsPartner: "用新的刺激讓關係新鮮，但速度太快就會撞，要合上彼此的節奏。", conflictStyle: "當不懼衝突而消耗、或節奏不合時，就會錯位。", bondAdvice: "一起調和變化的能量，這段緣分就成為彼此成長的力量。" },
+    20: { relationalNature: "確立道理、公正判斷的人，在身邊時關係會被理得端正。", loveAsPartner: "以邏輯善於化解誤會，但冷靜搶先就會顯得疏遠，要再疊上一層溫暖。", conflictStyle: "當追問是非、把情緒壓下去時，就會生出距離。", bondAdvice: "在理性裡加上溫柔，這段緣分便清澈而可靠地延續。" },
+    21: { relationalNature: "感受力豐富、能撫慰人心的人，在一起時會得到慰藉。", loveAsPartner: "細膩地包裹你的心，但容易隨起伏與不安搖擺，要一起守住穩定的節奏。", conflictStyle: "當情緒起波瀾、或不安加劇時，關係會搖動。", bondAdvice: "一起安撫情緒的浪，這段緣分便成為彼此療癒的關係。" },
+    22: { relationalNature: "一旦傾心便深深投入的人，在一起時能感到濃而堅韌的情。", loveAsPartner: "獻身地守護，但一偏向執著就會彼此消耗，要把手稍微放鬆些。", conflictStyle: "當想抓住的心變成執著、或情緒消耗過大時，就會碰撞。", bondAdvice: "在深情裡加上從容，這段緣分便長久而牢固。" },
+    23: { relationalNature: "站在前頭、聚攏目光的力量，在身邊時能感到可靠的統率。", loveAsPartner: "以決斷帶領關係，但過熱或想支配就會累，要有放慢一拍的從容。", conflictStyle: "當爭奪主導、或為求勝而硬推時，衝突會變大。", bondAdvice: "在帶領的力量裡加上體諒，這段緣分便成為一起發光的關係。" },
+    24: { relationalNature: "明亮表達、吸引眾人的魅力，在一起時氣氛會變華麗。", loveAsPartner: "華麗地填滿心，但流於炫耀或散漫就會變淺，要把一件事深深分享。", conflictStyle: "當偏重外表、或注意力散開時，就會錯位。", bondAdvice: "在明亮的魅力裡注入真心，這段緣分便長久被愛。" },
+    25: { relationalNature: "具備格調與禮數、提升完成度的人，在身邊時關係會有品地成熟。", loveAsPartner: "以鄭重的體貼積累信任，但批評搶先就會緊繃，要先遞上認可與從容。", conflictStyle: "當指正搶先、或標準變嚴苛時，就會緊張。", bondAdvice: "在追求完成的眼光裡加上溫暖的肯定，這段緣分便長久有品。" },
+    26: { relationalNature: "善於打結、推你邁向下一步的人，在一起時關係會清爽地被理順。", loveAsPartner: "輕柔地照料你的心，但過度盤算或拖延決定就會悶，要一起把結打上。", conflictStyle: "當過度戒備、或把決定一再推後時，流動就會停滯。", bondAdvice: "在收束的力量裡加上信任，這段緣分便通向新的開始。" },
+  },
+};
+
+function syCompatOverrideByIndex(index, key) {
+  var idx = Number(index);
+  if (!Number.isFinite(idx)) return '';
+  idx = ((Math.floor(idx) % 27) + 27) % 27;
+  // 언어별 번역이 있으면 사용하고, 없으면 ko 원문으로 폴백(미번역 로케일 회귀 없음).
+  try {
+    var lang = _sajuQuantumCurrentLang();
+    if (lang && lang !== 'ko' && typeof SY_MANSION_COMPAT_I18N !== 'undefined') {
+      var table = SY_MANSION_COMPAT_I18N[lang] || (lang === 'zh-TW' ? SY_MANSION_COMPAT_I18N['zh-CN'] : null);
+      var translated = table && table[idx] && table[idx][key];
+      if (translated) return syEnsureSentenceEnding(String(translated).trim());
+    }
+  } catch (e) {}
+  var scope = SY_MANSION_COMPAT_OVERRIDES[idx];
+  if (!scope || !scope[key]) return '';
+  return syEnsureSentenceEnding(String(scope[key] || '').trim());
+}
+
 function syReadingTextKey(text) {
   return String(text == null ? '' : text)
     .toLowerCase()
@@ -11948,6 +12123,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       var scores = buildScores(relationType, distance, seed);
       var meta = RELATION_META[relationType] || RELATION_META['명'];
       var categories = categoriesFor(relationType, scores);
+      // 상대 수(target)의 관계 정체성을 관계유형 6종 서술과 직조한다(있을 때만; 없으면 폴백).
+      var relNature = syCompatOverrideByIndex(targetIdx, 'relationalNature');
+      var loveAsPartner = syCompatOverrideByIndex(targetIdx, 'loveAsPartner');
+      var conflictStyle = syCompatOverrideByIndex(targetIdx, 'conflictStyle');
+      var bondAdvice = syCompatOverrideByIndex(targetIdx, 'bondAdvice');
+      var summaryText = relNature
+        ? targetMansion + '은 ' + relNature + ' ' + meta.summary
+        : targetMansion + '을 가진 사람들은 대체로 ' + meta.summary;
       return {
         'target宿': targetMansion,
         relationType: relationType,
@@ -11958,13 +12141,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         subtitle: meta.subtitle,
         keywords: meta.keywords.slice(0, 3),
         scores: scores,
-        summary: targetMansion + '을 가진 사람들은 대체로 ' + meta.summary,
-        loveReading: meta.love,
+        summary: summaryText,
+        loveReading: loveAsPartner ? loveAsPartner + ' ' + meta.love : meta.love,
         marriageReading: meta.marriage,
         friendshipReading: meta.friendship,
         businessReading: meta.business,
-        caution: meta.caution,
-        strategy: meta.strategy,
+        caution: conflictStyle ? conflictStyle + ' ' + meta.caution : meta.caution,
+        strategy: bondAdvice ? bondAdvice + ' ' + meta.strategy : meta.strategy,
         oneLine: targetMansion + ' 인연은 ' + meta.title + '으로 들어오니, ' + meta.strategy,
         _sortSeed: SukuyoRadarEngine.hash(seed)
       };
