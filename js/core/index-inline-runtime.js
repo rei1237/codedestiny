@@ -7764,7 +7764,7 @@ function navigateToVedic() {
       window.FORTUNE_APP_VEDIC_PAYLOAD = profile;
     } catch (e) {}
   }
-  var _vedicTarget = '/vedic-ai';
+  var _vedicTarget = '/vedic-astrology.html';
   if (profile) {
     try {
       var _vp = encodeURIComponent(JSON.stringify(profile));

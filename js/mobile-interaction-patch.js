@@ -2299,7 +2299,7 @@
             label: profile.location && profile.location.label ? profile.location.label : mobileInteractionPatchText('locationSeoul')
           }
         };
-        // /vedic-ai에서 읽을 수 있도록 저장
+        // /vedic-astrology.html에서 읽을 수 있도록 저장
         if (typeof localStorage !== 'undefined') {
           localStorage.setItem('FORTUNE_APP_VEDIC_PAYLOAD', JSON.stringify(vedicPayload));
         }
@@ -2308,16 +2308,16 @@
         }
         // URL 파라미터로도 전달 (백업)
         var vp = encodeURIComponent(JSON.stringify(vedicPayload));
-        window.location.href = '/vedic-ai?vp=' + vp;
+        window.location.href = '/vedic-astrology.html?vp=' + vp;
         return;
       }
       // 프로필이 없으면 그냥 이동 (입력 페이지 표시)
-      window.location.href = '/vedic-ai';
+      window.location.href = '/vedic-astrology.html';
     } catch (err) {
       console.error('[navigateToVedic] Error:', err);
       endFeatureLoading(loadToken);
       // 오류 발생 시에도 페이지 이동은 시도
-      window.location.href = '/vedic-ai';
+      window.location.href = '/vedic-astrology.html';
     }
   };
 })();
