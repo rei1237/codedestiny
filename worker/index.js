@@ -414,6 +414,7 @@ const handleNeoOperationRoomRoutes = createLazyRouteHandler("./routes/neo-operat
 const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstroRoutes");
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
+const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", () => import("./routes/nakshatra.js"), "handleNakshatraRoutes");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
@@ -1382,6 +1383,14 @@ export default {
           ? rewriteRequestPath(request, url.pathname.replace("/api/sukyo", "/api/sukuyo"))
           : request;
         return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env, ctx));
+      }
+
+      // 나크샤트라 결정판(무료·무인증) — 숙요×나크샤트라 통합 계산.
+      if (
+        url.pathname === "/api/nakshatra"
+        || url.pathname.startsWith("/api/nakshatra/")
+      ) {
+        return withCorsHeaders(request, env, await handleNakshatraRoutes(request, env));
       }
 
       if (url.pathname === "/api/pdf/sukyo" || url.pathname.startsWith("/api/pdf/sukyo/")) {

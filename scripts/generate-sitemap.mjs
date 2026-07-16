@@ -99,6 +99,9 @@ const coreRoutes = [
   { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
   { path: "/vedic", changefreq: "weekly", priority: 0.94 },
   { path: "/vedic/jyotish", changefreq: "weekly", priority: 0.93 },
+  { path: "/nakshatra", changefreq: "weekly", priority: 0.9 },
+  // 27수 도감(0–26) — /nakshatra/calc·/result 는 색인 제외이므로 등록하지 않는다.
+  ...Array.from({ length: 27 }, (_, i) => ({ path: `/nakshatra/codex/${i}`, changefreq: "monthly", priority: 0.72 })),
   { path: "/dream", changefreq: "weekly", priority: 0.94 },
   { path: "/dream/tarot", changefreq: "weekly", priority: 0.88 },
   { path: "/dream/psycho", changefreq: "weekly", priority: 0.88 },
