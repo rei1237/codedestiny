@@ -235,12 +235,15 @@ export default function NakshatraAiClient() {
   if (!birth) {
     return (
       <main className={`grid place-items-center ${bgClass}`}>
-        <div className="max-w-sm text-center">
+        <div className="max-w-sm text-center motion-safe:animate-fade-in-up">
+          <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.32),rgba(20,16,42,0.5)_70%)] shadow-moon-glow" aria-hidden="true">
+            <span className="text-2xl text-amber-100">✶</span>
+          </div>
           <p className="text-lg font-bold text-slate-50">먼저 별을 계산해 주세요</p>
           <p className="mt-3 text-sm leading-7 text-slate-300">
             AI 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.
           </p>
-          <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 transition hover:bg-amber-100">
+          <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 outline-none transition hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818]">
             내 별 계산하기
           </Link>
         </div>
@@ -288,9 +291,9 @@ function IntroView({
   errorMsg: string;
 }) {
   return (
-    <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] md:p-8">
+    <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · AI 심화 상담</p>
-      <h1 className="mt-3 break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">두 대가에게 두 번 물어보세요</h1>
+      <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">두 대가에게 두 번 물어보세요</h1>
       <p className="mt-3 break-keep text-sm leading-7 text-slate-200">
         {identity?.sukuyoHan ? <><span className="font-semibold text-blue-100">{identity.sukuyoHan}宿</span> · </> : null}
         {identity?.nakshatraKo ? <span className="font-semibold text-amber-100">{identity.nakshatraKo}</span> : <span>당신의 명식</span>}
@@ -304,7 +307,7 @@ function IntroView({
         onChange={(e) => onQuestion(e.target.value.slice(0, 1000))}
         rows={3}
         placeholder="예) 올해 이직을 고민 중인데 제 기질에 맞는 방향이 궁금해요."
-        className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06]"
+        className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-amber-200/40"
       />
 
       <p className="mt-3 text-xs leading-6 text-slate-400">
@@ -319,7 +322,7 @@ function IntroView({
       <button
         type="button"
         onClick={onStart}
-        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 shadow-[0_16px_44px_rgba(251,191,36,0.22)] transition hover:bg-amber-100"
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 shadow-[0_16px_44px_rgba(251,191,36,0.22)] outline-none transition-all duration-200 ease-out hover:bg-amber-100 hover:shadow-moon-glow focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] active:scale-[0.99]"
       >
         두 대가의 상담 받기 · {formatPaymentWon(PRICE_KRW)}
       </button>
@@ -329,22 +332,36 @@ function IntroView({
 }
 
 function WaitingView({ phase, statusMsg, identity }: { phase: Phase; statusMsg: string; identity: NatalIdentity | null }) {
+  const generating = phase === "generating";
   const headline = phase === "payment" ? "결제 수단을 확인하는 중이에요" : phase === "checking" ? "이용권을 확인하는 중이에요" : "두 대가가 당신의 별을 읽는 중이에요";
   return (
-    <div className="mx-auto w-full max-w-md text-center">
-      <div className="relative mx-auto grid h-28 w-28 place-items-center">
-        <div className="absolute inset-0 animate-[spin_9s_linear_infinite] rounded-full border border-amber-200/25" />
-        <div className="absolute inset-3 animate-[spin_6s_linear_infinite_reverse] rounded-full border border-blue-200/25" />
-        <span className="text-3xl" aria-hidden="true">✶</span>
+    <div className="mx-auto w-full max-w-md text-center motion-safe:animate-fade-in-up">
+      {/* Moon Glow 오브 — 두 대가가 별을 읽는 신비로운 대기(달빛 골드+바이올렛 글로우) */}
+      <div className="relative mx-auto grid h-36 w-36 place-items-center">
+        <span className="absolute left-2 top-3 text-sm text-amber-100/70 motion-safe:animate-twinkle" aria-hidden="true">✧</span>
+        <span className="absolute right-4 top-9 text-xs text-blue-100/70 [animation-delay:1.4s] motion-safe:animate-twinkle" aria-hidden="true">✦</span>
+        <span className="absolute bottom-6 left-7 text-xs text-amber-100/60 [animation-delay:2.6s] motion-safe:animate-twinkle" aria-hidden="true">✧</span>
+        <div className="absolute inset-0 rounded-full border border-amber-200/20 motion-safe:animate-spin-slow" />
+        <div className="absolute inset-4 rounded-full border border-blue-200/20 motion-safe:animate-spin-reverse" />
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.38),rgba(20,16,42,0.55)_70%)] shadow-moon-glow motion-safe:animate-float">
+          {generating ? (
+            <span className="flex items-center gap-1 text-2xl" aria-hidden="true">
+              <span className="text-blue-100">☯</span>
+              <span className="text-amber-100">🕉</span>
+            </span>
+          ) : (
+            <span className="text-3xl text-amber-100" aria-hidden="true">✶</span>
+          )}
+        </div>
       </div>
-      <p className="mt-7 break-keep text-base font-bold text-slate-50">{headline}</p>
-      <p className="mt-2 break-keep text-sm leading-7 text-slate-300">{statusMsg || "잠시만 기다려 주세요."}</p>
+      <p className="mt-8 text-balance break-keep text-base font-bold text-slate-50">{headline}</p>
+      <p className="mt-2 break-keep text-sm leading-7 text-slate-300" aria-live="polite">{statusMsg || "잠시만 기다려 주세요."}</p>
       {identity?.nakshatraKo ? (
         <p className="mt-4 text-xs text-slate-400">
           {identity.sukuyoHan ? `${identity.sukuyoHan}宿 · ` : ""}{identity.nakshatraKo}
         </p>
       ) : null}
-      {phase === "generating" ? (
+      {generating ? (
         <p className="mt-5 break-keep text-xs leading-6 text-slate-400">숙요 5장 + 베다 6장, 총 11편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요.</p>
       ) : null}
     </div>
