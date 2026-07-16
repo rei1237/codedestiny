@@ -13,6 +13,7 @@ import {
   getRefreshTokenSecret,
   isAuthDbInfraError,
   requireAuth,
+  requireUserFromRequest,
   normalizeUserResponse,
   signAuthToken,
   JWT_ISSUER,
@@ -2458,6 +2459,45 @@ async function handleLogin(request, env) {
   }, { status: 503 });
 }
 
+// /api/auth/me 응답에 필요한 User 필드. 인증 리졸버(resolveActiveUserAuth)에 userProjection으로 넘겨
+// 인증 확인과 동일한 조회에서 함께 읽어 authUserDoc로 돌려받는다 → 인증-후 재조회(2번째 Mongo 왕복) 제거.
+// (image/profileImage는 normalizeUserResponse가 쓰므로 포함 — 재사용/폴백 경로 응답을 일치시킨다.)
+const ME_USER_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  phoneNumber: 1,
+  phone: 1,
+  birthDate: 1,
+  birthTime: 1,
+  gender: 1,
+  role: 1,
+  points: 1,
+  joinedAt: 1,
+  image: 1,
+  profileImage: 1,
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  membershipPass: 1,
+  pass: 1,
+  entitlement: 1,
+  licensePass: 1,
+  accessGateResult: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+};
+
 async function handleMe(request, env) {
   // 확정적 미인증(만료/무효 토큰·유저없음·철회) 응답에는 만료 쿠키 삭제 헤더를 부착해
   // 클라이언트의 유령 로그인 힌트(fortune_auth_role 등)를 서버가 직접 정리한다.
@@ -2470,7 +2510,9 @@ async function handleMe(request, env) {
   try {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-    const auth = await requireAuth(request, env);
+    // 인증 확인과 동시에 me 응답용 User 문서를 함께 읽어(authUserDoc) 두 번째 Mongo 왕복을 없앤다.
+    // access-token 경로면 authUserDoc가 채워지고, refresh/token-폴백 경로면 없으므로 아래에서 재조회한다.
+    const auth = await requireUserFromRequest(request, env, { userProjection: ME_USER_PROJECTION });
 
     if (isLocalDevAuthTokenUser(request, env, auth)) {
       return json({
@@ -2488,53 +2530,24 @@ async function handleMe(request, env) {
     }
     const objectId = new mongoose.Types.ObjectId(userId);
 
-    let user;
+    // 인증 리졸버가 함께 읽어준 문서(authUserDoc)가 있으면 재사용해 me 재조회 왕복을 건너뛴다.
+    let user = auth.authUserDoc || null;
     try {
-      await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
-      const users = User.collection;
-      user = await withAuthOpTimeout(
-        users.findOne(
-          { _id: objectId },
-          {
-            projection: {
-              _id: 1,
-              name: 1,
-              email: 1,
-              phoneNumber: 1,
-              phone: 1,
-              birthDate: 1,
-              birthTime: 1,
-              gender: 1,
-              role: 1,
-              points: 1,
-              joinedAt: 1,
-              profileSubscription: 1,
-              subscription: 1,
-              membership: 1,
-              membershipPass: 1,
-              pass: 1,
-              entitlement: 1,
-              licensePass: 1,
-              accessGateResult: 1,
-              plan: 1,
-              planId: 1,
-              productId: 1,
-              subscriptionTier: 1,
-              membershipTier: 1,
-              passTier: 1,
-              status: 1,
-              subscriptionStatus: 1,
-              membershipStatus: 1,
-              isActive: 1,
-              isSubscribed: 1,
-              expiresAt: 1,
+      if (!user) {
+        await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_me_connect_db");
+        const users = User.collection;
+        user = await withAuthOpTimeout(
+          users.findOne(
+            { _id: objectId },
+            {
+              projection: ME_USER_PROJECTION,
+              maxTimeMS: dbMaxTimeMs,
             },
-            maxTimeMS: dbMaxTimeMs,
-          },
-        ),
-        timeoutMs,
-        "auth_me_find_user",
-      );
+          ),
+          timeoutMs,
+          "auth_me_find_user",
+        );
+      }
     } catch (error) {
       if (isAuthDbInfraError(error)) {
         logAuthDiagnostic(request, env, "/api/auth/me", "", "session_me_db_fallback", error);

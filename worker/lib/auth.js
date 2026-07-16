@@ -331,30 +331,40 @@ function logAuthError(stage, error, extras = {}) {
   }
 }
 
-async function resolveActiveUserAuth(userId, env) {
+// resolveActiveUserAuth가 유저 활성/철회 판정과 normalizeAuthResultFromUser에 쓰는 필수 필드.
+const AUTH_USER_IDENTITY_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  birthDate: 1,
+  birthTime: 1,
+  gender: 1,
+  role: 1,
+  points: 1,
+  joinedAt: 1,
+  image: 1,
+  profileImage: 1,
+  status: 1,
+};
+
+async function resolveActiveUserAuth(userId, env, userProjection = null) {
   // stateless Worker 풀 초기화 시 무방비 connectDb/findOne이 정착하지 않아 요청이 hang되는 것을
   // 막는다. withMongoRetry가 각 시도를 per-attempt 타임아웃으로 감싸고 일시적 오류를 재연결·재시도한다.
+  //
+  // userProjection이 주어지면 필수 identity 필드에 그 필드를 더한(superset) projection으로 한 번에 읽고,
+  // 원본 User 문서를 authUserDoc로 첨부한다 — 호출자(/me·결제 스냅샷 등)가 인증 직후 같은 문서를 재조회하던
+  // 두 번째 Mongo 왕복을 없앤다. userProjection이 없으면 종전과 완전히 동일(identity projection·authUserDoc 미부착).
+  const projection = userProjection
+    ? { ...AUTH_USER_IDENTITY_PROJECTION, ...userProjection, _id: 1, status: 1 }
+    : AUTH_USER_IDENTITY_PROJECTION;
   const user = await withMongoRetry(env, () => User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(userId) },
-    {
-      projection: {
-        _id: 1,
-        name: 1,
-        email: 1,
-        birthDate: 1,
-        birthTime: 1,
-        gender: 1,
-        role: 1,
-        points: 1,
-        joinedAt: 1,
-        image: 1,
-        profileImage: 1,
-        status: 1,
-      },
-    },
+    { projection },
   ));
   if (!user || isWithdrawnUser(user)) return null;
-  return normalizeAuthResultFromUser(user);
+  const authResult = normalizeAuthResultFromUser(user);
+  if (userProjection) authResult.authUserDoc = user;
+  return authResult;
 }
 
 async function verifyAccessTokenToAuth(token, env, options = {}) {
@@ -368,7 +378,7 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
     if (!userId) return null;
     const tokenAuth = normalizeAuthResultFromPayload(payload, userId);
     try {
-      return await resolveActiveUserAuth(userId, env);
+      return await resolveActiveUserAuth(userId, env, options.userProjection || null);
     } catch (dbError) {
       logAuthError("verify-access-token-user", dbError, { userId });
       if (options.allowDbFallback === true) {
@@ -503,7 +513,10 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
     const refreshCookieToken = cookieValue(request, REFRESH_COOKIE_NAME);
     const allowTokenDbFallback = options?.allowDbFallback === true || isAuthMeRequest(request);
     const surfaceDbInfraError = options?.surfaceDbInfraError === true;
-    const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError };
+    // userProjection: 주어지면 access-token 인증 경로의 User 조회를 이 필드까지 확장해 원본 문서를
+    // authUserDoc로 첨부한다(호출자의 인증-후 재조회 왕복 제거). refresh/admin/dev 폴백 경로엔 미부착 →
+    // 호출자는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
+    const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError, userProjection: options?.userProjection || null };
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
     if (flowerAdminAuth) return flowerAdminAuth;
@@ -562,10 +575,11 @@ export async function peekAccessTokenUserId(request, env) {
   return "";
 }
 
-export async function requireUserFromRequest(request, env) {
+export async function requireUserFromRequest(request, env, options = {}) {
   // surfaceDbInfraError: 로그인 사용자가 일시적 DB 장애로 확인이 안 될 때 null→확정 401(로그아웃)로
   // 뭉개지 않고 원본 infra 에러를 던진다. 진짜 게스트(토큰 없음/무효)는 여전히 null→401.
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // userProjection(선택): 인증 경로 User 조회를 확장해 authUserDoc를 첨부(호출자 재조회 왕복 제거).
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: options.userProjection || null });
   if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
 }

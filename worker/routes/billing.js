@@ -5122,6 +5122,30 @@ function buildMembershipPassFromBillingSnapshot(snapshot = {}) {
   };
 }
 
+// 결제 스냅샷 stage-2 User 조회가 쓰는 필드. 인증 리졸버에 userProjection으로 넘겨 인증 확인과
+// 같은 조회에서 함께 읽어(authUserDoc) 인증-후 재조회(stage-2 User 왕복)를 없앤다.
+const BILLING_SNAPSHOT_USER_PROJECTION = {
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  points: 1,
+  destinyProfilesCurrentId: 1,
+  unlockedFeatures: 1,
+};
+
 async function readBillingSnapshot(request, env, options = {}) {
   const {
     seedLegacyCredit = true,
@@ -5152,7 +5176,9 @@ async function readBillingSnapshot(request, env, options = {}) {
     // attemptTimeoutMS 기본(7s)이 서버선택 타임아웃(8s)보다 짧아, 콜드 아이솔레이트에서 연결이
     // 자기 선택창 안에 있는데도 op-래퍼가 먼저 잘라 이용권 확인이 실패→게스트 강등되던 문제를 막는다.
     // 유료 게이트 핵심 읽기라 콜드 연결까지 완료되도록 상한을 11s로 넓힌다(웜 요청은 영향 없음).
-    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true }), { attemptTimeoutMS: 11000 });
+    // seed 경로(seedLegacyCredit=true)에서는 authUserDoc를 재사용하지 않으므로(아래 stage-2 주석 참고)
+    // 인증 조회를 확장하지 않는다. 조회 전용 경로에서만 billing 필드를 함께 읽어 재조회 왕복을 없앤다.
+    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: seedLegacyCredit === true ? null : BILLING_SNAPSHOT_USER_PROJECTION }), { attemptTimeoutMS: 11000 });
   } catch (error) {
     if (!isAuthDbInfraError(error)) throw error;
     // 재시도 후에도 지속되는 infra 에러 = 토큰은 있으나 DB 장애로 확인 불가(진짜 게스트는 throw 없이 null).
@@ -5206,10 +5232,15 @@ async function readBillingSnapshot(request, env, options = {}) {
     // 일시적 풀 초기화(MongoPoolClearedError) 등 재시도 가능한 Mongo 에러가 나도
     // degraded(부정확) 대신 정확한 스냅샷을 돌려주도록 쿼리 전체를 재시도로 감싼다.
     // attemptTimeoutMS를 11s로 넓혀 콜드 연결까지 완료되게 한다(위 인증 경로와 동일 사유).
+    // authUserDoc(인증 리졸버가 함께 읽어준 문서)를 재사용해 stage-2 User 재조회 왕복을 없앤다.
+    // ⚠️ 단, seedLegacyCredit=true 경로는 이 closure 안에서 seed write(레거시 월정석 lot 지급)가 일어난다.
+    //   auth 시점에 잡힌 pre-seed authUserDoc를 재사용하면, seed 커밋 뒤 (withMongoRetry 재시도·seed의
+    //   lost-ack·동시 요청 어느 경우든) stale 문서로 갓 지급된 월정석 잔량을 0으로 과소보고할 수 있다.
+    //   그래서 seed 경로에서는 재사용하지 않고 closure 안에서 매번 fresh read한다(원본 동작 유지).
+    //   seed를 안 하는 조회 경로(unlock-status·subscription-status 등)만 authUserDoc를 재사용한다.
+    const reusableUserDoc = seedLegacyCredit === true ? null : (auth.authUserDoc || null);
     const freshSnapshot = await withMongoRetry(env, async () => {
-    // User 문서를 1회만 조회하고, legacy seed 필요 시에만 원자적 write를 수행한다.
-    // (기존에는 seed 함수가 내부에서 동일 문서를 또 findById 해 User를 2회 읽었음)
-    const user = await User.findById(auth.userId)
+    const user = reusableUserDoc || await User.findById(auth.userId)
       .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus isActive isSubscribed expiresAt points destinyProfilesCurrentId unlockedFeatures")
       .lean();
     const seededUser = seedLegacyCredit === true
