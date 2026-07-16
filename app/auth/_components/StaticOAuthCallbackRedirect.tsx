@@ -292,12 +292,33 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       const entitlementUrl = apiBase + "/api/billing/balance";
       const MAX_RETRIES = 3;
       const RETRY_BASE_DELAY_MS = 250;
-      const REQUEST_TIMEOUT_MS = 12000;
+      // OAuth 완료(/oauth/complete)·/me는 워커가 인증+세션생성으로 콜드 시 ~12s+ 걸린다. 12000이면
+      // 정상 완료를 클라가 먼저 끊어 계정전환/로그인이 실패한다(index.html resolveTimeoutMs는 이 콜백
+      // 페이지가 안 타므로 여기서 직접 올려야 실효가 있다).
+      const REQUEST_TIMEOUT_MS = 20000;
       const flowSeq = Number(window.__cdOAuthFlowSeq || 0) + 1;
       window.__cdOAuthFlowSeq = flowSeq;
       function isStaleFlow() {
         return Number(window.__cdOAuthFlowSeq || 0) !== flowSeq;
       }
+
+      // 이번 로그인이 의도한 사용자(B)의 id — social_grant(JWT)의 payload에서 읽는다. 서명 검증은
+      // 서버(/oauth/complete)가 하며, 여기선 stale 세션 판별용으로만 payload를 디코드한다(신뢰 아님).
+      // ⚠️ 이 함수는 buildInlineScript 템플릿 리터럴(문자열) 안이라 브라우저에 그대로 주입된다 —
+      //    TypeScript 타입 표기(: string 등)를 절대 넣지 말 것(브라우저 SyntaxError로 로그인 전체가 죽는다).
+      function decodeGrantUserId(grant) {
+        try {
+          const parts = String(grant || "").split(".");
+          if (parts.length < 2 || !parts[1]) return "";
+          let b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+          while (b64.length % 4) b64 += "=";
+          const obj = JSON.parse(atob(b64));
+          return String((obj && (obj.userId || obj.sub)) || "").trim();
+        } catch (e) {
+          return "";
+        }
+      }
+      const intendedUserId = decodeGrantUserId(socialGrant);
 
       async function tryLoadMe() {
         try {
@@ -309,6 +330,13 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
           if (meResponse.ok) {
             const mePayload = await parseJsonResponse(meResponse);
             if (mePayload && mePayload.user && mePayload.user.id) {
+              // 신원 대조: /me가 반환한 사용자가 이번 로그인(grant)이 의도한 B와 다르면 = 직전 계정 A의
+              // 살아있는 세션이다. 이를 채택하면 B 로그인이 조용히 A로 남는다(계정 전환 실패). 거부한다.
+              // (grant 디코드가 실패해 intendedUserId가 비면 기존 동작 유지 — 해피패스를 깨지 않기 위함.)
+              if (intendedUserId && String(mePayload.user.id) !== intendedUserId) {
+                debugAuth("[auth] /me identity mismatch — stale session ignored");
+                return null;
+              }
               return { ...mePayload, nextPath: resolveNextPathFromQuery(params) };
             }
           }
