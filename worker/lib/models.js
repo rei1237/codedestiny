@@ -1083,6 +1083,29 @@ const neoOperationRoomConsultationSchema = new mongoose.Schema({
 neoOperationRoomConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 neoOperationRoomConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// 나크샤트라 결정판 AI 심화 상담(2덱: 숙요/베다). 네오 작전실 스키마를 본떴으나 refine·method선택·주제·강도가
+// 없어 더 린하다. 항상 숙요+베다 두 덱을 동기 생성해 `decks`에 담는다. 결제/멱등 계약은 네오와 동일(멱등키·usageAppliedAt).
+const nakshatraAiConsultationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  birthInfo: { type: mongoose.Schema.Types.Mixed, default: null },
+  question: { type: String, default: "", trim: true, maxlength: 1200 },
+  factSummary: { type: mongoose.Schema.Types.Mixed, default: null },
+  decks: { type: mongoose.Schema.Types.Mixed, default: null },
+  accessType: { type: String, enum: ["pass", "paid", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  messages: { type: [neoOperationRoomMessageSchema], default: [] },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "nakshatraAiConsultations" });
+
+nakshatraAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+nakshatraAiConsultationSchema.index({ userId: 1, createdAt: -1 });
+
 // socialAccounts.<provider>.id defaults to "" (not absent), so a plain sparse index wouldn't
 // exclude non-social users — a partial filter on non-empty values keeps these lean the same
 // way pointHistorySchema's dedupeKey index does. findOrCreateSocialUser (worker/routes/auth.js)
@@ -1145,6 +1168,8 @@ export const AstrologyAiConsultation = mongoose.models.AstrologyAiConsultation
   || mongoose.model("AstrologyAiConsultation", astrologyAiConsultationSchema);
 export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomConsultation
   || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
+export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
+  || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },

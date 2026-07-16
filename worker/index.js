@@ -415,6 +415,7 @@ const handleAstroRoutes = createLazyRouteHandler("./routes/astro.js", () => impo
 const handleAstrologyRoutes = createLazyRouteHandler("./routes/astro.js", () => import("./routes/astro.js"), "handleAstrologyRoutes");
 const handleSukuyoRoutes = createLazyRouteHandler("./routes/sukuyo.js", () => import("./routes/sukuyo.js"), "handleSukuyoRoutes");
 const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", () => import("./routes/nakshatra.js"), "handleNakshatraRoutes");
+const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
@@ -1383,6 +1384,11 @@ export default {
           ? rewriteRequestPath(request, url.pathname.replace("/api/sukyo", "/api/sukuyo"))
           : request;
         return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env, ctx));
+      }
+
+      // 나크샤트라 결정판 AI 심화 상담(유료·인증) — 동기 생성(숙요/베다 2덱). 무료 라우트보다 먼저 검사한다.
+      if (url.pathname === "/api/nakshatra-ai" || url.pathname.startsWith("/api/nakshatra-ai/")) {
+        return runAiRouteWithSecurity(request, env, "nakshatra-ai", handleNakshatraAiRoutes, ctx);
       }
 
       // 나크샤트라 결정판(무료·무인증) — 숙요×나크샤트라 통합 계산.
