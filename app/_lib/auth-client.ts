@@ -11,6 +11,11 @@ const AUTH_LOGOUT_INFLIGHT_KEY = "fortune_auth_logout_inflight_at";
 const LOGOUT_TIMEOUT_MS = 3500;
 const LOGOUT_INFLIGHT_TTL_MS = 5000;
 const LOGOUT_INFLIGHT_POLL_MS = 80;
+// 같은-탭 실제 로그아웃(logoutInFlight 프로미스)은 아래에서 온전히 await한다. 이 상한은
+// 프로미스가 없고 persisted 마커만 남은 경우(다른 페이지/탭에서 로그아웃 후 전체 새로고침으로
+// 진입)에만 적용된다 — 그 로그아웃 fetch는 이미 끝났거나 중단됐으므로 짧게만 확인하고 진행한다.
+// (계정 전환 재로그인이 최대 3.5s 블로킹되던 문제 해소.)
+const PERSISTED_LOGOUT_SETTLE_CAP_MS = 800;
 
 type RefreshSessionState = "success" | "invalid" | "transient";
 
@@ -196,7 +201,10 @@ export async function waitForAuthLogoutToSettle(timeoutMs = LOGOUT_TIMEOUT_MS) {
   const startedAt = readLogoutInFlightStartedAt();
   if (!Number.isFinite(startedAt) || startedAt <= 0) return;
 
-  const deadline = Math.min(startedAt + LOGOUT_INFLIGHT_TTL_MS, Date.now() + timeoutMs);
+  const deadline = Math.min(
+    startedAt + LOGOUT_INFLIGHT_TTL_MS,
+    Date.now() + Math.min(timeoutMs, PERSISTED_LOGOUT_SETTLE_CAP_MS),
+  );
   while (Date.now() < deadline) {
     if (readLogoutInFlightStartedAt() <= 0) return;
     await sleep(Math.min(LOGOUT_INFLIGHT_POLL_MS, Math.max(0, deadline - Date.now())));
