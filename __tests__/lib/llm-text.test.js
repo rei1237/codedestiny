@@ -34,6 +34,21 @@ describe("toDisplayText", () => {
     expect(toDisplayText("[object Object]")).toBe("");
     expect(toDisplayText("앞 [object Object] 뒤")).toBe("앞 뒤");
   });
+
+  test("내용이 공백뿐인 빈 괄호를 앞 가로공백까지 함께 제거한다", () => {
+    expect(toDisplayText("명궁(　)을 통해")).toBe("명궁을 통해"); // 전각공백 U+3000
+    expect(toDisplayText("삼방사정(　　　)의 흐름")).toBe("삼방사정의 흐름");
+    expect(toDisplayText("대운( )과 세운()을")).toBe("대운과 세운을"); // 반각공백/무공백
+    expect(toDisplayText("명궁 (　) 을")).toBe("명궁 을"); // 괄호 앞 공백 제거, 뒤 공백 유지
+    expect(toDisplayText("재백궁（　）으로")).toBe("재백궁으로"); // 전각 괄호
+  });
+
+  test("내용이 있는 괄호·수식·이모티콘은 보존한다", () => {
+    expect(toDisplayText("자미(紫微)가 놓인")).toBe("자미(紫微)가 놓인");
+    expect(toDisplayText("1순위(1)와 (중요) 항목")).toBe("1순위(1)와 (중요) 항목");
+    expect(toDisplayText("웃음 :) 표정")).toBe("웃음 :) 표정");
+    expect(toDisplayText("계산 (a+b) 결과")).toBe("계산 (a+b) 결과");
+  });
 });
 
 describe("splitIntoParagraphs", () => {
