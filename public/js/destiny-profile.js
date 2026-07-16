@@ -6477,7 +6477,12 @@
           window.FORTUNE_APP_VEDIC_PAYLOAD = forVedic;
         } catch (e) {}
         if (pVedic) _toast(_fortuneStartMessage(pVedic.name, 'vedic'), 'success');
-        window.location.href = '/vedic/jyotish';
+        var _vdTarget = '/vedic-astrology.html';
+        try {
+          var _vp = encodeURIComponent(JSON.stringify(forVedic));
+          _vdTarget += (_vdTarget.indexOf('?') >= 0 ? '&' : '?') + 'vp=' + _vp;
+        } catch (_) {}
+        window.location.href = _vdTarget;
       } else if (type === 'tarot') {
         var pTarot = DPStorage.current();
         if (pTarot) _toast(_fortuneStartMessage(pTarot.name, 'tarot'), 'success');
