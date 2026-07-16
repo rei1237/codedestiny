@@ -674,6 +674,203 @@ function shareLoveSecretKakao() {
   }, 'lovesecret');
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   궁합 초대 링크형 유입 (Phase 2a) — 최고 K팩터 바이럴 루프.
+   A가 초대 링크를 공유 → B가 링크를 열면 궁합 폼이 A의 생일로 자동
+   채워지고, B가 자기 사주를 확인하면 A×B 궁합(기존 유료 5,000원,
+   pass-first)으로 이어진다. Phase1 리퍼럴도 그대로 승계된다.
+   · 기존 유료 궁합 경로(runCompat/runCompatCore/analyzeCompat)는
+     전혀 건드리지 않는다(매출 경로 회귀 위험 0).
+   · 딥링크는 기존 ?action= 런처(openCompatInvite) 재사용, index.html
+     6미러/워커 무변경. cp = A 생일의 base64url(JSON).
+   · 무료 요약 티어는 수익 경로 리팩터링이 필요해 Phase 2b로 분리.
+   ══════════════════════════════════════════════════════════════════ */
+var CD_COMPAT_INVITE_SESSION_KEY = 'cd_compat_invite_v1';
+
+function _cdB64UrlEncode(str){
+  try {
+    var b64 = btoa(unescape(encodeURIComponent(str)));
+    return b64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  } catch (_) { return ''; }
+}
+function _cdB64UrlDecode(b64){
+  try {
+    var s = String(b64 || '').replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  } catch (_) { return ''; }
+}
+
+// A(공유자)의 생일 데이터 — 사주 계산 시 채워지는 전역에서 읽는다(runCompatCore와 동일 소스).
+function cdReadSelfBirthForInvite(){
+  try {
+    var meta = window._ziweiInputMeta || {};
+    var d = meta.inputDate || {};
+    var astro = window._astroBirth || null;
+    var zb = window._ziweiBirth || null;
+    var y = d.year || (astro && astro.year) || (zb && zb.year) || null;
+    var m = d.month || (astro && astro.month) || (zb && zb.month) || null;
+    var day = d.day || (astro && astro.day) || (zb && zb.day) || null;
+    if (!y || !m || !day) return null;
+    var h = (d.hour != null ? d.hour : ((astro && astro.hour) != null ? astro.hour : ((zb && zb.hour) != null ? zb.hour : 12)));
+    var mi = (d.minute != null ? d.minute : ((astro && astro.minute) != null ? astro.minute : ((zb && zb.minute) != null ? zb.minute : 0)));
+    var cal = meta.calType || 'solar';
+    var nm = '';
+    try {
+      nm = (window.DestinyProfileManager && window.DestinyProfileManager.storage)
+        ? ((window.DestinyProfileManager.storage.current() || {}).name || '')
+        : '';
+    } catch (_) {}
+    if (!nm && typeof window.USER_NAME === 'string') nm = window.USER_NAME || '';
+    return { n: String(nm || '').slice(0, 20), y: y, m: m, d: day, h: h, mi: mi, c: cal };
+  } catch (_) { return null; }
+}
+
+function cdBuildCompatInviteUrl(){
+  var self = cdReadSelfBirthForInvite();
+  if (!self) return null;
+  var cp = _cdB64UrlEncode(JSON.stringify(self));
+  if (!cp) return null;
+  var origin = 'https://code-destiny.com';
+  try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
+  var qs = ['action=openCompatInvite', 'cp=' + encodeURIComponent(cp)];
+  var r = cdReadCachedReferral() || {};
+  if (r.ref) {
+    qs.push('ref=' + encodeURIComponent(r.ref));
+    if (r.rs) qs.push('rs=' + encodeURIComponent(r.rs));
+    qs.push('via=' + encodeURIComponent(r.via || 'kakao_reward'));
+  }
+  return origin + '/?' + qs.join('&');
+}
+
+function shareCompatInviteKakao(){
+  var url = cdBuildCompatInviteUrl();
+  if (!url) {
+    if (typeof showToast === 'function') showToast('먼저 내 사주를 확인한 뒤 궁합 초대 링크를 만들 수 있어요 🐷');
+    return;
+  }
+  var self = cdReadSelfBirthForInvite() || {};
+  var who = self.n ? (self.n + '님') : '내';
+  shareWithReward(function(){
+    var text = '💞 [궁합 초대] ' + who + '과의 궁합, 같이 볼래요?\n\n'
+      + '아래 링크를 열고 생년월일만 입력하면 ' + who + '과의 사주 궁합을 바로 확인할 수 있어요.\n\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: '💞 궁합 초대', text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '궁합 초대 링크를 복사했어요! 카카오톡에 붙여넣어 주세요 💬'); }, 800);
+  }, 'compat-invite');
+}
+
+// B(받는 사람) 화면: 궁합 폼에 A 정보 자동 채움.
+function _cdApplyCompatInvitePrefill(inv){
+  if (!inv || !inv.y || !inv.m || !inv.d) return false;
+  var dateEl = document.getElementById('compatBirthDate');
+  if (!dateEl) return false; // 폼 미존재(사주 미계산) — 등장 시 재시도
+  function pad(n){ n = String(n); return n.length < 2 ? '0' + n : n; }
+  try {
+    var nameEl = document.getElementById('compatName');
+    if (nameEl && inv.n) nameEl.value = inv.n;
+    dateEl.value = inv.y + '-' + pad(inv.m) + '-' + pad(inv.d);
+    var cal = (inv.c === 'lunar' || inv.c === 'lunar_leap') ? inv.c : 'solar';
+    var calBtns = document.getElementsByName('compatCalType');
+    for (var i = 0; i < calBtns.length; i++) { calBtns[i].checked = (calBtns[i].value === cal); }
+    var hourEl = document.getElementById('compatBirthHour');
+    if (hourEl && inv.h != null) hourEl.value = String(inv.h);
+    var minEl = document.getElementById('compatBirthMinute');
+    if (minEl && inv.mi != null) minEl.value = String(inv.mi);
+  } catch (_) { return false; }
+  return true;
+}
+
+function _cdShowCompatInviteBanner(inv){
+  var who = (inv && inv.n) ? (inv.n + '님') : '상대방';
+  var card = document.getElementById('compatCard');
+  var host = document.getElementById('cdCompatInviteBanner');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'cdCompatInviteBanner';
+    host.setAttribute('role', 'status');
+    host.style.cssText = 'margin:12px 0;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#fff3f8,#ffe3ec);border:1px solid rgba(216,27,96,0.22);color:#3c1830;font-size:.86rem;line-height:1.6;box-shadow:0 6px 18px rgba(216,27,96,0.12);';
+    if (card && card.parentNode) card.parentNode.insertBefore(host, card);
+    else document.body.appendChild(host);
+  }
+  host.innerHTML = '<b>💞 ' + who + '이(가) 궁합을 신청했어요!</b><br>'
+    + '당신의 생년월일로 사주를 확인하면 ' + who + '과의 궁합을 바로 볼 수 있어요. 상대 정보는 미리 채워 두었습니다.';
+}
+
+function openCompatInvite(){
+  // 런처가 fn() 직후 replaceState로 쿼리를 지우므로 cp를 최우선(동기) 확보.
+  var cp = '';
+  try { cp = new URLSearchParams(window.location.search || '').get('cp') || ''; } catch (_) {}
+  var inv = null;
+  if (cp) {
+    var json = _cdB64UrlDecode(cp);
+    if (json) { try { inv = JSON.parse(json); } catch (_) { inv = null; } }
+  }
+  if (!inv) {
+    try { var cached = sessionStorage.getItem(CD_COMPAT_INVITE_SESSION_KEY); if (cached) inv = JSON.parse(cached); } catch (_) {}
+  }
+  if (!inv || !inv.y) return;
+  try { sessionStorage.setItem(CD_COMPAT_INVITE_SESSION_KEY, JSON.stringify(inv)); } catch (_) {}
+
+  _cdShowCompatInviteBanner(inv);
+  var applied = _cdApplyCompatInvitePrefill(inv);
+  if (!applied) {
+    // 폼이 아직 없으면(사주 미계산) 폼 등장 시 1회 재적용(최대 30초).
+    var tries = 0;
+    var timer = setInterval(function(){
+      tries += 1;
+      if (_cdApplyCompatInvitePrefill(inv) || tries > 60) clearInterval(timer);
+    }, 500);
+  } else {
+    var card = document.getElementById('compatCard');
+    if (card) setTimeout(function(){ try { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (_) {} }, 300);
+  }
+}
+
+// A용 초대 버튼을 궁합 카드에 주입(index.html 미편집).
+function _cdInjectCompatInviteButton(){
+  try {
+    var card = document.getElementById('compatCard');
+    if (!card || document.getElementById('cdCompatInviteShareBtn')) return;
+    var btn = document.createElement('button');
+    btn.id = 'cdCompatInviteShareBtn';
+    btn.type = 'button';
+    btn.textContent = '💌 궁합 초대 링크 공유';
+    btn.setAttribute('aria-label', '궁합 초대 링크 카카오톡 공유');
+    btn.style.cssText = 'margin:8px 0 0;width:100%;padding:11px 14px;border:0;border-radius:12px;background:linear-gradient(135deg,#e8497f,#d81b60);color:#fff;font-size:.88rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(216,27,96,0.28);';
+    btn.addEventListener('click', function(){ shareCompatInviteKakao(); });
+    var runBtn = document.getElementById('compatRunBtn');
+    if (runBtn && runBtn.parentNode) runBtn.parentNode.insertBefore(btn, runBtn.nextSibling);
+    else card.appendChild(btn);
+  } catch (_) {}
+}
+
+if (typeof window !== 'undefined') {
+  window.shareCompatInviteKakao = shareCompatInviteKakao;
+  window.openCompatInvite = openCompatInvite;
+  var _cdCompatInviteInit = function(){
+    _cdInjectCompatInviteButton();
+    // 세션에 초대가 남아있고 URL에 cp가 없으면(리로드 등) 복원.
+    try {
+      var hasCp = new URLSearchParams(window.location.search || '').get('cp');
+      if (!hasCp) {
+        var cached = sessionStorage.getItem(CD_COMPAT_INVITE_SESSION_KEY);
+        if (cached) {
+          var inv = JSON.parse(cached);
+          if (inv && inv.y) { _cdShowCompatInviteBanner(inv); _cdApplyCompatInvitePrefill(inv); }
+        }
+      }
+    } catch (_) {}
+  };
+  if (document.readyState === 'complete') { _cdCompatInviteInit(); }
+  else { window.addEventListener('load', _cdCompatInviteInit); }
+}
+
 /* ══════════════════════════════════════════════
    테마 에셋 동기화
    ══════════════════════════════════════════════ */
