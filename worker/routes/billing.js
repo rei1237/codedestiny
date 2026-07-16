@@ -560,33 +560,13 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
   const profileId = cleanProfileId(options?.profileId || body?.profileId || body?.selectedProfileId);
   const idempotencyMarker = normalizedRequestId && featureKey ? `tier-pass:${featureKey}:${normalizedRequestId}` : "";
   if (!authUserId || !featureKey || !Number.isFinite(coinCost) || coinCost < 0) return { ok: false, reason: "invalid_pass_request" };
+  // 프로필 카드 추가/삭제는 tier와 무관하게 이용권으로 결제할 수 없다(단건 결제 또는 월정석만).
+  // 무료 판정(family 바이패스 · 계정당 첫 카드)은 '이용권으로 결제'가 아니라 '가격이 0원'이라는 뜻이며,
+  // worker/routes/profile.js가 resolveProfileCardActionAccess/getProfileCardMutationPolicy로 판정한다
+  // — coin-gate는 profile.js가 402(결제 필요)를 준 뒤에만 열리므로 무료 카드는 여기 도달하지 않는다.
+  // (과거엔 이 자리에서 정책을 다시 조회해 무료 통과를 내주면서 tier를 "family"로 하드코딩해,
+  //  이용권 없는 유저의 첫 카드가 family_pass 거래로 오기록됐다.)
   if (featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY) {
-    await connectDb(env);
-    const actionType = resolveProfileCardActionType(body?.actionType || body?.profileAction || body?.action);
-    const profilePolicy = await getProfileCardMutationPolicy(authUserId, profileId, actionType);
-    if (profilePolicy?.allowed === true && profilePolicy?.requiresPayment !== true) {
-      const user = await User.findById(authUserId).select("points profileSubscription").lean();
-      return {
-        ok: true,
-        tier: "family",
-        passTier: "family",
-        accessMethod: "family",
-        transactionType: "family_pass",
-        accessType: "family",
-        requestId: normalizedRequestId,
-        idempotencyKey: idempotencyMarker || normalizedRequestId,
-        featureKey,
-        profileId,
-        coinCost,
-        amountKRW,
-        profilePolicy,
-        user: {
-          id: String(authUserId || ""),
-          points: Number(user?.points || 0),
-          profileSubscription: user?.profileSubscription || null,
-        },
-      };
-    }
     return { ok: false, reason: "profile_card_pass_excluded", featureKey, coinCost, amountKRW };
   }
   if (isPassExcludedPricing(pricing)) {
@@ -770,8 +750,11 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
-  const isProfileCardManage = String(pricing?.featureKey || "").trim() === PROFILE_CARD_MANAGE_FEATURE_KEY;
-  const passExcluded = isPassExcludedPricing(pricing) && !isProfileCardManage;
+  // 이용권 제외 기능(프로필 카드 추가/삭제, 음악 트랙)은 tier와 무관하게 이용권으로 결제할 수 없다.
+  // featureKey별 예외 분기를 두지 말 것 — 과거 `&& !isProfileCardManage`로 제외를 되풀어, 프로필 카드가
+  // premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김으로 뜬 뒤 소비 단계에서 거부되는 막다른 길이 됐다.
+  // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS ∪ 음악 트랙)뿐이다.
+  const passExcluded = isPassExcludedPricing(pricing);
   const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;
   // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출한다(부족 시 클라이언트가 비활성 처리).
@@ -3096,7 +3079,8 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     && (forceDeductRaw === true || String(forceDeductRaw).toLowerCase() === "true");
   const requestedPaymentMode = String(body?.paymentMode || body?.accessMode || "").trim().toLowerCase();
   const pricingFeatureKey = String(pricing?.featureKey || "").trim();
-  const passExcludedForPricing = isPassExcludedPricing(pricing) && pricingFeatureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY;
+  // featureKey별 예외 분기 금지 — 제외 여부의 정본은 isPassExcludedPricing 하나뿐이다(buildPassPaymentDecision 주석 참고).
+  const passExcludedForPricing = isPassExcludedPricing(pricing);
   const membershipPassRequested = requestedPaymentMode === "membership_pass" || requestedPaymentMode === "membership";
   const membershipPassOnly = membershipPassRequested && !passExcludedForPricing;
   const monthlyBalanceRequested = requestedPaymentMode === "monthly_credit"
@@ -3125,8 +3109,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       paymentMode: requestedPaymentMode,
     });
   }
+  // 이 가드는 음악 트랙 전용이 아니다 — PASS_EXCLUDED_FEATURE_KEYS(프로필 카드 추가/삭제)와
+  // 음악 트랙이 같은 판정(isPassExcludedPricing)을 공유하므로 문구도 기능 중립이어야 한다.
   if (membershipPassRequested && passExcludedForPricing) {
-    return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", "음악 트랙은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+    return failure(402, "MEMBERSHIP_PASS_NOT_ALLOWED", "이 기능은 이용권으로 결제할 수 없습니다. 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       paymentOptions: buildPassPaymentDecision(null, pricing, null),
       accessGrant: null,
@@ -4099,22 +4085,23 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
   if (passExcludedForPricing && coinPaymentRequested) {
     // 월정석은 잔량과 무관히 단건결제와 항상 동등 노출(부족 시 클라이언트가 비활성 처리).
-    const musicPaymentMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
-    return failure(402, "PAYMENT_REQUIRED", "음악 트랙은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
+    // 이용권 제외 기능 공용 경로(프로필 카드 추가/삭제 + 음악 트랙) — 문구·변수명을 기능 중립으로 둔다.
+    const passExcludedPaymentMethods = ["DIRECT_KRW", "MOONLIGHT_STONE"];
+    return failure(402, "PAYMENT_REQUIRED", "이 기능은 단건 결제 또는 월정석으로 이용해 주세요.", undefined, {
       pricing,
       ...paymentDecision,
       paymentOptions: {
         ...paymentDecision,
         canUseByPass: false,
         recommendedMethod: "PAYMENT_CHOICE",
-        recommendedMethods: musicPaymentMethods,
-        equalPriorityMethods: musicPaymentMethods,
+        recommendedMethods: passExcludedPaymentMethods,
+        equalPriorityMethods: passExcludedPaymentMethods,
         hiddenMethods: ["PASS", "COIN"],
         paymentPriority: "USER_CHOICE_EQUAL",
       },
       accessDecision,
       shouldOpenPaymentSelector: true,
-      availableMethods: musicPaymentMethods,
+      availableMethods: passExcludedPaymentMethods,
       accessGrant: null,
       balance: null,
       checkout: {
@@ -6269,6 +6256,7 @@ export const __billingTestUtils = {
   buildPassPaymentDecision,
   buildMembershipPassFromStatusSnapshot,
   buildRefundedSpendSourceId,
+  isPassExcludedPricing,
   requireBillingAuth,
   resolvePaidContentAccess,
 };

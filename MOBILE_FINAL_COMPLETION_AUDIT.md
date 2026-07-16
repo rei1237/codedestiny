@@ -42,7 +42,7 @@
 - 모바일 UI는 클릭 즉시 sheet를 열고, 권한/결제 확인은 열린 UI 내부에서 진행되도록 점검했다.
 - 이미 구매한 콘텐츠는 worker의 `already_unlocked` 접근 사유와 `ACCESS_ALREADY_UNLOCKED` 흐름으로 확인된다.
 - 개인/결제 정보 public cache 정책은 변경하지 않았고, 권한 확인 캐시/stale-while-revalidate는 public cache 없이 유지하는 방향으로 검토했다.
-- `profile-card-manage`는 Family 이용권의 전체 커버 정책과 coin/monthly/direct 결제 흐름이 모두 열리도록 route-level music-only exclusion과 pass decision layer를 분리했다.
+- `profile-card-manage`는 이용권 결제 불가(passExcluded) 기능으로, **family 포함 전 등급이 이용권 커버 대상이 아니다** — 단건결제 또는 월정석으로만 정산된다. family 무료는 이용권 결제가 아니라 정책 계층(`profile-card-mutation-policy.js`)의 0원 바이패스로 처리된다. 서버 정본은 `isPassExcludedPricing`이며 featureKey별 예외 분기는 금지다. (2026-07-16 정정 — 이전 서술은 되돌려진 정책이었다.)
 - `npm run verify:billing-pass-policy`, `npm run verify:paid-gate-ui`, `npm run verify:test-account-payment-flow`, `npm run verify:test-account-all-paid-services`, `npm run verify:portone-single-payment`를 실행했다.
 - 전체 유료 서비스 test-account flow 결과: 252개 케이스, 총 42,275 차감, 최종 포인트 57,725, PASS.
 - PortOne 단건 결제 회귀 verifier는 PASS였지만 로컬 환경에 `PORTONE_API_SECRET`, `PORTONE_CHANNEL_KEY`, `PORTONE_STORE_ID`가 없어 실제 provider 승인 callback은 배포/sandbox 환경에서 추가 확인이 필요하다.

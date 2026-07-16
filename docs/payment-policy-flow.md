@@ -14,7 +14,7 @@
 
 - 모든 유료 서비스(A 잠금·B 회당 공통)에 적용된다. **이용권 선검사 없이 결제창/PortOne으로 직행하는 구현 금지.**
 - **서버 runtimeGate/paymentPayload에 `paymentMode` 하드코딩 금지** — 예: `paymentMode: "DIRECT_KRW"`가 클라이언트 게이트에 전달되면 이용권 선검사를 건너뛰고 단건결제로 직행하며 월정석 옵션도 사라진다(2026-07-08 ziwei-ai에서 제거). 결제수단 판정은 게이트가 서버 `unlock-status`/`buildPassPaymentDecision` 결과로 스스로 정한다.
-- 예외: 프로필 카드 추가/삭제(D유형)는 이용권 결제 불가 기능(`passExcluded`)이므로 이용권 선검사 없이 곧바로 결제창(단건결제/월정석)을 연다 — [2부 D유형](payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료) 참고.
+- 예외: 프로필 카드 추가·삭제(D유형) **모두** 이용권 결제 불가 기능(`passExcluded`)이므로, **어떤 이용권 등급(family 포함)으로도 결제되지 않으며** tier와 무관하게 이용권 선검사 없이 곧바로 결제창(단건결제/월정석)을 연다. 프론트에서 추가와 삭제가 동일하게 `disablePassFirst:true`·`disablePassChoice:true`·`allowedPaymentModes:['direct','monthly']`를 넘겨야 한다(과거 삭제만 지키고 추가는 이용권 선검사를 태워 막다른 길이 됐다). family 무료는 결제가 아니라 정책 계층의 0원 바이패스다 — [2부 D유형](payment-policy-content-access.md#d-프로필-카드-추가삭제-고정-관리-수수료) 참고.
 - 결제창 UI 구현: React 폴백 `openReactPaymentChoiceModal`(`app/_lib/billing-client.ts`), 런타임 정본 `_cdChooseServicePaymentMode`(`public/js/destiny-profile.js`).
 
 ### 잠금 콘텐츠(A유형) 접근 시

@@ -4731,9 +4731,13 @@
         action: normalizedAction,
         amountKrw: PROFILE_CARD_MANAGE_COST * 100,
         membershipCreditCost: isDeleteAction ? PROFILE_CARD_MANAGE_MONTHLY_COST : PROFILE_CARD_MANAGE_COST * 10,
-        allowedPaymentModes: isDeleteAction ? ['direct', 'monthly'] : undefined,
-        disablePassFirst: isDeleteAction,
-        disablePassChoice: isDeleteAction
+        // 프로필 카드 추가/삭제는 이용권으로 결제할 수 없다(D유형) — 추가·삭제 '모두' 이용권 선검사 없이
+        // 단건/월정석 결제창으로 직행한다. 과거엔 삭제만 스킵하고 추가는 선검사를 태워, premium/vvip가
+        // "이용권으로 커버됨" + 결제수단 전부 숨김을 받은 뒤 서버가 거부하는 막다른 길이 됐다.
+        // (무료 카드는 여기 오지 않는다 — profile.js가 402를 준 뒤에만 이 게이트가 열린다.)
+        allowedPaymentModes: ['direct', 'monthly'],
+        disablePassFirst: true,
+        disablePassChoice: true
       });
     });
   }

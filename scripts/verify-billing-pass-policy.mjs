@@ -244,6 +244,37 @@ for (const featureKey of listServerPricedFeatureKeys()) {
   const premiumDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.PREMIUM), pricingInput, { membershipCreditBalance: coinCost * 10 });
   const vvipDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.VVIP), pricingInput, { membershipCreditBalance: coinCost * 10 });
   const familyDecision = __billingTestUtils.buildPassPaymentDecision(activePass(PASS_TIERS.FAMILY), pricingInput, { membershipCreditBalance: 0 });
+
+  // 이용권 제외 기능(프로필 카드 추가/삭제 등)은 tier 한도와 무관하게 전 tier(family 포함) 미커버여야 한다.
+  // 정본 판정(isPassExcludedPricing)을 그대로 써서 향후 추가되는 제외 기능도 자동으로 덮는다.
+  // 과거엔 이 루프가 profile-card-manage에 대해 "premium/vvip는 한도 안이니 커버됨"을 단언해 버그를
+  // 정상으로 고정했고, 같은 파일의 licenseTier!=="FAMILY"/profile_card_pass_excluded 단언과 모순이었다.
+  if (__billingTestUtils.isPassExcludedPricing(pricingInput)) {
+    for (const [label, decisionForTier] of [
+      ["standard", standardDecision],
+      ["premium", premiumDecision],
+      ["vvip", vvipDecision],
+      ["family", familyDecision],
+    ]) {
+      assert.equal(
+        decisionForTier.canUseByPass,
+        false,
+        `${featureKey}: 이용권 제외 기능은 ${label} 이용권으로도 커버되면 안 된다`,
+      );
+      assert.deepEqual(
+        decisionForTier.hiddenMethods,
+        [],
+        `${featureKey}: 이용권 제외 기능은 결제수단을 숨기면 안 된다(${label}) — 단건/월정석이 항상 보여야 한다`,
+      );
+      assert.equal(
+        decisionForTier.decisionReason,
+        "PASS_EXCLUDED_PAYMENT_REQUIRED",
+        `${featureKey}: 이용권 제외 기능의 결정 사유는 PASS_EXCLUDED_PAYMENT_REQUIRED여야 한다(${label})`,
+      );
+    }
+    continue;
+  }
+
   assert.equal(familyDecision.canUseByPass, true, `${featureKey}: family must cover every paid service`);
   if (billingType === PAID_FEATURE_BILLING_TYPES.PDF) {
     assert.equal(standardDecision.canUseByPass, false, `${featureKey}: standard PDF remains product payment`);
@@ -341,6 +372,33 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   );
 }
 
+// ── pass 제외: 프로필 카드 추가/삭제 (D유형) ────────────────────────────────
+// 정책: 건당 5,000원 단건결제 또는 월정석 500으로만 결제 가능하며, 이용권으로는 어떤 등급도 결제 불가.
+// (family 무료는 '이용권으로 결제'가 아니라 '가격이 0원'인 정책 바이패스이며 worker/routes/profile.js가
+//  판정한다 — coin-gate 이용권 경로와 무관하다.) docs/payment-policy-content-access.md D유형 참고.
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
+  const profileCardDecision = __billingTestUtils.buildPassPaymentDecision(
+    activePass(tier),
+    { featureKey: "profile-card-manage", coinPrice: 50, cost: 50, membershipCreditCost: 500 },
+    { tier, passTier: tier, expiresAt: futureDate(), isActive: true, membershipCreditBalance: 500 },
+  );
+  assert.equal(
+    profileCardDecision.canUseByPass,
+    false,
+    `${tier}: 프로필 카드 추가/삭제는 이용권으로 결제할 수 없다(단건/월정석만)`,
+  );
+  assert.deepEqual(
+    profileCardDecision.hiddenMethods,
+    [],
+    `${tier}: 프로필 카드 결제창은 결제수단을 숨기면 안 된다 — 숨기면 결제할 방법이 없는 막다른 길이 된다`,
+  );
+  assert.deepEqual(
+    profileCardDecision.equalPriorityMethods,
+    ["DIRECT_KRW", "MOONLIGHT_STONE"],
+    `${tier}: 프로필 카드는 단건 결제와 월정석이 동등 노출되어야 한다`,
+  );
+}
+
 // ── pass 제외: 음악 트랙 ────────────────────────────────────────────────────
 // 키가 동적(music-track-<hash>)이라 아래 전기능 루프(listServerPricedFeatureKeys)가 절대 못 본다.
 // 3코인짜리라 제외가 깨지면 전 tier가 무료로 뚫리는데 이를 잡는 행위 단언이 없었다.
@@ -428,6 +486,10 @@ assertContains(billingSource, 'status: "license_passed"', "server returns licens
 assertContains(billingSource, '"family_all_access" : "license_coin_limit"', "family all-access gate reason");
 assertContains(billingSource, "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\"", "profile card actions emit license pass UI only for FAMILY tier");
 assertContains(billingSource, "profile_card_pass_excluded", "non-FAMILY pass cannot bypass profile card actions");
+// 재유입 방지: 프로필 카드를 이용권 제외에서 다시 빼는 featureKey 예외 분기가 되살아나면 즉시 실패시킨다.
+// 이 우회가 premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김 → 소비 단계 거부(막다른 길)의 원인이었다.
+assertNotContains(billingSource, "isPassExcludedPricing(pricing) && !isProfileCardManage", "profile card pass exclusion must not be re-suppressed (buildPassPaymentDecision)");
+assertNotContains(billingSource, "isPassExcludedPricing(pricing) && pricingFeatureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY", "profile card pass exclusion must not be re-suppressed (coin-gate)");
 assertNotContains(billingSource, "policy?.allowed === true && actionType === PROFILE_CARD_MUTATION_ACTIONS.CREATE", "profile card create does not bypass payment for non-FAMILY pass tiers");
 assertNotContains(billingSource, "if (!singleOrMonthlyOnly)", "monthly choice must not block PASS coverage");
 assertContains(billingSource, "consumeMembershipCreditIfAvailable", "monthly deduction path remains");

@@ -109,7 +109,32 @@ const cases = [
     ],
   },
   {
-    name: "family-only profile create/delete bypass is visible to billing gate",
+    // 계정당 첫 프로필 카드는 이용권 유무·등급과 무관하게 무조건 무료다(docs/payment-policy-content-access.md:40).
+    // 이 규칙이 등급(family) 검사보다 '먼저' 평가되어야 무과금·무이용권 유저도 첫 카드를 무료로 만든다.
+    // buildInitialProfileCardFreePolicy가 결제 불필요·0원임을 함께 고정한다.
+    name: "first profile card is unconditionally free before any tier check",
+    includes: [
+      ["policy", "FREE_INITIAL_PROFILE_CARD_COUNT = 1"],
+      ["policy", "count < FREE_INITIAL_PROFILE_CARD_COUNT"],
+      ["policy", "buildInitialProfileCardFreePolicy"],
+      ["policy", "INITIAL_PROFILE_CARD_FREE"],
+    ],
+    // 첫 카드 무료 분기가 등급 검사(isFamilyOrAbove)보다 소스상 먼저 나와야 한다 — 순서가 뒤집히면
+    // 첫 카드가 등급 판정에 좌우된다. resolveProfileCardActionAccess의 CREATE 블록에서 확인한다
+    // (그 블록의 첫 카드 마커 `count < FREE_INITIAL_PROFILE_CARD_COUNT`가 `isFamilyOrAbove(user)`보다 앞).
+    ordered: [
+      ["policy", "if (count < FREE_INITIAL_PROFILE_CARD_COUNT) {", "if (isFamilyOrAbove(user)) {"],
+    ],
+    // buildInitialProfileCardFreePolicy는 무료여야 한다(결제 필요 표기 금지).
+    freeInitialPolicy: true,
+  },
+  {
+    // family 무료는 '이용권으로 결제'가 아니라 '가격이 0원'인 정책 바이패스다. 따라서 판정은 정책 계층
+    // (profile-card-mutation-policy.js → worker/routes/profile.js)에만 있어야 하고, 결제 게이트(billing.js)의
+    // 이용권 경로는 프로필 카드에 대해 아무 것도 내주면 안 된다 — 게이트는 profile.js가 402를 준 뒤에만 열린다.
+    // (과거엔 billing.js가 pass 경로에서 정책을 재조회해 무료를 내주며 tier를 "family"로 하드코딩했고,
+    //  그 탓에 이용권 없는 유저의 첫 카드가 family_pass로 오기록됐다. 그 하드코딩은 제거됐다.)
+    name: "family-only profile bypass lives in the policy layer, not the billing pass gate",
     includes: [
       ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE = true"],
       ["policy", "FAMILY_OR_ABOVE_FREE_PROFILE_DELETE && normalizedActionType === PROFILE_CARD_MUTATION_ACTIONS.DELETE"],
@@ -117,11 +142,14 @@ const cases = [
       ["mePage", "Code Destiny Family 이용권으로 프로필 카드를 결제 없이 삭제할 수 있습니다."],
       ["billingRoute", "featureKey === PROFILE_CARD_MANAGE_FEATURE_KEY && licenseTier !== \"FAMILY\""],
       ["billingRoute", "profile_card_pass_excluded"],
-      ["billingRoute", "transactionType: \"family_pass\""],
       ["billingRoute", "actionType: \"profile_card_add_extra\""],
     ],
     excludes: [
       ["mePage", "const deleteRequiresProfileActionPayment = true"],
+      // 프로필 카드 이용권 제외를 featureKey 예외 분기로 되풀지 말 것 — premium/vvip가 "이용권으로 커버됨"
+      // + 결제수단 전부 숨김을 받은 뒤 소비 단계에서 거부되는 막다른 길이 재발한다.
+      ["billingRoute", "isPassExcludedPricing(pricing) && !isProfileCardManage"],
+      ["billingRoute", "isPassExcludedPricing(pricing) && pricingFeatureKey !== PROFILE_CARD_MANAGE_FEATURE_KEY"],
     ],
   },
   {
@@ -277,8 +305,19 @@ for (const [key, relPath] of Object.entries(files)) {
 for (const testCase of cases) {
   const missing = (testCase.includes || []).filter(([fileKey, marker]) => !texts[fileKey]?.includes(marker));
   const presentButForbidden = (testCase.excludes || []).filter(([fileKey, marker]) => texts[fileKey]?.includes(marker));
+  // ordered: [fileKey, earlierMarker, laterMarker] — earlierMarker가 소스상 laterMarker보다 앞에 있어야 한다.
+  const orderViolations = (testCase.ordered || []).filter(([fileKey, earlier, later]) => {
+    const src = texts[fileKey] || "";
+    const ei = src.indexOf(earlier);
+    const li = src.indexOf(later);
+    return ei < 0 || li < 0 || ei >= li;
+  });
+  // freeInitialPolicy: buildInitialProfileCardFreePolicy가 requiresPayment:false + costKrw:0 를 반환해야 한다.
+  const freeInitialViolation = testCase.freeInitialPolicy
+    ? !/function buildInitialProfileCardFreePolicy[\s\S]{0,300}?requiresPayment:\s*false[\s\S]{0,200}?costKrw:\s*0/.test(texts.policy || "")
+    : false;
 
-  if (missing.length > 0 || presentButForbidden.length > 0) {
+  if (missing.length > 0 || presentButForbidden.length > 0 || orderViolations.length > 0 || freeInitialViolation) {
     failed = true;
     console.error(`\n[verify-profile-card-action-policy] FAIL: ${testCase.name}`);
     for (const [fileKey, marker] of missing) {
@@ -286,6 +325,12 @@ for (const testCase of cases) {
     }
     for (const [fileKey, marker] of presentButForbidden) {
       console.error(`  - ${files[fileKey]} contains forbidden marker: ${marker}`);
+    }
+    for (const [fileKey, earlier, later] of orderViolations) {
+      console.error(`  - ${files[fileKey]} order violation: "${earlier}" must precede "${later}"`);
+    }
+    if (freeInitialViolation) {
+      console.error(`  - ${files.policy}: buildInitialProfileCardFreePolicy must return requiresPayment:false + costKrw:0`);
     }
   } else {
     console.log(`[verify-profile-card-action-policy] OK: ${testCase.name}`);
