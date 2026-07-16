@@ -64,6 +64,7 @@ export function buildDongyangView(suk) {
     keywords: suk.keywords || [],
     strengths: suk.strengths || [],
     shadows: suk.shadows || [],
+    easternExpert: getFusionBySukuyo(suk.index)?.easternExpert || null, // 숙요 대가 해설
   };
 }
 
@@ -89,6 +90,7 @@ export function buildIndiaView(nak, attrs, pada, dashaSummary) {
     pada, // 시각 미상 시 null
     padaDetail: getPadaDetail(nak.index, pada), // pada null이면 null
     dasha: dashaSummary,
+    indianExpert: attrs.indianExpert || null, // 베다 대가 해설
   };
 }
 

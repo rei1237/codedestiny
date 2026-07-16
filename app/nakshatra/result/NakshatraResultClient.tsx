@@ -23,6 +23,7 @@ interface Dongyang {
   keywords: string[];
   strengths: string[];
   shadows: string[];
+  easternExpert?: string | null;
 }
 interface PadaDetail {
   pada: number;
@@ -49,6 +50,7 @@ interface India {
     currentAntardashaKo: string;
     current: { startDate?: string; endDate?: string } | null;
   } | null;
+  indianExpert?: string | null;
 }
 interface Unified {
   fusionTitle: string;
@@ -226,6 +228,12 @@ export default function NakshatraResultClient() {
                   {dongyang.shadows.join(" · ")}
                 </p>
               )}
+              {dongyang.easternExpert && (
+                <div className="mt-4 rounded-xl border border-blue-400/20 bg-blue-500/[0.05] p-4">
+                  <p className="text-xs font-semibold text-blue-200/90">宿曜 전문가의 해설</p>
+                  <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{dongyang.easternExpert}</p>
+                </div>
+              )}
             </section>
           )}
 
@@ -256,6 +264,12 @@ export default function NakshatraResultClient() {
                   {india.deityKw.map((k) => (
                     <Chip key={k}>{k}</Chip>
                   ))}
+                </div>
+              )}
+              {india.indianExpert && (
+                <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-500/[0.05] p-4">
+                  <p className="text-xs font-semibold text-amber-200/90">Jyotish 전문가의 해설</p>
+                  <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{india.indianExpert}</p>
                 </div>
               )}
             </section>

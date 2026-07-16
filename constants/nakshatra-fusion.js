@@ -10,6 +10,11 @@
 // 톤 규칙: 기계적 추상표현 금지, 사람이 쓴 직설·조언체. 결정론 금지("~할 것이다"→"~한 경향/~해보세요").
 // i18n: 이번 슬라이스는 ko 우선. en/ja는 후속(현재 스텁).
 
+// Phase 3: 전문가톤 심화 — 아래 FUSION_ENTRIES의 convergence/divergence/fusionReading은
+// nakshatra-expert-prose.js의 FUSION_DEEP(심화본)로 오버라이드되고, easternExpert(숙요 대가 해설)가
+// 병합된다. FUSION_ENTRIES의 원문은 폴백으로 유지(fusionTitle/easternKeywords는 그대로 소비).
+import { EASTERN_EXPERT, FUSION_DEEP } from "./nakshatra-expert-prose.js";
+
 // 인덱스 = sukuyoIdx (0=각 … 26=진). 대응 nakshatra는 crosswalk((sukuyoIdx+13)%27).
 const FUSION_ENTRIES = [
   {
@@ -238,10 +243,21 @@ function clampFusionIndex(index) {
   return ((Math.floor(n) % 27) + 27) % 27;
 }
 
-// 숙요 인덱스로 융합 엔트리 조회.
+// 심화본(FUSION_DEEP) 오버라이드 + easternExpert 병합. FUSION_DEEP가 없으면 원문 폴백.
+function mergeFusionEntry(idx) {
+  if (idx == null) return null;
+  const base = FUSION_ENTRIES[idx];
+  if (!base) return null;
+  return {
+    ...base,
+    ...(FUSION_DEEP[idx] || {}),
+    easternExpert: EASTERN_EXPERT[idx] || null,
+  };
+}
+
+// 숙요 인덱스로 융합 엔트리 조회(전문가톤 심화 병합).
 function getFusionBySukuyo(sukuyoIdx) {
-  const idx = clampFusionIndex(sukuyoIdx);
-  return idx == null ? null : FUSION_ENTRIES[idx];
+  return mergeFusionEntry(clampFusionIndex(sukuyoIdx));
 }
 
 // 나크샤트라 인덱스로 융합 엔트리 조회(대응 숙요 = (nakshatraIdx - 13 + 27) % 27).
@@ -249,7 +265,7 @@ function getFusionByNakshatra(nakshatraIdx) {
   const n = clampFusionIndex(nakshatraIdx);
   if (n == null) return null;
   const sukuyoIdx = ((n - 13) % 27 + 27) % 27;
-  return FUSION_ENTRIES[sukuyoIdx];
+  return mergeFusionEntry(sukuyoIdx);
 }
 
 export {

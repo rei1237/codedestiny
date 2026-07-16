@@ -16,6 +16,8 @@
 // 설계 원칙: 모든 조회는 인덱스(0–26)로 한다(철자 드리프트 "Dhanishta"↔"Dhanishtha" 방지).
 //   인덱스 순서는 Ashwini(0) … Revati(26) — 시데리얼 황경 0°부터의 표준 순서.
 
+import { INDIAN_EXPERT } from "./nakshatra-expert-prose.js";
+
 // 라시(라그나 별자리) → 지배성. 파다 나바암샤 라시의 지배성 도출에 사용.
 const SIGN_LORD = {
   Aries: "Mars", Taurus: "Venus", Gemini: "Mercury", Cancer: "Moon",
@@ -100,6 +102,7 @@ function getNakshatraAttributes(index) {
     nadiKo: NADI_KO[base.nadi] || base.nadi,
     motiveKo: MOTIVE_KO[base.motive] || base.motive,
     padaSignsKo: base.padaSigns.map((s) => SIGN_KO[s] || s),
+    indianExpert: INDIAN_EXPERT[idx] || null, // 베다 대가 해설(전문가톤)
   };
 }
 

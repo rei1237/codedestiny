@@ -97,6 +97,7 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
           <p><strong className="text-blue-100">키워드</strong> {(suk.keywords || []).join(" · ")}</p>
           <p><strong className="text-blue-100">강점</strong> {(suk.strengths || []).join(" · ")}</p>
           {suk.shadows && suk.shadows.length > 0 && <p><strong className="text-blue-200">그림자</strong> {suk.shadows.join(" · ")}</p>}
+          {fusion?.easternExpert && <p className="rounded-xl border border-blue-400/20 bg-blue-500/[0.05] p-4"><strong className="text-blue-200">宿曜 전문가 </strong>{fusion.easternExpert}</p>}
         </Section>
 
         <Section title="🕉 인도 — 나크샤트라">
@@ -105,6 +106,7 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
           <p><strong className="text-amber-100">근원 동기</strong> {attrs.motiveKo}</p>
           <p><strong className="text-amber-100">파다 나바암샤</strong> {attrs.padaSignsKo.map((s: string, i: number) => `${i + 1}파다 ${s}`).join(" · ")}</p>
           <p><strong className="text-amber-100">키워드</strong> {(attrs.deityKw || []).join(" · ")}</p>
+          {attrs.indianExpert && <p className="rounded-xl border border-amber-300/20 bg-amber-500/[0.05] p-4"><strong className="text-amber-200">Jyotish 전문가 </strong>{attrs.indianExpert}</p>}
         </Section>
 
         <Section title="⟡ 통합 해석">

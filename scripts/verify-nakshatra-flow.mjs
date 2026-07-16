@@ -22,7 +22,7 @@ const entry = [
   `export { assembleNatalCodex, assembleTodayMoon, buildUnifiedView, judgeTaraBala } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-codex.js"))};`,
   `export { NAKSHATRA_ATTRIBUTES, getNakshatraAttributes } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-attributes.js"))};`,
   `export { NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET, crosswalkFromSukuyo, crosswalkFromNakshatra } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-crosswalk.js"))};`,
-  `export { FUSION_ENTRIES } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
+  `export { FUSION_ENTRIES, getFusionBySukuyo } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-fusion.js"))};`,
   `export { computeAshtakuta, ashtakutaFromMoon } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-ashtakuta.js"))};`,
   `export { assembleNakshatraCompat } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-compat.js"))};`,
   `export { buildSukuyoFromLunar } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
@@ -45,7 +45,7 @@ const {
   NAKSHATRA_ATTRIBUTES, getNakshatraAttributes,
   NAKSHATRA_CROSSWALK, CROSSWALK_ANCHORS, CROSSWALK_OFFSET,
   crosswalkFromSukuyo, crosswalkFromNakshatra,
-  FUSION_ENTRIES,
+  FUSION_ENTRIES, getFusionBySukuyo,
   computeAshtakuta, ashtakutaFromMoon, assembleNakshatraCompat, buildSukuyoFromLunar,
 } = m;
 
@@ -240,6 +240,35 @@ section("동서 통합 궁합 조립");
   ok(compat.dongyang && compat.dongyang.relationType, "동양 숙요 격각 포함");
   ok(compat.unified && typeof compat.unified.blendedPct === "number" && compat.unified.convergence && compat.unified.divergence, "통합 총평(수렴/발산) 존재");
   ok(compat.personA.nakIndex === 13 && compat.personA.sukuyoIndex === 0, "A: Chitra(13)/각(0)");
+}
+
+// 12) 전문가톤 3관점 심화 (Phase 3)
+section("전문가톤 3관점 심화(숙요/베다 전문가 + 융합 심화)");
+{
+  let eastOk = true, indiaOk = true, deepOk = true;
+  for (let i = 0; i < 27; i += 1) {
+    const f = getFusionBySukuyo(i);
+    if (!f.easternExpert || f.easternExpert.length < 60) eastOk = false;
+    if (!f.convergence || f.convergence.length < 60 || !f.divergence || f.divergence.length < 40 || !f.fusionReading || f.fusionReading.length < 40) deepOk = false;
+    const a = getNakshatraAttributes(i);
+    if (!a.indianExpert || a.indianExpert.length < 60) indiaOk = false;
+  }
+  ok(eastOk, "27 숙요(宿曜) 전문가 해설 존재 + 최소 길이");
+  ok(indiaOk, "27 베다(Jyotish) 전문가 해설 존재 + 최소 길이");
+  ok(deepOk, "27 심화 융합(convergence/divergence/fusionReading) 길이 충족");
+  // FUSION_DEEP 오버라이드 확인: 각(0) convergence에 '비슈와카르마'(심화본 특유) 포함
+  ok(getFusionBySukuyo(0).convergence.includes("비슈와카르마"), "심화본(FUSION_DEEP) 오버라이드 반영");
+  // 결정론·의료·투자 금지어 스캔
+  const FORBIDDEN = [/질병/, /진단/, /투자/, /주식/, /할 것이다/, /틀림없이/, /반드시 낫/];
+  const hits = new Set();
+  for (let i = 0; i < 27; i += 1) {
+    const f = getFusionBySukuyo(i);
+    const a = getNakshatraAttributes(i);
+    for (const t of [f.easternExpert, f.convergence, f.divergence, f.fusionReading, a.indianExpert]) {
+      for (const re of FORBIDDEN) if (re.test(String(t || ""))) hits.add(String(re));
+    }
+  }
+  ok(hits.size === 0, `금지어(질병/진단/투자/단정) 없음${hits.size ? " — " + [...hits].join(",") : ""}`);
 }
 
 console.log(`\n${failures === 0 ? "✅ 모든 검증 통과" : `❌ ${failures}건 실패`}`);
