@@ -20981,7 +20981,10 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     }
   }
 
-  var CD_PASS_CHECK_MIN_OVERLAY_MS = 400;
+  // 이용권 확인 오버레이 최소 노출 시간. 0 = 서버가 답하는 즉시 진행.
+  // 과거엔 오버레이가 깜빡이는 걸 막으려 1400ms → 400ms로 낮춰 뒀는데, 서버가 50ms에 답해도 이 값만큼
+  // 무조건 기다려서 '이용권 확인이 느리다'는 체감의 최대 단일 원인이었다(Mongo 왕복과 무관한 인위적 지연).
+  var CD_PASS_CHECK_MIN_OVERLAY_MS = 0;
   var CD_PASS_CHECK_EXTRA_OVERLAY_MS = 0;
   var CD_PAID_PRECHECK_TTL_MS = 30000;
   var _cdPaidPrecheckCache = new Map();

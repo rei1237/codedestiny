@@ -522,9 +522,15 @@ function resolveActivePassPolicyWithProfileFallback(user = {}) {
   const activeStatus = ["active", "paid", "current", "subscribed", "success", "valid", "ok", "complete", "completed", "confirmed", "approved"].includes(status);
   const expiresAt = sub?.expiresAt || user?.expiresAt || null;
   const expiresMs = expiresAt ? new Date(expiresAt).getTime() : NaN;
-  const dateActive = expiresAt ? (Number.isFinite(expiresMs) && expiresMs > Date.now()) : true;
-  const passLimit = Number(sub?.maxCoveredCoin || sub?.passLimit || sub?.freeLimit || policy.maxCoinLimit || 0);
-  const explicitPass = tier === "family" || passLimit > 0 || activeStatus;
+  const dateActive = expiresAt ? (Number.isFinite(expiresMs) && expiresMs > Date.now()) : false;
+  // 이용권은 30일짜리다 — 만료일이 없는 문서는 "무기한 유효"가 아니라 "활성 근거 없음"으로 본다.
+  // (과거엔 만료일이 없으면 dateActive=true로 통과시켜, tier만 적힌 문서가 영구 무료 이용권이 됐다.
+  //  정본 profile-limits.js의 normalizeHoneyPassEntitlement는 만료일이 없으면 명시적 활성을 요구하는데
+  //  이 폴백만 느슨해서 같은 입력에 반대 답을 냈다.)
+  // passLimit 폴백에서 policy.maxCoinLimit을 뺀 이유: tier가 풀리면 그 값이 항상 ≥30이라
+  // explicitPass가 무조건 true가 돼 activeStatus 검사가 죽은 코드였다.
+  const passLimit = Number(sub?.maxCoveredCoin || sub?.passLimit || sub?.freeLimit || 0);
+  const explicitPass = tier === "family" ? (dateActive || activeStatus) : (passLimit > 0 || activeStatus);
   if (inactive || !dateActive || !explicitPass) return entitlement;
 
   const maxCoveredCoin = tier === "family"
@@ -589,48 +595,48 @@ async function consumeTierPassIfAvailable(env, authUserId, pricing, requestId, b
 
   await connectDb(env);
 
-  if (idempotencyMarker) {
-    const idempotentUser = await User.findOne({
-      _id: authUserId,
-      recentConsumeRequestIds: idempotencyMarker,
-    })
-      .select("points profileSubscription")
-      .lean();
-    if (idempotentUser) {
-      const entitlement = resolveActivePassPolicyWithProfileFallback(idempotentUser || {});
-      const usage = resolveTierPassUsageSnapshot(idempotentUser?.profileSubscription || {}, entitlement);
-      const policy = resolvePassPolicyForTier(usage?.tier);
-      if (entitlement?.isActive && usage?.tier && policy && (usage.tier === "family" || coinCost <= Number(policy.maxCoinLimit || 0))) {
-        return {
-          ok: true,
-          idempotent: true,
-          tier: usage.tier,
-          passTier: usage.passTier,
-          accessMethod: usage.tier === "family" ? "family" : "pass",
-          transactionType: usage.tier === "family" ? "family_pass" : "membership_pass",
-          accessType: usage.tier === "family" ? "family" : "membership_pass",
-          requestId: normalizedRequestId,
-          idempotencyKey: idempotencyMarker,
-          featureKey,
-          profileId,
-          coinCost,
-          amountKRW,
-          user: {
-            id: String(authUserId || ""),
-            points: Number(idempotentUser?.points || 0),
-            profileSubscription: idempotentUser?.profileSubscription || null,
-          },
-        };
-      }
-    }
-  }
-
+  // 이용권 확인의 유일한 User 조회. 멱등 마커까지 함께 읽어 재시도 판정을 메모리에서 한다.
+  // (과거엔 마커 확인용 findOne을 앞에 한 번 더 돌렸는데, requestId는 난수 폴백이 있어 마커가 사실상
+  //  항상 생성되므로 그 탐침은 '첫 호출에선 반드시 miss' = 모든 이용권 확인마다 왕복 1회 낭비였다.
+  //  게다가 탐침은 points/profileSubscription만 읽어 자격 리졸버가 보는 9개 소스 중 1개만 본 채 판정해,
+  //  레거시 소스 이용권 보유자는 재시도 때 자격을 못 봐 pass_access_conflict로 결제창이 열렸다.
+  //  단일 조회로 합치면 왕복이 줄고 두 경로의 자격 판정이 같은 데이터를 쓰게 된다.)
   const user = await User.findById(authUserId)
-    .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .select("points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt recentConsumeRequestIds")
     .lean();
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const usage = resolveTierPassUsageSnapshot(user?.profileSubscription || {}, entitlement);
   const policy = resolvePassPolicyForTier(usage?.tier);
+
+  // 멱등: 이미 이 마커로 통과한 요청이면 재기록 없이 같은 결과를 되돌린다(추가 왕복 없음).
+  if (
+    idempotencyMarker
+    && Array.isArray(user?.recentConsumeRequestIds)
+    && user.recentConsumeRequestIds.includes(idempotencyMarker)
+    && entitlement?.isActive && usage?.tier && policy
+    && (usage.tier === "family" || coinCost <= Number(policy.maxCoinLimit || 0))
+  ) {
+    return {
+      ok: true,
+      idempotent: true,
+      tier: usage.tier,
+      passTier: usage.passTier,
+      accessMethod: usage.tier === "family" ? "family" : "pass",
+      transactionType: usage.tier === "family" ? "family_pass" : "membership_pass",
+      accessType: usage.tier === "family" ? "family" : "membership_pass",
+      requestId: normalizedRequestId,
+      idempotencyKey: idempotencyMarker,
+      featureKey,
+      profileId,
+      coinCost,
+      amountKRW,
+      user: {
+        id: String(authUserId || ""),
+        points: Number(user?.points || 0),
+        profileSubscription: user?.profileSubscription || null,
+      },
+    };
+  }
   if (!entitlement?.isActive || !usage || !policy) {
     return { ok: false, reason: "no_active_pass", featureKey, coinCost, amountKRW };
   }

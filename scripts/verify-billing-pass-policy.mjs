@@ -300,6 +300,69 @@ const premiumSmallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
 assert.equal(premiumSmallPdfDecision.canUseByPass, true, "small PDF within premium pass limit bypasses payment");
 assert.equal(premiumSmallPdfDecision.decisionReason, "PASS_COVERED", "small PDF premium pass returns covered decision");
 
+// ── 이용권은 30일짜리다: tier × 만료 매트릭스 ──────────────────────────────
+// 기존엔 vvip 하나만 만료 테스트가 있었다. family(₩300,000 무제한 등급)가 30일에 멈춘다는 걸
+// 고정하는 단언이 어디에도 없었으므로 4개 tier 전부 덮는다.
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
+  const withinLimit = tier === PASS_TIERS.FAMILY ? 690 : PASS_LIMITS[tier];
+  assert.equal(
+    canUseByPass(activePass(tier, futureDate()), withinLimit),
+    true,
+    `${tier}: 유효한 이용권은 한도 이하를 커버해야 한다(경계 포함)`,
+  );
+  assert.equal(
+    canUseByPass(activePass(tier, pastDate()), withinLimit),
+    false,
+    `${tier}: 만료된 이용권은 한도 이하라도 커버하면 안 된다(30일 정책)`,
+  );
+  const expiredDecision = decision({ pass: activePass(tier, pastDate()), coinCost: withinLimit });
+  assert.equal(expiredDecision.canUseByPass, false, `${tier}: 만료 후 결제창도 이용권 무료를 제시하면 안 된다`);
+  assert.equal(expiredDecision.hasActivePass, false, `${tier}: 만료 후 hasActivePass=false`);
+}
+
+// ── expiresAt 부재 = "무기한 유효"가 아니라 "활성 근거 없음" ────────────────
+// billing.js의 프로필 폴백이 정본(profile-limits.js normalizeHoneyPassEntitlement)보다 느슨해서
+// tier만 적힌 문서가 영구 무료 이용권이 되던 홀. 두 리졸버가 같은 답을 내는지 대조한다.
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
+  const noExpiryDecision = __billingTestUtils.buildPassPaymentDecision(
+    { isActive: false },
+    { featureKey: "tarot-love-relationship", coinPrice: 50 },
+    { tier },
+  );
+  assert.equal(
+    noExpiryDecision.hasActivePass,
+    false,
+    `${tier}: 만료일 없는 이용권 문서를 활성으로 인정하면 영구 무료가 된다`,
+  );
+  assert.equal(
+    noExpiryDecision.canUseByPass,
+    false,
+    `${tier}: 만료일 없는 이용권 문서로 무료 통과시키면 안 된다`,
+  );
+}
+
+// ── pass 제외: 음악 트랙 ────────────────────────────────────────────────────
+// 키가 동적(music-track-<hash>)이라 아래 전기능 루프(listServerPricedFeatureKeys)가 절대 못 본다.
+// 3코인짜리라 제외가 깨지면 전 tier가 무료로 뚫리는데 이를 잡는 행위 단언이 없었다.
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
+  const musicDecision = decision({
+    pass: activePass(tier),
+    coinCost: 3,
+    // eslint-disable-next-line no-undefined
+  });
+  void musicDecision;
+  const musicPassDecision = __billingTestUtils.buildPassPaymentDecision(
+    activePass(tier),
+    { featureKey: "music-track-abc123", coinPrice: 3, cost: 3 },
+    { tier, passTier: tier, expiresAt: futureDate(), isActive: true },
+  );
+  assert.equal(
+    musicPassDecision.canUseByPass,
+    false,
+    `${tier}: 음악 트랙은 이용권 제외 대상이라 무료로 커버되면 안 된다(family 포함)`,
+  );
+}
+
 const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
 const expiredVvip50 = decision({
   pass: expiredPass,
@@ -443,7 +506,11 @@ assertContains(indexSource, "MONTHLY_CREDIT_SYNC_FRESH_TTL_MS = 15000", "monthly
 assertContains(indexSource, "monthlyCreditSyncPromise", "monthly credit sync in-flight dedupe");
 assertNotContains(indexSource, "retry=1&reason=", "monthly credit sync avoids third retry request");
 assertNotContains(indexSource, "_cdCanUseMonthlyFromPrecheck", "monthly precheck must not bypass equal-priority payment choice");
-assertContains(indexSource, "CD_PASS_CHECK_MIN_OVERLAY_MS = 400", "membership pass check overlay has minimum visible duration");
+// 이용권 확인 오버레이는 최소 노출 시간을 강제하지 않는다 — 서버가 답하는 즉시 진행한다.
+// (과거 400ms 하한은 오버레이 깜빡임을 막으려던 것인데, 서버가 50ms에 답해도 그만큼 무조건 기다려
+//  '이용권 확인이 느리다'는 체감의 최대 단일 원인이었다. 깜빡임이 문제가 되면 '닫기를 늦추는' 대신
+//  '열기를 늦추는' 방식으로 고칠 것 — 그래야 빠른 응답엔 오버레이가 아예 안 뜨고 지연도 0이다.)
+assertContains(indexSource, "CD_PASS_CHECK_MIN_OVERLAY_MS = 0", "membership pass check overlay must not impose an artificial minimum delay");
 assertContains(indexSource, "_cdWaitForPaidPassCheckMinimum(passOverlayStartedAt)", "membership pass check waits before closing or switching result UI");
 assertContains(indexSource, "closePassCheckOverlay", "membership pass check close path is centralized");
 assertNotContains(indexSource, "function showChoiceWait", "payment choice does not open duplicate wait overlay before checkout handler");
