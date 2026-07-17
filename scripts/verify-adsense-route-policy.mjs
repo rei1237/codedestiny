@@ -6,6 +6,17 @@ import {
   canLoadAdsenseForCanonicalUrl,
 } from "../app/components/adsense-route-policy.js";
 
+// google-adsense-account 검증 메타태그(광고를 서빙하지 않는 소유권 확인 신호)는
+// 정적 셸에도 허용된다. 실제 광고 서빙 코드(adsbygoogle.js/ins/push)만 차단해야 하므로,
+// 마커 검사 전에 검증용 메타태그만 걷어낸다.
+const adsenseAccountVerificationPattern =
+  /<meta\b[^>]*\bname=["']google-adsense-account["'][^>]*>/gi;
+function loadsAdsenseCode(content) {
+  return /googlesyndication|adsbygoogle|ca-pub-9863227498729828/.test(
+    String(content || "").replace(adsenseAccountVerificationPattern, ""),
+  );
+}
+
 const allowRoutes = [
   "/about",
   "/faq",
@@ -290,7 +301,7 @@ const staticEntrypoints = [
 
 for (const entrypoint of staticEntrypoints) {
   const content = readFileSync(resolve(entrypoint), "utf8");
-  if (/googlesyndication|adsbygoogle|ca-pub-9863227498729828/.test(content)) {
+  if (loadsAdsenseCode(content)) {
     throw new Error(`[adsense-route-policy] static shell must not load AdSense directly: ${entrypoint}`);
   }
 }
