@@ -714,7 +714,8 @@
       "aria": "Abrir la biblioteca de novelas Destiny Stories",
       "title": "Biblioteca del destino",
       "desc": "Continua novelas gratis tejidas con saju, tarot y estrellas.",
-      "cta": "Leer novelas"
+      "cta": "Leer novelas",
+      "bubble": "¿Descubres tu destino de hoy en una historia?"
     },
     "collectionNav": {
       "aria": "Accesos a la coleccion lunar del destino"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-

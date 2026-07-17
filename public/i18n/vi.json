@@ -714,7 +714,8 @@
       "aria": "Mở thư viện tiểu thuyết web Những câu chuyện định mệnh",
       "title": "Thư viện định mệnh",
       "desc": "Tiếp tục tiểu thuyết web miễn phí được kết hợp với saju, tarot và các vì sao.",
-      "cta": "Đọc tiểu thuyết trên web"
+      "cta": "Đọc tiểu thuyết trên web",
+      "bubble": "Gặp gỡ vận mệnh hôm nay qua một câu chuyện nhé?"
     },
     "collectionNav": {
       "aria": "Phím tắt sưu tập vận mệnh ánh trăng"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-

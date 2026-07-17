@@ -714,7 +714,8 @@
       "aria": "Ouvrir la bibliotheque de romans Destiny Stories",
       "title": "Bibliotheque du destin",
       "desc": "Continuez des romans gratuits tisses de saju, de tarot et d etoiles.",
-      "cta": "Lire les romans"
+      "cta": "Lire les romans",
+      "bubble": "Et si vous découvriez votre destin du jour dans une histoire ?"
     },
     "collectionNav": {
       "aria": "Raccourcis vers la collection lunaire du destin"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-
