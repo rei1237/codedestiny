@@ -125,6 +125,10 @@ export const metadata = {
   //   google: "GOOGLE_SITE_VERIFICATION_CODE_HERE",
   // },
   other: {
+    // Google AdSense 소유권 검증 메타태그. 광고를 서빙하지 않는 검증 전용 신호라
+    // canLoadAdsense 정책(홈/도구 페이지 광고 차단)과 무관하게 전 페이지에 넣어도 안전.
+    // 정적 셸 홈(/)은 이 레이아웃이 커버하지 못하므로 6미러 <head>에도 별도 삽입됨.
+    "google-adsense-account": "ca-pub-9863227498729828",
     // 두 코드 모두 유지: 정적 index.html(구 등록분)과 Next 레이아웃(신 등록분)이 서로 다른
     // 네이버 서치어드바이저 확인 코드를 쓰고 있었음. 어느 쪽 등록이 유효한지 확인 전까지 병기.
     "naver-site-verification": [

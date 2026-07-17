@@ -10,6 +10,14 @@ const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const siteOrigin = "https://code-destiny.com";
 const adsenseMarkers = /googlesyndication|adsbygoogle|ca-pub-9863227498729828/i;
 const staticAdUnitMarkupPattern = /<ins\b[^>]*class=["'][^"']*adsbygoogle|data-ad-client|data-ad-slot|adsbygoogle\.push\s*\(/i;
+// google-adsense-account 검증 메타태그(광고를 서빙하지 않는 소유권 확인 신호)는 전 페이지 허용.
+// 광고 서빙 코드(adsbygoogle.js/ins/push)만 DeferredAdsense로 중앙화하도록 강제하므로,
+// adsenseMarkers 검사 전에 검증용 메타태그(HTML)와 layout.js metadata 선언(JS)만 걷어낸다.
+const adsenseAccountVerificationPattern =
+  /<meta\b[^>]*\bname=["']google-adsense-account["'][^>]*>|["']google-adsense-account["']\s*:\s*["']ca-pub-[0-9]+["']/gi;
+function embedsAdsenseCode(content) {
+  return adsenseMarkers.test(String(content || "").replace(adsenseAccountVerificationPattern, ""));
+}
 const adsTxtRecord = "google.com, pub-9863227498729828, DIRECT, f08c47fec0942fa0";
 const minimumUsefulTitleLength = 10;
 const minimumVisibleTextLength = 1200;
@@ -621,7 +629,7 @@ function verifyAdsenseScriptOwnership() {
   for (const absolutePath of sourceFiles) {
     const relPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
     const content = readFileUtf8WithRetry(absolutePath);
-    if (!adsenseMarkers.test(content)) continue;
+    if (!embedsAdsenseCode(content)) continue;
 
     assert(
       adsenseSourceAllowedFiles.has(relPath),
@@ -878,7 +886,7 @@ function verifyGeneratedAdsenseEligibleRoutes(baseDir) {
     assert(canonical.startsWith(siteOrigin), `${htmlPath}: missing canonical URL`);
     if (!isSelfCanonicalRoute(route, canonical)) {
       assert(!canonicalAllowsAdsense, `${htmlPath}: non-canonical AdSense candidate must fail canonical URL policy`);
-      assert(!adsenseMarkers.test(html), `${htmlPath}: non-canonical AdSense candidate must not embed AdSense`);
+      assert(!embedsAdsenseCode(html), `${htmlPath}: non-canonical AdSense candidate must not embed AdSense`);
       continue;
     }
     assert(canonicalAllowsAdsense, `${htmlPath}: self-canonical AdSense candidate must pass canonical URL policy`);
@@ -902,7 +910,7 @@ function verifyBlockedRouteSamplesNoAdsense(baseDir) {
     const html = readOptional(htmlPath);
     if (!html) continue;
 
-    assert(!adsenseMarkers.test(html), `${htmlPath}: blocked route must not embed AdSense`);
+    assert(!embedsAdsenseCode(html), `${htmlPath}: blocked route must not embed AdSense`);
   }
 }
 
@@ -919,7 +927,7 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
 
     paidRouteCount += 1;
     assert(!canLoadAdsense(route), `${route}: paid feature route policy should block AdSense`);
-    assert(!adsenseMarkers.test(html), `${htmlPath}: paid feature route must not embed AdSense`);
+    assert(!embedsAdsenseCode(html), `${htmlPath}: paid feature route must not embed AdSense`);
   }
 
   assert(paidRouteCount > 0, `${baseDir}: no paid feature routes were checked`);
@@ -954,7 +962,7 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
       !canLoadAdsenseForCanonicalUrl(route, canonical, currentHref),
       `${route}: famous-saju alias canonical URL policy should block AdSense`,
     );
-    assert(!adsenseMarkers.test(html), `${htmlPath}: famous-saju alias route must not embed AdSense`);
+    assert(!embedsAdsenseCode(html), `${htmlPath}: famous-saju alias route must not embed AdSense`);
     assert(canonicalPath.startsWith("/insights/famous-saju/"), `${htmlPath}: famous-saju alias must canonicalize to insights`);
     assert(robots.includes("noindex"), `${htmlPath}: famous-saju alias must contain noindex robots`);
     assert(googleBot.includes("noindex"), `${htmlPath}: famous-saju alias googlebot must contain noindex`);
@@ -1006,7 +1014,7 @@ function verifyGeneratedAdsenseBlockedRoutes(baseDir) {
       if (error?.code === "ENOENT") continue;
       throw error;
     }
-    assert(!adsenseMarkers.test(html), `${htmlPath}: AdSense-blocked route must not embed AdSense`);
+    assert(!embedsAdsenseCode(html), `${htmlPath}: AdSense-blocked route must not embed AdSense`);
   }
 }
 
@@ -1049,7 +1057,7 @@ const staticShells = [
 
 for (const shellPath of staticShells) {
   const html = readRequired(shellPath);
-  assert(!adsenseMarkers.test(html), `${shellPath}: static shell must not embed AdSense directly`);
+  assert(!embedsAdsenseCode(html), `${shellPath}: static shell must not embed AdSense directly`);
 
   for (const route of staticShellTrustLinks) {
     assert(html.includes(`href="${route}"`), `${shellPath}: missing trust link ${route}`);

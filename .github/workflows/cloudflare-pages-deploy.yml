@@ -58,6 +58,9 @@ jobs:
       - name: Sync public static artifacts
         run: npm run sync:public
 
+      - name: Verify ads.txt present (AdSense)
+        run: npm run verify:ads-txt
+
       - name: Verify locale main sync
         run: npm run verify:locale-main-sync
 
