@@ -9038,6 +9038,115 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__chip.is-active{
         0% { transform: translateZ(0) rotate(0deg); }
         100% { transform: translateZ(0) rotate(360deg); }
       }
+      /* ── 소설 카드 마스코트(연이=꽃돼지 / 네오=사자) + 초대 말풍선 ── */
+      .moon-story-entry {
+        grid-template-columns: auto minmax(0, 1fr) auto !important;
+      }
+      .moon-story-entry__mascot {
+        position: relative;
+        z-index: 1;
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        width: clamp(94px, 12vw, 122px);
+      }
+      .moon-story-entry__bubble {
+        position: relative;
+        z-index: 2;
+        margin-bottom: 9px;
+        max-width: 100%;
+        padding: 7px 11px;
+        border-radius: 14px 14px 14px 5px;
+        font-family: var(--font-body);
+        font-size: .66rem;
+        font-weight: 750;
+        line-height: 1.34;
+        letter-spacing: -0.01em;
+        word-break: keep-all;
+        text-align: center;
+        color: #f4eeff;
+        background: linear-gradient(135deg, rgba(48, 40, 86, 0.94), rgba(18, 16, 42, 0.95));
+        border: 1px solid rgba(196, 181, 253, 0.5);
+        box-shadow: 0 10px 22px rgba(8, 12, 28, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        animation: cdMoonStoryBubblePop 560ms cubic-bezier(0.22, 1, 0.36, 1) both;
+      }
+      .moon-story-entry__bubble::after {
+        content: '';
+        position: absolute;
+        left: 15px;
+        bottom: -5px;
+        width: 11px;
+        height: 11px;
+        background: inherit;
+        border-right: inherit;
+        border-bottom: inherit;
+        transform: rotate(45deg);
+        border-radius: 0 0 3px 0;
+      }
+      html:not(.neo-mode) .moon-story-entry__bubble {
+        color: #3c1830;
+        background: linear-gradient(135deg, #fff3f8, #f4bed1);
+        border: 1px solid rgba(179, 25, 85, 0.32);
+        box-shadow: 0 8px 18px rgba(179, 25, 85, 0.15);
+      }
+      .moon-story-entry__pig {
+        display: none;
+        width: 100%;
+        height: auto;
+        max-height: 104px;
+        object-fit: contain;
+        object-position: bottom center;
+        filter: drop-shadow(0 8px 15px rgba(10, 16, 38, 0.36));
+        animation: cdMoonStoryPigFloat 4.8s ease-in-out infinite;
+      }
+      .moon-story-entry__pig--yeon { display: block; }
+      body.neo-mode .moon-story-entry__pig--yeon,
+      html.neo-mode .moon-story-entry__pig--yeon { display: none; }
+      body.neo-mode .moon-story-entry__pig--neo,
+      html.neo-mode .moon-story-entry__pig--neo { display: block; }
+      html:not(.neo-mode) .moon-story-entry__pig {
+        filter: drop-shadow(0 8px 15px rgba(150, 72, 104, 0.22));
+      }
+      @keyframes cdMoonStoryPigFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+      }
+      @keyframes cdMoonStoryBubblePop {
+        0% { opacity: 0; transform: translateY(6px) scale(0.92); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @media (max-width: 720px) {
+        .moon-story-entry {
+          grid-template-columns: 1fr !important;
+          justify-items: center;
+        }
+        .moon-story-entry__mascot {
+          flex-direction: row;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: auto;
+          align-self: auto;
+        }
+        .moon-story-entry__bubble {
+          margin-bottom: 0;
+          order: 2;
+          max-width: min(220px, 58vw);
+        }
+        .moon-story-entry__bubble::after { display: none; }
+        .moon-story-entry__pig { order: 1; width: 66px; }
+        .moon-story-entry__copy { text-align: center; }
+      }
+      @media (max-width: 370px) {
+        .moon-story-entry__pig { width: 56px; }
+        .moon-story-entry__bubble { font-size: .62rem; padding: 6px 9px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .moon-story-entry__pig,
+        .moon-story-entry__bubble { animation: none !important; }
+      }
     </style>
     <section class="moon-music-entry" id="moonMusicEntry" data-marker="moon-music-entry-v20260630-single-cover" aria-label="Code Destiny 달빛 음악 플레이어" data-cd-trans-attr="aria-label:home.music.aria">
       <div class="moon-music-entry__glow moon-music-entry__glow--left" aria-hidden="true"></div>
@@ -9067,13 +9176,18 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__chip.is-active{
         </span>
       </div>
     </section>
-    <a class="moon-story-entry" href="/stories" data-marker="moon-story-entry-v20260620-free-reader" aria-label="운명의 서재 웹소설 보러가기" data-cd-trans-attr="aria-label:home.story.aria">
+    <a class="moon-story-entry" href="/codedestiny-novel.html" data-marker="moon-story-entry-v20260718-visual-novel" aria-label="운명의 서재 비주얼 노벨 시작하기" data-cd-trans-attr="aria-label:home.story.aria">
+      <span class="moon-story-entry__mascot" aria-hidden="true">
+        <span class="moon-story-entry__bubble" data-cd-trans data-key="home.story.bubble">오늘의 운명, 이야기로 만나볼래요?</span>
+        <img class="moon-story-entry__pig moon-story-entry__pig--yeon" src="https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%80-Photoroom.png" alt="" loading="lazy" decoding="async" width="120" height="120" onerror="this.onerror=null;this.src='/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp';" />
+        <img class="moon-story-entry__pig moon-story-entry__pig--neo" src="https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.png" alt="" loading="lazy" decoding="async" width="120" height="120" onerror="this.onerror=null;this.src='/icons/neo.webp';" />
+      </span>
       <span class="moon-story-entry__copy">
         <span class="moon-story-entry__kicker">DESTINY STORIES</span>
         <strong class="moon-story-entry__title" data-cd-trans data-key="home.story.title">운명의 서재</strong>
-        <span class="moon-story-entry__desc" data-cd-trans data-key="home.story.desc">사주와 타로, 별자리가 얽힌 무료 웹소설을 이어서 읽어보세요.</span>
+        <span class="moon-story-entry__desc" data-cd-trans data-key="home.story.desc">연이와 네오가 이끄는 운명의 이야기, 비주얼 노벨로 지금 만나보세요.</span>
       </span>
-      <span class="moon-story-entry__cta" data-cd-trans data-key="home.story.cta">웹소설 보러가기</span>
+      <span class="moon-story-entry__cta" data-cd-trans data-key="home.story.cta">이야기 시작하기</span>
     </a>
     <!-- 무료 서비스: 결제 없이 바로 체험 가능한 실제 서비스만 배치 -->
     <section class="moon-start-section" id="moonFreeStart" aria-labelledby="moonFreeStartTitle">
