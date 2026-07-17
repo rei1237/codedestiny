@@ -17,6 +17,15 @@ module.exports = {
         "pearl-mist": "#EDEFF5",
         "champagne-gold": "#D8B36C",
         "twilight-violet": "#9C87D4",
+        // 운명의 서재 배너 (DestinyLibraryBanner) — 밝은 웜 라이트 팔레트
+        "dlb-cream": "#FDF8F3",
+        "dlb-rose": "#F4EAE0",
+        "dlb-lilac": "#EDE0F0",
+        "dlb-plum": "#3D2B45",
+        "dlb-gold": "#D4B483",
+        "dlb-gold-hi": "#F0DCA8",
+        "dlb-gold-deep": "#C9A66B",
+        "dlb-gold-ink": "#8A6D2F",
         // 연이/네오 듀얼 테마 토큰 (styles/theme-tokens.css의 CSS 변수 참조)
         cd: {
           bg: "var(--cd-bg)",
@@ -38,6 +47,8 @@ module.exports = {
         premium: ["var(--font-premium)"],
         playful: ["var(--font-playful)"],
         decorative: ["var(--font-decorative)"],
+        // 운명의 서재 배너 헤드라인용 국문 세리프 스택
+        "serif-ko": ["Nanum Myeongjo", "Noto Serif KR", "var(--font-display)", "serif"],
       },
       keyframes: {
         "fade-in-up": {
@@ -104,6 +115,20 @@ module.exports = {
           "0%": { opacity: "0", transform: "translateY(12px) scale(0.98)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
+        // 운명의 서재 배너 전용
+        "dlb-rise": {
+          "0%": { opacity: "0", transform: "translateY(6px) scale(0.9)" },
+          "30%": { opacity: "0.8" },
+          "100%": { opacity: "0", transform: "translateY(-22px) scale(1)" },
+        },
+        "dlb-sweep": {
+          "0%": { transform: "translateX(-120%) skewX(-18deg)" },
+          "100%": { transform: "translateX(220%) skewX(-18deg)" },
+        },
+        "dlb-bubble": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 780ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
@@ -121,6 +146,9 @@ module.exports = {
         "slide-in-left": "slide-in-left 500ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
         "scale-in": "scale-in 400ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
         "moon-rise": "moon-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "dlb-rise": "dlb-rise 5.5s ease-in-out infinite",
+        "dlb-sweep": "dlb-sweep 8s ease-in-out infinite",
+        "dlb-bubble": "dlb-bubble 3s ease-in-out infinite",
       },
       boxShadow: {
         "violet-neon": "0 0 0 1px rgba(167,139,250,.18), 0 0 24px rgba(147,51,234,.35)",
