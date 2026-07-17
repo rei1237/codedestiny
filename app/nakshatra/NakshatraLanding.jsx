@@ -1,7 +1,23 @@
 import Image from "next/image";
+import Link from "next/link";
 import NakshatraFormClient from "./NakshatraFormClient";
 import { Taegeuk, Yantra, Spark, CornerMark } from "./NakshatraSymbols";
 import styles from "./nakshatra.module.css";
+import {
+  buildBreadcrumbJsonLd,
+  buildFaqPageJsonLd,
+  buildServiceJsonLd,
+  buildWebPageJsonLd,
+} from "../../lib/structured-data";
+
+const RELATED_LABELS = {
+  "/sukuyo": "숙요점 27수 궁합",
+  "/vedic": "베다 점성술 무료 해석",
+  "/astrology": "점성술 출생차트",
+  "/ziwei": "자미두수 12궁 명반",
+  "/high-value": "운세 인사이트 가이드",
+  "/saju": "무료 사주팔자 분석",
+};
 
 const FUSION_IMAGE =
   "https://assets.code-destiny.com/%EC%97%90%EC%85%8B/%EC%88%99%EC%9A%94%EC%A0%90x%EB%B2%A0%EB%8B%A4%EC%A0%90.webp";
@@ -30,6 +46,23 @@ export default function NakshatraLanding({ page }) {
   const faqs = Array.isArray(page?.faqs) ? page.faqs : [];
   const headline = splitHeadline(page?.h1);
   const marquee = [...HANGUL.map((h, i) => ({ h, n: NAKSHATRA[i] })), ...HANGUL.map((h, i) => ({ h, n: NAKSHATRA[i] }))];
+
+  const related = (Array.isArray(page?.relatedServices) ? page.relatedServices : [])
+    .filter((href) => href && href !== page?.path)
+    .map((href) => ({ href, label: RELATED_LABELS[href] || "관련 별자리 리딩" }));
+
+  // 구조화 데이터(JSON-LD): WebPage · Service · Breadcrumb · FAQPage(리치 스니펫)
+  const breadcrumb = [
+    { name: "꿀꿀 운세 홈", path: "/" },
+    { name: "운세 서비스", path: "/high-value" },
+    { name: page?.h1 || page?.title, path: page?.path || "/nakshatra" },
+  ];
+  const jsonLd = [
+    buildWebPageJsonLd({ title: page?.title, description: page?.description, path: page?.path || "/nakshatra" }),
+    buildServiceJsonLd({ name: page?.title, description: page?.description, path: page?.path || "/nakshatra", serviceType: "운세 해석 서비스" }),
+    buildBreadcrumbJsonLd(breadcrumb),
+    ...(faqs.length > 0 ? [buildFaqPageJsonLd(faqs)] : []),
+  ];
 
   return (
     <main className={`${styles.vars} ${styles.shell}`}>
@@ -173,6 +206,26 @@ export default function NakshatraLanding({ page }) {
         </section>
       )}
 
+      {/* 관련 별자리 리딩 — 내부 링크(SEO·탐색성) */}
+      {related.length > 0 && (
+        <section className={`${styles.section} ${styles.sectionTop}`}>
+          <div className={styles.wrap}>
+            <div className={styles.secHead}>
+              <div className={styles.eyebrow}>Explore more</div>
+              <h2>이어서 볼 만한 별자리 리딩</h2>
+            </div>
+            <div className={styles.relatedGrid}>
+              {related.map((item) => (
+                <Link key={item.href} href={item.href} className={styles.relatedLink}>
+                  <span>{item.label}</span>
+                  <span className="arr" aria-hidden="true">→</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       <div className={styles.footNote}>
         <span className={styles.fnSym}>
           <Taegeuk />
@@ -180,6 +233,10 @@ export default function NakshatraLanding({ page }) {
         </span>
         <span>나크샤트라 결정판 · 동양과 인도, 하나의 하늘 두 개의 언어</span>
       </div>
+
+      {jsonLd.map((data, index) => (
+        <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+      ))}
     </main>
   );
 }

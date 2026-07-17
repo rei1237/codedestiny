@@ -280,6 +280,18 @@
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq p { padding: 0 22px 20px; font-size: 14px; line-height: 1.85; color: var(--t-300); word-break: keep-all; }
 
+/* ── 관련 리딩 내부 링크(SEO·탐색성) ── */
+.relatedGrid { display: grid; gap: 12px; grid-template-columns: 1fr; }
+@media (min-width: 640px) { .relatedGrid { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 900px) { .relatedGrid { grid-template-columns: 1fr 1fr 1fr; } }
+.relatedLink {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 18px; border-radius: 14px; border: 1px solid var(--hair); background: var(--glass);
+  color: var(--t-100); text-decoration: none; font-weight: 600; font-size: 14px; transition: 0.18s;
+}
+.relatedLink:hover { border-color: rgba(229, 199, 137, 0.5); background: var(--glass-2); transform: translateY(-1px); }
+.relatedLink .arr { color: var(--gold); flex: 0 0 auto; }
+
 .footNote { text-align: center; padding: 34px 20px 64px; font-size: 12px; color: var(--t-400); display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .fnSym { display: inline-flex; gap: 14px; opacity: 0.7; }
 .fnSym svg { width: 30px; height: 30px; }
