@@ -370,15 +370,15 @@ export default function StoriesIndex({ stories }: StoriesIndexProps) {
               <span>{formatStoriesIndexText(copy.readingMeta, { minutes: sampleMinutes })}</span>
             </div>
             <div className={styles.featuredActions}>
-              <Link href={continueHref || `/stories/${story.slug}`}>
+              <a href="/codedestiny-novel.html">
+                {copy.visualNovel}
+              </a>
+              <Link className={styles.secondaryAction} href={continueHref || `/stories/${story.slug}`}>
                 {continueHref ? copy.continue : copy.tableOfContents}
               </Link>
               <Link className={styles.secondaryAction} href={`/stories/${story.slug}/prologue`}>
                 {copy.openPrologue}
               </Link>
-              <a className={styles.secondaryAction} href="/codedestiny-novel.html">
-                {copy.visualNovel}
-              </a>
             </div>
           </article>
 
