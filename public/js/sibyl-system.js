@@ -495,7 +495,13 @@ function _sibylText(key) {
         minTotalChars: Number(reportData.minTotalChars || 0),
         chapterMap: reportData.chapterMap && typeof reportData.chapterMap === 'object' ? reportData.chapterMap : null,
         chapters: reportData.chapters,
-        canonicalData: reportData.canonicalData || null
+        canonicalData: reportData.canonicalData || null,
+        monthlyRiskPlan: reportData.monthlyRiskPlan || null,
+        annualRiskPlan: reportData.annualRiskPlan || null,
+        riskBreakdown: reportData.riskBreakdown || null,
+        aptitudeComponents: reportData.aptitudeComponents || null,
+        quantumDiagnostics: reportData.quantumDiagnostics || null,
+        categoryMatrix: reportData.categoryMatrix || null
       },
       analysisData: {
         pillars: analysisData && analysisData.pillars ? analysisData.pillars : null,
@@ -1784,6 +1790,78 @@ function _sibylText(key) {
     return { chapters: list, totalChars: total };
   }
 
+  // RISK COMMAND CENTER가 읽는 6개 분석 데이터셋(monthlyRiskPlan/annualRiskPlan/riskBreakdown/
+  // aptitudeComponents/quantumDiagnostics/categoryMatrix)이 리포트에 없으면(구버전 캐시 등)
+  // 라이브 분석(window._sibylCurrentData)·canonicalData로 재구성해 채운다. 이미 있으면 무변경.
+  function _ensureSibylReportAnalytics(reportData, canonicalData) {
+    if (!reportData || typeof reportData !== 'object') return reportData;
+    var complete = reportData.monthlyRiskPlan && reportData.annualRiskPlan && reportData.riskBreakdown
+      && reportData.aptitudeComponents && reportData.quantumDiagnostics && reportData.categoryMatrix;
+    if (complete) return reportData;
+
+    try {
+      var data = window._sibylCurrentData || {};
+      var canon = canonicalData || reportData.canonicalData || data.canonicalData || null;
+      var profile = (typeof _getCurrentProfile === 'function') ? _getCurrentProfile() : null;
+      var pillars = _ensurePillarsWithProfileFallback(data.pillars || window.G_PILLARS, profile);
+
+      var normalized = data.normalized;
+      if (!normalized) {
+        var np = sanitizeSibylProfile((canon && canon.normalizedProfile) || data.normalizedProfile || {});
+        var ps = _pillarChars(pillars);
+        var payload = {
+          profile: profile,
+          pillars: pillars ? {
+            year:  { g: ps.y.g || '', j: ps.y.j || '' },
+            month: { g: ps.m.g || '', j: ps.m.j || '' },
+            day:   { g: ps.d.g || '', j: ps.d.j || '' },
+            hour:  { g: ps.h.g || '', j: ps.h.j || '' }
+          } : null,
+          natal: data.dist || null,
+          dominantEl: _safeText(np && np.saju && np.saju.dominantElement, data.domEl || null),
+          dominantTenStar: _safeText(np && np.saju && np.saju.tenGods && np.saju.tenGods.primary, data.dominant || null),
+          aptCoeff: _safeScore(np && np.scores && np.scores.aptitudeScore, data.coeff || SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999),
+          riskScore: _safeScore(np && np.scores && np.scores.riskScore, data.risk || SIBYL_DEFAULT_RISK_SCORE, 0, 100),
+          gender: (profile && profile.gender) || 'F',
+          currentYear: new Date().getFullYear()
+        };
+        normalized = _normalizeSibylInput(payload, data);
+      }
+      if (!normalized) return reportData;
+
+      var year = normalized.currentYear || new Date().getFullYear();
+      var annualPlan = (Array.isArray(reportData.annualRiskPlan) && reportData.annualRiskPlan.length) ? reportData.annualRiskPlan
+        : (Array.isArray(data.annualPreview) ? data.annualPreview : _buildAnnualRiskPlan(normalized, year));
+      var monthlyPlan = (Array.isArray(reportData.monthlyRiskPlan) && reportData.monthlyRiskPlan.length) ? reportData.monthlyRiskPlan
+        : (Array.isArray(data.monthlyPreview) ? data.monthlyPreview
+          : _buildMonthlyRiskPlan(pillars, normalized.dominantEl, normalized.dominantTenStar, 45, year, normalized));
+      var conflictSignals = _collectCollisionSignals(pillars, year);
+      var riskBreakdown = reportData.riskBreakdown || data.riskBreakdown || _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
+      var aptComponents = reportData.aptitudeComponents || data.aptitudeComponents;
+      var aptData;
+      if (aptComponents) {
+        aptData = { score: _safeScore(data.coeff, SIBYL_DEFAULT_APTITUDE_SCORE, 0, 999), components: aptComponents };
+      } else {
+        aptData = _calcAptitudeComponents(normalized, riskBreakdown);
+        aptComponents = aptData.components;
+      }
+      var quantum = reportData.quantumDiagnostics || _collectQuantumDiagnostics(normalized);
+      var categoryMatrix = (Array.isArray(reportData.categoryMatrix) && reportData.categoryMatrix.length)
+        ? reportData.categoryMatrix
+        : _buildCategoryMatrix(riskBreakdown, aptData, quantum, annualPlan, monthlyPlan);
+
+      reportData.monthlyRiskPlan = monthlyPlan;
+      reportData.annualRiskPlan = annualPlan;
+      reportData.riskBreakdown = riskBreakdown;
+      reportData.aptitudeComponents = aptComponents;
+      reportData.quantumDiagnostics = quantum;
+      reportData.categoryMatrix = categoryMatrix;
+    } catch (e) {
+      if (typeof _sibylLogWarn === 'function') _sibylLogWarn('[SIBYL] analytics reconstruct failed', { message: String(e && e.message || '') });
+    }
+    return reportData;
+  }
+
   function _shapeSibylPremiumReport(reportData, canonicalData) {
     var source = reportData && typeof reportData === 'object' ? Object.assign({}, reportData) : {};
     var map = _chapterMapFromReport(source);
@@ -1827,6 +1905,7 @@ function _sibylText(key) {
     source.totalChars = shapedTotals.totalChars;
     source.minTotalChars = Math.max(_toInt(source.minTotalChars, 0), SIBYL_MIN_PREMIUM_TOTAL_CHARS);
     source.canonicalData = canonicalData || source.canonicalData || null;
+    _ensureSibylReportAnalytics(source, source.canonicalData);
 
     var placeholderState = assertNoPlaceholderText(source);
     var chapterMatchState = assertChapterCategoryMatch(source);
