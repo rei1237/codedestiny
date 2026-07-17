@@ -1901,29 +1901,83 @@
   margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid rgba(0,200,255,0.15);
 }
 .sb-report-chapters { display: flex; flex-direction: column; }
+/* 챕터 점프 = 상단 고정 가로 스크롤 레일(번호 칩 + 짧은 제목) + 스크롤스파이 */
 .sb-chapter-jump {
+  position: sticky;
+  top: 0;
+  z-index: 6;
   display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin: 0 0 12px;
-  padding: 0;
+  flex-wrap: nowrap;
+  gap: 6px;
+  margin: 0 -20px 16px;
+  padding: 10px 20px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: linear-gradient(to bottom, rgba(0, 8, 20, 0.97) 62%, rgba(0, 8, 20, 0));
+  border-bottom: 1px solid rgba(0, 200, 255, 0.14);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 20px, #000 calc(100% - 20px), transparent);
 }
+.sb-chapter-jump::-webkit-scrollbar { display: none; }
 .sb-chapter-jump-btn {
-  border: 1px solid rgba(0, 200, 255, 0.25);
-  background: rgba(0, 28, 56, 0.68);
-  color: rgba(174, 230, 250, 0.95);
-  border-radius: 999px;
-  padding: 6px 11px;
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(0, 200, 255, 0.22);
+  background: rgba(0, 22, 44, 0.72);
+  color: var(--sb-text);
+  border-radius: 8px;
+  padding: 6px 12px 6px 6px;
   font-family: 'Share Tech Mono', 'Courier New', monospace;
-  font-size: 0.62rem;
-  letter-spacing: 0.03em;
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition: border-color 0.22s ease, background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
 }
+.sb-chapter-jump-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: rgba(0, 120, 200, 0.24);
+  color: var(--sb-cyan);
+  font-weight: 700;
+  font-size: 0.66rem;
+  letter-spacing: 0;
+}
+.sb-chapter-jump-label { color: var(--sb-text); }
 .sb-chapter-jump-btn:hover {
-  border-color: rgba(0, 240, 255, 0.55);
-  background: rgba(0, 50, 96, 0.75);
+  border-color: rgba(0, 240, 255, 0.5);
+  background: rgba(0, 44, 84, 0.8);
   color: #ddfbff;
+}
+.sb-chapter-jump-btn:focus-visible {
+  outline: none;
+  border-color: var(--sb-cyan);
+  box-shadow: 0 0 0 1px rgba(0, 240, 255, 0.45);
+}
+.sb-chapter-jump-btn.is-active {
+  border-color: var(--sb-cyan);
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.16), rgba(0, 100, 255, 0.14));
+  color: #eaffff;
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.22), inset 0 0 0 1px rgba(0, 240, 255, 0.22);
+}
+.sb-chapter-jump-btn.is-active .sb-chapter-jump-num {
+  background: var(--sb-cyan);
+  color: #001018;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-chapter-jump { scroll-behavior: auto; }
+  .sb-chapter-jump-btn { transition: none; }
 }
 .sb-remedy-section {
   background: rgba(0,50,10,0.2); border: 1px solid rgba(57,255,20,0.2);
@@ -2430,6 +2484,14 @@
   height: 100%;
   border-radius: 99px;
   background: linear-gradient(to right, #0066ff, #00f0ff);
+}
+
+/* 값 컬럼 우측정렬 + 대비 강화(수치 가독성) */
+.sb-risk-strip-value,
+.sb-radar-value {
+  text-align: right;
+  color: var(--sb-text);
+  font-weight: 700;
 }
 
 .sb-insight-acc {

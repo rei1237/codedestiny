@@ -1835,8 +1835,8 @@ function _sibylText(key) {
       var monthlyPlan = (Array.isArray(reportData.monthlyRiskPlan) && reportData.monthlyRiskPlan.length) ? reportData.monthlyRiskPlan
         : (Array.isArray(data.monthlyPreview) ? data.monthlyPreview
           : _buildMonthlyRiskPlan(pillars, normalized.dominantEl, normalized.dominantTenStar, 45, year, normalized));
-      var conflictSignals = _collectCollisionSignals(pillars, year);
-      var riskBreakdown = reportData.riskBreakdown || data.riskBreakdown || _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, conflictSignals);
+      var riskBreakdown = reportData.riskBreakdown || data.riskBreakdown
+        || _calcRiskBreakdown(normalized, monthlyPlan, annualPlan, _collectCollisionSignals(pillars, year));
       var aptComponents = reportData.aptitudeComponents || data.aptitudeComponents;
       var aptData;
       if (aptComponents) {
@@ -4015,10 +4015,8 @@ function _sibylText(key) {
         + '<span class="sb-monthly-month">' + String(item.month).padStart(2, '0') + '월</span>'
         + '<span class="sb-monthly-risk">위험 ' + item.risk + '</span>'
         + '</div>'
-        + '<div class="sb-monthly-label">주의</div>'
-        + '<p class="sb-monthly-text">' + item.caution + '</p>'
-        + '<div class="sb-monthly-label">대책</div>'
-        + '<p class="sb-monthly-text">' + item.countermeasure + '</p>'
+        + (item.caution ? '<div class="sb-monthly-label">주의</div><p class="sb-monthly-text">' + item.caution + '</p>' : '')
+        + (item.countermeasure ? '<div class="sb-monthly-label">대책</div><p class="sb-monthly-text">' + item.countermeasure + '</p>' : '')
         + '</article>';
     }).join('');
     return '<section class="sb-monthly-wrap">'
@@ -4082,7 +4080,7 @@ function _sibylText(key) {
       return '<article class="sb-cat-card sb-cat-card--' + tone + '">'
         + '<div class="sb-cat-card-head">'
         + '<h5>' + item.title + '</h5>'
-        + '<span class="sb-cat-score">' + item.score + '</span>'
+        + '<span class="sb-cat-score">' + Math.round(item.score) + '</span>'
         + '</div>'
         + '<p class="sb-cat-summary">' + item.summary + '</p>'
         + '<p class="sb-cat-action">' + item.action + '</p>'
@@ -4111,9 +4109,9 @@ function _sibylText(key) {
       + '<div class="sb-insight-grid">'
       + '<article class="sb-insight-box">'
       + '<h4>상위 위험 월 TOP3</h4>'
-      + '<ul class="sb-insight-list">' + topMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + ' · ' + m.focus + '</li>'; }).join('') + '</ul>'
+      + '<ul class="sb-insight-list">' + topMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + (m.focus ? ' · ' + m.focus : '') + '</li>'; }).join('') + '</ul>'
       + '<h4>안정 월 TOP3</h4>'
-      + '<ul class="sb-insight-list">' + stableMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + ' · ' + m.focus + '</li>'; }).join('') + '</ul>'
+      + '<ul class="sb-insight-list">' + stableMonths.map(function(m) { return '<li>' + m.month + '월 · 위험 ' + m.risk + (m.focus ? ' · ' + m.focus : '') + '</li>'; }).join('') + '</ul>'
       + '</article>'
       + '<article class="sb-insight-box">'
       + '<h4>카테고리 매트릭스</h4>'
@@ -4328,9 +4326,13 @@ function _sibylText(key) {
       if (Array.isArray(reportData.chapters) && reportData.chapters.length) {
         var jumpNav = document.createElement('nav');
         jumpNav.className = 'sb-chapter-jump';
+        jumpNav.setAttribute('aria-label', '리포트 챕터 바로가기');
         jumpNav.innerHTML = reportData.chapters.map(function(ch, i) {
-          var shortTitle = String(ch.title || ('CH' + String(i + 1))).replace(/^CH\d+\s*[·-]\s*/, '');
-          return '<button type="button" class="sb-chapter-jump-btn" data-target="sbChapter_' + i + '">CH' + String(i + 1).padStart(2, '0') + ' · ' + shortTitle + '</button>';
+          var shortTitle = _sibylChapterShortTitle(ch.title || ('CH' + String(i + 1)));
+          return '<button type="button" class="sb-chapter-jump-btn" data-target="sbChapter_' + i + '" data-idx="' + i + '">'
+            + '<span class="sb-chapter-jump-num">' + String(i + 1).padStart(2, '0') + '</span>'
+            + '<span class="sb-chapter-jump-label">' + shortTitle + '</span>'
+            + '</button>';
         }).join('');
         chaptersEl.appendChild(jumpNav);
 
@@ -4354,13 +4356,14 @@ function _sibylText(key) {
         div.id = 'sbChapter_' + i;
         div.innerHTML = '<div class="sb-chapter-header">'
           + '<span class="sb-chapter-num">CH.' + String(i+1).padStart(2,'0') + '</span>'
-          + '<span class="sb-chapter-title">' + (ch.title || '') + '</span>'
+          + '<span class="sb-chapter-title">' + _sibylChapterShortTitle(ch.title) + '</span>'
           + '</div>'
           + '<div class="sb-chapter-body" id="sbChapBody_'+i+'"></div>';
         chaptersEl.appendChild(div);
         var target = _q('sbChapBody_'+i);
         if (target) target.innerHTML = _renderChapterBodyRich(ch.content || '');
       });
+      _setupSibylChapterSpy(chaptersEl, jumpNav, reportData.chapters.length);
       if (_isSibylDevMode()) {
         _sibylLogInfo('[SibylReport] render body isolated', chaptersEl.id === 'sibyl-system-report-body');
       }
@@ -4369,6 +4372,57 @@ function _sibylText(key) {
       chaptersEl.innerHTML = '<div class="sb-report-chapter"><div class="sb-chapter-body" id="sbChapBodyMain"></div></div>';
       _typewriterEffect('sbChapBodyMain', reportData.text, 0);
     }
+  }
+
+  // 챕터 제목 앞의 "CH.01 " / "CH01 · " 접두어 제거 — 번호 칩/헤더 번호와 중복 방지.
+  function _sibylChapterShortTitle(title) {
+    return String(title || '').replace(/^CH\.?\s*\d+\s*[·\-]?\s*/i, '').trim();
+  }
+
+  // 챕터 스크롤스파이: 모달 스크롤러(.sb-panel) 안에서 현재 보는 챕터의 점프 칩을
+  // 활성화(.is-active)하고, 레일 안에서 가로로만 가운데 정렬(페이지 스크롤 없음).
+  function _setupSibylChapterSpy(chaptersEl, jumpNav, count) {
+    if (!jumpNav || !count) return;
+    try {
+      if (chaptersEl && chaptersEl.__sbSpy && typeof chaptersEl.__sbSpy.disconnect === 'function') chaptersEl.__sbSpy.disconnect();
+    } catch (_) {}
+    var reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    var buttons = jumpNav.querySelectorAll('.sb-chapter-jump-btn');
+    var scroller = document.querySelector('#sibylModal .sb-panel');
+    var current = -1;
+    function setActive(idx) {
+      if (idx === current) return;
+      current = idx;
+      for (var b = 0; b < buttons.length; b += 1) {
+        var on = Number(buttons[b].getAttribute('data-idx')) === idx;
+        buttons[b].classList.toggle('is-active', on);
+        if (on) {
+          buttons[b].setAttribute('aria-current', 'true');
+          var t = buttons[b].offsetLeft - (jumpNav.clientWidth / 2) + (buttons[b].clientWidth / 2);
+          if (typeof jumpNav.scrollTo === 'function') jumpNav.scrollTo({ left: t, behavior: reduceMotion ? 'auto' : 'smooth' });
+          else jumpNav.scrollLeft = t;
+        } else {
+          buttons[b].removeAttribute('aria-current');
+        }
+      }
+    }
+    if (!('IntersectionObserver' in window) || !scroller) { setActive(0); return; }
+    var ratios = {};
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        var idx = Number(String(e.target.id).replace('sbChapter_', ''));
+        ratios[idx] = e.isIntersecting ? e.intersectionRatio : 0;
+      });
+      var best = -1, bestRatio = -1;
+      Object.keys(ratios).forEach(function(k) { if (ratios[k] > bestRatio) { bestRatio = ratios[k]; best = Number(k); } });
+      if (best >= 0 && bestRatio > 0) setActive(best);
+    }, { root: scroller, rootMargin: '-40% 0px -45% 0px', threshold: [0, 0.2, 0.6, 1] });
+    for (var i = 0; i < count; i += 1) {
+      var el = document.getElementById('sbChapter_' + i);
+      if (el) obs.observe(el);
+    }
+    if (chaptersEl) chaptersEl.__sbSpy = obs;
+    setActive(0);
   }
 
   /* ── 타자기 효과 ── */
