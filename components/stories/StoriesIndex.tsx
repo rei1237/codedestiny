@@ -59,6 +59,7 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
     preview: "별빛은 잔잔하게 흐르고, 문장은 오래 머무를수록 더 또렷해집니다.",
     lineHeight: "행간",
     relaxedPreset: "편안하게",
+    visualNovel: "🌙 비주얼 노벨로 감상",
     gridAria: "Code Destiny novel",
   },
   en: {
@@ -89,6 +90,7 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
     preview: "Starlight flows quietly, and each sentence becomes clearer the longer it stays.",
     lineHeight: "line height",
     relaxedPreset: "Comfort",
+    visualNovel: "🌙 Play as Visual Novel",
     gridAria: "Code Destiny novel",
   },
   ja: {
@@ -119,6 +121,7 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
     preview: "星明かりは静かに流れ、文章は長く留まるほど鮮明になります。",
     lineHeight: "行間",
     relaxedPreset: "心地よく",
+    visualNovel: "🌙 ビジュアルノベルで観る",
     gridAria: "Code Destiny novel",
   },
   "zh-CN": {
@@ -149,6 +152,7 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
     preview: "星光静静流动，句子停留越久越清晰。",
     lineHeight: "行距",
     relaxedPreset: "舒适",
+    visualNovel: "🌙 以视觉小说观看",
     gridAria: "Code Destiny novel",
   },
   "zh-TW": {
@@ -179,6 +183,7 @@ const STORIES_INDEX_TEXT_TRANSLATIONS = {
     preview: "星光靜靜流動，句子停留越久越清晰。",
     lineHeight: "行距",
     relaxedPreset: "舒適",
+    visualNovel: "🌙 以視覺小說觀看",
     gridAria: "Code Destiny novel",
   },
 } as const;
@@ -371,6 +376,9 @@ export default function StoriesIndex({ stories }: StoriesIndexProps) {
               <Link className={styles.secondaryAction} href={`/stories/${story.slug}/prologue`}>
                 {copy.openPrologue}
               </Link>
+              <a className={styles.secondaryAction} href="/codedestiny-novel.html">
+                {copy.visualNovel}
+              </a>
             </div>
           </article>
 

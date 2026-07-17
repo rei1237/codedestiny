@@ -69,6 +69,10 @@ backups/mongodb/
 # one-time patch/fix scripts archive (not needed in repo)
 _scripts-archive/
 
+# 노벨(비주얼 노벨) 로컬 dev 에셋 미러 — R2 핫링크 우회용 로컬 캐시(커밋 금지)
+# 생성: npm run novel:assets (scripts/fetch-novel-assets.mjs). 프로덕션은 R2 직접 참조.
+public/codedestinyassets/
+
 # Google Cloud service account keys (NEVER commit)
 key/
 *.json.key
