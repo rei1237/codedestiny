@@ -38,11 +38,20 @@ const push = (remote, rel) => items.push([remote, rel]);
   "두려움", "화남", "웃음", "자는 모습", "우는 모습", "삼각김밥", "실망한 모습",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + "-Photoroom.png")}`, `CodeDestinyNovel/${n}-Photoroom.png`));
 
-// 배경 8 (background/)
+// 배경 (background/) — 비겁 8 + 식상의 섬 12(불규칙 파일명: 낮 식상의 섬/식상의섬2~5, 밤 식상의 섬밤/식상의 섬a/식상의섬b~d, 식상의 섬 위기/식상의 섬 전투)
 [
   "운세대 캠퍼스", "운세대 캠퍼스 벤치", "연이의 방", "연이의 방 밤", "타로 문 카드",
   "사주의 강", "비겁의 섬", "비겁의 섬 내부", "검은 손들",
+  "식상의 섬", "식상의섬2", "식상의섬3", "식상의섬4", "식상의섬5",
+  "식상의 섬밤", "식상의 섬a", "식상의섬b", "식상의섬c", "식상의섬d",
+  "식상의 섬 위기", "식상의 섬 전투",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/background/${enc(n + ".webp")}`, `CodeDestinyNovel/background/${n}.webp`));
+
+// 식상의 섬 캐릭터 — 모카(동료) 6 + 까마귀 빌런 2 (raw .png)
+[
+  "모카 기본", "모카 감동", "모카 화남", "모카1", "모카2", "모카3",
+  "까마귀 빌런1", "까마귀 빌런2",
+].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".png")}`, `CodeDestinyNovel/${n}.png`));
 
 // BGM (씬별 + 사주의 강 진입)
 [
@@ -66,6 +75,12 @@ const push = (remote, rel) => items.push([remote, rel]);
 // 음악(music 호스트): 메인 화면 + 사주의 강 진입 폴백
 push(`${MUSIC}/DestinyWar/${enc("Moonlit Strategy Map.mp3")}`, "music/DestinyWar/Moonlit Strategy Map.mp3");
 push(`${MUSIC}/Meditation/${enc("Still Lake Mind.mp3")}`, "music/Meditation/Still Lake Mind.mp3");
+
+// DEST1NOVA 공연곡(식상의 섬 노바 스테이지) — 1집 루트 2 + 2집 하위폴더 3
+["오행 FLEX.mp3", "운세 soda pop.mp3"]
+  .forEach((n) => push(`${MUSIC}/DEST1NOVA/${enc(n)}`, `music/DEST1NOVA/${n}`));
+["LUCKY RUSH_Title.mp3", "Fate Rider.mp3", "불꽃의 운명.mp3"]
+  .forEach((n) => push(`${MUSIC}/DEST1NOVA/${enc("DEST1NOVA 2집/" + n)}`, `music/DEST1NOVA/DEST1NOVA 2집/${n}`));
 
 const exists = async (p) => { try { await access(p); return true; } catch { return false; } };
 
