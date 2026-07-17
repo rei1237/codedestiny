@@ -15352,7 +15352,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
     <!-- 시빌라 사주 시스템 섹션 -->
     <section class="saju-section-wrap" id="sibylSystemSection">
-      <a class="sibyl-entry-tile" href="/saju/sibyl" data-action="openSibylModal" data-pvw-free="1" aria-label="시빌라 사주 시스템 열기" data-cd-trans-attr="aria-label:sibyl.entryAria">
+      <a class="sibyl-entry-tile" href="/saju/sibyl" data-action="openSibylModal" data-pvw-bypass="1" aria-label="시빌라 사주 시스템 열기" data-cd-trans-attr="aria-label:sibyl.entryAria">
         <div class="sibyl-entry-inner">
         <div class="sibyl-entry-img-col">
           <img src="/fuctionassets/sybila.webp" alt="시빌라 시스템" data-cd-trans-attr="alt:sibyl.imageAlt" class="sibyl-entry-img" loading="lazy" decoding="async" fetchpriority="low" sizes="(max-width: 768px) 116px, 320px" width="320" height="420">
@@ -15801,21 +15801,27 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
 
   <!-- ═══ 홈 하단 운세 입문 가이드 (서버 렌더 정적 콘텐츠 · 전 뷰포트 노출) ═══ -->
   <style>
-    .cd-home-guide{padding:clamp(28px,6vw,56px) 16px;background:var(--cd-surface-2,rgba(255,247,250,.84))}
-    .cd-home-guide__inner{max-width:960px;margin:0 auto}
-    .cd-home-guide__head{text-align:center;margin:0 auto clamp(20px,4vw,30px);max-width:66ch}
-    .cd-home-guide__kicker{display:inline-block;font-size:.72rem;letter-spacing:.16em;font-weight:700;color:var(--cd-accent,#b31955);margin-bottom:10px}
-    .cd-home-guide__title{font-size:clamp(1.3rem,4.5vw,1.9rem);line-height:1.28;color:var(--cd-text,#3c1830);margin:0 0 12px;word-break:keep-all}
-    .cd-home-guide__lead{font-size:clamp(.92rem,2.4vw,1rem);line-height:1.75;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all}
-    .cd-home-guide__grid{list-style:none;margin:0 0 clamp(18px,3.5vw,26px);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:14px}
-    .cd-home-guide__card{background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));border-radius:16px;padding:18px;box-shadow:var(--cd-shadow,0 12px 24px rgba(150,72,104,.12))}
-    .cd-home-guide__card h3{font-size:1.02rem;color:var(--cd-text,#3c1830);margin:0 0 7px}
-    .cd-home-guide__card p{font-size:.9rem;line-height:1.72;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all}
-    .cd-home-guide__note{max-width:66ch;margin:0 auto clamp(16px,3vw,22px);font-size:.9rem;line-height:1.72;color:var(--cd-text-muted,#70445c);text-align:center;word-break:keep-all}
-    .cd-home-guide__links{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
-    .cd-home-guide__links a{display:inline-flex;align-items:center;min-height:40px;padding:8px 15px;border-radius:999px;font-size:.86rem;font-weight:600;text-decoration:none;color:var(--cd-text,#3c1830);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform .12s ease,border-color .12s ease}
-    .cd-home-guide__links a:hover,.cd-home-guide__links a:focus-visible{transform:translateY(-1px);border-color:var(--cd-accent,#b31955);outline:none}
+    .cd-home-guide{position:relative;padding:clamp(38px,7vw,68px) 16px;background:var(--cd-surface-2,rgba(255,247,250,.84));border-top:1px solid var(--cd-border,rgba(216,63,120,.16));overflow:hidden}
+    .cd-home-guide::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(120% 82% at 50% -6%,color-mix(in srgb,var(--cd-accent,#b31955) 12%,transparent),transparent 62%)}
+    .cd-home-guide__inner{position:relative;max-width:980px;margin:0 auto}
+    .cd-home-guide__head{text-align:center;margin:0 auto clamp(26px,5vw,40px);max-width:64ch}
+    .cd-home-guide__kicker{display:inline-block;font-size:.72rem;letter-spacing:.22em;font-weight:700;text-transform:uppercase;color:var(--cd-accent,#b31955);margin-bottom:14px}
+    .cd-home-guide__title{font-size:clamp(1.4rem,4.6vw,2rem);line-height:1.26;color:var(--cd-text,#3c1830);margin:0 0 14px;word-break:keep-all;text-wrap:balance}
+    .cd-home-guide__title::after{content:"";display:block;width:52px;height:2px;margin:16px auto 0;border-radius:999px;background:linear-gradient(90deg,var(--cd-accent,#b31955),var(--cd-gold,#ead089))}
+    .cd-home-guide__lead{font-size:clamp(.94rem,2.4vw,1.02rem);line-height:1.8;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all;text-wrap:pretty}
+    .cd-home-guide__grid{list-style:none;margin:0 0 clamp(22px,4vw,32px);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .cd-home-guide__card{position:relative;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));border-radius:16px;padding:20px 20px 22px;transition:transform .22s cubic-bezier(.2,.7,.2,1),border-color .22s ease,box-shadow .22s ease}
+    .cd-home-guide__card:hover,.cd-home-guide__card:focus-within{transform:translateY(-3px);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 45%,var(--cd-border,rgba(216,63,120,.16)));box-shadow:0 0 0 1px color-mix(in srgb,var(--cd-accent,#b31955) 18%,transparent),0 16px 34px -14px color-mix(in srgb,var(--cd-accent,#b31955) 42%,transparent)}
+    .cd-home-guide__card h3{display:flex;align-items:center;gap:9px;font-size:1.04rem;font-weight:700;color:var(--cd-text,#3c1830);margin:0 0 9px;word-break:keep-all}
+    .cd-home-guide__card h3::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:999px;background:linear-gradient(135deg,var(--cd-accent,#b31955),var(--cd-gold,#ead089));box-shadow:0 0 0 3px color-mix(in srgb,var(--cd-accent,#b31955) 12%,transparent)}
+    .cd-home-guide__card p{font-size:.9rem;line-height:1.74;color:var(--cd-text-muted,#70445c);margin:0;word-break:keep-all;text-wrap:pretty}
+    .cd-home-guide__note{max-width:62ch;margin:0 auto clamp(20px,3.5vw,28px);padding-top:clamp(18px,3vw,24px);border-top:1px solid var(--cd-border,rgba(216,63,120,.16));font-size:.88rem;line-height:1.74;color:var(--cd-text-muted,#70445c);text-align:center;word-break:keep-all;text-wrap:pretty}
+    .cd-home-guide__links{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+    .cd-home-guide__links a{display:inline-flex;align-items:center;min-height:44px;padding:9px 17px;border-radius:999px;font-size:.86rem;font-weight:600;text-decoration:none;color:var(--cd-text,#3c1830);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+    .cd-home-guide__links a:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 55%,var(--cd-border,rgba(216,63,120,.16)));box-shadow:0 10px 22px -12px color-mix(in srgb,var(--cd-accent,#b31955) 55%,transparent)}
+    .cd-home-guide__links a:focus-visible{transform:translateY(-2px);border-color:var(--cd-accent,#b31955);box-shadow:0 0 0 2px color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent);outline:none}
     @media (max-width:520px){.cd-home-guide__grid{grid-template-columns:1fr}}
+    @media (prefers-reduced-motion:reduce){.cd-home-guide__card,.cd-home-guide__links a{transition:none}.cd-home-guide__card:hover,.cd-home-guide__card:focus-within,.cd-home-guide__links a:hover,.cd-home-guide__links a:focus-visible{transform:none}}
   </style>
   <section class="cd-home-guide" aria-labelledby="cdHomeGuideTitle">
     <div class="cd-home-guide__inner">
