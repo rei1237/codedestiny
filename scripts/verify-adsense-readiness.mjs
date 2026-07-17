@@ -8,15 +8,14 @@ import {
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const siteOrigin = "https://code-destiny.com";
-const adsenseMarkers = /googlesyndication|adsbygoogle|ca-pub-9863227498729828/i;
+// 광고 "서빙" 코드는 항상 googlesyndication(스크립트 도메인) 또는 adsbygoogle(ins/push)를 포함한다.
+// google-adsense-account 검증 메타태그(소유권 확인용, 광고 미서빙)는 `ca-pub-...`만 담으므로,
+// 탐지에서 bare `ca-pub`를 제외하면 빌드 미니파이 등 형태 변형에 무관하게 검증 메타태그를
+// 오탐 없이 통과시키면서 실제 광고 서빙 코드만 잡을 수 있다.
+const adsenseMarkers = /googlesyndication|adsbygoogle/i;
 const staticAdUnitMarkupPattern = /<ins\b[^>]*class=["'][^"']*adsbygoogle|data-ad-client|data-ad-slot|adsbygoogle\.push\s*\(/i;
-// google-adsense-account 검증 메타태그(광고를 서빙하지 않는 소유권 확인 신호)는 전 페이지 허용.
-// 광고 서빙 코드(adsbygoogle.js/ins/push)만 DeferredAdsense로 중앙화하도록 강제하므로,
-// adsenseMarkers 검사 전에 검증용 메타태그(HTML)와 layout.js metadata 선언(JS)만 걷어낸다.
-const adsenseAccountVerificationPattern =
-  /<meta\b[^>]*\bname=["']google-adsense-account["'][^>]*>|["']google-adsense-account["']\s*:\s*["']ca-pub-[0-9]+["']/gi;
 function embedsAdsenseCode(content) {
-  return adsenseMarkers.test(String(content || "").replace(adsenseAccountVerificationPattern, ""));
+  return adsenseMarkers.test(String(content || ""));
 }
 const adsTxtRecord = "google.com, pub-9863227498729828, DIRECT, f08c47fec0942fa0";
 const minimumUsefulTitleLength = 10;

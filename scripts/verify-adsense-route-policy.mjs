@@ -6,15 +6,12 @@ import {
   canLoadAdsenseForCanonicalUrl,
 } from "../app/components/adsense-route-policy.js";
 
-// google-adsense-account 검증 메타태그(광고를 서빙하지 않는 소유권 확인 신호)는
-// 정적 셸에도 허용된다. 실제 광고 서빙 코드(adsbygoogle.js/ins/push)만 차단해야 하므로,
-// 마커 검사 전에 검증용 메타태그만 걷어낸다.
-const adsenseAccountVerificationPattern =
-  /<meta\b[^>]*\bname=["']google-adsense-account["'][^>]*>/gi;
+// 광고 "서빙" 코드는 항상 googlesyndication(스크립트 도메인) 또는 adsbygoogle(ins/push)를 포함한다.
+// google-adsense-account 검증 메타태그(소유권 확인용, 광고 미서빙)는 `ca-pub-...`만 담으므로,
+// 탐지에서 bare `ca-pub`를 제외하면 빌드 미니파이 등 형태 변형에 무관하게 검증 메타태그를
+// 오탐 없이 통과시키면서 실제 광고 서빙 코드만 잡는다.
 function loadsAdsenseCode(content) {
-  return /googlesyndication|adsbygoogle|ca-pub-9863227498729828/.test(
-    String(content || "").replace(adsenseAccountVerificationPattern, ""),
-  );
+  return /googlesyndication|adsbygoogle/.test(String(content || ""));
 }
 
 const allowRoutes = [
