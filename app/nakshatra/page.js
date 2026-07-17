@@ -1,4 +1,4 @@
-import SeoLandingTemplate from "../components/SeoLandingTemplate";
+import NakshatraLanding from "./NakshatraLanding";
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
@@ -26,5 +26,5 @@ export const metadata = {
 };
 
 export default function NakshatraLandingPage() {
-  return <SeoLandingTemplate page={page} />;
+  return <NakshatraLanding page={page} />;
 }

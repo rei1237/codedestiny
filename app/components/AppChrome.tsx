@@ -35,6 +35,7 @@ const FOOTER_PREVIEW_LINKS = [
 
 const CHROMELESS_ROUTES = [
   "/app",
+  "/nakshatra",
   "/saju/love-simulation",
   "/saju/destiny-bias",
   "/saju/destiny-meeting-place",
