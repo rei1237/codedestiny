@@ -8,6 +8,30 @@
     "trustBadge": "Plus de 100 000 chercheurs dans 80+ pays nous font confiance"
   },
   "home": {
+    "homeGuide": {
+      "kicker": "FORTUNE GUIDE",
+      "title": "How to Read Saju, Tarot & Fortune",
+      "lead": "Code Destiny is a Korean fortune platform where you can explore Saju (Four Pillars), tarot, Zi Wei Dou Shu, Western and Vedic astrology, Sukuyo, and compatibility in one place — all from your birth date and time. We summarize what each reading looks at and how to read it, so even newcomers can follow along. Every interpretation is offered as a reference for self-reflection and calmer choices, never as a fixed prophecy.",
+      "sajuTitle": "Saju & Manseryeok",
+      "sajuBody": "We build four pillars from the year, month, day, and hour of birth, then read the balance of the five elements, the ten gods, and the flow of major luck within the heavenly stems and earthly branches — looking at both your innate temperament and the rhythm of the current period.",
+      "tarotTitle": "Tarot Reading",
+      "tarotBody": "Seventy-eight cards and their symbols reflect your question and state of mind. It suits love, reunion, relationships, and career — worries that don't resolve into a single answer — helping you sort them from several angles.",
+      "ziweiTitle": "Zi Wei Dou Shu",
+      "ziweiBody": "The placement of stars across twelve palaces maps temperament, relationships, work, and wealth in a layered way — drawing the map of life from a different angle than Saju.",
+      "astroTitle": "Astrology (Western & Vedic)",
+      "astroBody": "Through the Sun, Moon, Ascendant, and planetary angles, we interpret your innate tendencies and the rhythm of each season. Both Western and Vedic astrology are offered.",
+      "sukuyoTitle": "Sukuyo",
+      "sukuyoBody": "Based on the 27 lunar mansions the Moon passes through, we look at compatibility, distance, and fitting timing between two people — a relationship-centered practice long passed down in the East.",
+      "compatTitle": "Compatibility",
+      "compatBody": "We place two charts side by side and compare how each person's energy meets and clashes — a thread for understanding not only couples but family and colleagues.",
+      "note": "Each reading's calculation is grounded in the classical rules of myeongri and astrology together with astronomical computation. AI helps turn the results into readable commentary, but people review the direction and wording. You can open only as much as you need, from free basic readings to deeper reports.",
+      "linkInsights": "Fortune Insights",
+      "linkFamous": "Celebrity Saju",
+      "linkSajuGuide": "Saju Beginner's Guide",
+      "linkTarotGuide": "Tarot Guide",
+      "linkFaq": "FAQ",
+      "linkAbout": "About"
+    },
     "hero": {
       "eyebrow": "Code Destin / Honey Pig Fortune",
       "brandLine": "Collection céleste des destinées",
