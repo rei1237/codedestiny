@@ -714,7 +714,8 @@
       "aria": "Die Webroman-Bibliothek Destiny Stories oeffnen",
       "title": "Bibliothek des Schicksals",
       "desc": "Lies kostenlose Webromane weiter, verwoben mit Saju, Tarot und Sternen.",
-      "cta": "Webromane lesen"
+      "cta": "Webromane lesen",
+      "bubble": "Triffst du dein heutiges Schicksal in einer Geschichte?"
     },
     "collectionNav": {
       "aria": "Mondlicht-Schicksalskollektion"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-

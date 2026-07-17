@@ -714,7 +714,8 @@
       "aria": "Open de webromanbibliotheek van Destiny Stories",
       "title": "Destiny-bibliotheek",
       "desc": "Ga door met gratis webromans geweven met saju, tarot en de sterren.",
-      "cta": "Lees webromans"
+      "cta": "Lees webromans",
+      "bubble": "Ontmoet je lot van vandaag in een verhaal?"
     },
     "collectionNav": {
       "aria": "Snelkoppelingen voor het verzamelen van maanverlichte bestemmingen"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-

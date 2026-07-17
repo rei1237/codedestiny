@@ -714,7 +714,8 @@
       "aria": "Open the Destiny Stories web novel library",
       "title": "Destiny Library",
       "desc": "Continue free web novels woven with saju, tarot, and the stars.",
-      "cta": "Read web novels"
+      "cta": "Read web novels",
+      "bubble": "Meet today's destiny through a story?"
     },
     "collectionNav": {
       "aria": "Moonlit destiny collection shortcuts"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-

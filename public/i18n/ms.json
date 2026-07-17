@@ -714,7 +714,8 @@
       "aria": "Buka perpustakaan novel web Destiny Stories",
       "title": "Perpustakaan Destiny",
       "desc": "Teruskan novel web percuma yang ditenun dengan saju, tarot dan bintang.",
-      "cta": "Baca novel web"
+      "cta": "Baca novel web",
+      "bubble": "Temui takdir hari ini menerusi sebuah kisah?"
     },
     "collectionNav": {
       "aria": "Pintasan koleksi takdir terang bulan"
@@ -4513,4 +4514,3 @@
     }
   }
 }
-
