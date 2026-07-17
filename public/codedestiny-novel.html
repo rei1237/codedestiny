@@ -1,0 +1,2084 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="robots" content="noindex,nofollow" />
+<title>Code Destiny Novel · 연이의 운명 노벨</title>
+<style>
+/* ============ RESET / TOKENS ============ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1026; --navy2:#141a37; --silver:#E8E4D9; --gold:#C9A227; --gold-soft:#e9c46a; --red:#8B1E2D; --red-bright:#e2323a;
+  --pink:#f8bbdd; --lav:#b99cff;
+  --ink:rgba(232,228,217,.92); --muted:rgba(232,228,217,.62);
+  --glass:rgba(9,12,30,.72); --glass-strong:rgba(6,8,22,.86);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --serif:'Noto Serif KR','Nanum Myeongjo',"Apple SD Gothic Neo",serif;
+  --sans:'Pretendard',system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;
+}
+html,body{height:100%;background:#05060c;color:var(--ink);font-family:var(--sans);overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{position:fixed;inset:0}
+img{display:block;max-width:100%}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.hidden{display:none!important}
+.stageWrap{position:absolute;inset:0;overflow:hidden}
+
+/* ============ STARFIELD (shared bg) ============ */
+#nebula{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.star{position:absolute;border-radius:50%;background:var(--silver);opacity:.0;animation:twinkle linear infinite}
+@keyframes twinkle{0%,100%{opacity:.05;transform:translateY(0)}50%{opacity:.7;transform:translateY(-6px)}}
+.moonGlow{position:absolute;width:60vmax;height:60vmax;left:50%;top:-24vmax;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(233,196,106,.10),rgba(185,156,255,.05) 40%,transparent 68%);pointer-events:none;z-index:0}
+
+/* ============ ENTER OVERLAY (premium 달빛 다크) ============ */
+#enter{position:absolute;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,3.2vh,30px);text-align:center;padding:6vh 20px;
+  background:
+    radial-gradient(120% 88% at 50% 6%,rgba(30,26,66,.5),transparent 46%),
+    radial-gradient(92% 72% at 50% 30%,#111637,#0a0d24 56%,#05060c 100%),
+    radial-gradient(78% 42% at 50% 120%,rgba(201,162,39,.16),transparent 60%)}
+#enter::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(122% 122% at 50% 48%,transparent 56%,rgba(3,4,10,.72) 100%)}
+#enter>*{position:relative;z-index:1}
+#enter .brand{font-family:var(--serif);letter-spacing:.44em;color:var(--gold-soft);font-size:clamp(.66rem,1.8vw,.84rem);text-transform:uppercase;opacity:0;animation:rise .8s var(--ease) .15s both}
+/* 달 — 발광 디스크 + 크레이터 + 궤도 링 + 궤도 별 */
+.moonOrbit{position:relative;display:grid;place-items:center;width:clamp(148px,25vw,214px);aspect-ratio:1;opacity:0;animation:rise 1s var(--ease) .3s both}
+.moonOrbit .ring{position:absolute;border-radius:50%;border:1px solid rgba(233,196,106,.2)}
+.moonOrbit .ring1{width:78%;aspect-ratio:1;animation:spin 46s linear infinite}
+.moonOrbit .ring1::before{content:"";position:absolute;top:-3px;left:50%;margin-left:-3px;width:6px;height:6px;border-radius:50%;background:#fff7e0;box-shadow:0 0 10px rgba(255,247,224,.95)}
+.moonOrbit .ring2{width:100%;aspect-ratio:1;border-style:dashed;border-color:rgba(185,156,255,.16);animation:spin 74s linear infinite reverse}
+.moon{position:relative;width:52%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 38% 34%,#fff8e6,#f2d488 50%,#c9a227 100%);
+  box-shadow:inset 0 0 0 1px rgba(255,247,224,.35),inset -10px -12px 26px rgba(120,86,20,.35),0 0 46px rgba(233,196,106,.55),0 0 104px rgba(233,196,106,.3),0 0 156px rgba(185,156,255,.14);
+  animation:moonBreath 7s ease-in-out infinite}
+.moon::before{content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 66% 60%,rgba(150,110,28,.28),transparent 22%),radial-gradient(circle at 32% 68%,rgba(150,110,28,.2),transparent 17%),radial-gradient(circle at 58% 30%,rgba(150,110,28,.16),transparent 13%)}
+@keyframes moonBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+#enter h1{font-family:var(--serif);font-weight:700;font-size:clamp(2.1rem,7.2vw,3.7rem);line-height:1.12;color:var(--silver);text-wrap:balance;
+  text-shadow:0 0 34px rgba(233,196,106,.28),0 2px 30px rgba(0,0,0,.5);opacity:0;animation:rise .9s var(--ease) .5s both}
+#enter h1 small{display:block;font-family:var(--serif);font-size:.4em;letter-spacing:.52em;color:rgba(232,228,217,.72);margin-top:1em;font-weight:400}
+.enterDivider{display:flex;align-items:center;gap:14px;width:min(320px,68vw);opacity:0;animation:rise .8s var(--ease) .66s both}
+.enterDivider span{flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(233,196,106,.55),transparent)}
+.enterDivider b{color:var(--gold);font-size:.78rem;opacity:.85;transform:translateY(-1px)}
+#enterBtn{position:relative;overflow:hidden;margin-top:2px;padding:16px clamp(38px,7vw,48px);border-radius:999px;font-family:var(--serif);font-size:clamp(1rem,2.2vw,1.12rem);letter-spacing:.16em;color:#1a1206;
+  background:linear-gradient(135deg,#fff6d8,#e9c46a 56%,#c9a227);
+  box-shadow:0 16px 44px rgba(201,162,39,.36),0 0 0 1px rgba(255,247,224,.5) inset,0 0 0 6px rgba(233,196,106,.08);
+  transition:transform .5s var(--ease),box-shadow .5s var(--ease);opacity:0;animation:rise .8s var(--ease) .82s both}
+#enterBtn::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.55) 48%,transparent 64%);transform:translateX(-125%);animation:sheen 5s ease-in-out 1.6s infinite}
+@keyframes sheen{0%,74%{transform:translateX(-125%)}88%,100%{transform:translateX(125%)}}
+#enterBtn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 22px 58px rgba(201,162,39,.52),0 0 0 1px rgba(255,247,224,.6) inset,0 0 0 8px rgba(233,196,106,.12)}
+#enterBtn:focus-visible{outline:2px solid var(--gold-soft);outline-offset:4px}
+#enter .hint{color:rgba(232,228,217,.6);font-size:clamp(.74rem,1.6vw,.82rem);letter-spacing:.06em;opacity:0;animation:rise .8s var(--ease) .98s both}
+/* 진입 마스코트 꽃돼지 (우하단 — 연이의 따뜻함) */
+#enterPig{position:absolute;right:clamp(14px,4vw,54px);bottom:clamp(12px,3.4vh,44px);z-index:2;width:clamp(96px,13vw,150px);aspect-ratio:1;pointer-events:none;opacity:0;animation:rise 1s var(--ease) 1.15s both}
+#enterPig .epInner{position:absolute;inset:0;animation:pigFloat 6s ease-in-out infinite}
+#enterPig .epGlow{position:absolute;inset:-14%;border-radius:50%;background:radial-gradient(circle at 50% 46%,rgba(248,187,221,.42),rgba(233,196,106,.2) 42%,transparent 68%);filter:blur(8px);animation:pigGlow 4.6s ease-in-out infinite}
+#enterPig .epImg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center;transform:scale(1.12);filter:drop-shadow(0 10px 18px rgba(0,0,0,.4)) drop-shadow(0 0 14px rgba(248,187,221,.45))}
+#enterPig .spark{position:absolute;color:#ffe9b1;opacity:0;pointer-events:none;text-shadow:0 0 8px rgba(255,233,177,.85);animation:sparkTwinkle 3s ease-in-out infinite}
+@media (max-width:600px){#enterPig{right:8px;bottom:8px;width:clamp(76px,22vw,112px)}}
+
+/* ============ MAIN SCREEN ============ */
+#main{position:absolute;inset:0;z-index:20;opacity:0;transition:opacity .8s var(--ease)}
+#main.on{opacity:1}
+#mainHero{position:absolute;right:4vw;bottom:0;height:96vh;max-height:1000px;z-index:2;
+  transform-origin:50% 100%;filter:drop-shadow(0 30px 60px rgba(0,0,0,.55));will-change:transform;
+  -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent 99%);mask-image:linear-gradient(to bottom,#000 72%,transparent 99%);
+  animation:heroIn 1.2s var(--ease) both,breathe 6s ease-in-out 1.2s infinite}
+@media (max-width:760px){#mainHero{right:50%;transform:translateX(50%);height:64vh;opacity:.82}}
+@keyframes heroIn{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:translateY(0)}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
+#mainVeil{position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:
+    radial-gradient(70% 38% at 28% 120%,rgba(201,162,39,.1),transparent 60%),
+    radial-gradient(120% 118% at 52% 48%,transparent 60%,rgba(3,4,10,.5) 100%),
+    linear-gradient(180deg,rgba(5,6,12,.35) 0%,transparent 26%,transparent 55%,rgba(5,6,12,.6) 100%)}
+#mainInner{position:relative;z-index:5;height:100%;display:flex;flex-direction:column;justify-content:center;padding:0 min(9vw,120px)}
+#mainInner .eyebrow{font-family:var(--serif);letter-spacing:.4em;text-transform:uppercase;color:var(--gold-soft);font-size:.8rem;
+  opacity:0;animation:rise .7s var(--ease) .5s both}
+#mainInner h2{font-family:var(--serif);font-weight:700;font-size:clamp(2.4rem,6vw,4.4rem);line-height:1.08;color:var(--silver);margin:.24em 0 .1em;
+  text-shadow:0 0 32px rgba(185,156,255,.2);opacity:0;animation:rise .8s var(--ease) .66s both}
+#mainInner .tag{color:var(--muted);font-size:clamp(.92rem,2vw,1.06rem);max-width:26ch;line-height:1.7;opacity:0;animation:rise .8s var(--ease) .82s both}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+#menu{margin-top:34px;display:flex;flex-direction:column;gap:2px;max-width:340px}
+.menuItem{position:relative;display:flex;align-items:center;gap:14px;padding:13px 4px;font-family:var(--serif);font-size:clamp(1.05rem,2.4vw,1.35rem);
+  color:var(--ink);opacity:0;animation:rise .6s var(--ease) both;text-align:left;transition:color .3s var(--ease),transform .4s var(--ease)}
+.menuItem:nth-child(1){animation-delay:.98s}.menuItem:nth-child(2){animation-delay:1.06s}.menuItem:nth-child(3){animation-delay:1.14s}
+.menuItem:nth-child(4){animation-delay:1.22s}.menuItem:nth-child(5){animation-delay:1.30s}
+.menuItem .idx{font-size:.68em;color:var(--gold);opacity:.7;font-family:var(--sans);letter-spacing:.1em;min-width:2.2em}
+.menuItem:hover{color:#fff;transform:translateX(6px)}
+.menuItem .uline{position:absolute;left:4px;right:4px;bottom:6px;height:1.5px;overflow:visible}
+.menuItem .uline line{stroke:var(--gold);stroke-width:1.6;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .5s var(--ease)}
+.menuItem:hover .uline line{stroke-dashoffset:0}
+.menuItem .sub{font-size:.62em;color:var(--muted);font-family:var(--sans);margin-left:auto;letter-spacing:.02em}
+
+/* ── 요정 꽃돼지 (제목과 연이 반신상 사이 가운데 공백) ── */
+#mainPig{position:absolute;left:42%;top:49%;transform:translate(-50%,-50%);z-index:4;
+  width:clamp(160px,20vw,290px);aspect-ratio:1/1;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#mainPig .pigInner{position:absolute;inset:0;animation:pigFloat 5.2s ease-in-out infinite;will-change:transform;transition:transform .45s var(--ease)}
+#mainPig:hover .pigInner,#mainPig:focus-visible .pigInner{transform:scale(1.07)}
+#mainPig:focus-visible{outline:none}
+#mainPig .pigGlow{position:absolute;inset:-16%;border-radius:50%;pointer-events:none;
+  background:radial-gradient(circle at 50% 46%,rgba(248,187,221,.55),rgba(233,196,106,.24) 40%,transparent 68%);
+  filter:blur(8px);animation:pigGlow 4.2s ease-in-out infinite}
+/* 단일 투명 컷(꽃돼지2) — 배경 없이 깔끔하게, 여백은 살짝 확대로 크롭 */
+#mainPig .pigSprite{position:absolute;inset:0;background-repeat:no-repeat;background-size:contain;background-position:center;transform:scale(1.12);
+  filter:drop-shadow(0 12px 22px rgba(0,0,0,.45)) drop-shadow(0 0 16px rgba(248,187,221,.5))}
+#mainPig .pigRing{position:absolute;left:50%;bottom:2%;width:60%;height:10%;transform:translateX(-50%);pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,rgba(248,187,221,.4),transparent 70%);filter:blur(3px);animation:pigGlow 5.2s ease-in-out infinite}
+#mainPig .pigBubble{position:absolute;top:2%;right:-6%;padding:7px 13px;border-radius:14px 14px 14px 4px;font-family:var(--serif);
+  font-size:.82rem;font-weight:700;color:#3a1f5c;white-space:nowrap;
+  background:linear-gradient(135deg,rgba(255,242,249,.96),rgba(248,220,235,.94));border:1px solid rgba(198,160,220,.75);
+  box-shadow:0 8px 22px rgba(0,0,0,.28);opacity:0;transform:translateY(8px) scale(.9);
+  transition:opacity .32s var(--ease),transform .32s var(--ease);pointer-events:none}
+#mainPig:hover .pigBubble,#mainPig:focus-visible .pigBubble{opacity:1;transform:translateY(0) scale(1)}
+#mainPig .spark{position:absolute;color:#ffe9b1;opacity:0;pointer-events:none;line-height:1;
+  text-shadow:0 0 8px rgba(255,233,177,.85);animation:sparkTwinkle 3s ease-in-out infinite}
+@keyframes pigFloat{0%,100%{transform:translateY(2px) rotate(-2.4deg)}50%{transform:translateY(-14px) rotate(2.4deg)}}
+@keyframes pigGlow{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes sparkTwinkle{0%,100%{opacity:0;transform:scale(.35) rotate(0)}45%{opacity:1;transform:scale(1) rotate(80deg)}}
+@media (max-width:760px){#mainPig{left:50%;top:auto;bottom:9%;transform:translateX(-50%);width:clamp(120px,34vw,180px);opacity:.94}}
+@media (max-width:520px){#mainPig{display:none}}
+
+/* ============ BGM TOGGLE ============ */
+#bgmBtn{position:absolute;top:calc(env(safe-area-inset-top,0) + 16px);right:18px;z-index:70;width:44px;height:44px;border-radius:50%;
+  display:grid;place-items:center;background:rgba(9,12,30,.5);border:1px solid rgba(233,196,106,.28);backdrop-filter:blur(8px);
+  transition:transform .35s var(--ease),border-color .35s}
+#bgmBtn:hover{transform:scale(1.08);border-color:rgba(233,196,106,.6)}
+#bgmBtn svg{width:22px;height:22px}
+#bgmBtn .off{display:none}
+#bgmBtn.muted .on{display:none}#bgmBtn.muted .off{display:block}
+#bgmBtn.muted{border-color:rgba(232,228,217,.2)}
+
+/* ============ PLAYER ============ */
+#player{position:absolute;inset:0;z-index:30;background:#05060c;opacity:0;transition:opacity .6s var(--ease)}
+#player.on{opacity:1}
+/* L0 background */
+.bgLayer{position:absolute;inset:0;z-index:0;overflow:hidden;background:#05060c}
+.bgImg{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:0;transition:opacity 1s var(--ease),filter 1s var(--ease);
+  will-change:transform,opacity;animation:kenburns 18s ease-in-out infinite alternate}
+.bgImg.show{opacity:1}
+.bgImg.dark{filter:brightness(.5) saturate(.7)}
+.bgImg.desat{filter:brightness(.55) saturate(.3)}
+@keyframes kenburns{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
+.bgTint{position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:linear-gradient(180deg,rgba(5,6,12,.28),rgba(5,6,12,.05) 30%,rgba(5,6,12,.32) 72%,rgba(5,6,12,.72) 100%)}
+/* L1 characters */
+.charLayer{position:absolute;inset:0;z-index:2;pointer-events:none}
+.char{position:absolute;bottom:0;height:82vh;max-height:820px;object-fit:contain;object-position:bottom;opacity:0;
+  transition:opacity .55s var(--ease),transform .55s var(--ease),filter .55s var(--ease);will-change:transform,opacity,filter;
+  -webkit-mask-image:linear-gradient(to bottom,#000 80%,transparent 99%);mask-image:linear-gradient(to bottom,#000 80%,transparent 99%)}
+.char.show{opacity:1}
+.char.slotL{left:2vw;transform:translateY(4%)}
+.char.slotC{left:50%;transform:translateX(-50%) translateY(4%)}
+.char.slotR{right:2vw;transform:translateY(4%)}
+.char.dim{filter:brightness(.6) saturate(.85);transform:scale(.94) translateY(6%)}
+.char.slotC.dim{transform:translateX(-50%) scale(.94) translateY(6%)}
+.char.mirror{filter:brightness(.92) saturate(.84) hue-rotate(-8deg);transform:scaleX(-1) translateY(4%)}
+.char.slotR.mirror{transform:scaleX(-1) translateY(4%)}
+.char.mirror.dim{filter:brightness(.58) saturate(.7) hue-rotate(-8deg)}
+/* 가짜 연이 = 운명 찻집 연이 4×2 스프라이트 시트에서 셀(col2,row0) 크롭(CSS 배경) */
+.char.sheet{height:clamp(340px,62vh,660px);width:clamp(340px,62vh,660px);max-height:none;
+  background-repeat:no-repeat;background-size:400% 200%;background-position:66.667% 0%;
+  -webkit-mask-image:linear-gradient(to bottom,#000 76%,transparent 99%);mask-image:linear-gradient(to bottom,#000 76%,transparent 99%)}
+.char.pig{height:52vh;max-height:520px}
+/* 네오=흰 사자(작은 chibi) — 거대화 방지 */
+.char.neo{height:clamp(240px,44vh,440px);max-height:none}
+/* 주인공 꽃돼지는 작아서 대화창에 가리므로 대화창 왼쪽 위로 띄워 배치(거울자아 제외) */
+.char.pig:not(.mirror){left:clamp(12px,6vw,100px);right:auto;bottom:clamp(190px,25vh,270px);height:clamp(180px,30vh,320px);max-height:none;transform:none}
+.char.pig:not(.mirror).dim{transform:scale(.94)}
+@media (max-width:760px){.char{height:52vh}.char.pig{height:38vh}.char.slotL{left:-4vw}.char.slotR{right:-4vw}
+  .char.neo{height:clamp(180px,34vh,300px)}
+  .char.sheet{height:clamp(200px,38vh,340px);width:clamp(200px,38vh,340px)}
+  .char.pig:not(.mirror){left:2vw;bottom:clamp(150px,21vh,205px);height:clamp(130px,24vh,200px)}}
+/* L2 effects */
+.fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
+/* L3 dialogue */
+.dlgWrap{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:0 clamp(12px,4vw,64px) calc(env(safe-area-inset-bottom,0) + clamp(14px,3vw,30px));
+  display:flex;justify-content:center;pointer-events:none}
+.dlg{pointer-events:auto;position:relative;width:min(960px,100%);min-height:170px;padding:26px clamp(20px,3vw,34px) 30px;cursor:pointer;
+  border:1px solid rgba(233,196,106,.4);border-radius:24px 24px 24px 10px;backdrop-filter:blur(18px);word-break:keep-all;
+  background:
+    radial-gradient(circle at 92% 0%,rgba(185,156,255,.16),transparent 42%),
+    radial-gradient(circle at 8% 100%,rgba(233,196,106,.10),transparent 46%),
+    linear-gradient(135deg,rgba(232,228,217,.06),rgba(232,228,217,.02)),var(--glass-strong);
+  box-shadow:0 28px 84px rgba(3,4,12,.6),0 0 42px rgba(185,156,255,.10),inset 0 1px 0 rgba(255,255,255,.14);
+  transition:border-color .4s,box-shadow .4s,transform .18s var(--ease)}
+.dlg::before{content:"";position:absolute;inset:9px;border:1px solid rgba(233,196,106,.14);border-radius:18px 18px 18px 6px;pointer-events:none}
+.dlg .spk{display:inline-flex;align-items:center;gap:9px;margin-bottom:12px}
+.dlg .spk i{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:.82rem;font-weight:800;color:#12081f;
+  background:linear-gradient(135deg,#fff6d8,#e7c66a 58%,#f7a8c8);border:1px solid rgba(233,196,106,.5)}
+.dlg .spk b{font-family:var(--serif);font-weight:800;font-size:1rem;color:var(--gold-soft);letter-spacing:.02em}
+.dlg .body{font-family:var(--serif);font-size:clamp(1.02rem,1.5vw,1.16rem);line-height:1.84;color:var(--ink);white-space:pre-wrap;min-height:2.6em}
+.dlg .caret{color:var(--gold-soft);opacity:.85;animation:caret .9s steps(1) infinite}
+@keyframes caret{50%{opacity:0}}
+.dlg .next{position:absolute;right:24px;bottom:14px;font-size:.76rem;font-weight:800;color:rgba(255,233,177,.9);opacity:0;transition:opacity .3s}
+.dlg[data-done="true"] .next{opacity:1;animation:nextPulse 1.6s ease-in-out infinite}
+@keyframes nextPulse{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+.dlg .leaf{position:absolute;right:18px;bottom:16px;width:20px;height:20px;opacity:.5}
+.dlg[data-typing="true"] .leaf{animation:spin 2.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* speaker variants */
+.dlg[data-spk="neo"]{border-color:rgba(185,34,43,.5)}
+.dlg[data-spk="neo"] .spk i{background:rgba(116,18,29,.5);color:#fff5d7;border-radius:6px;border:1px solid rgba(226,50,58,.6);font-size:.62rem;letter-spacing:.08em;width:auto;padding:5px 8px;height:auto}
+.dlg[data-spk="neo"] .spk b{color:#f5d487}
+.dlg[data-spk="mu"]{border-color:rgba(90,90,120,.5);background:linear-gradient(135deg,rgba(20,18,34,.6),rgba(6,6,14,.9))}
+.dlg[data-spk="mu"] .spk i{background:#0b0b16;color:#c9c6df;border:1px solid rgba(120,120,150,.5)}
+.dlg[data-spk="mu"] .spk b{color:#bcb9d6}
+.dlg[data-spk="mu"] .body{color:rgba(220,216,240,.9)}
+.dlg[data-spk="geo"]{border-color:rgba(198,160,220,.55);background:linear-gradient(135deg,rgba(40,20,50,.6),rgba(10,8,20,.9))}
+.dlg[data-spk="geo"] .spk i{background:linear-gradient(135deg,#e8d5f5,#c69ad0);color:#3a1f5c;border:1px solid rgba(198,160,220,.6)}
+.dlg[data-spk="geo"] .spk b{color:#e6c7f0}
+.dlg[data-spk="geo"] .body{color:rgba(232,220,245,.9)}
+.dlg[data-spk="n"] .spk,.dlg[data-spk="sys"] .spk{display:none}
+.dlg[data-spk="n"] .body{color:rgba(232,228,217,.82);font-style:italic}
+/* system callout */
+.dlg[data-spk="sys"]{border-color:rgba(185,156,255,.4);background:linear-gradient(135deg,rgba(20,26,55,.7),rgba(8,10,26,.92))}
+.dlg[data-spk="sys"] .body{font-family:var(--sans);letter-spacing:.02em;color:#dcd3ff;font-size:clamp(1rem,1.5vw,1.14rem);text-align:center;font-weight:600}
+/* impact (팩폭/각성) */
+.dlg.impact{border-color:rgba(226,50,58,.7);box-shadow:0 0 0 1px rgba(185,34,43,.4),0 22px 60px rgba(115,12,24,.5),0 28px 84px rgba(3,4,12,.6);animation:impactShake 2s ease-out both}
+.dlg.impact .body{font-family:var(--serif);font-weight:800;font-size:clamp(1.12rem,1.9vw,1.42rem);letter-spacing:.01em;line-height:1.6;color:#ffe6c9}
+@keyframes impactShake{0%{transform:translateX(0)}8%{transform:translateX(-5px)}16%{transform:translateX(5px)}24%{transform:translateX(-3px)}32%{transform:translateX(3px)}40%{transform:translateX(0)}100%{transform:translateX(0)}}
+
+/* L4 controls */
+#ctl{position:absolute;top:calc(env(safe-area-inset-top,0) + 14px);left:14px;z-index:8;display:flex;gap:8px;align-items:center;flex-wrap:wrap;max-width:min(64vw,600px)}
+.cbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(9,12,30,.5);border:1px solid rgba(233,196,106,.24);
+  backdrop-filter:blur(8px);color:var(--muted);position:relative;transition:color .3s,border-color .3s,background .3s;font-size:.68rem;font-weight:800;letter-spacing:.04em}
+.cbtn:hover{color:#fff;border-color:rgba(233,196,106,.55)}
+.cbtn.active{color:#1a1206;background:linear-gradient(135deg,#fff6d8,#e7c66a);border-color:transparent}
+.cbtn .lbl{position:absolute;top:46px;left:50%;transform:translateX(-50%);font-size:.62rem;color:var(--muted);opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .25s;font-weight:600;letter-spacing:.06em}
+.cbtn:hover .lbl{opacity:1}
+#epTag{position:absolute;top:calc(env(safe-area-inset-top,0) + 18px);left:50%;transform:translateX(-50%);z-index:8;font-family:var(--serif);
+  color:var(--gold-soft);font-size:.82rem;letter-spacing:.14em;opacity:.8;text-align:center;cursor:pointer;text-shadow:0 2px 12px #000;transition:opacity .3s}
+#epTag:hover{opacity:1}
+#toBackBtn{position:absolute;bottom:calc(env(safe-area-inset-bottom,0) + 6px);left:50%;transform:translateX(-50%);z-index:8}
+
+/* overlays: log / save / settings / chapter card */
+.ov{position:absolute;inset:0;z-index:90;background:rgba(4,5,12,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .35s}
+.ov.on{opacity:1;pointer-events:auto}
+.ovCard{width:min(680px,100%);max-height:82vh;overflow:auto;background:linear-gradient(160deg,rgba(20,26,55,.9),rgba(8,10,26,.96));
+  border:1px solid rgba(233,196,106,.28);border-radius:20px;padding:26px 26px 30px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.ovCard h3{font-family:var(--serif);color:var(--gold-soft);font-size:1.2rem;margin-bottom:16px;letter-spacing:.06em}
+.logRow{padding:10px 0;border-bottom:1px solid rgba(233,196,106,.1);font-size:.92rem;line-height:1.7}
+.logRow .who{color:var(--gold-soft);font-weight:800;margin-right:8px;font-family:var(--serif)}
+.logRow.n .who{display:none}.logRow.n{color:var(--muted);font-style:italic}
+.ovClose{margin-top:18px;display:inline-block;padding:11px 26px;border-radius:999px;background:linear-gradient(135deg,#fff6d8,#e7c66a);color:#1a1206;font-weight:700;letter-spacing:.06em}
+.setRow{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid rgba(233,196,106,.1)}
+.setRow label{font-size:.98rem}.setRow .val{color:var(--muted);font-size:.86rem}
+.sw{width:52px;height:28px;border-radius:999px;background:rgba(232,228,217,.16);position:relative;transition:background .3s;flex:none}
+.sw.on{background:linear-gradient(135deg,#e7c66a,#c9a227)}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .3s var(--ease)}
+.sw.on::after{left:27px}
+.setRow input[type=range]{accent-color:var(--gold)}
+/* 씬 인덱스(목차·연출) */
+.idxList{max-height:66vh;overflow:auto;margin:0 -6px}
+.idxEp{position:sticky;top:0;z-index:1;padding:12px 8px 8px;margin-top:6px;cursor:pointer;
+  background:linear-gradient(180deg,rgba(16,22,50,.99),rgba(16,22,50,.92));
+  font-family:var(--serif);color:var(--gold-soft);font-size:1rem;border-bottom:1px solid rgba(233,196,106,.22)}
+.idxEp b{color:var(--silver);margin-right:8px;letter-spacing:.06em}
+.idxEp:hover{color:#fff}
+.idxRow{display:flex;align-items:center;gap:9px;padding:8px;border-bottom:1px solid rgba(233,196,106,.07);cursor:pointer;
+  font-size:.86rem;transition:background .2s}
+.idxRow:hover{background:rgba(233,196,106,.09)}
+.idxRow .idxNo{color:var(--muted);font-size:.7rem;min-width:2.6em;font-family:var(--sans)}
+.idxRow .idxWho{color:var(--gold-soft);font-weight:800;font-family:var(--serif);min-width:3.4em;flex:none}
+.idxRow.n .idxWho{color:var(--muted)}
+.idxRow .idxTxt{flex:1;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.idxRow.n .idxTxt{color:var(--muted);font-style:italic}
+.idxRow .idxTags{color:var(--lav);font-size:.68rem;font-family:var(--sans);white-space:nowrap;letter-spacing:.02em;flex:none}
+@media (max-width:560px){.idxRow .idxTags{display:none}.idxRow .idxTxt{white-space:normal}}
+/* chapter title card */
+#chCard{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:radial-gradient(circle at 50% 45%,rgba(13,19,48,.7),rgba(5,6,12,.96));opacity:0;pointer-events:none;transition:opacity .7s var(--ease)}
+#chCard.on{opacity:1}
+#chCard .ep{font-family:var(--serif);letter-spacing:.4em;color:var(--gold-soft);font-size:.9rem}
+#chCard .ti{font-family:var(--serif);font-weight:700;font-size:clamp(1.8rem,5vw,3rem);color:var(--silver);text-align:center;text-shadow:0 0 30px rgba(233,196,106,.25)}
+#chCard .ln{width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transition:width 1s var(--ease) .3s}
+#chCard.on .ln{width:min(340px,60vw)}
+/* toast */
+#toast{position:absolute;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);z-index:95;padding:11px 22px;border-radius:999px;
+  background:rgba(9,12,30,.9);border:1px solid rgba(233,196,106,.4);color:var(--gold-soft);font-size:.86rem;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* effect keyframes */
+@keyframes flash{0%{opacity:0}20%{opacity:.92}100%{opacity:0}}
+@keyframes ringOut{from{transform:translate(-50%,-50%) scale(.1);opacity:.9}to{transform:translate(-50%,-50%) scale(2.4);opacity:0}}
+@keyframes handRise{0%{transform:translateY(30%) scaleY(.6);opacity:0}30%{opacity:.95}100%{transform:translateY(-4%) scaleY(1);opacity:.9}}
+@keyframes fingerTremble{0%,100%{transform:rotate(0)}50%{transform:rotate(1.4deg)}}
+@keyframes shake6{0%,100%{transform:translate(0,0)}20%{transform:translate(-6px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(4px,-2px)}}
+@keyframes dashDraw{to{stroke-dashoffset:0}}
+@keyframes inkOut{from{clip-path:circle(0% at 50% 60%)}to{clip-path:circle(150% at 50% 60%)}}
+@keyframes veilDown{from{transform:translateY(-100%);opacity:0}30%{opacity:.7}to{transform:translateY(0);opacity:0}}
+@keyframes heartEdge{0%,100%{box-shadow:inset 0 0 0 rgba(139,30,45,0)}50%{box-shadow:inset 0 0 120px 30px rgba(139,30,45,.5)}}
+@keyframes dust{from{transform:translateY(-10px);opacity:0}20%{opacity:.6}to{transform:translateY(60vh);opacity:0}}
+.shakeScreen{animation:shake6 .5s ease-in-out}
+/* 변신 8프레임 시퀀스(사람→꽃돼지) + 스케일 팝 */
+@keyframes morphFrames{0%{background-position:100% 100%}16%{background-position:66.66% 100%}33%{background-position:33.33% 100%}50%{background-position:0% 100%}66%{background-position:100% 0%}80%{background-position:66.66% 0%}90%{background-position:33.33% 0%}100%{background-position:0% 0%}}
+@keyframes morphPop{0%{transform:translate(-50%,-50%) scale(.62) rotate(-6deg);opacity:0}18%{opacity:1}58%{transform:translate(-50%,-50%) scale(1.12) rotate(4deg);opacity:1}100%{transform:translate(-50%,-50%) scale(1) rotate(0);opacity:0}}
+/* 빨려들어감 */
+@keyframes suckIn{0%{transform:translateX(-50%) translateY(4%) scale(1) rotate(0);opacity:1}68%{opacity:1}100%{transform:translate(-42%,-46vh) scale(.05) rotate(660deg);opacity:0}}
+@keyframes suckSpin{from{transform:translate(-50%,-50%) rotate(0) scale(1)}to{transform:translate(-50%,-50%) rotate(400deg) scale(.15)}}
+.char.sucking{animation:suckIn 1.2s cubic-bezier(.5,0,.9,.55) forwards;transform-origin:58% 44%;z-index:4}
+
+/* ===== 모바일 최적화 (세로) ===== */
+@media (max-width:720px){
+  #ctl{gap:6px;flex-wrap:nowrap;overflow-x:auto;max-width:calc(100vw - 64px);padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  #ctl::-webkit-scrollbar{display:none}
+  .cbtn{width:36px;height:36px;border-radius:10px;font-size:.6rem;flex:0 0 auto}
+  .cbtn .lbl{display:none}
+  #epTag{top:calc(env(safe-area-inset-top,0) + 58px);font-size:.74rem;letter-spacing:.1em;max-width:88vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dlg{min-height:130px;padding:18px 18px 24px;border-radius:20px 20px 20px 8px}
+  .dlg .body{font-size:1rem;line-height:1.72}
+  .dlg .next{right:16px;bottom:12px}
+  .dlgWrap{padding-left:10px;padding-right:10px}
+  #mainHero{opacity:.7}
+  #mainInner{padding:0 7vw}
+  .ovCard{padding:22px 18px 26px}
+}
+/* ===== 가로(낮은 높이) ===== */
+@media (max-height:520px) and (orientation:landscape){
+  .char{height:76vh;max-height:none}
+  .char.pig{height:58vh}
+  .dlg{min-height:104px;padding:13px 20px 16px}
+  .dlg .body{font-size:.95rem;line-height:1.55;min-height:2em}
+  #enter{gap:9px;padding:3vh 20px}
+  .moonOrbit{width:clamp(84px,15vh,120px)}
+  #enterPig{width:clamp(64px,11vh,96px);bottom:6px;right:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.12s!important}
+  .bgImg{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="nebula"></div>
+<div class="moonGlow"></div>
+
+<!-- BGM toggle (global) -->
+<button id="bgmBtn" aria-label="배경음 켜기/끄기" title="배경음">
+  <svg class="on" viewBox="0 0 24 24" fill="none" stroke="#e9c46a" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8a8 8 0 0 1-8.5 7.9 6 6 0 0 0 3.2-9.9c3-.2 5-2.2 5.3-5.3A8 8 0 0 1 21 12.8Z" fill="rgba(233,196,106,.15)"/><circle cx="7" cy="15" r="2.4"/><path d="M9.4 15V7l6-1.6"/><circle cx="14" cy="13.4" r="2.2"/></svg>
+  <svg class="off" viewBox="0 0 24 24" fill="none" stroke="#9a978c" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8a8 8 0 0 1-8.5 7.9 6 6 0 0 0 3.2-9.9c3-.2 5-2.2 5.3-5.3A8 8 0 0 1 21 12.8Z"/><line x1="4" y1="4" x2="20" y2="20" stroke="#e2323a"/></svg>
+</button>
+
+<!-- ENTER -->
+<div id="enter">
+  <div class="brand">Code Destiny</div>
+  <div class="moonOrbit" aria-hidden="true"><span class="ring ring2"></span><span class="ring ring1"></span><div class="moon"></div></div>
+  <h1>연이의 운명 노벨<small>THE RIVER OF SAJU</small></h1>
+  <div class="enterDivider" aria-hidden="true"><span></span><b>◈</b><span></span></div>
+  <button id="enterBtn">✦ 들어가기 ✦</button>
+  <div class="hint">첫 클릭에 달빛 지도가 열립니다 · 음악과 함께</div>
+  <div id="enterPig" aria-hidden="true"><div class="epInner"><div class="epGlow"></div><img class="epImg" alt="" /><span class="sparks"></span></div></div>
+</div>
+
+<!-- MAIN -->
+<div id="main" class="hidden">
+  <img id="mainHero" alt="반신상의 연이" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+  <div id="mainVeil"></div>
+  <div id="mainInner">
+    <div class="eyebrow">Visual Novel</div>
+    <h2>연이의<br>운명 노벨</h2>
+    <p class="tag">이상한 앱이 깔린 밤, 연이는 달빛 문 너머 사주의 강으로 떨어진다. 결론이 아니라 원인을 읽는 눈으로, 자기 운명을 다시 읽는 이야기.</p>
+    <nav id="menu"></nav>
+  </div>
+  <div id="mainPig" role="button" tabindex="0" aria-label="운명 찻집 열기" title="운명 찻집으로 · 꿀!">
+    <div class="pigInner">
+      <div class="pigGlow"></div>
+      <div class="pigRing"></div>
+      <div class="pigSprite"></div>
+      <span class="sparks"></span>
+      <div class="pigBubble">꿀? 찻집 갈래?</div>
+    </div>
+  </div>
+</div>
+
+<!-- PLAYER -->
+<div id="player" class="hidden">
+  <div class="bgLayer" id="bgLayer">
+    <img class="bgImg" id="bgA" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /><img class="bgImg" id="bgB" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+    <div class="bgTint"></div>
+  </div>
+  <div class="charLayer" id="charLayer"></div>
+  <div class="fxLayer" id="fxLayer"></div>
+  <div id="epTag"></div>
+  <div id="ctl"></div>
+  <div class="dlgWrap">
+    <div class="dlg" id="dlg" role="button" tabindex="0" aria-label="대사 진행">
+      <div class="spk"><i id="spkIcon">연</i><b id="spkName">연이</b></div>
+      <div class="body" id="dlgBody"></div>
+      <svg class="leaf" viewBox="0 0 24 24" fill="none" stroke="#e9c46a" stroke-width="1.4"><path d="M12 3c5 3 7 7 7 11a7 7 0 0 1-14 0c0-4 2-8 7-11Z" fill="rgba(233,196,106,.12)"/><path d="M12 6v12"/></svg>
+      <span class="next">다음 ▾</span>
+    </div>
+  </div>
+  <button class="menuItem cbtn" id="toBack" style="display:none"></button>
+</div>
+
+<!-- CHAPTER CARD -->
+<div id="chCard"><div class="ep" id="chEp"></div><div class="ti" id="chTi"></div><div class="ln"></div></div>
+
+<!-- OVERLAYS -->
+<div class="ov" id="logOv"><div class="ovCard"><h3>지난 대사 · LOG</h3><div id="logList"></div><button class="ovClose" data-close>닫기</button></div></div>
+<div class="ov" id="setOv"><div class="ovCard"><h3>설정 · SETTINGS</h3>
+  <div class="setRow"><label>배경음 (BGM)</label><div class="sw" id="setBgm"></div></div>
+  <div class="setRow"><label>타이핑 속도</label><input type="range" id="setSpeed" min="0" max="80" value="30" /><span class="val" id="setSpeedV">30ms</span></div>
+  <div class="setRow"><label>모션 최소화</label><div class="sw" id="setReduce"></div></div>
+  <div class="setRow"><label>처음부터 다시</label><button class="cbtn" id="setRestart" style="width:auto;padding:8px 16px;border-radius:10px">RESTART</button></div>
+  <button class="ovClose" data-close>닫기</button></div></div>
+<div class="ov" id="idxOv"><div class="ovCard"><h3>목차 · 연출 확인 <span style="font-size:.7rem;color:var(--muted);font-weight:400">— 화·장면을 눌러 바로 확인</span></h3><div id="idxList" class="idxList"></div><button class="ovClose" data-close>닫기</button></div></div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   에셋 config — 전부 R2 원격(assets.code-destiny.com) 실측 확인
+   ============================================================ */
+/* 프로덕션(code-destiny.com)은 R2 직접 참조. 그 외(localhost/프리뷰/터널)는
+   R2 핫링크 403 회피를 위해 로컬 미러(/codedestinyassets/, npm run novel:assets 로 생성) 사용. */
+var PROD=/(?:^|\.)code-destiny\.com$/i.test(location.hostname);
+var NOVEL=PROD?"https://assets.code-destiny.com/CodeDestinyNovel/":"/codedestinyassets/CodeDestinyNovel/";
+var CAFE =PROD?"https://assets.code-destiny.com/DestinyCafe/"     :"/codedestinyassets/DestinyCafe/";
+var WAR  =PROD?"https://assets.code-destiny.com/DestinyWar/"      :"/codedestinyassets/DestinyWar/";
+var MUSIC=PROD?"https://music.code-destiny.com/DestinyWar/"       :"/codedestinyassets/music/DestinyWar/";
+var MED  =PROD?"https://music.code-destiny.com/Meditation/"       :"/codedestinyassets/music/Meditation/";
+function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
+
+/* 연이(사람) 표정 스프라이트 */
+var YEON={
+  base:NOVEL+enc("반신상 기본-Photoroom.png"),
+  left:NOVEL+enc("반신상 좌측-Photoroom.png"),
+  right:NOVEL+enc("반신상 우측-Photoroom.png"),
+  sideL:NOVEL+enc("옆모습 왼쪽 이동시 사용-Photoroom.png"),
+  sideR:NOVEL+enc("옆모습 오른쪽 이동시 사용-Photoroom.png"),
+  fear:NOVEL+enc("두려움-Photoroom.png"),
+  angry:NOVEL+enc("화남-Photoroom.png"),
+  smile:NOVEL+enc("웃음-Photoroom.png"),
+  sleep:NOVEL+enc("자는 모습-Photoroom.png"),
+  cry:NOVEL+enc("우는 모습-Photoroom.png"),
+  onigiri:NOVEL+enc("삼각김밥-Photoroom.png"),
+  disappoint:NOVEL+enc("실망한 모습-Photoroom.png")
+};
+/* 연이(꽃돼지) — 전부 투명 컷(nobackground). 변신은 8프레임 시퀀스 시트 */
+var PIG={
+  base:CAFE+enc("nobackground/꽃돼지-Photoroom.png"),
+  talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.png"),
+  transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.png")
+};
+var NEO=WAR+enc("전략실 네오 메인-Photoroom.png"); /* 흰 사자 네오(전략가) */
+var MU =WAR+enc("검은 그림자-Photoroom.png");
+var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
+/* 가짜 연이(거울자아) — 운명 찻집 연이 4×2 스프라이트 시트에서 한 프레임 크롭(CSS 배경). 셀(col2,row0)=지긋한 미소 */
+var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.png");
+
+/* 배경 (background/ 하위) */
+var BG={
+  campus:NOVEL+enc("background/운세대 캠퍼스.webp"),
+  bench:NOVEL+enc("background/운세대 캠퍼스 벤치.webp"),
+  room:NOVEL+enc("background/연이의 방.webp"),
+  roomNight:NOVEL+enc("background/연이의 방 밤.webp"),
+  tarotDoor:NOVEL+enc("background/타로 문 카드.webp"),
+  river:NOVEL+enc("background/사주의 강.webp"),
+  island:NOVEL+enc("background/비겁의 섬.webp"),
+  islandIn:NOVEL+enc("background/비겁의 섬 내부.webp"),
+  hands:NOVEL+enc("background/검은 손들.webp")
+};
+/* BGM */
+var TRK={
+  main:MUSIC+enc("Moonlit Strategy Map.mp3"),
+  daily:NOVEL+enc("연이의 일상.mp3"),
+  room:NOVEL+enc("연이의 방.mp3"),
+  gloom:NOVEL+enc("연이의 우울감.mp3"),
+  gloom2:NOVEL+enc("연이의 우울감2.mp3"),
+  crisis:NOVEL+enc("연이 위기 상황.mp3"),
+  crisis2:NOVEL+enc("연이 위기 상황2.mp3"),
+  neo:NOVEL+enc("연이와 네오.mp3"),
+  neo2:NOVEL+enc("연이와 네오2.mp3"),
+  riverEnter:NOVEL+enc("사주의 강 진입.mp3"),
+  riverEnter2:NOVEL+enc("사주의 강 진입2.mp3"),
+  stillLake:MED+enc("Still Lake Mind.mp3")
+};
+/* 사주의 강 진입 BGM 폴백 체인(재생 실패 시 순차 강등) */
+var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake"};
+
+/* who → sprite (form 반영) */
+function spriteFor(who,expr,form){
+  if(who==="neo")return {url:NEO,cls:"neo"};
+  if(who==="mu")return {url:MU,cls:""};
+  if(who==="mirror")return {url:YEONI_SHEET,cls:"mirror sheet",sheet:true}; /* 가짜 연이=운명 찻집 연이 시트 크롭 */
+  /* yeon */
+  if(form==="pig"){return {url:((expr==="talk"||expr==="happy")?PIG.talk:PIG.base),cls:"pig"};}
+  return {url:(YEON[expr]||YEON.base),cls:""};
+}
+
+/* ============================================================
+   상태 (메모리 전용 — localStorage 미사용)
+   ============================================================ */
+var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,form:"human",
+       typing:false,reduce:false,speed:30,save:null,bgSlot:"A",curBg:null,cast:{},active:null,started:false};
+var reduceMQ=window.matchMedia("(prefers-reduced-motion: reduce)");
+S.reduce=reduceMQ.matches;
+
+/* audio (단일 인스턴스) */
+var audio=new Audio();audio.loop=true;audio.preload="auto";audio.volume=0;
+var fadeTimer=null,firstGesture=false;
+/* 사주의 강 진입 트랙 재생 실패 시 순차 폴백(riverEnter→진입2→Still Lake) */
+audio.addEventListener("error",function(){
+  var fb=RIVER_FALLBACK[S.bgmKey];
+  if(fb){if(window.console&&console.debug)console.debug("BGM fallback:",S.bgmKey,"→",fb);playTrack(fb);}
+});
+function playTrack(key,vol){
+  if(!key)return; var url=TRK[key]||key;
+  if(S.bgmKey===key&&!audio.paused)return;
+  S.bgmKey=key;
+  var target=(vol==null?0.55:vol);
+  if(!S.bgmOn){audio.src=url;return;}
+  crossTo(url,target);
+}
+function crossTo(url,target){
+  clearInterval(fadeTimer);
+  var startV=audio.volume,outSteps=12,i=0;
+  fadeTimer=setInterval(function(){
+    i++;audio.volume=Math.max(0,startV*(1-i/outSteps));
+    if(i>=outSteps){
+      clearInterval(fadeTimer);
+      audio.src=url;var p=audio.play();if(p&&p.catch)p.catch(function(){});
+      var j=0,inSteps=20;
+      fadeTimer=setInterval(function(){j++;audio.volume=Math.min(target,target*(j/inSteps));if(j>=inSteps)clearInterval(fadeTimer);},50);
+    }
+  },40);
+}
+/* 첫 제스처: main BGM 4초 페이드인 */
+function bgmFirstStart(){
+  if(firstGesture)return;firstGesture=true;
+  audio.src=TRK.main;audio.volume=0;
+  if(S.bgmOn){var p=audio.play();if(p&&p.catch)p.catch(function(){});fadeInOver(0.5,4000);}
+  S.bgmKey="main";
+}
+function fadeInOver(target,ms){
+  clearInterval(fadeTimer);var steps=Math.round(ms/60),i=0;
+  fadeTimer=setInterval(function(){i++;audio.volume=Math.min(target,target*(i/steps));if(i>=steps)clearInterval(fadeTimer);},60);
+}
+function setBgm(on){
+  S.bgmOn=on;var b=document.getElementById("bgmBtn");b.classList.toggle("muted",!on);
+  var sw=document.getElementById("setBgm");if(sw)sw.classList.toggle("on",on);
+  if(on){if(!audio.src)audio.src=TRK[S.bgmKey]||TRK.main;var p=audio.play();if(p&&p.catch)p.catch(function(){});fadeInOver(S.screen==="player"?0.5:0.5,1200);}
+  else{clearInterval(fadeTimer);audio.pause();audio.volume=0;}
+}
+
+/* ============================================================
+   이미지 로더 (onerror → SVG 폴백)
+   ============================================================ */
+function setImg(imgEl,url,svgFallback){
+  imgEl.onerror=function(){imgEl.onerror=null;if(svgFallback)imgEl.src=svgFallback;};
+  imgEl.src=url;
+}
+function svgData(inner,w,h){return "data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(w||1200)+' '+(h||800)+'">'+inner+'</svg>');}
+var SVGBG=svgData('<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1330"/><stop offset="1" stop-color="#05060c"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/>');
+
+/* ============================================================
+   NEBULA (≤50 파티클, CSS)
+   ============================================================ */
+(function(){var n=document.getElementById("nebula");var N=44;
+  for(var i=0;i<N;i++){var s=document.createElement("div");s.className="star";
+    var sz=(Math.sin(i*3.7)+1.4);s.style.width=s.style.height=(0.8+sz*1.2).toFixed(1)+"px";
+    s.style.left=((i*97)%100)+"%";s.style.top=((i*53)%100)+"%";
+    s.style.animationDuration=(4+((i*7)%9))+"s";s.style.animationDelay=(-(i%11))+"s";
+    n.appendChild(s);}
+})();
+
+/* ============================================================
+   메인 화면
+   ============================================================ */
+var MENU=[
+  {idx:"01",label:"소설",sub:"비주얼 노벨",act:"novel"},
+  {idx:"02",label:"운명 찻집",sub:"연이의 상담",href:"/fortune-tea-house"},
+  {idx:"03",label:"팩폭 전략실",sub:"네오의 작전",href:"/neo-operation-room"},
+  {idx:"04",label:"숙요 시리즈",sub:"27수의 흐름",href:"/sukuyo"},
+  {idx:"05",label:"사주",sub:"명리 분석",href:"/saju"},
+  {idx:"06",label:"설정",sub:"BGM · 모션",act:"settings"}
+];
+function buildMenu(){
+  var m=document.getElementById("menu");m.innerHTML="";
+  MENU.forEach(function(it){
+    var b=document.createElement(it.href?"a":"button");b.className="menuItem";
+    if(it.href){b.href=it.href;}
+    b.innerHTML='<span class="idx">'+it.idx+'</span><span>'+it.label+'</span>'+(it.sub?'<span class="sub">'+it.sub+'</span>':'')+
+      '<svg class="uline" preserveAspectRatio="none" viewBox="0 0 100 2"><line x1="0" y1="1" x2="100" y2="1"/></svg>';
+    if(!it.href)b.addEventListener("click",function(){if(it.act==="novel")startNovel();else if(it.act==="settings")openOv("setOv");});
+    m.appendChild(b);
+  });
+}
+function buildPig(){
+  var pig=document.getElementById("mainPig");if(!pig)return;
+  var spr=pig.querySelector(".pigSprite");
+  if(spr)spr.style.backgroundImage="url('"+CAFE+enc("nobackground/꽃돼지2-Photoroom.png")+"')";
+  var sparks=pig.querySelector(".sparks");
+  if(sparks&&!sparks.childElementCount){
+    var pts=[[6,18,12],[88,10,10],[96,52,14],[74,92,10],[12,80,12],[-6,44,9],[48,-8,13],[30,4,8]];
+    pts.forEach(function(p,i){var s=document.createElement("i");s.className="spark";s.textContent="✦";
+      s.style.left=p[0]+"%";s.style.top=p[1]+"%";s.style.fontSize=p[2]+"px";
+      s.style.animationDelay=(i*0.38).toFixed(2)+"s";s.style.animationDuration=(2.6+(i%3)*0.6)+"s";
+      sparks.appendChild(s);});
+  }
+  var go=function(){window.location.href="/fortune-tea-house";};
+  pig.onclick=go;
+  pig.onkeydown=function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();go();}};
+}
+function buildEnterPig(){
+  var pig=document.getElementById("enterPig");if(!pig)return;
+  var img=pig.querySelector(".epImg");
+  if(img)setImg(img,CAFE+enc("nobackground/꽃돼지-Photoroom.png"),svgData('<rect width="10" height="10" fill="none"/>',10,10));
+  var sparks=pig.querySelector(".sparks");
+  if(sparks&&!sparks.childElementCount){
+    var pts=[[2,22,11],[93,14,9],[88,82,12],[8,74,10],[52,-6,11]];
+    pts.forEach(function(p,i){var s=document.createElement("i");s.className="spark";s.textContent="✦";
+      s.style.left=p[0]+"%";s.style.top=p[1]+"%";s.style.fontSize=p[2]+"px";
+      s.style.animationDelay=(i*0.5).toFixed(2)+"s";s.style.animationDuration=(2.8+(i%3)*0.6)+"s";
+      sparks.appendChild(s);});
+  }
+}
+function showMain(){
+  S.screen="main";
+  document.getElementById("enter").classList.add("hidden");
+  var mh=document.getElementById("mainHero");setImg(mh,YEON.base,svgData('<rect width="600" height="900" fill="none"/>',600,900));
+  buildMenu();buildPig();
+  var main=document.getElementById("main");main.classList.remove("hidden");requestAnimationFrame(function(){main.classList.add("on");});
+  // parallax
+  window.addEventListener("mousemove",heroParallax);
+}
+var _px=0,_py=0,_tx=0,_ty=0,_raf=null;
+function heroParallax(e){
+  if(S.screen!=="main")return;
+  var cx=window.innerWidth/2,cy=window.innerHeight/2;
+  _tx=((e.clientX-cx)/cx)*8;_ty=((e.clientY-cy)/cy)*6;
+  if(!_raf)_raf=requestAnimationFrame(pxTick);
+}
+function pxTick(){
+  _px+=(_tx-_px)*0.06;_py+=(_ty-_py)*0.06;
+  var mh=document.getElementById("mainHero");
+  if(mh)mh.style.translate=_px.toFixed(2)+"px "+_py.toFixed(2)+"px";
+  if(Math.abs(_tx-_px)>0.1||Math.abs(_ty-_py)>0.1){_raf=requestAnimationFrame(pxTick);}else{_raf=null;}
+}
+
+/* ============================================================
+   PLAYER 엔진
+   ============================================================ */
+var dlg=document.getElementById("dlg"),dlgBody=document.getElementById("dlgBody"),
+    spkIcon=document.getElementById("spkIcon"),spkName=document.getElementById("spkName");
+var typeTimer=null,fullText="",shownLen=0,curBeat=null;
+var LOG=[];
+
+function preloadFirstBg(ep){
+  try{var b=EPISODES[ep]&&EPISODES[ep].beats;if(!b)return;
+    for(var i=0;i<b.length;i++){if(b[i].bg){var im=new Image();im.src=BG[b[i].bg]||b[i].bg;return;}}
+  }catch(e){}
+}
+/* 소설 진입 — 메인→플레이어 크로스페이드(빈 화면 최소화), 재개 시 상태복원 */
+function startNovel(){
+  window.removeEventListener("mousemove",heroParallax);
+  if(S.save){S.ep=S.save.ep;S.bi=S.save.bi;}else{S.ep=0;S.bi=0;}
+  preloadFirstBg(S.ep);
+  S.screen="player";buildCtl();S.started=true;
+  var p=document.getElementById("player");p.classList.remove("hidden");requestAnimationFrame(function(){p.classList.add("on");});
+  document.getElementById("main").classList.remove("on");
+  setTimeout(function(){document.getElementById("main").classList.add("hidden");},650);
+  if(S.bi>0){hydrateTo(S.ep,S.bi);}else{enterEpisode(S.ep,true);}
+}
+/* #play 로 직접 진입(서버에서 소설 화면 바로 확인) */
+function bootDirectPlay(){
+  try{
+    firstGesture=true;
+    document.getElementById("enter").classList.add("hidden");
+    document.getElementById("main").classList.add("hidden");
+    S.screen="player";S.ep=0;S.bi=0;
+    var p=document.getElementById("player");p.classList.remove("hidden");p.classList.add("on");
+    buildCtl();S.started=true;preloadFirstBg(0);
+    enterEpisode(0,true);
+    var once=function(){document.removeEventListener("pointerdown",once);document.removeEventListener("keydown",once);
+      if(S.bgmOn){var url=TRK[S.bgmKey]||TRK.main;if(!audio.src)audio.src=url;var pr=audio.play();if(pr&&pr.catch)pr.catch(function(){});fadeInOver(0.5,1500);}};
+    document.addEventListener("pointerdown",once,{once:false});document.addEventListener("keydown",once,{once:false});
+  }catch(e){}
+}
+function backToMain(){
+  document.getElementById("player").classList.remove("on");
+  setTimeout(function(){document.getElementById("player").classList.add("hidden");showMain();},550);
+  playTrack("main",0.5);
+}
+
+function buildCtl(){
+  var ctl=document.getElementById("ctl");
+  var items=[
+    {k:"back",t:"⌂",lbl:"메인"},
+    {k:"prevCh",t:"⏮",lbl:"이전화"},
+    {k:"nextCh",t:"⏭",lbl:"다음화"},
+    {k:"prev",t:"◀",lbl:"이전"},
+    {k:"idx",t:"☰",lbl:"목차·연출"},
+    {k:"auto",t:"AUTO",lbl:"자동"},
+    {k:"skip",t:"SKIP",lbl:"빠르게"},
+    {k:"log",t:"LOG",lbl:"지난대사"},
+    {k:"save",t:"SAVE",lbl:"저장"},
+    {k:"load",t:"LOAD",lbl:"불러오기"},
+    {k:"set",t:"⚙",lbl:"설정"}
+  ];
+  ctl.innerHTML="";
+  items.forEach(function(it){
+    var b=document.createElement("button");b.className="cbtn";b.dataset.k=it.k;b.innerHTML=it.t+'<span class="lbl">'+it.lbl+'</span>';
+    b.addEventListener("click",function(e){e.stopPropagation();ctlAct(it.k,b);});
+    ctl.appendChild(b);
+  });
+}
+function chapSkip(dir){
+  var t=S.ep+dir;
+  if(t<0){toast("첫 화예요");return;}
+  if(t>=EPISODES.length){toast("마지막 화예요");return;}
+  S.bi=0;enterEpisode(t,true);
+}
+function ctlAct(k,b){
+  if(k==="back")backToMain();
+  else if(k==="prevCh")chapSkip(-1);
+  else if(k==="nextCh")chapSkip(1);
+  else if(k==="prev")stepPrev();
+  else if(k==="idx")openScenePicker();
+  else if(k==="auto"){S.auto=!S.auto;b.classList.toggle("active",S.auto);if(S.auto&&!S.typing)scheduleAuto();}
+  else if(k==="skip"){S.skip=!S.skip;b.classList.toggle("active",S.skip);if(S.skip)doSkipStep();}
+  else if(k==="log")openLog();
+  else if(k==="save"){S.save={ep:S.ep,bi:S.bi};toast("저장했어요 · 이 자리에서 이어볼 수 있어요");}
+  else if(k==="load"){if(S.save){S.ep=S.save.ep;S.bi=S.save.bi;enterEpisode(S.ep,false);toast("불러왔어요");}else toast("저장된 지점이 없어요");}
+  else if(k==="set")openOv("setOv");
+}
+
+function enterEpisode(ei,showCard){
+  var eps=EPISODES[ei];if(!eps)return;
+  S.ep=ei;
+  hardClearSlots();S.curBg=null; // form은 화 사이 유지(강 낙하 후 꽃돼지)
+  document.getElementById("epTag").textContent=eps.tag;
+  // chapter card
+  if(showCard!==false){
+    var cc=document.getElementById("chCard"),ce=document.getElementById("chEp"),ct=document.getElementById("chTi");
+    ce.textContent=eps.no;ct.textContent=eps.title;cc.classList.remove("hidden");cc.classList.add("on");
+    setTimeout(function(){cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);runBeat();},1600);
+  }else{runBeat();}
+}
+function curBeats(){return EPISODES[S.ep].beats;}
+
+function runBeat(){
+  var beats=curBeats();
+  if(S.bi>=beats.length){nextEpisode();return;}
+  var b=beats[S.bi];curBeat=b;
+  // form
+  if(b.form)S.form=b.form;
+  // bgm
+  if(b.bgm)playTrack(b.bgm);
+  // background
+  if(b.bg)setBg(b.bg,b.tone);
+  // cast staging
+  stageBeat(b);
+  // effect
+  if(b.fx)runFx(b.fx);
+  // dialogue
+  showDialogue(b);
+}
+function nextEpisode(){
+  if(S.ep+1<EPISODES.length){S.bi=0;enterEpisode(S.ep+1,true);}
+  else{endStory();}
+}
+function endStory(){
+  showBeatText({s:"sys",t:"[ EP.05 · 비겁의 섬 최종전 — 다음 이야기에서 계속 ]"});
+  S.save={ep:0,bi:0};
+  // simple end: allow back
+  dlg.dataset.done="true";
+  curBeat={end:true};
+}
+
+/* --- 임의 지점 점프(지속상태 무손실 복원): 목차/뒤로가기용 --- */
+function hydrateTo(ep,bi){
+  var eps=EPISODES[ep];if(!eps)return;
+  if(bi<0)bi=0;
+  var beats=eps.beats;if(bi>=beats.length)bi=beats.length-1;
+  S.ep=ep;document.getElementById("epTag").textContent=eps.tag;
+  hardClearSlots();S.curBg=null;S.active=null;
+  S.form=ep>=1?"pig":"human";
+  for(var i=0;i<=bi;i++){
+    var b=beats[i];
+    if(b.form)S.form=b.form;
+    if(b.bg)setBg(b.bg,b.tone);
+    if(b.bgm)playTrack(b.bgm);
+    stageBeat(b);
+  }
+  S.bi=bi;curBeat=beats[bi];
+  if(beats[bi].fx)runFx(beats[bi].fx);
+  showDialogue(beats[bi]);
+}
+function stepPrev(){
+  if(S.typing){finishType();return;}
+  if(S.bi>0)hydrateTo(S.ep,S.bi-1);
+  else if(S.ep>0){var pe=S.ep-1;hydrateTo(pe,EPISODES[pe].beats.length-1);}
+}
+function openScenePicker(){
+  var list=document.getElementById("idxList");list.innerHTML="";
+  EPISODES.forEach(function(ep,ei){
+    var h=document.createElement("div");h.className="idxEp";h.innerHTML='<b>'+ep.no+'</b>'+ep.title;
+    h.addEventListener("click",function(){closeOv(document.getElementById("idxOv"));hydrateTo(ei,0);});
+    list.appendChild(h);
+    ep.beats.forEach(function(b,bi){
+      var row=document.createElement("div");row.className="idxRow"+((b.s==="n"||b.s==="sys")?" n":"");
+      var who=NAME[b.s]||(b.s==="sys"?"코드":"");
+      var tags=[];
+      if(b.bg)tags.push(b.bg);
+      if(b.fx)tags.push("fx:"+b.fx);
+      if(b.bgm)tags.push("♪"+b.bgm);
+      if(b.form)tags.push(b.form==="pig"?"→꽃돼지":"→사람");
+      if(b.im)tags.push("임팩트");
+      row.innerHTML='<span class="idxNo">#'+bi+'</span><span class="idxWho">'+(who||"—")+'</span>'+
+        '<span class="idxTxt">'+escapeHtml((b.t||"").slice(0,28))+'</span>'+
+        (tags.length?'<span class="idxTags">'+escapeHtml(tags.join(" · "))+'</span>':'');
+      row.addEventListener("click",function(){closeOv(document.getElementById("idxOv"));hydrateTo(ei,bi);});
+      list.appendChild(row);
+    });
+  });
+  openOv("idxOv");
+}
+
+/* --- background swap (crossfade A/B) --- */
+function setBg(key,tone){
+  var url=BG[key]||key;if(S.curBg===key)return;S.curBg=key;
+  var show=document.getElementById("bg"+S.bgSlot);
+  var next=S.bgSlot==="A"?document.getElementById("bgB"):document.getElementById("bgA");
+  next.classList.remove("dark","desat");
+  if(tone==="dark")next.classList.add("dark");if(tone==="desat")next.classList.add("desat");
+  setImg(next,url,SVGBG);
+  next.classList.add("show");show.classList.remove("show");
+  S.bgSlot=S.bgSlot==="A"?"B":"A";
+}
+
+/* --- character staging --- */
+var charLayer=document.getElementById("charLayer");
+function stageBeat(b){
+  // b.l/b.c/b.r define slots; value {who,x} | null(clear) | undefined(keep)
+  ["l","c","r"].forEach(function(slot){
+    if(!(slot in b))return;
+    var v=b[slot];
+    if(v===null){removeSlot(slot);return;}
+    setSlot(slot,v.who,v.x);
+  });
+  // active = speaker
+  var spk=b.s;
+  if(spk==="geo")S.active="mirror";
+  else if(spk==="yeon"||spk==="neo"||spk==="mu")S.active=spk;
+  updateActive();
+}
+var slotMap={l:"slotL",c:"slotC",r:"slotR"};
+function setSlot(slot,who,expr){
+  var id="char_"+slot;var el=document.getElementById(id);
+  var sp=spriteFor(who,expr,S.form);
+  var wantTag=sp.sheet?"DIV":"IMG"; // 시트 크롭은 background div, 그 외 <img>
+  if(el&&el.tagName!==wantTag){if(el.parentNode)el.parentNode.removeChild(el);el=null;}
+  if(!el){el=document.createElement(sp.sheet?"div":"img");el.id=id;charLayer.appendChild(el);}
+  el.className="char "+slotMap[slot]+" "+(sp.cls||"");el.dataset.who=who;
+  if(sp.sheet){
+    el.setAttribute("role","img");el.setAttribute("aria-label",who);
+    el.style.backgroundImage="url('"+sp.url+"')";
+  }else{
+    el.alt=who;
+    setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));
+  }
+  requestAnimationFrame(function(){el.classList.add("show");});
+}
+function removeSlot(slot){var el=document.getElementById("char_"+slot);if(el){el.classList.remove("show");setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},500);}}
+function updateActive(){
+  ["l","c","r"].forEach(function(slot){
+    var el=document.getElementById("char_"+slot);if(!el)return;
+    var isActive=(el.dataset.who===S.active);
+    el.classList.toggle("dim",!isActive&&S.active!=null);
+  });
+}
+
+/* --- dialogue + typewriter --- */
+var ICON={yeon:"연",neo:"NEO",mu:"무",geo:"?",n:"달",sys:"코드"};
+var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",n:"",sys:""};
+function showDialogue(b){
+  clearTimeout(typeTimer);
+  var spk=b.s||"n";
+  dlg.dataset.spk=spk;dlg.classList.toggle("impact",!!b.im);
+  spkIcon.textContent=ICON[spk]||"달";spkName.textContent=NAME[spk]||"";
+  fullText=b.t||"";shownLen=0;dlgBody.innerHTML="";
+  dlg.dataset.done="false";dlg.dataset.typing="true";S.typing=true;
+  // log
+  LOG.push({s:spk,t:fullText});
+  if(S.reduce||S.skip){finishType();return;}
+  typeStep();
+}
+function typeStep(){
+  if(shownLen>=fullText.length){finishType();return;}
+  shownLen++;
+  dlgBody.innerHTML=escapeHtml(fullText.slice(0,shownLen))+'<span class="caret">▌</span>';
+  var sp=(curBeat&&curBeat.s==="neo")?Math.max(8,Math.min(S.speed,Math.floor(2600/Math.max(1,fullText.length)))):S.speed;
+  typeTimer=setTimeout(typeStep,Math.max(4,sp));
+}
+function finishType(){
+  clearTimeout(typeTimer);shownLen=fullText.length;dlgBody.textContent=fullText;
+  dlg.dataset.typing="false";dlg.dataset.done="true";S.typing=false;
+  if(S.auto)scheduleAuto();
+  if(S.skip)setTimeout(doSkipStep,120);
+}
+function advance(){
+  if(curBeat&&curBeat.end){backToMain();return;}
+  if(S.typing){finishType();return;}
+  S.bi++;runBeat();
+}
+function doSkipStep(){if(!S.skip)return;if(S.typing){finishType();}advance();}
+var autoT=null;
+function scheduleAuto(){clearTimeout(autoT);if(!S.auto)return;autoT=setTimeout(function(){if(S.auto&&!S.typing)advance();},Math.min(4200,1100+fullText.length*55));}
+function showBeatText(b){showDialogue(b);}
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+dlg.addEventListener("click",advance);
+dlg.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();advance();}});
+document.addEventListener("keydown",function(e){
+  if(S.screen!=="player")return;
+  if(e.key==="ArrowRight")advance();
+});
+
+/* ============================================================
+   FX (인라인 SVG / CSS, transform·opacity)
+   ============================================================ */
+var fxLayer=document.getElementById("fxLayer");
+function runFx(name){
+  if(S.reduce&&name!=="ink"){/* 최소화: 짧은 페이드만 */}
+  if(name==="ink")fxInk();
+  else if(name==="veil")fxVeil();
+  else if(name==="hands")fxHands();
+  else if(name==="claw")fxClaw();
+  else if(name==="burst")fxBurst();
+  else if(name==="heart")fxHeart();
+  else if(name==="vortex")fxVortex();
+  else if(name==="tarot")fxTarot();
+  else if(name==="transform")fxTransform();
+  else if(name==="suck")fxSuck();
+}
+function mkOverlay(){var d=document.createElement("div");d.style.cssText="position:absolute;inset:0";fxLayer.appendChild(d);return d;}
+function cleanup(el,ms){setTimeout(function(){if(el&&el.parentNode)el.parentNode.removeChild(el);},ms);}
+function fxInk(){var d=mkOverlay();d.style.background="radial-gradient(circle at 50% 60%,#05060c,#05060c)";d.style.animation="inkOut .9s ease forwards";cleanup(d,1000);}
+function fxVeil(){var d=mkOverlay();d.style.overflow="hidden";
+  var v=document.createElement("div");v.style.cssText="position:absolute;inset:0;background:linear-gradient(180deg,rgba(232,228,217,.5),transparent 60%);animation:veilDown 2.2s ease forwards";d.appendChild(v);
+  for(var i=0;i<16;i++){var p=document.createElement("div");p.style.cssText="position:absolute;top:0;width:2px;height:2px;border-radius:50%;background:rgba(232,228,217,.8);left:"+((i*61)%100)+"%;animation:dust "+(3+i%3)+"s linear "+(i*.12)+"s infinite";d.appendChild(p);}
+  cleanup(d,2600);}
+function fxHands(){
+  document.getElementById("bg"+ (S.bgSlot==="A"?"B":"A")).classList.add("desat");
+  var d=mkOverlay();d.style.overflow="hidden";
+  var vig=document.createElement("div");vig.style.cssText="position:absolute;inset:0;box-shadow:inset 0 0 200px 80px rgba(5,6,12,.85);opacity:0;transition:opacity .6s";d.appendChild(vig);requestAnimationFrame(function(){vig.style.opacity="1";});
+  var n=6;for(var i=0;i<n;i++){
+    var wrap=document.createElement("div");
+    var lft=8+i*(84/(n-1));var sc=.7+((i*7)%5)/10;
+    wrap.style.cssText="position:absolute;bottom:-6%;left:"+lft+"%;width:120px;height:220px;transform-origin:bottom center;transform:translateX(-50%) scale("+sc+");animation:handRise .8s cubic-bezier(.2,.8,.3,1) "+(i*.1)+"s both";
+    wrap.innerHTML='<svg viewBox="0 0 120 220" style="filter:blur(2px)"><path d="M60 220 C50 150 30 120 34 80 C36 60 46 66 48 84 L50 120 C52 60 56 40 64 42 C72 44 66 90 66 118 C70 70 74 54 82 58 C90 62 78 110 76 128 C82 96 90 90 96 100 C102 112 84 150 78 168 C74 200 70 210 60 220 Z" fill="#05060C"/></svg>';
+    var fin=wrap.firstChild;fin.style.animation="fingerTremble 1.6s ease-in-out "+(i*.1)+"s infinite";
+    d.appendChild(wrap);
+  }
+  cleanup(d,4200);
+  setTimeout(function(){document.getElementById("bgA").classList.remove("desat");document.getElementById("bgB").classList.remove("desat");},3600);
+}
+function fxClaw(){
+  var p=document.getElementById("player");p.classList.add("shakeScreen");setTimeout(function(){p.classList.remove("shakeScreen");},520);
+  var d=mkOverlay();
+  d.innerHTML='<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%"><g stroke="#fff" stroke-width="1.4" fill="none" opacity=".9" filter="url(#gl)"><defs><filter id="gl"><feGaussianBlur stdDeviation="0.5"/></filter></defs><line x1="18" y1="8" x2="78" y2="86" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease forwards"/><line x1="34" y1="6" x2="92" y2="80" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .06s forwards"/><line x1="6" y1="20" x2="66" y2="94" stroke-dasharray="120" stroke-dashoffset="120" style="animation:dashDraw .25s ease .12s forwards"/></g></svg>';
+  var fade=d.firstChild;setTimeout(function(){fade.style.transition="opacity .3s";fade.style.opacity="0";},300);
+  cleanup(d,900);
+}
+function fxBurst(){
+  var d=mkOverlay();
+  var flash=document.createElement("div");flash.style.cssText="position:absolute;inset:0;background:#fff;opacity:0;animation:flash .9s ease forwards";d.appendChild(flash);
+  for(var i=0;i<3;i++){var r=document.createElement("div");r.style.cssText="position:absolute;left:60%;top:52%;width:40vmax;height:40vmax;border-radius:50%;border:3px solid rgba(233,196,106,"+(0.8-i*0.2)+");transform:translate(-50%,-50%) scale(.1);animation:ringOut .9s cubic-bezier(.2,.7,.3,1) "+(i*.12)+"s forwards";d.appendChild(r);}
+  cleanup(d,1100);
+}
+function fxHeart(){var d=mkOverlay();d.style.animation="heartEdge 1.1s ease 2";cleanup(d,2400);}
+function fxTarot(){
+  var d=mkOverlay();d.style.display="flex";d.style.alignItems="center";d.style.justifyContent="center";
+  var glow=document.createElement("div");glow.style.cssText="position:absolute;left:50%;top:50%;width:62vh;height:62vh;max-width:640px;max-height:640px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(233,196,106,.26),rgba(185,156,255,.14) 42%,transparent 68%);animation:pigGlow 3s ease-in-out infinite";d.appendChild(glow);
+  var card=document.createElement("img");card.alt="타로의 문 카드";
+  card.style.cssText="position:relative;height:58vh;max-height:560px;border-radius:14px;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5)) drop-shadow(0 0 44px rgba(233,196,106,.5));opacity:0;transform:translateY(34px) scale(.9);transition:opacity .7s var(--ease),transform .9s var(--ease)";
+  var fb=svgData('<defs><linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1026"/><stop offset="1" stop-color="#141a37"/></linearGradient></defs><rect width="300" height="460" rx="16" fill="url(#c)" stroke="#c9a227" stroke-width="3"/><path d="M180 60a70 70 0 1 0 30 92 56 56 0 0 1-30-92Z" fill="#e9c46a"/><circle cx="150" cy="330" r="10" fill="#f8bbdd"/><path d="M150 330c0-30 0-70 0-120" stroke="#e9c46a" stroke-width="2"/><text x="150" y="420" fill="#e8e4d9" font-size="22" text-anchor="middle" letter-spacing="4">THE DOOR</text>',300,460);
+  setImg(card,TAROT,fb);d.appendChild(card);
+  requestAnimationFrame(function(){card.style.opacity="1";card.style.transform="translateY(0) scale(1)";});
+  setTimeout(function(){ // 문 개방: 빛 버스트 + 카드 확대 페이드
+    var burst=document.createElement("div");burst.style.cssText="position:absolute;left:50%;top:50%;width:30px;height:30px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,240,248,.5) 40%,transparent 72%);opacity:0;animation:flash 1s ease forwards";d.appendChild(burst);
+    card.style.transition="opacity .9s var(--ease),transform 1s var(--ease)";card.style.opacity="0";card.style.transform="scale(1.6)";
+  },2300);
+  cleanup(d,3500);
+}
+/* 변신: 투명 8프레임 시퀀스(사람→꽃돼지) + 스케일 팝 + 화이트아웃 */
+function fxTransform(){
+  var d=mkOverlay();d.style.display="flex";d.style.alignItems="center";d.style.justifyContent="center";d.style.overflow="hidden";
+  var glow=document.createElement("div");glow.style.cssText="position:absolute;left:50%;top:50%;width:66vh;height:66vh;max-width:700px;max-height:700px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(248,187,221,.42),rgba(233,196,106,.2) 42%,transparent 70%);animation:pigGlow 1.6s ease-in-out";d.appendChild(glow);
+  var m=document.createElement("div");
+  m.style.cssText="position:absolute;left:50%;top:50%;width:min(58vh,460px);aspect-ratio:1/1;transform:translate(-50%,-50%);background-repeat:no-repeat;background-size:400% 200%;background-position:100% 100%;filter:drop-shadow(0 0 30px rgba(248,187,221,.6));animation:morphFrames 1.6s steps(1,end) forwards,morphPop 1.6s ease forwards";
+  m.style.backgroundImage="url('"+PIG.transform+"')";d.appendChild(m);
+  var flash=document.createElement("div");flash.style.cssText="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.8),rgba(255,240,248,.35) 38%,transparent 70%);opacity:0;animation:flash 1.6s ease forwards";d.appendChild(flash);
+  cleanup(d,1900);
+}
+/* 빨려들어감: 중앙 연이가 소용돌이(≈55%,42%)로 회전·축소되며 흡입 + 수렴 스트릭 */
+function fxSuck(){
+  var el=document.getElementById("char_c");
+  if(el){el.classList.remove("dim");el.classList.add("sucking");}
+  var d=mkOverlay();d.style.overflow="hidden";
+  var spin=document.createElement("div");
+  spin.style.cssText="position:absolute;left:55%;top:42%;width:150vmax;height:150vmax;transform:translate(-50%,-50%);opacity:0;"+
+    "background:conic-gradient(from 0deg,transparent,rgba(140,170,255,.16),transparent 25%,rgba(185,156,255,.13),transparent 50%,rgba(140,170,255,.13),transparent 75%,rgba(185,156,255,.1),transparent);"+
+    "animation:suckSpin 1.3s cubic-bezier(.5,0,.9,.6) forwards";
+  d.appendChild(spin);requestAnimationFrame(function(){spin.style.opacity="1";});
+  var core=document.createElement("div");
+  core.style.cssText="position:absolute;left:55%;top:42%;width:14px;height:14px;transform:translate(-50%,-50%);border-radius:50%;"+
+    "box-shadow:0 0 0 3px rgba(200,220,255,.7),0 0 46px 16px rgba(120,150,255,.4);animation:ringOut 1.3s ease forwards";
+  d.appendChild(core);
+  cleanup(d,1500);
+}
+function hardClearSlots(){["l","c","r"].forEach(function(slot){var el=document.getElementById("char_"+slot);if(el&&el.parentNode)el.parentNode.removeChild(el);});S.active=null;}
+function fxVortex(){
+  var d=mkOverlay();d.style.overflow="hidden";
+  var v=document.createElement("div");
+  v.style.cssText="position:absolute;left:50%;top:44%;width:20px;height:20px;transform:translate(-50%,-50%);border-radius:50%;"+
+    "box-shadow:0 0 0 2px rgba(233,196,106,.6),0 0 0 22px rgba(185,156,255,.18),0 0 0 60px rgba(233,196,106,.12);"+
+    "animation:ringOut 1.1s ease forwards";
+  d.appendChild(v);
+  var sw=document.createElement("div");sw.style.cssText="position:absolute;inset:0;background:conic-gradient(from 0deg,transparent,rgba(185,156,255,.25),transparent 40%,rgba(233,196,106,.2),transparent);opacity:.0;animation:flash 1.1s ease forwards";d.appendChild(sw);
+  cleanup(d,1300);
+}
+
+/* ============================================================
+   overlays
+   ============================================================ */
+function openOv(id){document.getElementById(id).classList.add("on");}
+function closeOv(el){el.classList.remove("on");}
+document.querySelectorAll(".ov [data-close]").forEach(function(b){b.addEventListener("click",function(){closeOv(b.closest(".ov"));});});
+document.querySelectorAll(".ov").forEach(function(o){o.addEventListener("click",function(e){if(e.target===o)closeOv(o);});});
+function openLog(){
+  var list=document.getElementById("logList");list.innerHTML="";
+  LOG.slice(-60).forEach(function(r){
+    var d=document.createElement("div");d.className="logRow "+(r.s==="n"||r.s==="sys"?"n":"");
+    d.innerHTML='<span class="who">'+(NAME[r.s]||"")+'</span>'+escapeHtml(r.t);
+    list.appendChild(d);
+  });
+  openOv("logOv");list.scrollTop=list.scrollHeight;
+}
+function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._h);t._h=setTimeout(function(){t.classList.remove("on");},2200);}
+
+/* settings wiring */
+document.getElementById("setBgm").addEventListener("click",function(){setBgm(!S.bgmOn);});
+document.getElementById("setReduce").addEventListener("click",function(){S.reduce=!S.reduce;this.classList.toggle("on",S.reduce);});
+document.getElementById("setSpeed").addEventListener("input",function(){S.speed=+this.value;document.getElementById("setSpeedV").textContent=this.value+"ms";});
+document.getElementById("setRestart").addEventListener("click",function(){S.save=null;S.form="human";S.ep=0;S.bi=0;S.curBg=null;closeOv(document.getElementById("setOv"));enterEpisode(0,true);});
+document.getElementById("bgmBtn").addEventListener("click",function(){setBgm(!S.bgmOn);});
+document.getElementById("epTag").addEventListener("click",function(){if(S.screen==="player")openScenePicker();});
+
+/* ENTER */
+buildEnterPig();
+document.getElementById("enterBtn").addEventListener("click",function(){bgmFirstStart();showMain();});
+document.getElementById("bgmBtn").classList.toggle("muted",!S.bgmOn);
+document.getElementById("setBgm").classList.toggle("on",S.bgmOn);
+
+/* ============================================================
+   시나리오 데이터 — 기존 원문(프롤로그·EP1~5) 라이트노벨 리라이팅
+   speaker: n(나레이션)/yeon/neo/mu/sys · x:표정 · bg/bgm/fx/im · l,c,r 슬롯
+   ============================================================ */
+var EPISODES=[];
+
+/* ============================ 프롤로그 ============================ */
+EPISODES.push({no:"PROLOGUE",tag:"프롤로그 · 이상한 앱이 깔렸다",title:"이상한 앱이 깔렸다",beats:[
+ {s:"n",bg:"room",bgm:"daily",c:{who:"yeon",x:"sleep"},t:`연이는 요즘, 운이 이상했다. 그냥 '오늘 좀 없네?' 수준이 아니었다. 인생이 연이를 상대로, 몰래카메라를 찍는 수준이었다.`},
+ {s:"n",c:{who:"yeon",x:"sleep"},t:`그날 아침도 그랬다. 알람은 분명 세 개였다. 7시 10분, 7시 15분, 7시 20분. 이름까지 야무지게 붙여 뒀는데.`},
+ {s:"sys",t:`[ 일어나 ]   [ 진짜 일어나 ]   [ 이러다 인생 망함 ]`},
+ {s:"n",c:{who:"yeon",x:"disappoint"},t:`하나도 울리지 않았다. 눈을 떴을 때, 커튼 틈으로 든 빛이 이미 노랬다. '늦었다'는 색이었다.`},
+ {s:"n",t:`휴대폰은 1퍼센트. 충전기는 콘센트에 얌전히 꽂혀 있었다. 문제는, 빠진 게 휴대폰 쪽이었다는 거다.`},
+ {s:"yeon",x:"disappoint",t:`…너도 나랑 손절했냐?`},
+ {s:"n",t:`충전기는 대답하지 않았다. 그날따라 세상 모든 게, 연이한테만 조용히 등을 돌리고 있는 것 같았다.`},
+ {s:"n",bg:"campus",c:{who:"yeon",x:"disappoint"},t:`신고 나온 양말은 왼쪽 흰색, 오른쪽 회색. 무늬까지 달랐다. 발을 내려다보는 데 3초쯤 걸렸다.`},
+ {s:"yeon",x:"smile",t:`…요즘은 믹스매치도 패션이라던데.`},
+ {s:"n",c:{who:"yeon",x:"smile"},t:`연이는 긍정적으로 생각하기로 했다. 긍정은, 연이가 불운을 견디는 유일한 방법이었으니까.`},
+ {s:"n",bg:"bench",c:{who:"yeon",x:"disappoint"},t:`문제는 버스였다. 카드를 댔는데 — 삑. 다시 대주세요.`},
+ {s:"n",t:`다시 댔다. 삑, 다시 대주세요. 또 댔다. 삑, 다시 대주세요. 뒤에 선 사람들이, 아무 말 없이 연이를 봤다.`},
+ {s:"yeon",x:"disappoint",t:`(그 침묵이 제일 무서웠다.) …너 어제까진 멀쩡했잖아.`},
+ {s:"n",t:`카드는 네 번째에야 찍혔다. 이미 둘 사이의 신뢰는, 조금 깨진 뒤였다.`},
+ {s:"n",c:{who:"yeon",x:"onigiri"},t:`점심엔 참치마요 삼각김밥을 샀다. 뜯자마자 바닥으로 엎어졌다. 밥알이 흩어지고, 김이 반쯤 벗겨진 얼굴이 너무 처참했다.`},
+ {s:"yeon",x:"onigiri",t:`(꼭, 제 운명을 못 받아들인 얼굴이었다.) …미안하다. 넌 좋은 참치마요였어.`},
+ {s:"n",c:{who:"yeon",x:"angry"},t:`다시 샀다. 이번엔 안 떨어뜨렸다. 그런데 한입 물자마자 입안이 불탔다. 매운 제육이었다. 포장엔 분명, 참치마요라고 적혀 있었는데.`},
+ {s:"yeon",x:"angry",t:`아니, 이제 삼각김밥도 나를 속이네?`},
+ {s:"n",t:`삼각김밥은 대답하지 않았다. 당연했다. 그건 삼각김밥이니까.`},
+ {s:"n",bgm:"gloom",c:{who:"yeon",x:"disappoint"},t:`거기까지는 웃겼다. 친구한테 말하면 'ㅋㅋㅋ 너 오늘 왜 그래'로 넘어갈 정도의.`},
+ {s:"n",t:`그런데 며칠 뒤부터는 — 웃기지 않았다.`},
+ {s:"n",bg:"campus",t:`아르바이트 면접은 당일 취소됐다. 과제 파일은 제출 직전에 깨졌다. 택배는 다른 동으로 갔다. 카페 쿠폰은 쓰려는 순간, 어제 만료였다.`},
+ {s:"n",t:`중요한 메시지엔 전송 실패가 떴다. 사과할 타이밍은 꼭 한 박자씩 늦었고, 좋은 뜻으로 한 말은 이상하게 오해가 됐다.`},
+ {s:"n",bg:"roomNight",bgm:"gloom",c:{who:"yeon",x:"disappoint"},t:`한 번은, 답장창에 점 세 개가 반짝였다. 뭔가 오려다가 — 스르르 사라졌다.`},
+ {s:"n",t:`연이는 그 점 세 개가 지워진 자리를 한참 보고 있다가, 휴대폰을 뒤집어 놓았다.`},
+ {s:"yeon",x:"disappoint",t:`…요즘 왜 이렇게 꼬이지. 내가, 뭘 잘못했나.`},
+ {s:"n",t:`작은 불운들이 매일 조금씩 연이의 하루를 갉아먹었다. 처음엔 우연이라 생각했다. 그런데 우연도 계속되면, 슬슬 기분이 이상해진다.`},
+ {s:"n",c:{who:"yeon",x:"base"},t:`그래도 연이는 운명 같은 걸 믿고 싶지 않았다. 운명은 너무 편한 말이었으니까.`},
+ {s:"yeon",x:"base",t:`망하면 운명, 헤어지면 인연 아님, 늦으면 때가 아님… 그런 말은 늘 나만 제자리에 남겨두더라.`},
+ {s:"n",t:`그렇게 말하면 설명은 쉬워진다. 근데 마음은, 하나도 안 쉬워진다.`},
+ {s:"n",bgm:"room",c:{who:"yeon",x:"base"},t:`그날 밤. 정말 모든 게 이상하게 꼬였던 하루의 끝이었다. 젖은 양말을 벗어 던지고, 침대에 쓰러졌다.`},
+ {s:"yeon",x:"disappoint",t:`오늘은… 진짜 레전드였다.`},
+ {s:"n",t:`배터리 4퍼센트. 충전기를 꽂으려는데 — 화면이, 혼자 켜졌다.`},
+ {s:"yeon",x:"fear",t:`…뭐야?`},
+ {s:"n",t:`홈 화면 한가운데, 처음 보는 앱이 있었다. 검은 밤하늘. 달빛으로 그려진 문. 작은 별 하나. 그리고 네 글자.`},
+ {s:"sys",t:`〈  Code Destiny  〉`},
+ {s:"yeon",x:"base",t:`내가… 이런 걸 깔았나?`},
+ {s:"n",t:`기억에 없었다. 삭제하려고 앱을 길게 눌렀다. 화면이, 대답했다.`},
+ {s:"sys",t:`[ 이 앱은 삭제할 수 없습니다. ]
+[ 이 앱은 운명과 연결되어 있습니다. ]`},
+ {s:"yeon",x:"disappoint",t:`요즘 앱, 진짜 기세 미쳤네.`},
+ {s:"n",t:`설정으로 들어가 봤다. 앱 목록에도, 저장 공간에도 없었다. 그런데 홈 화면에는 있었다. 너무 당당하게. 마치 원래부터, 제 자리였다는 듯이.`},
+ {s:"n",fx:"heart",c:{who:"yeon",x:"fear"},t:`그때, 알림이 떴다.`},
+ {s:"sys",t:`[ 현재 사용자 운세 손상률 87% ]
+[ 행운 누수 감지 · 인연 코드 일부 훼손 · 재물 코드 비정상 유출 ]`},
+ {s:"sys",t:`[ 사용자: 연이 ]  [ 나이: 23 ]  [ 일간 후보: 乙 ]  [ 일주 코드: 乙亥 ]`},
+ {s:"yeon",x:"fear",t:`내… 내 이름이랑 나이를 어떻게 알아?`},
+ {s:"sys",t:`[ 우주는 원래 알고 있습니다. ]`},
+ {s:"yeon",x:"fear",t:`아니, 말투가 더 무섭잖아!`},
+ {s:"n",t:`연이는 휴대폰을 베개 위로 던졌다. 휴대폰은 베개 위에서 통통 튀더니, 다시 화면을 밝혔다.`},
+ {s:"sys",t:`[ 운명 복구를 시작하시겠습니까? ]     [ YES ]     [ 나중에 ]`},
+ {s:"n",t:`연이는 당연히 [나중에]를 눌렀다. 그러자 화면이 바뀌었다.`},
+ {s:"sys",im:true,t:`[ 나중에는 없습니다. ]`},
+ {s:"yeon",x:"angry",t:`…그럼 왜 물어봤는데?`},
+ {s:"sys",t:`[ YES ]     [ YES ]`},
+ {s:"yeon",x:"disappoint",t:`이건 선택지가 아니라, 납치 예고잖아.`},
+ {s:"n",fx:"tarot",t:`그때 화면 위로, 타로 카드 한 장이 떠올랐다. 검은 배경에 달빛으로 된 문. 문 앞엔 작은 꽃 한 송이. 카드 아래엔 — [ THE DOOR ].`},
+ {s:"yeon",x:"fear",t:`타로에… 이런 카드가 있었나?`},
+ {s:"n",bg:"tarotDoor",fx:"veil",bgm:"crisis",t:`그 순간, 카드 속 문이 열렸다. 끼이이익 — 소리는 휴대폰이 아니라, 방 안에서 났다.`},
+ {s:"n",c:{who:"yeon",x:"fear"},t:`침대 앞 허공에, 진짜 달빛 문이 세워져 있었다. 문틈 너머로, 낯선 밤하늘이 소용돌이쳤다.`},
+ {s:"yeon",x:"fear",t:`이거… 지금 내 방 맞지?`},
+ {s:"n",t:`대답 대신, 문 안에서 카드들이 쏟아져 나왔다. 별, 달, 태양, 운명의 수레바퀴. 책상 위 과제물도, 뒤집힌 우산도, 반쯤 먹다 만 컵라면까지, 방 안을 빙글빙글 돌기 시작했다.`},
+ {s:"sys",t:`[ 타로의 문 개방 ]  [ 운세 세계 접속 중 ]  [ 사주의 강 좌표 확인 ]`},
+ {s:"yeon",x:"angry",t:`닫아. 닫으라고! 강? 여긴 원룸인데!`},
+ {s:"sys",t:`[ 초기 아바타 변환 중 ]`},
+ {s:"n",t:`문 안쪽에서 빛이 터졌다. 연이는 끝까지 침대 헤드를 붙잡았다. 하지만 침대 헤드는, 생각보다 의리가 없었다. 뚝.`},
+ {s:"yeon",x:"fear",t:`배신자!`},
+ {s:"n",fx:"suck",t:`연이는 그대로 — 타로의 문 안으로, 빨려 들어갔다.`},
+ {s:"n",bg:"river",bgm:"crisis",t:`문 너머는 끝없는 밤이었다. 위도 밤, 아래도 밤. 별자리들이 강물처럼 흐르고, 수많은 타로 카드가 그녀 주변을 돌며 속삭였다. 선택. 추락. 시작. 변신.`},
+ {s:"sys",t:`[ 운명 코드 접속 완료 ]  [ 손상된 운세 세계로 진입합니다. ]`},
+ {s:"yeon",x:"fear",t:`나는 동의한 적이—`},
+ {s:"n",fx:"transform",t:`말이 끝나기도 전에, 몸이 이상해졌다. 팔이 짧아지고, 다리가 짧아지고, 몸이 둥글어졌다. 머리 위에서, 뭔가가 피어났다.`},
+ {s:"yeon",im:true,t:`꿀아아아악!`},
+ {s:"n",bg:"river",bgm:"riverEnter",form:"pig",c:{who:"yeon"},t:`자기 목소리가 아니었다. 그리고 곧장, 별빛 강 위로 떨어졌다. 풍덩 — 가라앉지는 않았다. 통, 통통. 말랑한 몸이 강물 위에서 튕겼다.`},
+ {s:"n",c:{who:"yeon"},t:`분홍빛 몸. 짧은 다리. 동그란 배. 꼬불꼬불한 꼬리. 머리 위에 핀, 작은 꽃 한 송이. 연이는 앞발을 들어 보았다. 너무 작고, 너무 통통했다.`},
+ {s:"yeon",t:`나……`},
+ {s:"yeon",im:true,t:`나 돼지 됐잖아아아아!`}
+]});
+
+/* ============================ EP.01 ============================ */
+EPISODES.push({no:"EP.01",tag:"제1화 · 꽃돼지가 되었다",title:"꽃돼지가 되었다",beats:[
+ {s:"yeon",bg:"river",bgm:"riverEnter",form:"pig",c:{who:"yeon"},im:true,t:`나 돼지 됐잖아아아아!`},
+ {s:"n",t:`비명이 밤하늘 같은 강 위로 길게 퍼졌다. 정확히는, 연이는 강물 위에 떠 있는 커다란 연잎 배 위에 있었다.`},
+ {s:"n",t:`연잎은 믿기 힘들 만큼 컸다. 웬만한 원룸 침대보다 넓었고, 가장자리엔 투명한 이슬방울이 조명처럼 반짝였다. 노도, 돛도, 엔진도 없었다. 그냥 거대한 연잎. 근데 떠 있었다. 심지어, 안정적이었다.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 한참 자기 몸을 내려다봤다. 짧은 앞발. 동그란 배. 꼬불꼬불한 꼬리. 머리 위에 핀 작은 꽃. 분홍빛 몸은 아무리 봐도 인간의 것이 아니었다.`},
+ {s:"yeon",t:`아니. …이 손으로 과제는 어떻게 해?`},
+ {s:"n",t:`그 순간, 말끝에 이상한 소리가 섞였다.`},
+ {s:"yeon",t:`이거 진짜 말이 안 되잖아, 꿀.`},
+ {s:"n",t:`연이는 그대로 굳었다.`},
+ {s:"yeon",t:`……방금 뭐야?`},
+ {s:"n",t:`다시, 아주 조심스럽게 입을 열었다.`},
+ {s:"yeon",t:`안녕하세요. 저는 인간입니다.`},
+ {s:"n",t:`멀쩡했다. 연이는 아주 작게, 안도의 한숨을 쉬었다.`},
+ {s:"yeon",t:`좋아. 말은 됨. 그나마 다행.`},
+ {s:"n",c:{who:"yeon"},t:`하지만 곧, 앞발을 다시 봤다.`},
+ {s:"yeon",t:`…근데 손가락이 사라졌다.`},
+ {s:"n",t:`현실감이 뒤늦게 밀려왔다. 조금 전까지 그녀는 자기 방에 있었다. 젖은 양말을 벗어 던지고, 이상한 앱을 눌렀고, 타로 카드 같은 문이 열렸고 — 빨려 들어왔다. 그다음이 이거였다. 꽃 달린 돼지. 정확히는, 꽃돼지.`},
+ {s:"n",t:`연이는 연잎 위에 털썩 주저앉았다. 말랑한 몸이 살짝 눌렸다. 그 감각이 또 너무 생생해서, 오히려 더 싫었다.`},
+ {s:"yeon",t:`오케이. 알겠어. …이거 꿈이야.`},
+ {s:"n",t:`당연했다. 사람이 앱 하나 잘못 눌렀다고 꽃돼지가 되는 건, 아무리 요즘 세상이 이상해도 선을 넘었다.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 앞발로 연잎 바닥을 톡톡 쳤다. 촉감이, 있었다.`},
+ {s:"yeon",t:`…그래픽 좋네.`},
+ {s:"n",t:`그녀는 아주 진지하게 결론 내렸다. 어제 새벽 세 시까지 한정 보상 이벤트를 돌았으니, 이건 분명 게임 후유증이라고. 연잎 배, 이상한 강, 꽃돼지 아바타 — 완전 튜토리얼 감성이었다.`},
+ {s:"yeon",x:"talk",t:`상태창.`},
+ {s:"n",t:`아무것도 뜨지 않았다.`},
+ {s:"yeon",x:"talk",t:`메뉴. …인벤토리.`},
+ {s:"n",t:`바람만 지나갔다. 연이는 눈을 가늘게 떴다.`},
+ {s:"yeon",t:`UI가 불친절하네.`},
+ {s:"n",bgm:"neo",t:`그때, 연잎 배 가장자리에서 낮은 목소리가 들렸다.`},
+ {s:"neo",r:{who:"neo"},t:`현실 부정이 길군.`},
+ {s:"n",t:`연이는 그대로 굳었다. 천천히 고개를 돌렸다. 연잎 끝에, 무언가가 앉아 있었다.`},
+ {s:"n",t:`처음엔 흰 고양이인 줄 알았다. 몸집은 작고, 고양이처럼 날렵하고, 꼬리도 길었다. 그런데 목덜미에, 황금빛 갈기가 있었다. 고양이인데, 갈기가.`},
+ {s:"yeon",t:`…너 뭐야?`},
+ {s:"neo",t:`나는 네오.`},
+ {s:"yeon",t:`고양이야?`},
+ {s:"neo",t:`아니다.`},
+ {s:"yeon",t:`사자야?`},
+ {s:"neo",t:`굳이 말하자면, 사자에 더 가깝다.`},
+ {s:"yeon",t:`그럼 왜 이렇게 작아?`},
+ {s:"n",t:`네오의 눈썹이 꿈틀했다.`},
+ {s:"neo",t:`첫 만남부터 무례하군.`},
+ {s:"yeon",x:"talk",t:`나는 갑자기 이상한 데로 끌려와서 방금 돼지가 됐어. 무례할 권리 정도는 있다고 봐.`},
+ {s:"n",t:`네오는 잠시 침묵했다.`},
+ {s:"neo",t:`…그건, 인정한다.`},
+ {s:"yeon",t:`너 NPC야?`},
+ {s:"neo",t:`아니다.`},
+ {s:"yeon",t:`NPC들은 원래 다 그렇게 말해.`},
+ {s:"neo",t:`나는 사주의 강을 지키는 가디언이다.`},
+ {s:"yeon",t:`…고급 NPC네.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 머리 위 꽃을 앞발로 눌러봤다. 꽃잎이 작게 흔들렸다. 촉감이 있었다. 너무 생생했다.`},
+ {s:"yeon",t:`아. 디테일 미쳤다.`},
+ {s:"neo",t:`아픈가?`},
+ {s:"yeon",t:`아프진 않은데, 기분이 이상해.`},
+ {s:"neo",t:`그럼 현실이다.`},
+ {s:"yeon",t:`그런 판정 너무 대충이잖아.`},
+ {s:"n",t:`네오는 대답 대신 배 밖을 바라봤다. 연이도 따라 고개를 돌렸다. 그제야 주변이 제대로 보였다.`},
+ {s:"n",t:`강이었다. 하지만 평범한 강이 아니었다. 물은 검푸른 밤색, 물결마다 별빛이 부서졌고, 물속엔 낯선 한자들이 물고기처럼 떠다녔다. 갑자. 을축. 병인. 정묘. 시험 범위에 나오면 바로 포기하고 싶은 글자들이었다.`},
+ {s:"n",t:`멀리엔 안개가 깔렸고, 그 너머로 기둥 같은 것들이 흐릿하게 서 있었다. 하늘엔 큰 달. 그 달빛은 이상하게 차갑지 않았다. 예뻤다. 말도 안 되게 예뻤다. …그래서 더 무서웠다.`},
+ {s:"n",t:`꿈이라면 깨면 된다. 게임이라면 끄면 된다. 하지만 여긴, 끄는 법을 모르는 꿈 같았다.`},
+ {s:"yeon",t:`…여기 어디야?`},
+ {s:"neo",t:`사주의 강.`},
+ {s:"yeon",t:`사주?`},
+ {s:"neo",t:`사람의 운명 코드가 흘러가는 곳이다.`},
+ {s:"yeon",t:`응. 모르겠어.`},
+ {s:"neo",t:`정상이다. 처음 온 인간은 대부분 그렇다.`},
+ {s:"yeon",t:`인간 아니게 됐는데.`},
+ {s:"neo",t:`정확히는 꽃돼지다.`},
+ {s:"yeon",t:`그 단어, 들을수록 기분 나빠져.`},
+ {s:"neo",t:`그냥 돼지보다는 낫지 않나.`},
+ {s:"yeon",t:`그게 위로야?`},
+ {s:"neo",t:`객관적인 분석이다.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 깊게 숨을 들이마셨다. 작은 콧김이 나왔다. 꿀꿀. 너무 귀여운 소리였다. 그 소리가 제 입에서 나왔다는 사실에, 갑자기 화가 났다.`},
+ {s:"yeon",im:true,t:`왜 하필 돼지냐고! 그리고 여긴 어디야, 나 집에 갈래.`},
+ {s:"neo",t:`쉽지 않다.`},
+ {s:"yeon",t:`쉬운 답변, 기대도 안 했어.`},
+ {s:"n",t:`네오가 연잎 위를 천천히 걸었다. 발을 디딜 때마다 바닥이 아주 작게 빛났다. 발끝엔 별 모양 문양이 있었다. 그냥 이상한 소리만 하는 고양이는, 아닌 것 같았다.`},
+ {s:"yeon",t:`네오. 니가 여기 담당자야?`},
+ {s:"neo",t:`비슷하다.`},
+ {s:"yeon",x:"talk",t:`그럼 민원 넣을게. 사람이 앱 눌렀다고 돼지 되는 건 과하지 않아?`},
+ {s:"neo",t:`나름 귀엽지 않나?`},
+ {s:"yeon",t:`민원 추가. …그리고 내가 누른 건 앱이잖아. Code 뭐시기 하는.`},
+ {s:"n",t:`네오의 표정이 조금 굳었다.`},
+ {s:"neo",t:`그건, 문이다.`},
+ {s:"yeon",t:`앱처럼 생겼던데?`},
+ {s:"neo",t:`요즘 인간이 누르기 좋은 형태로 나타났을 뿐이다. …네가 문을 여는 것보다, 앱을 더 잘 누를 테니까.`},
+ {s:"n",t:`연이는 할 말을 잃었다. 맞는 말이라서, 더 기분 나빴다.`},
+ {s:"n",fx:"heart",c:{who:"yeon"},t:`그때, 배 아래 강물이 크게 흔들렸다. 첨벙. 연이는 반사적으로 몸을 낮췄다.`},
+ {s:"yeon",t:`방금 뭐야?`},
+ {s:"n",t:`네오의 눈빛이 바뀌었다. 아까까지 귀찮은 고양이 같더니, 지금은 달랐다. 갈기 끝이 희미하게, 금빛으로 타올랐다.`},
+ {s:"neo",t:`불운의 찌꺼기. …네 현실에서 새어 나온 것들이다.`},
+ {s:"yeon",t:`내… 현실?`},
+ {s:"n",t:`네오는 강물 위, 검은 먹물 같은 것이 번지는 곳을 가리켰다. 그 검은 물은 지나가는 글자를 하나씩 삼켰다. 빛나던 한자들이 검게 변하고, 형태가 비틀렸다.`},
+ {s:"neo",t:`요즘, 운이 계속 꼬였지.`},
+ {s:"n",t:`알람이 안 울린 아침. 카드 오류. 삼각김밥 사기 사건. 깨진 과제 파일. 엉킨 약속. 삭제되지 않던 앱. — 연이는 순간, 말문이 막혔다.`},
+ {s:"n",c:{who:"yeon"},t:`전부 농담처럼 넘기려 했지만, 사실 마음 한구석에선 계속 신경 쓰고 있었다. 왜 이렇게까지 꼬이지. 왜 나만 타이밍이 안 맞지. 왜 아무것도 아닌 일이, 매번 나를 비껴가듯 망가지지.`},
+ {s:"yeon",t:`그게… 여기랑 관련 있어?`},
+ {s:"neo",t:`네 운명 코드가 훼손됐다. 네 사주 글자가, 흩어졌다는 뜻이다.`},
+ {s:"yeon",t:`내 사주를, 누가 건드렸다고? 왜? 거기 뭐가 있다고 굳이.`},
+ {s:"neo",t:`그걸 알아내려면, 네 글자를 되찾아야 한다.`},
+ {s:"n",bg:"hands",bgm:"crisis",fx:"hands",t:`네오가 대답을 끝내기 전에, 강물 아래에서 검은 손이 솟았다. 손이라기엔 너무 길고, 그림자라기엔 너무 선명했다. 검은 물로 된 손이, 연잎 가장자리를 붙잡으려 했다.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 얼어붙었다. 가슴이 철렁 내려앉았다. 방금까지 억지로 붙들던 농담들이, 머릿속에서 싹 사라졌다. 저건 꿈의 장식 같은 게 아니었다. 무언가가, 자신을 잡으러 오고 있었다.`},
+ {s:"yeon",t:`저거… 나한테 오는 거야?`},
+ {s:"neo",t:`그렇다.`},
+ {s:"yeon",t:`왜?`},
+ {s:"neo",t:`네가 표적이니까.`},
+ {s:"yeon",im:true,t:`그걸 왜 그렇게 차분하게 말해!`},
+ {s:"n",t:`검은 손이 배 위로 뻗어왔다. 연이는 물러나려 했지만, 몸이 아직 익숙하지 않았다. 짧은 다리가 연잎 위에서 헛돌았다.`},
+ {s:"yeon",t:`아니, 이 몸 조작감 왜 이렇게 구려!`},
+ {s:"n",fx:"claw",t:`검은 손이 연이를 붙잡으려는 순간 — 네오가 사라졌다. 아니, 사라진 것처럼 보였다. 금빛 선 하나가 공중을 갈랐다. 촤악! 검은 손이 반으로 갈라지고, 먹물 같은 물방울이 흩어졌다.`},
+ {s:"n",r:{who:"neo"},t:`네오는 연잎 끝에 착지했다. 작은 몸이었다. 하지만 방금 그 움직임은, 전혀 작지 않았다.`},
+ {s:"yeon",t:`오.`},
+ {s:"neo",im:true,t:`이제 고양이라고 부르지 마라. 나는 사자다.`},
+ {s:"n",t:`연이는 잠시 고민했다.`},
+ {s:"yeon",t:`…전투 고양이?`},
+ {s:"n",t:`네오의 눈이 가늘어졌다.`},
+ {s:"neo",t:`그냥 네오라고 불러라.`},
+ {s:"yeon",t:`알겠어, 네오.`},
+ {s:"n",fx:"hands",t:`검은 손은 사라지지 않았다. 강 아래에서 더 많은 그림자가 올라왔다. 잘린 손들은 물속으로 녹아, 더 굵고 긴 형태로 다시 뭉쳤다.`},
+ {s:"n",t:`네오가 연잎 바닥을 앞발로 쳤다. 툭. 가장자리에 투명한 물방울들이 떠올라, 작은 방패처럼 둘러섰다. 검은 손이 방패를 긁었다. 끼이이익.`},
+ {s:"yeon",t:`소리 최악.`},
+ {s:"neo",t:`오래 못 버틴다.`},
+ {s:"yeon",t:`그럼 어떡해?`},
+ {s:"neo",t:`…네 머리 위 꽃은, 살아 있다.`},
+ {s:"n",c:{who:"yeon"},t:`연이가 머리 위 꽃을 만졌다. 작은 꽃잎이 손끝에 닿았다. 그 순간, 꽃이 아주 약하게 빛났다. 따뜻했다. 아주 작지만, 분명히.`},
+ {s:"yeon",t:`이건 뭐야?`},
+ {s:"neo",t:`네 일간의 흔적. 너 자신을 나타내는, 중심 글자다.`},
+ {s:"n",t:`연이는 바로 이해를 포기했다.`},
+ {s:"yeon",t:`좋아. 지금은 그냥, 내 꽃이 배터리라고 생각할게.`},
+ {s:"neo",t:`비슷하지 않다.`},
+ {s:"yeon",t:`내가 이해하기 쉽게 바꾼 거야.`},
+ {s:"neo",t:`틀린 이해는 위험하다.`},
+ {s:"yeon",t:`너 설명 너무 교양 수업 같아.`},
+ {s:"n",bgm:"neo",t:`검은 손들이 다시 다가왔다. 네오는 강 너머를 바라봤다. 안개 속에, 네 개의 빛이 떠올랐다.`},
+ {s:"n",t:`하나는 날카롭고 푸른빛. 하나는 따뜻한 불빛처럼 흔들렸다. 하나는 황금빛으로 번쩍였다. 마지막 하나는, 오래된 책장처럼 부드럽게 빛났다.`},
+ {s:"neo",t:`네 사주 글자는, 네 개의 섬에 흩어져 있다. 비겁의 섬. 식상의 섬. 재성의 섬. 인성의 섬.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 네 개의 빛을 바라봤다. 꿈이라기엔 너무 선명하고, 게임이라기엔 너무 무서웠다. 그런데 이상하게도, 저 빛들이 자신을 부르는 것 같았다. 마음 깊은 곳이, 조용히 흔들렸다.`},
+ {s:"yeon",t:`저걸 다 가야, 집에 갈 수 있다는 거지?`},
+ {s:"neo",t:`그렇다.`},
+ {s:"yeon",t:`중간에 환불은?`},
+ {s:"neo",t:`없다.`},
+ {s:"yeon",t:`문의 게시판은?`},
+ {s:"neo",t:`없다.`},
+ {s:"yeon",t:`고객센터는?`},
+ {s:"neo",t:`…나름, 내가 있다.`},
+ {s:"n",t:`연이는 네오를 위아래로 훑었다.`},
+ {s:"yeon",t:`뭔가 엄청 불안한데.`},
+ {s:"neo",t:`불만은 접수하지 않는다.`},
+ {s:"yeon",t:`최악의 고객센터네.`},
+ {s:"n",fx:"claw",t:`그때 검은 손 하나가 방패를 뚫고 들어왔다.`},
+ {s:"yeon",t:`꿀악!`},
+ {s:"n",t:`연이는 바로 제 입을 막았다.`},
+ {s:"yeon",t:`방금 건, 놀라서 그런 거야.`},
+ {s:"neo",t:`알고 있다.`},
+ {s:"n",fx:"burst",t:`네오가 다시 뛰어올랐다. 발톱에 금빛 문양이 떠올랐다. — 사주성광. 앞발을 휘두르자, 별빛 칼날이 강물 위를 가르며 퍼졌다. 검은 손들이 한꺼번에 잘려 나갔다.`},
+ {s:"n",bg:"river",bgm:"neo",c:{who:"yeon"},r:{who:"neo"},t:`연잎 배가 앞으로 밀려났다. 강물이 길을 열듯 갈라졌다. 네오는 착지하자마자, 낮게 말했다.`},
+ {s:"neo",t:`첫 목적지는, 비겁의 섬이다.`},
+ {s:"yeon",t:`비겁?`},
+ {s:"neo",t:`너와 닮은 것들이 있는 섬이다.`},
+ {s:"yeon",t:`나랑 닮은 게, 또 있어?`},
+ {s:"neo",t:`많다. 친구, 경쟁자, 자존심, 질투 — 그리고 용기.`},
+ {s:"n",c:{who:"yeon"},t:`연이는 말없이 안개 속 첫 번째 빛을 바라봤다. 그 빛은 아름답기보다, 유리처럼 날카로웠다. 가까이 가면, 베일 것 같은 느낌이었다.`},
+ {s:"yeon",t:`왜 하필 첫 섬부터 느낌이 별로야?`},
+ {s:"neo",t:`너 자신과 마주하는 일은, 원래 편하지 않다.`},
+ {s:"yeon",t:`또 명언처럼 말하네.`},
+ {s:"neo",t:`사실이니까.`},
+ {s:"n",bg:"island",t:`연잎 배가 속도를 냈다. 뒤에선 검은 손들이 다시 강물을 찢고 올라왔다. 앞에선 안개가 짙어졌다. 그 너머로, 섬의 그림자가 조금씩 나타났다. 비겁의 섬.`},
+ {s:"n",im:true,t:`섬 주변엔 수많은 작은 거울 조각들이 떠 있었다. 그 거울마다 — 무언가가 비쳤다.`}
+]});
+
+/* ============================ EP.02 ============================ */
+EPISODES.push({no:"EP.02",tag:"제2화 · 갈기 있는 고양이? 네오",title:"갈기 있는 고양이? 네오",beats:[
+ {s:"n",bg:"island",bgm:"neo",l:{who:"yeon"},r:{who:"neo"},t:`연잎 배가 비겁의 섬 선착장에 닿았다. 툭. 생각보다 작은 소리였다.`},
+ {s:"n",t:`방금 전까지 등 뒤를 쫓던 검은 손들은, 섬 가까이에 오자 더는 따라오지 못했다. 안개 밖에서 잠시 꿈틀거리다, 강물 아래로 천천히 가라앉았다.`},
+ {s:"n",t:`연이는 연잎 가장자리를 붙든 채 한참 숨을 골랐다. 손가락도 없는 짧은 앞발에, 힘이 잔뜩 들어가 있었다. 그래도 어떻게든, 붙잡고는 있었다.`},
+ {s:"yeon",t:`살았다…….`},
+ {s:"n",t:`말끝에 작은 콧김이 섞였다. 꿀. 연이는 곧바로 제 입을 막았다.`},
+ {s:"yeon",t:`아니, 방금 건 숨소리야. 돼지 소리 아님.`},
+ {s:"n",t:`네오는 대답 대신, 선착장으로 사뿐히 뛰어내렸다. 그 작은 몸이 내려앉자, 유리처럼 반짝이는 바닥에 금빛 발자국이 잠깐 나타났다 사라졌다.`},
+ {s:"yeon",t:`와. 효과음만 있었으면 완전 게임인데.`},
+ {s:"neo",t:`아직도 게임이라고 생각하나.`},
+ {s:"yeon",t:`희망은 아직 안 버렸어.`},
+ {s:"neo",t:`현실 부정도 재능이라면, 대단한 재능이군.`},
+ {s:"yeon",t:`칭찬으로 접수할게. 근데 너 진짜 뭐냐. 갈기 달린 고양이야, 작아진 사자야.`},
+ {s:"neo",t:`…사자다.`},
+ {s:"yeon",t:`고양이 같은데.`},
+ {s:"n",t:`연이는 조심스럽게 연잎에서 내려오려 했다. 앞발을 먼저 딛고, 뒷다리를 옮기려는 순간—`},
+ {s:"yeon",t:`어, 어어?`},
+ {s:"n",fx:"burst",t:`짧은 다리가 생각보다 말을 안 들었다. 연이는 그대로 선착장 바닥에 엎어졌다. 퍽.`},
+ {s:"n",t:`아프진 않았다. 대신 자존심이, 조금 아팠다.`},
+ {s:"neo",t:`착지는… 연습이 좀 필요하겠어.`},
+ {s:"yeon",t:`분석하지 마.`},
+
+ {s:"n",bg:"islandIn",t:`비겁의 섬은 조용했다. 풀도, 집도, 사람도 없었다. 대신 섬 전체가, 거울 조각으로 지어진 것 같았다.`},
+ {s:"n",t:`바닥은 검은 유리처럼 반짝였고, 크고 작은 거울들이 공중에 떠 있었다. 손바닥만 한 것도, 문짝만 한 것도 있었다. 거울마다 각도가 달랐다.`},
+ {s:"n",t:`하늘을 비추는 거울. 강을 비추는 거울. 연잎 배를 비추는 거울. 그리고— 연이를 비추는 거울.`},
+ {s:"n",t:`연이는 가까운 거울 하나를 들여다봤다. 분홍빛 몸. 작은 꽃. 짧은 앞발. 너무 귀여웠다. 그래서, 마음에 안 들었다.`},
+ {s:"yeon",t:`아직도 적응 안 돼.`},
+ {s:"n",t:`몸을 이리저리 돌려 보니, 꼬리가 같이 흔들렸다. 그게 또 귀여워서, 더 짜증이 났다.`},
+ {s:"yeon",t:`아 진짜.`},
+ {s:"neo",t:`왜 그러지.`},
+ {s:"yeon",t:`나 원래 걸크러시가 추구민데. 귀여운 게 제일 싫단 말이야.`},
+ {s:"neo",t:`…복잡한 감정이군.`},
+ {s:"yeon",t:`넌 몰라. 어느 날 갑자기 외모 장르가 바뀐 사람 심정.`},
+ {s:"neo",t:`나는 태어날 때부터 완성형이었다.`},
+ {s:"yeon",t:`아, 그러셔.`},
+
+ {s:"n",bgm:"gloom",t:`연이는 대충 넘기고, 섬 안쪽으로 걸었다. 안으로 갈수록 거울 조각이 많아졌다. 그런데 이상했다.`},
+ {s:"n",t:`어떤 거울은, 지금의 꽃돼지 연이를 비추지 않았다. 처음엔 잘못 본 줄 알았다. 연이는 멈춰 섰다.`},
+ {s:"n",c:null,r:{who:"mirror"},t:`거울 속에는, 사람이 있었다.`},
+ {s:"n",t:`젖은 머리. 헐렁한 후드티. 무릎 나온 트레이닝 바지. 침대에 던져 둔 충전기. 손에 쥔 휴대폰.`},
+ {s:"n",t:`그리고 피곤한 얼굴로 화면을 내려다보는, 스물셋의 대학생. 연이였다. 원래의, 연이. 너무 익숙해서, 오히려 낯설었다.`},
+ {s:"n",t:`연이는 천천히 거울 앞으로 다가갔다. 앞발이 바닥에 닿을 때마다, 작게 탁, 탁 소리가 났다.`},
+ {s:"n",t:`거울 속 연이는 침대에 앉아 있었다. 방금 전까지 현실에 있던, 그 모습 그대로. 머리는 대충 묶였고, 얼굴엔 지친 기색이 남아 있었다. 그래도 그건, 연이가 알던 자기 얼굴이었다.`},
+ {s:"n",t:`사람의 손. 사람의 다리. 사람의 눈.`},
+ {s:"n",t:`연이는 제 앞발을 내려다봤다가, 다시 거울을 봤다. 가슴 한구석이, 이상하게 조여 왔다.`},
+ {s:"yeon",t:`나…… 저렇게 생겼었지.`},
+ {s:"n",t:`목소리가 생각보다 작게 나왔다. 잘 나오지 않았다.`},
+ {s:"n",t:`잊고 있던 것들이, 한꺼번에 돌아왔다. 손가락으로 화면을 넘기던 감각. 머리 묶을 때 손목에 걸리던 머리끈.`},
+ {s:"n",t:`젖은 양말을 벗어 던지던 짜증. 과제 파일이 날아갔을 때의 허탈함. 그 전부가, 갑자기 아득히 멀게 느껴졌다.`},
+ {s:"n",fx:"veil",t:`연이는 앞발을 들어 거울에 댔다. 차가웠다. 거울 속 연이도 손을 들었다. 손바닥과 앞발이, 마주 닿았다.`},
+ {s:"n",t:`그 순간, 연이는 이상하게 울컥했다. 돌아가고 싶었다. 정말로.`},
+ {s:"n",t:`방금까진 집에 갈래, 를 반쯤 농담처럼 말했는데. 지금은 달랐다. 그 말이, 갑자기 진짜가 되었다.`},
+ {s:"n",t:`집에 가고 싶다. 내 방으로. 내 침대로. 내 손가락으로. 내 몸으로.`},
+ {s:"yeon",c:{who:"neo"},t:`네오.`},
+ {s:"neo",t:`응.`},
+ {s:"yeon",t:`저거…… 진짜 나야?`},
+ {s:"n",t:`네오가 거울을 보았다. 그의 표정도, 조금 진지해졌다.`},
+ {s:"neo",t:`네 본래 모습이다.`},
+ {s:"yeon",t:`그럼 저기로 들어가면, 돌아갈 수 있어?`},
+ {s:"neo",t:`아니다.`},
+ {s:"n",t:`대답은 빠르고, 단호했다. 연이는 거울에서 눈을 떼지 못한 채 물었다.`},
+ {s:"yeon",t:`…왜?`},
+ {s:"neo",t:`비겁의 섬 거울은 출구가 아니다. 네가 잃어버린 자리들을 비추는 곳이지.`},
+ {s:"yeon",t:`자리?`},
+ {s:"neo",t:`네가 너 자신이라 믿었던 자리. 남들이 보는 너. 네가 되고 싶었던 너. 그리고— 네가 밀려났다고 느낀 자리.`},
+ {s:"n",t:`알 것 같은데, 알고 싶지 않은 말이었다. 그래서 더 싫었다.`},
+
+ {s:"n",bgm:"crisis",t:`그때, 거울 속 연이가 움직였다. 연이는 숨을 멈췄다.`},
+ {s:"n",t:`분명 방금까진, 거울이 연이의 움직임을 따라 하고 있었다. 그런데 지금은, 달랐다.`},
+ {s:"n",t:`거울 속 인간 연이는, 연이와 다른 표정을 짓고 있었다. 조금 더 차분하게. 조금 더 똑바로 서서. 조금 더— 연이답지 않게, 자신 있어 보이게.`},
+ {s:"geo",im:true,t:`늦었네.`},
+ {s:"n",t:`연이는 얼어붙었다.`},
+ {s:"yeon",t:`……뭐?`},
+ {s:"geo",t:`너 항상 늦잖아.`},
+ {s:"n",t:`그 말은 작았다. 그런데 날카로웠다. 연이는 저도 모르게, 뒤로 한 걸음 물러났다.`},
+ {s:"geo",t:`알람도 늦고. 답장도 늦고. 사과도 늦고. 기회도 늦고.`},
+ {s:"n",fx:"ink",t:`거울 표면에, 가느다란 금이 갔다.`},
+ {s:"geo",t:`이번에도, 늦었어.`},
+ {s:"n",t:`연이는 입술을 깨물었다.`},
+ {s:"yeon",t:`너 뭐야.`},
+ {s:"geo",t:`나? 연이.`},
+ {s:"n",t:`그 대답이 제일 싫었다. 연이는 제 가슴을 앞발로 툭 쳤다.`},
+ {s:"yeon",t:`연이는 나거든?`},
+ {s:"geo",t:`그래? 지금 그 모습으로?`},
+ {s:"n",t:`순간, 말문이 막혔다. 화가 났다. 그런데 이상하게, 바로 받아치지 못했다.`},
+ {s:"n",t:`거울 속 연이가, 너무 자연스러웠기 때문이다. 자기 방에 있던 모습. 자기 목소리. 자기 얼굴. 자기 표정.`},
+ {s:"n",t:`만약 누가 둘 중 하나를 진짜 연이로 골라야 한다면— 분홍 꽃돼지일까. 아니면, 저 사람일까.`},
+ {s:"neo",t:`조심해라.`},
+ {s:"yeon",t:`저거 뭐야.`},
+ {s:"neo",t:`비겁의 섬이 만든 반영이다. 너와 같은 얼굴을 한 경쟁자. 네 자리를 노리는, 또 다른 너.`},
+ {s:"yeon",t:`그러니까 도플갱어네.`},
+ {s:"neo",t:`쉽게 말하면 그렇다.`},
+ {s:"yeon",t:`내 인생 진짜, 콘텐츠 많다.`},
+
+ {s:"geo",t:`여긴 네 자리 없어.`},
+ {s:"n",fx:"veil",t:`그 말이 섬 전체에 퍼졌다. 그러자 주변 거울들이, 하나둘 빛나기 시작했다. 작은 거울마다, 다른 장면이 비쳤다.`},
+ {s:"n",t:`강의실 맨 뒷자리. 누군가 먼저 앉아 있는 자리. 조별 과제 채팅방에, 늦게 올라간 연이의 메시지. 읽히지 않은 답장.`},
+ {s:"n",t:`면접 취소 문자. 제출 실패한 공모전 화면. 그리고 편의점 바닥에 떨어진, 삼각김밥 하나.`},
+ {s:"yeon",t:`야, 삼각김밥은 빼라. 그건 너무 하찮잖아.`},
+ {s:"n",t:`장난처럼 말했지만, 목소리는 조금 흔들렸다. 사소한 일들인데. 하나하나는 웃어넘길 수 있는 일들인데.`},
+ {s:"n",t:`쌓이니까, 자꾸 밀려나는 느낌이었다. 제자리에서 조금씩 밀리고, 늦고, 놓치고— 결국 없는 사람이 되는 느낌.`},
+
+ {s:"n",t:`그때, 가장 큰 거울 하나가 천천히 떠올랐다. 다른 거울과 달랐다. 검푸른 빛이 감돌고, 표면이 물처럼 흔들렸다.`},
+ {s:"n",t:`그 안에, 연이의 본래 모습이 서 있었다. 하지만 이번엔 방 안이 아니었다. 검은 강 위였다. 사람의 모습으로.`},
+ {s:"n",t:`그 연이의 발밑엔, 아주 작은 새싹 하나가 돋아 있었다. 새싹 아래로는, 깊은 물결이 보였다.`},
+ {s:"sys",t:`[ 乙亥 ]`},
+ {s:"n",t:`거울 가장자리에 떠오른 두 글자를, 연이는 가만히 바라봤다. 이상하게, 눈을 뗄 수 없었다.`},
+ {s:"n",t:`을해. 처음 보는 글자처럼 낯설었는데, 이상하게 아주 오래전부터 알던 이름 같았다. 가슴 안쪽이, 작게 울렸다. 머리 위 꽃이, 희미하게 빛났다.`},
+ {s:"neo",t:`찾았다.`},
+ {s:"yeon",t:`뭘.`},
+ {s:"neo",t:`네 일주. 네가 태어난 날의 기둥. 네 중심에 가장 가까운 글자.`},
+ {s:"neo",im:true,t:`을해일주.`},
+ {s:"yeon",t:`을해일주…….`},
+ {s:"n",t:`그 말을 입에 올리는 순간, 머리 위 꽃이 조금 더 밝게 빛났다. 거울 속 인간 연이도, 그 빛을 보았다. 그리고 처음으로— 표정이 굳었다.`},
+ {s:"geo",t:`안 돼.`},
+ {s:"n",fx:"burst",t:`거울 속 연이가 손을 뻗었다. 거울 속 [乙亥] 글자가, 그녀 쪽으로 끌려가기 시작했다.`},
+ {s:"neo",t:`연이, 막아라!`},
+ {s:"yeon",t:`어떻게!`},
+ {s:"neo",t:`네 이름을 붙잡아!`},
+ {s:"yeon",t:`그게 무슨 소리야! 알기 쉽게 좀 말해!`},
+ {s:"neo",t:`네 자리를, 뺏기지 말라는 뜻이다!`},
+
+ {s:"geo",t:`너는 지금, 네가 싫잖아.`},
+ {s:"n",t:`연이는 멈칫했다.`},
+ {s:"geo",t:`그 몸도 싫고. 여기 있는 것도 싫고. 운 나빠진 네 현실도, 싫고.`},
+ {s:"n",fx:"ink",t:`거울 속 연이가 한 걸음 앞으로 나왔다. 거울 표면이 물처럼 출렁였다.`},
+ {s:"geo",im:true,t:`그러니까— 내가 할게. 내가 진짜 연이야.`},
+ {s:"n",t:`연이의 심장이 철렁했다.`},
+ {s:"geo",t:`네 대신, 내가 돌아갈게.`},
+ {s:"n",t:`연이는 숨이 막혔다. 거울 속 자신은 너무 그럴듯했다. 인간의 모습. 익숙한 얼굴. 정상적인 손. 정상적인 목소리. 지금의 연이가 잃어버린 것들을— 저 애는 전부 가지고 있었다.`},
+ {s:"geo",t:`어차피 지금 모습으로 돌아가도, 아무도 널 너라고 안 믿을걸?`},
+ {s:"n",t:`그 말이, 목에 걸렸다. 연이는 제 앞발을 내려다봤다. 분홍빛. 짧고 둥근. 귀여운데, 자기 같지 않은 몸.`},
+ {s:"n",t:`잠깐이었다. 정말 잠깐. 저 애가 대신 돌아가면? 저게 나보다 낫다면? 그런 생각을 했다는 사실이, 연이는 스스로에게 조금 충격이었다.`},
+ {s:"neo",t:`너무 귀 기울여 듣지 마.`},
+ {s:"yeon",t:`근데…….`},
+ {s:"neo",t:`거울은, 네가 싫어하는 틈을 파고든다.`},
+ {s:"n",t:`네오가 연이 앞에 섰다.`},
+ {s:"neo",t:`비겁의 섬은 싸움의 섬이다. 하지만 상대는 남이 아니야. 네 자리를 뺏으려는, 또 다른 너다.`},
+ {s:"geo",t:`말이 많네.`},
+ {s:"n",fx:"claw",t:`거울 속 연이가 손가락을 튕겼다. 주변 거울 조각이 일제히 날아올랐다. 날카로운 유리가, 연이와 네오를 향해 쏟아졌다.`},
+ {s:"neo",t:`뒤로!`},
+ {s:"n",fx:"burst",t:`네오의 갈기가 금빛으로 타올랐다. 그가 뛰어올라, 공중에서 몸을 회전했다. 금빛 발톱이 유리 조각을 쳐 냈다. 쨍. 쨍. 쨍.`},
+ {s:"n",t:`파편이 사방으로 흩어졌다. 네오는 착지하자마자, 다시 자세를 낮췄다.`},
+ {s:"neo",t:`저 글자에서, 눈 떼지 마!`},
+
+ {s:"n",t:`연이는 큰 거울을 바라봤다. 을해. 그 글자는 거울 속 인간 연이와, 지금의 꽃돼지 연이 사이에서 흔들리고 있었다. 마치, 진짜 주인을 못 고르는 것처럼.`},
+ {s:"yeon",t:`내 거라며.`},
+ {s:"neo",t:`그래.`},
+ {s:"yeon",t:`그럼 왜 쟤한테 가려고 하는데.`},
+ {s:"neo",t:`네가, 너 자신을 부정하고 있으니까.`},
+ {s:"n",t:`그 말에 연이는 숨을 멈췄다. 현실 부정. 꿈이라고 생각했다. 게임이라고 우겼다. 이세계물이라고 밀어붙였다.`},
+ {s:"n",t:`꽃돼지가 된 자신을, 계속 밀어냈다. 그럴 수밖에 없었다. 인정하기 싫었으니까. 무서웠으니까. 그리고 그 틈을— 거울 속 연이가, 차지하고 있었다.`},
+ {s:"yeon",t:`아…… 그런 식이야?`},
+ {s:"n",fx:"burst",t:`거울 속 연이가 다시 손을 뻗었다. [乙亥] 글자가, 그녀 쪽으로 더 끌려갔다. 연이의 머리 위 꽃이 흔들렸다.`},
+ {s:"neo",t:`연이!`},
+ {s:"n",t:`연이는 눈을 감았다. 잠깐. 아주 잠깐만. 그리고 다시 떴다.`},
+ {s:"n",t:`아직도 겁이 났다. 아직도 집에 가고 싶었다. 아직도 이 몸이 싫었다. 아직도, 이게 꿈이었으면 했다. 하지만.`},
+ {s:"yeon",t:`야.`},
+ {s:"n",t:`거울 속 연이가, 그녀를 보았다. 연이는 제 앞발로 가슴을 툭 쳤다.`},
+ {s:"yeon",t:`나도 지금 내 꼴, 마음에 안 들어.`},
+ {s:"yeon",t:`손가락도 없고. 다리도 짧고. 놀라면 꿀 소리 나오고.`},
+ {s:"n",t:`말끝에 정말 작게, 꿀, 하는 소리가 섞였다.`},
+ {s:"yeon",t:`봐. 이것도 짜증 나.`},
+ {s:"geo",t:`그러니까 내가—`},
+ {s:"yeon",t:`근데.`},
+ {s:"n",t:`연이가 말을 끊었다. 머리 위 꽃이 다시 빛났다. 아직 약했지만, 아까보다 선명했다.`},
+ {s:"yeon",im:true,t:`그래도, 연이는 나야.`},
+ {s:"n",t:`거울 속 연이의 표정이 굳었다.`},
+ {s:"yeon",t:`지금 이 꼴이어도.`},
+ {s:"n",t:`연이는 한 걸음 앞으로 나아갔다. 짧은 다리라, 걸음은 크지 않았다. 하지만 분명, 앞으로였다.`},
+ {s:"yeon",t:`내가 늦었어도.`},
+ {s:"n",t:`또 한 걸음.`},
+ {s:"yeon",t:`꼬였어도.`},
+ {s:"n",t:`또 한 걸음.`},
+ {s:"yeon",t:`운이 망했어도.`},
+ {s:"n",t:`연이는 큰 거울 앞에 섰다.`},
+ {s:"yeon",im:true,t:`내 자리는, 내가 정해.`},
+ {s:"n",fx:"ink",t:`그 순간, [乙亥] 글자가 크게 흔들렸다. 거울 속 인간 연이가, 이를 악물었다.`},
+ {s:"geo",t:`아직 아니야. 너는 아직, 네가 뭔지도 몰라.`},
+ {s:"n",fx:"burst",t:`거울 표면이 갈라졌다. 그 아래에서 검푸른 물이 흘러나왔다. 깊고, 차가운 물. 그 물속에서, 아주 작은 초록빛 새싹이 올라왔다.`},
+ {s:"neo",t:`乙.`},
+ {s:"n",t:`새싹 아래로, 검푸른 물결이 감돌았다.`},
+ {s:"neo",t:`亥.`},
+ {s:"n",t:`을목. 해수. 작은 새싹과, 깊은 물. 거울 속 글자가, 완전히 제 모습을 드러냈다.`},
+ {s:"sys",t:`[ 乙亥 ]`},
+
+ {s:"n",bgm:"crisis2",t:`그리고 그 순간. 거울 속 인간 연이가, 거울 밖으로 한 발을 내디뎠다.`},
+ {s:"n",t:`연이는 얼어붙었다. 거울에서 나온 인간 연이가, 연이와 똑같은 얼굴로 웃었다.`},
+ {s:"geo",t:`좋아. 그럼 증명해 봐.`},
+ {s:"n",fx:"veil",t:`주변 거울들이 일제히 빛났다.`},
+ {s:"geo",im:true,t:`네가 진짜 연이라는 걸.`},
+ {s:"n",t:`연이는, 자신과 똑같은 얼굴을 한 상대를 바라봤다. 아직 손에 들어온 건 없었다. 하지만 분명, 알았다. 저 글자. 을해. 그건 자신이 되찾아야 할, 첫 번째 기둥이었다.`},
+ {s:"neo",t:`물러서지 마라.`},
+ {s:"n",t:`연이는 깊게 숨을 들이켰다. 작은 꽃잎이, 바람에 흔들렸다.`},
+ {s:"yeon",t:`응. 근데 하나만 말하자.`},
+ {s:"n",t:`거울 속 연이가 고개를 기울였다. 연이가 눈을 가늘게 떴다.`},
+ {s:"yeon",im:true,t:`내 얼굴로, 그렇게 재수 없게 웃지 마.`},
+ {s:"n",t:`거울 속 연이가, 웃음을 멈췄다.`},
+ {s:"sys",t:`[ 비겁의 섬 · 첫 번째 시험 시작 ]`}
+]});
+
+/* ============================ EP.03 ============================ */
+EPISODES.push({no:"EP.03",tag:"제3화 · 본체 인증 실패",title:"본체 인증 실패",beats:[
+ {s:"n",bg:"islandIn",bgm:"crisis",l:{who:"yeon"},c:{who:"neo"},r:{who:"mirror"},t:`그 순간, 비겁의 섬 전체가 흔들렸다. 공중에 떠 있던 거울들이 일제히 뒤집혔다. 거울 뒷면마다, 숫자와 문장이 떠올랐다.`},
+ {s:"sys",t:`[ 비겁의 섬 · 본시험 시작 ]`},
+ {s:"sys",t:`[ 본체 인증을 진행합니다. ]   [ 제한 시간: 10분 ]`},
+ {s:"yeon",t:`뭐야. 갑자기 본인 인증?`},
+ {s:"geo",t:`맞아. 네 인생 로그인 권한을 걸고.`},
+ {s:"n",t:`연이의 얼굴에서 웃음기가 사라졌다.`},
+ {s:"yeon",t:`로그인 권한?`},
+ {s:"neo",t:`비겁의 섬은 네 자리를 시험한다. 여기서 네 자리를 빼앗기면, 현실로 돌아가는 권한도 흔들린다.`},
+ {s:"yeon",t:`잠깐. 그 말은— 쟤가 나 대신 현실로 돌아갈 수 있다는 뜻이야?`},
+ {s:"n",t:`네오는 대답하지 않았다. 그 침묵이, 대답이었다.`},
+ {s:"geo",t:`이해 빠르네.`},
+ {s:"n",t:`거울 속 연이가 두 손을 펼쳤다. 그녀는 인간의 모습이었다. 젖은 머리. 후드티. 손가락. 두 다리. 원래의 얼굴.`},
+ {s:"n",t:`반면 연이는 꽃돼지였다. 짧은 앞발. 둥근 배. 머리 위 작은 꽃. 너무 귀엽고, 너무 불리했다.`},
+ {s:"yeon",t:`와. 이거 진짜 억울한데?`},
+ {s:"geo",t:`억울하면 이기면 되지.`},
+ {s:"yeon",t:`내 얼굴로 그런 말 하지 마. 기분 나빠.`},
+ {s:"geo",t:`그것도 네 말투야.`},
+ {s:"yeon",t:`내가 이렇게 얄밉게 말한다고?`},
+ {s:"geo",t:`응.`},
+ {s:"yeon",t:`오케이. 자기 객관화 완료. 좀 상처네.`},
+
+ {s:"n",fx:"veil",t:`그때 거울 하나가 연이 앞으로 내려왔다. 표면에 문장이 떴다.`},
+ {s:"sys",t:`[ 인증 항목 1 · 이름 ]`},
+ {s:"yeon",t:`연이.`},
+ {s:"n",t:`거울이 삐빅, 하는 소리를 냈다.`},
+ {s:"sys",t:`[ 불충분 ]`},
+ {s:"yeon",t:`왜?`},
+ {s:"geo",t:`이름은 나도 알아.`},
+ {s:"n",t:`그녀도 똑같이, 아주 태연하게 말했다.`},
+ {s:"geo",t:`연이.`},
+ {s:"n",t:`그러자 거울이 밝게 빛났다.`},
+ {s:"sys",t:`[ 후보자 2명 확인 ]   [ 본체 판별 불가 ]`},
+ {s:"yeon",t:`야, 이 시스템 허술한데?`},
+ {s:"neo",t:`비겁은 같은 기운이다. 겉으로 같은 것만으로는, 구분되지 않는다.`},
+ {s:"yeon",t:`그걸 왜 이제 말해?`},
+ {s:"neo",t:`지금 알면 된다.`},
+ {s:"yeon",t:`너 고객센터 진짜 별점 낮다.`},
+
+ {s:"n",bgm:"gloom",t:`두 번째 거울이 내려왔다.`},
+ {s:"sys",t:`[ 인증 항목 2 · 기억 ]`},
+ {s:"n",t:`거울 속에는 연이의 현실이 비쳤다. 아침 알람이 울리지 않던 날. 버스 카드가 계속 오류 나던 순간. 과제 파일이 깨져 멍하니 앉아 있던 밤.`},
+ {s:"n",t:`보내지 못한 메시지. 읽히지 않은 답장. 아무렇지 않은 척 웃던 얼굴.`},
+ {s:"n",t:`연이는 입술을 다물었다. 장면 하나하나는 별것 아니었다. 그런데 그게 한꺼번에 몰려오자, 가슴 안쪽이 답답해졌다.`},
+ {s:"geo",t:`나는 늘 늦었어.`},
+ {s:"sys",t:`[ 기억 일치 ]`},
+ {s:"geo",t:`말하고 싶을 땐 늦었고, 붙잡고 싶을 땐 놓쳤고, 괜찮은 척하다가 혼자 무너졌지.`},
+ {s:"sys",t:`[ 기억 일치 ]`},
+ {s:"n",t:`연이의 머리 위 꽃이, 희미하게 떨렸다.`},
+ {s:"geo",t:`봤지? 나도 다 알아.`},
+ {s:"n",t:`연이는 이를 악물었다. 맞다. 저건 전부 자신의 기억이었다. 부정할 수 없었다.`},
+ {s:"n",t:`그런데 이상했다. 거울 속 연이는 기억을 말하고 있었다. 하지만 그 기억 속에서 아팠던 감정은, 빠져 있었다. 마치 남의 일처럼 깔끔하게 정리한, 보고서 같았다.`},
+ {s:"yeon",t:`맞아. 늦었어.`},
+ {s:"n",t:`거울이 흔들렸다.`},
+ {s:"yeon",t:`말해야 할 때 못 말한 적도 있고, 답장 기다리다가 괜히 휴대폰만 계속 본 적도 있고, 아무렇지 않은 척 웃은 적도 많아.`},
+ {s:"n",t:`그녀는 앞발을 가슴에 댔다.`},
+ {s:"yeon",im:true,t:`근데 그때 진짜 속으로는, 하나도 안 괜찮았어.`},
+ {s:"n",t:`거울 속 연이의 표정이, 아주 살짝 굳었다.`},
+ {s:"yeon",t:`웃긴 척한 건 괜찮아서가 아니라, 안 그러면 진짜 울 것 같아서였어.`},
+ {s:"n",fx:"veil",t:`거울이 밝게 빛났다.`},
+ {s:"sys",t:`[ 감정 일치 ]   [ 본체 반응 감지 ]`},
+ {s:"n",t:`연이의 머리 위 꽃이, 조금 더 환해졌다.`},
+ {s:"geo",t:`제법이네?`},
+ {s:"yeon",t:`나도 내 얘기는 좀 알아.`},
+ {s:"geo",t:`그럼 다음도 맞혀봐.`},
+
+ {s:"n",bgm:"crisis",t:`세 번째 거울이 내려왔다.`},
+ {s:"sys",t:`[ 인증 항목 3 · 현재의 몸 ]`},
+ {s:"n",t:`거울에는 꽃돼지 연이가 비쳤다. 분홍빛 몸. 작은 꽃. 둥근 배. 짧은 다리.`},
+ {s:"yeon",t:`아, 이건 아직도 힘들다.`},
+ {s:"geo",t:`그럼 포기해.`},
+ {s:"yeon",t:`싫은데?`},
+ {s:"geo",t:`싫다며. 그 몸.`},
+ {s:"yeon",t:`싫지. 손가락도 없고, 다리도 짧고, 놀라면 꿀 소리 나오고, 솔직히 지금 내 인생 비주얼 밸런스 완전 붕괴야.`},
+ {s:"n",t:`말끝에 작게, 꿀, 하고 소리가 섞였다. 연이는 눈을 감았다.`},
+ {s:"yeon",t:`아 진짜.`},
+ {s:"geo",t:`봐. 너도 싫잖아.`},
+ {s:"yeon",t:`싫어.`},
+ {s:"n",t:`연이는 고개를 들었다.`},
+ {s:"yeon",t:`근데 싫다고, 내가 아닌 건 아니잖아.`},
+ {s:"n",t:`거울 속 연이의 웃음이 멈췄다. 연이는 거울 속 꽃돼지 모습을 똑바로 봤다.`},
+ {s:"yeon",t:`지금 이 모습 마음에 안 들어. 근데 지금 도망 안 가고 여기 서 있는 건, 나야.`},
+ {s:"n",t:`그녀의 머리 위 꽃이 빛났다.`},
+ {s:"yeon",im:true,t:`겁나도 버티는 것도 나고, 말도 안 되는 상황에서 계속 따지는 것도 나고, 네 말에 빡치는 것도 나야.`},
+ {s:"n",fx:"burst",t:`거울이 크게 흔들렸다.`},
+ {s:"sys",t:`[ 현재 인정 ]   [ 본체 반응 상승 ]`},
+ {s:"n",t:`연이의 앞발 아래에서, 초록빛 새싹 하나가 돋아났다. 아주 작았다. 하지만 선명했다.`},
+ {s:"neo",t:`잡아라.`},
+ {s:"n",t:`연이는 반사적으로 앞발을 뻗었다. 새싹이 그녀의 앞발에 닿았다. 따뜻한 기운이, 몸 안으로 스며들었다.`},
+ {s:"sys",t:`[ 乙 ]`},
+ {s:"yeon",t:`이게…….`},
+ {s:"neo",t:`을목이다.`},
+ {s:"n",t:`초록빛 새싹이 연이의 앞발에서 가늘게 흔들렸다.`},
+ {s:"neo",t:`작은 풀, 꽃, 덩굴. 강하지 않아 보여도 쉽게 죽지 않는다. 꺾이는 대신 휘어지고, 휘어진 뒤 다시 자란다.`},
+ {s:"n",t:`연이는 자기 앞발을 내려다봤다. 손가락은 없었다. 하지만 이상하게, 무언가를 붙잡은 느낌이 들었다. 아주 작은 뿌리. 작지만 살아 있는 것.`},
+
+ {s:"n",fx:"ink",t:`거울 속 연이의 표정이, 차갑게 굳었다.`},
+ {s:"geo",t:`안 돼.`},
+ {s:"n",t:`그녀가 손을 뻗었다. 깨진 거울 조각들이 다시 모였다. 이번에는 칼날처럼 날카롭게 변했다.`},
+ {s:"neo",t:`조심해라. 이제 겁재가 움직인다.`},
+ {s:"yeon",t:`겁재?`},
+ {s:"neo",t:`나와 같은 기운이지만, 내 것을 빼앗는 힘.`},
+ {s:"geo",t:`맞아. 네가 겨우 붙잡은 것도, 내가 가져갈 수 있어.`},
+ {s:"n",fx:"claw",t:`그녀의 주변으로 수십 개의 거울 칼날이 떠올랐다. 칼날들이 일제히 연이를 향해 쏟아졌다.`},
+ {s:"n",fx:"burst",t:`네오가 튀어 올랐다. 금빛 발톱이 허공을 갈랐다. 쨍! 쨍! 쨍! 거울 조각들이 흩어졌다. 하지만 다시 모였다. 깨져도 다시 생기고, 베어도 다시 날아왔다.`},
+ {s:"yeon",t:`네오!`},
+ {s:"neo",t:`나는 길을 열 수는 있다! 하지만 네 글자를 대신 지킬 수는 없다!`},
+ {s:"n",t:`그 말과 동시에, 거울 속 연이가 손을 뻗었다. 연이의 앞발 안에 들어온 [乙]의 기운이 흔들렸다. 마치 작은 새싹이 뽑히려는 것처럼.`},
+ {s:"yeon",t:`야, 이거 빠져나가는데?`},
+ {s:"neo",t:`겁재다! 네가 네 것을 네 것이라고 말하지 못하면, 빼앗긴다!`},
+ {s:"geo",t:`작은 풀 하나가 뭐가 대단해?`},
+ {s:"n",t:`그 말에 [乙]의 빛이 약해졌다. 연이는 앞발을 내려다봤다. 작은 새싹. 밟히면 꺾일 것 같고, 바람이 불면 날아갈 것 같았다. 그런데. 그래도 살아 있었다.`},
+ {s:"yeon",t:`작아도 내 거야.`},
+ {s:"n",t:`[乙]의 빛이 다시 살아났다. 거울 속 연이의 눈썹이 꿈틀했다.`},
+ {s:"yeon",im:true,t:`약해 보여도 내 거야. 네가 대단하다고 인정해야 내 것이 되는 것도 아니고.`},
+ {s:"n",fx:"burst",t:`머리 위 꽃이 환하게 빛났다. 초록빛 덩굴이 연이의 앞발 아래에서 자라났다. 덩굴은 거울 조각 사이로 뻗어 나가더니, 날아오는 칼날들을 휘감았다. 쨍그랑! 거울 칼날들이 허공에서 멈췄다.`},
+ {s:"neo",t:`좋다.`},
+ {s:"yeon",t:`나 방금 뭐 한 거야?`},
+ {s:"neo",t:`乙을 쓴 거다.`},
+ {s:"yeon",t:`나 스킬 생긴 거야?`},
+ {s:"neo",t:`비슷하다.`},
+ {s:"yeon",t:`이름 붙여도 돼? ‘새싹아 버텨줘’ 같은 거 생각했는데.`},
+ {s:"neo",t:`지금은 안 된다. 그 이름은 나중에도 안 된다.`},
+ {s:"yeon",t:`너 너무 단호한데?`},
+
+ {s:"n",t:`거울 속 연이가 이를 악물었다.`},
+ {s:"geo",t:`아직 끝난 게 아니야.`},
+ {s:"n",t:`그녀가 손을 내리자, 마지막 거울이 앞으로 떠올랐다. 검은 물이 담긴 거울. 이번에는 연이도 장난치지 못했다. 거울 안의 물은 너무 조용했다. 하지만 그 조용함이, 오히려 무서웠다.`},
+ {s:"neo",t:`乙만으로는, 을해가 완성되지 않는다.`},
+ {s:"yeon",t:`저게 亥야?`},
+ {s:"neo",t:`그래. 亥는 깊은 물이다. 겨울의 물. 겉으로는 조용하지만, 안쪽에는 많은 것을 품고 있다.`},
+ {s:"n",t:`거울 속 검은 물이 천천히 흔들렸다. 그 안에서, 낮은 목소리가 들렸다.`},
+ {s:"sys",t:`[ 내려와. ]`},
+ {s:"n",t:`연이는 몸을 굳혔다. 저건 아까의 검은 손과 달랐다. 바깥에서 덮치는 적이 아니었다. 안쪽에서 부르는 무언가였다. 깊고. 차갑고. 외면하고 싶은 감정.`},
+ {s:"geo",t:`거긴 못 들어가.`},
+ {s:"yeon",t:`왜?`},
+ {s:"geo",t:`너는 깊어지는 걸 싫어하잖아.`},
+ {s:"n",t:`그 말에 연이는 바로 대답하지 못했다.`},
+ {s:"geo",t:`생각이 많아지면 일부러 딴소리하고, 혼자 있으면 무너질까 봐 웃긴 척하고, 진짜 속상한 건 꼭 늦게 인정하지.`},
+ {s:"geo",t:`그 물이, 네 안에 있었어.`},
+ {s:"n",t:`검은 물속에 장면들이 떠올랐다. 답장을 기다리던 밤. 보내지 못한 긴 메시지. 괜찮은 척 닫아버린 채팅방. 혼자 침대에 누워 천장만 바라보던 얼굴.`},
+ {s:"n",t:`연이는 숨이 막혔다. 그건 거울 속 연이의 말보다 더 아팠다. 전부 진짜였기 때문이다.`},
+ {s:"neo",t:`乙은 찾았다. 하지만 亥를 외면하면, 을해일주는 완성되지 않는다.`},
+ {s:"yeon",t:`그러면?`},
+ {s:"neo",t:`너는 네 중심을, 반만 되찾게 된다.`},
+ {s:"n",t:`연이는 세 번째 거울을 바라봤다. 검은 물. 깊은 물. 그 안에서 두 번째 글자가 기다리고 있었다.`},
+ {s:"n",t:`연이는 앞발에 힘을 줬다. 여전히 손가락은 없었다. 하지만 이제는 조금 알 것 같았다. 붙잡는 건, 손가락만으로 하는 게 아니었다.`},
+ {s:"geo",t:`못 가.`},
+ {s:"yeon",t:`왜 자꾸 못 한다고 해?`},
+ {s:"geo",t:`무서워하니까.`},
+ {s:"yeon",t:`무서우면 못 해?`},
+ {s:"geo",t:`너는 늘 그랬잖아.`},
+ {s:"yeon",t:`내 얼굴로 그런 말 하지 마.`},
+ {s:"geo",t:`왜? 맞는 말이라서?`},
+ {s:"yeon",t:`아니. 맞는 말이라서 더 짜증 나.`},
+
+ {s:"n",bgm:"crisis2",fx:"hands",t:`거울 속 연이가 손을 뻗었다. 세 번째 거울 속 검은 물이 넘쳐흘렀다. 쏴아아아! 물은 순식간에 바닥을 덮었다.`},
+ {s:"n",t:`연이는 피하려 했지만 늦었다. 차가운 물이 앞발을 감쌌다.`},
+ {s:"yeon",t:`네오!`},
+ {s:"n",fx:"burst",t:`네오가 뛰어올랐다. 그의 발톱이 금빛으로 빛났다. 검은 물을 갈랐다. 하지만 물은 갈라졌다가, 다시 붙었다.`},
+ {s:"neo",t:`이건 베는 게 통하지 않는다!`},
+ {s:"yeon",t:`그럼 어떡해!`},
+ {s:"neo",t:`도망치지 마라!`},
+ {s:"yeon",t:`지금 안 도망치면 빠지는데!`},
+ {s:"neo",t:`도망치면 더 깊어진다!`},
+ {s:"n",t:`거울 속 연이가 물 위에 서 있었다. 발끝 하나 젖지 않은 채.`},
+ {s:"geo",t:`맞아. 도망치면 더 깊어져. 네가 항상 그랬던 것처럼.`},
+ {s:"n",fx:"ink",t:`검은 물이 연이의 몸을 끌어당겼다. 연이는 바닥에 앞발을 박았다. 하지만 몸이 작았다. 힘도 부족했다. 무서웠다. 진짜 무서웠다.`},
+ {s:"sys",t:`[ 내려와. 괜찮은 척하지 마. 묻어둔 마음을 봐. ]`},
+ {s:"n",t:`연이는 눈을 질끈 감았다. 그 순간, 앞발 안쪽에서 따뜻한 기운이 번졌다. 조금 전 얻은 [乙]이었다. 작은 새싹의 기운.`},
+ {s:"n",fx:"burst",t:`연이는 눈을 떴다. 앞발 아래에서 초록빛 덩굴 하나가 자라났다. 덩굴은 검은 물을 밀어내지 않았다. 오히려 물속으로, 뿌리를 내렸다.`},
+ {s:"neo",t:`그래, 그거다!`},
+ {s:"yeon",t:`이거 맞아?`},
+ {s:"neo",t:`乙은 물을 피해서 자라는 게 아니다. 물을 받아서 자란다!`},
+ {s:"yeon",t:`왜 그런 중요한 걸 이제 말해!`},
+ {s:"neo",t:`네가 이제야 보여줬으니까!`},
+ {s:"n",t:`덩굴은 가늘었다. 금방 끊어질 것 같았다. 하지만 끊어지지 않았다. 검은 물이 덮쳐도 휘어졌다가, 다시 올라왔다.`},
+ {s:"n",t:`연이는 그걸 보며 숨을 삼켰다. 작았다. 약해 보였다. 그런데 살아 있었다. 자신처럼.`},
+ {s:"geo",t:`멈춰.`},
+ {s:"yeon",t:`싫어.`},
+ {s:"n",t:`연이는 앞발을 더 단단히 디뎠다.`},
+ {s:"yeon",im:true,t:`나 아직도 무서워. 근데 무섭다고 네가 내 이름 가져가는 건, 더 싫어.`},
+ {s:"n",fx:"ink",t:`검은 물이 크게 출렁였다. 세 번째 거울 속에서, 글자 하나가 희미하게 떠올랐다.`},
+ {s:"sys",t:`[ 亥 ]`},
+ {s:"n",t:`아직 멀었다. 하지만 분명 보였다. 연이의 머리 위 꽃이 흔들렸다. [乙]의 새싹이, [亥]의 물을 향해 뿌리를 내리고 있었다.`},
+ {s:"geo",t:`그만해!`},
+ {s:"n",t:`그 목소리에는, 여유가 없었다. 그 순간, 세 번째 거울 안쪽에서 거대한 물결이 일어났다. 연이의 몸이 앞으로 끌려갔다.`},
+ {s:"neo",t:`날 잡아!`},
+ {s:"n",t:`네오가 연이의 앞발을 물었다. 아프지는 않았다. 하지만 물의 힘이 너무 강했다.`},
+ {s:"geo",t:`그럼 내려가 봐.`},
+ {s:"n",fx:"hands",t:`세 번째 거울이 문처럼 열렸다. 검은 물이 폭포처럼 쏟아졌다. 연이는 버티려 했다. 하지만 결국 몸이 앞으로 빨려 들어갔다.`},
+ {s:"yeon",t:`꿀아아아악!`},
+ {s:"n",t:`이번엔 진짜 놀라서 나온 소리였다.`},
+ {s:"neo",t:`이름을 놓치지 마라! 乙을 붙잡아!`},
+ {s:"n",t:`연이는 앞발 안쪽의 따뜻한 기운을 움켜쥐었다. 손가락은 없었다. 그래도, 마음으로 붙잡았다.`},
+ {s:"n",t:`마지막으로 거울 밖에 선 인간 연이가 보였다. 그녀는 웃고 있었다. 하지만 그 웃음에는, 더 이상 여유가 없었다.`},
+ {s:"geo",im:true,t:`깊은 물속에서도 네가 너라고 말할 수 있는지, 보자.`},
+ {s:"n",fx:"ink",t:`연이는 검은 물속으로 떨어졌다. 머리 위 꽃이 마지막으로 빛났다.`},
+ {s:"sys",t:`[ 乙 ]`},
+ {s:"n",t:`그리고 어둠 속 깊은 곳에서, 두 번째 글자가 조용히 눈을 떴다.`},
+ {s:"sys",t:`[ 亥 ]`},
+ {s:"sys",t:`[ 해수의 심연이 열리고 있었다 ]`}
+]});
+
+/* ============================ EP.04 ============================ */
+EPISODES.push({no:"EP.04",tag:"제4화 · 해수의 심연",title:"해수의 심연",beats:[
+ {s:"n",bg:"river",tone:"dark",bgm:"riverEnter",l:{who:"yeon"},c:null,r:null,t:`연이는 물속으로 떨어졌다. 첨벙. 분명 물이었다. 차갑고, 검고, 끝없이 깊은 물. 그런데 이상하게, 숨은 쉬어졌다.`},
+ {s:"n",t:`연이는 허공에 떠 있는 것처럼, 물속을 천천히 가라앉고 있었다. 몸은 가벼웠다. 하지만 마음은 무거웠다. 머리 위의 작은 꽃만, 희미하게 빛나고 있었다.`},
+ {s:"n",t:`연이는 앞발을 꽉 쥐려 했다. 역시 잘 안 됐다. 그래도 앞발 안쪽에 남은 따뜻한 기운은 느껴졌다. 조금 전 얻은 첫 번째 글자. 작은 새싹 같은 힘.`},
+ {s:"sys",t:`[ 乙 ]`},
+ {s:"yeon",t:`네오!`},
+ {s:"n",t:`대답은 없었다. 검은 물결만, 천천히 움직였다.`},
+ {s:"n",t:`위도 아래도 어두웠다. 멀리에는 오래된 기억 같은 빛들이 떠다녔다. 읽지 못한 메시지. 보내지 못한 문장. 삼켜버린 말. 울컥했지만 웃어넘긴 순간들. 그것들이 작은 물고기처럼, 물속을 헤엄치고 있었다.`},
+ {s:"yeon",t:`뭐야…… 여긴 진짜 내 흑역사 저장소야?`},
+ {s:"n",t:`말끝에, 작은 기포가 올라갔다. 뽀글. 기포 안에는 문장이 적혀 있었다.`},
+ {s:"sys",t:`[ 괜찮아. ]`},
+ {s:"n",t:`그 기포는 위로 올라가지 않았다. 오히려 아래로, 검은 물속으로 가라앉았다.`},
+ {s:"yeon",t:`괜찮아가 왜 가라앉아?`},
+ {s:"n",t:`그때 다른 기포들이 떠올랐다.`},
+ {s:"sys",t:`[ 별일 아냐. ]  [ 나 진짜 괜찮아. ]  [ 신경 안 써. ]  [ ㅋㅋㅋ 괜찮다니까. ]`},
+ {s:"n",t:`연이는 얼굴을 굳혔다. 다 자기가 했던 말이었다. 정확히는, 진짜 괜찮지 않을 때 했던 말들이었다.`},
+ {s:"n",fx:"ink",t:`기포들은 하나둘 연이 주변으로 모였다. 그리고 갑자기 무거워졌다. 연이의 몸이 아래로 끌려갔다.`},
+ {s:"yeon",t:`잠깐, 잠깐!`},
+ {s:"n",t:`짧은 다리가 물속에서 바쁘게 움직였다. 하지만 앞으로 나아가지 않았다.`},
+ {s:"yeon",t:`아니, 이 몸은 수영도 안 돼?`},
+ {s:"n",t:`그 순간 머리 위 꽃이 작게 빛났다. 앞발 안쪽에서 초록빛 덩굴이 뻗어 나왔다. 乙의 힘이었다. 덩굴은 물속을 헤치고 뻗어나갔다. 하지만 검은 물은 너무 깊었다. 덩굴은 뻗다가 멈췄다. 어디에 뿌리내려야 할지 모르는 것처럼.`},
+
+ {s:"n",bgm:"gloom",r:{who:"mirror"},t:`그때 물속 어딘가에서 목소리가 들렸다.`},
+ {s:"geo",t:`그러니까 말했잖아.`},
+ {s:"n",t:`검은 물결 사이로 거울 속 연이가 나타났다. 인간의 모습 그대로였다. 젖지도 않았다. 머리카락도 흐트러지지 않았다. 너무 멀쩡해서, 오히려 소름 끼쳤다.`},
+ {s:"geo",t:`여긴 네가 못 들어온다고.`},
+ {s:"yeon",t:`너는 왜 물속에서도 헤어 스타일 유지되냐? 너무 불공평한데?`},
+ {s:"geo",t:`나는 흔들리지 않으니까.`},
+ {s:"yeon",t:`아, 진짜 재수 없어.`},
+ {s:"geo",t:`그것도 네 말투야.`},
+ {s:"yeon",t:`그 말 이제 금지.`},
+ {s:"n",t:`거울 속 연이는 천천히 연이 주변을 돌았다. 마치 물속을 걷는 것처럼 움직였다.`},
+ {s:"geo",t:`여긴 亥의 심연이야.`},
+ {s:"yeon",t:`알아. 네오가 말했어.`},
+ {s:"geo",t:`그럼 알아야지. 乙은 물이 있어야 살아. 그런데 네가 제일 못 하는 게 뭔지 알아?`},
+ {s:"n",t:`연이는 대답하지 않았다.`},
+ {s:"geo",t:`깊어지는 거.`},
+
+ {s:"n",fx:"ink",t:`검은 물속에 장면 하나가 떠올랐다. 연이가 침대에 누워 휴대폰을 보고 있었다. 답장이 오지 않는 채팅방. 보내려다 지운 문장. 한참 입력하다가 결국 지워버린 말.`},
+ {s:"sys",t:`[ 나 사실 조금 서운했어. ]`},
+ {s:"n",t:`그 문장은 보내지지 않았다. 기포가 되어, 아래로 가라앉았다. 연이는 숨이 막히는 것 같았다.`},
+ {s:"yeon",t:`그만해.`},
+ {s:"geo",t:`왜? 네 기억인데.`},
+ {s:"n",t:`또 다른 장면이 떠올랐다. 친구들 앞에서 웃고 있는 연이. 「아, 괜찮아. 나 그런 거 신경 안 써.」 그렇게 말하고 돌아서던 얼굴. 입꼬리는 올라가 있었지만, 눈은 웃고 있지 않았다.`},
+ {s:"n",t:`다음 장면. 과제 파일이 날아간 밤. 연이는 혼자 화면을 보며 웃었다. 「와, 레전드. 내 인생 진짜 예능이다.」 그리고 몇 초 뒤, 웃음이 사라졌다.`},
+ {s:"n",t:`다음 장면. 면접 취소 문자를 보고 친구에게 보낸 메시지. 「ㅋㅋㅋ 나 오늘도 운빨 망함.」 하지만 보내지 못한 문장이, 그 아래에 남아 있었다.`},
+ {s:"sys",t:`[ 사실 좀 무서워. 계속 이렇게 안 풀릴까 봐. ]`},
+ {s:"n",t:`연이는 눈을 감았다. 가볍게 넘긴 줄 알았다. 웃어서 지나간 줄 알았다. 그런데 전부 여기 있었다. 검은 물속에. 가라앉은 채로.`},
+ {s:"geo",t:`너는 항상 말끝을 웃음으로 막아. 아프면 아프다고 하면 되는데, 꼭 드립을 쳐.`},
+ {s:"yeon",t:`그게 나쁜 거야?`},
+ {s:"geo",t:`나쁘진 않지. 근데 네가, 네 마음을 안 들어주잖아.`},
+ {s:"n",fx:"hands",t:`그 말에 연이는 아무 말도 하지 못했다. 검은 물이 다시 무거워졌다. 기포들이 연이의 몸에 달라붙었다.`},
+ {s:"sys",t:`[ 괜찮아. ]  [ 별일 아냐. ]  [ 신경 안 써. ]  [ 나 원래 이래. ]`},
+ {s:"n",t:`기포 하나하나는 가벼워 보였지만, 붙을수록 무거웠다. 연이는 아래로 끌려갔다.`},
+ {s:"yeon",t:`나 괜찮은 척 좀 했다고 이렇게까지 끌고 내려가는 건, 너무한 거 아니야?`},
+ {s:"geo",t:`괜찮은 척은 물에 잘 가라앉아.`},
+ {s:"yeon",t:`명언처럼 말하지 마. 짜증 나니까.`},
+
+ {s:"n",t:`그때 멀리서 네오의 목소리가 들렸다. 아주 작았다. 마치 수면 위에서 들려오는 소리 같았다.`},
+ {s:"neo",t:`연이!`},
+ {s:"n",t:`검은 물 위쪽에 금빛이 아주 희미하게 보였다. 네오였다. 그는 물속으로 들어오지 못하고 있었다. 수면 위에서 발톱으로 물결을 가르고 있었다. 하지만 해수의 심연은 닫힌 물이었다. 바깥의 힘이, 쉽게 들어오지 못했다.`},
+ {s:"yeon",t:`네오! 나 지금 완전 침수됐거든!`},
+ {s:"neo",t:`물을 밀어내려고 하지 마라!`},
+ {s:"yeon",t:`그럼 뭐 해? 물에 감사 인사라도 해?`},
+ {s:"neo",t:`乙은 물을 먹고 자란다!`},
+ {s:"yeon",t:`아까도 그 말 했잖아!`},
+ {s:"neo",t:`이번엔 진짜로 이해해야 한다!`},
+ {s:"n",t:`검은 물이 계속 그녀를 아래로 끌어당겼다. 그 아래에는 거대한 문양이 보였다. 둥근 물결. 그 안에 숨어 있는 글자.`},
+ {s:"sys",t:`[ 亥 ]`},
+ {s:"n",t:`해. 하지만 글자는 아직, 닿을 수 없는 곳에 있었다.`},
+ {s:"geo",t:`못 가.`},
+ {s:"yeon",t:`너 그 말밖에 못 해?`},
+ {s:"geo",t:`못 하니까 못 한다고 하지.`},
+ {s:"yeon",t:`아, 진짜 내 얼굴로 저렇게 말하니까 킹받네.`},
+ {s:"geo",t:`그럼 증명해.`},
+ {s:"n",t:`거울 속 연이가 손을 뻗었다. 연이의 앞발 안에 있던 [乙]의 빛이 흔들렸다.`},
+ {s:"geo",t:`네가 乙을 붙잡아도, 亥를 받아들이지 못하면 을해는 완성되지 않아. 꽃은 물 없이 살 수 없어. 그런데 너는, 네 물을 싫어해.`},
+ {s:"yeon",t:`내 물?`},
+ {s:"geo",t:`네 깊은 마음.`},
+
+ {s:"n",fx:"ink",t:`검은 물속에 또 하나의 장면이 떠올랐다. 어두운 방. 연이가 혼자 앉아 있었다. 아무 일도 없는 것처럼 휴대폰을 만지작거리고 있었다. 하지만 화면은 꺼져 있었다. 그녀는 아무것도 보고 있지 않았다. 그냥, 가만히 있었다.`},
+ {s:"n",t:`그 장면 속 연이는 아무 말도 하지 않았다. 그 침묵이, 제일 아팠다.`},
+ {s:"yeon",t:`나 저때…….`},
+ {s:"n",t:`말이 끝까지 나오지 않았다.`},
+ {s:"geo",t:`외로웠지.`},
+ {s:"n",t:`검은 물이 출렁였다.`},
+ {s:"geo",t:`무서웠고.`},
+ {s:"n",t:`또 출렁였다.`},
+ {s:"geo",t:`근데 아무한테도, 말 안 했지.`},
+ {s:"n",t:`기포들이 한꺼번에 연이를 감쌌다.`},
+ {s:"sys",t:`[ 괜찮아. ]  [ 나 혼자 해도 돼. ]  [ 아무렇지 않아. ]  [ 원래 다 이런 거지. ]`},
+
+ {s:"n",bgm:"riverEnter",t:`연이는 숨을 크게 들이켰다. 물속인데도 숨이 들어왔다. 하지만 가슴은 답답했다.`},
+ {s:"yeon",t:`그래.`},
+ {s:"n",t:`기포들이 멈췄다. 거울 속 연이도 멈췄다. 연이는 천천히 고개를 들었다.`},
+ {s:"yeon",im:true,t:`나 안 괜찮았어.`},
+ {s:"n",fx:"veil",t:`그 말이 물속에 퍼졌다. 기포 하나가 터졌다. 퐁. [ 괜찮아. ] 사라졌다.`},
+ {s:"yeon",t:`별일 아니라고 했는데, 별일이었어.`},
+ {s:"n",t:`또 다른 기포가 터졌다. 퐁. [ 별일 아냐. ] 사라졌다.`},
+ {s:"yeon",t:`신경 안 쓴다고 했는데, 신경 썼어.`},
+ {s:"n",t:`퐁. [ 신경 안 써. ] 사라졌다. 검은 물이 조금 가벼워졌다.`},
+ {s:"n",t:`연이는 앞발을 가슴에 댔다. 이 말을 하는 순간, 진짜로 인정하게 될 것 같았다. 하지만 인정하지 않으면, 계속 가라앉을 것 같았다. 연이는 눈을 감았다가, 떴다.`},
+ {s:"yeon",im:true,t:`무서웠어.`},
+ {s:"n",t:`그 순간 검은 물이 크게 흔들렸다. 거울 속 연이가, 처음으로 표정을 잃었다.`},
+ {s:"yeon",t:`계속 안 풀릴까 봐 무서웠고, 내가 뭘 잘못한 건가 싶어서 무서웠고, 웃고 넘기면 진짜 괜찮아질 줄 알았는데 안 괜찮아서 더 무서웠어.`},
+ {s:"n",fx:"burst",t:`기포들이 하나둘 터졌다. 퐁. 퐁. 퐁. 물속이 조금 맑아졌다. 검은 물 아래에 있던 [亥] 글자가, 더 선명해졌다.`},
+ {s:"geo",t:`그만해.`},
+ {s:"yeon",t:`싫어.`},
+
+ {s:"n",fx:"burst",t:`앞발 안쪽의 [乙]이 따뜻하게 빛났다. 초록빛 덩굴이 다시 자라났다. 이번엔 물을 밀어내지 않았다. 도망치지도 않았다. 덩굴은 검은 물속으로, 천천히 뿌리를 내렸다. 그리고 아주 작게 흔들렸다. 마치 물을 마시는 것처럼.`},
+ {s:"n",t:`연이는 그 감각을 느꼈다. 차가운 물이, 전부 적은 아니었다. 그 안에는 외로움도 있었고, 무서움도 있었고, 말하지 못한 마음도 있었다. 하지만 그건, 자신을 죽이는 물만은 아니었다. 그 물이 있었기에, 새싹도 자랄 수 있었다.`},
+ {s:"neo",t:`그래. 그거다.`},
+ {s:"neo",t:`亥는 너를 가라앉히는 물이 아니다. 네 뿌리를 숨겨둔 물이다.`},
+ {s:"yeon",t:`내 뿌리…….`},
+ {s:"n",t:`그 말이 이상하게 마음에 닿았다. 그녀는 늘 밝은 척했다. 가벼운 척했다. 대수롭지 않은 척했다. 그런데 사실 자기 안에는, 깊은 물이 있었다. 귀찮고 무겁고 차가웠다. 그래도 그 안에, 뿌리가 있었다.`},
+ {s:"n",t:`연이는 앞발을 뻗었다. [乙]의 덩굴이 [亥]를 향해 뻗어갔다.`},
+ {s:"geo",t:`안 돼! 네가 그걸 받아들이면—`},
+ {s:"yeon",t:`내가 더 진짜 같아지나?`},
+ {s:"n",t:`거울 속 연이가 입을 다물었다. 연이는 피식 웃었다.`},
+ {s:"yeon",t:`오케이. 정답이네.`},
+ {s:"n",fx:"burst",t:`덩굴이 [亥]에 닿았다. 그 순간, 검은 물속에서 거대한 파문이 일어났다. 차가운 물이 연이를 감쌌다. 하지만 이번엔 끌어내리지 않았다. 오히려, 그녀를 받쳐 올렸다.`},
+ {s:"n",bg:"river",fx:"veil",t:`[亥] 글자가 천천히 떠올랐다. 검은 물이, 깊은 남색으로 바뀌었다. 그 안에서 작은 별빛들이 켜졌다.`},
+ {s:"yeon",t:`예쁘다…….`},
+ {s:"n",t:`처음으로 그렇게 생각했다. 무섭기만 했던 물이, 조금 달라 보였다. 차갑지만 맑았다. 어둡지만 비어 있지 않았다. 그 안에 뭔가가 많았다. 기억. 감정. 상처. 그리고 살아남은 마음.`},
+
+ {s:"n",fx:"burst",t:`연이의 머리 위 꽃이 환하게 피어났다. 두 글자가 그녀의 앞에서 나란히 빛났다.`},
+ {s:"sys",t:`[ 乙 ]   [ 亥 ]`},
+ {s:"yeon",t:`을해일주.`},
+ {s:"n",t:`그 순간, 두 글자가 하나의 빛으로 이어졌다. 초록빛 새싹이 깊은 물 위에 뿌리를 내렸다. 작은 꽃이 피었다. 검은 물속에서. 말도 안 되게 작지만, 분명히 살아 있는 꽃.`},
+ {s:"n",t:`연이는 그 꽃을 보며 숨을 멈췄다. 그건 자기 같았다. 아직 약하고. 아직 작고. 아직 많이 무섭지만. 그래도 살아 있는 것.`},
+
+ {s:"n",bg:"island",bgm:"neo",c:{who:"neo"},r:{who:"mirror"},t:`위에서 네오의 목소리가 들렸다. 금빛 발톱이 수면을 찢었다. 빛이 쏟아졌다. 연이는 위로 떠올랐다. 이번에는 물이 끌어내리지 않았다. 오히려, 그녀를 밀어 올렸다.`},
+ {s:"geo",t:`네가 亥를 찾았다고, 끝난 줄 알아?`},
+ {s:"yeon",t:`끝은 아니겠지.`},
+ {s:"geo",t:`비겁의 섬은 아직 끝나지 않았어. 네가 네 뿌리를 찾았다고 해도, 네 자리를 지키는 건 또 다른 문제야.`},
+ {s:"yeon",t:`그럼 올라가서 또 하면 되지. 나 이제 튜토리얼 좀 익숙해졌거든.`},
+ {s:"n",t:`말끝에 작은 소리가 섞였다. 꿀.`},
+ {s:"yeon",t:`아, 이건 아직 안 익숙함.`},
+ {s:"n",fx:"burst",r:null,t:`그 순간 빛이 터졌다. 연이는 해수의 심연을 빠져나왔다. 쏴아아아! 그녀는 비겁의 섬 위로 튀어 올랐다. 네오가 기다리고 있었다. 연이는 바닥 위로 데굴 굴렀다.`},
+ {s:"yeon",t:`아야…….`},
+ {s:"neo",t:`괜찮나?`},
+ {s:"n",t:`연이는 천천히 몸을 일으켰다. 머리 위 꽃이 이전보다 훨씬 선명하게 빛나고 있었다. 그 꽃 아래로, 푸른 물결 문양이 감돌았다.`},
+ {s:"neo",t:`乙亥가 연결됐다.`},
+ {s:"sys",t:`[ 乙亥 ]`},
+ {s:"n",t:`을해. 그것은 이제 단순한 글자가 아니었다. 작은 꽃과 깊은 물. 흔들리지만 죽지 않는 마음. 밝게 웃지만, 깊은 곳에 많은 것을 품은 자신.`},
+ {s:"yeon",t:`내가 생각보다 복잡한 타입이었네.`},
+ {s:"neo",t:`이제 알았나?`},
+ {s:"yeon",t:`응. 근데 복잡하다고, 가짜한테 자리 내줄 생각은 없어.`},
+
+ {s:"n",bgm:"crisis2",fx:"veil",r:{who:"mirror"},t:`그때 섬 전체의 거울들이 다시 빛났다. 거울 속 연이가 천천히 물 밖으로 걸어 나왔다. 이번에는 분위기가 달랐다. 발밑에 검은 거울 조각들이 모이고 있었다. 눈빛은 더 차가워졌고, 목소리는 낮아졌다.`},
+ {s:"geo",t:`좋아. 그럼 이제 진짜 시험을 시작하자.`},
+ {s:"yeon",t:`아직도 시험이 남았어?`},
+ {s:"neo",t:`乙亥는 찾았다. 하지만 비겁의 섬은, 네가 그 글자를 지킬 수 있는지 확인하려 할 것이다.`},
+ {s:"n",fx:"ink",t:`거울 속 연이가 손을 들었다. 수많은 거울 조각들이 그녀 뒤로 떠올랐다. 그 조각들마다 다른 연이의 얼굴이 비쳤다. 질투하는 연이. 포기하는 연이. 비교하는 연이. 억지로 웃는 연이. 자기 자신을 믿지 못하는 연이.`},
+ {s:"geo",im:true,t:`어서 와. 이번엔 네가 이긴 줄 아는, 너희들 전부랑 싸워야 해.`},
+ {s:"n",t:`연이는 숨을 들이켰다. 조금 전까지라면 겁부터 났을 것이다. 지금도 겁은 났다. 하지만 완전히 똑같지는 않았다. 앞발 안쪽에는 乙의 따뜻함이 있었다. 가슴 깊은 곳에는, 亥의 물이 있었다.`},
+ {s:"yeon",t:`오케이.`},
+ {s:"n",t:`연이는 거울 속 자신을 똑바로 바라봤다. 머리 위 꽃이 빛났다.`},
+ {s:"yeon",im:true,t:`나 방금 심연 다녀왔거든? 멘탈 조금 업그레이드됐어.`},
+ {s:"n",t:`거울 속 연이가 웃었다.`},
+ {s:"sys",t:`[ 비겁의 섬 · 마지막 시험 시작 ]`}
+]});
+
+/* ============================ EP.05 ============================ */
+EPISODES.push({no:"EP.05",tag:"제5화 · 같은 나의 편",title:"같은 나의 편",beats:[
+ {s:"n",bg:"islandIn",bgm:"crisis2",l:{who:"yeon"},c:{who:"neo"},r:{who:"mirror"},t:`거울 속 연이가 손을 들었다. 수많은 거울 조각들이 그녀 뒤로 떠올랐다. 조각마다 다른 연이의 얼굴이 비쳤다.`},
+ {s:"n",t:`화를 내는 연이. 포기하는 연이. 비교하는 연이. 괜찮은 척 웃는 연이. 아무것도 못 하겠다는 얼굴의 연이. 그리고 그런 자신들을 보고 질린 표정의, 연이.`},
+ {s:"yeon",t:`와. 나 생각보다 버전이 많네.`},
+ {s:"neo",t:`비겁의 섬 마지막 시험이다.`},
+ {s:"yeon",t:`시험 이름이 뭔데?`},
+ {s:"n",t:`그 순간, 공중에 글자가 떠올랐다.`},
+ {s:"sys",t:`[ 비겁의 섬 · 최종 시험 ]
+[ 나와 같은 얼굴을 구분하라. ]
+[ 비견은 편으로 삼고, 겁재는 끊어내라. ]`},
+ {s:"yeon",t:`잠깐만. 갑자기 난이도 왜 올라가?`},
+ {s:"neo",t:`비견은 너와 같은 기운이지만, 너를 지탱한다. 겁재는 같은 기운으로, 네 것을 빼앗는다.`},
+ {s:"yeon",t:`그러니까 좋은 내 편이랑, 내 자리 뺏는 가짜를 구분하라는 거지?`},
+ {s:"neo",t:`그렇다.`},
+ {s:"n",t:`연이는 거울 조각들을 바라봤다. 다 자기 얼굴이었다. 다 자기 표정이었다. 그런데 대체 어떻게 구분하라는 건가.`},
+ {s:"geo",t:`쉽지 않을걸?`},
+ {s:"n",fx:"veil",t:`그녀가 손가락을 튕겼다.`},
+
+ {s:"n",bgm:"crisis",t:`가장 먼저 앞으로 나온 건, 화난 얼굴의 연이였다. 그 연이는 팔짱을 끼고 연이를 노려봤다. 「넌 맨날 참다가 뒤늦게 터지잖아.」`},
+ {s:"yeon",t:`아니, 팩트로 시작하는 건 너무하잖아.`},
+ {s:"n",t:`화난 연이가 말했다. 「싫으면 싫다고 바로 말하면 되는데, 꼭 괜찮은 척하다가 혼자 화내지.」`},
+ {s:"yeon",t:`그만해. 나 방금 해수 심연 다녀와서, 멘탈 촉촉한 상태야.`},
+ {s:"n",t:`「그래서 또 농담으로 넘기려고?」 연이는 입을 다물었다. 말문이 막힌 순간, 화난 연이의 발밑에서 검은 거울 조각이 자라났다.`},
+ {s:"neo",t:`조심해라. 저건 겁재로 기울고 있다.`},
+ {s:"yeon",t:`왜?`},
+ {s:"neo",t:`너를 밀어붙여서, 네 자리를 흔들고 있다.`},
+ {s:"n",fx:"claw",t:`화난 연이가 날카롭게 웃었다. 「그러니까 내가 대신 말해줄게. 네가 못 하니까.」 그녀의 손에서 붉은 유리 조각들이 날아왔다. 네오가 튀어 올라 조각을 쳐냈다. 쨍!`},
+ {s:"neo",t:`연이!`},
+ {s:"yeon",t:`알았어!`},
+ {s:"n",t:`연이는 앞발을 땅에 디뎠다. 가슴 안쪽에서 [乙]의 기운이 따뜻하게 올라왔다. 초록빛 덩굴이 바닥에서 자라났다. 하지만 화난 연이는 멈추지 않았다. 「넌 늘 늦어. 화내는 것도 늦고, 말하는 것도 늦고, 결정하는 것도 늦어.」`},
+ {s:"n",t:`연이는 이를 악물었다. 틀린 말이 아니었다. 그래서 더 아팠다. 하지만 이번에는, 도망치고 싶지 않았다.`},
+ {s:"yeon",t:`맞아. 나 늦게 터질 때 많아.`},
+ {s:"n",t:`화난 연이의 눈이 흔들렸다.`},
+ {s:"yeon",t:`근데 네가 대신 터져주는 건 싫어.`},
+ {s:"n",t:`「왜?」`},
+ {s:"yeon",t:`그건 내가 말하는 게 아니잖아.`},
+ {s:"n",t:`연이는 한 걸음 앞으로 나아갔다.`},
+ {s:"yeon",t:`화가 나는 건 나쁜 게 아니야. 근데 내 자리를 빼앗아서 대신 소리치는 건, 아니야.`},
+ {s:"n",t:`붉은 유리 조각들이 흔들렸다.`},
+ {s:"yeon",im:true,t:`너는 내 편이 될 수 있어. 하지만 내가 사라지는 방식은, 싫어.`},
+ {s:"n",t:`화난 연이의 표정이 굳었다. 발밑 검은 거울 조각이 사라졌다. 대신 붉은 빛이, 부드럽게 변했다. 「그럼 참지만 마.」`},
+ {s:"yeon",t:`응. 대신 늦게 터지지 않도록 연습할게.`},
+ {s:"n",fx:"veil",t:`화난 연이가 빛으로 흩어졌다. 그 빛은 연이의 옆에, 작은 붉은 거울 조각으로 남았다.`},
+ {s:"neo",t:`비견으로 바뀌었다.`},
+ {s:"yeon",t:`오. 나 첫 포켓몬 잡은 느낌인데?`},
+ {s:"neo",t:`그런 식으로 이해하지 마라.`},
+ {s:"yeon",t:`근데 이해 잘 되는데?`},
+
+ {s:"n",bgm:"gloom",t:`다음으로 나온 건, 포기하는 얼굴의 연이였다. 그 연이는 바닥에 주저앉아 있었다. 눈빛이 텅 비어 있었다. 「안 해도 돼. 어차피 또 안 될 거야.」`},
+ {s:"n",t:`연이의 가슴이 살짝 내려앉았다. 그 말은 너무 익숙했다. 뭔가를 시작하기 전부터 이미 지친 마음. 열심히 해도 또 꼬일 것 같은 예감. 기대하면 더 아플 것 같아서, 미리 포기하고 싶은 마음.`},
+ {s:"n",t:`「너도 알잖아. 기대하면 피곤해.」`},
+ {s:"yeon",t:`응. 알아.`},
+ {s:"n",fx:"ink",t:`「그러니까 내려놔.」 그녀의 주변에 회색 거울 조각들이 떠올랐다. 조각마다 연이가 포기했던 장면들이 비쳤다. 지원서를 닫는 손. 보내려던 메시지를 지우는 손. 괜히 아무것도 아닌 척, 휴대폰을 뒤집어놓던 밤.`},
+ {s:"n",t:`「기대하지 않으면, 실망도 안 해.」 그 말은 달콤했다. 아프지 않게 해준다고 말하는 것 같았다. 연이는 잠시 흔들렸다.`},
+ {s:"n",t:`그때 머리 위 꽃 아래로, 푸른 물결이 감돌았다. [亥]의 기운이었다. 깊은 물. 가라앉아도 사라지지 않는 마음.`},
+ {s:"yeon",t:`근데 나, 실망 안 하려고 포기한 적 많거든.`},
+ {s:"n",t:`포기하는 연이가 고개를 들었다.`},
+ {s:"yeon",t:`그때 편하긴 했어. 잠깐은.`},
+ {s:"n",t:`회색 거울 조각들이 흔들렸다.`},
+ {s:"yeon",t:`근데 나중에 더 오래 남더라. 해보고 망한 건 속상한데, 안 해보고 넘긴 건 계속 생각났어.`},
+ {s:"n",t:`포기하는 연이의 표정이 흔들렸다. 「그래도 무섭잖아.」`},
+ {s:"yeon",t:`응. 무서워.`},
+ {s:"n",t:`연이는 고개를 끄덕였다.`},
+ {s:"yeon",t:`근데 무섭다는 이유로, 네가 내 선택을 대신 접는 건 싫어.`},
+ {s:"n",t:`회색 거울 조각들이 하나둘 떨어졌다. 「그럼 힘들 때는?」`},
+ {s:"yeon",t:`그때는 쉬자.`},
+ {s:"n",t:`「포기하지 말고?」`},
+ {s:"yeon",t:`응. 쉬는 거랑 포기하는 거, 구분하자.`},
+ {s:"n",fx:"veil",t:`포기하는 연이는 한참 연이를 바라봤다. 그리고 천천히 고개를 끄덕였다. 그녀는 회색빛에서 은빛으로 바뀌었다. 작은 은색 거울 조각이, 연이 옆으로 날아왔다.`},
+ {s:"neo",t:`두 번째 비견이다.`},
+ {s:"yeon",t:`이거 생각보다 심리 상담인데?`},
+ {s:"neo",t:`비겁의 섬은, 네 안의 같은 기운을 정리하는 곳이다.`},
+ {s:"yeon",t:`그래도 서비스명은 좀 순화해줘. 방금 거의 멘탈 헬스장 느낌이었어.`},
+
+ {s:"n",bgm:"crisis2",t:`그때 거울 속 연이가 손뼉을 쳤다. 짝.`},
+ {s:"geo",t:`감동적이네. 그런데 전부, 네 편이 될 수 있을까?`},
+ {s:"n",t:`이번엔 수십 개의 거울 조각이 동시에 앞으로 나왔다. 비교하는 연이. 질투하는 연이. 억지로 웃는 연이. 자기 자신을 깎아내리는 연이.`},
+ {s:"n",t:`「쟤는 잘하는데 넌 왜 못 해?」 「괜찮은 척해. 분위기 망치지 마.」 「너는 원래 운이 없잖아.」 「기대하지 마.」 「괜히 나섰다가 더 창피해져.」`},
+ {s:"n",t:`목소리들이 한꺼번에 쏟아졌다. 연이는 양쪽 귀를 막고 싶었다. 하지만 앞발이라, 제대로 막히지 않았다.`},
+ {s:"yeon",t:`아, 진짜 단체 채팅방 알림 같아!`},
+ {s:"geo",t:`전부 너야.`},
+ {s:"n",fx:"ink",t:`목소리들이 커졌다. 「비교해.」 「숨겨.」 「포기해.」 「웃어넘겨.」 「네 자리 같은 건, 원래 없었어.」`},
+ {s:"n",t:`연이의 머리 위 꽃이 흔들렸다. [乙]의 빛이 약해졌다. [亥]의 물결도, 검게 흔들렸다.`},
+ {s:"n",fx:"claw",t:`네오가 앞에 서서 거울 조각들을 베어냈다. 하지만 조각은 너무 많았다.`},
+ {s:"neo",t:`연이! 하나씩 상대하지 마라!`},
+ {s:"yeon",t:`그럼 어떡해!`},
+ {s:"neo",t:`기준을 세워라!`},
+ {s:"yeon",t:`기준?`},
+ {s:"neo",t:`너를 지키는 목소리와, 너를 빼앗는 목소리를 나눠라!`},
+
+ {s:"n",bgm:"crisis",t:`연이는 숨을 삼켰다. 너를 지키는 목소리. 너를 빼앗는 목소리. 그 순간, 연이의 눈에 거울 조각들이 다르게 보이기 시작했다.`},
+ {s:"n",t:`화난 연이는 사실, 말하라고 외치고 있었다. 포기하는 연이는 사실, 쉬어도 된다고 말하고 있었다. 하지만 비교하는 연이는 연이를 계속 작게 만들었다. 억지로 웃는 연이는 연이를 사라지게 만들었다. 자기비하하는 연이는, 연이의 자리를 비우게 만들었다.`},
+ {s:"n",t:`연이는 앞발을 땅에 디뎠다.`},
+ {s:"yeon",t:`오케이.`},
+ {s:"n",t:`그녀의 머리 위 꽃이 빛났다.`},
+ {s:"yeon",t:`너희 중에 나를 지키려는 애들은, 이쪽.`},
+ {s:"n",t:`초록빛 덩굴이 연이의 오른쪽으로 뻗어 나갔다. 붉은 거울 조각과 은색 거울 조각이, 그 옆에 붙었다.`},
+ {s:"yeon",t:`나를 깎아먹는 애들은.`},
+ {s:"n",t:`연이는 거울 속 연이를 똑바로 봤다.`},
+ {s:"yeon",t:`거기 있어.`},
+ {s:"geo",t:`네가 구분할 수 있을 것 같아?`},
+ {s:"yeon",t:`방금 대충 감 잡았어.`},
+ {s:"geo",t:`틀리면?`},
+ {s:"yeon",t:`또 배우겠지.`},
+ {s:"yeon",im:true,t:`나 완벽하게 고르는 사람 아니야. 근데 이제, 아무 목소리나 내 목소리라고 착각하진 않을 거야.`},
+
+ {s:"n",bgm:"crisis2",fx:"veil",t:`그 순간 [乙亥]의 빛이 연이의 앞에 떠올랐다. 초록빛 새싹이 깊은 물 위에 뿌리를 내렸다. 물은 어둡지만 맑았다. 새싹은 작지만 단단했다. 연이는 그 빛을 향해 앞발을 뻗었다.`},
+ {s:"geo",t:`안 돼!`},
+ {s:"n",fx:"hands",t:`그녀가 손을 휘두르자, 비교하는 연이, 억지로 웃는 연이, 자기비하하는 연이의 거울 조각들이 한꺼번에 합쳐졌다. 검은 유리로 된 거대한 손이 만들어졌다. 그 손이 [乙亥]를 움켜쥐려 했다.`},
+ {s:"neo",t:`연이!`},
+ {s:"yeon",t:`알아!`},
+ {s:"yeon",t:`새싹아 버텨줘!`},
+ {s:"neo",t:`그 이름으로 확정할 셈인가?`},
+ {s:"yeon",t:`지금은 급하잖아!`},
+ {s:"n",fx:"burst",t:`초록빛 덩굴이 폭발하듯 뻗어 나갔다. 덩굴은 검은 유리 손을 휘감았다. 하지만 손은 너무 컸다. 덩굴이 끊어질 듯 팽팽해졌다. 연이의 몸이 뒤로 밀렸다.`},
+ {s:"yeon",t:`으아, 힘 차이 너무한데!`},
+ {s:"geo",t:`봐. 결국 넌 약해.`},
+ {s:"yeon",t:`약한 거랑 지는 건 다르거든?`},
+ {s:"n",t:`그 순간 [亥]의 물이 움직였다. 깊은 물이 덩굴 아래로 흐르더니, 뿌리를 받쳐주었다. 덩굴이 더 굵어졌다. 초록빛과 푸른빛이 섞였다.`},
+ {s:"neo",t:`乙亥가 연결됐다! 지금이다!`},
+ {s:"n",t:`연이는 앞발을 세게 내리쳤다.`},
+ {s:"yeon",t:`내 자리에서 나가!`},
+ {s:"n",fx:"claw",t:`덩굴이 검은 유리 손을 조였다. 쨍. 작은 금이 갔다. 거울 속 연이의 얼굴이 굳었다.`},
+ {s:"yeon",t:`내가 흔들리는 건 맞아!`},
+ {s:"n",t:`쨍. 금이 더 커졌다.`},
+ {s:"yeon",im:true,t:`근데 흔들린다고, 네가 나 대신 살 수 있는 건 아니야!`},
+ {s:"n",fx:"burst",t:`쨍그랑! 검은 유리 손이 산산조각났다. 비교하는 연이, 억지로 웃는 연이, 자기비하하는 연이의 거울들이 함께 깨졌다. 조각들은 검은 먼지가 되어 흩어졌다.`},
+ {s:"n",t:`남은 것은 몇 개의 작은 거울 조각뿐이었다. 화난 연이의 붉은 조각. 쉬어도 된다고 말하던 은색 조각. 그리고 새롭게 생긴, 작은 푸른 조각.`},
+ {s:"neo",t:`잘했다.`},
+ {s:"yeon",t:`나 방금 진짜 잘한 거 맞지?`},
+ {s:"neo",t:`그래.`},
+ {s:"yeon",t:`오케이. 저장 좀 해줘. 이런 순간 자주 안 와.`},
+ {s:"n",t:`네오가 고개를 저었다. 그때 공중에 문장이 떠올랐다.`},
+ {s:"sys",t:`[ 비견 분류 완료 ]
+[ 겁재 정화 진행 중 ]
+[ 乙亥 일주 회수율 87% ]`},
+ {s:"yeon",t:`잠깐만. 왜 100% 아니야?`},
+
+ {s:"n",t:`거울 속 연이가 천천히 웃었다. 그녀는 아직 사라지지 않았다. 깨진 거울 조각 위에 서서, 연이를 바라보고 있었다.`},
+ {s:"geo",t:`당연하지.`},
+ {s:"geo",im:true,t:`마지막 겁재는, 나니까.`},
+ {s:"n",fx:"ink",t:`연이의 표정이 굳었다. 거울 속 연이의 몸 뒤로, 검은 거울 날개가 펼쳐졌다. 그 날개에는 수많은 얼굴이 비쳤다. 연이가 부러워했던 얼굴. 연이가 비교했던 사람들. 연이가 되고 싶었던 모습들. 그리고 연이가 가장 싫어했던, 자기 얼굴들.`},
+ {s:"geo",t:`네가 내게서 이기려면, 나를 부수는 게 아니라.`},
+ {s:"n",t:`그녀는 자기 가슴을 가리켰다.`},
+ {s:"geo",t:`나를, 네 안으로 다시 가져가야 해.`},
+ {s:"yeon",t:`뭐?`},
+ {s:"geo",t:`나는 네가 버린 네 모습이니까. 나를 없애면, 네 일부도 같이 사라져.`},
+ {s:"n",t:`연이는 말을 잃었다. 네오의 표정도, 굳어 있었다.`},
+ {s:"neo",t:`연이.`},
+ {s:"yeon",t:`응.`},
+ {s:"neo",t:`마지막 시험이다.`},
+ {s:"n",t:`연이는 거울 속 자신을 바라봤다. 인간의 얼굴. 완벽해 보이는 표정. 그리고 그 안에 숨어 있는, 빼앗는 힘. 겁재.`},
+ {s:"yeon",t:`오케이. 이번엔 보스전이네.`},
+ {s:"geo",t:`맞아.`},
+
+ {s:"n",t:`섬 전체가 다시 흔들렸다. 공중에 마지막 문장이 떠올랐다.`},
+ {s:"sys",t:`[ 최종 겁재전 ]
+[ 거울 속의 나를 회수하라. ]`},
+ {s:"yeon",t:`회수라니. 말이 쉽지.`},
+ {s:"neo",t:`네가 도망치면, 저것은 네 자리를 빼앗는다.`},
+ {s:"yeon",t:`그럼 싸우면?`},
+ {s:"neo",t:`부수기만 하면, 너도 잃는다.`},
+ {s:"yeon",t:`그럼 답이 뭐야?`},
+ {s:"neo",t:`네 것으로 만들어라.`},
+ {s:"n",t:`연이는 거울 속 자신을 바라봤다. 거울 속 연이도, 똑같이 연이를 바라봤다. 둘의 얼굴은 달랐다. 하나는 인간. 하나는 꽃돼지. 하지만 눈빛은, 처음보다 조금 닮아 있었다.`},
+ {s:"yeon",t:`진짜 어렵게 산다, 나.`},
+ {s:"geo",t:`그러게.`},
+ {s:"n",t:`이번에는 비웃음이 아니었다. 아주 잠깐. 정말 아주 잠깐. 같은 사람이, 같은 피로를 나누는 얼굴이었다.`},
+ {s:"n",fx:"burst",t:`그리고 다음 순간. 거울 속 연이가 검은 날개를 펼치며, 달려들었다.`},
+ {s:"sys",im:true,t:`[ 비겁의 섬 최종전 시작 ]`}
+]});
+
+window.__NOVEL_READY=true;
+/* #play(또는 #novel) 해시로 열면 진입/메인 스킵하고 소설 플레이어로 직행 */
+if(location.hash==="#play"||location.hash==="#novel"){bootDirectPlay();}
+</script>
+</body>
+</html>

@@ -6,6 +6,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "novel:assets": "node scripts/fetch-novel-assets.mjs",
+    "novel:serve": "node scripts/serve-novel.mjs",
+    "novel:preview": "npm run novel:assets && node scripts/serve-novel.mjs",
     "dev": "node scripts/dev-with-local-auth.mjs",
     "dev:next": "node --require=./scripts/next-manifest-read-guard.cjs ./node_modules/next/dist/bin/next dev",
     "dev:local-auth-api": "node scripts/local-dev-auth-api.mjs",

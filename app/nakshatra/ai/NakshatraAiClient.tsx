@@ -1,0 +1,369 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { authFetch } from "@/app/_lib/auth-client";
+import { runBillingCoinGate, formatPaymentWon } from "@/app/_lib/billing-client";
+import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
+import AiConsultDecks, { type Decks, type NatalIdentity } from "./AiConsultDecks";
+
+const FEATURE_KEY = "nakshatra-ai-consultation";
+const SERVICE_ID = "nakshatra-ai";
+const FEATURE_TITLE = "나크샤트라 결정판 AI 심화 상담";
+const PRICE_KRW = 30000;
+const COIN_PRICE = 300;
+const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
+const API = {
+  ensureAccess: "/api/nakshatra-ai/ensure-access",
+  start: "/api/nakshatra-ai/start",
+  result: "/api/nakshatra-ai/result",
+};
+const POLL_INTERVAL_MS = 3500;
+const POLL_MAX_ATTEMPTS = 45;
+
+interface BirthInput {
+  year: number; month: number; day: number; hour: number; minute: number;
+  timezone: number; lat: number; lon: number; timeUnknown: boolean;
+}
+type Phase = "intro" | "checking" | "payment" | "generating" | "done" | "error";
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+function toText(value: unknown): string {
+  return value == null ? "" : String(value).trim();
+}
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+function buildIdempotencyKey() {
+  const uuid = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `nakai-${uuid}`;
+}
+
+async function postJson(path: string, body: Record<string, unknown>, idempotencyKey: string) {
+  const response = await authFetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
+    body: JSON.stringify({ ...body, idempotencyKey }),
+  });
+  const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
+  return { response, data };
+}
+
+// runBillingCoinGate 결과 → /start 본문에 실을 결제 컨텍스트(서버 billingContextFromBody가 읽는 필드).
+function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId: string): Record<string, unknown> {
+  const data = asRecord(gate?.data);
+  const consume = asRecord(data.consume);
+  const accessGrant = asRecord(data.accessGateResult || data.licensePass || data.membershipPass);
+  const accessMethod = toText(consume.accessMethod || consume.paymentMethod || accessGrant.accessMethod || accessGrant.paymentMethod);
+  const transactionId = toText(consume.transactionId || accessGrant.transactionId);
+  const ledgerId = toText(consume.ledgerId || accessGrant.ledgerId);
+  const paymentId = toText(
+    consume.transactionId || consume.purchaseId || accessGrant.transactionId || accessGrant.purchaseId || data.executionId || requestId,
+  );
+  return {
+    paymentId,
+    payment: { paymentId, requestId },
+    accessGrant,
+    consume,
+    accessType: toText(consume.accessType || accessGrant.accessType),
+    accessMethod,
+    paymentMode: accessMethod,
+    transactionId,
+    ledgerId,
+    executionId: toText(data.executionId),
+    featureKey: FEATURE_KEY,
+    billingGate: data,
+    requestId,
+  };
+}
+
+export default function NakshatraAiClient() {
+  const [birth, setBirth] = useState<BirthInput | null>(null);
+  const [identity, setIdentity] = useState<NatalIdentity | null>(null);
+  const [loaded, setLoaded] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [statusMsg, setStatusMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [decks, setDecks] = useState<Decks | null>(null);
+  const [askedQuestion, setAskedQuestion] = useState("");
+  const busyRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(NAKSHATRA_RESULT_STORAGE_KEY);
+      if (raw) {
+        const parsed = asRecord(JSON.parse(raw));
+        const input = asRecord(parsed.input);
+        if (Number(input.year) && Number(input.month) && Number(input.day)) {
+          setBirth({
+            year: Number(input.year), month: Number(input.month), day: Number(input.day),
+            hour: Number(input.hour ?? 12), minute: Number(input.minute ?? 0),
+            timezone: Number(input.timezone ?? 9), lat: Number(input.lat ?? 37.5665), lon: Number(input.lon ?? 126.978),
+            timeUnknown: Boolean(input.timeUnknown),
+          });
+          const dongyang = asRecord(parsed.dongyang);
+          const india = asRecord(parsed.india);
+          const summary = asRecord(parsed.summary);
+          setIdentity({
+            sukuyoKo: toText(dongyang.nameKo), sukuyoHan: toText(dongyang.nameHan),
+            nakshatraKo: toText(india.nameKo || summary.nakshatraKo), nakshatraEn: toText(india.nameEn || summary.nakshatraEn),
+          });
+        }
+      }
+    } catch {
+      // sessionStorage 불가 — 아래에서 계산 유도.
+    }
+    setLoaded(true);
+  }, []);
+
+  const finish = useCallback((session: Record<string, unknown>) => {
+    const nextDecks = asRecord(session.decks);
+    setDecks({
+      sukuyo: Array.isArray(nextDecks.sukuyo) ? (nextDecks.sukuyo as Decks["sukuyo"]) : [],
+      vedic: Array.isArray(nextDecks.vedic) ? (nextDecks.vedic as Decks["vedic"]) : [],
+    });
+    const natal = asRecord(session.natal);
+    if (natal.sukuyoKo || natal.nakshatraKo) {
+      setIdentity({ sukuyoKo: toText(natal.sukuyoKo), sukuyoHan: toText(natal.sukuyoHan), nakshatraKo: toText(natal.nakshatraKo), nakshatraEn: toText(natal.nakshatraEn) });
+    }
+    setPhase("done");
+    busyRef.current = false;
+  }, []);
+
+  const fail = useCallback((message: string) => {
+    setErrorMsg(message);
+    setPhase("error");
+    busyRef.current = false;
+  }, []);
+
+  const pollResult = useCallback(async (resultId: string, accessToken: string) => {
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (accessToken) headers[ACCESS_TOKEN_HEADER] = accessToken;
+    for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt += 1) {
+      await sleep(POLL_INTERVAL_MS);
+      let res: Response;
+      try {
+        res = await authFetch(`${API.result}?attemptId=${encodeURIComponent(resultId)}`, { headers });
+      } catch {
+        continue;
+      }
+      const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+      if (res.status === 200 && data.ok && data.decks) { finish(data); return; }
+      if (res.status === 202 || res.status === 503 || res.status === 404) continue;
+      if (res.status === 409) { fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요."); return; }
+    }
+    fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
+  }, [finish, fail]);
+
+  const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
+    setPhase("generating");
+    setStatusMsg("숙요·베다 두 대가가 당신의 별을 읽는 중이에요.");
+    const accessToken = toText(access.accessToken);
+    const started = await postJson(API.start, { ...payload, ...access }, toText(payload.idempotencyKey)).catch(() => null);
+    if (!started) { await pollResult(toText(payload.idempotencyKey), accessToken); return; }
+    const { response, data } = started;
+    if (data.ok && data.decks) { finish(data); return; }
+    if (response.status === 202) { await pollResult(toText(data.sessionId) || toText(payload.idempotencyKey), accessToken); return; }
+    if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+    fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
+  }, [finish, fail, pollResult]);
+
+  const beginConsultation = useCallback(async () => {
+    if (!birth || busyRef.current) return;
+    busyRef.current = true;
+    setErrorMsg("");
+    const idempotencyKey = buildIdempotencyKey();
+    const trimmedQuestion = question.trim();
+    setAskedQuestion(trimmedQuestion);
+    const payload: Record<string, unknown> = { ...birth, question: trimmedQuestion, idempotencyKey };
+    setPhase("checking");
+    setStatusMsg("이용권을 확인하는 중이에요.");
+    try {
+      const ensure = await postJson(API.ensureAccess, payload, idempotencyKey);
+      if (ensure.data.ok) {
+        const existing = asRecord(ensure.data.consultation);
+        if (existing.decks) { finish(existing); return; }
+        await startConsult(payload, { accessToken: toText(ensure.data.accessToken) });
+        return;
+      }
+      if (ensure.response.status === 401 || ensure.data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+      if (ensure.data.reason !== "PAYMENT_REQUIRED") { fail(toText(ensure.data.message) || "잠시 후 다시 시도해 주세요."); return; }
+
+      setPhase("payment");
+      setStatusMsg("결제 수단을 확인하는 중이에요.");
+      const paymentPayload = asRecord(ensure.data.paymentPayload);
+      const runtimeGate = asRecord(paymentPayload.runtimeGate);
+      const gate = await runBillingCoinGate({
+        ...runtimeGate,
+        featureKey: FEATURE_KEY,
+        categoryKey: toText(runtimeGate.categoryKey || paymentPayload.categoryKey || "premium-consultation"),
+        subFeatureKey: toText(runtimeGate.subFeatureKey || paymentPayload.subFeatureKey || FEATURE_KEY),
+        reason: FEATURE_TITLE,
+        requestId: idempotencyKey,
+        idempotencyKey,
+        cost: COIN_PRICE,
+        coinPrice: COIN_PRICE,
+        amountKRW: PRICE_KRW,
+        amountKrw: PRICE_KRW,
+        paymentAmount: PRICE_KRW,
+        priceKRW: PRICE_KRW,
+        productId: SERVICE_ID,
+        productType: SERVICE_ID,
+        serviceType: FEATURE_KEY,
+        forceDeduct: true,
+      });
+      if (!gate.ok || !gate.data) {
+        const code = toText(gate.error?.code).toUpperCase();
+        if (code === "PAYMENT_CANCELLED" || code === "USER_CANCELLED") { setPhase("intro"); busyRef.current = false; return; }
+        fail(gate.status === 401 || code === "AUTH_REQUIRED" ? "로그인이 필요해요. 로그인 후 다시 시도해 주세요." : "결제나 이용권 확인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
+      await startConsult(payload, extractPaymentContext(gate, idempotencyKey));
+    } catch {
+      fail("네트워크 문제로 상담을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.");
+    }
+  }, [birth, question, finish, fail, startConsult]);
+
+  const bgClass =
+    "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
+
+  if (!loaded) return <main className="min-h-[100dvh] bg-[#070812]" aria-busy="true" />;
+
+  if (!birth) {
+    return (
+      <main className={`grid place-items-center ${bgClass}`}>
+        <div className="max-w-sm text-center motion-safe:animate-fade-in-up">
+          <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.32),rgba(20,16,42,0.5)_70%)] shadow-moon-glow" aria-hidden="true">
+            <span className="text-2xl text-amber-100">✶</span>
+          </div>
+          <p className="text-lg font-bold text-slate-50">먼저 별을 계산해 주세요</p>
+          <p className="mt-3 text-sm leading-7 text-slate-300">
+            AI 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.
+          </p>
+          <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 outline-none transition hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818]">
+            내 별 계산하기
+          </Link>
+        </div>
+      </main>
+    );
+  }
+
+  if (phase === "done" && decks) {
+    return (
+      <main className={bgClass}>
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10" />
+        <AiConsultDecks decks={decks} natal={identity} question={askedQuestion} />
+      </main>
+    );
+  }
+
+  const working = phase === "checking" || phase === "payment" || phase === "generating";
+
+  return (
+    <main className={`grid place-items-center ${bgClass}`}>
+      {working ? (
+        <WaitingView phase={phase} statusMsg={statusMsg} identity={identity} />
+      ) : (
+        <IntroView
+          identity={identity}
+          birth={birth}
+          question={question}
+          onQuestion={setQuestion}
+          onStart={beginConsultation}
+          errorMsg={phase === "error" ? errorMsg : ""}
+        />
+      )}
+    </main>
+  );
+}
+
+function IntroView({
+  identity, birth, question, onQuestion, onStart, errorMsg,
+}: {
+  identity: NatalIdentity | null;
+  birth: BirthInput;
+  question: string;
+  onQuestion: (value: string) => void;
+  onStart: () => void;
+  errorMsg: string;
+}) {
+  return (
+    <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · AI 심화 상담</p>
+      <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">두 대가에게 두 번 물어보세요</h1>
+      <p className="mt-3 break-keep text-sm leading-7 text-slate-200">
+        {identity?.sukuyoHan ? <><span className="font-semibold text-blue-100">{identity.sukuyoHan}宿</span> · </> : null}
+        {identity?.nakshatraKo ? <span className="font-semibold text-amber-100">{identity.nakshatraKo}</span> : <span>당신의 명식</span>}
+        을 근거로, <span className="font-semibold text-blue-100">숙요 대가</span>와 <span className="font-semibold text-amber-100">베다 대가</span>가 각각 장문의 상담을 써 드려요.
+      </p>
+
+      <label htmlFor="nakai-q" className="mt-6 block text-xs font-semibold tracking-wide text-amber-100/80">무엇이 궁금한가요? <span className="font-normal text-slate-400">(선택 — 비워두면 전반적인 흐름을 짚어 드려요)</span></label>
+      <textarea
+        id="nakai-q"
+        value={question}
+        onChange={(e) => onQuestion(e.target.value.slice(0, 1000))}
+        rows={3}
+        placeholder="예) 올해 이직을 고민 중인데 제 기질에 맞는 방향이 궁금해요."
+        className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-amber-200/40"
+      />
+
+      <p className="mt-3 text-xs leading-6 text-slate-400">
+        기준 명식: {birth.year}-{String(birth.month).padStart(2, "0")}-{String(birth.day).padStart(2, "0")}
+        {birth.timeUnknown ? " (시각 미상 · 파다 생략)" : ` ${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`}
+      </p>
+
+      {errorMsg ? (
+        <p role="alert" className="mt-4 rounded-xl border border-rose-300/30 bg-rose-500/10 px-4 py-3 text-sm leading-7 text-rose-100">{errorMsg}</p>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onStart}
+        className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 shadow-[0_16px_44px_rgba(251,191,36,0.22)] outline-none transition-all duration-200 ease-out hover:bg-amber-100 hover:shadow-moon-glow focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] active:scale-[0.99]"
+      >
+        두 대가의 상담 받기 · {formatPaymentWon(PRICE_KRW)}
+      </button>
+      <p className="mt-3 text-center text-xs leading-6 text-slate-400">이용권이 있으면 결제 없이 바로 진행돼요.</p>
+    </div>
+  );
+}
+
+function WaitingView({ phase, statusMsg, identity }: { phase: Phase; statusMsg: string; identity: NatalIdentity | null }) {
+  const generating = phase === "generating";
+  const headline = phase === "payment" ? "결제 수단을 확인하는 중이에요" : phase === "checking" ? "이용권을 확인하는 중이에요" : "두 대가가 당신의 별을 읽는 중이에요";
+  return (
+    <div className="mx-auto w-full max-w-md text-center motion-safe:animate-fade-in-up">
+      {/* Moon Glow 오브 — 두 대가가 별을 읽는 신비로운 대기(달빛 골드+바이올렛 글로우) */}
+      <div className="relative mx-auto grid h-36 w-36 place-items-center">
+        <span className="absolute left-2 top-3 text-sm text-amber-100/70 motion-safe:animate-twinkle" aria-hidden="true">✧</span>
+        <span className="absolute right-4 top-9 text-xs text-blue-100/70 [animation-delay:1.4s] motion-safe:animate-twinkle" aria-hidden="true">✦</span>
+        <span className="absolute bottom-6 left-7 text-xs text-amber-100/60 [animation-delay:2.6s] motion-safe:animate-twinkle" aria-hidden="true">✧</span>
+        <div className="absolute inset-0 rounded-full border border-amber-200/20 motion-safe:animate-spin-slow" />
+        <div className="absolute inset-4 rounded-full border border-blue-200/20 motion-safe:animate-spin-reverse" />
+        <div className="grid h-20 w-20 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.38),rgba(20,16,42,0.55)_70%)] shadow-moon-glow motion-safe:animate-float">
+          {generating ? (
+            <span className="flex items-center gap-1 text-2xl" aria-hidden="true">
+              <span className="text-blue-100">☯</span>
+              <span className="text-amber-100">🕉</span>
+            </span>
+          ) : (
+            <span className="text-3xl text-amber-100" aria-hidden="true">✶</span>
+          )}
+        </div>
+      </div>
+      <p className="mt-8 text-balance break-keep text-base font-bold text-slate-50">{headline}</p>
+      <p className="mt-2 break-keep text-sm leading-7 text-slate-300" aria-live="polite">{statusMsg || "잠시만 기다려 주세요."}</p>
+      {identity?.nakshatraKo ? (
+        <p className="mt-4 text-xs text-slate-400">
+          {identity.sukuyoHan ? `${identity.sukuyoHan}宿 · ` : ""}{identity.nakshatraKo}
+        </p>
+      ) : null}
+      {generating ? (
+        <p className="mt-5 break-keep text-xs leading-6 text-slate-400">숙요 5장 + 베다 6장, 총 11편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요.</p>
+      ) : null}
+    </div>
+  );
+}
