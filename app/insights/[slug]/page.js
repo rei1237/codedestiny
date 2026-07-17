@@ -4,6 +4,7 @@ import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } fr
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
 import { getPexelsInsightImage } from "../../../lib/server/pexels";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 
 export const dynamicParams = false;
 
@@ -197,6 +198,8 @@ export default async function InsightArticlePage({ params }) {
             ))}
           </section>
         )}
+
+        <ContentIntegrityNote datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
 
         {related.length > 0 ? (
           <section className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">

@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import ContentIntegrityNote from "../../../components/ContentIntegrityNote";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
 import { getFamousSajuHeroImage, type FamousSajuHeroImage } from "../../../../lib/famous-saju/famous-saju-image";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds, type CelebritySajuMagazineResult } from "../../../../lib/famous-saju/celebrity-saju-service";
@@ -733,6 +734,7 @@ body:has(main[data-famous-saju-detail]) {
             <CelebritySajuCTA cta={magazine.cta} />
             <RelatedCelebritySajuList related={related} />
             <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
+            <ContentIntegrityNote />
           </div>
 
           <aside className="hidden lg:block">
