@@ -168,6 +168,84 @@ async function removeDeadPngOriginals(referenced) {
   return removed;
 }
 
+// ── 앱 전용: 실제-페이지 라우트 링크를 /route/index.html 로 해석 ──────────────
+// Capacitor 로컬 서버는 확장자 없는 URL을 html5mode SPA 폴백으로 루트 홈 셸에 넘긴다
+// (WebViewLocalServer html5mode=true, 경로단위 RouteProcessor 없음). 이 사이트는 다중
+// 페이지 정적 export(각 라우트=route/index.html)라서, "실제 페이지" 라우트(로그인/회원가입/
+// 프리미엄 AI 등)로 가는 확장자 없는 링크가 홈 셸로 가로채져 "메인으로 돌아가는" 것처럼 보인다.
+// → 앱 번들에서 실제 페이지로 가는 링크만 /route/index.html 로 바꿔 폴백을 우회한다.
+//   셸로 덮어쓴 기능 라우트(/saju/basic 등)는 그대로 둬 셸+자동열기가 동작하게 한다.
+// 웹 빌드(build:cf)는 이 스크립트를 타지 않으므로 웹은 영향 없음.
+
+// promote-static-shell-to-root.mjs의 assertShellLooksReady와 동일한 셸 판별 마커.
+const SHELL_MARKERS = ['id="authQuickLinks"', "openHwatuModal"];
+
+const routeClassCache = new Map(); // route(clean) → 'real' | 'shell' | 'missing' | 'ext' | 'root'
+async function classifyRoute(routePath) {
+  const clean = String(routePath || "").replace(/\/+$/, "");
+  if (!clean || clean === "/") return "root";
+  const last = clean.slice(clean.lastIndexOf("/") + 1);
+  if (last.includes(".")) return "ext"; // 이미 확장자 있음(직접 서빙됨)
+  if (routeClassCache.has(clean)) return routeClassCache.get(clean);
+  const indexFile = path.join(DIST, clean.replace(/^\//, ""), "index.html");
+  let cls;
+  if (!(await exists(indexFile))) {
+    cls = "missing";
+  } else {
+    let content = "";
+    try {
+      content = await fs.readFile(indexFile, "utf8");
+    } catch {
+      content = "";
+    }
+    cls = SHELL_MARKERS.every((m) => content.includes(m)) ? "shell" : "real";
+  }
+  routeClassCache.set(clean, cls);
+  return cls;
+}
+
+// 정규식 매치(group3=경로)에서 실제-페이지 라우트만 골라 rewrite 맵을 만든다.
+async function buildRealRouteRewriteMap(text, re) {
+  const paths = new Set();
+  let m;
+  re.lastIndex = 0;
+  while ((m = re.exec(text)) !== null) {
+    const p = m[3];
+    if (!p || p.startsWith("//")) continue; // 프로토콜상대/외부 제외
+    paths.add(p);
+  }
+  const map = new Map();
+  for (const p of paths) {
+    if ((await classifyRoute(p)) === "real") map.set(p, p.replace(/\/+$/, "") + "/index.html");
+  }
+  return map;
+}
+
+// <a href="/route"> → <a href="/route/index.html">  (실제 페이지만; #hash·?query 보존)
+async function rewriteRealPageLinks(html) {
+  const HREF_RE = /(\bhref=)(["'])(\/[^"'#?]+)([#?][^"']*)?\2/g;
+  const map = await buildRealRouteRewriteMap(html, HREF_RE);
+  if (map.size === 0) return { html, changed: false };
+  const out = html.replace(HREF_RE, (full, pre, q, p, suffix) => {
+    const target = map.get(p);
+    return target ? `${pre}${q}${target}${suffix || ""}${q}` : full;
+  });
+  return { html: out, changed: out !== html };
+}
+
+// location.assign('/route') / location.href='/route' / window.open('/route', …)
+// → 실제 페이지면 /route/index.html 로. 완결된 문자열 리터럴만 대상(연결식은 매치 안 됨).
+async function rewriteRealPageJsNav(js) {
+  const NAV_RE = /((?:window\.)?location\.(?:assign|replace)\(\s*|(?:window\.)?location\.href\s*=\s*|window\.open\(\s*)(["'])(\/[^"'#?]+)([#?][^"']*)?\2/g;
+  const map = await buildRealRouteRewriteMap(js, NAV_RE);
+  if (map.size === 0) return { js, changed: false };
+  const out = js.replace(NAV_RE, (full, pre, q, p, suffix) => {
+    const target = map.get(p);
+    return target ? `${pre}${q}${target}${suffix || ""}${q}` : full;
+  });
+  return { js: out, changed: out !== js };
+}
+
 async function main() {
   if (!(await exists(DIST))) {
     console.error(`❌ dist를 찾을 수 없습니다: ${DIST}\n   먼저 \`npm run build:mobile\`을 실행하세요.`);
@@ -195,14 +273,31 @@ async function main() {
 
   const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
   let injected = 0;
+  let linkRewritten = 0;
   for (const file of htmlFiles) {
     const original = await fs.readFile(file, "utf8");
-    const { html, changed } = injectGuardTag(original);
-    if (!changed) continue;
-    await fs.writeFile(file, html, "utf8");
-    injected += 1;
+    const guarded = injectGuardTag(original);
+    const linked = await rewriteRealPageLinks(guarded.html);
+    if (!guarded.changed && !linked.changed) continue;
+    await fs.writeFile(file, linked.html, "utf8");
+    if (guarded.changed) injected += 1;
+    if (linked.changed) linkRewritten += 1;
   }
   console.log(`  ✅ 결제 가드 주입: HTML ${injected}/${htmlFiles.length}개`);
+  console.log(`  ✅ 실제-페이지 링크(html5mode 우회) 재작성: HTML ${linkRewritten}개`);
+
+  // JS 내 정적 네비게이션(location.assign/replace/href, window.open)도 실제 페이지는
+  // /route/index.html 로 — 프리미엄 AI 등 클릭 시 홈 셸로 튕기는 문제 우회.
+  const jsFiles = await walk(path.join(DIST, "js"), (file) => file.toLowerCase().endsWith(".js"));
+  let jsNavRewritten = 0;
+  for (const file of jsFiles) {
+    const original = await fs.readFile(file, "utf8");
+    const { js, changed } = await rewriteRealPageJsNav(original);
+    if (!changed) continue;
+    await fs.writeFile(file, js, "utf8");
+    jsNavRewritten += 1;
+  }
+  console.log(`  ✅ JS 정적 네비(html5mode 우회) 재작성: ${jsNavRewritten}개`);
 
   console.log("\n✅ 앱 빌드 후처리 완료 — 이어서 `node scripts/verify-app-no-portone.mjs`로 검증하세요.\n");
 }
