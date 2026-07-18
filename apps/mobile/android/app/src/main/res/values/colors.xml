@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Referenced by AppTheme in styles.xml. Brand palette (연이 rose/gold). -->
+    <color name="colorPrimary">#B31955</color>
+    <color name="colorPrimaryDark">#7D1240</color>
+    <color name="colorAccent">#EAD089</color>
+</resources>
