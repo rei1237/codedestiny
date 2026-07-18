@@ -7062,11 +7062,11 @@ function goHomeFromDestinyFlower() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function goAskAIFromDestinyFlower() {
+function goAskAIFromDestinyFlower(button) {
+  var url = (button && button.getAttribute && button.getAttribute('data-ai-url')) || 'https://chatgpt.com/';
   closeDestinyFlowerStudio();
-  _dfSetStudioStatus('ChatGPT를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.');
+  _dfSetStudioStatus('AI를 새 탭에서 엽니다. 열리지 않으면 팝업 허용 후 다시 시도해 주세요.');
   setTimeout(function() {
-    var url = 'https://chatgpt.com/';
     var w = null;
     try {
       w = window.open(url, '_blank', 'noopener,noreferrer');
@@ -7077,7 +7077,7 @@ function goAskAIFromDestinyFlower() {
       try {
         window.open(url, '_blank', 'noopener');
       } catch (e2) {}
-      _dfSetStudioStatus('새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 주소창에 chatgpt.com 을 입력해 주세요.');
+      _dfSetStudioStatus('새 탭이 차단된 것 같습니다. 브라우저에서 팝업을 허용하거나 원하는 AI 사이트를 직접 열어 주세요.');
     }
   }, 100);
 }

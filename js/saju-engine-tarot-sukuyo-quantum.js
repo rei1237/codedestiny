@@ -1,6 +1,12 @@
 /* saju-engine middle chunk — TAROT_DATA · 숙요/타로 플로우 · 퀀텀 명리 UI
  * 로드 순서: js/saju-engine.js → (본 파일) → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js
  * 알고리즘/데이터는 원본과 동일하게 유지 (이동만). */
+var SY_AI_TARGETS = [
+  { id: 'chatgpt', label: 'ChatGPT', url: 'https://chatgpt.com/' },
+  { id: 'gemini', label: '제미나이', url: 'https://gemini.google.com/app' },
+  { id: 'claude', label: '클로드', url: 'https://claude.ai/new' },
+  { id: 'grok', label: '그록', url: 'https://grok.com/' }
+];
 var SAJU_QUANTUM_TEXT_TRANSLATIONS = {
   ko: {
     "sq_10033_prop_title": "오래된 약속처럼 남는 인연",
@@ -1006,16 +1012,17 @@ function copyMyeongriTarotAiPrompt() {
   });
 }
 
-function openMyeongriTarotAiPromptChat() {
+function openMyeongriTarotAiPromptChat(button) {
   var status = document.getElementById('myeongriTarotAiPromptStatus');
   var text = getMyeongriTarotAiPromptText();
   if (!text) {
     if (status) status.textContent = 'AI에게 건넬 프롬프트가 아직 열리지 않았습니다.';
     return;
   }
+  var url = (button && button.getAttribute && button.getAttribute('data-ai-url')) || 'https://chatgpt.com/';
   var opened = null;
   try {
-    opened = window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+    opened = window.open(url, '_blank', 'noopener,noreferrer');
   } catch (_err) {
     opened = null;
   }
@@ -10122,7 +10129,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원 AI 상담 받기</button>
         <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
         <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
-        <button data-sy-ai-open type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">ChatGPT로 열기</button>
+        ${SY_AI_TARGETS.map(function(t){return '<button data-sy-ai-open data-ai-url="'+t.url+'" type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">'+t.label+'</button>';}).join('')}
       </div>
       <div data-sy-ai-answer style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.32);background:linear-gradient(160deg,rgba(8,13,30,0.82),rgba(22,28,64,0.72));overflow-wrap:anywhere;"></div>
       <details data-sy-ai-prompt-wrap style="display:none;margin-top:11px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;background:rgba(8,13,30,0.5);padding:8px 12px;">
@@ -11720,7 +11727,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<div class="sy-past-life-ai-head"><div><p class="sy-past-life-ai-kicker">달빛 질문문</p><h6 class="sy-past-life-ai-title">AI에게 이어 묻는 숙요 전생 인연 질문</h6></div><span class="sy-paid-status is-unlocked">리딩 포함</span></div>'
         + '<p class="sy-past-life-ai-copy">방금 열린 두 사람의 숙요 결을 그대로 담았습니다. 필요한 AI에게 옮기면 관계의 매듭과 다음 대화를 더 깊게 이어 볼 수 있습니다.</p>'
         + '<textarea class="sy-past-life-ai-output" data-sy-past-life-ai-output readonly aria-label="' + _sajuQuantumText("sq_10378_attr_aria_label") + '">' + syCanonicalEsc(promptText) + '</textarea>'
-        + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button><button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open>ChatGPT로 열기</button><span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 전생 리딩 안에 함께 열렸습니다.</span></div>'
+        + '<div class="sy-past-life-ai-actions"><button type="button" class="sy-past-life-ai-btn" data-sy-past-life-ai-copy>프롬프트 복사</button>' + SY_AI_TARGETS.map(function(t){return '<button type="button" class="sy-past-life-ai-btn sy-past-life-ai-btn--open" data-sy-past-life-ai-open data-ai-url="'+t.url+'">'+t.label+'</button>';}).join('') + '<span class="sy-past-life-ai-status" data-sy-past-life-ai-status aria-live="polite">이 달빛 질문문은 전생 리딩 안에 함께 열렸습니다.</span></div>'
         + '</section>';
     }
 
@@ -11784,7 +11791,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     panel.__syPastLifeAiBound = true;
     var outputEl = panel.querySelector('[data-sy-past-life-ai-output]');
     var copyBtn = panel.querySelector('[data-sy-past-life-ai-copy]');
-    var openBtn = panel.querySelector('[data-sy-past-life-ai-open]');
+    var openBtns = panel.querySelectorAll('[data-sy-past-life-ai-open]');
     var statusEl = panel.querySelector('[data-sy-past-life-ai-status]');
     function promptText() {
       return String(outputEl && outputEl.value || '').trim();
@@ -11803,16 +11810,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         });
       });
     }
-    if (openBtn) {
+    Array.prototype.forEach.call(openBtns, function(openBtn) {
       openBtn.addEventListener('click', function() {
         var text = promptText();
         if (!text) {
           if (statusEl) statusEl.textContent = 'AI에게 건넬 질문문이 아직 열리지 않았습니다.';
           return;
         }
-        syOpenAiChat(text, statusEl);
+        syOpenAiChat(openBtn.getAttribute('data-ai-url'), text, statusEl);
       });
-    }
+    });
   }
 
   function syPastLifeGateEvidence(gateResult) {
@@ -14734,7 +14741,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var generateBtn = rootEl.querySelector('[data-sy-ai-generate]');
     var regenerateBtn = rootEl.querySelector('[data-sy-ai-regenerate]');
     var copyBtn = rootEl.querySelector('[data-sy-ai-copy]');
-    var openBtn = rootEl.querySelector('[data-sy-ai-open]');
+    var openBtns = rootEl.querySelectorAll('[data-sy-ai-open]');
     var outputEl = rootEl.querySelector('[data-sy-ai-output]');
     var answerEl = rootEl.querySelector('[data-sy-ai-answer]');
     var promptWrap = rootEl.querySelector('[data-sy-ai-prompt-wrap]');
@@ -14829,7 +14836,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             outputEl.scrollTop = 0;
             if (promptWrap) promptWrap.style.display = 'block';
             copyBtn.style.display = 'inline-flex';
-            if (openBtn) openBtn.style.display = 'inline-flex';
+            Array.prototype.forEach.call(openBtns, function(openBtn) { openBtn.style.display = 'inline-flex'; });
           }
           regenerateBtn.style.display = 'inline-flex';
 
@@ -14886,16 +14893,16 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       });
     });
 
-    if (openBtn) {
+    Array.prototype.forEach.call(openBtns, function(openBtn) {
       openBtn.addEventListener('click', function() {
         var text = String(outputEl.value || '').trim();
         if (!text) {
           setStatus('열어볼 프롬프트가 없습니다.', 'error');
           return;
         }
-        syOpenAiChat(text, statusEl);
+        syOpenAiChat(openBtn.getAttribute('data-ai-url'), text, statusEl);
       });
-    }
+    });
 
     updateCount();
     updateBalanceText();
@@ -14951,8 +14958,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
   }
 
-  function syOpenAiChat(promptText, statusEl) {
-    var chatUrl = 'https://chatgpt.com/';
+  function syOpenAiChat(url, promptText, statusEl) {
+    var chatUrl = url || 'https://chatgpt.com/';
     var opened = null;
     try {
       opened = window.open(chatUrl, '_blank', 'noopener,noreferrer');
@@ -15892,7 +15899,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 AI 상담 받기</button>
                   <button data-sy-ai-regenerate type="button" style="display:none;background:linear-gradient(135deg,#1d4ed8,#4338ca);color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">다시 상담</button>
                   <button data-sy-ai-copy type="button" style="display:none;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border:1px solid rgba(196,181,253,0.72);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>
-                  <button data-sy-ai-open type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">ChatGPT로 열기</button>
+                  ${SY_AI_TARGETS.map(function(t){return '<button data-sy-ai-open data-ai-url="'+t.url+'" type="button" style="display:none;background:linear-gradient(135deg,rgba(180,83,9,0.74),rgba(124,58,237,0.74));color:#fff;border:1px solid rgba(253,224,71,0.38);padding:8px 12px;border-radius:10px;font-size:0.78rem;font-weight:700;cursor:pointer;">'+t.label+'</button>';}).join('')}
                 </div>
                 <div data-sy-ai-answer style="display:none;margin-top:11px;padding:15px 16px;border-radius:14px;border:1px solid rgba(196,181,253,0.32);background:linear-gradient(160deg,rgba(8,13,30,0.82),rgba(22,28,64,0.72));overflow-wrap:anywhere;"></div>
                 <details data-sy-ai-prompt-wrap style="display:none;margin-top:11px;border:1px solid rgba(196,181,253,0.28);border-radius:12px;background:rgba(8,13,30,0.5);padding:8px 12px;">
