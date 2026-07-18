@@ -57,7 +57,7 @@ const push = (remote, rel) => items.push([remote, rel]);
 [
   "연이의 일상", "연이의 방", "연이의 우울감", "연이의 우울감2",
   "연이 위기 상황", "연이 위기 상황2", "연이와 네오", "연이와 네오2",
-  "사주의 강 진입", "사주의 강 진입2",
+  "사주의 강 진입", "사주의 강 진입2", "식상의 섬 진입",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".mp3")}`, `CodeDestinyNovel/${n}.mp3`));
 
 // DestinyCafe (꽃돼지·타로카드)
@@ -68,8 +68,8 @@ const push = (remote, rel) => items.push([remote, rel]);
 ["꽃돼지-Photoroom.png", "꽃돼지2-Photoroom.png", "꽃돼지 연이 변신-Photoroom.png", "연이 타로 카드-Photoroom.png", "연이 스프라이트1-Photoroom.png"]
   .forEach((n) => push(`${ASSETS}/DestinyCafe/nobackground/${enc(n)}`, `DestinyCafe/nobackground/${n}`));
 
-// DestinyWar (네오=흰 사자·무성)
-["전략실 네오 메인-Photoroom.png", "검은 그림자-Photoroom.png"]
+// DestinyWar (네오=흰 사자 4×4 표정시트·무성)
+["전략실 네오 메인-Photoroom.png", "전략실 네오-Photoroom.png", "검은 그림자-Photoroom.png"]
   .forEach((n) => push(`${ASSETS}/DestinyWar/${enc(n)}`, `DestinyWar/${n}`));
 
 // 음악(music 호스트): 메인 화면 + 사주의 강 진입 폴백
