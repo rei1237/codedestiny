@@ -4,6 +4,13 @@
 (function (global) {
   'use strict';
 
+  var AI_TARGETS = [
+    { id: 'chatgpt', label: 'ChatGPT', url: 'https://chatgpt.com/' },
+    { id: 'gemini', label: '제미나이', url: 'https://gemini.google.com/app' },
+    { id: 'claude', label: '클로드', url: 'https://claude.ai/new' },
+    { id: 'grok', label: '그록', url: 'https://grok.com/' }
+  ];
+
   var EL_KO = { wood: '목(木)', fire: '화(火)', earth: '토(土)', metal: '금(金)', water: '수(水)' };
   var COMPAT_LLM_TEXT_TRANSLATIONS = {
     ko: {
@@ -344,10 +351,10 @@
     });
   }
 
-  function openAiChat(promptText, statusEl) {
+  function openAiChat(url, promptText, statusEl) {
     var opened = null;
     try {
-      opened = global.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+      opened = global.open(url, '_blank', 'noopener,noreferrer');
     } catch (_e) {
       opened = null;
     }
@@ -395,9 +402,15 @@
       '<button type="button" id="' +
       idPrefix +
       '-copy" style="background:#8b5cf6;color:#fff;border:1px solid rgba(196,181,253,0.7);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">프롬프트 복사</button>' +
-      '<button type="button" id="' +
-      idPrefix +
-      '-open" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">AI 채팅 열기</button>' +
+      AI_TARGETS.map(function (t) {
+        return (
+          '<button type="button" class="cd-compat-llm-open" data-ai-url="' +
+          esc(t.url) +
+          '" style="background:#2563eb;color:#fff;border:1px solid rgba(147,197,253,0.75);padding:8px 12px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;">' +
+          esc(t.label) +
+          '</button>'
+        );
+      }).join('') +
       '</div>' +
       '<div id="' +
       idPrefix +
@@ -439,7 +452,7 @@
           ta.scrollTop = 0;
         }
         var cp = gid('-copy');
-        var op = gid('-open');
+        var openBtns = container.querySelectorAll('.cd-compat-llm-open');
         if (cp) {
           cp.onclick = function () {
             copyText(ta ? ta.value : promptText).then(
@@ -452,11 +465,11 @@
             );
           };
         }
-        if (op) {
+        Array.prototype.forEach.call(openBtns, function (op) {
           op.onclick = function () {
-            openAiChat(ta ? ta.value : promptText, st);
+            openAiChat(op.getAttribute('data-ai-url'), ta ? ta.value : promptText, st);
           };
-        }
+        });
       } catch (e) {
         console.warn('[CompatLlm]', e);
         if (ld) ld.style.display = 'none';

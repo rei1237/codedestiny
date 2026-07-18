@@ -316,7 +316,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#080d24" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
+<meta name="theme-color" content="#FFF8F0" data-neo-theme="#080d24" data-yeoni-theme="#FFF8F0">
 <link rel="manifest" href="/manifest.json?v=build-e4b425fa7cd6">
 
 <!-- ═══ 성능 및 캐싱 최적화 ═══ -->
@@ -732,7 +732,10 @@
 :root{--font-body:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,-apple-system,sans-serif;--font-display:'CodeDestinyDisplay',var(--font-body);--font-premium:'CodeDestinyPremium',var(--font-display);--font-playful:'CodeDestinyPlayful',var(--font-display);--font-decorative:'CodeDestinyDecorative',var(--font-display)}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scrollbar-gutter:stable both-edges}
-body{margin:0;padding:0;background:#020617;color:#f8fafc;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;padding:0;font-family:var(--font-body);font-size:16px;line-height:1.62;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-webkit-overflow-scrolling:touch;overflow-x:hidden;overflow-x:clip;overscroll-behavior-y:none;touch-action:pan-y;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* 첫 페인트 테마 정합(FOUC 방지): 조기 hoist가 html.neo-mode를 동기 적용하므로 body 배경/글자색을 첫 레이아웃부터 확정한다. 연이=라이트 기본, 네오=다크. */
+html:not(.neo-mode) body{background:#fffaf7;color:#3c1830}
+html.neo-mode body{background:#020617;color:#f8fafc}
 img{max-width:100%;display:block}
 img[width][height]{height:auto}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px 32px}
@@ -5629,7 +5632,10 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerArtPrompt" data-cd-trans data-key="home.destinyFlowerStudio.copyMainPrompt">메인 프롬프트 복사</button>
           <button class="df-studio-chip" type="button" data-action="copyDestinyFlowerPromptPack" data-cd-trans data-key="home.destinyFlowerStudio.copyPromptPack">프롬프트 세트 복사</button>
         </div>
-        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower" data-cd-trans data-key="home.destinyFlowerStudio.askAi">🤖 AI에게 물어보러 가기</button>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower" data-action-pass-self="1" data-ai-url="https://chatgpt.com/">🤖 ChatGPT로 물어보기</button>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower" data-action-pass-self="1" data-ai-url="https://gemini.google.com/app">🤖 제미나이로 물어보기</button>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower" data-action-pass-self="1" data-ai-url="https://claude.ai/new">🤖 클로드로 물어보기</button>
+        <button type="button" class="df-studio-ai-cta" data-action="goAskAIFromDestinyFlower" data-action-pass-self="1" data-ai-url="https://grok.com/">🤖 그록으로 물어보기</button>
       </article>
     </section>
     <section class="df-studio-history" aria-label="운명의 꽃 기록 보관함" data-cd-trans-attr="aria-label:home.destinyFlowerStudio.historyAria">
@@ -5904,7 +5910,7 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   }
 
   .lang-toggle-wrap .lang-trigger {
-    min-height: 38px !important;
+    min-height: 40px !important;
     padding: 4px 8px 4px 6px !important;
     min-width: 112px !important;
   }
@@ -11665,6 +11671,8 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
   /* fixed 앱바가 뷰포트에 고정되도록 컨테이닝 블록 해제(.wrap contain:layout 이 fixed 자손 기준이 됨).
      모바일 한정, 수평 오버플로 없음 검증됨. */
   html.cd-mobile-runtime.mobile-safe-render body .wrap{contain:none!important;}
+  /* 안전망: 모바일에선 감지 클래스 조합과 무관하게 .wrap 컨테이닝 해제 — fixed 자손(앱바/스티키 CTA 등)이 뷰포트 기준으로 고정되어 탭 좌표가 어긋나지 않게. */
+  body .wrap{contain:none!important;}
 
   /* ── 앱바: 상단 fixed 헤더 골격 ── */
   html.cd-mobile-runtime.mobile-safe-render body #cdMobileDestinyHub .cd-mobile-appbar{
@@ -11685,7 +11693,7 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
   }
   /* fixed 앱바 높이만큼 허브 콘텐츠 상단 보정(콘텐츠가 헤더 아래로 숨지 않게) */
   html.cd-mobile-runtime.mobile-safe-render body #cdMobileDestinyHub .cd-mobile-hub__fold{
-    margin-top:calc(62px + env(safe-area-inset-top,0px))!important;
+    margin-top:62px!important;
   }
   html.cd-mobile-runtime.mobile-safe-render body #cdMobileDestinyHub .cd-mobile-appbar__brand{
     display:flex!important;align-items:center!important;gap:9px!important;min-width:0!important;flex:0 1 auto!important;
@@ -14232,7 +14240,10 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
                 <textarea id="myeongriTarotAiPromptOutput" rows="8" readonly aria-label="명리학 타로 AI 프롬프트" data-cd-trans-attr="aria-label:home.myeongriTarot.aiPromptAria" style="width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,0.14);border-radius:10px;background:rgba(2,6,23,0.72);color:#f8fafc;padding:12px;font-size:0.86rem;line-height:1.65;resize:vertical;outline:none;"></textarea>
                 <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
                   <button type="button" data-action="copyMyeongriTarotAiPrompt" style="flex:1;min-width:130px;border:1px solid rgba(250,204,21,0.42);border-radius:10px;background:linear-gradient(135deg,rgba(250,204,21,0.22),rgba(168,85,247,0.2));color:#fff7ed;font-weight:800;padding:10px 12px;cursor:pointer;" data-cd-trans data-key="home.myeongriTarot.copyPrompt">프롬프트 복사</button>
-                  <button type="button" data-action="openMyeongriTarotAiPromptChat" style="flex:1;min-width:130px;border:1px solid rgba(167,139,250,0.5);border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(14,165,233,0.18));color:#f5f3ff;font-weight:800;padding:10px 12px;cursor:pointer;" data-cd-trans data-key="home.myeongriTarot.askAi">AI에게 물어보기</button>
+                  <button type="button" data-action="openMyeongriTarotAiPromptChat" data-action-pass-self="1" data-ai-url="https://chatgpt.com/" style="flex:1;min-width:110px;border:1px solid rgba(167,139,250,0.5);border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(14,165,233,0.18));color:#f5f3ff;font-weight:800;padding:10px 12px;cursor:pointer;">ChatGPT</button>
+                  <button type="button" data-action="openMyeongriTarotAiPromptChat" data-action-pass-self="1" data-ai-url="https://gemini.google.com/app" style="flex:1;min-width:110px;border:1px solid rgba(167,139,250,0.5);border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(14,165,233,0.18));color:#f5f3ff;font-weight:800;padding:10px 12px;cursor:pointer;">제미나이</button>
+                  <button type="button" data-action="openMyeongriTarotAiPromptChat" data-action-pass-self="1" data-ai-url="https://claude.ai/new" style="flex:1;min-width:110px;border:1px solid rgba(167,139,250,0.5);border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(14,165,233,0.18));color:#f5f3ff;font-weight:800;padding:10px 12px;cursor:pointer;">클로드</button>
+                  <button type="button" data-action="openMyeongriTarotAiPromptChat" data-action-pass-self="1" data-ai-url="https://grok.com/" style="flex:1;min-width:110px;border:1px solid rgba(167,139,250,0.5);border-radius:10px;background:linear-gradient(135deg,rgba(124,58,237,0.4),rgba(14,165,233,0.18));color:#f5f3ff;font-weight:800;padding:10px 12px;cursor:pointer;">그록</button>
                 </div>
                 <div id="myeongriTarotAiPromptStatus" aria-live="polite" style="min-height:18px;margin-top:8px;color:#bae6fd;font-size:0.76rem;line-height:1.45;"></div>
               </div>
@@ -28554,6 +28565,18 @@ if (document.readyState === 'loading') {
   function applyTheme(isNeo, persist) {
     var nextMode = isNeo ? 'neo' : 'pig';
     syncHeroMascot(isNeo);
+    // 상태바 정합: theme-color 메타 갱신 + (앱) 네이티브 상태바 아이콘 스타일 동기화
+    try {
+      var _cdTc = document.querySelector('meta[name="theme-color"]');
+      if (_cdTc) {
+        _cdTc.setAttribute('content', isNeo ? (_cdTc.getAttribute('data-neo-theme') || '#080d24') : (_cdTc.getAttribute('data-yeoni-theme') || '#FFF8F0'));
+      }
+    } catch (_) {}
+    try {
+      var _cdSb = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.StatusBar;
+      // 네오(다크 배경)=밝은 아이콘(Style.Dark), 연이(밝은 배경)=어두운 아이콘(Style.Light)
+      if (_cdSb && typeof _cdSb.setStyle === 'function') { _cdSb.setStyle({ style: isNeo ? 'DARK' : 'LIGHT' }); }
+    } catch (_) {}
     if (nextMode === 'neo') {
       document.body.classList.add('neo-mode');
       document.documentElement.classList.add('neo-mode');

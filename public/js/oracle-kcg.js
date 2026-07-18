@@ -770,9 +770,10 @@ function openKemetAiChat(button) {
     setKemetAiPromptStatus(panel, copy.copyNotReady, 'warn');
     return;
   }
+  var url = (button && button.getAttribute && button.getAttribute('data-ai-url')) || 'https://chatgpt.com/';
   var opened = null;
   try {
-    opened = window.open('https://chatgpt.com/', '_blank', 'noopener,noreferrer');
+    opened = window.open(url, '_blank', 'noopener,noreferrer');
   } catch (_err) {
     opened = null;
   }
@@ -1118,7 +1119,10 @@ function showKemetSpread(userInput, selectedIndices) {
         </div>
         <div class="km-ai-prompt-actions">
           <button class="km-ai-prompt-btn km-ai-prompt-btn--copy" type="button" data-action="copyKemetAiPrompt" data-action-pass-self="1" data-kemet-ai-prompt-copy>${promptCopy.copyButton}</button>
-          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-kemet-ai-prompt-open>${promptCopy.openButton}</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-ai-url="https://chatgpt.com/" data-kemet-ai-prompt-open>ChatGPT</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-ai-url="https://gemini.google.com/app" data-kemet-ai-prompt-open>제미나이</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-ai-url="https://claude.ai/new" data-kemet-ai-prompt-open>클로드</button>
+          <button class="km-ai-prompt-btn" type="button" data-action="openKemetAiChat" data-action-pass-self="1" data-ai-url="https://grok.com/" data-kemet-ai-prompt-open>그록</button>
         </div>
         <p class="km-ai-prompt-status" data-kemet-ai-prompt-status>${promptCopy.promptReady}</p>
         <textarea class="km-ai-prompt-output" data-kemet-ai-prompt-output readonly aria-label="${promptCopy.promptAria}">${safeAiPromptText}</textarea>

@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
+const AI_TARGETS: { id: string; label: string; url: string }[] = [
+  { id: "chatgpt", label: "ChatGPT", url: "https://chatgpt.com/" },
+  { id: "gemini", label: "Gemini", url: "https://gemini.google.com/app" },
+  { id: "claude", label: "Claude", url: "https://claude.ai/new" },
+  { id: "grok", label: "Grok", url: "https://grok.com/" },
+];
+
 type MoonLotusDecorationProps = {
   idPrefix: string;
   wrapperClassName?: string;
@@ -718,7 +725,6 @@ type PromptHubCopy = {
   waitingForInput: string;
   copyDone: string;
   copyPrompt: string;
-  openInChatGpt: string;
   chatGptPopupBlocked: string;
   regenerate: string;
   editInput: string;
@@ -756,7 +762,6 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   waitingForInput: "Waiting for {tool} input.",
   copyDone: "Copied",
   copyPrompt: "Copy Prompt",
-  openInChatGpt: "Open in ChatGPT",
   chatGptPopupBlocked: "Popup blocked. Please allow popups and try again.",
   regenerate: "Generate Again",
   editInput: "Edit Input",
@@ -948,7 +953,6 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   waitingForInput: "{tool} 입력을 기다리고 있습니다.",
   copyDone: "복사 완료",
   copyPrompt: "프롬프트 복사",
-  openInChatGpt: "ChatGPT로 열기",
   chatGptPopupBlocked: "팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.",
   regenerate: "다시 생성",
   editInput: "입력 수정",
@@ -1245,12 +1249,12 @@ export default function ComprehensivePromptHubPage() {
     window.setTimeout(() => setCopiedToolId(null), 1600);
   }
 
-  async function openCurrentToolPromptInChatGpt() {
+  async function openCurrentToolPromptInAi(url: string) {
     if (!currentResult?.prompt) {
       setValidationAttemptedByToolId((prev) => ({ ...prev, [activeToolId]: true }));
       return;
     }
-    const opened = window.open("https://chatgpt.com/", "_blank", "noopener,noreferrer");
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
     if (!opened) {
       setChatGptPopupBlockedToolId(activeToolId);
       window.setTimeout(() => setChatGptPopupBlockedToolId(null), 3200);
@@ -1799,15 +1803,18 @@ export default function ComprehensivePromptHubPage() {
                       <Copy size={16} />
                       {copiedToolId === activeToolId ? copy.copyDone : copy.copyPrompt}
                     </button>
-                    <button
-                      type="button"
-                      onClick={openCurrentToolPromptInChatGpt}
-                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                      style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
-                    >
-                      <ExternalLink size={16} />
-                      {copiedToolId === activeToolId ? copy.copyDone : copy.openInChatGpt}
-                    </button>
+                    {AI_TARGETS.map((target) => (
+                      <button
+                        key={target.id}
+                        type="button"
+                        onClick={() => openCurrentToolPromptInAi(target.url)}
+                        className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
+                        style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                      >
+                        <ExternalLink size={16} />
+                        {target.label}
+                      </button>
+                    ))}
                     <button
                       type="button"
                       onClick={generateCurrentToolPrompt}
