@@ -1353,7 +1353,20 @@ export async function handleTarotRoutes(request, env = {}) {
     // /draw is a free stateless random card draw (no DB/cost) — requiring auth here
     // blocked logged-out users from ever reaching the card stage on static tarot pages.
     if (path !== "/mindscan" && path !== "/draw") {
-      await requireAuth(request, env);
+      try {
+        await requireAuth(request, env);
+      } catch (authErr) {
+        // reunion(/reading)·love(/love-reading) 결과는 LLM 없이 결정적으로 계산되고
+        // 서버 비용/신원 의존이 없다(결제는 클라이언트 코인 게이트가 담당). 따라서 일시적
+        // DB 인프라 블립으로 requireAuth가 실패해도 카드 해석 생성을 막지 않는다 — 확정
+        // 인증 실패(401/403)만 차단한다. mindscan이 auth를 아예 스킵하는 것과 같은 취지로,
+        // DB 풀 초기화 순간 좀비 웜커넥션이 만든 503/timeout이 결과를 통째로 죽이던 문제 해소.
+        const authStatus = authErr && authErr.status;
+        const isDeterministicReading = path === "/reading" || path === "/love-reading";
+        if (!isDeterministicReading || authStatus === 401 || authStatus === 403) {
+          throw authErr;
+        }
+      }
     }
 
     if (path === "/draw") {
