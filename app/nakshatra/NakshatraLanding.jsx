@@ -20,7 +20,7 @@ const RELATED_LABELS = {
 };
 
 const FUSION_IMAGE =
-  "https://assets.code-destiny.com/%EC%97%90%EC%85%8B/%EC%88%99%EC%9A%94%EC%A0%90x%EB%B2%A0%EB%8B%A4%EC%A0%90.webp";
+  "https://assets.code-destiny.com/%EC%88%99%EC%9A%94%EC%A0%90x%EB%B2%A0%EB%8B%A4%EC%A0%90.webp";
 
 // 27수 ↔ 27 나크샤트라 대응(牛/Abhijit 제외). 결정성 정렬 오프셋.
 const HANGUL = ["角","亢","氐","房","心","尾","箕","斗","女","虛","危","室","壁","奎","婁","胃","昴","畢","觜","參","井","鬼","柳","星","張","翼","軫"];
@@ -110,8 +110,8 @@ export default function NakshatraLanding({ page }) {
                 <Image
                   src={FUSION_IMAGE}
                   alt="숙요점과 베다점이 결합된 나크샤트라 결정판 — 동양 별자리 문양과 인도 만다라가 교차하는 이미지"
-                  width={640}
-                  height={640}
+                  width={1672}
+                  height={941}
                   priority
                   unoptimized
                 />
