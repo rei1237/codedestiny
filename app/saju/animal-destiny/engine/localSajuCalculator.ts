@@ -846,7 +846,7 @@ function calculateDaewoonStart(
 }
 
 type ElementKey = "wood" | "fire" | "earth" | "metal" | "water";
-type TenGodName = "비견" | "겁재" | "식신" | "상관" | "편재" | "정재" | "편관" | "정관" | "편인" | "정인";
+export type TenGodName = "비견" | "겁재" | "식신" | "상관" | "편재" | "정재" | "편관" | "정관" | "편인" | "정인";
 type PillarKey = "year" | "month" | "day" | "hour";
 
 const ELEMENTS: readonly ElementKey[] = ["wood", "fire", "earth", "metal", "water"] as const;
@@ -1043,7 +1043,7 @@ function getSeasonProfile(monthBranch: BranchKr) {
   };
 }
 
-function tenGodForStem(dayStem: StemKr, targetStem: StemKr): TenGodName {
+export function tenGodForStem(dayStem: StemKr, targetStem: StemKr): TenGodName {
   const dayElement = STEM_ELEMENT[dayStem];
   const targetElement = STEM_ELEMENT[targetStem];
   const samePolarity = getStemPolarity(dayStem) === getStemPolarity(targetStem);
@@ -1184,7 +1184,7 @@ function normalizeLuckPillars(input: LocalSajuInput) {
   }).filter((row) => row.stem || row.branch);
 }
 
-function getTenGodOperation(tenGod: TenGodName) {
+export function getTenGodOperation(tenGod: TenGodName) {
   const rows: Record<TenGodName, Record<string, string>> = {
     비견: {
       personality: "자기 기준, 독립성, 경쟁심이 직접 드러난다.",
