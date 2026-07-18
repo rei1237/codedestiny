@@ -58,6 +58,14 @@
   var REUNION_REASON = "재회운 타로 리딩";
   var REUNION_FEATURE_KEY = "tarot-reunion-reading";
   var TAROT_API_TIMEOUT_MS = 12000;
+  var REUNION_LOADING_MESSAGES = [
+    "🕯️ 등대에 불을 밝히는 중…",
+    "🌙 두 사람의 인연을 가만히 살펴보는 중…",
+    "🌊 마음의 결을 천천히 읽어 내려가는 중…",
+    "✨ 관계 회복의 실마리를 하나씩 엮는 중…",
+  ];
+  var REUNION_LOADING_ROTATE_MS = 2400;
+  var reunionLoadingRotationId = null;
   var MEDITATION_INTRO_TEXTS = [
     "🌊 밤바다로 떠나볼까요? 괜찮아요, 지금 이 순간은 당신 마음부터 챙겨도 돼요.",
     "🌙 별이 반짝이는 밤바다예요. 천천히 숨 쉬며 마음의 떨림을 가라앉혀봐요.",
@@ -95,15 +103,45 @@
 
   function reunionReadingSkeletonHtml() {
     return (
-      '<div class="tarot-reading-skeleton tarot-reading-skeleton--reunion" role="status" aria-live="polite">' +
+      '<div class="tarot-reading-skeleton tarot-reading-skeleton--reunion tarot-reunion-loading" role="status" aria-live="polite">' +
+      '<div class="tarot-reunion-loading__beacon" aria-hidden="true">' +
+      '<span class="tarot-reunion-loading__ray"></span>' +
+      '<span class="tarot-reunion-loading__halo"></span>' +
+      '<span class="tarot-reunion-loading__flame"></span>' +
+      "</div>" +
+      '<p class="tarot-reunion-loading__status" data-reunion-loading-status>' +
+      REUNION_LOADING_MESSAGES[0] +
+      "</p>" +
+      '<div class="tarot-reunion-loading__lines">' +
       '<span class="tarot-skel-line tarot-skel-line--title"></span>' +
       '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
       '<span class="tarot-skel-line tarot-skel-line--short"></span>' +
       '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
       '<span class="tarot-skel-line"></span><span class="tarot-skel-line tarot-skel-line--short"></span>' +
-      '<span class="tarot-skel-line"></span><span class="tarot-skel-line"></span>' +
+      "</div>" +
       "</div>"
     );
+  }
+
+  function startReunionLoadingRotation() {
+    stopReunionLoadingRotation();
+    var idx = 0;
+    reunionLoadingRotationId = setInterval(function () {
+      var el = document.querySelector("[data-reunion-loading-status]");
+      if (!el) {
+        stopReunionLoadingRotation();
+        return;
+      }
+      idx = (idx + 1) % REUNION_LOADING_MESSAGES.length;
+      el.textContent = REUNION_LOADING_MESSAGES[idx];
+    }, REUNION_LOADING_ROTATE_MS);
+  }
+
+  function stopReunionLoadingRotation() {
+    if (reunionLoadingRotationId) {
+      clearInterval(reunionLoadingRotationId);
+      reunionLoadingRotationId = null;
+    }
   }
 
   function normalizeApiBase(raw) {
@@ -425,6 +463,7 @@
         requestId: requestId,
         forceDeduct: true,
       })).then(function(result) {
+        rememberReunionCharge(result && result.transactionId, result && (result.payload || result));
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
         window.alert(String(error && error.message || "단건 결제를 완료하지 못했습니다. 결제 수단을 확인한 뒤 다시 시도해 주세요."));
@@ -442,21 +481,53 @@
     return consumeCoinDirect(cost, reason, featureKey || requestId);
   }
 
+  // 결제 게이트 승인 콜백/응답에서 실제 차감 거래 id(PointHistory ObjectId)를 추출한다.
+  // 환불 시 sourceTransactionId로 넘기면 서버가 featureKey 추정 없이 _id로 정확히 매칭한다.
+  function extractReunionChargeTransactionId(transactionId, payload) {
+    var data = payload && typeof payload === "object" ? payload : {};
+    var billing = data.data && typeof data.data === "object" ? data.data : data;
+    var consume = billing && billing.consume && typeof billing.consume === "object" ? billing.consume : {};
+    var candidates = [
+      transactionId,
+      billing.transactionId,
+      billing.pointHistoryId,
+      billing._id,
+      consume.transactionId,
+      consume.pointHistoryId,
+      consume._id,
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var id = String(candidates[i] || "").trim();
+      if (/^[a-f0-9]{24}$/i.test(id)) return id;
+    }
+    return "";
+  }
+
+  function rememberReunionCharge(transactionId, payload) {
+    state.lastChargeTransactionId = extractReunionChargeTransactionId(transactionId, payload);
+  }
+
   function rollbackCoinBestEffort(cost, reason, featureKey) {
     var token = getAuthToken();
     var rollbackHeaders = {
       "Content-Type": "application/json",
     };
     if (token) rollbackHeaders.Authorization = "Bearer " + token;
-    return fetch("/api/fortune/pig-coin/earn", {
+    var sourceTransactionId = String(state.lastChargeTransactionId || "").trim();
+    var requestId = "tarot-reunion-refund:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    // 정본 환불 라우트(/api/billing/refund → /api/fortune/pig-coin/refund 위임). 과거의
+    // /api/fortune/pig-coin/earn은 존재하지 않아 404로 환불이 조용히 실패하던 버그를 교정.
+    return fetch("/api/billing/refund", {
       method: "POST",
       headers: rollbackHeaders,
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({
-        amount: cost,
-        reason: "자동 복구: " + reason,
-        featureKey: featureKey + "-rollback",
+        cost: cost,
+        featureKey: featureKey,
+        sourceTransactionId: sourceTransactionId || undefined,
+        requestId: requestId,
+        reason: ("자동 복구: " + reason).slice(0, 120),
       }),
     }).then(function (res) {
       return !!res && res.ok;
@@ -486,7 +557,7 @@
         window._cdCoinGatePerUse(
           REUNION_COIN_COST,
           REUNION_REASON,
-          function () { done(true); },
+          function (transactionId, payload) { rememberReunionCharge(transactionId, payload); done(true); },
           function () { done(false); }
         );
         return;
@@ -1111,6 +1182,7 @@
     if (rc) {
       rc.innerHTML = reunionReadingSkeletonHtml();
       rc.setAttribute("aria-busy", "true");
+      startReunionLoadingRotation();
     }
     if (cardsContainer) {
       cardsContainer.innerHTML = "";
@@ -1128,6 +1200,7 @@
     function markSettled() {
       if (settled) return false;
       settled = true;
+      stopReunionLoadingRotation();
       if (watchdogId) { clearTimeout(watchdogId); watchdogId = null; }
       return true;
     }

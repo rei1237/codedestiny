@@ -900,6 +900,88 @@
     background-position: 200% 0;
   }
 }
+/* 재회운 로딩 — 등대·촛불 테마 (톤앤매너: 밤바다 다크 + 샴페인 골드 온기) */
+.tarot-reunion-loading {
+  align-items: center;
+  gap: 20px;
+  padding-top: 6px;
+}
+.tarot-reunion-loading__beacon {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+.tarot-reunion-loading__halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 208, 138, 0.45) 0%, rgba(244, 208, 138, 0.16) 42%, rgba(244, 208, 138, 0) 72%);
+  animation: reunion-beacon-halo 2.8s ease-in-out infinite;
+}
+.tarot-reunion-loading__ray {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  width: 3px;
+  height: 44px;
+  transform: translateX(-50%);
+  background: linear-gradient(to top, rgba(255, 224, 168, 0.62), rgba(255, 224, 168, 0));
+  border-radius: 3px;
+  filter: blur(0.5px);
+  animation: reunion-beacon-ray 2.8s ease-in-out infinite;
+}
+.tarot-reunion-loading__flame {
+  position: relative;
+  width: 17px;
+  height: 24px;
+  border-radius: 50% 50% 50% 50% / 62% 62% 40% 40%;
+  background: radial-gradient(ellipse at 50% 72%, #fff4d2 0%, #ffd98a 38%, #f0a94e 78%, rgba(240, 169, 78, 0) 100%);
+  box-shadow: 0 0 20px 5px rgba(255, 205, 120, 0.55);
+  transform-origin: 50% 90%;
+  animation: reunion-flame-flicker 1.9s ease-in-out infinite;
+}
+.tarot-reunion-loading__status {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: #f2e6c9;
+  text-align: center;
+  min-height: 1.5em;
+  text-shadow: 0 1px 10px rgba(120, 88, 36, 0.4);
+}
+.tarot-reunion-loading__lines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  margin-top: 8px;
+}
+@keyframes reunion-beacon-halo {
+  0%, 100% { transform: scale(0.9); opacity: 0.68; }
+  50% { transform: scale(1.14); opacity: 1; }
+}
+@keyframes reunion-beacon-ray {
+  0%, 100% { opacity: 0.35; transform: translateX(-50%) scaleY(0.82); }
+  50% { opacity: 0.88; transform: translateX(-50%) scaleY(1.1); }
+}
+@keyframes reunion-flame-flicker {
+  0%, 100% { transform: scale(1) rotate(-1.5deg); }
+  30% { transform: scale(1.08, 0.93) rotate(1.5deg); }
+  60% { transform: scale(0.95, 1.07) rotate(-1deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tarot-reunion-loading__halo,
+  .tarot-reunion-loading__ray,
+  .tarot-reunion-loading__flame {
+    animation: none;
+  }
+}
 .tarot-reunion-section {
   margin-bottom: 18px;
   padding: 18px 20px;
