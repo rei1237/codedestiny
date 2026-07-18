@@ -642,6 +642,7 @@
         requestId: requestId,
         forceDeduct: true,
       })).then(function(result) {
+        rememberLoveCharge(result && result.transactionId, result && (result.payload || result));
         return !!(result && (result.status === "granted" || result.ok === true || result.payload));
       }).catch(function(error) {
         window.alert(String(error && error.message || getTarotLoveCopy().checkoutFailed));
@@ -659,21 +660,53 @@
     return consumeCoinDirect(cost, reason, featureKey || requestId);
   }
 
+  // 결제 게이트 승인 콜백/응답에서 실제 차감 거래 id(PointHistory ObjectId)를 추출한다.
+  // 환불 시 sourceTransactionId로 넘기면 서버가 featureKey 추정 없이 _id로 정확히 매칭한다.
+  function extractLoveChargeTransactionId(transactionId, payload) {
+    var data = payload && typeof payload === "object" ? payload : {};
+    var billing = data.data && typeof data.data === "object" ? data.data : data;
+    var consume = billing && billing.consume && typeof billing.consume === "object" ? billing.consume : {};
+    var candidates = [
+      transactionId,
+      billing.transactionId,
+      billing.pointHistoryId,
+      billing._id,
+      consume.transactionId,
+      consume.pointHistoryId,
+      consume._id,
+    ];
+    for (var i = 0; i < candidates.length; i += 1) {
+      var id = String(candidates[i] || "").trim();
+      if (/^[a-f0-9]{24}$/i.test(id)) return id;
+    }
+    return "";
+  }
+
+  function rememberLoveCharge(transactionId, payload) {
+    state.lastChargeTransactionId = extractLoveChargeTransactionId(transactionId, payload);
+  }
+
   function rollbackCoinBestEffort(cost, reason, featureKey) {
     var token = getAuthToken();
     var rollbackHeaders = {
       "Content-Type": "application/json",
     };
     if (token) rollbackHeaders.Authorization = "Bearer " + token;
-    return fetch("/api/fortune/pig-coin/earn", {
+    var sourceTransactionId = String(state.lastChargeTransactionId || "").trim();
+    var requestId = "tarot-love-refund:" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 9);
+    // 정본 환불 라우트(/api/billing/refund → /api/fortune/pig-coin/refund 위임). 과거의
+    // /api/fortune/pig-coin/earn은 존재하지 않아 404로 환불이 조용히 실패하던 버그를 교정.
+    return fetch("/api/billing/refund", {
       method: "POST",
       headers: rollbackHeaders,
       credentials: "include",
       cache: "no-store",
       body: JSON.stringify({
-        amount: cost,
-        reason: "자동 복구: " + reason,
-        featureKey: featureKey + "-rollback",
+        cost: cost,
+        featureKey: featureKey,
+        sourceTransactionId: sourceTransactionId || undefined,
+        requestId: requestId,
+        reason: ("자동 복구: " + reason).slice(0, 120),
       }),
     }).then(function (res) {
       return !!res && res.ok;
@@ -703,7 +736,7 @@
         window._cdCoinGatePerUse(
           LOVE_COIN_COST,
           LOVE_REASON,
-          function () { done(true); },
+          function (transactionId, payload) { rememberLoveCharge(transactionId, payload); done(true); },
           function () { done(false); }
         );
         return;
