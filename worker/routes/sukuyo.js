@@ -1413,9 +1413,9 @@ function formatSukuyoBirthDate(profile) {
 }
 
 async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
-  await connectDb(env);
   const requestedProfileId = clean(profileIdRaw);
-  const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+  const user = await withMongoRetry(env, () =>
+    User.findById(auth.userId).select("destinyProfilesCurrentId").lean());
   const profileId = requestedProfileId || clean(user?.destinyProfilesCurrentId);
   if (!profileId) {
     const error = new Error("숙요점 1년운을 열 프로필을 먼저 선택해 주세요.");
@@ -1423,7 +1423,8 @@ async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
     error.code = "PROFILE_REQUIRED";
     throw error;
   }
-  const profile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+  const profile = await withMongoRetry(env, () =>
+    ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
   if (!profile) {
     const error = new Error("선택한 프로필을 찾지 못했습니다.");
     error.status = 404;

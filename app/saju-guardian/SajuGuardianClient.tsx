@@ -13,6 +13,7 @@ import {
   normalizeGanji,
   type Ganji60,
 } from "@/app/_lib/fortune/ganjiGuardianSprite";
+import { buildGuardianIdentity, buildTenGodReadings } from "@/app/_lib/fortune/guardianIdentity";
 
 /* ─────────────────────────── 타입 ─────────────────────────── */
 interface ApiResult {
@@ -1426,6 +1427,15 @@ function ResultCard({
     base64?: string;
   }>({ status: "idle" });
 
+  // 생성한 수호신 이미지를 기기에 소유(캐시)해, 재열람 시 NVIDIA 재호출 없이 즉시 다시 보여준다.
+  const guardianImageCacheKey = `cd_guardian_img_${birthYear}_${birthMonth}_${birthDay}_${birthHour !== "" ? birthHour : "x"}`;
+  useEffect(() => {
+    try {
+      const cached = window.localStorage.getItem(guardianImageCacheKey);
+      if (cached) setGuardianImage({ status: "ready", base64: cached });
+    } catch { /* localStorage 불가 환경은 무시 */ }
+  }, [guardianImageCacheKey]);
+
   if (!data.result) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#fff7ed] via-[#fff1f2] to-[#eef2ff] px-4 py-10">
@@ -1477,6 +1487,9 @@ function ResultCard({
             stem: dayStem,
             branch: dayBranch,
             elements: result.dominantElement,
+            mainAnimal: result.mainAnimal,
+            zodiac: result.zodiac,
+            polarity: STEM_POLARITY[dayStem] || "양",
           },
         }),
       });
@@ -1487,6 +1500,7 @@ function ResultCard({
         return;
       }
       setGuardianImage({ status: "ready", base64: payload.imageBase64 });
+      try { window.localStorage.setItem(guardianImageCacheKey, payload.imageBase64); } catch { /* 용량 초과 등은 무시 */ }
     } catch {
       setGuardianImage({ status: "error" });
       showToast(tx("수호신 이미지를 생성하지 못했어요. 잠시 후 다시 시도해 주세요."), "error");
@@ -1507,6 +1521,18 @@ function ResultCard({
     ? `${resolvedGanji} ${stemPolarity}${result.dominantElement} 인장`
     : `${result.dominantElement} 수호 인장`;
   const guardianEmblem = `${animalEmoji} ${result.mainAnimal} 엠블럼`;
+
+  // 정적 가디언 정체성(이름·칭호·성격·서사) — 같은 명식이면 항상 같은 캐릭터.
+  const guardianIdentity = resolvedGanji
+    ? buildGuardianIdentity({
+        ganji: resolvedGanji,
+        element: result.dominantElement,
+        polarity: stemPolarity,
+        animal: result.mainAnimal,
+      })
+    : null;
+  // 십성 개인화 섹션 — 월간·시간 기둥이 다르면 같은 오행이라도 리딩이 달라진다.
+  const tenGodSections = buildTenGodReadings(dayStem, monthStem, hourStem);
 
   const personalityLines = result.personalityLines?.length
     ? result.personalityLines
@@ -1621,7 +1647,7 @@ function ResultCard({
     flow: {
       label: tx("흐름"),
       title: tx("관계·일·재물 운용"),
-      items: interpretationCards.slice(3, 8),
+      items: [...tenGodSections, ...interpretationCards.slice(3, 8)],
     },
     ritual: {
       label: tx("의식"),
@@ -1747,13 +1773,19 @@ function ResultCard({
 
           <section className="grid content-between gap-4 rounded-lg border border-white/10 bg-white/[0.07] p-5 shadow-2xl shadow-black/30 backdrop-blur-xl" aria-label={tx("사주 가디언 핵심 지표")}>
             <div>
-              <p className="text-xs font-black tracking-[0.18em] text-teal-200">{tx("정밀 리포트")}</p>
+              <p className="text-xs font-black tracking-[0.18em] text-teal-200">{tx("나의 수호 캐릭터")}</p>
               <h2 className="mt-2 text-3xl font-black leading-tight text-white" style={{ fontFamily: "var(--font-premium)" }}>
-                {guardianArchetype}
+                {guardianIdentity?.name || guardianArchetype}
               </h2>
+              {guardianIdentity?.title ? (
+                <p className="mt-1 text-sm font-bold text-amber-200/90">{guardianIdentity.title}</p>
+              ) : null}
               <p className="mt-4 text-sm leading-relaxed text-slate-200">
-                {guardianCopy?.short || result.headlineKo} {elementReading.axis}
+                {guardianIdentity?.personality || `${guardianCopy?.short || result.headlineKo} ${elementReading.axis}`}
               </p>
+              {guardianIdentity?.narrative ? (
+                <p className="mt-3 text-sm leading-relaxed text-amber-50/85">{guardianIdentity.narrative}</p>
+              ) : null}
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {summaryMetrics.map((item) => (

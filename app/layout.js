@@ -195,10 +195,12 @@ export default function RootLayout({ children }) {
         <meta property="og:site_name" content={siteSeo.siteName} />
         <meta property="og:locale" content="ko_KR" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
-        {/* 정적 허브와 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지) */}
+        {/* 정적 허브와 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
+            Capacitor 앱은 /app 허브·기능페이지가 모두 다크라, 저장값 없으면 네오(다크)로 기본화해
+            /app→기능 이동 시 라이트↔다크 플래시를 없앤다(웹은 window.Capacitor 부재라 무영향). */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
+            __html: "try{var t=localStorage.getItem('fortuneThemeModeStateV1');if(t==='neo'||(!t&&window.Capacitor)){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
           }}
         />
       </head>

@@ -79,7 +79,9 @@ assertBefore(profile, "const security = await enforceProfileRouteSecurity(reques
   ["astrology-ai", "handleAstrologyAiRoutes"],
   ["sukuyo-compatibility-ai", "handleSukuyoCompatibilityAiRoutes"],
 ].forEach(([serviceKey, handler]) => {
-  assertContains(workerIndex, `runAiRouteWithSecurity(request, env, "${serviceKey}", ${handler})`, `ai route guard ${serviceKey}`);
+  // 닫는 괄호를 포함하지 않는다: 일부 라우트는 `runAiRouteWithSecurity(..., handler, ctx)`처럼 ctx를 추가로 넘기므로
+  // 접두 매칭으로 `handler)`·`handler, ctx)` 양쪽을 모두 허용한다(보안 배선 존재 검증 의도는 유지).
+  assertContains(workerIndex, `runAiRouteWithSecurity(request, env, "${serviceKey}", ${handler}`, `ai route guard ${serviceKey}`);
 });
 
 assertNotContains(security, "usage_pass", "security module usage pass access type");
