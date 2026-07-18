@@ -5,6 +5,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.WindowManager;
 
+import androidx.core.splashscreen.SplashScreen;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
@@ -13,6 +14,9 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Android 12+ 스플래시 API / minSdk24 core-splashscreen 백포트 활성화(앱버전 로고 스플래시).
+        // super.onCreate 이전 호출 필수.
+        SplashScreen.installSplashScreen(this);
         registerPlugin(CodeDestinyBillingPlugin.class);
         super.onCreate(savedInstanceState);
 

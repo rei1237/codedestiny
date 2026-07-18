@@ -140,6 +140,12 @@ function allowedOrigins(env = {}, request = null) {
     getEnv(env, "SITE_BASE_URL"),
     getEnv(env, "AUTH_FRONTEND_BASE_URL"),
     getEnv(env, "NEXT_PUBLIC_SITE_URL"),
+    // Capacitor 앱 셸(https://localhost) + 로컬 개발 오리진 — CORS 레이어(worker/index.js:571-572)와 일관.
+    // 브라우저는 Origin 을 위조할 수 없어(악성 사이트가 Origin: https://localhost 를 보낼 수 없음) 안전하며,
+    // 앱의 민감요청(로그인·결제)이 INVALID_ORIGIN 으로 차단되지 않게 한다.
+    "https://localhost",
+    "http://localhost",
+    "capacitor://localhost",
     ...cleanText(getEnv(env, "SECURITY_ALLOWED_ORIGINS"), 2000).split(","),
   ];
   return new Set(values.map((value) => {

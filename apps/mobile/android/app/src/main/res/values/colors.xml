@@ -4,4 +4,6 @@
     <color name="colorPrimary">#B31955</color>
     <color name="colorPrimaryDark">#7D1240</color>
     <color name="colorAccent">#EAD089</color>
+    <!-- Android 12+ 스플래시 배경(다크). splash_logo.webp(꿀꿀 운세 로고 앱버전)를 이 위에 표시. -->
+    <color name="cd_splash_bg">#070B1F</color>
 </resources>

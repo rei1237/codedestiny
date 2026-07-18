@@ -22,7 +22,10 @@ const DIST = path.resolve(ROOT, distArgIndex > -1 ? process.argv[distArgIndex + 
 
 const GUARD_SOURCE = path.join(ROOT, "scripts", "app-payment-guard.js");
 const GUARD_PUBLIC_PATH = "/js/app-payment-guard.js";
-const GUARD_TAG = `<script src="${GUARD_PUBLIC_PATH}"></script>`;
+// 앱 번들은 https://localhost 출처에서 서빙되나 그 출처엔 서버가 없다. 모든 /api/* 호출이
+// 프로덕션 워커로 가도록 API base 를 가장 먼저 확정한다(가드·api-config 가 이 값을 읽음).
+const API_BASE_INLINE = `<script>window.CODE_DESTINY_API_BASE_URL=window.CODE_DESTINY_API_BASE_URL||"https://code-destiny.com";</script>`;
+const GUARD_TAG = `${API_BASE_INLINE}<script src="${GUARD_PUBLIC_PATH}"></script>`;
 
 // 앱에 없는 라우트. scripts/app-payment-guard.js의 PRUNED_ROUTES와 짝을 이룬다 —
 // 여기서 파일을 지우고, 가드가 남은 링크를 제거한다. 한쪽만 하면 404가 난다.

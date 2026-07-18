@@ -20,7 +20,20 @@ if (process.env.NODE_ENV === "production" && !API_BASE) {
 
 type RuntimeApiWindow = Window & {
   CODE_DESTINY_API_BASE_URL?: string;
+  Capacitor?: { isNativePlatform?: () => boolean };
 };
+
+const NATIVE_APP_API_FALLBACK = "https://code-destiny.com";
+
+function isCapacitorNativeRuntime(): boolean {
+  if (typeof window === "undefined") return false;
+  const cap = (window as RuntimeApiWindow).Capacitor;
+  try {
+    return !!(cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform());
+  } catch (e) {
+    return false;
+  }
+}
 
 export function normalizeBaseUrl(rawValue?: string | null): string {
   const value = String(rawValue || "").trim();
@@ -69,6 +82,16 @@ export function getApiBaseUrl(): string {
 
   if (typeof window !== "undefined") {
     const runtimeBase = normalizeBaseUrl((window as RuntimeApiWindow).CODE_DESTINY_API_BASE_URL);
+
+    // Capacitor 네이티브 앱: 번들이 https://localhost 출처에서 서빙되지만 그 출처엔 서버가 없다.
+    // 동일출처(localhost)로 API를 부르면 전부 404가 되므로, 프로덕션 API 출처를 강제한다.
+    // (런타임 주입값 우선 → 빌드 상수 → 프로덕션 폴백). 웹/로컬dev에는 영향 없음.
+    if (isCapacitorNativeRuntime()) {
+      if (runtimeBase && !isLocalBaseUrl(runtimeBase)) return runtimeBase;
+      if (configuredBase && !isLocalBaseUrl(configuredBase) && !isWorkersDevBaseUrl(configuredBase)) return configuredBase;
+      return NATIVE_APP_API_FALLBACK;
+    }
+
     const isLocalDev = isLocalHostname(window.location.hostname);
     const sameOriginBase = normalizeBaseUrl(window.location.origin);
     const currentHostIsWorkersDev = isWorkersDevBaseUrl(sameOriginBase);
