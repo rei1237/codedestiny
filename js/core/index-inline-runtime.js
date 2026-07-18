@@ -2505,7 +2505,7 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
   var ioEnabled = typeof IntersectionObserver !== 'undefined';
   var r2AssetBase = 'https://assets.code-destiny.com/';
   var localAssetKeys = {
-    'saju-guardian-animal-v20260615.png': true
+    'saju-guardian-animal-v20260615.webp': true
   };
 
   function splitCollectionImagePath(src) {

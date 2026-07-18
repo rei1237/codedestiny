@@ -336,7 +336,7 @@ function bindEventAction(root, eventName, attrName) {
 
 const __COLLECTION_R2_ASSET_BASE = 'https://assets.code-destiny.com/';
 const __COLLECTION_LOCAL_ASSET_KEYS = new Set([
-  'saju-guardian-animal-v20260615.png'
+  'saju-guardian-animal-v20260615.webp'
 ]);
 
 function __splitCollectionImagePath(src) {
