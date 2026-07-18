@@ -62,8 +62,8 @@ win.fetch = function (url, init) {
     };
   });
   fetchCalls.push(entry);
-  // 롤백 경로(pig-coin/earn)는 즉시 성공 처리해 alert 분기까지 흘려보낸다.
-  if (entry.url.includes("/pig-coin/earn")) entry.resolveWith({ ok: true });
+  // 롤백 경로(billing/refund)는 즉시 성공 처리해 alert 분기까지 흘려보낸다.
+  if (entry.url.includes("/billing/refund")) entry.resolveWith({ ok: true });
   return entry.promise;
 };
 win._cdCoinGatePerUse = (cost, reason, onOk) => onOk();
@@ -151,7 +151,7 @@ assert.equal(retryPending.length, 1, "프리페치 실패 시 결제 완료 상�
 retryPending[0].resolveWith({ ok: true, reading: { overallVibe: "재요청복구문장입니다.", positionBreakdown: [] } });
 await flush();
 assert.match(content.textContent, /재요청복구문장/, "재요청 결과가 렌더되어야 함");
-assert.equal(calls("/pig-coin/earn").length, 0, "재요청 성공 시 롤백이 발생하면 안 됨");
+assert.equal(calls("/billing/refund").length, 0, "재요청 성공 시 롤백이 발생하면 안 됨");
 assert.equal(alerts.length, 0, "재요청 성공 시 오류 alert 금지");
 assert.ok(calls("/api/tarot/love-reading").length > prefetchCountBefore, "재요청이 실제 발사되어야 함");
 
@@ -165,7 +165,7 @@ win.showTarotLoveFinalReading();
 await flush();
 await failEndpoint("/api/tarot/love-reading"); // 결제 후 재요청도 실패
 await flush();
-assert.equal(calls("/pig-coin/earn").length, 1, "최종 실패 시 기존 롤백 경로 유지");
+assert.equal(calls("/billing/refund").length, 1, "최종 실패 시 롤백 경로(billing/refund) 유지");
 assert.equal(alerts.length, 1, "최종 실패 시 오류 alert 1회");
 assert.match(alerts[0], /복구|오류/, "실패 안내 문구");
 assert.equal(result.classList.contains("is-active"), false, "최종 실패 시 결과 스테이지 해제");
