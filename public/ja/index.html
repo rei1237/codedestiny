@@ -9100,6 +9100,35 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__chip.is-active{
         animation: cdMoonStoryPigFloat 4.8s ease-in-out infinite;
       }
       .moon-story-entry__pig--yeon { display: block; }
+      /* 프리미엄 마스코트: 단일 이미지 + 은은한 글로우(glow-not-shadow) */
+      .moon-story-entry__pig { position: relative; z-index: 1; }
+      .moon-story-entry__mascot::before {
+        content: '';
+        position: absolute;
+        z-index: 0;
+        left: 50%;
+        bottom: 4px;
+        width: clamp(88px, 11vw, 116px);
+        height: clamp(88px, 11vw, 116px);
+        transform: translateX(-50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 55%, rgba(234, 208, 137, 0.55), rgba(244, 190, 209, 0.3) 45%, transparent 72%);
+        filter: blur(7px);
+        opacity: 0.9;
+        pointer-events: none;
+        animation: cdMoonStoryGlow 4.8s ease-in-out infinite;
+      }
+      body.neo-mode .moon-story-entry__mascot::before,
+      html.neo-mode .moon-story-entry__mascot::before {
+        background: radial-gradient(circle at 50% 55%, rgba(196, 181, 253, 0.5), rgba(167, 139, 250, 0.26) 45%, transparent 72%);
+      }
+      @keyframes cdMoonStoryGlow {
+        0%, 100% { opacity: 0.72; transform: translateX(-50%) scale(0.96); }
+        50% { opacity: 1; transform: translateX(-50%) scale(1.04); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .moon-story-entry__mascot::before { animation: none; }
+      }
       body.neo-mode .moon-story-entry__pig--yeon,
       html.neo-mode .moon-story-entry__pig--yeon { display: none; }
       body.neo-mode .moon-story-entry__pig--neo,
@@ -9253,7 +9282,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
     <a class="moon-story-entry" href="/codedestiny-novel.html" data-marker="moon-story-entry-v20260718-visual-novel" aria-label="운명의 서재 비주얼 노벨 시작하기" data-cd-trans-attr="aria-label:home.story.aria">
       <span class="moon-story-entry__mascot" aria-hidden="true">
         <span class="moon-story-entry__bubble" data-cd-trans data-key="home.story.bubble">오늘의 운명, 이야기로 만나볼래요?</span>
-        <img class="moon-story-entry__pig moon-story-entry__pig--yeon" src="https://assets.code-destiny.com/DestinyCafe/nobackground/yeoni-sprite7-cutout.webp" alt="" loading="lazy" decoding="async" width="120" height="120" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.webp';" />
+        <img class="moon-story-entry__pig moon-story-entry__pig--yeon" src="https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png" alt="" loading="lazy" decoding="async" width="120" height="120" onerror="this.onerror=null;this.src='/images/fortune-tea-house/yeoni-sprite7-tarot-photoroom.webp';" />
         <img class="moon-story-entry__pig moon-story-entry__pig--neo" src="https://assets.code-destiny.com/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.png" alt="" loading="lazy" decoding="async" width="120" height="120" onerror="this.onerror=null;this.src='/icons/neo.webp';" />
       </span>
       <span class="moon-story-entry__copy">
