@@ -197,6 +197,12 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 /* 주인공 꽃돼지 — 대화창 위로 확실히 부양 + 형제(네오/미러) 위로 z-index + 밝게 유지(가림/dim으로 안 보이던 문제 수정) */
 .char.pig:not(.mirror){left:clamp(12px,6vw,100px);right:auto;bottom:clamp(215px,28vh,300px);height:clamp(190px,32vh,340px);max-height:none;transform:none;z-index:4}
 .char.pig:not(.mirror).dim{filter:brightness(.86) saturate(.94);transform:scale(.97)}
+/* 꽃돼지 주인공 표정/포즈 시트(말하는 연이2 4×4 / 꽃돼지5 4×2) — background-size는 프레임별 인라인, 위치는 대화창 위 부양 */
+.char.pig.pigsheet:not(.mirror){left:clamp(0px,4vw,72px);right:auto;bottom:clamp(188px,25vh,272px);
+  width:clamp(300px,48vh,520px);height:clamp(300px,48vh,520px);max-height:none;transform:none;z-index:4;
+  background-repeat:no-repeat;background-size:400% 400%;
+  -webkit-mask-image:linear-gradient(to bottom,#000 82%,transparent 99%);mask-image:linear-gradient(to bottom,#000 82%,transparent 99%)}
+.char.pig.pigsheet:not(.mirror).dim{filter:brightness(.86) saturate(.94);transform:scale(.97)}
 /* 초기 미러 = 거울에 비친 반전 꽃돼지(우측·반전, 좌상단 float 미적용) */
 .char.mirror.pig{left:auto;right:2vw;bottom:0;height:clamp(220px,40vh,440px);max-height:none;z-index:1}
 /* 모카(동료)·까마귀(빌런) 스프라이트 — 네오처럼 대화창 위로 부양 + height 캡(하반신 겹침 방지) */
@@ -207,7 +213,8 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.sheet{height:clamp(200px,38vh,340px);width:clamp(200px,38vh,340px)}
   .char.moka{height:clamp(165px,31vh,300px);bottom:clamp(135px,19vh,195px)}.char.crow{height:clamp(175px,33vh,320px);bottom:clamp(135px,19vh,195px)}
   .char.mirror.pig{height:clamp(150px,28vh,260px)}
-  .char.pig:not(.mirror){left:2vw;bottom:clamp(178px,26vh,224px);height:clamp(140px,24vh,210px)}}
+  .char.pig:not(.mirror){left:2vw;bottom:clamp(178px,26vh,224px);height:clamp(140px,24vh,210px)}
+  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:clamp(215px,40vh,330px);height:clamp(215px,40vh,330px)}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 /* L3 dialogue */
@@ -530,6 +537,9 @@ var PIG={
   talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.png"),
   transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.png")
 };
+/* 꽃돼지 연이 표정/포즈 시트 — PIGSHEET=말하는 연이2(4×4 얼굴 표정), PIGPOSE=꽃돼지5(4×2 동작 포즈) */
+var PIGSHEET=CAFE+enc("nobackground/말하는 꽃돼지 연이2-Photoroom.png");
+var PIGPOSE =CAFE+enc("nobackground/꽃돼지5-Photoroom.png");
 var NEO=WAR+enc("전략실 네오-Photoroom.png"); /* 흰 사자 네오 — 4×4 표정 시트, CSS 배경으로 셀 크롭 */
 var MU =WAR+enc("검은 그림자-Photoroom.png");
 var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
@@ -592,9 +602,26 @@ var TRK={
 /* 사주의 강 진입 BGM 폴백 체인(재생 실패 시 순차 강등) */
 var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake"};
 
+/* 네오 4×4 표정 시트 → 셀 좌표(background-position). 열/행 0·1·2·3 = 0%·33.333%·66.667%·100% */
+var NEO_CELL={
+  neutral:"0% 0%",soft:"33.333% 0%",surprise:"66.667% 0%",laugh:"100% 0%",
+  grin:"0% 33.333%",sly:"33.333% 33.333%",lecture:"66.667% 33.333%",talk:"100% 33.333%",
+  deadpan:"0% 66.667%",shock:"33.333% 66.667%",calm:"66.667% 66.667%",smirk:"100% 66.667%",
+  greet:"0% 100%",bliss:"33.333% 100%",serious:"66.667% 100%",smile:"100% 100%"
+};
+/* 꽃돼지 연이 표정/포즈 → {u:PIGPOSE사용여부, s:background-size, p:background-position}.
+   기본(u 없음)=PIGSHEET(말하는 연이2, 4×4). u:1=PIGPOSE(꽃돼지5, 4×2 동작 포즈) */
+var PF="400% 400%",PP="400% 200%";
+var PIG_CELL={
+  neutral:{s:PF,p:"0% 0%"},soft:{s:PF,p:"33.333% 0%"},calm:{s:PF,p:"66.667% 0%"},shy:{s:PF,p:"100% 0%"},
+  talk:{s:PF,p:"0% 33.333%"},bliss:{s:PF,p:"33.333% 33.333%"},serene:{s:PF,p:"66.667% 33.333%"},excited:{s:PF,p:"100% 33.333%"},
+  laugh:{s:PF,p:"0% 66.667%"},surprise:{s:PF,p:"33.333% 66.667%"},happy:{s:PF,p:"66.667% 66.667%"},grin:{s:PF,p:"100% 66.667%"},
+  smile:{s:PF,p:"0% 100%"},gentle:{s:PF,p:"100% 100%"},
+  wave:{u:1,s:PP,p:"0% 100%"},think:{u:1,s:PP,p:"33.333% 100%"},cheer:{u:1,s:PP,p:"100% 0%"}
+};
 /* who → sprite (form 반영) */
 function spriteFor(who,expr,form){
-  if(who==="neo")return {url:NEO,cls:"neo",sheet:true};
+  if(who==="neo")return {url:NEO,cls:"neo",sheet:true,pos:(NEO_CELL[expr]||NEO_CELL.neutral)};
   if(who==="mu")return {url:MU,cls:""};
   if(who==="moka")return {url:(MOKA[expr]||MOKA.base),cls:"moka"};
   if(who==="crow")return {url:(expr==="alt"?CROW.alt:CROW.base),cls:"crow"};
@@ -604,7 +631,7 @@ function spriteFor(who,expr,form){
     return {url:YEONI_SHEET,cls:"mirror sheet",sheet:true};
   }
   /* yeon */
-  if(form==="pig"){return {url:((expr==="talk"||expr==="happy")?PIG.talk:PIG.base),cls:"pig"};}
+  if(form==="pig"){var pc=PIG_CELL[expr]||PIG_CELL.neutral;return {url:(pc.u?PIGPOSE:PIGSHEET),cls:"pig pigsheet",sheet:true,size:pc.s,pos:pc.p};}
   return {url:(YEON[expr]||YEON.base),cls:""};
 }
 
@@ -612,7 +639,7 @@ function spriteFor(who,expr,form){
    상태 (메모리 전용 — localStorage 미사용)
    ============================================================ */
 var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,form:"human",
-       typing:false,reduce:false,speed:30,save:null,bgSlot:"A",curBg:null,cast:{},active:null,started:false};
+       typing:false,reduce:false,speed:30,save:null,bgSlot:"A",curBg:null,cast:{},active:null,slotWho:{l:null,c:null,r:null},started:false};
 var reduceMQ=window.matchMedia("(prefers-reduced-motion: reduce)");
 S.reduce=reduceMQ.matches;
 
@@ -999,6 +1026,41 @@ function setBg(key,tone){
 
 /* --- character staging --- */
 var charLayer=document.getElementById("charLayer");
+/* 화자 자동 표시 — 화자 캐릭터가 어느 슬롯에도 없으면 표준 슬롯에 자동 배치하고, 이미 있으면
+   top-level b.x(표정)로 동기화. 엔진이 원래 읽지 않던 표정 데이터를 되살려 "대화 중 화자가
+   안 보이는" 버그를 전 에피소드에서 근본 해결. n/sys/luna는 스프라이트 대상이 아니라 제외. */
+var SLOT_PREF={yeon:["l","c","r"],neo:["c","r"],moka:["c","r"],crow:["r","c"],mirror:["r","c"],mu:["c","r"]};
+var EXPR_SYNC={yeon:1,neo:1,moka:1,crow:1}; /* 표정 변형이 있는 캐릭터만 표정 동기화(mirror=형태토글·mu=단일컷 제외) */
+function beatSpeakerWho(b){
+  var s=b.s;
+  if(s==="geo")return "mirror";
+  if(s==="yeon"||s==="neo"||s==="mu"||s==="moka"||s==="crow")return s;
+  return null;
+}
+function slotOfWho(who){
+  if(S.slotWho.l===who)return "l";
+  if(S.slotWho.c===who)return "c";
+  if(S.slotWho.r===who)return "r";
+  return null;
+}
+function updateSlotExpr(slot,who,expr){ /* className/show를 안 건드리고 표정만 교체(깜빡임 방지) */
+  var el=document.getElementById("char_"+slot);if(!el){setSlot(slot,who,expr);return;}
+  var sp=spriteFor(who,expr,S.form);
+  if(sp.sheet&&el.tagName==="DIV"){el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";return;}
+  if(!sp.sheet&&el.tagName==="IMG"){setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));return;}
+  setSlot(slot,who,expr); /* 시트↔img 전환 등 태그 불일치 시 전체 재생성 */
+}
+function autoStageSpeaker(b){
+  var who=beatSpeakerWho(b);if(!who)return;
+  var expr=b.x; /* top-level 표정(없을 수 있음) */
+  var cur=slotOfWho(who);
+  if(cur){if(expr!=null&&EXPR_SYNC[who])updateSlotExpr(cur,who,expr);return;}
+  var pref=SLOT_PREF[who]||["c","r","l"];var target=null,i;
+  for(i=0;i<pref.length;i++){if(!S.slotWho[pref[i]]){target=pref[i];break;}}          /* 빈 슬롯 우선 */
+  if(!target){for(i=0;i<pref.length;i++){if(S.slotWho[pref[i]]!=="yeon"){target=pref[i];break;}}} /* 만석이면 연이 외 교체 */
+  if(!target)target=pref[0];
+  setSlot(target,who,expr);
+}
 function stageBeat(b){
   // b.l/b.c/b.r define slots; value {who,x} | null(clear) | undefined(keep)
   ["l","c","r"].forEach(function(slot){
@@ -1011,6 +1073,7 @@ function stageBeat(b){
   var spk=b.s;
   if(spk==="geo")S.active="mirror";
   else if(spk==="yeon"||spk==="neo"||spk==="mu"||spk==="moka"||spk==="crow")S.active=spk;
+  autoStageSpeaker(b); // 화자가 슬롯에 없으면 자동 배치 + 표정 동기화(핵심 가시성 수정)
   updateActive();
 }
 var slotMap={l:"slotL",c:"slotC",r:"slotR"};
@@ -1022,17 +1085,17 @@ function setSlot(slot,who,expr){
   var wantTag=sp.sheet?"DIV":"IMG"; // 시트 크롭은 background div, 그 외 <img>
   if(el&&el.tagName!==wantTag){if(el.parentNode)el.parentNode.removeChild(el);el=null;}
   if(!el){el=document.createElement(sp.sheet?"div":"img");el.id=id;charLayer.appendChild(el);}
-  el.className="char "+slotMap[slot]+" "+(sp.cls||"");el.dataset.who=who;
+  el.className="char "+slotMap[slot]+" "+(sp.cls||"");el.dataset.who=who;S.slotWho[slot]=who;
   if(sp.sheet){
     el.setAttribute("role","img");el.setAttribute("aria-label",who);
-    el.style.backgroundImage="url('"+sp.url+"')";
+    el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";
   }else{
     el.alt=who;
     setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));
   }
   requestAnimationFrame(function(){el.classList.add("show");});
 }
-function removeSlot(slot){var el=document.getElementById("char_"+slot);if(el){el.classList.remove("show");_slotRm[slot]=setTimeout(function(){_slotRm[slot]=0;if(el.parentNode)el.parentNode.removeChild(el);},500);}}
+function removeSlot(slot){S.slotWho[slot]=null;var el=document.getElementById("char_"+slot);if(el){el.classList.remove("show");_slotRm[slot]=setTimeout(function(){_slotRm[slot]=0;if(el.parentNode)el.parentNode.removeChild(el);},500);}}
 function updateActive(){
   ["l","c","r"].forEach(function(slot){
     var el=document.getElementById("char_"+slot);if(!el)return;
@@ -1308,7 +1371,7 @@ function runSkill(sk){
   box.appendChild(wrap);host.appendChild(box);
   _skTimer=setTimeout(function(){if(box.parentNode)box.parentNode.removeChild(box);_skTimer=0;},1800);
 }
-function hardClearSlots(){["l","c","r"].forEach(function(slot){if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;}var el=document.getElementById("char_"+slot);if(el&&el.parentNode)el.parentNode.removeChild(el);});S.active=null;}
+function hardClearSlots(){["l","c","r"].forEach(function(slot){if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;}S.slotWho[slot]=null;var el=document.getElementById("char_"+slot);if(el&&el.parentNode)el.parentNode.removeChild(el);});S.active=null;}
 function fxVortex(){
   var d=mkOverlay();d.style.overflow="hidden";
   var v=document.createElement("div");

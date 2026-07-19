@@ -64,8 +64,8 @@ const push = (remote, rel) => items.push([remote, rel]);
 ["꽃돼지.webp", "꽃돼지2.webp", "꽃돼지3.webp", "말하는 꽃돼지 연이3.webp", "연이 타로 카드.webp"]
   .forEach((n) => push(`${ASSETS}/DestinyCafe/${enc(n)}`, `DestinyCafe/${n}`));
 
-// DestinyCafe/nobackground (투명 컷 — 마스코트/인스토리 꽃돼지 + 변신 시퀀스 + 타로 카드 + 가짜 연이 시트)
-["꽃돼지-Photoroom.png", "꽃돼지2-Photoroom.png", "꽃돼지 연이 변신-Photoroom.png", "연이 타로 카드-Photoroom.png", "연이 스프라이트1-Photoroom.png"]
+// DestinyCafe/nobackground (투명 컷 — 마스코트/인스토리 꽃돼지 + 변신 시퀀스 + 타로 카드 + 가짜 연이 시트 + 꽃돼지 표정/포즈 시트)
+["꽃돼지-Photoroom.png", "꽃돼지2-Photoroom.png", "꽃돼지 연이 변신-Photoroom.png", "연이 타로 카드-Photoroom.png", "연이 스프라이트1-Photoroom.png", "말하는 꽃돼지 연이2-Photoroom.png", "꽃돼지5-Photoroom.png"]
   .forEach((n) => push(`${ASSETS}/DestinyCafe/nobackground/${enc(n)}`, `DestinyCafe/nobackground/${n}`));
 
 // DestinyWar (네오=흰 사자 4×4 표정시트·무성)
