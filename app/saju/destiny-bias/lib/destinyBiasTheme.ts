@@ -73,7 +73,7 @@ const DESTINY_BIAS_THEME_BASE_CHOICES = [
   {
     key: "gold_nocturne",
     name: "Chrome Star",
-    premium: true,
+    premium: false,
     preview: "linear-gradient(135deg, rgba(248,250,252,0.92), rgba(251,207,232,0.86), rgba(191,219,254,0.9))",
   },
   {
@@ -85,13 +85,13 @@ const DESTINY_BIAS_THEME_BASE_CHOICES = [
   {
     key: "skywave_mint",
     name: "Midnight Stage",
-    premium: true,
+    premium: false,
     preview: "linear-gradient(135deg, rgba(15,23,42,0.95), rgba(59,130,246,0.86), rgba(34,211,238,0.84))",
   },
   {
     key: "jade_orbit",
     name: "Soft Fan Letter",
-    premium: true,
+    premium: false,
     preview: "linear-gradient(135deg, rgba(209,250,229,0.96), rgba(167,243,208,0.88), rgba(147,197,253,0.8))",
   },
 ] as const;

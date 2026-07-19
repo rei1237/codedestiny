@@ -163,7 +163,7 @@ export const DESTINY_BIAS_THEME_PRESETS = Object.freeze({
   jade_orbit: {
     key: "jade_orbit",
     name: "Jade Orbit",
-    premium: true,
+    premium: false,
     palette: {
       bg: "linear-gradient(150deg, #062b2a 0%, #0c4e4d 44%, #195d47 100%)",
       card: "rgba(7, 43, 41, 0.82)",
@@ -175,7 +175,7 @@ export const DESTINY_BIAS_THEME_PRESETS = Object.freeze({
   gold_nocturne: {
     key: "gold_nocturne",
     name: "Gold Nocturne",
-    premium: true,
+    premium: false,
     palette: {
       bg: "linear-gradient(140deg, #1f1622 0%, #3c2a24 45%, #7c4f1f 100%)",
       card: "rgba(31, 22, 34, 0.82)",
@@ -187,7 +187,7 @@ export const DESTINY_BIAS_THEME_PRESETS = Object.freeze({
   skywave_mint: {
     key: "skywave_mint",
     name: "Skywave Mint",
-    premium: true,
+    premium: false,
     palette: {
       bg: "linear-gradient(145deg, #0a2746 0%, #0e4465 40%, #176f73 100%)",
       card: "rgba(10, 39, 70, 0.8)",

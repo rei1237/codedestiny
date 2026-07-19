@@ -1314,3 +1314,123 @@
     transition: none !important;
   }
 }
+
+/* ── Stage theme picker (uiStep 3) ────────────────────────────── */
+.themePanelGlow {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(26, 11, 63, 0.4), rgba(7, 4, 22, 0.6));
+}
+
+/* 선택된 테마 그라디언트를 패널 상단 조명으로 번지게 한다 (색상 정지점이 아니라 배경 레이어) */
+.themePanelGlow::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% 40%;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--theme-beam, linear-gradient(135deg, #ff4fd8, #8b5cf6, #22d3ee));
+  filter: blur(42px);
+  opacity: 0.28;
+  transition: opacity 0.5s ease, background 0.5s ease;
+}
+
+.themeStageCard {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(26, 11, 63, 0.66), rgba(7, 4, 22, 0.88));
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.themeStageCard:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.34);
+}
+
+.themeStageCardActive {
+  border-color: rgba(255, 217, 138, 0.72);
+  box-shadow: 0 0 34px rgba(255, 217, 138, 0.28), 0 0 68px rgba(255, 95, 210, 0.18);
+}
+
+.themeStageWell {
+  position: relative;
+  height: 108px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(4, 2, 14, 0.9), rgba(10, 6, 30, 0.7));
+}
+
+.themeStageBeam {
+  position: absolute;
+  left: 50%;
+  top: -46%;
+  width: 128%;
+  height: 118%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: var(--theme-beam, linear-gradient(135deg, #ff4fd8, #8b5cf6, #22d3ee));
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%);
+  filter: blur(9px);
+  opacity: 0.5;
+  transition: opacity 0.35s ease;
+}
+
+.themeStageCard:hover .themeStageBeam,
+.themeStageCardActive .themeStageBeam {
+  opacity: 0.86;
+}
+
+.themeStageFloor {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: 14px;
+  height: 34px;
+  border-radius: 999px;
+  pointer-events: none;
+  background: var(--theme-beam, linear-gradient(135deg, #ff4fd8, #8b5cf6, #22d3ee));
+  filter: blur(13px);
+  opacity: 0.42;
+  transition: opacity 0.35s ease;
+}
+
+.themeStageCard:hover .themeStageFloor,
+.themeStageCardActive .themeStageFloor {
+  opacity: 0.72;
+}
+
+.themeStageRig {
+  position: absolute;
+  left: 50%;
+  top: 7px;
+  width: 30px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.22));
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.42);
+}
+
+.themeStageLip {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themePanelGlow::before,
+  .themeStageCard,
+  .themeStageBeam,
+  .themeStageFloor {
+    transition: none !important;
+  }
+}

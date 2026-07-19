@@ -3,9 +3,8 @@
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState, type ChangeEvent } from "react";
-import { fetchBillingBalance, openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
-import { useContentUnlock } from "@/app/_lib/use-content-unlock";
+import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from "react";
+import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -302,9 +301,6 @@ export default function DestinyBiasClient() {
   const [toast, setToast] = useState("");
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [premiumByTier, setPremiumByTier] = useState(false);
-  const { unlocked: destinyBiasUnlocked } = useContentUnlock(["destiny-bias-theme-premium"]);
-  const canUsePremiumTheme = premiumByTier || destinyBiasUnlocked["destiny-bias-theme-premium"] === true;
   const [isLowSpec, setIsLowSpec] = useState(false);
 
   const [coinModal, setCoinModal] = useState<{
@@ -372,16 +368,6 @@ export default function DestinyBiasClient() {
     const loggedIn = Boolean(localToken || user?.id || user?.userId);
 
     setIsLoggedIn(loggedIn);
-
-    if (!loggedIn) return;
-
-    fetchBillingBalance()
-      .then((response) => {
-        if (!response.ok || !response.data) return;
-        const tier = String((response.data.user as Record<string, unknown> | null)?.profileSubscriptionTier || "").toLowerCase();
-        setPremiumByTier(tier === "premium" || tier === "vvip");
-      })
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -1381,45 +1367,49 @@ export default function DestinyBiasClient() {
                 title={destinyBiasClientText("destinyBiasClient.title.009")}
                 description={destinyBiasClientText("destinyBiasClient.description.003")}
               >
-                <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {destinyBiasThemeChoices.map((theme) => {
-                    const locked = theme.premium && !canUsePremiumTheme;
-                    const active = activeThemeKey === theme.key;
-                    return (
-                      <button
-                        key={theme.key}
-                        type="button"
-                        aria-pressed={active}
-                        aria-label={`${theme.name} 테마 ${active ? "선택됨" : "선택"}${locked ? " (프리미엄 필요)" : ""}`}
-                        onClick={() => {
-                          if (locked) {
-                            setToast("프리미엄 테마는 구독 또는 언락 후 선택할 수 있어요.");
-                            return;
-                          }
-                          setActiveThemeKey(theme.key);
-                        }}
-                        className={`group overflow-hidden rounded-2xl border bg-white/5 text-left transition ${
-                          active
-                            ? "border-pink-200/80 shadow-[0_0_0_1px_rgba(251,113,229,0.45),0_10px_28px_rgba(251,113,229,0.28)]"
-                            : "border-white/20 hover:border-cyan-200/60 hover:bg-cyan-300/10"
-                        } ${locked ? "opacity-50 cursor-not-allowed" : ""}`}
-                      >
-                        <div className="h-24" style={{ background: theme.preview }} />
-                        <div className="p-3">
-                          <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-bold text-white">{theme.name}</p>
-                            {active ? (
-                              <span className="rounded-full border border-pink-200/60 bg-pink-300/20 px-2 py-0.5 text-[10px] font-black tracking-[0.08em] text-pink-100">
-                                SELECTED
-                              </span>
-                            ) : null}
+                <div
+                  className={`${styles.themePanelGlow} p-3 md:p-4`}
+                  style={{ "--theme-beam": selectedTheme.preview } as CSSProperties}
+                >
+                  <div className="relative z-10">
+                  <p className="mb-3 text-[10px] font-semibold tracking-[0.2em] text-[var(--bias-gold)]/85">
+                    LIGHTING RIG · 무대 조명을 고르세요
+                  </p>
+                  <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                    {destinyBiasThemeChoices.map((theme) => {
+                      const active = activeThemeKey === theme.key;
+                      return (
+                        <button
+                          key={theme.key}
+                          type="button"
+                          aria-pressed={active}
+                          aria-label={`${theme.name} 테마 ${active ? "선택됨" : "선택"}`}
+                          onClick={() => setActiveThemeKey(theme.key)}
+                          style={{ "--theme-beam": theme.preview } as CSSProperties}
+                          className={`${styles.themeStageCard} ${active ? styles.themeStageCardActive : ""}`}
+                        >
+                          <div className={styles.themeStageWell}>
+                            <span className={styles.themeStageBeam} aria-hidden />
+                            <span className={styles.themeStageFloor} aria-hidden />
+                            <span className={styles.themeStageRig} aria-hidden />
+                            <span className={styles.themeStageLip} aria-hidden />
                           </div>
-                          <p className="mt-1 text-xs text-white/75">{theme.description}</p>
-                          <p className="mt-2 text-[11px] font-semibold text-cyan-100/85">{theme.premium ? "PREMIUM" : "FREE"}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
+                          <div className="p-3">
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="text-sm font-bold text-white">{theme.name}</p>
+                              {active ? (
+                                <span className="rounded-full border border-[var(--bias-gold)]/60 bg-[var(--bias-gold)]/20 px-2 py-0.5 text-[10px] font-black tracking-[0.08em] text-[var(--bias-gold)]">
+                                  ON AIR
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-white/75">{theme.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  </div>
                 </div>
               </BiasDestinyInputPanel>
             ) : null}
