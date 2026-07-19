@@ -22,10 +22,29 @@ const DIST = path.resolve(ROOT, distArgIndex > -1 ? process.argv[distArgIndex + 
 
 const GUARD_SOURCE = path.join(ROOT, "scripts", "app-payment-guard.js");
 const GUARD_PUBLIC_PATH = "/js/app-payment-guard.js";
+// 네이티브 브릿지(window.CodeDestinyNative). 가드가 결제할 때 이걸 찾는다.
+// React /app 레이아웃에만 있으면 클래식 셸에서 결제가 전부 죽으므로 전 HTML에 함께 주입한다.
+const BRIDGE_SOURCE = path.join(ROOT, "scripts", "app-native-bridge.js");
+const BRIDGE_PUBLIC_PATH = "/js/app-native-bridge.js";
 // 앱 번들은 https://localhost 출처에서 서빙되나 그 출처엔 서버가 없다. 모든 /api/* 호출이
 // 프로덕션 워커로 가도록 API base 를 가장 먼저 확정한다(가드·api-config 가 이 값을 읽음).
 const API_BASE_INLINE = `<script>window.CODE_DESTINY_API_BASE_URL=window.CODE_DESTINY_API_BASE_URL||"https://code-destiny.com";</script>`;
-const GUARD_TAG = `${API_BASE_INLINE}<script src="${GUARD_PUBLIC_PATH}"></script>`;
+// 브릿지가 가드보다 먼저다 — 브릿지가 런타임 타깃 플래그를 심고 window.CodeDestinyNative를
+// 설치한다. (가드는 결제 시점에 지연 조회하므로 순서에 엄격하진 않지만, 명시적으로 둔다.)
+// 앱에서는 네오(달빛 다크) 모드를 쓰지 않는다 — 토글을 없앴으므로 사용자가 되돌릴 방법도 없다.
+//
+// 그런데 예전 앱 빌드가 네오 다크 허브였던 탓에 기기 localStorage 에 'neo' 가 남아 있는 경우가 있고,
+// 셸(index.html)은 저장값만 보고 neo-mode 를 붙이므로 셸은 다크, React 페이지는 라이트로 떠서
+// 화면을 오갈 때마다 다크↔라이트가 번쩍인다. 기본값을 바꿔도 저장값이 이기므로 소용이 없다.
+// 그래서 저장값 자체를 '연이'로 덮고, 혹시라도 뒤에서 클래스가 붙으면 즉시 떼어낸다.
+// (CSS 는 건드리지 않는다 — 선택자를 잘못 자르면 연이 스타일까지 깨진다.)
+const FORCE_YEONI_THEME_INLINE = `<script>(function(){try{localStorage.setItem('fortuneThemeModeStateV1','pig');}catch(e){}`
+  + `var strip=function(){try{var d=document.documentElement;d.classList.remove('neo-mode');d.removeAttribute('data-cd-theme');`
+  + `if(document.body)document.body.classList.remove('neo-mode');}catch(e){}};strip();`
+  + `try{new MutationObserver(strip).observe(document.documentElement,{attributes:true,attributeFilter:['class','data-cd-theme']});}catch(e){}`
+  + `document.addEventListener('DOMContentLoaded',function(){strip();`
+  + `try{if(document.body)new MutationObserver(strip).observe(document.body,{attributes:true,attributeFilter:['class']});}catch(e){}});}());</script>`;
+const GUARD_TAG = `${API_BASE_INLINE}${FORCE_YEONI_THEME_INLINE}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
 
 // 앱에 없는 라우트. scripts/app-payment-guard.js의 PRUNED_ROUTES와 짝을 이룬다 —
 // 여기서 파일을 지우고, 가드가 남은 링크를 제거한다. 한쪽만 하면 404가 난다.
@@ -70,10 +89,14 @@ async function walk(dir, filter, out = []) {
 }
 
 async function installGuardAsset() {
-  const target = path.join(DIST, "js", "app-payment-guard.js");
-  await fs.mkdir(path.dirname(target), { recursive: true });
-  await fs.copyFile(GUARD_SOURCE, target);
-  return target;
+  const targets = [];
+  for (const [source, publicPath] of [[GUARD_SOURCE, GUARD_PUBLIC_PATH], [BRIDGE_SOURCE, BRIDGE_PUBLIC_PATH]]) {
+    const target = path.join(DIST, publicPath.replace(/^\//, ""));
+    await fs.mkdir(path.dirname(target), { recursive: true });
+    await fs.copyFile(source, target);
+    targets.push(target);
+  }
+  return targets;
 }
 
 function injectGuardTag(html) {
@@ -225,6 +248,153 @@ async function buildRealRouteRewriteMap(text, re) {
 }
 
 // <a href="/route"> → <a href="/route/index.html">  (실제 페이지만; #hash·?query 보존)
+// 대용량 VN·음원 자산을 번들에서 빼고 CDN 으로 참조한다(게임 앱의 자산 스트리밍 방식).
+//
+// codedestinyassets 는 앱 번들 최대 블록(102MB)이다. 그중 CDN 에 실재하는 74개(99.8MB)만 빼고,
+// CDN 에 없는 20개(캐릭터 스프라이트 webp, 2.5MB)는 반드시 남긴다 — 빼면 캐릭터가 깨진다.
+// 목록은 scripts/app-remote-assets.json 이 정본이며 verify-app-remote-assets.mjs 가 CDN 실재를 검증한다.
+//
+// 참조 재작성은 VN 의 `var X = PROD ? "<CDN>" : "<로컬>";` 삼항에서 베이스를 **파싱해서** 쓴다.
+// 하드코딩하면 CDN 주소가 바뀔 때 조용히 어긋난다.
+const REMOTE_ASSET_MANIFEST = path.join(ROOT, "scripts", "app-remote-assets.json");
+
+async function readRemoteAssetManifest() {
+  try {
+    return JSON.parse(await fs.readFile(REMOTE_ASSET_MANIFEST, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+// `var NOVEL=PROD?"https://assets…/CodeDestinyNovel/":"/codedestinyassets/CodeDestinyNovel/";`
+// → { NOVEL: { cdn: "https://assets…/CodeDestinyNovel/", prefix: "CodeDestinyNovel/" } }
+function parseVnAssetBases(html) {
+  const bases = {};
+  const re = /var\s+([A-Z][A-Z0-9_]*)\s*=\s*PROD\s*\?\s*"([^"]+)"\s*:\s*"\/codedestinyassets\/([^"]*)"/g;
+  let match;
+  while ((match = re.exec(html)) !== null) {
+    bases[match[1]] = { cdn: match[2], prefix: match[3] };
+  }
+  return bases;
+}
+
+function rewriteVnAssetsToCdn(html, remoteSet) {
+  const bases = parseVnAssetBases(html);
+  const names = Object.keys(bases);
+  if (!names.length) return { html, changed: false, rewritten: 0 };
+
+  let rewritten = 0;
+  const re = new RegExp(`\\b(${names.join("|")})\\s*\\+\\s*enc\\("([^"]+)"\\)`, "g");
+  const out = html.replace(re, (full, varName, rest) => {
+    const base = bases[varName];
+    if (!base) return full;
+    // CDN 에 없는 파일은 로컬 참조를 그대로 둔다(번들에도 남긴다).
+    if (!remoteSet.has(base.prefix + rest)) return full;
+    rewritten += 1;
+    return `"${base.cdn}"+enc("${rest}")`;
+  });
+  return { html: out, changed: rewritten > 0, rewritten };
+}
+
+async function removeRemoteAssetFiles(remoteList) {
+  let removed = 0;
+  let bytes = 0;
+  for (const rel of remoteList) {
+    const target = path.join(DIST, "codedestinyassets", rel);
+    try {
+      const stat = await fs.stat(target);
+      await fs.rm(target, { force: true });
+      removed += 1;
+      bytes += stat.size;
+    } catch {
+      // 이미 없는 파일은 넘어간다(재빌드 시 정상).
+    }
+  }
+  return { removed, bytes };
+}
+
+// 앱에 없어야 할 웹 전용 크롬을 마크업째 들어낸다.
+//
+// 왜 CSS 가 아니라 삭제인가: 연이/네오 토글은 셸에 `#cdMobileDestinyHub … {display:flex!important}`
+// (특이도 1,2,0) 와 `html.cd-mobile-runtime.mobile-safe-render body … {display:inline-flex!important}`
+// (0,4,2) 같은 규칙이 있다. !important 끼리는 특이도가 먼저라, 앱에서 주입하는 스타일이 아무리
+// 뒤에 와도 이길 수 없다(실제로 이 방식으로 시도했다가 토글이 그대로 남았다).
+// 마크업이 없으면 어떤 규칙도 되살릴 수 없다 — 유일하게 견고한 해법이다.
+//
+// 균형 잡힌 <div> 경계를 깊이 계산으로 찾는다. 중첩이 있어 정규식 하나로는 안전하지 않다.
+function removeBalancedDivBlocks(html, startTagPattern) {
+  let out = html;
+  let removed = 0;
+  for (;;) {
+    const startRe = new RegExp(startTagPattern, "i");
+    const match = startRe.exec(out);
+    if (!match) break;
+
+    const start = match.index;
+    let depth = 1;
+    let end = -1;
+    const tagRe = /<(\/?)div\b[^>]*>/gi;
+    tagRe.lastIndex = start + match[0].length;
+    let tag;
+    while ((tag = tagRe.exec(out)) !== null) {
+      depth += tag[1] ? -1 : 1;
+      if (depth === 0) {
+        end = tag.index + tag[0].length;
+        break;
+      }
+    }
+    // 균형이 맞지 않으면 손대지 않는다 — 잘못 자르면 문서가 깨진다.
+    if (end === -1) break;
+
+    out = out.slice(0, start) + out.slice(end);
+    removed += 1;
+  }
+  return { html: out, removed };
+}
+
+function stripAppForbiddenChrome(html) {
+  const result = removeBalancedDivBlocks(html, '<div[^>]*class="[^"]*theme-switch-wrapper[^"]*"[^>]*>');
+  return { html: result.html, changed: result.removed > 0, removed: result.removed };
+}
+
+// color-scheme 을 light 로 고정한다.
+//
+// 시스템 다크모드 기기에서 WebView 는 "dark 를 지원한다"고 선언한 문서를 다크 변형으로 그린다
+// (Android 의 알고리즘 다크닝 + prefers-color-scheme). 앱은 연이 라이트 한 가지만 쓰므로
+// 첫 페인트가 다크로 나왔다가 라이트로 뒤집히는 번쩍임의 원인이 된다.
+// 네이티브 쪽(styles.xml Light 테마 + setAlgorithmicDarkeningAllowed(false))과 짝을 이룬다.
+const COLOR_SCHEME_META_RE = /(<meta[^>]*name=["']color-scheme["'][^>]*content=)(["'])[^"']*\2/gi;
+
+function forceLightColorScheme(html) {
+  let changed = false;
+  const out = html.replace(COLOR_SCHEME_META_RE, (full, prefix, quote) => {
+    changed = true;
+    return `${prefix}${quote}light${quote}`;
+  });
+  return { html: out, changed };
+}
+
+// 자사 절대 URL 앵커 → 상대경로.
+//
+// Capacitor 는 앱 출처와 다른 호스트를 웹뷰에 로드하지 않고 외부 Chrome 으로 던진다
+// (Bridge.launchIntent). 그래서 <a href="https://code-destiny.com/…"> 를 한 번만 눌러도
+// 사용자가 앱 밖 웹사이트에 갇히고, 그 페이지엔 결제 가드가 없어 Play 안티스티어링
+// 위반 소지까지 생긴다.
+//
+// ⚠️ 앵커만 바꾼다. canonical·og:image·PWA 아이콘·JSON-LD 는 절대 URL 이어야 정상이라
+//    같이 바꾸면 공유 카드와 아이콘이 깨진다(dist 기준 절대 URL 2,499건 중 대부분이 그쪽이다).
+const OWN_ABSOLUTE_ANCHOR_RE = /(<a\s[^>]*?href=)(["'])https?:\/\/(?:www\.)?code-destiny\.com([^"']*)\2/gi;
+
+function rewriteOwnAbsoluteAnchors(html) {
+  let changed = false;
+  const out = html.replace(OWN_ABSOLUTE_ANCHOR_RE, (full, prefix, quote, rest) => {
+    changed = true;
+    const relative = rest && rest.startsWith("/") ? rest : `/${rest || ""}`;
+    return `${prefix}${quote}${relative}${quote}`;
+  });
+  return { html: out, changed };
+}
+
 async function rewriteRealPageLinks(html) {
   const HREF_RE = /(\bhref=)(["'])(\/[^"'#?]+)([#?][^"']*)?\2/g;
   const map = await buildRealRouteRewriteMap(html, HREF_RE);
@@ -257,8 +427,9 @@ async function main() {
 
   console.log(`\n📦 앱 빌드 후처리: ${path.relative(ROOT, DIST) || DIST}`);
 
-  const guardAsset = await installGuardAsset();
-  console.log(`  ✅ 결제 가드 배치: ${path.relative(DIST, guardAsset).replace(/\\/g, "/")}`);
+  const guardAssets = await installGuardAsset();
+  const guardAssetNames = guardAssets.map((target) => path.relative(DIST, target).replace(/\\/g, "/"));
+  console.log(`  ✅ 결제 가드·네이티브 브릿지 배치: ${guardAssetNames.join(", ")}`);
 
   const removed = await removeAppForbiddenRoutes();
   console.log(`  ✅ 앱에 없는 라우트 제거: ${removed.length ? removed.join(", ") : "(없음)"}`);
@@ -277,16 +448,42 @@ async function main() {
   const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
   let injected = 0;
   let linkRewritten = 0;
+  let absoluteRewritten = 0;
+  let chromeStrippedFiles = 0;
+  let chromeStrippedBlocks = 0;
+  let vnAssetRewrites = 0;
+  const remoteManifest = await readRemoteAssetManifest();
+  const remoteSet = new Set(remoteManifest?.remote || []);
+  if (!remoteSet.size) {
+    console.warn("  ⚠️ scripts/app-remote-assets.json 을 읽지 못했다 — 대용량 자산이 번들에 그대로 들어간다");
+  }
   for (const file of htmlFiles) {
     const original = await fs.readFile(file, "utf8");
     const guarded = injectGuardTag(original);
-    const linked = await rewriteRealPageLinks(guarded.html);
-    if (!guarded.changed && !linked.changed) continue;
+    const chrome = stripAppForbiddenChrome(guarded.html);
+    const scheme = forceLightColorScheme(chrome.html);
+    const vnAssets = remoteSet.size ? rewriteVnAssetsToCdn(scheme.html, remoteSet) : { html: scheme.html, changed: false, rewritten: 0 };
+    const absolute = rewriteOwnAbsoluteAnchors(vnAssets.html);
+    const linked = await rewriteRealPageLinks(absolute.html);
+    if (!guarded.changed && !chrome.changed && !scheme.changed && !vnAssets.changed && !absolute.changed && !linked.changed) continue;
     await fs.writeFile(file, linked.html, "utf8");
+    vnAssetRewrites += vnAssets.rewritten;
     if (guarded.changed) injected += 1;
+    if (chrome.changed) {
+      chromeStrippedFiles += 1;
+      chromeStrippedBlocks += chrome.removed;
+    }
+    if (absolute.changed) absoluteRewritten += 1;
     if (linked.changed) linkRewritten += 1;
   }
   console.log(`  ✅ 결제 가드 주입: HTML ${injected}/${htmlFiles.length}개`);
+  console.log(`  ✅ 웹 전용 크롬(연이/네오 토글) 제거: HTML ${chromeStrippedFiles}개 / 블록 ${chromeStrippedBlocks}개`);
+  if (remoteSet.size) {
+    const purged = await removeRemoteAssetFiles(remoteManifest.remote);
+    console.log(`  ✅ VN·음원 자산 CDN 참조 전환: 참조 ${vnAssetRewrites}건 재작성`);
+    console.log(`     번들에서 제외: ${purged.removed}개 / ${(purged.bytes / 1024 / 1024).toFixed(1)} MB (CDN 미보유 ${remoteManifest.bundledLocalOnly?.length || 0}개는 유지)`);
+  }
+  console.log(`  ✅ 자사 절대 URL 앵커 → 상대경로: HTML ${absoluteRewritten}개`);
   console.log(`  ✅ 실제-페이지 링크(html5mode 우회) 재작성: HTML ${linkRewritten}개`);
 
   // JS 내 정적 네비게이션(location.assign/replace/href, window.open)도 실제 페이지는

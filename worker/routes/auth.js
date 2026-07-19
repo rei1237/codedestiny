@@ -1061,7 +1061,27 @@ function requiresSameOriginAuthGuard(method, path) {
     || path === "/me/payment-phone";
 }
 
+// Capacitor 앱은 https://localhost 출처에서 이 API를 호출한다. 브라우저는 이걸 교차 사이트로
+// 보고 언제나 sec-fetch-site: cross-site 를 붙이므로, 아래 가드에 그대로 걸려 403 이 났다
+// — 로그인(/oauth/complete)뿐 아니라 로그아웃·세션갱신·탈퇴·전화번호 수정까지 전부.
+//
+// CSRF 는 "브라우저가 요청에 자동으로 실어보내는 쿠키 세션"을 악용하는 공격이다. 앱은 쿠키가
+// 아니라 localStorage 의 Bearer 토큰으로 인증하므로 앰비언트 크리덴셜이 없고, 애초에
+// SameSite=Lax 라 앱 출처로는 세션 쿠키가 나가지도 않는다. 즉 이 공격 모델이 성립하지 않는다.
+// 그래서 앱 출처와 앱 런타임 헤더가 "둘 다" 맞을 때만 면제한다.
+// 웹 오리진 경로는 손대지 않는다 — 거기서 넓히면 진짜 쿠키 세션이 노출된다.
+const MOBILE_APP_REQUEST_ORIGINS = new Set(["https://localhost"]);
+
+function isMobileAppAuthRequest(request) {
+  const runtime = String(request.headers.get("x-code-destiny-runtime") || "").trim().toLowerCase();
+  if (runtime !== "mobile-app") return false;
+  const origin = normalizeOriginOnly(request.headers.get("origin"));
+  return Boolean(origin) && MOBILE_APP_REQUEST_ORIGINS.has(origin);
+}
+
 function isAllowedSameOriginAuthRequest(request, env) {
+  if (isMobileAppAuthRequest(request)) return true;
+
   const secFetchSite = String(request.headers.get("sec-fetch-site") || "").trim().toLowerCase();
   if (secFetchSite === "cross-site") return false;
 
@@ -1134,6 +1154,64 @@ function buildAppOAuthRedirect(appRedirect, params = {}) {
     if (text) url.searchParams.set(key, text);
   });
   return url.toString();
+}
+
+/**
+ * 앱 복귀를 302 대신 아주 작은 HTML 중계 페이지로 처리한다.
+ *
+ * 왜: Chrome 은 리다이렉트 체인 끝에서 사용자 제스처가 소모된 채 도착한 커스텀 스킴
+ * (com.codedestiny.app://) 으로의 **서버 302 를 차단**하는 경우가 있다. 그러면 사용자는 커스텀탭 안
+ * 웹페이지에 그대로 남아 "브라우저에서 로그인은 됐는데 앱은 로그아웃" 상태가 된다.
+ * intent:// 형식은 Chrome 이 앱 실행용으로 특별 취급하므로 훨씬 확실하고,
+ * 그마저 막히면 사용자가 직접 누르는 버튼(=새 제스처)이 마지막 안전망이 된다.
+ *
+ * appRedirect 가 있을 때만 쓰인다 — 웹 로그인 경로는 기존 302 그대로다.
+ */
+function buildAppOAuthHandoffResponse(appRedirectTarget) {
+  const parsed = new URL(appRedirectTarget);
+  // intent:// 는 '#' 부터를 Intent 파라미터로 읽는다. 쿼리에 '#' 이 섞이면 안 된다.
+  const query = parsed.search.replace(/#/g, "%23");
+  const intentUrl = `intent://${parsed.host}${parsed.pathname || ""}${query}`
+    + "#Intent;scheme=com.codedestiny.app;package=com.codedestiny.app;end";
+  const escapeForScript = (value) => JSON.stringify(String(value)).replace(/</g, "\\u003c");
+
+  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>앱으로 돌아가는 중…</title>
+<style>
+html,body{margin:0;height:100%;background:#fffaf7;color:#3c1830;
+font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+.wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center}
+h1{margin:0;font-size:17px;font-weight:800}
+p{margin:0;font-size:13px;color:#70445c;line-height:1.6}
+a.btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 28px;
+border-radius:999px;background:#b31955;color:#fffaf7;font-size:15px;font-weight:800;text-decoration:none;
+box-shadow:0 12px 24px rgba(179,25,85,.18)}
+</style></head><body><div class="wrap">
+<h1>로그인이 완료되었습니다</h1>
+<p>앱으로 자동 전환됩니다.<br>화면이 바뀌지 않으면 아래 버튼을 눌러 주세요.</p>
+<a class="btn" id="back" href="#">앱으로 돌아가기</a>
+</div><script>
+(function(){
+  var intentUrl=${escapeForScript(intentUrl)};
+  var schemeUrl=${escapeForScript(appRedirectTarget)};
+  var btn=document.getElementById('back');
+  if(btn)btn.setAttribute('href',intentUrl);
+  try{location.replace(intentUrl);}catch(e){}
+  setTimeout(function(){try{location.replace(schemeUrl);}catch(e){}},700);
+}());
+</script></body></html>`;
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // 인증 grant 가 실려 있으므로 어디에도 캐시하지 않는다.
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "Referrer-Policy": "no-referrer",
+    },
+  });
 }
 
 function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
@@ -3362,7 +3440,7 @@ async function handleOAuthCallback(request, env, provider) {
         flow,
         next: nextPath !== "/" ? nextPath : "",
       });
-      if (appRedirectTarget) return redirect(appRedirectTarget);
+      if (appRedirectTarget) return buildAppOAuthHandoffResponse(appRedirectTarget);
       return redirect(`${safeFrontendBase}${redirectPath}?${redirectParams.toString()}`);
     }
 
@@ -3409,7 +3487,7 @@ async function handleOAuthCallback(request, env, provider) {
         });
         if (appRedirectTarget) {
           logKakaoCallbackMarker(request, provider, "appRedirectTarget", { redirectTarget: nextPath });
-          return redirect(appRedirectTarget);
+          return buildAppOAuthHandoffResponse(appRedirectTarget);
         }
       }
 

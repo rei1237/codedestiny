@@ -1,21 +1,39 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# Code Destiny Android — R8 keep 규칙.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# 이 앱은 Capacitor 셸이다. 네이티브 코드는 MainActivity 와 CodeDestinyBillingPlugin
+# 둘뿐이고, 사주/타로/나크샤트라 계산은 전부 WebView 안의 JS 와 Cloudflare Worker 가
+# 수행한다 — 그래서 리플렉션 직렬화 모델을 keep 할 대상이 없다.
+#
+# Capacitor 는 consumerProguardFiles 로 @CapacitorPlugin 클래스 / Plugin 서브클래스 /
+# Cordova 플러그인을 이미 보호한다(node_modules/@capacitor/android/capacitor/build.gradle).
+# 여기에는 그것으로 덮이지 않는 것만 적는다.
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── 크래시 스택 가독성 (Play Console 역난독화) ──
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── 런타임 리플렉션 대상 어노테이션 보존 ──
+# Capacitor 의 PluginHandle 이 @CapacitorPlugin / @PluginMethod 를 런타임에 읽어
+# 플러그인을 등록한다. 어노테이션이 지워지면 플러그인이 하나도 잡히지 않는다.
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── WebView JS 브릿지 (최우선) ──
+# com.getcapacitor.MessageHandler 의 @JavascriptInterface postMessage 가 JS↔네이티브
+# 통신 전부다. Capacitor consumer 규칙은 Plugin 서브클래스만 덮으므로 여기서 보호한다.
+# 이게 빠지면 앱의 모든 기능이 죽는다.
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# ── Google Play Billing ──
+# billing AAR 도 consumer 규칙을 싣지만, 결제는 장애 파급이 가장 큰 영역이라 이중 방어한다.
+-keep class com.android.billingclient.** { *; }
+
+# ── 커스텀 Capacitor 플러그인 ──
+# Capacitor consumer 규칙과 중복이나, 결제 경로라 명시적으로 남긴다.
+# @PluginMethod 이름(purchase/consume/acknowledge/queryProducts/restore)이 그대로
+# 살아 있어야 JS 쪽 호출이 붙는다.
+-keep class com.codedestiny.app.CodeDestinyBillingPlugin { *; }
+# 앱 이탈 차단(shouldOverrideLoad)의 마지막 지점. Bridge 가 플러그인 인스턴스를 순회하며
+# 이 메서드를 호출하므로, 지워지면 로그인이 다시 외부 브라우저로 새어 나간다.
+-keep class com.codedestiny.app.CodeDestinyNavigationPlugin { *; }

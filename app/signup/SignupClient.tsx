@@ -551,6 +551,37 @@ export default function SignupPage() {
     if (referralCapture.referralCode) startParams.set("referralCode", referralCapture.referralCode);
     if (referralCapture.referralShareToken) startParams.set("referralShareToken", referralCapture.referralShareToken);
     if (referralCapture.referralSource) startParams.set("referralSource", referralCapture.referralSource);
+
+    // 앱(Capacitor)에서는 절대 URL 로 이동하면 외부 Chrome 으로 튕겨 나가 앱에 돌아오지 못한다
+    // (LoginClient 의 같은 분기 주석 참고). 네이티브 브릿지의 커스텀탭 + 딥링크 복귀를 쓴다.
+    // 리퍼럴 파라미터를 그대로 넘겨야 카카오 추천 가입 보상이 지급된다.
+    const native = (window as unknown as {
+      CodeDestinyNative?: {
+        openAuth?: (input: {
+          provider: string;
+          nextPath?: string;
+          flow?: string;
+          extraParams?: Record<string, string>;
+        }) => Promise<{ ok?: boolean; message?: string }>;
+      };
+    }).CodeDestinyNative;
+    if (typeof native?.openAuth === "function") {
+      const extraParams: Record<string, string> = {};
+      if (referralCapture.referralCode) extraParams.referralCode = referralCapture.referralCode;
+      if (referralCapture.referralShareToken) extraParams.referralShareToken = referralCapture.referralShareToken;
+      if (referralCapture.referralSource) extraParams.referralSource = referralCapture.referralSource;
+      void native.openAuth({ provider, nextPath, flow: "signup", extraParams }).then((result) => {
+        if (result && result.ok === false) {
+          setError(result.message || "회원가입 창을 열지 못했습니다.");
+          setSocialLoading(null);
+        }
+      }).catch(() => {
+        setError("회원가입 창을 열지 못했습니다.");
+        setSocialLoading(null);
+      });
+      return;
+    }
+
     const startUrl = `${authApiBase}/api/auth/oauth/${provider}/start?${startParams.toString()}`;
     window.location.href = startUrl;
   };

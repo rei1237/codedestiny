@@ -195,12 +195,15 @@ export default function RootLayout({ children }) {
         <meta property="og:site_name" content={siteSeo.siteName} />
         <meta property="og:locale" content="ko_KR" />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
-        {/* 정적 허브와 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
-            Capacitor 앱은 /app 허브·기능페이지가 모두 다크라, 저장값 없으면 네오(다크)로 기본화해
-            /app→기능 이동 시 라이트↔다크 플래시를 없앤다(웹은 window.Capacitor 부재라 무영향). */}
+        {/* 정적 셸과 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
+
+            예전에는 Capacitor 앱이면 저장값이 없을 때 네오(다크)를 기본으로 강제했다. 그때는 앱이
+            /app 허브(다크)를 띄웠기 때문이다. 지금 앱은 셸(연이 라이트)을 띄우므로 그 강제가
+            셸↔React 페이지를 오갈 때마다 다크↔라이트 번쩍임을 만든다(앱에서 테마 토글도 제거했다).
+            그래서 앱 분기를 없애고 웹과 동일하게 '저장값이 neo 일 때만 네오'로 통일한다. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{var t=localStorage.getItem('fortuneThemeModeStateV1');if(t==='neo'||(!t&&window.Capacitor)){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
+            __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
           }}
         />
       </head>

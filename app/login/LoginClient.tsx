@@ -492,6 +492,39 @@ export default function LoginPage() {
 
     const params = new URLSearchParams(window.location.search);
     const nextPath = resolveNextPathFromQuery(params);
+
+    // 앱(Capacitor)에서는 절대 URL 로 이동하면 안 된다.
+    //
+    // authApiBase 는 네이티브에서 프로덕션 절대 출처(https://code-destiny.com)가 되는데,
+    // Capacitor 는 앱 출처와 다른 호스트를 웹뷰에 로드하지 않고 외부 Chrome 으로 던진다
+    // (Bridge.launchIntent). 그러면 사용자가 앱 밖 웹사이트에 갇혀 돌아오지 못하고,
+    // 세션도 앱이 아닌 브라우저 쿠키로만 생긴다 — "로그인하면 웹으로 가버리는" 증상의 원인.
+    //
+    // 네이티브 브릿지는 커스텀탭으로 열고 com.codedestiny.app://auth 딥링크로 앱에 복귀시킨다.
+    // (Google 은 임베디드 WebView 의 OAuth 를 disallowed_useragent 로 차단하므로 커스텀탭이 정답이다.)
+    const native = (window as unknown as {
+      CodeDestinyNative?: {
+        openAuth?: (input: { provider: string; nextPath?: string; flow?: string }) =>
+          Promise<{ ok?: boolean; message?: string }>;
+      };
+    }).CodeDestinyNative;
+    if (typeof native?.openAuth === "function") {
+      void native.openAuth({ provider, nextPath, flow: "login" }).then((result) => {
+        if (result && result.ok === false) {
+          setError(result.message || "로그인 창을 열지 못했습니다.");
+          setLoginStatus("error");
+          setOauthRedirecting(null);
+          setPortalMessage("");
+        }
+      }).catch(() => {
+        setError("로그인 창을 열지 못했습니다.");
+        setLoginStatus("error");
+        setOauthRedirecting(null);
+        setPortalMessage("");
+      });
+      return;
+    }
+
     const startUrl = buildSocialStartUrl(authApiBase, provider, "login", nextPath);
     window.location.href = startUrl;
   };
