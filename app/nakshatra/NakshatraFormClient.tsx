@@ -183,8 +183,12 @@ export default function NakshatraFormClient() {
                   onClick={() => void selectCard(card)}
                   aria-pressed={active}
                 >
-                  <span className="pn">{chip.name}</span>
-                  <span className="pd">{chip.detail}</span>
+                  <span className={styles.pcAvatar} aria-hidden="true">{(chip.name || "★").trim().charAt(0)}</span>
+                  <span className={styles.pcText}>
+                    <span className={styles.pn}>{chip.name}</span>
+                    <span className={styles.pd}>{chip.detail}</span>
+                  </span>
+                  {active && <span className={styles.pcCheck} aria-hidden="true">✓</span>}
                 </button>
               );
             })}
