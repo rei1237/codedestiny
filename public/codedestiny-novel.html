@@ -190,18 +190,19 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   background-repeat:no-repeat;background-size:400% 200%;background-position:66.667% 0%;
   -webkit-mask-image:linear-gradient(to bottom,#000 76%,transparent 99%);mask-image:linear-gradient(to bottom,#000 76%,transparent 99%)}
 .char.pig{height:52vh;max-height:520px}
-/* 네오=흰 사자 4×4 표정 시트 → 셀(0,0) 크롭. 정사각 컨테이너 + 대화창 위로 부양 */
+/* 네오=흰 사자 4×4 표정 시트 → 셀(0,0) 크롭. 정사각 컨테이너 + 대화창 위로 부양.
+   원본 도형이 명목 격자(313.5px)보다 살짝 커서 이웃 행이 비쳤다 → 크롭창을 300px(=1254/4.18)로 좁혀 프레임별로 맞춘다 */
 .char.neo{width:clamp(250px,40vh,430px);height:clamp(250px,40vh,430px);max-height:none;bottom:clamp(150px,22vh,215px);
-  background-repeat:no-repeat;background-size:400% 400%;background-position:0% 0%;
+  background-repeat:no-repeat;background-size:418% 418%;background-position:2.306% 3.145%;
   -webkit-mask-image:linear-gradient(to bottom,#000 88%,transparent 99%);mask-image:linear-gradient(to bottom,#000 88%,transparent 99%)}
 /* 주인공 꽃돼지 — 대화창 위로 확실히 부양 + 형제(네오/미러) 위로 z-index + 밝게 유지(가림/dim으로 안 보이던 문제 수정) */
 .char.pig:not(.mirror){left:clamp(12px,6vw,100px);right:auto;bottom:clamp(215px,28vh,300px);height:clamp(190px,32vh,340px);max-height:none;transform:none;z-index:4}
 .char.pig:not(.mirror).dim{filter:brightness(.86) saturate(.94);transform:scale(.97)}
-/* 꽃돼지 주인공 표정/포즈 시트(말하는 연이2 4×4 / 꽃돼지5 4×2) — background-size는 프레임별 인라인, 위치는 대화창 위 부양 */
+/* 꽃돼지 주인공 표정/포즈 시트(정규화 4×4 / 4×2) — 셀 비율 264:372 를 컨테이너에 그대로 물려야 도형이 안 늘어난다 */
 .char.pig.pigsheet:not(.mirror){left:clamp(0px,4vw,72px);right:auto;bottom:clamp(188px,25vh,272px);
-  width:clamp(300px,48vh,520px);height:clamp(300px,48vh,520px);max-height:none;transform:none;z-index:4;
+  width:clamp(245px,39vh,420px);height:auto;aspect-ratio:264/372;max-height:none;transform:none;z-index:4;
   background-repeat:no-repeat;background-size:400% 400%;
-  -webkit-mask-image:linear-gradient(to bottom,#000 82%,transparent 99%);mask-image:linear-gradient(to bottom,#000 82%,transparent 99%)}
+  -webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
 .char.pig.pigsheet:not(.mirror).dim{filter:brightness(.86) saturate(.94);transform:scale(.97)}
 /* 초기 미러 = 거울에 비친 반전 꽃돼지(우측·반전, 좌상단 float 미적용) */
 .char.mirror.pig{left:auto;right:2vw;bottom:0;height:clamp(220px,40vh,440px);max-height:none;z-index:1}
@@ -209,12 +210,12 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.moka{height:clamp(210px,35vh,390px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.crow{height:clamp(220px,37vh,410px);max-height:none;bottom:clamp(175px,25vh,240px)}
 @media (max-width:760px){.char{height:52vh}.char.pig{height:38vh}.char.slotL{left:-4vw}.char.slotR{right:-4vw}
-  .char.neo{width:clamp(165px,31vh,278px);height:clamp(165px,31vh,278px);bottom:clamp(102px,15vh,162px);background-size:400% 400%;background-position:0% 0%}
+  .char.neo{width:clamp(165px,31vh,278px);height:clamp(165px,31vh,278px);bottom:clamp(102px,15vh,162px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:clamp(200px,38vh,340px);width:clamp(200px,38vh,340px)}
   .char.moka{height:clamp(165px,31vh,300px);bottom:clamp(135px,19vh,195px)}.char.crow{height:clamp(175px,33vh,320px);bottom:clamp(135px,19vh,195px)}
   .char.mirror.pig{height:clamp(150px,28vh,260px)}
   .char.pig:not(.mirror){left:2vw;bottom:clamp(178px,26vh,224px);height:clamp(140px,24vh,210px)}
-  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:clamp(215px,40vh,330px);height:clamp(215px,40vh,330px)}}
+  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:clamp(175px,28vh,270px);height:auto;aspect-ratio:264/372}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 /* L3 dialogue */
@@ -537,9 +538,11 @@ var PIG={
   talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.png"),
   transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.png")
 };
-/* 꽃돼지 연이 표정/포즈 시트 — PIGSHEET=말하는 연이2(4×4 얼굴 표정), PIGPOSE=꽃돼지5(4×2 동작 포즈) */
-var PIGSHEET=CAFE+enc("nobackground/말하는 꽃돼지 연이2-Photoroom.png");
-var PIGPOSE =CAFE+enc("nobackground/꽃돼지5-Photoroom.png");
+/* 꽃돼지 연이 표정/포즈 시트 — 원본(R2) 시트는 도형이 균등 격자에 놓여 있지 않아(행마다 40~50px 밀림)
+   격자 크롭 시 윗칸 발굽이 딸려 들어오고 다리가 잘렸다. scripts/build-novel-pig-sheets.mjs 로
+   도형을 실측해 균등 격자(셀 264×372)로 재조립한 정규화 시트를 쓴다. 동일 출처라 앱 번들에도 포함된다. */
+var PIGSHEET="/images/novel/pig-expressions.webp"; /* 표정 4×4 */
+var PIGPOSE ="/images/novel/pig-poses.webp";       /* 동작 포즈 4×2 */
 var NEO=WAR+enc("전략실 네오-Photoroom.png"); /* 흰 사자 네오 — 4×4 표정 시트, CSS 배경으로 셀 크롭 */
 var MU =WAR+enc("검은 그림자-Photoroom.png");
 var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
@@ -602,15 +605,16 @@ var TRK={
 /* 사주의 강 진입 BGM 폴백 체인(재생 실패 시 순차 강등) */
 var RIVER_FALLBACK={riverEnter:"riverEnter2",riverEnter2:"stillLake"};
 
-/* 네오 4×4 표정 시트 → 셀 좌표(background-position). 열/행 0·1·2·3 = 0%·33.333%·66.667%·100% */
+/* 네오 4×4 표정 시트 → 셀 좌표(background-position). 원본 도형 실측 위치 기준으로,
+   300px 크롭창(CSS background-size:418%)을 각 프레임에 맞춰 놓은 값이다(균등 % 격자가 아니다). */
 var NEO_CELL={
-  neutral:"0% 0%",soft:"33.333% 0%",surprise:"66.667% 0%",laugh:"100% 0%",
-  grin:"0% 33.333%",sly:"33.333% 33.333%",lecture:"66.667% 33.333%",talk:"100% 33.333%",
-  deadpan:"0% 66.667%",shock:"33.333% 66.667%",calm:"66.667% 66.667%",smirk:"100% 66.667%",
-  greet:"0% 100%",bliss:"33.333% 100%",serious:"66.667% 100%",smile:"100% 100%"
+  neutral:"2.306% 3.145%",soft:"32.075% 3.145%",surprise:"64.151% 3.145%",laugh:"95.178% 3.145%",
+  grin:"2.306% 34.172%",sly:"31.866% 34.591%",lecture:"63.941% 34.172%",talk:"95.388% 34.591%",
+  deadpan:"2.516% 65.618%",shock:"32.285% 65.618%",calm:"63.941% 65.618%",smirk:"95.178% 65.618%",
+  greet:"2.306% 97.065%",bliss:"32.285% 97.065%",serious:"63.732% 97.065%",smile:"95.178% 97.065%"
 };
 /* 꽃돼지 연이 표정/포즈 → {u:PIGPOSE사용여부, s:background-size, p:background-position}.
-   기본(u 없음)=PIGSHEET(말하는 연이2, 4×4). u:1=PIGPOSE(꽃돼지5, 4×2 동작 포즈) */
+   정규화 시트라 셀 좌표가 정확한 4등분/2등분이다. 기본(u 없음)=PIGSHEET(표정 4×4). u:1=PIGPOSE(동작 4×2) */
 var PF="400% 400%",PP="400% 200%";
 var PIG_CELL={
   neutral:{s:PF,p:"0% 0%"},soft:{s:PF,p:"33.333% 0%"},calm:{s:PF,p:"66.667% 0%"},shy:{s:PF,p:"100% 0%"},

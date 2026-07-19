@@ -7,6 +7,7 @@
   },
   "scripts": {
     "novel:assets": "node scripts/fetch-novel-assets.mjs",
+    "novel:sheets": "node scripts/build-novel-pig-sheets.mjs",
     "novel:serve": "node scripts/serve-novel.mjs",
     "novel:preview": "npm run novel:assets && node scripts/serve-novel.mjs",
     "dev": "node scripts/dev-with-local-auth.mjs",
