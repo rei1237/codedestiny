@@ -26,6 +26,7 @@ export default function DestinyBiasLoadingScreen({
     >
       {/* Spotlight beams */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+        <div className={styles.spotCone} />
         <div className={styles.loadingSpotA} />
         <div className={styles.loadingSpotB} />
         <div className={styles.loadingSparkleField} />
@@ -41,7 +42,7 @@ export default function DestinyBiasLoadingScreen({
         }}
       />
 
-      <p className="relative z-10 text-[10px] font-semibold tracking-[0.22em] text-cyan-100/75">
+      <p className="relative z-10 text-[10px] font-semibold tracking-[0.22em] text-[var(--bias-gold)]/85">
         COSMIC CONCERT LINKING
       </p>
       <p className="relative z-10 mt-1 text-center text-lg font-extrabold leading-snug text-white/95 md:text-xl">

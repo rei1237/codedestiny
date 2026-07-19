@@ -10,9 +10,9 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
       initial={reduceMotion ? false : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(9,18,45,0.82),rgba(28,24,74,0.58))] p-6 shadow-[0_28px_80px_rgba(2,6,23,0.5)] md:p-7"
+      className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(7,4,22,0.84),rgba(26,11,63,0.58))] p-6 shadow-[0_0_52px_rgba(109,59,255,0.22)] md:p-7"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(244,114,182,0.3),transparent_38%),radial-gradient(circle_at_88%_80%,rgba(34,211,238,0.24),transparent_42%),radial-gradient(circle_at_52%_100%,rgba(99,102,241,0.18),transparent_45%)]" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_8%,rgba(255,217,138,0.26),transparent_38%),radial-gradient(circle_at_88%_80%,rgba(255,95,210,0.22),transparent_42%),radial-gradient(circle_at_52%_100%,rgba(109,59,255,0.2),transparent_45%)]" aria-hidden />
       <div className="pointer-events-none absolute inset-0 opacity-55" aria-hidden>
         <div className="absolute left-16 top-9 h-1 w-1 rounded-full bg-white/70" />
         <div className="absolute left-28 top-20 h-1.5 w-1.5 rounded-full bg-cyan-100/70" />
@@ -21,22 +21,22 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
       </div>
 
       <div className="relative z-10">
-        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-pink-200/50 bg-pink-300/12 px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-pink-100/90">
+        <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-[var(--bias-gold)]/50 bg-[var(--bias-gold)]/12 px-3 py-1 text-[10px] font-semibold tracking-[0.18em] text-[var(--bias-gold)]/90">
           <span aria-hidden>✦</span> COSMIC FANLIGHT STAGE
         </div>
 
-        <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_24px_rgba(255,95,210,0.55)] md:text-4xl">
+        <h1 className="text-3xl font-black leading-tight tracking-[-0.02em] text-white drop-shadow-[0_0_24px_rgba(255,217,138,0.45)] md:text-4xl">
           MY DESTINY BIAS
         </h1>
 
         <p className="mt-3 max-w-xl text-sm leading-7 text-white/82 md:text-base">
-          <span className="font-semibold text-fuchsia-200">내 생일 에너지</span>가{" "}
-          <span className="font-semibold text-cyan-200">최애의 무대 아우라</span>와{" "}
+          <span className="font-semibold text-[var(--bias-gold)]">내 생일 에너지</span>가{" "}
+          <span className="font-semibold text-[var(--bias-pink)]">최애의 무대 아우라</span>와{" "}
           만나는 우주적인 순간을 포토카드로 담아드려요 ✨
         </p>
 
         {subtitle ? (
-          <p className="mt-3 text-sm font-semibold text-cyan-100/85">{subtitle}</p>
+          <p className="mt-3 text-sm font-semibold text-white/80">{subtitle}</p>
         ) : null}
       </div>
 

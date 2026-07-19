@@ -255,7 +255,7 @@ function InputField({
         value={value}
         onChange={(event) => onChange(maxLength ? event.target.value.slice(0, maxLength) : event.target.value)}
         placeholder={placeholder}
-        className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition placeholder:text-white/45 focus:border-cyan-200/70 focus:ring-cyan-200/35"
+        className={styles.premiumInput}
       />
       {error ? <span className="text-xs text-[#FF9AD8]">{error}</span> : null}
     </label>
@@ -1062,7 +1062,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={meGender}
                       onChange={(event) => setMeGender(event.target.value as (typeof GENDER_OPTIONS)[number])}
-                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
+                      className={styles.cosmicSelect}
                     >
                       {GENDER_OPTIONS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -1291,7 +1291,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={biasMood}
                       onChange={(event) => setBiasMood(event.target.value as (typeof BIAS_MOODS)[number])}
-                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
+                      className={styles.cosmicSelect}
                     >
                       {BIAS_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -1307,7 +1307,7 @@ export default function DestinyBiasClient() {
                     <select
                       value={relationMood}
                       onChange={(event) => setRelationMood(event.target.value as (typeof RELATION_MOODS)[number])}
-                      className="h-12 rounded-xl border border-white/20 bg-black/35 px-3 text-sm text-white outline-none ring-1 ring-transparent transition focus:border-cyan-200/70 focus:ring-cyan-200/35"
+                      className={styles.cosmicSelect}
                     >
                       {RELATION_MOODS.map((item) => (
                         <option key={item} value={item}>{item}</option>
@@ -1423,10 +1423,12 @@ export default function DestinyBiasClient() {
 
           {uiStep === 5 && resultVm ? (
             <section className="mx-auto w-full max-w-5xl space-y-5">
-              <article className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(8,18,44,0.8),rgba(25,20,70,0.54))] p-5 shadow-[0_24px_60px_rgba(2,6,23,0.45)] md:p-7">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(244,114,182,0.26),transparent_38%),radial-gradient(circle_at_88%_88%,rgba(34,211,238,0.2),transparent_35%)]" aria-hidden />
+              <article className="relative overflow-hidden rounded-[30px] border border-white/15 bg-[linear-gradient(145deg,rgba(7,4,22,0.84),rgba(26,11,63,0.56))] p-5 shadow-[0_0_48px_rgba(109,59,255,0.22)] md:p-7">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_10%,rgba(255,217,138,0.24),transparent_38%),radial-gradient(circle_at_88%_88%,rgba(255,95,210,0.18),transparent_35%)]" aria-hidden />
+                <div className={styles.spotCone} aria-hidden />
+                <div className={styles.stageFloorLine} aria-hidden />
                 <div className="relative z-10">
-                  <p className="text-xs font-semibold tracking-[0.15em] text-[#FFD98A]/90">FAN CONCERT DESTINY REPORT</p>
+                  <p className="text-xs font-semibold tracking-[0.15em] text-[var(--bias-gold)]/90">ENCORE · FAN CONCERT DESTINY REPORT</p>
                   <h2 className="mt-2 text-2xl font-black leading-tight md:text-3xl">{resultVm.biasName}와의 최애운명 메인 리포트</h2>
                   <p className="mt-2 max-w-3xl break-keep text-sm leading-7 text-white/88">
                     {resultVm.chemistrySummary}
@@ -1450,7 +1452,7 @@ export default function DestinyBiasClient() {
               <BiasDestinyShareCard vm={resultVm} />
 
               <section className="space-y-3">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">저장 · 공유 SAVE &amp; SHARE</p>
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-[var(--bias-gold)]/85">저장 · 공유 SAVE &amp; SHARE</p>
                 <DestinyBiasActionBar
                   onDownloadSvg={handleDownloadSvg}
                   onDownloadPng={() => {
