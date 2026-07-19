@@ -72,9 +72,9 @@ export const metadata = {
     },
   },
   icons: {
-    icon: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
-    shortcut: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
-    apple: "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp",
+    icon: "/icons/app-logo-96.png",
+    shortcut: "/favicon.ico",
+    apple: "/icons/app-logo-180.png",
   },
   manifest: "/manifest.json",
   appleWebApp: {
