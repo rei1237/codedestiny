@@ -623,11 +623,76 @@
       transform: translateY(-6px) scale(1.03);
       box-shadow: 0 14px 44px rgba(0,0,0,.62), 0 0 0 1px color-mix(in srgb,var(--pc,#c8a84b) 80%,transparent), 0 0 26px var(--pg, rgba(200,168,75,.45));
     }
-    .loading-section {
+    /* 생성 중 전체화면 차단 오버레이 — 결제 오버레이(.celestial-pay-overlay, z 2147483000)보다 한 단계 아래에 둔다. */
+    .gen-overlay {
       display: none;
-      padding: 5rem 0;
+      position: fixed;
+      inset: 0;
+      z-index: 2147482000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: radial-gradient(circle at 50% 40%, rgba(24, 18, 48, .82), rgba(4, 5, 16, .96));
+      backdrop-filter: blur(6px);
+    }
+    .gen-overlay.is-open { display: flex; }
+    .gen-modal {
+      width: min(440px, 100%);
+      max-height: calc(100dvh - 32px);
+      overflow-y: auto;
+      border-radius: 18px;
+      border: 1px solid rgba(245, 208, 111, .34);
+      background: linear-gradient(160deg, rgba(24, 18, 48, .97), rgba(8, 10, 28, .98));
+      box-shadow: 0 22px 60px rgba(0, 0, 0, .55), 0 0 0 1px rgba(245, 208, 111, .12);
+      padding: 26px 22px 22px;
       text-align: center;
     }
+    .gen-steps {
+      display: flex;
+      justify-content: center;
+      gap: .45rem;
+      margin: 1.1rem 0 .55rem;
+      list-style: none;
+      padding: 0;
+    }
+    .gen-step {
+      display: flex;
+      align-items: center;
+      gap: .32rem;
+      font-size: .72rem;
+      color: rgba(255, 255, 255, .48);
+      transition: color .3s ease;
+    }
+    .gen-step::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .26);
+      transition: background .3s ease, box-shadow .3s ease;
+    }
+    .gen-step.is-done { color: rgba(253, 230, 138, .72); }
+    .gen-step.is-done::before { background: rgba(245, 208, 111, .7); }
+    .gen-step.is-active { color: #fde68a; font-weight: 700; }
+    .gen-step.is-active::before { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245, 158, 11, .18); }
+    .gen-timer {
+      margin: .1rem 0 .85rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .82rem;
+      color: rgba(253, 230, 138, .82);
+      letter-spacing: .06em;
+    }
+    .gen-note {
+      margin: 0;
+      padding-top: .85rem;
+      border-top: 1px solid rgba(245, 208, 111, .16);
+      font-size: .78rem;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, .66);
+      word-break: keep-all;
+    }
+    body.is-generating { overflow: hidden; }
+    body.is-generating #board { pointer-events: none; opacity: .5; filter: blur(1px); }
     .loading-orbit {
       position: relative;
       display: inline-block;
@@ -688,27 +753,132 @@
       font-weight: 700;
       margin-bottom: .7rem;
     }
-    .reading-line {
-      display: grid;
-      gap: .2rem;
-      margin: .72rem 0;
+    .result-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      margin: 0 0 1.1rem;
     }
-    .reading-line strong {
+    .result-toolbar__hint {
+      margin: 0;
+      font-size: .8rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, .62);
+      word-break: keep-all;
+    }
+    .result-toolbar__btn {
+      min-height: 44px;
+      padding: 0 1.1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 208, 111, .38);
+      background: rgba(245, 208, 111, .08);
+      color: rgba(253, 230, 138, .95);
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .25s ease, border-color .25s ease;
+    }
+    .result-toolbar__btn:hover { background: rgba(245, 208, 111, .16); border-color: rgba(245, 208, 111, .6); }
+    .result-toolbar__btn:focus-visible { outline: 2px solid rgba(253, 230, 138, .9); outline-offset: 2px; }
+    .planet-card__lead {
+      margin: .7rem 0 0;
+      color: rgba(255, 255, 255, .9);
+      font-size: .95rem;
+      line-height: 1.8;
+      max-width: 62ch;
+      text-wrap: pretty;
+      word-break: keep-all;
+    }
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .34rem;
+      margin: .75rem 0 0;
+    }
+    .chip {
+      padding: .18rem .58rem;
+      border-radius: 999px;
+      font-size: .7rem;
+      line-height: 1.6;
+      background: color-mix(in srgb, var(--pc) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--pc) 34%, transparent);
+      color: color-mix(in srgb, var(--pc) 88%, white);
+    }
+    .reading-block { margin: 0 0 1.15rem; }
+    .reading-block:last-child { margin-bottom: 0; }
+    .reading-block__label {
+      margin: 0 0 .3rem;
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .04em;
       color: rgba(253, 230, 138, .88);
-      font-size: .72rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
     }
+    .reading-block[data-tone="unconscious"] .reading-block__label { color: rgba(165, 180, 252, .92); }
+    .reading-block[data-tone="shadow"] .reading-block__label { color: rgba(192, 132, 252, .92); }
+    .reading-block[data-tone="soul"] .reading-block__label { color: rgba(94, 234, 212, .92); }
+    .reading-block[data-tone="integration"] .reading-block__label { color: rgba(190, 242, 100, .92); }
+    .reading-block__text {
+      margin: 0 0 .55rem;
+      max-width: 68ch;
+      text-wrap: pretty;
+    }
+    .reading-block__text:last-child { margin-bottom: 0; }
     .golden-card--summary { padding: 2rem 1.6rem; }
+    .summary-hero { margin: 0 0 1.4rem; }
+    .summary-hero__lead {
+      margin: 0;
+      color: rgba(255, 255, 255, .92);
+      font-size: 1rem;
+      line-height: 1.85;
+      max-width: 66ch;
+      text-wrap: pretty;
+    }
+    .summary-facets {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: .85rem;
+      margin: 1.3rem 0;
+    }
+    .summary-facet {
+      padding: .95rem 1.05rem;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, .32);
+      border: 1px solid rgba(245, 208, 111, .18);
+    }
+    .summary-facet__label {
+      margin: 0 0 .3rem;
+      font-size: .73rem;
+      font-weight: 700;
+      color: rgba(253, 230, 138, .88);
+    }
+    .summary-facet__text { margin: 0; max-width: 46ch; text-wrap: pretty; }
+    .summary-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .34rem;
+      margin: 0 0 1.2rem;
+    }
+    .summary-chip {
+      padding: .2rem .6rem;
+      border-radius: 999px;
+      font-size: .7rem;
+      background: rgba(245, 208, 111, .1);
+      border: 1px solid rgba(245, 208, 111, .26);
+      color: rgba(253, 230, 138, .88);
+    }
     .golden-title {
       margin: 0 0 .85rem;
       font-size: clamp(1.35rem, 2.8vw, 2rem);
       font-weight: 700;
       line-height: 1.35;
     }
-    .summary-block { margin: .8rem 0; }
-    .summary-line { margin: .5rem 0; }
-    .summary-line--theme { margin-bottom: .9rem; }
+    .summary-details {
+      margin: .9rem 0 0;
+      padding-top: .9rem;
+      border-top: 1px solid rgba(245, 208, 111, .16);
+    }
     .summary-heading {
       margin: 0 0 .35rem;
       color: rgba(245, 208, 111, .95);
@@ -717,13 +887,6 @@
     .summary-oracle {
       color: rgba(253, 230, 138, .95);
       margin-top: .9rem;
-    }
-    .summary-debug {
-      margin: 1rem 0 0;
-      color: rgba(255, 255, 255, .35);
-      font-size: .75rem;
-      line-height: 1.55;
-      word-break: break-all;
     }
 
     @media(max-width:400px){
@@ -749,6 +912,20 @@
       .planet-card__head,
       .planet-card__body { padding: 1rem; }
       .golden-card--summary { padding: 1.2rem; }
+      .summary-facets { grid-template-columns: 1fr; }
+      .gen-modal { padding: 20px 16px 18px; }
+      .gen-steps { flex-wrap: wrap; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .loading-orbit__ring--outer,
+      .loading-orbit__ring--inner,
+      .ld span,
+      .shimmer-gold,
+      .pulse-gold { animation: none !important; }
+      .board-in,
+      .fade-rise,
+      .hero-in { animation-duration: .01ms !important; }
+      html { scroll-behavior: auto; }
     }
   </style>
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
@@ -829,16 +1006,35 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div id="board" class="spread-grid"></div>
     </section>
 
-    <!-- Loading oracle -->
-    <section id="loadSec" class="loading-section">
-      <div class="loading-orbit">
-        <div class="loading-orbit__ring loading-orbit__ring--outer"></div>
-        <div class="loading-orbit__ring loading-orbit__ring--inner"></div>
-        <div class="loading-orbit__star">&#x2726;</div>
+    <!-- Generating oracle (blocking overlay) -->
+    <section id="loadSec" class="gen-overlay" role="dialog" aria-modal="true" aria-live="polite" aria-busy="true" aria-label="천체의 선율 리딩 생성 중">
+      <div class="gen-modal">
+        <div class="loading-orbit">
+          <div class="loading-orbit__ring loading-orbit__ring--outer"></div>
+          <div class="loading-orbit__ring loading-orbit__ring--inner"></div>
+          <div class="loading-orbit__star">&#x2726;</div>
+        </div>
+        <div class="ld loading-dots"><span></span><span></span><span></span></div>
+        <p class="loading-title">천체의 신호를 정렬하고 있습니다</p>
+        <p id="loadMsg" class="loading-message">11행성 카드 배열의 목소리를 하나의 선율로 엮고 있습니다.</p>
+        <ul class="gen-steps" id="genSteps">
+          <li class="gen-step" data-gen-step="pay">결제 확인</li>
+          <li class="gen-step" data-gen-step="align">상징 정렬</li>
+          <li class="gen-step" data-gen-step="weave">문장 엮기</li>
+        </ul>
+        <p class="gen-timer">경과 <span id="genTimer">00:00</span> · 보통 30~60초 걸립니다</p>
+        <p class="gen-note">결제는 이미 확인됐습니다. 이 화면을 닫거나 새로고침하지 말고, 카드도 누르지 말고 잠시만 기다려 주세요.</p>
       </div>
-      <div class="ld loading-dots"><span></span><span></span><span></span></div>
-      <p class="loading-title">천체의 신호를 정렬하고 있습니다...</p>
-      <p id="loadMsg" class="loading-message">11행성 카드 배열의 목소리를 하나의 선율로 엮고 있습니다.</p>
+    </section>
+
+    <!-- Golden integration oracle (summary first) -->
+    <section id="goldSec" class="gold-section" style="display:none;">
+      <div class="section-divider">
+        <div class="cosmic-divider"></div>
+        <span class="section-divider__label">&#x2726; GOLDEN INTEGRATION ORACLE &#x2726;</span>
+        <div class="cosmic-divider"></div>
+      </div>
+      <div id="goldCon"></div>
     </section>
 
     <!-- Card reading results -->
@@ -848,17 +1044,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         <span class="section-divider__label">&#x2B21; PLANETARY CARD READING &#x2B21;</span>
         <div class="cosmic-divider"></div>
       </div>
-      <div id="resCon" class="reading-stack"></div>
-    </section>
-
-    <!-- Golden integration oracle -->
-    <section id="goldSec" class="gold-section" style="display:none;">
-      <div class="section-divider">
-        <div class="cosmic-divider"></div>
-        <span class="section-divider__label">&#x2726; GOLDEN INTEGRATION ORACLE &#x2726;</span>
-        <div class="cosmic-divider"></div>
+      <div class="result-toolbar">
+        <p class="result-toolbar__hint">행성마다 핵심 한 줄을 먼저 보고, 필요한 카드만 펼쳐 읽으세요.</p>
+        <button type="button" class="result-toolbar__btn" id="expandAllBtn" aria-pressed="false">전체 펼치기</button>
       </div>
-      <div id="goldCon"></div>
+      <div id="resCon" class="reading-stack"></div>
     </section>
 
   </main>
@@ -899,8 +1089,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     function $(id){return document.getElementById(id);}
     var $draw=$('drawBtn'),$read=$('readBtn'),$reset=$('resetBtn');
     var $boardSec=$('boardSec'),$board=$('board');
-    var $loadSec=$('loadSec'),$loadMsg=$('loadMsg');
-    var $resSec=$('resSec'),$resCon=$('resCon');
+    var $loadSec=$('loadSec'),$loadMsg=$('loadMsg'),$genSteps=$('genSteps'),$genTimer=$('genTimer');
+    var $resSec=$('resSec'),$resCon=$('resCon'),$expandAll=$('expandAllBtn');
     var $goldSec=$('goldSec'),$goldCon=$('goldCon');
     var $premiumChip=$('premiumChip'),$premiumStatusText=$('premiumStatusText'),$premiumSteps=$('premiumSteps');
 
@@ -925,6 +1115,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     var lastTapAt=0;
     var localReadingUsed=false;
     var localReadingReason='';
+    // 이용권(pass)·월정석 커버로 거래ID 없이 승인된 경우를 기억한다(서버가 최종 판정자, 여기선 결과 표시용 증빙).
+    var currentAccessType='';
 
     // Visual order for the 11-card planetary spread.
     var SPREAD_ORDER=[10,8,1,4,2,7,0,5,6,9,3];
@@ -1321,6 +1513,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         }
       });
 
+      // 카드 루프 안의 지역 변수 tone은 여기서 보이지 않는다 — 첫 카드에 기록된 톤을 요약 톤으로 쓴다.
+      var dominantTone = clean((((cards[0] || {}).tarotKeywords) || [])[3]) || toneOrder[0];
       var dominantPlanet = strengths[0] || 'alignment flow';
       var strongestPlanetCount = -1;
       Object.keys(planetCount).forEach(function(k){
@@ -1356,7 +1550,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       return {
         cards: cards,
         summary: {
-          overallTheme: '전체 배열은 ' + strengths.join(', ') + '의 흐름을 따라 ' + dominantLayer + '의 하늘을 통과합니다. 지금 가장 강한 리듬은 ' + tone + '이며, 질문의 핵심은 흩어진 카드의 목소리를 오늘 지킬 수 있는 한 문장으로 모으는 것입니다.',
+          overallTheme: '전체 배열은 ' + strengths.join(', ') + '의 흐름을 따라 ' + dominantLayer + '의 하늘을 통과합니다. 지금 가장 강한 리듬은 ' + dominantTone + '이며, 질문의 핵심은 흩어진 카드의 목소리를 오늘 지킬 수 있는 한 문장으로 모으는 것입니다.',
           strongestPlanetSignal: '가장 크게 울리는 행성: ' + dominantPlanet,
           deepestShadow: deepestShadow,
           soulLesson: '오늘은 ‘실행 가능한 하나’를 기준으로 리듬을 재설정하세요. 감정의 파동을 기록하고, 판단 이전에 3초의 멈춤을 넣으면 카드의 상호작용이 선명해집니다.',
@@ -1435,10 +1629,27 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       return raw;
     }
 
+    // 이용권/무료 커버 승인은 거래ID가 없다(_cdOpenPaidServiceGate가 {__cdOptimisticPass:true} 등으로 통보).
+    // 이 마커도 유효한 접근 증빙으로 인정하지 않으면 이용권 보유자가 결과를 받지 못한다.
+    function hasPassGrantMarker(payload){
+      var p = payload && typeof payload === 'object' ? payload : {};
+      var d = p.data && typeof p.data === 'object' ? p.data : {};
+      var accessType = clean(p.accessType || p.transactionType || d.accessType || d.transactionType).toLowerCase();
+      return Boolean(
+        p.__cdPassGateResolved === true || d.__cdPassGateResolved === true ||
+        p.__cdOptimisticPass === true || d.__cdOptimisticPass === true ||
+        p.alreadyUnlocked === true || d.alreadyUnlocked === true ||
+        p.freeBySubscription === true || d.freeBySubscription === true ||
+        accessType === 'membership_pass' || accessType === 'pass' || accessType === 'unlock' ||
+        accessType === 'already_unlocked' || accessType === 'pass_applied'
+      );
+    }
+
     function hasPaymentProof(payload){
       var p = payload && typeof payload === 'object' ? payload : {};
       var accessGrant = p.accessGrant && typeof p.accessGrant === 'object' ? p.accessGrant : {};
       var consume = p.consume && typeof p.consume === 'object' ? p.consume : {};
+      if(hasPassGrantMarker(p)) return true;
       return Boolean(
         clean(p.transactionId) ||
         clean(p.purchaseId) ||
@@ -1472,7 +1683,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         transactionId: currentTransactionId,
         premiumAccessToken: currentPremiumToken || readPremiumToken(),
         accessGrant: currentAccessGrant,
-        consume: currentConsume
+        consume: currentConsume,
+        accessType: currentAccessType
       });
     }
 
@@ -1497,6 +1709,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       if(spread.length && hasCompletedResult && hasAccess && !paymentInFlight) enabled = true;
       readBtnOn(enabled);
       updateReadButtonLabel();
+      // 생성 중에는 펼치기/다시 펼치기도 함께 잠근다 — 이 버튼들이 진행 중 세션을 초기화하던 사고 지점.
+      [$draw, $reset].forEach(function(btn){
+        if(!btn) return;
+        btn.disabled = paymentInFlight;
+        btn.setAttribute('aria-disabled', paymentInFlight ? 'true' : 'false');
+        btn.style.opacity = paymentInFlight ? '.4' : '1';
+        btn.style.cursor = paymentInFlight ? 'not-allowed' : 'pointer';
+      });
     }
 
     function extractCoinGateResult(payload, requestBody){
@@ -1651,6 +1871,38 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       $board.innerHTML=cells.join('');
     }
 
+    // 긴 문단을 문장 3개 단위로 끊어 읽기 리듬을 만든다(표시 계층 전용 — 원문은 변형하지 않는다).
+    function paragraphHtml(value){
+      var body = clean(value);
+      if(!body) return '';
+      var sentences = body.match(/[^.!?。！？]+[.!?。！？]*\s*/g) || [body];
+      var chunks = [];
+      for(var i=0;i<sentences.length;i+=3){
+        var chunk = clean(sentences.slice(i, i+3).join(''));
+        if(chunk) chunks.push(chunk);
+      }
+      if(!chunks.length) chunks = [body];
+      return chunks.map(function(chunk){
+        return '<p class="rt reading-block__text">'+esc(chunk)+'</p>';
+      }).join('');
+    }
+
+    function readingBlockHtml(label, tone, value){
+      var body = paragraphHtml(value);
+      if(!body) return '';
+      return '<div class="reading-block" data-tone="'+esc(tone)+'">'+
+        '<p class="reading-block__label">'+esc(label)+'</p>'+
+        body+
+      '</div>';
+    }
+
+    function firstSentence(value){
+      var body = clean(value);
+      if(!body) return '';
+      var match = body.match(/^[^.!?。！？]+[.!?。！？]?/);
+      return clean(match ? match[0] : body);
+    }
+
     function renderResults(reading){
       var cards=Array.isArray(reading&&reading.cards)?reading.cards:[];
       $resSec.style.display='block';
@@ -1658,32 +1910,55 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         var p=PLANETS[idx]||{};
         var pk='p-'+(p.key||item.planetId||'sun');
         var dir=item.orientation==='reversed'?'역방향':'정방향';
+        var lead=firstSentence(item.archetypeReading || item.consciousMessage || item.cardMeaning || '');
+        var chips=(item.tarotKeywords||[]).concat(item.planetKeywords||[]).filter(Boolean).slice(0,4);
         return '<article class="planet-card fade-rise '+pk+'" data-reading-idx="'+idx+'" style="animation-delay:'+(idx*0.08).toFixed(2)+'s;">'+
           '<div class="planet-card__head">'+
-            '<p class="planet-card__meta">'+esc(item.planetEn)+' · '+esc(item.layer)+' · '+esc(item.planetSymbol)+'</p>'+
-            '<h3 class="planet-lbl planet-card__title">'+esc(item.planetKo)+' - '+esc(item.planetTitle)+'</h3>'+
-            '<p class="planet-card__subtitle">'+esc(item.cardNameKo)+' ('+esc(item.cardNameEn)+') · '+dir+'</p>'+
+            '<p class="planet-card__meta">'+esc(item.planetSymbol)+' '+esc(item.planetEn)+' · '+String(idx+1).padStart(2,'0')+'/11</p>'+
+            '<h3 class="planet-lbl planet-card__title">'+esc(item.planetKo)+' — '+esc(item.cardNameKo)+' <span style="font-weight:500;">('+dir+')</span></h3>'+
+            '<p class="planet-card__subtitle">'+esc(item.planetTitle)+' · '+esc(item.cardNameEn)+'</p>'+
+            (lead?('<p class="planet-card__lead">'+esc(lead)+'</p>'):'')+
+            (chips.length?('<div class="chip-row">'+chips.map(function(chip){
+              return '<span class="chip">'+esc(chip)+'</span>';
+            }).join('')+'</div>'):'')+
           '</div>'+
-          '<details open class="planet-card__body">'+
-            '<summary class="planet-card__summary">행성의 카드 리딩</summary>'+
-            '<p class="rt reading-line"><strong>카드 키워드</strong><span>'+esc((item.tarotKeywords||[]).join(', '))+'</span></p>'+
-            '<p class="rt reading-line"><strong>행성 키워드</strong><span>'+esc((item.planetKeywords||[]).join(', '))+'</span></p>'+
-            '<p class="rt reading-line"><strong>카드 의미</strong><span>'+esc(item.cardMeaning||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>행성 원형</strong><span>'+esc(item.planetMeaning||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>원형 리딩</strong><span>'+esc(item.archetypeReading||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>의식 메시지</strong><span>'+esc(item.consciousMessage||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>무의식 패턴</strong><span>'+esc(item.unconsciousPattern||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>그림자 경고</strong><span>'+esc(item.shadowWarning||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>영혼 과제</strong><span>'+esc(item.soulLesson||'')+'</span></p>'+
-            '<p class="rt reading-line"><strong>통합 실천</strong><span>'+esc(item.integrationPractice||'')+'</span></p>'+
+          '<details class="planet-card__body">'+
+            '<summary class="planet-card__summary">이 행성 리딩 자세히 보기</summary>'+
+            readingBlockHtml('카드 의미','conscious',item.cardMeaning)+
+            readingBlockHtml('행성 원형','conscious',item.planetMeaning)+
+            readingBlockHtml('원형 리딩','conscious',item.archetypeReading)+
+            readingBlockHtml('의식 메시지','conscious',item.consciousMessage)+
+            readingBlockHtml('무의식 패턴','unconscious',item.unconsciousPattern)+
+            readingBlockHtml('그림자 경고','shadow',item.shadowWarning)+
+            readingBlockHtml('영혼 과제','soul',item.soulLesson)+
+            readingBlockHtml('통합 실천','integration',item.integrationPractice)+
           '</details>'+
         '</article>';
       }).join('');
+      syncExpandAllButton();
+    }
+
+    function setAllReadingDetails(open){
+      var list = $resCon ? $resCon.querySelectorAll('details.planet-card__body') : [];
+      for(var i=0;i<list.length;i++){
+        if(open) list[i].setAttribute('open','open');
+        else list[i].removeAttribute('open');
+      }
+      syncExpandAllButton();
+    }
+
+    function syncExpandAllButton(){
+      if(!$expandAll) return;
+      var list = $resCon ? $resCon.querySelectorAll('details.planet-card__body') : [];
+      var openCount = 0;
+      for(var i=0;i<list.length;i++){ if(list[i].hasAttribute('open')) openCount += 1; }
+      var allOpen = list.length>0 && openCount===list.length;
+      $expandAll.textContent = allOpen ? '모두 접기' : '전체 펼치기';
+      $expandAll.setAttribute('aria-pressed', allOpen ? 'true' : 'false');
     }
 
     function renderSummary(reading){
       var s=reading&&reading.summary?reading.summary:{};
-      var payment=reading&&reading.payment?reading.payment:{};
       var practices=Array.isArray(s.practices)?s.practices:[];
       var insightMatrix = s && s.insightMatrix && typeof s.insightMatrix === 'object' ? s.insightMatrix : {};
       var ritualPlan = Array.isArray(s.ritualPlan)?s.ritualPlan:[];
@@ -1698,36 +1973,49 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         { k:'HEALTH', v: insightMatrix.health || '' },
       ].filter(function(item){ return !!clean(item.v); });
       var closingFortuneHtml = renderClosingFortune(s);
+      var facets = [
+        { k:'가장 크게 울리는 행성', v: s.strongestPlanetSignal || '' },
+        { k:'가장 깊은 그림자', v: s.deepestShadow || '' },
+        { k:'영혼 과제', v: s.soulLesson || '' },
+        { k:'통합 경로', v: s.integrationPath || '' },
+      ].filter(function(item){ return !!clean(item.v); });
+      var metaChips = [s.dominantLayer, s.dominantSuit, s.majorArcanaRatio]
+        .map(function(item){ return clean(item); })
+        .filter(Boolean);
       $goldSec.style.display='block';
       $goldCon.innerHTML='<div class="golden-card golden-card--summary fade-rise">'+
         '<div class="golden-inner-border"></div>'+
         '<div style="position:relative;z-index:1;">'+
-          '<h3 class="shimmer-gold golden-title">11행성 통합 선율</h3>'+
-          '<p class="rt summary-line summary-line--theme"><strong>전체 테마</strong> '+esc(s.overallTheme||'')+'</p>'+
-          '<p class="rt summary-line"><strong>가장 크게 울리는 행성</strong> '+esc(s.strongestPlanetSignal||'')+'</p>'+
-          '<p class="rt summary-line"><strong>가장 깊은 그림자</strong> '+esc(s.deepestShadow||'')+'</p>'+
-          '<p class="rt summary-line"><strong>영혼 과제</strong> '+esc(s.soulLesson||'')+'</p>'+
-          '<p class="rt summary-line"><strong>통합 경로</strong> '+esc(s.integrationPath||'')+'</p>'+
-          '<p class="rt summary-line"><strong>선율의 결</strong> '+esc(s.dominantLayer||'')+' / '+esc(s.dominantSuit||'')+' / '+esc(s.majorArcanaRatio||'')+'</p>'+
-          (highlightHtml?('<div class="summary-block">'+
-            '<p class="rt summary-heading"><strong>행성 하이라이트</strong></p>'+
-            highlightHtml+
-          '</div>'):'')+
+          closingFortuneHtml+
+          '<div class="summary-hero">'+
+            '<h3 class="shimmer-gold golden-title">11행성 통합 선율</h3>'+
+            '<p class="rt summary-hero__lead">'+esc(s.overallTheme||'')+'</p>'+
+          '</div>'+
+          (metaChips.length?('<div class="summary-chips">'+metaChips.map(function(chip){
+            return '<span class="summary-chip">'+esc(chip)+'</span>';
+          }).join('')+'</div>'):'')+
+          (facets.length?('<div class="summary-facets">'+facets.map(function(item){
+            return '<div class="summary-facet">'+
+              '<p class="summary-facet__label">'+esc(item.k)+'</p>'+
+              '<p class="rt summary-facet__text">'+esc(item.v)+'</p>'+
+            '</div>';
+          }).join('')+'</div>'):'')+
           (matrixCards.length?('<div class="summary-grid">'+matrixCards.map(function(item){
             return '<div class="summary-card"><div class="k">'+esc(item.k)+'</div><div class="v">'+esc(item.v)+'</div></div>';
           }).join('')+'</div>'):'')+
-          '<div class="summary-block">'+practices.map(function(p){return '<p class="rt summary-list-item">· '+esc(p)+'</p>';}).join('')+'</div>'+
-          (ritualPlan.length?('<div class="summary-block">'+
-            '<p class="rt summary-heading"><strong>7일 별빛 조율</strong></p>'+
-            ritualPlan.map(function(p){return '<p class="rt summary-list-item">· '+esc(p)+'</p>';}).join('')+
-          '</div>'):'')+
           '<p class="rt summary-oracle"><strong>별빛 통합 오라클</strong> '+esc(s.finalOracle||'')+'</p>'+
+          (highlightHtml?('<details class="summary-details"><summary class="planet-card__summary">행성 하이라이트 보기</summary>'+
+            highlightHtml+
+          '</details>'):'')+
+          ((practices.length||ritualPlan.length)?('<details class="summary-details"><summary class="planet-card__summary">오늘부터의 조율 실천 보기</summary>'+
+            practices.map(function(p){return '<p class="rt summary-list-item">· '+esc(p)+'</p>';}).join('')+
+            (ritualPlan.length?('<p class="rt summary-heading" style="margin-top:.7rem;"><strong>7일 별빛 조율</strong></p>'+
+              ritualPlan.map(function(p){return '<p class="rt summary-list-item">· '+esc(p)+'</p>';}).join('')):'')+
+          '</details>'):'')+
           '<div class="summary-actions">'+
             '<button type="button" class="summary-btn" id="copySummaryBtn">요약 복사</button>'+
             '<button type="button" class="summary-btn" id="copyOracleBtn">오라클 복사</button>'+
           '</div>'+
-          '<p class="summary-debug">reportId: '+esc(payment.reportId||'')+' / transactionId: '+esc(payment.transactionId||'')+'</p>'+
-          closingFortuneHtml+
         '</div>'+
       '</div>';
 
@@ -1762,12 +2050,54 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       $read.style.cursor=on?'pointer':'not-allowed';
     }
 
-    function setLoading(on, message){
-      $loadSec.style.display = on ? 'block' : 'none';
+    // 생성 단계 표시: 실제 호출 단계와 1:1 (가짜 진행률 아님).
+    var GEN_STEP_ORDER = ['pay','align','weave'];
+    function setGenStep(step){
+      if(!$genSteps) return;
+      var activeIdx = GEN_STEP_ORDER.indexOf(step);
+      var nodes = $genSteps.querySelectorAll('[data-gen-step]');
+      for(var i=0;i<nodes.length;i++){
+        var key = nodes[i].getAttribute('data-gen-step');
+        var idx = GEN_STEP_ORDER.indexOf(key);
+        nodes[i].classList.toggle('is-done', activeIdx>=0 && idx<activeIdx);
+        nodes[i].classList.toggle('is-active', idx===activeIdx);
+      }
+    }
+
+    var genTimerId = 0;
+    var genStartedAt = 0;
+    function renderGenTimer(){
+      if(!$genTimer) return;
+      var elapsed = Math.max(0, Math.floor((Date.now()-genStartedAt)/1000));
+      var mm = String(Math.floor(elapsed/60)).padStart(2,'0');
+      var ss = String(elapsed%60).padStart(2,'0');
+      $genTimer.textContent = mm+':'+ss;
+    }
+    function startGenTimer(){
+      if(genTimerId) return;
+      genStartedAt = Date.now();
+      renderGenTimer();
+      genTimerId = window.setInterval(renderGenTimer, 1000);
+    }
+    function stopGenTimer(){
+      if(genTimerId){ window.clearInterval(genTimerId); genTimerId = 0; }
+      if($genTimer) $genTimer.textContent = '00:00';
+    }
+
+    function setLoading(on, message, step){
+      $loadSec.classList.toggle('is-open', !!on);
+      $loadSec.setAttribute('aria-busy', on ? 'true' : 'false');
       if(message) $loadMsg.innerHTML = message;
+      // 생성 중에는 카드/버튼 조작을 물리적으로 막아 흐름이 끊기지 않게 한다.
+      document.body.classList.toggle('is-generating', !!on);
       if(on){
+        setGenStep(step || 'pay');
+        startGenTimer();
         $resSec.style.display='none';
         $goldSec.style.display='none';
+      }else{
+        setGenStep('');
+        stopGenTimer();
       }
     }
 
@@ -1790,11 +2120,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       if(typeof window._cdCoinGatePerUse==='function'){
         var gatePayload=null;
         var gateGranted=false;
+        // 게이트는 승인 시 첫 인자로 거래ID(이용권 경로에서는 requestId)를 준다 — 버리면 증빙이 사라진다.
+        var gateCallbackTxId='';
         var gateResult=window._cdCoinGatePerUse(
           COIN_COST,
           body.reason,
-          function(_transactionId,payload){
+          function(transactionId,payload){
             gateGranted=true;
+            gateCallbackTxId=clean(transactionId);
             gatePayload=payload;
           },
           function(){
@@ -1829,16 +2162,28 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         if(gateGranted || gateHasProof){
           var source=gatePayload || (gateResult&&gateResult.payload) || gateResult;
           var gateNormalized=extractCoinGateResult(source, body);
-          assertPaymentProof(gateNormalized);
+          // 이용권 커버는 거래ID 없이 승인되므로 콜백 ID·pass 마커를 증빙으로 함께 인정한다.
+          var gateTransactionId=clean(gateNormalized.transactionId) || clean(gateCallbackTxId)
+            || (hasPassGrantMarker(source) || hasPassGrantMarker(gateResult) ? clean(body.requestId) : '');
+          var gateAccessType=(hasPassGrantMarker(source) || hasPassGrantMarker(gateResult)) ? 'membership_pass' : '';
+          assertPaymentProof({
+            transactionId:gateTransactionId,
+            purchaseId:gateNormalized.purchaseId,
+            premiumAccessToken:gateNormalized.premiumAccessToken,
+            accessGrant:gateNormalized.accessGrant,
+            consume:gateNormalized.consume,
+            accessType:gateAccessType,
+          });
           if(gateNormalized.premiumAccessToken) persistPremiumToken(gateNormalized.premiumAccessToken);
           return {
-            transactionId:clean(gateNormalized.transactionId),
+            transactionId:gateTransactionId,
             purchaseId:clean(gateNormalized.purchaseId),
             reportId:clean(gateNormalized.reportId || reportId),
             accessGrant:gateNormalized.accessGrant,
             consume:gateNormalized.consume,
             premiumAccessToken:gateNormalized.premiumAccessToken,
             requestId:clean(gateNormalized.requestId || body.requestId),
+            accessType:gateAccessType,
           };
         }
         var cancelled=new Error('결제가 취소되었습니다.');
@@ -1880,16 +2225,27 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         throw gateErr;
       }
       var normalized = extractCoinGateResult(payload, body);
-      assertPaymentProof(normalized);
+      // 서버가 이용권 커버로 무료 통과시킨 경우에도 거래ID가 비어 있을 수 있다.
+      var directAccessType = hasPassGrantMarker(payload) ? 'membership_pass' : '';
+      var directTransactionId = clean(normalized.transactionId) || (directAccessType ? clean(body.requestId) : '');
+      assertPaymentProof({
+        transactionId: directTransactionId,
+        purchaseId: normalized.purchaseId,
+        premiumAccessToken: normalized.premiumAccessToken,
+        accessGrant: normalized.accessGrant,
+        consume: normalized.consume,
+        accessType: directAccessType,
+      });
       if(normalized.premiumAccessToken) persistPremiumToken(normalized.premiumAccessToken);
       return {
-        transactionId: clean(normalized.transactionId),
+        transactionId: directTransactionId,
         purchaseId: clean(normalized.purchaseId),
         reportId: clean(normalized.reportId || reportId),
         accessGrant: normalized.accessGrant,
         consume: normalized.consume,
         premiumAccessToken: normalized.premiumAccessToken,
         requestId: clean(normalized.requestId || body.requestId),
+        accessType: directAccessType,
       };
     }
 
@@ -1899,6 +2255,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       if(paymentInfo){
         currentAccessGrant = paymentInfo.accessGrant || currentAccessGrant;
         currentConsume = paymentInfo.consume || currentConsume;
+        currentAccessType = clean(paymentInfo.accessType) || currentAccessType;
       }
       // Immediately re-render to remove LOCK visuals/aria state after payment verification.
       if(spread.length) renderBoard();
@@ -1910,6 +2267,12 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       renderBoard();
       var target = $resCon && $resCon.querySelector('[data-reading-idx="'+cardIdx+'"]');
       if(target){
+        // 상세가 접혀 있으면 열어 준다 — 카드를 눌렀는데 제목만 보이면 이동이 실패한 것처럼 느껴진다.
+        var details = target.querySelector('details.planet-card__body');
+        if(details && !details.hasAttribute('open')){
+          details.setAttribute('open','open');
+          syncExpandAllButton();
+        }
         target.scrollIntoView({behavior:'smooth',block:'center'});
         target.classList.remove('pulse-gold');
         void target.offsetWidth;
@@ -1918,6 +2281,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }
 
     function handleCardInteraction(cardIdx){
+      // 생성 중에는 어떤 카드 조작도 받지 않는다(상태 문구가 덮여 실패처럼 보이던 원인).
+      if(paymentInFlight) return;
       if(!spread.length || cardIdx<0 || cardIdx>=spread.length) return;
       if(!canDraw){
         updatePremiumStatus('premium locked','리딩을 열려면 먼저 결제 확인이 필요합니다. 결제 확인 후 선택한 카드 배열로 결과를 생성합니다.','payment',['draw']);
@@ -2066,7 +2431,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         premiumTokenMasked: maskToken(currentPremiumToken || readPremiumToken())
       });
       updatePremiumStatus('premium active','결제 확인을 진행하고 있습니다.','payment',['draw']);
-      setLoading(true,'원화 결제를 확인하고 천체의 선율 리딩을 준비하고 있습니다...');
+      setLoading(true,'결제 권한을 확인하고 천체의 선율 리딩을 준비하고 있습니다.','pay');
 
       try{
         if(!currentReportId) currentReportId = buildReportId();
@@ -2101,7 +2466,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           });
         }
 
-        setLoading(true,'11행성 카드의 상징을 정렬하고 깊은 리딩을 생성하고 있습니다...');
+        setLoading(true,'11행성 카드의 상징을 정렬하고 있습니다.','align');
+        // 상징 정렬은 즉시 끝나고 대부분의 시간은 문장 생성이다 — 단계 표시를 실제 대기 구간에 맞춘다.
+        setTimeout(function(){
+          if(paymentInFlight) setLoading(true,'11행성의 목소리를 하나의 상담문으로 엮고 있습니다.','weave');
+        }, 1200);
         var reading = await callGenerate(currentReportId, currentTransactionId, false, {
           accessGrant: currentAccessGrant,
           consume: currentConsume,
@@ -2110,8 +2479,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           sessionId: currentSessionId,
           requestId: currentRequestId || ('celestial:'+currentReportId),
         });
-        renderResults(reading);
         renderSummary(reading);
+        renderResults(reading);
         hasCompletedResult = true;
         recoverablePaymentSession = false;
         if(localReadingUsed){
@@ -2134,7 +2503,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
           goldenCard:goldenCard
         });
         setLoading(false,'');
-        setTimeout(function(){$resSec.scrollIntoView({behavior:'smooth'});},100);
+        setTimeout(function(){$goldSec.scrollIntoView({behavior:'smooth'});},100);
       }catch(err){
         console.error('[CelestialHarmony][Generate] error', err && err.payload ? { status:err.status, error:err.message, payload:err.payload } : err);
         var status = Number(err && err.status || 0);
@@ -2208,7 +2577,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
               setLoading(false,'');
               return;
             }
-          } catch (_) { }
+          } catch (fallbackError) {
+            // 마지막 안전망이 조용히 죽으면 "결제했는데 결과가 없다"로 끝난다 — 원인을 남긴다.
+            console.error('[CelestialHarmony][Fallback] local reading failed', fallbackError);
+          }
         }
         recoverablePaymentSession = Boolean(hasAccess);
         setLoading(false,'');
@@ -2219,11 +2591,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         }
       }finally{
         paymentInFlight = false;
+        // 어떤 경로로 끝나든 오버레이·스크롤 락은 반드시 해제한다(잠금 상태로 남으면 페이지가 죽는다).
+        setLoading(false,'');
         updateReadButtonState();
       }
     }
 
     $draw.addEventListener('click',function(){
+      if(paymentInFlight) return;
       var deck=shuffle(MAJOR);
       spread=PLANETS.map(function(pl,i){
         return { planet:pl, tarot:deck[i], orientation:(Math.random()>0.5?'upright':'reversed') };
@@ -2234,6 +2609,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       currentPremiumToken = readPremiumToken();
       currentAccessGrant = null;
       currentConsume = null;
+      currentAccessType = '';
       currentRequestId = 'celestial:'+currentReportId;
       currentSessionId = 'celestial-harmony:'+currentReportId;
       hasAccess = false;
@@ -2251,7 +2627,24 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     });
 
     $read.addEventListener('click',function(){
+      if(paymentInFlight) return;
       runReadingFlow();
+    });
+
+    if($expandAll){
+      $expandAll.addEventListener('click',function(){
+        setAllReadingDetails($expandAll.getAttribute('aria-pressed')!=='true');
+      });
+    }
+    if($resCon){
+      $resCon.addEventListener('toggle', function(){ syncExpandAllButton(); }, true);
+    }
+
+    // 생성 중 이탈은 결제한 결과를 잃는 행동 — 브라우저 기본 확인창으로 한 번 막는다.
+    window.addEventListener('beforeunload', function(event){
+      if(!paymentInFlight) return;
+      event.preventDefault();
+      event.returnValue = '';
     });
 
     $board.addEventListener('click', function(event){
@@ -2289,12 +2682,14 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     }, { passive:false });
 
     $reset.addEventListener('click',function(){
+      if(paymentInFlight) return;
       spread=[];goldenCard=null;
       currentReportId='';
       currentTransactionId='';
       currentPremiumToken='';
       currentAccessGrant=null;
       currentConsume=null;
+      currentAccessType='';
       currentRequestId='';
       currentSessionId='';
       hasAccess=false;
@@ -2306,7 +2701,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       $boardSec.style.display='none';$board.innerHTML='';
       $resSec.style.display='none';$resCon.innerHTML='';
       $goldSec.style.display='none';$goldCon.innerHTML='';
-      $loadSec.style.display='none';
+      setLoading(false,'');
       readBtnOn(false);
       updatePremiumStatus('premium idle','새로운 카드 배열을 준비했습니다. 다시 카드를 펼쳐 주세요.','draw',[]);
     });
