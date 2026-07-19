@@ -38,7 +38,7 @@ const FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
-  "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
+  "royal-tea-oracle": { cost: 50, reason: "영국 홍차점 리딩" },
   "yoga-guru-per-use": { cost: 30, reason: "요가 구루 30분 코스" },
   "vedic-compatibility-per-use": { cost: 50, reason: "베다점 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
