@@ -149,6 +149,105 @@ check("가드에 cdn.portone.io 참조 없음", !guardSource.includes("cdn.porto
 check("가드에 requestPayment 호출 없음", !/\.requestPayment\s*\(/.test(guardSource));
 check("가드가 Play Billing(app-store) API만 사용", guardSource.includes("/api/app-store"));
 
+// --- 2-b) AdSense가 앱 런타임에서 차단되는가 (소스 검사) -----------------
+//
+// AdSense 프로그램 정책: "Google ads may not be integrated into a software application"
+// (AdMob만 예외 — support.google.com/adsense/answer/48182). 앱에서 광고가 뜨면 AdSense
+// 계정 자체가 정지될 수 있고, 그러면 웹 광고 수익까지 함께 잃는다.
+// 광고 서빙 코드는 DeferredAdsense 한 곳으로 중앙화되어 있으므로(CLAUDE.md) 그 게이트를 강제한다.
+console.log("\n[2-b] AdSense가 앱 런타임에서 차단되는가");
+{
+  const adsenseSource = await fs.readFile(path.join(ROOT, "app", "components", "DeferredAdsense.tsx"), "utf8")
+    .catch(() => "");
+  check("DeferredAdsense 소스를 읽을 수 있음", Boolean(adsenseSource));
+  if (adsenseSource) {
+    check(
+      "앱 런타임이면 광고를 로드하지 않음(isMobileAppRuntime 게이트)",
+      /isMobileAppRuntime\s*\(\s*\)/.test(adsenseSource),
+      "앱에서 AdSense가 뜨면 계정 정지 위험 — currentDocumentAllowsAdsense에 앱 분기 필요",
+    );
+  }
+}
+
+// --- 2-c) 셸이 가드를 우회하지 않는가 (소스 검사) -------------------------
+//
+// 가드는 defineProperty 로 '전역 프로퍼티'만 고정할 수 있다. 셸이 같은 파일 안의 지역
+// 바인딩을 직접 부르면 그 고정을 통째로 우회해 PortOne 경로로 가버린다(앱에서는 SDK 가
+// 무력화돼 있어 결제가 실패한다). 반드시 window 값을 우선 조회해야 한다.
+console.log("\n[2-c] 셸 결제 호출부가 window 값을 우선 쓰는가");
+{
+  const shells = [
+    "index.html",
+    "public/index.html",
+    "public/en/index.html",
+    "public/ja/index.html",
+    "public/zh/index.html",
+    "public/static/index.html",
+  ];
+  for (const rel of shells) {
+    const source = await fs.readFile(path.join(ROOT, rel), "utf8").catch(() => "");
+    if (!source) {
+      failures.push(`${rel} 를 읽지 못했다 — 셸 결제 호출부를 검증할 수 없다`);
+      continue;
+    }
+    // 정의부(async function _cd...)는 제외하고 '호출'만 본다.
+    const bypass = (source.match(/await\s+_cdRunDirectKrwCheckout\s*\(/g) || []).length
+      + (source.match(/(?<![.\w|]\s?)(?<!\|\| )\bopenChargeModal\s*\(\s*\)\s*;/g) || []).length;
+    check(
+      `${rel}: 가드 우회 직접호출 없음`,
+      bypass === 0,
+      bypass ? `${bypass}건 — (window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)(…) 형태로 바꿀 것` : "",
+    );
+  }
+}
+
+// --- 2-d) /me 프로필 카드 결제가 앱에서 Play Billing 을 타는가 -------------
+//
+// /me 는 공용 게이트를 거치지 않는 자체 PortOne 체크아웃(prepare→requestPayment→confirm)을
+// 갖고 있다. 앱에서 그 경로를 타면 Play 결제 정책 위반이고, 실제로는 가드가 window.PortOne 을
+// 봉인해 둬서 카드 추가·삭제가 그냥 먹통이 된다. 앱 분기가 PortOne 호출보다 앞에 있어야 한다.
+console.log("\n[2-d] /me 프로필 카드 결제가 앱에서 Play Billing 을 타는가");
+{
+  const meSource = await fs.readFile(path.join(ROOT, "app", "me", "MeClient.tsx"), "utf8").catch(() => "");
+  check("MeClient 소스를 읽을 수 있음", Boolean(meSource));
+  if (meSource) {
+    const appBranch = meSource.indexOf("_cdRunDirectKrwCheckout");
+    const portoneCall = meSource.indexOf(".requestPayment(");
+    check("앱 런타임 분기가 있음", appBranch !== -1, "isMobileAppRuntime + _cdRunDirectKrwCheckout 경로 필요");
+    check(
+      "앱 분기가 PortOne 호출보다 먼저 실행됨",
+      appBranch !== -1 && (portoneCall === -1 || appBranch < portoneCall),
+      "앱에서 외부 PG가 먼저 호출되면 정책 위반이다",
+    );
+  }
+}
+
+// --- 2-e) 소셜 로그인이 앱에서 웹으로 이탈하지 않는가 ---------------------
+//
+// 이 검사가 없어서 한 번 크게 당했다. 네이티브 브릿지(openAuth)는 만들어 놨는데 로그인 화면이
+// 그걸 호출하지 않아, 앱에서 로그인 버튼을 누르면 절대 URL 로 이동 → Capacitor 가 외부 Chrome 으로
+// 던짐 → 사용자가 앱 밖 웹사이트에 갇히고 세션도 앱에 남지 않았다. 앱이 통째로 못 쓰는 상태였다.
+// 앱 분기가 location.href 보다 **앞에** 있어야 한다.
+console.log("\n[2-e] 소셜 로그인/회원가입이 앱에서 네이티브 브릿지를 타는가");
+for (const [rel, label] of [
+  ["app/login/LoginClient.tsx", "로그인"],
+  ["app/signup/SignupClient.tsx", "회원가입"],
+]) {
+  const source = await fs.readFile(path.join(ROOT, rel), "utf8").catch(() => "");
+  if (!source) {
+    failures.push(`${rel} 를 읽지 못했다 — 소셜 로그인 이탈을 검증할 수 없다`);
+    continue;
+  }
+  const nativeBranch = source.indexOf("CodeDestinyNative");
+  const escapeNav = source.search(/window\.location\.href\s*=\s*startUrl/);
+  check(`${label}: 네이티브 분기가 있음`, nativeBranch !== -1, "openAuth 경로가 없다");
+  check(
+    `${label}: 네이티브 분기가 절대 URL 이동보다 먼저 실행됨`,
+    nativeBranch !== -1 && (escapeNav === -1 || nativeBranch < escapeNav),
+    "앱에서 외부 브라우저로 튕겨 나간다",
+  );
+}
+
 // --- 3) dist 산출물 검증 (선택) -----------------------------------------
 if (DIST) {
   console.log(`\n[3] 앱 빌드 산출물 검증: ${path.relative(ROOT, DIST) || DIST}`);
@@ -157,6 +256,68 @@ if (DIST) {
     console.log(`  ✗ dist 없음 — 먼저 build:mobile:app 실행`);
   } else {
     check("가드 자산이 배치됨", await exists(path.join(DIST, "js", "app-payment-guard.js")));
+    // 브릿지가 없으면 가드가 결제 시 NATIVE_BILLING_UNAVAILABLE 로 죽는다 —
+    // 클래식 셸(앱 메인 UI)의 모든 유료 기능이 결제 불가가 된다.
+    check("네이티브 브릿지 자산이 배치됨", await exists(path.join(DIST, "js", "app-native-bridge.js")));
+    {
+      // 연이/네오 토글은 CSS 로 숨기려다 셸의 ID 특이도 규칙에 져서 그대로 노출된 이력이 있다.
+      // 마크업 자체가 제거됐는지 산출물에서 확인한다.
+      // 마크업만 본다. 셸에는 .theme-switch-wrapper 를 참조하는 CSS 규칙이 28건 남는데,
+      // 대응 요소가 없으므로 무해하다(규칙까지 지우려면 셸 CSS 를 건드려야 해 위험이 더 크다).
+      const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
+      const markupRe = /<[a-z]+[^>]*\sclass="[^"]*theme-switch-wrapper[^"]*"/i;
+      const offenders = [];
+      for (const file of htmlFiles) {
+        const html = await fs.readFile(file, "utf8").catch(() => "");
+        if (markupRe.test(html)) {
+          offenders.push(path.relative(DIST, file).replace(/\\/g, "/"));
+        }
+      }
+      check(
+        `연이/네오 토글 마크업 0건 (HTML ${htmlFiles.length}개 스캔)`,
+        offenders.length === 0,
+        offenders.length ? `잔존: ${offenders.slice(0, 5).join(", ")}${offenders.length > 5 ? ` 외 ${offenders.length - 5}개` : ""}` : "",
+      );
+    }
+    {
+      // 자사 절대 URL 앵커가 남아 있으면 그걸 누른 사용자가 외부 Chrome 으로 튕겨 나가
+      // 앱 밖 웹사이트에 갇힌다(결제 가드 없는 페이지 = Play 안티스티어링 위반 소지).
+      const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
+      const anchorRe = /<a\s[^>]*?href=(["'])https?:\/\/(?:www\.)?code-destiny\.com[^"']*\1/gi;
+      const offenders = [];
+      let scanned = 0;
+      for (const file of htmlFiles) {
+        const html = await fs.readFile(file, "utf8").catch(() => "");
+        if (!html) continue;
+        scanned += 1;
+        const hits = (html.match(anchorRe) || []).length;
+        if (hits) offenders.push(`${path.relative(DIST, file).replace(/\\/g, "/")}(${hits})`);
+      }
+      check(
+        `자사 절대 URL 앵커 0건 (HTML ${scanned}개 스캔)`,
+        offenders.length === 0,
+        offenders.length ? `잔존: ${offenders.slice(0, 5).join(", ")}${offenders.length > 5 ? ` 외 ${offenders.length - 5}개` : ""}` : "",
+      );
+    }
+    {
+      // 셸 계열 HTML 에 브릿지 <script> 가 실제로 주입됐는지 표본 검사.
+      const shellCandidates = ["index.html", "en/index.html", "ja/index.html", "zh/index.html", "static/index.html"];
+      let checkedShells = 0;
+      let missingBridge = [];
+      for (const rel of shellCandidates) {
+        const file = path.join(DIST, rel);
+        if (!(await exists(file))) continue;
+        checkedShells += 1;
+        const html = await fs.readFile(file, "utf8").catch(() => "");
+        if (!html.includes("/js/app-native-bridge.js")) missingBridge.push(rel);
+      }
+      check("셸 HTML 을 찾음", checkedShells > 0, "dist 에 셸이 없다");
+      check(
+        `셸 ${checkedShells}개 전부에 브릿지가 주입됨`,
+        missingBridge.length === 0,
+        missingBridge.length ? `누락: ${missingBridge.join(", ")}` : "",
+      );
+    }
 
     for (const prefix of ["", "en", "ja", "zh"]) {
       const label = prefix ? `/${prefix}/points` : "/points";

@@ -746,6 +746,40 @@ export default function MePage() {
     const product = PROFILE_CARD_ACTION_PRODUCTS[action];
     const productName = product.orderName;
     const productId = product.productId;
+
+    // 앱에서는 외부 PG(PortOne)를 열 수 없다 — Google Play 결제 정책이 앱 내 디지털 상품을
+    // Play Billing 으로만 팔도록 요구하고, "다른 결제수단으로 유도하는 것"까지 금지한다.
+    // 아래 웹 경로(prepare → PortOne.requestPayment → confirm)를 앱에서 그대로 타면 정책 위반이고,
+    // 실제로는 가드가 window.PortOne 을 봉인해 둬서 그냥 실패한다(카드 추가·삭제가 먹통이 된다).
+    // 앱 가드가 고정해 둔 Play Billing 체크아웃으로 보낸다 — 서버 검증·지급까지 동일하게 이어진다.
+    const nativeCheckout = (window as unknown as {
+      _cdRunDirectKrwCheckout?: (options: Record<string, unknown>) => Promise<{
+        data?: {
+          accessGrant?: Record<string, unknown>;
+          payment?: Record<string, unknown>;
+          consume?: { transactionId?: string; purchaseId?: string };
+        };
+      }>;
+    })._cdRunDirectKrwCheckout;
+    if (isMobileAppRuntime() && typeof nativeCheckout === "function") {
+      const payload = await nativeCheckout({
+        featureKey: PROFILE_CARD_ACTION_FEATURE_KEY,
+        requestId,
+        idempotencyKey: requestId,
+        title: productName,
+        productId,
+        profileId: profile.id,
+      });
+      const consume = payload?.data?.consume;
+      const settledId = String(consume?.transactionId || consume?.purchaseId || requestId);
+      return {
+        accessGrant: payload?.data?.accessGrant || null,
+        payment: payload?.data?.payment || null,
+        merchantUid: settledId,
+        paymentId: settledId,
+      };
+    }
+
     const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },

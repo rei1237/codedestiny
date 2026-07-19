@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Coffee, Home, Sparkles, Target, UserCircle } from "lucide-react";
+import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 
 const TABS = [
   { href: "/app", label: "홈", icon: Home },
@@ -18,7 +19,7 @@ function isActive(pathname: string, href: string) {
 }
 
 export default function AppTabBar() {
-  const pathname = usePathname() || "";
+  const pathname = normalizeAppPathname(usePathname() || "");
 
   return (
     <nav className="cd-app-tabbar" aria-label="주요 화면">

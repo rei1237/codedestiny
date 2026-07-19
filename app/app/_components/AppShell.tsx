@@ -4,9 +4,10 @@ import { useCallback, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import AppTabBar from "@/app/app/_components/AppTabBar";
 import { useAndroidBackButton } from "@/app/app/_lib/useAndroidBackButton";
+import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() || "";
+  const pathname = normalizeAppPathname(usePathname() || "");
   const isRoot = pathname === "/app" || pathname === "/app/";
   const [exitHint, setExitHint] = useState(false);
 

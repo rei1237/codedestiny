@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import {
+  consumeNativePurchase,
   getNativeBridge,
   isNativeBillingReady,
   queryAppProducts,
@@ -174,6 +175,14 @@ export default function AppPassStoreClient() {
       if (!verifyResponse.ok || !verifyPayload?.ok) {
         setMessage(String(verifyPayload?.message || "결제 확인에 실패했습니다. 잠시 후 홈에서 자동으로 복구됩니다."));
         return;
+      }
+
+      // 소비하지 않으면 Play가 이 상품을 '영구 소유'로 남겨 30일 뒤 재구매가
+      // ITEM_ALREADY_OWNED로 막힌다 — 갱신 매출이 통째로 죽는다.
+      // 이용권 자체는 서버(profileSubscription)가 들고 있으므로 소비해도 잃지 않는다.
+      // 실패해도 되돌리지 않는다: 서버는 이미 지급했고, 구매 복구 경로가 다시 소비한다.
+      if (verifyPayload?.data?.appPurchase?.shouldConsume === true && result.purchaseToken) {
+        await consumeNativePurchase(result.purchaseToken);
       }
 
       setMessage(`${plan.title} 이용권이 적용되었습니다.`);

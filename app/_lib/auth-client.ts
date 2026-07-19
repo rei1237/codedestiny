@@ -6,6 +6,9 @@ import { persistSanitizedAuthUser } from "./auth-storage";
 // window.fetch monkeypatch to bypass its cache and fabricated guest response, since this
 // store is the authoritative source of truth and its "no-store" intent must reach the network.
 const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
+// worker/routes/auth.js 의 isMobileAppAuthRequest 와 짝을 이룬다. 한쪽만 바꾸면
+// 앱의 로그인·로그아웃·세션갱신이 403 csrf_origin_mismatch 로 죽는다.
+const MOBILE_APP_RUNTIME_HEADER = "x-code-destiny-runtime";
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const AUTH_LOGOUT_INFLIGHT_KEY = "fortune_auth_logout_inflight_at";
 const LOGOUT_TIMEOUT_MS = 3500;
@@ -226,6 +229,12 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   const accessToken = readMobileAppAccessToken();
   if (accessToken && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${accessToken}`);
+  }
+  if (isMobileAppRuntime()) {
+    // 앱은 https://localhost 출처라 워커의 CSRF 가드가 cross-site 로 보고 막는다.
+    // 이 헤더 + 앱 출처가 둘 다 맞을 때만 가드가 면제된다(worker/routes/auth.js
+    // isMobileAppAuthRequest). 쿠키가 아닌 Bearer 토큰 인증이라 CSRF 가 성립하지 않는다.
+    headers.set(MOBILE_APP_RUNTIME_HEADER, "mobile-app");
   }
   if (isAuthoritativeAuthPath(targetUrl)) {
     headers.set(CACHE_REFRESH_HEADER, "1");

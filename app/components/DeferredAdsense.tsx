@@ -3,7 +3,7 @@
 import Script from "next/script";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { authFetch } from "../_lib/auth-client";
+import { authFetch, isMobileAppRuntime } from "../_lib/auth-client";
 import { canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
 
 export { canLoadAdsense, canLoadAdsenseForCanonicalPath, canLoadAdsenseForCanonicalUrl } from "./adsense-route-policy";
@@ -83,6 +83,11 @@ const AD_REMOVAL_CHILD_KEYS = new Set([
 
 function currentDocumentAllowsAdsense(pathname: string | null) {
   if (typeof document === "undefined") return false;
+  // AdSense는 앱에 넣을 수 없다. 프로그램 정책이 "Google ads may not be integrated into a
+  // software application"을 명시한다(AdMob만 예외 — support.google.com/adsense/answer/48182).
+  // 위반하면 AdSense 계정 자체가 정지될 수 있고, 그러면 웹 광고 수익까지 함께 잃는다.
+  // 그래서 앱 런타임에서는 광고 스크립트를 '로드조차' 하지 않는다.
+  if (isMobileAppRuntime()) return false;
   const robotsText = Array.from(document.querySelectorAll('meta[name="robots"], meta[name="googlebot"]'))
     .map((element) => element.getAttribute("content") || "")
     .join(",")

@@ -155,7 +155,13 @@ async function completeMobileOAuth(appUrl: string) {
 
   const response = await fetch(toAbsoluteApiUrl("/api/auth/oauth/complete", getApiBaseUrl()), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      // 앱은 https://localhost 출처라 워커 CSRF 가드가 cross-site 로 보고 403 을 낸다.
+      // 이 헤더가 있어야 면제된다(worker/routes/auth.js isMobileAppAuthRequest).
+      // 빠지면 딥링크로 돌아와도 토큰 교환이 죽어 로그인이 완료되지 않는다.
+      "X-Code-Destiny-Runtime": "mobile-app",
+    },
     credentials: "include",
     cache: "no-store",
     body: JSON.stringify({
@@ -180,6 +186,13 @@ export default function MobileAppRuntimeBridge() {
   useEffect(() => {
     window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
     document.documentElement.dataset.runtimeTarget = "mobile-app";
+
+    // 앱 빌드에는 바닐라 브릿지(scripts/app-native-bridge.js)가 모든 HTML에 주입된다.
+    // 그게 있으면 여기서 아무것도 하지 않는다 — 구현을 두 벌 두면 갈라지고, 특히
+    // appUrlOpen 리스너가 둘이면 같은 socialGrant를 두 번 교환해 뒤엣것이 실패한다.
+    if ((window as unknown as { __cdAppNativeBridge?: { installed?: boolean } }).__cdAppNativeBridge?.installed) {
+      return undefined;
+    }
 
     let appUrlListener: NativeListenerHandle | null = null;
     const listenerResult = getNativeAppPlugin()?.addListener?.("appUrlOpen", (event) => {

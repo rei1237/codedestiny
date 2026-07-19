@@ -33,6 +33,9 @@ export default function PurchaseRecoveryBoot() {
   const runningRef = useRef(false);
 
   const recover = useCallback(async () => {
+    // 앱 빌드에는 바닐라 브릿지(scripts/app-native-bridge.js)가 같은 복구를 모든 화면에서
+    // 돌린다. 둘 다 돌면 /restore 를 중복 호출하고 같은 토큰을 두 번 소비하려 든다.
+    if ((window as unknown as { __cdAppNativeBridge?: { installed?: boolean } }).__cdAppNativeBridge?.installed) return;
     if (runningRef.current || !isNativeBillingReady()) return;
     runningRef.current = true;
     try {

@@ -282,8 +282,14 @@
   }
 
   // 나중에 JS가 붙이는 링크(예: index.html의 유명인 카드 그리드)도 같은 규칙으로 걷어낸다.
+  //
+  // 성능: 이 관찰자는 문서 전체를 subtree로 보며 추가된 노드마다 querySelectorAll을 돌린다.
+  // 타로 그리드·카드 목록처럼 DOM을 많이 만드는 화면에서는 이 비용이 계속 쌓인다.
+  // 프루닝 링크는 초기 렌더에서 거의 다 정리되고, 그 뒤에 나타나는 것은 아래 클릭 백스톱이
+  // 확실히 막는다(진짜 최종 안전망은 그쪽이다). 그래서 초기 구간만 관찰하고 끊는다.
+  var PRUNE_OBSERVER_WINDOW_MS = 12000;
   try {
-    new MutationObserver(function (mutations) {
+    var pruneObserver = new MutationObserver(function (mutations) {
       for (var i = 0; i < mutations.length; i += 1) {
         var added = mutations[i].addedNodes;
         for (var j = 0; j < added.length; j += 1) {
@@ -295,7 +301,13 @@
           }
         }
       }
-    }).observe(document.documentElement, { childList: true, subtree: true });
+    });
+    pruneObserver.observe(document.documentElement, { childList: true, subtree: true });
+    window.setTimeout(function () {
+      try {
+        pruneObserver.disconnect();
+      } catch (e) { /* noop */ }
+    }, PRUNE_OBSERVER_WINDOW_MS);
   } catch (e) { /* noop */ }
 
   // 백스톱 — 위를 다 뚫고 나온 클릭(동적 href 변경 등)은 여기서 막는다.

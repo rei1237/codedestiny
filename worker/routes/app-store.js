@@ -260,6 +260,24 @@ function isPerUseProduct(product) {
 }
 
 /**
+ * Play 일회성 구매를 소비할지 여부. **소비하지 않을 이유가 없다 — 전부 소비한다.**
+ *
+ * 티어 SKU는 기능별이 아니라 '가격대별'로 공유된다(app-store-pricing.js: 50코인 기능 전부가
+ * cd_content_tier_02 하나를 쓴다). 그런데 Play 일회성 상품은 consume 하지 않으면 영구 소유
+ * 상태로 남는다. 따라서 UNLOCK 하나만 사도 그 SKU가 잠겨 **같은 가격대의 나머지 기능 수십 개가
+ * 전부 ITEM_ALREADY_OWNED 로 구매 불가**가 된다(이용권 30일 후 재구매 불가도 같은 원인이었다).
+ *
+ * 소비해도 권한은 잃지 않는다. 해금은 Play 소유 상태가 아니라 서버가 들고 있다 —
+ * buildEntitlementUpdate 가 unlockedFeatures/paidFeatures 에 기록하고, 복원(handleRestore)은
+ * Play 소유가 아니라 Payment 기록(status: success)에서 되돌린다. Play 구매는 영수증일 뿐이다.
+ *
+ * subs(자동갱신 구독)는 소비 대상이 아니므로 제외한다.
+ */
+function shouldConsumePurchase(product) {
+  return normalizeGoogleProductType(product?.productType) !== "subs";
+}
+
+/**
  * productId → 서버 기능 역해석.
  *
  * 가격대 티어 SKU라 productId 하나에 여러 featureKey가 매달린다(예: cd_content_tier_02 ←
@@ -856,11 +874,12 @@ async function handleGoogleVerify(request, env) {
         productType: product.productType,
         acknowledged: acknowledged || isAcknowledgedPurchase(googlePurchase),
       },
-      // 클라이언트는 이 값으로 consume 여부를 판단한다. PER_USE를 소비하지 않으면
-      // 다음 구매가 ITEM_ALREADY_OWNED로 막힌다.
+      // 클라이언트는 이 값으로 consume 여부를 판단한다. 소비하지 않으면 다음 구매가
+      // ITEM_ALREADY_OWNED로 막힌다 — 티어 SKU는 가격대별 공유라 한 기능만 사도
+      // 그 가격대 전체가 잠긴다(shouldConsumePurchase 주석 참고).
       appPurchase: {
         billingType: product.billingType || "",
-        shouldConsume: isPerUseProduct(product),
+        shouldConsume: shouldConsumePurchase(product),
         purchaseToken,
         productId: product.productId,
         amountKRW: Number(product.amountKRW || 0),
@@ -936,8 +955,8 @@ async function handleGoogleRestore(request, env) {
           productId: product.productId,
           productType: product.productType,
           acknowledged: acknowledged || isAcknowledgedPurchase(googlePurchase),
-          // 고아 PER_USE 구매는 지급 후 반드시 소비시켜야 다음 구매가 열린다.
-          shouldConsume: isPerUseProduct(product),
+          // 고아 구매는 지급 후 반드시 소비시켜야 다음 구매가 열린다(티어 SKU 공유).
+          shouldConsume: shouldConsumePurchase(product),
           purchaseToken,
         });
       } catch (error) {
@@ -966,9 +985,13 @@ async function handleGoogleRestore(request, env) {
       { $addToSet: { unlockedFeatures: { $each: featureKeys }, paidFeatures: { $each: featureKeys } } },
     );
   }
+  // 방금 되살린 고아 구매도 응답 목록에 반영한다. 판정 기준은 위 restorableRows 와 동일하게
+  // featureKey 종류로 한다 — 이제 모든 일회성 구매를 소비하므로(shouldConsumePurchase)
+  // consume 여부로는 영구 해금과 회당 결제를 구분할 수 없다.
   for (const purchase of restoredPurchases) {
     const featureKey = cleanText(purchase.featureKey);
-    if (featureKey && !purchase.shouldConsume && !featureKeys.includes(featureKey)) featureKeys.push(featureKey);
+    if (!featureKey || isPerUsePaidFeatureKey(featureKey)) continue;
+    if (!featureKeys.includes(featureKey)) featureKeys.push(featureKey);
   }
   return json({
     ok: true,
@@ -1002,6 +1025,20 @@ function decodeBase64Json(value) {
   return JSON.parse(text);
 }
 
+/**
+ * RTDN 요청 인증.
+ *
+ * Play RTDN 은 Cloud Pub/Sub 푸시 구독으로 전달된다. Pub/Sub 는 개발자가 정한 고정 토큰을
+ * 헤더에 실어줄 수 없다 — 인증을 켜면 "signs a JWT and sends the JWT in the authorization
+ * header"(cloud.google.com/pubsub/docs/push), 즉 Authorization 에는 Google 이 서명한 OIDC JWT 가
+ * 들어온다. 그래서 헤더만 검사하면 정상 알림이 전부 401 로 거부된다.
+ *
+ * Pub/Sub 는 pushEndpoint URL 의 쿼리스트링을 그대로 보존하므로, 공유 토큰을 쿼리로 받는다.
+ * (OIDC 이전 Google 이 권장하던 방식이다.)
+ *   등록 URL: https://code-destiny.com/api/app-store/google/rtdn?token=<GOOGLE_PLAY_RTDN_TOKEN>
+ *
+ * 헤더 경로도 그대로 둔다 — 수동 재전송·헬스체크 등 Pub/Sub 가 아닌 호출을 위해서다.
+ */
 function requireGoogleRtdnToken(request, env) {
   const expected = cleanText(getEnv(env, "GOOGLE_PLAY_RTDN_TOKEN"));
   if (!expected) {
@@ -1012,7 +1049,11 @@ function requireGoogleRtdnToken(request, env) {
   }
   const authHeader = cleanText(request.headers.get("Authorization")).replace(/^Bearer\s+/i, "");
   const channelToken = cleanText(request.headers.get("X-Goog-Channel-Token") || request.headers.get("X-Google-Channel-Token"));
-  if (authHeader === expected || channelToken === expected) return;
+  let queryToken = "";
+  try {
+    queryToken = cleanText(new URL(request.url).searchParams.get("token"));
+  } catch (e) { /* URL 파싱 실패는 토큰 없음으로 취급한다 */ }
+  if (authHeader === expected || channelToken === expected || queryToken === expected) return;
   const error = new Error("Google Play RTDN token is invalid.");
   error.code = "GOOGLE_PLAY_RTDN_UNAUTHORIZED";
   error.status = 401;
