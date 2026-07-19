@@ -661,18 +661,18 @@
   border-radius: 34px;
   padding: 3px;
   background: conic-gradient(
-    from 0deg,
-    #FF5FD2 0deg,
-    #C9A7FF 72deg,
-    #80FFE7 144deg,
-    #40C8FF 216deg,
-    #FFD98A 288deg,
-    #FF5FD2 360deg
+    from 210deg,
+    #FFD98A 0deg,
+    #FFF3D0 48deg,
+    #C9A7FF 130deg,
+    #FF5FD2 210deg,
+    #6D3BFF 290deg,
+    #FFD98A 360deg
   );
   box-shadow:
-    0 0 32px rgba(255, 95, 210, 0.3),
-    0 0 64px rgba(64, 200, 255, 0.2),
-    0 28px 90px rgba(0, 0, 0, 0.55);
+    0 0 30px rgba(255, 217, 138, 0.28),
+    0 0 70px rgba(109, 59, 255, 0.22),
+    0 28px 90px rgba(0, 0, 0, 0.6);
   animation: cardGlow 3.5s ease-in-out infinite;
 }
 
@@ -1496,4 +1496,60 @@
   color: #40C8FF;
   background: #40C8FF;
   box-shadow: 0 0 12px rgba(64, 200, 255, 0.9);
+}
+
+/* ── Photocard premium finish (foil hairline + corner ticks) ──── */
+.cardFoilFrame {
+  position: absolute;
+  inset: 10px;
+  border-radius: 24px;
+  pointer-events: none;
+  border: 1px solid rgba(255, 217, 138, 0.34);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 0 26px rgba(255, 217, 138, 0.07);
+  z-index: 2;
+}
+
+.cardFoilCorner {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  pointer-events: none;
+  border-color: rgba(255, 243, 208, 0.7);
+  border-style: solid;
+  border-width: 0;
+  z-index: 3;
+}
+
+.cardFoilCornerTL {
+  top: 16px;
+  left: 16px;
+  border-top-width: 1px;
+  border-left-width: 1px;
+  border-top-left-radius: 6px;
+}
+
+.cardFoilCornerBR {
+  bottom: 16px;
+  right: 16px;
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+  border-bottom-right-radius: 6px;
+}
+
+.cardPortraitFrame {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 217, 138, 0.3);
+  background: rgba(6, 3, 20, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), 0 10px 30px rgba(4, 2, 14, 0.5);
+}
+
+.cardEyebrow {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  color: rgba(255, 217, 138, 0.82);
 }

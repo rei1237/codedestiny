@@ -49,50 +49,39 @@ function PhotocardSurface({
           <div className={styles.glassNoiseLayer} aria-hidden />
           <div className={`pointer-events-none absolute inset-0 ${styles.photocardHolo}`} aria-hidden />
           <div className={`pointer-events-none absolute inset-0 ${styles.biasGlitterLayer}`} aria-hidden />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_14%_16%,rgba(251,113,229,0.3),transparent_38%),radial-gradient(circle_at_84%_20%,rgba(96,165,250,0.24),transparent_38%),radial-gradient(circle_at_50%_92%,rgba(34,211,238,0.2),transparent_40%)]" aria-hidden />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-[72%] bg-[conic-gradient(from_90deg_at_50%_0%,transparent_29%,rgba(255,255,255,0.06)_40%,rgba(201,167,255,0.13)_50%,rgba(255,255,255,0.06)_60%,transparent_71%)]" aria-hidden />
-          <div className="pointer-events-none absolute left-[6%] top-0 h-[58%] w-[28%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,95,210,0.22),transparent_76%)] blur-sm" aria-hidden />
-          <div className="pointer-events-none absolute right-[5%] top-0 h-[52%] w-[25%] bg-[radial-gradient(ellipse_at_50%_0%,rgba(64,200,255,0.18),transparent_76%)] blur-sm" aria-hidden />
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[28%] bg-[radial-gradient(ellipse_88%_56%_at_50%_100%,rgba(109,59,255,0.3),transparent)]" aria-hidden />
-          <div className="pointer-events-none absolute left-1/2 top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-white/60 shadow-[0_0_10px_5px_rgba(255,255,255,0.25),0_0_24px_12px_rgba(201,167,255,0.22),0_0_52px_22px_rgba(109,59,255,0.14)]" aria-hidden />
-          <div className="pointer-events-none absolute inset-0 opacity-60" aria-hidden>
-            <div className="absolute left-8 top-8 h-1 w-1 rounded-full bg-white/70" />
-            <div className="absolute right-12 top-16 h-1.5 w-1.5 rounded-full bg-cyan-200/70" />
-            <div className="absolute left-16 top-36 h-1 w-1 rounded-full bg-pink-200/70" />
-            <div className="absolute right-20 top-52 h-1 w-1 rounded-full bg-white/60" />
-            <div className="absolute left-10 bottom-36 h-1.5 w-1.5 rounded-full bg-cyan-100/75" />
-            <div className="absolute right-10 bottom-28 h-1 w-1 rounded-full bg-pink-100/75" />
-          </div>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_14%,rgba(255,217,138,0.22),transparent_40%),radial-gradient(circle_at_84%_22%,rgba(201,167,255,0.2),transparent_38%),radial-gradient(circle_at_50%_96%,rgba(109,59,255,0.26),transparent_44%)]" aria-hidden />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-[68%] bg-[conic-gradient(from_90deg_at_50%_0%,transparent_31%,rgba(255,243,208,0.09)_42%,rgba(255,217,138,0.14)_50%,rgba(255,243,208,0.09)_58%,transparent_69%)]" aria-hidden />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[26%] bg-[radial-gradient(ellipse_88%_56%_at_50%_100%,rgba(109,59,255,0.28),transparent)]" aria-hidden />
+          <div className={styles.cardFoilFrame} aria-hidden />
+          <div className={`${styles.cardFoilCorner} ${styles.cardFoilCornerTL}`} aria-hidden />
+          <div className={`${styles.cardFoilCorner} ${styles.cardFoilCornerBR}`} aria-hidden />
 
           <div className="relative z-10 flex h-full flex-col">
             <div className="flex items-start justify-between">
-              <span className="rounded-full border border-pink-200/50 bg-pink-300/15 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-pink-100">FAN x BIAS LINK</span>
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-cyan-200/45 bg-cyan-300/10">
-                <DestinyIcon name="star" size={14} className="text-cyan-100" variant="glow" />
+              <span className="rounded-full border border-[var(--bias-gold)]/45 bg-[var(--bias-gold)]/10 px-3 py-1 text-[10px] font-bold tracking-[0.12em] text-[var(--bias-gold)]">FAN x BIAS LINK</span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--bias-gold)]/40 bg-[var(--bias-gold)]/8">
+                <DestinyIcon name="star" size={14} className="text-[var(--bias-gold)]" variant="glow" />
               </span>
             </div>
 
             <div className="mt-5 flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/80">ENERGY RELATION</p>
-                <h3 className={`${styles.cardClamp1} mt-1 text-2xl font-black leading-tight text-white`}>{vm.biasName}</h3>
-                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/75`}>{vm.chemistryType || "잔잔응원형"}</p>
+              <div className="min-w-0">
+                <p className={styles.cardEyebrow}>ENERGY RELATION</p>
+                <h3 className={`${styles.cardClamp1} mt-1.5 text-2xl font-black leading-tight text-white`}>{vm.biasName}</h3>
+                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/72`}>{vm.chemistryType || "잔잔응원형"}</p>
               </div>
-              <div className="relative grid h-16 w-16 place-items-center">
-                <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.22),transparent_68%)] blur-md" aria-hidden />
-                <div className="relative grid h-16 w-16 place-items-center rounded-full border border-cyan-100/65 bg-[radial-gradient(circle,rgba(56,189,248,0.48)_0%,rgba(22,78,99,0.18)_70%,transparent_100%)] shadow-[0_0_20px_rgba(56,189,248,0.55),0_0_44px_rgba(56,189,248,0.28),inset_0_1px_0_rgba(255,255,255,0.22)]">
-                  <span className="text-lg font-black text-white drop-shadow-[0_0_7px_rgba(200,240,255,0.9)]">{vm.totalScore}%</span>
-                </div>
+              <div className={styles.scoreGem}>
+                <span className={styles.scoreGemText}>{vm.totalScore}%</span>
               </div>
             </div>
 
-            <div className="relative mt-5 flex-1 overflow-hidden rounded-[24px] border border-white/20 bg-[linear-gradient(160deg,rgba(7,22,45,0.74)_0%,rgba(25,19,63,0.62)_50%,rgba(8,30,55,0.72)_100%)] p-4">
-              <div className={styles.uploadBlendFrame} aria-hidden />
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_35%_38%,rgba(191,219,254,0.56),transparent_30%),radial-gradient(circle_at_72%_66%,rgba(34,211,238,0.32),transparent_28%)]" aria-hidden />
-              <div className="pointer-events-none absolute left-1/2 top-[48%] h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-100/35" aria-hidden />
-              <div className="pointer-events-none absolute left-1/2 top-[48%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full border border-pink-100/30" aria-hidden />
+            <div className={`${styles.auroraDiv} mt-4`} aria-hidden />
 
-              <div className={`relative z-10 mb-3 overflow-hidden rounded-2xl border border-white/25 bg-black/35 ${imageWrapClass}`}>
+            <div className="relative mt-4 flex-1 overflow-hidden rounded-[24px] border border-white/16 bg-[linear-gradient(160deg,rgba(26,11,63,0.72)_0%,rgba(13,7,34,0.66)_52%,rgba(26,11,63,0.7)_100%)] p-4">
+              <div className={styles.uploadBlendFrame} aria-hidden />
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_32%_30%,rgba(255,243,208,0.22),transparent_34%),radial-gradient(circle_at_74%_70%,rgba(255,95,210,0.16),transparent_32%)]" aria-hidden />
+
+              <div className={`${styles.cardPortraitFrame} relative z-10 mb-3 ${imageWrapClass}`}>
                 {biasImageUrl ? (
                   <img
                     src={biasImageUrl}
@@ -101,32 +90,32 @@ function PhotocardSurface({
                     onLoad={onImageLoad}
                   />
                 ) : (
-                  <div className="grid h-full place-items-center bg-[linear-gradient(140deg,rgba(30,41,89,0.75),rgba(56,189,248,0.22),rgba(219,39,119,0.24))]">
-                    <p className="text-xs font-semibold tracking-[0.12em] text-white/88">NO IMAGE UPLOAD</p>
+                  <div className="grid h-full place-items-center bg-[linear-gradient(140deg,rgba(26,11,63,0.82),rgba(109,59,255,0.24),rgba(255,217,138,0.16))]">
+                    <p className="text-xs font-semibold tracking-[0.12em] text-white/85">NO IMAGE UPLOAD</p>
                   </div>
                 )}
-                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(165deg,rgba(255,255,255,0.32)_0%,rgba(255,255,255,0.08)_22%,rgba(255,255,255,0.0)_45%,rgba(255,255,255,0.2)_100%)] mix-blend-screen" aria-hidden />
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.36),transparent_40%),radial-gradient(circle_at_80%_85%,rgba(125,211,252,0.2),transparent_34%)]" aria-hidden />
+                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(165deg,rgba(255,255,255,0.26)_0%,rgba(255,255,255,0.06)_24%,rgba(255,255,255,0.0)_48%,rgba(255,243,208,0.16)_100%)] mix-blend-screen" aria-hidden />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(255,255,255,0.3),transparent_40%)]" aria-hidden />
               </div>
 
               <div className="relative z-10 space-y-3">
                 <p className={`${styles.cardClamp1} text-xs font-semibold tracking-[0.04em] text-white/90`}>{relationHeadline}</p>
-                <p className={`${styles.cardClamp1} rounded-xl border border-white/15 bg-black/20 px-3 py-2 text-sm font-semibold text-cyan-50`}>{relationSignal}</p>
+                <p className={`${styles.cardClamp1} rounded-xl border border-[var(--bias-gold)]/22 bg-black/25 px-3 py-2 text-sm font-semibold text-[var(--bias-gold)]`}>{relationSignal}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {cardKeywords.map((keyword) => (
-                    <span key={keyword} className="max-w-[120px] truncate rounded-full border border-cyan-200/35 bg-cyan-300/10 px-2 py-1 text-[11px] font-semibold text-cyan-100/90">
+                    <span key={keyword} className={`${styles.keywordChip} max-w-[120px] truncate`}>
                       #{keyword}
                     </span>
                   ))}
                 </div>
-                <div className="rounded-xl border border-pink-100/20 bg-pink-300/10 px-3 py-2">
-                  <p className="text-[10px] font-semibold tracking-[0.15em] text-pink-100/85">ONE LINE LINK</p>
-                  <p className={`${styles.cardClamp2} mt-1 break-keep text-sm leading-6 text-white/92`}>{oneLine}</p>
+                <div className="rounded-xl border border-white/14 bg-white/6 px-3 py-2">
+                  <p className={styles.cardEyebrow}>ONE LINE LINK</p>
+                  <p className={`${styles.cardClamp2} mt-1.5 break-keep text-sm leading-6 text-white/92`}>{oneLine}</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 flex items-center justify-between rounded-full border border-white/15 bg-white/5 px-3 py-2 text-[11px] font-semibold text-white/70">
+            <div className={styles.serialStrip}>
               <span>{vm.destinyId}</span>
               <span>{vm.issuedAt}</span>
             </div>
@@ -216,7 +205,7 @@ export default function DestinyBiasPhotocard({
         </p>
 
         <div
-          className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-[90%] -translate-x-1/2 rounded-full bg-fuchsia-400/30 blur-3xl"
+          className="pointer-events-none absolute -bottom-10 left-1/2 h-24 w-[90%] -translate-x-1/2 rounded-full bg-[var(--bias-purple)]/28 blur-3xl"
           aria-hidden
         />
       </m.div>
