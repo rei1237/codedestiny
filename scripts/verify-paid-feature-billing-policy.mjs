@@ -100,6 +100,7 @@ for (const featureKey of [
   "ziwei_ai_prompt_generator",
   "astrology_ai_prompt_generator",
   "vedic_ai_prompt_generator",
+  "sukuyo_ai_prompt_generator",
   "profile-card-manage",
   "premium-sukuyo-compat-extra",
 ]) {
@@ -109,10 +110,9 @@ for (const featureKey of [
   assert.equal(isUnlockPaidFeatureKey(featureKey), false, `${featureKey} must not persist unlock entitlement`);
 }
 
-assert.equal(FEATURE_KEY_PRICE_TABLE.sukuyo_ai_prompt_generator, undefined, "sukuyo_ai_prompt_generator must stay outside the paid registry");
-assert.equal(getPaidFeatureBillingType("sukuyo_ai_prompt_generator"), "", "sukuyo_ai_prompt_generator must not be billed as paid");
-assert.equal(isPerUsePaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not be per-use paid");
-assert.equal(isUnlockPaidFeatureKey("sukuyo_ai_prompt_generator"), false, "sukuyo_ai_prompt_generator must not persist unlock entitlement");
+// 숙요 AI 상담은 2026-06-22에 무료로 뺐다가 2026-07-16 "숙요 유료화"로 되돌렸다(c0c46eb5).
+// 그때 이 가드를 함께 갱신하지 않아 정책이 두 곳에서 서로 반대로 고정돼 있었다.
+// 이제 형제 4종과 같은 per-use 목록에서 검사하므로 한쪽만 어긋날 수 없다. 가격 정본은 레지스트리다.
 
 for (const featureKey of [
   "section_daewun",

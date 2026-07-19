@@ -12,7 +12,12 @@ on:
       - "public/ja/index.html"
       - "public/zh/index.html"
       - "public/static/index.html"
+      # 결제 게이트 정합성 검증기가 읽는 프론트 소스 (destiny-profile·saju-engine·타로 경험 등)
+      - "js/**"
+      - "PhysiognomyUI.js"
       - "scripts/verify-runtime-cache-sync.mjs"
+      - "scripts/verify-paid-feature-billing-policy.mjs"
+      - "scripts/verify-ai-prompt-billing-policy.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
   push:
@@ -26,7 +31,11 @@ on:
       - "public/ja/index.html"
       - "public/zh/index.html"
       - "public/static/index.html"
+      - "js/**"
+      - "PhysiognomyUI.js"
       - "scripts/verify-runtime-cache-sync.mjs"
+      - "scripts/verify-paid-feature-billing-policy.mjs"
+      - "scripts/verify-ai-prompt-billing-policy.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
 
@@ -52,6 +61,12 @@ jobs:
 
       - name: Verify runtime cache sync
         run: npm run verify:runtime-cache-sync
+
+      - name: Verify paid feature billing policy
+        run: npm run verify:paid-feature-billing-policy
+
+      - name: Verify AI prompt billing policy
+        run: npm run verify:ai-prompt-billing-policy
 
       - name: Run paid flow regression gates
         env:
