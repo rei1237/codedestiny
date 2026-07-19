@@ -1141,3 +1141,176 @@
     animation: none !important;
   }
 }
+
+/* ── Concert stage: album spotlight (uiStep 0 hero) ───────────── */
+.stageDeck {
+  position: relative;
+  border-radius: 26px;
+  border: 1px solid rgba(255, 217, 138, 0.22);
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(255, 217, 138, 0.18), transparent 62%),
+    linear-gradient(180deg, rgba(26, 11, 63, 0.72), rgba(7, 4, 22, 0.9));
+  box-shadow:
+    0 0 42px rgba(109, 59, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  overflow: hidden;
+}
+
+.spotCone {
+  position: absolute;
+  left: 50%;
+  top: -34%;
+  width: 132%;
+  height: 108%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: conic-gradient(
+    from 200deg at 50% 0%,
+    rgba(255, 217, 138, 0) 0deg,
+    rgba(255, 217, 138, 0.3) 26deg,
+    rgba(255, 249, 232, 0.4) 40deg,
+    rgba(255, 95, 210, 0.24) 54deg,
+    rgba(255, 95, 210, 0) 80deg
+  );
+  filter: blur(10px);
+  opacity: 0.72;
+  transform-origin: 50% 0%;
+  animation: spotSweep 11s ease-in-out infinite;
+}
+
+.spotHaze {
+  position: absolute;
+  inset: -12% -6% 32%;
+  pointer-events: none;
+  background: radial-gradient(58% 46% at 50% 22%, rgba(255, 249, 232, 0.24), transparent 72%);
+  filter: blur(16px);
+}
+
+.albumTiltable {
+  position: relative;
+}
+
+.albumFrame {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  box-shadow:
+    0 0 34px rgba(255, 217, 138, 0.3),
+    0 0 72px rgba(255, 95, 210, 0.22);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.45s ease;
+  will-change: transform;
+}
+
+.albumTiltable:hover .albumFrame,
+.albumTiltable:focus-visible .albumFrame {
+  transform: perspective(900px) rotateX(4deg) rotateY(-5deg) translateY(-4px);
+  box-shadow:
+    0 0 46px rgba(255, 217, 138, 0.46),
+    0 0 96px rgba(255, 95, 210, 0.3);
+}
+
+.albumSheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(128deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 42%);
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.albumReflect {
+  position: relative;
+  margin-top: 2px;
+  height: 62px;
+  overflow: hidden;
+  pointer-events: none;
+  transform: scaleY(-1);
+  -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 78%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.42), transparent 78%);
+  opacity: 0.55;
+  filter: blur(1px);
+}
+
+.stageFloorLine {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  bottom: 0;
+  height: 1px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 217, 138, 0.5), transparent);
+}
+
+.albumPlinth {
+  position: relative;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.34));
+  backdrop-filter: blur(14px);
+}
+
+/* ── Tonight's lineup row ─────────────────────────────────────── */
+.lineupCard {
+  position: relative;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: linear-gradient(180deg, rgba(26, 11, 63, 0.6), rgba(7, 4, 22, 0.82));
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+.lineupCard:hover {
+  transform: translateY(-6px);
+  border-color: rgba(255, 217, 138, 0.5);
+  box-shadow: 0 0 38px rgba(255, 217, 138, 0.26), 0 0 68px rgba(109, 59, 255, 0.2);
+}
+
+.lineupBeam {
+  position: absolute;
+  inset: -30% -20% 40%;
+  pointer-events: none;
+  background: radial-gradient(52% 60% at 50% 0%, rgba(255, 217, 138, 0.34), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.lineupCard:hover .lineupBeam {
+  opacity: 1;
+}
+
+.lineupRow {
+  scrollbar-width: none;
+}
+
+.lineupRow::-webkit-scrollbar {
+  display: none;
+}
+
+.stepRail {
+  border-radius: 18px;
+  border: 1px solid rgba(201, 167, 255, 0.22);
+  background: linear-gradient(180deg, rgba(109, 59, 255, 0.16), rgba(7, 4, 22, 0.55));
+}
+
+@keyframes spotSweep {
+  0%, 100% {
+    transform: translateX(-50%) rotate(-3.5deg);
+    opacity: 0.62;
+  }
+  50% {
+    transform: translateX(-50%) rotate(3.5deg);
+    opacity: 0.82;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spotCone {
+    animation: none !important;
+  }
+
+  .albumFrame,
+  .lineupCard {
+    transition: none !important;
+  }
+}

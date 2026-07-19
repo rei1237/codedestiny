@@ -11,6 +11,7 @@ import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/ap
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import BiasDestinyHero from "./components/BiasDestinyHero";
+import BiasDestinyStageLineup from "./components/BiasDestinyStageLineup";
 import BiasDestinyInputPanel from "./components/BiasDestinyInputPanel";
 import BiasDestinyElementChart from "./components/BiasDestinyElementChart";
 import BiasDestinyFiveSections from "./components/BiasDestinyFiveSections";
@@ -1012,7 +1013,12 @@ export default function DestinyBiasClient() {
         </AnimatePresence>
 
         <div className="space-y-4 md:space-y-5">
-          {uiStep === 0 ? <BiasDestinyHero onEnter={() => setUiStep(1)} stageLoading={stageLoading} /> : null}
+          {uiStep === 0 ? (
+            <>
+              <BiasDestinyHero onEnter={() => setUiStep(1)} stageLoading={stageLoading} />
+              <BiasDestinyStageLineup />
+            </>
+          ) : null}
 
           {uiStep > 0 ? (
             <>
