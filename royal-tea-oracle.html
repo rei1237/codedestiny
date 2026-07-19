@@ -123,7 +123,7 @@ body::before {
 /* ─── MAIN STAGE ─── */
 #stage {
   display: flex; flex-direction: column; align-items: center;
-  gap: 30px; width: 100%; max-width: 900px;
+  gap: 30px; width: 100%; max-width: 1240px;
 }
 
 /* ─── TEACUP SECTION ─── */
@@ -339,49 +339,214 @@ body::before {
   pointer-events: none;
 }
 
-#result-symbol-name {
+/* ── 질문 영역 선택 ── */
+#intent-picker { margin-top: 18px; text-align: center; }
+#intent-picker__label {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.78rem; letter-spacing: 0.12em;
+  color: rgba(212,175,55,0.7);
+  margin-bottom: 10px;
+}
+#intent-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.intent-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 6px 12px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(212,175,55,0.26);
+  background: rgba(212,175,55,0.05);
+  color: rgba(240,224,180,0.78);
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.78rem; letter-spacing: 0.02em;
+  transition: border-color .25s ease, background .25s ease, color .25s ease, box-shadow .25s ease;
+}
+.intent-chip:hover { border-color: rgba(212,175,55,0.5); color: var(--parchment); }
+.intent-chip__glyph { color: var(--gold-dim); font-size: 0.85rem; }
+.intent-chip.is-active {
+  border-color: var(--gold);
+  background: rgba(212,175,55,0.16);
+  color: var(--gold);
+  box-shadow: 0 0 14px rgba(212,175,55,0.24);
+}
+.intent-chip.is-active .intent-chip__glyph { color: var(--gold); }
+
+/* ── 감정서 ── */
+/* 모바일에서는 페이지 흐름을 그대로 타고, 넓은 화면에서만 우측 열 안에서 스크롤한다 */
+#certificate {
+  opacity: 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(212,175,55,0.35) transparent;
+}
+#certificate.inked { animation: inkReveal 1.6s ease forwards; }
+#certificate::-webkit-scrollbar { width: 6px; }
+#certificate::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.3); border-radius: 999px; }
+
+/* 감정서가 안쪽에서 스크롤되는 넓은 화면에서만, 아직 남은 장이 있음을 알린다 */
+#cert-more {
+  display: none;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px dashed rgba(212,175,55,0.3);
+  text-align: center; pointer-events: none;
+  font-family: 'IM Fell English', 'Noto Sans KR', serif;
+  font-size: 0.72rem; letter-spacing: 0.08em;
+  color: rgba(212,175,55,0.72);
+}
+@media (min-width: 800px) {
+  #cert-more.is-visible { display: block; }
+}
+
+.cert-head { text-align: center; padding-bottom: 14px; border-bottom: 1px solid rgba(212,175,55,0.22); }
+.cert-head__crest { font-size: 1.5rem; color: var(--gold-dim); }
+.cert-head__kicker {
+  font-family: 'IM Fell English', serif;
+  font-size: 0.72rem; letter-spacing: 0.18em;
+  color: rgba(212,175,55,0.62); margin: 6px 0 8px;
+}
+.cert-head__title {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
   font-weight: 700; font-style: italic;
   color: var(--gold);
-  text-align: center; margin-bottom: 6px;
-  text-shadow: 0 0 20px rgba(212,175,55,0.4);
-  letter-spacing: 0.06em;
+  text-shadow: 0 0 20px rgba(212,175,55,0.35);
+  letter-spacing: 0.03em; line-height: 1.35;
 }
-#result-symbol-icon {
-  text-align: center; font-size: 2.8rem; margin-bottom: 16px;
-  filter: drop-shadow(0 0 10px rgba(212,175,55,0.6));
+.cert-head__meta {
+  margin-top: 8px;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.7rem; letter-spacing: 0.06em;
+  color: rgba(212,175,55,0.5);
 }
-#result-divider {
-  border: none; border-top: 1px solid rgba(212,175,55,0.25);
-  margin: 14px 0;
+
+.cert-cupmap { display: block; width: min(240px, 68%); margin: 16px auto 4px; }
+
+.cert-keywords {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  justify-content: center; margin-bottom: 20px;
 }
-#result-meaning {
-  font-family: 'Noto Serif KR', 'IM Fell English', serif;
-  font-size: clamp(0.88rem, 2vw, 1.05rem);
-  color: var(--parchment);
-  line-height: 1.8;
-  margin-bottom: 14px;
-  white-space: pre-line;
-  opacity: 0;
-  animation: none;
+
+.cert-zone { padding: 16px 0; border-top: 1px solid rgba(212,175,55,0.14); }
+.cert-zone__head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.cert-zone__roman {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; color: var(--gold); font-weight: 700;
 }
-#result-advice {
-  font-family: 'Noto Sans KR', 'EB Garamond', serif;
-  font-size: clamp(0.8rem, 1.8vw, 0.92rem);
-  color: rgba(212,175,55,0.8);
-  line-height: 1.7;
-  border-left: 2px solid var(--gold-dim);
-  padding-left: 14px;
-  white-space: pre-line;
-  opacity: 0;
+.cert-zone__name {
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.92rem; color: rgba(240,224,180,0.92); font-weight: 700;
 }
-#result-keywords {
-  margin-top: 14px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.cert-zone__period {
+  margin-left: auto;
+  font-family: 'IM Fell English', serif;
+  font-size: 0.7rem; letter-spacing: 0.06em;
+  color: rgba(212,175,55,0.55);
 }
+.cert-zone__badge {
+  display: flex; align-items: center; gap: 10px;
+  margin: 10px 0 12px; padding: 10px 12px;
+  border-radius: 4px;
+  border-left: 3px solid var(--sym-color, var(--gold-dim));
+  background: linear-gradient(90deg, rgba(212,175,55,0.08), transparent 70%);
+}
+.cert-zone__icon { font-size: 1.5rem; }
+.cert-zone__icon--vivid { filter: drop-shadow(0 0 8px rgba(212,175,55,0.7)); }
+.cert-zone__icon--clear { opacity: 0.85; }
+.cert-zone__icon--faint { opacity: 0.5; filter: blur(0.4px); }
+.cert-zone__sym {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem; font-style: italic; color: var(--gold);
+}
+.cert-zone__tags {
+  margin-left: auto;
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.68rem; color: rgba(212,175,55,0.62); text-align: right;
+}
+
+.cert-lead {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(0.86rem, 2vw, 0.98rem);
+  color: rgba(240,224,180,0.95); line-height: 1.75; margin-bottom: 8px;
+}
+.cert-body {
+  font-family: 'Noto Serif KR', serif;
+  font-size: clamp(0.82rem, 1.9vw, 0.93rem);
+  color: var(--parchment); line-height: 1.85; margin-bottom: 10px;
+}
+.cert-line {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.8rem; line-height: 1.7;
+  color: rgba(232,220,196,0.8); margin-top: 5px;
+  padding-left: 12px; border-left: 1px solid rgba(212,175,55,0.2);
+}
+.cert-line b {
+  color: var(--gold-dim); font-weight: 700;
+  margin-right: 6px; letter-spacing: 0.04em;
+}
+.cert-line--lens {
+  border-left-color: rgba(212,175,55,0.55);
+  color: rgba(240,224,180,0.95);
+}
+
+.cert-block { padding: 16px 0; border-top: 1px solid rgba(212,175,55,0.14); }
+.cert-block__title {
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: 'Noto Serif KR', serif;
+  font-size: 0.92rem; font-weight: 700;
+  color: rgba(240,224,180,0.92); margin-bottom: 10px;
+}
+.cert-block__title span {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; color: var(--gold);
+}
+.cert-block ul, .cert-block ol { list-style: none; display: grid; gap: 9px; }
+.cert-block li {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 0.82rem; line-height: 1.75;
+  color: rgba(232,220,196,0.86);
+  padding-left: 12px; border-left: 1px solid rgba(212,175,55,0.2);
+}
+.cert-block li b { color: var(--gold-dim); margin-right: 6px; }
+.cert-pairs li.is-special {
+  border-left-color: var(--gold);
+  background: rgba(212,175,55,0.07);
+  padding: 8px 12px; border-radius: 0 4px 4px 0;
+}
+.cert-signs li { display: flex; gap: 10px; align-items: flex-start; }
+.cert-sign__glyph {
+  flex: 0 0 auto; min-width: 22px; text-align: center;
+  font-family: 'IM Fell English', serif;
+  font-size: 1.05rem; color: var(--gold);
+}
+.cert-block--warn li { border-left-color: rgba(200,120,90,0.5); }
+.cert-block--act ol { counter-reset: cert-act; }
+.cert-block--act li { counter-increment: cert-act; border-left-color: rgba(212,175,55,0.45); }
+.cert-block--act li::before {
+  content: counter(cert-act) '. ';
+  color: var(--gold); font-weight: 700;
+}
+.cert-block--lex li {
+  font-size: 0.76rem; color: rgba(212,175,55,0.62);
+  font-style: italic; border-left-color: rgba(212,175,55,0.14);
+}
+.cert-block--lex li b { font-style: normal; }
+
+.cert-seal {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 18px; padding-top: 16px;
+  border-top: 1px solid rgba(212,175,55,0.22);
+}
+.cert-seal__wax {
+  flex: 0 0 auto;
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: radial-gradient(circle at 35% 30%, rgba(212,175,55,0.35), rgba(120,30,40,0.55));
+  border: 1px solid rgba(212,175,55,0.55);
+  color: rgba(255,240,200,0.9); font-size: 1.05rem;
+  box-shadow: 0 0 14px rgba(212,175,55,0.22);
+}
+.cert-seal__text {
+  font-family: 'IM Fell English', 'Noto Sans KR', serif;
+  font-size: 0.72rem; line-height: 1.65;
+  color: rgba(212,175,55,0.6);
+}
+
 .result-keyword-chip {
   display: inline-flex;
   align-items: center;
@@ -393,9 +558,6 @@ body::before {
   font-family: 'IM Fell English', serif;
   font-size: 0.76rem;
   letter-spacing: 0.05em;
-}
-#result-meaning.inked, #result-advice.inked {
-  animation: inkReveal 1.8s ease forwards;
 }
 @keyframes inkReveal {
   0%   { opacity: 0; filter: blur(3px); transform: translateY(6px); }
@@ -525,15 +687,31 @@ body::before {
     gap: 40px;
   }
   #left-col { display: flex; flex-direction: column; align-items: center; gap: 24px; }
-  #right-col { flex: 1; max-width: 440px; display: flex; flex-direction: column; gap: 20px; }
+  /* 감정서는 8개 섹션짜리 문서라 예전 메모 폭(440px)으로는 제목·배지·버튼이 모두 접힌다 */
+  #right-col { flex: 1; max-width: 520px; display: flex; flex-direction: column; gap: 20px; }
   #result-panel { width: 100%; }
   #history-section { width: 100%; }
+  #certificate {
+    max-height: min(64vh, 720px);
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+}
+
+@media (min-width: 1200px) {
+  #right-col { max-width: 640px; }
+  #certificate { max-height: min(74vh, 900px); }
 }
 
 @media (max-width: 560px) {
   .result-actions {
     grid-template-columns: 1fr;
   }
+  #notebook { padding: 26px 20px 22px; }
+  .cert-zone__badge { flex-wrap: wrap; }
+  .cert-zone__tags { margin-left: 0; text-align: left; width: 100%; }
+  .cert-zone__period { margin-left: 0; }
+  .cert-cupmap { width: min(220px, 82%); }
 }
 
 /* ─── LOADING INDICATOR ─── */
@@ -721,6 +899,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
         </div>
         <div id="saucer"></div>
         <div id="status-text">귀하의 찻잔을 바라보십시오. 찻잎이 귀하의 운명을 속삭이고 있습니다.</div>
+        <div id="intent-picker">
+          <div id="intent-picker__label">무엇을 여쭈시겠습니까</div>
+          <div id="intent-chips" role="radiogroup" aria-label="질문 영역 선택"></div>
+        </div>
       </div>
 
       <div id="oracle-btn-wrap">
@@ -761,12 +943,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div id="result-panel">
         <div id="notebook">
           <button id="panel-close-btn" type="button" aria-label="결과 닫기">×</button>
-          <div id="result-symbol-icon">🌿</div>
-          <div id="result-symbol-name">형상을 기다리며…</div>
-          <hr id="result-divider">
-          <div id="result-meaning"></div>
-          <div id="result-advice"></div>
-          <div id="result-keywords" aria-label="오늘의 운세 키워드"></div>
+          <div id="certificate" aria-live="polite"></div>
+          <div id="cert-more" aria-hidden="true">아래로 계속 이어집니다 ▾</div>
           <div class="result-actions">
             <button id="share-kakao-btn" class="result-btn result-btn--primary" type="button">💬 카카오톡 공유하기</button>
             <button id="go-home-btn" class="result-btn" type="button">🏠 메인화면 바로가기</button>
@@ -1390,6 +1568,9 @@ document.getElementById('cup-canvas-wrap').addEventListener('click', (e) => {
 //  Oracle Logic
 // ══════════════════════════════════════════════
 let oracleHistory = [];
+let currentCupMap = null;
+// DEFAULT_INTENT는 아래 코덱스 블록에서 선언되므로(TDZ) 최초 렌더 시점에 확정한다.
+let selectedIntent = null;
 
 function getSymbolKeywords(symbolId) {
   const keywordMap = {
@@ -1491,28 +1672,481 @@ function getDetailedInsight(symbolId) {
   };
 }
 
-function formatDetailedMeaning(symbol) {
-  const insight = getDetailedInsight(symbol.id);
-  return [
-    symbol.meaning,
-    '',
-    '해석 포인트',
-    `- 핵심 흐름: ${insight.focus}`,
-    `- 예상 타이밍: ${insight.timing}`,
-    `- 주의 신호: ${insight.caution}`
-  ].join('\n');
+// ══════════════════════════════════════════════
+//  Tasseography Codex — 찻잔 지도 엔진
+//  전통 타세오그래피 문법(3구역 · 손잡이 방위 · 선명도 ·
+//  형상 결합 · 부가 사인)을 결정론 시드로 재현한다.
+// ══════════════════════════════════════════════
+
+// 형상별 확장 메타 — 기존 SYMBOLS는 건드리지 않고 id로 결합한다.
+const SYMBOL_CODEX = {
+  crown: { ko: '왕관', cat: 'POWER',
+    act: '이번 주 안에 귀하의 이름이 걸리는 자리 하나를 맡으십시오. 사양하면 그 자리는 다시 오지 않습니다.',
+    lore: '빅토리아 시대의 독법에서 왕관은 테두리에 가까울수록 「이미 주어진 명예」로, 바닥에 가까울수록 「아직 치르지 않은 대가」로 갈라 읽었습니다.' },
+  anchor: { ko: '닻', cat: 'ROOT',
+    act: '고정 지출이든 일정이든, 흔들리는 것 하나를 오늘 고정하십시오.',
+    lore: '항구 도시의 독자들은 닻을 축복으로, 내륙의 독자들은 발이 묶임으로 달리 새겼습니다. 잔의 어느 쪽에 놓였는지가 그 갈림을 정합니다.' },
+  lion: { ko: '사자', cat: 'POWER',
+    act: '미뤄둔 통보를 이번 주 안에 하십시오. 문장을 미리 써서 읽으면 흔들리지 않습니다.',
+    lore: '사자는 문장(紋章)의 짐승이라 하여, 개인의 용기보다 「권위 있는 후원자」를 뜻한다고 본 독법도 오래 전해집니다.' },
+  clock: { ko: '모래시계', cat: 'TIME',
+    act: '지금 가장 미룬 일에 마감 날짜를 달력에 박으십시오. 날짜 없는 결심은 결심이 아닙니다.',
+    lore: '모래시계 형상은 19세기 문헌에서 흔히 경고로 분류되었습니다. 흉조라서가 아니라, 늦음 그 자체가 유일한 위험이라는 뜻입니다.' },
+  rose: { ko: '장미', cat: 'HEART',
+    act: '고맙거나 미안한 사람 한 명에게 오늘 안에 연락하십시오. 길게 쓸 필요 없습니다.',
+    lore: '장미는 찻잔 상징 가운데 드물게 가시까지 함께 읽는 형상입니다. 꽃만 보고 가시를 빠뜨리는 독법을 옛 독자들은 미숙하다 여겼습니다.' },
+  key: { ko: '황금 열쇠', cat: 'OPEN',
+    act: '이미 알고 있는 답 하나를 실행하십시오. 자료를 더 모으는 것은 이번엔 회피입니다.',
+    lore: '열쇠는 두 개가 겹쳐 나타나면 뜻이 뒤집혀 「남의 문에 손대는 일」로 읽혔습니다. 홀로 놓인 열쇠만이 온전한 길조입니다.' },
+  star: { ko: '유성', cat: 'OPEN',
+    act: '떠오른 생각을 그날 안에 세 줄로 남기십시오. 사흘 지나면 남의 것이 됩니다.',
+    lore: '별은 개수로 읽습니다. 하나면 영감, 여럿이면 흩어짐. 옛 독자들은 반짝임의 수를 먼저 세었습니다.' },
+  ship: { ko: '돛단배', cat: 'MOVE',
+    act: '새 환경을 한 번 답사하십시오. 옮기지 않더라도 보는 것만으로 판단이 서집니다.',
+    lore: '돛단배는 뱃머리가 손잡이를 향하면 돌아옴, 등지면 떠남으로 읽습니다. 방향이 형상보다 중요한 드문 상징입니다.' },
+  butterfly: { ko: '나비', cat: 'MOVE',
+    act: '습관 한 가지만 바꾸십시오. 두 가지 이상 건드리면 이레 안에 원점입니다.',
+    lore: '나비는 잔 안에서 가장 약한 형상이라 하여, 옅게 맺힌 나비는 해석하지 않고 넘기는 것이 오랜 예법이었습니다.' },
+  crescent: { ko: '초승달', cat: 'TIME',
+    act: '이레 동안 밤에 세 줄씩 적으십시오. 반복되는 단어가 곧 답입니다.',
+    lore: '초승달은 차오르는가 기우는가로 갈립니다. 뿔이 손잡이를 향하면 차오르는 달, 곧 시작의 징표입니다.' },
+  tree: { ko: '오크 나무', cat: 'ROOT',
+    act: '3개월 뒤에 값이 나올 일에 하루 30분을 배정하십시오. 오늘은 티가 나지 않습니다.',
+    lore: '나무는 잎이 무성할수록 길하다 하나, 옛 문헌은 오히려 「뿌리가 보이는 나무」를 가장 귀하게 쳤습니다. 드러난 기반이 곧 재산이라는 뜻입니다.' },
+  ring: { ko: '반지', cat: 'HEART',
+    act: '구두로 오간 약속을 문장으로 옮기십시오. 범위와 기한, 두 가지면 충분합니다.',
+    lore: '반지는 끊긴 곳이 있는지 먼저 살핍니다. 완전한 원만이 약속이며, 끊긴 원은 「거의 이루어질 뻔한 일」을 뜻합니다.' },
+  swan: { ko: '백조', cat: 'HEART',
+    act: '거절할 것 하나를 정하십시오. 정중하되 조건은 달지 마십시오.',
+    lore: '백조는 물 위와 물 아래를 함께 뜻하는 상징입니다. 겉의 고요와 속의 분투를 한 형상에 담았다 하여 귀히 여겨졌습니다.' },
+  bridge: { ko: '다리', cat: 'MOVE',
+    act: '끊긴 연락 하나를 귀하가 먼저 여십시오. 용건 없이 안부만으로 충분합니다.',
+    lore: '다리는 잔에서 유일하게 두 지점을 잇는 형상입니다. 그래서 홀로 읽지 않고 반드시 양옆 형상과 함께 읽는 것이 법도입니다.' },
+};
+
+// 질문 영역 — 결제 전에 고르는 5택
+const INTENTS = [
+  { id: 'love',   label: '연애·인연',  glyph: '❦' },
+  { id: 'work',   label: '일·커리어',  glyph: '✧' },
+  { id: 'money',  label: '금전·재물',  glyph: '❖' },
+  { id: 'family', label: '관계·가족',  glyph: '❈' },
+  { id: 'choice', label: '전환·선택',  glyph: '✜' },
+];
+const DEFAULT_INTENT = 'choice';
+
+// 영역 렌즈 — 같은 형상도 무엇을 물었는지에 따라 달리 읽힌다 (14 × 5)
+const INTENT_LENS = {
+  love: {
+    crown: '상대가 귀하를 우러러보는 구도가 만들어지나, 떠받들리는 사랑은 오래가지 못합니다. 눈높이를 낮추십시오.',
+    anchor: '관계를 정박시킬 약속 하나가 필요합니다. 만나는 요일을 고정하는 것부터 시작하십시오.',
+    lion: '먼저 말을 꺼내는 쪽이 이깁니다. 고백이든 정리든 이번에는 귀하 차례입니다.',
+    clock: '이 관계에는 유효기간이 붙어 있습니다. 미루면 상대가 먼저 마음을 접습니다.',
+    rose: '숨겨온 감정이 드러날 잔입니다. 다만 향기만 보내지 말고 이름을 붙여 말하십시오.',
+    key: '닫혀 있던 상대의 문이 열립니다. 그러나 이 열쇠는 한 번만 돌아갑니다.',
+    star: '갑작스러운 끌림이 찾아옵니다. 그 빛이 사람인지 분위기인지 사흘 뒤 다시 보십시오.',
+    ship: '거리가 관계를 시험합니다. 물리적이든 마음이든, 떠나는 쪽이 곧 정해집니다.',
+    butterfly: '무거웠던 관계가 가벼워집니다. 가벼워진 것을 식었다고 오해하지 마십시오.',
+    crescent: '상대가 말하지 않은 것이 있습니다. 캐묻지 마시고 행동을 관찰하십시오.',
+    tree: '빨리 뜨거워지는 인연이 아니라 오래 남는 인연입니다. 조급함이 유일한 적입니다.',
+    ring: '관계를 공식화할 자리가 마련됩니다. 말로만 두면 그 자리는 사라집니다.',
+    swan: '화내지 않고 선을 긋는 법을 익힐 때입니다. 우아한 거절이 오히려 관계를 살립니다.',
+    bridge: '끊겼던 연락이 다시 이어집니다. 먼저 건너가는 사람이 주도권을 갖습니다.',
+  },
+  work: {
+    crown: '직책이나 공적 평가가 올라갑니다. 사람은 늘려주지 않으니 일을 줄이는 협상을 함께 하십시오.',
+    anchor: '이직보다 정착이 유리한 국면입니다. 지금 자리에서 대체 불가한 한 가지를 만드십시오.',
+    lion: '회의에서 침묵하지 마십시오. 귀하가 말하지 않으면 남의 안이 통과됩니다.',
+    clock: '마감이 결과를 결정합니다. 완성도 팔 할로 기한 안에 내는 편이 낫습니다.',
+    rose: '실력보다 관계가 평가를 가릅니다. 도움받은 사람에게 먼저 연락하십시오.',
+    key: '막혀 있던 승인·자료·인맥이 풀립니다. 문 하나만 고르고 나머지는 닫아두십시오.',
+    star: '좋은 발상이 옵니다. 그날 안에 초안으로 남기지 않으면 남이 먼저 냅니다.',
+    ship: '부서 이동, 외부 제안, 새 프로젝트 — 자리가 바뀝니다. 조건을 문서로 받으십시오.',
+    butterfly: '일하는 방식을 바꿀 시점입니다. 도구 하나만 교체해도 체감이 달라집니다.',
+    crescent: '공식 발표 뒤의 진짜 이유를 읽으십시오. 조직의 밑그림은 이미 그려져 있습니다.',
+    tree: '성과가 늦게 나오는 일을 맡게 됩니다. 3개월 뒤에야 평가받으니 기록을 남기십시오.',
+    ring: '계약·재계약·정규화가 논의됩니다. 범위와 책임을 반드시 문장으로 못박으십시오.',
+    swan: '감정적으로 반응하는 쪽이 집니다. 톤을 지키는 것만으로 평판이 올라갑니다.',
+    bridge: '두 팀 사이에 끼입니다. 중재자의 자리는 피곤하나 가장 크게 남습니다.',
+  },
+  money: {
+    crown: '수입의 격이 올라가나 지출의 격도 함께 올라갑니다. 오른 만큼 먼저 떼어 두십시오.',
+    anchor: '굴리기보다 지킬 때입니다. 고정비 한 줄을 줄이면 반년이 편해집니다.',
+    lion: '미뤄둔 금전 요구를 말할 때입니다. 받을 돈이든 올릴 값이든 먼저 말하십시오.',
+    clock: '기한이 붙은 돈이 있습니다. 납부일·만기일·환급일을 오늘 확인하십시오.',
+    rose: '사람 때문에 나가는 돈을 조심하십시오. 정으로 빌려주면 정과 돈을 함께 잃습니다.',
+    key: '새 수입원의 문이 열립니다. 다만 초기 비용이 드는 문은 한 번 더 재보십시오.',
+    star: '뜻밖의 입금이나 환급이 있습니다. 횡재를 실력으로 착각하지 마십시오.',
+    ship: '큰 지출이 예정됩니다. 이사·여행·장비 — 미리 나눠 두면 충격이 줄어듭니다.',
+    butterfly: '작은 소비 습관 하나가 새는 구멍입니다. 한 항목만 끊어 보십시오.',
+    crescent: '알려지지 않은 조건이 계약서에 숨어 있습니다. 작은 글씨를 읽으십시오.',
+    tree: '복리가 작동하기 시작합니다. 지금 넣는 적은 돈이 가장 값진 돈입니다.',
+    ring: '공동 명의나 공동 투자 이야기가 나옵니다. 지분과 출구를 먼저 정하십시오.',
+    swan: '남과 비교해서 쓰는 돈이 가장 비쌉니다. 귀하의 기준표를 다시 쓰십시오.',
+    bridge: '사람을 통해 돈이 들어옵니다. 소개해 준 이의 몫을 명확히 하십시오.',
+  },
+  family: {
+    crown: '집안의 결정권이 귀하에게 넘어옵니다. 권한이 커질수록 설명을 늘리십시오.',
+    anchor: '흔들리던 가족의 리듬이 잡힙니다. 정기적인 식사 한 번이 그 닻입니다.',
+    lion: '오래 참아온 말을 꺼내야 할 때입니다. 화가 아니라 문장으로 준비하십시오.',
+    clock: '미뤄둔 병원·서류·안부가 있습니다. 이번 주를 넘기지 마십시오.',
+    rose: '표현하지 않은 고마움이 오해로 굳었습니다. 짧아도 좋으니 말로 하십시오.',
+    key: '닫혀 있던 가족의 사정이 밝혀집니다. 알게 되더라도 판결하지 마십시오.',
+    star: '뜻밖의 소식이 옵니다. 좋은 쪽이니 축하를 미루지 마십시오.',
+    ship: '누군가 떠나거나 거리가 생깁니다. 독립은 단절이 아님을 서로 확인하십시오.',
+    butterfly: '가족 안에서 귀하의 역할이 바뀝니다. 옛 역할을 붙들면 갈등이 됩니다.',
+    crescent: '말하지 않는 사람이 가장 힘듭니다. 질문 대신 곁에 머무십시오.',
+    tree: '오래된 갈등이 서서히 아뭅니다. 한 번에 풀려 하지 말고 계절을 주십시오.',
+    ring: '결혼·상속·호적 등 형식이 논의됩니다. 감정보다 절차를 먼저 정리하십시오.',
+    swan: '참견과 관심의 경계가 문제입니다. 다정하되 분명하게 선을 그으십시오.',
+    bridge: '귀하가 양쪽을 잇는 사람이 됩니다. 전달할 때 각색하지 마십시오.',
+  },
+  choice: {
+    crown: '책임이 큰 쪽을 고르십시오. 이번에는 편한 길이 더 비쌉니다.',
+    anchor: '지금은 벌리지 말고 붙드십시오. 한 가지를 끝낸 뒤에 다음을 여십시오.',
+    lion: '결정을 미루는 것 자체가 이미 잘못된 결정입니다. 오늘 하나를 확정하십시오.',
+    clock: '선택지가 아니라 기한이 문제입니다. 늦게 고른 최선은 최악이 됩니다.',
+    rose: '머리로 계산한 답과 마음이 다르다면, 이번에는 마음 쪽이 맞습니다.',
+    key: '답은 이미 귀하의 손에 있습니다. 새 정보를 더 찾는 것은 미루기입니다.',
+    star: '직감이 가장 정확한 시기입니다. 첫 삼 초의 판단을 기록해 두십시오.',
+    ship: '떠나는 쪽이 맞습니다. 다만 돌아올 항구는 남겨 두십시오.',
+    butterfly: '크게 바꾸지 말고 하나만 바꾸십시오. 전면 개편은 원점으로 돌아갑니다.',
+    crescent: '아직 결정할 때가 아닙니다. 이레만 관찰하면 답이 스스로 드러납니다.',
+    tree: '3년 뒤에도 유효한 쪽을 고르십시오. 올해만 좋은 선택은 버리십시오.',
+    ring: '되돌리기 어려운 약속이 걸린 선택입니다. 서명 전에 하룻밤 재우십시오.',
+    swan: '모두를 만족시키는 답은 없습니다. 품위 있게 실망시키는 법을 고르십시오.',
+    bridge: '둘 중 하나가 아니라 둘을 잇는 제3안이 있습니다. 그것을 찾으십시오.',
+  },
+};
+
+const INTENT_ACT = {
+  love: '상대의 말이 아니라, 이번 주에 상대가 실제로 한 행동 세 가지를 적어 보십시오. 마음은 거기에 있습니다.',
+  work: '이번 주 성과 중 남이 모르는 것 하나를 기록으로 남겨 공유하십시오. 알려지지 않은 성과는 없던 일입니다.',
+  money: '지난 한 달 지출에서 가장 큰 항목 세 개를 오늘 확인하십시오. 감으로 아는 것과 다릅니다.',
+  family: '가장 오래 미룬 안부 연락 하나를 이번 주에 하십시오. 용건은 만들지 마십시오.',
+  choice: '두 선택지의 3년 뒤 모습을 각각 세 줄로 쓰십시오. 쓰다 보면 답이 이미 나와 있습니다.',
+};
+
+// 3구역 — 잔의 어느 높이에 맺혔는가가 곧 시기다
+const ZONES = [
+  { id: 'rim',  roman: 'Ⅰ', name: '림 — 잔의 테두리', period: '지금 ~ 2주',        gist: '눈앞의 상황',
+    openers: ['테두리에 가장 먼저 맺힌 형상은', '잔을 기울이자 가장자리에서 떠오른 것은', '입술이 닿는 자리에 남은 형상은'] },
+  { id: 'wall', roman: 'Ⅱ', name: '벽 — 잔의 안쪽 면', period: '2주 ~ 3개월',      gist: '전개되는 흐름',
+    openers: ['잔벽을 따라 흘러내린 형상은', '안쪽 면에 길게 걸린 형상은', '찻물이 지나간 자리에 새겨진 것은'] },
+  { id: 'base', roman: 'Ⅲ', name: '바닥 — 잔의 밑',   period: '3개월 이후 · 뿌리', gist: '근원과 결말',
+    openers: ['잔 밑에 가라앉은 형상은', '마지막 한 모금이 남긴 것은', '바닥에 눌러앉은 형상은'] },
+];
+
+// 손잡이 방위 — 손잡이는 곧 귀하 자신이자 집이다
+const BEARINGS = [
+  { id: 'self',   label: '손잡이 곁',    text: '손잡이 곁에 맺혔으니 이 일은 귀하 자신과 집 안에서 비롯됩니다. 바깥을 탓할 수 없는 자리입니다.' },
+  { id: 'near',   label: '손잡이 앞쪽',  text: '손잡이 앞쪽에 놓였으니 생활권 안의 사람 — 직장, 이웃, 오래 아는 이 — 을 통해 들어옵니다.' },
+  { id: 'far',    label: '손잡이 맞은편', text: '손잡이 맞은편이니 바깥에서, 아직 모르는 사람이나 먼 곳에서 옵니다. 예고 없이 옵니다.' },
+  { id: 'behind', label: '손잡이 뒤편',  text: '손잡이 뒤편에 남았으니 이미 지나가는 중입니다. 붙들 것이 아니라 정리할 것입니다.' },
+];
+
+// 선명도 — 얼마나 짙게 맺혔는가가 확정도를 가른다
+const CLARITIES = [
+  { id: 'vivid', label: '짙게 맺힘', weight: 2, note: '형상이 진하니 이미 정해진 흐름에 가깝습니다.',
+    act: '이 잔은 이미 기울어 있습니다. 흐름을 바꾸려 애쓰기보다 올라탈 준비를 하십시오.' },
+  { id: 'clear', label: '또렷함',   weight: 3, note: '형상이 또렷하니 흐름이 절반, 귀하의 선택이 절반입니다.',
+    act: '절반은 흐름이고 절반은 귀하의 선택입니다. 이번 달 안에 한 번은 개입하십시오.' },
+  { id: 'faint', label: '옅게 흩어짐', weight: 1, note: '형상이 옅으니 아직 조짐일 뿐입니다. 지금이라면 바꿀 수 있습니다.',
+    act: '아직 확정된 것이 없으니 크게 움직이지 마십시오. 이레 뒤 다시 잔을 보십시오.' },
+];
+
+// 형상 결합 — 앞 구역의 갈래(A)에서 뒤 구역의 갈래(B)로 흐를 때의 뜻
+const PAIR_MATRIX = {
+  POWER: {
+    POWER: '힘이 힘을 부르니 기세는 좋으나 굽힐 줄 모르는 국면입니다. 이길 싸움과 이겨도 남는 것이 없는 싸움을 나누십시오.',
+    ROOT: '올라간 자리를 지킬 뿌리를 심는 흐름입니다. 명예를 얻은 뒤의 관리가 이번 잔의 진짜 과제입니다.',
+    TIME: '권한은 주어지나 기한이 함께 붙습니다. 받는 순간부터 시계가 돌기 시작합니다.',
+    HEART: '밖에서 세워진 이름이 안의 사람을 소홀하게 만듭니다. 성취를 나눌 자리를 먼저 만드십시오.',
+    OPEN: '지위가 열쇠가 되어 닫힌 문을 엽니다. 지금 부탁하면 통하는 시기입니다.',
+    MOVE: '자리를 얻자마자 자리를 옮기게 됩니다. 이동은 하락이 아니라 확장입니다.',
+  },
+  ROOT: {
+    POWER: '다져둔 기반이 인정으로 바뀝니다. 오래 해온 일이 뒤늦게 값을 받는 잔입니다.',
+    ROOT: '지키는 힘이 겹쳤습니다. 안전하나 정체되니 작은 모험 하나는 남겨두십시오.',
+    TIME: '준비는 끝났는데 시작을 미루고 있습니다. 더 다지는 것은 이제 회피입니다.',
+    HEART: '안정이 생기자 마음이 드러납니다. 여유가 관계를 살리는 국면입니다.',
+    OPEN: '기반이 갖춰진 뒤에야 기회가 옵니다. 순서가 옳으니 서두르지 마십시오.',
+    MOVE: '정박했던 배가 다시 나섭니다. 떠나되 돌아올 항구는 남겨두십시오.',
+  },
+  TIME: {
+    POWER: '마감을 지켜낸 것이 그대로 평판이 됩니다. 이번에는 속도가 곧 실력입니다.',
+    ROOT: '급한 일을 넘긴 뒤 정리의 계절이 옵니다. 숨을 고를 자격이 있습니다.',
+    TIME: '기한이 기한을 물고 옵니다. 전부는 못 하니 하나를 버리십시오.',
+    HEART: '바쁨이 사람을 밀어냈습니다. 연락 하나를 오늘 안에 하십시오.',
+    OPEN: '촉박함이 오히려 해답을 끌어냅니다. 압박 아래에서 답이 나올 잔입니다.',
+    MOVE: '늦었다 여길 때 길이 바뀝니다. 방향 전환이 지연을 만회합니다.',
+  },
+  HEART: {
+    POWER: '사람의 마음이 귀하를 밀어 올립니다. 인덕이 실력보다 크게 작용합니다.',
+    ROOT: '감정이 형태를 갖춥니다. 마음을 약속이나 살림으로 바꿀 시기입니다.',
+    TIME: '마음은 정해졌는데 말을 미루고 있습니다. 침묵이 길어지면 뜻이 달리 전해집니다.',
+    HEART: '감정이 감정을 부르니 깊어지나 흔들리기도 쉽습니다. 하루 재우고 말하십시오.',
+    OPEN: '솔직함이 문을 엽니다. 계산해서 꺼낸 말은 이번에는 통하지 않습니다.',
+    MOVE: '마음이 먼저 떠났습니다. 몸이 따라가기 전에 남길 말을 남기십시오.',
+  },
+  OPEN: {
+    POWER: '잡은 기회가 지위로 굳습니다. 붙잡되 혼자 삼키지 마십시오.',
+    ROOT: '열린 문 안쪽을 살림으로 만들어야 합니다. 기회는 관리하지 않으면 소문으로 끝납니다.',
+    TIME: '기회에 유효기간이 붙어 있습니다. 재는 동안 문이 닫힙니다.',
+    HEART: '새로 열린 길에서 사람을 얻습니다. 이번 인연은 일에서 옵니다.',
+    OPEN: '문이 여럿 열려 오히려 고르게 됩니다. 둘을 닫고 하나만 여십시오.',
+    MOVE: '기회가 이동을 요구합니다. 자리를 옮기지 않으면 잡히지 않는 기회입니다.',
+  },
+  MOVE: {
+    POWER: '옮긴 자리에서 인정받습니다. 떠난 것이 옳았다는 증거가 나옵니다.',
+    ROOT: '떠돌던 흐름이 내려앉습니다. 이제 짐을 풀어도 좋습니다.',
+    TIME: '이동에 일정이 걸립니다. 날짜를 먼저 박아야 비로소 움직여집니다.',
+    HEART: '변화 속에서 곁에 남는 사람이 가려집니다. 남는 쪽을 기억해 두십시오.',
+    OPEN: '움직이자 길이 나타납니다. 계획보다 발이 먼저인 잔입니다.',
+    MOVE: '변화가 변화를 부르니 어지럽습니다. 축 하나는 반드시 고정하십시오.',
+  },
+};
+
+// 특별 배열 — 두 형상이 만났을 때 따로 전해지는 옛 독법
+const SPECIAL_PAIRS = {
+  'key|ring': '열쇠 곁에 반지가 놓였으니, 열린 문이 곧 약속으로 굳는 잔입니다. 성사될 계약이 있습니다.',
+  'crown|lion': '왕관과 사자가 한 잔에 들었습니다. 권위가 겹쳐 강력하나, 위임하지 않으면 혼자 무너집니다.',
+  'ring|rose': '장미와 반지가 나란하니 감정이 형식을 얻는 잔입니다. 관계가 한 단계 올라섭니다.',
+  'anchor|ship': '배와 닻이 함께 나타났습니다. 떠남과 머묾이 다투니, 기한을 정한 떠남이 답입니다.',
+  'clock|key': '모래시계 곁의 열쇠는 지금이 아니면 열리지 않는 문입니다. 이 잔에서 가장 급한 신호입니다.',
+  'butterfly|star': '유성과 나비가 겹쳤습니다. 영감은 밝으나 가벼우니, 오늘 안에 형태로 남기지 않으면 사라집니다.',
+  'crown|tree': '나무 위에 왕관이 얹혔습니다. 오래 쌓은 것이 이름을 얻는, 이 잔에서 가장 든든한 배열입니다.',
+  'crescent|rose': '초승달 아래 장미가 피었으니 아직 말해지지 않은 마음이 있습니다. 상대의 침묵을 거절로 읽지 마십시오.',
+  'bridge|lion': '다리 위의 사자입니다. 중재의 자리에서 결단을 요구받으니, 양쪽을 다 만족시키려다 신뢰를 잃습니다.',
+  'clock|swan': '백조와 모래시계가 만났습니다. 품위를 지키되 미루지는 마십시오. 우아한 지연도 지연입니다.',
+  'anchor|tree': '닻과 나무가 겹쳤습니다. 이 잔은 움직이지 말라 이릅니다. 올해는 지키는 해입니다.',
+  'key|ship': '열쇠와 배가 함께 놓였으니 기회가 다른 곳에 있습니다. 지금 자리에서는 열리지 않는 문입니다.',
+};
+
+// 부가 사인 — 형상 밖에 남은 작은 자국들
+const SURNAME_BY_LETTER = {
+  K: '김·강·권', L: '이·임·류', P: '박·표', C: '최·차·조', J: '정·장·전',
+  S: '서·신·손', H: '한·홍·황', Y: '윤·유·양', M: '문·민', O: '오·옥',
+  W: '우·원', B: '배·백·변', N: '남·노', G: '고·구·길',
+};
+
+const MINOR_SIGNS = [
+  { id: 'dots', build: (rng) => {
+      const n = 2 + Math.floor(rng() * 5);
+      return { glyph: '∴', label: `점 ${n}개`,
+        text: n <= 3
+          ? `점이 ${n}개 흩어졌습니다. 점은 예로부터 돈과 문서, 그리고 소식을 뜻합니다. 작지만 확실한 입금이나 회신이 하나 있겠습니다.`
+          : `점이 ${n}개 흩어졌습니다. 여러 갈래의 돈과 소식이 겹쳐 들어오니, 들어오는 순서를 적어두셔야 놓치지 않습니다.` };
+    } },
+  { id: 'stem', build: (rng) => {
+      const far = rng() < 0.5;
+      return { glyph: '∫', label: far ? '긴 줄기' : '짧은 줄기',
+        text: far
+          ? '줄기가 길게 뻗었습니다. 줄기는 사람을 뜻하며, 길수록 먼 곳의 인물입니다. 오래 연락이 끊겼던 이나 아직 모르는 사람이 이 일에 끼어듭니다.'
+          : '줄기가 짧게 맺혔습니다. 줄기는 사람을 뜻하며, 짧으면 이미 곁에 있는 사람입니다. 답은 멀리서 찾을 것이 아닙니다.' };
+    } },
+  { id: 'line', build: (rng) => {
+      const straight = rng() < 0.5;
+      return { glyph: straight ? '│' : '∿', label: straight ? '곧은 선' : '굽은 선',
+        text: straight
+          ? '선이 곧게 그어졌습니다. 여정이 순조로우니, 돌아가는 길을 굳이 찾지 마십시오.'
+          : '선이 굽어 있습니다. 한 번 우회하게 되나 결국 닿습니다. 늦어지는 것을 실패로 세지 마십시오.' };
+    } },
+  { id: 'cross', build: () => ({ glyph: '✚', label: '십자',
+      text: '십자가 하나 걸렸습니다. 옛 독법에서 십자는 흉조가 아니라 통과의례입니다. 한 번은 막히고, 막힌 뒤에 길이 넓어집니다.' }) },
+  { id: 'triangle', build: (rng) => {
+      const up = rng() < 0.62;
+      return { glyph: up ? '△' : '▽', label: up ? '선 삼각' : '누운 삼각',
+        text: up
+          ? '삼각의 꼭짓점이 위를 향합니다. 뜻밖의 행운이 들어오는 자리이니, 예정에 없던 제안을 가볍게 넘기지 마십시오.'
+          : '삼각의 꼭짓점이 아래를 향합니다. 새는 곳이 하나 있습니다. 손실은 크지 않으나 오래갑니다.' };
+    } },
+  { id: 'square', build: () => ({ glyph: '□', label: '사각',
+      text: '네모가 또렷합니다. 사각은 보호이자 제약입니다. 안전한 울타리 안에 있으나, 그 울타리가 곧 답답함의 이유입니다.' }) },
+  { id: 'numeral', build: (rng) => {
+      const n = 1 + Math.floor(rng() * 9);
+      return { glyph: String(n), label: `숫자 ${n}`,
+        text: `잔 안쪽에 숫자 ${n}이 드러났습니다. 옛 독법은 이를 기한으로 읽습니다. ${n}일 뒤 혹은 ${n}주 안에 한 매듭이 지어질 것입니다.` };
+    } },
+  { id: 'letter', build: (rng) => {
+      const keys = Object.keys(SURNAME_BY_LETTER);
+      const ch = keys[Math.floor(rng() * keys.length)];
+      return { glyph: ch, label: `이니셜 ${ch}`,
+        text: `글자 ${ch}가 희미하게 남았습니다. 잔에 새겨진 글자는 사람의 첫 자를 뜻합니다. ${SURNAME_BY_LETTER[ch]} — 이 가운데 한 사람이 이번 일에 관여합니다.` };
+    } },
+];
+
+// ── 결정론 시드 ─────────────────────────────
+function hashSeedString(str) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h >>> 0;
 }
 
-function formatDetailedAdvice(symbol) {
-  const insight = getDetailedInsight(symbol.id);
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function getDrinkerKey() {
+  try {
+    const u = JSON.parse(localStorage.getItem('fortune_auth_user') || '{}');
+    const id = u && (u.id || u._id || u.userId || u.email);
+    if (id) return 'u:' + String(id);
+  } catch (_e) {}
+  try {
+    let anon = localStorage.getItem('royal_tea_guest_key');
+    if (!anon) {
+      anon = 'g:' + Math.random().toString(36).slice(2, 12);
+      localStorage.setItem('royal_tea_guest_key', anon);
+    }
+    return anon;
+  } catch (_e) {}
+  return 'g:anonymous';
+}
+
+function getKstDateKey() {
+  const now = new Date();
+  const kst = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (9 * 3600000));
+  const mm = String(kst.getMonth() + 1).padStart(2, '0');
+  const dd = String(kst.getDate()).padStart(2, '0');
+  return `${kst.getFullYear()}-${mm}-${dd}`;
+}
+
+// ── 유틸 ────────────────────────────────────
+function hasFinalConsonant(word) {
+  const code = word.charCodeAt(word.length - 1);
+  if (code < 0xAC00 || code > 0xD7A3) return false;
+  return (code - 0xAC00) % 28 !== 0;
+}
+function withJosa(word, withJong, withoutJong) {
+  return word + (hasFinalConsonant(word) ? withJong : withoutJong);
+}
+function pickFrom(rng, list) {
+  return list[Math.floor(rng() * list.length)];
+}
+function pickWeighted(rng, list) {
+  let total = 0;
+  for (const item of list) total += item.weight;
+  let roll = rng() * total;
+  for (const item of list) {
+    roll -= item.weight;
+    if (roll <= 0) return item;
+  }
+  return list[list.length - 1];
+}
+
+// 질문 영역에 따라 형상이 잔에 나타날 확률이 달라진다
+const INTENT_FAVOURED = {
+  love: ['rose', 'ring', 'swan', 'crescent'],
+  work: ['crown', 'lion', 'clock', 'key'],
+  money: ['key', 'tree', 'anchor', 'star'],
+  family: ['bridge', 'tree', 'ring', 'rose'],
+  choice: ['ship', 'butterfly', 'clock', 'key'],
+};
+
+function drawSymbols(rng, intent) {
+  const favoured = INTENT_FAVOURED[intent] || [];
+  const pool = SYMBOLS.map((s) => ({ symbol: s, weight: favoured.indexOf(s.id) >= 0 ? 2.2 : 1 }));
+  const drawn = [];
+  for (let i = 0; i < 3; i++) {
+    const chosen = pickWeighted(rng, pool);
+    drawn.push(chosen.symbol);
+    const at = pool.indexOf(chosen);
+    if (at >= 0) pool.splice(at, 1);
+  }
+  return drawn;
+}
+
+function buildCupMap(intent) {
+  const intentId = INTENTS.some((i) => i.id === intent) ? intent : DEFAULT_INTENT;
+  const drinker = getDrinkerKey();
+  const dateKey = getKstDateKey();
+  const seedKey = `${drinker}|${intentId}|${dateKey}`;
+  const seed = hashSeedString(seedKey);
+  const rng = mulberry32(seed);
+
+  const symbols = drawSymbols(rng, intentId);
+  const readings = ZONES.map((zone, i) => {
+    const symbol = symbols[i];
+    const codex = SYMBOL_CODEX[symbol.id];
+    const hour = Math.floor(rng() * 12);           // 손잡이를 12시로 둔 시계 방위
+    const bearing = BEARINGS[Math.floor(hour / 3)];
+    const clarity = pickWeighted(rng, CLARITIES);
+    return {
+      zone, symbol, codex, hour, bearing, clarity,
+      opener: pickFrom(rng, zone.openers),
+      lens: (INTENT_LENS[intentId] || {})[symbol.id] || '',
+      insight: getDetailedInsight(symbol.id),
+    };
+  });
+
+  const signCount = 2 + Math.floor(rng() * 2);
+  const signPool = MINOR_SIGNS.slice();
+  const signs = [];
+  for (let i = 0; i < signCount && signPool.length; i++) {
+    const at = Math.floor(rng() * signPool.length);
+    signs.push(signPool.splice(at, 1)[0].build(rng));
+  }
+
+  const nameTemplate = Math.floor(rng() * 3);
+  const koNames = readings.map((r) => r.codex.ko);
+  let cupName;
+  if (nameTemplate === 0) cupName = `${koNames[0]} 아래 ${withJosa(koNames[1], '이', '가')} 놓인 잔`;
+  else if (nameTemplate === 1) cupName = `${withJosa(koNames[1], '을', '를')} 지나 ${koNames[2]}에 이르는 잔`;
+  else cupName = `${koNames[0]}·${koNames[1]}·${withJosa(koNames[2], '이', '가')} 한 줄로 선 잔`;
+
+  return {
+    intent: intentId,
+    intentLabel: (INTENTS.find((i) => i.id === intentId) || {}).label || '',
+    seedKey, dateKey,
+    serial: 'RTO-' + seed.toString(36).toUpperCase().padStart(7, '0'),
+    symbols, readings, signs, cupName,
+    rim: readings[0], wall: readings[1], base: readings[2],
+  };
+}
+
+// ── 문장 조립 ───────────────────────────────
+function composeZoneReading(reading) {
+  const { symbol, codex, opener, clarity, bearing } = reading;
+  return {
+    lead: `${opener} ${symbol.icon} ${codex.ko}, ${symbol.name}입니다. ${clarity.note}`,
+    body: symbol.meaning,
+    bearing: bearing.text,
+    lens: reading.lens,
+    // 시기는 구역 라벨(zone.period)이 이미 말하므로, 본문에는 시기와 무관한 핵심 흐름만 얹는다.
+    focus: reading.insight.focus,
+  };
+}
+
+function composePairing(from, to) {
+  const key = [from.symbol.id, to.symbol.id].sort().join('|');
+  if (SPECIAL_PAIRS[key]) return { special: true, text: SPECIAL_PAIRS[key] };
+  const matrix = PAIR_MATRIX[from.codex.cat] || {};
+  return { special: false, text: matrix[to.codex.cat] || '두 형상이 서로를 흐리게 하니, 무리해 잇지 마시고 따로 읽으십시오.' };
+}
+
+function composePrescription(cupMap) {
   return [
-    `"${symbol.advice}"`,
-    '',
-    '실천 가이드',
-    `1) 오늘의 우선순위 1개를 정하고 20분만 바로 착수하세요.`,
-    `2) 다음 7일 동안 ${getSymbolKeywords(symbol.id)[0]} 관련 기록을 남겨 흐름을 검증하세요.`,
-    `3) ${insight.caution}`
-  ].join('\n');
+    cupMap.wall.codex.act,
+    INTENT_ACT[cupMap.intent] || INTENT_ACT.choice,
+    cupMap.rim.clarity.act,
+  ];
+}
+
+function composeWarning(cupMap) {
+  const lines = [cupMap.base.insight.caution, cupMap.wall.symbol.advice];
+  const crossed = cupMap.signs.find((s) => s.label === '십자' || s.label === '누운 삼각');
+  if (crossed) lines.push('잔에 남은 자국이 한 번의 막힘을 예고합니다. 예정보다 한 주쯤 여유를 잡아 두십시오.');
+  return lines;
 }
 
 function setRoyalTeaPaymentPending(show, message) {
@@ -1607,7 +2241,9 @@ async function startReading() {
     return;
   }
 
-  morphTarget = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+  currentCupMap = buildCupMap(selectedIntent);
+  // 캔버스는 잔벽(Ⅱ)의 형상 하나로 모프한다 — 나머지 두 형상은 감정서와 잔 지도가 맡는다.
+  morphTarget = currentCupMap.wall.symbol;
 
   // Close result panel if open
   document.getElementById('result-panel').classList.remove('open');
@@ -1626,43 +2262,140 @@ async function startReading() {
   phase = 'swirl';
 }
 
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// 잔 지도 — 3구역 동심원 위에 형상의 방위를 그대로 찍는다
+function buildCupMapSvg(cupMap) {
+  // 반경은 구역 링 안쪽으로 잡는다 — 아이콘(r17)과 구역 라벨(+25)이 viewBox를 넘지 않아야 한다.
+  const CXY = 130, RADII = { rim: 96, wall: 66, base: 28 };
+  const dot = (reading) => {
+    const rad = (reading.hour * 30 - 90) * Math.PI / 180;
+    const r = RADII[reading.zone.id];
+    const x = CXY + Math.cos(rad) * r;
+    const y = CXY + Math.sin(rad) * r;
+    const op = reading.clarity.id === 'vivid' ? 1 : reading.clarity.id === 'clear' ? 0.78 : 0.45;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="17" fill="${escapeHtml(reading.symbol.color)}" opacity="0.16"/>`
+      + `<text x="${x.toFixed(1)}" y="${(y + 8).toFixed(1)}" text-anchor="middle" font-size="22" opacity="${op}">${reading.symbol.icon}</text>`
+      + `<text x="${x.toFixed(1)}" y="${(y + 25).toFixed(1)}" text-anchor="middle" font-size="9" fill="rgba(212,175,55,0.75)" letter-spacing="0.5">${escapeHtml(reading.zone.roman)}</text>`;
+  };
+
+  return `<svg class="cert-cupmap" viewBox="0 0 260 260" role="img" aria-label="찻잔 지도 — 세 구역에 맺힌 형상의 위치">
+    <circle cx="130" cy="130" r="118" fill="none" stroke="rgba(212,175,55,0.28)" stroke-width="1"/>
+    <circle cx="130" cy="130" r="86" fill="none" stroke="rgba(212,175,55,0.18)" stroke-width="1" stroke-dasharray="3 4"/>
+    <circle cx="130" cy="130" r="46" fill="none" stroke="rgba(212,175,55,0.18)" stroke-width="1" stroke-dasharray="3 4"/>
+    <path d="M112 14 A 22 22 0 0 1 148 14" fill="none" stroke="rgba(212,175,55,0.55)" stroke-width="2" stroke-linecap="round"/>
+    <text x="130" y="8" text-anchor="middle" font-size="9" fill="rgba(212,175,55,0.72)" letter-spacing="1">HANDLE · 귀하</text>
+    ${cupMap.readings.map(dot).join('')}
+  </svg>`;
+}
+
+function buildCertificateHtml(cupMap) {
+  const zones = cupMap.readings.map((reading) => {
+    const c = composeZoneReading(reading);
+    return `<section class="cert-zone">
+      <header class="cert-zone__head">
+        <span class="cert-zone__roman">${escapeHtml(reading.zone.roman)}</span>
+        <span class="cert-zone__name">${escapeHtml(reading.zone.name)}</span>
+        <span class="cert-zone__period">${escapeHtml(reading.zone.period)}</span>
+      </header>
+      <div class="cert-zone__badge" style="--sym-color:${escapeHtml(reading.symbol.color)}">
+        <span class="cert-zone__icon cert-zone__icon--${escapeHtml(reading.clarity.id)}">${reading.symbol.icon}</span>
+        <span class="cert-zone__sym">${escapeHtml(reading.codex.ko)} · ${escapeHtml(reading.symbol.name)}</span>
+        <span class="cert-zone__tags">${escapeHtml(reading.clarity.label)} · ${escapeHtml(reading.bearing.label)}</span>
+      </div>
+      <p class="cert-lead">${escapeHtml(c.lead)}</p>
+      <p class="cert-body">${escapeHtml(c.body)}</p>
+      <p class="cert-line"><b>방위</b> ${escapeHtml(c.bearing)}</p>
+      <p class="cert-line cert-line--lens"><b>${escapeHtml(cupMap.intentLabel)}</b> ${escapeHtml(c.lens)}</p>
+      <p class="cert-line"><b>핵심</b> ${escapeHtml(c.focus)}</p>
+    </section>`;
+  }).join('');
+
+  const pairs = [
+    { title: '테두리에서 잔벽으로', pair: composePairing(cupMap.rim, cupMap.wall) },
+    { title: '잔벽에서 바닥으로', pair: composePairing(cupMap.wall, cupMap.base) },
+  ].map((p) => `<li class="${p.pair.special ? 'is-special' : ''}"><b>${escapeHtml(p.title)}</b> ${escapeHtml(p.pair.text)}</li>`).join('');
+
+  const signs = cupMap.signs.map((s) => `<li><span class="cert-sign__glyph">${escapeHtml(s.glyph)}</span>
+    <span class="cert-sign__body"><b>${escapeHtml(s.label)}</b> ${escapeHtml(s.text)}</span></li>`).join('');
+
+  const warnings = composeWarning(cupMap).map((w) => `<li>${escapeHtml(w)}</li>`).join('');
+  const acts = composePrescription(cupMap).map((a) => `<li>${escapeHtml(a)}</li>`).join('');
+  const lexicon = cupMap.readings.map((r) => `<li><b>${escapeHtml(r.codex.ko)} — ${escapeHtml(r.symbol.name)}</b> ${escapeHtml(r.codex.lore)}</li>`).join('');
+  const keywords = cupMap.readings
+    .map((r) => getSymbolKeywords(r.symbol.id)[0])
+    .map((kw) => `<span class="result-keyword-chip"># ${escapeHtml(kw)}</span>`).join('');
+
+  return `<div class="cert">
+    <header class="cert-head">
+      <div class="cert-head__crest">⚜</div>
+      <div class="cert-head__kicker">The Royal Porcelain Cup · 찻잎 감정서</div>
+      <h2 class="cert-head__title">${escapeHtml(cupMap.cupName)}</h2>
+      <div class="cert-head__meta">${escapeHtml(cupMap.serial)} &nbsp;·&nbsp; ${escapeHtml(cupMap.dateKey)} &nbsp;·&nbsp; 여쭌 바: ${escapeHtml(cupMap.intentLabel)}</div>
+    </header>
+    ${buildCupMapSvg(cupMap)}
+    <div class="cert-keywords">${keywords}</div>
+    ${zones}
+    <section class="cert-block">
+      <h3 class="cert-block__title"><span>Ⅳ</span> 형상의 만남</h3>
+      <ul class="cert-pairs">${pairs}</ul>
+    </section>
+    <section class="cert-block">
+      <h3 class="cert-block__title"><span>Ⅴ</span> 잔에 남은 부가 사인</h3>
+      <ul class="cert-signs">${signs}</ul>
+    </section>
+    <section class="cert-block cert-block--warn">
+      <h3 class="cert-block__title"><span>Ⅵ</span> 노신사의 경고</h3>
+      <ul>${warnings}</ul>
+    </section>
+    <section class="cert-block cert-block--act">
+      <h3 class="cert-block__title"><span>Ⅶ</span> 오늘의 처방</h3>
+      <ol>${acts}</ol>
+    </section>
+    <section class="cert-block cert-block--lex">
+      <h3 class="cert-block__title"><span>Ⅷ</span> 찻잎 어휘록</h3>
+      <ul>${lexicon}</ul>
+    </section>
+    <footer class="cert-seal">
+      <span class="cert-seal__wax">✦</span>
+      <span class="cert-seal__text">이 잔은 ${escapeHtml(cupMap.dateKey)}의 ${escapeHtml(cupMap.intentLabel)} 물음에 대하여 봉인되었습니다.<br>같은 날 같은 물음에는 같은 잔이 나옵니다.</span>
+    </footer>
+  </div>`;
+}
+
+function syncCertMoreHint() {
+  const certEl = document.getElementById('certificate');
+  const hintEl = document.getElementById('cert-more');
+  if (!certEl || !hintEl) return;
+  const remaining = certEl.scrollHeight - certEl.clientHeight - certEl.scrollTop;
+  hintEl.classList.toggle('is-visible', remaining > 24);
+}
+
 function showResult(symbol) {
   document.getElementById('loading-ring').classList.remove('active');
   document.getElementById('oracle-btn').disabled = false;
 
-  setStatus(`찻잎이 귀하에게 "${symbol.name}"의 형상을 보여주고 있습니다.`);
+  const cupMap = currentCupMap;
+  if (!cupMap) return;
 
-  // Populate notebook
-  document.getElementById('result-symbol-icon').textContent = symbol.icon;
-  document.getElementById('result-symbol-name').textContent = symbol.name;
+  setStatus(`찻잎이 귀하에게 「${cupMap.cupName}」을 보여주고 있습니다.`);
 
-  const meaningEl = document.getElementById('result-meaning');
-  const adviceEl = document.getElementById('result-advice');
-  const keywordsEl = document.getElementById('result-keywords');
-  meaningEl.textContent = formatDetailedMeaning(symbol);
-  adviceEl.textContent = formatDetailedAdvice(symbol);
-  keywordsEl.innerHTML = '';
-  getSymbolKeywords(symbol.id).forEach((kw) => {
-    const chip = document.createElement('span');
-    chip.className = 'result-keyword-chip';
-    chip.textContent = `# ${kw}`;
-    keywordsEl.appendChild(chip);
-  });
+  const certEl = document.getElementById('certificate');
+  certEl.innerHTML = buildCertificateHtml(cupMap);
+  certEl.scrollTop = 0;
+  certEl.classList.remove('inked');
+  syncCertMoreHint();
 
-  meaningEl.classList.remove('inked');
-  adviceEl.classList.remove('inked');
-
-  // Trigger animation after a frame
   requestAnimationFrame(() => {
     document.getElementById('result-panel').classList.add('open');
-    setTimeout(() => {
-      meaningEl.classList.add('inked');
-      setTimeout(() => adviceEl.classList.add('inked'), 800);
-    }, 500);
+    setTimeout(() => certEl.classList.add('inked'), 400);
   });
 
-  // History
-  oracleHistory.unshift(symbol);
+  oracleHistory.unshift({ cupName: cupMap.cupName, icons: cupMap.readings.map((r) => r.symbol.icon).join(''), intentLabel: cupMap.intentLabel });
   if (oracleHistory.length > 8) oracleHistory.pop();
   renderHistory();
 }
@@ -1679,10 +2412,11 @@ function setStatus(msg) {
 function renderHistory() {
   const list = document.getElementById('history-list');
   list.innerHTML = '';
-  oracleHistory.forEach((sym, i) => {
+  oracleHistory.forEach((entry, i) => {
     const tag = document.createElement('div');
     tag.className = 'history-tag';
-    tag.textContent = `${sym.icon} ${sym.name}`;
+    tag.textContent = `${entry.icons} ${entry.cupName} · ${entry.intentLabel}`;
+    tag.title = `${entry.cupName} — ${entry.intentLabel}`;
     tag.style.animationDelay = `${i * 0.06}s`;
     list.appendChild(tag);
   });
@@ -1717,7 +2451,9 @@ function goMainHome() {
 
 async function shareToKakao() {
   const title = 'The Royal Porcelain Cup — Tasseography Oracle';
-  const text = '오늘의 찻잎 리딩 결과를 공유해보세요.';
+  const text = currentCupMap
+    ? `오늘 나온 잔은 「${currentCupMap.cupName}」 — ${currentCupMap.readings.map((r) => r.symbol.icon).join(' ')} (${currentCupMap.intentLabel})`
+    : '오늘의 찻잎 리딩 결과를 공유해보세요.';
   const url = window.location.href;
 
   try {
@@ -1812,14 +2548,42 @@ updateWatchHands();
 // ══════════════════════════════════════════════
 //  Event Listeners
 // ══════════════════════════════════════════════
+function renderIntentChips() {
+  const wrap = document.getElementById('intent-chips');
+  if (!wrap) return;
+  if (!selectedIntent) selectedIntent = DEFAULT_INTENT;
+  wrap.innerHTML = '';
+  INTENTS.forEach((intent) => {
+    const chip = document.createElement('button');
+    chip.type = 'button';
+    chip.className = 'intent-chip' + (intent.id === selectedIntent ? ' is-active' : '');
+    chip.dataset.intent = intent.id;
+    chip.setAttribute('role', 'radio');
+    chip.setAttribute('aria-checked', intent.id === selectedIntent ? 'true' : 'false');
+    chip.setAttribute('aria-label', `질문 영역: ${intent.label}`);
+    chip.innerHTML = `<span class="intent-chip__glyph" aria-hidden="true">${intent.glyph}</span>${intent.label}`;
+    chip.addEventListener('click', () => {
+      if (phase === 'swirl' || phase === 'morph') return;
+      selectedIntent = intent.id;
+      renderIntentChips();
+      setStatus(`「${intent.label}」에 대하여 여쭙겠습니다. 회중시계를 눌러 잔을 기울이십시오.`);
+    });
+    wrap.appendChild(chip);
+  });
+}
+renderIntentChips();
+
 document.getElementById('oracle-btn').addEventListener('click', startReading);
 document.getElementById('close-btn').addEventListener('click', resetOracle);
 document.getElementById('panel-close-btn').addEventListener('click', closeResultPanel);
 document.getElementById('go-home-btn').addEventListener('click', goMainHome);
 document.getElementById('share-kakao-btn').addEventListener('click', shareToKakao);
 
+document.getElementById('certificate').addEventListener('scroll', syncCertMoreHint, { passive: true });
+
 window.addEventListener('resize', () => {
   resize();
+  syncCertMoreHint();
 });
 document.addEventListener('visibilitychange', handleVisibilityChange, { passive: true });
 
