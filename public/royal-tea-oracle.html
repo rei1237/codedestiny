@@ -2189,7 +2189,7 @@ function syncRoyalTeaBilling(payload) {
 }
 
 async function runRoyalTeaGate() {
-  var COST = 30;
+  var COST = 50;
   var requestId = 'royal-tea:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9);
   if (typeof window._cdCoinGatePerUse === 'function') {
     var granted = false;

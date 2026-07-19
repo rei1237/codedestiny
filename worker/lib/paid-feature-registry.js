@@ -176,7 +176,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "maya-prompt-generator": { cost: 30, reason: "마야점 상담 프롬프트 생성" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "fortune-fish-gacha": { cost: 5, reason: "포춘텔러 피쉬 행운 가챠" },
-  "royal-tea-oracle": { cost: 30, reason: "영국 홍차점 리딩" },
+  "royal-tea-oracle": { cost: 50, reason: "영국 홍차점 리딩" },
   "ifa-oracle": { cost: 30, reason: "IFÀ 오라클 리딩" },
   "neville-meditation": { cost: 30, reason: "네빌 명상 실습" },
   "cosmic-soul-meditation": { cost: 200, reason: "코스믹 소울 명상" },

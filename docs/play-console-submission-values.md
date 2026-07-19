@@ -68,8 +68,8 @@
 
 | 상품 ID | 웹가 | 인상률 | 대상 기능 수 | 구성 | 대표 기능 |
 |---|---|---|---|---|---|
-| `cd_content_tier_01` | 3,000 | +30.0% | 20 | 회당 17 / 해금 3 | tarot-year-fortune, royal-tea-oracle |
-| `cd_content_tier_02` | 5,000 | +20.0% | 50 | 회당 30 / 해금 20 | tarot-love-relationship, physiognomy-* |
+| `cd_content_tier_01` | 3,000 | +30.0% | 19 | 회당 16 / 해금 3 | tarot-year-fortune |
+| `cd_content_tier_02` | 5,000 | +20.0% | 51 | 회당 31 / 해금 20 | tarot-love-relationship, royal-tea-oracle, physiognomy-* |
 | `cd_content_tier_03` | 6,000 | +25.0% | 1 | 회당 1 | animal-totem-deep |
 | `cd_content_tier_04` | 7,000 | +27.1% | 1 | 회당 1 | stonehenge-runes-deep |
 | `cd_content_tier_05` | 9,000 | +21.1% | 2 | 해금 2 | destiny-bias-deep-profile |
