@@ -9,9 +9,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <!-- 앱은 연이 라이트 한 가지만 쓴다. DayNight 이면 시스템 다크모드 기기에서 WebView 가
-         첫 페인트를 다크 변형으로 그려 "다크였다가 연이로 돌아오는" 번쩍임이 생긴다. -->
-    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:background">@null</item>

@@ -51,10 +51,17 @@ public class CodeDestinyNavigationPlugin extends Plugin {
         if (host == null) return null;
         host = host.toLowerCase();
 
+        // 앱 자신의 출처는 웹뷰가 처리해야 한다 — 여기서 가로채면 앱 안의 모든 이동이 죽는다.
+        //
+        // Bridge.launchIntent 는 플러그인 훅을 **앱 호스트 검사보다 먼저** 부르고
+        // (Bridge.java:389-401), BridgeWebViewClient.shouldOverrideUrlLoading 은 모든 최상위
+        // 이동에서 그걸 부른다. 즉 https://localhost/... 도 여기까지 온다.
+        // 이 예외가 없으면 홈 링크 한 번에 앱이 흰 화면이 된다(실제로 그렇게 됐다).
+        if (isAppOriginHost(host)) return null;
+
         boolean isOwnHost = host.equals(OWN_HOST_SUFFIX) || host.endsWith("." + OWN_HOST_SUFFIX);
         if (!isOwnHost) {
-            // 앱 출처(localhost)는 웹뷰가 스스로 처리하므로 여기까지 오지 않는다.
-            // 그 외 진짜 외부 호스트(OAuth 공급자 포함)는 커스텀탭으로 연다 —
+            // 진짜 외부 호스트(OAuth 공급자 포함)는 커스텀탭으로 연다 —
             // 외부 Chrome 으로 던져 앱을 벗어나는 일이 절대 없도록.
             return openCustomTab(url.toString());
         }
@@ -81,6 +88,23 @@ public class CodeDestinyNavigationPlugin extends Plugin {
         final String appUrl = APP_ORIGIN + target;
         getBridge().getWebView().post(() -> getBridge().getWebView().loadUrl(appUrl));
         return true;
+    }
+
+    /**
+     * 앱 번들이 서빙되는 출처인가. capacitor.config 의 androidScheme/hostname 이 바뀌어도
+     * 따라가도록 상수 비교가 아니라 Bridge 가 실제로 로드한 appUrl 과 대조한다.
+     */
+    private boolean isAppOriginHost(String host) {
+        if ("localhost".equals(host)) return true;
+        try {
+            String appUrl = getBridge().getAppUrl();
+            if (appUrl == null || appUrl.isEmpty()) return false;
+            String appHost = Uri.parse(appUrl).getHost();
+            return appHost != null && appHost.toLowerCase().equals(host);
+        } catch (Exception e) {
+            // 판단이 안 되면 가로채지 않는 쪽이 안전하다 — 웹뷰가 처리하게 둔다.
+            return true;
+        }
     }
 
     /**

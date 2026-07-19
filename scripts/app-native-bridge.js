@@ -33,18 +33,25 @@
   // (js/cd-google-translate-lazy.js 의 shouldSkipGoogleTranslate).
   window.__cdGoogleTranslateSuppressed = true;
 
-  // 웹 전용 크롬 숨김.
+  // 웹 전용 크롬 숨김 — 언어 선택기와 구글 번역 위젯만.
   //
-  // 셸은 웹 기준으로 만들어져 연이/네오 테마 토글과 언어 선택기를 상단에 달고 있다.
-  // 앱에서는 둘 다 자리만 차지하고(상태바와 겹쳐 보이기까지 한다) 동작도 애매하다.
-  // 마크업을 건드리면 6개 미러를 전부 손대야 하므로 런타임 스타일 한 장으로 처리한다.
+  // 연이/네오 토글은 숨기지 않는다. 한동안 앱에서 들어냈는데, 셸의 마지막 테마 적용
+  // (js/share.js 의 window.load 핸들러)이 #themeCheckbox 존재 여부로 감싸여 있어서
+  // 토글이 없으면 <html>·<body> 테마 상태가 어긋난 채 남는다("반쪽 오버라이드").
+  // 그게 로딩 중 다크→연이 번쩍임과 흰 화면의 원인이었다.
   try {
     var appChromeStyle = document.createElement("style");
     appChromeStyle.id = "cdAppChromeStyle";
     appChromeStyle.textContent = [
       'html[data-runtime-target="mobile-app"] .lang-toggle-wrap,',
-      'html[data-runtime-target="mobile-app"] .theme-switch-wrapper,',
       'html[data-runtime-target="mobile-app"] #google_translate_element{display:none!important}',
+      // 상태바 아래로 밀어 넣기.
+      //
+      // MainActivity 가 edge-to-edge(setDecorFitsSystemWindows(false))로 그리므로 웹뷰가 상태바
+      // 아래까지 차지한다. 셸의 body 규칙은 left/right/bottom 만 env() 로 잡고 top 이 빠져 있어
+      // 상단 앱바(연이/네오 토글이 있는 줄)가 상태바·노치에 가린다.
+      // 웹은 그대로 두고 앱에서만 top 을 채운다 — 셸 규칙(0,0,1)보다 특이도가 높아 확실히 이긴다.
+      'html[data-runtime-target="mobile-app"] body{padding-top:env(safe-area-inset-top,0px)}',
     ].join("");
     (document.head || document.documentElement).appendChild(appChromeStyle);
   } catch (e) { /* noop */ }
@@ -78,6 +85,32 @@
     } catch (e) {
       return [];
     }
+  }
+
+  // 테마를 뒤집는 범인 추적.
+  //
+  // 셸의 테마는 네 곳에서 각각 정해진다(조기 hoist / pwa-theme-init / index.html 끝의 applyTheme /
+  // 지연 로드되는 share.js 의 window.load 핸들러). 로딩 중 다크→연이로 뒤집히는 증상이 남으면
+  // 어느 쪽이 범인인지 눈으로는 못 가린다. classList 조작을 감싸 호출 스택을 남긴다.
+  function installThemeMutationProbe() {
+    try {
+      var seen = 0;
+      ["add", "remove"].forEach(function (method) {
+        var original = DOMTokenList.prototype[method];
+        DOMTokenList.prototype[method] = function () {
+          var hitsTheme = Array.prototype.indexOf.call(arguments, "neo-mode") !== -1;
+          if (hitsTheme && seen < 12) {
+            seen += 1;
+            var owner = "?";
+            try { owner = (this === document.documentElement.classList) ? "html" : (document.body && this === document.body.classList ? "body" : "other"); } catch (e) { /* noop */ }
+            var where = "";
+            try { where = String(new Error().stack || "").split("\n").slice(1, 4).join(" | "); } catch (e) { /* noop */ }
+            trace("theme:" + method, { on: owner, at: Math.round(performance.now()), stack: where.slice(0, 300) });
+          }
+          return original.apply(this, arguments);
+        };
+      });
+    } catch (e) { /* noop */ }
   }
 
   // 사용자에게 보이는 짧은 안내. 로그인 실패가 조용히 삼켜지지 않게 한다.
@@ -589,6 +622,8 @@
   // --- 부팅 --------------------------------------------------------------
   // 앵커 선점만은 부팅을 기다리지 않는다 — DOMContentLoaded 전에 눌리는 경우가 실제 증상이었다.
   installOAuthAnchorGuard();
+  // 테마 추적도 가장 먼저 걸어야 첫 적용을 놓치지 않는다.
+  installThemeMutationProbe();
 
   function boot() {
     installAppUrlListener();

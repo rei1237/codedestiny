@@ -260,23 +260,20 @@ if (DIST) {
     // 클래식 셸(앱 메인 UI)의 모든 유료 기능이 결제 불가가 된다.
     check("네이티브 브릿지 자산이 배치됨", await exists(path.join(DIST, "js", "app-native-bridge.js")));
     {
-      // 연이/네오 토글은 CSS 로 숨기려다 셸의 ID 특이도 규칙에 져서 그대로 노출된 이력이 있다.
-      // 마크업 자체가 제거됐는지 산출물에서 확인한다.
-      // 마크업만 본다. 셸에는 .theme-switch-wrapper 를 참조하는 CSS 규칙이 28건 남는데,
-      // 대응 요소가 없으므로 무해하다(규칙까지 지우려면 셸 CSS 를 건드려야 해 위험이 더 크다).
-      const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
+      // 연이/네오 토글은 앱에도 반드시 남아 있어야 한다.
+      //
+      // 한동안 앱 빌드에서 이 마크업을 들어냈다. 그런데 셸의 마지막 테마 적용(js/share.js 의
+      // window.load 핸들러)이 `if (themeCb)` 로 감싸여 있어서, #themeCheckbox 가 없으면
+      // <html> 과 <body> 의 테마 상태가 어긋난 채 남는다 — 이 프로젝트가 금지한 "반쪽 오버라이드".
+      // 그 결과 로딩 중 다크→연이로 뒤집혀 보였고, 테마 강제까지 겹치자 홈이 흰 화면이 됐다.
+      // 다시 사라지면 같은 사고가 반복되므로 존재를 강제한다.
+      const shellPath = path.join(DIST, "index.html");
+      const shellHtml = await fs.readFile(shellPath, "utf8").catch(() => "");
       const markupRe = /<[a-z]+[^>]*\sclass="[^"]*theme-switch-wrapper[^"]*"/i;
-      const offenders = [];
-      for (const file of htmlFiles) {
-        const html = await fs.readFile(file, "utf8").catch(() => "");
-        if (markupRe.test(html)) {
-          offenders.push(path.relative(DIST, file).replace(/\\/g, "/"));
-        }
-      }
       check(
-        `연이/네오 토글 마크업 0건 (HTML ${htmlFiles.length}개 스캔)`,
-        offenders.length === 0,
-        offenders.length ? `잔존: ${offenders.slice(0, 5).join(", ")}${offenders.length > 5 ? ` 외 ${offenders.length - 5}개` : ""}` : "",
+        "연이/네오 토글 마크업이 셸에 살아있음 (반쪽 오버라이드 방지)",
+        markupRe.test(shellHtml) && shellHtml.includes('id="themeCheckbox"'),
+        "js/share.js 의 테마 적용이 #themeCheckbox 존재에 의존한다 — 지우면 테마가 반쪽만 적용된다",
       );
     }
     {
