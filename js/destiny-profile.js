@@ -716,8 +716,36 @@
     return _dpReadStoredAuthToken();
   }
 
+  /* 앱(Capacitor) 런타임인가.
+     앱은 https://localhost 출처에서 돌고 API 는 https://code-destiny.com 으로 나간다. */
+  function _dpIsMobileAppRuntime() {
+    try {
+      if (window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return true;
+      if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function') {
+        return !!window.Capacitor.isNativePlatform();
+      }
+      return !!window.Capacitor;
+    } catch (e) {
+      return false;
+    }
+  }
+
   function _dpBuildAuthHeaders(baseHeaders) {
     var headers = Object.assign({}, baseHeaders || {});
+    /* 앱에서는 Authorization 을 직접 붙인다.
+       웹은 index-inline-runtime.js 의 전역 fetch 패치가 "동일 출처 + /api/" 조건에서 토큰을 주입해 준다.
+       앱은 출처(https://localhost)와 API(https://code-destiny.com)가 달라 그 조건이 거짓이고,
+       세션 쿠키도 SameSite=Lax 라 교차 사이트로 전송되지 않는다 — 그래서 여기서 붙이지 않으면
+       모든 프로필 호출이 게스트로 취급된다("로그인했는데 로그인 필요" 증상의 원인).
+       후보 base 는 전부 자사 도메인(상대경로/localhost/code-destiny.com/워커)이라 유출 위험이 없다.
+       웹 동작을 바꾸지 않기 위해 앱 런타임에서만 붙인다. */
+    if (!headers.Authorization && !headers.authorization && _dpIsMobileAppRuntime()) {
+      var token = _dpGetAuthToken();
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+        headers['X-Code-Destiny-Runtime'] = 'mobile-app';
+      }
+    }
     return headers;
   }
 
@@ -978,6 +1006,10 @@
           method: 'POST',
           credentials: 'include',
           cache: 'no-store',
+          /* /refresh 는 워커의 동일 출처 가드를 지난다(worker/routes/auth.js requiresSameOriginAuthGuard).
+             앱은 교차 출처라 X-Code-Destiny-Runtime 헤더가 없으면 403 으로 막혀
+             401 이후 자동 세션 갱신이 통째로 죽는다(isMobileAppAuthRequest 면제 조건). */
+          headers: _dpBuildAuthHeaders(),
         }, opts.timeoutMs)
           .then(function(response) {
             if (!response.ok) {
@@ -987,7 +1019,10 @@
 
             return response.json().catch(function() { return null; }).then(function(payload) {
               if (!payload || payload.ok !== true) return false;
-              try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+              /* 앱은 이 토큰이 유일한 자격증명이다(쿠키가 오지 않는다) — 지우지 않는다. */
+              if (!_dpIsMobileAppRuntime()) {
+                try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+              }
               if (payload && payload.user) _dpPersistSessionUser(payload.user);
               return true;
             });
@@ -1342,7 +1377,12 @@
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
       var ok = !!userId;
       if (ok) {
-        try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+        /* 웹은 세션 확인이 끝나면 쿠키가 정본이므로 localStorage 토큰을 지운다.
+           앱에는 그 쿠키가 없다(SameSite=Lax + 교차 출처) — 여기서 지우면 첫 성공 직후
+           유일한 자격증명이 사라져 다음 호출부터 다시 401 이 된다. 앱에서는 보존한다. */
+        if (!_dpIsMobileAppRuntime()) {
+          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
+        }
         _dpPersistSessionUser(user);
       }
       _dpMarkSessionVerify(ok, userId);
