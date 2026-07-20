@@ -4787,14 +4787,511 @@
   /* ──────────────────────────────────────────
      5. UI — Master Destiny Card (상단 카드)
   ────────────────────────────────────────── */
+  /* ═══════════════════════════════════════════════════════════════
+     CDLevel · 프로필 카드 데일리 레벨 시스템
+     - 로컬(localStorage)이 렌더 소스, 서버 /api/rpg/*는 동기화 레이어다.
+       서버가 404/503이어도 카드의 레벨 스트립은 절대 사라지지 않는다.
+     - 레벨 곡선은 worker/routes/rpg.js의 getExpToNextLevel()과 같은 식을 쓴다.
+     - 진행도는 계정 단위다(프로필 카드별 아님). 카드를 추가·삭제해도 레벨은 유지된다.
+     - 퀘스트는 사주에 의존하지 않는다. 프로필 카드가 없어도 동작한다.
+  ═══════════════════════════════════════════════════════════════ */
+  var CD_LEVEL_KEY = 'cd_level_v1';
+  var CD_LEVEL_LEGACY_PREFIX = 'cd_rpg_local_progress_v20260617';
+  var CD_LEVEL_BASE_EXP = 100;
+  var CD_LEVEL_GROWTH = 25;
+  var CD_LEVEL_DAY_RETENTION = 14;
+  var CD_LEVEL_SYNC_COOLDOWN_MS = 60000;
+  var CD_LEVEL_ADOPT_CAP = 5000;
+  var _cdLevelStore = null;
+  var _cdLevelServer = null;
+  var _cdLevelSyncAt = 0;
+  var _cdLevelSyncPromise = null;
+  var _cdLevelWriteFailed = false;
+  /* 지급 종류별 EXP와 하루 한도. 서버 worker/routes/rpg.js의 화이트리스트와 같은 값을 쓴다.
+     서버가 정본이고 여기 값은 낙관적 표시용이라, 어긋나면 서버 응답이 덮어쓴다. */
+  var CD_LEVEL_AWARD = {
+    checkin: { exp: 20, dailyLimit: 1 },
+    quest:   { exp: 15, dailyLimit: 3 },
+    paid:    { exp: 30, dailyLimit: 3 }
+  };
+  /* 날짜 시드로 매일 3개를 고른다. 사주 무관한 생활 행동이라 프로필이 없어도 성립한다. */
+  var CD_LEVEL_QUEST_POOL = [
+    { id: 'water',    icon: '💧', text: '물 한 잔으로 하루 시작하기' },
+    { id: 'walk',     icon: '🚶', text: '10분 이상 걷거나 스트레칭하기' },
+    { id: 'tidy',     icon: '🧹', text: '책상 위 한 곳만 5분 정리하기' },
+    { id: 'gratitude',icon: '📝', text: '오늘 감사한 일 하나 적어두기' },
+    { id: 'contact',  icon: '💬', text: '가까운 사람에게 먼저 안부 보내기' },
+    { id: 'frog',     icon: '🐸', text: '가장 미루던 일 하나를 먼저 끝내기' },
+    { id: 'breath',   icon: '🫁', text: '숨 고르기 5분 — 천천히 들이쉬고 내쉬기' },
+    { id: 'learn',    icon: '📖', text: '새로 알게 된 것 하나를 기록하기' },
+    { id: 'budget',   icon: '📊', text: '오늘 지출 한 번 훑어보기' },
+    { id: 'green',    icon: '🥗', text: '채소 한 가지를 오늘 식사에 넣기' },
+    { id: 'declutter',icon: '🗑️', text: '안 쓰는 파일이나 물건 하나 비우기' },
+    { id: 'sleep',    icon: '😴', text: '잘 시간 30분 전에 화면 내려놓기' }
+  ];
+
+  function _cdLevelExpToNext(level) {
+    var safe = Math.max(1, Number(level) || 1);
+    return CD_LEVEL_BASE_EXP + (safe - 1) * CD_LEVEL_GROWTH;
+  }
+
+  /* 누적 EXP → 레벨 상태. 서버 calculateLevelState()와 결과가 일치해야 한다. */
+  function _cdLevelState(totalExp) {
+    var remaining = Math.max(0, Number(totalExp) || 0);
+    var level = 1;
+    while (remaining >= _cdLevelExpToNext(level)) {
+      remaining -= _cdLevelExpToNext(level);
+      level += 1;
+      if (level >= 999) break;
+    }
+    return {
+      currentLevel: level,
+      totalExp: Math.max(0, Number(totalExp) || 0),
+      currentLevelExp: remaining,
+      nextLevelExp: _cdLevelExpToNext(level)
+    };
+  }
+
+  /* 해당 레벨에 막 도달하는 최소 누적 EXP. 로컬(레벨당 100 고정) 진행분을
+     서버 곡선으로 옮길 때 레벨이 내려가 보이지 않도록 환산하는 데 쓴다. */
+  function _cdLevelMinExpForLevel(level) {
+    var target = Math.max(1, Number(level) || 1);
+    var sum = 0;
+    for (var i = 1; i < target; i += 1) sum += _cdLevelExpToNext(i);
+    return sum;
+  }
+
+  function _cdLevelKstDate(offsetDays) {
+    var shift = (Number(offsetDays) || 0) * 24 * 60 * 60 * 1000;
+    var d = new Date(Date.now() + 9 * 60 * 60 * 1000 + shift);
+    return d.getUTCFullYear() + '.'
+      + String(d.getUTCMonth() + 1).padStart(2, '0') + '.'
+      + String(d.getUTCDate()).padStart(2, '0');
+  }
+
+  function _cdLevelEmptyStore() {
+    return {
+      v: 1,
+      totalExp: 0,
+      streakDays: 0,
+      longestStreakDays: 0,
+      lastCheckinDate: '',
+      days: {},
+      adopted: false,
+      legacyMerged: false
+    };
+  }
+
+  function _cdLevelNormalizeStore(raw) {
+    var store = _cdLevelEmptyStore();
+    if (!raw || typeof raw !== 'object') return store;
+    store.totalExp = Math.max(0, Number(raw.totalExp) || 0);
+    store.streakDays = Math.max(0, Number(raw.streakDays) || 0);
+    store.longestStreakDays = Math.max(store.streakDays, Number(raw.longestStreakDays) || 0);
+    store.lastCheckinDate = String(raw.lastCheckinDate || '');
+    store.adopted = !!raw.adopted;
+    store.legacyMerged = !!raw.legacyMerged;
+    if (raw.days && typeof raw.days === 'object') {
+      /* 날짜 항목이 무한히 쌓이면 localStorage 쿼터를 밀어내므로 최근분만 남긴다. */
+      var keys = Object.keys(raw.days).sort().slice(-CD_LEVEL_DAY_RETENTION);
+      for (var i = 0; i < keys.length; i += 1) {
+        var day = raw.days[keys[i]];
+        if (!day || typeof day !== 'object') continue;
+        store.days[keys[i]] = {
+          checkin: !!day.checkin,
+          quests: Array.isArray(day.quests) ? day.quests.map(String) : [],
+          paid: Array.isArray(day.paid) ? day.paid.map(String) : []
+        };
+      }
+    }
+    return store;
+  }
+
+  /* 예전 사주 RPG가 프로필별로 남긴 진행분을 계정 단위로 한 번만 흡수한다.
+     여러 프로필에 흩어져 있으면 합산이 아니라 최댓값을 쓴다(과다 지급 방지). */
+  function _cdLevelMergeLegacy(store) {
+    if (store.legacyMerged) return store;
+    store.legacyMerged = true;
+    try {
+      if (!window.localStorage) return store;
+      var bestExp = 0;
+      var bestStreak = 0;
+      for (var i = 0; i < localStorage.length; i += 1) {
+        var key = localStorage.key(i) || '';
+        if (key.indexOf(CD_LEVEL_LEGACY_PREFIX) !== 0) continue;
+        var legacy = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!legacy || typeof legacy !== 'object') continue;
+        bestExp = Math.max(bestExp, Number(legacy.totalExp) || 0);
+        bestStreak = Math.max(bestStreak, Number(legacy.longestStreakDays) || 0);
+      }
+      if (bestExp > 0) {
+        /* 예전 곡선은 레벨당 100 고정이었다. 같은 레벨을 유지하는 최소 EXP로 환산한다. */
+        var legacyLevel = Math.floor(bestExp / 100) + 1;
+        store.totalExp = Math.max(store.totalExp, _cdLevelMinExpForLevel(legacyLevel));
+      }
+      store.longestStreakDays = Math.max(store.longestStreakDays, bestStreak);
+    } catch (e) {}
+    return store;
+  }
+
+  function _cdLevelRead() {
+    if (_cdLevelStore) return _cdLevelStore;
+    var parsed = null;
+    try {
+      parsed = window.localStorage ? JSON.parse(localStorage.getItem(CD_LEVEL_KEY) || 'null') : null;
+    } catch (e) {
+      parsed = null;
+    }
+    var fresh = !parsed;
+    _cdLevelStore = _cdLevelNormalizeStore(parsed);
+    if (fresh) {
+      _cdLevelMergeLegacy(_cdLevelStore);
+      _cdLevelWrite(_cdLevelStore);
+    }
+    return _cdLevelStore;
+  }
+
+  /* 쓰기 실패(사파리 프라이빗 모드·쿼터 초과)를 조용히 삼키지 않는다.
+     호출부가 성공 여부를 보고 사용자에게 알릴 수 있어야 한다. */
+  function _cdLevelWrite(store) {
+    _cdLevelStore = store;
+    try {
+      if (!window.localStorage) return false;
+      localStorage.setItem(CD_LEVEL_KEY, JSON.stringify(store));
+      _cdLevelWriteFailed = false;
+      return true;
+    } catch (e) {
+      _cdLevelWriteFailed = true;
+      return false;
+    }
+  }
+
+  function _cdLevelDay(store, dateKey) {
+    if (!store.days[dateKey]) store.days[dateKey] = { checkin: false, quests: [], paid: [] };
+    return store.days[dateKey];
+  }
+
+  function _cdLevelHash(text) {
+    var h = 0;
+    var str = String(text || '');
+    for (var i = 0; i < str.length; i += 1) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+  }
+
+  /* 사주 RPG 시트는 오행 기반으로 개인화된 퀘스트를 만든다. 그쪽이 열려 있으면 그 목록을
+     카드에도 그대로 쓴다 — 두 화면이 다른 퀘스트를 보여주면 같은 하루치 EXP 예산을 두고
+     서로 어긋나기 때문이다. 날짜가 바뀌면 자동으로 버린다. */
+  var _cdLevelPublished = null;
+  function _cdLevelPublishQuests(list) {
+    if (!Array.isArray(list) || !list.length) return;
+    var normalized = list.slice(0, 3).map(function(quest) {
+      return {
+        id: String(quest.questId || quest.id || ''),
+        icon: String(quest.icon || '✦'),
+        text: String(quest.text || '')
+      };
+    }).filter(function(quest) { return quest.id && quest.text; });
+    if (!normalized.length) return;
+    _cdLevelPublished = { dateKey: _cdLevelKstDate(0), quests: normalized };
+  }
+
+  function _cdLevelTodayQuests() {
+    var dateKey = _cdLevelKstDate(0);
+    if (_cdLevelPublished && _cdLevelPublished.dateKey === dateKey) return _cdLevelPublished.quests;
+    var picked = [];
+    var used = {};
+    var cursor = _cdLevelHash(dateKey);
+    while (picked.length < 3 && picked.length < CD_LEVEL_QUEST_POOL.length) {
+      var idx = cursor % CD_LEVEL_QUEST_POOL.length;
+      if (!used[idx]) {
+        used[idx] = true;
+        picked.push(CD_LEVEL_QUEST_POOL[idx]);
+      }
+      cursor += 7;
+    }
+    return picked;
+  }
+
+  /* 카드 렌더에 필요한 값 전부. 네트워크를 타지 않으므로 항상 즉시 반환된다. */
+  function _cdLevelSnapshot() {
+    var store = _cdLevelRead();
+    var dateKey = _cdLevelKstDate(0);
+    var day = store.days[dateKey] || { checkin: false, quests: [], paid: [] };
+    var state = _cdLevelState(store.totalExp);
+    return {
+      currentLevel: state.currentLevel,
+      totalExp: state.totalExp,
+      currentLevelExp: state.currentLevelExp,
+      nextLevelExp: state.nextLevelExp,
+      streakDays: store.streakDays,
+      longestStreakDays: store.longestStreakDays,
+      checkedInToday: !!day.checkin,
+      completedQuestIds: (day.quests || []).slice(),
+      quests: _cdLevelTodayQuests(),
+      synced: !!_cdLevelServer,
+      loggedIn: _dpIsLoggedInScope(),
+      writeFailed: _cdLevelWriteFailed
+    };
+  }
+
+  /* 로컬에 먼저 반영하고(=낙관적) 서버에는 뒤따라 알린다.
+     서버가 실패해도 사용자 진행은 로컬에 남고, 다음 sync에서 서버값이 정본이 된다. */
+  function _cdLevelAward(kind, key) {
+    var rule = CD_LEVEL_AWARD[kind];
+    if (!rule) return { changed: false };
+    var store = _cdLevelRead();
+    var dateKey = _cdLevelKstDate(0);
+    var day = _cdLevelDay(store, dateKey);
+    var beforeLevel = _cdLevelState(store.totalExp).currentLevel;
+    var safeKey = String(key || '');
+    var changed = false;
+
+    if (kind === 'checkin') {
+      if (!day.checkin) {
+        day.checkin = true;
+        var yesterday = _cdLevelKstDate(-1);
+        store.streakDays = store.lastCheckinDate === yesterday ? store.streakDays + 1 : 1;
+        store.longestStreakDays = Math.max(store.longestStreakDays, store.streakDays);
+        store.lastCheckinDate = dateKey;
+        store.totalExp += rule.exp;
+        changed = true;
+      }
+    } else {
+      var bucket = kind === 'paid' ? day.paid : day.quests;
+      if (bucket.indexOf(safeKey) < 0 && bucket.length < rule.dailyLimit) {
+        bucket.push(safeKey);
+        store.totalExp += rule.exp;
+        changed = true;
+      }
+    }
+
+    if (!changed) return { changed: false };
+
+    var written = _cdLevelWrite(store);
+    var afterLevel = _cdLevelState(store.totalExp).currentLevel;
+    _cdLevelPostAward(kind, safeKey || dateKey);
+    return {
+      changed: true,
+      written: written,
+      leveledUp: afterLevel > beforeLevel,
+      level: afterLevel,
+      gainedExp: rule.exp
+    };
+  }
+
+  function _cdLevelPostAward(kind, key) {
+    if (!_dpIsLoggedInScope()) return Promise.resolve(null);
+    return _dpFetchJsonWithFallback('/api/rpg/award', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind: kind, key: key })
+    }, { timeoutMs: 8000 }).then(function(res) {
+      if (res && res.ok && res.data && res.data.progress) _cdLevelApplyServer(res.data.progress);
+      return res;
+    }).catch(function() { return null; });
+  }
+
+  /* 서버가 정본이다. 다만 로컬이 앞서 있으면(오프라인 중 적립) 큰 쪽을 남긴다. */
+  function _cdLevelApplyServer(progress) {
+    if (!progress || typeof progress !== 'object') return;
+    _cdLevelServer = progress;
+    var store = _cdLevelRead();
+    store.totalExp = Math.max(store.totalExp, Math.max(0, Number(progress.totalExp) || 0));
+    store.streakDays = Math.max(store.streakDays, Math.max(0, Number(progress.streakDays) || 0));
+    store.longestStreakDays = Math.max(store.longestStreakDays, Math.max(0, Number(progress.longestStreakDays) || 0));
+    _cdLevelWrite(store);
+  }
+
+  /* 로그인 계정에 로컬 진행분을 한 번만 넘긴다. 서버가 rewardLog로 1회성을 보장하므로
+     여기 플래그는 불필요한 왕복을 줄이는 용도일 뿐이다. */
+  function _cdLevelAdopt() {
+    var store = _cdLevelRead();
+    if (store.adopted || !_dpIsLoggedInScope() || store.totalExp <= 0) return Promise.resolve(null);
+    return _dpFetchJsonWithFallback('/api/rpg/adopt', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        localTotalExp: Math.min(store.totalExp, CD_LEVEL_ADOPT_CAP),
+        localStreakDays: store.streakDays,
+        localLongestStreakDays: store.longestStreakDays
+      })
+    }, { timeoutMs: 8000 }).then(function(res) {
+      if (res && res.ok) {
+        store.adopted = true;
+        _cdLevelWrite(store);
+        if (res.data && res.data.progress) _cdLevelApplyServer(res.data.progress);
+      }
+      return res;
+    }).catch(function() { return null; });
+  }
+
+  /* renderMasterCard()는 프로필 저장·전환·삭제마다 다시 불린다.
+     여기서 매번 네트워크를 타면 요청이 폭주하므로 60초 쿨다운과 in-flight 병합으로 묶는다. */
+  function _cdLevelSync(options) {
+    var opts = options || {};
+    if (!_dpIsLoggedInScope()) return Promise.resolve(null);
+    if (_cdLevelSyncPromise) return _cdLevelSyncPromise;
+    if (!opts.force && Date.now() - _cdLevelSyncAt < CD_LEVEL_SYNC_COOLDOWN_MS) return Promise.resolve(null);
+    _cdLevelSyncAt = Date.now();
+    _cdLevelSyncPromise = _cdLevelAdopt().then(function() {
+      return _dpFetchJsonWithFallback('/api/rpg/status', { method: 'GET' }, { timeoutMs: 8000 });
+    }).then(function(res) {
+      if (res && res.ok && res.data) _cdLevelApplyServer(res.data.progress || res.data);
+      return res;
+    }).catch(function() {
+      return null;
+    }).then(function(res) {
+      _cdLevelSyncPromise = null;
+      return res;
+    });
+    return _cdLevelSyncPromise;
+  }
+
+  window.CDLevel = {
+    snapshot: _cdLevelSnapshot,
+    levelState: _cdLevelState,
+    expToNext: _cdLevelExpToNext,
+    minExpForLevel: _cdLevelMinExpForLevel,
+    kstDate: _cdLevelKstDate,
+    award: _cdLevelAward,
+    sync: _cdLevelSync,
+    publishQuests: _cdLevelPublishQuests
+  };
+
+  /* ── 프로필 카드 레벨 스트립 UI ── */
+  var DP_LEVEL_MARKER = 'profile-card-level-v20260721';
+  var _dpLevelQuestsOpen = false;
+  var _dpLevelBootDone = false;
+
+  function _dpEnsureLevelStyles() {
+    if (document.getElementById('dpLevelStyles')) return;
+    var style = document.createElement('style');
+    style.id = 'dpLevelStyles';
+    style.textContent = ''
+      + '.dp-lvl{margin-top:14px;padding:12px 13px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,215,0,.22);}'
+      + '.dp-lvl__top{display:flex;align-items:center;justify-content:space-between;gap:8px;}'
+      + '.dp-lvl__badge{display:inline-flex;align-items:center;gap:5px;font-size:.78rem;font-weight:900;color:#FFD700;letter-spacing:.02em;}'
+      + '.dp-lvl__streak{font-size:.7rem;font-weight:800;color:rgba(255,235,180,.86);}'
+      + '.dp-lvl__bar{position:relative;height:8px;margin-top:9px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;}'
+      /* 레이아웃을 다시 잡지 않도록 width가 아니라 scaleX로 채운다. */
+      + '.dp-lvl__fill{display:block;width:100%;height:100%;border-radius:999px;background:linear-gradient(90deg,#FFD700,#ffb347);transform-origin:left center;transition:transform .45s ease;}'
+      + '.dp-lvl__meta{margin-top:6px;font-size:.68rem;font-weight:700;color:rgba(226,232,240,.76);}'
+      + '.dp-lvl__toggle{width:100%;min-height:44px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.06);color:#f8fafc;font-size:.76rem;font-weight:800;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvl__toggle b{color:#FFD700;}'
+      + '.dp-lvl__chev{transition:transform .25s ease;}'
+      + '.dp-lvl__toggle[aria-expanded="true"] .dp-lvl__chev{transform:rotate(180deg);}'
+      + '.dp-lvl__quests{display:grid;gap:7px;margin-top:9px;}'
+      + '.dp-lvl__quest{width:100%;min-height:44px;display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid rgba(255,255,255,.13);border-radius:10px;background:rgba(255,255,255,.05);color:#e8edf7;font-size:.76rem;font-weight:700;line-height:1.35;text-align:left;cursor:pointer;touch-action:manipulation;}'
+      + '.dp-lvl__quest[aria-pressed="true"]{border-color:rgba(255,215,0,.44);background:rgba(255,215,0,.12);color:#ffe9a8;text-decoration:line-through;text-decoration-color:rgba(255,215,0,.5);cursor:default;}'
+      + '.dp-lvl__quest-exp{margin-left:auto;flex-shrink:0;font-size:.66rem;font-weight:900;color:#FFD700;}'
+      + '.dp-lvl__note{margin-top:9px;font-size:.66rem;line-height:1.5;color:rgba(203,213,225,.72);}'
+      + '.dp-lvl__note--warn{color:#fca5a5;}'
+      + '@media (prefers-reduced-motion: reduce){.dp-lvl__fill,.dp-lvl__chev{transition:none;}}';
+    document.head.appendChild(style);
+  }
+
+  function _dpBuildLevelStrip() {
+    var snap = _cdLevelSnapshot();
+    var pct = snap.nextLevelExp > 0
+      ? Math.min(100, Math.round((snap.currentLevelExp / snap.nextLevelExp) * 100))
+      : 0;
+    var doneCount = snap.completedQuestIds.length;
+    var note = '';
+    if (snap.writeFailed) {
+      note = '<div class="dp-lvl__note dp-lvl__note--warn">이 브라우저에 진행을 저장하지 못했습니다. 시크릿 모드라면 일반 창에서 열어주세요.</div>';
+    } else if (!snap.loggedIn) {
+      note = '<div class="dp-lvl__note">로그인하면 기기가 바뀌어도 이어집니다.</div>';
+    }
+
+    var questsHtml = snap.quests.map(function(quest) {
+      var done = snap.completedQuestIds.indexOf(quest.id) >= 0;
+      return '<button type="button" class="dp-lvl__quest" data-dp-quest="' + _esc(quest.id) + '"'
+        + ' aria-pressed="' + (done ? 'true' : 'false') + '"' + (done ? ' disabled' : '') + '>'
+        + '<span aria-hidden="true">' + quest.icon + '</span>'
+        + '<span>' + _esc(quest.text) + '</span>'
+        + '<span class="dp-lvl__quest-exp">+' + CD_LEVEL_AWARD.quest.exp + '</span>'
+        + '</button>';
+    }).join('');
+
+    return '<div class="dp-lvl" data-cd-level-marker="' + DP_LEVEL_MARKER + '">'
+      + '<div class="dp-lvl__top">'
+        + '<span class="dp-lvl__badge">✦ Lv.' + snap.currentLevel + '</span>'
+        + (snap.streakDays > 0 ? '<span class="dp-lvl__streak">🔥 ' + snap.streakDays + '일 연속</span>' : '')
+      + '</div>'
+      + '<div class="dp-lvl__bar" role="progressbar" aria-label="경험치"'
+        + ' aria-valuemin="0" aria-valuemax="' + snap.nextLevelExp + '" aria-valuenow="' + snap.currentLevelExp + '">'
+        + '<span class="dp-lvl__fill" style="transform:scaleX(' + (pct / 100) + ')"></span>'
+      + '</div>'
+      + '<div class="dp-lvl__meta">' + snap.currentLevelExp + ' / ' + snap.nextLevelExp + ' EXP</div>'
+      + '<button type="button" class="dp-lvl__toggle" aria-expanded="' + (_dpLevelQuestsOpen ? 'true' : 'false') + '"'
+        + ' aria-controls="dpLvlQuests" aria-label="오늘의 퀘스트 ' + (_dpLevelQuestsOpen ? '접기' : '펼치기') + '">'
+        + '<span>오늘의 퀘스트 <b>' + doneCount + '/' + snap.quests.length + '</b></span>'
+        + '<span class="dp-lvl__chev" aria-hidden="true">▾</span>'
+      + '</button>'
+      + '<div class="dp-lvl__quests" id="dpLvlQuests"' + (_dpLevelQuestsOpen ? '' : ' hidden') + '>' + questsHtml + '</div>'
+      + note
+    + '</div>';
+  }
+
+  /* 카드 전체를 다시 그리면 열려 있던 메뉴·포커스가 날아가므로 레벨 블록만 바꿔 끼운다. */
+  function _dpRefreshLevelStrip() {
+    var root = document.querySelector('#dpMasterCard .dp-lvl');
+    if (!root) return;
+    var holder = document.createElement('div');
+    holder.innerHTML = _dpBuildLevelStrip();
+    var next = holder.firstElementChild;
+    if (next && root.parentNode) root.parentNode.replaceChild(next, root);
+  }
+
+  function _dpBindLevelEvents(el) {
+    if (!el || el.__dpLevelBound) return;
+    el.__dpLevelBound = true;
+    el.addEventListener('click', function(event) {
+      var toggle = event.target && event.target.closest ? event.target.closest('.dp-lvl__toggle') : null;
+      if (toggle) {
+        _dpLevelQuestsOpen = !_dpLevelQuestsOpen;
+        _dpRefreshLevelStrip();
+        return;
+      }
+      var questBtn = event.target && event.target.closest ? event.target.closest('[data-dp-quest]') : null;
+      if (!questBtn || questBtn.disabled) return;
+      var result = _cdLevelAward('quest', questBtn.getAttribute('data-dp-quest') || '');
+      if (result.changed) _dpRefreshLevelStrip();
+    });
+  }
+
+  /* 하루 첫 방문에 출석 EXP를 주고 서버와 한 번 맞춘다. 세션당 1회만 돈다. */
+  function _dpBootLevelDaily() {
+    if (_dpLevelBootDone) return;
+    _dpLevelBootDone = true;
+    _cdLevelAward('checkin', _cdLevelKstDate(0));
+    _cdLevelSync().then(function(res) {
+      if (res) _dpRefreshLevelStrip();
+    });
+    window.addEventListener('cd:auth-changed', function() {
+      _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
+    });
+    /* 유료 기능이 해금·열람되면 보너스 EXP. 결제 경로는 건드리지 않고 이벤트만 듣는다. */
+    window.addEventListener('cd:unlocks-changed', function(event) {
+      var key = (event && event.detail && event.detail.featureKey) ? String(event.detail.featureKey) : 'paid-view';
+      if (_cdLevelAward('paid', key).changed) _dpRefreshLevelStrip();
+    });
+  }
+
   function renderMasterCard(profile) {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
     _dpEnsureProfileActionMenuStyles();
+    _dpEnsureLevelStyles();
+    _dpBootLevelDaily();
 
     if (!profile) {
-      el.innerHTML = _emptyCard();
+      /* 카드가 없어도 레벨은 계정에 쌓인다. 첫 방문자도 여기서 성장 훅을 만난다. */
+      el.innerHTML = _emptyCard() + _dpBuildLevelStrip();
       el.className = 'dp-master-card dp-master-card--empty';
+      _dpBindLevelEvents(el);
       return;
     }
 
@@ -4886,9 +5383,11 @@
             + '<span class="dp-mc-info-val">' + safeLng.toFixed(1) + '°</span>'
           + '</div>'
         + '</div>'
+        + _dpBuildLevelStrip()
         + '<button class="dp-mc-load-btn" style="touch-action:manipulation">✦ 이 프로필로 운세 보기</button>'
       + '</div>';
     _dpBindMasterCardMenuEvents(el);
+    _dpBindLevelEvents(el);
   }
 
   function _emptyCard() {

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { Solar } from "lunar-javascript";
 
-import { connectDb, mongoose } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   ProfileCard,
   User,
@@ -69,6 +69,21 @@ const INTERNAL_LEVEL_REWARDS = [
   },
 ];
 const STREAK_SECRET_MILESTONES = [3, 7, 14, 30];
+
+/* 진행도는 계정 단위로 쌓는다. 프로필 카드를 추가·삭제·전환해도 레벨이 흔들리지 않아야 하기 때문이다.
+   {userId, profileId} 유니크 인덱스를 그대로 쓰려고 실제 카드 id 대신 이 고정값을 스코프로 넣는다
+   (스키마·인덱스 변경도, 마이그레이션도 필요 없다). */
+const ACCOUNT_PROFILE_SCOPE = "__account__";
+
+/* 메인 화면 프로필 카드가 쓰는 EXP 지급 화이트리스트.
+   클라이언트가 종류와 키만 보내고 EXP 액수·한도는 여기서만 정한다. 위조되더라도 EXP는
+   코인·월정석·이용권 어디에도 환산되지 않으므로 금전 손실로 이어지지 않는다. */
+const AWARD_RULES = {
+  checkin: { exp: 20, dailyLimit: 1, questType: "daily_checkin" },
+  quest: { exp: 15, dailyLimit: 3, questType: "daily_habit_quest" },
+  paid: { exp: 30, dailyLimit: 3, questType: "paid_feature_view" },
+};
+const AWARD_LOCAL_ADOPT_CAP = 5000;
 
 const ELEMENT_LABELS = {
   wood: "목",
@@ -437,6 +452,24 @@ function buildSajuContext(profile) {
   }
 }
 
+/* 프로필 카드가 없거나 생년월일이 불완전해도 레벨 시스템은 돌아가야 한다.
+   사주를 못 세우면 중립(토) 기준으로 퀘스트를 만들고, 404/422로 막지 않는다. */
+function buildNeutralContext() {
+  return {
+    saju: null,
+    neutral: true,
+    dayMasterElement: "earth",
+    weakElements: [],
+    strongElements: ["earth"],
+    yongElements: ["earth"],
+    heeElements: [],
+    giElements: [],
+    tenGodsDominant: [],
+    todayDayPillar: getTodayDayPillar(),
+    profileSignature: "neutral",
+  };
+}
+
 function chooseQuestText(element, tier, seed, usedTexts) {
   const safeElement = ELEMENT_LIBRARY[element] ? element : "earth";
   const pool = ELEMENT_LIBRARY[safeElement][tier] || ELEMENT_LIBRARY.earth[tier];
@@ -755,17 +788,12 @@ async function resolveRpgProfile(auth, requestedProfileId) {
 
   if (resolvedProfileId) {
     profile = await ProfileCard.findOne({ userId: auth.userId, profileId: resolvedProfileId }).lean();
-    if (!profile && hasRequestedProfileId) {
-      return { error: json({ ok: false, message: "프로필이 없습니다." }, { status: 404 }) };
-    }
   }
 
   if (!profile) {
     profile = await ProfileCard.findOne({ userId: auth.userId }).sort({ createdAt: 1 }).lean();
-    if (!profile) {
-      return { error: json({ ok: false, message: "프로필이 없습니다." }, { status: 404 }) };
-    }
-    resolvedProfileId = normalizeProfileId(profile.profileId || profile.id || "");
+    /* 카드가 하나도 없어도 404로 막지 않는다. 퀘스트만 중립 기준으로 만들고 레벨은 그대로 쌓인다. */
+    resolvedProfileId = profile ? normalizeProfileId(profile.profileId || profile.id || "") : "";
   }
 
   return {
@@ -835,10 +863,7 @@ async function getDailyRpgStatus(request, env) {
   if (resolved.error) return resolved.error;
 
   const dateKey = kstDateKey();
-  const context = buildSajuContext(resolved.profile);
-  if (!context) {
-    return json({ ok: false, message: "사주 프로필 계산에 필요한 정보가 부족합니다." }, { status: 422 });
-  }
+  const context = (resolved.profile ? buildSajuContext(resolved.profile) : null) || buildNeutralContext();
 
   const questSet = buildQuestSet({
     profile: resolved.profile,
@@ -848,10 +873,10 @@ async function getDailyRpgStatus(request, env) {
     context,
   });
 
-  const progress = await loadRpgProgress(auth.userId, resolved.profileId);
+  const progress = await loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE);
   const logs = await UserDailyQuestLog.find({
     userId: auth.userId,
-    profileId: resolved.profileId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
     questDateKst: dateKey,
   }).sort({ createdAt: 1 }).lean();
 
@@ -873,6 +898,8 @@ async function getDailyRpgStatus(request, env) {
       completed: completedQuestSet.has(quest.questId),
     })),
     generationMeta: questSet.generationMeta,
+    neutral: Boolean(context.neutral),
+    progress: buildProgressResponse(progress),
     ...buildProgressResponse(progress),
     message: "오늘의 운명 퀘스트가 열렸습니다.",
   });
@@ -894,10 +921,9 @@ async function completeDailyQuest(request, env) {
   if (resolved.error) return resolved.error;
 
   const dateKey = kstDateKey();
-  const context = buildSajuContext(resolved.profile);
-  if (!context) {
-    return json({ ok: false, message: "사주 프로필 계산에 필요한 정보가 부족합니다." }, { status: 422 });
-  }
+  const context = (resolved.profile ? buildSajuContext(resolved.profile) : null) || buildNeutralContext();
+  /* 퀘스트 id는 카드별 서명으로 만들고, 진행도는 계정 스코프에 쌓는다. */
+  const progressScope = ACCOUNT_PROFILE_SCOPE;
 
   const questSet = buildQuestSet({
     profile: resolved.profile,
@@ -923,11 +949,11 @@ async function completeDailyQuest(request, env) {
     let unlockedRewards = [];
 
     await session.withTransaction(async () => {
-      const progress = await UserRpgProgress.findOne({ userId: auth.userId, profileId: resolved.profileId }).session(session);
+      const progress = await UserRpgProgress.findOne({ userId: auth.userId, profileId: progressScope }).session(session);
       const isExistingProgress = Boolean(progress);
       const progressDoc = progress || new UserRpgProgress({
         userId: auth.userId,
-        profileId: resolved.profileId,
+        profileId: progressScope,
         currentLevel: 1,
         totalExp: 0,
         currentLevelExp: 0,
@@ -943,7 +969,7 @@ async function completeDailyQuest(request, env) {
 
       const existingQuestLog = await UserDailyQuestLog.findOne({
         userId: auth.userId,
-        profileId: resolved.profileId,
+        profileId: progressScope,
         questDateKst: dateKey,
         questId: selectedQuest.questId,
       }).session(session);
@@ -954,7 +980,7 @@ async function completeDailyQuest(request, env) {
 
       const logs = await UserDailyQuestLog.find({
         userId: auth.userId,
-        profileId: resolved.profileId,
+        profileId: progressScope,
         questDateKst: dateKey,
       }).session(session);
       const todayEarnedExp = logs.reduce((sum, log) => sum + toSafeNumber(log.expReward), 0);
@@ -1011,11 +1037,11 @@ async function completeDailyQuest(request, env) {
 
       const rewardLogs = rewardPlan.rewardEvents.map((reward) => ({
         userId: auth.userId,
-        profileId: resolved.profileId,
+        profileId: progressScope,
         rewardType: reward.rewardType,
         rewardKey: reward.rewardKey,
         level: reward.level,
-        idempotencyKey: `${dateKey}:${resolved.profileId}:${reward.rewardType}:${reward.rewardKey}`,
+        idempotencyKey: `${dateKey}:${progressScope}:${reward.rewardType}:${reward.rewardKey}`,
         meta: {
           dateKey,
           questId: selectedQuest.questId,
@@ -1030,7 +1056,7 @@ async function completeDailyQuest(request, env) {
 
       await UserDailyQuestLog.create([{
         userId: auth.userId,
-        profileId: resolved.profileId,
+        profileId: progressScope,
         questDateKst: dateKey,
         questId: selectedQuest.questId,
         questType: selectedQuest.questType,
@@ -1039,7 +1065,7 @@ async function completeDailyQuest(request, env) {
         completedAt: now,
         evidenceType: "server_generated_quest",
         status: "completed",
-        idempotencyKey: `${dateKey}:${resolved.profileId}:${selectedQuest.questId}`,
+        idempotencyKey: `${dateKey}:${progressScope}:${selectedQuest.questId}`,
         missionSnapshot: {
           ...selectedQuest,
           dateKey,
@@ -1094,12 +1120,12 @@ async function completeDailyQuest(request, env) {
 
     const refreshedProgress = await UserRpgProgress.findOne({
       userId: auth.userId,
-      profileId: resolved.profileId,
+      profileId: progressScope,
     }).lean();
 
     const refreshedLogs = await UserDailyQuestLog.find({
       userId: auth.userId,
-      profileId: resolved.profileId,
+      profileId: progressScope,
       questDateKst: dateKey,
     }).sort({ createdAt: 1 }).lean();
 
@@ -1148,6 +1174,191 @@ async function completeDailyQuest(request, env) {
   }
 }
 
+/* 메인 화면 프로필 카드의 EXP 적립 창구.
+   출석·습관 퀘스트·유료 열람 보너스가 모두 "종류 + 키로 하루 N회까지 멱등 지급"이라 한 곳에서 받는다.
+   중복 방지는 UserDailyQuestLog의 {userId, profileId, questDateKst, questId} 유니크 인덱스가 최종 보증한다. */
+async function awardRpgExp(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const body = await readJson(request);
+  const kind = toSafeString(body?.kind, 20);
+  const rule = AWARD_RULES[kind];
+  if (!rule) {
+    return json({ ok: false, message: "허용되지 않은 적립 종류입니다." }, { status: 400 });
+  }
+
+  const dateKey = kstDateKey();
+  const awardKey = toSafeString(body?.key, 80) || dateKey;
+  const questId = `${kind}:${awardKey}`;
+  const now = new Date();
+
+  const progress = await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
+  const sameKindLogs = await withMongoRetry(env, () => UserDailyQuestLog.find({
+    userId: auth.userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+    questDateKst: dateKey,
+    questType: rule.questType,
+  }).lean());
+
+  const alreadyGranted = sameKindLogs.some((log) => String(log.questId || "") === questId);
+  if (alreadyGranted || sameKindLogs.length >= rule.dailyLimit) {
+    return json({
+      ok: true,
+      granted: false,
+      reason: alreadyGranted ? "ALREADY_GRANTED" : "DAILY_LIMIT_REACHED",
+      progress: buildProgressResponse(progress),
+    });
+  }
+
+  try {
+    await UserDailyQuestLog.create([{
+      userId: auth.userId,
+      profileId: ACCOUNT_PROFILE_SCOPE,
+      questDateKst: dateKey,
+      questId,
+      questType: rule.questType,
+      expReward: rule.exp,
+      completedAt: now,
+      evidenceType: "client_reported_action",
+      status: "completed",
+      idempotencyKey: `${dateKey}:${ACCOUNT_PROFILE_SCOPE}:${questId}`,
+    }]);
+  } catch (error) {
+    if (String(error?.code || error?.message || "").includes("11000")) {
+      return json({
+        ok: true,
+        granted: false,
+        reason: "ALREADY_GRANTED",
+        progress: buildProgressResponse(progress),
+      });
+    }
+    throw error;
+  }
+
+  /* 스트릭은 출석에서만 움직인다. 하루를 여는 행동이 출석이고,
+     퀘스트까지 스트릭을 건드리면 같은 날 두 번 증가하는 창이 생긴다. */
+  const prevStreakDays = toSafeNumber(progress?.streakDays, 0);
+  let nextStreakDays = prevStreakDays;
+  let lastDateKst = toSafeString(progress?.lastQuestDateKst, 10);
+  if (kind === "checkin" && lastDateKst !== dateKey) {
+    nextStreakDays = lastDateKst === yesterdayKstDateKey() ? Math.max(1, prevStreakDays + 1) : 1;
+    lastDateKst = dateKey;
+  }
+
+  const prevLevel = calculateLevelState(progress?.totalExp).currentLevel;
+  const nextState = calculateLevelState(toSafeNumber(progress?.totalExp) + rule.exp);
+
+  /* totalExp만 $inc로 올린다. 동시 요청이 겹쳐도 합계는 정확하고,
+     레벨 필드는 응답 시 buildProgressResponse가 합계에서 다시 계산하므로 어긋나도 자가 교정된다. */
+  await withMongoRetry(env, () => UserRpgProgress.updateOne(
+    { userId: auth.userId, profileId: ACCOUNT_PROFILE_SCOPE },
+    {
+      $inc: { totalExp: rule.exp },
+      $set: {
+        currentLevel: nextState.currentLevel,
+        currentLevelExp: nextState.currentLevelExp,
+        nextLevelExp: nextState.nextLevelExp,
+        streakDays: nextStreakDays,
+        longestStreakDays: Math.max(toSafeNumber(progress?.longestStreakDays, 0), nextStreakDays),
+        lastQuestDateKst: lastDateKst,
+        lastQuestCompletedAt: now,
+        updatedAt: now,
+      },
+    },
+  ));
+
+  const refreshed = await withMongoRetry(env, () => UserRpgProgress.findOne({
+    userId: auth.userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+  }).lean());
+
+  return json({
+    ok: true,
+    granted: true,
+    kind,
+    gainedExp: rule.exp,
+    leveledUp: nextState.currentLevel > prevLevel,
+    progress: buildProgressResponse(refreshed || progress),
+  });
+}
+
+/* 비로그인 상태에서 이 기기에 쌓인 진행분을 로그인 계정으로 한 번만 옮긴다.
+   1회성은 UserRpgRewardLog의 {userId, profileId, rewardType, rewardKey} 유니크 인덱스가 보증한다.
+   보내온 EXP는 상한을 두고, 서버 값보다 클 때만 반영한다(줄어드는 방향으로는 절대 덮어쓰지 않는다). */
+async function adoptLocalRpgProgress(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const body = await readJson(request);
+  const localTotalExp = Math.min(Math.max(0, toSafeNumber(body?.localTotalExp, 0)), AWARD_LOCAL_ADOPT_CAP);
+  const localStreakDays = Math.max(0, toSafeNumber(body?.localStreakDays, 0));
+  const localLongestStreakDays = Math.max(localStreakDays, toSafeNumber(body?.localLongestStreakDays, 0));
+
+  const progress = await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
+
+  try {
+    await UserRpgRewardLog.create([{
+      userId: auth.userId,
+      profileId: ACCOUNT_PROFILE_SCOPE,
+      rewardType: "local_adopt",
+      rewardKey: "v1",
+      level: 0,
+      idempotencyKey: `${ACCOUNT_PROFILE_SCOPE}:local_adopt:v1`,
+      meta: { localTotalExp, localStreakDays, localLongestStreakDays },
+    }]);
+  } catch (error) {
+    if (String(error?.code || error?.message || "").includes("11000")) {
+      return json({
+        ok: true,
+        adopted: false,
+        reason: "ALREADY_ADOPTED",
+        progress: buildProgressResponse(progress),
+      });
+    }
+    throw error;
+  }
+
+  const nextTotalExp = Math.max(toSafeNumber(progress?.totalExp, 0), localTotalExp);
+  const nextState = calculateLevelState(nextTotalExp);
+  const nextStreakDays = Math.max(toSafeNumber(progress?.streakDays, 0), localStreakDays);
+  const now = new Date();
+
+  await withMongoRetry(env, () => UserRpgProgress.updateOne(
+    { userId: auth.userId, profileId: ACCOUNT_PROFILE_SCOPE },
+    {
+      $set: {
+        currentLevel: nextState.currentLevel,
+        totalExp: nextState.totalExp,
+        currentLevelExp: nextState.currentLevelExp,
+        nextLevelExp: nextState.nextLevelExp,
+        streakDays: nextStreakDays,
+        longestStreakDays: Math.max(
+          toSafeNumber(progress?.longestStreakDays, 0),
+          Math.max(localLongestStreakDays, nextStreakDays),
+        ),
+        updatedAt: now,
+      },
+    },
+  ));
+
+  return json({
+    ok: true,
+    adopted: true,
+    progress: buildProgressResponse({
+      ...progress,
+      totalExp: nextState.totalExp,
+      streakDays: nextStreakDays,
+      longestStreakDays: Math.max(
+        toSafeNumber(progress?.longestStreakDays, 0),
+        Math.max(localLongestStreakDays, nextStreakDays),
+      ),
+    }),
+  });
+}
+
 export async function handleRpgRoutes(request, env) {
   let path = "";
   try {
@@ -1160,6 +1371,14 @@ export async function handleRpgRoutes(request, env) {
 
     if (method === "POST" && (path === "" || path === "/" || path === "/complete" || path === "/daily/complete")) {
       return await completeDailyQuest(request, env);
+    }
+
+    if (method === "POST" && path === "/award") {
+      return await awardRpgExp(request, env);
+    }
+
+    if (method === "POST" && path === "/adopt") {
+      return await adoptLocalRpgProgress(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();

@@ -113,6 +113,7 @@
     "verify:mobile-cdp-smoke": "node scripts/verify-mobile-cdp-smoke.mjs",
     "verify:mobile-final-audit": "node scripts/verify-mobile-final-audit.mjs",
     "verify:rpg-phase9": "node scripts/verify-rpg-phase9.mjs",
+    "verify:profile-card-level": "node scripts/verify-profile-card-level.mjs",
     "verify:insights-famous-coverage": "node scripts/verify-insight-famous-coverage.mjs",
     "backfill:insights-pexels": "node scripts/backfill-insight-pexels-images.mjs",
     "saju:images": "node scripts/fetch-saju-images.mjs",

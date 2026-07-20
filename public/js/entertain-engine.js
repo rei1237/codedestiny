@@ -706,7 +706,6 @@
     { level: 20, key: 'master_skill_phrase_level_20', label: _entertainText("ee_520_prop_label"), desc: '마스터 스킬을 더 강하게 만드는 문구가 해금됩니다.' }
   ];
   var RPG_LOCAL_STORAGE_MARKER = 'rpg-local-progress-v20260617';
-  var RPG_LOCAL_STORAGE_PREFIX = 'cd_rpg_local_progress_v20260617';
 
   function ensureRpgUiStyles() {
     if (document.getElementById(RPG_STYLE_ID)) return;
@@ -792,7 +791,8 @@
       '.ent-rpg-quest-after strong{color:#ffe08a}',
       '.ent-rpg-quest-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}',
       '.ent-rpg-exp-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;background:linear-gradient(135deg,rgba(91,57,12,.9),rgba(34,20,7,.85));border:1px solid rgba(247,214,120,.2);color:#ffe7aa;font-size:.7rem;font-weight:900}',
-      '.ent-rpg-complete-btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;min-width:92px;background:linear-gradient(135deg,#ffe08a 0%,#ff9ecb 100%);color:#32142a;font-size:.8rem;font-weight:950;letter-spacing:0;box-shadow:0 10px 20px rgba(0,0,0,.18);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease}',
+      /* 완료 버튼은 손가락으로 누르는 주 조작부다. 권장 터치 타깃 44px을 밑돌지 않게 한다. */
+      '.ent-rpg-complete-btn{appearance:none;border:0;border-radius:999px;padding:10px 14px;min-height:44px;min-width:92px;background:linear-gradient(135deg,#ffe08a 0%,#ff9ecb 100%);color:#32142a;font-size:.8rem;font-weight:950;letter-spacing:0;box-shadow:0 10px 20px rgba(0,0,0,.18);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,opacity .18s ease}',
       '.ent-rpg-complete-btn:hover{transform:translateY(-1px);box-shadow:0 14px 24px rgba(0,0,0,.22)}',
       '.ent-rpg-complete-btn:disabled{cursor:not-allowed;opacity:.55;box-shadow:none;transform:none}',
       '.ent-rpg-complete-btn.is-done{background:linear-gradient(135deg,#38bdf8 0%,#22c55e 100%);color:#f8fffb}',
@@ -825,7 +825,9 @@
       '@keyframes cdRpgSpark{0%{opacity:0;transform:translateY(6px) scale(.96)}20%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-10px) scale(1.02)}}',
       '@media (min-width: 768px){.ent-rpg-card--hero{grid-column:span 5}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 3}.ent-rpg-quest-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ent-rpg-route-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}',
       '@media (min-width: 1100px){.ent-rpg-card--hero{grid-column:span 4}.ent-rpg-card--elements{grid-column:span 4}.ent-rpg-card--abilities{grid-column:span 4}}',
-      '@media (max-width: 767px){.ent-rpg-shell{gap:12px}.ent-rpg-card{padding:14px 13px}.ent-rpg-quest-footer{flex-direction:column;align-items:stretch}.ent-rpg-complete-btn{width:100%}.ent-rpg-modal{padding:12px}}'
+      '@media (max-width: 767px){.ent-rpg-shell{gap:12px}.ent-rpg-card{padding:14px 13px}.ent-rpg-quest-footer{flex-direction:column;align-items:stretch}.ent-rpg-complete-btn{width:100%}.ent-rpg-modal{padding:12px}}',
+      /* 모션 민감 사용자에게는 완료 팝·EXP 스파크·버튼 리프트를 재생하지 않는다. */
+      '@media (prefers-reduced-motion: reduce){.ent-rpg-complete-btn,.ent-rpg-complete-btn:hover{transition:none;transform:none}.cd-rpg-spark{animation:none;opacity:1}.ent-rpg-quest-item,.ent-rpg-quest-item.is-just-done{animation:none}}'
     ].join('');
     document.head.appendChild(style);
   }
@@ -1025,7 +1027,24 @@
     });
   }
 
+  var RPG_QUEST_TIERS = ['easy', 'normal', 'core'];
+  var RPG_TIER_REASON = {
+    easy: '부족한 기운을 작게 보완하면 하루의 리듬이 안정됩니다.',
+    normal: '마무리된 행동은 흩어진 기운을 한곳으로 모읍니다.',
+    core: '나의 중심 기운을 의식하면 선택의 흔들림이 줄어듭니다.'
+  };
+  var RPG_TIER_AFTER = {
+    easy: '작은 선택이 운의 결을 다시 세웁니다.',
+    normal: '끝낸 일 하나가 다음 레벨의 문을 두드립니다.',
+    core: '중심을 세운 하루는 운의 방향을 잃지 않습니다.'
+  };
+
+  /* 오늘의 퀘스트는 날짜마다 달라져야 한다.
+     예전에는 preview-* 3개가 문구까지 하드코딩돼 있어 KST 자정이 지나도 완료 표시만 풀리고
+     내용은 영영 같았다. 이제 날짜를 시드로 오행별 QUEST_DB에서 매일 새로 뽑는다.
+     questId에 날짜를 넣어 어제 완료가 오늘로 새지 않게 한다. */
   function buildRpgFallbackQuests(meta) {
+    var dateKey = getKstDateString();
     var dayElement = String((meta.todayDayPillar && meta.todayDayPillar.element) || (meta.dayMaster && meta.dayMaster.element) || 'earth');
     if (!RPG_ELEMENT_META[dayElement]) dayElement = 'earth';
     var weakList = toRpgList(meta.fiveElements && meta.fiveElements.lacking).filter(function (element) { return RPG_ELEMENT_META[element]; });
@@ -1034,88 +1053,73 @@
       weakList[1] || dayElement,
       dayElement
     ];
-    return [
-      {
-        questId: 'preview-balance',
-        questType: 'preview_rpg_easy',
-        tier: 'easy',
-        element: elements[0],
-        expReward: 10,
-        text: getRpgElementLabel(elements[0]) + ' 기운을 깨우는 작은 행동 하나 정하기',
-        description: _entertainText("ee_859_prop_description"),
-        reason: '부족한 기운을 작게 보완하면 하루의 리듬이 안정됩니다.',
-        afterCompleteMessage: '작은 선택이 운의 결을 다시 세웁니다.'
-      },
-      {
-        questId: 'preview-focus',
-        questType: 'preview_rpg_normal',
-        tier: 'normal',
-        element: elements[1],
-        expReward: 15,
-        text: '오늘 미룬 일 하나를 끝까지 닫기',
-        description: _entertainText("ee_870_prop_description"),
-        reason: '마무리된 행동은 흩어진 기운을 한곳으로 모읍니다.',
-        afterCompleteMessage: '끝낸 일 하나가 다음 레벨의 문을 두드립니다.'
-      },
-      {
-        questId: 'preview-core',
-        questType: 'preview_rpg_core',
-        tier: 'core',
-        element: elements[2],
-        expReward: 20,
-        text: getRpgElementLabel(dayElement) + ' 코어에 맞는 오늘의 기준 세우기',
-        description: _entertainText("ee_881_prop_description"),
-        reason: '나의 중심 기운을 의식하면 선택의 흔들림이 줄어듭니다.',
-        afterCompleteMessage: '중심을 세운 하루는 운의 방향을 잃지 않습니다.'
+    var used = {};
+    var quests = [];
+
+    for (var i = 0; i < RPG_QUEST_TIERS.length; i += 1) {
+      var tier = RPG_QUEST_TIERS[i];
+      var element = RPG_ELEMENT_META[elements[i]] ? elements[i] : 'earth';
+      var pool = QUEST_DB[element] || QUEST_DB.earth;
+      var ordered = seededShuffle(pool, getSeed('rpg-quest-' + tier + '-' + element));
+      var pick = null;
+      for (var j = 0; j < ordered.length; j += 1) {
+        if (used[ordered[j].id]) continue;
+        pick = ordered[j];
+        break;
       }
-    ];
+      if (!pick) pick = ordered[0];
+      used[pick.id] = true;
+
+      quests.push({
+        questId: 'daily-' + dateKey + '-' + pick.id,
+        questType: 'daily_rpg_' + tier,
+        tier: tier,
+        element: element,
+        expReward: toRpgNumber(pick.exp, 15),
+        text: pick.text,
+        icon: pick.icon,
+        description: getRpgElementLabel(element) + ' 기운을 오늘 하루에 실제로 옮겨 놓는 행동입니다.',
+        reason: RPG_TIER_REASON[tier],
+        afterCompleteMessage: RPG_TIER_AFTER[tier]
+      });
+    }
+    return quests;
   }
 
   function getRpgLocalProfileId() {
     return String(resolveRpgProfileId() || 'guest-local').trim() || 'guest-local';
   }
 
-  function getRpgLocalStorageKey(profileId) {
-    return RPG_LOCAL_STORAGE_PREFIX + ':' + encodeURIComponent(String(profileId || 'guest-local'));
+  /* 진행도는 메인 프로필 카드와 같은 저장소(CDLevel, 키 cd_level_v1)를 쓴다.
+     예전에는 이 시트가 프로필 id로 키를 나눠 저장했는데, 프로필 해석이 잠깐 실패하면
+     'guest-local'로 새어 진행이 사라졌고 레벨 곡선도 카드와 달라 같은 EXP에 다른 레벨이 보였다.
+     CDLevel이 없으면(파일 로드 실패) 시트가 죽지 않도록 읽기 전용 0값으로 버틴다. */
+  function getRpgLevelApi() {
+    return (w.CDLevel && typeof w.CDLevel.snapshot === 'function') ? w.CDLevel : null;
   }
 
-  function readRpgLocalStore(profileId) {
-    var fallback = { marker: RPG_LOCAL_STORAGE_MARKER, profileId: profileId, totalExp: 0, streakDays: 0, longestStreakDays: 0, lastAllDoneDate: '', days: {} };
-    try {
-      if (!w.localStorage) return fallback;
-      var raw = w.localStorage.getItem(getRpgLocalStorageKey(profileId));
-      if (!raw) return fallback;
-      var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return fallback;
-      parsed.marker = RPG_LOCAL_STORAGE_MARKER;
-      parsed.profileId = profileId;
-      parsed.totalExp = Math.max(0, toRpgNumber(parsed.totalExp, 0));
-      parsed.streakDays = Math.max(0, toRpgNumber(parsed.streakDays, 0));
-      parsed.longestStreakDays = Math.max(0, toRpgNumber(parsed.longestStreakDays, 0));
-      parsed.lastAllDoneDate = String(parsed.lastAllDoneDate || '');
-      parsed.days = parsed.days && typeof parsed.days === 'object' ? parsed.days : {};
-      return parsed;
-    } catch (e) {
-      return fallback;
-    }
+  function getRpgLevelSnapshot() {
+    var api = getRpgLevelApi();
+    if (api) return api.snapshot();
+    return {
+      currentLevel: 1, totalExp: 0, currentLevelExp: 0, nextLevelExp: 100,
+      streakDays: 0, longestStreakDays: 0, checkedInToday: false,
+      completedQuestIds: [], quests: [], loggedIn: false, writeFailed: false
+    };
   }
 
-  function writeRpgLocalStore(profileId, store) {
-    try {
-      if (!w.localStorage) return;
-      w.localStorage.setItem(getRpgLocalStorageKey(profileId), JSON.stringify(store));
-    } catch (e) {}
+  /* 이 시트의 진행이 실제로 어디에 남는지 사실대로 알린다. */
+  function getRpgStorageNotice() {
+    var snap = getRpgLevelSnapshot();
+    if (snap.writeFailed) return '이 브라우저에 기록을 저장하지 못했습니다';
+    return snap.loggedIn ? '내 계정에 저장됩니다' : '이 기기에만 저장됩니다 · 로그인하면 이어집니다';
   }
 
   function getRpgLocalLevelState(totalExp) {
+    var api = getRpgLevelApi();
+    if (api) return api.levelState(totalExp);
     var safeTotal = Math.max(0, toRpgNumber(totalExp, 0));
-    var currentLevel = Math.floor(safeTotal / 100) + 1;
-    return {
-      totalExp: safeTotal,
-      currentLevel: currentLevel,
-      currentLevelExp: safeTotal % 100,
-      nextLevelExp: 100
-    };
+    return { totalExp: safeTotal, currentLevel: 1, currentLevelExp: safeTotal, nextLevelExp: 100 };
   }
 
   function getRpgLocalMilestoneKeys(level) {
@@ -1131,25 +1135,27 @@
     var questDateKst = getKstDateString();
     var meta = buildRpgFallbackMeta({}, p);
     var quests = buildRpgFallbackQuests(meta);
-    var store = readRpgLocalStore(profileId);
-    var day = store.days[questDateKst] && typeof store.days[questDateKst] === 'object'
-      ? store.days[questDateKst]
-      : { completedQuestIds: [] };
-    var completedQuestIds = toRpgList(day.completedQuestIds);
+    /* 개인화된 오늘의 퀘스트를 메인 프로필 카드에도 넘겨준다.
+       두 화면이 서로 다른 목록을 보여주면 같은 하루치 EXP 예산이 어긋난다. */
+    var api = getRpgLevelApi();
+    if (api && typeof api.publishQuests === 'function') api.publishQuests(quests);
+
+    var snap = getRpgLevelSnapshot();
     var completedMap = {};
-    completedQuestIds.forEach(function (id) { completedMap[id] = true; });
-    completedQuestIds = Object.keys(completedMap);
+    snap.completedQuestIds.forEach(function (id) { completedMap[String(id)] = true; });
+    var completedQuestIds = quests
+      .map(function (quest) { return String(quest.questId || ''); })
+      .filter(function (id) { return completedMap[id]; });
     var todayEarnedExp = quests.reduce(function (sum, quest) {
       return completedMap[String(quest.questId || '')] ? sum + toRpgNumber(quest.expReward, 0) : sum;
     }, 0);
     var todayMaxExp = quests.reduce(function (sum, quest) {
       return sum + toRpgNumber(quest.expReward, 0);
     }, 0) || 45;
-    var levelState = getRpgLocalLevelState(store.totalExp);
     var allDone = completedQuestIds.length >= quests.length;
     return Object.assign({
       ok: true,
-      localOnly: true,
+      localOnly: !snap.loggedIn,
       localStorageMarker: RPG_LOCAL_STORAGE_MARKER,
       profileId: profileId,
       questDateKst: questDateKst,
@@ -1158,54 +1164,48 @@
       completedQuestIds: completedQuestIds,
       todayEarnedExp: todayEarnedExp,
       todayMaxExp: todayMaxExp,
-      streakDays: store.streakDays,
-      longestStreakDays: store.longestStreakDays,
-      totalExp: levelState.totalExp,
-      currentLevel: levelState.currentLevel,
-      currentLevelExp: levelState.currentLevelExp,
-      nextLevelExp: levelState.nextLevelExp,
-      unlockedMilestoneRewards: getRpgLocalMilestoneKeys(levelState.currentLevel),
+      streakDays: snap.streakDays,
+      longestStreakDays: snap.longestStreakDays,
+      totalExp: snap.totalExp,
+      currentLevel: snap.currentLevel,
+      currentLevelExp: snap.currentLevelExp,
+      nextLevelExp: snap.nextLevelExp,
+      storageFailed: !!snap.writeFailed,
+      unlockedMilestoneRewards: getRpgLocalMilestoneKeys(snap.currentLevel),
       unlockedSecretFortunes: allDone ? ['daily_complete_' + questDateKst] : [],
-      message: profileId === 'guest-local'
-        ? '로그인 없이 이 기기에 오늘의 성장 기록이 머무릅니다.'
-        : '오늘의 성장 기록이 이 기기에 저장됩니다.'
+      message: getRpgStorageNotice()
     }, transientState || {});
   }
 
   function completeRpgLocalQuest(profileId, questId, p) {
     var beforeState = buildRpgLocalState(p);
-    var store = readRpgLocalStore(profileId);
-    var questDateKst = getKstDateString();
-    var meta = buildRpgFallbackMeta({}, p);
-    var quests = buildRpgFallbackQuests(meta);
     var quest = null;
-    for (var i = 0; i < quests.length; i += 1) {
-      if (String(quests[i].questId || '') === String(questId || '')) {
-        quest = quests[i];
+    for (var i = 0; i < beforeState.quests.length; i += 1) {
+      if (String(beforeState.quests[i].questId || '') === String(questId || '')) {
+        quest = beforeState.quests[i];
         break;
       }
     }
     if (!quest) return buildRpgLocalState(p);
-    var day = store.days[questDateKst] && typeof store.days[questDateKst] === 'object'
-      ? store.days[questDateKst]
-      : { completedQuestIds: [] };
-    var completedQuestIds = toRpgList(day.completedQuestIds);
-    if (completedQuestIds.indexOf(String(questId)) < 0) {
-      completedQuestIds.push(String(questId));
-      store.totalExp = Math.max(0, toRpgNumber(store.totalExp, 0)) + Math.max(0, toRpgNumber(quest.expReward, 0));
+
+    var api = getRpgLevelApi();
+    if (!api) {
+      return Object.assign(buildRpgLocalState(p), {
+        errorState: true,
+        errorMessage: '성장 기록 모듈을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.'
+      });
     }
-    day.completedQuestIds = completedQuestIds;
-    store.days[questDateKst] = day;
-    if (completedQuestIds.length >= quests.length && store.lastAllDoneDate !== questDateKst) {
-      var yesterday = new Date(Date.now() + 9 * 60 * 60 * 1000 - 24 * 60 * 60 * 1000);
-      var yesterdayKey = yesterday.getUTCFullYear() + '.' + String(yesterday.getUTCMonth() + 1).padStart(2, '0') + '.' + String(yesterday.getUTCDate()).padStart(2, '0');
-      store.streakDays = store.lastAllDoneDate === yesterdayKey ? Math.max(1, toRpgNumber(store.streakDays, 0) + 1) : 1;
-      store.longestStreakDays = Math.max(toRpgNumber(store.longestStreakDays, 0), store.streakDays);
-      store.lastAllDoneDate = questDateKst;
+
+    var result = api.award('quest', String(questId));
+    /* 저장 실패를 조용히 삼키면 완료를 눌러도 아무 일 없이 되돌아간 것처럼 보인다.
+       사파리 프라이빗 모드·쿼터 초과가 실제로 여기에 걸린다. */
+    if (result.changed && result.written === false) {
+      return Object.assign(buildRpgLocalState(p), {
+        errorState: true,
+        errorMessage: '이 브라우저에 기록을 저장하지 못했습니다. 시크릿 모드라면 일반 창에서 열어주세요.'
+      });
     }
-    store.marker = RPG_LOCAL_STORAGE_MARKER;
-    store.profileId = profileId;
-    writeRpgLocalStore(profileId, store);
+
     var afterState = buildRpgLocalState(p);
     var beforeLevel = toRpgNumber(beforeState.currentLevel, 1);
     var afterLevel = toRpgNumber(afterState.currentLevel, 1);
@@ -1382,7 +1382,9 @@
         +   '<div class="ent-rpg-secret-title">오늘의 성장 메시지</div>'
         +   '<div class="ent-rpg-secret-copy">오늘의 완료 기록이 새겨졌습니다. 이제 비밀 운세의 문이 열립니다.</div>'
         +   '<div class="ent-rpg-secret-message">' + escapeRpgHtml(secretMessage) + '</div>'
-        +   '<div class="ent-rpg-secret-note">UNLOCK SAVED ON SERVER</div>'
+        /* 이 시트의 진행은 실제로 이 기기의 localStorage에만 남는다.
+           로그인 계정으로 이어지는지 여부를 사실대로 밝힌다(예전 "SAVED ON SERVER"는 거짓이었다). */
+        +   '<div class="ent-rpg-secret-note">' + escapeRpgHtml(getRpgStorageNotice()) + '</div>'
         + '</div>'
       : '<div class="ent-rpg-secret-panel">'
         +   '<div class="ent-rpg-secret-lock">'
@@ -1408,9 +1410,9 @@
     }
     var modalOpen = !!state.flashLevelUp;
     var modalHtml = '<div class="ent-rpg-modal' + (modalOpen ? ' is-open' : '') + '" data-rpg-modal aria-hidden="' + (modalOpen ? 'false' : 'true') + '">'
-      +   '<div class="ent-rpg-modal__panel">'
+      +   '<div class="ent-rpg-modal__panel" role="dialog" aria-modal="true" aria-labelledby="entRpgModalTitle">'
       +     '<div class="ent-rpg-modal__badge">LV. ' + escapeRpgHtml(currentLevel) + ' 달성!</div>'
-      +     '<div class="ent-rpg-modal__title">새로운 운명이 열렸습니다</div>'
+      +     '<div class="ent-rpg-modal__title" id="entRpgModalTitle">새로운 운명이 열렸습니다</div>'
       +     '<div class="ent-rpg-modal__sub">지금까지의 성장에 따른 보상이 해금되었습니다.</div>'
       +     '<div class="ent-rpg-modal__list">' + levelUpItems.join('') + '</div>'
       +     '<button type="button" class="ent-rpg-modal__close" data-rpg-modal-close>닫기</button>'
@@ -1556,9 +1558,40 @@
     return root;
   }
 
+  /* 레벨업 모달을 열고 닫는 단일 창구.
+     열 때 닫기 버튼으로 포커스를 옮기고, 닫으면 원래 있던 곳으로 되돌린다.
+     키보드·스크린리더 사용자가 모달 뒤 배경을 계속 헤매지 않도록 하기 위함이다. */
+  var _rpgModalReturnFocus = null;
+
+  function openRpgModal(modal) {
+    if (!modal) return;
+    _rpgModalReturnFocus = document.activeElement;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    var closeBtn = modal.querySelector('[data-rpg-modal-close]');
+    if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+  }
+
+  function closeRpgModal(modal) {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    if (_rpgModalReturnFocus && typeof _rpgModalReturnFocus.focus === 'function') {
+      try { _rpgModalReturnFocus.focus(); } catch (e) {}
+    }
+    _rpgModalReturnFocus = null;
+  }
+
   function bindRpgInteractions(root, p) {
     if (!root || root.__rpgBound) return;
     root.__rpgBound = true;
+    root.addEventListener('keydown', function (event) {
+      if (event.key !== 'Escape' && event.key !== 'Esc') return;
+      var openModal = root.querySelector('[data-rpg-modal].is-open');
+      if (!openModal) return;
+      event.preventDefault();
+      closeRpgModal(openModal);
+    });
     root.addEventListener('click', function (event) {
       var completeBtn = event.target && event.target.closest ? event.target.closest('[data-rpg-complete]') : null;
       if (completeBtn && root.contains(completeBtn)) {
@@ -1570,11 +1603,7 @@
 
       var closeBtn = event.target && event.target.closest ? event.target.closest('[data-rpg-modal-close]') : null;
       if (closeBtn && root.contains(closeBtn)) {
-        var modal = root.querySelector('[data-rpg-modal]');
-        if (modal) {
-          modal.classList.remove('is-open');
-          modal.setAttribute('aria-hidden', 'true');
-        }
+        closeRpgModal(root.querySelector('[data-rpg-modal]'));
       }
     });
   }
@@ -1588,11 +1617,7 @@
       var nextState = buildRpgLocalState(p, transientState || {});
       renderRpgSection(questRoot, nextState, p);
       if (nextState.flashLevelUp) {
-        var modal = questRoot.querySelector('[data-rpg-modal]');
-        if (modal) {
-          modal.classList.add('is-open');
-          modal.setAttribute('aria-hidden', 'false');
-        }
+        openRpgModal(questRoot.querySelector('[data-rpg-modal]'));
       }
     } catch (error) {
       renderRpgSection(questRoot, {
@@ -1622,11 +1647,7 @@
       var nextState = completeRpgLocalQuest(profileId, questId, p);
       renderRpgSection(root, nextState, p);
       if (nextState.leveledUp) {
-        var modal = root.querySelector('[data-rpg-modal]');
-        if (modal) {
-          modal.classList.add('is-open');
-          modal.setAttribute('aria-hidden', 'false');
-        }
+        openRpgModal(root.querySelector('[data-rpg-modal]'));
       }
     } catch (error) {
       renderRpgSection(root, {

@@ -57,8 +57,12 @@ expectContains(workerRpgSource, "UserDailyQuestLog.create", "quest completion lo
 expectContains(workerRpgSource, "UserRpgRewardLog.create", "reward log write");
 
 console.log("[4] Frontend RPG rendering");
+// 이 시트는 여전히 스스로 서버를 부르지 않는다. 서버 동기화는 프로필 카드 쪽 CDLevel이 전담하고,
+// 시트는 그 공용 저장소를 읽기만 하므로 렌더가 네트워크에 묶이지 않는다.
 expectNotContains(rpgUiSource, "/api/rpg/status", "status fetch removed from RPG UI");
 expectNotContains(rpgUiSource, "/api/rpg/complete", "complete fetch removed from RPG UI");
+expectContains(rpgUiSource, "getRpgLevelApi", "shared level store bridge");
+expectNotContains(rpgUiSource, "UNLOCK SAVED ON SERVER", "false server-persistence claim removed");
 expectContains(rpgUiSource, "RPG_LOCAL_STORAGE_MARKER", "local RPG storage marker");
 expectContains(rpgUiSource, "rpg-local-progress-v20260617", "local RPG storage version");
 expectContains(rpgUiSource, "completeRpgLocalQuest", "local quest completion flow");
@@ -91,7 +95,7 @@ console.log("  5. Refresh and confirm completion state persists.");
 console.log("  6. Finish enough quests to confirm the daily EXP cap stops further gains.");
 console.log("  7. Level up and confirm currentLevel, currentLevelExp, totalExp are consistent.");
 console.log("  8. Cross KST midnight and confirm a new quest set appears.");
-console.log("  9. Switch profile cards and confirm each profile has separate progress.");
+console.log("  9. Switch or delete profile cards and confirm level/EXP stay put (progress is account-scoped, not per card).");
 console.log(" 10. Resize to mobile and confirm cards/buttons remain usable.");
 console.log(" 11. Re-enter the main saju result screen and confirm it still loads.");
 console.log(" 12. Confirm paid features, coin, pass, and profile-card flows still behave normally.");
