@@ -100,7 +100,6 @@
     "verify:saju-new-year-llm": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-new-year-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-unlock-entitlement-regression": "node scripts/verify-saju-unlock-entitlement-regression.mjs",
-    "verify:pdf-llm-gateway": "node scripts/verify-pdf-llm-gateway.mjs",
     "verify:ziwei-ai-consultation-flow": "node scripts/verify-ziwei-ai-consultation-flow.mjs",
     "i18n:check": "node scripts/i18n-check.mjs && npm run verify:i18n-runtime && node scripts/verify-i18n-public-parity.mjs --all",
     "i18n:audit": "node scripts/i18n-audit-hardcoded-copy.mjs",
