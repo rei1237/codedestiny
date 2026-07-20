@@ -752,6 +752,8 @@
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_LOCAL_DEV_API_ORIGIN = '';
   var _DP_FETCH_TIMEOUT_MS = 20000;
+  // 프로필 부트스트랩이 끊겼을 때 로딩 카드를 강제로 걷어내는 상한(_DP_FETCH_TIMEOUT_MS + 여유).
+  var PROFILE_LOADING_FAILSAFE_MS = 22000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
   var _dpApiCooldownUntil = Object.create(null);
@@ -6662,6 +6664,18 @@
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
 
+    // 로딩 카드는 스스로 빠져나오지 못한다. 아래 부트스트랩이 어느 단계에서든 조용히 끊기면
+    // (네트워크 지연·앱의 교차 출처 401·콜백 미호출) 카드가 영구히 "불러오는 중"으로 남고,
+    // 그 아래 입력 폼과 겹쳐 보여 카드가 두 개인 것처럼 읽힌다. 실패해도 최종 상태로 반드시 내려온다.
+    if (shouldShowProfileLoading && !initialProfile) {
+      window.setTimeout(function() {
+        var card = document.getElementById('dpMasterCard');
+        if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+      }, PROFILE_LOADING_FAILSAFE_MS);
+    }
+
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
     _dpUpdateSaveBtn();
@@ -6688,6 +6702,9 @@
         }
       });
     }).catch(function() {
+      // 여기서 렌더를 하지 않으면 로딩 카드가 그대로 남는다 — 실패도 하나의 최종 상태로 내려준다.
+      renderMasterCard(DPStorage.current());
+      renderProfileList();
       _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'profile-bootstrap-error' });
     });
 
