@@ -29,13 +29,13 @@ const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_03", amountKRW: 7500, webAmountKRW: 6000, coinPrices: Object.freeze([60]) },
   { productId: "cd_content_tier_04", amountKRW: 8900, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
   { productId: "cd_content_tier_05", amountKRW: 10900, webAmountKRW: 9000, coinPrices: Object.freeze([90]) },
-  { productId: "cd_content_tier_06", amountKRW: 12900, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
-  { productId: "cd_content_tier_07", amountKRW: 14900, webAmountKRW: 12000, coinPrices: Object.freeze([120]) },
-  { productId: "cd_content_tier_08", amountKRW: 18900, webAmountKRW: 15000, coinPrices: Object.freeze([150]) },
-  { productId: "cd_content_tier_09", amountKRW: 24900, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
-  { productId: "cd_content_tier_10", amountKRW: 38900, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
-  { productId: "cd_content_tier_11", amountKRW: 48900, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
-  { productId: "cd_content_tier_12", amountKRW: 62900, webAmountKRW: 50000, coinPrices: Object.freeze([500]) },
+  { productId: "cd_content_tier_06", amountKRW: 13000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
+  { productId: "cd_content_tier_07", amountKRW: 15000, webAmountKRW: 12000, coinPrices: Object.freeze([120]) },
+  { productId: "cd_content_tier_08", amountKRW: 19000, webAmountKRW: 15000, coinPrices: Object.freeze([150]) },
+  { productId: "cd_content_tier_09", amountKRW: 25000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
+  { productId: "cd_content_tier_10", amountKRW: 39000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
+  { productId: "cd_content_tier_11", amountKRW: 49000, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
+  { productId: "cd_content_tier_12", amountKRW: 65000, webAmountKRW: 50000, coinPrices: Object.freeze([500]) },
   // 690코인(₩69,000)과 700코인(₩70,000)은 확정가가 ₩100 차이라 한 티어로 병합했다.
   { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([690, 700]) },
 ]);
@@ -46,13 +46,13 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // 커버 기능 집합은 앱·웹이 동일하다(canUseByPass가 코인으로 판정하므로).
 const PASS_TIER_TABLE = Object.freeze([
   // 커버 3,000→3,900(+30.0%) → 이용권도 +30.3%
-  { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 12900, webAmountKRW: 9900, coinLimit: 30 },
+  { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 13000, webAmountKRW: 9900, coinLimit: 30 },
   // 커버 5,000→6,000(+20.0%) → 이용권도 +20.1%
-  { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 35900, webAmountKRW: 29900, coinLimit: 50 },
+  { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 36000, webAmountKRW: 29900, coinLimit: 50 },
   // 커버 10,000→12,900(+29.0%) → 이용권도 +28.6%
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 75900, webAmountKRW: 59000, coinLimit: 100 },
   // 전체 커버라 대응 티어가 없다 → 콘텐츠 티어 평균 인상률(+25% 부근)을 따른다.
-  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 369000, webAmountKRW: 300000, coinLimit: null },
+  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 370000, webAmountKRW: 300000, coinLimit: null },
 ]);
 
 const CONTENT_TIER_BY_COIN_PRICE = (() => {

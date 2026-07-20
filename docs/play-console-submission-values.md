@@ -55,13 +55,13 @@
 | `cd_content_tier_03` | `7500` | 운세 콘텐츠 7,500원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_04` | `8900` | 운세 콘텐츠 8,900원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_05` | `10900` | 운세 콘텐츠 10,900원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_06` | `12900` | 운세 콘텐츠 12,900원 | 선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_07` | `14900` | 운세 콘텐츠 14,900원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_08` | `18900` | 운세 콘텐츠 18,900원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_09` | `24900` | 운세 콘텐츠 24,900원 | 선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_10` | `38900` | AI 상담 38,900원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
-| `cd_content_tier_11` | `48900` | 프리미엄 해금 48,900원 | 선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다. |
-| `cd_content_tier_12` | `62900` | AI 상담 62,900원 | 선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_06` | `13000` | 운세 콘텐츠 13,000원 | 선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_07` | `15000` | 운세 콘텐츠 15,000원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_08` | `19000` | 운세 콘텐츠 19,000원 | 선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_09` | `25000` | 운세 콘텐츠 25,000원 | 선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_10` | `39000` | AI 상담 39,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
+| `cd_content_tier_11` | `49000` | 프리미엄 해금 49,000원 | 선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다. |
+| `cd_content_tier_12` | `65000` | AI 상담 65,000원 | 선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_13` | `89000` | 프리미엄 전체 해금 89,000원 | 선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다. |
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
@@ -73,13 +73,13 @@
 | `cd_content_tier_03` | 6,000 | +25.0% | 1 | 회당 1 | animal-totem-deep |
 | `cd_content_tier_04` | 7,000 | +27.1% | 1 | 회당 1 | stonehenge-runes-deep |
 | `cd_content_tier_05` | 9,000 | +21.1% | 2 | 해금 2 | destiny-bias-deep-profile |
-| `cd_content_tier_06` | 10,000 | +29.0% | 31 | 회당 10 / 해금 21 | tarot-celestial-harmony, fortune-tea-house-saju-consultation |
-| `cd_content_tier_07` | 12,000 | +24.2% | 3 | 회당 1 / 해금 2 | premium-sukuyo-compat-extra |
-| `cd_content_tier_08` | 15,000 | +26.0% | 4 | 해금 4 | ziwei_love_deep |
-| `cd_content_tier_09` | 20,000 | +24.5% | 7 | 회당 4 / 해금 3 | cosmic-soul-meditation, saju_ai_question_prompt |
-| `cd_content_tier_10` | 30,000 | +29.7% | 12 | 회당 11 / 해금 1 | vedic-ai-consultation, life-book-ai-consultation |
-| `cd_content_tier_11` | 39,000 | +25.4% | 3 | 해금 3 | unlock.premium_astrology / _sukuyo / _veda |
-| `cd_content_tier_12` | 50,000 | +25.8% | 1 | 회당 1 | karma-destiny-ai-consultation |
+| `cd_content_tier_06` | 10,000 | +30.0% | 31 | 회당 10 / 해금 21 | tarot-celestial-harmony, fortune-tea-house-saju-consultation |
+| `cd_content_tier_07` | 12,000 | +25.0% | 3 | 회당 1 / 해금 2 | premium-sukuyo-compat-extra |
+| `cd_content_tier_08` | 15,000 | +26.7% | 4 | 해금 4 | ziwei_love_deep |
+| `cd_content_tier_09` | 20,000 | +25.0% | 7 | 회당 4 / 해금 3 | cosmic-soul-meditation, saju_ai_question_prompt |
+| `cd_content_tier_10` | 30,000 | +30.0% | 12 | 회당 11 / 해금 1 | vedic-ai-consultation, life-book-ai-consultation |
+| `cd_content_tier_11` | 39,000 | +25.6% | 3 | 해금 3 | unlock.premium_astrology / _sukuyo / _veda |
+| `cd_content_tier_12` | 50,000 | +30.0% | 1 | 회당 1 | karma-destiny-ai-consultation |
 | `cd_content_tier_13` | 69,000·70,000 | +27.1~29.0% | 2 | 해금 2 | unlock.all_paid_saju, unlock.premium_naming |
 
 ### 2-2. 이용권 4개
@@ -92,10 +92,10 @@
 
 | 상품 ID | 가격(KRW) | 이름 | 설명 |
 |---|---|---|---|
-| `cd_pass_standard_30d` | `12900` | 스탠다드 이용권 (30일) | 30일간 3,900원 이하 유료 기능을 횟수 제한 없이 이용합니다. 프로필 3개. 자동 갱신되지 않습니다. |
-| `cd_pass_premium_30d` | `35900` | 프리미엄 이용권 (30일) | 30일간 6,000원 이하 유료 기능을 횟수 제한 없이 이용합니다. 프로필 7개. 자동 갱신되지 않습니다. |
+| `cd_pass_standard_30d` | `13000` | 스탠다드 이용권 (30일) | 30일간 3,900원 이하 유료 기능을 횟수 제한 없이 이용합니다. 프로필 3개. 자동 갱신되지 않습니다. |
+| `cd_pass_premium_30d` | `36000` | 프리미엄 이용권 (30일) | 30일간 6,000원 이하 유료 기능을 횟수 제한 없이 이용합니다. 프로필 7개. 자동 갱신되지 않습니다. |
 | `cd_pass_vvip_30d` | `75900` | VVIP 이용권 (30일) | 30일간 12,900원 이하 유료 기능을 횟수 제한 없이 이용합니다. 프로필 15개. 자동 갱신되지 않습니다. |
-| `cd_pass_family_30d` | `369000` | 패밀리 이용권 (30일) | 30일간 모든 유료 기능을 횟수 제한 없이 이용합니다. 프로필 무제한. 자동 갱신되지 않습니다. |
+| `cd_pass_family_30d` | `370000` | 패밀리 이용권 (30일) | 30일간 모든 유료 기능을 횟수 제한 없이 이용합니다. 프로필 무제한. 자동 갱신되지 않습니다. |
 
 **가격 근거 — 커버 금액이 오른 비율만큼 이용권도 올린다**(값과 혜택이 비례해야 앱이 더 비싼 이유가 성립):
 
