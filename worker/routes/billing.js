@@ -4360,6 +4360,11 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
 
     const { updatedUser, coinBalance, coinHistory } = coinOutcome;
     const monthlyCredits = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
+    // 잔량·접근 결정이 바뀌었으니 표시용 캐시를 즉시 버린다. 월정석 인라인 차감(1651-1652)과 원화 결제
+    // (payments.js:1420-1423)가 이미 지키는 계약인데 코인 인라인 차감만 빠져 있어서, 결제 직후 최대 5초 동안
+    // /balance 가 해금 전 스냅샷을 돌려줘 방금 산 콘텐츠가 잠금으로 보였다.
+    try { globalThis.__billingBalanceCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
+    try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
 
     let accessGrant = null;
     let unlockEntitlement = null;
@@ -4518,6 +4523,10 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     });
     return failure(mapped.status, mapped.code, mapped.message, mapped.debugMessage);
   }
+
+  // 위임(fortune.js pig-coin) 경로도 차감이 끝난 상태다 — 인라인 차감과 같은 이유로 표시용 캐시를 버린다.
+  try { globalThis.__billingBalanceCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
+  try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(authCheck.auth.userId); } catch {}
 
   const balance = Number(payload?.user?.points ?? payload?.balance ?? 0);
   const premiumAccessToken = String(

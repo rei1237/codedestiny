@@ -3662,6 +3662,12 @@ function _sibylText(key) {
     _sibylUnlockStatusCache = null;
   }
 
+  // 다른 화면(정적 셸 결제 게이트·React 페이지)에서 해금이 확정되면 이 캐시도 함께 버린다.
+  // 그러지 않으면 최대 15초 동안 방금 산 콘텐츠가 잠금으로 보인다.
+  try {
+    window.addEventListener('cd:unlocks-changed', _invalidateSibylUnlockStatusCache);
+  } catch (_sibylUnlockEventErr) {}
+
   function _isSibylMembershipPassPayload(payload) {
     var data = _extractApiData(payload || {});
     var consume = data && data.consume && typeof data.consume === 'object' ? data.consume : {};

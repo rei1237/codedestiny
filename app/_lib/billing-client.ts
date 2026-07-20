@@ -3,6 +3,7 @@ import { lockBodyScroll, unlockBodyScroll } from "@/app/_lib/body-scroll-lock";
 import { normalizeBaseUrl } from "@/app/_lib/api-config";
 import { readSanitizedAuthUser, resolveAuthScopeFromUser } from "@/app/_lib/auth-storage";
 import { assignMonthlyStoneBalance, resolveMonthlyStoneBalance } from "@/app/_lib/monthly-stone";
+import { recordUnlocksFromPaymentPayload } from "@/app/_lib/optimistic-unlock-ledger";
 import {
   beginPaidAttempt,
   markPaidAttemptCallbackReturned,
@@ -3587,6 +3588,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
             };
           }
           invalidateBillingBalanceCache();
+          recordUnlocksFromPaymentPayload(parsed.data);
           normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
           emitBillingBalanceUpdated(parsed.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime");
           markPaidAttemptPaymentSucceeded();
@@ -3759,6 +3761,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       const normalizedBalance = toNumber(parsed.data.balance, NaN);
       parsed.data.balance = Number.isFinite(normalizedBalance) ? normalizedBalance : null;
       invalidateBillingBalanceCache();
+      recordUnlocksFromPaymentPayload(parsed.data);
       normalizeBillingBalanceFields(parsed.data as BillingCoinGateData & Record<string, unknown>);
       emitBillingBalanceUpdated(parsed.data as BillingCoinGateData & Record<string, unknown>, "coin-gate");
       markPaidAttemptPaymentSucceeded();
@@ -3870,6 +3873,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
               };
             }
             invalidateBillingBalanceCache();
+            recordUnlocksFromPaymentPayload(parsedRuntimePaymentResult.data);
             normalizeBillingBalanceFields(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>);
             emitBillingBalanceUpdated(parsedRuntimePaymentResult.data as BillingCoinGateData & Record<string, unknown>, "coin-gate-runtime-fallback");
             markPaidAttemptPaymentSucceeded();

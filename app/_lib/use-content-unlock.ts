@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchBillingBalance } from "@/app/_lib/billing-client";
+import { readLedgerUnlockKeys, recordOptimisticUnlock, recordVerifiedUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 
 export type ContentUnlockStatus = "loading" | "ready" | "degraded" | "error";
 
@@ -20,9 +21,21 @@ function buildUnlockedMap(keys: string[], data: { unlockedFeatures?: string[]; u
   const next: Record<string, boolean> = {};
   const unlockedFeatures = Array.isArray(data?.unlockedFeatures) ? data!.unlockedFeatures : [];
   const unlockMap = data?.unlockMap && typeof data.unlockMap === "object" ? data!.unlockMap : {};
+  const ledgerKeys = readLedgerUnlockKeys();
   for (const key of keys) {
-    next[key] = unlockMap[key] === true || unlockedFeatures.includes(key);
+    const serverUnlocked = unlockMap[key] === true || unlockedFeatures.includes(key);
+    // 서버가 확정한 해금은 원장에도 남겨 다음 방문에서 스피너 없이 바로 열리게 한다.
+    if (serverUnlocked) recordVerifiedUnlock(key);
+    next[key] = serverUnlocked || ledgerKeys.includes(key);
   }
+  return next;
+}
+
+/** 서버 왕복 없이 원장만으로 만드는 즉시 판정 — 첫 페인트에서 대기 화면을 건너뛰는 데 쓴다. */
+export function readLedgerUnlockedMap(keys: string[]): Record<string, boolean> {
+  const ledgerKeys = readLedgerUnlockKeys();
+  const next: Record<string, boolean> = {};
+  for (const key of keys) next[key] = ledgerKeys.includes(key);
   return next;
 }
 
@@ -81,27 +94,50 @@ export function useContentUnlock(keys: string[], options: { auto?: boolean } = {
 
   const markOptimisticallyUnlocked = useCallback((key: string) => {
     optimisticRef.current[key] = Date.now();
+    recordOptimisticUnlock(key);
     setUnlocked((prev) => ({ ...prev, [key]: true }));
+  }, []);
+
+  // 원장(셸/다른 탭에서 확정·낙관 기록된 해금)을 서버 왕복 없이 즉시 반영한다.
+  const mergeLedger = useCallback(() => {
+    const ledgerKeys = readLedgerUnlockKeys();
+    if (!ledgerKeys.length) return;
+    setUnlocked((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const key of keysRef.current) {
+        if (ledgerKeys.includes(key) && next[key] !== true) {
+          next[key] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
   }, []);
 
   useEffect(() => {
     if (!auto) return;
+    // 서버 응답을 기다리는 동안 대기 화면을 띄우지 않기 위해, 마운트 직후 원장부터 반영한다.
+    mergeLedger();
     refetch();
     const onBillingUpdated = () => refetch();
     const onAuthChanged = () => refetch({ force: true });
+    const onUnlocksChanged = () => mergeLedger();
     const onVisibility = () => {
       if (document.visibilityState === "visible") refetch();
     };
     window.addEventListener("cd:billing-balance-updated", onBillingUpdated);
     window.addEventListener("cd:auth-changed", onAuthChanged);
+    window.addEventListener("cd:unlocks-changed", onUnlocksChanged);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       window.removeEventListener("cd:billing-balance-updated", onBillingUpdated);
       window.removeEventListener("cd:auth-changed", onAuthChanged);
+      window.removeEventListener("cd:unlocks-changed", onUnlocksChanged);
       document.removeEventListener("visibilitychange", onVisibility);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [auto, refetch]);
+  }, [auto, refetch, mergeLedger]);
 
   return {
     unlocked,
