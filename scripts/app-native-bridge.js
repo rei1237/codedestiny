@@ -113,6 +113,64 @@
     } catch (e) { /* noop */ }
   }
 
+  // 로그인 진행 화면.
+  //
+  // 웹은 /login 의 StarlightLoginPortal 이 "우주의 좌표를 동기화하는 중..." 을 띄운 채 이동한다.
+  // 앱은 커스텀탭이 뜨는 순간과 딥링크로 돌아와 토큰을 교환하는 구간에 **아무 화면도 없어서**
+  // 멈춘 것처럼 보였다. 브릿지는 어느 페이지에나 주입되므로 여기에 같은 문구의 오버레이를 둔다.
+  var AUTH_PROGRESS_ID = "cdAppAuthProgress";
+
+  function showAuthProgress(message) {
+    try {
+      if (document.getElementById(AUTH_PROGRESS_ID)) return;
+      var host = document.body || document.documentElement;
+      if (!host) return;
+      var overlay = document.createElement("div");
+      overlay.id = AUTH_PROGRESS_ID;
+      overlay.setAttribute("role", "status");
+      overlay.setAttribute("aria-live", "polite");
+      overlay.style.cssText = [
+        "position:fixed", "inset:0", "z-index:2147483000",
+        "display:flex", "flex-direction:column", "align-items:center", "justify-content:center", "gap:18px",
+        "padding:24px", "text-align:center",
+        // 로그인 화면(별빛 포털)과 같은 밤하늘 톤 — 웹과 앱의 인상을 맞춘다.
+        "background:radial-gradient(circle at 50% 30%,#1b1745 0%,#0b1225 55%,#07091a 100%)",
+        "color:#ede9fe", "font-size:14px", "font-weight:700", "line-height:1.7",
+        "-webkit-backdrop-filter:blur(2px)", "backdrop-filter:blur(2px)",
+      ].join(";");
+
+      var ring = document.createElement("div");
+      ring.style.cssText = [
+        "width:54px", "height:54px", "border-radius:50%",
+        "border:3px solid rgba(237,233,254,.22)", "border-top-color:#f4bed1",
+        "animation:cdAppAuthSpin .9s linear infinite",
+      ].join(";");
+
+      var label = document.createElement("div");
+      label.textContent = String(message || "우주의 좌표를 동기화하는 중... 잠시만 기다려 주세요.");
+      label.style.cssText = "max-width:22rem";
+
+      if (!document.getElementById("cdAppAuthProgressKeyframes")) {
+        var style = document.createElement("style");
+        style.id = "cdAppAuthProgressKeyframes";
+        style.textContent = "@keyframes cdAppAuthSpin{to{transform:rotate(360deg)}}"
+          + "@media (prefers-reduced-motion: reduce){#" + AUTH_PROGRESS_ID + " div{animation:none!important}}";
+        (document.head || document.documentElement).appendChild(style);
+      }
+
+      overlay.appendChild(ring);
+      overlay.appendChild(label);
+      host.appendChild(overlay);
+    } catch (e) { /* noop */ }
+  }
+
+  function hideAuthProgress() {
+    try {
+      var node = document.getElementById(AUTH_PROGRESS_ID);
+      if (node) node.remove();
+    } catch (e) { /* noop */ }
+  }
+
   // 사용자에게 보이는 짧은 안내. 로그인 실패가 조용히 삼켜지지 않게 한다.
   function toast(message) {
     try {
@@ -265,10 +323,14 @@
         return { ok: false, code: "NATIVE_BROWSER_UNAVAILABLE", message: "앱 로그인 창을 열지 못했습니다. 앱을 다시 시작해 주세요." };
       }
       trace("openAuth:open", { provider: provider, url: startUrl });
+      // 커스텀탭이 뜨기 전과, 사용자가 탭을 닫고 돌아왔을 때 모두 이 화면이 깔려 있어야
+      // 웹처럼 "진행 중"으로 보인다. 성공 시에는 nextPath 이동이 이 화면을 대체한다.
+      showAuthProgress();
       try {
         await browser.open({ url: startUrl });
       } catch (e) {
         openAuthStartedAt = 0;
+        hideAuthProgress();
         trace("openAuth:openFailed", { provider: provider, message: String(e && e.message || e) });
         toast("앱 로그인 창을 열지 못했습니다.");
         return { ok: false, code: "NATIVE_BROWSER_OPEN_FAILED", message: "앱 로그인 창을 열지 못했습니다." };
@@ -335,15 +397,22 @@
       trace("appUrlOpen", { url: appUrl.slice(0, 60) });
       if (!appUrl) return;
       openAuthStartedAt = 0;
+      // 딥링크로 돌아온 직후 토큰 교환은 네트워크 왕복이다. 그 사이가 비어 있으면 멈춘 것처럼 보인다.
+      showAuthProgress("로그인 정보를 확인하는 중이에요...");
       completeMobileOAuth(appUrl)
         .then(function (handled) {
-          if (!handled) return undefined;
+          // 우리 딥링크가 아니면(다른 앱 링크 등) 진행 화면을 남겨두면 안 된다.
+          if (!handled) {
+            hideAuthProgress();
+            return undefined;
+          }
           var browser = browserPlugin();
-          // 커스텀탭을 닫아 앱으로 돌아온다.
+          // 커스텀탭을 닫아 앱으로 돌아온다. 진행 화면은 nextPath 이동이 걷어간다.
           return browser && browser.close ? browser.close() : undefined;
         })
         .catch(function (error) {
           // 조용히 삼키면 사용자는 "아무 일도 안 일어났다"고만 느낀다.
+          hideAuthProgress();
           trace("deepLink:failed", { message: String(error && error.message || error) });
           toast("로그인 처리에 실패했습니다. 다시 시도해 주세요.");
         });
@@ -635,7 +704,17 @@
     // 브릿지·플러그인이 준비될 여유를 두고 복구를 태운다.
     window.setTimeout(function () { void runPurchaseRecovery(); }, 800);
     document.addEventListener("visibilitychange", function () {
-      if (document.visibilityState === "visible") void runPurchaseRecovery();
+      if (document.visibilityState !== "visible") return;
+      void runPurchaseRecovery();
+      // 사용자가 인증하지 않고 커스텀탭을 닫은 경우. 딥링크가 오면 openAuthStartedAt 이 0 이 되므로,
+      // 여전히 남아 있으면 취소로 본다 — 그대로 두면 진행 화면에 갇힌다.
+      if (!openAuthStartedAt) return;
+      window.setTimeout(function () {
+        if (!openAuthStartedAt) return;
+        openAuthStartedAt = 0;
+        hideAuthProgress();
+        trace("openAuth:cancelled", null);
+      }, 1500);
     });
   }
 
