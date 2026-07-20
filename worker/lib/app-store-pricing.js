@@ -45,11 +45,11 @@ const CONTENT_TIER_TABLE = Object.freeze([
 // "앱은 왜 더 비싼가"가 설명된다. coinLimit은 웹 정본(PASS_LIMITS)과 같은 값이며,
 // 커버 기능 집합은 앱·웹이 동일하다(canUseByPass가 코인으로 판정하므로).
 const PASS_TIER_TABLE = Object.freeze([
-  // 커버 3,000→3,900(+30.0%) → 이용권도 +30.3%
+  // 커버 3,000→3,900(+30.0%) → 이용권도 9,900→13,000(+31.3%)
   { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 13000, webAmountKRW: 9900, coinLimit: 30 },
   // 커버 5,000→6,000(+20.0%) → 이용권도 +20.1%
   { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 36000, webAmountKRW: 29900, coinLimit: 50 },
-  // 커버 10,000→12,900(+29.0%) → 이용권도 +28.6%
+  // 커버 10,000→13,000(+30.0%) → 이용권도 +28.6%
   { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 75900, webAmountKRW: 59000, coinLimit: 100 },
   // 전체 커버라 대응 티어가 없다 → 콘텐츠 티어 평균 인상률(+25% 부근)을 따른다.
   { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 370000, webAmountKRW: 300000, coinLimit: null },

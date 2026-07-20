@@ -9,6 +9,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
 const PRODUCT_TYPE = "naming_prompt";
 const FEATURE_KEY = "premium-naming-prompt";
@@ -1162,7 +1163,8 @@ async function beginNamingGeneration(env, auth, access, inputHash, input, sajuSn
 }
 
 async function generateNamingResult(env, prompt) {
-  const timeoutMs = Number(env?.NAMING_PROMPT_TIMEOUT_MS) || 150000;
+  // 이 라우트는 요청 안에서 생성을 끝낸다 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
+  const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.NAMING_PROMPT_TIMEOUT_MS));
   const baseTokens = Number(env?.NAMING_PROMPT_MAX_OUTPUT_TOKENS) || 20000;
   const callAt = (maxOutputTokens) => callGeminiText(env, prompt, {
     taskType: "fortune",

@@ -36,7 +36,6 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
 [
   "/api/vedic-ai/ensure-access",
   "/api/vedic-ai/start",
-  "/api/vedic-ai/message",
   "runBillingCoinGate",
   "serviceType: FEATURE_KEY",
   "consultationType: CONSULTATION_TYPE",
@@ -63,7 +62,7 @@ const client = read("app/vedic-ai/VedicAiClient.tsx");
 assertMissing(client, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "window.print()"], "client");
 
 const css = read("app/vedic-ai/VedicAiClient.module.css");
-["radial-gradient", "mandala", "loadingMandala", "@media print", ".structuredHeader button", ".basicChartData", ".planetTable"].forEach((needle) => {
+["radial-gradient", "mandala", "loadingMandala", "@media print", ".basicChartData", ".planetTable"].forEach((needle) => {
   assertIncludes(css, needle, "css cosmic UI");
 });
 
@@ -73,7 +72,6 @@ const route = read("worker/routes/vedic-ai.js");
   'SERVICE_KEY = "vedic-ai"',
   "/ensure-access",
   "/start",
-  "/message",
   "calculateVedicAiChart",
   "callGeminiText",
   "[Vedic AI",

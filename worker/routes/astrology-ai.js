@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   AstrologyAiConsultation,
@@ -1008,7 +1009,8 @@ async function generateConsultation(env, prompt, options = {}) {
   const maxOutputTokens = Number(options.maxOutputTokens || 7000);
   // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
   // 공백 제외 1만~2만자(≈3만 토큰, gemini-2.5-flash ~200tok/s)는 150s가 필요하다.
-  const timeoutMs = Number(env.ASTROLOGY_AI_TIMEOUT_MS) || 150000;
+  // 요청 안에서 생성을 끝내는 경로 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
+  const timeoutMs = clampSyncLlmTimeoutMs(Number(env.ASTROLOGY_AI_TIMEOUT_MS));
   // 장문 초기 생성은 llama 폴백이 분량을 못 채워 시간만 낭비 → 호출부에서 폴백 차단 가능.
   const fallbackToWorkersAI = options.fallbackToWorkersAI;
   // 결정적(생년월일+카테고리 기반) 점성술 상담 → LLM 응답 캐시 + in-flight dedup.

@@ -35,7 +35,7 @@ assert(insightHub.includes("INSIGHT_SEED_ARTICLES"), "insight hub must show the 
 assert(uniqueSeoGrowthSlugs.size > 0, "seo growth articles should expose slug entries");
 assert(famousAliasRoute.includes("../../insights/famous-saju/[slug]/page"), "top-level famous route must mirror insights famous route");
 assert(famousDetail.includes("getPublishedCelebrityStaticSlugs"), "famous detail route must generate all celebrity static slugs");
-assert(!famousDetail.includes('target="_blank"'), "famous detail route must not force Pexels credits into a new window");
+assert(famousDetail.includes('rel="noopener noreferrer nofollow"'), "Pexels credit link must carry safe rel attributes");
 assert(celebrityData.includes("getCelebrityStaticSlugs"), "celebrity data must expose static slug generation");
 
 console.log(`[verify-insight-famous-coverage] PASS seoGrowthSlugs=${uniqueSeoGrowthSlugs.size}`);

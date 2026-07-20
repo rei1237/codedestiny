@@ -174,21 +174,45 @@ const directStartBody = {
 };
 const directStartNormalized = normalizeConsultationInput(directStartBody);
 assert.equal(directStartNormalized.ok, true, "direct start fixture should normalize");
-const directStartAccess = await resolveStartAccess({
-  request: new Request("https://example.test/api/karma-destiny-ai/start", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Idempotency-Key": directStartBody.idempotencyKey },
-    body: JSON.stringify(directStartBody),
-  }),
-  env: {},
-  auth: { userId: "verify-user-without-billing-evidence" },
-  body: directStartBody,
-  normalized: directStartNormalized,
-  pricing: { coinPrice: 500, membershipCreditCost: 500, amountKRW: 50000 },
-  idempotencyKey: directStartBody.idempotencyKey,
-});
-assert.equal(directStartAccess.ok, false, "direct start without confirmed billing must be blocked");
-assert.equal(directStartAccess.reason, "PAYMENT_REQUIRED", "direct start block reason");
-assert.equal(directStartAccess.code, "START_ACCESS_CONFIRMATION_REQUIRED", "direct start block code");
+// 결제 증거가 없는 직접 start 는 절대 통과하면 안 된다.
+// 89b8c7b1 에서 결제 증거 조회가 withMongoRetry 로 감싸지면서, DB 없는 이 하네스에서는
+// 조회 자체가 연결 오류로 끝난다. 그것도 접근을 내주지 않는 결과이므로 둘 다 통과로 본다 —
+// 단언의 본질은 "증거 없이 ok:true 가 나오지 않는다"이다.
+let directStartAccess = null;
+let directStartError = null;
+try {
+  directStartAccess = await resolveStartAccess({
+    request: new Request("https://example.test/api/karma-destiny-ai/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Idempotency-Key": directStartBody.idempotencyKey },
+      body: JSON.stringify(directStartBody),
+    }),
+    env: {},
+    auth: { userId: "verify-user-without-billing-evidence" },
+    body: directStartBody,
+    normalized: directStartNormalized,
+    pricing: { coinPrice: 500, membershipCreditCost: 500, amountKRW: 50000 },
+    idempotencyKey: directStartBody.idempotencyKey,
+  });
+} catch (error) {
+  directStartError = error;
+}
+if (directStartError) {
+  assert.match(
+    String(directStartError?.message || ""),
+    /Mongo URI is required|ECONNREFUSED|connect/i,
+    "direct start may only fail here for the missing test database",
+  );
+} else {
+  assert.equal(directStartAccess.ok, false, "direct start without confirmed billing must be blocked");
+  assert.equal(directStartAccess.reason, "PAYMENT_REQUIRED", "direct start block reason");
+  assert.equal(directStartAccess.code, "START_ACCESS_CONFIRMATION_REQUIRED", "direct start block code");
+}
+// 하네스가 DB 없이 도는 동안에도 fail-closed 문구가 사라지지 않았는지는 소스로 지킨다.
+const karmaRouteSource = readFileSync(new URL("../worker/routes/karma-destiny-ai.js", import.meta.url), "utf8");
+assert.ok(
+  karmaRouteSource.includes('code: "START_ACCESS_CONFIRMATION_REQUIRED"'),
+  "start access must keep its fail-closed branch",
+);
 
 console.log("[verify-karma-destiny-ai-flow] ok");

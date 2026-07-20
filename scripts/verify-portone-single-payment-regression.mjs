@@ -609,7 +609,7 @@ function runClientStaticTests() {
 }
 
 function runE2EStaticTests() {
-  assertBefore(indexSource, "await _cdChooseServicePaymentMode({", "var directPayload = await _cdRunDirectKrwCheckout({", "paid content click should choose before direct PortOne checkout");
+  assertBefore(indexSource, "await _cdChooseServicePaymentMode({", "var directPayload = await (window._cdRunDirectKrwCheckout || _cdRunDirectKrwCheckout)({", "paid content click should choose before direct PortOne checkout");
   assertBefore(indexSource, "window.PortOne.requestPayment(requestData)", "_cdHasVerifiedServerAccess(confirmRes.payload", "payment should verify server before unlock");
   assertContains(paymentsRouteSource, "upsertSinglePaymentUnlockRecord", "server unlock persistence");
   assertContains(paymentsRouteSource, "profileId,", "profile-scoped unlock");

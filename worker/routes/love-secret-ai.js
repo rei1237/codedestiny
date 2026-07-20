@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -771,7 +772,8 @@ async function generateFirstConsultation(env, input, sajuResult, logContext = {}
       baseTokens: 32000,
       capTokens: Math.round(32000 * 1.3),
       // 32,000토큰(gemini-2.5-flash ~200tok/s ≈ 160s) — 구 90s는 목표 분량대 상단에서 잘렸다.
-      timeoutMs: Number(env?.LOVE_SECRET_AI_TIMEOUT_MS) || 150000,
+      // 요청 안에서 생성을 끝내는 경로 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
+      timeoutMs: clampSyncLlmTimeoutMs(Number(env?.LOVE_SECRET_AI_TIMEOUT_MS)),
       taskType: "fortune",
       // 대형 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
       fallbackToWorkersAI: false,

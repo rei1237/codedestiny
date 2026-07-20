@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -1474,7 +1475,8 @@ async function generateConsultationText(env, prompt, options = {}) {
   };
   // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
   // 30,000토큰(gemini-2.5-flash ~200tok/s ≈ 150s) 장문이라 150s가 필요하다.
-  const newYearTimeoutMs = Number(env?.NEW_YEAR_AI_TIMEOUT_MS) || 150000;
+  // 요청 안에서 생성을 끝내는 경로 — 엣지가 끊기 전에 우리가 먼저 답해야 한다.
+  const newYearTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.NEW_YEAR_AI_TIMEOUT_MS));
   const ai = await callGeminiText(env, prompt, {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",

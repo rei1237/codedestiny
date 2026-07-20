@@ -98,10 +98,12 @@ for (const marker of [
   'status: "generation_failed"',
   "{ status: 202 }",
   "{ status: 503 }",
-  // 즉시-202 + waitUntil 백그라운드 생성(ziwei-ai와 동일 패턴 — 동기 장기요청 500 방지).
+  // 9850c890 에서 waitUntil 백그라운드를 걷고 요청 안에서 생성을 끝내도록 되돌렸다
+  // (Workers 요청 간 I/O 격리로 폴링 결과가 고착되던 문제). 실패는 503 재시도로 내려가고
+  // 결과 조회는 202/503 으로 회수 가능해야 한다 — 그 계약을 단언한다.
   "async function handleGenerate(request, env, ctx",
-  "if (ctx?.waitUntil)",
-  "ctx.waitUntil(runGeneration()",
+  "clampSyncLlmTimeoutMs(",
+  "retryable: true",
 ]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
 }

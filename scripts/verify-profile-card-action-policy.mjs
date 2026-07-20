@@ -67,7 +67,9 @@ const cases = [
       ["profileStorage", "store.removeItem(`${PROFILE_STORAGE_NS}.current`)"],
       ["destinyProfile", "function _dpClearGlobalProfileBridge"],
       ["destinyProfile", "var hasInitialSessionHint = _dpHasSessionHint()"],
-      ["destinyProfile", "var initialProfile = hasInitialSessionHint ? null : DPStorage.current()"],
+      // 237dcffa 에서 캐시 프로필 즉시 렌더로 바뀌었다. 교차 사용자 누출을 막는 실제 장치는
+      // 스코프 저장소와 아래 _dpClearGlobalProfileBridge 이므로 그쪽을 계속 단언한다.
+      ["destinyProfile", "var initialProfile = DPStorage.current()"],
       ["destinyProfile", "? [_dpGetScopedActiveProfileCacheKey(scope)]"],
       ["mePage", "clearProfileState()"],
       ["mePage", "/api/profile/current"],
@@ -168,8 +170,9 @@ const cases = [
     includes: [
       ["policy", "PROFILE_CARD_DELETE_COST_MONTHLY_STONES = PROFILE_CARD_DELETE_COST_COINS * 10"],
       ["profileRoute", "PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "\"profileSubscription.membershipCreditBalance\": -PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
-      ["profileRoute", "\"profileSubscription.membershipCreditUsed\": PROFILE_CARD_MANAGE_MEMBERSHIP_COST"],
+      // 28bbcd53 에서 지급분별(lot) 차감으로 옮겨갔다. 원자성은 monthly-credit-store 의
+      // 버전 가드 findOneAndUpdate 가 책임지므로 그 진입점을 단언한다.
+      ["profileRoute", "consumeMonthlyCreditLots({ userId: auth.userId, amount: PROFILE_CARD_MANAGE_MEMBERSHIP_COST })"],
       ["profileRoute", "paymentMode: \"membership_credit\""],
       ["mePage", "월정석 ${formatMonthlyStoneValue(PROFILE_CARD_ACTION_MEMBERSHIP_CREDIT_COST)} 사용"],
     ],
