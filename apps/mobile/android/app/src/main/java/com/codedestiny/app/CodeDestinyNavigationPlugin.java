@@ -57,7 +57,7 @@ public class CodeDestinyNavigationPlugin extends Plugin {
         // (Bridge.java:389-401), BridgeWebViewClient.shouldOverrideUrlLoading 은 모든 최상위
         // 이동에서 그걸 부른다. 즉 https://localhost/... 도 여기까지 온다.
         // 이 예외가 없으면 홈 링크 한 번에 앱이 흰 화면이 된다(실제로 그렇게 됐다).
-        if (isAppOriginHost(host)) return null;
+        if (isAppOriginHost(host)) return resolveAppRoute(url);
 
         boolean isOwnHost = host.equals(OWN_HOST_SUFFIX) || host.endsWith("." + OWN_HOST_SUFFIX);
         if (!isOwnHost) {
@@ -86,6 +86,46 @@ public class CodeDestinyNavigationPlugin extends Plugin {
 
         // 앱 출처(capacitor.config 의 androidScheme=https + 기본 hostname=localhost)로 다시 연다.
         final String appUrl = APP_ORIGIN + target;
+        getBridge().getWebView().post(() -> getBridge().getWebView().loadUrl(appUrl));
+        return true;
+    }
+
+    /**
+     * 앱 출처로의 이동을 웹뷰가 실제로 서빙할 수 있는 형태로 바꾼다.
+     *
+     * 왜 필요한가:
+     *   Capacitor 의 로컬 서버(WebViewLocalServer.handleLocalRequest)는 확장자가 없는 경로를
+     *   서빙하지 못한다. "/" 이거나 html5mode 가 켜져 있을 때만 index.html 을 돌려주고, 그 외에는
+     *   경로에 '.' 이 있어야 파일로 서빙한다. 둘 다 아니면 **null 을 돌려주고**, 그 순간 웹뷰는
+     *   진짜 네트워크 요청을 시도해 https://localhost 로 붙으려다 ERR_CONNECTION_REFUSED 가 난다.
+     *
+     *   우리는 html5mode 를 껐다. 그 분기는 RouteProcessor 에 경로를 "/index.html" 로 하드코딩해
+     *   넘기기 때문에 원래 라우트를 잃고 항상 홈 셸을 돌려준다("탭을 누르면 홈으로 튕김"의 정체).
+     *   그래서 여기서 확장자를 붙여 준다 — 그러면 파일 분기를 타고 RouteProcessor 도 정상 동작한다.
+     *
+     *   빌드 후처리(rewriteRealPageLinks)가 정적 문자열 링크는 이미 /route/index.html 로 바꾸지만,
+     *   변수로 조립되는 이동은 놓친다. 그 나머지를 여기서 받는다.
+     *
+     * @return 웹뷰가 알아서 처리하게 두려면 null, 우리가 대신 로드했으면 true
+     */
+    private Boolean resolveAppRoute(Uri url) {
+        String path = url.getPath();
+        if (path == null || path.isEmpty() || path.equals("/")) return null;
+
+        // Capacitor 내부 브리지 스킴은 손대지 않는다.
+        if (path.contains("_capacitor_")) return null;
+        // API 는 화면이 아니다. 최상위 이동으로 올 일도 없고, 와도 우리가 손댈 대상이 아니다.
+        if (path.startsWith("/api/")) return null;
+
+        String lastSegment = path.substring(path.lastIndexOf('/') + 1);
+        // 이미 파일을 가리키면(확장자 있음) 로컬 서버가 그대로 서빙한다.
+        if (lastSegment.contains(".")) return null;
+
+        StringBuilder target = new StringBuilder(path.replaceAll("/+$", "")).append("/index.html");
+        if (url.getEncodedQuery() != null) target.append('?').append(url.getEncodedQuery());
+        if (url.getEncodedFragment() != null) target.append('#').append(url.getEncodedFragment());
+
+        final String appUrl = url.getScheme() + "://" + url.getHost() + target;
         getBridge().getWebView().post(() -> getBridge().getWebView().loadUrl(appUrl));
         return true;
     }

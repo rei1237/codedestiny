@@ -108,7 +108,14 @@ public class MainActivity extends BridgeActivity {
         // 확장자가 있으면 실제 파일 요청이다(JS·CSS·이미지·폰트) — 그대로 통과시킨다.
         int lastSlash = path.lastIndexOf('/');
         String lastSegment = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
-        if (lastSegment.contains(".")) return path;
+        if (lastSegment.contains(".")) {
+            // 예외: 라우트 문서(/route/index.html)가 없으면 홈 셸로 폴백한다.
+            // 확장자 없는 경로는 아래에서 폴백되지만, CodeDestinyNavigationPlugin 이 이미
+            // "/index.html" 을 붙여 보내므로 여기서도 같은 안전망을 둬야 404 가 새지 않는다.
+            // 다른 자산(JS·CSS·이미지)까지 홈 셸로 바꾸면 안 되므로 index.html 에만 적용한다.
+            if (path.endsWith("/index.html") && !assetExists(path)) return "/index.html";
+            return path;
+        }
 
         String candidate = path.replaceAll("/+$", "") + "/index.html";
         if (assetExists(candidate)) return candidate;
