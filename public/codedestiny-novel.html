@@ -89,7 +89,14 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   transform-origin:50% 100%;filter:drop-shadow(0 30px 60px rgba(0,0,0,.55));will-change:transform;
   -webkit-mask-image:linear-gradient(to bottom,#000 72%,transparent 99%);mask-image:linear-gradient(to bottom,#000 72%,transparent 99%);
   animation:heroIn 1.2s var(--ease) both,breathe 6s ease-in-out 1.2s infinite}
-@media (max-width:760px){#mainHero{right:50%;transform:translateX(50%);height:64vh;opacity:.82}}
+/* 모바일 메인 히어로(연이 반신상).
+   중앙 정렬을 transform:translateX(50%) 로 하면 안 된다 — #mainHero 에는 heroIn(fill:both)과
+   breathe(무한)가 걸려 있고 둘 다 transform 을 애니메이트해서 정렬용 transform 을 덮어쓴다.
+   그러면 right:50% 만 남아 이미지 오른쪽 끝이 화면 정중앙에 붙고 인물이 왼쪽으로 잘려나갔다.
+   left/right/margin 으로 정렬하면 애니메이션과 충돌하지 않는다.
+   mask 하단 컷도 96vh 기준 72% 라 64vh 인 모바일에서는 몸통을 먹어 완화한다. */
+@media (max-width:760px){#mainHero{left:0;right:0;margin:0 auto;height:64vh;opacity:.82;
+  -webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}}
 @keyframes heroIn{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:translateY(0)}}
 @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.008)}}
 #mainVeil{position:absolute;inset:0;z-index:3;pointer-events:none;
@@ -209,13 +216,19 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 /* 모카(동료)·까마귀(빌런) 스프라이트 — 네오처럼 대화창 위로 부양 + height 캡(하반신 겹침 방지) */
 .char.moka{height:clamp(210px,35vh,390px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.crow{height:clamp(220px,37vh,410px);max-height:none;bottom:clamp(175px,25vh,240px)}
-@media (max-width:760px){.char{height:52vh}.char.pig{height:38vh}.char.slotL{left:-4vw}.char.slotR{right:-4vw}
-  .char.neo{width:clamp(165px,31vh,278px);height:clamp(165px,31vh,278px);bottom:clamp(102px,15vh,162px);background-size:418% 418%;background-position:2.306% 3.145%}
-  .char.sheet{height:clamp(200px,38vh,340px);width:clamp(200px,38vh,340px)}
-  .char.moka{height:clamp(165px,31vh,300px);bottom:clamp(135px,19vh,195px)}.char.crow{height:clamp(175px,33vh,320px);bottom:clamp(135px,19vh,195px)}
-  .char.mirror.pig{height:clamp(150px,28vh,260px)}
-  .char.pig:not(.mirror){left:2vw;bottom:clamp(178px,26vh,224px);height:clamp(140px,24vh,210px)}
-  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:clamp(175px,28vh,270px);height:auto;aspect-ratio:264/372}}
+/* 모바일 캐릭터 폭 예산.
+   원래는 캐릭터 크기가 vh(화면 높이)로만 정해지고 슬롯 여유는 vw(화면 폭)로 잡혀 있어서 단위가
+   어긋났다. 게다가 clamp 하한(165~200px)이 있어 3인 장면의 폭 합계가 어떤 폰에서도 540px 밑으로
+   내려가지 않았다 — 390×844 기준 필요 818px / 가용 421px 로 194% 초과라 겹침이 확정이었다.
+   해결: 모든 크기에 min(…, 32vw) 상한을 걸어 폭을 화면 폭에 종속시키고 하한 clamp 를 없앤다.
+   슬롯 앵커도 화면 밖으로 밀던 -4vw 를 0 으로 되돌린다. 수직 연출(bottom)은 그대로 둔다. */
+@media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
+  .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(102px,15vh,162px);background-size:418% 418%;background-position:2.306% 3.145%}
+  .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
+  .char.moka{height:min(31vh,32vw);bottom:clamp(135px,19vh,195px)}.char.crow{height:min(33vh,32vw);bottom:clamp(135px,19vh,195px)}
+  .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw)}
+  .char.pig:not(.mirror){left:0;bottom:clamp(178px,26vh,224px);height:min(24vh,32vw)}
+  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:min(28vh,32vw);height:auto;aspect-ratio:264/372}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 /* L3 dialogue */

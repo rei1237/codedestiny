@@ -287,9 +287,11 @@
   html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    grid-template-rows: 112px auto auto auto !important;
+    /* 썸네일이 aspect-ratio 로 스스로 높이를 정하므로 트랙도 auto 여야 한다.
+       112px 로 고정하면 81px 이미지 아래 30px 빈 띠가 남는다. */
+    grid-template-rows: auto auto auto auto !important;
     gap: 6px !important;
-    min-height: 224px !important;
+    min-height: 0 !important;
     padding: 0 0 12px !important;
     overflow: hidden !important;
     border-radius: 20px !important;
@@ -332,11 +334,14 @@
   html.cd-mobile-runtime body:not(.neo-mode) #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) .cd-mobile-hub__card-thumb {
     grid-row: 1 !important;
     width: 100% !important;
-    height: 112px !important;
+    /* height 를 고정하면 아래 aspect-ratio 가 죽는다(두 축이 다 확정되면 aspect-ratio 는 무시된다).
+       그래서 2열 그리드에서 카드 폭이 128~145px 로 줄면 16:9 이미지가 좌우로 27~36% 잘려나갔다
+       — 메인의 "연이 인간 모습"이 잘려 보이던 원인. 원본이 1672×941 이라 비율만 맞추면 크롭 0 이 된다. */
+    height: auto !important;
     border: 0 !important;
     border-radius: 0 !important;
     object-fit: cover !important;
-    aspect-ratio: 16 / 9 !important;
+    aspect-ratio: 1672 / 941 !important;
     box-shadow: none !important;
   }
 
@@ -474,13 +479,14 @@
     font-size: 0.68rem !important;
   }
 
+  /* 위 블록과 같은 이유로 높이를 고정하지 않는다 — 고정하면 aspect-ratio 가 죽어 이미지가 잘린다. */
   html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--with-thumb {
-    grid-template-rows: 98px auto auto auto !important;
-    min-height: 212px !important;
+    grid-template-rows: auto auto auto auto !important;
+    min-height: 0 !important;
   }
 
   html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3) .cd-mobile-hub__card-thumb {
-    height: 98px !important;
+    height: auto !important;
   }
 }
 
@@ -620,9 +626,11 @@
     box-sizing: border-box !important;
     width: 100% !important;
     max-width: 560px !important;
-    min-height: 100dvh !important;
+    /* min-height:100dvh 는 스크롤 컨테이너에 최소높이를 강제해, 내용이 짧은 모달에서
+       빈 공간이 화면 하나만큼 생긴다. 하단 104px 여백도 "고정 CTA 를 피하려는" 상수 보정인데,
+       CTA 를 sticky 로 두면 자기 높이를 스스로 확보하므로 필요 없다(tile-pvw 에서 검증). */
     margin: 0 auto !important;
-    padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(104px + env(safe-area-inset-bottom, 0px)) !important;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 14px calc(16px + env(safe-area-inset-bottom, 0px)) !important;
     border-radius: 0 !important;
     overflow-x: hidden !important;
     overflow-y: auto !important;
@@ -701,17 +709,22 @@
     word-break: keep-all !important;
   }
 
-  [data-mobile-detail-close],
-  [data-component="MobileFeatureDetail"] [data-action^="close"],
+  /* 아이콘 닫기(×)에만 적용한다. 텍스트 라벨이 붙은 본문 CTA 는 data-mobile-detail-close="inline"
+     이라 여기 걸리지 않는다 — 예전에는 그것들까지 우상단 같은 좌표로 끌어와 서로 겹쳐 뭉갰다.
+     position 은 fixed 를 유지한다 — absolute 로 바꾸면 스크롤 컨테이너 안에서 닫기 버튼이
+     본문과 함께 스크롤돼 사라지는 더 큰 회귀가 난다. 조상에 transform/backdrop-filter 가 있는
+     일부 오버레이(.tarot-love-panel 등)에서 fixed 기준이 어긋나는 문제는 별건으로 남는다.
+     터치 타깃은 42 → 44px. */
+  [data-mobile-detail-close="primary"],
   [data-component="MobileFeatureDetail"] [data-naming-close="1"] {
     position: fixed !important;
     top: calc(10px + env(safe-area-inset-top, 0px)) !important;
     right: 10px !important;
     z-index: 2147483004 !important;
-    width: 42px !important;
-    height: 42px !important;
-    min-width: 42px !important;
-    min-height: 42px !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
     border-radius: 999px !important;
     display: inline-flex !important;
     align-items: center !important;
