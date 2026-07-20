@@ -535,7 +535,9 @@ export default function LifeBookAiClient() {
         <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(250,226,169,.62)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.16)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
 
         <div className="relative mx-auto grid w-full max-w-7xl gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-          <aside className="flex min-h-[calc(100vh-48px)] flex-col justify-between overflow-hidden rounded-3xl border border-amber-200/20 bg-white/[0.08] p-5 shadow-2xl shadow-black/35 backdrop-blur-xl sm:p-7">
+          {/* 상단 패딩: 전역 고정 "홈" 칩(left-3 / 124x44)이 이 카드 좌상단을 덮어 eyebrow 가 읽히지 않았다.
+              모바일에서만 그 높이(+안전영역)만큼 비운다. 높이는 100vh 대신 dvh 로 — 주소창 노출 시 잘림 방지. */}
+          <aside className="flex min-h-[calc(100dvh-48px)] flex-col justify-between overflow-hidden rounded-3xl border border-amber-200/20 bg-white/[0.08] p-5 pt-[calc(64px+env(safe-area-inset-top,0px))] shadow-2xl shadow-black/35 backdrop-blur-xl sm:p-7 sm:pt-7">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-200/25 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
                 <Stars className="h-4 w-4" aria-hidden="true" />
@@ -560,7 +562,7 @@ export default function LifeBookAiClient() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[0.18em] text-amber-200">Ready Check</p>
-                  <h2 className="mt-1 text-xl font-black text-amber-50">책을 열기 전 확인할 결</h2>
+                  <h2 className="mt-1 text-xl font-black text-amber-50">책을 열기 전 확인할 것</h2>
                 </div>
                 {isReadyToGenerate && <CheckCircle2 className="h-6 w-6 shrink-0 text-amber-200" aria-hidden="true" />}
               </div>

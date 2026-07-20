@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-4f9d829a8b4a'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-4f9d829a8b4a'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-4f9d829a8b4a'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-a383b4c4d179'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-a383b4c4d179'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a383b4c4d179'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-4f9d829a8b4a')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-a383b4c4d179')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-4f9d829a8b4a'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-4f9d829a8b4a'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-a383b4c4d179'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a383b4c4d179'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-4f9d829a8b4a'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-4f9d829a8b4a'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a383b4c4d179'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a383b4c4d179'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -105,14 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-4f9d829a8b4a').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-a383b4c4d179').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-4f9d829a8b4a')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-a383b4c4d179')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -371,6 +371,31 @@ function __buildR2CollectionAssetUrl(objectKey, suffix = '') {
   return `${__COLLECTION_R2_ASSET_BASE}${encodedKey}${suffix}`;
 }
 
+// R2 원본(가로 1300~1500px, 장당 150~200KB)을 카드 크기에 맞춰 Cloudflare Image Resizing 으로
+// 줄여 받는다(장당 20~40KB). 폭은 80px 버킷으로 반올림해 CDN 캐시가 잘게 쪼개지지 않게 한다.
+// 실패하면 __bindCollectionImageFallback 이 원본 R2 주소로 되돌린다.
+function __buildResizedCollectionImageUrl(r2Url, wrap) {
+  const raw = String(r2Url || '');
+  if (!raw.startsWith(__COLLECTION_R2_ASSET_BASE)) return '';
+  if (raw.includes('/cdn-cgi/')) return '';
+  let dpr = 1;
+  let cssWidth = 0;
+  let maxCss = 400;
+  try {
+    dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    cssWidth = (wrap && wrap.clientWidth) || 0;
+    // 하이드레이션이 2열 레이아웃 확정 전에 돌면 clientWidth 가 1열 기준으로 잡힌다 — 뷰포트로 상한
+    const isNarrow = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+    maxCss = isNarrow ? Math.ceil(window.innerWidth / 2) : window.innerWidth;
+  } catch {}
+  if (!cssWidth) cssWidth = maxCss;
+  cssWidth = Math.min(cssWidth, maxCss);
+  let target = Math.ceil((cssWidth * dpr) / 80) * 80;
+  if (target < 240) target = 240;
+  if (target > 960) target = 960;
+  return `${__COLLECTION_R2_ASSET_BASE}cdn-cgi/image/width=${target},quality=72,format=auto/${raw.slice(__COLLECTION_R2_ASSET_BASE.length)}`;
+}
+
 function __resolveCollectionImageSrc(src) {
   const raw = String(src || '').trim();
   if (!raw) return raw;
@@ -461,13 +486,9 @@ function __runChunked(listLike, fn, opts = {}) {
 
 function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   if (!collection) return;
-  let wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
-  // 모바일: 목록형 7개 컬렉션만 심볼 유지(이미지 미로딩) — VVIP/스포트라이트 등 히어로 카드는 이미지 유지
-  if (typeof window !== 'undefined' && window.__cdMobileRuntime) {
-    const listScope = '#animalCollection,#cosmicCollection,#flowerCollection,#meditationCollection,#miscCollection,#oracleCollection,#tarotCollection';
-    wraps = Array.prototype.filter.call(wraps, (w) => !(w.closest && w.closest(listScope)));
-    if (!wraps.length) return;
-  }
+  // 모바일에서도 데스크톱과 동일하게 전 컬렉션의 이미지를 하이드레이션한다.
+  // (목록형 7개 컬렉션을 걸러내던 분기 제거 — index-inline-runtime.js 의 같은 함수와 짝을 맞춘다)
+  const wraps = collection.querySelectorAll('.tarot-tile__img-wrap[data-img-src]');
   const ioEnabled = typeof IntersectionObserver !== 'undefined';
 
   const hydrateWrap = (wrap) => {
@@ -483,8 +504,22 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     if (existingImg) {
       const existingSrc = existingImg.getAttribute('src') || src;
       const resolvedExistingSrc = __resolveCollectionImageSrc(existingSrc);
-      __bindCollectionImageFallback(existingImg, resolvedExistingSrc === existingSrc ? '' : existingSrc, placeholder, null);
-      if (resolvedExistingSrc && resolvedExistingSrc !== existingSrc) existingImg.src = resolvedExistingSrc;
+      // 마크업에 박힌 정적 <img> 도 같은 리사이즈 경로를 태운다(원본 80~200KB 를 그대로 받고 있었다)
+      const resizedExisting = __buildResizedCollectionImageUrl(resolvedExistingSrc, wrap);
+      const existingFallback = resizedExisting ? resolvedExistingSrc : (resolvedExistingSrc === existingSrc ? '' : existingSrc);
+      __bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
+      const nextSrc = resizedExisting || resolvedExistingSrc;
+      if (nextSrc && nextSrc !== existingSrc) {
+        existingImg.loading = 'eager';
+        existingImg.src = nextSrc;
+      } else if (nextSrc && !(existingImg.complete && existingImg.naturalWidth > 0)) {
+        // 닫힌 컬렉션 안에서 파싱된 loading="lazy" 이미지는 열려도 요청이 다시 걸리지 않는다 — 노드를 새로 붙여 깨운다
+        const revived = existingImg.cloneNode(false);
+        revived.loading = 'eager';
+        if (revived.dataset) delete revived.dataset.cdCollectionFallbackBound;
+        __bindCollectionImageFallback(revived, existingFallback, placeholder, null);
+        existingImg.parentNode.replaceChild(revived, existingImg);
+      }
       return;
     }
 
@@ -497,14 +532,16 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     const isPriorityImage = Boolean(wrap.closest && wrap.closest('.cd-prompt-feature-spotlight'));
     const img = document.createElement('img');
     img.className = 'tarot-tile__img';
-    img.loading = isPriorityImage ? 'eager' : 'lazy';
+    // IntersectionObserver 가 이미 지연로딩을 끝낸 뒤라 loading="lazy" 를 또 걸면 요청이 영영 안 나간다
+    img.loading = 'eager';
     img.fetchPriority = isPriorityImage ? 'high' : 'low';
     img.decoding = 'async';
     img.width = 200;
     img.height = 150;
     img.alt = alt;
-    __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton);
-    img.src = resolvedSrc;
+    const resizedSrc = __buildResizedCollectionImageUrl(resolvedSrc, wrap);
+    __bindCollectionImageFallback(img, resizedSrc ? resolvedSrc : fallbackSrc, placeholder, skeleton);
+    img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   };
 

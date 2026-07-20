@@ -156,7 +156,11 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 - 이미지 `alt` 속성 필수, 인터랙티브 버튼 `aria-label` 필수
 - **연이/네오 테마 분기(`.neo-mode` 클래스, `styles/theme-tokens.css`)는 루트 셸(`index.html`과 그 6개 미러: `public/index.html`, `public/{en,ja,zh,static}/index.html`)에만 적용되는 규칙이다.** 연이(pig) 모드는 항상 밝은 꽃 컨셉 — 크림/로즈/골드 팔레트(`#fffaf7`·`#fff3f8`·`#ead089`·`#b31955`, 텍스트 `#3c1830`/`#70445c`), 다크 배경 표면(네이비/퍼플)을 남기지 말 것. 네오 모드는 달빛 다크(네이비-퍼플 + 라벤더 + 샴페인 골드). 어느 모드든 배경만 바꾸고 글자색을 안 바꾸는 반쪽 오버라이드 금지(가독성 붕괴의 주원인).
 - **개별 기능(App Router 페이지·React 컴포넌트)은 원칙적으로 연이/네오 분기가 필요 없다** — 대신 일반 `dark:`(시스템 다크모드) 클래스만 병행하면 된다. 이미 `.neo-mode`를 참조하는 기존 화면(예: 운명 찻집 히어로, 메인 마스코트 동기화)을 수정할 때만 그 화면의 기존 분기 로직을 유지·존중하고, 신규 기능에 연이/네오 분기를 새로 도입하지 않는다 — 필요해 보이면 먼저 사용자에게 확인한다.
-- **모바일 목록 카드는 심볼(글리프/이모지) 우선** — 컬렉션 목록의 대표 이미지는 모바일에서 로딩하지 않고 `.tarot-tile__img-placeholder`의 심볼을 노출(로딩 절감·직관성). 원본 이미지는 상세 팝업/디테일 오버레이에서만. 구현: `js/core/uiBindings.js`·`js/core/index-inline-runtime.js`의 `__(cd)HydrateCollectionImagesChunked`가 `window.__cdMobileRuntime`이면 조기 반환.
+- **모바일 컬렉션 카드는 2열 16:9 포스터 그리드 + 이미지 노출** (2026-07 개정 — 이전의 "심볼 우선, 모바일 이미지 미로딩" 규칙은 폐기). 데스크톱과 동일하게 전 컬렉션의 대표 이미지를 보여준다. 심볼(`.tarot-tile__img-placeholder`)은 이미지가 아직 없거나 로드 실패했을 때의 폴백 전용.
+  - **비율은 16:9 고정** — 원본 아트가 전부 가로 배너(1300~1500px)이고 그림 안에 제목 문구가 박혀 있어, 세로 포스터로 크롭하면 좌우 캐릭터와 제목이 잘린다. 세로 비율로 바꾸지 말 것.
+  - **성능 보전 3종**: ① 컬렉션은 접힌 채 시작하고 열릴 때만 하이드레이션(`cd:collection-toggle` → `__cdScheduleCollectionHydration`) ② `IntersectionObserver`로 뷰포트 진입분만 ③ Cloudflare Image Resizing(`/cdn-cgi/image/width=...`)으로 카드 크기에 맞춰 축소 수신(장당 150~200KB → 16~26KB). 실패 시 원본 R2 → 심볼 순으로 폴백.
+  - **주의 — 지연 장치를 두 개 걸지 말 것**: 하이드레이션이 이미 IO로 게이트되므로 생성하는 `<img>`는 `loading="eager"`여야 한다. `lazy`를 함께 걸면 요청이 영영 나가지 않는다. 마크업에 정적으로 박힌 `loading="lazy"` 이미지도 닫힌 컬렉션 안에서 파싱되면 열려도 요청이 안 나가므로, 하이드레이션이 노드를 새로 붙여 깨운다.
+  - 구현 정본: `js/core/index-inline-runtime.js`·`js/core/uiBindings.js`의 `__(cd)HydrateCollectionImagesChunked` / `buildResizedCollectionImageUrl`. 그리드 열 수의 실제 정본은 CSS가 아니라 `index.html` `classifyCards()`의 인라인 `grid-template-columns` (인라인 `!important`라 CSS보다 셈).
 
 ## 검색 & 수정 원칙 (토큰 절약)
 

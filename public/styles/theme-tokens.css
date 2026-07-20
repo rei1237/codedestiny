@@ -37,6 +37,7 @@ html[data-cd-theme="neo"] {
   --cd-page-accent: #e8d5a3;
 }
 
+html.neo-mode,
 body.neo-mode,
 html[data-cd-theme="neo"] {
   /* 네오 — 달빛 */
@@ -74,4 +75,84 @@ html[data-cd-theme="neo"] {
 body.neo-mode,
 html[data-cd-theme="neo"] {
   --cd-prose-body-color: #ded7f5;
+}
+
+/*
+ * 게임급 카드 · 모션 토큰 (2026-07, additive)
+ * 아트 디렉션: "달빛 서가에 꽂힌 운명 카드" — 포스터 이미지가 주인공, 금박 배지, 은은한 발광.
+ * 선택자에 html.neo-mode 를 함께 두는 이유: index.html 최초 인라인 스크립트(347행)는
+ * body 생성 전이라 documentElement 에만 neo-mode 를 붙인다. body.neo-mode 만 쓰면
+ * 런타임 스크립트가 돌기 전까지 연이 토큰이 새어 첫 페인트가 번쩍인다.
+ */
+:root {
+  /* 카드 형태 */
+  --cd-card-ratio: 3 / 4;
+  --cd-card-radius: 14px;
+  --cd-card-radius-img: 12px;
+  --cd-card-gap: 10px;
+  --cd-card-pad: 8px;
+
+  /* 카드 타이포 (모바일 포스터 기준) */
+  --cd-card-title-size: 0.79rem;
+  --cd-card-title-line: 1.3;
+  --cd-card-meta-size: 0.66rem;
+  --cd-card-badge-size: 0.58rem;
+
+  /* 모션 */
+  --cd-dur-fast: 120ms;
+  --cd-dur-base: 220ms;
+  --cd-dur-emph: 380ms;
+  --cd-ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --cd-ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+  --cd-press-scale: 0.968;
+
+  /* 연이 — 밝은 꽃: 표면·발광·배지 */
+  --cd-card-surface: linear-gradient(150deg, rgba(255, 255, 255, 0.97), rgba(255, 247, 250, 0.9));
+  --cd-card-border: rgba(212, 183, 124, 0.34);
+  --cd-card-border-strong: rgba(179, 25, 85, 0.28);
+  --cd-card-title-color: #3c1830;
+  --cd-card-meta-color: #70445c;
+  --cd-card-img-bg: linear-gradient(150deg, #fff6fb, #ffeef5 55%, #fdf6ec);
+  --cd-elev-1: 0 8px 18px rgba(150, 72, 104, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --cd-elev-2: 0 14px 30px rgba(150, 72, 104, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  --cd-glow: 0 0 0 1px rgba(234, 208, 137, 0.5), 0 10px 26px rgba(179, 25, 85, 0.14);
+  --cd-badge-bg: linear-gradient(135deg, rgba(255, 248, 220, 0.96), rgba(234, 208, 137, 0.92));
+  --cd-badge-text: #4a2443;
+  --cd-badge-free-bg: linear-gradient(135deg, rgba(214, 245, 226, 0.96), rgba(167, 226, 193, 0.92));
+  --cd-badge-free-text: #14532d;
+  --cd-price-bg: rgba(60, 24, 48, 0.86);
+  --cd-price-text: #fff8dc;
+  /* 이미지 하단 배지 가독성용 스크림 */
+  --cd-img-scrim: linear-gradient(to top, rgba(60, 24, 48, 0.58) 0%, rgba(60, 24, 48, 0.18) 34%, transparent 62%);
+}
+
+html.neo-mode,
+body.neo-mode,
+html[data-cd-theme="neo"] {
+  /* 네오 — 달빛 다크 */
+  --cd-card-surface: linear-gradient(150deg, rgba(28, 22, 58, 0.96), rgba(14, 11, 32, 0.94));
+  --cd-card-border: rgba(196, 181, 253, 0.28);
+  --cd-card-border-strong: rgba(232, 213, 163, 0.42);
+  --cd-card-title-color: #f4eeff;
+  --cd-card-meta-color: rgba(200, 170, 255, 0.82);
+  --cd-card-img-bg: linear-gradient(150deg, #171231, #0d0a20);
+  --cd-elev-1: 0 10px 22px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(228, 214, 255, 0.1);
+  --cd-elev-2: 0 16px 34px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(228, 214, 255, 0.14);
+  --cd-glow: 0 0 0 1px rgba(232, 213, 163, 0.36), 0 12px 30px rgba(124, 58, 237, 0.28);
+  --cd-badge-bg: linear-gradient(135deg, rgba(232, 213, 163, 0.94), rgba(196, 181, 253, 0.88));
+  --cd-badge-text: #120e2a;
+  --cd-badge-free-bg: linear-gradient(135deg, rgba(110, 231, 183, 0.9), rgba(45, 212, 191, 0.84));
+  --cd-badge-free-text: #052e26;
+  --cd-price-bg: rgba(9, 7, 24, 0.86);
+  --cd-price-text: #f4e9c8;
+  --cd-img-scrim: linear-gradient(to top, rgba(6, 4, 18, 0.72) 0%, rgba(6, 4, 18, 0.24) 34%, transparent 62%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --cd-dur-fast: 0.01ms;
+    --cd-dur-base: 0.01ms;
+    --cd-dur-emph: 0.01ms;
+    --cd-press-scale: 1;
+  }
 }
