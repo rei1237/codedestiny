@@ -103,7 +103,10 @@ button[onclick*="close"], button[aria-label*="닫"] {
   /* 공통 레이아웃 수치 */
   --radius-lg: 20px;
   --spacing-md: 16px;
-  --card-shadow: 0 8px 30px rgba(0,0,0,0.05);
+  /* 회색 드롭섀도(0 8px 30px rgba(0,0,0,.05))는 사실상 flat 이었고 DESIGN.md §4 Glow-Not-Shadow
+     규칙에도 어긋났다. theme-tokens.css 의 브랜드 틴트 엘리베이션으로 위임한다(연이=로즈, 네오=달빛).
+     폴백은 기존 값 그대로 두어 theme-tokens.css 미로드 페이지에서 회귀가 없게 한다. */
+  --card-shadow: var(--cd-elev-1, 0 8px 30px rgba(0,0,0,0.05));
 
   --pink:#FF8BA7;--pink-l:#FFB7B2;--peach:#FFDAC1;
   --wood-bg:#E8F5E9;--wood-tx:#2E7D32;

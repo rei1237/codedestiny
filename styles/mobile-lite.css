@@ -230,7 +230,7 @@
     background:
       radial-gradient(circle at 100% 0%, rgba(248, 216, 148, 0.22), transparent 112px),
       linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04)) !important;
-    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    box-shadow: var(--cd-elev-2, 0 18px 44px rgba(0, 0, 0, 0.24)) !important;
   }
 
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__brand {
@@ -311,7 +311,7 @@
     background:
       radial-gradient(circle at 86% 0%, rgba(248, 216, 148, 0.12), transparent 112px),
       linear-gradient(145deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.035)) !important;
-    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    box-shadow: var(--cd-elev-2, 0 18px 42px rgba(0, 0, 0, 0.2)) !important;
   }
 
   html.cd-mobile-runtime body #cdMobileDestinyHub #mobileRecommendedCards {
@@ -340,7 +340,7 @@
     color: #fffaf0 !important;
     text-decoration: none !important;
     background: linear-gradient(145deg, rgba(20, 24, 48, 0.98), rgba(7, 11, 31, 0.96)) !important;
-    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28) !important;
+    box-shadow: var(--cd-elev-2, 0 16px 34px rgba(0, 0, 0, 0.28)) !important;
   }
 
   html.cd-mobile-runtime body #mobileRecommendedCards .cd-mobile-hub__cards > a:nth-child(-n+3).cd-mobile-hub__card--tea {
