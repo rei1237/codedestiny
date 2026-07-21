@@ -4876,6 +4876,7 @@
       streakDays: 0,
       longestStreakDays: 0,
       lastCheckinDate: '',
+      lastSyncedDate: '',
       days: {},
       adopted: false,
       legacyMerged: false
@@ -4889,6 +4890,7 @@
     store.streakDays = Math.max(0, Number(raw.streakDays) || 0);
     store.longestStreakDays = Math.max(store.streakDays, Number(raw.longestStreakDays) || 0);
     store.lastCheckinDate = String(raw.lastCheckinDate || '');
+    store.lastSyncedDate = String(raw.lastSyncedDate || '');
     store.adopted = !!raw.adopted;
     store.legacyMerged = !!raw.legacyMerged;
     if (raw.days && typeof raw.days === 'object') {
@@ -5127,18 +5129,28 @@
     }).catch(function() { return null; });
   }
 
-  /* renderMasterCard()는 프로필 저장·전환·삭제마다 다시 불린다.
-     여기서 매번 네트워크를 타면 요청이 폭주하므로 60초 쿨다운과 in-flight 병합으로 묶는다. */
+  /* 메인 홈은 트래픽이 가장 높은 화면이라 여기서 서버를 자주 부르면 그 자체가 부하가 된다.
+     그래서 세 겹으로 막는다 — in-flight 병합, 60초 쿨다운, 그리고 같은 날 이미 맞췄으면 스킵.
+     renderMasterCard()가 프로필 저장·전환·삭제마다 다시 불리는 것도 이 가드가 흡수한다.
+     읽는 값은 누적 EXP·스트릭 셋뿐이라 /status가 아니라 경량 /progress를 쓴다. */
   function _cdLevelSync(options) {
     var opts = options || {};
     if (!_dpIsLoggedInScope()) return Promise.resolve(null);
     if (_cdLevelSyncPromise) return _cdLevelSyncPromise;
-    if (!opts.force && Date.now() - _cdLevelSyncAt < CD_LEVEL_SYNC_COOLDOWN_MS) return Promise.resolve(null);
+    if (!opts.force) {
+      if (Date.now() - _cdLevelSyncAt < CD_LEVEL_SYNC_COOLDOWN_MS) return Promise.resolve(null);
+      if (_cdLevelRead().lastSyncedDate === _cdLevelKstDate(0)) return Promise.resolve(null);
+    }
     _cdLevelSyncAt = Date.now();
     _cdLevelSyncPromise = _cdLevelAdopt().then(function() {
-      return _dpFetchJsonWithFallback('/api/rpg/status', { method: 'GET' }, { timeoutMs: 8000 });
+      return _dpFetchJsonWithFallback('/api/rpg/progress', { method: 'GET' }, { timeoutMs: 8000 });
     }).then(function(res) {
-      if (res && res.ok && res.data) _cdLevelApplyServer(res.data.progress || res.data);
+      if (res && res.ok && res.data && res.data.progress) {
+        _cdLevelApplyServer(res.data.progress);
+        var store = _cdLevelRead();
+        store.lastSyncedDate = _cdLevelKstDate(0);
+        _cdLevelWrite(store);
+      }
       return res;
     }).catch(function() {
       return null;
@@ -5147,6 +5159,16 @@
       return res;
     });
     return _cdLevelSyncPromise;
+  }
+
+  /* 첫 페인트를 밀어내지 않도록 한가할 때로 미룬다(runVersionProbe와 같은 방식). */
+  function _cdLevelSyncWhenIdle() {
+    var run = function() { _cdLevelSync().then(function(res) { if (res) _dpRefreshLevelStrip(); }); };
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(run, { timeout: 4000 });
+    } else {
+      setTimeout(run, 1500);
+    }
   }
 
   window.CDLevel = {
@@ -5267,9 +5289,7 @@
     if (_dpLevelBootDone) return;
     _dpLevelBootDone = true;
     _cdLevelAward('checkin', _cdLevelKstDate(0));
-    _cdLevelSync().then(function(res) {
-      if (res) _dpRefreshLevelStrip();
-    });
+    _cdLevelSyncWhenIdle();
     window.addEventListener('cd:auth-changed', function() {
       _cdLevelSync({ force: true }).then(function() { _dpRefreshLevelStrip(); });
     });
