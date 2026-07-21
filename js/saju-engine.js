@@ -6207,23 +6207,6 @@ function _buildSajuAIPromptPayload(opts) {
   return payload;
 }
 
-function _applySajuAIPromptBalance(points) {
-  var n = Number(points);
-  if (!Number.isFinite(n)) return;
-
-  try {
-    var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null') || {};
-    user.points = n;
-    localStorage.setItem('fortune_auth_user', JSON.stringify(user));
-  } catch (_) {}
-
-  try {
-    if (typeof window.__cdSetGoldenBalance === 'function') {
-      window.__cdSetGoldenBalance(n);
-    }
-  } catch (_) {}
-}
-
 function _sajuPromptSetStatus(el, message, tone) {
   if (!el) return;
   var color = tone === 'error' ? '#b91c1c' : tone === 'success' ? '#047857' : '#6b4e16';
@@ -7388,7 +7371,6 @@ function _bindSajuQuestionPromptCard(rootEl) {
     renderResult(payload);
     regenerateBtn.style.display = 'inline-flex';
     regenerateBtn.textContent = '다시 상담 받기';
-    if (payload.balanceAfter != null) _applySajuAIPromptBalance(payload.balanceAfter);
     setProgress(100, '결과 준비 완료', true);
     clearPaidEvidence();
     stopPolling();
@@ -13369,10 +13351,6 @@ function renderAstroInsightLegacyNeon() {
             var qType = String(payload.questionType || 'general');
             typeEl.textContent = '질문 유형: ' + _astroQuestionTypeLabel(qType);
 
-            var balanceAfter = Number(payload.balanceAfter);
-            if (Number.isFinite(balanceAfter)) {
-              _applySajuAIPromptBalance(balanceAfter);
-            }
             _astroSetCoinBalanceText(balanceEl);
 
             _astroSetPromptStatus(
