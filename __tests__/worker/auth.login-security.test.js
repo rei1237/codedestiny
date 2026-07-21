@@ -9,14 +9,37 @@ const mockResetMongooseConnection = jest.fn(async () => undefined);
 const mockFindOne = jest.fn();
 const mockVerifyPassword = jest.fn(async () => false);
 
+// db.js·models.js 는 이 목이 작성된 뒤에 export 가 늘었다. ESM 목은 명명 export 가 정적으로
+// 맞아야 로드되므로, 빠진 이름 하나가 이 파일 전체를 로드 실패로 떨어뜨린다.
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb: mockConnectDb,
   mongoose: { connection: { name: "test" } },
   resetMongooseConnection: mockResetMongooseConnection,
   resolveMongoDbName: jest.fn(() => "test"),
+  withMongoRetry: jest.fn(async (env, fn) => fn()),
+  isTransientMongoError: jest.fn(() => false),
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
+  AbuseScore: {},
+  CONTENT_ENTITLEMENT_SOURCES: {},
+  CONTENT_ENTITLEMENT_STATUSES: {},
+  ContentOverride: {},
+  DailyFortuneSubscription: {},
+  DestinyBiasCard: {},
+  Insight: {},
+  KarmaDestinyAiConsultation: {},
+  LifeBookAiConsultation: {},
+  LlmResponseCache: {},
+  LoveSecretAiConsultation: {},
+  NewYearAiConsultation: {},
+  PaidExecutionRecord: {},
+  Payment: {},
+  ProfileCard: {},
+  RECENT_CONSUME_REQUEST_ID_CAP: 200,
+  ServiceExecutionTransaction: {},
+  SukuyoCompatibilityAiConsultation: {},
+  ZiweiAiConsultation: {},
   MonthlyCreditLedger: {},
   PointHistory: {},
   RefreshTokenSession: {},

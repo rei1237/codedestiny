@@ -74,6 +74,7 @@ jobs:
         run: >-
           npx jest
           __tests__/worker/auth.require-auth.fallback.test.js
+          __tests__/worker/auth.app-refresh-token.test.js
           __tests__/worker/coin-access.guard.test.js
           __tests__/worker/paid-feature-registry.integrity.test.js
           __tests__/worker/paid-feature-registry.legacy-65de451.test.js
