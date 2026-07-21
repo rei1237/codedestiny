@@ -9,6 +9,11 @@ const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
 // worker/routes/auth.js 의 isMobileAppAuthRequest 와 짝을 이룬다. 한쪽만 바꾸면
 // 앱의 로그인·로그아웃·세션갱신이 403 csrf_origin_mismatch 로 죽는다.
 const MOBILE_APP_RUNTIME_HEADER = "x-code-destiny-runtime";
+// 앱은 리프레시 쿠키를 받을 수 없어(SameSite=Lax + https://localhost 출처) 서버가 JSON 본문으로
+// 리프레시 토큰을 내려주고, 갱신·로그아웃 때 이 헤더로 되돌려 받는다.
+// worker/routes/auth.js 의 APP_REFRESH_TOKEN_HEADER 와 짝을 이룬다.
+const MOBILE_APP_REFRESH_TOKEN_HEADER = "x-code-destiny-refresh-token";
+const MOBILE_APP_REFRESH_TOKEN_KEY = "fortune_auth_refresh_token";
 const AUTH_SYNC_CHANNEL = "code-destiny-auth-sync";
 const AUTH_LOGOUT_INFLIGHT_KEY = "fortune_auth_logout_inflight_at";
 const LOGOUT_TIMEOUT_MS = 3500;
@@ -40,6 +45,7 @@ const AUTH_CLIENT_TEXT_TRANSLATIONS = {
 
 const AUTH_LOCAL_STORAGE_KEYS = [
   "fortune_auth_token",
+  MOBILE_APP_REFRESH_TOKEN_KEY,
   "fortune_auth_user",
   "fortune_auth_role",
   "user",
@@ -138,7 +144,7 @@ function readMobileAppAccessToken() {
   }
 }
 
-function persistMobileAppAccessToken(accessToken: string) {
+export function persistMobileAppAccessToken(accessToken: string) {
   if (typeof window === "undefined" || !isMobileAppRuntime()) return;
   const token = String(accessToken || "").trim();
   if (!token) return;
@@ -147,6 +153,37 @@ function persistMobileAppAccessToken(accessToken: string) {
   } catch (e) {
     void e;
   }
+}
+
+function readMobileAppRefreshToken() {
+  if (typeof window === "undefined" || !isMobileAppRuntime()) return "";
+  try {
+    return String(localStorage.getItem(MOBILE_APP_REFRESH_TOKEN_KEY) || "").trim();
+  } catch (e) {
+    return "";
+  }
+}
+
+// 서버는 회전할 때마다 새 리프레시 토큰을 준다. 앱에서 이걸 갱신하지 않으면 다음 갱신이
+// 이미 회전된 토큰을 보내 재사용 탐지에 걸리고 전 세션이 폐기된다.
+export function persistMobileAppRefreshToken(refreshToken: string) {
+  if (typeof window === "undefined" || !isMobileAppRuntime()) return;
+  const token = String(refreshToken || "").trim();
+  if (!token) return;
+  try {
+    localStorage.setItem(MOBILE_APP_REFRESH_TOKEN_KEY, token);
+  } catch (e) {
+    void e;
+  }
+}
+
+// 앱 전용 인증 헤더. 웹에서는 빈 객체라 기존 쿠키 동작이 그대로다.
+export function mobileAppAuthHeaders() {
+  if (!isMobileAppRuntime()) return {} as Record<string, string>;
+  const headers: Record<string, string> = { [MOBILE_APP_RUNTIME_HEADER]: "mobile-app" };
+  const refreshToken = readMobileAppRefreshToken();
+  if (refreshToken) headers[MOBILE_APP_REFRESH_TOKEN_HEADER] = refreshToken;
+  return headers;
 }
 
 function sleep(ms: number) {
@@ -317,7 +354,7 @@ async function requestTokenRefresh(apiBase: string) {
     method: "POST",
     credentials: "include",
     cache: "no-store",
-    headers: { [CACHE_REFRESH_HEADER]: "1" },
+    headers: { [CACHE_REFRESH_HEADER]: "1", ...mobileAppAuthHeaders() },
   });
 }
 
@@ -346,9 +383,11 @@ async function refreshSession(apiBase: string) {
         }
 
         try {
-          const payload = (await response.json()) as { user?: unknown; accessToken?: string };
+          const payload = (await response.json()) as { user?: unknown; accessToken?: string; refreshToken?: string };
           if (isMobileAppRuntime() && payload?.accessToken) {
             persistMobileAppAccessToken(payload.accessToken);
+            // 회전된 토큰을 즉시 갈아끼운다 — 놓치면 다음 갱신이 재사용 탐지에 걸린다.
+            persistMobileAppRefreshToken(payload.refreshToken || "");
           } else {
             clearLegacyClientAccessToken();
           }
@@ -426,6 +465,9 @@ export async function logoutWithServer(apiBase?: string) {
   const resolvedBase = String(apiBase || getApiBaseUrl() || "").trim();
   const nextLogoutInFlight = (async () => {
     markLogoutInFlight();
+    // 로컬 상태를 지우기 전에 확보한다 — 지운 뒤엔 앱이 서버에 보낼 리프레시 토큰이 없어져
+    // 워커가 세션을 폐기하지 못하고(쿠키도 오지 않는다) 리프레시 토큰이 살아남는다.
+    const appLogoutHeaders = mobileAppAuthHeaders();
     clearClientAuthState();
     try {
       await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/logout", resolvedBase), {
@@ -433,6 +475,7 @@ export async function logoutWithServer(apiBase?: string) {
         credentials: "include",
         cache: "no-store",
         keepalive: true,
+        headers: appLogoutHeaders,
       }, LOGOUT_TIMEOUT_MS);
     } catch (e) {
       void e;

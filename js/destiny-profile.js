@@ -749,6 +749,30 @@
     return headers;
   }
 
+  /* 앱은 리프레시 쿠키를 받지도 보내지도 못한다(SameSite=Lax + https://localhost 출처).
+     서버가 JSON 본문으로 내려준 리프레시 토큰을 여기서 헤더로 되돌려 보낸다.
+     worker/routes/auth.js 의 APP_REFRESH_TOKEN_HEADER 와 짝을 이룬다. */
+  var _DP_REFRESH_TOKEN_KEY = 'fortune_auth_refresh_token';
+
+  function _dpBuildRefreshHeaders() {
+    var headers = _dpBuildAuthHeaders();
+    if (!_dpIsMobileAppRuntime()) return headers;
+    try {
+      var refreshToken = String(localStorage.getItem(_DP_REFRESH_TOKEN_KEY) || '').trim();
+      if (refreshToken) headers['X-Code-Destiny-Refresh-Token'] = refreshToken;
+    } catch (e) { /* 저장소 실패는 무시 — 쿠키 경로가 남아 있는 웹은 영향 없다 */ }
+    return headers;
+  }
+
+  /* 서버는 갱신할 때마다 리프레시 토큰을 회전시킨다. 새 토큰을 갈아끼우지 않으면
+     다음 갱신이 이미 회전된 토큰을 보내 재사용 탐지에 걸리고 전 세션이 폐기된다. */
+  function _dpPersistAppRefreshToken(refreshToken) {
+    if (!_dpIsMobileAppRuntime()) return;
+    var token = String(refreshToken || '').trim();
+    if (!token) return;
+    try { localStorage.setItem(_DP_REFRESH_TOKEN_KEY, token); } catch (e) { /* noop */ }
+  }
+
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_LOCAL_DEV_API_ORIGIN = '';
   var _DP_FETCH_TIMEOUT_MS = 20000;
@@ -1010,8 +1034,9 @@
           cache: 'no-store',
           /* /refresh 는 워커의 동일 출처 가드를 지난다(worker/routes/auth.js requiresSameOriginAuthGuard).
              앱은 교차 출처라 X-Code-Destiny-Runtime 헤더가 없으면 403 으로 막혀
-             401 이후 자동 세션 갱신이 통째로 죽는다(isMobileAppAuthRequest 면제 조건). */
-          headers: _dpBuildAuthHeaders(),
+             401 이후 자동 세션 갱신이 통째로 죽는다(isMobileAppAuthRequest 면제 조건).
+             리프레시 토큰도 쿠키로 오지 않으므로 앱에서는 헤더로 실어 보낸다. */
+          headers: _dpBuildRefreshHeaders(),
         }, opts.timeoutMs)
           .then(function(response) {
             if (!response.ok) {
@@ -1021,8 +1046,13 @@
 
             return response.json().catch(function() { return null; }).then(function(payload) {
               if (!payload || payload.ok !== true) return false;
-              /* 앱은 이 토큰이 유일한 자격증명이다(쿠키가 오지 않는다) — 지우지 않는다. */
-              if (!_dpIsMobileAppRuntime()) {
+              /* 앱은 이 토큰이 유일한 자격증명이다(쿠키가 오지 않는다) — 지우지 않고 갱신한다. */
+              if (_dpIsMobileAppRuntime()) {
+                if (payload.accessToken) {
+                  try { localStorage.setItem('fortune_auth_token', String(payload.accessToken)); } catch (_) {}
+                }
+                _dpPersistAppRefreshToken(payload.refreshToken);
+              } else {
                 try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
               }
               if (payload && payload.user) _dpPersistSessionUser(payload.user);

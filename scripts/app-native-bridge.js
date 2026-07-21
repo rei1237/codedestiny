@@ -369,6 +369,11 @@
 
     try {
       localStorage.setItem("fortune_auth_token", String(result.payload.accessToken));
+      // 앱은 리프레시 쿠키를 못 받는다. 서버가 본문으로 내려준 이 토큰이 없으면
+      // 액세스 토큰(기본 30분) 만료 후 세션을 되살릴 수단이 사라진다.
+      if (result.payload.refreshToken) {
+        localStorage.setItem("fortune_auth_refresh_token", String(result.payload.refreshToken));
+      }
       if (result.payload.user) localStorage.setItem("fortune_auth_user", JSON.stringify(result.payload.user));
     } catch (e) { /* noop */ }
     window.dispatchEvent(new CustomEvent("cd:auth-changed", {

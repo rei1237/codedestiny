@@ -614,6 +614,41 @@ const appHtml = `
 `;
 document.body.insertAdjacentHTML('beforeend', appHtml);
 
+/* 안드로이드 앱에는 CAMERA 권한이 없다(AndroidManifest 는 INTERNET 하나뿐). WebView 의
+   getUserMedia 는 그 권한을 런타임 요청하므로 앱에서는 '라이브 카메라'가 반드시 실패한다 —
+   기본 모드가 카메라라서 관상에 들어오자마자 오류 문구를 보게 된다.
+   앱에서는 탭 자체를 감추고 사진 업로드를 기본으로 둔다. 웹은 그대로다. */
+function isPhysiognomyAppRuntime() {
+  try {
+    if (window.__CODE_DESTINY_RUNTIME_TARGET === 'mobile-app') return true;
+    if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function') {
+      return !!window.Capacitor.isNativePlatform();
+    }
+    return !!window.Capacitor;
+  } catch (e) {
+    return false;
+  }
+}
+
+if (isPhysiognomyAppRuntime()) {
+  currentMode = 'file';
+  const cameraTab = document.getElementById('btnModeCamera');
+  const fileTab = document.getElementById('btnModeFile');
+  const fileUploadContainer = document.getElementById('fileUploadContainer');
+  const videoEl = document.getElementById('phyVideo');
+  const imageEl = document.getElementById('phyImage');
+  if (cameraTab) {
+    cameraTab.style.display = 'none';
+    cameraTab.classList.remove('active');
+  }
+  if (fileTab) fileTab.classList.add('active');
+  // switchMode('file') 의 표시 상태와 같게 맞춘다 — videoContainer 를 통째로 숨기면
+  // 업로드한 사진 미리보기(#phyImage)와 스캔 오버레이까지 사라진다.
+  if (fileUploadContainer) fileUploadContainer.style.display = 'block';
+  if (videoEl) videoEl.style.display = 'none';
+  if (imageEl) imageEl.style.display = 'block';
+}
+
 function getEl(id) {
   return document.getElementById(id);
 }
