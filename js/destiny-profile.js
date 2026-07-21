@@ -3903,6 +3903,9 @@
       })
       .then(function(d) {
         if (!d) return;
+        // DB 일시오류 시 서버는 degraded 스냅샷(tier:"free")을 준다. 이걸 그대로 믿으면
+        // 이용권 보유자가 무료로 확정 저장돼 프로필 추가에 결제창이 뜬다 — 이전 값을 유지한다.
+        if (d.degraded === true) return;
         var tier = _dpNormalizeTier(d.tier);
         var active = !!d.isActive && tier !== 'free';
         var rawLimit = _dpReadProfileLimitValue(d);
@@ -4797,8 +4800,16 @@
   ═══════════════════════════════════════════════════════════════ */
   var CD_LEVEL_KEY = 'cd_level_v1';
   var CD_LEVEL_LEGACY_PREFIX = 'cd_rpg_local_progress_v20260617';
-  var CD_LEVEL_BASE_EXP = 100;
-  var CD_LEVEL_GROWTH = 25;
+  /* 레벨 곡선은 서버(worker/routes/rpg.js)와 같은 식을 써야 로그인 전후로 레벨이 튀지 않는다.
+     expToNext(n) = min(200 + 100 × (n-1), 1500) — 초반은 가파르고, 후반은 상한으로 만렙(99)을 열어둔다. */
+  var CD_LEVEL_BASE_EXP = 200;
+  var CD_LEVEL_GROWTH = 100;
+  var CD_LEVEL_STEP_CAP = 1500;
+  var CD_LEVEL_MAX = 99;
+  // 곡선을 바꿀 때마다 올린다. 이전 곡선(레벨당 100 + 25×(n-1))으로 얻은 레벨을 보존하는 데 쓴다.
+  var CD_LEVEL_CURVE_VERSION = 2;
+  var CD_LEVEL_PREV_BASE_EXP = 100;
+  var CD_LEVEL_PREV_GROWTH = 25;
   var CD_LEVEL_DAY_RETENTION = 14;
   var CD_LEVEL_SYNC_COOLDOWN_MS = 60000;
   var CD_LEVEL_ADOPT_CAP = 5000;
@@ -4832,17 +4843,21 @@
 
   function _cdLevelExpToNext(level) {
     var safe = Math.max(1, Number(level) || 1);
-    return CD_LEVEL_BASE_EXP + (safe - 1) * CD_LEVEL_GROWTH;
+    return Math.min(CD_LEVEL_BASE_EXP + (safe - 1) * CD_LEVEL_GROWTH, CD_LEVEL_STEP_CAP);
   }
 
   /* 누적 EXP → 레벨 상태. 서버 calculateLevelState()와 결과가 일치해야 한다. */
   function _cdLevelState(totalExp) {
     var remaining = Math.max(0, Number(totalExp) || 0);
     var level = 1;
-    while (remaining >= _cdLevelExpToNext(level)) {
+    while (level < CD_LEVEL_MAX && remaining >= _cdLevelExpToNext(level)) {
       remaining -= _cdLevelExpToNext(level);
       level += 1;
-      if (level >= 999) break;
+    }
+    // 만렙에서는 바를 가득 찬 상태로 둔다(다음 레벨이 없다).
+    if (level >= CD_LEVEL_MAX) {
+      level = CD_LEVEL_MAX;
+      remaining = Math.min(remaining, _cdLevelExpToNext(CD_LEVEL_MAX));
     }
     return {
       currentLevel: level,
@@ -4879,7 +4894,8 @@
       lastSyncedDate: '',
       days: {},
       adopted: false,
-      legacyMerged: false
+      legacyMerged: false,
+      curveVersion: CD_LEVEL_CURVE_VERSION
     };
   }
 
@@ -4893,6 +4909,22 @@
     store.lastSyncedDate = String(raw.lastSyncedDate || '');
     store.adopted = !!raw.adopted;
     store.legacyMerged = !!raw.legacyMerged;
+    store.curveVersion = Math.max(0, Number(raw.curveVersion) || 0);
+    /* 곡선이 바뀌면 같은 누적 EXP 가 더 낮은 레벨로 읽힌다. 눈앞에서 레벨이 내려가는 건
+       사용자 입장에서 손해이므로, 이전 곡선으로 계산한 레벨을 유지하는 최소 EXP 로 한 번만 올린다.
+       (EXP 를 깎는 방향으로는 절대 움직이지 않는다.) */
+    if (store.curveVersion < CD_LEVEL_CURVE_VERSION && store.totalExp > 0) {
+      var priorLevel = 1;
+      var left = store.totalExp;
+      while (priorLevel < CD_LEVEL_MAX) {
+        var step = CD_LEVEL_PREV_BASE_EXP + (priorLevel - 1) * CD_LEVEL_PREV_GROWTH;
+        if (left < step) break;
+        left -= step;
+        priorLevel += 1;
+      }
+      store.totalExp = Math.max(store.totalExp, _cdLevelMinExpForLevel(priorLevel));
+    }
+    store.curveVersion = CD_LEVEL_CURVE_VERSION;
     if (raw.days && typeof raw.days === 'object') {
       /* 날짜 항목이 무한히 쌓이면 localStorage 쿼터를 밀어내므로 최근분만 남긴다. */
       var keys = Object.keys(raw.days).sort().slice(-CD_LEVEL_DAY_RETENTION);

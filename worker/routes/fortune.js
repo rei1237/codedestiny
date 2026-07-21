@@ -4989,31 +4989,79 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   }
 }
 
+/* 구독 상태는 페이지 로드마다 자동으로 조회된다. 유저별 몇 초 캐시로 그 버스트를 collapse 해
+   Mongo 왕복을 없앤다 — 이 왕복이 실패할 때마다 degraded 응답이 나가기 때문이다.
+   (billing.js 의 billingBalanceCache 와 같은 패턴: globalThis 공유, 정상 응답만 저장.) */
+const SUBSCRIPTION_STATUS_CACHE_TTL_MS = 5000;
+const SUBSCRIPTION_STATUS_CACHE_MAX_ENTRIES = 2500;
+const subscriptionStatusCache = globalThis.__subscriptionStatusCache
+  || (globalThis.__subscriptionStatusCache = { entries: new Map(), lastPruneAt: 0 });
+
+function readSubscriptionStatusFromCache(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return null;
+  const entry = subscriptionStatusCache.entries.get(uid);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    subscriptionStatusCache.entries.delete(uid);
+    return null;
+  }
+  return entry.payload || null;
+}
+
+function writeSubscriptionStatusToCache(userId, payload) {
+  const uid = String(userId || "").trim();
+  if (!uid || !payload) return payload;
+  const now = Date.now();
+  if (subscriptionStatusCache.lastPruneAt + 2000 < now) {
+    subscriptionStatusCache.lastPruneAt = now;
+    for (const [key, entry] of subscriptionStatusCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) subscriptionStatusCache.entries.delete(key);
+    }
+  }
+  if (subscriptionStatusCache.entries.size > SUBSCRIPTION_STATUS_CACHE_MAX_ENTRIES) {
+    const earliestKey = subscriptionStatusCache.entries.keys().next().value;
+    if (earliestKey) subscriptionStatusCache.entries.delete(earliestKey);
+  }
+  subscriptionStatusCache.entries.set(uid, {
+    payload,
+    expiresAt: now + Math.max(1000, Math.floor(SUBSCRIPTION_STATUS_CACHE_TTL_MS)),
+  });
+  return payload;
+}
+
+// 구독 상태 판정에 필요한 User 필드. 라우트가 인증 단계에서 이 projection 으로 문서를 한 번에
+// 받아오면(authUserDoc) 아래 재조회를 건너뛸 수 있다 — 같은 문서를 두 번 읽던 왕복을 없앤다.
+const SUBSCRIPTION_STATUS_USER_PROJECTION = {
+  points: 1,
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  has_started_paid_service: 1,
+  first_service_access_date: 1,
+};
+
 async function handleSubscriptionStatus(request, env, auth) {
-  // 일시적 풀 초기화에도 구독/이용권 상태를 정확히 반환하도록 초기 조회를 재시도로 감싼다.
+  // 인증 단계가 이미 같은 문서를 읽어 붙여줬으면 그걸 쓴다(Mongo 왕복 1회 절약).
+  // 붙지 않는 경로(refresh/admin/dev 폴백)에서는 종전대로 직접 조회한다.
+  // 일시적 풀 초기화에도 구독/이용권 상태를 정확히 반환하도록 그 조회는 재시도로 감싼다.
   // (자동갱신 write는 아래 낙관적 동시성 가드가 이중 차감을 막으므로 read만 재시도한다.)
-  const user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
-    points: 1,
-    profileSubscription: 1,
-    subscription: 1,
-    membership: 1,
-    pass: 1,
-    entitlement: 1,
-    plan: 1,
-    planId: 1,
-    productId: 1,
-    subscriptionTier: 1,
-    membershipTier: 1,
-    passTier: 1,
-    status: 1,
-    subscriptionStatus: 1,
-    membershipStatus: 1,
-    isActive: 1,
-    isSubscribed: 1,
-    expiresAt: 1,
-    has_started_paid_service: 1,
-    first_service_access_date: 1,
-  }));
+  const user = auth?.authUserDoc
+    || await withMongoRetry(env, () => findUserByIdRaw(auth.userId, SUBSCRIPTION_STATUS_USER_PROJECTION));
 
   if (!user) {
     const policy = getPlanPolicy(null);
@@ -5226,7 +5274,13 @@ function buildDbFallbackSubscriptionStatus(auth, error) {
       code: error?.code || "DB_FALLBACK",
       message: String(error?.message || "Unknown DB error"),
     },
-  }, { status: 503 });
+    // 200 + degraded:true 로 내려보낸다. 이 응답은 "구독 없음"이 아니라 "지금은 확인 못 함"이며,
+    // 소비자들은 degraded 를 보고 기존 값을 유지하도록 만들어져 있다(app/_lib/auth-store.ts 의
+    // refreshProfileSubscriptionCache 주석이 이 계약을 명시한다).
+    // 503 으로 내리면 클라이언트가 응답 본문을 읽기도 전에 !response.ok 에서 끊겨 그 처리에
+    // 도달하지 못하고, 사용자에게 아무 이득 없이 콘솔 에러만 남는다. 이 호출은 전부
+    // 페이지 로드 시 자동으로 나가는 백그라운드 동기화다.
+  }, { status: 200 });
 }
 
 function handlePigCoinPrices() {
@@ -5498,9 +5552,24 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
 
     if (method === "GET" && (path === "/pig-coin/balance" || path === "/pig-coin/profile-subscription/status" || path === "/pig-coin/subscription/status" || path === "/pig-coin/profile-subscription/me")) {
       const isBalanceRoute = path === "/pig-coin/balance";
+
+      // 이 엔드포인트는 페이지 로드마다 자동으로 불린다. 유저별 몇 초 캐시로 버스트를 collapse 해
+      // Mongo 왕복 자체를 없앤다(캐시 키는 로컬 JWT 검증만으로 만들어 Mongo 0회).
+      const statusCacheUserId = isBalanceRoute
+        ? ""
+        : await peekAccessTokenUserId(request, env).catch(() => "");
+      if (statusCacheUserId) {
+        const cachedStatus = readSubscriptionStatusFromCache(statusCacheUserId);
+        if (cachedStatus) return json(cachedStatus);
+      }
+
       let auth;
       try {
-        auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true });
+        auth = await getOptionalUserFromRequest(request, env, {
+          allowDbFallback: true,
+          // 구독 경로는 인증 조회에서 필요한 필드를 함께 받아 뒤의 재조회를 없앤다.
+          userProjection: isBalanceRoute ? null : SUBSCRIPTION_STATUS_USER_PROJECTION,
+        });
       } catch (error) {
         if (isAuthDbInfraError(error)) {
           return isBalanceRoute ? buildDbFallbackBalance(null, error) : buildDbFallbackSubscriptionStatus(null, error);
@@ -5514,7 +5583,15 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       trace.authVerified = true;
       try {
         if (isBalanceRoute) return await handleBalance(auth, env);
-        return await handleSubscriptionStatus(request, env, auth);
+        const statusResponse = await handleSubscriptionStatus(request, env, auth);
+        // 정상 응답만 캐시한다. degraded 는 "확인 실패"라 캐시하면 복구 후에도 재생된다.
+        if (statusCacheUserId && statusResponse?.status === 200) {
+          try {
+            const payload = await statusResponse.clone().json();
+            if (payload && payload.degraded !== true) writeSubscriptionStatusToCache(statusCacheUserId, payload);
+          } catch (_cacheErr) {}
+        }
+        return statusResponse;
       } catch (error) {
         if (isBalanceRoute) return buildDbFallbackBalance(auth, error);
         return buildDbFallbackSubscriptionStatus(auth, error);

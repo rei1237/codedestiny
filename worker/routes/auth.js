@@ -3260,6 +3260,16 @@ async function handleKakaoReferralShare(request, env) {
   const referralShareToken = await signReferralShareToken(user._id, referralCode, env);
   const shareUrl = buildReferralShareUrl(request, env, referralCode, referralShareToken);
 
+  /* 공유 링크를 실제로 만든 사건을 서버가 직접 보고 EXP 를 적립한다(하루 1회).
+     클라이언트 신고를 받지 않는 이유는 EXP 가 레벨 마일스톤을 통해 월정석으로 이어지기 때문이다.
+     적립 실패가 공유 자체를 막으면 안 되므로 조용히 삼킨다. */
+  try {
+    const { grantRpgExpForServerEvent } = await import("./rpg.js");
+    await grantRpgExpForServerEvent(env, user._id, "share", "kakao");
+  } catch (rpgError) {
+    console.warn("[Referral][ShareExpSkipped]", { message: String(rpgError?.message || rpgError || "") });
+  }
+
   return json({
     ok: true,
     referralCode,

@@ -268,6 +268,17 @@ function updateStatus(kind: CacheKind, status: UserAccessSnapshot["profileStatus
 function rememberResponse(key: string, response: Response, url: string, kind: CacheKind, userKey: string) {
   if (!response.ok) return;
   void response.clone().text().then((body) => {
+    // degraded 응답은 "확인 실패"지 확정 상태가 아니다. 캐시에 넣으면 DB가 복구된 뒤에도
+    // TTL 동안 무료 등급이 재생돼, degraded 를 안 보는 소비자의 오염 창이 넓어진다.
+    try {
+      const parsed = body ? (JSON.parse(body) as { degraded?: boolean } | null) : null;
+      if (parsed && parsed.degraded === true) {
+        updateStatus(kind, "idle", null);
+        return;
+      }
+    } catch {
+      // JSON 이 아니면 그대로 캐시한다.
+    }
     const now = Date.now();
     cache.set(key, {
       body,

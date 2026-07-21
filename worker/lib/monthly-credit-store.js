@@ -107,3 +107,10 @@ export async function restoreMonthlyCreditLot({
   }
   return null;
 }
+
+// 이벤트/보상 지급: 새 30일 lot을 적립한다. restoreMonthlyCreditLot 과 회계가 같지만
+// 환불이 아니라 신규 지급이므로 membershipCreditUsed 를 되돌리지 않는다(decrementUsed:false).
+// lotId 로 멱등하므로 같은 보상이 두 번 들어오지 않는다.
+export async function grantMonthlyCreditLot({ userId, lotId, amount } = {}) {
+  return restoreMonthlyCreditLot({ userId, lotId, amount, decrementUsed: false });
+}

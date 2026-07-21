@@ -3,12 +3,14 @@ import { Solar } from "lunar-javascript";
 
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import {
+  Payment,
   ProfileCard,
   User,
   UserDailyQuestLog,
   UserRpgProgress,
   UserRpgRewardLog,
 } from "../lib/models.js";
+import { grantMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { peekAccessTokenUserId, requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
@@ -16,8 +18,15 @@ import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 const KST_DAY_MS = 24 * 60 * 60 * 1000;
 const QUEST_SLOT_ORDER = ["easy-1", "easy-2", "normal-1", "normal-2", "core-1"];
-const BASE_LEVEL_EXP = 100;
-const LEVEL_EXP_GROWTH = 25;
+/* 레벨 곡선. 초반은 가파르게(첫 보상까지 2주), 후반은 상한을 둬 만렙(99)이 실제로 도달 가능하게 한다.
+   expToNext(n) = min(200 + 100 × (n-1), 1500)
+     · Lv.5 누적 1,400 EXP  — 무료 일일치(출석20 + 습관퀘 15×3 + 공유25 = 90)로 약 2주
+     · Lv.99 누적 137,900 EXP — 하루 100 안팎이면 3년대
+   상한이 없으면 99까지 십수 년이 걸려 만렙 보상이 실재하지 않는다. */
+const BASE_LEVEL_EXP = 200;
+const LEVEL_EXP_GROWTH = 100;
+const LEVEL_EXP_STEP_CAP = 1500;
+const MAX_LEVEL = 99;
 const INTERNAL_LEVEL_REWARDS = [
   {
     level: 3,
@@ -82,8 +91,40 @@ const AWARD_RULES = {
   checkin: { exp: 20, dailyLimit: 1, questType: "daily_checkin" },
   quest: { exp: 15, dailyLimit: 3, questType: "daily_habit_quest" },
   paid: { exp: 30, dailyLimit: 3, questType: "paid_feature_view" },
+  // 공유는 서버가 실제 공유 링크 생성 시점에 직접 적립한다(클라 신고를 받지 않는다).
+  share: { exp: 25, dailyLimit: 1, questType: "daily_share", serverOnly: true },
+  // 연속 출석 보너스도 서버가 streakDays 를 보고 스스로 판정해 지급한다.
+  streak: { exp: 0, dailyLimit: 1, questType: "streak_bonus", serverOnly: true },
 };
 const AWARD_LOCAL_ADOPT_CAP = 5000;
+
+/* 연속 출석 보너스. EXP 가 금전 가치를 갖게 되므로 위조 가능한 자기신고가 아니라
+   서버가 관리하는 streakDays 로만 판정한다. 각 단계는 계정당 하루 1회. */
+const STREAK_BONUS_TABLE = [
+  { days: 3, exp: 30 },
+  { days: 7, exp: 70 },
+  { days: 14, exp: 150 },
+  { days: 30, exp: 300 },
+];
+
+/* 레벨 마일스톤 월정석 보상.
+   월정석 1개 = 10원(KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)이고 지급 후 30일이면 소멸한다.
+   누적 합계는 정확히 10,000개(=100,000원)이며 아래 상한이 이를 코드로 강제한다. */
+const LEVEL_MONTHLY_CREDIT_REWARDS = [
+  { level: 5, credits: 500 },
+  { level: 10, credits: 500 },
+  { level: 20, credits: 700 },
+  { level: 30, credits: 800 },
+  { level: 50, credits: 1000 },
+  { level: 70, credits: 1500 },
+  { level: 99, credits: 5000 },
+];
+const LEVEL_REWARD_TOTAL_CREDIT_CAP = 10000;
+const LEVEL_REWARD_LOG_TYPE = "monthly_credit_grant";
+/* 다계정 파밍 방어. 레벨은 누구나 올릴 수 있지만 월정석 수령은 이 두 조건을 모두 만족해야 한다.
+   조건을 못 채웠다고 몰수하지 않는다 — 나중에 채우면 밀린 마일스톤을 한꺼번에 준다. */
+const LEVEL_REWARD_MIN_ACCOUNT_AGE_MS = 14 * 24 * 60 * 60 * 1000;
+const LEVEL_REWARD_PAID_STATUSES = ["paid", "success", "fulfilled"];
 
 /* 메인 홈은 이 사이트에서 트래픽이 가장 높은 화면이라, 카드가 쓰지도 않는 값을 곁들여 읽으면
    과거에 이 기능을 로컬 전용으로 되돌리게 만든 것과 같은 종류의 부하가 된다.
@@ -710,10 +751,14 @@ function calculateLevelState(totalExp) {
   let currentLevel = 1;
   let remainingExp = safeTotalExp;
 
-  while (remainingExp >= getExpToNextLevel(currentLevel)) {
+  while (currentLevel < MAX_LEVEL && remainingExp >= getExpToNextLevel(currentLevel)) {
     remainingExp -= getExpToNextLevel(currentLevel);
     currentLevel += 1;
-    if (currentLevel >= 999) break;
+  }
+  // 만렙에서는 남은 EXP 를 더 소진하지 않는다(다음 레벨이 없으므로 바를 가득 찬 상태로 둔다).
+  if (currentLevel >= MAX_LEVEL) {
+    currentLevel = MAX_LEVEL;
+    remainingExp = Math.min(remainingExp, getExpToNextLevel(MAX_LEVEL));
   }
 
   return {
@@ -726,7 +771,16 @@ function calculateLevelState(totalExp) {
 
 function getExpToNextLevel(level) {
   const safeLevel = Math.max(1, toSafeNumber(level, 1));
-  return BASE_LEVEL_EXP + Math.max(0, safeLevel - 1) * LEVEL_EXP_GROWTH;
+  return Math.min(BASE_LEVEL_EXP + Math.max(0, safeLevel - 1) * LEVEL_EXP_GROWTH, LEVEL_EXP_STEP_CAP);
+}
+
+// 해당 레벨에 막 도달하는 최소 누적 EXP. 곡선을 바꿀 때 기존 사용자의 레벨이 내려가 보이지
+// 않도록 재환산하는 데 쓴다(EXP 를 옮기는 게 아니라 레벨을 보존하는 방향으로만 올린다).
+function minExpForLevel(level) {
+  const target = Math.min(MAX_LEVEL, Math.max(1, toSafeNumber(level, 1)));
+  let sum = 0;
+  for (let i = 1; i < target; i += 1) sum += getExpToNextLevel(i);
+  return sum;
 }
 
 function normalizeRewardKeyList(values = []) {
@@ -802,6 +856,88 @@ function buildRewardEvents({
     unlockedSecretFortunes: Array.from(nextSecrets),
     unlockedMilestoneRewards: Array.from(nextMilestones),
   };
+}
+
+/* 월정석 수령 자격: 결제 이력 1회 이상 + 가입 14일 경과.
+   레벨은 누구나 올릴 수 있고, 이 검사는 "지급"에만 건다. */
+async function isEligibleForLevelReward(env, userId) {
+  const user = await withMongoRetry(env, () => User.findById(userId).select("joinedAt createdAt").lean());
+  const joinedAt = new Date(user?.joinedAt || user?.createdAt || 0).getTime();
+  if (!Number.isFinite(joinedAt) || joinedAt <= 0) return { ok: false, reason: "ACCOUNT_AGE_UNKNOWN" };
+  if (Date.now() - joinedAt < LEVEL_REWARD_MIN_ACCOUNT_AGE_MS) return { ok: false, reason: "ACCOUNT_TOO_NEW" };
+
+  const paidCount = await withMongoRetry(env, () => Payment.countDocuments({
+    userId,
+    status: { $in: LEVEL_REWARD_PAID_STATUSES },
+  }).limit(1));
+  if (!paidCount) return { ok: false, reason: "NO_PAYMENT_HISTORY" };
+  return { ok: true, reason: "OK" };
+}
+
+/* 도달한 마일스톤을 정산한다. 자격 미달이면 아무것도 지급하지 않고 그대로 둔다 —
+   나중에 자격을 채우고 다시 들어오면 밀린 마일스톤이 한꺼번에 나간다(몰수 없음).
+   중복 지급은 UserRpgRewardLog 의 {userId, profileId, rewardType, rewardKey} 유니크 인덱스가 막는다. */
+async function settleLevelMonthlyCreditRewards(env, userId, currentLevel) {
+  const reached = LEVEL_MONTHLY_CREDIT_REWARDS.filter((row) => currentLevel >= row.level);
+  if (!reached.length) return { granted: [], pending: [], reason: "NO_MILESTONE" };
+
+  const alreadyLogged = await withMongoRetry(env, () => UserRpgRewardLog.find({
+    userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+    rewardType: LEVEL_REWARD_LOG_TYPE,
+  }).select("rewardKey meta").lean());
+  const grantedKeys = new Set(alreadyLogged.map((row) => String(row.rewardKey || "")));
+  const outstanding = reached.filter((row) => !grantedKeys.has(`level_${row.level}`));
+  if (!outstanding.length) return { granted: [], pending: [], reason: "ALREADY_SETTLED" };
+
+  const eligibility = await isEligibleForLevelReward(env, userId);
+  if (!eligibility.ok) {
+    return { granted: [], pending: outstanding.map((row) => row.level), reason: eligibility.reason };
+  }
+
+  // 계정당 누적 지급 상한. 이미 나간 금액을 합산해 남은 여유 안에서만 지급한다.
+  const alreadyGrantedCredits = alreadyLogged.reduce((sum, row) => sum + toSafeNumber(row?.meta?.credits, 0), 0);
+  let remainingCap = Math.max(0, LEVEL_REWARD_TOTAL_CREDIT_CAP - alreadyGrantedCredits);
+
+  const granted = [];
+  for (const row of outstanding) {
+    if (remainingCap < row.credits) break;
+    const rewardKey = `level_${row.level}`;
+    try {
+      // 먼저 원장을 남긴다. 여기서 E11000 이면 다른 요청이 이미 지급한 것이므로 건너뛴다.
+      await UserRpgRewardLog.create([{
+        userId,
+        profileId: ACCOUNT_PROFILE_SCOPE,
+        rewardType: LEVEL_REWARD_LOG_TYPE,
+        rewardKey,
+        level: row.level,
+        idempotencyKey: `${ACCOUNT_PROFILE_SCOPE}:${LEVEL_REWARD_LOG_TYPE}:${rewardKey}`,
+        meta: { credits: row.credits, krw: row.credits * 10 },
+      }]);
+    } catch (error) {
+      if (String(error?.code || error?.message || "").includes("11000")) continue;
+      throw error;
+    }
+    const applied = await grantMonthlyCreditLot({
+      userId,
+      lotId: `rpg-${rewardKey}`,
+      amount: row.credits,
+    });
+    if (!applied) {
+      // 원장은 남았는데 적립이 실패했다 — 원장을 되돌려 다음 호출에서 다시 시도하게 한다.
+      await UserRpgRewardLog.deleteOne({
+        userId,
+        profileId: ACCOUNT_PROFILE_SCOPE,
+        rewardType: LEVEL_REWARD_LOG_TYPE,
+        rewardKey,
+      }).catch(() => {});
+      break;
+    }
+    remainingCap -= row.credits;
+    granted.push({ level: row.level, credits: row.credits, krw: row.credits * 10 });
+  }
+
+  return { granted, pending: [], reason: granted.length ? "GRANTED" : "CAP_REACHED" };
 }
 
 async function ensureRpgIndexes() {
@@ -1271,14 +1407,29 @@ async function awardRpgExp(request, env) {
   const body = await readJson(request);
   const kind = toSafeString(body?.kind, 20);
   const rule = AWARD_RULES[kind];
-  if (!rule) {
+  // serverOnly 종류(공유·연속출석)는 서버가 실제 사건을 보고 직접 적립한다.
+  // EXP 가 월정석으로 환산되므로 이 둘만은 자기신고를 받지 않는다.
+  if (!rule || rule.serverOnly === true) {
     return json({ ok: false, message: "허용되지 않은 적립 종류입니다." }, { status: 400 });
   }
 
+  const result = await applyRpgAward(env, auth.userId, kind, toSafeString(body?.key, 80));
+  return json(result.body, { status: result.status || 200 });
+}
+
+/* EXP 적립의 단일 구현. HTTP 핸들러(자기신고 가능한 종류)와 서버 내부 이벤트(공유·연속출석)가
+   모두 이 경로를 지난다 — 하루 한도·멱등·레벨업·월정석 정산이 한 곳에만 있게 하기 위함이다. */
+async function applyRpgAward(env, userId, kind, rawKey = "", expOverride = null) {
+  const baseRule = AWARD_RULES[kind];
+  if (!baseRule) return { status: 400, body: { ok: false, message: "허용되지 않은 적립 종류입니다." } };
+  // 연속 출석은 단계마다 EXP 가 달라 표에서 받아온다. 그 외에는 화이트리스트 값만 쓴다.
+  const rule = expOverride == null ? baseRule : { ...baseRule, exp: Math.max(0, toSafeNumber(expOverride, 0)) };
+
   const dateKey = kstDateKey();
-  const awardKey = toSafeString(body?.key, 80) || dateKey;
+  const awardKey = toSafeString(rawKey, 80) || dateKey;
   const questId = `${kind}:${awardKey}`;
   const now = new Date();
+  const auth = { userId };
 
   const progress = await withMongoRetry(env, () => loadRpgProgress(auth.userId, ACCOUNT_PROFILE_SCOPE));
   const sameKindLogs = await withMongoRetry(env, () => UserDailyQuestLog.find({
@@ -1290,12 +1441,12 @@ async function awardRpgExp(request, env) {
 
   const alreadyGranted = sameKindLogs.some((log) => String(log.questId || "") === questId);
   if (alreadyGranted || sameKindLogs.length >= rule.dailyLimit) {
-    return json({
+    return { status: 200, body: {
       ok: true,
       granted: false,
       reason: alreadyGranted ? "ALREADY_GRANTED" : "DAILY_LIMIT_REACHED",
       progress: buildProgressResponse(progress),
-    });
+    } };
   }
 
   try {
@@ -1313,12 +1464,12 @@ async function awardRpgExp(request, env) {
     }]);
   } catch (error) {
     if (String(error?.code || error?.message || "").includes("11000")) {
-      return json({
+      return { status: 200, body: {
         ok: true,
         granted: false,
         reason: "ALREADY_GRANTED",
         progress: buildProgressResponse(progress),
-      });
+      } };
     }
     throw error;
   }
@@ -1361,14 +1512,46 @@ async function awardRpgExp(request, env) {
   }).lean());
   invalidateRpgProgressCacheForUser(auth.userId);
 
-  return json({
+  /* 연속 출석이 새 단계를 넘었으면 그 보너스를 서버가 스스로 얹는다.
+     streakDays 는 서버가 관리하므로 클라이언트가 흉내낼 수 없다. */
+  let streakBonus = null;
+  if (kind === "checkin" && nextStreakDays > prevStreakDays) {
+    const crossed = STREAK_BONUS_TABLE.find((row) => row.days === nextStreakDays);
+    if (crossed) {
+      const bonus = await applyRpgAward(env, auth.userId, "streak", `d${crossed.days}`, crossed.exp);
+      if (bonus?.body?.granted) streakBonus = { days: crossed.days, exp: crossed.exp };
+    }
+  }
+
+  const finalProgress = await withMongoRetry(env, () => UserRpgProgress.findOne({
+    userId: auth.userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+  }).lean());
+  const finalLevel = calculateLevelState(finalProgress?.totalExp || 0).currentLevel;
+
+  /* 마일스톤 월정석은 레벨이 올랐을 때만 정산한다(매 적립마다 결제 이력을 조회하지 않도록).
+     지급 실패는 적립 자체를 되돌리지 않는다 — 다음 레벨업 때 밀린 분이 다시 시도된다. */
+  let rewardGrants = [];
+  if (finalLevel > prevLevel) {
+    try {
+      const settled = await settleLevelMonthlyCreditRewards(env, auth.userId, finalLevel);
+      rewardGrants = settled.granted || [];
+      if (rewardGrants.length) invalidateRpgProgressCacheForUser(auth.userId);
+    } catch (error) {
+      console.warn("[RPG][LevelRewardSettleFailed]", { message: String(error?.message || error || "") });
+    }
+  }
+
+  return { status: 200, body: {
     ok: true,
     granted: true,
     kind,
     gainedExp: rule.exp,
-    leveledUp: nextState.currentLevel > prevLevel,
-    progress: buildProgressResponse(refreshed || progress),
-  });
+    leveledUp: finalLevel > prevLevel,
+    streakBonus,
+    monthlyCreditGrants: rewardGrants,
+    progress: buildProgressResponse(finalProgress || refreshed || progress),
+  } };
 }
 
 /* 비로그인 상태에서 이 기기에 쌓인 진행분을 로그인 계정으로 한 번만 옮긴다.
@@ -1446,6 +1629,16 @@ async function adoptLocalRpgProgress(request, env) {
       ),
     }),
   });
+}
+
+/* 서버가 스스로 확인한 사건(카카오 공유 링크 생성 등)에 EXP 를 적립하는 통로.
+   HTTP 라우트를 거치지 않으므로 자기신고가 아니며, 실패해도 원래 기능을 막지 않는다. */
+export async function grantRpgExpForServerEvent(env, userId, kind, awardKey = "") {
+  const rule = AWARD_RULES[kind];
+  if (!rule || rule.serverOnly !== true || !userId) return null;
+  await connectDb(env);
+  await ensureRpgIndexes();
+  return applyRpgAward(env, userId, kind, awardKey);
 }
 
 export async function handleRpgRoutes(request, env) {

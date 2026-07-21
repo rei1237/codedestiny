@@ -4672,6 +4672,8 @@ async function handleFeatures(request) {
 async function handleBillingSnapshotBalance(request, env) {
   const billingUrl = new URL(request.url);
   const isMoonlightStoneRequest = billingUrl.searchParams.get("moonlightStone") === "1";
+  // 페이지 로드 시 자동으로 도는 프리페치가 스스로를 밝히는 표시. 사용자가 연 모달·재조회와 구분한다.
+  const isBackgroundRequest = billingUrl.searchParams.get("background") === "1";
   const isCompactRequest = billingUrl.searchParams.get("compact") === "1" || isMoonlightStoneRequest;
   const seedLegacyCredit = billingUrl.searchParams.get("seedLegacyCredit") === "1" ? true : billingUrl.searchParams.get("seedLegacyCredit") === "0" ? false : !isCompactRequest;
   const includeUnlocks = !isCompactRequest;
@@ -4704,7 +4706,9 @@ async function handleBillingSnapshotBalance(request, env) {
     // 모달/재조회 경로(?moonlightStone=1)는 조회 실패를 '잔량 0'으로 오인하지 않도록 503으로 표면화한다
     // (클라가 '확인 필요 · 재조회'로 처리). 일반 /balance 호출은 기존처럼 200+degraded 폴백을 유지해
     // fetchBillingBalance·MeClient·PointsClient 등 다른 소비자에 회귀를 주지 않는다.
-    if (isMoonlightStoneRequest) {
+    // 단, 페이지 로드 시 자동으로 도는 프리페치(background=1)는 예외다 — 사용자가 요청하지도 않은
+    // 조회라 503으로 알릴 대상이 없고, 콘솔 에러만 남는다. 클라는 degraded 를 이미 처리한다.
+    if (isMoonlightStoneRequest && !isBackgroundRequest) {
       return failure(
         503,
         "BALANCE_SNAPSHOT_UNAVAILABLE",

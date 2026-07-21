@@ -34,20 +34,28 @@ assert.ok(CDLevel, "window.CDLevel 미노출");
 
 console.log("=== 프로필 카드 레벨 시스템 스모크 ===");
 
-// [1] 레벨 곡선이 서버 공식(100 + 25*(n-1))과 일치하는가
-assert.equal(CDLevel.expToNext(1), 100);
-assert.equal(CDLevel.expToNext(2), 125);
-assert.equal(CDLevel.expToNext(7), 250);
+// [1] 레벨 곡선이 서버 공식 min(200 + 100*(n-1), 1500) 과 일치하는가
+assert.equal(CDLevel.expToNext(1), 200);
+assert.equal(CDLevel.expToNext(2), 300);
+assert.equal(CDLevel.expToNext(13), 1400);
+assert.equal(CDLevel.expToNext(14), 1500, "14레벨부터는 상한 1500 고정");
+assert.equal(CDLevel.expToNext(98), 1500);
 assert.equal(CDLevel.levelState(0).currentLevel, 1);
-assert.equal(CDLevel.levelState(99).currentLevel, 1);
-assert.equal(CDLevel.levelState(100).currentLevel, 2);
-assert.equal(CDLevel.levelState(224).currentLevel, 2);
-assert.equal(CDLevel.levelState(225).currentLevel, 3);
-const s = CDLevel.levelState(260);
+assert.equal(CDLevel.levelState(199).currentLevel, 1);
+assert.equal(CDLevel.levelState(200).currentLevel, 2);
+assert.equal(CDLevel.levelState(499).currentLevel, 2);
+assert.equal(CDLevel.levelState(500).currentLevel, 3);
+const s = CDLevel.levelState(560);
 assert.equal(s.currentLevel, 3);
-assert.equal(s.currentLevelExp, 35);
-assert.equal(s.nextLevelExp, 150);
-console.log("[1] 레벨 곡선 서버 일치 OK");
+assert.equal(s.currentLevelExp, 60);
+assert.equal(s.nextLevelExp, 400);
+
+// 사용자와 약속한 두 지점: Lv.5 는 2주치, Lv.99 는 만렙
+assert.equal(CDLevel.minExpForLevel(5), 1400, "Lv.5 누적은 1,400 EXP(무료 일일 90 기준 약 2주)");
+assert.equal(CDLevel.minExpForLevel(99), 137900, "Lv.99 누적은 137,900 EXP");
+// 만렙을 넘겨도 레벨이 더 오르지 않는다
+assert.equal(CDLevel.levelState(999999).currentLevel, 99, "만렙은 99에서 멈춘다");
+console.log("[1] 레벨 곡선 서버 일치 + 만렙 상한 OK");
 
 // [2] minExpForLevel 역함수 정합
 for (let lv = 1; lv <= 12; lv += 1) {
@@ -126,16 +134,30 @@ const workerSource = readFileSync(`${root}/worker/routes/rpg.js`, "utf8");
 assert.ok(workerSource.includes('const ACCOUNT_PROFILE_SCOPE = "__account__";'), "계정 스코프 상수 누락");
 assert.ok(workerSource.includes('path === "/award"'), "/api/rpg/award 라우트 누락");
 assert.ok(workerSource.includes('path === "/adopt"'), "/api/rpg/adopt 라우트 누락");
+// 클라이언트가 스스로 신고할 수 있는 종류만 양쪽 값이 같아야 한다.
 for (const [kind, exp, limit] of [["checkin", 20, 1], ["quest", 15, 3], ["paid", 30, 3]]) {
   const serverRule = new RegExp(`${kind}:\\s*\\{\\s*exp:\\s*${exp},\\s*dailyLimit:\\s*${limit}`);
   assert.match(workerSource, serverRule, `서버 AWARD_RULES.${kind} 값 불일치`);
   assert.match(source, serverRule, `클라 CD_LEVEL_AWARD.${kind} 값 불일치`);
 }
+
+// 공유·연속출석은 서버가 사건을 직접 보고 적립한다.
+// EXP 가 월정석으로 이어지므로 이 둘이 클라 화이트리스트에 있으면 자기신고 창구가 열린다.
+assert.match(workerSource, /share:\s*\{\s*exp:\s*25,\s*dailyLimit:\s*1[^}]*serverOnly:\s*true/, "서버 share 규칙이 serverOnly가 아님");
+assert.match(workerSource, /streak:\s*\{[^}]*serverOnly:\s*true/, "서버 streak 규칙이 serverOnly가 아님");
+assert.ok(workerSource.includes("rule.serverOnly === true"), "HTTP 핸들러가 serverOnly 종류를 거부하지 않음");
+const clientAwardTable = source.slice(source.indexOf("var CD_LEVEL_AWARD"), source.indexOf("var CD_LEVEL_QUEST_POOL"));
+assert.ok(!clientAwardTable.includes("share:"), "클라 화이트리스트에 share가 노출됨(자기신고 가능해짐)");
+assert.ok(!clientAwardTable.includes("streak:"), "클라 화이트리스트에 streak가 노출됨");
 // 레벨 곡선 상수는 두 파일이 같은 값을 써야 한다(어긋나면 로그인 전후로 레벨이 튄다)
-assert.ok(workerSource.includes("const BASE_LEVEL_EXP = 100;"), "서버 BASE_LEVEL_EXP 변경됨");
-assert.ok(workerSource.includes("const LEVEL_EXP_GROWTH = 25;"), "서버 LEVEL_EXP_GROWTH 변경됨");
-assert.ok(source.includes("var CD_LEVEL_BASE_EXP = 100;"), "클라 곡선 상수 불일치");
-assert.ok(source.includes("var CD_LEVEL_GROWTH = 25;"), "클라 곡선 상수 불일치");
+assert.ok(workerSource.includes("const BASE_LEVEL_EXP = 200;"), "서버 BASE_LEVEL_EXP 변경됨");
+assert.ok(workerSource.includes("const LEVEL_EXP_GROWTH = 100;"), "서버 LEVEL_EXP_GROWTH 변경됨");
+assert.ok(workerSource.includes("const LEVEL_EXP_STEP_CAP = 1500;"), "서버 곡선 상한 변경됨");
+assert.ok(workerSource.includes("const MAX_LEVEL = 99;"), "서버 만렙 상수 변경됨");
+assert.ok(source.includes("var CD_LEVEL_BASE_EXP = 200;"), "클라 곡선 상수 불일치");
+assert.ok(source.includes("var CD_LEVEL_GROWTH = 100;"), "클라 곡선 상수 불일치");
+assert.ok(source.includes("var CD_LEVEL_STEP_CAP = 1500;"), "클라 곡선 상한 불일치");
+assert.ok(source.includes("var CD_LEVEL_MAX = 99;"), "클라 만렙 상수 불일치");
 console.log("[9] 클라↔서버 지급 규칙·곡선 상수 일치 OK");
 
 // [10] 결제 경로 무침투 — EXP는 재화가 아니므로 RPG 라우트가 결제/차감 모듈을 건드리면 안 된다
@@ -218,5 +240,54 @@ assert.ok(!source.includes("'/api/rpg/status'"), "클라가 아직 무거운 /st
 assert.ok(source.includes("lastSyncedDate"), "하루 1회 동기화 가드가 없습니다.");
 assert.ok(source.includes("requestIdleCallback"), "동기화가 첫 페인트 이후로 미뤄지지 않습니다.");
 console.log("[13] 홈 서버 왕복 경량 계약(1 read + 캐시 + 하루 1회) OK");
+
+// [14] 레벨 마일스톤 월정석 보상 — 금액이 실제 돈이라 표와 상한을 코드로 고정한다.
+const rewardTable = workerSource.slice(
+  workerSource.indexOf("const LEVEL_MONTHLY_CREDIT_REWARDS"),
+  workerSource.indexOf("const LEVEL_REWARD_TOTAL_CREDIT_CAP"),
+);
+const rewardRows = Array.from(rewardTable.matchAll(/level:\s*(\d+),\s*credits:\s*(\d+)/g))
+  .map((m) => ({ level: Number(m[1]), credits: Number(m[2]) }));
+assert.equal(rewardRows.length, 7, "마일스톤 개수가 바뀌었습니다");
+assert.deepEqual(
+  rewardRows.find((r) => r.level === 5),
+  { level: 5, credits: 500 },
+  "Lv.5 보상은 500 월정석(=5,000원)이어야 합니다",
+);
+assert.deepEqual(
+  rewardRows.find((r) => r.level === 99),
+  { level: 99, credits: 5000 },
+  "Lv.99 보상은 5,000 월정석(=50,000원)이어야 합니다",
+);
+// 월정석 1개 = 10원 (KRW_PER_COIN 100 ÷ MEMBERSHIP_CREDIT_PER_COIN 10)
+const billingPolicySource = readFileSync(`${root}/worker/lib/billing-policy.js`, "utf8");
+assert.ok(billingPolicySource.includes("KRW_PER_COIN = 100"), "코인 환산 상수가 바뀌었습니다");
+assert.ok(billingPolicySource.includes("MEMBERSHIP_CREDIT_PER_COIN = 10"), "월정석 환산 상수가 바뀌었습니다");
+const totalCredits = rewardRows.reduce((sum, r) => sum + r.credits, 0);
+assert.equal(totalCredits, 10000, `마일스톤 합계가 10,000 월정석(=100,000원)이 아닙니다: ${totalCredits}`);
+assert.ok(
+  workerSource.includes("const LEVEL_REWARD_TOTAL_CREDIT_CAP = 10000;"),
+  "누적 지급 상한이 합계와 어긋납니다",
+);
+
+// 지급 조건(결제 이력 + 가입 14일)이 지급보다 앞에 있어야 한다
+const settleBody = workerSource.slice(
+  workerSource.indexOf("async function settleLevelMonthlyCreditRewards"),
+  workerSource.indexOf("async function ensureRpgIndexes"),
+);
+assert.ok(settleBody.includes("isEligibleForLevelReward"), "지급 자격 검사가 없습니다");
+assert.ok(
+  settleBody.indexOf("isEligibleForLevelReward") < settleBody.indexOf("grantMonthlyCreditLot"),
+  "자격 검사가 지급보다 뒤에 있습니다",
+);
+assert.ok(workerSource.includes("LEVEL_REWARD_MIN_ACCOUNT_AGE_MS = 14 * 24 * 60 * 60 * 1000"), "가입 14일 조건 누락");
+assert.ok(workerSource.includes("Payment.countDocuments"), "결제 이력 조건 누락");
+// 월정석은 오직 이 한 통로로만 나가야 한다
+assert.ok(
+  (workerSource.match(/grantMonthlyCreditLot\(/g) || []).length === 1,
+  "월정석 지급 호출이 여러 곳입니다",
+);
+assert.ok(!workerSource.includes("consumeMonthlyCreditLots"), "RPG 라우트가 월정석 차감을 건드립니다");
+console.log(`[14] 마일스톤 보상 표(합계 ${totalCredits.toLocaleString()} 월정석 = ${(totalCredits * 10).toLocaleString()}원)·조건·상한 OK`);
 
 console.log("\n모든 스모크 검사 통과.\n");

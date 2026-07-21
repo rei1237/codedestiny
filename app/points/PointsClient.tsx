@@ -2993,6 +2993,10 @@ export default function PointsPage() {
       })
       .then((d) => {
         if (!d) return;
+        // DB 일시오류 시 서버는 degraded 스냅샷(tier:"free")을 준다. normalizeSubscriptionStatusFromPayload 는
+        // 이걸 정상 무료 응답과 구분하지 못하므로 여기서 걸러야 한다. 그대로 두면 이용권 카드가 무료로
+        // 뒤집히고, saveSubscriptionSnapshotForUser 가 공용 결제 적격성 캐시까지 오염시킨다.
+        if ((d as { degraded?: boolean }).degraded === true) return;
         const normalizedSubscription = normalizeSubscriptionStatusFromPayload(d);
         if (!normalizedSubscription) {
           saveSubscriptionSnapshotForUser(undefined, { tier: "free", isActive: false, status: "inactive" }, "subscription-status");

@@ -453,6 +453,10 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
             .then((response) => response.ok ? response.json() : null)
             .then((subPayload) => {
               if (!subPayload) return;
+              // 로그인 직후 DB가 일시 불안정하면 서버는 degraded 스냅샷(tier:"free")을 준다.
+              // 그대로 저장하면 방금 로그인한 이용권 보유자가 무료로 기록되고, 이 캐시를 읽는
+              // 하위 화면 전체로 번진다 — 갱신을 건너뛰고 다음 동기화에 맡긴다.
+              if (subPayload.degraded === true) return;
               try {
                 const rawUser = localStorage.getItem("fortune_auth_user") || "{}";
                 const parsedUser = JSON.parse(rawUser);
