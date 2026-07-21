@@ -20,6 +20,10 @@
         <!-- Android 12+ 스플래시 API(및 minSdk24 core-splashscreen 백포트):
              다크 배경 위에 앱버전 로고를 중앙 표시. MainActivity.installSplashScreen() 필요. -->
         <item name="windowSplashScreenBackground">@color/cd_splash_bg</item>
+        <!-- splash_logo.webp(512x512)는 drawable-nodpi/ 에 둔다.
+             density 없는 drawable/ 에 두면 Android 가 mdpi 로 간주해 xxhdpi 기기에서 3배로
+             늘려 첫 프레임이 흐릿하게 나온다. nodpi 는 density 스케일링을 건너뛰므로
+             288dp 아이콘 캔버스까지 1.69배 확대에 그친다. 다른 버킷으로 옮기지 말 것. -->
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
