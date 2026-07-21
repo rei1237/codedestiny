@@ -71,6 +71,13 @@ check("mobile markers are mirrored to public shells", shellMirrors.every((mirror
   const text = read(mirror);
   return includesAll(text, ["cd-mobile-bottom-navigation-v20260701", "cd-mobile-payment-lock-ux-v20260701", "id=\"cdMobileDestinyHub\"", "id=\"cdMobileBottomNav\""]);
 }));
+// 모바일 레이아웃 정본 6블록(cd-appbar-header-toggle-v20260704 등 201개 셀렉터)은
+// html.cd-mobile-runtime.mobile-safe-render 두 클래스를 함께 요구한다. 한쪽만 붙으면
+// mobile-lite.css 가 앱바를 fixed 로 만들어 놓고 그 높이를 비켜주는
+// .cd-mobile-hub__fold{margin-top:62px} 는 적용되지 않아 제목이 앱바 밑에 깔린다.
+check("mobile gate classes are added together in every shell", [files.index, ...shellMirrors].every((shell) => (
+  includesAll(read(shell), ["d.classList.add('cd-mobile-runtime','mobile-safe-render')"])
+)));
 
 const failed = checks.filter((entry) => !entry.pass);
 

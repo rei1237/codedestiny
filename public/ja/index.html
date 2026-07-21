@@ -350,7 +350,7 @@
 <link rel="dns-prefetch" href="https://cdn.example.com">
 <link rel="preconnect" href="https://assets.code-destiny.com" crossorigin>
 <!-- 조기 테마·모바일 런타임 클래스 확정 (FOUC 방지: 렌더차단 CSS 이전 · cd-early-runtime-class-hoist-v20260712) -->
-<script>(function(){try{var d=document.documentElement,ua=String(navigator.userAgent||'').toLowerCase(),mm=window.matchMedia;if(localStorage.getItem('fortuneThemeModeStateV1')==='neo')d.classList.add('neo-mode');if((mm&&mm('(max-width: 768px), (hover: none) and (pointer: coarse)').matches)||/android|iphone|ipad|ipod|mobile/i.test(ua)){d.classList.add('cd-mobile-runtime');
+<script>(function(){try{var d=document.documentElement,ua=String(navigator.userAgent||'').toLowerCase(),mm=window.matchMedia;if(localStorage.getItem('fortuneThemeModeStateV1')==='neo')d.classList.add('neo-mode');if((mm&&mm('(max-width: 768px), (hover: none) and (pointer: coarse)').matches)||/android|iphone|ipad|ipod|mobile/i.test(ua)){d.classList.add('cd-mobile-runtime','mobile-safe-render');
 /* 부팅 게이트는 이 세션의 첫 진입에만. 기능 화면에서 뒤로 나오면 셸이 다시 로드되는데,
    그때마다 스플래시가 뜨면 "앱이 매번 다시 켜지는" 느낌이 든다. 세션 플래그로 1회만 띄운다.
    앱을 완전히 종료했다 켜면 세션이 새로 시작되므로 초기 로딩에서는 그대로 보인다.
