@@ -24,6 +24,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { runBillingCoinGate } from "@/app/_lib/billing-client";
+import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { buildAssetsPublicUrl, buildMusicPublicUrl } from "@/lib/r2-public-url";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { allTracks, type ArtistKey, type Track } from "./_data/musicManifest";
@@ -53,11 +54,19 @@ type MusicAccessEntry = {
   audioSourceKey: string;
   featureKey: string;
   hasFullAccess: boolean;
+  canDownload?: boolean;
   audioUrl?: string;
   downloadUrl?: string;
   code?: string;
 };
 type MusicAccessMap = Record<string, MusicAccessEntry>;
+type MusicAccessResponse = {
+  ok?: boolean;
+  passCoversAll?: boolean;
+  tracks?: MusicAccessEntry[];
+  reason?: unknown;
+  retryable?: unknown;
+};
 
 const BANNER_STARS = [
   { cx: 14, cy: 18, r: 1.8, opacity: 0.32, duration: "3s", delay: "0s" },
@@ -69,7 +78,6 @@ const BANNER_STARS = [
   { cx: 57, cy: 72, r: 1.3, opacity: 0.19, duration: "5.6s", delay: "0.5s" },
   { cx: 86, cy: 70, r: 1.1, opacity: 0.3, duration: "6.4s", delay: "1.8s" },
 ];
-const INITIAL_MUSIC_ACCESS_TRACK_COUNT = 12;
 const MOON_COVER_BLUR_DATA_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230a0718'/%3E%3Ccircle cx='15' cy='9' r='7' fill='%239b7fd4' fill-opacity='.32'/%3E%3Ccircle cx='12' cy='11' r='7' fill='%23d4af7a' fill-opacity='.2'/%3E%3C/svg%3E";
 const DEST1NOVA_SECOND_ALBUM_MARKER = /DEST1NOVA\/DEST1NOVA\s*2/;
 const HUMAN_MODE_COVER_KEYS = {
@@ -143,13 +151,21 @@ function triggerTrackDownload(downloadUrl: string, fileName: string) {
   }, 0);
 }
 
-function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap) {
+// passCoversAll: 서버가 "이용권이 전곡을 덮는다"고 알려준 상태. 곡별 확인 없이 전곡을 열어준다.
+function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap, passCoversAll = false) {
   if (track.accessTier === "free_full") return true;
+  if (passCoversAll) return true;
   return Boolean(track.id && accessByTrackId[track.id]?.hasFullAccess);
 }
 
-function buildPlaybackTrack(track: Track, accessByTrackId: MusicAccessMap): Track {
-  if (!hasTrackFullAccess(track, accessByTrackId)) return track;
+// 다운로드는 이용권 커버로 열리지 않는다 — 단건결제·월정석으로 실제 구매한 곡만 파일을 받을 수 있다.
+function canDownloadTrack(track: Track, accessByTrackId: MusicAccessMap) {
+  if (track.accessTier === "free_full") return true;
+  return Boolean(track.id && accessByTrackId[track.id]?.canDownload);
+}
+
+function buildPlaybackTrack(track: Track, accessByTrackId: MusicAccessMap, passCoversAll: boolean): Track {
+  if (!hasTrackFullAccess(track, accessByTrackId, passCoversAll)) return track;
 
   return {
     ...track,
@@ -160,7 +176,7 @@ function buildPlaybackTrack(track: Track, accessByTrackId: MusicAccessMap): Trac
 }
 
 function buildDownloadUrl(track: Track, accessByTrackId: MusicAccessMap) {
-  if (!hasTrackFullAccess(track, accessByTrackId)) return "";
+  if (!canDownloadTrack(track, accessByTrackId)) return "";
   return accessByTrackId[track.id]?.downloadUrl || buildMusicApiUrl("download", track);
 }
 
@@ -170,6 +186,8 @@ function buildFullAccessEntry(track: Track, entry: Partial<MusicAccessEntry> = {
     audioSourceKey: entry.audioSourceKey || track.audioSourceKey,
     featureKey: entry.featureKey || track.purchaseFeatureKey || "",
     hasFullAccess: true,
+    // 이 엔트리는 단건결제/월정석 구매 성공 직후에만 만들어지므로 다운로드까지 열린다.
+    canDownload: true,
     audioUrl: entry.audioUrl || buildMusicApiUrl("audio", track),
     downloadUrl: entry.downloadUrl || buildMusicApiUrl("download", track),
     code: entry.code || "FULL_ACCESS",
@@ -254,8 +272,10 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
     previewBadge: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30",
     fullAccessBadge: "\uc804\uccb4\ub4e3\uae30 \uc5f4\ub9bc",
+    passAccessBadge: "\uc774\uc6a9\uad8c\uc73c\ub85c \uc804\uace1 \uc5f4\ub9bc",
     buyFullTrack: "\uc804\uccb4\ub4e3\uae30 300\uc6d0",
     buyingFullTrack: "\uacb0\uc81c \ud655\uc778 \uc911",
+    buyForDownload: "\ub2e4\uc6b4\ub85c\ub4dc \uad6c\ub9e4 300\uc6d0",
     downloadTrack: "\ub2e4\uc6b4\ub85c\ub4dc",
     previewLimitReached: "40\ucd08 \ubbf8\ub9ac\ub4e3\uae30\uac00 \ub05d\ub0ac\uc2b5\ub2c8\ub2e4.",
     purchaseFailed: "\uacb0\uc81c\ub97c \uc644\ub8cc\ud558\uc9c0 \ubabb\ud588\uc2b5\ub2c8\ub2e4.",
@@ -304,8 +324,10 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
     previewBadge: "40 sec preview",
     fullAccessBadge: "Full track open",
+    passAccessBadge: "Open with your pass",
     buyFullTrack: "Full track 300 KRW",
     buyingFullTrack: "Checking payment",
+    buyForDownload: "Buy to download 300 KRW",
     downloadTrack: "Download",
     previewLimitReached: "The 40 second preview has ended.",
     purchaseFailed: "Payment was not completed.",
@@ -354,8 +376,10 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
     previewBadge: "40 sec preview",
     fullAccessBadge: "Full track open",
+    passAccessBadge: "Open with your pass",
     buyFullTrack: "Full track 300 KRW",
     buyingFullTrack: "Checking payment",
+    buyForDownload: "Buy to download 300 KRW",
     downloadTrack: "Download",
     previewLimitReached: "The 40 second preview has ended.",
     purchaseFailed: "Payment was not completed.",
@@ -540,6 +564,7 @@ type FeaturedTrackCardProps = {
   isPlaying: boolean;
   isSaved: boolean;
   hasFullAccess: boolean;
+  canDownload: boolean;
   isPurchasing: boolean;
   listeningStatusLabel: string;
   copy: ReturnType<typeof getMusicPlayerCopy>;
@@ -564,6 +589,7 @@ function FeaturedTrackCard({
   isPlaying,
   isSaved,
   hasFullAccess,
+  canDownload,
   isPurchasing,
   listeningStatusLabel,
   copy,
@@ -617,7 +643,7 @@ function FeaturedTrackCard({
         <p className={styles.featuredArtist}>{track.artistName}</p>
         <p className={styles.featuredMood}>{track.mood || copy.featuredMood}</p>
         <span className={styles.musicAccessBadge} data-access={hasFullAccess ? "full" : "preview"}>
-          {hasFullAccess ? copy.fullAccessBadge : copy.previewBadge}
+          {hasFullAccess ? (canDownload ? copy.fullAccessBadge : copy.passAccessBadge) : copy.previewBadge}
         </span>
         <MoonWaveform isPlaying={isPlaying} />
         <span className={styles.featuredStatus} aria-live="polite">{listeningStatusLabel}</span>
@@ -638,7 +664,7 @@ function FeaturedTrackCard({
           <Bookmark size={18} aria-hidden />
           <span>{isSaved ? copy.saved : copy.save}</span>
         </button>
-        {isLockedPreview ? (
+        {isLockedPreview || !canDownload ? (
           <button
             className={styles.purchaseTrackButton}
             type="button"
@@ -646,7 +672,7 @@ function FeaturedTrackCard({
             disabled={isPurchasing}
           >
             <Lock size={16} aria-hidden />
-            <span>{isPurchasing ? copy.buyingFullTrack : copy.buyFullTrack}</span>
+            <span>{isPurchasing ? copy.buyingFullTrack : (isLockedPreview ? copy.buyFullTrack : copy.buyForDownload)}</span>
           </button>
         ) : (
           <button
@@ -751,28 +777,38 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     return sharedTrackId && allTracks.some((track) => track.id === sharedTrackId) ? sharedTrackId : undefined;
   }, [sharedTrackId]);
   const [accessByTrackId, setAccessByTrackId] = useState<MusicAccessMap>({});
+  const [passCoversAll, setPassCoversAll] = useState(false);
   const [purchasingTrackId, setPurchasingTrackId] = useState("");
   const [musicAccessMessage, setMusicAccessMessage] = useState("");
+  const accessRefreshTrackIdsRef = useRef<Record<string, string>>({});
   const refreshMusicAccess = useCallback(async (tracksToRefresh: readonly Track[] = allTracks) => {
     const lockedTracks = tracksToRefresh.filter((track) => track.accessTier === "locked_preview" && track.purchaseFeatureKey);
     if (!lockedTracks.length) return;
     const lockedTrackById = new Map(lockedTracks.map((track) => [track.id, track]));
 
-    const response = await fetch("/api/music/access", {
-      method: "POST",
-      credentials: "include",
-      cache: "no-store",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tracks: lockedTracks.map((track) => ({
-          trackId: track.id,
-          audioSourceKey: track.audioSourceKey,
-          featureKey: track.purchaseFeatureKey,
-        })),
-      }),
-    });
-    const payload = await response.json().catch(() => null) as { tracks?: MusicAccessEntry[] } | null;
+    // 일시적 DB 장애(503)가 "이용권 없음"으로 굳어 전곡이 미리듣기로 떨어지지 않게 짧게 재시도한다.
+    // 확정 실패(401/402 등)는 재시도하지 않고 그대로 반영한다.
+    const payload = await runAccessCheckWithTransientRetry(async () => {
+      const response = await fetch("/api/music/access", {
+        method: "POST",
+        credentials: "include",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tracks: lockedTracks.map((track) => ({
+            trackId: track.id,
+            audioSourceKey: track.audioSourceKey,
+            featureKey: track.purchaseFeatureKey,
+          })),
+        }),
+      });
+      const data = await response.json().catch(() => null) as MusicAccessResponse | null;
+      return { status: response.status, data };
+    }, { maxAttempts: 3, baseDelayMs: 700 }).then((result) => result.data).catch(() => null);
+
     if (!Array.isArray(payload?.tracks)) return;
+
+    if (payload?.passCoversAll === true) setPassCoversAll(true);
 
     setAccessByTrackId((current) => {
       const next = { ...current };
@@ -782,7 +818,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         if (currentEntry?.hasFullAccess && entry.hasFullAccess !== true) continue;
         const sourceTrack = lockedTrackById.get(entry.trackId);
         next[entry.trackId] = entry.hasFullAccess && sourceTrack
-          ? buildFullAccessEntry(sourceTrack, entry)
+          ? { ...buildFullAccessEntry(sourceTrack, entry), canDownload: entry.canDownload === true }
           : entry;
       }
       return next;
@@ -796,12 +832,28 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       [track.id]: buildFullAccessEntry(track, current[track.id]),
     }));
   }, []);
-  const playbackTracks = useMemo(() => (
-    allTracks.map((track) => buildPlaybackTrack(track, accessByTrackId))
-  ), [accessByTrackId]);
-  const handlePreviewLimitReached = useCallback(() => {
+  // 접근권이 갱신돼도 잠금 상태가 그대로인 트랙은 같은 객체 참조를 유지해야 한다.
+  // 참조가 매번 바뀌면 useMusicPlayer의 소스 전환 이펙트가 재실행돼 재생 중인 오디오가 리셋된다.
+  const playbackTrackCacheRef = useRef(new Map<string, { source: Track; result: Track }>());
+  const playbackTracks = useMemo(() => {
+    const cache = playbackTrackCacheRef.current;
+    return allTracks.map((track) => {
+      const built = buildPlaybackTrack(track, accessByTrackId, passCoversAll);
+      const cached = cache.get(track.id);
+      if (cached && cached.source === track && cached.result.audioUrl === built.audioUrl && cached.result.accessTier === built.accessTier) {
+        return cached.result;
+      }
+      cache.set(track.id, { source: track, result: built });
+      return built;
+    });
+  }, [accessByTrackId, passCoversAll]);
+  const handlePreviewLimitReached = useCallback((track: Track) => {
     setMusicAccessMessage(getMusicPlayerCopy(getCurrentLoadingLocale()).previewLimitReached);
-  }, []);
+    // 미리듣기 URL은 접근 판정을 거치지 않고 서빙된다(성능 최적화). 초기 접근 조회가 일시 장애로
+    // 실패했다면 이용권 보유자도 여기서 40초에 끊기므로, 이 순간 한 번 더 접근권을 확인해 자가 복구한다.
+    if (track?.id) delete accessRefreshTrackIdsRef.current[track.id];
+    void refreshMusicAccess(allTracks);
+  }, [refreshMusicAccess]);
   const player = useMusicPlayer(playbackTracks, {
     initialVolume: 0.85,
     initialTrackId: initialSharedTrackId,
@@ -810,7 +862,6 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const setPlaybackState = useMusicPlaybackStore((state) => state.setPlaybackState);
   const selectTrack = player.selectTrack;
   const sharedTrackSyncAttemptsRef = useRef(0);
-  const accessRefreshTrackIdsRef = useRef<Record<string, string>>({});
   const rawProgressMax = player.duration || 0;
   const [failedCoverIds, setFailedCoverIds] = useState<Record<string, boolean>>({});
   const [isListeningModeOpen, setIsListeningModeOpen] = useState(presentation === "full");
@@ -855,40 +906,16 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     };
   }, []);
 
+  // 서버가 전곡을 Mongo 왕복 2회로 한 번에 판정하므로, 우선 12곡 → 7초 뒤 전곡으로 나눠 부르던
+  // 2단계 조회를 전곡 1회로 합친다(요청 2회 → 1회, 이용권 보유자는 곡별 확인 자체가 사라진다).
   useEffect(() => {
     if (typeof window === "undefined") return;
-
-    const priorityTrackIds = new Set<string>();
-    if (initialSharedTrackId) priorityTrackIds.add(initialSharedTrackId);
-    for (const track of allTracks.slice(0, INITIAL_MUSIC_ACCESS_TRACK_COUNT)) {
-      priorityTrackIds.add(track.id);
-    }
-
-    const priorityTracks = allTracks.filter((track) => priorityTrackIds.has(track.id));
-    void refreshMusicAccess(priorityTracks);
-
-    const win = window as Window & {
-      requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
-      cancelIdleCallback?: (handle: number) => void;
-    };
-    const refreshAllTracks = () => void refreshMusicAccess(allTracks);
-    let idleId: number | undefined;
-    const timeoutId = window.setTimeout(() => {
-      if (win.requestIdleCallback) {
-        idleId = win.requestIdleCallback(refreshAllTracks, { timeout: 3000 });
-        return;
-      }
-
-      refreshAllTracks();
-    }, 7000);
-
-    return () => {
-      if (idleId !== undefined && win.cancelIdleCallback) win.cancelIdleCallback(idleId);
-      window.clearTimeout(timeoutId);
-    };
-  }, [initialSharedTrackId, refreshMusicAccess]);
+    void refreshMusicAccess(allTracks);
+  }, [refreshMusicAccess]);
 
   useEffect(() => {
+    if (passCoversAll) return;
+
     const track = player.currentTrack;
     if (!track || track.accessTier !== "locked_preview" || !track.purchaseFeatureKey) return;
     if (accessByTrackId[track.id]?.hasFullAccess) return;
@@ -897,7 +924,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     if (accessRefreshTrackIdsRef.current[track.id] === refreshKey) return;
     accessRefreshTrackIdsRef.current[track.id] = refreshKey;
     void refreshMusicAccess([track]);
-  }, [accessByTrackId, player.currentTrack, refreshMusicAccess]);
+  }, [accessByTrackId, passCoversAll, player.currentTrack, refreshMusicAccess]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -905,9 +932,9 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     const resetMusicAccess = () => {
       accessRefreshTrackIdsRef.current = {};
       setAccessByTrackId({});
+      setPassCoversAll(false);
       window.setTimeout(() => {
-        const priorityTracks = allTracks.slice(0, INITIAL_MUSIC_ACCESS_TRACK_COUNT);
-        void refreshMusicAccess(priorityTracks);
+        void refreshMusicAccess(allTracks);
       }, 0);
     };
     const handleAuthChanged = () => resetMusicAccess();
@@ -1116,7 +1143,8 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
       window.clearTimeout(preloadIdleId);
     };
   }, [isLyricsOpen, player.currentIndex, player.tracks]);
-  const currentTrackHasFullAccess = currentTrack ? hasTrackFullAccess(currentTrack, accessByTrackId) : false;
+  const currentTrackHasFullAccess = currentTrack ? hasTrackFullAccess(currentTrack, accessByTrackId, passCoversAll) : false;
+  const currentTrackCanDownload = currentTrack ? canDownloadTrack(currentTrack, accessByTrackId) : false;
   const currentTrackPreviewLimit = !currentTrackHasFullAccess ? Number(currentTrack?.previewLimitSeconds || 0) : 0;
   const progressMax = currentTrackPreviewLimit > 0
     ? Math.min(rawProgressMax || currentTrackPreviewLimit, currentTrackPreviewLimit)
@@ -1184,7 +1212,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
 
   const handlePurchaseCurrentTrack = useCallback(async () => {
     const track = player.currentTrack;
-    if (!track?.purchaseFeatureKey || hasTrackFullAccess(track, accessByTrackId)) return;
+    if (!track?.purchaseFeatureKey || canDownloadTrack(track, accessByTrackId)) return;
+
+    // 이용권으로 이미 재생은 열려 있는데 다운로드만 남은 경우 = 다운로드 구매.
+    // 다운로드는 이용권 결제 대상이 아니므로(프로필 카드와 같은 pass 제외 유형) 이용권 선검사를 건너뛰고
+    // 곧바로 결제창을 연다 — 단, 단건결제와 월정석은 그대로 동등 노출한다.
+    const isDownloadOnlyPurchase = hasTrackFullAccess(track, accessByTrackId, passCoversAll);
 
     setPurchasingTrackId(track.id);
     setMusicAccessMessage("");
@@ -1200,10 +1233,14 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         cost: track.coinCost || 3,
         amountKRW: track.priceKRW || 300,
         membershipCreditCost: (track.coinCost || 3) * 10,
-        allowedPaymentModes: ["direct", "monthly"],
-        disablePassFirst: true,
-        disablePassChoice: true,
-        skipPassProbe: true,
+        ...(isDownloadOnlyPurchase
+          ? {
+            allowedPaymentModes: ["direct", "monthly"],
+            disablePassFirst: true,
+            disablePassChoice: true,
+            skipPassProbe: true,
+          }
+          : {}),
         forceDeduct: true,
         requestId: purchaseRequestId,
         idempotencyKey: purchaseRequestId,
@@ -1221,11 +1258,11 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
     } finally {
       setPurchasingTrackId("");
     }
-  }, [accessByTrackId, copy.purchaseFailed, markTrackFullAccess, player.currentTrack, refreshMusicAccess]);
+  }, [accessByTrackId, copy.purchaseFailed, markTrackFullAccess, passCoversAll, player.currentTrack, refreshMusicAccess]);
 
   const handleDownloadCurrentTrack = useCallback(() => {
     const track = player.currentTrack;
-    if (!track || !hasTrackFullAccess(track, accessByTrackId)) return;
+    if (!track || !canDownloadTrack(track, accessByTrackId)) return;
 
     const downloadUrl = buildDownloadUrl(track, accessByTrackId);
     if (!downloadUrl || typeof document === "undefined") return;
@@ -1374,6 +1411,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
               isPlaying={player.isPlaying}
               isSaved={isCurrentTrackSaved}
               hasFullAccess={currentTrackHasFullAccess}
+              canDownload={currentTrackCanDownload}
               isPurchasing={purchasingTrackId === currentTrack.id}
               listeningStatusLabel={listeningStatusLabel}
               copy={copy}

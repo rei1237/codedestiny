@@ -399,16 +399,11 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   );
 }
 
-// ── pass 제외: 음악 트랙 ────────────────────────────────────────────────────
+// ── pass 커버: 음악 트랙 ────────────────────────────────────────────────────
 // 키가 동적(music-track-<hash>)이라 아래 전기능 루프(listServerPricedFeatureKeys)가 절대 못 본다.
-// 3코인짜리라 제외가 깨지면 전 tier가 무료로 뚫리는데 이를 잡는 행위 단언이 없었다.
+// 정책(2026-07): 이용권 보유자는 전 등급에서 전곡 재생이 무료로 열린다(곡당 3코인 < 최저 한도 30코인).
+// 다운로드만 이용권 대상이 아니며, 그 판정은 결제 결정이 아니라 worker/routes/music.js가 licenseType으로 한다.
 for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PASS_TIERS.FAMILY]) {
-  const musicDecision = decision({
-    pass: activePass(tier),
-    coinCost: 3,
-    // eslint-disable-next-line no-undefined
-  });
-  void musicDecision;
   const musicPassDecision = __billingTestUtils.buildPassPaymentDecision(
     activePass(tier),
     { featureKey: "music-track-abc123", coinPrice: 3, cost: 3 },
@@ -416,10 +411,28 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   );
   assert.equal(
     musicPassDecision.canUseByPass,
-    false,
-    `${tier}: 음악 트랙은 이용권 제외 대상이라 무료로 커버되면 안 된다(family 포함)`,
+    true,
+    `${tier}: 음악 트랙은 이용권으로 전곡 커버되어야 한다`,
   );
 }
+
+// 이용권이 없으면 음악 트랙도 단건결제와 월정석이 동등 노출되어야 한다(한쪽만 노출 금지).
+const musicNoPassDecision = __billingTestUtils.buildPassPaymentDecision(
+  null,
+  { featureKey: "music-track-abc123", coinPrice: 3, cost: 3, membershipCreditCost: 30 },
+  {},
+  { monthlyBalance: 30 },
+);
+assert.equal(
+  musicNoPassDecision.canUseByPass,
+  false,
+  "이용권이 없으면 음악 트랙이 무료로 커버되면 안 된다",
+);
+assert.deepEqual(
+  musicNoPassDecision.equalPriorityMethods,
+  ["DIRECT_KRW", "MOONLIGHT_STONE"],
+  "음악 트랙 결제창은 단건 결제와 월정석이 동등 노출되어야 한다",
+);
 
 const expiredPass = activePass(PASS_TIERS.VVIP, pastDate());
 const expiredVvip50 = decision({

@@ -59,7 +59,6 @@ import {
   PROFILE_CARD_DELETE_COST_MONTHLY_STONES,
   PROFILE_CARD_MUTATION_ACTIONS,
 } from "../lib/profile-card-mutation-policy.js";
-import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 
 const ACCESS_DECISION_REASONS = Object.freeze({
@@ -426,8 +425,7 @@ function resolvePricingAmountKRW(pricing = {}, coinCost = 0) {
 }
 
 function isPassExcludedPricing(pricing = {}) {
-  const featureKey = String(pricing?.featureKey || "").trim();
-  return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey) || isMusicTrackFeatureKey(featureKey);
+  return PASS_EXCLUDED_FEATURE_KEYS.has(String(pricing?.featureKey || "").trim());
 }
 
 function resolvePassPolicyForTier(tierRaw) {
@@ -750,10 +748,10 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
   )));
   const hasActivePass = activeEntitlement?.isActive === true;
   const passTier = hasActivePass ? normalizePassTier(activeEntitlement?.passTier || activeEntitlement?.tier) : null;
-  // 이용권 제외 기능(프로필 카드 추가/삭제, 음악 트랙)은 tier와 무관하게 이용권으로 결제할 수 없다.
+  // 이용권 제외 기능(프로필 카드 추가/삭제)은 tier와 무관하게 이용권으로 결제할 수 없다.
   // featureKey별 예외 분기를 두지 말 것 — 과거 `&& !isProfileCardManage`로 제외를 되풀어, 프로필 카드가
   // premium/vvip에게 PASS_COVERED + 결제수단 전부 숨김으로 뜬 뒤 소비 단계에서 거부되는 막다른 길이 됐다.
-  // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS ∪ 음악 트랙)뿐이다.
+  // 제외 여부의 정본은 isPassExcludedPricing(=PASS_EXCLUDED_FEATURE_KEYS)뿐이다.
   const passExcluded = isPassExcludedPricing(pricing);
   const passCovered = !passExcluded && canUseByPass(activeEntitlement, coinCost);
   const monthlyCovered = coinCost > 0 && membershipCreditCost > 0 && monthlyBalance >= membershipCreditCost;

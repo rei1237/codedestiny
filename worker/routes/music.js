@@ -1,5 +1,5 @@
 import { getOptionalUserFromRequest } from "../lib/auth.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeaturesBatch } from "../lib/paid-feature-access.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import {
   buildMusicTrackFeatureKey,
@@ -8,6 +8,8 @@ import {
   normalizeMusicAudioSourceKey,
   MUSIC_PREVIEW_MAX_BYTES,
 } from "../../lib/music-access-policy.js";
+
+const MUSIC_PREVIEW_CACHE_SECONDS = 3600;
 
 // 업스트림이 Range를 무시하고 전체 파일을 보내더라도 maxBytes에서 스트림을 끊어 곡 전체 유출을 방지한다.
 function capByteStream(readable, maxBytes) {
@@ -68,6 +70,9 @@ function buildMusicRouteUrl(path, key, featureKey) {
   return `/api/music/${path}?${search.toString()}`;
 }
 
+// 이용권/월정구독처럼 "구매가 아닌 커버"로 열린 접근. 다운로드는 이 접근으로 허용하지 않는다.
+const LICENSE_COVERED_TYPES = new Set(["license", "license_pass", "monthly_subscription"]);
+
 function buildInvalidTrackEntry(input = {}) {
   return {
     trackId: String(input.trackId || ""),
@@ -75,6 +80,7 @@ function buildInvalidTrackEntry(input = {}) {
     featureKey: String(input.featureKey || ""),
     accessTier: "invalid",
     hasFullAccess: false,
+    canDownload: false,
     previewLimitSeconds: 40,
     priceKRW: 300,
     coinCost: 3,
@@ -82,66 +88,107 @@ function buildInvalidTrackEntry(input = {}) {
   };
 }
 
-async function resolveTrackAccess(input, auth, env) {
+// 순수 계산 — DB를 건드리지 않고 트랙의 유효성·정책·featureKey만 확정한다.
+function resolveTrackPlan(input = {}) {
+  const trackId = String(input.trackId || "");
   const key = normalizeMusicAudioSourceKey(input.key);
   const requestedFeatureKey = String(input.featureKey || "").trim();
   const computedFeatureKey = buildMusicTrackFeatureKey(key);
 
   if (!isValidMusicAudioSourceKey(key) || (!computedFeatureKey && requestedFeatureKey)) {
-    return buildInvalidTrackEntry(input);
+    return { trackId, key, featureKey: "", entry: buildInvalidTrackEntry(input) };
   }
 
   const policy = getMusicTrackAccessPolicy(key);
   const featureKey = policy.purchaseFeatureKey || computedFeatureKey || "";
-  const featureMatches = !featureKey || !requestedFeatureKey || requestedFeatureKey === featureKey;
 
-  if (!featureMatches) {
+  if (featureKey && requestedFeatureKey && requestedFeatureKey !== featureKey) {
     return {
-      ...buildInvalidTrackEntry(input),
-      audioSourceKey: key,
-      featureKey: requestedFeatureKey,
-      code: "FEATURE_KEY_MISMATCH",
+      trackId,
+      key,
+      featureKey: "",
+      entry: {
+        ...buildInvalidTrackEntry(input),
+        audioSourceKey: key,
+        featureKey: requestedFeatureKey,
+        code: "FEATURE_KEY_MISMATCH",
+      },
     };
   }
 
   if (policy.hasFreeFullAccess) {
     return {
-      trackId: String(input.trackId || ""),
-      audioSourceKey: key,
+      trackId,
+      key,
       featureKey: "",
-      accessTier: policy.accessTier,
-      hasFullAccess: true,
-      previewLimitSeconds: null,
-      priceKRW: null,
-      coinCost: null,
-      audioUrl: buildMusicRouteUrl("audio", key, ""),
-      downloadUrl: buildMusicRouteUrl("download", key, ""),
-      code: "FREE_FULL_ACCESS",
+      entry: {
+        trackId,
+        audioSourceKey: key,
+        featureKey: "",
+        accessTier: policy.accessTier,
+        hasFullAccess: true,
+        canDownload: true,
+        previewLimitSeconds: null,
+        priceKRW: null,
+        coinCost: null,
+        audioUrl: buildMusicRouteUrl("audio", key, ""),
+        downloadUrl: buildMusicRouteUrl("download", key, ""),
+        code: "FREE_FULL_ACCESS",
+      },
     };
   }
 
-  const decision = auth?.userId && featureKey
-    ? await canAccessPaidFeature(auth.userId, featureKey, {
-      env,
-      categoryKey: "music-track",
-      reason: "Code Destiny music full track unlock",
-    })
-    : null;
+  return { trackId, key, featureKey, policy };
+}
+
+function buildLockedTrackEntry(plan, decision, authenticated) {
+  const { trackId, key, featureKey, policy } = plan;
   const hasFullAccess = decision?.allowed === true;
+  // 이용권/월정구독 커버는 "기간형 재생권"이다 — MP3 다운로드는 실제 구매(단건결제·월정석)에만 허용한다.
+  const canDownload = hasFullAccess && !LICENSE_COVERED_TYPES.has(String(decision?.licenseType || ""));
 
   return {
-    trackId: String(input.trackId || ""),
+    trackId,
     audioSourceKey: key,
     featureKey,
     accessTier: hasFullAccess ? "free_full" : policy.accessTier,
     hasFullAccess,
+    canDownload,
     previewLimitSeconds: hasFullAccess ? null : policy.previewLimitSeconds,
     priceKRW: policy.priceKRW,
     coinCost: policy.coinCost,
     audioUrl: hasFullAccess ? buildMusicRouteUrl("audio", key, featureKey) : "",
-    downloadUrl: hasFullAccess ? buildMusicRouteUrl("download", key, featureKey) : "",
-    code: hasFullAccess ? (decision?.reason || "ALLOWED") : (auth?.userId ? "PAYMENT_REQUIRED" : "LOGIN_REQUIRED"),
+    downloadUrl: canDownload ? buildMusicRouteUrl("download", key, featureKey) : "",
+    code: hasFullAccess ? (decision?.reason || "ALLOWED") : (authenticated ? "PAYMENT_REQUIRED" : "LOGIN_REQUIRED"),
   };
+}
+
+// 요청된 트랙 전체를 Mongo 왕복 2회(User 1 + Payment 1)로 판정한다.
+// 곡마다 canAccessPaidFeature를 직렬로 부르던 구조(곡 수 × 2왕복)를 없앤 것이 음악실 로딩 지연의 핵심 수정.
+async function resolveTracksAccess(inputs, auth, env) {
+  const plans = inputs.map((input) => resolveTrackPlan(input));
+  const lockedPlans = plans.filter((plan) => plan.featureKey);
+  const decisions = lockedPlans.length && auth?.userId
+    ? await canAccessPaidFeaturesBatch(auth.userId, lockedPlans.map((plan) => plan.featureKey), {
+      env,
+      categoryKey: "music-track",
+      reason: "Code Destiny music full track unlock",
+    })
+    : {};
+
+  const authenticated = Boolean(auth?.userId);
+  const entries = plans.map((plan) => (
+    plan.entry || buildLockedTrackEntry(plan, decisions[plan.featureKey] || null, authenticated)
+  ));
+
+  // 음악 트랙은 전곡이 같은 가격(3코인)이라 이용권 커버 여부가 곡별로 갈리지 않는다.
+  // 하나라도 "구매가 아닌 커버"로 열렸다면 이용권이 전곡을 덮는다는 뜻 — 클라이언트는 이 플래그로
+  // 곡별 확인을 생략하고 전곡을 즉시 재생 가능 상태로 표시한다.
+  const passCoversAll = Object.values(decisions).some((decision) => (
+    decision?.allowed === true && LICENSE_COVERED_TYPES.has(String(decision?.licenseType || ""))
+  ));
+
+  return { entries, passCoversAll };
 }
 
 async function handleAccess(request, env) {
@@ -155,19 +202,21 @@ async function handleAccess(request, env) {
     ? body.tracks
     : [resolveRequestTrack(request, body)];
 
-  const tracks = [];
-  for (const item of requestedTracks.slice(0, 120)) {
-    tracks.push(await resolveTrackAccess({
+  const { entries, passCoversAll } = await resolveTracksAccess(
+    requestedTracks.slice(0, 200).map((item) => ({
       trackId: item?.trackId,
       key: item?.audioSourceKey || item?.key,
       featureKey: item?.featureKey,
-    }, auth, env));
-  }
+    })),
+    auth,
+    env,
+  );
 
   return json({
     ok: true,
     authenticated: Boolean(auth?.userId),
-    tracks,
+    passCoversAll,
+    tracks: entries,
   });
 }
 
@@ -181,11 +230,14 @@ function buildContentDisposition(key) {
   return `attachment; filename*=UTF-8''${encodeURIComponent(fileName)}`;
 }
 
-async function streamMusicPreview(env, access) {
+async function streamMusicPreview(env, audioSourceKey) {
   const headers = new Headers();
   headers.set("Range", `bytes=0-${Math.max(0, MUSIC_PREVIEW_MAX_BYTES - 1)}`);
 
-  const upstream = await fetch(buildMusicPublicUrl(env, access.audioSourceKey), { headers });
+  const upstream = await fetch(buildMusicPublicUrl(env, audioSourceKey), {
+    headers,
+    cf: { cacheTtl: MUSIC_PREVIEW_CACHE_SECONDS, cacheEverything: true },
+  });
   if (!upstream.ok && upstream.status !== 206) {
     return json({ ok: false, code: "PREVIEW_UNAVAILABLE" }, { status: 502 });
   }
@@ -194,7 +246,9 @@ async function streamMusicPreview(env, access) {
   responseHeaders.set("Content-Type", "audio/mpeg");
   // 미리듣기는 seek/전체 다운로드를 막기 위해 Range를 노출하지 않고 짧은 클립으로만 제공한다.
   responseHeaders.set("Accept-Ranges", "none");
-  responseHeaders.set("Cache-Control", "private, no-store");
+  // 이 클립은 비로그인 사용자에게 나가는 바이트와 동일한 공개 자산이라 사용자별 비밀이 없다.
+  // 공개 캐시를 허용해 같은 곡을 다시 들을 때 워커·R2 왕복 없이 재생되게 한다.
+  responseHeaders.set("Cache-Control", `public, max-age=${MUSIC_PREVIEW_CACHE_SECONDS}, immutable`);
   responseHeaders.set("X-Music-Access", "preview");
 
   return new Response(capByteStream(upstream.body, MUSIC_PREVIEW_MAX_BYTES), {
@@ -206,11 +260,25 @@ async function streamMusicPreview(env, access) {
 async function proxyMusicFile(request, env, options = {}) {
   if (request.method.toUpperCase() !== "GET") return methodNotAllowed();
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const url = new URL(request.url);
   const input = resolveRequestTrack(request);
-  const access = await resolveTrackAccess(input, auth, env);
 
-  if (!access.hasFullAccess) {
+  // 미리듣기 단축 경로: 클라이언트가 명시적으로 mode=preview를 요청한 잠금곡은
+  // 인증·접근 판정(왕복 3회) 없이 곧바로 공개 클립을 보낸다 — 어차피 미인증 사용자에게 나가는 바이트와 같다.
+  // 이 판단을 건너뛰지 않으면 미리듣기 재생마다 인증 1회 + Mongo 2회가 첫 바이트 앞에 붙는다.
+  if (options.download !== true
+    && String(url.searchParams.get("mode") || "").trim().toLowerCase() === "preview"
+    && isValidMusicAudioSourceKey(input.key)
+    && !getMusicTrackAccessPolicy(input.key).hasFreeFullAccess) {
+    return streamMusicPreview(env, normalizeMusicAudioSourceKey(input.key));
+  }
+
+  const auth = await getOptionalUserFromRequest(request, env);
+  const { entries } = await resolveTracksAccess([input], auth, env);
+  const access = entries[0];
+
+  const downloadBlocked = options.download === true && access.hasFullAccess && access.canDownload !== true;
+  if (!access.hasFullAccess || downloadBlocked) {
     // 오디오 재생 요청이고 유효한 잠금곡이면 402 대신 바이트 제한 미리듣기를 제공한다.
     const previewEligible = options.download !== true
       && access.accessTier === "locked_preview"
@@ -219,12 +287,13 @@ async function proxyMusicFile(request, env, options = {}) {
     if (!previewEligible) {
       return json({
         ok: false,
-        code: access.code,
+        // 이용권으로 재생은 되지만 다운로드는 구매가 필요한 상태를 별도 코드로 구분한다.
+        code: downloadBlocked ? "DOWNLOAD_PURCHASE_REQUIRED" : access.code,
         track: access,
-      }, { status: access.code === "LOGIN_REQUIRED" ? 401 : 402 });
+      }, { status: access.code === "LOGIN_REQUIRED" && !downloadBlocked ? 401 : 402 });
     }
 
-    return streamMusicPreview(env, access);
+    return streamMusicPreview(env, access.audioSourceKey);
   }
 
   const headers = new Headers();
@@ -235,7 +304,9 @@ async function proxyMusicFile(request, env, options = {}) {
   const responseHeaders = new Headers(upstream.headers);
   responseHeaders.set("Content-Type", "audio/mpeg");
   responseHeaders.set("Accept-Ranges", "bytes");
-  responseHeaders.set("Cache-Control", "private, no-store");
+  // 해금된 전곡은 사용자별 권한이 걸린 자산이라 공개 캐시는 금지하되,
+  // 브라우저가 seek 시 같은 구간을 다시 받지 않도록 private 캐시는 허용한다.
+  responseHeaders.set("Cache-Control", "private, max-age=3600");
   responseHeaders.delete("Set-Cookie");
 
   if (options.download) {

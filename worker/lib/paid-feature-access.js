@@ -6,7 +6,6 @@ import {
   canUseByPass,
   normalizeHoneyPassEntitlement,
 } from "./profile-limits.js";
-import { isMusicTrackFeatureKey } from "../../lib/music-access-policy.js";
 
 const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_EXCLUDED_FEATURE_KEYS = new Set([
@@ -119,15 +118,11 @@ function resolveMonthlySubscription(user = {}) {
 }
 
 function canUseMonthlyForFeature(featureKey) {
-  const key = cleanText(featureKey);
-  return Boolean(key) && !isMusicTrackFeatureKey(key);
+  return Boolean(cleanText(featureKey));
 }
 
 function isPassExcluded(featureCandidates = []) {
-  return featureCandidates.some((key) => {
-    const featureKey = cleanText(key);
-    return PASS_EXCLUDED_FEATURE_KEYS.has(featureKey) || isMusicTrackFeatureKey(featureKey);
-  });
+  return featureCandidates.some((key) => PASS_EXCLUDED_FEATURE_KEYS.has(cleanText(key)));
 }
 
 function resolveLicenseReason(tier) {
@@ -154,25 +149,6 @@ function resolveDirectLicense(user = {}) {
     }
   }
   return { active: false, tier: "", count: 0 };
-}
-
-async function hasSinglePaymentAccess(user, userId, featureCandidates, env = {}) {
-  const paidSet = new Set([
-    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
-    ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
-  ].map((key) => cleanText(key)).filter(Boolean));
-
-  if (featureCandidates.some((key) => paidSet.has(key))) return true;
-
-  // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
-  const payment = await withMongoRetry(env, () => Payment.exists({
-    userId,
-    featureKey: { $in: featureCandidates },
-    paymentType: "digital_content",
-    accessType: "single_purchase",
-    status: { $in: SINGLE_PAYMENT_STATUSES },
-  }));
-  return Boolean(payment);
 }
 
 // canAccessPaidFeature 결정을 짧게 메모이즈한다.
@@ -220,30 +196,9 @@ function writeFeatureAccessDecisionToCache(cacheKey, decision) {
   return decision;
 }
 
-export async function canAccessPaidFeature(userId, featureKey, options = {}) {
-  const env = options.env || {};
-  let featureAccessCacheKey = "";
-  const finalize = (decision) => {
-    logPaidAccessDecision(env, decision);
-    if (featureAccessCacheKey) writeFeatureAccessDecisionToCache(featureAccessCacheKey, decision);
-    return decision;
-  };
+function buildFeatureSpec(featureKey, options = {}) {
   const requestedFeatureKey = cleanText(featureKey);
   const normalizedFeatureKey = normalizePaidFeatureKey(requestedFeatureKey) || requestedFeatureKey;
-
-  if (!cleanText(userId)) {
-    const decision = buildDecision({
-      allowed: false,
-      reason: "LOGIN_REQUIRED",
-      featureKey: normalizedFeatureKey,
-      paymentRequired: false,
-      shouldOpenPayment: false,
-    });
-    return finalize(decision);
-  }
-
-  await connectDb(env);
-
   const pricingResult = getBillingFeaturePricing({
     featureKey: requestedFeatureKey,
     reason: options.reason,
@@ -252,33 +207,23 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
   });
   const pricing = pricingResult.ok ? pricingResult.pricing : null;
   const effectiveFeatureKey = cleanText(pricing?.featureKey || normalizedFeatureKey);
-  const featureCandidates = normalizeFeatureCandidates(effectiveFeatureKey);
-  // 캐시 히트 시 아래 User.findById + Payment.exists 2회 왕복을 건너뛴다(무효화는 invalidateForUser가 담당).
-  featureAccessCacheKey = cleanText(userId)
-    ? buildFeatureAccessCacheKey(userId, effectiveFeatureKey, resolveCoinCost(pricing || {}))
-    : "";
-  const cachedFeatureAccessDecision = readFeatureAccessDecisionFromCache(featureAccessCacheKey);
-  if (cachedFeatureAccessDecision) return cachedFeatureAccessDecision;
-  // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
-  const user = await withMongoRetry(env, () => User.findById(userId)
-    .select("paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean());
+  return {
+    requestedFeatureKey,
+    normalizedFeatureKey,
+    pricing,
+    effectiveFeatureKey,
+    featureCandidates: normalizeFeatureCandidates(effectiveFeatureKey),
+    coinCost: resolveCoinCost(pricing || {}),
+  };
+}
 
-  if (!user?._id) {
-    const decision = buildDecision({
-      allowed: false,
-      reason: "LOGIN_REQUIRED",
-      userId,
-      featureKey: effectiveFeatureKey,
-      paymentRequired: false,
-      shouldOpenPayment: false,
-      pricing,
-    });
-    return finalize(decision);
-  }
+// 사용자 문서 1개 + 구매 키 집합만으로 판정한다(추가 왕복 없음).
+// 단건 경로와 배치 경로가 이 함수 하나를 공유해 판정이 갈라지지 않게 한다.
+function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
+  const { pricing, effectiveFeatureKey, featureCandidates, coinCost } = spec;
 
-  if (await hasSinglePaymentAccess(user, userId, featureCandidates, env)) {
-    const decision = buildDecision({
+  if (hasPurchase) {
+    return buildDecision({
       allowed: true,
       reason: "ALREADY_PURCHASED",
       userId,
@@ -287,15 +232,13 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       accessSource: "paidFeatures",
       pricing,
     });
-    return finalize(decision);
   }
 
-  const coinCost = resolveCoinCost(pricing || {});
   const pass = normalizeHoneyPassEntitlement(user || {});
   const passExcluded = isPassExcluded(featureCandidates);
   const directLicense = resolveDirectLicense(user || {});
   if (!passExcluded && directLicense.active) {
-    const decision = buildDecision({
+    return buildDecision({
       allowed: true,
       reason: resolveLicenseReason(directLicense.tier),
       userId,
@@ -306,11 +249,10 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       pricing,
       pass,
     });
-    return finalize(decision);
   }
 
   if (!passExcluded && canUseByPass(pass, coinCost)) {
-    const decision = buildDecision({
+    return buildDecision({
       allowed: true,
       reason: resolveLicenseReason(pass.passTier || pass.tier),
       userId,
@@ -321,12 +263,11 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       pricing,
       pass,
     });
-    return finalize(decision);
   }
 
   const monthlySubscription = resolveMonthlySubscription(user);
   if (monthlySubscription.active && canUseMonthlyForFeature(effectiveFeatureKey)) {
-    const decision = buildDecision({
+    return buildDecision({
       allowed: true,
       reason: "MONTHLY_SUBSCRIPTION",
       userId,
@@ -338,10 +279,9 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
       monthlySubscription,
       pass,
     });
-    return finalize(decision);
   }
 
-  const decision = buildDecision({
+  return buildDecision({
     allowed: false,
     reason: passExcluded && (pass.isActive || directLicense.active) ? "PASS_EXCLUDED_PAYMENT_REQUIRED" : "PAYMENT_REQUIRED",
     userId,
@@ -354,7 +294,132 @@ export async function canAccessPaidFeature(userId, featureKey, options = {}) {
     monthlySubscription,
     pass,
   });
-  return finalize(decision);
+}
+
+// 여러 featureKey를 Mongo 왕복 2회(User 1 + Payment 1)로 판정한다.
+// 음악실처럼 곡 하나하나가 별도 featureKey인 화면이 곡 수 × 2회 직렬 왕복을 만들던 것을 없앤다.
+// 판정 규칙·캐시·재시도는 단건 경로와 완전히 동일하다(withMongoRetry를 중첩하지 않는다).
+export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = {}) {
+  const env = options.env || {};
+  const normalizedUserId = cleanText(userId);
+  const specs = [];
+  const seenRequestedKeys = new Set();
+  for (const key of Array.isArray(featureKeys) ? featureKeys : []) {
+    const spec = buildFeatureSpec(key, options);
+    if (!spec.requestedFeatureKey || seenRequestedKeys.has(spec.requestedFeatureKey)) continue;
+    seenRequestedKeys.add(spec.requestedFeatureKey);
+    specs.push(spec);
+  }
+
+  const decisions = {};
+  if (!specs.length) return decisions;
+
+  if (!normalizedUserId) {
+    for (const spec of specs) {
+      const decision = buildDecision({
+        allowed: false,
+        reason: "LOGIN_REQUIRED",
+        featureKey: spec.normalizedFeatureKey,
+        paymentRequired: false,
+        shouldOpenPayment: false,
+      });
+      logPaidAccessDecision(env, decision);
+      decisions[spec.requestedFeatureKey] = decision;
+    }
+    return decisions;
+  }
+
+  const pendingSpecs = [];
+  for (const spec of specs) {
+    spec.cacheKey = buildFeatureAccessCacheKey(normalizedUserId, spec.effectiveFeatureKey, spec.coinCost);
+    const cached = readFeatureAccessDecisionFromCache(spec.cacheKey);
+    if (cached) {
+      decisions[spec.requestedFeatureKey] = cached;
+      continue;
+    }
+    pendingSpecs.push(spec);
+  }
+  if (!pendingSpecs.length) return decisions;
+
+  await connectDb(env);
+
+  // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
+  const user = await withMongoRetry(env, () => User.findById(normalizedUserId)
+    .select("paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .lean());
+
+  if (!user?._id) {
+    for (const spec of pendingSpecs) {
+      const decision = buildDecision({
+        allowed: false,
+        reason: "LOGIN_REQUIRED",
+        userId: normalizedUserId,
+        featureKey: spec.effectiveFeatureKey,
+        paymentRequired: false,
+        shouldOpenPayment: false,
+        pricing: spec.pricing,
+      });
+      logPaidAccessDecision(env, decision);
+      writeFeatureAccessDecisionToCache(spec.cacheKey, decision);
+      decisions[spec.requestedFeatureKey] = decision;
+    }
+    return decisions;
+  }
+
+  const grantedKeySet = new Set([
+    ...(Array.isArray(user.paidFeatures) ? user.paidFeatures : []),
+    ...(Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : []),
+  ].map((key) => cleanText(key)).filter(Boolean));
+
+  // User 문서의 해금 목록에 이미 있는 키는 Payment 조회 대상에서 뺀다.
+  const lookupCandidates = new Set();
+  for (const spec of pendingSpecs) {
+    if (spec.featureCandidates.some((key) => grantedKeySet.has(key))) continue;
+    for (const key of spec.featureCandidates) lookupCandidates.add(key);
+  }
+
+  if (lookupCandidates.size) {
+    // READ 전용 — 위 User 조회와 같은 사유로 재시도한다.
+    const payments = await withMongoRetry(env, () => Payment.find({
+      userId: normalizedUserId,
+      featureKey: { $in: Array.from(lookupCandidates) },
+      paymentType: "digital_content",
+      accessType: "single_purchase",
+      status: { $in: SINGLE_PAYMENT_STATUSES },
+    }).select("featureKey").lean());
+    for (const payment of Array.isArray(payments) ? payments : []) {
+      const key = cleanText(payment?.featureKey);
+      if (key) grantedKeySet.add(key);
+    }
+  }
+
+  for (const spec of pendingSpecs) {
+    const hasPurchase = spec.featureCandidates.some((key) => grantedKeySet.has(key));
+    const decision = resolveDecisionFromUserDoc(normalizedUserId, user, spec, hasPurchase);
+    logPaidAccessDecision(env, decision);
+    writeFeatureAccessDecisionToCache(spec.cacheKey, decision);
+    decisions[spec.requestedFeatureKey] = decision;
+  }
+  return decisions;
+}
+
+export async function canAccessPaidFeature(userId, featureKey, options = {}) {
+  const requestedFeatureKey = cleanText(featureKey);
+  const decisions = await canAccessPaidFeaturesBatch(userId, [requestedFeatureKey], options);
+  const decision = decisions[requestedFeatureKey];
+  if (decision) return decision;
+
+  // featureKey가 비어 있는 호출(배치가 스펙을 만들지 못함) — 종전과 동일하게 로그인 필요로 응답한다.
+  const fallback = buildDecision({
+    allowed: false,
+    reason: cleanText(userId) ? "PAYMENT_REQUIRED" : "LOGIN_REQUIRED",
+    userId,
+    featureKey: requestedFeatureKey,
+    paymentRequired: false,
+    shouldOpenPayment: false,
+  });
+  logPaidAccessDecision(options.env || {}, fallback);
+  return fallback;
 }
 
 export const __paidFeatureAccessTestUtils = {
