@@ -4404,7 +4404,11 @@ var NEO_GAEUN_DB={
 
 
 function getDetailedGaeun(element,isGood){
-  if(NEO_MODE && NEO_GAEUN_DB[element]){
+  /* NEO_MODE는 지연 로드되는 share.js가 선언하므로, 먼저 로드되는 이 엔진에서는 부트 시 동기 적용되는 html.neo-mode도 함께 본다 */
+  var _neo=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
+    ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
+    ||(document.body&&document.body.classList.contains('neo-mode'));
+  if(_neo && NEO_GAEUN_DB[element]){
     return NEO_GAEUN_DB[element][isGood?'good':'bad'];
   }
   return(GAEUN_DB[element]||GAEUN_DB.earth)[isGood?'good':'bad'];
