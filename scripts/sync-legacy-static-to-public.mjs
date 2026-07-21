@@ -222,7 +222,10 @@ function stripLeadingBom(buffer) {
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
 const VEDIC_AI_CONSULTATION_CACHE_KEY = "20260627-vedic-ai-payment-wasm";
-const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-b1e31d8ae62f";
+// 이 상수가 셸의 ?v= 를 빌드 때 덮어쓰므로, js/mobile-interaction-patch.js 를 수정하면
+// 반드시 여기도 함께 올려야 한다. 올리지 않으면 파일만 바뀌고 URL 이 그대로라 재방문
+// 사용자는 옛 캐시를 계속 쓴다(2026-07-02 값이 07-22 수정본까지 그대로 붙잡고 있었다).
+const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-e1cddf44c1f5";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
