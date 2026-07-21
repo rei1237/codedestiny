@@ -46,6 +46,8 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   mongoose,
   resetMongooseConnection: jest.fn(async () => undefined),
   resolveMongoDbName: jest.fn(() => "test"),
+  withMongoRetry: jest.fn(async (env, fn) => fn()),
+  isTransientMongoError: jest.fn(() => false),
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
@@ -86,6 +88,8 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   DailyFortuneSubscription: {},
   Insight: {},
   DestinyBiasCard: {},
+  ContentOverride: {},
+  RECENT_CONSUME_REQUEST_ID_CAP: 200,
 }));
 
 const promptStub = { prompt: "", generatedPrompt: "", title: "", digestSource: "concurrency-test" };

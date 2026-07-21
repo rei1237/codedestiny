@@ -206,10 +206,15 @@ async function seedReadyResult({ resultId = "fortune-tea-house:letter-1", balanc
 beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
     getCurrentUser: jest.fn(async () => authState),
+    getOptionalUserFromRequest: jest.fn(async () => authState),
   }));
   jest.unstable_mockModule("../../worker/lib/db.js", () => ({
     connectDb: jest.fn(async () => undefined),
     mongoose: { connection: { db: fakeDb } },
+    resetMongooseConnection: jest.fn(async () => undefined),
+    resolveMongoDbName: jest.fn(() => "test"),
+    withMongoRetry: jest.fn(async (env, fn) => fn()),
+    isTransientMongoError: jest.fn(() => false),
   }));
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({
     canAccessPaidFeature: jest.fn(async (userId, featureKey) => ({

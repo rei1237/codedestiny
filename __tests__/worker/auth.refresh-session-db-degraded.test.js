@@ -43,11 +43,31 @@ describe("refresh-session verification tolerates transient DB infra errors on /a
     await expect(getOptionalUserFromRequest(request, env)).rejects.toThrow(/mongo/i);
   });
 
-  test("다른 라우트는 기존과 동일하게 실패 시 null(401)로 닫혀야 한다 — paid-flow-gates 계약 유지", async () => {
+  // 계약이 한 번 바뀌었다. 예전에는 DB가 닿지 않으면 어느 라우트든 null→확정 401 로 닫았지만,
+  // 그 강등이 "로그인했는데 로그인 필요" 증상의 원인이었다. 지금은 requireUserFromRequest 가
+  // surfaceDbInfraError:true 를 넘겨(auth.js:588-591) 인프라 오류를 그대로 전파하고,
+  // 유료 라우트는 resolvePaidRouteAuth 가 이를 503(retryable)로 옮긴다.
+  // 아래 두 테스트가 그 경계를 못박는다 — 인프라 오류는 401 이 되면 안 되고,
+  // 진짜 게스트는 여전히 401 이어야 한다.
+  test("로그인 사용자의 DB 인프라 오류는 401로 강등되지 않고 전파돼야 한다", async () => {
     const request = await buildRefreshOnlyRequest("/api/fortune/pig-coin/consume");
+    await expect(requireAuth(request, env)).rejects.toThrow(/mongo/i);
+  });
+
+  test("자격증명이 아예 없는 진짜 게스트는 그대로 401 UNAUTHORIZED", async () => {
+    const request = new Request("https://example.com/api/fortune/pig-coin/consume", { method: "GET" });
     await expect(requireAuth(request, env)).rejects.toMatchObject({
       status: 401,
       payload: { code: "UNAUTHORIZED" },
+    });
+  });
+
+  test("유료 라우트 해석기는 같은 인프라 오류를 503 retryable 로 옮긴다", async () => {
+    const authMod = await import("../../worker/lib/auth.js");
+    const request = await buildRefreshOnlyRequest("/api/fortune/pig-coin/consume");
+    await expect(authMod.resolvePaidRouteAuth(request, env)).rejects.toMatchObject({
+      status: 503,
+      payload: { code: "AUTH_STATUS_TEMPORARILY_UNAVAILABLE", retryable: true },
     });
   });
 });

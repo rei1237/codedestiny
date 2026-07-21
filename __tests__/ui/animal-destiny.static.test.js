@@ -66,13 +66,25 @@ test("animal data order contains 12 unique ids", () => {
 
 test("unlock pricing is registered as 100 coins in worker registry", () => {
   const src = read("worker/lib/paid-feature-registry.js");
-  assert.ok(src.includes('"animal-destiny-unlock": { cost: 100'));
-  assert.ok(src.includes('"unlock.animal_destiny": { featureKey: "animal-destiny-unlock", cost: 100'));
+  assert.ok(src.includes('"animal-destiny-unlock": { cost: 100'), "가격 정본에서 100코인이 사라졌다");
+  // "unlock.animal_destiny" 별칭 키는 제거됐다 — 레포 전체에서 참조가 0건이고, 클라이언트는
+  // featureKey("animal-destiny-unlock")를 직접 쓴다(js/core/saju/reportDashboard.js lockKey).
+  // 대신 영구 해금으로 등록돼 있는지를 본다. 그게 이 기능의 실제 과금 계약이다.
+  assert.ok(
+    /EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST[\s\S]*?"animal-destiny-unlock"[\s\S]*?\]\)/.test(src),
+    "animal-destiny-unlock 이 영구 해금 목록에 없다",
+  );
 });
 
 test("service exposure and hero image wiring are present", () => {
   const sections = read("app/_lib/serviceSections.js");
-  assert.ok(sections.includes('href: "/saju/animal-test"'));
+  // 정본 경로는 /saju/animal-destiny 이고 /saju/animal-test 는 alias 로 남았다.
+  // 둘 중 하나로만 노출돼도 진입은 살아 있으므로 "노출되어 있는가"만 본다.
+  assert.ok(
+    sections.includes('href: "/saju/animal-destiny"') || sections.includes('href: "/saju/animal-test"'),
+    "동물점이 서비스 목록에 노출되지 않는다",
+  );
+  assert.ok(sections.includes('"/saju/animal-test"'), "animal-test 별칭 경로가 목록에서 사라졌다");
 
   const aliasRoute = read("app/saju/animal-test/page.tsx");
   assert.ok(aliasRoute.includes('/saju/animal-destiny'));

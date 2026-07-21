@@ -168,7 +168,10 @@
     "deploy": "npm run deploy:cf",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:node": "node --test __tests__/ui/*.test.js __tests__/fortune/maya-calendar.test.js",
+    "test:jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node",
+    "test": "npm run test:jest && npm run test:node"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

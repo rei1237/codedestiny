@@ -53,15 +53,38 @@ const TEST_USER_DOC = {
   status: "active",
 };
 
+// ESM 목은 명명 export 가 정적으로 맞아야 로드된다 — 빠진 이름 하나가 이 파일 전체를
+// 로드 실패로 떨어뜨려 리프레시 재사용 탐지 검증이 통째로 죽는다.
+// scripts/verify-test-mock-parity.mjs 가 이 목록과 실제 모듈의 export 를 대조한다.
 jest.unstable_mockModule("../../worker/lib/db.js", () => ({
   connectDb: jest.fn(async () => undefined),
   mongoose,
   resetMongooseConnection: jest.fn(async () => undefined),
   resolveMongoDbName: jest.fn(() => "test"),
+  withMongoRetry: jest.fn(async (env, fn) => fn()),
+  isTransientMongoError: jest.fn(() => false),
 }));
 
 jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   AbuseScore: {},
+  CONTENT_ENTITLEMENT_SOURCES: {},
+  CONTENT_ENTITLEMENT_STATUSES: {},
+  ContentOverride: {},
+  DailyFortuneSubscription: {},
+  DestinyBiasCard: {},
+  Insight: {},
+  KarmaDestinyAiConsultation: {},
+  LifeBookAiConsultation: {},
+  LlmResponseCache: {},
+  LoveSecretAiConsultation: {},
+  NewYearAiConsultation: {},
+  PaidExecutionRecord: {},
+  Payment: {},
+  ProfileCard: {},
+  RECENT_CONSUME_REQUEST_ID_CAP: 200,
+  ServiceExecutionTransaction: {},
+  SukuyoCompatibilityAiConsultation: {},
+  ZiweiAiConsultation: {},
   MonthlyCreditLedger: {},
   PointHistory: {},
   RefreshTokenSession: RefreshTokenSessionMock,
