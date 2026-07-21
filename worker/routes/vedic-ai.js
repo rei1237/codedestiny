@@ -3,6 +3,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -33,7 +34,9 @@ const MAX_INITIAL_READING_CHARS = 20000;
 const MAX_ASSISTANT_TEXT_CHARS = 60000;
 // 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 16000은
 // 목표 분량에서 잘림→JSON 파싱 실패→degraded/LLM_FAILED를 유발했다.
-const INITIAL_MAX_OUTPUT_TOKENS = 32000;
+// 구 32000은 상한 20,000자를 최악 비율로 채우면 1,333자밖에 안 남아 완충이 부족했다.
+// tokensRequiredForChars(20000) = 32,250 이상을 확보한다.
+const INITIAL_MAX_OUTPUT_TOKENS = 33000;
 const READING_SECTION_KEYS = [
   "lagna",
   "rashi",
@@ -1043,9 +1046,12 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
   // 초기/repair 리딩은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이
   // 잘리지 않게 보장한다. follow-up(requireStructured 미설정)은 프로즈라 단발 호출을 유지한다.
   const baseMaxOutputTokens = Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS);
-  // timeoutMs 미지정 시 llm-client 기본 30s가 적용돼 32,000토큰(≈160s) 생성이 항상 잘렸다.
+  // timeoutMs 미지정 시 llm-client 기본 30s가 적용돼 33,000토큰(≈165s) 생성이 항상 잘렸다.
   // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)는 || 체인에 넣으면 큰 기본값이 죽으므로 참조하지 않는다.
-  const vedicTimeoutMs = Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000;
+  // 이 라우트는 동기 생성이라 엣지가 100초에 요청을 끊는다. 구 180s는 그 한계를 넘겨, 오래 걸리는
+  // 생성이 라우트의 실패 처리(생성 실패 기록·선차감 복원)를 건너뛴 채 잘려 나갔다.
+  // clamp를 걸면 라우트가 먼저 판정해 짧아진 결과라도 degrade 경로로 전달한다.
+  const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
   const result = options.requireStructured === true
     ? await callGeminiJsonWithRetry(env, prompt, {
         systemPrompt: SYSTEM_PROMPT,

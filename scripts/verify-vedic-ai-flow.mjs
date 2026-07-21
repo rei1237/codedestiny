@@ -83,7 +83,6 @@ const route = read("worker/routes/vedic-ai.js");
   "LLM Payment Guard Passed",
   "MIN_INITIAL_READING_CHARS = 10000",
   "MAX_INITIAL_READING_CHARS = 20000",
-  "INITIAL_MAX_OUTPUT_TOKENS = 32000",
   "validateConsultationQuality",
   "maxTotalChars",
   "requireStructured: true",
@@ -94,6 +93,14 @@ const route = read("worker/routes/vedic-ai.js");
   "vimshottari_dasha",
   "VedicChartResult",
 ].forEach((needle) => assertIncludes(route, needle, "worker route"));
+
+// 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
+// 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).
+const vedicTokenBudget = Number(/INITIAL_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);
+assert(
+  vedicTokenBudget >= 32250,
+  `[verify:vedic-ai-flow] INITIAL_MAX_OUTPUT_TOKENS too small: ${vedicTokenBudget} (need >= 32250 for 20,000 chars + headroom)`,
+);
 assertMissing(route, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "generateChapter"], "worker route");
 assertMissing(route, ["3,500~5,000자", "500~700자", "600~800자", "400~500자"], "worker route length contract");
 assertIncludes(route, "10,000~20,000자", "length range contract");

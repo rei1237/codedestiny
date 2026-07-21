@@ -1505,9 +1505,11 @@ async function handleStart(request, env, ctx) {
       maxLength: ASTROLOGY_AI_MAX_RESULT_CHARS,
       // 공백 제외 10,000~20,000자 요구(한국어 1자≈1~1.5토큰) — 구 기본 16000/12000은
       // 목표 분량대에서 잘려 degraded 결과를 유발했다.
-      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 30000),
-      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 30000),
-      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 30000),
+      // 구 30000은 상한 20,000자를 최악 비율로 채우면 정확히 소진돼 완충이 0이었다.
+      // tokensRequiredForChars(20000) = 32,250 이상을 확보한다.
+      maxOutputTokens: Number(env.ASTROLOGY_AI_MAX_OUTPUT_TOKENS || 33000),
+      expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 33000),
+      condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 33000),
       requireExpertParts: true,
       // 초기 장문(1만자+)은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패시켜 재시도/환불 경로로.
       fallbackToWorkersAI: false,
@@ -1704,4 +1706,7 @@ export const __astrologyAiTestUtils = {
   buildAstrologyAnalysisBasis,
   buildFirstPrompt,
   sanitizeConsultationText,
+  getConsultationQualityIssues,
+  ASTROLOGY_AI_MIN_RESULT_CHARS,
+  ASTROLOGY_AI_MAX_RESULT_CHARS,
 };

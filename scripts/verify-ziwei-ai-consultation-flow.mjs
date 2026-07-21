@@ -49,7 +49,10 @@ assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000"), "initial c
 assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
 assert(route.includes("minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation min body guard missing");
 assert(route.includes("maxBodyChars: MAX_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation max body guard missing");
-assert(route.includes("INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 45000"), "initial generation token budget missing");
+// 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
+// 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).
+const ziweiTokenBudget = Number(/INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);
+assert(ziweiTokenBudget >= 47250, `initial generation token budget too small: ${ziweiTokenBudget} (need >= 47250 for 30,000 chars + headroom)`);
 assert(route.includes("triad_axis") && route.includes("twelve_palaces") && route.includes("timing_strategy") && route.includes("core_answer"), "expert expansion sections missing");
 assert(route.includes("문장만 늘리지 말고") && route.includes("자미두수 전문가가 실제로 더 살필 파트"), "quality expansion guard missing");
 assert(route.includes("POST") && route.includes("/prepare") && route.includes("/generate") && route.includes("/ensure-access") && route.includes("/start") && route.includes("/message"), "API handlers missing");

@@ -3,6 +3,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -32,7 +33,9 @@ const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000;
 const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
 // 초기 상담 body 합산 20,000~30,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 26000은
 // 최소 분량도 여유가 없어 상시 잘림→JSON 파싱 실패→degraded 결과를 유발했다.
-const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 45000;
+// 구 45000은 상한 30,000자를 최악 비율로 채우면 정확히 소진돼 완충이 0이었다(JSON 키·제목 몫도 없음).
+// tokensRequiredForChars(30000) = 47,250 이상을 확보한다.
+const INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS = 48000;
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
   "GEMINI_API_KEY",
@@ -1253,8 +1256,11 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.
   const baseMaxOutputTokens = options.maxOutputTokens || 7000;
   // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)를 || 체인에 넣으면 큰 기본값이 죽는다(45s 단락 함정).
-  // 초기 상담은 최대 45,000토큰(gemini-2.5-flash ~200tok/s ≈ 225s)이라 240s가 필요하다.
-  const ziweiTimeoutMs = Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000;
+  // 이 라우트는 동기 생성이라(아래 handleStart 참고) 엣지가 100초에 요청을 끊는다. 구 240s는 그 한계의
+  // 2.4배여서, 오래 걸리는 생성은 라우트가 실패를 판정하기도 전에 잘려 나갔다 — 생성 실패 기록도
+  // 선차감 접근권 복원도 실행되지 못한 채 사용자만 정체불명의 오류를 봤다.
+  // clamp를 걸면 라우트가 먼저 타임아웃을 판정해, 짧아진 결과라도 아래 degrade 경로로 반드시 전달한다.
+  const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
   const ziweiCallOptions = {
     systemPrompt: buildSystemPrompt(),
     taskType: "fortune",

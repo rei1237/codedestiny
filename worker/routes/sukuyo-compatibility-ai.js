@@ -1,6 +1,7 @@
 import { Lunar, Solar } from "lunar-javascript";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
@@ -1247,8 +1248,11 @@ async function createFirstAnswer(env, input, calculation) {
   const compatibilityMaxOutputTokens = Number(env.SUKUYO_COMPAT_AI_MAX_OUTPUT_TOKENS || 32000);
   // PREMIUM_GEMINI_TIMEOUT_MS(45s)를 참조하면 truthy 단락으로 기본값이 죽어 대량 JSON 생성이
   // 45초에 타임아웃 → LLM_FAILED 503으로 튕겼다. 궁합 전용 예산을 직접 확보한다.
-  // 잘림 재시도 시 토큰 cap이 41,600(32,000×1.3)까지 올라가므로(≈200tok/s ≈ 208s) 150s로 상향.
-  const compatibilityTimeoutMs = Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 150000;
+  // 잘림 재시도 시 토큰 cap이 41,600(32,000×1.3)까지 올라가므로(≈200tok/s ≈ 208s) 150s가 필요했지만,
+  // 이 라우트는 동기 생성이라 엣지가 100초에 요청을 끊는다. 150s는 그 한계를 넘겨, 오래 걸리는 생성이
+  // 라우트의 실패 처리(선차감 복원)를 건너뛴 채 잘려 나갔다. clamp를 걸면 라우트가 먼저 판정해
+  // 짧아진 결과라도 degrade 경로로 전달한다.
+  const compatibilityTimeoutMs = clampSyncLlmTimeoutMs(Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 150000);
   // 숙요 궁합 초기 상담(자유질문 포함) → 캐시 키가 프롬프트 전체로 잡혀 동일 입력만 히트.
   // 프롬프트 개선 주기를 반영해 TTL 7일. follow-up(handleMessage)은 캐시 대상 아님.
   const sukuyoLlmCache = {
@@ -1852,6 +1856,7 @@ export const __sukuyoCompatibilityAiTestUtils = {
   calculateSukuyo,
   buildSukuyoAnalysisBasis,
   buildFirstPrompt,
+  normalizeStructuredSukuyoCompatibilityText,
   SUKUYO_SECTION_SPECS,
   SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
   SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
