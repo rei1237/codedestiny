@@ -295,6 +295,36 @@ export default function DestinyCafeTarotAlbum({
     setFlippedById((current) => ({ ...current, [card.id]: false }));
   }, []);
 
+  const allVisibleFlipped = filteredCards.length > 0 && filteredCards.every((card) => flippedById[card.id]);
+  const selectedCardIndex = selectedCard ? albumCards.findIndex((card) => card.id === selectedCard.id) : -1;
+
+  const handleFlipAllVisible = useCallback(() => {
+    setFlippedById((current) => {
+      const next = { ...current };
+      filteredCards.forEach((card) => {
+        next[card.id] = true;
+      });
+      return next;
+    });
+    setRevealedById((current) => {
+      const next = { ...current };
+      filteredCards.forEach((card) => {
+        next[card.id] = true;
+      });
+      return next;
+    });
+  }, [filteredCards]);
+
+  const handleCoverAllVisible = useCallback(() => {
+    setFlippedById((current) => {
+      const next = { ...current };
+      filteredCards.forEach((card) => {
+        next[card.id] = false;
+      });
+      return next;
+    });
+  }, [filteredCards]);
+
   const handleSelectAdjacent = useCallback((direction: -1 | 1) => {
     if (!selectedCard) return;
     const currentIndex = albumCards.findIndex((card) => card.id === selectedCard.id);
@@ -416,6 +446,38 @@ export default function DestinyCafeTarotAlbum({
                 <TarotAlbumSort sortMode={sortMode} onSortModeChange={setSortMode} />
                 <TarotAlbumSearch searchText={searchText} onSearchTextChange={setSearchText} />
               </div>
+              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2.5">
+                <p className="text-xs font-bold text-moonveil-silver" aria-live="polite">
+                  카드 <span className="font-mono font-black tabular-nums text-champagne-gold">{filteredCards.length}</span>장
+                  {selectedCount ? (
+                    <>
+                      {" · "}달빛 서가 <span className="font-mono font-black tabular-nums text-champagne-gold">{selectedCount}</span>장
+                    </>
+                  ) : null}
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.055] px-3.5 text-xs font-black text-moonveil-silver transition hover:border-champagne-gold/35 hover:text-champagne-gold focus:outline-none focus:ring-2 focus:ring-champagne-gold/45 disabled:opacity-50"
+                    onClick={allVisibleFlipped ? handleCoverAllVisible : handleFlipAllVisible}
+                    disabled={!filteredCards.length}
+                  >
+                    {allVisibleFlipped ? <RotateCcw size={13} aria-hidden /> : <Sparkles size={13} aria-hidden />}
+                    {allVisibleFlipped ? "모두 덮기" : "모두 펼치기"}
+                  </button>
+                  {selectedCount ? (
+                    <button
+                      type="button"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-champagne-gold/35 bg-champagne-gold/12 px-3.5 text-xs font-black text-champagne-gold transition hover:border-champagne-gold/60 focus:outline-none focus:ring-2 focus:ring-champagne-gold/45 disabled:opacity-50"
+                      onClick={() => handleDownloadPdf("selected")}
+                      disabled={isPdfBusy}
+                    >
+                      {isPdfBusy ? <Loader2 size={13} className="animate-spin" aria-hidden /> : <Download size={13} aria-hidden />}
+                      선택 {selectedCount}장 PDF
+                    </button>
+                  ) : null}
+                </div>
+              </div>
             </div>
             <TarotAlbumGrid
               cards={filteredCards}
@@ -489,6 +551,8 @@ export default function DestinyCafeTarotAlbum({
       {selectedCard ? (
         <TarotCardModal
           card={selectedCard}
+          cardIndex={selectedCardIndex}
+          cardTotal={albumCards.length}
           selectedForPdf={Boolean(selectedCardIds[selectedCard.id])}
           imageFailed={Boolean(imageFailedById[selectedCard.id])}
           cardBackUrl={cardBackUrl}
@@ -532,7 +596,7 @@ function TarotAlbumHero({
   onDownloadSelected: () => void;
 }) {
   return (
-    <header className="relative overflow-hidden rounded-[2rem] border border-champagne-gold/20 bg-midnight-ink/45 px-6 py-8 shadow-[0_0_60px_rgba(216,179,108,0.12)] backdrop-blur-xl md:px-10 md:py-12">
+    <header className="relative overflow-hidden rounded-[2rem] border border-champagne-gold/20 bg-midnight-ink/45 px-5 py-6 shadow-[0_0_60px_rgba(216,179,108,0.12)] backdrop-blur-xl sm:px-6 sm:py-8 md:px-10 md:py-12">
       <span className="pointer-events-none absolute left-10 top-6 h-28 w-28 rounded-full bg-champagne-gold/10 blur-2xl" aria-hidden />
       <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(237,239,245,.10),transparent_34%),linear-gradient(120deg,rgba(255,255,255,.05),transparent_45%)]" aria-hidden />
       <MoonlitPetalField density="normal" />
@@ -542,10 +606,10 @@ function TarotAlbumHero({
             <Sparkles size={14} aria-hidden />
             MOONLIT TAROT ARCHIVE
           </span>
-          <h2 id="tarotAlbumTitle" className="font-premium text-4xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl lg:text-6xl">
+          <h2 id="tarotAlbumTitle" className="break-keep font-premium text-3xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl lg:text-6xl">
             달빛 타로 카드 앨범
           </h2>
-          <p className="mt-4 text-lg font-semibold leading-relaxed text-pearl-mist sm:text-xl">
+          <p className="mt-3 text-base font-semibold leading-relaxed text-pearl-mist sm:mt-4 sm:text-xl">
             78장의 카드가 달빛 찻집의 도감처럼 조용히 펼쳐집니다.
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
@@ -568,9 +632,9 @@ function TarotAlbumHero({
             <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? `선택 ${selectedCount}장 PDF` : "선택 카드 PDF"} />
           </div>
         </div>
-        <div className="relative mx-auto mt-2 w-full max-w-[264px] lg:mt-0" aria-hidden>
+        <div className="relative mx-auto mt-1 w-full max-w-[220px] sm:max-w-[264px] lg:mt-0" aria-hidden>
           <div
-            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[176px] w-[176px] sm:h-[188px] sm:w-[188px]"
+            className="pointer-events-none absolute -left-4 bottom-1 z-0 h-[148px] w-[148px] sm:h-[188px] sm:w-[188px]"
             style={{ transformOrigin: "50% 92%", animation: "tarotCharacterIdle 4.8s ease-in-out infinite" }}
           >
             <span
@@ -638,9 +702,9 @@ function MoonlitPetalField({ density = "normal" }: { density?: "normal" | "rich"
 function TarotCardFan({ cardBackUrl }: { cardBackUrl: string }) {
   const offsets = [-2, -1, 0, 1, 2];
   return (
-    <div className="group relative mx-auto flex h-[260px] w-full items-center justify-center sm:h-[300px]">
+    <div className="group relative mx-auto flex h-[212px] w-full items-center justify-center sm:h-[300px]">
       <span className="pointer-events-none absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-champagne-gold/12 blur-3xl transition-all duration-500 group-hover:bg-champagne-gold/20" aria-hidden />
-      <div className="relative h-[220px] w-[150px] transition-transform duration-500 ease-out group-hover:scale-[1.03] sm:h-[248px] sm:w-[168px]">
+      <div className="relative h-[180px] w-[122px] transition-transform duration-500 ease-out group-hover:scale-[1.03] sm:h-[248px] sm:w-[168px]">
         {offsets.map((offset) => {
           const distance = Math.abs(offset);
           return (
@@ -797,7 +861,8 @@ function TarotAlbumSearch({
         type="search"
         value={searchText}
         aria-label="카드 이름, 키워드, 해석 검색"
-        className="w-full min-w-0 bg-transparent text-sm font-semibold text-champagne-gold outline-none"
+        placeholder="카드 이름·키워드 검색"
+        className="w-full min-w-0 bg-transparent text-sm font-semibold text-champagne-gold outline-none placeholder:text-moonveil-silver/70"
         onChange={(event) => onSearchTextChange(event.target.value)}
       />
     </label>
@@ -1396,6 +1461,8 @@ function MoonlitCardPlaceholder({
 
 function TarotCardModal({
   card,
+  cardIndex,
+  cardTotal,
   selectedForPdf,
   imageFailed,
   cardBackUrl,
@@ -1408,6 +1475,8 @@ function TarotCardModal({
   onDownloadSingle,
 }: {
   card: TarotAlbumStoryCard;
+  cardIndex: number;
+  cardTotal: number;
   selectedForPdf: boolean;
   imageFailed: boolean;
   cardBackUrl: string;
@@ -1571,6 +1640,11 @@ function TarotCardModal({
             >
               <ChevronRight size={18} aria-hidden />
             </button>
+            {cardIndex >= 0 ? (
+              <span className="hidden flex-none px-1 font-mono text-xs font-black tabular-nums text-moonveil-silver min-[400px]:block" aria-label={`카드 ${cardIndex + 1}번째, 전체 ${cardTotal}장`}>
+                {cardIndex + 1}/{cardTotal}
+              </span>
+            ) : null}
             <button
               type="button"
               className={cx(

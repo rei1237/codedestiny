@@ -1023,7 +1023,7 @@
   top: calc(max(14px, env(safe-area-inset-top)) + 50px);
   left: max(14px, env(safe-area-inset-left));
   z-index: 9;
-  width: min(214px, calc(100vw - 170px));
+  width: min(238px, calc(100vw - 170px));
   pointer-events: none;
 }
 
@@ -1034,7 +1034,7 @@
 
 .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
 .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-  max-width: 214px;
+  max-width: 238px;
   margin-left: auto;
 }
 
@@ -1122,7 +1122,7 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 34px;
+  min-height: 40px;
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr);
   align-items: center;
@@ -1169,12 +1169,12 @@
   position: relative;
   z-index: 1;
   width: 100%;
-  min-height: 38px;
+  min-height: 44px;
   display: grid;
-  grid-template-columns: 16px minmax(48px, 0.68fr) minmax(34px, 1fr) auto;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
+  gap: 4px 7px;
+  padding: 7px 9px 8px;
   overflow: hidden;
   border: 1px solid rgba(255, 226, 190, 0.38);
   border-radius: 12px 15px 9px 15px;
@@ -1190,7 +1190,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   backdrop-filter: blur(14px) saturate(1.1);
   font-family: var(--tea-font-playful);
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   font-weight: 900;
   cursor: pointer;
   pointer-events: auto;
@@ -1200,22 +1200,6 @@
     border-color 180ms ease,
     box-shadow 180ms ease,
     background 180ms ease;
-}
-
-.honeyAlbumButton::before {
-  content: "";
-  position: absolute;
-  left: 7px;
-  top: 6px;
-  width: 18px;
-  height: 18px;
-  pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 68% 34%, rgba(38, 23, 72, 0.82) 0 7px, transparent 8px),
-    radial-gradient(circle at 45% 50%, rgba(255, 244, 201, 0.95) 0 9px, transparent 10px);
-  filter: drop-shadow(0 0 10px rgba(255, 232, 166, 0.42));
-  opacity: 0.82;
 }
 
 .honeyAlbumButton::after {
@@ -1285,9 +1269,11 @@
 .honeyAlbumProgress {
   position: relative;
   z-index: 1;
+  grid-column: 1 / -1;
+  grid-row: 2;
   width: 100%;
   min-width: 28px;
-  height: 6px;
+  height: 5px;
   overflow: hidden;
   border-radius: 999px;
   border: 1px solid rgba(255, 246, 250, 0.18);
@@ -1315,14 +1301,14 @@
 .honeyAlbumButton em {
   position: relative;
   z-index: 1;
-  min-width: 28px;
-  padding: 2px 5px;
+  min-width: 32px;
+  padding: 3px 7px;
   border-radius: 999px;
-  color: rgba(28, 20, 55, 0.94);
+  color: rgba(28, 20, 55, 0.96);
   background:
     radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.72), transparent 32%),
     linear-gradient(135deg, #fff7d2, #f8bbdd 58%, #a5d5ff);
-  font-size: 0.52rem;
+  font-size: 0.6rem;
   font-style: normal;
   text-align: center;
   box-shadow:
@@ -1387,9 +1373,9 @@
 
 .honeyCounter div span {
   display: block;
-  color: rgba(255, 239, 176, 0.84);
+  color: rgba(255, 239, 176, 0.92);
   font-family: var(--tea-font-playful);
-  font-size: 0.52rem;
+  font-size: 0.62rem;
   font-weight: 800;
   line-height: 1;
   white-space: nowrap;
@@ -1397,10 +1383,10 @@
 
 .honeyCounter strong {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   color: #fff8df;
   font-family: var(--tea-font-premium);
-  font-size: 0.68rem;
+  font-size: 0.8rem;
   font-weight: 900;
   line-height: 1;
   text-shadow: 0 0 14px rgba(255, 218, 118, 0.28);
@@ -1567,10 +1553,10 @@
 
 .honeyInfoPanel p {
   margin: 6px 0 0;
-  color: rgba(255, 246, 250, 0.82);
+  color: rgba(255, 246, 250, 0.88);
   font-family: var(--tea-font-body);
-  font-size: 0.72rem;
-  line-height: 1.5;
+  font-size: 0.76rem;
+  line-height: 1.55;
 }
 
 .honeyAlbumMeter {
@@ -9352,7 +9338,7 @@
   .honeyRewardLayer {
     top: calc(max(14px, env(safe-area-inset-top)) + 50px);
     left: max(10px, env(safe-area-inset-left));
-    width: min(198px, calc(100vw - 168px));
+    width: min(216px, calc(100vw - 168px));
   }
 
   .honeyRewardLayer[data-mode="active"] {
@@ -9362,7 +9348,7 @@
 
   .honeyRewardLayer[data-mode="active"] .honeyHeaderDock,
   .honeyRewardLayer[data-mode="active"] .honeyModeToggle {
-    max-width: 198px;
+    max-width: 216px;
   }
 
   .honeyHeaderDock {
@@ -9373,7 +9359,7 @@
 
   .honeyCounter {
     grid-template-columns: 26px minmax(0, 1fr);
-    min-height: 31px;
+    min-height: 36px;
     gap: 6px;
     padding: 4px 8px 4px 5px;
   }
@@ -9383,25 +9369,25 @@
   }
 
   .honeyCounter div span {
-    font-size: 0.5rem;
+    font-size: 0.58rem;
   }
 
   .honeyCounter strong {
-    font-size: 0.64rem;
+    font-size: 0.74rem;
   }
 
   .honeyAlbumButton {
-    grid-template-columns: 15px minmax(42px, 0.65fr) minmax(30px, 1fr) auto;
-    min-height: 34px;
-    gap: 5px;
-    padding: 5px 7px;
-    font-size: 0.6rem;
+    grid-template-columns: 15px minmax(0, 1fr) auto;
+    min-height: 40px;
+    gap: 4px 6px;
+    padding: 6px 8px 7px;
+    font-size: 0.66rem;
   }
 
   .honeyAlbumButton em {
-    min-width: 27px;
-    padding: 2px 5px;
-    font-size: 0.5rem;
+    min-width: 30px;
+    padding: 2px 6px;
+    font-size: 0.56rem;
   }
 
   .honeyInfoPanel {
