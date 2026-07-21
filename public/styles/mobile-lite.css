@@ -646,9 +646,32 @@
 
 @media (max-width: 768px), (hover: none) and (pointer: coarse) {
   [data-component="MobileFeatureDetail"] {
-    /* 기능 상세 시트 팔레트 — 연이(밝은 꽃)가 기본, 네오는 아래에서 통째로 교체한다.
-       예전에는 이 토큰이 슬레이트/네이비 한 세트뿐이라, 연이 모드에서도 상세 시트만
-       다크로 떠서 뒤 화면과 인격이 갈렸다(DESIGN.md Two Covers Rule 위반). */
+    /* 기능 상세 시트 팔레트 — 연이는 "연이 Dark(핑크 다크)", 네오는 아래에서 통째로 교체한다.
+       이 토큰이 슬레이트/네이비 한 세트뿐이라 연이에서도 시트만 다크로 떠 인격이 갈렸던 문제를
+       고치며 밝은 크림으로 뒤집었는데, 그 결과 이 래퍼가 감싸는 기능 18개(거북점·케멧·관계
+       타로·천운 타로·해몽·토템 …)가 전부 다크 전용 디자인이라 자기 글자색(크림/골드)을 그대로
+       둔 채 표면만 크림이 되어 글자가 사라졌다. 밝게 만드는 대신 DESIGN.md 의 연이 Dark
+       (딥 플럼)로 맞춘다 — 계열은 핑크로 유지되므로 Hue-Stays 를 지키고, 기능들의 원래
+       다크 아트·골드 포인트가 그대로 산다. */
+    --cd-detail-panel: rgba(58, 14, 40, 0.96);
+    --cd-detail-shell: linear-gradient(180deg, #3a0e28, #24081a);
+    --cd-detail-top: linear-gradient(180deg, rgba(58, 14, 40, 0.98), rgba(36, 8, 26, 0.94));
+    --cd-detail-fill: rgba(255, 196, 222, 0.1);
+    --cd-detail-fill-soft: rgba(255, 196, 222, 0.06);
+    --cd-detail-line: rgba(244, 190, 209, 0.38);
+    --cd-detail-text: #fff1f7;
+    --cd-detail-muted: rgba(255, 214, 232, 0.86);
+    --cd-detail-gold: #ead089;
+    color: var(--cd-detail-text);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 예외 — 사주 결과 대시보드는 모달이 아니라 밝은 홈 셸 안에 사는 화면이고, 자기 카드가
+     이미 연이 라이트(흰/크림 표면 + #3c1830 글자, index.html 5485-5489)로 확정돼 있다.
+     여기까지 플럼으로 뒤집으면 밝은 카드가 어두운 바탕에 떠 홈과 인격이 갈린다. */
+  html:not(.neo-mode) #resultPage[data-component="MobileFeatureDetail"],
+  body:not(.neo-mode) #resultPage[data-component="MobileFeatureDetail"] {
     --cd-detail-panel: rgba(255, 255, 255, 0.96);
     --cd-detail-shell: linear-gradient(180deg, #fffaf7, #fff3f8);
     --cd-detail-top: linear-gradient(180deg, rgba(255, 250, 247, 0.98), rgba(255, 243, 248, 0.94));
@@ -658,9 +681,6 @@
     --cd-detail-text: #3c1830;
     --cd-detail-muted: #70445c;
     --cd-detail-gold: #a06a12;
-    color: var(--cd-detail-text);
-    overscroll-behavior: contain;
-    -webkit-overflow-scrolling: touch;
   }
 
   /* 네오(달빛 다크) — bg/surface/line/text/gold 를 한 세트로 함께 교체한다(Two Covers Rule) */
@@ -891,9 +911,11 @@
     margin: 0 0 10px !important;
     padding: 11px 12px !important;
     border-radius: 12px !important;
-    border: 1px solid rgba(125, 211, 252, 0.24) !important;
-    background: rgba(14, 165, 233, 0.11) !important;
-    color: #e0f2fe !important;
+    /* 스카이블루 리터럴 3종은 다크 전용이라 테마를 안 따라왔다. 이 칩은 모든 기능의 결과
+       첫 문장에 자동으로 붙으므로(annotate 의 result 섹션), 여기만 어긋나면 전 기능이 어긋난다. */
+    border: 1px solid var(--cd-detail-line) !important;
+    background: var(--cd-detail-fill) !important;
+    color: var(--cd-detail-text) !important;
     font-size: 0.9rem !important;
     line-height: 1.55 !important;
   }
