@@ -115,9 +115,13 @@ function createNextConfig(phase) {
 
   const config = {
     output: isProductionBuild ? "export" : undefined,
-    // 배포 전환 틈새에 엣지가 청크 404를 장시간 캐시(negative cache)하면 해당 URL이
-    // 다음 배포까지 오염된다. 배포별 ?dpl= 쿼리로 에셋 캐시 키를 분리해 이를 차단한다.
-    deploymentId: isProductionBuild && buildGitSha !== "unknown" ? buildGitSha.slice(0, 12) : undefined,
+    // deploymentId(?dpl=) 금지 — 2026-07-07 에 "엣지 404 오염 차단"을 노리고 넣었지만
+    // 정확히 반대로 작동했다. 배포마다 모든 에셋 URL 이 새 캐시 키가 되어 전환 순간 전부
+    // 콜드 MISS 로 오리진을 때리고, 그때 나온 404 가 max-age=172800(2일)로 캐시되면
+    // 그 배포의 HTML 을 받는 모든 사용자가 같은 URL 을 요청해 2일간 청크 로드 실패(백지)를
+    // 겪었다(2026-07-22 운명 찻집·네오 전략실 백지 사고, 오리진은 200 인데 ?dpl= 붙은
+    // URL 만 404 로 확인). 청크는 이미 콘텐츠 해시로 파일명이 갈리므로 무효화는 그것으로
+    // 충분하고, 바뀌지 않은 청크는 따뜻한 200 캐시를 그대로 재사용해 전환 창을 아예 피한다.
     compress: true,
     env: {
       NEXT_PUBLIC_APP_VERSION: buildAppVersion,
