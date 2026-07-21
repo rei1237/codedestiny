@@ -121,7 +121,7 @@ type NeoCommandSpriteConfig = {
   asset?: NeoWarRoomAsset;
   sheetFrame?: number;
 };
-type NeoPrologueSpeaker = "customer" | "neo" | "narration" | "system";
+type NeoPrologueSpeaker = "customer" | "neo" | "lion" | "narration" | "system";
 type NeoPrologueCharacter = "hidden" | "shadow" | "lion" | "lionGlitch" | "strategyMain" | "morph" | "humanNeo";
 type NeoPrologueEffect = "none" | "signal" | "seal" | "morph" | "arrival";
 type NeoPrologueLine = {
@@ -346,43 +346,88 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "story-lion-seal",
     speaker: "narration",
     speakerLabel: "내레이션",
-    text: "정면 벽의 황금 사자 휘장에 불이 들어온다.\n이 방의 인장이자, 물러서지 않겠다는 서약이다.",
+    text: "정면 벽의 황금 사자 휘장에 불이 들어온다.\n그리고 휘장 속 사자가, 천천히 눈을 뜬다.",
     scene: "lionReveal",
     character: "lion",
     effect: "seal",
   },
   {
-    id: "story-commander-rise",
+    id: "lion-first-word",
+    speaker: "lion",
+    speakerLabel: "황금 사자",
+    text: "겁먹지 마라.\n너를 이 방까지 끌고 온 건, 네 발이 아니라 네가 미뤄 둔 문제다.",
+    scene: "lionReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "customer-startled",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "…지금, 사자가 말한 건가요?",
+    scene: "lionReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "lion-pattern-read",
+    speaker: "lion",
+    speakerLabel: "황금 사자",
+    text: "놀랄 건 그게 아니지.\n너는 같은 자리에서 몇 번을 물러섰는지, 이미 알고 있으면서 세지 않았다.",
+    scene: "patternAudit",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "customer-defense",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "…그건, 그때는 어쩔 수 없었어요.",
+    scene: "patternAudit",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "lion-name-problem",
+    speaker: "lion",
+    speakerLabel: "황금 사자",
+    text: "어쩔 수 없었다는 말은, 아직 이름을 안 붙였다는 뜻이다.\n이름 없는 문제는 평생 같은 얼굴로 다시 온다.",
+    scene: "nameReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "lion-offer-power",
+    speaker: "lion",
+    speakerLabel: "황금 사자",
+    text: "묻겠다.\n힘을 원하나?",
+    scene: "nameReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "lion-define-power",
+    speaker: "lion",
+    speakerLabel: "황금 사자",
+    text: "여기서 힘이란 운을 바꾸는 요행이 아니다.\n네 상황을 정확히 보고, 다음 한 수를 스스로 고르는 능력이다.",
+    scene: "nameReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "customer-accept",
+    speaker: "customer",
+    speakerLabel: "고객",
+    text: "…원해요.\n이번엔 제대로 알고 싶어요.",
+    scene: "nameReveal",
+    character: "lion",
+    effect: "seal",
+  },
+  {
+    id: "story-lion-transform",
     speaker: "narration",
     speakerLabel: "내레이션",
-    text: "휘장 아래 지휘석에서 한 형상이 천천히 일어선다.\n예를 갖춘 전략가의 실루엣이 빛을 두른다.",
-    scene: "lionReveal",
-    character: "strategyMain",
-    effect: "seal",
-  },
-  {
-    id: "neo-greet",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "늦었군.\n네가 미뤄 둔 문제는 이미 작전판 위에 올라와 있다.",
-    scene: "lionReveal",
-    character: "strategyMain",
-    effect: "seal",
-  },
-  {
-    id: "neo-formal-open",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "지금부터 격식을 갖춰, 네 운명을 정중히 브리핑하겠다.",
-    scene: "lionReveal",
-    character: "strategyMain",
-    effect: "seal",
-  },
-  {
-    id: "story-armor-shed",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "말이 끝나기 전, 예복 같던 빛의 갑주가 스스로 벗겨진다.\n격식은 여기까지라는 듯이.",
+    text: "사자의 몸이 황금빛으로 무너지며 다시 짜인다.\n네 발로 서 있던 짐승이, 두 발로 선 사람의 형상으로 바뀐다.",
     scene: "transformation",
     character: "morph",
     effect: "morph",
@@ -391,25 +436,25 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "system-protocol",
     speaker: "system",
     speakerLabel: "작전실 시스템",
-    text: "의전 모드 종료.\n팩폭 프로토콜로 전환.",
+    text: "인장 해제, 인간형 전환 완료.\n팩폭 프로토콜 가동.",
     scene: "transformation",
     character: "morph",
     effect: "morph",
   },
   {
-    id: "neo-drop-formal",
-    speaker: "neo",
-    speakerLabel: "네오",
-    text: "격식은 문 앞에 두고 왔다.\n여기서부터는 있는 그대로 말한다.",
+    id: "story-human-reveal",
+    speaker: "narration",
+    speakerLabel: "내레이션",
+    text: "빛이 흩어진 자리에, 사자의 눈빛을 그대로 가진 남자가 서 있다.",
     scene: "humanNeo",
     character: "humanNeo",
     effect: "arrival",
   },
   {
-    id: "story-human-reveal",
-    speaker: "narration",
-    speakerLabel: "내레이션",
-    text: "빛의 갑주가 흩어지고, 그 안에서 네오의 반신상이 조용히 모습을 드러낸다.",
+    id: "neo-self-intro",
+    speaker: "neo",
+    speakerLabel: "네오",
+    text: "네오다.\n방금 그 사자, 나다. 이 모습이 대화하기엔 편하지.",
     scene: "humanNeo",
     character: "humanNeo",
     effect: "arrival",
@@ -418,7 +463,7 @@ const neoPrologueDialogues: readonly NeoPrologueLine[] = [
     id: "neo-blunt-first",
     speaker: "neo",
     speakerLabel: "네오",
-    text: "네 운, 나쁜 게 아니다.\n운이 없는 게 아니라, 전략이 없는 쪽에 가깝다.",
+    text: "미리 말해 두지.\n네 운은 나쁜 게 아니다. 운이 없는 게 아니라, 전략이 없는 쪽에 가깝다.",
     scene: "strategyRoom",
     character: "humanNeo",
     effect: "arrival",
@@ -1169,7 +1214,9 @@ export default function NeoOperationRoomPage() {
         ? "STORY"
         : activePrologueLine?.speaker === "system"
           ? "SYSTEM"
-          : "NEO";
+          : activePrologueLine?.speaker === "lion"
+            ? "LION"
+            : "NEO";
   const activeHeroCharacter = activePrologueLine?.character || "humanNeo";
   const activeHeroIsMorphing = activeHeroCharacter === "morph";
   const activeHeroCharacterAsset = activePrologueLine ? getNeoPrologueCharacterAsset(activeHeroCharacter) : NEO_INTRO_PORTRAIT;
@@ -2003,7 +2050,7 @@ export default function NeoOperationRoomPage() {
                   <NeoWarRoomAssetImage
                     className={`${styles.vnCharacterAsset} ${styles.vnMorphLion}`}
                     imageClassName={styles.vnCharacterImage}
-                    asset={NEO_PROLOGUE_PRE_TRANSFORM_MAIN}
+                    asset={NEO_PROLOGUE_LION}
                     alt=""
                     fallbackSrc={NEO_INTRO_PORTRAIT.src}
                     priority={false}
