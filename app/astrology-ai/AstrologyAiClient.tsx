@@ -6,6 +6,8 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { AlertCircle, CalendarDays, CheckCircle2, ExternalLink, Loader2, MapPin, Moon, RotateCcw, Sparkles, Stars, WalletCards } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
+import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
 import {
@@ -81,6 +83,7 @@ const API_ENDPOINTS = {
   ensureAccess: "/api/astrology-ai/ensure-access",
   start: "/api/astrology-ai/start",
   message: "/api/astrology-ai/message",
+  basis: "/api/astrology-ai/basis",
 } as const;
 
 const TOPICS = [
@@ -285,6 +288,8 @@ export default function AstrologyAiClient() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  // 서버가 계산한 차트 근거 — 대기실이 실제 값을 단계별로 보여 준다.
+  const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [resultUrl, setResultUrl] = useState("");
   const [resultOpenMessage, setResultOpenMessage] = useState("");
   const [progressIndex, setProgressIndex] = useState(0);
@@ -467,6 +472,8 @@ export default function AstrologyAiClient() {
     setNotice("");
     setPhase("access");
     setProgressIndex(1);
+    // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
+    void fetchAnalysisBasis(API_ENDPOINTS.basis, buildPayload()).then(setBasis);
     beginPaidFeatureGateCheck({
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
@@ -830,6 +837,18 @@ export default function AstrologyAiClient() {
                   </p>
                 </div>
               </div>
+
+              {/* 기다리는 동안 실제로 계산된 차트 값을 단계별로 드러낸다. 근거 조회가 실패하면
+                  기존 진행 단계 문구로 되돌아갈 뿐, 생성 흐름에는 영향을 주지 않는다. */}
+              {busy && !consultation && (
+                <div className="mt-5 text-slate-200 [--cd-basis-popover-bg:#0b1027]">
+                  <AnalysisBasisLoading
+                    basis={basis}
+                    fallbackLabel={PROGRESS_STEPS[Math.min(progressIndex, PROGRESS_STEPS.length - 1)].title}
+                    fallbackDetail={PROGRESS_STEPS[Math.min(progressIndex, PROGRESS_STEPS.length - 1)].description}
+                  />
+                </div>
+              )}
 
               {consultation && resultUrl && (
                 <div className="mt-5 grid gap-3">

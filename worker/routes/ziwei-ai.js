@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
@@ -14,6 +14,12 @@ import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
+import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
+import {
+  buildEvidenceRuleLines,
+  buildReasoningSectionRuleLines,
+  buildReasoningSectionSchema,
+} from "../lib/fortune-reasoning-contract.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -909,6 +915,77 @@ function buildCanonicalZiweiFacts(chart) {
   return lines;
 }
 
+// 대한은 오행국이 정한 첫 대한 나이부터 10년씩 흐른다. 세는나이 기준이라 라벨에 그대로 밝힌다.
+function resolveCurrentMajorLuck(chart, birthDate) {
+  const birthYear = Number(String(birthDate || "").slice(0, 4));
+  if (!Number.isFinite(birthYear) || birthYear < 1900) return null;
+  const age = new Date().getFullYear() - birthYear + 1;
+  const rows = Array.isArray(chart?.majorLuck) ? chart.majorLuck : [];
+  const current = rows.find((row) => age >= Number(row?.startAge) && age <= Number(row?.endAge));
+  return current ? { ...current, age } : null;
+}
+
+// 서버가 계산한 명반을 화면과 프롬프트가 함께 쓰는 근거 형태로 옮긴다.
+// 여기 없는 별·궁·수치는 본문에도 등장하면 안 된다(buildEvidenceRuleLines가 그 규칙을 건다).
+function buildZiweiAnalysisBasis(chart, birthInfo = {}) {
+  const palaces = Array.isArray(chart?.palaces) ? chart.palaces : [];
+  const lifeData = palaces.find((item) => item.name === "명궁") || null;
+  const bodyData = palaces.find((item) => item.name === chart?.bodyPalace) || null;
+  const sihua = resolveSihuaPlacements(chart);
+  const currentLuck = resolveCurrentMajorLuck(chart, birthInfo?.birthDate);
+  const yearly = chart?.yearlyLuck || {};
+  const triad = chart?.sanFangSiZheng?.byPalace?.["명궁"] || null;
+
+  const coreItems = [
+    lifeData || chart?.lifePalace
+      ? basisItem("명궁", `${lifeData?.earthlyBranch ? `${lifeData.earthlyBranch}궁 · ` : ""}${starsWithBrightness(lifeData, lifeData?.mainStars)}`)
+      : null,
+    chart?.bodyPalace ? basisItem("신궁", `${chart.bodyPalace}${bodyData?.mainStars?.length ? ` · ${starsWithBrightness(bodyData, bodyData.mainStars)}` : ""}`) : null,
+    chart?.bureau?.name ? basisItem("오행국", `${chart.bureau.name} · 첫 대한 ${chart.bureau.number}세부터`) : null,
+  ];
+
+  const sihuaItems = Object.values(sihua).map((item) => basisItem(
+    item.label,
+    `${item.star}${item.palace ? ` → ${item.palace}` : ""}`,
+    { term: item.label, tone: item.label === "화기" ? "caution" : "positive" },
+  ));
+
+  const palaceItems = palaces
+    .map((palace) => {
+      const stars = [...(palace.mainStars || []), ...(palace.assistantStars || []), ...(palace.maleficStars || [])];
+      if (!stars.length) return null;
+      return basisItem(`${palace.name}(${palace.earthlyBranch})`, starsWithBrightness(palace, stars));
+    })
+    .filter(Boolean);
+
+  const luckItems = [
+    currentLuck
+      ? basisItem("대한", `${currentLuck.palaceName} · ${currentLuck.range}세 · ${currentLuck.direction} (세는나이 ${currentLuck.age}세 기준)`)
+      : null,
+    yearly?.palaceName
+      ? basisItem("올해 세운", `${yearly.year}년 ${yearly.earthlyBranch} · ${yearly.palaceName}${yearly.mainStars?.length ? ` · ${yearly.mainStars.join(", ")}` : ""}`)
+      : null,
+    triad?.palaceNames?.length ? basisItem("삼방사정", `명궁 ↔ ${triad.palaceNames.filter((name) => name !== "명궁").join(" · ")}`) : null,
+  ];
+
+  return buildAnalysisBasisPayload({
+    featureKey: FEATURE_KEY,
+    groups: [
+      basisGroup("core", "명궁과 신궁", coreItems, { hint: "명반을 읽는 첫 자리입니다. 명궁이 타고난 결, 신궁이 살면서 매달리게 되는 자리입니다." }),
+      basisGroup("sihua", "사화가 앉은 자리", sihuaItems, { hint: "네 가지 변화가 어느 궁에 놓였는지가 힘이 실리는 방향과 막히는 지점을 정합니다." }),
+      basisGroup("palaces", "12궁 강약", palaceItems, { hint: "◎묘 · O득 · ▲리 · △평 · X함. 강한 자리는 확장으로, 약한 자리는 관리로 읽습니다." }),
+      basisGroup("luck", "지금의 흐름", luckItems, { hint: "타고난 배치 위에 현재 어떤 조명이 들어와 있는지를 봅니다." }),
+    ],
+    stages: [
+      basisStage("palace", "명궁을 세우는 중", "12궁 배치와 오행국", ["core"]),
+      basisStage("stars", "성계를 배치하는 중", "주성·보성·살성의 강약", ["palaces"]),
+      basisStage("sihua", "사화의 흐름을 읽는 중", "화록·화권·화과·화기", ["sihua"]),
+      basisStage("luck", "대한의 물길을 찾는 중", "현재 대한과 올해 세운", ["luck"]),
+    ],
+    uncertainty: chart?.uncertainty?.birthTimeUnknown ? { birthTimeUnknown: true } : undefined,
+  });
+}
+
 // LLM 응답의 meta를 서버 계산 확정값으로 덮어쓰고, 본문이 사화·12궁을 실제로 참조했는지 검증한다.
 function enforceZiweiChartFacts(text, chart) {
   const parsed = parseStructuredConsultationResult(text);
@@ -1059,6 +1136,8 @@ function buildFirstPrompt(input, chart) {
         caution: { title: "반복되는 함정과 전환점", body: "상담 본문" },
         core_answer: { title: "지금 질문에 대한 별궁의 답", body: "상담 본문" },
         prescription: { title: "지금의 처방", body: "상담 본문" },
+        // 근거를 먼저 밝히는 다섯 흐름 — 기존 키는 그대로 두고 뒤에 더한다.
+        ...buildReasoningSectionSchema(),
       },
     }, null, 2),
     "",
@@ -1073,7 +1152,7 @@ function buildFirstPrompt(input, chart) {
     "7. twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
     "8. career, wealth, relationship, dayun_now는 관련 궁의 주성 강약, 삼방사정, 대운·세운 흐름을 질문 주제와 연결하세요.",
     "9. timing_strategy는 현재 대한, 올해 세운, 가까운 4주와 6개월의 선택 리듬을 분리해 말하세요.",
-    "10. health는 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
+    "10. 건강은 domain_matrix 안에서 다루고, 질병을 단정하지 말고 질액궁의 긴장, 회복 습관, 생활 리듬의 취약 경향으로 조심스럽게 말하세요.",
     "11. caution은 반복되는 패턴 1~2개와 전환 방법을 흐름 있게 말하되, 겁을 주는 예언형 문장은 피하세요. 화기(化忌)가 앉은 궁이 있으면 그 주의점이 직관적으로 드러나게 짚되, 반드시 대처법을 함께 제시하세요.",
     "12. core_answer는 사용자의 질문에 대해 자미두수 전문가가 마지막으로 짚어 줄 핵심 답을 명확하게 전하세요.",
     "13. prescription은 지금 집중할 방향을 3가지 이내의 자연스러운 문단으로 마무리하세요.",
@@ -1083,6 +1162,11 @@ function buildFirstPrompt(input, chart) {
     "17. 결과를 소개하거나 화면을 설명하는 도입어, 서비스나 기능 안내처럼 들리는 표현을 쓰지 마세요.",
     "18. [계산 확정값]의 '12궁 강약' 표기(◎묘·O득·▲리·△평·X함)를 모든 궁 해석의 핵심 근거로 사용하세요. reading_guide를 제외한 모든 섹션은 추상적 서술에 그치지 말고, 최소 한 번은 이 명반의 구체적 강약 표기·실제 별 이름·궁 위치를 근거로 인용하세요. 강한 별(◎/O)은 확장·기회로, 약한 별(△/X)은 관리·주의가 필요한 지점으로 명시적으로 연결하고, 표에 없는 별의 강약은 지어내지 마세요.",
     chart?.uncertainty?.birthTimeUnknown ? "출생시간을 모르는 입력이므로, 단정하지 말고 '입력된 정보 기준으로 본 흐름'이라는 뉘앙스를 자연스럽게 반영해 주세요." : "",
+    "",
+    // 위 [계산 확정값]이 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildZiweiAnalysisBasis(chart, birth), { includeFactTable: false }),
+    "",
+    ...buildReasoningSectionRuleLines(),
   ].filter(Boolean).join("\n");
 }
 
@@ -1503,6 +1587,8 @@ function publicConsultation(doc) {
       topic: clean(doc.topic),
       userQuestion: clean(doc.userQuestion),
       summaryCards: buildSummaryCards(chart, doc.topic),
+      // 명반은 예전부터 저장돼 있었으므로, 이 변경 이전에 생성된 상담도 근거 패널을 그대로 얻는다.
+      analysisBasis: buildZiweiAnalysisBasis(chart, doc.birthInfo),
       ziweiChart: chart,
       messages: Array.isArray(doc.messages)
         ? doc.messages.map((message) => ({
@@ -1904,12 +1990,32 @@ async function handleResult(request, env) {
   return json(publicConsultation(consultation));
 }
 
+// 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
+// 생성이 도는 동안 대기 화면이 실제 명반 값을 보여 주기 위한 경로라 반드시 가벼워야 한다.
+// 신원 확인은 로컬 JWT 검증(peekAccessTokenUserId)만 써서 Mongo를 한 번도 건드리지 않는다.
+async function handleBasis(request, env) {
+  const userId = await peekAccessTokenUserId(request, env);
+  if (!userId) return loginRequired();
+
+  const normalized = normalizeConsultationInput(await readJson(request));
+  if (!normalized.ok) return invalidInput(normalized.message);
+
+  try {
+    const chart = calculateZiweiAiChart(normalized.input, { year: new Date().getFullYear() });
+    return json(buildZiweiAnalysisBasis(chart, normalized.input.birthInfo));
+  } catch (error) {
+    console.warn("[ziwei-ai] basis failed", clean(error?.message || error, 200));
+    return calculationFailed();
+  }
+}
+
 export async function handleZiweiAiRoutes(request, env = {}, ctx = null) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/ziwei-ai");
 
   try {
     if (method === "GET" && path === "/result") return await handleResult(request, env);
+    if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && (path === "/prepare" || path === "/ensure-access")) {
       return await handleEnsureAccess(request, env, path === "/prepare" ? "/api/ziwei-ai/prepare" : "/api/ziwei-ai/ensure-access");
     }
@@ -1941,6 +2047,7 @@ export const __ziweiAiTestUtils = {
   buildFirstPrompt,
   buildSystemPrompt,
   buildCanonicalZiweiFacts,
+  buildZiweiAnalysisBasis,
   resolveSihuaPlacements,
   enforceZiweiChartFacts,
   describeZiweiGroundingIssues,

@@ -9,6 +9,9 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
+import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildZiweiPreviewPayload } from "@/lib/dev-preview/fixtures/ziwei";
 import {
@@ -96,6 +99,7 @@ type Consultation = {
     keywords?: string[];
   };
   ziweiChart?: ZiweiChart;
+  analysisBasis?: AnalysisBasis | null;
   messages?: ConsultationMessage[];
 };
 
@@ -279,8 +283,14 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
   return acc;
 }, {} as Record<FocusArea, string>);
 
+// 근거 중심 섹션(structure_core·influence_factors·evidence_basis·domain_matrix·action_plan)은
+// 이 목록에 없으면 렌더되지 않는다. 이 목록 이전에 생성된 상담에는 해당 키가 없으므로,
+// 아래 필터(body 있는 키만 통과)가 그대로 폴백 역할을 한다.
 const SECTION_ORDER = [
   "reading_guide",
+  "structure_core",
+  "influence_factors",
+  "evidence_basis",
   "essence",
   "flow",
   "triad_axis",
@@ -291,11 +301,16 @@ const SECTION_ORDER = [
   "dayun_now",
   "timing_strategy",
   "caution",
+  "domain_matrix",
   "core_answer",
+  "action_plan",
   "prescription",
 ];
 const SECTION_GLYPHS: Record<string, string> = {
   reading_guide: "序",
+  structure_core: "核",
+  influence_factors: "影",
+  evidence_basis: "據",
   essence: "命",
   flow: "化",
   triad_axis: "合",
@@ -306,7 +321,9 @@ const SECTION_GLYPHS: Record<string, string> = {
   dayun_now: "運",
   timing_strategy: "時",
   caution: "忌",
+  domain_matrix: "域",
   core_answer: "問",
+  action_plan: "行",
   prescription: "策",
 };
 const SCORE_LABELS: Record<string, string> = {
@@ -635,6 +652,8 @@ export default function ZiweiAiPage() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  // 서버가 계산한 명반 근거 — 대기 화면이 실제 값을 보여 주고, 결과 화면 맨 위에 다시 놓인다.
+  const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [recentList, setRecentList] = useState<RecentZiweiConsultation[]>([]);
   const [pdfLoading, setPdfLoading] = useState(false);
   const idempotencyRef = useRef("");
@@ -745,6 +764,7 @@ export default function ZiweiAiPage() {
     if (!busyRef.current) {
       idempotencyRef.current = "";
       setConsultation(null);
+      setBasis(null);
       setError("");
       setNotice("");
       setPhase("idle");
@@ -818,6 +838,9 @@ export default function ZiweiAiPage() {
         throw new Error(validationMessage);
       }
       const payload = buildConsultationPayload(form, idempotencyKey);
+      // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다.
+      // 실패해도 fetchAnalysisBasis가 null을 돌려주므로 대기 화면이 기존 문구로 되돌아갈 뿐 흐름을 막지 않는다.
+      void fetchAnalysisBasis("/api/ziwei-ai/basis", payload).then(setBasis);
       beginPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
@@ -1039,13 +1062,13 @@ export default function ZiweiAiPage() {
               <div className="palaceSigil isSpinning" aria-hidden="true">
                 {Array.from({ length: 12 }).map((_, index) => <span key={index} />)}
               </div>
-              <strong>{LOADING_STAGES[currentLoadingStage].label}</strong>
-              <span>{LOADING_STAGES[currentLoadingStage].sub}</span>
-              <div className="loadingSteps" aria-hidden="true">
-                {LOADING_STAGES.map((item, index) => (
-                  <i key={item.glyph} className={index <= currentLoadingStage ? "isActive" : ""}>{item.glyph}</i>
-                ))}
-              </div>
+              {/* 12궁 시길은 그대로 두고, 안쪽 문구만 실제 계산값으로 바꾼다.
+                  근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
+              <AnalysisBasisLoading
+                basis={basis}
+                fallbackLabel={LOADING_STAGES[currentLoadingStage].label}
+                fallbackDetail={LOADING_STAGES[currentLoadingStage].sub}
+              />
             </div>
           ) : !consultation ? (
             <div className="emptyState">
@@ -1097,6 +1120,10 @@ export default function ZiweiAiPage() {
                   <div><span>핵심 별</span><strong>{(summary.keyStars || []).slice(0, 3).join(" · ") || "-"}</strong></div>
                   <div><span>상담 키워드</span><strong>{(summary.keywords || []).slice(0, 3).join(" · ") || consultation.topic}</strong></div>
                 </div>
+
+                <section className="basisPane" data-ziwei-pdf-section>
+                  <AnalysisBasisPanel basis={consultation.analysisBasis || basis} />
+                </section>
 
                 {Object.keys(structuredScores).length > 0 && (
                   <div className="scoreGrid" data-ziwei-pdf-section>
@@ -1271,6 +1298,9 @@ export default function ZiweiAiPage() {
         .chartDataGrid span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
         .chartDataGrid strong{display:block;margin-top:7px;color:#fffaf0;font-size:14px;line-height:1.45;word-break:keep-all}
         .summaryGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
+        /* 근거 패널/대기 화면은 색을 currentColor에서만 파생하므로, 여기서 글자색만 정해 주면 된다. */
+        .basisPane{color:#e6dfff;margin-bottom:14px;--cd-basis-popover-bg:#161033}
+        .loadingState{--cd-basis-popover-bg:#161033}
         .summaryGrid div{min-height:94px;border:1px solid rgba(245,217,145,.22);border-radius:8px;background:linear-gradient(145deg,rgba(245,217,145,.12),rgba(125,103,209,.12));padding:13px}
         .summaryGrid span{display:block;color:#cfc7f8;font-size:12px;font-weight:820}
         .summaryGrid strong{display:block;margin-top:9px;color:#fffaf0;font-size:16px;line-height:1.45;word-break:keep-all}

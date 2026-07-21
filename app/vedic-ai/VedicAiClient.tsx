@@ -4,6 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
+import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, splitIntoParagraphs, toDisplayText } from "@/lib/llm-text";
 import {
@@ -66,6 +69,7 @@ type Consultation = {
   paymentId?: string;
   messages: Message[];
   summaryCards?: SummaryCards;
+  analysisBasis?: AnalysisBasis | null;
 };
 type EnsureAccessResult =
   | { ok: true; accessToken: string; accessType: "pass" | "paid" | "subscription"; consultation?: Consultation }
@@ -733,7 +737,7 @@ function scoreValue(value: unknown) {
   return Math.max(0, Math.min(100, toNumber(value, 0)));
 }
 
-function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
+function CosmosLoadingScreen({ fallbackText, basis }: { fallbackText: string; basis: AnalysisBasis | null }) {
   const [stage, setStage] = useState(0);
   const [progress, setProgress] = useState(0);
 
@@ -803,16 +807,23 @@ function CosmosLoadingScreen({ fallbackText }: { fallbackText: string }) {
         <span className={styles.cosmosOrbitGlyph}>{activeStage.glyph}</span>
       </div>
 
+      {/* 궤도 애니메이션은 그대로 두고, 문구 자리만 실제 계산된 차트 값으로 바꾼다.
+          근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
       <div className={styles.cosmosLoadingText}>
-        <strong key={`label-${stage}`} className={styles.cosmosLabelSwap}>{activeStage.label || fallbackText}</strong>
-        <span key={`sub-${stage}`} className={styles.cosmosLabelSwap}>{activeStage.sub}</span>
+        <AnalysisBasisLoading
+          basis={basis}
+          fallbackLabel={activeStage.label || fallbackText}
+          fallbackDetail={activeStage.sub}
+        />
       </div>
 
-      <div className={styles.cosmosStageDots}>
-        {COSMOS_STAGES.map((item, index) => (
-          <i key={item.sub} className={index <= stage ? styles.activeCosmosDot : ""}>{item.glyph}</i>
-        ))}
-      </div>
+      {!basis?.stages?.length && (
+        <div className={styles.cosmosStageDots}>
+          {COSMOS_STAGES.map((item, index) => (
+            <i key={item.sub} className={index <= stage ? styles.activeCosmosDot : ""}>{item.glyph}</i>
+          ))}
+        </div>
+      )}
 
       <div className={styles.cosmosProgress}>
         <span style={{ width: `${progress}%` }} />
@@ -880,10 +891,12 @@ export function StructuredReadingResult({
   reading,
   chart,
   name,
+  basis = null,
 }: {
   reading: { scores: Record<string, unknown>; sections: Record<string, unknown> };
   chart: Record<string, unknown>;
   name: string;
+  basis?: AnalysisBasis | null;
 }) {
   const lagna = chartPoint(chart, "lagna");
   const sun = chartPoint(chart, "sun");
@@ -934,6 +947,12 @@ export function StructuredReadingResult({
           <span>{isExportingPdf ? "저장 중…" : "PDF 저장"}</span>
         </button>
       </div>
+
+      {basis && (
+        <section className={styles.revealItem} style={{ animationDelay: "0ms" }}>
+          <AnalysisBasisPanel basis={basis} />
+        </section>
+      )}
 
       <section className={`${styles.chartSummaryCard} ${styles.revealItem}`} style={{ animationDelay: "0ms" }} aria-label="라그나·라시·나크샤트라 요약">
         <article className={styles.medallion}>
@@ -1022,6 +1041,8 @@ export function StructuredReadingResult({
 export default function VedicAiClient() {
   const [form, setForm] = useState<FormState>(() => buildInitialForm());
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  // 서버가 계산한 조티시 차트 근거 — 대기 화면이 실제 값을 단계별로 보여 준다.
+  const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -1203,6 +1224,8 @@ export default function VedicAiClient() {
       }
 
       setPhase("access");
+      // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
+      void fetchAnalysisBasis("/api/vedic-ai/basis", buildPayload(form, requestId)).then(setBasis);
       beginPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId,
@@ -1432,7 +1455,7 @@ export default function VedicAiClient() {
         </form>
 
         <section className={styles.resultPanel}>
-          {busy && <CosmosLoadingScreen fallbackText={phaseText || "라시 차트를 정렬하는 중..."} />}
+          {busy && <CosmosLoadingScreen fallbackText={phaseText || "라시 차트를 정렬하는 중..."} basis={basis} />}
 
           {!consultation ? (
             <div className={styles.emptyState}>
@@ -1484,6 +1507,7 @@ export default function VedicAiClient() {
                         reading={structured}
                         chart={chart}
                         name={toText(consultation.birthInfo?.name) || form.userName}
+                        basis={consultation.analysisBasis || basis}
                       />
                     );
                   }

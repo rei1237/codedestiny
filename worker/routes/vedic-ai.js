@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
@@ -11,6 +11,12 @@ import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
+import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
+import {
+  buildEvidenceRuleLines,
+  buildReasoningSectionRuleLines,
+  buildReasoningSectionSchema,
+} from "../lib/fortune-reasoning-contract.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
 
 const SERVICE_KEY = "vedic-ai";
@@ -784,6 +790,64 @@ function buildCanonicalFactsLine(chart) {
   return facts.join(" · ");
 }
 
+const DIGNITY_TONE = { exalted: "positive", "own sign": "positive", "friendly sign": "positive", debilitated: "caution", "enemy sign": "caution" };
+
+// 서버가 계산한 조티시 차트를 화면과 프롬프트가 함께 쓰는 근거 형태로 옮긴다.
+function buildVedicAnalysisBasis(chart) {
+  const grahas = Array.isArray(chart?.grahas) ? chart.grahas : [];
+  const bhavas = Array.isArray(chart?.bhavas) ? chart.bhavas : [];
+  const dasha = chart?.vimshottariDasha || {};
+  const lagnaAvailable = chart?.calculationMeta?.lagnaBhavaAvailable !== false;
+
+  const coreItems = [
+    basisItem("라그나", lagnaAvailable && chart?.lagna?.rashiKo ? `${chart.lagna.rashiKo}${chart.lagna.sign ? ` (${chart.lagna.sign})` : ""}` : "출생시간 미상으로 확정하지 않음", { term: "라그나", tone: lagnaAvailable ? "neutral" : "caution" }),
+    chart?.moon?.signKo || chart?.moon?.sign ? basisItem("달의 라시", `${chart.moon.signKo || chart.moon.sign}`) : null,
+    chart?.moonNakshatra?.name
+      ? basisItem("나크샤트라", `${chart.moonNakshatra.name}${chart.moonNakshatra.pada ? ` · ${chart.moonNakshatra.pada}파다` : ""}`)
+      : null,
+    chart?.ayanamsa ? basisItem("아야남사", String(chart.ayanamsa)) : null,
+  ];
+
+  const grahaItems = grahas.slice(0, 9).map((graha) => basisItem(
+    graha.nameKo || graha.nameEn || "그라하",
+    [graha.rashiKo || graha.rashi, Number.isFinite(Number(graha.house)) ? `${graha.house}바바` : "", graha.dignity, graha.retrograde ? "역행" : ""].filter(Boolean).join(" · "),
+    { tone: DIGNITY_TONE[String(graha.dignity || "").toLowerCase()] || "neutral" },
+  ));
+
+  const bhavaItems = bhavas
+    .filter((bhava) => Array.isArray(bhava.grahas) && bhava.grahas.length)
+    .slice(0, 8)
+    .map((bhava) => basisItem(`${bhava.house}바바`, `${bhava.rashiKo || bhava.rashi || ""} · ${bhava.grahas.join(", ")}`.trim()));
+
+  const dashaItems = [
+    dasha.currentMahadasha?.lord
+      ? basisItem("마하다샤", `${GRAHA_KO_MAP[dasha.currentMahadasha.lord] || dasha.currentMahadasha.lord}${dasha.currentMahadasha.end ? ` · ${String(dasha.currentMahadasha.end).slice(0, 10)}까지` : ""}`, { term: "다샤" })
+      : null,
+    dasha.currentAntardasha?.lord
+      ? basisItem("안타르다샤", `${GRAHA_KO_MAP[dasha.currentAntardasha.lord] || dasha.currentAntardasha.lord}${dasha.currentAntardasha.end ? ` · ${String(dasha.currentAntardasha.end).slice(0, 10)}까지` : ""}`)
+      : null,
+    chart?.rahuKetu?.rahu ? basisItem("라후", `${chart.rahuKetu.rahu.rashiKo || chart.rahuKetu.rahu.rashi || ""}${Number.isFinite(Number(chart.rahuKetu.rahu.house)) ? ` · ${chart.rahuKetu.rahu.house}바바` : ""}`.trim(), { term: "라후", tone: "caution" }) : null,
+    chart?.rahuKetu?.ketu ? basisItem("케투", `${chart.rahuKetu.ketu.rashiKo || chart.rahuKetu.ketu.rashi || ""}${Number.isFinite(Number(chart.rahuKetu.ketu.house)) ? ` · ${chart.rahuKetu.ketu.house}바바` : ""}`.trim(), { term: "케투", tone: "caution" }) : null,
+  ];
+
+  return buildAnalysisBasisPayload({
+    featureKey: FEATURE_KEY,
+    groups: [
+      basisGroup("core", "차트의 기준점", coreItems, { hint: "라그나는 차트를 읽는 기준 자리, 나크샤트라는 다샤 흐름의 출발점입니다." }),
+      basisGroup("graha", "그라하 배치", grahaItems, { hint: "각 행성이 어느 라시·바바에 놓였고 그 자리에서 힘을 얻는지(품위)를 봅니다." }),
+      basisGroup("bhava", "바바에 놓인 것들", bhavaItems, { hint: "행성이 모인 바바가 이번 생에서 힘이 실리는 삶의 영역입니다." }),
+      basisGroup("dasha", "지금의 다샤", dashaItems, { hint: "어느 행성의 기간에 있는지가 지금 시기의 주제를 정합니다." }),
+    ],
+    stages: [
+      basisStage("lagna", "라그나를 세우는 중", "기준 자리와 아야남사", ["core"]),
+      basisStage("graha", "그라하를 배치하는 중", "아홉 행성의 라시와 품위", ["graha"]),
+      basisStage("bhava", "바바를 나누는 중", "열두 삶의 영역", ["bhava"]),
+      basisStage("dasha", "다샤를 세는 중", "마하다샤·안타르다샤", ["dasha"]),
+    ],
+    uncertainty: lagnaAvailable ? undefined : { birthTimeUnknown: true },
+  });
+}
+
 function buildFirstPrompt(input, chart) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
   return [
@@ -814,10 +878,15 @@ function buildFirstPrompt(input, chart) {
     "반환 JSON 형식:",
     JSON.stringify({
       scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 },
-      sections: Object.fromEntries(READING_SECTION_KEYS.map((key) => [key, {
-        title: REQUIRED_SECTION_LABELS[key],
-        body: "제공된 계산값만 바탕으로 해석합니다.",
-      }])),
+      sections: {
+        ...Object.fromEntries(READING_SECTION_KEYS.map((key) => [key, {
+          title: REQUIRED_SECTION_LABELS[key],
+          body: "제공된 계산값만 바탕으로 해석합니다.",
+        }])),
+        // 근거를 먼저 밝히는 다섯 흐름. 품질 검증(READING_SECTION_KEYS)에는 넣지 않는다 —
+        // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
+        ...buildReasoningSectionSchema(),
+      },
     }, null, 2),
     "",
     "계산된 VedicChartResult 데이터:",
@@ -825,6 +894,11 @@ function buildFirstPrompt(input, chart) {
     "",
     "전통 조티시 해석 어휘 (계산값에만 적용):",
     JSON.stringify(buildVedicKnowledgeContext(chart), null, 2),
+    "",
+    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),
+    "",
+    ...buildReasoningSectionRuleLines(),
   ].join("\n");
 }
 
@@ -1065,6 +1139,8 @@ function consultationPayload(doc) {
     paymentId: doc.paymentId || "",
     messages: doc.messages || [],
     summaryCards: summaryCards(doc.vedicChart || {}),
+    // 차트는 예전부터 저장돼 있었으므로 이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다.
+    analysisBasis: doc.vedicChart ? buildVedicAnalysisBasis(doc.vedicChart) : null,
     createdAt: doc.createdAt,
     updatedAt: doc.updatedAt,
   };
@@ -1366,9 +1442,29 @@ async function handleResult(request, env) {
   return json({ ok: true, consultation: consultationPayload(consultation) });
 }
 
+// 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
+// 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다.
+async function handleBasis(request, env) {
+  if (request.method !== "POST") return methodNotAllowed();
+  const userId = await peekAccessTokenUserId(request, env);
+  if (!userId) return loginRequired();
+
+  const normalized = normalizeConsultationInput(await readJson(request));
+  if (!normalized.ok) return invalidInput(normalized.message);
+
+  try {
+    const chart = await calculateVedicAiChart(env, normalized.input, { requestUrl: request.url });
+    return json(buildVedicAnalysisBasis(chart));
+  } catch (error) {
+    console.warn("[vedic-ai] basis failed", clean(error?.message || error, 200));
+    return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 503 });
+  }
+}
+
 export async function handleVedicAiRoutes(request, env) {
   const path = getRoutePath(request, "/api/vedic-ai");
   try {
+    if (path === "/basis") return await handleBasis(request, env);
     if (path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (path === "/start") return await handleStart(request, env);
     if (path === "/result" || path.startsWith("/result/")) return await handleResult(request, env);
@@ -1399,5 +1495,6 @@ export const __vedicAiTestUtils = {
   validateChartConsistency,
   describeQualityIssuesForRepair,
   buildCanonicalFactsLine,
+  buildVedicAnalysisBasis,
   collectEvidenceIds,
 };

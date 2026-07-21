@@ -1,3 +1,5 @@
+import { buildReasoningFormatLines } from "./fortune-reasoning-contract.js";
+
 const DEFAULT_MIN_PROMPT_LENGTH = 1500;
 
 function toText(value, fallback = "") {
@@ -235,17 +237,19 @@ function buildAnswerFormatLines(fortuneType, fortuneLabel) {
   }
 
   if (isSajuPrompt(fortuneType, fortuneLabel)) {
+    // 근거 중심 흐름(핵심 구조·영향 요인·해석 근거·분야별·추천 행동)을 사주 분기에만 얹는다.
+    // 이 함수는 점성술·베다·숙요·자미의 "질문 프롬프트 생성" 기능도 함께 쓰므로 공통 분기는 건드리지 않는다.
     return [
       "1. 타고난 성향 총론: 일간·월지·오행 분포를 근거로 이 사람의 타고난 기질과 성향을 먼저 전반적으로 짚어, 신뢰가 서도록 시작한다",
       "2. 질문의 핵심과 명식의 초점",
-      "3. 원국 근거: 일간·월지·십성·오행",
-      "4. 현재 강점과 열리는 길",
-      "5. 막히는 지점과 반복 패턴",
-      "6. 대운·세운으로 보는 시기별 흐름",
-      "7. 현실 선택지 비교",
-      "8. 피해야 할 선택과 말",
-      "9. 2주·3개월·1년 실행 조언",
-      "10. 추가로 물어보면 좋은 질문",
+      ...buildReasoningFormatLines(3),
+      "8. 원국 근거: 일간·월지·십성·오행",
+      "9. 현재 강점과 열리는 길",
+      "10. 막히는 지점과 반복 패턴",
+      "11. 대운·세운으로 보는 시기별 흐름",
+      "12. 현실 선택지 비교",
+      "13. 피해야 할 선택과 말",
+      "14. 추가로 물어보면 좋은 질문",
     ];
   }
 

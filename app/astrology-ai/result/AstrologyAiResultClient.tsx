@@ -9,6 +9,8 @@ import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
 import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
@@ -59,6 +61,7 @@ type Consultation = {
   topic?: string;
   userQuestion?: string;
   astrologyChart?: AstrologyChart | null;
+  analysisBasis?: AnalysisBasis | null;
   chartHighlights?: {
     sun?: ChartPoint | null;
     moon?: ChartPoint | null;
@@ -73,6 +76,9 @@ type Consultation = {
 
 const FALLBACK_SECTIONS = [
   "별자리 상담 요약",
+  "핵심 구조 분석",
+  "영향 요인",
+  "해석 근거",
   "태양·달·상승궁 해석",
   "개인 행성 해석",
   "사회 행성 해석",
@@ -82,7 +88,9 @@ const FALLBACK_SECTIONS = [
   "하우스 해석",
   "현재 트랜짓 흐름",
   "상담 주제별 맞춤 해석",
+  "분야별 분석",
   "실천 조언",
+  "추천 행동",
   "마무리 메시지",
 ];
 
@@ -187,7 +195,9 @@ function splitSections(content: string) {
   const headingPattern = /^(?:#{1,3}\s*)?(\d{1,2}[.)]\s*)?([^\n]{2,44})\n+/gm;
   let match = headingPattern.exec(normalized);
   while (match) {
-    if (/상담|태양|달|상승궁|행성|원소|모드|각도|하우스|트랜짓|조언|마무리|요약/.test(match[2] || "")) {
+    // 근거 중심 흐름(핵심 구조·영향 요인·해석 근거·분야별 분석·추천 행동)도 소제목으로 잡아야
+    // 본문이 한 덩어리로 뭉쳐 페이지 뷰어가 무너지지 않는다.
+    if (/상담|태양|달|상승궁|행성|원소|모드|각도|하우스|트랜짓|조언|마무리|요약|구조|영향|근거|분야|행동/.test(match[2] || "")) {
       headingMatches.push(match);
     }
     match = headingPattern.exec(normalized);
@@ -503,23 +513,31 @@ export default function AstrologyAiResultClient() {
                 </div>
               </section>
 
-              <details className={`${RESULT_PANEL_CLASS} p-5`} open>
-                <summary className="cursor-pointer list-none focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
-                  <span className="flex items-center gap-3">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
-                      <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+              {/* 계산 근거 — 용어 툴팁이 붙은 공용 패널. 서버가 근거를 못 실어 보낸 옛 결과에서는
+                  아래 원자료 뷰가 그대로 폴백으로 남는다. */}
+              {consultation.analysisBasis ? (
+                <section className={`${RESULT_PANEL_CLASS} p-5 [--cd-basis-popover-bg:#0d132c]`}>
+                  <AnalysisBasisPanel basis={consultation.analysisBasis} multiColumn={false} title="이 상담이 계산한 값" />
+                </section>
+              ) : (
+                <details className={`${RESULT_PANEL_CLASS} p-5`} open>
+                  <summary className="cursor-pointer list-none focus:outline-none focus:ring-2 focus:ring-[#f5d487]/30">
+                    <span className="flex items-center gap-3">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-[#f5d487]/30 bg-[#f5d487]/10">
+                        <Sparkles className="h-5 w-5 text-[#f5d487]" aria-hidden="true" />
+                      </span>
+                      <span className="text-lg font-black text-white">기본 차트 데이터</span>
                     </span>
-                    <span className="text-lg font-black text-white">기본 차트 데이터</span>
-                  </span>
-                </summary>
-                <div className="mt-4">
-                  <ChartDataGroup title="차트 기준" items={chartBasics} />
-                  <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
-                  <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
-                  <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
-                  <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
-                </div>
-              </details>
+                  </summary>
+                  <div className="mt-4">
+                    <ChartDataGroup title="차트 기준" items={chartBasics} />
+                    <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
+                    <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
+                    <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
+                    <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
+                  </div>
+                </details>
+              )}
 
               {pdfError && (
                 <section className="rounded-lg border border-rose-300/30 bg-rose-400/10 p-4 text-sm leading-7 text-rose-50">

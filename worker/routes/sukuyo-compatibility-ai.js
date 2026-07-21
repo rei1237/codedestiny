@@ -1,5 +1,5 @@
 import { Lunar, Solar } from "lunar-javascript";
-import { requireAuth, isAuthDbInfraError } from "../lib/auth.js";
+import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
@@ -10,6 +10,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
+import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
 const TITLE = "숙요점 AI 상담";
@@ -41,16 +43,19 @@ const SUKUYO_ELEMENT_CONTROL = { 목: "토", 토: "수", 수: "화", 화: "금",
 const SUKUYO_SECTION_SPECS = [
   { key: "overview", title: "☯ 總論 — 종합 궁합 총평", minChars: 1000, guide: "종합 스코어 한 문장 요약 뒤 운명인연도, 기질조화도, 감정공명도, 성장시너지, 장기안정도를 각각 원국 요소와 연결해 풀이" },
   { key: "twoStars", title: "☽ 兩星 — 두 별의 본질", minChars: 900, guide: "두 사람의 숙, 오행, 음양, 수호신이 회의실, 데이트, 갈등 상황에서 어떻게 드러나는지 생활 장면으로 풀이" },
+  // 근거를 먼저 밝히는 두 흐름. 나머지(핵심 구조·분야별·추천 행동)는 overview·domains·moonLetter가 이미 그 역할을 한다.
+  { key: "influence_factors", title: "◇ 影響 — 영향 요인", minChars: 480, guide: "'힘을 실어 주는 요소'와 '주의가 필요한 요소'를 나눠 각각 2~4개씩, 무엇이 / 왜 / 어떤 영향을 주는지 순서로 제시" },
+  { key: "evidence_basis", title: "◆ 根據 — 해석 근거", minChars: 520, guide: "결론보다 근거를 먼저 놓고, 3~7개의 근거를 '판단 한 줄' + '괄호 안에 그 판단이 나온 계산 확정값' 형태로 제시" },
   { key: "attraction", title: "✦ 引力 — 끌림의 구조", minChars: 900, guide: "처음 만났을 때 끌렸을 구체적 시나리오 1개와 지금 관계에서 끌림을 재확인하는 시나리오 1개 포함" },
   { key: "conflict", title: "〜 波紋 — 갈등의 파문", minChars: 1200, guide: "갈등 시나리오 3가지 이상을 발단, 각자의 반응, 흔한 실수, 이상적 대응 대사 예시 순서로 제시" },
   { key: "timing", title: "◎ 時節 — 관계의 계절", minChars: 900, guide: "현재 이번 달, 1~3개월 후, 3~6개월 후, 6개월~1년 후 흐름과 주의사항을 별도 소단락으로 서술" },
   { key: "caution", title: "⚠ 禁忌 — 조심해야 할 관계 습관", minChars: 900, guide: "하지 말아야 할 말과 행동 5가지를 원국 근거와 대안 행동까지 함께 제시" },
   { key: "treasure", title: "◈ 金脈 — 이 관계만의 보물", minChars: 900, guide: "두 사람만의 강점을 함께 하면 좋은 활동과 방식 3가지 이상으로 제시" },
   { key: "communication", title: "🗣 疏通 — 서로에게 맞는 대화법", minChars: 900, guide: "사람A와 사람B에게 효과적인 대화 방식을 대조하고 화해 대사 예시를 각자 기준 2개씩 제시" },
-  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 1200, guide: "연애와 결혼, 직장 동료와 사업 파트너, 우정 관계에서 궁합이 어떻게 다르게 작용하는지 모두 풀이" },
+  { key: "domains", title: "💞 領域 — 관계 영역별 궁합", minChars: 1200, guide: "연애·결혼 → 직장·사업 파트너 → 우정 → 가족 순서로 모두 다루고, 각 영역을 현재 흐름 → 해석 근거 → 추천 행동 세 조각으로 풀이. 영역마다 서로 다른 계산 확정값을 근거로 든다" },
   { key: "crisis", title: "🌪 危機 — 위기 시나리오와 극복법", minChars: 900, guide: "권태기, 장거리, 가치관 충돌 등 취약한 위기 국면 1~2개와 단계별 행동 지침 제시" },
   { key: "outlook", title: "🔭 展望 — 장기 전망", minChars: 900, guide: "1년 후와 3년 후를 성장했을 때와 갈등이 누적됐을 때 두 갈래 시나리오로 제시" },
-  { key: "moonLetter", title: "♡ 月箋 — 오늘의 달빛 처방", minChars: 700, guide: "전체 흐름을 정리하고 오늘 당장 실천할 수 있는 구체적 행동 3가지를 번호로 제시" },
+  { key: "moonLetter", title: "♡ 月箋 — 오늘의 달빛 처방", minChars: 700, guide: "전체 흐름을 단정하지 말고 경향으로 정리한 뒤, 오늘부터 실제로 해볼 수 있는 행동 5가지를 번호로 제시. 언제 무엇을 하는지가 드러나게 쓰고 추상적인 조언은 피한다" },
 ];
 const SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS = SUKUYO_SECTION_SPECS.reduce((total, section) => total + section.minChars, 0);
 const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 14000;
@@ -503,6 +508,50 @@ function buildSukuyoPromptPersonMeta(person = {}, sukuyo = {}) {
   };
 }
 
+// 서버가 계산한 두 본명숙과 방위 관계를 화면과 프롬프트가 함께 쓰는 근거 형태로 옮긴다.
+function buildSukuyoAnalysisBasis(input, calculation) {
+  const personA = buildSukuyoPromptPersonMeta(input.personA, calculation.personASukuyo);
+  const personB = buildSukuyoPromptPersonMeta(input.personB, calculation.personBSukuyo);
+  const relation = buildCompatibilityRelationMeta(calculation.compatibility);
+  const compat = calculation.compatibility || {};
+  const aElement = normalizeSukuyoFiveElement(calculation.personASukuyo?.element);
+  const bElement = normalizeSukuyoFiveElement(calculation.personBSukuyo?.element);
+  const harmony = elementRelation(aElement, bElement);
+
+  const personItems = (person) => [
+    basisItem("본명숙", `${person.sukuyo}${person.sukuyo_hanja ? `(${person.sukuyo_hanja})` : ""}`, { term: "본명숙" }),
+    basisItem("오행·음양", `${person.element} · ${person.yin_yang}`, { term: "오행" }),
+    person.guardian ? basisItem("수호신", person.guardian, { term: "수호신" }) : null,
+    person.keyword ? basisItem("결", person.keyword) : null,
+  ];
+
+  return buildAnalysisBasisPayload({
+    featureKey: FEATURE_KEY,
+    groups: [
+      basisGroup("personA", `${personA.name}의 별`, personItems(personA), { hint: "태어난 날 달이 머문 자리가 그 사람의 기본 결이 됩니다." }),
+      basisGroup("personB", `${personB.name}의 별`, personItems(personB), { hint: "두 사람의 숙을 나란히 놓고 거리와 방향을 봅니다." }),
+      basisGroup("relation", "두 별 사이의 방위", [
+        relation.traditional_relation ? basisItem("방위 관계", `${relation.traditional_relation}${relation.traditional_relation_hanja ? `(${relation.traditional_relation_hanja})` : ""}`, { term: "방위 관계" }) : null,
+        basisItem(`${personA.name} → ${personB.name}`, `${relation.type_a_to_b} · 순행 ${compat.forwardDistance ?? "-"}칸`),
+        basisItem(`${personB.name} → ${personA.name}`, `${relation.type_b_to_a} · 역행 ${compat.reverseDistance ?? "-"}칸`),
+        basisItem("가까움", `최단 ${compat.shortestDistance ?? "-"}칸 · 결의 세기 ${relation.intensity}`),
+        basisItem("오행 관계", harmony, { tone: harmony === "상극" ? "caution" : "positive" }),
+      ], { hint: "두 숙 사이의 거리로 관계 이름과 각자의 자리가 정해집니다. 방향에 따라 자리가 다를 수 있습니다." }),
+      basisGroup("scores", "계산된 지표", [
+        Number.isFinite(Number(compat.chemistryScore)) ? basisItem("끌림", `${compat.chemistryScore}점`, { tone: "positive" }) : null,
+        Number.isFinite(Number(compat.stabilityScore)) ? basisItem("안정", `${compat.stabilityScore}점`, { tone: "positive" }) : null,
+        Number.isFinite(Number(compat.conflictScore)) ? basisItem("마찰", `${compat.conflictScore}점`, { tone: "caution" }) : null,
+      ], { hint: "거리와 관계 유형에서 곧바로 계산된 값입니다. 높고 낮음보다 어디에 힘이 쏠렸는지를 봅니다." }),
+    ],
+    stages: [
+      basisStage("personA", "첫 번째 별을 찾는 중", "태어난 날의 달자리", ["personA"]),
+      basisStage("personB", "두 번째 별을 찾는 중", "상대의 본명숙", ["personB"]),
+      basisStage("relation", "두 별의 거리를 재는 중", "순행·역행 방위 관계", ["relation"]),
+      basisStage("scores", "관계의 결을 재는 중", "끌림·안정·마찰", ["scores"]),
+    ],
+  });
+}
+
 function buildSukuyoCompatibilityJsonSchema(input, calculation) {
   const personA = buildSukuyoPromptPersonMeta(input.personA, calculation.personASukuyo);
   const personB = buildSukuyoPromptPersonMeta(input.personB, calculation.personBSukuyo);
@@ -920,6 +969,25 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
   return null;
 }
 
+// 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
+// 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다.
+async function handleBasis(request, env) {
+  const userId = await peekAccessTokenUserId(request, env);
+  if (!userId) return json({ ok: false, reason: "LOGIN_REQUIRED", message: MESSAGES.login }, { status: 401 });
+
+  const normalized = normalizeInput(await readJson(request));
+  if (!normalized.ok) return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput, errors: normalized.errors }, { status: 422 });
+  // 개인 상담은 상대 축이 없어 궁합 근거를 만들 수 없다.
+  if (normalized.consultationType === "personal") return json({ ok: false, reason: "NOT_APPLICABLE" }, { status: 404 });
+
+  try {
+    return json(buildSukuyoAnalysisBasis(normalized, calculateSukuyo(normalized)));
+  } catch (error) {
+    logSukyoAi("[Sukyo AI Basis Error]", { route: "/api/sukuyo-compatibility-ai/basis", errorMessage: clean(error?.message || error, 300) }, error, env);
+    return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 503 });
+  }
+}
+
 async function handleEnsureAccess(request, env) {
   const body = await readJson(request);
   const idempotencyKey = normalizeId(body.idempotencyKey || request.headers.get("idempotency-key") || `sukuyo-ai-${Date.now().toString(36)}`);
@@ -1042,6 +1110,12 @@ function buildFirstPrompt(input, calculation) {
       "",
       "[반환 JSON 뼈대]",
       JSON.stringify(schema, null, 2),
+      "",
+      // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+      ...buildEvidenceRuleLines(buildSukuyoAnalysisBasis(input, calculation)),
+      "",
+      // 궁합은 두 사람의 관계만 다루므로, 개인 운세용 6분야가 아니라 관계가 실제로 작동하는 무대로 나눈다.
+      ...buildDomainAnalysisRuleLines(RELATIONSHIP_ANALYSIS_DOMAINS),
     ].join("\n");
   }
   return [
@@ -1295,6 +1369,26 @@ async function createFirstAnswer(env, input, calculation) {
   return { content, provider, model, degraded };
 }
 
+// 저장된 상담 문서에서 근거를 다시 계산한다. 궁합 상담(두 사람)만 대상이며,
+// 옛 문서에 생년월일이 빠져 있는 등의 이유로 계산이 안 되면 근거 없이 넘어간다(결과 조회 자체는 막지 않는다).
+function safeSukuyoAnalysisBasis(raw) {
+  try {
+    if (!raw?.personA?.birthDate || !raw?.personB?.birthDate) return null;
+    // 저장된 사람 정보에는 birthParts가 없으므로 normalizeInput을 다시 태워 계산 가능한 형태로 되돌린다.
+    const input = normalizeInput({
+      consultationType: "compatibility",
+      personA: raw.personA,
+      personB: raw.personB,
+      relationshipType: raw.relationshipType,
+      topic: raw.topic,
+    });
+    if (!input.ok) return null;
+    return buildSukuyoAnalysisBasis(input, calculateSukuyo(input));
+  } catch {
+    return null;
+  }
+}
+
 function serializeConsultation(doc) {
   const raw = typeof doc.toObject === "function" ? doc.toObject() : doc;
   return {
@@ -1302,6 +1396,9 @@ function serializeConsultation(doc) {
     personA: raw.personA,
     personB: raw.personB,
     sukuyoResult: raw.sukuyoResult,
+    // 두 사람의 생년월일은 예전부터 저장돼 있으므로 근거를 다시 계산해 붙인다
+    // (이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다). 순수 계산이라 실패는 조용히 넘긴다.
+    analysisBasis: safeSukuyoAnalysisBasis(raw),
     relationshipType: raw.relationshipType,
     topic: raw.topic,
     accessType: raw.accessType,
@@ -1724,6 +1821,7 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
   }
   if (method !== "POST") return methodNotAllowed();
   try {
+    if (path === "/basis") return await handleBasis(request, env);
     if (path === "/ensure-access" || path === "/prepare") return await handleEnsureAccess(request, env);
     if (path === "/start" || path === "/generate") return await handleStart(request, env);
     if (path === "/message") return await handleMessage(request, env);
@@ -1746,3 +1844,15 @@ export async function handleSukuyoCompatibilityAiRoutes(request, env = {}) {
     return json({ ok: false, reason: "SERVER_ERROR", message: MESSAGES.serverFailed }, { status: 500 });
   }
 }
+
+// 검증 하네스(verify-analysis-basis-contract)가 순수 계산 경로만 따로 돌려 보기 위한 노출.
+export const __sukuyoCompatibilityAiTestUtils = {
+  FEATURE_KEY,
+  normalizeInput,
+  calculateSukuyo,
+  buildSukuyoAnalysisBasis,
+  buildFirstPrompt,
+  SUKUYO_SECTION_SPECS,
+  SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
+  SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
+};

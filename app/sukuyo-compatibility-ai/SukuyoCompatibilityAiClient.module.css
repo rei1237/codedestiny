@@ -1273,6 +1273,13 @@
   padding: 48px 24px 56px;
 }
 
+/* 근거 패널은 색을 currentColor에서만 파생하므로 글자색만 정해 주면 된다. */
+.basisPane {
+  color: #fff7e8;
+  margin: 24px 0;
+  --cd-basis-popover-bg: #171421;
+}
+
 .pdfPage {
   position: relative;
   min-height: auto;

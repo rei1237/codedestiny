@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
+import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -21,6 +21,8 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
+import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
+import { buildEvidenceRuleLines, buildReasoningFormatLines } from "../lib/fortune-reasoning-contract.js";
 import {
   completeServiceExecution,
   failServiceExecution,
@@ -698,7 +700,10 @@ function keywordsFromChart(chart, topic) {
   return words.slice(0, 3);
 }
 
-async function calculateAstrologyChart(env, normalized, requestUrl) {
+// 트랜싯 계산을 건너뛰라는 내부 신호. 진짜 실패와 구분해 경고 로그를 남기지 않기 위한 표식이다.
+class SkipTransitsSignal extends Error {}
+
+async function calculateAstrologyChart(env, normalized, requestUrl, options = {}) {
   const { input } = normalized;
   const natalRaw = await getSwissWesternChart(env, input.calculationInput, {
     premium: true,
@@ -758,7 +763,9 @@ async function calculateAstrologyChart(env, normalized, requestUrl) {
 
   const now = new Date();
   let transits = null;
+  // 트랜싯은 Swiss 계산을 한 번 더 돈다. 근거 미리보기(/basis)는 대기 화면을 빨리 채우는 것이 목적이라 건너뛴다.
   try {
+    if (options.skipTransits) throw new SkipTransitsSignal();
     const transitRaw = await getSwissWesternChart(env, {
       year: now.getUTCFullYear(),
       month: now.getUTCMonth() + 1,
@@ -788,7 +795,9 @@ async function calculateAstrologyChart(env, normalized, requestUrl) {
       majorAspectsToNatal: transitAspects.slice(0, 12),
     };
   } catch (error) {
-    console.warn("[astrology-ai] transit calculation failed", { message: clean(error?.message || error, 300) });
+    if (!(error instanceof SkipTransitsSignal)) {
+      console.warn("[astrology-ai] transit calculation failed", { message: clean(error?.message || error, 300) });
+    }
   }
 
   const chart = {
@@ -883,6 +892,12 @@ function buildFirstPrompt(input, chart) {
     "주요 각도와 트랜짓은 계산 데이터에 있는 것만 사용하고, 없다면 없다고 말하지 말고 행성 배치와 원소 균형 중심으로 상담을 이어가세요.",
     "출생시간 미상인 경우 상승궁과 하우스는 확정하지 말고 제한적 해석임을 분명히 밝히세요.",
     "마무리는 사용자가 오늘 바로 해볼 수 있는 작은 행동과, 2주 안에 점검할 선택 기준으로 닫아 주세요.",
+    "",
+    // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildAstrologyAnalysisBasis(chart)),
+    "",
+    "[반드시 포함할 근거 중심 흐름 — 아래 제목을 그대로 소제목으로 써 주세요]",
+    ...buildReasoningFormatLines(1),
   ].filter(Boolean).join("\n");
 }
 
@@ -1273,6 +1288,79 @@ async function failRefundableExecution(env, auth, idempotencyKey, sessionId, err
   });
 }
 
+const ASPECT_KO = { conjunction: "합", opposition: "충", square: "스퀘어", trine: "트라인", sextile: "섹스타일" };
+const ASPECT_TONE = { trine: "positive", sextile: "positive", square: "caution", opposition: "caution", conjunction: "neutral" };
+
+function pointText(point) {
+  if (!point?.sign) return "";
+  const degree = Number.isFinite(Number(point.degree)) ? ` ${Number(point.degree).toFixed(1)}°` : "";
+  const house = Number.isFinite(Number(point.house)) ? ` · ${point.house}하우스` : "";
+  return `${point.signKo || point.sign}${degree}${house}${point.retrograde ? " · 역행" : ""}`;
+}
+
+function balanceText(balance, labels) {
+  return Object.entries(labels).map(([key, label]) => `${label} ${Number(balance?.[key] || 0)}`).join(" · ");
+}
+
+// 서버가 계산한 천궁도를 화면과 프롬프트가 함께 쓰는 근거 형태로 옮긴다.
+function buildAstrologyAnalysisBasis(chart) {
+  const planets = Array.isArray(chart?.planets) ? chart.planets : [];
+  const byName = (name) => planets.find((planet) => planet.name === name) || null;
+  const planetItem = (name) => {
+    const planet = byName(name);
+    return planet ? basisItem(PLANET_LABELS[name] || name, pointText(planet)) : null;
+  };
+
+  const coreItems = [
+    chart?.sun ? basisItem("태양", pointText(chart.sun)) : null,
+    chart?.moon ? basisItem("달", pointText(chart.moon)) : null,
+    chart?.ascendant ? basisItem("상승궁", pointText(chart.ascendant)) : basisItem("상승궁", "출생시간 미상으로 확정하지 않음", { term: "상승궁", tone: "caution" }),
+    chart?.mc ? basisItem("MC", pointText(chart.mc)) : null,
+    chart?.chartRuler ? basisItem("차트 룰러", PLANET_LABELS[chart.chartRuler] || chart.chartRuler) : null,
+  ];
+
+  const personalItems = ["Mercury", "Venus", "Mars"].map(planetItem);
+  const socialItems = ["Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"].map(planetItem);
+
+  const balanceItems = [
+    basisItem("원소", balanceText(chart?.elementBalance, { fire: "불", earth: "흙", air: "공기", water: "물" })),
+    basisItem("양식", balanceText(chart?.modalityBalance, { cardinal: "활동", fixed: "고정", mutable: "변통" })),
+    chart?.houseSystem ? basisItem("하우스 시스템", chart.birthTimeUnknown ? "출생시간 미상으로 제한" : chart.houseSystem) : null,
+  ];
+
+  const aspectItems = (Array.isArray(chart?.majorAspects) ? chart.majorAspects : []).slice(0, 8).map((aspect) => basisItem(
+    `${aspect.planetA} ${ASPECT_KO[aspect.aspect] || aspect.aspect} ${aspect.planetB}`,
+    Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "정확 각도",
+    { term: "어스펙트", tone: ASPECT_TONE[aspect.aspect] || "neutral" },
+  ));
+
+  const transitItems = (chart?.transits?.majorAspectsToNatal || []).slice(0, 6).map((aspect) => basisItem(
+    `T.${PLANET_LABELS[aspect.transitPlanet] || aspect.transitPlanet} ${ASPECT_KO[aspect.aspect] || aspect.aspect} N.${PLANET_LABELS[aspect.natalPlanet] || aspect.natalPlanet}`,
+    Number.isFinite(Number(aspect.orb)) ? `오브 ${Number(aspect.orb).toFixed(2)}°` : "접근 중",
+    { term: "트랜싯", tone: ASPECT_TONE[aspect.aspect] || "neutral" },
+  ));
+
+  return buildAnalysisBasisPayload({
+    featureKey: FEATURE_KEY,
+    groups: [
+      basisGroup("core", "차트의 중심축", coreItems, { hint: "태양은 방향, 달은 감정의 결, 상승궁은 남에게 보이는 첫인상입니다." }),
+      basisGroup("personal", "개인 행성", personalItems, { hint: "생각·애정·행동 방식이 어떤 무대에서 드러나는지 봅니다." }),
+      basisGroup("social", "사회·세대 행성", socialItems, { hint: "성장 과제와 시대적 배경이 어디에 걸려 있는지 봅니다." }),
+      basisGroup("balance", "기질의 균형", balanceItems, { hint: "어느 원소와 양식이 몰리고 비었는지가 기본 반응 방식을 알려 줍니다." }),
+      basisGroup("aspects", "주요 각도", aspectItems, { hint: "트라인·섹스타일은 흐름을 매끄럽게, 스퀘어·충은 긴장을 만들되 성장을 밀어붙입니다." }),
+      basisGroup("transit", "지금 하늘의 접촉", transitItems, { hint: "확정된 사건이 아니라 지금 활성화된 주제를 가리킵니다." }),
+    ],
+    stages: [
+      basisStage("natal", "출생 하늘을 세우는 중", "태양·달·상승궁·MC", ["core"]),
+      basisStage("planets", "행성을 배치하는 중", "개인·사회 행성과 하우스", ["personal", "social"]),
+      basisStage("pattern", "기질의 균형을 재는 중", "원소와 양식 분포", ["balance"]),
+      basisStage("aspects", "각도를 잇는 중", "주요 어스펙트", ["aspects"]),
+      basisStage("transit", "지금 하늘을 겹치는 중", "현재 트랜싯", ["transit"]),
+    ],
+    uncertainty: chart?.birthTimeUnknown ? { birthTimeUnknown: true } : undefined,
+  });
+}
+
 function publicSession(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
   return {
@@ -1285,6 +1373,8 @@ function publicSession(doc) {
     topic: clean(raw?.topic),
     userQuestion: clean(raw?.userQuestion),
     astrologyChart: raw?.astrologyChart || null,
+    // 차트는 예전부터 저장돼 있었으므로 이 변경 이전에 만들어진 상담도 근거 패널을 그대로 얻는다.
+    analysisBasis: raw?.astrologyChart ? buildAstrologyAnalysisBasis(raw.astrologyChart) : null,
     chartHighlights: {
       sun: raw?.astrologyChart?.sun || null,
       moon: raw?.astrologyChart?.moon || null,
@@ -1561,12 +1651,31 @@ async function handleMessage(request, env) {
   }
 }
 
+// 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
+// 신원 확인은 로컬 JWT 검증만 써서 Mongo를 건드리지 않고, 트랜싯은 건너뛰어 대기 화면을 빨리 채운다.
+async function handleBasis(request, env) {
+  const userId = await peekAccessTokenUserId(request, env);
+  if (!userId) return loginRequired();
+
+  const normalized = normalizeInput(await readJson(request));
+  if (!normalized.ok) return invalidInput(normalized.message || INVALID_INPUT_MESSAGE);
+
+  try {
+    const chart = await calculateAstrologyChart(env, normalized, request.url, { skipTransits: true });
+    return json(buildAstrologyAnalysisBasis(chart));
+  } catch (error) {
+    console.warn("[astrology-ai] basis failed", { message: clean(error?.message || error, 300) });
+    return json({ ok: false, reason: "CALCULATION_FAILED" }, { status: 503 });
+  }
+}
+
 export async function handleAstrologyAiRoutes(request, env = {}, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/astrology-ai");
   try {
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "GET" && path.startsWith("/result/")) return await handleResult(request, env, path.slice("/result/".length));
+    if (method === "POST" && path === "/basis") return await handleBasis(request, env);
     if (method === "POST" && path === "/ensure-access") return await handleEnsureAccess(request, env);
     if (method === "POST" && path === "/start") return await handleStart(request, env, ctx);
     if (method === "POST" && path === "/message") return await handleMessage(request, env);
@@ -1592,5 +1701,7 @@ export const __astrologyAiTestUtils = {
   SERVICE_KEY,
   normalizeInput,
   calculateAstrologyChart,
+  buildAstrologyAnalysisBasis,
+  buildFirstPrompt,
   sanitizeConsultationText,
 };

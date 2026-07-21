@@ -6,6 +6,7 @@ import { ArrowLeft, Home, Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
+import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
@@ -26,6 +27,7 @@ type Consultation = {
   topic: string;
   userQuestion?: string;
   vedicChart: Record<string, unknown>;
+  analysisBasis?: AnalysisBasis | null;
   messages: Message[];
 };
 
@@ -207,6 +209,7 @@ export default function VedicAiResultClient() {
                   reading={structured}
                   chart={chart}
                   name={toText(consultation.birthInfo?.name)}
+                  basis={consultation.analysisBasis || null}
                 />
               );
             }

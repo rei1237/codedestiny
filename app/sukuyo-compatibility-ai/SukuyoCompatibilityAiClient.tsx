@@ -8,6 +8,9 @@ import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import AnalysisBasisLoading from "@/components/fortune/AnalysisBasisLoading";
+import AnalysisBasisPanel from "@/components/fortune/AnalysisBasisPanel";
+import { fetchAnalysisBasis, type AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import {
   beginPaidFeatureGateCheck,
@@ -54,6 +57,7 @@ type Consultation = {
     distanceLabel?: string;
     direction?: string;
   };
+  analysisBasis?: AnalysisBasis | null;
   relationshipType: string;
   topic: string;
   messages: ConsultationMessage[];
@@ -128,6 +132,8 @@ const LUNAR_SCENE_STARS = [
 const SECTION_ICONS: Record<string, string> = {
   overview: "☯",
   twoStars: "☽",
+  influence_factors: "◇",
+  evidence_basis: "◆",
   attraction: "✦",
   conflict: "〜",
   timing: "◎",
@@ -535,7 +541,7 @@ function buildFallbackReadingPages(consultation: Consultation): ResultViewerPage
   return pages;
 }
 
-function MoonLoadingScreen() {
+function MoonLoadingScreen({ basis }: { basis: AnalysisBasis | null }) {
   const [stage, setStage] = useState(0);
   const reduceMotion = useReducedMotion() === true;
   useBodyScrollLock(true);
@@ -584,19 +590,26 @@ function MoonLoadingScreen() {
           </defs>
         </svg>
       </div>
+      {/* 달 애니메이션은 그대로 두고, 문구 자리만 실제 계산된 두 본명숙과 방위 관계로 바꾼다.
+          근거가 아직 없거나 조회에 실패하면 기존 단계 문구로 되돌아간다. */}
       <div className={styles.loadingText}>
-        <p>{LOADING_STAGES[stage].label}</p>
-        <span>{LOADING_STAGES[stage].sub}</span>
+        <AnalysisBasisLoading
+          basis={basis}
+          fallbackLabel={LOADING_STAGES[stage].label}
+          fallbackDetail={LOADING_STAGES[stage].sub}
+        />
       </div>
-      <div className={styles.loadingDots}>
-        {LOADING_STAGES.map((item, index) => (
-          <span key={item.sub} className={index <= stage ? styles.loadingDotActive : styles.loadingDot}>
-            <b>{item.phase}</b>
-            <i />
-            <em>{item.sub}</em>
-          </span>
-        ))}
-      </div>
+      {!basis?.stages?.length && (
+        <div className={styles.loadingDots}>
+          {LOADING_STAGES.map((item, index) => (
+            <span key={item.sub} className={index <= stage ? styles.loadingDotActive : styles.loadingDot}>
+              <b>{item.phase}</b>
+              <i />
+              <em>{item.sub}</em>
+            </span>
+          ))}
+        </div>
+      )}
       <div className={styles.loadingBar}>
         <span />
       </div>
@@ -789,7 +802,7 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
   );
 }
 
-function CompatResultModal({ result, onClose, onDownloadError }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void }) {
+function CompatResultModal({ result, onClose, onDownloadError, basis = null }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
@@ -877,6 +890,11 @@ function CompatResultModal({ result, onClose, onDownloadError }: { result: Compa
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}
         <CompatSummaryHeader meta={meta} />
+        {basis && (
+          <section className={styles.basisPane}>
+            <AnalysisBasisPanel basis={basis} />
+          </section>
+        )}
         <ScoreDetailSection scores={meta.scores} />
         <CompareSection a={meta.person_a} b={meta.person_b} />
         <section className={styles.detailDisclosure} aria-label="상세 해설">
@@ -1024,6 +1042,8 @@ export default function SukuyoCompatibilityAiClient() {
   const relationshipType = "연인";
   const topic = "전체 궁합";
   const [consultation, setConsultation] = useState<Consultation | null>(null);
+  // 서버가 계산한 두 별의 근거 — 대기 화면이 실제 값을 단계별로 보여 준다.
+  const [basis, setBasis] = useState<AnalysisBasis | null>(null);
   const [resultOpen, setResultOpen] = useState(false);
   const [recentList, setRecentList] = useState<RecentConsultation[]>([]);
   const [phase, setPhase] = useState<"idle" | "access" | "payment" | "start" | "chat">("idle");
@@ -1238,6 +1258,8 @@ export default function SukuyoCompatibilityAiClient() {
     setError("");
     setNotice("");
     setPhase("access");
+    // 근거는 결제/생성과 무관한 순수 계산이라 기다리지 않고 병렬로 받는다(실패하면 null이라 흐름을 막지 않는다).
+    void fetchAnalysisBasis("/api/sukuyo-compatibility-ai/basis", payload).then(setBasis);
     beginPaidFeatureGateCheck({
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
@@ -1590,12 +1612,13 @@ export default function SukuyoCompatibilityAiClient() {
           )}
         </section>
       </section>
-      {phase === "start" && <MoonLoadingScreen />}
+      {phase === "start" && <MoonLoadingScreen basis={basis} />}
       {result && resultOpen && (
         <CompatResultModal
           result={result}
           onClose={() => setResultOpen(false)}
           onDownloadError={setError}
+          basis={consultation?.analysisBasis || basis}
         />
       )}
     </main>

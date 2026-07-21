@@ -2,7 +2,7 @@ import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
-import { getOptionalUserFromRequest, isAuthDbInfraError, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   getForcePaidTestAccountEmails as getForcePaidTestAccountEmailsFromGuard,
@@ -507,6 +507,8 @@ function buildSajuAIPromptResultPayload({ builtPrompt, resultText, consumePayloa
     domain: String(builtPrompt.domain || domain || "").trim() || undefined,
     profileId: String(profileId || "").trim() || undefined,
     factSnapshot: builtPrompt.factSnapshot || undefined,
+    // 결과 화면 근거 패널이 쓰는 형태. 프롬프트가 인용한 확정값과 같은 원본에서 나온다.
+    analysisBasis: builtPrompt.analysisBasis || undefined,
     tenGodSnapshot: builtPrompt.tenGodSnapshot || undefined,
     amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
     chargedCoins,
@@ -4445,6 +4447,23 @@ async function handleSajuAIConsultationStatus(request, auth, path = "") {
   return json(buildSajuAIStatusPayload(record), { status: record.status === "completed" ? 200 : record.status === "generation_failed" ? 503 : 202 });
 }
 
+// 명식 근거만 계산해 돌려준다. 프롬프트 빌더를 그대로 태워, 상담문이 인용할 확정값과 같은 원본을 쓴다.
+async function handleSajuAIConsultationBasis(request) {
+  const body = await readJson(request);
+  const sajuResult = body?.sajuResult;
+  if (!sajuResult || typeof sajuResult !== "object") {
+    return buildSajuAIPromptError("INVALID_INPUT", "명식 데이터가 필요합니다.", 400);
+  }
+  try {
+    const built = buildSajuAIPrompt({ question: String(body?.question || "").trim(), sajuResult });
+    if (!built?.analysisBasis) return buildSajuAIPromptError("CALCULATION_FAILED", "명식 근거를 계산하지 못했습니다.", 503);
+    return json(built.analysisBasis);
+  } catch (error) {
+    console.warn("[saju-ai] basis failed", String(error?.message || error).slice(0, 200));
+    return buildSajuAIPromptError("CALCULATION_FAILED", "명식 근거를 계산하지 못했습니다.", 503);
+  }
+}
+
 async function handleSajuAIConsultationResult(request, auth, path = "") {
   const url = new URL(request.url);
   const pathResultId = String(path || "").replace(/^\/saju-ai-consultation\/result\/?/, "").trim();
@@ -5534,6 +5553,15 @@ export async function handleFortuneRoutes(request, env, ctx = null) {
       }
       trace.authVerified = true;
       return await handleSukuyoAIPrompt(request, auth, env);
+    }
+
+    // 계산 근거만 즉시 돌려준다 — LLM 미호출, DB 접근 없음, 과금 없음.
+    // 신원 확인은 로컬 JWT 검증만 써서 Mongo를 한 번도 건드리지 않는다(생성 앞단에서 병렬로 불린다).
+    if (method === "POST" && path === "/saju-ai-consultation/basis") {
+      const userId = await peekAccessTokenUserId(request, env);
+      if (!userId) return buildSajuAIPromptError("AUTH_REQUIRED", "로그인이 필요합니다.", 401);
+      trace.authVerified = true;
+      return await handleSajuAIConsultationBasis(request);
     }
 
     if (method === "POST" && (path === "/saju/ai-prompt" || path === "/saju/question-prompt" || path === "/saju-ai-consultation/create")) {

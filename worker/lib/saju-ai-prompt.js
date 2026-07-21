@@ -1,4 +1,6 @@
 import { buildFortuneQuestionPromptPackage } from "./fortune-question-prompt.js";
+import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "./analysis-basis-contract.js";
+import { buildEvidenceRuleLines } from "./fortune-reasoning-contract.js";
 import {
   SAJU_PROMPT_TEMPLATES,
   getSajuPromptTemplate,
@@ -1313,6 +1315,91 @@ export function buildSajuMyeongsikFactSnapshot({
   };
 }
 
+// 이미 만들어 둔 명식 사실 스냅샷을 화면과 프롬프트가 함께 쓰는 근거 형태로 옮긴다.
+// 계산은 하지 않는다 — buildSajuMyeongsikFactSnapshot이 확정한 값을 이름만 붙여 나른다.
+export function buildSajuAnalysisBasis(factSnapshot) {
+  if (!factSnapshot || typeof factSnapshot !== "object") return null;
+  const pillars = factSnapshot.pillars || {};
+  const day = factSnapshot.dayMaster || {};
+  const elements = factSnapshot.elementDistribution || {};
+  const tenGods = factSnapshot.tenGodDistribution?.combined || {};
+  const structures = factSnapshot.majorStructures || {};
+  const luckRows = Array.isArray(factSnapshot.luck?.luckRows) ? factSnapshot.luck.luckRows : [];
+
+  const pillarItems = ["year", "month", "day", "hour"].map((position) => {
+    const row = pillars[position];
+    if (!row?.pillar) return null;
+    const detail = [
+      row.stemElementKo ? `천간 ${row.stemElementKo}` : "",
+      row.branchElementKo ? `지지 ${row.branchElementKo}` : "",
+      row.stemTenGod ? `십성 ${row.stemTenGod}` : "",
+      row.twelveLifeStageKo ? `십이운성 ${row.twelveLifeStageKo}` : "",
+    ].filter(Boolean).join(" · ");
+    return basisItem(row.label || position, `${row.pillar}${detail ? ` · ${detail}` : ""}`);
+  });
+
+  const elementItems = [
+    basisItem("일간", `${day.stem || ""}${day.stemKorean ? `(${day.stemKorean})` : ""} · ${day.elementKo || ""} · ${day.yinYangKo || ""}`.trim(), { term: "일간" }),
+    pillars.month?.branch ? basisItem("월지", `${pillars.month.branch}${pillars.month.branchElementKo ? ` · ${pillars.month.branchElementKo}` : ""}`, { term: "월지" }) : null,
+    // 오행 가중치는 클라이언트 명식(natal.counts)에서 온다. 없으면 전부 0으로 보이므로 아예 항목을 빼
+    // "목 0 · 화 0 …"처럼 계산이 실패한 듯한 줄이 화면에 남지 않게 한다.
+    ["wood", "fire", "earth", "metal", "water"].some((key) => Number(elements[key] || 0) > 0)
+      ? basisItem("오행 분포", ["목", "화", "토", "금", "수"].map((ko, index) => {
+        const key = ["wood", "fire", "earth", "metal", "water"][index];
+        return `${ko} ${Number(elements[key] || 0)}`;
+      }).join(" · "), { term: "오행" })
+      : null,
+    elements.dominant && elements.dominant !== DEFAULT_TEXT ? basisItem("가장 강한 기운", String(elements.dominant)) : null,
+  ];
+
+  const tenGodItems = Object.entries(tenGods)
+    .filter(([, count]) => Number(count) > 0)
+    .sort((a, b) => Number(b[1]) - Number(a[1]))
+    .slice(0, 6)
+    .map(([name, count]) => basisItem(name, `${Number(count)}`, { term: "십성" }));
+
+  const structureItems = [
+    structures.gyeokguk?.name ? basisItem("격국", String(structures.gyeokguk.name)) : null,
+    (structures.hiddenStemExposures || []).length
+      ? basisItem("지장간 투간", structures.hiddenStemExposures.slice(0, 3).map((row) => row?.label || row?.stem || "").filter(Boolean).join(", "), { term: "지장간", tone: "positive" })
+      : null,
+    structures.doChung?.exists ? basisItem("도충", String(structures.doChung.label || structures.doChung.summary || "성립"), { tone: "caution" }) : null,
+    (structures.earthStorageOpenings || []).length
+      ? basisItem("개고", structures.earthStorageOpenings.slice(0, 3).map((row) => row?.label || row?.branch || "").filter(Boolean).join(", "), { tone: "caution" })
+      : null,
+    (factSnapshot.yongshinKijishin?.yongshin || []).length
+      ? basisItem("용신 후보", factSnapshot.yongshinKijishin.yongshin.slice(0, 3).join(", "), { term: "용신", tone: "positive" })
+      : null,
+    (factSnapshot.yongshinKijishin?.kijishin || []).length
+      ? basisItem("기신 후보", factSnapshot.yongshinKijishin.kijishin.slice(0, 3).join(", "), { tone: "caution" })
+      : null,
+  ];
+
+  const luckItems = luckRows.slice(0, 5).map((row) => basisItem(
+    row?.label || row?.period || "운",
+    [row?.ganji || row?.pillar, row?.tenGod, row?.note].filter(Boolean).join(" · ") || "확인된 흐름",
+    { term: String(row?.label || "").includes("세운") ? "세운" : "대운" },
+  ));
+
+  return buildAnalysisBasisPayload({
+    featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
+    groups: [
+      basisGroup("pillars", "명식 네 기둥", pillarItems, { hint: "태어난 해·달·날·시가 각각 한 기둥입니다. 날의 천간(일간)이 나 자신입니다." }),
+      basisGroup("elements", "일간과 오행 균형", elementItems, { hint: "일간이 월지 계절에서 힘을 얻는지, 어떤 기운이 넘치고 부족한지를 봅니다." }),
+      basisGroup("tenGods", "십성 분포", tenGodItems, { hint: "일간과 나머지 글자의 관계입니다. 많은 쪽이 삶에서 자주 쓰는 힘입니다." }),
+      basisGroup("structures", "구조와 쓰임", structureItems, { hint: "겉으로 드러나는 재능(투간), 흔들리는 지점(도충·개고), 도움이 되는 기운(용신)을 봅니다." }),
+      basisGroup("luck", "지금의 운 흐름", luckItems, { hint: "타고난 배치 위에 어떤 조명이 들어와 있는지를 봅니다." }),
+    ],
+    stages: [
+      basisStage("pillars", "명식을 세우는 중", "년·월·일·시 네 기둥", ["pillars"]),
+      basisStage("elements", "오행을 재는 중", "일간의 힘과 기운의 균형", ["elements"]),
+      basisStage("tenGods", "십성을 매기는 중", "일간 기준 열 가지 관계", ["tenGods"]),
+      basisStage("structures", "구조를 살피는 중", "격국·투간·용신", ["structures"]),
+      basisStage("luck", "운의 결을 잇는 중", "대운과 세운", ["luck"]),
+    ],
+  });
+}
+
 function escapeRegExp(value) {
   return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -2020,6 +2107,9 @@ export function buildSajuAIPromptWithDomain({
     ...(calibrationLines.length ? ["", ...calibrationLines] : []),
     "",
     appendSajuExternalAiPurpose(promptPackage.generatedPrompt, template, questionTypeLabel),
+    "",
+    // 위 명식 사실 카드가 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
+    ...buildEvidenceRuleLines(buildSajuAnalysisBasis(factSnapshot), { includeFactTable: false }),
   ].join("\n").trim();
   const qualityResult = ensureSajuPromptQuality(purposePrompt);
   const generatedPrompt = qualityResult.prompt;
@@ -2079,6 +2169,8 @@ export function buildSajuAIPromptWithDomain({
     promptVersion: SAJU_AI_PROMPT_VERSION,
     factSnapshot,
     factCard,
+    // 화면(근거 패널·대기 화면)이 쓰는 형태. 프롬프트가 인용하는 확정값과 같은 원본에서 나온다.
+    analysisBasis: buildSajuAnalysisBasis(factSnapshot),
     tenGodSnapshot: {
       dayMaster: factSnapshot.dayMaster,
       heavenlyStemTenGods: factSnapshot.heavenlyStemTenGods,

@@ -6692,7 +6692,52 @@ function _sajuPromptBuildResultSummaryHtml(payload) {
     + '</div>';
 }
 
+// 계산 근거(analysis basis)를 그룹 카드로 그린다. 용어 풀이는 title 속성으로 붙여
+// 마우스와 스크린리더 양쪽에서 읽히게 한다(React 쪽 GlossaryTerm과 같은 문장을 서버가 내려 준다).
+function _sajuPromptRenderBasisGroups(basis, options) {
+  var groups = basis && Array.isArray(basis.groups) ? basis.groups : [];
+  if (!groups.length) return '';
+  var opts = options && typeof options === 'object' ? options : {};
+  var dark = opts.dark === true;
+  var text = dark ? '#fff7df' : '#3b2a14';
+  var muted = dark ? 'rgba(255,247,223,.7)' : '#7c5a20';
+  var line = dark ? 'rgba(255,247,223,.18)' : 'rgba(113,63,18,.16)';
+  var surface = dark ? 'rgba(255,247,223,.06)' : 'rgba(255,252,243,.72)';
+  return groups.map(function(group) {
+    var items = Array.isArray(group.items) ? group.items : [];
+    if (!items.length) return '';
+    var rows = items.map(function(item) {
+      var hint = String(item.termHint || '').trim();
+      var label = '<span style="font-weight:900;font-size:.72rem;color:' + muted + ';'
+        + (hint ? 'text-decoration:underline dotted;text-underline-offset:3px;cursor:help;' : '')
+        + '"' + (hint ? ' title="' + _sajuPromptEscapeHtml(hint) + '"' : '') + '>' + _sajuPromptEscapeHtml(item.label) + '</span>';
+      var accent = item.tone === 'caution' || item.tone === 'positive'
+        ? 'box-shadow:inset 2px 0 0 0 ' + (dark ? 'rgba(253,230,138,.55)' : 'rgba(113,63,18,.4)') + ';'
+        : '';
+      return '<div style="display:grid;grid-template-columns:minmax(72px,auto) minmax(0,1fr);gap:3px 10px;align-items:baseline;'
+        + 'border-radius:8px;padding:5px 7px;background:' + surface + ';' + accent + '">'
+        + label
+        + '<span style="font-size:.78rem;font-weight:600;line-height:1.6;color:' + text + ';word-break:break-word;">' + _sajuPromptEscapeHtml(item.value) + '</span>'
+        + '</div>';
+    }).join('');
+    return '<div style="border:1px solid ' + line + ';border-radius:8px;padding:11px;margin-top:8px;">'
+      + '<div style="font-size:.74rem;font-weight:900;letter-spacing:.03em;color:' + text + ';">' + _sajuPromptEscapeHtml(group.title) + '</div>'
+      + (group.hint ? '<div style="margin-top:3px;font-size:.68rem;line-height:1.55;color:' + muted + ';">' + _sajuPromptEscapeHtml(group.hint) + '</div>' : '')
+      + '<div style="display:grid;gap:5px;margin-top:8px;">' + rows + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 function _sajuPromptBuildBasisHtml(payload) {
+  // 근거가 함께 저장된 결과는 전체 확정값을 펼쳐 보여 준다(이 변경 이전 결과는 아래 요약 칩으로 폴백).
+  var basisGroupsHtml = _sajuPromptRenderBasisGroups(payload && payload.analysisBasis);
+  if (basisGroupsHtml) {
+    return '<div style="margin:10px 13px 0;border:1px solid rgba(113,63,18,.14);background:rgba(255,252,243,.72);border-radius:8px;padding:11px;">'
+      + '<div style="font-size:.8rem;font-weight:900;color:#2a2117;">이 상담이 계산한 값</div>'
+      + '<div style="margin-top:3px;font-size:.7rem;color:#7c5a20;line-height:1.55;">AI가 지어낸 값이 아니라, 입력하신 명식으로 계산된 결과입니다.</div>'
+      + basisGroupsHtml
+      + '</div>';
+  }
   var fact = payload && payload.factSnapshot && typeof payload.factSnapshot === 'object' ? payload.factSnapshot : {};
   var day = fact.dayMaster || {};
   var ten = fact.heavenlyStemTenGods || {};
@@ -7044,6 +7089,7 @@ function _buildSajuQuestionPromptHtml() {
     +       '<div data-saju-ai-progress-bar style="width:0%;height:100%;border-radius:999px;background:linear-gradient(90deg,#f7d46b,#fff7df,#9bdcff);box-shadow:0 0 18px rgba(253,230,138,.42);transition:width .55s ease;"></div>'
     +     '</div>'
     +     '<div data-saju-ai-progress-steps style="display:grid;grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:6px;margin-top:10px;">' + stepHtml + '</div>'
+    +     '<div data-saju-ai-basis-live style="display:none;margin-top:10px;max-height:280px;overflow-y:auto;"></div>'
     +   '</div>'
     +   '<div style="position:relative;display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;">'
     +     '<button data-saju-ai-generate type="button" style="background:linear-gradient(135deg,#ffe6a3,#c89236);color:#1e160c;border:1px solid rgba(255,234,166,.78);padding:11px 15px;border-radius:8px;font-size:0.82rem;font-weight:900;cursor:pointer;box-shadow:0 12px 24px rgba(0,0,0,.24);">사주 AI 상담 받기</button>'
@@ -7131,6 +7177,9 @@ function _bindSajuQuestionPromptCard(rootEl) {
   var progressPercentEl = rootEl.querySelector('[data-saju-ai-progress-percent]');
   var progressMessageEl = rootEl.querySelector('[data-saju-ai-progress-message]');
   var stepEls = progressEl ? progressEl.querySelectorAll('[data-saju-ai-step]') : [];
+  var liveBasisEl = rootEl.querySelector('[data-saju-ai-basis-live]');
+  var liveBasis = null;
+  var liveBasisRequested = false;
   if (!inputEl || !countEl || !generateBtn || !regenerateBtn || !outputEl || !outputPanel || !outputTextEl || !copyBtn || !saveBtn || !shareBtn || !resetBtn || !statusEl) return;
 
   var isLoading = false;
@@ -7173,6 +7222,7 @@ function _bindSajuQuestionPromptCard(rootEl) {
     if (progressTrackEl) progressTrackEl.setAttribute('aria-valuenow', String(nextPercent));
     if (progressPercentEl) progressPercentEl.textContent = nextPercent + '%';
     if (progressMessageEl) progressMessageEl.textContent = message || '명식의 흐름을 읽고 있어요';
+    renderLiveBasis();
     Array.prototype.forEach.call(stepEls, function(step, idx) {
       var dot = step.querySelector('[data-saju-ai-step-dot]');
       var stepProgress = Number(step.getAttribute('data-saju-ai-step-progress') || 0);
@@ -7186,8 +7236,53 @@ function _bindSajuQuestionPromptCard(rootEl) {
       }
     });
   }
+  // 기다리는 동안 실제 계산된 명식을 단계별로 드러낸다. 근거는 순수 계산이라 결제/생성과 무관하게
+  // 병렬로 받아 오고, 실패하면 조용히 접어 둔다(대기 화면이 기존 단계 문구로 돌아갈 뿐이다).
+  function loadLiveBasis() {
+    if (liveBasis || liveBasisRequested) return;
+    liveBasisRequested = true;
+    var payload;
+    try {
+      payload = { question: '', sajuResult: _buildSajuAIPromptPayload({}) };
+    } catch (_) {
+      return;
+    }
+    var urls = _sajuPromptApiUrls('/api/fortune/saju-ai-consultation/basis');
+    _cdAIPromptRequestJson(urls[0], { method: 'POST', body: JSON.stringify(payload) }).then(function(result) {
+      var data = result && result.data;
+      if (!result || !result.ok || !data || !Array.isArray(data.groups) || !data.groups.length) return;
+      liveBasis = data;
+      renderLiveBasis();
+    }).catch(function() {});
+  }
+
+  function renderLiveBasis() {
+    if (!liveBasisEl) return;
+    if (!liveBasis) {
+      liveBasisEl.style.display = 'none';
+      return;
+    }
+    var stages = Array.isArray(liveBasis.stages) && liveBasis.stages.length
+      ? liveBasis.stages
+      : liveBasis.groups.map(function(group) { return { label: group.title, groupKeys: [group.key] }; });
+    // 진행률에 맞춰 지나온 단계까지만 펼친다. 이미 드러난 값은 사라지지 않는다.
+    var reached = Math.min(stages.length - 1, Math.floor((Math.max(0, progressPercent) / 90) * stages.length));
+    var keys = [];
+    stages.slice(0, reached + 1).forEach(function(stage) {
+      (stage.groupKeys || []).forEach(function(key) { if (keys.indexOf(key) === -1) keys.push(key); });
+    });
+    var visible = liveBasis.groups.filter(function(group) { return keys.indexOf(group.key) !== -1; });
+    if (!visible.length) {
+      liveBasisEl.style.display = 'none';
+      return;
+    }
+    liveBasisEl.style.display = 'block';
+    liveBasisEl.innerHTML = _sajuPromptRenderBasisGroups({ groups: visible }, { dark: true });
+  }
+
   function startProgress() {
     clearInterval(progressTimer);
+    loadLiveBasis();
     setProgress(Math.max(0, progressPercent || 0), '결제/이용권 확인 중', false);
     progressTimer = setInterval(function() {
       // 이용권/결제 확인(게이트)이 끝나기 전에는 '결제/이용권 확인 중'에 머물러, 생성 단계로 먼저 진입하지 않는다.
