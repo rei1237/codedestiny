@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-77e7bad8af58'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-77e7bad8af58'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-77e7bad8af58'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-59f221926f2c'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-59f221926f2c'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-59f221926f2c'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-77e7bad8af58')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-59f221926f2c')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-77e7bad8af58'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-77e7bad8af58'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-59f221926f2c'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-59f221926f2c'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-77e7bad8af58'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-77e7bad8af58'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-59f221926f2c'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-59f221926f2c'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -105,14 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-77e7bad8af58').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-59f221926f2c').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-77e7bad8af58')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-59f221926f2c')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -415,9 +415,19 @@ function __resolveCollectionImageSrc(src) {
   return raw;
 }
 
+/* 폴백은 하나가 아니라 순서 있는 목록이다.
+   예전에는 "리사이즈 → R2 원본" 한 단계뿐이라, R2 에 올라가지 않은 자산은
+   두 주소가 모두 404 가 되면서 마크업에 원래 박혀 있던(그리고 실제로는 200 인)
+   /fuctionassets/… 경로로 되돌아갈 길이 없어 이미지가 통째로 사라졌다. */
 function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) {
   if (!img) return;
-  if (fallbackSrc) img.setAttribute('data-cd-img-fallback-src', fallbackSrc);
+  const chain = (Array.isArray(fallbackSrc) ? fallbackSrc : [fallbackSrc])
+    .map((src) => String(src || '').trim())
+    .filter(Boolean)
+    .filter((src, index, list) => list.indexOf(src) === index && src !== img.getAttribute('src'));
+  img.__cdImgFallbackChain = chain;
+  // 이 속성을 읽는 다른 코드가 있어 첫 후보는 그대로 노출한다.
+  if (chain.length) img.setAttribute('data-cd-img-fallback-src', chain[0]);
   else img.removeAttribute('data-cd-img-fallback-src');
   if (skeleton) {
     img.addEventListener('load', () => { skeleton.remove(); }, { once: true });
@@ -425,10 +435,12 @@ function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) 
   if (img.dataset && img.dataset.cdCollectionFallbackBound === '1') return;
   if (img.dataset) img.dataset.cdCollectionFallbackBound = '1';
   img.addEventListener('error', () => {
-    const fallback = img.getAttribute('data-cd-img-fallback-src') || '';
-    if (fallback) {
-      img.removeAttribute('data-cd-img-fallback-src');
-      img.src = fallback;
+    const next = (img.__cdImgFallbackChain || []).shift();
+    if (next) {
+      const rest = img.__cdImgFallbackChain || [];
+      if (rest.length) img.setAttribute('data-cd-img-fallback-src', rest[0]);
+      else img.removeAttribute('data-cd-img-fallback-src');
+      img.src = next;
       return;
     }
     if (skeleton) skeleton.remove();
@@ -506,7 +518,9 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
       const resolvedExistingSrc = __resolveCollectionImageSrc(existingSrc);
       // 마크업에 박힌 정적 <img> 도 같은 리사이즈 경로를 태운다(원본 80~200KB 를 그대로 받고 있었다)
       const resizedExisting = __buildResizedCollectionImageUrl(resolvedExistingSrc, wrap);
-      const existingFallback = resizedExisting ? resolvedExistingSrc : (resolvedExistingSrc === existingSrc ? '' : existingSrc);
+      // 리사이즈 → R2 원본 → 마크업에 박혀 있던 원래 경로 순으로 물러난다.
+      // 마지막 후보가 있어야 R2 에 아직 안 올라간 자산도 화면에서 사라지지 않는다.
+      const existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
       __bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       const nextSrc = resizedExisting || resolvedExistingSrc;
       if (nextSrc && nextSrc !== existingSrc) {
@@ -540,7 +554,7 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
     img.height = 150;
     img.alt = alt;
     const resizedSrc = __buildResizedCollectionImageUrl(resolvedSrc, wrap);
-    __bindCollectionImageFallback(img, resizedSrc ? resolvedSrc : fallbackSrc, placeholder, skeleton);
+    __bindCollectionImageFallback(img, [resizedSrc ? resolvedSrc : '', fallbackSrc, src], placeholder, skeleton);
     img.src = resizedSrc || resolvedSrc;
     wrap.insertBefore(img, wrap.firstChild);
   };

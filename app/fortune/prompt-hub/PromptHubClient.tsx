@@ -1125,6 +1125,18 @@ export default function ComprehensivePromptHubPage() {
   const [copiedToolId, setCopiedToolId] = useState<ToolId | null>(null);
   const [chatGptPopupBlockedToolId, setChatGptPopupBlockedToolId] = useState<ToolId | null>(null);
   const [heroImageError, setHeroImageError] = useState(false);
+  // 좁은 화면에서는 히어로 우상단에 띄우고, lg 부터는 오른쪽 열 안에 흐름 요소로 놓는다.
+  // 같은 URL 이라 브라우저는 한 번만 내려받는다.
+  const heroMascot = (
+    <img
+      src="/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"
+      alt="연이 꽃돼지 마스코트 — 운세 프롬프트 허브"
+      className="yeon-hero-sprite-sheet"
+      decoding="async"
+      loading="lazy"
+      onError={() => setHeroImageError(true)}
+    />
+  );
   const resultPanelRef = useRef<HTMLElement | null>(null);
 
   const currentTool = toolConfigById[activeToolId];
@@ -1568,16 +1580,13 @@ export default function ComprehensivePromptHubPage() {
               svgClassName="mx-auto sm:mx-0 w-[128px] sm:w-[156px] md:w-[182px] lg:w-[202px]"
               ariaHidden
             />
+            {/* lg 미만에서만 떠 있는 장식. lg 부터는 오른쪽 열이 이 자리를 차지해
+                반투명 '현재 도구' 카드가 연이 위에 겹쳐 잘린 것처럼 보였다(z-5 는
+                Tailwind 에 없는 클래스라 의도한 계층도 적용된 적이 없다).
+                lg 부터는 아래 오른쪽 열 안에서 흐름 요소로 그린다 — 겹칠 수가 없다. */}
             {!heroImageError && (
-              <div className="yeon-hero-sprite pointer-events-none absolute right-1 top-1 z-5 w-28 sm:right-2 sm:top-2 sm:w-32 md:w-40 lg:w-48">
-                <img
-                  src="/images/fortune-tea-house/%EB%A7%90%ED%95%98%EB%8A%94%20%EA%BD%83%EB%8F%BC%EC%A7%80%20%EC%97%B0%EC%9D%B43-Photoroom.webp"
-                  alt="연이 꽃돼지 마스코트 — 운세 프롬프트 허브"
-                  className="yeon-hero-sprite-sheet"
-                  decoding="async"
-                  loading="lazy"
-                  onError={() => setHeroImageError(true)}
-                />
+              <div className="yeon-hero-sprite pointer-events-none absolute right-1 top-1 z-[5] w-28 sm:right-2 sm:top-2 sm:w-32 md:w-40 lg:hidden">
+                {heroMascot}
               </div>
             )}
             <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
@@ -1602,7 +1611,13 @@ export default function ComprehensivePromptHubPage() {
                   ))}
                 </div>
               </div>
-              <div className="rounded-[22px] border bg-white/76 p-4" style={{ borderColor: currentTool.theme.accentSoft }}>
+              <div>
+                {!heroImageError && (
+                  <div className="yeon-hero-sprite pointer-events-none mb-1 hidden w-40 lg:ml-auto lg:block">
+                    {heroMascot}
+                  </div>
+                )}
+                <div className="rounded-[22px] border bg-white/76 p-4" style={{ borderColor: currentTool.theme.accentSoft }}>
                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.currentTool}</p>
                 <div className="mt-3 flex items-center gap-3">
                   <span className="grid h-12 w-12 place-items-center rounded-2xl text-xl font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]" style={{ background: currentTool.theme.accentStrong }}>
@@ -1626,6 +1641,7 @@ export default function ComprehensivePromptHubPage() {
                     </option>
                   ))}
                 </select>
+                </div>
               </div>
             </div>
           </div>
