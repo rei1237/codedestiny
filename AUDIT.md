@@ -184,5 +184,5 @@ Phase 2 중 로그인 보안 테스트 8건이 죽어 있던 것을 발견해, �
 
 ### 남은 항목 (판단 필요)
 
-- **`__tests__/api/auth/withdraw.test.js` (538줄)** — 대상 `app/api/auth/withdraw/route.js` 가 워커로 이관되며 삭제돼 영원히 실패한다. 현재 실행에서 제외했다. 삭제할지, 워커 라우트 기준으로 다시 쓸지 결정 필요.
+- ~~`__tests__/api/auth/withdraw.test.js` (538줄)~~ — **해결.** 워커 `handleWithdraw` 가 같은 계약(429·401·403 CSRF·400·409·비식별화·Payment 익명화·감사로그 emailHash)을 그대로 들고 있어 삭제 대신 `__tests__/worker/auth.withdraw.test.js` 로 이식했다(20건). 이식 과정에서 **탈퇴 계정은 재탈퇴 요청 이전에 인증 자체가 성립하지 않는다**는 더 강한 계약을 확인해 함께 못박았고, 핸들러의 409/404 는 경합 방어 분기로 별도 검사한다.
 - **`verify:public-parity` 실패** — 커밋 `e1cddf44`(타로 탭 수정, 동시 세션)가 루트 `js/mobile-interaction-patch.js` 만 고치고 `public/` 미러를 빠뜨렸다. **그 수정이 프로덕션 셸에 반영되지 않는다.** 해당 세션 소유라 건드리지 않았다.

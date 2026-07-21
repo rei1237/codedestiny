@@ -3817,5 +3817,8 @@ export async function handleAuthRoutes(request, env) {
 export const __authTestUtils = {
   handleLogin,
   handleRefresh,
+  handleWithdraw,
+  handleWithdrawCsrfIssue,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
+  clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
 };

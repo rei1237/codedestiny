@@ -21,9 +21,5 @@ module.exports = {
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "<rootDir>/__tests__/ui/",
     "<rootDir>/__tests__/fortune/maya-calendar\\.test\\.js$",
-    // 대상이 사라진 테스트: app/api/auth/withdraw/route.js 는 워커(worker/routes/auth.js)로
-    // 이관되면서 삭제됐다. 이 파일은 없는 모듈을 import 하므로 영원히 실패한다.
-    // 워커 라우트 기준으로 다시 쓰거나 삭제할지 결정이 필요하다(AUDIT.md 참고).
-    "<rootDir>/__tests__/api/auth/withdraw\\.test\\.js$",
   ],
 };
