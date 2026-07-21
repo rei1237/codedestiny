@@ -11,6 +11,7 @@ import { usePaymentProcessing } from "../components/PaymentProcessingContext";
 import type { PaymentLoadingProps } from "../components/common/PaymentLoading";
 import { getSubscriptionTierLabel } from "../components/subscriptionNotice";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
+import { PAYMENT_PIG_LOGO_URL } from "../components/common/PaymentPigVisual";
 import SubscriptionStatusCard from "./SubscriptionStatusCard";
 import { authFetch, clearClientAuthState } from "../_lib/auth-client";
 import { getApiBaseUrl } from "../_lib/api-config";
@@ -159,6 +160,23 @@ type PaymentHistoryItem = {
   approvalNumber?: string | null;
   receiptUrl?: string | null;
   cancelledAt?: string | null;
+  /** 이용권으로 커버돼 결제 없이 이용한 합성 행. 취소·영수증 대상이 아니다. */
+  isPassAccess?: boolean;
+  /** 이용권이 없었다면 냈을 정가(원). 합성 행에만 채운다. */
+  passListPriceWon?: number;
+};
+
+/** /api/payments/me가 내려주는 이용권 혜택 흐름 기록(PointHistory) 중 주문 내역에 필요한 부분만. */
+type PointHistoryEntry = {
+  id?: string;
+  featureKey?: string;
+  reason?: string;
+  createdAt?: string;
+  accessMethod?: string;
+  accessType?: string;
+  coinPrice?: number;
+  requestId?: string;
+  passTier?: string;
 };
 
 /* ── 프로필 이용권 타입 ───────────────────────────────────────── */
@@ -204,6 +222,7 @@ type MeResponse = {
   data?: {
     balance?: number;
     payments?: PaymentHistoryItem[];
+    transactions?: PointHistoryEntry[];
     monthlyCredits?: number;
     membershipCreditBalance?: number;
     monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
@@ -218,6 +237,7 @@ type MeResponse = {
     monthlyCredits?: number;
   };
   payments?: PaymentHistoryItem[];
+  pointHistories?: PointHistoryEntry[];
   monthlyCreditLedgers?: MonthlyCreditLedgerItem[];
 };
 
@@ -916,7 +936,16 @@ function formatSubscriptionPlanValueLine(plan: Pick<SubscriptionPlan, "tier" | "
 function isMonthlyCreditPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
   const method = String(payment.paymentMethod || "").trim().toLowerCase();
   const accessType = String(payment.accessType || "").trim().toLowerCase();
-  return method === "monthly_credit" || method === "monthly" || accessType === "membership_credit";
+  return method === "monthly_credit" || method === "monthly" || method === "moonlight_stone"
+    || accessType === "membership_credit";
+}
+
+// 이용권으로 커버돼 결제 없이 이용한 건. 실제 과금이 없으므로 "카드 결제"로 보이면 안 된다.
+function isPassCoveredPayment(payment: Pick<PaymentHistoryItem, "paymentMethod" | "accessType">) {
+  const method = String(payment.paymentMethod || "").trim().toLowerCase();
+  const accessType = String(payment.accessType || "").trim().toLowerCase();
+  return method === "pass" || method === "family" || method === "membership_pass" || method === "subscription"
+    || accessType === "pass" || accessType === "family" || accessType === "membership_pass";
 }
 
 function langSensitiveLabel(copy: PointsPageCopy, ko: string, en: string) {
@@ -928,15 +957,19 @@ function getPointPackageTitle(pack: Pick<PointPackage, "title">, copy: PointsPag
 }
 
 function formatPaymentMethodLabel(payment: PaymentHistoryItem, copy: PointsPageCopy = POINTS_PAGE_COPY.ko) {
+  // 이용권 > 월정석 > 원화 단건 순으로 판정한다. 실제 과금이 없는 건이 "카드 결제"로 보이면 안 된다.
+  if (isPassCoveredPayment(payment)) return langSensitiveLabel(copy, "이용권으로 처리", "Covered by pass");
   if (isMonthlyCreditPayment(payment)) return langSensitiveLabel(copy, "프로모션 처리", "Promotion");
-  const method = String(payment.paymentMethodLabel || payment.paymentMethod || "").trim();
+  // 판정은 원본 코드(paymentMethod)로만 한다 — 서버가 내려주는 paymentMethodLabel은 이미 한글이라 코드 비교에 쓸 수 없다.
+  const method = String(payment.paymentMethod || "").trim();
   const normalized = method.toLowerCase();
-  if (!method) return "-";
-  if (normalized === "card_general" || normalized === "card") return copy.paymentMethods.cardGeneral?.label || method;
+  if (!method) return String(payment.paymentMethodLabel || "").trim() || "-";
   if (normalized === "virtual_account") return langSensitiveLabel(copy, "가상계좌", "Virtual account");
   if (normalized === "kakaopay") return "KakaoPay";
   if (normalized === "naverpay") return "Naver Pay";
-  return method;
+  // 준비 단계 레코드는 paymentMethod가 single_purchase/unknown으로 저장된다(payments.js prepare 기본값).
+  // 어느 쪽이든 원화 단건 결제 건이므로 내부 코드명이 그대로 노출되지 않게 카드 결제로 묶는다.
+  return copy.paymentMethods.cardGeneral?.label || langSensitiveLabel(copy, "카드 결제", "Card payment");
 }
 
 function formatDateTime(raw?: string | null, locale = FORMAT_LOCALE_BY_LANG.ko) {
@@ -1182,6 +1215,9 @@ function normalizeMePayload(payload: MeResponse) {
   const payments = Array.isArray(node.payments)
     ? node.payments
     : (Array.isArray(payload?.payments) ? payload.payments : []);
+  const transactions = Array.isArray(node.transactions)
+    ? node.transactions
+    : (Array.isArray(payload?.pointHistories) ? payload.pointHistories : []);
   const monthlyStoneBalance = resolveMonthlyStoneBalance(node, payload?.user) ?? 0;
   const monthlyCreditLedgers = Array.isArray(node.monthlyCreditLedgers)
     ? node.monthlyCreditLedgers
@@ -1197,9 +1233,42 @@ function normalizeMePayload(payload: MeResponse) {
     monthlyStoneBalance,
     monthlyStoneExpiresAt: resolveMonthlyStoneExpiresAt(node, payload),
     payments,
+    transactions,
     monthlyCreditLedgers,
     subscription,
   };
+}
+
+/**
+ * 이용권으로 커버돼 결제 없이 이용한 기록(PointHistory)을 주문 내역 행으로 합성한다.
+ * 이 건들은 payments 컬렉션에 남지 않아 합성하지 않으면 주문 내역에서 통째로 사라진다.
+ */
+function buildPassAccessHistoryItems(entries: PointHistoryEntry[]): PaymentHistoryItem[] {
+  return entries
+    .filter((entry) => {
+      const method = String(entry?.accessMethod || "").trim().toUpperCase();
+      return method === "PASS" || method === "FAMILY";
+    })
+    .map((entry) => {
+      const listPriceWon = Math.max(0, Math.floor(Number(entry.coinPrice || 0))) * 100;
+      return {
+        id: `pass:${String(entry.id || entry.requestId || "")}`,
+        merchantUid: String(entry.requestId || ""),
+        paymentAmount: 0,
+        chargedPoints: 0,
+        paymentMethod: "pass",
+        accessType: "membership_pass",
+        status: "success" as const,
+        createdAt: entry.createdAt,
+        updatedAt: entry.createdAt,
+        paidAt: entry.createdAt,
+        approvalNumber: null,
+        receiptUrl: null,
+        isPassAccess: true,
+        passListPriceWon: listPriceWon,
+      };
+    })
+    .filter((item) => item.id !== "pass:");
 }
 
 /**
@@ -1941,7 +2010,7 @@ function WalletCard({ name, copy }: { name: string; copy: PointsPageCopy }) {
               }}
               aria-hidden="true"
             >
-              🌙
+              <ShopPigImage className="h-11 w-11 object-contain drop-shadow-[0_4px_8px_rgba(3,4,18,0.42)]" />
             </div>
             <div>
               <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-[#ded4ff]">
@@ -2020,6 +2089,39 @@ function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
   return "crescent";
 }
 
+// 히어로 메달리온·지갑 카드·빈 주문 내역 세 곳이 같은 연이를 쓰므로 로딩 실패 폴백까지 여기서만 관리한다.
+// (URL 정본은 결제 대기 화면과 공유하는 PAYMENT_PIG_LOGO_URL — 상점용 상수를 따로 만들지 않는다.)
+// 원본은 742KB PNG인데 상점에서는 최대 90px로만 쓰므로 Cloudflare Image Resizing 축소본을 먼저 받는다(약 12KB).
+const SHOP_PIG_RESIZED_URL = (() => {
+  try {
+    const parsed = new URL(PAYMENT_PIG_LOGO_URL);
+    return `${parsed.origin}/cdn-cgi/image/width=220,quality=82,format=auto${parsed.pathname}`;
+  } catch {
+    return PAYMENT_PIG_LOGO_URL;
+  }
+})();
+
+function ShopPigImage({ className = "" }: { className?: string }) {
+  const [src, setSrc] = useState(SHOP_PIG_RESIZED_URL);
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="eager"
+      decoding="async"
+      className={className}
+      onError={() => {
+        // 축소본 실패 시 원본으로, 원본까지 실패하면 숨긴다(달·문구는 그대로 남는다).
+        if (src !== PAYMENT_PIG_LOGO_URL) setSrc(PAYMENT_PIG_LOGO_URL);
+        else setFailed(true);
+      }}
+    />
+  );
+}
+
 function MoonlightShopHero() {
   return (
     <header className="moon-shop-hero -mx-4 px-4 py-7 sm:mx-0 sm:rounded-[28px] sm:px-8 sm:py-8">
@@ -2035,7 +2137,8 @@ function MoonlightShopHero() {
           <div className="moon-shop-visual" aria-hidden="true">
             <span className="moon-shop-visual-ring moon-shop-visual-ring--one" />
             <span className="moon-shop-visual-ring moon-shop-visual-ring--two" />
-            <MoonIcon phase="gibbous" className="moon-shop-visual-moon" />
+            <MoonIcon phase="full" className="moon-shop-visual-moon" />
+            <ShopPigImage className="moon-shop-visual-pig" />
             <span className="moon-shop-visual-spark moon-shop-visual-spark--one" />
             <span className="moon-shop-visual-spark moon-shop-visual-spark--two" />
             <span className="moon-shop-visual-spark moon-shop-visual-spark--three" />
@@ -2454,7 +2557,7 @@ function MoonlightOrderHistory({
       </div>
       {payments.length === 0 ? (
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 없음" />
+          <ShopPigImage className="h-[72px] w-[72px] object-contain drop-shadow-[0_6px_14px_rgba(3,4,18,0.5)]" />
           <p className="mt-3 text-base font-black text-white">첫 번째 달빛 이용권을 구매해보세요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             이용권 주문 내역이 이곳에 차분히 쌓입니다.
@@ -2463,23 +2566,45 @@ function MoonlightOrderHistory({
       ) : (
         <div className="space-y-3">
           {payments.map((payment) => {
+            const isPassAccess = payment.isPassAccess === true;
             const statusMeta = mapPaymentStatusLabel(payment.status, copy);
-            const canCancel = payment.status === "success";
+            // 이용권 이용 건은 실제 결제가 아니므로 취소·영수증 대상이 아니다.
+            const canCancel = !isPassAccess && payment.status === "success";
             return (
               <div key={payment.id} className="rounded-[18px] border border-[color:var(--moon-rim)] bg-[rgba(21,24,64,0.78)] p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-base font-black text-white">{formatWon(payment.paymentAmount, copy, formatLocale)}</p>
-                  <span className={`rounded-full border px-2.5 py-1 text-xs font-black ${statusMeta.cls}`}>{statusMeta.label}</span>
+                  <p className="text-base font-black text-white">
+                    {formatWon(payment.paymentAmount, copy, formatLocale)}
+                    {isPassAccess && (payment.passListPriceWon || 0) > 0 && (
+                      <span className="ml-2 text-xs font-bold text-[color:var(--moon-mist)]">
+                        정가 {formatWon(payment.passListPriceWon || 0, copy, formatLocale)} · 이용권 적용
+                      </span>
+                    )}
+                  </p>
+                  <span
+                    className={`rounded-full border px-2.5 py-1 text-xs font-black ${
+                      isPassAccess
+                        ? "border-[color:var(--moon-family)] text-[color:var(--moon-family)]"
+                        : statusMeta.cls
+                    }`}
+                  >
+                    {isPassAccess ? "이용권 적용" : statusMeta.label}
+                  </span>
                 </div>
                 <div className="mt-3 grid gap-1 text-xs font-semibold text-[color:var(--moon-mist)] sm:grid-cols-2">
                   <p>주문시각: {formatDateTime(payment.createdAt || payment.updatedAt, formatLocale)}</p>
                   <p>결제시각: {formatPaymentTimeLabel(payment, copy, formatLocale)}</p>
                   <p>최근변경: {formatDateTime(payment.updatedAt || payment.paidAt || payment.createdAt, formatLocale)}</p>
                   <p>결제수단: {formatPaymentMethodLabel(payment, copy)}</p>
-                  <p>승인번호: {payment.approvalNumber || "-"}</p>
+                  {!isPassAccess && <p>승인번호: {payment.approvalNumber || "-"}</p>}
                   <p>주문번호: {payment.merchantUid || "-"}</p>
-                  <p>결제ID: {payment.impUid || "-"}</p>
+                  {!isPassAccess && <p>결제ID: {payment.impUid || "-"}</p>}
                 </div>
+                {isPassAccess ? (
+                  <p className="mt-3 text-xs font-bold text-[color:var(--moon-teal)]">
+                    이용권으로 무료 이용한 건이라 결제·환불 대상이 아닙니다.
+                  </p>
+                ) : (
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   {payment.receiptUrl ? (
                     <a href={payment.receiptUrl} target="_blank" rel="noreferrer" className="btn-moonlight-ghost inline-flex min-h-9 items-center rounded-lg px-3 text-xs font-black">
@@ -2497,6 +2622,7 @@ function MoonlightOrderHistory({
                     {cancelingPaymentId === payment.id ? "취소 처리 중..." : "결제 취소 요청"}
                   </button>
                 </div>
+                )}
               </div>
             );
           })}
@@ -2842,7 +2968,18 @@ export default function PointsPage() {
             .filter((entry) => entry && typeof entry === "object")
             .slice(0, 10)
         : [];
-      setPaymentHistory(normalizedPayments);
+      // 결제 건과 이용권 이용 건을 각각 10건씩 자른 뒤 병합한다. 하나의 상한을 공유하면
+      // 이용권 이용이 잦은 계정에서 실제 결제 내역이 목록 밖으로 밀려난다.
+      const passAccessItems = buildPassAccessHistoryItems(
+        Array.isArray(normalized.transactions)
+          ? normalized.transactions.filter((entry) => entry && typeof entry === "object")
+          : [],
+      ).slice(0, 10);
+      setPaymentHistory(
+        [...normalizedPayments, ...passAccessItems].sort(
+          (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime(),
+        ),
+      );
       setMonthlyStoneBalance(normalized.monthlyStoneBalance);
       setMonthlyStoneExpiresAt(normalized.monthlyStoneExpiresAt);
       setMonthlyCreditLedgers(

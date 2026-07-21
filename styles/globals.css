@@ -900,13 +900,42 @@ body:has(main.moon-shop) [role="note"] {
 		inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
+/* 달을 연이보다 크게 깔아 뒤 원반으로 쓴다(z-1) — 보름달 앞에 선 상점 주인 연이 */
 .moon-shop-visual-moon {
-	position: relative;
-	z-index: 2;
-	width: 66px;
-	height: 66px;
+	position: absolute;
+	z-index: 1;
+	width: 88px;
+	height: 88px;
+	opacity: 0.92;
 	filter: drop-shadow(0 0 18px rgba(200, 206, 255, 0.46));
 	animation: moonVisualDrift 5.8s ease-in-out infinite;
+}
+
+.moon-shop-visual-pig {
+	position: relative;
+	z-index: 3;
+	width: 72px;
+	height: 72px;
+	object-fit: contain;
+	filter: drop-shadow(0 6px 14px rgba(3, 4, 18, 0.52)) drop-shadow(0 0 16px rgba(244, 200, 106, 0.34));
+	animation: moonVisualDrift 5.8s ease-in-out infinite;
+}
+
+@media (min-width: 640px) {
+	.moon-shop-visual {
+		width: 116px;
+		height: 116px;
+	}
+
+	.moon-shop-visual-moon {
+		width: 112px;
+		height: 112px;
+	}
+
+	.moon-shop-visual-pig {
+		width: 90px;
+		height: 90px;
+	}
 }
 
 .moon-shop-visual-ring {
@@ -1212,6 +1241,7 @@ body:has(main.moon-shop) [role="note"] {
 	.moon-shop-stars span,
 	.moon-phase-stars span,
 	.moon-shop-visual-moon,
+	.moon-shop-visual-pig,
 	.moon-shop-visual-ring,
 	.moon-shop-visual-spark,
 	.moon-loading-line,
