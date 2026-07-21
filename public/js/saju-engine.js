@@ -25255,7 +25255,10 @@ function renderSummary(p,johu,natal){
   var monthCommandBundle=_buildMonthCommandFromEngine(p,natal,pw);
   var monthCommand=monthCommandBundle&&monthCommandBundle.monthCommand?monthCommandBundle.monthCommand:null;
   var monthReading=monthCommandBundle&&monthCommandBundle.reading?monthCommandBundle.reading:null;
-  var _isNeoSaju=(typeof NEO_MODE!=='undefined'&&NEO_MODE)||document.body.classList.contains('neo-mode');
+  /* body.neo-mode는 지연 로드되는 share.js가 붙이므로, 부트 시 동기 적용되는 html.neo-mode도 함께 본다 */
+  var _isNeoSaju=(typeof NEO_MODE!=='undefined'&&NEO_MODE)
+    ||(document.documentElement&&document.documentElement.classList.contains('neo-mode'))
+    ||document.body.classList.contains('neo-mode');
 
   /* ─── 섹션 빌더 헬퍼 ─── */
   var _bxCtr=0;
