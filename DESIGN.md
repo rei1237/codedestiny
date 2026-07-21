@@ -39,6 +39,16 @@ typography:
     fontFamily: "var(--font-body)"
     fontSize: "0.78rem"
     fontWeight: 700
+  brand-serif:
+    fontFamily: "'Cinzel', 'Cinzel Decorative', 'Cormorant Garamond', 'Nanum Myeongjo', 'Gowun Batang', 'KoPub Batang', 'Noto Serif KR', 'Noto Serif JP', Georgia, 'Times New Roman', serif"
+  brand-tech:
+    fontFamily: "'Orbitron', 'Space Grotesk', 'Share Tech Mono', 'NeoDunggeunmo', 'Courier New', monospace"
+  brand-korean:
+    fontFamily: "'Pretendard Variable', 'SUIT', 'MaruBuri', 'Gowun Dodum', 'Noto Sans KR', Arial, sans-serif"
+  brand-korean-next:
+    fontFamily: "'noto_sans_kr', 'noto_serif_kr', sans-serif"
+  brand-feature:
+    fontFamily: "'CodeDestinyDecorative', 'CodeDestinyPlayful', 'CodeDestinyNumerologyDisplay', 'CodeDestinyNumerologyPremium', 'Impact', 'Apple Color Emoji', sans-serif"
 rounded:
   sm: "8px"
   md: "16px"
@@ -114,6 +124,25 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 ### Named Rules
 **The Two Covers Rule.** 배경만 바꾸고 텍스트 색을 조정하지 않는 반쪽 전환은 금지. `cd-*` 토큰 세트는 항상 bg/surface/text/accent/gold를 통째로 같이 교체한다.
 **The One Accent Rule.** 각 모드는 강조색을 하나만 쓴다(연이=Rose Crimson, 네오=Twilight Violet). 골드는 보조 포인트로만.
+
+**The Hue-Stays Rule.** 대비를 고치더라도 **색상 계열(hue)은 바꾸지 않는다.** 명도(lightness)와 채도만 조정한다. 연이는 핑크/로즈 계열, 네오는 퍼플/바이올렛 계열을 벗어나면 안 되고, 음악실 아티스트 테마도 각자의 계열을 유지한다. "대비가 낮다 → 회색/검정으로 바꾼다"는 브랜드를 지우는 오답이며, 정답은 같은 계열에서 더 어둡거나 밝은 톤을 고르는 것이다.
+
+**The Veil Rule.** 반투명 오버레이(`rgba(...)` 알파 1 미만, 글로우·베일·글래스 표면)는 팔레트 색이 아니라 **깊이 표현 기법**이다. 브랜드 색 목록과 대조해 "미등록 색"으로 취급하지 않는다. 다만 그 위에 얹히는 **텍스트의 실효 대비는 합성 결과 기준으로** 판단한다.
+
+### 대비·가시성 기준 (데스크탑 기준선)
+
+일반적인 접근성 표준(WCAG 2.1 AA)을 데스크탑 뷰포트 기준으로 적용한다.
+
+| 대상 | 최소 대비 |
+|---|---|
+| 본문 텍스트 (16px 미만 또는 일반 굵기) | **4.5:1** |
+| 큰 텍스트 (18.66px+ bold 또는 24px+) | **3:1** |
+| UI 컴포넌트 경계·아이콘·포커스 링 | **3:1** |
+| 장식 요소(글로우, 별, 파티클, 배경 패턴) | 기준 없음 — 정보를 담지 않으므로 제외 |
+
+- **보조 텍스트도 예외가 아니다**: `--cd-text-muted` 계열도 4.5:1을 지킨다. "muted라서 흐려도 된다"는 안 된다.
+- **비활성(disabled) 요소는 예외**지만, 결제 수단처럼 상태가 바뀌는 요소는 비활성 사유를 텍스트로도 알린다.
+- **수정 방향**: 대비 미달 시 텍스트 색만 바꾸지 말고 **표면과 텍스트를 한 세트로** 조정한다(Two Covers Rule). 계열은 유지한다(Hue-Stays Rule).
 
 ## 3. Typography
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-09T00:00:00.000Z",
+  "generatedAt": "2026-07-22T00:00:00.000Z",
   "title": "Design System: Code Destiny",
   "extensions": {
     "colorMeta": {
@@ -83,7 +83,10 @@
       { "name": "The Two Covers Rule", "body": "배경만 바꾸고 텍스트 색을 조정하지 않는 반쪽 전환은 금지. cd-* 토큰 세트는 항상 bg/surface/text/accent/gold를 통째로 같이 교체한다.", "section": "colors" },
       { "name": "The One Accent Rule", "body": "각 모드는 강조색을 하나만 쓴다(연이=Rose Crimson, 네오=Twilight Violet). 골드는 보조 포인트로만.", "section": "colors" },
       { "name": "The Quiet Body Rule", "body": "본문/Body는 항상 시스템 한글 폰트 스택을 우선 로드하고, 브랜드 서체는 헤딩과 상담 결과 프로즈에만 국한한다.", "section": "typography" },
-      { "name": "The Glow-Not-Shadow Rule", "body": "회색 드롭섀도 대신 브랜드 색 글로우로 깊이를 표현한다. 평상시는 플랫, 상태 변화에서만 글로우가 등장한다.", "section": "elevation" }
+      { "name": "The Glow-Not-Shadow Rule", "body": "회색 드롭섀도 대신 브랜드 색 글로우로 깊이를 표현한다. 평상시는 플랫, 상태 변화에서만 글로우가 등장한다.", "section": "elevation" },
+      { "name": "The Hue-Stays Rule", "body": "대비를 고치더라도 색상 계열(hue)은 바꾸지 않는다. 명도와 채도만 조정한다. 연이=핑크/로즈, 네오=퍼플/바이올렛, 음악실 아티스트 테마는 각자의 계열을 유지한다. 대비가 낮다고 회색·검정으로 바꾸는 것은 브랜드를 지우는 오답이다.", "section": "colors" },
+      { "name": "The Veil Rule", "body": "반투명 오버레이(알파 1 미만의 글로우·베일·글래스 표면)는 팔레트 색이 아니라 깊이 표현 기법이다. 미등록 색으로 취급하지 않는다. 다만 그 위 텍스트의 실효 대비는 합성 결과 기준으로 판단한다.", "section": "colors" },
+      { "name": "The Desktop Contrast Baseline", "body": "데스크탑 뷰포트 기준 WCAG 2.1 AA를 적용한다 — 본문 4.5:1, 큰 텍스트(18.66px+ bold / 24px+) 3:1, UI 경계·아이콘·포커스 링 3:1. muted 보조 텍스트도 4.5:1을 지킨다. 글로우·별·파티클 등 정보를 담지 않는 장식은 제외. 미달 시 텍스트 색만 바꾸지 말고 표면과 텍스트를 한 세트로 조정한다.", "section": "colors" }
     ],
     "dos": [
       "Do 연이/네오 전환 시 bg·surface·text·accent·gold를 한 세트로 같이 바꾼다",

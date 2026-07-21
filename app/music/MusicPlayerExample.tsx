@@ -42,6 +42,9 @@ type PlaylistThemeMode = "all" | ArtistKey;
 type PlayerStyle = CSSProperties & {
   "--asset-ambient-image"?: string;
 };
+type DockProgressStyle = CSSProperties & {
+  "--cd-dock-progress"?: number;
+};
 type AlbumImageMode = "default" | "human";
 
 type HumanModeCoverMap = {
@@ -762,7 +765,7 @@ function StickyMoonPlayer({
         </button>
       </span>
       <span className={styles.nowPlayingDockProgress} aria-hidden>
-        <span style={{ width: `${progressPercent}%` }} />
+        <span style={{ "--cd-dock-progress": progressPercent / 100 } as DockProgressStyle} />
       </span>
     </aside>
   );
