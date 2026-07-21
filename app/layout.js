@@ -215,14 +215,23 @@ export default function RootLayout({ children }) {
             app/error.tsx 의 '경로당 1회 새로고침'은 구 HTML 이 삭제된 청크를 가리키는 경우용이라
             이 케이스를 못 고친다. 그래서 계층을 달리해 로더 자체에서 끊는다.
 
+            경로가 둘이라 장치도 둘이다(둘 다 필요 — 서로 대체 불가):
+            (1) 클라이언트 사이드 이동: 청크를 __webpack_require__.l 이 동적으로 받는다 → 로더를 감싼다.
+            (2) 직접 진입·새로고침: 청크가 문서에 <script> 로 박혀 온다 → 로더를 타지 않는다.
+                게다가 .l 은 같은 src 의 기존 <script> 를 재사용하는데, 그 태그는 이미 error 를
+                끝낸 뒤라 onerror/onload 가 다시 안 뛰어 약속이 영영 매달린다(에러조차 안 남).
+                그래서 캡처 단계 error 리스너로 죽은 태그를 우회 URL 로 다시 꽂는다.
+                되받은 스크립트가 청크를 등록하면 런타임이 대기 콜백을 풀어 하이드레이션이 이어진다.
+
             self.webpackChunk_N_E 항목의 세 번째 요소는 런타임이 __webpack_require__ 로 호출한다.
             런타임 전/후 어느 시점에 push 해도 처리되므로 순서에 의존하지 않는다.
             재시도는 원본 loader 를 직접 부르므로 래퍼를 다시 타지 않는다(= 무한 루프 불가).
+            두 장치는 URL 에 cdcb= 가 이미 있으면 손대지 않아 서로를 되풀지 않는다.
             ⚠️ 반드시 순수 ES5 문자열 — 과거 인라인 스크립트에 TS 표기가 섞여 SyntaxError 로
             로그인·결제가 통째로 죽은 적이 있다. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"){if(!busted[url])busted[url]=url+(url.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now();orig(busted[url],done,undefined,chunkId);return;}done(ev);},key,chunkId);};}catch(e){}}]);}catch(e){}})();",
+            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t||t.nodeName!==\"SCRIPT\")return;var src=t.src||\"\";if(src.indexOf(\"/_next/static/\")<0||src.indexOf(\"cdcb=\")>-1||hit[src])return;hit[src]=1;var s=document.createElement(\"script\");s.src=bust(src);s.async=t.async;if(t.crossOrigin)s.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(s)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
           }}
         />
       </head>
