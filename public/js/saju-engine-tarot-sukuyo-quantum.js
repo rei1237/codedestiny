@@ -10123,7 +10123,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       <textarea data-sy-ai-question maxlength="1000" placeholder="예: 요즘 진로를 어떻게 잡아야 할지 고민이에요." style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
       <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
         <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
-        <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
+        <span style="font-size:0.72rem;color:#e9d5ff;">1회 10,000원</span>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
         <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;">10,000원 AI 상담 받기</button>
@@ -14638,21 +14638,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     };
   }
 
-  function syFetchCoinBalance() {
-    return syPromptRequestJson('/api/billing/balance', { method: 'GET' }).then(function(result) {
-      if (!result || !result.ok) return null;
-      var payload = syPromptPayloadData(result.payload);
-      if (!payload || typeof payload !== 'object') return null;
-      var rawPoints = payload.legacyCoinBalance;
-      if (!Number.isFinite(Number(rawPoints))) rawPoints = payload.balance;
-      if (!Number.isFinite(Number(rawPoints))) rawPoints = payload.user && payload.user.points;
-      var points = Number(rawPoints);
-      return Number.isFinite(points) ? points : null;
-    }).catch(function() {
-      return null;
-    });
-  }
-
   function syRequestSukuyoPromptByQuestion(question, options) {
     var opts = options && typeof options === 'object' ? options : {};
     var basicResult = syGetPromptBasicResult();
@@ -14737,7 +14722,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     var opts = options && typeof options === 'object' ? options : {};
     var questionEl = rootEl.querySelector('[data-sy-ai-question]');
     var countEl = rootEl.querySelector('[data-sy-ai-count]');
-    var balanceEl = rootEl.querySelector('[data-sy-ai-balance]');
     var generateBtn = rootEl.querySelector('[data-sy-ai-generate]');
     var regenerateBtn = rootEl.querySelector('[data-sy-ai-regenerate]');
     var copyBtn = rootEl.querySelector('[data-sy-ai-copy]');
@@ -14786,21 +14770,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       if (countEl) countEl.textContent = n + ' / 1000';
     }
 
-    function updateBalanceText() {
-      if (!balanceEl) return;
-      if (isFreePrompt) {
-        balanceEl.textContent = '무료 생성입니다.';
-        return;
-      }
-      syFetchCoinBalance().then(function(points) {
-        if (points == null) {
-          balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
-          return;
-        }
-        balanceEl.textContent = '현재 원화 가치: ' + (points * 100).toLocaleString('ko-KR') + '원';
-      });
-    }
-
     function onGenerate() {
       if (isLoading) return;
 
@@ -14841,12 +14810,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           regenerateBtn.style.display = 'inline-flex';
 
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-          var balanceAfter = Number(payload.balanceAfter);
-          if (balanceEl && isFreePrompt) {
-            balanceEl.textContent = '무료 상담입니다';
-          } else if (balanceEl && Number.isFinite(balanceAfter)) {
-            balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
-          }
 
           if (payload.compatibilityUsed) {
             setStatus((chargedCoins > 0 ? (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제 확인 완료. ' : (isFreePrompt ? '무료로 ' : '')) + '궁합 데이터까지 반영해 상담 답변을 완성했습니다.', 'success');
@@ -14871,7 +14834,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         setStatus(message, 'error');
       }).finally(function() {
         setLoading(false);
-        updateBalanceText();
       });
     }
 
@@ -14905,7 +14867,6 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     });
 
     updateCount();
-    updateBalanceText();
     setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
@@ -15893,7 +15854,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 <textarea data-sy-ai-question maxlength="1000" placeholder="${syCanonicalEsc(_sajuQuantumText("sq_14399_attr_placeholder"))}" style="width:100%;min-height:112px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(8,13,30,0.76);color:#fff;padding:12px;font-size:0.8rem;line-height:1.64;resize:vertical;box-sizing:border-box;"></textarea>
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
                   <span data-sy-ai-count style="font-size:0.72rem;color:#ddd6fe;">0 / 1000</span>
-                  <span data-sy-ai-balance style="font-size:0.72rem;color:#e9d5ff;">로그인 시 잔액이 표시됩니다.</span>
+                  <span style="font-size:0.72rem;color:#e9d5ff;">1회 10,000원</span>
                 </div>
                 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px;">
                   <button data-sy-ai-generate type="button" style="background:rgba(251,191,36,0.16);color:#fef3c7;border:1px solid rgba(251,191,36,0.44);padding:8px 12px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:none;">10,000원 AI 상담 받기</button>

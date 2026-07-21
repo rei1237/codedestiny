@@ -20193,7 +20193,7 @@ function renderZiwei(p, natal, targetId) {
       + '  <textarea id="zwDeepAiPromptQuestion" maxlength="1000" placeholder="' + _sajuEngineText("se_17711_attr_placeholder") + '" style="width:100%;min-height:122px;border-radius:12px;border:1px solid rgba(196,181,253,0.48);background:rgba(10,15,30,0.72);color:#f5f3ff;padding:12px;font-size:0.8rem;line-height:1.65;resize:vertical;box-sizing:border-box;"></textarea>'
       + '  <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;font-size:0.74rem;color:#ddd6fe">'
       + '    <span id="zwDeepAiPromptCount">0 / 1000</span>'
-      + '    <span id="zwDeepAiPromptBalance">로그인 시 잔액이 표시됩니다.</span>'
+      + '    <span>1회 10,000원</span>'
       + '  </div>'
       + '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">'
       + '    <button id="zwDeepAiPromptGenerateBtn" type="button" style="background:linear-gradient(135deg,#f59e0b,#fbbf24,#7dd3fc);color:#172554;border:1px solid rgba(251,191,36,0.76);padding:9px 13px;border-radius:10px;font-size:0.8rem;font-weight:900;cursor:pointer;box-shadow:0 10px 22px rgba(251,191,36,0.28);">10,000원으로 AI 상담 받기</button>'
@@ -20217,7 +20217,6 @@ function renderZiwei(p, natal, targetId) {
     var chartResult = _zwBuildPromptChartResult(pd);
     var questionEl = panel.querySelector('#zwDeepAiPromptQuestion');
     var countEl = panel.querySelector('#zwDeepAiPromptCount');
-    var balanceEl = panel.querySelector('#zwDeepAiPromptBalance');
     var statusEl = panel.querySelector('#zwDeepAiPromptStatus');
     var outputEl = panel.querySelector('#zwDeepAiPromptText');
     var answerEl = panel.querySelector('#zwDeepAiAnswer');
@@ -20265,30 +20264,6 @@ function renderZiwei(p, natal, targetId) {
         if (token) headers.Authorization = 'Bearer ' + token;
       } catch (_) {}
       return headers;
-    }
-
-    function updateBalance() {
-      if (!balanceEl) return Promise.resolve();
-      return fetch('/api/fortune/pig-coin/balance', {
-        method: 'GET',
-        credentials: 'include',
-        headers: buildHeaders(),
-        cache: 'no-store'
-      }).then(function(res) {
-        if (!res.ok) {
-          balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
-          return null;
-        }
-        return res.json().catch(function() { return null; });
-      }).then(function(payload) {
-        if (!payload) return;
-        var points = Number((payload.user && payload.user.points) || payload.balance);
-        if (Number.isFinite(points)) {
-          balanceEl.textContent = '현재 원화 가치: ' + (points * 100).toLocaleString('ko-KR') + '원';
-        }
-      }).catch(function() {
-        balanceEl.textContent = '로그인 시 잔액이 표시됩니다.';
-      });
     }
 
     function handleGenerate(options) {
@@ -20378,10 +20353,6 @@ function renderZiwei(p, natal, targetId) {
           }
           regenerateBtn.style.display = 'inline-flex';
           var chargedCoins = Math.max(0, Number(payload.chargedCoins || 0));
-          var balanceAfter = Number(payload.balanceAfter);
-          if (balanceEl && Number.isFinite(balanceAfter)) {
-            balanceEl.textContent = '현재 원화 가치: ' + (balanceAfter * 100).toLocaleString('ko-KR') + '원';
-          }
           setStatus(
             chargedCoins > 0
               ? ('AI 상담이 완성되었습니다. ' + (chargedCoins * 100).toLocaleString('ko-KR') + '원 결제가 확인되었습니다.')
@@ -20412,7 +20383,6 @@ function renderZiwei(p, natal, targetId) {
         setStatus('네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.', 'error');
       }).finally(function() {
         setLoading(false);
-        updateBalance();
       });
     }
 
@@ -20440,7 +20410,6 @@ function renderZiwei(p, natal, targetId) {
     });
 
     updateCount();
-    updateBalance();
     setStatus('질문 입력 후 버튼을 누르면 10,000원 결제 확인 후 상담 답변을 생성합니다.', 'info');
   }
 
