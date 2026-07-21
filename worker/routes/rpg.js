@@ -9,7 +9,7 @@ import {
   UserRpgProgress,
   UserRpgRewardLog,
 } from "../lib/models.js";
-import { requireAuth } from "../lib/auth.js";
+import { peekAccessTokenUserId, requireAuth } from "../lib/auth.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 
@@ -84,6 +84,57 @@ const AWARD_RULES = {
   paid: { exp: 30, dailyLimit: 3, questType: "paid_feature_view" },
 };
 const AWARD_LOCAL_ADOPT_CAP = 5000;
+
+/* 메인 홈은 이 사이트에서 트래픽이 가장 높은 화면이라, 카드가 쓰지도 않는 값을 곁들여 읽으면
+   과거에 이 기능을 로컬 전용으로 되돌리게 만든 것과 같은 종류의 부하가 된다.
+   그래서 /progress는 진행도 1건만 읽고, 그 위에 몇 초짜리 캐시를 덮어 버스트를 collapse한다.
+   (billing.js의 billingBalanceCache와 동일 패턴 — globalThis 공유, 정상 응답만 저장.) */
+const RPG_PROGRESS_CACHE_TTL_MS = 5000;
+const RPG_PROGRESS_CACHE_MAX_ENTRIES = 2500;
+const rpgProgressCache = globalThis.__rpgProgressCache
+  || (globalThis.__rpgProgressCache = {
+    entries: new Map(),
+    lastPruneAt: 0,
+  });
+
+function invalidateRpgProgressCacheForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return 0;
+  return rpgProgressCache.entries.delete(uid) ? 1 : 0;
+}
+
+function readRpgProgressFromCache(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return null;
+  const entry = rpgProgressCache.entries.get(uid);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    rpgProgressCache.entries.delete(uid);
+    return null;
+  }
+  return entry.snapshot || null;
+}
+
+function writeRpgProgressToCache(userId, snapshot) {
+  const uid = String(userId || "").trim();
+  if (!uid || !snapshot) return snapshot;
+  const now = Date.now();
+  if (rpgProgressCache.lastPruneAt + 2000 < now) {
+    rpgProgressCache.lastPruneAt = now;
+    for (const [key, entry] of rpgProgressCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) rpgProgressCache.entries.delete(key);
+    }
+  }
+  if (rpgProgressCache.entries.size > RPG_PROGRESS_CACHE_MAX_ENTRIES) {
+    const earliestKey = rpgProgressCache.entries.keys().next().value;
+    if (earliestKey) rpgProgressCache.entries.delete(earliestKey);
+  }
+  rpgProgressCache.entries.set(uid, {
+    snapshot,
+    expiresAt: now + Math.max(1000, Math.floor(RPG_PROGRESS_CACHE_TTL_MS)),
+  });
+  return snapshot;
+}
 
 const ELEMENT_LABELS = {
   wood: "목",
@@ -1174,6 +1225,41 @@ async function completeDailyQuest(request, env) {
   }
 }
 
+/* 메인 화면 프로필 카드가 읽는 유일한 경로. 카드가 실제로 쓰는 세 값만 돌려준다.
+   의도적으로 하지 않는 것들 — 이 셋이 /status를 홈에 얹기 부담스럽게 만들던 비용이다:
+     · User/ProfileCard 조회 안 함 (인증은 JWT 검증만, Mongo 0회)
+     · buildSajuContext 안 부름 (lunar-javascript 변환은 CPU를 크게 먹는다)
+     · UserDailyQuestLog 조회 안 함 (퀘스트는 클라이언트가 로컬에서 만든다)
+   문서가 없으면 만들지 않고 0값을 준다. 읽기 요청이 쓰기를 유발하면 안 된다. */
+async function getRpgProgressLite(request, env) {
+  const userId = await peekAccessTokenUserId(request, env).catch(() => "");
+  if (!userId) {
+    return json({ ok: false, code: "UNAUTHORIZED", message: "로그인이 필요합니다." }, { status: 401 });
+  }
+
+  const cached = readRpgProgressFromCache(userId);
+  if (cached) {
+    return json({ ok: true, cached: true, progress: cached });
+  }
+
+  try {
+    await connectDb(env);
+    const doc = await withMongoRetry(env, () => UserRpgProgress.findOne({
+      userId,
+      profileId: ACCOUNT_PROFILE_SCOPE,
+    }).lean());
+
+    const progress = buildProgressResponse(doc || null);
+    writeRpgProgressToCache(userId, progress);
+    return json({ ok: true, cached: false, progress });
+  } catch (error) {
+    /* 일시적 DB 장애를 500으로 터뜨리지 않는다. 클라이언트는 503을 보면 조용히
+       로컬 값을 그대로 쓰고, 카드에는 아무 오류도 보이지 않는다. */
+    console.warn("[RPG][ProgressDegraded]", { message: String(error?.message || error || "") });
+    return json({ ok: false, degraded: true, message: "성장 기록을 잠시 불러오지 못했습니다." }, { status: 503 });
+  }
+}
+
 /* 메인 화면 프로필 카드의 EXP 적립 창구.
    출석·습관 퀘스트·유료 열람 보너스가 모두 "종류 + 키로 하루 N회까지 멱등 지급"이라 한 곳에서 받는다.
    중복 방지는 UserDailyQuestLog의 {userId, profileId, questDateKst, questId} 유니크 인덱스가 최종 보증한다. */
@@ -1273,6 +1359,7 @@ async function awardRpgExp(request, env) {
     userId: auth.userId,
     profileId: ACCOUNT_PROFILE_SCOPE,
   }).lean());
+  invalidateRpgProgressCacheForUser(auth.userId);
 
   return json({
     ok: true,
@@ -1344,6 +1431,8 @@ async function adoptLocalRpgProgress(request, env) {
     },
   ));
 
+  invalidateRpgProgressCacheForUser(auth.userId);
+
   return json({
     ok: true,
     adopted: true,
@@ -1371,6 +1460,10 @@ export async function handleRpgRoutes(request, env) {
 
     if (method === "POST" && (path === "" || path === "/" || path === "/complete" || path === "/daily/complete")) {
       return await completeDailyQuest(request, env);
+    }
+
+    if (method === "GET" && path === "/progress") {
+      return await getRpgProgressLite(request, env);
     }
 
     if (method === "POST" && path === "/award") {

@@ -183,4 +183,40 @@ for (const [level, key] of [
 }
 console.log("[12] 마일스톤 정의 클라↔서버 일치 OK");
 
+// [13] 메인 홈에 얹히는 서버 왕복이 가벼운가.
+// 홈은 트래픽이 가장 높은 화면이라, 여기서 무겁게 읽으면 과거에 이 기능을 로컬 전용으로
+// 되돌리게 만든 것과 같은 종류의 Mongo 부하가 된다. 그래서 계약을 코드로 고정한다.
+const liteStart = workerSource.indexOf("async function getRpgProgressLite");
+assert.ok(liteStart > 0, "경량 진행도 엔드포인트(getRpgProgressLite)가 없습니다.");
+const liteEnd = workerSource.indexOf("\n}", liteStart);
+const liteBody = workerSource.slice(liteStart, liteEnd);
+
+for (const forbidden of [
+  "User.findById",          // 인증은 JWT 검증만 — 사용자 문서를 읽지 않는다
+  "ProfileCard.find",       // 카드 조회 불필요
+  "buildSajuContext",       // lunar-javascript 변환은 CPU를 크게 먹는다
+  "buildQuestSet",          // 퀘스트는 클라이언트가 로컬에서 만든다
+  "UserDailyQuestLog",      // 오늘 로그 조회 불필요
+  "loadRpgProgress",        // 읽기 요청이 문서를 생성하면 안 된다
+  "requireAuth",            // DB 폴백 경로가 있는 인증은 쓰지 않는다
+]) {
+  assert.ok(!liteBody.includes(forbidden), `경량 엔드포인트가 무거운 경로를 부릅니다 -> ${forbidden}`);
+}
+assert.ok(liteBody.includes("peekAccessTokenUserId"), "경량 엔드포인트가 JWT 전용 인증을 쓰지 않습니다.");
+assert.ok(liteBody.includes("UserRpgProgress.findOne"), "경량 엔드포인트가 진행도를 읽지 않습니다.");
+assert.equal(
+  (liteBody.match(/\.findOne\(|\.find\(|\.create\(|\.updateOne\(/g) || []).length,
+  1,
+  "경량 엔드포인트의 DB 접근은 findOne 1회여야 합니다.",
+);
+assert.ok(workerSource.includes("readRpgProgressFromCache"), "진행도 서버 캐시가 없습니다.");
+assert.ok(workerSource.includes("invalidateRpgProgressCacheForUser"), "적립 후 캐시 무효화가 없습니다.");
+
+// 클라이언트도 무거운 /status 가 아니라 /progress 를 하루 1회만 불러야 한다
+assert.ok(source.includes("'/api/rpg/progress'"), "클라가 경량 엔드포인트를 쓰지 않습니다.");
+assert.ok(!source.includes("'/api/rpg/status'"), "클라가 아직 무거운 /status 를 부릅니다.");
+assert.ok(source.includes("lastSyncedDate"), "하루 1회 동기화 가드가 없습니다.");
+assert.ok(source.includes("requestIdleCallback"), "동기화가 첫 페인트 이후로 미뤄지지 않습니다.");
+console.log("[13] 홈 서버 왕복 경량 계약(1 read + 캐시 + 하루 1회) OK");
+
 console.log("\n모든 스모크 검사 통과.\n");
