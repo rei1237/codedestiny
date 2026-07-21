@@ -12422,16 +12422,18 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
         <span class="moon-preview-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
         <span class="moon-preview-card__meta" data-cd-trans data-key="home.startCards.sukuyoCta">무료 숙요점 보기</span>
       </a>
-      <a class="moon-preview-card moon-collection-nav__link" href="/today" aria-label="오늘의 운세 바로가기">
-        <span class="moon-preview-card__sigil" aria-hidden="true">☀</span>
-        <span class="moon-preview-card__name">오늘의 운세</span>
-        <span class="moon-preview-card__meta">하루 흐름 보기</span>
+      <!-- /today · /manse 는 도구 없는 SEO 랜딩이라 실제로 열리는 무료 기능으로 교체(v20260721).
+           관상은 홈 모달로만 구동되므로 data-action 위임 디스패치를 그대로 태운다. -->
+      <a class="moon-preview-card moon-collection-nav__link" href="/fortune/prompt-hub" aria-label="종합 운세 프롬프트 바로가기" data-link-marker="free-entry-swap-v20260721">
+        <span class="moon-preview-card__sigil moon-preview-card__sigil--prompt" aria-hidden="true">✍</span>
+        <span class="moon-preview-card__name">종합 운세 프롬프트</span>
+        <span class="moon-preview-card__meta">무료 · 11가지 도구</span>
       </a>
-      <a class="moon-preview-card moon-collection-nav__link" href="/manse" aria-label="만세력 바로가기">
-        <span class="moon-preview-card__sigil" aria-hidden="true">曆</span>
-        <span class="moon-preview-card__name">만세력</span>
-        <span class="moon-preview-card__meta">절기와 간지 조회</span>
-      </a>
+      <button type="button" class="moon-preview-card moon-collection-nav__link" data-action="openPhysiognomyApp" aria-label="AI 동물 관상 바로가기" data-link-marker="free-entry-swap-v20260721">
+        <span class="moon-preview-card__sigil moon-preview-card__sigil--physio" aria-hidden="true">🎭</span>
+        <span class="moon-preview-card__name">AI 동물 관상</span>
+        <span class="moon-preview-card__meta">무료 · 셀카 얼굴 분석</span>
+      </button>
       <a class="moon-preview-card moon-collection-nav__link" href="/nakshatra" aria-label="나크샤트라 바로가기">
         <span class="moon-preview-card__sigil" aria-hidden="true">✧</span>
         <span class="moon-preview-card__name">나크샤트라</span>
