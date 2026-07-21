@@ -4058,6 +4058,24 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
     font-weight:800!important;
     line-height:1.15!important;
   }
+  /* 접었을 때만 현재 값 요약을 대신 보여준다(무엇이 접혀 있는지 즉시 읽히게).
+     JS 가 값을 채우면서 data-has-summary 를 붙이므로 빈 줄이 남지 않는다. */
+  #destinyCardForm .cd-mobile-saju-detail-toggle__summary{
+    display:none!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    white-space:nowrap!important;
+    text-overflow:ellipsis!important;
+    font-size:.66rem!important;
+    font-weight:900!important;
+    line-height:1.15!important;
+  }
+  #destinyCardForm:not([data-mobile-saju-details-open="true"]) .cd-mobile-saju-detail-toggle[data-has-summary="1"] .cd-mobile-saju-detail-toggle__summary{
+    display:block!important;
+  }
+  #destinyCardForm:not([data-mobile-saju-details-open="true"]) .cd-mobile-saju-detail-toggle[data-has-summary="1"] .cd-mobile-saju-detail-toggle__sub{
+    display:none!important;
+  }
   #destinyCardForm .moon-time-grid{
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
@@ -7793,7 +7811,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   #mobileCoreCategories,
   #cdMobileMyPanel,
   #cdMobilePassPanel,
-  #cdMobileAllFeatures{position:relative!important;isolation:isolate!important;padding:15px!important;border-radius:24px!important;overflow:hidden!important}
+  #cdMobileAllFeatures{position:relative!important;isolation:isolate!important;padding:16px 15px 15px!important;border-radius:24px!important;overflow:hidden!important}
   #mobileCoreCategories::before,
   #cdMobileMyPanel::before,
   #cdMobilePassPanel::before,
@@ -7809,19 +7827,15 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   #mobileCoreCategories .cd-mobile-hub__section-title,
   #cdMobileMyPanel .cd-mobile-hub__section-title,
   #cdMobilePassPanel .cd-mobile-hub__section-title,
-  #cdMobileAllFeatures .cd-mobile-hub__all-details summary{display:inline-flex!important;align-items:center!important;gap:7px!important}
-  #mobileCoreCategories .cd-mobile-hub__section-title::before,
-  #cdMobileMyPanel .cd-mobile-hub__section-title::before,
-  #cdMobilePassPanel .cd-mobile-hub__section-title::before,
-  #cdMobileAllFeatures .cd-mobile-hub__all-details summary::before{content:""!important;width:10px!important;height:10px!important;min-width:10px!important;border-radius:999px!important;background:radial-gradient(circle at 50% 50%,#fff 0 18%,#f4bed1 19% 48%,#e8d5a3 49% 70%,transparent 71%)!important;box-shadow:9px 0 0 -3px rgba(244,190,209,.9),-9px 0 0 -3px rgba(244,190,209,.9),0 9px 0 -3px rgba(232,213,163,.82),0 -9px 0 -3px rgba(204,232,224,.82)!important}
+  #cdMobileAllFeatures .cd-mobile-hub__all-details summary{display:inline-flex!important;align-items:center!important}
+  /* 제목 앞 마커는 cd-mobile-premium-polish 블록의 액센트 바 한 곳에서만 그린다.
+     여기 있던 위성 점 오브(box-shadow ±9px)는 뒤 블록이 position/width 만 덮어쓰는 바람에
+     box-shadow 만 살아남아 제목 글자 위로 겹쳤다 → 근본 제거. */
   #mobileCoreCategories .cd-mobile-hub__category-card,
   #cdMobileMyPanel .cd-mobile-hub__link,
   #cdMobilePassPanel .cd-mobile-hub__pass-cta,
-  #cdMobileAllFeatures .cd-mobile-hub__link{position:relative!important;isolation:isolate!important;overflow:hidden!important}
-  #mobileCoreCategories .cd-mobile-hub__category-card::before,
-  #cdMobileMyPanel .cd-mobile-hub__link::before,
-  #cdMobilePassPanel .cd-mobile-hub__pass-cta::before,
-  #cdMobileAllFeatures .cd-mobile-hub__link::before{content:""!important;position:absolute!important;top:8px!important;right:9px!important;width:34px!important;height:34px!important;border-radius:999px!important;background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.96) 0 16%,rgba(255,220,234,.68) 17% 42%,rgba(232,213,163,.36) 43% 62%,transparent 63%)!important;opacity:.72!important;pointer-events:none!important;z-index:-1!important}
+  #cdMobileAllFeatures .cd-mobile-hub__link{position:relative!important}
+  /* 버튼 우상단 방사형 blob 제거 — 네오 대응 오버라이드가 없어 다크 버튼 위에 흰 얼룩으로 남았다. */
   #mobileCoreCategories .cd-mobile-hub__category-card strong,
   #mobileCoreCategories .cd-mobile-hub__category-card span,
   #cdMobileMyPanel .cd-mobile-hub__link,
@@ -7830,8 +7844,8 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   #mobileCoreCategories .cd-mobile-hub__category-card{min-height:86px!important;padding:14px 13px!important;align-content:end!important}
   #mobileCoreCategories .cd-mobile-hub__category-card strong{font-size:.98rem!important;line-height:1.25!important}
   #mobileCoreCategories .cd-mobile-hub__category-card span{font-size:.8rem!important;line-height:1.42!important}
-  #cdMobileMyPanel .cd-mobile-hub__state{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important}
-  #cdMobileMyPanel .cd-mobile-hub__link{min-height:50px!important;padding:9px 7px!important;border-radius:15px!important;font-size:.8rem!important;line-height:1.24!important;white-space:normal!important}
+  #cdMobileMyPanel .cd-mobile-hub__state{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important}
+  #cdMobileMyPanel .cd-mobile-hub__link{min-height:56px!important;padding:10px 9px!important;border-radius:15px!important;font-size:.78rem!important;line-height:1.32!important;white-space:normal!important;word-break:keep-all!important}
   #cdMobileMyPanel .cd-mobile-hub__recent-empty{display:block!important;margin:2px 0 0!important;font-size:.78rem!important;line-height:1.48!important;overflow:visible!important;-webkit-line-clamp:initial!important}
   #cdMobilePassPanel{gap:13px!important}
   #cdMobilePassPanel p{display:block!important;margin-top:6px!important;font-size:.8rem!important;line-height:1.48!important;overflow:visible!important;-webkit-line-clamp:initial!important}
@@ -7841,7 +7855,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   #cdMobileAllFeatures .cd-mobile-hub__all-details summary{width:100%!important;min-height:48px!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
   #cdMobileAllFeatures .cd-mobile-hub__all-summary{justify-content:space-between!important;padding:0!important}
   #cdMobileAllFeatures .cd-mobile-hub__all-summary-text{font-size:.96rem!important;font-weight:900!important}
-  #cdMobileAllFeatures .cd-mobile-hub__all-summary-icon{width:22px!important;height:22px!important}
+  #cdMobileAllFeatures .cd-mobile-hub__all-summary-icon{width:24px!important;height:24px!important;flex:0 0 auto!important;border-radius:999px!important;font-size:.7rem!important;line-height:1!important}
   #cdMobileAllFeatures .cd-mobile-hub__all-mascot{padding:12px 0!important;min-height:130px!important}
   #cdMobileAllFeatures .cd-mobile-hub__all-mascot-img{max-height:110px!important}
   #cdMobileAllFeatures .cd-mobile-hub__all-list{padding:7px 0 0!important;gap:10px!important}
@@ -7863,6 +7877,7 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   body:not(.neo-mode) #cdMobileAllFeatures .cd-mobile-hub__link{color:#4a2443!important;border:1px solid rgba(216,63,120,.16)!important;background:linear-gradient(145deg,rgba(255,255,255,.97),rgba(255,246,250,.82) 62%,rgba(255,251,239,.9))!important;box-shadow:0 9px 18px rgba(150,72,104,.08),inset 0 1px 0 rgba(255,255,255,.88)!important;text-shadow:none!important}
   body:not(.neo-mode) #cdMobilePassPanel .cd-mobile-hub__pass-cta{color:#4a2443!important;border:1px solid rgba(216,63,120,.16)!important;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(255,247,250,.86))!important;box-shadow:0 9px 18px rgba(150,72,104,.08),inset 0 1px 0 rgba(255,255,255,.86)!important;text-shadow:none!important}
   body:not(.neo-mode) #cdMobilePassPanel .cd-mobile-hub__pass-cta:first-child{color:#3c1830!important;background:linear-gradient(135deg,#fff8dc 0%,#ead089 58%,#f4bed1 100%)!important;border-color:rgba(74,36,67,.2)!important}
+  body:not(.neo-mode) #cdMobileAllFeatures .cd-mobile-hub__all-summary-icon{color:#8e6177!important;border:1px solid rgba(216,63,120,.18)!important;background:rgba(255,246,250,.9)!important}
   body:not(.neo-mode) #mobileCoreCategories .cd-mobile-hub__category-card strong{color:#3c1830!important}
   body:not(.neo-mode) #mobileCoreCategories .cd-mobile-hub__category-card span{color:#70445c!important}
   html.cd-mobile-runtime.mobile-safe-render body:not(.neo-mode) #cdMobileDestinyHub #mobileCoreCategories,
@@ -7924,6 +7939,9 @@ html:not(.neo-mode) .moon-story-entry__pig--yeon {
   body.neo-mode #cdMobileMyPanel .cd-mobile-hub__link,
   body.neo-mode #cdMobilePassPanel .cd-mobile-hub__pass-cta,
   body.neo-mode #cdMobileAllFeatures .cd-mobile-hub__link{color:#ecf0ff!important;border-color:rgba(196,181,253,.22)!important;background:linear-gradient(155deg,rgba(20,16,44,.78),rgba(11,18,42,.88))!important;box-shadow:0 9px 18px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.1)!important;text-shadow:0 1px 8px rgba(0,0,0,.45)!important}
+  /* 네오에서도 '내 이용권 확인'을 1차 CTA 로 세운다 — 위 규칙이 두 CTA 를 같은 다크로 덮어 위계가 사라졌다 */
+  body.neo-mode #cdMobilePassPanel .cd-mobile-hub__pass-cta:first-child{color:#0a0818!important;background:linear-gradient(135deg,#e8d5a3,#f7c94a)!important;border-color:rgba(232,213,163,.5)!important;box-shadow:0 10px 20px rgba(232,213,163,.16),inset 0 1px 0 rgba(255,255,255,.45)!important;text-shadow:none!important}
+  body.neo-mode #cdMobileAllFeatures .cd-mobile-hub__all-summary-icon{color:#c4b5fd!important;border:1px solid rgba(196,181,253,.26)!important;background:rgba(196,181,253,.09)!important}
   body.neo-mode #mobileCoreCategories .cd-mobile-hub__category-card span,
   body.neo-mode #cdMobilePassPanel p,
   body.neo-mode #cdMobileMyPanel .cd-mobile-hub__recent-empty{color:rgba(232,213,163,.9)!important}
@@ -8259,14 +8277,16 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     content:""!important;position:absolute!important;left:14px!important;right:14px!important;top:0!important;height:2px!important;
     background:linear-gradient(90deg,transparent,rgba(255,214,165,.9),rgba(255,143,171,.7),transparent)!important;pointer-events:none!important;
   }
-  /* 연이: 섹션 타이틀 앞 작은 꽃 악센트 바 */
-  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__section-title{
-    position:relative!important;padding-left:12px!important;
+  /* 연이: 섹션 타이틀 앞 작은 꽃 악센트 바 (제목 마커의 유일한 출처) */
+  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__section-title,
+  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__all-summary-text{
+    position:relative!important;padding-left:11px!important;
   }
-  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__section-title::before{
+  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__section-title::before,
+  body:not(.neo-mode) #inputPage #cdMobileDestinyHub .cd-mobile-hub__all-summary-text::before{
     content:""!important;position:absolute!important;left:0!important;top:50%!important;transform:translateY(-50%)!important;
-    width:4px!important;height:1em!important;border-radius:999px!important;
-    background:linear-gradient(180deg,#FF8FAB,#FFD6A5)!important;
+    width:3px!important;height:.92em!important;border-radius:999px!important;box-shadow:none!important;
+    background:linear-gradient(180deg,#f4bed1,#ead089)!important;
   }
   /* 연이: 1순위 CTA 프리미엄 글로우 강화 */
   body:not(.neo-mode) #inputPage #cdMobileDestinyHub :is(.cd-mobile-hub__primary a,.cd-mobile-hub__pass-cta:first-child){
@@ -8283,11 +8303,13 @@ body.neo-mode #cdMobileDestinyHub .cd-mobile-appbar__copy strong{letter-spacing:
     content:""!important;position:absolute!important;left:14px!important;right:14px!important;top:0!important;height:2px!important;
     background:linear-gradient(90deg,transparent,rgba(127,219,255,.85),rgba(167,139,250,.7),transparent)!important;pointer-events:none!important;
   }
-  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__section-title{position:relative!important;padding-left:12px!important;}
-  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__section-title::before{
+  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__section-title,
+  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__all-summary-text{position:relative!important;padding-left:11px!important;}
+  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__section-title::before,
+  body.neo-mode #cdMobileDestinyHub .cd-mobile-hub__all-summary-text::before{
     content:""!important;position:absolute!important;left:0!important;top:50%!important;transform:translateY(-50%)!important;
-    width:4px!important;height:1em!important;border-radius:999px!important;
-    background:linear-gradient(180deg,#7FDBFF,#A78BFA)!important;
+    width:3px!important;height:.92em!important;border-radius:999px!important;box-shadow:none!important;
+    background:linear-gradient(180deg,#c4b5fd,#e8d5a3)!important;
   }
 
   /* ── (E) 텍스트 잘림(클리핑) 방지 — 시니어 원칙: 어떤 텍스트도 잘리지 않게 전체 표시 ── */
@@ -9062,6 +9084,10 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
     grid-column:2!important;grid-row:2!important;
     font-size:.66rem!important;font-weight:700!important;
   }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__summary{
+    grid-column:2!important;grid-row:2!important;
+    font-size:.66rem!important;font-weight:900!important;
+  }
   html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle:active{
     transform:scale(.99)!important;
   }
@@ -9122,6 +9148,9 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
   html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__sub{
     color:rgba(206,186,247,.82)!important;
   }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__summary{
+    color:#e8d5a3!important;
+  }
   html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"][data-mobile-saju-details-open="true"] .cd-mobile-saju-detail-toggle{
     border-color:rgba(196,181,253,.5)!important;
     box-shadow:0 0 0 1px rgba(167,139,250,.2),0 10px 24px rgba(147,51,234,.18)!important;
@@ -9167,6 +9196,9 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
   }
   html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__sub{
     color:#8e6177!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__summary{
+    color:#b31955!important;
   }
   html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"][data-mobile-saju-details-open="true"] .cd-mobile-saju-detail-toggle{
     border-color:rgba(216,63,120,.4)!important;
@@ -12149,6 +12181,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
       <button type="button" class="cd-mobile-saju-detail-toggle" id="cdMobileSajuDetailToggle" aria-expanded="false" aria-controls="cdMobileSajuDetailPanel" data-mobile-saju-toggle>
         <span class="cd-mobile-saju-detail-toggle__main">출생 시간·장소 더 정확히 입력</span>
         <span class="cd-mobile-saju-detail-toggle__sub">모르면 그대로 시작해도 괜찮아요</span>
+        <span class="cd-mobile-saju-detail-toggle__summary" data-mobile-saju-summary aria-hidden="true"></span>
       </button>
 
       <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
@@ -12805,6 +12838,48 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
             return window.innerWidth <= 768;
           }
         }
+        function selectedOptionLabel(select){
+          if (!select) return '';
+          var opt = select.options && select.options[select.selectedIndex];
+          var label = opt ? String(opt.textContent || '').trim() : '';
+          if (!label || label.indexOf('...') >= 0 || label.indexOf('…') >= 0) return '';
+          return label;
+        }
+        function updateMobileSajuSummary(){
+          var toggle = document.getElementById('cdMobileSajuDetailToggle');
+          if (!toggle) return;
+          var node = toggle.querySelector('[data-mobile-saju-summary]');
+          if (!node) return;
+          var hour = document.getElementById('birthHour');
+          var minute = document.getElementById('birthMinute');
+          var country = document.getElementById('birthCountry');
+          var parts = [];
+          var hourValue = hour && hour.value !== '' ? parseInt(hour.value, 10) : NaN;
+          if (isFinite(hourValue)) {
+            var minuteValue = minute && minute.value !== '' ? parseInt(minute.value, 10) : 0;
+            if (!isFinite(minuteValue)) minuteValue = 0;
+            var timeLabel = ('0' + hourValue).slice(-2) + ':' + ('0' + minuteValue).slice(-2);
+            if (hour.getAttribute('data-cd-time-unknown') === '1') timeLabel += ' (시간 미상)';
+            parts.push(timeLabel);
+          } else {
+            parts.push('시간 미입력');
+          }
+          var place = selectedOptionLabel(country);
+          if (place) parts.push(place);
+          node.textContent = parts.join(' · ');
+          toggle.setAttribute('data-has-summary', '1');
+        }
+        // 출생지 목록은 비동기로 채워진다 — 채워지는 순간 한 번만 요약을 갱신한다.
+        (function watchBirthCountryOptions(){
+          var country = document.getElementById('birthCountry');
+          if (!country || typeof MutationObserver !== 'function') return;
+          var observer = new MutationObserver(function(){
+            if (country.options.length <= 1) return;
+            observer.disconnect();
+            updateMobileSajuSummary();
+          });
+          observer.observe(country, { childList:true });
+        })();
         function setMobileSajuDetails(open){
           var form = document.getElementById('destinyCardForm');
           var toggle = document.getElementById('cdMobileSajuDetailToggle');
@@ -12812,17 +12887,26 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           var next = !!open;
           form.setAttribute('data-mobile-saju-details-open', next ? 'true' : 'false');
           toggle.setAttribute('aria-expanded', next ? 'true' : 'false');
+          updateMobileSajuSummary();
           try { sessionStorage.setItem(mobileSajuDetailsKey, next ? '1' : '0'); } catch (_) {}
         }
         function initMobileSajuDetails(){
           var form = document.getElementById('destinyCardForm');
           var toggle = document.getElementById('cdMobileSajuDetailToggle');
           if (!form || !toggle) return;
-          var stored = '0';
-          try { stored = sessionStorage.getItem(mobileSajuDetailsKey) || '0'; } catch (_) {}
-          setMobileSajuDetails(isMobileSajuCompact() && stored === '1');
+          // 저장값이 없는 첫 방문은 펼친 상태로 시작한다 — 접혀 있으면 입력 가능하다는 사실 자체를 놓친다.
+          var stored = null;
+          try { stored = sessionStorage.getItem(mobileSajuDetailsKey); } catch (_) {}
+          setMobileSajuDetails(isMobileSajuCompact() && stored !== '0');
         }
         initMobileSajuDetails();
+        document.addEventListener('change', function(event){
+          var target = event.target instanceof Element ? event.target : null;
+          if (!target || !target.id) return;
+          if (target.id === 'birthHour' || target.id === 'birthMinute' || target.id === 'birthCountry') {
+            updateMobileSajuSummary();
+          }
+        }, { passive:true });
         window.addEventListener('resize', function(){
           window.clearTimeout(window.__cdMobileSajuDetailsResizeTimer);
           window.__cdMobileSajuDetailsResizeTimer = window.setTimeout(initMobileSajuDetails, 120);
