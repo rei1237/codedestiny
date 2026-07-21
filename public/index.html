@@ -8997,6 +8997,198 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 /* 이름과 이용권 알약이 붙어 보이던 간격(두 모드 공통) */
 .cd-user-card__pass-line{margin-top:7px}
 </style>
+<style id="cd-birth-time-intake-v20260721" data-marker="cd-birth-time-intake-v20260721">
+/* === 출생 시간 입력 · 양 테마 확정 (cd-birth-time-intake-v20260721) ===
+   [고친 것] 반쪽 오버라이드 3건 — 4681행 __main, 4689행 시간미상 버튼, 4695행 미리보기
+   summary 가 연이 잉크(--cd-bloom-ink)·흰 표면을 네오 스코프 없이 박아, 네오 다크 위에
+   어두운 자주 글씨(≈1.3:1)와 흰 배경+라벤더 글씨가 남았다. 표면·글자·테두리를 항상
+   한 세트로 뒤집는다(DESIGN.md / CLAUDE.md 반쪽 오버라이드 금지).
+   [올린 것] 개폐 어포던스(＋ 45° 회전)·시계 아이콘·커스텀 셰브론·12:00 배지·포커스링.
+   ※ 구조(그리드/전환)는 테마 공통 프리픽스, 색은 테마별 프리픽스로 나눠 5390~5411행
+     네오 블록(특이도 1,4,3)보다 한 클래스 높게 잡는다 — !important 싸움 대신 특이도로 이긴다.
+   ※ 모바일 폼(mobile-saju-compact-intake)에만 건다. 데스크톱 폼은 별도 규칙이라 건드리지 않는다. */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+
+  /* ── 공통 구조: 아이콘 · 텍스트 · 개폐 버튼 3열 ── */
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle{
+    grid-template-columns:30px minmax(0,1fr) 28px!important;
+    gap:2px 10px!important;
+    padding:10px 12px!important;
+    min-height:52px!important;
+    transition:border-color .2s ease,box-shadow .2s ease,background .2s ease,transform .12s ease!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle::before{
+    content:""!important;
+    grid-column:1!important;
+    grid-row:1 / span 2!important;
+    width:30px!important;
+    height:30px!important;
+    border-radius:999px!important;
+    background-repeat:no-repeat!important;
+    background-position:center!important;
+    background-size:17px 17px!important;
+  }
+  /* ＋ 는 열림 상태에서도 글리프를 바꾸지 않고 45° 돌려 × 로 읽히게 한다(문자 교체보다 조용하다) */
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle::after{
+    content:"＋"!important;
+    grid-column:3!important;
+    grid-row:1 / span 2!important;
+    font-size:.9rem!important;
+    transition:transform .24s cubic-bezier(.22,.61,.36,1)!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm[data-mobile-saju-details-open="true"] .cd-mobile-saju-detail-toggle::after{
+    content:"＋"!important;
+    transform:rotate(45deg)!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__main{
+    grid-column:2!important;grid-row:1!important;
+    font-size:.8rem!important;letter-spacing:-.01em!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__sub{
+    grid-column:2!important;grid-row:2!important;
+    font-size:.66rem!important;font-weight:700!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle:active{
+    transform:scale(.99)!important;
+  }
+
+  /* ── 공통 구조: select 네이티브 화살표 제거 후 셰브론 직접 그림 ── */
+  /* ※ body 를 하나 더 얹는 이유: 5400행이 background 단축으로 색을 박아 size/repeat/position 을
+     초기값으로 되돌린다(실측: 셰브론이 원본 크기로 타일링됨). 요소 하나로 특이도를 넘긴다. */
+  html.cd-mobile-runtime body section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] select.moon-input{
+    -webkit-appearance:none!important;appearance:none!important;
+    padding-right:32px!important;
+    background-repeat:no-repeat!important;
+    background-position:right 11px center!important;
+    background-size:12px 8px!important;
+  }
+  /* ── 공통 구조: 시간 미상 버튼을 '안내문'이 아니라 '누를 것'으로 읽히게 ── */
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown{
+    display:flex!important;align-items:center!important;gap:8px!important;
+    min-height:44px!important;padding:8px 11px!important;
+    text-align:left!important;
+    transition:border-color .2s ease,background .2s ease,transform .12s ease!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown::before{
+    content:"12:00";
+    flex:0 0 auto;
+    padding:3px 7px;
+    border-radius:999px;
+    font-size:.6rem;
+    font-weight:950;
+    letter-spacing:.02em;
+    font-variant-numeric:tabular-nums;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown:active{
+    transform:scale(.99)!important;
+  }
+  /* 펼침 순간을 부드럽게 — 지금은 display 전환이라 툭 튄다 */
+  html.cd-mobile-runtime section#destinyCardForm[data-mobile-saju-details-open="true"] [data-mobile-saju-detail]{
+    animation:cdSajuDetailReveal .26s cubic-bezier(.22,.61,.36,1) both;
+  }
+  @keyframes cdSajuDetailReveal{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+  /* ── 네오(달빛): 라벤더 + 샴페인골드 한 세트 ── */
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"]{
+    color-scheme:dark;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle{
+    background:linear-gradient(150deg,rgba(196,181,253,.11),rgba(232,213,163,.05))!important;
+    border:1px solid rgba(196,181,253,.26)!important;
+    color:#f4eeff!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle::before{
+    background-color:rgba(196,181,253,.12)!important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c4b5fd' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.2v5l3.2 1.9'/%3E%3C/svg%3E")!important;
+  }
+  /* ★ 근본 수정: 4681행이 네오에도 연이 잉크(#3c1830)를 박아 글씨가 사라지던 지점 */
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__main{
+    color:#f4eeff!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__sub{
+    color:rgba(206,186,247,.82)!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"][data-mobile-saju-details-open="true"] .cd-mobile-saju-detail-toggle{
+    border-color:rgba(196,181,253,.5)!important;
+    box-shadow:0 0 0 1px rgba(167,139,250,.2),0 10px 24px rgba(147,51,234,.18)!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] select.moon-input{
+    background-color:rgba(6,8,24,.6)!important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23c4b5fd' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.6 6 6.4l5-4.8'/%3E%3C/svg%3E")!important;
+  }
+  /* ★ 근본 수정: 4689행 흰 표면(rgba(255,255,255,.62))이 네오까지 새던 지점 */
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown{
+    background:rgba(196,181,253,.07)!important;
+    border:1px dashed rgba(196,181,253,.34)!important;
+    color:rgba(232,226,255,.88)!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown::before{
+    background:rgba(232,213,163,.16);
+    border:1px solid rgba(232,213,163,.34);
+    color:#e8d5a3;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview{
+    background:rgba(255,255,255,.05)!important;
+    border:1px solid rgba(196,181,253,.2)!important;
+  }
+  /* ★ 근본 수정: 4695행 summary 잉크가 네오에서 그대로 어둡던 지점 */
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview summary{
+    color:#e8d5a3!important;
+  }
+  html.cd-mobile-runtime body.neo-mode section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] :is(.cd-mobile-saju-detail-toggle,.moon-time-unknown,select.moon-input,input.moon-input):focus-visible{
+    outline:2px solid #c4b5fd!important;
+    outline-offset:2px!important;
+  }
+
+  /* ── 연이(꽃): 로즈 + 샴페인골드 한 세트 ── */
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"]{
+    color-scheme:light;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle::before{
+    background-color:rgba(216,63,120,.09)!important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d83f78' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='8.5'/%3E%3Cpath d='M12 7.2v5l3.2 1.9'/%3E%3C/svg%3E")!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__main{
+    color:#3c1830!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle__sub{
+    color:#8e6177!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"][data-mobile-saju-details-open="true"] .cd-mobile-saju-detail-toggle{
+    border-color:rgba(216,63,120,.4)!important;
+    box-shadow:0 10px 22px rgba(216,63,120,.16),inset 0 1px 0 rgba(255,255,255,.86)!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] select.moon-input{
+    background-color:rgba(255,255,255,.96)!important;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8' fill='none' stroke='%23b31955' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.6 6 6.4l5-4.8'/%3E%3C/svg%3E")!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown{
+    background:rgba(255,246,250,.92)!important;
+    border:1px dashed rgba(216,63,120,.3)!important;
+    color:#6a3659!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown::before{
+    background:rgba(234,208,137,.3);
+    border:1px solid rgba(216,63,120,.2);
+    color:#7a3f1c;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview{
+    background:rgba(255,255,255,.72)!important;
+    border:1px solid rgba(216,63,120,.16)!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview summary{
+    color:#3c1830!important;
+  }
+  html.cd-mobile-runtime body:not(.neo-mode) section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] :is(.cd-mobile-saju-detail-toggle,.moon-time-unknown,select.moon-input,input.moon-input):focus-visible{
+    outline:2px solid #b31955!important;
+    outline-offset:2px!important;
+  }
+}
+@media (prefers-reduced-motion: reduce){
+  html.cd-mobile-runtime section#destinyCardForm[data-mobile-saju-details-open="true"] [data-mobile-saju-detail]{animation:none!important}
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .cd-mobile-saju-detail-toggle::after{transition:none!important}
+}
+</style>
 <!-- ═══ /본문 스타일 통합 지점 ═══ -->
 
 <script data-marker="cd-boot-gate-release-v20260721">
