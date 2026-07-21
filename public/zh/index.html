@@ -9122,6 +9122,23 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
   html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown:active{
     transform:scale(.99)!important;
   }
+  /* ── 기본 펼침으로 늘어난 높이 상쇄: 정보는 그대로 두고 여백만 조인다 ──
+     터치 타겟 44px(시/분 select · 12:00 버튼)은 건드리지 않는다. */
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] [data-mobile-saju-detail]{
+    padding-top:7px!important;padding-bottom:7px!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] [data-mobile-saju-detail] > .form-label{
+    margin-bottom:4px!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-time-unknown{
+    margin-top:5px!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview{
+    margin-top:5px!important;
+  }
+  html.cd-mobile-runtime section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-correction-preview summary{
+    min-height:34px!important;
+  }
   /* 펼침 순간을 부드럽게 — 지금은 display 전환이라 툭 튄다 */
   html.cd-mobile-runtime section#destinyCardForm[data-mobile-saju-details-open="true"] [data-mobile-saju-detail]{
     animation:cdSajuDetailReveal .26s cubic-bezier(.22,.61,.36,1) both;
@@ -12895,9 +12912,17 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           var toggle = document.getElementById('cdMobileSajuDetailToggle');
           if (!form || !toggle) return;
           // 저장값이 없는 첫 방문은 펼친 상태로 시작한다 — 접혀 있으면 입력 가능하다는 사실 자체를 놓친다.
+          // 단 세로가 짧은 기기(SE 급)는 펼치면 제출 버튼이 화면 밖으로 나가므로 접힌 채 둔다.
           var stored = null;
           try { stored = sessionStorage.getItem(mobileSajuDetailsKey); } catch (_) {}
-          setMobileSajuDetails(isMobileSajuCompact() && stored !== '0');
+          var openByDefault = stored === '1' || (stored === null && window.innerHeight >= 780);
+          setMobileSajuDetails(isMobileSajuCompact() && openByDefault);
+          // 상세가 기본 펼침이 된 만큼 '시간 보정 미리보기'는 모바일에서 접어 제출 버튼을 화면 안에 남긴다.
+          // (값은 details 개폐와 무관하게 #timeCorrectionInfo 에 계속 기록된다)
+          if (isMobileSajuCompact() && !window.__cdCorrectionPreviewCollapsed) {
+            var preview = document.querySelector('#destinyCardForm .moon-correction-preview');
+            if (preview) { preview.open = false; window.__cdCorrectionPreviewCollapsed = true; }
+          }
         }
         initMobileSajuDetails();
         document.addEventListener('change', function(event){
