@@ -1852,7 +1852,6 @@
   function _cdShowCoinDeductNotice(cost, balance, reason) {
     try {
       var amount = Number(cost) || 0;
-      var remain = Number(balance);
       var detail = reason ? String(reason) : '유료 서비스';
       var root = document.getElementById('cd-coin-notice-root');
       if (!root) {
@@ -1885,8 +1884,7 @@
       item.style.transition = 'opacity 220ms ease, transform 220ms ease';
       item.style.pointerEvents = 'auto';
       item.innerHTML = '<strong style="display:block;font-size:12px;letter-spacing:.08em;color:#fde68a;">COIN NOTICE</strong>'
-        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>'
-        + '<span style="display:block;color:rgba(255,255,255,0.86);margin-top:2px;">남은 원화 가치: ' + (isFinite(remain) ? (remain * 100).toLocaleString('ko-KR') + '원' : '-') + '</span>';
+        + '<span>🪙 ' + detail + ' 이용으로 <strong>' + (amount * 100).toLocaleString('ko-KR') + '원</strong> 결제가 확인되었습니다.</span>';
 
       root.appendChild(item);
       requestAnimationFrame(function() {

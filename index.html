@@ -20754,8 +20754,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
     var refundedCoins = Number(payload.refundedCoins || payload.cost || payload.chargedCoins || 0);
 
     if (Number.isFinite(balance) && balance >= 0) {
-      userBalance = balance;
-      balanceHydratedFromServer = true;
+      // balance 는 payload.user.points(폐지된 레거시 코인)다 — 월정석 의미인 userBalance 에 넣으면
+      // 뱃지가 코인 수치로 잘못 찍힌다. 아래 __cdSetGoldenBalance 호출이 서버 재조회를 예약해 갱신한다.
       saveBalance();
       updateBadge();
       syncAuthUserPoints(balance);
@@ -26821,11 +26821,26 @@ function updateBadge() {
   if(typeof applySectionGates==='function')applySectionGates();
   scheduleInitialBillingSync();
 
+  // __cdSetGoldenBalance 의 인자는 '월정석 잔량'이다(monthlyStoneBalance·membershipCreditBalance·뱃지로 들어간다).
+  // 그런데 결제·환불 응답의 user.points(폐지된 레거시 코인)를 그대로 넘기는 호출부가 8개 파일 12곳이라
+  // 월정석 캐시가 코인 수치로 덮여, 결제창이 월정석 보유자에게 '잔량 부족'을 띄웠다(canUseMonthly 오판정).
+  // 그래서 출처를 밝힌 월정석 갱신만 값을 반영하고, 출처 없는 호출은 "잔량이 바뀌었다"는 신호로만 받아
+  // 값을 믿지 않고 서버 재조회로 자가치유한다. 새 월정석 갱신 지점을 만들면 이 목록에 출처를 추가할 것.
+  var MONTHLY_STONE_BALANCE_SOURCES = { 'auth-store-monthly-stone-balance': 1 };
+  var goldenBalanceRefreshTimer = 0;
+  function scheduleGoldenBalanceRefreshFromServer() {
+    if (goldenBalanceRefreshTimer) return;
+    goldenBalanceRefreshTimer = window.setTimeout(function () {
+      goldenBalanceRefreshTimer = 0;
+      try { void syncBalanceFromServer({ forceAuthProbe: true, reason: 'golden-balance-untrusted-write' }); } catch (_) {}
+    }, 400);
+  }
   window.__cdSetGoldenBalance = function (points, meta) {
     var next = Number(points);
     if (!Number.isFinite(next) || next < 0) return;
     var source = meta && typeof meta === 'object' ? String(meta.source || '').trim().toLowerCase() : '';
     if (source === 'auth-me' || source === 'auth-me-fallback') return;
+    if (!MONTHLY_STONE_BALANCE_SOURCES[source]) { scheduleGoldenBalanceRefreshFromServer(); return; }
     userBalance = next;
     monthlyStoneBalance = next;
     membershipCreditBalance = monthlyStoneBalance;
