@@ -9,6 +9,11 @@ let lastHealthyAt = 0;
 // 마지막으로 전역 풀 disconnect(resetMongooseConnection)를 실행한 시각. op-타임아웃 버스트가
 // 동시에 여러 번 disconnect해 아이솔레이트 공유 풀을 반복 절단(재연결 폭풍)하는 것을 쿨다운으로 막는다.
 let lastPoolResetAt = 0;
+// 지금 이 아이솔레이트에서 진행 중인 withMongoRetry 작업 수. 전역 disconnect는 공유 연결을 끊어
+// '아직 살아서 실행 중인' 동시 요청의 소켓까지 함께 절단하므로, 혼자일 때만 즉시 끊는다.
+let inFlightOps = 0;
+// 동시 요청 때문에 미뤄 둔 전역 disconnect가 있는지. 마지막 작업이 빠져나갈 때 한 번만 처리한다.
+let pendingPoolReset = false;
 
 function extractDbNameFromUri(uri) {
   try {
@@ -315,46 +320,75 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
   // op-타임아웃 메시지는 아래 withTimeout 던짐과 catch의 판별이 공유한다(문자열 드리프트 방지).
   const operationTimeoutMessage = "MongoDB operation timed out in Worker.";
 
+  const poolResetCooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
+
   let lastError = null;
-  for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
-    try {
-      return await withTimeout(
-        (async () => {
-          await connectDb(env);
-          return await operation();
-        })(),
-        attemptTimeoutMS,
-        operationTimeoutMessage,
-      );
-    } catch (error) {
-      lastError = error;
-      // 연결 레벨 실패(일시적 에러 또는 op-타임아웃)는 웜 커넥션이 죽었을 수 있으므로, 던지기 전에
-      // 웜 상태를 무효화해 다음 시도/다음 요청이 콜드 재연결로 자가복구하게 한다(일반 쿼리 에러엔
-      // 리셋하지 않는다 — 불필요한 재연결 폭풍 방지). op-타임아웃 메시지는 isTransientMongoError에
-      // 잡히지 않아 과거엔 리셋 없이 throw됐고, 죽은 웜 커넥션이 stateless Worker 아이솔레이트에 잔존해
-      // 그 아이솔레이트로 가는 모든 유료/인증 요청을 계속 11.5s hang→503/500으로 만들었다(지속성의 원인).
-      const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
-      const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
-      const willRetry = attempt < maxRetries && isTransientMongoError(error);
-      if (isConnectionLevelFailure) {
-        lastHealthyAt = 0;
-        connectPromise = null;
-        // 전역 disconnect는 아이솔레이트 공유 풀을 끊어 동시 요청까지 절단하므로(재연결 폭풍), 쿨다운을 둔다:
-        // op-타임아웃 버스트가 disconnect를 1회만 유발하게 해 동시 요청 연쇄 절단을 막는다. maxIdleTimeMS가
-        // 좀비를 근절하므로 이 disconnect 자체가 드물어지며, connectDb의 좀비-보존 정책과도 정합한다.
-        const poolResetCooldownMS = clampInt(getEnv(env, "MONGO_POOL_RESET_COOLDOWN_MS", "2000"), 2000, 0, 10000);
-        if (Date.now() - lastPoolResetAt >= poolResetCooldownMS) {
-          lastPoolResetAt = Date.now();
-          await resetMongooseConnection();
+  inFlightOps += 1;
+  try {
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        const result = await withTimeout(
+          (async () => {
+            await connectDb(env);
+            return await operation();
+          })(),
+          attemptTimeoutMS,
+          operationTimeoutMessage,
+        );
+        // 이 연결 위에서 실제로 작업이 성공했다 = 연결은 살아 있다. 다른 요청이 예약해 둔 전역
+        // disconnect가 있다면 취소한다 — 멀쩡한 연결을 끊어 다음 요청을 콜드 재연결로 몰지 않는다.
+        pendingPoolReset = false;
+        return result;
+      } catch (error) {
+        lastError = error;
+        // 연결 레벨 실패(일시적 에러 또는 op-타임아웃)는 웜 커넥션이 죽었을 수 있으므로, 던지기 전에
+        // 웜 상태를 무효화해 다음 시도/다음 요청이 콜드 재연결로 자가복구하게 한다(일반 쿼리 에러엔
+        // 리셋하지 않는다 — 불필요한 재연결 폭풍 방지). op-타임아웃 메시지는 isTransientMongoError에
+        // 잡히지 않아 과거엔 리셋 없이 throw됐고, 죽은 웜 커넥션이 stateless Worker 아이솔레이트에 잔존해
+        // 그 아이솔레이트로 가는 모든 유료/인증 요청을 계속 11.5s hang→503/500으로 만들었다(지속성의 원인).
+        const isOperationTimeout = String(error?.message || "") === operationTimeoutMessage;
+        const isConnectionLevelFailure = isOperationTimeout || isTransientMongoError(error);
+        const willRetry = attempt < maxRetries && isTransientMongoError(error);
+        if (isConnectionLevelFailure) {
+          lastHealthyAt = 0;
+          connectPromise = null;
+          // 전역 disconnect는 아이솔레이트 공유 풀을 끊어 동시 요청까지 절단하므로(재연결 폭풍), 쿨다운을 둔다:
+          // op-타임아웃 버스트가 disconnect를 1회만 유발하게 해 동시 요청 연쇄 절단을 막는다. maxIdleTimeMS가
+          // 좀비를 근절하므로 이 disconnect 자체가 드물어지며, connectDb의 좀비-보존 정책과도 정합한다.
+          if (Date.now() - lastPoolResetAt >= poolResetCooldownMS) {
+            // 🔴 나 말고도 진행 중인 작업이 있으면 지금 끊지 않는다. 전역 disconnect는 '아직 살아서
+            // 실행 중인' 동시 요청의 소켓까지 함께 잘라, 한 번의 블립을 동시 요청 전부의 실패로 번지게
+            // 한다(메인 진입 시 auth/me·balance·subscription이 한꺼번에 503 나던 근본 원인).
+            // connectDb의 ping 실패 경로가 readyState===1이면 disconnect를 거부하는 것과 같은 이유다 —
+            // 두 경로의 정책을 일치시킨다. 여기서는 예약만 하고, 마지막 작업이 빠져나갈 때 처리한다.
+            // 위의 lastHealthyAt/connectPromise 무효화는 그대로라 다음 요청은 어차피 재검증한다.
+            if (inFlightOps > 1) {
+              pendingPoolReset = true;
+            } else {
+              // 나 혼자다 = 지금 끊어도 아무도 안 다친다. 예약분이 있었다면 이걸로 갈음한다.
+              pendingPoolReset = false;
+              lastPoolResetAt = Date.now();
+              await resetMongooseConnection();
+            }
+          }
         }
+        // op-타임아웃은 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 → hung-detection 재유발
+        // 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되, 다음 요청이 깨끗한 연결로 복구된다.
+        if (!willRetry) throw error;
+        await sleep(baseDelayMS * (attempt + 1));
       }
-      // op-타임아웃은 재시도하지 않는다(인증 다중조회 라우트에서 11.5s×N 누적 → hung-detection 재유발
-      // 방지). 리셋만 하고 즉시 던져 이 요청은 빠르게 degrade시키되, 다음 요청이 깨끗한 연결로 복구된다.
-      if (!willRetry) throw error;
-      await sleep(baseDelayMS * (attempt + 1));
+    }
+    throw lastError;
+  } finally {
+    inFlightOps -= 1;
+    // 아이솔레이트가 조용해진 시점 = 이 disconnect가 아무 요청도 끊지 않는 유일한 순간.
+    // 버스트가 빠진 뒤 첫 실패는 inFlightOps===1이라 즉시 리셋되므로, 별도 타이머 없이 수렴한다.
+    if (inFlightOps <= 0 && pendingPoolReset) {
+      pendingPoolReset = false;
+      lastPoolResetAt = Date.now();
+      await resetMongooseConnection();
     }
   }
-  throw lastError;
 }
 
 export { mongoose };
