@@ -53,11 +53,32 @@ const push = (remote, rel) => items.push([remote, rel]);
   "까마귀 빌런1", "까마귀 빌런2",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".png")}`, `CodeDestinyNovel/${n}.png`));
 
-// BGM (씬별 + 사주의 강 진입)
+// 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·백문·박지은·무성 본모습 (webp)
+[
+  "루나-Photoroom", "루나 언니-Photoroom",
+  "루나 언니 회복1", "루나 언니 회복2", "루나 언니 회복3", "루나 언니 회복4", "루나 언니 회복5", "루나 언니 회복6",
+  "빌런 청토끼-Photoroom",
+  "백문 기본-Photoroom", "백문 도서관-Photoroom", "백문 도서관2-Photoroom", "백문 도서관4-Photoroom", "백문 도서관5-Photoroom", "백문 독서-Photoroom", "백문 마법-Photoroom",
+  "박지은 기본", "박지은 무표정", "박지은 말함", "박지은 말함2", "박지은 냉소", "박지은 조롱", "박지은 유혹", "박지은 화남", "박지은 광기",
+  "무성1", "무성2", "무성3", "무성4", "무성5", "무성6", "무성7", "무성8", "무성9", "무성10",
+].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".webp")}`, `CodeDestinyNovel/${n}.webp`));
+
+// 완결부 배경 — 재성의 섬 4 + 도서관 2 + 자미두수 4 + 숙요 1 + 연출 3 + 비겁 내부 회상 6
+[
+  "재성의 섬", "재성의 섬 진입", "재성의 섬 진입2", "재성의 섬 노동하는 노예들",
+  "신비의 도서관", "신비의 도서관2",
+  "자미두수 세계1", "자미두수 세계2", "자미두수 세계3", "자미두수 세계4",
+  "숙요점 붉은 실의 세계",
+  "문에 빨려들어가는 모습", "빨려 들어가는 연이", "검은 손들 박진감",
+  "비겁의섬내부1", "비겁의섬내부2", "비겁의섬내부3", "비겁의섬내부4", "비겁의섬내부5", "비겁의섬내부6",
+].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/background/${enc(n + ".webp")}`, `CodeDestinyNovel/background/${n}.webp`));
+
+// BGM (씬별 + 사주의 강 진입 + 완결부)
 [
   "연이의 일상", "연이의 방", "연이의 우울감", "연이의 우울감2",
   "연이 위기 상황", "연이 위기 상황2", "연이와 네오", "연이와 네오2",
   "사주의 강 진입", "사주의 강 진입2", "식상의 섬 진입",
+  "재성의 섬 진입", "강을 건너는 두 사람",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".mp3")}`, `CodeDestinyNovel/${n}.mp3`));
 
 // DestinyCafe (꽃돼지·타로카드)
