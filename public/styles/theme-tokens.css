@@ -25,6 +25,20 @@
 }
 
 /*
+ * 데스크톱 컨테이너 폭 — 콘텐츠 성격별 3단 (v20260721).
+ * 페르소나와 무관한 레이아웃 상수라 테마 전환에서 바뀌지 않는다.
+ * 이전에는 .wrap / #inputPage 가 960px 로 세 군데(fortune-ui.css, core-ui.css,
+ * index.html 인라인)에 각각 박혀 있어 1920px 화면에서도 콘텐츠가 960px 에 갇혔다.
+ * 폭을 바꾸려면 이제 여기 한 곳만 고친다.
+ */
+:root {
+  --cd-w-prose: 760px; /* 읽기 본문 — 한글 기준 65~75자 */
+  --cd-w-grid: 1280px; /* 카드·그리드·폼 */
+  --cd-w-wide: 1440px; /* 히어로·상단 네비·대시보드 */
+  --cd-gutter: clamp(16px, 4vw, 64px);
+}
+
+/*
  * Next 앱 화면용 페이지 토큰 — 네오 모드에서만 정의.
  * 사용처는 var(--cd-page-*, 기존색) fallback 패턴으로 참조하므로
  * 기본(연이) 모드에서는 각 화면의 기존 색이 그대로 유지된다(픽셀 변화 없음).
@@ -146,6 +160,49 @@ html[data-cd-theme="neo"] {
   --cd-price-bg: rgba(9, 7, 24, 0.86);
   --cd-price-text: #f4e9c8;
   --cd-img-scrim: linear-gradient(to top, rgba(6, 4, 18, 0.72) 0%, rgba(6, 4, 18, 0.24) 34%, transparent 62%);
+}
+
+/*
+ * 프리미엄 표면 보강 토큰 (2026-07, additive)
+ * 위 카드 토큰 세트가 정의만 되고 소비처가 없어 사문화돼 있었다. 여기 추가하는 값들은
+ * styles/cd-premium-components.css 가 실제로 소비한다 — 쓰지 않을 토큰은 만들지 않는다.
+ * Glow-Not-Shadow(DESIGN.md §4)를 지키려고 elev-0 도 회색이 아니라 로즈/바이올렛 틴트다.
+ */
+:root {
+  /* 반경 — DESIGN.md rounded(sm 8 / md 16 / pill 999) 정본의 토큰화 */
+  --cd-r-sm: 8px;
+  --cd-r-md: 16px;
+  --cd-r-pill: 999px;
+
+  /* 연이 — 정지 상태의 가장 얕은 층. elev-1 보다 한 단계 아래. */
+  --cd-elev-0: 0 4px 12px rgba(150, 72, 104, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  /* 포커스 링 색 — 링은 box-shadow 가 아니라 outline 으로 그린다.
+     셸의 rest 상태 box-shadow 가 ID+다중클래스 !important 라 외부 시트가 이길 수 없고,
+     outline 은 그 싸움과 무관한 별도 속성이라 특이도 경쟁 없이 항상 보인다.
+     색은 DESIGN.md One Accent Rule 을 따른다(연이=Rose Crimson, 네오=Twilight Violet). */
+  --cd-focus-ring: #b31955;
+  /* 손이 닿는 순간 번지는 브랜드 글로우의 색.
+     --cd-glow(box-shadow)를 쓰지 않고 색만 따로 두는 이유: 셸의 rest box-shadow 가
+     !important + 초고특이도라 외부 시트가 못 이긴다. 대신 아무도 안 쓰는 filter 로
+     drop-shadow 를 얹는데, drop-shadow 는 spread 인자가 없어 box-shadow 값을 재사용할 수 없다.
+     색은 DESIGN.md One Accent Rule(연이=Rose Crimson, 네오=Violet Neon). */
+  --cd-glow-color: rgba(179, 25, 85, 0.3);
+  /* 골드 헤어라인 — 프리미엄 표면의 테두리 한 겹 */
+  --cd-hairline: rgba(234, 208, 137, 0.55);
+  /* 스켈레톤 */
+  --cd-skeleton-base: rgba(255, 240, 246, 0.72);
+  --cd-skeleton-sheen: rgba(255, 255, 255, 0.92);
+}
+
+html.neo-mode,
+body.neo-mode,
+html[data-cd-theme="neo"] {
+  --cd-elev-0: 0 5px 14px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(228, 214, 255, 0.08);
+  --cd-focus-ring: #a78bfa;
+  --cd-glow-color: rgba(147, 51, 234, 0.45);
+  --cd-hairline: rgba(232, 213, 163, 0.44);
+  --cd-skeleton-base: rgba(28, 22, 58, 0.82);
+  --cd-skeleton-sheen: rgba(196, 181, 253, 0.16);
 }
 
 @media (prefers-reduced-motion: reduce) {

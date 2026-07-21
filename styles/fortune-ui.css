@@ -172,7 +172,7 @@ body::after{
 }
 .wrap{
   width:100%;
-  max-width:960px;
+  max-width:var(--cd-w-wide,960px);
   margin:0 auto;
   position: relative;
   overflow-x: hidden;
@@ -264,10 +264,12 @@ img.img-fallback-broken {
   /* Prevent fate-scroll-next-indicator from hiding section bottom on scrollIntoView. */
   scroll-margin-bottom: 160px;
 }
+/* 데스크톱 폭의 실질 정본. .wrap 을 넓혀도 여기가 다시 잠그면 화면은 그대로다
+   (2026-07 이전 상태: .wrap 1180px 인데 콘텐츠는 960px 로 고정). */
 #inputPage,
 .wrap > footer {
   width: 100%;
-  max-width: 960px;
+  max-width: var(--cd-w-wide, 960px);
   margin-left: auto;
   margin-right: auto;
 }
