@@ -93,6 +93,46 @@ function MoonLotusDecoration({ idPrefix, wrapperClassName = "", svgClassName = "
   );
 }
 
+type ToolChipProps = {
+  tool: { id: string; icon: string };
+  isActive: boolean;
+  label: string;
+  status: string;
+  onSelect: () => void;
+  className?: string;
+};
+
+/** 활성 칩만 현재 도구의 강조색을 쓴다 — 활성 도구가 곧 루트의 --tool-* 이라 팔레트를 따로 들 필요가 없다. */
+function ToolChip({ tool, isActive, label, status, onSelect, className = "" }: ToolChipProps) {
+  return (
+    <button
+      type="button"
+      data-tool-tab={tool.id}
+      aria-pressed={isActive}
+      onClick={onSelect}
+      className={`option-chip inline-flex min-h-[56px] items-center gap-2.5 rounded-2xl border px-3 text-left text-sm font-black focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)] ${
+        isActive
+          ? "border-[color:var(--tool-accent)] bg-[color:var(--tool-accent-soft)] text-[color:var(--tool-ink)] shadow-[var(--lift)]"
+          : "border-[color:var(--hairline)] bg-[color:var(--surface-1)] text-[color:var(--ink-2)]"
+      } ${className}`}
+    >
+      <span
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl text-sm font-black ${
+          isActive
+            ? "bg-[color:var(--tool-accent-strong)] text-[color:var(--on-accent-strong)]"
+            : "bg-[color:var(--surface-3)] text-[color:var(--ink-2)]"
+        }`}
+      >
+        {isActive ? <Check size={16} /> : tool.icon}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate">{label}</span>
+        <span className="block text-xs font-bold text-[color:var(--ink-3)]">{status}</span>
+      </span>
+    </button>
+  );
+}
+
 type ToolId =
   | "comprehensive"
   | "basic"
@@ -1138,6 +1178,12 @@ export default function ComprehensivePromptHubPage() {
     />
   );
   const resultPanelRef = useRef<HTMLElement | null>(null);
+  const formCardRef = useRef<HTMLElement | null>(null);
+  const toolRailRef = useRef<HTMLDivElement | null>(null);
+  const [showAllTools, setShowAllTools] = useState(false);
+  // 하단 고정 CTA 는 도구 카드를 보고 있을 때만 띄운다. 그러지 않으면 페이지 아래쪽
+  // 안내 문단 위에 계속 걸터앉아 본문을 가린다.
+  const [isFormCardInView, setIsFormCardInView] = useState(true);
 
   const currentTool = toolConfigById[activeToolId];
   const currentDraft = draftsByToolId[activeToolId] || getDefaultDraft(currentTool);
@@ -1170,10 +1216,27 @@ export default function ComprehensivePromptHubPage() {
     };
   }, []);
 
+  // 활성 칩을 레일 안에서만 가운데로 옮긴다. scrollIntoView 는 조상 스크롤러까지
+  // 함께 움직여 마운트 직후 페이지가 튀므로 레일의 scrollLeft 만 직접 만진다.
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    document.querySelector(`[data-tool-tab="${activeToolId}"]`)?.scrollIntoView({ block: "nearest", inline: "center" });
+    const rail = toolRailRef.current;
+    const chip = rail?.querySelector<HTMLElement>(`[data-tool-tab="${activeToolId}"]`);
+    if (!rail || !chip) return;
+    const target = chip.offsetLeft - (rail.clientWidth - chip.offsetWidth) / 2;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    rail.scrollTo({ left: Math.max(0, target), behavior: prefersReducedMotion ? "auto" : "smooth" });
   }, [activeToolId]);
+
+  useEffect(() => {
+    const card = formCardRef.current;
+    if (!card || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsFormCardInView(entry.isIntersecting),
+      { rootMargin: "-72px 0px -96px 0px" },
+    );
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, []);
 
   function updateToolQueryParam(toolId: ToolId, mode: "push" | "replace" = "push") {
     if (typeof window === "undefined") return;
@@ -1285,10 +1348,10 @@ export default function ComprehensivePromptHubPage() {
     const inputId = `prompt-tool-${activeToolId}-${field.id}`;
     const hasError = showValidationErrors && field.required && !formatDraftValue(value);
     const inputClass =
-      "min-h-[48px] w-full rounded-xl border bg-white px-3.5 text-sm font-medium text-slate-950 outline-none transition placeholder:text-slate-400 focus:ring-2";
+      "prompt-field min-h-[48px] w-full rounded-xl border bg-[color:var(--field-bg)] px-3.5 text-sm font-medium text-[color:var(--ink-1)] outline-none transition placeholder:text-[color:var(--ink-3)] focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]";
     const inputStyle = {
-      borderColor: hasError ? "#e11d48" : "rgba(148, 163, 184, 0.45)",
-      boxShadow: hasError ? "0 0 0 3px rgba(225, 29, 72, 0.12)" : undefined,
+      borderColor: hasError ? "var(--danger-line)" : "var(--hairline)",
+      boxShadow: hasError ? "0 0 0 3px var(--danger-glow)" : undefined,
     };
 
     return (
@@ -1296,24 +1359,22 @@ export default function ComprehensivePromptHubPage() {
         {field.type === "checkbox" ? (
           <label
             htmlFor={inputId}
-            className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-bold text-slate-800 transition hover:border-slate-300 focus-within:ring-2"
-            style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+            className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--field-bg)] px-3.5 text-sm font-bold text-[color:var(--ink-2)] transition focus-within:ring-2 focus-within:ring-[color:var(--tool-accent-soft)]"
           >
             <input
               id={inputId}
               type="checkbox"
               checked={Boolean(value)}
               onChange={(event) => updateCurrentDraft(field.id, event.target.checked)}
-              className="h-4 w-4 rounded border-slate-300"
-              style={{ accentColor: currentTool.theme.accent }}
+              className="h-4 w-4 rounded border-[color:var(--hairline)] accent-[color:var(--tool-accent)]"
             />
             {tx(field.label)}
           </label>
         ) : (
-          <label htmlFor={inputId} className="grid gap-2 text-sm font-bold text-slate-900">
+          <label htmlFor={inputId} className="grid gap-2 text-sm font-bold text-[color:var(--ink-1)]">
             <span className="flex flex-wrap items-center gap-2">
               {tx(field.label)}
-              {field.required ? <span className="text-xs font-black" style={{ color: currentTool.theme.accent }}>{copy.requiredBadge}</span> : null}
+              {field.required ? <span className="text-xs font-black text-[color:var(--tool-accent)]">{copy.requiredBadge}</span> : null}
             </span>
             {field.type === "textarea" ? (
               <textarea
@@ -1354,15 +1415,13 @@ export default function ComprehensivePromptHubPage() {
                       type="button"
                       aria-pressed={selected}
                       onClick={() => toggleCurrentDraftOption(field.id, option)}
-                      className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-3 text-sm font-bold transition focus:outline-none focus:ring-2"
-                      style={{
-                        borderColor: selected ? currentTool.theme.accent : "rgba(148, 163, 184, 0.42)",
-                        background: selected ? currentTool.theme.accentSoft : "#ffffff",
-                        color: selected ? currentTool.theme.text : "#334155",
-                        "--tw-ring-color": currentTool.theme.accentSoft,
-                      } as React.CSSProperties}
+                      className={`option-chip inline-flex min-h-[44px] items-center gap-2 rounded-xl border px-3 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)] ${
+                        selected
+                          ? "border-[color:var(--tool-accent)] bg-[color:var(--tool-accent-soft)] text-[color:var(--tool-ink)]"
+                          : "border-[color:var(--hairline)] bg-[color:var(--field-bg)] text-[color:var(--ink-2)]"
+                      }`}
                     >
-                      {selected ? <Check size={14} /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}
+                      {selected ? <Check size={14} /> : <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--ink-3)]" />}
                       {tx(option)}
                     </button>
                   );
@@ -1385,9 +1444,9 @@ export default function ComprehensivePromptHubPage() {
             )}
           </label>
         )}
-        <div id={`${inputId}-hint`} className="mt-1.5 min-h-[18px] text-xs font-medium leading-5 text-slate-600">
+        <div id={`${inputId}-hint`} className="mt-1.5 min-h-[18px] text-xs font-medium leading-5 text-[color:var(--ink-3)]">
           {hasError ? (
-            <span className="font-bold text-rose-700">{copy.requiredInputMessage.replace("{label}", tx(field.label))}</span>
+            <span className="font-bold text-[color:var(--danger-ink)]">{copy.requiredInputMessage.replace("{label}", tx(field.label))}</span>
           ) : field.privacyHint ? (
             <span>{tx(field.privacyHint)}</span>
           ) : field.help ? (
@@ -1399,7 +1458,18 @@ export default function ComprehensivePromptHubPage() {
   }
 
   return (
-    <main className="prompt-hub-root relative min-h-screen overflow-hidden bg-[#fff8ef] text-slate-900 antialiased selection:bg-rose-200/55 selection:text-slate-950">
+    <main
+      className="prompt-hub-root relative text-[color:var(--ink-2)] antialiased selection:bg-[color:var(--tool-accent-soft)] selection:text-[color:var(--ink-1)]"
+      style={
+        {
+          "--tool-accent-raw": currentTool.theme.accent,
+          "--tool-strong-raw": currentTool.theme.accentStrong,
+          "--tool-soft-raw": currentTool.theme.accentSoft,
+          "--tool-surface-raw": currentTool.theme.surface,
+          "--tool-ink-raw": currentTool.theme.text,
+        } as React.CSSProperties
+      }
+    >
       <style>{`
         .prompt-hub-root {
           font-family: "SUIT", Pretendard, "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
@@ -1410,6 +1480,58 @@ export default function ComprehensivePromptHubPage() {
           font-variant-numeric: tabular-nums;
           word-break: keep-all;
           letter-spacing: 0;
+
+          /* 연이 Light — DESIGN.md 크림/로즈 정본 */
+          --ink-1: #24151b;
+          --ink-2: #3c1830;
+          --ink-3: #70445c;
+          --surface-1: #ffffff;
+          --surface-2: #fffaf7;
+          --surface-3: #fff3f8;
+          --field-bg: #ffffff;
+          --hairline: rgba(179, 25, 85, 0.18);
+          --code-bg: #2b0b1d;
+          --code-ink: #ffeaf3;
+          --danger-line: #e11d48;
+          --danger-glow: rgba(225, 29, 72, 0.12);
+          --danger-ink: #9f1239;
+          --gold: #ead089;
+          --on-accent-strong: #ffffff;
+          --lift: 0 12px 24px rgba(150, 72, 104, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+
+          /* 도구별 색은 인라인 style 이 raw 값만 넘기고, 모드별 파생은 여기서 한다 */
+          --tool-accent: var(--tool-accent-raw);
+          --tool-accent-strong: var(--tool-strong-raw);
+          --tool-accent-soft: var(--tool-soft-raw);
+          --tool-surface: var(--tool-surface-raw);
+          --tool-ink: var(--tool-ink-raw);
+        }
+        /* 연이 Dark(핑크 다크) — 표면·텍스트·테두리·강조를 한 세트로 함께 교체한다.
+           네이비/퍼플로 새면 네오가 되므로 딥 플럼·버건디 범위를 벗어나지 않는다. */
+        @media (prefers-color-scheme: dark) {
+          .prompt-hub-root {
+            --ink-1: #fff1f7;
+            --ink-2: rgba(255, 241, 247, 0.94);
+            --ink-3: rgba(255, 214, 232, 0.86);
+            --surface-1: #3a0e28;
+            --surface-2: #330c23;
+            --surface-3: #24081a;
+            --field-bg: #2d0a1f;
+            --hairline: rgba(244, 190, 209, 0.38);
+            --code-bg: #1c0512;
+            --code-ink: #ffeaf3;
+            --danger-line: #ff7a9c;
+            --danger-glow: rgba(255, 122, 156, 0.18);
+            --danger-ink: #ffb3c7;
+            --on-accent-strong: #24081a;
+            --lift: 0 14px 30px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 214, 232, 0.12);
+
+            --tool-accent: color-mix(in srgb, var(--tool-accent-raw) 42%, #ffd0e4);
+            --tool-accent-strong: color-mix(in srgb, var(--tool-accent-raw) 34%, #ffd8e8);
+            --tool-accent-soft: color-mix(in srgb, var(--tool-accent-raw) 30%, #24081a);
+            --tool-surface: #3a0e28;
+            --tool-ink: #fff1f7;
+          }
         }
         .prompt-hub-root textarea,
         .prompt-hub-root input,
@@ -1420,6 +1542,13 @@ export default function ComprehensivePromptHubPage() {
         .prompt-hub-root textarea,
         .prompt-hub-root input {
           word-break: break-word;
+        }
+        /* iOS Safari 는 16px 미만 입력에 포커스하면 화면을 확대한다. 폼을 채우는 내내
+           화면이 튀므로 좁은 화면에서는 실제 글자 크기를 16px 로 고정한다. */
+        @media (max-width: 1023px) {
+          .prompt-hub-root .prompt-field {
+            font-size: 16px;
+          }
         }
         .atelier-heading {
           font-family: "MaruBuri", "Noto Serif KR", "Nanum Myeongjo", "Apple SD Gothic Neo", Georgia, serif;
@@ -1493,9 +1622,11 @@ export default function ComprehensivePromptHubPage() {
           from { transform: translate3d(0, 0, 0) rotate(0deg); opacity: .42; }
           to { transform: translate3d(18px, -26px, 0) rotate(9deg); opacity: .76; }
         }
+        /* filter: blur() 를 매 프레임 다시 계산하면 중급 안드로이드에서 스크롤이 끊긴다.
+           합성만으로 끝나는 opacity 로 같은 인상을 낸다. */
         @keyframes premiumGlowPulse {
-          0%, 100% { opacity: .62; filter: blur(0px); }
-          50% { opacity: .92; filter: blur(1px); }
+          0%, 100% { opacity: .58; }
+          50% { opacity: .92; }
         }
         @keyframes lotusFloat {
           from { transform: translate3d(0, 0, 0) rotate(-2deg); }
@@ -1533,51 +1664,134 @@ export default function ComprehensivePromptHubPage() {
         @media (prefers-reduced-motion: reduce) {
           .yeon-hero-sprite { animation: none; }
         }
+
+        /* ── 배경 무대 ─────────────────────────────────────────────
+           Tailwind arbitrary value 로는 다크 대응이 안 되므로 클래스로 뺀다. */
+        .prompt-hub-scene__base {
+          background:
+            radial-gradient(circle at 18% 10%, rgba(251,207,232,.42), transparent 28%),
+            radial-gradient(circle at 82% 8%, rgba(253,230,138,.36), transparent 24%),
+            radial-gradient(circle at 86% 32%, rgba(244,190,209,.42), transparent 30%),
+            radial-gradient(circle at 48% 100%, rgba(244,114,182,.18), transparent 38%),
+            linear-gradient(180deg, #fffaf2 0%, #fff4f8 36%, #fff0f6 70%, #fff8ef 100%);
+        }
+        .prompt-hub-scene__stars {
+          opacity: .42;
+          background-image:
+            radial-gradient(circle at 20% 18%, rgba(179,25,85,.34) 0 1px, transparent 1.5px),
+            radial-gradient(circle at 76% 28%, rgba(234,208,137,.5) 0 1px, transparent 1.5px),
+            radial-gradient(circle at 42% 68%, rgba(179,25,85,.22) 0 1px, transparent 1.5px),
+            radial-gradient(circle at 88% 72%, rgba(244,114,182,.3) 0 1px, transparent 1.5px),
+            radial-gradient(circle at 11% 72%, rgba(234,208,137,.4) 0 1px, transparent 1.5px);
+        }
+        .prompt-hub-scene__hem { background: linear-gradient(0deg, rgba(255,248,239,.94), transparent); }
+        .prompt-hub-scene__sheen { background: linear-gradient(115deg, rgba(255,255,255,.5), transparent 28%, rgba(255,255,255,.2) 62%, transparent); }
+        @media (prefers-color-scheme: dark) {
+          .prompt-hub-scene__base {
+            background:
+              radial-gradient(circle at 18% 10%, rgba(174,45,104,.34), transparent 30%),
+              radial-gradient(circle at 82% 8%, rgba(234,208,137,.16), transparent 26%),
+              radial-gradient(circle at 86% 32%, rgba(179,25,85,.26), transparent 32%),
+              linear-gradient(180deg, #3a0e28 0%, #2e0b20 38%, #24081a 100%);
+          }
+          .prompt-hub-scene__stars { opacity: .5; }
+          .prompt-hub-scene__hem { background: linear-gradient(0deg, rgba(36,8,26,.94), transparent); }
+          .prompt-hub-scene__sheen { background: linear-gradient(115deg, rgba(255,214,232,.08), transparent 30%, rgba(255,214,232,.04) 62%, transparent); }
+          .moon-disc { box-shadow: 0 0 92px rgba(234,208,137,.18), 0 26px 86px rgba(174,45,104,.28); }
+        }
+        /* 좁은 화면에서는 장식 광원을 절반만 켠다 — 없어도 인상은 남고 스크롤은 가벼워진다 */
+        @media (max-width: 640px) {
+          .prompt-hub-scene__spare { display: none; }
+        }
+
+        /* ── 도구 레일 ───────────────────────────────────────────── */
+        .tool-rail {
+          scroll-snap-type: x mandatory;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          -webkit-mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 26px), transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 20px, #000 calc(100% - 26px), transparent);
+        }
+        .tool-rail::-webkit-scrollbar { display: none; }
+        .tool-rail > * { scroll-snap-align: center; }
+
+        /* ── 하단 고정 CTA ───────────────────────────────────────── */
+        .prompt-hub-cta {
+          padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+          transition: transform 260ms cubic-bezier(.22,1,.36,1), opacity 200ms ease-out;
+        }
+        .prompt-hub-cta[data-visible="false"] {
+          transform: translateY(115%);
+          opacity: 0;
+          pointer-events: none;
+        }
+
+        /* ── 마감 모션 ───────────────────────────────────────────── */
+        @keyframes toolSwap {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: none; }
+        }
+        @keyframes goldSweep {
+          from { transform: scaleX(0); opacity: 0; }
+          40% { opacity: 1; }
+          to { transform: scaleX(1); opacity: 0; }
+        }
+        .tool-swap { animation: toolSwap 240ms cubic-bezier(.22,1,.36,1) both; }
+        .result-sweep {
+          transform-origin: left center;
+          background: linear-gradient(90deg, transparent, var(--gold), transparent);
+          animation: goldSweep 900ms cubic-bezier(.22,1,.36,1) both;
+        }
+        .copy-mark { transition: transform 200ms cubic-bezier(.22,1,.36,1); }
+        .option-chip { transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .prompt-hub-cta { transition: none; }
+          .tool-swap, .result-sweep, .copy-mark { animation: none; transition: none; }
+          .premium-glow, .moon-petal, .moon-lotus, .moon-lotus .lotus-petal, .moon-lotus .lotus-ray { animation: none !important; }
+        }
       `}</style>
-      <div className="pointer-events-none fixed inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(251,207,232,0.42),transparent_28%),radial-gradient(circle_at_82%_8%,rgba(253,230,138,0.36),transparent_24%),radial-gradient(circle_at_86%_32%,rgba(221,214,254,0.42),transparent_30%),radial-gradient(circle_at_48%_100%,rgba(244,114,182,0.18),transparent_38%),linear-gradient(180deg,#fffaf2_0%,#fff4f8_36%,#f4efff_70%,#fff8ef_100%)]" />
-        <div className="moon-disc absolute -right-20 top-8 h-80 w-80 rounded-full border border-amber-200/60 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.98),rgba(255,248,220,0.86)_28%,rgba(253,230,138,0.28)_60%,transparent_74%)]" />
-        <div className="absolute right-12 top-[118px] h-20 w-44 rotate-[-8deg] rounded-full bg-gradient-to-r from-transparent via-amber-200/28 to-transparent blur-xl" />
+      {/* 장식 레이어가 클리핑을 맡는다. 예전에는 <main> 이 overflow-hidden 을 들고 있었는데,
+          그러면 main 자체가 스크롤 컨테이너가 되어 안쪽 sticky 가 전부 무력화됐다. */}
+      <div className="pointer-events-none fixed inset-0 overflow-hidden">
+        <div className="prompt-hub-scene__base absolute inset-0" />
+        <div className="moon-disc absolute -right-20 top-8 h-80 w-80 rounded-full border border-[color:var(--gold)]/50 bg-[radial-gradient(circle_at_35%_30%,rgba(255,255,255,0.98),rgba(255,248,220,0.86)_28%,rgba(253,230,138,0.28)_60%,transparent_74%)] dark:bg-[radial-gradient(circle_at_35%_30%,rgba(255,241,247,0.36),rgba(234,208,137,0.22)_30%,transparent_70%)]" />
+        <div className="prompt-hub-scene__spare absolute right-12 top-[118px] h-20 w-44 rotate-[-8deg] rounded-full bg-gradient-to-r from-transparent via-amber-200/28 to-transparent blur-xl" />
         <div className="premium-glow absolute left-[6%] top-[12%] h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(244,114,182,0.24),transparent_68%)]" />
-        <div className="premium-glow absolute bottom-[8%] right-[10%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(196,181,253,0.28),transparent_72%)]" />
+        <div className="premium-glow prompt-hub-scene__spare absolute bottom-[8%] right-[10%] h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(244,190,209,0.3),transparent_72%)]" />
         <div className="premium-glow absolute bottom-[22%] left-[18%] h-60 w-60 rounded-full bg-[radial-gradient(circle,rgba(253,230,138,0.2),transparent_70%)]" />
-        <div className="absolute inset-0 opacity-[0.42] [background-image:radial-gradient(circle_at_20%_18%,rgba(244,114,182,0.4)_0_1px,transparent_1.5px),radial-gradient(circle_at_76%_28%,rgba(168,85,247,0.26)_0_1px,transparent_1.5px),radial-gradient(circle_at_42%_68%,rgba(217,119,6,0.22)_0_1px,transparent_1.5px),radial-gradient(circle_at_88%_72%,rgba(244,114,182,0.3)_0_1px,transparent_1.5px),radial-gradient(circle_at_11%_72%,rgba(168,85,247,0.2)_0_1px,transparent_1.5px)]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(0deg,rgba(255,248,239,0.94),transparent)]" />
-        <div className="moon-petal absolute left-[7%] top-[25%] h-16 w-28 rounded-[55%_45%_62%_38%] bg-gradient-to-br from-rose-300/24 to-fuchsia-200/6 blur-[1px]" />
-        <div className="moon-petal absolute right-[18%] top-[42%] h-14 w-24 rounded-[44%_56%_38%_62%] bg-gradient-to-br from-violet-300/22 to-rose-200/6 blur-[1px]" />
-        <div className="moon-petal absolute bottom-[16%] left-[22%] h-12 w-20 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-amber-200/28 to-rose-200/8 blur-[1px]" />
-        <div className="moon-petal absolute right-[8%] bottom-[26%] h-10 w-16 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-rose-200/24 to-amber-100/8 blur-[1px]" />
-        <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.5),transparent_28%,rgba(255,255,255,0.2)_62%,transparent)]" />
+        <div className="prompt-hub-scene__stars absolute inset-0" />
+        <div className="prompt-hub-scene__hem absolute inset-x-0 bottom-0 h-48" />
+        <div className="moon-petal absolute left-[7%] top-[25%] h-16 w-28 rounded-[55%_45%_62%_38%] bg-gradient-to-br from-rose-300/24 to-rose-200/6" />
+        <div className="moon-petal prompt-hub-scene__spare absolute right-[18%] top-[42%] h-14 w-24 rounded-[44%_56%_38%_62%] bg-gradient-to-br from-rose-300/22 to-rose-200/6" />
+        <div className="moon-petal absolute bottom-[16%] left-[22%] h-12 w-20 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-amber-200/28 to-rose-200/8" />
+        <div className="moon-petal prompt-hub-scene__spare absolute right-[8%] bottom-[26%] h-10 w-16 rounded-[48%_52%_60%_40%] bg-gradient-to-br from-rose-200/24 to-amber-100/8" />
+        <div className="prompt-hub-scene__sheen absolute inset-0" />
       </div>
 
-      <section className="relative mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6 lg:px-8">
+      <section className="relative mx-auto max-w-7xl px-3 pb-[104px] pt-4 sm:px-6 sm:pt-6 lg:px-8 lg:pb-24">
         <div className="mb-3 flex justify-end">
           <Link
             href="/"
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-rose-200/80 bg-white/86 px-3 py-2 text-sm font-black text-rose-900 shadow-[0_12px_30px_rgba(244,114,182,0.16)] transition hover:bg-white/94 focus:outline-none focus:ring-2"
-            style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 py-2 text-sm font-black text-[color:var(--ink-1)] shadow-[var(--lift)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
             aria-label={copy.mainHomeAria}
           >
             <Home size={15} />
             {copy.mainHome}
           </Link>
         </div>
-        <div
-          className="rounded-[28px] border bg-white/88 p-4 shadow-[0_28px_90px_rgba(90,64,82,0.14)] backdrop-blur-2xl sm:p-5"
-          style={{ borderColor: currentTool.theme.accentSoft }}
-        >
+        {/* 모바일에서는 이 바깥 껍데기를 투명하게 비운다. 카드 안의 카드 안의 카드가
+            좌우로 104px 을 먹어 360px 기기에서 본문 폭이 256px 밖에 남지 않았다. */}
+        <div className="max-lg:contents lg:block lg:rounded-[28px] lg:border lg:border-[color:var(--tool-accent-soft)] lg:bg-[color:var(--surface-1)] lg:p-5 lg:shadow-[var(--lift)]">
           <div
-            className="relative overflow-hidden rounded-[24px] border p-5 sm:p-6"
+            className="relative overflow-hidden rounded-[24px] border border-[color:var(--tool-accent-soft)] p-4 text-[color:var(--tool-ink)] sm:p-6"
             style={{
-              borderColor: currentTool.theme.accentSoft,
-              background: `linear-gradient(135deg, ${currentTool.theme.surface} 0%, #ffffff 54%, ${currentTool.theme.accentSoft} 100%)`,
-              color: currentTool.theme.text,
+              background: `linear-gradient(135deg, var(--tool-surface) 0%, var(--surface-1) 54%, var(--tool-accent-soft) 100%)`,
             }}
           >
             <MoonLotusDecoration
               idPrefix="lotus-main"
-              wrapperClassName="pointer-events-none absolute -right-[56px] -top-[34px] z-0 h-full w-full opacity-32 sm:-top-[24px] sm:-right-[42px] lg:-top-[8px] lg:-right-[20px]"
-              svgClassName="mx-auto sm:mx-0 w-[128px] sm:w-[156px] md:w-[182px] lg:w-[202px]"
+              wrapperClassName="pointer-events-none absolute -right-[64px] -top-[40px] z-0 h-full w-full opacity-25 sm:-top-[24px] sm:-right-[42px] sm:opacity-30 lg:-top-[8px] lg:-right-[20px]"
+              svgClassName="ml-auto w-[104px] sm:w-[156px] md:w-[182px] lg:w-[202px]"
               ariaHidden
             />
             {/* lg 미만에서만 떠 있는 장식. lg 부터는 오른쪽 열이 이 자리를 차지해
@@ -1590,22 +1804,22 @@ export default function ComprehensivePromptHubPage() {
               </div>
             )}
             <div className="relative z-10 grid gap-5 lg:grid-cols-[1fr_320px] lg:items-end">
-              <div>
-                <div className="inline-flex min-h-[34px] items-center gap-2 rounded-full border bg-white/78 px-3 text-xs font-black uppercase tracking-[0.14em]" style={{ borderColor: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
+              <div className="max-w-[calc(100%-108px)] sm:max-w-none">
+                <div className="inline-flex min-h-[34px] items-center gap-2 rounded-full border border-[color:var(--tool-accent-soft)] bg-[color:var(--surface-1)] px-3 text-xs font-black uppercase tracking-[0.14em] text-[color:var(--tool-accent-strong)]">
                   <Sparkles size={14} />
                   Moonlight Prompt Atelier
                 </div>
-                <h1 className="atelier-heading mt-4 max-w-3xl text-2xl leading-tight text-slate-950 sm:text-4xl">
+                <h2 className="atelier-heading mt-4 max-w-3xl text-balance text-[1.65rem] leading-tight text-[color:var(--ink-1)] sm:text-4xl">
                   {tx(currentTool.label)}
-                </h1>
-                <p className="mt-3 max-w-3xl text-sm font-bold leading-7 text-slate-800 sm:text-base">{tx(currentTool.description)}</p>
-                <p className="mt-2 max-w-3xl text-sm font-medium leading-7 text-slate-700">{tx(currentTool.detail)}</p>
+                </h2>
+                <p className="mt-3 max-w-[68ch] text-sm font-bold leading-7 text-[color:var(--ink-2)] sm:text-base">{tx(currentTool.description)}</p>
+                <p className="mt-2 max-w-[68ch] text-sm font-medium leading-7 text-[color:var(--ink-3)]">{tx(currentTool.detail)}</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <span className="rounded-full border bg-white/80 px-3 py-1 text-xs font-bold text-slate-700" style={{ borderColor: currentTool.theme.accentSoft }}>
+                  <span className="rounded-full border border-[color:var(--tool-accent-soft)] bg-[color:var(--surface-1)] px-3 py-1 text-xs font-bold text-[color:var(--ink-2)]">
                     {tx(currentTool.theme.motif)}
                   </span>
                   {currentTool.keywords.slice(0, 4).map((keyword) => (
-                    <span key={keyword} className="rounded-full bg-white/68 px-3 py-1 text-xs font-bold text-slate-600">
+                    <span key={keyword} className="rounded-full bg-[color:var(--surface-2)] px-3 py-1 text-xs font-bold text-[color:var(--ink-3)]">
                       {tx(keyword)}
                     </span>
                   ))}
@@ -1617,123 +1831,105 @@ export default function ComprehensivePromptHubPage() {
                     {heroMascot}
                   </div>
                 )}
-                <div className="rounded-[22px] border bg-white/76 p-4" style={{ borderColor: currentTool.theme.accentSoft }}>
-                 <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.currentTool}</p>
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl text-xl font-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]" style={{ background: currentTool.theme.accentStrong }}>
+                {/* 도구 선택 자체는 아래 레일이 전담한다. 여기 있던 <select> 는 같은 일을 하는
+                    두 번째 선택기라 모바일에서 세로 공간만 먹고 서로 어긋나 보였다. */}
+                <div className="flex items-center gap-3 rounded-[22px] border border-[color:var(--tool-accent-soft)] bg-[color:var(--surface-1)] p-4">
+                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[color:var(--tool-accent-strong)] text-xl font-black text-[color:var(--on-accent-strong)]">
                     {currentTool.icon}
                   </span>
-                  <div>
-                    <p className="text-base font-black text-slate-950">{tx(currentTool.shortLabel)}</p>
-                    <p className="text-xs font-bold text-slate-600">{currentTool.ready === "ready" ? copy.ready : copy.preparing}</p>
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-black text-[color:var(--ink-1)]">{tx(currentTool.shortLabel)}</p>
+                    <p className="text-xs font-bold text-[color:var(--ink-3)]">{currentTool.ready === "ready" ? copy.ready : copy.preparing}</p>
                   </div>
-                </div>
-                <select
-                  value={activeToolId}
-                  onChange={(event) => selectTool(event.target.value as ToolId)}
-                  className="mt-4 min-h-[46px] w-full rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 lg:hidden"
-                  style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
-                  aria-label={copy.mobileToolAria}
-                >
-                  {TOOL_REGISTRY_COPY.map((tool) => (
-                    <option key={tool.id} value={tool.id}>
-                      {tx(tool.label)}
-                    </option>
-                  ))}
-                </select>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="mt-4 rounded-[22px] border border-slate-200/70 bg-white/72 p-3 lg:hidden">
-            <div className="mb-3 flex flex-wrap items-center justify-between gap-2 px-1">
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.toolsTitle}</p>
-              <p className="text-xs font-bold text-slate-500">{copy.toolsHint}</p>
+          {/* 모바일 도구 선택기는 여기 하나뿐이다 (예전에는 히어로 안 <select> 와 이 레일이
+              둘 다 lg:hidden 으로 세로로 쌓여 있었다). */}
+          <div className="mt-4 lg:hidden">
+            <div className="mb-2 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+              <p className="text-sm font-black text-[color:var(--ink-1)]">{copy.toolsTitle}</p>
+              <button
+                type="button"
+                onClick={() => setShowAllTools((prev) => !prev)}
+                aria-expanded={showAllTools}
+                className="inline-flex min-h-[44px] items-center rounded-full px-3 text-xs font-black text-[color:var(--tool-accent-strong)] underline-offset-4 hover:underline focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+              >
+                {showAllTools ? copy.collapse : copy.expandAll}
+              </button>
             </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {TOOL_REGISTRY_COPY.map((tool) => {
-                const isActive = tool.id === activeToolId;
-                return (
-                  <button
+            {showAllTools ? (
+              <div className="grid grid-cols-2 gap-2">
+                {TOOL_REGISTRY_COPY.map((tool) => (
+                  <ToolChip
                     key={tool.id}
-                    type="button"
-                    data-tool-tab={tool.id}
-                    aria-pressed={isActive}
-                    onClick={() => selectTool(tool.id)}
-                    className="group inline-flex min-h-[54px] min-w-[132px] items-center gap-2 rounded-2xl border px-3 text-left text-sm font-black transition hover:-translate-y-0.5 focus:outline-none focus:ring-2"
-                    style={{
-                      borderColor: isActive ? tool.theme.accent : "rgba(226, 232, 240, 0.9)",
-                      background: isActive ? tool.theme.accentSoft : "rgba(255,255,255,0.82)",
-                      color: isActive ? tool.theme.text : "#334155",
-                      "--tw-ring-color": tool.theme.accentSoft,
-                    } as React.CSSProperties}
-                  >
-                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-sm font-black text-white" style={{ background: isActive ? tool.theme.accentStrong : "#94a3b8" }}>
-                      {isActive ? <Check size={16} /> : tool.icon}
-                    </span>
-                    <span>
-                      <span className="block">{tx(tool.shortLabel)}</span>
-                      <span className="block text-[11px] font-bold opacity-75">{tool.ready === "ready" ? copy.open : copy.pending}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+                    tool={tool}
+                    isActive={tool.id === activeToolId}
+                    label={tx(tool.shortLabel)}
+                    status={tool.ready === "ready" ? copy.open : copy.pending}
+                    onSelect={() => {
+                      selectTool(tool.id);
+                      setShowAllTools(false);
+                    }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div ref={toolRailRef} className="tool-rail flex gap-2 overflow-x-auto px-1 pb-2 pt-1">
+                {TOOL_REGISTRY_COPY.map((tool) => (
+                  <ToolChip
+                    key={tool.id}
+                    tool={tool}
+                    isActive={tool.id === activeToolId}
+                    label={tx(tool.shortLabel)}
+                    status={tool.ready === "ready" ? copy.open : copy.pending}
+                    onSelect={() => selectTool(tool.id)}
+                    className="min-w-[132px] shrink-0"
+                  />
+                ))}
+              </div>
+            )}
+            <p className="px-1 text-xs font-medium text-[color:var(--ink-3)]">{copy.toolsHint}</p>
           </div>
 
           <div className="mt-4 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)_minmax(320px,0.82fr)]">
-            <aside className="hidden rounded-[22px] border border-slate-200/70 bg-white/82 p-4 lg:block">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-700">{copy.exploreTitle}</p>
-                  <p className="mt-1 text-xs font-medium text-slate-500">{copy.exploreHint}</p>
-                </div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2 lg:grid-cols-1">
-                {TOOL_REGISTRY_COPY.map((tool) => {
-                  const isActive = tool.id === activeToolId;
-                  return (
-                    <button
-                      key={tool.id}
-                      type="button"
-                      aria-pressed={isActive}
-                      onClick={() => selectTool(tool.id)}
-                      className="flex min-h-[58px] items-center gap-3 rounded-2xl border px-3 text-left transition hover:-translate-y-0.5 focus:outline-none focus:ring-2"
-                      style={{
-                        borderColor: isActive ? tool.theme.accent : "rgba(226,232,240,0.9)",
-                        background: isActive ? `linear-gradient(135deg, #ffffff 0%, ${tool.theme.accentSoft} 100%)` : "#ffffff",
-                        color: tool.theme.text,
-                        "--tw-ring-color": tool.theme.accentSoft,
-                      } as React.CSSProperties}
-                    >
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-sm font-black text-white" style={{ background: isActive ? tool.theme.accentStrong : "#cbd5e1" }}>
-                        {isActive ? <Check size={16} /> : tool.icon}
-                      </span>
-                      <span className="min-w-0">
-                        <span className="block text-sm font-black text-slate-950">{tx(tool.shortLabel)}</span>
-                        <span className="line-clamp-1 block text-xs font-semibold text-slate-500">{tx(tool.description)}</span>
-                      </span>
-                    </button>
-                  );
-                })}
+            <aside className="hidden rounded-[22px] border border-[color:var(--hairline)] bg-[color:var(--surface-1)] p-4 lg:block">
+              <p className="text-sm font-black text-[color:var(--ink-1)]">{copy.exploreTitle}</p>
+              <p className="mt-1 text-xs font-medium text-[color:var(--ink-3)]">{copy.exploreHint}</p>
+              <div className="mt-4 grid gap-2">
+                {TOOL_REGISTRY_COPY.map((tool) => (
+                  <ToolChip
+                    key={tool.id}
+                    tool={tool}
+                    isActive={tool.id === activeToolId}
+                    label={tx(tool.shortLabel)}
+                    status={tx(tool.description)}
+                    onSelect={() => selectTool(tool.id)}
+                  />
+                ))}
               </div>
             </aside>
 
-            <section id="tool-form-card" className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5">
+            <section
+              id="tool-form-card"
+              ref={formCardRef}
+              className="rounded-[22px] border border-[color:var(--hairline)] bg-[color:var(--surface-1)] p-4 shadow-[var(--lift)] sm:p-5"
+            >
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.formEyebrow}</p>
-                  <h2 className="mt-1 text-xl font-black text-slate-950">{tx(currentTool.label)} {copy.inputSuffix}</h2>
-                  <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-600">{tx(currentTool.emptyState)}</p>
+                  <h3 className="text-xl font-black text-[color:var(--ink-1)]">{tx(currentTool.label)} {copy.inputSuffix}</h3>
+                  <p className="mt-2 max-w-[68ch] text-sm font-medium leading-6 text-[color:var(--ink-3)]">{tx(currentTool.emptyState)}</p>
                 </div>
-                <span className="rounded-full px-3 py-1 text-xs font-black" style={{ background: currentTool.theme.accentSoft, color: currentTool.theme.accentStrong }}>
+                <span className="rounded-full bg-[color:var(--tool-accent-soft)] px-3 py-1 text-xs font-black text-[color:var(--tool-ink)]">
                   {copy.requiredCount.replace("{count}", String(currentTool.fields.filter((field) => field.required).length))}
                 </span>
               </div>
 
               <form
-                className="mt-5"
+                key={activeToolId}
+                className="tool-swap mt-5"
                 onSubmit={(event) => {
                   event.preventDefault();
                   generateCurrentToolPrompt();
@@ -1744,8 +1940,8 @@ export default function ComprehensivePromptHubPage() {
                 </div>
 
                 {currentTool.fields.some((field) => field.advanced) ? (
-                  <details className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                    <summary className="cursor-pointer text-sm font-black text-slate-800">{copy.advancedSettings}</summary>
+                  <details className="mt-4 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-4">
+                    <summary className="min-h-[24px] cursor-pointer text-sm font-black text-[color:var(--ink-2)]">{copy.advancedSettings}</summary>
                     <div className="mt-4 grid gap-4 sm:grid-cols-2">
                       {currentTool.fields.filter((field) => field.advanced).map(renderToolField)}
                     </div>
@@ -1753,7 +1949,7 @@ export default function ComprehensivePromptHubPage() {
                 ) : null}
 
                 {disabledReason ? (
-                  <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-bold text-rose-700" aria-live="polite">
+                  <p className="mt-4 rounded-xl border border-[color:var(--danger-line)] bg-[color:var(--danger-glow)] px-3 py-2 text-sm font-bold text-[color:var(--danger-ink)]" aria-live="polite">
                     {disabledReason}
                   </p>
                 ) : null}
@@ -1762,8 +1958,7 @@ export default function ComprehensivePromptHubPage() {
                   <button
                     type="submit"
                     disabled={Boolean(disabledReason)}
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl px-5 text-sm font-black text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:opacity-55"
-                    style={{ background: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)] shadow-[var(--lift)] transition hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)] disabled:cursor-not-allowed disabled:opacity-55 motion-reduce:hover:translate-y-0"
                     title={disabledReason || tx(currentTool.generateLabel)}
                   >
                     <WandSparkles size={17} />
@@ -1772,8 +1967,7 @@ export default function ComprehensivePromptHubPage() {
                   <button
                     type="button"
                     onClick={fillCurrentToolExample}
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-800 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2"
-                    style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-4 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                   >
                     <Sparkles size={16} />
                     {copy.exampleInput}
@@ -1781,8 +1975,7 @@ export default function ComprehensivePromptHubPage() {
                   <button
                     type="button"
                     onClick={resetCurrentToolDraft}
-                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2"
-                    style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                    className="inline-flex min-h-[48px] items-center gap-2 rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-4 text-sm font-black text-[color:var(--ink-3)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                   >
                     <RotateCcw size={16} />
                     {copy.reset}
@@ -1791,18 +1984,24 @@ export default function ComprehensivePromptHubPage() {
               </form>
             </section>
 
-            <section ref={resultPanelRef} className="rounded-[22px] border border-slate-200/70 bg-white/90 p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] sm:p-5" aria-live="polite">
+            <section
+              ref={resultPanelRef}
+              className="relative overflow-hidden rounded-[22px] border border-[color:var(--hairline)] bg-[color:var(--surface-1)] p-4 shadow-[var(--lift)] sm:p-5"
+              aria-live="polite"
+            >
+              {currentResult?.generatedAt ? (
+                <span key={currentResult.generatedAt} className="result-sweep pointer-events-none absolute inset-x-0 top-0 h-px" aria-hidden="true" />
+              ) : null}
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-[0.18em]" style={{ color: currentTool.theme.accentStrong }}>{copy.resultEyebrow}</p>
-                  <h2 className="mt-1 text-lg font-black text-slate-950">{tx(currentTool.resultLabel)}</h2>
-                  <p className="mt-1 text-xs font-bold text-slate-500">
+                  <h3 className="text-lg font-black text-[color:var(--ink-1)]">{tx(currentTool.resultLabel)}</h3>
+                  <p className="mt-1 text-xs font-bold text-[color:var(--ink-3)]">
                     {currentResult?.generatedAt
                       ? copy.lastGenerated.replace("{time}", currentResult.generatedAt)
                       : copy.waitingForInput.replace("{tool}", tx(currentTool.shortLabel))}
                   </p>
                 </div>
-                <span className="grid h-11 w-11 place-items-center rounded-2xl text-lg font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[color:var(--tool-accent-strong)] text-lg font-black text-[color:var(--on-accent-strong)]">
                   {currentTool.icon}
                 </span>
               </div>
@@ -1813,10 +2012,11 @@ export default function ComprehensivePromptHubPage() {
                     <button
                       type="button"
                       onClick={copyCurrentToolPrompt}
-                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                      style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--tool-accent)] px-3 text-sm font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                     >
-                      <Copy size={16} />
+                      <span className="copy-mark grid place-items-center">
+                        {copiedToolId === activeToolId ? <Check size={16} /> : <Copy size={16} />}
+                      </span>
                       {copiedToolId === activeToolId ? copy.copyDone : copy.copyPrompt}
                     </button>
                     {AI_TARGETS.map((target) => (
@@ -1824,8 +2024,7 @@ export default function ComprehensivePromptHubPage() {
                         key={target.id}
                         type="button"
                         onClick={() => openCurrentToolPromptInAi(target.url)}
-                        className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border px-3 text-sm font-black transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                        style={{ borderColor: currentTool.theme.accent, color: currentTool.theme.accentStrong, "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                        className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--tool-accent)] px-3 text-sm font-black text-[color:var(--tool-accent-strong)] transition hover:bg-[color:var(--tool-accent-soft)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                       >
                         <ExternalLink size={16} />
                         {target.label}
@@ -1834,49 +2033,62 @@ export default function ComprehensivePromptHubPage() {
                     <button
                       type="button"
                       onClick={generateCurrentToolPrompt}
-                      className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                      className="inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[color:var(--hairline)] px-3 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                     >
                       <WandSparkles size={16} />
                       {copy.regenerate}
                     </button>
                     <button
                       type="button"
-                      onClick={() => document.getElementById("tool-form-card")?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                      className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                      onClick={() => formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                      className="inline-flex min-h-[44px] items-center rounded-xl border border-[color:var(--hairline)] px-3 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                     >
                       {copy.editInput}
                     </button>
                     <button
                       type="button"
                       onClick={toggleCurrentResultExpanded}
-                      className="inline-flex min-h-[42px] items-center rounded-xl border border-slate-200 px-3 text-sm font-black text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2"
-                      style={{ "--tw-ring-color": currentTool.theme.accentSoft } as React.CSSProperties}
+                      aria-expanded={isCurrentResultExpanded}
+                      className="inline-flex min-h-[44px] items-center rounded-xl border border-[color:var(--hairline)] px-3 text-sm font-black text-[color:var(--ink-2)] transition hover:border-[color:var(--tool-accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
                     >
                       {isCurrentResultExpanded ? copy.collapse : copy.expandAll}
                     </button>
                   </div>
                   {chatGptPopupBlockedToolId === activeToolId ? (
-                    <p role="alert" className="mt-2 text-xs font-bold text-rose-600 dark:text-rose-400">
+                    <p role="alert" className="mt-2 text-xs font-bold text-[color:var(--danger-ink)]">
                       {copy.chatGptPopupBlocked}
                     </p>
                   ) : null}
-                  <pre
-                    className={`mt-4 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-200 bg-slate-950 p-4 text-sm font-medium leading-7 text-slate-50 motion-safe:animate-scale-in ${isCurrentResultExpanded ? "max-h-[680px]" : "max-h-[300px]"}`}
-                  >
-                    {currentResult.prompt}
-                  </pre>
+                  {/* 접힌 상태는 내부 스크롤러 대신 마스크로 잘라 낸다. 페이지 스크롤 안에
+                      또 하나의 스크롤 영역이 있으면 모바일에서 손가락이 갇힌다. */}
+                  <div className="relative mt-4">
+                    <pre
+                      className={`whitespace-pre-wrap rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--code-bg)] p-4 text-sm font-medium leading-7 text-[color:var(--code-ink)] ${
+                        isCurrentResultExpanded ? "" : "max-h-[46svh] overflow-hidden"
+                      }`}
+                    >
+                      {currentResult.prompt}
+                    </pre>
+                    {isCurrentResultExpanded ? null : (
+                      <button
+                        type="button"
+                        onClick={toggleCurrentResultExpanded}
+                        className="absolute inset-x-0 bottom-0 flex h-20 items-end justify-center rounded-b-2xl bg-gradient-to-t from-[color:var(--code-bg)] via-[color:var(--code-bg)]/72 to-transparent pb-3 text-xs font-black text-[color:var(--code-ink)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+                      >
+                        {copy.expandAll}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : (
-                <div className="mt-4 grid min-h-[280px] place-items-center rounded-2xl border border-dashed border-slate-300 bg-slate-50/74 p-5 text-center">
+                <div className="mt-4 grid min-h-[240px] place-items-center rounded-2xl border border-dashed border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-5 text-center">
                   <div>
-                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl text-xl font-black text-white" style={{ background: currentTool.theme.accentStrong }}>
+                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-[color:var(--tool-accent-strong)] text-xl font-black text-[color:var(--on-accent-strong)]">
                       {currentTool.icon}
                     </div>
-                    <p className="mt-4 text-base font-black text-slate-950">{copy.emptyPromptTitle}</p>
-                    <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{tx(currentTool.emptyState)}</p>
-                    <p className="mt-3 text-xs font-bold text-slate-500">
+                    <p className="mt-4 text-base font-black text-[color:var(--ink-1)]">{copy.emptyPromptTitle}</p>
+                    <p className="mt-2 text-sm font-medium leading-6 text-[color:var(--ink-3)]">{tx(currentTool.emptyState)}</p>
+                    <p className="mt-3 text-xs font-bold text-[color:var(--ink-3)]">
                       {copy.requiredInputPrefix} {currentTool.fields.filter((field) => field.required).map((field) => tx(field.label)).join(", ")}
                     </p>
                   </div>
@@ -1884,22 +2096,29 @@ export default function ComprehensivePromptHubPage() {
               )}
             </section>
           </div>
-
-          <div className="sticky bottom-0 z-20 mt-4 rounded-t-2xl border border-slate-200 bg-white/94 p-3 shadow-[0_-18px_36px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:hidden">
-            <button
-              type="button"
-              onClick={generateCurrentToolPrompt}
-              disabled={Boolean(disabledReason)}
-              className="inline-flex min-h-[48px] w-full items-center justify-center gap-2 rounded-2xl px-5 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-55"
-              style={{ background: currentTool.theme.accentStrong }}
-              title={disabledReason || tx(currentTool.generateLabel)}
-            >
-              <WandSparkles size={17} />
-              {tx(currentTool.generateLabel)}
-            </button>
-          </div>
         </div>
       </section>
+
+      {/* 뷰포트에 고정한다. 이전에는 카드의 마지막 자식에 sticky 를 걸어 둬서 붙을 여백이
+          16px 뿐이었고, 게다가 <main> 의 overflow-hidden 이 sticky 자체를 막고 있었다. */}
+      <div
+        className="prompt-hub-cta fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 pt-3 shadow-[0_-18px_36px_rgba(58,14,40,0.14)] lg:hidden"
+        data-visible={isFormCardInView}
+      >
+        <button
+          type="button"
+          onClick={generateCurrentToolPrompt}
+          disabled={Boolean(disabledReason)}
+          className="inline-flex min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)] disabled:cursor-not-allowed disabled:opacity-55"
+          title={disabledReason || tx(currentTool.generateLabel)}
+        >
+          <WandSparkles size={17} />
+          {tx(currentTool.generateLabel)}
+        </button>
+        {disabledReason ? (
+          <p className="mt-1.5 line-clamp-2 text-center text-xs font-bold text-[color:var(--ink-3)]">{disabledReason}</p>
+        ) : null}
+      </div>
     </main>
   );
 }
