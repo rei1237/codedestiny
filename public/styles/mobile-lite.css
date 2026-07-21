@@ -749,7 +749,10 @@
   [data-mobile-detail-section="top"] .naming-prompt-modal__title {
     margin: 0 !important;
     max-width: 100% !important;
-    color: #fff7dd !important;
+    /* 표면이 연이(밝은 크림)로 뒤집힌 뒤에도 남아 있던 다크용 리터럴(#fff7dd)이라
+       거북점 등 상세 시트 제목이 흰 배경에 흰 글씨(1.05:1)로 사라졌다.
+       바로 아래 p 규칙처럼 토큰을 쓴다 — 연이 #3c1830 / 네오 #f4eeff 로 함께 따라온다. */
+    color: var(--cd-detail-text) !important;
     font-size: clamp(1.08rem, 5.4vw, 1.42rem) !important;
     line-height: 1.24 !important;
     letter-spacing: 0 !important;

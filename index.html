@@ -1845,8 +1845,11 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-hero-cost--free{border-color:rgba(100,220,158,.38);color:#6ee7b7}
 /* 콘텐츠 영역 */
 .tile-pvw-content{padding:18px 22px 40px}
-.tile-pvw-title{font-size:1.32rem;font-weight:900;color:#f0e8ff;margin:0 0 8px;line-height:1.25}
-.tile-pvw-tagline{font-size:.88rem;color:rgba(200,168,255,.78);margin:0 0 16px;line-height:1.6}
+/* 본문 색은 토큰으로만 — 예전 다크 시트용 리터럴(#f0e8ff 등)이 남아 있으면 표면이 연이(밝은
+   크림)로 뒤집힌 뒤 흰 배경에 흰 글씨가 된다. 아래 v20260721 블록이 최종 확정하지만, 그
+   블록이 없는 상태(캐시 스큐)에서도 절대 안 깨지도록 여기서부터 토큰을 쓴다. */
+.tile-pvw-title{font-size:1.32rem;font-weight:900;color:var(--cd-card-title-color,#3c1830);margin:0 0 8px;line-height:1.25}
+.tile-pvw-tagline{font-size:.88rem;color:var(--cd-card-meta-color,#70445c);margin:0 0 16px;line-height:1.6}
 .tile-pvw-divider{width:36px;height:2px;background:linear-gradient(90deg,#7c3aed,transparent);border-radius:2px;margin:0 0 14px}
 .tile-pvw-feats-label{font-size:.68rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:rgba(180,140,255,.45);margin:0 0 9px}
 .tile-pvw-feats{list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:6px}
@@ -1875,9 +1878,9 @@ border:1px solid rgba(180,120,255,.35)!important;cursor:wait!important}
 .tile-pvw-sheet{background:linear-gradient(176deg,rgba(8,18,36,.94) 0%,rgba(12,26,52,.9) 52%,rgba(6,14,28,.94) 100%);border:1px solid rgba(148,163,184,.3);box-shadow:0 30px 84px rgba(1,8,20,.74),0 0 0 1px rgba(255,255,255,.07) inset;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .tile-pvw-sheet::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(130deg,rgba(255,255,255,.12),transparent 32%,transparent 70%,rgba(255,255,255,.06));opacity:.62}
 .tile-pvw-bd{background:rgba(2,8,20,.7);backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%)}
-.tile-pvw-title{font-size:1.44rem;letter-spacing:.01em;color:#ecfeff}
-.tile-pvw-tagline{color:rgba(205,225,245,.9)}
-.tile-pvw-feats li{background:linear-gradient(145deg,rgba(56,189,248,.11),rgba(14,30,58,.22));border-color:rgba(148,163,184,.26);color:#dbeafe}
+.tile-pvw-title{font-size:1.44rem;letter-spacing:.01em;color:var(--cd-card-title-color,#3c1830)}
+.tile-pvw-tagline{color:var(--cd-card-meta-color,#70445c)}
+.tile-pvw-feats li{background:linear-gradient(145deg,rgba(56,189,248,.11),rgba(14,30,58,.22));border-color:rgba(148,163,184,.26);color:var(--cd-card-title-color,#3c1830)}
 .tile-pvw-feats li::before{content:'✦';font-size:.72rem;color:#f6d76b;text-shadow:0 0 9px rgba(246,215,107,.42)}
 .tile-pvw-paywall{background:linear-gradient(145deg,rgba(251,191,36,.1),rgba(30,58,138,.12));border-color:rgba(251,191,36,.3)}
 .tile-pvw-cta-sticky{background:linear-gradient(to top,rgba(7,17,35,.96) 70%,rgba(7,17,35,0))}
@@ -11811,6 +11814,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           newColl.classList.add('cd-mobile-collection-fullscreen');
           newColl.setAttribute('data-collection-open', 'true');
           notifyCollectionToggle(collId, true);
+          // 새 타일이 탭 좌표를 덮은 직후다 — 이 제스처의 합성 꼬리를 여기서 끊는다.
+          swallowGhostTail();
         }
         updateActiveTabs();
       }
@@ -11826,6 +11831,32 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
             detail: { targetId: collId, isOpen: !!isOpen }
           }));
         } catch (e) {}
+      }
+
+      // 오버레이는 pointerup 에서 동기적으로 열린다. 그 뒤에 합성되는 touchend/mouseup/click 은
+      // 새로 히트테스트되므로 target 이 '방금 깔린 컬렉션 타일'이 된다 — 좌표 재스캔 가드로는
+      // 막을 수 없고(좌표를 쓰지 않는다), 그래서 타로 탭이 프리뷰 팝업으로, 신탁 탭이 거북점
+      // <a href> 로 튀었다. 지금 제스처의 합성 꼬리만 window 캡처에서 한 번 삼킨다.
+      // window 캡처는 모든 document 캡처 리스너보다 먼저 돌고, preventDefault 가 앵커 기본
+      // 이동까지 막으므로 개별 리스너를 하나씩 고칠 필요가 없다.
+      // 해제는 시간이 아니라 '다음 제스처 시작(pointerdown/touchstart)' 기준 — 시간으로 끊으면
+      // 그 안의 정당한 첫 탭까지 먹는다.
+      var NAV_OWNED_SELECTOR = '#cdMobileBottomNav,.cd-mobile-hub__chips,.cd-mobile-collection-chrome';
+      function swallowGhostTail(){
+        var tail = ['pointerup','touchend','mouseup','click'];
+        var release = ['pointerdown','touchstart'];
+        function off(){
+          tail.forEach(function(t){ window.removeEventListener(t, onTail, true); });
+          release.forEach(function(t){ window.removeEventListener(t, off, true); });
+        }
+        function onTail(e){
+          if (e.target && e.target.closest && e.target.closest(NAV_OWNED_SELECTOR)) return;
+          e.stopImmediatePropagation();
+          if (e.cancelable) e.preventDefault();
+        }
+        tail.forEach(function(t){ window.addEventListener(t, onTail, true); });
+        release.forEach(function(t){ window.addEventListener(t, off, true); });
+        window.setTimeout(off, 1200);
       }
 
       function openOverlay(collId){

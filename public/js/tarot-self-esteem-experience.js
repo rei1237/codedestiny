@@ -566,7 +566,10 @@
     if (!Array.isArray(cards)) return;
     cards.forEach(function (card) {
       var list = [];
-      getLocalTarotImageCandidates(card).forEach(function (u) { list.push(u); });
+      // 로컬 후보는 첫 번째(/tarot-cards/)만 미리 받는다. 나머지 세 베이스는 onerror 체인용
+      // 폴백일 뿐 항상 404 라서, 여기서 전부 프로브하면 카드마다 3회씩 콘솔 404 를 찍는다.
+      var localCandidates = getLocalTarotImageCandidates(card);
+      if (localCandidates.length) list.push(localCandidates[0]);
       if (card && card.proxyImageUrl) {
         var base = getTarotApiBase();
         if (base) list.push(String(base).replace(/\/+$/, "") + card.proxyImageUrl);

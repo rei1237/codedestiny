@@ -696,6 +696,53 @@ export function matchesAnyGlob(filePath, globs) {
   return false;
 }
 
+/**
+ * Findings the edit did not touch are noise, and worse: on a large legacy file a
+ * one-line change surfaces thousands of pre-existing findings, which reads as
+ * "fix these" and has produced real regressions. Keep only findings near the
+ * text this edit actually wrote.
+ *
+ * Returns `findings` unchanged when the edit's location cannot be determined
+ * (Write authors the whole file, apply_patch/unknown tools carry no anchors).
+ */
+export const EDIT_PROXIMITY_LINES = 40;
+
+export function restrictFindingsToEditedRegions(findings, content, toolName, toolInput, proximity = EDIT_PROXIMITY_LINES) {
+  if (!Array.isArray(findings) || findings.length === 0) return findings;
+  if (typeof content !== 'string' || !content) return findings;
+
+  const tool = String(toolName || '');
+  if (tool !== 'Edit' && tool !== 'MultiEdit') return findings;
+
+  const anchors = [];
+  const push = (value) => {
+    const text = typeof value === 'string' ? value : '';
+    if (text) anchors.push(text);
+  };
+  push(toolInput?.new_string);
+  if (Array.isArray(toolInput?.edits)) {
+    for (const edit of toolInput.edits) push(edit?.new_string);
+  }
+  if (anchors.length === 0) return findings;
+
+  const ranges = [];
+  for (const anchor of anchors) {
+    const index = content.indexOf(anchor);
+    if (index < 0) continue;
+    const startLine = content.slice(0, index).split('\n').length;
+    const endLine = startLine + anchor.split('\n').length - 1;
+    ranges.push([startLine - proximity, endLine + proximity]);
+  }
+  // Anchor not found (already re-edited, CRLF mismatch, …) — do not silently hide everything.
+  if (ranges.length === 0) return findings;
+
+  return findings.filter((f) => {
+    const line = Number(f?.line);
+    if (!Number.isFinite(line)) return true;
+    return ranges.some(([from, to]) => line >= from && line <= to);
+  });
+}
+
 export function filterFindings(findings, _content, _ext, config) {
   if (!Array.isArray(findings) || findings.length === 0) return [];
   const ignoreRules = new Set((config.ignoreRules || []).map((rule) => normalizeIgnoreRule(rule)));
@@ -1583,7 +1630,10 @@ export async function runHook({ stdinJson, env = {}, cwd = process.cwd(), now = 
         try { findings = await det.detectText(content, filePath, scanOptions); } catch { findings = []; detectorThrew = true; }
       }
 
-      const filtered = filterFindings(findings || [], content, ext, config);
+      const nearEdit = primaryFileSet.has(filePath)
+        ? restrictFindingsToEditedRegions(findings || [], content, event.tool_name, event.tool_input)
+        : (findings || []);
+      const filtered = filterFindings(nearEdit, content, ext, config);
       const fresh = dedupeAgainstCache(filtered, cache, sessionId, filePath);
       audit.findings = (findings || []).length;
       audit.freshFindings = fresh.length;

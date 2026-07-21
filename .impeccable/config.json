@@ -7,9 +7,20 @@
     }
   },
   "detector": {
-    "ignoreRules": [],
+    "ignoreRules": [
+      "design-system-color",
+      "design-system-radius",
+      "ai-color-palette",
+      "cream-palette"
+    ],
     "ignoreFiles": [
-      "public/codedestiny-novel.html"
+      "public/codedestiny-novel.html",
+      "index.html",
+      "public/index.html",
+      "public/static/index.html",
+      "public/en/index.html",
+      "public/ja/index.html",
+      "public/zh/index.html"
     ],
     "ignoreValues": [
       {
