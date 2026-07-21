@@ -2148,6 +2148,109 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .tile-pvw-overlay.pvw-prem .tile-pvw-hero-badges{top:auto;bottom:12px;left:14px;right:14px}
 }
 </style>
+<style id="tile-pvw-yeon-dark-v20260722">
+/* === 프리뷰 시트: 연이 Dark(핑크 다크) + 금박 헤어라인 — 모바일 전용 ===
+   앞 블록(v20260721)은 연이를 밝은 크림으로 확정했다. 모바일에서는 이 시트가 카드 아트를
+   전면에 세우는 화면이라, 크림 바탕이 아트의 채도를 죽이고 배지·가격이 떠 보였다.
+   DESIGN.md 의 연이 Dark(딥 플럼 #3a0e28→#24081a / 텍스트 #fff1f7 / 테두리
+   rgba(244,190,209,.38))로 내리고, 골드(#ead089)는 One Accent Rule 대로 헤어라인·불릿·
+   가격 같은 보조 포인트로만 쓴다. CTA 는 강조색 하나 규칙에 따라 로즈 크림슨을 유지한다.
+   데스크톱은 앞 블록의 밝은 크림 그대로다(모바일만 다크).
+   ⚠ 배경을 바꾸는 선언마다 같은 블록에서 글자색도 함께 지정한다 — 반쪽 오버라이드 금지. */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  html:not(.neo-mode) .tile-pvw-overlay,
+  body:not(.neo-mode) .tile-pvw-overlay{
+    --cd-detail-shell:linear-gradient(180deg,#3a0e28,#24081a);
+    --cd-detail-fill:rgba(255,196,222,.1);
+    --cd-detail-line:rgba(244,190,209,.38);
+    --cd-detail-text:#fff1f7;
+    --cd-detail-muted:rgba(255,214,232,.86);
+    --cd-detail-gold:#ead089;
+  }
+
+  /* 딤은 회색이 아니라 더 짙은 플럼 — 시트가 어둠에서 떠오르게 */
+  html:not(.neo-mode) .tile-pvw-bd{background:rgba(20,4,14,.62)!important}
+
+  /* 시트: 플럼 그라디언트 + 1px 금박 헤어라인 + 내부 하이라이트(Glow-Not-Shadow) */
+  html:not(.neo-mode) .tile-pvw-sheet{
+    background:linear-gradient(176deg,#3a0e28 0%,#2e0b21 54%,#24081a 100%)!important;
+    border:1px solid rgba(234,208,137,.34)!important;
+    border-bottom:none!important;
+    box-shadow:0 -18px 52px rgba(14,3,10,.66),0 0 0 1px rgba(255,240,200,.1) inset!important;
+  }
+  html:not(.neo-mode) .tile-pvw-sheet::before{
+    background:linear-gradient(180deg,rgba(255,240,200,.14),transparent 12%)!important;opacity:1;
+  }
+  html:not(.neo-mode) .tile-pvw-handle{background:rgba(244,190,209,.34)!important}
+  html:not(.neo-mode) .tile-pvw-close{
+    background:rgba(20,4,14,.72)!important;border-color:rgba(244,190,209,.4)!important;color:#fff1f7!important;
+  }
+
+  /* 히어로: 아트 하단이 시트 색으로 녹아든다 */
+  html:not(.neo-mode) .tile-pvw-hero{background:linear-gradient(150deg,#3a0e28,#24081a)!important}
+  html:not(.neo-mode) .tile-pvw-hero-gradient{
+    background:linear-gradient(to bottom,rgba(36,8,26,0) 68%,rgba(58,14,40,.55) 88%,#3a0e28 100%)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-hero-cat{
+    background:rgba(20,4,14,.82)!important;border-color:rgba(244,190,209,.42)!important;color:#ffe9f2!important;
+  }
+  html:not(.neo-mode) .tile-pvw-hero-cost{
+    background:rgba(20,4,14,.86)!important;border-color:rgba(234,208,137,.62)!important;color:#f8e7b7!important;
+  }
+  html:not(.neo-mode) .tile-pvw-hero-cost--free{border-color:rgba(167,226,193,.6)!important;color:#d6f5e2!important}
+
+  /* 본문 타이포 */
+  html:not(.neo-mode) .tile-pvw-title{color:#fff1f7!important}
+  html:not(.neo-mode) .tile-pvw-tagline{color:rgba(255,214,232,.86)!important}
+  html:not(.neo-mode) .tile-pvw-feats-label{color:rgba(255,214,232,.7)!important}
+  html:not(.neo-mode) .tile-pvw-divider{background:linear-gradient(90deg,#ead089,transparent)!important}
+  html:not(.neo-mode) .tile-pvw-feats li{
+    color:#fff1f7!important;border-bottom-color:rgba(244,190,209,.22)!important;background:none!important;
+  }
+  html:not(.neo-mode) .tile-pvw-feats li::before{color:#ead089!important}
+
+  /* 프리미엄 상세 블록 */
+  html:not(.neo-mode) .tile-pvw-premium-block{
+    background:rgba(255,196,222,.06)!important;border-color:rgba(244,190,209,.26)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-premium-intro{color:rgba(255,214,232,.9)!important}
+  html:not(.neo-mode) .tile-pvw-premium-title{color:#f8e7b7!important}
+  html:not(.neo-mode) .tile-pvw-premium-list li{color:rgba(255,241,247,.92)!important}
+
+  /* 결제/해금 안내 — 플럼 위 금박 테두리 */
+  html:not(.neo-mode) .tile-pvw-paywall{
+    background:rgba(234,208,137,.1)!important;border-color:rgba(234,208,137,.34)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-paywall-title{color:#f4e9c8!important}
+  html:not(.neo-mode) .tile-pvw-paywall-desc{color:rgba(244,233,200,.84)!important}
+  html:not(.neo-mode) .tile-pvw-paywall-note{
+    color:rgba(255,214,232,.7)!important;border-top-color:rgba(244,190,209,.2)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-paywall--lock{
+    background:rgba(244,190,209,.1)!important;border-color:rgba(244,190,209,.34)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-paywall--lock .tile-pvw-paywall-title{color:#ffd6e8!important}
+  html:not(.neo-mode) .tile-pvw-paywall--lock .tile-pvw-paywall-desc{color:rgba(255,214,232,.84)!important}
+
+  /* CTA — 강조색은 하나(로즈 크림슨). 위쪽 규칙이 #fffaf7 을 !important 로 강제하므로
+     같은 선택자 형태로 다시 확정한다(그대로 두면 CTA 바만 크림으로 남는다). */
+  html:not(.neo-mode) .tile-pvw-cta-sticky,
+  html:not(.neo-mode) .MobileFeatureBottomSheet.tile-pvw-overlay.pvw-open .tile-pvw-cta-sticky{
+    background:#24081a!important;border-top:1px solid rgba(234,208,137,.26)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-cta-btn,
+  html:not(.neo-mode) .tile-pvw-cta-btn--coin,
+  html:not(.neo-mode) .tile-pvw-cta-btn--lock,
+  html:not(.neo-mode) .tile-pvw-cta-btn--sub{
+    background:linear-gradient(135deg,#b31955 0%,#c9376e 100%)!important;
+    color:#fff8f4!important;border:1px solid rgba(234,208,137,.34)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-cta-btn:focus-visible{
+    outline:none!important;box-shadow:0 0 0 2px #24081a,0 0 0 4px rgba(234,208,137,.7)!important;
+  }
+  html:not(.neo-mode) .tile-pvw-cta-meta{color:rgba(255,214,232,.78)!important}
+}
+</style>
 <style id="cd-mobile-microinteractions-v20260721">
 /* === 마이크로 인터랙션 (모바일/앱) ===
    transition 이 아니라 animation 을 쓴다 — 카드의 기본 상태는 "보임"이고 애니메이션은
