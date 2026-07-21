@@ -5583,7 +5583,9 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   /* ── 최종 대비 수정 라운드 2 ── */
   /* VVIP 히어로 카드: 가격 배지를 이미지 위 소형 오버레이로 (심볼 가림 없음) */
   #premiumVvipCollection#premiumVvipCollection .tarot-tile__coin-badge{width:auto!important;height:auto!important;min-width:0!important;max-width:88%!important;top:8px!important;left:8px!important;right:auto!important;bottom:auto!important;transform:none!important;padding:4px 10px!important;border-radius:999px!important;font-size:10px!important;line-height:1.2!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;background:rgba(10,7,22,.88)!important;border:1px solid rgba(244,208,117,.5)!important;color:#f4e9c8!important}
-  #premiumVvipCollection#premiumVvipCollection .tarot-tile__img-wrap .tarot-tile__img-placeholder{display:flex!important;align-items:center!important;justify-content:center!important}
+  /* 심볼 폴백은 이미지가 아직 안 붙었을 때만 — 가드가 없으면 이 !important 가 하이드레이션의
+     인라인 display:none 을 이겨, 불투명한 플레이스홀더가 실제 이미지를 덮어 빈 판처럼 보인다. */
+  #premiumVvipCollection#premiumVvipCollection .tarot-tile__img-wrap:not(:has(img.tarot-tile__img)) .tarot-tile__img-placeholder{display:flex!important;align-items:center!important;justify-content:center!important}
 
   /* 쿠키 배너: 연이=밝은 글래스, 네오=기존 다크 유지
      ⚠ 실제 카드 표면은 __panel(다크 네이비 그라디언트)이다. 반드시 __panel 을 밝게 뒤집어야
