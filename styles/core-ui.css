@@ -77,8 +77,9 @@
 		padding: 0;
 		min-height: 100%;
 		min-height: 100dvh;
-		background: #020617;
-		color: #f8fafc;
+		/* 네오 미드나잇 정렬 — styles/globals.css 의 body 와 같은 값을 쓴다. */
+		background: #0a0818;
+		color: #f4eeff;
 		font-family: var(--font-body);
 		font-size: 16px;
 		line-height: 1.62;

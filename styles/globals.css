@@ -77,8 +77,11 @@
 		padding: 0;
 		min-height: 100%;
 		min-height: 100dvh;
-		background: #020617;
-		color: #f8fafc;
+		/* 네오 미드나잇(DESIGN.md 정본). 이전 값 #020617 은 slate-950 계열 네이비로
+		   연이(핑크)도 네오(퍼플)도 아닌 레거시 색이었다 — 홈 셸과 앱 화면이 서로 다른
+		   세계처럼 보이던 원인. 다크→다크 교체라 글자색 전제는 그대로다. */
+		background-color: #0a0818;
+		color: #f4eeff;
 		font-family: var(--font-body);
 		font-size: 16px;
 		line-height: 1.62;
