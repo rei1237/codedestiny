@@ -206,6 +206,25 @@ export default function RootLayout({ children }) {
             __html: "try{if(localStorage.getItem('fortuneThemeModeStateV1')==='neo'){document.documentElement.dataset.cdTheme='neo';}}catch(e){}",
           }}
         />
+        {/* 청크 로드 실패 1회 재시도 — 실패한 URL 에 캐시 우회 쿼리를 붙여 다시 받는다.
+
+            Cloudflare 는 Pages 가 배포 전환 틈새에 내보낸 404 를 max-age=172800(2일)로 캐시한다.
+            그러면 오리진에 파일이 멀쩡히 있어도 그 URL 만 이틀간 죽어, HTML 은 no-store 라
+            새로고침해도 같은 URL 을 다시 요청하므로 화면이 계속 에러 폴백에 갇힌다
+            (2026-07-22 운명 찻집 사고 — 같은 파일이 쿼리를 붙이면 200 이었다).
+            app/error.tsx 의 '경로당 1회 새로고침'은 구 HTML 이 삭제된 청크를 가리키는 경우용이라
+            이 케이스를 못 고친다. 그래서 계층을 달리해 로더 자체에서 끊는다.
+
+            self.webpackChunk_N_E 항목의 세 번째 요소는 런타임이 __webpack_require__ 로 호출한다.
+            런타임 전/후 어느 시점에 push 해도 처리되므로 순서에 의존하지 않는다.
+            재시도는 원본 loader 를 직접 부르므로 래퍼를 다시 타지 않는다(= 무한 루프 불가).
+            ⚠️ 반드시 순수 ES5 문자열 — 과거 인라인 스크립트에 TS 표기가 섞여 SyntaxError 로
+            로그인·결제가 통째로 죽은 적이 있다. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "(function(){try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"){if(!busted[url])busted[url]=url+(url.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now();orig(busted[url],done,undefined,chunkId);return;}done(ev);},key,chunkId);};}catch(e){}}]);}catch(e){}})();",
+          }}
+        />
       </head>
       <body className={notoSansKRVariable}>
         <PaymentProcessingProvider>
