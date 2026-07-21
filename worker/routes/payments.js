@@ -5026,6 +5026,10 @@ async function handleReportFailure(request, env, auth) {
 }
 
 function formatPointHistoryEntry(entry) {
+  // 이용권(PASS/FAMILY) 무료 통과 기록은 payments가 아니라 PointHistory에만 남는다(billing.js recordPassAccessIfNeeded).
+  // 주문 내역이 이를 "이용권으로 처리" 행으로 표시할 수 있도록 판별에 필요한 metadata만 추려 내보낸다
+  // (metadata 통째 노출은 민감 필드가 섞일 수 있어 하지 않는다).
+  const metadata = entry?.metadata && typeof entry.metadata === "object" ? entry.metadata : {};
   return {
     id: String(entry?._id || ""),
     kind: entry?.kind,
@@ -5034,6 +5038,11 @@ function formatPointHistoryEntry(entry) {
     reason: entry?.reason,
     featureKey: entry?.featureKey,
     createdAt: entry?.createdAt,
+    accessType: String(metadata.accessType || ""),
+    accessMethod: String(metadata.accessMethod || ""),
+    coinPrice: Number(metadata.coinPrice ?? metadata.coinCost ?? 0),
+    requestId: String(metadata.requestId || ""),
+    passTier: String(metadata.passTier || ""),
   };
 }
 
