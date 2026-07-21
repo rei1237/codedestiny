@@ -10074,10 +10074,10 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           <div class="moon-hero__actions">
             <a class="moon-hero__cta moon-hero__cta--primary" href="/saju/basic#destinyCardForm" data-cd-trans data-key="home.hero.primaryCta">무료 사주 분석 시작</a>
             <button type="button" class="moon-hero__cta moon-hero__cta--ghost" data-action="openTarotModal" data-cd-trans data-key="home.hero.tarotCta">타로 카드 뽑기</button>
-            <!-- 모바일에서는 /today 가 사실상 빈 화면이라 무료 카드 모음으로 보낸다.
-                 handleHubControl 이 data-cd-mobile-scroll 을 모바일에서만 가로채고
-                 데스크탑에서는 isMobileView() 가 거짓이라 href 로 그대로 이동한다. -->
-            <a class="moon-hero__cta moon-hero__cta--soft" href="/today" data-cd-mobile-scroll="moonFreeStart" data-cd-trans data-key="home.hero.todayCta">오늘의 운세 보기</a>
+            <!-- '오늘의 운세'(/today)는 도구 없는 SEO 랜딩이라 폐기했다. 아래 인라인 스크립트가 이미
+                 전 뷰포트에서 이 버튼을 '운세 지도 둘러보기'로 바꾸고 있었으므로 마크업을 정본에 맞춘다.
+                 data-cd-mobile-scroll(moonFreeStart)은 라벨과 목적지가 어긋나 함께 걷어낸다. -->
+            <a class="moon-hero__cta moon-hero__cta--soft" href="#featureBegin">운세 지도 둘러보기</a>
           </div>
         </div>
         <div class="moon-hero__visual relative isolate overflow-hidden rounded-[26px]">
@@ -10218,10 +10218,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           if (actions) {
             var primary = actions.querySelector('.moon-hero__cta--primary');
             var ghost = actions.querySelector('.moon-hero__cta--ghost');
-            var soft = actions.querySelector('.moon-hero__cta--soft');
             if (primary) { primary.removeAttribute('data-cd-trans'); primary.removeAttribute('data-key'); primary.setAttribute('href','#moonFreeStart'); primary.textContent = '무료 서비스부터 보기'; }
             if (ghost) { ghost.removeAttribute('data-cd-trans'); ghost.removeAttribute('data-key'); ghost.textContent = '타로 한 장 먼저 보기'; }
-            if (soft) { soft.removeAttribute('data-cd-trans'); soft.removeAttribute('data-key'); soft.setAttribute('href','#featureBegin'); soft.textContent = '운세 지도 둘러보기'; }
           }
         })();
       </script>
