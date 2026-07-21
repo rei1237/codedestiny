@@ -2227,3 +2227,54 @@ body:not(.neo-mode) .moon-hero{
 		touch-action: manipulation !important;
 	}
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Lunar Cartography Index — 연이 Dark(핑크 다크) 진입 패널 (v20260721)
+   기존 연이 패널이 흰 유리라 홈에서 가장 눈부신 블록이었다. DESIGN.md
+   "연이 Dark" 정본(딥 플럼 #3a0e28→#24081a / 텍스트 #fff1f7 /
+   테두리 rgba(244,190,209,.38))으로 표면·텍스트·강조를 한 세트로 교체한다.
+   네오는 손대지 않는다 — 두 모드는 계열만 다르고 무게감은 같다.
+   ───────────────────────────────────────────────────────────── */
+body:not(.neo-mode) .moon-collection-nav{
+  border-color:rgba(244,190,209,.38)!important;
+  background:
+    radial-gradient(circle at 16% 6%,rgba(174,45,104,.32),transparent 44%),
+    radial-gradient(circle at 86% 12%,rgba(234,208,137,.12),transparent 38%),
+    linear-gradient(158deg,#3a0e28 0%,#2e0a21 54%,#24081a 100%)!important;
+  box-shadow:0 18px 38px rgba(28,6,20,.36),0 0 0 1px rgba(244,190,209,.14),inset 0 1px 0 rgba(255,241,247,.1)!important;
+}
+body:not(.neo-mode) .moon-collection-nav::before{
+  color:#ead089!important;
+  text-shadow:0 1px 10px rgba(28,6,20,.62)!important;
+}
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card{
+  border-color:rgba(244,190,209,.2)!important;
+  background:rgba(255,241,247,.06)!important;
+  color:#fff1f7!important;
+  box-shadow:inset 0 1px 0 rgba(255,241,247,.09),0 10px 20px rgba(20,5,15,.26)!important;
+}
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card:hover,
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card:focus-visible{
+  border-color:rgba(255,196,222,.5)!important;
+  background:rgba(255,241,247,.13)!important;
+  box-shadow:0 14px 28px rgba(20,5,15,.34),inset 0 1px 0 rgba(255,241,247,.16)!important;
+}
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card__name{
+  color:#fff1f7!important;
+  text-shadow:0 1px 6px rgba(20,5,15,.5)!important;
+}
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card__meta{
+  color:rgba(255,214,232,.86)!important;
+  text-shadow:none!important;
+}
+/* 고유 배경이 없는 심볼(☀·✧·🧠 등)은 투명이라 다크 위에서 떠 보인다 — 플럼 표면을 깔아준다 */
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card__sigil{
+  border-color:rgba(244,190,209,.26)!important;
+  color:#fff1f7!important;
+  box-shadow:0 10px 20px rgba(20,5,15,.34),inset 0 1px 0 rgba(255,241,247,.14)!important;
+}
+body:not(.neo-mode) .moon-preview-card__sigil--prompt{background:linear-gradient(145deg,#ead089 0%,#b31955 48%,#3a0e28 100%)!important}
+body:not(.neo-mode) .moon-preview-card__sigil--physio{background:linear-gradient(145deg,#f4bed1 0%,#b31955 46%,#3a0e28 100%)!important}
+body:not(.neo-mode) .moon-collection-nav .moon-preview-card__sigil:not([class*="__sigil--"]){
+  background:linear-gradient(145deg,rgba(244,190,209,.34) 0%,rgba(179,25,85,.42) 48%,rgba(36,8,26,.72) 100%)!important;
+}
