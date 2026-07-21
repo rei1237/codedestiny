@@ -800,6 +800,15 @@
     return el ? findRuleFromTarget(el) : null;
   }
 
+  /* 하단 네비·허브 칩·컬렉션 크롬바는 index.html 의 전용 핸들러가 소유한다.
+     이들은 탭 즉시 풀스크린 컬렉션 오버레이를 여는데, 아래 좌표 재스캔은 rAF 한 프레임 뒤에
+     돌기 때문에 그때 같은 좌표에는 방금 열린 컬렉션 타일이 놓여 있다. 그 타일을 탭 대상으로
+     오인해 엉뚱한 타로로 하드 내비게이션(=새로고침 후 오연결)해 버린다. */
+  var NAV_OWNED_TAP_SELECTOR = '#cdMobileBottomNav,.cd-mobile-hub__chips,.cd-mobile-collection-chrome';
+  function isNavOwnedTap(target) {
+    return !!(target && target.closest && target.closest(NAV_OWNED_TAP_SELECTOR));
+  }
+
   function findActionElement(origin, rule) {
     if (!origin || !rule) return null;
     var direct = origin.closest('[data-action="' + rule.action + '"]');
@@ -1863,6 +1872,10 @@
       }
 
       /* Mobile callback: re-scan with elementFromPoint when touchCtx delayed handling fails (minimal fallback). */
+      if (isNavOwnedTap(event.target)) {
+        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+        return;
+      }
       if (lastTouchStart) {
         var touchAge = Date.now() - (lastTouchStart.at || 0);
         if (touchAge > MAX_TAP_DURATION_MS) {
@@ -2036,6 +2049,10 @@
         } else {
           suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
         }
+      }
+      if (isNavOwnedTap(event.target)) {
+        suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;
+        return;
       }
       if (lastTouchStart) {
         var touchAge = Date.now() - (lastTouchStart.at || 0);
