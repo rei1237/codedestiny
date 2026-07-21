@@ -2547,7 +2547,9 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
   var ioEnabled = typeof IntersectionObserver !== 'undefined';
   var r2AssetBase = 'https://assets.code-destiny.com/';
   var localAssetKeys = {
-    'saju-guardian-animal-v20260615.webp': true
+    'saju-guardian-animal-v20260615.webp': true,
+    // R2 에 올라가 있지 않아 리사이즈·원본이 모두 404 다. 로컬 경로로 바로 간다.
+    'comprehensive-fortune-prompt.webp': true
   };
 
   function splitCollectionImagePath(src) {
@@ -2685,11 +2687,15 @@ function __cdHydrateCollectionImagesChunked(collection, forceHydrateAll) {
       var resizedExisting = buildResizedCollectionImageUrl(resolvedExistingSrc, wrap);
       // 리사이즈 → R2 원본 → 마크업에 박혀 있던 원래 경로 순으로 물러난다.
       var existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
-      bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       var nextSrc = resizedExisting || resolvedExistingSrc;
       if (nextSrc && nextSrc !== existingSrc) {
+        // 체인은 "바인딩 시점의 src" 와 같은 후보를 중복으로 보고 걸러낸다. 먼저 바인딩하면
+        // 마크업의 원래 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는
+        // 자산은 리사이즈·R2 원본이 모두 404 가 되면서 물러날 곳이 없어 img 가 통째로 제거된다.
+        // src 를 먼저 바꾼 뒤 바인딩해야 원래 경로가 마지막 후보로 남는다.
         existingImg.loading = 'eager';
         existingImg.src = nextSrc;
+        bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       } else if (nextSrc && !(existingImg.complete && existingImg.naturalWidth > 0)) {
         // 닫힌(=display:none) 컬렉션 안에서 파싱된 loading="lazy" 이미지는 나중에 컬렉션이 열려도
         // 크로미움이 요청을 다시 걸지 않는다. src 는 그대로 둔 채 노드만 새로 붙여 한 번 깨운다.
