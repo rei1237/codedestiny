@@ -5186,12 +5186,13 @@ async function readBillingSnapshot(request, env, options = {}) {
   let auth = null;
   let authInfraError = null;
   try {
-    // attemptTimeoutMS 기본(7s)이 서버선택 타임아웃(8s)보다 짧아, 콜드 아이솔레이트에서 연결이
-    // 자기 선택창 안에 있는데도 op-래퍼가 먼저 잘라 이용권 확인이 실패→게스트 강등되던 문제를 막는다.
-    // 유료 게이트 핵심 읽기라 콜드 연결까지 완료되도록 상한을 11s로 넓힌다(웜 요청은 영향 없음).
+    // 🔴 withMongoRetry로 감싸지 않는다. 인증의 실제 DB 읽기는 auth.js의 resolveActiveUserAuth·
+    // verifyRefreshSessionToAuth 안에서 이미 재시도되며, 그 안쪽 래퍼가 서버선택 타임아웃(8s)+3.5s를
+    // per-attempt 상한의 하한으로 강제한다 — 여기서 11s를 다시 지정할 필요도, 감쌀 이유도 없다.
+    // 밖에서 또 감싸면 시도·재연결만 배수로 늘어난다(verify:no-nested-retry 가 감시).
     // seed 경로(seedLegacyCredit=true)에서는 authUserDoc를 재사용하지 않으므로(아래 stage-2 주석 참고)
     // 인증 조회를 확장하지 않는다. 조회 전용 경로에서만 billing 필드를 함께 읽어 재조회 왕복을 없앤다.
-    auth = await withMongoRetry(env, () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: seedLegacyCredit === true ? null : BILLING_SNAPSHOT_USER_PROJECTION }), { attemptTimeoutMS: 11000 });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: seedLegacyCredit === true ? null : BILLING_SNAPSHOT_USER_PROJECTION });
   } catch (error) {
     if (!isAuthDbInfraError(error)) throw error;
     // 재시도 후에도 지속되는 infra 에러 = 토큰은 있으나 DB 장애로 확인 불가(진짜 게스트는 throw 없이 null).

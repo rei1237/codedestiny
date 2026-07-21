@@ -595,7 +595,23 @@ export async function handleUserRoutes(request, env) {
     const path = getRoutePath(request, "/api/user");
 
     if (method === "GET" && path === "/tamagotchi") {
-      const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+      // 읽기 전용 조회다. 바로 아래 connectDb 실패는 이미 200+degraded 로 다루면서
+      // 그 앞의 인증 조회만 무방비로 두면, 같은 DB 블립이 인증 단계에서 터졌을 때만
+      // catch-all 로 새어 503 이 된다 — 같은 완충을 인증에도 씌운다.
+      let auth;
+      try {
+        auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+      } catch (error) {
+        logUserRouteError("auth-get-tamagotchi", error, request);
+        return json({
+          ok: false,
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
+          debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("auth-get-tamagotchi", error),
+        }, { status: 200 });
+      }
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }
@@ -638,7 +654,23 @@ export async function handleUserRoutes(request, env) {
     }
 
     if (method === "GET" && path === "/destiny-profiles") {
-      const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+      // 읽기 전용 조회다. 바로 아래 connectDb 실패는 이미 200+degraded 로 다루면서
+      // 그 앞의 인증 조회만 무방비로 두면, 같은 DB 블립이 인증 단계에서 터졌을 때만
+      // catch-all 로 새어 503 이 된다 — 같은 완충을 인증에도 씌운다.
+      let auth;
+      try {
+        auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+      } catch (error) {
+        logUserRouteError("auth-get-destiny-profiles", error, request);
+        return json({
+          ok: false,
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "프로필 동기화 서버가 일시적으로 불안정합니다.",
+          debugMessage: String(error?.message || ""),
+          errorDetails: buildErrorDetails("auth-get-destiny-profiles", error),
+        }, { status: 200 });
+      }
       if (!auth) {
         return json({ ok: false, code: "AUTH_REQUIRED", message: "로그인이 필요합니다." }, { status: 401 });
       }

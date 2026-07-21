@@ -1,9 +1,9 @@
 ﻿import { connectDb, withMongoRetry } from "../lib/db.js";
-import { requireUserFromRequest } from "../lib/auth.js";
+import { isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
 import { PointHistory, ProfileCard, User } from "../lib/models.js";
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { applyGrantLot, ensureLotsForBalance } from "../lib/monthly-credit-lots.js";
-import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import {
   normalizeHoneyPassEntitlement,
   resolveCurrentProfileId as resolveCurrentId,
@@ -1550,6 +1550,24 @@ export async function handleProfileRoutes(request, env) {
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
+    /* 읽기 전용 조회(GET)는 DB 일시 장애를 503으로 알릴 이유가 없다. 이 요청은 페이지 로드 때
+       자동으로 나가고, 클라이언트는 이미 조용히 물러나도록 만들어져 있다
+       (js/destiny-profile.js: `!data.ok || !Array.isArray(data.profiles)` 면 기존 목록 유지).
+       ok:false 를 유지해야 그 가드가 작동하므로 ok 를 true 로 바꾸지 말 것 — 빈 목록으로 오인하면
+       카드가 지워진다. 쓰기(POST·PATCH·DELETE)는 종전대로 503이어야 한다: 실패한 쓰기를
+       성공처럼 보이게 하면 안 된다. */
+    if (request.method.toUpperCase() === "GET" && (isAuthDbInfraError(error) || isDbUnavailableError(error))) {
+      console.warn("[Profile][ReadDegraded]", {
+        stage: trace.authVerified ? "read" : "auth",
+        message: String(error?.message || error || ""),
+      });
+      return json({
+        ok: false,
+        degraded: true,
+        code: "DB_FALLBACK",
+        message: "프로필 정보를 잠시 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+      });
+    }
     return handleRouteError(error, {
       env,
       request,

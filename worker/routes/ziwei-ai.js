@@ -1952,7 +1952,19 @@ async function handleMessage(request, env) {
 }
 
 async function handleResult(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // 폴링은 이미 인가된 세션의 결과 조회다. 인증 판정에서 일시적 DB 장애가 나면 하드 503으로 끊지 말고
+  // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
+  let auth = null;
+  try {
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  } catch (error) {
+    return json({
+      ok: false,
+      retryable: true,
+      reason: "DB_DEGRADED",
+      message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+    }, { status: 503 });
+  }
   if (!auth) return loginRequired();
   const url = new URL(request.url);
   const sessionId = clean(url.searchParams.get("id") || url.searchParams.get("sessionId"), 120);

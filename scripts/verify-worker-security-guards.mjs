@@ -87,10 +87,10 @@ assertBefore(profile, "const security = await enforceProfileRouteSecurity(reques
 assertNotContains(security, "usage_pass", "security module usage pass access type");
 assertNotContains(security, "usagePass", "security module usage pass fields");
 
-/* 인증 진입점은 재시도로 감싸야 한다.
-   라우트 본문의 읽기는 대부분 withMongoRetry로 감싸져 있는데 그 앞의 인증 조회만 무방비면,
-   한 번의 일시적 풀 초기화가 본문에 닿기도 전에 503으로 끝난다(/api/profile 이 그렇게 실패했다).
-   billing만 자체적으로 감싸고 있어 그쪽만 멀쩡했던 비대칭을 공통 진입점에서 제거했다. */
+/* 인증 진입점은 재시도로 감싸지 않는다.
+   인증의 실제 DB 읽기는 auth.js 안쪽(resolveActiveUserAuth·verifyRefreshSessionToAuth)에서 이미
+   재시도된다. 그 위 계층을 또 감싸면 시도 횟수와 재연결이 배수로 늘 뿐, op-타임아웃은 설계상
+   재시도 대상이 아니라 정작 나아지는 것이 없다. 상세 검사는 verify:no-nested-retry 가 맡는다. */
 const authSource = source("worker/lib/auth.js");
 [
   ["export async function requireUserFromRequest", "requireUserFromRequest"],
@@ -100,12 +100,8 @@ const authSource = source("worker/lib/auth.js");
   assert.ok(start > 0, `auth entry point missing -> ${label}`);
   const body = authSource.slice(start, start + 1400);
   assert.ok(
-    body.includes("withMongoRetry("),
-    `${label}: 인증 조회가 withMongoRetry로 감싸져 있지 않습니다 — 일시적 DB 오류가 곧바로 503이 됩니다.`,
-  );
-  assert.ok(
-    body.includes("attemptTimeoutMS: 11000"),
-    `${label}: op-래퍼 상한이 서버선택 타임아웃(8s)보다 짧으면 콜드 아이솔레이트에서 무조건 잘립니다.`,
+    !body.includes("withMongoRetry("),
+    `${label}: 인증 진입점을 withMongoRetry로 감쌌습니다 — 안쪽 재시도와 중첩됩니다.`,
   );
 });
 

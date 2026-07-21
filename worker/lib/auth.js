@@ -580,21 +580,15 @@ export async function requireUserFromRequest(request, env, options = {}) {
   // 뭉개지 않고 원본 infra 에러를 던진다. 진짜 게스트(토큰 없음/무효)는 여전히 null→401.
   // userProjection(선택): 인증 경로 User 조회를 확장해 authUserDoc를 첨부(호출자 재조회 왕복 제거).
   //
-  // 재시도로 감싸는 이유: 이 조회는 라우트 본문보다 앞에 있고, 여기서 던진 infra 에러는
-  // handleRouteError를 거쳐 그대로 503이 된다. 정작 라우트 본문의 읽기들은 이미 withMongoRetry로
-  // 감싸져 있어서, 한 번의 일시적 풀 초기화가 "본문은 견딜 수 있는데 인증에서 죽는" 비대칭을 만들었다
-  // (/api/profile 이 그렇게 503을 냈다). billing의 readBillingSnapshot이 같은 조회를 이미 이렇게
-  // 감싸고 있고 그쪽만 멀쩡했다 — 그 처방을 공통 진입점으로 옮긴다.
-  // 상한 11s: 기본 7s는 서버선택 타임아웃(8s)보다 짧아 콜드 아이솔레이트에서 연결이 자기 선택창
-  // 안에 있는데도 op-래퍼가 먼저 잘라버린다. 웜 요청 지연에는 영향이 없다.
-  const auth = await withMongoRetry(
-    env,
-    () => getOptionalUserFromRequest(request, env, {
-      surfaceDbInfraError: true,
-      userProjection: options.userProjection || null,
-    }),
-    { attemptTimeoutMS: 11000 },
-  );
+  // 🔴 여기를 withMongoRetry로 감싸지 말 것. 인증의 실제 DB 읽기는 이 아래
+  // resolveActiveUserAuth·verifyRefreshSessionToAuth 안에서 이미 재시도된다. 밖에서 또 감싸면
+  // 시도 횟수와 resetMongooseConnection 호출이 배수로 늘어 재연결 폭풍에 가까워지는 반면,
+  // 정작 op-타임아웃은 설계상 재시도 대상이 아니라 아무것도 나아지지 않는다.
+  // 재시도는 실제 DB 작업이 일어나는 한 지점에서만 건다. (verify:no-nested-retry 가 감시)
+  const auth = await getOptionalUserFromRequest(request, env, {
+    surfaceDbInfraError: true,
+    userProjection: options.userProjection || null,
+  });
   if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
 }
@@ -604,13 +598,9 @@ export async function requireUserFromRequest(request, env, options = {}) {
 // 표면화한다. 진짜 게스트(토큰 없음/무효)는 그대로 null을 돌려주므로 호출자는 기존 401 유지.
 export async function resolvePaidRouteAuth(request, env) {
   try {
-    // requireUserFromRequest와 같은 이유로 재시도로 감싼다 — 한 번의 일시적 풀 초기화가
-    // 라우트 본문에 닿기도 전에 503을 만들지 않게 한다.
-    return await withMongoRetry(
-      env,
-      () => getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true }),
-      { attemptTimeoutMS: 11000 },
-    );
+    // 🔴 requireUserFromRequest와 같은 이유로 여기도 감싸지 않는다 — 인증 DB 읽기의 재시도는
+    // resolveActiveUserAuth·verifyRefreshSessionToAuth 한 지점에만 있어야 한다.
+    return await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       throw createHttpError(503, "로그인 상태를 일시적으로 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", {

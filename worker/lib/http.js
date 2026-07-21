@@ -137,6 +137,20 @@ function toPublicErrorDetails(error, context = {}) {
   };
 }
 
+/* DB 일시 장애 판별의 단일 정의.
+   handleRouteError 가 503을 낼지 결정하는 데 쓰고, 라우트가 "이 오류면 degraded 로 응답한다"를
+   판단할 때도 같은 것을 쓴다 — 두 곳이 다른 기준을 갖고 있으면 어떤 오류는 degraded 로도,
+   503 으로도 안 잡혀 500 으로 샌다.
+   에러명(Mongo*)과 풀-클리어 메시지까지 보는 이유: MongoPoolClearedError 는 메시지에 "mongo" 가
+   없을 수 있어 메시지 정규식만으로는 놓친다(과거 500으로 새던 원인).
+   op-타임아웃("MongoDB operation timed out in Worker.")도 메시지에 mongodb 가 있어 여기 걸린다. */
+export function isDbUnavailableError(error) {
+  const errorText = String(error?.message || error || "");
+  return /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText)
+    || /^Mongo/.test(String(error?.name || ""))
+    || /pool .*was cleared|was cleared because|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT/i.test(errorText);
+}
+
 export async function handleRouteError(error, context = {}) {
   if (error instanceof HttpError) {
     const payloadDetails = error?.payload && typeof error.payload === "object"
@@ -208,11 +222,7 @@ export async function handleRouteError(error, context = {}) {
   }
 
   const isConfigError = /mongo_uri|mongodb_uri|required for worker-native|connection timed out/i.test(errorText);
-  // 에러명(Mongo*)과 풀-클리어 메시지도 DB 일시장애로 판정 — MongoPoolClearedError는
-  // 메시지에 "mongo"가 없을 수 있어 메시지 정규식만으로는 놓친다(500으로 새는 원인).
-  const isDbUnavailable = /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText)
-    || /^Mongo/.test(String(error?.name || ""))
-    || /pool .*was cleared|was cleared because|socket .*timed out|network (error|timeout)|ECONNRESET|EPIPE|ETIMEDOUT/i.test(errorText);
+  const isDbUnavailable = isDbUnavailableError(error);
 
   if (isDbUnavailable || isConfigError) {
     return json({
