@@ -599,15 +599,19 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     };
   }, [options.initialVolume, playCurrentAudio, setTrackIndex]);
 
+  // 의존을 트랙 객체가 아니라 id + audioUrl로 좁힌다. 접근권(이용권/구매) 갱신으로 트랙 객체가
+  // 새로 만들어져도 재생 중인 오디오가 리셋되지 않게 하기 위함이다.
+  const currentTrackId = currentTrack?.id || "";
+  const currentTrackAudioUrl = currentTrack?.audioUrl || "";
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !currentTrack) return;
+    if (!audio || !currentTrackId) return;
 
     const shouldPlayAfterLoad = playAfterSourceChangeRef.current || (hasUserInteractedRef.current && isPlayingRef.current);
     playAfterSourceChangeRef.current = false;
     audio.pause();
 
-    if (!currentTrack.audioUrl) {
+    if (!currentTrackAudioUrl) {
       audio.removeAttribute("src");
       audio.load();
       setCurrentTime(0);
@@ -620,9 +624,6 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
       return;
     }
 
-    audio.removeAttribute("src");
-    audio.preload = "none";
-    audio.load();
     previewLimitReachedTrackIdRef.current = "";
     setCurrentTime(0);
     setDuration(0);
@@ -632,10 +633,17 @@ export function useMusicPlayer(tracks: readonly Track[], options: UseMusicPlayer
     setErrorMessage(null);
     setAudioDebugHelperText(null);
 
+    // 곧바로 재생할 때는 여기서 src를 비우고 load()하지 않는다.
+    // playCurrentAudio가 src를 세팅하며 다시 load()하므로 이중 로드(불필요한 요청 1회)가 됐다.
     if (shouldPlayAfterLoad) {
       void playCurrentAudio();
+      return;
     }
-  }, [currentTrack, playCurrentAudio]);
+
+    audio.removeAttribute("src");
+    audio.preload = "none";
+    audio.load();
+  }, [currentTrackAudioUrl, currentTrackId, playCurrentAudio]);
 
   useEffect(() => {
     const audio = audioRef.current;

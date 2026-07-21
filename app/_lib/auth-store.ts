@@ -6,7 +6,11 @@ import {
   authFetch,
   clearClientAuthState,
   clearEntitlementLocalStorage,
+  isMobileAppRuntime,
   logoutWithServer,
+  mobileAppAuthHeaders as mobileAppLoginHeaders,
+  persistMobileAppAccessToken,
+  persistMobileAppRefreshToken,
   waitForAuthLogoutToSettle,
 } from "./auth-client";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
@@ -65,6 +69,7 @@ type LoginApiPayload = {
   error?: string;
   nextPath?: string;
   accessToken?: string;
+  refreshToken?: string;
   user?: AuthUser;
   errors?: string[];
 };
@@ -804,7 +809,9 @@ export async function login(credentials: LoginCredentials) {
       try {
       const nextResponse = await fetchWithTimeout(toAbsoluteApiUrl("/api/auth/login", apiBase), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        // 앱은 이 헤더가 있어야 서버가 리프레시 토큰을 JSON 본문으로 함께 내려준다
+        // (쿠키는 SameSite=Lax 라 앱 출처로 오지 않는다). 웹에서는 빈 객체다.
+        headers: { "Content-Type": "application/json", ...mobileAppLoginHeaders() },
         credentials: "include",
         body: JSON.stringify({
           email,
@@ -841,10 +848,17 @@ export async function login(credentials: LoginCredentials) {
       throw new Error(normalizeAuthApiError(payload, "로그인에 실패했어요."));
     }
 
-    try {
-      localStorage.removeItem("fortune_auth_token");
-    } catch (e) {
-      // ignore storage failures
+    // 웹은 쿠키가 정본이라 레거시 토큰을 지운다. 앱은 그 토큰이 유일한 자격증명이므로
+    // 지우면 방금 성공한 로그인이 곧바로 게스트가 된다 — 앱에서는 반대로 저장한다.
+    if (isMobileAppRuntime() && payload.accessToken) {
+      persistMobileAppAccessToken(payload.accessToken);
+      persistMobileAppRefreshToken(payload.refreshToken || "");
+    } else {
+      try {
+        localStorage.removeItem("fortune_auth_token");
+      } catch (e) {
+        // ignore storage failures
+      }
     }
 
     debugAuth("[auth] login api success");

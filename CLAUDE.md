@@ -150,7 +150,15 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 ## 디자인 스킬 (impeccable)
 
-UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이션/컬러/타이포/레이아웃 등 프론트엔드 개선 전반)은 항상 `impeccable` 스킬(`.claude/skills/impeccable/`)을 사용한다. 단축 커맨드 `/audit`, `/critique`, `/polish`가 등록되어 있고, 나머지 명령은 `/impeccable <command> [target]` 형태로 호출한다(전체 목록은 `/impeccable` 단독 실행). 프로젝트 전략/브랜드 컨텍스트는 루트 `PRODUCT.md`(register: product, 브랜드 성격: 따뜻함·전문성·신비로움), 시각 시스템은 루트 `DESIGN.md`(연이=핑크 계열, 네오=퍼플 달빛 두 페르소나, Glow-Not-Shadow 규칙 등)를 참고한다. `.tsx`/`.jsx`/`.css`/`.html` 등 UI 파일을 Edit/Write/MultiEdit하면 디자인 감지 후크가 자동으로 실행되어 문제를 시스템 리마인더로 알려준다(`.claude/settings.json`의 `hooks.PostToolUse`, `.impeccable/config.json`에서 on/off·예외 관리).
+UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이션/컬러/타이포/레이아웃 등 프론트엔드 개선 전반)은 항상 `impeccable` 스킬(`.claude/skills/impeccable/`)을 사용한다.
+
+**🔴 훅 캘리브레이션 (2026-07-22, 되돌리지 말 것)**: 감지 훅이 앱 전역에서 14,612건을 뱉었는데 그중 **14,333건(98.1%)이 팔레트 드리프트 3종**이었다. 원인은 코드가 아니라 규칙이 이 프로젝트와 구조적으로 안 맞기 때문이며, 그대로 두면 "지적 해소"를 위해 브랜드 색을 갈아엎게 된다. `.impeccable/config.json`의 `ignoreRules` 4종은 그 결론이다 — 임의 억제가 아니므로 근거 없이 되살리지 말 것.
+- `design-system-color`(12,991): 알파 1 미만 반투명 베일(글로우·글래스 표면, 236종)까지 "미등록 팔레트 색"으로 셈. 오버레이는 팔레트가 아니라 깊이 표현 기법이다(DESIGN.md *The Veil Rule*).
+- `design-system-radius`(1,076): 실제 코드가 1~94px 42종을 쓰는데 DESIGN.md는 8/16/999px 3종만 선언. 만족시키려면 전면 토큰 마이그레이션(=대규모 시각 리팩터)이 필요해 비용이 이득을 넘는다.
+- `ai-color-palette`(40) / `cream-palette`: 규칙이 "purple/violet 그라디언트, cyan-on-dark, 크림/베이지"를 AI 슬롭으로 판정하는데, 그게 **정확히 네오(트와일라잇 바이올렛)·DEST1NOVA(시안)·연이(크림) 브랜드 정체성**이다. 정면 충돌하는 오탐.
+- **끄지 않은 것 = 계속 지켜야 할 기준**: `gray-on-color`(대비), `low-contrast`, `tiny-text`, `line-length`, `text-overflow`, `layout-transition`(성능), `broken-image`, `skipped-heading`, `gradient-text`(DESIGN.md donts와 일치) 등. 캘리브레이션 후 전역 239건만 남으며 전부 실제 조치 대상이다.
+- 폰트는 억제가 아니라 **문서화로 해결**했다(266건 → 0). DESIGN.md `typography`에 실제 사용 서체(Cinzel·Orbitron·SUIT·MaruBuri 등)를 `brand-*` 역할로 선언. 새 서체를 도입하면 여기에도 추가한다.
+- **대비 수정 방법**: DESIGN.md "대비·가시성 기준"(데스크탑 WCAG AA: 본문 4.5:1, 큰 텍스트·UI 3:1) 를 따르되, *The Hue-Stays Rule* — 대비를 맞추려고 **색상 계열을 바꾸지 말고 명도/채도만** 조정한다. 회색·검정으로 도망가는 것은 오답. 단축 커맨드 `/audit`, `/critique`, `/polish`가 등록되어 있고, 나머지 명령은 `/impeccable <command> [target]` 형태로 호출한다(전체 목록은 `/impeccable` 단독 실행). 프로젝트 전략/브랜드 컨텍스트는 루트 `PRODUCT.md`(register: product, 브랜드 성격: 따뜻함·전문성·신비로움), 시각 시스템은 루트 `DESIGN.md`(연이=핑크 계열, 네오=퍼플 달빛 두 페르소나, Glow-Not-Shadow 규칙 등)를 참고한다. `.tsx`/`.jsx`/`.css`/`.html` 등 UI 파일을 Edit/Write/MultiEdit하면 디자인 감지 후크가 자동으로 실행되어 문제를 시스템 리마인더로 알려준다(`.claude/settings.json`의 `hooks.PostToolUse`, `.impeccable/config.json`에서 on/off·예외 관리).
 
 ## UI/UX Standards
 

@@ -175,6 +175,8 @@ async function completeMobileOAuth(appUrl: string) {
   }
 
   localStorage.setItem("fortune_auth_token", String(payload.accessToken));
+  // 앱은 리프레시 쿠키를 못 받으므로 본문으로 온 토큰을 보관한다 — 없으면 30분 뒤 세션이 끊긴다.
+  if (payload.refreshToken) localStorage.setItem("fortune_auth_refresh_token", String(payload.refreshToken));
   if (payload.user) persistSanitizedAuthUser(payload.user);
   window.dispatchEvent(new CustomEvent("cd:auth-changed", {
     detail: { source: "mobile-app-oauth", event: "login", at: Date.now() },

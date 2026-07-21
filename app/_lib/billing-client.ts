@@ -32,7 +32,7 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
     "billingClient.text.005": "월정석 사용",
     "billingClient.text.006": "이용권 다시 확인",
     "billingClient.text.007": "취소",
-    "billingClient.text.008": "음악 기능은 이용권으로 구매할 수 없습니다. 단건 결제 또는 월정석 이벤트 재화로 이용해 주세요.",
+    "billingClient.text.008": "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.",
     "billingClient.message.001": "결제창을 열지 못했습니다.",
     "billingClient.message.002": "결제창을 열지 못했습니다.",
     "billingClient.error.001": "결제 처리 중 오류가 발생했습니다.",
@@ -1110,7 +1110,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // (과거: DIRECT_KRW가 목록에 없으면 단건 버튼을 없애 단건/월정석 중 하나만 뜨는 정책 위반. 아래 monthly와
   //  대칭으로, 실제 노출 제한은 allowedPaymentModes만 담당한다.)
   let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"));
-  const canShowPassStore = !isMusicTrackPayment && opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
+  const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
   const canShowPassRefresh = canShowPassStore;
   const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));

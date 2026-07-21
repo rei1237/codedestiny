@@ -60,22 +60,22 @@ const __lazyActionLoaders = {
   openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=20260606-physio-accuracy').then(() => __loadScriptOnce('PhysiognomyUI.js?v=20260606-physio-accuracy')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-75d02d4b2e66'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-75d02d4b2e66'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-75d02d4b2e66'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-352b45b593dd'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-352b45b593dd'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-352b45b593dd'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-75d02d4b2e66')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-352b45b593dd')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-75d02d4b2e66'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-75d02d4b2e66'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-352b45b593dd'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-352b45b593dd'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-75d02d4b2e66'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-75d02d4b2e66'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-352b45b593dd'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-352b45b593dd'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -105,14 +105,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-75d02d4b2e66').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-352b45b593dd').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-75d02d4b2e66')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-352b45b593dd')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -336,7 +336,9 @@ function bindEventAction(root, eventName, attrName) {
 
 const __COLLECTION_R2_ASSET_BASE = 'https://assets.code-destiny.com/';
 const __COLLECTION_LOCAL_ASSET_KEYS = new Set([
-  'saju-guardian-animal-v20260615.webp'
+  'saju-guardian-animal-v20260615.webp',
+  // R2 에 올라가 있지 않아 리사이즈·원본이 모두 404 다. 로컬 경로로 바로 간다.
+  'comprehensive-fortune-prompt.webp'
 ]);
 
 function __splitCollectionImagePath(src) {
@@ -521,11 +523,14 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
       // 리사이즈 → R2 원본 → 마크업에 박혀 있던 원래 경로 순으로 물러난다.
       // 마지막 후보가 있어야 R2 에 아직 안 올라간 자산도 화면에서 사라지지 않는다.
       const existingFallback = [resizedExisting ? resolvedExistingSrc : '', existingSrc];
-      __bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       const nextSrc = resizedExisting || resolvedExistingSrc;
       if (nextSrc && nextSrc !== existingSrc) {
+        // 체인은 "바인딩 시점의 src" 와 같은 후보를 걸러낸다. 먼저 바인딩하면 마크업의 원래
+        // 경로(/fuctionassets/…)가 아직 현재 src 라 체인에서 빠지고, R2 에 없는 자산은
+        // 리사이즈·R2 원본이 모두 404 라 물러날 곳이 없어 img 가 통째로 제거된다.
         existingImg.loading = 'eager';
         existingImg.src = nextSrc;
+        __bindCollectionImageFallback(existingImg, existingFallback, placeholder, null);
       } else if (nextSrc && !(existingImg.complete && existingImg.naturalWidth > 0)) {
         // 닫힌 컬렉션 안에서 파싱된 loading="lazy" 이미지는 열려도 요청이 다시 걸리지 않는다 — 노드를 새로 붙여 깨운다
         const revived = existingImg.cloneNode(false);

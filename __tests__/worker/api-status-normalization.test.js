@@ -225,7 +225,9 @@ describe("Worker API status normalization", () => {
     expect(payload.ok).toBe(true);
     expect(payload.code).toBe("DB_FALLBACK");
     expect(payload.degraded).toBe(true);
-  });
+    // 이 경로는 withMongoRetry 의 실제 백오프를 그대로 탄다(목 없이 연결 실패를 재현하는 테스트라
+    // 재시도를 끄면 검증 대상이 사라진다). 기본 5s 로는 재시도가 끝나기 전에 잘린다.
+  }, 20000);
 
   test("로그인 상태 + DB 바인딩 누락 /api/fortune/pig-coin/profile-subscription/status 는 안정 free로 확정하지 않는다", async () => {
     const request = await buildAuthRequest("https://example.com/api/fortune/pig-coin/profile-subscription/status", "GET");
@@ -233,7 +235,12 @@ describe("Worker API status normalization", () => {
     const response = await handleFortuneRoutes(request, {});
     const payload = await response.json();
 
-    expect(response.status).toBe(503);
+    // 503 이 아니라 200 + degraded:true 다(worker/routes/fortune.js buildDbFallbackSubscriptionStatus).
+    // 503 으로 내리면 클라이언트가 본문을 읽기 전에 !response.ok 에서 끊겨 degraded 를 보지 못한다.
+    // 이 응답은 "구독 없음"이 아니라 "지금은 확인 못 함"이며, 소비자는 degraded 를 보고 기존 값을
+    // 유지한다 — app/_lib/auth-store.ts refreshProfileSubscriptionCache, js/destiny-profile.js 양쪽.
+    // 따라서 이 테스트가 지켜야 하는 것은 상태 코드가 아니라 "free 로 확정되지 않는다"는 신호다.
+    expect(response.status).toBe(200);
     expect(payload.ok).toBe(false);
     expect(payload.code).toBe("DB_FALLBACK");
     expect(payload.degraded).toBe(true);

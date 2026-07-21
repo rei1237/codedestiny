@@ -3601,13 +3601,18 @@
   background: rgba(155, 127, 212, 0.16);
 }
 
+/* 진행바는 재생 중 1초마다 계속 갱신되므로 width 대신 transform으로 움직인다(레이아웃 스래시 제거).
+   그라디언트는 전체 폭에 그대로 깔고 scaleX로 드러내는 방식이라 색이 눌리지 않는다. */
 .nowPlayingDockProgress > span {
   display: block;
   height: 100%;
+  width: 100%;
   border-radius: 999px;
   background: linear-gradient(90deg, var(--accent-lavender), var(--accent-gold));
   box-shadow: 0 0 12px var(--accent-glow);
-  transition: width 1000ms linear;
+  transform-origin: left center;
+  transform: scaleX(var(--cd-dock-progress, 0));
+  transition: transform 1000ms linear;
 }
 
 .playlistTrack {

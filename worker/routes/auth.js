@@ -1079,6 +1079,18 @@ function isMobileAppAuthRequest(request) {
   return Boolean(origin) && MOBILE_APP_REQUEST_ORIGINS.has(origin);
 }
 
+// 같은 이유(SameSite=Lax)로 앱은 리프레시 쿠키를 받지도, 되돌려 보내지도 못한다. 그래서
+// handleRefresh 가 쿠키만 읽던 동안 앱은 액세스 토큰(기본 30분)이 만료되면 되살릴 방법이
+// 없어 세션이 그대로 끊겼다. 쿠키를 쓸 수 없는 앱에 한해 같은 리프레시 토큰을 JSON 본문으로
+// 내려주고 이 헤더로 되돌려 받는다 — 회전·재사용 탐지·세션 폐기는 기존 경로를 그대로 탄다.
+// 웹은 이 분기에 들어오지 않으므로 쿠키 전용 동작이 그대로 유지된다.
+const APP_REFRESH_TOKEN_HEADER = "x-code-destiny-refresh-token";
+
+function appRefreshTokenField(request, refreshToken) {
+  if (!refreshToken || !isMobileAppAuthRequest(request)) return {};
+  return { refreshToken };
+}
+
 function isAllowedSameOriginAuthRequest(request, env) {
   if (isMobileAppAuthRequest(request)) return true;
 
@@ -1976,7 +1988,11 @@ function readCookieFromRequest(request, key) {
 }
 
 function readRefreshTokenFromRequest(request) {
-  return readCookieFromRequest(request, REFRESH_COOKIE_NAME);
+  const fromCookie = readCookieFromRequest(request, REFRESH_COOKIE_NAME);
+  if (fromCookie) return fromCookie;
+  // 앱 전용 폴백. 쿠키가 있으면 언제나 쿠키가 이기므로 웹 경로는 이 줄에 닿지 않는다.
+  if (!isMobileAppAuthRequest(request)) return "";
+  return String(request.headers.get(APP_REFRESH_TOKEN_HEADER) || "").trim();
 }
 
 function extractRefreshUserId(payload) {
@@ -2035,6 +2051,7 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
     accessToken,
     tokenType: "Bearer",
     accessTokenExpiresInSec: accessExpiresInSec,
+    ...appRefreshTokenField(request, refreshToken),
     ...extra,
   }, { status });
   appendAuthCookies(response, request, env, accessToken, refreshToken);
@@ -2057,6 +2074,7 @@ async function createLocalDevAuthSuccessResponse(request, env, user, status = 20
     accessToken,
     tokenType: "Bearer",
     accessTokenExpiresInSec: accessExpiresInSec,
+    ...appRefreshTokenField(request, refreshToken),
     source: "local-dev",
   }, { status });
 
@@ -2994,6 +3012,7 @@ async function handleRefresh(request, env) {
     accessToken,
     tokenType: "Bearer",
     accessTokenExpiresInSec: accessExpiresInSec,
+    ...appRefreshTokenField(request, nextRefresh.refreshToken),
     user: {
       ...normalizeAuthUserResponse(user),
       hasLocalAuth: isLocalAuthEnabled(user) && Boolean(user.passwordHash),
@@ -3612,6 +3631,7 @@ async function handleOAuthComplete(request, env) {
           accessToken,
           tokenType: "Bearer",
           accessTokenExpiresInSec: parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60),
+          ...appRefreshTokenField(request, nextRefresh.refreshToken),
           ...(referralReward ? { referralReward } : {}),
         });
         appendAuthCookies(response, request, env, accessToken, nextRefresh.refreshToken);
@@ -3797,5 +3817,8 @@ export async function handleAuthRoutes(request, env) {
 export const __authTestUtils = {
   handleLogin,
   handleRefresh,
+  handleWithdraw,
+  handleWithdrawCsrfIssue,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
+  clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
 };

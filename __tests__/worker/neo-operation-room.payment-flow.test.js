@@ -40,6 +40,9 @@ beforeAll(async () => {
     getAccessTokenSecret: jest.fn(() => "test-secret"),
     getJwtAudience: jest.fn(() => "test-audience"),
     getJwtIssuer: jest.fn(() => "test-issuer"),
+    isAuthDbInfraError: jest.fn(() => false),
+    requireAuth: jest.fn(async () => ({ userId: USER_ID, role: "user" })),
+    resolvePaidRouteAuth: jest.fn(async () => ({ userId: USER_ID, role: "user" })),
   }));
   jest.unstable_mockModule("../../worker/lib/jwt.js", () => ({
     signJwt: jest.fn(async () => "test-access-token"),
@@ -81,6 +84,9 @@ beforeAll(async () => {
     connectDb: jest.fn(async () => undefined),
     withMongoRetry: jest.fn(async (_env, operation) => operation()),
     mongoose: { Types: { ObjectId: { isValid: jest.fn(() => true) } } },
+    resetMongooseConnection: jest.fn(async () => undefined),
+    resolveMongoDbName: jest.fn(() => "test"),
+    isTransientMongoError: jest.fn(() => false),
   }));
   jest.unstable_mockModule("../../worker/lib/models.js", () => ({
     User: {
@@ -117,6 +123,7 @@ beforeAll(async () => {
       updateOne: jest.fn(async () => ({})),
       create: jest.fn(async () => ({})),
     },
+    RECENT_CONSUME_REQUEST_ID_CAP: 200,
   }));
   const mod = await import("../../worker/routes/neo-operation-room.js");
   handleNeoOperationRoomRoutes = mod.handleNeoOperationRoomRoutes;

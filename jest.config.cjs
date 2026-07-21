@@ -12,4 +12,14 @@ module.exports = {
     "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
     "\\.wasm$": "<rootDir>/__tests__/__mocks__/swisseph-wasm-binary.js",
   },
+  // __tests__ 아래에 러너가 다른 파일들이 섞여 있다. 걸러내지 않으면 jest 가 이들을 테스트로
+  // 수집해 "must contain at least one test"로 실패시키고, 그 상시 빨간불이 진짜 실패를 가린다.
+  testPathIgnorePatterns: [
+    "/node_modules/",
+    // 목 모듈 — 테스트가 아니라 moduleNameMapper 의 대체 구현이다.
+    "<rootDir>/__tests__/__mocks__/",
+    // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
+    "<rootDir>/__tests__/ui/",
+    "<rootDir>/__tests__/fortune/maya-calendar\\.test\\.js$",
+  ],
 };
