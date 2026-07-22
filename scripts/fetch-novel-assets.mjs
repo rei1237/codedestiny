@@ -61,6 +61,8 @@ const push = (remote, rel) => items.push([remote, rel]);
   "백문 기본-Photoroom", "백문 도서관-Photoroom", "백문 도서관2-Photoroom", "백문 도서관4-Photoroom", "백문 도서관5-Photoroom", "백문 독서-Photoroom", "백문 마법-Photoroom",
   "박지은 기본", "박지은 무표정", "박지은 말함", "박지은 말함2", "박지은 냉소", "박지은 조롱", "박지은 유혹", "박지은 화남", "박지은 광기",
   "무성1", "무성2", "무성3", "무성4", "무성5", "무성6", "무성7", "무성8", "무성9", "무성10",
+  // 결말 확장(EP.39~40) 배경 — 네오 구속 2종·운명의 신 선택(타로 속 연이)
+  "갇힌 네오2", "갇힌 네오3", "타로 카드들 속의 연이",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".webp")}`, `CodeDestinyNovel/${n}.webp`));
 
 // 완결부 배경 — 재성의 섬 4 + 도서관 2 + 자미두수 4 + 숙요 1 + 연출 3 + 비겁 내부 회상 6
