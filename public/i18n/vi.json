@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Code Destiny / Heo Mật Phúc",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Bộ sưu tập thiên tài",
       "titleLine1": "Tứ trụ & Tarot miễn phí",
       "titleAccent": "Vận may hôm nay",
@@ -56,7 +56,32 @@
       "oracle": "Lời tiên tri",
       "brandAlias": "May mắn lợn mật",
       "brandAria": "Vào Code Destiny home",
-      "mainAria": "Phím tắt dịch vụ chính"
+      "mainAria": "Phím tắt dịch vụ chính",
+      "astrologyHub": "Chiêm tinh",
+      "astrologyHubAria": "Trung tâm chiêm tinh",
+      "astrologyWestern": "Chiêm tinh phương Tây",
+      "astrologyWesternMeta": "Bản đồ sao · Vũ trụ",
+      "ziweiMeta": "Mệnh bàn 12 cung",
+      "sukuyoMeta": "27 tú",
+      "vedicMeta": "Jyotish · Nghiệp",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 cung trăng",
+      "aiConsult": "Tư vấn AI",
+      "aiConsultAria": "Trung tâm tư vấn AI",
+      "aiSibyl": "Tư vấn AI Sibyl",
+      "aiSibylMeta": "Hỏi đáp Tứ trụ chuyên sâu",
+      "aiNeoRoom": "Phòng chiến lược của Neo",
+      "aiNeoRoomMeta": "Báo cáo chiến lược thẳng thắn",
+      "aiLifebook": "Cuốn sách Cuộc đời",
+      "aiLifebookMeta": "Báo cáo cuộc đời AI",
+      "aiNaming": "Xưởng đặt tên AI",
+      "aiNamingMeta": "Luận tên · đặt tên",
+      "aiLoveSecret": "Bí kíp tình yêu",
+      "aiLoveSecretMeta": "Tình cảm · tái hợp",
+      "aiAll": "Xem mọi tư vấn AI",
+      "aiAllMeta": "Tìm bằng tìm kiếm",
+      "story": "Câu chuyện",
+      "allServices": "Mọi dịch vụ"
     },
     "previewCards": {
       "tarotName": "tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Vào biểu đồ Zi Wei Dou Shu",
       "vedicAria": "Đến phần đọc kinh Vệ Đà",
       "astrologyAria": "Tới biểu đồ ngày sinh chiêm tinh phương Tây",
-      "sukuyoAria": "Tới phần đọc Sukuyo"
+      "sukuyoAria": "Tới phần đọc Sukuyo",
+      "tarotFreeTitle": "Tarot miễn phí",
+      "tarotFreeDesc": "Một lá bài trả lời câu hỏi hôm nay.",
+      "tarotFreeCta": "Rút bài",
+      "tarotFreeAria": "Đến tarot miễn phí",
+      "dreamTitle": "Giải mộng",
+      "dreamDesc": "Giải mã thông điệp giấc mơ của bạn.",
+      "dreamCta": "Giải mã",
+      "dreamAria": "Đến giải mộng"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Thông tin chi tiết về vận may",
       "insightsAria": "Tới các bộ sưu tập tarot, saju và chiêm tinh",
       "membership": "Hướng dẫn đăng ký và thẻ",
-      "membershipAria": "Kiểm tra thẻ và số dư đăng ký cũng như mở các lợi ích dưới ánh trăng"
+      "membershipAria": "Kiểm tra thẻ và số dư đăng ký cũng như mở các lợi ích dưới ánh trăng",
+      "search": "Tìm mọi dịch vụ",
+      "searchAria": "Tìm mọi dịch vụ bói toán bằng tìm kiếm"
     },
     "badges": {
       "yogaGuru": "YOGA GURU",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Logo Honey Yeoni",
       "neoLogoAlt": "Logo chế độ Neo"
+    },
+    "hero2": {
+      "title": "AI đọc vận mệnh của bạn sâu sắc nhất",
+      "lead": "Trí tuệ Đông-Tây kết hợp cùng AI để giải mã câu chuyện của riêng bạn.",
+      "primaryCta": "✦ Bắt đầu miễn phí"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "Trải nghiệm đặc biệt của CODE DESTINY AI",
+      "explainTitle": "AI giải thích được",
+      "explainDesc": "Xem từng bước AI đã luận giải dựa trên cơ sở nào.",
+      "engineTitle": "Bộ máy bói toán chuyên gia",
+      "engineDesc": "Các hệ thống Đông-Tây đã kiểm chứng, được AI tinh chỉnh.",
+      "unionTitle": "Đông Tây hội tụ",
+      "unionDesc": "Từ Tứ trụ đến chiêm tinh, mọi góc nhìn trong một nơi."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Chọn phép bói phù hợp với bạn",
+      "lead": "Mở một trong sáu cánh cửa, câu chuyện của thế giới đó bắt đầu.",
+      "saju": "Tứ trụ",
+      "sajuDesc": "Đọc hướng đi cuộc đời qua dòng chảy Tứ trụ.",
+      "tarot": "Tarot",
+      "tarotDesc": "Xác nhận lựa chọn hiện tại và tương lai qua lá bài.",
+      "ziwei": "Tử vi đẩu số",
+      "ziweiDesc": "Bản đồ cuộc đời do các vì sao vẽ nên.",
+      "astrology": "Chiêm tinh",
+      "astrologyDesc": "Khám phá tính cách và mẫu hình vận mệnh từ các vì sao.",
+      "sukuyo": "Túc diệu",
+      "sukuyoDesc": "Gỡ rối bài toán cuộc đời bằng trí tuệ Ấn Độ cổ.",
+      "vedic": "Vệ Đà",
+      "vedicDesc": "Hướng đi cuộc đời qua chiêm tinh Vệ Đà.",
+      "cta": "Bắt đầu →"
+    },
+    "startSection2": {
+      "kicker": "Gợi ý hôm nay",
+      "title": "Nội dung miễn phí mở ngay bây giờ",
+      "lead": "Chỉ gồm những lá bài trải nghiệm ngay, không cần thanh toán."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Mọi cánh cửa vận mệnh đều ở đây",
+      "lead": "Tarot, thần dụ, thiền, báo cáo cao cấp — tìm kiếm hoặc mở các bộ sưu tập bên dưới.",
+      "placeholder": "Tìm dịch vụ (vd: tarot, hợp đôi, giấc mơ)",
+      "searchAria": "Tìm mọi dịch vụ",
+      "empty": "Không có kết quả. Hãy thử từ khóa khác."
     }
   },
   "terms": {
@@ -1365,7 +1446,26 @@
     "copyright": "© 2025 Code Destiny. Mọi quyền được bảo lưu. Chỉ nhằm mục đích giải trí và tự suy ngẫm - không thay thế cho lời khuyên chuyên môn.",
     "privacyNotice": "Dịch vụ này chỉ thu thập và sử dụng ngày sinh, giờ sinh và giới tính trong phạm vi cần thiết để cung cấp kết quả saju/bói và hỗ trợ khách hàng liên quan. Khi mục đích thu thập đã đạt được hoặc dịch vụ kết thúc, thông tin sẽ bị hủy ngay lập tức trừ khi pháp luật yêu cầu lưu giữ.",
     "policyLinksAria": "Chính sách và liên kết liên hệ",
-    "hostingNotice": "Dịch vụ lưu trữ được cung cấp bởi Cloudflare, Inc. Code Destiny chịu trách nhiệm về mọi giao dịch, hoàn tiền và thắc mắc của khách hàng."
+    "hostingNotice": "Dịch vụ lưu trữ được cung cấp bởi Cloudflare, Inc. Code Destiny chịu trách nhiệm về mọi giao dịch, hoàn tiền và thắc mắc của khách hàng.",
+    "groups": {
+      "services": "Dịch vụ",
+      "company": "Công ty",
+      "support": "Hỗ trợ"
+    },
+    "svc": {
+      "saju": "Tứ trụ",
+      "tarot": "Tarot",
+      "astrology": "Chiêm tinh (Tử vi · Túc diệu · Vệ Đà)",
+      "daily": "Vận hôm nay",
+      "story": "Câu chuyện"
+    },
+    "support": {
+      "guide": "Hướng dẫn sử dụng",
+      "insights": "Góc nhìn vận mệnh"
+    },
+    "brand": {
+      "tagline": "Nơi trí tuệ Đông-Tây và AI thắp sáng vận mệnh của bạn"
+    }
   },
   "pricing": {
     "currencies": {

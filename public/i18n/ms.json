@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Kod Destiny / Nasib Babi Madu",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Koleksi Takdir Cakerawala",
       "titleLine1": "Empat Tiang & Tarot Percuma",
       "titleAccent": "Ramalan Hari Ini",
@@ -56,7 +56,32 @@
       "oracle": "Orakel",
       "brandAlias": "Nasib Babi Madu",
       "brandAria": "Pergi ke rumah Code Destiny",
-      "mainAria": "Pintasan perkhidmatan utama"
+      "mainAria": "Pintasan perkhidmatan utama",
+      "astrologyHub": "Astrologi",
+      "astrologyHubAria": "Hab astrologi",
+      "astrologyWestern": "Astrologi Barat",
+      "astrologyWesternMeta": "Carta kelahiran · Kosmik",
+      "ziweiMeta": "Carta 12 istana",
+      "sukuyoMeta": "27 rumah bulan",
+      "vedicMeta": "Jyotish · Karma",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 tanda bulan",
+      "aiConsult": "Rundingan AI",
+      "aiConsultAria": "Hab rundingan AI",
+      "aiSibyl": "Rundingan AI Sibyl",
+      "aiSibylMeta": "Soal jawab Saju mendalam",
+      "aiNeoRoom": "Bilik strategi Neo",
+      "aiNeoRoomMeta": "Laporan strategi terus",
+      "aiLifebook": "Buku Kehidupan",
+      "aiLifebookMeta": "Laporan hidup AI",
+      "aiNaming": "Studio penamaan AI",
+      "aiNamingMeta": "Bacaan nama · penamaan",
+      "aiLoveSecret": "Panduan cinta",
+      "aiLoveSecretMeta": "Hubungan · penyatuan semula",
+      "aiAll": "Semua rundingan AI",
+      "aiAllMeta": "Cari melalui carian",
+      "story": "Cerita",
+      "allServices": "Semua perkhidmatan"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Pergi ke carta Zi Wei Dou Shu",
       "vedicAria": "Pergi ke bacaan Veda",
       "astrologyAria": "Pergi ke carta kelahiran astrologi Barat",
-      "sukuyoAria": "Pergi ke bacaan Sukuyo"
+      "sukuyoAria": "Pergi ke bacaan Sukuyo",
+      "tarotFreeTitle": "Tarot percuma",
+      "tarotFreeDesc": "Satu kad menjawab soalan hari ini.",
+      "tarotFreeCta": "Mula cabut",
+      "tarotFreeAria": "Ke tarot percuma",
+      "dreamTitle": "Tafsir mimpi",
+      "dreamDesc": "Rungkai mesej yang dibawa mimpi anda.",
+      "dreamCta": "Tafsirkan",
+      "dreamAria": "Ke tafsir mimpi"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Cerapan nasib",
       "insightsAria": "Pergi ke koleksi tarot, saju dan astrologi",
       "membership": "Panduan pas dan langganan",
-      "membershipAria": "Semak baki pas dan langganan serta faedah cahaya bulan terbuka"
+      "membershipAria": "Semak baki pas dan langganan serta faedah cahaya bulan terbuka",
+      "search": "Cari semua perkhidmatan",
+      "searchAria": "Temui setiap perkhidmatan tilikan melalui carian"
     },
     "badges": {
       "yogaGuru": "GURU YOGA",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Logo Honey Yeoni",
       "neoLogoAlt": "Logo mod Neo"
+    },
+    "hero2": {
+      "title": "AI yang membaca takdir anda paling mendalam",
+      "lead": "Kebijaksanaan Timur-Barat bertemu wawasan AI untuk mentafsir kisah anda.",
+      "primaryCta": "✦ Mula percuma"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "Pengalaman istimewa CODE DESTINY AI",
+      "explainTitle": "AI Boleh Dijelaskan",
+      "explainDesc": "Lihat langkah demi langkah bagaimana AI membuat tafsirannya.",
+      "engineTitle": "Enjin tilikan pakar",
+      "engineDesc": "Sistem Timur dan Barat yang terbukti, diperhalusi dengan AI.",
+      "unionTitle": "Timur bertemu Barat",
+      "unionDesc": "Dari Saju hingga astrologi, semua sudut di satu tempat."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Pilih tilikan yang sesuai dengan anda",
+      "lead": "Buka satu daripada enam pintu, dan kisahnya bermula.",
+      "saju": "Saju",
+      "sajuDesc": "Baca arah hidup melalui aliran Saju.",
+      "tarot": "Tarot",
+      "tarotDesc": "Semak pilihan saat ini dan masa depan dengan kad.",
+      "ziwei": "Zi Wei Dou Shu",
+      "ziweiDesc": "Peta hidup anda yang dilukis oleh bintang.",
+      "astrology": "Astrologi",
+      "astrologyDesc": "Temui corak anda yang tertulis di bintang.",
+      "sukuyo": "Sukuyo",
+      "sukuyoDesc": "Rungkai tugasan hidup dengan kebijaksanaan India purba.",
+      "vedic": "Veda",
+      "vedicDesc": "Arah hidup anda dalam astrologi Veda.",
+      "cta": "Mula →"
+    },
+    "startSection2": {
+      "kicker": "Pilihan hari ini",
+      "title": "Kandungan percuma untuk dibuka sekarang",
+      "lead": "Hanya kad yang boleh dicuba serta-merta tanpa bayaran."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Semua pintu tilikan ada di sini",
+      "lead": "Tarot, orakel, meditasi, laporan premium — cari atau buka koleksi di bawah.",
+      "placeholder": "Cari perkhidmatan (cth: tarot, keserasian, mimpi)",
+      "searchAria": "Cari semua perkhidmatan",
+      "empty": "Tiada hasil. Cuba kata kunci lain."
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "Perkhidmatan ini mengumpul dan menggunakan tarikh lahir, masa lahir dan jantina hanya dalam skop yang diperlukan untuk memberikan hasil saju/rezeki dan sokongan pelanggan yang berkaitan. Apabila tujuan pengumpulan tercapai atau perkhidmatan tamat, maklumat tersebut dimusnahkan tanpa berlengah-lengah melainkan pengekalan diperlukan oleh undang-undang.",
     "policyLinksAria": "Dasar dan pautan hubungan",
-    "hostingNotice": "Perkhidmatan pengehosan yang disediakan oleh Cloudflare, Inc. Code Destiny bertanggungjawab untuk semua transaksi, bayaran balik dan pertanyaan pelanggan."
+    "hostingNotice": "Perkhidmatan pengehosan yang disediakan oleh Cloudflare, Inc. Code Destiny bertanggungjawab untuk semua transaksi, bayaran balik dan pertanyaan pelanggan.",
+    "groups": {
+      "services": "Perkhidmatan",
+      "company": "Syarikat",
+      "support": "Sokongan"
+    },
+    "svc": {
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologi (Zi Wei · Sukuyo · Veda)",
+      "daily": "Tilikan harian",
+      "story": "Cerita"
+    },
+    "support": {
+      "guide": "Panduan penggunaan",
+      "insights": "Wawasan tilikan"
+    },
+    "brand": {
+      "tagline": "Tempat kebijaksanaan Timur-Barat dan AI menerangi takdir anda"
+    }
   },
   "branches": {
     "자수": {

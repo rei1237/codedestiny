@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Codebestemming / Honingvarkenfortuin",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Hemelse collectie voor je lot",
       "titleLine1": "Gratis Vier Pijlers & Tarot",
       "titleAccent": "Je dagorakel",
@@ -56,7 +56,32 @@
       "oracle": "Orakels",
       "brandAlias": "Honingvarkensfortuin",
       "brandAria": "Ga naar het Code Destiny-huis",
-      "mainAria": "Belangrijkste snelkoppelingen naar services"
+      "mainAria": "Belangrijkste snelkoppelingen naar services",
+      "astrologyHub": "Astrologie",
+      "astrologyHubAria": "Astrologiehub",
+      "astrologyWestern": "Westerse astrologie",
+      "astrologyWesternMeta": "Geboortehoroscoop · Kosmisch",
+      "ziweiMeta": "12-paleizenkaart",
+      "sukuyoMeta": "27 maanhuizen",
+      "vedicMeta": "Jyotish · Karma",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 maantekens",
+      "aiConsult": "AI-consult",
+      "aiConsultAria": "AI-consulthub",
+      "aiSibyl": "Sibyl AI-consult",
+      "aiSibylMeta": "Diepe Saju-vragen",
+      "aiNeoRoom": "Neo's strategiekamer",
+      "aiNeoRoomMeta": "Direct strategierapport",
+      "aiLifebook": "Boek van het Leven",
+      "aiLifebookMeta": "AI-levensrapport",
+      "aiNaming": "AI-naamstudio",
+      "aiNamingMeta": "Naamduiding · naamgeving",
+      "aiLoveSecret": "Liefdesdraaiboek",
+      "aiLoveSecretMeta": "Relatie · hereniging",
+      "aiAll": "Alle AI-consulten",
+      "aiAllMeta": "Vind via zoeken",
+      "story": "Verhaal",
+      "allServices": "Alle diensten"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Ga naar het Zi Wei Dou Shu-diagram",
       "vedicAria": "Ga naar de Vedische lezing",
       "astrologyAria": "Ga naar de geboortehoroscoop van de westerse astrologie",
-      "sukuyoAria": "Ga naar de Sukuyo-lezing"
+      "sukuyoAria": "Ga naar de Sukuyo-lezing",
+      "tarotFreeTitle": "Gratis tarot",
+      "tarotFreeDesc": "Eén kaart beantwoordt de vraag van vandaag.",
+      "tarotFreeCta": "Trek een kaart",
+      "tarotFreeAria": "Naar gratis tarot",
+      "dreamTitle": "Droomduiding",
+      "dreamDesc": "Ontcijfer de boodschap van je droom.",
+      "dreamCta": "Duiden",
+      "dreamAria": "Naar droomduiding"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Fortuininzichten",
       "insightsAria": "Ga naar tarot-, saju- en astrologiecollecties",
       "membership": "Pass- en abonnementsgids",
-      "membershipAria": "Controleer het saldo van je pas en abonnement en open maanlichtvoordelen"
+      "membershipAria": "Controleer het saldo van je pas en abonnement en open maanlichtvoordelen",
+      "search": "Alle diensten zoeken",
+      "searchAria": "Vind elke waarzegdienst via zoeken"
     },
     "badges": {
       "yogaGuru": "YOGA-GURU",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Honey Yeoni-logo",
       "neoLogoAlt": "Neo-moduslogo"
+    },
+    "hero2": {
+      "title": "De AI die jouw lot het diepst leest",
+      "lead": "Oosterse en westerse wijsheid ontmoet AI-inzicht om jouw verhaal te duiden.",
+      "primaryCta": "✦ Gratis beginnen"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "Een bijzondere ervaring van CODE DESTINY AI",
+      "explainTitle": "Verklaarbare AI",
+      "explainDesc": "Zie stap voor stap hoe de AI tot zijn lezing kwam.",
+      "engineTitle": "Expert-waarzegmotor",
+      "engineDesc": "Bewezen oosterse en westerse systemen, verfijnd met AI.",
+      "unionTitle": "Oost ontmoet West",
+      "unionDesc": "Van Saju tot astrologie, elk perspectief op één plek."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Kies de waarzegging die bij je past",
+      "lead": "Open één van de zes poorten en het verhaal begint.",
+      "saju": "Saju",
+      "sajuDesc": "Lees de richting van je leven in de stroom van Saju.",
+      "tarot": "Tarot",
+      "tarotDesc": "Check de keuzes van dit moment en de toekomst met kaarten.",
+      "ziwei": "Zi Wei Dou Shu",
+      "ziweiDesc": "Jouw levenskaart, getekend door de sterren.",
+      "astrology": "Astrologie",
+      "astrologyDesc": "Ontdek jouw patronen, geschreven in de sterren.",
+      "sukuyo": "Sukuyo",
+      "sukuyoDesc": "Ontrafel levensvragen met oude Indiase wijsheid.",
+      "vedic": "Vedisch",
+      "vedicDesc": "De richting van je leven in de Vedische astrologie.",
+      "cta": "Beginnen →"
+    },
+    "startSection2": {
+      "kicker": "Aanraders van vandaag",
+      "title": "Gratis content om nu te openen",
+      "lead": "Alleen kaarten die je direct zonder betaling kunt proberen."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Alle poorten van de fortuin zijn hier",
+      "lead": "Tarot, orakels, meditatie, premium rapporten — zoek of open de collecties hieronder.",
+      "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
+      "searchAria": "Alle diensten zoeken",
+      "empty": "Geen resultaten. Probeer een ander trefwoord."
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "Deze service verzamelt en gebruikt geboortedatum, geboortetijd en geslacht alleen binnen het bereik dat nodig is om saju/fortune-resultaten en gerelateerde klantenondersteuning te bieden. Wanneer het doel van de verzameling is bereikt of de dienst eindigt, wordt de informatie onmiddellijk vernietigd, tenzij bewaring wettelijk verplicht is.",
     "policyLinksAria": "Beleids- en contactlinks",
-    "hostingNotice": "Hostingservice geleverd door Cloudflare, Inc. Code Destiny is verantwoordelijk voor alle transacties, terugbetalingen en vragen van klanten."
+    "hostingNotice": "Hostingservice geleverd door Cloudflare, Inc. Code Destiny is verantwoordelijk voor alle transacties, terugbetalingen en vragen van klanten.",
+    "groups": {
+      "services": "Diensten",
+      "company": "Bedrijf",
+      "support": "Klantenservice"
+    },
+    "svc": {
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologie (Zi Wei · Sukuyo · Vedisch)",
+      "daily": "Daghoroscoop",
+      "story": "Verhalen"
+    },
+    "support": {
+      "guide": "Gebruikershandleiding",
+      "insights": "Fortuininzichten"
+    },
+    "brand": {
+      "tagline": "Waar oosterse en westerse wijsheid met AI jouw lot verlicht"
+    }
   },
   "branches": {
     "자수": {

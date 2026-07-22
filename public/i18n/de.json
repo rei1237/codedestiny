@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Code Destiny / Honey Pig Fortune",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Himmlische Schicksalssammlung",
       "titleLine1": "Kostenlose Vier Säulen & Tarot",
       "titleAccent": "Dein Tagesorakel",
@@ -56,7 +56,32 @@
       "oracle": "Orakel",
       "brandAlias": "Honey Pig Fortune",
       "brandAria": "Gehen Sie zur Startseite von Code Destiny",
-      "mainAria": "Hauptdienstverknüpfungen"
+      "mainAria": "Hauptdienstverknüpfungen",
+      "astrologyHub": "Astrologie",
+      "astrologyHubAria": "Astrologie-Hub",
+      "astrologyWestern": "Westliche Astrologie",
+      "astrologyWesternMeta": "Geburtshoroskop · Kosmisch",
+      "ziweiMeta": "12-Palast-Karte",
+      "sukuyoMeta": "27 Mondhäuser",
+      "vedicMeta": "Jyotish · Karma",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 Mondzeichen",
+      "aiConsult": "KI-Beratung",
+      "aiConsultAria": "KI-Beratungs-Hub",
+      "aiSibyl": "Sibyl KI-Beratung",
+      "aiSibylMeta": "Tiefe Saju-Fragen",
+      "aiNeoRoom": "Neos Strategieraum",
+      "aiNeoRoomMeta": "Direkter Strategiebericht",
+      "aiLifebook": "Buch des Lebens",
+      "aiLifebookMeta": "KI-Lebensbericht",
+      "aiNaming": "KI-Namensstudio",
+      "aiNamingMeta": "Namensdeutung · Benennung",
+      "aiLoveSecret": "Liebes-Playbook",
+      "aiLoveSecretMeta": "Beziehung · Wiedervereinigung",
+      "aiAll": "Alle KI-Beratungen",
+      "aiAllMeta": "Per Suche finden",
+      "story": "Story",
+      "allServices": "Alle Dienste"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Zum Zi-Wei-Dou-Shu-Diagramm",
       "vedicAria": "Zur vedischen Deutung",
       "astrologyAria": "Zum westlichen Geburtshoroskop",
-      "sukuyoAria": "Zur Sukuyo-Deutung"
+      "sukuyoAria": "Zur Sukuyo-Deutung",
+      "tarotFreeTitle": "Gratis Tarot",
+      "tarotFreeDesc": "Eine Karte beantwortet die Frage des Tages.",
+      "tarotFreeCta": "Jetzt ziehen",
+      "tarotFreeAria": "Zum Gratis-Tarot",
+      "dreamTitle": "Traumdeutung",
+      "dreamDesc": "Entschlüssle die Botschaft deines Traums.",
+      "dreamCta": "Deuten",
+      "dreamAria": "Zur Traumdeutung"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Einblicke in die Zukunft",
       "insightsAria": "Gehen Sie zu den Tarot-, Saju- und Astrologie-Sammlungen",
       "membership": "Pass- und Abonnementführer",
-      "membershipAria": "Überprüfen Sie den Pass- und Abonnementsstand und nutzen Sie die Moonlight-Vorteile"
+      "membershipAria": "Überprüfen Sie den Pass- und Abonnementsstand und nutzen Sie die Moonlight-Vorteile",
+      "search": "Alle Dienste durchsuchen",
+      "searchAria": "Alle Wahrsage-Dienste per Suche finden"
     },
     "badges": {
       "yogaGuru": "YOGA-GURU",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Honey Yeoni-Logo",
       "neoLogoAlt": "Neo-Modus-Logo"
+    },
+    "hero2": {
+      "title": "Die KI, die dein Schicksal am tiefsten liest",
+      "lead": "Östliche und westliche Weisheit trifft KI-Einsicht, um deine Geschichte zu deuten.",
+      "primaryCta": "✦ Kostenlos starten"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "Ein besonderes Erlebnis mit CODE DESTINY AI",
+      "explainTitle": "Erklärbare KI",
+      "explainDesc": "Sieh Schritt für Schritt, wie die KI zu ihrer Deutung kam.",
+      "engineTitle": "Experten-Orakel-Engine",
+      "engineDesc": "Bewährte östliche und westliche Systeme, mit KI verfeinert.",
+      "unionTitle": "Ost trifft West",
+      "unionDesc": "Von Saju bis Astrologie — jede Perspektive an einem Ort."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Wähle das Orakel, das zu dir passt",
+      "lead": "Öffne eines der sechs Tore, und seine Geschichte beginnt.",
+      "saju": "Saju",
+      "sajuDesc": "Lies die Richtung deines Lebens im Fluss des Saju.",
+      "tarot": "Tarot",
+      "tarotDesc": "Prüfe Entscheidungen und Zukunft mit den Karten.",
+      "ziwei": "Zi Wei Dou Shu",
+      "ziweiDesc": "Deine Lebenskarte, gezeichnet von den Sternen.",
+      "astrology": "Astrologie",
+      "astrologyDesc": "Entdecke deine Muster, geschrieben in den Sternen.",
+      "sukuyo": "Sukuyo",
+      "sukuyoDesc": "Löse Lebensaufgaben mit altindischer Weisheit.",
+      "vedic": "Vedisch",
+      "vedicDesc": "Deine Lebensrichtung in der vedischen Astrologie.",
+      "cta": "Starten →"
+    },
+    "startSection2": {
+      "kicker": "Empfehlungen des Tages",
+      "title": "Kostenlose Karten zum sofortigen Öffnen",
+      "lead": "Nur Karten, die du sofort ohne Zahlung ausprobieren kannst."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Alle Orakel-Tore an einem Ort",
+      "lead": "Tarot, Orakel, Meditation, Premium-Berichte — suche oder öffne die Sammlungen unten.",
+      "placeholder": "Dienste suchen (z. B. Tarot, Partnerschaft, Traum)",
+      "searchAria": "Alle Dienste durchsuchen",
+      "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort."
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "Dieser Dienst erfasst und nutzt Geburtsdatum, Geburtszeit und Geschlecht nur in dem Umfang, der für die Bereitstellung von Saju/Fortune-Ergebnissen und den damit verbundenen Kundensupport erforderlich ist. Wenn der Zweck der Erhebung erreicht ist oder der Dienst endet, werden die Informationen unverzüglich vernichtet, es sei denn, eine Aufbewahrung ist gesetzlich vorgeschrieben.",
     "policyLinksAria": "Richtlinien und Kontaktlinks",
-    "hostingNotice": "Hosting-Service von Cloudflare, Inc. Code Destiny ist für alle Transaktionen, Rückerstattungen und Kundenanfragen verantwortlich."
+    "hostingNotice": "Hosting-Service von Cloudflare, Inc. Code Destiny ist für alle Transaktionen, Rückerstattungen und Kundenanfragen verantwortlich.",
+    "groups": {
+      "services": "Dienste",
+      "company": "Unternehmen",
+      "support": "Support"
+    },
+    "svc": {
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologie (Zi Wei · Sukuyo · Vedisch)",
+      "daily": "Tageshoroskop",
+      "story": "Geschichten"
+    },
+    "support": {
+      "guide": "Benutzerhandbuch",
+      "insights": "Orakel-Einblicke"
+    },
+    "brand": {
+      "tagline": "Wo östliche und westliche Weisheit mit KI dein Schicksal erhellt"
+    }
   },
   "branches": {
     "자수": {

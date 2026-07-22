@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Code Destin / Honey Pig Fortune",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Collection céleste des destinées",
       "titleLine1": "Quatre Piliers et tarot gratuits",
       "titleAccent": "Guidance du jour",
@@ -56,7 +56,32 @@
       "oracle": "Oracles",
       "brandAlias": "Fortune du cochon de miel",
       "brandAria": "Accédez à la page d'accueil de Code Destiny",
-      "mainAria": "Raccourcis du service principal"
+      "mainAria": "Raccourcis du service principal",
+      "astrologyHub": "Astrologie",
+      "astrologyHubAria": "Hub d'astrologie",
+      "astrologyWestern": "Astrologie occidentale",
+      "astrologyWesternMeta": "Thème natal · Cosmique",
+      "ziweiMeta": "Carte des 12 palais",
+      "sukuyoMeta": "27 demeures lunaires",
+      "vedicMeta": "Jyotish · Karma",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 signes lunaires",
+      "aiConsult": "Consultation IA",
+      "aiConsultAria": "Hub de consultation IA",
+      "aiSibyl": "Consultation IA Sibyl",
+      "aiSibylMeta": "Questions Saju approfondies",
+      "aiNeoRoom": "Salle de stratégie de Neo",
+      "aiNeoRoomMeta": "Rapport stratégique direct",
+      "aiLifebook": "Livre de la Vie",
+      "aiLifebookMeta": "Rapport de vie IA",
+      "aiNaming": "Studio de nommage IA",
+      "aiNamingMeta": "Lecture de noms",
+      "aiLoveSecret": "Manuel de l'amour",
+      "aiLoveSecretMeta": "Relation · retrouvailles",
+      "aiAll": "Toutes les consultations IA",
+      "aiAllMeta": "Trouver via la recherche",
+      "story": "Histoire",
+      "allServices": "Tous les services"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Aller au theme Zi Wei Dou Shu",
       "vedicAria": "Aller a la lecture vedique",
       "astrologyAria": "Aller au theme natal occidental",
-      "sukuyoAria": "Aller a la lecture Sukuyo"
+      "sukuyoAria": "Aller a la lecture Sukuyo",
+      "tarotFreeTitle": "Tarot gratuit",
+      "tarotFreeDesc": "Une carte répond à la question du jour.",
+      "tarotFreeCta": "Tirer une carte",
+      "tarotFreeAria": "Aller au tarot gratuit",
+      "dreamTitle": "Interprétation des rêves",
+      "dreamDesc": "Décodez le message porté par votre rêve.",
+      "dreamCta": "Interpréter",
+      "dreamAria": "Aller à l'interprétation des rêves"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Aperçus de fortune",
       "insightsAria": "Accéder aux collections de tarot, saju et astrologie",
       "membership": "Pass et guide d'abonnement",
-      "membershipAria": "Vérifiez le solde du pass et de l'abonnement et ouvrez les avantages Moonlight"
+      "membershipAria": "Vérifiez le solde du pass et de l'abonnement et ouvrez les avantages Moonlight",
+      "search": "Rechercher tous les services",
+      "searchAria": "Trouver chaque service de voyance par la recherche"
     },
     "badges": {
       "yogaGuru": "GOUROU DU YOGA",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Logo Honey Yeoni",
       "neoLogoAlt": "Logo du mode Néo"
+    },
+    "hero2": {
+      "title": "L'IA qui lit votre destin le plus profondément",
+      "lead": "La sagesse d'Orient et d'Occident rencontre l'IA pour interpréter votre histoire.",
+      "primaryCta": "✦ Commencer gratuitement"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "Une expérience unique signée CODE DESTINY AI",
+      "explainTitle": "IA explicable",
+      "explainDesc": "Voyez étape par étape comment l'IA a construit sa lecture.",
+      "engineTitle": "Moteur expert de voyance",
+      "engineDesc": "Des systèmes orientaux et occidentaux éprouvés, affinés par IA.",
+      "unionTitle": "L'Orient rencontre l'Occident",
+      "unionDesc": "Du Saju à l'astrologie, tous les angles en un seul lieu."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Choisissez la voyance qui vous correspond",
+      "lead": "Ouvrez l'une des six portes et son histoire commence.",
+      "saju": "Saju",
+      "sajuDesc": "Lisez la direction de votre vie dans le flux du Saju.",
+      "tarot": "Tarot",
+      "tarotDesc": "Vérifiez les choix de l'instant et l'avenir avec les cartes.",
+      "ziwei": "Zi Wei Dou Shu",
+      "ziweiDesc": "Votre carte de vie dessinée par les étoiles.",
+      "astrology": "Astrologie",
+      "astrologyDesc": "Découvrez vos schémas écrits dans les étoiles.",
+      "sukuyo": "Sukuyo",
+      "sukuyoDesc": "Dénouez les tâches de la vie avec la sagesse de l'Inde ancienne.",
+      "vedic": "Védique",
+      "vedicDesc": "La direction de votre vie en astrologie védique.",
+      "cta": "Commencer →"
+    },
+    "startSection2": {
+      "kicker": "Sélection du jour",
+      "title": "Contenus gratuits à ouvrir tout de suite",
+      "lead": "Uniquement des cartes à essayer immédiatement, sans paiement."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Toutes les portes de la fortune sont ici",
+      "lead": "Tarot, oracles, méditation, rapports premium — cherchez ou ouvrez les collections ci-dessous.",
+      "placeholder": "Rechercher (ex. : tarot, compatibilité, rêve)",
+      "searchAria": "Rechercher tous les services",
+      "empty": "Aucun résultat. Essayez un autre mot-clé."
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "Ce service collecte et utilise la date de naissance, l'heure de naissance et le sexe uniquement dans le cadre nécessaire pour fournir des résultats saju/fortune et le support client associé. Lorsque l'objectif de la collecte est atteint ou que le service prend fin, les informations sont détruites sans délai, sauf si la loi l'exige.",
     "policyLinksAria": "Politique et liens de contact",
-    "hostingNotice": "Service d'hébergement fourni par Cloudflare, Inc. Code Destiny est responsable de toutes les transactions, remboursements et demandes des clients."
+    "hostingNotice": "Service d'hébergement fourni par Cloudflare, Inc. Code Destiny est responsable de toutes les transactions, remboursements et demandes des clients.",
+    "groups": {
+      "services": "Services",
+      "company": "Société",
+      "support": "Assistance"
+    },
+    "svc": {
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrologie (Zi Wei · Sukuyo · Védique)",
+      "daily": "Horoscope du jour",
+      "story": "Histoires"
+    },
+    "support": {
+      "guide": "Guide d'utilisation",
+      "insights": "Éclairages de fortune"
+    },
+    "brand": {
+      "tagline": "Là où les sagesses d'Orient et d'Occident éclairent votre destin avec l'IA"
+    }
   },
   "branches": {
     "자수": {
