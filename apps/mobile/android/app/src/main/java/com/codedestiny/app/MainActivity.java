@@ -28,6 +28,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(CodeDestinyBillingPlugin.class);
         // 자사 절대 URL 네비게이션이 외부 브라우저로 새는 것을 네이티브에서 최종 차단한다.
         registerPlugin(CodeDestinyNavigationPlugin.class);
+        // 셸 applyTheme 이 부르는 Capacitor.Plugins.StatusBar.setStyle 의 실제 구현.
+        // 이게 없으면 네오(다크) 전환 시 상태바 아이콘이 다크로 남아 보이지 않는다.
+        registerPlugin(CodeDestinyStatusBarPlugin.class);
         // 라우트 해석기도 super.onCreate 이전에 등록해야 한다 —
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();
@@ -58,6 +61,9 @@ public class MainActivity extends BridgeActivity {
         WindowInsetsControllerCompat insetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
         insetsController.setAppearanceLightStatusBars(true);
+        // 하단 시스템 내비게이션 바도 같은 이유로 어두운 아이콘이 기본이다(연이 라이트).
+        // 네오 전환 시에는 CodeDestinyStatusBarPlugin.setStyle 이 상태바와 함께 뒤집는다.
+        insetsController.setAppearanceLightNavigationBars(true);
 
         // 셸은 연이/네오 두 팔레트를 CSS 로 직접 그린다. 시스템 다크모드에서 웹뷰가 알고리즘
         // 다크닝을 켜면 그 색을 임의로 반전시켜 어느 모드에서도 읽을 수 없게 된다 — 명시적으로 끈다.

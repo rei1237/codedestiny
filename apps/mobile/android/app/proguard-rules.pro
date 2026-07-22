@@ -37,3 +37,6 @@
 # 앱 이탈 차단(shouldOverrideLoad)의 마지막 지점. Bridge 가 플러그인 인스턴스를 순회하며
 # 이 메서드를 호출하므로, 지워지면 로그인이 다시 외부 브라우저로 새어 나간다.
 -keep class com.codedestiny.app.CodeDestinyNavigationPlugin { *; }
+# 셸 applyTheme 의 StatusBar.setStyle 호환 구현. @PluginMethod 이름(setStyle)이 살아
+# 있어야 네오 전환 시 상태바 아이콘이 뒤집힌다.
+-keep class com.codedestiny.app.CodeDestinyStatusBarPlugin { *; }
