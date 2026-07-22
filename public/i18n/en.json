@@ -33,7 +33,7 @@
       "linkAbout": "About"
     },
     "hero": {
-      "eyebrow": "Code Destiny / Honey Pig Fortune",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "Celestial Fortune Collection",
       "titleLine1": "Free Saju & Tarot",
       "titleAccent": "Today's Fortune",
@@ -56,7 +56,32 @@
       "oracle": "Oracles",
       "brandAlias": "Honey Pig Fortune",
       "brandAria": "Go to Code Destiny home",
-      "mainAria": "Main service shortcuts"
+      "mainAria": "Main service shortcuts",
+      "astrologyHub": "Astrology",
+      "astrologyHubAria": "Astrology hub",
+      "astrologyWestern": "Western Astrology",
+      "astrologyWesternMeta": "Birth chart · Cosmic",
+      "ziweiMeta": "12-palace chart",
+      "sukuyoMeta": "27 lunar mansions",
+      "vedicMeta": "Jyotish · Karma",
+      "nakshatra": "Nakshatra",
+      "nakshatraMeta": "27 lunar signs",
+      "aiConsult": "AI Consult",
+      "aiConsultAria": "AI consultation hub",
+      "aiSibyl": "Sibyl AI Consult",
+      "aiSibylMeta": "Deep Saju Q&A",
+      "aiNeoRoom": "Neo's War Room",
+      "aiNeoRoomMeta": "Blunt strategy report",
+      "aiLifebook": "Book of Life",
+      "aiLifebookMeta": "AI life report",
+      "aiNaming": "AI Naming Studio",
+      "aiNamingMeta": "Name reading · naming",
+      "aiLoveSecret": "Love Playbook",
+      "aiLoveSecretMeta": "Relationship · reunion",
+      "aiAll": "All AI consults",
+      "aiAllMeta": "Find via search",
+      "story": "Story",
+      "allServices": "All Services"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -170,7 +195,15 @@
       "ziweiAria": "Go to the Zi Wei Dou Shu chart",
       "vedicAria": "Go to the Vedic reading",
       "astrologyAria": "Go to the Western astrology birth chart",
-      "sukuyoAria": "Go to the Sukuyo reading"
+      "sukuyoAria": "Go to the Sukuyo reading",
+      "tarotFreeTitle": "Free Tarot Draw",
+      "tarotFreeDesc": "One card answers today's question.",
+      "tarotFreeCta": "Draw now",
+      "tarotFreeAria": "Go to free tarot draw",
+      "dreamTitle": "Dream Reading",
+      "dreamDesc": "Decode the message your dream carries.",
+      "dreamCta": "Interpret",
+      "dreamAria": "Go to dream interpretation"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "Fortune insights",
       "insightsAria": "Go to tarot, saju, and astrology collections",
       "membership": "Pass and subscription guide",
-      "membershipAria": "Check pass and subscription balance and open moonlight benefits"
+      "membershipAria": "Check pass and subscription balance and open moonlight benefits",
+      "search": "Search all services",
+      "searchAria": "Find every fortune service by search"
     },
     "badges": {
       "yogaGuru": "YOGA GURU",
@@ -1148,6 +1183,52 @@
       "neo": "Neo",
       "pigLogoAlt": "Honey Yeoni logo",
       "neoLogoAlt": "Neo mode logo"
+    },
+    "hero2": {
+      "title": "The AI that reads your destiny deepest",
+      "lead": "East-West wisdom meets AI insight to interpret your own story.",
+      "primaryCta": "✦ Start Free Reading"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "A special experience by CODE DESTINY AI",
+      "explainTitle": "Explainable AI",
+      "explainDesc": "See step by step how the AI reached its reading.",
+      "engineTitle": "Expert Fortune Engine",
+      "engineDesc": "Proven Eastern and Western systems, refined with AI.",
+      "unionTitle": "East Meets West",
+      "unionDesc": "From Saju to astrology, every angle in one place."
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "Choose the fortune that fits you",
+      "lead": "Open one of the six gates and its story begins.",
+      "saju": "Saju",
+      "sajuDesc": "Read your life's direction through the flow of Saju.",
+      "tarot": "Tarot",
+      "tarotDesc": "Check this moment's choices and future with cards.",
+      "ziwei": "Zi Wei Dou Shu",
+      "ziweiDesc": "Your life map drawn by the stars.",
+      "astrology": "Astrology",
+      "astrologyDesc": "Discover your patterns written in the stars.",
+      "sukuyo": "Sukuyo",
+      "sukuyoDesc": "Untangle life's tasks with ancient Indian wisdom.",
+      "vedic": "Vedic",
+      "vedicDesc": "Your life's direction in Vedic astrology.",
+      "cta": "Start →"
+    },
+    "startSection2": {
+      "kicker": "Today's Picks",
+      "title": "Free picks to open right now",
+      "lead": "Only cards you can try instantly, no payment."
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "Every fortune gate lives here",
+      "lead": "Tarot, oracles, meditation, premium reports — search or open the collections below.",
+      "placeholder": "Search services (e.g. tarot, match, dream)",
+      "searchAria": "Search all services",
+      "empty": "No results. Try another keyword."
     }
   },
   "terms": {
@@ -1365,7 +1446,26 @@
     "copyright": "© 2025 Code Destiny. All rights reserved. For entertainment & self-reflection purposes only — not a substitute for professional advice.",
     "privacyNotice": "This service collects and uses birth date, birth time, and gender only within the scope necessary to provide saju/fortune results and related customer support. When the purpose of collection is achieved or the service ends, the information is destroyed without delay unless retention is required by law.",
     "policyLinksAria": "Policy and contact links",
-    "hostingNotice": "Hosting service provided by Cloudflare, Inc. Code Destiny is responsible for all transactions, refunds, and customer inquiries."
+    "hostingNotice": "Hosting service provided by Cloudflare, Inc. Code Destiny is responsible for all transactions, refunds, and customer inquiries.",
+    "groups": {
+      "services": "Services",
+      "company": "Company",
+      "support": "Support"
+    },
+    "svc": {
+      "saju": "Saju",
+      "tarot": "Tarot",
+      "astrology": "Astrology (Zi Wei · Sukuyo · Vedic)",
+      "daily": "Daily Fortune",
+      "story": "Stories"
+    },
+    "support": {
+      "guide": "User Guide",
+      "insights": "Fortune Insights"
+    },
+    "brand": {
+      "tagline": "Where East-West wisdom and AI light up your destiny"
+    }
   },
   "pricing": {
     "currencies": {

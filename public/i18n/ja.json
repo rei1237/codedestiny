@@ -33,7 +33,7 @@
       "linkAbout": "サービス紹介"
     },
     "hero": {
-      "eyebrow": "Code Destiny / ハニーピッグ占い",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "星明かりの占いコレクション",
       "titleLine1": "無料の四柱推命・タロット",
       "titleAccent": "今日の運勢",
@@ -56,7 +56,32 @@
       "oracle": "神託",
       "brandAlias": "ハニーピッグ占い",
       "brandAria": "Code Destinyホームへ移動",
-      "mainAria": "メインサービスショートカット"
+      "mainAria": "メインサービスショートカット",
+      "astrologyHub": "占星術",
+      "astrologyHubAria": "占星術ハブ",
+      "astrologyWestern": "西洋占星術",
+      "astrologyWesternMeta": "出生図 · コズミック",
+      "ziweiMeta": "12宮の命盤",
+      "sukuyoMeta": "27宿の星",
+      "vedicMeta": "ジョーティシュ · カルマ",
+      "nakshatra": "ナクシャトラ",
+      "nakshatraMeta": "27の月宿",
+      "aiConsult": "AI相談",
+      "aiConsultAria": "AI相談ハブ",
+      "aiSibyl": "シビルAI相談",
+      "aiSibylMeta": "四柱推命の深層問答",
+      "aiNeoRoom": "ネオの運命作戦室",
+      "aiNeoRoomMeta": "ファクト直球レポート",
+      "aiLifebook": "人生の本",
+      "aiLifebookMeta": "AI人生レポート",
+      "aiNaming": "AI命名所",
+      "aiNamingMeta": "名前分析 · 命名",
+      "aiLoveSecret": "恋愛の秘策",
+      "aiLoveSecretMeta": "関係 · 復縁相談",
+      "aiAll": "AI相談をすべて見る",
+      "aiAllMeta": "検索で探す",
+      "story": "ストーリー",
+      "allServices": "全サービス"
     },
     "previewCards": {
       "tarotName": "タロット",
@@ -170,7 +195,15 @@
       "ziweiAria": "Zi Wei Dou Shu チャートに移動",
       "vedicAria": "ヴェーダの朗読に行く",
       "astrologyAria": "西洋占星術の出生図へ",
-      "sukuyoAria": "宿曜読みに行く"
+      "sukuyoAria": "宿曜読みに行く",
+      "tarotFreeTitle": "無料タロット",
+      "tarotFreeDesc": "今日の問いにカード一枚で答えます。",
+      "tarotFreeCta": "引いてみる",
+      "tarotFreeAria": "無料タロットへ",
+      "dreamTitle": "夢占い",
+      "dreamDesc": "あなたの夢が伝えるメッセージを解読。",
+      "dreamCta": "解釈する",
+      "dreamAria": "夢占いへ"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "運勢インサイト",
       "insightsAria": "タロット・四柱・占星術コレクションへ移動",
       "membership": "利用券・月額案内",
-      "membershipAria": "利用券と月額残高を確認し、月光特典を開く"
+      "membershipAria": "利用券と月額残高を確認し、月光特典を開く",
+      "search": "全サービス検索",
+      "searchAria": "すべての占いを検索で探す"
     },
     "badges": {
       "yogaGuru": "ヨガの第一人者",
@@ -1148,6 +1183,52 @@
       "neo": "ネオ",
       "pigLogoAlt": "ハニーヨニのロゴ",
       "neoLogoAlt": "ネオモードのロゴ"
+    },
+    "hero2": {
+      "title": "あなたの運命を最も深く読むAI",
+      "lead": "東西の叡智とAIの洞察で、あなただけの物語を読み解きます。",
+      "primaryCta": "✦ 無料占いを始める"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "CODE DESTINY AIの特別な体験",
+      "explainTitle": "Explainable AI",
+      "explainDesc": "AIがどんな根拠で読んだかを段階的に確認できます。",
+      "engineTitle": "専門占いエンジン",
+      "engineDesc": "検証された東西の占術体系をAIで精密に。",
+      "unionTitle": "東西占術の統合",
+      "unionDesc": "四柱推命から占星術まで、多様な視点を一つに。"
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "あなたに合う占いを選んでください",
+      "lead": "六つの門の一つを開けば、その世界の物語が始まります。",
+      "saju": "四柱推命",
+      "sajuDesc": "命式の流れから人生の方向を読みます。",
+      "tarot": "タロット",
+      "tarotDesc": "今この瞬間の選択と未来をカードで。",
+      "ziwei": "紫微斗数",
+      "ziweiDesc": "星の配置が描くあなたの人生地図。",
+      "astrology": "占星術",
+      "astrologyDesc": "星が語る性格と運命のパターンを発見。",
+      "sukuyo": "宿曜占星術",
+      "sukuyoDesc": "古代インドの叡智で人生の課題をひもとく。",
+      "vedic": "ヴェーダ占星術",
+      "vedicDesc": "ヴェーダ占星術で見る人生の方向。",
+      "cta": "始める →"
+    },
+    "startSection2": {
+      "kicker": "今日のおすすめ",
+      "title": "今すぐ開ける無料コンテンツ",
+      "lead": "支払いなしで今すぐ試せるカードだけを集めました。"
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "すべての占いの門がここに",
+      "lead": "タロット・神託・瞑想・プレミアムまで、検索するかコレクションを開いてください。",
+      "placeholder": "サービスを検索（例：タロット、相性、夢）",
+      "searchAria": "全サービス検索",
+      "empty": "結果がありません。別のキーワードでお試しください。"
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "本サービスは、四柱・運勢結果の提供および関連カスタマーサポートに必要な範囲でのみ、生年月日、出生時間、性別情報を収集・利用します。収集目的が達成された場合またはサービス終了時には遅滞なく破棄し、法令により保存が必要な場合は定められた期間のみ別途保管後に破棄します。",
     "policyLinksAria": "ポリシーおよび問い合わせリンク",
-    "hostingNotice": "ホスティングサービス提供: Cloudflare, Inc. すべての取引、返金、問い合わせ対応はCode Destinyが行います。"
+    "hostingNotice": "ホスティングサービス提供: Cloudflare, Inc. すべての取引、返金、問い合わせ対応はCode Destinyが行います。",
+    "groups": {
+      "services": "サービス",
+      "company": "会社",
+      "support": "サポート"
+    },
+    "svc": {
+      "saju": "四柱推命",
+      "tarot": "タロット",
+      "astrology": "占星術（紫微・宿曜・ヴェーダ）",
+      "daily": "今日の運勢",
+      "story": "ストーリー"
+    },
+    "support": {
+      "guide": "ご利用ガイド",
+      "insights": "運勢インサイト"
+    },
+    "brand": {
+      "tagline": "東西の叡智とAIの洞察があなたの運命を照らす場所"
+    }
   },
   "branches": {
     "자수": {

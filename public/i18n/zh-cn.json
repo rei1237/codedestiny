@@ -33,7 +33,7 @@
       "linkAbout": "服务介绍"
     },
     "hero": {
-      "eyebrow": "Code Destiny / 蜜豚运势",
+      "eyebrow": "CODE DESTINY",
       "brandLine": "月光里的占卜合集",
       "titleLine1": "免费八字 · 塔罗",
       "titleAccent": "今日运势",
@@ -56,7 +56,32 @@
       "oracle": "神谕",
       "brandAlias": "蜜豚运势",
       "brandAria": "前往 Code Destiny 首页",
-      "mainAria": "主要服务快捷入口"
+      "mainAria": "主要服务快捷入口",
+      "astrologyHub": "占星术",
+      "astrologyHubAria": "占星术中心",
+      "astrologyWestern": "西洋占星",
+      "astrologyWesternMeta": "出生星盘 · 宇宙",
+      "ziweiMeta": "十二宫命盘",
+      "sukuyoMeta": "二十七宿",
+      "vedicMeta": "吠陀 · 业力",
+      "nakshatra": "纳克沙特拉",
+      "nakshatraMeta": "27月宿",
+      "aiConsult": "AI咨询",
+      "aiConsultAria": "AI咨询中心",
+      "aiSibyl": "西比尔AI咨询",
+      "aiSibylMeta": "八字深度问答",
+      "aiNeoRoom": "尼奥命运作战室",
+      "aiNeoRoomMeta": "直球策略报告",
+      "aiLifebook": "人生之书",
+      "aiLifebookMeta": "AI人生报告",
+      "aiNaming": "AI起名馆",
+      "aiNamingMeta": "姓名解析 · 起名",
+      "aiLoveSecret": "恋爱秘策",
+      "aiLoveSecretMeta": "关系 · 复合咨询",
+      "aiAll": "查看全部AI咨询",
+      "aiAllMeta": "通过搜索查找",
+      "story": "故事",
+      "allServices": "全部服务"
     },
     "previewCards": {
       "tarotName": "塔罗",
@@ -170,7 +195,15 @@
       "ziweiAria": "前往紫微斗数图",
       "vedicAria": "阅读吠陀经",
       "astrologyAria": "前往西方占星出生图",
-      "sukuyoAria": "前往 Sukuyo 阅读"
+      "sukuyoAria": "前往 Sukuyo 阅读",
+      "tarotFreeTitle": "免费塔罗",
+      "tarotFreeDesc": "一张牌回答今天的问题。",
+      "tarotFreeCta": "开始抽牌",
+      "tarotFreeAria": "前往免费塔罗",
+      "dreamTitle": "解梦",
+      "dreamDesc": "解读梦境传递的信息。",
+      "dreamCta": "开始解读",
+      "dreamAria": "前往解梦"
     },
     "collectionHeaders": {
       "animal": {
@@ -1133,7 +1166,9 @@
       "insights": "运势洞察",
       "insightsAria": "前往塔罗、四柱与占星集合",
       "membership": "通行券与月订阅说明",
-      "membershipAria": "查看通行券和月订阅余额并展开月光权益"
+      "membershipAria": "查看通行券和月订阅余额并展开月光权益",
+      "search": "搜索全部服务",
+      "searchAria": "通过搜索找到所有占卜服务"
     },
     "badges": {
       "yogaGuru": "瑜伽大师",
@@ -1148,6 +1183,52 @@
       "neo": "尼奥",
       "pigLogoAlt": "蜜糖延伊标志",
       "neoLogoAlt": "尼奥模式标志"
+    },
+    "hero2": {
+      "title": "最懂你命运的AI",
+      "lead": "以东西方智慧与AI洞察，解读属于你的故事。",
+      "primaryCta": "✦ 免费开始占卜"
+    },
+    "aiFeats": {
+      "kicker": "CODE DESTINY AI",
+      "title": "CODE DESTINY AI的独特体验",
+      "explainTitle": "可解释AI",
+      "explainDesc": "逐步查看AI解读的依据。",
+      "engineTitle": "专业占卜引擎",
+      "engineDesc": "经过验证的东西方占卜体系，由AI精雕细琢。",
+      "unionTitle": "东西方占卜融合",
+      "unionDesc": "从八字到占星，多重视角一目了然。"
+    },
+    "fortunePick": {
+      "kicker": "FORTUNE GATE",
+      "title": "选择适合你的占卜",
+      "lead": "打开六扇门中的一扇，那个世界的故事就此展开。",
+      "saju": "八字",
+      "sajuDesc": "从八字流转中读懂人生方向。",
+      "tarot": "塔罗",
+      "tarotDesc": "用牌面确认此刻的选择与未来。",
+      "ziwei": "紫微斗数",
+      "ziweiDesc": "星曜排布绘制的人生地图。",
+      "astrology": "占星术",
+      "astrologyDesc": "发现星座诉说的性格与命运模式。",
+      "sukuyo": "宿曜占",
+      "sukuyoDesc": "以古印度智慧梳理人生课题。",
+      "vedic": "吠陀占星",
+      "vedicDesc": "吠陀占星看你的人生方向。",
+      "cta": "开始 →"
+    },
+    "startSection2": {
+      "kicker": "今日推荐",
+      "title": "现在就能打开的免费内容",
+      "lead": "只收录无需付费、立刻可体验的卡片。"
+    },
+    "svcIndex": {
+      "kicker": "ALL SERVICES",
+      "title": "所有占卜之门都在这里",
+      "lead": "塔罗、神谕、冥想、高级报告——搜索或打开下方合集。",
+      "placeholder": "搜索服务（如：塔罗、合婚、梦）",
+      "searchAria": "搜索全部服务",
+      "empty": "没有结果，换个关键词试试。"
     }
   },
   "terms": {
@@ -1269,7 +1350,26 @@
     },
     "privacyNotice": "本服务仅在提供四柱、运势结果及相关客户支持所需范围内收集和使用出生日期、出生时间、性别信息。收集目的达成或服务结束时会立即销毁；如法律要求保存，则在规定期间内另行保管后销毁。",
     "policyLinksAria": "政策和咨询链接",
-    "hostingNotice": "托管服务提供方: Cloudflare, Inc. 所有交易、退款和咨询由Code Destiny负责。"
+    "hostingNotice": "托管服务提供方: Cloudflare, Inc. 所有交易、退款和咨询由Code Destiny负责。",
+    "groups": {
+      "services": "服务",
+      "company": "公司",
+      "support": "客服中心"
+    },
+    "svc": {
+      "saju": "八字",
+      "tarot": "塔罗",
+      "astrology": "占星术（紫微·宿曜·吠陀）",
+      "daily": "今日运势",
+      "story": "故事"
+    },
+    "support": {
+      "guide": "使用指南",
+      "insights": "运势洞察"
+    },
+    "brand": {
+      "tagline": "东西方智慧与AI洞察照亮你命运的地方"
+    }
   },
   "branches": {
     "자수": {

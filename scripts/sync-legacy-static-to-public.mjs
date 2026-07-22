@@ -445,7 +445,7 @@ const LOCALE_SHELL_SEO = {
     lang: "ja",
     ogLocale: "ja_JP",
     language: "Japanese",
-    title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — Code Destiny",
+    title: "無料占い | 四柱推命・タロット・相性・今日の運勢 — CODE DESTINY",
     description:
       "生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
     keywords:
@@ -455,7 +455,7 @@ const LOCALE_SHELL_SEO = {
     lang: "zh-CN",
     ogLocale: "zh_CN",
     language: "Chinese",
-    title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — Code Destiny",
+    title: "免费算命 | 八字·塔罗·紫微斗数·今日运势 — CODE DESTINY",
     description:
       "输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
     keywords:
@@ -465,7 +465,7 @@ const LOCALE_SHELL_SEO = {
     lang: "en",
     ogLocale: "en_US",
     language: "English",
-    title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — Code Destiny",
+    title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
     description:
       "Enter your birth date for free Korean Saju (Four Pillars) readings, tarot, Zi Wei Dou Shu, Sukuyo compatibility and daily horoscopes — warm, in-depth AI interpretations.",
     keywords:
