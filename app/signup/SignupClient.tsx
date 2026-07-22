@@ -6,7 +6,14 @@ import { useRouter } from "next/navigation";
 import PrivacyPolicyContent from "../privacy-policy/PrivacyPolicyContent";
 import TermsContent from "../terms-of-service/TermsContent";
 import { getApiBaseUrl } from "../_lib/api-config";
-import { authFetch, waitForAuthLogoutToSettle } from "../_lib/auth-client";
+import {
+  authFetch,
+  isMobileAppRuntime,
+  mobileAppAuthHeaders,
+  persistMobileAppAccessToken,
+  persistMobileAppRefreshToken,
+  waitForAuthLogoutToSettle,
+} from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 
@@ -43,6 +50,7 @@ type SignupResult = {
   error?: string;
   nextPath?: string;
   accessToken?: string;
+  refreshToken?: string;
   tokenType?: string;
   accessTokenExpiresInSec?: number;
   provider?: "google" | "naver" | "kakao";
@@ -282,14 +290,21 @@ export default function SignupPage() {
     }
   }, []);
 
-  const persistAuth = (user?: SignupResult["user"], accessToken?: string) => {
+  const persistAuth = (user?: SignupResult["user"], accessToken?: string, refreshToken?: string) => {
     if (user || accessToken) {
       authCommittedRef.current = true;
     }
-    try {
-      localStorage.removeItem("fortune_auth_token");
-    } catch {
-      // ignore storage failures
+    // 웹은 쿠키가 정본이라 레거시 토큰을 지운다. 앱은 SameSite=Lax 쿠키가 https://localhost
+    // 출처로 오지 않아 이 토큰이 유일한 자격증명이므로, 지우는 대신 저장한다(로그인 경로와 동일).
+    if (isMobileAppRuntime() && accessToken) {
+      persistMobileAppAccessToken(accessToken);
+      persistMobileAppRefreshToken(refreshToken || "");
+    } else {
+      try {
+        localStorage.removeItem("fortune_auth_token");
+      } catch {
+        // ignore storage failures
+      }
     }
     if (user) {
       const safeUser = persistSanitizedAuthUser(user);
@@ -391,7 +406,8 @@ export default function SignupPage() {
       try {
         response = await fetchWithTimeout(socialCompleteEndpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          // 앱은 이 헤더가 있어야 서버가 리프레시 토큰을 본문으로 내려준다(로그인·등록과 동일).
+          headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
           credentials: "include",
           body: JSON.stringify({ socialGrant }),
         });
@@ -414,7 +430,7 @@ export default function SignupPage() {
           throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
         }
 
-        persistAuth(payload.user, payload.accessToken);
+        persistAuth(payload.user, payload.accessToken, payload.refreshToken);
 
         const nextFromQuery = resolveNextPathFromQuery(params);
         const nextPath = sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/";
@@ -476,7 +492,9 @@ export default function SignupPage() {
       try {
         response = await fetchWithTimeout(`${authApiBase}/api/auth/register`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          // 앱은 이 헤더가 있어야 서버가 리프레시 토큰을 JSON 본문으로 함께 내려준다
+          // (쿠키는 SameSite=Lax 라 앱 출처로 오지 않는다). 웹에서는 빈 객체다.
+          headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
           credentials: "include",
           body: JSON.stringify({
             name: name.trim(),
@@ -507,7 +525,7 @@ export default function SignupPage() {
         throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
       }
 
-      persistAuth(payload.user, payload.accessToken);
+      persistAuth(payload.user, payload.accessToken, payload.refreshToken);
       const resolvedNextPath = sanitizeNextPath(payload.nextPath || null) || nextPath;
 
       redirectAfterAuth(resolvedNextPath, payload.user);

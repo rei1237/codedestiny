@@ -20,6 +20,7 @@ const mockConnectDb = jest.fn(async () => undefined);
 const mockResetMongooseConnection = jest.fn(async () => undefined);
 const mockWithMongoRetry = jest.fn(async (env, fn) => fn());
 const mockUserFindOne = jest.fn();
+const mockUserCreate = jest.fn(async (doc) => ({ ...doc, _id: "64f0a1b2c3d4e5f678905678" }));
 const mockVerifyPassword = jest.fn(async () => true);
 const mockRefreshSessionCreate = jest.fn(async (doc) => doc);
 
@@ -57,7 +58,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   ServiceExecutionTransaction: {},
   SukuyoCompatibilityAiConsultation: {},
   ZiweiAiConsultation: {},
-  MonthlyCreditLedger: {},
+  MonthlyCreditLedger: { updateOne: jest.fn(async () => ({ upsertedCount: 1 })) },
   PointHistory: {},
   RefreshTokenSession: {
     create: mockRefreshSessionCreate,
@@ -68,6 +69,7 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   },
   User: {
     collection: { findOne: mockUserFindOne },
+    create: mockUserCreate,
   },
 }));
 
@@ -216,6 +218,63 @@ describe("로그인 응답 본문의 리프레시 토큰 노출 범위", () => {
     const payload = await response.json();
 
     expect(response.status).toBe(200);
+    expect(payload.refreshToken).toEqual(expect.any(String));
+    expect(payload.refreshToken).not.toBe(payload.accessToken);
+  });
+});
+
+describe("회원가입 응답 본문의 리프레시 토큰 노출 범위", () => {
+  // 앱 회원가입은 SignupClient가 이 refreshToken을 저장해야 콜드스타트 세션이 유지된다.
+  // register도 login과 같은 createAuthSuccessResponse/appRefreshTokenField를 타므로,
+  // 여기서 register 경로 자체가 앱 요청에 refreshToken을 내려주는지 못박는다.
+  function buildRegisterRequest({ origin, runtime } = {}) {
+    const headers = new Headers({
+      "content-type": "application/json",
+      "cf-connecting-ip": "203.0.113.21",
+    });
+    if (origin) headers.set("origin", origin);
+    if (runtime) headers.set("x-code-destiny-runtime", runtime);
+    return new Request("https://code-destiny.com/api/auth/register", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        name: "테스터",
+        email: "newbie@example.com",
+        password: "correct-horse-battery",
+        phoneNumber: "01012345678",
+        birthDate: "1990-01-01",
+        birthTime: "12:00",
+        gender: "M",
+      }),
+    });
+  }
+
+  beforeEach(() => {
+    // 신규 가입이므로 기존 유저 조회는 null.
+    mockUserFindOne.mockResolvedValue(null);
+  });
+
+  test("웹 회원가입 응답에는 refreshToken이 실리지 않는다", async () => {
+    const response = await authRoutes.__authTestUtils.handleRegister(
+      buildRegisterRequest({ origin: WEB_ORIGIN }),
+      ENV,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(payload.accessToken).toEqual(expect.any(String));
+    expect(payload.refreshToken).toBeUndefined();
+    expect(String(response.headers.get("set-cookie") || "")).toContain("fortune_auth_refresh=");
+  });
+
+  test("앱 회원가입 응답에는 refreshToken이 실린다", async () => {
+    const response = await authRoutes.__authTestUtils.handleRegister(
+      buildRegisterRequest({ origin: APP_ORIGIN, runtime: "mobile-app" }),
+      ENV,
+    );
+    const payload = await response.json();
+
+    expect(response.status).toBe(201);
     expect(payload.refreshToken).toEqual(expect.any(String));
     expect(payload.refreshToken).not.toBe(payload.accessToken);
   });

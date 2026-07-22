@@ -3816,6 +3816,7 @@ export async function handleAuthRoutes(request, env) {
 
 export const __authTestUtils = {
   handleLogin,
+  handleRegister,
   handleRefresh,
   handleWithdraw,
   handleWithdrawCsrfIssue,

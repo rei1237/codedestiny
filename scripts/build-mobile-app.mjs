@@ -29,9 +29,16 @@ const BRIDGE_PUBLIC_PATH = "/js/app-native-bridge.js";
 // 앱 번들은 https://localhost 출처에서 서빙되나 그 출처엔 서버가 없다. 모든 /api/* 호출이
 // 프로덕션 워커로 가도록 API base 를 가장 먼저 확정한다(가드·api-config 가 이 값을 읽음).
 const API_BASE_INLINE = `<script>window.CODE_DESTINY_API_BASE_URL=window.CODE_DESTINY_API_BASE_URL||"https://code-destiny.com";</script>`;
+// 앱은 https://localhost 출처라, assets.code-destiny.com 의 호트링크 보호(Cloudflare)가
+// Referer=https://localhost 인 프리미엄 캐릭터 컷아웃 요청을 403(error 1011)으로 막는다.
+// (webp·리사이즈 등 대부분은 통과하지만, 대형 -Photoroom.png 컷아웃과 노벨 CDN 자산이 걸린다.)
+// Referer 를 아예 안 보내면(no-referer) 그 Worker 가 전부 200 으로 통과시킨다 — 실측 확인.
+// 이 meta 는 앱 번들 후처리에서만 주입되므로 웹(code-destiny.com Referer 유지)엔 영향 없다.
+// 앱은 Referer 의존 로직이 없다(API=Bearer 헤더, OAuth=딥링크).
+const REFERRER_META = `<meta name="referrer" content="no-referrer">`;
 // 브릿지가 가드보다 먼저다 — 브릿지가 런타임 타깃 플래그를 심고 window.CodeDestinyNative를
 // 설치한다. (가드는 결제 시점에 지연 조회하므로 순서에 엄격하진 않지만, 명시적으로 둔다.)
-const GUARD_TAG = `${API_BASE_INLINE}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
+const GUARD_TAG = `${REFERRER_META}${API_BASE_INLINE}<script src="${BRIDGE_PUBLIC_PATH}"></script><script src="${GUARD_PUBLIC_PATH}"></script>`;
 
 // 앱에 없는 라우트. scripts/app-payment-guard.js의 PRUNED_ROUTES와 짝을 이룬다 —
 // 여기서 파일을 지우고, 가드가 남은 링크를 제거한다. 한쪽만 하면 404가 난다.
