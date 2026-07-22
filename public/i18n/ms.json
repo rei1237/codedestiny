@@ -81,7 +81,19 @@
       "aiAll": "Semua rundingan AI",
       "aiAllMeta": "Cari melalui carian",
       "story": "Cerita",
-      "allServices": "Semua perkhidmatan"
+      "allServices": "Semua perkhidmatan",
+      "aiLifeFortune": "AI Nasib Hidup",
+      "aiLifeFortuneMeta": "Aliran hidup via carta & kitaran",
+      "aiZiwei": "Rundingan AI Zi Wei",
+      "aiZiweiMeta": "Bacaan 12 istana peribadi",
+      "aiAstro": "Rundingan AI Astrologi",
+      "aiAstroMeta": "Soal jawab carta kelahiran",
+      "aiVedic": "Rundingan AI Veda",
+      "aiVedicMeta": "Bacaan rasi & nakshatra",
+      "aiSukuyo": "AI Padanan Sukuyo",
+      "aiSukuyoMeta": "Bacaan 27 rumah",
+      "aiKarma": "Karma Takdir",
+      "aiKarmaMeta": "Bacaan karma & kehidupan lalu"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Bahasa"
     },
     "story": {
-      "aria": "Buka perpustakaan novel web Destiny Stories",
+      "aria": "Buka novel ringan Perpustakaan Takdir",
       "title": "Perpustakaan Destiny",
-      "desc": "Teruskan novel web percuma yang ditenun dengan saju, tarot dan bintang.",
-      "cta": "Baca novel web",
+      "desc": "Temui kisah takdir pimpinan Yeon dan Neo sebagai novel ringan.",
+      "cta": "Mula cerita",
       "bubble": "Temui takdir hari ini menerusi sebuah kisah?"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "Baca novel web",
-      "novel": "Novel visual",
+      "novel": "Novel Ringan",
       "world": "Watak & dunia",
       "music": "Muzik cahaya bulan"
     },

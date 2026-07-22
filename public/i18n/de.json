@@ -81,7 +81,19 @@
       "aiAll": "Alle KI-Beratungen",
       "aiAllMeta": "Per Suche finden",
       "story": "Story",
-      "allServices": "Alle Dienste"
+      "allServices": "Alle Dienste",
+      "aiLifeFortune": "Lebensglück-KI",
+      "aiLifeFortuneMeta": "Lebensfluss via Chart & Zyklen",
+      "aiZiwei": "Zi-Wei-KI-Beratung",
+      "aiZiweiMeta": "Persönliche 12-Palast-Deutung",
+      "aiAstro": "Astrologie-KI-Beratung",
+      "aiAstroMeta": "Tiefes Geburtshoroskop-Q&A",
+      "aiVedic": "Vedische KI-Beratung",
+      "aiVedicMeta": "Rasi- & Nakshatra-Deutung",
+      "aiSukuyo": "Sukuyo-Match-KI",
+      "aiSukuyoMeta": "27-Häuser-Beziehungsdeutung",
+      "aiKarma": "Karma des Schicksals",
+      "aiKarmaMeta": "Karma- & Vorleben-Deutung"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Sprache"
     },
     "story": {
-      "aria": "Die Webroman-Bibliothek Destiny Stories oeffnen",
+      "aria": "Die Schicksalsbibliothek als Light Novel öffnen",
       "title": "Bibliothek des Schicksals",
-      "desc": "Lies kostenlose Webromane weiter, verwoben mit Saju, Tarot und Sternen.",
-      "cta": "Webromane lesen",
+      "desc": "Erlebe die von Yeon und Neo geführte Schicksalsgeschichte als Light Novel.",
+      "cta": "Geschichte starten",
       "bubble": "Triffst du dein heutiges Schicksal in einer Geschichte?"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "Webroman lesen",
-      "novel": "Visual Novel",
+      "novel": "Light Novel",
       "world": "Charaktere & Lore",
       "music": "Mondlicht-Musik"
     },

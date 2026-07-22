@@ -81,7 +81,19 @@
       "aiAll": "Toutes les consultations IA",
       "aiAllMeta": "Trouver via la recherche",
       "story": "Histoire",
-      "allServices": "Tous les services"
+      "allServices": "Tous les services",
+      "aiLifeFortune": "IA Fortune de Vie",
+      "aiLifeFortuneMeta": "Flux de vie par thème et cycles",
+      "aiZiwei": "IA Zi Wei",
+      "aiZiweiMeta": "Lecture perso des 12 palais",
+      "aiAstro": "IA Astrologie",
+      "aiAstroMeta": "Q&R approfondi du thème natal",
+      "aiVedic": "IA Védique",
+      "aiVedicMeta": "Lecture rasi et nakshatra",
+      "aiSukuyo": "IA Affinité Sukuyo",
+      "aiSukuyoMeta": "Lecture des 27 demeures",
+      "aiKarma": "Karma du Destin",
+      "aiKarmaMeta": "Lecture karma et vies passées"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Langue"
     },
     "story": {
-      "aria": "Ouvrir la bibliotheque de romans Destiny Stories",
+      "aria": "Ouvrir le light novel de la Bibliothèque du Destin",
       "title": "Bibliotheque du destin",
-      "desc": "Continuez des romans gratuits tisses de saju, de tarot et d etoiles.",
-      "cta": "Lire les romans",
+      "desc": "Découvrez le récit du destin mené par Yeon et Neo en light novel.",
+      "cta": "Commencer l'histoire",
       "bubble": "Et si vous découvriez votre destin du jour dans une histoire ?"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "Lire le webroman",
-      "novel": "Roman visuel",
+      "novel": "Light novel",
       "world": "Personnages et univers",
       "music": "Musique au clair de lune"
     },

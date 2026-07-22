@@ -81,7 +81,19 @@
       "aiAll": "查看全部AI咨询",
       "aiAllMeta": "通过搜索查找",
       "story": "故事",
-      "allServices": "全部服务"
+      "allServices": "全部服务",
+      "aiLifeFortune": "人生总运 AI咨询",
+      "aiLifeFortuneMeta": "以命盘·大运看人生走向",
+      "aiZiwei": "紫微斗数 AI咨询",
+      "aiZiweiMeta": "个人十二宫命盘咨询",
+      "aiAstro": "占星术 AI咨询",
+      "aiAstroMeta": "本命盘深度问答",
+      "aiVedic": "吠陀 AI咨询",
+      "aiVedicMeta": "拉希·纳克沙特拉解读",
+      "aiSukuyo": "宿曜合婚 AI",
+      "aiSukuyoMeta": "二十七宿关系解读",
+      "aiKarma": "命运之业",
+      "aiKarmaMeta": "业力·前世整合咨询"
     },
     "previewCards": {
       "tarotName": "塔罗",
@@ -743,10 +755,10 @@
       "label": "语言"
     },
     "story": {
-      "aria": "打开命运故事网络小说库",
+      "aria": "打开命运书斋 轻小说",
       "title": "命运图书馆",
-      "desc": "继续提供与 Saju、塔罗牌和星星交织在一起的免费网络小说。",
-      "cta": "阅读网络小说",
+      "desc": "与妍和尼奥一起，用轻小说遇见命运的故事。",
+      "cta": "开始故事",
       "bubble": "今天的命运，用故事来遇见吧？"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "阅读网络小说",
-      "novel": "视觉小说",
+      "novel": "轻小说",
       "world": "角色·世界观",
       "music": "月光音乐"
     },

@@ -81,7 +81,19 @@
       "aiAll": "All AI consults",
       "aiAllMeta": "Find via search",
       "story": "Story",
-      "allServices": "All Services"
+      "allServices": "All Services",
+      "aiLifeFortune": "Life Fortune AI",
+      "aiLifeFortuneMeta": "Life flow via chart & luck cycles",
+      "aiZiwei": "Zi Wei AI Consult",
+      "aiZiweiMeta": "Personal 12-palace reading",
+      "aiAstro": "Astrology AI Consult",
+      "aiAstroMeta": "In-depth natal chart Q&A",
+      "aiVedic": "Vedic AI Consult",
+      "aiVedicMeta": "Rasi & nakshatra reading",
+      "aiSukuyo": "Sukuyo Match AI",
+      "aiSukuyoMeta": "27-mansion relationship reading",
+      "aiKarma": "Karma of Destiny",
+      "aiKarmaMeta": "Karma & past-life reading"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Language"
     },
     "story": {
-      "aria": "Open the Destiny Stories web novel library",
+      "aria": "Open the Destiny Library light novel",
       "title": "Destiny Library",
-      "desc": "Continue free web novels woven with saju, tarot, and the stars.",
-      "cta": "Read web novels",
+      "desc": "Meet the destiny tale led by Yeon and Neo as a light novel.",
+      "cta": "Start the story",
       "bubble": "Meet today's destiny through a story?"
     },
     "collectionNav": {
@@ -1469,7 +1481,7 @@
     },
     "story": {
       "reader": "Read Web Novel",
-      "novel": "Visual Novel",
+      "novel": "Light Novel",
       "world": "Characters & Lore",
       "music": "Moonlight Music"
     },

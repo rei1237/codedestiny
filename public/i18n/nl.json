@@ -81,7 +81,19 @@
       "aiAll": "Alle AI-consulten",
       "aiAllMeta": "Vind via zoeken",
       "story": "Verhaal",
-      "allServices": "Alle diensten"
+      "allServices": "Alle diensten",
+      "aiLifeFortune": "Levensfortuin-AI",
+      "aiLifeFortuneMeta": "Levensloop via chart & cycli",
+      "aiZiwei": "Zi Wei AI-consult",
+      "aiZiweiMeta": "Persoonlijke 12-paleizenlezing",
+      "aiAstro": "Astrologie AI-consult",
+      "aiAstroMeta": "Diepe geboortehoroscoop-Q&A",
+      "aiVedic": "Vedisch AI-consult",
+      "aiVedicMeta": "Rasi- & nakshatra-lezing",
+      "aiSukuyo": "Sukuyo Match-AI",
+      "aiSukuyoMeta": "27-huizen relatielezing",
+      "aiKarma": "Karma van het Lot",
+      "aiKarmaMeta": "Karma- & vorige-levenslezing"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Taal"
     },
     "story": {
-      "aria": "Open de webromanbibliotheek van Destiny Stories",
+      "aria": "Open de light novel van de Lotbibliotheek",
       "title": "Destiny-bibliotheek",
-      "desc": "Ga door met gratis webromans geweven met saju, tarot en de sterren.",
-      "cta": "Lees webromans",
+      "desc": "Ontmoet het lotverhaal van Yeon en Neo als light novel.",
+      "cta": "Start het verhaal",
       "bubble": "Ontmoet je lot van vandaag in een verhaal?"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "Webroman lezen",
-      "novel": "Visuele roman",
+      "novel": "Light novel",
       "world": "Personages & wereld",
       "music": "Maanlichtmuziek"
     },

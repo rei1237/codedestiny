@@ -81,7 +81,19 @@
       "aiAll": "Xem mọi tư vấn AI",
       "aiAllMeta": "Tìm bằng tìm kiếm",
       "story": "Câu chuyện",
-      "allServices": "Mọi dịch vụ"
+      "allServices": "Mọi dịch vụ",
+      "aiLifeFortune": "AI Tổng Vận Đời",
+      "aiLifeFortuneMeta": "Dòng đời qua mệnh bàn & vận",
+      "aiZiwei": "Tư vấn AI Tử Vi",
+      "aiZiweiMeta": "Luận mệnh bàn 12 cung cá nhân",
+      "aiAstro": "Tư vấn AI Chiêm Tinh",
+      "aiAstroMeta": "Hỏi đáp sâu bản đồ sao",
+      "aiVedic": "Tư vấn AI Vệ Đà",
+      "aiVedicMeta": "Luận rasi & nakshatra",
+      "aiSukuyo": "AI Hợp Đôi Túc Diệu",
+      "aiSukuyoMeta": "Luận quan hệ 27 tú",
+      "aiKarma": "Nghiệp Vận Mệnh",
+      "aiKarmaMeta": "Luận nghiệp & tiền kiếp"
     },
     "previewCards": {
       "tarotName": "tarot",
@@ -743,10 +755,10 @@
       "label": "Ngôn ngữ"
     },
     "story": {
-      "aria": "Mở thư viện tiểu thuyết web Những câu chuyện định mệnh",
+      "aria": "Mở light novel Thư Phòng Vận Mệnh",
       "title": "Thư viện định mệnh",
-      "desc": "Tiếp tục tiểu thuyết web miễn phí được kết hợp với saju, tarot và các vì sao.",
-      "cta": "Đọc tiểu thuyết trên web",
+      "desc": "Gặp câu chuyện vận mệnh do Yeon và Neo dẫn dắt qua light novel.",
+      "cta": "Bắt đầu câu chuyện",
       "bubble": "Gặp gỡ vận mệnh hôm nay qua một câu chuyện nhé?"
     },
     "collectionNav": {
@@ -1469,7 +1481,7 @@
     },
     "story": {
       "reader": "Đọc tiểu thuyết mạng",
-      "novel": "Tiểu thuyết hình ảnh",
+      "novel": "Light Novel",
       "world": "Nhân vật & thế giới",
       "music": "Nhạc ánh trăng"
     },

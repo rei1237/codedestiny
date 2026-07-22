@@ -81,7 +81,19 @@
       "aiAll": "Todas las consultas IA",
       "aiAllMeta": "Buscar",
       "story": "Historia",
-      "allServices": "Todos los servicios"
+      "allServices": "Todos los servicios",
+      "aiLifeFortune": "IA Fortuna Vital",
+      "aiLifeFortuneMeta": "Flujo vital por carta y ciclos",
+      "aiZiwei": "IA Zi Wei",
+      "aiZiweiMeta": "Lectura personal de 12 palacios",
+      "aiAstro": "IA Astrología",
+      "aiAstroMeta": "Q&A profundo de carta natal",
+      "aiVedic": "IA Védica",
+      "aiVedicMeta": "Lectura de rasi y nakshatra",
+      "aiSukuyo": "IA Afinidad Sukuyo",
+      "aiSukuyoMeta": "Lectura de 27 mansiones",
+      "aiKarma": "Karma del Destino",
+      "aiKarmaMeta": "Lectura de karma y vidas pasadas"
     },
     "previewCards": {
       "tarotName": "Tarot",
@@ -743,10 +755,10 @@
       "label": "Idioma"
     },
     "story": {
-      "aria": "Abrir la biblioteca de novelas Destiny Stories",
+      "aria": "Abrir la novela ligera de la Biblioteca del Destino",
       "title": "Biblioteca del destino",
-      "desc": "Continua novelas gratis tejidas con saju, tarot y estrellas.",
-      "cta": "Leer novelas",
+      "desc": "Conoce la historia del destino guiada por Yeon y Neo como novela ligera.",
+      "cta": "Comenzar la historia",
       "bubble": "¿Descubres tu destino de hoy en una historia?"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "Leer la novela web",
-      "novel": "Novela visual",
+      "novel": "Novela ligera",
       "world": "Personajes y mundo",
       "music": "Música de luz de luna"
     },

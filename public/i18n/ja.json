@@ -81,7 +81,19 @@
       "aiAll": "AI相談をすべて見る",
       "aiAllMeta": "検索で探す",
       "story": "ストーリー",
-      "allServices": "全サービス"
+      "allServices": "全サービス",
+      "aiLifeFortune": "人生総運 AI相談",
+      "aiLifeFortuneMeta": "命式・大運で見る人生の流れ",
+      "aiZiwei": "紫微斗数 AI相談",
+      "aiZiweiMeta": "12宮の個人命盤相談",
+      "aiAstro": "占星術 AI相談",
+      "aiAstroMeta": "ネイタルチャート深層問答",
+      "aiVedic": "ヴェーダ AI相談",
+      "aiVedicMeta": "ラーシ・ナクシャトラ鑑定",
+      "aiSukuyo": "宿曜相性 AI相談",
+      "aiSukuyoMeta": "27宿の関係鑑定",
+      "aiKarma": "運命の業",
+      "aiKarmaMeta": "カルマ・前世の統合相談"
     },
     "previewCards": {
       "tarotName": "タロット",
@@ -743,10 +755,10 @@
       "label": "言語"
     },
     "story": {
-      "aria": "Destiny Stories Web 小説ライブラリを開く",
+      "aria": "運命の書斎 ライトノベルを開く",
       "title": "Destiny ライブラリ",
-      "desc": "サジュとタロットと星が織りなす無料のWeb小説を続けてください。",
-      "cta": "Web 小説を読む",
+      "desc": "ヨンとネオが導く運命の物語を、ライトノベルで今すぐ。",
+      "cta": "物語を始める",
       "bubble": "今日の運命を、物語で見てみませんか？"
     },
     "collectionNav": {
@@ -1373,7 +1385,7 @@
     },
     "story": {
       "reader": "ウェブ小説を読む",
-      "novel": "ビジュアルノベル",
+      "novel": "ライトノベル",
       "world": "キャラ・世界観",
       "music": "月光の音楽"
     },
