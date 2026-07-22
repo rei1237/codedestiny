@@ -1361,7 +1361,8 @@
       "tarot": "Tarot",
       "astrology": "Astrologie (Zi Wei · Sukuyo · Vedisch)",
       "daily": "Daghoroscoop",
-      "story": "Verhalen"
+      "story": "Verhalen",
+      "ziwei": "Zi Wei Dou Shu"
     },
     "support": {
       "guide": "Gebruikershandleiding",
@@ -1369,7 +1370,15 @@
     },
     "brand": {
       "tagline": "Waar oosterse en westerse wijsheid met AI jouw lot verlicht"
-    }
+    },
+    "story": {
+      "reader": "Webroman lezen",
+      "novel": "Visuele roman",
+      "world": "Personages & wereld",
+      "music": "Maanlichtmuziek"
+    },
+    "socialAria": "Officiële social-mediakanalen van CODE DESTINY",
+    "langAria": "Taal kiezen"
   },
   "branches": {
     "자수": {

@@ -1457,7 +1457,8 @@
       "tarot": "Tarot",
       "astrology": "Chiêm tinh (Tử vi · Túc diệu · Vệ Đà)",
       "daily": "Vận hôm nay",
-      "story": "Câu chuyện"
+      "story": "Câu chuyện",
+      "ziwei": "Tử vi đẩu số"
     },
     "support": {
       "guide": "Hướng dẫn sử dụng",
@@ -1465,7 +1466,15 @@
     },
     "brand": {
       "tagline": "Nơi trí tuệ Đông-Tây và AI thắp sáng vận mệnh của bạn"
-    }
+    },
+    "story": {
+      "reader": "Đọc tiểu thuyết mạng",
+      "novel": "Tiểu thuyết hình ảnh",
+      "world": "Nhân vật & thế giới",
+      "music": "Nhạc ánh trăng"
+    },
+    "socialAria": "Kênh mạng xã hội chính thức của CODE DESTINY",
+    "langAria": "Chọn ngôn ngữ"
   },
   "pricing": {
     "currencies": {

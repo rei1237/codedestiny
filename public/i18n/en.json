@@ -1457,7 +1457,8 @@
       "tarot": "Tarot",
       "astrology": "Astrology (Zi Wei · Sukuyo · Vedic)",
       "daily": "Daily Fortune",
-      "story": "Stories"
+      "story": "Stories",
+      "ziwei": "Zi Wei Dou Shu"
     },
     "support": {
       "guide": "User Guide",
@@ -1465,7 +1466,15 @@
     },
     "brand": {
       "tagline": "Where East-West wisdom and AI light up your destiny"
-    }
+    },
+    "story": {
+      "reader": "Read Web Novel",
+      "novel": "Visual Novel",
+      "world": "Characters & Lore",
+      "music": "Moonlight Music"
+    },
+    "socialAria": "CODE DESTINY official social channels",
+    "langAria": "Select language"
   },
   "pricing": {
     "currencies": {

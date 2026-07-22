@@ -1361,7 +1361,8 @@
       "tarot": "塔罗",
       "astrology": "占星术（紫微·宿曜·吠陀）",
       "daily": "今日运势",
-      "story": "故事"
+      "story": "故事",
+      "ziwei": "紫微斗数"
     },
     "support": {
       "guide": "使用指南",
@@ -1369,7 +1370,15 @@
     },
     "brand": {
       "tagline": "东西方智慧与AI洞察照亮你命运的地方"
-    }
+    },
+    "story": {
+      "reader": "阅读网络小说",
+      "novel": "视觉小说",
+      "world": "角色·世界观",
+      "music": "月光音乐"
+    },
+    "socialAria": "CODE DESTINY 官方社交频道",
+    "langAria": "选择语言"
   },
   "branches": {
     "자수": {

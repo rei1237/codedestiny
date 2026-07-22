@@ -1361,7 +1361,8 @@
       "tarot": "Tarot",
       "astrology": "Astrologie (Zi Wei · Sukuyo · Védique)",
       "daily": "Horoscope du jour",
-      "story": "Histoires"
+      "story": "Histoires",
+      "ziwei": "Zi Wei Dou Shu"
     },
     "support": {
       "guide": "Guide d'utilisation",
@@ -1369,7 +1370,15 @@
     },
     "brand": {
       "tagline": "Là où les sagesses d'Orient et d'Occident éclairent votre destin avec l'IA"
-    }
+    },
+    "story": {
+      "reader": "Lire le webroman",
+      "novel": "Roman visuel",
+      "world": "Personnages et univers",
+      "music": "Musique au clair de lune"
+    },
+    "socialAria": "Réseaux sociaux officiels de CODE DESTINY",
+    "langAria": "Choisir la langue"
   },
   "branches": {
     "자수": {
