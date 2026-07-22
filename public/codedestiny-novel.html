@@ -224,26 +224,33 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.pje{height:clamp(280px,46vh,520px);max-height:none;bottom:clamp(150px,22vh,215px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
+/* 인간 네오(박병하) — 은발 미남 4×2 표정 시트 크롭(div 배경). 정체 공개 후 결말에 등장 */
+.char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(158px,23vh,225px);background-repeat:no-repeat;background-size:400% 200%}
 /* 모바일 캐릭터 폭 예산.
    원래는 캐릭터 크기가 vh(화면 높이)로만 정해지고 슬롯 여유는 vw(화면 폭)로 잡혀 있어서 단위가
    어긋났다. 게다가 clamp 하한(165~200px)이 있어 3인 장면의 폭 합계가 어떤 폰에서도 540px 밑으로
    내려가지 않았다 — 390×844 기준 필요 818px / 가용 421px 로 194% 초과라 겹침이 확정이었다.
    해결: 모든 크기에 min(…, 32vw) 상한을 걸어 폭을 화면 폭에 종속시키고 하한 clamp 를 없앤다.
    슬롯 앵커도 화면 밖으로 밀던 -4vw 를 0 으로 되돌린다. 수직 연출(bottom)은 그대로 둔다. */
-@media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
-  .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(102px,15vh,162px);background-size:418% 418%;background-position:2.306% 3.145%}
+@media (max-width:760px){.char{height:52vh;width:min(32vw,150px);object-fit:contain;object-position:bottom;bottom:clamp(200px,26vh,252px)}.char.pig{height:38vh}.char.slotL{left:0}.char.slotR{right:0}
+  /* 모바일: 대화창(하단 min-height~130px + 패딩/세이프에어리어)이 캐릭터 하반신을 덮던 문제 수정.
+     기본 .char 바닥을 대화창 위로 올리고(cast 클래스 없는 인간 연이 포함), 서있는 img 캐스트는 짧은 폰 방어용 px 하한 상향 + 발끝 페이드 마스크로 잔여 겹침을 자연 소멸시킨다. */
+  .char.moka,.char.crow,.char.rab,.char.ln,.char.lns,.char.heal,.char.baek,.char.neoh{-webkit-mask-image:linear-gradient(to bottom,#000 90%,transparent 100%);mask-image:linear-gradient(to bottom,#000 90%,transparent 100%)}
+  .char.pje,.char.muTrue{-webkit-mask-image:linear-gradient(to bottom,#000 93%,transparent 100%);mask-image:linear-gradient(to bottom,#000 93%,transparent 100%)}
+  .char.neo{width:min(31vh,32vw);height:min(31vh,32vw);bottom:clamp(176px,21vh,214px);background-size:418% 418%;background-position:2.306% 3.145%}
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
-  .char.moka{height:min(31vh,32vw);bottom:clamp(135px,19vh,195px)}.char.crow{height:min(33vh,32vw);bottom:clamp(135px,19vh,195px)}
-  .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw)}
-  .char.pig:not(.mirror){left:0;bottom:clamp(178px,26vh,224px);height:min(24vh,32vw)}
-  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(165px,23vh,214px);width:min(28vh,32vw);height:auto;aspect-ratio:264/372}
-  .char.rab{width:min(28vh,32vw);bottom:clamp(135px,19vh,195px)}
-  .char.ln{width:min(20vh,26vw);bottom:clamp(140px,20vh,200px)}
-  .char.lns{width:min(24vh,30vw);bottom:clamp(132px,18vh,190px)}
-  .char.heal{height:min(31vh,36vw);bottom:clamp(135px,19vh,195px)}
-  .char.baek{height:min(27vh,33vw);bottom:clamp(135px,19vh,195px)}
-  .char.pje{height:min(37vh,44vw);bottom:clamp(118px,16vh,175px)}
-  .char.muTrue{height:min(35vh,42vw);bottom:clamp(125px,17vh,185px)}}
+  .char.neoh{height:min(33vh,34vw);bottom:clamp(198px,26vh,248px)}
+  .char.moka{height:min(31vh,32vw);bottom:clamp(198px,26vh,248px)}.char.crow{height:min(33vh,32vw);bottom:clamp(198px,26vh,248px)}
+  .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw);bottom:clamp(150px,20vh,190px)}
+  .char.pig:not(.mirror){left:0;bottom:clamp(190px,26vh,232px);height:min(24vh,32vw)}
+  .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(188px,24vh,222px);width:min(28vh,32vw);height:auto;aspect-ratio:264/372}
+  .char.rab{width:min(28vh,32vw);bottom:clamp(198px,26vh,248px)}
+  .char.ln{width:min(20vh,26vw);bottom:clamp(200px,26vh,250px)}
+  .char.lns{width:min(24vh,30vw);bottom:clamp(198px,26vh,248px)}
+  .char.heal{height:min(31vh,36vw);bottom:clamp(198px,26vh,248px)}
+  .char.baek{height:min(27vh,33vw);bottom:clamp(198px,26vh,248px)}
+  .char.pje{height:min(37vh,44vw);bottom:clamp(190px,24vh,240px)}
+  .char.muTrue{height:min(35vh,42vw);bottom:clamp(190px,24vh,238px)}}
 /* L2 effects */
 .fxLayer{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
 /* L3 dialogue */
@@ -616,14 +623,19 @@ var CROW={base:NOVEL+enc("까마귀 빌런1.png"),alt:NOVEL+enc("까마귀 빌�
 var LN_SHEET=NOVEL+enc("루나-Photoroom.webp");   /* 3×2, 셀 512×512 */
 var RAB_SHEET="/images/novel/rab-sheet.webp";     /* 4×2, 셀 401×555 */
 var LNS_SHEET="/images/novel/lunas-sheet.webp";   /* 3×2, 셀 441×705 */
-var LNS_HEAL={h1:NOVEL+enc("루나 언니 회복1.webp"),h2:NOVEL+enc("루나 언니 회복2.webp"),h3:NOVEL+enc("루나 언니 회복3.webp"),
-  h4:NOVEL+enc("루나 언니 회복4.webp"),h5:NOVEL+enc("루나 언니 회복5.webp"),h6:NOVEL+enc("루나 언니 회복6.webp")};
+var LNS_HEAL={h1:NOVEL+enc("루나 언니 회복1-Photoroom.webp"),h2:NOVEL+enc("루나 언니 회복2-Photoroom.webp"),h3:NOVEL+enc("루나 언니 회복3-Photoroom.webp"),
+  h4:NOVEL+enc("루나 언니 회복4-Photoroom.webp"),h5:NOVEL+enc("루나 언니 회복5-Photoroom.webp"),h6:NOVEL+enc("루나 언니 회복6-Photoroom.webp")};
 var BAEK={base:NOVEL+enc("백문 기본-Photoroom.webp"),read:NOVEL+enc("백문 독서-Photoroom.webp"),magic:NOVEL+enc("백문 마법-Photoroom.webp"),
   lib:NOVEL+enc("백문 도서관-Photoroom.webp"),lib2:NOVEL+enc("백문 도서관2-Photoroom.webp"),lib4:NOVEL+enc("백문 도서관4-Photoroom.webp"),lib5:NOVEL+enc("백문 도서관5-Photoroom.webp")};
 var PJE={base:NOVEL+enc("박지은 기본.webp"),blank:NOVEL+enc("박지은 무표정.webp"),talk:NOVEL+enc("박지은 말함.webp"),talk2:NOVEL+enc("박지은 말함2.webp"),
   cynic:NOVEL+enc("박지은 냉소.webp"),mock:NOVEL+enc("박지은 조롱.webp"),lure:NOVEL+enc("박지은 유혹.webp"),angry:NOVEL+enc("박지은 화남.webp"),mad:NOVEL+enc("박지은 광기.webp")};
 var MU_TRUE={base:"/images/novel/mu-01.webp",sly:"/images/novel/mu-02.webp",talk:"/images/novel/mu-03.webp",angry:"/images/novel/mu-04.webp",laugh:"/images/novel/mu-05.webp",
   waver:"/images/novel/mu-06.webp",sad:"/images/novel/mu-07.webp",think:"/images/novel/mu-08.webp",calm:"/images/novel/mu-09.webp",side:"/images/novel/mu-10.webp"};
+/* 인간 네오(박병하) — 은발 미남 4×2 표정 시트(정체 공개 후 결말). 화자 neo의 표정(x)이 h* 키면 인간형, 아니면 사자형. */
+var NEOH=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png");
+var NEOH_PORTRAIT=WAR+enc("네오 반신상 배경없음-Photoroom.png");
+var NEOH_CELL={hneutral:"0% 0%",hpoint:"33.333% 0%",hspeak:"66.667% 0%",harms:"100% 0%",
+  hsoft:"0% 100%",hache:"33.333% 100%",hsmile:"66.667% 100%",hcalm:"100% 100%"};
 
 /* 배경 (background/ 하위) */
 var BG={
@@ -729,7 +741,11 @@ var LN_CELL={greet:"0% 0%",joy:"50% 0%",surprise:"100% 0%",cry:"0% 100%",cheer:"
 var LNS_CELL={bread:"0% 0%",tired:"50% 0%",sigh:"100% 0%",orders:"0% 100%",knead:"50% 100%",blanket:"100% 100%"};
 /* who → sprite (form 반영) */
 function spriteFor(who,expr,form){
-  if(who==="neo")return {url:NEO,cls:"neo",sheet:true,pos:(NEO_CELL[expr]||NEO_CELL.neutral)};
+  if(who==="neo"){
+    /* 표정(x)이 h*(인간 표정 키)면 인간 네오 시트, 아니면 사자 네오 시트 */
+    if(expr&&NEOH_CELL[expr])return {url:NEOH,cls:"neoh",sheet:true,size:"400% 200%",pos:NEOH_CELL[expr]};
+    return {url:NEO,cls:"neo",sheet:true,pos:(NEO_CELL[expr]||NEO_CELL.neutral)};
+  }
   if(who==="mu"){
     /* 표정(x)이 있으면 본모습(까마귀 후드) 컷, 없으면 정체 공개 전 그림자 실루엣 */
     if(expr&&MU_TRUE[expr])return {url:MU_TRUE[expr],cls:"muTrue"};
@@ -1167,6 +1183,10 @@ function slotOfWho(who){
 function updateSlotExpr(slot,who,expr){ /* className/show를 안 건드리고 표정만 교체(깜빡임 방지) */
   var el=document.getElementById("char_"+slot);if(!el){setSlot(slot,who,expr);return;}
   var sp=spriteFor(who,expr,S.form);
+  /* cls 변동(네오 사자↔인간 등 형태 전환) 시엔 전체 재생성 — 안 하면 인간 초상이 사자 정사각 박스에 찌그러짐 */
+  var wantCls=("char "+slotMap[slot]+" "+(sp.cls||"")).replace(/\s+/g," ").trim();
+  var curCls=el.className.replace(/\b(show|dim)\b/g,"").replace(/\s+/g," ").trim();
+  if(curCls!==wantCls){setSlot(slot,who,expr);return;}
   if(sp.sheet&&el.tagName==="DIV"){el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";return;}
   if(!sp.sheet&&el.tagName==="IMG"){setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));return;}
   setSlot(slot,who,expr); /* 시트↔img 전환 등 태그 불일치 시 전체 재생성 */
@@ -2156,7 +2176,7 @@ EPISODES.push({"no":"EP.27","tag":"제27화 · 갓 구운 아침","title":"갓 �
 {"s":"yeon","x":"soft","t":"네오. 아까 금고에서… 갈기가 금빛으로 빛났잖아. 그거 뭐야?"},
 {"s":"neo","x":"calm","t":"…과식이다."},
 {"s":"yeon","x":"talk","t":"과식으로 사람이 빛나면 우리 과 애들은 다 등대게? — 말 안 해도 돼. 대신 하나만 약속해."},
-{"s":"yeon","x":"base","im":true,"t":"말할 수 있게 되는 날이 오면 — 제일 먼저 나한테 말해 줘. 이자는 안 받을게."},
+{"s":"yeon","x":"base","im":true,"t":"언젠가 말할 수 있게 되면, 제일 먼저 나한테 말해 줘. 늦어도 괜찮으니까. 그때까지 기다릴게."},
 {"s":"n","t":"네오는 한참 수평선을 보다가, 아주 작게 고개를 끄덕였다. 그 옆얼굴이 — 어딘가, 그리움과 닮아 있었다."},
 {"s":"n","bg":"handsRush","bgm":"gloom","tone":"dark","c":null,"l":null,"r":null,"fx":"ink","im":true,"t":"— 같은 시각. 어디도 아닌 곳."},
 {"s":"n","tone":"dark","t":"장부가 펼쳐진 방. 촛불 대신 검은 비가 창밖을 적시는 방. 여자의 손가락이, 연필로 적힌 이름 하나를 천천히 문질러 지웠다. 「청토끼」."},
@@ -2187,7 +2207,7 @@ EPISODES.push({"no":"EP.28","tag":"제28화 · 돌아가는 문","title":"돌아
 {"s":"n","t":"네오의 눈이 흔들렸다. 아주 잠깐. 수평선이 흔들릴 만큼만."},
 {"s":"neo","x":"soft","im":true,"t":"…목록의 첫 줄이다. 처음부터, 끝까지."},
 {"s":"n","t":"연이는 그 말을 가슴에 접어 넣었다. 언젠가 이자까지 쳐서 돌려받을 문장이었다."},
-{"s":"yeon","x":"smile","t":"갈게. — 아, 맞다. 다들! 앱 지우지 마! 알림 울리면 무조건 받기! 특히 네오, 너 답장 세 글자 이상으로 하기!"},
+{"s":"yeon","x":"smile","t":"갈게. 아, 맞다. 다들 앱 지우지 마! 알림 오면 꼭 받고. 특히 네오, 너 답장 좀 길게 해. 맨날 '이상 없다' 한마디만 보내지 말고!"},
 {"s":"neo","x":"deadpan","t":"…선처하지."},
 {"s":"n","fx":"tarot","im":true,"t":"연이는 웃으며 — 문을 통과했다. 빛이 접히고, 강물 소리가 멀어지고."},
 {"s":"n","bg":"room","bgm":"room","c":null,"l":null,"r":null,"t":"— 눈을 뜨자, 천장이 있었다. 낯익은 얼룩. 낯익은 커튼. 연이의 방이었다."},
@@ -2205,8 +2225,8 @@ EPISODES.push({"no":"EP.29","tag":"제29화 · 달라진 계절","title":"달라
 {"s":"sys","t":"[ 루나 ] 오늘 매출 신기록! 언니가 신메뉴 만들었어. 이름이 「연이빵」이야. 돼지 모양이야. 화내지 마."},
 {"s":"sys","t":"[ 백문 ] 금일 신착 도서 알림 — 「재성의 섬 부흥 백서」. 자네 이야기가 3장에 실렸네. 다소 미화되었더군."},
 {"s":"sys","t":"[ 네오 ] 이상 없다."},
-{"s":"yeon","x":"talk","t":"세 글자… 세 글자 이상이라니까 진짜! 「이상 없다」 — 띄어쓰기 포함 다섯 글자로 우기겠지, 분명."},
-{"s":"n","t":"투덜대면서도, 연이는 그 다섯 글자를 지우지 않았다. 알림함의 별표 폴더에는 — 다섯 글자짜리 편지가 차곡차곡 쌓여 갔다."},
+{"s":"yeon","x":"talk","t":"'이상 없다'라니. 그게 무슨 답장이야, 진짜. 좀 길게 쓰라니까."},
+{"s":"n","t":"투덜대면서도, 연이는 그 짧은 답장을 지우지 않았다. 알림함 별표 폴더에는 네오의 무뚝뚝한 답장들이 하나씩 쌓여 갔다."},
 {"s":"n","bgm":"neo","im":true,"t":"그리고 — 그 무렵부터였다. 흰 고양이가 나타난 것은."},
 {"s":"n","t":"처음엔 도서관 앞이었다. 다음엔 편의점 지붕. 그다음엔 벤치 밑. 눈처럼 흰 털에, 어딘가 낯익은 — 호박색 눈."},
 {"s":"yeon","x":"surprise","t":"…너 또 왔네? 야옹아. 아니 — 야옹 씨?"},
@@ -2410,8 +2430,8 @@ EPISODES.push({"no":"EP.36","tag":"제36화 · 박지은","title":"박지은","b
 EPISODES.push({"no":"EP.37","tag":"제37화 · 박병하","title":"박병하","beats":[
 {"s":"n","bg":"sukuyo","bgm":"neo2","tone":"dark","t":"네오는 연이 앞으로 걸어 나왔다. 반 걸음 — 이 아니라, 처음으로, 정면에."},
 {"s":"neo","x":"calm","c":{"who":"neo","x":"calm"},"t":"약속했었지. 말할 수 있게 되는 날이 오면 — 제일 먼저 너에게 말하겠다고."},
-{"s":"neo","x":"soft","im":true,"t":"그날이 — 지금이다. 이자는 없다고 했으니, 원금만 말하지."},
-{"s":"n","im":true,"t":"네오는 숨을 골랐다. 사자의 형이 아니라 — 사람의 호흡법으로."},
+{"s":"neo","x":"soft","im":true,"t":"그날이 바로 지금이야. 오래 기다리게 해서 미안해. 이제 하나도 숨기지 않고, 처음부터 끝까지 다 말할게."},
+{"s":"n","im":true,"t":"네오가 천천히 숨을 골랐다. 사자의 호흡이 아니라, 사람의 호흡이었다."},
 {"s":"neo","x":"serious","im":true,"t":"내 이름은 박병하. 한국인이고 — 너와 같은 하늘 아래에서 태어났다. 다만, 아직 오지 않은 시간에."},
 {"s":"yeon","x":"surprise","l":{"who":"yeon","x":"surprise"},"t":"…박병하. 미래의… 사람."},
 {"s":"neo","x":"talk","t":"미래에서 나는 너를 알았다. 처음엔 — 웃음소리부터 알았지. 도서관 옆자리에서, 시험 전날인데도 만화책을 보며 웃던 사람."},
@@ -2514,10 +2534,11 @@ EPISODES.push({"no":"EP.40","tag":"최종화 · 읽는 이름, 쓰는 운명","t
 {"s":"lns","x":"h5","t":"빵은 — 아쉽지만 사진으로 보내 드릴게요. 아! 다음 신메뉴 이름은 「재회빵」으로 할래요."},
 {"s":"moka","x":"p1","t":"난 신곡으로 배웅한다! 제목 — 「실은 안 끊겨」! 실은 말장난임! 실은!"},
 {"s":"baek","x":"lib2","t":"자네 서가는 늘 볕 드는 칸일세. — 잘 가게, 내 최고의 열람자."},
-{"s":"n","im":true,"t":"그리고 — 네오. 시간의 빛이 사자의 윤곽을 감싸며, 금빛 갈기가 — 빛의 끝에서부터, 사람의 형상으로 개어지고 있었다."},
-{"s":"neo","x":"soft","im":true,"t":"대가가 청산됐다. 나는 — 인간의 몸으로, 내 시간이 아닌 곳으로는 남을 수 없다. 그래서."},
-{"s":"yeon","x":"fear","t":"그래서…? 잠깐, 그래서가 뭔데. 좋은 그래서야, 나쁜 그래서야?"},
-{"s":"neo","x":"smile","im":true,"t":"— 네 시간으로 간다. 처음부터, 그게 내 귀향이었으니까."},
+{"s":"n","fx":"transform","im":true,"c":{"who":"neo","x":"hsoft"},"t":"그리고 네오. 시간의 빛이 사자의 몸을 감싸자, 금빛 갈기가 스르르 풀리기 시작했다. 그 자리에 은빛 머리카락과 사람의 손, 곧은 어깨가 돋아났다."},
+{"s":"n","im":true,"t":"별무늬가 새겨진 감청색 코트를 입은 은발의 청년이 서 있었다. 십 년 동안 갈기 뒤에 숨겨 두었던 사람의 얼굴이었다."},
+{"s":"neo","x":"hsoft","im":true,"t":"이제 대가를 다 치렀어. 원래 인간은 제 시간이 아닌 곳에 오래 못 머물러. 그래서 말인데."},
+{"s":"yeon","x":"fear","l":{"who":"yeon","x":"fear"},"t":"그래서? 잠깐, 그래서 뭔데. 좋은 얘기야, 나쁜 얘기야?"},
+{"s":"neo","x":"hsmile","im":true,"t":"네가 있는 곳으로 갈 거야. 네가 사는 그 하늘 아래로. 사실 처음부터, 거기가 내가 돌아갈 자리였거든."},
 {"s":"n","fx":"tarot","im":true,"t":"타로 문이 열렸다. 두 사람 몫의 — 하나의 문이."},
 {"s":"n","bg":"room","bgm":"room","c":null,"l":null,"r":null,"t":"— 그리고, 아침."},
 {"s":"n","c":{"who":"yeon","x":"base"},"t":"연이의 방. 낯익은 얼룩. 낯익은 커튼. 폰의 달력은 — 아주 평범한, 새 학기의 어느 날."},
@@ -2527,13 +2548,15 @@ EPISODES.push({"no":"EP.40","tag":"최종화 · 읽는 이름, 쓰는 운명","t
 {"s":"sys","t":"[ Code Destiny ] 모카: 신곡 티저 떴다!!! 링크!!! 조회수 1은 너다!!!"},
 {"s":"yeon","x":"smile","t":"…다들, 잘 있네. 강 건너에서도. 별 위에서도."},
 {"s":"n","bg":"campus","bgm":"daily","t":"캠퍼스의 계절은 봄이었다. 연이는 이제 계단에서 엎어지지 않고, 버스를 놓치지 않고 — 가끔 일부러, 한 정거장을 걸었다. 세상을 읽는 재미를 알아 버려서."},
-{"s":"n","bg":"bench","t":"그리고 — 벤치. 모든 것이 시작되기 전부터, 연이가 제일 좋아하던 자리."},
-{"s":"n","im":true,"t":"그 벤치에, 낯선 사람이 앉아 있었다. 흰 셔츠. 곧은 등. 반 걸음 비워 둔 — 옆자리."},
+{"s":"n","bg":"bench","c":null,"t":"그리고 — 벤치. 모든 것이 시작되기 전부터, 연이가 제일 좋아하던 자리."},
+{"s":"n","im":true,"r":{"who":"neo","x":"hcalm"},"t":"그 벤치에, 낯선 사람이 앉아 있었다. 은빛 머리카락. 곧은 등. 반 걸음 비워 둔 — 옆자리."},
 {"s":"n","im":true,"t":"낯선 사람이었다. 낯선 사람이어야 했다. 그런데 왜 — 심장이, 이 등을 기억하지."},
 {"s":"n","im":true,"t":"남자가 고개를 들었다. 호박색 눈이 — 십 년 치의 인사를 담고, 웃었다."},
-{"s":"n","im":true,"t":"— 처음 뵙겠습니다. …는, 아니지."},
-{"s":"yeon","x":"cry","im":true,"t":"…박병하. 세 글자."},
-{"s":"n","im":true,"t":"— 이상 없다, 도 다섯 글자였다. 앞으로는 더 길게 하지. 평생 분량으로."},
+{"s":"neo","x":"hspeak","l":{"who":"yeon","x":"base"},"t":"처음 뵙겠습니다… 라고 하면 좀 이상하려나."},
+{"s":"yeon","x":"cry","im":true,"t":"…박병하."},
+{"s":"n","im":true,"t":"그 이름을 입 밖으로 내는 순간, 참았던 눈물이 왈칵 쏟아졌다."},
+{"s":"neo","x":"hache","im":true,"t":"응. 이제야 이렇게 마주 앉네. 오래 기다리게 해서 미안해."},
+{"s":"neo","x":"hsmile","im":true,"t":"그동안 답장이 너무 짧았지. 앞으로는 옆에서 다 얘기할게. 하고 싶은 말이 진짜 많았거든."},
 {"s":"n","fx":"heart","bgm":"main","im":true,"t":"연이는 웃으면서 울었고, 울면서 옆자리에 앉았다. 새끼손가락 끝에서 — 붉은 실이, 봄볕에 반짝였다. 이제 하늘 밖으로 뻗지 않는, 여기서 여기로 이어진 실이."},
 {"s":"n","im":true,"t":"이상한 앱이 깔렸다 — 로 시작한 이야기였다."},
 {"s":"n","im":true,"t":"그 앱은 아직도 지워지지 않는다. 다만 이제 연이는 안다. 그것은 저주가 아니라 — 강 건너의 친구들이 매일 아침 보내는, 안부의 문(門)이라는 걸."},

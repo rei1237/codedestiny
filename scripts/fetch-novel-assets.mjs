@@ -56,7 +56,7 @@ const push = (remote, rel) => items.push([remote, rel]);
 // 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·백문·박지은·무성 본모습 (webp)
 [
   "루나-Photoroom", "루나 언니-Photoroom",
-  "루나 언니 회복1", "루나 언니 회복2", "루나 언니 회복3", "루나 언니 회복4", "루나 언니 회복5", "루나 언니 회복6",
+  "루나 언니 회복1-Photoroom", "루나 언니 회복2-Photoroom", "루나 언니 회복3-Photoroom", "루나 언니 회복4-Photoroom", "루나 언니 회복5-Photoroom", "루나 언니 회복6-Photoroom",
   "빌런 청토끼-Photoroom",
   "백문 기본-Photoroom", "백문 도서관-Photoroom", "백문 도서관2-Photoroom", "백문 도서관4-Photoroom", "백문 도서관5-Photoroom", "백문 독서-Photoroom", "백문 마법-Photoroom",
   "박지은 기본", "박지은 무표정", "박지은 말함", "박지은 말함2", "박지은 냉소", "박지은 조롱", "박지은 유혹", "박지은 화남", "박지은 광기",
@@ -89,8 +89,9 @@ const push = (remote, rel) => items.push([remote, rel]);
 ["꽃돼지-Photoroom.png", "꽃돼지2-Photoroom.png", "꽃돼지 연이 변신-Photoroom.png", "연이 타로 카드-Photoroom.png", "연이 스프라이트1-Photoroom.png", "말하는 꽃돼지 연이2-Photoroom.png", "꽃돼지5-Photoroom.png"]
   .forEach((n) => push(`${ASSETS}/DestinyCafe/nobackground/${enc(n)}`, `DestinyCafe/nobackground/${n}`));
 
-// DestinyWar (네오=흰 사자 4×4 표정시트·무성)
-["전략실 네오 메인-Photoroom.png", "전략실 네오-Photoroom.png", "검은 그림자-Photoroom.png"]
+// DestinyWar (네오=흰 사자 4×4 표정시트·무성·인간 네오 박병하)
+["전략실 네오 메인-Photoroom.png", "전략실 네오-Photoroom.png", "검은 그림자-Photoroom.png",
+  "네오 스프라이트 배경없음4-Photoroom.png", "네오 반신상 배경없음-Photoroom.png"]
   .forEach((n) => push(`${ASSETS}/DestinyWar/${enc(n)}`, `DestinyWar/${n}`));
 
 // 음악(music 호스트): 메인 화면 + 사주의 강 진입 폴백
