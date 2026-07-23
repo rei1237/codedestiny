@@ -400,6 +400,8 @@ const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () =>
 const handleZiweiDeepReportRoutes = createLazyRouteHandler("./routes/ziwei-deep-report.js", () => import("./routes/ziwei-deep-report.js"), "handleZiweiDeepReportRoutes", "api/ziwei-deep-report");
 const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea-house.js", () => import("./routes/fortune-tea-house.js"), "handleFortuneTeaHouseRoutes", "api/fortune-tea-house");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
+// 운명의 섬 — 무인증·무DB 결정론 계산(명반→섬 청사진)
+const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
@@ -1252,6 +1254,11 @@ export default {
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {
         return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
+      }
+
+      // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
+      if (url.pathname === "/api/ziwei-island" || url.pathname.startsWith("/api/ziwei-island/")) {
+        return withCorsHeaders(request, env, await handleZiweiIslandRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {
