@@ -224,6 +224,8 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.pje{height:clamp(280px,46vh,520px);max-height:none;bottom:clamp(150px,22vh,215px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
+/* 무성 변신 까마귀(mucrow) — '거대한 까마귀' 서술에 맞춘 보스 크기. .char.crow 뒤에 와서 크기 우선 */
+.char.mucrow{height:clamp(330px,56vh,640px);max-height:none;bottom:clamp(150px,20vh,205px)}
 /* 인간 네오(박병하) — 은발 미남 4×2 표정 시트 크롭(div 배경). 정체 공개 후 결말에 등장 */
 .char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(158px,23vh,225px);background-repeat:no-repeat;background-size:400% 200%}
 /* 모바일 캐릭터 폭 예산.
@@ -241,6 +243,7 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
   .char.neoh{height:min(33vh,34vw);bottom:clamp(198px,26vh,248px)}
   .char.moka{height:min(31vh,32vw);bottom:clamp(198px,26vh,248px)}.char.crow{height:min(33vh,32vw);bottom:clamp(198px,26vh,248px)}
+  .char.mucrow{height:min(50vh,50vw);bottom:clamp(188px,24vh,238px)}
   .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw);bottom:clamp(150px,20vh,190px)}
   .char.pig:not(.mirror){left:0;bottom:clamp(190px,26vh,232px);height:min(24vh,32vw)}
   .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(188px,24vh,222px);width:min(28vh,32vw);height:auto;aspect-ratio:264/372}
@@ -616,10 +619,12 @@ var MU =WAR+enc("검은 그림자-Photoroom.png");
 var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
 /* 가짜 연이(거울자아) — 운명 찻집 연이 4×2 스프라이트 시트에서 한 프레임 크롭(CSS 배경). 셀(col2,row0)=지긋한 미소 */
 var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.png");
-/* 모카(식상의 섬 동료·래퍼 지망생) — CodeDestinyNovel/ raw png.
-   까마귀(식상 빌런=무성의 깃털)는 전용 인라인 SVG(CROW_SVG)로 렌더 — 재사용 png 폐기. */
+/* 모카(식상의 섬 동료·래퍼 지망생) / 까마귀 빌런(식상의 섬 EP.9~12 원본 png) — CodeDestinyNovel/ raw png.
+   식상 까마귀·EP.32 무리는 who:"crow"(원본 png) 유지. 무성이 조종당해 변신하는 까마귀 형태(who:"mucrow")만
+   전용 인라인 SVG(CROW_SVG)로 렌더한다 — 둘을 시각적으로 구분. */
 var MOKA={base:NOVEL+enc("모카 기본.png"),moved:NOVEL+enc("모카 감동.png"),angry:NOVEL+enc("모카 화남.png"),
   p1:NOVEL+enc("모카1.png"),p2:NOVEL+enc("모카2.png"),p3:NOVEL+enc("모카3.png")};
+var CROW={base:NOVEL+enc("까마귀 빌런1.png"),alt:NOVEL+enc("까마귀 빌런2.png")};
 /* 완결부(EP.15~40) 캐스트.
    루나: 원본 3×2가 균등 격자라 CSS % 크롭 직사용.
    청토끼/루나 언니: 원본 격자가 불균등 → scripts/build-novel-cast-sheets.mjs 로 도형 실측 재조립한 정규화 시트.
@@ -768,7 +773,8 @@ function spriteFor(who,expr,form){
   if(who==="baek")return {url:(BAEK[expr]||BAEK.base),cls:"baek"};
   if(who==="pje")return {url:(PJE[expr]||PJE.base),cls:"pje"};
   if(who==="moka")return {url:(MOKA[expr]||MOKA.base),cls:"moka"};
-  if(who==="crow")return {url:(expr==="alt"?CROW_SVG.alt:CROW_SVG.base),cls:"crow"};
+  if(who==="crow")return {url:(expr==="alt"?CROW.alt:CROW.base),cls:"crow"};
+  if(who==="mucrow")return {url:(expr==="alt"?CROW_SVG.alt:CROW_SVG.base),cls:"crow mucrow"};
   if(who==="mirror"){
     /* 초기엔 거울에 비친 반전 꽃돼지(x:"pig"), 이후 진짜 인간 연이(시트) */
     if(expr==="pig")return {url:PIG.base,cls:"mirror pig"};
@@ -857,8 +863,9 @@ function setImg(imgEl,url,svgFallback){
 }
 function svgData(inner,w,h){return "data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(w||1200)+' '+(h||800)+'">'+inner+'</svg>');}
 var SVGBG=svgData('<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1330"/><stop offset="1" stop-color="#05060c"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/>');
-/* 무성의 까마귀 — 식상의 섬 빌런 재사용 png 대신 전용 인라인 SVG(트와일라잇 바이올렛+검은 깃털).
-   svgData는 함수 선언이라 호이스팅되어 여기서 호출 가능. base=날개 접은 위협 포즈, alt=날개 펼친 포효. */
+/* 무성이 조종당해 변신하는 거대 까마귀(who:"mucrow") 전용 인라인 SVG(트와일라잇 바이올렛+검은 깃털).
+   식상의 섬 원본 까마귀(who:"crow")와 구분되는 별개 자산. svgData는 함수 선언이라 호이스팅되어 호출 가능.
+   base=날개 접은 위협 포즈, alt=날개 펼친 포효. */
 var CROW_DEFS='<defs>'+
   '<linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#171331"/><stop offset=".55" stop-color="#0c091b"/><stop offset="1" stop-color="#050410"/></linearGradient>'+
   '<linearGradient id="cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0916"/><stop offset="1" stop-color="#05040c"/></linearGradient>'+
@@ -2449,6 +2456,8 @@ EPISODES.push({"no":"EP.33","tag":"제33화 · 그릇","title":"그릇","beats":
 EPISODES.push({"no":"EP.34","tag":"제34화 · 이름을 돌려주다","title":"이름을 돌려주다","beats":[
 {"s":"n","bg":"ziwei4","bgm":"crisis2","tone":"dark","t":"실에 매달린 소년은 더 이상 소년의 움직임이 아니었다. 팔다리가 남의 손에 끌리듯 어색하게 움직였다."},
 {"s":"n","fx":"water","im":true,"t":"검은 물이 폭주해 열두 궁을 집어삼켰다. 별 감옥의 빛마저 어두워졌다. 인형이 된 그릇은 강했다. 봉인돼 있던 힘이 밑 빠진 독처럼 쏟아졌으니까."},
+{"s":"n","fx":"veil","c":{"who":"mucrow"},"im":true,"tone":"dark","t":"쏟아진 힘이 소년의 몸을 안에서부터 밀어 올렸다. 등에서 검은 깃털이 폭발하듯 돋고, 두 팔이 날개로 접히고, 그림자가 부풀어 올라 — 명반 한복판에 거대한 까마귀 한 마리가 내려앉았다. 무성이되, 더는 무성이 아니었다."},
+{"s":"n","tone":"dark","t":"박지은이 그릇에 담아 둔 힘의, 진짜 형상이었다. 소년의 얼굴은 부리 뒤로 잠기고, 검붉은 실에 매달린 보랏빛 눈동자만이 흐릿하게 남아 도와 달라 말하고 있었다."},
 {"skill":{"el":"metal","unit":"이의 형","name":"금선","han":"金線"},"s":"neo","x":"serious","fx":"net","t":"금선. 실을 겨눈다!"},
 {"s":"n","t":"네오의 백금 실이 검붉은 실과 얽혔다. 이번엔 물을 베는 게 아니라, 소년을 조종하는 실만 골라 노렸다. 실과 실의, 한 치 싸움이었다."},
 {"s":"neo","x":"serious","t":"연이! 실은 내가 붙들게. 너는 저 애의 진짜 마음을 읽어!"},
@@ -2460,6 +2469,7 @@ EPISODES.push({"no":"EP.34","tag":"제34화 · 이름을 돌려주다","title":"
 {"s":"n","tone":"dark","im":true,"t":"검붉은 실이 일제히 얼어붙은 듯 멈췄다."},
 {"s":"yeon","x":"base","im":true,"t":"무성, 네 진짜 마음은 침식이 아니야. 누군가를 부르는 거잖아. 그러니까 지금 불러 봐. 내 이름을, 네 목소리로!"},
 {"s":"n","t":"인형의 입이 떨렸다. 실이 그 입을 꿰매려 들었다. 소년은 이를 악물고, 실을 씹어 끊듯 소리를 밀어냈다."},
+{"s":"n","fx":"burst","c":{"who":"mu","x":"angry"},"im":true,"tone":"dark","t":"거대한 까마귀의 부리 안쪽에서, 갇혀 있던 소년의 목소리가 실을 끊고 터져 나왔다. 검은 깃털이 안에서부터 쩍, 갈라졌다."},
 {"s":"mu","x":"angry","im":true,"t":"…연, 이. 연이! 나는 무성이야! 그릇이 아니라, 무성이라고!"},
 {"s":"n","fx":"burst","im":true,"t":"이름이 이름을 부르는 순간, 계약을 붙들던 말이 깨지는 소리가 났다. 유리보다 맑고 사슬보다 무거운 소리였다."},
 {"s":"n","im":true,"t":"검붉은 실이 끊어져 흩어졌다. 소년의 그림자에서 검은 비가 빠져나와, 하늘도 아닌 어딘가로 증발했다. 봉인돼 있던 것이 그릇을 잃고 물러난 것이다."},
@@ -2491,7 +2501,7 @@ EPISODES.push({"no":"EP.35","tag":"제35화 · 붉은 실의 세계","title":"�
 {"s":"n","im":true,"t":"연이는 고개를 들어 하늘을 올려다보았다. 실들은 살아 있었다. 먼 곳에서 누가 웃으면 한 가닥이 따뜻하게 떨렸고, 어디선가 누가 등을 돌리면 다른 한 가닥이 툭, 소리도 없이 끊어졌다. 세상의 모든 만남과 이별이, 이 하늘에서 실시간으로 짜이고 또 풀리고 있었다."},
 {"s":"n","tone":"dark","t":"그런데 한 가지가 이상했다. 유독 검게 그을린 실들이 보였다. 성한 실 사이를 파고들며, 멀쩡한 인연까지 시커멓게 물들이는 실이었다."},
 {"s":"baek","x":"read","tone":"dark","t":"…저 검은 실. 인연이 저절로 상해서 저리된 게 아닐세. 누가 일부러 성한 실에 원한을 덧발라 놓은 게야. 이 베틀의 주인이 병들었다는 뜻이지."},
-{"s":"mu","x":"think","tone":"dark","t":"그분은 원래… 인연을 잣는 분이었어. 그런데 언제부턴가 잣는 대신 끊는 걸 즐기기 시작했지. 무엇이 그분을 그렇게 바꿔 놨는지는, 봉인 속에 있던 나도 끝내 몰랐어."},
+{"s":"mu","x":"think","tone":"dark","t":"그분은 원래… 인연을 짜던 분이었어. 사람과 사람 사이에 붉은 실을 이어 주던 분. 그런데 언제부턴가 잇는 대신 끊는 걸 즐기기 시작했지. 무엇이 그분을 그렇게 바꿔 놨는지는, 봉인 속에 있던 나도 끝내 몰랐어."},
 {"s":"mu","x":"think","t":"…나한테도, 실이 있나."},
 {"s":"ln","x":"joy","t":"깃털 오빠 발밑 좀 봐! 방금 생긴 것 같은 가느다란 실 있어! 연이한테 이어져 있는데? 아까 이름 불러서 생겼나 봐!"},
 {"s":"mu","x":"waver","t":"…그런 건 소리 내서 말하지 마라. 민망하니까."},
@@ -2701,7 +2711,7 @@ EPISODES.push({"no":"EP.41","tag":"제41화 · 사랑의 힘","title":"사랑의
 {"s":"n","tone":"dark","t":"「끊을 수 없는 실」. 박지은이 그렇게 비웃었던 이름이, 지금은 연이의 다리가 되어 주고 있었다."},
 {"s":"n","im":true,"t":"연이는 그 다리 위를, 폭풍의 한가운데를 향해 달렸다."},
 {"skill":{"el":"wood","unit":"삼의 결","name":"뿌리내림","han":"根"},"s":"yeon","x":"base","fx":"root","im":true,"t":"뿌리내림. 당신 실의, 맨 첫 문장까지."},
-{"s":"n","im":true,"tone":"dark","t":"덩굴 뿌리가 박지은의 검은 실을 타고 거슬러 올라갔다. 원한의 조항들을 지나고, 저주의 매듭들을 지나, 그 실이 맨 처음 잣아진 날까지."},
+{"s":"n","im":true,"tone":"dark","t":"덩굴 뿌리가 박지은의 검은 실을 타고 거슬러 올라갔다. 원한의 조항들을 지나고, 저주의 매듭들을 지나, 그 실이 맨 처음 짜인 날까지."},
 {"s":"n","im":true,"t":"그리고 연이는 그 실의 첫 문장을 읽었다."},
 {"s":"n","tone":"dark","t":"「오늘 그 사람이 나한테 웃어 주었다. 도서관 앞에서. 그게 다인데, 세상이 조금 덜 외로웠다.」"},
 {"s":"n","im":true,"t":"그게 전부였다. 시작은 저주가 아니었다. 덜 외롭고 싶다는, 겨우 그만한 소원이었다."},
@@ -2771,7 +2781,7 @@ EPISODES.push({"no":"EP.42","tag":"최종화 · 읽는 이름, 쓰는 운명","t
 {"s":"n","c":{"who":"yeon","x":"base"},"t":"연이의 방이었다. 낯익은 얼룩, 낯익은 커튼. 폰의 달력은 아주 평범한 새 학기의 어느 날을 가리키고 있었다."},
 {"s":"n","t":"머리맡의 폰이 아침부터 부지런히 울렸다. 강 건너에서 온 알림들이었다."},
 {"s":"sys","t":"[ Code Destiny ] 루나: 굿모닝! 오늘 재회빵 1호 나왔어! (사진) 언니가 연이 몫 따로 구웠대. 식기 전에 마음으로 먹어!"},
-{"s":"sys","t":"[ Code Destiny ] 백문: 신착 도서 알림. 「숙요의 밤, 다시 잣는 실」. 저자 근황란에 청토끼가 반성 서가 청소 중이라 적혀 있네. 필체가 날마다 얌전해지고 있어."},
+{"s":"sys","t":"[ Code Destiny ] 백문: 신착 도서 알림. 「숙요의 밤, 다시 잇는 실」. 저자 근황란에 청토끼가 반성 서가 청소 중이라 적혀 있네. 필체가 날마다 얌전해지고 있어."},
 {"s":"sys","t":"[ Code Destiny ] 무성: …연이. (첫 알림 연습이다. 잘 도착했나?)"},
 {"s":"sys","t":"[ Code Destiny ] 모카: 신곡 티저 떴다! 링크! 첫 조회수 무조건 너다!"},
 {"s":"yeon","x":"smile","t":"…다들 잘 지내네. 강 건너에서도, 별 위에서도."},
