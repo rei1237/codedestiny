@@ -53,8 +53,11 @@ img{max-width:100%;display:block}
 .screen.on{display:flex}
 
 /* ── 별하늘 배경(전 스크린 공용) ── */
+/* 밤하늘이 아래에서 새벽으로 트여 파스텔 섬으로 이어지는 무드 브릿지(로즈·라벤더 여명) */
 .starfield{position:absolute;inset:0;overflow:hidden;pointer-events:none;
-  background:radial-gradient(120% 90% at 50% 0%,#241d4d 0%,var(--ink-deep) 46%,var(--ink) 100%)}
+  background:
+    radial-gradient(150% 78% at 50% 116%,rgba(244,190,209,.30) 0%,rgba(196,181,253,.20) 26%,rgba(167,139,250,.07) 44%,transparent 60%),
+    radial-gradient(120% 90% at 50% 0%,#2a2358 0%,#1d1840 46%,#141130 100%)}
 .starfield i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.5;
   animation:twk 3.4s ease-in-out infinite}
 @keyframes twk{0%,100%{opacity:.18}50%{opacity:.8}}
@@ -290,12 +293,14 @@ body.ph-night .fireflies{opacity:1}
 .hud-id .imeta{font-size:.76rem;color:var(--text-muted)}
 .hud-chips{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--panel-line);
-  border-radius:999px;padding:5px 12px;font-size:.8rem;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+  border-radius:999px;padding:5px 12px;font-size:.8rem;color:var(--text);box-shadow:0 6px 20px rgba(0,0,0,.35);
+  white-space:nowrap;max-width:min(72vw,320px)}
+.chip .sub{overflow:hidden;text-overflow:ellipsis}
 .chip .sub{color:var(--text-muted)}
 .hud-bottom{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-hud);display:flex;gap:8px;justify-content:center;align-items:center;
   padding:10px 12px calc(12px + env(safe-area-inset-bottom));pointer-events:none}
 .hud-bottom>*{pointer-events:auto}
-.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;
+.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;white-space:nowrap;
   background:var(--panel);border:1px solid var(--panel-line);font-size:.88rem;font-weight:700;color:var(--text);
   box-shadow:0 8px 26px rgba(0,0,0,.4);transition:transform .16s var(--ease-out),border-color .2s}
 .hud-btn:active{transform:scale(.96)}
@@ -392,6 +397,8 @@ body.ph-night .fireflies{opacity:1}
   /* 내레이터: 좌측 세로 스택으로 우측 상태칩과 겹치지 않게 */
   .narrator{flex-direction:column;align-items:flex-start;gap:6px;max-width:66vw;top:calc(92px + env(safe-area-inset-top))}
   .narrator .nav-bubble{max-width:min(62vw,220px)}
+  .hud-bottom{gap:6px;padding-left:8px;padding-right:8px}
+  .hud-btn{padding:9px 13px;font-size:.82rem}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -1367,6 +1374,8 @@ function markerPicto(kind,IC){
 function renderMap(pop){
   var pal0=biomePal(BP.biome.id);
   document.body.dataset.biome=BP.biome.id;
+  /* 레터박스 여백을 바이옴 바다로 이어 붙여 '너른 바다 위 섬'으로 — 맵이 작아도 빈 공간 없이 채운다 */
+  try{var mc=$("mapCanvas");if(mc)mc.style.background='radial-gradient(120% 100% at 50% 34%,'+shade(pal0.water[0],0.14)+' 0%,'+pal0.water[0]+' 52%,'+pal0.water[1]+' 100%)';}catch(_){}
   computeLayout(BP.signature||null);
   var zoom=$("mapZoom");
   var parts=[];
@@ -1382,7 +1391,8 @@ function renderMap(pop){
     +'<filter id="glowF" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
     +'<filter id="caustic" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.010 0.026" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.72  0 0 0 0 0.78  0 0 0 0 1  0 0 0 0.5 -0.32"/></filter>'
     +'</defs>');
-  /* 물 + 코스틱 텍스처 + 웨이브 */
+  /* 물 + 코스틱 텍스처 + 웨이브 — 밑에 깊은물 솔리드를 넓게 깔아 모바일 레터박스 이음새 제거(가장자리색=wg 100% 정지색) */
+  parts.push('<rect x="-800" y="-800" width="2600" height="2400" fill="'+pal0.water[1]+'"/>');
   parts.push('<rect x="-40" y="-40" width="1080" height="800" fill="url(#wg)"/>');
   parts.push('<rect x="0" y="0" width="1000" height="720" filter="url(#caustic)" opacity="'+(reduceMotion?0:0.5)+'" class="caustic"/>');
   var wave='<g class="wave" opacity=".24" stroke="'+shade(pal0.water[0],0.34)+'" stroke-width="1.3" fill="none">';
@@ -1467,7 +1477,17 @@ var _mapDragged=false,_mapPanInit=false,_mapScale=1,_mapTx=0,_mapTy=0;
 function applyMapTransform(){var z=$("mapZoom");if(z)z.setAttribute("transform","translate("+_mapTx.toFixed(1)+","+_mapTy.toFixed(1)+") scale("+_mapScale.toFixed(3)+")");}
 function clampMap(){var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;
   _mapTx=Math.min(0,Math.max(-mx,_mapTx));_mapTy=Math.min(0,Math.max(-my,_mapTy));}
-function resetMapView(){_mapScale=1;_mapTx=0;_mapTy=0;applyMapTransform();}
+function mobileFitScale(){
+  try{var c=$("mapCanvas");if(!c)return 1;var r=c.getBoundingClientRect();
+    if(!r.width||!r.height)return 1;
+    var fitH=r.width*(VBH/VBW);            /* scale 1 표시 높이 */
+    if(r.height<=fitH*1.12)return 1;       /* 가로형/충분히 찬 화면은 전체 fit 유지 */
+    return Math.max(1,Math.min(r.height*0.86/fitH,1.34)); /* 세로 86%까지, 링 유지 상한 */
+  }catch(_){return 1;}
+}
+function resetMapView(){_mapScale=mobileFitScale();
+  var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;_mapTx=-mx/2;_mapTy=-my/2;
+  clampMap();applyMapTransform();}
 function initPanZoom(){
   if(_mapPanInit)return;_mapPanInit=true;
   var svg=$("mapSvg");if(!svg)return;
@@ -1566,6 +1586,7 @@ function enterIsland(pop){
   renderMap(pop);renderNightBits();renderWeather();renderHud();refreshQuestCnt();
   initPanZoom();
   showScreen("scrIsland");
+  try{requestAnimationFrame(resetMapView);}catch(_){resetMapView();}
   playTrack(BIOME_TRACK[BP.biome.id]||"main");
   updateNarrator();
   bumpStreak();
