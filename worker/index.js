@@ -402,6 +402,8 @@ const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 // 운명의 섬 — 무인증·무DB 결정론 계산(명반→섬 청사진)
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
+// 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
+const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
 // 운명의 섬 12궁 심층 유료 상담(₩20,000) — 별도 상품, ziwei-ai 결제 흐름 복제(runAiRouteWithSecurity)
 const handleZiweiIslandAiRoutes = createLazyRouteHandler("./routes/ziwei-island-ai.js", () => import("./routes/ziwei-island-ai.js"), "handleZiweiIslandAiRoutes", "api/ziwei-island-ai");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
@@ -1265,6 +1267,10 @@ export default {
 
       if (url.pathname === "/api/ziwei-island" || url.pathname.startsWith("/api/ziwei-island/")) {
         return withCorsHeaders(request, env, await handleZiweiIslandRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {
+        return withCorsHeaders(request, env, await handleDestinyCompassRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei" || url.pathname.startsWith("/api/ziwei/")) {

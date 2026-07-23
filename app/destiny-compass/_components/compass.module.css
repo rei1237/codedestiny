@@ -1,0 +1,662 @@
+/* 운명의 나침반 하우스 — 컴포넌트 스타일(구조+연이/네오 토큰 소비).
+   네오 존은 .zoneWarroom 래퍼에 --cd-* 를 스코프해 전역을 건드리지 않는다(Two Covers). */
+
+.page {
+  min-height: 100dvh;
+  background: var(--cd-bg-gradient);
+  color: var(--cd-text);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.wrap {
+  max-width: var(--cd-w-wide, 1440px);
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 56px) var(--cd-gutter, 20px) 96px;
+}
+.narrow {
+  max-width: var(--cd-w-prose, 760px);
+}
+
+/* 네오 존 토큰 스코프(theme-tokens.css 네오 값 복제) */
+.zoneWarroom {
+  --cd-bg: #0a0818;
+  --cd-bg-gradient: linear-gradient(165deg, #0a0818 0%, #13102a 48%, #090718 100%);
+  --cd-surface: rgba(19, 16, 42, 0.96);
+  --cd-surface-2: rgba(10, 8, 24, 0.98);
+  --cd-text: #f4eeff;
+  --cd-text-muted: rgba(212, 196, 255, 0.82);
+  --cd-accent: #c4b5fd;
+  --cd-gold: #e8d5a3;
+  --cd-border: rgba(196, 181, 253, 0.32);
+  --cd-hairline: rgba(232, 213, 163, 0.44);
+  --cd-focus-ring: #a78bfa;
+  background: var(--cd-bg-gradient);
+  color: var(--cd-text);
+  min-height: 100dvh; /* 존 배경이 뷰포트를 채워 아래로 상위 page 배경(핑크)이 새지 않게 */
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cd-accent);
+  letter-spacing: 0.01em;
+}
+.kicker::before {
+  content: "";
+  width: 22px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--cd-accent);
+}
+.lead {
+  font-size: clamp(1.6rem, 4vw, 2.6rem);
+  line-height: 1.16;
+  letter-spacing: -0.01em;
+  margin: 0.4em 0 0.3em;
+  text-wrap: balance;
+}
+.sub {
+  color: var(--cd-text-muted);
+  max-width: 54ch;
+  line-height: 1.7;
+}
+
+.card {
+  background: var(--cd-surface);
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-md, 16px);
+  box-shadow: var(--cd-elev-1);
+  padding: clamp(18px, 3vw, 28px);
+}
+
+/* 버튼 / 칩 */
+.cta {
+  font: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  min-height: 52px;
+  padding: 14px 28px;
+  border: 0;
+  border-radius: var(--cd-r-pill, 999px);
+  background: var(--cd-cta);
+  color: var(--cd-cta-text);
+  cursor: pointer;
+  box-shadow: var(--cd-glow);
+}
+.cta:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.ghost {
+  background: transparent;
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  color: var(--cd-text);
+  box-shadow: none;
+}
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chip {
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.94rem;
+  min-height: 46px;
+  padding: 11px 18px;
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-pill, 999px);
+  background: var(--cd-surface-2, var(--cd-surface));
+  color: var(--cd-text);
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: var(--cd-accent);
+}
+.chipOn {
+  background: color-mix(in srgb, var(--cd-accent) 16%, transparent);
+  border-color: var(--cd-accent);
+  color: var(--cd-accent);
+}
+
+/* 생년 입력 폼 */
+.form {
+  display: grid;
+  gap: 14px;
+  max-width: 460px;
+}
+.field {
+  display: grid;
+  gap: 6px;
+}
+.field label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--cd-text-muted);
+}
+.input,
+.select {
+  font: inherit;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-sm, 10px);
+  background: var(--cd-surface);
+  color: var(--cd-text);
+}
+
+/* 감정 그리드 */
+.emotionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+@media (min-width: 720px) {
+  .emotionGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.emotionGrid .chip {
+  justify-content: center;
+  text-align: center;
+}
+
+/* 히어로 */
+.hero {
+  position: relative;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  box-shadow: var(--cd-glow);
+}
+.hero img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.character {
+  width: clamp(84px, 22vw, 128px);
+  height: auto;
+  object-fit: contain;
+  flex: none;
+}
+
+/* 안개 걷기 */
+.fogStage {
+  position: relative;
+  height: min(56vw, 340px);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--cd-border);
+  box-shadow: var(--cd-elev-1);
+  background: linear-gradient(180deg, #0d1a24, #152b38 60%, #1d3a44);
+  margin-top: 20px;
+}
+.silhouette {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.silhouette svg {
+  width: min(42%, 200px);
+  opacity: 0.92;
+}
+.fogLayer {
+  position: absolute;
+  inset: -8%;
+  pointer-events: none;
+  background:
+    radial-gradient(40% 60% at 22% 42%, rgba(232, 226, 244, 0.95), transparent 60%),
+    radial-gradient(46% 66% at 72% 60%, rgba(214, 206, 232, 0.92), transparent 62%),
+    linear-gradient(180deg, rgba(226, 220, 240, 0.72), rgba(210, 202, 230, 0.82));
+}
+.fogCta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 16px;
+  background: linear-gradient(0deg, rgba(8, 10, 20, 0.82), transparent);
+  color: #f4eeff;
+}
+.fogCta .q {
+  font-weight: 800;
+  font-size: 1.06rem;
+  margin-bottom: 10px;
+}
+.progress {
+  height: 8px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.16);
+  overflow: hidden;
+  margin-top: 14px;
+}
+.progress > i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--cd-gold);
+}
+
+/* 결과 레이아웃 */
+.resultGrid {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  grid-template-columns: 1fr;
+  align-items: center;
+  margin-top: 28px;
+}
+@media (min-width: 900px) {
+  .resultGrid {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  }
+}
+
+/* 나침반 다이얼 */
+.compass {
+  position: relative;
+  width: min(86vw, 420px);
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+.compass svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.needle {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.dirLabel {
+  font-weight: 700;
+  font-size: 12px;
+  fill: var(--cd-text-muted);
+}
+.dirLabelOn {
+  fill: var(--cd-accent);
+}
+
+/* 레이더 */
+.radar {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.bar {
+  display: grid;
+  grid-template-columns: 72px 1fr 38px;
+  align-items: center;
+  gap: 10px;
+}
+.barLabel {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.barTrack {
+  height: 10px;
+  border-radius: 99px;
+  background: var(--cd-surface-2, var(--cd-surface));
+  border: 1px solid var(--cd-border);
+  overflow: hidden;
+}
+.barFill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--cd-accent-soft, var(--cd-accent)), var(--cd-accent));
+}
+.vv {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--cd-text-muted);
+  text-align: right;
+}
+.stars {
+  color: var(--cd-gold);
+  letter-spacing: 3px;
+  font-size: 1.2rem;
+}
+
+/* 캐릭터 해설 */
+.speak {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 18px;
+}
+.speak img {
+  width: 76px;
+  height: 76px;
+  border-radius: 14px;
+  object-fit: contain;
+  background: var(--cd-surface-2, var(--cd-surface));
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  flex: none;
+}
+.speakPig {
+  border-radius: 14px;
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  background: var(--cd-surface-2, var(--cd-surface));
+}
+.bubble {
+  background: var(--cd-surface-2, var(--cd-surface));
+  border: 1px solid var(--cd-border);
+  border-radius: var(--cd-r-md, 16px);
+  padding: 14px 16px;
+}
+.who {
+  font-weight: 800;
+  color: var(--cd-accent);
+  font-size: 0.86rem;
+  margin-bottom: 4px;
+}
+.pillRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+.pill {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 99px;
+  background: var(--cd-surface-2, var(--cd-surface));
+  border: 1px solid var(--cd-border);
+}
+.pill b {
+  color: var(--cd-accent);
+}
+
+/* 오늘의 한 걸음 */
+.stepGrid {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  grid-template-columns: 1fr;
+  align-items: center;
+  margin-top: 20px;
+}
+@media (min-width: 900px) {
+  .stepGrid {
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  }
+}
+.neoPortrait {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  box-shadow: var(--cd-glow);
+  background: #0d0a20;
+  min-height: 260px;
+}
+.neoPortrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.action {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 22px;
+  margin-top: 18px;
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  border-radius: var(--cd-r-md, 16px);
+  background: var(--cd-surface);
+  box-shadow: var(--cd-glow);
+}
+.check {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9px;
+  border: 2px solid var(--cd-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: transparent;
+  color: transparent;
+}
+.checkOn {
+  background: var(--cd-accent);
+  color: #12061f;
+}
+.actionTxt {
+  font-size: 1.14rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+.badgeNeo {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--cd-gold);
+  border: 1px solid var(--cd-hairline, var(--cd-border));
+  border-radius: 99px;
+  padding: 6px 14px;
+}
+
+/* 로딩 / 에러 */
+.skeleton {
+  height: 320px;
+  border-radius: var(--cd-r-md, 16px);
+  background: linear-gradient(100deg, var(--cd-skeleton-base, rgba(0, 0, 0, 0.06)), var(--cd-skeleton-sheen, rgba(255, 255, 255, 0.5)), var(--cd-skeleton-base, rgba(0, 0, 0, 0.06)));
+  background-size: 200% 100%;
+}
+.error {
+  color: var(--cd-accent);
+  font-weight: 700;
+  padding: 14px 0;
+}
+.centerCol {
+  display: grid;
+  gap: 20px;
+  justify-items: start;
+}
+
+/* ── 프리미엄 나침반 (CompassDial) ─────────────────────────── */
+.dial {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
+}
+.dialSvg {
+  width: min(80vw, 440px);
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+.dialResult .dialSvg {
+  width: min(86vw, 400px);
+}
+.dialLabel {
+  font-family: var(--font-body, "Pretendard", system-ui, sans-serif);
+  font-weight: 700;
+  font-size: 15px;
+  fill: var(--cd-text-muted);
+}
+.dialLabelOn {
+  font-family: var(--font-body, "Pretendard", system-ui, sans-serif);
+  font-weight: 800;
+  font-size: 16px;
+  fill: var(--cd-accent);
+}
+.dialRotor {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.dialNeedle {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 엔트리 = 클릭 버튼 */
+.dialEntry {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  display: inline-grid;
+  justify-items: center;
+}
+.dialEntry:focus-visible {
+  outline: 3px solid var(--cd-focus-ring);
+  outline-offset: 10px;
+}
+.dialEntry .dialSvg {
+  transition: filter var(--cd-dur-base, 220ms) var(--cd-ease-out);
+  filter: drop-shadow(0 0 16px var(--cd-glow-color, rgba(232, 213, 163, 0.3)));
+}
+.dialEntry:hover .dialSvg,
+.dialEntry:focus-visible .dialSvg {
+  filter: drop-shadow(0 0 30px var(--cd-glow-color, rgba(232, 213, 163, 0.5)));
+}
+.dialEntry .dialRotor {
+  animation: dialSpin 64s linear infinite;
+}
+.dialEntry .dialNeedle {
+  animation: needleSway 6s ease-in-out infinite;
+}
+.dialHint {
+  display: block;
+  margin-top: 20px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--cd-gold);
+  opacity: 0.82;
+}
+/* firing = 클릭 시 가속 후 시작 */
+.dialFiring .dialRotor {
+  animation: dialSpin 0.5s linear infinite;
+}
+.dialFiring .dialNeedle {
+  animation: needleSpin 0.55s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+}
+.dialFiring .dialSvg {
+  filter: drop-shadow(0 0 36px var(--cd-glow-color, rgba(232, 213, 163, 0.6))) !important;
+}
+
+@keyframes dialSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes needleSway {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(5deg);
+  }
+}
+@keyframes needleSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+/* ── 몰입형 엔트리 셸 ──────────────────────────────────────── */
+.entry {
+  min-height: 100dvh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  padding: calc(28px + env(safe-area-inset-top, 0px)) 20px calc(28px + env(safe-area-inset-bottom, 0px));
+}
+.entryBackdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(120% 92% at 50% 32%, rgba(58, 44, 110, 0.55), transparent 60%),
+    radial-gradient(100% 100% at 50% 50%, #14102e 0%, #0a0818 58%, #060412 100%);
+}
+.entryBackdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E");
+  background-size: 220px;
+  opacity: 0.5;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+.entryInner {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+.entryKicker {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  color: var(--cd-gold);
+  text-transform: uppercase;
+}
+.entryTitle {
+  font-family: "Cinzel", "Cormorant Garamond", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", serif;
+  font-weight: 700;
+  font-size: clamp(1.9rem, 5.4vw, 3.2rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+  color: #fff8ec;
+  text-shadow: 0 0 42px rgba(232, 213, 163, 0.28);
+  text-wrap: balance;
+  margin: 0.1em 0 0.2em;
+}
+.entrySub {
+  color: rgba(240, 232, 255, 0.82);
+  max-width: 44ch;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+.entryChar {
+  position: absolute;
+  bottom: 0;
+  z-index: 1;
+  width: clamp(120px, 26vw, 260px);
+  height: auto;
+  opacity: 0.5;
+  filter: drop-shadow(0 8px 30px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}
+.entryCharLeft {
+  left: clamp(-24px, 2vw, 40px);
+}
+.entryCharRight {
+  right: clamp(-24px, 2vw, 40px);
+}
+@media (max-width: 640px) {
+  .entryChar {
+    opacity: 0.28;
+    bottom: -10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dialRotor,
+  .dialNeedle {
+    animation: none !important;
+  }
+}

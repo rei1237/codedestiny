@@ -206,6 +206,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 AI 심화 상담" },
   "nakshatra-muhurta": { cost: 50, amountKRW: 5000, reason: "나크샤트라 택일(무후르타)" },
   "nakshatra-vvip-codex": { cost: 500, amountKRW: 50000, reason: "나크샤트라 결정판 VVIP 통합서" },
+  "destiny-compass-crossroads": { cost: 50, amountKRW: 5000, reason: "운명의 갈림길 기운 비교" },
+  "destiny-compass-life-voyage": { cost: 50, amountKRW: 5000, reason: "삶의 항로 안내" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
   openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
   openGeomancyOracle: { cost: 50, reason: "지오맨시 오라클 리딩" },
@@ -436,6 +438,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "premium-sukuyo-compat-extra",
   "premium-veda-compatibility-addon",
   "destiny-bias-analyze",
+  "destiny-compass-crossroads",
+  "destiny-compass-life-voyage",
   "profile-card-manage",
 ]);
 

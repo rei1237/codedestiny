@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>운명의 나침반 하우스 — STEP 4 목업</title>
+<style>
+/* ── 토큰 (styles/theme-tokens.css 발췌 · 자립 파일용 복사) ───────────── */
+:root{
+  --cd-bg:#fffaf7;
+  --cd-bg-gradient:linear-gradient(180deg,#fffaf7 0%,#fff3f8 42%,#f8fbf4 100%);
+  --cd-surface:rgba(255,255,255,.96);
+  --cd-surface-2:rgba(255,247,250,.84);
+  --cd-text:#3c1830;
+  --cd-text-muted:#70445c;
+  --cd-accent:#b31955;
+  --cd-accent-soft:#f4bed1;
+  --cd-gold:#ead089;
+  --cd-gold-soft:#fff8dc;
+  --cd-border:rgba(216,63,120,.16);
+  --cd-cta:linear-gradient(135deg,#fff8dc 0%,#ead089 48%,#f4bed1 100%);
+  --cd-cta-text:#3c1830;
+  --cd-hairline:rgba(234,208,137,.55);
+  --cd-focus-ring:#b31955;
+  --cd-glow:0 0 0 1px rgba(234,208,137,.5),0 10px 26px rgba(179,25,85,.14);
+  --cd-elev-1:0 8px 18px rgba(150,72,104,.1),inset 0 1px 0 rgba(255,255,255,.9);
+  --cd-elev-2:0 14px 30px rgba(150,72,104,.16),inset 0 1px 0 rgba(255,255,255,.94);
+  --cd-w-wide:1440px; --cd-w-prose:760px; --cd-gutter:clamp(16px,4vw,64px);
+  --cd-r-sm:8px; --cd-r-md:16px; --cd-r-pill:999px;
+  --cd-dur-fast:120ms; --cd-dur-base:220ms; --cd-dur-emph:380ms;
+  --cd-ease-out:cubic-bezier(.22,.61,.36,1); --cd-ease-snap:cubic-bezier(.22,1,.36,1);
+  --font-display:'Cinzel','Cormorant Garamond','Nanum Myeongjo','Noto Serif KR',Georgia,serif;
+  --font-body:'Pretendard','Apple SD Gothic Neo','Malgun Gothic','Segoe UI',system-ui,sans-serif;
+}
+[data-cd-theme="neo"]{
+  --cd-bg:#0a0818;
+  --cd-bg-gradient:linear-gradient(165deg,#0a0818 0%,#13102a 48%,#090718 100%);
+  --cd-surface:rgba(19,16,42,.96);
+  --cd-surface-2:rgba(10,8,24,.98);
+  --cd-text:#f4eeff;
+  --cd-text-muted:rgba(212,196,255,.82);
+  --cd-accent:#c4b5fd;
+  --cd-accent-soft:rgba(167,139,250,.24);
+  --cd-gold:#e8d5a3;
+  --cd-gold-soft:#f4e9c8;
+  --cd-border:rgba(196,181,253,.32);
+  --cd-cta:linear-gradient(145deg,rgba(120,104,222,.98),rgba(70,54,150,.94),rgba(232,213,163,.92));
+  --cd-cta-text:#090718;
+  --cd-hairline:rgba(232,213,163,.44);
+  --cd-focus-ring:#a78bfa;
+  --cd-glow:0 0 0 1px rgba(232,213,163,.36),0 12px 30px rgba(124,58,237,.34);
+  --cd-elev-1:0 10px 22px rgba(0,0,0,.42),inset 0 1px 0 rgba(228,214,255,.1);
+  --cd-elev-2:0 16px 34px rgba(0,0,0,.52),inset 0 1px 0 rgba(228,214,255,.14);
+  --cd-prose-body-color:#ded7f5;
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; font-family:var(--font-body); font-size:16px; line-height:1.7;
+  color:var(--cd-text); background:var(--cd-bg-gradient); background-attachment:fixed;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:var(--font-display); font-weight:700; letter-spacing:-.01em; text-wrap:balance; margin:0}
+p{margin:0}
+img{max-width:100%; display:block}
+:focus-visible{outline:3px solid var(--cd-focus-ring); outline-offset:3px; border-radius:6px}
+.wrap{max-width:var(--cd-w-wide); margin:0 auto; padding:0 var(--cd-gutter)}
+.prose{max-width:var(--cd-w-prose)}
+.eq{display:flex; gap:10px; flex-wrap:wrap}
+.muted{color:var(--cd-text-muted)}
+
+/* 상단 데모 컨트롤 */
+.demobar{
+  position:sticky; top:0; z-index:50; backdrop-filter:saturate(1.2);
+  background:color-mix(in srgb,var(--cd-bg) 82%,transparent);
+  border-bottom:1px solid var(--cd-border); padding:10px var(--cd-gutter);
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.demobar b{font-family:var(--font-display); font-size:1.02rem}
+.demobar .tag{font-size:.82rem; color:var(--cd-text-muted)}
+.seg{margin-left:auto; display:flex; gap:6px; background:var(--cd-surface-2);
+  border:1px solid var(--cd-border); border-radius:var(--cd-r-pill); padding:4px}
+.seg button{font:inherit; font-size:.86rem; font-weight:700; min-height:38px; padding:6px 16px;
+  border:0; border-radius:var(--cd-r-pill); background:transparent; color:var(--cd-text-muted); cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--cd-accent); color:#fff}
+[data-cd-theme="neo"] .seg button[aria-pressed="true"]{color:#12061f}
+
+/* 섹션 공통 */
+section{padding:clamp(48px,7vw,104px) 0; position:relative; overflow:hidden}
+.ktag{display:inline-flex; align-items:center; gap:8px; font-size:.8rem; font-weight:700;
+  color:var(--cd-accent); letter-spacing:.02em}
+.ktag::before{content:""; width:22px; height:2px; background:var(--cd-accent); border-radius:2px}
+.h-lead{font-size:clamp(1.7rem,4vw,2.7rem); line-height:1.15; margin:.4em 0 .3em}
+.sub{color:var(--cd-text-muted); max-width:52ch}
+
+.card{background:var(--cd-surface); border:1px solid var(--cd-border);
+  border-radius:var(--cd-r-md); box-shadow:var(--cd-elev-1); padding:clamp(18px,3vw,28px)}
+.chip{font:inherit; font-weight:700; font-size:.92rem; min-height:44px; padding:10px 18px;
+  border:1px solid var(--cd-border); border-radius:var(--cd-r-pill); background:var(--cd-surface-2);
+  color:var(--cd-text); cursor:pointer; transition:transform var(--cd-dur-fast) var(--cd-ease-out),
+  border-color var(--cd-dur-fast), background var(--cd-dur-fast)}
+.chip:hover{border-color:var(--cd-accent)}
+.chip[aria-pressed="true"]{background:color-mix(in srgb,var(--cd-accent) 16%,transparent);
+  border-color:var(--cd-accent); color:var(--cd-accent)}
+.chip:active{transform:scale(.968)}
+.cta{font:inherit; font-weight:800; font-size:1rem; min-height:52px; padding:14px 30px; border:0;
+  border-radius:var(--cd-r-pill); background:var(--cd-cta); color:var(--cd-cta-text); cursor:pointer;
+  box-shadow:var(--cd-glow); transition:transform var(--cd-dur-base) var(--cd-ease-snap)}
+.cta:hover{transform:translateY(-2px)}
+.cta:active{transform:scale(.972)}
+.ghost{background:transparent; border:1px solid var(--cd-hairline); color:var(--cd-text); box-shadow:none}
+
+/* [0] 프롤로그 */
+.prologue{background:linear-gradient(180deg,#170f2e 0%,#241338 46%,#3a0e28 100%); color:#f6eeff; text-align:center}
+.prologue .h-lead{color:#fff}
+.hero-frame{position:relative; max-width:940px; margin:0 auto; border-radius:24px; overflow:hidden;
+  box-shadow:0 0 60px -12px rgba(196,181,253,.4),0 30px 60px -30px rgba(0,0,0,.7);
+  border:1px solid rgba(232,213,163,.32)}
+.hero-frame img{width:100%; aspect-ratio:16/8; object-fit:cover}
+.hero-glow{position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(60% 50% at 50% 42%,transparent 40%,rgba(10,6,24,.55) 100%)}
+.dialog{max-width:640px; margin:26px auto 0; text-align:left;
+  background:rgba(20,14,40,.72); border:1px solid rgba(232,213,163,.3); border-radius:var(--cd-r-md);
+  padding:20px 22px; box-shadow:0 12px 30px rgba(0,0,0,.4)}
+.dialog .who{font-family:var(--font-display); font-weight:700; color:#e8d5a3; font-size:.96rem; margin-bottom:6px}
+.dialog p{color:#efe6ff; font-size:1.05rem; line-height:1.7}
+.dialog .row{display:flex; gap:10px; margin-top:16px; justify-content:flex-end}
+
+/* [3] 나침반 결과 */
+.result-grid{display:grid; gap:clamp(20px,3vw,40px); grid-template-columns:1fr; align-items:center}
+@media(min-width:900px){.result-grid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.compass{position:relative; width:min(88vw,440px); margin:0 auto; aspect-ratio:1}
+.compass svg{width:100%; height:100%; overflow:visible}
+.needle{transform-box:fill-box; transform-origin:50% 50%; transition:transform 900ms cubic-bezier(.16,1,.3,1)}
+.dir-label{font-family:var(--font-body); font-weight:700; font-size:13px; fill:var(--cd-text-muted)}
+.dir-label.on{fill:var(--cd-accent)}
+.radar{display:grid; gap:12px; margin-top:6px}
+.bar{display:grid; grid-template-columns:66px 1fr 40px; align-items:center; gap:10px}
+.bar .lb{font-size:.88rem; font-weight:700}
+.bar .track{height:10px; border-radius:var(--cd-r-pill); background:var(--cd-surface-2);
+  border:1px solid var(--cd-border); overflow:hidden}
+.bar .fill{display:block; height:100%; border-radius:var(--cd-r-pill);
+  background:linear-gradient(90deg,var(--cd-accent-soft),var(--cd-accent));
+  transform:scaleX(0); transform-origin:left center; transition:transform 700ms var(--cd-ease-out)}
+.bar .vv{font-size:.82rem; font-weight:700; text-align:right; color:var(--cd-text-muted)}
+.stars{color:var(--cd-gold); letter-spacing:3px; font-size:1.2rem}
+.speak{display:flex; gap:14px; align-items:flex-start; margin-top:18px}
+.speak img{width:76px; height:76px; border-radius:14px; object-fit:cover; object-position:top center;
+  background:var(--cd-surface-2); border:1px solid var(--cd-hairline); flex:none}
+.speak .bubble{background:var(--cd-surface-2); border:1px solid var(--cd-border);
+  border-radius:var(--cd-r-md); padding:14px 16px}
+.speak .bubble .who{font-weight:800; color:var(--cd-accent); font-size:.86rem; margin-bottom:4px}
+.pill-row{display:flex; gap:8px; flex-wrap:wrap; margin-top:14px}
+.pill{font-size:.82rem; font-weight:700; padding:8px 14px; border-radius:var(--cd-r-pill);
+  background:var(--cd-surface-2); border:1px solid var(--cd-border)}
+.pill b{color:var(--cd-accent)}
+
+/* [2] 안개 걷기 */
+.fog-stage{position:relative; height:min(56vw,360px); border-radius:20px; overflow:hidden;
+  border:1px solid var(--cd-border); box-shadow:var(--cd-elev-1);
+  background:linear-gradient(180deg,#0d1a24,#152b38 60%,#1d3a44)}
+.silhouette{position:absolute; inset:0; display:grid; place-items:center;
+  filter:saturate(.7) brightness(.9)}
+.silhouette svg{width:min(46%,220px); opacity:.94}
+.fog{position:absolute; inset:-10%; pointer-events:none; transition:opacity 500ms var(--cd-ease-out);
+  background:
+    radial-gradient(40% 60% at 20% 40%,rgba(228,222,240,.95),transparent 60%),
+    radial-gradient(46% 66% at 70% 60%,rgba(214,206,232,.92),transparent 62%),
+    radial-gradient(60% 80% at 45% 30%,rgba(240,236,250,.88),transparent 66%),
+    linear-gradient(180deg,rgba(226,220,240,.7),rgba(210,202,230,.82))}
+.fog.f2{background:
+    radial-gradient(38% 54% at 30% 46%,rgba(228,222,240,.8),transparent 60%),
+    radial-gradient(44% 60% at 74% 62%,rgba(214,206,232,.76),transparent 62%);
+  mix-blend-mode:screen}
+.fog-cta{position:absolute; left:0; right:0; bottom:0; padding:16px;
+  background:linear-gradient(0deg,rgba(8,10,20,.82),transparent); color:#f4eeff}
+.fog-cta .q{font-family:var(--font-display); font-size:1.1rem; margin-bottom:10px}
+.progress{height:8px; border-radius:99px; background:rgba(255,255,255,.16); overflow:hidden; margin-top:12px}
+.progress i{display:block; height:100%; background:var(--cd-gold); width:60%}
+.slider{width:100%; margin-top:14px; accent-color:var(--cd-accent)}
+
+/* [4] 오늘의 한 걸음 (네오) */
+.warroom{background:var(--cd-bg-gradient); color:var(--cd-text)}
+.step-grid{display:grid; gap:clamp(20px,3vw,40px); grid-template-columns:1fr; align-items:center}
+@media(min-width:900px){.step-grid{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)}}
+.neo-portrait{position:relative; border-radius:20px; overflow:hidden; border:1px solid var(--cd-hairline);
+  box-shadow:0 0 40px -6px rgba(196,181,253,.4); background:#0d0a20; min-height:280px}
+.neo-portrait img{width:100%; height:100%; object-fit:cover; object-position:top center}
+.action{display:flex; align-items:center; gap:16px; padding:20px 22px; margin-top:18px;
+  border:1px solid var(--cd-hairline); border-radius:var(--cd-r-md); background:var(--cd-surface);
+  box-shadow:var(--cd-glow)}
+.check{width:32px; height:32px; flex:none; border-radius:9px; border:2px solid var(--cd-accent);
+  display:grid; place-items:center; cursor:pointer; background:transparent; color:transparent;
+  transition:background var(--cd-dur-base),color var(--cd-dur-base)}
+.check[aria-checked="true"]{background:var(--cd-accent); color:#12061f}
+.action .txt{font-size:1.16rem; font-weight:800; line-height:1.4}
+.action.done .txt{text-decoration:line-through; color:var(--cd-text-muted)}
+.badge-neo{display:inline-block; font-size:.78rem; font-weight:800; color:var(--cd-gold);
+  border:1px solid var(--cd-hairline); border-radius:99px; padding:6px 14px}
+
+footer{padding:40px var(--cd-gutter) 64px; color:var(--cd-text-muted); font-size:.86rem;
+  border-top:1px solid var(--cd-border); text-align:center}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms !important; animation-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<div class="demobar">
+  <b>운명의 나침반 하우스</b>
+  <span class="tag">STEP 4 시그니처 화면 목업</span>
+  <div class="seg" role="group" aria-label="테마 미리보기">
+    <button id="tPink" aria-pressed="true">찻집 · 연이(핑크)</button>
+    <button id="tNeo" aria-pressed="false">전략실 · 네오(퍼플)</button>
+  </div>
+</div>
+
+<!-- [0] 프롤로그 -->
+<section class="prologue" data-cd-theme="neo" aria-labelledby="pg-h">
+  <div class="wrap">
+    <span class="ktag" style="color:#e8d5a3">PROLOGUE · 프롤로그</span>
+    <h1 id="pg-h" class="h-lead" style="font-size:clamp(2rem,5vw,3.4rem)">운명의 나침반 하우스</h1>
+    <p class="sub" style="margin:0 auto 26px; color:rgba(240,232,255,.86)">길을 잃었을 때, 운명이 당신의 길을 비춰줍니다.</p>
+    <div class="hero-frame">
+      <img src="https://assets.code-destiny.com/네오와%20연이의%20운명%20나침반.webp"
+           alt="나침반을 사이에 둔 연이와 네오" loading="eager"
+           onerror="this.style.display='none';this.parentElement.style.minHeight='260px'">
+      <div class="hero-glow"></div>
+    </div>
+    <div class="dialog">
+      <div class="who">연이</div>
+      <p>여긴 답을 정해주는 곳이 아니에요. 당신이 이미 아는 방향을, 같이 또렷하게 만드는 곳이죠.</p>
+      <div class="row">
+        <button class="cta ghost" style="color:#f0e6ff">건너뛰기</button>
+        <button class="cta">다음 ›</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- [3] 나침반 결과 (찻집/핑크) -->
+<section id="result" aria-labelledby="rs-h">
+  <div class="wrap">
+    <span class="ktag">인생 나침반</span>
+    <h2 id="rs-h" class="h-lead">지금, 당신의 나침반이 가리키는 곳</h2>
+    <p class="sub">사주와 자미두수를 종합해 방향성 스코어로 환산했어요.</p>
+    <div class="result-grid" style="margin-top:34px">
+      <!-- 나침반 -->
+      <div class="compass" role="img" aria-label="대표 방향은 창업. 방향 일치도 별 4개.">
+        <svg viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <radialGradient id="face" cx="50%" cy="45%" r="60%">
+              <stop offset="0%" stop-color="#fff8ef"/><stop offset="100%" stop-color="#ffeef5"/>
+            </radialGradient>
+            <filter id="gl"><feDropShadow dx="0" dy="0" stdDeviation="4" flood-color="#b31955" flood-opacity=".4"/></filter>
+          </defs>
+          <circle cx="100" cy="100" r="92" fill="url(#face)" stroke="#ead089" stroke-width="2"/>
+          <circle cx="100" cy="100" r="74" fill="none" stroke="rgba(179,25,85,.14)" stroke-width="1"/>
+          <g id="ticks"></g>
+          <g class="needle" id="needle">
+            <polygon points="100,26 108,104 100,120 92,104" fill="#b31955" filter="url(#gl)"/>
+            <polygon points="100,120 108,104 100,178 92,104" fill="rgba(60,24,48,.28)"/>
+          </g>
+          <circle cx="100" cy="100" r="9" fill="#3c1830" stroke="#ead089" stroke-width="2"/>
+        </svg>
+      </div>
+      <!-- 요약 -->
+      <div>
+        <div class="card">
+          <div class="muted" style="font-weight:700;font-size:.86rem">AI 종합 방향</div>
+          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:4px 0 6px">
+            <span style="font-family:var(--font-display);font-size:2.1rem;font-weight:700;color:var(--cd-accent)">창업</span>
+            <span class="stars" aria-hidden="true">★★★★☆</span>
+          </div>
+          <p class="muted" style="font-size:.94rem">지금은 새로운 시작에 가장 운이 따르는 흐름이에요.</p>
+          <div class="pill-row">
+            <span class="pill">강한 영역 <b>도전·확장</b></span>
+            <span class="pill">쉬어갈 영역 <b>관계 정리</b></span>
+          </div>
+          <div class="radar" id="radar" style="margin-top:18px"></div>
+          <div class="speak">
+            <img src="https://assets.code-destiny.com/DestinyCafe/nobackground/꽃돼지8-Photoroom.png"
+                 alt="꽃돼지로 변신한 연이" loading="lazy"
+                 onerror="this.style.display='none'">
+            <div class="bubble">
+              <div class="who">꽃돼지</div>
+              <p style="font-size:.96rem">오늘 여기까지 온 것만으로도 충분히 잘하고 있어요. 창업 쪽 기운이 강하지만, 급하게 밀어붙이기보다 이번 주엔 딱 한 걸음만 내디뎌 봐요.</p>
+            </div>
+          </div>
+          <div class="eq" style="margin-top:18px">
+            <button class="cta">운명의 갈림길 비교</button>
+            <button class="cta ghost">삶의 항로 보기 🔒</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- [2] 안개 걷기 (찻집/핑크) -->
+<section aria-labelledby="fg-h" style="background:var(--cd-surface-2)">
+  <div class="wrap prose" style="margin-inline:auto">
+    <span class="ktag">안개 걷기</span>
+    <h2 id="fg-h" class="h-lead">질문에 답할수록, 길이 보여요</h2>
+    <p class="sub">아래 슬라이더를 움직여 안개가 걷히는 연출을 확인해 보세요. (실제로는 질문에 답할 때마다 걷힙니다)</p>
+    <div class="fog-stage" style="margin-top:24px">
+      <div class="silhouette" aria-hidden="true">
+        <svg viewBox="0 0 200 160"><g fill="#e8d5a3">
+          <rect x="70" y="60" width="60" height="90"/><polygon points="70,60 100,28 130,60"/>
+          <rect x="44" y="86" width="26" height="64"/><polygon points="44,86 57,66 70,86"/>
+          <rect x="130" y="86" width="26" height="64"/><polygon points="130,86 143,66 156,86"/>
+          <circle cx="100" cy="96" r="9" fill="#0d1a24"/>
+        </g></svg>
+      </div>
+      <div class="fog" id="fog"></div>
+      <div class="fog" id="fog2" style="opacity:.7"></div>
+      <div class="fog-cta">
+        <div class="q">연이 · "지금, 무엇이 가장 두렵나요?"</div>
+        <div class="eq">
+          <button class="chip" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)">변화가 두려워요</button>
+          <button class="chip" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.3)">정체가 두려워요</button>
+        </div>
+        <label for="clear" style="display:block;font-size:.8rem;margin-top:12px;color:rgba(255,255,255,.85)">안개 해제 미리보기</label>
+        <input class="slider" id="clear" type="range" min="0" max="100" value="35" aria-label="안개 해제 정도">
+        <div class="progress" aria-hidden="true"><i id="pbar"></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- [4] 오늘의 한 걸음 (전략실/퍼플) -->
+<section class="warroom" data-cd-theme="neo" aria-labelledby="st-h">
+  <div class="wrap">
+    <span class="badge-neo">배경·BGM 급전환 — 전략실</span>
+    <div class="step-grid" style="margin-top:20px">
+      <div class="neo-portrait">
+        <img src="https://assets.code-destiny.com/DestinyWar/전략실%20네오%20메인-Photoroom.png"
+             alt="전략실의 네오" loading="lazy"
+             onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(150deg,#1c163a,#0d0a20)'">
+      </div>
+      <div>
+        <span class="ktag" style="color:var(--cd-accent)">오늘의 한 걸음</span>
+        <h2 id="st-h" class="h-lead">오늘, 딱 하나만 해.</h2>
+        <p class="sub">고민은 결정을 미루는 가장 세련된 방법이야. 방향은 정해졌으니, 지금 할 건 이거 하나다.</p>
+        <div class="action" id="action">
+          <button class="check" id="chk" role="checkbox" aria-checked="false" aria-label="완료 체크"></button>
+          <div class="txt">망설이던 그 사람에게, 오늘 안에 먼저 연락한다.</div>
+        </div>
+        <div class="eq" style="margin-top:18px">
+          <button class="cta">완료</button>
+          <button class="cta ghost">항로 저장 · 공유</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  운명의 나침반 하우스 · STEP 4 UI/UX 목업 — 디자인 검토용(프로덕션 코드 아님). 토큰: <code>styles/theme-tokens.css</code> ·
+  히어로/캐릭터: Cloudflare R2(<code>assets.code-destiny.com</code>).
+</footer>
+
+<script>
+(function(){
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* 테마 미리보기 토글: 핑크 섹션들에 강제 오버라이드 */
+  var pink=document.getElementById('tPink'), neo=document.getElementById('tNeo');
+  var pinkSections=[document.getElementById('result'), document.querySelector('section[aria-labelledby="fg-h"]')];
+  function setTheme(mode){
+    pink.setAttribute('aria-pressed', mode==='pink'); neo.setAttribute('aria-pressed', mode==='neo');
+    pinkSections.forEach(function(s){ if(mode==='neo') s.setAttribute('data-cd-theme','neo'); else s.removeAttribute('data-cd-theme'); });
+  }
+  pink.onclick=function(){setTheme('pink')}; neo.onclick=function(){setTheme('neo')};
+
+  /* 나침반 눈금 + 라벨 (8방향) */
+  var dirs=[['직장',62],['창업',88],['공부',54],['관계',40],['휴식',33],['재물',71],['건강',58],['연애',46]];
+  var ticks=document.getElementById('ticks');
+  dirs.forEach(function(d,i){
+    var a=(i/8)*Math.PI*2 - Math.PI/2;
+    var x1=100+Math.cos(a)*82, y1=100+Math.sin(a)*82, x2=100+Math.cos(a)*74, y2=100+Math.sin(a)*74;
+    var lx=100+Math.cos(a)*100, ly=100+Math.sin(a)*100+4;
+    ticks.insertAdjacentHTML('beforeend',
+      '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="rgba(60,24,48,.35)" stroke-width="2"/>'+
+      '<text class="dir-label'+(d[0]==='창업'?' on':'')+'" x="'+lx+'" y="'+ly+'" text-anchor="middle">'+d[0]+'</text>');
+  });
+  /* 라디안: 창업(=index1) 방향으로 바늘 회전. 위(0deg)=직장 기준, 45deg 지점 */
+  var needle=document.getElementById('needle');
+  function spin(){ needle.style.transform='rotate(45deg)'; }
+  if(reduce){ needle.style.transition='none'; spin(); }
+
+  /* 라디안 레이더 바 */
+  var radar=document.getElementById('radar');
+  dirs.slice(0,5).sort(function(a,b){return b[1]-a[1]}).forEach(function(d){
+    radar.insertAdjacentHTML('beforeend',
+      '<div class="bar"><span class="lb">'+d[0]+'</span><span class="track"><i class="fill" style="width:'+d[1]+'%" data-v="'+d[1]+'"></i></span><span class="vv">'+d[1]+'</span></div>');
+  });
+
+  /* 스크롤 진입 시 나침반 회전 + 바 채우기 */
+  var fired=false;
+  function reveal(){
+    if(fired) return; fired=true;
+    if(!reduce) spin();
+    document.querySelectorAll('.fill').forEach(function(f,i){
+      setTimeout(function(){ f.style.transform='scaleX(1)'; }, reduce?0:i*80);
+    });
+  }
+  var rs=document.getElementById('result');
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(es,o){es.forEach(function(e){if(e.isIntersecting){reveal();o.disconnect();}})},{threshold:.3}).observe(rs);
+  } else reveal();
+
+  /* 안개 슬라이더 */
+  var clear=document.getElementById('clear'), fog=document.getElementById('fog'), fog2=document.getElementById('fog2'), pbar=document.getElementById('pbar');
+  function upd(){ var v=+clear.value/100; fog.style.opacity=(1-v).toFixed(2); fog2.style.opacity=(0.7*(1-v)).toFixed(2); pbar.style.width=(20+v*80)+'%'; }
+  clear.oninput=upd; upd();
+
+  /* 오늘의 한 걸음 체크 */
+  var chk=document.getElementById('chk'), action=document.getElementById('action');
+  chk.onclick=function(){ var on=chk.getAttribute('aria-checked')!=='true'; chk.setAttribute('aria-checked',on); chk.textContent=on?'✓':''; action.classList.toggle('done',on); };
+})();
+</script>
+</body>
+</html>

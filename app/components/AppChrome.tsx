@@ -66,6 +66,7 @@ const CHROMELESS_ROUTES = [
   "/premium-unlock",
   "/olympus",
   "/oracle/rune",
+  "/destiny-compass",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
