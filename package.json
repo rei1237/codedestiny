@@ -106,6 +106,8 @@
     "verify:saju-new-year-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-unlock-entitlement-regression": "node scripts/verify-saju-unlock-entitlement-regression.mjs",
     "verify:ziwei-ai-consultation-flow": "node scripts/verify-ziwei-ai-consultation-flow.mjs",
+    "verify:ziwei-island": "node scripts/verify-ziwei-island-blueprint.mjs",
+    "verify:destiny-compass": "node scripts/verify-destiny-compass-determinism.mjs",
     "i18n:check": "node scripts/i18n-check.mjs && npm run verify:i18n-runtime && node scripts/verify-i18n-public-parity.mjs --all",
     "i18n:audit": "node scripts/i18n-audit-hardcoded-copy.mjs",
     "verify:i18n-runtime": "node scripts/verify-i18n-runtime-readiness.mjs",
