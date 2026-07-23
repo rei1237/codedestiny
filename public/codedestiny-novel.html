@@ -1051,8 +1051,18 @@ function enterEpisode(ei,showCard){
   if(showCard!==false){
     var cc=document.getElementById("chCard"),ce=document.getElementById("chEp"),ct=document.getElementById("chTi");
     ce.textContent=eps.no;ct.textContent=eps.title;cc.classList.remove("hidden");cc.classList.add("on");
-    setTimeout(function(){cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);runBeat();},1600);
+    _cardTimer=setTimeout(function(){_cardTimer=0;cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);runBeat();},1600);
   }else{runBeat();}
+}
+/* 챕터 카드가 떠 있는 동안 클릭(advance)하면 beat0(변신·배경·스테이징)을 건너뛰던 버그 방지 —
+   카드를 즉시 닫고 beat0을 실행한다(bi 증가 없이). */
+var _cardTimer=0;
+function flushCard(){
+  if(!_cardTimer)return false;
+  clearTimeout(_cardTimer);_cardTimer=0;
+  var cc=document.getElementById("chCard");if(cc){cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);}
+  runBeat();
+  return true;
 }
 function curBeats(){return EPISODES[S.ep].beats;}
 
@@ -1234,6 +1244,8 @@ var slotMap={l:"slotL",c:"slotC",r:"slotR"};
 var _slotRm={}; /* 슬롯별 대기중 제거 타이머 — hydrateTo 재생 레이스 방지 */
 function setSlot(slot,who,expr){
   if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;} /* 재배치 시 대기중 제거 취소(안 하면 목차·책갈피 점프에서 슬롯 캐릭터가 사라짐) */
+  /* 같은 캐릭터가 다른 슬롯에 이미 있으면 제거(1캐릭터=1슬롯) — 자동배치분 위에 명시 슬롯이 겹쳐 중복 표시되던 버그 방지 */
+  ["l","c","r"].forEach(function(s){if(s!==slot&&S.slotWho[s]===who)removeSlot(s);});
   var id="char_"+slot;var el=document.getElementById(id);
   var sp=spriteFor(who,expr,S.form);
   var wantTag=sp.sheet?"DIV":"IMG"; // 시트 크롭은 background div, 그 외 <img>
@@ -1290,6 +1302,7 @@ function finishType(){
   if(S.skip)setTimeout(doSkipStep,120);
 }
 function advance(){
+  if(flushCard())return; /* 챕터 카드 중 클릭 시 beat0을 스킵하지 않고 실행 */
   if(curBeat&&curBeat.end){backToMain();return;}
   if(S.typing){finishType();return;}
   S.bi++;runBeat();
@@ -1743,9 +1756,24 @@ EPISODES.push({"no":"EP.15","tag":"제15화 · 강 건너 황금 냄새","title"
 {"s":"yeon","x":"surprise","t":"우와… 번쩍번쩍한데? 뭐야, 여기 다 부자야?"},
 {"s":"neo","x":"deadpan","t":"금박은 종이 한 장 두께다. 이 섬의 부(富)도 대체로 그 두께지."},
 {"s":"n","bg":"jaeEnter2","t":"부두에 내리자 소리가 먼저 밀려왔다. 짤랑, 짤랑. 걸음마다 금화 소리, 흥정 소리. 그리고 딸깍, 딸깍, 저울이 기우는 소리."},
+{"s":"n","t":"부두 난간마다 환전상 부스가 늘어서 있었다. 「오늘의 운(運) 시세」라 적힌 칠판에는, 사람 이름 대신 숫자들이 빼곡했다. 어제보다 값이 오른 이름, 반토막 난 이름."},
+{"s":"yeon","x":"surprise","t":"저기 저거 봐. 사람 운을 주식처럼 사고팔아? 내 운도 상장돼 있으면 지금쯤 상장폐지 직전이겠는데."},
+{"s":"neo","x":"deadpan","t":"…네 운은 이 섬에 상장할 수도 없다. 심사에서 탈락한다."},
+{"s":"yeon","x":"angry","t":"방금 그거 위로야, 디스야? 판정 좀."},
+{"s":"neo","x":"sly","t":"객관적 분석이다. 늘 그렇듯."},
 {"s":"n","t":"지나가는 주민들 손에는 하나같이 작은 저울이 들려 있었다. 사과 한 알을 사면서도 저울. 인사를 나누면서도 저울."},
 {"s":"yeon","x":"think","t":"인사를 왜 저울에 달아…?"},
 {"s":"neo","x":"calm","t":"받은 만큼 돌려주기 위해서다. 이 섬에서 빚은 목숨보다 무겁거든."},
+{"s":"n","t":"골목 어귀에서 한 남자가 저울을 든 채 다른 남자의 소매를 붙들고 있었다. 「자네가 삼 년 전 나한테 웃어 준 값, 아직 안 갚았어. 이자까지 쳐서 금화 두 닢일세.」 붙들린 남자는 말없이 지갑을 열었다."},
+{"s":"yeon","x":"fear","t":"…웃어 준 것도 빚이 돼? 그럼 나 아까 네오한테 실실 웃은 것도 청구되는 거야?"},
+{"s":"neo","x":"deadpan","t":"다행히 나는 채권 추심을 안 한다. 네 웃음은 회수 가치가 낮아서."},
+{"s":"yeon","x":"grin","t":"방금 두 번째 디스. 오늘치 적립 완료."},
+{"s":"n","t":"연이는 시장을 둘러보며 자꾸 마음이 서늘해졌다. 반짝이는 건 많은데, 웃는 사람은 드물었다. 다들 무언가를 갚느라, 웃을 여유까지 저당 잡힌 얼굴이었다."},
+{"s":"yeon","x":"soft","t":"네오. 여기 사람들, 부자인데 왜 하나도 안 행복해 보여?"},
+{"s":"neo","x":"talk","t":"가진 걸 세는 데 익숙해지면, 없는 것만 보이거든. 재성은 원래 그런 힘이야. 잘 쓰면 살림이고, 잘못 쓰면 감옥이지."},
+{"s":"n","t":"그 말끝에, 시장 한복판의 가장 높은 건물이 눈에 들어왔다. 다른 건물이 금박이라면, 그 건물만은 순금처럼 묵직하게 빛났다. 꼭대기엔 파란 토끼 문장이 걸려 있었다."},
+{"s":"yeon","x":"think","t":"저 파란 토끼 마크… 여기저기 다 붙어 있네. 간판에도, 저 노란 종이에도."},
+{"s":"neo","x":"serious","t":"청토끼 금융그룹. 이 섬의 빚을 거의 다 쥐고 있는 곳이야. 조심해라. 저기서 빌린 건 돈이 아니라 시간이거든."},
 {"s":"n","t":"네오의 눈이 시장 게시판의 시세표를 훑었다. 그리고, 아주 자연스럽게 말했다."},
 {"s":"neo","x":"neutral","t":"다음 보름에 금리가 두 번 뛴다. 환전은 오늘 해 두는 게 낫다."},
 {"s":"yeon","x":"surprise","t":"…그걸 네가 어떻게 알아? 시세표에는 오늘 값밖에 없는데."},
@@ -1758,6 +1786,9 @@ EPISODES.push({"no":"EP.15","tag":"제15화 · 강 건너 황금 냄새","title"
 {"s":"n","l":{"who":"yeon","x":"surprise"},"r":{"who":"ln","x":"surprise"},"t":"분홍 원피스에, 귀가 몸보다 길어 보이는 아기 토끼였다. 바구니에서는 갓 구운 빵 냄새가 났다."},
 {"s":"ln","x":"cry","t":"아니야! 훔친 거 아니야! 이건 배달이야! 우리 언니가 구운 빵이란 말이야!"},
 {"s":"n","t":"장정 하나가 저울을 들이밀며 으르렁댔다. 빵 여섯 개 값을 치른 기록이 없다는 것이었다."},
+{"s":"n","tone":"dark","t":"군중이 토끼를 둥글게 에워쌌다. 저마다 손에 든 저울을 들이밀며, 값을 매기듯 아이를 훑어봤다. 「저 토끼, 요새 빵집이 망했다던데.」 「망한 집 애가 훔치는 건 순서지.」"},
+{"s":"ln","x":"cry","t":"아니야… 아니야! 우리 언니 빵은 훔칠 필요도 없어! 세상에서 제일 맛있으니까 다들 줄 서서 산단 말이야!"},
+{"s":"n","t":"아무도 아이 말을 듣지 않았다. 이 섬에서 말은 저울에 올려야 무게가 생겼고, 어린 토끼의 눈물은 저울 위에서 늘 가벼웠다."},
 {"s":"yeon","x":"angry","t":"잠깐만요! 애가 배달이라잖아요! 영수증이 없다고 도둑이 되는 건 아니죠!"},
 {"s":"n","t":"군중의 시선이 이번엔 꽃돼지에게 쏠렸다. 말하는 꽃돼지는 이 섬에서도 흔치 않은 모양이었다."},
 {"s":"neo","x":"lecture","t":"저울을 빌려주시죠. 빵 여섯 개, 무게를 달아 보겠습니다."},
@@ -2588,7 +2619,7 @@ EPISODES.push({"no":"EP.38","tag":"제38화 · 끊을 수 없는 실","title":"�
 {"s":"mu","x":"base","c":{"who":"mu","x":"base"},"im":true,"t":"…나도 실이 하나 생겼어. 어제 처음. 가늘지만, 내 이름으로 맺은 내 실이야."},
 {"s":"mu","x":"talk","t":"이런 데 쓰라고 생긴 실인가 봐. 나쁘지 않네."},
 {"s":"n","fx":"stars","im":true,"t":"네 가닥의 실이 감옥을 뚫고, 검은 폭풍을 거슬러 연이에게로 날아왔다. 얼어붙던 붉은 실에 다시 온기가 돌기 시작했다."},
-{"s":"n","bgm":"novaFlame","im":true,"t":"그리고 하늘의 갈라진 틈에서, 다섯 번째 실이 불꽃처럼 떨어져 내렸다."},
+{"s":"n","bgm":"lunaGuest","im":true,"t":"그리고 하늘의 갈라진 틈에서, 다섯 번째 실이 불꽃처럼 떨어져 내렸다."},
 {"s":"n","c":{"who":"moka","x":"p3"},"im":true,"t":"주홍 불티를 튀기며, 수달 한 마리가 마이크 대신 주먹을 쥐고 무대 한복판에 착지했다."},
 {"s":"moka","x":"p3","im":true,"t":"요! 초대장은 없었는데, 실은 있더라고. 식상의 섬 최고 화력 모카, 앙코르 무대 왔습니다!"},
 {"s":"yeon","x":"surprise","t":"모카?! 너 여기까지 어떻게 온 거야?"},
