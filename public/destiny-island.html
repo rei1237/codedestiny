@@ -197,6 +197,10 @@ body.ph-night #mapSvg{filter:brightness(1.0) saturate(1.0)}
 .palace:hover .ptip,.palace:focus-visible .ptip{opacity:1}
 .palace .emis{opacity:.35;transition:opacity 1.4s ease}
 body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
+/* 야간 따뜻한 창불빛 + 수면 반사(파스텔 트와일라잇 유지: 지형은 어둡히지 않고 창만 앰버로) */
+body.ph-night .palace .emis{fill:#ffc97a}
+.palace .nreflect{opacity:0;transition:opacity 1.6s ease}
+body.ph-night .palace .nreflect{opacity:.2}
 .leyline{fill:none;stroke-linecap:round}
 .leyline.flow{stroke-dasharray:5 9;animation:leyFlow 2.4s linear infinite}
 @keyframes leyFlow{to{stroke-dashoffset:-14}}
@@ -1446,10 +1450,15 @@ function renderMap(pop){
   edges.forEach(function(e){
     var a=palaceCenter(e.from),b=palaceCenter(e.to);
     var mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2-46;
-    var col=e.weight>0?"#e8d5a3":"#f2a6bd";
+    /* 공명 타입별 색: 삼방=금(지지) · 대궁=바이올렛(축) · 사화=부호별 로즈금/danger */
+    var col=e.type==="triad"?"#e8d5a3":e.type==="opposite"?"#c4b5fd":e.type==="sihua"?(e.weight>=0?"#f4d6a4":"#f2a6bd"):(e.weight>0?"#e8d5a3":"#f2a6bd");
     var op=Math.min(0.5,Math.abs(e.weight)/22+0.12);
+    var w=(1.4+Math.min(3,Math.abs(e.weight)/9)).toFixed(2);
+    var d="M"+a.cx+" "+(a.cy-8)+" Q "+mx+" "+my+" "+b.cx+" "+(b.cy-8);
+    /* 강한 공명(|w|>=8)엔 발광 하위 레이어 */
+    if(Math.abs(e.weight)>=8)ley+='<path class="leyline" d="'+d+'" stroke="'+col+'" stroke-width="'+(w*2.2).toFixed(1)+'" opacity="'+(op*0.5).toFixed(2)+'" filter="url(#glowF)"/>';
     var cls=(e.weight>0&&!reduceMotion)?"leyline flow":"leyline";
-    ley+='<path class="'+cls+'" d="M'+a.cx+' '+(a.cy-8)+' Q '+mx+' '+my+' '+b.cx+' '+(b.cy-8)+'" stroke="'+col+'" stroke-width="'+(1+Math.min(1.4,Math.abs(e.weight)/14)).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>';
+    ley+='<path class="'+cls+'" d="'+d+'" stroke="'+col+'" stroke-width="'+w+'" opacity="'+op.toFixed(2)+'"/>';
   });
   parts.push(ley+"</g>");
   /* 중앙 컴퍼스 광장 */
@@ -1474,6 +1483,7 @@ function renderMap(pop){
     var aria=pal.name+" "+def.title+", "+pal.tierLabel+" 단계, 궁의 힘 "+pal.score+(badges.length?", "+badges.map(function(m){return m[1];}).join(" "):"");
     var g='<g class="palace'+(pop?" pop":"")+'" tabindex="0" role="button" data-palace="'+esc(pal.name)+'" aria-label="'+esc(aria)+'" transform="translate('+L.cx+','+L.cy+')"'+(pop?' style="animation-delay:'+(groups.length*0.09).toFixed(2)+'s"':"")+'>'
       +'<ellipse cx="0" cy="7" rx="'+(46*L.scale).toFixed(1)+'" ry="'+(14*L.scale).toFixed(1)+'" fill="#2a1e52" opacity=".26" filter="url(#soft)"/>'
+      +'<rect class="nreflect" x="-2.5" y="'+(30*L.scale).toFixed(0)+'" width="5" height="'+(42*L.scale).toFixed(0)+'" rx="2.5" fill="#ffc97a" filter="url(#glowF)"/>'
       +'<g class="pbody"'+glow+'>'+bld.svg+"</g>"
       +'<line x1="'+pinX+'" y1="'+(pinY+11)+'" x2="4" y2="'+(bld.apexY-2).toFixed(1)+'" stroke="'+tcol+'" stroke-width="1.4" opacity=".65"/>'
       +'<path class="pin-halo" d="'+hexPath(pinX,pinY,13)+'" fill="#0a0818" fill-opacity=".84" stroke="'+tcol+'" stroke-width="2"/>'
