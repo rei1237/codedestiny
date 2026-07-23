@@ -7,7 +7,11 @@
 <meta name="theme-color" content="#0a0818" />
 <title>운명의 섬 — 자미두수 인터랙티브 맵 | Code Destiny</title>
 <link rel="icon" href="/favicon.ico" />
+<link rel="preconnect" href="https://assets.code-destiny.com" crossorigin />
 <style>
+/* R2 브랜드 웹폰트 (메인 사이트 styles/globals.css와 동일 소스) */
+@font-face{font-family:"CodeDestinyDisplay";src:url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");font-weight:400 700;font-style:normal;font-display:swap}
+@font-face{font-family:"CodeDestinyBody";src:local("Pretendard"),local("Apple SD Gothic Neo"),url("https://assets.code-destiny.com/PretendardVariable.ttf") format("truetype-variations");font-weight:400 900;font-style:normal;font-display:swap}
 /* ============================================================
    운명의 섬 — 네오 페르소나(퍼플 달빛) 몰입형 맵
    Layer 3(게임 연출)만 이 파일에 존재한다. 명반 계산·섬 청사진은
@@ -24,9 +28,11 @@
   /* z-scale: map-fx(2) < nodes(3) < sky-veil(4) < weather(5) < hud(20) < sheet-backdrop(30) < sheet(31) < dialogue(40) < intro(50) < toast(60) */
   --z-hud:20; --z-backdrop:30; --z-sheet:31; --z-dlg:40; --z-intro:50; --z-toast:60;
   --ease-out:cubic-bezier(.16,1,.3,1);
-  --font-body:'Pretendard Variable','Pretendard','SUIT','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
-  --font-serif:'Nanum Myeongjo','Gowun Batang','Noto Serif KR',Georgia,serif;
+  --font-body:'CodeDestinyBody','Pretendard Variable','Pretendard','SUIT','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',system-ui,sans-serif;
+  --font-serif:'CodeDestinyDisplay','Mulmaru','Nanum Myeongjo','Gowun Batang','Noto Serif KR',Georgia,serif;
+  --font-display:'CodeDestinyDisplay','Mulmaru','Nanum Myeongjo',Georgia,serif;
 }
+body{font-family:var(--font-body)}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
 body{
@@ -126,7 +132,8 @@ img{max-width:100%;display:block}
 .intro-caption{position:absolute;left:50%;bottom:calc(12vh + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(560px,90vw);
   text-align:center;font-size:clamp(1rem,2.6vw,1.2rem);color:var(--text);text-shadow:0 2px 14px rgba(0,0,0,.8);
   font-family:var(--font-serif);line-height:1.9;min-height:3.6em}
-.intro-caption .who{display:block;font-size:.78rem;letter-spacing:.16em;color:var(--rose);font-family:var(--font-body);font-weight:700;margin-bottom:4px}
+.intro-caption .who{display:block;font-size:.78rem;letter-spacing:.16em;color:var(--rose);font-family:var(--font-display);font-weight:700;margin-bottom:4px}
+.intro-caption .who--neo{color:var(--gold)}
 .intro-skip{position:absolute;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));padding:10px 18px;min-height:44px;border-radius:999px;
   border:1px solid var(--panel-line);color:var(--text-muted);font-size:.85rem;background:rgba(10,8,24,.6);
   opacity:0;transition:opacity .8s ease}
@@ -181,14 +188,20 @@ body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
 /* 연이 내레이터 고정 슬롯 (z 95) */
 .narrator{position:fixed;left:12px;top:calc(64px + env(safe-area-inset-top));z-index:95;display:flex;align-items:flex-end;gap:10px;
   max-width:min(72vw,360px);pointer-events:none}
-.narrator .nav-av{width:clamp(56px,11vw,84px);aspect-ratio:1;border-radius:50%;flex:none;pointer-events:auto;
-  border:2px solid var(--panel-line);background:var(--panel) center/cover no-repeat;box-shadow:0 8px 26px rgba(0,0,0,.45),var(--glow-violet);
-  cursor:pointer}
+.narrator .nav-av{width:clamp(60px,11vw,88px);aspect-ratio:1;border-radius:50%;flex:none;pointer-events:auto;overflow:hidden;padding:0;
+  border:2px solid var(--panel-line);background:radial-gradient(circle at 50% 30%,rgba(196,181,253,.18),var(--panel) 70%);
+  box-shadow:0 8px 26px rgba(0,0,0,.45),var(--glow-violet);cursor:pointer;transition:transform .18s var(--ease-out),border-color .25s ease}
+.narrator .nav-av:active{transform:scale(.94)}
+.narrator .nav-av img{width:100%;height:100%;object-fit:cover;object-position:50% 16%;display:block}
+.narrator.speaker-neo .nav-av{border-color:rgba(232,213,163,.6);box-shadow:0 8px 26px rgba(0,0,0,.45),var(--glow-gold)}
+.narrator.speaker-neo .nav-av img{object-position:50% 20%}
 .narrator .nav-bubble{background:var(--panel);border:1px solid var(--panel-line);border-radius:14px 14px 14px 4px;
   padding:8px 13px;font-size:.82rem;line-height:1.55;color:var(--text);box-shadow:0 8px 26px rgba(0,0,0,.4);
-  max-width:230px;word-break:keep-all;opacity:1;transform:translateY(0);transition:opacity .35s ease,transform .35s var(--ease-out)}
+  max-width:236px;word-break:keep-all;opacity:1;transform:translateY(0);transition:opacity .35s ease,transform .35s var(--ease-out)}
 .narrator .nav-bubble.hide{opacity:0;transform:translateY(6px);pointer-events:none}
 .narrator .nav-bubble b{color:var(--gold);font-weight:800}
+.narrator .nav-bubble .nav-who{display:inline-block;margin-right:2px;color:var(--rose);font-family:var(--font-display)}
+.narrator.speaker-neo .nav-bubble .nav-who{color:var(--gold)}
 
 .sky-veil{position:absolute;inset:0;pointer-events:none;z-index:4;transition:opacity 1.6s ease;opacity:0}
 body.ph-dawn .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(63,45,110,.32) 0%,rgba(255,176,136,.14) 55%,transparent 100%)}
@@ -439,7 +452,7 @@ body.ph-night .fireflies{opacity:1}
     </div>
   </div>
   <div class="narrator" id="narrator" hidden>
-    <button class="nav-av" id="navAv" type="button" aria-label="연이의 안내 다시 보기"></button>
+    <button class="nav-av" id="navAv" type="button" aria-label="다음 이야기 듣기"><img id="navImg" alt="" /></button>
     <div class="nav-bubble" id="navBubble"></div>
   </div>
   <div class="hud-top">
@@ -851,30 +864,59 @@ function isoBox(cx,cy,s,h){
   var tl=[cx-s,cy-h],tr=[cx+s,cy-h],tt=[cx,cy-s/2-h],tb=[cx,cy+s/2-h];
   return {top:[tt,tr,tb,tl],left:[gl,gb,tb,tl],right:[gb,gr,tr,tb],tt:tt,tr:tr,tb:tb,tl:tl,apexY:cy-s/2-h};
 }
-/* 탑 하나(박스+피라미드 지붕) */
+var RIM="#c9b8ff";
+function grad(id,c1,c2){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>';}
+/* 탑 하나(박스+피라미드 지붕) — 그라디언트 면·림라이트·금박 필리그리 */
 function tower(cx,cy,s,h,rh,pal,win){
   var b=isoBox(cx,cy,s,h),str="";
-  str+=poly(b.left,STONE.l)+poly(b.right,STONE.r)+poly(b.top,STONE.t);
+  str+=poly(b.left,"url(#wallL)")+poly(b.right,"url(#wallR)")+poly(b.top,"url(#wallT)");
+  /* 상단 앞모서리 림라이트 */
+  str+='<polyline points="'+[b.tl,b.tt,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+RIM+'" stroke-width="0.7" opacity=".45" stroke-linejoin="round"/>';
   if(win){
-    str+='<rect class="emis" x="'+(cx-s*0.62).toFixed(1)+'" y="'+(cy-h*0.6).toFixed(1)+'" width="3.4" height="4.6" fill="'+pal.glow+'"/>';
-    str+='<rect class="emis" x="'+(cx+s*0.28).toFixed(1)+'" y="'+(cy-h*0.6).toFixed(1)+'" width="3.4" height="4.6" fill="'+pal.glow+'"/>';
+    var wf=' filter="url(#glowF)"';
+    str+='<rect class="emis" x="'+(cx-s*0.6).toFixed(1)+'" y="'+(cy-h*0.62).toFixed(1)+'" width="3.2" height="4.6" rx="1" fill="'+pal.glow+'"'+wf+'/>';
+    str+='<rect class="emis" x="'+(cx+s*0.28).toFixed(1)+'" y="'+(cy-h*0.62).toFixed(1)+'" width="3.2" height="4.6" rx="1" fill="'+pal.glow+'"'+wf+'/>';
   }
   if(rh>0){
     var apex=[cx,cy-h-rh];
-    str+=poly([apex,b.tl,b.tt],pal.roof2)+poly([apex,b.tt,b.tr],pal.roof2);
-    str+=poly([apex,b.tl,b.tb],pal.roof)+poly([apex,b.tb,b.tr],pal.roof);
+    str+=poly([apex,b.tl,b.tt],"url(#roofB)")+poly([apex,b.tt,b.tr],"url(#roofB)");
+    str+=poly([apex,b.tl,b.tb],"url(#roofF)")+poly([apex,b.tb,b.tr],"url(#roofF)");
     str+='<polyline points="'+[b.tl,b.tb,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+pal.trim+'" stroke-width="1.3" stroke-linejoin="round"/>';
+    /* 지붕 능선 금박 하이라이트 */
+    str+='<line x1="'+apex[0]+'" y1="'+apex[1].toFixed(1)+'" x2="'+b.tb[0]+'" y2="'+b.tb[1].toFixed(1)+'" stroke="'+pal.glow+'" stroke-width="0.8" opacity=".5"/>';
   }
   return {svg:str,apexY:rh>0?cy-h-rh:b.apexY};
 }
-/* 궁 건물 — 티어별 정교화. return {svg, apexY} (핀 배치용) */
-function buildingSVG(cx,cy,tier,pal,scale,isMing){
+/* 궁별 시그니처 소품(전경) — 각 섬의 정체성 */
+function motifSVG(name,s,pal){
+  var g="",T=pal.trim,G=pal.glow;
+  function C(x,y,r,f){return '<circle cx="'+(x*s).toFixed(1)+'" cy="'+(y*s).toFixed(1)+'" r="'+(r*s).toFixed(1)+'" fill="'+f+'"/>';}
+  function P(a,f){return poly(a.map(function(p){return [p[0]*s,p[1]*s];}),f);}
+  function L(x1,y1,x2,y2,st,w){return '<line x1="'+(x1*s).toFixed(1)+'" y1="'+(y1*s).toFixed(1)+'" x2="'+(x2*s).toFixed(1)+'" y2="'+(y2*s).toFixed(1)+'" stroke="'+st+'" stroke-width="'+(w*s).toFixed(2)+'" stroke-linecap="round"/>';}
+  function curl(x,y){return '<path d="M'+(x*s).toFixed(1)+' '+(y*s).toFixed(1)+' q '+(3.4*s).toFixed(1)+' -'+(4*s).toFixed(1)+' 0 -'+(8*s).toFixed(1)+'" fill="none" stroke="#cfe6ff" stroke-width="'+(0.9*s).toFixed(2)+'" opacity=".5"/>';}
+  switch(name){
+    case "재백궁": g+=P([[-42,15],[-25,15],[-28,23],[-45,23]],"#241d3a")+C(-42,24,1.6,"#14101f")+C(-27,24,1.6,"#14101f")+C(-35,12,2.6,G)+C(-31,13.5,2.2,T)+C(-38,14,2,G);break;
+    case "천이궁": g+=P([[24,20],[45,20],[41,26],[28,26]],"#241d3a")+L(35,20,35,7,T,1.2)+P([[35,7],[35,19],[46,19]],"#cbd9ef");break;
+    case "복덕궁": g+=P([[26,10],[41,10],[41,14],[26,14]],"#6f9ec2")+P([[27,14],[42,14],[42,18],[27,18]],"#9a86c8")+L(46,5,46,18,T,2.4);break;
+    case "자녀궁": g+=L(30,17,31,4,"#8f7fd0",0.6)+C(30,2,3.2,"#f4bed1")+L(38,17,38,6,"#8f7fd0",0.6)+C(38,3.5,3,"#a7d3ff")+C(45,6,2.4,G);break;
+    case "관록궁": g+=L(42,-3,42,18,T,1)+P([[42,-3],[55,1],[42,6]],"#a85a48");break;
+    case "부모궁": g+=L(24,23,24,5,"#a4653f",1.6)+L(42,23,42,5,"#a4653f",1.6)+P([[19,3],[47,3],[47,8],[19,8]],"#7d4326")+L(22,11,44,11,"#7d4326",1.8);break;
+    case "질액궁": g+='<ellipse cx="'+(34*s).toFixed(1)+'" cy="'+(21*s).toFixed(1)+'" rx="'+(12*s).toFixed(1)+'" ry="'+(4*s).toFixed(1)+'" fill="#6f9ec2" opacity=".7"/>'+curl(30,17)+curl(38,17);break;
+    case "노복궁": g+=P([[23,20],[45,20],[41,10],[27,10]],pal.roof)+L(34,10,34,5,T,1)+L(23,20,45,20,T,0.8)+L(30,20,30,10,shade(pal.roof,-0.2),0.7)+L(38,20,38,10,shade(pal.roof,-0.2),0.7);break;
+    case "형제궁": g+=P([[25,21],[34,5],[43,21]],"#4d8460")+P([[27,15],[34,3],[41,15]],"#6fae7d")+L(34,21,34,25,"#3a2a1a",1.8);break;
+    case "부부궁": g+='<path d="M'+(25*s).toFixed(1)+' '+(23*s).toFixed(1)+' q '+(9*s).toFixed(1)+' -'+(20*s).toFixed(1)+' '+(18*s).toFixed(1)+' 0" fill="none" stroke="'+T+'" stroke-width="'+(1.4*s).toFixed(2)+'"/>'+C(27,10,1.8,"#f4bed1")+C(41,10,1.8,"#f4bed1")+C(34,3,2,"#ffd6e6");break;
+    case "전택궁": g+=P([[38,3],[43,3],[43,13],[38,13]],"#241d3a")+'<path d="M'+(40.5*s).toFixed(1)+' '+(1*s).toFixed(1)+' q '+(4*s).toFixed(1)+' -'+(3*s).toFixed(1)+' 0 -'+(6*s).toFixed(1)+'" fill="none" stroke="#cfc6e0" stroke-width="'+(0.9*s).toFixed(2)+'" opacity=".5"/>';break;
+  }
+  return g;
+}
+/* 궁 건물 — 티어=웅장함/발광(공통) · palaceName=고유 형태·소품. return {svg, apexY} */
+function buildingSVG(cx,cy,tier,pal,scale,isMing,palaceName){
   var sc=scale||1,g="",apex;
-  /* 명궁: 상시 은은한 골드 후광 → 즉시 초점 */
   if(isMing){g+='<ellipse cx="'+cx+'" cy="'+(cy-34*sc).toFixed(1)+'" rx="'+(66*sc).toFixed(1)+'" ry="'+(60*sc).toFixed(1)+'" fill="'+pal.glow+'" opacity=".12" filter="url(#soft)"/>';}
   /* 플랫폼(지형) */
   var ps=44*sc,pb=isoBox(cx,cy+3*sc,ps,7*sc);
-  g+=poly(pb.left,shade(pal.land,-0.32))+poly(pb.right,shade(pal.land,-0.16))+poly(pb.top,pal.land);
+  g+=poly(pb.left,shade(pal.land,-0.32))+poly(pb.right,shade(pal.land,-0.16))+poly(pb.top,"url(#landG)");
+  g+='<polyline points="'+[pb.tl,pb.tt,pb.tr].map(pt).join(" ")+'" fill="none" stroke="'+shade(pal.land,0.22)+'" stroke-width="0.8" opacity=".45"/>';
   g+='<polyline points="'+[pb.tl,pb.tb,pb.tr].map(pt).join(" ")+'" fill="none" stroke="'+shade(pal.land,0.18)+'" stroke-width="1" opacity=".5"/>';
   var by=cy-4*sc;
   if(isMing){
@@ -883,6 +925,7 @@ function buildingSVG(cx,cy,tier,pal,scale,isMing){
   if(tier<=1){
     var b=isoBox(cx,by,20*sc,15*sc);
     g+=poly(b.left,shade(STONE.l,0.06))+poly(b.right,shade(STONE.r,0.06))+poly(b.top,shade(STONE.t,0.05));
+    g+='<polyline points="'+[b.tl,b.tt,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+RIM+'" stroke-width="0.6" opacity=".3"/>';
     g+=poly([[cx-26*sc,cy+2*sc],[cx-18*sc,cy+6*sc],[cx-24*sc,cy+9*sc]],shade(STONE.r,0.04));
     g+=poly([[cx+18*sc,cy+5*sc],[cx+27*sc,cy+3*sc],[cx+23*sc,cy+9*sc]],shade(STONE.r,0.04));
     apex=b.apexY;
@@ -905,10 +948,11 @@ function buildingSVG(cx,cy,tier,pal,scale,isMing){
     var m5=tower(cx,by,30*sc,38*sc,20*sc,pal,true);
     g+=l5.svg+r5.svg+m5.svg;
     var sp=tower(cx,m5.apexY+6*sc,6*sc,26*sc,16*sc,pal,false);g+=sp.svg;
-    g+='<circle cx="'+cx+'" cy="'+(sp.apexY-4*sc).toFixed(1)+'" r="'+(3.2*sc).toFixed(1)+'" fill="'+pal.trim+'"/>';
+    g+='<circle cx="'+cx+'" cy="'+(sp.apexY-4*sc).toFixed(1)+'" r="'+(3.2*sc).toFixed(1)+'" fill="'+pal.trim+'" filter="url(#glowF)"/>';
     g+='<ellipse class="pring" cx="'+cx+'" cy="'+(sp.apexY+2*sc).toFixed(1)+'" rx="'+(20*sc).toFixed(1)+'" ry="'+(7*sc).toFixed(1)+'" fill="none" stroke="'+pal.glow+'" stroke-width="1.4" opacity=".8"/>';
     apex=sp.apexY-6*sc;
   }
+  if(palaceName&&palaceName!=="명궁")g+=motifSVG(palaceName,sc,pal);
   return {svg:g,apexY:apex};
 }
 /* 궁 링 배치(명궁 중앙 + 11궁 타원) */
@@ -936,15 +980,26 @@ function renderMap(pop){
   var pal0=biomePal(BP.biome.id);
   var zoom=$("mapZoom");
   var parts=[];
-  /* defs: 물 그라디언트 */
-  parts.push('<defs><radialGradient id="wg" cx="50%" cy="38%" r="75%">'
-    +'<stop offset="0%" stop-color="'+shade(pal0.water[0],0.12)+'"/>'
-    +'<stop offset="55%" stop-color="'+pal0.water[0]+'"/>'
-    +'<stop offset="100%" stop-color="'+pal0.water[1]+'"/></radialGradient>'
-    +'<filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter></defs>');
-  /* 물 + 웨이브 */
+  /* defs: 물 그라디언트 + 벽/지붕/지형 그라디언트 + 글로우 + 물 코스틱 텍스처 */
+  parts.push('<defs>'
+    +'<radialGradient id="wg" cx="50%" cy="38%" r="78%">'
+      +'<stop offset="0%" stop-color="'+shade(pal0.water[0],0.14)+'"/>'
+      +'<stop offset="52%" stop-color="'+pal0.water[0]+'"/>'
+      +'<stop offset="100%" stop-color="'+pal0.water[1]+'"/></radialGradient>'
+    +grad("wallT",shade(STONE.t,0.16),STONE.t)
+    +grad("wallL",shade(STONE.l,0.05),shade(STONE.l,-0.28))
+    +grad("wallR",shade(STONE.r,0.08),shade(STONE.r,-0.22))
+    +grad("roofF",shade(pal0.roof,0.18),pal0.roof)
+    +grad("roofB",pal0.roof2,shade(pal0.roof2,-0.16))
+    +'<radialGradient id="landG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="'+shade(pal0.land,0.14)+'"/><stop offset="1" stop-color="'+pal0.land+'"/></radialGradient>'
+    +'<filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter>'
+    +'<filter id="glowF" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    +'<filter id="caustic" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.010 0.026" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.72  0 0 0 0 0.78  0 0 0 0 1  0 0 0 0.5 -0.32"/></filter>'
+    +'</defs>');
+  /* 물 + 코스틱 텍스처 + 웨이브 */
   parts.push('<rect x="-40" y="-40" width="1080" height="800" fill="url(#wg)"/>');
-  var wave='<g class="wave" opacity=".22" stroke="'+shade(pal0.water[0],0.4)+'" stroke-width="1.4" fill="none">';
+  parts.push('<rect x="0" y="0" width="1000" height="720" filter="url(#caustic)" opacity="'+(reduceMotion?0:0.5)+'" class="caustic"/>');
+  var wave='<g class="wave" opacity=".2" stroke="'+shade(pal0.water[0],0.42)+'" stroke-width="1.3" fill="none">';
   for(var wy=140;wy<700;wy+=64){wave+='<path d="M-20 '+wy+' q 60 -12 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0"/>';}
   parts.push(wave+"</g>");
   /* 레이라인(공명) — 건물 아래에 먼저. 노이즈 억제: |weight|≥4 & 강한 순 상위 14개만 */
@@ -970,7 +1025,7 @@ function renderMap(pop){
   order.forEach(function(pal){
     var def=PALACES[pal.name];if(!def)return;
     var L=palaceCenter(pal.name);
-    var bld=buildingSVG(0,0,pal.tier,pal0,L.scale,pal.name==="명궁");
+    var bld=buildingSVG(0,0,pal.tier,pal0,L.scale,pal.name==="명궁",pal.name);
     var pinY=bld.apexY-18;
     var badges=markerBadge(pal),bstr="";
     badges.forEach(function(m,i){bstr+='<text class="mk-badge pulse" x="'+(14+i*15)+'" y="'+(pinY-2)+'" font-size="13" text-anchor="middle">'+m[0]+"</text>";});
@@ -1044,23 +1099,53 @@ function initPanZoom(){
   svg.addEventListener("dblclick",function(){resetMapView();});
   svg.addEventListener("pointerup",function(){var now=Date.now();if(now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
 }
-/* ---- 연이 내레이터 ---- */
-var _navTimer=null;
-function narratorLine(){
-  var wx=WX_META[BP.weather.id]||["",BP.weather.label];
-  var lines=[
-    "<b>"+esc(BP.biome.label)+"</b>에 오신 걸 환영해요. 천천히 둘러보세요.",
-    "오늘 섬의 날씨는 <b>"+esc(wx[1])+"</b>예요. "+(BP.markers.currentMajorLuck?"지금은 <b>"+esc(BP.markers.currentMajorLuck.palaceName)+"</b> 대운을 지나고 있어요.":"흐름을 눈에 담아보세요."),
-    "빛나는 건물일수록 지금 힘이 강한 궁이에요. 궁을 눌러 이야기를 들어보세요."
-  ];
-  return lines[Math.floor((Date.now()/9000))%lines.length];
+/* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
+var YEON_AV=API_BASE+"/fuctionassets/"+enc("연이.webp"); /* 투명 꽃돼지 마스코트(크리스프) */
+var NEO_AV=(PROD||REMOTE_SHELL)
+  ? ASSETS+"cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/"+enc("전략실 네오 메인-Photoroom.png")
+  : WAR+enc("전략실 네오 메인-Photoroom.png");
+var AV={yeon:{img:YEON_AV,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
+try{[YEON_AV,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
+var STAR_TRAIT={"자미":"중심과 품격","천기":"지혜와 기획","태양":"공명과 리더십","무곡":"재물과 결단","천동":"복록과 온화","염정":"변혁과 집중","천부":"곳간과 안정","태음":"감성과 자산","탐랑":"다재와 열망","거문":"언변과 탐구","천상":"조력과 중재","천량":"보호와 관록","칠살":"개척과 돌파","파군":"파괴와 재건"};
+var _story=null,_storyIdx=0,_navTimer=null,_navAuto=null;
+function islandFacts(){
+  var ming=BP.palaces.find(function(p){return p.name==="명궁";})||{mainStars:[]};
+  var sorted=BP.palaces.slice().sort(function(a,b){return b.score-a.score;});
+  var ft=BP.fourTransformations||{},jiP=null;
+  BP.palaces.forEach(function(p){if((p.transformations||[]).some(function(t){return t.indexOf("화기")===0;}))jiP=p.name;});
+  return {biome:BP.biome.label,mingStar:(ming.mainStars||[])[0]||"",
+    strongest:(sorted[0]||{}).name,weakest:(sorted[sorted.length-1]||{}).name,
+    daeun:BP.markers.currentMajorLuck&&BP.markers.currentMajorLuck.palaceName,huaLu:ft.huaLu,jiPalace:jiP};
 }
-function updateNarrator(){
+function buildStory(){
+  var f=islandFacts(),L=[];
+  L.push({v:"yeon",h:"이 섬은 <b>"+esc(f.biome)+"</b>이에요. 당신이 태어난 순간의 별빛이 이런 지형이 됐답니다."});
+  L.push({v:"neo",h:"자미두수엔 <b>삼방사정</b>이란 말이 있네. 한 궁의 길흉은 홀로 정해지지 않고, 마주 보는 세 궁이 함께 짠다네."});
+  if(f.strongest)L.push({v:"yeon",h:"가장 환히 빛나는 곳은 <b>"+esc(f.strongest)+"</b>이에요. 오늘은 그 자리가 뜻하는 일에 마음을 조금 더 기울여 보세요."});
+  if(f.mingStar)L.push({v:"yeon",h:"명궁엔 <b>"+esc(f.mingStar)+"</b>이 앉아 있어요. <b>"+esc(STAR_TRAIT[f.mingStar]||"당신다움")+"</b>의 기질이니, 오늘 그 힘을 한 번 믿어봐도 좋아요."});
+  if(f.daeun)L.push({v:"neo",h:"지금 그대는 <b>"+esc(f.daeun)+"</b>의 대운을 지나고 있네. 십 년의 주제가 여기 있으니, 요즘 자주 마주치는 고민이 낯설지 않을 걸세."});
+  L.push({v:"neo",h:"<b>사화</b>는 삶을 밀고 당기는 네 바람일세."+(f.huaLu?" 그대에겐 <b>화록</b>의 풍요가 <b>"+esc(f.huaLu)+"</b>을 통해 흐른다네.":"")});
+  if(f.weakest)L.push({v:"yeon",h:"<b>"+esc(f.weakest)+"</b>은 아직 조용해요. 약한 궁일수록 탓하기보다 가만히 들여다보는 게 돌봄의 시작이에요."});
+  if(f.jiPalace)L.push({v:"neo",h:"<b>화기</b>가 <b>"+esc(f.jiPalace)+"</b>에 들었네. 그 자리만은 결정을 하루 묵혀두게. 급할수록 돌아가는 법일세."});
+  L.push({v:"neo",h:"별의 배치는 정해졌으나, 길을 정하는 건 언제나 그대일세. 명반은 지도일 뿐, 걷는 발은 그대의 것이라네."});
+  L.push({v:"yeon",h:"조급한 날엔 한 박자만 늦춰도 괜찮아요. 별은 서두르는 사람보다 꾸준한 사람 편이더라고요."});
+  L.push({v:"yeon",h:"빛나는 건물일수록 지금 힘이 강한 궁이에요. 궁을 눌러 그 자리의 이야기를 직접 들어보세요."});
+  return L;
+}
+function dayNum(){return Math.floor((Date.now()+9*3600*1000)/86400000);}
+function showStory(idx){
   var n=$("narrator");if(!n)return;n.hidden=false;
-  try{$("navAv").style.backgroundImage="url('"+PIGSHEET+"')";$("navAv").style.backgroundSize="400% 400%";$("navAv").style.backgroundPosition=PIG_CELL.bliss;}catch(_){}
-  var bub=$("navBubble");bub.innerHTML=narratorLine();bub.classList.remove("hide");
-  clearTimeout(_navTimer);_navTimer=setTimeout(function(){bub.classList.add("hide");},7000);
+  if(!_story||!_story.length)_story=buildStory();
+  _storyIdx=((idx%_story.length)+_story.length)%_story.length;
+  var item=_story[_storyIdx],voice=AV[item.v];
+  n.classList.toggle("speaker-neo",item.v==="neo");
+  try{$("navImg").src=voice.img;$("navImg").alt=voice.name;}catch(_){}
+  var bub=$("navBubble");bub.innerHTML='<b class="nav-who">'+voice.name+'</b> '+item.h;bub.classList.remove("hide");
+  clearTimeout(_navTimer);_navTimer=setTimeout(function(){bub.classList.add("hide");},9000);
+  clearTimeout(_navAuto);if(!reduceMotion)_navAuto=setTimeout(function(){showStory(_storyIdx+1);},11000);
 }
+function updateNarrator(){_story=buildStory();showStory(dayNum());}
+function nextStory(){clearTimeout(_navAuto);showStory(_storyIdx+1);}
 function renderHud(){
   $("hudName").textContent=G.name||"운명의 섬";
   $("hudMeta").textContent=BP.biome.label+" · "+BP.bureau.name+(PROFILE&&PROFILE.name?" · "+PROFILE.name+"님의 명반":"");
@@ -1235,7 +1320,7 @@ $("backdrop").addEventListener("click",closeSheet);
 document.querySelectorAll("[data-close]").forEach(function(b){b.addEventListener("click",closeSheet);});
 $("btnQuest").addEventListener("click",function(){openSheet("sheetQuest");});
 $("btnSettings").addEventListener("click",function(){openSheet("sheetSettings");});
-$("navAv").addEventListener("click",function(){if(typeof updateNarrator==="function")updateNarrator();});
+$("navAv").addEventListener("click",function(){if(typeof nextStory==="function")nextStory();});
 $("setBgm").addEventListener("click",function(){setBgm(!bgmOn());});
 $("setRename").addEventListener("click",function(){
   var v=prompt("섬의 새 이름을 알려주세요 (16자 이내)",G.name||"");
@@ -1251,7 +1336,8 @@ var introTimers=[],introDone=false;
 function iT(fn,ms){introTimers.push(setTimeout(fn,ms));}
 function clearIntro(){introTimers.forEach(clearTimeout);introTimers=[];}
 function setCap(who,text){
-  $("inCap").innerHTML=(who?'<span class="who">'+esc(who)+"</span>":"")+esc(text);
+  var neo=who==="네오";
+  $("inCap").innerHTML=(who?'<span class="who'+(neo?" who--neo":"")+'">'+esc(who)+"</span>":"")+esc(text);
 }
 function buildRing(){
   var ring=$("inRing"),svg=$("inLines");
@@ -1303,16 +1389,22 @@ function startIntro(replay){
     stars.forEach(function(s,i){s.classList.add(i===0?"hero":"dim");});
   },10600);
   iT(function(){
+    setCap("네오","별의 배치는 정해졌네. 허나 그것을 어떻게 살아낼지는… 온전히 그대의 몫이라네.");
+  },12600);
+  iT(function(){
     setCap("연이","이 별들이 바다 위로 내려앉으면…");
     $("inRing").style.transition="opacity 1.6s ease, transform 2.6s var(--ease-out)";
     $("inRing").style.opacity="0";$("inRing").style.transform="translateY(12vh) scale(.6)";
-  },14200);
+  },15000);
   iT(function(){
     $("inIsland").classList.add("on");
     playTrack(BIOME_TRACK[BP.biome.id]||"main");
     setCap("연이","여기가… 당신의 섬이에요.");
-  },16200);
-  iT(function(){askIslandName(replay);},20200);
+  },17000);
+  iT(function(){
+    setCap("네오","열두 궁이 그대를 기다리네. 자, 그대의 섬으로 드시게.");
+  },19400);
+  iT(function(){askIslandName(replay);},21600);
 }
 function askIslandName(replay){
   if(replay&&G.name){finishIntro(true);return;}
