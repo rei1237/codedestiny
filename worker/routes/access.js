@@ -1,5 +1,5 @@
-import { connectDb, withMongoRetry } from "../lib/db.js";
-import { requireUserFromRequest } from "../lib/auth.js";
+import { connectDb, withMongoRetry, isTransientMongoError } from "../lib/db.js";
+import { requireUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import {
   CONTENT_ENTITLEMENT_SCOPES,
   CONTENT_ENTITLEMENT_SERVICE_KEYS,
@@ -432,6 +432,17 @@ export async function handleAccessRoutes(request, env) {
     if (routePath === "/unlocks") return await handleUnlocks(request, env);
     return notFound();
   } catch (error) {
+    // 접근 판정 읽기(GET)는 일시적 Mongo 블립을 하드 503으로 죽이지 말고, 클라가 재시도할 수 있게
+    // 표준 소프트-503(retryable/DB_DEGRADED)로 내린다. 쓰기(/confirm POST)는 이중제출 방지 위해 제외.
+    if (request.method === "GET" && (isTransientMongoError(error) || isAuthDbInfraError(error))) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        code: "SERVICE_UNAVAILABLE",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return handleRouteError(error, { request, env, trace });
   }
 }
