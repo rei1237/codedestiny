@@ -23,7 +23,7 @@
   --violet:#c4b5fd; --violet-deep:#a78bfa; --gold:#e8d5a3; --gold-deep:#d4b96a;
   --rose:#f4bed1;
   --danger:#ff9d9d;
-  --panel:rgba(19,16,42,.92); --panel-line:rgba(196,181,253,.28);
+  --panel:rgba(24,19,50,.74); --panel-line:rgba(210,196,255,.34);
   --glow-violet:0 0 18px rgba(167,139,250,.45); --glow-gold:0 0 16px rgba(232,213,163,.5);
   /* z-scale: map-fx(2) < nodes(3) < sky-veil(4) < weather(5) < hud(20) < sheet-backdrop(30) < sheet(31) < dialogue(40) < intro(50) < toast(60) */
   --z-hud:20; --z-backdrop:30; --z-sheet:31; --z-dlg:40; --z-intro:50; --z-toast:60;
@@ -44,6 +44,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 img{max-width:100%;display:block}
 [hidden]{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* 프리미엄 프로스티드 글래스 패널 */
+.hud-id,.chip,.hud-btn,.sheet,.dlg-box,.narrator .nav-bubble,.gate-card-item,.form-card,.toast,.intro-name .box{
+  -webkit-backdrop-filter:blur(14px) saturate(1.3);backdrop-filter:blur(14px) saturate(1.3)}
 
 /* ── 공통 스크린 ── */
 .screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
@@ -66,9 +69,27 @@ img{max-width:100%;display:block}
 .gate-title{font-family:var(--font-serif);font-size:clamp(1.9rem,6vw,2.6rem);font-weight:800;color:var(--text);
   margin:6px 0 8px;text-wrap:balance;text-shadow:0 0 24px rgba(167,139,250,.35)}
 .gate-sub{color:var(--text-muted);font-size:.95rem;max-width:38ch;margin:0 auto 18px}
-.gate-profile{display:inline-flex;gap:8px;align-items:center;margin-bottom:16px;padding:8px 14px;border-radius:999px;
-  background:rgba(196,181,253,.1);border:1px solid var(--panel-line);font-size:.88rem;color:var(--text-muted)}
-.gate-profile strong{color:var(--text);font-weight:700}
+/* 프로필 카드 피커 */
+.gate-picker{margin:2px 0 16px}
+.gate-picker__q{font-family:var(--font-display);font-size:1rem;color:var(--text);margin-bottom:10px}
+.gate-cards{display:flex;flex-direction:column;gap:8px;max-height:34vh;overflow:auto;padding:2px}
+.gate-card-item{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:11px 14px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  border:1px solid var(--panel-line);box-shadow:0 6px 20px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);
+  cursor:pointer;transition:transform .16s var(--ease-out),border-color .2s,box-shadow .2s}
+.gate-card-item:hover,.gate-card-item:focus-visible{transform:translateY(-2px);border-color:var(--violet-deep);
+  box-shadow:0 12px 30px rgba(0,0,0,.4),var(--glow-violet);outline:none}
+.gate-card-item .gc-av{width:44px;height:44px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;background:radial-gradient(circle at 50% 32%,rgba(196,181,253,.28),rgba(19,16,42,.6));border:1px solid var(--panel-line)}
+.gate-card-item .gc-body{flex:1;min-width:0}
+.gate-card-item .gc-name{font-weight:800;font-size:.98rem;color:var(--text);display:flex;align-items:center;gap:6px}
+.gate-card-item .gc-badge{font-size:.68rem;font-weight:700;padding:1px 7px;border-radius:999px;border:1px solid;line-height:1.5}
+.gate-card-item .gc-badge.m{color:#a7c8ff;border-color:rgba(120,160,255,.4)}
+.gate-card-item .gc-badge.f{color:var(--rose);border-color:rgba(244,190,209,.5)}
+.gate-card-item .gc-meta{font-size:.8rem;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gate-card-item .gc-go{flex:none;color:var(--gold);font-size:.9rem;opacity:.7}
+.gate-bgm{display:inline-flex;align-items:center;gap:7px;font-size:.86rem;color:var(--text-muted);min-height:40px;cursor:pointer}
+.gate-bgm input{width:18px;height:18px;accent-color:var(--violet-deep)}
 .btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:12px 30px;
   border-radius:999px;background:linear-gradient(135deg,var(--violet) 0%,var(--violet-deep) 100%);
   color:#17102e;font-weight:800;font-size:1.02rem;box-shadow:var(--glow-violet);
@@ -155,17 +176,17 @@ img{max-width:100%;display:block}
 #scrIsland{display:none}
 #scrIsland.on{display:block}
 .map-viewport{position:absolute;inset:0;overflow:hidden;overscroll-behavior:contain;touch-action:none}
-.map-canvas{position:absolute;inset:0}
+.map-canvas{position:absolute;inset:0;background:radial-gradient(120% 100% at 50% 32%,#403874 0%,#312a5c 55%,#241f47 100%)}
 #mapSvg{position:absolute;inset:0;width:100%;height:100%;display:block;
   transition:filter 1.6s ease;cursor:grab}
 #mapSvg.dragging{cursor:grabbing}
 #mapZoom{transition:transform .18s var(--ease-out)}
 #mapZoom.panning{transition:none}
-/* 시간대 조명 — 지형(SVG)만 필터, HUD/패널 색은 불변 */
-body.ph-dawn #mapSvg{filter:saturate(.94) brightness(1.05) hue-rotate(-6deg)}
-body.ph-day #mapSvg{filter:saturate(1.02) brightness(1.02)}
-body.ph-dusk #mapSvg{filter:saturate(1.14) contrast(1.04) brightness(.97) hue-rotate(8deg)}
-body.ph-night #mapSvg{filter:brightness(.86) saturate(.92)}
+/* 시간대 조명 — 지형(SVG)만 필터. 파스텔 트와일라잇: 밤에도 어둡지 않게 */
+body.ph-dawn #mapSvg{filter:saturate(1.0) brightness(1.1) hue-rotate(-4deg)}
+body.ph-day #mapSvg{filter:saturate(1.06) brightness(1.1)}
+body.ph-dusk #mapSvg{filter:saturate(1.12) contrast(1.03) brightness(1.03) hue-rotate(6deg)}
+body.ph-night #mapSvg{filter:brightness(1.0) saturate(1.0)}
 /* 궁 인터랙션 */
 .palace{cursor:pointer;outline:none}
 .palace .pbody{transition:transform .22s var(--ease-out)}
@@ -184,6 +205,8 @@ body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
 @keyframes mkPulse{0%,100%{opacity:.85}50%{opacity:.35}}
 .wave{animation:waveDrift 9s ease-in-out infinite alternate}
 @keyframes waveDrift{from{transform:translateX(-8px)}to{transform:translateX(8px)}}
+.spk{opacity:0;transform-box:fill-box;transform-origin:center;animation:spkTw 4.6s ease-in-out infinite}
+@keyframes spkTw{0%,100%{opacity:0;transform:scale(.5)}45%{opacity:.85;transform:scale(1)}60%{opacity:.5;transform:scale(.9)}}
 
 /* 연이 내레이터 고정 슬롯 (z 95) */
 .narrator{position:fixed;left:12px;top:calc(64px + env(safe-area-inset-top));z-index:95;display:flex;align-items:flex-end;gap:10px;
@@ -204,9 +227,9 @@ body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
 .narrator.speaker-neo .nav-bubble .nav-who{color:var(--gold)}
 
 .sky-veil{position:absolute;inset:0;pointer-events:none;z-index:4;transition:opacity 1.6s ease;opacity:0}
-body.ph-dawn .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(63,45,110,.32) 0%,rgba(255,176,136,.14) 55%,transparent 100%)}
-body.ph-dusk .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(255,158,94,.16) 0%,rgba(120,48,120,.22) 60%,transparent 100%)}
-body.ph-night .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(6,4,20,.42) 0%,rgba(6,4,20,.18) 60%,rgba(6,4,20,.34) 100%)}
+body.ph-dawn .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(120,100,180,.2) 0%,rgba(255,196,156,.12) 55%,transparent 100%)}
+body.ph-dusk .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(255,178,114,.14) 0%,rgba(150,88,160,.16) 60%,transparent 100%)}
+body.ph-night .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(40,30,80,.22) 0%,rgba(40,30,80,.08) 55%,rgba(40,30,80,.2) 100%)}
 
 /* 날씨 파티클 (z 5) */
 .wx{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
@@ -371,11 +394,13 @@ body.ph-night .fireflies{opacity:1}
     <p class="gate-eyebrow">紫微斗數 · DESTINY ISLAND</p>
     <h1 class="gate-title">운명의 섬</h1>
     <p class="gate-sub">태어난 순간의 별 배치가 하나의 섬이 됩니다. 12궁의 건물을 돌아보며 오늘의 흐름을 만나보세요.</p>
-    <div class="gate-profile" id="gateProfile" hidden></div>
+    <div class="gate-picker" id="gatePicker" hidden>
+      <p class="gate-picker__q">누구의 명반으로 섬을 볼까요?</p>
+      <div class="gate-cards" id="gateCards" role="list"></div>
+    </div>
     <div class="gate-actions">
-      <button class="btn-primary" id="btnEnterBgm" type="button" aria-label="배경 음악과 함께 섬에 입장">🎵 음악과 함께 입장하기</button>
-      <button class="btn-ghost" id="btnEnterQuiet" type="button" aria-label="배경 음악 없이 섬에 입장">조용히 입장하기</button>
-      <button class="btn-ghost" id="btnOtherProfile" type="button">다른 생년월일로 보기</button>
+      <button class="btn-primary" id="btnEnterNew" type="button">✦ 새 생년월일로 보기</button>
+      <label class="gate-bgm" id="gateBgmWrap"><input type="checkbox" id="gateBgm" /> <span aria-hidden="true">🎵</span> 배경 음악과 함께 입장</label>
     </div>
   </div>
 </section>
@@ -842,15 +867,15 @@ function renderWeather(){
 /* ---- 코드 렌더 이소메트릭 맵 ---- */
 var SVGNS="http://www.w3.org/2000/svg";
 var VBW=1000,VBH=720;
-/* 바이옴 팔레트: 벽=네오 스톤 공통(정체성), 지붕/트림/발광만 바이옴 강조 */
-var STONE={t:"#3a3466",l:"#191430",r:"#282150"};
+/* 바이옴 팔레트 v4 — 파스텔 트와일라잇(밝게, hue 유지·명도만 상향). 벽=파스텔 라벤더-크림 공통 */
+var STONE={t:"#efe9fb",l:"#c3b6e6",r:"#ddd3f4"};
 var BIOME_PAL={
-  forest:{water:["#14243f","#0b1424"],land:"#3c6b4f",roof:"#6fae7d",roof2:"#4d8460",trim:"#e8d5a3",glow:"#ffe6a8"},
-  moonLake:{water:["#132b3d","#0a1626"],land:"#3f6078",roof:"#9fc9e8",roof2:"#6f9ec2",trim:"#dff1ff",glow:"#e6f4ff"},
-  volcano:{water:["#2a1622","#150a15"],land:"#6e3f3a",roof:"#e0946f",roof2:"#a85a48",trim:"#ffcf9e",glow:"#ffd0a0"},
-  citadel:{water:["#1b1638","#0d0a22"],land:"#4a3f78",roof:"#c9b3f0",roof2:"#9a86c8",trim:"#efe6ff",glow:"#f0e8ff"},
-  goldenCliff:{water:["#221b30","#12101e"],land:"#6b5a38",roof:"#e8c877",roof2:"#b9973f",trim:"#fff0c2",glow:"#fff0c2"},
-  mistIsle:{water:["#20163a","#100b20"],land:"#5a3f70",roof:"#b596d6",roof2:"#8a6ab0",trim:"#f0dfff",glow:"#f0dfff"}
+  forest:{water:["#8fbccb","#6f9ab2"],land:"#93cba3",roof:"#82cc93",roof2:"#5faa78",trim:"#f5e6b6",glow:"#fff3c8"},
+  moonLake:{water:["#a2bce6","#7f9ad2"],land:"#aecae4",roof:"#c2e2f6",roof2:"#8fc0e2",trim:"#eef8ff",glow:"#f4fbff"},
+  volcano:{water:["#cd9fb4","#ab7a94"],land:"#dea593",roof:"#f4ad8d",roof2:"#d47c62",trim:"#ffe6cc",glow:"#ffe4c0"},
+  citadel:{water:["#ac9fe6","#8a80cc"],land:"#bcadec",roof:"#dccdf7",roof2:"#b3a2e3",trim:"#f5efff",glow:"#f7f2ff"},
+  goldenCliff:{water:["#cebd9f","#ab9b7c"],land:"#dcc793",roof:"#f2d78d",roof2:"#cbaa5c",trim:"#fff6cf",glow:"#fff6cf"},
+  mistIsle:{water:["#bca0e4","#9a7ec4"],land:"#ccadea",roof:"#dcbaf3",roof2:"#b48ed4",trim:"#f7ebff",glow:"#f7ebff"}
 };
 function biomePal(id){return BIOME_PAL[id]||BIOME_PAL.forest;}
 function shade(hex,amt){var n=parseInt(hex.slice(1),16),r=(n>>16)&255,g=(n>>8)&255,b=n&255,f=amt<0?0:255,p=Math.abs(amt);
@@ -864,7 +889,7 @@ function isoBox(cx,cy,s,h){
   var tl=[cx-s,cy-h],tr=[cx+s,cy-h],tt=[cx,cy-s/2-h],tb=[cx,cy+s/2-h];
   return {top:[tt,tr,tb,tl],left:[gl,gb,tb,tl],right:[gb,gr,tr,tb],tt:tt,tr:tr,tb:tb,tl:tl,apexY:cy-s/2-h};
 }
-var RIM="#c9b8ff";
+var RIM="#fffdf6";
 function grad(id,c1,c2){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>';}
 /* 탑 하나(박스+피라미드 지붕) — 그라디언트 면·림라이트·금박 필리그리 */
 function tower(cx,cy,s,h,rh,pal,win){
@@ -991,7 +1016,8 @@ function renderMap(pop){
     +grad("wallR",shade(STONE.r,0.08),shade(STONE.r,-0.22))
     +grad("roofF",shade(pal0.roof,0.18),pal0.roof)
     +grad("roofB",pal0.roof2,shade(pal0.roof2,-0.16))
-    +'<radialGradient id="landG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="'+shade(pal0.land,0.14)+'"/><stop offset="1" stop-color="'+pal0.land+'"/></radialGradient>'
+    +'<radialGradient id="landG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="'+shade(pal0.land,0.18)+'"/><stop offset="1" stop-color="'+pal0.land+'"/></radialGradient>'
+    +'<radialGradient id="vig" cx="50%" cy="46%" r="72%"><stop offset="0%" stop-color="#000000" stop-opacity="0"/><stop offset="78%" stop-color="'+shade(pal0.water[1],-0.3)+'" stop-opacity="0"/><stop offset="100%" stop-color="'+shade(pal0.water[1],-0.35)+'" stop-opacity="0.5"/></radialGradient>'
     +'<filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter>'
     +'<filter id="glowF" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
     +'<filter id="caustic" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.010 0.026" numOctaves="2" seed="7" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.72  0 0 0 0 0.78  0 0 0 0 1  0 0 0 0.5 -0.32"/></filter>'
@@ -999,9 +1025,17 @@ function renderMap(pop){
   /* 물 + 코스틱 텍스처 + 웨이브 */
   parts.push('<rect x="-40" y="-40" width="1080" height="800" fill="url(#wg)"/>');
   parts.push('<rect x="0" y="0" width="1000" height="720" filter="url(#caustic)" opacity="'+(reduceMotion?0:0.5)+'" class="caustic"/>');
-  var wave='<g class="wave" opacity=".2" stroke="'+shade(pal0.water[0],0.42)+'" stroke-width="1.3" fill="none">';
+  var wave='<g class="wave" opacity=".24" stroke="'+shade(pal0.water[0],0.34)+'" stroke-width="1.3" fill="none">';
   for(var wy=140;wy<700;wy+=64){wave+='<path d="M-20 '+wy+' q 60 -12 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0 t 120 0"/>';}
   parts.push(wave+"</g>");
+  /* 물 위 반짝임(sparkle) — 아기자기 디테일 */
+  if(!reduceMotion){
+    var spk='<g class="sparkles">',SPK=[[180,250],[820,230],[300,560],[720,600],[500,150],[140,470],[880,520],[420,650],[600,300],[260,360]];
+    SPK.forEach(function(s,i){spk+='<g class="spk" style="animation-delay:'+(i*0.6).toFixed(1)+'s" transform="translate('+s[0]+','+s[1]+')"><path d="M0 -5 L1.1 -1.1 L5 0 L1.1 1.1 L0 5 L-1.1 1.1 L-5 0 L-1.1 -1.1 Z" fill="'+pal0.glow+'"/></g>';});
+    parts.push(spk+"</g>");
+  }
+  /* 라이트 비네트(가장자리 부드럽게) */
+  parts.push('<rect x="0" y="0" width="1000" height="720" fill="url(#vig)" pointer-events="none"/>');
   /* 레이라인(공명) — 건물 아래에 먼저. 노이즈 억제: |weight|≥4 & 강한 순 상위 14개만 */
   var ley='<g opacity=".82">';
   var edges=(BP.edges||[]).filter(function(e){return LAYOUT[e.from]&&LAYOUT[e.to]&&Math.abs(e.weight)>=4;})
@@ -1033,7 +1067,7 @@ function renderMap(pop){
     var glow=pal.tier>=4?' filter="url(#soft)"':"";
     var aria=pal.name+" "+def.title+", "+pal.tierLabel+" 단계, 궁의 힘 "+pal.score+(badges.length?", "+badges.map(function(m){return m[1];}).join(" "):"");
     var g='<g class="palace'+(pop?" pop":"")+'" tabindex="0" role="button" data-palace="'+esc(pal.name)+'" aria-label="'+esc(aria)+'" transform="translate('+L.cx+','+L.cy+')"'+(pop?' style="animation-delay:'+(groups.length*0.09).toFixed(2)+'s"':"")+'>'
-      +'<ellipse cx="0" cy="6" rx="'+(46*L.scale).toFixed(1)+'" ry="'+(15*L.scale).toFixed(1)+'" fill="#05040f" opacity=".33"/>'
+      +'<ellipse cx="0" cy="7" rx="'+(46*L.scale).toFixed(1)+'" ry="'+(14*L.scale).toFixed(1)+'" fill="#2a1e52" opacity=".26" filter="url(#soft)"/>'
       +'<g class="pbody"'+glow+'>'+bld.svg+"</g>"
       +'<circle class="pin-halo" cx="14" cy="'+pinY+'" r="13" fill="#0a0818" fill-opacity=".82" stroke="'+tcol+'" stroke-width="2"/>'
       +'<text x="14" y="'+(pinY+5)+'" font-size="14" text-anchor="middle" aria-hidden="true">'+def.icon+"</text>"
@@ -1327,7 +1361,7 @@ $("setRename").addEventListener("click",function(){
   if(v!=null){G.name=String(v).trim().slice(0,16)||G.name;saveGame();renderHud();$("setNameCur").textContent="현재: "+(G.name||"운명의 섬");toast("섬 이름을 새겼어요 ✨");}
 });
 $("setReplay").addEventListener("click",function(){closeSheet();startIntro(true);});
-$("setReset").addEventListener("click",function(){closeSheet();showScreen("scrForm");});
+$("setReset").addEventListener("click",function(){closeSheet();prefillForm(PROFILE||readSavedProfile());showScreen("scrForm");});
 
 /* ============================================================
    12) 인트로 시네마틱 — 최초 1회 (스킵/축약 대응)
@@ -1475,10 +1509,27 @@ $("birthForm").addEventListener("submit",function(e){
   boot(profile,true);
 });
 $("btnFormBack").addEventListener("click",function(){showScreen("scrGate");});
-$("btnOtherProfile").addEventListener("click",function(){showScreen("scrForm");});
-$("btnEnterBgm").addEventListener("click",function(){G.bgm=true;saveGame();syncBgmToggle();enter();});
-$("btnEnterQuiet").addEventListener("click",function(){G.bgm=false;saveGame();syncBgmToggle();enter();});
-function syncBgmToggle(){var t=$("setBgm");t.setAttribute("aria-pressed",bgmOn()?"true":"false");t.setAttribute("aria-checked",bgmOn()?"true":"false");}
+/* 새 생년월일 입력(활성/선택 프로필로 프리필) */
+$("btnEnterNew").addEventListener("click",function(){prefillForm(readSavedProfile());showScreen("scrForm");});
+/* 게이트 BGM 토글 → G.bgm 반영 */
+$("gateBgm").addEventListener("change",function(){G.bgm=this.checked;saveGame();syncBgmToggle();});
+function syncBgmToggle(){var t=$("setBgm");if(t){t.setAttribute("aria-pressed",bgmOn()?"true":"false");t.setAttribute("aria-checked",bgmOn()?"true":"false");}
+  var gb=$("gateBgm");if(gb)gb.checked=bgmOn();}
+/* 폼 프리필 */
+function prefillForm(profile){
+  if(!profile)return;
+  try{
+    if(profile.birthDate)$("fDate").value=profile.birthDate;
+    var unk=!!profile.birthTimeUnknown;
+    $("fTimeUnknown").checked=unk;$("fTime").disabled=unk;
+    $("fTime").value=unk?"":(profile.birthTime||"");
+    formCal=profile.calendarType==="lunar"?"lunar":"solar";
+    document.querySelectorAll("[data-cal]").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.cal===formCal?"true":"false");});
+    $("leapWrap").hidden=formCal!=="lunar";$("fLeap").checked=!!profile.isLeapMonth;
+    formGen=profile.gender==="male"?"male":"female";
+    document.querySelectorAll("[data-gen]").forEach(function(x){x.setAttribute("aria-pressed",x.dataset.gen===formGen?"true":"false");});
+  }catch(_){}
+}
 
 var LOADING_LINES=["…당신의 별을 찾고 있어요.","열두 개의 궁을 바다 위에 놓는 중이에요.","별빛으로 건물을 세우고 있어요…"];
 var loadingTicker=null;
@@ -1510,17 +1561,48 @@ function boot(profile,fresh){
   });
 }
 
+/* ---- 저장된 프로필 카드 전체 스캔 + 게이트 피커 ---- */
+var ZODIAC=["🐀","🐂","🐅","🐇","🐉","🐍","🐎","🐑","🐒","🐓","🐕","🐖"];
+function zodiacEmoji(y){return ZODIAC[((Number(y)-4)%12+12)%12]||"🪐";}
+function readAllProfiles(){
+  var out=[],seen={};
+  function add(raw){var n=normalizeProfile(raw);if(!n)return;var k=profileKeyOf(n);if(seen[k])return;seen[k]=1;out.push(n);}
+  try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i);
+    if(key&&/^FORTUNE_APP_USER_PROFILES\.list(::.+)?$/.test(key)){
+      var arr=parseJson(localStorage.getItem(key));
+      if(Array.isArray(arr))arr.forEach(add);
+    }}}catch(_){}
+  var active=readSavedProfile();if(active)add(active); /* 활성/레거시 캐시 병합 */
+  return out;
+}
+function calBadge(p){return p.calendarType==="lunar"?(p.isLeapMonth?"윤":"음"):"양";}
+function renderGatePicker(){
+  var cards=readAllProfiles(),wrap=$("gatePicker"),list=$("gateCards"),newBtn=$("btnEnterNew");
+  list.innerHTML="";
+  if(!cards.length){wrap.hidden=true;newBtn.textContent="✦ 생년월일 입력하고 섬 보기";newBtn.classList.add("btn-primary");return;}
+  wrap.hidden=false;
+  newBtn.textContent="✦ 새 생년월일로 보기";
+  cards.forEach(function(p){
+    var y=Number(p.birthDate.slice(0,4)),m=Number(p.birthDate.slice(5,7)),d=Number(p.birthDate.slice(8,10));
+    var meta="["+calBadge(p)+"] "+y+"."+m+"."+d+(p.birthTimeUnknown?" · 시간 미상":" · "+p.birthTime);
+    var gc=p.gender==="male"?["m","♂"]:["f","♀"];
+    var btn=document.createElement("button");btn.type="button";btn.className="gate-card-item";btn.setAttribute("role","listitem");
+    btn.setAttribute("aria-label",(p.name||"저장된 명반")+" "+meta+"로 섬 보기");
+    btn.innerHTML='<span class="gc-av" aria-hidden="true">'+zodiacEmoji(y)+'</span>'
+      +'<span class="gc-body"><span class="gc-name">'+esc(p.name||"저장된 명반")+' <span class="gc-badge '+gc[0]+'">'+gc[1]+'</span></span>'
+      +'<span class="gc-meta">'+esc(meta)+'</span></span>'
+      +'<span class="gc-go" aria-hidden="true">›</span>';
+    btn.addEventListener("click",function(){PROFILE=p;G.profileOverride=p;saveGame();boot(p,false);});
+    list.appendChild(btn);
+  });
+}
+
 /* 부팅 */
 seedStars();
 applyPhase();
 setInterval(applyPhase,60*1000);
 $("gateHeroImg").src=ISLAND_ART;
-(function(){
-  var p=readSavedProfile();
-  if(p){var el=$("gateProfile");el.hidden=false;
-    el.innerHTML='<span aria-hidden="true">🪐</span> <strong>'+esc(p.name||"저장된 명반")+"</strong> "
-      +esc(p.birthDate)+(p.birthTimeUnknown?" (시간 미상)":" "+p.birthTime)+" 기준으로 입장해요";}
-})();
+renderGatePicker();
 syncBgmToggle();
 })();
 </script>
