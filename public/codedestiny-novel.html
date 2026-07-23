@@ -224,8 +224,6 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 .char.baek{height:clamp(190px,31vh,350px);max-height:none;bottom:clamp(175px,25vh,240px)}
 .char.pje{height:clamp(280px,46vh,520px);max-height:none;bottom:clamp(150px,22vh,215px)}
 .char.muTrue{height:clamp(260px,43vh,490px);max-height:none;bottom:clamp(160px,23vh,225px)}
-/* 무성 변신 까마귀(mucrow) — '거대한 까마귀' 서술에 맞춘 보스 크기. .char.crow 뒤에 와서 크기 우선 */
-.char.mucrow{height:clamp(330px,56vh,640px);max-height:none;bottom:clamp(150px,20vh,205px)}
 /* 인간 네오(박병하) — 은발 미남 4×2 표정 시트 크롭(div 배경). 정체 공개 후 결말에 등장 */
 .char.neoh{width:clamp(230px,38vh,430px);height:auto;aspect-ratio:362/543;max-height:none;bottom:clamp(158px,23vh,225px);background-repeat:no-repeat;background-size:400% 200%}
 /* 모바일 캐릭터 폭 예산.
@@ -243,7 +241,6 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
   .char.sheet{height:min(38vh,32vw);width:min(38vh,32vw)}
   .char.neoh{height:min(33vh,34vw);bottom:clamp(198px,26vh,248px)}
   .char.moka{height:min(31vh,32vw);bottom:clamp(198px,26vh,248px)}.char.crow{height:min(33vh,32vw);bottom:clamp(198px,26vh,248px)}
-  .char.mucrow{height:min(50vh,50vw);bottom:clamp(188px,24vh,238px)}
   .char.mirror.pig{right:0;width:min(28vh,32vw);height:min(28vh,32vw);bottom:clamp(150px,20vh,190px)}
   .char.pig:not(.mirror){left:0;bottom:clamp(190px,26vh,232px);height:min(24vh,32vw)}
   .char.pig.pigsheet:not(.mirror){left:0;bottom:clamp(188px,24vh,222px);width:min(28vh,32vw);height:auto;aspect-ratio:264/372}
@@ -619,9 +616,7 @@ var MU =WAR+enc("검은 그림자-Photoroom.png");
 var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
 /* 가짜 연이(거울자아) — 운명 찻집 연이 4×2 스프라이트 시트에서 한 프레임 크롭(CSS 배경). 셀(col2,row0)=지긋한 미소 */
 var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.png");
-/* 모카(식상의 섬 동료·래퍼 지망생) / 까마귀 빌런(식상의 섬 EP.9~12 원본 png) — CodeDestinyNovel/ raw png.
-   식상 까마귀·EP.32 무리는 who:"crow"(원본 png) 유지. 무성이 조종당해 변신하는 까마귀 형태(who:"mucrow")만
-   전용 인라인 SVG(CROW_SVG)로 렌더한다 — 둘을 시각적으로 구분. */
+/* 모카(식상의 섬 동료·래퍼 지망생) / 까마귀 빌런(식상의 섬 EP.9~12 · EP.32 무리) — CodeDestinyNovel/ raw png. */
 var MOKA={base:NOVEL+enc("모카 기본.png"),moved:NOVEL+enc("모카 감동.png"),angry:NOVEL+enc("모카 화남.png"),
   p1:NOVEL+enc("모카1.png"),p2:NOVEL+enc("모카2.png"),p3:NOVEL+enc("모카3.png")};
 var CROW={base:NOVEL+enc("까마귀 빌런1.png"),alt:NOVEL+enc("까마귀 빌런2.png")};
@@ -683,7 +678,7 @@ var BG={
   ziwei4:NOVEL+enc("background/자미두수 세계4.webp"),
   sukuyo:NOVEL+enc("background/숙요점 붉은 실의 세계.webp"),
   doorSuck:NOVEL+enc("background/문에 빨려들어가는 모습.webp"),
-  fallYeon:NOVEL+enc("background/빨려 들어가는 연이.webp"),
+  /* '빨려 들어가는 연이.webp'는 운명세계 전환용 컷 시퀀스(잘라서 애니메이션) 자산 — 정적 배경(bg)으로 쓰지 말 것. 전환은 fx:"suck"로 처리. */
   handsRush:NOVEL+enc("background/검은 손들 박진감.webp"),
   bigeopIn1:NOVEL+enc("background/비겁의섬내부1.webp"),
   bigeopIn2:NOVEL+enc("background/비겁의섬내부2.webp"),
@@ -774,7 +769,6 @@ function spriteFor(who,expr,form){
   if(who==="pje")return {url:(PJE[expr]||PJE.base),cls:"pje"};
   if(who==="moka")return {url:(MOKA[expr]||MOKA.base),cls:"moka"};
   if(who==="crow")return {url:(expr==="alt"?CROW.alt:CROW.base),cls:"crow"};
-  if(who==="mucrow")return {url:(expr==="alt"?CROW_SVG.alt:CROW_SVG.base),cls:"crow mucrow"};
   if(who==="mirror"){
     /* 초기엔 거울에 비친 반전 꽃돼지(x:"pig"), 이후 진짜 인간 연이(시트) */
     if(expr==="pig")return {url:PIG.base,cls:"mirror pig"};
@@ -863,38 +857,6 @@ function setImg(imgEl,url,svgFallback){
 }
 function svgData(inner,w,h){return "data:image/svg+xml;utf8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+(w||1200)+' '+(h||800)+'">'+inner+'</svg>');}
 var SVGBG=svgData('<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1330"/><stop offset="1" stop-color="#05060c"/></linearGradient></defs><rect width="1200" height="800" fill="url(#g)"/>');
-/* 무성이 조종당해 변신하는 거대 까마귀(who:"mucrow") 전용 인라인 SVG(트와일라잇 바이올렛+검은 깃털).
-   식상의 섬 원본 까마귀(who:"crow")와 구분되는 별개 자산. svgData는 함수 선언이라 호이스팅되어 호출 가능.
-   base=날개 접은 위협 포즈, alt=날개 펼친 포효. */
-var CROW_DEFS='<defs>'+
-  '<linearGradient id="cb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#171331"/><stop offset=".55" stop-color="#0c091b"/><stop offset="1" stop-color="#050410"/></linearGradient>'+
-  '<linearGradient id="cw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0916"/><stop offset="1" stop-color="#05040c"/></linearGradient>'+
-  '<linearGradient id="cs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9d8be6"/><stop offset=".5" stop-color="#4b3f7a"/><stop offset="1" stop-color="#17122c"/></linearGradient>'+
-  '<radialGradient id="ce" cx=".5" cy=".45" r=".55"><stop offset="0" stop-color="#f4efff"/><stop offset=".45" stop-color="#c4b5fd"/><stop offset="1" stop-color="#5b3fae"/></radialGradient>'+
-  '</defs>';
-var CROW_TAIL='<path d="M134 336 L112 404 L150 352 Z" fill="url(#cw)"/><path d="M158 344 L158 414 L172 352 Z" fill="url(#cw)"/><path d="M186 336 L208 404 L172 352 Z" fill="url(#cw)"/>';
-var CROW_BODY='<path d="M160 150 C122 150 100 192 104 238 C108 290 132 334 160 356 C188 334 212 290 216 238 C220 192 198 150 160 150 Z" fill="url(#cb)"/>'+
-  '<path d="M160 178 C140 178 128 210 132 244 C135 280 148 308 160 324 C172 308 185 280 188 244 C192 210 180 178 160 178 Z" fill="url(#cs)" opacity=".16"/>';
-var CROW_HEAD='<circle cx="160" cy="118" r="42" fill="url(#cb)"/>'+
-  '<path d="M138 96 C140 78 148 66 160 60 C156 74 158 86 162 98 Z M156 94 C158 70 168 56 184 48 C176 64 176 82 180 98 Z M176 98 C180 78 192 66 208 62 C198 76 194 88 194 100 Z" fill="url(#cw)"/>'+
-  '<path d="M146 130 L160 126 L174 130 L163 156 Z" fill="#2a2018"/><path d="M152 152 L168 152 L160 178 Z" fill="#181009"/>'+
-  '<path d="M146 130 L160 126 L174 130" fill="none" stroke="#c9b98f" stroke-width="1" opacity=".5"/>'+
-  '<circle cx="145" cy="114" r="8" fill="url(#ce)"/><circle cx="175" cy="114" r="8" fill="url(#ce)"/>'+
-  '<circle cx="145" cy="114" r="9.5" fill="none" stroke="#e8d5a3" stroke-width="1" opacity=".55"/><circle cx="175" cy="114" r="9.5" fill="none" stroke="#e8d5a3" stroke-width="1" opacity=".55"/>'+
-  '<circle cx="145" cy="114" r="3" fill="#2a1c48"/><circle cx="175" cy="114" r="3" fill="#2a1c48"/>';
-var CROW_FEET='<path d="M150 354 L146 384 M150 354 L157 384 M150 354 L137 377 M170 354 L174 384 M170 354 L163 384 M170 354 L183 377" stroke="#0a0814" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
-var CROW_WING_FOLD='<path d="M120 168 C84 190 70 250 92 312 C104 344 128 356 152 356 C133 322 122 268 124 210 C125 186 123 174 120 168 Z" fill="url(#cw)"/>'+
-  '<path d="M200 168 C236 190 250 250 228 312 C216 344 192 356 168 356 C187 322 198 268 196 210 C195 186 197 174 200 168 Z" fill="url(#cw)"/>'+
-  '<path d="M104 214 C108 262 122 306 146 338" fill="none" stroke="url(#cs)" stroke-width="2.4" opacity=".5"/>'+
-  '<path d="M216 214 C212 262 198 306 174 338" fill="none" stroke="url(#cs)" stroke-width="2.4" opacity=".5"/>';
-var CROW_WING_SPREAD='<path d="M120 176 C72 150 26 166 12 214 C46 208 84 218 122 240 C119 212 118 192 120 176 Z" fill="url(#cw)"/>'+
-  '<path d="M200 176 C248 150 294 166 308 214 C274 208 236 218 198 240 C201 212 202 192 200 176 Z" fill="url(#cw)"/>'+
-  '<path d="M26 190 C60 196 96 210 122 232" fill="none" stroke="url(#cs)" stroke-width="2.2" opacity=".45"/>'+
-  '<path d="M294 190 C260 196 224 210 198 232" fill="none" stroke="url(#cs)" stroke-width="2.2" opacity=".45"/>';
-var CROW_SVG={
-  base:svgData(CROW_DEFS+CROW_TAIL+CROW_WING_FOLD+CROW_BODY+CROW_HEAD+CROW_FEET,320,420),
-  alt: svgData(CROW_DEFS+CROW_TAIL+CROW_WING_SPREAD+CROW_BODY+CROW_HEAD+CROW_FEET,320,420)
-};
 
 /* ============================================================
    NEBULA (≤50 파티클, CSS)
@@ -1956,7 +1918,7 @@ EPISODES.push({"no":"EP.18","tag":"제18화 · 회중시계가 열릴 때","titl
 {"s":"n","im":true,"t":"광장 포석에 새겨져 있던 오래된 글자들, '값을 매길 수 없음'이라 적힌 축문들이 지워지면서 그 아래로 어둠이 열렸다."},
 {"s":"rab","x":"contract","t":"돈이 문서를 이기는 곳에는, 진 문서들이 떨어지는 길이 따로 있습니다. 고객님들은 오늘 그 폐기 서류함으로 가시는 거예요."},
 {"s":"n","bg":"doorSuck","fx":"suck","im":true,"t":"바닥이 사라졌다. 세계가 세로로 길어졌다. 루나의 비명이 저 위로 멀어졌다."},
-{"s":"n","bg":"fallYeon","tone":"dark","t":"떨어지면서 연이는 보았다. 어둠 속을 함께 떨어지는 무수한 종이들. 지워진 편지, 빼앗긴 일기, 본뜻을 잃은 계약서들."},
+{"s":"n","tone":"dark","t":"떨어지면서 연이는 보았다. 어둠 속을 함께 떨어지는 무수한 종이들. 지워진 편지, 빼앗긴 일기, 본뜻을 잃은 계약서들."},
 {"s":"n","im":true,"t":"그리고 그 종이의 폭포 아래에서, 등불 하나가 조용히 이쪽을 올려다보고 있었다."},
 {"s":"sys","im":true,"t":"제18화 · 회중시계가 열릴 때 — 끝. 제19화 「책들이 숨 쉬는 곳」에서 계속."}]});
 EPISODES.push({"no":"EP.19","tag":"제19화 · 책들이 숨 쉬는 곳","title":"책들이 숨 쉬는 곳","beats":[
@@ -2361,13 +2323,16 @@ EPISODES.push({"no":"EP.30","tag":"제30화 · 앱이 다시 울린 밤","title"
 {"s":"yeon","x":"fear","t":"강물이… 앓고 있어. 이거 부정계약 같은 게 아니야. 훨씬, 훨씬 깊은 데가 아픈 거야."},
 {"s":"n","im":true,"tone":"dark","t":"그때 검은 수면 아래에서 거대한 원반이 빛났다. 별자리가 새겨진 바퀴, 명반(命盤)이었다. 그것이 천천히 돌며 연이를 향해 인력을 뻗었다."},
 {"s":"n","fx":"stars","t":"강물이 소용돌이치며 갈라졌다. 물길이 아니라 별길이 열렸다."},
-{"s":"n","bg":"fallYeon","fx":"suck","im":true,"tone":"dark","t":"연이는 저항하지 않았다. 별길이 이끄는 곳에 아픈 것의 심장이 있을 테니까."},
+{"s":"n","fx":"suck","im":true,"tone":"dark","t":"연이는 저항하지 않았다. 별길이 이끄는 곳에 아픈 것의 심장이 있을 테니까."},
 {"s":"n","im":true,"tone":"dark","t":"낙하의 끝에서 목소리가 들렸다. 낯익은, 그러나 어딘가 금이 간 목소리였다. 「왔구나. 왕좌의 손님.」"},
 {"s":"sys","im":true,"t":"제30화 · 앱이 다시 울린 밤 — 끝. 제31화 「별들의 궁」에서 계속."}]});
 EPISODES.push({"no":"EP.31","tag":"제31화 · 별들의 궁","title":"별들의 궁","beats":[
 {"s":"n","bg":"ziwei1","bgm":"stillLake","tone":"dark","t":"그곳에는 낮도 밤도 없었다. 대신 발밑에서, 거대한 궤도가 돌고 있었다."},
 {"s":"n","fx":"stars","t":"열두 개의 궁이 새겨진 별의 바퀴, 명반이었다. 세상 모든 운명의 설계도가 이곳에서는 곧 지면이었다."},
 {"s":"n","im":true,"t":"자미두수의 세계. 별로 운명을 읽는 자들의 가장 깊은 방이었다."},
+{"s":"n","im":true,"t":"발을 옮길 때마다 발밑의 궁이 바뀌었다. 자미궁을 밟으면 별이 왕관처럼 돋았고, 파군궁을 밟으면 발밑이 무너질 듯 요동쳤다. 세상 모든 사람의 길흉이 여기서는 그저 지형이었다."},
+{"s":"yeon","x":"surprise","l":{"who":"yeon","x":"surprise"},"t":"…발 한 번 잘못 디디면 누군가의 인생이 통째로 흔들릴 것 같아. 여긴 조심조심 걸어야겠다."},
+{"s":"neo","x":"serious","r":{"who":"neo","x":"serious"},"t":"맞아. 여기선 걸음 하나가 운명 한 줄이야. 함부로 뛰지 마."},
 {"s":"yeon","x":"base","l":{"who":"yeon","x":"base"},"t":"별이 도는 소리가 들려. 시계 초침 소리랑 비슷한데, 훨씬 크고 훨씬 외로운 소리야."},
 {"s":"n","im":true,"t":"뒤에서 발소리가 났다. 돌아보기도 전에, 익숙한 반 걸음의 간격이 먼저 느껴졌다."},
 {"s":"neo","x":"calm","r":{"who":"neo","x":"calm"},"t":"무사했구나. 늦어서 미안해. 침식이 어디서 시작됐나 쫓다 보니 결국 여기였어."},
@@ -2384,10 +2349,16 @@ EPISODES.push({"no":"EP.31","tag":"제31화 · 별들의 궁","title":"별들의
 {"s":"n","im":true,"tone":"dark","t":"그때 궤도 바깥에서 별 하나가 깜빡였다. 아니, 별이 아니라 별 모양의 우리였다."},
 {"s":"n","fx":"stars","im":true,"t":"우리 안에 낯익은 그림자들이 갇혀 있었다. 아기 토끼, 빵집 언니, 흰 여우. 별빛으로 짠 감옥이었다."},
 {"s":"yeon","x":"angry","im":true,"t":"루나! 언니! 백문 님! 무성, 이게 무슨 짓이야!"},
+{"s":"n","tone":"dark","t":"별빛 창살 너머에서 루나의 목소리가 가늘게 새어 나왔다. 「연이…! 오지 마! 이거 함정이야, 우리는 미끼란 말이야!」"},
+{"s":"n","tone":"dark","t":"백문의 목소리도 겹쳐 들렸다. 「저 왕좌 곁 그림자, 예사롭지 않네. 내 색인 어디에도 없는 존재야. 부디 조심하게.」"},
+{"s":"yeon","x":"base","t":"…미끼인 거 알아. 근데 나는 미끼를 문 게 아니라, 친구를 데리러 온 거야. 그건 완전히 다른 거거든."},
 {"s":"mu","t":"인질이야. 뻔한 수법이지. 하지만 네가 와야 했으니까. 사주가 완성된 그릇이, 제 발로."},
 {"s":"neo","x":"shock","t":"…그릇? 방금 뭐라고 했어."},
 {"s":"mu","tone":"dark","t":"…말이 헛나왔다. 잊어."},
 {"s":"n","t":"연이는 그가 삼킨 그 단어를 놓치지 않았다. 그릇. 담는 자가 아니라, 담기는 자를 가리키는 말이었다."},
+{"s":"yeon","x":"base","t":"무성. 아까부터 이상해. 강을 검게 칠한 것도, 별을 어둡게 한 것도 '내 짓'이라면서, 자꾸 '내 뜻은 아니다'라고 하잖아. 그거 완전히 다른 말이야."},
+{"s":"mu","tone":"dark","t":"…말이 많네, 손님. 그 입, 결투장에서도 그렇게 잘 돌아가나 어디 보자."},
+{"s":"neo","x":"serious","t":"(연이. 저 녀석, 우리한테 화를 내는 게 아니야. 화낼 대상을 못 찾은 얼굴이야. 저건 원망을 삼키다 지친 눈이라고.)"},
 {"s":"mu","im":true,"t":"연이. 사주의 강을 거슬러 온 아이. 너한테 결투를 청한다. 왕좌의 법대로, 이 별 위에서."},
 {"s":"mu","t":"네가 이기면 인질도 별도 돌려주지. 내가 이기면 네 완성된 사주를 왕좌에 바친다."},
 {"s":"yeon","x":"base","im":true,"t":"…받아들일게. 대신 하나만 물어볼게. 무성, 그 결투 정말 네가 원해서 하는 거야?"},
@@ -2402,9 +2373,13 @@ EPISODES.push({"no":"EP.32","tag":"제32화 · 검은 깃털의 주인","title":
 {"s":"n","im":true,"tone":"dark","t":"백금의 참격이 물을 갈랐다. 그런데 갈라진 물이 오히려 더 두꺼워졌다."},
 {"s":"neo","x":"shock","t":"…아차. 금생수, 금은 물을 낳는다더니. 내 숨이 저 녀석 숨을 키우고 있어."},
 {"s":"mu","t":"눈치가 빠르네, 파수꾼. 그래, 너는 나를 벨수록 나를 키운다. 그러니 이 결투에서 너는 구경만 하는 게 좋을 거야."},
+{"s":"n","tone":"dark","t":"네오가 이를 악물었다. 벨수록 커지는 상대라니, 십 년을 벼려 온 파수꾼에게도 처음 보는 상성이었다."},
+{"s":"neo","x":"serious","t":"…금이 물을 낳는다면, 나는 칼을 거둔다. 대신 저 물을 통째로 마셔 버릴 녀석이 하나 필요한데."},
+{"s":"yeon","x":"grin","t":"불렀어? 나무는 원래 물 먹고 크는 거, 초등학교 자연 시간에 다 배웠거든."},
 {"s":"yeon","x":"base","t":"그럼 내 차례네. 나무는 물을 마시니까. 수생목, 네 물은 오히려 내 양분이야."},
 {"skill":{"el":"wood","unit":"이의 결","name":"덩굴 결박","han":"結縛"},"s":"yeon","x":"excited","fx":"wood","t":"덩굴 결박!"},
 {"s":"n","t":"검은 물 위로 덩굴이 미끄러지듯 자라나 그림자를 향해 뻗었다. 물을 빨아들일수록 덩굴은 굵어졌다. 이론상으로는 완벽했다."},
+{"s":"yeon","x":"excited","t":"잡았다! 이대로 통째로 감아서 결박하면 끝—"},
 {"s":"n","im":true,"tone":"dark","t":"그런데 그림자는 피하지 않았다. 덩굴이 몸을 감는 순간, 그림자 전체가 흩어졌다. 물이 아니라 깃털로."},
 {"s":"n","fx":"veil","im":true,"t":"수백 장의 검은 깃털이 결투장에 눈처럼 흩날렸다. 연이는 그 깃털을 알고 있었다."},
 {"s":"yeon","x":"surprise","im":true,"t":"이 깃털… 식상의 섬에서 봤어. 무대를 망치던 그 검은 깃털이잖아. 까마귀 빌런들의!"},
@@ -2412,6 +2387,10 @@ EPISODES.push({"no":"EP.32","tag":"제32화 · 검은 깃털의 주인","title":
 {"s":"crow","t":"까악. 그리운 얼굴이군. 그때는 노래를 죽이러 갔고, 오늘은 별을 죽이러 왔다."},
 {"s":"n","t":"연이는 그제야 이해했다. 식상의 섬의 까마귀들, 검은 깃털, 검은 비. 전부 한 줄에 꿰여 있었던 것이다. 처음부터 이 그림자의 깃털이었다."},
 {"s":"n","fx":"claw","t":"까마귀 떼가 덮쳤다. 연이의 덩굴이 그물을 짰다. 네오는 금선을 쓰려다 멈췄다. 베인 깃털이 물이 되어 그림자를 살찌우니, 함부로 벨 수가 없었다."},
+{"s":"n","fx":"claw","tone":"dark","t":"까마귀들이 사방에서 부리를 세우고 쏟아졌다. 한 마리를 덩굴로 쳐내면, 그 자리를 두 마리가 곧장 메웠다. 결투장이 통째로 검은 날갯짓으로 뒤덮였다."},
+{"s":"yeon","x":"talk","t":"네오, 이거 완전 두더지 잡기잖아. 근데 두더지가 날아다녀! 반칙 아니야?!"},
+{"s":"neo","x":"deadpan","t":"…이 판국에 농담이 나오는 걸 보니, 아직 버틸 만한가 보군."},
+{"s":"yeon","x":"grin","t":"여유 아니고 허세거든? 근데 나 허세 하나는 프로급이야. 등만 잘 지켜 줘."},
 {"s":"neo","x":"serious","t":"연이. 내 숨은 봉인할게. 이 판은 네 판이야. 나는 네 등만 지킬게."},
 {"s":"yeon","x":"base","im":true,"t":"응. 등은 맡길게. 정면은 내가 뚫을 테니까."},
 {"skill":{"el":"wood","unit":"삼의 결","name":"뿌리내림","han":"根"},"s":"yeon","x":"excited","fx":"root","t":"뿌리내림!"},
@@ -2437,11 +2416,17 @@ EPISODES.push({"no":"EP.33","tag":"제33화 · 그릇","title":"그릇","beats":
 {"s":"mu","x":"sad","t":"왜냐면 나는 태어난 게 아니라, 만들어졌으니까."},
 {"s":"n","fx":"ink","tone":"dark","t":"소년이 후드를 벗자, 명반의 별빛이 그의 기억을 궁에 하나씩 비추기 시작했다. 열두 궁이 열두 장면이 되었다."},
 {"s":"n","bg":"hands","tone":"dark","t":"첫 번째 장면. 검은 비가 내리는 방에서, 여자의 손이 잉크에 깃털 하나를 적신다. 「너는 무성이야. 무성하게 자라서, 나 대신 저 세계를 침식할 아이지.」"},
+{"s":"n","tone":"dark","t":"두 번째 장면. 소년이 처음으로 실 한 가닥을 제대로 이었다. 여자가 아주 잠깐, 정말 반 초쯤 미소 비슷한 걸 지었다. 소년은 그 반 초짜리 미소를 다시 받고 싶어서, 그 뒤로 무슨 일이든 했다."},
 {"s":"n","tone":"dark","t":"세 번째 장면. 소년이 처음 심부름에 실패한 날. 여자는 화내지 않았다. 다만 소년의 깃털을 한 움큼 뽑아 잉크병에 되돌려 넣었다. 소년은 그날 사흘 치 기억을 잃었다."},
+{"s":"n","tone":"dark","t":"깃털이 뽑힐 때마다 기억이 지워졌다. 어제 뭘 잘못했는지, 무엇을 좋아했는지, 어떤 표정을 짓고 싶었는지까지. 소년은 매보다 그게 더 무서웠다. 지워지는 건 아프지도 않아서, 더 무서웠다."},
 {"s":"n","tone":"dark","im":true,"t":"일곱 번째 장면. 소년이 물었다. 「저는 누구의 아들입니까.」 여자는 웃으며 대답했다. 「아들? 너는 내 그릇이야. 힘을 봉인해 담아 두는 예쁜 그릇.」"},
-{"s":"n","tone":"dark","t":"열 번째 장면. 소년은 마침내 알아 버렸다. 제 이름 무성이 사실은 '성이 없는 자'라는 뜻의 말장난이었다는 것을."},
+{"s":"n","tone":"dark","t":"열 번째 장면. 소년은 마침내 알아 버렸다. 제 이름 무성이 사실은 '성(姓)이 없는 자'라는 뜻의 말장난이었다는 것을."},
+{"s":"n","tone":"dark","t":"열두 번째 장면. 별들 사이로 이름을 가진 아이들이 지나갔다. 누구는 엄마가 불렀고, 누구는 친구가 불렀다. 소년은 그 부름을 하나하나 세었다. 세다 보면 언젠가 제 차례도 올 것 같아서. …물론, 오지 않았다."},
 {"s":"n","c":{"who":"mu","x":"sad"},"bg":"ziwei4","im":true,"t":"별빛이 꺼지고 소년만 남았다. 세상에서 제일 큰 무대 한가운데, 제일 혼자인 채로."},
 {"s":"mu","x":"sad","t":"연이. 나는 네가 부러웠어. 빼앗긴 사주라도, 되찾을 사주가 있다는 게. 네 이름을 부르는 목소리가 강 건너까지 줄을 선다는 게."},
+{"s":"yeon","x":"cry","t":"…무성. 너 이름이 없는 게 아니라, 아무도 안 불러 준 거였구나. 그거, 사실 내가 제일 잘 알아. 세상이 나만 쏙 빼고 돌아가는 기분."},
+{"s":"mu","x":"waver","t":"…네가 그걸 어떻게 알아. 너는 강 건너에 이름을 불러 줄 친구가 그렇게 많은데."},
+{"s":"yeon","x":"soft","t":"지금은 그렇지. 근데 그 친구들, 처음엔 다 낯선 사람이었어. 이름은 부르니까 이름이 되는 거야. 안 불러 주면, 아무리 예쁜 글자라도 그냥 잉크 얼룩이고."},
 {"s":"mu","x":"talk","t":"나는 이기면 네 사주를 왕좌에 바쳐야 해. 그분의 명령이니까. 그분의 힘이 내 안에 봉인돼 있으니까. 그릇은 담긴 것을 거역할 수 없거든."},
 {"s":"neo","x":"serious","r":{"who":"neo","x":"serious"},"im":true,"t":"…그분. 무성, 그 여자의 이름을 말해."},
 {"s":"mu","x":"waver","tone":"dark","t":"말할 수 없어. 그 이름이 계약을 붙드는 말이라서. 그릇이 제 안에 담긴 것의 이름을 발음하면, 그릇은 깨져 버려."},
@@ -2456,11 +2441,13 @@ EPISODES.push({"no":"EP.33","tag":"제33화 · 그릇","title":"그릇","beats":
 EPISODES.push({"no":"EP.34","tag":"제34화 · 이름을 돌려주다","title":"이름을 돌려주다","beats":[
 {"s":"n","bg":"ziwei4","bgm":"crisis2","tone":"dark","t":"실에 매달린 소년은 더 이상 소년의 움직임이 아니었다. 팔다리가 남의 손에 끌리듯 어색하게 움직였다."},
 {"s":"n","fx":"water","im":true,"t":"검은 물이 폭주해 열두 궁을 집어삼켰다. 별 감옥의 빛마저 어두워졌다. 인형이 된 그릇은 강했다. 봉인돼 있던 힘이 밑 빠진 독처럼 쏟아졌으니까."},
-{"s":"n","fx":"veil","c":{"who":"mucrow"},"im":true,"tone":"dark","t":"쏟아진 힘이 소년의 몸을 안에서부터 밀어 올렸다. 등에서 검은 깃털이 폭발하듯 돋고, 두 팔이 날개로 접히고, 그림자가 부풀어 올라 — 명반 한복판에 거대한 까마귀 한 마리가 내려앉았다. 무성이되, 더는 무성이 아니었다."},
-{"s":"n","tone":"dark","t":"박지은이 그릇에 담아 둔 힘의, 진짜 형상이었다. 소년의 얼굴은 부리 뒤로 잠기고, 검붉은 실에 매달린 보랏빛 눈동자만이 흐릿하게 남아 도와 달라 말하고 있었다."},
+{"s":"n","c":{"who":"mu","x":"angry"},"fx":"claw","im":true,"tone":"dark","t":"인형이 된 무성이 손을 뻗자 검은 물이 창이 되어 연이에게 쏟아졌다. 소년의 얼굴은 고통으로 일그러졌는데, 손만은 남의 명령대로 정확히 움직였다. 제 몸으로 제 친구를 겨누는, 세상에서 제일 잔인한 인형극이었다."},
+{"s":"mu","x":"angry","tone":"dark","t":"크윽… 피해! 이 손 내 손 아니야! 멈추라고, 멈춰! 그분, 제발 이것만은…!"},
+{"s":"yeon","x":"fear","l":{"who":"yeon","x":"fear"},"t":"무성! 정신 차려! 너 지금 우는 얼굴로 공격하고 있잖아!"},
 {"skill":{"el":"metal","unit":"이의 형","name":"금선","han":"金線"},"s":"neo","x":"serious","fx":"net","t":"금선. 실을 겨눈다!"},
 {"s":"n","t":"네오의 백금 실이 검붉은 실과 얽혔다. 이번엔 물을 베는 게 아니라, 소년을 조종하는 실만 골라 노렸다. 실과 실의, 한 치 싸움이었다."},
-{"s":"neo","x":"serious","t":"연이! 실은 내가 붙들게. 너는 저 애의 진짜 마음을 읽어!"},
+{"s":"n","tone":"dark","t":"박지은의 실은 세계의 실이었고, 네오의 실은 한 사람의 것이었다. 수로 밀리는 싸움이었다. 그래도 네오는 물러서지 않았다. 실 한 가닥이 끊길 때마다, 무성의 팔이 반 뼘씩 자유로워졌으니까."},
+{"s":"neo","x":"serious","t":"연이! 실은 내가 붙들게. 너는 저 애의 진짜 마음을 읽어! 명령보다 센 이유를 찾아 줘!"},
 {"s":"yeon","x":"base","im":true,"t":"응! 무성, 잘 들어. 아까 별빛으로 네 기억 다 봤어. 그리고 찾았어. 그 여자가 준 이름 밑에, 네가 몰래 적어 둔 글자!"},
 {"s":"n","t":"연이는 보았었다. 열 번째 장면의 구석, 이름의 진실을 알아 버린 밤에 소년이 제 깃털 하나에 아무도 몰래 새겨 둔 한 줄을."},
 {"skill":{"el":"wood","unit":"삼의 결","name":"뿌리내림","han":"根"},"s":"yeon","x":"excited","fx":"root","t":"뿌리내림. 네 마음 밑바닥까지!"},
@@ -2469,13 +2456,14 @@ EPISODES.push({"no":"EP.34","tag":"제34화 · 이름을 돌려주다","title":"
 {"s":"n","tone":"dark","im":true,"t":"검붉은 실이 일제히 얼어붙은 듯 멈췄다."},
 {"s":"yeon","x":"base","im":true,"t":"무성, 네 진짜 마음은 침식이 아니야. 누군가를 부르는 거잖아. 그러니까 지금 불러 봐. 내 이름을, 네 목소리로!"},
 {"s":"n","t":"인형의 입이 떨렸다. 실이 그 입을 꿰매려 들었다. 소년은 이를 악물고, 실을 씹어 끊듯 소리를 밀어냈다."},
-{"s":"n","fx":"burst","c":{"who":"mu","x":"angry"},"im":true,"tone":"dark","t":"거대한 까마귀의 부리 안쪽에서, 갇혀 있던 소년의 목소리가 실을 끊고 터져 나왔다. 검은 깃털이 안에서부터 쩍, 갈라졌다."},
+{"s":"n","im":true,"tone":"dark","t":"실이 소년의 입술을 꿰매려 파고들었다. 소년은 그 실을 어금니로 물어뜯었다. 십 년 동안 단 한 번도 제 것이었던 적 없는 목소리를, 처음으로 제 힘으로 끌어올렸다."},
 {"s":"mu","x":"angry","im":true,"t":"…연, 이. 연이! 나는 무성이야! 그릇이 아니라, 무성이라고!"},
 {"s":"n","fx":"burst","im":true,"t":"이름이 이름을 부르는 순간, 계약을 붙들던 말이 깨지는 소리가 났다. 유리보다 맑고 사슬보다 무거운 소리였다."},
 {"s":"n","im":true,"t":"검붉은 실이 끊어져 흩어졌다. 소년의 그림자에서 검은 비가 빠져나와, 하늘도 아닌 어딘가로 증발했다. 봉인돼 있던 것이 그릇을 잃고 물러난 것이다."},
 {"s":"n","c":{"who":"mu","x":"calm"},"bgm":"main","t":"소년은 무릎을 꿇은 채 웃고 있었다. 처음 웃어 보는 사람처럼, 서툴게."},
 {"s":"mu","x":"calm","t":"…불렀다. 내 이름으로, 네 이름을. 별거 아니었네. 이걸 왜 십 년이나 못 했을까."},
-{"s":"yeon","x":"smile","t":"원래 제일 쉬운 게 제일 오래 걸려. 그거 내 전공이야."},
+{"s":"n","im":true,"t":"소년의 뺨을 타고 눈물이 흘렀다. 슬퍼서가 아니라, 제 목소리가 처음으로 제 것이어서. 이름 하나 불렀을 뿐인데, 십 년어치 무언가가 눈으로 쏟아져 나왔다."},
+{"s":"yeon","x":"smile","t":"원래 제일 쉬운 게 제일 오래 걸려. 그거 내 전공이야. 버스 놓치는 거랑 같이."},
 {"s":"n","fx":"stars","t":"명반의 별빛이 돌아왔다. 별 감옥이 녹아내리면서 루나와 언니, 백문이 궤도 위로 굴러 나왔다."},
 {"s":"ln","x":"cheer","t":"연이! 이겼어? 우리 나온 거야? …어, 저 깃털 오빠는 누구야? 아까 그 무서운 그림자 맞아? 근데 왜 이렇게 순해 보여?"},
 {"s":"mu","x":"waver","t":"…순하다는 말은 처음 듣네."},
@@ -2488,7 +2476,7 @@ EPISODES.push({"no":"EP.34","tag":"제34화 · 이름을 돌려주다","title":"
 {"s":"neo","x":"shock","im":true,"t":"…박지은."},
 {"s":"n","im":true,"tone":"dark","t":"네오의 입에서 나온 그 이름에, 연이는 영문도 모른 채 등줄기가 얼었다. 분명 처음 듣는 이름이어야 하는데, 어째서 뼛속이 이 이름을 먼저 기억하는 걸까."},
 {"s":"pje","x":"lure","t":"어머. 병하 씨도 아니면서, 그 목소리로 내 이름을 불러 주네."},
-{"s":"n","fx":"suck","bg":"fallYeon","im":true,"tone":"dark","t":"여자가 손가락을 튕기자, 명반이, 세계가 종이처럼 구겨졌다. 그리고 구겨진 틈새로 붉은 실 한 가닥이 낚싯줄처럼 일행을 낚아챘다."},
+{"s":"n","fx":"suck","im":true,"tone":"dark","t":"여자가 손가락을 튕기자, 명반이, 세계가 종이처럼 구겨졌다. 그리고 구겨진 틈새로 붉은 실 한 가닥이 낚싯줄처럼 일행을 낚아챘다."},
 {"s":"pje","x":"talk2","im":true,"t":"자리를 옮기자. 인연 얘기는 인연의 세계에서 하는 게 예의니까."},
 {"s":"sys","im":true,"t":"제34화 · 이름을 돌려주다 — 끝. 제35화 「붉은 실의 세계」에서 계속."}]});
 EPISODES.push({"no":"EP.35","tag":"제35화 · 붉은 실의 세계","title":"붉은 실의 세계","beats":[
