@@ -669,6 +669,31 @@ export default function ZiweiAiPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion]);
 
+  // 운명의 섬 12궁 허브에서 넘어온 궁별 프리셋(focusArea + 질문)을 1회 반영. 결제·생성 로직과 무관.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let preset: { focusArea?: string; question?: string } | null = null;
+    try {
+      const raw = sessionStorage.getItem("ziweiIslandPreset");
+      if (raw) {
+        preset = JSON.parse(raw);
+        sessionStorage.removeItem("ziweiIslandPreset");
+      }
+    } catch {
+      preset = null;
+    }
+    if (!preset) return;
+    const validFocus = FOCUS_OPTIONS.some((o) => o.value === preset?.focusArea) ? (preset.focusArea as FocusArea) : null;
+    const presetQuestion = typeof preset.question === "string" ? preset.question.slice(0, 400) : "";
+    if (!validFocus && !presetQuestion) return;
+    setForm((prev) =>
+      formTouchedRef.current
+        ? prev
+        : { ...prev, focusArea: validFocus || prev.focusArea, question: presetQuestion || prev.question },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function loadFormFromProfileCard() {
     void reloadProfileSeed().then((seed) => {
       if (seed) setForm((prev) => applyProfileSeedToZiweiForm(prev, seed));

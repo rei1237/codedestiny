@@ -493,7 +493,7 @@ body.ph-night .fireflies{opacity:1}
   </div>
   <div class="hud-bottom">
     <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기">📜 퀘스트 <span class="cnt" id="questCnt">0/3</span></button>
-    <a class="hud-btn gold" id="btnZiweiAi" href="/ziwei-ai" aria-label="자미두수 AI 상담으로 이동">🔮 오늘의 조언 더 듣기</a>
+    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동">🔮 오늘의 조언 더 듣기</a>
     <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기">⚙️</button>
   </div>
 </section>
@@ -934,9 +934,233 @@ function motifSVG(name,s,pal){
   }
   return g;
 }
+/* ============================================================
+   v3 아트 — 전역 라이팅 · 머티리얼 · 부품 · 다층 지형 · 궁별 bespoke 건물
+   (프로토타입 게이트: 명궁/재백궁/천이궁/부모궁 4궁만 신경로. 나머지는 legacy)
+   ============================================================ */
+/* 면별 명도 계수 → shade amt (전 씬 단일 광원, 좌상단 45°) */
+var FACE_AMT={top:0,left:-0.22,right:-0.44,ground:-0.58};
+function fsh(hex,face){return shade(hex,FACE_AMT[face]||0);}
+/* 머티리얼 base (바이옴 hue는 지붕/트림/글로우·지형이 담당, 벽은 머티리얼로 구분) */
+var MAT={stone:"#8a8f9c",marble:"#e8e4dc",wood:"#9c7248",metal:"#7a8494",glass:"#a8d4e0",gold:"#d4a94a",rock:"#726b78",vermilion:"#b5462f"};
+function nn(v){return (+v).toFixed(1);}
+function NL(x1,y1,x2,y2,st,w,op){return '<line x1="'+nn(x1)+'" y1="'+nn(y1)+'" x2="'+nn(x2)+'" y2="'+nn(y2)+'" stroke="'+st+'" stroke-width="'+w+'"'+(op!=null?' opacity="'+op+'"':"")+' stroke-linecap="round"/>';}
+function EL(cx,cy,rx,ry,f,extra){return '<ellipse cx="'+nn(cx)+'" cy="'+nn(cy)+'" rx="'+nn(rx)+'" ry="'+nn(ry)+'" fill="'+f+'"'+(extra||"")+'/>';}
+/* 건물이 서는 지면 y (팔레트 원점 기준) */
+function groundY(sc){return -4*sc;}
+/* --- 부품: 아이소 박스(솔리드, 면별 라이팅+림라이트) --- */
+function boxIso(cx,cy,s,h,base){
+  var b=isoBox(cx,cy,s,h),str="";
+  str+=poly(b.left,fsh(base,"left"))+poly(b.right,fsh(base,"right"))+poly(b.top,fsh(base,"top"));
+  str+='<polyline points="'+[b.tl,b.tt,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+RIM+'" stroke-width="0.7" opacity=".42" stroke-linejoin="round"/>';
+  return {b:b,svg:str,apexY:b.apexY};
+}
+/* --- 부품: 아이소 원통(등대·돔 본체) --- */
+function cylIso(cx,cyG,s,h,base){
+  var topY=cyG-h,ry=s*0.5,str="";
+  str+='<path d="M'+nn(cx-s)+' '+nn(cyG)+' L'+nn(cx-s)+' '+nn(topY)
+    +' A'+nn(s)+' '+nn(ry)+' 0 0 1 '+nn(cx+s)+' '+nn(topY)
+    +' L'+nn(cx+s)+' '+nn(cyG)+' A'+nn(s)+' '+nn(ry)+' 0 0 1 '+nn(cx-s)+' '+nn(cyG)+' Z" fill="'+fsh(base,"right")+'"/>';
+  str+='<path d="M'+nn(cx-s)+' '+nn(cyG)+' L'+nn(cx-s)+' '+nn(topY)
+    +' A'+nn(s)+' '+nn(ry)+' 0 0 1 '+nn(cx)+' '+nn(topY-ry)
+    +' L'+nn(cx)+' '+nn(cyG-ry)+' A'+nn(s)+' '+nn(ry)+' 0 0 0 '+nn(cx-s)+' '+nn(cyG)+' Z" fill="'+fsh(base,"left")+'" opacity=".6"/>';
+  str+=EL(cx,topY,s,ry,fsh(base,"top"));
+  str+='<ellipse cx="'+nn(cx)+'" cy="'+nn(topY)+'" rx="'+nn(s)+'" ry="'+nn(ry)+'" fill="none" stroke="'+RIM+'" stroke-width="0.6" opacity=".4"/>';
+  return {svg:str,topY:topY};
+}
+/* --- 부품: 사모(피라미드) 지붕 --- */
+function roofHip(cx,cy,s,h,rh,pal){
+  var b=isoBox(cx,cy,s,h),apex=[cx,cy-h-rh],str="";
+  str+=poly([apex,b.tl,b.tt],fsh(pal.roof2,"left"))+poly([apex,b.tt,b.tr],fsh(pal.roof2,"right"));
+  str+=poly([apex,b.tl,b.tb],fsh(pal.roof,"left"))+poly([apex,b.tb,b.tr],fsh(pal.roof,"right"));
+  str+='<polyline points="'+[b.tl,b.tb,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+pal.trim+'" stroke-width="1.2" stroke-linejoin="round"/>';
+  str+=NL(apex[0],apex[1],b.tb[0],b.tb[1],pal.glow,0.8,0.5);
+  return {svg:str,apexY:apex[1]};
+}
+/* --- 부품: 발광 창 한 쌍 --- */
+function winPair(cx,cy,s,h,pal){
+  var wf=' filter="url(#glowF)"';
+  return '<rect class="emis" x="'+nn(cx-s*0.58)+'" y="'+nn(cy-h*0.6)+'" width="'+nn(s*0.18)+'" height="'+nn(h*0.24)+'" rx="1" fill="'+pal.glow+'"'+wf+'/>'
+    +'<rect class="emis" x="'+nn(cx+s*0.4)+'" y="'+nn(cy-h*0.6)+'" width="'+nn(s*0.18)+'" height="'+nn(h*0.24)+'" rx="1" fill="'+pal.glow+'"'+wf+'/>';
+}
+/* --- 지형: 다층 섬 기반(얕은물→모래→절벽→초지) --- */
+function islandBase(sc,pal){
+  var G=groundY(sc),s=44*sc,str="";
+  /* 얕은 물 링(심도) */
+  str+=EL(0,G+10*sc,s*1.42,s*0.52,shade(pal.water[0],0.28),' opacity=".55"');
+  /* 모래사장(불규칙 가장자리) */
+  str+=EL(0,G+4*sc,s*1.16,s*0.44,"#e9dcc2",' opacity=".9"');
+  str+=EL(0,G+4*sc,s*1.16,s*0.44,"none",' stroke="'+shade("#e9dcc2",-0.12)+'" stroke-width="1" opacity=".5"');
+  /* 절벽 스커트(전면 좌/우면 + 세로 결) */
+  var gl=[-s,G],gr=[s,G],gb=[0,G+s*0.5],ch=17*sc;
+  str+=poly([gl,gb,[0,G+s*0.5+ch],[-s,G+ch]],fsh(MAT.rock,"left"));
+  str+=poly([gb,gr,[s,G+ch],[0,G+s*0.5+ch]],fsh(MAT.rock,"right"));
+  for(var i=-3;i<=3;i++){var x=i*s/3.4;str+=NL(x,G+Math.abs(i)*1.4*sc+2*sc,x,G+ch+2*sc,shade(MAT.rock,-0.16),0.7,0.5);}
+  /* 초지 상단면(바이옴 land) */
+  str+=poly(isoBox(0,G,s,0).top,"url(#landG)");
+  str+='<polyline points="'+[isoBox(0,G,s,0).tl,isoBox(0,G,s,0).tt,isoBox(0,G,s,0).tr].map(pt).join(" ")+'" fill="none" stroke="'+shade(pal.land,0.2)+'" stroke-width="0.8" opacity=".5"/>';
+  /* 식생(뒤쪽 모서리 2그루 — 건물과 겹치지 않게) */
+  str+=treeProp(-s*0.72,G-3*sc,sc,pal)+treeProp(s*0.72,G-3*sc,sc,pal);
+  return str;
+}
+function treeProp(x,y,sc,pal){
+  return '<g>'+NL(x,y,x,y-7*sc,MAT.wood,1.4*sc,0.9)
+    +poly([[x-4*sc,y-6*sc],[x,y-14*sc],[x+4*sc,y-6*sc]],fsh(pal.roof2||"#5faa78","left"))
+    +poly([[x-3.2*sc,y-9*sc],[x,y-15.5*sc],[x+3.2*sc,y-9*sc]],fsh(pal.roof||"#82cc93","top"))+'</g>';
+}
+/* --- 명궁 후광 --- */
+function mingHalo(sc,pal){
+  var G=groundY(sc);
+  return EL(0,G-34*sc,66*sc,58*sc,pal.glow,' opacity=".12" filter="url(#soft)"')
+    +'<ellipse class="pring" cx="0" cy="'+nn(G-72*sc)+'" rx="'+nn(30*sc)+'" ry="'+nn(11*sc)+'" fill="none" stroke="'+pal.trim+'" stroke-width="1.4" opacity=".7"/>';
+}
+/* ===== 궁별 bespoke 건물 (실루엣 최우선) ===== */
+/* 명궁 = 왕성: 다층 백석 본체 + 측탑 + 중앙 첨탑 + 왕관 */
+function archMing(tier,pal,sc){
+  var G=groundY(sc),M=MAT.marble,str="",apex;
+  function crown(cx,y){var w=5*sc;return poly([[cx-w,y],[cx-w,y-3*sc],[cx-w*0.6,y-1.4*sc],[cx-w*0.2,y-4.5*sc],[cx+w*0.2,y-1.4*sc],[cx+w*0.6,y-4.5*sc],[cx+w,y-1.4*sc],[cx+w,y]],fsh(MAT.gold,"top"))+NL(cx-w,y,cx+w,y,shade(MAT.gold,-0.3),0.8);}
+  if(tier<=1){
+    var r=boxIso(0,G,18*sc,15*sc,M);str+=r.svg;
+    str+=poly([[-12*sc,G-15*sc],[-4*sc,G-21*sc],[3*sc,G-14*sc],[9*sc,G-18*sc],[13*sc,G-13*sc]],fsh(M,"top"));
+    str+=NL(-4*sc,G-2*sc,-6*sc,G-13*sc,shade(M,-0.5),0.8,0.6)+NL(5*sc,G-3*sc,7*sc,G-12*sc,shade(M,-0.5),0.7,0.5);
+    apex=G-21*sc;
+  }else if(tier===3){
+    var side=boxIso(19*sc,G+6*sc,9*sc,20*sc,M);str+=side.svg;str+=roofHip(19*sc,G+6*sc,9*sc,20*sc,10*sc,pal).svg;
+    var body=boxIso(-2*sc,G,24*sc,30*sc,M);str+=body.svg+winPair(-2*sc,G,24*sc,30*sc,pal);
+    var rf=roofHip(-2*sc,G,24*sc,30*sc,15*sc,pal);str+=rf.svg;
+    str+=crown(-2*sc,rf.apexY);apex=rf.apexY-4*sc;
+  }else{
+    var l=boxIso(-24*sc,G+8*sc,10*sc,26*sc,M);str+=l.svg+winPair(-24*sc,G+8*sc,10*sc,26*sc,pal)+roofHip(-24*sc,G+8*sc,10*sc,26*sc,11*sc,pal).svg;
+    var rt=boxIso(24*sc,G+8*sc,10*sc,26*sc,M);str+=rt.svg+winPair(24*sc,G+8*sc,10*sc,26*sc,pal)+roofHip(24*sc,G+8*sc,10*sc,26*sc,11*sc,pal).svg;
+    var bd=boxIso(0,G,27*sc,40*sc,M);str+=bd.svg+winPair(0,G-8*sc,27*sc,40*sc,pal)+winPair(0,G+6*sc,27*sc,40*sc,pal);
+    /* 중앙 첨탑 */
+    var spBase=bd.apexY;
+    var sp=cylIso(0,spBase+2*sc,7*sc,26*sc,M);str+=sp.svg;
+    str+=poly([[0,sp.topY-16*sc],[-7*sc,sp.topY],[7*sc,sp.topY]],fsh(MAT.gold,"top"));
+    str+=crown(0,sp.topY-16*sc);
+    str+='<circle cx="0" cy="'+nn(sp.topY-20*sc)+'" r="'+nn(3.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';
+    str+='<ellipse class="pring" cx="0" cy="'+nn(sp.topY-16*sc)+'" rx="'+nn(20*sc)+'" ry="'+nn(7*sc)+'" fill="none" stroke="'+pal.glow+'" stroke-width="1.4" opacity=".8"/>';
+    apex=sp.topY-20*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 재백궁 = 광산: 산 절개면 + 갱도 + 광차 레일 + 금맥 */
+function archJaebaek(tier,pal,sc){
+  var G=groundY(sc),R=MAT.rock,str="",apex;
+  function mountain(px,base,w,ht){
+    /* 비대칭 삼각 암괴(좌면/우면) */
+    var peak=[px-w*0.15,base-ht];
+    return poly([[px-w,base],peak,[px+w*0.2,base-ht*0.55]],fsh(R,"left"))
+      +poly([peak,[px+w*0.2,base-ht*0.55],[px+w,base]],fsh(R,"right"))
+      +NL(peak[0],peak[1],px-w,base,shade(R,0.14),0.8,0.5);
+  }
+  function adit(px,base,r){ /* 갱도 입구(아치) + 목재 지지 */
+    return '<path d="M'+nn(px-r)+' '+nn(base)+' L'+nn(px-r)+' '+nn(base-r*1.1)+' A'+nn(r)+' '+nn(r)+' 0 0 1 '+nn(px+r)+' '+nn(base-r*1.1)+' L'+nn(px+r)+' '+nn(base)+' Z" fill="#0d0a16"/>'
+      +NL(px-r,base,px-r,base-r*1.2,MAT.wood,1.4,0.9)+NL(px+r,base,px+r,base-r*1.2,MAT.wood,1.4,0.9)+NL(px-r-0.6,base-r*1.2,px+r+0.6,base-r*1.2,MAT.wood,1.6,0.9);
+  }
+  function ore(px,py,rr){return '<circle cx="'+nn(px)+'" cy="'+nn(py)+'" r="'+nn(rr)+'" fill="'+MAT.gold+'" filter="url(#glowF)"/>';}
+  if(tier<=1){
+    str+=mountain(0,G,20*sc,16*sc);
+    str+=poly([[-8*sc,G],[8*sc,G],[6*sc,G-4*sc],[-6*sc,G-4*sc]],"#1a1526");/* 무너진 갱 */
+    str+=poly([[-14*sc,G],[-6*sc,G-3*sc],[-10*sc,G+2*sc]],shade(R,-0.1));
+    apex=G-16*sc;
+  }else if(tier===3){
+    str+=mountain(0,G,26*sc,26*sc);
+    str+=adit(-2*sc,G,7*sc);
+    str+=NL(-14*sc,G+3*sc,16*sc,G+3*sc,MAT.metal,1.4,0.8);/* 레일 */
+    str+='<rect x="'+nn(8*sc)+'" y="'+nn(G-4*sc)+'" width="'+nn(7*sc)+'" height="'+nn(5*sc)+'" fill="'+fsh(MAT.metal,"left")+'"/>';/* 광차 */
+    str+=ore(11*sc,G-1*sc,2*sc);
+    apex=G-26*sc;
+  }else{
+    str+=mountain(3*sc,G,32*sc,40*sc);
+    str+=mountain(-16*sc,G+4*sc,16*sc,22*sc);/* 부봉 */
+    str+=adit(-4*sc,G,9*sc);
+    /* 헤드프레임(금속 A형 도르래탑) */
+    str+=NL(16*sc,G,10*sc,G-24*sc,MAT.metal,1.6,0.95)+NL(24*sc,G,10*sc,G-24*sc,MAT.metal,1.6,0.95)+NL(16*sc,G-12*sc,24*sc,G-12*sc,MAT.metal,1.2,0.8);
+    str+='<circle cx="'+nn(10*sc)+'" cy="'+nn(G-24*sc)+'" r="'+nn(2.6*sc)+'" fill="none" stroke="'+MAT.metal+'" stroke-width="1.4"/>';
+    /* 레일 + 광차 + 금맥 */
+    str+=NL(-18*sc,G+4*sc,22*sc,G+4*sc,MAT.metal,1.6,0.85);
+    str+='<rect x="'+nn(0)+'" y="'+nn(G-3*sc)+'" width="'+nn(9*sc)+'" height="'+nn(6*sc)+'" rx="1" fill="'+fsh(MAT.metal,"left")+'"/>';
+    str+=ore(4*sc,G-1*sc,2.4*sc)+ore(-8*sc,G-5*sc,2*sc)+ore(-2*sc,G-9*sc,1.6*sc);
+    apex=G-40*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 천이궁 = 항구 등대: 줄무늬 원통 + 유리 등롱 + 광선 + 잔교/배 */
+function archCheoni(tier,pal,sc){
+  var G=groundY(sc),S=MAT.stone,str="",apex;
+  function pier(){ /* 잔교 + 정박한 배 */
+    var p="";p+=poly([[10*sc,G+6*sc],[30*sc,G+2*sc],[32*sc,G+6*sc],[12*sc,G+10*sc]],fsh(MAT.wood,"top"));
+    p+=NL(16*sc,G+7*sc,16*sc,G+12*sc,MAT.wood,1.2,0.7)+NL(26*sc,G+5*sc,26*sc,G+10*sc,MAT.wood,1.2,0.7);
+    /* 배 */
+    p+='<path d="M'+nn(20*sc)+' '+nn(G+2*sc)+' q '+nn(7*sc)+' '+nn(5*sc)+' '+nn(14*sc)+' 0 Z" fill="'+fsh(MAT.wood,"right")+'"/>';
+    p+=NL(27*sc,G+2*sc,27*sc,G-9*sc,MAT.wood,1,0.9)+poly([[27*sc,G-9*sc],[27*sc,G+1*sc],[34*sc,G-3*sc]],pal.trim);
+    return p;
+  }
+  if(tier<=1){
+    var c=cylIso(0,G,10*sc,20*sc,S);str+=c.svg;
+    str+=poly([[-10*sc,G-20*sc],[-3*sc,G-25*sc],[4*sc,G-19*sc],[10*sc,G-22*sc]],fsh(S,"top"));/* 깨진 상단 */
+    apex=G-25*sc;
+  }else{
+    var big=tier>=5,h=big?40*sc:28*sc,s=big?11*sc:10*sc;
+    var cy=cylIso(0,G,s,h,S);str+=cy.svg;
+    /* 줄무늬 밴드 */
+    for(var k=1;k<=(big?3:2);k++){var yy=G-h*k/(big?3.6:2.6);str+='<path d="M'+nn(-s)+' '+nn(yy)+' A'+nn(s)+' '+nn(s*0.5)+' 0 0 0 '+nn(s)+' '+nn(yy)+'" fill="none" stroke="'+MAT.vermilion+'" stroke-width="'+nn(2.4*sc)+'" opacity=".82"/>';}
+    /* 유리 등롱 */
+    var ly=cy.topY;
+    str+='<rect x="'+nn(-s*0.7)+'" y="'+nn(ly-9*sc)+'" width="'+nn(s*1.4)+'" height="'+nn(9*sc)+'" rx="1.5" fill="'+MAT.glass+'" opacity=".72" filter="url(#glowF)"/>';
+    str+=poly([[-s*0.8,ly-9*sc],[0,ly-15*sc],[s*0.8,ly-9*sc]],fsh(MAT.metal,"top"));
+    /* 광선 */
+    if(big)str+=poly([[0,ly-4*sc],[-40*sc,ly-16*sc],[-42*sc,ly-2*sc]],pal.glow,' opacity=".28" filter="url(#glowF)"')+poly([[0,ly-4*sc],[40*sc,ly-16*sc],[42*sc,ly-2*sc]],pal.glow,' opacity=".22" filter="url(#glowF)"');
+    if(tier>=3)str+=pier();
+    apex=ly-15*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 부모궁 = 사당: 토리이 + 목조 전당(박공) + 계단 + 참배로 */
+function archBumo(tier,pal,sc){
+  var G=groundY(sc),W=MAT.wood,V=MAT.vermilion,str="",apex;
+  function torii(px,base,w,ht){
+    var p="";p+=NL(px-w,base,px-w,base-ht,V,2.2*sc,0.96)+NL(px+w,base,px+w,base-ht,V,2.2*sc,0.96);
+    p+='<path d="M'+nn(px-w-3*sc)+' '+nn(base-ht)+' Q '+nn(px)+' '+nn(base-ht-3.4*sc)+' '+nn(px+w+3*sc)+' '+nn(base-ht)+' L'+nn(px+w+3*sc)+' '+nn(base-ht+2.4*sc)+' Q '+nn(px)+' '+nn(base-ht-1*sc)+' '+nn(px-w-3*sc)+' '+nn(base-ht+2.4*sc)+' Z" fill="'+fsh(V,"top")+'"/>';
+    p+=NL(px-w,base-ht+5*sc,px+w,base-ht+5*sc,V,1.8*sc,0.9);
+    return p;
+  }
+  if(tier<=1){
+    str+=torii(0,G,11*sc,17*sc).replace(/opacity="0.9[0-9]?"/g,'opacity=".55"');
+    str+=NL(-11*sc,G,-13*sc,G-15*sc,V,2*sc,0.5);/* 기운 기둥 */
+    str+=poly([[-8*sc,G],[8*sc,G],[6*sc,G-5*sc],[-6*sc,G-5*sc]],fsh(W,"right"));
+    apex=G-17*sc;
+  }else{
+    var big=tier>=5;
+    /* 참배로(금박 점선) */
+    if(big)for(var d=0;d<5;d++){str+=EL(0,G+8*sc+d*4*sc,(9-d)*sc,(3.4-d*0.4)*sc,pal.glow,' opacity="'+(0.42-d*0.06).toFixed(2)+'"');}
+    /* 계단 기단 */
+    str+=boxIso(0,G,24*sc,big?8*sc:6*sc,MAT.stone).svg;
+    var hy=G-(big?8*sc:6*sc);
+    /* 전당 본체 */
+    var body=boxIso(0,hy,big?20*sc:17*sc,big?22*sc:16*sc,W);str+=body.svg+winPair(0,hy,big?20*sc:17*sc,big?22*sc:16*sc,pal);
+    /* 박공(넓은 사모) */
+    var rf=roofHip(0,hy,big?24*sc:20*sc,big?22*sc:16*sc,big?14*sc:11*sc,pal);str+=rf.svg;
+    str+=NL(0,rf.apexY,0,rf.apexY-6*sc,V,1.6,0.9);/* 치기(성물) */
+    /* 토리이(전면) */
+    str+=torii(0,G+2*sc,big?15*sc:12*sc,big?26*sc:20*sc);
+    if(big){str+='<circle cx="'+nn(-16*sc)+'" cy="'+nn(G-6*sc)+'" r="'+nn(2.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>'+'<circle cx="'+nn(16*sc)+'" cy="'+nn(G-6*sc)+'" r="'+nn(2.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';}
+    apex=rf.apexY-6*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+var PALACE_ARCH={"명궁":archMing,"재백궁":archJaebaek,"천이궁":archCheoni,"부모궁":archBumo};
+function bespokeBuilding(tier,pal,sc,name,isMing){
+  var str=islandBase(sc,pal);
+  if(isMing)str=mingHalo(sc,pal)+str;
+  var b=PALACE_ARCH[name](tier,pal,sc);
+  return {svg:str+b.svg,apexY:b.apexY};
+}
 /* 궁 건물 — 티어=웅장함/발광(공통) · palaceName=고유 형태·소품. return {svg, apexY} */
 function buildingSVG(cx,cy,tier,pal,scale,isMing,palaceName){
   var sc=scale||1,g="",apex;
+  if(palaceName&&PALACE_ARCH[palaceName]){return bespokeBuilding(tier,pal,sc,palaceName,isMing);}
   if(isMing){g+='<ellipse cx="'+cx+'" cy="'+(cy-34*sc).toFixed(1)+'" rx="'+(66*sc).toFixed(1)+'" ry="'+(60*sc).toFixed(1)+'" fill="'+pal.glow+'" opacity=".12" filter="url(#soft)"/>';}
   /* 플랫폼(지형) */
   var ps=44*sc,pb=isoBox(cx,cy+3*sc,ps,7*sc);
@@ -1267,8 +1491,8 @@ function showPalaceChoices(pal,def){
   requestAnimationFrame(function(){var bar=detail.querySelector(".bar i");if(bar)bar.style.transform="scaleX("+(pal.score/100)+")";});
   var box=$("dlgChoices");
   box.innerHTML="";
-  var a=document.createElement("a");a.href="/ziwei-ai";
-  a.innerHTML="🔮 오늘의 조언 더 듣기 <span class='go'>AI 상담 ›</span>";box.appendChild(a);
+  var a=document.createElement("a");a.href="/island-consult?palace="+encodeURIComponent(pal.name);
+  a.innerHTML="🔮 이 궁 깊이 상담하기 <span class='go'>12궁 특화 ›</span>";box.appendChild(a);
   var qb=document.createElement("button");qb.type="button";
   qb.innerHTML="📜 오늘의 퀘스트 보기 <span class='go'>›</span>";
   qb.addEventListener("click",function(){dlgClose();openSheet("sheetQuest");});box.appendChild(qb);
