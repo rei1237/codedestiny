@@ -87,6 +87,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "karma-destiny-ai-consultation",
   "premium-sibyl-dominator",
   "ziwei-ai-consultation",
+  "ziwei-island-palace-consult",
   "ziwei_decade_luck",
   "ziwei_love_deep",
   "ziwei_twelve_palaces",
@@ -250,6 +251,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 AI 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 AI 상담" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 AI 상담" },
+  "ziwei-island-palace-consult": { cost: 200, amountKRW: 20000, reason: "운명의 섬 12궁 심층 상담" },
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트
   "ziwei-deep-pdf": { cost: 300, amountKRW: 30000, reason: "심화 자미두수 PDF 심층 리포트 생성" },
   "karma-destiny-ai-consultation": { cost: 500, amountKRW: 50000, reason: "운명의 업 AI 상담" },
@@ -421,6 +423,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "life-book-ai-consultation",
   "karma-destiny-ai-consultation",
   "ziwei-ai-consultation",
+  "ziwei-island-palace-consult",
   "premium-naming-prompt",
   "ziwei-deep-pdf",
   "ziwei_ai_prompt_generator",

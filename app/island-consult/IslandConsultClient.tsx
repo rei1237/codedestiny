@@ -1,69 +1,261 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
+import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { authFetch } from "@/app/_lib/auth-client";
+import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
+import {
+  beginPaidFeatureGateCheck,
+  completePaidFeatureGateCheck,
+  holdPaidFeatureGateOpen,
+  releasePaidFeatureGate,
+  runBillingCoinGate,
+} from "@/app/_lib/billing-client";
 
-// 궁별 상담 프리셋: 검증된 /ziwei-ai 상담을 그 궁 주제(focusArea)+맞춤 질문으로 초점 맞춰 연다.
-type FocusArea = "overall" | "personality" | "career" | "money" | "love" | "relationship" | "health" | "custom";
+// ── 상품 상수(레지스트리 ziwei-island-palace-consult와 일치) ──
+const FEATURE_KEY = "ziwei-island-palace-consult";
+const FEATURE_REASON = "운명의 섬 12궁 심층 상담";
+const FEATURE_COST = 200;
+const FEATURE_AMOUNT_KRW = 20000;
+const FEATURE_MEMBERSHIP_CREDIT_COST = 2000;
+const PREPARE = "/api/ziwei-island-ai/prepare";
+const GENERATE = "/api/ziwei-island-ai/generate";
+const RESULT = "/api/ziwei-island-ai/result";
+
+type Gender = "female" | "male" | "unknown" | "";
+type CalendarType = "solar" | "lunar";
+type Phase = "hub" | "form" | "checking" | "payment" | "reading" | "ready";
+
 interface Palace {
-  name: string;
-  title: string;
-  icon: string;
-  theme: string;
-  focus: FocusArea;
-  question: string;
+  name: string; title: string; icon: string; theme: string;
 }
-
 const PALACES: Palace[] = [
-  { name: "명궁", title: "운명의 성", icon: "🏰", theme: "나의 본질·성향·삶의 방향", focus: "personality", question: "명궁을 중심으로 제 타고난 성향과 지금 삶의 방향을 봐주세요." },
-  { name: "재백궁", title: "황금 광산", icon: "⛏️", theme: "재물·수입·돈의 흐름", focus: "money", question: "재백궁을 중심으로 재물의 흐름과 지금 돈·일 관련 선택을 봐주세요." },
-  { name: "관록궁", title: "전략실", icon: "📐", theme: "직업·성취·진로 전환", focus: "career", question: "관록궁을 중심으로 직업·성취와 진로 전환의 흐름을 봐주세요." },
-  { name: "부부궁", title: "연인의 정원", icon: "💗", theme: "배우자·연애·인연", focus: "love", question: "부부궁을 중심으로 배우자·연애 인연의 형태와 흐름을 봐주세요." },
-  { name: "천이궁", title: "항구", icon: "⛵", theme: "이동·변화·해외", focus: "career", question: "천이궁을 중심으로 이동·변화·이사/해외 등 바깥 활동의 흐름을 봐주세요." },
-  { name: "복덕궁", title: "신비한 도서관", icon: "📚", theme: "내면·정신·취향", focus: "personality", question: "복덕궁을 중심으로 내면의 즐거움·정신 상태와 취향을 봐주세요." },
-  { name: "질액궁", title: "치유의 성소", icon: "💧", theme: "건강·체질·컨디션", focus: "health", question: "질액궁을 중심으로 건강·체질과 몸·마음의 취약점을 봐주세요." },
-  { name: "부모궁", title: "고대 신전", icon: "⛩️", theme: "부모·윗사람·뿌리", focus: "relationship", question: "부모궁을 중심으로 부모·윗사람과의 관계와 뿌리의 기운을 봐주세요." },
-  { name: "형제궁", title: "형제의 숲", icon: "🌲", theme: "형제·동년배·협력", focus: "relationship", question: "형제궁을 중심으로 형제·동년배와의 관계와 협력운을 봐주세요." },
-  { name: "노복궁", title: "동료의 광장", icon: "🤝", theme: "동료·인맥·아랫사람", focus: "relationship", question: "노복궁을 중심으로 동료·아랫사람 등 사회적 관계망을 봐주세요." },
-  { name: "자녀궁", title: "빛의 놀이터", icon: "🎈", theme: "자녀·창작·돌봄", focus: "relationship", question: "자녀궁을 중심으로 자녀운과 새로 시작하는 일(창작)의 기운을 봐주세요." },
-  { name: "전택궁", title: "고향의 집", icon: "🏡", theme: "거처·부동산·터전", focus: "custom", question: "전택궁을 중심으로 거처·부동산과 머무는 자리의 운을 봐주세요." },
+  { name: "명궁", title: "운명의 성", icon: "🏰", theme: "본질·성향·삶의 방향" },
+  { name: "재백궁", title: "황금 광산", icon: "⛏️", theme: "재물·수입·돈의 흐름" },
+  { name: "관록궁", title: "전략실", icon: "📐", theme: "직업·성취·진로 전환" },
+  { name: "부부궁", title: "연인의 정원", icon: "💗", theme: "배우자·연애·인연" },
+  { name: "천이궁", title: "항구", icon: "⛵", theme: "이동·변화·해외" },
+  { name: "복덕궁", title: "신비한 도서관", icon: "📚", theme: "내면·정신·취향" },
+  { name: "질액궁", title: "치유의 성소", icon: "💧", theme: "건강·체질·컨디션" },
+  { name: "부모궁", title: "고대 신전", icon: "⛩️", theme: "부모·윗사람·뿌리" },
+  { name: "형제궁", title: "형제의 숲", icon: "🌲", theme: "형제·동년배·협력" },
+  { name: "노복궁", title: "동료의 광장", icon: "🤝", theme: "동료·인맥·아랫사람" },
+  { name: "자녀궁", title: "빛의 놀이터", icon: "🎈", theme: "자녀·창작·돌봄" },
+  { name: "전택궁", title: "고향의 집", icon: "🏡", theme: "거처·부동산·터전" },
 ];
 
 const YEON_AV = "/fuctionassets/" + encodeURIComponent("연이.webp");
-const NEO_AV =
-  "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" +
-  encodeURIComponent("전략실 네오 메인-Photoroom.png");
+const NEO_AV = "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" + encodeURIComponent("전략실 네오 메인-Photoroom.png");
+
+const ERROR_TEXT: Record<string, string> = {
+  LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
+  PAYMENT_REQUIRED: "이용권 또는 결제가 필요한 상담입니다. 결제 정보를 확인해 주세요.",
+  PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
+  PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
+  INVALID_INPUT: "상담에 필요한 정보가 부족해요. 생년월일·성별·출생시간을 다시 확인해 주세요.",
+  CALCULATION_FAILED: "명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
+  SERVER_ERROR: "상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
+  LLM_ERROR: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+};
+
+type ApiResult = {
+  ok?: boolean; reason?: string; message?: string; accessToken?: string; accessType?: string;
+  sessionId?: string; status?: string; paymentPayload?: unknown;
+  consultation?: {
+    id: string; palaceKey: string; palaceTitle: string; sectionKeys: string[];
+    result?: { meta?: Record<string, unknown>; sections?: Record<string, { title?: string; body?: string }> } | null;
+    topic?: string; userQuestion?: string;
+  };
+};
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+function toText(v: unknown) { return typeof v === "string" ? v : v == null ? "" : String(v); }
+function toNumber(v: unknown, fb = 0) { const n = Number(v); return Number.isFinite(n) ? n : fb; }
+function asRecord(v: unknown): Record<string, unknown> { return v && typeof v === "object" && !Array.isArray(v) ? v as Record<string, unknown> : {}; }
+function runtimePayload(result: unknown) {
+  const record = asRecord(result); const payload = asRecord(record.payload); const data = asRecord(record.data);
+  return Object.keys(payload).length ? payload : (Object.keys(data).length ? data : record);
+}
+function mapError(result: ApiResult | null, status = 0) {
+  const reason = String(result?.reason || "").toUpperCase();
+  if (reason && ERROR_TEXT[reason]) return ERROR_TEXT[reason];
+  if (status === 401) return ERROR_TEXT.LOGIN_REQUIRED;
+  if (status === 402) return ERROR_TEXT.PAYMENT_VERIFY_FAILED;
+  return result?.message || ERROR_TEXT.SERVER_ERROR;
+}
+// ── 결제 게이트 헬퍼(ZiweiAiClient에서 verbatim, 상수만 이 상품으로) ──
+function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempotencyKey: string) {
+  const runtimeGate = asRecord(paymentPayload.runtimeGate);
+  const cost = toNumber(runtimeGate.cost ?? runtimeGate.coinPrice ?? paymentPayload.cost ?? paymentPayload.coinPrice, FEATURE_COST);
+  const amountKRW = toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? paymentPayload.amountKRW ?? paymentPayload.amountKrw ?? paymentPayload.paymentAmount, FEATURE_AMOUNT_KRW);
+  return {
+    categoryKey: toText(runtimeGate.categoryKey ?? paymentPayload.categoryKey) || "premium-consultation",
+    subFeatureKey: toText(runtimeGate.subFeatureKey ?? paymentPayload.subFeatureKey) || FEATURE_KEY,
+    featureKey: toText(runtimeGate.featureKey ?? paymentPayload.featureKey) || FEATURE_KEY,
+    reason: toText(runtimeGate.reason ?? paymentPayload.reason) || FEATURE_REASON,
+    productId: toText(runtimeGate.productId ?? paymentPayload.productId) || FEATURE_KEY,
+    productType: toText(runtimeGate.productType ?? paymentPayload.productType) || FEATURE_KEY,
+    serviceType: toText(runtimeGate.serviceType ?? paymentPayload.serviceType) || FEATURE_KEY,
+    forceDeduct: true, requestId: idempotencyKey, idempotencyKey,
+    cost, coinPrice: cost, amountKRW, amountKrw: amountKRW, paymentAmount: amountKRW,
+    membershipCreditCost: toNumber(runtimeGate.membershipCreditCost ?? paymentPayload.membershipCreditCost, FEATURE_MEMBERSHIP_CREDIT_COST),
+  };
+}
+function isPaymentGranted(result: unknown) {
+  const record = asRecord(result); const payload = runtimePayload(result);
+  const status = toText(record.status || payload.status || payload.paymentStatus).toLowerCase();
+  const denied = new Set(["error", "failed", "failure", "payment_required", "cancelled", "canceled"]);
+  if (record.ok === false || payload.ok === false || denied.has(status)) return false;
+  if (["granted", "paid", "success", "succeeded", "confirmed", "complete", "completed", "approved"].includes(status)) return true;
+  return Boolean(record.transactionId || record.paymentId || record.purchaseId || payload.transactionId || payload.paymentId || payload.purchaseId || Object.keys(asRecord(payload.accessGrant)).length || Object.keys(asRecord(payload.consume)).length);
+}
+function extractPayment(result: unknown, fallbackRequestId: string) {
+  const record = asRecord(result); const payload = runtimePayload(result);
+  const payment = asRecord(payload.payment); const accessGrant = asRecord(payload.accessGrant); const consume = asRecord(payload.consume);
+  const transactionId = toText(record.transactionId || payload.transactionId || accessGrant.transactionId || consume.transactionId);
+  const purchaseId = toText(record.purchaseId || payload.purchaseId || accessGrant.purchaseId || consume.purchaseId);
+  const ledgerId = toText(record.ledgerId || payload.ledgerId || accessGrant.ledgerId || consume.ledgerId);
+  const paymentId = toText(record.paymentId || transactionId || purchaseId || payload.paymentId || payment.paymentId || payment.impUid || payment.merchantUid || accessGrant.paymentId || ledgerId || fallbackRequestId);
+  return {
+    paymentId, transactionId, purchaseId, ledgerId, requestId: fallbackRequestId,
+    billingEvidence: { ...payload, paymentId, transactionId, purchaseId, ledgerId, payment: { ...payment, paymentId, requestId: fallbackRequestId }, accessGrant, consume },
+    payment: { ...payment, paymentId, requestId: fallbackRequestId }, accessGrant, consume,
+  };
+}
+
+function createRequestId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return `zwisl-${crypto.randomUUID()}`;
+  return `zwisl-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+async function postJson<T>(url: string, body: Record<string, unknown>, idempotencyKey?: string): Promise<{ status: number; data: T }> {
+  const response = await authFetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}) },
+    credentials: "include",
+    body: JSON.stringify(body),
+  }, { retryOn401: false });
+  const data = await response.json().catch(() => ({}));
+  return { status: response.status, data: data as T };
+}
 
 export default function IslandConsultClient() {
-  const router = useRouter();
-  const [focused, setFocused] = useState<string>("");
+  const [phase, setPhase] = useState<Phase>("hub");
+  const [palace, setPalace] = useState<Palace | null>(null);
+  const [form, setForm] = useState({ name: "", gender: "" as Gender, birthDate: "", birthTime: "", birthTimeUnknown: false, calendarType: "solar" as CalendarType, isLeapMonth: false, question: "" });
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const [result, setResult] = useState<ApiResult["consultation"] | null>(null);
+  const busyRef = useRef(false);
 
+  // 프로필 시드 프리필 + ?palace= 진입
   useEffect(() => {
     try {
-      const palace = new URLSearchParams(window.location.search).get("palace") || "";
-      if (palace && PALACES.some((p) => p.name === palace)) {
-        setFocused(palace);
-        requestAnimationFrame(() => {
-          const el = document.getElementById("ic-" + palace);
-          if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
-        });
-      }
-    } catch {
-      /* noop */
-    }
+      const seed = readAiProfileSeed();
+      if (seed) setForm((f) => ({
+        ...f,
+        name: seed.name || f.name,
+        gender: (seed.gender === "male" || seed.gender === "female" || seed.gender === "unknown") ? seed.gender : f.gender,
+        birthDate: seed.birthDate || f.birthDate,
+        birthTimeUnknown: seed.birthTimeUnknown ?? f.birthTimeUnknown,
+        birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
+        calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
+      }));
+      const q = new URLSearchParams(window.location.search).get("palace") || "";
+      const found = PALACES.find((p) => p.name === q);
+      if (found) { setPalace(found); setPhase("form"); }
+    } catch { /* noop */ }
   }, []);
 
-  function openConsult(p: Palace) {
-    try {
-      sessionStorage.setItem(
-        "ziweiIslandPreset",
-        JSON.stringify({ focusArea: p.focus, question: p.question, palace: p.name }),
-      );
-    } catch {
-      /* 프리셋 저장 실패해도 상담 자체는 열린다 */
+  function pickPalace(p: Palace) { setPalace(p); setError(""); setPhase("form"); }
+
+  async function pollResult(sessionId: string): Promise<ApiResult> {
+    const backoff = [700, 3000, 5000, 8000];
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      await sleep(backoff[Math.min(attempt, backoff.length - 1)]);
+      let response: Response;
+      try { response = await authFetch(`${RESULT}?id=${encodeURIComponent(sessionId)}`, { method: "GET" }, { retryOn401: false }); }
+      catch { continue; }
+      if (response.status === 202) continue;
+      const data = (await response.json().catch(() => ({}))) as ApiResult;
+      if (isRetriableResultPollFailure(response.status, data)) continue;
+      if (!response.ok) throw new Error(mapError(data, response.status));
+      return data;
     }
-    router.push("/ziwei-ai");
+    throw new Error("상담 생성이 평소보다 오래 걸리고 있어요. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.");
+  }
+
+  async function generate(idempotencyKey: string, payload: Record<string, unknown>, extra: Record<string, unknown>) {
+    setPhase("reading");
+    releasePaidFeatureGate(idempotencyKey);
+    setNotice(`${palace?.name}의 별을 읽고 있어요…`);
+    const { status, data } = await postJson<ApiResult>(GENERATE, { ...payload, ...extra, idempotencyKey }, idempotencyKey);
+    if (data.ok && data.consultation) { setResult(data.consultation); setPhase("ready"); setNotice(""); return; }
+    if (status === 202 && data.sessionId) {
+      const resolved = await pollResult(data.sessionId);
+      if (resolved.ok && resolved.consultation) { setResult(resolved.consultation); setPhase("ready"); setNotice(""); return; }
+      throw new Error(mapError(resolved, 0));
+    }
+    throw new Error(mapError(data, status));
+  }
+
+  async function startConsult(e: FormEvent) {
+    e.preventDefault();
+    if (busyRef.current || !palace) return;
+    setError("");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(form.birthDate)) { setError("생년월일을 확인해 주세요."); return; }
+    if (!form.gender) { setError("성별을 선택해 주세요."); return; }
+    if (!form.birthTimeUnknown && !/^\d{2}:\d{2}$/.test(form.birthTime)) { setError("출생시간을 입력하거나 ‘모름’을 선택해 주세요."); return; }
+    busyRef.current = true;
+    const idempotencyKey = createRequestId();
+    const birthInfo = {
+      name: form.name.trim(), gender: form.gender, birthDate: form.birthDate,
+      birthTime: form.birthTimeUnknown ? "" : form.birthTime, birthTimeUnknown: form.birthTimeUnknown,
+      calendarType: form.calendarType, isLeapMonth: form.calendarType === "lunar" ? form.isLeapMonth : false,
+    };
+    const payload: Record<string, unknown> = {
+      palaceKey: palace.name, serviceType: FEATURE_KEY, ...birthInfo, birthInfo,
+      userQuestion: form.question.trim(), question: form.question.trim(), locale: "ko", requestId: idempotencyKey, idempotencyKey,
+    };
+    let gateStarted = false;
+    try {
+      setPhase("checking");
+      setNotice("이용권을 확인하는 중이에요…");
+      beginPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS" });
+      gateStarted = true;
+      holdPaidFeatureGateOpen({ requestId: idempotencyKey, maxMs: 8000 });
+      const { status, data } = await runAccessCheckWithTransientRetry(
+        () => postJson<ApiResult>(PREPARE, payload, idempotencyKey),
+        { onRetry: () => setNotice("연결이 잠시 불안정해요. 이용권을 다시 확인하는 중이에요.") },
+      );
+      if (data.ok) {
+        completePaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "이용권 확인 완료", reason: FEATURE_REASON, paymentMode: "MEMBERSHIP_PASS", message: "확인이 끝났어요. 궁의 별을 읽어 드릴게요." });
+        await generate(idempotencyKey, payload, { accessToken: data.accessToken, accessType: data.accessType });
+        return;
+      }
+      if (data.reason === "LOGIN_REQUIRED" || status === 401) throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
+      if (data.reason === "INVALID_INPUT") throw new Error(mapError(data, status));
+      const degraded = isRetriableResultPollFailure(status, data);
+      if (!degraded && data.reason !== "PAYMENT_REQUIRED") throw new Error(mapError(data, status));
+      setPhase("payment");
+      setNotice("결제창을 확인해 주세요");
+      const gate = await runBillingCoinGate(buildBillingGateInput(asRecord((data as { paymentPayload?: unknown }).paymentPayload), idempotencyKey));
+      if (!isPaymentGranted(gate)) {
+        const code = String((gate as { error?: { code?: string } }).error?.code || "").toUpperCase();
+        if (code === "AUTH_REQUIRED" || code === "LOGIN_REQUIRED") throw new Error(ERROR_TEXT.LOGIN_REQUIRED);
+        if (code === "PAYMENT_CANCELLED") throw new Error(ERROR_TEXT.PAYMENT_CANCELLED);
+        throw new Error((gate as { error?: { message?: string } }).error?.message || ERROR_TEXT.PAYMENT_VERIFY_FAILED);
+      }
+      await generate(idempotencyKey, payload, extractPayment(gate, idempotencyKey));
+    } catch (err) {
+      if (gateStarted) releasePaidFeatureGate(idempotencyKey);
+      setError(err instanceof Error ? err.message : ERROR_TEXT.SERVER_ERROR);
+      setNotice("");
+      setPhase("form");
+    } finally {
+      busyRef.current = false;
+    }
   }
 
   return (
@@ -71,84 +263,146 @@ export default function IslandConsultClient() {
       <style>{CSS}</style>
       <header className="ic-head">
         <div className="ic-avatars" aria-hidden="true">
-          <span className="ic-av ic-av--yeon">
-            <Image src={YEON_AV} alt="" width={72} height={72} unoptimized />
-          </span>
-          <span className="ic-av ic-av--neo">
-            <Image src={NEO_AV} alt="" width={72} height={72} unoptimized />
-          </span>
+          <span className="ic-av ic-av--yeon"><Image src={YEON_AV} alt="" width={72} height={72} unoptimized /></span>
+          <span className="ic-av ic-av--neo"><Image src={NEO_AV} alt="" width={72} height={72} unoptimized /></span>
         </div>
         <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
-        <h1 className="ic-title">12궁 특화 상담</h1>
-        <p className="ic-sub">
-          궁을 하나 고르면, 그 자리에 초점을 맞춰 <strong>자미두수 AI 상담</strong>이 열려요.
-          연이와 네오가 그 궁의 별과 사화·대운의 흐름을 지금 고민에 맞춰 풀어드립니다.
-        </p>
+        <h1 className="ic-title">12궁 심층 상담</h1>
+        <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
       </header>
 
-      <ul className="ic-grid" aria-label="12궁 상담 선택">
-        {PALACES.map((p) => (
-          <li key={p.name}>
-            <button
-              type="button"
-              id={"ic-" + p.name}
-              className={"ic-card" + (focused === p.name ? " ic-card--focus" : "")}
-              onClick={() => openConsult(p)}
-              aria-label={`${p.name} ${p.title} — ${p.theme} 상담 시작`}
-            >
-              <span className="ic-card__icon" aria-hidden="true">{p.icon}</span>
-              <span className="ic-card__name">{p.name}</span>
-              <span className="ic-card__title">{p.title}</span>
-              <span className="ic-card__theme">{p.theme}</span>
-              <span className="ic-card__cta" aria-hidden="true">상담 →</span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {phase === "hub" && (
+        <ul className="ic-grid" aria-label="12궁 선택">
+          {PALACES.map((p) => (
+            <li key={p.name}>
+              <button type="button" className="ic-card" onClick={() => pickPalace(p)} aria-label={`${p.name} ${p.title} 상담 선택`}>
+                <span className="ic-card__icon" aria-hidden="true">{p.icon}</span>
+                <span className="ic-card__name">{p.name}</span>
+                <span className="ic-card__title">{p.title}</span>
+                <span className="ic-card__theme">{p.theme}</span>
+                <span className="ic-card__cta" aria-hidden="true">상담 →</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
 
-      <footer className="ic-foot">
-        <p>결제·상담·결과는 검증된 자미두수 AI 상담 화면에서 진행돼요.</p>
-        <a className="ic-back" href="/destiny-island">← 운명의 섬으로 돌아가기</a>
-      </footer>
+      {phase === "form" && palace && (
+        <form className="ic-form" onSubmit={startConsult}>
+          <div className="ic-picked"><span aria-hidden="true">{palace.icon}</span> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
+          <label className="ic-field"><span>생년월일</span><input type="date" value={form.birthDate} min="1900-01-01" max="2100-12-31" onChange={(e) => setForm({ ...form, birthDate: e.target.value })} required /></label>
+          <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => setForm({ ...form, birthTime: e.target.value })} /></label>
+          <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => setForm({ ...form, birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
+          <div className="ic-segrow">
+            <div className="ic-seg" role="group" aria-label="성별">
+              <button type="button" className={form.gender === "female" ? "on" : ""} onClick={() => setForm({ ...form, gender: "female" })}>여성</button>
+              <button type="button" className={form.gender === "male" ? "on" : ""} onClick={() => setForm({ ...form, gender: "male" })}>남성</button>
+            </div>
+            <div className="ic-seg" role="group" aria-label="달력">
+              <button type="button" className={form.calendarType === "solar" ? "on" : ""} onClick={() => setForm({ ...form, calendarType: "solar" })}>양력</button>
+              <button type="button" className={form.calendarType === "lunar" ? "on" : ""} onClick={() => setForm({ ...form, calendarType: "lunar" })}>음력</button>
+            </div>
+          </div>
+          {form.calendarType === "lunar" && (
+            <label className="ic-check"><input type="checkbox" checked={form.isLeapMonth} onChange={(e) => setForm({ ...form, isLeapMonth: e.target.checked })} /> 윤달이에요</label>
+          )}
+          <label className="ic-field"><span>이 궁에 묻고 싶은 것 (선택)</span><textarea value={form.question} maxLength={400} rows={2} placeholder={`${palace.name}과 관련해 지금 가장 궁금한 점을 적어주세요`} onChange={(e) => setForm({ ...form, question: e.target.value })} /></label>
+          {error && <p className="ic-err" role="alert">{error}</p>}
+          <button type="submit" className="ic-primary">🔮 {palace.name} 심층 상담 시작 · 20,000원</button>
+          <p className="ic-note">이용권·월정석이 있으면 자동으로 먼저 적용돼요. 생성에 실패하면 자동 환불됩니다.</p>
+        </form>
+      )}
+
+      {(phase === "checking" || phase === "payment" || phase === "reading") && (
+        <div className="ic-loading">
+          <div className="ic-orb" aria-hidden="true" />
+          <p>{notice || "준비하고 있어요…"}</p>
+        </div>
+      )}
+
+      {phase === "ready" && result && (
+        <article className="ic-result">
+          <h2 className="ic-result__title"><span aria-hidden="true">{PALACES.find((p) => p.name === result.palaceKey)?.icon}</span> {result.palaceKey} · {result.palaceTitle}</h2>
+          {result.result?.meta?.daeun ? <p className="ic-result__meta">{toText(result.result.meta.daeun)}</p> : null}
+          {(result.sectionKeys || []).map((key) => {
+            const sec = result.result?.sections?.[key];
+            if (!sec || !sec.body) return null;
+            return (
+              <section key={key} className="ic-sec">
+                <h3>{sec.title || key}</h3>
+                {String(sec.body).split(/\n{2,}|\n/).filter(Boolean).map((para, i) => <p key={i}>{para}</p>)}
+              </section>
+            );
+          })}
+          <div className="ic-result__foot">
+            <button type="button" className="ic-back-btn" onClick={() => { setResult(null); setPhase("hub"); setPalace(null); }}>다른 궁도 상담하기</button>
+            <a className="ic-back" href="/destiny-island">← 운명의 섬으로</a>
+          </div>
+        </article>
+      )}
+
+      {phase !== "ready" && (
+        <footer className="ic-foot"><a className="ic-back" href="/destiny-island">← 운명의 섬으로 돌아가기</a></footer>
+      )}
     </div>
   );
 }
 
 const CSS = `
-.ic-root{min-height:100vh;padding:calc(24px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
-  color:#241f47;font-family:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
-  background:radial-gradient(130% 100% at 50% 0%,#cbd0f5 0%,#b9b3ea 42%,#a99fdd 100%);}
-.ic-head{max-width:760px;margin:0 auto 22px;text-align:center}
-.ic-avatars{display:flex;justify-content:center;gap:-8px;margin-bottom:12px}
-.ic-av{width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.75);
-  box-shadow:0 8px 26px rgba(60,40,110,.28);background:#efeaff}
+.ic-root{min-height:100vh;padding:calc(24px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));color:#241f47;
+  font-family:'CodeDestinyBody','Pretendard','Apple SD Gothic Neo','Noto Sans KR',system-ui,sans-serif;
+  background:radial-gradient(130% 100% at 50% 0%,#cbd0f5 0%,#b9b3ea 42%,#a99fdd 100%)}
+.ic-head{max-width:760px;margin:0 auto 20px;text-align:center}
+.ic-avatars{display:flex;justify-content:center;margin-bottom:12px}
+.ic-av{width:72px;height:72px;border-radius:50%;overflow:hidden;border:2px solid rgba(255,255,255,.75);box-shadow:0 8px 26px rgba(60,40,110,.28);background:#efeaff}
 .ic-av--yeon{margin-right:-14px;z-index:2}
 .ic-av--neo{border-color:rgba(232,213,163,.9)}
 .ic-av :global(img){width:100%;height:100%;object-fit:cover;object-position:50% 18%}
 .ic-eyebrow{font-size:.82rem;letter-spacing:.14em;font-weight:700;color:#6a4fb0}
-.ic-title{font-family:'CodeDestinyDisplay','Mulmaru','Nanum Myeongjo',serif;font-size:clamp(1.8rem,6vw,2.5rem);
-  font-weight:800;margin:4px 0 8px;color:#2a1f5e;text-shadow:0 2px 14px rgba(255,255,255,.5)}
+.ic-title{font-family:'CodeDestinyDisplay','Mulmaru','Nanum Myeongjo',serif;font-size:clamp(1.8rem,6vw,2.5rem);font-weight:800;margin:4px 0 8px;color:#2a1f5e;text-shadow:0 2px 14px rgba(255,255,255,.5)}
 .ic-sub{max-width:44ch;margin:0 auto;font-size:.96rem;line-height:1.75;color:#3d356e;word-break:keep-all}
-.ic-sub strong{color:#7a4fc0;font-weight:800}
-.ic-grid{max-width:920px;margin:0 auto;list-style:none;padding:0;display:grid;gap:12px;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.ic-card{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;min-height:150px;padding:18px 12px 14px;
-  border-radius:20px;border:1px solid rgba(255,255,255,.7);cursor:pointer;text-align:center;
-  background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.62));
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  box-shadow:0 10px 26px rgba(70,48,130,.16),inset 0 1px 0 rgba(255,255,255,.9);
-  transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .2s ease,border-color .2s ease}
-.ic-card:hover,.ic-card:focus-visible{transform:translateY(-4px);border-color:#b79cf0;outline:none;
-  box-shadow:0 18px 40px rgba(70,48,130,.26),0 0 0 3px rgba(183,156,240,.35)}
-.ic-card--focus{border-color:#e0b94f;box-shadow:0 16px 38px rgba(70,48,130,.24),0 0 0 3px rgba(224,185,79,.5)}
-.ic-card__icon{font-size:2rem;line-height:1;filter:drop-shadow(0 3px 6px rgba(90,60,150,.28))}
+.ic-grid{max-width:920px;margin:0 auto;list-style:none;padding:0;display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.ic-card{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;min-height:150px;padding:18px 12px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.7);cursor:pointer;text-align:center;
+  background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.62));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  box-shadow:0 10px 26px rgba(70,48,130,.16),inset 0 1px 0 rgba(255,255,255,.9);transition:transform .18s cubic-bezier(.16,1,.3,1),box-shadow .2s,border-color .2s}
+.ic-card:hover,.ic-card:focus-visible{transform:translateY(-4px);border-color:#b79cf0;outline:none;box-shadow:0 18px 40px rgba(70,48,130,.26),0 0 0 3px rgba(183,156,240,.35)}
+.ic-card__icon{font-size:2rem;filter:drop-shadow(0 3px 6px rgba(90,60,150,.28))}
 .ic-card__name{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-weight:800;font-size:1.06rem;color:#2a1f5e;margin-top:6px}
 .ic-card__title{font-size:.82rem;color:#6a4fb0;font-weight:700}
 .ic-card__theme{font-size:.78rem;color:#5c5488;line-height:1.5;margin-top:2px}
 .ic-card__cta{margin-top:auto;font-size:.8rem;font-weight:800;color:#8a5fd0}
-.ic-foot{max-width:760px;margin:22px auto 0;text-align:center;color:#463c7a;font-size:.86rem}
-.ic-back{display:inline-block;margin-top:10px;color:#6a4fb0;font-weight:700;text-decoration:none;
-  padding:9px 18px;border-radius:999px;border:1px solid rgba(106,79,176,.35);min-height:44px;line-height:26px}
+.ic-form{max-width:440px;margin:0 auto;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;box-shadow:0 16px 40px rgba(70,48,130,.2)}
+.ic-picked{font-weight:700;color:#2a1f5e;margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ic-change{margin-left:auto;font-size:.78rem;color:#6a4fb0;background:none;border:1px solid rgba(106,79,176,.35);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:36px}
+.ic-field{display:block;margin-bottom:12px}
+.ic-field>span{display:block;font-size:.82rem;font-weight:700;color:#5c5488;margin-bottom:5px}
+.ic-field input,.ic-field textarea{width:100%;min-height:46px;padding:10px 12px;border-radius:12px;border:1px solid rgba(106,79,176,.28);background:#fff;color:#241f47;font:inherit;resize:vertical}
+.ic-field input:focus,.ic-field textarea:focus{outline:2px solid #b79cf0;outline-offset:1px}
+.ic-check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:#5c5488;min-height:40px;margin-bottom:8px}
+.ic-check input{width:18px;height:18px;accent-color:#8a5fd0}
+.ic-segrow{display:flex;gap:10px;margin-bottom:12px}
+.ic-seg{flex:1;display:flex;gap:6px}
+.ic-seg button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(106,79,176,.28);background:#fff;color:#5c5488;font-weight:700;cursor:pointer}
+.ic-seg button.on{background:rgba(138,95,208,.16);color:#2a1f5e;border-color:#b79cf0}
+.ic-err{color:#c2410c;font-size:.86rem;margin:4px 0 8px}
+.ic-primary{width:100%;min-height:54px;border:0;border-radius:999px;font-weight:800;font-size:1.02rem;cursor:pointer;color:#241a05;
+  background:linear-gradient(135deg,#f2d78d,#d4b96a);box-shadow:0 10px 26px rgba(180,150,80,.4)}
+.ic-primary:active{transform:scale(.98)}
+.ic-note{font-size:.78rem;color:#6a4fb0;text-align:center;margin-top:10px;line-height:1.6}
+.ic-loading{max-width:440px;margin:40px auto;text-align:center;color:#3d356e}
+.ic-orb{width:60px;height:60px;margin:0 auto 16px;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff,#c9b8f5 40%,#8a5fd0 70%,transparent 78%);box-shadow:0 0 40px rgba(138,95,208,.55);animation:icorb 2.2s ease-in-out infinite}
+@keyframes icorb{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
+.ic-result{max-width:680px;margin:0 auto;background:rgba(255,255,255,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.75);border-radius:22px;padding:22px;box-shadow:0 16px 44px rgba(70,48,130,.22)}
+.ic-result__title{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.4rem;color:#2a1f5e;margin-bottom:4px}
+.ic-result__meta{color:#6a4fb0;font-size:.86rem;margin-bottom:14px}
+.ic-sec{margin-bottom:18px}
+.ic-sec h3{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.08rem;color:#7a4fc0;margin-bottom:6px}
+.ic-sec p{font-size:.96rem;line-height:1.85;color:#332b5e;margin-bottom:8px;word-break:keep-all}
+.ic-result__foot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.ic-back-btn{min-height:46px;padding:9px 18px;border-radius:999px;border:1px solid #b79cf0;background:rgba(138,95,208,.12);color:#6a4fb0;font-weight:800;cursor:pointer}
+.ic-foot{max-width:760px;margin:22px auto 0;text-align:center}
+.ic-back{display:inline-block;color:#6a4fb0;font-weight:700;text-decoration:none;padding:9px 18px;border-radius:999px;border:1px solid rgba(106,79,176,.35);min-height:44px;line-height:26px}
 .ic-back:hover{background:rgba(255,255,255,.5)}
-@media (prefers-reduced-motion:reduce){.ic-card{transition:none}}
+@media (prefers-reduced-motion:reduce){.ic-card,.ic-primary{transition:none}.ic-orb{animation:none}}
 `;

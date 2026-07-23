@@ -185,8 +185,8 @@ img{max-width:100%;display:block}
 /* 시간대 조명 — 지형(SVG)만 필터. 파스텔 트와일라잇: 밤에도 어둡지 않게 */
 body.ph-dawn #mapSvg{filter:saturate(1.0) brightness(1.1) hue-rotate(-4deg)}
 body.ph-day #mapSvg{filter:saturate(1.06) brightness(1.1)}
-body.ph-dusk #mapSvg{filter:saturate(1.12) contrast(1.03) brightness(1.03) hue-rotate(6deg)}
-body.ph-night #mapSvg{filter:brightness(1.0) saturate(1.0)}
+body.ph-dusk #mapSvg{filter:saturate(1.12) contrast(1.03) brightness(0.98) hue-rotate(6deg)}
+body.ph-night #mapSvg{filter:brightness(0.86) saturate(0.92)}
 /* 궁 인터랙션 */
 .palace{cursor:pointer;outline:none}
 .palace .pbody{transition:transform .22s var(--ease-out)}
@@ -197,9 +197,14 @@ body.ph-night #mapSvg{filter:brightness(1.0) saturate(1.0)}
 .palace:hover .ptip,.palace:focus-visible .ptip{opacity:1}
 .palace .emis{opacity:.35;transition:opacity 1.4s ease}
 body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
+/* 야간 따뜻한 창불빛 + 수면 반사(파스텔 트와일라잇 유지: 지형은 어둡히지 않고 창만 앰버로) */
+body.ph-night .palace .emis{fill:#ffc97a}
+.palace .nreflect{opacity:0;transition:opacity 1.6s ease}
+body.ph-night .palace .nreflect{opacity:.2}
 .leyline{fill:none;stroke-linecap:round}
 .leyline.flow{stroke-dasharray:5 9;animation:leyFlow 2.4s linear infinite}
 @keyframes leyFlow{to{stroke-dashoffset:-14}}
+.chip-ic{vertical-align:-3px;margin-right:1px}
 .mk-badge{transform-origin:center;transform-box:fill-box}
 .mk-badge.pulse{animation:mkPulse 2.6s ease-in-out infinite}
 @keyframes mkPulse{0%,100%{opacity:.85}50%{opacity:.35}}
@@ -229,7 +234,17 @@ body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
 .sky-veil{position:absolute;inset:0;pointer-events:none;z-index:4;transition:opacity 1.6s ease;opacity:0}
 body.ph-dawn .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(120,100,180,.2) 0%,rgba(255,196,156,.12) 55%,transparent 100%)}
 body.ph-dusk .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(255,178,114,.14) 0%,rgba(150,88,160,.16) 60%,transparent 100%)}
-body.ph-night .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(40,30,80,.22) 0%,rgba(40,30,80,.08) 55%,rgba(40,30,80,.2) 100%)}
+body.ph-night .sky-veil{opacity:1;background:linear-gradient(180deg,rgba(34,26,68,.34) 0%,rgba(34,26,68,.14) 52%,rgba(34,26,68,.3) 100%)}
+/* 바이옴별 위상 트인트(경량) — 알파 오버레이만, hue는 BIOME_PAL 계열 유지(Veil Rule) */
+body.ph-night[data-biome="moonLake"] .sky-veil{background:linear-gradient(180deg,rgba(28,44,92,.36) 0%,rgba(28,44,92,.14) 52%,rgba(40,60,110,.3) 100%)}
+body.ph-night[data-biome="volcano"] .sky-veil{background:linear-gradient(180deg,rgba(70,26,52,.36) 0%,rgba(70,26,52,.14) 52%,rgba(90,34,58,.3) 100%)}
+body.ph-night[data-biome="citadel"] .sky-veil{background:linear-gradient(180deg,rgba(52,34,92,.36) 0%,rgba(52,34,92,.14) 52%,rgba(60,40,104,.3) 100%)}
+body.ph-night[data-biome="mistIsle"] .sky-veil{background:linear-gradient(180deg,rgba(60,34,90,.34) 0%,rgba(60,34,90,.16) 52%,rgba(72,44,104,.3) 100%)}
+body.ph-night[data-biome="goldenCliff"] .sky-veil{background:linear-gradient(180deg,rgba(58,44,84,.32) 0%,rgba(70,54,40,.12) 52%,rgba(50,38,72,.3) 100%)}
+body.ph-night[data-biome="forest"] .sky-veil{background:linear-gradient(180deg,rgba(30,46,66,.34) 0%,rgba(34,52,60,.13) 52%,rgba(34,44,72,.3) 100%)}
+body.ph-dusk[data-biome="volcano"] .sky-veil{background:linear-gradient(180deg,rgba(255,150,96,.18) 0%,rgba(170,70,90,.16) 60%,transparent 100%)}
+body.ph-dusk[data-biome="goldenCliff"] .sky-veil{background:linear-gradient(180deg,rgba(255,196,120,.18) 0%,rgba(180,120,80,.14) 60%,transparent 100%)}
+body.ph-dusk[data-biome="moonLake"] .sky-veil{background:linear-gradient(180deg,rgba(160,150,220,.16) 0%,rgba(120,110,180,.14) 60%,transparent 100%)}
 
 /* 날씨 파티클 (z 5) */
 .wx{position:absolute;inset:0;pointer-events:none;z-index:5;overflow:hidden}
@@ -828,8 +843,24 @@ document.addEventListener("keydown",function(e){
    8) 청사진 → 화면 (Layer 2는 읽기 전용으로만 소비)
    ============================================================ */
 var BP=null,PROFILE=null;
-var WX_META={clear:["🌙","별이 맑은 밤"],breeze:["🍃","미풍"],starfall:["🌠","별비"],mist:["🌫️","안개"],rain:["🌧️","비"],storm:["⛈️","폭풍"],aurora:["✨","오로라"]};
-var SEASON_ICON={"봄":"🌸","여름":"🌿","가을":"🍁","겨울":"❄️"};
+var WX_META={clear:["","별이 맑은 밤"],breeze:["","미풍"],starfall:["","별비"],mist:["","안개"],rain:["","비"],storm:["","폭풍"],aurora:["","오로라"]};
+/* HUD 칩 픽토그램(이모지 대체) — stroke line, currentColor 상속 */
+function chipIcon(inner){return '<svg class="chip-ic" width="15" height="15" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+inner+'</svg>';}
+var WX_PICTO={
+  clear:'<path d="M3 -4 A5 5 0 1 0 4 4.5 A4 4 0 0 1 3 -4 Z"/><path d="M-3 -4 l.6 1.4 1.4 .2 -1 1 .3 1.5 -1.3 -.8 -1.3 .8 .3 -1.5 -1 -1 1.4 -.2z"/>',
+  breeze:'<path d="M-6 -3 h7 a2 2 0 1 0 -2 -2"/><path d="M-6 1 h9 a2 2 0 1 1 -2 2"/><path d="M-6 5 h5"/>',
+  starfall:'<path d="M2 -4 l1 2.2 2.4 .2 -1.8 1.6 .6 2.4 -2.2 -1.2 -2.2 1.2 .6 -2.4 -1.8 -1.6 2.4 -.2z"/><path d="M-1 1 l-5 5"/>',
+  mist:'<path d="M-6 -3 h10"/><path d="M-6 0 h12"/><path d="M-6 3 h9"/><path d="M-4 6 h8"/>',
+  rain:'<path d="M-5 -1 a3 3 0 0 1 3 -3 a4 4 0 0 1 7 1 a2.6 2.6 0 0 1 -1 5 h-8 a2.6 2.6 0 0 1 -1 -3z"/><path d="M-3 4 v2 M0 4.5 v2.5 M3 4 v2"/>',
+  storm:'<path d="M-5 -2 a3 3 0 0 1 3 -3 a4 4 0 0 1 7 1 a2.6 2.6 0 0 1 -1 5 h-8 a2.6 2.6 0 0 1 -1 -3z"/><path d="M0 3 l-3 3 h3 l-2 3"/>',
+  aurora:'<path d="M-6 4 q3 -9 6 -4.5 t6 -4.5"/><path d="M-6 6.5 q3 -9 6 -4.5 t6 -4.5"/>'
+};
+var SEASON_PICTO={
+  "봄":'<circle cx="0" cy="0" r="1.6"/><circle cx="0" cy="-4" r="2.2"/><circle cx="3.8" cy="-1.2" r="2.2"/><circle cx="2.4" cy="3.4" r="2.2"/><circle cx="-2.4" cy="3.4" r="2.2"/><circle cx="-3.8" cy="-1.2" r="2.2"/>',
+  "여름":'<circle cx="0" cy="0" r="3"/><path d="M0 -7 V-5 M0 5 V7 M-7 0 H-5 M5 0 H7 M-5 -5 l1.4 1.4 M5 5 l-1.4 -1.4 M5 -5 l-1.4 1.4 M-5 5 l1.4 -1.4"/>',
+  "가을":'<path d="M0 6 C-5 1 -4.5 -6 0 -6 C4.5 -6 5 1 0 6 Z"/><path d="M0 6 V-3 M0 0 l-2.5 -2 M0 2 l2.5 -2"/>',
+  "겨울":'<path d="M0 -7 V7 M-6 -3.5 L6 3.5 M-6 3.5 L6 -3.5"/><path d="M0 -7 l-1.6 1.6 M0 -7 l1.6 1.6 M0 7 l-1.6 -1.6 M0 7 l1.6 -1.6"/>'
+};
 function brightnessMark(level){return {"묘":"◎","득":"O","리":"▲","평":"△","함":"X"}[level]||"";}
 
 function timePhase(){
@@ -867,8 +898,7 @@ function renderWeather(){
 /* ---- 코드 렌더 이소메트릭 맵 ---- */
 var SVGNS="http://www.w3.org/2000/svg";
 var VBW=1000,VBH=720;
-/* 바이옴 팔레트 v4 — 파스텔 트와일라잇(밝게, hue 유지·명도만 상향). 벽=파스텔 라벤더-크림 공통 */
-var STONE={t:"#efe9fb",l:"#c3b6e6",r:"#ddd3f4"};
+/* 바이옴 팔레트 v4 — 파스텔 트와일라잇(밝게, hue 유지·명도만 상향) */
 var BIOME_PAL={
   forest:{water:["#8fbccb","#6f9ab2"],land:"#93cba3",roof:"#82cc93",roof2:"#5faa78",trim:"#f5e6b6",glow:"#fff3c8"},
   moonLake:{water:["#a2bce6","#7f9ad2"],land:"#aecae4",roof:"#c2e2f6",roof2:"#8fc0e2",trim:"#eef8ff",glow:"#f4fbff"},
@@ -890,59 +920,16 @@ function isoBox(cx,cy,s,h){
   return {top:[tt,tr,tb,tl],left:[gl,gb,tb,tl],right:[gb,gr,tr,tb],tt:tt,tr:tr,tb:tb,tl:tl,apexY:cy-s/2-h};
 }
 var RIM="#fffdf6";
-function grad(id,c1,c2){return '<linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+c1+'"/><stop offset="1" stop-color="'+c2+'"/></linearGradient>';}
-/* 탑 하나(박스+피라미드 지붕) — 그라디언트 면·림라이트·금박 필리그리 */
-function tower(cx,cy,s,h,rh,pal,win){
-  var b=isoBox(cx,cy,s,h),str="";
-  str+=poly(b.left,"url(#wallL)")+poly(b.right,"url(#wallR)")+poly(b.top,"url(#wallT)");
-  /* 상단 앞모서리 림라이트 */
-  str+='<polyline points="'+[b.tl,b.tt,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+RIM+'" stroke-width="0.7" opacity=".45" stroke-linejoin="round"/>';
-  if(win){
-    var wf=' filter="url(#glowF)"';
-    str+='<rect class="emis" x="'+(cx-s*0.6).toFixed(1)+'" y="'+(cy-h*0.62).toFixed(1)+'" width="3.2" height="4.6" rx="1" fill="'+pal.glow+'"'+wf+'/>';
-    str+='<rect class="emis" x="'+(cx+s*0.28).toFixed(1)+'" y="'+(cy-h*0.62).toFixed(1)+'" width="3.2" height="4.6" rx="1" fill="'+pal.glow+'"'+wf+'/>';
-  }
-  if(rh>0){
-    var apex=[cx,cy-h-rh];
-    str+=poly([apex,b.tl,b.tt],"url(#roofB)")+poly([apex,b.tt,b.tr],"url(#roofB)");
-    str+=poly([apex,b.tl,b.tb],"url(#roofF)")+poly([apex,b.tb,b.tr],"url(#roofF)");
-    str+='<polyline points="'+[b.tl,b.tb,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+pal.trim+'" stroke-width="1.3" stroke-linejoin="round"/>';
-    /* 지붕 능선 금박 하이라이트 */
-    str+='<line x1="'+apex[0]+'" y1="'+apex[1].toFixed(1)+'" x2="'+b.tb[0]+'" y2="'+b.tb[1].toFixed(1)+'" stroke="'+pal.glow+'" stroke-width="0.8" opacity=".5"/>';
-  }
-  return {svg:str,apexY:rh>0?cy-h-rh:b.apexY};
-}
-/* 궁별 시그니처 소품(전경) — 각 섬의 정체성 */
-function motifSVG(name,s,pal){
-  var g="",T=pal.trim,G=pal.glow;
-  function C(x,y,r,f){return '<circle cx="'+(x*s).toFixed(1)+'" cy="'+(y*s).toFixed(1)+'" r="'+(r*s).toFixed(1)+'" fill="'+f+'"/>';}
-  function P(a,f){return poly(a.map(function(p){return [p[0]*s,p[1]*s];}),f);}
-  function L(x1,y1,x2,y2,st,w){return '<line x1="'+(x1*s).toFixed(1)+'" y1="'+(y1*s).toFixed(1)+'" x2="'+(x2*s).toFixed(1)+'" y2="'+(y2*s).toFixed(1)+'" stroke="'+st+'" stroke-width="'+(w*s).toFixed(2)+'" stroke-linecap="round"/>';}
-  function curl(x,y){return '<path d="M'+(x*s).toFixed(1)+' '+(y*s).toFixed(1)+' q '+(3.4*s).toFixed(1)+' -'+(4*s).toFixed(1)+' 0 -'+(8*s).toFixed(1)+'" fill="none" stroke="#cfe6ff" stroke-width="'+(0.9*s).toFixed(2)+'" opacity=".5"/>';}
-  switch(name){
-    case "재백궁": g+=P([[-42,15],[-25,15],[-28,23],[-45,23]],"#241d3a")+C(-42,24,1.6,"#14101f")+C(-27,24,1.6,"#14101f")+C(-35,12,2.6,G)+C(-31,13.5,2.2,T)+C(-38,14,2,G);break;
-    case "천이궁": g+=P([[24,20],[45,20],[41,26],[28,26]],"#241d3a")+L(35,20,35,7,T,1.2)+P([[35,7],[35,19],[46,19]],"#cbd9ef");break;
-    case "복덕궁": g+=P([[26,10],[41,10],[41,14],[26,14]],"#6f9ec2")+P([[27,14],[42,14],[42,18],[27,18]],"#9a86c8")+L(46,5,46,18,T,2.4);break;
-    case "자녀궁": g+=L(30,17,31,4,"#8f7fd0",0.6)+C(30,2,3.2,"#f4bed1")+L(38,17,38,6,"#8f7fd0",0.6)+C(38,3.5,3,"#a7d3ff")+C(45,6,2.4,G);break;
-    case "관록궁": g+=L(42,-3,42,18,T,1)+P([[42,-3],[55,1],[42,6]],"#a85a48");break;
-    case "부모궁": g+=L(24,23,24,5,"#a4653f",1.6)+L(42,23,42,5,"#a4653f",1.6)+P([[19,3],[47,3],[47,8],[19,8]],"#7d4326")+L(22,11,44,11,"#7d4326",1.8);break;
-    case "질액궁": g+='<ellipse cx="'+(34*s).toFixed(1)+'" cy="'+(21*s).toFixed(1)+'" rx="'+(12*s).toFixed(1)+'" ry="'+(4*s).toFixed(1)+'" fill="#6f9ec2" opacity=".7"/>'+curl(30,17)+curl(38,17);break;
-    case "노복궁": g+=P([[23,20],[45,20],[41,10],[27,10]],pal.roof)+L(34,10,34,5,T,1)+L(23,20,45,20,T,0.8)+L(30,20,30,10,shade(pal.roof,-0.2),0.7)+L(38,20,38,10,shade(pal.roof,-0.2),0.7);break;
-    case "형제궁": g+=P([[25,21],[34,5],[43,21]],"#4d8460")+P([[27,15],[34,3],[41,15]],"#6fae7d")+L(34,21,34,25,"#3a2a1a",1.8);break;
-    case "부부궁": g+='<path d="M'+(25*s).toFixed(1)+' '+(23*s).toFixed(1)+' q '+(9*s).toFixed(1)+' -'+(20*s).toFixed(1)+' '+(18*s).toFixed(1)+' 0" fill="none" stroke="'+T+'" stroke-width="'+(1.4*s).toFixed(2)+'"/>'+C(27,10,1.8,"#f4bed1")+C(41,10,1.8,"#f4bed1")+C(34,3,2,"#ffd6e6");break;
-    case "전택궁": g+=P([[38,3],[43,3],[43,13],[38,13]],"#241d3a")+'<path d="M'+(40.5*s).toFixed(1)+' '+(1*s).toFixed(1)+' q '+(4*s).toFixed(1)+' -'+(3*s).toFixed(1)+' 0 -'+(6*s).toFixed(1)+'" fill="none" stroke="#cfc6e0" stroke-width="'+(0.9*s).toFixed(2)+'" opacity=".5"/>';break;
-  }
-  return g;
-}
 /* ============================================================
    v3 아트 — 전역 라이팅 · 머티리얼 · 부품 · 다층 지형 · 궁별 bespoke 건물
-   (프로토타입 게이트: 명궁/재백궁/천이궁/부모궁 4궁만 신경로. 나머지는 legacy)
+   (전 12궁 bespoke. PALACE_ARCH 미등록 궁만 fallback)
    ============================================================ */
 /* 면별 명도 계수 → shade amt (전 씬 단일 광원, 좌상단 45°) */
 var FACE_AMT={top:0,left:-0.22,right:-0.44,ground:-0.58};
 function fsh(hex,face){return shade(hex,FACE_AMT[face]||0);}
 /* 머티리얼 base (바이옴 hue는 지붕/트림/글로우·지형이 담당, 벽은 머티리얼로 구분) */
-var MAT={stone:"#8a8f9c",marble:"#e8e4dc",wood:"#9c7248",metal:"#7a8494",glass:"#a8d4e0",gold:"#d4a94a",rock:"#726b78",vermilion:"#b5462f"};
+var MAT={stone:"#8a8f9c",marble:"#e8e4dc",wood:"#9c7248",metal:"#7a8494",glass:"#a8d4e0",gold:"#d4a94a",rock:"#726b78",vermilion:"#b5462f",
+  brick:"#b06a4f",sandstone:"#d8c39a",bronze:"#7d8a6a",ceramic:"#bcd4d8",wood2:"#b6894f",darkstone:"#3b3a44"};
 function nn(v){return (+v).toFixed(1);}
 function NL(x1,y1,x2,y2,st,w,op){return '<line x1="'+nn(x1)+'" y1="'+nn(y1)+'" x2="'+nn(x2)+'" y2="'+nn(y2)+'" stroke="'+st+'" stroke-width="'+w+'"'+(op!=null?' opacity="'+op+'"':"")+' stroke-linecap="round"/>';}
 function EL(cx,cy,rx,ry,f,extra){return '<ellipse cx="'+nn(cx)+'" cy="'+nn(cy)+'" rx="'+nn(rx)+'" ry="'+nn(ry)+'" fill="'+f+'"'+(extra||"")+'/>';}
@@ -1033,14 +1020,18 @@ function archMing(tier,pal,sc){
     var l=boxIso(-24*sc,G+8*sc,10*sc,26*sc,M);str+=l.svg+winPair(-24*sc,G+8*sc,10*sc,26*sc,pal)+roofHip(-24*sc,G+8*sc,10*sc,26*sc,11*sc,pal).svg;
     var rt=boxIso(24*sc,G+8*sc,10*sc,26*sc,M);str+=rt.svg+winPair(24*sc,G+8*sc,10*sc,26*sc,pal)+roofHip(24*sc,G+8*sc,10*sc,26*sc,11*sc,pal).svg;
     var bd=boxIso(0,G,27*sc,40*sc,M);str+=bd.svg+winPair(0,G-8*sc,27*sc,40*sc,pal)+winPair(0,G+6*sc,27*sc,40*sc,pal);
-    /* 중앙 첨탑 */
-    var spBase=bd.apexY;
-    var sp=cylIso(0,spBase+2*sc,7*sc,26*sc,M);str+=sp.svg;
-    str+=poly([[0,sp.topY-16*sc],[-7*sc,sp.topY],[7*sc,sp.topY]],fsh(MAT.gold,"top"));
-    str+=crown(0,sp.topY-16*sc);
-    str+='<circle cx="0" cy="'+nn(sp.topY-20*sc)+'" r="'+nn(3.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';
-    str+='<ellipse class="pring" cx="0" cy="'+nn(sp.topY-16*sc)+'" rx="'+nn(20*sc)+'" ry="'+nn(7*sc)+'" fill="none" stroke="'+pal.glow+'" stroke-width="1.4" opacity=".8"/>';
-    apex=sp.topY-20*sc;
+    /* 중앙 첨탑 — 드럼(넓은 받침)으로 허리 연결 후 첨탑 */
+    var drum=boxIso(0,bd.apexY+3*sc,15*sc,9*sc,M);str+=drum.svg;
+    var sp=cylIso(0,drum.apexY+2*sc,9*sc,22*sc,M);str+=sp.svg;
+    /* 원뿔 지붕 + 큰 왕관 */
+    str+=poly([[0,sp.topY-17*sc],[-9*sc,sp.topY],[9*sc,sp.topY]],fsh(pal.roof,"right"));
+    str+=poly([[0,sp.topY-17*sc],[-9*sc,sp.topY],[0,sp.topY-2*sc]],fsh(pal.roof2,"left"));
+    var cw=8*sc,cy0=sp.topY-17*sc;
+    str+=poly([[-cw,cy0],[-cw,cy0-4*sc],[-cw*0.55,cy0-1.6*sc],[0,cy0-7*sc],[cw*0.55,cy0-1.6*sc],[cw,cy0-4*sc],[cw,cy0]],fsh(MAT.gold,"top"));
+    str+=NL(-cw,cy0,cw,cy0,shade(MAT.gold,-0.3),1);
+    str+='<circle cx="0" cy="'+nn(cy0-4*sc)+'" r="'+nn(3.6*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';
+    str+='<ellipse class="pring" cx="0" cy="'+nn(cy0)+'" rx="'+nn(22*sc)+'" ry="'+nn(7.6*sc)+'" fill="none" stroke="'+pal.glow+'" stroke-width="1.4" opacity=".8"/>';
+    apex=cy0-7*sc;
   }
   return {svg:str,apexY:apex};
 }
@@ -1143,73 +1134,194 @@ function archBumo(tier,pal,sc){
     /* 박공(넓은 사모) */
     var rf=roofHip(0,hy,big?24*sc:20*sc,big?22*sc:16*sc,big?14*sc:11*sc,pal);str+=rf.svg;
     str+=NL(0,rf.apexY,0,rf.apexY-6*sc,V,1.6,0.9);/* 치기(성물) */
-    /* 토리이(전면) */
-    str+=torii(0,G+2*sc,big?15*sc:12*sc,big?26*sc:20*sc);
+    /* 토리이(전면·크게) — 실루엣에서 문(門)으로 읽히도록 전당보다 앞·아래로 분리 */
+    str+=torii(0,G+9*sc,big?18*sc:14*sc,big?30*sc:23*sc);
     if(big){str+='<circle cx="'+nn(-16*sc)+'" cy="'+nn(G-6*sc)+'" r="'+nn(2.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>'+'<circle cx="'+nn(16*sc)+'" cy="'+nn(G-6*sc)+'" r="'+nn(2.4*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';}
     apex=rf.apexY-6*sc;
   }
   return {svg:str,apexY:apex};
 }
-var PALACE_ARCH={"명궁":archMing,"재백궁":archJaebaek,"천이궁":archCheoni,"부모궁":archBumo};
+/* 형제궁 = 수목 회관: 낮은 목조 박공 + 감싸는 큰 나무 */
+function archHyeongje(tier,pal,sc){
+  var G=groundY(sc),W=MAT.wood,str="",apex;
+  function bigTree(x,base,s){
+    return NL(x,base,x,base-13*s,shade(W,-0.25),2.6*s,0.95)
+      +EL(x,base-19*s,10*s,9*s,fsh(pal.roof2||"#5faa78","left"))
+      +EL(x-3*s,base-22*s,8*s,7*s,fsh(pal.roof||"#82cc93","top"))
+      +EL(x+4*s,base-18*s,7*s,6*s,fsh(pal.roof||"#82cc93","right"));
+  }
+  if(tier<=1){var b=boxIso(0,G,17*sc,11*sc,W);str+=b.svg;str+=bigTree(13*sc,G-2*sc,sc*0.8);apex=G-20*sc;}
+  else{
+    var big=tier>=5,hw=big?22*sc:18*sc,hh=big?15*sc:12*sc;
+    var hall=boxIso(-3*sc,G,hw,hh,W);str+=hall.svg+winPair(-3*sc,G,hw,hh,pal);
+    var rf=roofHip(-3*sc,G,hw+2*sc,hh,big?10*sc:8*sc,pal);str+=rf.svg;
+    str+=bigTree(big?21*sc:17*sc,G-4*sc,sc);
+    if(big)str+=bigTree(-22*sc,G-2*sc,sc*0.82);
+    apex=Math.min(rf.apexY,G-24*sc);
+  }
+  return {svg:str,apexY:apex};
+}
+/* 부부궁 = 정원 파빌리온: 개방형 원형(기둥+얕은 돔) + 하트 */
+function archBubu(tier,pal,sc){
+  var G=groundY(sc),M=MAT.marble,str="",apex;
+  if(tier<=1){str+=EL(0,G,16*sc,7*sc,fsh(M,"top"));str+=NL(-10*sc,G,-11*sc,G-12*sc,M,1.8,0.7)+NL(9*sc,G,10*sc,G-11*sc,M,1.8,0.6);apex=G-12*sc;}
+  else{
+    var big=tier>=5,r=big?20*sc:16*sc,ch=big?20*sc:16*sc;
+    str+=EL(0,G,r,r*0.5,fsh(M,"top"))+EL(0,G,r,r*0.5,"none",' stroke="'+shade(M,-0.2)+'" stroke-width="1" opacity=".6"');
+    var xs=big?[-18,-11,0,11,18]:[-14,-7,7,14];
+    xs.forEach(function(xx){str+=NL(xx*sc,G-1*sc,xx*sc,G-ch,M,2.4*sc,0.95);});
+    str+=EL(0,G-ch,r*0.92,r*0.46,fsh(M,"top"));
+    str+='<path d="M'+nn(-r*0.8)+' '+nn(G-ch)+' A '+nn(r*0.8)+' '+nn(r*0.7)+' 0 0 1 '+nn(r*0.8)+' '+nn(G-ch)+' Z" fill="'+fsh(pal.roof,"right")+'"/>';
+    str+='<path d="M'+nn(-r*0.8)+' '+nn(G-ch)+' A '+nn(r*0.8)+' '+nn(r*0.7)+' 0 0 1 0 '+nn(G-ch-r*0.7)+' L0 '+nn(G-ch)+' Z" fill="'+fsh(pal.roof2,"left")+'" opacity=".6"/>';
+    var hy=G-ch-r*0.7-3*sc;
+    str+='<circle cx="'+nn(-2.4*sc)+'" cy="'+nn(hy)+'" r="'+nn(2.5*sc)+'" fill="'+MAT.vermilion+'"/><circle cx="'+nn(2.4*sc)+'" cy="'+nn(hy)+'" r="'+nn(2.5*sc)+'" fill="'+MAT.vermilion+'"/>';
+    str+=poly([[-4.6*sc,hy+1*sc],[4.6*sc,hy+1*sc],[0,hy+5.5*sc]],MAT.vermilion);
+    if(big)str+='<circle cx="0" cy="'+nn(hy)+'" r="'+nn(6*sc)+'" fill="'+pal.glow+'" opacity=".2" filter="url(#glowF)"/>';
+    apex=hy-3*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 자녀궁 = 놀이터 탑: 불규칙 채색 다층 + 풍차 + 미끄럼틀 */
+function archJanyeo(tier,pal,sc){
+  var G=groundY(sc),W=MAT.wood2,str="",apex,PK=["#f4bed1","#a7d3ff","#f5e6b6","#b8e6c0"];
+  function windmill(x,y,s){var b='<g>'+NL(x,y,x,y-3*s,shade(W,-0.3),1.2,0.9);
+    for(var k=0;k<4;k++){var a=k*Math.PI/2;b+=poly([[x,y],[x+Math.cos(a)*6*s,y+Math.sin(a)*6*s],[x+Math.cos(a+0.6)*3.6*s,y+Math.sin(a+0.6)*3.6*s]],PK[k]);}
+    return b+'</g>';}
+  if(tier<=1){var b=boxIso(0,G,15*sc,11*sc,PK[0]);str+=b.svg;apex=G-13*sc;}
+  else{
+    var big=tier>=5;
+    var b1=boxIso(-5*sc,G,15*sc,13*sc,PK[0]);str+=b1.svg;
+    var b2=boxIso(7*sc,G-1*sc,10*sc,big?20*sc:15*sc,PK[1]);str+=b2.svg+winPair(7*sc,G-1*sc,10*sc,big?20*sc:15*sc,pal);
+    var b3=boxIso(-3*sc,b1.apexY,9*sc,big?12*sc:9*sc,PK[2]);str+=b3.svg;
+    str+=windmill(7*sc,b2.apexY-2*sc,sc);
+    str+='<path d="M'+nn(-5*sc)+' '+nn(b1.apexY+2*sc)+' q '+nn(-15*sc)+' '+nn(6*sc)+' '+nn(-16*sc)+' '+nn(18*sc)+'" fill="none" stroke="'+PK[3]+'" stroke-width="'+nn(2.8*sc)+'" opacity=".92"/>';
+    if(big)str+='<circle cx="'+nn(-3*sc)+'" cy="'+nn(b3.apexY-2*sc)+'" r="'+nn(2.2*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';
+    apex=Math.min(b2.apexY-8*sc,b3.apexY);
+  }
+  return {svg:str,apexY:apex};
+}
+/* 질액궁 = 온천 치유소: 낮은 팔각 + 돔 + 증기 + 수반 */
+function archJilaek(tier,pal,sc){
+  var G=groundY(sc),C=MAT.ceramic,B=MAT.stone,str="",apex;
+  function steam(x,y,s){return '<path class="emis" d="M'+nn(x)+' '+nn(y)+' q '+nn(-3*s)+' '+nn(-5*s)+' 0 '+nn(-9*s)+' q '+nn(3*s)+' '+nn(-4*s)+' 0 '+nn(-9*s)+'" fill="none" stroke="#eaf6ff" stroke-width="'+nn(2*s)+'" opacity=".5"/>';}
+  if(tier<=1){var b=boxIso(0,G,15*sc,7*sc,B);str+=b.svg;apex=G-9*sc;}
+  else{
+    var big=tier>=5,s=big?20*sc:16*sc,h=big?11*sc:9*sc;
+    var base=boxIso(0,G,s,h,B);str+=base.svg+winPair(0,G,s,h,pal);
+    str+='<path d="M'+nn(-s*0.8)+' '+nn(base.apexY)+' A '+nn(s*0.8)+' '+nn(s*0.66)+' 0 0 1 '+nn(s*0.8)+' '+nn(base.apexY)+' Z" fill="'+fsh(C,"right")+'"/>';
+    str+='<path d="M'+nn(-s*0.8)+' '+nn(base.apexY)+' A '+nn(s*0.8)+' '+nn(s*0.66)+' 0 0 1 0 '+nn(base.apexY-s*0.66)+' L0 '+nn(base.apexY)+' Z" fill="'+fsh(C,"left")+'" opacity=".55"/>';
+    str+=EL(0,base.apexY-s*0.66,2.4*sc,1.4*sc,pal.glow);
+    str+=EL(0,G+7*sc,s*0.7,s*0.24,shade("#6f9ec2",0.12),' opacity=".7"');
+    str+=steam(-6*sc,G+4*sc,sc)+steam(7*sc,G+5*sc,sc);
+    if(big)str+=steam(0,G+3*sc,sc*1.2);
+    apex=base.apexY-s*0.66-2*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 노복궁 = 광장 회관: 넓은 저층 + 원형 열주 + 평지붕 */
+function archNobok(tier,pal,sc){
+  var G=groundY(sc),B=MAT.brick,W=MAT.wood,str="",apex;
+  if(tier<=1){var b=boxIso(0,G,18*sc,7*sc,B);str+=b.svg;apex=G-9*sc;}
+  else{
+    var big=tier>=5,s=big?26*sc:21*sc,h=big?7*sc:6*sc;
+    if(big)str+=EL(0,G+9*sc,s*1.1,s*0.4,"none",' stroke="'+pal.trim+'" stroke-width="1" opacity=".4"');
+    var base=boxIso(0,G,s,h,B);str+=base.svg;
+    var colH=big?15*sc:12*sc,N=big?7:5,y0=base.apexY;
+    for(var i=0;i<N;i++){var x=-s*0.8+i*(s*1.6)/(N-1);str+=NL(x,y0+2*sc,x,y0-colH,MAT.marble,2.4*sc,0.95);}
+    str+=boxIso(0,y0-colH,s*0.92,big?5*sc:4*sc,W).svg;
+    apex=y0-colH-(big?5*sc:4*sc)-2*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 관록궁 = 전략실: 각진 흑석 요새 + 흉벽 + 망루 + 깃발 */
+function archGwanrok(tier,pal,sc){
+  var G=groundY(sc),K=MAT.darkstone,Br=MAT.bronze,str="",apex;
+  function flag(x,y,s){return NL(x,y,x,y-14*s,Br,1.5*s,0.95)+poly([[x,y-14*s],[x+9*s,y-11*s],[x,y-8*s]],MAT.vermilion);}
+  if(tier<=1){var b=boxIso(0,G,17*sc,12*sc,K);str+=b.svg;str+=poly([[-10*sc,G-12*sc],[-4*sc,G-16*sc],[3*sc,G-11*sc],[9*sc,G-14*sc]],fsh(K,"top"));apex=G-16*sc;}
+  else{
+    var big=tier>=5,bw=big?22*sc:18*sc,bh=big?22*sc:17*sc;
+    var body=boxIso(-3*sc,G,bw,bh,K);str+=body.svg+winPair(-3*sc,G,bw,bh,pal);
+    var ty=body.apexY;
+    for(var i=-2;i<=2;i++){str+='<rect x="'+nn(-3*sc+i*bw/2.7-1.4*sc)+'" y="'+nn(ty-3*sc)+'" width="'+nn(2.8*sc)+'" height="'+nn(3.4*sc)+'" fill="'+fsh(K,"top")+'"/>';}
+    var twx=big?18*sc:15*sc,tw=boxIso(twx,G+6*sc,7*sc,big?30*sc:24*sc,K);str+=tw.svg+winPair(twx,G+6*sc,7*sc,big?30*sc:24*sc,pal);
+    str+=poly([[twx-7*sc,tw.apexY],[twx,tw.apexY-7*sc],[twx+7*sc,tw.apexY]],fsh(Br,"top"));
+    str+=flag(twx,tw.apexY-7*sc,sc);
+    apex=tw.apexY-7*sc-14*sc;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 전택궁 = 저택: 대칭 2층 벽돌 + 기와 박공 + 굴뚝 연기 + 울타리 */
+function archJeontaek(tier,pal,sc){
+  var G=groundY(sc),B=MAT.brick,str="",apex;
+  function fence(){var f="";for(var i=-3;i<=3;i++){f+=NL(i*6*sc,G+7*sc,i*6*sc,G+2*sc,MAT.wood,1.2,0.7);}return f+NL(-19*sc,G+4.5*sc,19*sc,G+4.5*sc,MAT.wood,1,0.6);}
+  function smoke(x,y){return '<path class="emis" d="M'+nn(x)+' '+nn(y)+' q '+nn(-4*sc)+' '+nn(-6*sc)+' 0 '+nn(-11*sc)+'" fill="none" stroke="#e8e2ee" stroke-width="'+nn(2.4*sc)+'" opacity=".45"/>';}
+  if(tier<=1){var b=boxIso(0,G,16*sc,11*sc,B);str+=b.svg;apex=G-13*sc;}
+  else{
+    var big=tier>=5,bw=big?20*sc:17*sc,bh=big?18*sc:15*sc;
+    if(big)str+=fence();
+    var body=boxIso(0,G,bw,bh,B);str+=body.svg+winPair(0,G-4*sc,bw,bh,pal)+winPair(0,G+6*sc,bw,bh,pal);
+    var rf=roofHip(0,G,bw+2*sc,bh,big?12*sc:10*sc,pal);str+=rf.svg;
+    var chx=big?11*sc:9*sc,chTop=G-(big?20:16)*sc;
+    str+='<rect x="'+nn(chx)+'" y="'+nn(chTop)+'" width="'+nn(4*sc)+'" height="'+nn(9*sc)+'" fill="'+fsh(B,"left")+'"/>';
+    str+=smoke(chx+2*sc,chTop);
+    apex=rf.apexY;
+  }
+  return {svg:str,apexY:apex};
+}
+/* 복덕궁 = 도서관: 사암 원통 + 큰 돔 + 스테인드글라스 + 천창 */
+function archBokdeok(tier,pal,sc){
+  var G=groundY(sc),S=MAT.sandstone,str="",apex,GC=["#e58f8f","#8fb7e5","#e5cf8f","#8fe5b0"];
+  if(tier<=1){var c=cylIso(0,G,14*sc,13*sc,S);str+=c.svg;apex=G-13*sc;}
+  else{
+    var big=tier>=5,r=big?18*sc:15*sc,h=big?20*sc:16*sc;
+    var cyl=cylIso(0,G,r,h,S);str+=cyl.svg;
+    var n=big?4:3;
+    for(var i=0;i<n;i++){var x=-r*0.6+i*(r*1.2)/(n-1);
+      str+='<rect class="emis" x="'+nn(x-1.4*sc)+'" y="'+nn(G-h*0.62)+'" width="'+nn(2.8*sc)+'" height="'+nn(6*sc)+'" rx="'+nn(1.4*sc)+'" fill="'+GC[i%GC.length]+'" filter="url(#glowF)"/>';}
+    var dy=cyl.topY;
+    str+='<path d="M'+nn(-r)+' '+nn(dy)+' A '+nn(r)+' '+nn(r*0.9)+' 0 0 1 '+nn(r)+' '+nn(dy)+' Z" fill="'+fsh(pal.roof,"right")+'"/>';
+    str+='<path d="M'+nn(-r)+' '+nn(dy)+' A '+nn(r)+' '+nn(r*0.9)+' 0 0 1 0 '+nn(dy-r*0.9)+' L0 '+nn(dy)+' Z" fill="'+fsh(pal.roof2,"left")+'" opacity=".55"/>';
+    str+='<circle cx="0" cy="'+nn(dy-r*0.9+2*sc)+'" r="'+nn(2.6*sc)+'" fill="'+pal.glow+'" filter="url(#glowF)"/>';
+    apex=dy-r*0.9;
+  }
+  return {svg:str,apexY:apex};
+}
+var PALACE_ARCH={"명궁":archMing,"재백궁":archJaebaek,"천이궁":archCheoni,"부모궁":archBumo,
+  "형제궁":archHyeongje,"부부궁":archBubu,"자녀궁":archJanyeo,"질액궁":archJilaek,
+  "노복궁":archNobok,"관록궁":archGwanrok,"전택궁":archJeontaek,"복덕궁":archBokdeok};
 function bespokeBuilding(tier,pal,sc,name,isMing){
   var str=islandBase(sc,pal);
   if(isMing)str=mingHalo(sc,pal)+str;
-  var b=PALACE_ARCH[name](tier,pal,sc);
+  var fn=PALACE_ARCH[name]||archHyeongje;
+  var b=fn(tier,pal,sc);
   return {svg:str+b.svg,apexY:b.apexY};
 }
-/* 궁 건물 — 티어=웅장함/발광(공통) · palaceName=고유 형태·소품. return {svg, apexY} */
+/* 궁 건물 — 전 12궁 bespoke(PALACE_ARCH). cx,cy는 렌더 그룹이 translate로 처리 → 원점 기준 생성 */
 function buildingSVG(cx,cy,tier,pal,scale,isMing,palaceName){
-  var sc=scale||1,g="",apex;
-  if(palaceName&&PALACE_ARCH[palaceName]){return bespokeBuilding(tier,pal,sc,palaceName,isMing);}
-  if(isMing){g+='<ellipse cx="'+cx+'" cy="'+(cy-34*sc).toFixed(1)+'" rx="'+(66*sc).toFixed(1)+'" ry="'+(60*sc).toFixed(1)+'" fill="'+pal.glow+'" opacity=".12" filter="url(#soft)"/>';}
-  /* 플랫폼(지형) */
-  var ps=44*sc,pb=isoBox(cx,cy+3*sc,ps,7*sc);
-  g+=poly(pb.left,shade(pal.land,-0.32))+poly(pb.right,shade(pal.land,-0.16))+poly(pb.top,"url(#landG)");
-  g+='<polyline points="'+[pb.tl,pb.tt,pb.tr].map(pt).join(" ")+'" fill="none" stroke="'+shade(pal.land,0.22)+'" stroke-width="0.8" opacity=".45"/>';
-  g+='<polyline points="'+[pb.tl,pb.tb,pb.tr].map(pt).join(" ")+'" fill="none" stroke="'+shade(pal.land,0.18)+'" stroke-width="1" opacity=".5"/>';
-  var by=cy-4*sc;
-  if(isMing){
-    g+='<ellipse class="pring" cx="'+cx+'" cy="'+(by-70*sc).toFixed(1)+'" rx="'+(30*sc).toFixed(1)+'" ry="'+(11*sc).toFixed(1)+'" fill="none" stroke="'+pal.trim+'" stroke-width="1.4" opacity=".7"/>';
-  }
-  if(tier<=1){
-    var b=isoBox(cx,by,20*sc,15*sc);
-    g+=poly(b.left,shade(STONE.l,0.06))+poly(b.right,shade(STONE.r,0.06))+poly(b.top,shade(STONE.t,0.05));
-    g+='<polyline points="'+[b.tl,b.tt,b.tr].map(pt).join(" ")+'" fill="none" stroke="'+RIM+'" stroke-width="0.6" opacity=".3"/>';
-    g+=poly([[cx-26*sc,cy+2*sc],[cx-18*sc,cy+6*sc],[cx-24*sc,cy+9*sc]],shade(STONE.r,0.04));
-    g+=poly([[cx+18*sc,cy+5*sc],[cx+27*sc,cy+3*sc],[cx+23*sc,cy+9*sc]],shade(STONE.r,0.04));
-    apex=b.apexY;
-  }else if(tier===2){
-    var t2=tower(cx,by,23*sc,22*sc,15*sc,pal,false);g+=t2.svg;apex=t2.apexY;
-  }else if(tier===3){
-    var tt3=tower(cx+16*sc,by+7*sc,10*sc,18*sc,10*sc,pal,false);g+=tt3.svg;
-    var m3=tower(cx-2*sc,by,26*sc,27*sc,18*sc,pal,true);g+=m3.svg;apex=m3.apexY;
-  }else if(tier===4){
-    var lt=tower(cx-20*sc,by+8*sc,10*sc,20*sc,12*sc,pal,false);
-    var rt=tower(cx+20*sc,by+8*sc,10*sc,20*sc,12*sc,pal,false);
-    var m4=tower(cx,by,28*sc,33*sc,20*sc,pal,true);
-    g+=lt.svg+rt.svg+m4.svg;
-    g+='<line x1="'+cx+'" y1="'+(m4.apexY).toFixed(1)+'" x2="'+cx+'" y2="'+(m4.apexY-16*sc).toFixed(1)+'" stroke="'+pal.trim+'" stroke-width="1.2"/>';
-    g+=poly([[cx,(m4.apexY-16*sc)],[cx+11*sc,(m4.apexY-13*sc)],[cx,(m4.apexY-9*sc)]],pal.roof);
-    apex=m4.apexY-16*sc;
-  }else{
-    var l5=tower(cx-22*sc,by+9*sc,11*sc,24*sc,13*sc,pal,true);
-    var r5=tower(cx+22*sc,by+9*sc,11*sc,24*sc,13*sc,pal,true);
-    var m5=tower(cx,by,30*sc,38*sc,20*sc,pal,true);
-    g+=l5.svg+r5.svg+m5.svg;
-    var sp=tower(cx,m5.apexY+6*sc,6*sc,26*sc,16*sc,pal,false);g+=sp.svg;
-    g+='<circle cx="'+cx+'" cy="'+(sp.apexY-4*sc).toFixed(1)+'" r="'+(3.2*sc).toFixed(1)+'" fill="'+pal.trim+'" filter="url(#glowF)"/>';
-    g+='<ellipse class="pring" cx="'+cx+'" cy="'+(sp.apexY+2*sc).toFixed(1)+'" rx="'+(20*sc).toFixed(1)+'" ry="'+(7*sc).toFixed(1)+'" fill="none" stroke="'+pal.glow+'" stroke-width="1.4" opacity=".8"/>';
-    apex=sp.apexY-6*sc;
-  }
-  if(palaceName&&palaceName!=="명궁")g+=motifSVG(palaceName,sc,pal);
-  return {svg:g,apexY:apex};
+  return bespokeBuilding(tier,pal,scale||1,palaceName,isMing);
 }
 /* 궁 링 배치(명궁 중앙 + 11궁 타원) */
 var RING=["부모궁","복덕궁","관록궁","노복궁","자녀궁","천이궁","질액궁","재백궁","형제궁","전택궁","부부궁"];
 var LAYOUT={"명궁":{cx:500,cy:320,scale:1.5}};
-(function(){var cxo=500,cyo=372,rx=372,ry=224;
-  for(var i=0;i<RING.length;i++){var a=(-90+i*(360/11))*Math.PI/180;
-    LAYOUT[RING[i]]={cx:Math.round(cxo+rx*Math.cos(a)),cy:Math.round(cyo+ry*Math.sin(a)),scale:1};}})();
+/* FNV-1a 32bit — 명반 서명 기반 결정론 지터용(Math.random 금지) */
+function fnv1a(str){var h=0x811c9dc5,s=String(str);for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*0x01000193)>>>0;}return h>>>0;}
+/* 11궁 유기적 군도 배치: 균등 링 기준 반경 ±8%·각도 ±6° 결정론 지터. 명궁은 중앙 고정 */
+function computeLayout(sig){
+  var cxo=500,cyo=372,rx=372,ry=224;
+  for(var i=0;i<RING.length;i++){
+    var a0=-90+i*(360/11);
+    if(sig){
+      var jr=((fnv1a(sig+"|r|"+RING[i])%1000)/1000-0.5)*2;
+      var ja=((fnv1a(sig+"|a|"+RING[i])%1000)/1000-0.5)*2;
+      var rr=1+jr*0.08, da=ja*6, a=(a0+da)*Math.PI/180;
+      LAYOUT[RING[i]]={cx:Math.round(cxo+rx*rr*Math.cos(a)),cy:Math.round(cyo+ry*rr*Math.sin(a)),scale:1};
+    }else{
+      var au=a0*Math.PI/180;
+      LAYOUT[RING[i]]={cx:Math.round(cxo+rx*Math.cos(au)),cy:Math.round(cyo+ry*Math.sin(au)),scale:1};
+    }
+  }
+}
+computeLayout(null); /* 초기 균등 링(폴백) */
 function palaceCenter(name){return LAYOUT[name]||LAYOUT["명궁"];}
 function ptipSVG(pal,def){
   var w=132,x=-w/2,line1=pal.name+" · "+def.title,line2=pal.tierLabel+" · 궁의 힘 "+pal.score;
@@ -1225,8 +1337,37 @@ function markerBadge(pal){
   if(BP.markers.yearlyLuckPalace===pal.name)m.push(["⭐","올해"]);
   return m;
 }
+/* --- 핀 픽토그램(이모지 대체) — 24 그리드·2px 스트로크, 육각 배지 --- */
+function hexPath(cx,cy,r){var p="";for(var i=0;i<6;i++){var a=(-90+i*60)*Math.PI/180,x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);p+=(i?"L":"M")+nn(x)+" "+nn(y)+" ";}return p+"Z";}
+function picto(name,IC){
+  var s='stroke="'+IC+'" stroke-width="1.7" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  function P(d){return '<path d="'+d+'" '+s+'/>';}
+  switch(name){
+    case "명궁": return P("M-6 4 L-6 -2 L-3 1 L0 -4 L3 1 L6 -2 L6 4 Z");
+    case "부모궁": return P("M-7 -3 H7")+P("M-6 -0.5 H6")+P("M-5 -3 V5")+P("M5 -3 V5");
+    case "형제궁": return '<circle cx="0" cy="-2" r="5" '+s+'/>'+P("M0 3 V6");
+    case "부부궁": return P("M0 5 C-6 0 -6 -5 -2.5 -5 C-0.6 -5 0 -3.2 0 -2.4 C0 -3.2 0.6 -5 2.5 -5 C6 -5 6 0 0 5 Z");
+    case "자녀궁": return '<circle cx="0" cy="-2" r="4.4" '+s+'/>'+P("M0 2.4 V6");
+    case "재백궁": return P("M0 -6 L5 -1 L0 6 L-5 -1 Z")+P("M-5 -1 H5")+P("M0 -6 V6");
+    case "질액궁": return P("M0 -6 C4 -1 4.5 2 0 5 C-4.5 2 -4 -1 0 -6 Z");
+    case "천이궁": return '<circle cx="0" cy="-5" r="1.7" '+s+'/>'+P("M0 -3.3 V5")+P("M-4 0 H4")+P("M-4 3 C-2 6 2 6 4 3");
+    case "노복궁": return P("M-7 -2 H7")+P("M-5 -2 V4")+P("M0 -2 V4")+P("M5 -2 V4")+P("M-6 4.5 H6");
+    case "관록궁": return P("M-3 6 V-6 H5 L3 -3.5 L5 -1 H-3");
+    case "전택궁": return P("M-6 5 V-1 L0 -6 L6 -1 V5 Z")+P("M-2 5 V0.5 H2 V5");
+    case "복덕궁": return P("M0 -4 V5")+P("M0 -4 C-2 -6 -6 -6 -6 -4 V4 C-6 3.2 -2 3.2 0 5")+P("M0 -4 C2 -6 6 -6 6 -4 V4 C6 3.2 2 3.2 0 5");
+  }
+  return "";
+}
+function markerPicto(kind,IC){
+  var s='stroke="'+IC+'" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+  if(kind==="신궁")return '<path d="M2.5 -5.5 A5.5 5.5 0 1 0 3.5 4.8 A4.4 4.4 0 0 1 2.5 -5.5 Z" '+s+'/>';
+  if(kind==="대운")return '<circle cx="0" cy="0" r="5.4" '+s+'/><path d="M0 -3.4 L2.2 2.4 L0 1 L-2.2 2.4 Z" '+s+'/>';
+  return '<path d="M0 -6 L1.7 -1.9 L6 -1.9 L2.5 1 L4 5.6 L0 2.7 L-4 5.6 L-2.5 1 L-6 -1.9 L-1.7 -1.9 Z" '+s+'/>';
+}
 function renderMap(pop){
   var pal0=biomePal(BP.biome.id);
+  document.body.dataset.biome=BP.biome.id;
+  computeLayout(BP.signature||null);
   var zoom=$("mapZoom");
   var parts=[];
   /* defs: 물 그라디언트 + 벽/지붕/지형 그라디언트 + 글로우 + 물 코스틱 텍스처 */
@@ -1235,11 +1376,6 @@ function renderMap(pop){
       +'<stop offset="0%" stop-color="'+shade(pal0.water[0],0.14)+'"/>'
       +'<stop offset="52%" stop-color="'+pal0.water[0]+'"/>'
       +'<stop offset="100%" stop-color="'+pal0.water[1]+'"/></radialGradient>'
-    +grad("wallT",shade(STONE.t,0.16),STONE.t)
-    +grad("wallL",shade(STONE.l,0.05),shade(STONE.l,-0.28))
-    +grad("wallR",shade(STONE.r,0.08),shade(STONE.r,-0.22))
-    +grad("roofF",shade(pal0.roof,0.18),pal0.roof)
-    +grad("roofB",pal0.roof2,shade(pal0.roof2,-0.16))
     +'<radialGradient id="landG" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="'+shade(pal0.land,0.18)+'"/><stop offset="1" stop-color="'+pal0.land+'"/></radialGradient>'
     +'<radialGradient id="vig" cx="50%" cy="46%" r="72%"><stop offset="0%" stop-color="#000000" stop-opacity="0"/><stop offset="78%" stop-color="'+shade(pal0.water[1],-0.3)+'" stop-opacity="0"/><stop offset="100%" stop-color="'+shade(pal0.water[1],-0.35)+'" stop-opacity="0.5"/></radialGradient>'
     +'<filter id="soft"><feGaussianBlur stdDeviation="1.1"/></filter>'
@@ -1267,10 +1403,15 @@ function renderMap(pop){
   edges.forEach(function(e){
     var a=palaceCenter(e.from),b=palaceCenter(e.to);
     var mx=(a.cx+b.cx)/2,my=(a.cy+b.cy)/2-46;
-    var col=e.weight>0?"#e8d5a3":"#f2a6bd";
+    /* 공명 타입별 색: 삼방=금(지지) · 대궁=바이올렛(축) · 사화=부호별 로즈금/danger */
+    var col=e.type==="triad"?"#e8d5a3":e.type==="opposite"?"#c4b5fd":e.type==="sihua"?(e.weight>=0?"#f4d6a4":"#f2a6bd"):(e.weight>0?"#e8d5a3":"#f2a6bd");
     var op=Math.min(0.5,Math.abs(e.weight)/22+0.12);
+    var w=(1.4+Math.min(3,Math.abs(e.weight)/9)).toFixed(2);
+    var d="M"+a.cx+" "+(a.cy-8)+" Q "+mx+" "+my+" "+b.cx+" "+(b.cy-8);
+    /* 강한 공명(|w|>=8)엔 발광 하위 레이어 */
+    if(Math.abs(e.weight)>=8)ley+='<path class="leyline" d="'+d+'" stroke="'+col+'" stroke-width="'+(w*2.2).toFixed(1)+'" opacity="'+(op*0.5).toFixed(2)+'" filter="url(#glowF)"/>';
     var cls=(e.weight>0&&!reduceMotion)?"leyline flow":"leyline";
-    ley+='<path class="'+cls+'" d="M'+a.cx+' '+(a.cy-8)+' Q '+mx+' '+my+' '+b.cx+' '+(b.cy-8)+'" stroke="'+col+'" stroke-width="'+(1+Math.min(1.4,Math.abs(e.weight)/14)).toFixed(2)+'" opacity="'+op.toFixed(2)+'"/>';
+    ley+='<path class="'+cls+'" d="'+d+'" stroke="'+col+'" stroke-width="'+w+'" opacity="'+op.toFixed(2)+'"/>';
   });
   parts.push(ley+"</g>");
   /* 중앙 컴퍼스 광장 */
@@ -1284,17 +1425,22 @@ function renderMap(pop){
     var def=PALACES[pal.name];if(!def)return;
     var L=palaceCenter(pal.name);
     var bld=buildingSVG(0,0,pal.tier,pal0,L.scale,pal.name==="명궁",pal.name);
-    var pinY=bld.apexY-18;
+    var pinY=bld.apexY-18,pinX=14;
+    var tcol=pal.tier>=5?"#e8d5a3":pal.tier>=4?"#d4b96a":pal.tier>=3?"#a78bfa":"rgba(196,181,253,.62)";
     var badges=markerBadge(pal),bstr="";
-    badges.forEach(function(m,i){bstr+='<text class="mk-badge pulse" x="'+(14+i*15)+'" y="'+(pinY-2)+'" font-size="13" text-anchor="middle">'+m[0]+"</text>";});
-    var tcol=pal.tier>=5?"#e8d5a3":pal.tier>=4?"#d4b96a":pal.tier>=3?"#a78bfa":"rgba(196,181,253,.6)";
+    badges.forEach(function(m,i){var bx=pinX+i*17,by=pinY-19;
+      bstr+='<g class="mk-badge pulse" transform="translate('+bx+','+by.toFixed(1)+')">'
+        +'<path d="'+hexPath(0,0,8)+'" fill="#0a0818" fill-opacity=".88" stroke="'+tcol+'" stroke-width="1.3"/>'
+        +'<g transform="scale(0.78)">'+markerPicto(m[1],"#f4eeff")+'</g></g>';});
     var glow=pal.tier>=4?' filter="url(#soft)"':"";
     var aria=pal.name+" "+def.title+", "+pal.tierLabel+" 단계, 궁의 힘 "+pal.score+(badges.length?", "+badges.map(function(m){return m[1];}).join(" "):"");
     var g='<g class="palace'+(pop?" pop":"")+'" tabindex="0" role="button" data-palace="'+esc(pal.name)+'" aria-label="'+esc(aria)+'" transform="translate('+L.cx+','+L.cy+')"'+(pop?' style="animation-delay:'+(groups.length*0.09).toFixed(2)+'s"':"")+'>'
       +'<ellipse cx="0" cy="7" rx="'+(46*L.scale).toFixed(1)+'" ry="'+(14*L.scale).toFixed(1)+'" fill="#2a1e52" opacity=".26" filter="url(#soft)"/>'
+      +'<rect class="nreflect" x="-2.5" y="'+(30*L.scale).toFixed(0)+'" width="5" height="'+(42*L.scale).toFixed(0)+'" rx="2.5" fill="#ffc97a" filter="url(#glowF)"/>'
       +'<g class="pbody"'+glow+'>'+bld.svg+"</g>"
-      +'<circle class="pin-halo" cx="14" cy="'+pinY+'" r="13" fill="#0a0818" fill-opacity=".82" stroke="'+tcol+'" stroke-width="2"/>'
-      +'<text x="14" y="'+(pinY+5)+'" font-size="14" text-anchor="middle" aria-hidden="true">'+def.icon+"</text>"
+      +'<line x1="'+pinX+'" y1="'+(pinY+11)+'" x2="4" y2="'+(bld.apexY-2).toFixed(1)+'" stroke="'+tcol+'" stroke-width="1.4" opacity=".65"/>'
+      +'<path class="pin-halo" d="'+hexPath(pinX,pinY,13)+'" fill="#0a0818" fill-opacity=".84" stroke="'+tcol+'" stroke-width="2"/>'
+      +'<g transform="translate('+pinX+','+pinY+')" aria-hidden="true">'+picto(pal.name,"#f4eeff")+'</g>'
       +bstr+ptipSVG(pal,def)+"</g>";
     groups.push(g);
   });
@@ -1407,12 +1553,12 @@ function nextStory(){clearTimeout(_navAuto);showStory(_storyIdx+1);}
 function renderHud(){
   $("hudName").textContent=G.name||"운명의 섬";
   $("hudMeta").textContent=BP.biome.label+" · "+BP.bureau.name+(PROFILE&&PROFILE.name?" · "+PROFILE.name+"님의 명반":"");
-  var wx=WX_META[BP.weather.id]||["🌙",BP.weather.label];
-  $("chipWeather").innerHTML='<span aria-hidden="true">'+wx[0]+'</span> '+esc(wx[1]);
-  $("chipSeason").innerHTML='<span aria-hidden="true">'+(SEASON_ICON[BP.season]||"")+'</span> 대운의 계절 · '+esc(BP.season);
+  var wx=WX_META[BP.weather.id]||["",BP.weather.label];
+  $("chipWeather").innerHTML=chipIcon(WX_PICTO[BP.weather.id]||WX_PICTO.clear)+' '+esc(wx[1]);
+  $("chipSeason").innerHTML=chipIcon(SEASON_PICTO[BP.season]||"")+' 대운의 계절 · '+esc(BP.season);
   var luck=BP.markers.currentMajorLuck;
   if(luck){$("chipLuck").hidden=false;
-    $("chipLuck").innerHTML='<span aria-hidden="true">🧭</span> 지금 대운 <span class="sub">'+esc(luck.palaceName)+" ("+esc(luck.range)+"세)</span>";}
+    $("chipLuck").innerHTML=chipIcon('<circle cx="0" cy="0" r="5.4"/><path d="M0 -3.4 L2.2 2.4 L0 1 L-2.2 2.4 Z"/>')+' 지금 대운 <span class="sub">'+esc(luck.palaceName)+" ("+esc(luck.range)+"세)</span>";}
   else{$("chipLuck").hidden=true;}
 }
 function enterIsland(pop){
