@@ -49,9 +49,10 @@ const shellFiles = [
 const shellMarkers = [
   "cd-mobile-bottom-navigation-v20260701",
   "cd-mobile-payment-lock-ux-v20260701",
-  "id=\"cdMobileDestinyHub\"",
+  "id=\"cdMobileHeader\"",
+  "cd-mobile-header-v20260723",
   "id=\"cdMobileBottomNav\"",
-  "data-action=\"openGoldenGrainCharge\"",
+  "id=\"cdStickyCta\"",
   "document.body.appendChild(nav)",
   "openGoldenGrainCharge: ['goldenGrainChargeModalRoot', 'sajuLoaderOverlay']",
   "id=\"authQuickLinks\"",
