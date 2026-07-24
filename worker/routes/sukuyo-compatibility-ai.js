@@ -15,8 +15,8 @@ import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "..
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
-const TITLE = "숙요점 AI 상담";
-const COMPATIBILITY_TITLE = "숙요점 궁합 AI 상담";
+const TITLE = "숙요점 전문가 상담";
+const COMPATIBILITY_TITLE = "숙요점 궁합 전문가 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const TOKEN_TTL_MS = 20 * 60 * 1000;
@@ -63,12 +63,12 @@ const SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS = 14000;
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  paymentRequired: "숙요점 궁합 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
+  paymentRequired: "숙요점 궁합 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   paymentVerifyFailed: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
   invalidInput: "상담에 필요한 정보가 부족해요. 생년월일과 상담 질문을 다시 확인해 주세요.",
   calculationFailed: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   serverFailed: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
 

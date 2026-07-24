@@ -240,7 +240,7 @@ function buildDestinyBiasOgSvg(request) {
     <text x="24" y="92" fill="#fde68a" font-size="42" font-weight="800">1회 ${escapeXml(priceWon)}</text>
   </g>
 
-  <text x="122" y="520" fill="#cbd5e1" font-size="22" font-weight="600">Code Destiny · 내부 명식 엔진 계산 / AI 해석 전용</text>
+  <text x="122" y="520" fill="#cbd5e1" font-size="22" font-weight="600">Code Destiny · 내부 명식 엔진 계산 / 전문가 해석 전용</text>
 </svg>`;
 }
 
@@ -360,7 +360,7 @@ async function handleAnalyze(request, env) {
   const analysisSource = geminiResult?.ok ? "gemini" : "rule-based";
   const warnings = [];
   if (themeGate.downgraded && themeGate.warning) warnings.push(themeGate.warning);
-  if (!geminiResult?.ok) warnings.push("AI 해석이 일시적으로 지연되어 내부 룰 기반 해석으로 응답했습니다.");
+  if (!geminiResult?.ok) warnings.push("전문가 해석이 일시적으로 지연되어 내부 룰 기반 해석으로 응답했습니다.");
 
   return json({
     ok: true,
