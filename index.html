@@ -17738,10 +17738,22 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
       <div class="cd-footer-legal__meta">
         <span class="cd-footer-legal__copyright">© 2026 CODE DESTINY. All rights reserved.</span>
         <span class="cd-footer-langpick notranslate" role="group" aria-label="언어 선택" data-cd-trans-attr="aria-label:footer.langAria">
-          <button type="button" class="cd-footer-langpick__btn" data-lang="ko" data-action="changeLanguage">KR</button>
-          <button type="button" class="cd-footer-langpick__btn" data-lang="en" data-action="changeLanguage">ENG</button>
-          <button type="button" class="cd-footer-langpick__btn" data-lang="ja" data-action="changeLanguage">JPN</button>
-          <button type="button" class="cd-footer-langpick__btn" data-lang="zh-CN" data-action="changeLanguage">CHN</button>
+          <button type="button" class="cd-footer-langpick__btn" data-lang="ko" data-action="changeLanguage" aria-label="한국어">
+            <span class="cd-footer-langpick__flag" aria-hidden="true"><svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#fff"/><circle cx="12" cy="8" r="3.2" fill="#cd2e3a"/><path d="M12 4.8a3.2 3.2 0 0 0 0 6.4 1.6 1.6 0 0 0 0-3.2 1.6 1.6 0 0 1 0-3.2z" fill="#0047a0"/><g stroke="#000" stroke-width=".7"><path d="M4.2 4.3l1.9 2.9M5.1 3.7l1.9 2.9M17.9 8.8l1.9 2.9M18.8 8.2l1.9 2.9"/></g></svg></span>
+            <span class="cd-footer-langpick__label">KR</span>
+          </button>
+          <button type="button" class="cd-footer-langpick__btn" data-lang="en" data-action="changeLanguage" aria-label="English">
+            <span class="cd-footer-langpick__flag" aria-hidden="true"><svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#b22234"/><g fill="#fff"><rect y="1.23" width="24" height="1.23"/><rect y="3.69" width="24" height="1.23"/><rect y="6.15" width="24" height="1.23"/><rect y="8.62" width="24" height="1.23"/><rect y="11.08" width="24" height="1.23"/><rect y="13.54" width="24" height="1.23"/></g><rect width="10" height="8.62" fill="#3c3b6e"/><g fill="#fff"><circle cx="2" cy="2" r=".7"/><circle cx="5" cy="2" r=".7"/><circle cx="8" cy="2" r=".7"/><circle cx="3.5" cy="4.3" r=".7"/><circle cx="6.5" cy="4.3" r=".7"/><circle cx="2" cy="6.6" r=".7"/><circle cx="5" cy="6.6" r=".7"/><circle cx="8" cy="6.6" r=".7"/></g></svg></span>
+            <span class="cd-footer-langpick__label">ENG</span>
+          </button>
+          <button type="button" class="cd-footer-langpick__btn" data-lang="ja" data-action="changeLanguage" aria-label="日本語">
+            <span class="cd-footer-langpick__flag" aria-hidden="true"><svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#fff"/><circle cx="12" cy="8" r="4.6" fill="#bc002d"/></svg></span>
+            <span class="cd-footer-langpick__label">JPN</span>
+          </button>
+          <button type="button" class="cd-footer-langpick__btn" data-lang="zh-CN" data-action="changeLanguage" aria-label="中文">
+            <span class="cd-footer-langpick__flag" aria-hidden="true"><svg viewBox="0 0 24 16" xmlns="http://www.w3.org/2000/svg"><rect width="24" height="16" fill="#de2910"/><g fill="#ffde00"><path d="M4 2.2l.95 2.92-2.48-1.8h3.06l-2.48 1.8z"/><path d="M8.3 1.5l.32 1.03-.88-.63h1.09l-.88.63z"/><path d="M10 3.4l.32 1.03-.88-.63h1.09l-.88.63z"/><path d="M10 5.9l.32 1.03-.88-.63h1.09l-.88.63z"/><path d="M8.3 7.6l.32 1.03-.88-.63h1.09l-.88.63z"/></g></svg></span>
+            <span class="cd-footer-langpick__label">CHN</span>
+          </button>
         </span>
       </div>
     </div>
@@ -31029,10 +31041,14 @@ html:not(.neo-mode) body footer .cd-footer-legal .cd-footer-legal__link:hover{co
 html.neo-mode body footer .cd-footer-legal .cd-footer-legal__link:hover{color:var(--cd-accent,#c4b5fd)!important}
 html body footer .cd-footer-legal__meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
 html body footer .cd-footer-legal__copyright{font-size:.72rem;color:var(--cd-text-muted,#70445c);opacity:.9}
-html body footer .cd-footer-langpick{display:inline-flex;gap:2px;padding:3px;border-radius:999px;border:1px solid var(--cd-border,rgba(216,63,120,.16))}
-html body footer .cd-footer-langpick__btn{min-height:26px;padding:3px 9px;border:0;border-radius:999px;background:none;color:var(--cd-text-muted,#70445c);font:inherit;font-size:.68rem;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:background var(--cd-dur-fast,120ms) ease,color var(--cd-dur-fast,120ms) ease}
+html body footer .cd-footer-langpick{display:inline-flex;flex-wrap:wrap;gap:6px;padding:4px;border-radius:14px;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-accent,#b31955) 4%,transparent)}
+html body footer .cd-footer-langpick__btn{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 10px 4px 6px;border:1px solid transparent;border-radius:10px;background:none;color:var(--cd-text-muted,#70445c);font:inherit;font-size:.72rem;font-weight:800;letter-spacing:.02em;cursor:pointer;transition:background var(--cd-dur-fast,120ms) ease,color var(--cd-dur-fast,120ms) ease,border-color var(--cd-dur-fast,120ms) ease}
+html body footer .cd-footer-langpick__flag{display:inline-flex;width:22px;height:15px;border-radius:3px;overflow:hidden;box-shadow:0 0 0 1px rgba(0,0,0,.08);flex:0 0 auto}
+html body footer .cd-footer-langpick__flag svg{display:block;width:100%;height:100%}
 html body footer .cd-footer-langpick__btn:hover,html body footer .cd-footer-langpick__btn:focus-visible{background:color-mix(in srgb,var(--cd-accent,#b31955) 12%,transparent);color:var(--cd-accent,#b31955)}
+html body footer .cd-footer-langpick__btn.active,html body footer .cd-footer-langpick__btn[aria-current="true"]{background:color-mix(in srgb,var(--cd-accent,#b31955) 16%,transparent);color:var(--cd-accent,#b31955);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent)}
 html.neo-mode body footer .cd-footer-langpick__btn:hover,html.neo-mode body footer .cd-footer-langpick__btn:focus-visible{background:rgba(196,181,253,.16);color:var(--cd-accent,#c4b5fd)}
+html.neo-mode body footer .cd-footer-langpick__btn.active,html.neo-mode body footer .cd-footer-langpick__btn[aria-current="true"]{background:rgba(196,181,253,.2);color:var(--cd-accent,#c4b5fd);border-color:rgba(196,181,253,.5)}
 @media (max-width:900px){ html body footer .cd-footer-shell{grid-template-columns:repeat(2,minmax(0,1fr))}html body footer .cd-footer-brandcol{grid-column:1/-1} }
 @media (max-width:560px){ html body footer .cd-footer-shell{grid-template-columns:1fr;gap:16px}html body footer .cd-footer-legal{justify-content:center;text-align:center}html body footer .cd-footer-legal__links{justify-content:center} }
 
