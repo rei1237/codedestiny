@@ -182,7 +182,7 @@
     }
     var label = document.getElementById('langLabel') || document.getElementById('translateLangLabel');
     if (label) label.textContent = LABEL_BY_LANG[lang] || lang.toUpperCase();
-    Array.prototype.forEach.call(document.querySelectorAll('.lang-btn'), function (btn) {
+    Array.prototype.forEach.call(document.querySelectorAll('.lang-btn, .cd-footer-langpick__btn'), function (btn) {
       var active = normalizeLang(btn.getAttribute('data-lang')) === lang;
       btn.classList.toggle('active', active);
       if (active) btn.setAttribute('aria-current', 'true');
