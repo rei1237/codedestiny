@@ -968,11 +968,47 @@ function cdShareResultCardImage(options){
   }, contentId);
 }
 
+/* 숙요 궁합초대 확장 — saju 궁합초대와 동일 cp(base64url 생일) 재사용하되, 대상이 React 라우트라
+   레거시 DOM 프리필 대신 /sukuyo-compatibility-ai?cp= 딥링크로 보내고 React 클라가 personB를 채운다.
+   (점성술 시나스트리는 리포에 존재하지 않아 대상 없음.) 기존 saju 궁합초대는 무변경(회귀 0). */
+function cdBuildSukuyoCompatInviteUrl(){
+  var self = cdReadSelfBirthForInvite();
+  if (!self) return null;
+  var cp = _cdB64UrlEncode(JSON.stringify(self));
+  if (!cp) return null;
+  var origin = 'https://code-destiny.com';
+  try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
+  return cdAppendReferralQuery(origin + '/sukuyo-compatibility-ai?cp=' + encodeURIComponent(cp));
+}
+function shareSukuyoCompatInviteKakao(){
+  var url = cdBuildSukuyoCompatInviteUrl();
+  if (!url) {
+    if (typeof showToast === 'function') showToast('먼저 내 사주를 확인한 뒤 숙요 궁합 초대 링크를 만들 수 있어요 🐷');
+    return;
+  }
+  var self = cdReadSelfBirthForInvite() || {};
+  var who = self.n ? (self.n + '님') : '내';
+  shareWithReward(function(){
+    var text = '🌙 [숙요 궁합 초대] ' + who + '과의 숙요 궁합, 같이 볼래요?\n\n'
+      + '아래 링크를 열면 ' + who + '의 정보가 상대 칸에 자동으로 채워져요.\n\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: '🌙 숙요 궁합 초대', text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '숙요 궁합 초대 링크를 복사했어요! 카카오톡에 붙여넣어 주세요 💬'); }, 800);
+  }, 'sukuyo-compat-invite');
+}
+
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
   window.cdShareResultCardImage = cdShareResultCardImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;
+  window.cdBuildSukuyoCompatInviteUrl = cdBuildSukuyoCompatInviteUrl;
+  window.shareSukuyoCompatInviteKakao = shareSukuyoCompatInviteKakao;
   window.shareCompatInviteKakao = shareCompatInviteKakao;
   window.openCompatInvite = openCompatInvite;
   var _cdCompatInviteInit = function(){

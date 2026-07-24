@@ -1118,6 +1118,37 @@ export default function SukuyoCompatibilityAiClient() {
     };
   }, []);
 
+  // 궁합 초대(?cp=) — 공유자(A)의 생일을 상대 칸(personB)에 자동 채움. base64url(JSON), share.js 인코드와 대칭.
+  useEffect(() => {
+    let cp = "";
+    try {
+      cp = new URLSearchParams(window.location.search).get("cp") || "";
+    } catch {
+      return;
+    }
+    if (!cp) return;
+    try {
+      let s = cp.replace(/-/g, "+").replace(/_/g, "/");
+      while (s.length % 4) s += "=";
+      const inv = JSON.parse(decodeURIComponent(escape(atob(s)))) as {
+        n?: string; y?: number; m?: number; d?: number; h?: number; mi?: number; c?: string;
+      };
+      if (!inv || !inv.y || !inv.m || !inv.d) return;
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const hasTime = inv.h != null && inv.mi != null;
+      setPersonB((prev) => ({
+        ...prev,
+        name: inv.n ? String(inv.n).slice(0, 20) : prev.name,
+        birthDate: `${inv.y}-${pad(Number(inv.m))}-${pad(Number(inv.d))}`,
+        birthTime: hasTime ? `${pad(Number(inv.h))}:${pad(Number(inv.mi))}` : prev.birthTime,
+        birthTimeUnknown: hasTime ? false : prev.birthTimeUnknown,
+        calendarType: (inv.c === "lunar" || inv.c === "lunar_leap" ? "lunar" : "solar") as CalendarType,
+      }));
+    } catch {
+      // 초대 파싱 실패는 조용히 무시
+    }
+  }, []);
+
   async function loadRecentConsultation(id: string) {
     try {
       const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
