@@ -7,7 +7,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
-import { useCompassSession } from "../_hooks/useCompassSession";
+import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
+import { JourneyHub } from "./JourneyHub";
 import { MapResult } from "./MapResult";
 import { Crossroads } from "./Crossroads";
 import { FutureSim } from "./FutureSim";
@@ -22,12 +23,16 @@ import { Starfield } from "./Starfield";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import map from "./map.module.css";
 
-export function CompassApp() {
-  const s = useCompassSession();
+export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
+  const s = useCompassSession(start);
   const [notice, setNotice] = useState<string | null>(null);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [pigExpr, setPigExpr] = useState<PigExpr>("talk");
+
+  if (s.step === "hub") {
+    return <JourneyHub onStart={() => s.setStep(s.birth ? "map" : "birth")} />;
+  }
 
   if (s.step === "birth") {
     return (
@@ -172,8 +177,8 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
   // 게이미피케이션 레벨(있으면 표시만) — 런타임 전역이 있을 때만, 네트워크 미호출·읽기 전용.
   useEffect(() => {
     try {
-      const snap = (window as unknown as { CDLevel?: { snapshot?: () => { level?: number; title?: string } } }).CDLevel?.snapshot?.();
-      if (snap && typeof snap.level === "number") setRpg({ level: snap.level, title: snap.title });
+      const snap = (window as unknown as { CDLevel?: { snapshot?: () => { currentLevel?: number } } }).CDLevel?.snapshot?.();
+      if (snap && typeof snap.currentLevel === "number") setRpg({ level: snap.currentLevel });
     } catch {
       /* 없으면 생략 */
     }

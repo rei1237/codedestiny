@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType, type CSSProperties } from "react";
 import {
   READER_BODY_FONT_OPTIONS,
@@ -329,6 +330,10 @@ export default function ChapterViewer({ story, chapter, prev, next }: ChapterVie
             </p>
           );
         })}
+        <aside className={styles.chapterEndCta}>
+          <p>이 이야기의 주인공은 당신의 사주로 길을 찾았어요. 당신의 오늘은 어느 방향일까요?</p>
+          <Link href="/journey">내 운명 여정 시작하기 →</Link>
+        </aside>
         </article>
       </section>
       {SettingsPanel ? (

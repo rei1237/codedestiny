@@ -16,6 +16,7 @@ import type { DirectionField, DirectionKey, SystemKey } from "../_engine/types";
 import { DIRECTION_LABEL_KO } from "../_engine/constants";
 import { confidenceStars, pigExpression } from "../_stage/expressionMap";
 import { buildNarrationInput, hashStr } from "../_stage/narration";
+import { collectItem } from "../_lib/rpg-bridge";
 
 interface MapResultProps {
   field: DirectionField;
@@ -100,6 +101,12 @@ function evidenceTerm(field: DirectionField, sys: SystemKey): string | null {
 
 export function MapResult({ field, situation, onNext, onRestart, onCrossroad, onFutureSim, onVoyage }: MapResultProps) {
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
+
+  // 오늘의 타로 카드를 운명 도감에 수집(멱등·계정 단위). 결과를 열람하면 그날의 카드가 모인다.
+  useEffect(() => {
+    const term = field.raw?.tarot?.evidence?.[0]?.term;
+    if (term) void collectItem(`tarot:${term.split("(")[0]}`);
+  }, [field]);
   const primaryLabel = DIRECTION_LABEL_KO[field.primary.key];
   const stars = confidenceStars(field.confidence);
   const top = [...field.directions].slice(0, 6);

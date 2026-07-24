@@ -67,6 +67,7 @@ const CHROMELESS_ROUTES = [
   "/olympus",
   "/oracle/rune",
   "/destiny-compass",
+  "/journey",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [

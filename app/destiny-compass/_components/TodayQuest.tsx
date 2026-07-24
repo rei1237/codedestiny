@@ -9,6 +9,7 @@ import { SpriteImage } from "./SpriteImage";
 import { compassAssets } from "../data/assets";
 import styles from "./map.module.css";
 import type { DirectionField, DirectionKey } from "../_engine/types";
+import { awardRpg } from "../_lib/rpg-bridge";
 
 // 헤드라인용 긴 액션
 const TODAY_ACTION: Record<DirectionKey, string> = {
@@ -33,7 +34,8 @@ const TODAY_SHORT: Record<DirectionKey, string> = {
   rest: "죄책감 없이 1시간 쉬기",
 };
 
-const EXP_PER_ITEM = 40;
+// 리텐션 엔진의 quest 규칙(AWARD_RULES.quest.exp)과 동일 — 표시값과 실제 적립을 일치시킨다.
+const EXP_PER_ITEM = 15;
 
 export function TodayQuest({
   field,
@@ -91,7 +93,12 @@ export function TodayQuest({
                   className={`${styles.questCheck} ${on ? styles.questCheckOn : ""}`}
                   role="checkbox"
                   aria-checked={on}
-                  onClick={() => setDone((prev) => ({ ...prev, [k]: !prev[k] }))}
+                  onClick={() =>
+                    setDone((prev) => {
+                      if (!prev[k]) void awardRpg("quest", k); // 켜질 때만 적립(로컬·서버 멱등)
+                      return { ...prev, [k]: !prev[k] };
+                    })
+                  }
                 >
                   <span className={styles.questCheckBox} aria-hidden="true">{on ? "✓" : ""}</span>
                   {TODAY_SHORT[k]}
@@ -99,7 +106,7 @@ export function TodayQuest({
               );
             })}
           </div>
-          <p className={styles.questExpNote}>완료는 표시용이에요 — 오늘의 나에게 주는 작은 보상.</p>
+          <p className={styles.questExpNote}>완료하면 오늘의 성장에 기록돼요 — 매일의 한 걸음이 쌓입니다.</p>
         </div>
 
         <div className={styles.resultCtas}>

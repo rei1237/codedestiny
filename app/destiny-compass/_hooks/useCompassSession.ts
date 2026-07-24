@@ -8,7 +8,7 @@ import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { CompassInput, DirectionField, EmotionKey } from "../_engine/types";
 import { computeDirectionField } from "../_engine/directionScore";
 
-export type CompassStep = "birth" | "map" | "processing" | "reveal" | "result" | "crossroad" | "futureSim" | "voyage" | "today" | "arrival";
+export type CompassStep = "hub" | "birth" | "map" | "processing" | "reveal" | "result" | "crossroad" | "futureSim" | "voyage" | "today" | "arrival";
 
 const PROCESS_MIN_MS = 3400; // 안개+사고 연출 최소 노출
 const DEFAULT_EMOTION: EmotionKey = "hopeful"; // RPG 흐름은 감정 미질문 → 기본값(렌즈 영향 미미)
@@ -42,8 +42,8 @@ function writeCache(key: string, field: DirectionField): void {
   }
 }
 
-export function useCompassSession() {
-  const [step, setStep] = useState<CompassStep>("birth");
+export function useCompassSession(initialStep: CompassStep = "birth") {
+  const [step, setStep] = useState<CompassStep>(initialStep);
   const [birth, setBirth] = useState<AnimalDestinyInput | null>(null);
   const [situation, setSituation] = useState("");
   const [field, setField] = useState<DirectionField | null>(null);

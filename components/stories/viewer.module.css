@@ -273,6 +273,49 @@
   font-weight: 700;
 }
 
+/* 챕터 말미 → 플래그십(운명 여정) 진입. 이야기 독자를 운세 흐름으로 잇는다(내러티브 디사일로). */
+.chapterEndCta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin: 3.2rem auto 1rem;
+  max-width: min(92%, 520px);
+  padding: 1.5rem 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--reader-accent) 26%, transparent);
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--reader-surface) 82%, transparent);
+  text-align: center;
+}
+
+.chapterEndCta p {
+  margin: 0;
+  color: color-mix(in srgb, var(--reader-text) 84%, transparent);
+  font-family: var(--reader-body-font);
+  font-size: 0.94rem;
+  line-height: 1.6;
+}
+
+.chapterEndCta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.72rem 1.35rem;
+  border-radius: 999px;
+  background: var(--reader-accent);
+  color: var(--reader-bg);
+  font-family: var(--reader-body-font);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: filter 200ms ease, transform 200ms ease;
+}
+
+.chapterEndCta a:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
 .bottomNav {
   position: fixed;
   right: 50%;
