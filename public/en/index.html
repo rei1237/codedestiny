@@ -10420,6 +10420,114 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           </div>
         </div>
       </div>
+      <!-- 대표 운명 상담 — 히어로 직후, 4대 대표 상담을 소개 이미지와 함께 상시 노출(모바일 2열 · 데스크톱 4열, 연이 핑크/네오 퍼플 --cd-* 토큰 적응). 정적 마크업이라 SEO 콘텐츠 게이트에도 집계된다. -->
+      <style id="cd-signature-consult-v20260724">
+        .cd-sig{max-width:1120px;margin:20px auto 0;padding:0 20px}
+        .cd-sig__head{margin:0 0 14px;text-align:center}
+        .cd-sig__title{margin:0;font-size:clamp(1.15rem,4.4vw,1.5rem);font-weight:800;letter-spacing:-.01em;color:var(--cd-text,#3c1830);text-wrap:balance}
+        .cd-sig__sub{margin:6px auto 0;max-width:34ch;font-size:.86rem;line-height:1.5;color:color-mix(in srgb,var(--cd-text,#3c1830) 70%,transparent)}
+        .cd-sig__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+        .cd-sig-card{display:flex;flex-direction:column;overflow:hidden;border-radius:16px;text-decoration:none;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-surface,#fff) 62%,transparent);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:transform .25s cubic-bezier(.22,1,.36,1),border-color .25s ease,box-shadow .25s ease}
+        .cd-sig-card:hover{transform:translateY(-3px);border-color:var(--cd-accent,#b31955);box-shadow:0 0 0 1px color-mix(in srgb,var(--cd-accent,#b31955) 20%,transparent),0 22px 44px -26px color-mix(in srgb,var(--cd-accent,#b31955) 55%,transparent)}
+        .cd-sig-card:focus-visible{outline:2px solid var(--cd-accent,#b31955);outline-offset:3px}
+        .cd-sig-card__media{position:relative;aspect-ratio:16/9;overflow:hidden;background:color-mix(in srgb,var(--cd-accent,#b31955) 12%,#1a0d16)}
+        .cd-sig-card__img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+        .cd-sig-card:hover .cd-sig-card__img{transform:scale(1.05)}
+        .cd-sig-card__badge{position:absolute;top:8px;left:8px;padding:3px 9px;border-radius:999px;font-size:.62rem;font-weight:800;letter-spacing:.02em;color:#fff;background:color-mix(in srgb,var(--cd-accent,#b31955) 90%,#000);box-shadow:0 2px 10px -3px rgba(0,0,0,.55)}
+        .cd-sig-card__body{display:flex;flex-direction:column;gap:4px;padding:11px 12px 13px}
+        .cd-sig-card__title{font-size:.92rem;font-weight:800;line-height:1.3;color:var(--cd-text,#3c1830)}
+        .cd-sig-card__desc{font-size:.76rem;line-height:1.45;color:color-mix(in srgb,var(--cd-text,#3c1830) 72%,transparent)}
+        .cd-sig-card__cta{margin-top:3px;font-size:.74rem;font-weight:800;color:var(--cd-accent,#b31955);display:inline-flex;align-items:center;gap:4px}
+        .cd-sig-card__cta i{font-style:normal;transition:transform .25s ease}
+        .cd-sig-card:hover .cd-sig-card__cta i{transform:translateX(3px)}
+        @media (min-width:768px){
+          .cd-sig{margin:30px auto 0}
+          .cd-sig__grid{grid-template-columns:repeat(4,1fr);gap:18px}
+          .cd-sig__sub{font-size:.92rem}
+          .cd-sig-card__body{padding:14px 15px 16px}
+          .cd-sig-card__title{font-size:1rem}
+          .cd-sig-card__desc{font-size:.82rem}
+          .cd-sig-card__cta{font-size:.8rem}
+        }
+        @media (prefers-reduced-motion:reduce){
+          .cd-sig-card,.cd-sig-card__img,.cd-sig-card__cta i{transition:none}
+          .cd-sig-card:hover{transform:none}
+          .cd-sig-card:hover .cd-sig-card__img{transform:none}
+        }
+        html.neo-mode body .cd-sig__title{color:#f4eeff}
+        html.neo-mode body .cd-sig__sub{color:rgba(244,238,255,.74)}
+        html.neo-mode body .cd-sig-card{border-color:rgba(196,181,253,.26);background:rgba(19,16,42,.5)}
+        html.neo-mode body .cd-sig-card:hover{border-color:rgba(196,181,253,.62);box-shadow:0 0 0 1px rgba(196,181,253,.3),0 22px 44px -26px rgba(120,90,220,.6)}
+        html.neo-mode body .cd-sig-card__title{color:#f4eeff}
+        html.neo-mode body .cd-sig-card__desc{color:rgba(244,238,255,.74)}
+        html.neo-mode body .cd-sig-card__cta{color:#c4b5fd}
+        html.neo-mode body .cd-sig-card__badge{background:rgba(124,92,220,.94)}
+        html.neo-mode body .cd-sig-card:focus-visible{outline-color:#c4b5fd}
+      </style>
+      <section class="cd-sig" id="cdSignatureConsult" data-marker="cd-signature-consult-v20260724" aria-label="대표 운명 상담">
+        <div class="cd-sig__head">
+          <h2 class="cd-sig__title">대표 운명 상담</h2>
+          <p class="cd-sig__sub">네 갈래의 깊은 상담 중, 지금 당신에게 필요한 길을 고르세요.</p>
+        </div>
+        <div class="cd-sig__grid">
+          <a class="cd-sig-card" href="/fortune-tea-house" aria-label="연이의 운명 찻집 입장하기">
+            <span class="cd-sig-card__media">
+              <img class="cd-sig-card__img" width="1672" height="941" loading="lazy" decoding="async"
+                src="https://assets.code-destiny.com/cdn-cgi/image/width=640,quality=74,format=auto/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp"
+                alt="연이의 운명 찻집 — 연꽃 문지기 연이가 달빛 찻잔으로 건네는 감성 상담"
+                onerror="this.onerror=null;this.src='https://assets.code-destiny.com/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp';">
+              <span class="cd-sig-card__badge">추천</span>
+            </span>
+            <span class="cd-sig-card__body">
+              <span class="cd-sig-card__title">운명의 찻집</span>
+              <span class="cd-sig-card__desc">사주·타로·궁합을 다정하게 풀어주는 감성 상담</span>
+              <span class="cd-sig-card__cta">입장하기 <i aria-hidden="true">→</i></span>
+            </span>
+          </a>
+          <a class="cd-sig-card" href="/neo-operation-room" aria-label="네오의 팩폭 운명 전략소 입장하기">
+            <span class="cd-sig-card__media">
+              <img class="cd-sig-card__img" width="1672" height="941" loading="lazy" decoding="async"
+                src="https://assets.code-destiny.com/cdn-cgi/image/width=640,quality=74,format=auto/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp"
+                alt="네오의 팩폭 운명 전략소 — 사자 휘장 앞에서 선택의 전선을 정리하는 전략 상담"
+                onerror="this.onerror=null;this.src='https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp';">
+              <span class="cd-sig-card__badge">HOT</span>
+            </span>
+            <span class="cd-sig-card__body">
+              <span class="cd-sig-card__title">팩폭 전략소</span>
+              <span class="cd-sig-card__desc">네오가 냉정하게 짚어주는 선택의 작전 브리핑</span>
+              <span class="cd-sig-card__cta">작전실 입장 <i aria-hidden="true">→</i></span>
+            </span>
+          </a>
+          <a class="cd-sig-card" href="/destiny-compass" aria-label="인생의 나침반 열기">
+            <span class="cd-sig-card__media">
+              <img class="cd-sig-card__img" width="1600" height="900" loading="lazy" decoding="async"
+                src="https://assets.code-destiny.com/cdn-cgi/image/width=640,quality=74,format=auto/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%20%EB%82%98%EC%B9%A8%EB%B0%98.webp"
+                alt="인생의 나침반 — 네오와 연이가 사주·자미두수로 나아갈 방향을 잡아주는 길잡이"
+                onerror="this.onerror=null;this.src='https://assets.code-destiny.com/%EB%84%A4%EC%98%A4%EC%99%80%20%EC%97%B0%EC%9D%B4%EC%9D%98%20%EC%9A%B4%EB%AA%85%20%EB%82%98%EC%B9%A8%EB%B0%98.webp';">
+              <span class="cd-sig-card__badge">신규</span>
+            </span>
+            <span class="cd-sig-card__body">
+              <span class="cd-sig-card__title">인생의 나침반</span>
+              <span class="cd-sig-card__desc">사주·자미두수로 지금 나아갈 방향을 잡는 길잡이</span>
+              <span class="cd-sig-card__cta">길 찾기 <i aria-hidden="true">→</i></span>
+            </span>
+          </a>
+          <a class="cd-sig-card" href="/destiny-island.html" aria-label="자미두수 운명의 섬 탐험하기">
+            <span class="cd-sig-card__media">
+              <img class="cd-sig-card__img" width="1600" height="900" loading="lazy" decoding="async"
+                src="https://assets.code-destiny.com/cdn-cgi/image/width=640,quality=74,format=auto/DestinyAssets/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp"
+                alt="자미두수 운명의 섬 — 12궁 건물이 세워진 밤하늘 섬 위에서 연이와 네오가 안내하는 인터랙티브 맵"
+                onerror="this.onerror=null;this.src='https://assets.code-destiny.com/DestinyAssets/%EC%9E%90%EB%AF%B8%EB%91%90%EC%88%98%20%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%84%AC.webp';">
+              <span class="cd-sig-card__badge">무료</span>
+            </span>
+            <span class="cd-sig-card__body">
+              <span class="cd-sig-card__title">운명의 섬</span>
+              <span class="cd-sig-card__desc">내 자미두수 명반이 살아나는 인터랙티브 운명 지도</span>
+              <span class="cd-sig-card__cta">탐험하기 <i aria-hidden="true">→</i></span>
+            </span>
+          </a>
+        </div>
+      </section>
       <script>
         (function(){
           var hero = document.querySelector('.moon-hero');
@@ -10578,7 +10686,9 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
             });
             oneStepInner.appendChild(oneStepSteps);
             oneStepRail.appendChild(oneStepInner);
-            hero.insertAdjacentElement('afterend', oneStepRail);
+            // 대표 운명 상담 섹션(cdSignatureConsult)이 히어로 직후에 오므로, oneStep 레일은 그 아래에 삽입한다(없으면 히어로 뒤 — 하위호환).
+            var __cdRailAnchor = document.getElementById('cdSignatureConsult') || hero;
+            __cdRailAnchor.insertAdjacentElement('afterend', oneStepRail);
           }
         })();
       </script>
@@ -13641,63 +13751,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
     <div class="feature-card-grid">
 
         <div class="cd-prompt-feature-spotlight" data-cd-layout-marker="spotlight-stacked-contain-v20260701 fortune-tea-house-main-card-luxe-v20260702" aria-label="종합 운세 프롬프트 추천 기능">
-          <a class="tarot-tile prem-card pvc-prem-card featured-content-card tarot-tile--fortune-tea-house"
-                  href="/fortune-tea-house"
-                  data-feature-key="fortune-tea-house"
-                  data-service-detail-href="/fortune-tea-house"
-                  data-cd-marker="fortune-tea-house-prompt-top-card-img-v20260701 fortune-tea-house-main-card-luxe-v20260702"
-                  aria-label="연이의 운명 찻집 열기">
-            <div class="tarot-tile__img-wrap" data-img-src="https://assets.code-destiny.com/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp" data-img-alt="연이의 운명 찻집 — 연꽃 문지기 연이가 달빛 찻잔으로 건네는 상담">
-              <img class="tarot-tile__img is-loaded" src="https://assets.code-destiny.com/DestinyCafe/%EC%9A%B4%EB%AA%85%EC%9D%98%20%EC%B0%BB%EC%A7%91.webp" alt="연이의 운명 찻집 — 연꽃 문지기 연이가 달빛 찻잔으로 건네는 상담" width="1672" height="941" loading="lazy" decoding="async" fetchpriority="low" sizes="(max-width: 768px) calc(100vw - 48px), 540px" onerror="this.onerror=null;this.src='/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp';">
-              <span class="tarot-tile__badge tarot-tile__badge--new">추천</span>
-              <span class="tarot-tile__coin-badge">타로 5,000원 · 사주 10,000원 · 궁합 20,000원</span>
-            </div>
-            <div class="tarot-tile__body">
-              <span class="tarot-tile__title">연이의 운명 찻집</span>
-              <span class="tarot-tile__desc">연이와 함께 달빛 찻잔을 열고, 사주·타로·궁합으로 말하지 못한 마음의 결을 다정하게 비춰봅니다.</span>
-              <div class="pvc-prem-points" aria-label="연이의 운명 찻집 구성">
-                <span class="pvc-prem-point">찻집 입장과 연꽃 문지기 연이의 첫 인사</span>
-                <span class="pvc-prem-point">사주·타로·궁합을 잇는 감성 상담</span>
-                <span class="pvc-prem-point">고민의 결을 부드럽게 풀어주는 선택형 흐름</span>
-              </div>
-              <div class="pvc-prem-meta" aria-hidden="true">
-                <span class="pvc-meta-badge">스토리형</span>
-                <span class="pvc-meta-badge">사주 · 타로 · 궁합</span>
-                <span class="pvc-meta-badge pvc-meta-badge--cta">상담 가능</span>
-              </div>
-              <div class="featured-content-card__cta"><span>운명 찻집 입장하기</span><span aria-hidden="true">→</span></div>
-            </div>
-          </a>
-
-          <a class="tarot-tile prem-card pvc-prem-card featured-content-card tarot-tile--neo-operation-room"
-                  href="/neo-operation-room"
-                  data-coin-cost="300"
-                  data-feature-key="neo-operation-room-consultation"
-                  data-service-detail-href="/neo-operation-room"
-                  data-cd-marker="neo-operation-room-prompt-top-card-img-v20260701 fortune-tea-house-main-card-luxe-v20260702"
-                  aria-label="네오의 팩폭 운명 작전실 열기">
-            <div class="tarot-tile__img-wrap" data-img-src="https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp" data-img-alt="네오의 팩폭 운명 작전실 — 사자 휘장 앞에서 선택의 전선을 정리하는 전략 상담">
-              <img class="tarot-tile__img is-loaded" src="https://assets.code-destiny.com/DestinyWar/%EB%84%A4%EC%98%A4%EC%9D%98%20%ED%8C%A9%ED%8F%AD%20%EC%9A%B4%EB%AA%85%20%EC%9E%91%EC%A0%84%EC%8B%A4.webp" alt="네오의 팩폭 운명 작전실 — 사자 휘장 앞에서 선택의 전선을 정리하는 전략 상담" width="1672" height="941" loading="lazy" decoding="async" fetchpriority="low" sizes="(max-width: 768px) calc(100vw - 48px), 540px" onerror="this.onerror=null;this.src='/icons/neo.webp';">
-              <span class="tarot-tile__badge tarot-tile__badge--new">HOT</span>
-              <span class="tarot-tile__coin-badge">AI 상담 · 30,000원</span>
-            </div>
-            <div class="tarot-tile__body">
-              <span class="tarot-tile__title">네오의 팩폭 운명 작전실</span>
-              <span class="tarot-tile__desc">네오가 사주·자미두수·베다점·점성술을 묶어 지금 붙잡아야 할 선택 기준을 냉정하게 브리핑합니다.</span>
-              <div class="pvc-prem-points" aria-label="네오의 팩폭 운명 작전실 구성">
-                <span class="pvc-prem-point">사자 휘장 아래 고르는 운명 지도</span>
-                <span class="pvc-prem-point">상담 주제와 출생 정보에 맞춘 작전 브리핑</span>
-                <span class="pvc-prem-point">현실 점검을 반영한 네오식 팩폭 전략</span>
-              </div>
-              <div class="pvc-prem-meta" aria-hidden="true">
-                <span class="pvc-meta-badge">네오</span>
-                <span class="pvc-meta-badge">AI 상담</span>
-                <span class="pvc-meta-badge pvc-meta-badge--cta">작전실 입장</span>
-              </div>
-              <div class="featured-content-card__cta"><span>전략실 입장하기</span><span aria-hidden="true">→</span></div>
-            </div>
-          </a>
-
+          <!-- 운명 찻집·팩폭 전략소 카드는 상단 '대표 운명 상담' 섹션(#cdSignatureConsult)으로 이관 — 중복 노출 방지(v20260724) -->
           <a class="tarot-tile prem-card pvc-prem-card featured-content-card cd-comprehensive-prompt-entry"
                   href="/fortune/prompt-hub"
                   data-feature-key="fortune-prompt-hub"
