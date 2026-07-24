@@ -1202,6 +1202,21 @@
       "primaryCta": "✦ 無料占いを始める",
       "journeyCta": "✦ 運命の旅を始める"
     },
+    "oneStep": {
+      "heading": "今日の一歩",
+      "s1": {
+        "title": "無料四柱推命",
+        "desc": "まず自分を知る"
+      },
+      "s2": {
+        "title": "今日の運勢・タロット",
+        "desc": "今の流れを見る"
+      },
+      "s3": {
+        "title": "運命の旅",
+        "desc": "深く入る"
+      }
+    },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",
       "title": "CODE DESTINY AIの特別な体験",

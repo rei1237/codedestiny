@@ -1202,6 +1202,21 @@
       "primaryCta": "✦ Gratis beginnen",
       "journeyCta": "✦ Begin je lotsreis"
     },
+    "oneStep": {
+      "heading": "Today's One Step",
+      "s1": {
+        "title": "Free Saju Chart",
+        "desc": "Start by knowing yourself"
+      },
+      "s2": {
+        "title": "Today's Fortune & Tarot",
+        "desc": "Read the current flow"
+      },
+      "s3": {
+        "title": "Destiny Journey",
+        "desc": "Go deeper"
+      }
+    },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",
       "title": "Een bijzondere ervaring van CODE DESTINY AI",

@@ -1202,6 +1202,21 @@
       "primaryCta": "✦ 免費開始占卜",
       "journeyCta": "✦ 開啟命運之旅"
     },
+    "oneStep": {
+      "heading": "今天的一步",
+      "s1": {
+        "title": "免費四柱命盤",
+        "desc": "先了解自己"
+      },
+      "s2": {
+        "title": "今日運勢·塔羅",
+        "desc": "看當下的流向"
+      },
+      "s3": {
+        "title": "命運之旅",
+        "desc": "深入探索"
+      }
+    },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",
       "title": "CODE DESTINY AI的獨特體驗",
