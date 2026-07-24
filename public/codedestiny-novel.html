@@ -1350,6 +1350,7 @@ function runFx(name){
   else if(name==="vortex")fxVortex();
   else if(name==="tarot")fxTarot();
   else if(name==="transform")fxTransform();
+  else if(name==="reveal")fxReveal();
   else if(name==="suck")fxSuck();
   else if(name==="metal")fxMetal();
   else if(name==="wood")fxWood();
@@ -1420,6 +1421,13 @@ function fxTransform(){
   m.style.cssText="position:absolute;left:50%;top:50%;width:min(58vh,460px);aspect-ratio:1/1;transform:translate(-50%,-50%);background-repeat:no-repeat;background-size:400% 200%;background-position:100% 100%;filter:drop-shadow(0 0 30px rgba(248,187,221,.6));animation:morphFrames 1.6s steps(1,end) forwards,morphPop 1.6s ease forwards";
   m.style.backgroundImage="url('"+PIG.transform+"')";d.appendChild(m);
   var flash=document.createElement("div");flash.style.cssText="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.8),rgba(255,240,248,.35) 38%,transparent 70%);opacity:0;animation:flash 1.6s ease forwards";d.appendChild(flash);
+  cleanup(d,1900);
+}
+/* 캐릭터 무관 변신/현신 연출 — 연이 전용 morph 스프라이트 없이 은금빛 글로우+플래시만(네오 사자↔고양이/사람 등). 실제 모습은 비트 스테이징이 담당. */
+function fxReveal(){
+  var d=mkOverlay();d.style.overflow="hidden";
+  var glow=document.createElement("div");glow.style.cssText="position:absolute;left:50%;top:50%;width:66vh;height:66vh;max-width:700px;max-height:700px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(232,213,163,.42),rgba(196,181,253,.22) 42%,transparent 70%);animation:pigGlow 1.6s ease-in-out";d.appendChild(glow);
+  var flash=document.createElement("div");flash.style.cssText="position:absolute;inset:0;background:radial-gradient(circle,rgba(255,255,255,.82),rgba(240,244,255,.35) 38%,transparent 70%);opacity:0;animation:flash 1.6s ease forwards";d.appendChild(flash);
   cleanup(d,1900);
 }
 /* 빨려들어감: 중앙 연이가 소용돌이(≈55%,42%)로 회전·축소되며 흡입 + 수렴 스트릭 */
@@ -4631,7 +4639,7 @@ EPISODES.push({"no":"EP.29","tag":"제29화 · 달라진 계절","title":"달라
 {"s":"n","bgm":"neo","im":true,"t":"그리고 그 무렵부터였다. 흰 고양이가 나타난 것은."},
 {"s":"n","tone":"dark","t":"저쪽 세계, 재성의 부두. 네오는 두 세계 사이의 문을 오래 들여다보고 있었다. 파수꾼의 온전한 몸으로는 건널 수 없는 문. 하지만 문득, 한 가지 방법이 떠올랐다. 힘을 다 버린, 작고 무해한 형태라면. 문이 경계하지 않을 만큼 작은 존재라면."},
 {"s":"neo","x":"serious","tone":"dark","t":"(…파수꾼의 몸으론 못 건너. 그 여자가 감지하니까. …하지만 힘을 다 내려놓고, 그냥 작은 짐승 하나가 된다면. 별자리도 없고 힘도 없는, 흔한 길고양이 한 마리라면… 문이 나를 못 알아볼지도 몰라. 잠깐이라도, 저 아이 곁에 갈 수 있을지도.)"},
-{"s":"n","fx":"transform","im":true,"t":"은빛 사자가 몸을 웅크리자, 그 거대한 형체가 작고 하얀 고양이로 접혀 들었다. 파수꾼의 위엄도, 금빛 힘도 다 버린 채. 오직 '저 아이가 잘 있나 보고 싶다'는 마음 하나만 남긴, 가장 작고 무해한 형태로."},
+{"s":"n","fx":"reveal","im":true,"t":"은빛 사자가 몸을 웅크리자, 그 거대한 형체가 작고 하얀 고양이로 접혀 들었다. 파수꾼의 위엄도, 금빛 힘도 다 버린 채. 오직 '저 아이가 잘 있나 보고 싶다'는 마음 하나만 남긴, 가장 작고 무해한 형태로."},
 {"s":"n","tone":"dark","t":"작아진 만큼, 문은 그를 경계하지 않았다. 힘없는 짐승 하나가 슬쩍 문틈으로 스며들었다. 그렇게 네오는, 온전한 몸으론 못 가는 저쪽 세계로 — 작은 흰 고양이가 되어, 몰래 건너갔다. 오직 연이를 한 번 보기 위해서."},
 {"s":"n","t":"처음엔 도서관 앞이었다. 다음엔 편의점 지붕, 그다음엔 벤치 밑. 눈처럼 흰 털에, 어딘가 낯익은 호박색 눈."},
 {"s":"yeon","x":"surprise","t":"…너 또 왔네? 야옹아. 아니, 야옹 씨?"},
@@ -7222,7 +7230,7 @@ EPISODES.push({"no":"EP.42","tag":"최종화 · 읽는 이름, 쓰는 운명","t
 {"s":"n","im":true,"t":"동료들이 하나씩, 연이를 안아 주었다. 루나는 엉엉 울며 매달렸고, 언니는 다정하게 등을 토닥였고, 무성은 어색하게 손만 잡았고, 모카는 요란하게 헤드록을 걸었고, 백문은 그저 오래 바라봐 주었다. 재성에서 시작해 여기까지, 함께 걸어온 길이 그 포옹들 안에 다 담겨 있었다."},
 {"s":"yeon","x":"cry","t":"…다들, 진짜 고마웠어. 나 혼자였으면 여기까지 못 왔어. …루나 물길, 언니 등불, 무성 물, 모카 불, 백문 님 서가. 다 없었으면 나 재성에서 청토끼한테 벌써 졌을걸. …우리, 진짜 좋은 팀이었어. 아니, 지금도 좋은 팀이고. 강 건너도 실은 안 끊기니까."},
 {"s":"n","t":"그리고 마지막으로, 연이는 네오 앞에 섰다."},
-{"s":"n","fx":"transform","im":true,"c":{"who":"neo","x":"hsoft"},"t":"시간의 빛이 사자의 몸을 감싸자, 금빛 갈기가 스르르 풀리기 시작했다. 그 자리에 은빛 머리카락과 사람의 손, 곧은 어깨가 천천히 돋아났다."},
+{"s":"n","fx":"reveal","im":true,"c":{"who":"neo","x":"hsoft"},"t":"시간의 빛이 사자의 몸을 감싸자, 금빛 갈기가 스르르 풀리기 시작했다. 그 자리에 은빛 머리카락과 사람의 손, 곧은 어깨가 천천히 돋아났다."},
 {"s":"n","im":true,"t":"별무늬가 새겨진 감청색 코트를 입은 은발의 청년이 서 있었다. 십 년 동안 갈기 뒤에 숨겨 두었던 사람의 얼굴이, 이제야 드러났다."},
 {"s":"moka","x":"p1","t":"…와, 파수꾼 이렇게 생겼었어? 사자 가죽 벗으니까 완전 미남이잖아. …야, 연이. 너 이런 미남을 그 고생길 내내 옆에 두고도 몰랐어? 눈이 어떻게 된 거 아니야?"},
 {"s":"ln","x":"surprise","t":"…우와, 네오 아저씨 사람 됐다! 은발이야! …근데 좀 아쉽다. 나 사자 네오도 좋아했는데. 등이 넓어서 타고 다니기 좋았거든. …아, 농담이야! 사람 된 거 축하해요!"},
