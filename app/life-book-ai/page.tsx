@@ -1,8 +1,8 @@
 import LifeBookAiRouteClient from "./LifeBookAiRouteClient";
 
 export const metadata = {
-  title: "인생의 책 AI 상담 | Code Destiny",
-  description: "인생의 책 AI 상담은 생년월일과 사주 명식의 흐름을 바탕으로 삶, 일, 관계, 재물의 큰 결을 긴 호흡의 상담 문장으로 읽어드립니다.",
+  title: "인생의 책 전문가 상담 | Code Destiny",
+  description: "인생의 책 전문가 상담은 생년월일과 사주 명식의 흐름을 바탕으로 삶, 일, 관계, 재물의 큰 결을 긴 호흡의 상담 문장으로 읽어드립니다.",
   alternates: {
     canonical: "https://code-destiny.com/life-book-ai",
   },
@@ -19,7 +19,7 @@ export const metadata = {
 export default function LifeBookAiPage() {
   return (
     <>
-      <section className="sr-only" aria-label="인생의 책 AI 상담 안내">
+      <section className="sr-only" aria-label="인생의 책 전문가 상담 안내">
         <p>
           인생의 책은 한 사람의 명식에 오래 흐르는 계절과 기질을 따라 삶의 큰 장면을 천천히 펼쳐 봅니다.
           어린 시절부터 지금까지 반복된 선택의 결, 관계 안에서 마음이 움직이는 방식, 일과 재물의 흐름이 머무는 자리,

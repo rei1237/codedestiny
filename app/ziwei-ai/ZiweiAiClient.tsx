@@ -154,7 +154,7 @@ function huaClass(label: string): string {
 }
 
 const FEATURE_KEY = "ziwei-ai-consultation";
-const FEATURE_REASON = "자미두수 AI 상담";
+const FEATURE_REASON = "자미두수 전문가 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
@@ -170,7 +170,7 @@ const ERROR_TEXT: Record<string, string> = {
   CUSTOM_QUESTION_REQUIRED: "별궁에 묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
   CALCULATION_FAILED: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_ERROR: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  LLM_ERROR: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
@@ -870,7 +870,7 @@ export default function ZiweiAiPage() {
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: "이용권 확인",
-        reason: "자미두수 AI 상담",
+        reason: "자미두수 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
@@ -887,7 +887,7 @@ export default function ZiweiAiPage() {
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
           title: "이용권 확인 완료",
-          reason: "자미두수 AI 상담",
+          reason: "자미두수 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 별궁의 흐름을 읽고 있습니다.",
         });
@@ -927,7 +927,7 @@ export default function ZiweiAiPage() {
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
           title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패",
-          reason: "자미두수 AI 상담",
+          reason: "자미두수 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message,
           cancelled: paymentCancelled,
@@ -978,8 +978,8 @@ export default function ZiweiAiPage() {
         </div>
         <div className="heroBackdropText" aria-hidden="true">紫微斗數</div>
         <div className="heroCopy">
-          <p className="eyebrow"><Stars size={16} /> 紫微斗數 · 별궁 AI 상담</p>
-          <h1>자미두수 AI 상담</h1>
+          <p className="eyebrow"><Stars size={16} /> 紫微斗數 · 별궁 전문가 상담</p>
+          <h1>자미두수 전문가 상담</h1>
           <p>명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.</p>
         </div>
         <div className="heroSeparator" aria-hidden="true" />
@@ -1074,7 +1074,7 @@ export default function ZiweiAiPage() {
           </div>
           <button className="primaryBtn" type="submit" disabled={busy}>
             {busy ? <Loader2 className="spin" size={18} /> : <WalletCards size={18} />}
-            {busy ? "명반의 별을 읽는 중..." : "별궁 AI 상담 받기"}
+            {busy ? "명반의 별을 읽는 중..." : "별궁 전문가 상담 받기"}
           </button>
 
           {notice && <p className="notice"><Moon size={16} />{notice}</p>}
@@ -1112,7 +1112,7 @@ export default function ZiweiAiPage() {
                   <strong>지난 별궁 기록 다시 보기</strong>
                   {recentList.slice(0, 5).map((item) => (
                     <button key={item.id} type="button" onClick={() => void loadRecentConsultation(item.id)} disabled={busy}>
-                      <span>{item.topic || "자미두수 AI 상담"}{item.name ? ` · ${item.name}` : ""}</span>
+                      <span>{item.topic || "자미두수 전문가 상담"}{item.name ? ` · ${item.name}` : ""}</span>
                       <small>{item.chartSummary?.slice(0, 60) || item.lifePalace || ""}</small>
                     </button>
                   ))}

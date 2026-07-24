@@ -144,7 +144,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "자미두수의 12궁 구조와 주요 성요 조합을 기반으로 인생 테마, 관계 패턴, 진로 흐름을 입체적으로 분석합니다.",
       "heroImageAlt": "심화 자미두수 12궁 상담 대표 이미지",
       "tags": ["자미두수", "12궁", "명궁", "신궁", "사화"],
-      "highlights": ["명궁~복덕궁 12궁 인생 전체 해석", "사화·삼방사정·대한 흐름 심층", "AI 심층 PDF 리포트 (15챕터·3~4만자)"],
+      "highlights": ["명궁~복덕궁 12궁 인생 전체 해석", "사화·삼방사정·대한 흐름 심층", "전문가 심층 PDF 리포트 (15챕터·3~4만자)"],
       "howItWorks": [
         {
           "title": "출생 정보 입력",
@@ -354,7 +354,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "질문, 스프레드 선택, 카드 드로우를 묶어 Oracle Prompt까지 완성",
       "description": "사용자의 질문을 카테고리로 분석하고, 상황에 맞는 스프레드를 추천한 뒤 직접 카드를 뽑아 포지션 의미와 해석 지침을 결합한 Oracle Prompt를 완성합니다.",
       "heroImageAlt": "타로 프롬프트 라이브러리 대표 이미지",
-      "tags": ["타로", "프롬프트", "스프레드", "AI 리딩"],
+      "tags": ["타로", "프롬프트", "스프레드", "전문가 리딩"],
       "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "1회 5,000원"],
       "howItWorks": [
         {
@@ -392,11 +392,11 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": []
     },
     "palm-reading": {
-      "title": "AI 손금 분석",
+      "title": "전문가 손금 분석",
       "subtitle": "생명선, 감정선, 두뇌선, 운명선 기반 이미지 리딩",
       "description": "손바닥 이미지를 바탕으로 핵심 손금 라인을 읽어 성향, 관계, 재물, 진로 흐름을 분석합니다.",
-      "heroImageAlt": "AI 손금 분석 대표 이미지",
-      "tags": ["손금", "AI 이미지 분석", "생명선", "감정선"],
+      "heroImageAlt": "전문가 손금 분석 대표 이미지",
+      "tags": ["손금", "전문가 이미지 분석", "생명선", "감정선"],
       "highlights": ["기본 진입 가능", "상세 리딩은 원화 기준"],
       "howItWorks": [
         {
@@ -428,18 +428,18 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "부분 유료",
       "seo": {
-        "title": "AI 손금 분석 소개 | Code Destiny",
-        "description": "손바닥 이미지를 기반으로 생명선, 감정선, 운명선을 읽는 AI 손금 분석 서비스 소개 페이지입니다.",
-        "keywords": ["손금", "손금 분석", "AI 손금", "생명선", "운명선"]
+        "title": "전문가 손금 분석 소개 | Code Destiny",
+        "description": "손바닥 이미지를 기반으로 생명선, 감정선, 운명선을 읽는 전문가 손금 분석 서비스 소개 페이지입니다.",
+        "keywords": ["손금", "손금 분석", "전문가 손금", "생명선", "운명선"]
       },
       "premiumOptions": []
     },
     "face-reading": {
-      "title": "AI 관상 분석",
+      "title": "전문가 관상 분석",
       "subtitle": "얼굴 이미지 기반 인상/기질/관계 성향 리딩",
-      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 AI 관상 서비스입니다.",
-      "heroImageAlt": "AI 관상 분석 대표 이미지",
-      "tags": ["관상", "AI 분석", "얼굴형", "기질"],
+      "description": "얼굴 이미지를 바탕으로 인상, 기질, 관계 성향, 커뮤니케이션 특성을 분석하는 전문가 관상 서비스입니다.",
+      "heroImageAlt": "전문가 관상 분석 대표 이미지",
+      "tags": ["관상", "전문가 분석", "얼굴형", "기질"],
       "highlights": ["셀카 기반", "초보자 친화 안내"],
       "howItWorks": [
         {
@@ -470,9 +470,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "AI 관상 분석 소개 | Code Destiny",
-        "description": "얼굴 이미지를 기반으로 인상과 성향을 읽는 AI 관상 분석 서비스 소개 페이지입니다.",
-        "keywords": ["관상", "AI 관상", "얼굴 분석", "성향 분석"]
+        "title": "전문가 관상 분석 소개 | Code Destiny",
+        "description": "얼굴 이미지를 기반으로 인상과 성향을 읽는 전문가 관상 분석 서비스 소개 페이지입니다.",
+        "keywords": ["관상", "전문가 관상", "얼굴 분석", "성향 분석"]
       },
       "premiumOptions": []
     },
@@ -687,12 +687,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": []
     },
     "saju-lifebook": {
-      "title": "인생의 책 AI 상담",
+      "title": "인생의 책 전문가 상담",
       "subtitle": "명식과 지금의 질문으로 읽는 나의 인생 서사",
       "description": "생년월일, 성별, 출생시간, 상담 주제를 바탕으로 삶의 흐름과 반복 패턴을 따뜻한 1:1 상담처럼 풀어드립니다.",
-      "heroImageAlt": "인생의 책 AI 상담 대표 이미지",
+      "heroImageAlt": "인생의 책 전문가 상담 대표 이미지",
       "priceLabel": "50,000원",
-      "tags": ["AI 상담", "명리학", "인생 서사"],
+      "tags": ["전문가 상담", "명리학", "인생 서사"],
       "highlights": ["명식 기반 상담", "삶의 핵심 주제", "추가 질문 대화"],
       "howItWorks": [
         {
@@ -723,17 +723,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "인생의 책 AI 상담 | Code Destiny",
-        "description": "명식과 상담 주제를 바탕으로 삶의 흐름을 따뜻하게 읽어주는 인생의 책 AI 상담입니다.",
-        "keywords": ["인생의 책 AI 상담", "명리학 상담", "사주 상담", "인생 상담"]
+        "title": "인생의 책 전문가 상담 | Code Destiny",
+        "description": "명식과 상담 주제를 바탕으로 삶의 흐름을 따뜻하게 읽어주는 인생의 책 전문가 상담입니다.",
+        "keywords": ["인생의 책 전문가 상담", "명리학 상담", "사주 상담", "인생 상담"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "자미두수 AI 상담",
+      "title": "자미두수 전문가 상담",
       "subtitle": "명궁과 12궁으로 여는 운명의 궁위",
       "description": "자미두수 명반을 바탕으로 명궁, 신궁, 사화, 14주성, 12궁, 대한과 유년 흐름을 상담형으로 깊이 있게 풀어냅니다.",
-      "heroImageAlt": "자미두수 AI 상담 대표 이미지",
+      "heroImageAlt": "자미두수 전문가 상담 대표 이미지",
       "tags": ["ZIWEI", "AI CONSULTATION", "12 PALACES", "STAR CHART"],
       "highlights": ["명반 기반 1:1 상담", "명궁·신궁·12궁 기반", "대한·유년 흐름 조언"],
       "howItWorks": [
@@ -746,7 +746,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "로컬 자미두수 엔진으로 명궁, 신궁, 12궁, 사화, 대한 데이터를 먼저 계산합니다."
         },
         {
-          "title": "AI 상담 시작",
+          "title": "전문가 상담 시작",
           "description": "계산된 명반을 바탕으로 지금의 질문에 맞는 상담 답변을 엽니다."
         }
       ],
@@ -766,9 +766,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "priceLabel": "30,000원",
       "seo": {
-        "title": "자미두수 AI 상담 소개 | Code Destiny",
-        "description": "자미두수 명반을 바탕으로 명궁, 신궁, 12궁, 대한과 유년 흐름을 상담형으로 풀어주는 자미두수 AI 상담 소개 페이지입니다.",
-        "keywords": ["자미두수 AI 상담", "자미두수 명반 상담", "명궁 해석", "자미두수 상담"]
+        "title": "자미두수 전문가 상담 소개 | Code Destiny",
+        "description": "자미두수 명반을 바탕으로 명궁, 신궁, 12궁, 대한과 유년 흐름을 상담형으로 풀어주는 자미두수 전문가 상담 소개 페이지입니다.",
+        "keywords": ["자미두수 전문가 상담", "자미두수 명반 상담", "명궁 해석", "자미두수 상담"]
       },
       "premiumOptions": []
     },

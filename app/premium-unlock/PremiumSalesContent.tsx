@@ -80,7 +80,7 @@ type LifeFortuneReport = {
 };
 
 const FEATURE_KEY = "life-book-ai-consultation";
-const FEATURE_TITLE = "인생 총운 AI 상담";
+const FEATURE_TITLE = "인생 총운 전문가 상담";
 const CONSULTATION_TYPE = "lifeFortune";
 const TOPIC = "전체 인생 총운";
 const STORAGE_KEY = "code-destiny-life-fortune-attempt";
@@ -993,7 +993,7 @@ export default function PremiumSalesContent() {
                 <div className="relative flex min-h-[420px] flex-col justify-end p-5 md:p-8">
                   <div className="inline-flex w-fit items-center gap-2 rounded-full border border-[#f2cf82]/35 bg-black/35 px-3 py-1 text-xs font-black text-[#f2cf82]">
                     {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Sparkles className="h-4 w-4" aria-hidden="true" />}
-                    {isGenerating ? "인생 지도를 그리는 중" : "인생 총운 AI 상담"}
+                    {isGenerating ? "인생 지도를 그리는 중" : "인생 총운 전문가 상담"}
                   </div>
                   <h2 className="mt-4 max-w-2xl text-3xl font-black leading-tight md:text-5xl" style={{ fontFamily: "CodeDestinyDisplay, CodeDestinyPremium, serif" }}>
                     {isGenerating ? statusText(status) : "삶의 강은 타고난 명식을 따라 천천히 방향을 드러냅니다."}

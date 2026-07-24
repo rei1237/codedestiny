@@ -8,9 +8,9 @@ import {
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_PATH = "/vedic-ai/";
-const PAGE_TITLE = "베다 점성술 AI 상담 | 나크샤트라·다샤 해석 — Code Destiny";
+const PAGE_TITLE = "베다 점성술 전문가 상담 | 나크샤트라·다샤 해석 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "인도 조티쉬(Jyotish) 전통의 나크샤트라와 행성 배치, 다샤 주기로 지금의 질문을 읽는 베다 점성술 AI 상담. 달이 머문 별자리의 결과 시기 흐름을 상담 문장으로 풀어 드립니다.";
+  "인도 조티쉬(Jyotish) 전통의 나크샤트라와 행성 배치, 다샤 주기로 지금의 질문을 읽는 베다 점성술 전문가 상담. 달이 머문 별자리의 결과 시기 흐름을 상담 문장으로 풀어 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.siteName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "베다 점성술 AI 상담" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "베다 점성술 전문가 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -80,7 +80,7 @@ const vedicAiFaqItems = [
 
 const vedicAiJsonLd = [
   buildServiceJsonLd({
-    name: "베다 점성술 AI 상담",
+    name: "베다 점성술 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "베다 점성술 상담 서비스",
@@ -89,7 +89,7 @@ const vedicAiJsonLd = [
   buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },
     { name: "베다 점성술", path: "/vedic/" },
-    { name: "베다 점성술 AI 상담", path: PAGE_PATH },
+    { name: "베다 점성술 전문가 상담", path: PAGE_PATH },
   ]),
 ];
 
@@ -100,10 +100,10 @@ export default function VedicAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(vedicAiJsonLd) }}
       />
-      <section className="sr-only" aria-label="베다 점성술 AI 상담 안내">
-        <h1>베다 점성술 AI 상담 — 나크샤트라와 다샤의 흐름</h1>
+      <section className="sr-only" aria-label="베다 점성술 전문가 상담 안내">
+        <h1>베다 점성술 전문가 상담 — 나크샤트라와 다샤의 흐름</h1>
         <p>
-          베다 점성술 AI 상담은 인도 조티쉬 전통을 따라 사이더리얼 황도대 위에 라시 차트를 세우고,
+          베다 점성술 전문가 상담은 인도 조티쉬 전통을 따라 사이더리얼 황도대 위에 라시 차트를 세우고,
           달이 머문 나크샤트라의 결과 행성들의 배치, 지금 지나는 다샤의 주기를 함께 읽습니다.
           관계와 일, 마음의 방향처럼 오래 머문 질문을 시기의 흐름 위에서 비춰 드립니다.
         </p>

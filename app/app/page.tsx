@@ -37,7 +37,7 @@ const SPOTLIGHT_FEATURES: Array<FeatureMarketingTarget & { eyebrow: string; imag
   },
   {
     title: "네오의 팩폭 운명 전략실",
-    subtitle: "AI 상담형 전략실",
+    subtitle: "전문가 상담형 전략실",
     description: "질문을 날카롭게 정리하고 다음 선택을 비춥니다.",
     href: "/neo-operation-room",
     slug: "neo-operation-room",

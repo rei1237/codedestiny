@@ -148,14 +148,14 @@ const ANALYSIS_ITEMS = [
 ];
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_REQUIRED_MESSAGE = "연애 비책 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
+const PAYMENT_REQUIRED_MESSAGE = "연애 비책 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const INVALID_INPUT_MESSAGE = "연애 비책 상담에 필요한 정보가 부족해요. 생년월일, 성별, 연애 상황을 다시 확인해 주세요.";
 const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요.";
 const BIRTH_TIME_MESSAGE = "출생시간을 입력하거나 출생시간 모름을 선택해 주세요.";
 const SERVER_ERROR_MESSAGE = "연애 비책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
 const NETWORK_ERROR_MESSAGE = "연결이 불안정해요. 잠시 후 다시 시도해 주세요.";
 
 function cx(...values: Array<string | false | null | undefined>) {
@@ -377,7 +377,7 @@ async function runLoveSecretPaymentGate(paymentPayload: BillingPaymentPayload, i
     categoryKey: toText(runtimeGate.categoryKey) || "premium-consultation",
     subFeatureKey: SERVICE_TYPE,
     featureKey: SERVICE_TYPE,
-    reason: toText(runtimeGate.reason || paymentPayload.orderName) || "연애 비책 AI 상담",
+    reason: toText(runtimeGate.reason || paymentPayload.orderName) || "연애 비책 전문가 상담",
     forceDeduct: true,
     requestId: idempotencyKey,
     idempotencyKey,
@@ -636,7 +636,7 @@ export default function LoveSecretAiPage() {
       featureKey: SERVICE_TYPE,
       requestId: idempotencyKey,
       title: "이용권 확인",
-      reason: "연애 비책 AI 상담",
+      reason: "연애 비책 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
     // 확인 완료 후 다음 화면(생성 중 상태)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
@@ -650,7 +650,7 @@ export default function LoveSecretAiPage() {
           featureKey: SERVICE_TYPE,
           requestId: idempotencyKey,
           title: "이용권 확인 완료",
-          reason: "연애 비책 AI 상담",
+          reason: "연애 비책 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 마음의 흐름을 읽고 있습니다.",
         });
@@ -681,7 +681,7 @@ export default function LoveSecretAiPage() {
         featureKey: SERVICE_TYPE,
         requestId: idempotencyKey,
         title: "이용권 확인 실패",
-        reason: "연애 비책 AI 상담",
+        reason: "연애 비책 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message: message || SERVER_ERROR_MESSAGE,
         cancelled: paymentCancelled,
@@ -861,7 +861,7 @@ function LoveSecretHero({ phase, phaseText, busy, step }: { phase: Phase; phaseT
             Love Secret · AI Romance Reading
           </p>
           <h1 className="mt-4 text-4xl font-black leading-tight text-white [font-family:var(--font-display)] sm:text-6xl">
-            연애 비책 AI 상담
+            연애 비책 전문가 상담
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-8 text-rose-50/85 sm:text-lg">
             마음의 온도, 사주의 균형, 두 사람의 리듬을 함께 읽어 지금 가장 필요한 연애의 한 수를 전해드립니다.

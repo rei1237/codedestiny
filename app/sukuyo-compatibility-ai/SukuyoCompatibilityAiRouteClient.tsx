@@ -16,7 +16,7 @@ function SukuyoCompatibilityAiShell() {
     <div className="min-h-screen bg-[#120816] text-white">
       <section className="mx-auto flex min-h-[52vh] max-w-5xl flex-col justify-center px-5 py-16 sm:px-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-rose-200/80">Sukuyo Compatibility</p>
-        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">숙요점 궁합 AI 상담</h1>
+        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">숙요점 궁합 전문가 상담</h1>
         <p className="mt-5 max-w-2xl text-base leading-8 text-rose-50/85 sm:text-lg">
           두 사람의 별자리에 놓인 끌림과 거리감, 오래 이어질 관계의 리듬을 천천히 펼쳐 봅니다.
         </p>

@@ -542,7 +542,7 @@ export function buildPsychPrompt(result: PsychPromptResult) {
   const answerLines = result.answerSummaries
     .map((item, index) => `${index + 1}. ${item.question}\n- 선택: ${item.answer}\n- 단서: ${item.signal}`)
     .join("\n\n");
-  return `[심리테스트 기반 AI 상담 프롬프트]
+  return `[심리테스트 기반 전문가 상담 프롬프트]
 
 당신은 자기 이해, 관계 패턴, 감정 회복, 현실 선택을 차분하게 돕는 전문 상담가입니다.
 아래 심리테스트 응답과 산출된 성향 결과만 바탕으로, 사용자가 지금의 마음과 행동 방향을 정리할 수 있게 상담해 주세요.

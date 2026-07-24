@@ -3,7 +3,7 @@ import FeatureLandingPage from "../../components/FeatureLandingPage";
 const SERVICE = {
   h1: "⚡ 시빌라 시스템 — 사주팔자 진로 적성 분석",
   description:
-    "사주팔자 8글자를 기반으로 진로 적성 섹터를 배정하고 운명 위험 계수를 분석하는 AI 시스템입니다.",
+    "사주팔자 8글자를 기반으로 진로 적성 섹터를 배정하고 운명 위험 계수를 분석하는 전문가 시스템입니다.",
   ogImage: "/fuctionassets/sybila.webp",
   landingPoints: [
     "데스티니 휴(Hue) 색채 진단",
@@ -12,7 +12,7 @@ const SERVICE = {
     "도미네이터 심층 리포트 (10,000원)",
   ],
   seoText:
-    "시빌라 시스템은 사주팔자 오행 분포를 기반으로 진로 적성을 진단하고, 운명 위험 계수를 시각화하는 독자적인 AI 분석 서비스입니다.",
+    "시빌라 시스템은 사주팔자 오행 분포를 기반으로 진로 적성을 진단하고, 운명 위험 계수를 시각화하는 독자적인 전문 분석 서비스입니다.",
   localized: {
     en: {
       title: "Sibyl System - Four Pillars Career Aptitude and Destiny Risk Index",

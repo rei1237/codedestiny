@@ -213,3 +213,56 @@ html[data-cd-theme="neo"] {
     --cd-press-scale: 1;
   }
 }
+
+/*
+ * 운명의 지도(운명 나침반) 전용 아트 토큰 — 2026-07, additive.
+ * 몰입형 밤하늘 무대는 연이/네오 양 모드에서 항상 남보라 야경이라(기존 .stage 가 이미
+ * 하드코딩 다크 배경) 테마 분기 없이 :root 단일 정의한다 — App Router 신규 분기 금지 규칙 준수.
+ * 소비처: app/destiny-compass/_components/*.module.css. 다른 화면엔 영향 없음.
+ * 컬러 정본: 초록 대륙 퇴출 → 남보라 계열 + 금색 단일 액센트(DESIGN.md One Accent Rule).
+ */
+:root {
+  /* 딥스페이스 배경 5단계 (가장 깊은 곳 → 지평선) */
+  --cd-map-space-0: #060412;
+  --cd-map-space-1: #0a0818;
+  --cd-map-space-2: #140a2e;
+  --cd-map-space-3: #1c1246;
+  --cd-map-space-4: #241858;
+
+  /* 대륙 4단계 (그림자 → 베이스 → 중간 → 상단 하이라이트) */
+  --cd-map-land-shadow: #0d0a24;
+  --cd-map-land-base: #221a44;
+  --cd-map-land-mid: #2c2154;
+  --cd-map-land-light: #3d2e70;
+
+  /* 금색 액센트 3단계 + 해안 발광 */
+  --cd-map-gold: #e8d5a3;
+  --cd-map-gold-bright: #f4e9c8;
+  --cd-map-gold-deep: #c9a86a;
+  --cd-map-shore: #ffe9b8;
+
+  /* 노드 5색 (저채도 파스텔 — 각 화면에서 발광/잠김은 alpha·filter로 파생) */
+  --cd-node-castle: #f0d9a0;
+  --cd-node-forest: #9fd8b0;
+  --cd-node-city: #8fd0ff;
+  --cd-node-lake: #a9c2ff;
+  --cd-node-fog: #d7ccf2;
+  --cd-node-here: #f6c3d6;
+
+  /* 별 3계층 색 */
+  --cd-star-far: rgba(198, 210, 255, 0.5);
+  --cd-star-mid: rgba(255, 255, 255, 0.9);
+  --cd-star-near: #fff8ec;
+
+  /* 무대 z-scale (딥스페이스 → UI) */
+  --cd-z-space: 0;
+  --cd-z-land: 1;
+  --cd-z-node: 2;
+  --cd-z-veil: 3;
+  --cd-z-char: 4;
+  --cd-z-ui: 5;
+
+  /* 앰비언트 모션 주기 */
+  --cd-map-drift: 80s;
+  --cd-map-breathe: 10s;
+}

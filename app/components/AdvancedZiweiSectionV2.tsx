@@ -1163,7 +1163,7 @@ export default function AdvancedZiweiSectionV2({
   const autoComputeRef = useRef(false);
   const currentProfileFingerprintRef = useRef("");
 
-  // 심화 자미두수 명반은 무료 열람 — 영구 해금 잠금 모델 제거. 유료 요소는 AI 상담/PDF의 회당 결제로 통일.
+  // 심화 자미두수 명반은 무료 열람 — 영구 해금 잠금 모델 제거. 유료 요소는 전문가 상담/PDF의 회당 결제로 통일.
 
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF): 폼 → PDF 리포트 생성용 출생 정보
   const deepPdfBirth = useMemo<ZiweiDeepBirthInput>(() => ({
@@ -2657,7 +2657,7 @@ export default function AdvancedZiweiSectionV2({
           </div>
         ) : null}
 
-        {/* 심화 자미두수 안 인라인 AI 상담 (ziwei-ai-consultation) — 명반 무료, 상담만 회당 결제 */}
+        {/* 심화 자미두수 안 인라인 전문가 상담 (ziwei-ai-consultation) — 명반 무료, 상담만 회당 결제 */}
         <div className="relative z-10 mt-6">
           <ZiweiAiConsultPanel birth={deepPdfBirth} disabled={!chart} />
         </div>

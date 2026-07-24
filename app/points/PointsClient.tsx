@@ -1618,7 +1618,7 @@ function SubscriptionSection({
               { icon: "🃏", text: "행복한 회복 타로", sub: "힐링 타로 — 제한 없이 무료" },
               { icon: "🀄", text: "데일리 점술 5종", sub: "화투점·데스티니 포커·돼지 주석점·영국 홍차점·역경 주역" },
               { icon: "📊", text: "기본 사주 만세력", sub: "연·월·일·시 명식표 + 일주 캐릭터 요약" },
-              { icon: "🎭", text: "재미 맛보기 콘텐츠", sub: "MBTI 동물 궁합·사주 AI 이상형·사주네컷 등" },
+              { icon: "🎭", text: "재미 맛보기 콘텐츠", sub: "MBTI 동물 궁합·사주 전문가 이상형·사주네컷 등" },
             ].map(({ icon, text, sub }) => (
               <li key={text} className="flex items-start gap-2">
                 <span className="flex-shrink-0 text-sm leading-4 mt-0.5">{icon}</span>

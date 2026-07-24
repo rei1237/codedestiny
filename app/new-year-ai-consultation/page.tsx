@@ -8,14 +8,14 @@ import {
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
-const PAGE_TITLE = "신년운세 AI 상담 | 새해 흐름·월별 운세 풀이 — Code Destiny";
+const PAGE_TITLE = "신년운세 전문가 상담 | 새해 흐름·월별 운세 풀이 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 AI 상담. 한 해의 재물·관계·커리어 결과 월별 체크포인트를 사주 명식 기반 상담 문장으로 정리해 드립니다.";
+  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 전문가 상담. 한 해의 재물·관계·커리어 결과 월별 체크포인트를 사주 명식 기반 상담 문장으로 정리해 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["신년운세", "새해 운세", "무료 신년운세", "월별 운세", "토정비결", "신년 사주", "AI 신년운세"],
+  keywords: ["신년운세", "새해 운세", "무료 신년운세", "월별 운세", "토정비결", "신년 사주", "전문가 신년운세"],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.siteName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "신년운세 AI 상담" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "신년운세 전문가 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -42,14 +42,14 @@ export const metadata: Metadata = {
 
 const newYearFaqItems = [
   {
-    question: "신년운세 AI 상담은 무엇을 알려주나요?",
+    question: "신년운세 전문가 상담은 무엇을 알려주나요?",
     answer:
       "새해 한 해의 큰 흐름을 사주 명식의 세운(歲運) 관점에서 읽어 드립니다. 재물·관계·커리어의 결이 어느 계절에 열리고 어느 시기에 숨을 고르면 좋은지, 월별 체크포인트와 함께 상담 문장으로 정리합니다.",
   },
   {
     question: "토정비결과는 무엇이 다른가요?",
     answer:
-      "토정비결이 정해진 괘 풀이를 찾아 읽는 방식이라면, 신년운세 AI 상담은 내 생년월일로 세운 사주 명식과 그 해의 간지가 만나는 흐름을 개인별로 계산해 해석합니다. 같은 해라도 사람마다 다른 결의 풀이가 나옵니다.",
+      "토정비결이 정해진 괘 풀이를 찾아 읽는 방식이라면, 신년운세 전문가 상담은 내 생년월일로 세운 사주 명식과 그 해의 간지가 만나는 흐름을 개인별로 계산해 해석합니다. 같은 해라도 사람마다 다른 결의 풀이가 나옵니다.",
   },
   {
     question: "연말이 아니어도 볼 수 있나요?",
@@ -85,7 +85,7 @@ const newYearFaqItems = [
 
 const newYearJsonLd = [
   buildServiceJsonLd({
-    name: "신년운세 AI 상담",
+    name: "신년운세 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "신년운세 상담 서비스",
@@ -93,7 +93,7 @@ const newYearJsonLd = [
   buildFaqPageJsonLd(newYearFaqItems),
   buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },
-    { name: "신년운세 AI 상담", path: PAGE_PATH },
+    { name: "신년운세 전문가 상담", path: PAGE_PATH },
   ]),
 ];
 
@@ -104,10 +104,10 @@ export default function NewYearAiConsultationPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newYearJsonLd) }}
       />
-      <section className="sr-only" aria-label="신년운세 AI 상담 안내">
-        <h1>신년운세 AI 상담 — 새해 흐름과 월별 운세 풀이</h1>
+      <section className="sr-only" aria-label="신년운세 전문가 상담 안내">
+        <h1>신년운세 전문가 상담 — 새해 흐름과 월별 운세 풀이</h1>
         <p>
-          신년운세 AI 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
+          신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
           겹쳐 읽습니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지,
           어느 시기에 무리하지 않고 숨을 고르는 편이 좋은지 월별 체크포인트로 정리해 드립니다.
         </p>

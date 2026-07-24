@@ -2607,7 +2607,7 @@ export default function NeoOperationRoomPage() {
                     {flowPhase === "payment"
                       ? "결제 확인 중"
                       : flowPhase === "generating"
-                        ? "AI 상담 생성 중"
+                        ? "전문가 상담 생성 중"
                         : busy
                           ? "작전 지도 분석 중"
                           : "사자 휘장으로 작전 개시"}

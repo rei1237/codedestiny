@@ -71,8 +71,8 @@ const PALM_DESTINY_TEXT_TRANSLATIONS = {
     "palmDestiny.message.005": "네트워크/API 오류로 분석 요청에 실패했습니다.",
     "palmDestiny.error.001": "분석 결과 데이터가 준비되지 않았습니다.",
     "palmDestiny.message.006": "이용권 확인 중",
-    "palmDestiny.error.002": "AI 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
-    "palmDestiny.error.003": "AI 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
+    "palmDestiny.error.002": "전문가 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
+    "palmDestiny.error.003": "전문가 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
     "palmDestiny.aria-label.001": "손바닥 바로 촬영하기",
     "palmDestiny.aria-label.002": "앨범에서 사진 선택하기",
     "palmDestiny.alt.001": "선택된 손바닥 미리보기",
@@ -2305,7 +2305,7 @@ export default function PalmDestinyMain() {
     ].join("::");
 
     if (inFlightSignatureRef.current === requestSignature) {
-      setSubmitMessage("동일 분석 결과 기준으로 AI 상담이 이미 진행 중입니다.");
+      setSubmitMessage("동일 분석 결과 기준으로 전문가 상담이 이미 진행 중입니다.");
       return;
     }
 
@@ -2358,7 +2358,7 @@ export default function PalmDestinyMain() {
 
     try {
       setPalmAiPrompt({ prompt: "", isLoading: true, error: "" });
-      setSubmitMessage("AI 상담을 생성하고 있습니다.");
+      setSubmitMessage("전문가 상담을 생성하고 있습니다.");
 
       openPaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
@@ -2369,7 +2369,7 @@ export default function PalmDestinyMain() {
       updatePaidFeatureGate({
         featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
         requestId: billingRequestId,
-        message: "AI 상담을 준비하고 있어요",
+        message: "전문가 상담을 준비하고 있어요",
       });
 
       const requestBody = JSON.stringify({
@@ -2431,7 +2431,7 @@ export default function PalmDestinyMain() {
             ? data.message
             : typeof data?.error === "string"
             ? data.error
-            : "AI 상담 응답을 불러오는 중 문제가 발생했습니다.";
+            : "전문가 상담 응답을 불러오는 중 문제가 발생했습니다.";
         const mappedMessage = mapPalmAnalyzeError({ status: response.status, code, reasonCode, message });
         updatePaidFeatureGate({
           featureKey: PALM_AI_CONSULT_SUB_FEATURE_KEY,
@@ -2484,7 +2484,7 @@ export default function PalmDestinyMain() {
           isLoading: false,
           error: palmDestinyText("palmDestiny.error.002"),
         });
-        setSubmitMessage("AI 상담 생성 결과가 비어 있습니다.");
+        setSubmitMessage("전문가 상담 생성 결과가 비어 있습니다.");
         return;
       }
 
@@ -2493,7 +2493,7 @@ export default function PalmDestinyMain() {
         isLoading: false,
         error: "",
       });
-      setSubmitMessage("AI 상담이 준비되었습니다.");
+      setSubmitMessage("전문가 상담이 준비되었습니다.");
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         return;
@@ -2505,11 +2505,11 @@ export default function PalmDestinyMain() {
           isLoading: false,
           error: palmDestinyText("palmDestiny.error.003"),
         }));
-        setSubmitMessage("AI 상담 API 연결이 일시적으로 불안정합니다.");
+        setSubmitMessage("전문가 상담 API 연결이 일시적으로 불안정합니다.");
         return;
       }
 
-      const message = `AI 상담 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`;
+      const message = `전문가 상담 처리 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`;
       setPalmAiPrompt((prev) => ({
         ...prev,
         isLoading: false,
@@ -3478,8 +3478,8 @@ export default function PalmDestinyMain() {
                     <section className="space-y-3 rounded-xl border border-[#f5d987]/30 bg-[linear-gradient(145deg,rgba(22,8,8,0.95),rgba(30,12,12,0.94))] p-4">
                       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#c8a84b]/30 pb-3">
                         <div>
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 AI 상담</h3>
-                          <p className="mt-1 text-xs text-[#d4b45c]/85">분석 결과를 바탕으로 AI가 한 번 더 정리해 드립니다.</p>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 전문가 상담</h3>
+                          <p className="mt-1 text-xs text-[#d4b45c]/85">분석 결과를 바탕으로 전문가가 한 번 더 정리해 드립니다.</p>
                         </div>
                         <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">5,000원</span>
                       </div>
@@ -3494,7 +3494,7 @@ export default function PalmDestinyMain() {
                             : "border-[#f5d987]/70 bg-[linear-gradient(140deg,#8b0000,#6b1a0a_35%,#5a1200_65%,#7a1800)] text-[#fff8e0] shadow-[0_0_0_1px_rgba(212,176,92,0.25),0_12px_24px_rgba(0,0,0,0.5),0_0_24px_rgba(139,0,0,0.4)]"
                         }`}
                       >
-                        {palmAiPrompt.isLoading ? "AI 상담 작성 중..." : "AI 상담 보기 (5,000원)"}
+                        {palmAiPrompt.isLoading ? "전문가 상담 작성 중..." : "전문가 상담 보기 (5,000원)"}
                       </button>
 
                       {palmAiPrompt.error ? (
