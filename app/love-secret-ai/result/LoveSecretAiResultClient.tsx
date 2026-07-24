@@ -5,6 +5,8 @@ import { AlertCircle, ArrowLeft, Clock, Flame, Heart, Info, Loader2, Moon, Refre
 import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
@@ -412,7 +414,8 @@ export default function LoveSecretAiResultClient() {
 
   return (
     <main className={`${styles.shell} relative min-h-screen overflow-hidden bg-[var(--ls-bg-0)] text-[var(--ls-text)] [font-family:var(--font-body)]`}>
-      <div className={`${styles.bgGrad} pointer-events-none fixed inset-0`} aria-hidden="true" />
+      {/* 붉은 실 인연 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지. 불투명 bgGrad 베이스는 제거하고 반투명 글로우만 남긴다 */}
+      <PaintedBackdrop src={paintedBackdrops.redThread} veil={0.8} position="center 30%" />
       <div className={`${styles.bgGlow} pointer-events-none fixed inset-0`} aria-hidden="true" />
       <div className={`${styles.petals} pointer-events-none fixed inset-0`} aria-hidden="true" />
 
@@ -514,7 +517,7 @@ function LoveSecretResultPageContent({
             <Sparkles className="h-4 w-4" aria-hidden="true" />
             Love Secret Reading
           </p>
-          <h1 className="mt-4 text-3xl font-black leading-tight text-[var(--ls-rosegold)] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
+          <h1 className="mt-4 text-3xl font-black leading-tight text-[var(--ls-rosegold)] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>
             {summaryTitle}
           </h1>
           <figure className={`${styles.accentQuote} mt-6 max-w-2xl`}>

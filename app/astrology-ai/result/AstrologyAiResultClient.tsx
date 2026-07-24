@@ -14,6 +14,8 @@ import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
 import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import type { RawPlanetLike, RawWesternChart } from "@/types/astrology";
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
@@ -364,7 +366,8 @@ export default function AstrologyAiResultClient() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#050816] text-slate-100 [font-family:var(--font-body)]">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(180deg,#050816_0%,#0b1028_46%,#050816_100%)]" aria-hidden="true" />
+      {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지. 불투명 선형그라디언트 베이스는 제거하고 반투명 그레인만 남긴다 */}
+      <PaintedBackdrop src={paintedBackdrops.ziwei1} veil={0.82} position="center 28%" />
       <div className="pointer-events-none fixed inset-0 opacity-40 [background-image:radial-gradient(#f8e7b0_1px,transparent_1px),radial-gradient(#c4b5fd_1px,transparent_1px)] [background-position:0_0,34px_42px] [background-size:88px_88px,128px_128px]" aria-hidden="true" />
       <div className="pointer-events-none fixed inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#f5d487]/60 to-transparent" aria-hidden="true" />
 
@@ -406,7 +409,7 @@ export default function AstrologyAiResultClient() {
             <article className="space-y-6">
               <header className={`${RESULT_PANEL_CLASS} overflow-hidden p-6 sm:p-8`}>
                 <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#f5d487]">Code Destiny Astrology</p>
-                <h1 className="mt-3 text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
+                <h1 className="mt-3 text-3xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>
                   {userName}님의 별자리 상담
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-8 text-slate-200">

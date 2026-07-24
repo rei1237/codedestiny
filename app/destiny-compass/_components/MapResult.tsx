@@ -10,7 +10,10 @@ import { CompassDial } from "./CompassDial";
 import { DestinyRadar } from "./DestinyRadar";
 import { PigFace } from "./PigFace";
 import { Starfield } from "./Starfield";
+import { PaintedBackdrop } from "./PaintedBackdrop";
+import { compassPaintings } from "../data/assets";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
+import { useFxTier } from "../_hooks/useFxTier";
 import styles from "./map.module.css";
 import type { DirectionField, DirectionKey, SystemKey } from "../_engine/types";
 import { DIRECTION_LABEL_KO } from "../_engine/constants";
@@ -101,6 +104,7 @@ function evidenceTerm(field: DirectionField, sys: SystemKey): string | null {
 
 export function MapResult({ field, situation, onNext, onRestart, onCrossroad, onFutureSim, onVoyage }: MapResultProps) {
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
+  const fxTier = useFxTier();
 
   // 오늘의 타로 카드를 운명 도감에 수집(멱등·계정 단위). 결과를 열람하면 그날의 카드가 모인다.
   useEffect(() => {
@@ -165,7 +169,8 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
   }, [field, situation]);
 
   return (
-    <div className={styles.resultStage}>
+    <div className={styles.resultStage} data-fx={fxTier}>
+      {/* 몰입 배경 = 코스믹 그라디언트 + 별밭(깔끔). 페인팅은 섹션별로만 얹어 본문과 충돌 방지. */}
       <Starfield />
 
       <header className={styles.mapHeader}>
@@ -175,8 +180,9 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
       </header>
 
       <div className={styles.resultBody}>
-        {/* ① 나침반 히어로 + 6시스템 */}
-        <div className={styles.resultTop}>
+        {/* ① 나침반 히어로 + 6시스템 — 자미두수 세계(소설 씬) 페인팅 위 */}
+        <div className={`${styles.resultTop} ${styles.sceneSection}`}>
+          <PaintedBackdrop src={compassPaintings.ziwei1} veil={0.82} position="center 35%" />
           <div className={styles.resultCompassWrap}>
             <CompassDial mode="result" directions={field.directions} primary={field.primary.key} />
           </div>
@@ -224,7 +230,8 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
         </div>
 
         {/* ③ 운명의 레이더 + 행운 (STEP10) */}
-        <div className={styles.flowSection}>
+        <div className={`${styles.flowSection} ${styles.sceneSection}`}>
+          <PaintedBackdrop src={compassPaintings.ziwei2} veil={0.82} position="center" />
           <span className={styles.flowLabel}>운명의 레이더</span>
           <div className={styles.radarBlock}>
             <div className={styles.radarSweepWrap}>
@@ -267,8 +274,9 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
           </div>
         </div>
 
-        {/* ⑤ 꽃돼지 해설 */}
-        <div className={styles.resultSpeak}>
+        {/* ⑤ 꽃돼지 해설 — 붉은 실(인연) 페인팅 위 따뜻한 상담 장면 */}
+        <div className={`${styles.resultSpeak} ${styles.sceneSection}`}>
+          <PaintedBackdrop src={compassPaintings.redThread} veil={0.8} position="center 40%" />
           <PigFace expression={pigExpression(field.primary.band, "hopeful")} height={78} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
             <div className={styles.resultWho}>꽃돼지</div>

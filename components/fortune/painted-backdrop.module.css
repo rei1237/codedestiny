@@ -1,0 +1,38 @@
+/* 공유 페인팅 배경 레이어 — 결과 화면 셸용. 콘텐츠는 이 위에 z-index로 얹는다. */
+.painted {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.fixed {
+  position: fixed;
+}
+.img {
+  object-fit: cover;
+  /* 세계 팔레트 편입 — 살짝 어둡게·저채도 */
+  filter: saturate(0.9) brightness(0.82) contrast(1.02);
+}
+/* 베일 + 상하 비네트 + 그레인 — 장문 본문 가독성(AA) 보장 */
+.veil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 86% at 50% 120%, rgba(6, 4, 16, 0.9), transparent 56%),
+    linear-gradient(180deg,
+      rgba(8, 6, 20, calc(var(--pb-veil, 0.78) * 0.6)) 0%,
+      rgba(8, 6, 20, calc(var(--pb-veil, 0.78) * 0.8)) 40%,
+      rgba(5, 4, 14, calc(var(--pb-veil, 0.78) * 1)) 100%);
+}
+.veil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@media (prefers-reduced-motion: reduce) {
+  .veil::after { background-image: none; }
+}

@@ -11,6 +11,7 @@ import { SpriteImage } from "./SpriteImage";
 import { NodeIcon, type NodeKind } from "./NodeIcon";
 import { compassAssets } from "../data/assets";
 import { REGIONS, HERE, regionByKey } from "./mapRegions";
+import { useFxTier } from "../_hooks/useFxTier";
 import styles from "./map.module.css";
 
 // 지역 고유 강조 톤(불투명 hex — NodeIcon 채색용). region.glow(rgba)와 짝.
@@ -39,6 +40,8 @@ interface DestinyMapProps {
   spotlightRegion?: string | null;
   /** 현재 위치 꽃돼지 표정(입력 상태머신과 동기화). */
   pigExpr?: "neutral" | "happy" | "talk" | "think" | "surprise";
+  /** 꽃돼지 대사 — 지도 위 꽃돼지 말풍선에 표시(화자 앵커 고정). 미지정 시 말풍선 숨김. */
+  heroLine?: string;
   /** 무입력 대기 시 사자가 고개를 살짝 기울임. */
   guideTilt?: boolean;
   onRegion?: (key: string) => void;
@@ -53,6 +56,7 @@ export function DestinyMap({
   highlightRegion,
   spotlightRegion,
   pigExpr = "happy",
+  heroLine,
   guideTilt = false,
   onRegion,
   children,
@@ -76,8 +80,9 @@ export function DestinyMap({
     mq.addEventListener?.("change", sync);
     return () => mq.removeEventListener?.("change", sync);
   }, []);
+  const fxTier = useFxTier();
   return (
-    <div className={styles.stage}>
+    <div className={styles.stage} data-fx={fxTier}>
       {/* Z0 — 딥스페이스 */}
       <Starfield />
 
@@ -91,22 +96,24 @@ export function DestinyMap({
         <svg className={styles.islandSvg} viewBox="0 0 400 300" aria-hidden="true">
           <defs>
             <radialGradient id="cd-water" cx="50%" cy="52%" r="60%">
-              <stop offset="0%" stopColor="rgba(120,150,230,.34)" />
-              <stop offset="68%" stopColor="rgba(60,80,170,.18)" />
+              <stop offset="0%" stopColor="rgba(126,108,210,.3)" />
+              <stop offset="68%" stopColor="rgba(60,72,170,.16)" />
               <stop offset="100%" stopColor="transparent" />
             </radialGradient>
-            <linearGradient id="cd-land" x1="0" y1="0" x2="0.25" y2="1">
-              <stop offset="0%" stopColor="#7bb98a" />
-              <stop offset="42%" stopColor="#4f8763" />
-              <stop offset="100%" stopColor="#2b5340" />
+            {/* 대륙 — 남보라 4단계(그림자→베이스→중간→상단 하이라이트). 주광원 상단이라 위가 밝다. */}
+            <linearGradient id="cd-land" x1="0.35" y1="0" x2="0.6" y2="1">
+              <stop offset="0%" stopColor="#3d2e70" />
+              <stop offset="34%" stopColor="#2c2154" />
+              <stop offset="70%" stopColor="#221a44" />
+              <stop offset="100%" stopColor="#150f30" />
             </linearGradient>
-            <radialGradient id="cd-land-light" cx="42%" cy="30%" r="62%">
-              <stop offset="0%" stopColor="rgba(226,246,214,.55)" />
-              <stop offset="55%" stopColor="rgba(226,246,214,0)" />
+            <radialGradient id="cd-land-light" cx="46%" cy="24%" r="60%">
+              <stop offset="0%" stopColor="rgba(210,196,255,.42)" />
+              <stop offset="58%" stopColor="rgba(210,196,255,0)" />
             </radialGradient>
             <linearGradient id="cd-shore" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ffeebb" />
-              <stop offset="100%" stopColor="#d8b478" />
+              <stop offset="0%" stopColor="#ffe9b8" />
+              <stop offset="100%" stopColor="#c9a86a" />
             </linearGradient>
             <filter id="cd-isle-glow" x="-30%" y="-30%" width="160%" height="160%">
               <feGaussianBlur stdDeviation="6" result="b" />
@@ -116,55 +123,53 @@ export function DestinyMap({
               </feMerge>
             </filter>
             <clipPath id="cd-land-clip">
-              <path d="M142,84 C182,54 252,52 298,88 C334,116 342,156 322,196 C304,236 250,260 196,256 C142,252 92,232 76,188 C60,150 98,112 142,84 Z" />
+              <path d="M150,78 C175,52 220,58 250,74 C292,60 330,92 328,128 C326,150 342,172 320,198 C300,232 258,252 214,250 C180,249 150,264 120,240 C92,222 70,196 80,166 C86,138 108,96 150,78 Z" />
             </clipPath>
           </defs>
 
           {/* 물결 글로우 + 궤도 링 */}
           <ellipse cx="200" cy="168" rx="190" ry="124" fill="url(#cd-water)" />
-          <ellipse cx="200" cy="168" rx="150" ry="96" fill="none" stroke="rgba(160,200,255,.16)" strokeWidth="1.5" />
-          <ellipse cx="200" cy="168" rx="116" ry="72" fill="none" stroke="rgba(160,200,255,.1)" strokeWidth="1" />
+          <ellipse cx="200" cy="168" rx="150" ry="96" fill="none" stroke="rgba(180,168,255,.16)" strokeWidth="1.5" />
+          <ellipse cx="200" cy="168" rx="116" ry="72" fill="none" stroke="rgba(180,168,255,.1)" strokeWidth="1" />
 
-          {/* 부양 그림자(대륙 아래) */}
-          <ellipse cx="200" cy="248" rx="132" ry="30" fill="rgba(6,4,20,.55)" filter="url(#cd-isle-glow)" />
+          {/* L1 — 부양 그림자(대륙 아래, 넓게 퍼져 부양감) */}
+          <ellipse cx="204" cy="250" rx="138" ry="30" fill="rgba(4,3,14,.6)" filter="url(#cd-isle-glow)" />
 
           <g className={styles.islandBreathe} style={{ transformOrigin: "200px 168px" }}>
-            {/* 레이 라인(중앙→지역, 은은한 금빛) */}
-            <g stroke="rgba(232,213,163,.24)" strokeWidth="1" strokeDasharray="3 5" fill="none">
-              <path d="M200,168 L200,60" />
-              <path d="M200,168 L86,126" />
-              <path d="M200,168 L322,132" />
-              <path d="M200,168 L120,224" />
-              <path d="M200,168 L286,230" />
+            {/* 레이 라인(중앙→지역, 은은한 금빛 성좌 연결선) */}
+            <g stroke="rgba(232,213,163,.22)" strokeWidth="1" strokeDasharray="3 5" fill="none">
+              <path d="M200,168 L200,66" />
+              <path d="M200,168 L92,128" />
+              <path d="M200,168 L318,134" />
+              <path d="M200,168 L122,222" />
+              <path d="M200,168 L286,228" />
             </g>
 
-            {/* 섬 본체 */}
+            {/* L2 — 섬 베이스(남보라 4단계) */}
             <path
-              d="M142,84 C182,54 252,52 298,88 C334,116 342,156 322,196 C304,236 250,260 196,256 C142,252 92,232 76,188 C60,150 98,112 142,84 Z"
+              d="M150,78 C175,52 220,58 250,74 C292,60 330,92 328,128 C326,150 342,172 320,198 C300,232 258,252 214,250 C180,249 150,264 120,240 C92,222 70,196 80,166 C86,138 108,96 150,78 Z"
               fill="url(#cd-land)"
               filter="url(#cd-isle-glow)"
             />
-            {/* 지형 텍스처 — 등고선/능선 (대륙 클립 내부) */}
+            {/* L3 — 지형 텍스처(등고선/능선) + L4 상단 라이팅 (대륙 클립 내부) */}
             <g clipPath="url(#cd-land-clip)" fill="none" strokeLinecap="round">
-              <path d="M96,150 C140,132 180,138 214,128 C250,118 288,124 320,110" stroke="rgba(20,54,38,.35)" strokeWidth="2" />
-              <path d="M104,178 C150,166 196,172 236,160 C270,150 300,156 326,146" stroke="rgba(20,54,38,.28)" strokeWidth="1.6" />
-              <path d="M120,208 C158,200 198,204 232,196 C262,189 288,192 312,184" stroke="rgba(20,54,38,.22)" strokeWidth="1.4" />
-              <path d="M150,120 C176,132 176,150 158,166" stroke="rgba(226,246,214,.22)" strokeWidth="1.4" />
-              <path d="M262,116 C282,130 282,150 266,168" stroke="rgba(226,246,214,.18)" strokeWidth="1.4" />
-              {/* 상단 라이팅 */}
-              <path d="M142,84 C182,54 252,52 298,88 C334,116 342,156 322,196 C304,236 250,260 196,256 C142,252 92,232 76,188 C60,150 98,112 142,84 Z" fill="url(#cd-land-light)" stroke="none" />
+              <path d="M96,150 C140,132 180,138 214,128 C250,118 288,124 320,110" stroke="rgba(10,6,30,.42)" strokeWidth="2" />
+              <path d="M104,178 C150,166 196,172 236,160 C270,150 300,156 326,146" stroke="rgba(10,6,30,.34)" strokeWidth="1.6" />
+              <path d="M120,208 C158,200 198,204 232,196 C262,189 288,192 312,184" stroke="rgba(10,6,30,.26)" strokeWidth="1.4" />
+              <path d="M150,120 C176,132 176,150 158,166" stroke="rgba(206,192,255,.2)" strokeWidth="1.3" />
+              <path d="M262,116 C282,130 282,150 266,168" stroke="rgba(206,192,255,.16)" strokeWidth="1.3" />
+              {/* L4 상단 하이라이트 면(주광원 방향) */}
+              <path d="M150,78 C175,52 220,58 250,74 C292,60 330,92 328,128 C326,150 342,172 320,198 C300,232 258,252 214,250 C180,249 150,264 120,240 C92,222 70,196 80,166 C86,138 108,96 150,78 Z" fill="url(#cd-land-light)" stroke="none" />
             </g>
-            {/* 해안 하이라이트(물가 반사) */}
+            {/* L5 — 금색 해안선 + 바깥 발광 */}
             <path
-              d="M142,84 C182,54 252,52 298,88 C334,116 342,156 322,196 C304,236 250,260 196,256 C142,252 92,232 76,188 C60,150 98,112 142,84 Z"
+              d="M150,78 C175,52 220,58 250,74 C292,60 330,92 328,128 C326,150 342,172 320,198 C300,232 258,252 214,250 C180,249 150,264 120,240 C92,222 70,196 80,166 C86,138 108,96 150,78 Z"
               fill="none"
               stroke="url(#cd-shore)"
-              strokeWidth="3"
-              opacity="0.6"
+              strokeWidth="2.4"
+              opacity="0.7"
+              filter="url(#cd-isle-glow)"
             />
-            {/* 작은 섬들 */}
-            <ellipse cx="70" cy="236" rx="16" ry="7" fill="url(#cd-land)" opacity="0.8" />
-            <ellipse cx="336" cy="228" rx="13" ry="6" fill="url(#cd-land)" opacity="0.75" />
           </g>
 
           {/* 운명의 길 — 현재 위치 → 목적지(빛나는 금빛 경로 + 길 위를 도는 빛) */}
@@ -215,6 +220,11 @@ export function DestinyMap({
           <span className={styles.regionLabel}>현재 위치</span>
         </div>
         <div className={styles.hero} style={{ left: `${HERE.x}%`, top: `${HERE.y}%` }}>
+          {heroLine && (
+            <div className={styles.heroBubble} aria-live="polite">
+              <span key={heroLine} className={styles.bubbleLine}>{heroLine}</span>
+            </div>
+          )}
           <span className={styles.heroGround} aria-hidden="true" />
           <PigFace expression={pigExpr} height={92} className={styles.heroPig} />
         </div>

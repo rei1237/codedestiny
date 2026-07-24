@@ -9,6 +9,8 @@ import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -198,6 +200,8 @@ export default function VedicAiResultClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
+      {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지 */}
+      <PaintedBackdrop src={paintedBackdrops.ziwei4} veil={0.82} position="center 30%" />
       <section className={styles.resultPanel}>
         <div className={styles.chatList}>
           {consultation.messages.map((message, index) => {

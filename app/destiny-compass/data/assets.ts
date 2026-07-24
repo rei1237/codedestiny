@@ -18,6 +18,17 @@ export const compassHero = getAssetUrlFromPublicPath("/네오와 연이의 운�
   prefix: "",
 });
 
+// 소설 페인팅 배경(R2) — 결과 화면 섹션별 몰입 배경. 신규 파일 생성 없이 기존 소설/자미두수 아트 재사용.
+const painting = (key: string) => getAssetUrlFromPublicPath(`/${key}`, { baseUrl: R2_BASE, prefix: "" });
+export const compassPaintings = {
+  island: painting("DestinyAssets/자미두수 운명의 섬.webp"), // 목적지·도착 — 운명의 섬
+  ziwei1: painting("CodeDestinyNovel/background/자미두수 세계1.webp"),
+  ziwei2: painting("CodeDestinyNovel/background/자미두수 세계2.webp"),
+  ziwei3: painting("CodeDestinyNovel/background/자미두수 세계3.webp"),
+  ziwei4: painting("CodeDestinyNovel/background/자미두수 세계4.webp"),
+  redThread: painting("CodeDestinyNovel/background/숙요점 붉은 실의 세계.webp"), // 관계·인연
+} as const;
+
 export const compassAssets = {
   hero: compassHero,
   // 꽃돼지(연이 변신형) — 힐링. 투명 컷아웃 전체 이미지(시트 크롭 미사용, MVP).

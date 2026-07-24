@@ -9,6 +9,7 @@
 	--font-premium: "CodeDestinyPremium", var(--font-display);
 	--font-playful: "CodeDestinyPlayful", var(--font-display);
 	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+	--font-serif: "CodeDestinySerifKR", "CodeDestinySerifLatin", "Cinzel", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif;
 	--font-noto-sans-kr: var(--font-body);
 }
 
@@ -51,6 +52,26 @@
 	font-weight: 500;
 	font-style: normal;
 	font-display: optional;
+}
+
+/* 브랜드 세리프 — index.html 크리티컬 셸에만 있던 R2 서브셋을 App Router 로도 노출.
+   Latin=Cinzel 서브셋, KR=Nanum Myeongjo 서브셋. 운명 나침반 등 몰입 화면의 제목/킥커에 사용. */
+@font-face {
+	font-family: "CodeDestinySerifLatin";
+	src: url("https://assets.code-destiny.com/CodeDestinySerifLatin.woff2") format("woff2");
+	font-weight: 400 700;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+0020-007E;
+}
+
+@font-face {
+	font-family: "CodeDestinySerifKR";
+	src: url("https://assets.code-destiny.com/CodeDestinySerifKR.woff2") format("woff2");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+	unicode-range: U+AC00-D7A3, U+1100-11FF, U+3130-318F, U+0020-007E, U+00B7, U+2013, U+2014, U+2018-201D, U+2026, U+2027;
 }
 
 /* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */

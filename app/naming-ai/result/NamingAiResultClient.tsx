@@ -10,6 +10,8 @@ import { readNamingRetryPayload, clearNamingRetryPayload } from "../retryHandoff
 import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
 
 type DesiredNameCandidate = { hangul?: string; hanjaCandidates?: string[]; note?: string };
@@ -410,7 +412,8 @@ export default function NamingAiResultClient() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#0a0818] text-[#f4eeff] [font-family:var(--font-body)]">
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(178deg,#0a0818_0%,#13102a_44%,#090718_100%)]" aria-hidden="true" />
+      {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지. 불투명 선형그라디언트 베이스는 제거하고 반투명 글로우만 남긴다 */}
+      <PaintedBackdrop src={paintedBackdrops.ziwei2} veil={0.82} position="center 28%" />
       <div
         className="pointer-events-none fixed inset-0 opacity-70 [background:radial-gradient(560px_360px_at_18%_-4%,rgba(167,139,250,0.16),transparent_70%),radial-gradient(480px_320px_at_86%_8%,rgba(232,213,163,0.1),transparent_70%)]"
         aria-hidden="true"
@@ -510,7 +513,7 @@ export default function NamingAiResultClient() {
                 名
               </span>
               <p className="text-sm font-bold text-[#c8aaff]/80">훈민정음 작명소 · 사주 맞춤 작명첩</p>
-              <h1 className="mt-3 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
+              <h1 className="mt-3 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl" style={{ fontFamily: "var(--font-serif)" }}>
                 {familyName}씨 아이의 작명첩
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-[#e6ddfa]">
