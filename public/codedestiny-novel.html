@@ -747,6 +747,21 @@ var RAB_CELL={sly:"0% 0%",scheme:"33.333% 0%",coin:"66.667% 0%",invite:"100% 0%"
   snarl:"0% 100%",greed:"33.333% 100%",contract:"66.667% 100%",smug:"100% 100%"};
 var LN_CELL={greet:"0% 0%",joy:"50% 0%",surprise:"100% 0%",cry:"0% 100%",cheer:"50% 100%",worry:"100% 100%"};
 var LNS_CELL={bread:"0% 0%",tired:"50% 0%",sigh:"100% 0%",orders:"0% 100%",knead:"50% 100%",blanket:"100% 100%"};
+/* 표정 별칭 — 대사 감정에 맞는 기존 이미지/셀로 매핑(무효 키가 base/그림자로 폴백해 대사와 표정이 어긋나던 문제 일괄 교정). PIG_CELL 별칭(741~)과 동일 패턴, 신규 에셋 없이 기존 컷 재사용. */
+/* 인간 연이(YEON): 밝은 감정→웃음, 중립→기본, 놀람/충격→두려움(눈 크게), 슬픔→실망 */
+YEON.soft=YEON.smile;YEON.grin=YEON.smile;YEON.laugh=YEON.smile;YEON.excited=YEON.smile;YEON.cheer=YEON.smile;YEON.bliss=YEON.smile;YEON.happy=YEON.smile;YEON.gentle=YEON.smile;YEON.smirk=YEON.smile;
+YEON.think=YEON.base;YEON.talk=YEON.base;YEON.serious=YEON.base;YEON.calm=YEON.base;YEON.neutral=YEON.base;YEON.serene=YEON.base;YEON.greet=YEON.base;
+YEON.surprise=YEON.fear;YEON.shock=YEON.fear;YEON.sad=YEON.disappoint;YEON.worry=YEON.disappoint;
+/* 사자 네오(NEO_CELL): 없는 감정을 가장 가까운 셀로 */
+NEO_CELL.angry=NEO_CELL.shock;NEO_CELL.sad=NEO_CELL.calm;NEO_CELL.think=NEO_CELL.calm;NEO_CELL.serene=NEO_CELL.calm;NEO_CELL.fear=NEO_CELL.shock;
+/* 무성 본모습(MU_TRUE): 무효 키가 그림자 실루엣으로 되돌아가지 않게 본모습 컷으로 */
+MU_TRUE.serious=MU_TRUE.calm;MU_TRUE.surprise=MU_TRUE.think;MU_TRUE.smile=MU_TRUE.laugh;MU_TRUE.soft=MU_TRUE.calm;MU_TRUE.shock=MU_TRUE.think;
+/* 백문(BAEK): 강의=독서 포즈, 그 외 무효→기본 */
+BAEK.lecture=BAEK.read;BAEK.sigh=BAEK.base;BAEK.surprise=BAEK.base;BAEK.shock=BAEK.base;BAEK.cry=BAEK.base;BAEK.talk=BAEK.base;
+/* 박지은(PJE): 흔들림=가면 벗겨진 무표정, 울음=붕괴(광기) */
+PJE.waver=PJE.blank;PJE.cry=PJE.mad;PJE.sad=PJE.blank;PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
+/* 꽃돼지 연이(PIG_CELL) 보강 — shock/serious는 시트에 없어 neutral 폴백되던 것 교정 */
+PIG_CELL.shock=PIG_CELL.surprise;PIG_CELL.serious=PIG_CELL.neutral;
 /* who → sprite (form 반영) */
 function spriteFor(who,expr,form){
   if(who==="neo"){
