@@ -1,17 +1,6 @@
 /* 운명의 지도 — RPG 맵 허브(은하수 배경 + 스타일라이즈드 SVG 섬 + 6지역 + 캐릭터).
    Disney/Nintendo/판타지: 부유·반짝임·글로우. transform/opacity 위주, reduced-motion 대응. */
 
-/* z-scale 토큰 — 임의 정수 대신 의미 사다리(신규 섹션·오버레이용).
-   Z0 배경 → Z1 대륙 → Z2 노드 → Z4 캐릭터 → Z5 UI → 오버레이 → 토스트. */
-:global(:root) {
-  --cd-z-map: 1;
-  --cd-z-node: 2;
-  --cd-z-character: 4;
-  --cd-z-ui: 5;
-  --cd-z-overlay: 60;
-  --cd-z-toast: 80;
-}
-
 .stage {
   position: relative;
   min-height: 100dvh;
