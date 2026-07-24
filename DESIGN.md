@@ -40,7 +40,8 @@ typography:
     fontSize: "0.78rem"
     fontWeight: 700
   brand-serif:
-    fontFamily: "'Cinzel', 'Cinzel Decorative', 'Cormorant Garamond', 'Nanum Myeongjo', 'Gowun Batang', 'KoPub Batang', 'Noto Serif KR', 'Noto Serif JP', Georgia, 'Times New Roman', serif"
+    fontFamily: "'CodeDestinySerifKR', 'CodeDestinySerifLatin', 'Cinzel', 'Cinzel Decorative', 'Cormorant Garamond', 'Nanum Myeongjo', 'Gowun Batang', 'KoPub Batang', 'Noto Serif KR', 'Noto Serif JP', Georgia, 'Times New Roman', serif"
+    note: "CodeDestinySerifLatin = Cinzel(라틴) R2 서브셋, CodeDestinySerifKR = Nanum Myeongjo(한글) R2 서브셋. 홈 FORTUNE GUIDE(.cd-home-guide) 킥커/제목에 사용. @font-face는 index.html critical shell에 선언, assets.code-destiny.com 서빙."
   brand-tech:
     fontFamily: "'Orbitron', 'Space Grotesk', 'Share Tech Mono', 'NeoDunggeunmo', 'Courier New', monospace"
   brand-korean:

@@ -12,7 +12,7 @@ import {
 
 const EMPTY_SHA256 = sha256Hex("");
 const DEFAULT_PREFIXES = Object.freeze({
-  assets: ["Mulmaru.woff2", "Galmuri11-Bold.woff2", "The Jamsil OTF 4 Medium.otf", "netmarbleM.ttf", "DestinyCafe/"],
+  assets: ["Mulmaru.woff2", "Galmuri11-Bold.woff2", "The Jamsil OTF 4 Medium.otf", "netmarbleM.ttf", "CodeDestinySerifLatin.woff2", "CodeDestinySerifKR.woff2", "DestinyCafe/"],
   music: ["DestinyCafe/", "neosong/", "yeonisong/", "DEST1NOVA/", "lunabloom/"],
 });
 

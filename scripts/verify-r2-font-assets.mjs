@@ -26,6 +26,18 @@ const fonts = [
     formats: ["font/ttf", "application/x-font-ttf", "application/octet-stream"],
     required: true,
   },
+  {
+    file: "CodeDestinySerifLatin.woff2",
+    role: "serif-lat",
+    formats: ["font/woff2"],
+    required: true,
+  },
+  {
+    file: "CodeDestinySerifKR.woff2",
+    role: "serif-kr",
+    formats: ["font/woff2"],
+    required: true,
+  },
 ];
 
 const encodePath = (file) => file.split("/").map(encodeURIComponent).join("/");
