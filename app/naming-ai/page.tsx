@@ -8,14 +8,14 @@ import {
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_PATH = "/naming-ai/";
-const PAGE_TITLE = "훈민정음 작명소 — 사주 맞춤 프리미엄 AI 작명 프롬프트 | Code Destiny";
+const PAGE_TITLE = "훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트 | Code Destiny";
 const PAGE_DESCRIPTION =
   "생년월일로 세운 사주 명식의 용신·희신을 바탕으로 소리오행·자원오행·수리를 함께 본 사주 맞춤 프리미엄 작명 프롬프트를 만들어 드립니다. 성씨와 원하는 이름 조건만 입력하면 무료 초안 추천도 함께 확인할 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["작명", "이름 작명", "사주 작명", "아기 이름", "개명", "한자 이름", "AI 작명", "용신 작명"],
+  keywords: ["작명", "이름 작명", "사주 작명", "아기 이름", "개명", "한자 이름", "전문가 작명", "용신 작명"],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -75,7 +75,7 @@ const namingAiFaqItems = [
 
 const namingAiJsonLd = [
   buildServiceJsonLd({
-    name: "훈민정음 작명소 — 사주 맞춤 AI 작명 프롬프트",
+    name: "훈민정음 작명소 — 사주 맞춤 전문가 작명 프롬프트",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "사주 작명 서비스",
@@ -95,7 +95,7 @@ export default function NamingAiPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(namingAiJsonLd) }}
       />
       <section className="sr-only" aria-label="훈민정음 작명소 안내">
-        <h1>훈민정음 작명소 — 사주 맞춤 프리미엄 AI 작명 프롬프트</h1>
+        <h1>훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트</h1>
         <p>
           훈민정음 작명소는 생년월일로 세운 사주 명식을 바탕으로 이름을 짓는 프리미엄 작명 프롬프트
           생성 서비스입니다. 일간의 강약, 조후, 용신·희신·기신 판단을 먼저 확인한 뒤 이 오행 균형을

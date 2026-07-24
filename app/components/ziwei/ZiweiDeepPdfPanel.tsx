@@ -317,7 +317,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
         <p className="text-[11px] font-semibold tracking-[0.3em] text-amber-100/80">ZIWEI DEEP PDF · 회당 결제</p>
         <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">✨ 심화 자미두수 15챕터 PDF 리포트</h3>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200/85">
-          명궁부터 복덕궁까지 12궁 전체와 사화·삼방사정·대한 흐름을 <b className="text-amber-100">15개 챕터·3~4만자</b>로 깊게 풀어 PDF로 저장합니다. AI가 명반을 근거로 인생 전체를 상담합니다.
+          명궁부터 복덕궁까지 12궁 전체와 사화·삼방사정·대한 흐름을 <b className="text-amber-100">15개 챕터·3~4만자</b>로 깊게 풀어 PDF로 저장합니다. 전문가가 명반을 근거로 인생 전체를 상담합니다.
         </p>
 
         {phase !== "ready" && (

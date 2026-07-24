@@ -23,7 +23,7 @@ interface AnalysisBasisPanelProps {
 export default function AnalysisBasisPanel({
   basis,
   title = "이 상담이 계산한 값",
-  note = "AI가 지어낸 값이 아니라, 입력하신 정보로 계산된 결과입니다.",
+  note = "전문가가 지어낸 값이 아니라, 입력하신 정보로 계산된 결과입니다.",
   className = "",
   multiColumn = true,
 }: AnalysisBasisPanelProps) {

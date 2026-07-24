@@ -16,7 +16,7 @@ function ZiweiAiShell() {
     <div className="min-h-screen bg-[#080817] text-white">
       <section className="mx-auto flex min-h-[52vh] max-w-5xl flex-col justify-center px-5 py-16 sm:px-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-violet-200/80">Ziwei Doushu</p>
-        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">자미두수 AI 상담</h1>
+        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">자미두수 전문가 상담</h1>
         <p className="mt-5 max-w-2xl text-base leading-8 text-violet-50/85 sm:text-lg">
           명궁과 신궁, 사화의 흐름 위로 지금의 고민을 올려 두고 별궁의 대답을 차분히 살핍니다. 태어난
           시간에 맺힌 별의 배치가 관계와 일, 재물과 마음의 방향을 고요히 비춥니다.

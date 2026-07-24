@@ -955,7 +955,7 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "예: 이번 계약을 지금 진행해도 괜찮을까요? 상대가 실제로 협조할 마음이 있는지 보고 싶습니다.": "Example: Is it okay to move forward with this contract now? I want to see whether the other side truly intends to cooperate.",
     "무료 육효 상담 프롬프트": "Free Yukhyo reading prompt",
     "예: 지금 이 관계에서 내가 줄여야 할 반응과 더 솔직해져도 되는 지점을 알고 싶어요.": "Example: In this relationship, I want to know what reactions to soften and where I can be more honest.",
-    "생성된 심리테스트 기반 AI 상담 프롬프트": "Generated AI reading prompt based on the psychology test",
+    "생성된 심리테스트 기반 전문가 상담 프롬프트": "Generated AI reading prompt based on the psychology test",
     "남자": "Male",
     "여자": "Female",
     "양력": "Solar",

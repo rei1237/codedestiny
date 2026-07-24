@@ -908,7 +908,7 @@ export function buildOraclePrompt(spread: TarotSpread, question: string, drawnCa
     "마지막에는 고객이 오늘부터 실제로 할 수 있는 행동 조언을 2~3개 제시합니다.",
     ...categorySafetyGuide,
   ];
-  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 AI 상담 프롬프트는 ${CATEGORY_LABEL[questionCategory]} 질문을 포지션 의미, 카드 방향, 카드 간 관계, 안전 표현 기준까지 묶어 실제 상담 원고로 펼칩니다.`;
+  const summary = `${spread.title} 위에 ${cardFlow} 흐름이 놓였습니다. 이 전문가 상담 프롬프트는 ${CATEGORY_LABEL[questionCategory]} 질문을 포지션 의미, 카드 방향, 카드 간 관계, 안전 표현 기준까지 묶어 실제 상담 원고로 펼칩니다.`;
   const relationLines = relationshipSignals(drawnCards, analysis);
 
   const prompt = [

@@ -918,10 +918,10 @@ export const SERVICE_MAP = {
   },
   "animal/physio": {
     component: FeatureLandingPage,
-    title: "AI 동물 관상 - 셀카 얼굴 분석",
-    h1: "AI 동물 관상",
+    title: "전문가 동물 관상 - 셀카 얼굴 분석",
+    h1: "전문가 동물 관상",
     description: "셀카에 담긴 얼굴형과 인상의 결에서 성향과 분위기의 흐름을 읽습니다.",
-    seoText: "AI 동물 관상에서는 얼굴 이미지 위로 동물상 비유와 해석의 포인트가 자연스럽게 떠오릅니다.",
+    seoText: "전문가 동물 관상에서는 얼굴 이미지 위로 동물상 비유와 해석의 포인트가 자연스럽게 떠오릅니다.",
     ogImage: "https://code-destiny.com/fuctionassets/ai%20animal.webp",
     landingPoints: ["셀카 기반 얼굴형 분석", "동물상 비유 해석", "가볍게 즐기는 성향 리포트"],
     localized: {
@@ -934,7 +934,7 @@ export const SERVICE_MAP = {
       },
     },
     keywords: [
-      "AI 동물 관상",
+      "전문가 동물 관상",
       "관상",
       "얼굴형 분석",
       "셀카 관상",
@@ -1323,7 +1323,7 @@ export const SERVICE_MAP = {
   },
   "dream/tarot": {
     component: FeatureLandingPage,
-    title: "드림 프롬프트 - 꿈의 잔향을 AI 상담 문장으로 봉인",
+    title: "드림 프롬프트 - 꿈의 잔향을 전문가 상담 문장으로 봉인",
     h1: "드림 프롬프트",
     description: "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
     seoText: "드림 프롬프트는 꿈속 장면, 감정의 잔향, 반복 상징을 카드의 언어로 모아 AI에게 건넬 질문으로 봉인합니다.",

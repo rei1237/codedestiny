@@ -116,7 +116,7 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
   const top = [...field.directions].slice(0, 6);
   const activeSystems = new Set<string>(field.sources);
 
-  // 꽃돼지 해설 — 규칙 템플릿을 먼저 표시(항상 노출), AI가 그 템플릿을 따뜻하게 다듬으면 교체(실패 시 템플릿 유지).
+  // 꽃돼지 해설 — 규칙 템플릿을 먼저 표시(항상 노출), 전문가가 그 템플릿을 따뜻하게 다듬으면 교체(실패 시 템플릿 유지).
   const baseText = pigCommentary(field);
   const [comment, setComment] = useState(baseText);
   useEffect(() => {

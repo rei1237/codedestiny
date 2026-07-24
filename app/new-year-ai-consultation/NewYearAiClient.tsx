@@ -138,11 +138,11 @@ type ConsultationResult = {
 };
 
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_REQUIRED_MESSAGE = "신년운세 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
+const PAYMENT_REQUIRED_MESSAGE = "신년운세 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 같은 요청 권한으로 다시 이어집니다.";
+const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 같은 요청 권한으로 다시 이어집니다.";
 const REQUIRED_INPUT_MESSAGE = "신년운세 상담에 필요한 정보가 부족해요. 생년월일, 성별, 달력 기준을 다시 확인해 주세요.";
 const TARGET_YEAR_REQUIRED_MESSAGE = "상담할 연도를 선택해 주세요.";
 const CUSTOM_QUESTION_REQUIRED_MESSAGE = "직접 질문을 선택했다면 궁금한 내용을 짧게 적어 주세요.";
@@ -150,7 +150,7 @@ const FEATURE_KEY = "new-year-ai-consultation";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
-const FEATURE_REASON = "신년운세 AI 상담";
+const FEATURE_REASON = "신년운세 전문가 상담";
 const FOCUS_AREA_OPTIONS: Array<{ value: FocusAreaType; label: string; prompt: string; glyph: string }> = [
   { value: "overall", label: "종합운", glyph: "年", prompt: "올해 제 명식에서 가장 먼저 붙잡아야 할 흐름과, 무리하지 않아야 할 시기를 함께 짚어주세요." },
   { value: "love", label: "연애/재회", glyph: "緣", prompt: "올해 인연이 열리는 결, 다시 다가오는 마음, 관계에서 서두르지 말아야 할 때를 깊게 봐주세요." },
@@ -666,7 +666,7 @@ async function drawShareCard(options: {
   context.textAlign = "center";
   context.fillStyle = "rgba(255, 240, 220, 0.85)";
   context.font = "600 44px 'Noto Sans KR', sans-serif";
-  context.fillText("신년운세 AI 상담", 540, 200);
+  context.fillText("신년운세 전문가 상담", 540, 200);
 
   context.fillStyle = theme.accent;
   context.font = "800 220px 'Noto Serif KR', serif";
@@ -1304,7 +1304,7 @@ export default function NewYearAiConsultationPage() {
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
       title: "이용권 확인",
-      reason: "신년운세 AI 상담",
+      reason: "신년운세 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
 
@@ -1315,7 +1315,7 @@ export default function NewYearAiConsultationPage() {
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
           title: "이용권 확인 완료",
-          reason: "신년운세 AI 상담",
+          reason: "신년운세 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 새해의 흐름을 읽고 있습니다.",
         });
@@ -1365,7 +1365,7 @@ export default function NewYearAiConsultationPage() {
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: "이용권 확인 실패",
-        reason: "신년운세 AI 상담",
+        reason: "신년운세 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message,
         cancelled: paymentCancelled,
@@ -1385,7 +1385,7 @@ export default function NewYearAiConsultationPage() {
       const safeName = (form.userName.trim() || "new-year").replace(/[\\/:*?"<>|]/g, "_");
       await exportResultPdf({
         captureTargets: [".nyai-messages [data-pdf-section]"],
-        fileName: `신년운세_AI상담_${safeName}_${form.targetYear}.pdf`,
+        fileName: `신년운세_전문가상담_${safeName}_${form.targetYear}.pdf`,
         backgroundColor: "#2e130f",
         cover: {
           title: `${form.userName || "당신"}님의 ${form.targetYear}년 신년운세`,
@@ -1458,7 +1458,7 @@ export default function NewYearAiConsultationPage() {
 
   return (
     <main className="nyai-page" style={themeVars} data-season-element={seasonTheme.name}>
-      <section className="nyai-panel nyai-intro" aria-label="신년운세 AI 상담">
+      <section className="nyai-panel nyai-intro" aria-label="신년운세 전문가 상담">
         <div className="nyai-orbit" aria-hidden="true" />
         <div className="nyai-consult-card" aria-label="상담 준비 요약">
           <span className="nyai-eyebrow">상담 대상자 요약</span>
@@ -1480,7 +1480,7 @@ export default function NewYearAiConsultationPage() {
         </div>
         <div className="nyai-intro-copy">
           <span className="nyai-eyebrow">서비스 소개</span>
-          <h1><Moon size={20} aria-hidden="true" /> 신년운세 AI 상담</h1>
+          <h1><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h1>
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
           <div className="nyai-hero-badges" aria-label="상담 구성">
             <span>사주 원국</span>
@@ -1636,7 +1636,7 @@ export default function NewYearAiConsultationPage() {
           </div>
           <button className="nyai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="nyai-spin" /> : <WalletCards size={18} />}
-            <span>{isBusy ? statusText : "신년운세 AI 상담 받기"}</span>
+            <span>{isBusy ? statusText : "신년운세 전문가 상담 받기"}</span>
           </button>
         </form>
 

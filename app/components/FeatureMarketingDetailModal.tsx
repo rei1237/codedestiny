@@ -137,7 +137,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
 const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
   "life-book-ai-consultation": {
     category: "프리미엄 리포트",
-    badge: "AI 상담형",
+    badge: "전문가 상담형",
     headline: "내 삶의 큰 흐름을 한 번 깊게 정리해두는 시간을 가져보세요.",
     subheadline: "사주 흐름을 바탕으로 인생의 방향과 반복 패턴을 상담형으로 풀어보는 프리미엄 기능입니다.",
     painPoints: ["삶의 방향을 큰 틀에서 정리하고 싶을 때", "반복되는 선택 패턴의 이유가 궁금할 때", "지금의 전환점을 더 깊게 읽고 싶을 때"],
@@ -145,7 +145,7 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
   },
   "ziwei-ai-consultation": {
     category: "자미두수",
-    badge: "AI 상담형",
+    badge: "전문가 상담형",
     headline: "별의 배치가 지금의 질문을 어디로 이끄는지 차분히 읽어보세요.",
     subheadline: "명궁과 12궁의 흐름을 바탕으로, 고민의 중심과 다음 선택 기준을 정리하는 상담형 해석입니다.",
     ctaLabel: "자미두수 상담 열기",

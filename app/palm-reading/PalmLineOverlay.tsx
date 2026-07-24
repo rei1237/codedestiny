@@ -24,7 +24,7 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     labels: { lifeLine: "생명선", headLine: "두뇌선", heartLine: "감정선", fateLine: "운명선" },
     noImage: "오버레이를 표시할 손바닥 이미지가 없습니다.",
     title: "손바닥 흐름 오버레이",
-    aiDetected: "AI가 인식한 주요 흐름",
+    aiDetected: "전문가가 인식한 주요 흐름",
     symbolic: "상징적 안내선",
     symbolicNote: "현재 라인은 정밀 좌표가 아닌 상징적 안내선입니다. 정밀 인식 결과가 없을 때 흐름 이해를 돕기 위한 시각화입니다.",
   },

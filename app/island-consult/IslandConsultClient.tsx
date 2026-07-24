@@ -58,7 +58,7 @@ const ERROR_TEXT: Record<string, string> = {
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 생년월일·성별·출생시간을 다시 확인해 주세요.",
   CALCULATION_FAILED: "명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_ERROR: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  LLM_ERROR: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 };
 
 type ApiResult = {

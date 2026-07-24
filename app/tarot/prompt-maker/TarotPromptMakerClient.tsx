@@ -957,7 +957,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     lenormandLabel: "레노먼드",
     changeDirection: "방향 변경",
     notSelected: "아직 선택되지 않았어요.",
-    promptMap: { tarot: "AI 상담 프롬프트 지도", lenormand: "레노먼드 프롬프트 지도" },
+    promptMap: { tarot: "전문가 상담 프롬프트 지도", lenormand: "레노먼드 프롬프트 지도" },
     oracleMap: "카드가 만든 신탁 지도",
     outputTitle: { tarot: "지금 복사할 AI 오라클 프롬프트", lenormand: "지금 복사할 무료 레노먼드 프롬프트" },
     tune: {
