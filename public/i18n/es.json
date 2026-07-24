@@ -813,7 +813,15 @@
       "familyBenefit2": "Todos los beneficios familiares",
       "familyCta": "Ver familia",
       "premiumNote": "Premium se adapta mejor si utiliza con frecuencia servicios de hasta KRW 5000.",
-      "footnote": "Los pases nuevos se venden únicamente como pases de 30 días. Este pase de 30 días no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto."
+      "footnote": "Los pases nuevos se venden únicamente como pases de 30 días. Este pase de 30 días no es una suscripción que se renueva automáticamente. Los servicios fuera del rango del pase se pueden utilizar con un pago único en KRW por producto.",
+      "howtoAria": "Cómo usar el pase moonlight",
+      "howtoTitle": "Así fluye el pase moonlight",
+      "step1Label": "Elige un rango moonlight de 30 días",
+      "step1Text": "Con un pase de 30 días sin renovación automática, primero fija el rango de precio de las lecturas que consultas a menudo.",
+      "step2Label": "Las lecturas dentro del rango se abren sin pago",
+      "step2Text": "Las lecturas de tarot, oráculo y saju dentro de tu rango se abren al instante, sin ventana de pago.",
+      "step3Label": "Solo las lecturas más profundas se pagan por uso",
+      "step3Text": "Las lecturas fuera de tu rango continúan con un pago único en KRW solo cuando lo necesitas."
     },
     "promptHub": {
       "aria": "Ir a indicaciones completas sobre la fortuna",

@@ -813,7 +813,15 @@
       "familyBenefit2": "All Family benefits",
       "familyCta": "View Family",
       "premiumNote": "Premium fits best if you often use services up to KRW 5,000.",
-      "footnote": "New passes are sold only as 30-day passes. This 30-day pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product."
+      "footnote": "New passes are sold only as 30-day passes. This 30-day pass is not an auto-renewing subscription. Services outside the pass range can be used with one-time KRW payment by product.",
+      "howtoAria": "How to use the moonlight pass",
+      "howtoTitle": "How the moonlight pass flows",
+      "step1Label": "Pick a 30-day moonlight range",
+      "step1Text": "With a 30-day pass that never auto-renews, first set the price range of the readings you check often.",
+      "step2Label": "In-range readings open with no checkout",
+      "step2Text": "Tarot, oracle, and saju readings inside your range open right away, with no payment window.",
+      "step3Label": "Only deeper readings are paid per use",
+      "step3Text": "Readings beyond your range continue to a one-time KRW payment only when you need them."
     },
     "promptHub": {
       "aria": "Go to comprehensive fortune prompts",

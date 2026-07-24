@@ -813,7 +813,15 @@
       "familyBenefit2": "Tất cả lợi ích của Gia đình",
       "familyCta": "Xem gia đình",
       "premiumNote": "Premium phù hợp nhất nếu bạn thường xuyên sử dụng dịch vụ lên tới 5.000 KRW.",
-      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm."
+      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
+      "howtoAria": "Cách dùng moonlight pass",
+      "howtoTitle": "Moonlight pass, tiếp nối như thế này",
+      "step1Label": "Chọn phạm vi moonlight 30 ngày",
+      "step1Text": "Với vé 30 ngày không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
+      "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
+      "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
+      "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
+      "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần."
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",

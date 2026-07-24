@@ -813,7 +813,15 @@
       "familyBenefit2": "Toutes les prestations familiales",
       "familyCta": "Afficher la famille",
       "premiumNote": "Premium convient mieux si vous utilisez souvent des services allant jusqu'à 5 000 KRW.",
-      "footnote": "Les nouveaux pass sont vendus uniquement sous forme de pass de 30 jours. Ce pass de 30 jours n'est pas un abonnement à renouvellement automatique. Les services en dehors de la gamme du pass peuvent être utilisés moyennant un paiement unique en KRW par produit."
+      "footnote": "Les nouveaux pass sont vendus uniquement sous forme de pass de 30 jours. Ce pass de 30 jours n'est pas un abonnement à renouvellement automatique. Les services en dehors de la gamme du pass peuvent être utilisés moyennant un paiement unique en KRW par produit.",
+      "howtoAria": "Comment utiliser le pass moonlight",
+      "howtoTitle": "Le pass moonlight, comment ça se prolonge",
+      "step1Label": "Choisissez une plage moonlight de 30 jours",
+      "step1Text": "Avec un pass de 30 jours sans renouvellement automatique, définissez d'abord la gamme de prix des lectures que vous consultez souvent.",
+      "step2Label": "Les lectures dans la plage s'ouvrent sans paiement",
+      "step2Text": "Les lectures de tarot, d'oracle et de saju dans votre plage s'ouvrent aussitôt, sans fenêtre de paiement.",
+      "step3Label": "Seules les lectures plus profondes sont payées à l'usage",
+      "step3Text": "Les lectures hors de votre plage se poursuivent par un paiement unique en KRW uniquement quand vous en avez besoin."
     },
     "promptHub": {
       "aria": "Accéder aux invites de fortune complètes",

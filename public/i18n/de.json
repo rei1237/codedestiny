@@ -813,7 +813,15 @@
       "familyBenefit2": "Alle Familienleistungen",
       "familyCta": "Familie anzeigen",
       "premiumNote": "Premium eignet sich am besten, wenn Sie häufig Dienste bis zu 5.000 KRW nutzen.",
-      "footnote": "Neue Pässe werden nur als 30-Tage-Pässe verkauft. Bei diesem 30-Tage-Pass handelt es sich nicht um ein Abonnement mit automatischer Verlängerung. Dienste außerhalb des Passbereichs können mit einer einmaligen KRW-Zahlung pro Produkt genutzt werden."
+      "footnote": "Neue Pässe werden nur als 30-Tage-Pässe verkauft. Bei diesem 30-Tage-Pass handelt es sich nicht um ein Abonnement mit automatischer Verlängerung. Dienste außerhalb des Passbereichs können mit einer einmaligen KRW-Zahlung pro Produkt genutzt werden.",
+      "howtoAria": "So nutzt du den Moonlight Pass",
+      "howtoTitle": "So läuft der Moonlight Pass",
+      "step1Label": "Wähle einen 30-Tage-Mondbereich",
+      "step1Text": "Mit einem 30-Tage-Pass ohne automatische Verlängerung legst du zuerst die Preisspanne der Readings fest, die du oft ansiehst.",
+      "step2Label": "Readings im Bereich öffnen ohne Bezahlung",
+      "step2Text": "Tarot-, Orakel- und Saju-Readings innerhalb deines Bereichs öffnen sich sofort, ganz ohne Bezahlfenster.",
+      "step3Label": "Nur tiefere Readings kosten pro Nutzung",
+      "step3Text": "Readings außerhalb deines Bereichs führen nur bei Bedarf zu einer einmaligen KRW-Zahlung."
     },
     "promptHub": {
       "aria": "Gehen Sie zu umfassenden Glücksfragen",

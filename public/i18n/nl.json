@@ -813,7 +813,15 @@
       "familyBenefit2": "Alle gezinsvoordelen",
       "familyCta": "Familie bekijken",
       "premiumNote": "Premium past het beste als u vaak gebruik maakt van diensten tot KRW 5.000.",
-      "footnote": "Nieuwe passen worden alleen verkocht als passen voor 30 dagen. Deze 30-dagenpas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product."
+      "footnote": "Nieuwe passen worden alleen verkocht als passen voor 30 dagen. Deze 30-dagenpas is geen abonnement dat automatisch wordt verlengd. Diensten buiten het pasbereik kunnen worden gebruikt met een eenmalige KRW-betaling per product.",
+      "howtoAria": "Zo gebruik je de moonlight pass",
+      "howtoTitle": "Zo loopt de moonlight pass door",
+      "step1Label": "Kies een moonlight-bereik van 30 dagen",
+      "step1Text": "Met een pass van 30 dagen zonder automatische verlenging stel je eerst het prijsbereik in van de readings die je vaak bekijkt.",
+      "step2Label": "Readings binnen bereik openen zonder betaling",
+      "step2Text": "Tarot-, orakel- en saju-readings binnen je bereik openen meteen, zonder betaalvenster.",
+      "step3Label": "Alleen diepere readings betaal je per keer",
+      "step3Text": "Readings buiten je bereik gaan alleen bij behoefte door met een eenmalige KRW-betaling."
     },
     "promptHub": {
       "aria": "Ga naar uitgebreide fortuinprompts",

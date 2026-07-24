@@ -813,7 +813,15 @@
       "familyBenefit2": "Manfaat Semua Keluarga",
       "familyCta": "Lihat Keluarga",
       "premiumNote": "Premium paling sesuai jika anda sering menggunakan perkhidmatan sehingga KRW 5,000.",
-      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk."
+      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
+      "howtoAria": "Cara menggunakan pas moonlight",
+      "howtoTitle": "Pas moonlight, begini ia diteruskan",
+      "step1Label": "Pilih julat moonlight 30 hari",
+      "step1Text": "Dengan pas 30 hari tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
+      "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
+      "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
+      "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
+      "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan."
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
