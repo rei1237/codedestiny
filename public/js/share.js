@@ -916,8 +916,61 @@ function shareStoryKakao(storyId, storyTitle){
   }, 'story');
 }
 
+// 결과 카드 이미지 공유 — 대상 요소를 html2canvas로 캡처해 이미지로 공유(파일 공유 지원 시 File,
+// 아니면 이미지 다운로드 + 링크 클립보드). html2canvas가 지연로드라 없으면 1회 로드 후 진행.
+// options: { contentId, targetSelector | element, title, caption }
+function _cdEnsureHtml2Canvas(cb){
+  if (window.html2canvas) { cb(window.html2canvas); return; }
+  var loader = document.getElementById('cdH2CShareLoader');
+  var onReady = function(){ cb(window.html2canvas || null); };
+  if (loader) { loader.addEventListener('load', onReady); loader.addEventListener('error', function(){ cb(null); }); return; }
+  var s = document.createElement('script');
+  s.id = 'cdH2CShareLoader';
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  s.crossOrigin = 'anonymous';
+  s.referrerPolicy = 'no-referrer';
+  s.onload = onReady;
+  s.onerror = function(){ cb(null); };
+  document.head.appendChild(s);
+}
+function cdShareResultCardImage(options){
+  var opts = options || {};
+  var contentId = opts.contentId || 'saju';
+  var target = null;
+  try { target = opts.element || (opts.targetSelector ? document.querySelector(opts.targetSelector) : null); } catch (_) {}
+  if (!target) { if (typeof showToast === 'function') showToast('공유할 결과 카드를 찾지 못했어요'); return; }
+  shareWithReward(function(){
+    _cdEnsureHtml2Canvas(function(h2c){
+      if (!h2c) {
+        // 이미지 모듈 부재 → 텍스트 공유로 폴백(회귀 안전).
+        cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption });
+        return;
+      }
+      h2c(target, { backgroundColor: null, scale: 2, useCORS: true, logging: false }).then(function(canvas){
+        var url = cdBuildShareUrl(contentId);
+        canvas.toBlob(function(blob){
+          if (!blob) { cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); return; }
+          var file = null;
+          try { file = new File([blob], 'code-destiny-result.png', { type: 'image/png' }); } catch (_) {}
+          if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            navigator.share({ files: [file], title: opts.title || _shareText('share.001'), text: (opts.caption ? (opts.caption + '\n') : '') + url }).catch(function(){});
+            return;
+          }
+          var dl = document.createElement('a');
+          dl.href = URL.createObjectURL(blob);
+          dl.download = 'code-destiny-result.png';
+          document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+          setTimeout(function(){ try { URL.revokeObjectURL(dl.href); } catch (_) {} }, 4000);
+          copyToClipboard(url, '결과 카드 이미지를 저장했어요! 링크도 함께 복사됐어요 💬');
+        }, 'image/png');
+      }).catch(function(){ cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); });
+    });
+  }, contentId);
+}
+
 if (typeof window !== 'undefined') {
   window.cdShareFortuneKakao = cdShareFortuneKakao;
+  window.cdShareResultCardImage = cdShareResultCardImage;
   window.shareStoryKakao = shareStoryKakao;
   window.cdAppendReferralQuery = cdAppendReferralQuery;
   window.shareCompatInviteKakao = shareCompatInviteKakao;
