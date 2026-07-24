@@ -754,6 +754,34 @@
     linear-gradient(180deg, #0b0722 0%, #140a2e 48%, #08061a 100%);
   padding: calc(24px + env(safe-area-inset-top, 0px)) 18px calc(24px + env(safe-area-inset-bottom, 0px));
 }
+/* 달빛 BGM 토글(플래그십 앰비언트) */
+.bgmAudio {
+  display: none;
+}
+.bgmToggle {
+  position: absolute;
+  top: calc(14px + env(safe-area-inset-top, 0px));
+  right: 16px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border: 1px solid rgba(232, 213, 163, 0.34);
+  border-radius: 999px;
+  background: rgba(19, 14, 42, 0.55);
+  color: #f4e8ca;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.bgmToggle:hover {
+  border-color: rgba(232, 213, 163, 0.6);
+  box-shadow: 0 0 18px -6px rgba(232, 213, 163, 0.5);
+}
 /* 화면 가장자리 비네트(깊이) */
 .birthStage::after {
   content: "";

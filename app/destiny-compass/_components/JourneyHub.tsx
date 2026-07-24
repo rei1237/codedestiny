@@ -5,7 +5,7 @@
  * 마운트 시 출석(checkin)을 리텐션 엔진에 기록한다(멱등: 하루 1회).
  * 스냅샷은 정적셸의 window.CDLevel이 있을 때만 표시(없으면 인사만 — 그레이스풀 폴백).
  */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Starfield } from "./Starfield";
 import { SpriteImage } from "./SpriteImage";
 import { compassAssets } from "../data/assets";
@@ -34,6 +34,41 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
     };
   }, []);
 
+  // 달빛 BGM(플래그십 앰비언트) — 네오 작전실 패턴 재사용. 자동재생은 브라우저 정책상 제스처 필요.
+  const bgmRef = useRef<HTMLAudioElement | null>(null);
+  const [bgmOn, setBgmOn] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem("cd-journey-bgm-v1") === "1") setBgmOn(true);
+    } catch {
+      /* noop */
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = bgmRef.current;
+    if (!el) return;
+    if (bgmOn) {
+      el.volume = 0.26;
+      void el.play().catch(() => {}); // 자동재생 차단 시 조용히 무시 — 사용자가 토글로 재시도
+    } else {
+      el.pause();
+    }
+  }, [bgmOn]);
+
+  const toggleBgm = () => {
+    setBgmOn((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem("cd-journey-bgm-v1", next ? "1" : "0");
+      } catch {
+        /* noop */
+      }
+      return next;
+    });
+  };
+
   const greeting = useMemo(() => {
     const streak = snap?.streakDays ?? 0;
     if (streak >= 7) return `이 여정, 벌써 ${streak}일째예요. 오늘도 한 걸음 함께해요.`;
@@ -46,6 +81,16 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
   return (
     <div className={map.birthStage}>
       <Starfield />
+      <audio ref={bgmRef} src={compassAssets.bgm.warroom} loop preload="none" className={map.bgmAudio} />
+      <button
+        type="button"
+        className={map.bgmToggle}
+        onClick={toggleBgm}
+        aria-label={bgmOn ? "달빛 BGM 끄기" : "달빛 BGM 켜기"}
+        aria-pressed={bgmOn}
+      >
+        {bgmOn ? "⏸ 달빛 BGM" : "▶ 달빛 BGM"}
+      </button>
       <div className={map.birthPanel}>
         <SpriteImage
           src={compassAssets.pig.happy}
