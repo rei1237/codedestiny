@@ -51,16 +51,36 @@ function trendOf(score: number): Trend {
 const TREND_ICON: Record<Trend, string> = { up: "↑", down: "↓", flat: "→" };
 const short = (k: DirectionKey) => DIRECTION_LABEL_KO[k].split("·")[0];
 
+// 결정론 변주 선택(난수 금지) — 같은 시드 → 같은 문장.
+function variantIdx(seed: string, n: number): number {
+  let h = 5381;
+  for (let i = 0; i < seed.length; i++) h = ((h * 33) ^ seed.charCodeAt(i)) >>> 0;
+  return (h >>> 0) % n;
+}
+// 꽃돼지 규칙 템플릿(AI 폴백 겸 AI 리프레이즈 원문) — 밴드별 3변주, 대표/쉬어갈 영역 이름 보존.
 function pigCommentary(field: DirectionField): string {
-  const dir = DIRECTION_LABEL_KO[field.primary.key];
-  const blocked = DIRECTION_LABEL_KO[field.blockedArea.key];
+  const dir = short(field.primary.key);
+  const blocked = short(field.blockedArea.key);
+  const v = variantIdx(field.seed, 3);
   if (field.primary.band === "strong") {
-    return `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 내디뎌 봐요.`;
+    return [
+      `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 가볍게 내디뎌 봐요.`,
+      `'${dir}'의 문이 지금 활짝 열려 있어요. 준비해온 걸 믿고, 오늘 작은 시작 하나만 만들어 보세요.`,
+      `'${dir}' 쪽 바람이 순하게 불어와요. 조급함은 잠시 내려놓고, 지금 할 수 있는 한 가지부터 손대면 그 흐름을 탈 수 있어요.`,
+    ][v];
   }
   if (field.primary.band === "caution") {
-    return `'${blocked}' 쪽은 잠시 안개가 짙어요. 대신 '${dir}' 쪽으로 향하는 작은 시도 하나가 흐름을 살며시 바꿔줄 거예요.`;
+    return [
+      `'${blocked}' 쪽은 잠시 안개가 짙어요. 대신 '${dir}' 쪽으로 향하는 작은 시도 하나가 흐름을 살며시 바꿔줄 거예요.`,
+      `지금 '${blocked}'는 잠깐 쉬어가도 괜찮아요. 그 대신 '${dir}' 쪽으로 가벼운 한 걸음을 내디뎌 보면, 마음이 한결 편해질 거예요.`,
+      `'${blocked}' 쪽 안개는 곧 걷혀요. 무리하지 말고, 오늘은 '${dir}' 쪽으로 향하는 작은 일 하나에만 마음을 실어 봐요.`,
+    ][v];
   }
-  return `'${dir}' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요.`;
+  return [
+    `'${dir}' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요.`,
+    `'${dir}'는 지금 천천히 데워지는 중이에요. 조바심 대신, 오늘 할 수 있는 작은 한 걸음에 마음을 실어보세요.`,
+    `'${dir}' 쪽으로 은은한 빛이 나 있어요. 크게 바꾸려 하기보다, 매일 조금씩 방향만 지켜가도 충분해요.`,
+  ][v];
 }
 
 // 시스템별 상위 기여 방향 2개(field.raw 읽기 전용)
@@ -113,8 +133,8 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
       .then((d) => {
         if (cancelled) return;
         const t = typeof d?.pigCommentary === "string" ? d.pigCommentary.trim() : "";
-        // 정확성+안전 가드: 실제 대표/열린 방향 라벨을 언급하고, 위험 소재(의료/법률/투자 단정)가 없을 때만 채택.
-        const mentionsLabel = t.includes(primaryLabel) || t.includes(short(field.strongArea.key));
+        // 정확성+안전 가드: 실제 대표/열린 방향 라벨(short — 라우트와 동일 기준)을 언급하고, 위험 소재가 없을 때만 채택.
+        const mentionsLabel = t.includes(short(field.primary.key)) || t.includes(short(field.strongArea.key));
         const risky = /소송|고소|진단|처방|투약|매수|매도|주식|코인|확실히 (오|올)|반드시 (오|올)/.test(t);
         const faithful = t.length >= 12 && mentionsLabel && !risky;
         if (d?.ok && faithful) {

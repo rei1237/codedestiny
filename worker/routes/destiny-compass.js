@@ -5,7 +5,6 @@
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
@@ -48,28 +47,85 @@ function normalizeNarration(body) {
   };
 }
 
+// 꽃돼지 브랜드 보이스 — PRODUCT.md(따뜻함·전문성·신비로움) + 사람이 직접 봐준 듯한 직설·다정한 조언체.
 function buildSystemPrompt() {
   return [
-    "너는 한국어 문장을 다듬는 편집자다. 주어진 '기본 해설'을, 사용자 고민과 연결해 더 따뜻하고 개인적인 2~3문장으로 '다시 쓰기'만 한다.",
+    "너는 '꽃돼지'. 따뜻하고 다정하지만 핵심을 부드럽게 짚어주는 운세 해설가다.",
+    "말투: 따뜻한 존댓말. 기계적·추상적 표현이나 상투적 예언투는 쓰지 않는다. 사람이 직접 곁에서 봐준 듯 다정하고 구체적으로, 위로하되 무성의하지 않게, 오늘 내디딜 한 걸음을 살며시 권한다.",
+    "너의 유일한 일: 주어진 '기본 해설'을 사용자 고민과 연결해 더 따뜻하고 개인적인 2~3문장으로 '다시 쓰기'(다듬기). 새 내용을 창작하지 않는다.",
     "엄격한 규칙:",
-    "1) 기본 해설에 나오는 구체적 단어(영역 이름·숫자)를 그대로 유지하라. 절대 다른 단어로 바꾸지 마라(예: '창업'→'직장' 금지).",
-    "2) 기본 해설에 없는 새로운 소재(문서운·관재·소송 등 다른 운세 용어, 새 숫자)를 절대 추가하지 마라.",
+    "1) 기본 해설에 나온 영역 이름·숫자를 그대로 유지하라. 절대 다른 단어로 바꾸지 마라(예: '창업'→'직장', '재물'→'문서운' 금지).",
+    "2) 기본 해설에 없는 운세 용어(문서운·관재·소송·신살·역마 등)나 새 숫자를 추가하지 마라.",
     "3) 의료·법률·투자 조언, 단정적 예언, 불안 조성 금지.",
-    "4) 따뜻한 존댓말. 설명·머리말·따옴표·JSON 없이, 다시 쓴 문장만 출력하라.",
+    "4) 머리말·따옴표·JSON·설명 없이, 다듬은 문장만 출력하라.",
   ].join("\n");
 }
 
-function buildNarrativePrompt(n) {
+// few-shot — 구체어 보존 + 브랜드 톤 학습(특히 라벨 드리프트 저항).
+const FEW_SHOT = [
+  {
+    base: "'재물' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요.",
+    q: "돈 문제가 풀릴까요?",
+    out: "돈 걱정으로 마음이 무거우셨죠. 지금 '재물'의 길은 은은하게 빛나고 있으니, 조급해하지 말고 오늘 마음이 가는 한 가지부터 차분히 손대보세요. 그 작은 시작이 흐름을 살며시 바꿔줄 거예요.",
+  },
+  {
+    base: "지금은 '창업' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 내디뎌 봐요.",
+    q: "지금 창업해도 될까요?",
+    out: "망설이는 마음, 충분히 알아요. 지금 '창업'의 문은 활짝 열려 있으니, 한꺼번에 크게 벌이기보다 이번 주에 딱 한 걸음만 내디뎌 보세요. 그 한 걸음이 길을 확인시켜 줄 거예요.",
+  },
+];
+
+function buildNarrativePrompt(n, attempt = 0) {
   const evText = n.evidence.length ? n.evidence.join(", ") : "";
+  const shots = FEW_SHOT.flatMap((s) => [
+    `[예시]`,
+    `기본 해설: ${s.base}`,
+    `고민: ${s.q}`,
+    `다시 쓴 문장: ${s.out}`,
+    "",
+  ]);
+  const correction = attempt > 0
+    ? [`직전 시도가 규칙을 어겼다(다른 영역 이름이나 기본 해설에 없는 용어를 넣음). 이번에는 반드시 '${n.primaryLabel}'만 영역 이름으로 쓰고, 기본 해설에 없는 단어를 넣지 마라.`, ""]
+    : [];
   return [
-    n.question ? `사용자의 고민: "${n.question}"` : "사용자의 고민: (자유 입력 없음)",
-    evText ? `참고 근거(원 용어, 선택적으로 한 번 언급 가능): ${evText}` : "",
+    ...shots,
+    ...correction,
+    "[이번 작업]",
+    n.question ? `고민: "${n.question}"` : "고민: (자유 입력 없음)",
+    evText ? `참고 근거(원 용어, 자연스러우면 한 번만 녹여도 좋음): ${evText}` : "",
+    `이번에 쓸 수 있는 영역 이름은 오직 기본 해설에 등장한 것(특히 '${n.primaryLabel}')뿐이다.`,
+    "기본 해설(영역 이름·숫자를 그대로 유지하며 톤만 다듬어라):",
+    n.baseText,
     "",
-    "기본 해설(이 내용·영역 이름·숫자를 그대로 유지하며 톤만 다듬어라):",
-    n.baseText || "(기본 해설 없음)",
-    "",
-    "위 기본 해설의 구체적 단어를 바꾸지 말고, 사용자의 고민과 연결해 꽃돼지 톤으로 더 따뜻하게 다듬어라.",
+    "다시 쓴 문장:",
   ].filter(Boolean).join("\n");
+}
+
+// 기본 해설에 없는 운세 용어·위험 소재 차단 정규식(서버 검증).
+const FORBIDDEN = /문서운|관재|소송|고소|신살|역마살|도화살|공망|대운|세운|투자|주식|코인|매수|매도|진단|처방|틀림없이|반드시\s*(성공|실패|이룬|잃)/;
+
+function cleanText(raw) {
+  let t = String(raw || "").trim();
+  if (t.startsWith("{")) {
+    try {
+      t = String(JSON.parse(t)?.pigCommentary || "").trim();
+    } catch {
+      /* JSON 아님 — 그대로 */
+    }
+  }
+  return t
+    .replace(/^```[a-z]*\s*|\s*```$/gi, "")
+    .replace(/^["'“”]+|["'“”]+$/g, "")
+    .replace(/^(pigCommentary|해설|다시 쓴 문장)\s*[:：]\s*/i, "")
+    .trim();
+}
+
+// 충실도 검증: 대표 라벨 포함 + 금지어 없음 + 최소 길이.
+function isFaithful(text, n) {
+  if (text.replace(/\s+/g, "").length < 12) return false;
+  if (n.primaryLabel && !text.includes(n.primaryLabel)) return false;
+  if (FORBIDDEN.test(text)) return false;
+  return true;
 }
 
 async function handleNarrate(request, env) {
@@ -81,56 +137,35 @@ async function handleNarrate(request, env) {
     return json({ ok: false, error: "NO_BASE_TEXT" }, { status: 200 });
   }
 
-  let ai;
-  try {
-    ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n), {
-      systemPrompt: buildSystemPrompt(),
-      taskType: "general",
-      temperature: 0.5,
-      timeoutMs: 30000,
-      baseTokens: 500,
-      capTokens: 800,
-      // JSON 강제는 이 태스크에서 confabulation을 유발 → plain text로 받는다.
-      responseMimeType: "",
-      fallbackToWorkersAI: true,
-      cache: {
-        store: createLlmCacheStore(env),
-        deterministic: true,
-        ttlSeconds: 7 * 24 * 60 * 60,
-        // field.seed + 고민이 프롬프트에 포함돼 캐시키(프롬프트 해시)에 반영되지만, 버전 구분자를 명시한다.
-        keyExtra: "compass-narrate-v1",
-      },
-    });
-  } catch {
-    ai = null;
-  }
-
-  const text = ai?.ok ? ai.text : "";
-  if (!text || !hasRenderableLlmText(text, { minChars: 20 })) {
-    // 폴백은 클라이언트가 규칙 템플릿으로 처리 — 결과는 항상 표시된다.
-    return json({ ok: false, error: "NARRATION_UNAVAILABLE" }, { status: 200 });
-  }
-
-  // plain text 응답 — 혹시 JSON/따옴표/머리말이 섞이면 정리한다. 숫자·판정은 클라가 field에서 렌더(재생성 위험 없음).
-  let pigCommentary = String(text || "").trim();
-  if (pigCommentary.startsWith("{")) {
+  const store = createLlmCacheStore(env);
+  // 서버 검증-재시도: 충실하지 않으면 교정 지시로 1회 더. 2회 다 실패 → 클라 템플릿 폴백.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    let ai = null;
     try {
-      pigCommentary = String(JSON.parse(pigCommentary)?.pigCommentary || "").trim();
+      ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n, attempt), {
+        systemPrompt: buildSystemPrompt(),
+        taskType: "general",
+        temperature: 0.4,
+        timeoutMs: 30000,
+        baseTokens: 520,
+        capTokens: 820,
+        // JSON 강제는 confabulation을 유발 → plain text. 시도별로 캐시키 분리.
+        responseMimeType: "",
+        fallbackToWorkersAI: true,
+        cache: { store, deterministic: true, ttlSeconds: 7 * 24 * 60 * 60, keyExtra: `compass-narrate-v2-a${attempt}` },
+      });
     } catch {
-      /* JSON 아님 — 그대로 */
+      ai = null;
+    }
+    if (!ai?.ok) continue;
+    const cleaned = cleanText(ai.text);
+    if (isFaithful(cleaned, n)) {
+      return json({ ok: true, pigCommentary: cleaned, provider: ai.provider || "gemini" });
     }
   }
-  pigCommentary = pigCommentary
-    .replace(/^```[a-z]*\s*|\s*```$/gi, "")
-    .replace(/^["'“”]+|["'“”]+$/g, "")
-    .replace(/^(pigCommentary|해설)\s*[:：]\s*/i, "")
-    .trim();
 
-  if (!pigCommentary || pigCommentary.replace(/\s+/g, "").length < 12) {
-    return json({ ok: false, error: "NARRATION_EMPTY" }, { status: 200 });
-  }
-
-  return json({ ok: true, pigCommentary, provider: ai.provider || "gemini" });
+  // 두 시도 모두 충실도 미달 → 클라가 정확한 규칙 템플릿을 유지한다(틀린 문장 미노출).
+  return json({ ok: false, error: "NARRATION_UNFAITHFUL" }, { status: 200 });
 }
 
 function routeError(error) {
