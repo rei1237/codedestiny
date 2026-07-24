@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "あなたの運命を最も深く読むAI",
       "lead": "東西の叡智とAIの洞察で、あなただけの物語を読み解きます。",
-      "primaryCta": "✦ 無料占いを始める"
+      "primaryCta": "✦ 無料占いを始める",
+      "journeyCta": "✦ 運命の旅を始める"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "Die KI, die dein Schicksal am tiefsten liest",
       "lead": "Östliche und westliche Weisheit trifft KI-Einsicht, um deine Geschichte zu deuten.",
-      "primaryCta": "✦ Kostenlos starten"
+      "primaryCta": "✦ Kostenlos starten",
+      "journeyCta": "✦ Deine Schicksalsreise beginnen"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

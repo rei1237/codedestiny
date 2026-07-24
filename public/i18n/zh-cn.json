@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "最懂你命运的AI",
       "lead": "以东西方智慧与AI洞察，解读属于你的故事。",
-      "primaryCta": "✦ 免费开始占卜"
+      "primaryCta": "✦ 免费开始占卜",
+      "journeyCta": "✦ 开启命运之旅"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

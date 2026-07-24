@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "AI đọc vận mệnh của bạn sâu sắc nhất",
       "lead": "Trí tuệ Đông-Tây kết hợp cùng AI để giải mã câu chuyện của riêng bạn.",
-      "primaryCta": "✦ Bắt đầu miễn phí"
+      "primaryCta": "✦ Bắt đầu miễn phí",
+      "journeyCta": "✦ Bắt đầu hành trình định mệnh"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

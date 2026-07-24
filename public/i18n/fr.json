@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "L'IA qui lit votre destin le plus profondément",
       "lead": "La sagesse d'Orient et d'Occident rencontre l'IA pour interpréter votre histoire.",
-      "primaryCta": "✦ Commencer gratuitement"
+      "primaryCta": "✦ Commencer gratuitement",
+      "journeyCta": "✦ Commencez votre voyage du destin"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

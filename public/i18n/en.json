@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "The AI that reads your destiny deepest",
       "lead": "East-West wisdom meets AI insight to interpret your own story.",
-      "primaryCta": "✦ Start Free Reading"
+      "primaryCta": "✦ Start Free Reading",
+      "journeyCta": "✦ Start Your Destiny Journey"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",

@@ -1199,7 +1199,8 @@
     "hero2": {
       "title": "La IA que lee tu destino con más profundidad",
       "lead": "La sabiduría de Oriente y Occidente se une a la IA para interpretar tu historia.",
-      "primaryCta": "✦ Empieza gratis"
+      "primaryCta": "✦ Empieza gratis",
+      "journeyCta": "✦ Comienza tu viaje del destino"
     },
     "aiFeats": {
       "kicker": "CODE DESTINY AI",
