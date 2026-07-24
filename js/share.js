@@ -850,7 +850,76 @@ function _cdInjectCompatInviteButton(){
   } catch (_) {}
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   일반 운세 공유 일반화 — 기능별 bespoke 함수 없이, 어떤 운세 기능이든
+   이 공용 함수로 결과를 공유한다(리퍼럴 자동 부착·shareWithReward 재사용).
+   기존 per-feature 공유 함수(shareKakao/shareTarotKakao/…)는 전혀 건드리지
+   않는다(회귀 위험 0). 신규 기능은 cdShareFortuneKakao({...})만 호출하면 된다.
+   ══════════════════════════════════════════════════════════════════ */
+
+// 홈이 아닌 임의 URL(예: /stories/…)에도 리퍼럴 파라미터를 부착한다.
+function cdAppendReferralQuery(url){
+  var r = cdReadCachedReferral() || {};
+  if (!r.ref) return url;
+  var sep = String(url || '').indexOf('?') >= 0 ? '&' : '?';
+  var qs = ['ref=' + encodeURIComponent(r.ref)];
+  if (r.rs) qs.push('rs=' + encodeURIComponent(r.rs));
+  qs.push('via=' + encodeURIComponent(r.via || 'kakao_reward'));
+  return url + sep + qs.join('&');
+}
+
+// 공용 운세 결과 공유. options: { contentId, title, header, cta, preview | previewSelector, maxLen }
+// contentId 가 CD_SHARE_ACTION_MAP 에 있으면 해당 모달 딥링크, 없으면 홈으로(리퍼럴은 항상 부착).
+function cdShareFortuneKakao(options){
+  var opts = options || {};
+  var contentId = opts.contentId || 'saju';
+  shareWithReward(function(){
+    var url = cdBuildShareUrl(contentId);
+    var preview = opts.preview || '';
+    if (!preview && opts.previewSelector) {
+      var node = null;
+      try { node = document.querySelector(opts.previewSelector); } catch (_) {}
+      preview = node ? _trimShareText(node.innerText, opts.maxLen || 240) : '';
+    }
+    var header = opts.header || '✨ [코드 데스티니 운세]';
+    var cta = opts.cta || '나도 무료로 확인하기 👇';
+    var text = header + '\n\n' + (preview ? (preview + '\n\n') : '') + cta + '\n' + url;
+    var title = opts.title || _shareText('share.001');
+    if (navigator.share) {
+      navigator.share({ title: title, text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬'); }, 800);
+  }, contentId);
+}
+
+// 웹소설/이야기 공유 — 색인 가능한 /stories/[id]로(내부 트래픽·SEO), 리퍼럴 승계.
+function shareStoryKakao(storyId, storyTitle){
+  shareWithReward(function(){
+    var origin = 'https://code-destiny.com';
+    try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
+    var path = storyId ? ('/stories/' + encodeURIComponent(storyId)) : '/stories';
+    var url = cdAppendReferralQuery(origin + path);
+    var title = storyTitle || '연이와 네오의 운명 이야기';
+    var text = '📖 [코드 데스티니 이야기] ' + title + '\n\n연이와 네오의 운명 여정, 무료로 읽어보세요 👇\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: title, text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '이야기 링크를 복사했어요! 카카오톡에 붙여넣어 주세요 💬'); }, 800);
+  }, 'story');
+}
+
 if (typeof window !== 'undefined') {
+  window.cdShareFortuneKakao = cdShareFortuneKakao;
+  window.shareStoryKakao = shareStoryKakao;
+  window.cdAppendReferralQuery = cdAppendReferralQuery;
   window.shareCompatInviteKakao = shareCompatInviteKakao;
   window.openCompatInvite = openCompatInvite;
   var _cdCompatInviteInit = function(){
