@@ -26,6 +26,8 @@ import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtur
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
 
@@ -864,9 +866,11 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
 
   return (
     <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label="달빛 궁합 답장">
+      {/* 붉은 실 인연 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지 */}
+      <PaintedBackdrop src={paintedBackdrops.redThread} veil={0.82} position="center 30%" />
       <header className={styles.modalHeader}>
         <div>
-          <h1>달빛 궁합 답장</h1>
+          <h1 style={{ fontFamily: "var(--font-serif)" }}>달빛 궁합 답장</h1>
           <p>
             {meta.person_a.name} · {meta.person_a.sukuyo}
             <span>✦</span>
@@ -885,7 +889,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
         </div>
       </header>
 
-      <div className={styles.modalBody}>
+      <div className={`${styles.modalBody} relative`}>
         {mounted && !hasSeenQuote && (
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}

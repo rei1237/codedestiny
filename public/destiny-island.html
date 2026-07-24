@@ -300,12 +300,29 @@ body.ph-night .fireflies{opacity:1}
 .hud-bottom{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-hud);display:flex;gap:8px;justify-content:center;align-items:center;
   padding:10px 12px calc(12px + env(safe-area-inset-bottom));pointer-events:none}
 .hud-bottom>*{pointer-events:auto}
-.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;white-space:nowrap;
+.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;white-space:nowrap;text-decoration:none;
   background:var(--panel);border:1px solid var(--panel-line);font-size:.88rem;font-weight:700;color:var(--text);
   box-shadow:0 8px 26px rgba(0,0,0,.4);transition:transform .16s var(--ease-out),border-color .2s}
 .hud-btn:active{transform:scale(.96)}
 .hud-btn.gold{background:linear-gradient(135deg,rgba(232,213,163,.95),rgba(212,185,106,.95));color:#241a05;box-shadow:var(--glow-gold)}
 .hud-btn .cnt{background:rgba(167,139,250,.25);border-radius:999px;padding:0 8px;font-size:.78rem}
+/* 하단 HUD 버튼 프리미엄 — 바텀 바에만 적용(시트의 .hud-btn은 기존 유지). 프로스티드 글래스 + 그라디언트 림 + 골드 CTA */
+.hud-bottom .hud-btn{position:relative;justify-content:center;gap:7px;min-height:48px;padding:10px 18px;
+  background:linear-gradient(180deg,rgba(40,32,78,.82),rgba(20,16,42,.84));font-family:var(--font-display);font-size:.9rem;letter-spacing:.01em;
+  box-shadow:0 10px 30px rgba(6,4,18,.5),0 1px 0 rgba(255,255,255,.14) inset}
+.hud-bottom .hud-btn::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(210,196,255,.6),rgba(167,139,250,.12) 58%,transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.hud-bottom .hud-btn:hover{border-color:rgba(210,196,255,.5);box-shadow:0 12px 34px rgba(6,4,18,.55),var(--glow-violet),0 1px 0 rgba(255,255,255,.16) inset}
+.hud-bottom .hud-btn .hb-ic{width:17px;height:17px;flex:none;opacity:.92}
+.hud-bottom .hud-btn.gold{border-color:rgba(232,213,163,.62);color:#2a1d05;
+  background:linear-gradient(180deg,#f6e6b6 0%,#ecd79f 44%,#dcc077 100%);
+  box-shadow:0 12px 32px rgba(120,92,20,.34),var(--glow-gold),0 1px 0 rgba(255,255,255,.55) inset,0 -2px 6px rgba(150,110,30,.18) inset}
+.hud-bottom .hud-btn.gold::before{background:linear-gradient(180deg,rgba(255,250,230,.92),rgba(212,185,106,.28) 55%,rgba(150,110,30,.28))}
+.hud-bottom .hud-btn.gold:hover{border-color:rgba(232,213,163,.9);box-shadow:0 14px 38px rgba(120,92,20,.42),0 0 22px rgba(232,213,163,.62),0 1px 0 rgba(255,255,255,.6) inset,0 -2px 6px rgba(150,110,30,.2) inset}
+.hud-bottom .hud-btn.gold .hb-ic{opacity:1}
+.hud-bottom .hud-btn .cnt{background:rgba(167,139,250,.28);border:1px solid rgba(210,196,255,.32);padding:1px 9px;font-weight:800;color:#efeaff}
 
 /* ── 대화(라이트 노벨) 오버레이 (z 40) ── */
 #dlgWrap{position:fixed;inset:0;z-index:var(--z-dlg);display:none;background:rgba(6,4,18,.5)}
@@ -399,6 +416,8 @@ body.ph-night .fireflies{opacity:1}
   .narrator .nav-bubble{max-width:min(62vw,220px)}
   .hud-bottom{gap:6px;padding-left:8px;padding-right:8px}
   .hud-btn{padding:9px 13px;font-size:.82rem}
+  .hud-bottom .hud-btn{padding:9px 14px;font-size:.84rem;gap:6px}
+  .hud-bottom .hud-btn .hb-ic{width:15px;height:15px}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -514,9 +533,9 @@ body.ph-night .fireflies{opacity:1}
     </div>
   </div>
   <div class="hud-bottom">
-    <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기">📜 퀘스트 <span class="cnt" id="questCnt">0/3</span></button>
-    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동">🔮 오늘의 조언 더 듣기</a>
-    <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기">⚙️</button>
+    <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="-5" y="-6" width="10" height="12" rx="1.8"/><path d="M-2.5 -3h5M-2.5 0h5M-2.5 3h3"/></svg><span class="hb-label">퀘스트</span> <span class="cnt" id="questCnt">0/3</span></button>
+    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 -5A6 6 0 1 0 4 5.5A4.6 4.6 0 0 1 3 -5Z"/><path d="M-3.4 -4l.5 1.5 1.5 .5 -1.5 .5 -.5 1.5 -.5 -1.5 -1.5 -.5 1.5 -.5z"/></svg><span class="hb-label">오늘의 조언 더 듣기</span></a>
+    <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="0" cy="0" r="2.4"/><path d="M0 -7v2.2M0 4.8v2.2M-7 0h2.2M4.8 0h2.2M-4.95 -4.95l1.55 1.55M3.4 3.4l1.55 1.55M4.95 -4.95l-1.55 1.55M-3.4 3.4l-1.55 1.55"/></svg></button>
   </div>
 </section>
 
@@ -625,11 +644,6 @@ function nextStageAt(exp){for(var i=0;i<STAGES.length;i++){if(exp<STAGES[i][0])r
    ============================================================ */
 function parseJson(raw){try{return JSON.parse(raw);}catch(e){return null;}}
 function readStore(store,key){try{return store.getItem(key);}catch(e){return null;}}
-function scanPrefixed(store,prefix){
-  try{for(var i=0;i<store.length;i++){var k=store.key(i);
-    if(k&&k.indexOf(prefix)===0){var v=parseJson(store.getItem(k));if(v)return v;}}}catch(e){}
-  return null;
-}
 function normalizeProfile(raw){
   if(!raw||typeof raw!=="object")return null;
   var p=raw.profile&&typeof raw.profile==="object"?raw.profile:raw;
@@ -653,13 +667,25 @@ function normalizeProfile(raw){
     name:typeof p.name==="string"?p.name.trim().slice(0,12):""
   };
 }
+/* 현재 로그인 계정 스코프 — destiny-profile.js `_dpResolveProfileScope`와 동일 규칙(섬은 그 파일을 로드하지 않아 소규모 복제) */
+function islandProfileScope(){
+  var u=parseJson(readStore(localStorage,"fortune_auth_user")||"");
+  var id=u&&typeof u==="object"&&(u.id||u.userId||u._id||u.uid);
+  if(id){id=String(id).trim().toLowerCase();if(id)return id;}
+  return "guest";
+}
 function readSavedProfile(){
   if(G.profileOverride)return normalizeProfile(G.profileOverride);
-  var CACHE="code-destiny.activeProfileCache.v1";
-  var cand=scanPrefixed(sessionStorage,CACHE)||scanPrefixed(localStorage,CACHE)
-    ||parseJson(readStore(localStorage,"codeDestiny:guestProfile")||"")
-    ||parseJson(readStore(localStorage,"FORTUNE_APP_USER_PROFILE")||"")
-    ||parseJson(readStore(localStorage,"FORTUNE_APP_VEDIC_PAYLOAD")||"");
+  var scope=islandProfileScope();
+  var scopedCache="code-destiny.activeProfileCache.v1::"+scope;
+  var cand=parseJson(readStore(sessionStorage,scopedCache)||"")||parseJson(readStore(localStorage,scopedCache)||"");
+  if(!cand&&scope==="guest"){ /* 비로그인만 레거시 bare/브릿지 캐시로 폴백 */
+    cand=parseJson(readStore(sessionStorage,"code-destiny.activeProfileCache.v1")||"")
+      ||parseJson(readStore(localStorage,"code-destiny.activeProfileCache.v1")||"")
+      ||parseJson(readStore(localStorage,"codeDestiny:guestProfile")||"")
+      ||parseJson(readStore(localStorage,"FORTUNE_APP_USER_PROFILE")||"")
+      ||parseJson(readStore(localStorage,"FORTUNE_APP_VEDIC_PAYLOAD")||"");
+  }
   return normalizeProfile(cand);
 }
 function profileKeyOf(p){return [p.birthDate,p.birthTimeUnknown?"unknown":p.birthTime,p.gender,p.calendarType,p.isLeapMonth?1:0].join("|");}
@@ -1456,13 +1482,13 @@ function renderMap(pop){
   });
   parts.push(groups.join(""));
   zoom.innerHTML=parts.join("");
-  /* 인터랙션 배선 */
+  /* 인터랙션 배선 — 궁 선택 시 그 명반의 12궁 상담(/island-consult)으로 진입.
+     포인터 탭은 팬/줌 SVG가 setPointerCapture로 삼켜 자식 click이 안 뜨므로, 탭 해석은 initPanZoom의 pointerup에서 처리한다.
+     여기서는 키보드 접근성(포커스 + Enter/Space)만 배선한다. */
   Array.prototype.forEach.call(zoom.querySelectorAll(".palace"),function(node){
-    var name=node.getAttribute("data-palace");
-    var pal=BP.palaces.find(function(p){return p.name===name;});
+    var pal=palaceFromNode(node);
     if(!pal)return;
-    node.addEventListener("click",function(){if(!_mapDragged)openPalace(pal);});
-    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openPalace(pal);}});
+    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();goPalaceConsult(pal);}});
   });
   resetMapView();
 }
@@ -1488,16 +1514,32 @@ function mobileFitScale(){
 function resetMapView(){_mapScale=mobileFitScale();
   var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;_mapTx=-mx/2;_mapTy=-my/2;
   clampMap();applyMapTransform();}
+/* ---- 궁 선택 → 12궁 상담 진입(선택 명반을 세션으로 핸드오프해 상담 화면이 재입력 없이 프리필) ---- */
+function palaceFromNode(node){var nm=node&&node.getAttribute&&node.getAttribute("data-palace");return nm&&BP?BP.palaces.find(function(p){return p.name===nm;}):null;}
+function goPalaceConsult(pal){
+  if(!pal)return;
+  try{
+    if(PROFILE)sessionStorage.setItem("cdIslandConsultSeed",JSON.stringify({
+      name:PROFILE.name||"",gender:PROFILE.gender||"",
+      birthDate:PROFILE.birthDate||"",
+      birthTime:PROFILE.birthTimeUnknown?"":(PROFILE.birthTime||""),
+      birthTimeUnknown:!!PROFILE.birthTimeUnknown,
+      calendarType:PROFILE.calendarType||"solar",
+      isLeapMonth:!!PROFILE.isLeapMonth
+    }));
+  }catch(_){}
+  location.href="/island-consult?palace="+encodeURIComponent(pal.name);
+}
 function initPanZoom(){
   if(_mapPanInit)return;_mapPanInit=true;
   var svg=$("mapSvg");if(!svg)return;
-  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,dragging=false;
+  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,dragging=false,tapCandidate=false;
   function vbScale(){var r=svg.getBoundingClientRect();return VBW/(r.width||VBW);}
   svg.addEventListener("pointerdown",function(e){
     pointers[e.pointerId]={x:e.clientX,y:e.clientY};
-    if(Object.keys(pointers).length===1){dragging=true;_mapDragged=false;downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
+    if(Object.keys(pointers).length===1){dragging=true;_mapDragged=false;tapCandidate=true;downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
       $("mapZoom").classList.add("panning");try{svg.setPointerCapture(e.pointerId);}catch(_){}}
-    else if(Object.keys(pointers).length===2){var ps=Object.keys(pointers).map(function(k){return pointers[k];});
+    else if(Object.keys(pointers).length===2){tapCandidate=false;var ps=Object.keys(pointers).map(function(k){return pointers[k];});
       startDist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);startScale=_mapScale;}
   });
   svg.addEventListener("pointermove",function(e){
@@ -1510,7 +1552,15 @@ function initPanZoom(){
       if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>6)_mapDragged=true;
       _mapTx=downTx+dx;_mapTy=downTy+dy;clampMap();applyMapTransform();}
   });
-  function up(e){delete pointers[e.pointerId];if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}}
+  function up(e){
+    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 상담 진입 */
+    var wasTap=Object.keys(pointers).length===1&&tapCandidate&&!_mapDragged;
+    delete pointers[e.pointerId];
+    if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}
+    if(wasTap){var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
+      var node=el&&el.closest?el.closest(".palace"):null;
+      if(node)goPalaceConsult(palaceFromNode(node));}
+  }
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
   svg.addEventListener("wheel",function(e){e.preventDefault();
     var f=vbScale(),r=svg.getBoundingClientRect();
@@ -1524,12 +1574,12 @@ function initPanZoom(){
   svg.addEventListener("pointerup",function(){var now=Date.now();if(now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
 }
 /* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
-var YEON_AV=API_BASE+"/fuctionassets/"+enc("연이.webp"); /* 투명 꽃돼지 마스코트(크리스프) */
 var NEO_AV=(PROD||REMOTE_SHELL)
   ? ASSETS+"cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/"+enc("전략실 네오 메인-Photoroom.png")
   : WAR+enc("전략실 네오 메인-Photoroom.png");
-var AV={yeon:{img:YEON_AV,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
-try{[YEON_AV,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
+/* 연이 아바타 = 인맵 NPC와 동일한 표정 시트의 활짝 웃는 프레임(밋밋한 정지 마스코트 대신 표정 크롭 → 더 귀엽게) */
+var AV={yeon:{sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.talk,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
+try{[PIGSHEET,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
 var STAR_TRAIT={"자미":"중심과 품격","천기":"지혜와 기획","태양":"공명과 리더십","무곡":"재물과 결단","천동":"복록과 온화","염정":"변혁과 집중","천부":"곳간과 안정","태음":"감성과 자산","탐랑":"다재와 열망","거문":"언변과 탐구","천상":"조력과 중재","천량":"보호와 관록","칠살":"개척과 돌파","파군":"파괴와 재건"};
 var _story=null,_storyIdx=0,_navTimer=null,_navAuto=null;
 function islandFacts(){
@@ -1563,7 +1613,14 @@ function showStory(idx){
   _storyIdx=((idx%_story.length)+_story.length)%_story.length;
   var item=_story[_storyIdx],voice=AV[item.v];
   n.classList.toggle("speaker-neo",item.v==="neo");
-  try{$("navImg").src=voice.img;$("navImg").alt=voice.name;}catch(_){}
+  try{var navImg=$("navImg");
+    if(voice.sheet){ /* 표정 시트 크롭(활짝 웃는 꽃돼지) — dlgSetSprite와 동일 방식 */
+      navImg.src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+      navImg.style.backgroundImage="url('"+voice.sheet+"')";navImg.style.backgroundSize=voice.size||"cover";
+      navImg.style.backgroundPosition=voice.pos||"center";navImg.style.backgroundRepeat="no-repeat";
+    }else{navImg.style.backgroundImage="";navImg.src=voice.img;}
+    navImg.alt=voice.name;
+  }catch(_){}
   var bub=$("navBubble");bub.innerHTML='<b class="nav-who">'+voice.name+'</b> '+item.h;bub.classList.remove("hide");
   clearTimeout(_navTimer);_navTimer=setTimeout(function(){bub.classList.add("hide");},9000);
   clearTimeout(_navAuto);if(!reduceMotion)_navAuto=setTimeout(function(){showStory(_storyIdx+1);},11000);
@@ -1958,12 +2015,15 @@ function zodiacEmoji(y){return ZODIAC[((Number(y)-4)%12+12)%12]||"🪐";}
 function readAllProfiles(){
   var out=[],seen={};
   function add(raw){var n=normalizeProfile(raw);if(!n)return;var k=profileKeyOf(n);if(seen[k])return;seen[k]=1;out.push(n);}
-  try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i);
-    if(key&&/^FORTUNE_APP_USER_PROFILES\.list(::.+)?$/.test(key)){
-      var arr=parseJson(localStorage.getItem(key));
-      if(Array.isArray(arr))arr.forEach(add);
-    }}}catch(_){}
-  var active=readSavedProfile();if(active)add(active); /* 활성/레거시 캐시 병합 */
+  /* 현재 로그인 스코프의 리스트만 읽는다(홈 카드 DPStorage.list()와 동일). 게스트일 때만 레거시 bare 키 폴백 — 타계정/게스트 명반 혼입 방지 */
+  var scope=islandProfileScope();
+  var keys=["FORTUNE_APP_USER_PROFILES.list::"+scope];
+  if(scope==="guest")keys.push("FORTUNE_APP_USER_PROFILES.list");
+  keys.forEach(function(key){
+    var arr=parseJson(readStore(localStorage,key)||"");
+    if(Array.isArray(arr))arr.forEach(add);
+  });
+  var active=readSavedProfile();if(active)add(active); /* 같은 스코프 활성 캐시 병합 */
   return out;
 }
 function calBadge(p){return p.calendarType==="lunar"?(p.isLeapMonth?"윤":"음"):"양";}

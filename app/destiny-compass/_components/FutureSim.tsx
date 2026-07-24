@@ -5,8 +5,7 @@
  */
 import { useState } from "react";
 import { Starfield } from "./Starfield";
-import { SpriteImage } from "./SpriteImage";
-import { compassAssets } from "../data/assets";
+import { PigFace } from "./PigFace";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
 
@@ -57,16 +56,9 @@ export function FutureSim({ field, onBack }: { field: DirectionField; onBack: ()
 
       <div className={styles.resultBody}>
         <div className={styles.resultSpeak}>
-          <SpriteImage
-            src={compassAssets.yeoni.intro}
-            alt="항로를 짚어주는 연이"
-            width={64}
-            height={88}
-            className={styles.speakYeoni}
-            style={{ height: "auto" }}
-          />
+          <PigFace expression="talk" height={78} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
-            <div className={styles.resultWho}>연이</div>
+            <div className={styles.resultWho}>꽃돼지</div>
             <p>시점을 눌러보세요. 지도 위 각 지점에서 운명의 바다가 어떻게 바뀌는지 보여드릴게요.</p>
           </div>
         </div>

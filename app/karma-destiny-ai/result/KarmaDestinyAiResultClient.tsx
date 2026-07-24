@@ -6,6 +6,8 @@ import { Fragment, Suspense, useCallback, useEffect, useMemo, useRef, useState, 
 import { ArrowLeft, BookOpen, ChevronDown, ChevronUp, Copy, Download, Loader2, Menu, RefreshCw, Sparkles, X } from "lucide-react";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import AiResultProse from "@/components/fortune/AiResultProse";
+import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
+import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildKarmaDestinyPreviewPayload } from "@/lib/dev-preview/fixtures/karma-destiny";
 
@@ -427,7 +429,10 @@ function KarmaDestinyResultInner() {
       )}
 
       {isCompleted && (
-        <div className="kdai-reader-shell">
+        <>
+          {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지. 콘텐츠는 relative로 페인팅 위에 얹는다 */}
+          <PaintedBackdrop src={paintedBackdrops.ziwei3} veil={0.82} position="center 28%" />
+          <div className="kdai-reader-shell relative">
           <aside className={`kdai-toc ${tocOpen ? "is-open" : ""}`}>
             <div className="kdai-toc__head">
               <strong>목차</strong>
@@ -460,7 +465,7 @@ function KarmaDestinyResultInner() {
               <Link href="/karma-destiny-ai" className="kdai-back"><ArrowLeft size={17} /> 다시 보기</Link>
               <div className="kdai-report-hero__mark" aria-hidden="true">業</div>
               <span>운명의 업 AI 상담</span>
-              <h1>{userName}님의 운명의 업 장문 리포트</h1>
+              <h1 style={{ fontFamily: "var(--font-serif)" }}>{userName}님의 운명의 업 장문 리포트</h1>
               <p>{result?.userInput?.topic || "전체 운명의 업"} · {formatDate(result?.generatedAt)}</p>
               <div className="kdai-report-actions">
                 <button type="button" onClick={() => setTocOpen(true)}><Menu size={17} /> 목차</button>
@@ -557,6 +562,7 @@ function KarmaDestinyResultInner() {
             </footer>
           </section>
         </div>
+        </>
       )}
 
       {!isGenerating && !isCompleted && (

@@ -7,61 +7,204 @@
   width: 100%;
   overflow: hidden;
   color: #f4eeff;
+  /* 주광원: 상단 중앙 뒤편 큰 별(달) 헤일로 → 지평선으로 갈수록 깊어짐 */
   background:
-    radial-gradient(120% 90% at 50% 18%, rgba(88, 60, 170, 0.5), transparent 60%),
-    radial-gradient(90% 80% at 50% 100%, rgba(40, 90, 150, 0.28), transparent 62%),
-    linear-gradient(180deg, #0b0722 0%, #140a2e 46%, #0a0818 100%);
+    radial-gradient(80% 52% at 50% 6%, rgba(150, 122, 224, 0.42), transparent 58%),
+    radial-gradient(120% 82% at 50% 20%, rgba(70, 52, 150, 0.38), transparent 62%),
+    radial-gradient(96% 74% at 50% 104%, rgba(40, 84, 150, 0.22), transparent 60%),
+    linear-gradient(180deg, var(--cd-map-space-1) 0%, var(--cd-map-space-2) 44%, var(--cd-map-space-0) 100%);
   padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px));
   display: grid;
   grid-template-rows: auto 1fr auto;
   gap: 8px;
 }
-
-/* ── 은하수 별밭 ─────────────────────────────── */
-.starfield {
+/* 하단 비네트 — UI가 얹힐 어두운 바닥을 만든다. z-index 0(별밭 위, 대륙 아래는 아님 → 무대 최하단 장식) */
+.stage::after {
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  background: radial-gradient(120% 80% at 50% 120%, rgba(4, 3, 14, 0.72), transparent 56%);
+}
+
+/* ── 딥스페이스 배경(별 3계층 + 성운 + 은하수 + 그레인) ──────────── */
+.starfield {
+  position: absolute;
+  inset: 0;
+  z-index: var(--cd-z-space);
+  pointer-events: none;
   overflow: hidden;
 }
+/* 필름 그레인 — CSS 그라디언트 특유의 매끈함을 지운다(전역, 아주 옅게 + 미세 드리프트) */
+.starfield::before {
+  content: "";
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grainDrift 8s steps(6) infinite;
+}
+@keyframes grainDrift {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-18px, 12px); }
+}
+
 .nebula {
   position: absolute;
   border-radius: 50%;
-  filter: blur(60px);
+  filter: blur(66px);
   opacity: 0.5;
+  animation: nebulaDrift var(--cd-map-drift) ease-in-out infinite alternate;
 }
 .nebula1 {
-  width: 46vw;
-  height: 46vw;
-  left: -8vw;
-  top: 6vh;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.5), transparent 70%);
+  width: 48vw;
+  height: 48vw;
+  left: -10vw;
+  top: 4vh;
+  background: radial-gradient(circle, rgba(150, 122, 224, 0.5), transparent 70%);
 }
 .nebula2 {
-  width: 40vw;
-  height: 40vw;
-  right: -6vw;
-  bottom: 2vh;
-  background: radial-gradient(circle, rgba(96, 165, 250, 0.4), transparent 70%);
+  width: 42vw;
+  height: 42vw;
+  right: -8vw;
+  bottom: 0;
+  background: radial-gradient(circle, rgba(72, 108, 200, 0.4), transparent 70%);
+  animation-duration: calc(var(--cd-map-drift) * 1.15);
+  animation-delay: -18s;
 }
 .nebula3 {
-  width: 30vw;
-  height: 30vw;
-  left: 40vw;
-  top: 42vh;
-  background: radial-gradient(circle, rgba(244, 114, 182, 0.28), transparent 70%);
+  width: 32vw;
+  height: 32vw;
+  left: 42vw;
+  top: 40vh;
+  background: radial-gradient(circle, rgba(196, 130, 178, 0.24), transparent 70%);
+  animation-duration: calc(var(--cd-map-drift) * 0.85);
+  animation-delay: -34s;
 }
-.star {
+@keyframes nebulaDrift {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(2.4vw, -1.8vh) scale(1.06); }
+}
+
+/* 은하수 대각 밴드 — 구도를 잡아주는 아주 옅은 별먼지 띠 */
+.milkyway {
+  position: absolute;
+  left: -20%;
+  top: -10%;
+  width: 140%;
+  height: 120%;
+  pointer-events: none;
+  opacity: 0.5;
+  background:
+    linear-gradient(74deg, transparent 38%, rgba(198, 186, 255, 0.09) 47%, rgba(230, 220, 255, 0.14) 50%, rgba(198, 186, 255, 0.09) 53%, transparent 62%);
+  filter: blur(6px);
+}
+
+.starLayerFar,
+.starLayerMid,
+.starLayerNear {
+  position: absolute;
+  inset: 0;
+}
+.starFar {
   position: absolute;
   border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 6px rgba(255, 255, 255, 0.7);
-  animation: twinkle 4s ease-in-out infinite;
+  background: var(--cd-star-far);
 }
-@keyframes twinkle {
-  0%, 100% { opacity: 0.2; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.35); }
+.starMid {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.55);
+  animation: twinkleMid 4s ease-in-out infinite;
+}
+@keyframes twinkleMid {
+  0%, 100% { opacity: calc(var(--star-op) * 0.35); transform: scale(0.82); }
+  50% { opacity: var(--star-op); transform: scale(1.28); }
+}
+.starNear {
+  position: absolute;
+  border-radius: 50%;
+  background: var(--cd-star-near);
+  box-shadow: 0 0 8px rgba(255, 248, 236, 0.85), 0 0 16px rgba(232, 213, 163, 0.4);
+  animation: twinkleNear 6s ease-in-out infinite;
+}
+/* 십자 회절 광선 — 근거리 별에만 */
+.starNear::before,
+.starNear::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(currentColor, transparent);
+  color: rgba(255, 248, 236, 0.7);
+}
+.starNear::before { width: 1px; height: 22px; background: linear-gradient(to bottom, transparent, rgba(255, 248, 236, 0.7), transparent); }
+.starNear::after { width: 22px; height: 1px; background: linear-gradient(to right, transparent, rgba(255, 248, 236, 0.7), transparent); }
+@keyframes twinkleNear {
+  0%, 100% { opacity: 0.55; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.12); }
+}
+
+/* 저사양 폴백 — lite: 그레인/성운드리프트 정지, static: 별 반짝임까지 정지.
+   data-fx 는 스테이지 루트(.stage/.resultStage/.birthStage) 어디에 있어도 적용된다. */
+[data-fx="lite"] .starfield::before,
+[data-fx="static"] .starfield::before { animation: none; }
+[data-fx="lite"] .nebula,
+[data-fx="static"] .nebula { animation: none; }
+[data-fx="lite"] .starNear::before,
+[data-fx="lite"] .starNear::after,
+[data-fx="static"] .starNear::before,
+[data-fx="static"] .starNear::after { display: none; }
+[data-fx="static"] .starMid { animation: none; opacity: var(--star-op); }
+[data-fx="static"] .starNear { animation: none; opacity: 0.9; }
+[data-fx="static"] .islandBreathe { animation: none; }
+[data-fx="static"] .region { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .starMid { animation: none; opacity: var(--star-op); }
+  .starNear { animation: none; opacity: 0.9; }
+  .nebula { animation: none; }
+  .starfield::before { animation: none; }
+}
+
+/* ── 페인팅 배경 레이어(PaintedBackdrop) ─────────────────────────── */
+.painted {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.paintedFixed {
+  position: fixed;
+}
+.paintedImg {
+  object-fit: cover;
+  /* 세계 팔레트에 편입 — 살짝 어둡게·남보라 쪽으로 */
+  filter: saturate(0.92) brightness(0.86) contrast(1.02);
+}
+/* 베일 + 상하 비네트 + 그레인 — 본문 가독성(AA) 보장 */
+.paintedVeil {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 88% at 50% 120%, rgba(6, 4, 18, 0.86), transparent 58%),
+    linear-gradient(180deg, rgba(10, 7, 26, calc(var(--veil, 0.68) * 0.55)) 0%,
+      rgba(10, 7, 26, calc(var(--veil, 0.68) * 0.72)) 42%,
+      rgba(6, 4, 18, calc(var(--veil, 0.68) * 0.98)) 100%);
+}
+.paintedVeil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* ── 헤더 ─────────────────────────────── */
@@ -72,19 +215,34 @@
   padding-top: 4px;
 }
 .mapKicker {
+  font-family: var(--font-serif);
   font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.28em;
-  color: #e8d5a3;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  color: var(--cd-map-gold);
   text-transform: uppercase;
+  /* 오버라인 장식 — 킥커 양옆에 금색 세선 */
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.mapKicker::before,
+.mapKicker::after {
+  content: "";
+  width: clamp(20px, 6vw, 44px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cd-map-gold-deep), transparent);
 }
 .mapTitle {
-  font-family: "Cinzel", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", serif;
+  font-family: var(--font-serif);
   font-weight: 700;
-  font-size: clamp(1.4rem, 4.2vw, 2.3rem);
+  font-size: clamp(1.5rem, 4.4vw, 2.5rem);
+  letter-spacing: 0.02em;
   color: #fff8ec;
-  text-shadow: 0 0 34px rgba(232, 213, 163, 0.32);
-  margin: 2px 0;
+  text-wrap: balance;
+  /* 미세 금박 그라디언트 대신(그라디언트 텍스트 금지) 단색 + 발광으로 위계 */
+  text-shadow: 0 0 34px rgba(232, 213, 163, 0.34), 0 1px 0 rgba(0, 0, 0, 0.3);
+  margin: 3px 0 0;
 }
 /* 모바일: 전역 몰입 내비(뒤로/홈, AppChrome 고정)가 중앙 키커를 가리지 않게 헤더를 내려준다.
    데스크톱은 내비가 좌측 코너·헤더는 중앙이라 겹치지 않으므로 그대로 둔다. */
@@ -100,6 +258,15 @@
   aspect-ratio: 4 / 3;
   margin: 0 auto;
   align-self: center;
+}
+/* 와이드 데스크톱: 지도를 크게(중앙 640px 갇힘 해소), 좌우 여백은 성운·은하수가 채운다(의도된 여백). */
+@media (min-width: 1200px) {
+  .mapField { width: min(70vw, 84vh, 1120px); }
+  .guideStage { width: clamp(150px, 15vw, 240px); }
+  .concern { max-width: 720px; }
+}
+@media (min-width: 1600px) {
+  .mapField { width: min(64vw, 86vh, 1280px); }
 }
 .islandSvg {
   position: absolute;
@@ -138,17 +305,32 @@
 .region:nth-child(2n) { animation-duration: 7.2s; }
 .region:nth-child(3n) { animation-duration: 8.1s; }
 .regionBadge {
+  position: relative;
   width: clamp(54px, 9.2vw, 80px);
   height: clamp(54px, 9.2vw, 80px);
   border-radius: 50%;
   display: grid;
   place-items: center;
   overflow: visible;
-  background: radial-gradient(circle at 38% 28%, rgba(255, 255, 255, 0.22), rgba(16, 11, 36, 0.82) 72%);
+  /* 주광원 상단 → 상단 밝고 하단 어두운 스톤 표면 */
+  background: radial-gradient(circle at 42% 24%, rgba(226, 214, 255, 0.26), rgba(20, 12, 44, 0.86) 74%);
   border: 1.5px solid rgba(232, 213, 163, 0.5);
   box-shadow: 0 0 0 1px rgba(232, 213, 163, 0.22), 0 8px 24px rgba(0, 0, 0, 0.5),
     0 0 22px var(--region-glow, rgba(167, 139, 250, 0.5));
   transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms, border-color 200ms;
+}
+/* 접지 그림자 + 위로 옅은 빛기둥(신성함) */
+.regionBadge::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -9px;
+  width: 60%;
+  height: 10px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(4, 3, 14, 0.6), transparent 78%);
+  pointer-events: none;
 }
 .regionBadge > svg {
   width: 64%;
@@ -181,8 +363,24 @@
   font-size: 0.76rem;
   font-weight: 700;
   color: #efe6ff;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
   white-space: nowrap;
+  /* 어두운 언더레이 — 밝은 대륙/발광 위에서도 라벨 가독성 확보(AA) */
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(10, 7, 26, 0.56);
+  box-shadow: inset 0 0 0 1px rgba(232, 213, 163, 0.14);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+}
+/* 잠김 상태 — 결과 화면 등에서 미해금 노드(결제 게이트)에 재사용 */
+.regionLocked .regionBadge {
+  filter: grayscale(0.7) brightness(0.7);
+}
+.regionLocked .regionBadge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(6, 4, 18, 0.42);
 }
 .regionHere {
   z-index: 4;
@@ -229,9 +427,24 @@
   z-index: 2;
   width: clamp(84px, 15vw, 188px);
   pointer-events: none;
-  filter: drop-shadow(0 12px 26px rgba(0, 0, 0, 0.5));
+  /* 상단 주광원 방향 림라이트(위) + 접지 드롭섀도(아래) */
+  filter: drop-shadow(0 -1px 0 rgba(226, 214, 255, 0.28)) drop-shadow(0 12px 26px rgba(0, 0, 0, 0.5));
   animation: guideSway 6.5s ease-in-out infinite;
   transform-origin: bottom right;
+}
+/* 발밑 접지 그림자 — 공중부양 방지 */
+.guideStage::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 74%;
+  height: 14px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(4, 3, 14, 0.6), transparent 80%);
+  filter: blur(2px);
+  z-index: -1;
 }
 .guide {
   display: block;
@@ -276,43 +489,53 @@
   justify-items: center;
 }
 
-/* 꽃돼지 말풍선 — 위(현재 위치)로 꼬리, 상태별 대사 크로스페이드 */
-.bubbleWrap {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-.speechBubble {
-  position: relative;
-  max-width: 460px;
+/* 꽃돼지 말풍선 — 지도 위 꽃돼지 바로 위에 앵커, 꼬리는 아래(꽃돼지)로 향한다.
+   .hero(pointer-events:none) 기준 absolute라 꽃돼지 위치를 흐트러뜨리지 않는다. */
+.heroBubble {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(72vw, 340px);
   text-align: center;
-  background: linear-gradient(180deg, rgba(30, 21, 58, 0.92), rgba(18, 12, 40, 0.92));
-  border: 1px solid rgba(232, 213, 163, 0.4);
-  border-radius: 18px;
-  padding: 12px 20px;
+  background: linear-gradient(180deg, rgba(34, 24, 64, 0.94), rgba(18, 12, 40, 0.94));
+  border: 1px solid rgba(232, 213, 163, 0.42);
+  border-radius: 16px;
+  padding: 10px 16px;
   color: #fff4e6;
-  font-size: 1.02rem;
+  font-size: 0.98rem;
   font-weight: 600;
   line-height: 1.5;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 24px rgba(232, 213, 163, 0.14);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 24px rgba(232, 213, 163, 0.14);
+  backdrop-filter: blur(3px);
 }
-/* 꼬리 — 위쪽 중앙(현재 위치 꽃돼지를 향함) */
-.speechBubble::before,
-.speechBubble::after {
+/* 꼬리 — 아래쪽 중앙(꽃돼지를 향함) */
+.heroBubble::before,
+.heroBubble::after {
   content: "";
   position: absolute;
-  bottom: 100%;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 9px solid transparent;
 }
-.speechBubble::before {
-  border-bottom-color: rgba(232, 213, 163, 0.4);
-  margin-bottom: -1px;
+.heroBubble::before {
+  border-top-color: rgba(232, 213, 163, 0.42);
+  margin-top: -1px;
 }
-.speechBubble::after {
-  border-bottom-color: #1a1140;
+.heroBubble::after {
+  border-top-color: #1a1140;
   border-width: 8px;
+}
+/* 모바일: 지도가 작아 상단 노드(운명의 성)와 겹치지 않게 말풍선을 컴팩트하게 */
+@media (max-width: 640px) {
+  .heroBubble {
+    font-size: 0.9rem;
+    max-width: min(66vw, 260px);
+    bottom: calc(100% + 10px);
+    padding: 8px 13px;
+  }
 }
 .bubbleLine {
   display: inline-block;
@@ -366,17 +589,16 @@
   pointer-events: none;
 }
 .rune {
-  font-size: 0.62rem;
-  line-height: 1;
-  color: rgba(232, 213, 163, 0.9);
-  opacity: 0.18;
+  display: inline-flex;
+  line-height: 0;
+  opacity: 0.22;
   transform: scale(0.8);
-  transition: opacity 260ms ease, transform 260ms ease, text-shadow 260ms ease;
+  transition: opacity 260ms ease, transform 260ms ease, filter 260ms ease;
 }
 .oracle[data-focused] .rune {
   opacity: 0.95;
   transform: scale(1);
-  text-shadow: 0 0 8px rgba(232, 213, 163, 0.8);
+  filter: drop-shadow(0 0 6px rgba(232, 213, 163, 0.8));
 }
 .oracle[data-focused] .rune:nth-child(2) { transition-delay: 60ms; }
 .oracle[data-focused] .rune:nth-child(3) { transition-delay: 120ms; }
@@ -492,21 +714,18 @@
   border: 1px solid rgba(232, 213, 163, 0.3);
   transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1), border-color 140ms, box-shadow 140ms;
 }
-/* 부적/보석 인디케이터 */
+/* 축 고유 성좌 인디케이터(노드 색 연동) */
 .chipGem {
-  width: 9px;
-  height: 9px;
+  display: inline-flex;
   flex: none;
-  border-radius: 2px;
-  transform: rotate(45deg);
-  background: linear-gradient(135deg, #fff2c6, #e8d5a3);
-  box-shadow: 0 0 8px rgba(232, 213, 163, 0.6);
+  line-height: 0;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, var(--chip-tone, #e8d5a3) 60%, transparent));
 }
 .chip:hover,
 .chip:focus-visible {
   transform: translateY(-2px);
-  border-color: rgba(255, 244, 210, 0.8);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 20px rgba(232, 213, 163, 0.32);
+  border-color: color-mix(in srgb, var(--chip-tone, #e8d5a3) 70%, white 20%);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4), 0 0 20px color-mix(in srgb, var(--chip-tone, #e8d5a3) 40%, transparent);
   outline: none;
 }
 .chip:focus-visible {
@@ -823,16 +1042,17 @@
   background: linear-gradient(180deg, #b31955 0 50%, #f4eeff 50% 100%);
 }
 .birthKicker {
+  font-family: var(--font-serif);
   font-size: 0.74rem;
-  font-weight: 800;
-  letter-spacing: 0.3em;
-  color: #e8d5a3;
+  font-weight: 700;
+  letter-spacing: 0.34em;
+  color: var(--cd-map-gold);
   text-transform: uppercase;
   text-shadow: 0 0 14px rgba(232, 213, 163, 0.4);
   text-align: center;
 }
 .birthTitle {
-  font-family: "Cinzel", "Nanum Myeongjo", "Noto Serif KR", serif;
+  font-family: var(--font-serif);
   font-size: clamp(1.5rem, 4.4vw, 2.05rem);
   line-height: 1.25;
   color: #fff8ec;
@@ -958,6 +1178,9 @@
 }
 .birthLevelBadge {
   justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8rem;
   font-weight: 800;
   color: #12061f;
@@ -1109,9 +1332,9 @@
   overflow-y: auto;
   color: #f4eeff;
   background:
-    radial-gradient(120% 90% at 50% 16%, rgba(88, 60, 170, 0.5), transparent 60%),
-    radial-gradient(90% 80% at 50% 100%, rgba(40, 90, 150, 0.26), transparent 62%),
-    linear-gradient(180deg, #0b0722 0%, #140a2e 46%, #0a0818 100%);
+    radial-gradient(80% 50% at 50% 4%, rgba(150, 122, 224, 0.34), transparent 58%),
+    radial-gradient(120% 82% at 50% 18%, rgba(70, 52, 150, 0.32), transparent 62%),
+    linear-gradient(180deg, var(--cd-map-space-1) 0%, var(--cd-map-space-2) 46%, var(--cd-map-space-0) 100%);
   padding: calc(22px + env(safe-area-inset-top, 0px)) 16px calc(30px + env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
@@ -1201,6 +1424,19 @@
 .flowSection {
   display: grid;
   gap: 12px;
+}
+/* 섹션 페인팅 배경 래퍼 — R2 아트를 섹션 뒤에 깔고 내용은 z-index로 위에. */
+.sceneSection {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  padding: 18px 16px;
+  border: 1px solid rgba(232, 213, 163, 0.18);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+}
+.sceneSection > :not(.painted) {
+  position: relative;
+  z-index: 1;
 }
 .flowLabel {
   font-size: 0.82rem;
