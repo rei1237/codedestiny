@@ -4,6 +4,7 @@ import { Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, WandSparkles } fr
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { buildSukuyoPromptFacts } from "./sukuyo-prompt-facts";
 
 const AI_TARGETS: { id: string; label: string; url: string }[] = [
   { id: "chatgpt", label: "ChatGPT", url: "https://chatgpt.com/" },
@@ -221,6 +222,11 @@ const BIRTH_FIELDS_COPY: FieldConfig[] = [
   { id: "birthTimeUnknown", label: "출생 시각 모름", type: "checkbox", advanced: true },
 ];
 
+// 생년월일이 필수가 아닌 도구(종합)용 — 출생 정보를 넣으면 반영하되, 순수 질문/타로형 사용도 막지 않는다.
+const BIRTH_FIELDS_OPTIONAL_COPY: FieldConfig[] = BIRTH_FIELDS_COPY.map((field) =>
+  field.id === "birthDate" ? { ...field, required: false } : field,
+);
+
 const TOOL_REGISTRY_COPY: ToolConfig[] = [
   {
     id: "comprehensive",
@@ -234,7 +240,7 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
       ...COMMON_FIELDS_COPY,
       { id: "systems", label: "활용할 운세 체계", type: "multiselect", required: true, options: ["사주/명리학", "타로", "점성술", "수비학", "꿈/상징", "숙요점"] },
       { id: "period", label: "상담 기간", type: "select", options: ["오늘", "이번 주", "이번 달", "3개월", "올해"] },
-      { id: "birthInfo", label: "출생 정보", type: "textarea", rows: 3, placeholder: "알고 있는 생년월일, 출생시각, 출생지를 적어 주세요.", privacyHint: BIRTH_PRIVACY_HINT },
+      ...BIRTH_FIELDS_OPTIONAL_COPY,
     ],
     exampleValues: {
       topic: "올해의 일과 사랑 흐름",
@@ -244,7 +250,10 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
       depth: "균형 있게",
       systems: ["사주/명리학", "타로", "점성술"],
       period: "3개월",
-      birthInfo: "1994년 8월 17일 오전 9시 20분, 서울 출생",
+      calendarType: "양력",
+      birthDate: "1994-08-17",
+      birthTime: "09:20",
+      birthPlace: "서울",
     },
     generateLabel: "종합 운세 프롬프트 생성하기",
     resultLabel: "완성된 종합 운세 상담 프롬프트",
@@ -567,14 +576,20 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     theme: { accent: "#6b8fc7", accentStrong: "#24335f", accentSoft: "#e4efff", surface: "#f6f8ff", text: "#14213d", motif: "달의 위상과 숙의 배열" },
     fields: [
       ...COMMON_FIELDS_COPY,
+      { id: "calendarType", label: "내 양력/음력", type: "select", options: ["양력", "음력"] },
       { id: "birthDate", label: "내 생년월일", type: "date", required: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "birthTime", label: "내 출생 시각", type: "time", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "partnerCalendarType", label: "상대 양력/음력", type: "select", options: ["양력", "음력"] },
       { id: "partnerBirthDate", label: "상대 생년월일", type: "date", privacyHint: BIRTH_PRIVACY_HINT },
+      { id: "partnerBirthTime", label: "상대 출생 시각", type: "time", advanced: true, privacyHint: BIRTH_PRIVACY_HINT },
       { id: "relationshipType", label: "관계 유형", type: "select", options: ["연애", "부부", "썸", "친구", "동료", "가족"] },
     ],
     exampleValues: {
       topic: "관계의 거리감",
       question: "상대와 가까워질수록 왜 서로 조심스러워지는지 알고 싶습니다.",
+      calendarType: "양력",
       birthDate: "1995-02-14",
+      partnerCalendarType: "양력",
       partnerBirthDate: "1993-10-08",
       relationshipType: "연애",
       tone: "따뜻한 위로",
@@ -584,8 +599,8 @@ const TOOL_REGISTRY_COPY: ToolConfig[] = [
     resultLabel: "완성된 숙요점 상담 프롬프트",
     emptyState: "나와 상대의 생년월일, 관계 유형을 적으면 달의 숙이 관계의 결을 비춥니다.",
     role: "달의 숙과 관계의 리듬을 섬세하게 읽는 숙요점 상담가",
-    principles: ["상대의 마음을 단정하지 않습니다.", "관계의 거리와 리듬을 중심으로 봅니다.", "상호 존중의 행동을 제안합니다."],
-    answerSections: ["두 사람의 기본 결", "끌림과 피로가 생기는 지점", "대화의 타이밍", "관계를 지키는 행동"],
+    principles: ["산출된 본명숙과 구요 관계를 근거로 삼되 다시 계산하지 않습니다.", "상대의 마음을 단정하지 않습니다.", "관계의 거리와 리듬을 중심으로 봅니다.", "상호 존중의 행동을 제안합니다."],
+    answerSections: ["나와 상대의 본명숙이 보여주는 기본 결", "구요 관계에서 끌림과 피로가 생기는 지점", "관계의 거리와 대화의 타이밍", "이 관계를 지키기 위한 행동"],
     keywords: ["숙요", "관계", "달", "상성"],
     ready: "ready",
   },
@@ -862,8 +877,12 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
     "분석 주제": "Analysis Topic",
     "고급 설정": "Advanced Settings",
     "분석 궁": "Palace to Read",
+    "내 양력/음력": "My Solar/Lunar Calendar",
     "내 생년월일": "My Date of Birth",
+    "내 출생 시각": "My Birth Time",
+    "상대 양력/음력": "Partner's Solar/Lunar Calendar",
     "상대 생년월일": "Partner's Date of Birth",
+    "상대 출생 시각": "Partner's Birth Time",
     "관계 유형": "Relationship Type",
     "이름을 함께 반영": "Include Name",
     "이름": "Name",
@@ -1071,7 +1090,7 @@ function formatDraftValue(value: ToolDraftValue | undefined) {
   return String(value || "").trim();
 }
 
-function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft) {
+function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft, computedFacts = "") {
   const filledFields = config.fields
     .map((field) => {
       const value = formatDraftValue(values[field.id]);
@@ -1082,6 +1101,7 @@ function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft) {
   const avoid = formatDraftValue(values.avoid);
   const tone = formatDraftValue(values.tone) || "차분하고 전문적인 상담";
   const depth = formatDraftValue(values.depth) || "균형 있게";
+  const facts = String(computedFacts || "").trim();
 
   return [
     `당신은 ${config.role}입니다.`,
@@ -1091,21 +1111,26 @@ function buildStructuredFortunePrompt(config: ToolConfig, values: ToolDraft) {
     `상담 분위기: ${tone}`,
     `답변 깊이: ${depth}`,
     "",
-    "사용자가 건넨 단서",
+    "[입력 단서]",
     filledFields || "- 아직 입력된 단서가 적습니다. 부족한 정보는 추정하지 말고 필요한 확인 질문을 먼저 제안해 주세요.",
     avoid ? `\n피해야 할 표현: ${avoid}` : "",
+    facts ? `\n${facts}` : "",
     "",
-    "해석 원칙",
+    "[해석 원칙]",
     ...config.principles.map((item) => `- ${item}`),
+    facts
+      ? "- 위 [산출 데이터]의 명칭·수치·관계는 이미 확정된 값이니 그대로 근거로 삼고, 임의로 바꾸거나 새로 계산하지 않습니다."
+      : "",
+    "- 입력 단서에 없는 값(생년월일시, 명식, 별자리 등)은 지어내지 말고, 필요하면 계산이 필요하다고 표시하거나 확인 질문을 제안합니다.",
     "- 단정적인 예언, 공포를 주는 표현, 운명을 고정하는 표현은 피합니다.",
     "- 불확실한 내용은 가능성, 경향, 선택지의 언어로 설명합니다.",
     "- 의료, 법률, 투자, 계약 등 전문 판단을 대신하지 않으며 필요한 경우 전문가 상담을 권합니다.",
     "- 질문자가 오늘 실천할 수 있는 현실적인 조언을 포함합니다.",
     "",
-    "답변 구조",
+    "[답변 구조]",
     ...config.answerSections.map((item, index) => `${index + 1}. ${item}`),
     "",
-    "말투",
+    "[말투]",
     "전문적이되 차갑지 않게, 신비롭되 과장하지 않게 말해 주세요. 운세의 상징은 질문자가 자기 선택을 더 선명하게 바라보도록 돕는 언어로 전해 주세요.",
   ]
     .filter(Boolean)
@@ -1300,10 +1325,20 @@ export default function ComprehensivePromptHubPage() {
     setValidationAttemptedByToolId((prev) => ({ ...prev, [toolId]: true }));
     setCopiedToolId(null);
     if (missingFields.length) return;
+    const computedFacts =
+      config.id === "sukuyo"
+        ? buildSukuyoPromptFacts({
+            birthDate: formatDraftValue(draft.birthDate),
+            calendarType: formatDraftValue(draft.calendarType),
+            partnerBirthDate: formatDraftValue(draft.partnerBirthDate),
+            partnerCalendarType: formatDraftValue(draft.partnerCalendarType),
+            relationshipType: formatDraftValue(draft.relationshipType),
+          })
+        : "";
     setResultsByToolId((prev) => ({
       ...prev,
       [toolId]: {
-        prompt: buildStructuredFortunePrompt(config, draft),
+        prompt: buildStructuredFortunePrompt(config, draft, computedFacts),
         generatedAt: new Intl.DateTimeFormat(getPromptHubDateLocale(locale), {
           dateStyle: "medium",
           timeStyle: "short",
