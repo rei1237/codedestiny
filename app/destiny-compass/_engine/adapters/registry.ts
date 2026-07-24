@@ -1,6 +1,6 @@
 /**
- * 어댑터 레지스트리 — 배선된 엔진(사주+자미+숙요+타로) + 가용 엔진 가중치 재정규화.
- * 확장(베다)은 여기 배열에 추가하면 자동 참여한다.
+ * 어댑터 레지스트리 — 5체계 전부 배선(사주+자미+숙요+타로+베다) + 가용 엔진 가중치 재정규화.
+ * 신규 엔진은 여기 배열에 추가하면 자동 참여한다.
  */
 import type { EngineAdapter } from "./types";
 import type { CompassInput, SystemKey } from "../types";
@@ -8,8 +8,9 @@ import { sajuAdapter } from "./sajuAdapter";
 import { ziweiAdapter } from "./ziweiAdapter";
 import { sukuyoAdapter } from "./sukuyoAdapter";
 import { tarotAdapter } from "./tarotAdapter";
+import { vedicAdapter } from "./vedicAdapter";
 
-export const ADAPTERS: readonly EngineAdapter[] = [sajuAdapter, ziweiAdapter, sukuyoAdapter, tarotAdapter];
+export const ADAPTERS: readonly EngineAdapter[] = [sajuAdapter, ziweiAdapter, sukuyoAdapter, tarotAdapter, vedicAdapter];
 
 export function availableAdapters(input: CompassInput): EngineAdapter[] {
   return ADAPTERS.filter((a) => a.isAvailable(input));

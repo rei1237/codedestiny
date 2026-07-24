@@ -22,6 +22,7 @@ const sajuA = read(`${BASE}/adapters/sajuAdapter.ts`);
 const ziweiA = read(`${BASE}/adapters/ziweiAdapter.ts`);
 const sukuyoA = read(`${BASE}/adapters/sukuyoAdapter.ts`);
 const tarotA = read(`${BASE}/adapters/tarotAdapter.ts`);
+const vedicA = read(`${BASE}/adapters/vedicAdapter.ts`);
 const constants = read(`${BASE}/constants.ts`);
 
 // ── 1) 순수성(결정론): Math.random·Date 미사용 ──
@@ -31,6 +32,7 @@ for (const [name, src] of [
   ["ziweiAdapter", ziweiA],
   ["sukuyoAdapter", sukuyoA],
   ["tarotAdapter", tarotA],
+  ["vedicAdapter", vedicA],
   ["constants", constants],
 ]) {
   const code = stripComments(src);
@@ -56,6 +58,7 @@ check(
 check(/import\s*\{\s*calculateZiweiChart\s*\}/.test(ziweiA), "ziweiAdapter는 calculateZiweiChart를 import 해야 한다");
 check(/import\s*\{\s*calcSukuyoForServer\s*\}/.test(sukuyoA), "sukuyoAdapter는 calcSukuyoForServer를 읽기 전용 import 해야 한다");
 check(/input\.dateSeed/.test(tarotA), "tarotAdapter는 input.dateSeed를 시드에 포함해야 한다(일 단위 결정론)");
+check(/zellerWeekday\(/.test(vedicA), "vedicAdapter는 Zeller 합동식(순수 산술)으로 요일을 계산해야 한다(Date 미사용)");
 
 // ── 4) 사주 계산 경로 무침해: 어댑터는 timezone을 사주에 주입하지 않고, 내부 계산 함수를 직접 건드리지 않는다 ──
 check(!/timezone/.test(stripComments(sajuA)), "sajuAdapter는 timezone을 다루면 안 된다(하드 제약 2 · 사주 경로 무주입)");
