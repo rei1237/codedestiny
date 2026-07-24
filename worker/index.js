@@ -1175,7 +1175,7 @@ export default {
       }
 
       if (url.pathname === "/api/fortune" || url.pathname.startsWith("/api/fortune/")) {
-        // ctx: 사주 AI 상담 생성을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달.
+        // ctx: 사주 전문가 상담 생성을 즉시-202 + waitUntil 백그라운드로 돌리기 위해 전달.
         return withCorsHeaders(request, env, await handleFortuneRoutes(request, env, ctx));
       }
 
@@ -1232,7 +1232,7 @@ export default {
         return runWithRouteMetrics("api/premium", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          message: "프리미엄 통합 PDF 엔드포인트는 제거되었습니다. 인생의 책 전문가 상담은 /life-book-ai에서 시작해 주세요.",
           supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
         }, { status: 410 }));
       }
@@ -1241,7 +1241,7 @@ export default {
         return runWithRouteMetrics("api/premium-report", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          message: "premium-report 엔드포인트는 제거되었습니다. 인생의 책 전문가 상담은 /life-book-ai에서 시작해 주세요.",
           supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
         }, { status: 410 }));
       }
@@ -1292,7 +1292,7 @@ export default {
         return runWithRouteMetrics("api/lifebook-legacy", env, () => jsonResponse(request, env, {
           ok: false,
           error: "removed_feature",
-          message: "이전 인생의 책 생성 경로는 종료되었습니다. 인생의 책 AI 상담은 /life-book-ai에서 시작해 주세요.",
+          message: "이전 인생의 책 생성 경로는 종료되었습니다. 인생의 책 전문가 상담은 /life-book-ai에서 시작해 주세요.",
           supported: ["/api/life-book-ai/ensure-access", "/api/life-book-ai/start", "/api/life-book-ai/message"],
         }, { status: 410 }));
       }
@@ -1405,7 +1405,7 @@ export default {
         return withCorsHeaders(request, env, await handleSukuyoRoutes(routedRequest, env, ctx));
       }
 
-      // 나크샤트라 결정판 AI 심화 상담(유료·인증) — 동기 생성(숙요/베다 2덱). 무료 라우트보다 먼저 검사한다.
+      // 나크샤트라 결정판 전문가 심화 상담(유료·인증) — 동기 생성(숙요/베다 2덱). 무료 라우트보다 먼저 검사한다.
       if (url.pathname === "/api/nakshatra-ai" || url.pathname.startsWith("/api/nakshatra-ai/")) {
         return runAiRouteWithSecurity(request, env, "nakshatra-ai", handleNakshatraAiRoutes, ctx);
       }
@@ -1422,7 +1422,7 @@ export default {
         return withCorsHeaders(request, env, jsonResponse(request, env, {
           ok: false,
           code: "SUKUYO_COMPATIBILITY_PDF_REMOVED",
-          message: "숙요점 궁합은 숙요점 궁합 AI 상담으로 전환되었습니다.",
+          message: "숙요점 궁합은 숙요점 궁합 전문가 상담으로 전환되었습니다.",
           next: "/sukuyo-compatibility-ai",
         }, { status: 410 }));
       }
@@ -1431,7 +1431,7 @@ export default {
         return withCorsHeaders(request, env, jsonResponse(request, env, {
           ok: false,
           code: "ASTROLOGY_PDF_REMOVED",
-          message: "점성술 상담은 점성술 AI 상담으로 전환되었습니다.",
+          message: "점성술 상담은 점성술 전문가 상담으로 전환되었습니다.",
           next: "/astrology-ai",
         }, { status: 410 }));
       }

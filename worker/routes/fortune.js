@@ -133,7 +133,7 @@ const SAJU_AI_PROMPT_ACCESS_MODE = "per_use";
 // (현재 sync 흐름에선 stale 체커 isSajuAIPromptStaleGeneratingExecution가 미배선이라 무효이며,
 //  Phase 2에서 generating 레코드 + 폴링을 부활시킬 때 이 값이 유효해진다.)
 const SAJU_AI_PROMPT_STALE_GENERATING_MS = 390 * 1000;
-const SAJU_AI_PROMPT_TITLE = "사주 AI 상담 결과";
+const SAJU_AI_PROMPT_TITLE = "사주 전문가 상담 결과";
 const SAJU_AI_PROMPT_AMOUNT_KRW = calculateKrwAmountFromCoins(SAJU_AI_PROMPT_PRICE);
 const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "당신은 최고 수준의 명리학 상담가입니다.",
@@ -163,7 +163,7 @@ const SAJU_AI_PROGRESS_STEPS = Object.freeze([
   { progress: 15, key: "chart", message: "사주 명식 불러오는 중" },
   { progress: 30, key: "question", message: "질문 의도 분석 중" },
   { progress: 45, key: "structure", message: "명식 핵심 구조 해석 중" },
-  { progress: 65, key: "llm", message: "AI 상담문 생성 중" },
+  { progress: 65, key: "llm", message: "전문가 상담문 생성 중" },
   { progress: 85, key: "organize", message: "상담 결과 정리 중" },
   { progress: 100, key: "completed", message: "결과 준비 완료" },
 ]);
@@ -360,7 +360,7 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
 function buildSajuAIPromptPaymentRequiredError() {
   return buildSajuAIPromptError(
     "PAYMENT_REQUIRED",
-    `결제 또는 이용권 확인 후 사주 AI 상담 결과가 열립니다.`,
+    `결제 또는 이용권 확인 후 사주 전문가 상담 결과가 열립니다.`,
     402,
     {
       featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
@@ -369,7 +369,7 @@ function buildSajuAIPromptPaymentRequiredError() {
       allowedPaymentModes: ["direct", "monthly", "membership_pass"],
       pricing: {
         featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-        reason: "사주 AI 상담 결과 생성",
+        reason: "사주 전문가 상담 결과 생성",
         coinPrice: SAJU_AI_PROMPT_PRICE,
         cost: SAJU_AI_PROMPT_PRICE,
         amountKRW: SAJU_AI_PROMPT_AMOUNT_KRW,
@@ -2929,7 +2929,7 @@ function mapSajuConsumeFailure(response, payload) {
   if (status === 402 || code === "INSUFFICIENT_BALANCE" || code === "INSUFFICIENT_COINS" || code === "PAYMENT_REQUIRED") {
     return buildSajuAIPromptError(
       "PAYMENT_REQUIRED",
-      "결제, 월정석 크레딧, 멤버십 이용권 중 사용 가능한 방식으로 확인한 뒤 사주 AI 상담 결과가 열립니다.",
+      "결제, 월정석 크레딧, 멤버십 이용권 중 사용 가능한 방식으로 확인한 뒤 사주 전문가 상담 결과가 열립니다.",
       402,
     );
   }
@@ -3831,7 +3831,7 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     }
     return buildAstrologyAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -3985,7 +3985,7 @@ async function handleVedicAIPrompt(request, auth, env) {
     }
     return buildVedicAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -4099,7 +4099,7 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
       }),
       body: JSON.stringify({
         featureKey: SAJU_AI_PROMPT_FEATURE_KEY,
-        reason: "사주 AI 상담 결과 생성",
+        reason: "사주 전문가 상담 결과 생성",
         forceDeduct: true,
         requireExistingPaidAccess: true,
         requestId,
@@ -4473,14 +4473,14 @@ async function handleSajuAIConsultationResult(request, auth, path = "") {
   const profileId = String(url.searchParams.get("profileId") || url.searchParams.get("selectedProfileId") || "").trim();
   const record = await findSajuAIExecutionForRead({ auth, jobId, resultId, requestId, profileId });
   if (!record) {
-    return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 AI 상담 결과를 찾을 수 없습니다.", 404);
+    return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 전문가 상담 결과를 찾을 수 없습니다.", 404);
   }
   if (record.status !== "completed") {
     return json(buildSajuAIStatusPayload(record), { status: record.status === "generation_failed" ? 503 : 202 });
   }
   const stored = normalizeSajuAIStoredResult(record);
   if (!stored) {
-    return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 AI 상담 결과가 비어 있습니다.", 404);
+    return buildSajuAIPromptError("RESULT_NOT_FOUND", "저장된 사주 전문가 상담 결과가 비어 있습니다.", 404);
   }
   return json(stored);
 }
@@ -4572,7 +4572,7 @@ async function runFeatureAiConsultation(env, { builtPrompt, systemPrompt = FEATU
     if (hasRenderableLlmText(finalText, { minChars: 400 })) break;
   }
   if (!finalAi?.ok || !hasRenderableLlmText(finalText, { minChars: 200 })) {
-    return { ok: false, error: finalAi?.message || finalAi?.error || "AI 상담 생성에 실패했습니다." };
+    return { ok: false, error: finalAi?.message || finalAi?.error || "전문가 상담 생성에 실패했습니다." };
   }
   return {
     ok: true,
@@ -4759,7 +4759,7 @@ async function handleZiweiAIPrompt(request, auth, env) {
     }
     return buildZiweiAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }
@@ -4856,7 +4856,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
       if (!consultation.ok) {
         return buildSukuyoAIPromptError(
           "LLM_GENERATION_RETRYABLE",
-          "AI 상담 생성이 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+          "전문가 상담 생성이 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
           503,
         );
       }
@@ -4983,7 +4983,7 @@ async function handleSukuyoAIPrompt(request, auth, env) {
     }
     return buildSukuyoAIPromptError(
       "PROMPT_GENERATION_FAILED",
-      "AI 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
+      "전문가 상담 생성 중 오류가 발생했습니다. 결제되었다면 자동 환불을 시도했습니다. 잠시 후 다시 시도해 주세요.",
       500,
     );
   }

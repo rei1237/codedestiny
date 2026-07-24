@@ -27,7 +27,7 @@ const SERVICE_KEY = "love-secret-ai";
 const FEATURE_KEY = "love-secret-ai-consultation";
 const ACCESS_TOKEN_TYPE = "love-secret-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "연애 비책 AI 상담";
+const ORDER_NAME = "연애 비책 전문가 상담";
 const GEMINI_ENV_KEYS = Object.freeze([
   "GEMINIF_API_KEY",
   "GEMINI_API_KEY",
@@ -98,7 +98,7 @@ const INVALID_INPUT_MESSAGE = "연애 비책 상담에 필요한 정보가 부�
 const QUESTION_REQUIRED_MESSAGE = "지금 가장 궁금한 연애 질문을 한 줄이라도 적어주세요.";
 const CALCULATION_FAILED_MESSAGE = "연애 흐름 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.";
 const SERVER_ERROR_MESSAGE = "연애 비책 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
+const LLM_ERROR_MESSAGE = "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.";
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();

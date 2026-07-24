@@ -17,7 +17,7 @@ import { findActivePaidContentUnlock, upsertPaidContentUnlock } from "../lib/con
 const SUKUYO_SESSION_LOCK_TTL_MS = 20 * 60 * 1000;
 const SUKUYO_EXECUTION_STALE_MS = 25 * 60 * 1000;
 const SUKYO_COMPAT_TOKEN_MIN_COINS = 300;
-const SUKYO_COMPAT_AI_TITLE = "숙요점 궁합 AI 상담";
+const SUKYO_COMPAT_AI_TITLE = "숙요점 궁합 전문가 상담";
 const SUKYO_COMPAT_AI_ROUTE = "/api/sukuyo/compatibility-ai-consultation";
 const SUKYO_COMPAT_AI_AMOUNT_KRW = 30000;
 const SUKYO_COMPAT_AI_PRICE_COINS = 300;
@@ -30,7 +30,7 @@ function sukuyoCompatibilityAiMovedResponse() {
   return json({
     ok: false,
     code: "SUKUYO_COMPATIBILITY_AI_ROUTE_MOVED",
-    message: "숙요점 궁합 AI 상담은 새 상담 전용 API를 사용합니다.",
+    message: "숙요점 궁합 전문가 상담은 새 상담 전용 API를 사용합니다.",
     next: "/api/sukuyo-compatibility-ai/start",
   }, { status: 410 });
 }
@@ -532,7 +532,7 @@ function buildSukyoCompatibilityAIError(code, message, status = 400, extra = {})
   return json({
     ok: false,
     code: clean(code || "SUKYO_COMPAT_AI_FAILED"),
-    message: clean(message || "숙요점 궁합 AI 상담을 생성하지 못했습니다."),
+    message: clean(message || "숙요점 궁합 전문가 상담을 생성하지 못했습니다."),
     ...extra,
   }, { status });
 }
@@ -737,7 +737,7 @@ function buildSukyoRelationshipContext(canonical = {}) {
   };
 }
 
-// [정리됨] 숙요점 PDF 궁합 AI 상담(premium_pdf_sukyo_compat)은 폐기되어 라우트가
+// [정리됨] 숙요점 PDF 궁합 전문가 상담(premium_pdf_sukyo_compat)은 폐기되어 라우트가
 // sukuyoCompatibilityAiMovedResponse()로 톰스톤 처리됨. 활성 상담은 /api/sukuyo-compatibility-ai
 // (worker/routes/sukuyo-compatibility-ai.js)로 이전됨. 관련 죽은 핸들러/헬퍼 제거.
 
@@ -2321,7 +2321,7 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
       logSukyoCompatibilityAI("LLM provider error", { errorCode });
       return buildSukyoCompatibilityAIError(
         errorCode,
-        clean(error?.message || "숙요점 궁합 AI 상담 요청을 처리하지 못했습니다."),
+        clean(error?.message || "숙요점 궁합 전문가 상담 요청을 처리하지 못했습니다."),
         status >= 400 && status < 600 ? status : 500,
         {
           retryable: status >= 500,

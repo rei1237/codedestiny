@@ -1,4 +1,4 @@
-// 나크샤트라 결정판 AI 심화 상담 — 결제·생성 라우트 (2덱: 숙요/베다)
+// 나크샤트라 결정판 전문가 심화 상담 — 결제·생성 라우트 (2덱: 숙요/베다)
 //
 //   POST /api/nakshatra-ai/ensure-access : 이용권 선검사 → 커버 시 accessToken, 미커버 시 402(결제창)
 //   POST /api/nakshatra-ai/start         : 결제/이용권 확정 → 동기 생성(숙요+베다 두 덱) → 완료 결과
@@ -53,7 +53,7 @@ const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
 // 동기 생성(11챕터)이 완주하는 최악 시간을 덮는 신선도 창. 이 창 안의 재-POST는 2차 생성을 기동하지 않고
 // 202로 흡수돼 이중 작업/이중 과금을 막는다.
 const GENERATION_FRESHNESS_MS = 300000;
-const TITLE = "나크샤트라 결정판 AI 심화 상담";
+const TITLE = "나크샤트라 결정판 전문가 심화 상담";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요해요. 로그인 후 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제나 이용권 확인이 아직 끝나지 않았어요. 권한을 확인한 뒤 다시 시도해 주세요.";
 const INVALID_INPUT_MESSAGE = "생년월일 정보가 올바르지 않아요. 입력값을 확인하고 다시 시도해 주세요.";

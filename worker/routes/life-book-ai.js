@@ -19,7 +19,7 @@ const SERVICE_KEY = "life-book-ai";
 const FEATURE_KEY = "life-book-ai-consultation";
 const ACCESS_TOKEN_TYPE = "life-book-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "인생의 책 AI 상담";
+const ORDER_NAME = "인생의 책 전문가 상담";
 
 const GEMINI_ENV_KEYS = [
   "GEMINIF_API_KEY",
@@ -299,7 +299,7 @@ function isLifeFortuneInput(input = {}) {
 }
 
 function getConsultationOrderName(input = {}) {
-  return isLifeFortuneInput(input) ? "인생 총운 AI 상담" : ORDER_NAME;
+  return isLifeFortuneInput(input) ? "인생 총운 전문가 상담" : ORDER_NAME;
 }
 
 function normalizeFocusArea(value, fallbackTopic = "") {

@@ -28,7 +28,7 @@ const SERVICE_KEY = "karma-destiny-ai";
 const FEATURE_KEY = "karma-destiny-ai-consultation";
 const ACCESS_TOKEN_TYPE = "karma-destiny-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "운명의 업 AI 상담";
+const ORDER_NAME = "운명의 업 전문가 상담";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
@@ -1590,7 +1590,7 @@ async function handleEnsureAccess(request, env) {
   return json({
     ok: false,
     reason: "PAYMENT_REQUIRED",
-    message: "운명의 업 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
+    message: "운명의 업 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
     paymentPayload: buildBillingGatePayload(pricing, idempotencyKey),
   }, { status: 402 });
 }
