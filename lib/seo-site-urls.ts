@@ -2,7 +2,6 @@
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
 import { categoryToSlug, publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
-import { getChaptersByStoryId, mockStories } from "./stories/data";
 
 export const BASE_URL = "https://code-destiny.com";
 
@@ -54,18 +53,6 @@ const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
     changeFrequency: "monthly" as const,
     priority: 0.78,
   })),
-];
-
-const STORY_ROUTE_ENTRIES: SitemapRouteEntry[] = [
-  { path: "/stories", changeFrequency: "weekly", priority: 0.74 },
-  ...mockStories.flatMap((story) => [
-    { path: `/stories/${story.slug}`, changeFrequency: "weekly" as const, priority: 0.72 },
-    ...getChaptersByStoryId(story.slug).map((chapter) => ({
-      path: `/stories/${story.slug}/${chapter.slug}`,
-      changeFrequency: "monthly" as const,
-      priority: 0.68,
-    })),
-  ]),
 ];
 
 export const ROUTES: SitemapRouteEntry[] = [
@@ -146,7 +133,6 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
   ...FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES,
   ...FAMOUS_SAJU_ROUTE_ENTRIES,
-  ...STORY_ROUTE_ENTRIES,
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 
   // ── High-Value 개별 문서 ──────────────────────────────────────

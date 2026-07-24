@@ -165,8 +165,8 @@ export function JourneyHub({ onStart }: { onStart: () => void }) {
         <button type="button" className={hub.cta} onClick={onStart}>
           오늘의 나침반 <span className={hub.arrow} aria-hidden="true">→</span>
         </button>
-        <a className={hub.storyLink} href="/stories">
-          연이와 네오의 이야기 읽기 <span className={hub.arrow} aria-hidden="true">→</span>
+        <a className={hub.storyLink} href="/codedestiny-novel.html">
+          연이와 네오의 이야기 (라이트 노벨) <span className={hub.arrow} aria-hidden="true">→</span>
         </a>
       </div>
     </div>

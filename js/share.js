@@ -896,12 +896,12 @@ function cdShareFortuneKakao(options){
   }, contentId);
 }
 
-// 웹소설/이야기 공유 — 색인 가능한 /stories/[id]로(내부 트래픽·SEO), 리퍼럴 승계.
+// 라이트 노벨 공유 — 정본 스토리(/codedestiny-novel.html)로, 리퍼럴 승계. (storyId 레거시·무시)
 function shareStoryKakao(storyId, storyTitle){
   shareWithReward(function(){
     var origin = 'https://code-destiny.com';
     try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
-    var path = storyId ? ('/stories/' + encodeURIComponent(storyId)) : '/stories';
+    var path = '/codedestiny-novel.html';
     var url = cdAppendReferralQuery(origin + path);
     var title = storyTitle || '연이와 네오의 운명 이야기';
     var text = '📖 [코드 데스티니 이야기] ' + title + '\n\n연이와 네오의 운명 여정, 무료로 읽어보세요 👇\n' + url;

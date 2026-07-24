@@ -15,6 +15,10 @@
 /oracle/ifa                    /ifa-oracle.html          301
 /oracle/ifa/*                  /ifa-oracle.html          301
 
+# 레거시 웹소설(/stories) 폐지 → 라이트 노벨(정본 스토리)로 통합
+/stories                       /codedestiny-novel.html   301
+/stories/*                     /codedestiny-novel.html   301
+
 # 브랜드/핵심 서비스 별칭
 /ggulggul                      /manse                    301
 /ggulggul-manse                /manse                    301
