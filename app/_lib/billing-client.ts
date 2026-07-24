@@ -1143,7 +1143,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passStoreTitle = hasActivePassTier ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
   const passStoreHint = hasActivePassTier
     ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
-    : "달빛 이용권을 구매하면 한도 이하 기능은 결제창 없이 바로 열립니다.";
+    : "달빛 이용권으로 전환하면 이 상담을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.";
 
   const directButtonHtml = canShowDirect ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct" aria-label="단건 결제 ${formatPaymentWon(directAmount)}">
