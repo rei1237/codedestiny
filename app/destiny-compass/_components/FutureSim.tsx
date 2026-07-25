@@ -1,11 +1,14 @@
 "use client";
 /**
  * STEP 8 미래 시뮬레이션 — 지도 경로 위 시점 마커(현재/30일/90일/1년)를 눌러 구간 이야기를 본다.
- * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 무료(항로 STEP11 유료와 분리). 추가 계산 없음.
+ * DirectionField.timeline(이미 계산된 결정론 데이터) 읽기 전용. 회당 결제(심화 3프리뷰 중 1). 추가 계산 없음.
+ * 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 시점 지도 노출.
  */
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
+import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
 
@@ -30,6 +33,35 @@ interface Stop {
 }
 
 export function FutureSim({ field, onBack }: { field: DirectionField; onBack: () => void }) {
+  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const [revealed, setRevealed] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 결제 게이트: 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등) → 통과 후에만 콘텐츠 노출.
+  const reveal = useCallback(async () => {
+    if (isPaying) return;
+    setError(null);
+    const r = await ensurePaidAccess({
+      featureKey: "destiny-compass-future-sim",
+      coinPrice: 100,
+      amountKRW: 10000,
+      reason: "미래 시뮬레이션 안내",
+      forceDeduct: true,
+      requestId: makeGateRequestId("destiny-compass-future-sim"),
+    });
+    if (!r.ok) {
+      if (redirectToLoginOnAuthRequired(r.code)) {
+        setError("로그인이 필요해요. 로그인 화면으로 이동할게요.");
+        return;
+      }
+      if (r.code !== "PAYMENT_CANCELLED") {
+        setError(r.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      }
+      return;
+    }
+    setRevealed(true);
+  }, [isPaying, ensurePaidAccess]);
+
   // 현재(=대표 방향 기운) + 30/90/1년(timeline). 지도 경로 위 좌표(%)로 배치.
   const nowM = field.primary.score;
   const T = (k: TimelineKey) => field.timeline[k];
@@ -59,46 +91,68 @@ export function FutureSim({ field, onBack }: { field: DirectionField; onBack: ()
           <PigFace expression="talk" height={78} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
             <div className={styles.resultWho}>꽃돼지</div>
-            <p>시점을 눌러보세요. 지도 위 각 지점에서 운명의 바다가 어떻게 바뀌는지 보여드릴게요.</p>
+            <p>
+              {revealed
+                ? "시점을 눌러보세요. 지도 위 각 지점에서 운명의 바다가 어떻게 바뀌는지 보여드릴게요."
+                : "30일·90일·1년, 앞으로의 운명의 바다가 어떻게 바뀌는지 시점마다 짚어드릴게요."}
+            </p>
           </div>
         </div>
 
-        {/* 지도 경로 + 시점 마커 */}
-        <div className={styles.simField}>
-          <svg className={styles.simPath} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <polyline points={poly} fill="none" stroke="rgba(232,213,163,.5)" strokeWidth="1.2" strokeDasharray="2 3" strokeLinecap="round" />
-            <polyline points={poly} fill="none" stroke="rgba(255,240,184,.85)" strokeWidth="0.7" strokeLinecap="round" />
-          </svg>
-          {stops.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              className={`${styles.simStop} ${sel === s.key ? styles.simStopOn : ""}`}
-              style={{ left: `${s.x}%`, top: `${s.y}%` }}
-              data-tone={WEATHER[s.weather].tone}
-              onClick={() => setSel(s.key)}
-              aria-pressed={sel === s.key}
-              aria-label={`${s.label} · ${WEATHER[s.weather].label} · 순항도 ${s.momentum}`}
-            >
-              <span className={styles.simStar} aria-hidden="true" />
-              <span className={styles.simStopLabel}>{s.label}</span>
-            </button>
-          ))}
-        </div>
+        {revealed ? (
+          <>
+            {/* 지도 경로 + 시점 마커 */}
+            <div className={styles.simField}>
+              <svg className={styles.simPath} viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points={poly} fill="none" stroke="rgba(232,213,163,.5)" strokeWidth="1.2" strokeDasharray="2 3" strokeLinecap="round" />
+                <polyline points={poly} fill="none" stroke="rgba(255,240,184,.85)" strokeWidth="0.7" strokeLinecap="round" />
+              </svg>
+              {stops.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  className={`${styles.simStop} ${sel === s.key ? styles.simStopOn : ""}`}
+                  style={{ left: `${s.x}%`, top: `${s.y}%` }}
+                  data-tone={WEATHER[s.weather].tone}
+                  onClick={() => setSel(s.key)}
+                  aria-pressed={sel === s.key}
+                  aria-label={`${s.label} · ${WEATHER[s.weather].label} · 순항도 ${s.momentum}`}
+                >
+                  <span className={styles.simStar} aria-hidden="true" />
+                  <span className={styles.simStopLabel}>{s.label}</span>
+                </button>
+              ))}
+            </div>
 
-        {/* 선택 시점 스토리 */}
-        <div className={styles.simStory} data-tone={w.tone}>
-          <div className={styles.simStoryTop}>
-            <span className={styles.simStoryPeriod}>{active.label}</span>
-            <span className={styles.simStoryWeather}>{w.label} · 순항도 {active.momentum}</span>
+            {/* 선택 시점 스토리 */}
+            <div className={styles.simStory} data-tone={w.tone}>
+              <div className={styles.simStoryTop}>
+                <span className={styles.simStoryPeriod}>{active.label}</span>
+                <span className={styles.simStoryWeather}>{w.label} · 순항도 {active.momentum}</span>
+              </div>
+              <span className={styles.voyageBar}>
+                <i style={{ transform: `scaleX(${active.momentum / 100})` }} />
+              </span>
+              <p className={styles.simStoryHead}>{w.head}</p>
+            </div>
+          </>
+        ) : (
+          <div className={styles.voyageLock}>
+            <span className={styles.voyageLockIcon} aria-hidden="true">🧭</span>
+            <p className={styles.voyageLockText}>
+              현재 · 30일 · 90일 · 1년, 네 시점의 순항도와 날씨를 지도 위에 펼쳐 눌러볼 수 있어요.
+            </p>
           </div>
-          <span className={styles.voyageBar}>
-            <i style={{ transform: `scaleX(${active.momentum / 100})` }} />
-          </span>
-          <p className={styles.simStoryHead}>{w.head}</p>
-        </div>
+        )}
+
+        {error && <p className={styles.gateError} role="alert">{error}</p>}
 
         <div className={styles.resultCtas}>
+          {!revealed && (
+            <button type="button" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
+              {isPaying ? "결제 확인 중…" : "미래 시뮬레이션 펼치기 · 10,000원"}
+            </button>
+          )}
           <button type="button" className={styles.resultCtaGhost} onClick={onBack}>
             ← 나침반으로 돌아가기
           </button>

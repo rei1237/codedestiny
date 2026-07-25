@@ -103,8 +103,8 @@ export function DestinyMap({
         {islandArt && (
           <div className={styles.islandArt}>
             <Image
-              src={compassPaintings.island}
-              alt="운명의 섬 지도"
+              src={compassPaintings.mapBackground}
+              alt="운명의 지도 배경"
               fill
               sizes="(max-width: 640px) 92vw, min(70vw, 1120px)"
               unoptimized
