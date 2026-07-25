@@ -1047,7 +1047,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-41d935035dde').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-59d11604132d').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1134,24 +1134,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-41d935035dde'
+      'js/animal-totem-experience.js?v=build-59d11604132d'
     ],
     openHwatuModal: ['HwatuFortune.js'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-41d935035dde'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-41d935035dde'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-41d935035dde'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-59d11604132d'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-59d11604132d'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-59d11604132d'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-41d935035dde'],
-    openDreamModal: ['js/dream-ledger.js?v=build-41d935035dde'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-41d935035dde'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-59d11604132d'],
+    openDreamModal: ['js/dream-ledger.js?v=build-59d11604132d'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-59d11604132d'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-41d935035dde']
+    openSibylModal: ['js/sibyl-system.js?v=build-59d11604132d']
   };
 
   function normalizeScriptSrc(src) {
