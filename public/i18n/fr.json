@@ -3,8 +3,8 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Sagesse orientale lue avec l'IA",
-    "subtitle": "Traditions anciennes et IA moderne pour éclairer votre prochain pas",
+    "tagline": "Sagesse orientale lue par des experts",
+    "subtitle": "Traditions anciennes et experts modernes pour éclairer votre prochain pas",
     "trustBadge": "Plus de 100 000 chercheurs dans 80+ pays nous font confiance"
   },
   "home": {
@@ -66,31 +66,31 @@
       "vedicMeta": "Jyotish · Karma",
       "nakshatra": "Nakshatra",
       "nakshatraMeta": "27 signes lunaires",
-      "aiConsult": "Consultation IA",
-      "aiConsultAria": "Hub de consultation IA",
-      "aiSibyl": "Consultation IA Sibyl",
+      "aiConsult": "Consultation d'expert",
+      "aiConsultAria": "Hub de consultation d'expert",
+      "aiSibyl": "Consultation Sibyl d'expert",
       "aiSibylMeta": "Questions Saju approfondies",
       "aiNeoRoom": "Salle de stratégie de Neo",
       "aiNeoRoomMeta": "Rapport stratégique direct",
       "aiLifebook": "Livre de la Vie",
-      "aiLifebookMeta": "Rapport de vie IA",
-      "aiNaming": "Studio de nommage IA",
+      "aiLifebookMeta": "Rapport de vie d'expert",
+      "aiNaming": "Studio de nommage d'expert",
       "aiNamingMeta": "Lecture de noms",
       "aiLoveSecret": "Manuel de l'amour",
       "aiLoveSecretMeta": "Relation · retrouvailles",
-      "aiAll": "Toutes les consultations IA",
+      "aiAll": "Toutes les consultations d'expert",
       "aiAllMeta": "Trouver via la recherche",
       "story": "Histoire",
       "allServices": "Tous les services",
-      "aiLifeFortune": "IA Fortune de Vie",
+      "aiLifeFortune": "Fortune de Vie par expert",
       "aiLifeFortuneMeta": "Flux de vie par thème et cycles",
-      "aiZiwei": "IA Zi Wei",
+      "aiZiwei": "Zi Wei par expert",
       "aiZiweiMeta": "Lecture perso des 12 palais",
-      "aiAstro": "IA Astrologie",
+      "aiAstro": "Astrologie par expert",
       "aiAstroMeta": "Q&R approfondi du thème natal",
-      "aiVedic": "IA Védique",
+      "aiVedic": "Védique par expert",
       "aiVedicMeta": "Lecture rasi et nakshatra",
-      "aiSukuyo": "IA Affinité Sukuyo",
+      "aiSukuyo": "Affinité Sukuyo par expert",
       "aiSukuyoMeta": "Lecture des 27 demeures",
       "aiKarma": "Karma du Destin",
       "aiKarmaMeta": "Lecture karma et vies passées"
@@ -222,7 +222,7 @@
         "title": "Collection animal et lecture du visage",
         "subtitle": "Réveillez l'instinct sauvage endormi en vous",
         "lede": "Forme du visage, personnalité et signaux Saju se croisent pour révéler votre caractère instinctif et votre énergie relationnelle.",
-        "featureline": "Lecture animale IA du visage · Compatibilité animale MBTI · Totem animal · Sceau gardien 60-Gapja",
+        "featureline": "Lecture animale du visage par expert · Compatibilité animale MBTI · Totem animal · Sceau gardien 60-Gapja",
         "aria": "Lecture à visage ouvert et collection de symboles"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "Appuyez pour ouvrir"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 Lecture animale IA du visage",
+      "animalFaceTitle": "🎭 Lecture animale du visage par expert",
       "animalFaceDesc": "Analyse du visage à partir d'un selfie",
       "animalMbtiTitle": "🦁 Compatibilité animale MBTI",
       "animalMbtiDesc": "16 voies de compatibilité totem",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "Lecture d'ambiance photocard",
       "sajuFptiTitle": "🔮 Test Saju FPTI",
       "sajuFptiDesc": "Analyse de personnalité en 4 axes par éléments et Dix Dieux",
-      "animalFaceAria": "Démarrer la lecture du visage d'un animal IA",
-      "animalFaceAlt": "Lecture du visage d'un animal par l'IA - physionomie de la forme du visage à partir d'un selfie",
+      "animalFaceAria": "Démarrer la lecture du visage d'un animal par expert",
+      "animalFaceAlt": "Lecture du visage d'un animal par expert - physionomie de la forme du visage à partir d'un selfie",
       "animalFaceBadge": "Analyse du visage",
       "animalFacePrice": "Gratuit · Compatibilité KRW 5 000",
       "freeBadge": "Gratuit",
@@ -406,8 +406,8 @@
       "palmMapAria": "Afficher la carte du destin des palmiers",
       "palmMapAlt": "Carte du destin des palmiers - Analyse des modèles du destin des palmiers",
       "palmMapBadge": "Voir la paume",
-      "palmMapMeta": "Lecture de la paume de l'IA · Chiromancie orientale · Carte du destin",
-      "animalFaceImgAlt": "Lecture du visage d'un animal par l'IA",
+      "palmMapMeta": "Lecture de la paume par expert · Chiromancie orientale · Carte du destin",
+      "animalFaceImgAlt": "Lecture du visage d'un animal par expert",
       "animalMbtiImgAlt": "Compatibilité animale MBTI",
       "animalTotemImgAlt": "Totem animalier",
       "sajuGuardianImgAlt": "Sceau du Gardien Saju",
@@ -1205,8 +1205,8 @@
       "neoLogoAlt": "Logo du mode Néo"
     },
     "hero2": {
-      "title": "L'IA qui lit votre destin le plus profondément",
-      "lead": "La sagesse d'Orient et d'Occident rencontre l'IA pour interpréter votre histoire.",
+      "title": "Les experts qui lisent votre destin le plus profondément",
+      "lead": "La sagesse d'Orient et d'Occident rencontre l'expertise pour interpréter votre histoire.",
       "primaryCta": "✦ Commencer gratuitement",
       "journeyCta": "✦ Commencez votre voyage du destin"
     },
@@ -1226,12 +1226,12 @@
       }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "Une expérience unique signée CODE DESTINY AI",
+      "kicker": "CODE DESTINY EXPERT",
+      "title": "Une expérience unique signée par les experts CODE DESTINY",
       "explainTitle": "IA explicable",
-      "explainDesc": "Voyez étape par étape comment l'IA a construit sa lecture.",
+      "explainDesc": "Voyez étape par étape comment les experts ont construit leur lecture.",
       "engineTitle": "Moteur expert de voyance",
-      "engineDesc": "Des systèmes orientaux et occidentaux éprouvés, affinés par IA.",
+      "engineDesc": "Des systèmes orientaux et occidentaux éprouvés, affinés par des experts.",
       "unionTitle": "L'Orient rencontre l'Occident",
       "unionDesc": "Du Saju à l'astrologie, tous les angles en un seul lieu."
     },
@@ -1305,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "Votre Plan du Destin",
-    "reportSubtitle": "Une Analyse de Vie Premium propulsée par la Métapsychologie Orientale et l'IA",
-    "intro": "Ce rapport n'est pas une simple prédiction de votre avenir — c'est un plan précis et basé sur les données de l'architecture énergétique qui façonne votre existence. Alliant plus de 3 000 ans de sagesse cosmologique orientale à l'intelligence artificielle avancée, vos Quatre Piliers du Destin sont décodés pour révéler les forces invisibles qui gouvernent vos forces, vos zones d'ombre et votre potentiel le plus lumineux. C'est votre manuel personnel pour naviguer les Cycles Décennaux du Destin avec clarté et intention.",
+    "reportSubtitle": "Une Analyse de Vie Premium propulsée par la Métapsychologie Orientale et l'analyse experte",
+    "intro": "Ce rapport n'est pas une simple prédiction de votre avenir — c'est un plan précis et basé sur les données de l'architecture énergétique qui façonne votre existence. Alliant plus de 3 000 ans de sagesse cosmologique orientale à une analyse experte avancée, vos Quatre Piliers du Destin sont décodés pour révéler les forces invisibles qui gouvernent vos forces, vos zones d'ombre et votre potentiel le plus lumineux. C'est votre manuel personnel pour naviguer les Cycles Décennaux du Destin avec clarté et intention.",
     "dominantElement": {
       "label": "Votre Élément Dominant (Pivot d'Équilibre)",
       "description": "L'Élément Dominant — connu en chinois classique sous le nom de 用神 — est la seule clé énergétique qui équilibre et active toute votre structure du destin. Lorsque vous alignez votre environnement, vos relations et vos décisions sur cet élément, l'élan naturel de votre thème s'accélère. Le désalignement crée des frictions. Ce n'est pas de la superstition ; c'est le calibrage précis de votre plan énergétique."
@@ -1364,7 +1364,7 @@
   },
   "footer": {
     "tagline": "Sagesse ancienne, précision moderne.",
-    "about": "Code Destiny relie plus de 3 000 ans de cosmologie orientale à l'IA moderne pour offrir des lectures calmes en 10 langues, avec des expériences essentielles gratuites.",
+    "about": "Code Destiny relie plus de 3 000 ans de cosmologie orientale à des experts modernes pour offrir des lectures calmes en 10 langues, avec des expériences essentielles gratuites.",
     "links": {
       "privacy": "Politique de Confidentialité",
       "terms": "Conditions d'Utilisation",
@@ -1405,7 +1405,7 @@
       "insights": "Éclairages de fortune"
     },
     "brand": {
-      "tagline": "Là où les sagesses d'Orient et d'Occident éclairent votre destin avec l'IA"
+      "tagline": "Là où les sagesses d'Orient et d'Occident éclairent votre destin avec des experts"
     },
     "story": {
       "reader": "Lire le webroman",
@@ -1486,9 +1486,9 @@
       "badge": "Populaire"
     },
     "tarot": {
-      "name": "Guidance Tarot IA",
-      "short": "Tarot IA",
-      "description": "Sagesse archétypale ancienne lue avec l'IA moderne. Chaque tirage reflète la question, la météo émotionnelle et la direction vivante du moment."
+      "name": "Guidance Tarot d'expert",
+      "short": "Tarot d'expert",
+      "description": "Sagesse archétypale ancienne lue par des experts modernes. Chaque tirage reflète la question, la météo émotionnelle et la direction vivante du moment."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",
@@ -3516,7 +3516,7 @@
         "point1": "Score d'harmonie et de conflit à cinq éléments",
         "point2": "Lecture de type amour, mariage, affaires et amitié",
         "point3": "Bon timing et périodes de prudence",
-        "point4": "Conseils personnalisés du maître IA saju"
+        "point4": "Conseils personnalisés du maître expert en saju"
       }
     },
     "graph": {

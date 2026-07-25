@@ -3,7 +3,7 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "以現代AI，溫柔讀懂東方智慧",
+    "tagline": "以現代專家，溫柔讀懂東方智慧",
     "subtitle": "古老命理與星辰語言，為你照亮下一步",
     "trustBadge": "全球80+國家，逾10萬用戶選擇的占卜體驗"
   },
@@ -66,31 +66,31 @@
       "vedicMeta": "吠陀 · 業力",
       "nakshatra": "納克沙特拉",
       "nakshatraMeta": "27月宿",
-      "aiConsult": "AI諮詢",
-      "aiConsultAria": "AI諮詢中心",
-      "aiSibyl": "西比爾AI諮詢",
+      "aiConsult": "專家諮詢",
+      "aiConsultAria": "專家諮詢中心",
+      "aiSibyl": "西比爾專家諮詢",
       "aiSibylMeta": "八字深度问答",
       "aiNeoRoom": "尼奧命運作战室",
       "aiNeoRoomMeta": "直球策略報告",
       "aiLifebook": "人生之書",
-      "aiLifebookMeta": "AI人生報告",
-      "aiNaming": "AI命名館",
+      "aiLifebookMeta": "專家人生報告",
+      "aiNaming": "專家命名館",
       "aiNamingMeta": "姓名解析 · 命名",
       "aiLoveSecret": "戀愛秘策",
       "aiLoveSecretMeta": "關係 · 復合諮詢",
-      "aiAll": "查看全部AI諮詢",
+      "aiAll": "查看全部專家諮詢",
       "aiAllMeta": "透過搜尋查找",
       "story": "故事",
       "allServices": "全部服務",
-      "aiLifeFortune": "人生總運 AI諮詢",
+      "aiLifeFortune": "人生總運 專家諮詢",
       "aiLifeFortuneMeta": "以命盤·大運看人生走向",
-      "aiZiwei": "紫微斗數 AI諮詢",
+      "aiZiwei": "紫微斗數 專家諮詢",
       "aiZiweiMeta": "個人十二宮命盤諮詢",
-      "aiAstro": "占星術 AI諮詢",
+      "aiAstro": "占星術 專家諮詢",
       "aiAstroMeta": "本命盤深度問答",
-      "aiVedic": "吠陀 AI諮詢",
+      "aiVedic": "吠陀 專家諮詢",
       "aiVedicMeta": "拉希·納克沙特拉解讀",
-      "aiSukuyo": "宿曜合婚 AI",
+      "aiSukuyo": "宿曜合婚 專家",
       "aiSukuyoMeta": "二十七宿關係解讀",
       "aiKarma": "命運之業",
       "aiKarmaMeta": "業力·前世整合諮詢"
@@ -222,7 +222,7 @@
         "title": "動物與面相合集",
         "subtitle": "喚醒你內在沉睡的野性本能",
         "lede": "結合臉型、性格與八字訊號，一次看見你的本能角色與關係能量。",
-        "featureline": "AI動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印",
+        "featureline": "專家動物面相 · MBTI動物合盤 · 動物圖騰 · 六十甲子守護印",
         "aria": "開放式臉部閱讀和符號收集"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "點擊開啟"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI動物面相",
+      "animalFaceTitle": "🎭 專家動物面相",
       "animalFaceDesc": "用自拍讀取面相",
       "animalMbtiTitle": "🦁 MBTI動物合盤",
       "animalMbtiDesc": "16種圖騰相性",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "照片卡情緒解讀",
       "sajuFptiTitle": "🔮 八字FPTI測試",
       "sajuFptiDesc": "五行與十神4軸性格分析",
-      "animalFaceAria": "启动AI动物读脸",
-      "animalFaceAlt": "AI動物讀臉－從自拍看臉型",
+      "animalFaceAria": "启动專家动物读脸",
+      "animalFaceAlt": "專家動物讀臉－從自拍看臉型",
       "animalFaceBadge": "臉部分析",
       "animalFacePrice": "免費 · 相容性 5,000 韓元",
       "freeBadge": "免費",
@@ -406,8 +406,8 @@
       "palmMapAria": "看掌紋命運圖",
       "palmMapAlt": "掌紋圖-掌紋分析",
       "palmMapBadge": "看手掌",
-      "palmMapMeta": "AI手相·東方手相·命運圖",
-      "animalFaceImgAlt": "AI 動物讀臉",
+      "palmMapMeta": "專家手相·東方手相·命運圖",
+      "animalFaceImgAlt": "專家動物讀臉",
       "animalMbtiImgAlt": "MBTI 動物相容性",
       "animalTotemImgAlt": "動物圖騰",
       "sajuGuardianImgAlt": "沙州守護印章",
@@ -1205,8 +1205,8 @@
       "neoLogoAlt": "尼奧模式標誌"
     },
     "hero2": {
-      "title": "最懂你命運的AI",
-      "lead": "以東西方智慧與AI洞察，解讀屬於你的故事。",
+      "title": "最懂你命運的專家",
+      "lead": "以東西方智慧與專家洞察，解讀屬於你的故事。",
       "primaryCta": "✦ 免費開始占卜",
       "journeyCta": "✦ 開啟命運之旅"
     },
@@ -1226,12 +1226,12 @@
       }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "CODE DESTINY AI的獨特體驗",
+      "kicker": "CODE DESTINY 專家",
+      "title": "CODE DESTINY 專家的獨特體驗",
       "explainTitle": "可解釋AI",
-      "explainDesc": "逐步查看AI解讀的依據。",
+      "explainDesc": "逐步查看專家解讀的依據。",
       "engineTitle": "專業占卜引擎",
-      "engineDesc": "經過驗證的東西方占卜體系，由AI精雕細琢。",
+      "engineDesc": "經過驗證的東西方占卜體系，由專家精雕細琢。",
       "unionTitle": "東西方占卜融合",
       "unionDesc": "從八字到占星，多重視角一目了然。"
     },
@@ -1305,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "您的命運藍圖",
-    "reportSubtitle": "東方命理學 × AI驅動的高階人生分析",
-    "intro": "這份報告不僅僅是對您未來的預測——它是對塑造您存在的能量架構的精準、數據驅動的解讀。透過超過3000年的東方宇宙哲學智慧，您的四柱八字透過先進AI的鏡頭被解碼，揭示支配您優勢、陰影和最璀璨潛能的無形力量。這是您專屬的人生說明書，助您以清明的意圖駕馭十年命運大運。",
+    "reportSubtitle": "東方命理學 × 專家驅動的高階人生分析",
+    "intro": "這份報告不僅僅是對您未來的預測——它是對塑造您存在的能量架構的精準、數據驅動的解讀。透過超過3000年的東方宇宙哲學智慧，您的四柱八字透過專家的深入解讀被解碼，揭示支配您優勢、陰影和最璀璨潛能的無形力量。這是您專屬的人生說明書，助您以清明的意圖駕馭十年命運大運。",
     "dominantElement": {
       "label": "用神（命局平衡樞紐）",
       "description": "用神是平衡並激活您整個命局結構的單一能量密鑰。當您將環境、關係和決策與此元素對齊時，您命盤的自然動能便會加速。錯位則產生摩擦。這不是迷信，而是您能量藍圖的精準校準。"
@@ -1364,7 +1364,7 @@
   },
   "footer": {
     "tagline": "古代智慧，現代精準。",
-    "about": "Code Destiny把三千年以上的東方命理與現代AI結合在一起，以10種語言提供安靜、清晰的占卜體驗，核心功能可免費開啟。",
+    "about": "Code Destiny把三千年以上的東方命理與現代專家結合在一起，以10種語言提供安靜、清晰的占卜體驗，核心功能可免費開啟。",
     "links": {
       "privacy": "隱私權政策",
       "terms": "服務條款",
@@ -1405,7 +1405,7 @@
       "insights": "運勢洞察"
     },
     "brand": {
-      "tagline": "東西方智慧與AI洞察照亮你命運的地方"
+      "tagline": "東西方智慧與專家洞察照亮你命運的地方"
     },
     "story": {
       "reader": "閱讀網路小說",
@@ -1486,9 +1486,9 @@
       "badge": "最受歡迎"
     },
     "tarot": {
-      "name": "AI塔羅指引",
-      "short": "AI塔羅",
-      "description": "古老牌面與現代AI一起回應你的提問。每一次牌陣，都映照當下的情緒天氣、關係溫度與可選擇的方向。"
+      "name": "專家塔羅指引",
+      "short": "專家塔羅",
+      "description": "古老牌面與現代專家一起回應你的提問。每一次牌陣，都映照當下的情緒天氣、關係溫度與可選擇的方向。"
     },
     "ziwei": {
       "name": "紫微鬥數",
@@ -3516,7 +3516,7 @@
         "point1": "五元素和諧與衝突得分",
         "point2": "愛情、婚姻、事業、友誼類型閱讀",
         "point3": "良好的時機與謹慎期",
-        "point4": "AI saju大師的個人化建議"
+        "point4": "專家saju大師的個人化建議"
       }
     },
     "graph": {
