@@ -3,8 +3,8 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "東洋の叡智を、AIで静かに読み解く",
-    "subtitle": "古い命理の知恵と現代AIが、あなたの流れをやさしく照らします",
+    "tagline": "東洋の叡智を、専門家が静かに読み解く",
+    "subtitle": "古い命理の知恵と現代の専門家が、あなたの流れをやさしく照らします",
     "trustBadge": "世界80カ国以上、10万人を超えるユーザーが選んだ占い体験"
   },
   "home": {
@@ -66,31 +66,31 @@
       "vedicMeta": "ジョーティシュ · カルマ",
       "nakshatra": "ナクシャトラ",
       "nakshatraMeta": "27の月宿",
-      "aiConsult": "AI相談",
-      "aiConsultAria": "AI相談ハブ",
-      "aiSibyl": "シビルAI相談",
+      "aiConsult": "専門家相談",
+      "aiConsultAria": "専門家相談ハブ",
+      "aiSibyl": "シビル専門家相談",
       "aiSibylMeta": "四柱推命の深層問答",
       "aiNeoRoom": "ネオの運命作戦室",
       "aiNeoRoomMeta": "ファクト直球レポート",
       "aiLifebook": "人生の本",
-      "aiLifebookMeta": "AI人生レポート",
-      "aiNaming": "AI命名所",
+      "aiLifebookMeta": "専門家の人生レポート",
+      "aiNaming": "専門家の命名所",
       "aiNamingMeta": "名前分析 · 命名",
       "aiLoveSecret": "恋愛の秘策",
       "aiLoveSecretMeta": "関係 · 復縁相談",
-      "aiAll": "AI相談をすべて見る",
+      "aiAll": "専門家相談をすべて見る",
       "aiAllMeta": "検索で探す",
       "story": "ストーリー",
       "allServices": "全サービス",
-      "aiLifeFortune": "人生総運 AI相談",
+      "aiLifeFortune": "人生総運 専門家相談",
       "aiLifeFortuneMeta": "命式・大運で見る人生の流れ",
-      "aiZiwei": "紫微斗数 AI相談",
+      "aiZiwei": "紫微斗数 専門家相談",
       "aiZiweiMeta": "12宮の個人命盤相談",
-      "aiAstro": "占星術 AI相談",
+      "aiAstro": "占星術 専門家相談",
       "aiAstroMeta": "ネイタルチャート深層問答",
-      "aiVedic": "ヴェーダ AI相談",
+      "aiVedic": "ヴェーダ 専門家相談",
       "aiVedicMeta": "ラーシ・ナクシャトラ鑑定",
-      "aiSukuyo": "宿曜相性 AI相談",
+      "aiSukuyo": "宿曜相性 専門家相談",
       "aiSukuyoMeta": "27宿の関係鑑定",
       "aiKarma": "運命の業",
       "aiKarmaMeta": "カルマ・前世の統合相談"
@@ -222,7 +222,7 @@
         "title": "動物・観相コレクション",
         "subtitle": "あなたの中に眠る野生の本質を目覚めさせる",
         "lede": "顔立ち、性格、四柱推命のサインを重ね、直感的なキャラクターと関係エネルギーを映し出します。",
-        "featureline": "AI動物観相 · MBTI動物相性 · アニマルトーテム · 六十干支ガーディアン",
+        "featureline": "専門家の動物観相 · MBTI動物相性 · アニマルトーテム · 六十干支ガーディアン",
         "aria": "オープンフェイスリーディングとシンボルコレクション"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "タップして開く"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI動物観相",
+      "animalFaceTitle": "🎭 専門家の動物観相",
       "animalFaceDesc": "自撮りで見る観相分析",
       "animalMbtiTitle": "🦁 MBTI動物相性",
       "animalMbtiDesc": "16種類のトーテム相性",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "フォトカードムードリーディング",
       "sajuFptiTitle": "🔮 四柱FPTIテスト",
       "sajuFptiDesc": "五行と十星の4軸性格分析",
-      "animalFaceAria": "AI 動物の顔読み取りを開始します",
-      "animalFaceAlt": "AI 動物の顔読み取り - 自撮り写真からの顔の形状の人相分析",
+      "animalFaceAria": "専門家の動物の顔読み取りを開始します",
+      "animalFaceAlt": "専門家の動物の顔読み取り - 自撮り写真からの顔の形状の人相分析",
       "animalFaceBadge": "顔分析",
       "animalFacePrice": "無料 · 互換性 KRW 5,000",
       "freeBadge": "無料",
@@ -406,8 +406,8 @@
       "palmMapAria": "手のひら運命マップを見る",
       "palmMapAlt": "手相運命マップ - 手相運命パターン分析",
       "palmMapBadge": "手のひらを表示",
-      "palmMapMeta": "AI手相・東洋手相・運命図",
-      "animalFaceImgAlt": "AI 動物の顔読み取り",
+      "palmMapMeta": "専門家の手相・東洋手相・運命図",
+      "animalFaceImgAlt": "専門家の動物の顔読み取り",
       "animalMbtiImgAlt": "MBTI 動物の互換性",
       "animalTotemImgAlt": "動物トーテム",
       "sajuGuardianImgAlt": "サジュの守護者シール",
@@ -1205,8 +1205,8 @@
       "neoLogoAlt": "ネオモードのロゴ"
     },
     "hero2": {
-      "title": "あなたの運命を最も深く読むAI",
-      "lead": "東西の叡智とAIの洞察で、あなただけの物語を読み解きます。",
+      "title": "あなたの運命を最も深く読む専門家",
+      "lead": "東西の叡智と専門家の洞察で、あなただけの物語を読み解きます。",
       "primaryCta": "✦ 無料占いを始める",
       "journeyCta": "✦ 運命の旅を始める"
     },
@@ -1226,12 +1226,12 @@
       }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "CODE DESTINY AIの特別な体験",
+      "kicker": "CODE DESTINY 専門家",
+      "title": "CODE DESTINY 専門家の特別な体験",
       "explainTitle": "Explainable AI",
-      "explainDesc": "AIがどんな根拠で読んだかを段階的に確認できます。",
+      "explainDesc": "専門家がどんな根拠で読んだかを段階的に確認できます。",
       "engineTitle": "専門占いエンジン",
-      "engineDesc": "検証された東西の占術体系をAIで精密に。",
+      "engineDesc": "検証された東西の占術体系を専門家が精密に。",
       "unionTitle": "東西占術の統合",
       "unionDesc": "四柱推命から占星術まで、多様な視点を一つに。"
     },
@@ -1305,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "あなたの命運ブループリント",
-    "reportSubtitle": "東洋命理学×AIが解読するプレミアム人生分析",
-    "intro": "このレポートは単なる占いではありません。あなたの生年月日が宇宙のエネルギーとして刻んだ、精密なデータ構造の解読です。3000年以上の東洋命理学の叡智と最先端AIが融合し、あなたの強み・影・そして最も輝ける可能性を余すことなく提示します。これは、運命の10年サイクルを明晰な意図をもって歩むための、あなただけの羅針盤です。",
+    "reportSubtitle": "東洋命理学×専門家が解読するプレミアム人生分析",
+    "intro": "このレポートは単なる占いではありません。あなたの生年月日が宇宙のエネルギーとして刻んだ、精密なデータ構造の解読です。3000年以上の東洋命理学の叡智と専門家の分析が融合し、あなたの強み・影・そして最も輝ける可能性を余すことなく提示します。これは、運命の10年サイクルを明晰な意図をもって歩むための、あなただけの羅針盤です。",
     "dominantElement": {
       "label": "用神（バランスの軸）",
       "description": "用神とは、あなた命式全体の均衡を保ち、活性化させる唯一のエネルギーキーです。この要素と環境・人間関係・意思決定を調和させることで、命式本来の勢いが加速します。これは迷信ではなく、あなたのエネルギー設計図の精密な調律です。"
@@ -1364,7 +1364,7 @@
   },
   "footer": {
     "tagline": "古代の叡智、現代の精度。",
-    "about": "Code Destinyは、3000年以上の東洋命理学システムと最新AIを融合した運命分析プラットフォームです。10言語対応、基本機能は無料でご利用いただけます。",
+    "about": "Code Destinyは、3000年以上の東洋命理学システムと専門家の分析を融合した運命分析プラットフォームです。10言語対応、基本機能は無料でご利用いただけます。",
     "links": {
       "privacy": "プライバシーポリシー",
       "terms": "利用規約",
@@ -1405,7 +1405,7 @@
       "insights": "運勢インサイト"
     },
     "brand": {
-      "tagline": "東西の叡智とAIの洞察があなたの運命を照らす場所"
+      "tagline": "東西の叡智と専門家の洞察があなたの運命を照らす場所"
     },
     "story": {
       "reader": "ウェブ小説を読む",
@@ -1486,9 +1486,9 @@
       "badge": "人気"
     },
     "tarot": {
-      "name": "AIタロットガイダンス",
-      "short": "AIタロット",
-      "description": "古代の象徴体系をAIで増幅したリーディング。カードは、いまのあなたのエネルギー場を映し出します。"
+      "name": "専門家タロットガイダンス",
+      "short": "専門家タロット",
+      "description": "古代の象徴体系を専門家が読み解くリーディング。カードは、いまのあなたのエネルギー場を映し出します。"
     },
     "ziwei": {
       "name": "紫微斗数",
@@ -3516,7 +3516,7 @@
         "point1": "5 つの要素の調和と対立のスコア",
         "point2": "恋愛、結婚、ビジネス、友情に関する読書",
         "point3": "良いタイミングと注意期間",
-        "point4": "AI サージュ マスターからの個別アドバイス"
+        "point4": "専門家のサージュ マスターからの個別アドバイス"
       }
     },
     "graph": {

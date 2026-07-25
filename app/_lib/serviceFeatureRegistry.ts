@@ -734,7 +734,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "subtitle": "명궁과 12궁으로 여는 운명의 궁위",
       "description": "자미두수 명반을 바탕으로 명궁, 신궁, 사화, 14주성, 12궁, 대한과 유년 흐름을 상담형으로 깊이 있게 풀어냅니다.",
       "heroImageAlt": "자미두수 전문가 상담 대표 이미지",
-      "tags": ["ZIWEI", "AI CONSULTATION", "12 PALACES", "STAR CHART"],
+      "tags": ["ZIWEI", "EXPERT CONSULTATION", "12 PALACES", "STAR CHART"],
       "highlights": ["명반 기반 1:1 상담", "명궁·신궁·12궁 기반", "대한·유년 흐름 조언"],
       "howItWorks": [
         {
@@ -1156,12 +1156,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -1193,17 +1193,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -1235,9 +1235,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -1451,12 +1451,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -1487,19 +1487,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -1531,9 +1531,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -1920,12 +1920,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI手相鑑定",
+      "title": "専門家手相鑑定",
       "subtitle": "手のひら画像から主要線とサインを丁寧に読み解きます。",
       "description": "手のひら画像から主要線とサインを丁寧に読み解きます。",
-      "heroImageAlt": "AI手相鑑定の象徴イメージ",
+      "heroImageAlt": "専門家手相鑑定の象徴イメージ",
       "priceLabel": "一部有料",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
         {
@@ -1957,17 +1957,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI手相鑑定 | Code Destiny",
+        "title": "専門家手相鑑定 | Code Destiny",
         "description": "手のひら画像から主要線とサインを丁寧に読み解きます。",
-        "keywords": ["AI手相鑑定", "Palm Reading", "AI", "Hand Lines"]
+        "keywords": ["専門家手相鑑定", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI観相鑑定",
-      "subtitle": "顔立ちと印象のサインをAI観相の流れで読みます。",
-      "description": "顔立ちと印象のサインをAI観相の流れで読みます。",
-      "heroImageAlt": "AI観相鑑定の象徴イメージ",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "専門家観相鑑定",
+      "subtitle": "顔立ちと印象のサインを専門家観相の流れで読みます。",
+      "description": "顔立ちと印象のサインを専門家観相の流れで読みます。",
+      "heroImageAlt": "専門家観相鑑定の象徴イメージ",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
         {
@@ -1999,9 +1999,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI観相鑑定 | Code Destiny",
-        "description": "顔立ちと印象のサインをAI観相の流れで読みます。",
-        "keywords": ["AI観相鑑定", "Face Reading", "AI", "Impression"]
+        "title": "専門家観相鑑定 | Code Destiny",
+        "description": "顔立ちと印象のサインを専門家観相の流れで読みます。",
+        "keywords": ["専門家観相鑑定", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -2215,12 +2215,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -2251,9 +2251,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
@@ -2263,7 +2263,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "十二宮の命盤を実用的な人生戦略の本に整えます。",
       "heroImageAlt": "紫微斗数プレミアムPDFの象徴イメージ",
       "priceLabel": "30,000ウォン",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
       "howItWorks": [
         {
@@ -2297,7 +2297,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗数プレミアムPDF | Code Destiny",
         "description": "十二宮の命盤を実用的な人生戦略の本に整えます。",
-        "keywords": ["紫微斗数プレミアムPDF", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗数プレミアムPDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -2684,12 +2684,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI手相分析",
+      "title": "专家手相分析",
       "subtitle": "从手掌图像读取主要掌纹与手相讯号。",
       "description": "从手掌图像读取主要掌纹与手相讯号。",
-      "heroImageAlt": "AI手相分析象征图像",
+      "heroImageAlt": "专家手相分析象征图像",
       "priceLabel": "部分付费",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
         {
@@ -2721,17 +2721,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI手相分析 | Code Destiny",
+        "title": "专家手相分析 | Code Destiny",
         "description": "从手掌图像读取主要掌纹与手相讯号。",
-        "keywords": ["AI手相分析", "Palm Reading", "AI", "Hand Lines"]
+        "keywords": ["专家手相分析", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI面相分析",
-      "subtitle": "以AI面相流程读取五官结构与第一印象讯号。",
-      "description": "以AI面相流程读取五官结构与第一印象讯号。",
-      "heroImageAlt": "AI面相分析象征图像",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "专家面相分析",
+      "subtitle": "以专家面相流程读取五官结构与第一印象讯号。",
+      "description": "以专家面相流程读取五官结构与第一印象讯号。",
+      "heroImageAlt": "专家面相分析象征图像",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
         {
@@ -2763,9 +2763,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI面相分析 | Code Destiny",
-        "description": "以AI面相流程读取五官结构与第一印象讯号。",
-        "keywords": ["AI面相分析", "Face Reading", "AI", "Impression"]
+        "title": "专家面相分析 | Code Destiny",
+        "description": "以专家面相流程读取五官结构与第一印象讯号。",
+        "keywords": ["专家面相分析", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -2979,12 +2979,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -3015,9 +3015,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
@@ -3027,7 +3027,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "将十二宫命盘整理成实用的人生策略书。",
       "heroImageAlt": "紫微斗数高级PDF象征图像",
       "priceLabel": "30,000韩元",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
       "howItWorks": [
         {
@@ -3061,7 +3061,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗数高级PDF | Code Destiny",
         "description": "将十二宫命盘整理成实用的人生策略书。",
-        "keywords": ["紫微斗数高级PDF", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗数高级PDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -3448,12 +3448,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI手相分析",
+      "title": "專家手相分析",
       "subtitle": "從手掌圖像讀取主要掌紋與手相訊號。",
       "description": "從手掌圖像讀取主要掌紋與手相訊號。",
-      "heroImageAlt": "AI手相分析象徵圖像",
+      "heroImageAlt": "專家手相分析象徵圖像",
       "priceLabel": "部分付費",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
         {
@@ -3485,17 +3485,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI手相分析 | Code Destiny",
+        "title": "專家手相分析 | Code Destiny",
         "description": "從手掌圖像讀取主要掌紋與手相訊號。",
-        "keywords": ["AI手相分析", "Palm Reading", "AI", "Hand Lines"]
+        "keywords": ["專家手相分析", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI面相分析",
-      "subtitle": "以AI面相流程讀取五官結構與第一印象訊號。",
-      "description": "以AI面相流程讀取五官結構與第一印象訊號。",
-      "heroImageAlt": "AI面相分析象徵圖像",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "專家面相分析",
+      "subtitle": "以專家面相流程讀取五官結構與第一印象訊號。",
+      "description": "以專家面相流程讀取五官結構與第一印象訊號。",
+      "heroImageAlt": "專家面相分析象徵圖像",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
         {
@@ -3527,9 +3527,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI面相分析 | Code Destiny",
-        "description": "以AI面相流程讀取五官結構與第一印象訊號。",
-        "keywords": ["AI面相分析", "Face Reading", "AI", "Impression"]
+        "title": "專家面相分析 | Code Destiny",
+        "description": "以專家面相流程讀取五官結構與第一印象訊號。",
+        "keywords": ["專家面相分析", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -3743,12 +3743,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -3779,9 +3779,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
@@ -3791,7 +3791,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "將十二宮命盤整理成實用的人生策略書。",
       "heroImageAlt": "紫微斗數高級PDF象徵圖像",
       "priceLabel": "30,000韓元",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
       "howItWorks": [
         {
@@ -3825,7 +3825,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "seo": {
         "title": "紫微斗數高級PDF | Code Destiny",
         "description": "將十二宮命盤整理成實用的人生策略書。",
-        "keywords": ["紫微斗數高級PDF", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "keywords": ["紫微斗數高級PDF", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -4212,12 +4212,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -4249,17 +4249,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -4291,9 +4291,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -4507,12 +4507,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -4543,19 +4543,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -4587,9 +4587,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -4976,12 +4976,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5013,17 +5013,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5055,9 +5055,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -5271,12 +5271,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -5307,19 +5307,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5351,9 +5351,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -5740,12 +5740,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5777,17 +5777,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -5819,9 +5819,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -6035,12 +6035,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -6071,19 +6071,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6115,9 +6115,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -6504,12 +6504,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6541,17 +6541,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6583,9 +6583,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -6799,12 +6799,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -6835,19 +6835,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -6879,9 +6879,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -7268,12 +7268,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -7305,17 +7305,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -7347,9 +7347,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -7563,12 +7563,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -7599,19 +7599,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -7643,9 +7643,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -8032,12 +8032,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8069,17 +8069,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8111,9 +8111,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -8327,12 +8327,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -8363,19 +8363,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8407,9 +8407,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {
@@ -8796,12 +8796,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "palm-reading": {
-      "title": "AI Palm Reading",
-      "subtitle": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-      "heroImageAlt": "AI Palm Reading symbolic preview",
+      "title": "Expert Palm Reading",
+      "subtitle": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+      "heroImageAlt": "Expert Palm Reading symbolic preview",
       "priceLabel": "Partly paid",
-      "tags": ["Palm Reading", "AI", "Hand Lines"],
+      "tags": ["Palm Reading", "Expert", "Hand Lines"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8833,17 +8833,17 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Palm Reading | Code Destiny",
-        "description": "Read the major lines and hand signs from a palm image with guided AI interpretation.",
-        "keywords": ["AI Palm Reading", "Palm Reading", "AI", "Hand Lines"]
+        "title": "Expert Palm Reading | Code Destiny",
+        "description": "Read the major lines and hand signs from a palm image with guided expert interpretation.",
+        "keywords": ["Expert Palm Reading", "Palm Reading", "Expert", "Hand Lines"]
       }
     },
     "face-reading": {
-      "title": "AI Face Reading",
-      "subtitle": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-      "heroImageAlt": "AI Face Reading symbolic preview",
-      "tags": ["Face Reading", "AI", "Impression"],
+      "title": "Expert Face Reading",
+      "subtitle": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+      "heroImageAlt": "Expert Face Reading symbolic preview",
+      "tags": ["Face Reading", "Expert", "Impression"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -8875,9 +8875,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "AI Face Reading | Code Destiny",
-        "description": "Read facial structure and impression signals through a careful AI face-reading flow.",
-        "keywords": ["AI Face Reading", "Face Reading", "AI", "Impression"]
+        "title": "Expert Face Reading | Code Destiny",
+        "description": "Read facial structure and impression signals through a careful expert face-reading flow.",
+        "keywords": ["Expert Face Reading", "Face Reading", "Expert", "Impression"]
       }
     },
     "bias-destiny": {
@@ -9091,12 +9091,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "saju-lifebook": {
-      "title": "Life Book AI Consultation",
+      "title": "Life Book Expert Consultation",
       "subtitle": "A one-on-one reading that follows your life as a living story.",
       "description": "Enter birth details and a life theme, then receive a warm consultation shaped by chart structure, recurring patterns, strengths, relationships, work, money, and the choice in front of you.",
-      "heroImageAlt": "Life Book AI Consultation representative image",
+      "heroImageAlt": "Life Book Expert Consultation representative image",
       "priceLabel": "KRW 50,000",
-      "tags": ["AI Consultation", "Saju", "Life Story"],
+      "tags": ["Expert Consultation", "Saju", "Life Story"],
       "highlights": ["Chart-based counsel", "Core life theme", "Follow-up questions"],
       "howItWorks": [
         {
@@ -9127,19 +9127,19 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "seo": {
-        "title": "Life Book AI Consultation | Code Destiny",
-        "description": "A warm Life Book AI consultation that reads your life flow from birth details and your chosen theme.",
-        "keywords": ["Life Book AI Consultation", "Saju consultation", "life reading", "Code Destiny"]
+        "title": "Life Book Expert Consultation | Code Destiny",
+        "description": "A warm Life Book Expert consultation that reads your life flow from birth details and your chosen theme.",
+        "keywords": ["Life Book Expert Consultation", "Saju consultation", "life reading", "Code Destiny"]
       },
       "premiumOptions": []
     },
     "ziwei-ai": {
-      "title": "Zi Wei AI Consultation",
-      "subtitle": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-      "heroImageAlt": "Zi Wei AI Consultation symbolic preview",
+      "title": "Zi Wei Expert Consultation",
+      "subtitle": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+      "heroImageAlt": "Zi Wei Expert Consultation symbolic preview",
       "priceLabel": "KRW 30,000",
-      "tags": ["AI Consultation", "Zi Wei", "12 Palaces"],
+      "tags": ["Expert Consultation", "Zi Wei", "12 Palaces"],
       "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
       "howItWorks": [
         {
@@ -9171,9 +9171,9 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Zi Wei AI Consultation | Code Destiny",
-        "description": "A Zi Wei AI consultation that reads your twelve-palace chart as a practical life conversation.",
-        "keywords": ["Zi Wei AI Consultation", "AI Consultation", "Zi Wei", "12 Palaces"]
+        "title": "Zi Wei Expert Consultation | Code Destiny",
+        "description": "A Zi Wei Expert consultation that reads your twelve-palace chart as a practical life conversation.",
+        "keywords": ["Zi Wei Expert Consultation", "Expert Consultation", "Zi Wei", "12 Palaces"]
       }
     },
     "stonehenge-rune": {

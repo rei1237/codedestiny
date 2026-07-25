@@ -3,8 +3,8 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Oosterse wijsheid, zacht gelezen met AI",
-    "subtitle": "Oude duidingskunst en moderne AI verlichten je volgende stap",
+    "tagline": "Oosterse wijsheid, zacht gelezen door experts",
+    "subtitle": "Oude duidingskunst en moderne experts verlichten je volgende stap",
     "trustBadge": "Meer dan 100.000 zoekers in 80+ landen vertrouwen ons"
   },
   "home": {
@@ -66,31 +66,31 @@
       "vedicMeta": "Jyotish · Karma",
       "nakshatra": "Nakshatra",
       "nakshatraMeta": "27 maantekens",
-      "aiConsult": "AI-consult",
-      "aiConsultAria": "AI-consulthub",
-      "aiSibyl": "Sibyl AI-consult",
+      "aiConsult": "Expertconsult",
+      "aiConsultAria": "Expertconsulthub",
+      "aiSibyl": "Sibyl expertconsult",
       "aiSibylMeta": "Diepe Saju-vragen",
       "aiNeoRoom": "Neo's strategiekamer",
       "aiNeoRoomMeta": "Direct strategierapport",
       "aiLifebook": "Boek van het Leven",
-      "aiLifebookMeta": "AI-levensrapport",
-      "aiNaming": "AI-naamstudio",
+      "aiLifebookMeta": "Expert-levensrapport",
+      "aiNaming": "Expert-naamstudio",
       "aiNamingMeta": "Naamduiding · naamgeving",
       "aiLoveSecret": "Liefdesdraaiboek",
       "aiLoveSecretMeta": "Relatie · hereniging",
-      "aiAll": "Alle AI-consulten",
+      "aiAll": "Alle expertconsulten",
       "aiAllMeta": "Vind via zoeken",
       "story": "Verhaal",
       "allServices": "Alle diensten",
-      "aiLifeFortune": "Levensfortuin-AI",
+      "aiLifeFortune": "Levensfortuin-expert",
       "aiLifeFortuneMeta": "Levensloop via chart & cycli",
-      "aiZiwei": "Zi Wei AI-consult",
+      "aiZiwei": "Zi Wei expertconsult",
       "aiZiweiMeta": "Persoonlijke 12-paleizenlezing",
-      "aiAstro": "Astrologie AI-consult",
+      "aiAstro": "Astrologie expertconsult",
       "aiAstroMeta": "Diepe geboortehoroscoop-Q&A",
-      "aiVedic": "Vedisch AI-consult",
+      "aiVedic": "Vedisch expertconsult",
       "aiVedicMeta": "Rasi- & nakshatra-lezing",
-      "aiSukuyo": "Sukuyo Match-AI",
+      "aiSukuyo": "Sukuyo Match-expert",
       "aiSukuyoMeta": "27-huizen relatielezing",
       "aiKarma": "Karma van het Lot",
       "aiKarmaMeta": "Karma- & vorige-levenslezing"
@@ -222,7 +222,7 @@
         "title": "Dieren- en gezichtslezing",
         "subtitle": "Wek het wilde instinct dat in jou slaapt",
         "lede": "Gezichtsvorm, persoonlijkheid en Saju-signalen tonen samen je instinctieve karakter en relatie-energie.",
-        "featureline": "AI-dierengezicht · MBTI-dierenmatch · Dierentotem · 60-Gapja beschermzegel",
+        "featureline": "Expert-dierengezicht · MBTI-dierenmatch · Dierentotem · 60-Gapja beschermzegel",
         "aria": "Open gezicht lezen en symboolverzameling"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "Tik om te openen"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI-dierengezichtlezing",
+      "animalFaceTitle": "🎭 Expert-dierengezichtlezing",
       "animalFaceDesc": "Gezichtslezing vanuit je selfie",
       "animalMbtiTitle": "🦁 MBTI-dierenmatch",
       "animalMbtiDesc": "16 totemmatches",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "Photocard moodreading",
       "sajuFptiTitle": "🔮 Saju FPTI-test",
       "sajuFptiDesc": "4-assige persoonlijkheidsanalyse via elementen en Tien Goden",
-      "animalFaceAria": "Start het lezen van AI-gezichten van dieren",
-      "animalFaceAlt": "AI-lezing van dierengezichten - gezichtsvorm-fysionomie van een selfie",
+      "animalFaceAria": "Start het lezen van dierengezichten door experts",
+      "animalFaceAlt": "Expert-lezing van dierengezichten - gezichtsvorm-fysionomie van een selfie",
       "animalFaceBadge": "Gezichtsanalyse",
       "animalFacePrice": "Gratis · Compatibiliteit KRW 5.000",
       "freeBadge": "Gratis",
@@ -406,8 +406,8 @@
       "palmMapAria": "Bekijk de bestemmingskaart van de palm",
       "palmMapAlt": "Kaart van het lot van de handpalm - patroonanalyse van het lot van de handpalm",
       "palmMapBadge": "Bekijk de handpalm",
-      "palmMapMeta": "AI-handlezen · Oosterse handlijnkunde · Bestemmingskaart",
-      "animalFaceImgAlt": "AI Dierengezicht lezen",
+      "palmMapMeta": "Expert-handlezen · Oosterse handlijnkunde · Bestemmingskaart",
+      "animalFaceImgAlt": "Expert Dierengezicht lezen",
       "animalMbtiImgAlt": "MBTI Compatibiliteit met dieren",
       "animalTotemImgAlt": "Dierentotem",
       "sajuGuardianImgAlt": "Saju Guardian-zegel",
@@ -1205,8 +1205,8 @@
       "neoLogoAlt": "Neo-moduslogo"
     },
     "hero2": {
-      "title": "De AI die jouw lot het diepst leest",
-      "lead": "Oosterse en westerse wijsheid ontmoet AI-inzicht om jouw verhaal te duiden.",
+      "title": "De experts die jouw lot het diepst lezen",
+      "lead": "Oosterse en westerse wijsheid ontmoet expertinzicht om jouw verhaal te duiden.",
       "primaryCta": "✦ Gratis beginnen",
       "journeyCta": "✦ Begin je lotsreis"
     },
@@ -1226,12 +1226,12 @@
       }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "Een bijzondere ervaring van CODE DESTINY AI",
+      "kicker": "CODE DESTINY EXPERT",
+      "title": "Een bijzondere ervaring van de experts van CODE DESTINY",
       "explainTitle": "Verklaarbare AI",
-      "explainDesc": "Zie stap voor stap hoe de AI tot zijn lezing kwam.",
+      "explainDesc": "Zie stap voor stap hoe de experts tot hun lezing kwamen.",
       "engineTitle": "Expert-waarzegmotor",
-      "engineDesc": "Bewezen oosterse en westerse systemen, verfijnd met AI.",
+      "engineDesc": "Bewezen oosterse en westerse systemen, verfijnd door experts.",
       "unionTitle": "Oost ontmoet West",
       "unionDesc": "Van Saju tot astrologie, elk perspectief op één plek."
     },
@@ -1305,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "Jouw Lotsplan",
-    "reportSubtitle": "Een Premium Levensanalyse aangedreven door Oosterse Meta-Psychologie en AI",
-    "intro": "Dit rapport is geen simpele voorspelling van je toekomst - het is een nauwkeurig, data-gedreven blauwdruk van de energetische architectuur die jouw bestaan vormgeeft. Met meer dan 3.000 jaar oosterse kosmologische wijsheid en geavanceerde AI worden jouw Vier Pijlers van het Lot ontcijferd om de onzichtbare krachten te onthullen die jouw sterke punten, schaduwen en meest lumineuze potentieel regeren. Dit is jouw persoonlijke handboek om de Decennium Lotscycli te navigeren met helderheid en intentie.",
+    "reportSubtitle": "Een Premium Levensanalyse aangedreven door Oosterse Meta-Psychologie en expertanalyse",
+    "intro": "Dit rapport is geen simpele voorspelling van je toekomst - het is een nauwkeurig, data-gedreven blauwdruk van de energetische architectuur die jouw bestaan vormgeeft. Met meer dan 3.000 jaar oosterse kosmologische wijsheid en geavanceerde expertanalyse worden jouw Vier Pijlers van het Lot ontcijferd om de onzichtbare krachten te onthullen die jouw sterke punten, schaduwen en meest lumineuze potentieel regeren. Dit is jouw persoonlijke handboek om de Decennium Lotscycli te navigeren met helderheid en intentie.",
     "cta": "Ontgrendel Je Volledige Lotsplan",
     "priceDisplay": "Vanaf €2,90",
     "guarantee": "30 Dagen Tevredenheidsgarantie",
@@ -1364,7 +1364,7 @@
   },
   "footer": {
     "tagline": "Oude wijsheid, moderne precisie.",
-    "about": "Code Destiny verbindt meer dan 3.000 jaar oosterse kosmologie met moderne AI en opent rustige lezingen in 10 talen, met gratis kernervaringen.",
+    "about": "Code Destiny verbindt meer dan 3.000 jaar oosterse kosmologie met moderne experts en opent rustige lezingen in 10 talen, met gratis kernervaringen.",
     "links": {
       "privacy": "Privacybeleid",
       "terms": "Servicevoorwaarden",
@@ -1405,7 +1405,7 @@
       "insights": "Fortuininzichten"
     },
     "brand": {
-      "tagline": "Waar oosterse en westerse wijsheid met AI jouw lot verlicht"
+      "tagline": "Waar oosterse en westerse wijsheid met experts jouw lot verlicht"
     },
     "story": {
       "reader": "Webroman lezen",
@@ -1486,9 +1486,9 @@
       "badge": "Populair"
     },
     "tarot": {
-      "name": "AI-tarotbegeleiding",
-      "short": "AI-tarot",
-      "description": "Oude archetypische wijsheid, gelezen met moderne AI. Elke legging weerspiegelt je vraag, het emotionele weer en de richting die nu leeft."
+      "name": "Expert-tarotbegeleiding",
+      "short": "Expert-tarot",
+      "description": "Oude archetypische wijsheid, gelezen door moderne experts. Elke legging weerspiegelt je vraag, het emotionele weer en de richting die nu leeft."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",
@@ -3516,7 +3516,7 @@
         "point1": "Harmonie- en conflictscore met vijf elementen",
         "point2": "Lezing van het type liefde, huwelijk, zaken en vriendschap",
         "point3": "Goede timing en voorzichtigheidsperioden",
-        "point4": "Persoonlijk advies van de AI saju-meester"
+        "point4": "Persoonlijk advies van de expert saju-meester"
       }
     },
     "graph": {

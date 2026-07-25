@@ -3,7 +3,7 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Eastern wisdom, read with modern AI",
+    "tagline": "Eastern wisdom, read by modern experts",
     "subtitle": "Ancient divination traditions, softly decoded for your next step",
     "trustBadge": "Trusted by 100,000+ seekers across 80+ countries"
   },
@@ -66,31 +66,31 @@
       "vedicMeta": "Jyotish · Karma",
       "nakshatra": "Nakshatra",
       "nakshatraMeta": "27 lunar signs",
-      "aiConsult": "AI Consult",
-      "aiConsultAria": "AI consultation hub",
-      "aiSibyl": "Sibyl AI Consult",
+      "aiConsult": "Expert Consult",
+      "aiConsultAria": "Expert consultation hub",
+      "aiSibyl": "Sibyl Expert Consult",
       "aiSibylMeta": "Deep Saju Q&A",
       "aiNeoRoom": "Neo's War Room",
       "aiNeoRoomMeta": "Blunt strategy report",
       "aiLifebook": "Book of Life",
-      "aiLifebookMeta": "AI life report",
-      "aiNaming": "AI Naming Studio",
+      "aiLifebookMeta": "Expert life report",
+      "aiNaming": "Expert Naming Studio",
       "aiNamingMeta": "Name reading · naming",
       "aiLoveSecret": "Love Playbook",
       "aiLoveSecretMeta": "Relationship · reunion",
-      "aiAll": "All AI consults",
+      "aiAll": "All Expert consults",
       "aiAllMeta": "Find via search",
       "story": "Story",
       "allServices": "All Services",
-      "aiLifeFortune": "Life Fortune AI",
+      "aiLifeFortune": "Life Fortune Expert",
       "aiLifeFortuneMeta": "Life flow via chart & luck cycles",
-      "aiZiwei": "Zi Wei AI Consult",
+      "aiZiwei": "Zi Wei Expert Consult",
       "aiZiweiMeta": "Personal 12-palace reading",
-      "aiAstro": "Astrology AI Consult",
+      "aiAstro": "Astrology Expert Consult",
       "aiAstroMeta": "In-depth natal chart Q&A",
-      "aiVedic": "Vedic AI Consult",
+      "aiVedic": "Vedic Expert Consult",
       "aiVedicMeta": "Rasi & nakshatra reading",
-      "aiSukuyo": "Sukuyo Match AI",
+      "aiSukuyo": "Sukuyo Match Expert",
       "aiSukuyoMeta": "27-mansion relationship reading",
       "aiKarma": "Karma of Destiny",
       "aiKarmaMeta": "Karma & past-life reading"
@@ -222,7 +222,7 @@
         "title": "Face Reading & Symbol Collection",
         "subtitle": "Open the hidden signs in your face, temperament, and Saju symbols",
         "lede": "From light tests to premium Saju seals, this collection reveals the symbols and relationship energy that reflect you.",
-        "featureline": "AI face reading · MBTI compatibility · Animal totem · Saju guardian seal",
+        "featureline": "Expert face reading · MBTI compatibility · Animal totem · Saju guardian seal",
         "aria": "Open Face Reading and Symbol Collection"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "Tap to open"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI Animal Face Reading",
+      "animalFaceTitle": "🎭 Expert Animal Face Reading",
       "animalFaceDesc": "Face reading from your selfie",
       "animalMbtiTitle": "🦁 MBTI Animal Compatibility",
       "animalMbtiDesc": "16 totem compatibility paths",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "Photocard mood reading",
       "sajuFptiTitle": "🔮 Saju FPTI Test",
       "sajuFptiDesc": "Four-axis personality through elements and Ten Gods",
-      "animalFaceAria": "Start AI animal face reading",
-      "animalFaceAlt": "AI animal face reading - face-shape physiognomy from a selfie",
+      "animalFaceAria": "Start expert animal face reading",
+      "animalFaceAlt": "Expert animal face reading - face-shape physiognomy from a selfie",
       "animalFaceBadge": "Face analysis",
       "animalFacePrice": "Free · Compatibility KRW 5,000",
       "freeBadge": "Free",
@@ -406,8 +406,8 @@
       "palmMapAria": "View the palm destiny map",
       "palmMapAlt": "Palm destiny map - palm destiny pattern analysis",
       "palmMapBadge": "View palm",
-      "palmMapMeta": "AI palm reading · Eastern palmistry · Destiny map",
-      "animalFaceImgAlt": "AI Animal Face Reading",
+      "palmMapMeta": "Expert palm reading · Eastern palmistry · Destiny map",
+      "animalFaceImgAlt": "Expert Animal Face Reading",
       "animalMbtiImgAlt": "MBTI Animal Compatibility",
       "animalTotemImgAlt": "Animal Totem",
       "sajuGuardianImgAlt": "Saju Guardian Seal",
@@ -1205,8 +1205,8 @@
       "neoLogoAlt": "Neo mode logo"
     },
     "hero2": {
-      "title": "The AI that reads your destiny deepest",
-      "lead": "East-West wisdom meets AI insight to interpret your own story.",
+      "title": "The experts who read your destiny deepest",
+      "lead": "East-West wisdom meets expert insight to interpret your own story.",
       "primaryCta": "✦ Start Free Reading",
       "journeyCta": "✦ Start Your Destiny Journey"
     },
@@ -1226,12 +1226,12 @@
       }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "A special experience by CODE DESTINY AI",
+      "kicker": "CODE DESTINY EXPERT",
+      "title": "A special experience by CODE DESTINY experts",
       "explainTitle": "Explainable AI",
-      "explainDesc": "See step by step how the AI reached its reading.",
+      "explainDesc": "See step by step how the experts reached the reading.",
       "engineTitle": "Expert Fortune Engine",
-      "engineDesc": "Proven Eastern and Western systems, refined with AI.",
+      "engineDesc": "Proven Eastern and Western systems, refined by experts.",
       "unionTitle": "East Meets West",
       "unionDesc": "From Saju to astrology, every angle in one place."
     },
@@ -1367,8 +1367,8 @@
   },
   "premium": {
     "reportTitle": "Your Destiny Blueprint",
-    "reportSubtitle": "A Premium Life Analysis Powered by Eastern Meta-Psychology & AI",
-    "intro": "This report is not a mere prediction of your future — it is a precise, data-driven blueprint of the energetic architecture that shapes your existence. Drawing from over 3,000 years of Eastern cosmological wisdom, your Four Pillars of Destiny (Ba Zi) are decoded through the lens of advanced AI to reveal the invisible forces that govern your strengths, your shadows, and your most luminous potential. Consider this your personal manual for navigating the Decade Cycles of Fate with clarity and intention.",
+    "reportSubtitle": "A Premium Life Analysis Powered by Eastern Meta-Psychology & Expert Analysis",
+    "intro": "This report is not a mere prediction of your future — it is a precise, data-driven blueprint of the energetic architecture that shapes your existence. Drawing from over 3,000 years of Eastern cosmological wisdom, your Four Pillars of Destiny (Ba Zi) are decoded through the lens of expert analysis to reveal the invisible forces that govern your strengths, your shadows, and your most luminous potential. Consider this your personal manual for navigating the Decade Cycles of Fate with clarity and intention.",
     "dominantElement": {
       "label": "Your Dominant Element (Lucky Pivot)",
       "description": "The Dominant Element — known in classical Chinese as 用神 (Yòng Shén) — is the single energetic key that balances and activates your entire destiny structure. When you align your environment, relationships, and decisions with this element, the natural momentum of your chart accelerates. Misalignment creates friction. This is not superstition; it is the precise calibration of your energetic blueprint."
@@ -1397,9 +1397,9 @@
       "badge": "Most Popular"
     },
     "tarot": {
-      "name": "AI Tarot Guidance",
-      "short": "AI Tarot",
-      "description": "Ancient archetypal wisdom, read with modern AI. Each spread reflects the question, emotional weather, and choice that are alive now."
+      "name": "Expert Tarot Guidance",
+      "short": "Expert Tarot",
+      "description": "Ancient archetypal wisdom, read by modern experts. Each spread reflects the question, emotional weather, and choice that are alive now."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu (Purple Star Astrology)",
@@ -1460,7 +1460,7 @@
   },
   "footer": {
     "tagline": "Ancient wisdom, modern precision.",
-    "about": "Code Destiny brings 3,000+ years of Eastern cosmology together with modern AI, offering calm fortune readings in 10 languages with free core experiences.",
+    "about": "Code Destiny brings 3,000+ years of Eastern cosmology together with modern experts, offering calm fortune readings in 10 languages with free core experiences.",
     "sections": {
       "services": "Services",
       "resources": "Resources",
@@ -1501,7 +1501,7 @@
       "insights": "Fortune Insights"
     },
     "brand": {
-      "tagline": "Where East-West wisdom and AI light up your destiny"
+      "tagline": "Where East-West wisdom and experts light up your destiny"
     },
     "story": {
       "reader": "Read Web Novel",
@@ -3516,7 +3516,7 @@
         "point1": "Five-element harmony and conflict score",
         "point2": "Love, marriage, business, and friendship type reading",
         "point3": "Good timing and caution periods",
-        "point4": "Personalized advice from the AI saju master"
+        "point4": "Personalized advice from the expert saju master"
       }
     },
     "graph": {
