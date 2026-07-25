@@ -290,6 +290,19 @@
   object-position: center 50%;
   /* 포스터에 그려박힌 제목/사이드패널/버튼을 프레임 밖으로 밀어내고 섬 지형만 보이게 확대 크롭 */
   transform: scale(1.5);
+  /* 파스텔 꿈결 배경으로 — 대비/채도를 낮춰 그려박힌 건물 라벨·글자가 물러나고
+     우리 크리스프 노드 라벨이 앞서게(이중 라벨 충돌 완화) */
+  filter: brightness(1.1) contrast(0.8) saturate(0.9);
+}
+/* 소프트 화이트 베일 — 포스터 위 얇은 안개. 노드/꽃돼지(뒤 DOM)는 이 위에 또렷하게 얹힌다. */
+.islandArt::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 42%, rgba(255, 255, 255, 0.14), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.36) 0%, rgba(255, 252, 245, 0.26) 100%);
 }
 /* 제출 → 처리 전환: 지도로 카메라 줌인(여정으로 전환) */
 .mapFieldZoom {
