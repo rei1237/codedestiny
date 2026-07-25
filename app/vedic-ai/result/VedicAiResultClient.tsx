@@ -121,7 +121,7 @@ export default function VedicAiResultClient() {
   const backLink = (
     <Link href="/vedic-ai/" className={styles.resultListItem} style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
       <ArrowLeft size={16} aria-hidden="true" />
-      <strong>베다점 AI 상담으로 돌아가기</strong>
+      <strong>베다점 전문가 상담으로 돌아가기</strong>
     </Link>
   );
 
@@ -176,7 +176,7 @@ export default function VedicAiResultClient() {
             <div className={styles.resultListCard}>
               {view.items.map((item) => (
                 <Link key={item.id} href={`/vedic-ai/result/?id=${encodeURIComponent(item.id)}`} className={styles.resultListItem}>
-                  <strong>{item.topic || "베다점 AI 상담"}{item.name ? ` · ${item.name}` : ""}</strong>
+                  <strong>{item.topic || "베다점 전문가 상담"}{item.name ? ` · ${item.name}` : ""}</strong>
                   <small>{[item.chartSummary, formatDate(item.updatedAt || item.createdAt)].filter(Boolean).join(" · ")}</small>
                 </Link>
               ))}
@@ -235,7 +235,7 @@ export default function VedicAiResultClient() {
           <div className={styles.resultFooterActions}>
             <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
               <ArrowLeft size={16} aria-hidden="true" />
-              <span>베다점 AI 상담으로 돌아가기</span>
+              <span>베다점 전문가 상담으로 돌아가기</span>
             </Link>
             <Link href="/" className={styles.resultFooterSecondary}>
               <Home size={16} aria-hidden="true" />

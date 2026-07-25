@@ -219,7 +219,7 @@ function buildReport(result: LifeBookResult | null) {
     }))
     : splitMarkdownChapters(fallbackContent);
   return {
-    title: parsed?.title || result?.title || "인생의 책 AI 상담 리포트",
+    title: parsed?.title || result?.title || "인생의 책 전문가 상담 리포트",
     subtitle: parsed?.subtitle || "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
     coreSummary: parsed?.coreSummary || null,
     expertReadings: Array.isArray(parsed?.expertReadings) ? parsed.expertReadings.filter((reading) => toText(reading?.title || reading?.content)) : [],
@@ -469,7 +469,7 @@ function LifeBookResultContent() {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#b47b25] via-[#f2d07a] to-[#b47b25]" aria-hidden="true" />
             <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
-              인생의 책 AI 상담 리포트
+              인생의 책 전문가 상담 리포트
             </p>
             <h1 className={`mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>

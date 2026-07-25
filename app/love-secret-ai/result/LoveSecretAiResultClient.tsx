@@ -378,7 +378,7 @@ export default function LoveSecretAiResultClient() {
   const myName = toText(consultation?.myInfo?.name) || "나";
   const partnerName = toText(consultation?.partnerInfo?.name) || "상대방";
   const generatedAt = formatDate(consultation?.createdAt || consultation?.updatedAt);
-  const summaryTitle = consultation?.reading?.summaryTitle || "연애 비책 AI 상담 리포트";
+  const summaryTitle = consultation?.reading?.summaryTitle || "연애 비책 전문가 상담 리포트";
   const oneLine = consultation?.reading?.oneLineDiagnosis || consultation?.strategy || sections[0]?.body || "지금의 관계 온도를 차분히 읽었습니다.";
 
   async function handlePdfDownload() {
