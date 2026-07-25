@@ -26,8 +26,6 @@ import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtur
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
-import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
-import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
 
@@ -97,7 +95,7 @@ type EnsureAccessResult =
   | { ok: false; reason?: string; message?: string };
 
 const FEATURE_KEY = "sukuyo-compatibility-ai";
-const FEATURE_REASON = "숙요점 궁합 전문가 상담";
+const FEATURE_REASON = "숙요점 궁합 AI 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
@@ -105,12 +103,12 @@ const LOADING_STAGES = [
   { phase: "1", label: "두 사람의 달빛 자리를 맞춰보고 있어요.", sub: "생년 정보 확인" },
   { phase: "2", label: "본명숙과 관계 거리의 흐름을 차분히 읽는 중입니다.", sub: "본명숙 계산" },
   { phase: "3", label: "끌림과 갈등이 머무는 자리를 살피고 있어요.", sub: "관계 거리 해석" },
-  { phase: "4", label: "두 사람에게 전할 상담문을 정성껏 써 내려가는 중이에요.", sub: "전문가 상담문 생성" },
+  { phase: "4", label: "두 사람에게 전할 상담문을 정성껏 써 내려가는 중이에요.", sub: "AI 상담문 생성" },
 ];
 const CONSULTATION_CARDS = [
   { icon: Orbit, title: "본명숙", text: "태어난 달의 자리로 보는 마음의 기본 결" },
   { icon: CalendarDays, title: "관계 거리", text: "가까움과 멀어짐의 리듬을 읽는 숙요점 핵심" },
-  { icon: HeartHandshake, title: "궁합 해석", text: "끌림, 갈등, 오래가는 방식까지 전문가 상담으로 정리" },
+  { icon: HeartHandshake, title: "궁합 해석", text: "끌림, 갈등, 오래가는 방식까지 AI 상담으로 정리" },
 ];
 const LUNAR_SCENE_PETALS = [
   { x: 128, y: 360, rx: 30, ry: 10, rotate: -16, opacity: 0.66, driftX: 7, driftY: -5, delay: 0 },
@@ -346,13 +344,13 @@ function buildInitialPersonA(): PersonForm {
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  PAYMENT_REQUIRED: "숙요점 궁합 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
+  PAYMENT_REQUIRED: "숙요점 궁합 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 두 사람의 생년월일과 달력 기준을 다시 확인해 주세요.",
   CALCULATION_FAILED: "숙요점 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
+  LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
 };
@@ -866,11 +864,9 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
 
   return (
     <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label="달빛 궁합 답장">
-      {/* 붉은 실 인연 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지 */}
-      <PaintedBackdrop src={paintedBackdrops.redThread} veil={0.82} position="center 30%" />
       <header className={styles.modalHeader}>
         <div>
-          <h1 style={{ fontFamily: "var(--font-serif)" }}>달빛 궁합 답장</h1>
+          <h1>달빛 궁합 답장</h1>
           <p>
             {meta.person_a.name} · {meta.person_a.sukuyo}
             <span>✦</span>
@@ -889,7 +885,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
         </div>
       </header>
 
-      <div className={`${styles.modalBody} relative`}>
+      <div className={styles.modalBody}>
         {mounted && !hasSeenQuote && (
           <QuoteWelcomeCard quote={pickWelcomeQuote(meta.person_a.name, meta.person_b.name)} />
         )}
@@ -1299,7 +1295,7 @@ export default function SukuyoCompatibilityAiClient() {
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
       title: "이용권 확인",
-      reason: "숙요점 궁합 전문가 상담",
+      reason: "숙요점 궁합 AI 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
     try {
@@ -1317,7 +1313,7 @@ export default function SukuyoCompatibilityAiClient() {
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
           title: "이용권 확인 완료",
-          reason: "숙요점 궁합 전문가 상담",
+          reason: "숙요점 궁합 AI 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 인연의 흐름을 읽고 있습니다.",
         });
@@ -1354,7 +1350,7 @@ export default function SukuyoCompatibilityAiClient() {
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: isTransient ? "잠시 후 다시 시도" : entitlementFailure ? "이용권 확인 실패" : "상담 생성 실패",
-        reason: "숙요점 궁합 전문가 상담",
+        reason: "숙요점 궁합 AI 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
         cancelled: paymentCancelled,
@@ -1479,7 +1475,7 @@ export default function SukuyoCompatibilityAiClient() {
               <span><Orbit size={14} /> 27숙 본명숙</span>
               <span><CalendarDays size={14} /> 관계 거리</span>
               <span><HeartHandshake size={14} /> 인연 리듬</span>
-              <span><Sparkles size={14} /> 전문가 상담문</span>
+              <span><Sparkles size={14} /> AI 상담문</span>
             </div>
             <div className={styles.insightCards} aria-label="숙요점 궁합 상담 구성">
               {CONSULTATION_CARDS.map(({ icon: Icon, title, text }, index) => (

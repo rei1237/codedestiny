@@ -50,7 +50,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "map") {
     return (
-      <DestinyMap spotlightRegion={spotlight} pigExpr={pigExpr} heroLine={heroLine} guideTilt={waiting}>
+      <DestinyMap islandArt spotlightRegion={spotlight} pigExpr={pigExpr} heroLine={heroLine} guideTilt={waiting}>
         <ConcernInput
           onSubmit={(c) => s.submitConcern(c)}
           onSpotlight={setSpotlight}
@@ -69,7 +69,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "processing") {
     return (
-      <DestinyMap showFog>
+      <DestinyMap showFog hideHero>
         <ProcessingScene />
       </DestinyMap>
     );

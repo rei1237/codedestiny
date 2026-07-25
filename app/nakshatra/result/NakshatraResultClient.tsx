@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
-import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
-import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 
 interface CrosswalkMatch {
   sukuyoIdx: number;
@@ -153,17 +151,15 @@ export default function NakshatraResultClient() {
 
   return (
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-8 text-slate-100 md:py-12">
-      {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지. 콘텐츠는 relative로 페인팅 위에 얹는다 */}
-      <PaintedBackdrop src={paintedBackdrops.ziwei1} veil={0.82} position="center 28%" />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)]"
       />
-      <div className="relative mx-auto w-full max-w-4xl">
+      <div className="mx-auto w-full max-w-4xl">
         {/* 요약 헤더 */}
         <header className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] md:p-8">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">당신의 별자리</p>
-          <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-slate-50 md:text-4xl" style={{ fontFamily: "var(--font-serif)" }}>
+          <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-slate-50 md:text-4xl">
             <span className="text-blue-100">{dongyang.nameHan}宿</span>
             <span className="mx-2 text-slate-500">·</span>
             <span className="text-amber-100">{summary.nakshatraKo}</span>
@@ -401,7 +397,7 @@ const PAID_PRODUCTS: { title: string; price: string; desc: string; href?: string
   { title: "지배성 심화 리포트", price: "10,000원", desc: "지배성·파다·나바암샤 성격/재능/그림자 심층" },
   { title: "다샤 인생지도", price: "15,000원", desc: "비쇼타리 120년 타임라인 + 동양 대운 병렬" },
   { title: "택일(무후르타)", price: "5,000원", desc: "목적별 길일 — 무후르타 × 숙요 길흉 교집합" },
-  { title: "전문가 심화 상담", price: "30,000원", desc: "숙요·베다 두 대가가 각각 장문으로 (2관점 상담)", href: "/nakshatra/ai" },
+  { title: "AI 심화 상담", price: "30,000원", desc: "숙요·베다 두 대가가 각각 장문으로 (2관점 상담)", href: "/nakshatra/ai" },
   { title: "VVIP 결정판 통합서", price: "50,000원", desc: "전체 통합 + 서사 + PDF 소장본" },
 ];
 

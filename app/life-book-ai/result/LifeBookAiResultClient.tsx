@@ -8,8 +8,6 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
-import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
-import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
 import { readDevPreviewState, buildDevPreviewResponse } from "@/lib/dev-preview/core";
@@ -221,7 +219,7 @@ function buildReport(result: LifeBookResult | null) {
     }))
     : splitMarkdownChapters(fallbackContent);
   return {
-    title: parsed?.title || result?.title || "인생의 책 전문가 상담 리포트",
+    title: parsed?.title || result?.title || "인생의 책 AI 상담 리포트",
     subtitle: parsed?.subtitle || "타고난 사주와 시간의 흐름으로 읽는 삶의 장면",
     coreSummary: parsed?.coreSummary || null,
     expertReadings: Array.isArray(parsed?.expertReadings) ? parsed.expertReadings.filter((reading) => toText(reading?.title || reading?.content)) : [],
@@ -437,16 +435,13 @@ function LifeBookResultContent() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#050407] text-amber-50 [font-family:var(--font-body)]">
-      {/* 소설 페인팅 배경(R2, 자미두수 세계) — 셸 하늘로 고정. 강한 베일로 장문 가독성(AA) 유지 */}
-      <PaintedBackdrop src={paintedBackdrops.ziwei3} veil={0.82} position="center 28%" />
       <div className="fixed inset-x-0 top-0 z-50 h-1 bg-black/40" aria-hidden="true">
         <div className="h-full bg-gradient-to-r from-[#b47b25] via-[#f2d07a] to-[#fff3b0] transition-[width] duration-150" style={{ width: `${readProgress}%` }} />
       </div>
       <div className="fixed right-3 top-2 z-50 rounded-full border border-amber-200/25 bg-black/55 px-2.5 py-0.5 text-[11px] font-black text-amber-100" aria-label={`책 진도 ${readProgress}%`}>
         {readProgress}%
       </div>
-      {/* 앰버/브라운 글로우 오버레이 — 불투명 베이스 제거(페인팅이 비치도록), 따뜻한 톤만 얹는다 */}
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.20),transparent_36%),radial-gradient(circle_at_18%_28%,rgba(120,43,38,0.22),transparent_32%)]" />
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(244,198,98,0.22),transparent_34%),radial-gradient(circle_at_18%_28%,rgba(120,43,38,0.20),transparent_30%),linear-gradient(135deg,#1b120b,#2a1a10_44%,#050407)]" />
       <div className="pointer-events-none fixed inset-0 opacity-35 [background-image:radial-gradient(rgba(250,226,169,.58)_1px,transparent_1px),radial-gradient(rgba(255,255,255,.14)_1px,transparent_1px)] [background-position:0_0,38px_46px] [background-size:96px_96px,138px_138px]" />
 
       <section className="relative mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -474,9 +469,9 @@ function LifeBookResultContent() {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#b47b25] via-[#f2d07a] to-[#b47b25]" aria-hidden="true" />
             <p className="inline-flex items-center gap-2 rounded-full border border-amber-200/20 bg-amber-50/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-amber-200">
               <BookOpen className="h-4 w-4" aria-hidden="true" />
-              인생의 책 전문가 상담 리포트
+              인생의 책 AI 상담 리포트
             </p>
-            <h1 className={`mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl ${styles.chapterTitle}`} style={{ fontFamily: "var(--font-serif)" }}>{report.title}</h1>
+            <h1 className={`mt-5 text-3xl font-black leading-tight text-amber-50 sm:text-5xl ${styles.chapterTitle}`}>{report.title}</h1>
             <p className="mt-3 max-w-3xl text-base leading-7 text-[#eadbb9]">{report.subtitle}</p>
             <p className="mt-4 text-sm font-black tracking-[0.22em] text-amber-200/85">主人公 · {userName}</p>
             <dl className="mt-5 grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">

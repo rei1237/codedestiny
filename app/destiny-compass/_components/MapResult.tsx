@@ -180,9 +180,8 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
       </header>
 
       <div className={styles.resultBody}>
-        {/* ① 나침반 히어로 + 6시스템 — 자미두수 세계(소설 씬) 페인팅 위 */}
-        <div className={`${styles.resultTop} ${styles.sceneSection}`}>
-          <PaintedBackdrop src={compassPaintings.ziwei1} veil={0.82} position="center 35%" />
+        {/* ① 나침반 히어로 + 6시스템 */}
+        <div className={styles.resultTop}>
           <div className={styles.resultCompassWrap}>
             <CompassDial mode="result" directions={field.directions} primary={field.primary.key} />
           </div>
@@ -274,9 +273,8 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
           </div>
         </div>
 
-        {/* ⑤ 꽃돼지 해설 — 붉은 실(인연) 페인팅 위 따뜻한 상담 장면 */}
-        <div className={`${styles.resultSpeak} ${styles.sceneSection}`}>
-          <PaintedBackdrop src={compassPaintings.redThread} veil={0.8} position="center 40%" />
+        {/* ⑤ 꽃돼지 해설 */}
+        <div className={styles.resultSpeak}>
           <PigFace expression={pigExpression(field.primary.band, "hopeful")} height={78} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
             <div className={styles.resultWho}>꽃돼지</div>

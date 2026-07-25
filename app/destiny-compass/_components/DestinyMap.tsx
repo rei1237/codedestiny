@@ -9,7 +9,8 @@ import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { SpriteImage } from "./SpriteImage";
 import { NodeIcon, type NodeKind } from "./NodeIcon";
-import { compassAssets } from "../data/assets";
+import Image from "next/image";
+import { compassAssets, compassPaintings } from "../data/assets";
 import { REGIONS, HERE, regionByKey } from "./mapRegions";
 import { useFxTier } from "../_hooks/useFxTier";
 import styles from "./map.module.css";
@@ -44,6 +45,10 @@ interface DestinyMapProps {
   heroLine?: string;
   /** 무입력 대기 시 사자가 고개를 살짝 기울임. */
   guideTilt?: boolean;
+  /** 처리(수정구) 단계 등에서 현재 위치 꽃돼지를 숨긴다(수정구 crystalPig와 중복 방지). */
+  hideHero?: boolean;
+  /** 선택 화면 등에서 절차적 SVG 대륙 대신 밝은 '운명의 섬' 포스터를 지도 배경으로 쓴다. */
+  islandArt?: boolean;
   onRegion?: (key: string) => void;
   children?: ReactNode;
 }
@@ -58,6 +63,8 @@ export function DestinyMap({
   pigExpr = "happy",
   heroLine,
   guideTilt = false,
+  hideHero = false,
+  islandArt = false,
   onRegion,
   children,
 }: DestinyMapProps) {
@@ -92,7 +99,22 @@ export function DestinyMap({
       </header>
 
       <div className={`${styles.mapField} ${showFog ? styles.mapFieldZoom : ""}`}>
+        {/* Z1 — 선택 화면: 밝은 '운명의 섬' 포스터를 지도 배경으로 */}
+        {islandArt && (
+          <div className={styles.islandArt}>
+            <Image
+              src={compassPaintings.island}
+              alt="운명의 섬 지도"
+              fill
+              sizes="(max-width: 640px) 92vw, min(70vw, 1120px)"
+              unoptimized
+              referrerPolicy="no-referrer"
+              className={styles.islandArtImg}
+            />
+          </div>
+        )}
         {/* Z1 — 대륙(다층 텍스처 + 해안 + 부양 그림자 + 숨쉬기) */}
+        {!islandArt && (
         <svg className={styles.islandSvg} viewBox="0 0 400 300" aria-hidden="true">
           <defs>
             <radialGradient id="cd-water" cx="50%" cy="52%" r="60%">
@@ -187,6 +209,7 @@ export function DestinyMap({
             </>
           )}
         </svg>
+        )}
 
         {/* Z2 — 지역 랜드마크 */}
         {REGIONS.map((r) => {
@@ -219,15 +242,17 @@ export function DestinyMap({
           </span>
           <span className={styles.regionLabel}>현재 위치</span>
         </div>
-        <div className={styles.hero} style={{ left: `${HERE.x}%`, top: `${HERE.y}%` }}>
-          {heroLine && (
-            <div className={styles.heroBubble} aria-live="polite">
-              <span key={heroLine} className={styles.bubbleLine}>{heroLine}</span>
-            </div>
-          )}
-          <span className={styles.heroGround} aria-hidden="true" />
-          <PigFace expression={pigExpr} height={92} className={styles.heroPig} />
-        </div>
+        {!hideHero && (
+          <div className={styles.hero} style={{ left: `${HERE.x}%`, top: `${HERE.y}%` }}>
+            {heroLine && (
+              <div className={styles.heroBubble} aria-live="polite">
+                <span key={heroLine} className={styles.bubbleLine}>{heroLine}</span>
+              </div>
+            )}
+            <span className={styles.heroGround} aria-hidden="true" />
+            <PigFace expression={pigExpr} height={92} className={styles.heroPig} />
+          </div>
+        )}
 
         {showFog && <div className={styles.fogVeil} />}
       </div>

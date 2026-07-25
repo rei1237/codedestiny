@@ -9,8 +9,6 @@ import { toDisplayText } from "@/lib/llm-text";
 import type { AnalysisBasis } from "@/lib/fortune/analysis-basis";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
-import { PaintedBackdrop } from "@/components/fortune/PaintedBackdrop";
-import { paintedBackdrops } from "@/components/fortune/painted-backdrops";
 import { StructuredReadingResult, parseStructuredReading, splitAssistantSections } from "../VedicAiClient";
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
@@ -123,7 +121,7 @@ export default function VedicAiResultClient() {
   const backLink = (
     <Link href="/vedic-ai/" className={styles.resultListItem} style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
       <ArrowLeft size={16} aria-hidden="true" />
-      <strong>베다점 전문가 상담으로 돌아가기</strong>
+      <strong>베다점 AI 상담으로 돌아가기</strong>
     </Link>
   );
 
@@ -178,7 +176,7 @@ export default function VedicAiResultClient() {
             <div className={styles.resultListCard}>
               {view.items.map((item) => (
                 <Link key={item.id} href={`/vedic-ai/result/?id=${encodeURIComponent(item.id)}`} className={styles.resultListItem}>
-                  <strong>{item.topic || "베다점 전문가 상담"}{item.name ? ` · ${item.name}` : ""}</strong>
+                  <strong>{item.topic || "베다점 AI 상담"}{item.name ? ` · ${item.name}` : ""}</strong>
                   <small>{[item.chartSummary, formatDate(item.updatedAt || item.createdAt)].filter(Boolean).join(" · ")}</small>
                 </Link>
               ))}
@@ -200,8 +198,6 @@ export default function VedicAiResultClient() {
 
   return (
     <main className={styles.shell} data-vedic-ai-page="result-route-v20260704">
-      {/* 자미두수 세계 페인팅 배경(R2) — 강한 베일로 장문 가독성(AA) 유지 */}
-      <PaintedBackdrop src={paintedBackdrops.ziwei4} veil={0.82} position="center 30%" />
       <section className={styles.resultPanel}>
         <div className={styles.chatList}>
           {consultation.messages.map((message, index) => {
@@ -239,7 +235,7 @@ export default function VedicAiResultClient() {
           <div className={styles.resultFooterActions}>
             <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
               <ArrowLeft size={16} aria-hidden="true" />
-              <span>베다점 전문가 상담으로 돌아가기</span>
+              <span>베다점 AI 상담으로 돌아가기</span>
             </Link>
             <Link href="/" className={styles.resultFooterSecondary}>
               <Home size={16} aria-hidden="true" />

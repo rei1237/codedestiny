@@ -28,7 +28,7 @@ export function ProcessingScene() {
     <div className={styles.processing}>
       <div className={styles.processTitle}>여섯 별을 이어, 운명을 읽는 중…</div>
       <p className={styles.processNarration}>
-        <b>연이</b> &ldquo;{YEONI_VOYAGE_LINE}&rdquo;
+        <b>꽃돼지</b> &ldquo;{YEONI_VOYAGE_LINE}&rdquo;
       </p>
 
       <div className={styles.crystalWrap}>
