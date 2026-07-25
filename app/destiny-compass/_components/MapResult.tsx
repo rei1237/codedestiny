@@ -61,29 +61,42 @@ function variantIdx(seed: string, n: number): number {
   for (let i = 0; i < seed.length; i++) h = ((h * 33) ^ seed.charCodeAt(i)) >>> 0;
   return (h >>> 0) % n;
 }
-// 꽃돼지 규칙 템플릿(AI 폴백 겸 AI 리프레이즈 원문) — 밴드별 3변주, 대표/쉬어갈 영역 이름 보존.
+// 꽃돼지 규칙 템플릿(AI 폴백 겸 AI 리프레이즈 원문) — 밴드별 4변주. 대표(dir)·쉬어갈(blocked)·강한(strong)
+// 영역 이름을 그대로 보존하고, "무엇을 왜 어떻게"까지 담아 개인화·구체화한다(사람이 곁에서 봐준 듯한 조언).
 function pigCommentary(field: DirectionField): string {
   const dir = short(field.primary.key);
   const blocked = short(field.blockedArea.key);
-  const v = variantIdx(field.seed, 3);
+  const strong = short(field.strongArea.key);
+  // 강한 영역이 대표와 다를 때만 '보조 자원'으로 언급(중복 회피).
+  const ally = strong && strong !== dir ? strong : "";
+  const v = variantIdx(field.seed, 4);
   if (field.primary.band === "strong") {
     return [
-      `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 가볍게 내디뎌 봐요.`,
-      `'${dir}'의 문이 지금 활짝 열려 있어요. 준비해온 걸 믿고, 오늘 작은 시작 하나만 만들어 보세요.`,
-      `'${dir}' 쪽 바람이 순하게 불어와요. 조급함은 잠시 내려놓고, 지금 할 수 있는 한 가지부터 손대면 그 흐름을 탈 수 있어요.`,
+      `지금은 '${dir}' 쪽으로 길이 활짝 열려 있어요. 크게 밀어붙이기보다, 이번 주에 딱 한 걸음만 가볍게 내디뎌 보면 그 문이 더 크게 열려요.`,
+      `'${dir}'의 문이 지금 활짝 열려 있어요. 준비해온 걸 믿고, 오늘 아주 작은 시작 하나만 만들어 보세요. 완벽하지 않아도 괜찮아요 — 시작이 방향을 확인시켜 줘요.`,
+      ally
+        ? `'${dir}' 쪽 바람이 순하게 불어와요. 든든한 '${ally}'의 힘까지 곁들이면, 지금 손대는 한 가지가 생각보다 멀리 데려다줄 거예요.`
+        : `'${dir}' 쪽 바람이 순하게 불어와요. 조급함은 잠시 내려놓고, 지금 할 수 있는 한 가지부터 손대면 그 흐름을 그대로 탈 수 있어요.`,
+      `'${dir}'는 지금이 밀어줄 때예요. 미뤄뒀던 일이 있다면 오늘 그 첫 문장·첫 연락·첫 정리 하나만 해두세요. 그거면 충분해요.`,
     ][v];
   }
   if (field.primary.band === "caution") {
     return [
-      `'${blocked}' 쪽은 잠시 안개가 짙어요. 대신 '${dir}' 쪽으로 향하는 작은 시도 하나가 흐름을 살며시 바꿔줄 거예요.`,
-      `지금 '${blocked}'는 잠깐 쉬어가도 괜찮아요. 그 대신 '${dir}' 쪽으로 가벼운 한 걸음을 내디뎌 보면, 마음이 한결 편해질 거예요.`,
-      `'${blocked}' 쪽 안개는 곧 걷혀요. 무리하지 말고, 오늘은 '${dir}' 쪽으로 향하는 작은 일 하나에만 마음을 실어 봐요.`,
+      `'${blocked}' 쪽은 지금 잠시 안개가 짙어요. 억지로 밀지 말고, 대신 '${dir}' 쪽으로 향하는 작은 시도 하나에 마음을 실어 보면 흐름이 살며시 바뀌어요.`,
+      `지금 '${blocked}'는 잠깐 쉬어가도 괜찮아요. 힘을 아꼈다가, 오늘은 '${dir}' 쪽으로 가벼운 한 걸음만 내디뎌 보세요. 마음이 한결 가벼워질 거예요.`,
+      ally
+        ? `'${blocked}' 쪽 안개는 곧 걷혀요. 그때까지는 '${dir}'과 든든한 '${ally}' 쪽에 힘을 모아, 오늘 할 수 있는 작은 일 하나에만 집중해요.`
+        : `'${blocked}' 쪽 안개는 곧 걷혀요. 무리하지 말고, 오늘은 '${dir}' 쪽으로 향하는 작은 일 하나에만 마음을 실어 봐요.`,
+      `'${blocked}'에서 자꾸 애쓰다 지치셨죠. 잠깐 내려놓아도 돼요. 그 힘을 '${dir}' 쪽 한 걸음에 옮겨 두면, 오히려 막힌 곳이 스르르 풀리기도 해요.`,
     ][v];
   }
   return [
-    `'${dir}' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요.`,
-    `'${dir}'는 지금 천천히 데워지는 중이에요. 조바심 대신, 오늘 할 수 있는 작은 한 걸음에 마음을 실어보세요.`,
-    `'${dir}' 쪽으로 은은한 빛이 나 있어요. 크게 바꾸려 하기보다, 매일 조금씩 방향만 지켜가도 충분해요.`,
+    `'${dir}' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 오늘 마음이 가는 한 가지부터 시작하면 그 빛이 조금씩 또렷해져요.`,
+    `'${dir}'는 지금 천천히 데워지는 중이에요. 조바심 대신, 오늘 할 수 있는 작은 한 걸음에 마음을 실어보세요. 데워진 만큼 길이 선명해져요.`,
+    ally
+      ? `'${dir}' 쪽으로 은은한 빛이 나 있어요. 크게 바꾸려 하기보다, 든든한 '${ally}'를 발판 삼아 매일 조금씩 방향만 지켜가도 충분해요.`
+      : `'${dir}' 쪽으로 은은한 빛이 나 있어요. 크게 바꾸려 하기보다, 매일 조금씩 방향만 지켜가도 그걸로 충분해요.`,
+    `'${dir}'는 요란하지 않아도 분명히 당신 편이에요. 오늘 딱 하나, 작지만 손에 잡히는 걸 정해 마무리해 보세요. 그 감각이 다음 걸음을 불러와요.`,
   ][v];
 }
 
@@ -282,25 +295,26 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
           </div>
         </div>
 
-        {/* ⑥ 심화 프리뷰 — 갈림길(7)·미래시뮬(8)·항로(11) */}
+        {/* ⑥ 심화 상담 — 갈림길(7)·미래시뮬(8)·항로(11): 모두 회당 결제 10,000원 */}
         <div className={styles.flowSection}>
-          <span className={styles.flowLabel}>더 깊이 보기</span>
+          <span className={styles.flowLabel}>더 깊이 보기 · 회당 결제</span>
           <div className={styles.previewGrid}>
             <button type="button" className={styles.previewCard} onClick={onFutureSim}>
+              <span className={styles.previewPrice}>10,000원</span>
               <span className={styles.previewIcon} aria-hidden="true">🧭</span>
               <span className={styles.previewName}>미래 시뮬레이션</span>
               <span className={styles.previewDesc}>지도 위 30일·90일·1년, 시점을 눌러 이야기 보기</span>
-              <span className={styles.previewGo}>펼치기 →</span>
+              <span className={styles.previewGo}>열어보기 →</span>
             </button>
-            <button type="button" className={`${styles.previewCard} ${styles.previewLocked}`} onClick={onCrossroad}>
-              <span className={styles.previewLockBadge} aria-hidden="true">잠금</span>
+            <button type="button" className={styles.previewCard} onClick={onCrossroad}>
+              <span className={styles.previewPrice}>10,000원</span>
               <span className={styles.previewIcon} aria-hidden="true">⚖️</span>
               <span className={styles.previewName}>운명의 갈림길</span>
               <span className={styles.previewDesc}>두 선택의 기운을 나란히 견주기</span>
               <span className={styles.previewGo}>열어보기 →</span>
             </button>
-            <button type="button" className={`${styles.previewCard} ${styles.previewLocked}`} onClick={onVoyage}>
-              <span className={styles.previewLockBadge} aria-hidden="true">잠금</span>
+            <button type="button" className={styles.previewCard} onClick={onVoyage}>
+              <span className={styles.previewPrice}>10,000원</span>
               <span className={styles.previewIcon} aria-hidden="true">⛵</span>
               <span className={styles.previewName}>삶의 항로</span>
               <span className={styles.previewDesc}>날씨로 읽는 앞으로의 항해 지도</span>

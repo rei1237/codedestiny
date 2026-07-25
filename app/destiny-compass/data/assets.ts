@@ -21,6 +21,7 @@ export const compassHero = getAssetUrlFromPublicPath("/네오와 연이의 운�
 // 소설 페인팅 배경(R2) — 결과 화면 섹션별 몰입 배경. 신규 파일 생성 없이 기존 소설/자미두수 아트 재사용.
 const painting = (key: string) => getAssetUrlFromPublicPath(`/${key}`, { baseUrl: R2_BASE, prefix: "" });
 export const compassPaintings = {
+  mapBackground: painting("운명의 지도 배경.webp"), // 선택 화면 전용 배경(버킷 루트)
   island: painting("DestinyAssets/자미두수 운명의 섬.webp"), // 목적지·도착 — 운명의 섬
   ziwei1: painting("CodeDestinyNovel/background/자미두수 세계1.webp"),
   ziwei2: painting("CodeDestinyNovel/background/자미두수 세계2.webp"),
