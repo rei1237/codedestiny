@@ -45,10 +45,9 @@ export default function robots(): MetadataRoute.Robots {
         disallow: privateDisallowRules,
       },
     ],
-    sitemap: [
-      `${SEO_V2_SITE.siteUrl}/sitemap.xml`,
-      `${SEO_V2_SITE.siteUrl}/sitemap-insights.xml`,
-    ],
+    // sitemap-insights.xml 은 생성되지 않는다(빌드 파이프라인에 해당 산출물이 없음).
+    // 선언만 남겨두면 Search Console 사이트맵 가져오기가 404 로 실패한다.
+    sitemap: [`${SEO_V2_SITE.siteUrl}/sitemap.xml`],
     host: SEO_V2_SITE.siteUrl,
   };
 }
