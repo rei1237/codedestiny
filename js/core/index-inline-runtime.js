@@ -366,6 +366,22 @@ function __cdInitGlobalPaymentLoading() {
     } catch (_) {}
   }
 
+  /* 셸의 래퍼(fetchJsonWithAuth/_dpFetchJsonWithFallback)를 우회하는 raw fetch 가 401/403 을
+     받아도 유령 로그인 UI 가 남지 않게 한다. 401 을 여기서 로그아웃으로 해석하지는 않는다 —
+     리프레시 이전이거나 일시 장애일 수 있으므로 /api/auth/me 재검증만 예약하고 판정은 그쪽이 한다. */
+  function __cdObserveApiAuthFailure(response, reqUrl) {
+    try {
+      if (!response || !reqUrl || !__cdIsOwnApiOrigin(reqUrl)) return;
+      if (response.status !== 401 && response.status !== 403) return;
+      var pathname = String(reqUrl.pathname || '');
+      if (pathname.indexOf('/api/') !== 0) return;
+      if (pathname.indexOf('/api/auth/') === 0) return;
+      if (typeof window.__cdScheduleSessionRevalidation === 'function') {
+        window.__cdScheduleSessionRevalidation();
+      }
+    } catch (_) {}
+  }
+
   /* Capacitor 앱인가. 앱은 https://localhost 출처에서 돌고 API 는 자사 도메인으로 나간다. */
   function __cdIsMobileAppRuntime() {
     try {
@@ -441,6 +457,7 @@ function __cdInitGlobalPaymentLoading() {
     if (!shouldTrack) {
       return originalFetch(input, patchedInit).then(function(response) {
         __cdTapPremiumTokenFromResponse(response, reqUrl);
+        __cdObserveApiAuthFailure(response, reqUrl);
         return response;
       });
     }
@@ -452,6 +469,7 @@ function __cdInitGlobalPaymentLoading() {
       return originalFetch(input, patchedInit).then(
         function(response) {
           __cdTapPremiumTokenFromResponse(response, reqUrl);
+          __cdObserveApiAuthFailure(response, reqUrl);
           endPayment();
           return response;
         },

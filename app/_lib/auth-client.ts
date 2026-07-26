@@ -321,6 +321,22 @@ function publishAuthSync(event: "login" | "logout") {
   }
 }
 
+// 서버가 "확정적 미인증"을 알린 터미널 신호. auth-store 가 이 이벤트를 받아
+// handleSessionInvalidated 로 강제 로그아웃한다(auth-store → auth-client 단방향 import 를
+// 유지하기 위해 직접 호출 대신 이벤트를 쓴다). 정적 셸도 같은 채널을 들을 수 있다.
+export const AUTH_SESSION_INVALIDATED_EVENT = "cd:auth-session-invalidated";
+
+function dispatchSessionInvalidated(source: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent(AUTH_SESSION_INVALIDATED_EVENT, { detail: { source, at: Date.now() } }),
+    );
+  } catch (e) {
+    // best-effort
+  }
+}
+
 export function clearClientAuthState() {
   if (typeof window === "undefined") return;
   refreshInFlight = null;
@@ -377,6 +393,7 @@ async function refreshSession(apiBase: string) {
           if (response.status === 401 || response.status === 403) {
             clearClientAuthState();
             publishAuthSync("logout");
+            dispatchSessionInvalidated("refresh-401");
             return "invalid";
           }
           return "transient";

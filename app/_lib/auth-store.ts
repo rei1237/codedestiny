@@ -3,6 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { getApiBaseUrl } from "./api-config";
 import {
+  AUTH_SESSION_INVALIDATED_EVENT,
   authFetch,
   clearClientAuthState,
   clearEntitlementLocalStorage,
@@ -554,18 +555,47 @@ function handleBillingBalanceUpdatedEvent(event: Event) {
   }
 }
 
+// 세션 하트비트 — 사용자가 아무 액션도 하지 않고 화면만 보고 있어도 만료/타 기기 로그아웃을
+// 감지한다. 판정 로직은 새로 만들지 않는다: loadMeFromServer 가 이미 degraded/5xx 를 걸러내고
+// 확정 401 에서만 handleSessionInvalidated 를 호출한다. 여기서는 "언제 물어볼지"만 정한다.
+const SESSION_HEARTBEAT_INTERVAL_MS = 5 * 60 * 1000;
+// 잠깐 탭을 오간 정도로는 쿨다운을 우회하지 않는다.
+const SESSION_REVALIDATE_AFTER_HIDDEN_MS = 30 * 1000;
+let lastTabHiddenAt = 0;
+
 // 소비 외 서버 변경(지급/만료/타 기기)도 탭 복귀 시 빠르게 반영. refreshAuth는 1.5s 쿨다운을 존중.
 function refreshBalanceOnForeground() {
-  if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+  if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+    lastTabHiddenAt = Date.now();
+    return;
+  }
   if (!state.user) return;
-  refreshAuth({ silent: true }).catch(() => {});
+  // 오래 숨어 있다 돌아왔다면 쿨다운을 넘겨 세션 유효성부터 확정한다(유령 로그인 UI 방지).
+  const hiddenForMs = lastTabHiddenAt ? Date.now() - lastTabHiddenAt : 0;
+  const force = hiddenForMs >= SESSION_REVALIDATE_AFTER_HIDDEN_MS;
+  if (force) lastTabHiddenAt = 0;
+  refreshAuth({ force, silent: true }).catch(() => {});
+}
+
+function runSessionHeartbeat() {
+  // 보이지 않는 탭은 확인하지 않는다 — 복귀 시 visibilitychange 가 즉시 확인한다.
+  if (typeof document !== "undefined" && document.visibilityState !== "visible") return;
+  if (!state.isAuthenticated && !state.user) return;
+  refreshAuth({ force: true, silent: true }).catch(() => {});
+}
+
+// auth-client 가 확정 미인증(리프레시 401/403)을 감지하면 쏘는 터미널 신호.
+function handleAuthSessionInvalidatedEvent() {
+  handleSessionInvalidated({ redirect: isProtectedAppPath(window.location.pathname) });
 }
 
 if (typeof window !== "undefined") {
   seedBootstrapFromVerifiedCache();
   window.addEventListener("cd:billing-balance-updated", handleBillingBalanceUpdatedEvent as EventListener);
+  window.addEventListener(AUTH_SESSION_INVALIDATED_EVENT, handleAuthSessionInvalidatedEvent as EventListener);
   document.addEventListener("visibilitychange", refreshBalanceOnForeground);
   window.addEventListener("focus", refreshBalanceOnForeground);
+  window.setInterval(runSessionHeartbeat, SESSION_HEARTBEAT_INTERVAL_MS);
 }
 
 function clearAuthStateHard() {
@@ -580,11 +610,13 @@ function clearAuthStateHard() {
   });
 }
 
+// 확정 미인증의 원인은 "다른 기기 로그인/로그아웃"일 수도, "세션 만료"일 수도 있다.
+// 서버가 원인을 구분해 내려주지 않으므로(worker 는 401 code:"UNAUTHORIZED" 단일) 둘 다 포괄한다.
 const SESSION_EXPIRED_MESSAGE: Record<string, string> = {
-  ko: "세션이 만료되었습니다. 다시 로그인해 주세요.",
-  en: "Your session has expired. Please sign in again.",
-  ja: "セッションの有効期限が切れました。もう一度ログインしてください。",
-  zh: "登录状态已过期，请重新登录。",
+  ko: "다른 기기 로그인 또는 세션 만료로 로그아웃되었습니다. 다시 로그인해 주세요.",
+  en: "You were signed out — another device signed in, or your session expired. Please sign in again.",
+  ja: "他の端末でのログイン、またはセッション期限切れによりログアウトされました。もう一度ログインしてください。",
+  zh: "因其他设备登录或登录状态过期，已自动退出。请重新登录。",
 };
 
 function resolveSessionExpiredMessage(): string {
@@ -610,8 +642,19 @@ function isAuthRedirectExemptPath(pathname: string): boolean {
     || path.startsWith("/admin/login");
 }
 
-// 세션 만료 디바운스 — 여러 기능 호출이 동시에 401을 받아도 토스트/리다이렉트는 1회만.
+// middleware.ts 의 PROTECTED_AUTH_ROUTE_PREFIXES 와 짝을 이룬다(미들웨어는 edge 번들이라
+// import 하면 next/server 가 클라이언트 번들로 딸려 온다 — 값만 복제하고 함께 관리한다).
+// 능동 액션 없이 감지된 세션 만료에서 리다이렉트할 화면 = 로그인이 전제인 화면뿐.
+const PROTECTED_APP_ROUTE_PREFIXES = ["/dashboard", "/mypage", "/me", "/points"];
+
+function isProtectedAppPath(pathname: string): boolean {
+  const path = String(pathname || "");
+  return PROTECTED_APP_ROUTE_PREFIXES.some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
+}
+
+// 세션 만료 디바운스 — 여러 기능 호출이 동시에 401을 받아도 토스트는 1회만.
 let lastSessionInvalidationAt = 0;
+let lastSessionRedirectAt = 0;
 const SESSION_INVALIDATION_DEBOUNCE_MS = 1500;
 
 // 서버가 "확정적 미인증(401/403 또는 non-degraded authenticated:false)"을 알렸을 때 호출한다.
@@ -629,11 +672,8 @@ export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
   clearAuthUserCacheVerified();
   publishAuthSync("logout");
 
-  // 버스트 중복 호출은 상태 정리만 하고 토스트/리다이렉트는 생략.
-  if (recentlyHandled) return;
-
-  // 이미 로그아웃 상태(진짜 게스트)였다면 만료 안내를 띄우지 않는다.
-  if (wasAuthenticated) {
+  // 버스트 중복 호출은 안내만 생략한다(이미 로그아웃 상태였다면 만료 안내도 띄우지 않는다).
+  if (!recentlyHandled && wasAuthenticated) {
     try {
       showToast(resolveSessionExpiredMessage(), "info");
     } catch (e) {
@@ -641,7 +681,11 @@ export function handleSessionInvalidated(options: { redirect?: boolean } = {}) {
     }
   }
 
-  if (options.redirect && !isAuthRedirectExemptPath(window.location.pathname)) {
+  // 리다이렉트는 디바운스에 걸리면 안 된다 — 버스트 중 앞선 호출(전역 감지)이 redirect:false 로
+  // 먼저 들어오면, 뒤이은 능동 액션(useCoinGate 등)의 이동이 삼켜져 빈 화면에서 멈춘다.
+  const redirectRecentlyStarted = now - lastSessionRedirectAt < SESSION_INVALIDATION_DEBOUNCE_MS;
+  if (options.redirect && !redirectRecentlyStarted && !isAuthRedirectExemptPath(window.location.pathname)) {
+    lastSessionRedirectAt = now;
     try {
       const { pathname, search } = window.location;
       const nextParam = encodeURIComponent(`${pathname}${search || ""}`);

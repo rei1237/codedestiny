@@ -754,6 +754,15 @@ html.cd-boot-gate-out .cd-boot-gate__veil{opacity:0;transition:opacity .3s ease}
   color: rgba(167, 243, 208, 0.95);
   font-size: 12px;
 }
+/* 세션 만료 안내 — 환불 토스트의 레이아웃을 그대로 쓰고 색만 앰버 계열로 바꾼다(성공 아님). */
+.cd-refund-toast.cd-session-toast {
+  border-color: rgba(251, 191, 36, 0.42);
+  background: linear-gradient(135deg, rgba(48, 27, 5, 0.96), rgba(72, 41, 8, 0.95));
+  color: #fef3c7;
+}
+.cd-refund-toast.cd-session-toast .cd-refund-toast__title {
+  color: #fcd34d;
+}
 @media (max-width: 560px) {
   .saju-loader-card {
     border-radius: 20px;
@@ -10923,6 +10932,22 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 
           function __cdHandleAuthMeSignedOut(payload) {
             if (payload && typeof payload === 'object' && payload.degraded === true) return false;
+            // 세션 캐시가 로컬 힌트 부재만 보고 합성한 게스트 응답은 서버 판정이 아니다.
+            var syntheticGuest = !!(payload && typeof payload === 'object'
+              && (payload.reason === 'no_auth_hint' || payload.guest === true));
+            var hadSession = false;
+            try {
+              hadSession = !!(localStorage.getItem('fortune_auth_user') || localStorage.getItem('fortune_auth_token'));
+            } catch (_) {}
+
+            // 로그인 상태였는데 서버가 확정 미인증을 알린 경우에만 강제 로그아웃 진입점으로 넘긴다
+            // (정리 + 사용자 안내를 한곳에서 수행). 원래 게스트였거나 합성 응답이면 기존 경로 그대로 —
+            // 게스트 부팅마다 sessionStorage 를 비우면 진행 중인 기능 핸드오프가 날아간다.
+            if (hadSession && !syntheticGuest && typeof window.__cdForceSignOut === 'function') {
+              window.__cdForceSignOut('auth-me-probe');
+              return true;
+            }
+
             __cdClearStoredAuthIdentity();
             __cdRenderGuestAuthLinks();
             return true;
@@ -10992,6 +11017,8 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 
           window.__cdClearClientAuthState = __cdClearClientAuthState;
           window.__cdIsAuthLogoutInFlight = __cdIsLogoutInFlight;
+          // 강제 로그아웃(__cdForceSignOut)이 게스트 UI를 즉시 확정할 때 쓴다 — 재프로브 없이 렌더.
+          window.__cdRenderGuestAuthLinks = __cdRenderGuestAuthLinks;
 
           function __cdRenderAuthSummary(name, points, isAdmin, subscriptionLabel, membershipChipLabel) {
             var el = document.getElementById('authQuickLinks');
@@ -20676,6 +20703,117 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
     } catch (_) {}
   }
 
+  // ── 강제 로그아웃(세션 무효화) 단일 진입점 ──────────────────────────────────
+  // 서버가 "확정적 미인증"을 알렸을 때만 호출한다. 일시적 DB 장애(degraded / 5xx / 네트워크)에는
+  // 절대 호출하지 않는다 — 그 판정은 verifyAuthSessionForCoinApi 의 degraded 가드가 담당하며,
+  // 이 함수는 판정을 하지 않고 "정리 + 안내 + 이동"만 수행한다.
+  var _cdForceSignOutState = { at: 0 };
+  var _CD_FORCE_SIGN_OUT_DEBOUNCE_MS = 1500;
+  var _CD_SESSION_EXPIRED_TEXT = {
+    ko: '다른 기기 로그인 또는 세션 만료로 로그아웃되었습니다. 다시 로그인해 주세요.',
+    en: 'You were signed out — another device signed in, or your session expired. Please sign in again.',
+    ja: '他の端末でのログイン、またはセッション期限切れによりログアウトされました。もう一度ログインしてください。',
+    zh: '因其他设备登录或登录状态过期，已自动退出。请重新登录。'
+  };
+  var _CD_SESSION_TOAST_TITLE = {
+    ko: '로그인 안내',
+    en: 'Sign-in notice',
+    ja: 'ログインのお知らせ',
+    zh: '登录提示'
+  };
+
+  function _cdResolveSessionLang() {
+    var lang = 'ko';
+    try {
+      var raw = '';
+      if (typeof window.cdGetCurrentLanguage === 'function') raw = String(window.cdGetCurrentLanguage() || '');
+      if (!raw) raw = String(localStorage.getItem('cd_lang') || '');
+      raw = raw.trim().toLowerCase();
+      if (raw.indexOf('en') === 0) lang = 'en';
+      else if (raw.indexOf('ja') === 0) lang = 'ja';
+      else if (raw.indexOf('zh') === 0) lang = 'zh';
+    } catch (_) {}
+    return lang;
+  }
+
+  function _cdShowSessionToast(message, title) {
+    try {
+      var host = _cdEnsureRefundToastHost();
+      var toast = document.createElement('div');
+      toast.className = 'cd-refund-toast cd-session-toast';
+      toast.setAttribute('role', 'status');
+      toast.innerHTML = '<p class="cd-refund-toast__title"></p><p class="cd-refund-toast__msg"></p>';
+      toast.querySelector('.cd-refund-toast__title').textContent = title;
+      toast.querySelector('.cd-refund-toast__msg').textContent = message;
+      host.appendChild(toast);
+      requestAnimationFrame(function () { toast.classList.add('is-visible'); });
+      setTimeout(function () {
+        toast.classList.remove('is-visible');
+        setTimeout(function () {
+          if (toast.parentNode) toast.parentNode.removeChild(toast);
+        }, 260);
+      }, 6000);
+    } catch (_) {}
+  }
+
+  function __cdForceSignOut(reason, options) {
+    var opts = options && typeof options === 'object' ? options : {};
+
+    // 사용자가 직접 누른 로그아웃이 진행 중이면 그쪽이 정리·이동을 이미 담당한다.
+    try {
+      if (typeof window.__cdIsAuthLogoutInFlight === 'function' && window.__cdIsAuthLogoutInFlight()) return false;
+    } catch (_) {}
+
+    var wasSignedIn = false;
+    try { wasSignedIn = hasAuthSessionHint(); } catch (_) {}
+
+    var now = Date.now();
+    var recentlyHandled = (now - _cdForceSignOutState.at) < _CD_FORCE_SIGN_OUT_DEBOUNCE_MS;
+    _cdForceSignOutState.at = now;
+
+    _cdCoinApiAuthState.checkedAt = now;
+    _cdCoinApiAuthState.ok = false;
+    _cdCoinApiAuthState.userId = '';
+
+    try {
+      if (typeof window.__cdClearClientAuthState === 'function') window.__cdClearClientAuthState();
+    } catch (_) {}
+    // 진행 중인 인증 카드 런을 무효화한다(__cdAuthState 의 런 토큰). 그러지 않으면 그 런의
+    // 구독 확인 지연 타이머(3.5s)와 재시도(6.5s)가 로그아웃된 화면에 로딩 카드를 다시 그린다.
+    try { window.__cdAuthStateRunId = (window.__cdAuthStateRunId || 0) + 1; } catch (_) {}
+    // 게스트 렌더는 반드시 publish 뒤에 한다. cd:auth-changed 를 받은 __cdAuthState() 가 곧바로
+    // 로딩 스켈레톤을 그리므로, 먼저 그리면 그 스켈레톤이 최종 화면으로 남는다(실측: 12초 이상 고착).
+    _cdPublishAuthSync('logout', String(reason || 'session-invalidated'));
+    try {
+      if (typeof window.__cdRenderGuestAuthLinks === 'function') window.__cdRenderGuestAuthLinks();
+    } catch (_) {}
+
+    // 동시 다발 401 버스트에서는 상태 정리만 하고 안내·이동은 1회만 수행한다.
+    if (recentlyHandled) return true;
+    // 원래 게스트였다면 만료 안내를 띄우지 않는다.
+    if (!wasSignedIn) return true;
+
+    var lang = _cdResolveSessionLang();
+    _cdShowSessionToast(
+      _CD_SESSION_EXPIRED_TEXT[lang] || _CD_SESSION_EXPIRED_TEXT.ko,
+      _CD_SESSION_TOAST_TITLE[lang] || _CD_SESSION_TOAST_TITLE.ko
+    );
+
+    if (opts.redirect) {
+      try {
+        var here = String(location.pathname || '/') + String(location.search || '');
+        var nextParam = encodeURIComponent(here);
+        // 토스트를 읽을 여유를 준 뒤 이동한다.
+        setTimeout(function () {
+          location.assign('/login?next=' + nextParam + '&returnTo=' + nextParam + '&redirect=' + nextParam);
+        }, 900);
+      } catch (_) {}
+    }
+    return true;
+  }
+
+  window.__cdForceSignOut = __cdForceSignOut;
+
   function _cdPersistCoinApiUser(user) {
     if (!user || typeof user !== 'object') return;
     try {
@@ -20717,19 +20855,20 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 
     _cdCoinApiAuthState.pending = fetchJsonWithAuth('/api/auth/me', {
       method: 'GET',
-      cache: 'no-store'
+      cache: 'no-store',
+      // 강제 확인은 인라인 세션 캐시(kind='session', TTL 5분)를 반드시 우회해야 한다.
+      // 그러지 않으면 하트비트가 캐시된 "인증됨" 응답만 보고 만료를 영영 감지하지 못한다.
+      // 헤더 이름은 상단 cd-user-access-session-cache 블록의 refreshHeader 와 짝을 이룬다.
+      headers: force ? { 'x-code-destiny-cache-refresh': '1' } : undefined
     }).then(function(result) {
       if (typeof window.__cdIsAuthLogoutInFlight === 'function' && window.__cdIsAuthLogoutInFlight()) {
         return null;
       }
       if (!result || !result.ok) {
         var statusCode = Number((result && result.status) || 0);
+        // 401/403 만 확정 미인증이다. 503/500/0(네트워크)은 일시 장애이므로 세션을 유지한다.
         if (statusCode === 401 || statusCode === 403) {
-          try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
-          try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
-          if (_cdCoinApiAuthState.ok) {
-            _cdPublishAuthSync('logout', 'coin-api-auth');
-          }
+          __cdForceSignOut('auth-me-' + statusCode);
         }
         return null;
       }
@@ -20746,13 +20885,15 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           _cdCoinApiAuthState.checkedAt = Date.now();
           return wasOk;
         }
-        try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
-        try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
-        try { document.cookie = 'fortune_auth_role=; path=/; max-age=0; SameSite=Lax'; } catch (_) {}
-        _cdCoinApiAuthState.checkedAt = Date.now();
-        _cdCoinApiAuthState.ok = false;
-        _cdCoinApiAuthState.userId = '';
-        _cdPublishAuthSync('logout', 'coin-api-auth');
+        // 세션 캐시(index.html 상단 cd-user-access-session-cache)가 로컬 힌트 부재만 보고
+        // 합성한 게스트 응답은 "서버가 미인증이라고 답한 것"이 아니다 — 강제 로그아웃 금지.
+        if (payload.reason === 'no_auth_hint' || payload.guest === true) {
+          _cdCoinApiAuthState.checkedAt = Date.now();
+          _cdCoinApiAuthState.ok = false;
+          _cdCoinApiAuthState.userId = '';
+          return false;
+        }
+        __cdForceSignOut('auth-me');
         return false;
       }
       var user = payload && payload.user ? payload.user : null;
@@ -20786,6 +20927,60 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
 
     return _cdCoinApiAuthState.pending;
   }
+
+  // 세션 검증의 유일한 판정자. raw fetch 401 감시(index-inline-runtime)와 하트비트가 이 함수를
+  // 호출해 /api/auth/me 응답으로만 로그아웃을 확정한다(degraded 가드는 위 구현에 이미 있음).
+  window.verifyAuthSessionForCoinApi = verifyAuthSessionForCoinApi;
+
+  // 기능 API 의 401 은 그 자체로 터미널 신호가 아니다(리프레시 이전일 수도, 일시 장애일 수도
+  // 있다). 그래서 호출부마다 판정하지 않고 재검증만 예약한다 — 확정은 /api/auth/me 한 곳에서만.
+  var _cdSessionRevalidateTimer = 0;
+  function _cdScheduleSessionRevalidation() {
+    if (_cdSessionRevalidateTimer) return;
+    _cdSessionRevalidateTimer = setTimeout(function () {
+      _cdSessionRevalidateTimer = 0;
+      if (!hasAuthSessionHint()) return;
+      try {
+        if (typeof window.__cdIsAuthLogoutInFlight === 'function' && window.__cdIsAuthLogoutInFlight()) return;
+      } catch (_) {}
+      Promise.resolve(verifyAuthSessionForCoinApi(true)).catch(function () {});
+    }, 3000);
+  }
+
+  window.__cdScheduleSessionRevalidation = _cdScheduleSessionRevalidation;
+
+  // ── 세션 하트비트 ─────────────────────────────────────────────────────────
+  // 사용자가 아무 액션도 하지 않고 화면만 보고 있어도 만료/타 기기 로그아웃을 감지한다.
+  // 30초 메모(_cdCoinApiAuthState.checkedAt)와 in-flight 병합이 이미 있어 중복 호출은 흡수된다.
+  var _CD_SESSION_HEARTBEAT_MS = 5 * 60 * 1000;
+  var _CD_SESSION_REVALIDATE_AFTER_HIDDEN_MS = 30 * 1000;
+  var _cdTabHiddenAt = 0;
+
+  function _cdRunSessionHeartbeat(force) {
+    // 보이지 않는 탭은 확인하지 않는다 — 복귀 시 visibilitychange 가 즉시 확인한다.
+    if (document.visibilityState !== 'visible') return;
+    if (!hasAuthSessionHint()) return;
+    try {
+      if (typeof window.__cdIsAuthLogoutInFlight === 'function' && window.__cdIsAuthLogoutInFlight()) return;
+    } catch (_) {}
+    Promise.resolve(verifyAuthSessionForCoinApi(!!force)).catch(function () {});
+  }
+
+  function _cdOnSessionForeground() {
+    if (document.visibilityState !== 'visible') {
+      _cdTabHiddenAt = Date.now();
+      return;
+    }
+    // 잠깐 탭을 오간 정도로는 30초 메모를 우회하지 않는다.
+    var hiddenForMs = _cdTabHiddenAt ? (Date.now() - _cdTabHiddenAt) : 0;
+    var force = hiddenForMs >= _CD_SESSION_REVALIDATE_AFTER_HIDDEN_MS;
+    if (force) _cdTabHiddenAt = 0;
+    _cdRunSessionHeartbeat(force);
+  }
+
+  document.addEventListener('visibilitychange', _cdOnSessionForeground);
+  window.addEventListener('focus', _cdOnSessionForeground);
+  setInterval(function () { _cdRunSessionHeartbeat(true); }, _CD_SESSION_HEARTBEAT_MS);
 
   function _cdPaymentStageTextLooksBroken(value) {
     var text = String(value || '');
@@ -25619,9 +25814,17 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
               continue;
             }
           }
+          // 리프레시가 실패했거나 갱신 후에도 여전히 401/403 이면 세션이 죽었을 수 있다.
+          // 여기서 바로 로그아웃시키지 않는다 — 리프레시 실패는 일시 장애(503/네트워크)일 수도
+          // 있으므로 /api/auth/me 재검증을 예약해 그 응답으로만 확정한다.
+          // (/api/auth/me 자신은 제외 — verifyAuthSessionForCoinApi 가 이미 그 응답의 판정자다.)
+          if (String(path || '').indexOf('/api/auth/') !== 0
+            && (!refreshed || response.status === 401 || response.status === 403)) {
+            _cdScheduleSessionRevalidation();
+          }
         }
 
-        if (!response.ok && shouldSingleRetry(path, response.status)) {
+        if (!response.ok && shouldSingleRetry(path, response.status, requestInit.method)) {
           try {
             response = await retryRequestOnce(requestUrl, requestInit);
           } catch (_retryOnceError) {}
