@@ -90,7 +90,9 @@ const adsenseAllowedContentRoutes = [
   "/high-value",
   "/high-value/complete-guide-to-saju",
   "/famous-saju",
-  "/insights/famous-saju/king-sejong",
+  // 상세(/insights/famous-saju/<slug>)는 전량 noindex + 사이트맵 제외로 바뀌어
+  // 광고 대상이 아니다. 허브만 광고 허용 라우트로 검사한다.
+  "/insights/famous-saju",
 ];
 
 const adsenseBlockedRoutes = [
