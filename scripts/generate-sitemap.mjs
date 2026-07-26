@@ -315,28 +315,31 @@ function famousCategorySlug(value) {
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
   const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-  const routes = [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod: today }];
   const categoryRoutes = new Set();
   const seen = new Set();
+  let latest = "";
 
   let match;
   while ((match = itemRegex.exec(source)) !== null) {
     const slug = String(match[1] || "").trim();
     const category = String(match[3] || "").trim();
+    const updatedAt = String(match[4] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    // 정본 슬러그로 방문 시 index:true (app/insights/famous-saju/[slug]/page.tsx의
-    // `slug === reading.celebrity.slug` 분기), CONTENT_PREFIXES의 "/insights"에 걸려
-    // AdSense 색인 대상이므로 사이트맵에 포함해야 한다. (별칭 슬러그만 noindex로 남는다.)
-    routes.push({ path: `/insights/famous-saju/${slug}`, changefreq: "monthly", priority: 0.75, lastmod: today });
+    if (updatedAt > latest) latest = updatedAt;
 
+    // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
+    // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
+    // 바뀌는 템플릿 조립물이라 색인 대상이 아니다. 허브와 카테고리만 남긴다.
     const cSlug = famousCategorySlug(category);
     if (cSlug) categoryRoutes.add(cSlug);
   }
 
+  const lastmod = normalizeDate(latest) || today;
+
   return [
-    ...routes,
-    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod: today })),
+    { path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod },
+    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod })),
   ];
 }
 

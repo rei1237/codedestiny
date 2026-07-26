@@ -105,6 +105,15 @@ const CONTENT_PREFIXES = [
   "/insights",
 ];
 
+// 자손 경로만 차단하고 정확 일치는 허용 목록 판정에 맡긴다.
+// /insights/famous-saju 허브는 계속 광고·색인 대상이지만, 상세 페이지는
+// 이름·생일만 갈아 끼운 템플릿 양산물이라 noindex + 사이트맵 제외로 돌렸다.
+// 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
+// "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
+const BLOCKED_DESCENDANT_PREFIXES = [
+  "/insights/famous-saju",
+];
+
 const SAFE_QUERY_KEYS = new Set([
   "fbclid",
   "gbraid",
@@ -221,6 +230,7 @@ export function canLoadAdsense(pathname) {
 
   if (BLOCKED_EXACT_PATHS.has(normalizedPathname)) return false;
   if (BLOCKED_PREFIXES.some((prefix) => matchesPrefix(normalizedPathname, prefix))) return false;
+  if (BLOCKED_DESCENDANT_PREFIXES.some((prefix) => normalizedPathname.startsWith(`${prefix}/`))) return false;
   if (CONTENT_EXACT_PATHS.has(normalizedPathname)) return true;
   if (CONTENT_PREFIXES.some((prefix) => matchesPrefix(normalizedPathname, prefix))) return true;
   return false;
