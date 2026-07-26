@@ -1120,6 +1120,19 @@ function verifySitemap(baseDir) {
     assert(!forbiddenPrefix, `${sitemapPath}: private/action route must not be in sitemap: ${pathname}`);
 
     const htmlPath = routeHtmlPath(baseDir, pathname);
+
+    // 사이트맵에만 있고 산출물이 없는 URL(=크롤러가 404 를 받는 URL)을 빌드 실패로 승격한다.
+    // readOptional 이 조용히 넘어가던 자리라, 과거 죽은 슬러그 15개가 사이트맵에 남아 있었다.
+    // dist 기준으로만 검사한다 — 정적 셸 사본 라우트(writeStaticShellCanonicalRoutes 산출물)는
+    // out 에는 없고 dist 에만 생기므로 out 기준이면 오탐한다.
+    if (baseDir === "dist") {
+      const assetPath = /\.[a-z0-9]+$/i.test(pathname) ? `${baseDir}${pathname}` : htmlPath;
+      assert(
+        existsSync(resolve(rootDir, assetPath)),
+        `${sitemapPath}: sitemap route has no generated artifact (would 404): ${pathname}`,
+      );
+    }
+
     const html = readOptional(htmlPath);
     if (html) {
       const robots = getMetaContent(html, "robots").toLowerCase();

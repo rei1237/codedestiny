@@ -1,13 +1,18 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { register } from "node:module";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+
+// app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
+register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
+const { INSIGHT_SEED_ARTICLES } = await import(
+  pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
+);
 
 const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
-const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
-const insightsAdsenseReadySourcePath = resolve(rootDir, "app", "insights", "adsense-ready-articles.js");
-const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-growth-articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const psychotestSourcePath = resolve(rootDir, "lib", "psychotest-catalog.ts");
@@ -238,49 +243,35 @@ function normalizeDate(dateLike) {
   return parsed.toISOString().slice(0, 10);
 }
 
+// app/insights/[slug]/page.js 의 uniqueArticles() 와 동일한 판정.
+// 본문(sections / contentHtml / body)이 없는 글은 generateStaticParams 에서 빠져
+// 페이지가 export 되지 않는다. 사이트맵이 이 조건을 재현하지 못하면 404 URL 이 생긴다.
+function insightArticleHasBody(article) {
+  const sections = Array.isArray(article?.sections) ? article.sections : [];
+  if (sections.length > 0) return true;
+  return String(article?.contentHtml || article?.body || "").trim().length > 0;
+}
+
+// 정규식 스크래핑 대신 페이지 생성이 쓰는 바로 그 모듈에서 뽑는다.
+// (과거 extractSeoGrowthInsightRoutes 가 슬러그만 긁어 카테고리·본문 조건을 무시했고,
+//  그 결과 사이트맵에 404 URL 15개가 올라가 있었다.)
 function extractInsightRoutes() {
   const routes = [];
   const seen = new Set();
 
-  const legacySource = readFileSync(insightsSourcePath, "utf8");
-  const legacyArticleRegex =
-    /{\s*slug:\s*"([^"]+)"[\s\S]*?category:\s*"([^"]+)"[\s\S]*?updatedAt:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-
-  let match;
-  while ((match = legacyArticleRegex.exec(legacySource)) !== null) {
-    const slug = String(match[1] || "").trim();
-    const category = String(match[2] || "").trim();
-    const updatedAt = String(match[3] || "").trim();
-
-    if (!slug || seen.has(slug) || excludedInsightCategories.has(category)) continue;
+  for (const article of INSIGHT_SEED_ARTICLES) {
+    const slug = String(article?.slug || "").trim();
+    if (!slug || seen.has(slug)) continue;
+    if (excludedInsightCategories.has(String(article?.category || "").trim())) continue;
+    if (!insightArticleHasBody(article)) continue;
 
     seen.add(slug);
     routes.push({
       path: `/insights/${slug}`,
       changefreq: "monthly",
       priority: 0.74,
-      lastmod: normalizeDate(updatedAt),
+      lastmod: normalizeDate(article?.updatedAt) || today,
     });
-  }
-
-  return routes;
-}
-
-function extractSeoGrowthInsightRoutes() {
-  const source = [
-    readFileSync(insightsAdsenseReadySourcePath, "utf8"),
-    readFileSync(insightsSeoGrowthSourcePath, "utf8"),
-  ].join("\n");
-  const slugRegex = /slug:\s*["']([a-z0-9-]+)["']/g;
-  const seen = new Set();
-  const routes = [];
-
-  let match;
-  while ((match = slugRegex.exec(source)) !== null) {
-    const slug = String(match[1] || "").trim();
-    if (!slug || seen.has(slug)) continue;
-    seen.add(slug);
-    routes.push({ path: `/insights/${slug}`, changefreq: "monthly", priority: 0.74, lastmod: today });
   }
 
   return routes;
@@ -515,7 +506,6 @@ async function main() {
     ...buildI18nRouteEntries(),
     ...staticCanonicalRouteEntries,
     ...localInsights,
-    ...extractSeoGrowthInsightRoutes(),
     ...dynamicInsights,
     ...extractFamousSajuRoutes(),
     ...extractPsychotestRoutes(),
