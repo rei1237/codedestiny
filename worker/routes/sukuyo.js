@@ -1,6 +1,6 @@
 import { Solar } from "lunar-javascript";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { getOptionalUserFromRequest, requireAuth } from "../lib/auth.js";
+import { getOptionalUserFromRequest, requireAuth, resolvePaidRouteAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
 import { buildCanonicalSukuyoCompatibility, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
 import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
@@ -1434,6 +1434,11 @@ async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
   return profile;
 }
 
+/* 1년운 3개 라우트는 requireAuth 가 아니라 resolvePaidRouteAuth 를 쓴다(다른 유료 라우트 정본과 동일).
+   requireAuth 는 일시적 DB 장애를 status 없는 raw 에러로 던져 handleRouteError 가 code/retryable 없는
+   맨 503 + 영문 "Database is temporarily unavailable." 로 내보냈다 — 클라가 재시도할 근거가 없었다.
+   resolvePaidRouteAuth 는 진짜 게스트엔 null(→ 아래에서 한국어 401), infra 장애엔
+   HttpError(503, AUTH_STATUS_TEMPORARILY_UNAVAILABLE, retryable:true) 를 준다. */
 function requireSukuyoYearlyAuth(auth) {
   if (auth?.userId) return auth;
   const error = new Error("숙요점 1년운을 열려면 로그인이 필요합니다.");
@@ -1962,7 +1967,7 @@ async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} 
 }
 
 async function handleSukuyoYearlyFortune(request, env) {
-  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const url = new URL(request.url);
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
@@ -1991,7 +1996,7 @@ async function handleSukuyoYearlyFortune(request, env) {
 }
 
 async function handleSukuyoYearlyUnlock(request, env) {
-  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
@@ -2177,16 +2182,16 @@ async function findSukuyoYearlyPaymentEvidence(env, auth, profile, targetYear, b
   const contentKey = sukuyoYearlyContentKey(targetYear);
   const ids = collectSukuyoYearlyEvidenceIds(body);
   if (!ids.length) return null;
-  await connectDb(env);
   const evidenceOr = buildSukuyoYearlyEvidenceOr(ids);
   if (!evidenceOr.length) return null;
-  const pointHistory = await PointHistory.findOne({
+  // withMongoRetry 가 내부에서 connectDb 를 하므로 선행 connectDb 는 두지 않는다(resolveSukuyoYearlyProfile 과 동일).
+  const pointHistory = await withMongoRetry(env, () => PointHistory.findOne({
     userId: auth.userId,
     $and: [
       { $or: [{ featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY }, { "metadata.featureKey": SUKYO_YEARLY_FORTUNE_PRODUCT_KEY }] },
       { $or: evidenceOr },
     ],
-  }).lean();
+  }).lean());
   if (isSukuyoYearlyPointEvidence(pointHistory, { profileId: profile.profileId, contentKey, targetYear })) {
     return {
       source: CONTENT_ENTITLEMENT_SOURCES.COIN,
@@ -2195,10 +2200,10 @@ async function findSukuyoYearlyPaymentEvidence(env, auth, profile, targetYear, b
       coinAmount: Math.abs(Number(pointHistory?.delta || 0)) || SUKYO_YEARLY_FORTUNE_PRICE_COINS,
     };
   }
-  const payment = await Payment.findOne({
+  const payment = await withMongoRetry(env, () => Payment.findOne({
     userId: auth.userId,
     $or: evidenceOr,
-  }).lean();
+  }).lean());
   if (isSukuyoYearlyPaymentEvidence(payment, { profileId: profile.profileId, contentKey, targetYear })) {
     return {
       source: CONTENT_ENTITLEMENT_SOURCES.PAYMENT,
@@ -2210,9 +2215,11 @@ async function findSukuyoYearlyPaymentEvidence(env, auth, profile, targetYear, b
   return null;
 }
 
-async function upsertSukuyoYearlyUnlockFromEvidence({ auth, profile, targetYear, evidence }) {
+// content-unlocks.js 에는 자체 재시도가 없으므로(재시도는 호출부 규약) 여기서 감싸는 것이 정상이고 중첩이 아니다.
+// upsert 는 멱등이라 재시도해도 중복 해금이 생기지 않는다.
+async function upsertSukuyoYearlyUnlockFromEvidence({ env, auth, profile, targetYear, evidence }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
-  return upsertPaidContentUnlock({
+  return withMongoRetry(env, () => upsertPaidContentUnlock({
     userId: auth.userId,
     profileId: profile.profileId,
     featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
@@ -2222,7 +2229,7 @@ async function upsertSukuyoYearlyUnlockFromEvidence({ auth, profile, targetYear,
     orderId: evidence.orderId,
     paymentId: evidence.paymentId,
     coinAmount: evidence.coinAmount,
-  });
+  }));
 }
 
 export const __sukuyoYearlyTestUtils = {
@@ -2236,7 +2243,7 @@ export const __sukuyoYearlyTestUtils = {
 };
 
 async function handleSukuyoYearlyVerifyPayment(request, env) {
-  const auth = requireSukuyoYearlyAuth(await requireAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
@@ -2255,7 +2262,7 @@ async function handleSukuyoYearlyVerifyPayment(request, env) {
   }
   const evidence = await findSukuyoYearlyPaymentEvidence(env, auth, profile, targetYear, body);
   if (evidence) {
-    const unlock = await upsertSukuyoYearlyUnlockFromEvidence({ auth, profile, targetYear, evidence });
+    const unlock = await upsertSukuyoYearlyUnlockFromEvidence({ env, auth, profile, targetYear, evidence });
     return json({
       ok: true,
       alreadyUnlocked: false,
