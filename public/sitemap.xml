@@ -49,12 +49,6 @@
     <priority>0.95</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/astrology/cosmic/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.92</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/astrology/guide/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>monthly</changefreq>
@@ -1543,28 +1537,10 @@
     <priority>0.88</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/oracle/hwatu/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/juyuk/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/oracle/rune/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.86</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/oracle/sukuyo/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/physiognomy/</loc>
@@ -1681,12 +1657,6 @@
     <priority>0.90</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/saju/basic/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/saju/compatibility/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>weekly</changefreq>
@@ -1709,12 +1679,6 @@
     <lastmod>2026-07-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.80</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/saju/sibyl/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/saju/ten-gods/</loc>
@@ -1771,22 +1735,10 @@
     <priority>0.80</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/tarot/love/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/tarot/mindscan/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.94</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/tarot/mingri/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.93</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/tarot/numerology/</loc>
@@ -1799,18 +1751,6 @@
     <lastmod>2026-07-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.76</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/tarot/reunion/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.94</priority>
-  </url>
-  <url>
-    <loc>https://code-destiny.com/tarot/self-esteem/</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
   </url>
   <url>
     <loc>https://code-destiny.com/terms/</loc>
