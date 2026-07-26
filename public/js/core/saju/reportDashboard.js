@@ -1189,6 +1189,15 @@ function _sajuFunEnsureHealthReportRendered(targetEl) {
   return html.length >= 40 || text.length >= 20 || !!(area.children && area.children.length > 0);
 }
 
+/* 퀀텀 명리 엔진은 결과 계산 직후에는 스텁만 깔려 있다.
+   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 전체 판별을 돌린다. */
+function _sajuFunEnsureQuantumBlockReady(block) {
+  if (!block || block.id !== 'rpt-v2-section-quantumCard') return false;
+  if (window.__cdQuantumRendered) return true;
+  _sajuFunTryRecoverTargetCard('quantumCard');
+  return !!window.__cdQuantumRendered;
+}
+
 function _sajuFunEnsureHealthReportBlockReady(block) {
   if (!block || block.id !== 'rpt-v2-section-healthReportCard') return false;
   var targetEl = block.querySelector ? block.querySelector('#healthReportCard') : null;
@@ -1553,6 +1562,7 @@ function toggleReportFeatureCard(btn) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
       _sajuFunEnsureHealthReportBlockReady(block);
+      _sajuFunEnsureQuantumBlockReady(block);
       _sajuFunForceRevealFateScroll(block);
       _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);

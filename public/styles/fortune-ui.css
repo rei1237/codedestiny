@@ -4252,6 +4252,29 @@ button:active,.tog-btn:active,.feature-card:active{opacity:.82;transform:scale(.
 .qm-element-count b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#38bdf8,#22c55e,#f59e0b)}
 .qm-luck-gz{font-size:1.14rem;color:#e0f2fe;font-weight:950;margin-bottom:8px;font-family:serif}
 .qm-luck-note{font-size:.72rem;color:#b6c9d8;margin-top:9px}
+/* ─ 원국 정밀 분석 확장 ─ */
+.qm-fold{border:0;padding:0}
+.qm-fold>summary{cursor:pointer;list-style:none;user-select:none}
+.qm-fold>summary::-webkit-details-marker{display:none}
+.qm-fold>summary::after{content:'▾';margin-left:auto;color:#7dd3fc;font-size:.8rem;transition:transform .2s}
+.qm-fold[open]>summary::after{transform:rotate(180deg)}
+.qm-fold>summary:focus-visible{outline:2px solid rgba(125,211,252,.7);outline-offset:2px;border-radius:6px}
+.qm-janggan-stack{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.qm-janggan-stack .qm-el-chip{justify-content:flex-start;font-size:.68rem;padding:4px 8px}
+.qm-pillar-card--gongmang{border-color:rgba(244,63,94,.34);background:linear-gradient(145deg,rgba(76,5,25,.34),rgba(15,23,42,.62))}
+.qm-luck-grid--timeline{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.qm-luck-card--current{border-color:rgba(125,211,252,.55);box-shadow:0 0 0 1px rgba(125,211,252,.22),0 10px 24px -18px rgba(56,189,248,.8)}
+.qm-flow-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.qm-flow-cell{min-width:0;background:linear-gradient(145deg,rgba(2,6,23,.76),rgba(15,23,42,.62));border:1px solid rgba(148,163,184,.2);border-radius:8px;padding:9px 10px}
+.qm-flow-cell--current{border-color:rgba(250,204,21,.5);box-shadow:0 0 0 1px rgba(250,204,21,.18)}
+.qm-flow-head{font-size:.66rem;color:#7dd3fc;font-weight:900;letter-spacing:.03em;word-break:keep-all}
+.qm-flow-gz{font-size:1.02rem;color:#e0f2fe;font-weight:950;font-family:serif;margin:5px 0 4px}
+.qm-flow-grade{font-size:.7rem;color:#d8e6f2;line-height:1.45;word-break:keep-all}
+.qm-flow-bar{height:4px;border-radius:999px;background:rgba(148,163,184,.16);overflow:hidden;margin-top:6px}
+.qm-flow-bar b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#38bdf8,#22c55e,#f59e0b)}
+.qm-flow-meta{font-size:.64rem;color:#94a3b8;margin-top:5px;word-break:keep-all}
+@media(max-width:560px){.qm-flow-grid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}.qm-luck-grid--timeline{grid-template-columns:repeat(auto-fill,minmax(132px,1fr))}}
+
 /* NEO mode override */
 body.neo-mode .qm-wrap{border-color:rgba(250,204,21,.22)!important;box-shadow:0 18px 48px rgba(0,0,0,.72),inset 0 1px 0 rgba(250,204,21,.08)!important}
 @media(max-width:900px){.qm-summary-grid,.qm-element-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.qm-pillar-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
