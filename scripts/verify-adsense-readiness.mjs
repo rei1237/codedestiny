@@ -240,8 +240,6 @@ const xRobotsNoindexHeaderPatterns = [
   "/oracle/hwatu/*",
   // 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
   // canonical/robots meta 없이 홈 타일에서 직접 링크되던 것들이다.
-  "/destiny-compass",
-  "/destiny-compass/*",
   "/neo-operation-room",
   "/neo-operation-room/*",
   "/tadagochi",

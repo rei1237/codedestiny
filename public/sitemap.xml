@@ -79,6 +79,12 @@
     <priority>0.97</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/destiny-compass/</loc>
+    <lastmod>2026-07-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/disclaimer/</loc>
     <lastmod>2026-07-26</lastmod>
     <changefreq>yearly</changefreq>
