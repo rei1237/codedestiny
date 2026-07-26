@@ -27326,8 +27326,8 @@ function updateBadge() {
     if (tileCoinCost <= 0 || !action || action === 'unlockPremiumFeature') return;
     // 직접 호출 승인 상태면 그냥 통과 (직접 탐색 중이므로 플래그 정리)
     if (perUseApproved[action]) { delete perUseApproved[action]; return; }
-    // .tarot-tile / .lifebook-tile / .lovebible-tile / .prem-card는 Preview 패널 우선 시도
-    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.getAttribute('data-pvw-cta-bypass')) {
+    // .tarot-tile / .lifebook-tile / .lovebible-tile / .rpt-v2-toggle-btn / .prem-card는 Preview 패널 우선 시도
+    if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('rpt-v2-toggle-btn')) && !actionNode.getAttribute('data-pvw-cta-bypass')) {
       var _pvwHandled = false;
       try {
         if (typeof window._cdOpenTilePreview === 'function') {
@@ -27422,9 +27422,9 @@ function updateBadge() {
     }
     if (tileCoinCost > 0 && action !== 'unlockPremiumFeature') {
       if (!perUseApproved[action]) {
-        // .tarot-tile / .lifebook-tile / .lovebible-tile 직접 클릭은 Preview 패널 우선 시도
+        // .tarot-tile / .lifebook-tile / .lovebible-tile / .rpt-v2-toggle-btn 직접 클릭은 Preview 패널 우선 시도
         // Preview 미연동 시 결제 게이트로 즉시 폴백
-        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-cta-bypass')) {
+        if ((actionNode.classList.contains('tarot-tile') || actionNode.classList.contains('lifebook-tile') || actionNode.classList.contains('lovebible-tile') || actionNode.classList.contains('rpt-v2-toggle-btn')) && !actionNode.classList.contains('prem-card') && !actionNode.getAttribute('data-pvw-cta-bypass')) {
           var _clickPreviewHandled = false;
           try {
             if (typeof window._cdOpenTilePreview === 'function') {
@@ -27452,10 +27452,19 @@ function updateBadge() {
     var tileLockKey = actionNode.getAttribute('data-tile-lock-key');
     var tileLockCost = Number(actionNode.getAttribute('data-tile-lock-cost') || 0);
     if (tileLockKey && tileLockCost > 0 && !isTileKeyUnlocked(tileLockKey)) {
-      // .tarot-tile 직접 클릭이고 pvw-bypass 없으면 Preview 패널이 먼저 처리
-      if (actionNode.classList.contains('tarot-tile') && !actionNode.getAttribute('data-pvw-cta-bypass')) {
-        // Preview 인터셉터로 위임 (이벤트 계속 전파)
-      } else {
+      // 잠금 타일은 클래스 종류와 무관하게 기능 상세 팝업이 먼저 뜬다. 결제는 팝업 CTA(_onCta)가
+      // data-pvw-cta-bypass 를 달고 재클릭할 때만 진행된다.
+      // 예전엔 여기가 `.tarot-tile` 클래스 검사 + 이벤트 흘려보내기(프리뷰 인터셉터가 뒤에서 잡기)였다.
+      // 그래서 ① 클래스가 다른 재밌는 사주 콘텐츠 버튼(.rpt-v2-toggle-btn)은 팝업 없이 결제로 직행했고
+      // ② 동작이 "리스너 등록 순서"에 의존했다. 클래스 기반 카브아웃으로 되돌리지 말 것.
+      if (!actionNode.getAttribute('data-pvw-cta-bypass') && typeof window._cdOpenTilePreview === 'function') {
+        var _lockPvwHandled = false;
+        try { _lockPvwHandled = !!window._cdOpenTilePreview(actionNode); } catch (_) { _lockPvwHandled = false; }
+        if (_lockPvwHandled) {
+          _cdSafeBlockEvent(event);
+          return;
+        }
+      }
       _cdSafeBlockEvent(event);
       var _tileLockGateFeature = _cdPaidFeatureKey(action, tileLockKey);
       var _tileLockExisting = _cdPaidFeatureInFlight[_tileLockGateFeature];
@@ -27757,11 +27766,23 @@ function updateBadge() {
         }
       })();
       return;
-      } // else: pvw-bypass 없을 때만 해금 진행
     } // if tileLockKey
 
     // 프리미엄 리포트 카드 버튼 직접 처리
     if (action === 'toggleRptCard') {
+      // 해금 상태에서도 기능 상세 팝업이 먼저다. 팝업을 열었으면 여기서 토글하지 않는다.
+      if (!actionNode.getAttribute('data-pvw-cta-bypass') && typeof window._cdOpenTilePreview === 'function') {
+        var _rptPvwHandled = false;
+        try { _rptPvwHandled = !!window._cdOpenTilePreview(actionNode); } catch (_) { _rptPvwHandled = false; }
+        if (_rptPvwHandled) {
+          _cdSafeBlockEvent(event);
+          return;
+        }
+      }
+      // _cdSafeBlockEvent 는 생략 금지: 빼면 같은 클릭이 프리뷰 인터셉터(캡처)에도 도달해
+      // 카드가 팝업 뒤에서 펼쳐지고, CTA 의 재클릭이 그 카드를 도로 닫는다
+      // (= '결과 보러가기를 눌러도 안 열림 / 열렸다 닫힘' 재발 원인).
+      _cdSafeBlockEvent(event);
       if (typeof window.toggleReportFeatureCard === 'function') window.toggleReportFeatureCard(actionNode);
       return;
     }
