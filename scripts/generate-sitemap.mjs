@@ -20,6 +20,11 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+// 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
+// noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
+const excludedExactSitemapPaths = new Set([
+  "/ifa-oracle.html",
+]);
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
@@ -52,6 +57,9 @@ const noindexPathPrefixes = [
   "/oracle/sukuyo",
   "/oracle/juyuk",
   "/oracle/hwatu",
+  "/destiny-compass",
+  "/neo-operation-room",
+  "/tadagochi",
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",
@@ -419,6 +427,7 @@ function normalizeSitemapPath(pathname) {
 function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
+  if (excludedExactSitemapPaths.has(normalized)) return false;
   if (noindexPathPrefixes.some((prefix) => normalized.startsWith(`${prefix}/`))) return false;
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
