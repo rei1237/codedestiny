@@ -215,6 +215,29 @@ const xRobotsNoindexHeaderPatterns = [
   "/fortune",
   "/fortune/sikojen-povailu",
   "/fortune/sikojen-povailu/*",
+  // 정적 셸 사본 라우트: 본문이 루트 index.html 과 99.9% 동일(페이지당 고유 8~12자).
+  // out 에는 Next 가 만든 별개 페이지가, dist 에는 셸 사본이 있어 HTML meta 만으로는
+  // 양쪽을 동시에 만족시킬 수 없다. 경로 기반인 X-Robots-Tag 가 유일한 레버.
+  "/saju/basic",
+  "/saju/basic/*",
+  "/saju/sibyl",
+  "/saju/sibyl/*",
+  "/tarot/mingri",
+  "/tarot/mingri/*",
+  "/tarot/love",
+  "/tarot/love/*",
+  "/tarot/reunion",
+  "/tarot/reunion/*",
+  "/tarot/self-esteem",
+  "/tarot/self-esteem/*",
+  "/astrology/cosmic",
+  "/astrology/cosmic/*",
+  "/oracle/sukuyo",
+  "/oracle/sukuyo/*",
+  "/oracle/juyuk",
+  "/oracle/juyuk/*",
+  "/oracle/hwatu",
+  "/oracle/hwatu/*",
 ];
 
 const sitemapRequiredRoutes = [

@@ -40,6 +40,18 @@ const noindexPathPrefixes = [
   "/tarot/year",
   "/tarot/healing",
   "/ziwei/chart",
+  // 정적 셸 사본 라우트(writeStaticShellCanonicalRoutes 산출물) — 본문이 루트
+  // index.html 과 99.9% 동일하다. 기능은 유지하고 색인만 막으므로 사이트맵에서도 뺀다.
+  "/saju/basic",
+  "/saju/sibyl",
+  "/tarot/mingri",
+  "/tarot/love",
+  "/tarot/reunion",
+  "/tarot/self-esteem",
+  "/astrology/cosmic",
+  "/oracle/sukuyo",
+  "/oracle/juyuk",
+  "/oracle/hwatu",
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",
