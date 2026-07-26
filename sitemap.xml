@@ -439,12 +439,6 @@
     <priority>0.72</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/ifa-oracle.html</loc>
-    <lastmod>2026-07-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.90</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/insights/</loc>
     <xhtml:link rel="alternate" hreflang="ko" href="https://code-destiny.com/insights/" />
     <xhtml:link rel="alternate" hreflang="ko-KR" href="https://code-destiny.com/insights/" />

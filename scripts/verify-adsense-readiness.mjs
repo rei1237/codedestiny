@@ -238,6 +238,28 @@ const xRobotsNoindexHeaderPatterns = [
   "/oracle/juyuk/*",
   "/oracle/hwatu",
   "/oracle/hwatu/*",
+  // 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
+  // canonical/robots meta 없이 홈 타일에서 직접 링크되던 것들이다.
+  "/destiny-compass",
+  "/destiny-compass/*",
+  "/neo-operation-room",
+  "/neo-operation-room/*",
+  "/tadagochi",
+  "/tadagochi/*",
+  "/blood-type-app.html",
+  "/celestial-harmony.html",
+  "/cosmic-soul-meditation.html",
+  "/destiny-poker.html",
+  "/emoi_omikuji_v2.html",
+  "/fortune-teller-fish.html",
+  "/geomancy-oracle-v4.html",
+  "/ifa-oracle.html",
+  "/ifa-oracle-about.html",
+  "/neville-meditation.html",
+  "/royal-tea-oracle.html",
+  "/tadagochi.html",
+  "/tarot-ijik.html",
+  "/yoga-guru.html",
 ];
 
 const sitemapRequiredRoutes = [
