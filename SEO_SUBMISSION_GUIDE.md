@@ -2,11 +2,14 @@
 
 > 2026-07-04 SEO 정비 작업 기준. 배포(`deploy:cf:pages` + `deploy:cf:worker`) **완료 후** 아래 순서대로 진행하세요.
 >
-> 이 사이트의 사이트맵은 2개입니다:
-> - `https://code-destiny.com/sitemap.xml` — 정적 종합 사이트맵 (홈·기능 랜딩·인사이트 시드 글 등 248 URL, 빌드마다 자동 재생성)
-> - `https://code-destiny.com/sitemap-insights.xml` — Worker가 MongoDB 인사이트 글로 동적 생성 (관리자 신규 발행분)
+> 이 사이트의 사이트맵은 **`https://code-destiny.com/sitemap.xml` 하나뿐**입니다.
+> `scripts/generate-sitemap.mjs`가 만들어 커밋하는 정적 파일이며, 배포 게이트
+> (`scripts/verify-adsense-readiness.mjs`)가 이 파일만 품질 검사합니다.
 >
-> 두 개 모두 각 콘솔에 제출해야 합니다.
+> `sitemap-insights.xml`은 **더 이상 존재하지 않습니다**(2026-07 제거). Pages `_worker.js`의
+> `DYNAMIC_FEED_PATHS`에 그 경로가 없어 항상 404였고, 워커 동적 피드에는 페이지가 없는
+> 슬러그가 섞여 있어 사이트맵에 병합하면 죽은 URL이 색인 대상으로 올라갑니다.
+> 관리자 신규 발행분은 `npm run sitemap:generate` → 커밋 경로로 사이트맵에 반영하세요.
 
 ---
 
@@ -37,10 +40,9 @@
 3. 커밋 → 배포 → GSC에서 "확인"
 
 ### 1-3. 사이트맵 제출
-GSC → 색인 생성 → Sitemaps에서 아래 두 개를 각각 제출:
+GSC → 색인 생성 → Sitemaps에서 아래 하나를 제출:
 ```
 https://code-destiny.com/sitemap.xml
-https://code-destiny.com/sitemap-insights.xml
 ```
 
 ### 1-4. 색인 요청
@@ -61,11 +63,11 @@ https://code-destiny.com/sitemap-insights.xml
 3. www 별칭(`www.code-destiny.com`)도 등록해 두면 통합 리포트에 유리
 
 ### 2-2. 사이트맵 · RSS 제출
-- 요청 → 사이트맵 제출: `https://code-destiny.com/sitemap.xml`, `https://code-destiny.com/sitemap-insights.xml`
+- 요청 → 사이트맵 제출: `https://code-destiny.com/sitemap.xml`
 - 요청 → RSS 제출: `https://code-destiny.com/rss.xml` (인사이트 최신 글 피드 — 네이버는 RSS를 적극 수집하므로 꼭 제출)
 
 ### 2-3. robots.txt 확인
-검증 → robots.txt에서 수집 가능 여부 확인. 현재 `robots.txt`는 `Allow: /` + 관리자/결제 경로 차단 + 사이트맵 2개 명시 상태로 정상이어야 합니다.
+검증 → robots.txt에서 수집 가능 여부 확인. 현재 `robots.txt`는 `Allow: /` + 관리자/결제 경로 차단 + 사이트맵 1개(`/sitemap.xml`) 명시 상태로 정상이어야 합니다.
 
 ### 2-4. "꿀꿀 운세" 브랜드 검색 노출 개선 팁
 - **웹마스터 도구 → 요청 → 웹 페이지 수집**에서 홈 URL 수동 수집 요청 (브랜드 변경 후 재수집 유도)
@@ -80,7 +82,7 @@ https://code-destiny.com/sitemap-insights.xml
 1. [bing.com/webmasters](https://www.bing.com/webmasters) 로그인
 2. **"GSC에서 가져오기(Import from Google Search Console)"** 클릭 → Google 계정 연동 → 속성 선택
    - 인증·사이트맵이 GSC 설정 그대로 복사되므로 별도 메타태그 불필요
-3. 가져오기가 안 될 경우 수동 등록 후 사이트맵 2개 제출
+3. 가져오기가 안 될 경우 수동 등록 후 사이트맵 제출
 
 ---
 
@@ -114,13 +116,13 @@ https://code-destiny.com/sitemap-insights.xml
 #    → <loc>에 /saju/, /tarot/ 등 랜딩이 보여야 정상. insights만 보이면 Worker/_routes 배포 누락
 curl.exe -s https://code-destiny.com/sitemap.xml | Select-String -Pattern "/saju/" -SimpleMatch | Select-Object -First 3
 
-# 2) Worker 인사이트 사이트맵
-curl.exe -s -o NUL -w "%{http_code}" https://code-destiny.com/sitemap-insights.xml   # 200 기대
+# 2) robots.txt 가 존재하지 않는 사이트맵을 선언하지 않는지 (404 선언은 GSC 가져오기 실패 원인)
+curl.exe -s https://code-destiny.com/robots.txt | Select-String -Pattern "sitemap-insights" -SimpleMatch  # 결과 없음 기대
 
 # 3) OG 이미지 (이전에 404였음 — 반드시 확인)
 curl.exe -s -o NUL -w "%{http_code}" https://code-destiny.com/og/code-destiny-og.png  # 200 기대
 
-# 4) robots.txt에 사이트맵 2줄
+# 4) robots.txt에 사이트맵 1줄(/sitemap.xml)
 curl.exe -s https://code-destiny.com/robots.txt
 
 # 5) 레포 내장 SEO 헬스체크

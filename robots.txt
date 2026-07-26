@@ -35,4 +35,3 @@ Disallow: /*?auth=
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
-Sitemap: https://code-destiny.com/sitemap-insights.xml
