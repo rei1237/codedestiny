@@ -47,16 +47,16 @@
 - **결제 계층 위치**: PortOne 서명·멱등·환불을 포함한 결제 검증은 **Cloudflare Worker(`worker/routes/profile.js`)에만 존재**. 레거시 Express(`server/routes/profile.routes.js`)의 프로필 추가/삭제 라우트는 결제 계층이 없어 **위임 응답(410 `USE_WORKER_PROFILE_ENDPOINT`)으로 차단**되어 있다.
 - **UI**: 추가/삭제 모달에 "5,000원 단건결제 / 월정석" 2개 결제수단만 노출(`app/me/MeClient.tsx`).
 
-## E. 음악 트랙 전체듣기 (재생 = 이용권 커버 / 다운로드 = 구매 한정) — 2026-07-22 개정
+## E. 음악 트랙 — 재생 무료 · 다운로드 유료 (UX 게이트) — 2026-07 개정
 
-- **정의**: 달빛 음악실(`/music`)의 잠금곡. 곡당 **3코인(300원)** 이며 `featureKey`가 `music-track-<hash>`로 **동적 생성**된다(`lib/music-access-policy.js`의 `buildMusicTrackFeatureKey`). 가격표는 레지스트리 테이블이 아니라 `worker/lib/billing-feature-registry.js`가 `resolveMusicTrackUnlockPricing`으로 즉석 생성한다.
-- **재생(스트리밍)**: **A 유형(잠금 콘텐츠)** 과 동일 — 이용권 보유 시 **전 등급(standard/premium/vvip/family) 전곡 무료**, 미보유 시 단건결제/월정석으로 영구 해금. 곡값 3코인이 최저 등급 한도(standard 30코인)보다 낮아 등급별 특례 분기 없이 `canUseByPass`가 자연히 커버한다.
-  - **곡별 확인 없음**: `/api/music/access`가 응답에 `passCoversAll`을 실어주고, 프론트(`app/music/MusicPlayerExample.tsx`)는 이 플래그 하나로 전곡을 즉시 재생 가능 상태로 표시한다. 곡마다 접근 확인을 반복하지 않는다.
-  - **이용권 만료 시 재잠금**: 이용권 커버는 기간형이라 만료되면 40초 미리듣기로 돌아간다. 단건결제·월정석으로 실제 구매한 곡만 영구 해금으로 남는다.
-- **다운로드(MP3 파일)**: **이용권 결제 불가** — D 유형과 같은 pass 제외 성격이다. 단건결제(`single_purchase`) 또는 월정석으로 **실제 구매한 곡만** 파일을 받을 수 있다. 판정 정본은 결제 결정이 아니라 `worker/routes/music.js`가 `canAccessPaidFeature`의 `licenseType`으로 한다 — `license`/`license_pass`/`monthly_subscription`(=구매가 아닌 커버)이면 `canDownload: false`이고 `/api/music/download`는 402 `DOWNLOAD_PURCHASE_REQUIRED`를 반환한다.
-  - 프론트는 이 경우 다운로드 버튼 대신 "다운로드 구매" 버튼을 띄우고, **그 결제만** 이용권 선검사를 건너뛰고 곧바로 결제창(단건/월정석 동등)을 연다.
-- **미리듣기**: 미결제 사용자에게 40초(`MUSIC_PREVIEW_LIMIT_SECONDS`) 바이트 제한 클립을 제공한다. 이 클립은 비로그인에게도 동일하게 나가는 공개 자산이라, `/api/music/audio?...&mode=preview`는 **인증·접근 판정 없이** 곧바로 서빙되고 공개 캐시(`Cache-Control: public, max-age=3600`)를 허용한다.
-- **회귀 가드**: `scripts/verify-billing-pass-policy.mjs`(전 tier 이용권 커버 + 미보유 시 단건/월정석 동등 노출).
+- **정책**: 달빛 음악실(`/music`)의 **전곡 재생은 무료**(free_full, 직접 CDN 스트리밍)로 열되, **MP3 다운로드는 곡당 300원(3코인) UNLOCK 구매**를 요구한다. 이용권/월정구독 커버는 재생권일 뿐 다운로드를 열지 않는다(실제 구매=단건결제·월정석만). 원본 MP3가 공개 R2 버킷(`music.code-destiny.com`)에 있어 다운로드 게이트는 하드 DRM이 아닌 **결제 UX 게이트**다(고급 사용자는 공개 URL 우회 가능 — 종전과 동일).
+- **재생 지연 수정(핵심)**: 과거 `free_full`이어도 `MusicPlayerExample.tsx`의 `buildPlaybackTrack`이 재생 URL을 워커 프록시(`/api/music/audio`)로 재작성해 `클라→워커→R2→워커` 왕복이 배가됐다. `buildPlaybackTrack`이 `free_full` 트랙을 **매니페스트 CDN 직결 URL 그대로 반환**하도록 고쳐(조기 반환) 프록시 홉을 제거했다.
+- **정본 레버**: `lib/music-access-policy.js`의 `MUSIC_DOWNLOAD_REQUIRES_PURCHASE`(단일 스위치). `true`면 `getMusicTrackAccessPolicy`가 `free_full` 트랙에도 다운로드 구매 필드(`downloadRequiresPurchase`/`purchaseFeatureKey`/`priceKRW`/`coinCost`)를 노출한다. `false`로 두면 재생·다운로드 모두 무료(2026-07-25 전곡 무료 정책)로 복귀 — 되돌리기 1줄.
+  - **재생**: `audioUrl = buildMusicPublicUrl(...)` **직접 CDN URL**(hasFreeFullAccess=true), 미리듣기 컷 없음.
+  - **다운로드**: `worker/routes/music.js`의 `resolveTrackPlan`이 다운로드 게이트 트랙을 `freeFullPlayback` 플랜으로 판정 경로에 태워, `buildLockedTrackEntry`에서 **재생(hasFullAccess=항상 true)과 다운로드(canDownload=실제 구매만)를 분리**한다. 미구매 다운로드는 `/api/music/download`에서 402(`DOWNLOAD_PURCHASE_REQUIRED`).
+  - **프론트 게이트**: `canDownloadTrack`이 `downloadRequiresPurchase` 트랙은 서버 확인 `canDownload`에만 허용. `refreshMusicAccess`가 잠금곡 + 다운로드 게이트 트랙을 배치 조회(로그인 사용자, Mongo 왕복 2회)해 곡별 다운로드 권한을 복원한다. 구매는 기존 `handlePurchaseCurrentTrack`(다운로드 전용 = `direct`+`monthly`, 이용권 선검사 스킵) 재사용.
+- **과거 구매/이용권**: 구매한 곡은 `canDownload`로 다운로드 유지, 이용권은 재생만 커버. 환불·마이그레이션 불필요.
+- **회귀 가드**: `__tests__/worker/music.pass-access-policy.test.js`(재생 무료 / 미구매·이용권=다운로드 잠금·402 / 구매=다운로드 통과 / 다운로드 게이트 트랙은 배치 호출).
 
 ## 신규 기능 추가 시 체크리스트
 
@@ -64,5 +64,5 @@
 2. 매번 새로 생성되는 개인화 리딩/AI 상담인가? → **B. 회당 결제**
 3. 유료 레지스트리에 등록하지 않아도 되는 기본 기능인가? → **C. 무료**
 4. 프로필 카드 추가/삭제처럼 건당 고정 관리 수수료(이용권 결제 불가)인가? → **D. 프로필 카드 추가/삭제**
-5. 재생/열람은 이용권으로 열리지만 파일 반출만 구매가 필요한가? → **E. 음악 트랙**
+5. 음악실(`/music`) 트랙인가? → **E. 음악 트랙 (재생 무료 · 다운로드 유료 UNLOCK)**
 6. 가격 표시는 항상 원화(추후 현지 통화)로 — [1부 코인 표시 규칙](payment-policy-overview.md#2-코인레거시-내부-단위-표시-규칙) 참고

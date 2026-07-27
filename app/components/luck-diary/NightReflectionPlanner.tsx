@@ -324,7 +324,7 @@ export default function NightReflectionPlanner() {
               disabled={loadingCoach}
               className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1.5 text-xs font-black text-sky-700 transition hover:bg-sky-100 disabled:opacity-60"
             >
-              {loadingCoach ? '분석 중...' : 'AI 코칭 생성'}
+              {loadingCoach ? '분석 중...' : '전문가 코칭 생성'}
             </button>
           </div>
           <div
@@ -334,7 +334,7 @@ export default function NightReflectionPlanner() {
           >
             {loadingCoach && '실천 데이터를 분석하고 개운 설계 문장을 만들고 있어요...'}
             {!loadingCoach && coachLines.length === 0 &&
-              '실천 체크와 메모를 입력한 뒤 AI 코칭 생성 버튼을 눌러주세요. 내일의 운 흐름에 맞춘 설계를 제안합니다.'}
+              '실천 체크와 메모를 입력한 뒤 전문가 코칭 생성 버튼을 눌러주세요. 내일의 운 흐름에 맞춘 설계를 제안합니다.'}
             {!loadingCoach && coachLines.length > 0 && (
               <ul className="space-y-1">
                 {coachLines.map((line) => (

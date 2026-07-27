@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import {
@@ -26,6 +26,8 @@ const RESULT = "/api/ziwei-island-ai/result";
 type Gender = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
 type Phase = "hub" | "form" | "checking" | "payment" | "reading" | "ready";
+type SeedLike = { name?: string; gender?: string; birthDate?: string; birthTime?: string; birthTimeUnknown?: boolean; calendarType?: string; isLeapMonth?: boolean };
+function calLabel(f: { calendarType: CalendarType; isLeapMonth: boolean }) { return f.calendarType === "lunar" ? (f.isLeapMonth ? "윤달" : "음력") : "양력"; }
 
 interface Palace {
   name: string; title: string; icon: string; theme: string;
@@ -56,7 +58,7 @@ const ERROR_TEXT: Record<string, string> = {
   INVALID_INPUT: "상담에 필요한 정보가 부족해요. 생년월일·성별·출생시간을 다시 확인해 주세요.",
   CALCULATION_FAILED: "명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  LLM_ERROR: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  LLM_ERROR: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 };
 
 type ApiResult = {
@@ -147,26 +149,55 @@ export default function IslandConsultClient() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [result, setResult] = useState<ApiResult["consultation"] | null>(null);
+  const [birthEditing, setBirthEditing] = useState(false);
   const busyRef = useRef(false);
+  const formTouchedRef = useRef(false);
+  const seedAppliedRef = useRef(false);
 
-  // 프로필 시드 프리필 + ?palace= 진입
+  const { seed: profileSeed, seedVersion } = useAiProfileSeed();
+
+  // 사용자가 생년 정보를 직접 만지면 시드 자동반영 중단(빈 값만 채우는 원칙)
+  function patchForm(patch: Partial<typeof form>) { formTouchedRef.current = true; setForm((f) => ({ ...f, ...patch })); }
+
+  // 프로필 카드/섬 핸드오프 시드를 폼에 채움. 개별 필드 독립 적용(부분 등록 대응), 사용자 편집값 미덮어씀.
+  function applySeedToForm(seed: SeedLike | null, force = false) {
+    if (!seed) return;
+    if (!force && formTouchedRef.current) return;
+    setForm((f) => ({
+      ...f,
+      name: seed.name || f.name,
+      gender: (seed.gender === "male" || seed.gender === "female" || seed.gender === "unknown") ? seed.gender as Gender : f.gender,
+      birthDate: seed.birthDate || f.birthDate,
+      birthTimeUnknown: seed.birthTimeUnknown ?? f.birthTimeUnknown,
+      birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
+      calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
+      isLeapMonth: seed.calendarType === "lunar" ? (seed.isLeapMonth ?? f.isLeapMonth) : false,
+    }));
+  }
+
+  // 마운트: 섬에서 넘어온 명반 시드(우선) + ?palace= 진입
   useEffect(() => {
     try {
-      const seed = readAiProfileSeed();
-      if (seed) setForm((f) => ({
-        ...f,
-        name: seed.name || f.name,
-        gender: (seed.gender === "male" || seed.gender === "female" || seed.gender === "unknown") ? seed.gender : f.gender,
-        birthDate: seed.birthDate || f.birthDate,
-        birthTimeUnknown: seed.birthTimeUnknown ?? f.birthTimeUnknown,
-        birthTime: seed.birthTimeUnknown ? "" : (seed.birthTime || f.birthTime),
-        calendarType: (seed.calendarType === "lunar" ? "lunar" : "solar"),
-      }));
+      const raw = sessionStorage.getItem("cdIslandConsultSeed");
+      if (raw) {
+        sessionStorage.removeItem("cdIslandConsultSeed");
+        const handoff = JSON.parse(raw) as SeedLike;
+        if (handoff && handoff.birthDate) { applySeedToForm(handoff, true); seedAppliedRef.current = true; }
+      }
       const q = new URLSearchParams(window.location.search).get("palace") || "";
       const found = PALACES.find((p) => p.name === q);
       if (found) { setPalace(found); setPhase("form"); }
     } catch { /* noop */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 프로필 카드 시드가 늦게 도착해도 사용자 입력 전이면 반영(핸드오프가 이미 있으면 스킵)
+  useEffect(() => {
+    if (seedAppliedRef.current || !profileSeed) return;
+    if (profileSeed.birthDate) seedAppliedRef.current = true;
+    applySeedToForm(profileSeed);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seedVersion, profileSeed]);
 
   function pickPalace(p: Palace) { setPalace(p); setError(""); setPhase("form"); }
 
@@ -258,9 +289,14 @@ export default function IslandConsultClient() {
     }
   }
 
+  const validBirth = /^\d{4}-\d{2}-\d{2}$/.test(form.birthDate);
+  const birthComplete = validBirth && !!form.gender && (form.birthTimeUnknown || /^\d{2}:\d{2}$/.test(form.birthTime));
+  const showBirthConfirm = birthComplete && !birthEditing;
+
   return (
     <div className="ic-root">
       <style>{CSS}</style>
+      <div className="ic-topbar"><a className="ic-topbar__back" href="/destiny-island" aria-label="운명의 섬 지도로 돌아가기">← 운명의 섬</a></div>
       <header className="ic-head">
         <div className="ic-avatars" aria-hidden="true">
           <span className="ic-av ic-av--yeon"><Image src={YEON_AV} alt="" width={72} height={72} unoptimized /></span>
@@ -290,21 +326,39 @@ export default function IslandConsultClient() {
       {phase === "form" && palace && (
         <form className="ic-form" onSubmit={startConsult}>
           <div className="ic-picked"><span aria-hidden="true">{palace.icon}</span> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
-          <label className="ic-field"><span>생년월일</span><input type="date" value={form.birthDate} min="1900-01-01" max="2100-12-31" onChange={(e) => setForm({ ...form, birthDate: e.target.value })} required /></label>
-          <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => setForm({ ...form, birthTime: e.target.value })} /></label>
-          <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => setForm({ ...form, birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
-          <div className="ic-segrow">
-            <div className="ic-seg" role="group" aria-label="성별">
-              <button type="button" className={form.gender === "female" ? "on" : ""} onClick={() => setForm({ ...form, gender: "female" })}>여성</button>
-              <button type="button" className={form.gender === "male" ? "on" : ""} onClick={() => setForm({ ...form, gender: "male" })}>남성</button>
+          {showBirthConfirm ? (
+            <div className="ic-confirm">
+              <div className="ic-confirm__head">
+                <span className="ic-confirm__badge">✓ 내 프로필 명반</span>
+                <button type="button" className="ic-change" onClick={() => setBirthEditing(true)}>정보 변경</button>
+              </div>
+              <dl className="ic-confirm__dl">
+                <div><dt>생년월일</dt><dd>{calLabel(form)} {form.birthDate.replace(/-/g, ".")}</dd></div>
+                <div><dt>태어난 시각</dt><dd>{form.birthTimeUnknown ? "모름 (정오 기준)" : (form.birthTime || "—")}</dd></div>
+                <div><dt>성별</dt><dd>{form.gender === "male" ? "남성" : form.gender === "female" ? "여성" : "—"}</dd></div>
+              </dl>
+              <p className="ic-confirm__note">프로필 카드에서 자동으로 불러왔어요. 이대로 상담을 시작할 수 있어요.</p>
             </div>
-            <div className="ic-seg" role="group" aria-label="달력">
-              <button type="button" className={form.calendarType === "solar" ? "on" : ""} onClick={() => setForm({ ...form, calendarType: "solar" })}>양력</button>
-              <button type="button" className={form.calendarType === "lunar" ? "on" : ""} onClick={() => setForm({ ...form, calendarType: "lunar" })}>음력</button>
-            </div>
-          </div>
-          {form.calendarType === "lunar" && (
-            <label className="ic-check"><input type="checkbox" checked={form.isLeapMonth} onChange={(e) => setForm({ ...form, isLeapMonth: e.target.checked })} /> 윤달이에요</label>
+          ) : (
+            <>
+              <label className="ic-field"><span>생년월일</span><input type="date" value={form.birthDate} min="1900-01-01" max="2100-12-31" onChange={(e) => patchForm({ birthDate: e.target.value })} required /></label>
+              <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
+              <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
+              <div className="ic-segrow">
+                <div className="ic-seg" role="group" aria-label="성별">
+                  <button type="button" className={form.gender === "female" ? "on" : ""} onClick={() => patchForm({ gender: "female" })}>여성</button>
+                  <button type="button" className={form.gender === "male" ? "on" : ""} onClick={() => patchForm({ gender: "male" })}>남성</button>
+                </div>
+                <div className="ic-seg" role="group" aria-label="달력">
+                  <button type="button" className={form.calendarType === "solar" ? "on" : ""} onClick={() => patchForm({ calendarType: "solar" })}>양력</button>
+                  <button type="button" className={form.calendarType === "lunar" ? "on" : ""} onClick={() => patchForm({ calendarType: "lunar" })}>음력</button>
+                </div>
+              </div>
+              {form.calendarType === "lunar" && (
+                <label className="ic-check"><input type="checkbox" checked={form.isLeapMonth} onChange={(e) => patchForm({ isLeapMonth: e.target.checked })} /> 윤달이에요</label>
+              )}
+              {birthComplete && <button type="button" className="ic-change ic-change--done" onClick={() => setBirthEditing(false)}>✓ 이 정보로 확인</button>}
+            </>
           )}
           <label className="ic-field"><span>이 궁에 묻고 싶은 것 (선택)</span><textarea value={form.question} maxLength={400} rows={2} placeholder={`${palace.name}과 관련해 지금 가장 궁금한 점을 적어주세요`} onChange={(e) => setForm({ ...form, question: e.target.value })} /></label>
           {error && <p className="ic-err" role="alert">{error}</p>}
@@ -404,5 +458,19 @@ const CSS = `
 .ic-foot{max-width:760px;margin:22px auto 0;text-align:center}
 .ic-back{display:inline-block;color:#6a4fb0;font-weight:700;text-decoration:none;padding:9px 18px;border-radius:999px;border:1px solid rgba(106,79,176,.35);min-height:44px;line-height:26px}
 .ic-back:hover{background:rgba(255,255,255,.5)}
-@media (prefers-reduced-motion:reduce){.ic-card,.ic-primary{transition:none}.ic-orb{animation:none}}
+.ic-topbar{position:sticky;top:calc(8px + env(safe-area-inset-top));z-index:6;max-width:920px;margin:0 auto 12px;display:flex}
+.ic-topbar__back{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:9px 18px;border-radius:999px;font-weight:800;font-size:.9rem;text-decoration:none;color:#3d2f7a;
+  background:rgba(255,255,255,.72);border:1px solid rgba(255,255,255,.85);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 6px 20px rgba(70,48,130,.18);transition:transform .16s cubic-bezier(.16,1,.3,1),background .2s}
+.ic-topbar__back:hover{background:rgba(255,255,255,.92);transform:translateY(-1px)}
+.ic-confirm{border:1px solid rgba(138,95,208,.28);border-radius:16px;padding:15px 16px;margin-bottom:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.8),rgba(244,240,255,.62));box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+.ic-confirm__head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ic-confirm__badge{font-size:.76rem;font-weight:800;color:#6a4fb0;background:rgba(138,95,208,.14);border-radius:999px;padding:5px 12px}
+.ic-confirm__dl{display:grid;gap:9px;margin:0}
+.ic-confirm__dl>div{display:flex;justify-content:space-between;gap:14px;font-size:.92rem;align-items:baseline}
+.ic-confirm__dl dt{color:#6a5c9a;font-weight:700;flex:none}
+.ic-confirm__dl dd{color:#2a1f5e;font-weight:800;margin:0;text-align:right}
+.ic-confirm__note{font-size:.78rem;color:#6a4fb0;margin-top:12px;line-height:1.6}
+.ic-change--done{margin:2px 0 12px;width:100%;min-height:44px}
+@media (prefers-reduced-motion:reduce){.ic-card,.ic-primary,.ic-topbar__back{transition:none}.ic-orb{animation:none}}
 `;

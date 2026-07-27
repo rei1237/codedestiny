@@ -3,7 +3,7 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "以现代AI，温柔读懂东方智慧",
+    "tagline": "以现代专家，温柔读懂东方智慧",
     "subtitle": "古老命理与星辰语言，为你照亮下一步",
     "trustBadge": "全球80+国家，逾10万用户选择的占卜体验"
   },
@@ -66,31 +66,31 @@
       "vedicMeta": "吠陀 · 业力",
       "nakshatra": "纳克沙特拉",
       "nakshatraMeta": "27月宿",
-      "aiConsult": "AI咨询",
-      "aiConsultAria": "AI咨询中心",
-      "aiSibyl": "西比尔AI咨询",
+      "aiConsult": "专家咨询",
+      "aiConsultAria": "专家咨询中心",
+      "aiSibyl": "西比尔专家咨询",
       "aiSibylMeta": "八字深度问答",
       "aiNeoRoom": "尼奥命运作战室",
       "aiNeoRoomMeta": "直球策略报告",
       "aiLifebook": "人生之书",
-      "aiLifebookMeta": "AI人生报告",
-      "aiNaming": "AI起名馆",
+      "aiLifebookMeta": "专家人生报告",
+      "aiNaming": "专家起名馆",
       "aiNamingMeta": "姓名解析 · 起名",
       "aiLoveSecret": "恋爱秘策",
       "aiLoveSecretMeta": "关系 · 复合咨询",
-      "aiAll": "查看全部AI咨询",
+      "aiAll": "查看全部专家咨询",
       "aiAllMeta": "通过搜索查找",
       "story": "故事",
       "allServices": "全部服务",
-      "aiLifeFortune": "人生总运 AI咨询",
+      "aiLifeFortune": "人生总运 专家咨询",
       "aiLifeFortuneMeta": "以命盘·大运看人生走向",
-      "aiZiwei": "紫微斗数 AI咨询",
+      "aiZiwei": "紫微斗数 专家咨询",
       "aiZiweiMeta": "个人十二宫命盘咨询",
-      "aiAstro": "占星术 AI咨询",
+      "aiAstro": "占星术 专家咨询",
       "aiAstroMeta": "本命盘深度问答",
-      "aiVedic": "吠陀 AI咨询",
+      "aiVedic": "吠陀 专家咨询",
       "aiVedicMeta": "拉希·纳克沙特拉解读",
-      "aiSukuyo": "宿曜合婚 AI",
+      "aiSukuyo": "宿曜合婚 专家",
       "aiSukuyoMeta": "二十七宿关系解读",
       "aiKarma": "命运之业",
       "aiKarmaMeta": "业力·前世整合咨询"
@@ -222,7 +222,7 @@
         "title": "动物与面相合集",
         "subtitle": "唤醒你内在沉睡的野性本能",
         "lede": "结合脸型、性格与八字信号，一次看见你的本能角色与关系能量。",
-        "featureline": "AI动物面相 · MBTI动物合盘 · 动物图腾 · 六十甲子守护印",
+        "featureline": "专家动物面相 · MBTI动物合盘 · 动物图腾 · 六十甲子守护印",
         "aria": "开放面部阅读和符号收集"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "点击打开"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI动物面相",
+      "animalFaceTitle": "🎭 专家动物面相",
       "animalFaceDesc": "用自拍读取面相",
       "animalMbtiTitle": "🦁 MBTI动物合盘",
       "animalMbtiDesc": "16种图腾相性",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "照片卡情绪解读",
       "sajuFptiTitle": "🔮 八字FPTI测试",
       "sajuFptiDesc": "五行与十神4轴性格分析",
-      "animalFaceAria": "启动AI动物读脸",
-      "animalFaceAlt": "AI动物读脸——从自拍看脸型",
+      "animalFaceAria": "启动专家动物读脸",
+      "animalFaceAlt": "专家动物读脸——从自拍看脸型",
       "animalFaceBadge": "人脸分析",
       "animalFacePrice": "免费 · 兼容性 5,000 韩元",
       "freeBadge": "免费",
@@ -406,8 +406,8 @@
       "palmMapAria": "查看掌纹命运图",
       "palmMapAlt": "掌纹图-掌纹分析",
       "palmMapBadge": "查看手掌",
-      "palmMapMeta": "AI手相·东方手相·命运图",
-      "animalFaceImgAlt": "AI 动物读脸",
+      "palmMapMeta": "专家手相·东方手相·命运图",
+      "animalFaceImgAlt": "专家动物读脸",
       "animalMbtiImgAlt": "MBTI 动物兼容性",
       "animalTotemImgAlt": "动物图腾",
       "sajuGuardianImgAlt": "沙州守护印章",
@@ -813,7 +813,15 @@
       "familyBenefit2": "所有家庭福利",
       "familyCta": "查看系列",
       "premiumNote": "如果您经常使用 5,000 韩元以下的服务，则高级版最适合。",
-      "footnote": "新通行证仅作为 30 天通行证出售。此 30 天通行证不是自动续订订阅。通行证范围外的服务可通过按产品一次性支付韩元的方式使用。"
+      "footnote": "新通行证仅作为 30 天通行证出售。此 30 天通行证不是自动续订订阅。通行证范围外的服务可通过按产品一次性支付韩元的方式使用。",
+      "howtoAria": "月光通行证使用方法",
+      "howtoTitle": "月光通行证，这样延续",
+      "step1Label": "选择 30 天月光范围",
+      "step1Text": "用不自动续订的 30 天通行证，先定下你常看的解读价位。",
+      "step2Label": "范围内解读无需支付即刻开启",
+      "step2Text": "所选范围内的塔罗、神谕、四柱解读，无需支付页面即可直接开启。",
+      "step3Label": "仅范围外的深度解读按次支付",
+      "step3Text": "范围外的深度解读，只在需要时用韩元支付一次。"
     },
     "promptHub": {
       "aria": "进入综合运势提示",
@@ -1197,17 +1205,33 @@
       "neoLogoAlt": "尼奥模式标志"
     },
     "hero2": {
-      "title": "最懂你命运的AI",
-      "lead": "以东西方智慧与AI洞察，解读属于你的故事。",
-      "primaryCta": "✦ 免费开始占卜"
+      "title": "最懂你命运的专家",
+      "lead": "以东西方智慧与专家洞察，解读属于你的故事。",
+      "primaryCta": "✦ 免费开始占卜",
+      "journeyCta": "✦ 开启命运之旅"
+    },
+    "oneStep": {
+      "heading": "今天的一步",
+      "s1": {
+        "title": "免费四柱命盘",
+        "desc": "先了解自己"
+      },
+      "s2": {
+        "title": "今日运势·塔罗",
+        "desc": "看当下的流向"
+      },
+      "s3": {
+        "title": "命运之旅",
+        "desc": "深入探索"
+      }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "CODE DESTINY AI的独特体验",
+      "kicker": "CODE DESTINY 专家",
+      "title": "CODE DESTINY 专家的独特体验",
       "explainTitle": "可解释AI",
-      "explainDesc": "逐步查看AI解读的依据。",
+      "explainDesc": "逐步查看专家解读的依据。",
       "engineTitle": "专业占卜引擎",
-      "engineDesc": "经过验证的东西方占卜体系，由AI精雕细琢。",
+      "engineDesc": "经过验证的东西方占卜体系，由专家精雕细琢。",
       "unionTitle": "东西方占卜融合",
       "unionDesc": "从八字到占星，多重视角一目了然。"
     },
@@ -1281,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "您的命运蓝图",
-    "reportSubtitle": "东方命理学 × AI驱动的高级人生分析",
-    "intro": "这份报告不仅仅是对您未来的预测——它是对塑造您存在的能量架构的精准、数据驱动的解读。借助超过3000年的东方宇宙哲学智慧，您的四柱八字通过先进AI的镜头被解码，揭示支配您优势、阴影和最璀璨潜能的无形力量。这是您专属的人生说明书，助您以清明的意图驾驭十年命运大运。",
+    "reportSubtitle": "东方命理学 × 专家驱动的高级人生分析",
+    "intro": "这份报告不仅仅是对您未来的预测——它是对塑造您存在的能量架构的精准、数据驱动的解读。借助超过3000年的东方宇宙哲学智慧，您的四柱八字通过专家的深入解读被解码，揭示支配您优势、阴影和最璀璨潜能的无形力量。这是您专属的人生说明书，助您以清明的意图驾驭十年命运大运。",
     "dominantElement": {
       "label": "用神（命局平衡枢纽）",
       "description": "用神是平衡并激活您整个命局结构的单一能量密钥。当您将环境、关系和决策与此元素对齐时，您命盘的自然动能便会加速。错位则产生摩擦。这不是迷信，而是您能量蓝图的精准校准。"
@@ -1340,7 +1364,7 @@
   },
   "footer": {
     "tagline": "古代智慧，现代精准。",
-    "about": "Code Destiny把三千年以上的东方命理与现代AI结合在一起，以10种语言提供安静、清晰的占卜体验，核心功能可免费开启。",
+    "about": "Code Destiny把三千年以上的东方命理与现代专家结合在一起，以10种语言提供安静、清晰的占卜体验，核心功能可免费开启。",
     "links": {
       "privacy": "隐私政策",
       "terms": "服务条款",
@@ -1366,7 +1390,8 @@
     "groups": {
       "services": "服务",
       "company": "公司",
-      "support": "客服中心"
+      "support": "客服中心",
+      "guides": "功能指南"
     },
     "svc": {
       "saju": "八字",
@@ -1381,7 +1406,7 @@
       "insights": "运势洞察"
     },
     "brand": {
-      "tagline": "东西方智慧与AI洞察照亮你命运的地方"
+      "tagline": "东西方智慧与专家洞察照亮你命运的地方"
     },
     "story": {
       "reader": "阅读网络小说",
@@ -1390,7 +1415,21 @@
       "music": "月光音乐"
     },
     "socialAria": "CODE DESTINY 官方社交频道",
-    "langAria": "选择语言"
+    "langAria": "选择语言",
+    "guide": {
+      "saju": "八字基础指南",
+      "tenGods": "十神解读指南",
+      "fiveElements": "五行与平衡",
+      "ziwei": "紫微斗数命盘指南",
+      "sukuyo": "宿曜二十七宿指南",
+      "astrology": "西洋占星术基础",
+      "vedic": "吠陀占星术基础",
+      "tarot": "塔罗牌解读入门",
+      "mayan": "玛雅历指南",
+      "calendar": "运势日历指南",
+      "health": "命理健康报告",
+      "music": "运势与冥想音乐"
+    }
   },
   "branches": {
     "자수": {
@@ -1462,9 +1501,9 @@
       "badge": "最受欢迎"
     },
     "tarot": {
-      "name": "AI塔罗指引",
-      "short": "AI塔罗",
-      "description": "古老牌面与现代AI一起回应你的提问。每一次牌阵，都映照当下的情绪天气、关系温度与可选择的方向。"
+      "name": "专家塔罗指引",
+      "short": "专家塔罗",
+      "description": "古老牌面与现代专家一起回应你的提问。每一次牌阵，都映照当下的情绪天气、关系温度与可选择的方向。"
     },
     "ziwei": {
       "name": "紫微斗数",
@@ -3518,7 +3557,7 @@
         "point1": "五元素和谐与冲突得分",
         "point2": "爱情、婚姻、事业、友情类型阅读",
         "point3": "良好的时机和谨慎期",
-        "point4": "AI saju大师的个性化建议"
+        "point4": "专家saju大师的个性化建议"
       }
     },
     "graph": {

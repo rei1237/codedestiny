@@ -3,9 +3,9 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const ANIMAL_PHYSIO_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "AI 동물 관상 - 셀카 얼굴 분석 가이드",
+    "meta.title": "전문가 동물 관상 - 셀카 얼굴 분석 가이드",
     "meta.description": "얼굴형, 표정, 분위기 신호를 동물 비유로 해석해 자기표현과 관계 소통 힌트를 제공하는 동물관상 페이지입니다.",
-    "service.h1": "AI 동물 관상",
+    "service.h1": "전문가 동물 관상",
     "service.seoText": "동물 관상은 얼굴 신호를 재미있는 동물 비유로 번역해 자기이해와 관계 소통에 활용하는 서비스입니다.",
     "valueGuide.title": "동물 관상을 건강하게 읽는 6가지 방법",
     "value.1.title": "1. 동물 관상은 낙인이 아니라 표현 언어입니다",
@@ -38,7 +38,7 @@ const META = {
   path: "/animal/physio",
   title: animalPhysioText("meta.title"),
   description: animalPhysioText("meta.description"),
-  keywords: ["동물 관상", "AI 관상", "얼굴형 분석", "animal physiognomy", "셀카 관상"],
+  keywords: ["동물 관상", "전문가 관상", "얼굴형 분석", "animal physiognomy", "셀카 관상"],
   image: "https://code-destiny.com/fuctionassets/ai%20animal.webp",
   featureList: ["셀카 기반 분석", "동물 비유 해석", "소통 힌트 제공"],
   applicationCategory: "LifestyleApplication",

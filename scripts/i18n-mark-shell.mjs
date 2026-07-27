@@ -135,7 +135,23 @@ if (probeOnly) {
 }
 
 // ── 삽입 지점 계산 ────────────────────────────────────────────────────────
+/**
+ * 🔴 번역이 준비된 키만 마킹한다.
+ * i18n:check 는 셸의 모든 마커 키가 **12개 로케일 전부**에서 문자열로 풀리기를 요구한다.
+ * 아직 번역이 없는 키에 마커를 달면 그 순간 배포 게이트가 깨진다. 그래서 순서는
+ *   1) 이 스크립트가 원문을 i18n/pending 으로 추출  →  2) 번역 배치  →  3) 다시 실행해 마킹
+ * 이다. 매 실행이 "지금 번역된 만큼만" 마킹하므로 어느 시점에 멈춰도 트리가 성하다.
+ * --force 는 번역과 마킹을 한 커밋에 넣을 때만 쓴다.
+ */
+const forceMark = process.argv.includes("--force");
+const enDictionary = JSON.parse(readFileSync(resolve(rootDir, "public", "i18n", "en.json"), "utf8"));
+const hasTranslation = (key) => {
+  const value = key.split(".").reduce((acc, part) => (acc && typeof acc === "object" ? acc[part] : undefined), enDictionary);
+  return typeof value === "string";
+};
+
 const extracted = {};
+let deferred = 0;
 /** { offset, text } — 원본에 끼워 넣을 조각. 오프셋 역순으로 적용한다. */
 const insertions = [];
 
@@ -150,6 +166,7 @@ function insertPoint(node) {
 for (const { node, ancestors, text } of textTargets) {
   const key = deriveKey(node, ancestors, text);
   extracted[key] = text;
+  if (!forceMark && !hasTranslation(key)) { deferred += 1; continue; }
   insertions.push({ offset: insertPoint(node), text: ` data-cd-trans="${key}"` });
 }
 
@@ -165,8 +182,10 @@ for (const [node, targets] of attrByNode) {
   const specs = targets.map(({ attr, value }) => {
     const key = `${baseKey}.${camel(attr)}`;
     extracted[key] = value;
+    if (!forceMark && !hasTranslation(key)) { deferred += 1; return null; }
     return `${attr}:${key}`;
-  });
+  }).filter(Boolean);
+  if (!specs.length) continue;
   const existing = attrOf(node, "data-cd-trans-attr");
   if (existing) {
     // 이미 있는 속성 값 끝에 덧붙인다 — 값의 닫는 따옴표 직전에 삽입
@@ -193,5 +212,6 @@ writeFileSync(
 );
 
 const grew = output.length - html.length;
-console.log(`[mark-shell] 삽입 ${insertions.length}건 (+${grew}바이트), 키 ${Object.keys(extracted).length}개`);
+console.log(`[mark-shell] 삽입 ${insertions.length}건 (+${grew}바이트), 추출 키 ${Object.keys(extracted).length}개`);
+if (deferred) console.log(`[mark-shell] 번역 대기로 보류: ${deferred}건 — 번역 배치 후 다시 실행하면 마킹된다`);
 console.log("[mark-shell] i18n/pending/shell.ko.json 기록");

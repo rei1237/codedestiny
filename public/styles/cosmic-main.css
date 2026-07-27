@@ -2211,7 +2211,21 @@ body:not(.neo-mode) .moon-hero{
       .dp-master-card--moon-loading .main-txt{min-width:0;text-align:left;word-break:keep-all}
       .dp-master-card--moon-loading .coin-pill{justify-self:end;padding:7px 12px;border:1px solid rgba(210,160,255,.38);border-radius:999px;background:rgba(200,150,255,.14);color:#f0d0ff;font-size:11px;font-weight:900;letter-spacing:0;white-space:nowrap}
       /* 프로필 카드 로딩 UI는 양 테마(연이·네오) 모두 달빛 다크 유지 — 연이 밝은 오키드 오버라이드 제거(v20260707) */
-      @media (max-width:640px){.dp-master-card--moon-loading{width:calc(100vw - 24px)!important;padding:24px 16px!important}.dp-master-card--moon-loading .moon-form-header{align-items:flex-start!important}.dp-master-card--moon-loading .destiny-input-head__title{font-size:22px!important}.dp-master-card--moon-loading .destiny-input-head__desc{font-size:13px!important}.dp-master-card--moon-loading .dp-mc-loading-action{grid-template-columns:auto minmax(0,1fr)!important}.dp-master-card--moon-loading .coin-pill{grid-column:1/-1;justify-self:start;white-space:normal}}
+      /* P2-c 우측 잘림 수정: 100vw-24px 강제 폭이 부모 콘텐츠박스를 넘어 우측이 잘렸다 —
+         로드된 카드처럼 auto+안전 max-width(부모 16px×2 패딩 + 카드 10px×2 마진 = 52px)로 맞춘다. */
+      @media (max-width:640px){.dp-master-card--moon-loading{width:auto!important;max-width:calc(100vw - 52px)!important;padding:24px 16px!important}.dp-master-card--moon-loading .moon-form-header{align-items:flex-start!important}.dp-master-card--moon-loading .destiny-input-head__title{font-size:22px!important}.dp-master-card--moon-loading .destiny-input-head__desc{font-size:13px!important}.dp-master-card--moon-loading .dp-mc-loading-action{grid-template-columns:auto minmax(0,1fr)!important}.dp-master-card--moon-loading .coin-pill{grid-column:1/-1;justify-self:start;white-space:normal}}
+      /* P2-d 정적→동적: 진행 점/펫탈 순차 펄스 + 로딩 액션 시머 스윕(reduced-motion 시 정지). */
+      @keyframes dpLoadDotPulse{0%,100%{opacity:.4;transform:scale(.82)}50%{opacity:1;transform:scale(1.12)}}
+      @keyframes dpLoadShimmerSweep{0%{transform:translateX(-130%)}60%,100%{transform:translateX(130%)}}
+      .dp-master-card--moon-loading .moon-form-progress-dot,.dp-master-card--moon-loading .moon-form-progress-petal{transform-box:fill-box;transform-origin:center;animation:dpLoadDotPulse 1.4s ease-in-out infinite}
+      .dp-master-card--moon-loading .moon-form-progress-dot:nth-of-type(2){animation-delay:.16s}
+      .dp-master-card--moon-loading .moon-form-progress-dot:nth-of-type(3){animation-delay:.32s}
+      .dp-master-card--moon-loading .moon-form-progress-dot:nth-of-type(4){animation-delay:.48s}
+      .dp-master-card--moon-loading .moon-form-progress-dot:nth-of-type(5){animation-delay:.64s}
+      .dp-master-card--moon-loading .moon-form-progress-petal:nth-of-type(2){animation-delay:.28s}
+      .dp-master-card--moon-loading .moon-form-progress-petal:nth-of-type(3){animation-delay:.44s}
+      .dp-master-card--moon-loading .dp-mc-loading-action::after{content:'';position:absolute;inset:0;z-index:0;border-radius:17px;background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.24) 50%,transparent 66%);transform:translateX(-130%);animation:dpLoadShimmerSweep 1.9s ease-in-out infinite;pointer-events:none}
+      @media (prefers-reduced-motion:reduce){.dp-master-card--moon-loading .moon-form-progress-dot,.dp-master-card--moon-loading .moon-form-progress-petal,.dp-master-card--moon-loading .dp-mc-loading-action::after,.dp-master-card--moon-loading .lotus-icon{animation:none!important}}
 
 @media (max-width: 900px) {
 	.moon-collection-nav,

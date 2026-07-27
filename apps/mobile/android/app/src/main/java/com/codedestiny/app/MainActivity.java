@@ -31,6 +31,8 @@ public class MainActivity extends BridgeActivity {
         // 셸 applyTheme 이 부르는 Capacitor.Plugins.StatusBar.setStyle 의 실제 구현.
         // 이게 없으면 네오(다크) 전환 시 상태바 아이콘이 다크로 남아 보이지 않는다.
         registerPlugin(CodeDestinyStatusBarPlugin.class);
+        // 잠금화면(네이티브 오버레이) 브리지 — 웹 /lock-screen-fortune 설정·첫 실행 동의 모달이 사용.
+        registerPlugin(CodeDestinyLockScreenPlugin.class);
         // 라우트 해석기도 super.onCreate 이전에 등록해야 한다 —
         // BridgeActivity.onCreate 가 bridgeBuilder.create() 로 브리지를 만들어 버린다.
         installRouteProcessor();
@@ -75,6 +77,13 @@ public class MainActivity extends BridgeActivity {
                 // 일부 기기의 WebView 구현에서 지원되지 않는다 — 셸 CSS 만으로도 색은 확정된다.
             }
         }
+
+        // 잠금화면 기능이 켜져 있으면 앱 재실행 때 포그라운드 서비스를 복원한다(화면 켜짐 감지 재개).
+        try {
+            boolean lockEnabled = getSharedPreferences(CodeDestinyLockScreenPlugin.PREFS, MODE_PRIVATE)
+                    .getBoolean(CodeDestinyLockScreenPlugin.KEY_ENABLED, false);
+            if (lockEnabled) LockScreenForegroundService.start(getApplicationContext());
+        } catch (Exception ignored) {}
     }
 
     /**

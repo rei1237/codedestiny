@@ -64,7 +64,7 @@ type ConsultationResult = {
 };
 
 const FEATURE_KEY = "life-book-ai-consultation";
-const FEATURE_REASON = "인생의 책 AI 상담";
+const FEATURE_REASON = "인생의 책 전문가 상담";
 const ROUTE = "/life-book-ai";
 
 const FOCUS_OPTIONS: Array<{ value: FocusAreaType; label: string; hint: string }> = [
@@ -435,7 +435,7 @@ export default function LifeBookAiClient() {
       featureKey: FEATURE_KEY,
       requestId,
       title: "이용권 확인",
-      reason: "인생의 책 AI 상담",
+      reason: "인생의 책 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
     // 확인 완료 후 다음 화면(집필 중 상태)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
@@ -449,7 +449,7 @@ export default function LifeBookAiClient() {
           featureKey: FEATURE_KEY,
           requestId,
           title: "이용권 확인 완료",
-          reason: "인생의 책 AI 상담",
+          reason: "인생의 책 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 인생의 책을 준비하고 있습니다.",
         });
@@ -509,7 +509,7 @@ export default function LifeBookAiClient() {
         featureKey: FEATURE_KEY,
         requestId,
         title: "이용권 확인 실패",
-        reason: "인생의 책 AI 상담",
+        reason: "인생의 책 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message,
         cancelled: paymentCancelled,
@@ -544,7 +544,7 @@ export default function LifeBookAiClient() {
                 Book of Life · AI Destiny Reading
               </div>
               <h1 className="mt-5 max-w-[12ch] text-4xl font-black leading-tight tracking-normal text-amber-50 sm:text-5xl">
-                인생의 책 AI 상담
+                인생의 책 전문가 상담
               </h1>
               <p className="mt-4 max-w-xl text-base leading-7 text-[#f0dec0]">
                 당신이 타고난 사주의 문장과 지나온 시간의 결을 엮어, 앞으로 펼쳐질 인생의 장면을 한 권의 책처럼 읽어드립니다.

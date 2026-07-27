@@ -5,9 +5,9 @@ const SERVICE_SECTION_DEFINITIONS = [
     items: [
       { href: "/saju/basic", fallbackTitle: "사주 만세력 기본 해석", fallbackDesc: "오행·십성 기반 명식 분석 · 무료", isStaticCanonical: true },
       { href: "/saju/sibyl", fallbackTitle: "시빌라 시스템", fallbackDesc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료", isStaticCanonical: true },
-      { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 AI 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 50,000원", isStaticCanonical: true },
-      { href: "/love-secret-ai", fallbackTitle: "연애 비책 AI 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
-      { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 AI 작명 · 30,000원" },
+      { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 50,000원", isStaticCanonical: true },
+      { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
+      { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
       { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 잠금 해제 10,000원", isStaticCanonical: true },
       { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "사주 기반 팬덤 공명 분석 · 1회 5,000원" },
       { href: "/saju/animal-destiny", aliases: ["/saju/animal-test"], fallbackTitle: "십이운성 동물점", fallbackDesc: "사주 속 십이운성으로 깨어나는 나만의 수호 동물 · 해금 10,000원", isStaticCanonical: true },
@@ -69,7 +69,7 @@ const SERVICE_SECTION_DEFINITIONS = [
     fallbackTitle: "특별 콘텐츠",
     items: [
       { href: "/secret-house_real.html", fallbackTitle: "나는 솔로 시크릿 하우스", fallbackDesc: "자동 일간 캐치 연애 시뮬" },
-      { href: "/animal/physio", fallbackTitle: "AI 동물 관상", fallbackDesc: "셀카 얼굴형 분석" },
+      { href: "/animal/physio", fallbackTitle: "전문가 동물 관상", fallbackDesc: "셀카 얼굴형 분석" },
       { href: "/animal/mbti", fallbackTitle: "MBTI 동물 궁합", fallbackDesc: "16유형 케미 분석" },
       { href: "/animal/totem", fallbackTitle: "애니멀 토템", fallbackDesc: "수호 동물 메시지" },
       { href: "/flower/destiny", fallbackTitle: "운명의 꽃", fallbackDesc: "통합 아틀리에" },

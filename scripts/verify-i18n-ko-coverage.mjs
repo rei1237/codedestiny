@@ -23,6 +23,12 @@ const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
 const baselinePath = resolve(rootDir, "i18n", "ko-coverage-baseline.json");
 const shouldUpdate = process.argv.includes("--update");
+/**
+ * --reset 은 기준선의 **기준 자체가 바뀐 경우**(대규모 머지·리베이스로 상류의
+ * 새 한국어가 대량 유입)에만 쓴다. 회귀를 덮는 용도가 아니다.
+ * 평소에는 --update 만 쓰며, 그건 수치가 내려갈 때만 기록한다.
+ */
+const shouldReset = process.argv.includes("--reset");
 
 function flatten(value, prefix = "", out = {}) {
   if (Array.isArray(value)) {
@@ -63,7 +69,7 @@ const baseline = existsSync(baselinePath)
   : { coveredKeys: 0, totalKeys: baseKeys.length };
 
 const failures = [];
-if (coverage < baseline.coveredKeys) {
+if (!shouldReset && coverage < baseline.coveredKeys) {
   failures.push(`커버리지 후퇴: ${baseline.coveredKeys} → ${coverage} (기준선보다 ${baseline.coveredKeys - coverage}개 감소)`);
 }
 if (suspicious.length) {
@@ -80,8 +86,8 @@ if (failures.length) {
   process.exit(1);
 }
 
-if (shouldUpdate) {
-  if (coverage <= baseline.coveredKeys && existsSync(baselinePath)) {
+if (shouldUpdate || shouldReset) {
+  if (!shouldReset && coverage <= baseline.coveredKeys && existsSync(baselinePath)) {
     console.log("[i18n:ko-coverage] 기준선 유지 (커버리지 상승 없음)");
   } else {
     mkdirSync(resolve(rootDir, "i18n"), { recursive: true });

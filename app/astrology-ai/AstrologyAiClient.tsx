@@ -76,7 +76,7 @@ type FormState = {
 };
 
 const FEATURE_KEY = "astrology-ai-consultation";
-const FEATURE_TITLE = "점성술 AI 상담";
+const FEATURE_TITLE = "점성술 전문가 상담";
 const FEATURE_COST = 390;
 const FEATURE_AMOUNT_KRW = 39000;
 const API_ENDPOINTS = {
@@ -117,14 +117,14 @@ const PLACE_PRESETS = [
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
-  PAYMENT_REQUIRED: "점성술 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
+  PAYMENT_REQUIRED: "점성술 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   INVALID_INPUT: "생년월일, 출생시간, 출생지 정보를 다시 확인해 주세요.",
   PLACE_ERROR: "출생지 정보를 확인하지 못했습니다. 도시와 국가를 다시 입력해 주세요.",
   CALCULATION_ERROR: "점성술 차트 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   SERVER_ERROR: "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.",
-  LLM_ERROR: "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
+  LLM_ERROR: "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.",
   GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
   RATE_LIMITED: "요청이 잠시 몰렸습니다. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정합니다. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
@@ -592,7 +592,7 @@ export default function AstrologyAiClient() {
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#f5d487]">Western Astrology Salon</p>
                   <h1 className="mt-3 text-4xl font-black leading-tight text-white [font-family:var(--font-premium)] sm:text-5xl">
-                    점성술 AI 상담
+                    점성술 전문가 상담
                   </h1>
                   <p className="mt-4 max-w-2xl text-base leading-8 text-slate-200">
                     태어난 순간의 하늘과 지금의 별빛을 한 자리 위에 올려, 질문의 핵심과 선택의 방향을 차분히 비춥니다.

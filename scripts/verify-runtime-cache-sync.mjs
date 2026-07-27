@@ -28,7 +28,10 @@ const canonicalRedirectTagRe = /canonical-redirect\.js\?v=([^"'\s>]+)/;
 const mobileLiteCssRe = /\/styles\/mobile-lite\.css\?v=([^"'\s>]+)/;
 const mobileInteractionPatchRe = /\/js\/mobile-interaction-patch\.js\?v=([^"'\s>]+)/;
 const shareScriptRe = /\/js\/share\.js\?v=([^"'\s>]+)/;
-const manifestTagRe = /\/manifest\.json\?v=([^"'\s>]+)/;
+// 로케일 셸은 /manifest.en.json 처럼 언어별 매니페스트를 가리킨다.
+// 홈 화면에 추가했을 때 앱 이름·설명이 한국어로 뜨지 않게 하려고 분리했다.
+// 캐시버스터 검증 대상은 동일하므로 로케일 접미사를 허용한다.
+const manifestTagRe = /\/manifest(?:\.[a-z-]+)?\.json\?v=([^"'\s>]+)/;
 const sajuEngineRe = /\/js\/saju-engine\.js\?v=([^"'\s,]+)/;
 const sibylScriptTagRe = /\/js\/sibyl-system\.js\?v=([^"'\s>]+)/;
 const sibylMarkers = [

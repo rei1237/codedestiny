@@ -1143,7 +1143,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const passStoreTitle = hasActivePassTier ? "달빛 이용권 업그레이드" : "달빛 이용권 상점";
   const passStoreHint = hasActivePassTier
     ? "현재 이용권 한도를 넘는 기능입니다. 더 높은 달빛 이용권을 확인해 주세요."
-    : "달빛 이용권을 구매하면 한도 이하 기능은 결제창 없이 바로 열립니다.";
+    : "달빛 이용권으로 전환하면 이 상담을 포함해 한도 이하 기능을 30일간 결제창 없이 무제한 이용합니다.";
 
   const directButtonHtml = canShowDirect ? `
           <button type="button" class="cd-react-payment-choice-option" data-mode="direct" aria-label="단건 결제 ${formatPaymentWon(directAmount)}">
@@ -2233,26 +2233,65 @@ export function isMobileAppRuntime() {
  *
  * 반환: 금액(원) | 0(앱에서 무료 전환된 저가 콘텐츠) | null(확인 실패 → 호출부가 fail-closed)
  */
+// 앱 스토어 가격은 Play에 등록된 정적 테이블이라 세션 내내 변하지 않는다.
+// featureKey 조합별로 한 번만 조회해 캐시하면 유료 기능 클릭→결제창 경로의 RTT가 사라진다.
+// (성공값 0/양수만 캐시 — 실패(null)는 다음에 재시도되도록 캐시하지 않는다.)
+const _appStoreAmountCache = new Map<string, number>();
+const _appStoreAmountInflight = new Map<string, Promise<number | null>>();
+
+function appStorePriceQuery(input: BillingCoinGateInput, featureKey: string): string {
+  return toQuery({
+    featureKey,
+    categoryKey: input.categoryKey,
+    subFeatureKey: input.subFeatureKey,
+    reason: input.reason,
+    productType: input.productType,
+  });
+}
+
 async function fetchAppStoreAmountKRW(input: BillingCoinGateInput, featureKey: string): Promise<number | null> {
+  const query = appStorePriceQuery(input, featureKey);
+  const cached = _appStoreAmountCache.get(query);
+  if (cached !== undefined) return cached;
+  const inflight = _appStoreAmountInflight.get(query);
+  if (inflight) return inflight;
+  const task = (async (): Promise<number | null> => {
+    try {
+      const response = await authFetchBilling(`/api/app-store/products?${query}`, { method: "GET" });
+      const parsed = await parseBillingResponse<{
+        product?: { amountKRW?: number; freeInApp?: boolean };
+      }>(response);
+      if (!parsed.ok || !parsed.data?.product) return null;
+      if (parsed.data.product.freeInApp === true) {
+        _appStoreAmountCache.set(query, 0);
+        return 0;
+      }
+      const amountKRW = Math.floor(toNumber(parsed.data.product.amountKRW, 0));
+      if (amountKRW > 0) {
+        _appStoreAmountCache.set(query, amountKRW);
+        return amountKRW;
+      }
+      return null;
+    } catch (error) {
+      debugEntitlement("[billing] app store price lookup failed", error);
+      return null;
+    } finally {
+      _appStoreAmountInflight.delete(query);
+    }
+  })();
+  _appStoreAmountInflight.set(query, task);
+  return task;
+}
+
+// 유료 기능 진입(마운트) 시 미리 앱가를 데워 둔다 — 클릭 시 RTT 없이 결제창이 바로 열린다.
+export function warmAppStorePriceOnEntry(input: BillingCoinGateInput, featureKey?: string): void {
   try {
-    const query = toQuery({
-      featureKey,
-      categoryKey: input.categoryKey,
-      subFeatureKey: input.subFeatureKey,
-      reason: input.reason,
-      productType: input.productType,
-    });
-    const response = await authFetchBilling(`/api/app-store/products?${query}`, { method: "GET" });
-    const parsed = await parseBillingResponse<{
-      product?: { amountKRW?: number; freeInApp?: boolean };
-    }>(response);
-    if (!parsed.ok || !parsed.data?.product) return null;
-    if (parsed.data.product.freeInApp === true) return 0;
-    const amountKRW = Math.floor(toNumber(parsed.data.product.amountKRW, 0));
-    return amountKRW > 0 ? amountKRW : null;
-  } catch (error) {
-    debugEntitlement("[billing] app store price lookup failed", error);
-    return null;
+    if (!isMobileAppRuntime()) return;
+    const key = toText(featureKey || input.featureKey || input.subFeatureKey);
+    if (!key) return;
+    void fetchAppStoreAmountKRW(input, key);
+  } catch {
+    /* noop */
   }
 }
 
@@ -3337,6 +3376,12 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 인증 예열 실패는 삼킨다 — 최종 접근 판정은 서버가 한다.
   }
 
+  // 앱: 앱스토어 가격 조회를 이용권 검사와 '동시에' 미리 데워 둔다. 결제창 진입 시점(runPaidServiceRuntimePayment)에는
+  // 캐시 히트로 RTT가 사라져 유료 버튼 클릭→결제창 지연이 줄어든다(R2c 캐시 + R3c 병렬화).
+  if (isMobileAppRuntime()) {
+    try { void fetchAppStoreAmountKRW(input, toText(input.featureKey || input.subFeatureKey || featureId)); } catch { /* noop */ }
+  }
+
   const activeAttempt = beginPaidAttempt({
     featureKey: featureId,
     mode: toText(input.reason || ""),
@@ -3470,7 +3515,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           passTier: optimisticTier,
           subscriptionTier: optimisticTier,
         });
-        holdPaidFeatureGateOpen({ requestId: gateRequestId, maxMs: 1200 });
+        holdPaidFeatureGateOpen({ requestId: gateRequestId, maxMs: 700 });
         emitPaidFeatureGate("update", {
           featureId,
           featureKey: featureId,
@@ -3485,7 +3530,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         });
       };
       if (typeof window !== "undefined" && typeof window.setTimeout === "function") {
-        window.setTimeout(emitOptimisticPassApplied, 450);
+        window.setTimeout(emitOptimisticPassApplied, 150);
       } else {
         emitOptimisticPassApplied();
       }

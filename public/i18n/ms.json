@@ -3,7 +3,7 @@
   "_version": "1.0.0",
   "brand": {
     "name": "Code Destiny",
-    "tagline": "Kebijaksanaan Timur, dibaca lembut oleh AI",
+    "tagline": "Kebijaksanaan Timur, dibaca lembut oleh pakar",
     "subtitle": "Tradisi ramalan purba menerangi langkah anda yang seterusnya",
     "trustBadge": "Lebih 100,000 pengguna di 80+ negara mempercayai kami"
   },
@@ -66,31 +66,31 @@
       "vedicMeta": "Jyotish · Karma",
       "nakshatra": "Nakshatra",
       "nakshatraMeta": "27 tanda bulan",
-      "aiConsult": "Rundingan AI",
-      "aiConsultAria": "Hab rundingan AI",
-      "aiSibyl": "Rundingan AI Sibyl",
+      "aiConsult": "Rundingan pakar",
+      "aiConsultAria": "Hab rundingan pakar",
+      "aiSibyl": "Rundingan pakar Sibyl",
       "aiSibylMeta": "Soal jawab Saju mendalam",
       "aiNeoRoom": "Bilik strategi Neo",
       "aiNeoRoomMeta": "Laporan strategi terus",
       "aiLifebook": "Buku Kehidupan",
-      "aiLifebookMeta": "Laporan hidup AI",
-      "aiNaming": "Studio penamaan AI",
+      "aiLifebookMeta": "Laporan hidup pakar",
+      "aiNaming": "Studio penamaan pakar",
       "aiNamingMeta": "Bacaan nama · penamaan",
       "aiLoveSecret": "Panduan cinta",
       "aiLoveSecretMeta": "Hubungan · penyatuan semula",
-      "aiAll": "Semua rundingan AI",
+      "aiAll": "Semua rundingan pakar",
       "aiAllMeta": "Cari melalui carian",
       "story": "Cerita",
       "allServices": "Semua perkhidmatan",
-      "aiLifeFortune": "AI Nasib Hidup",
+      "aiLifeFortune": "Pakar Nasib Hidup",
       "aiLifeFortuneMeta": "Aliran hidup via carta & kitaran",
-      "aiZiwei": "Rundingan AI Zi Wei",
+      "aiZiwei": "Rundingan pakar Zi Wei",
       "aiZiweiMeta": "Bacaan 12 istana peribadi",
-      "aiAstro": "Rundingan AI Astrologi",
+      "aiAstro": "Rundingan pakar Astrologi",
       "aiAstroMeta": "Soal jawab carta kelahiran",
-      "aiVedic": "Rundingan AI Veda",
+      "aiVedic": "Rundingan pakar Veda",
       "aiVedicMeta": "Bacaan rasi & nakshatra",
-      "aiSukuyo": "AI Padanan Sukuyo",
+      "aiSukuyo": "Pakar Padanan Sukuyo",
       "aiSukuyoMeta": "Bacaan 27 rumah",
       "aiKarma": "Karma Takdir",
       "aiKarmaMeta": "Bacaan karma & kehidupan lalu"
@@ -222,7 +222,7 @@
         "title": "Koleksi Haiwan & Bacaan Wajah",
         "subtitle": "Bangkitkan naluri liar yang tidur dalam diri",
         "lede": "Bentuk wajah, personaliti dan isyarat Saju digabungkan untuk menunjukkan watak naluri serta tenaga hubungan anda.",
-        "featureline": "Bacaan wajah haiwan AI · Keserasian haiwan MBTI · Totem haiwan · Mohor penjaga 60-Gapja",
+        "featureline": "Bacaan wajah haiwan pakar · Keserasian haiwan MBTI · Totem haiwan · Mohor penjaga 60-Gapja",
         "aria": "Bacaan Muka Terbuka dan Koleksi Simbol"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "Ketik untuk membuka"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 Bacaan Wajah Haiwan AI",
+      "animalFaceTitle": "🎭 Bacaan Wajah Haiwan Pakar",
       "animalFaceDesc": "Analisis wajah melalui swafoto",
       "animalMbtiTitle": "🦁 Keserasian Haiwan MBTI",
       "animalMbtiDesc": "16 laluan keserasian totem",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "Bacaan mood fotokad",
       "sajuFptiTitle": "🔮 Ujian Saju FPTI",
       "sajuFptiDesc": "Analisis personaliti 4 paksi melalui elemen dan Sepuluh Dewa",
-      "animalFaceAria": "Mulakan bacaan muka haiwan AI",
-      "animalFaceAlt": "Pembacaan muka haiwan AI - fisiognomi bentuk muka daripada swafoto",
+      "animalFaceAria": "Mulakan bacaan muka haiwan pakar",
+      "animalFaceAlt": "Pembacaan muka haiwan pakar - fisiognomi bentuk muka daripada swafoto",
       "animalFaceBadge": "Analisis muka",
       "animalFacePrice": "Percuma · Keserasian KRW 5,000",
       "freeBadge": "Percuma",
@@ -406,8 +406,8 @@
       "palmMapAria": "Lihat peta takdir tapak tangan",
       "palmMapAlt": "Peta nasib tapak tangan - analisis corak nasib tapak tangan",
       "palmMapBadge": "Lihat tapak tangan",
-      "palmMapMeta": "AI bacaan tapak tangan · Seni tapak tangan Timur · Peta nasib",
-      "animalFaceImgAlt": "Bacaan Muka Haiwan AI",
+      "palmMapMeta": "Pakar bacaan tapak tangan · Seni tapak tangan Timur · Peta nasib",
+      "animalFaceImgAlt": "Bacaan Muka Haiwan Pakar",
       "animalMbtiImgAlt": "Keserasian Haiwan MBTI",
       "animalTotemImgAlt": "Totem Haiwan",
       "sajuGuardianImgAlt": "Mohor Pelindung Saju",
@@ -813,7 +813,15 @@
       "familyBenefit2": "Manfaat Semua Keluarga",
       "familyCta": "Lihat Keluarga",
       "premiumNote": "Premium paling sesuai jika anda sering menggunakan perkhidmatan sehingga KRW 5,000.",
-      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk."
+      "footnote": "Pas baharu dijual hanya sebagai pas 30 hari. Pas 30 hari ini bukan langganan memperbaharui secara automatik. Perkhidmatan di luar julat pas boleh digunakan dengan pembayaran KRW sekali mengikut produk.",
+      "howtoAria": "Cara menggunakan pas moonlight",
+      "howtoTitle": "Pas moonlight, begini ia diteruskan",
+      "step1Label": "Pilih julat moonlight 30 hari",
+      "step1Text": "Dengan pas 30 hari tanpa pembaharuan automatik, tetapkan dahulu julat harga bacaan yang kerap anda lihat.",
+      "step2Label": "Bacaan dalam julat dibuka tanpa pembayaran",
+      "step2Text": "Bacaan tarot, orakel dan saju dalam julat anda terbuka terus, tanpa tetingkap pembayaran.",
+      "step3Label": "Hanya bacaan lebih mendalam dibayar setiap guna",
+      "step3Text": "Bacaan di luar julat anda diteruskan dengan pembayaran KRW sekali sahaja apabila diperlukan."
     },
     "promptHub": {
       "aria": "Pergi ke gesaan nasib yang komprehensif",
@@ -1197,17 +1205,33 @@
       "neoLogoAlt": "Logo mod Neo"
     },
     "hero2": {
-      "title": "AI yang membaca takdir anda paling mendalam",
-      "lead": "Kebijaksanaan Timur-Barat bertemu wawasan AI untuk mentafsir kisah anda.",
-      "primaryCta": "✦ Mula percuma"
+      "title": "Pakar yang membaca takdir anda paling mendalam",
+      "lead": "Kebijaksanaan Timur-Barat bertemu wawasan pakar untuk mentafsir kisah anda.",
+      "primaryCta": "✦ Mula percuma",
+      "journeyCta": "✦ Mulakan Perjalanan Takdir Anda"
+    },
+    "oneStep": {
+      "heading": "Today's One Step",
+      "s1": {
+        "title": "Free Saju Chart",
+        "desc": "Start by knowing yourself"
+      },
+      "s2": {
+        "title": "Today's Fortune & Tarot",
+        "desc": "Read the current flow"
+      },
+      "s3": {
+        "title": "Destiny Journey",
+        "desc": "Go deeper"
+      }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "Pengalaman istimewa CODE DESTINY AI",
+      "kicker": "CODE DESTINY PAKAR",
+      "title": "Pengalaman istimewa pakar CODE DESTINY",
       "explainTitle": "AI Boleh Dijelaskan",
-      "explainDesc": "Lihat langkah demi langkah bagaimana AI membuat tafsirannya.",
+      "explainDesc": "Lihat langkah demi langkah bagaimana pakar membuat tafsirannya.",
       "engineTitle": "Enjin tilikan pakar",
-      "engineDesc": "Sistem Timur dan Barat yang terbukti, diperhalusi dengan AI.",
+      "engineDesc": "Sistem Timur dan Barat yang terbukti, diperhalusi oleh pakar.",
       "unionTitle": "Timur bertemu Barat",
       "unionDesc": "Dari Saju hingga astrologi, semua sudut di satu tempat."
     },
@@ -1281,8 +1305,8 @@
   },
   "premium": {
     "reportTitle": "Pelan Nasib Anda",
-    "reportSubtitle": "Analisis Kehidupan Premium didorong oleh Metapsikologi Timur dan AI",
-    "intro": "Laporan ini bukan sekadar ramalan masa depan anda — ia adalah pelan tepat berasaskan data tentang seni bina tenaga yang membentuk kewujudan anda. Menggabungkan lebih 3,000 tahun kebijaksanaan kosmologi Timur dengan kecerdasan buatan canggih, Empat Tiang Nasib anda ditafsir untuk mendedahkan kuasa-kuasa tersembunyi yang mengawal kekuatan, bayangan dan potensi paling bercahaya anda. Ini adalah panduan peribadi anda untuk mengemudi Kitaran Nasib Dekad dengan kejelasan dan niat.",
+    "reportSubtitle": "Analisis Kehidupan Premium didorong oleh Metapsikologi Timur dan analisis pakar",
+    "intro": "Laporan ini bukan sekadar ramalan masa depan anda — ia adalah pelan tepat berasaskan data tentang seni bina tenaga yang membentuk kewujudan anda. Menggabungkan lebih 3,000 tahun kebijaksanaan kosmologi Timur dengan analisis pakar canggih, Empat Tiang Nasib anda ditafsir untuk mendedahkan kuasa-kuasa tersembunyi yang mengawal kekuatan, bayangan dan potensi paling bercahaya anda. Ini adalah panduan peribadi anda untuk mengemudi Kitaran Nasib Dekad dengan kejelasan dan niat.",
     "cta": "Buka Kunci Pelan Nasib Penuh Anda",
     "priceDisplay": "Dari RM10",
     "guarantee": "Jaminan kepuasan 30 hari",
@@ -1340,7 +1364,7 @@
   },
   "footer": {
     "tagline": "Kebijaksanaan purba, ketepatan moden.",
-    "about": "Code Destiny menggabungkan lebih 3,000 tahun kosmologi Timur dengan AI moden untuk membuka bacaan nasib yang tenang dalam 10 bahasa, dengan pengalaman asas percuma.",
+    "about": "Code Destiny menggabungkan lebih 3,000 tahun kosmologi Timur dengan pakar moden untuk membuka bacaan nasib yang tenang dalam 10 bahasa, dengan pengalaman asas percuma.",
     "links": {
       "privacy": "Dasar Privasi",
       "terms": "Terma Perkhidmatan",
@@ -1366,7 +1390,8 @@
     "groups": {
       "services": "Perkhidmatan",
       "company": "Syarikat",
-      "support": "Sokongan"
+      "support": "Sokongan",
+      "guides": "Feature Guides"
     },
     "svc": {
       "saju": "Saju",
@@ -1381,7 +1406,7 @@
       "insights": "Wawasan tilikan"
     },
     "brand": {
-      "tagline": "Tempat kebijaksanaan Timur-Barat dan AI menerangi takdir anda"
+      "tagline": "Tempat kebijaksanaan Timur-Barat dan pakar menerangi takdir anda"
     },
     "story": {
       "reader": "Baca novel web",
@@ -1390,7 +1415,21 @@
       "music": "Muzik cahaya bulan"
     },
     "socialAria": "Saluran sosial rasmi CODE DESTINY",
-    "langAria": "Pilih bahasa"
+    "langAria": "Pilih bahasa",
+    "guide": {
+      "saju": "Saju Basics Guide",
+      "tenGods": "Ten Gods Guide",
+      "fiveElements": "Five Elements & Balance",
+      "ziwei": "Zi Wei Chart Guide",
+      "sukuyo": "Sukuyo 27 Mansions",
+      "astrology": "Western Astrology Basics",
+      "vedic": "Vedic Astrology Basics",
+      "tarot": "Tarot Reading Basics",
+      "mayan": "Mayan Calendar Guide",
+      "calendar": "Fortune Calendar Guide",
+      "health": "Myeongri Health Report",
+      "music": "Fortune & Meditation Music"
+    }
   },
   "branches": {
     "자수": {
@@ -1462,9 +1501,9 @@
       "badge": "Popular"
     },
     "tarot": {
-      "name": "Panduan Tarot AI",
-      "short": "Tarot AI",
-      "description": "Kebijaksanaan arketip purba dibaca bersama AI moden. Setiap bentangan memantulkan soalan, cuaca emosi dan arah yang sedang hidup sekarang."
+      "name": "Panduan Tarot pakar",
+      "short": "Tarot pakar",
+      "description": "Kebijaksanaan arketip purba dibaca bersama pakar moden. Setiap bentangan memantulkan soalan, cuaca emosi dan arah yang sedang hidup sekarang."
     },
     "ziwei": {
       "name": "Zi Wei Dou Shu",
@@ -3518,7 +3557,7 @@
         "point1": "Keharmonian lima elemen dan skor konflik",
         "point2": "Jenis bacaan cinta, perkahwinan, perniagaan dan persahabatan",
         "point3": "Masa yang baik dan tempoh berhati-hati",
-        "point4": "Nasihat peribadi daripada pakar AI saju"
+        "point4": "Nasihat peribadi daripada pakar saju"
       }
     },
     "graph": {

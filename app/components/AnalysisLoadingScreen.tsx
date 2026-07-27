@@ -156,7 +156,7 @@ const LOADING_UI_COPY: Record<LoadingLocale, {
 }> = {
   ko: {
     progressLabel: "분석 중",
-    badge: "CODE DESTINY · AI 명조 분석",
+    badge: "CODE DESTINY · 전문가 명조 분석",
     headingPrefix: (name) => (name ? `${name}님의 ` : ""),
     headingHighlight: "명조를 분석",
     headingSuffix: "하고 있습니다",

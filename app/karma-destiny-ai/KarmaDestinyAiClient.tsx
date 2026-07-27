@@ -110,11 +110,11 @@ type ConsultationResult = {
 };
 
 const FEATURE_KEY = "karma-destiny-ai-consultation";
-const FEATURE_REASON = "운명의 업 AI 상담";
+const FEATURE_REASON = "운명의 업 전문가 상담";
 const FEATURE_COST = 500;
 const FEATURE_AMOUNT_KRW = 50000;
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const PAYMENT_REQUIRED_MESSAGE = "운명의 업 AI 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
+const PAYMENT_REQUIRED_MESSAGE = "운명의 업 전문가 상담 이용권이 필요합니다. 결제창을 열어드릴게요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const PAYMENT_CANCELLED_MESSAGE = "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
@@ -788,7 +788,7 @@ export default function KarmaDestinyAiPage() {
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
       title: "이용권 확인",
-      reason: "운명의 업 AI 상담",
+      reason: "운명의 업 전문가 상담",
       paymentMode: "MEMBERSHIP_PASS",
     });
     // 확인 완료 후 다음 화면(생성 로딩)이 실제로 뜰 때까지 게이트 오버레이를 유지해 "확인 중 → 공백"을 막는다.
@@ -802,7 +802,7 @@ export default function KarmaDestinyAiPage() {
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
           title: "이용권 확인 완료",
-          reason: "운명의 업 AI 상담",
+          reason: "운명의 업 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 업의 흐름을 읽고 있습니다.",
         });
@@ -847,7 +847,7 @@ export default function KarmaDestinyAiPage() {
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: "이용권 확인 실패",
-        reason: "운명의 업 AI 상담",
+        reason: "운명의 업 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
         message,
         cancelled: paymentCancelled,
@@ -880,7 +880,7 @@ export default function KarmaDestinyAiPage() {
 
   return (
     <main className="kdai-page" data-karma-destiny-ai="v20260629">
-      <section className="kdai-hero" aria-label="운명의 업 AI 상담">
+      <section className="kdai-hero" aria-label="운명의 업 전문가 상담">
         <div className="kdai-hero__sigil" aria-hidden="true" />
         <div className="kdai-hero__image kdai-hero__image--sigil" data-cd-marker="karma-destiny-ai-css-visual-v20260629" aria-hidden="true">
           <div className="kdai-oracle">
@@ -902,7 +902,7 @@ export default function KarmaDestinyAiPage() {
         </div>
         <div className="kdai-hero__copy">
           <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
-          <h1>운명의 업 AI 상담</h1>
+          <h1>운명의 업 전문가 상담</h1>
           <p>반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.</p>
           <div className="kdai-status" data-status={status}>
             {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
@@ -1043,7 +1043,7 @@ export default function KarmaDestinyAiPage() {
           </div>
           <button className="kdai-primary" type="submit" disabled={isBusy}>
             {isBusy ? <Loader2 size={18} className="kdai-spin" /> : <WalletCards size={18} />}
-            <span>{isBusy ? "운명의 실을 따라가는 중..." : "운명의 업 AI 상담 받기"}</span>
+            <span>{isBusy ? "운명의 실을 따라가는 중..." : "운명의 업 전문가 상담 받기"}</span>
           </button>
         </form>
 

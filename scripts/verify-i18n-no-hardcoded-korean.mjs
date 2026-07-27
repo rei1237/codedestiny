@@ -22,6 +22,12 @@ import { walkSourceFiles, walkAst } from "./lib/i18n-source-scan.mjs";
 const rootDir = process.cwd();
 const baselinePath = resolve(rootDir, "i18n", "hardcoded-korean-baseline.json");
 const shouldUpdate = process.argv.includes("--update");
+/**
+ * --reset 은 기준선의 **기준 자체가 바뀐 경우**(대규모 머지·리베이스로 상류의
+ * 새 한국어가 대량 유입)에만 쓴다. 회귀를 덮는 용도가 아니다.
+ * 평소에는 --update 만 쓰며, 그건 수치가 내려갈 때만 기록한다.
+ */
+const shouldReset = process.argv.includes("--reset");
 const showReport = process.argv.includes("--report");
 
 /**
@@ -106,7 +112,7 @@ for (const { name } of AREAS) {
   const delta = was === undefined ? null : now - was;
   const mark = delta === null ? "" : delta > 0 ? `  🔴 +${delta}` : delta < 0 ? `  ✅ ${delta}` : "";
   console.log(`[no-hardcoded-ko]   ${name.padEnd(12)} ${String(now).padStart(6)}${was === undefined ? "" : ` (기준선 ${was})`}${mark}`);
-  if (delta !== null && delta > 0) regressions.push(`${name}: ${was} → ${now} (+${delta})`);
+  if (!shouldReset && delta !== null && delta > 0) regressions.push(`${name}: ${was} → ${now} (+${delta})`);
 }
 
 if (showReport) {
@@ -122,7 +128,7 @@ if (regressions.length) {
   process.exit(1);
 }
 
-if (shouldUpdate) {
+if (shouldUpdate || shouldReset) {
   mkdirSync(resolve(rootDir, "i18n"), { recursive: true });
   const next = { total, areas: counts };
   writeFileSync(baselinePath, `${JSON.stringify(next, null, 2)}\n`, "utf8");

@@ -22,7 +22,7 @@ const FEATURE_KEY = "premium-naming-prompt";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const MEMBERSHIP_CREDIT_COST = 3000;
-const REASON = "사주 맞춤 작명 AI 상담 생성";
+const REASON = "사주 맞춤 작명 전문가 상담 생성";
 
 type GenderValue = "" | "M" | "F" | "OTHER";
 type CalendarValue = "solar" | "lunar";
@@ -511,13 +511,13 @@ export default function NamingAiClient() {
             名
           </span>
           <span className="inline-flex w-max items-center gap-2 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-3.5 py-1.5 text-xs font-bold text-[#dcd2fb]">
-            사주 맞춤 프리미엄 AI 작명
+            사주 맞춤 프리미엄 전문가 작명
           </span>
           <h1 className="mt-4 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
             훈민정음 작명소
           </h1>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#c8aaff]/85 sm:text-base">
-            사주에서 검증한 용신·희신을 바탕으로 소리와 한자의 뜻을 엮어 AI가 직접 이름을 짓고,
+            사주에서 검증한 용신·희신을 바탕으로 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고,
             그 작명첩을 만든 프롬프트 원문까지 함께 드립니다. 입력과 초안 추천은 무료입니다.
           </p>
           <ul className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-[#e6ddfa]">

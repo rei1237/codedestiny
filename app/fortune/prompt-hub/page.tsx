@@ -10,7 +10,7 @@ const PAGE_DESCRIPTION =
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["운세 프롬프트", "사주 질문", "타로 질문 만들기", "상담 프롬프트", "AI 운세 상담"],
+  keywords: ["운세 프롬프트", "사주 질문", "타로 질문 만들기", "상담 프롬프트", "전문가 운세 상담"],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -38,14 +38,33 @@ export const metadata: Metadata = {
 export default function PromptHubPage() {
   return (
     <div className="min-h-[100svh] bg-[#fff8ef] px-4 py-8 text-slate-900 dark:bg-[#24081a] dark:text-[#fff1f7] sm:px-5 sm:py-10">
-      <section className="relative z-10 mx-auto max-w-3xl rounded-3xl border border-rose-100 bg-white/80 p-5 shadow-sm dark:border-[rgba(244,190,209,0.38)] dark:bg-[#3a0e28]/85 sm:p-6">
-        <span className="inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-black text-amber-700 dark:border-[#ead089]/55 dark:bg-[#ead089]/15 dark:text-[#ead089]">
-          무료
-        </span>
-        <h1 className="mt-3 text-balance text-2xl font-black text-slate-950 dark:text-[#fff1f7] sm:text-3xl">종합 운세 프롬프트, 지금 바로 만들어보세요</h1>
-        <p className="mt-2 text-sm font-bold leading-7 text-slate-600 dark:text-[rgba(255,214,232,0.86)]">
-          사주·타로·점성술 등 11가지 도구를 무료로 체험 — 로그인 없이 바로 시작하세요.
-        </p>
+      <style>{`
+        @media (prefers-reduced-motion: no-preference) {
+          .ph-hero__moon { animation: phMoonBreath 7s ease-in-out infinite; }
+          @keyframes phMoonBreath {
+            0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 0.9; }
+            50% { transform: translate3d(-6px,6px,0) scale(1.06); opacity: 1; }
+          }
+        }
+      `}</style>
+      <section className="ph-hero relative z-10 mx-auto max-w-3xl overflow-hidden rounded-[28px] border border-[#f4bed1]/70 bg-[linear-gradient(152deg,#fffaf7_0%,#fff3f8_50%,#ffe7f0_100%)] p-6 shadow-[0_20px_60px_-26px_rgba(179,25,85,0.42),0_0_44px_-14px_rgba(234,208,137,0.4)] dark:border-[rgba(244,190,209,0.38)] dark:bg-[linear-gradient(152deg,#3a0e28_0%,#2e0a20_55%,#24081a_100%)] dark:shadow-[0_24px_72px_-30px_rgba(0,0,0,0.65),0_0_52px_-18px_rgba(234,208,137,0.24)] sm:p-8">
+        {/* 달빛 글로우 — 장식(Glow-Not-Shadow), 스크린리더 제외 */}
+        <div aria-hidden className="ph-hero__moon pointer-events-none absolute -right-10 -top-16 h-56 w-56 rounded-full bg-[radial-gradient(closest-side,rgba(255,248,220,0.9),rgba(244,190,209,0.34)_46%,transparent_72%)] blur-[6px] dark:bg-[radial-gradient(closest-side,rgba(232,213,163,0.42),rgba(196,181,253,0.18)_46%,transparent_72%)]" />
+        <span className="absolute inset-x-6 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(234,208,137,0.85),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(232,213,163,0.6),transparent)]" aria-hidden />
+        <div className="relative">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#ead089]/75 bg-[#fff8dc] px-3.5 py-1.5 text-xs font-black tracking-wide text-[#8a5a1e] dark:border-[#ead089]/55 dark:bg-[#ead089]/15 dark:text-[#ead089]">
+            <span aria-hidden className="text-[#c99a2e] dark:text-[#ead089]">✦</span>
+            무료 · 로그인 불필요
+          </span>
+          <h1
+            className="mt-4 text-balance text-[clamp(1.9rem,5.6vw,2.85rem)] font-bold leading-[1.14] tracking-[-0.02em] text-[#3c1830] [font-family:var(--font-display)] dark:text-[#fff1f7]"
+          >
+            종합 운세 프롬프트,<br className="hidden sm:block" /> 지금 바로 만들어보세요
+          </h1>
+          <p className="mt-3 max-w-[46ch] text-[15px] font-semibold leading-7 text-[#70445c] dark:text-[rgba(255,214,232,0.86)]">
+            사주·타로·점성술 등 11가지 도구로 나만의 상담 프롬프트를 만들어 보세요. 생년월일·태어난 시간만 넣으면 바로 시작합니다.
+          </p>
+        </div>
       </section>
 
       <PromptHubRouteClient />

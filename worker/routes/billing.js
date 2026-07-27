@@ -201,6 +201,8 @@ function invalidatePaidAccessDecisionCacheForUser(userId) {
       removed += 1;
     }
   }
+  // 결제/환불/해금으로 접근결정이 바뀌면 이용권 캐시도 함께 무효화한다(구독 상태 변화 즉시 반영).
+  try { globalThis.__membershipPassCache?.invalidateForUser?.(uid); } catch {}
   return removed;
 }
 paidAccessDecisionCache.invalidateForUser = invalidatePaidAccessDecisionCacheForUser;
@@ -266,6 +268,53 @@ function invalidateBillingBalanceCacheForUser(userId) {
   return removed;
 }
 billingBalanceCache.invalidateForUser = invalidateBillingBalanceCacheForUser;
+
+// 이용권(멤버십 패스) 조회는 코인게이트(결제 실행)·언락상태에서 매번 User.findById(콜드 시 ~10s 상한)로 신선 조회됐다.
+// 패스는 무료·구독형이라 거래마다 소모되지 않고 상태가 거의 안 바뀌므로, 유저별로 성공 조회를 몇 초 캐시해
+// 반복 콜드 조회를 없앤다(billingBalanceCache와 동일 패턴). 결제/환불 시 invalidatePaidAccessDecisionCacheForUser가
+// 함께 무효화하고, 실패(op-timeout)는 throw로 전파돼 캐시에 저장되지 않는다(healthy만 저장).
+const MEMBERSHIP_PASS_CACHE_TTL_MS = 5000;
+const membershipPassCache = globalThis.__membershipPassCache
+  || (globalThis.__membershipPassCache = {
+    entries: new Map(),
+    lastPruneAt: 0,
+  });
+membershipPassCache.invalidateForUser = function invalidateMembershipPassCacheForUser(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return 0;
+  let removed = 0;
+  if (membershipPassCache.entries.delete(uid)) removed += 1;
+  return removed;
+};
+
+function readMembershipPassFromCache(userId) {
+  const uid = String(userId || "").trim();
+  if (!uid) return null;
+  const entry = membershipPassCache.entries.get(uid);
+  if (!entry) return null;
+  if (entry.expiresAt <= Date.now()) {
+    membershipPassCache.entries.delete(uid);
+    return null;
+  }
+  return entry.value || null;
+}
+
+function writeMembershipPassToCache(userId, value) {
+  const uid = String(userId || "").trim();
+  if (!uid || !value) return;
+  const now = Date.now();
+  if (membershipPassCache.lastPruneAt + 2000 < now) {
+    membershipPassCache.lastPruneAt = now;
+    for (const [key, entry] of membershipPassCache.entries.entries()) {
+      if (!entry || entry.expiresAt <= now) membershipPassCache.entries.delete(key);
+    }
+    if (membershipPassCache.entries.size > 2500) {
+      const earliest = membershipPassCache.entries.keys().next().value;
+      if (earliest) membershipPassCache.entries.delete(earliest);
+    }
+  }
+  membershipPassCache.entries.set(uid, { value, expiresAt: now + MEMBERSHIP_PASS_CACHE_TTL_MS });
+}
 
 function readBillingBalanceFromCache(cacheKey) {
   if (!cacheKey) return null;
@@ -1059,17 +1108,6 @@ async function resolvePaidContentAccess(env, {
       paymentOptions,
     }), priceCoin);
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return buildTemporaryUnavailableAccessDecision(pricing, null, {
-        scope: "resolve_paid_content_access",
-        errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
-          featureKey,
-          requestId,
-          profileId,
-        }),
-      });
-    }
-
     if (String(error?.code || "") === "MISSING_PROFILE_ID") {
       return buildPaidContentAccessDecision({
         reason: "invalid_profile",
@@ -1077,20 +1115,30 @@ async function resolvePaidContentAccess(env, {
       });
     }
 
-    return buildPaidContentAccessDecision({
-      reason: "error",
-      priceCoin,
+    // DB 일시장애·접근판정 타임아웃(UNLOCK_ACCESS_DECISION_TIMEOUT)·기타 예기치 못한 오류는 모두
+    // '일시 불가'로 degrade한다. 과거엔 비-DB 오류가 reason:"error"→payment_required 로 떨어져,
+    // 이미 해금/이용권 보유한 사용자가 일시적 오류에 결제창을 다시 보거나 해금이 풀렸다(간헐 재잠금).
+    // temporary_unavailable 은 클라가 last-known(해금 유지)로 처리하므로 오탐 재잠금을 막는다.
+    return buildTemporaryUnavailableAccessDecision(pricing, null, {
+      scope: "resolve_paid_content_access",
+      errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
+        featureKey,
+        requestId,
+        profileId,
+      }),
     });
   }
 }
 
 async function getActiveMembershipPassForUser(env, authUserId) {
+  const cached = readMembershipPassFromCache(authUserId);
+  if (cached) return cached;
   await connectDb(env);
   const user = await User.findById(authUserId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
-  return {
+  const result = {
     isActive: entitlement.isActive,
     tier: entitlement.isActive ? entitlement.tier : "free",
     passTier: entitlement.isActive ? entitlement.passTier : null,
@@ -1098,6 +1146,8 @@ async function getActiveMembershipPassForUser(env, authUserId) {
     profileSubscription: user?.profileSubscription || null,
     entitlement,
   };
+  writeMembershipPassToCache(authUserId, result); // healthy 조회만 캐시(실패는 위에서 throw로 전파)
+  return result;
 }
 
 function buildMembershipPassFromStatusSnapshot(snapshot = {}) {

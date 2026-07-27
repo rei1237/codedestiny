@@ -67,8 +67,8 @@ function renderBlock(block: ProseBlock, index: number): ReactNode {
 }
 
 /**
- * AI 상담 결과 LLM 텍스트를 문단/리스트/인용/소제목으로 구조화해 렌더링하는 공용 컴포넌트.
- * 8개 AI 상담 기능(숙요점/자미두수/인생의책/연애비책/신년운세/베다점/점성술/운명의업) 결과 화면 전용 —
+ * 전문가 상담 결과 LLM 텍스트를 문단/리스트/인용/소제목으로 구조화해 렌더링하는 공용 컴포넌트.
+ * 8개 전문가 상담 기능(숙요점/자미두수/인생의책/연애비책/신년운세/베다점/점성술/운명의업) 결과 화면 전용 —
  * 운명의 찻집·네오의 팩폭 전략실에는 적용하지 않는다.
  */
 export default function AiResultProse({ value, className = "" }: AiResultProseProps) {

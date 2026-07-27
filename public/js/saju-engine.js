@@ -2024,6 +2024,86 @@ var KE={wood:'earth',fire:'metal',earth:'water',metal:'wood',water:'fire'};
 function whoControls(e){var k=Object.keys(KE);for(var i=0;i<k.length;i++){if(KE[k[i]]===e)return k[i];}return 'metal';}
 function parentOf(e){var k=Object.keys(SHENG);for(var i=0;i<k.length;i++){if(SHENG[k[i]]===e)return k[i];}return 'water';}
 
+/* ─── 원국 정밀 판별 공용 테이블 (정적 셸 계보 단일 정본) ───────────────
+   detectJong()·일주DB·evalDaewun() 안에 갇혀 있던 테이블을 값 변경 없이 끌어올린 것.
+   퀀텀 명리 엔진(js/saju-engine-tarot-sukuyo-quantum.js)이 이 전역을 재사용한다.
+   ⚠️ 사본을 새로 만들지 말고 여기만 고칠 것. */
+
+/* 지장간 — 배열 순서 = 여기(餘氣) → 중기(中氣) → 정기(正氣). 2원소면 여기 → 정기. */
+var CD_JANGGAN={
+  '子':['壬','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'],
+  '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
+};
+/* 지장간 층별 가중치 — 정본: worker/lib/saju-gyeokguk.js LAYER_WEIGHT */
+var CD_JANGGAN_WEIGHT={여기:0.35,중기:0.65,정기:1.2};
+/* 지지 → [{gan, layer, weight}] (정기가 마지막 원소) */
+function cdJangganLayers(zhi){
+  var list=CD_JANGGAN[zhi];
+  if(!list||!list.length)return [];
+  return list.map(function(g,i){
+    var layer=(i===list.length-1)?'정기':(i===0?'여기':'중기');
+    return {gan:g,layer:layer,weight:CD_JANGGAN_WEIGHT[layer]||0.35};
+  });
+}
+/* 지지의 본기(정기) 천간 — 지지 십성 판정의 정본 기준 */
+function cdMainHiddenStem(zhi){
+  var list=CD_JANGGAN[zhi];
+  return (list&&list.length)?list[list.length-1]:'';
+}
+
+/* 십이운성 — 일간+지지 → 12단계 */
+var CD_E12_MAP={
+  "甲亥":"장생","甲子":"목욕","甲丑":"관대","甲寅":"건록","甲卯":"제왕","甲辰":"쇠","甲巳":"병","甲午":"사","甲未":"묘","甲申":"절","甲酉":"태","甲戌":"양",
+  "乙午":"장생","乙巳":"목욕","乙辰":"관대","乙卯":"건록","乙寅":"제왕","乙丑":"쇠","乙子":"병","乙亥":"사","乙戌":"묘","乙酉":"절","乙申":"태","乙未":"양",
+  "丙寅":"장생","丙卯":"목욕","丙辰":"관대","丙巳":"건록","丙午":"제왕","丙未":"쇠","丙申":"병","丙酉":"사","丙戌":"묘","丙亥":"절","丙子":"태","丙丑":"양",
+  "戊寅":"장생","戊卯":"목욕","戊辰":"관대","戊巳":"건록","戊午":"제왕","戊未":"쇠","戊申":"병","戊酉":"사","戊戌":"묘","戊亥":"절","戊子":"태","戊丑":"양",
+  "丁酉":"장생","丁申":"목욕","丁未":"관대","丁午":"건록","丁巳":"제왕","丁辰":"쇠","丁卯":"병","丁寅":"사","丁丑":"묘","丁子":"절","丁亥":"태","丁戌":"양",
+  "己酉":"장생","己申":"목욕","己未":"관대","己午":"건록","己巳":"제왕","己辰":"쇠","己卯":"병","己寅":"사","己丑":"묘","己子":"절","己亥":"태","己戌":"양",
+  "庚巳":"장생","庚午":"목욕","庚未":"관대","庚申":"건록","庚酉":"제왕","庚戌":"쇠","庚亥":"병","庚子":"사","庚丑":"묘","庚寅":"절","庚卯":"태","庚辰":"양",
+  "辛子":"장생","辛亥":"목욕","辛戌":"관대","辛酉":"건록","辛申":"제왕","辛未":"쇠","辛午":"병","辛巳":"사","辛辰":"묘","辛卯":"절","辛寅":"태","辛丑":"양",
+  "壬申":"장생","壬酉":"목욕","壬戌":"관대","壬亥":"건록","壬子":"제왕","壬丑":"쇠","壬寅":"병","壬卯":"사","壬辰":"묘","壬巳":"절","壬午":"태","壬未":"양",
+  "癸卯":"장생","癸寅":"목욕","癸丑":"관대","癸子":"건록","癸亥":"제왕","癸戌":"쇠","癸酉":"병","癸申":"사","癸未":"묘","癸午":"절","癸巳":"태","癸辰":"양"
+};
+function cdTwelveStage(dayGan,zhi){
+  if(!dayGan||!zhi)return '';
+  return CD_E12_MAP[dayGan+zhi]||'';
+}
+
+/* 삼합(三合) — 반합 판정에도 사용 */
+var CD_SAMHAP=[
+  {m:['申','子','辰'],el:'water'},
+  {m:['亥','卯','未'],el:'wood'},
+  {m:['寅','午','戌'],el:'fire'},
+  {m:['巳','酉','丑'],el:'metal'}
+];
+/* 방합(方合) — 정본: app/saju/animal-destiny/engine/localSajuCalculator.ts BRANCH_DIRECTIONS */
+var CD_BANGHAP=[
+  {m:['寅','卯','辰'],el:'wood',season:'봄'},
+  {m:['巳','午','未'],el:'fire',season:'여름'},
+  {m:['申','酉','戌'],el:'metal',season:'가을'},
+  {m:['亥','子','丑'],el:'water',season:'겨울'}
+];
+
+/* 공망(空亡) — 일주 순중(旬中) 공망 2지지.
+   정본: app/saju/animal-destiny/engine/localSajuCalculator.ts getGongMangBranches */
+var CD_GAN_ORDER=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var CD_JI_ORDER=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+function cdGongMangBranches(dayGan,dayZhi){
+  var gi=CD_GAN_ORDER.indexOf(dayGan), zi=CD_JI_ORDER.indexOf(dayZhi);
+  if(gi<0||zi<0)return [];
+  /* 순수(旬首)까지 되돌린 뒤, 그 앞 2지지가 공망 */
+  var head=(zi-gi+12)%12;
+  return [CD_JI_ORDER[(head+10)%12],CD_JI_ORDER[(head+11)%12]];
+}
+
+/* 근묘화실(根苗花實) — 4주 궁위 */
+var CD_PALACE=[
+  {key:'y',label:'년주',palace:'조상·초년',span:'0~15세',domain:'뿌리·가문·유년 환경'},
+  {key:'m',label:'월주',palace:'부모·청년',span:'16~30세',domain:'부모·형제·사회 진출'},
+  {key:'d',label:'일주',palace:'자신·배우자',span:'31~45세',domain:'나 자신과 배우자궁'},
+  {key:'h',label:'시주',palace:'자식·말년',span:'46세~',domain:'자녀·노년·결실'}
+];
+
 /* ─── 십성 DB ─── */
 var TS_DB={
   '비견':{emoji:'👬',desc:'나랑 똑같은 나의 분신!',meaning:'친구처럼 든든한 나와 같은 에너지'},
@@ -3951,10 +4031,7 @@ function detectJong(p){
     var myForceCount = (cnt[dayEl]||0) + (cnt[parentOf(dayEl)]||0);
     var myForcePct   = (myForceCount / total) * 100;
     var isFollowingOthers = (jongName.indexOf('종아격')>=0 || jongName.indexOf('종재격')>=0 || jongName.indexOf('종살격')>=0 || jongName.indexOf('화격')>=0);
-    var JANGGAN_DB = {
-      '子':['壬','癸'], '丑':['癸','辛','己'], '寅':['戊','丙','甲'], '卯':['甲','乙'], '辰':['乙','癸','戊'], '巳':['戊','庚','丙'],
-      '午':['丙','己','丁'], '未':['丁','乙','己'], '申':['戊','壬','庚'], '酉':['庚','辛'], '戌':['辛','丁','戊'], '亥':['戊','甲','壬']
-    };
+    var JANGGAN_DB = CD_JANGGAN; /* 정본은 파일 상단 CD_JANGGAN */
     var rootElements = [dayEl, parentOf(dayEl)];
     var hasRootInJanggan = false;
     [p.y.j, p.m.j, p.d.j, p.h.j].forEach(function(z){
@@ -4290,12 +4367,7 @@ function evalDaewun(ganChar,zhiChar){
   }
 
   // ── 삼합(三合) 보너스: 대운 지지가 원국과 삼합/반합 형성 ──
-  var SAMHAP = [
-    {m:['申','子','辰'], el:'water'},
-    {m:['亥','卯','未'], el:'wood'},
-    {m:['寅','午','戌'], el:'fire'},
-    {m:['巳','酉','丑'], el:'metal'}
-  ];
+  var SAMHAP = CD_SAMHAP; /* 정본은 파일 상단 CD_SAMHAP */
   var samhapBonus = 0;
   var hasSamhapBonus = false;
   var samhapBonusTxt = '';
@@ -5414,7 +5486,10 @@ async function calculate(){
     runDeferredSajuTasks([
       function() { try { invokeOptionalGlobalRenderer('renderLottoNumbers', [natal, bazi]); } catch(e) { console.error('LottoNumbers 에러:', e); } },
       function() { try { renderSukuyo(p, natal, bazi, typeof lunarDateObj !== 'undefined' ? lunarDateObj : null); } catch(e) { console.error('Sukuyo 에러:', e); } },
-      function() { try { renderQuantumStrategy(p, natal, bazi); } catch(e) { console.error('QuantumStrategy 에러:', e); } },
+      /* 퀀텀 명리 엔진은 스텁만 먼저 깔고, 전체 판별은 카드가 열릴 때 계산한다.
+         (계산량이 크고, 열기 전에는 유료 내용이 DOM·전역에 남지 않아야 한다.
+          reportDashboard의 _sajuFunEnsureQuantumBlockReady가 오픈 시 전체 렌더를 호출) */
+      function() { try { renderQuantumStrategyStub(); } catch(e) { console.error('QuantumStrategyStub 에러:', e); } },
       function() { try { renderSpecialCharm(p, natal); } catch(e) { console.error('SpecialCharm 에러:', e); } },
       function() { try { renderSajuQuestionPromptGenerator(); } catch(e) { console.error('SajuQuestionPrompt 에러:', e); } },
       function() { try { renderDaewun(bazi); } catch(e) { console.error('Daewun 에러:', e, e.stack); } },
@@ -6083,16 +6158,36 @@ function _sajuPromptReadRenderedFeatureText(id, label, limit) {
   }
 }
 
+/* 퀀텀 명리 엔진은 지연 렌더라 카드를 열기 전에는 스텁만 있다.
+   해금한 사용자는 카드를 열지 않았어도 프롬프트에 반영되도록 여기서 한 번 계산하고,
+   미해금 사용자는 스텁 문구가 프롬프트로 새지 않도록 아예 제외한다. */
+function _sajuPromptPrepareQuantumDigest() {
+  try {
+    if (window.__cdQuantumRendered) return true;
+    var unlocked = (typeof window.isTileKeyUnlocked === 'function') && window.isTileKeyUnlocked('rpt_quantumCard');
+    if (!unlocked) return false;
+    if (typeof renderQuantumStrategy !== 'function') return false;
+    if (!G_PILLARS || !G_NATAL) return false;
+    renderQuantumStrategy(G_PILLARS, G_NATAL, G_BAZI);
+    return !!window.__cdQuantumRendered;
+  } catch (e) {
+    console.warn('[SajuPrompt] 퀀텀 다이제스트 준비 실패:', e);
+    return false;
+  }
+}
+
 function _sajuPromptBuildFeatureDigests() {
   var specs = [
     ['destinySection', '퀀텀 명리 오늘 카드', 360],
-    ['quantumCard', '퀀텀 명리 엔진', 520],
     ['daewunCard', '대운 흐름', 520],
     ['healthReportCard', '건강 리듬', 420],
     ['skillTreeCard', '재능/직업 스킬트리', 420],
     ['villainCard', '관계 경계 신호', 420],
     ['lottoCard', '확률/재물 보조 신호', 320]
   ];
+  if (_sajuPromptPrepareQuantumDigest()) {
+    specs.splice(1, 0, ['quantumCard', '퀀텀 명리 엔진', 520]);
+  }
   return specs.map(function(spec) {
     return _sajuPromptReadRenderedFeatureText(spec[0], spec[1], spec[2]);
   }).filter(Boolean);
@@ -8534,18 +8629,7 @@ const ILJU_DB = (function() {
       "甲寅","乙卯","丙辰","丁巳","戊午","己未","庚申","辛酉","壬戌","癸亥"
   ];
 
-  const E12_MAP = {
-      "甲亥":"장생", "甲子":"목욕", "甲丑":"관대", "甲寅":"건록", "甲卯":"제왕", "甲辰":"쇠", "甲巳":"병", "甲午":"사", "甲未":"묘", "甲申":"절", "甲酉":"태", "甲戌":"양",
-      "乙午":"장생", "乙巳":"목욕", "乙辰":"관대", "乙卯":"건록", "乙寅":"제왕", "乙丑":"쇠", "乙子":"병", "乙亥":"사", "乙戌":"묘", "乙酉":"절", "乙申":"태", "乙未":"양",
-      "丙寅":"장생", "丙卯":"목욕", "丙辰":"관대", "丙巳":"건록", "丙午":"제왕", "丙未":"쇠", "丙申":"병", "丙酉":"사", "丙戌":"묘", "丙亥":"절", "丙子":"태", "丙丑":"양",
-      "戊寅":"장생", "戊卯":"목욕", "戊辰":"관대", "戊巳":"건록", "戊午":"제왕", "戊未":"쇠", "戊申":"병", "戊酉":"사", "戊戌":"묘", "戊亥":"절", "戊子":"태", "戊丑":"양",
-      "丁酉":"장생", "丁申":"목욕", "丁未":"관대", "丁午":"건록", "丁巳":"제왕", "丁辰":"쇠", "丁卯":"병", "丁寅":"사", "丁丑":"묘", "丁子":"절", "丁亥":"태", "丁戌":"양",
-      "己酉":"장생", "己申":"목욕", "己未":"관대", "己午":"건록", "己巳":"제왕", "己辰":"쇠", "己卯":"병", "己寅":"사", "己丑":"묘", "己子":"절", "己亥":"태", "己戌":"양",
-      "庚巳":"장생", "庚午":"목욕", "庚未":"관대", "庚申":"건록", "庚酉":"제왕", "庚戌":"쇠", "庚亥":"병", "庚子":"사", "庚丑":"묘", "庚寅":"절", "庚卯":"태", "庚辰":"양",
-      "辛子":"장생", "辛亥":"목욕", "辛戌":"관대", "辛酉":"건록", "辛申":"제왕", "辛未":"쇠", "辛午":"병", "辛巳":"사", "辛辰":"묘", "辛卯":"절", "辛寅":"태", "辛丑":"양",
-      "壬申":"장생", "壬酉":"목욕", "壬戌":"관대", "壬亥":"건록", "壬子":"제왕", "壬丑":"쇠", "壬寅":"병", "壬卯":"사", "壬辰":"묘", "壬巳":"절", "壬午":"태", "壬未":"양",
-      "癸卯":"장생", "癸寅":"목욕", "癸丑":"관대", "癸子":"건록", "癸亥":"제왕", "癸戌":"쇠", "癸酉":"병", "癸申":"사", "癸未":"묘", "癸午":"절", "癸巳":"태", "癸辰":"양"
-  };
+  const E12_MAP = CD_E12_MAP; /* 정본은 파일 상단 CD_E12_MAP */
 
   const SG = {"甲":{e:0,y:1},"乙":{e:0,y:-1},"丙":{e:1,y:1},"丁":{e:1,y:-1},"戊":{e:2,y:1},"己":{e:2,y:-1},"庚":{e:3,y:1},"辛":{e:3,y:-1},"壬":{e:4,y:1},"癸":{e:4,y:-1}};
   const SJ = {"子":{e:4,y:-1},"丑":{e:2,y:-1},"寅":{e:0,y:1},"卯":{e:0,y:-1},"辰":{e:2,y:1},"巳":{e:1,y:1},"午":{e:1,y:-1},"未":{e:2,y:-1},"申":{e:3,y:1},"酉":{e:3,y:-1},"戌":{e:2,y:1},"亥":{e:4,y:1}};
@@ -26535,18 +26619,20 @@ function setCeleb(c){
   document.getElementById('compatBirthMinute').value=profile.minute;
   /* 양/음력 라디오 프리뷰도 업데이트 */
   try{updateLunarPreview('compatBirthDate','compatCalType','compatLunarPreview');}catch(e){}
-  /* 사주 미계산 시에는 폼만 채우고 안내 */
-  if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
-    var compatRunBtn=document.getElementById('compatRunBtn');
-    if(compatRunBtn){
-      compatRunBtn.scrollIntoView({behavior:'smooth',block:'center'});
-      compatRunBtn.style.transition='box-shadow .3s';
-      compatRunBtn.style.boxShadow='0 0 0 4px rgba(255,139,167,.5)';
-      setTimeout(function(){compatRunBtn.style.boxShadow='';},1500);
-    }
-    return;
+  /* 유명인 선택은 상대 정보 프리필까지만 — 결제·분석은 '궁합 분석하기' 버튼(runCompat)에서만 수행 */
+  var prevResult=document.getElementById('compatResult');
+  if(prevResult) prevResult.innerHTML='';
+  var prevLlmHost=document.getElementById('compatLlmHost');
+  if(prevLlmHost) prevLlmHost.innerHTML='';
+  var compatRunBtn=document.getElementById('compatRunBtn');
+  if(compatRunBtn){
+    compatRunBtn.disabled=false;
+    compatRunBtn.style.opacity='';
+    compatRunBtn.scrollIntoView({behavior:'smooth',block:'center'});
+    compatRunBtn.style.transition='box-shadow .3s';
+    compatRunBtn.style.boxShadow='0 0 0 4px rgba(255,139,167,.5)';
+    setTimeout(function(){compatRunBtn.style.boxShadow='';},1500);
   }
-  runCompat();
 }
 
 /** 궁합 LLM 카드 마운트: #compatLlmHost 없으면 compatResult 뒤에 생성 */
@@ -29080,6 +29166,9 @@ function _sajuVillainBuildBranchRelations(p) {
 
   return { conflictRelations: conflict, wonjinRelations: wonjin };
 }
+/* 퀀텀 명리 엔진(별도 스크립트)이 원국 내부 충/파/해/원진/형을 재사용한다.
+   반환 형태를 바꾸면 빌런 블랙리스트도 함께 깨지므로 형태 고정. */
+if (typeof window !== 'undefined') window._sajuVillainBuildBranchRelations = _sajuVillainBuildBranchRelations;
 
 function _sajuVillainExtractMajorSinsal(p) {
   var branches = [
@@ -29104,6 +29193,7 @@ function _sajuVillainExtractMajorSinsal(p) {
   }
   return result;
 }
+if (typeof window !== 'undefined') window._sajuVillainExtractMajorSinsal = _sajuVillainExtractMajorSinsal;
 
 function _sajuVillainNormalizeLuckFlow(input, dayElement) {
   var currentLuckFlow = input.currentLuckFlow;

@@ -425,9 +425,11 @@ if (DIST) {
         }
         // 과잉 제거 감시 — 섹션 부모를 지우다 홈을 통째로 날리면 안 된다.
         // (.cd-section-body는 index.html에 2개뿐이고 둘 다 프루닝 대상이라 기준이 못 된다)
+        // 모바일 홈 허브(#cdMobileDestinyHub)는 반응형 리디자인(v20260723)으로 제거됐으므로,
+        // 홈 루트(#inputPage) 또는 슬림 헤더(#cdMobileHeader)가 살아있는지로 '홈 통째 삭제'를 감시한다.
         check(
-          "홈: 모바일 홈 허브가 살아있음 (과잉 제거 없음)",
-          Boolean(pageWindow.document.getElementById("cdMobileDestinyHub")),
+          "홈: 모바일 홈이 살아있음 (과잉 제거 없음)",
+          Boolean(pageWindow.document.getElementById("inputPage") || pageWindow.document.getElementById("cdMobileHeader")),
         );
         const survivingFeatureLinks = pageWindow.document.querySelectorAll(
           'a[href^="/oracle/"], a[href^="/fortune-tea-house"], a[href^="/saju"], a[href^="/tarot"]',

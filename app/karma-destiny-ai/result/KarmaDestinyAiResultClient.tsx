@@ -459,7 +459,7 @@ function KarmaDestinyResultInner() {
             <header className="kdai-report-hero" data-kdai-pdf-page>
               <Link href="/karma-destiny-ai" className="kdai-back"><ArrowLeft size={17} /> 다시 보기</Link>
               <div className="kdai-report-hero__mark" aria-hidden="true">業</div>
-              <span>운명의 업 AI 상담</span>
+              <span>운명의 업 전문가 상담</span>
               <h1>{userName}님의 운명의 업 장문 리포트</h1>
               <p>{result?.userInput?.topic || "전체 운명의 업"} · {formatDate(result?.generatedAt)}</p>
               <div className="kdai-report-actions">

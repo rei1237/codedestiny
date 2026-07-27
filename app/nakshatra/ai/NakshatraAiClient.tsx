@@ -9,7 +9,7 @@ import AiConsultDecks, { type Decks, type NatalIdentity } from "./AiConsultDecks
 
 const FEATURE_KEY = "nakshatra-ai-consultation";
 const SERVICE_ID = "nakshatra-ai";
-const FEATURE_TITLE = "나크샤트라 결정판 AI 심화 상담";
+const FEATURE_TITLE = "나크샤트라 결정판 전문가 심화 상담";
 const PRICE_KRW = 30000;
 const COIN_PRICE = 300;
 const ACCESS_TOKEN_HEADER = "x-nakshatra-ai-access-token";
@@ -241,7 +241,7 @@ export default function NakshatraAiClient() {
           </div>
           <p className="text-lg font-bold text-slate-50">먼저 별을 계산해 주세요</p>
           <p className="mt-3 text-sm leading-7 text-slate-300">
-            AI 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.
+            전문가 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.
           </p>
           <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 outline-none transition hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818]">
             내 별 계산하기
@@ -292,7 +292,7 @@ function IntroView({
 }) {
   return (
     <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · AI 심화 상담</p>
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · 전문가 심화 상담</p>
       <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">두 대가에게 두 번 물어보세요</h1>
       <p className="mt-3 break-keep text-sm leading-7 text-slate-200">
         {identity?.sukuyoHan ? <><span className="font-semibold text-blue-100">{identity.sukuyoHan}宿</span> · </> : null}

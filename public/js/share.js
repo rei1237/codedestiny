@@ -856,7 +856,165 @@ function _cdInjectCompatInviteButton(){
   } catch (_) {}
 }
 
+/* ══════════════════════════════════════════════════════════════════
+   일반 운세 공유 일반화 — 기능별 bespoke 함수 없이, 어떤 운세 기능이든
+   이 공용 함수로 결과를 공유한다(리퍼럴 자동 부착·shareWithReward 재사용).
+   기존 per-feature 공유 함수(shareKakao/shareTarotKakao/…)는 전혀 건드리지
+   않는다(회귀 위험 0). 신규 기능은 cdShareFortuneKakao({...})만 호출하면 된다.
+   ══════════════════════════════════════════════════════════════════ */
+
+// 홈이 아닌 임의 URL(예: /stories/…)에도 리퍼럴 파라미터를 부착한다.
+function cdAppendReferralQuery(url){
+  var r = cdReadCachedReferral() || {};
+  if (!r.ref) return url;
+  var sep = String(url || '').indexOf('?') >= 0 ? '&' : '?';
+  var qs = ['ref=' + encodeURIComponent(r.ref)];
+  if (r.rs) qs.push('rs=' + encodeURIComponent(r.rs));
+  qs.push('via=' + encodeURIComponent(r.via || 'kakao_reward'));
+  return url + sep + qs.join('&');
+}
+
+// 공용 운세 결과 공유. options: { contentId, title, header, cta, preview | previewSelector, maxLen }
+// contentId 가 CD_SHARE_ACTION_MAP 에 있으면 해당 모달 딥링크, 없으면 홈으로(리퍼럴은 항상 부착).
+function cdShareFortuneKakao(options){
+  var opts = options || {};
+  var contentId = opts.contentId || 'saju';
+  shareWithReward(function(){
+    var url = cdBuildShareUrl(contentId);
+    var preview = opts.preview || '';
+    if (!preview && opts.previewSelector) {
+      var node = null;
+      try { node = document.querySelector(opts.previewSelector); } catch (_) {}
+      preview = node ? _trimShareText(node.innerText, opts.maxLen || 240) : '';
+    }
+    var header = opts.header || '✨ [코드 데스티니 운세]';
+    var cta = opts.cta || '나도 무료로 확인하기 👇';
+    var text = header + '\n\n' + (preview ? (preview + '\n\n') : '') + cta + '\n' + url;
+    var title = opts.title || _shareText('share.001');
+    if (navigator.share) {
+      navigator.share({ title: title, text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '카카오톡 앱이 없거나 PC에서는 링크를 복사했어요! 카카오톡에 붙여넣기 하세요 💬'); }, 800);
+  }, contentId);
+}
+
+// 라이트 노벨 공유 — 정본 스토리(/codedestiny-novel.html)로, 리퍼럴 승계. (storyId 레거시·무시)
+function shareStoryKakao(storyId, storyTitle){
+  shareWithReward(function(){
+    var origin = 'https://code-destiny.com';
+    try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
+    var path = '/codedestiny-novel.html';
+    var url = cdAppendReferralQuery(origin + path);
+    var title = storyTitle || '연이와 네오의 운명 이야기';
+    var text = '📖 [코드 데스티니 이야기] ' + title + '\n\n연이와 네오의 운명 여정, 무료로 읽어보세요 👇\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: title, text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '이야기 링크를 복사했어요! 카카오톡에 붙여넣어 주세요 💬'); }, 800);
+  }, 'story');
+}
+
+// 결과 카드 이미지 공유 — 대상 요소를 html2canvas로 캡처해 이미지로 공유(파일 공유 지원 시 File,
+// 아니면 이미지 다운로드 + 링크 클립보드). html2canvas가 지연로드라 없으면 1회 로드 후 진행.
+// options: { contentId, targetSelector | element, title, caption }
+function _cdEnsureHtml2Canvas(cb){
+  if (window.html2canvas) { cb(window.html2canvas); return; }
+  var loader = document.getElementById('cdH2CShareLoader');
+  var onReady = function(){ cb(window.html2canvas || null); };
+  if (loader) { loader.addEventListener('load', onReady); loader.addEventListener('error', function(){ cb(null); }); return; }
+  var s = document.createElement('script');
+  s.id = 'cdH2CShareLoader';
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  s.crossOrigin = 'anonymous';
+  s.referrerPolicy = 'no-referrer';
+  s.onload = onReady;
+  s.onerror = function(){ cb(null); };
+  document.head.appendChild(s);
+}
+function cdShareResultCardImage(options){
+  var opts = options || {};
+  var contentId = opts.contentId || 'saju';
+  var target = null;
+  try { target = opts.element || (opts.targetSelector ? document.querySelector(opts.targetSelector) : null); } catch (_) {}
+  if (!target) { if (typeof showToast === 'function') showToast('공유할 결과 카드를 찾지 못했어요'); return; }
+  shareWithReward(function(){
+    _cdEnsureHtml2Canvas(function(h2c){
+      if (!h2c) {
+        // 이미지 모듈 부재 → 텍스트 공유로 폴백(회귀 안전).
+        cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption });
+        return;
+      }
+      h2c(target, { backgroundColor: null, scale: 2, useCORS: true, logging: false }).then(function(canvas){
+        var url = cdBuildShareUrl(contentId);
+        canvas.toBlob(function(blob){
+          if (!blob) { cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); return; }
+          var file = null;
+          try { file = new File([blob], 'code-destiny-result.png', { type: 'image/png' }); } catch (_) {}
+          if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+            navigator.share({ files: [file], title: opts.title || _shareText('share.001'), text: (opts.caption ? (opts.caption + '\n') : '') + url }).catch(function(){});
+            return;
+          }
+          var dl = document.createElement('a');
+          dl.href = URL.createObjectURL(blob);
+          dl.download = 'code-destiny-result.png';
+          document.body.appendChild(dl); dl.click(); document.body.removeChild(dl);
+          setTimeout(function(){ try { URL.revokeObjectURL(dl.href); } catch (_) {} }, 4000);
+          copyToClipboard(url, '결과 카드 이미지를 저장했어요! 링크도 함께 복사됐어요 💬');
+        }, 'image/png');
+      }).catch(function(){ cdShareFortuneKakao({ contentId: contentId, title: opts.title, header: opts.caption }); });
+    });
+  }, contentId);
+}
+
+/* 숙요 궁합초대 확장 — saju 궁합초대와 동일 cp(base64url 생일) 재사용하되, 대상이 React 라우트라
+   레거시 DOM 프리필 대신 /sukuyo-compatibility-ai?cp= 딥링크로 보내고 React 클라가 personB를 채운다.
+   (점성술 시나스트리는 리포에 존재하지 않아 대상 없음.) 기존 saju 궁합초대는 무변경(회귀 0). */
+function cdBuildSukuyoCompatInviteUrl(){
+  var self = cdReadSelfBirthForInvite();
+  if (!self) return null;
+  var cp = _cdB64UrlEncode(JSON.stringify(self));
+  if (!cp) return null;
+  var origin = 'https://code-destiny.com';
+  try { if (window.location && window.location.origin && /^https?:/.test(window.location.origin)) origin = window.location.origin; } catch (_) {}
+  return cdAppendReferralQuery(origin + '/sukuyo-compatibility-ai?cp=' + encodeURIComponent(cp));
+}
+function shareSukuyoCompatInviteKakao(){
+  var url = cdBuildSukuyoCompatInviteUrl();
+  if (!url) {
+    if (typeof showToast === 'function') showToast('먼저 내 사주를 확인한 뒤 숙요 궁합 초대 링크를 만들 수 있어요 🐷');
+    return;
+  }
+  var self = cdReadSelfBirthForInvite() || {};
+  var who = self.n ? (self.n + '님') : '내';
+  shareWithReward(function(){
+    var text = '🌙 [숙요 궁합 초대] ' + who + '과의 숙요 궁합, 같이 볼래요?\n\n'
+      + '아래 링크를 열면 ' + who + '의 정보가 상대 칸에 자동으로 채워져요.\n\n' + url;
+    if (navigator.share) {
+      navigator.share({ title: '🌙 숙요 궁합 초대', text: text, url: url }).catch(function(){});
+      return;
+    }
+    var a = document.createElement('a');
+    a.href = 'kakaotalk://send?text=' + encodeURIComponent(text);
+    a.click();
+    setTimeout(function(){ copyToClipboard(text, '숙요 궁합 초대 링크를 복사했어요! 카카오톡에 붙여넣어 주세요 💬'); }, 800);
+  }, 'sukuyo-compat-invite');
+}
+
 if (typeof window !== 'undefined') {
+  window.cdShareFortuneKakao = cdShareFortuneKakao;
+  window.cdShareResultCardImage = cdShareResultCardImage;
+  window.shareStoryKakao = shareStoryKakao;
+  window.cdAppendReferralQuery = cdAppendReferralQuery;
+  window.cdBuildSukuyoCompatInviteUrl = cdBuildSukuyoCompatInviteUrl;
+  window.shareSukuyoCompatInviteKakao = shareSukuyoCompatInviteKakao;
   window.shareCompatInviteKakao = shareCompatInviteKakao;
   window.openCompatInvite = openCompatInvite;
   var _cdCompatInviteInit = function(){

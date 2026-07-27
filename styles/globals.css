@@ -1,3 +1,6 @@
+/* 브랜드 세리프 @font-face(R2 미러 청크) — 자동 생성 파일. 재생성: node scripts/build-serif-font-assets.mjs */
+@import "./fonts-serif.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,6 +12,10 @@
 	--font-premium: "CodeDestinyPremium", var(--font-display);
 	--font-playful: "CodeDestinyPlayful", var(--font-display);
 	--font-decorative: "CodeDestinyDecorative", var(--font-display);
+	/* Latin 을 앞에 둔다: Cinzel 의 unicode-range 에 한글이 없어 한글은 자동으로 KR 로 내려가고,
+	   영문 킥커(The Crossroad 등)는 의도한 Cinzel 로 렌더된다. 순서를 뒤집으면 KR 청크 중
+	   ASCII 를 포함한 것이 먼저 걸려 영문까지 명조로 렌더된다. */
+	--font-serif: "CodeDestinySerifLatin", "CodeDestinySerifKR", "Nanum Myeongjo", "Gowun Batang", "Noto Serif KR", Georgia, serif;
 	--font-noto-sans-kr: var(--font-body);
 }
 

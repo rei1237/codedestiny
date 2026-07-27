@@ -776,8 +776,9 @@
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_LOCAL_DEV_API_ORIGIN = '';
   var _DP_FETCH_TIMEOUT_MS = 20000;
-  // 프로필 부트스트랩이 끊겼을 때 로딩 카드를 강제로 걷어내는 상한(_DP_FETCH_TIMEOUT_MS + 여유).
-  var PROFILE_LOADING_FAILSAFE_MS = 22000;
+  // 프로필 부트스트랩이 끊겼을 때 로딩 카드를 강제로 걷어내는 상한. 22s는 과도(스피너 오래 노출) —
+  // 프로필 도착 즉시 렌더(인증검증 비대기)+서버 병렬화로 실제 로드가 빨라졌으므로 10s로 낮춘다.
+  var PROFILE_LOADING_FAILSAFE_MS = 10000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
   var _dpApiCooldownUntil = Object.create(null);
@@ -1604,14 +1605,17 @@
       })
       .catch(function() { return null; });
 
-      return Promise.all([verifyPromise, profilePromise]).then(function(results) {
-        var ok = results[0];
-        var data = results[1];
-        if (!ok) {
-          _dpResetSubscriptionState();
-          return false;
+      // 프로필은 '도착 즉시' 적용한다 — 인증검증(/api/auth/me)이 느려도(콜드 Mongo) 렌더가 막히지 않는다.
+      // (/api/profile 자체가 독립 인증이므로 data.ok=true가 곧 로그인 신호. 검증은 프로필이 없을 때만 기다려
+      //  구독상태 리셋 여부를 판단하고, 있을 때는 백그라운드에서 부수효과만 정리한다.)
+      return profilePromise.then(function(data) {
+        var hasProfile = data && data.ok && Array.isArray(data.profiles);
+        if (!hasProfile) {
+          return verifyPromise.then(function(ok) {
+            if (!ok) _dpResetSubscriptionState();
+            return false;
+          }).catch(function() { return false; });
         }
-        if (!data || !data.ok || !Array.isArray(data.profiles)) return false;
         var scope = _dpGetProfileScope();
         // 세션검증이 게스트→실계정으로 스코프를 채운 경우는 정상 진행하고,
         // 실계정→다른 실계정으로 바뀐 경우(계정 전환 레이스)만 폐기한다.
@@ -5950,7 +5954,12 @@
     if (!container) return;
 
     if (list.length === 0) {
-      container.innerHTML = '<div class="dp-list-empty">교체할 프로필이 없습니다.<br><small>아래 폼을 입력 후 \'저장\' 버튼을 눌러주세요.</small></div>';
+      container.innerHTML = '<div class="dp-list-empty">아직 저장된 프로필 카드가 없어요.'
+        + '<br><small>생년월일·태어난 시각을 입력해 첫 프로필 카드를 만들어 보세요.</small>'
+        + '<br><button type="button" class="dp-list-empty-cta" onclick="dpCloseList();dpScrollToForm();"'
+        + ' style="margin-top:16px;padding:11px 22px;border-radius:999px;border:1px solid rgba(255,215,0,0.42);'
+        + 'background:rgba(255,215,0,0.12);color:var(--dp-gold);font-size:0.86rem;font-weight:700;cursor:pointer;'
+        + 'touch-action:manipulation;-webkit-tap-highlight-color:transparent;">프로필 카드 만들기</button></div>';
       return;
     }
 
@@ -6313,6 +6322,8 @@
     });
   };
 
+  var _dpListOpenedAt = 0;
+
   window.dpOpenList = function() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
@@ -6325,6 +6336,7 @@
 
     sheet.classList.add('dp-sheet--open');
     overlay.classList.add('dp-sheet--open');
+    _dpListOpenedAt = Date.now();
 
     function renderOpenList() {
       try {
@@ -7335,7 +7347,12 @@
 
     /* 오버레이 클릭으로 시트 닫기 */
     var overlay = document.getElementById('dpListOverlay');
-    if (overlay) overlay.addEventListener('click', dpCloseList);
+    if (overlay) overlay.addEventListener('click', function() {
+      // 시트를 방금 연 탭(하단 '마이' 등)의 합성 click이 전체화면 오버레이로 새어
+      // 시트를 즉시 닫는 "깜빡임" 회귀 방지 — 개방 직후 짧은 구간의 클릭은 무시한다.
+      if (Date.now() - _dpListOpenedAt < 500) return;
+      dpCloseList();
+    });
     var sheet = document.getElementById('dpListSheet');
     if (sheet) {
       var sheetCloseTouchState = { active: false, x: 0, y: 0, startedAt: 0 };

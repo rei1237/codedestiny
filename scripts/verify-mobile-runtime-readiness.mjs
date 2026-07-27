@@ -23,7 +23,6 @@ const requiredRoutes = [
   "app/fortune-tea-house/page.tsx",
   "app/neo-operation-room/page.tsx",
   "app/music/page.tsx",
-  "app/stories/page.tsx",
   "app/premium-unlock/page.tsx",
   "app/sukuyo-compatibility-ai/page.tsx",
   "app/ziwei-ai/page.tsx",

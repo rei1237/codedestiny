@@ -5,92 +5,45 @@
    ============================================================ */
 
 /*  globals.css  */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root,
-.font-noto-sans-kr-offline {
-	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+/* ─── 기본 리셋 및 모바일 터치·스크롤 기반 ─── */
+/* NOTE: @tailwind 지시어는 Next.js 빌드에서만 처리됨.
+   static HTML 직접 링크 시에는 순수 CSS 규칙만 유효함. */
+:root {
+	--font-body: "CodeDestinyBody", "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", "Segoe UI", system-ui, -apple-system, sans-serif;
 	--font-display: "CodeDestinyDisplay", var(--font-body);
 	--font-premium: "CodeDestinyPremium", var(--font-display);
 	--font-playful: "CodeDestinyPlayful", var(--font-display);
 	--font-decorative: "CodeDestinyDecorative", var(--font-display);
-	--font-noto-sans-kr: var(--font-body);
 }
-
-@font-face {
-	font-family: "CodeDestinyBody";
-	src: local("Pretendard"), local("Apple SD Gothic Neo"), local("Malgun Gothic");
-	font-weight: 400 900;
-	font-style: normal;
-	font-display: swap;
+html {
+	-webkit-text-size-adjust: 100%;
+	text-size-adjust: 100%;
+	-webkit-overflow-scrolling: touch;
 }
-
-@font-face {
-	font-family: "CodeDestinyDisplay";
-	src: url("https://assets.code-destiny.com/Mulmaru.woff2") format("woff2");
-	font-weight: 400;
-	font-style: normal;
-	font-display: swap;
-}
-
-@font-face {
-	font-family: "CodeDestinyDecorative";
-	src: url("https://assets.code-destiny.com/Galmuri11-Bold.woff2") format("woff2");
-	font-weight: 700;
-	font-style: normal;
-	font-display: optional;
-}
-
-@font-face {
-	font-family: "CodeDestinyPremium";
-	src: url("https://assets.code-destiny.com/The%20Jamsil%20OTF%204%20Medium.otf") format("opentype");
-	font-weight: 500;
-	font-style: normal;
-	font-display: optional;
-}
-
-@font-face {
-	font-family: "CodeDestinyPlayful";
-	src: url("https://assets.code-destiny.com/netmarbleM.ttf") format("truetype");
-	font-weight: 500;
-	font-style: normal;
-	font-display: optional;
-}
-
-/* ─── 모바일 터치·스크롤 기반 (모든 브라우저/OS 동일 경험) ─── */
-@layer base {
+@media (prefers-reduced-motion: no-preference) {
 	html {
-		-webkit-text-size-adjust: 100%;
-		text-size-adjust: 100%;
-		/* iOS: 문서 스크롤이 html에 있을 때 모멘텀 스크롤 */
-		-webkit-overflow-scrolling: touch;
+		scroll-behavior: smooth;
 	}
-	@media (prefers-reduced-motion: no-preference) {
-		html {
-			scroll-behavior: smooth;
-		}
-	}
-	body {
-		margin: 0;
-		padding: 0;
-		min-height: 100%;
-		min-height: 100dvh;
-		/* 네오 미드나잇 정렬 — styles/globals.css 의 body 와 같은 값을 쓴다. */
-		background: #0a0818;
-		color: #f4eeff;
-		font-family: var(--font-body);
-		font-size: 16px;
-		line-height: 1.62;
-		letter-spacing: 0;
-		-webkit-overflow-scrolling: touch;
-		overscroll-behavior-y: none;
-		touch-action: pan-y;
-		padding-left: env(safe-area-inset-left, 0);
-		padding-right: env(safe-area-inset-right, 0);
-		padding-bottom: env(safe-area-inset-bottom, 0);
-	}
+}
+body {
+	margin: 0;
+	padding: 0;
+	min-height: 100%;
+	min-height: 100dvh;
+	/* fortune-ui.css 기본 배경과 일치: FOUC/CLS 방지 */
+	background: #FFF5F8;
+	background: var(--bg-color, linear-gradient(135deg,#FFF5F8 0%,#FFF9F5 50%,#F5F8FF 100%));
+	color: #3D3D3D;
+	color: var(--text-main, #3D3D3D);
+	font-family: var(--font-body);
+	-webkit-overflow-scrolling: touch;
+	overscroll-behavior-y: none;
+	touch-action: pan-y;
+	padding-left: env(safe-area-inset-left, 0);
+	padding-right: env(safe-area-inset-right, 0);
+	padding-bottom: env(safe-area-inset-bottom, 0);
+	overflow-x: hidden;
+}
 	* {
 		box-sizing: border-box;
 	}
@@ -125,7 +78,20 @@
 			font-size: inherit;
 		}
 	}
-}
+	/* CLS guard: keep stable image boxes before image decode completes. */
+	img {
+		height: auto;
+	}
+	img.tarot-face-img,
+	#tarotCardFrontImg,
+	img[data-card-img] {
+		aspect-ratio: 2 / 3;
+		object-fit: cover;
+	}
+	#dfStudioImage {
+		aspect-ratio: 21 / 16;
+		object-fit: cover;
+	}
 
 .visually-hidden {
 	position: absolute;
@@ -278,7 +244,7 @@
 		font-size: 0.75rem;
 		letter-spacing: 0.08em;
 		color: rgba(209, 213, 219, 0.85);
-		font-family: var(--font-display);
+		font-family: "Nanum Myeongjo", "Noto Serif KR", serif;
 		text-shadow: 0 0 6px rgba(15, 23, 42, 0.9);
 	}
 }
@@ -291,27 +257,6 @@
 /* Safe viewport fallback for browsers without dvh support */
 :root {
   --cd-safe-viewport-height: 100vh;
-
-  /* ── Moonlit Stellar Design System v20260610 ── */
-  --moon-night:        #03061A;
-  --moon-deep:         #060D2E;
-  --moon-mid:          #0C1A52;
-  --moon-glow:         #162560;
-  --moon-silver:       #C8D8FF;
-  --moon-pearl:        #EEF2FF;
-  --moon-gold:         #F3DD9A;
-  --moon-aurora:       rgba(99,179,255,0.18);
-  --star-bright:       #FFFFFF;
-  --star-silver:       rgba(200,216,255,0.9);
-  --star-warm:         rgba(255,238,200,0.85);
-  --lunar-glow-sm:     0 0 14px rgba(160,195,255,0.35);
-  --lunar-glow-md:     0 0 28px rgba(140,180,255,0.28), 0 0 56px rgba(90,130,220,0.16);
-  --lunar-border:      rgba(200,216,255,0.22);
-  --lunar-shimmer:     inset 0 1px 0 rgba(200,216,255,0.28);
-  --neo-moon-gold:     #F3DD9A;
-  --neo-lunar-glow:    0 0 28px rgba(243,221,154,0.3), 0 0 56px rgba(200,160,60,0.14);
-  --neo-lunar-border:  rgba(243,221,154,0.24);
-  --neo-lunar-shimmer: inset 0 1px 0 rgba(243,221,154,0.22);
 }
 
 @supports (height: 100dvh) {

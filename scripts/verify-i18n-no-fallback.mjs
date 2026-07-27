@@ -26,6 +26,12 @@ import { walkSourceFiles, PASSTHROUGH_WRAPPERS, PREFIXED_WRAPPERS } from "./lib/
 const rootDir = process.cwd();
 const baselinePath = resolve(rootDir, "i18n", "no-fallback-baseline.json");
 const shouldUpdate = process.argv.includes("--update");
+/**
+ * --reset 은 기준선의 **기준 자체가 바뀐 경우**(대규모 머지·리베이스로 상류의
+ * 새 한국어가 대량 유입)에만 쓴다. 회귀를 덮는 용도가 아니다.
+ * 평소에는 --update 만 쓰며, 그건 수치가 내려갈 때만 기록한다.
+ */
+const shouldReset = process.argv.includes("--reset");
 
 // A. 금지 패턴 — 로케일 조회 실패를 한국어로 메우는 구조
 const FORBIDDEN = [
@@ -74,11 +80,11 @@ console.log(`[no-fallback] A. 한국어 fallback 구조 : ${fmt(koStructures, ba
 console.log(`[no-fallback] B. 한국어 fallback 인자 : ${fmt(fallbackCalls, baseline?.fallbackCalls)}`);
 
 const failures = [];
-if (baseline && koStructures > baseline.koStructures) {
+if (!shouldReset && baseline && koStructures > baseline.koStructures) {
   failures.push(`한국어 fallback 구조가 늘었습니다: ${baseline.koStructures} → ${koStructures}`);
   violations.slice(0, 15).forEach((v) => console.error(`- ${v.file}:${v.line}  [${v.pattern}]  ${v.snippet}`));
 }
-if (baseline && fallbackCalls > baseline.fallbackCalls) {
+if (!shouldReset && baseline && fallbackCalls > baseline.fallbackCalls) {
   failures.push(`fallback 인자가 늘었습니다: ${baseline.fallbackCalls} → ${fallbackCalls}`);
 }
 
@@ -89,7 +95,7 @@ if (failures.length) {
   process.exit(1);
 }
 
-if (shouldUpdate) {
+if (shouldUpdate || shouldReset) {
   mkdirSync(resolve(rootDir, "i18n"), { recursive: true });
   writeFileSync(baselinePath, `${JSON.stringify({ koStructures, fallbackCalls }, null, 2)}\n`, "utf8");
   console.log("[no-fallback] 기준선 갱신");

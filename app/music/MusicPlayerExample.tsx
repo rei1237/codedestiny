@@ -162,12 +162,17 @@ function hasTrackFullAccess(track: Track, accessByTrackId: MusicAccessMap, passC
 }
 
 // 다운로드는 이용권 커버로 열리지 않는다 — 단건결제·월정석으로 실제 구매한 곡만 파일을 받을 수 있다.
+// downloadRequiresPurchase 트랙은 재생이 free_full로 무료여도 다운로드는 서버가 확인한 구매(canDownload)에만 허용한다.
 function canDownloadTrack(track: Track, accessByTrackId: MusicAccessMap) {
-  if (track.accessTier === "free_full") return true;
+  if (track.accessTier === "free_full" && !track.downloadRequiresPurchase) return true;
   return Boolean(track.id && accessByTrackId[track.id]?.canDownload);
 }
 
 function buildPlaybackTrack(track: Track, accessByTrackId: MusicAccessMap, passCoversAll: boolean): Track {
+  // free_full 트랙은 매니페스트 audioUrl이 이미 공개 CDN 직결이다.
+  // 워커 프록시(/api/music/audio)로 재작성하면 클라→워커→R2→워커 왕복이 배가돼 첫 재생이 늦어진다.
+  // 재생 지연 제거를 위해 그대로 반환한다(다운로드 결제 게이팅은 canDownload로 별도 처리).
+  if (track.accessTier === "free_full") return track;
   if (!hasTrackFullAccess(track, accessByTrackId, passCoversAll)) return track;
 
   return {
@@ -646,7 +651,8 @@ function FeaturedTrackCard({
         <p className={styles.featuredArtist}>{track.artistName}</p>
         <p className={styles.featuredMood}>{track.mood || copy.featuredMood}</p>
         <span className={styles.musicAccessBadge} data-access={hasFullAccess ? "full" : "preview"}>
-          {hasFullAccess ? (canDownload ? copy.fullAccessBadge : copy.passAccessBadge) : copy.previewBadge}
+          {/* 배지는 재생 접근만 표시한다 — 다운로드 구매 여부는 아래 구매/다운로드 버튼으로 구분된다. */}
+          {hasFullAccess ? copy.fullAccessBadge : copy.previewBadge}
         </span>
         <MoonWaveform isPlaying={isPlaying} />
         <span className={styles.featuredStatus} aria-live="polite">{listeningStatusLabel}</span>
@@ -785,9 +791,12 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
   const [musicAccessMessage, setMusicAccessMessage] = useState("");
   const accessRefreshTrackIdsRef = useRef<Record<string, string>>({});
   const refreshMusicAccess = useCallback(async (tracksToRefresh: readonly Track[] = allTracks) => {
-    const lockedTracks = tracksToRefresh.filter((track) => track.accessTier === "locked_preview" && track.purchaseFeatureKey);
-    if (!lockedTracks.length) return;
-    const lockedTrackById = new Map(lockedTracks.map((track) => [track.id, track]));
+    // 잠금 미리듣기 트랙 + 재생은 무료지만 다운로드 구매가 필요한 트랙의 곡별 다운로드 권한을 서버에서 받아온다.
+    const gatedTracks = tracksToRefresh.filter((track) => (
+      Boolean(track.purchaseFeatureKey) && (track.accessTier === "locked_preview" || track.downloadRequiresPurchase)
+    ));
+    if (!gatedTracks.length) return;
+    const gatedTrackById = new Map(gatedTracks.map((track) => [track.id, track]));
 
     // 일시적 DB 장애(503)가 "이용권 없음"으로 굳어 전곡이 미리듣기로 떨어지지 않게 짧게 재시도한다.
     // 확정 실패(401/402 등)는 재시도하지 않고 그대로 반영한다.
@@ -798,7 +807,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tracks: lockedTracks.map((track) => ({
+          tracks: gatedTracks.map((track) => ({
             trackId: track.id,
             audioSourceKey: track.audioSourceKey,
             featureKey: track.purchaseFeatureKey,
@@ -819,7 +828,7 @@ export default function MusicPlayerExample({ ambientAssetKey, presentation = "fu
         if (!entry?.trackId) continue;
         const currentEntry = current[entry.trackId];
         if (currentEntry?.hasFullAccess && entry.hasFullAccess !== true) continue;
-        const sourceTrack = lockedTrackById.get(entry.trackId);
+        const sourceTrack = gatedTrackById.get(entry.trackId);
         next[entry.trackId] = entry.hasFullAccess && sourceTrack
           ? { ...buildFullAccessEntry(sourceTrack, entry), canDownload: entry.canDownload === true }
           : entry;

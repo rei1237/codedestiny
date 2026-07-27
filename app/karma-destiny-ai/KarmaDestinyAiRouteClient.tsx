@@ -18,7 +18,7 @@ function KarmaDestinyAiShell() {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-amber-200/80">
           Karma · Saju · Astrology
         </p>
-        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">운명의 업 AI 상담</h1>
+        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">운명의 업 전문가 상담</h1>
         <p className="mt-5 max-w-2xl text-base leading-8 text-amber-50/85 sm:text-lg">
           사주와 서양 점성술, 베다의 별자리가 겹치는 자리에서 반복되어 온 삶의 문양을 읽습니다. 지금
           마주한 질문이 어디에서 흘러왔고 어디로 나아가려 하는지 조용히 비춥니다.

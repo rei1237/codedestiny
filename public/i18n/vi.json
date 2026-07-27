@@ -4,7 +4,7 @@
   "brand": {
     "name": "Code Destiny",
     "tagline": "Siêu tâm lý học phương Đông · Giải mã",
-    "subtitle": "Nơi trí tuệ cổ xưa gặp AI hiện đại",
+    "subtitle": "Nơi trí tuệ cổ xưa gặp chuyên gia hiện đại",
     "trustBadge": "Được tin cậy bởi hơn 100.000 người tìm kiếm trên hơn 80 quốc gia"
   },
   "home": {
@@ -66,31 +66,31 @@
       "vedicMeta": "Jyotish · Nghiệp",
       "nakshatra": "Nakshatra",
       "nakshatraMeta": "27 cung trăng",
-      "aiConsult": "Tư vấn AI",
-      "aiConsultAria": "Trung tâm tư vấn AI",
-      "aiSibyl": "Tư vấn AI Sibyl",
+      "aiConsult": "Tư vấn chuyên gia",
+      "aiConsultAria": "Trung tâm tư vấn chuyên gia",
+      "aiSibyl": "Tư vấn chuyên gia Sibyl",
       "aiSibylMeta": "Hỏi đáp Tứ trụ chuyên sâu",
       "aiNeoRoom": "Phòng chiến lược của Neo",
       "aiNeoRoomMeta": "Báo cáo chiến lược thẳng thắn",
       "aiLifebook": "Cuốn sách Cuộc đời",
-      "aiLifebookMeta": "Báo cáo cuộc đời AI",
-      "aiNaming": "Xưởng đặt tên AI",
+      "aiLifebookMeta": "Báo cáo cuộc đời chuyên gia",
+      "aiNaming": "Xưởng đặt tên chuyên gia",
       "aiNamingMeta": "Luận tên · đặt tên",
       "aiLoveSecret": "Bí kíp tình yêu",
       "aiLoveSecretMeta": "Tình cảm · tái hợp",
-      "aiAll": "Xem mọi tư vấn AI",
+      "aiAll": "Xem mọi tư vấn chuyên gia",
       "aiAllMeta": "Tìm bằng tìm kiếm",
       "story": "Câu chuyện",
       "allServices": "Mọi dịch vụ",
-      "aiLifeFortune": "AI Tổng Vận Đời",
+      "aiLifeFortune": "Chuyên gia Tổng Vận Đời",
       "aiLifeFortuneMeta": "Dòng đời qua mệnh bàn & vận",
-      "aiZiwei": "Tư vấn AI Tử Vi",
+      "aiZiwei": "Tư vấn chuyên gia Tử Vi",
       "aiZiweiMeta": "Luận mệnh bàn 12 cung cá nhân",
-      "aiAstro": "Tư vấn AI Chiêm Tinh",
+      "aiAstro": "Tư vấn chuyên gia Chiêm Tinh",
       "aiAstroMeta": "Hỏi đáp sâu bản đồ sao",
-      "aiVedic": "Tư vấn AI Vệ Đà",
+      "aiVedic": "Tư vấn chuyên gia Vệ Đà",
       "aiVedicMeta": "Luận rasi & nakshatra",
-      "aiSukuyo": "AI Hợp Đôi Túc Diệu",
+      "aiSukuyo": "Chuyên gia Hợp Đôi Túc Diệu",
       "aiSukuyoMeta": "Luận quan hệ 27 tú",
       "aiKarma": "Nghiệp Vận Mệnh",
       "aiKarmaMeta": "Luận nghiệp & tiền kiếp"
@@ -222,7 +222,7 @@
         "title": "Đọc khuôn mặt & Bộ sưu tập biểu tượng",
         "subtitle": "Mở những dấu hiệu ẩn giấu trên khuôn mặt, khí chất và biểu tượng Tứ trụ của bạn",
         "lede": "Từ các bài kiểm tra ánh sáng đến các con dấu Tứ trụ cao cấp, bộ sưu tập này tiết lộ các biểu tượng và năng lượng mối quan hệ phản ánh con người bạn.",
-        "featureline": "Đọc khuôn mặt AI · Khả năng tương thích MBTI · Vật tổ động vật · Con dấu giám hộ Tứ trụ",
+        "featureline": "Đọc khuôn mặt chuyên gia · Khả năng tương thích MBTI · Vật tổ động vật · Con dấu giám hộ Tứ trụ",
         "aria": "Đọc khuôn mặt mở và Bộ sưu tập biểu tượng"
       },
       "meditation": {
@@ -277,7 +277,7 @@
       "openHint": "Nhấn để mở"
     },
     "tiles": {
-      "animalFaceTitle": "🎭 AI Đọc khuôn mặt động vật",
+      "animalFaceTitle": "🎭 Chuyên gia đọc khuôn mặt động vật",
       "animalFaceDesc": "Đọc khuôn mặt từ ảnh selfie của bạn",
       "animalMbtiTitle": "🦁 MBTI Khả năng tương thích với động vật",
       "animalMbtiDesc": "16 đường dẫn tương thích vật tổ",
@@ -383,8 +383,8 @@
       "favoriteDestinyDesc": "Photocard đọc tâm trạng",
       "sajuFptiTitle": "🔮 Tứ trụ FPTI Test",
       "sajuFptiDesc": "Tính cách bốn trục qua các yếu tố và Thập Thần",
-      "animalFaceAria": "Bắt đầu AI đọc khuôn mặt động vật",
-      "animalFaceAlt": "AI đọc khuôn mặt động vật - hình dạng khuôn mặt từ ảnh selfie",
+      "animalFaceAria": "Bắt đầu chuyên gia đọc khuôn mặt động vật",
+      "animalFaceAlt": "Chuyên gia đọc khuôn mặt động vật - hình dạng khuôn mặt từ ảnh selfie",
       "animalFaceBadge": "Phân tích khuôn mặt",
       "animalFacePrice": "Miễn phí · Khả năng tương thích 5.000 KRW",
       "freeBadge": "Miễn phí",
@@ -406,8 +406,8 @@
       "palmMapAria": "Xem bản đồ mệnh chỉ tay",
       "palmMapAlt": "Bản đồ mệnh cọ - phân tích mô hình mệnh cọ",
       "palmMapBadge": "Xem lòng bàn tay",
-      "palmMapMeta": "Đọc chỉ tay AI · Xem tướng tay phương Đông · Bản đồ vận mệnh",
-      "animalFaceImgAlt": "AI Đọc khuôn mặt động vật",
+      "palmMapMeta": "Đọc chỉ tay chuyên gia · Xem tướng tay phương Đông · Bản đồ vận mệnh",
+      "animalFaceImgAlt": "Chuyên gia đọc khuôn mặt động vật",
       "animalMbtiImgAlt": "MBTI Khả năng tương thích với động vật",
       "animalTotemImgAlt": "Vật Tổ Động Vật",
       "sajuGuardianImgAlt": "Con dấu bảo vệ Saju",
@@ -813,7 +813,15 @@
       "familyBenefit2": "Tất cả lợi ích của Gia đình",
       "familyCta": "Xem gia đình",
       "premiumNote": "Premium phù hợp nhất nếu bạn thường xuyên sử dụng dịch vụ lên tới 5.000 KRW.",
-      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm."
+      "footnote": "Vé mới chỉ được bán dưới dạng vé 30 ngày. Thẻ 30 ngày này không phải là đăng ký tự động gia hạn. Các dịch vụ nằm ngoài phạm vi vượt qua có thể được sử dụng bằng cách thanh toán KRW một lần cho từng sản phẩm.",
+      "howtoAria": "Cách dùng moonlight pass",
+      "howtoTitle": "Moonlight pass, tiếp nối như thế này",
+      "step1Label": "Chọn phạm vi moonlight 30 ngày",
+      "step1Text": "Với vé 30 ngày không tự động gia hạn, hãy đặt trước khoảng giá của những lượt đọc bạn hay xem.",
+      "step2Label": "Lượt đọc trong phạm vi mở ngay không cần thanh toán",
+      "step2Text": "Các lượt đọc tarot, thần dụ và tứ trụ trong phạm vi của bạn mở ra ngay, không cần cửa sổ thanh toán.",
+      "step3Label": "Chỉ lượt đọc sâu ngoài phạm vi mới trả từng lần",
+      "step3Text": "Lượt đọc sâu ngoài phạm vi chỉ tiếp tục bằng một lần thanh toán KRW khi bạn cần."
     },
     "promptHub": {
       "aria": "Đến phần gợi ý bói toàn diện",
@@ -1197,17 +1205,33 @@
       "neoLogoAlt": "Logo chế độ Neo"
     },
     "hero2": {
-      "title": "AI đọc vận mệnh của bạn sâu sắc nhất",
-      "lead": "Trí tuệ Đông-Tây kết hợp cùng AI để giải mã câu chuyện của riêng bạn.",
-      "primaryCta": "✦ Bắt đầu miễn phí"
+      "title": "Chuyên gia đọc vận mệnh của bạn sâu sắc nhất",
+      "lead": "Trí tuệ Đông-Tây kết hợp cùng chuyên gia để giải mã câu chuyện của riêng bạn.",
+      "primaryCta": "✦ Bắt đầu miễn phí",
+      "journeyCta": "✦ Bắt đầu hành trình định mệnh"
+    },
+    "oneStep": {
+      "heading": "Today's One Step",
+      "s1": {
+        "title": "Free Saju Chart",
+        "desc": "Start by knowing yourself"
+      },
+      "s2": {
+        "title": "Today's Fortune & Tarot",
+        "desc": "Read the current flow"
+      },
+      "s3": {
+        "title": "Destiny Journey",
+        "desc": "Go deeper"
+      }
     },
     "aiFeats": {
-      "kicker": "CODE DESTINY AI",
-      "title": "Trải nghiệm đặc biệt của CODE DESTINY AI",
+      "kicker": "CODE DESTINY CHUYÊN GIA",
+      "title": "Trải nghiệm đặc biệt của các chuyên gia CODE DESTINY",
       "explainTitle": "AI giải thích được",
-      "explainDesc": "Xem từng bước AI đã luận giải dựa trên cơ sở nào.",
+      "explainDesc": "Xem từng bước chuyên gia đã luận giải dựa trên cơ sở nào.",
       "engineTitle": "Bộ máy bói toán chuyên gia",
-      "engineDesc": "Các hệ thống Đông-Tây đã kiểm chứng, được AI tinh chỉnh.",
+      "engineDesc": "Các hệ thống Đông-Tây đã kiểm chứng, được chuyên gia tinh chỉnh.",
       "unionTitle": "Đông Tây hội tụ",
       "unionDesc": "Từ Tứ trụ đến chiêm tinh, mọi góc nhìn trong một nơi."
     },
@@ -1343,8 +1367,8 @@
   },
   "premium": {
     "reportTitle": "Bản kế hoạch định mệnh của bạn",
-    "reportSubtitle": "Phân tích cuộc sống cao cấp được hỗ trợ bởi Siêu tâm lý học & AI phương Đông",
-    "intro": "Báo cáo này không chỉ là dự đoán đơn thuần về tương lai của bạn — nó là bản thiết kế chính xác, dựa trên dữ liệu về kiến ​​trúc tràn đầy năng lượng định hình sự tồn tại của bạn. Rút ra từ hơn 3.000 năm trí tuệ vũ trụ học phương Đông, Tứ trụ định mệnh (Ba Zi) của bạn được giải mã qua lăng kính của AI tiên tiến để tiết lộ các thế lực vô hình chi phối sức mạnh, bóng tối và tiềm năng phát sáng nhất của bạn. Hãy coi đây là cuốn cẩm nang cá nhân của bạn để điều hướng các Chu kỳ Thập kỷ của Số phận một cách rõ ràng và có chủ ý.",
+    "reportSubtitle": "Phân tích cuộc sống cao cấp được hỗ trợ bởi Siêu tâm lý học & chuyên gia phương Đông",
+    "intro": "Báo cáo này không chỉ là dự đoán đơn thuần về tương lai của bạn — nó là bản thiết kế chính xác, dựa trên dữ liệu về kiến ​​trúc tràn đầy năng lượng định hình sự tồn tại của bạn. Rút ra từ hơn 3.000 năm trí tuệ vũ trụ học phương Đông, Tứ trụ định mệnh (Ba Zi) của bạn được giải mã qua lăng kính phân tích chuyên gia tiên tiến để tiết lộ các thế lực vô hình chi phối sức mạnh, bóng tối và tiềm năng phát sáng nhất của bạn. Hãy coi đây là cuốn cẩm nang cá nhân của bạn để điều hướng các Chu kỳ Thập kỷ của Số phận một cách rõ ràng và có chủ ý.",
     "dominantElement": {
       "label": "Yếu tố chiếm ưu thế của bạn (Trục may mắn)",
       "description": "Yếu tố thống trị - được biết đến trong tiếng Trung cổ là 用神 (Yòng Shén) - là chìa khóa năng lượng duy nhất giúp cân bằng và kích hoạt toàn bộ cấu trúc vận mệnh của bạn. Khi bạn điều chỉnh môi trường, các mối quan hệ và quyết định của mình với yếu tố này, động lực tự nhiên trong biểu đồ của bạn sẽ tăng tốc. Sự lệch hướng tạo ra ma sát. Đây không phải là mê tín; đó là sự hiệu chỉnh chính xác cho bản thiết kế tràn đầy năng lượng của bạn."
@@ -1373,9 +1397,9 @@
       "badge": "Phổ biến nhất"
     },
     "tarot": {
-      "name": "Hướng dẫn AI Tarot",
-      "short": "AI Tarot",
-      "description": "Trí tuệ nguyên mẫu cổ xưa được khuếch đại bởi trí tuệ nhân tạo. Mỗi bài đọc phản ánh trường năng lượng độc đáo của bạn."
+      "name": "Hướng dẫn Tarot chuyên gia",
+      "short": "Tarot chuyên gia",
+      "description": "Trí tuệ nguyên mẫu cổ xưa được khuếch đại bởi chuyên gia. Mỗi bài đọc phản ánh trường năng lượng độc đáo của bạn."
     },
     "ziwei": {
       "name": "Tử Vi Đẩu Số (Chiêm tinh sao tím)",
@@ -1436,7 +1460,7 @@
   },
   "footer": {
     "tagline": "Trí tuệ cổ xưa, độ chính xác hiện đại.",
-    "about": "Code Destiny là nền tảng phân tích vận may và vận mệnh được hỗ trợ bởi AI kết hợp hơn 3.000 năm hệ thống vũ trụ phương Đông với trí tuệ nhân tạo hiện đại. Có sẵn trong 10 ngôn ngữ, sử dụng miễn phí.",
+    "about": "Code Destiny là nền tảng phân tích vận may và vận mệnh được hỗ trợ bởi chuyên gia kết hợp hơn 3.000 năm hệ thống vũ trụ phương Đông với hiểu biết chuyên môn hiện đại. Có sẵn trong 10 ngôn ngữ, sử dụng miễn phí.",
     "sections": {
       "services": "Dịch vụ",
       "resources": "Tài nguyên",
@@ -1462,7 +1486,8 @@
     "groups": {
       "services": "Dịch vụ",
       "company": "Công ty",
-      "support": "Hỗ trợ"
+      "support": "Hỗ trợ",
+      "guides": "Feature Guides"
     },
     "svc": {
       "saju": "Tứ trụ",
@@ -1477,7 +1502,7 @@
       "insights": "Góc nhìn vận mệnh"
     },
     "brand": {
-      "tagline": "Nơi trí tuệ Đông-Tây và AI thắp sáng vận mệnh của bạn"
+      "tagline": "Nơi trí tuệ Đông-Tây và chuyên gia thắp sáng vận mệnh của bạn"
     },
     "story": {
       "reader": "Đọc tiểu thuyết mạng",
@@ -1486,7 +1511,21 @@
       "music": "Nhạc ánh trăng"
     },
     "socialAria": "Kênh mạng xã hội chính thức của CODE DESTINY",
-    "langAria": "Chọn ngôn ngữ"
+    "langAria": "Chọn ngôn ngữ",
+    "guide": {
+      "saju": "Saju Basics Guide",
+      "tenGods": "Ten Gods Guide",
+      "fiveElements": "Five Elements & Balance",
+      "ziwei": "Zi Wei Chart Guide",
+      "sukuyo": "Sukuyo 27 Mansions",
+      "astrology": "Western Astrology Basics",
+      "vedic": "Vedic Astrology Basics",
+      "tarot": "Tarot Reading Basics",
+      "mayan": "Mayan Calendar Guide",
+      "calendar": "Fortune Calendar Guide",
+      "health": "Myeongri Health Report",
+      "music": "Fortune & Meditation Music"
+    }
   },
   "pricing": {
     "currencies": {
@@ -3518,7 +3557,7 @@
         "point1": "Điểm ngũ hành hòa hợp và xung đột",
         "point2": "Đọc kiểu tình yêu, hôn nhân, kinh doanh và tình bạn",
         "point3": "Thời điểm tốt và khoảng thời gian thận trọng",
-        "point4": "Lời khuyên được cá nhân hóa từ bậc thầy AI saju"
+        "point4": "Lời khuyên được cá nhân hóa từ bậc thầy chuyên gia saju"
       }
     },
     "graph": {

@@ -59,7 +59,7 @@ export default function AiConsultDecks({ decks, natal, question }: { decks: Deck
     <div className="mx-auto w-full max-w-3xl motion-safe:animate-fade-in-up">
       {/* 명식 헤더 */}
       <header className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] md:p-7">
-        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · AI 심화 상담</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · 전문가 심화 상담</p>
         <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">
           {natal?.sukuyoHan ? <span className="text-blue-100">{natal.sukuyoHan}宿</span> : null}
           {natal?.sukuyoHan && natal?.nakshatraKo ? <span className="mx-2 text-slate-500">·</span> : null}
@@ -114,7 +114,7 @@ export default function AiConsultDecks({ decks, natal, question }: { decks: Deck
 
       <p className="mt-8 rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-xs leading-6 text-slate-300">
         본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다.
-        상담문은 계산된 명식(숙요 본명수·베다 나크샤트라)을 근거로 AI가 작성했으며, 통합 해석은 Code Destiny의 창작입니다.
+        상담문은 계산된 명식(숙요 본명수·베다 나크샤트라)을 근거로 전문가가 작성했으며, 통합 해석은 Code Destiny의 창작입니다.
       </p>
     </div>
   );

@@ -1641,6 +1641,51 @@ export async function grantRpgExpForServerEvent(env, userId, kind, awardKey = ""
   return applyRpgAward(env, userId, kind, awardKey);
 }
 
+/* 운명 도감(수집) — 계정 단위. "1회 소유"는 UserRpgRewardLog 의 {userId,profileId,rewardType,rewardKey}
+   유니크 인덱스가 보증한다. EXP·재화와 무관한 순수 수집 기록이라 위조돼도 금전 손실이 없다(award와 동일 신뢰 모델). */
+const COLLECTIBLE_REWARD_TYPE = "collectible";
+
+async function collectRpgItem(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  await ensureRpgIndexes();
+
+  const body = await readJson(request);
+  const rewardKey = toSafeString(body?.key, 150);
+  if (!rewardKey) return json({ ok: false, message: "수집 키가 필요합니다." }, { status: 400 });
+
+  let collected = true;
+  try {
+    // 멱등 create — adoptLocalRpgProgress 와 동일 패턴(write는 withMongoRetry 미적용).
+    await UserRpgRewardLog.create([{
+      userId: auth.userId,
+      profileId: ACCOUNT_PROFILE_SCOPE,
+      rewardType: COLLECTIBLE_REWARD_TYPE,
+      rewardKey,
+      level: 0,
+    }]);
+  } catch (error) {
+    if (String(error?.code || error?.message || "").includes("11000")) {
+      collected = false; // 이미 수집 — 멱등 정상
+    } else {
+      throw error;
+    }
+  }
+  return json({ ok: true, collected, key: rewardKey });
+}
+
+async function getRpgCollectibles(request, env) {
+  const auth = await requireAuth(request, env);
+  await connectDb(env);
+  const rows = await withMongoRetry(env, () => UserRpgRewardLog.find({
+    userId: auth.userId,
+    profileId: ACCOUNT_PROFILE_SCOPE,
+    rewardType: COLLECTIBLE_REWARD_TYPE,
+  }).select("rewardKey createdAt").sort({ createdAt: -1 }).lean());
+  const items = (rows || []).map((r) => ({ key: r.rewardKey, at: r.createdAt }));
+  return json({ ok: true, items, count: items.length });
+}
+
 export async function handleRpgRoutes(request, env) {
   let path = "";
   try {
@@ -1665,6 +1710,14 @@ export async function handleRpgRoutes(request, env) {
 
     if (method === "POST" && path === "/adopt") {
       return await adoptLocalRpgProgress(request, env);
+    }
+
+    if (method === "POST" && path === "/collect") {
+      return await collectRpgItem(request, env);
+    }
+
+    if (method === "GET" && path === "/collectibles") {
+      return await getRpgCollectibles(request, env);
     }
 
     if (["GET", "POST"].includes(method)) return notFound();
