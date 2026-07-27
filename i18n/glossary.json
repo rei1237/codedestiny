@@ -156,6 +156,20 @@
       "nl": "Maanlichtsteen",
       "ms": "Batu Cahaya Bulan"
     },
+    "홍길동": {
+      "note": "입력 예시용 가상 인명(영어권 John Doe 에 해당). 음차하지 말고 각 언어권에서 흔한 예시 이름으로 바꾼다.",
+      "en": "John Doe",
+      "ja": "山田 太郎",
+      "zh-CN": "张三",
+      "zh-TW": "王小明",
+      "vi": "Nguyễn Văn A",
+      "hi": "राम कुमार",
+      "es": "Juan Pérez",
+      "fr": "Jean Dupont",
+      "de": "Max Mustermann",
+      "nl": "Jan Jansen",
+      "ms": "Ahmad bin Ali"
+    },
     "운세": {
       "en": "reading",
       "ja": "占い",
