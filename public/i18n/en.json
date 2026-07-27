@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Family 30 Days",
           "desc": "30 days · All paid features · Unlimited profiles"
         }
-      }
+      },
+      "monthlyButton": "Pay with {credits} monthly credits",
+      "monthlyButtonBusy": "Activating your pass with monthly credits...",
+      "monthlyButtonShort": "{credits} needed · balance short"
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."

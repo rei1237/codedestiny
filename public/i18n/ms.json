@@ -1955,7 +1955,10 @@
           "name": "Kod Destiny Keluarga 30 Hari",
           "desc": "30 hari · Semua ciri berbayar · Profil tanpa had"
         }
-      }
+      },
+      "monthlyButton": "Bayar dengan {credits} kredit bulanan",
+      "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
+      "monthlyButtonShort": "Perlu {credits} · baki tidak cukup"
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

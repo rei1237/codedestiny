@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Familie 30 dagen",
           "desc": "30 dagen · Alle betaalde functies · Onbeperkt aantal profielen"
         }
-      }
+      },
+      "monthlyButton": "Betalen met {credits} maandtegoed",
+      "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
+      "monthlyButtonShort": "{credits} nodig · saldo te laag"
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."

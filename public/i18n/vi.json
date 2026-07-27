@@ -1955,7 +1955,10 @@
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",
           "desc": "30 ngày · Tất cả tính năng trả phí · Hồ sơ không giới hạn"
         }
-      }
+      },
+      "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
+      "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
+      "monthlyButtonShort": "Cần {credits} · số dư không đủ"
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."

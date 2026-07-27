@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Family 30 Tage",
           "desc": "30 Tage · Alle kostenpflichtigen Funktionen · Unbegrenzte Profile"
         }
-      }
+      },
+      "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
+      "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
+      "monthlyButtonShort": "{credits} nötig · Guthaben zu gering"
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."

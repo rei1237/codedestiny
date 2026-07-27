@@ -5659,6 +5659,7 @@ export const __paymentsTestUtils = {
   handleWebhook,
   markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,
+  handleSubscriptionConfirm,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,

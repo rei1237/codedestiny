@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Famille 30 jours",
           "desc": "30 jours · Toutes les fonctionnalités payantes · Profils illimités"
         }
-      }
+      },
+      "monthlyButton": "Payer avec {credits} crédits mensuels",
+      "monthlyButtonBusy": "Activation du pass avec les crédits mensuels...",
+      "monthlyButtonShort": "{credits} requis · solde insuffisant"
     },
     "access": {
       "passAppliedContinue": "Ouvert avec votre pass."

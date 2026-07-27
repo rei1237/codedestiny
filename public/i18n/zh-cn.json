@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Family 30天",
           "desc": "30天 · 所有付费功能 · 不限资料"
         }
-      }
+      },
+      "monthlyButton": "使用月定石 {credits} 支付",
+      "monthlyButtonBusy": "正在用月定石激活通行证...",
+      "monthlyButtonShort": "需要月定石 {credits} · 余额不足"
     },
     "access": {
       "passAppliedContinue": "已使用通行券打开。"

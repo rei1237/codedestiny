@@ -1955,7 +1955,10 @@
           "name": "Código Destino Familia 30 Días",
           "desc": "30 días · Todas las funciones pagas · Perfiles ilimitados"
         }
-      }
+      },
+      "monthlyButton": "Pagar con {credits} créditos mensuales",
+      "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
+      "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente"
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."

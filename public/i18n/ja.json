@@ -1955,7 +1955,10 @@
           "name": "Code Destiny Family 30日",
           "desc": "30日 · すべての有料機能 · プロフィール無制限"
         }
-      }
+      },
+      "monthlyButton": "月定石 {credits} で決済",
+      "monthlyButtonBusy": "月定石で利用券を有効化しています...",
+      "monthlyButtonShort": "月定石 {credits} 必要 · 残量不足"
     },
     "access": {
       "passAppliedContinue": "利用券で開きました。"
