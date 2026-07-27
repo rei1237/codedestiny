@@ -29,6 +29,17 @@ const locales = args.includes("--all")
       return i >= 0 && args[i + 1] ? args[i + 1].split(",") : ["en", "ja", "zh-CN"];
     })();
 
+/**
+ * 검사할 경로. 기본은 홈 셸이다.
+ * `--paths /login,/points` 로 React 라우트도 볼 수 있다 — 컴포넌트 카피 테이블의
+ * 로케일 결손은 정적 분석으로는 오판이 잦다(선언 뒤 명령형 채움, `?? .en ?? .ko`
+ * 체인 등). 실제로 그려서 세는 것이 유일하게 믿을 수 있는 측정이다.
+ */
+const paths = (() => {
+  const i = args.indexOf("--paths");
+  return i >= 0 && args[i + 1] ? args[i + 1].split(",") : ["/"];
+})();
+
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -66,6 +77,7 @@ const browser = await chromium.launch();
 const results = [];
 
 for (const locale of locales) {
+ for (const routePath of paths) {
   const page = await browser.newPage();
   const missingKeys = [];
   page.on("console", (msg) => {
@@ -73,7 +85,8 @@ for (const locale of locales) {
     if (text.includes("cd-i18n-missing")) missingKeys.push(text.slice(0, 120));
   });
 
-  await page.goto(`http://localhost:${port}/?lang=${encodeURIComponent(locale)}`, {
+  const sep = routePath.includes("?") ? "&" : "?";
+  await page.goto(`http://localhost:${port}${routePath}${sep}lang=${encodeURIComponent(locale)}`, {
     waitUntil: "domcontentloaded",
     timeout: 60_000,
   });
@@ -118,14 +131,15 @@ for (const locale of locales) {
     return { hangul, offenders, lang: document.documentElement.getAttribute("data-cd-lang") };
   });
 
-  results.push({ locale, ...report, missingKeys: missingKeys.length });
-  console.log(`[rendered-ko] ${locale.padEnd(6)} data-cd-lang=${String(report.lang).padEnd(6)} 보이는 한글 ${String(report.hangul).padStart(6)}자  누락키로그 ${missingKeys.length}`);
+  results.push({ locale, path: routePath, ...report, missingKeys: missingKeys.length });
+  console.log(`[rendered-ko] ${locale.padEnd(6)} ${routePath.padEnd(18)} data-cd-lang=${String(report.lang).padEnd(6)} 보이는 한글 ${String(report.hangul).padStart(6)}자  누락키 ${missingKeys.length}`);
   if (report.offenders.length) {
     report.offenders.slice(0, 10).forEach((o) =>
       console.log(`[rendered-ko]      ${o.marked ? "[마커O]" : "[마커X]"} <${o.tag}.${o.cls}> ${o.text}`));
   }
   missingKeys.slice(0, 8).forEach((m) => console.log(`[rendered-ko]      누락키: ${m}`));
   await page.close();
+ }
 }
 
 await browser.close();
