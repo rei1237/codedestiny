@@ -20,10 +20,13 @@
 /oracle/ifa/                   /ifa-oracle.html          301
 /oracle/ifa/*                  /ifa-oracle.html          301
 
-# 레거시 웹소설(/stories) 폐지 → 라이트 노벨(정본 스토리)로 통합
-/stories                       /codedestiny-novel.html   301
-/stories/                      /codedestiny-novel.html   301
-/stories/*                     /codedestiny-novel.html   301
+# 구 웹소설 리더(/stories/code-destiny/*) → 신 텍스트 리더(/stories/)
+# 주의: /stories/* 와일드카드를 쓰면 신규 화 라우트(/stories/ep-01/ 등)까지 삼킨다.
+# 반드시 /stories/code-destiny 하위로만 좁힐 것.
+/stories/code-destiny             /stories/            301
+/stories/code-destiny/            /stories/            301
+/stories/code-destiny/prologue    /stories/prologue/   301
+/stories/code-destiny/*           /stories/            301
 
 # 브랜드/핵심 서비스 별칭
 /ggulggul                      /manse                    301
