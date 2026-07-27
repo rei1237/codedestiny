@@ -1390,7 +1390,8 @@
     "groups": {
       "services": "サービス",
       "company": "会社",
-      "support": "サポート"
+      "support": "サポート",
+      "guides": "機能ガイド"
     },
     "svc": {
       "saju": "四柱推命",
@@ -1414,7 +1415,21 @@
       "music": "月光の音楽"
     },
     "socialAria": "CODE DESTINY 公式SNSチャンネル",
-    "langAria": "言語を選択"
+    "langAria": "言語を選択",
+    "guide": {
+      "saju": "四柱推命の基本ガイド",
+      "tenGods": "十神の読み方ガイド",
+      "fiveElements": "五行とバランス",
+      "ziwei": "紫微斗数の命盤ガイド",
+      "sukuyo": "宿曜二十七宿ガイド",
+      "astrology": "西洋占星術の基本",
+      "vedic": "ヴェーダ占星術の基本",
+      "tarot": "タロットリーディング入門",
+      "mayan": "マヤ暦ガイド",
+      "calendar": "運勢カレンダーガイド",
+      "health": "命理ヘルスレポート",
+      "music": "運勢・瞑想音楽"
+    }
   },
   "branches": {
     "자수": {

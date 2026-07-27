@@ -145,7 +145,7 @@
     "perf:psi:before": "node scripts/measure-psi.mjs --out reports/psi-before.json",
     "perf:psi:after": "node scripts/measure-psi.mjs --out reports/psi-after.json",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
-    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core",
+    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
     "build:cf": "npm run prebuild:cf && npm run build",
     "deploy:cf": "npm run deploy:cf:worker",
     "deploy:cf:pages": "npm run build:cf && node scripts/with-utf8-console.mjs node scripts/deploy-pages.mjs",
@@ -175,7 +175,9 @@
     "typecheck": "tsc --noEmit",
     "test:node": "node --test __tests__/ui/*.test.js __tests__/fortune/maya-calendar.test.js",
     "test:jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node",
-    "test": "npm run test:jest && npm run test:node"
+    "test": "npm run test:jest && npm run test:node",
+    "story:generate": "node scripts/build-story-text.mjs",
+    "verify:story-sync": "node scripts/verify-story-text-sync.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

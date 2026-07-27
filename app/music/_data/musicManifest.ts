@@ -32,6 +32,8 @@ export type Track = {
   purchaseFeatureKey?: string;
   priceKRW?: number;
   coinCost?: number;
+  // 재생은 free_full로 무료지만 MP3 다운로드는 구매가 필요한 트랙 표시.
+  downloadRequiresPurchase?: boolean;
   downloadFileName: string;
 };
 
@@ -365,6 +367,7 @@ function buildTrack(manifest: ArtistAudioManifest, audioFileEntry: Exclude<Audio
     ...(accessPolicy.purchaseFeatureKey ? { purchaseFeatureKey: accessPolicy.purchaseFeatureKey } : {}),
     ...(accessPolicy.priceKRW ? { priceKRW: accessPolicy.priceKRW } : {}),
     ...(accessPolicy.coinCost ? { coinCost: accessPolicy.coinCost } : {}),
+    ...(accessPolicy.downloadRequiresPurchase ? { downloadRequiresPurchase: true } : {}),
     downloadFileName: audioFileName,
     ...(hasLyrics ? { lyricsLookupKey: audioFileName } : {}),
     order: index + 1,

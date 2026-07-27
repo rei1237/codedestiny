@@ -117,6 +117,11 @@ function resolveTrackPlan(input = {}) {
   }
 
   if (policy.hasFreeFullAccess) {
+    // 다운로드 결제 게이트가 켜진 트랙: 재생은 무료로 열되(freeFullPlayback) 다운로드 권한은 구매 판정으로 정한다.
+    // featureKey를 남겨 canAccessPaidFeaturesBatch 경로(lockedPlans)로 흐르게 한다.
+    if (policy.downloadRequiresPurchase && featureKey) {
+      return { trackId, key, featureKey, policy, freeFullPlayback: true };
+    }
     return {
       trackId,
       key,
@@ -142,10 +147,12 @@ function resolveTrackPlan(input = {}) {
 }
 
 function buildLockedTrackEntry(plan, decision, authenticated) {
-  const { trackId, key, featureKey, policy } = plan;
-  const hasFullAccess = decision?.allowed === true;
+  const { trackId, key, featureKey, policy, freeFullPlayback } = plan;
   // 이용권/월정구독 커버는 "기간형 재생권"이다 — MP3 다운로드는 실제 구매(단건결제·월정석)에만 허용한다.
-  const canDownload = hasFullAccess && !LICENSE_COVERED_TYPES.has(String(decision?.licenseType || ""));
+  const purchased = decision?.allowed === true && !LICENSE_COVERED_TYPES.has(String(decision?.licenseType || ""));
+  // 재생: freeFullPlayback 트랙은 구매와 무관하게 항상 전곡 재생 가능. 그 외 잠금곡은 구매/커버로 열린다.
+  const hasFullAccess = freeFullPlayback === true ? true : (decision?.allowed === true);
+  const canDownload = purchased;
 
   return {
     trackId,
@@ -159,7 +166,11 @@ function buildLockedTrackEntry(plan, decision, authenticated) {
     coinCost: policy.coinCost,
     audioUrl: hasFullAccess ? buildMusicRouteUrl("audio", key, featureKey) : "",
     downloadUrl: canDownload ? buildMusicRouteUrl("download", key, featureKey) : "",
-    code: hasFullAccess ? (decision?.reason || "ALLOWED") : (authenticated ? "PAYMENT_REQUIRED" : "LOGIN_REQUIRED"),
+    code: !hasFullAccess
+      ? (authenticated ? "PAYMENT_REQUIRED" : "LOGIN_REQUIRED")
+      : (canDownload
+        ? (decision?.reason || "ALLOWED")
+        : (freeFullPlayback === true ? "DOWNLOAD_PURCHASE_REQUIRED" : (decision?.reason || "ALLOWED"))),
   };
 }
 

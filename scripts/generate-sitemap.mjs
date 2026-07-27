@@ -3,6 +3,15 @@ import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+import { createRequire } from "node:module";
+const requireJson = createRequire(import.meta.url);
+const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
+
+// app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
+register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
+const { INSIGHT_SEED_ARTICLES } = await import(
+  pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
+);
 
 // app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
 register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
@@ -165,6 +174,10 @@ const coreRoutes = [
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/editorial-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
+  // 연이의 운명 노벨 텍스트 리더 — 허브 + 44화.
+  // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.
+  { path: "/stories", changefreq: "monthly", priority: 0.86 },
+  ...STORY_EPISODE_SLUGS.map((slug) => ({ path: `/stories/${slug}`, changefreq: "yearly", priority: 0.7 })),
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
   { path: "/insights/sukuyo", changefreq: "weekly", priority: 0.88 },

@@ -1029,6 +1029,28 @@ function verifyPrivateNoindexRoutes(baseDir) {
   }
 }
 
+function verifyCustomNotFoundPage(baseDir) {
+  const notFoundPath = `${baseDir}/404.html`;
+  const html = readRequired(notFoundPath);
+
+  // Next 기본 404 가 export 되면 제목·내비게이션이 전부 사라진다. 과거
+  // scripts/next-build-with-pages-manifest.mjs 의 매니페스트 가드가 export 직후
+  // 지워진 404 번들 자리에 _error 스텁을 다시 써서 이 회귀가 조용히 발생했다.
+  assert(
+    !html.includes("404: This page could not be found"),
+    `${notFoundPath}: framework default 404 was exported instead of the custom page`,
+  );
+
+  const visibleText = getVisibleText(html);
+  assert(visibleText.length >= 200, `${notFoundPath}: 404 page is too thin (${visibleText.length} chars)`);
+
+  const internalLinkCount = (html.match(/<a\s[^>]*href="\/[^"]*"/gi) || []).length;
+  assert(
+    internalLinkCount >= 4,
+    `${notFoundPath}: 404 page must link back into the site (found ${internalLinkCount} internal links)`,
+  );
+}
+
 function verifyXRobotsNoindexHeaders(headersPath) {
   const headersText = readRequired(headersPath);
   for (const pattern of xRobotsNoindexHeaderPatterns) {
@@ -1307,6 +1329,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyFamousSajuAliasRoutesNoindex(baseDir);
   trace(`${baseDir}: private noindex samples`);
   verifyPrivateNoindexRoutes(baseDir);
+  trace(`${baseDir}: custom 404 page`);
+  verifyCustomNotFoundPage(baseDir);
   trace(`${baseDir}: robots`);
   verifyRobots(baseDir);
   trace(`${baseDir}: sitemap`);
