@@ -73,18 +73,57 @@ const EXPECTATIONS = {
 EXPECTATIONS["zh-TW"] = EXPECTATIONS["zh-CN"];
 
 /**
+ * 🔴 입력도 로케일에 맞춘다.
+ *
+ * 프롬프트는 "기본 해설의 영역 이름을 그대로 유지하라"를 강제한다. 그래서 한국어 라벨
+ * ("재물")을 넣고 일본어 응답을 받으면, 모델이 두 지시를 **정확히 다 지킨 결과로** 일본어
+ * 문장 안에 한글 2자가 남는다. 실측에서 실제로 그렇게 나왔다. 그걸 실패로 세면 파이프가
+ * 아니라 테스트 입력을 재는 셈이다. 여기서는 파이프만 재기 위해 입력을 로케일에 맞춘다.
+ *
+ * (참고: 실제 화면의 destiny-compass 라벨은 아직 DIRECTION_LABEL_KO 한국어 단일이라
+ *  ja/zh 사용자에게 그 라벨이 그대로 보인다 — 기능 자체의 현지화 과제이고 별개다.)
+ *
  * 🔴 캐시 우회. destiny-compass 는 deterministic:true + TTL 7일이라, 같은 입력을 다시 보내면
  *    LLM 을 안 태우고 캐시를 돌려준다. 그러면 "지금 이 배포가 그 언어로 답하는가"를 못 본다.
  *    매 실행 고유 토큰을 본문에 섞어 캐시 키를 갈라낸다.
  */
-function buildPayload(nonce) {
+const PAYLOAD_BY_LOCALE = {
+  ko: {
+    question: "지금 이직을 고민하고 있어요",
+    primaryLabel: "재물",
+    baseText: "'재물' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요.",
+  },
+  en: {
+    question: "I am thinking about changing jobs.",
+    primaryLabel: "wealth",
+    baseText: "The path of 'wealth' is glowing softly. Do not rush; start with the one thing your heart is drawn to.",
+  },
+  ja: {
+    question: "今、転職を考えています。",
+    primaryLabel: "財運",
+    baseText: "『財運』の道が淡く輝いています。焦らず、心が向かう一つのことから始めてみましょう。",
+  },
+  "zh-CN": {
+    question: "我正在考虑换工作。",
+    primaryLabel: "财运",
+    baseText: "「财运」的道路正柔和地发光。不要着急，从心之所向的那一件事开始吧。",
+  },
+  "zh-TW": {
+    question: "我正在考慮換工作。",
+    primaryLabel: "財運",
+    baseText: "「財運」的道路正柔和地發光。不要著急，從心之所向的那一件事開始吧。",
+  },
+};
+
+function buildPayload(locale, nonce) {
+  const base = PAYLOAD_BY_LOCALE[locale] || PAYLOAD_BY_LOCALE.ko;
   return {
     narration: {
-      question: `지금 이직을 고민하고 있어요 (${nonce})`,
-      primaryLabel: "재물",
-      evidence: ["정관"],
+      question: `${base.question} (${nonce})`,
+      primaryLabel: base.primaryLabel,
+      evidence: [],
     },
-    baseText: `'재물' 쪽 길이 은은하게 빛나고 있어요. 서두르지 말고, 마음이 가는 한 가지부터 시작해요. (ref ${nonce})`,
+    baseText: `${base.baseText} (ref ${nonce})`,
   };
 }
 
@@ -95,7 +134,7 @@ async function probe(locale, nonce) {
     const response = await fetch(`${baseUrl}/api/destiny-compass/narrate`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-code-destiny-locale": locale },
-      body: JSON.stringify(buildPayload(nonce)),
+      body: JSON.stringify(buildPayload(locale, nonce)),
       signal: controller.signal,
     });
     const body = await response.json();
