@@ -108,7 +108,17 @@ function assert(condition, message) {
   );
 }
 
-// (7) worker 가 임포트하는 로케일 모듈은 .ts 면 안 된다.
+// (7) "출력이 한국어 토큰을 포함해야 통과"하는 검증기는 비-ko 에서 반드시 실패한다.
+//     모델이 정상적으로 답해도 매번 반려돼 한국어 템플릿으로 되돌아가므로 언어 전환이 무력화된다.
+{
+  const source = read("worker/routes/destiny-compass.js");
+  assert(
+    /if \(\(getAmbientAiLocale\(\) \|\| "ko"\) !== "ko"\) return true;/.test(source),
+    "worker/routes/destiny-compass.js: isFaithful 의 라벨·금지어 검사가 ko 전용이어야 한다 (비-ko 는 항상 UNFAITHFUL 이 된다)",
+  );
+}
+
+// (8) worker 가 임포트하는 로케일 모듈은 .ts 면 안 된다.
 //     이 레포 Jest 에는 TS 프리셋이 없어서(jest.config.cjs) 체인의 테스트가 전부 파싱 단계에서 깨진다.
 {
   for (const relPath of ["worker/lib/ai-locale-context.js", "worker/lib/llm-leak-guard.js"]) {
@@ -125,4 +135,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log("[verify:ai-locale-pipeline] ok (7 invariants)");
+console.log("[verify:ai-locale-pipeline] ok (8 invariants)");

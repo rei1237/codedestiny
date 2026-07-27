@@ -4,6 +4,7 @@
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -130,8 +131,14 @@ function cleanText(raw) {
 }
 
 // 충실도 검증: 대표 라벨 포함 + 금지어 없음 + 최소 길이.
+//
+// 🔴 라벨 포함·금지어 두 검사는 **한국어 출력에만 성립한다.** primaryLabel 은 "정관" 같은
+//    십성 용어이고 FORBIDDEN 도 한국어 리터럴이라, 비-ko 에서는 모델이 정상적으로 답해도
+//    라벨 검사가 반드시 실패해 매번 UNFAITHFUL → 클라의 한국어 템플릿으로 되돌아간다.
+//    즉 언어 전환이 무력화된다. ko 에서는 기존 판정을 한 글자도 바꾸지 않는다.
 function isFaithful(text, n) {
   if (text.replace(/\s+/g, "").length < 12) return false;
+  if ((getAmbientAiLocale() || "ko") !== "ko") return true;
   if (n.primaryLabel && !text.includes(n.primaryLabel)) return false;
   if (FORBIDDEN.test(text)) return false;
   return true;
