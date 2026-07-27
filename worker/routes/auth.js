@@ -2730,25 +2730,37 @@ async function handleMe(request, env) {
   }
 }
 
+// 결제용 전화번호 조회에 필요한 최소 필드. 인증 리졸버가 인증 조회와 함께 읽어 authUserDoc로 돌려준다.
+const PAYMENT_PHONE_USER_PROJECTION = {
+  _id: 1,
+  phoneNumber: 1,
+  phone: 1,
+};
+
 async function handlePaymentPhoneStatus(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const auth = await requireAuth(request, env);
+  // 인증 확인과 같은 조회에서 결제용 전화번호까지 함께 읽는다. 이 라우트는 결제창을 여는 직전 경로라
+  // 왕복 하나가 곧 체감 지연이자 일시적 503 표면적이다. (access-token 경로에서만 authUserDoc 부착)
+  const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_PHONE_USER_PROJECTION });
   const userId = String(auth.userId || "");
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
   }
 
-  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
-  const user = await withAuthOpTimeout(
-    User.findById(userId)
-      .select("phoneNumber phone")
-      .maxTimeMS(dbMaxTimeMs)
-      .lean(),
-    timeoutMs,
-    "auth_payment_phone_find_user",
-  );
+  let user = auth.authUserDoc || null;
+  if (!user) {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+    user = await withAuthOpTimeout(
+      User.findById(userId)
+        .select("phoneNumber phone")
+        .maxTimeMS(dbMaxTimeMs)
+        .lean(),
+      timeoutMs,
+      "auth_payment_phone_find_user",
+    );
+  }
 
   if (!user) {
     return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });

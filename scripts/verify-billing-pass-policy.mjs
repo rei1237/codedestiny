@@ -658,6 +658,18 @@ for (const shellPath of [
     `${shellPath}: pass shop renders the moonlight-stone purchase button`,
   );
 }
+// 이용권 결제 진입 경로(/points)의 회귀 3종.
+// ① 결제 준비를 모달 오픈 때 미리 돌리고 ② 프리페치와 실제 클릭이 같은 멱등키를 써 주문이 중복되지 않으며
+// ③ 잔량 미확정(서버가 확인 실패)을 "부족"으로 취급해 월정석 수단을 잠그지 않아야 한다.
+assertContains(pointsSource, '"Idempotency-Key": idempotencyKey', "points pass prepare sends a stable idempotency key");
+assertContains(pointsSource, "startSubscriptionPrepare", "points pass prepare is prefetched when the payment-method modal opens");
+assertContains(pointsSource, "runAccessCheckWithTransientRetry", "points payment entry buffers transient 503s");
+assertContains(
+  pointsSource,
+  "monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost",
+  "points moonlight-stone option stays enabled while the balance is unverified",
+);
+
 assertContains(fortuneSource, "normalizeHoneyPassEntitlement", "subscription status uses canonical pass entitlement");
 assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");
 assertContains(fortuneSource, "membership: 1", "subscription status reads legacy membership field");

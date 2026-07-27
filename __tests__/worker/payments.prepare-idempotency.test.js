@@ -32,6 +32,12 @@ async function readResponse(response) {
 beforeAll(async () => {
   const paymentsMod = await import("../../worker/routes/payments.js");
   const modelsMod = await import("../../worker/lib/models.js");
+  const dbMod = await import("../../worker/lib/db.js");
+
+  // subscription prepare 의 Mongo 호출은 일시적 장애를 흡수하려고 withMongoRetry 로 감싸져 있고,
+  // 이 래퍼는 시도마다 connectDb 를 부른다. 이미 연결된 것으로 보이게 해서(readyState=1) 실제
+  // Mongo URI 없이도 통과시킨다 — ping 이 실패해도 연결을 그대로 반환하는 설계다.
+  Object.defineProperty(dbMod.mongoose.connection, "readyState", { value: 1, configurable: true });
 
   testUtils = paymentsMod.__paymentsTestUtils;
   Payment = modelsMod.Payment;

@@ -131,6 +131,10 @@ beforeAll(async () => {
   dbMod.mongoose.startSession = jest.fn().mockRejectedValue(
     new Error("Transaction numbers are only allowed on a replica set member or mongos"),
   );
+
+  // withMongoRetry 는 시도마다 connectDb 를 부른다. 이미 연결된 것으로 보이게 해서(readyState=1)
+  // 실제 Mongo URI 없이도 재시도 래퍼를 통과시킨다 — ping 은 실패해도 연결을 그대로 반환하는 설계다.
+  Object.defineProperty(dbMod.mongoose.connection, "readyState", { value: 1, configurable: true });
   PaymentFailureLog.create = jest.fn().mockResolvedValue({});
 });
 
@@ -168,6 +172,83 @@ describe("달빛 이용권 상점 — 가격 정본", () => {
       expect(match).not.toBeNull();
       expect(Number(match[1])).toBe(price);
     }
+  });
+});
+
+describe("달빛 이용권 상점 — 결제 준비(prepare)", () => {
+  function prepareRequest(tier, idempotencyKey) {
+    return new Request("https://example.com/api/payments/subscription/prepare", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": idempotencyKey,
+      },
+      body: JSON.stringify({
+        tier,
+        planId: `${tier}_1m`,
+        durationMonths: 1,
+        durationDays: 30,
+        amount: WEB_PASS_PRICES[tier],
+        currency: "KRW",
+        productType: "membership_pass",
+        paymentMethod: "card_general",
+      }),
+    });
+  }
+
+  test("같은 멱등키로 두 번 준비하면 같은 주문을 돌려주고 주문을 새로 만들지 않아야 한다", async () => {
+    // 모달 오픈 시 프리페치 + 실제 클릭이 같은 키를 쓰는 상황. 주문이 중복 생성되면 안 된다.
+    const idempotencyKey = "membership-prepare-standard-card_general-test";
+    const createdOrder = {
+      _id: "payment-doc-prepare",
+      userId: AUTH.userId,
+      merchantUid: "sub_test_standard_001",
+      idempotencyKey,
+      paymentAmount: WEB_PASS_PRICES.standard,
+      subscriptionTier: "standard",
+      status: "pending",
+    };
+
+    User.findById = jest.fn().mockReturnValue(chain(freeUser()));
+    Payment.findOne = jest.fn().mockReturnValue(chain(null));
+    Payment.create = jest.fn().mockResolvedValue(createdOrder);
+
+    const first = await testUtils.handleSubscriptionPrepare(prepareRequest("standard", idempotencyKey), ENV, AUTH);
+    const firstResult = await readResponse(first);
+    expect(firstResult.status).toBe(201);
+    expect(Payment.create).toHaveBeenCalledTimes(1);
+    // merchantUid 는 서버가 생성한다. 재사용 여부는 이 값이 두 번째 호출에서 그대로 나오는지로 본다.
+    const issuedMerchantUid = firstResult.payload.order.merchantUid;
+    expect(issuedMerchantUid).toBeTruthy();
+
+    // 두 번째 호출: 같은 멱등키의 주문이 이미 있으므로 재사용해야 한다.
+    Payment.findOne = jest.fn().mockReturnValue(chain({ ...createdOrder, merchantUid: issuedMerchantUid }));
+    Payment.create = jest.fn();
+
+    const second = await testUtils.handleSubscriptionPrepare(prepareRequest("standard", idempotencyKey), ENV, AUTH);
+    const secondResult = await readResponse(second);
+
+    expect(secondResult.status).toBe(200);
+    expect(secondResult.payload.idempotent).toBe(true);
+    expect(secondResult.payload.order.merchantUid).toBe(issuedMerchantUid);
+    expect(Payment.create).not.toHaveBeenCalled();
+  });
+
+  test("인증이 함께 읽어준 문서가 있으면 User 를 다시 조회하지 않아야 한다", async () => {
+    // 결제창 진입 왕복을 줄이는 최적화. authUserDoc 재사용이 깨지면 지연·503 표면적이 다시 늘어난다.
+    User.findById = jest.fn();
+    Payment.findOne = jest.fn().mockReturnValue(chain(null));
+    Payment.create = jest.fn().mockResolvedValue({ _id: "payment-doc-projection", merchantUid: "sub_test_premium_001" });
+
+    const authWithDoc = { ...AUTH, authUserDoc: { _id: AUTH.userId, profileSubscription: { tier: "free", expiresAt: null } } };
+    const response = await testUtils.handleSubscriptionPrepare(
+      prepareRequest("premium", "membership-prepare-premium-card_general-test"),
+      ENV,
+      authWithDoc,
+    );
+
+    expect(response.status).toBe(201);
+    expect(User.findById).not.toHaveBeenCalled();
   });
 });
 
