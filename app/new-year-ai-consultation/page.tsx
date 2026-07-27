@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
 const PAGE_TITLE = "신년운세 전문가 상담 | 새해 흐름·월별 운세 풀이 — Code Destiny";
@@ -104,7 +105,8 @@ export default function NewYearAiConsultationPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(newYearJsonLd) }}
       />
-      <section className="sr-only" aria-label="신년운세 전문가 상담 안내">
+            <NewYearAiRouteClient />
+            <ServiceIntroSection label="신년운세 전문가 상담 안내">
         <h1>신년운세 전문가 상담 — 새해 흐름과 월별 운세 풀이</h1>
         <p>
           신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
@@ -147,8 +149,7 @@ export default function NewYearAiConsultationPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <NewYearAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

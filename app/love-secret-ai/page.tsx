@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/love-secret-ai/";
 const PAGE_TITLE = "사랑의 비밀 전문가 상담 | 짝사랑·재회·연애 마음 리딩 — Code Destiny";
@@ -94,7 +95,8 @@ export default function LoveSecretAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(loveSecretJsonLd) }}
       />
-      <section className="sr-only" aria-label="사랑의 비밀 전문가 상담 안내">
+            <LoveSecretAiRouteClient />
+            <ServiceIntroSection label="사랑의 비밀 전문가 상담 안내">
         <h1>사랑의 비밀 전문가 상담 — 짝사랑·재회·연애 마음 리딩</h1>
         <p>
           사랑의 비밀은 생년월일로 세운 사주 명식을 따라 연애에 얽힌 마음의 결을 읽는 전문가 상담입니다.
@@ -159,8 +161,7 @@ export default function LoveSecretAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <LoveSecretAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

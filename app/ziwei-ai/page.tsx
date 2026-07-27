@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/ziwei-ai/";
 const PAGE_TITLE = "자미두수 전문가 상담 | 명궁·사화·대운 풀이 — Code Destiny";
@@ -100,7 +101,8 @@ export default function ZiweiAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ziweiAiJsonLd) }}
       />
-      <section className="sr-only" aria-label="자미두수 전문가 상담 안내">
+            <ZiweiAiRouteClient />
+            <ServiceIntroSection label="자미두수 전문가 상담 안내">
         <h1>자미두수 전문가 상담 — 명궁·사화·대운 풀이</h1>
         <p>
           자미두수 전문가 상담은 생년월일과 태어난 시간으로 12궁 명반을 세우고, 명궁과 신궁의 별자리
@@ -143,8 +145,7 @@ export default function ZiweiAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <ZiweiAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

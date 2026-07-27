@@ -129,10 +129,32 @@ function ensureHtmlFallback(filePath, title) {
   );
 }
 
+const ERROR_PAGE_STUB_SOURCE = "module.exports = require('./_error.js');\n";
+// 진짜 번들을 한 번이라도 본 경로. 아래 주석 참고 — 이 경로에는 스텁을 다시 쓰지 않는다.
+const realErrorPageBundlesSeen = new Set();
+
 function ensurePageJsFallback(filePath) {
-  if (existsSync(filePath)) return;
+  if (existsSync(filePath)) {
+    try {
+      if (readFileSync(filePath, "utf8") !== ERROR_PAGE_STUB_SOURCE) {
+        realErrorPageBundlesSeen.add(filePath);
+      }
+    } catch {
+      // 빌드 중 부분 기록 상태일 수 있다. 다음 폴링에서 다시 판정한다.
+    }
+    return;
+  }
+
+  // Next 는 static generation 이 끝나면 export 된 페이지의 서버 번들을 unlink 한다
+  // (build/index.js "remove server bundles that were exported"). output:"export" 인 경우
+  // 그 뒤 writeFullyStaticExport 가 같은 모듈을 다시 require 해서 out/ 을 만든다.
+  // 25ms 폴링이 그 창에서 _error 스텁을 채워 넣으면, 두 번째 export 가 스텁을 읽어
+  // 커스텀 404(pages/404.tsx)가 프레임워크 기본 404 로 바뀐다.
+  // 실물을 본 적 있는 경로는 건드리지 않고, 한 번도 못 본 경우(빌드 초반 크래시 방어)에만 채운다.
+  if (realErrorPageBundlesSeen.has(filePath)) return;
+
   mkdirSync(dirname(filePath), { recursive: true });
-  writeFileSync(filePath, "module.exports = require('./_error.js');\n", "utf8");
+  writeFileSync(filePath, ERROR_PAGE_STUB_SOURCE, "utf8");
 }
 
 function ensureServerPagesFallbacks() {
@@ -327,6 +349,9 @@ function stopChildBuildTree() {
 }
 
 function clearBuildOutputsForRetry() {
+  // .next 를 지우면 "실물 번들을 봤다"는 기록도 무효가 된다.
+  // 비우지 않으면 재시도 빌드 초반에 스텁 방어가 영영 동작하지 않는다.
+  realErrorPageBundlesSeen.clear();
   for (const target of [resolve(rootDir, ".next"), resolve(rootDir, "out")]) {
     removeBuildOutputWithRetry(target);
   }
