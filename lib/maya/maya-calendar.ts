@@ -18,11 +18,57 @@ const MAYA_CALENDAR_TEXT_TRANSLATIONS = {
     birthDateRequired: "生年月日を入力してください。",
     futureBirthDate: "未来の日付は生年月日として使用できません。",
   },
+  "zh-CN": {
+    dateFormat: "请输入正确的日期格式。",
+    birthDateRequired: "请输入出生日期。",
+    futureBirthDate: "未来的日期不能作为出生日期。",
+  },
+  "zh-TW": {
+    dateFormat: "請輸入正確的日期格式。",
+    birthDateRequired: "請輸入出生日期。",
+    futureBirthDate: "未來的日期不能作為出生日期。",
+  },
+  vi: {
+    dateFormat: "Vui lòng nhập ngày hợp lệ.",
+    birthDateRequired: "Vui lòng nhập ngày sinh của bạn.",
+    futureBirthDate: "Không thể dùng ngày trong tương lai làm ngày sinh.",
+  },
+  hi: {
+    dateFormat: "कृपया मान्य तारीख़ दर्ज करें।",
+    birthDateRequired: "कृपया अपनी जन्मतिथि दर्ज करें।",
+    futureBirthDate: "भविष्य की तारीख़ जन्मतिथि के रूप में मान्य नहीं है।",
+  },
+  es: {
+    dateFormat: "Introduce una fecha válida.",
+    birthDateRequired: "Introduce tu fecha de nacimiento.",
+    futureBirthDate: "No se puede usar una fecha futura como fecha de nacimiento.",
+  },
+  fr: {
+    dateFormat: "Veuillez saisir une date valide.",
+    birthDateRequired: "Veuillez saisir votre date de naissance.",
+    futureBirthDate: "Une date future ne peut pas servir de date de naissance.",
+  },
+  de: {
+    dateFormat: "Bitte geben Sie ein gültiges Datum ein.",
+    birthDateRequired: "Bitte geben Sie Ihr Geburtsdatum ein.",
+    futureBirthDate: "Ein zukünftiges Datum kann kein Geburtsdatum sein.",
+  },
+  nl: {
+    dateFormat: "Voer een geldige datum in.",
+    birthDateRequired: "Voer je geboortedatum in.",
+    futureBirthDate: "Een datum in de toekomst kan geen geboortedatum zijn.",
+  },
+  ms: {
+    dateFormat: "Sila masukkan tarikh yang sah.",
+    birthDateRequired: "Sila masukkan tarikh lahir anda.",
+    futureBirthDate: "Tarikh pada masa hadapan tidak boleh dijadikan tarikh lahir.",
+  },
 } as const;
 
+// normalizeLoadingLocale 이 LoadingLocale(12개) 중 하나로 수렴하고 표도 12개를 다 갖췄다.
 function getMayaCalendarCopy(locale?: LoadingLocale | string | null) {
   const activeLocale = locale ? normalizeLoadingLocale(locale) : getCurrentLoadingLocale();
-  return MAYA_CALENDAR_TEXT_TRANSLATIONS[activeLocale as "ko" | "en" | "ja"] || MAYA_CALENDAR_TEXT_TRANSLATIONS.ko;
+  return MAYA_CALENDAR_TEXT_TRANSLATIONS[activeLocale];
 }
 
 export type DateOnlyParts = {
