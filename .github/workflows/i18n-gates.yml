@@ -1,0 +1,45 @@
+name: i18n Gates
+
+# 현지화 회귀 방지 게이트.
+#
+# 배포 워크플로(Deploy Cloudflare Pages)에는 일부러 넣지 않았다. 그쪽은 push-to-main
+# 에서 바로 프로덕션으로 나가는 경로라, 번역 커버리지 같은 점진적 지표로 배포를 막으면
+# 무관한 변경까지 함께 멈춘다. 대신 PR 단계에서 잡는다.
+#
+# 세 게이트는 모두 ratchet(후퇴 금지) 방식이다. 절대치 0은 아직 불가능하지만
+# (현지화 대상 약 206만 자) 되돌아가는 것은 막는다.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  i18n:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # 정적 셸 미러가 어긋나면 아래 검사들이 엉뚱한 파일을 보게 된다
+      - name: Sync public static artifacts
+        run: npm run sync:public
+
+      # 사전 정합성 + ko 커버리지 + fallback/하드코딩 ratchet + 런타임 준비
+      - name: i18n check
+        run: npm run i18n:check
+
+      - name: Verify locale main sync
+        run: npm run verify:locale-main-sync

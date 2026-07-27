@@ -1,0 +1,197 @@
+{
+  "_comment": "운세 도메인 용어집. 배치 번역기(scripts/i18n-translate-pending.mjs)가 매 요청 프롬프트에 주입한다. 각 언어권에서 실제로 통용되는 표기를 쓰되, 브랜드 고유명사는 절대 번역하지 않는다.",
+
+  "doNotTranslate": [
+    "Code Destiny",
+    "DEST1NOVA",
+    "Neo",
+    "Yeoni",
+    "Luna Bloom",
+    "Kakao",
+    "Google",
+    "Naver",
+    "PortOne",
+    "KG Inicis",
+    "PDF",
+    "AI",
+    "MBTI",
+    "VVIP",
+    "FAQ"
+  ],
+
+  "terms": {
+    "사주": {
+      "note": "생년월일시 네 기둥으로 보는 동아시아 명리학. 각 언어권에서 이미 정착한 표기를 쓴다.",
+      "en": "Four Pillars (BaZi)",
+      "ja": "四柱推命",
+      "zh-CN": "四柱八字",
+      "zh-TW": "四柱八字",
+      "vi": "Tứ Trụ (Bát Tự)",
+      "hi": "फोर पिलर्स (बाज़ी)",
+      "es": "Cuatro Pilares (BaZi)",
+      "fr": "Quatre Piliers (BaZi)",
+      "de": "Vier Säulen (BaZi)",
+      "nl": "Vier Pijlers (BaZi)",
+      "ms": "Empat Tiang (BaZi)"
+    },
+    "명식": {
+      "note": "사주 여덟 글자를 배치한 표. chart 로 옮긴다.",
+      "en": "birth chart",
+      "ja": "命式",
+      "zh-CN": "命盘",
+      "zh-TW": "命盤",
+      "vi": "lá số",
+      "hi": "जन्म चार्ट",
+      "es": "carta natal",
+      "fr": "thème natal",
+      "de": "Geburtsdiagramm",
+      "nl": "geboortekaart",
+      "ms": "carta kelahiran"
+    },
+    "자미두수": {
+      "en": "Zi Wei Dou Shu",
+      "ja": "紫微斗数",
+      "zh-CN": "紫微斗数",
+      "zh-TW": "紫微斗數",
+      "vi": "Tử Vi Đẩu Số",
+      "hi": "ज़ी वेई दोउ शू",
+      "es": "Zi Wei Dou Shu",
+      "fr": "Zi Wei Dou Shu",
+      "de": "Zi Wei Dou Shu",
+      "nl": "Zi Wei Dou Shu",
+      "ms": "Zi Wei Dou Shu"
+    },
+    "숙요": {
+      "note": "27수 기반 밀교 점성. 일본에서 온 체계라 일본어는 宿曜.",
+      "en": "Sukuyo (27 Nakshatras)",
+      "ja": "宿曜",
+      "zh-CN": "宿曜",
+      "zh-TW": "宿曜",
+      "vi": "Túc Diệu",
+      "hi": "नक्षत्र ज्योतिष",
+      "es": "Sukuyo (27 Nakshatras)",
+      "fr": "Sukuyo (27 Nakshatras)",
+      "de": "Sukuyo (27 Nakshatras)",
+      "nl": "Sukuyo (27 Nakshatra's)",
+      "ms": "Sukuyo (27 Nakshatra)"
+    },
+    "대운": {
+      "note": "10년 단위 큰 운의 흐름.",
+      "en": "luck cycle",
+      "ja": "大運",
+      "zh-CN": "大运",
+      "zh-TW": "大運",
+      "vi": "đại vận",
+      "hi": "दशा चक्र",
+      "es": "ciclo de fortuna",
+      "fr": "cycle de chance",
+      "de": "Glückszyklus",
+      "nl": "geluk-cyclus",
+      "ms": "kitaran nasib"
+    },
+    "십성": {
+      "en": "Ten Gods",
+      "ja": "十神",
+      "zh-CN": "十神",
+      "zh-TW": "十神",
+      "vi": "Thập Thần",
+      "hi": "दस देव",
+      "es": "Diez Dioses",
+      "fr": "Dix Dieux",
+      "de": "Zehn Götter",
+      "nl": "Tien Goden",
+      "ms": "Sepuluh Dewa"
+    },
+    "오행": {
+      "en": "Five Elements",
+      "ja": "五行",
+      "zh-CN": "五行",
+      "zh-TW": "五行",
+      "vi": "Ngũ Hành",
+      "hi": "पंच तत्व",
+      "es": "Cinco Elementos",
+      "fr": "Cinq Éléments",
+      "de": "Fünf Elemente",
+      "nl": "Vijf Elementen",
+      "ms": "Lima Unsur"
+    },
+    "궁합": {
+      "en": "compatibility",
+      "ja": "相性",
+      "zh-CN": "合婚",
+      "zh-TW": "合婚",
+      "vi": "hợp duyên",
+      "hi": "अनुकूलता",
+      "es": "compatibilidad",
+      "fr": "compatibilité",
+      "de": "Partnerschaftsanalyse",
+      "nl": "compatibiliteit",
+      "ms": "keserasian"
+    },
+    "이용권": {
+      "note": "30일 유효한 정액 이용권. 자동갱신 없음이라 subscription 이 아니라 pass 로 옮긴다.",
+      "en": "Pass",
+      "ja": "パス",
+      "zh-CN": "通行证",
+      "zh-TW": "通行證",
+      "vi": "Thẻ Pass",
+      "hi": "पास",
+      "es": "Pase",
+      "fr": "Pass",
+      "de": "Pass",
+      "nl": "Pas",
+      "ms": "Pas"
+    },
+    "월정석": {
+      "note": "이벤트로 지급되는 내부 재화. 구매 불가이며 구독이 아니다. 고유 재화명이므로 일관된 조어를 쓴다.",
+      "en": "Moonlight Stone",
+      "ja": "月精石",
+      "zh-CN": "月精石",
+      "zh-TW": "月精石",
+      "vi": "Nguyệt Tinh Thạch",
+      "hi": "मूनलाइट स्टोन",
+      "es": "Piedra de Luz Lunar",
+      "fr": "Pierre de Clair de Lune",
+      "de": "Mondlichtstein",
+      "nl": "Maanlichtsteen",
+      "ms": "Batu Cahaya Bulan"
+    },
+    "홍길동": {
+      "note": "입력 예시용 가상 인명(영어권 John Doe 에 해당). 음차하지 말고 각 언어권에서 흔한 예시 이름으로 바꾼다.",
+      "en": "John Doe",
+      "ja": "山田 太郎",
+      "zh-CN": "张三",
+      "zh-TW": "王小明",
+      "vi": "Nguyễn Văn A",
+      "hi": "राम कुमार",
+      "es": "Juan Pérez",
+      "fr": "Jean Dupont",
+      "de": "Max Mustermann",
+      "nl": "Jan Jansen",
+      "ms": "Ahmad bin Ali"
+    },
+    "운세": {
+      "en": "reading",
+      "ja": "占い",
+      "zh-CN": "运势",
+      "zh-TW": "運勢",
+      "vi": "vận mệnh",
+      "hi": "भविष्यफल",
+      "es": "lectura",
+      "fr": "lecture",
+      "de": "Deutung",
+      "nl": "reading",
+      "ms": "bacaan"
+    }
+  },
+
+  "voice": {
+    "_comment": "번역 톤. 기계번역식 직역이 아니라 각 언어권 서비스가 실제로 쓰는 UX 문구로 옮긴다.",
+    "rules": [
+      "버튼/CTA 는 그 언어권 앱에서 실제로 쓰는 관용 표현을 쓴다. 예: '운세 보기' → 'View Fortune'(직역) 이 아니라 'Get Your Reading'.",
+      "한국어 존댓말의 격식은 각 언어의 자연스러운 서비스 톤으로 바꾼다. 영어는 간결한 2인칭, 일본어는 です・ます, 독일어는 Sie.",
+      "짧은 라벨은 짧게 유지한다. UI 버튼이 줄바꿈되지 않도록 원문보다 지나치게 길어지지 않게 한다.",
+      "따뜻하고 신비로우면서도 전문적인 브랜드 성격을 유지한다. 과장된 마케팅 어조는 쓰지 않는다."
+    ]
+  }
+}

@@ -68,7 +68,13 @@ var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
 };
 
 function _reportDashboardText(key) {
-  return REPORT_DASHBOARD_TEXT_TRANSLATIONS.ko[key] || 'Translation pending';
+  var ko = REPORT_DASHBOARD_TEXT_TRANSLATIONS.ko[key] || '';
+  try {
+    if (typeof window !== 'undefined' && window && typeof window.cdTranslate === 'function') {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || 'Translation pending';
 }
 
 
