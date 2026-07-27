@@ -3,39 +3,13 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useLocale } from "@/lib/i18n/useT";
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type LoadingLocale = (typeof LOCALE_CODES)[number];
 
-function normalizeChromeLocale(value?: string | null): LoadingLocale {
-  const normalized = String(value || "").trim().replace("_", "-").toLowerCase();
-  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans") return "zh-CN";
-  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "zh-hk" || normalized === "zh-mo") return "zh-TW";
-  if (normalized === "vi-vn") return "vi";
-  return LOCALE_CODES.find((locale) => locale.toLowerCase() === normalized) || "ko";
-}
-
-function getCurrentChromeLocale(): LoadingLocale {
-  if (typeof window === "undefined") return "ko";
-  try {
-    const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    if (runtimeLang) return normalizeChromeLocale(runtimeLang);
-  } catch {}
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const fromQuery = params.get("lang");
-    if (fromQuery) return normalizeChromeLocale(fromQuery);
-  } catch {}
-  try {
-    const fromStorage = window.localStorage.getItem("cd_lang");
-    if (fromStorage) return normalizeChromeLocale(fromStorage);
-  } catch {}
-  try {
-    const match = document.cookie.match(/(?:^|;\s*)cd_locale=([^;]+)/);
-    if (match?.[1]) return normalizeChromeLocale(decodeURIComponent(match[1]));
-  } catch {}
-  return "ko";
-}
+// 로케일 감지는 lib/i18n/useT 의 useLocale 이 담당한다(cd:locale-ready 구독 포함).
+// 여기 있던 normalizeChromeLocale/getCurrentChromeLocale 은 그 훅과 중복이라 제거했다.
 
 const AuthWidget = dynamic(() => import("./AuthWidget"), {
   ssr: false,
@@ -206,13 +180,14 @@ function useDesktopHeaderControls() {
 
 export default function GlobalHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  // 🔴 마운트 시 1회만 읽으면 안 된다. LocaleRuntimeBridge 도 useEffect 에서 로케일을
+  // 쓰므로 순서에 따라 헤더가 "ko" 로 굳어버린다(실측: /points 에서 ja 인데 네비가 한국어).
+  // useLocale 은 cd:locale-ready 를 구독해 전환 때마다 다시 렌더한다 —
+  // 로케일 감지 로직을 여기서 또 만들지 않고 공유 훅을 쓴다.
+  const locale = useLocale() as LoadingLocale;
   const showDesktopControls = useDesktopHeaderControls();
-  const copy = GLOBAL_HEADER_COPY[locale] || GLOBAL_HEADER_COPY.ko;
-
-  useEffect(() => {
-    setLocale(getCurrentChromeLocale());
-  }, []);
+  // 표가 12개 로케일을 다 갖췄고 useLocale 이 그중 하나로 수렴하므로 fallback 이 필요 없다.
+  const copy = GLOBAL_HEADER_COPY[locale];
 
   return (
     <>
