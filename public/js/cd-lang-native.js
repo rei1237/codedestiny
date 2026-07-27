@@ -411,9 +411,10 @@
             var next = path ? path + '.' + key : key;
             if (typeof value === 'string') {
               var text = value.replace(/\s+/g, ' ').trim();
-              // 짧은 문구는 사용자 입력·데이터와 우연히 겹칠 위험이 커서 제외한다
-              // (예: "서울", "오늘"). 그런 건 마커 경로가 맡는다.
-              if (text.length >= 4 && !Object.prototype.hasOwnProperty.call(index, text)) index[text] = next;
+              // 2자까지 내린다. "추천"·"무료"·"신규" 같은 배지 라벨이 UI 크롬의 상당수라
+              // 4자 하한으로는 그 구간이 통째로 한국어로 남는다. 대신 아래 repair 쪽에서
+              // 입력 필드·사용자 생성 영역을 제외해 오탐을 막는다.
+              if (text.length >= 2 && !Object.prototype.hasOwnProperty.call(index, text)) index[text] = next;
             } else if (value && typeof value === 'object') {
               walk(value, next);
             }
@@ -440,7 +441,15 @@
         var parent = node.parentElement;
         if (!parent) continue;
         if (parent.closest('script, style, template, noscript, [data-cd-no-trans]')) continue;
-        if (parent.closest('[data-cd-trans], .custom-trans')) continue;
+        // 🔴 마커가 있는 노드도 건너뛰지 않는다.
+        // 생성기가 번역이 끝난 뒤 마킹된 노드를 한국어 리터럴로 덮어쓰는 경우가 있다
+        // (예: syncMembershipStatus 가 heroTitle.textContent 에 한국어를 직접 대입).
+        // 마커가 있는데도 한국어가 보인다면 그건 언제나 잘못된 상태이므로 고치는 편이 옳다.
+        // ko 로케일에서는 이 패스 자체가 돌지 않으므로 원문이 훼손될 일은 없다.
+        // 사용자가 넣은 값이 우리 UI 문구와 우연히 같을 수 있는 자리는 건드리지 않는다.
+        // (프로필 이름, 입력 미리보기, 상담 답변 등)
+        // select 는 제외하지 않는다 — <option> 은 우리가 쓴 UI 라벨이지 사용자 입력이 아니다.
+        if (parent.closest('input, textarea, [contenteditable], [data-cd-user-content]')) continue;
         var key = index[text];
         if (!key) continue;
         // 코어 사전 → shellRuntime 네임스페이스 순으로 찾는다.

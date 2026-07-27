@@ -4884,7 +4884,13 @@
     "ee_520_prop_label": "Frasa pengukuhan kemahiran utama Lv.20",
     "ee_859_prop_description": "Anda boleh menyemak arah pertumbuhan hari ini walaupun sebelum rekod takdir dibuka.",
     "ee_870_prop_description": "Kumpul pengalaman untuk menjadikan aliran pertumbuhan helaian watak lebih jelas.",
-    "ee_881_prop_description": "Selaraskan pertimbangan dan tindakan berdasarkan tenaga utama harian."
+    "ee_881_prop_description": "Selaraskan pertimbangan dan tindakan berdasarkan tenaga utama harian.",
+    "ee_79_prop_label": "子午",
+    "ee_80_prop_label": "丑未",
+    "ee_81_prop_label": "寅申",
+    "ee_82_prop_label": "卯酉",
+    "ee_83_prop_label": "辰戌",
+    "ee_84_prop_label": "巳亥"
   },
   "extremeT": {
     "et_100_prop_title": "Fenomena Pertuturan Terlalu Sejuk",
@@ -6817,6 +6823,9 @@
     },
     "title": {
       "001": "Hasil Bacaan Totem Haiwan"
+    },
+    "error": {
+      "001": "SwissEph loader failed."
     }
   },
   "lsd": {
@@ -7043,7 +7052,8 @@
   },
   "rd": {
     "aria-label": {
-      "001": "Pilih versi Empat Tiang Empat Potongan"
+      "001": "Pilih versi Empat Tiang Empat Potongan",
+      "002": "share hashtags"
     },
     "cta": {
       "001": "🐾 Panggil Haiwan Penjaga Saya",
@@ -7110,7 +7120,8 @@
       "021": "2. Potongan Pencegah Salah Cakap",
       "022": "3. Potongan Kunci Perbelanjaan",
       "023": "4. Mantra Perlindungan",
-      "024": "Empat Tiang Empat Potongan: Penapis Takdir"
+      "024": "Empat Tiang Empat Potongan: Penapis Takdir",
+      "003": "LOVE CODE"
     }
   },
   "seoLanding": {

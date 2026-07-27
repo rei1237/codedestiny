@@ -29,6 +29,25 @@ import { walkSourceFiles, parseJs, walkAst } from "./lib/i18n-source-scan.mjs";
 const rootDir = process.cwd();
 const probeOnly = process.argv.includes("--probe");
 
+/**
+ * 🔴 해석 결과 콘텐츠 엔진 — UI 가 아니라 운세 본문이라 여기서 뽑지 않는다.
+ *
+ * 측정하니 이 7개 파일이 런타임 UI 추출의 79%(약 80,000자)를 차지했다. 전부
+ * 사주/타로/자미 **해석문**이고, 사용자가 범위를 정할 때 명시적으로 2차로 미룬
+ * 영역이다. 섞여 들어오면 "UI 문구 4,042개" 처럼 규모가 부풀어 우선순위를 흐린다.
+ * 이 엔진들의 UI 라벨(버튼·로딩·에러)은 이미 코어 사전의 sajuEngine.* /
+ * entertainEngine.* / extremeT.* 키로 따로 처리돼 있다.
+ */
+const INTERPRETATION_ENGINES = new Set([
+  "js/saju-engine.js",
+  "js/saju-engine-tarot-sukuyo-quantum.js",
+  "js/core/saju/extremeTResult.js",
+  "js/services/destiny-flower-engine.js",
+  "js/entertain-engine.js",
+  "js/oracle-kcg.js",
+  "js/tarot-data.js",
+]);
+
 const UI_PROPERTY_RE = /(label|title|text|desc|description|message|placeholder|hint|cta|caption|heading|subtitle|note|tooltip|aria)$/i;
 const UI_ASSIGN_RE = /^(textContent|innerHTML|innerText|placeholder|title|value|ariaLabel)$/;
 
@@ -110,6 +129,7 @@ for (const match of shell.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
 for (const file of walkSourceFiles(rootDir, { extensions: [".js"] })) {
   const rel = relative(rootDir, file).split("\\").join("/");
   if (!rel.startsWith("js/")) continue;
+  if (INTERPRETATION_ENGINES.has(rel)) continue;
   const source = readFileSync(file, "utf8");
   if (!/[가-힣]/.test(source)) continue;
   scan(source, rel);
@@ -127,11 +147,16 @@ const known = new Set();
 
 const fresh = [...collected.entries()].filter(([text]) => !known.has(text));
 
+/**
+ * 키는 순차 짧은 id 를 쓴다. 해시 키(24자)는 11개 로케일 파일에 그대로 반복돼
+ * 산출물이 크게 불어난다. 복구 패스는 **한국어 원문**으로 키를 역조회하므로
+ * 키 형태 자체는 아무 의미가 없다 — 짧을수록 좋다.
+ * 정렬 후 번호를 매겨 재실행 시 같은 문구가 같은 키를 받게 한다.
+ */
 const entries = {};
-for (const [text] of fresh) {
-  const hash = createHash("sha1").update(text).digest("hex").slice(0, 10);
-  entries[`shellRuntime.t${hash}`] = text;
-}
+fresh.map(([text]) => text).sort().forEach((text, index) => {
+  entries[`shellRuntime.s${index}`] = text;
+});
 
 const chars = Object.values(entries).join("").match(/[가-힣]/g)?.length || 0;
 console.log(`[runtime-ui] 수집 문구        : ${collected.size}`);

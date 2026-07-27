@@ -4884,7 +4884,13 @@
     "ee_520_prop_label": "Frase de mejora de habilidad maestra Lv.20",
     "ee_859_prop_description": "Puede verificar la dirección de crecimiento de hoy incluso antes de que se abra el registro del destino.",
     "ee_870_prop_description": "Acumule experiencia para hacer más claro el flujo de crecimiento de la hoja de personaje.",
-    "ee_881_prop_description": "Alinee juicios y acciones basándose en la energía central del día."
+    "ee_881_prop_description": "Alinee juicios y acciones basándose en la energía central del día.",
+    "ee_79_prop_label": "子午",
+    "ee_80_prop_label": "丑未",
+    "ee_81_prop_label": "寅申",
+    "ee_82_prop_label": "卯酉",
+    "ee_83_prop_label": "辰戌",
+    "ee_84_prop_label": "巳亥"
   },
   "extremeT": {
     "et_100_prop_title": "Fenómeno de superenfriamiento del habla",
@@ -6817,6 +6823,9 @@
     },
     "title": {
       "001": "Resultados de la lectura del Tótem Animal"
+    },
+    "error": {
+      "001": "SwissEph loader failed."
     }
   },
   "lsd": {
@@ -7043,7 +7052,8 @@
   },
   "rd": {
     "aria-label": {
-      "001": "Seleccionar versión de Cuatro Pilares"
+      "001": "Seleccionar versión de Cuatro Pilares",
+      "002": "share hashtags"
     },
     "cta": {
       "001": "🐾 Invoca a tu animal guardián",
@@ -7110,7 +7120,8 @@
       "021": "2. Corte anti-errores al hablar",
       "022": "3. Corte de bloqueo de gastos",
       "023": "4. Orden de protección",
-      "024": "Cuatro Pilares (BaZi) en cuatro cortes: Filtro del destino"
+      "024": "Cuatro Pilares (BaZi) en cuatro cortes: Filtro del destino",
+      "003": "LOVE CODE"
     }
   },
   "seoLanding": {
