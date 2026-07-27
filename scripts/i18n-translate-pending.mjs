@@ -139,6 +139,43 @@ function validate(entries, translated) {
   return null;
 }
 
+/**
+ * 한 청크를 번역한다. 세 번 실패하면 **반으로 쪼개 각각 재시도**한다.
+ * 50키 묶음에서 모델이 키를 하나씩 흘리는 일이 실제로 발생했는데(hi 로케일),
+ * 같은 크기로 재시도해 봐야 같은 확률로 또 흘린다. 작게 쪼개면 통과한다.
+ */
+async function translateChunk(chunk, target, label, depth = 0) {
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const candidate = await callGemini(buildPrompt(chunk, target));
+      const problem = validate(chunk, candidate);
+      if (problem) throw new Error(problem);
+      return candidate;
+    } catch (error) {
+      const last = attempt === MAX_ATTEMPTS;
+      console.warn(`[translate] ${label} 시도 ${attempt} 실패: ${error.message}${last ? "" : " — 재시도"}`);
+      if (!last) await new Promise((r) => setTimeout(r, 1500 * attempt));
+    }
+  }
+
+  const keys = Object.keys(chunk);
+  if (keys.length <= 1 || depth >= 4) {
+    console.warn(`[translate] ${label} 포기 (${keys.length}키)`);
+    return null;
+  }
+  const mid = Math.ceil(keys.length / 2);
+  console.warn(`[translate] ${label} → ${keys.length}키를 ${mid}/${keys.length - mid} 로 쪼개 재시도`);
+  const halves = await Promise.all([keys.slice(0, mid), keys.slice(mid)].map((part, i) =>
+    translateChunk(
+      Object.fromEntries(part.map((k) => [k, chunk[k]])),
+      target,
+      `${label}.${i}`,
+      depth + 1,
+    )));
+  if (halves.some((half) => !half)) return null;
+  return Object.assign({}, ...halves);
+}
+
 // ── 입력 수집 ─────────────────────────────────────────────────────────────
 if (!existsSync(pendingDir)) {
   console.error("[translate] i18n/pending 이 없습니다. `npm run i18n:extract-ko` 를 먼저 실행하세요.");
@@ -149,16 +186,41 @@ for (const file of readdirSync(pendingDir).filter((f) => f.endsWith(".ko.json"))
   Object.assign(pending, JSON.parse(readFileSync(join(pendingDir, file), "utf8")));
 }
 const allKeys = Object.keys(pending).sort();
-const chunks = [];
-for (let i = 0; i < allKeys.length; i += CHUNK_SIZE) {
-  chunks.push(Object.fromEntries(allKeys.slice(i, i + CHUNK_SIZE).map((k) => [k, pending[k]])));
+
+/** 로케일 사전에서 점 경로로 값 읽기. */
+function getDeep(source, dottedKey) {
+  return dottedKey.split(".").reduce((acc, k) => (acc && typeof acc === "object" ? acc[k] : undefined), source);
 }
 
-console.log(`[translate] 대기 키 ${allKeys.length}개 → ${chunks.length}청크 × ${Object.keys(TARGETS).length}로케일`);
+/**
+ * 로케일별로 **아직 없는 키만** 번역한다. 이미 채워진 키를 다시 부르면 돈과 시간이
+ * 그대로 낭비되고, 청크 구성이 흔들려 캐시도 무의미해진다. 이 필터 덕분에 스크립트를
+ * 몇 번을 돌려도 남은 결손만 정확히 메운다(hi 로케일의 실패분 50개처럼).
+ */
+function missingKeysFor(fileName) {
+  const json = JSON.parse(readFileSync(join(i18nDir, fileName), "utf8"));
+  return allKeys.filter((key) => typeof getDeep(json, key) !== "string");
+}
+
+function chunkify(keys) {
+  const out = [];
+  for (let i = 0; i < keys.length; i += CHUNK_SIZE) {
+    out.push(Object.fromEntries(keys.slice(i, i + CHUNK_SIZE).map((k) => [k, pending[k]])));
+  }
+  return out;
+}
+
+console.log(`[translate] pending 키 ${allKeys.length}개, 로케일별 결손만 처리`);
+for (const [fileName, target] of Object.entries(TARGETS)) {
+  if (localeFilter && !localeFilter.has(target.code)) continue;
+  const n = missingKeysFor(fileName).length;
+  if (n) console.log(`[translate]   ${target.code.padEnd(6)} 결손 ${n}`);
+}
 
 if (dryRun) {
+  const sample = chunkify(allKeys)[0];
   console.log("\n──── 첫 청크 프롬프트 미리보기 (ja) ────\n");
-  console.log(buildPrompt(chunks[0], TARGETS["ja.json"]).slice(0, 2400));
+  console.log(buildPrompt(sample, TARGETS["ja.json"]).slice(0, 2400));
   console.log("\n[translate] --dry-run: API 를 호출하지 않았습니다.");
   process.exit(0);
 }
@@ -168,7 +230,7 @@ if (dryRun) {
 if (args.includes("--sample")) {
   for (const [fileName, target] of Object.entries(TARGETS)) {
     if (localeFilter && !localeFilter.has(target.code)) continue;
-    const sample = Object.fromEntries(Object.entries(chunks[0]).slice(0, 12));
+    const sample = Object.fromEntries(Object.entries(chunkify(allKeys)[0]).slice(0, 12));
     const translated = await callGemini(buildPrompt(sample, target));
     const problem = validate(sample, translated);
     console.log(`\n──── ${target.code} ${problem ? `❌ ${problem}` : "✅ 검증 통과"} ────`);
@@ -195,6 +257,9 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
   if (localeFilter && !localeFilter.has(target.code)) continue;
   const filePath = join(i18nDir, fileName);
   const json = JSON.parse(readFileSync(filePath, "utf8"));
+  const chunks = chunkify(missingKeysFor(fileName));
+  if (!chunks.length) { console.log(`[translate] ${target.code}: 결손 없음 — 건너뜀`); continue; }
+  const pendingCount = chunks.reduce((n, c) => n + Object.keys(c).length, 0);
   let applied = 0;
   let failed = 0;
 
@@ -204,24 +269,14 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
     // 추가되는 순간 청크 구성이 밀리면서 엉뚱한 번역이 재사용된다.
     const cachePath = join(cacheDir, `${target.code}.${chunkHash(chunk)}.json`);
     let translated = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : null;
-
-    for (let attempt = 1; !translated && attempt <= MAX_ATTEMPTS; attempt += 1) {
-      try {
-        const candidate = await callGemini(buildPrompt(chunk, target));
-        const problem = validate(chunk, candidate);
-        if (problem) throw new Error(problem);
-        translated = candidate;
-        writeFileSync(cachePath, `${JSON.stringify(candidate, null, 2)}\n`, "utf8");
-      } catch (error) {
-        const last = attempt === MAX_ATTEMPTS;
-        console.warn(`[translate] ${target.code} 청크 ${index} 시도 ${attempt} 실패: ${error.message}${last ? " — 포기" : " — 재시도"}`);
-        if (!last) await new Promise((r) => setTimeout(r, 1500 * attempt));
-      }
+    if (!translated) {
+      translated = await translateChunk(chunk, target, `${target.code} 청크 ${index}`);
+      if (translated) writeFileSync(cachePath, `${JSON.stringify(translated, null, 2)}\n`, "utf8");
     }
 
     if (!translated) { failed += Object.keys(chunk).length; continue; }
     for (const [key, value] of Object.entries(translated)) { setDeep(json, key, value); applied += 1; }
-    process.stdout.write(`\r[translate] ${target.code}: ${applied}/${allKeys.length}   `);
+    process.stdout.write(`\r[translate] ${target.code}: ${applied}/${pendingCount}   `);
   }
 
   writeFileSync(filePath, `${JSON.stringify(json, null, 2)}\n`, "utf8");

@@ -18,7 +18,13 @@ const SHARE_TEXT_TRANSLATIONS = {
 };
 
 function _shareText(key) {
-  return SHARE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+  var ko = SHARE_TEXT_TRANSLATIONS.ko[key] || "";
+  try {
+    if (typeof window !== "undefined" && window && typeof window.cdTranslate === "function") {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || "Translation pending";
 }
 var APP_VERSION = 'dev';
 var APP_VERSION_KEY = 'app_version';
