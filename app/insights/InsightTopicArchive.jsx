@@ -210,18 +210,15 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
       ) : null}
 
       {featureGuides.length > 0 ? (
-        <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
-          <h2 className="text-xl font-semibold text-amber-100">이 체계를 계산하는 방식</h2>
-          <p className="mt-3 break-keep text-sm leading-7 text-slate-300 md:text-base">
+        <section className="cd-guide-index mt-6">
+          <h2 className="cd-guide-index__title">이 체계를 계산하는 방식</h2>
+          <p className="cd-guide-index__lede">
             어떤 역법과 근거로 계산하는지, 결과를 어디까지 참고하면 되는지 정리한 기능 가이드입니다.
           </p>
-          <ul className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+          <ul className="cd-guide-index__grid">
             {featureGuides.map((featureGuide) => (
               <li key={featureGuide.href}>
-                <Link
-                  href={featureGuide.href}
-                  className="block rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm leading-6 text-slate-100 hover:border-amber-200/40 hover:bg-white/10 hover:text-amber-100"
-                >
+                <Link href={featureGuide.href} className="cd-guide-index__link">
                   {featureGuide.label}
                 </Link>
               </li>

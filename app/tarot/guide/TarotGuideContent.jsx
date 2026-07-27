@@ -577,7 +577,7 @@ export default function TarotGuideContent() {
   const copy = GUIDE_COPY[locale] || GUIDE_COPY.ko;
 
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">{copy.title}</h1>
         <p className="cd-main-intro">{copy.intro}</p>

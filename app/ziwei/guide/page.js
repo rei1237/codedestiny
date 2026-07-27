@@ -64,7 +64,7 @@ const faqItems = [
 
 export default function ZiweiGuidePage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">자미두수 명반 읽는 법</h1>
         <p className="cd-main-intro">
