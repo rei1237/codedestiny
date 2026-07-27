@@ -55,6 +55,16 @@ const chunkLimit = (() => {
   const i = args.indexOf("--limit");
   return i >= 0 && args[i + 1] ? Number(args[i + 1]) : Infinity;
 })();
+/**
+ * 네임스페이스 모드. 지정하면 코어 사전이 아니라
+ * public/i18n/<file>/<ns>.json 에 쓴다.
+ * 코어 사전은 홈 첫 페인트 경로에서 바로 받으므로 무한정 키울 수 없다 —
+ * 런타임 생성 UI 문구(수천 개)는 이쪽으로 분리한다.
+ */
+const namespaceArg = (() => {
+  const i = args.indexOf("--namespace");
+  return i >= 0 && args[i + 1] ? args[i + 1] : null;
+})();
 
 const apiKey = process.env.GEMINIF_API_KEY;
 if (!apiKey && !dryRun) {
@@ -182,8 +192,34 @@ if (!existsSync(pendingDir)) {
   process.exit(1);
 }
 const pending = {};
-for (const file of readdirSync(pendingDir).filter((f) => f.endsWith(".ko.json"))) {
+/**
+ * 코어 사전이 아니라 전용 네임스페이스 파일로만 가야 하는 pending.
+ * 코어는 홈 첫 페인트에서 바로 받으므로 수천 개짜리 런타임 UI 문구를 얹으면 안 된다.
+ * 여기 등록해 두면 --namespace 없이 돌려도 코어를 오염시키지 않는다.
+ */
+const NAMESPACE_ONLY = new Set(["shellRuntime"]);
+
+const pendingFiles = readdirSync(pendingDir)
+  .filter((f) => f.endsWith(".ko.json"))
+  .filter((f) => {
+    const ns = f.replace(/\.ko\.json$/, "");
+    return namespaceArg ? ns === namespaceArg : !NAMESPACE_ONLY.has(ns);
+  });
+for (const file of pendingFiles) {
   Object.assign(pending, JSON.parse(readFileSync(join(pendingDir, file), "utf8")));
+}
+
+/** 로케일 파일 경로. 네임스페이스 모드면 public/i18n/<basename>/<ns>.json */
+function localePath(fileName) {
+  if (!namespaceArg) return join(i18nDir, fileName);
+  const dir = join(i18nDir, fileName.replace(/\.json$/, ""));
+  mkdirSync(dir, { recursive: true });
+  return join(dir, `${namespaceArg}.json`);
+}
+
+function readLocale(fileName) {
+  const path = localePath(fileName);
+  return existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : {};
 }
 const allKeys = Object.keys(pending).sort();
 
@@ -198,7 +234,7 @@ function getDeep(source, dottedKey) {
  * 몇 번을 돌려도 남은 결손만 정확히 메운다(hi 로케일의 실패분 50개처럼).
  */
 function missingKeysFor(fileName) {
-  const json = JSON.parse(readFileSync(join(i18nDir, fileName), "utf8"));
+  const json = readLocale(fileName);
   return allKeys.filter((key) => typeof getDeep(json, key) !== "string");
 }
 
@@ -245,8 +281,8 @@ if (args.includes("--sample")) {
 mkdirSync(cacheDir, { recursive: true });
 
 // ── ko.json 은 원문 그대로 병합 ───────────────────────────────────────────
-const koPath = join(i18nDir, "ko.json");
-const koJson = JSON.parse(readFileSync(koPath, "utf8"));
+const koPath = localePath("ko.json");
+const koJson = readLocale("ko.json");
 for (const [key, value] of Object.entries(pending)) setDeep(koJson, key, value);
 writeFileSync(koPath, `${JSON.stringify(koJson, null, 2)}\n`, "utf8");
 console.log(`[translate] ko.json 병합 완료 (+${allKeys.length}키)`);
@@ -255,8 +291,8 @@ console.log(`[translate] ko.json 병합 완료 (+${allKeys.length}키)`);
 const summary = [];
 for (const [fileName, target] of Object.entries(TARGETS)) {
   if (localeFilter && !localeFilter.has(target.code)) continue;
-  const filePath = join(i18nDir, fileName);
-  const json = JSON.parse(readFileSync(filePath, "utf8"));
+  const filePath = localePath(fileName);
+  const json = readLocale(fileName);
   const chunks = chunkify(missingKeysFor(fileName));
   if (!chunks.length) { console.log(`[translate] ${target.code}: 결손 없음 — 건너뜀`); continue; }
   const pendingCount = chunks.reduce((n, c) => n + Object.keys(c).length, 0);

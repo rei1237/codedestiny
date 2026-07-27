@@ -4182,7 +4182,59 @@
     "partialFree": "Gedeeltelijk gratis",
     "deepReportPrice": "Diep rapport 10.000 KRW",
     "freeAnalysis": "GRATIS ANALYSE",
-    "title": "Sibyl-systeem",
+    "title": {
+      "001": "CH.01 Sibylla Kernmatrix",
+      "002": "CH.02 Precisieanalyse Risicofactor",
+      "003": "CH.03 Precisieanalyse Aanlegfactor",
+      "004": "CH.04 Dominante Tien Goden en Gedragspatronen",
+      "005": "CH.05 Vijf Elementen Balans en Energieontwerp",
+      "006": "CH.06 Uitleg Grafiek 10-jarige Risicofactor",
+      "007": "CH.07 Maandelijkse Risicoplanner",
+      "008": "CH.08 Relatie- en Liefdespatronen",
+      "009": "CH.09 Rijkdom- en Carrièrestrategieën",
+      "010": "CH.10 Definitieve Uitvoeringsgids",
+      "011": "Kernstabiliteit",
+      "012": "Carrière-uitvoering",
+      "013": "Financieel Beheer",
+      "014": "Relatie/Samenwerking",
+      "015": "Veerkracht",
+      "016": "Kwantum Vier Pijlers (BaZi) Integratie",
+      "017": "CH.01 Sibylla Kernmatrix",
+      "018": "CH.02 Precisieanalyse Risicofactor",
+      "019": "CH.03 Precisieanalyse Aanlegfactor",
+      "020": "CH.04 Dominante Tien Goden en gedragspatronen",
+      "021": "CH.05 Vijf Elementen balans en energieontwerp",
+      "022": "CH.06 Analyse van de 10-jarige risicofactor grafiek",
+      "023": "CH.07 Maandelijkse risicoplanner",
+      "024": "CH.08 Relaties en liefdespatronen",
+      "025": "CH.09 Rijkdom en carrièrestrategieën",
+      "026": "CH.10 Definitieve uitvoeringsgids",
+      "027": "[Dominante Shikshin] Natuurlijke, gevende relatie",
+      "028": "[Dominante Shangguan] Provocerende, assertieve relatie",
+      "029": "[Dominante Piancai] Expansieve, controlerende interpersoonlijke energie",
+      "030": "[Dominante Zhengcai] Voorzichtige en toegewijde relatie",
+      "031": "[Dominante Pianguan] Charismatische, dominante interpersoonlijke structuur",
+      "032": "[Dominante Zhengguan] Principes- en verantwoordelijkheidsgerichte relatie",
+      "033": "[Dominante Pianyin] Origineel, afstandelijk relatiepatroon",
+      "034": "[Dominante Zhengyin] Leer- en ondersteuningsgerichte relatiestructuur",
+      "035": "[Dominante Bigian] Onafhankelijke, competitieve interpersoonlijke energie",
+      "036": "[Dominante Jiecai] Overlevingsgerichte, strategische relatiepatronen",
+      "037": "Zi Shui (子水) — Oorsprong van het begin",
+      "038": "Chou Tu (丑土) — Verzegelde schatkamer",
+      "039": "Yin Mu (寅木) — Zaad van ontsteking",
+      "040": "Mao Mu (卯木) — Stil blad",
+      "041": "Chen Tu (辰土) — Drakenmagazijn (Watermagazijn)",
+      "042": "Si Huo (巳火) — Detonatiecircuit",
+      "043": "Wu Huo (午火) — Hoogtepunt van de zon",
+      "044": "Wei Tu (未土) — Zomer schemering",
+      "045": "Shen Jin (申金) — Mes van verkoeling",
+      "046": "You Jin (酉金) — Pure snijkant",
+      "047": "Xu Tu (戌土) — Graf van vuur",
+      "048": "Hai Shui (亥水) — Diepgaand circuit",
+      "049": "Stabiele groeimodus — Nauwkeurig behoud van de huidige koers",
+      "050": "Risicoaanpassingsmodus — Herordening van de uitvoeringsvolgorde",
+      "051": "Intensieve herstructureringsmodus — Reset van de structuur vereist"
+    },
     "subtitle": "Analyse van loopbaanbekwaamheid en lotrisicocoëfficiënt op basis van saju",
     "tags": {
       "hue": "Destiny tint kleurdiagnose",
@@ -4266,7 +4318,19 @@
       "graphTitle": "10-jarige risicocoëfficiëntgrafiek (gebaseerd op jaarlijks fortuin)",
       "reportTitle": "◆ DOMINATORRAPPORT",
       "remedyTitle": "◆ Recept voor een lotmiddel"
-    }
+    },
+    "label": {
+      "001": "Neutraal"
+    },
+    "message": {
+      "001": "API-verzoek mislukt.",
+      "002": "De betalingsprijsinformatie is onjuist.",
+      "003": "Betaling geannuleerd.",
+      "004": "Bevestiging van KRW-betaling is vereist.",
+      "005": "De ontgrendelingsstatus kon niet worden gecontroleerd. Probeer het later opnieuw.",
+      "006": "Het resultaat van het rapport voldoet niet aan de criteria."
+    },
+    "entryTitle": "Sibyl-systeem"
   },
   "admin": {
     "flowerButton": "Bloemknop"
@@ -5900,15 +5964,15 @@
     "sq_8704_attr_placeholder": "Bijv. Minseo",
     "sq_8708_attr_placeholder": "Optioneel",
     "sq_8943_prop_label": "Zelfde Sukuyo (同宿)",
-    "sq_8944_prop_label": "Korte afstand (Near)",
-    "sq_8945_prop_label": "Middellange afstand (Middle)",
-    "sq_8946_prop_label": "Lange afstand (Far)",
+    "sq_8944_prop_label": "Dichtbij",
+    "sq_8945_prop_label": "Midden",
+    "sq_8946_prop_label": "Ver",
     "sq_8976_prop_label": "Spiegel van de Ziel",
     "sq_8977_prop_label": "Vlam van Karma",
     "sq_8978_prop_label": "Gouden Tuin",
     "sq_8979_prop_label": "Meer van de Stille Maan",
-    "sq_8980_prop_label": "Fort op Parallelle Lijnen",
-    "sq_8981_prop_label": "Relatie met Sterke Stimulatie",
+    "sq_8980_prop_label": "Kasteel op Parallelle Lijnen",
+    "sq_8981_prop_label": "Relatie van Sterke Stimulatie",
     "sq_9307_prop_label": "Spirituele Energie",
     "sq_9308_prop_label": "Praktische Aanvulling",
     "sq_9309_prop_label": "Psychologisch Comfort",
@@ -5926,7 +5990,1249 @@
     "sq_9419_prop_label": "Psychologisch Comfort",
     "sq_9451_prop_label": "Spirituele Energie (Destructieve Innovatie)",
     "sq_9454_prop_label": "Praktische Aanvulling (Economie van Stimulatie)",
-    "sq_9457_prop_label": "Psychologisch Comfort (Troost van Paradox)",
+    "sq_9457_prop_label": "Psychologisch Comfort (Paradox van Troost)",
     "sq_9794_attr_aria_label": "Sukuyo compatibiliteitsradarchart"
+  },
+  "shell": {
+    "CODEDESTINY": "CODE DESTINY | Gratis Vier Pijlers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibiliteit — Geluksreading",
+    "cdCookieConsentCopy": {
+      "cdCookieConsentActions": {
+        "kniuoqf": "Akkoord",
+        "kw6ku0": "Alleen essentieel",
+        "kxy7l": "Instellingen"
+      }
+    },
+    "cdCookieConsentMain": {
+      "cdCookieConsentCopy": {
+        "k12mjipg": "We gebruiken essentiële cookies voor de loginflow en om overmatige verzoeken te blokkeren. Als u akkoord gaat, blijven uw voorkeuren voor bezoekersgemak ook soepel in deze browser.",
+        "k1nqxhwe": "Stille cookie-informatie als maanlicht"
+      }
+    },
+    "cdCookieSettingsPanel": {
+      "cdCookieConsentRow": {
+        "k2yf8r8": "Bij uw volgende bezoek worden taal- en bevestigingsstatus rustiger voortgezet.",
+        "k602xow": "Essentiële cookies",
+        "kao88ih": {
+          "ariaLabel": "Essentiële cookies altijd gebruiken"
+        },
+        "kfpcszr": "Worden gebruikt om ingelogd te blijven, betalingen te beveiligen en herhaalde verzoeken binnen dezelfde sessie te blokkeren.",
+        "km6l38": "Comfortcookies",
+        "krpclxc": "Altijd aan"
+      },
+      "k58noo": "Selectie opslaan"
+    },
+    "cdFooterBrandcol": {
+      "cdFooterSocial": {
+        "CODEDESTINY": {
+          "ariaLabel": "CODE DESTINY officiële YouTube in nieuw venster openen"
+        },
+        "CODEDESTINY2": {
+          "ariaLabel": "CODE DESTINY officiële Threads in nieuw venster openen"
+        },
+        "CODEDESTINY3": {
+          "ariaLabel": "CODE DESTINY officiële Instagram in nieuw venster openen"
+        },
+        "CODEDESTINY4": {
+          "ariaLabel": "CODE DESTINY officiële blog in nieuw venster openen"
+        },
+        "CODEDESTINYX": {
+          "ariaLabel": "CODE DESTINY officiële X in nieuw venster openen"
+        }
+      }
+    },
+    "cdFooterBusinessDetails": {
+      "k1l49wo": "Bedrijfsinformatie"
+    },
+    "cdFortunePick": {
+      "cdFortunePickGrid": {
+        "k16fnr7j": {
+          "ariaLabel": "Westerse astrologie geboortekaart bekijken"
+        },
+        "k1i48xlw": {
+          "ariaLabel": "Vier Pijlers (BaZi) analyse starten"
+        },
+        "k1i8xvv0": {
+          "ariaLabel": "Tarot reading starten"
+        },
+        "k1yi7np5": {
+          "ariaLabel": "Vedische astrologie bekijken"
+        },
+        "kb9ueah": {
+          "ariaLabel": "Zi Wei Dou Shu geboortekaart bekijken"
+        },
+        "kzkddyf": {
+          "ariaLabel": "Sukuyo-reading bekijken"
+        }
+      }
+    },
+    "cdHomeGuide": {
+      "cdHomeGuideInner": {
+        "ki3vjq4": {
+          "ariaLabel": "Meer reading-content bekijken"
+        }
+      }
+    },
+    "cdMobileBottomNav": {
+      "cdMobileBottomNavMain": {
+        "k10ios": "Tarot",
+        "k16bs": "Home",
+        "kwp0s": "Mijn",
+        "kxro3": "Consult",
+        "kxvio": "Vier Pijlers (BaZi)"
+      },
+      "cdMobileBottomNavQuick": {
+        "k10ios": "Tarot",
+        "km4uz9x": "Bloem/Droom",
+        "ksmbj4": "Sterrenbeeld",
+        "kwuu0": "Gratis",
+        "kxro3": "Consult",
+        "kxvio": "Vier Pijlers (BaZi)",
+        "kyajl": "Orakel",
+        "kyzcp": "Muziek"
+      },
+      "k15q82ek": {
+        "ariaLabel": "Snelle categorieën"
+      }
+    },
+    "cdMobileHeader": {
+      "CODEDESTINY": {
+        "ariaLabel": "CODE DESTINY Home"
+      },
+      "cdMobileHeaderSearch": {
+        "kuedl": "Zoeken"
+      }
+    },
+    "cdMobileHeaderActions": {
+      "themeSwitchWrapper": {
+        "ks7htym": {
+          "ariaLabel": "Yeoni · Neo-modus selecteren"
+        }
+      }
+    },
+    "cdMobileSajuDetailToggle": {
+      "k1x09e8d": "Voer geboortetijd/plaats nauwkeuriger in",
+      "kox0lg9": "Als u het niet weet, kunt u gewoon beginnen"
+    },
+    "cdStickyCta": {
+      "k1uaylpd": {
+        "ariaLabel": "Gratis reading starten"
+      }
+    },
+    "dfStudioPanels": {
+      "dfPanel": {
+        "ChatGPT": "🤖 Vraag het aan ChatGPT",
+        "k1if9omc": "🤖 Vraag het aan Claude",
+        "k2syr3s": "🤖 Vraag het aan Gemini",
+        "kkpkasn": "🤖 Vraag het aan Grok"
+      }
+    },
+    "featureBegin": {
+      "k162lweo": {
+        "ariaLabel": "Direct naar bloedgroep-reading"
+      },
+      "k1axy73w": {
+        "ariaLabel": "Direct naar algemene reading-prompt"
+      },
+      "k1razrl4": {
+        "ariaLabel": "Direct naar Fortune Teller Vis"
+      },
+      "k1rbp4zc": {
+        "ariaLabel": "Direct naar psychologische test"
+      },
+      "kqd75ua": {
+        "ariaLabel": "Direct naar AI Dieren Fysiognomie"
+      },
+      "kuaxa2s": {
+        "ariaLabel": "Direct naar Nakshatra"
+      },
+      "moonPreviewCard": {
+        "k121t48l": "Persoonlijkheid per type",
+        "k1lmbq6k": "Woord van de dag",
+        "k1sdh2me": "AI Dieren Fysiognomie",
+        "k1ujvbvb": "Licht van hart bekijken",
+        "k53h7ds": "Psychologische test",
+        "k79pfmc": "Nakshatra",
+        "k871xeu": "Gratis · Selfie gezichtsanalyse",
+        "ka0v1mf": "Gratis · 11 tools",
+        "kry6axn": "27 Sukuyo Maanposities",
+        "kslqazg": "Algemene reading-prompt",
+        "kxgi8q8": "Fortune Teller Vis",
+        "kxqdi2w": "Bloedgroep-reading"
+      }
+    },
+    "featureCardGrid": {
+      "cdPromptFeatureSpotlight": {
+        "k11st5nn": {
+          "ariaLabel": "Open Yeoni's Lotstheehuys"
+        },
+        "k14fkdom": {
+          "ariaLabel": "Open Neo's Lotstrategiekamer"
+        }
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k15l5ccw": {
+          "ariaLabel": "AI-consult 'Boek des Levens' - Mijn levensverhaal gelezen met geboortekaart en vragen"
+        },
+        "k1fk3mqf": {
+          "ariaLabel": "AI-consult 'Liefdesgeheim' — De knoop van liefde onderzocht met geboortekaart"
+        },
+        "k6gno8d": {
+          "ariaLabel": "AI-consult voor nieuwjaarsreading — geboortekaart en jaarcyclus beantwoorden uw vragen"
+        }
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "k19ij50j": "Levensboek AI-consult",
+        "k1c3xcpf": "Nieuwjaarsreading AI-consult"
+      },
+      "lovebibleTile": {
+        "k1s2fcm4": "Liefdesgeheim AI-consult"
+      }
+    },
+    "honeyMembershipDetails": {
+      "kr1a9l9": "Maanlichtvoordelen inklappen"
+    },
+    "honeyMembershipMini": {
+      "honeyMembershipMiniHeader": {
+        "k1yqmdmg": {
+          "ariaLabel": "Informatie over Maanlicht Pas"
+        }
+      }
+    },
+    "inputPage": {
+      "featureCardGrid": {
+        "kxv61vt": {
+          "ariaLabel": "Aanbevolen prompts voor algemene readings"
+        }
+      },
+      "k1tvi1wd": {
+        "ariaLabel": "Mobiele bovenbalk"
+      },
+      "k85zbld": {
+        "ariaLabel": "Mobiele snelle navigatie"
+      }
+    },
+    "ks7htym": {
+      "ariaLabel": "Selecteer Yeoni · Neo modus"
+    },
+    "lifebookTileBody": {
+      "lifebookTileCta": {
+        "k1dhhisc": "Ontvang nieuwjaarsstroom consult →",
+        "k7gpmm6": "Voer consultinformatie in →"
+      },
+      "lifebookTileFeatures": {
+        "k15402w4": "Stroom van werk en geld",
+        "k187xy2w": "Maandelijkse kansen en waarschuwingen",
+        "k18t3d6t": "Werk-, geld- en relatieconsult",
+        "k1cztqgf": "Herhalende patronen",
+        "k1plwjlk": "Talenten en sterke punten",
+        "k1tdarhm": "Interpretatie van geluk-cyclus en jaarcyclus",
+        "k918d8o": "Praktisch advies",
+        "kclhqv4": "Beoordeling van geboortekaart",
+        "kdq76ml": "Liefde en relaties",
+        "kdxxogb": "Kernonderwerpen van het leven",
+        "kemt22s": "Huidig keerpunt",
+        "kp9tkkd": "Consult gebaseerd op Vier Pijlers"
+      }
+    },
+    "lifebookTileInner": {
+      "lifebookTileBody": {
+        "k19ij50j": "Levensboek AI-consult",
+        "k1c3xcpf": "Nieuwjaarsreading AI-consult",
+        "k1e2ozr5": "De deuren van geluk-cyclus, jaarcyclus en maandcyclus openen zich over de structuur van de geboortekaart",
+        "k1n6j5jj": "De aard van de geboortekaart, de achtergrond van de geluk-cyclus, de gebeurtenissen van de jaarcyclus en de fluctuaties van de maandcyclus worden samengevoegd tot één stroom om de keuzes en voorzichtigheidsperioden van dit jaar aan te wijzen.",
+        "k1x7d2nr": "Jouw levensverhaal gelezen aan de hand van je geboortekaart en huidige vragen",
+        "ktjp1an": "Op basis van je geboortedatum en levensthema's ontvouwen we rustig de herhalende patronen, verborgen talenten en toekomstige richtingen die je moet benutten, net als in een consult."
+      },
+      "lifebookTileLabelRow": {
+        "AI30000": "AI-consult · 30.000 won",
+        "n30000": "30.000 won voor consult"
+      }
+    },
+    "logoArea": {
+      "moonTopbar": {
+        "CODEDESTINY": {
+          "ariaLabel": "Ga naar CODE DESTINY startpagina"
+        }
+      }
+    },
+    "lovebibleTileBody": {
+      "lovebibleTileCta": {
+        "k13bcsqk": "Consult over je huidige liefde"
+      }
+    },
+    "lovebibleTileCoinGroup": {
+      "lovebibleTileCoinBadge": {
+        "k11zo0b": "AI-consult",
+        "n30000": "30.000 won"
+      }
+    },
+    "lovebibleTileInner": {
+      "lovebibleTileBody": {
+        "k153vbx2": "Vier Pijlers consult dat de structuur van liefde rustig leest",
+        "k1s2fcm4": "Liefdesgeheim AI-consult",
+        "ko82iqm": "Door de dagmeester, dagtak en relatiepaleis te verbinden met de stroom van de jaarcyclus, duiden we op een waardige manier je huidige gevoelens en keuzes."
+      }
+    },
+    "miscCollection": {
+      "featCollectionGrid": {
+        "LOVECODE": {
+          "ariaLabel": "Start LOVE CODE Vier Pijlers liefdessimulatie"
+        },
+        "k1u4tnr8": {
+          "ariaLabel": "Start Dierenhoroscoop van de Twaalf Fases van Levenscyclus"
+        },
+        "k4i767i": {
+          "ariaLabel": "Start Plaats van het Lot"
+        }
+      }
+    },
+    "myeongriTarotAiPromptPanel": {
+      "kq10md4": "Gemini",
+      "kulph": "Grok",
+      "kvfipg": "Claude"
+    },
+    "normalLogo": {
+      "moonHeroCopy": {
+        "k5pz2jn": "Pad van de sterrenreading"
+      }
+    },
+    "premiumVvipCollection": {
+      "featCollectionGrid": {
+        "k106qdua": {
+          "ariaLabel": "Bekijk astrologie AI-consult"
+        },
+        "k10ifevy": {
+          "ariaLabel": "Sukuyo (27 Nakshatra's) compatibiliteit AI-consult"
+        },
+        "k12a4ezz": {
+          "ariaLabel": "Ga naar Vedische astrologie AI-consult"
+        },
+        "k1wc9gw3": {
+          "ariaLabel": "Start premium AI-naamgeving op maat voor Vier Pijlers"
+        },
+        "k8j5vsv": {
+          "ariaLabel": "AI-consult voor levensreading openen"
+        },
+        "kic6s9t": {
+          "ariaLabel": "Zi Wei Dou Shu AI-consult bekijken"
+        },
+        "kq2cqae": {
+          "ariaLabel": "Zi Wei Dou Shu Eiland van het Lot — Interactieve kaart waar je geboortekaart een levend eiland wordt"
+        },
+        "n2727": {
+          "ariaLabel": "Nakshatra Definitieve Editie — Geïntegreerde horoscoop van Oosterse 27 Sukuyo × Indiase 27 Nakshatra's"
+        }
+      }
+    },
+    "resultPage": {
+      "ks6nuj0": "🏠 Home"
+    },
+    "sukuyoCalendarParking": {
+      "syBasicCalendar": {
+        "kciu67n": {
+          "ariaLabel": "Kalenderlegenda"
+        }
+      }
+    },
+    "syBasicCalendar": {
+      "syBasicCalendarDetail": {
+        "k15h7kyw": "Kies een datum om de Sukuyo-stroom te onthullen.",
+        "k1wm3jt8": "Verlicht rustig op welke ster het maanlicht van vandaag rust.",
+        "kaomk43": "Plaats van het maanlicht"
+      },
+      "syBasicCalendarLegend": {
+        "k1voj0cw": "★ Zeer gunstig · Gunstig · Neutraal · Ongunstig · Zeer ongunstig"
+      },
+      "syBasicCalendarWeek": {
+        "k10vd": "Do",
+        "k12c8": "Wo",
+        "k139w": "Ma",
+        "k13ek": "Zo",
+        "k15eo": "Za",
+        "k16c4": "Di",
+        "kydk": "Vr"
+      }
+    },
+    "syBasicCalendarHead": {
+      "syBasicCalendarControls": {
+        "kndhrck": {
+          "ariaLabel": "Volgende maand"
+        },
+        "kpyyqqk": {
+          "ariaLabel": "Vorige maand"
+        }
+      },
+      "syBasicCalendarIdentity": {
+        "kqnecln": "De plaats waar het serene maanlicht verblijft · Sukuyo van deze maand"
+      }
+    },
+    "syBasicCalendarIdentity": {
+      "syBasicCalendarMonthLabel": {
+        "k1d0pjad": "27 Sukuyo Kalender",
+        "kp3rjwp": {
+          "ariaLabel": "Maand selecteren"
+        }
+      }
+    },
+    "syBasicCalendarLegend": {
+      "badDay": "Ongunstige dag",
+      "plainDay": "Neutrale dag",
+      "today": "Vandaag"
+    },
+    "tarotTile": {
+      "tarotTileBody": {
+        "k10ifevy": "Sukuyo compatibiliteit AI-consult",
+        "k10qxwvc": "Volg de 27 Sukuyo en de stroom van de relatie van twee mensen, en lees warm over aantrekkingskracht, wonden en praktische keuzes.",
+        "k11sp370": {
+          "ariaLabel": "Samenstelling van Yeoni's Lot Theehuis"
+        },
+        "k11zwfx7": "Op basis van de geboortekaart en de huidige planetaire stromen, beantwoorden we de vragen die je nu het meest bezighouden.",
+        "k14fgb7z": {
+          "ariaLabel": "Samenstelling van Neo's Realistische Lot Operatiekamer"
+        },
+        "k14mqjx7": "Zi Wei Dou Shu AI-consult",
+        "k18rbd8l": "Je geboortekaart op het moment van je geboorte wordt een eiland. Verken de 12 paleisgebouwen en ontdek de stroom van vandaag met Yeoni en Neo.",
+        "k1934dgw": "Volg de textuur van de geboortekaart en de geluk-cyclus/jaarlijkse cyclus, en ontvouw diep de grote stromen van leven, werk, rijkdom en relaties.",
+        "k1a78igt": "Levensreading AI-consult",
+        "k1cu7bpm": "Astrologie AI-consult",
+        "k1eszqn1": "Met de stromen van Lagna, Nakshatra's en planeten, beantwoorden we rustig je huidige vragen.",
+        "k1hprjge": "We ontrafelen de stromen van het Levenspaleis, Lichaamspaleis, 12 Paleizen en Vier Transformaties, afgestemd op je huidige vragen.",
+        "k1nhxtvn": "Zi Wei Dou Shu Eiland van het Lot",
+        "k1ruvdto": "Vier Pijlers (BaZi) Liefdessimulatie",
+        "k1s3pj19": {
+          "ariaLabel": "Samenstelling van de Uitgebreide Reading Prompt Hub"
+        },
+        "k1tyatli": {
+          "ariaLabel": "Consultsamenvatting"
+        },
+        "k1tyatli2": {
+          "ariaLabel": "Consultsamenvatting"
+        },
+        "k1v84z2u": "AI creëert zelf een naam door Vier Pijlers (BaZi) en Vijf Elementen, geluid en de betekenis van Chinese karakters te combineren, en we geven je zelfs de originele prompttekst mee.",
+        "k1y1a5zq": "Neo's Realistische Lot Operatiekamer",
+        "k1yble8x": "Open samen met Yeoni een maanlicht theekopje, en verlicht teder de onuitgesproken gevoelens van het hart met Vier Pijlers (BaZi), tarot en compatibiliteit.",
+        "k1ygnp9f": {
+          "ariaLabel": "Kernpunten"
+        },
+        "k1ygnp9f2": {
+          "ariaLabel": "Kernpunten"
+        },
+        "k231dx8": "Maak direct gratis consultprompts met 11 tools zoals Vier Pijlers (BaZi), tarot, astrologie en Zi Wei Dou Shu.",
+        "k3baulf": "Hunminjeongeum Naamgevingsbureau",
+        "k6uqkuq": {
+          "ariaLabel": "Kernsamenvatting"
+        },
+        "k6uqkuq2": {
+          "ariaLabel": "Kernsamenvatting"
+        },
+        "kir1rde": "Plaats en timing",
+        "klifgdg": "緣 Plaats van het lot",
+        "kntw327": "Nakshatra Definitieve Editie",
+        "kslqazg": "Uitgebreide reading prompt",
+        "kstndh6": "Gids voor lotsdieren",
+        "ksxkgnt": "Yeoni's Lotstheehuys",
+        "kt62t87": "AI consultatie Vedische astrologie",
+        "kyqh20f": "Neo geeft een nuchtere briefing over de selectiecriteria die u nu moet omarmen, waarbij Vier Pijlers (BaZi), Zi Wei Dou Shu, Vedische astrologie en westerse astrologie worden gecombineerd.",
+        "kzo1yhl": "獸 Twaalf Dieren van de Levenscyclus",
+        "n2727Nakshatra": "Oosterse 27 Sukuyo × Indiase 27 Nakshatra — Eén ster, twee talen. Twee sterrenstelsels die duizend jaar geleden gescheiden werden, ontmoeten elkaar opnieuw in uw geboortekaart."
+      },
+      "tarotTileImgWrap": {
+        "AI30000": "AI consultatie · 30.000 KRW",
+        "AI300002": "AI consultatie · 30.000 KRW",
+        "AI300003": "AI consultatie · 30.000 KRW",
+        "AI300004": "AI consultatie · 30.000 KRW",
+        "AI300005": "AI consultatie · 30.000 KRW",
+        "AI300006": "AI consultatie · 30.000 KRW",
+        "AI300007": "AI naamgeving · 30.000 KRW",
+        "AIConsultation50000": "AI Consultatie · 50.000 KRW",
+        "k1039k": "Aanbevolen",
+        "k11zo0b": "AI consultatie",
+        "k125av1j": "Gratis geboortekaart · AI consultatie",
+        "k15hk22d": {
+          "alt": "Neo's Strategiekamer voor het Lot — Strategisch advies om de frontlinies van keuzes te organiseren voor het leeuwenembleem"
+        },
+        "k18zdwwf": "Gratis openbaar",
+        "k18zdwwf2": "Gratis openbaar",
+        "k1gdpipn": {
+          "alt": "Yeoni's Lotstheehuys — Advies aangeboden door Yeoni, de lotusbewaker, met een maanlicht theekopje"
+        },
+        "k1r8338q": "NIEUW · Eiland van het Lot",
+        "k1scb7d8": {
+          "alt": "Representatieve afbeelding van de Lot-app"
+        },
+        "koe32kc": "Gratis proefversie",
+        "ktgbfsy": "NIEUW · Definitieve Editie",
+        "n50001000020000": "Tarot 5.000 KRW · Vier Pijlers (BaZi) 10.000 KRW · Compatibiliteit 20.000 KRW"
+      }
+    },
+    "tarotTileBody": {
+      "featuredContentCardCta": {
+        "k1f1oofn": "Betreed het Lotstheehuys",
+        "kdyjsns": "Gratis proberen",
+        "kwux29x": "Betreed de Strategiekamer"
+      },
+      "pvcPremMeta": {
+        "k10vo8": "Lezen",
+        "k11zo0b": "AI consultatie",
+        "k11zo0b2": "AI consultatie",
+        "k11zo0b3": "AI consultatie",
+        "k12z88tv": "PDF opslaan",
+        "k16eekng": "Controleer Pas",
+        "k19vii04": "12 Huizen Kaart",
+        "k1cco6tp": "Start nu",
+        "k1s4cln3": "Betreed de Strategiekamer",
+        "k1ty674i": "Consultatie beschikbaar",
+        "k1ty8wv6": "Ontvang consultatie",
+        "k1u01klw": "Betreed het eiland",
+        "k1vfalgf": "Gratis controleren",
+        "k6skteu": "Ontvang consultatie met geboortekaart",
+        "k96vaab": "Schermconsultatie",
+        "kj5prgr": "Vier Pijlers (BaZi) · Tarot · Astrologie",
+        "kmxk05u": "Levensreading",
+        "kn1803y": "Vraag Vedische Astrologie aan",
+        "kpfei5h": "Verhaaltype",
+        "ksdpj4c": "Dagelijkse Quest",
+        "ktecid": "Sukuyo (27 Nakshatra's)",
+        "kth5jek": "Nu proberen",
+        "kudb0": "Persoonlijk",
+        "kudb02": "Persoonlijk",
+        "kugw5d": "Heersende planeet",
+        "kv7uo": "Neo",
+        "kv9f8rk": "Direct consult",
+        "kwuu0": "Gratis",
+        "kyyvo": "Naamgeving",
+        "kyzfrrw": "Vier Pijlers (BaZi) · Tarot · Compatibiliteit",
+        "n30000": "Gebaseerd op 30.000 KRW"
+      },
+      "pvcPremPoints": {
+        "AIPDF": "Naamgevingsresultaat door AI + PDF opslaan",
+        "k11eirzr": "Sterkte van huizen als gebouwniveau – van ruïne tot tempel",
+        "k136ne35": "Oosterse 27 Sukuyo en Indiase Nakshatra's naast elkaar",
+        "k15z2s5t": "Neo's strategie met harde feiten, rekening houdend met de realiteit",
+        "k161xazs": "Sterrenstroom verbonden met de huidige vraag",
+        "k1a6baj4": "Mijn eilandbioom bepaald door de hoofdster van het leven",
+        "k1asi5pl": "Direct genereren na invoer geboortedatum en vraag",
+        "k1cb96zz": "Moment van verandering via geluk-cyclus en jaarlijkse cyclus",
+        "k1e60r0a": "Samenvatting van de huidige transitstromen",
+        "k1fyb19o": "Toegang tot het theehuis en de eerste groet van Yeoni, de lotusbewaker",
+        "k1hh2ce8": "De ware Sukuyo en relatieve afstand van twee personen",
+        "k1lfrfuk": "Persoonlijke geboortekaart van leven, lichaam en 12 huizen",
+        "k1rfowhj": "Emotioneel consult dat Vier Pijlers (BaZi), Tarot en compatibiliteit verbindt",
+        "k1soc8": "Kernconsult over Zon, Maan en Ascendant",
+        "k1wel05o": "Aanbeveling voor Yongsin, Hanja, klank en numerologie",
+        "k5ittux": "Strategische briefing afgestemd op consultonderwerp en geboorte-informatie",
+        "ka0qthx": "Vraag- en antwoordsessie gebaseerd op huizen en aspecten",
+        "kcblo5w": "Heersende planeet · Pada · Gana · Vimshottari Dasha",
+        "kkg4b7z": "Lang consult om te bewaren als PDF",
+        "kkph98v": "Consult gebaseerd op Rashi-kaart en Nakshatra",
+        "knvmn7z": "Het punt waar twee tradities samenkomen en uiteengaan",
+        "ko4w810": "11 instrumenten, waaronder Vier Pijlers (BaZi), Tarot en astrologie",
+        "kozjlt4": "Praktisch advies voor relaties, financiën, werk en keuzes",
+        "kqwk9o": "Consult over huizen en sterrenstromen per onderwerp",
+        "krx9ppb": "Gratis · Direct ervaren zonder in te loggen",
+        "ktv5xm9": "Analyse van geboortekaart en Vijf Elementen balans",
+        "ktx0v26": "Kies een lotskaart onder het leeuwenembleem",
+        "kvigm32": "Praktisch advies afgestemd op de huidige relatie",
+        "kwuh556": "Herhalend patroon van aantrekkingskracht en conflict",
+        "kxatr2b": "Keuzegerichte stroom die de lagen van zorgen verzacht",
+        "kyk2x3o": "Keuzeadvies gebaseerd op geluk-cyclus en jaarlijkse cyclus",
+        "n12NPC": "Dagelijks wisselend eilandweer en gesprekken met 12 huizen NPC's",
+        "n30000": "Eenmalige betaling van 30.000 KRW of Pas/Maanlichtsteen"
+      }
+    },
+    "terms24Card": {
+      "introLead": "Dit is de stroom van de 24 seizoenen van het geboortejaar. De",
+      "introTail": "van de Vier Pijlers (BaZi) wordt bepaald door in welk seizoen uw verjaardag valt. Het gemarkeerde seizoen is de 'Jeol-ip' die uw maand opent.",
+      "secTitle": {
+        "k1iwdtvn": "☀️ 24 Zonneperioden"
+      },
+      "terms24Intro": {
+        "kpaolwg": "Maandpijler"
+      }
+    },
+    "themeSwitchWrapper": {
+      "themeSwitchPill": {
+        "k7bnh78": {
+          "ariaLabel": "Neo-modus"
+        },
+        "k7bnh782": {
+          "ariaLabel": "Neo-modus"
+        },
+        "khrulw0": {
+          "ariaLabel": "Yeoni-modus"
+        },
+        "khrulw02": {
+          "ariaLabel": "Yeoni-modus"
+        }
+      }
+    },
+    "wrap": {
+      "cdFooterShell": {
+        "k16rhu4g": {
+          "ariaLabel": "AI-advies link"
+        },
+        "k1cf0vdm": {
+          "ariaLabel": "Klantenservice link"
+        },
+        "koniaun": {
+          "ariaLabel": "Servicelink"
+        },
+        "kp08cb": {
+          "ariaLabel": "Verhaal link"
+        }
+      },
+      "k14mqjx7": "Zi Wei Dou Shu AI-advies",
+      "kt62t87": "Vedische Astrologie AI-advies"
+    }
+  },
+  "adsenseArticle": {
+    "description": {
+      "001": "Vier Pijlers (BaZi) lezen in 7 stappen: controleer de kalender, identificeer de Dagmeester, Vijf Elementen balans, rol van de Tien Goden, geluk-cyclus en jaarlijkse invloeden. Een gids voor beginners, inclusief hoe af te sluiten met een actieplan.",
+      "002": "Je geluk verhogen begint met een routine van 15 minuten per dag. We hebben ontwerpmethoden voor routines van 5 minuten 's ochtends, 's middags en 's avonds, aangevuld met routines op maat voor Vier Pijlers (BaZi) temperamenten en tips om 3 weken vol te houden.",
+      "003": "De kern van het lezen van de kalender is om eerst slechts 4 dingen te controleren: de Dagmeester, de Maandtak, de verdeling van de Vijf Elementen en de geluk-cyclus. We leggen uit hoe je de Hemelse Stammen kunt lezen met afbeeldingen, zelfs als je geen Chinese karakters kent, en de 3 stappen voor het gebruik van de Maandtak.",
+      "004": "Diagnose van de Vijf Elementen balans: zoek overtollige (3 of meer) en ontbrekende (0) Hout, Vuur, Aarde, Metaal, Water in de 8 karakters van je Vier Pijlers (BaZi), en stel praktische strategieën samen om ontbrekende elementen aan te vullen met dagelijkse routines.",
+      "005": "Praktische kaart voor Tien Goden interpretatie: vertaal de vijf groepen (Vrienden, Expressie, Rijkdom, Macht, Hulpbronnen) naar besluitvormingstaal voor liefde, werk en geld, en leg uit hoe je de geboortekaart en jaarlijkse invloeden kunt kruisen om tot actie te komen.",
+      "006": "Hoe je jaarlijkse reading leest: een kader om de richting te bepalen van wat je moet cultiveren en verminderen met de twee karakters van het jaar, en om te controleren met een kwartaalchecklist van 6 items. Ook hoe je botsingen, straffen, schade en vernietiging zonder angst kunt lezen.",
+      "007": "Maandelijkse reading opnamemethode: een 3-regelig sjabloon voor wekelijkse trefwoorden, acties en resultaten, en een feedbacklus van lezen → uitvoeren → opnemen → aanpassen, om de groeisnelheid te verhogen in plaats van te beoordelen op goed of fout.",
+      "008": "Het kiezen van een datum is geen bijgeloof, maar risicobeheer. We hebben de basisconcepten van dagelijkse invloeden, gunstige dagen en stam-tak combinaties, een 4-stappen datumkeuzeproces, en prioriteitscriteria voor verhuizingen, contracten, sollicitaties en reizen samengesteld.",
+      "009": "Hoe je je geluk reset als het vastzit: een praktische routine om de stroom te herstellen met een 72-uurs protocol van diagnose van de oorzaak (overbelasting, richtingsverwarring, onvoldoende herstel) → opruimen → herschikken → herstarten.",
+      "010": "Communicatiemethoden om je liefdesgeluk te verhogen: lees verschillen in emotionele ritmes per Dagmeester en Sukuyo (27 Nakshatra's), en kom tot overeenstemming over 3 relatieregels: antwoordcriteria, emotionele expressie en herstel van conflicten.",
+      "011": "Gewoonten om je financiële geluk te verhogen: lees de structuur en timing van geldenergie met de Rijkdomster (財星) in je Vier Pijlers (BaZi), en beheer de cashflow met een maandelijkse 3-regelige financiële administratie van vaste kosten, variabele kostenlimieten en automatisch sparen.",
+      "012": "Carrière- en examenkansen worden gelezen met de Macht- en Hulpbronnensterren. Hoe je uitdagingen plant tijdens periodes van sterk geluk, 4 stappen voor sollicitatievoorbereiding, Pomodoro examenroutine, en stressmanagement de dag ervoor en op de dag zelf.",
+      "013": "De relatie tussen slaap en geluk: het mechanisme waarbij slaaptekort het beoordelingsvermogen, emotionele regulatie en het vermogen om kansen te grijpen vermindert, en een stapsgewijs 7-daags slaapresetprotocol om het energieritme te herstellen.",
+      "014": "Hoe je goede vragen stelt over je reading: ontwerp vragen met 3 elementen (periode, context, handelingsmogelijkheid), 3 sjablonen om 4 typen slechte vragen te vermijden, en 5 items voor zelfdiagnose van de vraagkwaliteit.",
+      "015": "Hoe je Vier Pijlers (BaZi) en Tarot samen leest: een geïntegreerd kader om de kwartaalstroom met Vier Pijlers (BaZi) te bepalen en de wekelijkse keuzes met Tarot te bevestigen. Inclusief het vinden van gemeenschappelijke trefwoorden en een 3-stappenfilter om overinterpretatie te voorkomen.",
+      "016": "AdSense-vriendelijke structuur voor reading-artikelen: 3 criteria voor informatiewaarde, EEAT en leesbaarheid, 6-stappen artikelstructuur, te vermijden uitdrukkingen en operationele strategieën om de verblijftijd te verhogen.",
+      "017": "Complete gids voor de 12 Rashis van de Vedische astrologie: van Mesha tot Mina, met elementen, heersende planeten, karaktersterkten en uitdagingen, en de interpretatievolgorde van het samen lezen van Lagna, Maan Rashi en Dasha's.",
+      "018": "Basisprincipes van Vier Pijlers (BaZi): de structuur van vier pijlers en acht karakters, Hemelse Stammen en Aardse Takken, de generatieve en controlerende cycli van de Vijf Elementen, en een 5-stappen interpretatievolgorde voor beginners.",
+      "019": "Complete gids voor de Vijf Elementen: de eigenschappen van de vijf energieën (Hout, Vuur, Aarde, Metaal, Water), de principes van generatie en controle, karaktertendensen bij overschot/tekort, en praktische aanvullende routines voor het dagelijks leven, alles in één.",
+      "020": "Betekenis van de 22 Grote Arcana Tarotkaarten: van De Dwaas (0) tot De Wereld (21), met kernwoorden, 3 benaderingen voor omgekeerde interpretatie, en hoe ze te gebruiken voor vragen over liefde, carrière en persoonlijke groei.",
+      "021": "Wat is Zi Wei Dou Shu: de structuur van de 12 paleizen van de geboortekaart, de 14 hoofdsterren zoals de Zi Wei-ster, de betekenis van de vier transformaties (Hua Lu, Hua Quan, Hua Ke, Hua Ji), en 3 stappen voor het lezen van de geboortekaart voor beginners.",
+      "022": "Volledige uitleg van Hemelse Stammen en Aardse Takken: de Vijf Elementen, Yin-Yang en seizoensgebondenheid van de 10 Hemelse Stammen (Jia, Yi, Bing, Ding, Wu, Ji, Geng, Xin, Ren, Gui) en de 12 Aardse Takken (Zi, Chou, Yin, Mao, Chen, Si, Wu, Wei, Shen, You, Xu, Hai), en de kern van hun combinatie- en botsingsrelaties in praktische volgorde.",
+      "023": "Methode voor het beoordelen van sterke en zwakke Dagmeester: de volgorde voor het lezen van de sterkte van de Dagmeester met de 3 belangrijkste criteria (verkrijgen van seizoen, verkrijgen van positie, verkrijgen van invloed), aanvullende strategieën voor sterke en zwakke Dagmeesters, en veelvoorkomende beoordelingsfouten.",
+      "024": "Hoe je de Gunstige God vindt: van het beoordelen van sterke en zwakke Dagmeester tot de vijf classificaties (onderdrukking/ondersteuning, temperatuurregulatie, doorstroming, ziekte/medicijn, transformatie), en het onderscheiden van gunstige en ongunstige goden, begeleid door een praktische 5-stappen checklist.",
+      "025": "Basisprincipes van compatibiliteit: een praktische gids om de energiepatronen van twee mensen te lezen en te gebruiken als hulpmiddel voor relatiebegrip, met 3 stappen: generatie/controle van de Vijf Elementen van de Dagmeester, Tien Goden relaties en botsingen/combinaties van de Dagtak.",
+      "026": "Volledige samenvatting van persoonlijkheden per Dagzuil: de temperamenten, sterke punten en aandachtspunten van representatieve Dagzuilen, onderverdeeld per Vijf Elementen van de Dagmeester van de 60 Jiazi Dagzuilen, en een interpretatievolgorde die niet alleen op één Dagzuil is gebaseerd.",
+      "027": "Hoe je de geluk-cyclus en jaarlijkse invloeden leest: de concepten van de 10-jarige geluk-cyclus en de 1-jarige jaarlijkse invloeden, hoe je de startleeftijd van de geluk-cyclus berekent, en praktische punten voor het lezen van timing door interactie met de Gunstige God van de geboortekaart."
+    },
+    "title": {
+      "001": "Complete introductie tot Vier Pijlers (BaZi): 7 stappen voor beginners",
+      "002": "Hoe je je geluk verhoogt: complete gids voor een dagelijkse geluksroutine van 15 minuten",
+      "003": "Complete gids voor het lezen van de kalender: kerninterpretatie zonder Chinese karakters",
+      "004": "Complete gids voor Vijf Elementen balans: jouw realistische aanvullingsstrategie met Hout, Vuur, Aarde, Metaal, Water",
+      "005": "Praktische kaart voor Tien Goden interpretatie: Vier Pijlers (BaZi) direct toepassen op liefde, werk, geld",
+      "006": "Hoe je je jaarlijkse reading leest: complete gids voor angstvrije jaarlijkse reading controle",
+      "007": "Maandelijkse reading opnamemethode: feedbacklus die de groeisnelheid verhoogt in plaats van goed of fout",
+      "008": "Hoe je een goede datum kiest: praktisch datum kiezen zonder bijgeloof",
+      "009": "Hoe je je geluk reset als het vastzit: complete 72-uurs herstelprotocol",
+      "010": "Communicatiemethoden om je liefdesgeluk te verhogen: relatieregels belangrijker dan compatibiliteitsscores",
+      "011": "Gewoonten om je financiële geluk te verhogen: Vier Pijlers (BaZi) Rijkdomster (財星) en echt huishoudboekje samen gebruiken",
+      "012": "Voorbereiding om carrière- en examenkansen te verhogen: complete gids voor Vier Pijlers (BaZi) jaarlijkse invloeden en praktische routines",
+      "013": "De relatie tussen slaap en geluk: waarom je geluk verandert als je je energieritme herstelt",
+      "014": "Hoe je goede vragen stelt over je reading: complete gids voor het ontwerpen van vragen die de kwaliteit van het antwoord veranderen",
+      "015": "Hoe je Vier Pijlers (BaZi) en Tarot samen leest: geïntegreerd kader dat lange termijn stromen en huidige keuzes verbindt",
+      "016": "AdSense-vriendelijke structuur voor reading-artikelen: complete gids voor informatiewaarde, betrouwbaarheid, leesbaarheid",
+      "017": "Complete gids voor de 12 Rashis van de Vedische astrologie: persoonlijkheid, reading, praktische interpretatie van Mesha tot Mina",
+      "018": "Complete samenvatting van de basisprincipes van Vier Pijlers (BaZi): begrijp wat Vier Pijlers (BaZi) is vanaf het begin",
+      "019": "Complete samenvatting van de Vijf Elementen (Hout, Vuur, Aarde, Metaal, Water): eigenschappen, generatie, controle, praktische toepassing",
+      "020": "Complete samenvatting van de betekenis van de 22 Grote Arcana Tarotkaarten: van nummer 0 tot 21",
+      "021": "Wat is Zi Wei Dou Shu: complete introductie van de basis tot het lezen van de geboortekaart",
+      "022": "Perfecte uitleg van Hemelse Stammen en Aardse Takken: betekenis, eigenschappen, praktische interpretatie van 10 Hemelse Stammen en 12 Aardse Takken",
+      "023": "Complete gids voor het beoordelen van sterke en zwakke Dagmeester: hoe je de sterkte van je Vier Pijlers (BaZi) nauwkeurig leest",
+      "024": "Praktische gids voor het vinden van Yongsin: van sterke/zwakke geboortekaart tot Yongsin-instelling",
+      "025": "Complete basisgids voor compatibiliteit: een praktische gids om relaties te begrijpen met Vier Pijlers (BaZi)",
+      "026": "Volledige gids voor persoonlijkheidskenmerken per dagpijler: een complete gids voor de 60 Gapja-dagpijlers",
+      "027": "Complete gids voor het lezen van geluk-cycli en jaarlijkse cycli: begrijp je reading door de stroom van tijd"
+    }
+  },
+  "astralSoul": {
+    "001": "Details bekijken",
+    "002": "Wijze uil",
+    "003": "Nieuwsgierige kat",
+    "004": "Charismatische leeuw",
+    "005": "Slimme vos",
+    "006": "Mysterieus hert",
+    "007": "Dromerig konijn",
+    "008": "Vriendelijke dolfijn",
+    "009": "Levendige otter",
+    "010": "Vlijtige schildpad",
+    "011": "Zachtaardige olifant",
+    "012": "Strenge wolf",
+    "013": "Sociale pinguïn",
+    "014": "Scherpe havik",
+    "015": "Artistieke vlinder",
+    "016": "Moedige tijger",
+    "017": "Prachtige pauw",
+    "018": "Details bekijken",
+    "019": "Algemene compatibiliteitsscore",
+    "020": "Emotionele/waardenresonantie (T/F)",
+    "021": "Gedrag/levenspatronen (J/P)",
+    "022": "Gesprek/interesses (S/N)",
+    "023": "Perfecte parallelle universum dubbelganger",
+    "024": "Meesterwerk verbonden door het universum",
+    "025": "Metgezel voor wonderbaarlijke intellectuele verkenning",
+    "026": "T van Mars, F van Venus",
+    "027": "Een veelzijdig prisma dat elkaar kleurt"
+  },
+  "celestialMelody": {
+    "closingTitle": "Samenvatting van de hemelse melodie van vandaag",
+    "spreadTitle01": "Zon · Het Zelf dat zich openbaart",
+    "spreadTitle02": "Maan · Herinneringen van het hart",
+    "spreadTitle03": "Mercurius · Gedachten en taal",
+    "spreadTitle04": "Venus · Liefde en waarde",
+    "spreadTitle05": "Mars · Verlangen en drijfveer",
+    "spreadTitle06": "Jupiter · Expansie en geloof",
+    "spreadTitle07": "Saturnus · Verantwoordelijkheid en beproeving",
+    "spreadTitle08": "Uranus · Ontwaken van verandering",
+    "spreadTitle09": "Neptunus · Dromen en intuïtie",
+    "spreadTitle10": "Pluto · Diepe transformatie",
+    "spreadTitle11": "Chiron · Wijsheid van de wond"
+  },
+  "dreamMeaning": {
+    "001": "Alles",
+    "002": "Gerelateerd aan dieren",
+    "003": "Gerelateerd aan fruit",
+    "004": "Gerelateerd aan mensen",
+    "005": "Emotie (positief)",
+    "006": "Emotie (woede)",
+    "007": "Emotie (angst)",
+    "008": "Emotie (verlies)",
+    "009": "Emotie (herstel)",
+    "010": "Locatie trefwoord",
+    "011": "Object trefwoord",
+    "012": "Droom over conceptie",
+    "013": "Rijkdom reading",
+    "014": "Succes reading",
+    "015": "Liefdes reading",
+    "016": "Huwelijks reading",
+    "017": "Ontmoetingsscène",
+    "018": "Actiescène",
+    "019": "Veranderingsscène"
+  },
+  "highValueContent": {
+    "001": "Basisconcepten voor beginners van Vier Pijlers (BaZi), Manse Calendar, Vijf Elementen en Tien Goden.",
+    "002": "Hoe u tarotvragen formuleert en kaartinterpretaties koppelt aan keuzes in het echte leven.",
+    "003": "Een gids om liefdes-, herenigings- en compatibiliteitsreadings te lezen als relatie-evaluatie, niet als angst.",
+    "004": "Hoe u dagelijkse readings gebruikt voor planning, emoties en prioriteiten zonder overdrijving.",
+    "005": "Geboortekaart, 12 huizen en sterrenbeeldsymbolen eenvoudig uitgelegd voor beginners.",
+    "006": "Richtlijnen en disclaimer voor het veilig en evenwichtig lezen van reading-content.",
+    "007": "Vier Pijlers (BaZi) beginnersgids",
+    "008": "Gratis Vier Pijlers (BaZi) analyse",
+    "009": "Basisinterpretatie Vier Pijlers (BaZi)",
+    "010": "Hoe tarotreadings werken",
+    "011": "Gratis tarotkaartreading",
+    "012": "Herenigings-tarotreading",
+    "013": "Hoe u noodlotsinterpretaties realistisch leest",
+    "014": "Methodologie voor reading-content",
+    "015": "Reading-inzichtengids",
+    "016": "Persoonlijkheidsanalyse op basis van geboortedatum",
+    "017": "Gratis astrologische geboortekaart",
+    "018": "Zi Wei Dou Shu 12 huizen",
+    "019": "Belangrijke signalen voor goede compatibiliteit",
+    "020": "Gratis Vier Pijlers (BaZi) compatibiliteitsanalyse",
+    "021": "Gratis liefdes reading bekijken",
+    "022": "FAQ voor veilig gebruik van reading-services",
+    "023": "Gratis dagelijkse reading bekijken",
+    "024": "Code Destiny veelgestelde vragen"
+  },
+  "indexRuntime": {
+    "aria-label": {
+      "001": "Open Sibylla Vier Pijlers (BaZi) systeem",
+      "002": "Koppel Bloemen van het Lot"
+    },
+    "confirm": {
+      "001": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan.",
+      "002": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan.",
+      "003": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan.",
+      "004": "Alle opgeslagen Bloemen van het Lot-records verwijderen?",
+      "005": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan.",
+      "006": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan.",
+      "007": "🔒 Deze service vereist inloggen.\\\\nLog in om verder te gaan."
+    },
+    "label": {
+      "001": "Maanfase",
+      "002": "Beschermdier",
+      "003": "Sterke ster van vandaag",
+      "004": "Sterhelderheid",
+      "005": "Huispositie",
+      "006": "Zonneteken",
+      "007": "Ascendant",
+      "008": "Maanteken",
+      "009": "Sterk/Zwak Zelf",
+      "010": "Leidende God",
+      "011": "Klimaatregeling"
+    },
+    "message": {
+      "001": "Maanlichtsteen-info wordt gecontroleerd",
+      "002": "Maanlichtsteen wordt geactiveerd, binnenkort beschikbaar",
+      "003": "Maanlichtsteen wordt geactiveerd, binnenkort beschikbaar",
+      "004": "Kaartbetaling voor één item wordt voorbereid",
+      "005": "Betaling voltooid, resultaten worden geladen",
+      "006": "Pas wordt gecontroleerd",
+      "007": "Bezig met verwerken, even geduld alstublieft",
+      "008": "Bezig met verwerken, even geduld alstublieft"
+    },
+    "title": {
+      "001": "Dierentotem Reading Resultaten"
+    }
+  },
+  "lsd": {
+    "alt": {
+      "001": "Miniatuur"
+    },
+    "aria-label": {
+      "001": "Natuurcode-kaart",
+      "002": "Sterkte-reading kaart",
+      "003": "Sluiten",
+      "004": "Energie Dagboek tabblad",
+      "005": "Vandaag energie minikaart",
+      "006": "Meditatie afspeellijst modus",
+      "007": "Vorige maand",
+      "008": "Volgende maand",
+      "009": "Kalenderweergave wisselen"
+    },
+    "label": {
+      "001": "Natuurcode",
+      "002": "Energie Overzicht",
+      "003": "Sterkte Reading",
+      "004": "Dagelijkse Balans",
+      "005": "Rijkdom",
+      "006": "Liefde",
+      "007": "Eer",
+      "008": "Gezondheid",
+      "009": "Studie",
+      "010": "Rijkdomstroom Ontwerp",
+      "011": "Relatie-energie Ordenen",
+      "012": "Veerkracht Versterken",
+      "013": "Focus/Prestatie Modus",
+      "016": "Normaal",
+      "017": "Goede dag",
+      "018": "Goed",
+      "019": "Normaal",
+      "020": "Sterk",
+      "021": "Zeer sterk",
+      "022": "Rijkdom",
+      "023": "Relatie",
+      "024": "Prestatie",
+      "025": "Herstel",
+      "026": "Focus",
+      "027": "Rijkdom",
+      "028": "Liefde",
+      "029": "Eer",
+      "030": "Gezondheid",
+      "031": "Studie"
+    },
+    "lead": {
+      "001": "Vier pijlers van kracht in de stroom van vandaag: focus, inzicht, relatie en voltooiing, rijzen op verschillende hoogtes.",
+      "002": "Tussen de vijf ritmes van rust, voltooiing, groei, begin en herstel, schijnt het centrale ritme van vandaag."
+    },
+    "placeholder": {
+      "001": "Bijnaam kaart (optioneel)",
+      "002": "Regel onderaan kaart (optioneel)",
+      "003": "Noteer kort de stroom, ontmoeting of keuze die je vandaag wilt onthouden.",
+      "004": "Naam partner",
+      "005": "Jaar (aanvullend)",
+      "006": "Bijv.: 's Ochtends kon ik me niet concentreren, maar na een digitale detox 's avonds werd mijn geest helder.",
+      "007": "Bijv.: Ik was nerveus tijdens een belangrijke vergadering en struikelde over mijn woorden.",
+      "008": "Bijv.: Ik bracht de kern rustig over en de ander knikte glimlachend.",
+      "009": "Typ of lees de bovenstaande zin hardop voor."
+    },
+    "title": {
+      "001": "Inzicht in aangeboren aard ·",
+      "002": "Samenvatting van de energie van vandaag ·",
+      "003": "Sterktebenutting reading",
+      "004": "Dagelijkse balans reading",
+      "005": "Meditatiemuziekspeler"
+    }
+  },
+  "mindscanReading": {
+    "cardsRequired": "Kaartpaar gegevens zijn vereist.",
+    "positionContactFlow": "Toekomstige contactstroom",
+    "positionCurrentHeart": "Huidige gevoelens partner",
+    "positionFinalFlow": "Stroom van de relatie",
+    "positionHesitationReason": "Reden van aarzeling partner",
+    "positionHiddenHeart": "Verborgen gevoelens",
+    "positionMyAttitude": "Mijn houding",
+    "positionVisibleAttitude": "Zichtbare houding",
+    "questionRequired": "Een adviesvraag is vereist.",
+    "sampleTitle": "Voorbeeldtitel"
+  },
+  "numerologyTarot": {
+    "lifePathNumber": "Levenspadgetal",
+    "questionNumber": "Vraaggetal",
+    "topicCareer": "Carrière",
+    "topicFeelings": "Innerlijke gevoelens",
+    "topicGeneral": "Algemeen",
+    "topicHealth": "Gezondheid & Energie",
+    "topicLove": "Liefde & Relaties",
+    "topicMoney": "Financiën",
+    "topicMove": "Verandering & Verplaatsing",
+    "topicRelationship": "Interpersoonlijke relaties",
+    "topicReunion": "Hereniging"
+  },
+  "palm": {
+    "description": {
+      "001": "Bekijk de algemene indruk, handvorm, hoofdlijnen en totaalscore van de hand in één keer.",
+      "002": "Niet de levensduur, maar de energiebeheersing, herstelritme en levensduurzaamheid.",
+      "003": "Bekijk denkpatronen, oordeelsvermogen, concentratie, realisme en verbeeldingskracht.",
+      "004": "Bekijk de manier van liefhebben, emotionele expressie, gehechtheid en relatieverwachtingen.",
+      "005": "Bekijk de beroepsrichting, sociale doelen, onafhankelijkheid en levensrichting.",
+      "006": "Bekijk geldgewoonten, waardecreatie, expressiviteit en brandinggevoel.",
+      "007": "Niet het aantal huwelijken, maar de gewenste stabiliteit en manier van beloven in diepe relaties.",
+      "008": "Bekijk de energiegebieden van de handpalm, zoals de Venusheuvel, Maanheuvel, Jupiterheuvel.",
+      "009": "Vergelijk de dominante hand met de niet-dominante hand om je aangeboren zelf en je huidige zelf te zien.",
+      "010": "Biedt dagelijks advies, 7-daagse routine, relatie-, financiële en carrière-adviezen."
+    },
+    "label": {
+      "001": "Aangeboren hand",
+      "002": "Verworven hand",
+      "003": "Gemengde hand",
+      "004": "Aardehand",
+      "005": "Vuurhand",
+      "006": "Luchthand",
+      "007": "Waterhand",
+      "008": "Gemengde hand",
+      "009": "Levenslijn",
+      "010": "Hoofdlijn",
+      "011": "Hartlijn",
+      "012": "Lotslijn",
+      "013": "Zonnelijn",
+      "014": "Geldlijn",
+      "015": "Huwelijkslijn",
+      "016": "Mercuriuslijn",
+      "017": "Intuïtielijn",
+      "018": "Venusheuvel",
+      "019": "Maanheuvel",
+      "020": "Jupiterheuvel",
+      "021": "Saturnusheuvel",
+      "022": "Zonneheuvel",
+      "023": "Mercuriusheuvel",
+      "024": "Marsheuvel",
+      "025": "Duim",
+      "026": "Wijsvinger",
+      "027": "Middelvinger",
+      "028": "Ringvinger",
+      "029": "Pink",
+      "030": "Algemeen",
+      "031": "Levenslijn",
+      "032": "Hoofdlijn",
+      "033": "Hartlijn",
+      "034": "Lotslijn",
+      "035": "Geld-/Zonnelijn",
+      "036": "Liefdes-/Huwelijkslijn",
+      "037": "Handpalmheuvels",
+      "038": "Aangeboren/Verworven vergelijking",
+      "039": "Persoonlijk advies"
+    },
+    "title": {
+      "001": "Diepe, lange levenslijn",
+      "002": "Korte, maar diepe levenslijn",
+      "003": "Vage levenslijn",
+      "004": "Levenslijn met onderbreking",
+      "005": "Levenslijn met vertakkingen",
+      "006": "Lange, rechte hoofdlijn",
+      "007": "Lange, zacht gebogen hoofdlijn",
+      "008": "Korte hoofdlijn",
+      "009": "Hoofdlijn die los van de levenslijn begint",
+      "010": "Hoofdlijn die samen met de levenslijn begint",
+      "011": "Diepe, gebogen hartlijn",
+      "012": "Rechte hartlijn",
+      "013": "Hartlijn die naar de wijsvinger wijst",
+      "014": "Hartlijn die naar de middelvinger wijst",
+      "015": "Hartlijn met veel zijtakken",
+      "016": "Duidelijk stijgende lotslijn in het midden",
+      "017": "Vage of zwakke lotslijn",
+      "018": "Lotslijn die begint bij de levenslijn",
+      "019": "Lotslijn die begint bij de Maanheuvel",
+      "020": "Onderbroken lotslijn",
+      "021": "Duidelijke zonnelijn",
+      "022": "Vage zonnelijn",
+      "023": "Zonnelijn zwak of onzichtbaar",
+      "024": "M-vormige geldlijn",
+      "025": "Duidelijke geldlijn",
+      "026": "Geldlijn met meerdere takken",
+      "027": "Vage geldlijn",
+      "028": "Duidelijke relatielijn",
+      "029": "Relatielijn met meerdere fijne lijntjes",
+      "030": "Omhoog wijzende relatielijn",
+      "031": "Omlaag hellende relatielijn",
+      "032": "Duidelijke Mercuriuslijn",
+      "033": "Onderbroken Mercuriuslijn",
+      "034": "Vage Mercuriuslijn",
+      "035": "Hand met een intuïtielijn",
+      "036": "Vage intuïtielijn",
+      "037": "Hand met hoge liefdestemperatuur",
+      "038": "Realistische carrièrehand",
+      "039": "Hand met sterke intuïtie en verbeeldingskracht",
+      "040": "Hand die paden opent door expressie, niet door vaste wegen",
+      "041": "Communicatieve hand die relatiesignalen goed leest",
+      "042": "Van nature goed herstelvermogen, maar momenteel veel energieverbruik",
+      "043": "Hand die energie heeft ontwikkeld door verworven zelfmanagement",
+      "044": "Van nature gevoelig, maar momenteel versterkt in realiteitszin",
+      "045": "Hand uitgebreid van rede naar intuïtie",
+      "046": "Hand die diepe emoties defensief is gaan reguleren",
+      "047": "Hand die emotionele expressie heeft geopend door relatie-ervaringen",
+      "048": "Momenteel versterkt doelbewustzijn en sociale richting in het leven",
+      "049": "Hand die de oorspronkelijke richting opnieuw aanpast",
+      "050": "Hand waarin de diepte van emotie en intuïtie levendig zijn"
+    }
+  },
+  "palmMap": {
+    "001": "Simian lijn",
+    "002": "M-vormige handlijn",
+    "003": "Ontwikkelde Jupiterheuvel + nadruk op groeias",
+    "004": "Ontwikkelde Saturnusheuvel + duidelijke lotslijn",
+    "005": "1. Algemene handlijnanalyse",
+    "006": "2. Analyse van aangeboren / verworven hand",
+    "007": "3. Levenslijnanalyse",
+    "008": "4. Hoofdlijnanalyse",
+    "009": "5. Hartlijnanalyse",
+    "010": "6. Lotslijnanalyse",
+    "011": "7. Analyse van rijkdom/zonnelijn",
+    "012": "8. Analyse van liefdes-/huwelijkslijn",
+    "013": "9. Uitgebreide analyse van de heuvels",
+    "014": "10. Interpretatie van handpalmcombinaties",
+    "015": "10-1. Speciale handpalmpatronen",
+    "016": "11. Interpretatie van stroom per gebied",
+    "017": "12. 5 sterke punten",
+    "018": "13. 5 aandachtspunten",
+    "019": "14. Advies op maat"
+  },
+  "rd": {
+    "aria-label": {
+      "001": "Selecteer Vier Pijlers (BaZi) vier-cut versie"
+    },
+    "cta": {
+      "001": "🐾 Roep mijn beschermdier op",
+      "002": "💞 Ontdek de plek van mijn lot",
+      "003": "💕 Ontgrendel liefdescode",
+      "004": "✨ Bekijk detailanalyse van aantrekkingskracht",
+      "005": "⚡ Open Quantum BaZi volledig",
+      "006": "💚 Controleer gezondheidsrapport",
+      "007": "🤖 Bekijk gratis prompt",
+      "008": "🎮 Ontvouw vaardighedenboom",
+      "009": "🧊 Bekijk extreem T-testresultaat",
+      "010": "❤️ Bekijk Teto/Egen analyse",
+      "011": "🗺️ Bekijk reisbestemmingsrapport",
+      "012": "⚠️ Open schurkenrapport",
+      "013": "Bekijk Quantum Lotto Rapport",
+      "014": "📔 Open Vier Pijlers (BaZi) dagboek",
+      "015": "📸 Open Vier Pijlers (BaZi) vier-cut",
+      "016": "🏠 Betreed Secret House"
+    },
+    "description": {
+      "001": "De Twaalf Groeifasen-energie van mijn Vier Pijlers (BaZi) opent zich als dierlijke archetypen, en onthult kernpersoonlijkheid, liefdespatronen, beroepsneigingen, compatibiliteit en dagelijkse actiemissies in één keer.",
+      "002": "Op basis van de Vijf Elementen/Gebruikselement-stroom van de Vier Pijlers (BaZi), stelt dit rapport emotionele plekken, landen, tijden en noodlottige items voor.",
+      "003": "Vind de liefdespersoonlijkheid die het meest op de ander lijkt via de Vijf Elementen van de Vier Pijlers (BaZi), en controleer de chemie met een keuzesimulatie."
+    },
+    "label": {
+      "001": "Mijn aantrekkingskrachtklasse",
+      "002": "Quantum BaZi-motor",
+      "003": "BaZi gezondheidsrapport",
+      "004": "Vier Pijlers (BaZi) AI-prompt",
+      "005": "Levensvaardighedenboom",
+      "006": "Extreem T-test",
+      "007": "Teto vs Egen",
+      "008": "Reisbestemming via Vier Pijlers (BaZi)",
+      "009": "Schurken zwarte lijst",
+      "010": "Quantum Lotto Rapport",
+      "011": "Vier Pijlers (BaZi) dagboek",
+      "012": "Vier Pijlers (BaZi) vier-cut: Lotfilter",
+      "013": "Secret House: Liefdessimulatie",
+      "014": "Lotfilter",
+      "015": "Liefdes-DM",
+      "016": "Goed Leven Routine",
+      "017": "Voorkom Zwarte Bladzijden"
+    },
+    "title": {
+      "001": "Vier Pijlers (BaZi) Twaalf Groeifasen Dierentest",
+      "002": "De plek van het lot via Vier Pijlers (BaZi)",
+      "004": "MZ Lotfilter AAN",
+      "005": "Liefdessignaal vier-cut",
+      "006": "Vandaag: Goed Leven Check-in",
+      "007": "Zwarte Geschiedenis Filter",
+      "008": "1. Hoofdpersoon Vibe Stats",
+      "009": "2. Eerste indruk vs. Huidige indruk",
+      "010": "3. Brainmap in je hoofd",
+      "011": "4. Vandaag: Lucky Vicky",
+      "012": "1. Eerste indruk",
+      "013": "2. Flirt Temperatuur",
+      "014": "3. Hart Brainmap",
+      "015": "4. Vandaag: Liefdesactie",
+      "016": "1. Vandaag: Startknop",
+      "017": "2. Werkmodus",
+      "018": "3. Focus Oplader",
+      "019": "4. Lucky Pack voor het werk",
+      "020": "1. Waarschuwing voor plotselinge versnelling",
+      "021": "2. Voorkom misstappen",
+      "022": "3. Uitgavenvergrendeling",
+      "023": "4. Beschermingsspreuk",
+      "024": "Vier Pijlers (BaZi) Vier Kaders: Lot Filter"
+    }
+  },
+  "seoLanding": {
+    "description": {
+      "001": "Dit is een gratis introductiepagina voor Vier Pijlers (BaZi) die de basisstructuur, Vijf Elementen balans, Tien Goden en geluk-cyclus analyseert om je neigingen en keuzestromen te bekijken.",
+      "002": "We leggen uit hoe je de Vier Pijlers (BaZi) geboortekaart, Vijf Elementen, Tien Goden en geluk-cyclus stromen kunt controleren op basis van je geboortedatum en -tijd.",
+      "003": "De dagelijkse reading helpt je om de conditie van de dag, relaties en werkprioriteiten licht te controleren en keuzes te organiseren om in de praktijk te brengen.",
+      "004": "De dagelijkse reading pagina helpt je om snel je conditie, relatiestromen en agendaprioriteiten te controleren wanneer je de dag begint of afsluit.",
+      "005": "We onderzoeken het relatie-ritme, de communicatiestijl en herstelpunten bij conflicten van twee personen vanuit het perspectief van Vier Pijlers (BaZi) en readings, en organiseren dit als realistische gespreksstandaarden.",
+      "006": "Dit is een introductiepagina voor Vier Pijlers (BaZi) compatibiliteit die de Vier Pijlers (BaZi) structuur van twee personen leest vanuit het perspectief van relatie-ritme, conflictpatronen en communicatiestijl.",
+      "007": "Via tarotkaarten kun je rustig je huidige vragen, liefdesstromen, kansen op hereniging en de richting van je hart ordenen, en zelfreflectie-zinnen en praktische tips voor je volgende keuze ontvangen.",
+      "008": "Herenigingstarot is een reading die de huidige afstand tot de ander, het moment van contact en de emotionele nasleep bekijkt aan de hand van de kaartstroom.",
+      "009": "Tarot voor de gedachten van de ander ordent de huidige emoties, onuitgesproken signalen en de volgende keuze in de relatie vanuit een zelfreflectief perspectief.",
+      "010": "Op basis van de 12 huizen, het levenshuis, het lichaamshuis, de vier transformaties en de sterrenconfiguratie van de Zi Wei Dou Shu geboortekaart, worden neigingen, beroep, relaties en de stromen van grote en jaarlijkse cycli georganiseerd in adviesachtige zinnen.",
+      "011": "We onderzoeken neigingen en relatie-ritmes via de zonneteken, maanteken, ascendant en de basisstructuur van de westerse astrologische geboortekaart, en geven eenvoudige instructies over het startpunt en de aandachtspunten van kaartinterpretatie.",
+      "012": "Op basis van de 27 Sukuyo (27 Nakshatra's) en de relatie van de maan in Sukuyo-waarzeggerij, onderzoeken we de afstand van de verbinding, conflictpatronen en herstelstromen, en organiseren we criteria voor het lezen van relaties en gesprekssuggesties voor beginners.",
+      "013": "We leggen de Jyotish-kaart, het maansterrenbeeld en de Dasha-stromen van Vedische astrologie op een gemakkelijk te begrijpen manier uit voor beginners, en organiseren de verschillende interpretatie-assen en toepassingsmethoden ten opzichte van westerse astrologie op een praktische manier.",
+      "014": "Dit is een gids voor droominterpretatie die de symbolen en emoties die in dromen achterblijven, verbindt met stress, relaties en keuzestromen in de realiteit.",
+      "015": "Gezichtslezen-content wordt niet aangeboden als een vaste beoordeling van gezichtsuitdrukkingen, maar als referentie-informatie om zelfexpressie en communicatiestijl te overdenken.",
+      "016": "Het Premium Rapport is een optionele service die de gratis basisinterpretatie uitbreidt met een diepgaande analyse in documentvorm, en waarmee je het bereik en de voorzorgsmaatregelen vóór betaling kunt controleren.",
+      "017": "Op de liefdesreading-pagina bekijken we de stroom van de huidige relatie, de afstand tot de ander en aanknopingspunten voor gesprekken vanuit het perspectief van Vier Pijlers (BaZi) en tarot.",
+      "018": "De premium reading-rapporten van Code Destiny organiseren Vier Pijlers (BaZi), liefde en nieuwjaarsstromen in documentvorm op basis van gevalideerde invoerwaarden.",
+      "019": "Het Levensboek PDF is een premium rapport dat wordt gegenereerd na verificatie van gebruikersinvoer en Vier Pijlers (BaZi) berekeningsgegevens na bevestiging van de betalingsautorisatie.",
+      "020": "Het Liefdesrapport PDF organiseert liefdesstromen, communicatiestijlen en herstelpunten na verificatie van relatie-invoer en Vier Pijlers (BaZi)-gebaseerde interpretatie.",
+      "021": "De Nieuwjaarsreading PDF is een premium reading-document dat de carrière, financiën, relaties en gezondheidsstromen van het nieuwe jaar per maand bekijkt."
+    },
+    "title": {
+      "001": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Stromen",
+      "002": "Gratis Vier Pijlers (BaZi) Analyse | Vijf Elementen·Tien Goden·geluk-cyclus Interpretatie",
+      "003": "Gratis Dagelijkse Reading | Dagelijkse Stroom en Keuzegids",
+      "004": "Direct Dagelijkse Reading | Conditie·Relatie·Agenda Check",
+      "005": "Gratis Compatibiliteit | Vier Pijlers (BaZi)·Liefdesrelatie Analyse",
+      "006": "Gratis Vier Pijlers (BaZi) Compatibiliteit | Relatiestroom en Communicatiestijl",
+      "007": "Gratis Tarotkaart Reading | Liefde·Hereniging·Hart Interpretatie",
+      "008": "Hereniging Tarot Reading | Kans op Hereniging en Afstand",
+      "009": "Tarot voor de gedachten van de ander | Hartstroom en Relatiesignalen",
+      "010": "Diepgaande Zi Wei Dou Shu 12 Huizen Consult | Levenshuis·Lichaamshuis·Vier Transformaties·Grote Cyclus Interpretatie",
+      "011": "Gratis Astrologische Geboortekaart | Zon, Maan, Ascendant",
+      "012": "Sukuyo (27 Nakshatra's) Compatibiliteit | Afstand & Relatie",
+      "013": "Gratis Vedische Astrologie | Jyotish Kaart & Dasha",
+      "014": "Gratis Droomduiding | Droomsymbolen & Psychologie",
+      "015": "Gezichtslezen Gids | Gezichtsuitdrukking & Zelfexpressie",
+      "016": "Premium Reading Rapport | Vier Pijlers (BaZi), Zi Wei Dou Shu, Astrologie",
+      "017": "Gratis Liefdesreading | Gevoelens & Relatierichting",
+      "018": "Premium Reading Rapport Gids | Vier Pijlers (BaZi), Liefde, Nieuwjaar PDF",
+      "019": "Levensboek PDF Gids | Vier Pijlers (BaZi) Lang Rapport",
+      "020": "Liefdesrapport PDF Gids | Diepgaande Relatieanalyse",
+      "021": "Nieuwjaarsreading PDF Gids | Nieuwjaarsstromen & Maandelijkse Gids"
+    }
+  },
+  "share": {
+    "001": "🐷 Gelukkige Vier Pijlers (BaZi)",
+    "002": "🐷 Yeoni's Gelukkige Tarot",
+    "003": "✨ Astrologische Kosmische Kaart",
+    "004": "Gratis Basis Sukuyo (27 Nakshatra's) Resultaat",
+    "005": "🌌 Zi Wei Dou Shu Resultaat",
+    "006": "Vier Pijlers (BaZi) Levensboek",
+    "007": "💕 Liefdesgeheim",
+    "008": "U moet eerst uw Vier Pijlers (BaZi) geboortekaart openen om de dagelijkse energie nauwkeurig te ontvangen. Voer uw geboortedatum in en voltooi de Vier Pijlers (BaZi) analyse.",
+    "009": "De rekenmodule voor het openen van het opgeslagen profiel kon niet worden geladen. Vernieuw en probeer het opnieuw.",
+    "010": "Het opnieuw openen van de Vier Pijlers (BaZi) geboortekaart vanuit het opgeslagen profiel is mislukt. Selecteer het profiel opnieuw en dien uw aanvraag in.",
+    "011": "De reading rekenmodule kon niet worden geladen. Vernieuw en probeer het opnieuw.",
+    "012": "Het genereren van reading gegevens is mislukt. Probeer het later opnieuw.",
+    "013": "Probeer het later opnieuw."
+  },
+  "tarotInterpretation": {
+    "label": {
+      "001": "Liefde",
+      "002": "Relaties",
+      "003": "Hereniging",
+      "004": "Innerlijke gevoelens van de ander",
+      "005": "Huidige gemoedstoestand",
+      "006": "Nabije ontwikkelingen",
+      "007": "Carrière en werk",
+      "008": "Financiën",
+      "009": "Vandaag",
+      "010": "Healing",
+      "011": "Jaarlijkse reading",
+      "012": "Zelfstandige normen",
+      "013": "Algemeen",
+      "014": "Hoe ik de ander zie",
+      "015": "Hoe de ander de relatie als geheel ziet",
+      "016": "Hoe de ander mij ziet",
+      "017": "De liefdeswil en verlangens van de ander",
+      "018": "Kernfactoren die de relatie belemmeren",
+      "019": "Nabije stroming en keuzecriteria",
+      "020": "Bekers (Water)",
+      "021": "Staven (Vuur)",
+      "022": "Zwaarden (Lucht)",
+      "023": "Munten (Aarde)",
+      "024": "Grote Arcana",
+      "025": "Gemengde Suits"
+    },
+    "title": {
+      "001": "Keuzes ordenen",
+      "002": "Angst controleren",
+      "003": "Realiteitszin herstellen",
+      "004": "Wat nog in het hart leeft",
+      "005": "De aard van de ander's hart",
+      "006": "Signalen van stilte",
+      "007": "Afstand tot hereniging",
+      "008": "Voorwaarden voor herstel"
+    }
+  },
+  "tarotSpread": {
+    "label": {
+      "001": "Kern van vandaag",
+      "002": "Verleden",
+      "003": "Heden",
+      "004": "Toekomst",
+      "005": "Oorzaak",
+      "006": "Proces",
+      "007": "Resultaat",
+      "008": "Hoe ik de ander zie",
+      "009": "Hoe de ander de relatie ziet",
+      "010": "De gevoelens van de ander voor mij",
+      "011": "De liefdeswil van de ander",
+      "012": "Kernfactor die de relatie blokkeert",
+      "013": "Korte termijn uitkomst",
+      "014": "Verborgen waarheid",
+      "015": "Emotionele acceptatie",
+      "016": "Herstel aanwijzing",
+      "017": "Volgende actie",
+      "018": "Wat nog in het hart leeft",
+      "019": "De aard van de ander's hart",
+      "020": "Signalen van stilte",
+      "021": "Afstand tot hereniging",
+      "022": "Voorwaarden voor herstel",
+      "023": "Basisritme van het jaar",
+      "024": "Te nemen hindernissen en kansen",
+      "025": "Resultaten en aanpassingen einde jaar",
+      "026": "Waarom ik op anderen let",
+      "027": "Waarom ik moeite heb met weigeren",
+      "028": "Schade door op anderen te letten",
+      "029": "Omgaan met teleurstelling van anderen",
+      "030": "Mijn behoeften prioriteren",
+      "031": "De aard van herlevend werk",
+      "032": "Minder uitputtende richting",
+      "033": "Roeping van het hart",
+      "034": "Leven voorbij de drempel",
+      "035": "Eerste stap naar realiteit",
+      "036": "Oude normen om los te laten",
+      "037": "Normen om te behouden en richting om te veranderen",
+      "038": "Uiterlijke houding",
+      "039": "Werkelijke innerlijke gevoelens",
+      "040": "Reden waarom ze niet dichterbij komen",
+      "041": "Verborgen verlangen",
+      "042": "Oordeel over de relatie"
+    },
+    "title": {
+      "001": "Dagelijkse Tarot",
+      "002": "Verleden-Heden-Toekomst",
+      "003": "Oorzaak-Proces-Resultaat",
+      "004": "Tarot voor onze relatie",
+      "005": "Healing Rising Tarot",
+      "006": "Herenigingstarot: Sterrennacht aan zee",
+      "007": "Jaarlijkse 12-kaarten",
+      "008": "Jaarlijkse 3-kaarten",
+      "009": "Zelfvertrouwen-boost Tarot",
+      "010": "Werkdrempel 7-kaarten",
+      "011": "Tarot: Innerlijke gedachten van de ander"
+    }
   }
 }

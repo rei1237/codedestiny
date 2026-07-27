@@ -4182,7 +4182,59 @@
     "partialFree": "Miễn phí một phần",
     "deepReportPrice": "Báo cáo chuyên sâu 10.000 KRW",
     "freeAnalysis": "PHÂN TÍCH MIỄN PHÍ",
-    "title": "Hệ thống Sibyl",
+    "title": {
+      "001": "CH.01 Ma trận lõi Sibyl",
+      "002": "CH.02 Phân tích chính xác hệ số rủi ro",
+      "003": "CH.03 Phân tích chính xác hệ số năng khiếu",
+      "004": "CH.04 Thập Thần chủ đạo và mẫu hành vi",
+      "005": "CH.05 Cân bằng Ngũ Hành và thiết kế năng lượng",
+      "006": "CH.06 Giải thích biểu đồ hệ số rủi ro 10 năm",
+      "007": "CH.07 Kế hoạch rủi ro hàng tháng",
+      "008": "CH.08 Mối quan hệ và mẫu hình tình cảm",
+      "009": "CH.09 Chiến lược tài lộc và nghề nghiệp",
+      "010": "CH.10 Hướng dẫn thực hiện cuối cùng",
+      "011": "Độ ổn định cốt lõi",
+      "012": "Khả năng thực thi sự nghiệp",
+      "013": "Khả năng quản lý tài chính",
+      "014": "Mối quan hệ/Hợp tác",
+      "015": "Khả năng phục hồi",
+      "016": "Tứ Trụ Lượng tử chính xác",
+      "017": "CH.01 Ma trận lõi Sibyl",
+      "018": "CH.02 Phân tích chính xác hệ số rủi ro",
+      "019": "CH.03 Phân tích chính xác hệ số năng khiếu",
+      "020": "CH.04 Thập Thần chủ đạo và mẫu hành vi",
+      "021": "CH.05 Cân bằng Ngũ Hành và thiết kế năng lượng",
+      "022": "CH.06 Giải thích biểu đồ hệ số rủi ro 10 năm",
+      "023": "CH.07 Kế hoạch rủi ro hàng tháng",
+      "024": "CH.08 Mối quan hệ và mẫu tình cảm",
+      "025": "CH.09 Chiến lược tài chính và nghề nghiệp",
+      "026": "CH.10 Hướng dẫn thực thi cuối cùng",
+      "027": "[Thực Thần chủ đạo] Mối quan hệ cho đi tự nhiên",
+      "028": "[Thương Quan chủ đạo] Mối quan hệ khiêu khích, tự chủ mạnh mẽ",
+      "029": "[Thiên Tài chủ đạo] Năng lượng đối nhân lan tỏa, kiểm soát",
+      "030": "[Chính Tài chủ đạo] Mối quan hệ thận trọng và tận tâm",
+      "031": "[Thiên Quan chủ đạo] Cấu trúc đối nhân có sức hút, thống trị",
+      "032": "[Chính Quan chủ đạo] Mối quan hệ tập trung vào nguyên tắc, trách nhiệm",
+      "033": "[Thiên Ấn chủ đạo] Mẫu quan hệ độc đáo, có khoảng cách",
+      "034": "[Chính Ấn chủ đạo] Cấu trúc quan hệ tập trung vào học hỏi, hỗ trợ",
+      "035": "[Tỷ Kiên chủ đạo] Năng lượng đối nhân độc lập, cạnh tranh",
+      "036": "[Kiếp Tài chủ đạo] Mẫu quan hệ sinh tồn, chiến lược",
+      "037": "Tý Thủy (子水) — Điểm khởi đầu",
+      "038": "Sửu Thổ (丑土) — Kho báu bị phong ấn",
+      "039": "Dần Mộc (寅木) — Hạt giống bùng cháy",
+      "040": "Mão Mộc (卯木) — Lưỡi dao tĩnh lặng",
+      "041": "Thìn Thổ (辰土) — Kho của Rồng (Thủy Khố)",
+      "042": "Tỵ Hỏa (巳火) — Mạch kích hoạt",
+      "043": "Ngọ Hỏa (午火) — Đỉnh cao của Mặt Trời",
+      "044": "Mùi Thổ (未土) — Hoàng hôn mùa hè",
+      "045": "Thân Kim (申金) — Lưỡi dao làm mát",
+      "046": "Dậu Kim (酉金) — Mũi dao tinh khiết",
+      "047": "Tuất Thổ (戌土) — Mộ của Hỏa",
+      "048": "Hợi Thủy (亥水) — Mạch sâu",
+      "049": "Chế độ tăng trưởng ổn định — Duy trì quỹ đạo hiện tại",
+      "050": "Chế độ điều chỉnh rủi ro — Sắp xếp lại thứ tự thực hiện",
+      "051": "Chế độ tập trung tái cấu trúc — Cần đặt lại cấu trúc"
+    },
     "subtitle": "Phân tích hệ số rủi ro vận mệnh và năng khiếu nghề nghiệp dựa trên saju",
     "tags": {
       "hue": "Chẩn đoán màu sắc mệnh mệnh",
@@ -4266,7 +4318,19 @@
       "graphTitle": "Đồ thị hệ số rủi ro 10 năm (Dựa trên vận may hàng năm)",
       "reportTitle": "◆ BÁO CÁO CỦA NGƯỜI CHIẾN LƯỢC",
       "remedyTitle": "◆ Bài thuốc định mệnh"
-    }
+    },
+    "label": {
+      "001": "Trung lập"
+    },
+    "message": {
+      "001": "Yêu cầu API thất bại.",
+      "002": "Thông tin giá thanh toán không chính xác.",
+      "003": "Thanh toán đã bị hủy.",
+      "004": "Cần xác nhận thanh toán bằng Won Hàn Quốc.",
+      "005": "Không thể xác nhận trạng thái mở khóa. Vui lòng thử lại sau giây lát.",
+      "006": "Kết quả tạo báo cáo không đáp ứng tiêu chuẩn."
+    },
+    "entryTitle": "Hệ thống Sibyl"
   },
   "admin": {
     "flowerButton": "Nút hoa"
@@ -5900,33 +5964,1275 @@
     "sq_8704_attr_placeholder": "Ví dụ: Minh Thư",
     "sq_8708_attr_placeholder": "Nhập tùy chọn",
     "sq_8943_prop_label": "Đồng Túc",
-    "sq_8944_prop_label": "Cự ly gần (Near)",
-    "sq_8945_prop_label": "Cự ly trung bình (Middle)",
-    "sq_8946_prop_label": "Cự ly xa (Far)",
-    "sq_8976_prop_label": "Gương soi linh hồn",
-    "sq_8977_prop_label": "Ngọn lửa nghiệp chướng",
-    "sq_8978_prop_label": "Khu vườn vàng",
-    "sq_8979_prop_label": "Hồ trăng tĩnh lặng",
-    "sq_8980_prop_label": "Thành lũy trên đường song song",
-    "sq_8981_prop_label": "Mối quan hệ kích thích mạnh",
-    "sq_9307_prop_label": "Động lực tinh thần",
-    "sq_9308_prop_label": "Bổ trợ thực tế",
-    "sq_9309_prop_label": "An ủi tâm lý",
-    "sq_9334_prop_label": "Động lực tinh thần",
-    "sq_9335_prop_label": "Bổ trợ thực tế",
-    "sq_9336_prop_label": "An ủi tâm lý",
-    "sq_9363_prop_label": "Động lực tinh thần",
-    "sq_9364_prop_label": "Bổ trợ thực tế",
-    "sq_9365_prop_label": "An ủi tâm lý",
-    "sq_9390_prop_label": "Động lực tinh thần",
-    "sq_9391_prop_label": "Bổ trợ thực tế",
-    "sq_9392_prop_label": "An ủi tâm lý",
-    "sq_9417_prop_label": "Động lực tinh thần",
-    "sq_9418_prop_label": "Bổ trợ thực tế",
-    "sq_9419_prop_label": "An ủi tâm lý",
-    "sq_9451_prop_label": "Động lực tinh thần (Đổi mới đột phá)",
-    "sq_9454_prop_label": "Bổ trợ thực tế (Kinh tế học kích thích)",
-    "sq_9457_prop_label": "An ủi tâm lý (An ủi nghịch lý)",
-    "sq_9794_attr_aria_label": "Biểu đồ radar duyên Túc Diệu"
+    "sq_8944_prop_label": "Cận (Near)",
+    "sq_8945_prop_label": "Trung (Middle)",
+    "sq_8946_prop_label": "Viễn (Far)",
+    "sq_8976_prop_label": "Gương Linh Hồn",
+    "sq_8977_prop_label": "Ngọn Lửa Karma",
+    "sq_8978_prop_label": "Khu Vườn Vàng",
+    "sq_8979_prop_label": "Hồ Trăng Tĩnh Lặng",
+    "sq_8980_prop_label": "Thành Trì Trên Đường Song Song",
+    "sq_8981_prop_label": "Mối Quan Hệ Kích Thích Mạnh Mẽ",
+    "sq_9307_prop_label": "Động Lực Tinh Thần",
+    "sq_9308_prop_label": "Bổ Sung Thực Tế",
+    "sq_9309_prop_label": "An Ủi Tâm Lý",
+    "sq_9334_prop_label": "Động Lực Tinh Thần",
+    "sq_9335_prop_label": "Bổ Sung Thực Tế",
+    "sq_9336_prop_label": "An Ủi Tâm Lý",
+    "sq_9363_prop_label": "Động Lực Tinh Thần",
+    "sq_9364_prop_label": "Bổ Sung Thực Tế",
+    "sq_9365_prop_label": "An Ủi Tâm Lý",
+    "sq_9390_prop_label": "Động Lực Tinh Thần",
+    "sq_9391_prop_label": "Bổ Sung Thực Tế",
+    "sq_9392_prop_label": "An Ủi Tâm Lý",
+    "sq_9417_prop_label": "Động Lực Tinh Thần",
+    "sq_9418_prop_label": "Bổ Sung Thực Tế",
+    "sq_9419_prop_label": "An Ủi Tâm Lý",
+    "sq_9451_prop_label": "Động Lực Tinh Thần (Đổi Mới Đột Phá)",
+    "sq_9454_prop_label": "Bổ Sung Thực Tế (Kinh Tế Kích Thích)",
+    "sq_9457_prop_label": "An Ủi Tâm Lý (An Ủi Nghịch Lý)",
+    "sq_9794_attr_aria_label": "Biểu đồ radar Túc Diệu nhân duyên"
+  },
+  "shell": {
+    "CODEDESTINY": "CODE DESTINY | Tứ Trụ (Bát Tự)·Tarot·Tử Vi Đẩu Số·Hợp Duyên Miễn Phí — Vận Mệnh May Mắn",
+    "cdCookieConsentCopy": {
+      "cdCookieConsentActions": {
+        "kniuoqf": "Đồng ý",
+        "kw6ku0": "Chỉ cần thiết",
+        "kxy7l": "Cài đặt"
+      }
+    },
+    "cdCookieConsentMain": {
+      "cdCookieConsentCopy": {
+        "k12mjipg": "Chúng tôi sử dụng cookie cần thiết cho quy trình đăng nhập và chặn các yêu cầu quá mức. Nếu bạn đồng ý, cài đặt tiện ích truy cập cũng sẽ được lưu trữ mượt mà trên trình duyệt này.",
+        "k1nqxhwe": "Thông báo Cookie yên tĩnh như ánh trăng"
+      }
+    },
+    "cdCookieSettingsPanel": {
+      "cdCookieConsentRow": {
+        "k2yf8r8": "Tiếp tục ngôn ngữ và trạng thái xác nhận thông báo một cách bình tĩnh hơn trong lần truy cập tiếp theo.",
+        "k602xow": "Cookie cần thiết",
+        "kao88ih": {
+          "ariaLabel": "Luôn sử dụng cookie cần thiết"
+        },
+        "kfpcszr": "Được sử dụng để duy trì đăng nhập, bảo vệ thanh toán và chặn các yêu cầu lặp lại trong cùng một phiên.",
+        "km6l38": "Cookie tiện ích",
+        "krpclxc": "Luôn bật"
+      },
+      "k58noo": "Lưu lựa chọn"
+    },
+    "cdFooterBrandcol": {
+      "cdFooterSocial": {
+        "CODEDESTINY": {
+          "ariaLabel": "Mở kênh YouTube chính thức của CODE DESTINY trong cửa sổ mới"
+        },
+        "CODEDESTINY2": {
+          "ariaLabel": "Mở Threads chính thức của CODE DESTINY trong cửa sổ mới"
+        },
+        "CODEDESTINY3": {
+          "ariaLabel": "Mở Instagram chính thức của CODE DESTINY trong cửa sổ mới"
+        },
+        "CODEDESTINY4": {
+          "ariaLabel": "Mở Blog chính thức của CODE DESTINY trong cửa sổ mới"
+        },
+        "CODEDESTINYX": {
+          "ariaLabel": "Mở X chính thức của CODE DESTINY trong cửa sổ mới"
+        }
+      }
+    },
+    "cdFooterBusinessDetails": {
+      "k1l49wo": "Thông tin doanh nghiệp"
+    },
+    "cdFortunePick": {
+      "cdFortunePickGrid": {
+        "k16fnr7j": {
+          "ariaLabel": "Xem biểu đồ sinh phương Tây"
+        },
+        "k1i48xlw": {
+          "ariaLabel": "Bắt đầu phân tích Tứ Trụ (Bát Tự)"
+        },
+        "k1i8xvv0": {
+          "ariaLabel": "Bắt đầu đọc Tarot"
+        },
+        "k1yi7np5": {
+          "ariaLabel": "Xem Chiêm tinh Vệ Đà"
+        },
+        "kb9ueah": {
+          "ariaLabel": "Xem lá số Tử Vi Đẩu Số"
+        },
+        "kzkddyf": {
+          "ariaLabel": "Xem bói Túc Diệu"
+        }
+      }
+    },
+    "cdHomeGuide": {
+      "cdHomeGuideInner": {
+        "ki3vjq4": {
+          "ariaLabel": "Xem thêm nội dung vận mệnh"
+        }
+      }
+    },
+    "cdMobileBottomNav": {
+      "cdMobileBottomNavMain": {
+        "k10ios": "Tarot",
+        "k16bs": "Trang chủ",
+        "kwp0s": "Của tôi",
+        "kxro3": "Tư vấn",
+        "kxvio": "Tứ Trụ"
+      },
+      "cdMobileBottomNavQuick": {
+        "k10ios": "Tarot",
+        "km4uz9x": "Hoa/Giải mộng",
+        "ksmbj4": "Cung hoàng đạo",
+        "kwuu0": "Miễn phí",
+        "kxro3": "Tư vấn",
+        "kxvio": "Tứ Trụ",
+        "kyajl": "Tiên tri",
+        "kyzcp": "Âm nhạc"
+      },
+      "k15q82ek": {
+        "ariaLabel": "Danh mục nhanh"
+      }
+    },
+    "cdMobileHeader": {
+      "CODEDESTINY": {
+        "ariaLabel": "Trang chủ CODE DESTINY"
+      },
+      "cdMobileHeaderSearch": {
+        "kuedl": "Tìm kiếm"
+      }
+    },
+    "cdMobileHeaderActions": {
+      "themeSwitchWrapper": {
+        "ks7htym": {
+          "ariaLabel": "Chọn chế độ Yeoni · Neo"
+        }
+      }
+    },
+    "cdMobileSajuDetailToggle": {
+      "k1x09e8d": "Nhập chính xác hơn giờ · nơi sinh",
+      "kox0lg9": "Nếu không biết, bạn có thể bắt đầu ngay"
+    },
+    "cdStickyCta": {
+      "k1uaylpd": {
+        "ariaLabel": "Bắt đầu xem vận mệnh miễn phí"
+      }
+    },
+    "dfStudioPanels": {
+      "dfPanel": {
+        "ChatGPT": "🤖 Hỏi với ChatGPT",
+        "k1if9omc": "🤖 Hỏi với Claude",
+        "k2syr3s": "🤖 Hỏi với Gemini",
+        "kkpkasn": "🤖 Hỏi với Grok"
+      }
+    },
+    "featureBegin": {
+      "k162lweo": {
+        "ariaLabel": "Đi đến Vận mệnh nhóm máu"
+      },
+      "k1axy73w": {
+        "ariaLabel": "Đi đến Lời nhắc vận mệnh tổng hợp"
+      },
+      "k1razrl4": {
+        "ariaLabel": "Đi đến Cá Thầy bói"
+      },
+      "k1rbp4zc": {
+        "ariaLabel": "Đi đến Trắc nghiệm tâm lý"
+      },
+      "kqd75ua": {
+        "ariaLabel": "Đi đến Xem tướng động vật AI"
+      },
+      "kuaxa2s": {
+        "ariaLabel": "Đi đến Nakshatra"
+      },
+      "moonPreviewCard": {
+        "k121t48l": "Tính cách theo loại",
+        "k1lmbq6k": "Lời nói hôm nay",
+        "k1sdh2me": "Xem tướng động vật AI",
+        "k1ujvbvb": "Xem tâm trạng nhẹ nhàng",
+        "k53h7ds": "Trắc nghiệm tâm lý",
+        "k79pfmc": "Nakshatra",
+        "k871xeu": "Miễn phí · Phân tích khuôn mặt selfie",
+        "ka0v1mf": "Miễn phí · 11 công cụ",
+        "kry6axn": "27 Túc Diệu",
+        "kslqazg": "Lời nhắc vận mệnh tổng hợp",
+        "kxgi8q8": "Cá Thầy bói",
+        "kxqdi2w": "Vận mệnh nhóm máu"
+      }
+    },
+    "featureCardGrid": {
+      "cdPromptFeatureSpotlight": {
+        "k11st5nn": {
+          "ariaLabel": "Mở Quán trà vận mệnh của Yeoni"
+        },
+        "k14fkdom": {
+          "ariaLabel": "Mở Phòng tác chiến vận mệnh của Neo"
+        }
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k15l5ccw": {
+          "ariaLabel": "Tư vấn AI Sách cuộc đời - Đọc câu chuyện cuộc đời tôi qua lá số và câu hỏi"
+        },
+        "k1fk3mqf": {
+          "ariaLabel": "Tư vấn AI Bí kíp tình yêu — Khám phá kết nối tình yêu qua lá số"
+        },
+        "k6gno8d": {
+          "ariaLabel": "Tư vấn AI Vận mệnh năm mới — lá số và đại vận trả lời câu hỏi của bạn"
+        }
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "k19ij50j": "Tư vấn AI Sách Cuộc Đời",
+        "k1c3xcpf": "Tư vấn AI Vận mệnh năm mới"
+      },
+      "lovebibleTile": {
+        "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu"
+      }
+    },
+    "honeyMembershipDetails": {
+      "kr1a9l9": "Gấp ưu đãi ánh trăng"
+    },
+    "honeyMembershipMini": {
+      "honeyMembershipMiniHeader": {
+        "k1yqmdmg": {
+          "ariaLabel": "Thông tin Moonlight Pass"
+        }
+      }
+    },
+    "inputPage": {
+      "featureCardGrid": {
+        "kxv61vt": {
+          "ariaLabel": "Tính năng gợi ý lời nhắc vận mệnh tổng hợp"
+        }
+      },
+      "k1tvi1wd": {
+        "ariaLabel": "Thanh trên di động"
+      },
+      "k85zbld": {
+        "ariaLabel": "Điều hướng nhanh trên di động"
+      }
+    },
+    "ks7htym": {
+      "ariaLabel": "Chọn chế độ Yeoni · Neo"
+    },
+    "lifebookTileBody": {
+      "lifebookTileCta": {
+        "k1dhhisc": "Nhận tư vấn về dòng chảy năm mới →",
+        "k7gpmm6": "Nhập thông tin tư vấn →"
+      },
+      "lifebookTileFeatures": {
+        "k15402w4": "Dòng chảy công việc và tiền bạc",
+        "k187xy2w": "Cơ hội và cảnh báo hàng tháng",
+        "k18t3d6t": "Tư vấn công việc, tiền bạc, mối quan hệ",
+        "k1cztqgf": "Mô hình lặp lại",
+        "k1plwjlk": "Tài năng và điểm mạnh",
+        "k1tdarhm": "Giải thích đại vận·lưu niên",
+        "k918d8o": "Lời khuyên thực tế",
+        "kclhqv4": "Đánh giá lá số gốc",
+        "kdq76ml": "Tình yêu và các mối quan hệ",
+        "kdxxogb": "Chủ đề cốt lõi của cuộc sống",
+        "kemt22s": "Điểm chuyển đổi hiện tại",
+        "kp9tkkd": "Tư vấn dựa trên Tứ Trụ"
+      }
+    },
+    "lifebookTileInner": {
+      "lifebookTileBody": {
+        "k19ij50j": "Tư vấn AI Sách Cuộc Đời",
+        "k1c3xcpf": "Tư vấn AI Vận mệnh năm mới",
+        "k1e2ozr5": "Cánh cửa của đại vận, lưu niên và nguyệt vận mở ra trên lá số của bạn",
+        "k1n6j5jj": "Kết nối khí chất của lá số gốc, bối cảnh của đại vận, sự kiện của lưu niên và thăng trầm của nguyệt vận thành một dòng chảy, chỉ ra những lựa chọn và thời điểm cần cẩn trọng trong năm nay.",
+        "k1x7d2nr": "Câu chuyện cuộc đời bạn được đọc từ lá số và câu hỏi hiện tại",
+        "ktjp1an": "Dựa trên ngày sinh và chủ đề cuộc sống, chúng tôi sẽ nhẹ nhàng mở ra những dòng chảy lặp lại, tài năng tiềm ẩn và hướng đi cần phát huy trong tương lai, như một buổi tư vấn."
+      },
+      "lifebookTileLabelRow": {
+        "AI30000": "Tư vấn AI · 30.000đ",
+        "n30000": "30.000đ khi tư vấn"
+      }
+    },
+    "logoArea": {
+      "moonTopbar": {
+        "CODEDESTINY": {
+          "ariaLabel": "Đi đến trang chủ CODE DESTINY"
+        }
+      }
+    },
+    "lovebibleTileBody": {
+      "lovebibleTileCta": {
+        "k13bcsqk": "Tư vấn tình yêu hiện tại"
+      }
+    },
+    "lovebibleTileCoinGroup": {
+      "lovebibleTileCoinBadge": {
+        "k11zo0b": "Tư vấn AI",
+        "n30000": "30.000đ"
+      }
+    },
+    "lovebibleTileInner": {
+      "lovebibleTileBody": {
+        "k153vbx2": "Tư vấn Tứ Trụ đọc dòng chảy tình yêu một cách nhẹ nhàng",
+        "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu",
+        "ko82iqm": "Kết nối Nhật Can, Nhật Chi, cung phu thê và dòng chảy lưu niên, chúng tôi sẽ chỉ ra tâm tư và lựa chọn hiện tại của bạn một cách trang trọng."
+      }
+    },
+    "miscCollection": {
+      "featCollectionGrid": {
+        "LOVECODE": {
+          "ariaLabel": "Bắt đầu mô phỏng tình yêu Tứ Trụ LOVE CODE"
+        },
+        "k1u4tnr8": {
+          "ariaLabel": "Bắt đầu bói động vật Thập Nhị Vận Tinh"
+        },
+        "k4i767i": {
+          "ariaLabel": "Bắt đầu Địa điểm Duyên phận"
+        }
+      }
+    },
+    "myeongriTarotAiPromptPanel": {
+      "kq10md4": "Gemini",
+      "kulph": "Grok",
+      "kvfipg": "Claude"
+    },
+    "normalLogo": {
+      "moonHeroCopy": {
+        "k5pz2jn": "Con đường vận mệnh ánh sao"
+      }
+    },
+    "premiumVvipCollection": {
+      "featCollectionGrid": {
+        "k106qdua": {
+          "ariaLabel": "Xem tư vấn AI Chiêm tinh học"
+        },
+        "k10ifevy": {
+          "ariaLabel": "Tư vấn AI hợp duyên Túc Diệu"
+        },
+        "k12a4ezz": {
+          "ariaLabel": "Đi xem tư vấn AI Veda"
+        },
+        "k1wc9gw3": {
+          "ariaLabel": "Bắt đầu đặt tên AI cao cấp tùy chỉnh Tứ Trụ"
+        },
+        "k8j5vsv": {
+          "ariaLabel": "Mở tư vấn AI về tổng vận mệnh cuộc đời"
+        },
+        "kic6s9t": {
+          "ariaLabel": "Xem tư vấn AI Tử Vi Đẩu Số"
+        },
+        "kq2cqae": {
+          "ariaLabel": "Đảo Vận Mệnh Tử Vi Đẩu Số — Bản đồ tương tác nơi lá số của bạn trở thành một hòn đảo sống động"
+        },
+        "n2727": {
+          "ariaLabel": "Phiên bản Nakshatra hoàn chỉnh — Tích hợp 27 Túc phương Đông × 27 Nakshatra Ấn Độ"
+        }
+      }
+    },
+    "resultPage": {
+      "ks6nuj0": "🏠 Trang chủ"
+    },
+    "sukuyoCalendarParking": {
+      "syBasicCalendar": {
+        "kciu67n": {
+          "ariaLabel": "Chú giải lịch"
+        }
+      }
+    },
+    "syBasicCalendar": {
+      "syBasicCalendarDetail": {
+        "k15h7kyw": "Chọn ngày để xem dòng chảy của Túc.",
+        "k1wm3jt8": "Ánh trăng hôm nay dừng lại ở ngôi sao nào, sẽ được chiếu rọi một cách bình yên.",
+        "kaomk43": "Vị trí ánh trăng"
+      },
+      "syBasicCalendarLegend": {
+        "k1voj0cw": "★ Đại Cát · Cát · Bình · Hung · Đại Hung"
+      },
+      "syBasicCalendarWeek": {
+        "k10vd": "Thứ Năm",
+        "k12c8": "Thứ Tư",
+        "k139w": "Thứ Hai",
+        "k13ek": "Chủ Nhật",
+        "k15eo": "Thứ Bảy",
+        "k16c4": "Thứ Ba",
+        "kydk": "Thứ Sáu"
+      }
+    },
+    "syBasicCalendarHead": {
+      "syBasicCalendarControls": {
+        "kndhrck": {
+          "ariaLabel": "Tháng sau"
+        },
+        "kpyyqqk": {
+          "ariaLabel": "Tháng trước"
+        }
+      },
+      "syBasicCalendarIdentity": {
+        "kqnecln": "Nơi ánh trăng yên bình dừng lại · Túc của tháng này"
+      }
+    },
+    "syBasicCalendarIdentity": {
+      "syBasicCalendarMonthLabel": {
+        "k1d0pjad": "Lịch 27 Túc",
+        "kp3rjwp": {
+          "ariaLabel": "Chọn tháng"
+        }
+      }
+    },
+    "syBasicCalendarLegend": {
+      "badDay": "Ngày xấu",
+      "plainDay": "Ngày bình thường",
+      "today": "Hôm nay"
+    },
+    "tarotTile": {
+      "tarotTileBody": {
+        "k10ifevy": "Tư vấn AI hợp duyên Túc Diệu",
+        "k10qxwvc": "Theo dòng chảy của 27 Túc và mối quan hệ của hai người, đọc một cách ấm áp về sự hấp dẫn, tổn thương và lựa chọn thực tế.",
+        "k11sp370": {
+          "ariaLabel": "Cấu hình Quán Trà Vận Mệnh của Yeoni"
+        },
+        "k11zwfx7": "Dựa trên lá số Natal và dòng chảy hành tinh hiện tại, trả lời những câu hỏi bạn đang băn khoăn nhất.",
+        "k14fgb7z": {
+          "ariaLabel": "Cấu hình Phòng Tác Chiến Vận Mệnh Phân Tích Thực Tế của Neo"
+        },
+        "k14mqjx7": "Tư vấn AI Tử Vi Đẩu Số",
+        "k18rbd8l": "Lá số của khoảnh khắc bạn sinh ra sẽ trở thành một hòn đảo. Cùng Yeoni và Neo khám phá dòng chảy hôm nay bằng cách đi quanh 12 cung.",
+        "k1934dgw": "Theo dòng chảy của lá số, đại vận và tiểu vận, mở ra những dòng chảy lớn của cuộc sống, công việc, tài lộc và các mối quan hệ một cách sâu sắc.",
+        "k1a78igt": "Tư vấn AI Tổng Vận Mệnh",
+        "k1cu7bpm": "Tư vấn AI Chiêm Tinh Học",
+        "k1eszqn1": "Giải đáp bình tĩnh những câu hỏi hiện tại của bạn dựa trên Lagna, Nakshatra và dòng chảy của các hành tinh.",
+        "k1hprjge": "Giải đáp dòng chảy của Mệnh Cung, Thân Cung, 12 Cung và Tứ Hóa phù hợp với câu hỏi hiện tại của bạn.",
+        "k1nhxtvn": "Đảo Vận Mệnh Tử Vi Đẩu Số",
+        "k1ruvdto": "Mô phỏng Tứ Trụ tình yêu",
+        "k1s3pj19": {
+          "ariaLabel": "Cấu hình Trung tâm Prompt Vận Mệnh Tổng Hợp"
+        },
+        "k1tyatli": {
+          "ariaLabel": "Tóm tắt tư vấn"
+        },
+        "k1tyatli2": {
+          "ariaLabel": "Tóm tắt tư vấn"
+        },
+        "k1v84z2u": "AI sẽ tự đặt tên bằng cách kết hợp Tứ Trụ, Ngũ Hành, âm thanh và ý nghĩa Hán tự, và bạn sẽ nhận được cả văn bản gốc của prompt.",
+        "k1y1a5zq": "Phòng Tác Chiến Vận Mệnh Phân Tích Thực Tế của Neo",
+        "k1yble8x": "Cùng Yeoni mở chén trà ánh trăng, soi rọi một cách dịu dàng những dòng chảy cảm xúc chưa nói ra qua Tứ Trụ, Tarot, hợp duyên.",
+        "k1ygnp9f": {
+          "ariaLabel": "Điểm chính"
+        },
+        "k1ygnp9f2": {
+          "ariaLabel": "Điểm chính"
+        },
+        "k231dx8": "Tạo ngay prompt tư vấn miễn phí với 11 công cụ như Tứ Trụ, Tarot, Chiêm tinh học, Tử Vi Đẩu Số.",
+        "k3baulf": "Phòng Đặt Tên Huấn Dân Chính Âm",
+        "k6uqkuq": {
+          "ariaLabel": "Tóm tắt chính"
+        },
+        "k6uqkuq2": {
+          "ariaLabel": "Tóm tắt chính"
+        },
+        "kir1rde": "Địa điểm và thời điểm",
+        "klifgdg": "緣 Nơi của nhân duyên",
+        "kntw327": "Phiên bản quyết định Nakshatra",
+        "kslqazg": "Lời nhắc vận mệnh tổng hợp",
+        "kstndh6": "Bách khoa động vật vận mệnh",
+        "ksxkgnt": "Quán trà vận mệnh của Yeoni",
+        "kt62t87": "Tư vấn AI chiêm tinh Vệ Đà",
+        "kyqh20f": "Neo sẽ tổng hợp Tứ Trụ, Tử Vi Đẩu Số, Chiêm tinh Vệ Đà và Chiêm tinh học để đưa ra những tiêu chí lựa chọn cần nắm bắt ngay lập tức.",
+        "kzo1yhl": "獸 Bói động vật Thập Nhị Vận Tinh",
+        "n2727Nakshatra": "27 Túc phương Đông × 27 Nakshatra Ấn Độ — Một vì sao, hai ngôn ngữ. Hai hệ thống chòm sao đã tách rời hàng ngàn năm trước nay gặp lại trên lá số Tứ Trụ của bạn."
+      },
+      "tarotTileImgWrap": {
+        "AI30000": "Tư vấn AI · 30.000đ",
+        "AI300002": "Tư vấn AI · 30.000đ",
+        "AI300003": "Tư vấn AI · 30.000đ",
+        "AI300004": "Tư vấn AI · 30.000đ",
+        "AI300005": "Tư vấn AI · 30.000đ",
+        "AI300006": "Tư vấn AI · 30.000đ",
+        "AI300007": "Đặt tên AI · 30.000đ",
+        "AIConsultation50000": "Tư vấn AI · 50.000đ",
+        "k1039k": "Đề xuất",
+        "k11zo0b": "Tư vấn AI",
+        "k125av1j": "Lá số miễn phí · Tư vấn AI",
+        "k15hk22d": {
+          "alt": "Phòng tác chiến vận mệnh của Neo — Tư vấn chiến lược để sắp xếp tuyến đầu lựa chọn trước huy hiệu sư tử"
+        },
+        "k18zdwwf": "Công khai miễn phí",
+        "k18zdwwf2": "Công khai miễn phí",
+        "k1gdpipn": {
+          "alt": "Quán trà vận mệnh của Yeoni — Tư vấn từ Yeoni, người gác cổng hoa sen, qua tách trà ánh trăng"
+        },
+        "k1r8338q": "MỚI · Đảo vận mệnh",
+        "k1scb7d8": {
+          "alt": "Hình ảnh đại diện của nghiệp vận mệnh"
+        },
+        "koe32kc": "Trải nghiệm miễn phí",
+        "ktgbfsy": "MỚI · Phiên bản quyết định",
+        "n50001000020000": "Tarot 5.000đ · Tứ Trụ 10.000đ · Hợp duyên 20.000đ"
+      }
+    },
+    "tarotTileBody": {
+      "featuredContentCardCta": {
+        "k1f1oofn": "Vào quán trà vận mệnh",
+        "kdyjsns": "Trải nghiệm miễn phí",
+        "kwux29x": "Vào phòng tác chiến"
+      },
+      "pvcPremMeta": {
+        "k10vo8": "Khám phá",
+        "k11zo0b": "Tư vấn AI",
+        "k11zo0b2": "Tư vấn AI",
+        "k11zo0b3": "Tư vấn AI",
+        "k12z88tv": "Lưu PDF",
+        "k16eekng": "Kiểm tra Thẻ Pass",
+        "k19vii04": "Bản đồ 12 cung",
+        "k1cco6tp": "Bắt đầu ngay",
+        "k1s4cln3": "Vào phòng tác chiến",
+        "k1ty674i": "Có thể tư vấn",
+        "k1ty8wv6": "Nhận tư vấn",
+        "k1u01klw": "Vào đảo",
+        "k1vfalgf": "Kiểm tra miễn phí",
+        "k6skteu": "Nhận tư vấn bằng Natal Chart",
+        "k96vaab": "Tư vấn qua màn hình",
+        "kj5prgr": "Tứ Trụ · Tarot · Chiêm tinh học",
+        "kmxk05u": "Tổng vận mệnh cuộc đời",
+        "kn1803y": "Tư vấn Chiêm tinh Vệ Đà",
+        "kpfei5h": "Dạng câu chuyện",
+        "ksdpj4c": "Nhiệm vụ hàng ngày",
+        "ktecid": "Túc Diệu",
+        "kth5jek": "Trải nghiệm ngay",
+        "kudb0": "Cá nhân",
+        "kudb02": "Cá nhân",
+        "kugw5d": "Chủ tinh",
+        "kv7uo": "Neo",
+        "kv9f8rk": "Tư vấn ngay",
+        "kwuu0": "Miễn phí",
+        "kyyvo": "Đặt tên",
+        "kyzfrrw": "Tứ Trụ · Tarot · Hợp duyên",
+        "n30000": "Giá 30.000 won"
+      },
+      "pvcPremPoints": {
+        "AIPDF": "Kết quả đặt tên hoàn thiện bởi AI + Lưu PDF",
+        "k11eirzr": "Sức mạnh của cung là cấp độ tòa nhà — từ hoang tàn đến đền thờ",
+        "k136ne35": "27 Túc phương Đông và Nakshatra Ấn Độ song hành",
+        "k15z2s5t": "Chiến lược Neo phản ánh thực tế",
+        "k161xazs": "Dòng chảy sao kết nối với câu hỏi hiện tại",
+        "k1a6baj4": "Hệ sinh thái đảo của riêng tôi được xác định bởi chủ tinh Mệnh cung",
+        "k1asi5pl": "Chỉ cần nhập ngày sinh và câu hỏi, tạo ngay lập tức",
+        "k1cb96zz": "Thời điểm chuyển đổi qua đại vận và tiểu vận",
+        "k1e60r0a": "Tóm tắt dòng chảy Transit hiện tại",
+        "k1fyb19o": "Vào quán trà và lời chào đầu tiên của Yeoni, người gác cổng hoa sen",
+        "k1hh2ce8": "Bản mệnh Túc và khoảng cách quan hệ của hai người",
+        "k1lfrfuk": "Lá số cá nhân Mệnh cung · Thân cung · 12 cung",
+        "k1rfowhj": "Tư vấn cảm xúc kết nối Tứ Trụ · Tarot · Hợp duyên",
+        "k1soc8": "Tư vấn cốt lõi Mặt Trời · Mặt Trăng · Cung Mọc",
+        "k1wel05o": "Tổng hợp đề xuất Dụng Thần · Hán tự · Âm thanh · Số học",
+        "k5ittux": "Tóm tắt chiến lược phù hợp với chủ đề tư vấn và thông tin sinh",
+        "ka0qthx": "Trả lời câu hỏi dựa trên House · Aspect",
+        "kcblo5w": "Chủ tinh · Pada · Gana · Vimsottari Dasha",
+        "kkg4b7z": "Tư vấn dài lưu dưới dạng PDF",
+        "kkph98v": "Tư vấn dựa trên Rasi Chart và Nakshatra",
+        "knvmn7z": "Điểm gặp gỡ và chia tách của hai truyền thống",
+        "ko4w810": "11 công cụ như Tứ Trụ · Tarot · Chiêm tinh",
+        "kozjlt4": "Lời khuyên thực tế cho quan hệ · tài lộc · công việc · lựa chọn",
+        "kqwk9o": "Tư vấn dòng chảy cung và sao theo chủ đề",
+        "krx9ppb": "Miễn phí · Trải nghiệm ngay không cần đăng nhập",
+        "ktv5xm9": "Phân tích lá số Tứ Trụ và cân bằng Ngũ Hành",
+        "ktx0v26": "Bản đồ vận mệnh được chọn dưới huy hiệu Sư Tử",
+        "kvigm32": "Lời khuyên thực tế phù hợp với mối quan hệ hiện tại",
+        "kwuh556": "Mô hình lặp lại của sự hấp dẫn và xung đột",
+        "kxatr2b": "Dòng chảy lựa chọn giúp giải tỏa nhẹ nhàng những lo lắng",
+        "kyk2x3o": "Lời khuyên lựa chọn dựa trên đại vận và tiểu vận",
+        "n12NPC": "Thời tiết đảo thay đổi hàng ngày và đối thoại với 12 cung NPC",
+        "n30000": "Thanh toán một lần 30.000 won hoặc Thẻ Pass · Nguyệt Tinh Thạch"
+      }
+    },
+    "terms24Card": {
+      "introLead": "Đây là dòng chảy tiết khí của năm sinh. Trong Tứ Trụ, ",
+      "introTail": " được xác định bởi khoảng thời gian tiết khí mà ngày sinh của bạn rơi vào. Tiết khí được nhấn mạnh là tiết nhập mở đầu tháng của bạn.",
+      "secTitle": {
+        "k1iwdtvn": "☀️ 24 Tiết Khí (二十四節氣)"
+      },
+      "terms24Intro": {
+        "kpaolwg": "Nguyệt Trụ"
+      }
+    },
+    "themeSwitchWrapper": {
+      "themeSwitchPill": {
+        "k7bnh78": {
+          "ariaLabel": "Chế độ Neo"
+        },
+        "k7bnh782": {
+          "ariaLabel": "Chế độ Neo"
+        },
+        "khrulw0": {
+          "ariaLabel": "Chế độ Yeoni"
+        },
+        "khrulw02": {
+          "ariaLabel": "Chế độ Yeoni"
+        }
+      }
+    },
+    "wrap": {
+      "cdFooterShell": {
+        "k16rhu4g": {
+          "ariaLabel": "Liên kết tư vấn AI"
+        },
+        "k1cf0vdm": {
+          "ariaLabel": "Liên kết trung tâm khách hàng"
+        },
+        "koniaun": {
+          "ariaLabel": "Liên kết dịch vụ"
+        },
+        "kp08cb": {
+          "ariaLabel": "Liên kết câu chuyện"
+        }
+      },
+      "k14mqjx7": "Tử Vi Đẩu Số AI",
+      "kt62t87": "Tư vấn Chiêm tinh Vệ Đà AI"
+    }
+  },
+  "adsenseArticle": {
+    "description": {
+      "001": "7 bước xem Tứ Trụ (Bát Tự): Hướng dẫn giải đoán từ cơ bản đến nâng cao, từ việc kiểm tra vạn niên lịch, xác định Nhật chủ, cân bằng Ngũ Hành, vai trò của Thập Thần, đến đại vận và tiểu vận, kết thúc bằng cách lập kế hoạch hành động.",
+      "002": "Cách nâng cao vận mệnh của bạn bắt đầu từ thói quen 15 phút mỗi ngày. Chúng tôi đã tổng hợp cách thiết kế thói quen 5 phút buổi sáng, trưa, tối, thói quen bổ sung tùy chỉnh theo khí chất Tứ Trụ, và bí quyết duy trì trong 3 tuần.",
+      "003": "Điểm cốt lõi của việc xem vạn niên lịch là chỉ cần kiểm tra 4 điều: Nhật chủ, Nguyệt lệnh, phân bố Ngũ Hành, và đại vận. Chúng tôi hướng dẫn cách đọc Thiên Can bằng hình ảnh mà không cần biết chữ Hán và 3 bước sử dụng Nguyệt Can.",
+      "004": "Phương pháp chẩn đoán cân bằng Ngũ Hành: Tìm kiếm sự dư thừa (3 hoặc hơn) và thiếu hụt (0) của Mộc, Hỏa, Thổ, Kim, Thủy trong 8 chữ Tứ Trụ, và tổng hợp các chiến lược thực tế để bổ sung Ngũ Hành thiếu hụt bằng thói quen sinh hoạt.",
+      "005": "Bản đồ thực hành giải đoán Thập Thần: Dịch năm nhóm Tỷ Kiếp, Thực Thương, Tài Tinh, Quan Tinh, Ấn Tinh thành ngôn ngữ ra quyết định trong tình yêu, công việc, tiền bạc, và tổng hợp cách kết nối lá số gốc với tiểu vận để hành động.",
+      "006": "Cách xem vận mệnh năm nay: Xác định hướng phát triển và giảm bớt điều gì qua hai chữ tiểu vận, và một khung kiểm tra với 6 mục theo quý. Cũng bao gồm cách đọc Hình Xung Phá Hại mà không sợ hãi.",
+      "007": "Cách ghi chép vận mệnh hàng tháng: Mẫu 3 dòng từ khóa, hành động, kết quả theo tuần và vòng lặp phản hồi đọc → thực hiện → ghi chép → điều chỉnh, hướng dẫn cách tăng tỷ lệ tăng trưởng thay vì chấm điểm đúng sai.",
+      "008": "Chọn ngày không phải là mê tín mà là quản lý rủi ro. Chúng tôi đã tổng hợp các khái niệm cơ bản về Nhật Thần, ngày không có sát khí, Can Chi xung hợp, quy trình chọn ngày 4 bước, và các tiêu chí ưu tiên theo từng tình huống như chuyển nhà, ký hợp đồng, phỏng vấn, du lịch.",
+      "009": "Cách đặt lại khi vận mệnh bị tắc nghẽn: Chẩn đoán nguyên nhân trong số quá tải, mất phương hướng, thiếu phục hồi và là một thói quen thực tế để phục hồi dòng chảy bằng giao thức 72 giờ dọn dẹp → sắp xếp lại → khởi động lại.",
+      "010": "Cách giao tiếp để tăng vận tình duyên: Đọc sự khác biệt về nhịp điệu cảm xúc qua phong cách yêu đương của từng Nhật chủ và 27 Túc Diệu, và cách thỏa thuận 3 quy tắc quan hệ: tiêu chuẩn trả lời, biểu hiện cảm xúc, phục hồi xung đột.",
+      "011": "Thói quen tăng vận tài lộc: Đọc cấu trúc năng lượng tiền bạc và thời điểm qua Tài Tinh trong Tứ Trụ, và cách kiểm soát dòng tiền bằng quản lý tài chính 3 dòng hàng tháng: chi phí cố định, giới hạn chi phí biến đổi, tiết kiệm tự động.",
+      "012": "Vận công việc và vận thi cử được đọc qua Quan Tinh và Ấn Tinh. Chúng tôi đã tổng hợp cách sắp xếp thử thách vào thời điểm vận mạnh, 4 bước chuẩn bị phỏng vấn, thói quen thi cử Pomodoro, quản lý căng thẳng trước và trong ngày thi.",
+      "013": "Mối quan hệ giữa giấc ngủ và vận mệnh: Cơ chế thiếu ngủ làm giảm khả năng phán đoán, kiểm soát cảm xúc, nắm bắt cơ hội, và hướng dẫn từng bước giao thức đặt lại giấc ngủ 7 ngày để phục hồi nhịp điệu năng lượng.",
+      "014": "Cách đặt câu hỏi vận mệnh hiệu quả: Thiết kế câu hỏi với 3 yếu tố thời gian, ngữ cảnh, khả năng hành động, và cung cấp 3 mẫu tránh 4 loại câu hỏi xấu cùng 5 mục tự chẩn đoán chất lượng câu hỏi.",
+      "015": "Cách xem Tứ Trụ và Tarot cùng nhau: Một khung tích hợp để xác định xu hướng quý bằng Tứ Trụ và kiểm tra lựa chọn tuần này bằng Tarot. Bao gồm cả việc tìm từ khóa chung và 3 bộ lọc ngăn chặn giải đoán quá mức.",
+      "016": "Cấu trúc bài viết vận mệnh thân thiện với AdSense: Tổng hợp 3 tiêu chí giá trị thông tin, EEAT, khả năng đọc và 6 bước cấu trúc bài viết, các biểu thức cần tránh, và chiến lược vận hành để tăng thời gian lưu trú.",
+      "017": "Hướng dẫn đầy đủ 12 Rashi trong Chiêm tinh Vệ Đà: Tổng hợp các yếu tố, hành tinh cai trị, điểm mạnh và thách thức tính cách từ Mesha đến Mina, và hướng dẫn trình tự giải đoán kết hợp Lagna, Chandra Rashi, Dasha.",
+      "018": "Nguyên lý cơ bản của Tứ Trụ (Bát Tự): Cấu trúc bốn trụ và tám chữ, Thiên Can Địa Chi, Ngũ Hành tương sinh tương khắc, và 5 bước giải đoán cho người mới bắt đầu.",
+      "019": "Tổng hợp đầy đủ Ngũ Hành: Tính chất của năm năng lượng Mộc, Hỏa, Thổ, Kim, Thủy, nguyên lý tương sinh tương khắc, xu hướng tính cách theo dư thừa/thiếu hụt, và thói quen bổ sung trong cuộc sống hàng ngày.",
+      "020": "Ý nghĩa 22 lá Major Arcana của Tarot: Từ lá 0 The Fool đến lá 21 The World, các từ khóa chính, 3 cách tiếp cận giải đoán ngược, và cách sử dụng cho các câu hỏi về tình yêu, công việc, phát triển.",
+      "021": "Tử Vi Đẩu Số là gì: Cấu trúc 12 cung của lá số, 14 chính tinh như Tử Vi tinh, ý nghĩa của Tứ Hóa Lộc, Quyền, Khoa, Kỵ và 3 bước xem lá số cho người mới bắt đầu.",
+      "022": "Giải thích Thiên Can Địa Chi: Tổng hợp ý nghĩa, tính chất Ngũ Hành, Âm Dương, mùa của 10 Thiên Can Giáp Ất Bính Đinh Mậu Kỷ Canh Tân Nhâm Quý và 12 Địa Chi Tý Sửu Dần Mão Thìn Tỵ Ngọ Mùi Thân Dậu Tuất Hợi, và các mối quan hệ hợp xung cốt lõi theo trình tự thực tế.",
+      "023": "Cách phán đoán Thân Cường Thân Nhược: Trình tự đọc cường độ của Nhật chủ bằng 3 tiêu chuẩn Đắc Lệnh, Đắc Địa, Đắc Thế, và chiến lược bổ sung theo Thân Cường/Thân Nhược, cùng với những sai lầm phán đoán thường gặp.",
+      "024": "Cách tìm Dụng Thần: Từ phán đoán Thân Cường Thân Nhược đến năm phân loại Ức Phù, Điều Hậu, Thông Quan, Bệnh Dược, Chuyên Vượng, phân biệt Hỷ Thần, Kỵ Thần, được hướng dẫn bằng danh sách kiểm tra 5 bước thực tế.",
+      "025": "Cơ bản về xem hợp duyên: Hướng dẫn thực tế để đọc mẫu năng lượng của hai người và sử dụng nó như một công cụ hiểu biết mối quan hệ qua 3 bước: Ngũ Hành tương sinh tương khắc của Nhật chủ, mối quan hệ Thập Thần, hợp xung của Nhật Chi.",
+      "026": "Tổng hợp tính cách theo Nhật Trụ: Chia 60 Giáp Tý Nhật Trụ theo Ngũ Hành Nhật chủ, tổng hợp khí chất, điểm mạnh, điểm cần lưu ý của các Nhật Trụ tiêu biểu, và hướng dẫn trình tự giải đoán không kết luận chỉ bằng một Nhật Trụ.",
+      "027": "Cách đọc Đại Vận và Tiểu Vận: Khái niệm về Đại Vận 10 năm và Tiểu Vận 1 năm, cách tính tuổi bắt đầu Đại Vận, và các điểm thực tế để đọc thời điểm qua sự tương tác với Dụng Thần của lá số gốc."
+    },
+    "title": {
+      "001": "Nhập môn xem Tứ Trụ (Bát Tự): 7 bước giải đoán cho người mới bắt đầu",
+      "002": "Cách nâng cao vận mệnh: Hướng dẫn đầy đủ thói quen tăng vận 15 phút mỗi ngày",
+      "003": "Hướng dẫn đầy đủ cách xem vạn niên lịch: Phương pháp giải đoán cốt lõi không cần biết chữ Hán",
+      "004": "Hướng dẫn đầy đủ cân bằng Ngũ Hành: Chiến lược bổ sung thực tế của riêng bạn qua Mộc, Hỏa, Thổ, Kim, Thủy",
+      "005": "Bản đồ thực hành giải đoán Thập Thần: Cách xem Tứ Trụ áp dụng ngay vào tình yêu, công việc, tiền bạc",
+      "006": "Cách xem vận mệnh năm nay: Hướng dẫn đầy đủ kiểm tra vận mệnh hàng năm mà không lo lắng",
+      "007": "Cách ghi chép vận mệnh hàng tháng: Vòng lặp phản hồi tăng tỷ lệ tăng trưởng hơn là đúng sai",
+      "008": "Cách chọn ngày tốt: Chọn ngày thực tế không mê tín",
+      "009": "Cách đặt lại khi vận mệnh bị tắc nghẽn: Phiên bản đầy đủ giao thức phục hồi 72 giờ",
+      "010": "Cách giao tiếp để tăng vận tình duyên: Quy tắc vận hành mối quan hệ quan trọng hơn điểm hợp duyên",
+      "011": "Thói quen tăng vận tài lộc: Cách sử dụng Tài Tinh trong Tứ Trụ và sổ cái thực tế cùng lúc",
+      "012": "Cách chuẩn bị để tăng vận công việc và vận thi cử: Hướng dẫn đầy đủ tiểu vận Tứ Trụ và thói quen thực tế",
+      "013": "Mối quan hệ giữa giấc ngủ và vận mệnh: Lý do vận mệnh thay đổi khi phục hồi nhịp điệu năng lượng",
+      "014": "Cách đặt câu hỏi vận mệnh hiệu quả: Hướng dẫn đầy đủ thiết kế câu hỏi thay đổi chất lượng câu trả lời",
+      "015": "Cách xem Tứ Trụ và Tarot cùng nhau: Khung tích hợp kết nối xu hướng dài hạn và lựa chọn hiện tại",
+      "016": "Cấu trúc bài viết vận mệnh thân thiện với AdSense: Hướng dẫn đầy đủ về tính thông tin, độ tin cậy, khả năng đọc",
+      "017": "Hướng dẫn đầy đủ 12 Rashi trong Chiêm tinh Vệ Đà: Tính cách, vận mệnh, giải đoán thực tế từ Mesha đến Mina",
+      "018": "Tổng hợp đầy đủ nguyên lý cơ bản của Tứ Trụ (Bát Tự): Hiểu Tứ Trụ là gì từ đầu",
+      "019": "Tổng hợp đầy đủ Ngũ Hành (Mộc Hỏa Thổ Kim Thủy): Tính chất, tương sinh, tương khắc, cách áp dụng vào cuộc sống hàng ngày",
+      "020": "Tổng hợp đầy đủ ý nghĩa 22 lá Major Arcana của Tarot: Từ lá 0 đến lá 21",
+      "021": "Tử Vi Đẩu Số là gì: Nhập môn đầy đủ từ cơ bản đến cách xem lá số",
+      "022": "Giải thích hoàn hảo Thiên Can Địa Chi: Ý nghĩa, tính chất, cách giải đoán thực tế của 10 Thiên Can 12 Địa Chi",
+      "023": "Hướng dẫn đầy đủ cách phán đoán Thân Cường Thân Nhược: Cách đọc chính xác cường độ lá số của bạn",
+      "024": "Hướng dẫn thực tế cách tìm Dụng Thần: Từ Thân Cường Thân Nhược đến thiết lập Dụng Thần",
+      "025": "Tổng hợp kiến thức cơ bản về xem hợp duyên: Hướng dẫn thực tế hiểu mối quan hệ qua Tứ Trụ",
+      "026": "Tổng hợp đặc điểm tính cách theo Nhật Trụ: Hướng dẫn đầy đủ về xu hướng 60 Giáp Tý Nhật Trụ",
+      "027": "Hướng dẫn đầy đủ cách đọc Đại Vận và Lưu Niên: Hiểu vận mệnh qua dòng chảy thời gian"
+    }
+  },
+  "astralSoul": {
+    "001": "Xem chi tiết",
+    "002": "Cú thông thái",
+    "003": "Mèo tò mò",
+    "004": "Sư tử uy quyền",
+    "005": "Cáo tinh ranh",
+    "006": "Hươu thần bí",
+    "007": "Thỏ mơ mộng",
+    "008": "Cá heo thân thiện",
+    "009": "Rái cá năng động",
+    "010": "Rùa chăm chỉ",
+    "011": "Voi hiền lành",
+    "012": "Sói nghiêm khắc",
+    "013": "Chim cánh cụt hòa đồng",
+    "014": "Đại bàng sắc sảo",
+    "015": "Bướm nghệ sĩ",
+    "016": "Hổ dũng mãnh",
+    "017": "Công lộng lẫy",
+    "018": "Xem chi tiết",
+    "019": "Tỷ lệ tương hợp tổng thể",
+    "020": "Cảm xúc/Giá trị cộng hưởng (T/F)",
+    "021": "Hành vi/Lối sống (J/P)",
+    "022": "Trò chuyện/Sở thích (S/N)",
+    "023": "Bản sao hoàn hảo từ vũ trụ song song",
+    "024": "Kiệt tác được vũ trụ se duyên",
+    "025": "Người bạn đồng hành trong hành trình khám phá tri thức kỳ diệu",
+    "026": "T đến từ Sao Hỏa, F đến từ Sao Kim",
+    "027": "Lăng kính đa sắc màu tô điểm cho nhau"
+  },
+  "celestialMelody": {
+    "closingTitle": "Tóm tắt Giai điệu Thiên thể hôm nay",
+    "spreadTitle01": "Mặt Trời · Cái tôi bộc lộ",
+    "spreadTitle02": "Mặt Trăng · Ký ức tâm hồn",
+    "spreadTitle03": "Sao Thủy · Suy nghĩ và ngôn ngữ",
+    "spreadTitle04": "Sao Kim · Tình yêu và giá trị",
+    "spreadTitle05": "Sao Hỏa · Ham muốn và động lực",
+    "spreadTitle06": "Sao Mộc · Mở rộng và niềm tin",
+    "spreadTitle07": "Sao Thổ · Trách nhiệm và thử thách",
+    "spreadTitle08": "Sao Thiên Vương · Sự thức tỉnh của thay đổi",
+    "spreadTitle09": "Sao Hải Vương · Giấc mơ và trực giác",
+    "spreadTitle10": "Sao Diêm Vương · Sự biến đổi sâu sắc",
+    "spreadTitle11": "Chiron · Trí tuệ từ vết thương"
+  },
+  "dreamMeaning": {
+    "001": "Tất cả",
+    "002": "Liên quan đến động vật",
+    "003": "Liên quan đến trái cây",
+    "004": "Liên quan đến con người",
+    "005": "Cảm xúc (Tích cực)",
+    "006": "Cảm xúc (Tức giận)",
+    "007": "Cảm xúc (Lo lắng)",
+    "008": "Cảm xúc (mất mát)",
+    "009": "Cảm xúc (phục hồi)",
+    "010": "Từ khóa địa điểm",
+    "011": "Từ khóa đồ vật",
+    "012": "Giấc mơ thai nghén",
+    "013": "Vận tài lộc",
+    "014": "Vận thi cử",
+    "015": "Vận tình duyên",
+    "016": "Vận hôn nhân",
+    "017": "Cảnh gặp gỡ",
+    "018": "Cảnh hành động",
+    "019": "Cảnh thay đổi"
+  },
+  "highValueContent": {
+    "001": "Khái niệm cơ bản dành cho người mới tìm hiểu về Tứ Trụ (Bát Tự), Vạn Niên Lịch, Ngũ Hành, Thập Thần.",
+    "002": "Cách sắp xếp câu hỏi Tarot và liên kết giải thích bài với các lựa chọn thực tế.",
+    "003": "Hướng dẫn đọc vận tình duyên, tái hợp, hợp duyên bằng ngôn ngữ kiểm tra mối quan hệ thay vì lo lắng.",
+    "004": "Cách sử dụng vận mệnh hàng ngày một cách thực tế để ưu tiên lịch trình, cảm xúc và lựa chọn.",
+    "005": "Tổng hợp biểu đồ sinh, 12 cung, biểu tượng cung hoàng đạo dễ hiểu cho người mới bắt đầu.",
+    "006": "Tiêu chuẩn và tuyên bố miễn trừ trách nhiệm để đọc nội dung vận mệnh một cách an toàn và cân bằng.",
+    "007": "Hướng dẫn nhập môn Tứ Trụ (Bát Tự)",
+    "008": "Phân tích Tứ Trụ (Bát Tự) Vạn Niên Lịch miễn phí",
+    "009": "Giải thích cơ bản Tứ Trụ (Bát Tự) Vạn Niên Lịch",
+    "010": "Đọc Tarot hoạt động như thế nào",
+    "011": "Đọc bài Tarot miễn phí",
+    "012": "Đọc Tarot tái hợp",
+    "013": "Cách đọc giải mã vận mệnh một cách thực tế",
+    "014": "Phương pháp luận nội dung vận mệnh",
+    "015": "Hướng dẫn về cái nhìn sâu sắc về vận mệnh",
+    "016": "Giải thích tính cách qua ngày tháng năm sinh",
+    "017": "Biểu đồ sinh chiêm tinh miễn phí",
+    "018": "Lá số Tử Vi Đẩu Số 12 cung",
+    "019": "Dấu hiệu cốt lõi để nhận biết hợp duyên tốt",
+    "020": "Giải thích hợp duyên Tứ Trụ (Bát Tự) miễn phí",
+    "021": "Xem vận tình duyên miễn phí",
+    "022": "FAQ về việc sử dụng dịch vụ vận mệnh an toàn",
+    "023": "Xem vận mệnh hôm nay miễn phí",
+    "024": "Câu hỏi thường gặp về Code Destiny"
+  },
+  "indexRuntime": {
+    "aria-label": {
+      "001": "Mở hệ thống Tứ Trụ (Bát Tự) Sibylla",
+      "002": "Liên kết Hoa Vận Mệnh"
+    },
+    "confirm": {
+      "001": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng.",
+      "002": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng.",
+      "003": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng.",
+      "004": "Bạn có muốn xóa tất cả các bản ghi Hoa Vận Mệnh đã lưu không?",
+      "005": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng.",
+      "006": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng.",
+      "007": "🔒 Dịch vụ yêu cầu đăng nhập.\\\\nVui lòng đăng nhập để sử dụng."
+    },
+    "label": {
+      "001": "Pha Mặt Trăng",
+      "002": "Động vật hộ mệnh",
+      "003": "Ngôi sao mạnh nhất hôm nay",
+      "004": "Độ sáng sao",
+      "005": "Cung vị",
+      "006": "Cung Mặt Trời",
+      "007": "Cung Mọc",
+      "008": "Cung Mặt Trăng",
+      "009": "Thân Cường/Thân Nhược",
+      "010": "Dụng Thần",
+      "011": "Điều Hậu"
+    },
+    "message": {
+      "001": "Đang kiểm tra thông tin Nguyệt Tinh Thạch",
+      "002": "Nguyệt Tinh Thạch đang được kích hoạt, sẽ sớm khả dụng",
+      "003": "Nguyệt Tinh Thạch đang được kích hoạt, sẽ sớm khả dụng",
+      "004": "Đang chuẩn bị thanh toán thẻ một lần",
+      "005": "Thanh toán hoàn tất. Đang tải kết quả",
+      "006": "Đang kiểm tra Thẻ Pass",
+      "007": "Đang xử lý, vui lòng chờ một lát",
+      "008": "Đang xử lý, vui lòng chờ một lát"
+    },
+    "title": {
+      "001": "Kết quả Đọc Totem Động Vật"
+    }
+  },
+  "lsd": {
+    "alt": {
+      "001": "Hình thu nhỏ"
+    },
+    "aria-label": {
+      "001": "Biểu đồ Mã Bản Năng",
+      "002": "Biểu đồ Đọc Điểm Mạnh",
+      "003": "Đóng",
+      "004": "Tab Nhật ký Vận Khí",
+      "005": "Thẻ nhỏ Vận Khí hôm nay",
+      "006": "Chế độ Danh sách phát Thiền định",
+      "007": "Tháng trước",
+      "008": "Tháng sau",
+      "009": "Chuyển đổi chế độ xem lịch"
+    },
+    "label": {
+      "001": "Mã Bản Năng",
+      "002": "Tóm tắt Vận Khí",
+      "003": "Đọc Điểm Mạnh",
+      "004": "Cân bằng hàng ngày",
+      "005": "Tài lộc",
+      "006": "Tình cảm",
+      "007": "Danh vọng",
+      "008": "Sức khỏe",
+      "009": "Học tập",
+      "010": "Thiết kế dòng chảy tài lộc",
+      "011": "Sắp xếp năng lượng quan hệ",
+      "012": "Tăng cường khả năng phục hồi",
+      "013": "Chế độ Tập trung/Hiệu suất",
+      "016": "Bình thường",
+      "017": "Ngày tốt",
+      "018": "Tốt",
+      "019": "Bình thường",
+      "020": "Mạnh",
+      "021": "Rất mạnh",
+      "022": "Tài lộc",
+      "023": "Quan hệ",
+      "024": "Hiệu suất",
+      "025": "Phục hồi",
+      "026": "Tập trung",
+      "027": "Tài lộc",
+      "028": "Tình yêu",
+      "029": "Danh vọng",
+      "030": "Sức khỏe",
+      "031": "Học tập"
+    },
+    "lead": {
+      "001": "Trong dòng chảy hôm nay, bốn trụ cột nhận được sức mạnh, ánh sáng của sự tập trung, thấu hiểu, quan hệ, và hoàn thành nổi lên ở các độ cao khác nhau.",
+      "002": "Giữa năm nhịp điệu nghỉ ngơi, hoàn thành, phát triển, bắt đầu, và điều chỉnh, nhịp điệu trung tâm bạn sẽ ở lại hôm nay được chiếu sáng."
+    },
+    "placeholder": {
+      "001": "Biệt danh thẻ (tùy chọn)",
+      "002": "Dòng ghi chú dưới thẻ (tùy chọn)",
+      "003": "Hãy ghi lại ngắn gọn dòng chảy, cuộc gặp gỡ, lựa chọn bạn muốn nhớ hôm nay.",
+      "004": "Tên đối phương",
+      "005": "Năm (phụ)",
+      "006": "Ví dụ: Buổi sáng không tập trung được, nhưng buổi tối cai nghiện kỹ thuật số thì suy nghĩ trở nên minh mẫn.",
+      "007": "Ví dụ: Tôi đã lo lắng trong cuộc họp quan trọng và nói lắp.",
+      "008": "Ví dụ: Tôi đã truyền đạt trọng tâm một cách bình tĩnh, và đối phương gật đầu mỉm cười.",
+      "009": "Hãy gõ hoặc đọc to câu trên."
+    },
+    "title": {
+      "001": "Thông tin chi tiết về tính cách bẩm sinh ·",
+      "002": "Tóm tắt vận khí hôm nay ·",
+      "003": "Đọc vận dụng điểm mạnh",
+      "004": "Đọc cân bằng hàng ngày",
+      "005": "Trình phát nhạc thiền"
+    }
+  },
+  "mindscanReading": {
+    "cardsRequired": "Cần dữ liệu cặp thẻ.",
+    "positionContactFlow": "Dòng chảy liên lạc sắp tới",
+    "positionCurrentHeart": "Tâm tư hiện tại của đối phương",
+    "positionFinalFlow": "Dòng chảy hướng tới của mối quan hệ",
+    "positionHesitationReason": "Lý do đối phương do dự",
+    "positionHiddenHeart": "Tâm tư ẩn giấu",
+    "positionMyAttitude": "Thái độ tôi nên thể hiện",
+    "positionVisibleAttitude": "Thái độ thể hiện ra bên ngoài",
+    "questionRequired": "Cần câu hỏi tư vấn.",
+    "sampleTitle": "Tiêu đề ví dụ"
+  },
+  "numerologyTarot": {
+    "lifePathNumber": "Số Mệnh",
+    "questionNumber": "Số Câu Hỏi",
+    "topicCareer": "Vận sự nghiệp",
+    "topicFeelings": "Tâm tư",
+    "topicGeneral": "Vận tổng hợp",
+    "topicHealth": "Sức khỏe·Năng lượng",
+    "topicLove": "Tình yêu·Quan hệ",
+    "topicMoney": "Vận tiền bạc",
+    "topicMove": "Vận di chuyển·thay đổi",
+    "topicRelationship": "Quan hệ xã hội",
+    "topicReunion": "Vận tái hợp"
+  },
+  "palm": {
+    "description": {
+      "001": "Xem tổng thể ấn tượng bàn tay, hình dáng, đường chính, điểm tổng hợp.",
+      "002": "Xem cách vận hành năng lượng, nhịp độ phục hồi, tính bền vững cuộc sống, không phải tuổi thọ.",
+      "003": "Xem cách tư duy, khả năng phán đoán, tập trung, thực tế, trí tưởng tượng.",
+      "004": "Xem cách yêu, biểu hiện cảm xúc, sự gắn bó, kỳ vọng trong quan hệ.",
+      "005": "Xem hướng nghề nghiệp, mục tiêu xã hội, tính tự lập, định hướng cuộc sống.",
+      "006": "Xem thói quen quản lý tiền bạc, tạo giá trị, khả năng biểu đạt, cảm nhận thương hiệu.",
+      "007": "Xem sự ổn định và cách cam kết mong muốn trong mối quan hệ sâu sắc, không phải số lần kết hôn.",
+      "008": "Xem các khu vực năng lượng trên lòng bàn tay như Gò Kim Tinh, Gò Nguyệt, Gò Mộc Tinh.",
+      "009": "So sánh bàn tay thuận và không thuận để xem con người bẩm sinh và con người hiện tại của bạn.",
+      "010": "Cung cấp lời khuyên hôm nay, thói quen 7 ngày, lời khuyên về mối quan hệ, tài lộc, sự nghiệp."
+    },
+    "label": {
+      "001": "Bàn tay bẩm sinh",
+      "002": "Bàn tay hậu thiên",
+      "003": "Bàn tay hỗn hợp",
+      "004": "Bàn tay Đất",
+      "005": "Bàn tay Lửa",
+      "006": "Bàn tay Khí",
+      "007": "Bàn tay Nước",
+      "008": "Bàn tay hỗn hợp",
+      "009": "Đường sinh đạo",
+      "010": "Đường trí đạo",
+      "011": "Đường tâm đạo",
+      "012": "Đường định mệnh",
+      "013": "Đường Thái Dương",
+      "014": "Đường tài lộc",
+      "015": "Đường hôn nhân",
+      "016": "Đường Thủy Tinh",
+      "017": "Đường trực giác",
+      "018": "Gò Kim Tinh",
+      "019": "Gò Nguyệt",
+      "020": "Gò Mộc Tinh",
+      "021": "Gò Thổ Tinh",
+      "022": "Gò Thái Dương",
+      "023": "Gò Thủy Tinh",
+      "024": "Gò Hỏa Tinh",
+      "025": "Ngón cái",
+      "026": "Ngón trỏ",
+      "027": "Ngón giữa",
+      "028": "Ngón áp út",
+      "029": "Ngón út",
+      "030": "Tổng thể",
+      "031": "Đường sinh đạo",
+      "032": "Đường trí đạo",
+      "033": "Đường tâm đạo",
+      "034": "Đường định mệnh",
+      "035": "Đường tài lộc/Thái Dương",
+      "036": "Đường tình duyên/hôn nhân",
+      "037": "Gò bàn tay",
+      "038": "So sánh bẩm sinh/hậu thiên",
+      "039": "Chẩn đoán cá nhân"
+    },
+    "title": {
+      "001": "Đường sinh đạo sâu và dài",
+      "002": "Đường sinh đạo ngắn nhưng sâu",
+      "003": "Đường sinh đạo mờ nhạt",
+      "004": "Đường sinh đạo bị đứt đoạn ở giữa",
+      "005": "Đường sinh đạo có nhánh",
+      "006": "Đường trí đạo dài và thẳng",
+      "007": "Đường trí đạo dài và cong mềm mại",
+      "008": "Đường trí đạo ngắn",
+      "009": "Đường trí đạo bắt đầu tách rời đường sinh đạo",
+      "010": "Đường trí đạo bắt đầu dính liền đường sinh đạo",
+      "011": "Đường tình cảm sâu và cong",
+      "012": "Đường tình cảm thẳng",
+      "013": "Đường tình cảm hướng xuống dưới ngón trỏ",
+      "014": "Đường tình cảm hướng xuống dưới ngón giữa",
+      "015": "Đường tình cảm có nhiều nhánh nhỏ",
+      "016": "Đường vận mệnh rõ ràng đi lên ở trung tâm",
+      "017": "Đường vận mệnh mờ hoặc yếu",
+      "018": "Đường vận mệnh bắt đầu từ đường sinh đạo",
+      "019": "Đường vận mệnh bắt đầu từ Gò Nguyệt",
+      "020": "Đường vận mệnh bị đứt đoạn",
+      "021": "Đường Thái Dương rõ ràng",
+      "022": "Đường Thái Dương mờ",
+      "023": "Đường Thái Dương yếu hoặc không cảm nhận được",
+      "024": "Đường tài lộc hình chữ M",
+      "025": "Đường tài lộc rõ ràng",
+      "026": "Đường tài lộc nhiều nhánh",
+      "027": "Đường tài lộc mờ",
+      "028": "Đường quan hệ rõ ràng",
+      "029": "Đường quan hệ có nhiều đường nhỏ",
+      "030": "Đường quan hệ hướng lên trên",
+      "031": "Đường quan hệ nghiêng xuống dưới",
+      "032": "Đường Thủy Tinh rõ ràng",
+      "033": "Đường Thủy Tinh bị đứt đoạn",
+      "034": "Đường Thủy Tinh mờ",
+      "035": "Bàn tay có đường trực giác",
+      "036": "Đường trực giác mờ",
+      "037": "Bàn tay có nhiệt độ tình cảm cao",
+      "038": "Bàn tay sự nghiệp thực tế",
+      "039": "Bàn tay có trực giác và trí tưởng tượng mạnh mẽ",
+      "040": "Bàn tay mở đường bằng cách thể hiện hơn là đi theo lối mòn",
+      "041": "Bàn tay giao tiếp tốt, đọc hiểu tín hiệu quan hệ",
+      "042": "Bản chất có khả năng phục hồi tốt nhưng hiện tại tiêu hao nhiều năng lượng",
+      "043": "Bàn tay đã phát triển năng lượng thông qua việc tự quản lý hậu thiên",
+      "044": "Bản chất nhạy cảm nhưng hiện tại khả năng phán đoán thực tế được tăng cường",
+      "045": "Bàn tay đã mở rộng từ lý trí sang trực giác",
+      "046": "Bàn tay đã điều chỉnh cảm xúc sâu sắc một cách phòng thủ",
+      "047": "Bàn tay đã mở lòng thể hiện cảm xúc thông qua trải nghiệm quan hệ",
+      "048": "Trong cuộc sống hiện tại, ý thức mục tiêu và định hướng xã hội được tăng cường",
+      "049": "Bàn tay đang sắp xếp lại định hướng ban đầu",
+      "050": "Bàn tay có chiều sâu cảm xúc và trực giác sống động"
+    }
+  },
+  "palmMap": {
+    "001": "Đường chỉ tay Simian (đường ngang)",
+    "002": "Đường chỉ tay chữ M",
+    "003": "Gò Mộc Tinh phát triển + Trục tăng trưởng nổi bật",
+    "004": "Gò Thổ Tinh phát triển + Đường vận mệnh rõ ràng",
+    "005": "1. Đọc chỉ tay tổng hợp",
+    "006": "2. Giải thích bàn tay bẩm sinh / bàn tay hậu thiên",
+    "007": "3. Phân tích đường sinh đạo",
+    "008": "4. Phân tích đường trí đạo",
+    "009": "5. Phân tích đường tình cảm",
+    "010": "6. Phân tích đường vận mệnh",
+    "011": "7. Phân tích đường Tài lộc/Thái dương",
+    "012": "8. Phân tích đường Tình duyên/Hôn nhân",
+    "013": "9. Phân tích tổng hợp 9 gò",
+    "014": "10. Giải thích tổ hợp chỉ tay",
+    "015": "10-1. Các mẫu chỉ tay đặc biệt",
+    "016": "11. Giải thích dòng chảy theo khu vực",
+    "017": "12. 5 điểm mạnh",
+    "018": "13. 5 điểm cần lưu ý",
+    "019": "14. Lời khuyên tùy chỉnh"
+  },
+  "rd": {
+    "aria-label": {
+      "001": "Chọn phiên bản Tứ Trụ 4 khung"
+    },
+    "cta": {
+      "001": "🐾 Triệu hồi linh vật hộ mệnh của tôi",
+      "002": "💞 Mở khóa địa điểm nhân duyên của tôi",
+      "003": "💕 Mở khóa Mã tình yêu",
+      "004": "✨ Xem chi tiết phân tích sức hút",
+      "005": "⚡ Mở toàn bộ Lượng tử Minh lý",
+      "006": "💚 Kiểm tra báo cáo sức khỏe",
+      "007": "🤖 Xem gợi ý miễn phí",
+      "008": "🎮 Mở cây kỹ năng",
+      "009": "🧊 Xem kết quả bài kiểm tra cực T",
+      "010": "❤️ Xem phân tích Teto/Egen",
+      "011": "🗺️ Xem báo cáo địa điểm du lịch",
+      "012": "⚠️ Mở báo cáo nhân vật phản diện",
+      "013": "Xem báo cáo Xổ số Lượng tử",
+      "014": "📔 Mở Nhật ký Tứ Trụ",
+      "015": "📸 Mở Tứ Trụ 4 khung",
+      "016": "🏠 Vào Ngôi nhà bí mật"
+    },
+    "description": {
+      "001": "Năng lượng Thập Nhị Vận Tinh của lá số Tứ Trụ của bạn được mở ra dưới dạng nguyên mẫu động vật, phản ánh cốt lõi tính cách, kiểu mẫu tình yêu, xu hướng nghề nghiệp, hợp duyên quan hệ và nhiệm vụ hành động trong ngày.",
+      "002": "Dựa trên Ngũ Hành/Dụng Thần của Tứ Trụ, chúng tôi đề xuất các địa điểm, quốc gia, thời điểm và vật phẩm định mệnh để nhân duyên của bạn được mở ra, dưới dạng báo cáo cảm xúc.",
+      "003": "Tìm kiếm nhân cách tình yêu giống bạn nhất dựa trên Ngũ Hành Tứ Trụ, và kiểm tra sự tương hợp qua mô phỏng hẹn hò có lựa chọn."
+    },
+    "label": {
+      "001": "Lớp sức hút của tôi",
+      "002": "Công cụ Lượng tử Minh lý",
+      "003": "Báo cáo sức khỏe Minh lý",
+      "004": "Gợi ý AI Tứ Trụ",
+      "005": "Cây kỹ năng cuộc đời",
+      "006": "Bài kiểm tra cực T",
+      "007": "Teto vs Egen",
+      "008": "Địa điểm du lịch theo Tứ Trụ",
+      "009": "Danh sách đen nhân vật phản diện",
+      "010": "Báo cáo Xổ số Lượng tử",
+      "011": "Nhật ký Tứ Trụ",
+      "012": "Tứ Trụ 4 khung: Bộ lọc vận mệnh",
+      "013": "Ngôi nhà bí mật: Mô phỏng tình yêu",
+      "014": "Bộ lọc vận mệnh",
+      "015": "DM Tình yêu",
+      "016": "Thói quen sống tốt",
+      "017": "Ngăn chặn lịch sử đen"
+    },
+    "title": {
+      "001": "Bài kiểm tra động vật Thập Nhị Vận Tinh Tứ Trụ",
+      "002": "Địa điểm nhân duyên theo Tứ Trụ",
+      "004": "Bộ lọc vận mệnh MZ BẬT",
+      "005": "Tín hiệu tình yêu 4 khung",
+      "006": "Check-in cuộc sống hôm nay",
+      "007": "Bộ lọc chống lịch sử đen",
+      "008": "1. Chỉ số Vibe của bản thân",
+      "009": "2. Ấn tượng đầu vs hiện tại",
+      "010": "3. Bản đồ tư duy",
+      "011": "4. May mắn hôm nay",
+      "012": "1. Ấn tượng đầu tiên",
+      "013": "2. Nhiệt độ tán tỉnh",
+      "014": "3. Bản đồ tư duy tình cảm",
+      "015": "4. Hành động yêu thương hôm nay",
+      "016": "1. Nút khởi động ngày mới",
+      "017": "2. Chế độ làm việc hiệu quả",
+      "018": "3. Gói nạp tập trung",
+      "019": "4. Gói may mắn trước khi tan sở",
+      "020": "1. Cảnh báo bốc đồng",
+      "021": "2. Chống lỡ lời",
+      "022": "3. Khóa chi tiêu",
+      "023": "4. Lời chú bảo vệ",
+      "024": "Tứ Trụ bốn khung: Bộ lọc vận mệnh"
+    }
+  },
+  "seoLanding": {
+    "description": {
+      "001": "Đây là trang hướng dẫn Tứ Trụ miễn phí, xem xét xu hướng và dòng chảy lựa chọn thông qua cấu trúc cơ bản của Tứ Trụ Bát Tự, cân bằng Ngũ Hành, Thập Thần và đại vận.",
+      "002": "Hướng dẫn cách kiểm tra Tứ Trụ Bát Tự, Ngũ Hành, Thập Thần và dòng chảy đại vận dựa trên ngày, tháng, năm, giờ sinh.",
+      "003": "Vận mệnh hôm nay giúp bạn nhẹ nhàng kiểm tra tình trạng, các mối quan hệ, ưu tiên công việc trong ngày và sắp xếp các lựa chọn để thực hiện.",
+      "004": "Trang Vận mệnh hôm nay giúp bạn nhanh chóng kiểm tra tình trạng, dòng chảy mối quan hệ, ưu tiên lịch trình khi bắt đầu hoặc kết thúc một ngày.",
+      "005": "Xem xét nhịp điệu mối quan hệ, cách giao tiếp, điểm phục hồi xung đột của hai người từ góc độ Tứ Trụ và vận mệnh, sau đó sắp xếp thành tiêu chuẩn đối thoại thực tế.",
+      "006": "Đây là trang hướng dẫn hợp duyên Tứ Trụ, đọc cấu trúc Tứ Trụ của hai người từ góc độ nhịp điệu mối quan hệ, mô hình xung đột và cách giao tiếp.",
+      "007": "Thông qua các lá bài Tarot, bạn có thể bình tĩnh sắp xếp các câu hỏi hiện tại, dòng chảy tình yêu, khả năng tái hợp, hướng đi của trái tim và nhận được những câu tự vấn cùng gợi ý thực hành cho lựa chọn tiếp theo.",
+      "008": "Tarot tái hợp là một bài đọc xem xét khoảng cách hiện tại với đối phương, thời điểm liên lạc, dư âm cảm xúc qua dòng chảy của các lá bài.",
+      "009": "Tarot tâm ý đối phương sắp xếp cảm xúc hiện tại, những tín hiệu chưa nói ra và lựa chọn tiếp theo trong mối quan hệ từ góc độ tự vấn.",
+      "010": "Dựa trên 12 cung, Mệnh cung, Thân cung, Tứ Hóa và sự sắp xếp các sao trong lá số Tử Vi Đẩu Số, sắp xếp các xu hướng, nghề nghiệp, mối quan hệ và dòng chảy đại vận/lưu niên thành các câu văn tư vấn.",
+      "011": "Thông qua Cung Mặt Trời, Cung Mặt Trăng, Cung Mọc và cấu trúc cơ bản của biểu đồ sinh trong Chiêm tinh học phương Tây, xem xét xu hướng và nhịp điệu mối quan hệ, đồng thời hướng dẫn dễ hiểu về điểm khởi đầu và lưu ý khi giải đoán biểu đồ.",
+      "012": "Dựa trên 27 Túc Diệu và phương pháp quan hệ của mặt trăng trong Túc Diệu, xem xét khoảng cách duyên phận, mô hình xung đột, dòng chảy phục hồi và sắp xếp các tiêu chuẩn đọc mối quan hệ cùng gợi ý đối thoại cho người mới bắt đầu.",
+      "013": "Hướng dẫn dễ hiểu về biểu đồ Jyotish, cung mặt trăng, dòng chảy Dasha trong Chiêm tinh học Vệ Đà cho người mới bắt đầu, đồng thời sắp xếp trục giải đoán và cách ứng dụng khác biệt so với Chiêm tinh học phương Tây theo kiểu thực chiến.",
+      "014": "Đây là hướng dẫn giải mã giấc mơ, xem xét các biểu tượng và cảm xúc còn lại trong giấc mơ, kết nối chúng với căng thẳng, mối quan hệ và dòng chảy lựa chọn trong thực tế.",
+      "015": "Nội dung về tướng số được cung cấp như thông tin tham khảo để nhìn lại cách thể hiện bản thân và phong cách giao tiếp, không phải là đánh giá cố định về ấn tượng khuôn mặt.",
+      "016": "Báo cáo Premium là dịch vụ tùy chọn mở rộng phân tích chuyên sâu dạng tài liệu từ các giải thích miễn phí cơ bản, cho phép bạn kiểm tra phạm vi và lưu ý trước khi thanh toán.",
+      "017": "Trang Vận tình duyên xem xét dòng chảy mối quan hệ hiện tại, khoảng cách với đối phương, manh mối đối thoại từ góc độ Tứ Trụ và Tarot.",
+      "018": "Báo cáo vận mệnh Premium của Code Destiny sắp xếp Tứ Trụ, tình duyên, dòng chảy năm mới dưới dạng tài liệu dựa trên các giá trị đầu vào đã được xác minh.",
+      "019": "PDF Sách cuộc đời là báo cáo Premium được tạo ra sau khi xác nhận quyền thanh toán và xác minh dữ liệu đầu vào của người dùng cùng dữ liệu tính toán Tứ Trụ.",
+      "020": "PDF Báo cáo tình duyên sắp xếp dòng chảy tình yêu, cách giao tiếp, điểm phục hồi sau khi xác minh dữ liệu đầu vào mối quan hệ và giải thích dựa trên Tứ Trụ.",
+      "021": "PDF Vận mệnh năm mới là tài liệu vận mệnh Premium xem xét dòng chảy sự nghiệp, tài lộc, mối quan hệ, sức khỏe hàng tháng trong năm mới."
+    },
+    "title": {
+      "001": "Phân tích Tứ Trụ Bát Tự miễn phí | Dòng chảy Ngũ Hành·Thập Thần·Đại vận",
+      "002": "Phân tích Tứ Trụ Vạn Niên Lịch miễn phí | Giải thích Ngũ Hành·Thập Thần·Đại vận",
+      "003": "Xem Vận mệnh hôm nay miễn phí | Hướng dẫn dòng chảy và lựa chọn trong ngày",
+      "004": "Kiểm tra Vận mệnh hôm nay ngay | Kiểm tra tình trạng·mối quan hệ·lịch trình",
+      "005": "Xem hợp duyên miễn phí | Phân tích Tứ Trụ·mối quan hệ tình yêu",
+      "006": "Giải thích hợp duyên Tứ Trụ miễn phí | Dòng chảy mối quan hệ và cách giao tiếp",
+      "007": "Đọc bài Tarot miễn phí | Giải thích tình yêu·tái hợp·tâm ý",
+      "008": "Đọc Tarot tái hợp | Khả năng tái hợp và khoảng cách",
+      "009": "Tarot tâm ý đối phương | Dòng chảy tâm ý và tín hiệu mối quan hệ",
+      "010": "Tư vấn chuyên sâu Tử Vi Đẩu Số 12 cung | Giải thích Mệnh cung·Thân cung·Tứ Hóa·Đại vận",
+      "011": "Biểu đồ chiêm tinh miễn phí | Giải thích Mặt Trời, Mặt Trăng, Cung Mọc",
+      "012": "Hợp duyên Túc Diệu 27 chòm sao | Khoảng cách duyên phận và dòng chảy quan hệ",
+      "013": "Giải thích chiêm tinh Vệ Đà miễn phí | Lá số Jyotish và dòng chảy Dasha",
+      "014": "Giải mã giấc mơ miễn phí | Giải thích biểu tượng giấc mơ và dòng chảy tâm lý",
+      "015": "Hướng dẫn vận mệnh tướng số | Giải thích ấn tượng khuôn mặt và cách thể hiện bản thân",
+      "016": "Báo cáo vận mệnh cao cấp | Giải thích chuyên sâu Tứ Trụ, Tử Vi Đẩu Số, Chiêm tinh",
+      "017": "Xem vận tình duyên miễn phí | Dòng chảy cảm xúc và hướng quan hệ",
+      "018": "Hướng dẫn báo cáo vận mệnh cao cấp | Tứ Trụ, Tình duyên, Năm mới PDF",
+      "019": "Hướng dẫn PDF Sách Cuộc Đời | Báo cáo dài dựa trên Tứ Trụ",
+      "020": "Hướng dẫn PDF Báo cáo Tình duyên | Phân tích chuyên sâu dòng chảy quan hệ",
+      "021": "Hướng dẫn PDF Vận mệnh Năm mới | Dòng chảy năm mới và hướng dẫn hàng tháng"
+    }
+  },
+  "share": {
+    "001": "🐷 Vạn Niên Lịch Heo Con",
+    "002": "🐷 Bài Tarot Heo Con của Yeoni",
+    "003": "✨ Biểu đồ Vũ Trụ Chiêm tinh",
+    "004": "Kết quả Túc Diệu cơ bản miễn phí",
+    "005": "🌌 Kết quả Tử Vi Đẩu Số",
+    "006": "Sách Cuộc Đời Tứ Trụ",
+    "007": "💕 Bí Kíp Tình Yêu",
+    "008": "Bạn cần mở lá số Tứ Trụ gốc trước để nhận được năng lượng chính xác mỗi ngày. Vui lòng nhập ngày sinh và hoàn tất phân tích Tứ Trụ.",
+    "009": "Không thể tải mô-đun tính toán để mở hồ sơ đã lưu. Vui lòng làm mới và thử lại.",
+    "010": "Không thể mở lại lá số Tứ Trụ gốc từ hồ sơ đã lưu. Vui lòng chọn lại hồ sơ và đăng ký.",
+    "011": "Không thể tải mô-đun tính toán vận mệnh. Vui lòng làm mới và thử lại.",
+    "012": "Không thể tạo dữ liệu vận mệnh. Vui lòng thử lại sau giây lát.",
+    "013": "Vui lòng thử lại sau giây lát."
+  },
+  "tarotInterpretation": {
+    "label": {
+      "001": "Tình yêu",
+      "002": "Mối quan hệ",
+      "003": "Tái hợp",
+      "004": "Tâm tư của đối phương",
+      "005": "Tâm trạng hiện tại",
+      "006": "Diễn biến gần đây",
+      "007": "Sự nghiệp và công việc",
+      "008": "Tiền bạc",
+      "009": "Hôm nay",
+      "010": "Chữa lành",
+      "011": "Vận mệnh năm",
+      "012": "Tiêu chuẩn bản thân",
+      "013": "Tổng hợp",
+      "014": "Cách tôi nhìn đối phương",
+      "015": "Cách đối phương nhìn nhận toàn bộ mối quan hệ",
+      "016": "Tâm tư đối phương dành cho tôi",
+      "017": "Ý chí và khát vọng tình yêu của đối phương",
+      "018": "Yếu tố cốt lõi cản trở mối quan hệ",
+      "019": "Dòng chảy gần và tiêu chí lựa chọn",
+      "020": "Cốc (Nước)",
+      "021": "Gậy (Lửa)",
+      "022": "Kiếm (Khí)",
+      "023": "Tiền (Đất)",
+      "024": "Ẩn chính",
+      "025": "Bộ hỗn hợp"
+    },
+    "title": {
+      "001": "Thực hành sắp xếp lựa chọn",
+      "002": "Thực hành xác nhận lo lắng",
+      "003": "Thực hành khôi phục tiêu chuẩn thực tế",
+      "004": "Tâm tư còn lại",
+      "005": "Dấu vết tâm tư đối phương",
+      "006": "Tín hiệu thực tế khi liên lạc ngừng",
+      "007": "Khoảng cách có thể chạm tới lần nữa",
+      "008": "Điều kiện và tiêu chí phục hồi mối quan hệ"
+    }
+  },
+  "tarotSpread": {
+    "label": {
+      "001": "Điểm cốt lõi hôm nay",
+      "002": "Quá khứ",
+      "003": "Hiện tại",
+      "004": "Tương lai",
+      "005": "Nguyên nhân",
+      "006": "Quá trình",
+      "007": "Kết quả",
+      "008": "Tôi nhìn đối phương",
+      "009": "Đối phương nhìn toàn bộ mối quan hệ",
+      "010": "Tâm tư đối phương nhìn tôi",
+      "011": "Ý chí và khát vọng yêu đương của đối phương",
+      "012": "Yếu tố cốt lõi cản trở mối quan hệ",
+      "013": "Kết quả ngắn hạn sắp diễn ra",
+      "014": "Sự thật ẩn giấu",
+      "015": "Chấp nhận cảm xúc",
+      "016": "Manh mối phục hồi",
+      "017": "Hành động tiếp theo",
+      "018": "Tâm tư còn lại",
+      "019": "Dấu vết tâm tư đối phương",
+      "020": "Tín hiệu thực tế khi liên lạc ngừng",
+      "021": "Khoảng cách có thể chạm tới lần nữa",
+      "022": "Điều kiện và tiêu chí phục hồi mối quan hệ",
+      "023": "Nhịp điệu cơ bản của một năm",
+      "024": "Cánh cửa và cơ hội cần vượt qua",
+      "025": "Thành quả và điều chỉnh cuối năm",
+      "026": "Lý do tôi phải để ý người khác",
+      "027": "Tại sao tôi khó từ chối",
+      "028": "Tổn hại từ thói quen để ý người khác",
+      "029": "Cách chịu đựng sự thất vọng của người khác",
+      "030": "Cách ưu tiên chăm sóc tâm tư của mình",
+      "031": "Dấu vết công việc đang hồi sinh",
+      "032": "Hướng ít hao tổn hơn",
+      "033": "Thiên chức của tâm hồn",
+      "034": "Cuộc sống sau ngưỡng cửa",
+      "035": "Hành động đầu tiên mở ra thực tế",
+      "036": "Tiêu chuẩn cũ cần từ bỏ",
+      "037": "Tiêu chuẩn giữ lại và hướng đi",
+      "038": "Thái độ bên ngoài",
+      "039": "Tâm tư thật sự",
+      "040": "Lý do không đến gần",
+      "041": "Mong muốn tiềm ẩn",
+      "042": "Đánh giá về mối quan hệ"
+    },
+    "title": {
+      "001": "Tarot hôm nay",
+      "002": "Quá khứ - Hiện tại - Tương lai",
+      "003": "Nguyên nhân - Quá trình - Kết quả",
+      "004": "Tarot mối quan hệ của chúng ta",
+      "005": "Tarot chữa lành và thăng hoa",
+      "006": "Vận tái hợp đêm sao biển",
+      "007": "12 lá bài hàng năm",
+      "008": "3 lá bài hàng năm",
+      "009": "Tarot nâng cấp lòng tự trọng",
+      "010": "7 lá bài ngưỡng cửa công việc",
+      "011": "Tarot nội tâm đối phương"
+    }
   }
 }

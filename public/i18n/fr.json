@@ -4182,7 +4182,59 @@
     "partialFree": "Partiellement gratuit",
     "deepReportPrice": "Rapport approfondi 10 000 KRW",
     "freeAnalysis": "ANALYSE GRATUITE",
-    "title": "Système Sibylle",
+    "title": {
+      "001": "CH.01 Matrice du Cœur de Sibylle",
+      "002": "CH.02 Analyse précise du facteur de risque",
+      "003": "CH.03 Analyse précise du facteur d'aptitude",
+      "004": "CH.04 Dix Dieux dominants et schémas comportementaux",
+      "005": "CH.05 Équilibre des Cinq Éléments et conception énergétique",
+      "006": "CH.06 Interprétation du graphique des facteurs de risque sur 10 ans",
+      "007": "CH.07 Planificateur de risques mensuel",
+      "008": "CH.08 Relations et schémas affectifs",
+      "009": "CH.09 Stratégies financières et professionnelles",
+      "010": "CH.10 Guide d'exécution final",
+      "011": "Stabilité du cœur",
+      "012": "Capacité d'exécution de carrière",
+      "013": "Gestion financière",
+      "014": "Relations/Collaboration",
+      "015": "Résilience",
+      "016": "Alignement Quantique des Quatre Piliers",
+      "017": "CH.01 Matrice du Cœur de Sibylle",
+      "018": "CH.02 Analyse précise du facteur de risque",
+      "019": "CH.03 Analyse précise du facteur d'aptitude",
+      "020": "CH.04 Dix Dieux dominants et schémas comportementaux",
+      "021": "CH.05 Équilibre des Cinq Éléments et conception énergétique",
+      "022": "CH.06 Analyse du graphique des facteurs de risque sur 10 ans",
+      "023": "CH.07 Planificateur de risques mensuel",
+      "024": "CH.08 Relations et schémas affectifs",
+      "025": "CH.09 Stratégies financières et professionnelles",
+      "026": "CH.10 Guide d'exécution final",
+      "027": "[Dominance Shi Shen] Relation de don naturel",
+      "028": "[Dominance Shang Guan] Relation provocatrice et affirmée",
+      "029": "[Dominance Pian Cai] Énergie interpersonnelle expansive et contrôlante",
+      "030": "[Dominance Zheng Cai] Relation prudente et dévouée",
+      "031": "[Dominance Pian Guan] Structure interpersonnelle charismatique et dominante",
+      "032": "[Dominance Zheng Guan] Relation centrée sur les principes et la responsabilité",
+      "033": "[Dominance Pian Yin] Schéma relationnel original et distant",
+      "034": "[Dominance Zheng Yin] Structure relationnelle axée sur l'apprentissage et le soutien",
+      "035": "[Dominance Bi Jian] Énergie interpersonnelle indépendante et compétitive",
+      "036": "[Dominance Jie Cai] Schéma relationnel de survie et stratégique",
+      "037": "Zi Shui (子水) — Point de départ",
+      "038": "Chou Tu (丑土) — Trésor scellé",
+      "039": "Yin Mu (寅木) — Graine d'allumage",
+      "040": "Mao Mu (卯木) — Lame silencieuse",
+      "041": "Chen Tu (辰土) — Entrepôt du dragon (réservoir d'eau)",
+      "042": "Si Huo (巳火) — Circuit de détonation",
+      "043": "Wu Huo (午火) — Zénith du soleil",
+      "044": "Wei Tu (未土) — Crépuscule d'été",
+      "045": "Shen Jin (申金) — Couteau de refroidissement",
+      "046": "You Jin (酉金) — Pointe de lame pure",
+      "047": "Xu Tu (戌土) — Tombe du feu",
+      "048": "Hai Shui (亥水) — Circuit profond",
+      "049": "Mode croissance stable — Maintien précis de la trajectoire actuelle",
+      "050": "Mode ajustement des risques — Réorganisation de la séquence d'exécution",
+      "051": "Mode réorganisation intensive — Réinitialisation de la structure nécessaire"
+    },
     "subtitle": "Analyse des aptitudes professionnelles et des coefficients de risque de destin basée sur le saju",
     "tags": {
       "hue": "Diagnostic des couleurs de teinte Destiny",
@@ -4266,7 +4318,19 @@
       "graphTitle": "Graphique du coefficient de risque sur 10 ans (basé sur la fortune annuelle)",
       "reportTitle": "◆ RAPPORT DU DOMINATEUR",
       "remedyTitle": "◆ Prescription du Remède du Destin"
-    }
+    },
+    "label": {
+      "001": "Neutre"
+    },
+    "message": {
+      "001": "La requête API a échoué.",
+      "002": "Les informations de prix de paiement sont incorrectes.",
+      "003": "Le paiement a été annulé.",
+      "004": "La confirmation du paiement en KRW est requise.",
+      "005": "Impossible de vérifier l'état de déverrouillage. Veuillez réessayer plus tard.",
+      "006": "Le résultat de la génération du rapport ne répond pas aux critères."
+    },
+    "entryTitle": "Système Sibylle"
   },
   "admin": {
     "flowerButton": "Bouton fleur"
@@ -5901,8 +5965,8 @@
     "sq_8708_attr_placeholder": "Saisie facultative",
     "sq_8943_prop_label": "Dongsuk (同宿)",
     "sq_8944_prop_label": "Proche (Near)",
-    "sq_8945_prop_label": "Moyenne (Middle)",
-    "sq_8946_prop_label": "Lointaine (Far)",
+    "sq_8945_prop_label": "Moyen (Middle)",
+    "sq_8946_prop_label": "Lointain (Far)",
     "sq_8976_prop_label": "Miroir de l'âme",
     "sq_8977_prop_label": "Flamme du karma",
     "sq_8978_prop_label": "Jardin doré",
@@ -5910,23 +5974,1265 @@
     "sq_8980_prop_label": "Forteresse sur lignes parallèles",
     "sq_8981_prop_label": "Relation de forte stimulation",
     "sq_9307_prop_label": "Dynamique spirituelle",
-    "sq_9308_prop_label": "Complémentarité réaliste",
+    "sq_9308_prop_label": "Complémentarité réelle",
     "sq_9309_prop_label": "Réconfort psychologique",
     "sq_9334_prop_label": "Dynamique spirituelle",
-    "sq_9335_prop_label": "Complémentarité réaliste",
+    "sq_9335_prop_label": "Complémentarité réelle",
     "sq_9336_prop_label": "Réconfort psychologique",
     "sq_9363_prop_label": "Dynamique spirituelle",
-    "sq_9364_prop_label": "Complémentarité réaliste",
+    "sq_9364_prop_label": "Complémentarité réelle",
     "sq_9365_prop_label": "Réconfort psychologique",
     "sq_9390_prop_label": "Dynamique spirituelle",
-    "sq_9391_prop_label": "Complémentarité réaliste",
+    "sq_9391_prop_label": "Complémentarité réelle",
     "sq_9392_prop_label": "Réconfort psychologique",
     "sq_9417_prop_label": "Dynamique spirituelle",
-    "sq_9418_prop_label": "Complémentarité réaliste",
+    "sq_9418_prop_label": "Complémentarité réelle",
     "sq_9419_prop_label": "Réconfort psychologique",
     "sq_9451_prop_label": "Dynamique spirituelle (innovation disruptive)",
-    "sq_9454_prop_label": "Complémentarité réaliste (économie de la stimulation)",
+    "sq_9454_prop_label": "Complémentarité réelle (économie de la stimulation)",
     "sq_9457_prop_label": "Réconfort psychologique (réconfort du paradoxe)",
-    "sq_9794_attr_aria_label": "Graphique radar de la connexion Sukuyo"
+    "sq_9794_attr_aria_label": "Diagramme radar de compatibilité Sukuyo"
+  },
+  "shell": {
+    "CODEDESTINY": "CODE DESTINY | Quatre Piliers (BaZi)·Tarot·Zi Wei Dou Shu·Compatibilité gratuits — Lecture de chance",
+    "cdCookieConsentCopy": {
+      "cdCookieConsentActions": {
+        "kniuoqf": "Accepter",
+        "kw6ku0": "Essentiels seulement",
+        "kxy7l": "Paramètres"
+      }
+    },
+    "cdCookieConsentMain": {
+      "cdCookieConsentCopy": {
+        "k12mjipg": "Nous utilisons des cookies essentiels pour la connexion et la prévention des requêtes excessives. En acceptant, vos préférences de visite seront également conservées dans ce navigateur.",
+        "k1nqxhwe": "Avis sur les cookies, silencieux comme la lune"
+      }
+    },
+    "cdCookieSettingsPanel": {
+      "cdCookieConsentRow": {
+        "k2yf8r8": "Vos préférences linguistiques et le statut de confirmation des avis seront conservés plus sereinement lors de votre prochaine visite.",
+        "k602xow": "Cookies essentiels",
+        "kao88ih": {
+          "ariaLabel": "Toujours utiliser les cookies essentiels"
+        },
+        "kfpcszr": "Utilisés pour maintenir la connexion, protéger les paiements et bloquer les requêtes répétées dans la même session.",
+        "km6l38": "Cookies de préférence",
+        "krpclxc": "Toujours activé"
+      },
+      "k58noo": "Enregistrer la sélection"
+    },
+    "cdFooterBrandcol": {
+      "cdFooterSocial": {
+        "CODEDESTINY": {
+          "ariaLabel": "Ouvrir la chaîne YouTube officielle de CODE DESTINY dans une nouvelle fenêtre"
+        },
+        "CODEDESTINY2": {
+          "ariaLabel": "Ouvrir le fil Threads officiel de CODE DESTINY dans une nouvelle fenêtre"
+        },
+        "CODEDESTINY3": {
+          "ariaLabel": "Ouvrir le compte Instagram officiel de CODE DESTINY dans une nouvelle fenêtre"
+        },
+        "CODEDESTINY4": {
+          "ariaLabel": "Ouvrir le blog officiel de CODE DESTINY dans une nouvelle fenêtre"
+        },
+        "CODEDESTINYX": {
+          "ariaLabel": "Ouvrir le compte X officiel de CODE DESTINY dans une nouvelle fenêtre"
+        }
+      }
+    },
+    "cdFooterBusinessDetails": {
+      "k1l49wo": "Informations commerciales"
+    },
+    "cdFortunePick": {
+      "cdFortunePickGrid": {
+        "k16fnr7j": {
+          "ariaLabel": "Voir le thème natal d'astrologie occidentale"
+        },
+        "k1i48xlw": {
+          "ariaLabel": "Commencer l'analyse des Quatre Piliers (BaZi)"
+        },
+        "k1i8xvv0": {
+          "ariaLabel": "Commencer la lecture de tarot"
+        },
+        "k1yi7np5": {
+          "ariaLabel": "Voir l'astrologie védique"
+        },
+        "kb9ueah": {
+          "ariaLabel": "Voir le thème natal Zi Wei Dou Shu"
+        },
+        "kzkddyf": {
+          "ariaLabel": "Voir le Sukuyo"
+        }
+      }
+    },
+    "cdHomeGuide": {
+      "cdHomeGuideInner": {
+        "ki3vjq4": {
+          "ariaLabel": "Voir plus de lectures"
+        }
+      }
+    },
+    "cdMobileBottomNav": {
+      "cdMobileBottomNavMain": {
+        "k10ios": "Tarot",
+        "k16bs": "Accueil",
+        "kwp0s": "Mon",
+        "kxro3": "Consultation",
+        "kxvio": "Quatre Piliers (BaZi)"
+      },
+      "cdMobileBottomNavQuick": {
+        "k10ios": "Tarot",
+        "km4uz9x": "Fleurs/Rêves",
+        "ksmbj4": "Zodiaque",
+        "kwuu0": "Gratuit",
+        "kxro3": "Consultation",
+        "kxvio": "Quatre Piliers (BaZi)",
+        "kyajl": "Oracle",
+        "kyzcp": "Musique"
+      },
+      "k15q82ek": {
+        "ariaLabel": "Catégories rapides"
+      }
+    },
+    "cdMobileHeader": {
+      "CODEDESTINY": {
+        "ariaLabel": "Accueil CODE DESTINY"
+      },
+      "cdMobileHeaderSearch": {
+        "kuedl": "Rechercher"
+      }
+    },
+    "cdMobileHeaderActions": {
+      "themeSwitchWrapper": {
+        "ks7htym": {
+          "ariaLabel": "Sélectionner le mode Yeoni · Neo"
+        }
+      }
+    },
+    "cdMobileSajuDetailToggle": {
+      "k1x09e8d": "Saisissez l'heure et le lieu de naissance plus précisément",
+      "kox0lg9": "Si vous ne savez pas, vous pouvez commencer tel quel."
+    },
+    "cdStickyCta": {
+      "k1uaylpd": {
+        "ariaLabel": "Commencer une lecture gratuite"
+      }
+    },
+    "dfStudioPanels": {
+      "dfPanel": {
+        "ChatGPT": "🤖 Demander à ChatGPT",
+        "k1if9omc": "🤖 Demander à Claude",
+        "k2syr3s": "🤖 Demander à Gemini",
+        "kkpkasn": "🤖 Demander à Grok"
+      }
+    },
+    "featureBegin": {
+      "k162lweo": {
+        "ariaLabel": "Accéder à la lecture par groupe sanguin"
+      },
+      "k1axy73w": {
+        "ariaLabel": "Accéder à l'invite de lecture complète"
+      },
+      "k1razrl4": {
+        "ariaLabel": "Accéder au poisson diseur de bonne aventure"
+      },
+      "k1rbp4zc": {
+        "ariaLabel": "Accéder au test psychologique"
+      },
+      "kqd75ua": {
+        "ariaLabel": "Accéder à la physionomie animale AI"
+      },
+      "kuaxa2s": {
+        "ariaLabel": "Accéder au Nakshatra"
+      },
+      "moonPreviewCard": {
+        "k121t48l": "Tendances par type",
+        "k1lmbq6k": "Mot du jour",
+        "k1sdh2me": "Physionomie animale AI",
+        "k1ujvbvb": "Voir l'esprit légèrement",
+        "k53h7ds": "Test psychologique",
+        "k79pfmc": "Nakshatra",
+        "k871xeu": "Gratuit · Analyse faciale selfie",
+        "ka0v1mf": "Gratuit · 11 outils",
+        "kry6axn": "27 Nakshatras lunaires",
+        "kslqazg": "Invite de lecture complète",
+        "kxgi8q8": "Poisson diseur de bonne aventure",
+        "kxqdi2w": "Lecture par groupe sanguin"
+      }
+    },
+    "featureCardGrid": {
+      "cdPromptFeatureSpotlight": {
+        "k11st5nn": {
+          "ariaLabel": "Ouvrir le salon de thé du destin de Yeoni"
+        },
+        "k14fkdom": {
+          "ariaLabel": "Ouvrir la salle d'opération du destin de Neo"
+        }
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k15l5ccw": {
+          "ariaLabel": "Consultation AI Le Livre de Vie - Mon récit de vie lu avec le thème natal et les questions"
+        },
+        "k1fk3mqf": {
+          "ariaLabel": "Consultation AI Le Secret de l'Amour - Examiner le fil de l'amour avec le thème natal"
+        },
+        "k6gno8d": {
+          "ariaLabel": "Lecture du Nouvel An par IA — votre thème natal et votre cycle annuel répondent à vos questions"
+        }
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "k19ij50j": "Lecture IA du Livre de Vie",
+        "k1c3xcpf": "Lecture IA du Nouvel An"
+      },
+      "lovebibleTile": {
+        "k1s2fcm4": "Lecture IA du Guide Amoureux"
+      }
+    },
+    "honeyMembershipDetails": {
+      "kr1a9l9": "Réduire les avantages Pierre de Clair de Lune"
+    },
+    "honeyMembershipMini": {
+      "honeyMembershipMiniHeader": {
+        "k1yqmdmg": {
+          "ariaLabel": "Informations sur le Pass Clair de Lune"
+        }
+      }
+    },
+    "inputPage": {
+      "featureCardGrid": {
+        "kxv61vt": {
+          "ariaLabel": "Fonction de recommandation de prompts pour les lectures complètes"
+        }
+      },
+      "k1tvi1wd": {
+        "ariaLabel": "Barre supérieure mobile"
+      },
+      "k85zbld": {
+        "ariaLabel": "Navigation rapide mobile"
+      }
+    },
+    "ks7htym": {
+      "ariaLabel": "Sélection du mode Yeoni · Neo"
+    },
+    "lifebookTileBody": {
+      "lifebookTileCta": {
+        "k1dhhisc": "Obtenir une lecture du Nouvel An →",
+        "k7gpmm6": "Saisir les informations de lecture →"
+      },
+      "lifebookTileFeatures": {
+        "k15402w4": "Flux travail et argent",
+        "k187xy2w": "Opportunités et précautions mensuelles",
+        "k18t3d6t": "Lecture travail, argent, relations",
+        "k1cztqgf": "Modèles récurrents",
+        "k1plwjlk": "Talents et forces",
+        "k1tdarhm": "Interprétation cycle de chance et annuel",
+        "k918d8o": "Conseils pratiques",
+        "kclhqv4": "Évaluation du thème natal",
+        "kdq76ml": "Amour et relations",
+        "kdxxogb": "Thèmes de vie clés",
+        "kemt22s": "Point de transition actuel",
+        "kp9tkkd": "Lecture basée sur les Quatre Piliers (BaZi)"
+      }
+    },
+    "lifebookTileInner": {
+      "lifebookTileBody": {
+        "k19ij50j": "Lecture IA du Livre de Vie",
+        "k1c3xcpf": "Lecture IA du Nouvel An",
+        "k1e2ozr5": "Les portes du cycle de chance, du cycle annuel et du cycle mensuel s'ouvrent sur la trame de votre thème natal.",
+        "k1n6j5jj": "Nous relions le tempérament de votre thème natal, le contexte du cycle de chance, les événements du cycle annuel et les fluctuations du cycle mensuel pour identifier les choix et les périodes de prudence de cette année.",
+        "k1x7d2nr": "Votre récit de vie lu à travers votre thème natal et vos questions actuelles",
+        "ktjp1an": "Basé sur votre date de naissance et les thèmes de votre vie, nous dévoilons calmement les schémas récurrents, les talents cachés et les directions à suivre, comme lors d'une consultation."
+      },
+      "lifebookTileLabelRow": {
+        "AI30000": "Lecture IA · 30 000 KRW",
+        "n30000": "30 000 KRW par lecture"
+      }
+    },
+    "logoArea": {
+      "moonTopbar": {
+        "CODEDESTINY": {
+          "ariaLabel": "Aller à l'accueil CODE DESTINY"
+        }
+      }
+    },
+    "lovebibleTileBody": {
+      "lovebibleTileCta": {
+        "k13bcsqk": "Consulter votre amour actuel"
+      }
+    },
+    "lovebibleTileCoinGroup": {
+      "lovebibleTileCoinBadge": {
+        "k11zo0b": "Lecture IA",
+        "n30000": "30 000 KRW"
+      }
+    },
+    "lovebibleTileInner": {
+      "lovebibleTileBody": {
+        "k153vbx2": "Une lecture des Quatre Piliers (BaZi) qui interprète calmement la trame de l'amour",
+        "k1s2fcm4": "Lecture IA du Guide Amoureux",
+        "ko82iqm": "Nous relions le Maître du Jour, la Branche Terrestre du Jour, le Palais des Relations et le flux du cycle annuel pour interpréter avec élégance vos sentiments et vos choix actuels."
+      }
+    },
+    "miscCollection": {
+      "featCollectionGrid": {
+        "LOVECODE": {
+          "ariaLabel": "Démarrer la simulation de compatibilité LOVE CODE Quatre Piliers (BaZi)"
+        },
+        "k1u4tnr8": {
+          "ariaLabel": "Démarrer la lecture animale des Douze Cycles"
+        },
+        "k4i767i": {
+          "ariaLabel": "Démarrer les Lieux du Destin"
+        }
+      }
+    },
+    "myeongriTarotAiPromptPanel": {
+      "kq10md4": "Gemini",
+      "kulph": "Grok",
+      "kvfipg": "Claude"
+    },
+    "normalLogo": {
+      "moonHeroCopy": {
+        "k5pz2jn": "Le chemin de la lecture des étoiles"
+      }
+    },
+    "premiumVvipCollection": {
+      "featCollectionGrid": {
+        "k106qdua": {
+          "ariaLabel": "Voir la lecture IA d'astrologie"
+        },
+        "k10ifevy": {
+          "ariaLabel": "Lecture IA de compatibilité Sukuyo (27 Nakshatras)"
+        },
+        "k12a4ezz": {
+          "ariaLabel": "Aller voir la lecture IA védique"
+        },
+        "k1wc9gw3": {
+          "ariaLabel": "Démarrer la nomination IA premium personnalisée Quatre Piliers (BaZi)"
+        },
+        "k8j5vsv": {
+          "ariaLabel": "Ouvrir la consultation IA pour la lecture de vie complète"
+        },
+        "kic6s9t": {
+          "ariaLabel": "Voir la consultation IA Zi Wei Dou Shu"
+        },
+        "kq2cqae": {
+          "ariaLabel": "L'île du destin Zi Wei Dou Shu — Une carte interactive où votre thème natal devient une île vivante"
+        },
+        "n2727": {
+          "ariaLabel": "Édition définitive des Nakshatras — 27 Sukuyo orientaux × 27 Nakshatras indiens, horoscope intégré"
+        }
+      }
+    },
+    "resultPage": {
+      "ks6nuj0": "🏠 Accueil"
+    },
+    "sukuyoCalendarParking": {
+      "syBasicCalendar": {
+        "kciu67n": {
+          "ariaLabel": "Légende du calendrier"
+        }
+      }
+    },
+    "syBasicCalendar": {
+      "syBasicCalendarDetail": {
+        "k15h7kyw": "Choisissez une date pour découvrir le flux des Sukuyo.",
+        "k1wm3jt8": "Révèle calmement l'étoile où réside le clair de lune d'aujourd'hui.",
+        "kaomk43": "Position du clair de lune"
+      },
+      "syBasicCalendarLegend": {
+        "k1voj0cw": "★ Très bon · Bon · Neutre · Mauvais · Très mauvais"
+      },
+      "syBasicCalendarWeek": {
+        "k10vd": "Jeu",
+        "k12c8": "Mer",
+        "k139w": "Lun",
+        "k13ek": "Dim",
+        "k15eo": "Sam",
+        "k16c4": "Mar",
+        "kydk": "Ven"
+      }
+    },
+    "syBasicCalendarHead": {
+      "syBasicCalendarControls": {
+        "kndhrck": {
+          "ariaLabel": "Mois suivant"
+        },
+        "kpyyqqk": {
+          "ariaLabel": "Mois précédent"
+        }
+      },
+      "syBasicCalendarIdentity": {
+        "kqnecln": "Là où le clair de lune serein réside · Sukuyo de ce mois"
+      }
+    },
+    "syBasicCalendarIdentity": {
+      "syBasicCalendarMonthLabel": {
+        "k1d0pjad": "Calendrier des 27 Sukuyo",
+        "kp3rjwp": {
+          "ariaLabel": "Sélectionner le mois"
+        }
+      }
+    },
+    "syBasicCalendarLegend": {
+      "badDay": "Jour défavorable",
+      "plainDay": "Jour neutre",
+      "today": "Aujourd'hui"
+    },
+    "tarotTile": {
+      "tarotTileBody": {
+        "k10ifevy": "Consultation IA de compatibilité Sukuyo",
+        "k10qxwvc": "Une lecture chaleureuse des attractions, des blessures et des choix réalistes, suivant les 27 Sukuyo et le flux de la relation de deux personnes.",
+        "k11sp370": {
+          "ariaLabel": "Composition du Salon de Thé du Destin de Yeoni"
+        },
+        "k11zwfx7": "Basé sur votre thème natal et le flux planétaire actuel, répond aux questions qui vous préoccupent le plus en ce moment.",
+        "k14fgb7z": {
+          "ariaLabel": "Composition de la Salle d'Opérations du Destin de Neo"
+        },
+        "k14mqjx7": "Consultation IA Zi Wei Dou Shu",
+        "k18rbd8l": "Votre thème natal prend vie sous la forme d'une île. Explorez les 12 palais et découvrez le flux d'aujourd'hui avec Yeoni et Neo.",
+        "k1934dgw": "Dévoile en profondeur les grands flux de la vie, du travail, de la richesse et des relations, suivant les nuances du thème natal et des cycles de chance.",
+        "k1a78igt": "Consultation IA de lecture de vie complète",
+        "k1cu7bpm": "Consultation IA d'astrologie",
+        "k1eszqn1": "Résout calmement vos questions actuelles à travers le Lagna, les Nakshatras et le flux planétaire.",
+        "k1hprjge": "Interprète le Palais de la Vie, le Palais du Corps, les 12 Palais et le flux des Quatre Transformations en fonction de vos questions actuelles.",
+        "k1nhxtvn": "L'île du destin Zi Wei Dou Shu",
+        "k1ruvdto": "Simulation d'amour Quatre Piliers",
+        "k1s3pj19": {
+          "ariaLabel": "Composition du Hub de Prompts de Lecture Complète"
+        },
+        "k1tyatli": {
+          "ariaLabel": "Résumé de la consultation"
+        },
+        "k1tyatli2": {
+          "ariaLabel": "Résumé de la consultation"
+        },
+        "k1v84z2u": "L'IA crée directement un nom en combinant les Quatre Piliers, les Cinq Éléments, les sons et les significations des caractères chinois, et vous fournit le prompt original.",
+        "k1y1a5zq": "Salle d'Opérations du Destin de Neo",
+        "k1yble8x": "Ouvrez une tasse de thé au clair de lune avec Yeoni et révélez avec tendresse les nuances de votre cœur non dites à travers les Quatre Piliers, le Tarot et la compatibilité.",
+        "k1ygnp9f": {
+          "ariaLabel": "Points clés"
+        },
+        "k1ygnp9f2": {
+          "ariaLabel": "Points clés"
+        },
+        "k231dx8": "Créez instantanément des prompts de consultation gratuits avec 11 outils, y compris les Quatre Piliers, le Tarot, l'astrologie et le Zi Wei Dou Shu.",
+        "k3baulf": "Bureau de Nommage Hunminjeongeum",
+        "k6uqkuq": {
+          "ariaLabel": "Résumé des points clés"
+        },
+        "k6uqkuq2": {
+          "ariaLabel": "Résumé"
+        },
+        "kir1rde": "Lieu et moment",
+        "klifgdg": "Lieu du destin",
+        "kntw327": "Sukuyo (27 Nakshatras) Édition Définitive",
+        "kslqazg": "Prompt de lecture complet",
+        "kstndh6": "Bestiaire des animaux du destin",
+        "ksxkgnt": "Le salon de thé du destin de Yeoni",
+        "kt62t87": "Consultation AI d'astrologie védique",
+        "kyqh20f": "Neo vous présente un briefing objectif des critères de choix à saisir maintenant, en combinant Quatre Piliers (BaZi), Zi Wei Dou Shu, astrologie védique et astrologie occidentale.",
+        "kzo1yhl": "Divination animale des Douze Palais",
+        "n2727Nakshatra": "27 Sukuyo oriental × 27 Nakshatras indien — Une seule étoile, deux langues. Deux systèmes astraux séparés il y a mille ans se retrouvent sur votre thème natal."
+      },
+      "tarotTileImgWrap": {
+        "AI30000": "Consultation AI · 30 000 KRW",
+        "AI300002": "Consultation AI · 30 000 KRW",
+        "AI300003": "Consultation AI · 30 000 KRW",
+        "AI300004": "Consultation AI · 30 000 KRW",
+        "AI300005": "Consultation AI · 30 000 KRW",
+        "AI300006": "Consultation AI · 30 000 KRW",
+        "AI300007": "Nommage AI · 30 000 KRW",
+        "AIConsultation50000": "Consultation AI · 50 000 KRW",
+        "k1039k": "Recommandé",
+        "k11zo0b": "Consultation AI",
+        "k125av1j": "Thème natal gratuit · Consultation AI",
+        "k15hk22d": {
+          "alt": "Salle d'opération du destin de Neo — Consultation stratégique pour organiser le front des choix devant l'emblème du lion"
+        },
+        "k18zdwwf": "Accès gratuit",
+        "k18zdwwf2": "Accès gratuit",
+        "k1gdpipn": {
+          "alt": "Le salon de thé du destin de Yeoni — Consultation offerte par Yeoni, la gardienne du lotus, avec une tasse de clair de lune"
+        },
+        "k1r8338q": "NOUVEAU · L'île du destin",
+        "k1scb7d8": {
+          "alt": "Image représentative de l'entreprise du destin"
+        },
+        "koe32kc": "Essai gratuit",
+        "ktgbfsy": "NOUVEAU · Édition Définitive",
+        "n50001000020000": "Tarot 5 000 KRW · Quatre Piliers (BaZi) 10 000 KRW · Compatibilité 20 000 KRW"
+      }
+    },
+    "tarotTileBody": {
+      "featuredContentCardCta": {
+        "k1f1oofn": "Entrer au salon de thé du destin",
+        "kdyjsns": "Essai gratuit",
+        "kwux29x": "Entrer dans la salle de stratégie"
+      },
+      "pvcPremMeta": {
+        "k10vo8": "Découvrir",
+        "k11zo0b": "Consultation AI",
+        "k11zo0b2": "Consultation AI",
+        "k11zo0b3": "Consultation AI",
+        "k12z88tv": "Enregistrer en PDF",
+        "k16eekng": "Vérifier le Pass",
+        "k19vii04": "Carte des 12 maisons",
+        "k1cco6tp": "Commencer maintenant",
+        "k1s4cln3": "Entrer dans la salle d'opération",
+        "k1ty674i": "Consultation disponible",
+        "k1ty8wv6": "Obtenir une consultation",
+        "k1u01klw": "Entrer sur l'île",
+        "k1vfalgf": "Vérifier gratuitement",
+        "k6skteu": "Obtenir une consultation avec le thème natal",
+        "k96vaab": "Consultation vidéo",
+        "kj5prgr": "Quatre Piliers (BaZi) · Tarot · Astrologie",
+        "kmxk05u": "Lecture de vie complète",
+        "kn1803y": "Consultation d'astrologie védique",
+        "kpfei5h": "Type histoire",
+        "ksdpj4c": "Quête quotidienne",
+        "ktecid": "Sukuyo (27 Nakshatras)",
+        "kth5jek": "Essayer maintenant",
+        "kudb0": "Personnel",
+        "kudb02": "Personnel",
+        "kugw5d": "Planète dominante",
+        "kv7uo": "Neo",
+        "kv9f8rk": "Consultation immédiate",
+        "kwuu0": "Gratuit",
+        "kyyvo": "Nommage",
+        "kyzfrrw": "Quatre Piliers (BaZi) · Tarot · Compatibilité",
+        "n30000": "Basé sur 30 000 KRW"
+      },
+      "pvcPremPoints": {
+        "AIPDF": "Résultat de nommage par AI + sauvegarde PDF",
+        "k11eirzr": "Force des maisons en grades de bâtiment — de la ruine au temple",
+        "k136ne35": "Les 27 Nakshatras orientaux et indiens côte à côte",
+        "k15z2s5t": "Stratégie Neo percutante reflétant la réalité",
+        "k161xazs": "Flux des étoiles lié à votre question actuelle",
+        "k1a6baj4": "Biome de mon île défini par l'étoile principale du palais de la vie",
+        "k1asi5pl": "Généré instantanément avec date de naissance et question",
+        "k1cb96zz": "Périodes de transition avec les cycles de chance (Daewoon et Sewoon)",
+        "k1e60r0a": "Résumé des transits actuels",
+        "k1fyb19o": "Entrée au salon de thé et première salutation de Yeoni, la gardienne du lotus",
+        "k1hh2ce8": "Sukuyo natal et distance relationnelle des deux personnes",
+        "k1lfrfuk": "Thème natal personnel : Palais de la Vie, Palais du Corps, 12 Palais",
+        "k1rfowhj": "Consultation émotionnelle reliant Quatre Piliers (BaZi), Tarot et Compatibilité",
+        "k1soc8": "Consultation clé Soleil, Lune, Ascendant",
+        "k1wel05o": "Recommandation complète : Yongsin, caractères chinois, son, nombre",
+        "k5ittux": "Briefing stratégique adapté au sujet de consultation et aux informations de naissance",
+        "ka0qthx": "Réponses aux questions basées sur les maisons et les aspects",
+        "kcblo5w": "Planète dominante · Pada · Gana · Vimshottari Dasha",
+        "kkg4b7z": "Consultation longue à conserver en PDF",
+        "kkph98v": "Consultation basée sur le Rashi Chart et les Nakshatras",
+        "knvmn7z": "Le point de rencontre et de divergence des deux traditions",
+        "ko4w810": "11 outils dont Quatre Piliers (BaZi), Tarot, Astrologie",
+        "kozjlt4": "Conseils pratiques pour les relations, les finances, le travail, les choix",
+        "kqwk9o": "Consultation des flux des maisons et des étoiles par thème",
+        "krx9ppb": "Gratuit · Essayez sans connexion",
+        "ktv5xm9": "Lecture du thème natal des Quatre Piliers (BaZi) et de l'équilibre des Cinq Éléments",
+        "ktx0v26": "Carte du destin choisie sous l'emblème du lion",
+        "kvigm32": "Conseils pratiques adaptés à votre relation actuelle",
+        "kwuh556": "Schéma répétitif d'attraction et de conflit",
+        "kxatr2b": "Flux de choix pour adoucir les nuances de vos préoccupations",
+        "kyk2x3o": "Conseils de choix basés sur les cycles de chance (Daewoon et Sewoon)",
+        "n12NPC": "Météo de l'île changeante chaque jour et dialogue avec les PNJ des 12 Palais",
+        "n30000": "Paiement unique de 30 000 KRW ou Pass / Pierre de Clair de Lune"
+      }
+    },
+    "terms24Card": {
+      "introLead": "C'est le flux des 24 périodes solaires (Jeolgi) de l'année de naissance. Le",
+      "introTail": "des Quatre Piliers (BaZi) est déterminé par la période solaire dans laquelle tombe votre anniversaire. La période solaire en gras est l'entrée (Jeorip) qui ouvre votre mois.",
+      "secTitle": {
+        "k1iwdtvn": "☀️ 24 Périodes Solaires (二十四節氣)"
+      },
+      "terms24Intro": {
+        "kpaolwg": "Pilier Mensuel"
+      }
+    },
+    "themeSwitchWrapper": {
+      "themeSwitchPill": {
+        "k7bnh78": {
+          "ariaLabel": "Mode Neo"
+        },
+        "k7bnh782": {
+          "ariaLabel": "Mode Neo"
+        },
+        "khrulw0": {
+          "ariaLabel": "Mode Yeoni"
+        },
+        "khrulw02": {
+          "ariaLabel": "Mode Yeoni"
+        }
+      }
+    },
+    "wrap": {
+      "cdFooterShell": {
+        "k16rhu4g": {
+          "ariaLabel": "Lien vers la consultation AI"
+        },
+        "k1cf0vdm": {
+          "ariaLabel": "Lien vers le centre d'aide"
+        },
+        "koniaun": {
+          "ariaLabel": "Lien vers les services"
+        },
+        "kp08cb": {
+          "ariaLabel": "Lien vers l'histoire"
+        }
+      },
+      "k14mqjx7": "Consultation AI Zi Wei Dou Shu",
+      "kt62t87": "Consultation AI Astrologie Védique"
+    }
+  },
+  "adsenseArticle": {
+    "description": {
+      "001": "7 étapes pour lire les Quatre Piliers : vérifier le calendrier, identifier le Maître du Jour, équilibrer les Cinq Éléments, comprendre les Dix Dieux, et interpréter les cycles de chance. Guide complet pour débutants, incluant la planification d'actions.",
+      "002": "Améliorer votre chance commence par une routine de 15 minutes par jour. Découvrez comment concevoir des routines de 5 minutes (matin, midi, soir), des routines personnalisées selon votre tempérament des Quatre Piliers, et des astuces pour les maintenir pendant 3 semaines.",
+      "003": "L'essentiel pour lire le calendrier est de vérifier d'abord 4 éléments : le Maître du Jour, le Pilier Mensuel, la répartition des Cinq Éléments et le cycle de chance. Apprenez à lire les Troncs Célestes par l'image sans connaître les caractères chinois, et les 3 étapes d'utilisation du Pilier Mensuel.",
+      "004": "Méthode de diagnostic de l'équilibre des Cinq Éléments : identifiez les excès (3 ou plus) et les manques (0) de Bois, Feu, Terre, Métal, Eau dans les 8 caractères de votre thème natal, puis élaborez des stratégies pratiques pour compenser les éléments manquants par des routines quotidiennes.",
+      "005": "Carte pratique d'interprétation des Dix Dieux : traduisez les cinq groupes (Compétition, Expression, Richesse, Pouvoir, Ressource) en langage de décision pour l'amour, le travail et l'argent, et apprenez à relier le thème natal et les cycles annuels à des actions concrètes.",
+      "006": "Comment lire votre lecture annuelle : utilisez les deux caractères du cycle annuel pour orienter ce qu'il faut développer ou réduire, et un cadre de vérification avec 6 points par trimestre. Apprenez également à lire les conflits et les punitions sans crainte.",
+      "007": "Méthode d'enregistrement de la lecture mensuelle : un modèle de 3 lignes (mot-clé, action, résultat) par semaine et une boucle de feedback (lire → agir → enregistrer → ajuster) pour augmenter le taux de croissance au lieu de noter juste les bonnes ou mauvaises prédictions.",
+      "008": "Choisir une date n'est pas une superstition, mais une gestion des risques. Concepts de base des jours propices, des jours sans main, des Troncs et Branches, processus de sélection en 4 étapes, et critères prioritaires pour le déménagement, les contrats, les entretiens, les voyages.",
+      "009": "Comment réinitialiser quand la chance est bloquée : diagnostiquez la cause (surcharge, confusion de direction, manque de récupération) et suivez un protocole de 72 heures (nettoyage → réalignement → redémarrage) pour retrouver le flux. Une routine pratique.",
+      "010": "Méthode de communication pour améliorer la chance en amour : lisez les styles amoureux selon le Maître du Jour et les différences de rythme émotionnel selon les 27 Nakshatras de Sukuyo, puis convenez de 3 règles relationnelles (critères de réponse, expression émotionnelle, résolution de conflits).",
+      "011": "Habitudes pour améliorer la chance financière : lisez la structure et le timing de l'énergie de l'argent avec la Richesse (財星) des Quatre Piliers, et gérez votre flux de trésorerie avec une gestion financière mensuelle en 3 lignes (plafond des dépenses fixes/variables, épargne automatique).",
+      "012": "La chance pour l'emploi et les examens se lit avec les influences du Pouvoir et de la Ressource. Apprenez à planifier les défis pendant les périodes propices, les 4 étapes de préparation aux entretiens, la routine d'étude Pomodoro, et la gestion du stress la veille et le jour J.",
+      "013": "Relation entre le sommeil et la chance : mécanisme par lequel le manque de sommeil réduit le jugement, la régulation émotionnelle et la capacité à saisir les opportunités, et protocole de réinitialisation du sommeil en 7 jours pour restaurer le rythme énergétique, étape par étape.",
+      "014": "Comment bien poser des questions sur la lecture : concevez des questions avec 3 éléments (période, contexte, possibilité d'action), évitez 4 types de mauvaises questions avec 3 modèles, et utilisez 5 points d'auto-diagnostic de la qualité des questions.",
+      "015": "Comment combiner les Quatre Piliers et le Tarot : un cadre intégré pour comprendre les tendances trimestrielles avec les Quatre Piliers et confirmer les choix de la semaine avec le Tarot. Inclut la recherche de mots-clés communs et un filtre en 3 étapes pour éviter la sur-interprétation.",
+      "016": "Structure d'article de lecture compatible AdSense : 3 critères (valeur informative, EEAT, lisibilité), 6 étapes de composition, expressions à éviter, et stratégies opérationnelles pour augmenter le temps de séjour.",
+      "017": "Guide complet des 12 Rashis de l'astrologie védique : de Mesha à Mina, résumant les éléments, les planètes dominantes, les forces et les défis de la personnalité, et l'ordre d'interprétation combinant Lagna, Chandra Rashi et Dasha.",
+      "018": "Principes de base des Quatre Piliers : structure des quatre piliers et huit caractères, Troncs Célestes et Branches Terrestres, cycles de génération et de contrôle des Cinq Éléments, et 5 étapes d'interprétation pour les débutants.",
+      "019": "Récapitulatif complet des Cinq Éléments : propriétés des cinq énergies (Bois, Feu, Terre, Métal, Eau), principes de génération et de contrôle, tendances de personnalité en cas d'excès/manque, et routines de complémentation dans la vie quotidienne.",
+      "020": "Signification des 22 arcanes majeurs du Tarot : du Fou (0) au Monde (21), mots-clés essentiels, 3 approches d'interprétation inversée, et utilisation pour les questions d'amour, de carrière et de croissance.",
+      "021": "Qu'est-ce que le Zi Wei Dou Shu : structure des 12 palais du thème natal, les 14 étoiles principales comme Zi Wei, la signification des quatre transformations (Hua Lu, Hua Quan, Hua Ke, Hua Ji), et 3 étapes pour lire un thème natal, expliquées pour les débutants.",
+      "022": "Explication des Troncs Célestes et Branches Terrestres : les Cinq Éléments, le Yin/Yang, la saisonnalité et les relations de combinaison/conflit des 10 Troncs Célestes (Jia, Yi, Bing, Ding, Wu, Ji, Geng, Xin, Ren, Gui) et des 12 Branches Terrestres (Zi, Chou, Yin, Mao, Chen, Si, Wu, Wei, Shen, You, Xu, Hai), résumés dans un ordre pratique.",
+      "023": "Méthode de détermination de la force du Maître du Jour : ordre de lecture de la force du Maître du Jour selon les 3 critères principaux (saison, position, soutien), stratégies de complémentation pour les Maîtres du Jour forts/faibles, et erreurs courantes de jugement.",
+      "024": "Comment trouver l'élément utile (Yong Shen) : du jugement de la force du Maître du Jour aux cinq classifications (soutien/suppression, régulation thermique, harmonisation, maladie/remède, transformation totale), et la distinction entre les éléments favorables et défavorables, guidé par une liste de contrôle pratique en 5 étapes.",
+      "025": "Bases de la lecture de compatibilité : un guide pratique en 3 étapes pour lire les schémas énergétiques de deux personnes (génération/contrôle des Cinq Éléments du Maître du Jour, relations des Dix Dieux, combinaisons/conflits de la Branche Terrestre du Jour) et l'utiliser comme outil de compréhension relationnelle.",
+      "026": "Résumé complet des personnalités par Pilier du Jour : les 60 Piliers du Jour sont divisés par les Cinq Éléments du Maître du Jour pour résumer les tempéraments, les forces et les points d'attention des Piliers du Jour représentatifs, et un ordre d'interprétation qui ne se limite pas à un seul Pilier du Jour.",
+      "027": "Comment lire les cycles de chance (Daeun) et les cycles annuels (Seun) : concepts du cycle de chance de 10 ans et du cycle annuel de 1 an, méthode de calcul de l'âge de début du cycle de chance, et points pratiques pour lire le timing par l'interaction avec l'élément utile du thème natal."
+    },
+    "title": {
+      "001": "Introduction complète à la lecture des Quatre Piliers : 7 étapes pour débutants",
+      "002": "Comment améliorer votre chance : Guide complet de la routine de 15 minutes pour la chance",
+      "003": "Guide complet pour lire le calendrier : Comprendre l'interprétation clé sans caractères chinois",
+      "004": "Guide complet de l'équilibre des Cinq Éléments : Votre stratégie de complémentation par Bois, Feu, Terre, Métal, Eau",
+      "005": "Carte pratique d'interprétation des Dix Dieux : Appliquer directement aux relations, au travail et à l'argent",
+      "006": "Comment lire votre lecture annuelle : Guide complet pour vérifier votre lecture annuelle sans anxiété",
+      "007": "Méthode d'enregistrement de la lecture mensuelle : Une boucle de feedback qui augmente le taux de croissance plutôt que la justesse",
+      "008": "Comment choisir une bonne date : Sélection pratique sans superstition",
+      "009": "Comment réinitialiser quand la chance est bloquée : Protocole de récupération complet en 72 heures",
+      "010": "Méthode de communication pour améliorer la chance en amour : Règles relationnelles plus importantes que le score de compatibilité",
+      "011": "Habitudes pour améliorer la chance financière : Combiner la Richesse (財星) des Quatre Piliers et un budget familial réel",
+      "012": "Comment se préparer pour améliorer la chance à l'emploi et aux examens : Guide complet des cycles annuels des Quatre Piliers et des routines pratiques",
+      "013": "Relation entre le sommeil et la chance : Pourquoi la chance change quand le rythme énergétique est restauré",
+      "014": "Comment bien poser des questions sur la lecture : Guide complet de conception de questions qui changent la qualité des réponses",
+      "015": "Comment combiner les Quatre Piliers et le Tarot : Un cadre intégré pour relier les tendances à long terme et les choix actuels",
+      "016": "Structure d'article de lecture compatible AdSense : Guide complet sur l'information, la fiabilité et la lisibilité",
+      "017": "Guide complet des 12 Rashis de l'astrologie védique : Personnalité, lecture et interprétation pratique de Mesha à Mina",
+      "018": "Principes de base des Quatre Piliers : Comprendre les Quatre Piliers depuis le début",
+      "019": "Récapitulatif complet des Cinq Éléments (Bois, Feu, Terre, Métal, Eau) : Propriétés, génération, contrôle et application pratique",
+      "020": "Signification complète des 22 arcanes majeurs du Tarot : Du 0 au 21",
+      "021": "Qu'est-ce que le Zi Wei Dou Shu : Introduction complète des bases à la lecture du thème natal",
+      "022": "Explication parfaite des Troncs Célestes et Branches Terrestres : Signification, propriétés et interprétation pratique des 10 Troncs Célestes et 12 Branches Terrestres",
+      "023": "Guide complet de détermination de la force du Maître du Jour : Comment lire précisément la force de votre thème natal",
+      "024": "Guide pratique pour trouver votre Yongsin : du Shin-Gang/Shin-Yak à la définition du Yongsin",
+      "025": "Guide complet des bases de la compatibilité : comprendre les relations par les Quatre Piliers",
+      "026": "Guide complet des caractéristiques de personnalité par Ilju : les 60 types de Ilju",
+      "027": "Guide complet pour lire les cycles de chance (Daeun et Seun) : comprendre la lecture par le flux du temps"
+    }
+  },
+  "astralSoul": {
+    "001": "Voir détails",
+    "002": "Hibou Sage",
+    "003": "Chat Curieux",
+    "004": "Lion Charismatique",
+    "005": "Renard Malin",
+    "006": "Cerf Mystérieux",
+    "007": "Lapin Rêveur",
+    "008": "Dauphin Amical",
+    "009": "Loutre Énergique",
+    "010": "Tortue Diligente",
+    "011": "Éléphant Doux",
+    "012": "Loup Strict",
+    "013": "Manchot Sociable",
+    "014": "Faucon Aiguisé",
+    "015": "Papillon Artistique",
+    "016": "Tigre Courageux",
+    "017": "Paon Magnifique",
+    "018": "Voir détails",
+    "019": "Taux de compatibilité global",
+    "020": "Résonance émotionnelle/valeurs (T/F)",
+    "021": "Comportement/mode de vie (J/P)",
+    "022": "Échanges/intérêts (S/N)",
+    "023": "Un parfait double de l'univers parallèle",
+    "024": "Un chef-d'œuvre uni par l'univers",
+    "025": "Un compagnon d'exploration intellectuelle merveilleux",
+    "026": "T de Mars, F de Vénus",
+    "027": "Un prisme coloré qui se teinte mutuellement"
+  },
+  "celestialMelody": {
+    "closingTitle": "Résumé de la Mélodie Céleste du jour",
+    "spreadTitle01": "Soleil · Le Moi Révélé",
+    "spreadTitle02": "Lune · Les Souvenirs du Cœur",
+    "spreadTitle03": "Mercure · Pensées et Langage",
+    "spreadTitle04": "Vénus · Amour et Valeurs",
+    "spreadTitle05": "Mars · Désir et Impulsion",
+    "spreadTitle06": "Jupiter · Expansion et Foi",
+    "spreadTitle07": "Saturne · Responsabilité et Épreuves",
+    "spreadTitle08": "Uranus · L'Éveil du Changement",
+    "spreadTitle09": "Neptune · Rêves et Intuition",
+    "spreadTitle10": "Pluton · Transformation Profonde",
+    "spreadTitle11": "Chiron · La Sagesse de la Blessure"
+  },
+  "dreamMeaning": {
+    "001": "Tout",
+    "002": "Animaux",
+    "003": "Fruits",
+    "004": "Personnes",
+    "005": "Émotions (positives)",
+    "006": "Émotions (colère)",
+    "007": "Émotions (anxiété)",
+    "008": "Émotion (perte)",
+    "009": "Émotion (récupération)",
+    "010": "Mot-clé lieu",
+    "011": "Mot-clé objet",
+    "012": "Rêve prénatal",
+    "013": "Fortune financière",
+    "014": "Fortune d'examen",
+    "015": "Fortune amoureuse",
+    "016": "Fortune matrimoniale",
+    "017": "Scène de rencontre",
+    "018": "Scène d'action",
+    "019": "Scène de changement"
+  },
+  "highValueContent": {
+    "001": "Concepts de base pour ceux qui découvrent les Quatre Piliers (BaZi), le calendrier Manse-ryeok, les Cinq Éléments et les Dix Dieux.",
+    "002": "Comment organiser vos questions de tarot et relier l'interprétation des cartes à des choix concrets.",
+    "003": "Un guide pour lire la fortune amoureuse, les retrouvailles et la compatibilité non pas comme une source d'anxiété, mais comme un outil d'évaluation des relations.",
+    "004": "Comment utiliser la lecture quotidienne sans exagération pour prioriser votre emploi du temps, vos émotions et vos choix.",
+    "005": "Une explication simplifiée du thème natal, des 12 maisons et des symboles astrologiques pour les débutants.",
+    "006": "Critères et avis de non-responsabilité pour une lecture sûre et équilibrée du contenu de la lecture.",
+    "007": "Guide d'introduction aux Quatre Piliers (BaZi)",
+    "008": "Analyse gratuite des Quatre Piliers (BaZi) avec Manse-ryeok",
+    "009": "Interprétation de base des Quatre Piliers (BaZi) Manse-ryeok",
+    "010": "Comment fonctionne la lecture de tarot",
+    "011": "Lecture gratuite de cartes de tarot",
+    "012": "Lecture de tarot pour les retrouvailles",
+    "013": "Comment lire les interprétations de la destinée de manière réaliste",
+    "014": "Méthodologie du contenu de la lecture",
+    "015": "Guide des insights de lecture",
+    "016": "Analyse de la personnalité par date de naissance",
+    "017": "Thème natal astrologique gratuit",
+    "018": "Thème natal Zi Wei Dou Shu des 12 maisons",
+    "019": "Signes clés pour une bonne compatibilité",
+    "020": "Interprétation gratuite de la compatibilité des Quatre Piliers (BaZi)",
+    "021": "Voir gratuitement la fortune amoureuse",
+    "022": "FAQ sur l'utilisation sécurisée des services de lecture",
+    "023": "Voir gratuitement la lecture du jour",
+    "024": "Foire aux questions de Code Destiny"
+  },
+  "indexRuntime": {
+    "aria-label": {
+      "001": "Ouvrir le système Sibylla Saju",
+      "002": "Connecter la Fleur du Destin"
+    },
+    "confirm": {
+      "001": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser.",
+      "002": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser.",
+      "003": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser.",
+      "004": "Voulez-vous supprimer tous les enregistrements de la Fleur du Destin ?",
+      "005": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser.",
+      "006": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser.",
+      "007": "🔒 Ce service nécessite une connexion.\\\\nVeuillez vous connecter pour l'utiliser."
+    },
+    "label": {
+      "001": "Phase lunaire",
+      "002": "Animal gardien",
+      "003": "Étoile forte du jour",
+      "004": "Luminosité de l'étoile",
+      "005": "Position de la maison",
+      "006": "Signe solaire",
+      "007": "Ascendant",
+      "008": "Signe lunaire",
+      "009": "Fort/Faible",
+      "010": "Élément utile",
+      "011": "Température"
+    },
+    "message": {
+      "001": "Vérification des informations de la Pierre de Clair de Lune",
+      "002": "La Pierre de Clair de Lune est en cours d'activation, elle sera bientôt disponible",
+      "003": "La Pierre de Clair de Lune est en cours d'activation, elle sera bientôt disponible",
+      "004": "Préparation du paiement par carte pour un article unique",
+      "005": "Paiement effectué. Chargement des résultats",
+      "006": "Vérification de votre Pass",
+      "007": "Traitement en cours, veuillez patienter",
+      "008": "Traitement en cours, veuillez patienter"
+    },
+    "title": {
+      "001": "Résultat de la lecture du Totem Animal"
+    }
+  },
+  "lsd": {
+    "alt": {
+      "001": "Vignette"
+    },
+    "aria-label": {
+      "001": "Thème du code de nature",
+      "002": "Thème de lecture des forces",
+      "003": "Fermer",
+      "004": "Onglet Journal Énergétique",
+      "005": "Mini carte énergétique du jour",
+      "006": "Mode Playlist de méditation",
+      "007": "Mois précédent",
+      "008": "Mois suivant",
+      "009": "Changer l'affichage du calendrier"
+    },
+    "label": {
+      "001": "Code de nature",
+      "002": "Résumé énergétique",
+      "003": "Lecture des forces",
+      "004": "Équilibre du jour",
+      "005": "Richesse",
+      "006": "Amour",
+      "007": "Honneur",
+      "008": "Santé",
+      "009": "Études",
+      "010": "Conception du flux de richesse",
+      "011": "Harmonisation des énergies relationnelles",
+      "012": "Renforcement de la résilience",
+      "013": "Mode Concentration/Performance",
+      "016": "Normal",
+      "017": "Bonne journée",
+      "018": "Favorable",
+      "019": "Normal",
+      "020": "Fort",
+      "021": "Très fort",
+      "022": "Richesse",
+      "023": "Relations",
+      "024": "Performance",
+      "025": "Récupération",
+      "026": "Concentration",
+      "027": "Richesse",
+      "028": "Amour",
+      "029": "Honneur",
+      "030": "Santé",
+      "031": "Apprentissage"
+    },
+    "lead": {
+      "001": "Quatre piliers de force dans le flux d'aujourd'hui : concentration, perspicacité, relations et accomplissement s'élèvent à différentes hauteurs.",
+      "002": "Le rythme central d'aujourd'hui se révèle parmi les cinq fils : repos, achèvement, croissance, début et ajustement."
+    },
+    "placeholder": {
+      "001": "Surnom de la carte (facultatif)",
+      "002": "Légende sous la carte (facultatif)",
+      "003": "Notez brièvement les flux, rencontres, choix que vous souhaitez retenir aujourd'hui.",
+      "004": "Nom de l'autre personne",
+      "005": "Année (auxiliaire)",
+      "006": "Ex: Le matin, j'avais du mal à me concentrer, mais après une détox numérique le soir, mes pensées sont devenues claires.",
+      "007": "Ex: J'étais nerveux lors d'une réunion importante et mes mots se sont emmêlés.",
+      "008": "Ex: J'ai calmement communiqué l'essentiel, et l'autre personne a hoché la tête en souriant.",
+      "009": "Tapez ou lisez cette phrase à voix haute."
+    },
+    "title": {
+      "001": "Aperçu du tempérament inné ·",
+      "002": "Résumé de l'énergie du jour ·",
+      "003": "Lecture des forces",
+      "004": "Lecture de l'équilibre quotidien",
+      "005": "Lecteur de musique de méditation"
+    }
+  },
+  "mindscanReading": {
+    "cardsRequired": "Les données de la paire de cartes sont requises.",
+    "positionContactFlow": "Flux de contact futur",
+    "positionCurrentHeart": "Cœur actuel de l'autre",
+    "positionFinalFlow": "Direction de la relation",
+    "positionHesitationReason": "Raison de l'hésitation de l'autre",
+    "positionHiddenHeart": "Fil du cœur non révélé",
+    "positionMyAttitude": "Mon attitude à adopter",
+    "positionVisibleAttitude": "Attitude visible",
+    "questionRequired": "Une question de consultation est requise.",
+    "sampleTitle": "Titre de l'exemple"
+  },
+  "numerologyTarot": {
+    "lifePathNumber": "Chemin de vie",
+    "questionNumber": "Nombre de la question",
+    "topicCareer": "Carrière",
+    "topicFeelings": "Sentiments profonds",
+    "topicGeneral": "Général",
+    "topicHealth": "Santé et énergie",
+    "topicLove": "Amour et relations",
+    "topicMoney": "Argent",
+    "topicMove": "Déplacement et changement",
+    "topicRelationship": "Relations interpersonnelles",
+    "topicReunion": "Réunion"
+  },
+  "palm": {
+    "description": {
+      "001": "Impression générale de la main, type de main, lignes principales et score global en un coup d'œil.",
+      "002": "Non pas la durée de vie, mais la gestion de l'énergie, le rythme de récupération et la persévérance.",
+      "003": "Mode de pensée, jugement, concentration, réalisme et imagination.",
+      "004": "Façon d'aimer, expression émotionnelle, attachement et attentes relationnelles.",
+      "005": "Orientation professionnelle, objectifs sociaux, autonomie et direction de vie.",
+      "006": "Habitudes financières, création de valeur, expressivité et sens du branding.",
+      "007": "Non pas le nombre de mariages, mais le désir de stabilité et la manière de s'engager dans une relation profonde.",
+      "008": "Zones d'énergie de la paume telles que le mont de Vénus, le mont de la Lune, le mont de Jupiter.",
+      "009": "Comparaison entre la main dominante et non dominante pour voir votre moi inné et votre moi actuel.",
+      "010": "Conseils du jour, routine de 7 jours, conseils sur les relations, la richesse et la carrière."
+    },
+    "label": {
+      "001": "Main innée",
+      "002": "Main acquise",
+      "003": "Main mixte",
+      "004": "Main de Terre",
+      "005": "Main de Feu",
+      "006": "Main d'Air",
+      "007": "Main d'Eau",
+      "008": "Main mixte",
+      "009": "Ligne de vie",
+      "010": "Ligne de tête",
+      "011": "Ligne de cœur",
+      "012": "Ligne de destin",
+      "013": "Ligne du soleil",
+      "014": "Ligne de richesse",
+      "015": "Ligne de mariage",
+      "016": "Ligne de Mercure",
+      "017": "Ligne d'intuition",
+      "018": "Mont de Vénus",
+      "019": "Mont de la Lune",
+      "020": "Mont de Jupiter",
+      "021": "Mont de Saturne",
+      "022": "Mont du Soleil",
+      "023": "Mont de Mercure",
+      "024": "Mont de Mars",
+      "025": "Pouce",
+      "026": "Index",
+      "027": "Majeur",
+      "028": "Annulaire",
+      "029": "Auriculaire",
+      "030": "Global",
+      "031": "Ligne de vie",
+      "032": "Ligne de tête",
+      "033": "Ligne de cœur",
+      "034": "Ligne de destin",
+      "035": "Ligne de richesse/soleil",
+      "036": "Ligne d'amour/mariage",
+      "037": "Monts de la paume",
+      "038": "Comparaison inné/acquis",
+      "039": "Prescription personnalisée"
+    },
+    "title": {
+      "001": "Ligne de vie profonde et longue",
+      "002": "Ligne de vie courte mais profonde",
+      "003": "Ligne de vie faible",
+      "004": "Ligne de vie interrompue",
+      "005": "Ligne de vie ramifiée",
+      "006": "Ligne de tête longue et droite",
+      "007": "Ligne de tête longue et doucement courbée",
+      "008": "Ligne de tête courte",
+      "009": "Ligne de tête commençant séparée de la ligne de vie",
+      "010": "Ligne de tête commençant attachée à la ligne de vie",
+      "011": "Ligne de cœur profonde et courbée",
+      "012": "Ligne de cœur droite",
+      "013": "Ligne de cœur se dirigeant vers l'index",
+      "014": "Ligne de cœur se dirigeant vers le majeur",
+      "015": "Ligne de cœur avec de nombreuses ramifications",
+      "016": "Ligne de destin montant clairement au centre",
+      "017": "Ligne de destin faible ou indistincte",
+      "018": "Ligne de destin partant de la ligne de vie",
+      "019": "Ligne de destin partant du Mont de la Lune",
+      "020": "Ligne de destin interrompue",
+      "021": "Ligne du soleil claire",
+      "022": "Ligne du soleil faible",
+      "023": "Ligne du soleil faible ou indétectable",
+      "024": "Ligne de richesse en forme de M",
+      "025": "Ligne de richesse claire",
+      "026": "Ligne de richesse à plusieurs branches",
+      "027": "Ligne de richesse faible",
+      "028": "Ligne de relation claire",
+      "029": "Ligne de relation avec plusieurs petites lignes",
+      "030": "Ligne de relation ascendante",
+      "031": "Ligne de relation descendante",
+      "032": "Ligne de Mercure claire",
+      "033": "Ligne de Mercure interrompue",
+      "034": "Ligne de Mercure faible",
+      "035": "Main avec une ligne d'intuition visible",
+      "036": "Ligne d'intuition faible",
+      "037": "Main avec une forte température affective",
+      "038": "Main de carrière réaliste",
+      "039": "Main avec une forte intuition et imagination",
+      "040": "Main qui ouvre la voie par l'expression plutôt que par un chemin défini",
+      "041": "Main communicative qui lit bien les signaux relationnels",
+      "042": "Bonne résilience innée, mais forte dépense d'énergie actuelle",
+      "043": "Main qui a développé son énergie par l'autogestion acquise",
+      "044": "Sensibilité innée forte, mais jugement réaliste renforcé actuellement",
+      "045": "Main étendue de la raison à l'intuition",
+      "046": "Main qui a appris à réguler ses émotions profondes de manière défensive",
+      "047": "Main dont l'expression émotionnelle s'est ouverte par l'expérience relationnelle",
+      "048": "Sens du but et orientation sociale renforcés dans la vie actuelle",
+      "049": "Main qui réajuste sa direction originelle",
+      "050": "Main où la profondeur des émotions et l'intuition sont vivantes"
+    }
+  },
+  "palmMap": {
+    "001": "Ligne simienne",
+    "002": "Ligne en M",
+    "003": "Développement du Mont de Jupiter + accent sur l'axe de croissance",
+    "004": "Développement du Mont de Saturne + ligne de destin claire",
+    "005": "1. Lecture complète de la paume",
+    "006": "2. Interprétation des mains innées / acquises",
+    "007": "3. Analyse de la ligne de vie",
+    "008": "4. Analyse de la ligne de tête",
+    "009": "5. Analyse de la ligne de cœur",
+    "010": "6. Analyse de la ligne de destin",
+    "011": "7. Analyse de la ligne de richesse/soleil",
+    "012": "8. Analyse de la ligne d'amour/mariage",
+    "013": "9. Analyse complète des monts",
+    "014": "10. Interprétation des combinaisons de lignes",
+    "015": "10-1. Motifs de lignes spéciaux",
+    "016": "11. Interprétation des flux par zone",
+    "017": "12. 5 points forts",
+    "018": "13. 5 points d'attention",
+    "019": "14. Conseils personnalisés"
+  },
+  "rd": {
+    "aria-label": {
+      "001": "Sélection de la version Quatre Piliers 4-cut"
+    },
+    "cta": {
+      "001": "🐾 Invoquer mon animal gardien",
+      "002": "💞 Découvrir le lieu de ma rencontre",
+      "003": "💕 Déverrouiller le code de l'amour",
+      "004": "✨ Voir l'analyse de l'attrait en détail",
+      "005": "⚡ Ouvrir la lecture quantique complète",
+      "006": "💚 Vérifier le rapport de santé",
+      "007": "🤖 Voir les prompts gratuits",
+      "008": "🎮 Dérouler l'arbre de compétences",
+      "009": "🧊 Voir les résultats du test T extrême",
+      "010": "❤️ Voir l'analyse Teto/Egen",
+      "011": "🗺️ Voir le rapport de destination",
+      "012": "⚠️ Ouvrir le rapport du méchant",
+      "013": "Voir le rapport de loterie quantique",
+      "014": "📔 Ouvrir le journal Quatre Piliers",
+      "015": "📸 Ouvrir Quatre Piliers 4-cut",
+      "016": "🏠 Entrer dans la maison secrète"
+    },
+    "description": {
+      "001": "L'énergie des Douze Palais de votre thème natal se révèle sous forme d'archétypes animaux, éclairant votre personnalité, vos schémas amoureux, vos tendances professionnelles, votre compatibilité relationnelle et vos missions quotidiennes.",
+      "002": "Basé sur les Cinq Éléments et le flux du Dieu Utile de votre thème natal, ce rapport émotionnel suggère des lieux, des pays, des périodes et des objets du destin propices à vos rencontres.",
+      "003": "Découvrez le personnage amoureux qui vous ressemble le plus, basé sur les Cinq Éléments de votre thème natal, et vérifiez votre alchimie grâce à une simulation de rendez-vous interactive."
+    },
+    "label": {
+      "001": "Ma classe de charme",
+      "002": "Moteur de lecture quantique",
+      "003": "Rapport de santé de lecture",
+      "004": "Prompt AI Quatre Piliers",
+      "005": "Arbre de compétences de vie",
+      "006": "Test T extrême",
+      "007": "Teto vs Egen",
+      "008": "Destinations par Quatre Piliers",
+      "009": "Liste noire des méchants",
+      "010": "Rapport de loterie quantique",
+      "011": "Journal Quatre Piliers",
+      "012": "Quatre Piliers 4-cut : Filtre Destin",
+      "013": "Maison Secrète : Sim. Amour",
+      "014": "Filtre Destin",
+      "015": "DM Amour",
+      "016": "Routine de vie parfaite",
+      "017": "Prévention des moments gênants"
+    },
+    "title": {
+      "001": "Test animal des Douze Palais Quatre Piliers",
+      "002": "Lieux de rencontre par Quatre Piliers",
+      "004": "Filtre Destin MZ ON",
+      "005": "Quatre Piliers Signal Amour",
+      "006": "Check-in quotidien",
+      "007": "Filtre anti-regrets",
+      "008": "1. Vibe du personnage principal",
+      "009": "2. Première impression vs. impression actuelle",
+      "010": "3. Carte mentale",
+      "011": "4. Chance du jour",
+      "012": "1. Première impression favorable",
+      "013": "2. Température du flirt",
+      "014": "3. Carte mentale du cœur",
+      "015": "4. Action amoureuse du jour",
+      "016": "1. Bouton Démarrer du jour",
+      "017": "2. Mode travailleur efficace",
+      "018": "3. Pack de concentration",
+      "019": "4. Pack chance avant de partir",
+      "020": "1. Alerte d'accélération soudaine",
+      "021": "2. Coupe anti-gaffe",
+      "022": "3. Coupe de verrouillage des dépenses",
+      "023": "4. Ordre de protection",
+      "024": "Quatre Piliers : Filtre Destin"
+    }
+  },
+  "seoLanding": {
+    "description": {
+      "001": "Cette page gratuite sur les Quatre Piliers (BaZi) examine les tendances et les flux de choix à travers la structure de base, l'équilibre des Cinq Éléments, les Dix Dieux et le cycle de chance.",
+      "002": "Découvrez comment vérifier les Quatre Piliers (BaZi), les Cinq Éléments, les Dix Dieux et le cycle de chance de votre thème natal en fonction de votre date et heure de naissance.",
+      "003": "La lecture du jour vous aide à évaluer légèrement votre condition, vos relations et les priorités de votre travail, et à organiser les choix à faire.",
+      "004": "La page de la lecture du jour vous aide à évaluer rapidement votre condition, le flux de vos relations et les priorités de votre emploi du temps, que vous commenciez ou terminiez votre journée.",
+      "005": "Nous examinons le rythme relationnel, les modes de communication et les points de récupération des conflits de deux personnes du point de vue des Quatre Piliers (BaZi) et de la lecture, et les organisons comme base de dialogue réaliste.",
+      "006": "Cette page d'information sur la compatibilité des Quatre Piliers (BaZi) examine la structure des Quatre Piliers (BaZi) de deux personnes du point de vue du rythme relationnel, des schémas de conflit et des modes de communication.",
+      "007": "La lecture des cartes de tarot vous aide à clarifier vos questions actuelles, le flux de vos relations amoureuses, la possibilité de réconciliation et la direction de votre cœur, et fournit des phrases d'introspection et des conseils pratiques pour vos prochains choix.",
+      "008": "Le tarot de réconciliation est une lecture qui examine la distance actuelle avec l'autre personne, le moment de la prise de contact et les rémanences émotionnelles à travers le flux des cartes.",
+      "009": "Le tarot des sentiments de l'autre personne organise les émotions actuelles, les signaux non dits et les prochains choix relationnels du point de vue de l'introspection.",
+      "010": "Basé sur les 12 palais, le palais de la vie, le palais du corps, les quatre transformations et la disposition des étoiles du thème natal Zi Wei Dou Shu, il organise les tendances, la carrière, les relations et les flux des cycles majeurs et annuels sous forme de phrases de consultation.",
+      "011": "Il examine les tendances et le rythme relationnel à travers le signe solaire, le signe lunaire, l'ascendant et la structure de base du thème natal de l'astrologie occidentale, et fournit des conseils simples sur le point de départ et les précautions de l'interprétation du thème.",
+      "012": "Basé sur les 27 Sukuyo (27 Nakshatras) et la loi de la relation lunaire, il examine la distance de la relation, les schémas de conflit et les flux de récupération, et organise les critères de lecture de la relation et les conseils de dialogue pour les débutants.",
+      "013": "Il présente le thème Jyotish, le signe lunaire et les flux de Dasha de l'astrologie védique de manière facile à comprendre pour les débutants, et organise les axes d'interprétation et les méthodes d'utilisation différentes de l'astrologie occidentale de manière pratique.",
+      "014": "Ceci est un guide d'interprétation des rêves qui relie les symboles et les émotions laissés dans les rêves au stress, aux relations et aux flux de choix de la réalité.",
+      "015": "Le contenu sur la physionomie n'évalue pas l'impression faciale de manière fixe, mais fournit des informations de référence pour revoir l'expression de soi et le style de communication.",
+      "016": "Le rapport Premium est un service optionnel qui étend l'interprétation gratuite de base à une analyse approfondie sous forme de document et permet de vérifier la portée et les précautions avant le paiement.",
+      "017": "Sur la page de la lecture amoureuse, nous examinons le flux de la relation actuelle, la distance avec l'autre personne et les indices de conversation du point de vue des Quatre Piliers (BaZi) et du tarot.",
+      "018": "Le rapport de lecture premium de Code Destiny organise les Quatre Piliers (BaZi), les relations amoureuses et les flux du Nouvel An sous forme de document, basé sur des valeurs d'entrée vérifiées.",
+      "019": "Le PDF du Livre de la Vie est un rapport premium généré après vérification de l'autorisation de paiement, des entrées de l'utilisateur et des données de calcul des Quatre Piliers (BaZi).",
+      "020": "Le PDF du rapport amoureux organise le flux amoureux, les modes de communication et les points de récupération après vérification des entrées relationnelles et de l'interprétation basée sur les Quatre Piliers (BaZi).",
+      "021": "Le PDF de la lecture du Nouvel An est un document de lecture premium qui examine le flux de carrière, de richesse, de relations et de santé du Nouvel An mois par mois."
+    },
+    "title": {
+      "001": "Analyse gratuite des Quatre Piliers (BaZi) | Flux des Cinq Éléments, Dix Dieux, cycle de chance",
+      "002": "Analyse gratuite des Quatre Piliers (BaZi) du thème natal | Interprétation des Cinq Éléments, Dix Dieux, cycle de chance",
+      "003": "Voir la lecture du jour gratuitement | Guide du flux et des choix quotidiens",
+      "004": "Vérifier la lecture du jour immédiatement | Évaluation de la condition, des relations, du programme",
+      "005": "Voir la compatibilité gratuite | Analyse des Quatre Piliers (BaZi) et des relations amoureuses",
+      "006": "Interprétation gratuite de la compatibilité des Quatre Piliers (BaZi) | Flux relationnel et modes de communication",
+      "007": "Lecture gratuite de cartes de tarot | Interprétation de l'amour, de la réconciliation, du cœur",
+      "008": "Lecture de tarot de réconciliation | Possibilité de se reconnecter et distance",
+      "009": "Tarot des sentiments de l'autre | Flux des sentiments et signaux relationnels",
+      "010": "Consultation approfondie des 12 palais Zi Wei Dou Shu | Interprétation du palais de la vie, du palais du corps, des quatre transformations, des cycles majeurs",
+      "011": "Thème astral gratuit | Interprétation Soleil·Lune·Ascendant",
+      "012": "Compatibilité Sukuyo (27 Nakshatras) | Distance et flux relationnel",
+      "013": "Interprétation gratuite de l'astrologie védique | Thème Jyotish et flux Dasha",
+      "014": "Interprétation gratuite des rêves | Symboles oniriques et flux psychologique",
+      "015": "Guide de lecture de physionomie | Interprétation de l'apparence faciale et de l'expression de soi",
+      "016": "Rapport de lecture premium | Analyse approfondie des Quatre Piliers, Zi Wei Dou Shu et astrologie",
+      "017": "Lecture gratuite de l'amour | Flux émotionnel et direction relationnelle",
+      "018": "Guide des rapports de lecture premium | Quatre Piliers, amour, Nouvel An en PDF",
+      "019": "Guide du PDF « Le Livre de Vie » | Rapport long basé sur les Quatre Piliers",
+      "020": "Guide du PDF « Rapport Amour » | Analyse approfondie du flux relationnel",
+      "021": "Guide du PDF « Lecture du Nouvel An » | Flux de la nouvelle année et guide mensuel"
+    }
+  },
+  "share": {
+    "001": "🐷 Calendrier du Cochon",
+    "002": "🐷 Tarot du Cochon de Yeoni",
+    "003": "✨ Thème Cosmique Astrologique",
+    "004": "Résultat gratuit Sukuyo de base",
+    "005": "🌌 Résultat Zi Wei Dou Shu",
+    "006": "Le Livre de Vie des Quatre Piliers",
+    "007": "💕 Secret de l'Amour",
+    "008": "Vous devez d'abord ouvrir votre thème natal des Quatre Piliers pour recevoir précisément l'énergie quotidienne. Veuillez entrer votre date de naissance et compléter l'analyse des Quatre Piliers.",
+    "009": "Échec du chargement du module de calcul pour ouvrir le profil enregistré. Veuillez actualiser et réessayer.",
+    "010": "Échec de la réouverture du thème natal des Quatre Piliers à partir du profil enregistré. Veuillez sélectionner à nouveau le profil et soumettre.",
+    "011": "Échec du chargement du module de calcul de lecture. Veuillez actualiser et réessayer.",
+    "012": "Échec de la génération des données de lecture. Veuillez réessayer plus tard.",
+    "013": "Veuillez réessayer plus tard."
+  },
+  "tarotInterpretation": {
+    "label": {
+      "001": "Amour",
+      "002": "Relations",
+      "003": "Réconciliation",
+      "004": "Pensées secrètes de l'autre",
+      "005": "État d'esprit actuel",
+      "006": "Évolution proche",
+      "007": "Carrière et travail",
+      "008": "Argent",
+      "009": "Aujourd'hui",
+      "010": "Guérison",
+      "011": "Prévisions annuelles",
+      "012": "Normes personnelles",
+      "013": "Général",
+      "014": "Comment je vois l'autre",
+      "015": "La vision de l'autre sur la relation",
+      "016": "Les sentiments de l'autre envers moi",
+      "017": "Volonté et désir amoureux de l'autre",
+      "018": "Facteurs clés bloquant la relation",
+      "019": "Flux et critères de choix",
+      "020": "Coupes (Eau)",
+      "021": "Bâtons (Feu)",
+      "022": "Épées (Air)",
+      "023": "Deniers (Terre)",
+      "024": "Arcanes Majeurs",
+      "025": "Suites mélangées"
+    },
+    "title": {
+      "001": "Exercice de clarification des choix",
+      "002": "Exercice de vérification de l'anxiété",
+      "003": "Exercice de rétablissement des critères de réalité",
+      "004": "Sentiments persistants",
+      "005": "Les sentiments de l'autre",
+      "006": "Signes réels de l'arrêt du contact",
+      "007": "Distance pour se reconnecter",
+      "008": "Conditions et critères de rétablissement de la relation"
+    }
+  },
+  "tarotSpread": {
+    "label": {
+      "001": "L'essentiel du jour",
+      "002": "Passé",
+      "003": "Présent",
+      "004": "Futur",
+      "005": "Cause",
+      "006": "Processus",
+      "007": "Résultat",
+      "008": "Ma perception de l'autre",
+      "009": "La vision de l'autre sur la relation",
+      "010": "Les sentiments de l'autre envers moi",
+      "011": "Volonté et désir de l'autre en amour",
+      "012": "Facteurs clés bloquant la relation",
+      "013": "Issue à court terme",
+      "014": "Vérité cachée",
+      "015": "Acceptation des émotions",
+      "016": "Indices de rétablissement",
+      "017": "Prochaine action",
+      "018": "Sentiments persistants",
+      "019": "Les sentiments de l'autre",
+      "020": "Signes réels de l'arrêt du contact",
+      "021": "Distance pour se reconnecter",
+      "022": "Conditions et critères de rétablissement de la relation",
+      "023": "Rythme annuel de base",
+      "024": "Portes à franchir et opportunités",
+      "025": "Réalisations et ajustements de fin d'année",
+      "026": "Pourquoi je me soucie de l'opinion des autres",
+      "027": "Pourquoi j'ai du mal à refuser",
+      "028": "Les méfaits de l'habitude de se soucier des autres",
+      "029": "Comment supporter la déception des autres",
+      "030": "Comment prioriser mes propres sentiments",
+      "031": "La nature du travail qui revit",
+      "032": "Une direction moins épuisante",
+      "033": "La vocation du cœur",
+      "034": "La vie au-delà du seuil",
+      "035": "Première action concrète",
+      "036": "Anciens critères à abandonner",
+      "037": "Critères à garder et direction à prendre",
+      "038": "Attitude apparente",
+      "039": "Vraies pensées intérieures",
+      "040": "Raisons de l'éloignement",
+      "041": "Désirs cachés",
+      "042": "Jugement sur la relation"
+    },
+    "title": {
+      "001": "Tarot du jour",
+      "002": "Passé-Présent-Futur",
+      "003": "Cause-Processus-Résultat",
+      "004": "Tarot de notre relation",
+      "005": "Tarot de guérison et d'élévation",
+      "006": "Retrouvailles sous les étoiles",
+      "007": "Tarot annuel à 12 cartes",
+      "008": "Tarot annuel à 3 cartes",
+      "009": "Tarot pour renforcer l'estime de soi",
+      "010": "Tarot des 7 cartes du seuil professionnel",
+      "011": "Tarot des pensées de l'autre"
+    }
   }
 }

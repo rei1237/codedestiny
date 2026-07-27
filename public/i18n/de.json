@@ -4182,7 +4182,59 @@
     "partialFree": "Teilweise kostenlos",
     "deepReportPrice": "Tiefgehender Bericht 10.000 KRW",
     "freeAnalysis": "KOSTENLOSE ANALYSE",
-    "title": "Sibyllensystem",
+    "title": {
+      "001": "CH.01 Sibylla Kernmatrix",
+      "002": "CH.02 Präzisionsanalyse des Risikofaktors",
+      "003": "CH.03 Präzisionsanalyse des Eignungsfaktors",
+      "004": "CH.04 Dominante Zehn Götter & Verhaltensmuster",
+      "005": "CH.05 Fünf Elemente Balance & Energie-Design",
+      "006": "CH.06 10-Jahres-Risikofaktor-Diagramm-Analyse",
+      "007": "CH.07 Monatlicher Risiko-Planer",
+      "008": "CH.08 Beziehungen & Liebesmuster",
+      "009": "CH.09 Vermögens- & Berufsstrategien",
+      "010": "CH.10 Abschließende Umsetzungsanleitung",
+      "011": "Kernstabilität",
+      "012": "Karriere-Umsetzung",
+      "013": "Finanzmanagement",
+      "014": "Beziehung/Zusammenarbeit",
+      "015": "Resilienz",
+      "016": "Quanten-Mingli-Kohärenz",
+      "017": "CH.01 Sibylla Kernmatrix",
+      "018": "CH.02 Präzisionsanalyse des Risikofaktors",
+      "019": "CH.03 Präzisionsanalyse des Eignungsfaktors",
+      "020": "CH.04 Dominante Zehn Götter & Verhaltensmuster",
+      "021": "CH.05 Fünf Elemente Balance & Energie-Design",
+      "022": "CH.06 10-Jahres-Risikofaktor-Diagramm-Analyse",
+      "023": "CH.07 Monatlicher Risiko-Planer",
+      "024": "CH.08 Beziehungen & Liebesmuster",
+      "025": "CH.09 Reichtum & Berufsstrategie",
+      "026": "CH.10 Ultimativer Umsetzungsleitfaden",
+      "027": "[Dominanter Essensgott] Gebende Beziehung",
+      "028": "[Dominanter Verletzender Offizier] Provokativ, selbstbewusst",
+      "029": "[Dominanter Indirekter Reichtum] Expansive, kontrollierende Energie",
+      "030": "[Dominanter Direkter Reichtum] Vorsichtige, hingebungsvolle Beziehung",
+      "031": "[Dominanter Indirekter Offizier] Charismatisch, dominierend",
+      "032": "[Dominanter Direkter Offizier] Prinzipien- & verantwortungsorientiert",
+      "033": "[Dominanter Indirekter Ressource] Originell, distanziert",
+      "034": "[Dominanter Direkter Ressource] Lern- & unterstützungszentriert",
+      "035": "[Dominanter Freund] Unabhängig, kompetitiv",
+      "036": "[Dominanter Räuber] Überlebensorientiert, strategisch",
+      "037": "Zi (子 Wasser) — Ursprung des Anfangs",
+      "038": "Chou (丑 Erde) — Versiegelte Schatzkammer",
+      "039": "Yin (寅 Holz) — Zündender Samen",
+      "040": "Mao (卯 Holz) — Stille Klinge",
+      "041": "Chen (辰 Erde) — Drachenlager (Wasserschatz)",
+      "042": "Si (巳 Feuer) — Zündkreis",
+      "043": "Wu (午 Feuer) — Zenit der Sonne",
+      "044": "Wei (未 Erde) — Sommerdämmerung",
+      "045": "Shen (申 Metall) — Klinge der Kühlung",
+      "046": "You (酉 Metall) — Reine Klingenspitze",
+      "047": "Xu (戌 Erde) — Grab des Feuers",
+      "048": "Hai (亥 Wasser) — Tiefenschaltung",
+      "049": "Stabiler Wachstumsmodus — Präzise Bahnerhaltung",
+      "050": "Risikoanpassungsmodus — Neuanordnung der Ausführungsreihenfolge",
+      "051": "Fokus-Neuausrichtungsmodus — Struktur-Reset erforderlich"
+    },
     "subtitle": "Analyse der Risikokoeffizienten für berufliche Eignung und Schicksal basierend auf Saju",
     "tags": {
       "hue": "Destiny-Farbdiagnose",
@@ -4266,7 +4318,19 @@
       "graphTitle": "10-Jahres-Risikokoeffizientendiagramm (basierend auf dem jährlichen Vermögen)",
       "reportTitle": "◆ DOMINATOR-BERICHT",
       "remedyTitle": "◆ Destiny Remedy-Rezept"
-    }
+    },
+    "label": {
+      "001": "Neutral"
+    },
+    "message": {
+      "001": "API-Anfrage fehlgeschlagen.",
+      "002": "Die Zahlungspreisinformationen sind ungültig.",
+      "003": "Die Zahlung wurde storniert.",
+      "004": "Die KRW-Zahlung muss bestätigt werden.",
+      "005": "Der Entsperrstatus konnte nicht überprüft werden. Bitte versuchen Sie es später erneut.",
+      "006": "Das Ergebnis der Berichterstellung erfüllte die Kriterien nicht."
+    },
+    "entryTitle": "Sibyllensystem"
   },
   "admin": {
     "flowerButton": "Blumenknopf"
@@ -5900,9 +5964,9 @@
     "sq_8704_attr_placeholder": "Bsp.: Minseo",
     "sq_8708_attr_placeholder": "Optional",
     "sq_8943_prop_label": "Gleiche Nakshatra",
-    "sq_8944_prop_label": "Nah",
-    "sq_8945_prop_label": "Mittel",
-    "sq_8946_prop_label": "Fern",
+    "sq_8944_prop_label": "Nah (Near)",
+    "sq_8945_prop_label": "Mittel (Middle)",
+    "sq_8946_prop_label": "Fern (Far)",
     "sq_8976_prop_label": "Spiegel der Seele",
     "sq_8977_prop_label": "Flamme des Karmas",
     "sq_8978_prop_label": "Goldener Garten",
@@ -5925,8 +5989,1250 @@
     "sq_9418_prop_label": "Realistische Ergänzung",
     "sq_9419_prop_label": "Psychologischer Trost",
     "sq_9451_prop_label": "Spirituelle Dynamik (Destruktive Innovation)",
-    "sq_9454_prop_label": "Realistische Ergänzung (Ökonomie der Reize)",
+    "sq_9454_prop_label": "Realistische Ergänzung (Ökonomie des Reizes)",
     "sq_9457_prop_label": "Psychologischer Trost (Trost des Paradoxons)",
-    "sq_9794_attr_aria_label": "Sukuyo Beziehungs-Radar-Diagramm"
+    "sq_9794_attr_aria_label": "Sukuyo (27 Nakshatras) Beziehungs-Radar-Diagramm"
+  },
+  "shell": {
+    "CODEDESTINY": "CODE DESTINY | Kostenlose Vier Säulen (BaZi)·Tarot·Zi Wei Dou Shu·Partnerschaftsanalyse — Glücks-Deutung",
+    "cdCookieConsentCopy": {
+      "cdCookieConsentActions": {
+        "kniuoqf": "Zustimmen",
+        "kw6ku0": "Nur Notwendige",
+        "kxy7l": "Einstellungen"
+      }
+    },
+    "cdCookieConsentMain": {
+      "cdCookieConsentCopy": {
+        "k12mjipg": "Wir verwenden essentielle Cookies für den Login-Prozess und zur Abwehr übermäßiger Anfragen. Wenn Sie zustimmen, bleiben auch Ihre Komforteinstellungen in diesem Browser reibungslos erhalten.",
+        "k1nqxhwe": "Datenschutzhinweis so still wie das Mondlicht"
+      }
+    },
+    "cdCookieSettingsPanel": {
+      "cdCookieConsentRow": {
+        "k2yf8r8": "Sprache und Bestätigungsstatus werden bei Ihrem nächsten Besuch ruhiger fortgesetzt.",
+        "k602xow": "Essentielle Cookies",
+        "kao88ih": {
+          "ariaLabel": "Essentielle Cookies immer verwenden"
+        },
+        "kfpcszr": "Wird verwendet, um den Login aufrechtzuerhalten, Zahlungen zu schützen und wiederholte Anfragen in derselben Sitzung zu blockieren.",
+        "km6l38": "Komfort-Cookies",
+        "krpclxc": "Immer aktiv"
+      },
+      "k58noo": "Auswahl speichern"
+    },
+    "cdFooterBrandcol": {
+      "cdFooterSocial": {
+        "CODEDESTINY": {
+          "ariaLabel": "CODE DESTINY Offizieller YouTube-Kanal in neuem Fenster öffnen"
+        },
+        "CODEDESTINY2": {
+          "ariaLabel": "CODE DESTINY Offizieller Threads-Kanal in neuem Fenster öffnen"
+        },
+        "CODEDESTINY3": {
+          "ariaLabel": "CODE DESTINY Offizieller Instagram-Kanal in neuem Fenster öffnen"
+        },
+        "CODEDESTINY4": {
+          "ariaLabel": "CODE DESTINY Offizieller Blog in neuem Fenster öffnen"
+        },
+        "CODEDESTINYX": {
+          "ariaLabel": "CODE DESTINY Offizieller X-Kanal in neuem Fenster öffnen"
+        }
+      }
+    },
+    "cdFooterBusinessDetails": {
+      "k1l49wo": "Geschäftsinformationen"
+    },
+    "cdFortunePick": {
+      "cdFortunePickGrid": {
+        "k16fnr7j": {
+          "ariaLabel": "Westliches Horoskop Geburtsdiagramm ansehen"
+        },
+        "k1i48xlw": {
+          "ariaLabel": "Vier Säulen (BaZi) Analyse starten"
+        },
+        "k1i8xvv0": {
+          "ariaLabel": "Tarot-Lesung starten"
+        },
+        "k1yi7np5": {
+          "ariaLabel": "Vedische Astrologie ansehen"
+        },
+        "kb9ueah": {
+          "ariaLabel": "Zi Wei Dou Shu Geburtsdiagramm ansehen"
+        },
+        "kzkddyf": {
+          "ariaLabel": "Sukuyo-Deutung ansehen"
+        }
+      }
+    },
+    "cdHomeGuide": {
+      "cdHomeGuideInner": {
+        "ki3vjq4": {
+          "ariaLabel": "Mehr Deutungen ansehen"
+        }
+      }
+    },
+    "cdMobileBottomNav": {
+      "cdMobileBottomNavMain": {
+        "k10ios": "Tarot",
+        "k16bs": "Home",
+        "kwp0s": "Mein",
+        "kxro3": "Beratung",
+        "kxvio": "Vier Säulen"
+      },
+      "cdMobileBottomNavQuick": {
+        "k10ios": "Tarot",
+        "km4uz9x": "Blume/Traum",
+        "ksmbj4": "Sternzeichen",
+        "kwuu0": "Kostenlos",
+        "kxro3": "Beratung",
+        "kxvio": "Vier Säulen",
+        "kyajl": "Orakel",
+        "kyzcp": "Musik"
+      },
+      "k15q82ek": {
+        "ariaLabel": "Schnelle Kategorien"
+      }
+    },
+    "cdMobileHeader": {
+      "CODEDESTINY": {
+        "ariaLabel": "CODE DESTINY Home"
+      },
+      "cdMobileHeaderSearch": {
+        "kuedl": "Suchen"
+      }
+    },
+    "cdMobileHeaderActions": {
+      "themeSwitchWrapper": {
+        "ks7htym": {
+          "ariaLabel": "Yeoni · Neo Modus wählen"
+        }
+      }
+    },
+    "cdMobileSajuDetailToggle": {
+      "k1x09e8d": "Genaue Geburtszeit/-ort eingeben",
+      "kox0lg9": "Sie können auch ohne diese Angaben beginnen"
+    },
+    "cdStickyCta": {
+      "k1uaylpd": {
+        "ariaLabel": "Kostenlose Deutung starten"
+      }
+    },
+    "dfStudioPanels": {
+      "dfPanel": {
+        "ChatGPT": "🤖 Mit ChatGPT fragen",
+        "k1if9omc": "🤖 Mit Claude fragen",
+        "k2syr3s": "🤖 Mit Gemini fragen",
+        "kkpkasn": "🤖 Mit Grok fragen"
+      }
+    },
+    "featureBegin": {
+      "k162lweo": {
+        "ariaLabel": "Direkt zur Blutgruppen-Deutung"
+      },
+      "k1axy73w": {
+        "ariaLabel": "Direkt zum umfassenden Deutungs-Prompt"
+      },
+      "k1razrl4": {
+        "ariaLabel": "Direkt zum Wahrsager-Fisch"
+      },
+      "k1rbp4zc": {
+        "ariaLabel": "Direkt zum Psychotest"
+      },
+      "kqd75ua": {
+        "ariaLabel": "Direkt zur AI-Tier-Physiognomie"
+      },
+      "kuaxa2s": {
+        "ariaLabel": "Direkt zu Nakshatra"
+      },
+      "moonPreviewCard": {
+        "k121t48l": "Typische Neigungen",
+        "k1lmbq6k": "Wort des Tages",
+        "k1sdh2me": "AI Tier-Physiognomie",
+        "k1ujvbvb": "Leichtes Gedankenlesen",
+        "k53h7ds": "Psychotest",
+        "k79pfmc": "Nakshatra",
+        "k871xeu": "Kostenlos · Selfie-Gesichtsanalyse",
+        "ka0v1mf": "Kostenlos · 11 Tools",
+        "kry6axn": "27 Sukuyo Mondpositionen",
+        "kslqazg": "Umfassender Deutungs-Prompt",
+        "kxgi8q8": "Wahrsager-Fisch",
+        "kxqdi2w": "Blutgruppen-Deutung"
+      }
+    },
+    "featureCardGrid": {
+      "cdPromptFeatureSpotlight": {
+        "k11st5nn": {
+          "ariaLabel": "Yeonis Schicksals-Teestube öffnen"
+        },
+        "k14fkdom": {
+          "ariaLabel": "Neos knallharte Schicksals-Operationszentrale öffnen"
+        }
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k15l5ccw": {
+          "ariaLabel": "AI-Beratung „Buch des Lebens“ – Meine Lebensgeschichte gelesen mit Geburtsdiagramm und Fragen"
+        },
+        "k1fk3mqf": {
+          "ariaLabel": "AI-Beratung „Liebesgeheimnis“ – Die Wendungen der Liebe im Geburtsdiagramm"
+        },
+        "k6gno8d": {
+          "ariaLabel": "Neujahrsdeutung KI-Beratung – Geburtsdiagramm und Jahreszyklus beantworten Ihre Fragen"
+        }
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "k19ij50j": "Lebensbuch KI-Beratung",
+        "k1c3xcpf": "Neujahrsdeutung KI-Beratung"
+      },
+      "lovebibleTile": {
+        "k1s2fcm4": "Liebesgeheimnisse KI-Beratung"
+      }
+    },
+    "honeyMembershipDetails": {
+      "kr1a9l9": "Mondlicht-Vorteile einklappen"
+    },
+    "honeyMembershipMini": {
+      "honeyMembershipMiniHeader": {
+        "k1yqmdmg": {
+          "ariaLabel": "Informationen zum Mondlicht-Pass"
+        }
+      }
+    },
+    "inputPage": {
+      "featureCardGrid": {
+        "kxv61vt": {
+          "ariaLabel": "Empfohlene Prompts für umfassende Deutungen"
+        }
+      },
+      "k1tvi1wd": {
+        "ariaLabel": "Mobile obere Leiste"
+      },
+      "k85zbld": {
+        "ariaLabel": "Mobile Schnellnavigation"
+      }
+    },
+    "ks7htym": {
+      "ariaLabel": "Yeoni · Neo Modus auswählen"
+    },
+    "lifebookTileBody": {
+      "lifebookTileCta": {
+        "k1dhhisc": "Beratung zum Jahresverlauf erhalten →",
+        "k7gpmm6": "Beratungsinformationen eingeben →"
+      },
+      "lifebookTileFeatures": {
+        "k15402w4": "Fluss von Arbeit und Geld",
+        "k187xy2w": "Monatliche Chancen und Vorsichtsmaßnahmen",
+        "k18t3d6t": "Beratung zu Arbeit, Geld, Beziehungen",
+        "k1cztqgf": "Wiederkehrende Muster",
+        "k1plwjlk": "Talente und Stärken",
+        "k1tdarhm": "Glückszyklus- & Jahreszyklus-Deutung",
+        "k918d8o": "Praktische Ratschläge",
+        "kclhqv4": "Analyse des Geburtsdiagramms",
+        "kdq76ml": "Liebe und Beziehungen",
+        "kdxxogb": "Zentrale Lebensthemen",
+        "kemt22s": "Aktueller Wendepunkt",
+        "kp9tkkd": "Vier Säulen (BaZi) basierte Beratung"
+      }
+    },
+    "lifebookTileInner": {
+      "lifebookTileBody": {
+        "k19ij50j": "Lebensbuch KI-Beratung",
+        "k1c3xcpf": "Neujahrsdeutung KI-Beratung",
+        "k1e2ozr5": "Die Tore der Glückszyklen, Jahres- und Monatszyklen öffnen sich über die Struktur Ihres Geburtsdiagramms",
+        "k1n6j5jj": "Wir verknüpfen die Veranlagung des Geburtsdiagramms, den Hintergrund des Glückszyklus, die Ereignisse des Jahreszyklus und die Schwankungen des Monatszyklus zu einem Fluss, um die Entscheidungen und Vorsichtszeiten des Jahres zu bestimmen.",
+        "k1x7d2nr": "Ihre Lebensgeschichte, gelesen aus Ihrem Geburtsdiagramm und Ihren aktuellen Fragen",
+        "ktjp1an": "Basierend auf Ihrem Geburtsdatum und Lebensthemen entfalten wir ruhig wiederkehrende Muster, verborgene Talente und zukünftige Richtungen, die Sie verfolgen sollten, wie in einer Beratung."
+      },
+      "lifebookTileLabelRow": {
+        "AI30000": "KI-Beratung · 30.000 Won",
+        "n30000": "30.000 Won pro Beratung"
+      }
+    },
+    "logoArea": {
+      "moonTopbar": {
+        "CODEDESTINY": {
+          "ariaLabel": "Zur CODE DESTINY Startseite"
+        }
+      }
+    },
+    "lovebibleTileBody": {
+      "lovebibleTileCta": {
+        "k13bcsqk": "Ihre aktuelle Liebe beraten lassen"
+      }
+    },
+    "lovebibleTileCoinGroup": {
+      "lovebibleTileCoinBadge": {
+        "k11zo0b": "KI-Beratung",
+        "n30000": "30.000 Won"
+      }
+    },
+    "lovebibleTileInner": {
+      "lovebibleTileBody": {
+        "k153vbx2": "Vier Säulen (BaZi) Beratung, die die Struktur der Liebe ruhig liest",
+        "k1s2fcm4": "Liebesgeheimnisse KI-Beratung",
+        "ko82iqm": "Wir verknüpfen den Tagesstamm, den Tageszweig, den Beziehungspalast und den Fluss des Jahreszyklus, um Ihre aktuellen Gefühle und Entscheidungen stilvoll zu interpretieren."
+      }
+    },
+    "miscCollection": {
+      "featCollectionGrid": {
+        "LOVECODE": {
+          "ariaLabel": "LOVE CODE Vier Säulen (BaZi) Liebes-Simulation starten"
+        },
+        "k1u4tnr8": {
+          "ariaLabel": "Tierkreiszeichen-Wahrsagerei starten"
+        },
+        "k4i767i": {
+          "ariaLabel": "Ort des Schicksals starten"
+        }
+      }
+    },
+    "myeongriTarotAiPromptPanel": {
+      "kq10md4": "Gemini",
+      "kulph": "Grok",
+      "kvfipg": "Claude"
+    },
+    "normalLogo": {
+      "moonHeroCopy": {
+        "k5pz2jn": "Der Weg der Sternen-Deutung"
+      }
+    },
+    "premiumVvipCollection": {
+      "featCollectionGrid": {
+        "k106qdua": {
+          "ariaLabel": "Astrologie KI-Beratung ansehen"
+        },
+        "k10ifevy": {
+          "ariaLabel": "Sukuyo (27 Nakshatras) Partnerschaftsanalyse KI-Beratung"
+        },
+        "k12a4ezz": {
+          "ariaLabel": "Veda-Astrologie KI-Beratung ansehen"
+        },
+        "k1wc9gw3": {
+          "ariaLabel": "Vier Säulen (BaZi) personalisierte Premium KI-Namensgebung starten"
+        },
+        "k8j5vsv": {
+          "ariaLabel": "AI-Beratung für das gesamte Lebensglück öffnen"
+        },
+        "kic6s9t": {
+          "ariaLabel": "Zi Wei Dou Shu AI-Beratung ansehen"
+        },
+        "kq2cqae": {
+          "ariaLabel": "Zi Wei Dou Shu Insel des Schicksals – Interaktive Karte, auf der Ihr Geburtsdiagramm zu einer lebendigen Insel wird"
+        },
+        "n2727": {
+          "ariaLabel": "Nakshatra-Edition – Integriertes Horoskop aus den 27 östlichen Sukuyo und den 27 indischen Nakshatras"
+        }
+      }
+    },
+    "resultPage": {
+      "ks6nuj0": "🏠 Startseite"
+    },
+    "sukuyoCalendarParking": {
+      "syBasicCalendar": {
+        "kciu67n": {
+          "ariaLabel": "Kalenderlegende"
+        }
+      }
+    },
+    "syBasicCalendar": {
+      "syBasicCalendarDetail": {
+        "k15h7kyw": "Wählen Sie ein Datum, um den Fluss der Sukuyo zu sehen.",
+        "k1wm3jt8": "Es zeigt ruhig, auf welchem Stern das Mondlicht von heute ruht.",
+        "kaomk43": "Position des Mondlichts"
+      },
+      "syBasicCalendarLegend": {
+        "k1voj0cw": "★ Sehr gut · Gut · Neutral · Schlecht · Sehr schlecht"
+      },
+      "syBasicCalendarWeek": {
+        "k10vd": "Do",
+        "k12c8": "Mi",
+        "k139w": "Mo",
+        "k13ek": "So",
+        "k15eo": "Sa",
+        "k16c4": "Di",
+        "kydk": "Fr"
+      }
+    },
+    "syBasicCalendarHead": {
+      "syBasicCalendarControls": {
+        "kndhrck": {
+          "ariaLabel": "Nächster Monat"
+        },
+        "kpyyqqk": {
+          "ariaLabel": "Vorheriger Monat"
+        }
+      },
+      "syBasicCalendarIdentity": {
+        "kqnecln": "Der Ort, an dem das ruhige Mondlicht verweilt · Die Sukuyo dieses Monats"
+      }
+    },
+    "syBasicCalendarIdentity": {
+      "syBasicCalendarMonthLabel": {
+        "k1d0pjad": "27 Sukuyo Kalender",
+        "kp3rjwp": {
+          "ariaLabel": "Monat auswählen"
+        }
+      }
+    },
+    "syBasicCalendarLegend": {
+      "badDay": "Unglückstag",
+      "plainDay": "Normaler Tag",
+      "today": "Heute"
+    },
+    "tarotTile": {
+      "tarotTileBody": {
+        "k10ifevy": "Sukuyo-Partnerschaftsanalyse AI-Beratung",
+        "k10qxwvc": "Folgt den 27 Sukuyo und dem Beziehungsfluss zweier Menschen und liest warmherzig Anziehung, Verletzungen und praktische Entscheidungen.",
+        "k11sp370": {
+          "ariaLabel": "Konfiguration von Yeonis Schicksals-Teestube"
+        },
+        "k11zwfx7": "Basierend auf Ihrem Geburtshoroskop und den aktuellen Planetenbewegungen beantworten wir Ihre dringendsten Fragen.",
+        "k14fgb7z": {
+          "ariaLabel": "Konfiguration von Neos Schicksals-Operationsraum"
+        },
+        "k14mqjx7": "Zi Wei Dou Shu AI-Beratung",
+        "k18rbd8l": "Das Geburtsdiagramm des Moments Ihrer Geburt wird zu einer Insel. Erkunden Sie die 12 Palastgebäude und entdecken Sie mit Yeoni und Neo die Strömungen des heutigen Tages.",
+        "k1934dgw": "Folgt den Mustern des Geburtsdiagramms und der Glückszyklen (Daeun, Seun) und entfaltet tiefgreifend die großen Strömungen von Leben, Arbeit, Reichtum und Beziehungen.",
+        "k1a78igt": "AI-Beratung für das gesamte Lebensglück",
+        "k1cu7bpm": "Astrologie AI-Beratung",
+        "k1eszqn1": "Wir lösen Ihre aktuellen Fragen ruhig mit den Strömungen von Lagna, Nakshatra und Planeten.",
+        "k1hprjge": "Wir lösen die Strömungen von Minggong, Shengong, den 12 Palästen und Siahwa entsprechend Ihrer aktuellen Frage.",
+        "k1nhxtvn": "Zi Wei Dou Shu Insel des Schicksals",
+        "k1ruvdto": "Vier Säulen (BaZi) Liebes-Simulation",
+        "k1s3pj19": {
+          "ariaLabel": "Konfiguration des umfassenden Deutung-Prompt-Hubs"
+        },
+        "k1tyatli": {
+          "ariaLabel": "Beratungszusammenfassung"
+        },
+        "k1tyatli2": {
+          "ariaLabel": "Beratungszusammenfassung"
+        },
+        "k1v84z2u": "Die AI erstellt einen Namen, indem sie die Vier Säulen (BaZi) und die Fünf Elemente, Klänge und die Bedeutung chinesischer Zeichen miteinander verbindet, und Sie erhalten den ursprünglichen Prompt-Text dazu.",
+        "k1y1a5zq": "Neos Schicksals-Operationsraum",
+        "k1yble8x": "Öffnen Sie mit Yeoni eine Mondlicht-Teetasse und beleuchten Sie liebevoll die unerzählten Gefühle der Seele durch Vier Säulen (BaZi), Tarot und Partnerschaftsanalyse.",
+        "k1ygnp9f": {
+          "ariaLabel": "Kernpunkte"
+        },
+        "k1ygnp9f2": {
+          "ariaLabel": "Kernpunkte"
+        },
+        "k231dx8": "Erstellen Sie sofort kostenlose Beratungs-Prompts mit 11 Werkzeugen wie Vier Säulen (BaZi), Tarot, Astrologie und Zi Wei Dou Shu.",
+        "k3baulf": "Hunminjeongeum Namensgebung",
+        "k6uqkuq": {
+          "ariaLabel": "Zusammenfassung der Kernpunkte"
+        },
+        "k6uqkuq2": {
+          "ariaLabel": "Zusammenfassung"
+        },
+        "kir1rde": "Ort und Zeitpunkt",
+        "klifgdg": "緣 Ort des Schicksals",
+        "kntw327": "Sukuyo (27 Nakshatras) – Die definitive Ausgabe",
+        "kslqazg": "Umfassende Deutung",
+        "kstndh6": "Bestiarium der Schicksalstiere",
+        "ksxkgnt": "Yeonis Schicksals-Teestube",
+        "kt62t87": "Vedische AI-Beratung",
+        "kyqh20f": "Neo fasst Vier Säulen (BaZi), Zi Wei Dou Shu, vedische Astrologie und westliche Astrologie zusammen und gibt Ihnen eine nüchterne Einschätzung der Entscheidungskriterien, die Sie jetzt ergreifen sollten.",
+        "kzo1yhl": "獸 Tierkreiszeichen der Zwölf Lebensphasen",
+        "n2727Nakshatra": "Östliche 27 Sukuyo × Indische 27 Nakshatras – Ein Stern, zwei Sprachen. Zwei vor tausend Jahren getrennte Sternensysteme treffen sich wieder in Ihrem Geburtsdiagramm."
+      },
+      "tarotTileImgWrap": {
+        "AI30000": "AI-Beratung · 30.000 ₩",
+        "AI300002": "AI-Beratung · 30.000 ₩",
+        "AI300003": "AI-Beratung · 30.000 ₩",
+        "AI300004": "AI-Beratung · 30.000 ₩",
+        "AI300005": "AI-Beratung · 30.000 ₩",
+        "AI300006": "AI-Beratung · 30.000 ₩",
+        "AI300007": "AI-Namensgebung · 30.000 ₩",
+        "AIConsultation50000": "AI Consultation · 50.000 ₩",
+        "k1039k": "Empfohlen",
+        "k11zo0b": "AI-Beratung",
+        "k125av1j": "Geburtsdiagramm kostenlos · AI-Beratung",
+        "k15hk22d": {
+          "alt": "Neos Schicksalsstrategie-Raum – Strategieberatung zur Klärung der Entscheidungsfront vor dem Löwenwappen"
+        },
+        "k18zdwwf": "Kostenlos verfügbar",
+        "k18zdwwf2": "Kostenlos verfügbar",
+        "k1gdpipn": {
+          "alt": "Yeonis Schicksals-Teestube – Beratung von Yeoni, der Lotuswächterin, mit einer Tasse Mondlicht-Tee"
+        },
+        "k1r8338q": "NEU · Insel des Schicksals",
+        "k1scb7d8": {
+          "alt": "Repräsentatives Bild des Schicksals"
+        },
+        "koe32kc": "Kostenlose Testphase",
+        "ktgbfsy": "NEU · Definitive Ausgabe",
+        "n50001000020000": "Tarot 5.000 ₩ · Vier Säulen (BaZi) 10.000 ₩ · Partnerschaftsanalyse 20.000 ₩"
+      }
+    },
+    "tarotTileBody": {
+      "featuredContentCardCta": {
+        "k1f1oofn": "Teestube betreten",
+        "kdyjsns": "Kostenlos testen",
+        "kwux29x": "Strategieraum betreten"
+      },
+      "pvcPremMeta": {
+        "k10vo8": "Ausbreiten",
+        "k11zo0b": "AI-Beratung",
+        "k11zo0b2": "AI-Beratung",
+        "k11zo0b3": "AI-Beratung",
+        "k12z88tv": "Als PDF speichern",
+        "k16eekng": "Pass prüfen",
+        "k19vii04": "12-Häuser-Karte",
+        "k1cco6tp": "Jetzt starten",
+        "k1s4cln3": "Strategieraum betreten",
+        "k1ty674i": "Beratung verfügbar",
+        "k1ty8wv6": "Beratung erhalten",
+        "k1u01klw": "Insel betreten",
+        "k1vfalgf": "Kostenlos prüfen",
+        "k6skteu": "Beratung mit Natal-Chart erhalten",
+        "k96vaab": "Bildschirmberatung",
+        "kj5prgr": "Vier Säulen (BaZi) · Tarot · Astrologie",
+        "kmxk05u": "Lebensdeutung",
+        "kn1803y": "Vedische Beratung",
+        "kpfei5h": "Story-Typ",
+        "ksdpj4c": "Tägliche Quest",
+        "ktecid": "Sukuyo",
+        "kth5jek": "Jetzt testen",
+        "kudb0": "Persönlich",
+        "kudb02": "Persönlich",
+        "kugw5d": "Herrscher",
+        "kv7uo": "Neo",
+        "kv9f8rk": "Sofortberatung",
+        "kwuu0": "Kostenlos",
+        "kyyvo": "Namensgebung",
+        "kyzfrrw": "Vier Säulen · Tarot · Partnerschaftsanalyse",
+        "n30000": "Basierend auf 30.000 Won"
+      },
+      "pvcPremPoints": {
+        "AIPDF": "Von AI erstelltes Namensgebungsergebnis + PDF-Speicherung",
+        "k11eirzr": "Stärke der Häuser als Gebäudestufen – von Ruine bis Tempel",
+        "k136ne35": "Die 27 östlichen Sukuyo und indischen Nakshatras nebeneinander",
+        "k15z2s5t": "Neos knallharte Strategie, die die Realität widerspiegelt",
+        "k161xazs": "Der Fluss der Sterne, der mit Ihrer aktuellen Frage verbunden ist",
+        "k1a6baj4": "Mein eigenes Insel-Biom, bestimmt durch den Hauptstern des Lebenspalastes",
+        "k1asi5pl": "Sofortige Erstellung durch Eingabe von Geburtsdatum und Frage",
+        "k1cb96zz": "Wendepunkte durch Glückszyklus und Jahreszyklus",
+        "k1e60r0a": "Zusammenfassung der aktuellen Transit-Strömungen",
+        "k1fyb19o": "Eintritt ins Teehaus und der erste Gruß von Yeoni, der Lotuswächterin",
+        "k1hh2ce8": "Die Haupt-Sukuyo und Beziehungsdistanz zweier Personen",
+        "k1lfrfuk": "Persönliches Geburtsdiagramm für Lebenspalast · Körperpalast · 12 Häuser",
+        "k1rfowhj": "Emotionale Beratung, die Vier Säulen · Tarot · Partnerschaftsanalyse verbindet",
+        "k1soc8": "Kernberatung zu Sonne · Mond · Aszendent",
+        "k1wel05o": "Umfassende Empfehlung für Yongsin · Hanja · Klang · Numerologie",
+        "k5ittux": "Einsatzbesprechung, abgestimmt auf Beratungsthema und Geburtsinformationen",
+        "ka0qthx": "Fragen und Antworten basierend auf Häusern und Aspekten",
+        "kcblo5w": "Herrscher · Pada · Gana · Vimshottari Dasha",
+        "kkg4b7z": "Lange Beratung als PDF zum Aufbewahren",
+        "kkph98v": "Beratung basierend auf Rashi-Chart und Nakshatra",
+        "knvmn7z": "Der Punkt, an dem sich zwei Traditionen treffen und trennen",
+        "ko4w810": "11 Werkzeuge wie Vier Säulen · Tarot · Astrologie",
+        "kozjlt4": "Praktische Ratschläge für Beziehungen · Finanzen · Arbeit · Entscheidungen",
+        "kqwk9o": "Beratung zu Häusern und Sternenflüssen nach Themen",
+        "krx9ppb": "Kostenlos · Sofort testen ohne Login",
+        "ktv5xm9": "Deutung des Vier Säulen Geburtsdiagramms und des Fünf Elemente Gleichgewichts",
+        "ktx0v26": "Wählen Sie Ihre Schicksalskarte unter dem Löwenwappen",
+        "kvigm32": "Praktische Ratschläge, abgestimmt auf Ihre aktuelle Beziehung",
+        "kwuh556": "Wiederkehrende Muster von Anziehung und Konflikt",
+        "kxatr2b": "Wählbare Abläufe, die die Facetten Ihrer Sorgen sanft entwirren",
+        "kyk2x3o": "Entscheidungshilfe basierend auf Glückszyklus und Jahreszyklus",
+        "n12NPC": "Täglich wechselndes Inselwetter und Gespräche mit 12-Haus-NPCs",
+        "n30000": "Einzelzahlung von 30.000 Won oder Pass · Mondlichtstein"
+      }
+    },
+    "terms24Card": {
+      "introLead": "Dies ist der Fluss der 24 Jahreszeiten (節氣) des Geburtsjahres. Die",
+      "introTail": "der Vier Säulen wird dadurch bestimmt, in welchem Jahreszeitenabschnitt Ihr Geburtstag liegt. Die hervorgehobene Jahreszeit ist der Beginn (節入), der Ihren Monat eröffnet.",
+      "secTitle": {
+        "k1iwdtvn": "☀️ 24 Jahreszeiten (二十四節氣)"
+      },
+      "terms24Intro": {
+        "kpaolwg": "Monatssäule"
+      }
+    },
+    "themeSwitchWrapper": {
+      "themeSwitchPill": {
+        "k7bnh78": {
+          "ariaLabel": "Neo Modus"
+        },
+        "k7bnh782": {
+          "ariaLabel": "Neo Modus"
+        },
+        "khrulw0": {
+          "ariaLabel": "Yeoni Modus"
+        },
+        "khrulw02": {
+          "ariaLabel": "Yeoni Modus"
+        }
+      }
+    },
+    "wrap": {
+      "cdFooterShell": {
+        "k16rhu4g": {
+          "ariaLabel": "AI Beratungslink"
+        },
+        "k1cf0vdm": {
+          "ariaLabel": "Kundencenter-Link"
+        },
+        "koniaun": {
+          "ariaLabel": "Service-Link"
+        },
+        "kp08cb": {
+          "ariaLabel": "Story-Link"
+        }
+      },
+      "k14mqjx7": "Zi Wei Dou Shu AI Beratung",
+      "kt62t87": "Veda AI Beratung"
+    }
+  },
+  "adsenseArticle": {
+    "description": {
+      "001": "7 Schritte zur Vier Säulen-Deutung: Manse-Kalender prüfen, Tagesmeister identifizieren, Fünf Elemente-Gleichgewicht, Zehn Götter-Rollen, Glückszyklus & Jahreszyklus. Ein Leitfaden für Anfänger, der mit einem Aktionsplan abschließt.",
+      "002": "Wie Sie Ihr Glück steigern können, beginnt mit einer 15-minütigen Routine. Wir haben Routinen für Morgen, Mittag und Abend, individuelle Ergänzungsroutinen nach Vier Säulen-Temperament und Tipps für 3 Wochen Konstanz zusammengestellt.",
+      "003": "Der Kern des Manse-Kalenders besteht darin, zuerst nur 4 Dinge zu überprüfen: Tagesmeister, Monatszweig, Fünf Elemente-Verteilung und Glückszyklus. Wir zeigen Ihnen, wie Sie die Himmelsstämme anhand von Bildern lesen und die 3 Schritte zur Nutzung des Monatszweigs anwenden, auch wenn Sie keine chinesischen Schriftzeichen kennen.",
+      "004": "Diagnose des Fünf Elemente-Gleichgewichts: Finden Sie Überfluss (3 oder mehr) und Leere (0) von Holz, Feuer, Erde, Metall, Wasser in den 8 Zeichen der Vier Säulen und entwickeln Sie praktische Strategien, um fehlende Elemente durch Alltagsroutinen zu ergänzen.",
+      "005": "Praktische Karte der Zehn Götter-Deutung: Übersetzen Sie die fünf Gruppen (Be-Geop, Shik-Sang, Jae-Seong, Gwan-Seong, In-Seong) in die Entscheidungssprache von Liebe, Arbeit und Geld und verbinden Sie das Geburtsdiagramm mit dem Jahreszyklus, um Handlungen abzuleiten.",
+      "006": "Wie man die Jahresdeutung liest: Ein Rahmen, um mit den zwei Zeichen des Jahreszyklus die Richtung für Wachstum und Reduktion festzulegen und dies mit einer vierteljährlichen 6-Punkte-Checkliste zu überprüfen. Enthält auch, wie man Hyung-Chung-Pa-Hae (Strafen, Kollisionen, Zerstörungen, Schäden) ohne Angst liest.",
+      "007": "Monatliche Deutungsaufzeichnung: Eine 3-Zeilen-Vorlage für wöchentliche Schlüsselwörter, Aktionen und Ergebnisse sowie eine Lese-Ausführungs-Aufzeichnungs-Anpassungs-Feedback-Schleife, um die Wachstumsrate zu erhöhen, anstatt richtig oder falsch zu bewerten.",
+      "008": "Die Wahl eines guten Datums ist kein Aberglaube, sondern Risikomanagement. Wir haben die Grundkonzepte von Iljin (Tagesstamm-Zweig), 'Tag ohne Hände' und Gan-Ji Chung-Hap (Stamm-Zweig-Kollisionen und -Kombinationen) sowie einen 4-stufigen Prozess zur Datumswahl und Prioritätskriterien für Umzug, Vertrag, Vorstellungsgespräch und Reise zusammengefasst.",
+      "009": "Wie man das Glück zurücksetzt, wenn es blockiert ist: Eine praktische Routine zur Wiederherstellung des Flusses durch Diagnose der Ursache (Überlastung, Richtungsverwirrung, mangelnde Erholung) und ein 72-Stunden-Protokoll zum Aufräumen, Neuausrichten und Neustarten.",
+      "010": "Kommunikation zur Steigerung des Liebesglücks: Lesen Sie die Unterschiede im emotionalen Rhythmus anhand des Liebesstils des Tagesmeisters und der 27 Sukuyo und vereinbaren Sie 3 Beziehungsregeln für Antwortkriterien, Gefühlsausdruck und Konfliktlösung.",
+      "011": "Gewohnheiten zur Steigerung des Vermögensglücks: Lesen Sie die Struktur und den Zeitpunkt der Geldenergie mit dem Jae-Seong (Vermögensstern) der Vier Säulen und kontrollieren Sie den Cashflow mit einer monatlichen 3-Zeilen-Finanzverwaltung für Fixkosten, variable Kostenobergrenzen und automatische Ersparnisse.",
+      "012": "Berufs- und Prüfungsglück wird durch Gwan-Seong (Amtsstern) und In-Seong (Ressourcenstern) gelesen. Wir haben zusammengefasst, wie man Herausforderungen in Zeiten starken Glücks platziert, 4 Schritte zur Vorbereitung auf Vorstellungsgespräche, die Pomodoro-Prüfungsroutine und das Stressmanagement am Tag vor und am Tag der Prüfung.",
+      "013": "Die Beziehung zwischen Schlaf und Glück: Der Mechanismus, wie Schlafmangel Urteilsvermögen, Emotionskontrolle und die Fähigkeit, Gelegenheiten zu ergreifen, beeinträchtigt, und ein 7-tägiges Schlaf-Reset-Protokoll zur Wiederherstellung des Energierhythmus, Schritt für Schritt.",
+      "014": "Wie man gute Deutungsfragen stellt: Entwerfen Sie Fragen mit 3 Elementen (Zeitraum, Kontext, Handlungsmöglichkeit), 3 Vorlagen, um 4 Arten schlechter Fragen zu vermeiden, und 5 Punkte zur Selbstdiagnose der Fragenqualität.",
+      "015": "Wie man Vier Säulen und Tarot zusammen liest: Ein integrierter Rahmen, um den vierteljährlichen Fluss mit Vier Säulen zu erfassen und die Entscheidungen der Woche mit Tarot zu überprüfen. Enthält das Finden gemeinsamer Schlüsselwörter und einen 3-stufigen Filter zur Vermeidung von Überinterpretation.",
+      "016": "AdSense-freundliche Deutungsartikelstruktur: 3 Kriterien für Informationswert, EEAT und Lesbarkeit, 6-stufiger Artikelaufbau, zu vermeidende Ausdrücke und Betriebsstrategien zur Erhöhung der Verweildauer.",
+      "017": "Vollständiger Leitfaden zu den 12 Rashi der Vedischen Astrologie: Von Mesha bis Mina, Zusammenfassung der Elemente, Herrscherplaneten, Charakterstärken und Herausforderungen, sowie die Reihenfolge der Deutung, die Lagna, Mond-Rashi und Dasha zusammen betrachtet.",
+      "018": "Grundprinzipien der Vier Säulen: Die Struktur der vier Säulen und acht Zeichen, Himmelsstämme und Erdzweige, Fünf Elemente-Erzeugung und -Kontrolle, und eine 5-stufige Deutungsreihenfolge für Anfänger, die es zum ersten Mal sehen.",
+      "019": "Vollständige Zusammenfassung der Fünf Elemente: Die Eigenschaften der fünf Energien Holz, Feuer, Erde, Metall, Wasser, die Prinzipien der Erzeugung und Kontrolle, Charaktertendenzen bei Überfluss und Mangel, und praktische Ergänzungsroutinen für den Alltag.",
+      "020": "Bedeutung der 22 Großen Arkana Tarotkarten: Von der Null Der Narr bis zur 21 Die Welt, Schlüsselwörter, 3 Ansätze zur Umkehrdeutungen, und Anwendung für Fragen zu Liebe, Beruf und persönlichem Wachstum.",
+      "021": "Was ist Zi Wei Dou Shu: Die Struktur des Geburtsdiagramms mit 12 Palästen, die 14 Hauptsterne wie Zi Wei, die Bedeutung der vier Transformationen Hua Lu, Hua Quan, Hua Ke, Hua Ji, und 3 Schritte zum Lesen des Geburtsdiagramms für Anfänger.",
+      "022": "Erläuterung der Himmelsstämme und Erdzweige: Die Fünf Elemente, Yin-Yang und Saisonalität der 10 Himmelsstämme (Gap, Eul, Byeong, Jeong, Mu, Gi, Gyeong, Sin, Im, Gye) und 12 Erdzweige (Ja, Chuk, In, Myo, Jin, Sa, O, Mi, Sin, Yu, Sul, Hae), sowie die Kernpunkte der Kombinations- und Kollisionsbeziehungen in praktischer Reihenfolge.",
+      "023": "Methode zur Bestimmung von Shin-Gang (starkes Selbst) und Shin-Yak (schwaches Selbst): Die Reihenfolge, in der die Stärke des Tagesmeisters anhand der 3 Hauptkriterien Deuk-Ryeong (Saison), Deuk-Ji (Erdzweig) und Deuk-Se (andere Zeichen) gelesen wird, Ergänzungsstrategien für Shin-Gang und Shin-Yak, und häufige Fehlurteile.",
+      "024": "Wie man Yong-Sin (nützliches Element) findet: Von der Bestimmung von Shin-Gang/Shin-Yak bis zu den fünf Klassifikationen (Eok-Bu, Jo-Hu, Tong-Gwan, Byeong-Yak, Jeon-Wang), und der Unterscheidung von Hui-Sin (glückliches Element) und Gi-Sin (unglückliches Element) mit einer praktischen 5-Schritte-Checkliste.",
+      "025": "Grundlagen der Partnerschaftsanalyse: Ein praktischer Leitfaden, um die Energiemuster zweier Menschen anhand der 3 Schritte (Fünf Elemente-Erzeugung und -Kontrolle des Tagesmeisters, Zehn Götter-Beziehung, Il-Ji-Kombinationen und -Kollisionen) zu lesen und als Werkzeug zum Verständnis der Beziehung zu nutzen.",
+      "026": "Zusammenfassung der Persönlichkeiten nach Il-Ju (Tagesstamm-Zweig): Die 60 Gap-Ja Il-Ju sind nach den Fünf Elementen des Tagesmeisters unterteilt, wobei die Temperamente, Stärken und Vorsichtsmaßnahmen der repräsentativen Il-Ju zusammengefasst und eine Deutungsreihenfolge vorgestellt wird, die nicht nur auf einer Il-Ju basiert.",
+      "027": "Wie man Glückszyklus und Jahreszyklus liest: Konzepte des 10-Jahres-Glückszyklus und des 1-Jahres-Jahreszyklus, Berechnung des Startalters des Glückszyklus und praktische Punkte zum Lesen des Zeitpunkts durch die Interaktion mit dem Yong-Sin des Geburtsdiagramms."
+    },
+    "title": {
+      "001": "Vier Säulen-Deutung für Anfänger: 7 Schritte zur Interpretation",
+      "002": "So steigern Sie Ihr Glück: Der 15-Minuten-Glücks-Routine-Guide",
+      "003": "Manse-Kalender-Guide: Die wichtigsten Interpretationsmethoden verstehen, auch ohne chinesische Schriftzeichen",
+      "004": "Fünf Elemente-Gleichgewichts-Guide: Ihre persönliche Strategie zur Realitätsverbesserung mit Holz, Feuer, Erde, Metall, Wasser",
+      "005": "Zehn Götter-Interpretationskarte: Vier Säulen-Deutung direkt anwendbar auf Liebe, Arbeit, Geld",
+      "006": "Jahresdeutung lesen: Der komplette Leitfaden zur angstfreien Überprüfung Ihrer Jahresdeutung",
+      "007": "Monatliche Deutungsaufzeichnung: Eine Feedback-Schleife, die die Wachstumsrate statt richtig oder falsch erhöht",
+      "008": "Gute Daten wählen: Praktische Datumswahl ohne Aberglaube",
+      "009": "Glück zurücksetzen, wenn es blockiert ist: Das 72-Stunden-Wiederherstellungsprotokoll",
+      "010": "Kommunikation zur Steigerung des Liebesglücks: Wichtigere Beziehungsregeln als Partnerschaftsanalyse-Punkte",
+      "011": "Gewohnheiten zur Steigerung des Vermögensglücks: Vier Säulen Jae-Seong und reales Haushaltsbuch zusammen nutzen",
+      "012": "Vorbereitung zur Steigerung des Berufs- und Prüfungsglücks: Vier Säulen Jahreszyklus und praktische Routine",
+      "013": "Schlaf und Glück: Warum sich das Glück ändert, wenn der Energierhythmus wiederhergestellt ist",
+      "014": "Gute Deutungsfragen stellen: Der komplette Leitfaden zum Fragenentwurf, der die Qualität der Antworten verändert",
+      "015": "Vier Säulen und Tarot zusammen lesen: Ein integrierter Rahmen, der langfristige Trends und aktuelle Entscheidungen verbindet",
+      "016": "AdSense-freundliche Deutungsartikelstruktur: Vollständiger Leitfaden zu Informationswert, Vertrauenswürdigkeit, Lesbarkeit",
+      "017": "Vollständiger Leitfaden zu den 12 Rashi der Vedischen Astrologie: Von Mesha bis Mina, Persönlichkeit, Deutung, praktische Interpretation",
+      "018": "Grundprinzipien der Vier Säulen: Von Anfang an verstehen, was Vier Säulen ist",
+      "019": "Fünf Elemente (Holz, Feuer, Erde, Metall, Wasser) vollständig erklärt: Eigenschaften, Erzeugung, Kontrolle, praktische Anwendung",
+      "020": "Bedeutung der 22 Großen Arkana Tarotkarten: Von Nr. 0 bis Nr. 21",
+      "021": "Was ist Zi Wei Dou Shu: Vollständige Einführung von den Grundlagen bis zum Lesen des Geburtsdiagramms",
+      "022": "Himmelsstämme und Erdzweige perfekt erklärt: Bedeutung, Eigenschaften, praktische Interpretation der 10 Himmelsstämme und 12 Erdzweige",
+      "023": "Vollständiger Leitfaden zur Bestimmung von Shin-Gang und Shin-Yak: Die Stärke Ihres Geburtsdiagramms genau lesen",
+      "024": "Praktischer Leitfaden zur Suche nach Yongsin: Von Shin-gang Shin-yak bis zur Yongsin-Einstellung",
+      "025": "Grundlagen der Partnerschaftsanalyse: Ein praktischer Leitfaden zum Verständnis von Beziehungen durch Vier Säulen (BaZi)",
+      "026": "Umfassende Zusammenfassung der Persönlichkeitsmerkmale nach Ilju: Ein vollständiger Leitfaden zu den 60 Gapja Ilju-Tendenzen",
+      "027": "Der vollständige Leitfaden zum Lesen von Glückszyklus und Seun: Verständnis der Deutung durch den Fluss der Zeit"
+    }
+  },
+  "astralSoul": {
+    "001": "Details ansehen",
+    "002": "Weise Eule",
+    "003": "Neugierige Katze",
+    "004": "Charismatischer Löwe",
+    "005": "Gerissener Fuchs",
+    "006": "Mysteriöses Reh",
+    "007": "Träumendes Kaninchen",
+    "008": "Freundlicher Delfin",
+    "009": "Lebhafter Otter",
+    "010": "Fleißige Schildkröte",
+    "011": "Sanfter Elefant",
+    "012": "Strenger Wolf",
+    "013": "Geselliger Pinguin",
+    "014": "Scharfer Falke",
+    "015": "Künstlerischer Schmetterling",
+    "016": "Mutiger Tiger",
+    "017": "Prächtiger Pfau",
+    "018": "Details",
+    "019": "Gesamte Kompatibilität",
+    "020": "Emotionale/Werte-Resonanz (T/F)",
+    "021": "Verhaltens-/Lebensmuster (J/P)",
+    "022": "Gespräch/Interessen-Tiki-Taka (S/N)",
+    "023": "Perfekter Paralleluniversum-Doppelgänger",
+    "024": "Ein vom Universum geschaffenes Meisterwerk",
+    "025": "Ein wunderbarer Begleiter für intellektuelle Erkundungen",
+    "026": "T vom Mars, F von der Venus",
+    "027": "Ein farbenfrohes Prisma, das sich gegenseitig färbt"
+  },
+  "celestialMelody": {
+    "closingTitle": "Zusammenfassung der heutigen Himmelsmelodie",
+    "spreadTitle01": "Sonne · Das offenbarende Selbst",
+    "spreadTitle02": "Mond · Erinnerungen des Herzens",
+    "spreadTitle03": "Merkur · Gedanken und Sprache",
+    "spreadTitle04": "Venus · Liebe und Werte",
+    "spreadTitle05": "Mars · Verlangen und Antrieb",
+    "spreadTitle06": "Jupiter · Expansion und Glaube",
+    "spreadTitle07": "Saturn · Verantwortung und Prüfung",
+    "spreadTitle08": "Uranus · Erwachen des Wandels",
+    "spreadTitle09": "Neptun · Träume und Intuition",
+    "spreadTitle10": "Pluto · Tiefe Transformation",
+    "spreadTitle11": "Chiron · Weisheit der Wunde"
+  },
+  "dreamMeaning": {
+    "001": "Alle",
+    "002": "Tierbezogen",
+    "003": "Fruchtbezogen",
+    "004": "Personenbezogen",
+    "005": "Emotion (positiv)",
+    "006": "Emotion (Wut)",
+    "007": "Emotion (Angst)",
+    "008": "Gefühl (Verlust)",
+    "009": "Gefühl (Wiederherstellung)",
+    "010": "Orts-Schlüsselwort",
+    "011": "Objekt-Schlüsselwort",
+    "012": "Schwangerschaftstraum",
+    "013": "Vermögensglück",
+    "014": "Erfolgsglück",
+    "015": "Liebesglück",
+    "016": "Heiratsglück",
+    "017": "Begegnungsszene",
+    "018": "Aktionsszene",
+    "019": "Veränderungsszene"
+  },
+  "highValueContent": {
+    "001": "Grundlagen für alle, die Vier Säulen (BaZi), Manse-Kalender, Fünf Elemente und Zehn Götter zum ersten Mal sehen.",
+    "002": "So ordnen Sie Tarotfragen und verbinden Karteninterpretationen mit realen Entscheidungen.",
+    "003": "Ein Leitfaden, um Liebesglück, Wiedervereinigung und Partnerschaftsanalyse nicht als Angst, sondern als Sprache der Beziehungsprüfung zu lesen.",
+    "004": "So nutzen Sie die Tagesdeutung realistisch für Termine, Emotionen und Prioritäten.",
+    "005": "Geburtschart, 12 Häuser und Sternzeichensymbole leicht verständlich für Einsteiger.",
+    "006": "Kriterien und Haftungsausschluss für eine sichere und ausgewogene Deutung von Inhalten.",
+    "007": "Vier Säulen (BaZi) Einsteiger-Guide",
+    "008": "Kostenlose Vier Säulen (BaZi) Analyse",
+    "009": "Vier Säulen (BaZi) Grundinterpretation",
+    "010": "Wie funktioniert Tarot-Reading?",
+    "011": "Kostenloses Tarotkarten-Reading",
+    "012": "Wiedervereinigungs-Tarot-Reading",
+    "013": "Schicksalsdeutung realistisch lesen",
+    "014": "Methodik der Deutungsinhalte",
+    "015": "Deutungs-Insights-Guide",
+    "016": "Charakteranalyse nach Geburtsdatum",
+    "017": "Kostenloses Geburtshoroskop",
+    "018": "Zi Wei Dou Shu 12 Häuser Geburtsdiagramm",
+    "019": "Wichtige Anzeichen für eine gute Partnerschaftsanalyse",
+    "020": "Kostenlose Vier Säulen (BaZi) Partnerschaftsanalyse",
+    "021": "Kostenloses Liebesglück anzeigen",
+    "022": "FAQ zur sicheren Nutzung des Deutungsdienstes",
+    "023": "Kostenlose Tagesdeutung anzeigen",
+    "024": "Code Destiny Häufig gestellte Fragen"
+  },
+  "indexRuntime": {
+    "aria-label": {
+      "001": "Sibylla Vier Säulen (BaZi) System öffnen",
+      "002": "Blume des Schicksals verbinden"
+    },
+    "confirm": {
+      "001": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen.",
+      "002": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen.",
+      "003": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen.",
+      "004": "Sollen alle gespeicherten Aufzeichnungen der Blume des Schicksals gelöscht werden?",
+      "005": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen.",
+      "006": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen.",
+      "007": "🔒 Dieser Dienst erfordert eine Anmeldung.\\\\nBitte melden Sie sich an, um ihn zu nutzen."
+    },
+    "label": {
+      "001": "Mondphase",
+      "002": "Schutzgeist",
+      "003": "Starker Stern des Tages",
+      "004": "Sternhelligkeit",
+      "005": "Hausposition",
+      "006": "Sonnenzeichen",
+      "007": "Aszendent",
+      "008": "Mondzeichen",
+      "009": "Stark/Schwach",
+      "010": "Nützliches Element",
+      "011": "Temperatur"
+    },
+    "message": {
+      "001": "Mondlichtstein-Informationen werden überprüft.",
+      "002": "Mondlichtstein wird aktiviert und ist bald verfügbar.",
+      "003": "Mondlichtstein wird aktiviert und ist bald verfügbar.",
+      "004": "Kartenzahlung wird vorbereitet.",
+      "005": "Zahlung abgeschlossen. Ergebnisse werden geladen.",
+      "006": "Pass wird überprüft.",
+      "007": "Wird bearbeitet. Bitte warten Sie einen Moment.",
+      "008": "Wird bearbeitet. Bitte warten Sie einen Moment."
+    },
+    "title": {
+      "001": "Ergebnis des Tier-Totem-Readings"
+    }
+  },
+  "lsd": {
+    "alt": {
+      "001": "Miniaturansicht"
+    },
+    "aria-label": {
+      "001": "Naturcode-Diagramm",
+      "002": "Stärken-Reading-Diagramm",
+      "003": "Schließen",
+      "004": "Glücksenergie-Tagebuch-Tab",
+      "005": "Mini-Karte der heutigen Glücksenergie",
+      "006": "Meditations-Playlist-Modus",
+      "007": "Vorheriger Monat",
+      "008": "Nächster Monat",
+      "009": "Kalenderansicht umschalten"
+    },
+    "label": {
+      "001": "Naturcode",
+      "002": "Glücksenergie-Zusammenfassung",
+      "003": "Stärken-Reading",
+      "004": "Tagesbalance",
+      "005": "Reichtum",
+      "006": "Liebe",
+      "007": "Ehre",
+      "008": "Gesundheit",
+      "009": "Lernen",
+      "010": "Reichtumsfluss gestalten",
+      "011": "Beziehungsenergie ordnen",
+      "012": "Resilienz stärken",
+      "013": "Fokus-/Leistungsmodus",
+      "016": "Normal",
+      "017": "Guter Tag",
+      "018": "Gut",
+      "019": "Normal",
+      "020": "Stark",
+      "021": "Sehr stark",
+      "022": "Reichtum",
+      "023": "Beziehung",
+      "024": "Leistung",
+      "025": "Erholung",
+      "026": "Fokus",
+      "027": "Reichtum",
+      "028": "Liebe",
+      "029": "Ehre",
+      "030": "Gesundheit",
+      "031": "Lernen"
+    },
+    "lead": {
+      "001": "In der heutigen Strömung erheben sich die vier unterstützenden Säulen: Fokus, Einsicht, Beziehung und Vollendung, jede in unterschiedlicher Höhe.",
+      "002": "Zwischen den fünf Rhythmen von Ruhe, Vollendung, Wachstum, Neubeginn und Neuordnung leuchtet der zentrale Rhythmus, der Sie heute begleitet."
+    },
+    "placeholder": {
+      "001": "Karten-Spitzname (optional)",
+      "002": "Einzeiliger Kommentar unter der Karte (optional)",
+      "003": "Halten Sie kurz fest, welche Strömungen, Begegnungen oder Entscheidungen Sie heute in Erinnerung behalten möchten.",
+      "004": "Name der anderen Person",
+      "005": "Jahr (optional)",
+      "006": "Bsp.: Morgens war ich unkonzentriert, aber abends, nach einer digitalen Entgiftung, wurden meine Gedanken klar.",
+      "007": "Bsp.: Bei einem wichtigen Meeting war ich nervös und verhaspelte mich.",
+      "008": "Bsp.: Ich habe die Kernpunkte ruhig vermittelt, und die andere Person nickte lächelnd.",
+      "009": "Tippen oder lesen Sie den obigen Satz laut vor."
+    },
+    "title": {
+      "001": "Angeborene Veranlagung ·",
+      "002": "Zusammenfassung der Tagesenergie ·",
+      "003": "Stärken-Nutzungs-Reading",
+      "004": "Tagesbalance-Reading",
+      "005": "Meditationsmusik-Player"
+    }
+  },
+  "mindscanReading": {
+    "cardsRequired": "Kartenpaardaten sind erforderlich.",
+    "positionContactFlow": "Zukünftiger Kontaktfluss",
+    "positionCurrentHeart": "Aktuelles Herz der anderen Person",
+    "positionFinalFlow": "Richtung der Beziehung",
+    "positionHesitationReason": "Grund des Zögerns der anderen Person",
+    "positionHiddenHeart": "Verborgene Herzenszüge",
+    "positionMyAttitude": "Meine einzunehmende Haltung",
+    "positionVisibleAttitude": "Sichtbare Haltung",
+    "questionRequired": "Beratungsfrage ist erforderlich.",
+    "sampleTitle": "Beispieltitel"
+  },
+  "numerologyTarot": {
+    "lifePathNumber": "Lebenspfadzahl",
+    "questionNumber": "Fragenzahl",
+    "topicCareer": "Beruf",
+    "topicFeelings": "Innere Gefühle",
+    "topicGeneral": "Allgemein",
+    "topicHealth": "Gesundheit & Energie",
+    "topicLove": "Liebe & Beziehungen",
+    "topicMoney": "Finanzen",
+    "topicMove": "Umzug & Veränderung",
+    "topicRelationship": "Zwischenmenschliche Beziehungen",
+    "topicReunion": "Wiedervereinigung"
+  },
+  "palm": {
+    "description": {
+      "001": "Gesamteindruck der Hand, Handform, Hauptlinien und Gesamtpunktzahl auf einen Blick.",
+      "002": "Betrachtet nicht die Lebensdauer, sondern die Energieverwaltung, den Erholungsrhythmus und die Lebensbeständigkeit.",
+      "003": "Betrachtet Denkweise, Urteilsvermögen, Konzentration, Realitätssinn und Vorstellungskraft.",
+      "004": "Betrachtet die Art zu lieben, Gefühlsausdruck, Bindung und Beziehungserwartungen.",
+      "005": "Betrachtet Berufsrichtung, soziale Ziele, Selbstständigkeit und Lebensausrichtung.",
+      "006": "Betrachtet Gewohnheiten im Umgang mit Geld, Wertschöpfung, Ausdrucksfähigkeit und Markengefühl.",
+      "007": "Betrachtet nicht die Anzahl der Ehen, sondern das gewünschte Gefühl von Stabilität und die Art der Verpflichtung in tiefen Beziehungen.",
+      "008": "Betrachtet die Energiebereiche der Handfläche wie Venusberg, Mondberg, Jupiterberg usw.",
+      "009": "Vergleicht die dominante und nicht-dominante Hand, um das angeborene Ich und das gegenwärtige Ich zu sehen.",
+      "010": "Tagesratschläge, 7-Tage-Routine, Beziehungs-, Vermögens- und Berufsberatung."
+    },
+    "label": {
+      "001": "Angeborene Hand",
+      "002": "Erworbene Hand",
+      "003": "Mischtyp-Hand",
+      "004": "Erdhand",
+      "005": "Feuerhand",
+      "006": "Lufthand",
+      "007": "Wasserhand",
+      "008": "Mischtyp-Hand",
+      "009": "Lebenslinie",
+      "010": "Kopflinie",
+      "011": "Herzlinie",
+      "012": "Schicksalslinie",
+      "013": "Sonnenlinie",
+      "014": "Geldlinie",
+      "015": "Heiratslinie",
+      "016": "Merkurlinie",
+      "017": "Intuitionslinie",
+      "018": "Venusberg",
+      "019": "Mondberg",
+      "020": "Jupiterberg",
+      "021": "Saturnberg",
+      "022": "Sonnenberg",
+      "023": "Merkurberg",
+      "024": "Marsberg",
+      "025": "Daumen",
+      "026": "Zeigefinger",
+      "027": "Mittelfinger",
+      "028": "Ringfinger",
+      "029": "Kleiner Finger",
+      "030": "Gesamt",
+      "031": "Lebenslinie",
+      "032": "Kopflinie",
+      "033": "Herzlinie",
+      "034": "Schicksalslinie",
+      "035": "Geld-/Sonnenlinie",
+      "036": "Liebes-/Heiratslinie",
+      "037": "Handflächenhügel",
+      "038": "Angeboren/Erworben Vergleich",
+      "039": "Maßgeschneiderte Lösung"
+    },
+    "title": {
+      "001": "Tiefe, lange Lebenslinie",
+      "002": "Kurze, aber tiefe Lebenslinie",
+      "003": "Undeutliche Lebenslinie",
+      "004": "Unterbrochene Lebenslinie",
+      "005": "Verzweigte Lebenslinie",
+      "006": "Lange, gerade Kopflinie",
+      "007": "Lange, sanft geschwungene Kopflinie",
+      "008": "Kurze Kopflinie",
+      "009": "Von der Lebenslinie getrennte Kopflinie",
+      "010": "Mit der Lebenslinie verbundene Kopflinie",
+      "011": "Tiefe und geschwungene Herzlinie",
+      "012": "Gerade Herzlinie",
+      "013": "Herzlinie, die unter den Zeigefinger zeigt",
+      "014": "Herzlinie, die unter den Mittelfinger zeigt",
+      "015": "Herzlinie mit vielen Verzweigungen",
+      "016": "Schicksalslinie, die deutlich in der Mitte aufsteigt",
+      "017": "Schwache oder undeutliche Schicksalslinie",
+      "018": "Schicksalslinie, die an der Lebenslinie beginnt",
+      "019": "Schicksalslinie, die am Mondhügel beginnt",
+      "020": "Unterbrochene Schicksalslinie",
+      "021": "Klare Sonnenlinie",
+      "022": "Schwache Sonnenlinie",
+      "023": "Sonnenlinie schwach oder nicht erkennbar",
+      "024": "M-förmige Geldlinie",
+      "025": "Klare Geldlinie",
+      "026": "Geldlinie mit mehreren Verzweigungen",
+      "027": "Schwache Geldlinie",
+      "028": "Klare Beziehungslinie",
+      "029": "Beziehungslinie mit vielen feinen Linien",
+      "030": "Nach oben zeigende Beziehungslinie",
+      "031": "Nach unten geneigte Beziehungslinie",
+      "032": "Klare Merkur-Linie",
+      "033": "Unterbrochene Merkur-Linie",
+      "034": "Schwache Merkur-Linie",
+      "035": "Hand mit erkennbarer Intuitionslinie",
+      "036": "Schwache Intuitionslinie",
+      "037": "Hand mit hoher Liebeswärme",
+      "038": "Realistische Karriere-Hand",
+      "039": "Hand mit starker Intuition und Vorstellungskraft",
+      "040": "Hand, die ihren Weg durch Ausdruck findet, nicht durch vorgegebene Pfade",
+      "041": "Kommunikative Hand, die Beziehungssignale gut liest",
+      "042": "Ursprünglich gute Widerstandsfähigkeit, aber derzeit hoher Energieverbrauch",
+      "043": "Hand, die durch nachträgliches Selbstmanagement Energie aufgebaut hat",
+      "044": "Ursprünglich stark sensibel, aber derzeit gestärkte Realitätsbeurteilung",
+      "045": "Hand, die sich von der Vernunft zur Intuition erweitert hat",
+      "046": "Hand, die tiefe Gefühle defensiv reguliert hat",
+      "047": "Hand, deren Gefühlsausdruck sich durch Beziehungserfahrungen geöffnet hat",
+      "048": "Im aktuellen Leben sind Zielbewusstsein und soziale Ausrichtung gestärkt",
+      "049": "Hand, die ihre ursprüngliche Richtung neu ausrichtet",
+      "050": "Hand, in der die Tiefe der Gefühle und die Intuition lebendig sind"
+    }
+  },
+  "palmMap": {
+    "001": "Simian-Linie",
+    "002": "M-förmige Handlinie",
+    "003": "Entwickelter Jupiterhügel + betonte Wachstumsachse",
+    "004": "Entwickelter Saturnhügel + deutliche Schicksalslinie",
+    "005": "1. Umfassende Handlesung",
+    "006": "2. Interpretation angeborener / erworbener Hand",
+    "007": "3. Analyse der Lebenslinie",
+    "008": "4. Analyse der Kopflinie",
+    "009": "5. Analyse der Herzlinie",
+    "010": "6. Analyse der Schicksalslinie",
+    "011": "7. Analyse der Vermögens-/Sonnenlinie",
+    "012": "8. Analyse der Liebes-/Heiratslinie",
+    "013": "9. Umfassende Hügelanalyse",
+    "014": "10. Deutung der Handlesen-Kombinationen",
+    "015": "10-1. Spezielle Handlesen-Muster",
+    "016": "11. Deutung des Flusses nach Bereichen",
+    "017": "12. 5 Stärken",
+    "018": "13. 5 Warnhinweise",
+    "019": "14. Persönliche Beratung"
+  },
+  "rd": {
+    "aria-label": {
+      "001": "Wählen Sie die Version von Vier Säulen (BaZi) Vier Schnitte"
+    },
+    "cta": {
+      "001": "🐾 Beschwöre mein Schutz Tier",
+      "002": "💞 Öffne den Ort meines Schicksals",
+      "003": "💕 Liebescode entsperren",
+      "004": "✨ Mehr zur Attraktivitätsanalyse",
+      "005": "⚡ Quanten-BaZi komplett öffnen",
+      "006": "💚 Gesundheitsbericht prüfen",
+      "007": "🤖 Kostenlose Prompts ansehen",
+      "008": "🎮 Skill-Baum entfalten",
+      "009": "🧊 Ergebnis des Extrem-T-Tests ansehen",
+      "010": "❤️ Teto/Egen-Analyse ansehen",
+      "011": "🗺️ Reisezielbericht ansehen",
+      "012": "⚠️ Bösewicht-Bericht öffnen",
+      "013": "Quanten-Lotto-Bericht ansehen",
+      "014": "📔 Vier Säulen (BaZi)-Tagebuch öffnen",
+      "015": "📸 Vier Säulen (BaZi) Vier Schnitte öffnen",
+      "016": "🏠 Geheimes Haus betreten"
+    },
+    "description": {
+      "001": "Die Zwölf-Lebensphasen-Energie Ihres Vier Säulen (BaZi) entfaltet sich als Tier-Archetyp und beleuchtet Persönlichkeitskern, Beziehungsmuster, Berufsneigungen, Partnerschaftsanalyse und tägliche Aufgaben in einem.",
+      "002": "Basierend auf den Fünf Elemente/Yongsin-Flüssen Ihres Vier Säulen (BaZi) schlagen wir Orte, Länder, Zeiten und Schicksalsgegenstände vor, an denen sich Ihre Beziehungen entfalten, in einem emotionalen Bericht.",
+      "003": "Finden Sie die Liebes-Persona, die Ihrem Partner am ähnlichsten ist, basierend auf den Fünf Elemente Ihres Vier Säulen (BaZi), und überprüfen Sie die Chemie mit einer interaktiven Dating-Simulation."
+    },
+    "label": {
+      "001": "Meine Attraktivitätsklasse",
+      "002": "Quanten-BaZi-Engine",
+      "003": "BaZi-Gesundheitsbericht",
+      "004": "Vier Säulen (BaZi) AI-Prompt",
+      "005": "Lebens-Skill-Baum",
+      "006": "Extrem-T-Test",
+      "007": "Teto vs. Egen",
+      "008": "Reiseziel nach Vier Säulen (BaZi)",
+      "009": "Bösewicht-Blacklist",
+      "010": "Quanten-Lotto-Bericht",
+      "011": "Vier Säulen (BaZi)-Tagebuch",
+      "012": "Vier Säulen (BaZi) Vier Schnitte: Schicksalsfilter",
+      "013": "Geheimes Haus: Liebes-Sim",
+      "014": "Schicksalsfilter",
+      "015": "Liebes-DM",
+      "016": "Gutes Leben Routine",
+      "017": "Verhindere schwarze Geschichte"
+    },
+    "title": {
+      "001": "Vier Säulen (BaZi) Zwölf-Lebensphasen-Tier-Test",
+      "002": "Ort des Schicksals nach Vier Säulen (BaZi)",
+      "004": "MZ Schicksalsfilter AN",
+      "005": "Liebessignal Vier Schnitte",
+      "006": "Heutiger Check-in",
+      "007": "Filter für peinliche Momente",
+      "008": "1. Hauptcharakter-Vibe-Werte",
+      "009": "2. Erster Eindruck vs. Aktueller Eindruck",
+      "010": "3. Gehirnkarte",
+      "011": "4. Heutiges Glück",
+      "012": "1. Erster Eindruck",
+      "013": "2. Flirt-Temperatur",
+      "014": "3. Herz-Gehirnkarte",
+      "015": "4. Heutige Liebesaktion",
+      "016": "1. Start-Button für heute",
+      "017": "2. Arbeitsmodus",
+      "018": "3. Konzentrations-Booster",
+      "019": "4. Glückspaket vor Feierabend",
+      "020": "1. Warnung vor plötzlicher Beschleunigung",
+      "021": "2. Schutz vor Versprechern",
+      "022": "3. Ausgabensperre",
+      "023": "4. Schutz-Zauber",
+      "024": "Vier Säulen (BaZi) Vier Schnitte: Schicksalsfilter"
+    }
+  },
+  "seoLanding": {
+    "description": {
+      "001": "Dies ist eine kostenlose Einführungsseite zu den Vier Säulen (BaZi), die die grundlegende Struktur, das Gleichgewicht der Fünf Elemente, die Zehn Götter und den Glückszyklus analysiert, um Tendenzen und Entscheidungsabläufe zu untersuchen.",
+      "002": "Wir erklären, wie Sie Ihr Geburtsdiagramm der Vier Säulen (BaZi), die Fünf Elemente, die Zehn Götter und den Glückszyklus basierend auf Ihrem Geburtsdatum und Ihrer Geburtszeit überprüfen können.",
+      "003": "Das Tageshoroskop hilft Ihnen, Ihren Zustand, Ihre Beziehungen und die Prioritäten Ihrer Arbeit für den Tag leicht zu überprüfen und Entscheidungen zu treffen.",
+      "004": "Die Tageshoroskop-Seite hilft Ihnen, Ihren Zustand, Beziehungsabläufe und Terminprioritäten kurz zu überprüfen, wenn Sie den Tag beginnen oder abschließen.",
+      "005": "Wir untersuchen den Beziehungsrhythmus, die Kommunikationsweise und die Punkte zur Konfliktbewältigung zweier Personen aus der Perspektive der Vier Säulen (BaZi) und der Deutung und fassen diese als realistische Gesprächsgrundlage zusammen.",
+      "006": "Dies ist eine Einführungsseite zur Partnerschaftsanalyse der Vier Säulen (BaZi), die die Struktur der Vier Säulen (BaZi) zweier Personen aus der Perspektive des Beziehungsrhythmus, der Konfliktmuster und der Kommunikationsweise liest.",
+      "007": "Tarotkarten helfen Ihnen, aktuelle Fragen, Liebesbeziehungen, Wiedervereinigungsmöglichkeiten und die Richtung Ihres Herzens ruhig zu ordnen und bieten Sätze zur Selbstreflexion und praktische Hinweise für die nächste Entscheidung.",
+      "008": "Das Wiedervereinigungs-Tarot ist eine Lesung, die die aktuelle Distanz zum Partner, den Zeitpunkt der Kontaktaufnahme und die emotionalen Nachwirkungen anhand des Kartenflusses untersucht.",
+      "009": "Das Partner-Herz-Tarot ordnet aktuelle Gefühle, unausgesprochene Signale und die nächste Beziehungsentscheidung aus der Perspektive der Selbstreflexion.",
+      "010": "Basierend auf den 12 Palästen, dem Lebenspalast, dem Körperpalast, den Vier Transformationen und der Sternenkonstellation des Zi Wei Dou Shu Geburtsdiagramms werden Tendenzen, Beruf, Beziehungen und der Fluss von Dekaden- und Jahreszyklen in beratenden Sätzen zusammengefasst.",
+      "011": "Wir untersuchen Tendenzen und Beziehungsrhythmen durch Sonnenzeichen, Mondzeichen, Aszendent und die grundlegende Struktur des Geburtshoroskops der westlichen Astrologie und geben einfache Anleitungen zu den Ausgangspunkten und Vorsichtsmaßnahmen der Horoskopdeutung.",
+      "012": "Basierend auf den 27 Sukuyo und der Beziehung des Mondes in der Sukuyo-Wahrsagung untersuchen wir die Distanz der Verbindung, Konfliktmuster und den Heilungsfluss und fassen Kriterien zum Lesen von Beziehungen und Gesprächshinweise für Anfänger zusammen.",
+      "013": "Wir erklären das Jyotish-Diagramm, das Mondzeichen und den Dasha-Fluss der vedischen Astrologie auf leicht verständliche Weise für Anfänger und fassen die unterschiedlichen Interpretationsachsen und Anwendungsmethoden im Vergleich zur westlichen Astrologie praxisnah zusammen.",
+      "014": "Dies ist eine Anleitung zur Traumdeutung, die Symbole und Emotionen, die im Traum verbleiben, mit realem Stress, Beziehungen und Entscheidungsabläufen verbindet.",
+      "015": "Der Physiognomie-Inhalt wird als Referenzinformation bereitgestellt, um den eigenen Ausdruck und Kommunikationsstil zu reflektieren, ohne den Gesichtsausdruck fest zu bewerten.",
+      "016": "Der Premium-Bericht ist ein optionaler Dienst, der die kostenlose Grundinterpretation zu einer dokumentenbasierten Tiefenanalyse erweitert und bei dem Sie den Umfang und die Vorsichtsmaßnahmen vor der Zahlung überprüfen können.",
+      "017": "Auf der Seite für Liebesdeutungen untersuchen wir den aktuellen Beziehungsfluss, die Distanz zum Partner und Gesprächsansätze aus der Perspektive der Vier Säulen (BaZi) und des Tarots.",
+      "018": "Der Premium-Deutungsbericht von Code Destiny fasst die Vier Säulen (BaZi), Liebes- und Neujahrsabläufe basierend auf verifizierten Eingabewerten in Dokumentenform zusammen.",
+      "019": "Das Buch des Lebens PDF ist ein Premium-Bericht, der nach Überprüfung der Zahlungsberechtigung und Validierung der Benutzereingaben und der Berechnungsdaten der Vier Säulen (BaZi) erstellt wird.",
+      "020": "Der Liebesbericht PDF fasst den Liebesfluss, die Kommunikationsweise und die Wiederherstellungspunkte zusammen, nachdem die Beziehungseingaben und die Vier Säulen (BaZi)-basierte Interpretation validiert wurden.",
+      "021": "Das Neujahrs-Deutung PDF ist ein Premium-Deutungsdokument, das die Karriere-, Vermögens-, Beziehungs- und Gesundheitsabläufe des neuen Jahres monatlich untersucht."
+    },
+    "title": {
+      "001": "Kostenlose Vier Säulen (BaZi) Analyse | Fünf Elemente·Zehn Götter·Glückszyklus",
+      "002": "Kostenlose Vier Säulen (BaZi) Analyse | Fünf Elemente·Zehn Götter·Glückszyklus Deutung",
+      "003": "Kostenloses Tageshoroskop | Tagesablauf und Auswahlhilfe",
+      "004": "Tageshoroskop sofort prüfen | Zustand·Beziehung·Terminprüfung",
+      "005": "Kostenlose Partnerschaftsanalyse | Vier Säulen (BaZi)·Liebesbeziehungsanalyse",
+      "006": "Kostenlose Vier Säulen (BaZi) Partnerschaftsanalyse | Beziehungsfluss und Kommunikationsweise",
+      "007": "Kostenloses Tarotkarten-Reading | Liebe·Wiedervereinigung·Herzdeutung",
+      "008": "Wiedervereinigungs-Tarot-Reading | Möglichkeit der Wiedervereinigung und Distanz",
+      "009": "Partner-Herz-Tarot | Herzfluss und Beziehungssignale",
+      "010": "Vertiefte Zi Wei Dou Shu 12 Paläste Beratung | Lebenspalast·Körperpalast·Vier Transformationen·Dekaden-Deutung",
+      "011": "Kostenloses Geburtshoroskop | Sonne, Mond, Aszendent",
+      "012": "Sukuyo (27 Nakshatras) Partnerschaft | Distanz & Beziehungsfluss",
+      "013": "Kostenlose vedische Astrologie | Jyotish-Chart & Dasha-Fluss",
+      "014": "Kostenlose Traumdeutung | Traumsymbole & psych. Fluss",
+      "015": "Gesichtslesung | Gesichtsausdruck & Selbstdarstellung",
+      "016": "Premium Deutung Report | Vier Säulen (BaZi), Zi Wei Dou Shu, Astrologie",
+      "017": "Kostenlose Liebesdeutung | Gefühlsfluss & Beziehungsrichtung",
+      "018": "Premium Deutung Report | Vier Säulen (BaZi), Liebe, Neujahr PDF",
+      "019": "Buch des Lebens PDF | Vier Säulen (BaZi) Langreport",
+      "020": "Liebesreport PDF | Tiefenanalyse des Beziehungsflusses",
+      "021": "Neujahrsdeutung PDF | Jahresfluss & Monatsguide"
+    }
+  },
+  "share": {
+    "001": "🐷 Glücksschwein-Kalender",
+    "002": "🐷 Yeonis Glücksschwein-Tarot",
+    "003": "✨ Astrologisches Kosmisches Chart",
+    "004": "Kostenloses Sukuyo (27 Nakshatras) Ergebnis",
+    "005": "🌌 Zi Wei Dou Shu Ergebnis",
+    "006": "Vier Säulen (BaZi) Buch des Lebens",
+    "007": "💕 Liebesgeheimnis",
+    "008": "Um die tägliche Energie genau zu empfangen, müssen Sie zuerst Ihr Vier Säulen (BaZi) Geburtsdiagramm öffnen. Bitte geben Sie Ihr Geburtsdatum ein und schließen Sie die Vier Säulen (BaZi)-Analyse ab.",
+    "009": "Das Berechnungsmodul zum Öffnen des gespeicherten Profils konnte nicht geladen werden. Bitte versuchen Sie es nach dem Neuladen erneut.",
+    "010": "Das Vier Säulen (BaZi) Geburtsdiagramm konnte nicht aus dem gespeicherten Profil erneut geöffnet werden. Bitte wählen Sie das Profil erneut aus und beantragen Sie es.",
+    "011": "Das Deutungsberechnungsmodul konnte nicht geladen werden. Bitte versuchen Sie es nach dem Neuladen erneut.",
+    "012": "Die Deutungsdaten konnten nicht generiert werden. Bitte versuchen Sie es später erneut.",
+    "013": "Bitte versuchen Sie es später erneut."
+  },
+  "tarotInterpretation": {
+    "label": {
+      "001": "Liebe",
+      "002": "Beziehung",
+      "003": "Wiedervereinigung",
+      "004": "Innere Gedanken des Partners",
+      "005": "Aktuelle Gedanken",
+      "006": "Naher Verlauf",
+      "007": "Karriere & Arbeit",
+      "008": "Finanzen",
+      "009": "Heute",
+      "010": "Heilung",
+      "011": "Jahresdeutung",
+      "012": "Selbststandard",
+      "013": "Gesamt",
+      "014": "Wie ich den Partner sehe",
+      "015": "Sicht des Partners auf die Beziehung",
+      "016": "Gedanken des Partners über mich",
+      "017": "Liebeswille & Sehnsucht des Partners",
+      "018": "Hauptfaktor, der die Beziehung blockiert",
+      "019": "Aktueller Fluss & Auswahlkriterien",
+      "020": "Kelche (Wasser)",
+      "021": "Stäbe (Feuer)",
+      "022": "Schwerter (Luft)",
+      "023": "Münzen (Erde)",
+      "024": "Große Arkana",
+      "025": "Gemischte Farben"
+    },
+    "title": {
+      "001": "Übung zur Klärung von Optionen",
+      "002": "Übung zur Angstbewältigung",
+      "003": "Übung zur Wiederherstellung der Realitätsbasis",
+      "004": "Was noch im Herzen bleibt",
+      "005": "Die vom Gegenüber gezeigte Herzensart",
+      "006": "Reale Anzeichen für Kontaktabbruch",
+      "007": "Erreichbare Distanz",
+      "008": "Bedingungen und Kriterien zur Beziehungsheilung"
+    }
+  },
+  "tarotSpread": {
+    "label": {
+      "001": "Der Kern des Tages",
+      "002": "Vergangenheit",
+      "003": "Gegenwart",
+      "004": "Zukunft",
+      "005": "Ursache",
+      "006": "Prozess",
+      "007": "Ergebnis",
+      "008": "Wie ich den anderen sehe",
+      "009": "Wie der andere die Beziehung sieht",
+      "010": "Die Gefühle des anderen für mich",
+      "011": "Liebeswille und Sehnsucht des anderen",
+      "012": "Hauptfaktoren, die die Beziehung blockieren",
+      "013": "Kurzfristiges Ergebnis",
+      "014": "Verborgene Wahrheit",
+      "015": "Gefühlsakzeptanz",
+      "016": "Hinweise zur Genesung",
+      "017": "Nächste Schritte",
+      "018": "Was noch im Herzen bleibt",
+      "019": "Die vom Gegenüber gezeigte Herzensart",
+      "020": "Reale Anzeichen für Kontaktabbruch",
+      "021": "Erreichbare Distanz",
+      "022": "Bedingungen und Kriterien zur Beziehungsheilung",
+      "023": "Grundrhythmus des Jahres",
+      "024": "Zu überwindende Schwelle und Chancen",
+      "025": "Ergebnisse und Abstimmung am Jahresende",
+      "026": "Warum ich auf andere achte",
+      "027": "Warum fällt es mir schwer, Nein zu sagen?",
+      "028": "Schaden durch die Gewohnheit, auf andere zu achten",
+      "029": "Wie man die Enttäuschung anderer erträgt",
+      "030": "Wie man die eigenen Gefühle priorisiert",
+      "031": "Die Art der wiederbelebten Arbeit",
+      "032": "Weniger aufreibende Richtung",
+      "033": "Berufung des Herzens",
+      "034": "Leben jenseits der Schwelle",
+      "035": "Erste Schritte in die Realität",
+      "036": "Alte Maßstäbe loslassen",
+      "037": "Beibehaltene Maßstäbe & neue Richtung",
+      "038": "Äußere Haltung",
+      "039": "Wahre Gefühle",
+      "040": "Grund der Distanz",
+      "041": "Verborgene Wünsche",
+      "042": "Beziehungsurteil"
+    },
+    "title": {
+      "001": "Tages-Tarot",
+      "002": "Vergangenheit-Gegenwart-Zukunft",
+      "003": "Ursache-Prozess-Ergebnis",
+      "004": "Unser Beziehungs-Tarot",
+      "005": "Heilendes Aufstiegs-Tarot",
+      "006": "Wiedersehens-Tarot: Sternenklare Nacht",
+      "007": "Jahres-Tarot (12 Karten)",
+      "008": "Jahres-Tarot (3 Karten)",
+      "009": "Selbstwertgefühl-Tarot",
+      "010": "Berufliche Schwelle (7 Karten)",
+      "011": "Tarot: Gefühle des Anderen"
+    }
   }
 }

@@ -75,6 +75,18 @@ for (const el of doc.querySelectorAll("[data-cd-trans-attr]")) {
 
 // ── 4. 모듈별 KO 테이블 (AST) ─────────────────────────────────────────────
 const tableStats = [];
+const collisions = [];
+const baseLookup = flatten(base);
+
+/** `a.b.c` 의 조상(`a`, `a.b`) 중 이미 문자열로 존재하는 경로가 있으면 그 경로를 돌려준다. */
+function ancestorStringPath(key) {
+  const parts = key.split(".");
+  for (let i = 1; i < parts.length; i += 1) {
+    const path = parts.slice(0, i).join(".");
+    if (typeof baseLookup[path] === "string") return path;
+  }
+  return null;
+}
 const codeFiles = [...walkSourceFiles(rootDir)];
 
 for (const file of codeFiles) {
@@ -127,6 +139,11 @@ for (const file of codeFiles) {
     let n = 0;
     for (const [key, value] of Object.entries(flat)) {
       if (typeof value !== "string") continue;
+      // 🔴 충돌 가드. 모듈 테이블의 "sibyl.title.001" 을 그대로 넣으면 사전에 이미
+      // 문자열로 있던 "sibyl.title"(셸 마커가 쓰던 제목)이 객체로 덮여 사라진다.
+      // 실제로 한 번 잃었다 — 조상 경로가 문자열인 키는 넣지 않고 보고한다.
+      const clash = ancestorStringPath(key);
+      if (clash) { collisions.push({ key, clash, file: relPath }); continue; }
       record(key, value, "module:table");
       n += 1;
     }
@@ -217,6 +234,11 @@ for (const [source, count] of Object.entries(bySource).sort((a, b) => b[1] - a[1
   console.log(`[extract-ko]    ${source.padEnd(15)} ${count}`);
 }
 console.log(`[extract-ko] 미복원          : ${missing.length}`);
+if (collisions.length) {
+  console.log(`[extract-ko] 🔴 키 충돌로 제외 : ${collisions.length}`);
+  console.log("[extract-ko]    (조상 경로가 이미 문자열인 키 — 넣으면 기존 문구가 사라진다)");
+  collisions.slice(0, 8).forEach((c) => console.log(`[extract-ko]      ${c.key}  ← "${c.clash}" 와 충돌  (${c.file})`));
+}
 if (placeholderDropped.length) {
   console.log(`[extract-ko]    ↳ 자리표시자 손실로 폐기: ${placeholderDropped.length} (${placeholderDropped.slice(0, 5).join(", ")})`);
 }

@@ -4182,7 +4182,59 @@
     "partialFree": "Partly free",
     "deepReportPrice": "Deep report 10,000 KRW",
     "freeAnalysis": "FREE ANALYSIS",
-    "title": "Sibyl System",
+    "title": {
+      "001": "CH.01 Sibylla Core Matrix",
+      "002": "CH.02 Risk Factor Precision Analysis",
+      "003": "CH.03 Aptitude Factor Precision Analysis",
+      "004": "CH.04 Dominant Ten Gods & Behavior Patterns",
+      "005": "CH.05 Five Elements Balance & Energy Design",
+      "006": "CH.06 10-Year Risk Factor Graph Analysis",
+      "007": "CH.07 Monthly Risk Planner",
+      "008": "CH.08 Relationship & Affection Patterns",
+      "009": "CH.09 Wealth & Career Strategy",
+      "010": "CH.10 Final Execution Guide",
+      "011": "Core Stability",
+      "012": "Career Drive",
+      "013": "Financial Management",
+      "014": "Relationships/Collaboration",
+      "015": "Resilience",
+      "016": "Quantum Myeongri Alignment",
+      "017": "CH.01 Sibylla Core Matrix",
+      "018": "CH.02 Risk Factor Precision Analysis",
+      "019": "CH.03 Aptitude Factor Precision Analysis",
+      "020": "CH.04 Dominant Ten Gods & Behavior Patterns",
+      "021": "CH.05 Five Elements Balance & Energy Design",
+      "022": "CH.06 10-Year Risk Factor Graph Analysis",
+      "023": "CH.07 Monthly Risk Planner",
+      "024": "CH.08 Relationship & Affection Patterns",
+      "025": "CH.09 Wealth & Career Strategy",
+      "026": "CH.10 Final Execution Guide",
+      "027": "[Eating God Dominant] Naturally Giving Relationships",
+      "028": "[Hurting Officer Dominant] Provocative, Assertive Relationships",
+      "029": "[Indirect Wealth Dominant] Expansive, Controlling Interpersonal Energy",
+      "030": "[Direct Wealth Dominant] Prudent, Devoted Relationships",
+      "031": "[Indirect Officer Dominant] Charismatic, Dominant Interpersonal Structure",
+      "032": "[Direct Officer Dominant] Principle- and Responsibility-Centered Relationships",
+      "033": "[Indirect Seal Dominant] Original, Distant Relationship Patterns",
+      "034": "[Direct Seal Dominant] Learning- and Support-Centered Relationship Structure",
+      "035": "[Friend Dominant] Independent, Competitive Interpersonal Energy",
+      "036": "[Rob Wealth Dominant] Survival-Oriented, Strategic Relationship Patterns",
+      "037": "Zi Water (子水) — Origin of Beginnings",
+      "038": "Chou Earth (丑土) — Sealed Treasure Trove",
+      "039": "Yin Wood (寅木) — Seed of Ignition",
+      "040": "Mao Wood (卯木) — Quiet Blade",
+      "041": "Chen Earth (辰土) — Dragon's Vault (Water Storage)",
+      "042": "Si Fire (巳火) — Detonating Circuit",
+      "043": "Wu Fire (午火) — Zenith of the Sun",
+      "044": "Wei Earth (未土) — Twilight of Summer",
+      "045": "Shen Metal (申金) — Blade of Cooling",
+      "046": "You Metal (酉金) — Pure Blade Edge",
+      "047": "Xu Earth (戌土) — Tomb of Fire",
+      "048": "Hai Water (亥水) — Deep Circuit",
+      "049": "Stable Growth Mode — Precise Maintenance of Current Trajectory",
+      "050": "Risk Adjustment Mode — Reordering Execution Sequence",
+      "051": "Intensive Reorganization Mode — Structure Reset Required"
+    },
     "subtitle": "Career aptitude and destiny risk coefficient analysis based on saju",
     "tags": {
       "hue": "Destiny hue color diagnosis",
@@ -4266,7 +4318,19 @@
       "graphTitle": "10-Year Risk Coefficient Graph (Annual Fortune Based)",
       "reportTitle": "◆ DOMINATOR REPORT",
       "remedyTitle": "◆ Destiny Remedy Prescription"
-    }
+    },
+    "label": {
+      "001": "Neutral"
+    },
+    "message": {
+      "001": "API request failed.",
+      "002": "Payment price information is incorrect.",
+      "003": "Payment cancelled.",
+      "004": "KRW payment confirmation required.",
+      "005": "Failed to confirm unlock status. Please try again shortly.",
+      "006": "Report generation results did not meet criteria."
+    },
+    "entryTitle": "Sibyl System"
   },
   "admin": {
     "flowerButton": "Flower button"
@@ -5903,12 +5967,12 @@
     "sq_8944_prop_label": "Near",
     "sq_8945_prop_label": "Middle",
     "sq_8946_prop_label": "Far",
-    "sq_8976_prop_label": "Mirror of the Soul",
-    "sq_8977_prop_label": "Flame of Karma",
+    "sq_8976_prop_label": "Soul Mirror",
+    "sq_8977_prop_label": "Karma's Flame",
     "sq_8978_prop_label": "Golden Garden",
-    "sq_8979_prop_label": "Lake of Silent Moon",
+    "sq_8979_prop_label": "Quiet Moon Lake",
     "sq_8980_prop_label": "Fortress on Parallel Lines",
-    "sq_8981_prop_label": "Relationship of Strong Stimulation",
+    "sq_8981_prop_label": "Intense Connection",
     "sq_9307_prop_label": "Spiritual Drive",
     "sq_9308_prop_label": "Practical Complement",
     "sq_9309_prop_label": "Psychological Comfort",
@@ -5928,5 +5992,1247 @@
     "sq_9454_prop_label": "Practical Complement (Economics of Stimulation)",
     "sq_9457_prop_label": "Psychological Comfort (Comfort of Paradox)",
     "sq_9794_attr_aria_label": "Sukuyo (27 Nakshatras) Relationship Radar Chart"
+  },
+  "shell": {
+    "CODEDESTINY": "CODE DESTINY | Free Four Pillars (BaZi)·Tarot·Zi Wei Dou Shu·Compatibility — Sweet Readings",
+    "cdCookieConsentCopy": {
+      "cdCookieConsentActions": {
+        "kniuoqf": "Agree",
+        "kw6ku0": "Essentials Only",
+        "kxy7l": "Settings"
+      }
+    },
+    "cdCookieConsentMain": {
+      "cdCookieConsentCopy": {
+        "k12mjipg": "We use essential cookies for login and to prevent excessive requests. If you agree, convenience settings will also remain smoothly in this browser.",
+        "k1nqxhwe": "Quiet Cookie Notice Like Moonlight"
+      }
+    },
+    "cdCookieSettingsPanel": {
+      "cdCookieConsentRow": {
+        "k2yf8r8": "Your language and notice status will be calmly maintained for your next visit.",
+        "k602xow": "Essential Cookies",
+        "kao88ih": {
+          "ariaLabel": "Always use essential cookies"
+        },
+        "kfpcszr": "Used to maintain login, protect payments, and prevent repeated requests in the same session.",
+        "km6l38": "Convenience Cookies",
+        "krpclxc": "Always On"
+      },
+      "k58noo": "Save Selection"
+    },
+    "cdFooterBrandcol": {
+      "cdFooterSocial": {
+        "CODEDESTINY": {
+          "ariaLabel": "Open CODE DESTINY Official YouTube in new window"
+        },
+        "CODEDESTINY2": {
+          "ariaLabel": "Open CODE DESTINY Official Threads in new window"
+        },
+        "CODEDESTINY3": {
+          "ariaLabel": "Open CODE DESTINY Official Instagram in new window"
+        },
+        "CODEDESTINY4": {
+          "ariaLabel": "Open CODE DESTINY Official Blog in new window"
+        },
+        "CODEDESTINYX": {
+          "ariaLabel": "Open CODE DESTINY Official X in new window"
+        }
+      }
+    },
+    "cdFooterBusinessDetails": {
+      "k1l49wo": "Business Information"
+    },
+    "cdFortunePick": {
+      "cdFortunePickGrid": {
+        "k16fnr7j": {
+          "ariaLabel": "View Western Astrology Birth Chart"
+        },
+        "k1i48xlw": {
+          "ariaLabel": "Start Four Pillars (BaZi) Analysis"
+        },
+        "k1i8xvv0": {
+          "ariaLabel": "Start Tarot Reading"
+        },
+        "k1yi7np5": {
+          "ariaLabel": "View Vedic Astrology"
+        },
+        "kb9ueah": {
+          "ariaLabel": "View Zi Wei Dou Shu birth chart"
+        },
+        "kzkddyf": {
+          "ariaLabel": "View Sukuyo reading"
+        }
+      }
+    },
+    "cdHomeGuide": {
+      "cdHomeGuideInner": {
+        "ki3vjq4": {
+          "ariaLabel": "View more readings"
+        }
+      }
+    },
+    "cdMobileBottomNav": {
+      "cdMobileBottomNavMain": {
+        "k10ios": "Tarot",
+        "k16bs": "Home",
+        "kwp0s": "My",
+        "kxro3": "Consult",
+        "kxvio": "Four Pillars (BaZi)"
+      },
+      "cdMobileBottomNavQuick": {
+        "k10ios": "Tarot",
+        "km4uz9x": "Flowers/Dreams",
+        "ksmbj4": "Zodiac",
+        "kwuu0": "Free",
+        "kxro3": "Consult",
+        "kxvio": "Four Pillars (BaZi)",
+        "kyajl": "Oracle",
+        "kyzcp": "Music"
+      },
+      "k15q82ek": {
+        "ariaLabel": "Quick Categories"
+      }
+    },
+    "cdMobileHeader": {
+      "CODEDESTINY": {
+        "ariaLabel": "CODE DESTINY Home"
+      },
+      "cdMobileHeaderSearch": {
+        "kuedl": "Search"
+      }
+    },
+    "cdMobileHeaderActions": {
+      "themeSwitchWrapper": {
+        "ks7htym": {
+          "ariaLabel": "Select Yeoni · Neo Mode"
+        }
+      }
+    },
+    "cdMobileSajuDetailToggle": {
+      "k1x09e8d": "Enter more accurate birth time·place",
+      "kox0lg9": "It's okay to start if you don't know"
+    },
+    "cdStickyCta": {
+      "k1uaylpd": {
+        "ariaLabel": "Start Free Reading"
+      }
+    },
+    "dfStudioPanels": {
+      "dfPanel": {
+        "ChatGPT": "🤖 Ask ChatGPT",
+        "k1if9omc": "🤖 Ask Claude",
+        "k2syr3s": "🤖 Ask Gemini",
+        "kkpkasn": "🤖 Ask Grok"
+      }
+    },
+    "featureBegin": {
+      "k162lweo": {
+        "ariaLabel": "Go to Blood Type Reading"
+      },
+      "k1axy73w": {
+        "ariaLabel": "Go to Comprehensive Reading Prompt"
+      },
+      "k1razrl4": {
+        "ariaLabel": "Go to Fortune Teller Fish"
+      },
+      "k1rbp4zc": {
+        "ariaLabel": "Go to Personality Test"
+      },
+      "kqd75ua": {
+        "ariaLabel": "Go to AI Animal Physiognomy"
+      },
+      "kuaxa2s": {
+        "ariaLabel": "Go to Nakshatra"
+      },
+      "moonPreviewCard": {
+        "k121t48l": "Type Tendencies",
+        "k1lmbq6k": "Today's Message",
+        "k1sdh2me": "AI Animal Physiognomy",
+        "k1ujvbvb": "Lighthearted Mind Reading",
+        "k53h7ds": "Personality Test",
+        "k79pfmc": "Nakshatra",
+        "k871xeu": "Free · Selfie Face Analysis",
+        "ka0v1mf": "Free · 11 Tools",
+        "kry6axn": "27 Lunar Mansions",
+        "kslqazg": "Comprehensive Reading Prompt",
+        "kxgi8q8": "Fortune Teller Fish",
+        "kxqdi2w": "Blood Type Reading"
+      }
+    },
+    "featureCardGrid": {
+      "cdPromptFeatureSpotlight": {
+        "k11st5nn": {
+          "ariaLabel": "Open Yeoni's Destiny Teahouse"
+        },
+        "k14fkdom": {
+          "ariaLabel": "Open Neo's Fact-Bomb Destiny Ops Room"
+        }
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k15l5ccw": {
+          "ariaLabel": "AI Consultation: Book of Life - My Life Story Read with birth chart and questions"
+        },
+        "k1fk3mqf": {
+          "ariaLabel": "AI Consultation: Love Secrets - Examining the Threads of Love with birth chart"
+        },
+        "k6gno8d": {
+          "ariaLabel": "New Year's Reading AI Consult — birth chart and annual luck cycle answer your questions"
+        }
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "k19ij50j": "Life Book AI Consult",
+        "k1c3xcpf": "New Year's Reading AI Consult"
+      },
+      "lovebibleTile": {
+        "k1s2fcm4": "Love Secrets AI Consult"
+      }
+    },
+    "honeyMembershipDetails": {
+      "kr1a9l9": "Collapse Moonlight Benefits"
+    },
+    "honeyMembershipMini": {
+      "honeyMembershipMiniHeader": {
+        "k1yqmdmg": {
+          "ariaLabel": "Moonlight Pass Information"
+        }
+      }
+    },
+    "inputPage": {
+      "featureCardGrid": {
+        "kxv61vt": {
+          "ariaLabel": "Comprehensive Reading Prompt Recommendation Feature"
+        }
+      },
+      "k1tvi1wd": {
+        "ariaLabel": "Mobile Top Bar"
+      },
+      "k85zbld": {
+        "ariaLabel": "Mobile Quick Navigation"
+      }
+    },
+    "ks7htym": {
+      "ariaLabel": "Select Yeoni · Neo Mode"
+    },
+    "lifebookTileBody": {
+      "lifebookTileCta": {
+        "k1dhhisc": "Get New Year's Flow Consult →",
+        "k7gpmm6": "Enter Consult Info →"
+      },
+      "lifebookTileFeatures": {
+        "k15402w4": "Flow of Work & Money",
+        "k187xy2w": "Monthly Opportunities & Cautions",
+        "k18t3d6t": "Work, Money, Relationship Consult",
+        "k1cztqgf": "Repeating Patterns",
+        "k1plwjlk": "Talents & Strengths",
+        "k1tdarhm": "luck cycle Interpretation",
+        "k918d8o": "Practical Advice",
+        "kclhqv4": "birth chart Original Assessment",
+        "kdq76ml": "Love & Relationships",
+        "kdxxogb": "Core Life Themes",
+        "kemt22s": "Current Turning Point",
+        "kp9tkkd": "Four Pillars (BaZi) Based Consult"
+      }
+    },
+    "lifebookTileInner": {
+      "lifebookTileBody": {
+        "k19ij50j": "Life Book AI Consult",
+        "k1c3xcpf": "New Year's Reading AI Consult",
+        "k1e2ozr5": "The doors of luck cycle, annual luck cycle, and monthly luck cycle open upon the fabric of your birth chart.",
+        "k1n6j5jj": "We weave together the original temperament, the background of the luck cycle, the events of the annual luck cycle, and the fluctuations of the monthly luck cycle to pinpoint this year's choices and times to be cautious.",
+        "k1x7d2nr": "Your life narrative read through your birth chart and current questions",
+        "ktjp1an": "Based on your birth date and life themes, we calmly unfold recurring patterns, hidden talents, and future directions to cultivate, like a consultation."
+      },
+      "lifebookTileLabelRow": {
+        "AI30000": "AI Consult · 30,000 KRW",
+        "n30000": "30,000 KRW for Consult"
+      }
+    },
+    "logoArea": {
+      "moonTopbar": {
+        "CODEDESTINY": {
+          "ariaLabel": "Go to CODE DESTINY Home"
+        }
+      }
+    },
+    "lovebibleTileBody": {
+      "lovebibleTileCta": {
+        "k13bcsqk": "Consult About Your Current Love"
+      }
+    },
+    "lovebibleTileCoinGroup": {
+      "lovebibleTileCoinBadge": {
+        "k11zo0b": "AI Consult",
+        "n30000": "30,000 KRW"
+      }
+    },
+    "lovebibleTileInner": {
+      "lovebibleTileBody": {
+        "k153vbx2": "Four Pillars (BaZi) Consult, calmly reading the fabric of love",
+        "k1s2fcm4": "Love Secrets AI Consult",
+        "ko82iqm": "We weave together your day master, day branch, relationship palace, and the flow of the annual luck cycle to elegantly pinpoint your current feelings and choices."
+      }
+    },
+    "miscCollection": {
+      "featCollectionGrid": {
+        "LOVECODE": {
+          "ariaLabel": "Start LOVE CODE Four Pillars (BaZi) Love Simulation"
+        },
+        "k1u4tnr8": {
+          "ariaLabel": "Start Twelve-Stage Cycle Animal Reading"
+        },
+        "k4i767i": {
+          "ariaLabel": "Start Place of Destiny"
+        }
+      }
+    },
+    "myeongriTarotAiPromptPanel": {
+      "kq10md4": "Gemini",
+      "kulph": "Grok",
+      "kvfipg": "Claude"
+    },
+    "normalLogo": {
+      "moonHeroCopy": {
+        "k5pz2jn": "Path of Starlight Reading"
+      }
+    },
+    "premiumVvipCollection": {
+      "featCollectionGrid": {
+        "k106qdua": {
+          "ariaLabel": "View Astrology AI Consult"
+        },
+        "k10ifevy": {
+          "ariaLabel": "Sukuyo (27 Nakshatras) compatibility AI Consult"
+        },
+        "k12a4ezz": {
+          "ariaLabel": "Go to Vedic Astrology AI Consult"
+        },
+        "k1wc9gw3": {
+          "ariaLabel": "Start Four Pillars (BaZi) Custom Premium AI Naming"
+        },
+        "k8j5vsv": {
+          "ariaLabel": "Open AI Life Reading"
+        },
+        "kic6s9t": {
+          "ariaLabel": "View Zi Wei Dou Shu AI Reading"
+        },
+        "kq2cqae": {
+          "ariaLabel": "Zi Wei Dou Shu Island of Destiny — An interactive map where your birth chart becomes a living island"
+        },
+        "n2727": {
+          "ariaLabel": "Nakshatra Definitive Edition — Integrated Eastern 27 Sukuyo × Indian 27 Nakshatra Astrology"
+        }
+      }
+    },
+    "resultPage": {
+      "ks6nuj0": "🏠 Home"
+    },
+    "sukuyoCalendarParking": {
+      "syBasicCalendar": {
+        "kciu67n": {
+          "ariaLabel": "Calendar Legend"
+        }
+      }
+    },
+    "syBasicCalendar": {
+      "syBasicCalendarDetail": {
+        "k15h7kyw": "Select a date to reveal the flow of Sukuyo.",
+        "k1wm3jt8": "It calmly illuminates which star today's moonlight rests upon.",
+        "kaomk43": "Moonlight's Position"
+      },
+      "syBasicCalendarLegend": {
+        "k1voj0cw": "★ Excellent · Good · Neutral · Bad · Terrible"
+      },
+      "syBasicCalendarWeek": {
+        "k10vd": "Thu",
+        "k12c8": "Wed",
+        "k139w": "Mon",
+        "k13ek": "Sun",
+        "k15eo": "Sat",
+        "k16c4": "Tue",
+        "kydk": "Fri"
+      }
+    },
+    "syBasicCalendarHead": {
+      "syBasicCalendarControls": {
+        "kndhrck": {
+          "ariaLabel": "Next Month"
+        },
+        "kpyyqqk": {
+          "ariaLabel": "Previous Month"
+        }
+      },
+      "syBasicCalendarIdentity": {
+        "kqnecln": "Where the serene moonlight rests · This month's Sukuyo"
+      }
+    },
+    "syBasicCalendarIdentity": {
+      "syBasicCalendarMonthLabel": {
+        "k1d0pjad": "27 Sukuyo Calendar",
+        "kp3rjwp": {
+          "ariaLabel": "Select Month"
+        }
+      }
+    },
+    "syBasicCalendarLegend": {
+      "badDay": "Bad Day",
+      "plainDay": "Neutral Day",
+      "today": "Today"
+    },
+    "tarotTile": {
+      "tarotTileBody": {
+        "k10ifevy": "Sukuyo Compatibility AI Reading",
+        "k10qxwvc": "A warm reading of the attraction, wounds, and practical choices in a relationship, based on two people's 27 Sukuyo and relationship flow.",
+        "k11sp370": {
+          "ariaLabel": "Yeoni's Destiny Teahouse Configuration"
+        },
+        "k11zwfx7": "Based on your natal chart and current planetary transits, we answer your most pressing questions.",
+        "k14fgb7z": {
+          "ariaLabel": "Neo's Blunt Destiny Strategy Room Configuration"
+        },
+        "k14mqjx7": "Zi Wei Dou Shu AI Reading",
+        "k18rbd8l": "Your birth chart comes to life as an island. Explore the 12 palaces and discover today's flow with Yeoni and Neo.",
+        "k1934dgw": "A deep exploration of the major flows in life, work, wealth, and relationships, following the nuances of your birth chart and luck cycles.",
+        "k1a78igt": "Life Reading AI Consultation",
+        "k1cu7bpm": "Astrology AI Reading",
+        "k1eszqn1": "We calmly unravel your current questions through the flow of Lagna, Nakshatra, and planets.",
+        "k1hprjge": "We interpret the flow of your Life Palace, Body Palace, 12 Palaces, and Four Transformations according to your current questions.",
+        "k1nhxtvn": "Zi Wei Dou Shu Island of Destiny",
+        "k1ruvdto": "Four Pillars (BaZi) Love Simulation",
+        "k1s3pj19": {
+          "ariaLabel": "Comprehensive Reading Prompt Hub Configuration"
+        },
+        "k1tyatli": {
+          "ariaLabel": "Consultation Summary"
+        },
+        "k1tyatli2": {
+          "ariaLabel": "Consultation Summary"
+        },
+        "k1v84z2u": "AI directly creates a name by weaving together Four Pillars (BaZi), Five Elements, sounds, and the meaning of Hanja, along with the original prompt.",
+        "k1y1a5zq": "Neo's Blunt Destiny Strategy Room",
+        "k1yble8x": "Open a moonlight teacup with Yeoni and gently illuminate the unspoken feelings of your heart through Four Pillars (BaZi), Tarot, and compatibility.",
+        "k1ygnp9f": {
+          "ariaLabel": "Key Points"
+        },
+        "k1ygnp9f2": {
+          "ariaLabel": "Key Points"
+        },
+        "k231dx8": "Instantly create free consultation prompts using 11 tools, including Four Pillars (BaZi), Tarot, Astrology, and Zi Wei Dou Shu.",
+        "k3baulf": "Hunminjeongeum Naming Service",
+        "k6uqkuq": {
+          "ariaLabel": "Key Summary"
+        },
+        "k6uqkuq2": {
+          "ariaLabel": "Key Summary"
+        },
+        "kir1rde": "Place and Timing",
+        "klifgdg": "緣 Place of Destiny",
+        "kntw327": "Nakshatra Definitive Ed.",
+        "kslqazg": "Comprehensive Reading Prompt",
+        "kstndh6": "Destiny Animal Guide",
+        "ksxkgnt": "Yeoni's Destiny Teahouse",
+        "kt62t87": "Vedic AI Consultation",
+        "kyqh20f": "Neo coolly briefs you on the criteria for choices you must seize now, combining Four Pillars (BaZi), Zi Wei Dou Shu, Vedic astrology, and Western astrology.",
+        "kzo1yhl": "獸 Twelve Life Stages Animal Reading",
+        "n2727Nakshatra": "Eastern 27 Sukuyo × Indian 27 Nakshatra — One star, two languages. Two star systems, separated a thousand years ago, reunite on your Four Pillars (BaZi)."
+      },
+      "tarotTileImgWrap": {
+        "AI30000": "AI Consultation · ₩30,000",
+        "AI300002": "AI Consultation · ₩30,000",
+        "AI300003": "AI Consultation · ₩30,000",
+        "AI300004": "AI Consultation · ₩30,000",
+        "AI300005": "AI Consultation · ₩30,000",
+        "AI300006": "AI Consultation · ₩30,000",
+        "AI300007": "AI Naming · ₩30,000",
+        "AIConsultation50000": "AI Consultation · ₩50,000",
+        "k1039k": "Recommended",
+        "k11zo0b": "AI Consultation",
+        "k125av1j": "Free birth chart · AI Consultation",
+        "k15hk22d": {
+          "alt": "Neo's Straight Talk Destiny Ops Room — Strategic consultation to clarify the front lines of choice before the lion emblem"
+        },
+        "k18zdwwf": "Free Release",
+        "k18zdwwf2": "Free Release",
+        "k1gdpipn": {
+          "alt": "Yeoni's Destiny Teahouse — Consultation offered by Yeoni, the lotus gatekeeper, with a moonlit teacup"
+        },
+        "k1r8338q": "NEW · Isle of Destiny",
+        "k1scb7d8": {
+          "alt": "Image representing the destiny business"
+        },
+        "koe32kc": "Free Trial",
+        "ktgbfsy": "NEW · Definitive Ed.",
+        "n50001000020000": "Tarot ₩5,000 · Four Pillars (BaZi) ₩10,000 · Compatibility ₩20,000"
+      }
+    },
+    "tarotTileBody": {
+      "featuredContentCardCta": {
+        "k1f1oofn": "Enter Destiny Teahouse",
+        "kdyjsns": "Try for Free",
+        "kwux29x": "Enter Ops Room"
+      },
+      "pvcPremMeta": {
+        "k10vo8": "Pāda",
+        "k11zo0b": "AI Consultation",
+        "k11zo0b2": "AI Consultation",
+        "k11zo0b3": "AI Consultation",
+        "k12z88tv": "Save PDF",
+        "k16eekng": "Check Pass",
+        "k19vii04": "12 Houses Map",
+        "k1cco6tp": "Start Now",
+        "k1s4cln3": "Enter Ops Room",
+        "k1ty674i": "Consultation Available",
+        "k1ty8wv6": "Get Consultation",
+        "k1u01klw": "Enter Isle",
+        "k1vfalgf": "Check for Free",
+        "k6skteu": "Get Consultation with Natal Chart",
+        "k96vaab": "On-screen Consultation",
+        "kj5prgr": "Four Pillars (BaZi) · Tarot · Astrology",
+        "kmxk05u": "Life's Journey",
+        "kn1803y": "Get Vedic Reading",
+        "kpfei5h": "Story Mode",
+        "ksdpj4c": "Daily Quest",
+        "ktecid": "Sukuyo Reading",
+        "kth5jek": "Try Now",
+        "kudb0": "Personal",
+        "kudb02": "Personal",
+        "kugw5d": "Ruling Planet",
+        "kv7uo": "Neo",
+        "kv9f8rk": "Instant Reading",
+        "kwuu0": "Free",
+        "kyyvo": "Name Analysis",
+        "kyzfrrw": "Four Pillars · Tarot · Compatibility",
+        "n30000": "Based on ₩30,000"
+      },
+      "pvcPremPoints": {
+        "AIPDF": "AI-generated name analysis + PDF save",
+        "k11eirzr": "Palace strength as building tiers — from ruins to temples",
+        "k136ne35": "Eastern 27 Sukuyo and Indian Nakshatras side-by-side",
+        "k15z2s5t": "Neo's blunt strategy reflecting reality checks",
+        "k161xazs": "Star flow connected to your current question",
+        "k1a6baj4": "My island biome determined by the Ming Palace main star",
+        "k1asi5pl": "Instant generation with just birth info and question",
+        "k1cb96zz": "Times of transition through luck cycle and annual cycle",
+        "k1e60r0a": "Summary of current transit flows",
+        "k1fyb19o": "Teahouse entry and Yeoni's first greeting",
+        "k1hh2ce8": "Two people's Honmyoshuku and relationship distance",
+        "k1lfrfuk": "Ming Palace · Shen Palace · 12 Palaces personal birth chart",
+        "k1rfowhj": "Emotional counseling connecting Four Pillars · Tarot · Compatibility",
+        "k1soc8": "Key counseling for Sun · Moon · Ascendant",
+        "k1wel05o": "Comprehensive recommendations for Yongsin · Hanja · Sound · Numerology",
+        "k5ittux": "Strategy briefing tailored to your topic and birth info",
+        "ka0qthx": "House · Aspect based Q&A",
+        "kcblo5w": "Ruling Planet · Pada · Gana · Vimshottari Dasha",
+        "kkg4b7z": "Long-form counseling to keep as PDF",
+        "kkph98v": "Rashi chart and Nakshatra-based counseling",
+        "knvmn7z": "Where two traditions meet and diverge",
+        "ko4w810": "11 tools including Four Pillars · Tarot · Astrology",
+        "kozjlt4": "Practical advice for relationships · wealth · work · choices",
+        "kqwk9o": "Counseling on palaces and star flows by topic",
+        "krx9ppb": "Free · Try instantly without login",
+        "ktv5xm9": "Four Pillars birth chart and Five Elements balance analysis",
+        "ktx0v26": "Choose your destiny map under the lion emblem",
+        "kvigm32": "Practical advice tailored to your current relationship",
+        "kwuh556": "Repeating patterns of attraction and conflict",
+        "kxatr2b": "Choice-based flow to gently unravel your concerns",
+        "kyk2x3o": "Choice advice based on luck cycle and annual cycle",
+        "n12NPC": "Daily changing island weather and 12 Palace NPC conversations",
+        "n30000": "₩30,000 one-time payment or Pass · Moonlight Stone"
+      }
+    },
+    "terms24Card": {
+      "introLead": "This is the flow of the 24 solar terms for your birth year. The",
+      "introTail": "of Four Pillars is determined by which solar term period your birthday falls into. The highlighted solar term is the start of your month.",
+      "secTitle": {
+        "k1iwdtvn": "☀️ 24 Solar Terms (二十四節氣)"
+      },
+      "terms24Intro": {
+        "kpaolwg": "Month Pillar"
+      }
+    },
+    "themeSwitchWrapper": {
+      "themeSwitchPill": {
+        "k7bnh78": {
+          "ariaLabel": "Neo Mode"
+        },
+        "k7bnh782": {
+          "ariaLabel": "Neo Mode"
+        },
+        "khrulw0": {
+          "ariaLabel": "Yeoni Mode"
+        },
+        "khrulw02": {
+          "ariaLabel": "Yeoni Mode"
+        }
+      }
+    },
+    "wrap": {
+      "cdFooterShell": {
+        "k16rhu4g": {
+          "ariaLabel": "AI Consultation Link"
+        },
+        "k1cf0vdm": {
+          "ariaLabel": "Customer Center Link"
+        },
+        "koniaun": {
+          "ariaLabel": "Service Link"
+        },
+        "kp08cb": {
+          "ariaLabel": "Story Link"
+        }
+      },
+      "k14mqjx7": "Zi Wei Dou Shu AI Consultation",
+      "kt62t87": "Vedic AI Consultation"
+    }
+  },
+  "adsenseArticle": {
+    "description": {
+      "001": "7 Steps to Reading Four Pillars (BaZi): A beginner's guide to interpreting your birth chart, from checking the calendar, identifying the day master, balancing Five Elements, understanding Ten Gods, to luck cycles, and concluding with an action plan.",
+      "002": "Boosting your luck starts with a 15-minute daily routine. We've outlined 5-minute routines for morning, noon, and night, personalized routines for different Four Pillars (BaZi) temperaments, and tips for sustaining it for 3 weeks.",
+      "003": "The key to reading a Four Pillars (BaZi) calendar is to first check these four: Day Master, Month Branch, Five Elements distribution, and luck cycle. We guide you on reading Heavenly Stems visually without knowing Chinese characters, and a 3-step process for using the Month Branch.",
+      "004": "Five Elements Balance Diagnosis: Find excesses (3 or more) and gaps (0) of Wood, Fire, Earth, Metal, Water in your Four Pillars (BaZi) birth chart, and practical strategies to supplement missing Five Elements with daily routines.",
+      "005": "Ten Gods Interpretation Map: Translating the five groups—Companion, Output, Wealth, Influence, Resource—into decision-making language for love, work, and money, and connecting them to action by cross-referencing your natal chart and annual luck.",
+      "006": "How to Read Your Annual Reading: Use the two characters of the annual luck to set direction on what to cultivate and reduce, and a framework to check with a quarterly 6-item checklist. Also includes how to read clash, harm, punishment, and destruction without fear.",
+      "007": "Monthly Reading Journaling: A 3-line template for weekly keywords, actions, and results, and a read→act→record→adjust feedback loop to boost growth rate instead of scoring right or wrong.",
+      "008": "Date selection is risk management, not superstition. We've organized basic concepts of auspicious days, 'Son Eopneun Nal,' Heavenly Stems and Earthly Branches clashes/combinations, a 4-step date selection process, and priority criteria for moving, contracts, interviews, and travel.",
+      "009": "How to Reset When Luck is Stalled: Diagnose the cause among overload, directional confusion, or insufficient recovery, and a practical routine to restore flow with a 72-hour protocol of clear→realign→restart.",
+      "010": "Communication for Better Love Luck: Reading emotional rhythm differences by Day Master love style and Sukuyo (27 Nakshatras), and agreeing on three relationship rules: reply standards, emotional expression, and conflict recovery.",
+      "011": "Habits for Better Wealth Luck: Reading the money energy structure and timing through the Wealth Star in Four Pillars (BaZi), and managing cash flow with a monthly 3-line financial management of fixed costs, variable cost limits, and automatic savings.",
+      "012": "Job and Exam Luck are read through Influence and Resource luck. We've organized how to schedule challenges during strong luck periods, 4 steps for interview preparation, Pomodoro exam routines, and managing tension the day before and on the day.",
+      "013": "The Relationship Between Sleep and Luck: The mechanism by which sleep deprivation reduces judgment, emotional regulation, and opportunity capture, and a step-by-step guide to a 7-day sleep reset protocol to restore energy rhythm.",
+      "014": "How to Ask Good Reading Questions: Design questions with 3 elements—period, context, and actionable potential—and provide 3 templates to avoid 4 types of bad questions, plus 5 items for self-diagnosing question quality.",
+      "015": "How to Read Four Pillars (BaZi) and Tarot Together: An integrated framework for setting quarterly trends with Four Pillars (BaZi) and confirming weekly choices with Tarot. Includes finding common keywords and a 3-step filter to prevent over-interpretation.",
+      "016": "AdSense-Friendly Reading Article Structure: 3 criteria of informational value, EEAT, and readability, 6-step article composition, expressions to avoid, and operational strategies to increase dwell time.",
+      "017": "Complete Guide to 12 Vedic Astrology Rashis: From Mesha to Meena, outlining elemental and planetary rulers, personality strengths and challenges, and interpretation order by combining Lagna, Moon Rashi, and Dasha.",
+      "018": "Basic Principles of Four Pillars (BaZi): The structure of four pillars and eight characters, Heavenly Stems and Earthly Branches, Five Elements generation and control, and a 5-step interpretation sequence for beginners.",
+      "019": "Complete Five Elements Summary: The nature of the five energies—Wood, Fire, Earth, Metal, Water—their generation and control principles, personality tendencies by excess/deficiency, and practical routines for supplementation, all in one place.",
+      "020": "Meanings of 22 Major Arcana Tarot Cards: Key keywords from The Fool (0) to The World (21), 3 approaches to reversed card interpretation, and how to use them for love, career, and growth questions.",
+      "021": "What is Zi Wei Dou Shu: The structure of the 12 palaces in the birth chart, the 14 main stars including Zi Wei, the meanings of the four transformations (Hua Lu, Hua Quan, Hua Ke, Hua Ji), and 3 steps to reading a birth chart for beginners.",
+      "022": "Heavenly Stems and Earthly Branches Explained: The Five Elements, Yin-Yang, and seasonal characteristics of the 10 Heavenly Stems (Gap, Eul, Byeong, Jeong, Mu, Gi, Gyeong, Sin, Im, Gye) and 12 Earthly Branches (Ja, Chuk, In, Myo, Jin, Sa, O, Mi, Sin, Yu, Sul, Hae), and the core of their clash and combination relationships, organized in a practical order.",
+      "023": "How to Determine Strong/Weak Day Master: The sequence for reading the strength of the Day Master using the 3 major criteria of gaining season, gaining position, and gaining power, complementary strategies for strong/weak Day Masters, and common judgment errors.",
+      "024": "How to Find the Favorable God (Yongshin): From determining strong/weak Day Master to the five classifications (Support/Suppress, Temperature Adjustment, Clearance, Illness/Medicine, Follow the Strong), and distinguishing favorable and unfavorable gods, guided by a practical 5-step checklist.",
+      "025": "Basic Compatibility Reading: A practical guide to reading two people's energy patterns and using it as a relationship understanding tool, through 3 steps: Day Master Five Elements generation/control, Ten Gods relationships, and Earthly Branch clashes/combinations.",
+      "026": "Personality by Day Pillar: We categorize the 60 Day Pillars by Five Elements, outlining traits, strengths, and cautions for representative pillars, and guide on interpretation without oversimplification.",
+      "027": "How to Read Luck Cycles: Concepts of 10-year luck cycles and annual luck, calculating start ages, and practical tips for timing by interacting with your birth chart's guiding element."
+    },
+    "title": {
+      "001": "Four Pillars (BaZi) for Beginners: A 7-Step Guide to Interpretation",
+      "002": "Boost Your Luck: A Complete Guide to a 15-Minute Daily Routine",
+      "003": "Complete Guide to Manse Calendar: Understanding Key Interpretations Without Knowing Hanja",
+      "004": "Five Elements Balance Guide: Your Personal Strategy for Real-World Complementary Elements",
+      "005": "Ten Gods Interpretation Map: Applying Four Pillars (BaZi) to Love, Work, and Money",
+      "006": "How to Read Your Annual Reading: A Complete Guide to Checking Your Yearly Fortune Without Anxiety",
+      "007": "Monthly Reading Log: A Feedback Loop for Growth, Not Just Right or Wrong",
+      "008": "Choosing Auspicious Dates: Practical Date Selection Without Superstition",
+      "009": "How to Reset When Luck is Stalled: The Complete 72-Hour Recovery Protocol",
+      "010": "Communication for Better Love Luck: Relationship Rules More Important Than Compatibility Scores",
+      "011": "Habits to Boost Wealth Luck: Integrating Four Pillars (BaZi) Wealth Stars with Real-World Budgeting",
+      "012": "Job & Exam Luck Prep: A Complete Guide to Four Pillars (BaZi) Annual Luck and Practical Routines",
+      "013": "Sleep and Luck: Why Restoring Energy Rhythms Changes Your Fortune",
+      "014": "How to Ask Good Reading Questions: A Complete Guide to Designing Questions that Improve Answer Quality",
+      "015": "Combining Four Pillars (BaZi) and Tarot: An Integrated Framework Connecting Long-Term Trends and Current Choices",
+      "016": "AdSense-Friendly Reading Article Structure: A Complete Guide to Informative, Reliable, and Readable Content",
+      "017": "Vedic Astrology 12 Rashi Guide: Personality, Fortune, and Practical Interpretation from Mesha to Mina",
+      "018": "Four Pillars (BaZi) Basic Principles: Understanding What Four Pillars (BaZi) Is From Scratch",
+      "019": "Five Elements (Wood, Fire, Earth, Metal, Water) Guide: Properties, Creation, Destruction, and Real-Life Application",
+      "020": "Tarot Major Arcana 22 Cards Meaning Guide: From 0 to 21",
+      "021": "What is Zi Wei Dou Shu: A Complete Introduction from Basics to Reading a Birth Chart",
+      "022": "Heavenly Stems and Earthly Branches: Meanings, Properties, and Practical Interpretation of 10 Stems and 12 Branches",
+      "023": "Strong/Weak Birth Chart Assessment: A Complete Guide to Accurately Reading Your Chart's Strength",
+      "024": "Practical Guide to Finding Your Yongsin: From Strong/Weak Self to Yongsin Setup",
+      "025": "Complete Guide to Compatibility: Understanding Relationships with Four Pillars",
+      "026": "Comprehensive Guide to Ilju Personality Traits: The 60 Gapja Ilju Guide",
+      "027": "Complete Guide to Reading Luck Cycles: Understanding Fortune Through Time"
+    }
+  },
+  "astralSoul": {
+    "001": "View Details",
+    "002": "Wise Owl",
+    "003": "Curious Cat",
+    "004": "Charismatic Lion",
+    "005": "Clever Fox",
+    "006": "Mysterious Deer",
+    "007": "Dreaming Rabbit",
+    "008": "Friendly Dolphin",
+    "009": "Lively Otter",
+    "010": "Diligent Turtle",
+    "011": "Gentle Elephant",
+    "012": "Strict Wolf",
+    "013": "Sociable Penguin",
+    "014": "Sharp Hawk",
+    "015": "Artistic Butterfly",
+    "016": "Brave Tiger",
+    "017": "Elegant Peacock",
+    "018": "View Details",
+    "019": "Overall Compatibility Rate",
+    "020": "Emotion/Values Resonance (T/F)",
+    "021": "Action/Lifestyle Patterns (J/P)",
+    "022": "Conversation/Interests Sync (S/N)",
+    "023": "Perfect Parallel Universe Doppelganger",
+    "024": "A Masterpiece Destined by the Universe",
+    "025": "Companion for Wondrous Intellectual Exploration",
+    "026": "T from Mars, F from Venus",
+    "027": "A Colorful Prism That Colors Each Other"
+  },
+  "celestialMelody": {
+    "closingTitle": "Today's Celestial Melody Summary",
+    "spreadTitle01": "Sun · Revealed Self",
+    "spreadTitle02": "Moon · Memories of the Heart",
+    "spreadTitle03": "Mercury · Thoughts and Language",
+    "spreadTitle04": "Venus · Love and Values",
+    "spreadTitle05": "Mars · Desire and Drive",
+    "spreadTitle06": "Jupiter · Expansion and Belief",
+    "spreadTitle07": "Saturn · Responsibility and Trials",
+    "spreadTitle08": "Uranus · Awakening of Change",
+    "spreadTitle09": "Neptune · Dreams and Intuition",
+    "spreadTitle10": "Pluto · Deep Transformation",
+    "spreadTitle11": "Chiron · Wisdom of Wounds"
+  },
+  "dreamMeaning": {
+    "001": "All",
+    "002": "Animal Related",
+    "003": "Fruit Related",
+    "004": "People Related",
+    "005": "Emotion (Positive)",
+    "006": "Emotion (Anger)",
+    "007": "Emotion (Anxiety)",
+    "008": "Emotion (Loss)",
+    "009": "Emotion (Recovery)",
+    "010": "Place Keyword",
+    "011": "Object Keyword",
+    "012": "Conception Dream",
+    "013": "Wealth Luck",
+    "014": "Success Luck",
+    "015": "Love Luck",
+    "016": "Marriage Luck",
+    "017": "Encounter Scene",
+    "018": "Action Scene",
+    "019": "Change Scene"
+  },
+  "highValueContent": {
+    "001": "Basic concepts for those new to Four Pillars (BaZi), Ten Thousand Year Calendar, Five Elements, and Ten Gods.",
+    "002": "How to frame tarot questions and connect card interpretations to real-life choices.",
+    "003": "A guide to reading love, reunion, and compatibility not as anxiety, but as relationship check-ins.",
+    "004": "How to use daily readings realistically for scheduling, emotions, and prioritizing choices.",
+    "005": "Simplifying birth charts, 12 houses, and zodiac symbols for beginners.",
+    "006": "Criteria and disclaimer for safely and balancedly reading fortune-telling content.",
+    "007": "Four Pillars (BaZi) Intro Guide",
+    "008": "Free Four Pillars (BaZi) Analysis",
+    "009": "Four Pillars (BaZi) Basic Interpretation",
+    "010": "How Tarot Readings Work",
+    "011": "Free Tarot Card Reading",
+    "012": "Reunion Tarot Reading",
+    "013": "How to Read Destiny Realistically",
+    "014": "Reading Content Methodology",
+    "015": "Reading Insight Guide",
+    "016": "Personality by Birthdate",
+    "017": "Free Astrology Birth Chart",
+    "018": "Zi Wei Dou Shu 12 Houses",
+    "019": "Key Signs of Good Compatibility",
+    "020": "Free Four Pillars (BaZi) Compatibility",
+    "021": "View Free Love Reading",
+    "022": "FAQ for Safe Use of Reading Services",
+    "023": "View Today's Free Reading",
+    "024": "Code Destiny FAQ"
+  },
+  "indexRuntime": {
+    "aria-label": {
+      "001": "Open Sibylla Four Pillars (BaZi) System",
+      "002": "Link Flower of Destiny"
+    },
+    "confirm": {
+      "001": "🔒 This service requires login.\\\\nPlease log in to use it.",
+      "002": "🔒 This service requires login.\\\\nPlease log in to use it.",
+      "003": "🔒 This service requires login.\\\\nPlease log in to use it.",
+      "004": "Delete all saved Flower of Destiny records?",
+      "005": "🔒 This service requires login.\\\\nPlease log in to use it.",
+      "006": "🔒 This service requires login.\\\\nPlease log in to use it.",
+      "007": "🔒 This service requires login.\\\\nPlease log in to use it."
+    },
+    "label": {
+      "001": "Moon Phase",
+      "002": "Guardian Animal",
+      "003": "Today's Strong Star",
+      "004": "Star Brightness",
+      "005": "House Position",
+      "006": "Sun Sign",
+      "007": "Ascendant",
+      "008": "Moon Sign",
+      "009": "Strong/Weak",
+      "010": "Lucky God",
+      "011": "Temperature"
+    },
+    "message": {
+      "001": "Checking Moonlight Stone info",
+      "002": "Moonlight Stone is activating, it will be available soon",
+      "003": "Moonlight Stone is activating, it will be available soon",
+      "004": "Preparing for one-time card payment",
+      "005": "Payment complete. Loading results",
+      "006": "Checking Pass status",
+      "007": "Processing, please wait a moment",
+      "008": "Processing, please wait a moment"
+    },
+    "title": {
+      "001": "Animal Totem Reading Result"
+    }
+  },
+  "lsd": {
+    "alt": {
+      "001": "Thumbnail"
+    },
+    "aria-label": {
+      "001": "Nature Code Chart",
+      "002": "Strengths Reading Chart",
+      "003": "Close",
+      "004": "Fortune Diary tab",
+      "005": "Today's Fortune mini card",
+      "006": "Meditation Playlist Mode",
+      "007": "Previous Month",
+      "008": "Next Month",
+      "009": "Toggle Calendar View"
+    },
+    "label": {
+      "001": "Nature Code",
+      "002": "Fortune Summary",
+      "003": "Strengths Reading",
+      "004": "Daily Balance",
+      "005": "Wealth",
+      "006": "Love",
+      "007": "Honor",
+      "008": "Health",
+      "009": "Study",
+      "010": "Wealth Flow Design",
+      "011": "Relationship Energy Alignment",
+      "012": "Resilience Boost",
+      "013": "Focus/Performance Mode",
+      "016": "Normal",
+      "017": "Good Day",
+      "018": "Good",
+      "019": "Normal",
+      "020": "Strong",
+      "021": "Very Strong",
+      "022": "Wealth",
+      "023": "Relationships",
+      "024": "Performance",
+      "025": "Recovery",
+      "026": "Focus",
+      "027": "Wealth",
+      "028": "Love",
+      "029": "Honor",
+      "030": "Health",
+      "031": "Learning"
+    },
+    "lead": {
+      "001": "In today's flow, the four pillars of focus, insight, relationships, and completion rise at different heights, drawing strength from each other.",
+      "002": "The central rhythm for today shines through the five threads of rest, completion, growth, new beginnings, and realignment."
+    },
+    "placeholder": {
+      "001": "Card Nickname (Optional)",
+      "002": "One-line message on card (Optional)",
+      "003": "Briefly note a flow, encounter, or choice you want to remember today.",
+      "004": "Partner's Name",
+      "005": "Year (Optional)",
+      "006": "Example: Couldn't focus in the morning, but my thoughts cleared after a digital detox in the evening.",
+      "007": "Example: Got nervous during an important meeting and stumbled over my words.",
+      "008": "Example: Calmly conveyed the key points, and the other person nodded with a smile.",
+      "009": "Type or read the sentence aloud."
+    },
+    "title": {
+      "001": "Innate Temperament Insight ·",
+      "002": "Today's Fortune Summary ·",
+      "003": "Strength Utilization Reading",
+      "004": "Daily Balance Reading",
+      "005": "Meditation Music Player"
+    }
+  },
+  "mindscanReading": {
+    "cardsRequired": "Card pair data is required.",
+    "positionContactFlow": "Future Contact Flow",
+    "positionCurrentHeart": "Partner's Current Feelings",
+    "positionFinalFlow": "Relationship's Direction",
+    "positionHesitationReason": "Reason for Hesitation",
+    "positionHiddenHeart": "Hidden Feelings",
+    "positionMyAttitude": "My Attitude",
+    "positionVisibleAttitude": "Visible Attitude",
+    "questionRequired": "Consultation question is required.",
+    "sampleTitle": "Case Title"
+  },
+  "numerologyTarot": {
+    "lifePathNumber": "Life Path Number",
+    "questionNumber": "Question Number",
+    "topicCareer": "Career Fortune",
+    "topicFeelings": "Inner Feelings",
+    "topicGeneral": "General Fortune",
+    "topicHealth": "Health & Energy",
+    "topicLove": "Love & Relationships",
+    "topicMoney": "Money Fortune",
+    "topicMove": "Movement & Change Fortune",
+    "topicRelationship": "Interpersonal Relationships",
+    "topicReunion": "Reunion Fortune"
+  },
+  "palm": {
+    "description": {
+      "001": "See overall impression, hand shape, major lines, and total score at once.",
+      "002": "Not lifespan, but energy management, recovery rhythm, and life sustainability.",
+      "003": "See mindset, judgment, focus, practicality, and imagination.",
+      "004": "See love style, emotional expression, attachment, and relationship expectations.",
+      "005": "See career direction, social goals, independence, and life direction.",
+      "006": "See money habits, value creation, expression, and branding sense.",
+      "007": "Not number of marriages, but desired stability and commitment style in deep relationships.",
+      "008": "See energy areas of the palm, such as Mount of Venus, Mount of Moon, and Mount of Jupiter.",
+      "009": "Compare dominant and non-dominant hands to see your innate self versus your current self.",
+      "010": "Provides daily advice, 7-day routines, and guidance on relationships, wealth, and career."
+    },
+    "label": {
+      "001": "Innate Hand",
+      "002": "Acquired Hand",
+      "003": "Mixed Hand",
+      "004": "Earth Hand",
+      "005": "Fire Hand",
+      "006": "Air Hand",
+      "007": "Water Hand",
+      "008": "Mixed Hand",
+      "009": "Life Line",
+      "010": "Head Line",
+      "011": "Heart Line",
+      "012": "Fate Line",
+      "013": "Sun Line",
+      "014": "Money Line",
+      "015": "Marriage Line",
+      "016": "Mercury Line",
+      "017": "Intuition Line",
+      "018": "Mount of Venus",
+      "019": "Mount of Moon",
+      "020": "Mount of Jupiter",
+      "021": "Mount of Saturn",
+      "022": "Mount of Sun",
+      "023": "Mount of Mercury",
+      "024": "Mount of Mars",
+      "025": "Thumb",
+      "026": "Index Finger",
+      "027": "Middle Finger",
+      "028": "Ring Finger",
+      "029": "Little Finger",
+      "030": "Overall",
+      "031": "Life Line",
+      "032": "Head Line",
+      "033": "Heart Line",
+      "034": "Fate Line",
+      "035": "Money/Sun Line",
+      "036": "Love/Marriage Line",
+      "037": "Palm Mounts",
+      "038": "Innate/Acquired Comparison",
+      "039": "Custom Prescription"
+    },
+    "title": {
+      "001": "Deep, Long Life Line",
+      "002": "Short, Deep Life Line",
+      "003": "Faint Life Line",
+      "004": "Broken Life Line",
+      "005": "Branched Life Line",
+      "006": "Long, Straight Head Line",
+      "007": "Long, Gently Curved Head Line",
+      "008": "Short Head Line",
+      "009": "Head Line Separate from Life Line",
+      "010": "Head Line Joined with Life Line",
+      "011": "Deep, curved heart line",
+      "012": "Straight heart line",
+      "013": "Heart line descending to index finger",
+      "014": "Heart line descending to middle finger",
+      "015": "Heart line with many branches",
+      "016": "Fate line clearly rising in the center",
+      "017": "Faint or weak fate line",
+      "018": "Fate line starting from life line",
+      "019": "Fate line starting from Mount of Luna",
+      "020": "Broken fate line",
+      "021": "Clear sun line",
+      "022": "Faint sun line",
+      "023": "Sun line weak or undetected",
+      "024": "M-shaped money line",
+      "025": "Clear money line",
+      "026": "Multi-branched money line",
+      "027": "Faint money line",
+      "028": "Clear relationship line",
+      "029": "Relationship line with many fine lines",
+      "030": "Upward-sloping relationship line",
+      "031": "Downward-sloping relationship line",
+      "032": "Clear Mercury line",
+      "033": "Broken Mercury line",
+      "034": "Faint Mercury line",
+      "035": "Hand with intuition line",
+      "036": "Faint intuition line",
+      "037": "Hand with high affection temperature",
+      "038": "Realistic career hand",
+      "039": "Hand with strong intuition and imagination",
+      "040": "Hand that forges its own path through expression",
+      "041": "Communicative hand that reads relationship cues well",
+      "042": "Naturally resilient, but currently expending much energy",
+      "043": "Hand that developed energy through acquired self-management",
+      "044": "Naturally sensitive, but currently with enhanced realistic judgment",
+      "045": "Hand expanded from reason to intuition",
+      "046": "Hand that defensively regulates deep emotions",
+      "047": "Hand with open emotional expression through relationship experiences",
+      "048": "Enhanced sense of purpose and social direction in current life",
+      "049": "Hand re-aligning its original direction",
+      "050": "Hand with living depth of emotion and intuition"
+    }
+  },
+  "palmMap": {
+    "001": "Simian Line",
+    "002": "M-shaped palm line",
+    "003": "Developed Mount of Jupiter + emphasized growth axis",
+    "004": "Developed Mount of Saturn + clear fate line",
+    "005": "1. Comprehensive Palm Reading",
+    "006": "2. Innate Hand / Acquired Hand Interpretation",
+    "007": "3. Life Line Analysis",
+    "008": "4. Head Line Analysis",
+    "009": "5. Heart Line Analysis",
+    "010": "6. Fate Line Analysis",
+    "011": "7. Wealth/Sun Line Analysis",
+    "012": "8. Love/Marriage Line Analysis",
+    "013": "9. Mounts Comprehensive Analysis",
+    "014": "10. Palmistry Combination Interpretation",
+    "015": "10-1. Special Palm Patterns",
+    "016": "11. Area-Specific Flow Interpretation",
+    "017": "12. 5 Strengths",
+    "018": "13. 5 Cautions",
+    "019": "14. Personalized Advice"
+  },
+  "rd": {
+    "aria-label": {
+      "001": "Select Four Pillars (BaZi) 4-Cut version"
+    },
+    "cta": {
+      "001": "🐾 Summon My Guardian Animal",
+      "002": "💞 Reveal My Destiny's Place",
+      "003": "💕 Unlock Love Code",
+      "004": "✨ View Detailed Charm Analysis",
+      "005": "⚡ Open Full Quantum Myeongri",
+      "006": "💚 Check Health Report",
+      "007": "🤖 View Free Prompt",
+      "008": "🎮 Expand Skill Tree",
+      "009": "🧊 View Extreme T Test Results",
+      "010": "❤️ View Teto/Egen Analysis",
+      "011": "🗺️ View Travel Destination Report",
+      "012": "⚠️ Open Villain Report",
+      "013": "View Quantum Lotto Report",
+      "014": "📔 Open Four Pillars (BaZi) Diary",
+      "015": "📸 Open Four Pillars (BaZi) 4-Cut",
+      "016": "🏠 Enter Secret House"
+    },
+    "description": {
+      "001": "Your Four Pillars (BaZi) 12-Woonseong energy unfolds into animal archetypes, revealing your core personality, dating patterns, career inclinations, relationship compatibility, and daily action missions all at once.",
+      "002": "Based on the Five Elements/Yongsin flow of your Four Pillars (BaZi), we suggest places, countries, times, and destiny items where your connections will bloom, presented as an emotional report.",
+      "003": "Find your most similar love persona with the Five Elements of your Four Pillars (BaZi) and check your chemistry with a choice-based dating simulation."
+    },
+    "label": {
+      "001": "My Charm Class",
+      "002": "Quantum Myeongri Engine",
+      "003": "Myeongri Health Report",
+      "004": "Four Pillars (BaZi) AI Prompt",
+      "005": "Life Skill Tree",
+      "006": "Extreme T Test",
+      "007": "Teto vs Egen",
+      "008": "Travel Destinations by Four Pillars (BaZi)",
+      "009": "Villain Blacklist",
+      "010": "Quantum Lotto Report",
+      "011": "Four Pillars (BaZi) Diary",
+      "012": "Four Pillars (BaZi) 4-Cut: Destiny Filter",
+      "013": "Secret House: Love Sim",
+      "014": "Destiny Filter",
+      "015": "Love DM",
+      "016": "God-Tier Routine",
+      "017": "Prevent Dark History"
+    },
+    "title": {
+      "001": "Four Pillars (BaZi) 12-Woonseong Animal Test",
+      "002": "Destiny's Place by Four Pillars (BaZi)",
+      "004": "MZ Destiny Filter ON",
+      "005": "Love Signal 4-Cut",
+      "006": "Today's Best Life Check-in",
+      "007": "Prevent Regrets Filter",
+      "008": "1. Main Vibe Stats",
+      "009": "2. First vs. Current Impression",
+      "010": "3. Brain Map",
+      "011": "4. Today's Lucky Vibes",
+      "012": "1. First Impression Charm",
+      "013": "2. Flirting Temperature",
+      "014": "3. Heart Brain Map",
+      "015": "4. Today's Love Action",
+      "016": "1. Today's Start Button",
+      "017": "2. Work Pro Mode",
+      "018": "3. Focus Recharge Pack",
+      "019": "4. Lucky Pack Before Leave",
+      "020": "1. Sudden Rush Alert",
+      "021": "2. Gaffe Prevention Cut",
+      "022": "3. Spending Lock Cut",
+      "023": "4. Protection Spell",
+      "024": "Four Pillars Four-Cut: Destiny Filter"
+    }
+  },
+  "seoLanding": {
+    "description": {
+      "001": "This free Four Pillars (BaZi) guide page explores tendencies and choices through the basic structure of Four Pillars, Five Elements balance, Ten Gods, and luck cycle.",
+      "002": "Learn how to check your Four Pillars (BaZi), Five Elements, Ten Gods, and luck cycle flow based on your birth date and time.",
+      "003": "Today's reading helps you lightly check your daily condition, relationships, and work priorities, and organize choices to act upon.",
+      "004": "The Today's Reading page helps you quickly check your condition, relationship flow, and schedule priorities when starting or ending your day.",
+      "005": "Examine two people's relationship rhythm, communication style, and conflict recovery points from a Four Pillars and reading perspective, and organize them into practical conversation standards.",
+      "006": "This Four Pillars compatibility guide page interprets two people's Four Pillars structure from the perspective of relationship rhythm, conflict patterns, and communication style.",
+      "007": "Through tarot cards, calmly organize your current questions, love flow, reunion possibilities, and direction of your heart, and receive self-reflection sentences and practical hints for your next choice.",
+      "008": "Reunion tarot is a reading that examines the current distance with the other person, timing of contact, and lingering emotions through the card flow.",
+      "009": "Other's Heart Tarot organizes current emotions, unspoken signals, and the next choices in a relationship from a self-reflection perspective.",
+      "010": "Based on the 12 palaces, Ming Gong, Shen Gong, Si Hua, and star placements of the Zi Wei Dou Shu birth chart, it organizes tendencies, career, relationships, and luck cycle flow into consultation-style sentences.",
+      "011": "It easily guides you through tendencies and relationship rhythms using the Sun, Moon, and Ascendant signs and basic structure of a Western astrology birth chart, and explains starting points and precautions for chart interpretation.",
+      "012": "Based on the 27 Sukuyo (27 Nakshatras) and lunar relationship methods, it examines the distance of connections, conflict patterns, and recovery flow, and organizes relationship reading standards and conversation hints for beginners.",
+      "013": "It easily guides beginners through the Jyotish chart, lunar constellations, and Dasha flow of Vedic astrology, and organizes practical interpretation axes and usage methods different from Western astrology.",
+      "014": "This dream interpretation guide connects symbols and emotions remaining in dreams with real-life stress, relationships, and flow of choices.",
+      "015": "Physiognomy content is provided as reference information to reflect on self-expression and communication style, rather than fixedly evaluating facial impressions.",
+      "016": "The Premium Report is an optional service that expands basic free interpretations into document-type in-depth analysis, allowing you to check the scope and precautions before payment.",
+      "017": "On the Love Reading page, we examine the current flow of your relationship, the distance with your partner, and clues for conversation from a Four Pillars and tarot perspective.",
+      "018": "Code Destiny's premium reading reports organize Four Pillars, love, and New Year flows into document format based on verified input values.",
+      "019": "The Book of Life PDF is a premium report generated after verifying user input and Four Pillars calculation data upon confirmation of payment authorization.",
+      "020": "The Love Report PDF organizes love flow, communication style, and recovery points after verifying relationship input and Four Pillars-based interpretations.",
+      "021": "The New Year Reading PDF is a premium reading document that examines career, wealth, relationships, and health flows by month for the new year."
+    },
+    "title": {
+      "001": "Free Four Pillars (BaZi) Analysis | Five Elements·Ten Gods·Luck Cycle Flow",
+      "002": "Free Four Pillars (BaZi) Analysis | Five Elements·Ten Gods·Luck Cycle Interpretation",
+      "003": "View Today's Reading Free | Daily Flow & Choice Guide",
+      "004": "Check Today's Reading Now | Condition·Relationships·Schedule Check",
+      "005": "View Free Compatibility | Four Pillars·Love Relationship Analysis",
+      "006": "Free Four Pillars Compatibility Interpretation | Relationship Flow & Communication Style",
+      "007": "Free Tarot Card Reading | Love·Reunion·Heart Interpretation",
+      "008": "Reunion Tarot Reading | Possibility & Distance to Reconnect",
+      "009": "Other's Heart Tarot | Heart Flow & Relationship Signals",
+      "010": "In-depth Zi Wei Dou Shu 12 Palaces Consultation | Ming Gong·Shen Gong·Si Hua·Luck Cycle Interpretation",
+      "011": "Free Astrology Birth Chart | Sun, Moon, Ascendant",
+      "012": "Sukuyo (27 Nakshatras) Compatibility | Distance & Relationship Flow",
+      "013": "Free Vedic Astrology Reading | Jyotish Chart & Dasha Flow",
+      "014": "Free Dream Interpretation | Dream Symbols & Psychological Flow",
+      "015": "Face Reading Guide | Facial Impression & Self-Expression",
+      "016": "Premium Reading Report | In-depth Four Pillars (BaZi) & Zi Wei Dou Shu",
+      "017": "Free Love Reading | Emotional Flow & Relationship Direction",
+      "018": "Premium Reading Report Guide | Four Pillars (BaZi), Love, New Year PDF",
+      "019": "Book of Life PDF Guide | Four Pillars (BaZi) Long Report",
+      "020": "Love Report PDF Guide | In-depth Relationship Analysis",
+      "021": "New Year Reading PDF Guide | New Year Flow & Monthly Guide"
+    }
+  },
+  "share": {
+    "001": "🐷 Oink Oink Manse Calendar",
+    "002": "🐷 Yeoni's Oink Oink Tarot",
+    "003": "✨ Astrology Cosmic Chart",
+    "004": "Free Basic Sukuyo (27 Nakshatras) Result",
+    "005": "🌌 Zi Wei Dou Shu Result",
+    "006": "Four Pillars (BaZi) Book of Life",
+    "007": "💕 Love Secrets",
+    "008": "You must first open your Four Pillars (BaZi) birth chart to accurately receive daily energies. Please enter your birth date and complete the Four Pillars (BaZi) analysis.",
+    "009": "Failed to load the calculation module to open the saved profile. Please refresh and try again.",
+    "010": "Failed to reopen the Four Pillars (BaZi) birth chart from the saved profile. Please re-select the profile and try again.",
+    "011": "Failed to load the reading calculation module. Please refresh and try again.",
+    "012": "Failed to generate reading data. Please try again shortly.",
+    "013": "Please try again shortly."
+  },
+  "tarotInterpretation": {
+    "label": {
+      "001": "Love",
+      "002": "Relationships",
+      "003": "Reunion",
+      "004": "Their True Feelings",
+      "005": "Current Feelings",
+      "006": "Near Future Flow",
+      "007": "Career & Work",
+      "008": "Finances",
+      "009": "Today",
+      "010": "Healing",
+      "011": "Annual Reading",
+      "012": "Self-Standard",
+      "013": "Overall",
+      "014": "How I See Them",
+      "015": "How They See the Relationship",
+      "016": "How They See Me",
+      "017": "Their Desire for Love",
+      "018": "Key Obstacle in the Relationship",
+      "019": "Current Flow & Choices",
+      "020": "Cups (Water)",
+      "021": "Wands (Fire)",
+      "022": "Swords (Air)",
+      "023": "Pentacles (Earth)",
+      "024": "Major Arcana",
+      "025": "Mixed Suits"
+    },
+    "title": {
+      "001": "Clarifying Choices",
+      "002": "Addressing Anxiety",
+      "003": "Regaining Reality",
+      "004": "Lingering Feelings",
+      "005": "Their Inner World",
+      "006": "Signs of Silence",
+      "007": "Path to Reconnection",
+      "008": "Conditions for Repair"
+    }
+  },
+  "tarotSpread": {
+    "label": {
+      "001": "Today's Focus",
+      "002": "Past",
+      "003": "Present",
+      "004": "Future",
+      "005": "Cause",
+      "006": "Process",
+      "007": "Outcome",
+      "008": "My View of Them",
+      "009": "Their View of the Relationship",
+      "010": "Their Feelings for Me",
+      "011": "Their Romantic Intent",
+      "012": "Key Obstacle",
+      "013": "Short-Term Outcome",
+      "014": "Hidden Truth",
+      "015": "Accepting Emotions",
+      "016": "Clue to Recovery",
+      "017": "Next Action",
+      "018": "Lingering Feelings",
+      "019": "Their Inner World",
+      "020": "Signs of Silence",
+      "021": "Path to Reconnection",
+      "022": "Conditions for Repair",
+      "023": "Year's Core Rhythm",
+      "024": "Challenges & Opportunities",
+      "025": "Year-End Harvest & Harmony",
+      "026": "Why I Seek Approval",
+      "027": "Why I Struggle to Refuse",
+      "028": "Harm of People-Pleasing",
+      "029": "Coping with Disappointment",
+      "030": "Prioritizing My Needs",
+      "031": "Revitalizing Work Flow",
+      "032": "Less Draining Path",
+      "033": "Heart's Calling",
+      "034": "Life Beyond the Threshold",
+      "035": "First Steps to Reality",
+      "036": "Old standards to let go",
+      "037": "Standards to keep, direction to move",
+      "038": "Outward attitude",
+      "039": "True inner feelings",
+      "040": "Reason for not approaching",
+      "041": "Hidden desires",
+      "042": "Judgment on the relationship"
+    },
+    "title": {
+      "001": "Today's Tarot",
+      "002": "Past-Present-Future",
+      "003": "Cause-Process-Result",
+      "004": "Our Relationship Tarot",
+      "005": "Healing Rising Tarot",
+      "006": "Starry Night Reunion Reading",
+      "007": "Annual 12-Card",
+      "008": "Annual 3-Card",
+      "009": "Self-Esteem Level-Up Tarot",
+      "010": "Work Threshold 7-Card",
+      "011": "Their Inner Thoughts Tarot"
+    }
   }
 }
