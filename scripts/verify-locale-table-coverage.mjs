@@ -53,6 +53,8 @@ function literal(node) {
 }
 
 const gaps = [];
+/** 로케일 키는 있으나 값이 영어 복제인 경우. 한국어 누출은 아니지만 미번역이다. */
+const englishPlaceholders = [];
 let tableCount = 0;
 
 for (const file of walkSourceFiles(rootDir, { extensions: [".ts", ".tsx", ".jsx", ".js", ".mjs"] })) {
@@ -83,13 +85,39 @@ for (const file of walkSourceFiles(rootDir, { extensions: [".ts", ".tsx", ".jsx"
     const value = literal(node.init);
     if (!value || typeof value !== "object" || !value.ko) return;
     tableCount += 1;
-    const have = Object.keys(value).filter((k) => /^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(k));
-    const missing = REQUIRED.filter((l) => !have.includes(l));
-    if (!missing.length) return;
+    const table = node.id.name;
+
+    // 🔴 선언 뒤에 명령형으로 채우는 경우가 있다.
+    //   POINTS_PAGE_COPY["zh-CN"] = { ...POINTS_PAGE_COPY.en, … }
+    //   for (const l of [...]) POINTS_PAGE_COPY[l] = POINTS_PAGE_COPY.en
+    // 선언만 보면 "로케일 없음" 으로 오판한다. 실제로는 값이 들어가 있고,
+    // 문제는 그 값이 **영어 복제**라는 것 — 한국어 누출과는 성격이 다르다.
+    const filledDirect = new Set(
+      [...source.matchAll(new RegExp(`${table}\\[\\s*["']([\\w-]+)["']\\s*\\]\\s*=`, "g"))].map((m) => m[1]),
+    );
+    const englishCloneLocales = new Set();
+    for (const m of source.matchAll(new RegExp(`for\\s*\\([^)]*of\\s*(\\[[^\\]]+\\])[^)]*\\)[\\s\\S]{0,120}?${table}\\[[\\w]+\\]\\s*=\\s*${table}\\.en`, "g"))) {
+      for (const loc of m[1].matchAll(/["']([\w-]+)["']/g)) englishCloneLocales.add(loc[1]);
+    }
+    // `TABLE["x"] = { ...TABLE.en, …}` 도 사실상 영어 기반이지만 개별 덮어쓰기가 있으므로
+    // 완전한 영어 복제로는 세지 않는다.
+
+    const have = new Set([
+      ...Object.keys(value).filter((k) => /^[a-z]{2}(-[A-Za-z]{2,4})?$/.test(k)),
+      ...filledDirect,
+      ...englishCloneLocales,
+    ]);
+    const missing = REQUIRED.filter((l) => !have.has(l));
     const koStrings = Object.values(flatten(value.ko)).filter((v) => typeof v === "string");
+    const englishOnly = REQUIRED.filter((l) => englishCloneLocales.has(l));
+
+    if (englishOnly.length) {
+      englishPlaceholders.push({ file: rel, table, locales: englishOnly, keys: koStrings.length });
+    }
+    if (!missing.length) return;
     gaps.push({
       file: rel,
-      table: node.id.name,
+      table,
       missing,
       keys: koStrings.length,
       pending: koStrings.length * missing.length,
@@ -101,7 +129,14 @@ gaps.sort((a, b) => b.pending - a.pending);
 const totalPending = gaps.reduce((sum, g) => sum + g.pending, 0);
 
 console.log(`[locale-table] fallback 테이블 ${tableCount}개 중 결손 ${gaps.length}개`);
-console.log(`[locale-table] 필요 번역 ${totalPending}건`);
+console.log(`[locale-table] 🔴 한국어 누출 위험(로케일 부재) 번역 ${totalPending}건`);
+if (englishPlaceholders.length) {
+  const enPending = englishPlaceholders.reduce((s, p) => s + p.keys * p.locales.length, 0);
+  console.log(`[locale-table] ⚠️  영어 자리표시자(= TABLE.en) ${englishPlaceholders.length}개 테이블 / ${enPending}건`);
+  console.log("[locale-table]    한국어가 아니라 영어가 나간다 — 누출은 아니지만 미번역이다.");
+  englishPlaceholders.forEach((p) =>
+    console.log(`[locale-table]      ${p.table.slice(0, 32).padEnd(34)} ${p.locales.join(",")}  (${p.file})`));
+}
 (showList ? gaps : gaps.slice(0, 12)).forEach((g) => {
   console.log(`[locale-table]   ${String(g.pending).padStart(5)}  ${g.table.slice(0, 36).padEnd(38)} ${g.file}`);
 });
