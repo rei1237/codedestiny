@@ -8,28 +8,34 @@ type AuthPayload = {
 };
 
 const ROUTE_AUTH_TEXT_TRANSLATIONS = {
-  ko: {
-    loginRequired: "로그인 후 이용할 수 있습니다.",
-  },
-  en: {
-    loginRequired: "Please log in to continue.",
-  },
-  ja: {
-    loginRequired: "ログイン後にご利用いただけます。",
-  },
+  ko: { loginRequired: "로그인 후 이용할 수 있습니다." },
+  en: { loginRequired: "Please log in to continue." },
+  ja: { loginRequired: "ログイン後にご利用いただけます。" },
+  "zh-CN": { loginRequired: "登录后即可使用。" },
+  "zh-TW": { loginRequired: "登入後即可使用。" },
+  vi: { loginRequired: "Vui lòng đăng nhập để tiếp tục." },
+  hi: { loginRequired: "जारी रखने के लिए कृपया लॉग इन करें।" },
+  es: { loginRequired: "Inicia sesión para continuar." },
+  fr: { loginRequired: "Connectez-vous pour continuer." },
+  de: { loginRequired: "Bitte melden Sie sich an, um fortzufahren." },
+  nl: { loginRequired: "Log in om verder te gaan." },
+  ms: { loginRequired: "Sila log masuk untuk meneruskan." },
 } as const;
 
+/** 지원 로케일 하나로 반드시 수렴한다 — 표에 12개가 다 있으므로 조회가 빌 수 없다. */
 function getRouteAuthLocale(req: NextRequest): keyof typeof ROUTE_AUTH_TEXT_TRANSLATIONS {
   const cookieLocale = String(req.cookies.get("cd_locale")?.value || req.cookies.get("NEXT_LOCALE")?.value || "").trim();
   const headerLocale = String(req.headers.get("accept-language") || "").trim();
   const locale = (cookieLocale || headerLocale).replace("_", "-").toLowerCase();
-  if (locale.startsWith("ja")) return "ja";
-  if (locale.startsWith("en")) return "en";
-  return "ko";
+  if (locale.startsWith("zh")) {
+    return locale.includes("tw") || locale.includes("hant") || locale.includes("hk") ? "zh-TW" : "zh-CN";
+  }
+  const short = locale.slice(0, 2) as keyof typeof ROUTE_AUTH_TEXT_TRANSLATIONS;
+  return short in ROUTE_AUTH_TEXT_TRANSLATIONS ? short : "ko";
 }
 
 function getRouteAuthCopy(req: NextRequest) {
-  return ROUTE_AUTH_TEXT_TRANSLATIONS[getRouteAuthLocale(req)] || ROUTE_AUTH_TEXT_TRANSLATIONS.ko;
+  return ROUTE_AUTH_TEXT_TRANSLATIONS[getRouteAuthLocale(req)];
 }
 
 function readEnv(...keys: string[]): string {

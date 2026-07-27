@@ -25,6 +25,60 @@
       gateUnavailable: '決済ゲートを読み込めませんでした。更新してもう一度お試しください。',
       reportIdRequired: 'レポートIDが必要です。',
     },
+    'zh-CN': {
+      premiumPdf: '高级 PDF',
+      paymentCanceled: '支付已取消。',
+      gateUnavailable: '无法加载支付通道。请刷新后重试。',
+      reportIdRequired: '需要报告 ID。',
+    },
+    'zh-TW': {
+      premiumPdf: '進階 PDF',
+      paymentCanceled: '付款已取消。',
+      gateUnavailable: '無法載入付款通道。請重新整理後再試。',
+      reportIdRequired: '需要報告 ID。',
+    },
+    vi: {
+      premiumPdf: 'PDF cao cấp',
+      paymentCanceled: 'Thanh toán đã bị hủy.',
+      gateUnavailable: 'Không tải được cổng thanh toán. Vui lòng tải lại trang và thử lại.',
+      reportIdRequired: 'Cần có ID báo cáo.',
+    },
+    hi: {
+      premiumPdf: 'प्रीमियम PDF',
+      paymentCanceled: 'भुगतान रद्द कर दिया गया।',
+      gateUnavailable: 'भुगतान गेट लोड नहीं हो सका। कृपया पेज रिफ़्रेश कर फिर से कोशिश करें।',
+      reportIdRequired: 'रिपोर्ट ID आवश्यक है।',
+    },
+    es: {
+      premiumPdf: 'PDF premium',
+      paymentCanceled: 'Se canceló el pago.',
+      gateUnavailable: 'No se pudo cargar la pasarela de pago. Actualiza la página e inténtalo de nuevo.',
+      reportIdRequired: 'Se requiere el ID del informe.',
+    },
+    fr: {
+      premiumPdf: 'PDF premium',
+      paymentCanceled: 'Le paiement a été annulé.',
+      gateUnavailable: "La passerelle de paiement n'a pas pu être chargée. Actualisez la page et réessayez.",
+      reportIdRequired: "L'identifiant du rapport est requis.",
+    },
+    de: {
+      premiumPdf: 'Premium-PDF',
+      paymentCanceled: 'Die Zahlung wurde abgebrochen.',
+      gateUnavailable: 'Das Zahlungsgateway konnte nicht geladen werden. Bitte laden Sie die Seite neu und versuchen Sie es erneut.',
+      reportIdRequired: 'Die Report-ID ist erforderlich.',
+    },
+    nl: {
+      premiumPdf: 'Premium-pdf',
+      paymentCanceled: 'De betaling is geannuleerd.',
+      gateUnavailable: 'De betaalpagina kon niet worden geladen. Vernieuw de pagina en probeer het opnieuw.',
+      reportIdRequired: 'Rapport-ID is vereist.',
+    },
+    ms: {
+      premiumPdf: 'PDF Premium',
+      paymentCanceled: 'Pembayaran telah dibatalkan.',
+      gateUnavailable: 'Gerbang pembayaran tidak dapat dimuatkan. Sila muat semula dan cuba lagi.',
+      reportIdRequired: 'ID laporan diperlukan.',
+    },
   };
 
   function getCoinGateHelperLocale() {
@@ -34,13 +88,17 @@
       try { value = String(localStorage.getItem('cd_lang') || localStorage.getItem('cd_locale') || localStorage.getItem('codeDestinyLocale') || localStorage.getItem('lang') || ''); } catch (_) { value = ''; }
     }
     value = String(value || '').trim().replace('_', '-').toLowerCase();
-    if (value.indexOf('ja') === 0) return 'ja';
-    if (value.indexOf('en') === 0) return 'en';
-    return 'ko';
+    if (value.indexOf('zh') === 0) {
+      return value.indexOf('tw') >= 0 || value.indexOf('hant') >= 0 || value.indexOf('hk') >= 0 ? 'zh-TW' : 'zh-CN';
+    }
+    var short = value.slice(0, 2);
+    return ['ko', 'en', 'ja', 'vi', 'hi', 'es', 'fr', 'de', 'nl', 'ms'].indexOf(short) >= 0 ? short : 'ko';
   }
 
+  // 표에 12개 로케일이 모두 있고 위 함수가 반드시 그중 하나로 수렴하므로
+  // 한국어 fallback 이 필요 없다.
   function getCoinGateHelperCopy() {
-    return COIN_GATE_HELPER_TEXT_TRANSLATIONS[getCoinGateHelperLocale()] || COIN_GATE_HELPER_TEXT_TRANSLATIONS.ko;
+    return COIN_GATE_HELPER_TEXT_TRANSLATIONS[getCoinGateHelperLocale()];
   }
 
   function normalizeApiBase(raw) {

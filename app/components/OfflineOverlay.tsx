@@ -9,7 +9,8 @@ type OfflineCopy = {
   retry: string;
 };
 
-const OFFLINE_COPY: Partial<Record<LoadingLocale, OfflineCopy>> = {
+// Partial 을 벗겨 **타입이 로케일 누락을 잡게** 한다. 새 로케일이 늘면 컴파일이 막는다.
+const OFFLINE_COPY: Record<LoadingLocale, OfflineCopy> = {
   ko: {
     title: "인터넷 연결이 끊겼어요",
     body: "네트워크 상태를 확인한 뒤 다시 시도해 주세요.",
@@ -30,10 +31,50 @@ const OFFLINE_COPY: Partial<Record<LoadingLocale, OfflineCopy>> = {
     body: "请检查网络状态后重试。",
     retry: "重试",
   },
+  "zh-TW": {
+    title: "網路連線已中斷",
+    body: "請檢查網路狀態後重試。",
+    retry: "重試",
+  },
+  vi: {
+    title: "Bạn đang ngoại tuyến",
+    body: "Hãy kiểm tra kết nối mạng rồi thử lại.",
+    retry: "Thử lại",
+  },
+  hi: {
+    title: "आप ऑफ़लाइन हैं",
+    body: "अपना नेटवर्क कनेक्शन जाँचकर फिर से कोशिश करें।",
+    retry: "पुनः प्रयास",
+  },
+  es: {
+    title: "Estás sin conexión",
+    body: "Comprueba tu conexión de red e inténtalo de nuevo.",
+    retry: "Reintentar",
+  },
+  fr: {
+    title: "Vous êtes hors ligne",
+    body: "Vérifiez votre connexion réseau puis réessayez.",
+    retry: "Réessayer",
+  },
+  de: {
+    title: "Sie sind offline",
+    body: "Prüfen Sie Ihre Netzwerkverbindung und versuchen Sie es erneut.",
+    retry: "Erneut versuchen",
+  },
+  nl: {
+    title: "Je bent offline",
+    body: "Controleer je netwerkverbinding en probeer het opnieuw.",
+    retry: "Opnieuw",
+  },
+  ms: {
+    title: "Anda di luar talian",
+    body: "Semak sambungan rangkaian anda dan cuba lagi.",
+    retry: "Cuba lagi",
+  },
 };
 
 function resolveOfflineCopy(locale: LoadingLocale) {
-  return OFFLINE_COPY[locale] || OFFLINE_COPY.ko!;
+  return OFFLINE_COPY[locale];
 }
 
 export default function OfflineOverlay() {
