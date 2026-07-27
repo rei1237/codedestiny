@@ -951,7 +951,7 @@ function validateChartConsistency(content, chart) {
     const wrongLagna = ALL_SIGNS_KO.some((signKo) => signKo !== lagnaKo && new RegExp(`${signKo}\\s*라그나`).test(fullText));
     if (wrongLagna) issues.push("consistency.lagna_sign_mismatch");
     const lagnaBody = sectionBody("lagna");
-    if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || " ")) {
+    if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || "\u0000")) {
       issues.push("consistency.lagna_sign_unstated");
     }
   }

@@ -1,5 +1,6 @@
 import { getEnv } from "./lib/env.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
+import { resolveAiLocaleFromRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 
 const ROUTE_METRICS_STATE = {
   byRoute: Object.create(null),
@@ -372,11 +373,13 @@ function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOve
     };
 
     const metricsEnabled = shouldCollectRouteMetrics(env);
-    if (!metricsEnabled) {
-      return executeHandler();
-    }
+    const runRoute = () => (metricsEnabled
+      ? runWithRouteMetrics(metricRouteName, env, executeHandler, metricsEnabled)
+      : executeHandler());
 
-    return runWithRouteMetrics(metricRouteName, env, executeHandler, metricsEnabled);
+    // 46개 라우트가 전부 이 팩토리를 통과하므로, AI 출력 로케일은 여기 한 곳에서만 잡으면 된다.
+    // 컨텍스트가 없으면(cron 등) 하위에서 ko 로 떨어진다 — fail-safe.
+    return runWithAiLocale(resolveAiLocaleFromRequest(args[0]), runRoute);
   };
 }
 

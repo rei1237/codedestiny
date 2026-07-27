@@ -11,6 +11,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 
@@ -1189,7 +1190,11 @@ function buildSukuyoCompatibilityRepairPrompt(input, calculation, previousText, 
 
 function sanitizeConsultationText(text) {
   let result = clean(text, 60000);
-  for (const pattern of FORBIDDEN_RESULT_PATTERNS) result = result.replace(pattern, "");
+  // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERNS 의 /chapter/gi·/progress/gi·/job/gi·/PDF/gi 가
+  // 비-ko 에서는 영어 상담문의 정상 단어를 본문에서 잘라낸다.
+  if (canStripForbiddenText()) {
+    for (const pattern of FORBIDDEN_RESULT_PATTERNS) result = result.replace(pattern, "");
+  }
   return result.replace(/\n{3,}/g, "\n\n").trim();
 }
 

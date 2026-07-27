@@ -1,5 +1,15 @@
+import { getAmbientAiLocale } from "./ai-locale-context.js";
+
 function clip(value, maxLen = 12000) {
   return String(value || "").slice(0, maxLen);
+}
+
+// 출력 언어의 정본은 llm-client 의 applyOutputLocale 이다. ko 에는 지시문이 붙지 않으므로
+// 기존 문구를 그대로 두고, 비-ko 에서는 문체 지시만 남겨 언어 지시 충돌을 없앤다.
+function toneRule() {
+  return (getAmbientAiLocale() || "ko") === "ko"
+    ? "4) 결과는 한국어 존댓말로 작성하고, 팬덤/덕질 맥락에서 실전적으로 써 주세요."
+    : "4) 결과는 정중한 존댓말 문체로, 팬덤/덕질 맥락에서 실전적으로 써 주세요.";
 }
 
 export function buildDestinyBiasInterpretationPrompt(canonical) {
@@ -11,7 +21,7 @@ export function buildDestinyBiasInterpretationPrompt(canonical) {
 1) 사주 계산(간지/오행/십성/용희기신/점수 산출)은 이미 canonical JSON에 확정되어 있습니다.
 2) 당신은 계산을 다시 하지 말고, canonical 값만 해석해야 합니다.
 3) 의료/법률/투자 확정 조언, 과도한 단정, 공포 조장은 금지합니다.
-4) 결과는 한국어 존댓말로 작성하고, 팬덤/덕질 맥락에서 실전적으로 써 주세요.
+${toneRule()}
 5) 아래 마크다운 섹션 구조를 반드시 지키세요.
 
 출력 형식(정확히 유지):

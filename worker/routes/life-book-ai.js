@@ -13,6 +13,7 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
+import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { handleBillingRoutes } from "./billing.js";
 
 const SERVICE_KEY = "life-book-ai";
@@ -1098,7 +1099,13 @@ function buildFirstPrompt(input, sajuResult) {
 }
 
 function cleanForbiddenResult(value) {
-  return clean(value, LIFE_BOOK_RESULT_TEXT_MAX_CHARS).replace(FORBIDDEN_RESULT_PATTERN, "").replace(/\n{3,}/g, "\n\n").trim();
+  const trimmed = clean(value, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
+  // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERN 에 \bPDF\b·\bprogress\b·\bjob\b·\bAI\b 가 들어 있어
+  // 비-ko 에서 돌리면 영어 상담문의 정상 단어가 문장 중간에서 사라진다.
+  const stripped = canStripForbiddenText()
+    ? trimmed.replace(FORBIDDEN_RESULT_PATTERN, "")
+    : trimmed;
+  return stripped.replace(/\n{3,}/g, "\n\n").trim();
 }
 
 function extractReportJson(content) {
