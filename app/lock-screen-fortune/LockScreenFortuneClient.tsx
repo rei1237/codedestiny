@@ -27,14 +27,13 @@ import {
 import { readAiProfileSeed } from "../_lib/ai-prefill-seed";
 import { isMobileAppRuntime } from "../_lib/auth-client";
 
-// ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 이미지(오프라인 동작, 잠금화면 네트워크 불필요) ──
-// (기존 R2 CDN URL은 화면 켜지는 순간 네트워크가 없어 404가 났다.)
-const PIG_FALLBACK = "/images/fortune-tea-house/flower-pig-5-photoroom.webp";
+// ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 '단일 컷' 이미지(오프라인 동작) ──
+// (기존 R2 CDN URL은 화면 켜지는 순간 네트워크가 없어 404. flower-pig-5-*는 스프라이트 시트라
+//  통짜로 나오던 문제 → 잘라진 단일 캐릭터(꽃돼지-Photoroom·꽃돼지2-Photoroom)를 ASCII로 복사해 사용.)
+const PIG_FALLBACK = "/images/fortune-tea-house/flower-pig-single-a.webp";
 const PIG_POSES: readonly { key: string; label: string; url: string }[] = [
-  { key: "pig1", label: "방긋", url: "/images/fortune-tea-house/flower-pig-5-photoroom.webp" },
-  { key: "pig2", label: "포옹", url: "/images/fortune-tea-house/flower-pig-honey-hug.webp" },
-  { key: "pig3", label: "생글", url: "/images/fortune-tea-house/flower-pig-5-sprite-safe.webp" },
-  { key: "pig4", label: "깜찍", url: "/images/fortune-tea-house/mobile/flower-pig-result-still-mobile.webp" },
+  { key: "pig1", label: "방긋", url: "/images/fortune-tea-house/flower-pig-single-a.webp" },
+  { key: "pig2", label: "생글", url: "/images/fortune-tea-house/flower-pig-single-b.webp" },
 ];
 
 const FONT_COLORS: readonly { key: string; label: string; hex: string }[] = [

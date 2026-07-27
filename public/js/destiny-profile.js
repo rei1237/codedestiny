@@ -776,8 +776,9 @@
   var _DP_DEFAULT_API_WORKER_ORIGIN = 'https://code-destiny-web.bulegyung.workers.dev';
   var _DP_LOCAL_DEV_API_ORIGIN = '';
   var _DP_FETCH_TIMEOUT_MS = 20000;
-  // 프로필 부트스트랩이 끊겼을 때 로딩 카드를 강제로 걷어내는 상한(_DP_FETCH_TIMEOUT_MS + 여유).
-  var PROFILE_LOADING_FAILSAFE_MS = 22000;
+  // 프로필 부트스트랩이 끊겼을 때 로딩 카드를 강제로 걷어내는 상한. 22s는 과도(스피너 오래 노출) —
+  // 프로필 도착 즉시 렌더(인증검증 비대기)+서버 병렬화로 실제 로드가 빨라졌으므로 10s로 낮춘다.
+  var PROFILE_LOADING_FAILSAFE_MS = 10000;
   var _dpRefreshSessionInFlight = null;
   var _dpApiInFlightGet = Object.create(null);
   var _dpApiCooldownUntil = Object.create(null);
@@ -1604,14 +1605,17 @@
       })
       .catch(function() { return null; });
 
-      return Promise.all([verifyPromise, profilePromise]).then(function(results) {
-        var ok = results[0];
-        var data = results[1];
-        if (!ok) {
-          _dpResetSubscriptionState();
-          return false;
+      // 프로필은 '도착 즉시' 적용한다 — 인증검증(/api/auth/me)이 느려도(콜드 Mongo) 렌더가 막히지 않는다.
+      // (/api/profile 자체가 독립 인증이므로 data.ok=true가 곧 로그인 신호. 검증은 프로필이 없을 때만 기다려
+      //  구독상태 리셋 여부를 판단하고, 있을 때는 백그라운드에서 부수효과만 정리한다.)
+      return profilePromise.then(function(data) {
+        var hasProfile = data && data.ok && Array.isArray(data.profiles);
+        if (!hasProfile) {
+          return verifyPromise.then(function(ok) {
+            if (!ok) _dpResetSubscriptionState();
+            return false;
+          }).catch(function() { return false; });
         }
-        if (!data || !data.ok || !Array.isArray(data.profiles)) return false;
         var scope = _dpGetProfileScope();
         // 세션검증이 게스트→실계정으로 스코프를 채운 경우는 정상 진행하고,
         // 실계정→다른 실계정으로 바뀐 경우(계정 전환 레이스)만 폐기한다.

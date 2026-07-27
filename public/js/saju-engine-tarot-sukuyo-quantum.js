@@ -13726,7 +13726,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
       .then(function(pack) {
         var payload = pack && pack.payload ? pack.payload : {};
-        if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        if (!pack || !pack.ok || payload.ok === false) {
+          // 상태코드·code 를 실어 보내야 catch 에서 '일시적 장애'와 '확정 실패'를 구분할 수 있다.
+          var failure = new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
+          failure.status = Number((pack && pack.status) || 0);
+          failure.code = (payload && payload.code) || '';
+          throw failure;
+        }
         var resolvedProfileId = payload.unlockScope && payload.unlockScope.profileId || profileId;
         var contentKey = payload.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
         window._sySukuyoYearlyReading = Object.assign({}, state, {
@@ -13743,7 +13749,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         syBindSukuyoMonthlyUnlock(window._sySukuyoYearlyReading);
       })
       .catch(function(error) {
-        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">' + syCanonicalEsc(error && error.message || '숙요점 1년운을 불러오지 못했습니다.') + '</div>';
+        // 워커는 일시적 DB 장애를 503으로 표면화한다(의도된 degrade). 그 영문 원문
+        // "Database is temporarily unavailable." 을 그대로 보여주면 사용자가 할 수 있는 게 없다 —
+        // 한국어 안내 + 재시도 버튼을 준다. 4xx(로그인 필요·프로필 미선택 등)는 서버 한국어 문구를 유지한다.
+        var statusCode = Number((error && error.status) || 0);
+        var errorCode = String((error && error.code) || '');
+        var isTransient = statusCode === 0
+          || statusCode >= 500
+          || errorCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
+          || errorCode === 'SERVICE_UNAVAILABLE';
+        var message = isTransient
+          ? '지금 서버가 잠시 붐벼요. 잠시 후 다시 시도해 주세요.'
+          : ((error && error.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">'
+          + syCanonicalEsc(message)
+          + (isTransient
+            ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
+            : '')
+          + '</div>';
+        var retryButton = target.querySelector('[data-sy-yearly-retry]');
+        if (retryButton) {
+          retryButton.addEventListener('click', function() {
+            syHydrateSukuyoYearlyFortune(state);
+          }, { once: true });
+        }
       });
   }
 
