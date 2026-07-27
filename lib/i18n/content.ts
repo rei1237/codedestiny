@@ -26,8 +26,11 @@ import { type Dictionary, type RuntimeLocale, resolveKey, normalizeLocale } from
  * 서버 렌더 대상이다. 나머지 8개는 색인하지 않고 런타임 전환만 지원하므로
  * 여기에 넣지 않는다 — 넣으면 빌드 산출물만 불어난다.
  */
+/** 빌드타임 로케일에 없는 값이 오면 쓰는 기본 사전. 원본 언어가 한국어라 ko 다. */
+const DEFAULT_BUILD_DICTIONARY = koDictionary as Dictionary;
+
 const BUILD_TIME_DICTIONARIES: Partial<Record<RuntimeLocale, Dictionary>> = {
-  ko: koDictionary as Dictionary,
+  ko: DEFAULT_BUILD_DICTIONARY,
   en: enDictionary as Dictionary,
   ja: jaDictionary as Dictionary,
   "zh-CN": zhDictionary as Dictionary,
@@ -42,7 +45,7 @@ export type ContentReader = (key: string, vars?: Record<string, unknown> | null)
 
 export function getContent(locale: RuntimeLocale | string, namespace?: string): ContentReader {
   const normalized = normalizeLocale(String(locale));
-  const dictionary = BUILD_TIME_DICTIONARIES[normalized] ?? BUILD_TIME_DICTIONARIES.ko ?? null;
+  const dictionary = BUILD_TIME_DICTIONARIES[normalized] ?? DEFAULT_BUILD_DICTIONARY;
   const scoped = namespace
     ? ((dictionary?.[namespace] as Dictionary | undefined) ?? null)
     : dictionary;

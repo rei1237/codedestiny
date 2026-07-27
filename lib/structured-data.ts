@@ -116,9 +116,18 @@ export function buildCollectionPageJsonLd(input: {
   };
 }
 
-/** 로케일별 서비스 대상 국가·독자층. ko 는 기존 값을 그대로 유지한다. */
-const SERVICE_AUDIENCE: Record<string, { country: string; audienceType: string; serviceType: string }> = {
-  ko: { country: "KR", audienceType: "Korean fortune and self-reflection readers", serviceType: "운세 해석 서비스" },
+type ServiceAudience = { country: string; audienceType: string; serviceType: string };
+
+/** 알 수 없는 로케일의 기본값. 한국 서비스가 원본이므로 KR 기준이다. */
+const DEFAULT_SERVICE_AUDIENCE: ServiceAudience = {
+  country: "KR",
+  audienceType: "Korean fortune and self-reflection readers",
+  serviceType: "Saju reading service",
+};
+
+/** 로케일별 서비스 대상 국가·독자층. */
+const SERVICE_AUDIENCE: Record<string, ServiceAudience> = {
+  ko: DEFAULT_SERVICE_AUDIENCE,
   ja: { country: "JP", audienceType: "Japanese fortune and self-reflection readers", serviceType: "占い鑑定サービス" },
   zh: { country: "CN", audienceType: "Chinese-speaking fortune and self-reflection readers", serviceType: "运势解读服务" },
   en: { country: "US", audienceType: "English-speaking fortune and self-reflection readers", serviceType: "Fortune reading service" },
@@ -131,7 +140,7 @@ export function buildServiceJsonLd(input: {
   serviceType?: string;
   locale?: string;
 }) {
-  const audience = SERVICE_AUDIENCE[String(input.locale || "ko").toLowerCase()] || SERVICE_AUDIENCE.ko;
+  const audience = SERVICE_AUDIENCE[String(input.locale || "ko").toLowerCase()] ?? DEFAULT_SERVICE_AUDIENCE;
   return {
     "@context": "https://schema.org",
     "@type": "Service",

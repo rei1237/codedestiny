@@ -43,6 +43,10 @@ const AREAS = [
  * 계획에서 2차로 미룬 대형 콘텐츠 DB 도 여기 둔다 — 기준선을 흐리지 않기 위함.
  */
 const EXCLUDED = [
+  // i18n 기계장치 자신. lib/i18n/dictionary.ts 의 MISSING_TEXT 는 12개 로케일 각각의
+  // 안전망 문구라 한국어 항목이 하나 있는 게 정상이다. 이걸 세면 시스템이 자기
+  // 자신을 위반으로 잡는다.
+  /^lib\/i18n\//,
   /^worker\/lib\/.*prompt/i,
   /^lib\/llm-/,
   /prompt\.(js|ts)$/i,

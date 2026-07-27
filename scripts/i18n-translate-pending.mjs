@@ -154,6 +154,8 @@ function validate(entries, translated) {
  * 50키 묶음에서 모델이 키를 하나씩 흘리는 일이 실제로 발생했는데(hi 로케일),
  * 같은 크기로 재시도해 봐야 같은 확률로 또 흘린다. 작게 쪼개면 통과한다.
  */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 async function translateChunk(chunk, target, label, depth = 0) {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
@@ -163,8 +165,20 @@ async function translateChunk(chunk, target, label, depth = 0) {
       return candidate;
     } catch (error) {
       const last = attempt === MAX_ATTEMPTS;
-      console.warn(`[translate] ${label} 시도 ${attempt} 실패: ${error.message}${last ? "" : " — 재시도"}`);
-      if (!last) await new Promise((r) => setTimeout(r, 1500 * attempt));
+      // 429 는 내용 문제가 아니라 속도 문제다. 쪼개 봐야 요청 수만 늘어 악화되므로
+      // 훨씬 길게 쉬고 같은 크기로 다시 친다.
+      const rateLimited = /\b429\b/.test(error.message);
+      console.warn(`[translate] ${label} 시도 ${attempt} 실패: ${error.message.slice(0, 90)}${last ? "" : " — 재시도"}`);
+      if (!last) await sleep(rateLimited ? 20_000 * attempt : 1500 * attempt);
+      else if (rateLimited) {
+        // 마지막 시도까지 429 면 쿼터가 식을 때까지 기다린 뒤 한 번 더.
+        console.warn(`[translate] ${label} 레이트리밋 지속 — 60초 대기 후 최종 재시도`);
+        await sleep(60_000);
+        try {
+          const candidate = await callGemini(buildPrompt(chunk, target));
+          if (!validate(chunk, candidate)) return candidate;
+        } catch {}
+      }
     }
   }
 
@@ -175,15 +189,20 @@ async function translateChunk(chunk, target, label, depth = 0) {
   }
   const mid = Math.ceil(keys.length / 2);
   console.warn(`[translate] ${label} → ${keys.length}키를 ${mid}/${keys.length - mid} 로 쪼개 재시도`);
-  const halves = await Promise.all([keys.slice(0, mid), keys.slice(mid)].map((part, i) =>
-    translateChunk(
+  // 🔴 순차 실행. 병렬로 쪼개면 실패한 청크 하나가 요청 수를 배로 늘려
+  // 레이트리밋을 스스로 유발한다(실제로 es 에서 429 연쇄가 났다).
+  const results = [];
+  for (const [i, part] of [keys.slice(0, mid), keys.slice(mid)].entries()) {
+    const half = await translateChunk(
       Object.fromEntries(part.map((k) => [k, chunk[k]])),
       target,
       `${label}.${i}`,
       depth + 1,
-    )));
-  if (halves.some((half) => !half)) return null;
-  return Object.assign({}, ...halves);
+    );
+    if (!half) return null;
+    results.push(half);
+  }
+  return Object.assign({}, ...results);
 }
 
 // ── 입력 수집 ─────────────────────────────────────────────────────────────
@@ -308,6 +327,7 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
     if (!translated) {
       translated = await translateChunk(chunk, target, `${target.code} 청크 ${index}`);
       if (translated) writeFileSync(cachePath, `${JSON.stringify(translated, null, 2)}\n`, "utf8");
+      await sleep(400); // 쿼터 여유. 캐시 적중 시에는 쉬지 않는다.
     }
 
     if (!translated) { failed += Object.keys(chunk).length; continue; }
