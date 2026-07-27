@@ -1390,7 +1390,8 @@
     "groups": {
       "services": "服務",
       "company": "公司",
-      "support": "客服中心"
+      "support": "客服中心",
+      "guides": "功能指南"
     },
     "svc": {
       "saju": "八字",
@@ -1414,7 +1415,21 @@
       "music": "月光音樂"
     },
     "socialAria": "CODE DESTINY 官方社群頻道",
-    "langAria": "選擇語言"
+    "langAria": "選擇語言",
+    "guide": {
+      "saju": "八字基礎指南",
+      "tenGods": "十神解讀指南",
+      "fiveElements": "五行與平衡",
+      "ziwei": "紫微斗數命盤指南",
+      "sukuyo": "宿曜二十七宿指南",
+      "astrology": "西洋占星術基礎",
+      "vedic": "吠陀占星術基礎",
+      "tarot": "塔羅牌解讀入門",
+      "mayan": "瑪雅曆指南",
+      "calendar": "運勢日曆指南",
+      "health": "命理健康報告",
+      "music": "運勢與冥想音樂"
+    }
   },
   "branches": {
     "자수": {

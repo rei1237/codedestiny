@@ -1390,7 +1390,8 @@
     "groups": {
       "services": "Diensten",
       "company": "Bedrijf",
-      "support": "Klantenservice"
+      "support": "Klantenservice",
+      "guides": "Feature Guides"
     },
     "svc": {
       "saju": "Saju",
@@ -1414,7 +1415,21 @@
       "music": "Maanlichtmuziek"
     },
     "socialAria": "Officiële social-mediakanalen van CODE DESTINY",
-    "langAria": "Taal kiezen"
+    "langAria": "Taal kiezen",
+    "guide": {
+      "saju": "Saju Basics Guide",
+      "tenGods": "Ten Gods Guide",
+      "fiveElements": "Five Elements & Balance",
+      "ziwei": "Zi Wei Chart Guide",
+      "sukuyo": "Sukuyo 27 Mansions",
+      "astrology": "Western Astrology Basics",
+      "vedic": "Vedic Astrology Basics",
+      "tarot": "Tarot Reading Basics",
+      "mayan": "Mayan Calendar Guide",
+      "calendar": "Fortune Calendar Guide",
+      "health": "Myeongri Health Report",
+      "music": "Fortune & Meditation Music"
+    }
   },
   "branches": {
     "자수": {
