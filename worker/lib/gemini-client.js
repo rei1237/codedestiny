@@ -1,4 +1,5 @@
 import { callLLM } from "../../lib/llm-client.ts";
+import { getAmbientAiLocale } from "./ai-locale-context.js";
 
 function clean(value, maxLength = 0) {
   const text = String(value || "").trim();
@@ -15,6 +16,7 @@ export async function generateWithGemini(env, prompt, options = {}) {
     const result = await callLLM({
       prompt: clean(prompt),
       systemPrompt: clean(options.systemPrompt),
+      locale: clean(options.locale) || getAmbientAiLocale() || undefined,
       maxTokens: Number(options.maxOutputTokens || options.maxTokens) || undefined,
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: options.taskType || "pdf",

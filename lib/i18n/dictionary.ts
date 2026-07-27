@@ -9,11 +9,13 @@
  * 새 코드는 전부 여기를 거친다. 두 번째 구현을 만들지 않는다.
  */
 
-export const RUNTIME_LOCALES = [
-  "ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms",
-] as const;
+// 로케일 목록·정규화는 locale-normalize.js 가 정본이다(worker 와 Jest 가 .ts 를 못 읽어 분리).
+// 기존 임포트 경로를 깨지 않기 위해 여기서 그대로 재export 한다.
+export { RUNTIME_LOCALES, isRuntimeLocale, normalizeLocale } from "./locale-normalize.js";
+export type { RuntimeLocale } from "./locale-normalize.js";
 
-export type RuntimeLocale = (typeof RUNTIME_LOCALES)[number];
+import { normalizeLocale } from "./locale-normalize.js";
+import type { RuntimeLocale } from "./locale-normalize.js";
 
 /** 런타임 로케일 → public/i18n 파일 basename */
 export const DICTIONARY_FILE: Record<RuntimeLocale, string> = {
@@ -53,23 +55,6 @@ const MISSING_TEXT: Record<RuntimeLocale, string> = {
 
 export type Dictionary = Record<string, unknown>;
 
-export function isRuntimeLocale(value: string): value is RuntimeLocale {
-  return (RUNTIME_LOCALES as readonly string[]).includes(value);
-}
-
-/** 쿼리·경로·저장소에서 오는 온갖 표기를 지원 로케일로 정규화한다. */
-export function normalizeLocale(value?: string | null): RuntimeLocale {
-  const raw = String(value || "").trim();
-  if (isRuntimeLocale(raw)) return raw;
-  const lower = raw.toLowerCase().replace("_", "-");
-  if (lower === "zh" || lower === "zh-cn" || lower === "zh-hans") return "zh-CN";
-  if (lower === "zh-tw" || lower === "zh-hant" || lower === "zh-hk" || lower === "zh-mo") return "zh-TW";
-  if (lower === "en-us" || lower === "en-gb") return "en";
-  if (lower === "ja-jp") return "ja";
-  if (lower === "vi-vn") return "vi";
-  if (lower === "ko-kr") return "ko";
-  return isRuntimeLocale(lower) ? (lower as RuntimeLocale) : "ko";
-}
 
 /** `a.b.c` / `a.b[0]` 경로로 값을 꺼낸다. */
 export function valueAtPath(source: Dictionary | null, path: string): unknown {

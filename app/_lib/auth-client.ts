@@ -1,6 +1,8 @@
 import { getApiBaseUrl } from "./api-config";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 // Must match CACHE_REFRESH_HEADER in user-session-cache.ts — tells that module's
 // window.fetch monkeypatch to bypass its cache and fabricated guest response, since this
@@ -275,6 +277,11 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   }
   if (isAuthoritativeAuthPath(targetUrl)) {
     headers.set(CACHE_REFRESH_HEADER, "1");
+  }
+  // AI 응답 언어. 모든 React AI 클라이언트가 authFetch 를 타므로 여기 한 줄이면 전 기능이 커버된다.
+  // 워커는 worker/lib/ai-locale-context.js 가 이 헤더를 읽어 요청 스코프에 심는다.
+  if (!headers.has(AI_LOCALE_HEADER)) {
+    headers.set(AI_LOCALE_HEADER, detectLocale());
   }
 
   return new Request(targetUrl, {
