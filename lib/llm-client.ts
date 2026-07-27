@@ -239,9 +239,24 @@ function extractWorkersAiText(result: unknown): string {
   return "";
 }
 
-function pickWorkersAiModel(taskType: LLMRequest["taskType"]): string {
-  if (taskType === "pdf") return "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-  return "@cf/meta/llama-3.1-8b-instruct";
+/**
+ * Workers AI 폴백 모델.
+ *
+ * 🔴 `@cf/meta/llama-3.1-8b-instruct` 는 2026-05-30 자로 Cloudflare 에서 **폐기**됐다.
+ *    호출하면 `5028: This model was deprecated on 2026-05-30.` 로 즉시 실패한다.
+ *    Gemini 가 살아 있을 때는 폴백이 안 쓰여서 아무도 몰랐고, Gemini 가 죽는 순간
+ *    안전망이 통째로 없다는 게 드러났다.
+ *
+ * 모델 이름을 코드에 못 박지 않고 env 로 덮을 수 있게 둔다 — 다음에 또 폐기되면
+ * 배포 없이 `wrangler secret`/vars 로 넘길 수 있어야 한다.
+ */
+const DEFAULT_WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+
+function pickWorkersAiModel(taskType: LLMRequest["taskType"], env?: CloudflareEnv): string {
+  const envRecord = env as Record<string, unknown> | undefined;
+  const key = taskType === "pdf" ? "WORKERS_AI_PDF_MODEL" : "WORKERS_AI_MODEL";
+  const override = String(envRecord?.[key] || envRecord?.["WORKERS_AI_MODEL"] || "").trim();
+  return override || DEFAULT_WORKERS_AI_MODEL;
 }
 
 async function callGeminiPrimary(
@@ -342,7 +357,7 @@ async function callCloudflareWorkersAI(
     throw new Error("Cloudflare Workers AI binding is not configured. Pass env.AI in Workers or Pages runtime.");
   }
 
-  const model = pickWorkersAiModel(normalized.taskType);
+  const model = pickWorkersAiModel(normalized.taskType, env);
   const messages = [
     ...(normalized.systemPrompt
       ? [{ role: "system", content: normalized.systemPrompt }]
