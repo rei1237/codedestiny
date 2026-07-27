@@ -13,12 +13,6 @@ const { INSIGHT_SEED_ARTICLES } = await import(
   pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
 );
 
-// app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
-register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
-const { INSIGHT_SEED_ARTICLES } = await import(
-  pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
-);
-
 const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
