@@ -111,13 +111,146 @@ const GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS = {
     secondaryCta: "プランを選択",
     trust: ["🔒 SSL保護", "💳 Stripe認証", "🔄 30日保証", "🌍 80以上の国"],
   },
+  "zh-CN": {
+    title: "开启高级命运分析",
+    localCurrency: "以当地货币显示价格",
+    detecting: "检测中…",
+    popular: "最受欢迎",
+    descriptions: {
+      starter: "高级解读 10 次",
+      standard: "解读 35 次 + 命运报告",
+      premium: "解读 80 次 + 终身权益",
+    },
+    primaryCta: "立即开始 →",
+    secondaryCta: "选择方案",
+    trust: ["🔒 SSL 加密", "💳 Stripe 认证", "🔄 30 天保障", "🌍 80+ 国家"],
+  },
+  "zh-TW": {
+    title: "開啟進階命運分析",
+    localCurrency: "以當地貨幣顯示價格",
+    detecting: "偵測中…",
+    popular: "最受歡迎",
+    descriptions: {
+      starter: "進階解讀 10 次",
+      standard: "解讀 35 次 + 命運報告",
+      premium: "解讀 80 次 + 終身權益",
+    },
+    primaryCta: "立即開始 →",
+    secondaryCta: "選擇方案",
+    trust: ["🔒 SSL 加密", "💳 Stripe 認證", "🔄 30 天保障", "🌍 80+ 國家"],
+  },
+  vi: {
+    title: "Mở khóa phân tích vận mệnh cao cấp",
+    localCurrency: "Hiển thị giá theo tiền tệ địa phương",
+    detecting: "đang nhận diện…",
+    popular: "PHỔ BIẾN NHẤT",
+    descriptions: {
+      starter: "10 lượt luận giải cao cấp",
+      standard: "35 lượt luận giải + Báo cáo Vận mệnh",
+      premium: "80 lượt luận giải + đặc quyền trọn đời",
+    },
+    primaryCta: "Bắt đầu →",
+    secondaryCta: "Chọn gói",
+    trust: ["🔒 Bảo mật SSL", "💳 Stripe xác thực", "🔄 Bảo đảm 30 ngày", "🌍 80+ quốc gia"],
+  },
+  hi: {
+    title: "प्रीमियम भाग्य विश्लेषण खोलें",
+    localCurrency: "कीमतें आपकी स्थानीय मुद्रा में",
+    detecting: "पता लगाया जा रहा है…",
+    popular: "सबसे लोकप्रिय",
+    descriptions: {
+      starter: "10 प्रीमियम रीडिंग",
+      standard: "35 रीडिंग + भाग्य रिपोर्ट",
+      premium: "80 रीडिंग + आजीवन लाभ",
+    },
+    primaryCta: "शुरू करें →",
+    secondaryCta: "प्लान चुनें",
+    trust: ["🔒 SSL सुरक्षित", "💳 Stripe सत्यापित", "🔄 30-दिन गारंटी", "🌍 80+ देश"],
+  },
+  es: {
+    title: "Desbloquea el análisis premium del destino",
+    localCurrency: "Precios en tu moneda local",
+    detecting: "detectando…",
+    popular: "MÁS POPULAR",
+    descriptions: {
+      starter: "10 lecturas premium",
+      standard: "35 lecturas + Informe del Destino",
+      premium: "80 lecturas + ventajas de por vida",
+    },
+    primaryCta: "Empezar →",
+    secondaryCta: "Elegir plan",
+    trust: ["🔒 SSL seguro", "💳 Verificado por Stripe", "🔄 Garantía de 30 días", "🌍 Más de 80 países"],
+  },
+  fr: {
+    title: "Débloquez l'analyse premium du destin",
+    localCurrency: "Prix affichés dans votre devise locale",
+    detecting: "détection…",
+    popular: "LE PLUS POPULAIRE",
+    descriptions: {
+      starter: "10 lectures premium",
+      standard: "35 lectures + Rapport du Destin",
+      premium: "80 lectures + avantages à vie",
+    },
+    primaryCta: "Commencer →",
+    secondaryCta: "Choisir l'offre",
+    trust: ["🔒 SSL sécurisé", "💳 Vérifié par Stripe", "🔄 Garantie 30 jours", "🌍 Plus de 80 pays"],
+  },
+  de: {
+    title: "Premium-Schicksalsanalyse freischalten",
+    localCurrency: "Preise in Ihrer lokalen Währung",
+    detecting: "wird ermittelt…",
+    popular: "AM BELIEBTESTEN",
+    descriptions: {
+      starter: "10 Premium-Deutungen",
+      standard: "35 Deutungen + Schicksalsreport",
+      premium: "80 Deutungen + lebenslange Vorteile",
+    },
+    primaryCta: "Loslegen →",
+    secondaryCta: "Tarif wählen",
+    trust: ["🔒 SSL-gesichert", "💳 Stripe-verifiziert", "🔄 30 Tage Garantie", "🌍 80+ Länder"],
+  },
+  nl: {
+    title: "Ontgrendel premium lotsanalyse",
+    localCurrency: "Prijzen in je lokale valuta",
+    detecting: "detecteren…",
+    popular: "MEEST GEKOZEN",
+    descriptions: {
+      starter: "10 premium readings",
+      standard: "35 readings + Lotsrapport",
+      premium: "80 readings + levenslange voordelen",
+    },
+    primaryCta: "Beginnen →",
+    secondaryCta: "Kies een plan",
+    trust: ["🔒 SSL-beveiligd", "💳 Stripe-geverifieerd", "🔄 30 dagen garantie", "🌍 80+ landen"],
+  },
+  ms: {
+    title: "Buka analisis takdir premium",
+    localCurrency: "Harga dipaparkan dalam mata wang tempatan",
+    detecting: "mengesan…",
+    popular: "PALING POPULAR",
+    descriptions: {
+      starter: "10 bacaan premium",
+      standard: "35 bacaan + Laporan Takdir",
+      premium: "80 bacaan + faedah seumur hidup",
+    },
+    primaryCta: "Mula →",
+    secondaryCta: "Pilih pelan",
+    trust: ["🔒 Selamat SSL", "💳 Disahkan Stripe", "🔄 Jaminan 30 hari", "🌍 80+ negara"],
+  },
 };
 
+/**
+ * 지원 로케일 하나로 반드시 수렴한다. 표에 12개 로케일이 모두 있으므로
+ * 조회가 빌 수 없고, 따라서 `|| TABLE.ko` 같은 한국어 fallback 이 필요 없다.
+ */
 function normalizePricingLocale(locale) {
-  const value = String(locale || "").toLowerCase();
-  if (value.startsWith("ja")) return "ja";
-  if (value.startsWith("en")) return "en";
-  return "ko";
+  const raw = String(locale || "").trim();
+  const value = raw.toLowerCase().replace("_", "-");
+  if (value.startsWith("zh")) {
+    return value.includes("tw") || value.includes("hant") || value.includes("hk") ? "zh-TW" : "zh-CN";
+  }
+  const short = value.slice(0, 2);
+  return ["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(short) ? short : "ko";
 }
 
 function convertPrice(krwPrice, currencyKey, rates) {
@@ -150,7 +283,7 @@ export default function GlobalPricingCard({ locale, forceCurrency, onSelectTier 
   const [currency, setCurrency] = useState(forceCurrency || "USD");
   const [rates, setRates] = useState(FALLBACK_RATES);
   const [loading, setLoading] = useState(!forceCurrency);
-  const copy = GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS[normalizePricingLocale(locale)] || GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS.ko;
+  const copy = GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS[normalizePricingLocale(locale)];
 
   useEffect(() => {
     if (forceCurrency) {
