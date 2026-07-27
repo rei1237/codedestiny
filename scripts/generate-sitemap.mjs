@@ -15,7 +15,6 @@ const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
-const psychotestSourcePath = resolve(rootDir, "lib", "psychotest-catalog.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -298,18 +297,9 @@ function extractInsightRoutes() {
 }
 
 function extractPsychotestRoutes() {
-  const source = readFileSync(psychotestSourcePath, "utf8");
-  const slugRegex = /slug:\s*["']([a-z0-9-]+)["']/g;
-  const seen = new Set();
+  // 상세(/psychotest/<slug>) 14개는 app/psychotest/[slug]/page.tsx 에서 전량 noindex 다.
+  // 서로 텍스트의 81.5% 를 공유하는 템플릿 산출물이라 색인 대상이 아니다. 허브만 남긴다.
   const routes = [{ path: "/psychotest", changefreq: "weekly", priority: 0.84, lastmod: today }];
-
-  let match;
-  while ((match = slugRegex.exec(source)) !== null) {
-    const slug = String(match[1] || "").trim();
-    if (!slug || seen.has(slug)) continue;
-    seen.add(slug);
-    routes.push({ path: `/psychotest/${slug}`, changefreq: "monthly", priority: 0.72, lastmod: today });
-  }
 
   return routes;
 }
