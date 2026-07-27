@@ -92,7 +92,7 @@ const faqItems = [
 
 export default function MusicGuidePage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">운세·명상 음악 콘텐츠 소개</h1>
         <p className="cd-main-intro">

@@ -64,7 +64,7 @@ const faqItems = [
 
 export default function SajuGuidePage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">사주 명리학 기본 가이드</h1>
         <p className="cd-main-intro">

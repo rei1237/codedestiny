@@ -187,19 +187,16 @@ export default async function InsightsPage() {
         은닉 텍스트만 늘어난다.
       */}
       <section className="mx-auto w-full max-w-6xl px-4 pb-10 md:px-6">
-        <div className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-6 text-slate-100 md:px-8 md:py-8">
-          <h2 className="text-xl font-semibold text-amber-100">기능 가이드</h2>
-          <p className="mt-3 break-keep text-sm leading-7 text-slate-300 md:text-base">
+        <div className="cd-guide-index">
+          <h2 className="cd-guide-index__title">기능 가이드</h2>
+          <p className="cd-guide-index__lede">
             각 점술 체계를 어떤 근거로 계산하고 어떻게 읽는지, 그리고 무엇까지는 말할 수 없는지를
             정리한 안내입니다. 결과 화면을 보기 전에 읽어 두면 해석의 범위를 가늠하기 쉽습니다.
           </p>
-          <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="cd-guide-index__grid">
             {FEATURE_GUIDES.map((guide) => (
               <li key={guide.href}>
-                <a
-                  href={guide.href}
-                  className="block rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm leading-6 text-slate-100 transition hover:border-amber-200/40 hover:bg-white/10 hover:text-amber-100"
-                >
+                <a href={guide.href} className="cd-guide-index__link">
                   {guide.label}
                 </a>
               </li>
