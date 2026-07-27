@@ -56,6 +56,85 @@
     (document.head || document.documentElement).appendChild(appChromeStyle);
   } catch (e) { /* noop */ }
 
+  // R2: 설치 후 첫 실행 시 "잠금화면 운세" 동의 화면을 1회 노출한다.
+  // 네이티브 KEY_ENABLED는 기본 false이고, 오버레이 권한은 OS상 시스템 설정 이동이 필수라
+  // 사용자 동의 없이는 잠금화면이 켜지지 않는다. 동의하면 권한요청+활성+알림예약을 한 번에 처리한다.
+  var LOCK_CONSENT_FLAG = "cd_lockscreen_consent_v1";
+  function cdLockPlugin() {
+    try {
+      var cap = window.Capacitor;
+      var p = cap && cap.Plugins && cap.Plugins.CodeDestinyLockScreen;
+      return p || null;
+    } catch (e) { return null; }
+  }
+  function acceptLockScreenConsent(overlay) {
+    try {
+      var p = cdLockPlugin();
+      if (p) {
+        if (p.requestOverlayPermission) { try { p.requestOverlayPermission(); } catch (e) {} }
+        if (p.setEnabled) { try { p.setEnabled({ enabled: true }); } catch (e) {} }
+        if (p.scheduleAlarms) {
+          try {
+            p.scheduleAlarms({ value: JSON.stringify({ enabled: true, alarms: [
+              { on: true, time: "09:00", label: "오늘의 꽃" },
+              { on: true, time: "15:00", label: "감정상담소" },
+            ] }) });
+          } catch (e) {}
+        }
+      }
+    } catch (e) { /* noop */ }
+    try { window.localStorage.setItem(LOCK_CONSENT_FLAG, "1"); } catch (e) {}
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+  function declineLockScreenConsent(overlay) {
+    try { window.localStorage.setItem(LOCK_CONSENT_FLAG, "1"); } catch (e) {}
+    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+  }
+  function showLockScreenConsentOnce() {
+    try {
+      if (window.localStorage.getItem(LOCK_CONSENT_FLAG) === "1") return;
+      if (!cdLockPlugin()) return; // 네이티브 플러그인 없으면(비앱) 노출 안 함
+      if (!document.getElementById("inputPage")) return; // 홈에서만
+      if (document.getElementById("cdLockConsent")) return;
+      var ov = document.createElement("div");
+      ov.id = "cdLockConsent";
+      ov.style.cssText = [
+        "position:fixed", "inset:0", "z-index:2147483200",
+        "display:flex", "align-items:center", "justify-content:center", "padding:24px",
+        "background:rgba(6,6,18,.72)", "backdrop-filter:blur(6px)", "-webkit-backdrop-filter:blur(6px)",
+      ].join(";");
+      var card = document.createElement("div");
+      card.style.cssText = [
+        "width:100%", "max-width:22rem", "border-radius:24px", "padding:26px 22px 22px",
+        "background:radial-gradient(circle at 78% 8%,rgba(196,181,253,.28),transparent 42%),linear-gradient(160deg,#13102a,#1b1745 60%,#2f0a4f)",
+        "border:1px solid rgba(196,181,253,.32)", "box-shadow:0 30px 80px -30px rgba(0,0,0,.7)",
+        "color:#fff", "text-align:center",
+      ].join(";");
+      card.innerHTML =
+        '<div style="font-size:2.4rem;line-height:1">🌙</div>'
+        + '<h2 style="margin:12px 0 8px;font-size:1.25rem;font-weight:900">잠금화면 운세를 켤까요?</h2>'
+        + '<p style="margin:0;font-size:.9rem;line-height:1.6;color:rgba(255,255,255,.82)">폰 화면을 켤 때마다 잠금화면 위에 오늘의 운세·긍정 확언·꽃말을 살며시 보여드려요. 오른쪽으로 밀면 바로 잠금이 풀립니다.</p>'
+        + '<p style="margin:10px 0 0;font-size:.76rem;line-height:1.55;color:rgba(196,181,253,.9)">켜려면 <b>‘다른 앱 위에 표시’</b> 권한이 필요해요. 허용을 누르면 설정 화면으로 안내해 드립니다. (언제든 설정에서 끌 수 있어요.)</p>'
+        + '<button id="cdLockConsentYes" type="button" style="margin-top:18px;width:100%;padding:14px;border:none;border-radius:16px;font-weight:900;font-size:1rem;color:#1a1230;background:linear-gradient(135deg,#f6e4ad,#e8c977);box-shadow:0 12px 30px -12px rgba(232,201,119,.7);cursor:pointer">허용하고 켜기</button>'
+        + '<button id="cdLockConsentNo" type="button" style="margin-top:10px;width:100%;padding:12px;border:1px solid rgba(255,255,255,.2);border-radius:14px;font-weight:700;font-size:.9rem;color:rgba(255,255,255,.82);background:rgba(255,255,255,.06);cursor:pointer">나중에 할게요</button>';
+      ov.appendChild(card);
+      document.body.appendChild(ov);
+      var yes = document.getElementById("cdLockConsentYes");
+      var no = document.getElementById("cdLockConsentNo");
+      if (yes) yes.addEventListener("click", function () { acceptLockScreenConsent(ov); });
+      if (no) no.addEventListener("click", function () { declineLockScreenConsent(ov); });
+    } catch (e) { /* noop */ }
+  }
+  function scheduleLockScreenConsent() {
+    // 로그인/부트 오버레이와 겹치지 않도록 홈 안정화 후 노출한다.
+    window.setTimeout(showLockScreenConsentOnce, 2800);
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleLockScreenConsent);
+  } else {
+    scheduleLockScreenConsent();
+  }
+
   var PURCHASE_STATE_PENDING = 2;
 
   // --- 0) 진단 추적 ---------------------------------------------------------
