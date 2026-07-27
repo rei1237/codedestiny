@@ -26619,18 +26619,20 @@ function setCeleb(c){
   document.getElementById('compatBirthMinute').value=profile.minute;
   /* 양/음력 라디오 프리뷰도 업데이트 */
   try{updateLunarPreview('compatBirthDate','compatCalType','compatLunarPreview');}catch(e){}
-  /* 사주 미계산 시에는 폼만 채우고 안내 */
-  if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
-    var compatRunBtn=document.getElementById('compatRunBtn');
-    if(compatRunBtn){
-      compatRunBtn.scrollIntoView({behavior:'smooth',block:'center'});
-      compatRunBtn.style.transition='box-shadow .3s';
-      compatRunBtn.style.boxShadow='0 0 0 4px rgba(255,139,167,.5)';
-      setTimeout(function(){compatRunBtn.style.boxShadow='';},1500);
-    }
-    return;
+  /* 유명인 선택은 상대 정보 프리필까지만 — 결제·분석은 '궁합 분석하기' 버튼(runCompat)에서만 수행 */
+  var prevResult=document.getElementById('compatResult');
+  if(prevResult) prevResult.innerHTML='';
+  var prevLlmHost=document.getElementById('compatLlmHost');
+  if(prevLlmHost) prevLlmHost.innerHTML='';
+  var compatRunBtn=document.getElementById('compatRunBtn');
+  if(compatRunBtn){
+    compatRunBtn.disabled=false;
+    compatRunBtn.style.opacity='';
+    compatRunBtn.scrollIntoView({behavior:'smooth',block:'center'});
+    compatRunBtn.style.transition='box-shadow .3s';
+    compatRunBtn.style.boxShadow='0 0 0 4px rgba(255,139,167,.5)';
+    setTimeout(function(){compatRunBtn.style.boxShadow='';},1500);
   }
-  runCompat();
 }
 
 /** 궁합 LLM 카드 마운트: #compatLlmHost 없으면 compatResult 뒤에 생성 */
