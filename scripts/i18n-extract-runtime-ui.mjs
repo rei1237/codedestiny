@@ -60,6 +60,13 @@ function collect(text, source) {
   if (!normalized || !/[가-힣]/.test(normalized)) return;
   if (normalized.length < 2 || normalized.length > 300) return;
   if (NOISE_RE.test(normalized)) return;
+  // 🔴 HTML 조각을 통째로 담지 않는다. 복구 패스는 **텍스트 노드**와 대조하므로
+  // `<div ...>문구</div>` 같은 값은 영원히 매칭되지 않는다 — 번역해도 무용지물이고
+  // 저작 분량만 부풀린다. 태그 사이 텍스트만 따로 뽑아 담는다.
+  if (/<[a-zA-Z][^>]*>/.test(normalized)) {
+    collectFromHtmlFragment(normalized, source);
+    return;
+  }
   if (!collected.has(normalized)) collected.set(normalized, { sources: new Set() });
   collected.get(normalized).sources.add(source);
 }
