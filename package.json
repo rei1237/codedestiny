@@ -92,6 +92,8 @@
     "verify:no-nested-retry": "node scripts/verify-no-nested-retry.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
+    "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",
+    "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:life-book-ai-flow": "node scripts/verify-life-book-ai-flow.mjs",
     "verify:love-secret-ai-flow": "node scripts/verify-love-secret-ai-flow.mjs",

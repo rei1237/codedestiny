@@ -12,7 +12,9 @@ import {
 
 const EMPTY_SHA256 = sha256Hex("");
 const DEFAULT_PREFIXES = Object.freeze({
-  assets: ["Mulmaru.woff2", "Galmuri11-Bold.woff2", "The Jamsil OTF 4 Medium.otf", "netmarbleM.ttf", "CodeDestinySerifLatin.woff2", "CodeDestinySerifKR.woff2", "DestinyCafe/"],
+  // 브랜드 세리프는 루트 단일 파일이 아니라 fonts/ 아래 내용해시 청크로 서빙된다
+  // (정본 목록: scripts/data/serif-font-manifest.json, 생성: scripts/build-serif-font-assets.mjs).
+  assets: ["Mulmaru.woff2", "Galmuri11-Bold.woff2", "The Jamsil OTF 4 Medium.otf", "netmarbleM.ttf", "fonts/", "DestinyCafe/"],
   music: ["DestinyCafe/", "neosong/", "yeonisong/", "DEST1NOVA/", "lunabloom/"],
 });
 

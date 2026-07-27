@@ -190,6 +190,55 @@ function buildSajuFortuneHtml(ctx) {
   `;
 }
 
+function hasUsableSnapshot(sub) {
+  const snapshot = sub && sub.sajuSnapshot;
+  return !!(snapshot && typeof snapshot === "object" && snapshot.pillars && snapshot.pillars.d && snapshot.pillars.d.g && snapshot.pillars.d.j);
+}
+
+function buildGenericCoordBlockHtml(today) {
+  return `
+    <div style="margin:0 0 22px; padding:18px; border-radius:20px; background:linear-gradient(135deg,#eef2ff,#faf5ff); border:1px solid #ddd6fe;">
+      <div style="color:#4c1d95; font-size:13px; font-weight:800; letter-spacing:.03em; margin-bottom:10px;">오늘의 하늘 기운</div>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+        <tr>
+          <td style="padding:7px 0; color:#64748b; font-size:13px;">오늘 일진</td>
+          <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(today.dayPillar)}</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 0; color:#64748b; font-size:13px;">요일</td>
+          <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(today.dayName)}요일</td>
+        </tr>
+        <tr>
+          <td style="padding:7px 0; color:#64748b; font-size:13px;">올해 흐름</td>
+          <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(today.yearPillar)}</td>
+        </tr>
+      </table>
+    </div>`;
+}
+
+function buildGenericFortuneHtml(today) {
+  return `
+    <div style="margin:0 0 18px;">
+      <div style="display:inline-block; margin:0 0 10px; padding:6px 12px; border-radius:999px; background:#eef2ff; color:#4338ca; font-size:12px; font-weight:900; letter-spacing:.08em;">오늘의 기운 흐름</div>
+      <h2 style="margin:0 0 12px; color:#1f1b4d; font-size:24px; line-height:1.32;">${escapeHtml(today.dayPillar)} 일진이 비추는 하루</h2>
+      <p style="margin:0; color:#334155; font-size:15px; line-height:1.82;">오늘은 ${escapeHtml(today.dayPillar)} 일진의 기운이 하루의 결을 이끕니다. 큰 결론보다 작은 질서를 세울 때 흐름이 맑게 열립니다.</p>
+    </div>
+    <div style="margin:18px 0; padding:18px; border-radius:22px; background:#ffffff; border:1px solid #e2e8f0; box-shadow:0 10px 24px rgba(15,23,42,.06);">
+      <p style="margin:0 0 12px; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">아침</strong> 해야 할 일을 세 가지로 줄이고, 가장 마음이 가벼운 것부터 시작하세요.</p>
+      <p style="margin:0 0 12px; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">오후</strong> 관계에서는 먼저 부드러운 표현을 고르면 오늘의 운이 한결 순해집니다.</p>
+      <p style="margin:0; color:#475569; font-size:14px; line-height:1.78;"><strong style="color:#4f46e5;">밤</strong> 내일로 넘길 감정과 오늘 마무리할 감정을 조용히 나누면 마음이 가지런해집니다.</p>
+    </div>
+    <div style="margin:18px 0; padding:18px; border-radius:22px; background:linear-gradient(135deg,#fff7ed 0%,#fff1f2 100%); border:1px solid #fed7aa;">
+      <p style="margin:0 0 10px; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>행운 포인트</strong> 오늘 마주치는 작은 호의를 놓치지 말고, 먼저 웃어 주세요.</p>
+      <p style="margin:0; color:#7c2d12; font-size:14px; line-height:1.78;"><strong>주의 신호</strong> 서두른 판단은 한 박자 늦추고 숨을 고른 뒤 움직이면 좋습니다.</p>
+    </div>
+    <div style="margin:18px 0 0; padding:14px 16px; border-radius:16px; background:#f5f3ff; border:1px solid #ddd6fe;">
+      <p style="margin:0; color:#4c1d95; font-size:13px; line-height:1.7;">생년월일과 태어난 시각을 등록하면, 내일부터 <strong>당신의 사주에 맞춘 개인 운세</strong>로 보내드립니다.</p>
+    </div>
+    <p style="margin:18px 0 0; color:#312e81; font-size:15px; line-height:1.75; font-weight:700;">당신의 오늘이 어제보다 더 반짝이길 바랄게요. - 꽃돼지 연이 드림</p>
+  `;
+}
+
 function buildPaidFeatureLinks(env) {
   const base = getSiteBaseUrl(env);
   return [
@@ -243,8 +292,40 @@ export async function sendSingleFortune(env, sub, options = {}) {
 
   const pillars = getTodayPillars();
   const dateLabel = pillars.date;
-  const ctx = buildSajuMailContext(sub, pillars);
-  const fortuneHtmlContent = buildSajuFortuneHtml(ctx);
+  const personalized = hasUsableSnapshot(sub);
+  const headerSubtitle = personalized
+    ? `${dateLabel} 사주 기반 오늘의 맞춤 운세`
+    : `${dateLabel} 오늘의 운세`;
+  const emailSubject = personalized
+    ? `[CODE DESTINY] ${dateLabel} 오늘의 맞춤 운세가 도착했습니다.`
+    : `[CODE DESTINY] ${dateLabel} 오늘의 운세가 도착했습니다.`;
+  let coordBlockHtml;
+  let fortuneHtmlContent;
+  if (personalized) {
+    const ctx = buildSajuMailContext(sub, pillars);
+    coordBlockHtml = `
+        <div style="margin:0 0 22px; padding:18px; border-radius:20px; background:linear-gradient(135deg,#eef2ff,#faf5ff); border:1px solid #ddd6fe;">
+          <div style="color:#4c1d95; font-size:13px; font-weight:800; letter-spacing:.03em; margin-bottom:10px;">오늘의 명식 좌표</div>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">일주</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.dayPillar)}</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">오늘 일진</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.todayPillar)}</td>
+            </tr>
+            <tr>
+              <td style="padding:7px 0; color:#64748b; font-size:13px;">보완 기운</td>
+              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.yongshin)}</td>
+            </tr>
+          </table>
+        </div>`;
+    fortuneHtmlContent = buildSajuFortuneHtml(ctx);
+  } else {
+    coordBlockHtml = buildGenericCoordBlockHtml(pillars);
+    fortuneHtmlContent = buildGenericFortuneHtml(pillars);
+  }
   const paidFeatureCtaHtml = buildPaidFeatureCtaHtml(env);
   const siteBaseUrl = getSiteBaseUrl(env);
   const unsubscribeUrl = `${siteBaseUrl}/api/subscriptions/daily-fortune/unsubscribe?email=${encodeURIComponent(sub.email)}`;
@@ -265,28 +346,12 @@ export async function sendSingleFortune(env, sub, options = {}) {
       <div style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 30px 20px; text-align: center;">
         <div style="font-size: 40px; margin-bottom: 10px;">🌸</div>
         <h1 style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">CODE DESTINY</h1>
-        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">${dateLabel} 사주 기반 오늘의 맞춤 운세</p>
+        <p style="margin: 5px 0 0; color: rgba(255,255,255,0.8); font-size: 14px;">${escapeHtml(headerSubtitle)}</p>
       </div>
-      
+
       <!-- Content -->
       <div style="padding: 30px 25px;">
-        <div style="margin:0 0 22px; padding:18px; border-radius:20px; background:linear-gradient(135deg,#eef2ff,#faf5ff); border:1px solid #ddd6fe;">
-          <div style="color:#4c1d95; font-size:13px; font-weight:800; letter-spacing:.03em; margin-bottom:10px;">오늘의 명식 좌표</div>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
-            <tr>
-              <td style="padding:7px 0; color:#64748b; font-size:13px;">일주</td>
-              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.dayPillar)}</td>
-            </tr>
-            <tr>
-              <td style="padding:7px 0; color:#64748b; font-size:13px;">오늘 일진</td>
-              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.todayPillar)}</td>
-            </tr>
-            <tr>
-              <td style="padding:7px 0; color:#64748b; font-size:13px;">보완 기운</td>
-              <td style="padding:7px 0; color:#1e1b4b; font-size:14px; font-weight:800; text-align:right;">${escapeHtml(ctx.yongshin)}</td>
-            </tr>
-          </table>
-        </div>
+        ${coordBlockHtml}
         ${fortuneHtmlContent}
         ${paidFeatureCtaHtml}
         
@@ -314,7 +379,7 @@ export async function sendSingleFortune(env, sub, options = {}) {
 
   const emailResult = await sendEmail(env, {
     to: sub.email,
-    subject: `[CODE DESTINY] ${dateLabel} 오늘의 맞춤 운세가 도착했습니다.`,
+    subject: emailSubject,
     html: emailHtml,
     headers: {
       "List-Unsubscribe": `<${unsubscribeUrl}>`,

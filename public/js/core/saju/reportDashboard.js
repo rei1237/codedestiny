@@ -1189,6 +1189,15 @@ function _sajuFunEnsureHealthReportRendered(targetEl) {
   return html.length >= 40 || text.length >= 20 || !!(area.children && area.children.length > 0);
 }
 
+/* 퀀텀 명리 엔진은 결과 계산 직후에는 스텁만 깔려 있다.
+   카드를 실제로 여는 시점(= 잠금 게이트를 통과한 시점)에만 전체 판별을 돌린다. */
+function _sajuFunEnsureQuantumBlockReady(block) {
+  if (!block || block.id !== 'rpt-v2-section-quantumCard') return false;
+  if (window.__cdQuantumRendered) return true;
+  _sajuFunTryRecoverTargetCard('quantumCard');
+  return !!window.__cdQuantumRendered;
+}
+
 function _sajuFunEnsureHealthReportBlockReady(block) {
   if (!block || block.id !== 'rpt-v2-section-healthReportCard') return false;
   var targetEl = block.querySelector ? block.querySelector('#healthReportCard') : null;
@@ -1553,6 +1562,7 @@ function toggleReportFeatureCard(btn) {
     detail.setAttribute('aria-hidden', open ? 'false' : 'true');
     if (open) {
       _sajuFunEnsureHealthReportBlockReady(block);
+      _sajuFunEnsureQuantumBlockReady(block);
       _sajuFunForceRevealFateScroll(block);
       _bindReportHeightWatcher(block);
       syncReportBlockHeight(block);
@@ -1569,7 +1579,24 @@ function toggleReportFeatureCard(btn) {
   if (open) {
     requestAnimationFrame(function(){ syncReportBlockHeight(block); });
     setTimeout(function(){ syncReportBlockHeight(block); }, 220);
+    // 이 함수는 기능 상세 팝업 CTA('결과 보러가기')·결제 완료 직후에 호출된다.
+    // 팝업이 화면을 덮고 있었으므로 펼쳐진 카드가 뷰포트 밖이면 아무 일도 안 일어난 것처럼 보인다.
+    _sajuFunScrollBlockIntoView(block);
   }
+}
+
+function _sajuFunScrollBlockIntoView(block) {
+  if (!block || typeof block.getBoundingClientRect !== 'function') return;
+  requestAnimationFrame(function() {
+    var rect = block.getBoundingClientRect();
+    var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    if (rect.top >= 0 && rect.top < viewportHeight * 0.5) return;
+    try {
+      block.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (e) {
+      try { block.scrollIntoView(true); } catch (e2) {}
+    }
+  });
 }
 // 전역 노출 — _cdInvokeActionDirect('toggleRptCard') 에서 호출
 window.toggleReportFeatureCard = toggleReportFeatureCard;

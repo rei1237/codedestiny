@@ -1054,6 +1054,8 @@ async function ensureProfileMutationPayment(auth, { action, profileId, requestId
 
 async function handleGetProfiles(auth, env) {
   // 일시적 풀 초기화에도 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
+  // 두 독립 조회(User.findById · listUserProfiles)는 서로 필요 없으므로 병렬로 시작해 Mongo 왕복 1회를 줄인다.
+  const profilesPromise = withMongoRetry(env, () => listUserProfiles(auth.userId));
   const user = await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean());
@@ -1063,7 +1065,7 @@ async function handleGetProfiles(auth, env) {
   }
 
   const subscription = resolveSubscriptionPolicy(user);
-  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
+  const profiles = await profilesPromise;
   const access = resolveSingleProfileAccess(user, profiles, subscription);
   const currentId = access.currentId;
 

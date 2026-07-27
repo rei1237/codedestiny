@@ -215,46 +215,50 @@ html[data-cd-theme="neo"] {
 }
 
 /*
- * 운명의 지도(운명 나침반) 전용 아트 토큰 — 2026-07, additive.
- * 몰입형 밤하늘 무대는 연이/네오 양 모드에서 항상 남보라 야경이라(기존 .stage 가 이미
- * 하드코딩 다크 배경) 테마 분기 없이 :root 단일 정의한다 — App Router 신규 분기 금지 규칙 준수.
- * 소비처: app/destiny-compass/_components/*.module.css. 다른 화면엔 영향 없음.
- * 컬러 정본: 초록 대륙 퇴출 → 남보라 계열 + 금색 단일 액센트(DESIGN.md One Accent Rule).
+ * 운명의 지도(운명 나침반) 전용 아트 토큰 — 2026-07 개정: 밝은 주간(동물의 숲) 톤.
+ * 몰입형 무대는 밤하늘 다크 → 밝은 주간 하늘로 전환(사용자 방향). 테마 분기 없이 :root 단일 정의
+ * (App Router 신규 분기 금지 규칙 준수). 소비처: app/destiny-compass/_components/*.module.css.
+ * 🔴 라이트 전환 시 표면·텍스트·강조를 한 세트로: 밝은 배경엔 진한 텍스트(--cd-map-ink) — 반쪽 오버라이드 금지.
  */
 :root {
-  /* 딥스페이스 배경 5단계 (가장 깊은 곳 → 지평선) */
-  --cd-map-space-0: #060412;
-  --cd-map-space-1: #0a0818;
-  --cd-map-space-2: #140a2e;
-  --cd-map-space-3: #1c1246;
-  --cd-map-space-4: #241858;
+  /* 주간 하늘 5단계 (가장 위 밝음 → 지평선으로 살짝 진해짐) */
+  --cd-map-space-0: #e9f6ff;
+  --cd-map-space-1: #d6eeff;
+  --cd-map-space-2: #c2e6ff;
+  --cd-map-space-3: #b0dcff;
+  --cd-map-space-4: #a2d4fb;
 
-  /* 대륙 4단계 (그림자 → 베이스 → 중간 → 상단 하이라이트) */
-  --cd-map-land-shadow: #0d0a24;
-  --cd-map-land-base: #221a44;
-  --cd-map-land-mid: #2c2154;
-  --cd-map-land-light: #3d2e70;
+  /* 섬 대륙 4단계 (그림자 → 베이스 → 중간 → 상단 하이라이트) — 밝은 그린+샌드 */
+  --cd-map-land-shadow: #4f9a5a;
+  --cd-map-land-base: #79c07f;
+  --cd-map-land-mid: #94d18d;
+  --cd-map-land-light: #c8efb6;
+  --cd-map-sand: #f2e0a6;
 
-  /* 금색 액센트 3단계 + 해안 발광 */
-  --cd-map-gold: #e8d5a3;
-  --cd-map-gold-bright: #f4e9c8;
-  --cd-map-gold-deep: #c9a86a;
-  --cd-map-shore: #ffe9b8;
+  /* 따뜻한 금/앰버 액센트 + 해안 모래 */
+  --cd-map-gold: #e0a93a;
+  --cd-map-gold-bright: #f6c95f;
+  --cd-map-gold-deep: #b9852a;
+  --cd-map-shore: #f4e3ad;
 
-  /* 노드 5색 (저채도 파스텔 — 각 화면에서 발광/잠김은 alpha·filter로 파생) */
-  --cd-node-castle: #f0d9a0;
-  --cd-node-forest: #9fd8b0;
-  --cd-node-city: #8fd0ff;
-  --cd-node-lake: #a9c2ff;
-  --cd-node-fog: #d7ccf2;
-  --cd-node-here: #f6c3d6;
+  /* 본문/라벨 텍스트 잉크 — 밝은 배경 대비 AA */
+  --cd-map-ink: #35406b;
+  --cd-map-ink-soft: #5a6690;
 
-  /* 별 3계층 색 */
-  --cd-star-far: rgba(198, 210, 255, 0.5);
+  /* 노드 5색 (밝은 배경에서 구분되게 살짝 미드톤) */
+  --cd-node-castle: #f0b74e;
+  --cd-node-forest: #4fb267;
+  --cd-node-city: #4b9fe6;
+  --cd-node-lake: #3ab6c2;
+  --cd-node-fog: #a487e0;
+  --cd-node-here: #ef78a6;
+
+  /* 주간 반짝임(별밭 대체) — 햇살 스파클/구름 하이라이트 */
+  --cd-star-far: rgba(255, 255, 255, 0.55);
   --cd-star-mid: rgba(255, 255, 255, 0.9);
-  --cd-star-near: #fff8ec;
+  --cd-star-near: #fffef2;
 
-  /* 무대 z-scale (딥스페이스 → UI) */
+  /* 무대 z-scale (배경 → UI) */
   --cd-z-space: 0;
   --cd-z-land: 1;
   --cd-z-node: 2;
