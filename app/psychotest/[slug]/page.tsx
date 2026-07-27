@@ -92,7 +92,7 @@ export function generateMetadata({ params }: PageProps) {
   }
 
   const copy = PSYCHOTEST_DETAIL_METADATA_COPY.ko;
-  return generatePageMetadata({
+  const metadata = generatePageMetadata({
     path: `/psychotest/${test.slug}`,
     title: `${test.title} | ${test.category} ${copy.titleSuffix}`,
     description: `${test.summary}. ${copy.descriptionSuffix(test.estimatedMinutes)}`,
@@ -104,6 +104,18 @@ export function generateMetadata({ params }: PageProps) {
     ],
     applicationCategory: "LifestyleApplication",
   });
+
+  // 상세 14개는 서로 텍스트의 81.5% 를 공유하는 템플릿 산출물이다(2026-07 실측 —
+  // 인사이트 아티클 47.5%, 27수 도감 23.0% 와 비교). 게이트 임계 여유도 200자뿐이다.
+  // 테스트 기능·링크는 그대로 두고 색인만 막는다. 허브 /psychotest(3,502자)는 유지.
+  return {
+    ...metadata,
+    robots: {
+      index: false,
+      follow: true,
+      googleBot: { index: false, follow: true },
+    },
+  };
 }
 
 function pickRelatedTests(slug: string, category: string) {
