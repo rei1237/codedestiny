@@ -18,6 +18,7 @@
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
+import { createHash } from "node:crypto";
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -60,6 +61,8 @@ if (!apiKey && !dryRun) {
   console.error("[translate] GEMINIF_API_KEY 가 없습니다. --dry-run 으로 프롬프트만 확인할 수 있습니다.");
   process.exit(1);
 }
+
+const chunkHash = (chunk) => createHash("sha1").update(JSON.stringify(chunk)).digest("hex").slice(0, 12);
 
 const placeholdersOf = (value) =>
   [...String(value).matchAll(/\{\{?\s*[A-Za-z0-9_.-]+\s*\}?\}/g)].map((m) => m[0]).sort().join(" ");
@@ -197,7 +200,9 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
 
   for (const [index, chunk] of chunks.entries()) {
     if (index >= chunkLimit) break;
-    const cachePath = join(cacheDir, `${target.code}.${index}.json`);
+    // 🔴 캐시 키는 청크 **내용** 해시여야 한다. 인덱스로 잡으면 pending 에 키가
+    // 추가되는 순간 청크 구성이 밀리면서 엉뚱한 번역이 재사용된다.
+    const cachePath = join(cacheDir, `${target.code}.${chunkHash(chunk)}.json`);
     let translated = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : null;
 
     for (let attempt = 1; !translated && attempt <= MAX_ATTEMPTS; attempt += 1) {
