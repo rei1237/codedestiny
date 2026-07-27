@@ -17,6 +17,8 @@ import { useFxTier } from "../_hooks/useFxTier";
 import styles from "./map.module.css";
 import type { DirectionField, DirectionKey, SystemKey } from "../_engine/types";
 import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import { confidenceStars, pigExpression } from "../_stage/expressionMap";
 import { buildNarrationInput, hashStr } from "../_stage/narration";
 import { collectItem } from "../_lib/rpg-bridge";
@@ -147,9 +149,12 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
     }
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 32000);
+    // 이 fetch 는 authFetch 를 타지 않으므로 로케일 헤더를 직접 실어야 한다.
+    // (웹은 cd_locale 쿠키가 same-origin 으로 가지만, 앱은 cross-site 라 쿠키가 안 간다)
+    const aiLocale = toAiLocale(detectLocale());
     fetch("/api/destiny-compass/narrate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: aiLocale },
       body: JSON.stringify({ narration: buildNarrationInput(field, situation || ""), baseText }),
       signal: ctrl.signal,
     })
@@ -158,8 +163,14 @@ export function MapResult({ field, situation, onNext, onRestart, onCrossroad, on
         if (cancelled) return;
         const t = typeof d?.pigCommentary === "string" ? d.pigCommentary.trim() : "";
         // 정확성+안전 가드: 실제 대표/열린 방향 라벨(short — 라우트와 동일 기준)을 언급하고, 위험 소재가 없을 때만 채택.
-        const mentionsLabel = t.includes(short(field.primary.key)) || t.includes(short(field.strongArea.key));
-        const risky = /소송|고소|진단|처방|투약|매수|매도|주식|코인|확실히 (오|올)|반드시 (오|올)/.test(t);
+        //
+        // 🔴 라벨·위험소재 검사는 한국어 출력에만 성립한다. short() 는 DIRECTION_LABEL_KO("재물",
+        //    "직장" …)에서 오고 risky 정규식도 한국어 리터럴이라, 비-ko 에서는 서버가 정상적으로
+        //    영어/일본어 문장을 돌려줘도 여기서 반드시 탈락해 한국어 템플릿이 그대로 남는다.
+        //    서버 isFaithful(worker/routes/destiny-compass.js)과 같은 기준으로 맞춘다.
+        const koGuard = aiLocale === "ko";
+        const mentionsLabel = !koGuard || t.includes(short(field.primary.key)) || t.includes(short(field.strongArea.key));
+        const risky = koGuard && /소송|고소|진단|처방|투약|매수|매도|주식|코인|확실히 (오|올)|반드시 (오|올)/.test(t);
         const faithful = t.length >= 12 && mentionsLabel && !risky;
         if (d?.ok && faithful) {
           setComment(t);

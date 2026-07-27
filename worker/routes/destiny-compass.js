@@ -170,14 +170,35 @@ async function handleNarrate(request, env) {
         fallbackToWorkersAI: true,
         cache: { store, deterministic: true, ttlSeconds: 7 * 24 * 60 * 60, keyExtra: `compass-narrate-v3-a${attempt}` },
       });
-    } catch {
+    } catch (error) {
+      console.warn("[compass narrate] threw", String(error?.message || error).slice(0, 300));
       ai = null;
     }
-    if (!ai?.ok) continue;
+    // 🔴 이 로그가 없으면 NARRATION_UNFAITHFUL 의 원인 5가지가 응답상 구분 불가다.
+    // ai.message 에 "LLM request failed. Gemini: …; Cloudflare Workers AI: …" 가 들어 있는데
+    // 예전에는 통째로 버려서, 프로바이더가 죽어도 "충실도 미달"로만 보였다.
+    if (!ai?.ok) {
+      console.warn("[compass narrate] llm_failed", {
+        attempt,
+        error: ai?.error || "",
+        status: ai?.status ?? null,
+        message: String(ai?.message || "").slice(0, 300),
+      });
+      continue;
+    }
     const cleaned = cleanText(ai.text);
     if (isFaithful(cleaned, n)) {
       return json({ ok: true, pigCommentary: cleaned, provider: ai.provider || "gemini" });
     }
+    console.warn("[compass narrate] unfaithful", {
+      attempt,
+      locale: getAmbientAiLocale() || "ko",
+      len: cleaned.replace(/\s+/g, "").length,
+      hasLabel: n.primaryLabel ? cleaned.includes(n.primaryLabel) : null,
+      forbidden: FORBIDDEN.test(cleaned),
+      provider: ai.provider || "",
+      preview: cleaned.slice(0, 80),
+    });
   }
 
   // 두 시도 모두 충실도 미달 → 클라가 정확한 규칙 템플릿을 유지한다(틀린 문장 미노출).
