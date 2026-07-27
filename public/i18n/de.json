@@ -4884,7 +4884,13 @@
     "ee_520_prop_label": "Lv.20 Meister-Skill-Stärkungstext",
     "ee_859_prop_description": "Sie können die heutige Wachstumsrichtung überprüfen, noch bevor Ihre Schicksalsaufzeichnungen geöffnet werden.",
     "ee_870_prop_description": "Sammeln Sie Abschlusserfahrung, um den Wachstumsfluss Ihres Charakterbogens zu verdeutlichen.",
-    "ee_881_prop_description": "Richten Sie Urteile und Handlungen nach der zentralen Energie des Tages aus."
+    "ee_881_prop_description": "Richten Sie Urteile und Handlungen nach der zentralen Energie des Tages aus.",
+    "ee_79_prop_label": "子午",
+    "ee_80_prop_label": "丑未",
+    "ee_81_prop_label": "寅申",
+    "ee_82_prop_label": "卯酉",
+    "ee_83_prop_label": "辰戌",
+    "ee_84_prop_label": "巳亥"
   },
   "extremeT": {
     "et_100_prop_title": "Sprachliche Überkühlung",
@@ -6817,6 +6823,9 @@
     },
     "title": {
       "001": "Ergebnis des Tier-Totem-Readings"
+    },
+    "error": {
+      "001": "SwissEph loader failed."
     }
   },
   "lsd": {
@@ -7043,7 +7052,8 @@
   },
   "rd": {
     "aria-label": {
-      "001": "Wählen Sie die Version von Vier Säulen (BaZi) Vier Schnitte"
+      "001": "Wählen Sie die Version von Vier Säulen (BaZi) Vier Schnitte",
+      "002": "share hashtags"
     },
     "cta": {
       "001": "🐾 Beschwöre mein Schutz Tier",
@@ -7110,7 +7120,8 @@
       "021": "2. Schutz vor Versprechern",
       "022": "3. Ausgabensperre",
       "023": "4. Schutz-Zauber",
-      "024": "Vier Säulen (BaZi) Vier Schnitte: Schicksalsfilter"
+      "024": "Vier Säulen (BaZi) Vier Schnitte: Schicksalsfilter",
+      "003": "LOVE CODE"
     }
   },
   "seoLanding": {

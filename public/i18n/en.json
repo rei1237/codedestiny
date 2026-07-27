@@ -4884,7 +4884,13 @@
     "ee_520_prop_label": "Lv.20 Master Skill Boost",
     "ee_859_prop_description": "You can check today's growth direction even before your destiny record opens.",
     "ee_870_prop_description": "Accumulate completion experience to clarify the growth flow of your character sheet.",
-    "ee_881_prop_description": "Align your judgments and actions based on your daily core energy."
+    "ee_881_prop_description": "Align your judgments and actions based on your daily core energy.",
+    "ee_79_prop_label": "子午",
+    "ee_80_prop_label": "丑未",
+    "ee_81_prop_label": "寅申",
+    "ee_82_prop_label": "卯酉",
+    "ee_83_prop_label": "辰戌",
+    "ee_84_prop_label": "巳亥"
   },
   "extremeT": {
     "et_100_prop_title": "Speech Overcooling",
@@ -6817,6 +6823,9 @@
     },
     "title": {
       "001": "Animal Totem Reading Result"
+    },
+    "error": {
+      "001": "SwissEph loader failed."
     }
   },
   "lsd": {
@@ -7043,7 +7052,8 @@
   },
   "rd": {
     "aria-label": {
-      "001": "Select Four Pillars (BaZi) 4-Cut version"
+      "001": "Select Four Pillars (BaZi) 4-Cut version",
+      "002": "share hashtags"
     },
     "cta": {
       "001": "🐾 Summon My Guardian Animal",
@@ -7110,7 +7120,8 @@
       "021": "2. Gaffe Prevention Cut",
       "022": "3. Spending Lock Cut",
       "023": "4. Protection Spell",
-      "024": "Four Pillars Four-Cut: Destiny Filter"
+      "024": "Four Pillars Four-Cut: Destiny Filter",
+      "003": "LOVE CODE"
     }
   },
   "seoLanding": {

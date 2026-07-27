@@ -1,0 +1,380 @@
+{
+  "_comment": "W1 배치 5 — 유명인 직업/업적 설명. 카드 부제라 짧게 유지한다. 국가·기관명은 각 언어의 관용 표기를 쓴다.",
+
+  "shellRuntime.w1_d0": {
+    "ko": "조선 4대 국왕·훈민정음 창제", "en": "4th king of Joseon · created Hangul",
+    "ja": "朝鮮第4代国王・訓民正音を創製", "zh-CN": "朝鲜第四代国王·创制训民正音", "zh-TW": "朝鮮第四代國王·創制訓民正音",
+    "vi": "Vua thứ 4 triều Joseon · sáng tạo Hangul", "hi": "जोसोन के चौथे राजा · हांगुल के निर्माता",
+    "es": "4.º rey de Joseon · creador del hangul", "fr": "4e roi de Joseon · créateur du hangeul",
+    "de": "4. König von Joseon · Schöpfer des Hangeul", "nl": "4e koning van Joseon · schepper van het Hangul",
+    "ms": "Raja ke-4 Joseon · pencipta Hangul"
+  },
+  "shellRuntime.w1_d1": {
+    "ko": "조선 수군 통제사·장군", "en": "Joseon naval commander · admiral",
+    "ja": "朝鮮水軍統制使・将軍", "zh-CN": "朝鲜水军统制使·将军", "zh-TW": "朝鮮水軍統制使·將軍",
+    "vi": "Đô đốc thủy quân triều Joseon", "hi": "जोसोन नौसेना कमांडर · एडमिरल",
+    "es": "Comandante naval de Joseon · almirante", "fr": "Commandant naval de Joseon · amiral",
+    "de": "Marinekommandant von Joseon · Admiral", "nl": "Vlootcommandant van Joseon · admiraal",
+    "ms": "Panglima laut Joseon · laksamana"
+  },
+  "shellRuntime.w1_d2": {
+    "ko": "조선 실학자·다산(茶山)", "en": "Joseon Silhak scholar · pen name Dasan",
+    "ja": "朝鮮の実学者・茶山", "zh-CN": "朝鲜实学家·号茶山", "zh-TW": "朝鮮實學家·號茶山",
+    "vi": "Học giả Thực học triều Joseon · hiệu Dasan", "hi": "जोसोन के सिलहाक विद्वान · उपनाम दासान",
+    "es": "Erudito silhak de Joseon · seudónimo Dasan", "fr": "Savant silhak de Joseon · pseudonyme Dasan",
+    "de": "Silhak-Gelehrter von Joseon · Beiname Dasan", "nl": "Silhak-geleerde van Joseon · pseudoniem Dasan",
+    "ms": "Sarjana Silhak Joseon · nama pena Dasan"
+  },
+  "shellRuntime.w1_d3": {
+    "ko": "독립운동가·임시정부 주석", "en": "Independence leader · head of the provisional government",
+    "ja": "独立運動家・臨時政府主席", "zh-CN": "独立运动家·临时政府主席", "zh-TW": "獨立運動家·臨時政府主席",
+    "vi": "Nhà hoạt động độc lập · Chủ tịch Chính phủ lâm thời", "hi": "स्वतंत्रता सेनानी · अस्थायी सरकार के प्रमुख",
+    "es": "Líder independentista · jefe del gobierno provisional", "fr": "Militant indépendantiste · chef du gouvernement provisoire",
+    "de": "Unabhängigkeitskämpfer · Chef der Provisorischen Regierung", "nl": "Onafhankelijkheidsleider · hoofd van de voorlopige regering",
+    "ms": "Pejuang kemerdekaan · ketua kerajaan sementara"
+  },
+  "shellRuntime.w1_d4": {
+    "ko": "독립운동가·의사(義士)", "en": "Independence activist · patriot martyr",
+    "ja": "独立運動家・義士", "zh-CN": "独立运动家·义士", "zh-TW": "獨立運動家·義士",
+    "vi": "Nhà hoạt động độc lập · nghĩa sĩ", "hi": "स्वतंत्रता सेनानी · देशभक्त शहीद",
+    "es": "Activista independentista · mártir patriota", "fr": "Militant indépendantiste · martyr patriote",
+    "de": "Unabhängigkeitsaktivist · patriotischer Märtyrer", "nl": "Onafhankelijkheidsactivist · patriottische martelaar",
+    "ms": "Aktivis kemerdekaan · syuhada patriot"
+  },
+  "shellRuntime.w1_d5": {
+    "ko": "독립운동가·3·1운동 상징", "en": "Independence activist · symbol of the March 1st Movement",
+    "ja": "独立運動家・三・一運動の象徴", "zh-CN": "独立运动家·三一运动象征", "zh-TW": "獨立運動家·三一運動象徵",
+    "vi": "Nhà hoạt động độc lập · biểu tượng Phong trào 1/3", "hi": "स्वतंत्रता सेनानी · 1 मार्च आंदोलन की प्रतीक",
+    "es": "Activista independentista · símbolo del Movimiento del 1 de Marzo", "fr": "Militante indépendantiste · symbole du Mouvement du 1er Mars",
+    "de": "Unabhängigkeitsaktivistin · Symbol der 1.-März-Bewegung", "nl": "Onafhankelijkheidsactiviste · symbool van de 1-maartbeweging",
+    "ms": "Aktivis kemerdekaan · simbol Gerakan 1 Mac"
+  },
+  "shellRuntime.w1_d6": {
+    "ko": "대한민국 제15대 대통령·노벨평화상", "en": "15th president of South Korea · Nobel Peace Prize",
+    "ja": "韓国第15代大統領・ノーベル平和賞", "zh-CN": "韩国第15任总统·诺贝尔和平奖", "zh-TW": "韓國第15任總統·諾貝爾和平獎",
+    "vi": "Tổng thống thứ 15 Hàn Quốc · giải Nobel Hòa bình", "hi": "दक्षिण कोरिया के 15वें राष्ट्रपति · नोबेल शांति पुरस्कार",
+    "es": "15.º presidente de Corea del Sur · Premio Nobel de la Paz", "fr": "15e président de Corée du Sud · prix Nobel de la paix",
+    "de": "15. Präsident Südkoreas · Friedensnobelpreis", "nl": "15e president van Zuid-Korea · Nobelprijs voor de Vrede",
+    "ms": "Presiden ke-15 Korea Selatan · Hadiah Nobel Keamanan"
+  },
+  "shellRuntime.w1_d7": {
+    "ko": "대한민국 제5-9대 대통령·경제 발전 주도", "en": "5th–9th president of South Korea · led rapid growth",
+    "ja": "韓国第5〜9代大統領・経済発展を主導", "zh-CN": "韩国第5–9任总统·主导经济发展", "zh-TW": "韓國第5–9任總統·主導經濟發展",
+    "vi": "Tổng thống thứ 5–9 Hàn Quốc · dẫn dắt phát triển kinh tế", "hi": "दक्षिण कोरिया के 5वें–9वें राष्ट्रपति · तीव्र आर्थिक विकास",
+    "es": "Presidente 5.º–9.º de Corea del Sur · impulsó el desarrollo económico", "fr": "5e–9e président de Corée du Sud · moteur du développement économique",
+    "de": "5.–9. Präsident Südkoreas · trieb die Wirtschaftsentwicklung voran", "nl": "5e–9e president van Zuid-Korea · leidde de economische groei",
+    "ms": "Presiden ke-5–9 Korea Selatan · memacu pembangunan ekonomi"
+  },
+  "shellRuntime.w1_d8": {
+    "ko": "소설가·2024 노벨문학상", "en": "Novelist · 2024 Nobel Prize in Literature",
+    "ja": "小説家・2024年ノーベル文学賞", "zh-CN": "小说家·2024 年诺贝尔文学奖", "zh-TW": "小說家·2024 年諾貝爾文學獎",
+    "vi": "Tiểu thuyết gia · Nobel Văn học 2024", "hi": "उपन्यासकार · 2024 साहित्य नोबेल",
+    "es": "Novelista · Premio Nobel de Literatura 2024", "fr": "Romancière · prix Nobel de littérature 2024",
+    "de": "Romanautorin · Literaturnobelpreis 2024", "nl": "Romanschrijfster · Nobelprijs Literatuur 2024",
+    "ms": "Novelis · Hadiah Nobel Sastera 2024"
+  },
+  "shellRuntime.w1_d9": {
+    "ko": "영화감독·아카데미 4관왕", "en": "Filmmaker · four Academy Awards",
+    "ja": "映画監督・アカデミー賞4冠", "zh-CN": "电影导演·奥斯卡四项大奖", "zh-TW": "電影導演·奧斯卡四項大獎",
+    "vi": "Đạo diễn · bốn giải Oscar", "hi": "फ़िल्मकार · चार अकादमी पुरस्कार",
+    "es": "Cineasta · cuatro premios Óscar", "fr": "Cinéaste · quatre Oscars",
+    "de": "Filmemacher · vier Oscars", "nl": "Filmmaker · vier Oscars",
+    "ms": "Pengarah filem · empat Anugerah Akademi"
+  },
+  "shellRuntime.w1_d10": {
+    "ko": "배우·충무로 최고 조연", "en": "Actor · Chungmuro's finest supporting player",
+    "ja": "俳優・韓国映画界屈指の名脇役", "zh-CN": "演员·韩国影坛顶级绿叶", "zh-TW": "演員·韓國影壇頂級綠葉",
+    "vi": "Diễn viên · vai phụ xuất sắc của điện ảnh Hàn", "hi": "अभिनेता · कोरियाई सिनेमा के श्रेष्ठ सहायक कलाकार",
+    "es": "Actor · el mejor secundario del cine coreano", "fr": "Acteur · meilleur second rôle du cinéma coréen",
+    "de": "Schauspieler · bester Nebendarsteller des koreanischen Kinos", "nl": "Acteur · beste bijrolspeler van de Koreaanse film",
+    "ms": "Pelakon · pelakon pembantu terbaik filem Korea"
+  },
+  "shellRuntime.w1_d11": {
+    "ko": "가수·배우·프로듀서", "en": "Singer · actor · producer",
+    "ja": "歌手・俳優・プロデューサー", "zh-CN": "歌手·演员·制作人", "zh-TW": "歌手·演員·製作人",
+    "vi": "Ca sĩ · diễn viên · nhà sản xuất", "hi": "गायिका · अभिनेत्री · निर्माता",
+    "es": "Cantante · actriz · productora", "fr": "Chanteuse · actrice · productrice",
+    "de": "Sängerin · Schauspielerin · Produzentin", "nl": "Zangeres · actrice · producent",
+    "ms": "Penyanyi · pelakon · penerbit"
+  },
+  "shellRuntime.w1_d12": {
+    "ko": "BTS 리더·래퍼·아티스트", "en": "BTS leader · rapper · artist",
+    "ja": "BTS リーダー・ラッパー・アーティスト", "zh-CN": "BTS 队长·说唱歌手·艺术家", "zh-TW": "BTS 隊長·饒舌歌手·藝術家",
+    "vi": "Trưởng nhóm BTS · rapper · nghệ sĩ", "hi": "BTS लीडर · रैपर · कलाकार",
+    "es": "Líder de BTS · rapero · artista", "fr": "Leader de BTS · rappeur · artiste",
+    "de": "BTS-Leader · Rapper · Künstler", "nl": "BTS-leider · rapper · artiest",
+    "ms": "Ketua BTS · pe-rap · artis"
+  },
+  "shellRuntime.w1_d13": {
+    "ko": "뉴진스 멤버·글로벌 팝스타", "en": "NewJeans member · global pop star",
+    "ja": "NewJeans メンバー・グローバルポップスター", "zh-CN": "NewJeans 成员·全球流行巨星", "zh-TW": "NewJeans 成員·全球流行巨星",
+    "vi": "Thành viên NewJeans · ngôi sao pop toàn cầu", "hi": "NewJeans सदस्य · वैश्विक पॉप स्टार",
+    "es": "Integrante de NewJeans · estrella pop global", "fr": "Membre de NewJeans · star pop mondiale",
+    "de": "NewJeans-Mitglied · globaler Popstar", "nl": "NewJeans-lid · wereldwijde popster",
+    "ms": "Ahli NewJeans · bintang pop global"
+  },
+  "shellRuntime.w1_d14": {
+    "ko": "축구선수·토트넘 홋스퍼 주장", "en": "Footballer · Tottenham Hotspur captain",
+    "ja": "サッカー選手・トッテナム・ホットスパー主将", "zh-CN": "足球运动员·托特纳姆热刺队长", "zh-TW": "足球運動員·托特納姆熱刺隊長",
+    "vi": "Cầu thủ bóng đá · đội trưởng Tottenham Hotspur", "hi": "फुटबॉलर · टॉटनहैम हॉटस्पर कप्तान",
+    "es": "Futbolista · capitán del Tottenham Hotspur", "fr": "Footballeur · capitaine de Tottenham Hotspur",
+    "de": "Fußballer · Kapitän von Tottenham Hotspur", "nl": "Voetballer · aanvoerder van Tottenham Hotspur",
+    "ms": "Pemain bola sepak · kapten Tottenham Hotspur"
+  },
+  "shellRuntime.w1_d15": {
+    "ko": "피겨스케이팅 선수·올림픽 금메달리스트", "en": "Figure skater · Olympic gold medalist",
+    "ja": "フィギュアスケート選手・五輪金メダリスト", "zh-CN": "花样滑冰运动员·奥运金牌得主", "zh-TW": "花式滑冰運動員·奧運金牌得主",
+    "vi": "Vận động viên trượt băng nghệ thuật · HCV Olympic", "hi": "फ़िगर स्केटर · ओलंपिक स्वर्ण पदक विजेता",
+    "es": "Patinadora artística · medallista de oro olímpica", "fr": "Patineuse artistique · médaillée d'or olympique",
+    "de": "Eiskunstläuferin · Olympiasiegerin", "nl": "Kunstschaatsster · olympisch kampioene",
+    "ms": "Peluncur ais artistik · pemenang emas Olimpik"
+  },
+  "shellRuntime.w1_d16": {
+    "ko": "골프선수·LPGA 명예의 전당", "en": "Golfer · LPGA Hall of Fame",
+    "ja": "ゴルファー・LPGA殿堂入り", "zh-CN": "高尔夫球手·LPGA 名人堂", "zh-TW": "高爾夫球手·LPGA 名人堂",
+    "vi": "Golfer · Đại sảnh Danh vọng LPGA", "hi": "गोल्फ़र · LPGA हॉल ऑफ़ फ़ेम",
+    "es": "Golfista · Salón de la Fama de la LPGA", "fr": "Golfeuse · Temple de la renommée LPGA",
+    "de": "Golferin · LPGA Hall of Fame", "nl": "Golfster · LPGA Hall of Fame",
+    "ms": "Pegolf · Dewan Kemasyhuran LPGA"
+  },
+  "shellRuntime.w1_d17": {
+    "ko": "MLB 투수·코리안 특급", "en": "MLB pitcher · the Korean Express",
+    "ja": "MLB投手・コリアン・エクスプレス", "zh-CN": "MLB 投手·韩国特快", "zh-TW": "MLB 投手·韓國特快",
+    "vi": "Ném bóng MLB · Korean Express", "hi": "MLB पिचर · कोरियन एक्सप्रेस",
+    "es": "Lanzador de MLB · el Expreso Coreano", "fr": "Lanceur MLB · l'Express coréen",
+    "de": "MLB-Pitcher · der Korean Express", "nl": "MLB-werper · de Korean Express",
+    "ms": "Pembaling MLB · Korean Express"
+  },
+  "shellRuntime.w1_d18": {
+    "ko": "야구선수·MLB 투수", "en": "Baseball player · MLB pitcher",
+    "ja": "野球選手・MLB投手", "zh-CN": "棒球运动员·MLB 投手", "zh-TW": "棒球運動員·MLB 投手",
+    "vi": "Cầu thủ bóng chày · ném bóng MLB", "hi": "बेसबॉल खिलाड़ी · MLB पिचर",
+    "es": "Beisbolista · lanzador de MLB", "fr": "Joueur de baseball · lanceur MLB",
+    "de": "Baseballspieler · MLB-Pitcher", "nl": "Honkballer · MLB-werper",
+    "ms": "Pemain besbol · pembaling MLB"
+  },
+  "shellRuntime.w1_d19": {
+    "ko": "MLB LA 다저스 투수·타자", "en": "MLB Dodgers pitcher and hitter",
+    "ja": "MLB ドジャース投手・打者", "zh-CN": "MLB 道奇队投手·打者", "zh-TW": "MLB 道奇隊投手·打者",
+    "vi": "Ném bóng kiêm đánh bóng của Dodgers (MLB)", "hi": "MLB डॉजर्स पिचर और बल्लेबाज़",
+    "es": "Lanzador y bateador de los Dodgers (MLB)", "fr": "Lanceur et frappeur des Dodgers (MLB)",
+    "de": "Pitcher und Schlagmann der Dodgers (MLB)", "nl": "Werper en slagman van de Dodgers (MLB)",
+    "ms": "Pembaling dan pemukul Dodgers (MLB)"
+  },
+  "shellRuntime.w1_d20": {
+    "ko": "일본 제126대 천황", "en": "126th Emperor of Japan",
+    "ja": "第126代天皇", "zh-CN": "日本第126代天皇", "zh-TW": "日本第126代天皇",
+    "vi": "Nhật hoàng thứ 126", "hi": "जापान के 126वें सम्राट",
+    "es": "126.º emperador de Japón", "fr": "126e empereur du Japon",
+    "de": "126. Kaiser von Japan", "nl": "126e keizer van Japan",
+    "ms": "Maharaja Jepun ke-126"
+  },
+  "shellRuntime.w1_d21": {
+    "ko": "일본 전국시대 통일자·태합(太閤)", "en": "Unifier of Sengoku Japan · the Taikō",
+    "ja": "戦国日本の統一者・太閤", "zh-CN": "日本战国统一者·太阁", "zh-TW": "日本戰國統一者·太閤",
+    "vi": "Người thống nhất Nhật Bản thời Sengoku · Thái Cáp", "hi": "सेनगोकु जापान का एकीकरणकर्ता · ताइको",
+    "es": "Unificador del Japón Sengoku · el Taikō", "fr": "Unificateur du Japon Sengoku · le Taikō",
+    "de": "Einiger des Sengoku-Japans · der Taikō", "nl": "Eenmaker van Sengoku-Japan · de Taikō",
+    "ms": "Penyatu Jepun era Sengoku · Taikō"
+  },
+  "shellRuntime.w1_d22": {
+    "ko": "스튜디오 지브리 창립자·애니메이션 감독", "en": "Studio Ghibli founder · animation director",
+    "ja": "スタジオジブリ創立者・アニメーション監督", "zh-CN": "吉卜力工作室创始人·动画导演", "zh-TW": "吉卜力工作室創辦人·動畫導演",
+    "vi": "Nhà sáng lập Studio Ghibli · đạo diễn hoạt hình", "hi": "स्टूडियो घिबली संस्थापक · एनिमेशन निर्देशक",
+    "es": "Fundador de Studio Ghibli · director de animación", "fr": "Fondateur du Studio Ghibli · réalisateur d'animation",
+    "de": "Gründer von Studio Ghibli · Animationsregisseur", "nl": "Oprichter van Studio Ghibli · animatieregisseur",
+    "ms": "Pengasas Studio Ghibli · pengarah animasi"
+  },
+  "shellRuntime.w1_d23": {
+    "ko": "영화감독·영화의 신(神)", "en": "Filmmaker · revered as cinema's master",
+    "ja": "映画監督・映画の神様", "zh-CN": "电影导演·电影之神", "zh-TW": "電影導演·電影之神",
+    "vi": "Đạo diễn · bậc thầy điện ảnh", "hi": "फ़िल्मकार · सिनेमा के गुरु",
+    "es": "Cineasta · venerado como maestro del cine", "fr": "Cinéaste · vénéré comme le maître du cinéma",
+    "de": "Filmemacher · verehrt als Meister des Kinos", "nl": "Filmmaker · vereerd als meester van de film",
+    "ms": "Pengarah filem · dipuja sebagai mahaguru sinema"
+  },
+  "shellRuntime.w1_d24": {
+    "ko": "영화감독·배우·코미디언", "en": "Filmmaker · actor · comedian",
+    "ja": "映画監督・俳優・コメディアン", "zh-CN": "电影导演·演员·喜剧人", "zh-TW": "電影導演·演員·喜劇人",
+    "vi": "Đạo diễn · diễn viên · danh hài", "hi": "फ़िल्मकार · अभिनेता · हास्य कलाकार",
+    "es": "Cineasta · actor · humorista", "fr": "Cinéaste · acteur · humoriste",
+    "de": "Filmemacher · Schauspieler · Komiker", "nl": "Filmmaker · acteur · komiek",
+    "ms": "Pengarah filem · pelakon · pelawak"
+  },
+  "shellRuntime.w1_d25": {
+    "ko": "세계적 소설가", "en": "World-renowned novelist",
+    "ja": "世界的な小説家", "zh-CN": "世界级小说家", "zh-TW": "世界級小說家",
+    "vi": "Tiểu thuyết gia tầm cỡ thế giới", "hi": "विश्वप्रसिद्ध उपन्यासकार",
+    "es": "Novelista de renombre mundial", "fr": "Romancier de renommée mondiale",
+    "de": "Weltbekannter Romanautor", "nl": "Wereldberoemde romanschrijver",
+    "ms": "Novelis terkenal dunia"
+  },
+  "shellRuntime.w1_d26": {
+    "ko": "J-팝 퀸·싱어댄서", "en": "J-pop queen · singer and dancer",
+    "ja": "J-POPの女王・シンガーダンサー", "zh-CN": "J-Pop 女王·歌手兼舞者", "zh-TW": "J-Pop 女王·歌手兼舞者",
+    "vi": "Nữ hoàng J-pop · ca sĩ kiêm vũ công", "hi": "जे-पॉप क्वीन · गायिका और नर्तकी",
+    "es": "Reina del J-pop · cantante y bailarina", "fr": "Reine de la J-pop · chanteuse et danseuse",
+    "de": "J-Pop-Königin · Sängerin und Tänzerin", "nl": "J-popkoningin · zangeres en danseres",
+    "ms": "Ratu J-pop · penyanyi dan penari"
+  },
+  "shellRuntime.w1_d27": {
+    "ko": "유교 창시자·철학자·교육자", "en": "Founder of Confucianism · philosopher · teacher",
+    "ja": "儒教の祖・哲学者・教育者", "zh-CN": "儒家创始人·哲学家·教育家", "zh-TW": "儒家創始人·哲學家·教育家",
+    "vi": "Người sáng lập Nho giáo · triết gia · nhà giáo", "hi": "कन्फ्यूशियसवाद के प्रवर्तक · दार्शनिक · शिक्षक",
+    "es": "Fundador del confucianismo · filósofo · maestro", "fr": "Fondateur du confucianisme · philosophe · pédagogue",
+    "de": "Begründer des Konfuzianismus · Philosoph · Lehrer", "nl": "Grondlegger van het confucianisme · filosoof · leraar",
+    "ms": "Pengasas Konfusianisme · ahli falsafah · pendidik"
+  },
+  "shellRuntime.w1_d28": {
+    "ko": "중화인민공화국 초대 국가주석", "en": "First chairman of the People's Republic of China",
+    "ja": "中華人民共和国初代国家主席", "zh-CN": "中华人民共和国首任国家主席", "zh-TW": "中華人民共和國首任國家主席",
+    "vi": "Chủ tịch đầu tiên của Cộng hòa Nhân dân Trung Hoa", "hi": "चीन जनवादी गणराज्य के प्रथम अध्यक्ष",
+    "es": "Primer presidente de la República Popular China", "fr": "Premier président de la République populaire de Chine",
+    "de": "Erster Staatspräsident der Volksrepublik China", "nl": "Eerste voorzitter van de Volksrepubliek China",
+    "ms": "Pengerusi pertama Republik Rakyat China"
+  },
+  "shellRuntime.w1_d29": {
+    "ko": "알리바바 창업자·전 회장", "en": "Alibaba founder · former chairman",
+    "ja": "アリババ創業者・元会長", "zh-CN": "阿里巴巴创始人·前董事局主席", "zh-TW": "阿里巴巴創辦人·前董事局主席",
+    "vi": "Nhà sáng lập Alibaba · cựu chủ tịch", "hi": "अलीबाबा संस्थापक · पूर्व चेयरमैन",
+    "es": "Fundador de Alibaba · expresidente", "fr": "Fondateur d'Alibaba · ancien président",
+    "de": "Alibaba-Gründer · ehemaliger Vorsitzender", "nl": "Oprichter van Alibaba · voormalig voorzitter",
+    "ms": "Pengasas Alibaba · bekas pengerusi"
+  },
+  "shellRuntime.w1_d30": {
+    "ko": "중국 5세대 영화감독·베이징 올림픽 개막식 총감독", "en": "Fifth-generation Chinese director · Beijing Olympics opening ceremony",
+    "ja": "中国第五世代の映画監督・北京五輪開会式総監督", "zh-CN": "中国第五代导演·北京奥运会开幕式总导演", "zh-TW": "中國第五代導演·北京奧運開幕式總導演",
+    "vi": "Đạo diễn thế hệ thứ năm Trung Quốc · tổng đạo diễn khai mạc Olympic Bắc Kinh", "hi": "चीन के पाँचवीं पीढ़ी के निर्देशक · बीजिंग ओलंपिक उद्घाटन समारोह",
+    "es": "Director chino de quinta generación · ceremonia inaugural de Pekín 2008", "fr": "Réalisateur chinois de la cinquième génération · cérémonie d'ouverture de Pékin",
+    "de": "Chinesischer Regisseur der fünften Generation · Eröffnungsfeier Peking", "nl": "Chinese regisseur van de vijfde generatie · openingsceremonie Peking",
+    "ms": "Pengarah China generasi kelima · majlis pembukaan Olimpik Beijing"
+  },
+  "shellRuntime.w1_d31": {
+    "ko": "배우·무술가·감독", "en": "Actor · martial artist · director",
+    "ja": "俳優・武術家・監督", "zh-CN": "演员·武术家·导演", "zh-TW": "演員·武術家·導演",
+    "vi": "Diễn viên · võ sư · đạo diễn", "hi": "अभिनेता · मार्शल आर्टिस्ट · निर्देशक",
+    "es": "Actor · artista marcial · director", "fr": "Acteur · artiste martial · réalisateur",
+    "de": "Schauspieler · Kampfkünstler · Regisseur", "nl": "Acteur · vechtsporter · regisseur",
+    "ms": "Pelakon · pesilat · pengarah"
+  },
+  "shellRuntime.w1_d32": {
+    "ko": "무술가·배우·무도 철학자", "en": "Martial artist · actor · philosopher of combat",
+    "ja": "武術家・俳優・武道哲学者", "zh-CN": "武术家·演员·武道哲学家", "zh-TW": "武術家·演員·武道哲學家",
+    "vi": "Võ sư · diễn viên · triết gia võ đạo", "hi": "मार्शल आर्टिस्ट · अभिनेता · युद्ध-दर्शन के विचारक",
+    "es": "Artista marcial · actor · filósofo del combate", "fr": "Artiste martial · acteur · philosophe du combat",
+    "de": "Kampfkünstler · Schauspieler · Philosoph des Kampfes", "nl": "Vechtsporter · acteur · filosoof van het gevecht",
+    "ms": "Pesilat · pelakon · ahli falsafah seni mempertahankan diri"
+  },
+  "shellRuntime.w1_d33": {
+    "ko": "애플 공동창업자·CEO", "en": "Apple co-founder · CEO",
+    "ja": "Apple 共同創業者・CEO", "zh-CN": "苹果联合创始人·CEO", "zh-TW": "蘋果共同創辦人·CEO",
+    "vi": "Đồng sáng lập Apple · CEO", "hi": "एप्पल सह-संस्थापक · CEO",
+    "es": "Cofundador de Apple · CEO", "fr": "Cofondateur d'Apple · PDG",
+    "de": "Apple-Mitgründer · CEO", "nl": "Medeoprichter van Apple · CEO",
+    "ms": "Pengasas bersama Apple · CEO"
+  },
+  "shellRuntime.w1_d34": {
+    "ko": "Apple 공동창업자·전자공학 천재", "en": "Apple co-founder · electronics genius",
+    "ja": "Apple 共同創業者・電子工学の天才", "zh-CN": "苹果联合创始人·电子工程天才", "zh-TW": "蘋果共同創辦人·電子工程天才",
+    "vi": "Đồng sáng lập Apple · thiên tài điện tử", "hi": "एप्पल सह-संस्थापक · इलेक्ट्रॉनिक्स प्रतिभा",
+    "es": "Cofundador de Apple · genio de la electrónica", "fr": "Cofondateur d'Apple · génie de l'électronique",
+    "de": "Apple-Mitgründer · Elektronikgenie", "nl": "Medeoprichter van Apple · elektronicagenie",
+    "ms": "Pengasas bersama Apple · genius elektronik"
+  },
+  "shellRuntime.w1_d35": {
+    "ko": "Microsoft 공동창업자·자선가", "en": "Microsoft co-founder · philanthropist",
+    "ja": "Microsoft 共同創業者・慈善家", "zh-CN": "微软联合创始人·慈善家", "zh-TW": "微軟共同創辦人·慈善家",
+    "vi": "Đồng sáng lập Microsoft · nhà từ thiện", "hi": "माइक्रोसॉफ़्ट सह-संस्थापक · परोपकारी",
+    "es": "Cofundador de Microsoft · filántropo", "fr": "Cofondateur de Microsoft · philanthrope",
+    "de": "Microsoft-Mitgründer · Philanthrop", "nl": "Medeoprichter van Microsoft · filantroop",
+    "ms": "Pengasas bersama Microsoft · dermawan"
+  },
+  "shellRuntime.w1_d36": {
+    "ko": "미국 제44대 대통령·최초 흑인 대통령", "en": "44th US president · first Black president",
+    "ja": "アメリカ第44代大統領・初の黒人大統領", "zh-CN": "美国第44任总统·首位非裔总统", "zh-TW": "美國第44任總統·首位非裔總統",
+    "vi": "Tổng thống Mỹ thứ 44 · tổng thống da đen đầu tiên", "hi": "अमेरिका के 44वें राष्ट्रपति · पहले अश्वेत राष्ट्रपति",
+    "es": "44.º presidente de EE. UU. · primer presidente negro", "fr": "44e président des États-Unis · premier président noir",
+    "de": "44. US-Präsident · erster schwarzer Präsident", "nl": "44e Amerikaanse president · eerste zwarte president",
+    "ms": "Presiden AS ke-44 · presiden kulit hitam pertama"
+  },
+  "shellRuntime.w1_d37": {
+    "ko": "미국 인권운동 지도자·목사", "en": "US civil rights leader · minister",
+    "ja": "アメリカ公民権運動の指導者・牧師", "zh-CN": "美国民权运动领袖·牧师", "zh-TW": "美國民權運動領袖·牧師",
+    "vi": "Lãnh tụ phong trào dân quyền Mỹ · mục sư", "hi": "अमेरिकी नागरिक अधिकार नेता · पादरी",
+    "es": "Líder de los derechos civiles en EE. UU. · pastor", "fr": "Leader des droits civiques aux États-Unis · pasteur",
+    "de": "Anführer der US-Bürgerrechtsbewegung · Pastor", "nl": "Leider van de Amerikaanse burgerrechtenbeweging · dominee",
+    "ms": "Pemimpin hak sivil AS · paderi"
+  },
+  "shellRuntime.w1_d38": {
+    "ko": "물리학자·상대성이론 발견·노벨물리학상", "en": "Physicist · relativity · Nobel Prize in Physics",
+    "ja": "物理学者・相対性理論・ノーベル物理学賞", "zh-CN": "物理学家·相对论·诺贝尔物理学奖", "zh-TW": "物理學家·相對論·諾貝爾物理學獎",
+    "vi": "Nhà vật lý · thuyết tương đối · Nobel Vật lý", "hi": "भौतिक विज्ञानी · सापेक्षता · भौतिकी नोबेल",
+    "es": "Físico · relatividad · Premio Nobel de Física", "fr": "Physicien · relativité · prix Nobel de physique",
+    "de": "Physiker · Relativitätstheorie · Nobelpreis für Physik", "nl": "Natuurkundige · relativiteit · Nobelprijs Natuurkunde",
+    "ms": "Ahli fizik · kerelatifan · Hadiah Nobel Fizik"
+  },
+  "shellRuntime.w1_d39": {
+    "ko": "화가·조각가·과학자·발명가·르네상스 인", "en": "Painter · sculptor · scientist · inventor · Renaissance man",
+    "ja": "画家・彫刻家・科学者・発明家・ルネサンスの万能人", "zh-CN": "画家·雕塑家·科学家·发明家·文艺复兴全才", "zh-TW": "畫家·雕塑家·科學家·發明家·文藝復興全才",
+    "vi": "Họa sĩ · nhà điêu khắc · nhà khoa học · nhà phát minh · con người Phục Hưng", "hi": "चित्रकार · मूर्तिकार · वैज्ञानिक · आविष्कारक · पुनर्जागरण पुरुष",
+    "es": "Pintor · escultor · científico · inventor · hombre del Renacimiento", "fr": "Peintre · sculpteur · savant · inventeur · homme de la Renaissance",
+    "de": "Maler · Bildhauer · Wissenschaftler · Erfinder · Renaissance-Mensch", "nl": "Schilder · beeldhouwer · wetenschapper · uitvinder · renaissanceman",
+    "ms": "Pelukis · pengukir · saintis · pencipta · insan Renaissance"
+  },
+  "shellRuntime.w1_d40": {
+    "ko": "극작가·시인·인류 최고의 문학가", "en": "Playwright · poet · the greatest writer in English",
+    "ja": "劇作家・詩人・人類最高の文豪", "zh-CN": "剧作家·诗人·人类最伟大的文豪", "zh-TW": "劇作家·詩人·人類最偉大的文豪",
+    "vi": "Nhà viết kịch · nhà thơ · văn hào vĩ đại nhất", "hi": "नाटककार · कवि · महानतम साहित्यकार",
+    "es": "Dramaturgo · poeta · el mayor escritor de la historia", "fr": "Dramaturge · poète · le plus grand écrivain",
+    "de": "Dramatiker · Dichter · der größte Schriftsteller", "nl": "Toneelschrijver · dichter · de grootste schrijver",
+    "ms": "Penulis drama · penyair · sasterawan teragung"
+  },
+  "shellRuntime.w1_d41": {
+    "ko": "프랑스 황제·유럽 정복자", "en": "Emperor of France · conqueror of Europe",
+    "ja": "フランス皇帝・ヨーロッパの征服者", "zh-CN": "法兰西皇帝·欧洲征服者", "zh-TW": "法蘭西皇帝·歐洲征服者",
+    "vi": "Hoàng đế Pháp · người chinh phục châu Âu", "hi": "फ़्रांस के सम्राट · यूरोप के विजेता",
+    "es": "Emperador de Francia · conquistador de Europa", "fr": "Empereur des Français · conquérant de l'Europe",
+    "de": "Kaiser der Franzosen · Eroberer Europas", "nl": "Keizer van Frankrijk · veroveraar van Europa",
+    "ms": "Maharaja Perancis · penakluk Eropah"
+  },
+  "shellRuntime.w1_d42": {
+    "ko": "팝의 황제·싱어·댄서", "en": "King of Pop · singer · dancer",
+    "ja": "キング・オブ・ポップ・シンガー・ダンサー", "zh-CN": "流行天王·歌手·舞者", "zh-TW": "流行天王·歌手·舞者",
+    "vi": "Ông hoàng nhạc pop · ca sĩ · vũ công", "hi": "किंग ऑफ़ पॉप · गायक · नर्तक",
+    "es": "El Rey del Pop · cantante · bailarín", "fr": "Le roi de la pop · chanteur · danseur",
+    "de": "King of Pop · Sänger · Tänzer", "nl": "King of Pop · zanger · danser",
+    "ms": "Raja Pop · penyanyi · penari"
+  },
+  "shellRuntime.w1_d43": {
+    "ko": "팝의 여왕·싱어·배우·사업가", "en": "Queen of Pop · singer · actress · entrepreneur",
+    "ja": "クイーン・オブ・ポップ・シンガー・俳優・実業家", "zh-CN": "流行天后·歌手·演员·企业家", "zh-TW": "流行天后·歌手·演員·企業家",
+    "vi": "Nữ hoàng nhạc pop · ca sĩ · diễn viên · doanh nhân", "hi": "क्वीन ऑफ़ पॉप · गायिका · अभिनेत्री · उद्यमी",
+    "es": "La Reina del Pop · cantante · actriz · empresaria", "fr": "La reine de la pop · chanteuse · actrice · entrepreneuse",
+    "de": "Queen of Pop · Sängerin · Schauspielerin · Unternehmerin", "nl": "Queen of Pop · zangeres · actrice · onderneemster",
+    "ms": "Ratu Pop · penyanyi · pelakon · usahawan"
+  },
+  "shellRuntime.w1_d44": {
+    "ko": "로큰롤의 왕", "en": "The King of Rock and Roll",
+    "ja": "ロックンロールの王", "zh-CN": "摇滚之王", "zh-TW": "搖滾之王",
+    "vi": "Ông hoàng nhạc rock and roll", "hi": "रॉक एंड रोल के बादशाह",
+    "es": "El Rey del Rock and Roll", "fr": "Le roi du rock'n'roll",
+    "de": "Der King of Rock 'n' Roll", "nl": "De King of Rock-'n-roll",
+    "ms": "Raja Rock and Roll"
+  },
+  "shellRuntime.w1_d45": {
+    "ko": "싱어송라이터·미국 팝스타", "en": "Singer-songwriter · American pop star",
+    "ja": "シンガーソングライター・アメリカのポップスター", "zh-CN": "创作型歌手·美国流行巨星", "zh-TW": "創作型歌手·美國流行巨星",
+    "vi": "Ca sĩ kiêm nhạc sĩ · ngôi sao pop Mỹ", "hi": "गीतकार-गायक · अमेरिकी पॉप स्टार",
+    "es": "Cantautora · estrella pop estadounidense", "fr": "Autrice-compositrice-interprète · star pop américaine",
+    "de": "Singer-Songwriterin · US-Popstar", "nl": "Singer-songwriter · Amerikaanse popster",
+    "ms": "Penyanyi-penulis lagu · bintang pop Amerika"
+  },
+  "shellRuntime.w1_d46": {
+    "ko": "영화감독·미국 영화의 거장", "en": "Filmmaker · master of American cinema",
+    "ja": "映画監督・アメリカ映画の巨匠", "zh-CN": "电影导演·美国影坛巨匠", "zh-TW": "電影導演·美國影壇巨匠",
+    "vi": "Đạo diễn · bậc thầy điện ảnh Mỹ", "hi": "फ़िल्मकार · अमेरिकी सिनेमा के उस्ताद",
+    "es": "Cineasta · maestro del cine estadounidense", "fr": "Cinéaste · maître du cinéma américain",
+    "de": "Filmemacher · Meister des amerikanischen Kinos", "nl": "Filmmaker · meester van de Amerikaanse film",
+    "ms": "Pengarah filem · mahaguru sinema Amerika"
+  }
+}

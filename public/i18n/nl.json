@@ -4884,7 +4884,13 @@
     "ee_520_prop_label": "Lv.20 Master Skill Versterking",
     "ee_859_prop_description": "Je kunt de richting van de dagelijkse groei controleren, zelfs voordat je lotsbestemming wordt onthuld.",
     "ee_870_prop_description": "Verzamel voltooiingservaring om de groeistroom van je karakterblad te verduidelijken.",
-    "ee_881_prop_description": "Lijn je oordelen en acties uit op basis van de centrale energie van de dag."
+    "ee_881_prop_description": "Lijn je oordelen en acties uit op basis van de centrale energie van de dag.",
+    "ee_79_prop_label": "子午",
+    "ee_80_prop_label": "丑未",
+    "ee_81_prop_label": "寅申",
+    "ee_82_prop_label": "卯酉",
+    "ee_83_prop_label": "辰戌",
+    "ee_84_prop_label": "巳亥"
   },
   "extremeT": {
     "et_100_prop_title": "Overkoeling van spraak",
@@ -6817,6 +6823,9 @@
     },
     "title": {
       "001": "Dierentotem Reading Resultaten"
+    },
+    "error": {
+      "001": "SwissEph loader failed."
     }
   },
   "lsd": {
@@ -7043,7 +7052,8 @@
   },
   "rd": {
     "aria-label": {
-      "001": "Selecteer Vier Pijlers (BaZi) vier-cut versie"
+      "001": "Selecteer Vier Pijlers (BaZi) vier-cut versie",
+      "002": "share hashtags"
     },
     "cta": {
       "001": "🐾 Roep mijn beschermdier op",
@@ -7110,7 +7120,8 @@
       "021": "2. Voorkom misstappen",
       "022": "3. Uitgavenvergrendeling",
       "023": "4. Beschermingsspreuk",
-      "024": "Vier Pijlers (BaZi) Vier Kaders: Lot Filter"
+      "024": "Vier Pijlers (BaZi) Vier Kaders: Lot Filter",
+      "003": "LOVE CODE"
     }
   },
   "seoLanding": {
