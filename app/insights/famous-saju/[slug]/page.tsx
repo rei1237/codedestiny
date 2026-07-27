@@ -110,7 +110,11 @@ export async function generateMetadata({ params }: PageProps) {
   }
 
   const metadata = generateFamousSajuMetadata(getFamousSajuSeoMetadata(reading.celebrity, reading));
-  return slug === reading.celebrity.slug ? metadata : withNoindexFollow(metadata);
+  // 정본/별칭 구분 없이 전량 noindex. 상세 페이지는 이름·생년월일만 바뀌는 템플릿
+  // 조립물이라(문장의 83% 가 다른 인물 페이지와 동일) 색인 대상으로 두면
+  // Google 의 scaled content abuse 판정을 받는다. 페이지 자체와 내부 링크는 유지하고
+  // 허브(/insights/famous-saju)와 카테고리만 색인·광고 대상으로 남긴다.
+  return withNoindexFollow(metadata);
 }
 
 const elementRows = [

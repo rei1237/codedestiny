@@ -1,13 +1,18 @@
 import { readFileSync, writeFileSync } from "node:fs";
+import { register } from "node:module";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+
+// app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
+register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
+const { INSIGHT_SEED_ARTICLES } = await import(
+  pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
+);
 
 const rootDir = process.cwd();
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
-const insightsSourcePath = resolve(rootDir, "app", "insights", "articles.js");
-const insightsAdsenseReadySourcePath = resolve(rootDir, "app", "insights", "adsense-ready-articles.js");
-const insightsSeoGrowthSourcePath = resolve(rootDir, "app", "insights", "seo-growth-articles.js");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const psychotestSourcePath = resolve(rootDir, "lib", "psychotest-catalog.ts");
@@ -15,6 +20,11 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+// 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
+// noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
+const excludedExactSitemapPaths = new Set([
+  "/ifa-oracle.html",
+]);
 // public/_headers 의 X-Robots-Tag: noindex 정책과 동기화 유지할 것.
 // noindex 경로를 사이트맵에 넣으면 GSC/네이버에서 "제출된 URL에 noindex" 오류가 난다.
 const noindexPathPrefixes = [
@@ -35,6 +45,20 @@ const noindexPathPrefixes = [
   "/tarot/year",
   "/tarot/healing",
   "/ziwei/chart",
+  // 정적 셸 사본 라우트(writeStaticShellCanonicalRoutes 산출물) — 본문이 루트
+  // index.html 과 99.9% 동일하다. 기능은 유지하고 색인만 막으므로 사이트맵에서도 뺀다.
+  "/saju/basic",
+  "/saju/sibyl",
+  "/tarot/mingri",
+  "/tarot/love",
+  "/tarot/reunion",
+  "/tarot/self-esteem",
+  "/astrology/cosmic",
+  "/oracle/sukuyo",
+  "/oracle/juyuk",
+  "/oracle/hwatu",
+  "/neo-operation-room",
+  "/tadagochi",
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",
@@ -83,6 +107,7 @@ const coreRoutes = [
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.99 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
+  { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
@@ -238,49 +263,35 @@ function normalizeDate(dateLike) {
   return parsed.toISOString().slice(0, 10);
 }
 
+// app/insights/[slug]/page.js 의 uniqueArticles() 와 동일한 판정.
+// 본문(sections / contentHtml / body)이 없는 글은 generateStaticParams 에서 빠져
+// 페이지가 export 되지 않는다. 사이트맵이 이 조건을 재현하지 못하면 404 URL 이 생긴다.
+function insightArticleHasBody(article) {
+  const sections = Array.isArray(article?.sections) ? article.sections : [];
+  if (sections.length > 0) return true;
+  return String(article?.contentHtml || article?.body || "").trim().length > 0;
+}
+
+// 정규식 스크래핑 대신 페이지 생성이 쓰는 바로 그 모듈에서 뽑는다.
+// (과거 extractSeoGrowthInsightRoutes 가 슬러그만 긁어 카테고리·본문 조건을 무시했고,
+//  그 결과 사이트맵에 404 URL 15개가 올라가 있었다.)
 function extractInsightRoutes() {
   const routes = [];
   const seen = new Set();
 
-  const legacySource = readFileSync(insightsSourcePath, "utf8");
-  const legacyArticleRegex =
-    /{\s*slug:\s*"([^"]+)"[\s\S]*?category:\s*"([^"]+)"[\s\S]*?updatedAt:\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-
-  let match;
-  while ((match = legacyArticleRegex.exec(legacySource)) !== null) {
-    const slug = String(match[1] || "").trim();
-    const category = String(match[2] || "").trim();
-    const updatedAt = String(match[3] || "").trim();
-
-    if (!slug || seen.has(slug) || excludedInsightCategories.has(category)) continue;
+  for (const article of INSIGHT_SEED_ARTICLES) {
+    const slug = String(article?.slug || "").trim();
+    if (!slug || seen.has(slug)) continue;
+    if (excludedInsightCategories.has(String(article?.category || "").trim())) continue;
+    if (!insightArticleHasBody(article)) continue;
 
     seen.add(slug);
     routes.push({
       path: `/insights/${slug}`,
       changefreq: "monthly",
       priority: 0.74,
-      lastmod: normalizeDate(updatedAt),
+      lastmod: normalizeDate(article?.updatedAt) || today,
     });
-  }
-
-  return routes;
-}
-
-function extractSeoGrowthInsightRoutes() {
-  const source = [
-    readFileSync(insightsAdsenseReadySourcePath, "utf8"),
-    readFileSync(insightsSeoGrowthSourcePath, "utf8"),
-  ].join("\n");
-  const slugRegex = /slug:\s*["']([a-z0-9-]+)["']/g;
-  const seen = new Set();
-  const routes = [];
-
-  let match;
-  while ((match = slugRegex.exec(source)) !== null) {
-    const slug = String(match[1] || "").trim();
-    if (!slug || seen.has(slug)) continue;
-    seen.add(slug);
-    routes.push({ path: `/insights/${slug}`, changefreq: "monthly", priority: 0.74, lastmod: today });
   }
 
   return routes;
@@ -324,28 +335,31 @@ function famousCategorySlug(value) {
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
   const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-  const routes = [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod: today }];
   const categoryRoutes = new Set();
   const seen = new Set();
+  let latest = "";
 
   let match;
   while ((match = itemRegex.exec(source)) !== null) {
     const slug = String(match[1] || "").trim();
     const category = String(match[3] || "").trim();
+    const updatedAt = String(match[4] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    // 정본 슬러그로 방문 시 index:true (app/insights/famous-saju/[slug]/page.tsx의
-    // `slug === reading.celebrity.slug` 분기), CONTENT_PREFIXES의 "/insights"에 걸려
-    // AdSense 색인 대상이므로 사이트맵에 포함해야 한다. (별칭 슬러그만 noindex로 남는다.)
-    routes.push({ path: `/insights/famous-saju/${slug}`, changefreq: "monthly", priority: 0.75, lastmod: today });
+    if (updatedAt > latest) latest = updatedAt;
 
+    // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
+    // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
+    // 바뀌는 템플릿 조립물이라 색인 대상이 아니다. 허브와 카테고리만 남긴다.
     const cSlug = famousCategorySlug(category);
     if (cSlug) categoryRoutes.add(cSlug);
   }
 
+  const lastmod = normalizeDate(latest) || today;
+
   return [
-    ...routes,
-    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod: today })),
+    { path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod },
+    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod })),
   ];
 }
 
@@ -413,6 +427,7 @@ function normalizeSitemapPath(pathname) {
 function isPublicSitemapPath(pathname) {
   const normalized = normalizeSitemapPath(pathname);
   if (staticCanonicalAliasPaths.has(normalized.replace(/\/+$/, ""))) return false;
+  if (excludedExactSitemapPaths.has(normalized)) return false;
   if (noindexPathPrefixes.some((prefix) => normalized.startsWith(`${prefix}/`))) return false;
   return !privateRoutePatterns.some((pattern) => pattern.test(normalized));
 }
@@ -515,7 +530,6 @@ async function main() {
     ...buildI18nRouteEntries(),
     ...staticCanonicalRouteEntries,
     ...localInsights,
-    ...extractSeoGrowthInsightRoutes(),
     ...dynamicInsights,
     ...extractFamousSajuRoutes(),
     ...extractPsychotestRoutes(),

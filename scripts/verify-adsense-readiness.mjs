@@ -90,7 +90,9 @@ const adsenseAllowedContentRoutes = [
   "/high-value",
   "/high-value/complete-guide-to-saju",
   "/famous-saju",
-  "/insights/famous-saju/king-sejong",
+  // 상세(/insights/famous-saju/<slug>)는 전량 noindex + 사이트맵 제외로 바뀌어
+  // 광고 대상이 아니다. 허브만 광고 허용 라우트로 검사한다.
+  "/insights/famous-saju",
 ];
 
 const adsenseBlockedRoutes = [
@@ -213,6 +215,49 @@ const xRobotsNoindexHeaderPatterns = [
   "/fortune",
   "/fortune/sikojen-povailu",
   "/fortune/sikojen-povailu/*",
+  // 정적 셸 사본 라우트: 본문이 루트 index.html 과 99.9% 동일(페이지당 고유 8~12자).
+  // out 에는 Next 가 만든 별개 페이지가, dist 에는 셸 사본이 있어 HTML meta 만으로는
+  // 양쪽을 동시에 만족시킬 수 없다. 경로 기반인 X-Robots-Tag 가 유일한 레버.
+  "/saju/basic",
+  "/saju/basic/*",
+  "/saju/sibyl",
+  "/saju/sibyl/*",
+  "/tarot/mingri",
+  "/tarot/mingri/*",
+  "/tarot/love",
+  "/tarot/love/*",
+  "/tarot/reunion",
+  "/tarot/reunion/*",
+  "/tarot/self-esteem",
+  "/tarot/self-esteem/*",
+  "/astrology/cosmic",
+  "/astrology/cosmic/*",
+  "/oracle/sukuyo",
+  "/oracle/sukuyo/*",
+  "/oracle/juyuk",
+  "/oracle/juyuk/*",
+  "/oracle/hwatu",
+  "/oracle/hwatu/*",
+  // 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
+  // canonical/robots meta 없이 홈 타일에서 직접 링크되던 것들이다.
+  "/neo-operation-room",
+  "/neo-operation-room/*",
+  "/tadagochi",
+  "/tadagochi/*",
+  "/blood-type-app.html",
+  "/celestial-harmony.html",
+  "/cosmic-soul-meditation.html",
+  "/destiny-poker.html",
+  "/emoi_omikuji_v2.html",
+  "/fortune-teller-fish.html",
+  "/geomancy-oracle-v4.html",
+  "/ifa-oracle.html",
+  "/ifa-oracle-about.html",
+  "/neville-meditation.html",
+  "/royal-tea-oracle.html",
+  "/tadagochi.html",
+  "/tarot-ijik.html",
+  "/yoga-guru.html",
 ];
 
 const sitemapRequiredRoutes = [
@@ -1120,6 +1165,19 @@ function verifySitemap(baseDir) {
     assert(!forbiddenPrefix, `${sitemapPath}: private/action route must not be in sitemap: ${pathname}`);
 
     const htmlPath = routeHtmlPath(baseDir, pathname);
+
+    // 사이트맵에만 있고 산출물이 없는 URL(=크롤러가 404 를 받는 URL)을 빌드 실패로 승격한다.
+    // readOptional 이 조용히 넘어가던 자리라, 과거 죽은 슬러그 15개가 사이트맵에 남아 있었다.
+    // dist 기준으로만 검사한다 — 정적 셸 사본 라우트(writeStaticShellCanonicalRoutes 산출물)는
+    // out 에는 없고 dist 에만 생기므로 out 기준이면 오탐한다.
+    if (baseDir === "dist") {
+      const assetPath = /\.[a-z0-9]+$/i.test(pathname) ? `${baseDir}${pathname}` : htmlPath;
+      assert(
+        existsSync(resolve(rootDir, assetPath)),
+        `${sitemapPath}: sitemap route has no generated artifact (would 404): ${pathname}`,
+      );
+    }
+
     const html = readOptional(htmlPath);
     if (html) {
       const robots = getMetaContent(html, "robots").toLowerCase();
