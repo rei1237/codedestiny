@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "残量とパスの状態を確認しています。",
       "monthlyStatusError": "残量確認が遅延しています。決済とパスの選択は続行できます。",
-      "provisionNotice": "パスは決済完了後すぐに有効化され、すぐに利用できます。有効化後は関連法令に基づき、申し込み撤回が制限される場合があります。"
+      "provisionNotice": "パスは決済完了後すぐに有効化され、すぐに利用できます。有効化後は関連法令に基づき、申し込み撤回が制限される場合があります。",
+      "monthlyButton": "月定石 {credits} で決済",
+      "monthlyButtonBusy": "月定石で利用券を有効化しています...",
+      "monthlyButtonShort": "月定石 {credits} 必要 · 残量不足"
     },
     "access": {
       "passAppliedContinue": "利用券で開きました。"

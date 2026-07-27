@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Guthaben und Pass-Status werden überprüft.",
       "monthlyStatusError": "Die Guthabenprüfung verzögert sich. Sie können mit der Zahlung und der Pass-Auswahl fortfahren.",
-      "provisionNotice": "Der Pass wird sofort nach Abschluss der Zahlung aktiviert und kann sofort genutzt werden. Nach der Aktivierung kann das Widerrufsrecht gemäß den einschlägigen Gesetzen eingeschränkt sein."
+      "provisionNotice": "Der Pass wird sofort nach Abschluss der Zahlung aktiviert und kann sofort genutzt werden. Nach der Aktivierung kann das Widerrufsrecht gemäß den einschlägigen Gesetzen eingeschränkt sein.",
+      "monthlyButton": "Mit {credits} Monatsguthaben bezahlen",
+      "monthlyButtonBusy": "Pass wird mit Monatsguthaben aktiviert...",
+      "monthlyButtonShort": "{credits} nötig · Guthaben zu gering"
     },
     "access": {
       "passAppliedContinue": "Mit Ihrem Pass geöffnet."

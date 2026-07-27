@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",
       "monthlyStatusError": "Việc kiểm tra số dư đang bị trì hoãn. Bạn vẫn có thể tiếp tục thanh toán và chọn Thẻ Pass.",
-      "provisionNotice": "Thẻ Pass sẽ được kích hoạt ngay sau khi thanh toán hoàn tất và có thể sử dụng ngay lập tức. Sau khi kích hoạt, quyền hủy bỏ có thể bị hạn chế theo các quy định pháp luật liên quan."
+      "provisionNotice": "Thẻ Pass sẽ được kích hoạt ngay sau khi thanh toán hoàn tất và có thể sử dụng ngay lập tức. Sau khi kích hoạt, quyền hủy bỏ có thể bị hạn chế theo các quy định pháp luật liên quan.",
+      "monthlyButton": "Thanh toán bằng {credits} nguyệt thạch",
+      "monthlyButtonBusy": "Đang kích hoạt vé bằng nguyệt thạch...",
+      "monthlyButtonShort": "Cần {credits} · số dư không đủ"
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."

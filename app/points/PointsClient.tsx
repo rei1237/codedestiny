@@ -2878,10 +2878,8 @@ export default function PointsPage() {
       promise: null as unknown as Promise<SubscriptionPrepareAttempt>,
     };
     entry.promise = requestSubscriptionPrepare(plan, idempotencyKey, method)
-      .catch((error: unknown) => ({
-        status: 0,
-        data: { message: getErrorMessage(error, "이용권 결제 준비에 실패했습니다.") },
-      } as SubscriptionPrepareAttempt))
+      // 메시지는 아래 소비부의 기존 문구를 쓴다(새 한국어 리터럴을 늘리지 않는다).
+      .catch(() => ({ status: 0, data: {} } as SubscriptionPrepareAttempt))
       .then((result) => {
         entry.settled = true;
         return result;
@@ -3869,10 +3867,6 @@ export default function PointsPage() {
         subscriptionPrepareRef.current = null;
         if (prepareStatus === 409) {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
-          return;
-        }
-        if (prepareStatus === 503 || prepareStatus === 0) {
-          pushToast("error", "결제 서버가 잠시 혼잡합니다. 잠시 후 다시 시도해 주세요.");
           return;
         }
         pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");

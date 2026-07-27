@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Vérification du solde et de l'état du Pass.",
       "monthlyStatusError": "La vérification du solde est retardée. Vous pouvez continuer le paiement et la sélection du Pass.",
-      "provisionNotice": "Le Pass est activé et utilisable immédiatement après le paiement. Après activation, le droit de rétractation peut être limité conformément aux lois en vigueur."
+      "provisionNotice": "Le Pass est activé et utilisable immédiatement après le paiement. Après activation, le droit de rétractation peut être limité conformément aux lois en vigueur.",
+      "monthlyButton": "Payer avec {credits} crédits mensuels",
+      "monthlyButtonBusy": "Activation du pass avec les crédits mensuels...",
+      "monthlyButtonShort": "{credits} requis · solde insuffisant"
     },
     "access": {
       "passAppliedContinue": "Ouvert avec votre pass."
