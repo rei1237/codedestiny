@@ -1486,7 +1486,8 @@
     "groups": {
       "services": "Dịch vụ",
       "company": "Công ty",
-      "support": "Hỗ trợ"
+      "support": "Hỗ trợ",
+      "guides": "Feature Guides"
     },
     "svc": {
       "saju": "Tứ trụ",
@@ -1510,7 +1511,21 @@
       "music": "Nhạc ánh trăng"
     },
     "socialAria": "Kênh mạng xã hội chính thức của CODE DESTINY",
-    "langAria": "Chọn ngôn ngữ"
+    "langAria": "Chọn ngôn ngữ",
+    "guide": {
+      "saju": "Saju Basics Guide",
+      "tenGods": "Ten Gods Guide",
+      "fiveElements": "Five Elements & Balance",
+      "ziwei": "Zi Wei Chart Guide",
+      "sukuyo": "Sukuyo 27 Mansions",
+      "astrology": "Western Astrology Basics",
+      "vedic": "Vedic Astrology Basics",
+      "tarot": "Tarot Reading Basics",
+      "mayan": "Mayan Calendar Guide",
+      "calendar": "Fortune Calendar Guide",
+      "health": "Myeongri Health Report",
+      "music": "Fortune & Meditation Music"
+    }
   },
   "pricing": {
     "currencies": {
