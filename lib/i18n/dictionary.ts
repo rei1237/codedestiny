@@ -151,6 +151,90 @@ export function loadDictionary(locale: RuntimeLocale, namespace?: string): Promi
   return request;
 }
 
+/**
+ * 한국어 원문 → 키 역인덱스.
+ *
+ * 마커가 없는 노드를 텍스트 자체로 조회해 번역하기 위한 것이다. React 페이지의
+ * 공용 푸터·랜딩 카피처럼 **서버에서 한국어로 렌더된 뒤 마커가 없는** 구간이 많은데,
+ * 컴포넌트마다 마커를 심는 대신 ko 사전을 뒤집어 쓴다.
+ *
+ * 정적 셸(js/cd-lang-native.js)에도 같은 알고리즘이 있다. 그쪽은 ES5 IIFE 라
+ * 이 모듈을 import 할 수 없어 불가피한 이중 구현이다 — 규칙을 바꿀 때 양쪽을 같이 본다.
+ */
+const REPAIR_NAMESPACE = "shellRuntime";
+let koReverseIndex: Record<string, string> | null = null;
+
+async function buildKoReverseIndex(): Promise<Record<string, string>> {
+  if (koReverseIndex) return koReverseIndex;
+  const sources = await Promise.all([loadDictionary("ko"), loadDictionary("ko", REPAIR_NAMESPACE)]);
+  const index: Record<string, string> = {};
+  for (const source of sources) {
+    if (!source) continue;
+    (function walk(node: Dictionary, path: string) {
+      for (const [key, value] of Object.entries(node)) {
+        const next = path ? `${path}.${key}` : key;
+        if (typeof value === "string") {
+          const text = value.replace(/\s+/g, " ").trim();
+          // 2자 미만은 사용자 데이터와 겹칠 위험이 커서 넣지 않는다
+          if (text.length >= 2 && !(text in index)) index[text] = next;
+        } else if (value && typeof value === "object") {
+          walk(value as Dictionary, next);
+        }
+      }
+    })(source, "");
+  }
+  koReverseIndex = index;
+  return index;
+}
+
+/** 평면 키("a.b.c" 자체가 프로퍼티)와 중첩 키를 모두 지원하는 조회. */
+function lookupTranslation(source: Dictionary | null, key: string): unknown {
+  if (!source) return undefined;
+  if (typeof source[key] === "string") return source[key];
+  return valueAtPath(source, key);
+}
+
+/**
+ * 마커 없는 한국어 텍스트 노드를 번역한다. ko 로케일에서는 아무것도 하지 않는다.
+ * 반환값은 고친 노드 수.
+ */
+export async function repairUnmarkedKoreanText(locale: RuntimeLocale): Promise<number> {
+  if (typeof document === "undefined" || locale === "ko") return 0;
+  const [index, core, namespaced] = await Promise.all([
+    buildKoReverseIndex(),
+    loadDictionary(locale),
+    loadDictionary(locale, REPAIR_NAMESPACE),
+  ]);
+  if (!document.body) return 0;
+
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  const pending: Array<{ node: Text; raw: string; translated: string }> = [];
+  for (let node = walker.nextNode() as Text | null; node; node = walker.nextNode() as Text | null) {
+    const raw = node.nodeValue || "";
+    const text = raw.replace(/\s+/g, " ").trim();
+    if (!text || !/[가-힣]/.test(text)) continue;
+    const parent = node.parentElement;
+    if (!parent) continue;
+    if (parent.closest("script, style, template, noscript, [data-cd-no-trans]")) continue;
+    // 사용자가 넣은 값이 우리 문구와 우연히 같을 수 있는 자리는 건드리지 않는다
+    if (parent.closest("input, textarea, [contenteditable], [data-cd-user-content]")) continue;
+    const key = index[text];
+    if (!key) continue;
+    let translated = lookupTranslation(core, key);
+    if (typeof translated !== "string") translated = lookupTranslation(namespaced, key);
+    if (typeof translated !== "string" || !translated || translated === text) continue;
+    pending.push({ node, raw, translated });
+  }
+
+  for (const item of pending) {
+    // 앞뒤 공백을 보존해야 인접 인라인 요소와의 간격이 무너지지 않는다
+    const lead = item.raw.match(/^\s*/)?.[0] ?? "";
+    const tail = item.raw.match(/\s*$/)?.[0] ?? "";
+    item.node.nodeValue = lead + item.translated + tail;
+  }
+  return pending.length;
+}
+
 /** 쿼리 → 경로 → localStorage → 쿠키 순으로 현재 로케일을 정한다. */
 export function detectLocale(): RuntimeLocale {
   if (typeof window === "undefined") return "ko";

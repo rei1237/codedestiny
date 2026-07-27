@@ -9,6 +9,7 @@ import {
   loadDictionary,
   missingText,
   normalizeLocale,
+  repairUnmarkedKoreanText,
   resolveKey,
 } from "@/lib/i18n/dictionary";
 
@@ -103,6 +104,30 @@ async function applyAppTranslations(lang: string) {
     if (key) el.textContent = resolveKey(dictionary, key, normalized, vars);
     applyAttributeTranslations(el, dictionary, normalized, vars);
   });
+  // 마커 없는 한국어를 원문 역인덱스로 복구한다. React 페이지의 공용 푸터·랜딩 카피는
+  // 서버에서 한국어로 렌더되고 마커가 없어서, 이 패스가 없으면 어떤 언어에서도
+  // 한국어로 남는다(실측: 전 React 라우트에 동일하게 1,355자).
+  await repairUnmarkedKoreanText(normalized);
+  installRepairObserver(normalized);
+}
+
+/**
+ * 늦게 그려지는 DOM 을 위한 복구 재실행. React 는 상호작용마다 노드를 다시 만든다.
+ * 관찰자는 하나만 건다 — 중첩하면 같은 패스가 여러 번 돈다.
+ */
+let repairTimer: ReturnType<typeof setTimeout> | null = null;
+let repairObserverBound = false;
+function installRepairObserver(locale: RuntimeLocale) {
+  if (repairObserverBound || typeof MutationObserver !== "function" || !document.body) return;
+  repairObserverBound = true;
+  new MutationObserver(() => {
+    if (locale === "ko") return;
+    if (repairTimer) clearTimeout(repairTimer);
+    repairTimer = setTimeout(() => {
+      repairTimer = null;
+      void repairUnmarkedKoreanText(locale);
+    }, 400);
+  }).observe(document.body, { childList: true, subtree: true });
 }
 
 export default function LocaleRuntimeBridge() {
