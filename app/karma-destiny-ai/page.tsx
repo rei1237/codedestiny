@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/karma-destiny-ai/";
 const PAGE_TITLE = "운명의 업 전문가 상담 | 반복되는 인생 패턴 리딩 — Code Destiny";
@@ -99,7 +100,8 @@ export default function KarmaDestinyAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(karmaJsonLd) }}
       />
-      <section className="sr-only" aria-label="운명의 업 전문가 상담 안내">
+            <KarmaDestinyAiRouteClient />
+            <ServiceIntroSection label="운명의 업 전문가 상담 안내">
         <h1>운명의 업 전문가 상담 — 반복되는 인생 패턴 리딩</h1>
         <p>
           운명의 업은 삶에서 되풀이되는 문양을 읽는 전문가 상담입니다. 사주 명식에서 힘이 몰린 십성의
@@ -145,8 +147,7 @@ export default function KarmaDestinyAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <KarmaDestinyAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }
