@@ -5,6 +5,7 @@ import {
   buildFaqPageJsonLd,
   buildServiceJsonLd,
 } from "../../lib/structured-data";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai";
 const PAGE_TITLE = "숙요점 궁합 전문가 상담 | Code Destiny";
@@ -84,7 +85,8 @@ export default function SukuyoCompatibilityAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(sukuyoCompatibilityJsonLd) }}
       />
-      <section className="sr-only" aria-label="숙요점 궁합 전문가 상담 안내">
+            <SukuyoCompatibilityAiRouteClient />
+            <ServiceIntroSection label="숙요점 궁합 전문가 상담 안내">
         <h1>숙요점 궁합 전문가 상담 — 27숙으로 읽는 두 사람의 관계</h1>
         <p>
           숙요점 궁합 전문가 상담은 태어난 날의 달이 머문 자리인 27숙을 기준으로 두 사람 사이의 끌림과
@@ -127,8 +129,7 @@ export default function SukuyoCompatibilityAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <SukuyoCompatibilityAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/naming-ai/";
 const PAGE_TITLE = "훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트 | Code Destiny";
@@ -94,7 +95,8 @@ export default function NamingAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(namingAiJsonLd) }}
       />
-      <section className="sr-only" aria-label="훈민정음 작명소 안내">
+            <NamingAiRouteClient />
+            <ServiceIntroSection label="훈민정음 작명소 안내">
         <h1>훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트</h1>
         <p>
           훈민정음 작명소는 생년월일로 세운 사주 명식을 바탕으로 이름을 짓는 프리미엄 작명 프롬프트
@@ -155,8 +157,7 @@ export default function NamingAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <NamingAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

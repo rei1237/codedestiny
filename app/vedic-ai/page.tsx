@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/vedic-ai/";
 const PAGE_TITLE = "베다 점성술 전문가 상담 | 나크샤트라·다샤 해석 — Code Destiny";
@@ -100,7 +101,8 @@ export default function VedicAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(vedicAiJsonLd) }}
       />
-      <section className="sr-only" aria-label="베다 점성술 전문가 상담 안내">
+            <VedicAiRouteClient />
+            <ServiceIntroSection label="베다 점성술 전문가 상담 안내">
         <h1>베다 점성술 전문가 상담 — 나크샤트라와 다샤의 흐름</h1>
         <p>
           베다 점성술 전문가 상담은 인도 조티쉬 전통을 따라 사이더리얼 황도대 위에 라시 차트를 세우고,
@@ -154,8 +156,7 @@ export default function VedicAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <VedicAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }
