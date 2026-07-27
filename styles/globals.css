@@ -424,7 +424,9 @@
 		word-break: keep-all;
 		text-wrap: pretty;
 	}
-	.cd-guide p + p {
+	.cd-guide p + p,
+	.cd-guide p + ul,
+	.cd-guide ul + p {
 		margin-top: 14px;
 	}
 	.cd-guide ul {
