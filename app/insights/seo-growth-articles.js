@@ -1,3 +1,5 @@
+import { METHODOLOGY_ARTICLES } from "./methodology-articles";
+
 const SEO_GROWTH_ARTICLE_TEXT_TRANSLATIONS = {
   ko: {
     "sga_123_prop_title": "자미두수란? 사주와 다른 12궁 운명 분석법",
@@ -2486,4 +2488,5 @@ export const SEO_GROWTH_ARTICLES = [
   ...SAJU,
   ...TAROT,
   ...ASTRO_VEDIC,
+  ...METHODOLOGY_ARTICLES,
 ];
