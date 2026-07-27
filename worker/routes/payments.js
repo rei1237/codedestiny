@@ -1422,6 +1422,11 @@ function invalidatePaidAccessDecisionCacheForUser(userId) {
   try {
     globalThis.__billingBalanceCache?.invalidateForUser?.(uid);
   } catch {}
+  // 이용권 캐시는 그동안 billing.js 의 paidAccessDecisionCache.invalidateForUser 경유로만 간접 무효화됐다.
+  // 결제/환불 직후 이용권 상태가 즉시 반영되도록 직접 무효화한다(간접 의존 제거).
+  try {
+    globalThis.__membershipPassCache?.invalidateForUser?.(uid);
+  } catch {}
 }
 
 async function recordUserPaidFeature(userId, featureKey, options = {}) {
