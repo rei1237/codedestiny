@@ -15,7 +15,7 @@ import {
   SAJU_LOCKED_CONTENT_KEYS,
   User,
 } from "../lib/models.js";
-import { requireAuth } from "../lib/auth.js";
+import { requireUserFromRequest } from "../lib/auth.js";
 import {
   cancelPortOnePayment,
   fetchPortOnePayment,
@@ -3601,7 +3601,10 @@ async function handleSubscriptionPrepare(request, env, auth) {
   }
 
   const paymentMethod = normalizePaymentMethod(body?.paymentMethod || "card_general");
-  const currentUser = await User.findById(auth.userId).select("profileSubscription").lean();
+  // 라우터가 인증과 같은 조회에서 profileSubscription 을 함께 읽어줬으면 재조회하지 않는다
+  // (결제창 진입 왕복 1회 절감). refresh/admin 폴백 경로 등 authUserDoc 부재 시에만 직접 읽는다.
+  const currentUser = auth.authUserDoc
+    || await withMongoRetry(env, () => User.findById(auth.userId).select("profileSubscription").lean());
   if (!currentUser) {
     return json({ message: "User not found." }, { status: 404 });
   }
@@ -3619,11 +3622,11 @@ async function handleSubscriptionPrepare(request, env, auth) {
 
   const idempotencyKey = resolveIdempotencyKey(request, body);
   if (idempotencyKey) {
-    const existing = await Payment.findOne({
+    const existing = await withMongoRetry(env, () => Payment.findOne({
       userId: auth.userId,
       idempotencyKey,
       paymentType: "membership_pass",
-    }).sort({ createdAt: -1 }).lean();
+    }).sort({ createdAt: -1 }).lean());
 
     if (existing) {
       const existingAmount = Number(existing.paymentAmount || 0);
@@ -3660,7 +3663,9 @@ async function handleSubscriptionPrepare(request, env, auth) {
   const customerUid = buildSubscriptionCustomerUid(auth.userId);
 
   try {
-    await Payment.create({
+    // 재시도는 같은 merchantUid 로 다시 insert 하므로, 첫 시도가 실제로는 성공했던 경우 두 번째 시도가
+    // E11000 을 던지고 아래 catch 가 기존 주문을 그대로 돌려준다(중복 주문 없음).
+    await withMongoRetry(env, () => Payment.create({
       userId: auth.userId,
       merchantUid,
       idempotencyKey,
@@ -3680,18 +3685,18 @@ async function handleSubscriptionPrepare(request, env, auth) {
         productType: plan.productType,
         currency: "KRW",
       },
-    });
+    }));
   } catch (error) {
     if (Number(error?.code) !== 11000) throw error;
 
-    const existing = await Payment.findOne({
+    const existing = await withMongoRetry(env, () => Payment.findOne({
       userId: auth.userId,
       paymentType: "membership_pass",
       $or: [
         { merchantUid },
         ...(idempotencyKey ? [{ idempotencyKey }] : []),
       ],
-    }).sort({ createdAt: -1 }).lean();
+    }).sort({ createdAt: -1 }).lean());
 
     if (!existing) throw error;
 
@@ -5419,6 +5424,9 @@ function buildTokenFallbackPaymentsMe(auth, message) {
       transactions: [],
       payments: [],
       subscriptions: [],
+      // 조회 실패로 만든 안전 기본값이다. 이 0 을 진짜 잔량으로 오인하면 결제창이 "월정석 0"으로 잠긴다.
+      // 클라이언트는 이 플래그를 보고 잔량을 '미확정'으로 다루고 기존 표시값을 유지해야 한다.
+      degradedMonthlyCredits: true,
       monthlyCredits: 0,
       membershipCreditBalance: 0,
       monthlyCreditLedgers: [],
@@ -5443,7 +5451,8 @@ function buildTokenFallbackPaymentsMe(auth, message) {
 async function handleMe(auth, env) {
   try {
     // 일시적 풀 초기화에도 월정석/결제내역을 정확히 반환하도록 조회를 재시도로 감싼다.
-    const user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
+    // 라우터가 인증과 같은 조회에서 함께 읽어준 문서가 있으면 재사용한다(왕복 1회 절감).
+    const user = auth.authUserDoc || await withMongoRetry(env, () => findUserByIdRaw(auth.userId, {
       name: 1,
       email: 1,
       points: 1,
@@ -5468,6 +5477,8 @@ async function handleMe(auth, env) {
     if (!user) {
       body.message = "User profile is missing. Returned safe defaults.";
       body.userFound = false;
+      // User 문서를 못 읽었으면 월정석 잔량 0 은 계산 결과가 아니라 기본값이다 — 진짜 0 과 구분시킨다.
+      body.data.degradedMonthlyCredits = true;
     }
 
     return json(body);
@@ -5583,6 +5594,18 @@ function handlePaymentConfig(env) {
   });
 }
 
+// 결제 라우트 핸들러가 인증 직후 곧바로 필요로 하는 User 필드. 인증 리졸버에 userProjection으로
+// 넘기면 인증 조회와 같은 왕복에서 함께 읽어 authUserDoc로 돌려준다(두 번째 Mongo 왕복 제거).
+const PAYMENT_ROUTE_USER_PROJECTION = {
+  _id: 1,
+  name: 1,
+  email: 1,
+  points: 1,
+  joinedAt: 1,
+  unlockedFeatures: 1,
+  profileSubscription: 1,
+};
+
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/payments");
@@ -5623,7 +5646,12 @@ export async function handlePaymentRoutes(request, env, ctx) {
       return await handleWebhook(request, env, ctx);
     }
 
-    const auth = await requireAuth(request, env);
+    // 인증 확인과 동시에 결제 핸들러가 곧바로 쓰는 User 필드를 함께 읽어(authUserDoc) 인증-후 재조회
+    // 왕복을 없앤다. 결제창이 뜨기까지의 Mongo 왕복이 곧 체감 지연이자 일시적 503의 표면적이라,
+    // 왕복 하나를 줄이는 것이 지연과 503을 동시에 줄인다. (/api/auth/me 에서 검증된 패턴)
+    // access-token 경로에서만 authUserDoc가 붙고, refresh/admin 폴백 경로에서는 없으므로
+    // 각 핸들러는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
+    const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_ROUTE_USER_PROJECTION });
     trace.authVerified = true;
 
     const security = await enforcePaymentRouteSecurity(request, env, auth, path);
@@ -5664,6 +5692,7 @@ export const __paymentsTestUtils = {
   handleWebhook,
   markPaymentCancellationForAdminReview,
   handleSubscriptionPrepare,
+  handleSubscriptionConfirm,
   resolveIdempotencyKey,
   normalizeIdempotencyKey,
   signStandardWebhookPayload,

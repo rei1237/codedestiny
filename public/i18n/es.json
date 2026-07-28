@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",
       "monthlyStatusError": "La verificación del saldo se está retrasando. Puede continuar con el pago y la selección del Pase.",
-      "provisionNotice": "El Pase se activará inmediatamente después de completar el pago y podrá utilizarse al instante. Una vez activado, el derecho de desistimiento puede estar restringido según las leyes pertinentes."
+      "provisionNotice": "El Pase se activará inmediatamente después de completar el pago y podrá utilizarse al instante. Una vez activado, el derecho de desistimiento puede estar restringido según las leyes pertinentes.",
+      "monthlyButton": "Pagar con {credits} créditos mensuales",
+      "monthlyButtonBusy": "Activando tu pase con créditos mensuales...",
+      "monthlyButtonShort": "Se necesitan {credits} · saldo insuficiente"
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."

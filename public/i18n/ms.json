@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",
       "monthlyStatusError": "Pengesahan baki tertunda. Anda boleh teruskan dengan pembayaran dan pemilihan Pas.",
-      "provisionNotice": "Pas akan diaktifkan serta-merta selepas pembayaran selesai dan boleh digunakan dengan segera. Selepas pengaktifan, pembatalan langganan mungkin dihadkan mengikut undang-undang yang berkaitan."
+      "provisionNotice": "Pas akan diaktifkan serta-merta selepas pembayaran selesai dan boleh digunakan dengan segera. Selepas pengaktifan, pembatalan langganan mungkin dihadkan mengikut undang-undang yang berkaitan.",
+      "monthlyButton": "Bayar dengan {credits} kredit bulanan",
+      "monthlyButtonBusy": "Mengaktifkan pas dengan kredit bulanan...",
+      "monthlyButtonShort": "Perlu {credits} · baki tidak cukup"
     },
     "access": {
       "passAppliedContinue": "Dibuka dengan pas anda."

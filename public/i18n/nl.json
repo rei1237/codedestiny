@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",
       "monthlyStatusError": "De saldocontrole is vertraagd. U kunt doorgaan met de betaling en de Pas-selectie.",
-      "provisionNotice": "De Pas wordt direct na betaling geactiveerd en is dan direct te gebruiken. Na activering kan het herroepingsrecht volgens de relevante wetgeving beperkt zijn."
+      "provisionNotice": "De Pas wordt direct na betaling geactiveerd en is dan direct te gebruiken. Na activering kan het herroepingsrecht volgens de relevante wetgeving beperkt zijn.",
+      "monthlyButton": "Betalen met {credits} maandtegoed",
+      "monthlyButtonBusy": "Pas wordt geactiveerd met maandtegoed...",
+      "monthlyButtonShort": "{credits} nodig · saldo te laag"
     },
     "access": {
       "passAppliedContinue": "Geopend met je pas."

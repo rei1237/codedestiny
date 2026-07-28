@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "正在確認餘額和通行證狀態。",
       "monthlyStatusError": "餘額確認延遲。您可以繼續進行付款和通行證選擇。",
-      "provisionNotice": "通行證於付款完成後立即啟用並可使用，啟用後根據相關法規可能限制撤銷訂單。"
+      "provisionNotice": "通行證於付款完成後立即啟用並可使用，啟用後根據相關法規可能限制撤銷訂單。",
+      "monthlyButton": "使用月定石 {credits} 付款",
+      "monthlyButtonBusy": "正在用月定石啟用通行證...",
+      "monthlyButtonShort": "需要月定石 {credits} · 餘額不足"
     },
     "access": {
       "passAppliedContinue": "已使用通行券開啟。"

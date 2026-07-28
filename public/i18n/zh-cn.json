@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "正在确认余额和通行证状态。",
       "monthlyStatusError": "余额确认延迟。您可以继续进行支付和通行证选择。",
-      "provisionNotice": "通行证在支付完成后立即激活并可使用，激活后，根据相关法律法规，可能限制撤销。"
+      "provisionNotice": "通行证在支付完成后立即激活并可使用，激活后，根据相关法律法规，可能限制撤销。",
+      "monthlyButton": "使用月定石 {credits} 支付",
+      "monthlyButtonBusy": "正在用月定石激活通行证...",
+      "monthlyButtonShort": "需要月定石 {credits} · 余额不足"
     },
     "access": {
       "passAppliedContinue": "已使用通行券打开。"

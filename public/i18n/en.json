@@ -1994,7 +1994,10 @@
       },
       "monthlyStatusChecking": "Checking remaining balance and Pass status.",
       "monthlyStatusError": "Checking balance is delayed. You can still proceed with payment and Pass selection.",
-      "provisionNotice": "Your Pass will be activated immediately upon payment completion and can be used right away. After activation, cancellation of subscription may be restricted in accordance with relevant laws."
+      "provisionNotice": "Your Pass will be activated immediately upon payment completion and can be used right away. After activation, cancellation of subscription may be restricted in accordance with relevant laws.",
+      "monthlyButton": "Pay with {credits} monthly credits",
+      "monthlyButtonBusy": "Activating your pass with monthly credits...",
+      "monthlyButtonShort": "{credits} needed · balance short"
     },
     "access": {
       "passAppliedContinue": "Opened with your pass."
