@@ -1447,6 +1447,7 @@
   var _dpSetCurrentTimer = null;
   var _dpPendingSwitchBaseId = null;
   var _dpLoadFromServerPending = null;
+  var _dpLastServerSyncAt = 0;
   var _dpProfileServerReadyNotified = false;
   var _dpPendingCurrentProfileId = '';
   var _dpPendingCurrentProfileUntil = 0;
@@ -1646,6 +1647,7 @@
     })().catch(function() {
       return false;
     }).then(function(loaded) {
+      if (loaded) _dpLastServerSyncAt = Date.now();
       _dpNotifyProfileServerReady({
         ok: !!loaded,
         loaded: !!loaded,
@@ -5578,6 +5580,79 @@
       + '</div>';
   }
 
+  /* 로그인 상태인데 서버 프로필을 못 받아온 최종 상태.
+     예전에는 이 경우도 _emptyCard()(= "카드를 새로 작성하세요")로 내려앉아서, 서버에 카드가
+     멀쩡히 있는 계정이 기기에 따라 "카드 없음"으로 보였다. 카드가 없는 것과 못 불러온 것은
+     다른 상태이므로 분리하고, 사용자가 직접 재조회할 수 있게 한다. */
+  /* 문구는 셸의 <template id="dpProfileSyncErrorTpl"> 에 있다(12개 로케일 사전으로 번역됨).
+     여기에 한국어를 박지 않는 이유는 그 템플릿 주석 참고. 템플릿이 없는 진입점(다른 셸에서
+     이 스크립트만 로드하는 경우)에서는 이미 번역된 기존 키로 최소 안내만 띄운다. */
+  function renderProfileSyncErrorCard() {
+    var el = document.getElementById('dpMasterCard');
+    if (!el) return;
+    el.className = 'dp-master-card dp-master-card--empty';
+    var tpl = document.getElementById('dpProfileSyncErrorTpl');
+    if (tpl && tpl.content) {
+      el.innerHTML = '';
+      el.appendChild(document.importNode(tpl.content, true));
+      _dpApplyTranslationsWithin(el);
+      return;
+    }
+    var inner = document.createElement('div');
+    inner.className = 'dp-mc-empty-inner dp-mc-retry-btn';
+    var desc = document.createElement('div');
+    desc.className = 'dp-mc-empty-desc';
+    desc.textContent = _dpText('networkError');
+    inner.appendChild(desc);
+    inner.onclick = dpRetryProfileSync;
+    el.innerHTML = '';
+    el.appendChild(inner);
+  }
+
+  /* 템플릿을 복제해 붙인 노드는 언어 런타임이 이미 훑고 지나간 뒤라 번역이 안 걸려 있다.
+     한국어면 마크업 원문이 곧 정답이므로 아무것도 하지 않는다. */
+  function _dpApplyTranslationsWithin(root) {
+    try {
+      if (!root || typeof window.cdApplyNativeTranslations !== 'function') return;
+      if (_dpTextLang() === 'ko') return;
+      window.cdApplyNativeTranslations(window.cdGetCurrentLanguage());
+    } catch (e) { /* 번역 실패는 표시 자체를 막지 않는다 */ }
+  }
+
+  /* 재시도: 서버를 다시 조회한다. 실패 쿨다운을 걷어내야 즉시 재요청이 나간다. */
+  function dpRetryProfileSync() {
+    _dpClearCooldown('/api/profile');
+    _dpClearCooldown('/api/auth/me');
+    _dpSessionVerify.checkedAt = 0;
+    renderProfileLoadingCard();
+    _dpLoadFromServer(function(loaded) {
+      if (loaded) {
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        return;
+      }
+      _dpRenderProfileSyncFallback();
+    });
+  }
+  window.dpRetryProfileSync = dpRetryProfileSync;
+
+  /* 서버 조회가 끝내 실패했을 때의 최종 렌더. 캐시된 카드가 있으면 그것을 유지하고
+     (SWR — 이미 본 카드를 지우지 않는다), 아무것도 없을 때만 오류/재시도 카드를 띄운다. */
+  function _dpRenderProfileSyncFallback() {
+    var cached = DPStorage.current();
+    if (cached) {
+      renderMasterCard(cached);
+      renderProfileList();
+      return;
+    }
+    if (_dpHasSessionHint()) {
+      renderProfileSyncErrorCard();
+      return;
+    }
+    renderMasterCard(null);
+    renderProfileList();
+  }
+
   function _zodiacEmoji(year) {
     var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
@@ -7259,44 +7334,43 @@
     // (네트워크 지연·앱의 교차 출처 401·콜백 미호출) 카드가 영구히 "불러오는 중"으로 남고,
     // 그 아래 입력 폼과 겹쳐 보여 카드가 두 개인 것처럼 읽힌다. 실패해도 최종 상태로 반드시 내려온다.
     if (shouldShowProfileLoading && !initialProfile) {
-      window.setTimeout(function() {
+      // 진행 중인 서버 조회를 잘라내면 안 된다 — 상한(10s)이 요청 타임아웃(20s)보다 짧아서,
+      // 느린 기기·콜드 워커에서는 응답이 오기도 전에 이 실패안전이 먼저 터져 빈 카드를 그렸다.
+      // (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다.
+      var failsafeTicks = 0;
+      var runProfileLoadingFailsafe = function() {
         var card = document.getElementById('dpMasterCard');
         if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
-        renderMasterCard(DPStorage.current());
-        renderProfileList();
-      }, PROFILE_LOADING_FAILSAFE_MS);
+        if (_dpLoadFromServerPending && failsafeTicks < 3) {
+          failsafeTicks += 1;
+          window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
+          return;
+        }
+        _dpRenderProfileSyncFallback();
+      };
+      window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
     }
 
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
     _dpUpdateSaveBtn();
 
-    // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
-    _dpVerifyLoginSession(false).then(function(ok) {
-      if (!ok) {
-        if (shouldShowProfileLoading || initialProfile) {
-          renderMasterCard(DPStorage.current());
-          renderProfileList();
-        }
-        _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'auth-session-not-ready' });
+    // 프로필 조회를 세션검증(/api/auth/me) 성공에 종속시키지 않는다.
+    //
+    // /api/profile 은 쿠키/Authorization 으로 독립 인증되므로(worker requireUserFromRequest)
+    // me 를 기다릴 이유도, me 가 실패했다고 조회를 건너뛸 이유도 없다. 예전에는 me 가
+    // 일시적으로 실패하기만 해도(타임아웃 20s·5xx·앱 교차출처 401) 프로필 조회 자체가
+    // 스킵되어, 서버에 카드가 있는 로그인 사용자에게 빈 카드가 떴다 — 기기·회선에 따라
+    // 결과가 달라지던 원인. _dpLoadFromServer 가 내부에서 검증을 병렬로 돌리고
+    // 토큰 정리·세션 유저 persist 같은 부수효과도 그대로 수행한다.
+    _dpLoadFromServer(function(loaded) {
+      if (loaded) {
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
         return;
       }
-
-      // 구독 상태는 _dpLoadFromServer가 /api/profile 응답의 subscription으로 갱신하므로
-      // 별도 _fetchSubscription() 호출(중복 네트워크)을 제거한다.
-      _dpLoadFromServer(function(loaded) {
-        if (loaded) {
-          renderMasterCard(DPStorage.current());
-          renderProfileList();
-        } else if (shouldShowProfileLoading) {
-          renderMasterCard(DPStorage.current());
-        }
-      });
-    }).catch(function() {
-      // 여기서 렌더를 하지 않으면 로딩 카드가 그대로 남는다 — 실패도 하나의 최종 상태로 내려준다.
-      renderMasterCard(DPStorage.current());
-      renderProfileList();
-      _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'profile-bootstrap-error' });
+      // 실패도 하나의 최종 상태로 내려준다 — 로딩 카드가 남지 않게.
+      if (shouldShowProfileLoading || initialProfile) _dpRenderProfileSyncFallback();
     });
 
     /* ESC 키로 시트 닫기 */
@@ -7467,6 +7541,14 @@
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpToggleProfileMenu({ currentTarget: menuBtn, source: 'touch', preventDefault: function(){}, stopPropagation: function(){} });
+          return;
+        }
+        /* 재시도 버튼은 .dp-mc-load-btn 스타일을 공유하므로 반드시 먼저 걸러낸다.
+           아래 분기에 먼저 걸리면 카드도 없는 상태에서 dpLoadProfile()이 돈다. */
+        var retryBtn = targetEl.closest('.dp-mc-retry-btn');
+        if (retryBtn) {
+          if (e.cancelable) e.preventDefault();
+          dpRetryProfileSync();
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');
@@ -7675,6 +7757,24 @@
 
     window.addEventListener('pageshow', function() {
       dpCloseList();
+    }, { passive: true });
+
+    /* 포그라운드 복귀 시 서버와 재동기화.
+       앱은 화면을 오래 띄워둔 채 다른 기기에서 카드를 추가·삭제·전환할 수 있어, 복귀 시점의
+       로컬 캐시가 낡아 있다. 서버가 정본이므로 다시 읽어온다.
+       요청 중복은 _dpFetchJsonWithFallback 의 in-flight dedup 과 _dpLoadFromServerPending 이
+       이미 막으므로 여기서 또 감싸지 않고, 성공 직후 반복 호출만 최소 간격으로 거른다. */
+    var PROFILE_RESUME_SYNC_MIN_GAP_MS = 15000;
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState !== 'visible') return;
+      if (!_dpHasSessionHint()) return;
+      if (Date.now() - _dpLastServerSyncAt < PROFILE_RESUME_SYNC_MIN_GAP_MS) return;
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        _dpUpdateSaveBtn();
+      });
     }, { passive: true });
   }
 

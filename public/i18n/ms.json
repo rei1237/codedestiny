@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Minit kelahiran",
       "birthTimeUnknownAria": "Tetapkan pada tengah hari jika anda tidak tahu waktu lahir anda",
       "birthCountryAria": "Negara kelahiran",
-      "kakaoEventAria": "Cipta pautan acara kongsi Kakao"
+      "kakaoEventAria": "Cipta pautan acara kongsi Kakao",
+      "syncErrorTitle": "Kad profil anda tidak dapat dimuatkan",
+      "syncErrorDesc": "Rangkaian mungkin tidak stabil seketika. Cuba lagi dan kami akan memuatkan kad yang disimpan dalam akaun anda.",
+      "syncErrorRetry": "Cuba lagi"
     },
     "startSection": {
       "kicker": "KAD HARI INI",

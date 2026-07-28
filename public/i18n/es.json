@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Minuto de nacimiento",
       "birthTimeUnknownAria": "Establezca al mediodía si no sabe su hora de nacimiento",
       "birthCountryAria": "País de nacimiento",
-      "kakaoEventAria": "Crear enlace de evento compartido de Kakao"
+      "kakaoEventAria": "Crear enlace de evento compartido de Kakao",
+      "syncErrorTitle": "No se pudo cargar tu tarjeta de perfil",
+      "syncErrorDesc": "Es posible que la red haya sido inestable por un momento. Vuelve a intentarlo y cargaremos la tarjeta guardada en tu cuenta.",
+      "syncErrorRetry": "Reintentar"
     },
     "startSection": {
       "kicker": "TARJETAS DE HOY",

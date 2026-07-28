@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Phút sinh",
       "birthTimeUnknownAria": "Đặt là trưa nếu bạn chưa biết giờ sinh của mình",
       "birthCountryAria": "Quốc gia nơi sinh",
-      "kakaoEventAria": "Tạo link sự kiện chia sẻ Kakao"
+      "kakaoEventAria": "Tạo link sự kiện chia sẻ Kakao",
+      "syncErrorTitle": "Không tải được thẻ hồ sơ của bạn",
+      "syncErrorDesc": "Mạng có thể đã không ổn định trong giây lát. Hãy thử lại, chúng tôi sẽ tải đúng thẻ đã lưu trong tài khoản của bạn.",
+      "syncErrorRetry": "Thử lại"
     },
     "startSection": {
       "kicker": "THẺ HÔM NAY",
