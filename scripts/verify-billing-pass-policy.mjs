@@ -541,13 +541,9 @@ const handleSubscribeStart = pointsSource.indexOf("const handleSubscribe = async
 const handleMonthlyCreditStart = pointsSource.indexOf("const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {");
 assert.ok(handleSubscribeStart >= 0 && handleMonthlyCreditStart > handleSubscribeStart, "points page subscription handlers found");
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, handleMonthlyCreditStart);
-// 2026-07-28 계약 변경: 결제창 앞에 대기 UI를 두지 않는다.
-// 예전 계약은 "준비 대기 오버레이를 띄웠다가 PG 직전에 닫는다"였는데, 그 대기의 정체가 prepare 서버
-// 왕복이라 느렸고 요청이 매달리면 결제창이 아예 안 떴다. 이제 주문번호를 클라이언트가 만들어
-// 결제창을 먼저 열고 prepare 는 병렬로 돈다.
-assertNotContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription checkout must not show a prepare wait UI before the PG window");
+assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription prepare uses checkout wait UI");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
-assertBefore(cardSubscriptionSource, "const prepareEntry = startSubscriptionPrepare(plan);", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription prepare starts before the PG window but is not awaited");
+assertBefore(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens after React overlay closes");
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"30일 이용권 결제를 확인하고 있어요", "subscription confirm wait starts only after PG response");
 const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
 assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
@@ -640,52 +636,6 @@ assertContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop 
 assertContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop monthly credit request id");
 assertContains(indexSource, "/api/payments/subscription/confirm", "main pass shop monthly credit purchase API");
 assertContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop monthly credit payment method");
-// 이용권 구매는 이용권 선검사 대상이 아니므로 상점 모달에 단건결제와 월정석이 항상 함께 떠야 한다.
-// 2026-06-16 대량 UI 싱크 커밋이 월정석 버튼 렌더 줄만 지워, 핸들러가 살아있는 채로 도달 불가가 된 적이 있다.
-for (const shellPath of [
-  "index.html",
-  "public/index.html",
-  "public/static/index.html",
-  "public/en/index.html",
-  "public/ja/index.html",
-  "public/zh/index.html",
-]) {
-  const shellSource = readFileSync(resolve(root, shellPath), "utf8");
-  assertContains(
-    shellSource,
-    'data-action="confirmGoldenCharge"',
-    `${shellPath}: pass shop renders the direct KRW purchase button`,
-  );
-  assertContains(
-    shellSource,
-    'data-action="confirmGoldenMonthlyCredit"',
-    `${shellPath}: pass shop renders the moonlight-stone purchase button`,
-  );
-}
-// 이용권 결제 진입 경로(/points)의 회귀 3종.
-// ① 결제 준비를 모달 오픈 때 미리 돌리고 ② 프리페치와 실제 클릭이 같은 멱등키를 써 주문이 중복되지 않으며
-// ③ 잔량 미확정(서버가 확인 실패)을 "부족"으로 취급해 월정석 수단을 잠그지 않아야 한다.
-assertContains(pointsSource, '"Idempotency-Key": idempotencyKey', "points pass prepare sends a stable idempotency key");
-assertContains(pointsSource, "startSubscriptionPrepare", "points pass prepare is prefetched when the payment-method modal opens");
-assertContains(pointsSource, "runAccessCheckWithTransientRetry", "points payment entry buffers transient 503s");
-
-// 🔴 결제창은 서버 응답을 기다리면 안 된다. 기다리는 순간 "결제 정보를 준비하고 있어요" 대기 화면이
-// 다시 생기고, 요청이 매달리면 결제창이 영영 뜨지 않는다(2026-07-28 실측 회귀).
-assertContains(pointsSource, "buildClientSubscriptionMerchantUid", "points pass checkout mints the order id client-side so PortOne can open without a server round trip");
-assertContains(pointsSource, "buildClientSingleMerchantUid", "points single checkout mints the order id client-side");
-assertContains(pointsSource, "createRequestTimeout(PAYMENT_PREPARE_TIMEOUT_MS)", "points payment prepare requests are bounded by a timeout");
-assertContains(pointsSource, "ensureSubscriptionOrderPrepared", "points pass checkout guarantees the order record before confirm");
-assertNotContains(
-  pointsSource,
-  "const prepareAttempt = await prepareEntry.promise;",
-  "points pass checkout must not block the PortOne window on the prepare response",
-);
-assertContains(
-  pointsSource,
-  "monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost",
-  "points moonlight-stone option stays enabled while the balance is unverified",
-);
-
 assertContains(fortuneSource, "normalizeHoneyPassEntitlement", "subscription status uses canonical pass entitlement");
 assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");
 assertContains(fortuneSource, "membership: 1", "subscription status reads legacy membership field");
