@@ -142,7 +142,9 @@ checkAll("feature detail template", sources.index + sources.mobileLite, [
   'data-mobile-detail-section="guide"',
   'data-mobile-detail-section="progress"',
   'data-mobile-detail-section="result"',
-  "data-mobile-detail-result-summary",
+  // data-mobile-detail-result-summary 는 2026-07-28 제거 — 모든 기능의 결과 첫 문장에
+  // 공용 요약칩을 씌우던 훅이라 계약(인체공학만)을 벗어났다. 배지 훅도 같은 이유로 사라졌다.
+  // 래퍼가 경계를 지키는지는 verify:mobile-detail-nonintrusive 가 본다.
   "data-mobile-detail-accordion",
 ]);
 
