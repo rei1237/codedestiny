@@ -15639,13 +15639,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
             '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
             '.sy-compat-badges span{background:rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#e0e7ff;line-height:1.45}',
-            '.sy-compat-orbit-stage{position:relative;min-height:148px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
-            '.sy-compat-orbit-stage::before{content:"";position:absolute;width:118px;height:118px;border-radius:999px;border:1px solid rgba(219,234,254,.24)}',
-            '.sy-compat-orb{position:absolute;width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 48%,#93c5fd);color:#0f172a;font-weight:900;box-shadow:0 0 28px rgba(219,234,254,.28)}',
-            '.sy-compat-orb--me{left:23px;top:34px}',
-            '.sy-compat-orb--partner{right:23px;bottom:30px;background:radial-gradient(circle at 35% 30%,#fff,#fbcfe8 48%,#c4b5fd)}',
-            '.sy-compat-bridge{position:absolute;width:82px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,250,252,.7),transparent);transform:rotate(-23deg)}',
-            '.sy-compat-orbit-label{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#f8e7b7;font-size:.74rem;font-weight:900}',
+            '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+            '.sy-compat-fate-svg{width:100%;height:auto;max-width:380px;display:block;margin:0 auto}',
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
             '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-compat-metric-label{font-size:.68rem;color:#dbeafe;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:900}',
@@ -15675,7 +15670,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-year-node::before{content:"";position:absolute;right:-20px;top:-22px;width:70px;height:70px;border-radius:999px;background:radial-gradient(circle at 35% 30%,rgba(248,250,252,.58),rgba(147,197,253,.16) 48%,transparent 70%);opacity:.42}',
             '.sy-compat-year-node-head{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.sy-compat-year-node-head strong{display:flex;align-items:center;gap:7px;color:#bfdbfe}.sy-compat-year-node-head span{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 50%,#93c5fd);color:#0f172a}.sy-compat-year-node-head em{font-style:normal;font-weight:900;white-space:nowrap}',
             '.sy-compat-year-bar{position:relative;margin-bottom:7px}.sy-compat-year-node p{position:relative;margin:0 0 7px;color:#dbeafe}.sy-compat-year-node ul{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:4px}.sy-compat-year-node li{color:#e0e7ff}.sy-compat-year-node li b{color:#f8e7b7;margin-right:6px}',
-            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
+            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -15852,11 +15847,42 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span>${relationStory.relationBadge}</span>
                 </div>
               </div>
-              <div class="sy-compat-orbit-stage" aria-hidden="true">
-                <div class="sy-compat-bridge"></div>
-                <div class="sy-compat-orb sy-compat-orb--me">${syCanonicalEsc(myMansionName || '宿')}</div>
-                <div class="sy-compat-orb sy-compat-orb--partner">${syCanonicalEsc(tData.mansion || '宿')}</div>
-                <div class="sy-compat-orbit-label">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</div>
+              <div class="sy-compat-fate-wrap" aria-hidden="true">
+                <svg class="sy-compat-fate-svg" viewBox="0 0 380 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
+                  <defs>
+                    <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.35)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
+                    <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.35)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
+                    <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(248,113,113,0.18)"/><stop offset="100%" stop-color="rgba(248,113,113,0)"/></radialGradient>
+                    <filter id="fgStarGlow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="fgThreadGlow"><feGaussianBlur stdDeviation="1.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <!-- background subtle glow -->
+                  <circle cx="190" cy="90" r="80" fill="url(#fgCenterGlow)"/>
+                  <!-- red thread of fate (bezier curve) -->
+                  <path d="M 95 70 C 130 40, 200 30, 240 60 C 260 75, 270 100, 285 110" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.85"/>
+                  <path d="M 95 70 C 130 40, 200 30, 240 60 C 260 75, 270 100, 285 110" stroke="#fca5a5" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
+                  <!-- secondary thread winding -->
+                  <path d="M 100 100 C 140 130, 210 140, 260 120 C 275 112, 280 105, 285 110" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.6"/>
+                  <!-- left star (me) -->
+                  <circle cx="95" cy="70" r="36" fill="url(#fgMeGlow)" filter="url(#fgStarGlow)"/>
+                  <circle cx="95" cy="70" r="28" fill="rgba(254,243,199,0.12)" stroke="rgba(251,191,36,0.6)" stroke-width="1.5"/>
+                  <circle cx="95" cy="70" r="24" fill="rgba(254,243,199,0.08)" stroke="rgba(251,191,36,0.3)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                  <text x="95" y="66" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="800" font-family="Gowun Dodum, sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
+                  <text x="95" y="82" text-anchor="middle" fill="#fde68a" font-size="7" font-weight="600" font-family="Gowun Dodum, sans-serif">나</text>
+                  <!-- right star (partner) -->
+                  <circle cx="285" cy="110" r="36" fill="url(#fgPartnerGlow)" filter="url(#fgStarGlow)"/>
+                  <circle cx="285" cy="110" r="28" fill="rgba(252,231,243,0.12)" stroke="rgba(244,114,182,0.6)" stroke-width="1.5"/>
+                  <circle cx="285" cy="110" r="24" fill="rgba(252,231,243,0.08)" stroke="rgba(244,114,182,0.3)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                  <text x="285" y="106" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="800" font-family="Gowun Dodum, sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
+                  <text x="285" y="122" text-anchor="middle" fill="#f9a8d4" font-size="7" font-weight="600" font-family="Gowun Dodum, sans-serif">상대</text>
+                  <!-- decorative sparkles -->
+                  <circle cx="160" cy="50" r="2" fill="rgba(255,255,255,0.5)"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite"/></circle>
+                  <circle cx="220" cy="45" r="1.5" fill="rgba(255,255,255,0.4)"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.5s" repeatCount="indefinite"/></circle>
+                  <circle cx="200" cy="130" r="1.8" fill="rgba(255,255,255,0.45)"><animate attributeName="opacity" values="0.45;0.1;0.45" dur="3.5s" repeatCount="indefinite"/></circle>
+                  <circle cx="140" cy="120" r="1.2" fill="rgba(255,255,255,0.35)"><animate attributeName="opacity" values="0.35;0.1;0.35" dur="2.8s" repeatCount="indefinite"/></circle>
+                  <!-- relationship label at bottom center -->
+                  <text x="190" y="168" text-anchor="middle" fill="#f8e7b7" font-size="9" font-weight="700" font-family="Gowun Dodum, sans-serif" filter="url(#fgStarGlow)">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</text>
+                </svg>
               </div>
             </div>
 
