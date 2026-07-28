@@ -69,6 +69,7 @@ const CHROMELESS_ROUTES = [
   "/destiny-compass",
   "/journey",
   "/island-consult",
+  "/lock-screen-fortune",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
@@ -83,6 +84,7 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/fortune/prompt-hub",
   "/olympus",
   "/island-consult",
+  "/lock-screen-fortune",
 ];
 
 function useFooterInView(enabled: boolean) {
