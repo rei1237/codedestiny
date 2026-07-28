@@ -67,6 +67,11 @@ jobs:
       - name: Verify runtime cache sync
         run: npm run verify:runtime-cache-sync
 
+      # 모바일 공용 상세 래퍼가 기능 UI 를 재도색·재배치하지 못하게 막는다.
+      # (2026-07 sticky 이름판·주입 배지·팔레트 재도색이 18개 기능을 덮은 사고 재발 방지)
+      - name: Verify mobile detail wrapper stays non-intrusive
+        run: npm run verify:mobile-detail-nonintrusive
+
       # @font-face 선언만 배포되고 woff2 는 R2 에 안 올라가 상시 404 였던 사고(b26d29de1) 재발 방지.
       # CSP font-src 가 허용하지 않는 오리진의 폰트를 선언하는 것도 여기서 막는다.
       - name: Verify font assets & CSP font-src
