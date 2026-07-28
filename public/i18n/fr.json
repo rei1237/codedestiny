@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Minute de naissance",
       "birthTimeUnknownAria": "Réglez sur midi si vous ne connaissez pas votre heure de naissance",
       "birthCountryAria": "Pays de naissance",
-      "kakaoEventAria": "Créer un lien d'événement de partage Kakao"
+      "kakaoEventAria": "Créer un lien d'événement de partage Kakao",
+      "syncErrorTitle": "Impossible de charger votre carte de profil",
+      "syncErrorDesc": "Le réseau a peut-être été brièvement instable. Réessayez et nous chargerons la carte enregistrée sur votre compte.",
+      "syncErrorRetry": "Réessayer"
     },
     "startSection": {
       "kicker": "CARTES AUJOURD'HUI",

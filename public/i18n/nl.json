@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Geboorteminuut",
       "birthTimeUnknownAria": "Stel in op 12.00 uur als u uw geboortetijd niet weet",
       "birthCountryAria": "Geboorteland",
-      "kakaoEventAria": "Maak een link naar een Kakao-deelevenement"
+      "kakaoEventAria": "Maak een link naar een Kakao-deelevenement",
+      "syncErrorTitle": "Je profielkaart kon niet worden geladen",
+      "syncErrorDesc": "Het netwerk was mogelijk even instabiel. Probeer het opnieuw, dan laden we de kaart die in je account is opgeslagen.",
+      "syncErrorRetry": "Opnieuw proberen"
     },
     "startSection": {
       "kicker": "VANDAAG KAARTEN",

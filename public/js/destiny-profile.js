@@ -5584,16 +5584,39 @@
      예전에는 이 경우도 _emptyCard()(= "카드를 새로 작성하세요")로 내려앉아서, 서버에 카드가
      멀쩡히 있는 계정이 기기에 따라 "카드 없음"으로 보였다. 카드가 없는 것과 못 불러온 것은
      다른 상태이므로 분리하고, 사용자가 직접 재조회할 수 있게 한다. */
+  /* 문구는 셸의 <template id="dpProfileSyncErrorTpl"> 에 있다(12개 로케일 사전으로 번역됨).
+     여기에 한국어를 박지 않는 이유는 그 템플릿 주석 참고. 템플릿이 없는 진입점(다른 셸에서
+     이 스크립트만 로드하는 경우)에서는 이미 번역된 기존 키로 최소 안내만 띄운다. */
   function renderProfileSyncErrorCard() {
     var el = document.getElementById('dpMasterCard');
     if (!el) return;
     el.className = 'dp-master-card dp-master-card--empty';
-    el.innerHTML =
-      '<div class="dp-mc-empty-inner">'
-        + '<div class="dp-mc-empty-title">프로필 카드를 불러오지 못했습니다</div>'
-        + '<div class="dp-mc-empty-desc">네트워크가 잠시 불안정했을 수 있습니다.<br>다시 시도하면 계정에 저장된 카드를 그대로 불러옵니다.</div>'
-      + '</div>'
-      + '<button type="button" class="dp-mc-load-btn dp-mc-retry-btn" onclick="dpRetryProfileSync()">다시 시도</button>';
+    var tpl = document.getElementById('dpProfileSyncErrorTpl');
+    if (tpl && tpl.content) {
+      el.innerHTML = '';
+      el.appendChild(document.importNode(tpl.content, true));
+      _dpApplyTranslationsWithin(el);
+      return;
+    }
+    var inner = document.createElement('div');
+    inner.className = 'dp-mc-empty-inner dp-mc-retry-btn';
+    var desc = document.createElement('div');
+    desc.className = 'dp-mc-empty-desc';
+    desc.textContent = _dpText('networkError');
+    inner.appendChild(desc);
+    inner.onclick = dpRetryProfileSync;
+    el.innerHTML = '';
+    el.appendChild(inner);
+  }
+
+  /* 템플릿을 복제해 붙인 노드는 언어 런타임이 이미 훑고 지나간 뒤라 번역이 안 걸려 있다.
+     한국어면 마크업 원문이 곧 정답이므로 아무것도 하지 않는다. */
+  function _dpApplyTranslationsWithin(root) {
+    try {
+      if (!root || typeof window.cdApplyNativeTranslations !== 'function') return;
+      if (_dpTextLang() === 'ko') return;
+      window.cdApplyNativeTranslations(window.cdGetCurrentLanguage());
+    } catch (e) { /* 번역 실패는 표시 자체를 막지 않는다 */ }
   }
 
   /* 재시도: 서버를 다시 조회한다. 실패 쿨다운을 걷어내야 즉시 재요청이 나간다. */

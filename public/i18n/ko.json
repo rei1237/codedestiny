@@ -137,7 +137,10 @@
       "birthMinuteLabel": "출생 분(분)",
       "birthTimeUnknownAria": "출생 시간을 모를 때 낮 12시 기준으로 설정",
       "birthCountryAria": "출생 국가",
-      "kakaoEventAria": "카카오 공유 이벤트 링크 만들기"
+      "kakaoEventAria": "카카오 공유 이벤트 링크 만들기",
+      "syncErrorTitle": "프로필 카드를 불러오지 못했습니다",
+      "syncErrorDesc": "네트워크가 잠시 불안정했을 수 있습니다. 다시 시도하면 계정에 저장된 카드를 그대로 불러옵니다.",
+      "syncErrorRetry": "다시 시도"
     },
     "startCards": {
       "ziweiBadge": "추천 01",

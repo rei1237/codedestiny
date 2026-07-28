@@ -179,7 +179,10 @@
       "birthMinuteLabel": "出生時刻（分）",
       "birthTimeUnknownAria": "出生時間が分からない場合は正午基準に設定",
       "birthCountryAria": "出生国",
-      "kakaoEventAria": "Kakao共有イベントリンクを作成"
+      "kakaoEventAria": "Kakao共有イベントリンクを作成",
+      "syncErrorTitle": "プロフィールカードを読み込めませんでした",
+      "syncErrorDesc": "ネットワークが一時的に不安定だった可能性があります。再試行すると、アカウントに保存されたカードをそのまま読み込みます。",
+      "syncErrorRetry": "再試行"
     },
     "startSection": {
       "kicker": "今日のカード",

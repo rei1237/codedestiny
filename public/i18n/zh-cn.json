@@ -179,7 +179,10 @@
       "birthMinuteLabel": "出生分钟",
       "birthTimeUnknownAria": "如果不知道出生时间，则设为中午12点",
       "birthCountryAria": "出生国家",
-      "kakaoEventAria": "创建Kakao分享活动链接"
+      "kakaoEventAria": "创建Kakao分享活动链接",
+      "syncErrorTitle": "未能加载您的命运档案卡",
+      "syncErrorDesc": "网络可能出现了短暂不稳定。重试后将直接加载您账户中保存的档案卡。",
+      "syncErrorRetry": "重试"
     },
     "startSection": {
       "kicker": "今日卡",

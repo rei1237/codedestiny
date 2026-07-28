@@ -58,10 +58,23 @@ function jsonResponse(body) {
   return res;
 }
 
+/**
+ * 오류 카드 문구는 셸 템플릿(index.html)에 있고 JS 는 그것을 복제한다 — 하드코딩 한국어
+ * ratchet(js 영역)을 올리지 않으려는 구조다. 하네스에도 실제 셸에서 템플릿을 그대로 떠 와야
+ * "템플릿이 사라졌는데 JS 폴백이 가려서 통과"하는 상황을 잡을 수 있다.
+ */
+const shellHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
+const templateMatch = shellHtml.match(/<template id="dpProfileSyncErrorTpl">[\s\S]*?<\/template>/);
+if (!templateMatch) {
+  console.error("[verify-profile-server-first] FAIL: index.html 에 <template id=\"dpProfileSyncErrorTpl\"> 이 없습니다.");
+  process.exit(1);
+}
+
 function bootShell(source, respond) {
   const dom = new JSDOM(
     `<!doctype html><html><body>
        <div id="dpMasterCard"></div>
+       ${templateMatch[0]}
        <div id="dpListSheet"></div>
        <div id="dpListOverlay"></div>
        <div id="dpProfileList"></div>
@@ -128,6 +141,7 @@ async function runTarget(relPath) {
     const el = env.card();
     check("조회 실패는 오류+재시도 카드로 내려온다", !!el.querySelector(".dp-mc-retry-btn"), el.innerHTML.slice(0, 200));
     check("장애를 '카드 없음'으로 위장하지 않는다", !el.innerHTML.includes("프로필 카드를 새로 작성해"));
+    check("셸 템플릿 문구가 실제로 쓰인다(JS 폴백이 가리지 않는다)", el.innerHTML.includes("home.input.syncErrorTitle"), el.innerHTML.slice(0, 200));
     check("로딩 카드로 고착되지 않는다", el.className.indexOf("dp-master-card--moon-loading") < 0, el.className);
   }
 

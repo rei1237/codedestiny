@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Birth minute",
       "birthTimeUnknownAria": "Set to noon if you do not know your birth time",
       "birthCountryAria": "Birth country",
-      "kakaoEventAria": "Create Kakao share event link"
+      "kakaoEventAria": "Create Kakao share event link",
+      "syncErrorTitle": "Couldn't load your profile card",
+      "syncErrorDesc": "The network may have been briefly unstable. Try again and we'll load the card saved to your account.",
+      "syncErrorRetry": "Try again"
     },
     "startSection": {
       "kicker": "TODAY CARDS",

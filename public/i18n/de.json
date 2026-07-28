@@ -179,7 +179,10 @@
       "birthMinuteLabel": "Geburtsminute",
       "birthTimeUnknownAria": "Stellen Sie es auf Mittag ein, wenn Sie Ihre Geburtszeit nicht kennen",
       "birthCountryAria": "Geburtsland",
-      "kakaoEventAria": "Link zum Kakao-Share-Event erstellen"
+      "kakaoEventAria": "Link zum Kakao-Share-Event erstellen",
+      "syncErrorTitle": "Profilkarte konnte nicht geladen werden",
+      "syncErrorDesc": "Das Netzwerk war möglicherweise kurz instabil. Versuche es erneut – wir laden die in deinem Konto gespeicherte Karte.",
+      "syncErrorRetry": "Erneut versuchen"
     },
     "startSection": {
       "kicker": "HEUTE-KARTEN",
