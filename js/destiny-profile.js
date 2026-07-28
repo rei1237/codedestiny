@@ -2791,7 +2791,9 @@
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
           await _dpWaitForPaymentOverlayPaint();
-          await new Promise(function (resolve) { setTimeout(resolve, 450); });
+          // '확인 중 → 적용 완료' 두 프레임을 보여주되 대기는 최소로. 기존 450ms 는 이용권 보유자 전원이
+          // 매 진입마다 버리는 인위적 지연이었다(왕복이 없는 낙관 경로라 기다릴 이유가 없다).
+          await new Promise(function (resolve) { setTimeout(resolve, 150); });
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
@@ -2809,10 +2811,12 @@
             requestId: requestId
           }));
           // 인프라/degraded로 이용권 확인이 실패(status:'error')하면 짧게 최대 2회 재시도(동일 requestId 재사용,
-          // 지수 백오프 800ms→1.44s)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
+          // 지수 백오프 250ms→450ms)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
           // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
+          // 백오프는 정본 셸 게이트(index.html _cdOpenPaidServiceGate)와 같은 값으로 맞춘다 — 기존 800ms→1.44s는
+          // 대기만 2.24초를 더해 '결제가 느리다'는 체감의 절반을 차지했다.
           for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error'; _dpPassRetry += 1) {
-            await new Promise(function(resolve) { setTimeout(resolve, Math.round(800 * Math.pow(1.8, _dpPassRetry - 1))); });
+            await new Promise(function(resolve) { setTimeout(resolve, Math.round(250 * Math.pow(1.8, _dpPassRetry - 1))); });
             passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
               title: title,
               coinPrice: coinPrice,
