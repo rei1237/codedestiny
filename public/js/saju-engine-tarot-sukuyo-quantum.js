@@ -15850,38 +15850,55 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
               <div class="sy-compat-fate-wrap" aria-hidden="true">
                 <svg class="sy-compat-fate-svg" viewBox="0 0 380 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
                   <defs>
-                    <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.35)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
-                    <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.35)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
-                    <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(248,113,113,0.18)"/><stop offset="100%" stop-color="rgba(248,113,113,0)"/></radialGradient>
-                    <filter id="fgStarGlow"><feGaussianBlur stdDeviation="2.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-                    <filter id="fgThreadGlow"><feGaussianBlur stdDeviation="1.8" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.45)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
+                    <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.45)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
+                    <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(239,68,68,0.22)"/><stop offset="100%" stop-color="rgba(239,68,68,0)"/></radialGradient>
+                    <linearGradient id="fgOrbMe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(254,243,199,0.3)"/><stop offset="100%" stop-color="rgba(251,191,36,0.18)"/></linearGradient>
+                    <linearGradient id="fgOrbPartner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(252,231,243,0.3)"/><stop offset="100%" stop-color="rgba(244,114,182,0.18)"/></linearGradient>
+                    <filter id="fgStarGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="fgThreadGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
                   </defs>
-                  <!-- background subtle glow -->
-                  <circle cx="190" cy="90" r="80" fill="url(#fgCenterGlow)"/>
-                  <!-- red thread of fate (bezier curve) -->
-                  <path d="M 95 70 C 130 40, 200 30, 240 60 C 260 75, 270 100, 285 110" stroke="#ef4444" stroke-width="2.5" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.85"/>
-                  <path d="M 95 70 C 130 40, 200 30, 240 60 C 260 75, 270 100, 285 110" stroke="#fca5a5" stroke-width="1" fill="none" stroke-linecap="round" opacity="0.5"/>
-                  <!-- secondary thread winding -->
-                  <path d="M 100 100 C 140 130, 210 140, 260 120 C 275 112, 280 105, 285 110" stroke="#ef4444" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.6"/>
+                  <!-- background celestial aura -->
+                  <circle cx="190" cy="65" r="75" fill="url(#fgCenterGlow)"/>
+                  
+                  <!-- red thread of fate (glowing double arc & center knot) -->
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#ef4444" stroke-width="2.6" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.9"/>
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#fca5a5" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
+                  <path d="M 90 65 Q 190 105, 290 65" stroke="#f43f5e" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.75"/>
+                  
+                  <!-- center destiny node (spark of fate) -->
+                  <circle cx="190" cy="65" r="5" fill="#ef4444" filter="url(#fgStarGlow)"/>
+                  <circle cx="190" cy="65" r="10" fill="none" stroke="rgba(252,165,165,0.6)" stroke-width="1" stroke-dasharray="2 2"/>
+                  
                   <!-- left star (me) -->
-                  <circle cx="95" cy="70" r="36" fill="url(#fgMeGlow)" filter="url(#fgStarGlow)"/>
-                  <circle cx="95" cy="70" r="28" fill="rgba(254,243,199,0.12)" stroke="rgba(251,191,36,0.6)" stroke-width="1.5"/>
-                  <circle cx="95" cy="70" r="24" fill="rgba(254,243,199,0.08)" stroke="rgba(251,191,36,0.3)" stroke-width="0.8" stroke-dasharray="3 3"/>
-                  <text x="95" y="66" text-anchor="middle" fill="#fef3c7" font-size="11" font-weight="800" font-family="Gowun Dodum, sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
-                  <text x="95" y="82" text-anchor="middle" fill="#fde68a" font-size="7" font-weight="600" font-family="Gowun Dodum, sans-serif">나</text>
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="90" cy="65" r="38" fill="url(#fgMeGlow)"/>
+                    <circle cx="90" cy="65" r="28" fill="url(#fgOrbMe)" stroke="rgba(251,191,36,0.75)" stroke-width="1.6"/>
+                    <circle cx="90" cy="65" r="24" fill="none" stroke="rgba(253,230,138,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="90" y="61" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
+                    <text x="90" y="76" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">나</text>
+                  </g>
+                  
                   <!-- right star (partner) -->
-                  <circle cx="285" cy="110" r="36" fill="url(#fgPartnerGlow)" filter="url(#fgStarGlow)"/>
-                  <circle cx="285" cy="110" r="28" fill="rgba(252,231,243,0.12)" stroke="rgba(244,114,182,0.6)" stroke-width="1.5"/>
-                  <circle cx="285" cy="110" r="24" fill="rgba(252,231,243,0.08)" stroke="rgba(244,114,182,0.3)" stroke-width="0.8" stroke-dasharray="3 3"/>
-                  <text x="285" y="106" text-anchor="middle" fill="#fce7f3" font-size="11" font-weight="800" font-family="Gowun Dodum, sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
-                  <text x="285" y="122" text-anchor="middle" fill="#f9a8d4" font-size="7" font-weight="600" font-family="Gowun Dodum, sans-serif">상대</text>
-                  <!-- decorative sparkles -->
-                  <circle cx="160" cy="50" r="2" fill="rgba(255,255,255,0.5)"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite"/></circle>
-                  <circle cx="220" cy="45" r="1.5" fill="rgba(255,255,255,0.4)"><animate attributeName="opacity" values="0.4;0.1;0.4" dur="2.5s" repeatCount="indefinite"/></circle>
-                  <circle cx="200" cy="130" r="1.8" fill="rgba(255,255,255,0.45)"><animate attributeName="opacity" values="0.45;0.1;0.45" dur="3.5s" repeatCount="indefinite"/></circle>
-                  <circle cx="140" cy="120" r="1.2" fill="rgba(255,255,255,0.35)"><animate attributeName="opacity" values="0.35;0.1;0.35" dur="2.8s" repeatCount="indefinite"/></circle>
-                  <!-- relationship label at bottom center -->
-                  <text x="190" y="168" text-anchor="middle" fill="#f8e7b7" font-size="9" font-weight="700" font-family="Gowun Dodum, sans-serif" filter="url(#fgStarGlow)">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</text>
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="290" cy="65" r="38" fill="url(#fgPartnerGlow)"/>
+                    <circle cx="290" cy="65" r="28" fill="url(#fgOrbPartner)" stroke="rgba(244,114,182,0.75)" stroke-width="1.6"/>
+                    <circle cx="290" cy="65" r="24" fill="none" stroke="rgba(251,207,232,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="290" y="61" text-anchor="middle" fill="#fce7f3" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
+                    <text x="290" y="76" text-anchor="middle" fill="#f9a8d4" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">상대</text>
+                  </g>
+                  
+                  <!-- decorative starlight sparkles -->
+                  <circle cx="150" cy="38" r="2" fill="rgba(255,255,255,0.7)"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2.8s" repeatCount="indefinite"/></circle>
+                  <circle cx="230" cy="35" r="1.5" fill="rgba(255,255,255,0.6)"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="205" cy="98" r="1.8" fill="rgba(255,255,255,0.65)"><animate attributeName="opacity" values="0.65;0.2;0.65" dur="3.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="130" cy="92" r="1.4" fill="rgba(255,255,255,0.5)"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+                  
+                  <!-- relationship label glassmorphism pill badge at bottom center (guaranteed no overlap) -->
+                  <g>
+                    <rect x="65" y="132" width="250" height="28" rx="14" fill="rgba(8,13,30,0.85)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2" filter="url(#fgStarGlow)"/>
+                    <text x="190" y="150" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="800" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(enhanced.distanceKo || '거리')} · ${syCanonicalEsc(enhanced.relationTypeKo || rel.stamp || rel.type)}</text>
+                  </g>
                 </svg>
               </div>
             </div>

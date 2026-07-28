@@ -15,11 +15,11 @@ import {
   waitForAuthLogoutToSettle,
 } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
-import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
+import { calculateKoreanAge, formatBirthDateDigits, normalizeBirthDateFromDigits, validateBirthDateWithAge } from "@/lib/birthDateInput";
 
 const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    "signupPage.001": "개인정보처리방침과 이용약관 전문을 확인하고 필수 동의해야 회원가입을 진행할 수 있습니다.",
+    "signupPage.001": "필수 약관(개인정보처리방침, 이용약관, 만 14세 이상)에 모두 동의해야 회원가입을 진행할 수 있습니다.",
     "signupPage.002": "이름, 아이디(이메일), 비밀번호를 확인해 주세요.",
     "signupPage.003": "휴대폰 번호를 정확히 입력해 주세요. 예: 01012345678",
     "signupPage.004": "회원가입 처리 중 오류가 발생했습니다.",
@@ -32,6 +32,12 @@ const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
     "signupPage.011": "추천인 코드",
     "signupPage.012": "[필수] 개인정보처리방침 전문을 읽고 동의합니다.",
     "signupPage.013": "[필수] 이용약관 전문을 읽고 동의합니다.",
+    "signupPage.014": "대한민국 법령에 따라 만 14세 미만은 가입할 수 없습니다.",
+    "signupPage.015": "만 {age}세",
+    "signupPage.016": "올바른 생년월일을 입력해주세요.",
+    "signupPage.017": "미래 날짜는 입력할 수 없습니다.",
+    "signupPage.018": "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.",
+    "signupPage.019": "[필수] 만 14세 이상이며 대한민국 관련 법령을 확인하였습니다.",
   },
 } as const;
 
@@ -259,7 +265,10 @@ export default function SignupPage() {
   const [socialLoading, setSocialLoading] = useState<SocialProvider | null>(null);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreeAge, setAgreeAge] = useState(false);
   const [error, setError] = useState<string>("");
+  const [birthDateError, setBirthDateError] = useState<string>("");
+  const [birthDateAge, setBirthDateAge] = useState<number>(-1);
   const socialCompleteOnceRef = useRef(false);
   const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
@@ -445,7 +454,30 @@ export default function SignupPage() {
       });
   }, [abortBootstrapAuthCheck, redirectAfterAuth, socialCompleteEndpoint]);
 
-  const hasRequiredConsents = agreePrivacy && agreeTerms;
+  const hasRequiredConsents = agreePrivacy && agreeTerms && agreeAge;
+
+  const handleBirthDateChange = useCallback((value: string) => {
+    const normalized = normalizeBirthDateFromDigits(value);
+    setBirthDate(normalized);
+
+    if (!normalized) {
+      setBirthDateError("");
+      setBirthDateAge(-1);
+      return;
+    }
+
+    const validation = validateBirthDateWithAge(normalized);
+    if (!validation.isValid) {
+      setBirthDateError(validation.error || "");
+      setBirthDateAge(validation.age);
+    } else {
+      setBirthDateError("");
+      setBirthDateAge(validation.age);
+    }
+  }, []);
+
+  const isUnder14 = birthDateAge >= 0 && birthDateAge < 14;
+  const canSubmit = hasRequiredConsents && !isUnder14 && !birthDateError && birthDateAge >= 14;
 
   const handleLocalSignup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -545,6 +577,11 @@ export default function SignupPage() {
     if (typeof window === "undefined") return;
 
     abortBootstrapAuthCheck();
+
+    if (isUnder14) {
+      setError(signupPageText("signupPage.018"));
+      return;
+    }
 
     if (!hasRequiredConsents) {
       setError(signupPageText("signupPage.001"));
@@ -745,10 +782,27 @@ export default function SignupPage() {
                     pattern="[0-9]{8}"
                     placeholder="YYYYMMDD"
                     value={formatBirthDateDigits(birthDate)}
-                    onChange={(event) => setBirthDate(normalizeBirthDateFromDigits(event.target.value))}
+                    onChange={(event) => handleBirthDateChange(event.target.value)}
                     disabled={loading || socialLoading !== null}
-                    className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={`h-12 w-full rounded-xl border bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition placeholder:text-slate-500 focus:ring-2 disabled:cursor-not-allowed disabled:opacity-60 ${
+                      birthDateError
+                        ? "border-rose-400/50 focus:border-rose-400/60 focus:ring-rose-400/30"
+                        : birthDateAge >= 14
+                          ? "border-emerald-400/40 focus:border-emerald-400/60 focus:ring-emerald-400/30"
+                          : "border-violet-200/25 focus:border-violet-300/60 focus:ring-violet-300/30"
+                    }`}
                   />
+                  {birthDateAge >= 0 && !birthDateError && (
+                    <p className="mt-1 text-[11px] text-emerald-200/80">
+                      {signupPageText("signupPage.015").replace("{age}", String(birthDateAge))}
+                    </p>
+                  )}
+                  {birthDateError && (
+                    <p className="mt-1 text-[11px] text-rose-200/85">{birthDateError}</p>
+                  )}
+                  <p className="mt-1.5 text-[11px] text-violet-100/65">
+                    {signupPageText("signupPage.014")}
+                  </p>
                 </div>
 
                 <div>
@@ -796,13 +850,19 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading || socialLoading !== null || !hasRequiredConsents}
-                className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {loading ? "회원가입 중..." : "아이디/비밀번호로 회원가입"}
-              </button>
+              {isUnder14 ? (
+                <div className="mt-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-center text-sm text-rose-200">
+                  {signupPageText("signupPage.018")}
+                </div>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading || socialLoading !== null || !canSubmit}
+                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "회원가입 중..." : "아이디/비밀번호로 회원가입"}
+                </button>
+              )}
             </form>
 
             <div className="my-5 flex items-center gap-3">
@@ -880,46 +940,82 @@ export default function SignupPage() {
                 </label>
               </article>
 
+              {/* 만 14세 이상 확인 */}
+              <article className="lc-card" aria-label="만 14세 이상 확인 동의">
+                <div className="lc-card-head">
+                  <span className="lc-card-badge">03</span>
+                  <strong className="lc-card-label">만 14세 이상 확인 <em>Age Requirement (14+)</em></strong>
+                </div>
+                <div className="px-4 py-3 text-xs leading-relaxed text-violet-100/80">
+                  대한민국 개인정보 보호법 및 관련 법령에 따라 만 14세 미만은 본 회원가입 서비스를 이용할 수 없으며, 본 서비스는 만 14세 이상 전용입니다.
+                </div>
+                <label className={`lc-check-row${agreeAge ? " lc-check-row--on" : ""}`} htmlFor="agree-age-requirement">
+                  <span className="lc-checkbox" aria-hidden="true">
+                    {agreeAge && (
+                      <svg viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg" className="lc-checkmark">
+                        <path d="M1 5l3.5 3.5L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    )}
+                  </span>
+                  <input
+                    id="agree-age-requirement"
+                    type="checkbox"
+                    checked={agreeAge}
+                    onChange={(e) => setAgreeAge(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <span>{signupPageText("signupPage.019")}</span>
+                </label>
+              </article>
+
               <p className="lc-state" role="status" aria-live="polite">
-                {hasRequiredConsents ? (
-                  <><span className="lc-state-dot lc-state-dot--ok" />필수 동의가 완료되었습니다. 이제 소셜 회원가입을 진행할 수 있습니다.</>
+                {isUnder14 ? (
+                  <><span className="lc-state-dot" style={{ backgroundColor: "#f43f5e" }} />생년월일 입력 결과 만 14세 미만으로 가입이 불가합니다.</>
+                ) : hasRequiredConsents ? (
+                  <><span className="lc-state-dot lc-state-dot--ok" />필수 동의가 완료되었습니다. 이제 회원가입을 진행할 수 있습니다.</>
                 ) : (
-                  <><span className="lc-state-dot" />필수 동의 2건을 모두 체크하면 소셜 회원가입 버튼이 활성화됩니다.</>
+                  <><span className="lc-state-dot" />필수 동의 3건을 모두 체크하면 소셜 회원가입 버튼이 활성화됩니다.</>
                 )}
               </p>
             </section>
 
-            <div className="space-y-2.5">
-              <button
-                type="button"
-                onClick={() => startSocialSignup("google")}
-                disabled={loading || socialLoading !== null || !hasRequiredConsents}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
-                {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 회원가입"}
-              </button>
+            {isUnder14 ? (
+              <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-center text-sm text-rose-200">
+                {signupPageText("signupPage.018")}
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => startSocialSignup("google")}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
+                  {socialLoading === "google" ? "Google 인증으로 이동 중..." : "Google로 회원가입"}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => startSocialSignup("naver")}
-                disabled={loading || socialLoading !== null || !hasRequiredConsents}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
-                {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 회원가입"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => startSocialSignup("naver")}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
+                  {socialLoading === "naver" ? "네이버 인증으로 이동 중..." : "네이버로 회원가입"}
+                </button>
 
-              <button
-                type="button"
-                onClick={() => startSocialSignup("kakao")}
-                disabled={loading || socialLoading !== null || !hasRequiredConsents}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
-                {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 회원가입"}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={() => startSocialSignup("kakao")}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
+                  {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 회원가입"}
+                </button>
+              </div>
+            )}
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
               로그인에서도 아이디/비밀번호 또는 소셜 계정을 사용할 수 있습니다. {" "}

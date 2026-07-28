@@ -1517,7 +1517,7 @@ function renderMap(pop){
   Array.prototype.forEach.call(zoom.querySelectorAll(".palace"),function(node){
     var pal=palaceFromNode(node);
     if(!pal)return;
-    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();goPalaceConsult(pal);}});
+    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openPalace(pal);}});
   });
   resetMapView();
 }
@@ -1582,13 +1582,13 @@ function initPanZoom(){
       _mapTx=downTx+dx;_mapTy=downTy+dy;clampMap();applyMapTransform();}
   });
   function up(e){
-    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 상담 진입 */
+    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 안내 개시 */
     var wasTap=Object.keys(pointers).length===1&&tapCandidate&&!_mapDragged;
     delete pointers[e.pointerId];
     if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}
     if(wasTap){var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
       var node=el&&el.closest?el.closest(".palace"):null;
-      if(node)goPalaceConsult(palaceFromNode(node));}
+      if(node)openPalace(palaceFromNode(node));}
   }
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
   svg.addEventListener("wheel",function(e){e.preventDefault();
@@ -1884,6 +1884,10 @@ function openPalaceDescription(pal,def){
     html+='<p>지금은 <strong>'+esc(BP.markers.currentMajorLuck.palaceName)+'</strong>의 대운을 지나고 있어요 ('+esc(BP.markers.currentMajorLuck.range)+'세). 이 시기의 삶의 주제는 '+esc(BP.markers.currentMajorLuck.palaceName)+'의 영역에서 펼쳐지고 있어요.</p>';
     html+='</div>';
   }
+  html+='<div class="pdesc-actions" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">';
+  html+='<a class="btn-primary" href="/island-consult?palace='+encodeURIComponent(pal.name)+'" style="text-decoration:none;text-align:center;">🔮 이 궁 깊이 상담하기</a>';
+  html+='<button class="btn-ghost" type="button" onclick="closeSheet()" style="width:100%;">닫기</button>';
+  html+='</div>';
   content.innerHTML=html;
   openSheet("sheetPalaceDesc");
 }
