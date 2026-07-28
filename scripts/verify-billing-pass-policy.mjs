@@ -636,6 +636,40 @@ assertContains(indexSource, "getSubscriptionMonthlyCreditCost", "main pass shop 
 assertContains(indexSource, "buildMembershipMonthlyCreditRequestId", "main pass shop monthly credit request id");
 assertContains(indexSource, "/api/payments/subscription/confirm", "main pass shop monthly credit purchase API");
 assertContains(indexSource, "paymentMethod: 'monthly_credit'", "main pass shop monthly credit payment method");
+// 이용권 구매는 이용권 선검사 대상이 아니므로 상점 모달에 단건결제와 월정석이 항상 함께 떠야 한다.
+// 2026-06-16 대량 UI 싱크 커밋이 월정석 버튼 렌더 줄만 지워, 핸들러가 살아있는 채로 도달 불가가 된 적이 있다.
+for (const shellPath of [
+  "index.html",
+  "public/index.html",
+  "public/static/index.html",
+  "public/en/index.html",
+  "public/ja/index.html",
+  "public/zh/index.html",
+]) {
+  const shellSource = readFileSync(resolve(root, shellPath), "utf8");
+  assertContains(
+    shellSource,
+    'data-action="confirmGoldenCharge"',
+    `${shellPath}: pass shop renders the direct KRW purchase button`,
+  );
+  assertContains(
+    shellSource,
+    'data-action="confirmGoldenMonthlyCredit"',
+    `${shellPath}: pass shop renders the moonlight-stone purchase button`,
+  );
+}
+// 이용권 결제 진입 경로(/points)의 회귀 3종.
+// ① 결제 준비를 모달 오픈 때 미리 돌리고 ② 프리페치와 실제 클릭이 같은 멱등키를 써 주문이 중복되지 않으며
+// ③ 잔량 미확정(서버가 확인 실패)을 "부족"으로 취급해 월정석 수단을 잠그지 않아야 한다.
+assertContains(pointsSource, '"Idempotency-Key": idempotencyKey', "points pass prepare sends a stable idempotency key");
+assertContains(pointsSource, "startSubscriptionPrepare", "points pass prepare is prefetched when the payment-method modal opens");
+assertContains(pointsSource, "runAccessCheckWithTransientRetry", "points payment entry buffers transient 503s");
+assertContains(
+  pointsSource,
+  "monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost",
+  "points moonlight-stone option stays enabled while the balance is unverified",
+);
+
 assertContains(fortuneSource, "normalizeHoneyPassEntitlement", "subscription status uses canonical pass entitlement");
 assertContains(fortuneSource, "subscription: 1", "subscription status reads legacy subscription field");
 assertContains(fortuneSource, "membership: 1", "subscription status reads legacy membership field");

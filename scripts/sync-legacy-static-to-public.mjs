@@ -52,6 +52,7 @@ function syncSwissEphVendor() {
 
 const staticTargets = [
   "_headers",
+  "destiny-island.html",
   "vedic-astrology.html",
   "tarot-ijik.html",
   "neville-meditation.html",
@@ -636,6 +637,18 @@ if (!existsSync(publicDir)) {
   mkdirSync(publicDir, { recursive: true });
 }
 
+function cpSyncWithRetry(sourcePath, destinationPath, options) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      cpSync(sourcePath, destinationPath, options);
+      return;
+    } catch (error) {
+      if (attempt === 19) throw error;
+      sleepSync(100);
+    }
+  }
+}
+
 for (const target of staticTargets) {
   const sourcePath = resolve(rootDir, target);
   const destinationPath = resolve(publicDir, target);
@@ -644,7 +657,7 @@ for (const target of staticTargets) {
     continue;
   }
 
-  cpSync(sourcePath, destinationPath, { recursive: true, force: true });
+  cpSyncWithRetry(sourcePath, destinationPath, { recursive: true, force: true });
 }
 
 removeStaleTadagochiPwaAssets();

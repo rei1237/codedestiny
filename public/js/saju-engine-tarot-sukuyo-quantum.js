@@ -15639,13 +15639,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
             '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
             '.sy-compat-badges span{background:rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#e0e7ff;line-height:1.45}',
-            '.sy-compat-orbit-stage{position:relative;min-height:148px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
-            '.sy-compat-orbit-stage::before{content:"";position:absolute;width:118px;height:118px;border-radius:999px;border:1px solid rgba(219,234,254,.24)}',
-            '.sy-compat-orb{position:absolute;width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 48%,#93c5fd);color:#0f172a;font-weight:900;box-shadow:0 0 28px rgba(219,234,254,.28)}',
-            '.sy-compat-orb--me{left:23px;top:34px}',
-            '.sy-compat-orb--partner{right:23px;bottom:30px;background:radial-gradient(circle at 35% 30%,#fff,#fbcfe8 48%,#c4b5fd)}',
-            '.sy-compat-bridge{position:absolute;width:82px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,250,252,.7),transparent);transform:rotate(-23deg)}',
-            '.sy-compat-orbit-label{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#f8e7b7;font-size:.74rem;font-weight:900}',
+            '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+            '.sy-compat-fate-svg{width:100%;height:auto;max-width:380px;display:block;margin:0 auto}',
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
             '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-compat-metric-label{font-size:.68rem;color:#dbeafe;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:900}',
@@ -15675,7 +15670,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-year-node::before{content:"";position:absolute;right:-20px;top:-22px;width:70px;height:70px;border-radius:999px;background:radial-gradient(circle at 35% 30%,rgba(248,250,252,.58),rgba(147,197,253,.16) 48%,transparent 70%);opacity:.42}',
             '.sy-compat-year-node-head{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.sy-compat-year-node-head strong{display:flex;align-items:center;gap:7px;color:#bfdbfe}.sy-compat-year-node-head span{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 50%,#93c5fd);color:#0f172a}.sy-compat-year-node-head em{font-style:normal;font-weight:900;white-space:nowrap}',
             '.sy-compat-year-bar{position:relative;margin-bottom:7px}.sy-compat-year-node p{position:relative;margin:0 0 7px;color:#dbeafe}.sy-compat-year-node ul{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:4px}.sy-compat-year-node li{color:#e0e7ff}.sy-compat-year-node li b{color:#f8e7b7;margin-right:6px}',
-            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
+            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -15852,11 +15847,59 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span>${relationStory.relationBadge}</span>
                 </div>
               </div>
-              <div class="sy-compat-orbit-stage" aria-hidden="true">
-                <div class="sy-compat-bridge"></div>
-                <div class="sy-compat-orb sy-compat-orb--me">${syCanonicalEsc(myMansionName || '宿')}</div>
-                <div class="sy-compat-orb sy-compat-orb--partner">${syCanonicalEsc(tData.mansion || '宿')}</div>
-                <div class="sy-compat-orbit-label">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</div>
+              <div class="sy-compat-fate-wrap" aria-hidden="true">
+                <svg class="sy-compat-fate-svg" viewBox="0 0 380 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
+                  <defs>
+                    <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.45)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
+                    <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.45)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
+                    <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(239,68,68,0.22)"/><stop offset="100%" stop-color="rgba(239,68,68,0)"/></radialGradient>
+                    <linearGradient id="fgOrbMe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(254,243,199,0.3)"/><stop offset="100%" stop-color="rgba(251,191,36,0.18)"/></linearGradient>
+                    <linearGradient id="fgOrbPartner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(252,231,243,0.3)"/><stop offset="100%" stop-color="rgba(244,114,182,0.18)"/></linearGradient>
+                    <filter id="fgStarGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="fgThreadGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <!-- background celestial aura -->
+                  <circle cx="190" cy="65" r="75" fill="url(#fgCenterGlow)"/>
+                  
+                  <!-- red thread of fate (glowing double arc & center knot) -->
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#ef4444" stroke-width="2.6" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.9"/>
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#fca5a5" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
+                  <path d="M 90 65 Q 190 105, 290 65" stroke="#f43f5e" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.75"/>
+                  
+                  <!-- center destiny node (spark of fate) -->
+                  <circle cx="190" cy="65" r="5" fill="#ef4444" filter="url(#fgStarGlow)"/>
+                  <circle cx="190" cy="65" r="10" fill="none" stroke="rgba(252,165,165,0.6)" stroke-width="1" stroke-dasharray="2 2"/>
+                  
+                  <!-- left star (me) -->
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="90" cy="65" r="38" fill="url(#fgMeGlow)"/>
+                    <circle cx="90" cy="65" r="28" fill="url(#fgOrbMe)" stroke="rgba(251,191,36,0.75)" stroke-width="1.6"/>
+                    <circle cx="90" cy="65" r="24" fill="none" stroke="rgba(253,230,138,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="90" y="61" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
+                    <text x="90" y="76" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">나</text>
+                  </g>
+                  
+                  <!-- right star (partner) -->
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="290" cy="65" r="38" fill="url(#fgPartnerGlow)"/>
+                    <circle cx="290" cy="65" r="28" fill="url(#fgOrbPartner)" stroke="rgba(244,114,182,0.75)" stroke-width="1.6"/>
+                    <circle cx="290" cy="65" r="24" fill="none" stroke="rgba(251,207,232,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="290" y="61" text-anchor="middle" fill="#fce7f3" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
+                    <text x="290" y="76" text-anchor="middle" fill="#f9a8d4" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">상대</text>
+                  </g>
+                  
+                  <!-- decorative starlight sparkles -->
+                  <circle cx="150" cy="38" r="2" fill="rgba(255,255,255,0.7)"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2.8s" repeatCount="indefinite"/></circle>
+                  <circle cx="230" cy="35" r="1.5" fill="rgba(255,255,255,0.6)"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="205" cy="98" r="1.8" fill="rgba(255,255,255,0.65)"><animate attributeName="opacity" values="0.65;0.2;0.65" dur="3.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="130" cy="92" r="1.4" fill="rgba(255,255,255,0.5)"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+                  
+                  <!-- relationship label glassmorphism pill badge at bottom center (guaranteed no overlap) -->
+                  <g>
+                    <rect x="65" y="132" width="250" height="28" rx="14" fill="rgba(8,13,30,0.85)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2" filter="url(#fgStarGlow)"/>
+                    <text x="190" y="150" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="800" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(enhanced.distanceKo || '거리')} · ${syCanonicalEsc(enhanced.relationTypeKo || rel.stamp || rel.type)}</text>
+                  </g>
+                </svg>
               </div>
             </div>
 
