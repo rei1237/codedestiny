@@ -541,9 +541,13 @@ const handleSubscribeStart = pointsSource.indexOf("const handleSubscribe = async
 const handleMonthlyCreditStart = pointsSource.indexOf("const handleSubscribeWithMonthlyCredit = async (plan: SubscriptionPlan) => {");
 assert.ok(handleSubscribeStart >= 0 && handleMonthlyCreditStart > handleSubscribeStart, "points page subscription handlers found");
 const cardSubscriptionSource = pointsSource.slice(handleSubscribeStart, handleMonthlyCreditStart);
-assertContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription prepare uses checkout wait UI");
+// 2026-07-28 계약 변경: 결제창 앞에 대기 UI를 두지 않는다.
+// 예전 계약은 "준비 대기 오버레이를 띄웠다가 PG 직전에 닫는다"였는데, 그 대기의 정체가 prepare 서버
+// 왕복이라 느렸고 요청이 매달리면 결제창이 아예 안 떴다. 이제 주문번호를 클라이언트가 만들어
+// 결제창을 먼저 열고 prepare 는 병렬로 돈다.
+assertNotContains(cardSubscriptionSource, 'setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout")', "card subscription checkout must not show a prepare wait UI before the PG window");
 assertNotContains(cardSubscriptionSource, 'setProcessingStage("월정석 정보를 확인하는 중이에요", "monthly")', "card subscription checkout must not use monthly wait UI");
-assertBefore(cardSubscriptionSource, "await closeProcessingOverlayBeforeExternalCheckout();", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription PG opens after React overlay closes");
+assertBefore(cardSubscriptionSource, "const prepareEntry = startSubscriptionPrepare(plan);", "const rsp = await window.PortOne.requestPayment(requestData);", "subscription prepare starts before the PG window but is not awaited");
 assertBefore(cardSubscriptionSource, "const rsp = await window.PortOne.requestPayment(requestData);", "setProcessingStage(\"30일 이용권 결제를 확인하고 있어요", "subscription confirm wait starts only after PG response");
 const monthlyCreditSubscriptionSource = pointsSource.slice(handleMonthlyCreditStart, pointsSource.indexOf("const handleSubscriptionCancel", handleMonthlyCreditStart));
 assertContains(monthlyCreditSubscriptionSource, "monthlyStoneBalance < requiredMonthlyCredits", "monthly credit shortage check remains inside monthly-credit handler");
@@ -664,6 +668,18 @@ for (const shellPath of [
 assertContains(pointsSource, '"Idempotency-Key": idempotencyKey', "points pass prepare sends a stable idempotency key");
 assertContains(pointsSource, "startSubscriptionPrepare", "points pass prepare is prefetched when the payment-method modal opens");
 assertContains(pointsSource, "runAccessCheckWithTransientRetry", "points payment entry buffers transient 503s");
+
+// 🔴 결제창은 서버 응답을 기다리면 안 된다. 기다리는 순간 "결제 정보를 준비하고 있어요" 대기 화면이
+// 다시 생기고, 요청이 매달리면 결제창이 영영 뜨지 않는다(2026-07-28 실측 회귀).
+assertContains(pointsSource, "buildClientSubscriptionMerchantUid", "points pass checkout mints the order id client-side so PortOne can open without a server round trip");
+assertContains(pointsSource, "buildClientSingleMerchantUid", "points single checkout mints the order id client-side");
+assertContains(pointsSource, "createRequestTimeout(PAYMENT_PREPARE_TIMEOUT_MS)", "points payment prepare requests are bounded by a timeout");
+assertContains(pointsSource, "ensureSubscriptionOrderPrepared", "points pass checkout guarantees the order record before confirm");
+assertNotContains(
+  pointsSource,
+  "const prepareAttempt = await prepareEntry.promise;",
+  "points pass checkout must not block the PortOne window on the prepare response",
+);
 assertContains(
   pointsSource,
   "monthlyStoneUnverified || monthlyStoneBalance >= pendingSubscriptionMonthlyCreditCost",

@@ -106,10 +106,53 @@ type SubscriptionPrepareAttempt = {
 type SubscriptionPrepareEntry = {
   planId: string;
   method: string;
+  /** 클라이언트가 확정한 주문번호. 결제창은 이 값만으로 서버 응답 없이 열 수 있다. */
+  merchantUid: string;
   idempotencyKey: string;
   settled: boolean;
   promise: Promise<SubscriptionPrepareAttempt>;
 };
+
+/** 결제 준비 요청 상한. 상한이 없으면 매달린 요청이 결제 경로를 영구히 막는다. */
+const PAYMENT_PREPARE_TIMEOUT_MS = 12000;
+
+function createRequestTimeout(ms: number) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  return { signal: controller.signal, done: () => clearTimeout(timer) };
+}
+
+const SUBSCRIPTION_TIER_UID_CODES: Record<string, string> = {
+  standard: "s",
+  premium: "p",
+  vvip: "v",
+  family: "f",
+};
+
+/** 서버 `buildSubscriptionMerchantUid` 와 동일 규격(sub_ 접두 · 안전 문자셋 · 이니시스 oid 40자 한도).
+ *  서버는 이 형식이 맞을 때만 채택하고 아니면 자기 값을 만든다(worker 의 정규화 함수). */
+function buildClientSubscriptionMerchantUid(userId: string, tier: string, durationMonths = 1): string {
+  const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
+  const timestampTag = Date.now().toString(36);
+  const tierCode = SUBSCRIPTION_TIER_UID_CODES[tier]
+    || String(tier || "x").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3)
+    || "x";
+  const randomTag = Math.random().toString(36).slice(2, 6);
+  return `sub_${timestampTag}_${tierCode}${durationMonths}m_${userTag}_${randomTag}`.slice(0, 40);
+}
+
+/** 단건(디지털 콘텐츠) 결제용 주문번호. 서버 `buildMerchantUid` 와 같은 md_ 접두 규격. */
+function buildClientSingleMerchantUid(userId: string): string {
+  const userTag = String(userId || "guest").replace(/[^a-zA-Z0-9]/g, "").slice(-8) || "guest";
+  const randomTag = Math.random().toString(36).slice(2, 8);
+  return `md_${Date.now().toString(36)}_${userTag}_${randomTag}`.slice(0, 40);
+}
+
+/** 서버 `buildSubscriptionCustomerUid` 와 동일 규격. 결제창을 먼저 열 때 서버 응답 대신 쓴다. */
+function buildSubscriptionCustomerUidClient(user: AuthUser | null): string {
+  const userId = String(user?.id || user?.userId || "guest").replace(/[^a-zA-Z0-9]/g, "");
+  return `cdsub_${userId}`;
+}
 
 const KKULKKUL_POINTS_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
 const KKULKKUL_POINTS_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_POINTS_LOGO_PUBLIC_PATH);
@@ -383,15 +426,22 @@ function normalizePaymentPhoneNumber(value: string): string {
 async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
   // 결제창 직전 경로라 일시적 503 하나가 결제를 통째로 막는다 — 공용 완충으로 흡수한다.
   const attempt = await runAccessCheckWithTransientRetry(async () => {
-    const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
-      method: "GET",
-      credentials: "include",
-    }, {
-      retryOn401: true,
-      apiBase,
-    });
-    const parsed = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-    return { status: response.status, data: { ...parsed, ok: response.ok } };
+    // 상한이 없으면 매달린 조회가 결제 경로를 그대로 붙잡는다.
+    const timeout = createRequestTimeout(PAYMENT_PREPARE_TIMEOUT_MS);
+    try {
+      const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
+        method: "GET",
+        credentials: "include",
+        signal: timeout.signal,
+      }, {
+        retryOn401: true,
+        apiBase,
+      });
+      const parsed = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
+      return { status: response.status, data: { ...parsed, ok: response.ok } };
+    } finally {
+      timeout.done();
+    }
   }, { maxAttempts: 3, baseDelayMs: 700 });
 
   if (attempt.data.ok !== true) {
@@ -2833,34 +2883,45 @@ export default function PointsPage() {
     plan: SubscriptionPlan,
     idempotencyKey: string,
     method: string,
+    merchantUid: string,
   ): Promise<SubscriptionPrepareAttempt> => {
     const flowerAdminToken = getFlowerAdminTokenClient();
     // 일시적 DB 장애(503)는 결제 준비를 하드 실패시키지 말고 공용 완충으로 흡수한다.
     return runAccessCheckWithTransientRetry<SubscriptionPrepareAttempt>(async () => {
-      const response = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Idempotency-Key": idempotencyKey,
-          ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          tier: plan.tier,
-          planId: plan.planId,
-          durationMonths: plan.durationMonths,
-          durationDays: 30,
-          amount: plan.wonPrice,
-          currency: "KRW",
-          productType: plan.productType,
-          paymentMethod: method,
-        }),
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-      const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
-      return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
+      // 상한 없는 요청은 매달리면 영원히 매달린다(프로미스가 resolve 되지 않음).
+      // 완충 재시도는 "응답이 온 뒤"에만 동작하므로, hang 은 이 타임아웃으로만 끊을 수 있다.
+      const timeout = createRequestTimeout(PAYMENT_PREPARE_TIMEOUT_MS);
+      try {
+        const response = await authFetch(`${apiBase}/api/payments/subscription/prepare`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotencyKey,
+            ...(flowerAdminToken ? { "x-admin-token": flowerAdminToken } : {}),
+          },
+          credentials: "include",
+          signal: timeout.signal,
+          body: JSON.stringify({
+            tier: plan.tier,
+            planId: plan.planId,
+            durationMonths: plan.durationMonths,
+            durationDays: 30,
+            amount: plan.wonPrice,
+            currency: "KRW",
+            productType: plan.productType,
+            paymentMethod: method,
+            // 결제창을 이 응답보다 먼저 열기 위해 주문번호를 클라이언트가 정한다.
+            merchantUid,
+          }),
+        }, {
+          retryOn401: true,
+          apiBase,
+        });
+        const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
+        return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
+      } finally {
+        timeout.done();
+      }
     }, { maxAttempts: 3, baseDelayMs: 700 });
   }, [apiBase]);
 
@@ -2869,16 +2930,23 @@ export default function PointsPage() {
     const existing = subscriptionPrepareRef.current;
     if (existing && existing.planId === plan.planId && existing.method === method) return existing;
 
-    const idempotencyKey = `membership-prepare-${plan.planId}-${method}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    // 주문번호를 여기서 확정한다. 결제창은 이 값만 있으면 서버 응답 없이 바로 열 수 있다.
+    const merchantUid = buildClientSubscriptionMerchantUid(
+      String(authUser?.id || authUser?.userId || ""),
+      plan.tier,
+      plan.durationMonths,
+    );
     const entry: SubscriptionPrepareEntry = {
       planId: plan.planId,
       method,
-      idempotencyKey,
+      merchantUid,
+      // 멱등키도 주문번호와 같은 값을 쓴다 — 프리페치·클릭·재시도가 한 주문으로 수렴한다.
+      idempotencyKey: merchantUid,
       settled: false,
       promise: null as unknown as Promise<SubscriptionPrepareAttempt>,
     };
-    entry.promise = requestSubscriptionPrepare(plan, idempotencyKey, method)
-      // 메시지는 아래 소비부의 기존 문구를 쓴다(새 한국어 리터럴을 늘리지 않는다).
+    entry.promise = requestSubscriptionPrepare(plan, merchantUid, method, merchantUid)
+      // 메시지는 소비부의 기존 문구를 쓴다(새 한국어 리터럴을 늘리지 않는다).
       .catch(() => ({ status: 0, data: {} } as SubscriptionPrepareAttempt))
       .then((result) => {
         entry.settled = true;
@@ -2886,7 +2954,20 @@ export default function PointsPage() {
       });
     subscriptionPrepareRef.current = entry;
     return entry;
-  }, [requestSubscriptionPrepare, selectedMethod]);
+  }, [requestSubscriptionPrepare, selectedMethod, authUser?.id, authUser?.userId]);
+
+  /** 승인 직후 confirm 하기 전, 주문 레코드가 서버에 있음을 보장한다.
+   *  이용권 결제는 웹훅으로 완결되지 않고 이 confirm 에만 의존하므로(worker 의 Transaction.Paid 는
+   *  digital_content 만 처리), 준비가 실패했으면 같은 주문번호로 한 번 더 만들고 넘어간다. */
+  const ensureSubscriptionOrderPrepared = useCallback(async (
+    plan: SubscriptionPlan,
+    entry: SubscriptionPrepareEntry,
+  ): Promise<SubscriptionPrepareAttempt> => {
+    const first = await entry.promise;
+    if (first.data?.order) return first;
+    return requestSubscriptionPrepare(plan, entry.idempotencyKey, entry.method, entry.merchantUid)
+      .catch(() => first);
+  }, [requestSubscriptionPrepare]);
 
   useEffect(() => {
     setIsSubscriptionRefundAgreed(false);
@@ -2956,18 +3037,6 @@ export default function PointsPage() {
     setProcessingVariant(variant);
     setProcessingText(text);
   }, []);
-
-  const closeProcessingOverlayBeforeExternalCheckout = useCallback(async () => {
-    setIsProcessing(false);
-    hideProcessingOverlay();
-    await new Promise<void>((resolve) => {
-      if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
-        resolve();
-        return;
-      }
-      window.requestAnimationFrame(() => resolve());
-    });
-  }, [hideProcessingOverlay]);
 
   const buildPassAppliedMessage = useCallback((tier?: unknown) => {
     const label = getSubscriptionTierLabel(tier || subscription.tier);
@@ -3674,39 +3743,48 @@ export default function PointsPage() {
     const actionLockKey = `point:${selectedPackage.id}:${selectedMethod}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    setIsProcessing(true);
-    setProcessingStage("잔액을 확인하는 중이에요", "payment");
+    // 🔴 결제창은 서버 응답을 기다리지 않는다. 주문번호를 클라이언트가 정하고 준비는 병렬로 돈다.
+    const productName = getPointPackageTitle(selectedPackage, copy);
+    const merchantUid = buildClientSingleMerchantUid(String(authUser?.id || authUser?.userId || ""));
+    const runSinglePrepare = () => authFetch(`${apiBase}/api/payments/prepare`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": merchantUid,
+      },
+      credentials: "include",
+      // 상한이 없으면 매달린 준비 요청이 결제 경로를 붙잡는다.
+      signal: createRequestTimeout(PAYMENT_PREPARE_TIMEOUT_MS).signal,
+      body: JSON.stringify({
+        paymentAmount: selectedPackage.amount,
+        paymentType: "digital_content",
+        productId: selectedPackage.id,
+        featureKey: selectedPackage.featureKey,
+        coinPrice: selectedPackage.points,
+        paymentMethod: selectedMethod,
+        productName,
+        merchantUid,
+      }),
+    }, {
+      retryOn401: true,
+      apiBase,
+    })
+      .then(async (response) => ({
+        ok: response.ok,
+        payload: await safeParseJson<PrepareOrderResponse & { message?: string }>(response),
+      }))
+      .catch(() => ({ ok: false, payload: {} as PrepareOrderResponse & { message?: string } }));
+
+    let preparePromise = runSinglePrepare();
 
     try {
-      const prepareResponse = await authFetch(`${apiBase}/api/payments/prepare`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          paymentAmount: selectedPackage.amount,
-          paymentType: "digital_content",
-          productId: selectedPackage.id,
-          featureKey: selectedPackage.featureKey,
-          coinPrice: selectedPackage.points,
-          paymentMethod: selectedMethod,
-          productName: getPointPackageTitle(selectedPackage, copy),
-        }),
-      }, {
-        retryOn401: true,
-        apiBase,
-      });
-
-      // Content-Type 검증 후 JSON 파싱
-      const preparePayload = await safeParseJson<PrepareOrderResponse & { message?: string }>(
-        prepareResponse,
-      );
-      if (!prepareResponse.ok || !preparePayload.order) {
-        throw new Error(preparePayload.message || "결제 준비에 실패했습니다.");
-      }
-
-      const order = preparePayload.order;
+      const order = {
+        merchantUid,
+        paymentAmount: selectedPackage.amount,
+        chargePoints: selectedPackage.points,
+        coinPrice: selectedPackage.points,
+        productName,
+      };
       savePendingOrder({
         merchantUid: order.merchantUid,
         paymentAmount: order.paymentAmount,
@@ -3755,8 +3833,6 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      setProcessingStage("원화 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
-      await closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -3779,6 +3855,13 @@ export default function PointsPage() {
       try {
         setProcessingStage("결제가 완료됐어요\n결과를 불러오는 중이에요", "payment-complete");
         setIsProcessing(true);
+        // 결제창을 먼저 열었으므로 승인된 지금은 주문 레코드가 있어야 한다. 준비가 실패했으면
+        // 같은 주문번호로 한 번 더 만든다(멱등키가 같아 중복 주문이 생기지 않는다).
+        const prepared = await preparePromise;
+        if (!prepared.ok || !prepared.payload.order) {
+          preparePromise = runSinglePrepare();
+          await preparePromise;
+        }
         const result = await confirmPaymentWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,
@@ -3841,43 +3924,18 @@ export default function PointsPage() {
     const actionLockKey = `subscription:${plan.planId}:${selectedMethod || "card_general"}`;
     if (!acquirePaymentActionLock(actionLockKey)) return;
 
-    // 모달을 열 때 걸어둔 준비가 이미 끝났으면 대기 오버레이를 아예 띄우지 않는다 —
-    // 이 오버레이("결제 정보를 준비하고 있어요")의 정체가 곧 prepare 서버 왕복 대기였다.
+    // 🔴 결제창은 어떤 서버 응답도 기다리지 않는다.
+    // 주문번호는 클라이언트가 확정하고(startSubscriptionPrepare), 결제 준비는 결제창과 병렬로 돈다.
+    // 예전에는 prepare 응답을 await 하느라 "결제 정보를 준비하고 있어요" 오버레이가 먼저 떴고,
+    // 요청이 매달리면 결제창이 영영 안 떴다.
     const prepareEntry = startSubscriptionPrepare(plan);
-    const showPrepareOverlay = !prepareEntry.settled;
 
     setPendingSubscriptionPaymentPlan(null);
-    if (showPrepareOverlay) {
-      setProcessingStage("30일 이용권 결제 정보를 준비하고 있어요", "checkout");
-      setIsProcessing(true);
-    }
 
     try {
-      const prepareAttempt = await prepareEntry.promise;
-      const prepareStatus = prepareAttempt.status;
-      const prepareData = prepareAttempt.data;
-
-      if (prepareStatus === 404 || prepareStatus === 405 || prepareStatus === 501) {
-        pushToast("error", "이용권 결제 API를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
-        return;
-      }
-
-      if (!prepareData.order) {
-        // 준비가 실패한 프리페치 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
-        subscriptionPrepareRef.current = null;
-        if (prepareStatus === 409) {
-          pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
-          return;
-        }
-        pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
-        return;
-      }
-
-      // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
+      // 모달 오픈 시 워밍해둔 SDK·config. 대개 이미 준비돼 있어 즉시 통과한다.
       const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
       if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
-
-      const order = prepareData.order;
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
@@ -3885,6 +3943,14 @@ export default function PointsPage() {
       // 모달 오픈 시 미리 받아둔 결제용 번호 조회 결과를 재사용한다(왕복 1회 절감).
       const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
+      // 상품명·금액은 서버 응답이 아니라 클라이언트 플랜 상수로 채운다. 위변조는 서버가 confirm 에서
+      // 금액을 대조해 막는다(SUBSCRIPTION_PRICE_MISMATCH).
+      const order = {
+        merchantUid: prepareEntry.merchantUid,
+        customerUid: buildSubscriptionCustomerUidClient(authUser),
+        productName: `${copy.planTitles[plan.tier] || plan.title} 30d`,
+        paymentAmount: plan.wonPrice,
+      };
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
       const requestData: PortOnePaymentRequest = {
@@ -3921,7 +3987,6 @@ export default function PointsPage() {
       });
       savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
-      await closeProcessingOverlayBeforeExternalCheckout();
       // 이 주문은 결제창으로 넘어갔다. 성공하든 취소되든 재사용하지 않는다 —
       // 이미 시도된 paymentId 로 다시 결제창을 열면 PG 가 거절한다.
       subscriptionPrepareRef.current = null;
@@ -3947,6 +4012,10 @@ export default function PointsPage() {
       try {
         setProcessingStage("30일 이용권 결제를 확인하고 있어요\n잠시만 기다려 주세요", "subscription");
         setIsProcessing(true);
+        // 결제창을 먼저 열었으므로, 승인된 이 시점에는 주문 레코드가 서버에 반드시 있어야 한다.
+        // 카드 입력에 수 초가 걸려 대개 이미 끝나 있고, 실패했으면 같은 주문번호로 한 번 더 만든다.
+        // (이용권은 웹훅으로 완결되지 않고 이 confirm 에만 의존한다 — 여기서 보장하지 않으면 404 가 된다.)
+        await ensureSubscriptionOrderPrepared(plan, prepareEntry);
         const confirmData = await confirmSubscriptionWithServer({
           impUid: paymentId,
           merchantUid: order.merchantUid,

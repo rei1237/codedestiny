@@ -176,6 +176,16 @@ function buildMerchantUid(userId) {
   return `md_${Date.now()}_${userTag}_${randomTag}`;
 }
 
+// 단건(디지털 콘텐츠) 결제도 결제창을 서버 응답보다 먼저 열 수 있도록 클라이언트 주문번호를 받는다.
+// 규격은 구독과 동일한 근거(이니시스 oid 40자 한도·안전 문자셋)에 접두만 md_ 다.
+const CLIENT_SINGLE_MERCHANT_UID_PATTERN = /^md_[A-Za-z0-9_-]{1,36}$/;
+
+function normalizeClientSingleMerchantUid(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate || candidate.length > 40) return "";
+  return CLIENT_SINGLE_MERCHANT_UID_PATTERN.test(candidate) ? candidate : "";
+}
+
 function isDigitalContentPaymentRequest(body = {}) {
   const paymentType = String(body?.paymentType || body?.type || "").trim().toLowerCase();
   return paymentType === "digital_content"
@@ -321,6 +331,18 @@ function buildSubscriptionMerchantUid(userId, tier, durationMonths = 1) {
   const tierCode = tierCodeMap[tier] || String(tier || "x").replace(/[^a-zA-Z0-9]/g, "").slice(0, 3) || "x";
   const randomTag = Math.random().toString(36).slice(2, 6);
   return `sub_${timestampTag}_${tierCode}${durationMonths}m_${userTag}_${randomTag}`.slice(0, 40);
+}
+
+// 클라이언트가 만든 주문번호를 받아들이기 위한 형식 검증.
+// 결제창을 서버 응답보다 먼저 열려면 주문번호를 클라이언트가 미리 알아야 한다. 형식만 강제하고
+// (이니시스 oid 한도 40자·안전 문자셋·sub_ 접두) 소유권은 기존 unique 인덱스와 사용자 스코프
+// 조회가 지킨다 — 남의 주문번호를 보내면 중복키로 실패하고 남의 주문을 열람할 수 없다.
+const CLIENT_SUBSCRIPTION_MERCHANT_UID_PATTERN = /^sub_[A-Za-z0-9_-]{1,36}$/;
+
+function normalizeClientSubscriptionMerchantUid(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate || candidate.length > 40) return "";
+  return CLIENT_SUBSCRIPTION_MERCHANT_UID_PATTERN.test(candidate) ? candidate : "";
 }
 
 function buildSubscriptionCustomerUid(userId) {
@@ -3498,7 +3520,8 @@ async function handleDigitalContentPrepare(request, auth, body) {
     }
   }
 
-  const merchantUid = buildMerchantUid(auth.userId);
+  // 클라이언트가 보낸 주문번호가 형식에 맞으면 채택한다(결제창 선(先)오픈용). 아니면 서버가 생성.
+  const merchantUid = normalizeClientSingleMerchantUid(body?.merchantUid) || buildMerchantUid(auth.userId);
   await Payment.create({
     userId: auth.userId,
     merchantUid,
@@ -3659,7 +3682,10 @@ async function handleSubscriptionPrepare(request, env, auth) {
     }
   }
 
-  const merchantUid = buildSubscriptionMerchantUid(auth.userId, tier, plan.durationMonths);
+  // 클라이언트가 보낸 주문번호가 형식에 맞으면 그대로 쓴다. 그래야 결제창을 이 응답보다 먼저 열 수 있다.
+  // 형식이 어긋나면 무시하고 종전대로 서버가 생성한다(하위호환 — 구버전 클라이언트도 그대로 동작).
+  const merchantUid = normalizeClientSubscriptionMerchantUid(body?.merchantUid)
+    || buildSubscriptionMerchantUid(auth.userId, tier, plan.durationMonths);
   const customerUid = buildSubscriptionCustomerUid(auth.userId);
 
   try {
