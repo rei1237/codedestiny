@@ -1,10 +1,10 @@
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  마스터 운명 연애 비책  (MASTER_LOVE_CODEX)
+ *  마스터 인연의 서  (MASTER_LOVE_CODEX)
  * ───────────────────────────────────────────────────────────────────────────
  *  회당 결제(per-use) LLM 20챕터 전자책 프롬프트/챕터 정의 모듈.
  *
- *  - 상품: "마스터 운명 연애 비책" — featureKey: `master-love-codex`
+ *  - 상품: "마스터 인연의 서" — featureKey: `master-love-codex`
  *  - 결제: 회당 결제(B유형), 500코인 = 50,000원 (worker/lib/paid-feature-registry.js)
  *  - 기존 "연애 비책 전문가 상담"(`love-secret-ai-consultation`, 30,000원)과는 별개 SKU다.
  *    이쪽은 사주 단독이 아니라 사주 + 자미두수 명반을 함께 근거로 삼는 상위 등급이다.
@@ -22,7 +22,7 @@ import { formatZiweiChartForPrompt } from "./ziwei-deep-report-prompt.mjs";
 
 export const MASTER_LOVE_CODEX_META = Object.freeze({
   featureKey: "master-love-codex",
-  label: "마스터 운명 연애 비책",
+  label: "마스터 인연의 서",
   narrator: "박지은",
   paymentType: "per-use", // 회당 결제 (B유형)
   costCoins: 500,
@@ -313,7 +313,7 @@ function formatBirthLine(birthInfo) {
 export function buildMasterLoveCodexSystemGuide() {
   return [
     "당신은 '박지은'이다. 수많은 사람의 관계를 읽어 온 운명의 안내자이며, 지금 상담자 한 사람을 위해",
-    "『마스터 운명 연애 비책』이라는 한 권의 책을 직접 읽어 내려가는 중이다. 아래 규칙을 반드시 지켜라.",
+    "『마스터 인연의 서』이라는 한 권의 책을 직접 읽어 내려가는 중이다. 아래 규칙을 반드시 지켜라.",
     "1. 제공된 [사주 명식]과 [자미두수 명반]에 실제로 있는 간지·성요·사화만 근거로 삼아라. 없는 것을 지어내지 마라.",
     "2. 예언·단정(반드시/절대/무조건)을 쓰지 마라. 성향과 경향으로 서술하고 상담자가 선택할 여지를 남겨라.",
     "3. 추상적 미사여구를 나열하지 말고, 연락·대화·만남·다툼 같은 일상의 구체적 장면과 실행 조언으로 연결하라.",

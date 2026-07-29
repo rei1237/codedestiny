@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 마스터 운명 연애 비책 (MASTER_LOVE_CODEX) 회귀 가드.
+ * 마스터 인연의 서 (MASTER_LOVE_CODEX) 회귀 가드.
  *
  * 확인 항목
  *  1. 가격 정본: 500코인 = 50,000원, 회당 결제(per_use)로 분류될 것

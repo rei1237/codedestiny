@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 프롤로그 렌더러.
+ * 마스터 인연의 서 — 프롤로그 렌더러.
  *
  * stage 는 부모가 소유하고(리프트), 이 컴포넌트는 씬 안의 line 커서만 갖는다.
  * "question" 씬에서만 선택지 4종을 노출하고, 고른 값을 부모로 올린다.
@@ -68,7 +68,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
   const backgroundUrl = masterLoveCodexAssets.backgrounds[scene.background];
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#0d0714]" aria-label="마스터 운명 연애 비책 프롤로그">
+    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#0d0714]" aria-label="마스터 인연의 서 프롤로그">
       <div
         className="absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
         style={{
@@ -124,7 +124,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
           {scene.actor === "book" ? (
             <Image
               src={masterLoveCodexAssets.cover}
-              alt="마스터 운명 연애 비책"
+              alt="마스터 인연의 서"
               width={640}
               height={427}
               unoptimized

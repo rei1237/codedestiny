@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 타자기 대사창.
+ * 마스터 인연의 서 — 타자기 대사창.
  *
  * 운명 찻집 TeaHouseDialogueBox 의 동작 계약을 따른다:
  *  - grapheme-safe(Array.from) 로 한 글자씩 노출 → 한글·이모지 깨짐 방지

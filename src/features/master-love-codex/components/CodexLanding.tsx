@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 랜딩(입장 화면).
+ * 마스터 인연의 서 — 랜딩(입장 화면).
  * 프롤로그를 본 적 있으면 CTA 문구가 "바로 시작하기"로 바뀌고 다시보기 버튼이 붙는다.
  */
 
@@ -27,7 +27,7 @@ const HIGHLIGHTS = [
 
 export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, onReplayPrologue }: CodexLandingProps) {
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#0d0714]" aria-label="마스터 운명 연애 비책 입장">
+    <section className="relative min-h-[100svh] overflow-hidden bg-[#0d0714]" aria-label="마스터 인연의 서 입장">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-45"
         style={{ backgroundImage: `url("${masterLoveCodexAssets.backgrounds.library}")` }}
@@ -59,7 +59,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
 
       <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-5 pb-16 pt-8 text-center sm:px-8 sm:pt-12">
         <p className="text-[11px] font-black tracking-[0.34em] text-amber-100/80">MASTER DESTINY</p>
-        <h1 className="font-display mt-3 text-3xl font-black leading-tight text-rose-50 sm:text-5xl">마스터 운명 연애 비책</h1>
+        <h1 className="font-display mt-3 text-3xl font-black leading-tight text-rose-50 sm:text-5xl">마스터 인연의 서</h1>
         <p className="mt-4 max-w-xl text-sm leading-7 text-rose-50/80 sm:text-base sm:leading-8">
           사주와 자미두수를 하나로 엮어, 운명의 안내자 박지은이 당신의 연애 인생을 {chapterCount}장에 걸쳐 읽어 내려갑니다.
           운세 결과가 아니라 한 권의 연애 전략서입니다.
@@ -67,7 +67,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
 
         <Image
           src={masterLoveCodexAssets.cover}
-          alt="마스터 운명 연애 비책 — 신비의 도서관에서 펼쳐지는 연애 전략서"
+          alt="마스터 인연의 서 — 신비의 도서관에서 펼쳐지는 연애 전략서"
           width={768}
           height={512}
           unoptimized

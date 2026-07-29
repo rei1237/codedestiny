@@ -849,7 +849,7 @@ loveSecretAiConsultationSchema.index({ userId: 1, attemptId: 1 });
 loveSecretAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
 /**
- * 마스터 운명 연애 비책 (MASTER_LOVE_CODEX)
+ * 마스터 인연의 서 (MASTER_LOVE_CODEX)
  * 회당 결제(500코인=50,000원) 20챕터 전자책. 회당 결제지만 생성 결과는 영구 저장해
  * 같은 세션(sessionId)을 재결제 없이 다시 열람할 수 있게 한다.
  */

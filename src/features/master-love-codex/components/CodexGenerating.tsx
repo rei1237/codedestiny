@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 생성 진행 화면.
+ * 마스터 인연의 서 — 생성 진행 화면.
  * 배치(4장씩)가 끝날 때마다 진행률이 갱신되고, 완성된 장 제목이 서가에 하나씩 꽂힌다.
  */
 
@@ -38,7 +38,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
   }, []);
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#0d0714]" aria-label="비책 생성 중">
+    <section className="relative flex min-h-[100svh] flex-col overflow-hidden bg-[#0d0714]" aria-label="인연의 서 생성 중">
       <div
         className="absolute inset-0 bg-cover bg-center opacity-35"
         style={{ backgroundImage: `url("${masterLoveCodexAssets.backgrounds.library}")` }}
@@ -58,7 +58,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
 
         <p className="mt-6 text-[11px] font-black tracking-[0.3em] text-amber-100/75">MASTER DESTINY</p>
         <h2 className="font-display mt-2 text-xl font-black text-rose-50 sm:text-2xl">
-          {name ? `${name}님의 비책을 쓰는 중입니다` : "당신의 비책을 쓰는 중입니다"}
+          {name ? `${name}님의 인연의 서를 쓰는 중입니다` : "당신의 인연의 서를 쓰는 중입니다"}
         </h2>
 
         <div
@@ -67,7 +67,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
           aria-valuenow={percent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="비책 완성 진행률"
+          aria-label="인연의 서 완성 진행률"
         >
           <div
             className="h-full rounded-full bg-gradient-to-r from-amber-200 via-rose-200 to-amber-100 transition-[width] duration-700 ease-out"

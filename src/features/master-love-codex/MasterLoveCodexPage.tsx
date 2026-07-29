@@ -2,7 +2,7 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  마스터 운명 연애 비책  (MASTER_LOVE_CODEX)  —  몰입형 오케스트레이터
+ *  마스터 인연의 서  (MASTER_LOVE_CODEX)  —  몰입형 오케스트레이터
  * ───────────────────────────────────────────────────────────────────────────
  *  landing → prologue(무료) → birthGate → [결제 게이트] → generating(배치) → reader
  *
@@ -43,14 +43,14 @@ import {
 type Phase = "landing" | "prologue" | "birth" | "checking" | "payment" | "generating" | "reader";
 
 const ERROR_TEXT: Record<string, string> = {
-  LOGIN_REQUIRED: "비책을 열려면 로그인이 필요합니다.",
-  PAYMENT_REQUIRED: "회당 결제가 필요한 비책입니다.",
+  LOGIN_REQUIRED: "인연의 서를 열려면 로그인이 필요합니다.",
+  PAYMENT_REQUIRED: "회당 결제가 필요합니다.",
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 끝났다면 잠시 후 다시 시도해 주세요.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다.",
   INVALID_INPUT: "생년월일과 태어난 시각을 확인해 주세요.",
   CALCULATION_FAILED: "명식과 명반을 세우지 못했습니다. 입력값을 확인해 주세요.",
   GENERATION_IN_PROGRESS: "이미 다른 창에서 이어 쓰는 중입니다. 잠시 후 다시 시도해 주세요.",
-  SERVER_ERROR: "비책을 준비하는 중 문제가 발생했습니다.",
+  SERVER_ERROR: "인연의 서를 준비하는 중 문제가 발생했습니다.",
   NETWORK_ERROR: "연결이 불안정합니다. 잠시 후 다시 시도해 주세요.",
 };
 
@@ -312,7 +312,7 @@ export default function MasterLoveCodexPage() {
           requestId: idempotencyKey,
           title: "확인 완료",
           reason: MASTER_LOVE_CODEX_TITLE,
-          message: "비책을 펼칩니다.",
+          message: "인연의 서를 펼칩니다.",
         });
         startBody = { ...startBody, accessToken: ensure.data.accessToken, accessType: ensure.data.accessType };
       } else if (ensure.data?.reason === "PAYMENT_REQUIRED") {
@@ -417,7 +417,7 @@ export default function MasterLoveCodexPage() {
             onClick={() => router.push(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionId)}`)}
             className="text-xs font-bold text-amber-100/70 underline-offset-4 hover:underline"
           >
-            보관된 비책 주소로 이동
+            보관함 주소로 이동
           </button>
         </div>
       </>

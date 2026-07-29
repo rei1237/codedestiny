@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 생년 정보 입력.
+ * 마스터 인연의 서 — 생년 정보 입력.
  *
  * 공용 훅 useAiProfileSeed 로 현재 선택된 프로필 카드에서 자동 프리필한다.
  * 사용자가 이미 손댄 값은 덮어쓰지 않는다(빈 값만 채움).
@@ -115,7 +115,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
               className={inputClass}
               value={value.name}
               maxLength={20}
-              placeholder="비책 표지에 새겨집니다"
+              placeholder="표지에 새겨집니다"
               onChange={(event) => patch({ name: event.target.value })}
             />
           </div>
@@ -221,7 +221,7 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
             className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-200 via-rose-200 to-amber-100 px-6 py-3.5 text-sm font-black text-[#2b1020] shadow-[0_18px_38px_-16px_rgba(255,214,150,.7)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-            {busy ? busyLabel : "비책 펼치기"}
+            {busy ? busyLabel : "인연의 서 펼치기"}
           </button>
           {priceSlot}
         </div>

@@ -254,8 +254,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 연간 트랜짓 운세" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
-  // 마스터 운명 연애 비책 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책(3만원)과 별개 SKU
-  "master-love-codex": { cost: 500, amountKRW: 50000, reason: "마스터 운명 연애 비책" },
+  // 마스터 인연의 서 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책(3만원)과 별개 SKU
+  "master-love-codex": { cost: 500, amountKRW: 50000, reason: "마스터 인연의 서" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 전문가 상담" },
   "ziwei-island-palace-consult": { cost: 200, amountKRW: 20000, reason: "운명의 섬 12궁 심층 상담" },
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트

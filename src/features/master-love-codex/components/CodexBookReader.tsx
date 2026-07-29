@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 완성된 책 리더.
+ * 마스터 인연의 서 — 완성된 책 리더.
  *
  * 장 넘김은 공용 PagedResultViewer 를 쓴다(스와이프·키보드·전체보기 토글 포함).
  * PDF 저장 시에는 expandForExport 로 전 장을 펼친 뒤 캡처해야 한다 —
@@ -48,7 +48,7 @@ interface CodexBookReaderProps {
 }
 
 function safeFilePart(value: string) {
-  return String(value || "비책").replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || "비책";
+  return String(value || "인연의서").replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || "인연의서";
 }
 
 export default function CodexBookReader({ chapters, loveDna, name, birthLine, totalCharCount, sessionId }: CodexBookReaderProps) {
@@ -99,10 +99,10 @@ export default function CodexBookReader({ chapters, loveDna, name, birthLine, to
       const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["#master-love-codex-document [data-codex-pdf-page]"],
-        fileName: `마스터운명연애비책_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
+        fileName: `마스터인연의서_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
         backgroundColor: "#150b1e",
         cover: {
-          title: `${safeFilePart(name)}님의 마스터 운명 연애 비책`,
+          title: `${safeFilePart(name)}님의 마스터 인연의 서`,
           subtitle: loveDna?.typeName ? `${loveDna.typeName} · 전 ${ordered.length}장` : `전 ${ordered.length}장`,
           name: birthLine,
           date: today,
@@ -117,7 +117,7 @@ export default function CodexBookReader({ chapters, loveDna, name, birthLine, to
   }
 
   return (
-    <section className="relative min-h-[100svh] bg-[#0d0714] pb-16" aria-label="마스터 운명 연애 비책 본문">
+    <section className="relative min-h-[100svh] bg-[#0d0714] pb-16" aria-label="마스터 인연의 서 본문">
       <div
         className="absolute inset-x-0 top-0 h-[42svh] bg-cover bg-center opacity-30"
         style={{ backgroundImage: `url("${masterLoveCodexAssets.backgrounds.library}")` }}
@@ -194,7 +194,7 @@ export default function CodexBookReader({ chapters, loveDna, name, birthLine, to
         </nav>
 
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/25 bg-amber-200/10 px-4 py-3">
-          <p className="text-xs font-semibold text-amber-100/85">이 비책은 서재에 보관되어 언제든 다시 열 수 있습니다.</p>
+          <p className="text-xs font-semibold text-amber-100/85">이 책은 서재에 보관되어 언제든 다시 열 수 있습니다.</p>
           <button
             type="button"
             onClick={() => void handlePdfDownload()}
@@ -213,7 +213,7 @@ export default function CodexBookReader({ chapters, loveDna, name, birthLine, to
         <div ref={documentRef} id="master-love-codex-document" className="mt-6">
           <PagedResultViewer
             pages={pages}
-            deckLabel="마스터 운명 연애 비책 장 넘기기"
+            deckLabel="마스터 인연의 서 장 넘기기"
             viewAll={viewAll}
             onViewAllChange={setViewAll}
             expandForExport={exportExpand}

@@ -9,7 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/master-love-codex/";
-const PAGE_TITLE = "마스터 운명 연애 비책 | 사주·자미두수 융합 20장 연애 전략서 — Code Destiny";
+const PAGE_TITLE = "마스터 인연의 서 | 사주·자미두수 융합 20장 연애 전략서 — Code Destiny";
 const PAGE_DESCRIPTION =
   "사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 상담. 운명의 안내자 박지은이 한 권의 연애 전략서로 읽어 드립니다.";
 
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.siteName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "마스터 운명 연애 비책" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "마스터 인연의 서" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -66,9 +66,9 @@ const chapterOutline = [
 
 const masterLoveCodexFaqItems = [
   {
-    question: "마스터 운명 연애 비책은 기존 연애 비책 상담과 무엇이 다른가요?",
+    question: "마스터 인연의 서는 기존 연애 비책 상담과 무엇이 다른가요?",
     answer:
-      "기존 연애 비책 상담이 사주 명식만으로 지금의 연애 흐름을 읽어 준다면, 마스터 운명 연애 비책은 사주와 자미두수 명반을 함께 펼쳐 두고 스무 장에 걸쳐 관계 전체를 다룹니다. 두 체계가 같은 말을 하는 지점은 신뢰도가 높은 성향으로, 엇갈리는 지점은 그 이유까지 설명해 드립니다. 분량과 깊이가 다른 상위 등급 상담입니다.",
+      "기존 연애 비책 상담이 사주 명식만으로 지금의 연애 흐름을 읽어 준다면, 마스터 인연의 서는 사주와 자미두수 명반을 함께 펼쳐 두고 스무 장에 걸쳐 관계 전체를 다룹니다. 두 체계가 같은 말을 하는 지점은 신뢰도가 높은 성향으로, 엇갈리는 지점은 그 이유까지 설명해 드립니다. 분량과 깊이가 다른 상위 등급 상담입니다.",
   },
   {
     question: "어떤 정보가 필요한가요?",
@@ -78,12 +78,12 @@ const masterLoveCodexFaqItems = [
   {
     question: "상대방의 생년월일도 필요한가요?",
     answer:
-      "필요하지 않습니다. 이 비책은 상대를 점치는 것이 아니라 당신이 관계에서 반복하는 방식을 읽는 책입니다. 어떤 사람에게 끌리는지, 어떤 지점에서 마음을 닫는지, 갈등이 어디에서 시작되는지를 당신의 명식과 명반만으로 짚습니다.",
+      "필요하지 않습니다. 이 책은 상대를 점치는 것이 아니라 당신이 관계에서 반복하는 방식을 읽는 책입니다. 어떤 사람에게 끌리는지, 어떤 지점에서 마음을 닫는지, 갈등이 어디에서 시작되는지를 당신의 명식과 명반만으로 짚습니다.",
   },
   {
     question: "결과는 다시 볼 수 있나요?",
     answer:
-      "네. 완성된 비책은 계정에 보관되어 재결제 없이 다시 열람할 수 있습니다. 생성 도중 창을 닫으셔도 그때까지 쓰인 장은 그대로 보관되며, 다시 들어오시면 이어서 완성할 수 있습니다. PDF로 내려받아 소장하실 수도 있습니다.",
+      "네. 완성된 인연의 서는 계정에 보관되어 재결제 없이 다시 열람할 수 있습니다. 생성 도중 창을 닫으셔도 그때까지 쓰인 장은 그대로 보관되며, 다시 들어오시면 이어서 완성할 수 있습니다. PDF로 내려받아 소장하실 수도 있습니다.",
   },
   {
     question: "이용권으로 볼 수 있나요?",
@@ -93,13 +93,13 @@ const masterLoveCodexFaqItems = [
   {
     question: "결과를 그대로 믿어도 되나요?",
     answer:
-      "명식과 명반은 타고난 성향과 시기의 흐름을 보여 주는 지도일 뿐, 정해진 결말이 아닙니다. 이 비책도 단정하는 대신 경향과 조건으로 서술합니다. 결혼이나 이별처럼 무게가 큰 결정은 이 한 권으로 정하기보다 실제 대화와 시간을 함께 쌓으며 확인하시길 권합니다.",
+      "명식과 명반은 타고난 성향과 시기의 흐름을 보여 주는 지도일 뿐, 정해진 결말이 아닙니다. 이 책도 단정하는 대신 경향과 조건으로 서술합니다. 결혼이나 이별처럼 무게가 큰 결정은 이 한 권으로 정하기보다 실제 대화와 시간을 함께 쌓으며 확인하시길 권합니다.",
   },
 ];
 
 const masterLoveCodexJsonLd = [
   buildServiceJsonLd({
-    name: "마스터 운명 연애 비책",
+    name: "마스터 인연의 서",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "사주·자미두수 융합 프리미엄 연애 상담",
@@ -107,7 +107,7 @@ const masterLoveCodexJsonLd = [
   buildFaqPageJsonLd(masterLoveCodexFaqItems),
   buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },
-    { name: "마스터 운명 연애 비책", path: PAGE_PATH },
+    { name: "마스터 인연의 서", path: PAGE_PATH },
   ]),
 ];
 
@@ -119,10 +119,10 @@ export default function MasterLoveCodexPageRoute() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(masterLoveCodexJsonLd) }}
       />
       <MasterLoveCodexRouteClient />
-      <ServiceIntroSection label="마스터 운명 연애 비책 안내">
-        <h1>마스터 운명 연애 비책 — 사주와 자미두수로 읽는 스무 장의 연애 전략서</h1>
+      <ServiceIntroSection label="마스터 인연의 서 안내">
+        <h1>마스터 인연의 서 — 사주와 자미두수로 읽는 스무 장의 연애 전략서</h1>
         <p>
-          마스터 운명 연애 비책은 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
+          마스터 인연의 서는 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
           십성, 오행의 균형과 조후, 대운과 세운의 흐름)과 자미두수 명반(명궁·부부궁·복덕궁을 비롯한
           열두 궁과 생년사화, 삼방사정)을 한자리에 펼쳐 두고, 두 체계를 서로 맞춰 가며 당신이 사랑에서
           반복하는 방식을 스무 장에 걸쳐 읽어 내려갑니다. 짧은 요약이나 몇 줄의 총평이 아니라,
@@ -144,7 +144,7 @@ export default function MasterLoveCodexPageRoute() {
         </p>
         <h2>스무 장의 구성</h2>
         <p>
-          비책은 타고난 기질에서 시작해 끌림, 관계의 전개, 갈등과 회복, 이별과 재회, 결혼과 장기 동행을
+          이 책은 타고난 기질에서 시작해 끌림, 관계의 전개, 갈등과 회복, 이별과 재회, 결혼과 장기 동행을
           지나 마지막 편지로 닫힙니다. 각 장은 근거를 먼저 밝히고, 그 근거가 실제 관계에서 어떤 장면으로
           나타나는지 보여 준 뒤, 오늘부터 해 볼 수 있는 조언으로 마무리합니다.
         </p>
@@ -177,10 +177,10 @@ export default function MasterLoveCodexPageRoute() {
           <li>도서관에 입장해 프롤로그를 읽습니다. 프롤로그는 무료이며 언제든 건너뛸 수 있습니다.</li>
           <li>생년월일과 태어난 시각을 입력합니다. 프로필 카드가 있으면 자동으로 채워집니다.</li>
           <li>입력한 정보로 사주 명식과 자미두수 명반을 세운 뒤, 스무 장을 순서대로 씁니다.</li>
-          <li>완성된 비책은 계정에 보관되며, 언제든 다시 열람하거나 PDF로 내려받을 수 있습니다.</li>
+          <li>완성된 인연의 서는 계정에 보관되며, 언제든 다시 열람하거나 PDF로 내려받을 수 있습니다.</li>
         </ol>
         <p>
-          비책이 쓰이는 동안 창을 닫으셔도 괜찮습니다. 이미 완성된 장은 그대로 보관되고, 다시 들어오시면
+          책이 쓰이는 동안 창을 닫으셔도 괜찮습니다. 이미 완성된 장은 그대로 보관되고, 다시 들어오시면
           남은 장부터 이어서 채워집니다. 한 번에 다 읽지 않으셔도 되며, 목차에서 원하는 장으로 바로
           건너뛸 수 있습니다.
         </p>

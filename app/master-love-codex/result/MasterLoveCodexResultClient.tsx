@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * 마스터 운명 연애 비책 — 보관된 비책 재열람.
+ * 마스터 인연의 서 — 보관된 인연의 서 재열람.
  * 회당 결제지만 결과는 서버에 영구 저장되므로 이 화면은 재결제 없이 열린다.
  */
 
@@ -46,7 +46,7 @@ export default function MasterLoveCodexResultClient() {
     if (typeof window === "undefined") return;
     const sessionId = new URLSearchParams(window.location.search).get("sessionId") || "";
     if (!sessionId) {
-      setError("보관 번호가 없습니다. 서재에서 비책을 다시 선택해 주세요.");
+      setError("보관 번호가 없습니다. 서재에서 인연의 서를 다시 선택해 주세요.");
       setLoading(false);
       return;
     }
@@ -60,11 +60,11 @@ export default function MasterLoveCodexResultClient() {
         if (isRetriableResultPollFailure(response.status, payload)) {
           setError("연결이 잠시 불안정합니다. 잠시 후 새로고침해 주세요.");
         } else if (response.status === 401) {
-          setError("비책을 열려면 로그인이 필요합니다.");
+          setError("인연의 서를 열려면 로그인이 필요합니다.");
         } else if (response.status === 404) {
-          setError("요청하신 비책을 찾을 수 없습니다.");
+          setError("요청하신 인연의 서를 찾을 수 없습니다.");
         } else {
-          setError(payload?.message || "비책을 불러오지 못했습니다.");
+          setError(payload?.message || "인연의 서를 불러오지 못했습니다.");
         }
         setLoading(false);
         return;
@@ -91,7 +91,7 @@ export default function MasterLoveCodexResultClient() {
       <div className="flex min-h-[100svh] items-center justify-center bg-[#0d0714] text-rose-50">
         <p className="flex items-center gap-2 text-sm">
           <Loader2 className="h-4 w-4 animate-spin text-amber-200" aria-hidden="true" />
-          보관된 비책을 여는 중입니다...
+          보관된 인연의 서를 여는 중입니다...
         </p>
       </div>
     );
@@ -100,12 +100,12 @@ export default function MasterLoveCodexResultClient() {
   if (error || !session) {
     return (
       <div className="flex min-h-[100svh] flex-col items-center justify-center gap-4 bg-[#0d0714] px-6 text-center text-rose-50">
-        <p role="alert" className="max-w-sm text-sm leading-7 text-rose-100/85">{error || "비책을 찾을 수 없습니다."}</p>
+        <p role="alert" className="max-w-sm text-sm leading-7 text-rose-100/85">{error || "인연의 서를 찾을 수 없습니다."}</p>
         <Link
           href="/master-love-codex"
           className="rounded-full bg-gradient-to-r from-amber-200 via-rose-200 to-amber-100 px-5 py-2.5 text-sm font-black text-[#2b1020]"
         >
-          비책 화면으로
+          인연의 서 화면으로
         </Link>
       </div>
     );
@@ -116,7 +116,7 @@ export default function MasterLoveCodexResultClient() {
       {session.status !== "completed" ? (
         <div className="bg-[#0d0714] px-5 pt-6">
           <p className="mx-auto max-w-3xl rounded-xl border border-amber-200/30 bg-amber-200/10 px-4 py-3 text-center text-xs font-semibold text-amber-100/85">
-            아직 다 쓰이지 않은 비책입니다. 비책 화면에서 이어 쓰면 남은 장이 채워집니다.
+            아직 다 쓰이지 않은 인연의 서입니다. 본편 화면에서 이어 쓰면 남은 장이 채워집니다.
           </p>
         </div>
       ) : null}
