@@ -99,7 +99,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
           {scene.actor === "narrator" ? (
             <Image
               src={getNarratorAsset(line?.mood)}
-              alt="운명의 안내자 박지은"
+              alt="연애 고수"
               width={520}
               height={720}
               unoptimized
@@ -158,7 +158,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
 
           {isChoiceStage && !choiceKey ? (
             <p className="mt-6 text-center text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
-              한 가지를 고르면 박지은이 답합니다.
+              한 가지를 고르면 연애 고수가 답합니다.
             </p>
           ) : null}
 

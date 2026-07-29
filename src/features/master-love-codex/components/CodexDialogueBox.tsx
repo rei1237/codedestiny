@@ -17,7 +17,7 @@ const TYPE_INTERVAL_MS = 24;
 const TYPE_INTERVAL_NARRATION_MS = 46;
 
 interface CodexDialogueBoxProps {
-  speaker: "narration" | "박지은";
+  speaker: "narration" | "연애 고수";
   text: string;
   cta?: string;
   onAdvance?: () => void;

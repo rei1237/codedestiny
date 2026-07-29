@@ -51,7 +51,7 @@ export default function CodexGenerating({ completed, total, latestTitles, name }
       <div className={styles.measure}>
         <Image
           src={getNarratorAsset("calm")}
-          alt="책을 읽고 있는 박지은"
+          alt="책을 읽고 있는 연애 고수"
           width={360}
           height={500}
           unoptimized

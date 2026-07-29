@@ -169,7 +169,7 @@ export default function CodexReader({
             <CodexReveal forceVisible={isExporting}>
               <Image
                 src={getNarratorAsset("calm")}
-                alt="코덱스를 덮는 박지은"
+                alt="코덱스를 덮는 연애 고수"
                 width={300}
                 height={410}
                 unoptimized
