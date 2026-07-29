@@ -65,12 +65,29 @@ const SIHUA_NOTE = {
   화기: { tone: "마찰", text: "이 자리에 집착과 마찰이 몰립니다" },
 };
 
+// tone/drive/step은 서로 다른 섹션에서 쓰인다 — 한 궁 안에서 같은 문장이 반복되지 않도록 셋을 분리했다.
+// tone=판독(NATURE) / drive=작동 방식(ENGINE) / step=행동(ADVICE).
 const TIER_NOTE = {
-  1: { label: "폐허", state: "아직 손이 닿지 않은 자리", tone: "지금은 비어 있지만, 비어 있다는 건 무엇을 지어도 된다는 뜻입니다" },
-  2: { label: "오두막", state: "작게 자리를 잡은 단계", tone: "기본은 서 있으니 한 칸씩 늘려가면 됩니다" },
-  3: { label: "저택", state: "제 몫을 하는 단단한 자리", tone: "무너지지 않는 기반이 있으니 여기서 방향을 골라도 됩니다" },
-  4: { label: "궁전", state: "당신의 강한 영역", tone: "여기서는 밀어붙여도 됩니다. 당신 편입니다" },
-  5: { label: "신전", state: "인생의 중심축", tone: "이 자리가 흔들리지 않는 한 나머지는 복구됩니다" },
+  1: { label: "폐허", state: "아직 손이 닿지 않은 자리",
+    tone: "지금은 비어 있지만, 비어 있다는 건 무엇을 지어도 된다는 뜻입니다",
+    drive: "아직 정해진 방식이 없어서, 처음 만든 습관이 그대로 이 자리의 규칙이 됩니다",
+    step: "크게 세우려 하지 말고, 오늘 한 가지만 시작해 그것만 지켜 보세요" },
+  2: { label: "오두막", state: "작게 자리를 잡은 단계",
+    tone: "기본은 서 있으니 한 칸씩 늘려가면 됩니다",
+    drive: "작동은 하지만 여유가 없어, 무리하면 바로 표가 납니다",
+    step: "새로 벌이기보다 지금 있는 것 하나를 끝까지 밀어 완성해 보세요" },
+  3: { label: "저택", state: "제 몫을 하는 단단한 자리",
+    tone: "무너지지 않는 기반이 있으니 여기서 방향을 골라도 됩니다",
+    drive: "안정적으로 굴러가서, 방향만 정하면 결과가 따라옵니다",
+    step: "유지에 쓰던 힘을 조금 덜어 한 단계 위를 시도해 보세요" },
+  4: { label: "궁전", state: "당신의 강한 영역",
+    tone: "여기서는 밀어붙여도 됩니다. 당신 편입니다",
+    drive: "힘이 남는 자리라, 속도를 올려도 구조가 버팁니다",
+    step: "미뤄 둔 큰 건을 이 자리에서 먼저 꺼내 보세요" },
+  5: { label: "신전", state: "인생의 중심축",
+    tone: "이 자리가 흔들리지 않는 한 나머지는 복구됩니다",
+    drive: "다른 자리가 흔들려도 여기서 중심을 잡아 되돌립니다",
+    step: "이 자리의 힘을 약한 궁 쪽으로 한 갈래 나눠 보내 보세요" },
 };
 
 // 궁별 어휘 — 같은 구조의 문장을 궁마다 다른 결로 읽히게 만든다.
@@ -119,6 +136,18 @@ function josa(word, withBatchim) {
   const PAIR = { 이: "가", 은: "는", 을: "를", 과: "와", 으로: "로" };
   const tail = hasBatchim(word) ? withBatchim : PAIR[withBatchim] || withBatchim;
   return `${word}${tail}`;
+}
+
+/**
+ * 한 궁 안에서 같은 문장이 두 번 나오지 않게 한다.
+ * 보좌성·공명 같은 공용 문장은 여러 섹션이 함께 참조하는데, 그대로 두면 한 페이지에서
+ * 똑같은 줄이 두세 번 반복돼 유료 리포트가 조악해 보인다. 먼저 쓴 섹션이 가져간다.
+ */
+function once(seen, text) {
+  const value = String(text || "").trim();
+  if (!value || seen.has(value)) return "";
+  seen.add(value);
+  return value;
 }
 
 function join(parts) {
@@ -172,6 +201,7 @@ function collectFacts(palace, context) {
     leadStar,
     leadProfile: leadStar ? STAR_PROFILE[leadStar] : null,
     tier,
+    scoreDetail: palace?.scoreDetail || null,
     score: Number(palace?.score) || 0,
     majorLuckRange: String(palace?.majorLuckRange || ""),
     strongIncoming,
@@ -241,6 +271,35 @@ function resonanceLine(facts) {
   ]);
 }
 
+/**
+ * 이 자리의 힘이 무엇으로 만들어졌는지 분해해 보여준다(ENGINE 전용).
+ * scoreDetail은 다른 섹션이 쓰지 않는 데이터라, 중복 제거 후에도 이 섹션만의 근거가 남는다.
+ */
+function mechanicsLine(facts) {
+  const detail = facts.scoreDetail || {};
+  const rows = [
+    ["주성", detail.starScore],
+    ["밝기", detail.brightnessScore],
+    ["보좌", detail.assistScore],
+    ["살성", detail.maleficScore],
+    ["사화", detail.sihuaScore],
+  ].filter(([, value]) => Number.isFinite(value) && value !== 0);
+  if (rows.length === 0) return "기본값 외에 힘을 더하거나 깎는 요소가 없어, 이 자리는 당신이 쓰는 만큼만 반응합니다.";
+  const biggest = rows.slice().sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+  const parts = rows.map(([label, value]) => `${label} ${value > 0 ? "+" : ""}${value}`).join(" · ");
+  return `힘의 구성은 ${parts}입니다. ${biggest[1] > 0 ? `${biggest[0]}이 이 자리를 가장 크게 밀어 올립니다` : `${biggest[0]}이 가장 크게 깎아내리니 그 항목부터 관리해야 합니다`}.`;
+}
+
+/** 대운·유년이 도는 주기를 설명한다(TIMING 전용). */
+function cycleLine(facts) {
+  return join([
+    "대운은 10년 단위로 궁을 옮겨 가고, 그 안에서 유년이 매년 한 궁씩 지납니다.",
+    facts.isCurrentLuck
+      ? "지금이 이 자리의 차례라, 미루던 일을 이 구간 안에서 매듭짓는 편이 유리합니다."
+      : "이 자리의 차례가 아닐 때는 크게 벌이기보다 다음 차례에 쓸 것을 쌓아 두는 시기입니다.",
+  ]);
+}
+
 function markerLine(facts) {
   return join([
     facts.isLifePalace ? "이 궁은 명궁 — 섬의 중심이자 당신 자신입니다." : "",
@@ -253,18 +312,18 @@ function markerLine(facts) {
 
 // ── 서술 원형 5종 ────────────────────────────────────────────────
 
-function narrativeNature(facts) {
+function narrativeNature(facts, seen) {
   return paragraphs([
-    join([starLine(facts), tierLine(facts)]),
+    join([once(seen, starLine(facts)), once(seen, tierLine(facts))]),
     join([
       facts.leadProfile ? `${josa(facts.lex.act, "을")} 보면 ${facts.leadProfile.power}.` : `${josa(facts.lex.act, "은")} 아직 한 가지로 굳지 않았습니다.`,
-      supportLine(facts),
+      once(seen, supportLine(facts)),
     ]),
-    join([markerLine(facts), resonanceLine(facts)]),
+    join([once(seen, markerLine(facts)), once(seen, resonanceLine(facts))]),
   ]);
 }
 
-function narrativeEngine(facts) {
+function narrativeEngine(facts, seen) {
   const second = facts.profiles[1] || null;
   return paragraphs([
     join([
@@ -272,15 +331,15 @@ function narrativeEngine(facts) {
       facts.leadProfile ? `${facts.leadProfile.core}이 축이고, ${facts.leadProfile.power}.` : "고정된 축이 없어 상황에 맞춰 방식이 바뀝니다.",
       second ? `여기에 ${second.keyword}의 결이 겹쳐, 한 가지 방식만 고집하지 않습니다.` : "",
     ]),
-    join([sihuaLine(facts), supportLine(facts)]),
+    join([once(seen, sihuaLine(facts)), once(seen, supportLine(facts)), mechanicsLine(facts)]),
     join([
-      resonanceLine(facts),
-      `${facts.tier.label} 단계이므로, ${facts.tier.tone.replace(/\.$/, "")}.`,
+      once(seen, resonanceLine(facts)),
+      `${facts.tier.label} 단계 — ${facts.tier.drive}.`,
     ]),
   ]);
 }
 
-function narrativeCaution(facts) {
+function narrativeCaution(facts, seen) {
   const risks = facts.profiles.map((profile) => profile.risk).filter(Boolean);
   const ji = facts.transforms.find((row) => row.label === "화기");
   return paragraphs([
@@ -301,7 +360,7 @@ function narrativeCaution(facts) {
   ]);
 }
 
-function narrativeTiming(facts) {
+function narrativeTiming(facts, seen) {
   const lu = facts.transforms.find((row) => row.label === "화록");
   const quan = facts.transforms.find((row) => row.label === "화권");
   return paragraphs([
@@ -319,11 +378,11 @@ function narrativeTiming(facts) {
       !lu && !quan ? `사화가 크게 개입하지 않아, 급격한 반전보다 준비한 만큼 나오는 시기입니다.` : "",
       `섬의 계절은 ${facts.season || "지금"} — ${facts.tier.label} 단계의 자리입니다.`,
     ]),
-    join([resonanceLine(facts)]),
+    join([once(seen, resonanceLine(facts)), cycleLine(facts)]),
   ]);
 }
 
-function narrativeAdvice(facts) {
+function narrativeAdvice(facts, seen) {
   const moves = facts.profiles.map((profile) => profile.move).filter(Boolean);
   return paragraphs([
     join([
@@ -337,7 +396,7 @@ function narrativeAdvice(facts) {
       facts.maleficStars.length ? `대신 ${josa(listText(facts.maleficStars.map((star) => MALEFIC_NOTE[star])), "은")} 늘 붙어 다닌다고 보고 일정을 짜세요.` : "",
     ]),
     join([
-      facts.tier.tone + ".",
+      `${facts.tier.label} 단계이니 ${facts.tier.step}.`,
       facts.isCurrentLuck
         ? "지금 대운이 여기를 지나므로, 이 조언은 올해가 아니라 앞으로 10년을 위한 것입니다."
         : `${josa(facts.lex.field, "은")} 한 번에 바뀌지 않습니다. 이번 달에 한 가지만 정해 끝까지 해보세요.`,
@@ -382,6 +441,8 @@ export function buildIslandDeepReport(blueprint) {
     const config = getPalaceConfig(name);
     const facts = collectFacts(palace, context);
     const archetypes = SECTION_ARCHETYPE[name] || {};
+    // 궁마다 새로 시작한다 — 중복 제거는 "한 궁 안에서"만 적용된다(궁이 달라지면 같은 문장이 나와도 자연스럽다).
+    const seen = new Set();
     out[name] = {
       title: config.title,
       focus: config.focus,
@@ -390,7 +451,7 @@ export function buildIslandDeepReport(blueprint) {
       sections: config.sections.map(([key, label]) => ({
         key,
         title: label,
-        body: (NARRATIVE_BY_ARCHETYPE[archetypes[key]] || narrativeNature)(facts),
+        body: (NARRATIVE_BY_ARCHETYPE[archetypes[key]] || narrativeNature)(facts, seen),
       })),
     };
   }
