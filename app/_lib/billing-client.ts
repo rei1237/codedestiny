@@ -1648,22 +1648,26 @@ function isAuthRequiredBillingCode(status: number, code?: unknown) {
     || normalizedCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
 }
 
-async function authFetchBilling(path: string, init: RequestInit): Promise<Response> {
+async function authFetchBilling(path: string, init: RequestInit, options: { timeoutMs?: number } = {}): Promise<Response> {
   return withSuppressedRuntimePaymentFetchOverlay(async () => {
-    const primary = await authFetchBillingOnce(path, init);
+    const primary = await authFetchBillingOnce(path, init, { timeoutMs: options.timeoutMs });
     if (primary.ok || primary.status !== 404) return primary;
 
     const fallbackBases = collectBillingFallbackBases();
     if (!fallbackBases.length) return primary;
 
     for (const apiBase of fallbackBases) {
-      const retried = await authFetchBillingOnce(path, init, { apiBase });
+      const retried = await authFetchBillingOnce(path, init, { apiBase, timeoutMs: options.timeoutMs });
       if (retried.ok || retried.status !== 404) return retried;
     }
 
     return primary;
   });
 }
+
+// 이용권 "선검사" 전용 상한. 결제 확정(checkout/confirm/forceDeduct coin-gate)의 40s·60s 상수는 결제 사고와
+// 직결되므로 절대 낮추지 않는다 — 대신 과금이 일어나지 않는 확인 요청에만 호출부에서 이 값을 넘긴다.
+const BILLING_PASS_PROBE_TIMEOUT_MS = 6000;
 
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
   const method = String(init.method || "GET").toUpperCase();
@@ -1689,17 +1693,22 @@ function buildBillingFetchFailureResponse(code: string, message: string, status 
   });
 }
 
-async function authFetchBillingOnce(path: string, init: RequestInit, options: { apiBase?: string } = {}): Promise<Response> {
+async function authFetchBillingOnce(path: string, init: RequestInit, options: { apiBase?: string; timeoutMs?: number } = {}): Promise<Response> {
   // 게이팅/결제 엔드포인트는 401을 리프레시로 흡수해 합성 503(AUTH_REFRESH_TEMPORARY_FAILURE)으로
   // 바꾸지 않는다 — 그러면 서버의 paymentRequired/402 신호가 마스킹돼 결제 폴백 시트가 안 뜬다.
   // 세션 예열은 runBillingCoinGate 진입부에서 이미 수행하므로 여기서의 retryOn401은 중복이다.
-  const billingOptions = { ...options, retryOn401: false };
+  const { timeoutMs: requestedTimeoutMs, ...authFetchOptions } = options;
+  const billingOptions = { ...authFetchOptions, retryOn401: false };
   if (typeof AbortController === "undefined" || init.signal) {
     return authFetch(path, init, billingOptions);
   }
 
   const controller = new AbortController();
-  const timeoutId = globalThis.setTimeout(() => controller.abort(), resolveBillingFetchTimeoutMs(path, init));
+  const overrideTimeoutMs = Number(requestedTimeoutMs);
+  const timeoutId = globalThis.setTimeout(
+    () => controller.abort(),
+    Number.isFinite(overrideTimeoutMs) && overrideTimeoutMs > 0 ? overrideTimeoutMs : resolveBillingFetchTimeoutMs(path, init),
+  );
   try {
     return await authFetch(path, { ...init, signal: controller.signal }, billingOptions);
   } catch (error) {
@@ -1864,7 +1873,10 @@ function shouldOpenRuntimePaymentFallback(status: number, code?: string) {
 
 // 코인게이트 transient 재시도 상한/백오프. 최초 1회 + 재시도 2회 = 최대 3회, 지수 백오프(0.8s→1.44s).
 const COIN_GATE_TRANSIENT_MAX_RETRIES = 2;
-const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 800;
+// 정적 셸 선검사 백오프(250 → 450ms)와 같은 값. 기존 800ms → 1.44s 는 선검사 예산(6초)을 재시도 대기만으로 소진했다.
+const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 250;
+// 과금 없는 pass 확인 구간(첫 요청 + 재시도)의 벽시계 상한. 초과하면 붙잡지 않고 아래 결제 폴백으로 넘긴다.
+const COIN_GATE_PASS_PROBE_BUDGET_MS = 6000;
 
 // 코인게이트가 워커-DB 일시 장애로 돌려주는 degraded-503만 재시도 대상으로 본다.
 // 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
@@ -3088,7 +3100,12 @@ async function fetchPaymentEligibilityUncached(input: {
     reason: input.reason,
     scope: phase === "pass" ? "pass" : undefined,
   });
-  const response = await authFetchBilling(query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status", { method: "GET", cache: "no-store" });
+  // unlock-status는 과금 없는 선검사다 — 기본 20초를 다 쓰지 않고 선검사 상한(6초)으로 끊는다.
+  const response = await authFetchBilling(
+    query ? `/api/billing/unlock-status?${query}` : "/api/billing/unlock-status",
+    { method: "GET", cache: "no-store" },
+    { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS },
+  );
   const parsed = await parseBillingResponse<Record<string, unknown>>(response);
 
   if (!parsed.ok || !parsed.data) {
@@ -3308,7 +3325,7 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...(input || {}), paymentMode: "MEMBERSHIP_PASS", forceDeduct: false, attemptId }),
-    });
+    }, { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS });
     const parsed = await parseBillingResponse<BillingCoinGateData>(response);
     if (parsed.ok && parsed.data) {
       invalidateBillingBalanceCache();
@@ -3723,7 +3740,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     }
 
     markPaymentRequestedOnce();
-    const processingStatus: PaidFeatureGateRuntimeStatus = passFirstEligible ? "hasEntitlement" : "paymentProcessing";
+    // 🔴 여기는 coin-gate 응답을 받기 "전"이다. 과거에는 pass 보유자에게 곧바로 hasEntitlement(=확인 완료)를
+    // 표시했는데, PaidFeatureGateProvider의 자동 닫힘이 hasEntitlement/paymentSuccess에서만 돌기 때문에
+    // 아직 왕복 중인 요청을 두고 오버레이가 800ms 뒤 닫혀 버렸다(= "확인 UI가 중간에 사라졌다가 한참 뒤 실행").
+    // 확인이 끝나기 전에는 '확인 중' 상태를 유지하고, 진짜 hasEntitlement는 아래 성공 분기에서만 emit한다.
+    const processingStatus: PaidFeatureGateRuntimeStatus = passFirstEligible ? "checkingEntitlement" : "paymentProcessing";
     const processingPaymentMode = passAccessEligible ? "MEMBERSHIP_PASS" : (accessAlreadyGranted ? "DIRECT_KRW" : requestedMode);
     const processingPassTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
     const processingOverlay = resolvePaymentWaitOverlay(processingStatus, undefined, {
@@ -3747,6 +3768,9 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       subscriptionTier: processingPassTier,
     });
 
+    // 이 호출이 실제로 과금될 수 있으면(forceDeduct) 결제 확정용 상한(60초)을 그대로 둔다 — 낮추면 결제 사고다.
+    // pass 커버 확인처럼 과금이 없는 호출만 선검사 상한(6초)으로 끊는다.
+    const coinGateMayDeduct = !passAccessEligible && input.forceDeduct !== false;
     const runCoinGateRequest = async () => {
       const response = await authFetchBilling("/api/billing/coin-gate", {
         method: "POST",
@@ -3764,7 +3788,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
           // (재시도 내 안정 · 게이트마다 신규) 정적 게이트의 requestId와 같은 의미 스코프를 가진다.
           requestId: gateRequestId,
         }),
-      });
+      }, coinGateMayDeduct ? {} : { timeoutMs: BILLING_PASS_PROBE_TIMEOUT_MS });
       return parseBillingResponse<BillingCoinGateData>(response);
     };
 
@@ -3773,10 +3797,13 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     // 동일 requestId를 재사용해 서버 멱등 병합과 정합을 유지한다. 재시도 중 200(pass covered)이면 아래
     // 성공 분기로 무료 통과하고, 확정 응답(402/401 등)이면 즉시 중단해 기존 분기가 처리한다. 소진 후에도
     // degraded면 else의 shouldOpenRuntimePaymentFallback이 결제창(단건+월정석)을 열어 dead-end를 막는다.
+    // 과금 없는 pass 확인은 재시도까지 합쳐 6초를 넘기지 않는다. 확인이 더 늦어지면 붙잡는 대신 결제창을 연다.
+    const coinGatePassProbeDeadline = coinGateMayDeduct ? Number.POSITIVE_INFINITY : Date.now() + COIN_GATE_PASS_PROBE_BUDGET_MS;
     let parsed = await runCoinGateRequest();
     for (let retryIndex = 1; retryIndex <= COIN_GATE_TRANSIENT_MAX_RETRIES; retryIndex += 1) {
       if (!isRetryableBillingInfraDegraded(parsed.status, parsed.error?.code)) break;
       const backoffMs = Math.round(COIN_GATE_TRANSIENT_BASE_DELAY_MS * Math.pow(1.8, retryIndex - 1));
+      if (Date.now() + backoffMs >= coinGatePassProbeDeadline) break;
       await new Promise((resolve) => setTimeout(resolve, backoffMs));
       parsed = await runCoinGateRequest();
     }

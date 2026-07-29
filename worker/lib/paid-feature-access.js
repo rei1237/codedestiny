@@ -296,9 +296,31 @@ function resolveDecisionFromUserDoc(userId, user, spec, hasPurchase) {
   });
 }
 
+// 접근 판정에 필요한 User 필드. 호출부가 인증 단계에서 같은 문서를 한 번에 읽어 오도록 밖으로 공개한다
+// (worker/lib/auth.js 의 userProjection → auth.authUserDoc 경로). 여기 select 와 항상 같은 집합을 유지할 것.
+export const PAID_FEATURE_ACCESS_USER_FIELDS = [
+  "paidFeatures", "unlockedFeatures", "licenses", "profileSubscription", "monthlySubscription",
+  "subscription", "membership", "membershipPass", "pass", "entitlement", "licensePass",
+  "accessGateResult", "plan", "planId", "productId", "subscriptionTier", "membershipTier",
+  "passTier", "status", "subscriptionStatus", "membershipStatus", "isActive", "isSubscribed", "expiresAt",
+];
+
+export const PAID_FEATURE_ACCESS_USER_PROJECTION = PAID_FEATURE_ACCESS_USER_FIELDS
+  .reduce((projection, field) => Object.assign(projection, { [field]: 1 }), {});
+
+// 미리 읽어 둔 User 문서를 신뢰해도 되는지 확인한다. 문서의 _id 가 판정 대상 userId 와 정확히
+// 같을 때만 채택한다 — 다른 사용자의 문서로 이용권이 열리는 일이 구조적으로 불가능하도록.
+function resolvePreloadedUserDoc(userDoc, normalizedUserId) {
+  if (!userDoc || typeof userDoc !== "object") return null;
+  const docId = cleanText(userDoc._id);
+  if (!docId || !normalizedUserId || docId !== normalizedUserId) return null;
+  return userDoc;
+}
+
 // 여러 featureKey를 Mongo 왕복 2회(User 1 + Payment 1)로 판정한다.
 // 음악실처럼 곡 하나하나가 별도 featureKey인 화면이 곡 수 × 2회 직렬 왕복을 만들던 것을 없앤다.
 // 판정 규칙·캐시·재시도는 단건 경로와 완전히 동일하다(withMongoRetry를 중첩하지 않는다).
+// options.userDoc: 인증 단계에서 이미 읽은 User 문서. 주어지면 아래 User 조회를 건너뛴다(없으면 종전대로 조회).
 export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = {}) {
   const env = options.env || {};
   const normalizedUserId = cleanText(userId);
@@ -344,8 +366,10 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
   await connectDb(env);
 
   // READ 전용 — 풀 초기화(MongoPoolClearedError) 버스트에서 이용권 판정이 500/오탐(결제창)으로 새지 않게 재시도.
-  const user = await withMongoRetry(env, () => User.findById(normalizedUserId)
-    .select("paidFeatures unlockedFeatures licenses profileSubscription monthlySubscription subscription membership membershipPass pass entitlement licensePass accessGateResult plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+  // 인증 단계가 같은 문서를 이미 읽어 넘겨줬으면 그걸 쓴다(선검사 1회당 User 조회 2~3회 → 1회).
+  const preloadedUser = resolvePreloadedUserDoc(options.userDoc, normalizedUserId);
+  const user = preloadedUser || await withMongoRetry(env, () => User.findById(normalizedUserId)
+    .select(PAID_FEATURE_ACCESS_USER_FIELDS.join(" "))
     .lean());
 
   if (!user?._id) {
