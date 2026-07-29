@@ -37,7 +37,9 @@ jobs:
       - name: Sync public static artifacts
         run: npm run sync:public
 
-      # 사전 정합성 + ko 커버리지 + fallback/하드코딩 ratchet + 런타임 준비
+      # 사전 정합성 + ko 커버리지 + fallback ratchet + 런타임 준비
+      # 하드코딩 한국어 ratchet(verify:i18n-no-hardcoded-korean)은 2026-07-29 체인에서 제외했다.
+      # 사유는 scripts/verify-i18n-no-hardcoded-korean.mjs 헤더 참고.
       #
       # 🔴 continue-on-error: 현지화는 콘텐츠가 쌓이는 속도를 따라가는 점진 지표라, 새 한국어가
       # 늘 때마다 PR 이 빨간불이 되고 배포까지 함께 멈춘다(2026-07-28 프로덕션 배포 정지 사고).

@@ -7286,6 +7286,49 @@
     _injectAndRun(p, 'saju');
   };
 
+  /**
+   * 모바일 하단 네비 '사주' 탭 진입점.
+   * 로그인 + 대표 프로필이 있으면 재입력 없이 곧바로 사주를 계산한다.
+   * 정적 셸에서는 탭이 직접 호출하고, React 페이지에서는 /?action=cdSajuTabEntry 로 넘어와
+   * 라우트 액션 러너가 호출한다(허용목록: js/core/index-inline-runtime.js).
+   */
+  window.cdSajuTabEntry = function() {
+    var loginUrl = '/login?next=' + encodeURIComponent('/?action=cdSajuTabEntry');
+
+    function goCreateProfile() {
+      _toast('사주를 보려면 먼저 프로필을 만들어 주세요.', 'warn');
+      var form = document.getElementById('destinyCardForm') || document.querySelector('.input-section');
+      if (form) {
+        try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }
+
+    // 세션 힌트조차 없으면 왕복 없이 바로 로그인으로 보낸다.
+    if (!_dpHasSessionHint()) {
+      window.location.href = loginUrl;
+      return;
+    }
+
+    // 캐시에 대표 프로필이 있으면 낙관적으로 즉시 실행한다(서버 왕복 대기 없음).
+    var cached = _dpResolveCurrentProfileForSaju('');
+    if (cached && cached.birth && cached.birth.year) {
+      _injectAndRun(cached, 'saju');
+      return;
+    }
+
+    // 캐시가 비었을 때만 서버에서 대표 프로필을 받아온다.
+    _dpLoadFromServer(function(loaded) {
+      if (!loaded) {
+        if (!_dpHasSessionHint()) window.location.href = loginUrl;
+        else goCreateProfile();
+        return;
+      }
+      var profile = _dpResolveCurrentProfileForSaju('');
+      if (profile && profile.birth && profile.birth.year) _injectAndRun(profile, 'saju');
+      else goCreateProfile();
+    });
+  };
+
   /* ──────────────────────────────────────────
      9. 토스트
   ────────────────────────────────────────── */

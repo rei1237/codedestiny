@@ -78,6 +78,24 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/flower/sukuyo", fallbackTitle: "숙요 꽃", fallbackDesc: "달 위상 기반 꽃" },
     ],
   },
+  {
+    // 위 섹션들에 없던 상시 서비스 · AI 상담 라인업. /all-fortunes 허브에서 함께 노출한다.
+    id: "signature",
+    fallbackTitle: "대표 서비스 & AI 상담",
+    items: [
+      { href: "/today", fallbackTitle: "오늘의 운세", fallbackDesc: "매일 새로 갱신되는 하루 운세 · 무료" },
+      { href: "/destiny-compass", fallbackTitle: "운명의 지도", fallbackDesc: "인생의 흐름을 한 장의 지도로" },
+      { href: "/island-consult", fallbackTitle: "운명의 섬", fallbackDesc: "명반을 섬으로 읽는 상담" },
+      { href: "/fortune-tea-house", fallbackTitle: "운명 찻집", fallbackDesc: "연이와 함께 보는 타로·사주 상담" },
+      { href: "/neo-operation-room", fallbackTitle: "네오 전략실", fallbackDesc: "네오와 짜는 실행 전략 상담" },
+      { href: "/palm-reading", fallbackTitle: "손금 리딩", fallbackDesc: "손바닥 선으로 읽는 기질과 흐름" },
+      { href: "/saju-guardian", fallbackTitle: "사주 수호신", fallbackDesc: "십성으로 찾는 나의 수호신" },
+      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "명반 기반 1:1 심층 상담" },
+      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "출생 차트 기반 1:1 상담" },
+      { href: "/vedic-ai", fallbackTitle: "베다 점성술 전문가 상담", fallbackDesc: "다샤·나크샤트라 심층 상담" },
+      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "27수 기반 관계 상담" },
+    ],
+  },
 ];
 
 const SERVICE_SECTION_TRANSLATIONS = {

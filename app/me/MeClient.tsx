@@ -13,6 +13,16 @@ import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
+import { ALL_FORTUNES_ACTION, SAJU_TAB_ACTION } from "../_lib/mobile-tabs";
+
+// 마이페이지 상단 빠른 메뉴. 실재하는 목적지만 싣는다.
+const QUICK_MENU_ITEMS = [
+  { href: `/?action=${SAJU_TAB_ACTION}`, label: "내 사주 보기", hint: "대표 프로필로 바로 분석" },
+  { href: `/?action=${ALL_FORTUNES_ACTION}`, label: "모든 운세", hint: "전체 운세 둘러보기" },
+  { href: "/points", label: "이용권 관리", hint: "달빛 이용권 구매·확인" },
+  { href: "/points/history", label: "결제 내역", hint: "주문·결제 기록" },
+  { href: "/terms#refund-policy", label: "환불 안내", hint: "환불 정책 확인" },
+] as const;
 
 type AuthUser = {
   id?: string;
@@ -1235,6 +1245,22 @@ export default function MePage() {
             </button>
           </div>
         </header>
+
+        <nav aria-label={"빠른 메뉴"}>
+          <ul className="grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 lg:grid-cols-5">
+            {QUICK_MENU_ITEMS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex min-h-[48px] flex-col justify-center gap-0.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 no-underline transition hover:border-amber-300/40 hover:bg-amber-400/10"
+                >
+                  <span className="text-sm font-bold text-slate-100">{item.label}</span>
+                  <span className="text-[11px] leading-tight text-slate-400">{item.hint}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         {authNotice ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
