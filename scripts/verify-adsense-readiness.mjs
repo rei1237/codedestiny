@@ -736,11 +736,14 @@ function verifyPrivacyPolicyEmbedSource() {
     "IP 주소",
     "광고 식별자",
     "policies.google.com/technologies/partner-sites",
-    "만 13세",
+    // 연령 하한은 정책 본문과 한 쌍으로 고정한다. 2026-07-29 가입 정책이 14+로 올라가
+    // 본문이 "만 14세"로 바뀌었는데 이 가드만 "만 13세"에 머물러 Pages 배포가 막혀 있었다.
+    "만 14세",
     "개인정보 삭제",
     "로컬스토리지",
   ];
-  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", "만 14세"];
+  // 앞의 넷은 인코딩 깨짐 마커, 마지막은 연령 하한이 옛 값으로 되돌아가는 회귀 차단.
+  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", "만 13세"];
 
   for (const marker of requiredMarkers) {
     assert(source.includes(marker), `${relPath}: missing privacy/ad notice marker ${marker}`);
