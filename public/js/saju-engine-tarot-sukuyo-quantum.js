@@ -3035,6 +3035,11 @@ function analyzeFortuneGZ(gz, p, label){
     luckyEl = pw&&pw.yongshin&&pw.yongshin.length>0 ? pw.yongshin[0] : 'earth';
   }
 
+  // 십성은 아래 충/합 안내문에서도 쓰이므로 사용 지점보다 먼저 산출한다.
+  // (과거 var 호이스팅으로 수화기제 안내문이 'undefined·undefined'로 출력되던 자리)
+  var gGod=getTenGod(p.d.g,gz.g);
+  var jGod=getTenGod(p.d.g,gz.j);
+
   var natalBranches=[p.y.j,p.m.j,p.d.j,p.h.j];
   var checkSet=natalBranches.concat([gz.j]);
   var hyungAlerts=[];
@@ -3098,8 +3103,6 @@ function analyzeFortuneGZ(gz, p, label){
   var heInfo=null;
   if(JIHE[gz.j]&&natalBranches.indexOf(JIHE[gz.j])>=0)heInfo=gz.j+JIHE[gz.j]+'합 — 기운이 합쳐져 안정된 흐름';
 
-  var gGod=getTenGod(p.d.g,gz.g);
-  var jGod=getTenGod(p.d.g,gz.j);
   var EL_K_LOCAL={wood:'목(木)',fire:'화(火)',earth:'토(土)',metal:'금(金)',water:'수(水)'};
 
   var incomingEls=[];
@@ -13723,7 +13726,13 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune?profileId=' + encodeURIComponent(profileId || '') + '&year=' + encodeURIComponent(targetYear), { method: 'GET' })
       .then(function(pack) {
         var payload = pack && pack.payload ? pack.payload : {};
-        if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        if (!pack || !pack.ok || payload.ok === false) {
+          // 상태코드·code 를 실어 보내야 catch 에서 '일시적 장애'와 '확정 실패'를 구분할 수 있다.
+          var failure = new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
+          failure.status = Number((pack && pack.status) || 0);
+          failure.code = (payload && payload.code) || '';
+          throw failure;
+        }
         var resolvedProfileId = payload.unlockScope && payload.unlockScope.profileId || profileId;
         var contentKey = payload.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
         window._sySukuyoYearlyReading = Object.assign({}, state, {
@@ -13740,7 +13749,30 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         syBindSukuyoMonthlyUnlock(window._sySukuyoYearlyReading);
       })
       .catch(function(error) {
-        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">' + syCanonicalEsc(error && error.message || '숙요점 1년운을 불러오지 못했습니다.') + '</div>';
+        // 워커는 일시적 DB 장애를 503으로 표면화한다(의도된 degrade). 그 영문 원문
+        // "Database is temporarily unavailable." 을 그대로 보여주면 사용자가 할 수 있는 게 없다 —
+        // 한국어 안내 + 재시도 버튼을 준다. 4xx(로그인 필요·프로필 미선택 등)는 서버 한국어 문구를 유지한다.
+        var statusCode = Number((error && error.status) || 0);
+        var errorCode = String((error && error.code) || '');
+        var isTransient = statusCode === 0
+          || statusCode >= 500
+          || errorCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
+          || errorCode === 'SERVICE_UNAVAILABLE';
+        var message = isTransient
+          ? '지금 서버가 잠시 붐벼요. 잠시 후 다시 시도해 주세요.'
+          : ((error && error.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">'
+          + syCanonicalEsc(message)
+          + (isTransient
+            ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
+            : '')
+          + '</div>';
+        var retryButton = target.querySelector('[data-sy-yearly-retry]');
+        if (retryButton) {
+          retryButton.addEventListener('click', function() {
+            syHydrateSukuyoYearlyFortune(state);
+          }, { once: true });
+        }
       });
   }
 
@@ -15599,7 +15631,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
-            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
+            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
             '.sy-compat-moon-hero::before{content:"";position:absolute;right:-24px;top:-32px;width:142px;height:142px;border-radius:999px;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.78),rgba(226,232,255,.24) 44%,rgba(167,139,250,.08) 70%,transparent 73%);opacity:.76;pointer-events:none}',
             '.sy-compat-moon-copy{position:relative;min-width:0}',
             '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.68);margin-bottom:4px;font-weight:900}',
@@ -15607,13 +15639,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-moon-sub{font-size:.82rem;color:rgba(255,255,255,.82);margin-bottom:10px}',
             '.sy-compat-badges{display:flex;gap:8px;flex-wrap:wrap;font-size:.78rem}',
             '.sy-compat-badges span{background:rgba(2,6,23,.28);border:1px solid rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;color:#e0e7ff;line-height:1.45}',
-            '.sy-compat-orbit-stage{position:relative;min-height:148px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
-            '.sy-compat-orbit-stage::before{content:"";position:absolute;width:118px;height:118px;border-radius:999px;border:1px solid rgba(219,234,254,.24)}',
-            '.sy-compat-orb{position:absolute;width:54px;height:54px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 48%,#93c5fd);color:#0f172a;font-weight:900;box-shadow:0 0 28px rgba(219,234,254,.28)}',
-            '.sy-compat-orb--me{left:23px;top:34px}',
-            '.sy-compat-orb--partner{right:23px;bottom:30px;background:radial-gradient(circle at 35% 30%,#fff,#fbcfe8 48%,#c4b5fd)}',
-            '.sy-compat-bridge{position:absolute;width:82px;height:1px;background:linear-gradient(90deg,transparent,rgba(248,250,252,.7),transparent);transform:rotate(-23deg)}',
-            '.sy-compat-orbit-label{position:absolute;bottom:12px;left:12px;right:12px;text-align:center;color:#f8e7b7;font-size:.74rem;font-weight:900}',
+            '.sy-compat-fate-wrap{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:150px;border-radius:20px;border:1px solid rgba(219,234,254,.24);background:radial-gradient(circle at 50% 45%,rgba(248,250,252,.16),transparent 42%),rgba(2,6,23,.22);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}',
+            '.sy-compat-fate-svg{width:100%;height:auto;max-width:380px;display:block;margin:0 auto}',
             '.sy-compat-metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:16px}',
             '.sy-compat-metric-card{background:radial-gradient(circle at 82% 8%,rgba(248,250,252,.12),transparent 30%),rgba(15,23,42,.62);border-radius:14px;padding:13px 10px;text-align:center;border:1px solid rgba(219,234,254,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-compat-metric-label{font-size:.68rem;color:#dbeafe;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;font-weight:900}',
@@ -15643,7 +15670,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-compat-year-node::before{content:"";position:absolute;right:-20px;top:-22px;width:70px;height:70px;border-radius:999px;background:radial-gradient(circle at 35% 30%,rgba(248,250,252,.58),rgba(147,197,253,.16) 48%,transparent 70%);opacity:.42}',
             '.sy-compat-year-node-head{position:relative;display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px}.sy-compat-year-node-head strong{display:flex;align-items:center;gap:7px;color:#bfdbfe}.sy-compat-year-node-head span{width:26px;height:26px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fff,#f8e7b7 50%,#93c5fd);color:#0f172a}.sy-compat-year-node-head em{font-style:normal;font-weight:900;white-space:nowrap}',
             '.sy-compat-year-bar{position:relative;margin-bottom:7px}.sy-compat-year-node p{position:relative;margin:0 0 7px;color:#dbeafe}.sy-compat-year-node ul{position:relative;list-style:none;margin:0;padding:0;display:grid;gap:4px}.sy-compat-year-node li{color:#e0e7ff}.sy-compat-year-node li b{color:#f8e7b7;margin-right:6px}',
-            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-orbit-stage{min-height:132px}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
+            '@media(max-width:760px){.sy-compat-moon-hero,.sy-compat-yearly-head{grid-template-columns:1fr}.sy-compat-metric-grid,.sy-compat-yearly-views,.sy-compat-yearline{grid-template-columns:1fr}.sy-compat-indicator-grid{grid-template-columns:1fr}.sy-compat-indicator--full{grid-column:auto;display:block}.sy-report [style*="grid-template-columns:repeat(2"],.sy-report [style*="grid-template-columns:repeat(3"],.sy-report [style*="grid-template-columns:repeat(4"],.sy-report [style*="grid-template-columns:repeat(7"],.sy-report [style*="grid-template-columns:1fr 1fr 1fr"]{grid-template-columns:1fr!important}}'
           ].join('');
 
           // ── 안·괴 포지션 배지 ──
@@ -15820,11 +15847,59 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <span>${relationStory.relationBadge}</span>
                 </div>
               </div>
-              <div class="sy-compat-orbit-stage" aria-hidden="true">
-                <div class="sy-compat-bridge"></div>
-                <div class="sy-compat-orb sy-compat-orb--me">${syCanonicalEsc(myMansionName || '宿')}</div>
-                <div class="sy-compat-orb sy-compat-orb--partner">${syCanonicalEsc(tData.mansion || '宿')}</div>
-                <div class="sy-compat-orbit-label">${syCanonicalEsc(relationStory.distanceBadge)} · ${syCanonicalEsc(relationStory.relationBadge)}</div>
+              <div class="sy-compat-fate-wrap" aria-hidden="true">
+                <svg class="sy-compat-fate-svg" viewBox="38 2 304 168" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
+                  <defs>
+                    <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.45)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
+                    <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.45)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
+                    <radialGradient id="fgCenterGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(239,68,68,0.22)"/><stop offset="100%" stop-color="rgba(239,68,68,0)"/></radialGradient>
+                    <linearGradient id="fgOrbMe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(254,243,199,0.3)"/><stop offset="100%" stop-color="rgba(251,191,36,0.18)"/></linearGradient>
+                    <linearGradient id="fgOrbPartner" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(252,231,243,0.3)"/><stop offset="100%" stop-color="rgba(244,114,182,0.18)"/></linearGradient>
+                    <filter id="fgStarGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                    <filter id="fgThreadGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="2.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                  </defs>
+                  <!-- background celestial aura -->
+                  <circle cx="190" cy="65" r="75" fill="url(#fgCenterGlow)"/>
+                  
+                  <!-- red thread of fate (glowing double arc & center knot) -->
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#ef4444" stroke-width="2.6" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.9"/>
+                  <path d="M 90 65 Q 190 20, 290 65" stroke="#fca5a5" stroke-width="1.2" fill="none" stroke-linecap="round" opacity="0.6"/>
+                  <path d="M 90 65 Q 190 105, 290 65" stroke="#f43f5e" stroke-width="1.8" fill="none" stroke-linecap="round" filter="url(#fgThreadGlow)" opacity="0.75"/>
+                  
+                  <!-- center destiny node (spark of fate) -->
+                  <circle cx="190" cy="65" r="5" fill="#ef4444" filter="url(#fgStarGlow)"/>
+                  <circle cx="190" cy="65" r="10" fill="none" stroke="rgba(252,165,165,0.6)" stroke-width="1" stroke-dasharray="2 2"/>
+                  
+                  <!-- left star (me) -->
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="90" cy="65" r="38" fill="url(#fgMeGlow)"/>
+                    <circle cx="90" cy="65" r="28" fill="url(#fgOrbMe)" stroke="rgba(251,191,36,0.75)" stroke-width="1.6"/>
+                    <circle cx="90" cy="65" r="24" fill="none" stroke="rgba(253,230,138,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="90" y="61" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
+                    <text x="90" y="76" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="700" font-family="'Gowun Dodum', sans-serif">나</text>
+                  </g>
+                  
+                  <!-- right star (partner) -->
+                  <g filter="url(#fgStarGlow)">
+                    <circle cx="290" cy="65" r="38" fill="url(#fgPartnerGlow)"/>
+                    <circle cx="290" cy="65" r="28" fill="url(#fgOrbPartner)" stroke="rgba(244,114,182,0.75)" stroke-width="1.6"/>
+                    <circle cx="290" cy="65" r="24" fill="none" stroke="rgba(251,207,232,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
+                    <text x="290" y="61" text-anchor="middle" fill="#fce7f3" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
+                    <text x="290" y="76" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="700" font-family="'Gowun Dodum', sans-serif">상대</text>
+                  </g>
+                  
+                  <!-- decorative starlight sparkles -->
+                  <circle cx="150" cy="38" r="2" fill="rgba(255,255,255,0.7)"><animate attributeName="opacity" values="0.7;0.2;0.7" dur="2.8s" repeatCount="indefinite"/></circle>
+                  <circle cx="230" cy="35" r="1.5" fill="rgba(255,255,255,0.6)"><animate attributeName="opacity" values="0.6;0.1;0.6" dur="2.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="205" cy="98" r="1.8" fill="rgba(255,255,255,0.65)"><animate attributeName="opacity" values="0.65;0.2;0.65" dur="3.2s" repeatCount="indefinite"/></circle>
+                  <circle cx="130" cy="92" r="1.4" fill="rgba(255,255,255,0.5)"><animate attributeName="opacity" values="0.5;0.1;0.5" dur="2.5s" repeatCount="indefinite"/></circle>
+                  
+                  <!-- relationship label glassmorphism pill badge at bottom center (guaranteed no overlap) -->
+                  <g>
+                    <rect x="65" y="132" width="250" height="28" rx="14" fill="rgba(8,13,30,0.85)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2" filter="url(#fgStarGlow)"/>
+                    <text x="190" y="150" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="800" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(enhanced.distanceKo || '거리')} · ${syCanonicalEsc(enhanced.relationTypeKo || rel.stamp || rel.type)}</text>
+                  </g>
+                </svg>
               </div>
             </div>
 
@@ -15939,10 +16014,52 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }, 50); // setTimeout(50ms) — loader 실제 페인트 보장 후 계산 시작
   }
 
+/* 퀀텀 명리 엔진 — 잠금/대기 스텁.
+   전체 판별은 카드가 열릴 때만 돌린다(계산 비용 + 미결제 노출 차단).
+   ⚠️ 이 스텁은 반드시 실질 내용을 담아야 한다 — reportDashboard의 _sajuFunHasRenderableContent가
+   빈 섹션을 "콘텐츠 준비 중" 플레이스홀더로 바꾸고 20회 재시도 후 포기하기 때문이다. */
+function renderQuantumStrategyStub(){
+  var area=document.getElementById('quantumSection');
+  var card=document.getElementById('quantumCard');
+  if(!area||!card)return;
+  if(window.__cdQuantumRendered)return;
+  area.innerHTML=
+    '<div class="qm-wrap">'+
+      '<div class="qm-header">'+
+        '<span class="qm-icon">⚡</span>'+
+        '<div class="qm-title-wrap">'+
+          '<h3>QUANTUM MYEONGRI Engine</h3>'+
+          '<p>오직 사주명리만을 위한 초정밀 분석 엔진</p>'+
+        '</div>'+
+      '</div>'+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">분석 항목</span></div>'+
+        '<div class="qm-panel"><div class="qm-yong-list">'+
+          '<span class="qm-el-chip qm-chip-neutral">원국 4주 정밀</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">궁위(근묘화실)</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">지장간 3층</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">십이운성</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">공망</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">합·충·형·파·해·원진</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">삼합·방합</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">오행 실세력</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">득령·득지·득세</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">격국</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">십성 2계층</span>'+
+          '<span class="qm-el-chip qm-chip-neutral">대운·세운·월운·일운</span>'+
+        '</div>'+
+        '<div class="qm-oracle-meta" style="margin-top:10px">천간·지지·오행·십성·대운의 흐름을 원국 8자와 지장간까지 펼쳐 읽습니다. 카드를 열면 내 명식 기준으로 계산해 표시합니다.</div>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  card.style.display='block';
+}
+
 function renderQuantumStrategy(p, natal, bazi){
   var area=document.getElementById('quantumSection');
   var card=document.getElementById('quantumCard');
   if(!area||!card)return;
+  window.__cdQuantumRendered=true;
 
   var pw=G_POWER, jg=G_JONG;
 
@@ -15973,12 +16090,13 @@ function renderQuantumStrategy(p, natal, bazi){
     if(curDw){var gz=curDw.getGanZhi();dg=gz[0]||'';dz=gz[1]||'';}
   }catch(e){}
 
-  /* ── 현재 세운 추출 ── */
+  /* ── 현재 세운 추출 ──
+     오늘 실제 날짜로 뽑는다. lunar-javascript의 EightChar 연주는 입춘(立春) 경계를 적용하므로
+     1/1~입춘 전에는 전년 세운이 나온다. (과거 6/15 고정값은 이 구간에서 1년 앞선 세운을 표시했다) */
+  var qNow=new Date();
   var sg='', sz='';
   try{
-    var nowYr=new Date().getFullYear();
-    var solarY=Solar.fromYmdHms(nowYr,6,15,12,0,0);
-    var baziY=solarY.getLunar().getEightChar();
+    var baziY=Solar.fromYmdHms(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0).getLunar().getEightChar();
     sg=baziY.getYearGan(); sz=baziY.getYearZhi();
   }catch(e){}
 
@@ -16344,6 +16462,349 @@ function renderQuantumStrategy(p, natal, bazi){
     if(el&&qElementCounts[el]!=null)qElementCounts[el]+=1;
   });
 
+  /* ═══════════════════════════════════════════════════════════════════
+     원국 정밀 판별 — 판별 테이블 정본은 js/saju-engine.js 상단의 CD_* 전역.
+     여기서는 계산·조립만 하고 테이블을 새로 선언하지 않는다.
+     ═══════════════════════════════════════════════════════════════════ */
+  var qCoreReady=(typeof CD_JANGGAN!=='undefined' && typeof CD_E12_MAP!=='undefined' && typeof cdJangganLayers==='function');
+
+  /* 지지 십성 — 지장간 정기(본기) 기준.
+     기존 qTenGodOf(지지)는 지지 자체 오행·음양을 쓰므로 결과가 갈린다(예: 甲일간+子).
+     getTenGod은 타로·시빌라·일운·궁합이 공유하므로 건드리지 않고 여기서만 정본 기준을 쓴다. */
+  function qTenGodOfBranch(zhi){
+    if(!qCoreReady||!zhi)return '';
+    var main=cdMainHiddenStem(zhi);
+    return main?qTenGodOf(main):'';
+  }
+
+  /* 공망(空亡) — 일주 순중공망 2지지 */
+  var qGongmang=(qCoreReady&&typeof cdGongMangBranches==='function')?cdGongMangBranches(p.d.g,p.d.j):[];
+  function qIsGongmang(zhi){ return !!zhi && qGongmang.indexOf(zhi)>=0; }
+
+  /* ── STEP 1: 4주 궁위 + 지장간 3층 + 십이운성 + 공망 ── */
+  var qPalaceRows=(typeof CD_PALACE!=='undefined'?CD_PALACE:[]).map(function(meta){
+    var item=p[meta.key]||{};
+    var g=item.g||'', j=item.j||'';
+    var layers=qCoreReady?cdJangganLayers(j).map(function(row){
+      return {
+        gan:row.gan,
+        layer:row.layer,
+        weight:row.weight,
+        element:(GAN[row.gan]&&GAN[row.gan].e)||'',
+        tenGod:qTenGodOf(row.gan)||'',
+        exposed:origGans.indexOf(row.gan)>=0
+      };
+    }):[];
+    return {
+      key:meta.key, label:meta.label, palace:meta.palace, span:meta.span, domain:meta.domain,
+      gan:g, zhi:j,
+      ganEl:(GAN[g]&&GAN[g].e)||'', zhiEl:(JI[j]&&JI[j].e)||'',
+      ganTenGod:qTenGodOf(g)||'',
+      zhiTenGod:qTenGodOfBranch(j)||'',
+      zhiSurfaceTenGod:qTenGodOf(j)||'',
+      twelveStage:(qCoreReady&&typeof cdTwelveStage==='function')?cdTwelveStage(p.d.g,j):'',
+      gongmang:qIsGongmang(j),
+      layers:layers
+    };
+  });
+
+  /* ── STEP 2: 원국 내부 관계(합·충·형·파·해·원진·삼합·방합) ── */
+  var qPalaceLabelByBranchKey={y:'년지',m:'월지',d:'일지',h:'시지'};
+  function qBranchSlots(){
+    return ['y','m','d','h'].map(function(k){
+      return {key:k,label:qPalaceLabelByBranchKey[k],branch:(p[k]&&p[k].j)||''};
+    }).filter(function(row){return !!row.branch;});
+  }
+  function qNatalRelations(){
+    var out={conflict:[],wonjin:[],harmony:[]};
+    /* 충·파·해·원진·형 — 빌런 블랙리스트가 쓰는 판별기를 그대로 재사용 */
+    var fn=(typeof window!=='undefined'&&window._sajuVillainBuildBranchRelations)
+      ||(typeof _sajuVillainBuildBranchRelations==='function'?_sajuVillainBuildBranchRelations:null);
+    if(fn){
+      try{
+        var rel=fn(p)||{};
+        out.conflict=qArr(rel.conflictRelations);
+        out.wonjin=qArr(rel.wonjinRelations);
+      }catch(_){}
+    }
+    var slots=qBranchSlots();
+    var seen={};
+    function pushHarmony(type,members,positions,element,note){
+      var key=type+':'+members.slice().sort().join('');
+      if(seen[key])return;
+      seen[key]=1;
+      out.harmony.push({type:type,members:members,positions:positions,element:element||'',note:note||''});
+    }
+    /* 천간합 / 천간충 — 원국 천간 4자 내부 쌍 */
+    var ganSlots=['y','m','d','h'].map(function(k){
+      return {key:k,label:{y:'년간',m:'월간',d:'일간',h:'시간'}[k],gan:(p[k]&&p[k].g)||''};
+    }).filter(function(row){return !!row.gan;});
+    for(var a=0;a<ganSlots.length;a++){
+      for(var b=a+1;b<ganSlots.length;b++){
+        var L=ganSlots[a], R=ganSlots[b];
+        var hapEl=(GANHE_Q[L.gan]&&GANHE_Q[L.gan][R.gan])||(GANHE_Q[R.gan]&&GANHE_Q[R.gan][L.gan])||null;
+        if(hapEl)pushHarmony('천간합',[L.gan,R.gan],[L.label,R.label],hapEl,'합화 대상 '+(EL_K[hapEl]||hapEl));
+        if(GAN_CHUNG[L.gan]===R.gan||GAN_CHUNG[R.gan]===L.gan){
+          out.conflict.push({type:'천간충',branches:[L.gan,R.gan],positions:[L.label,R.label],
+            label:L.label+' '+L.gan+' · '+R.label+' '+R.gan});
+        }
+      }
+    }
+    /* 지지 육합 */
+    for(var i=0;i<slots.length;i++){
+      for(var j2=i+1;j2<slots.length;j2++){
+        var s1=slots[i], s2=slots[j2];
+        var he=(JIHE_Q[s1.branch]&&JIHE_Q[s1.branch][s2.branch])||(JIHE_Q[s2.branch]&&JIHE_Q[s2.branch][s1.branch])||null;
+        if(he)pushHarmony('육합',[s1.branch,s2.branch],[s1.label,s2.label],he,'합화 대상 '+(EL_K[he]||he));
+      }
+    }
+    /* 삼합·반합 / 방합 */
+    var branchList=slots.map(function(s){return s.branch;});
+    function positionsOf(members){
+      return slots.filter(function(s){return members.indexOf(s.branch)>=0;}).map(function(s){return s.label;});
+    }
+    (typeof CD_SAMHAP!=='undefined'?CD_SAMHAP:[]).forEach(function(sh){
+      var hit=sh.m.filter(function(m){return branchList.indexOf(m)>=0;});
+      if(hit.length>=3)pushHarmony('삼합',hit,positionsOf(hit),sh.el,(EL_K[sh.el]||sh.el)+' 국(局) 완성');
+      else if(hit.length===2)pushHarmony('반합',hit,positionsOf(hit),sh.el,(EL_K[sh.el]||sh.el)+' 기운 부분 결집');
+    });
+    (typeof CD_BANGHAP!=='undefined'?CD_BANGHAP:[]).forEach(function(bh){
+      var hit=bh.m.filter(function(m){return branchList.indexOf(m)>=0;});
+      if(hit.length>=3)pushHarmony('방합',hit,positionsOf(hit),bh.el,bh.season+' 방국(方局) 완성');
+      else if(hit.length===2)pushHarmony('반방합',hit,positionsOf(hit),bh.el,bh.season+' 계절 기운 결집');
+    });
+    return out;
+  }
+  var qRelations=qNatalRelations();
+
+  /* ── STEP 3: 오행 세력 정밀화 ── */
+  /* 표시 기준은 G_NATAL.counts(월지 가중 포함)로 통일 — 화면 내 숫자 불일치 해소 */
+  var qNatalCounts=(natal&&natal.counts)||qElementCounts;
+  /* 지장간 층 가중을 반영한 실세력 점수 */
+  var qHiddenPower={wood:0,fire:0,earth:0,metal:0,water:0};
+  origGans.forEach(function(g){
+    var el=GAN[g]&&GAN[g].e;
+    if(el&&qHiddenPower[el]!=null)qHiddenPower[el]+=1;
+  });
+  if(qCoreReady){
+    origZhis.forEach(function(z){
+      cdJangganLayers(z).forEach(function(row){
+        var el=GAN[row.gan]&&GAN[row.gan].e;
+        if(el&&qHiddenPower[el]!=null)qHiddenPower[el]+=row.weight;
+      });
+    });
+  }
+  var qHiddenPowerTotal=qElements.reduce(function(sum,el){return sum+qHiddenPower[el];},0)||1;
+
+  /* 득령·득지·득세 */
+  function qSupportsDay(el){
+    if(!el)return false;
+    var dayElement=(GAN[p.d.g]&&GAN[p.d.g].e)||'';
+    if(!dayElement)return false;
+    return el===dayElement||SHENG[el]===dayElement; /* 비겁 또는 인성 */
+  }
+  var qStrengthChecks=(function(){
+    var monthEl=(JI[p.m.j]&&JI[p.m.j].e)||'';
+    var dayBranchEl=(JI[p.d.j]&&JI[p.d.j].e)||'';
+    var mine=0;
+    qElements.forEach(function(el){ if(qSupportsDay(el))mine+=qHiddenPower[el]; });
+    var minePct=(mine/qHiddenPowerTotal)*100;
+    return [
+      {name:'득령(得令)', hit:qSupportsDay(monthEl), basis:'월지 '+(p.m.j||'-')+' '+(EL_K[monthEl]||''),
+       desc:qSupportsDay(monthEl)?'계절이 일간을 밀어줍니다.':'계절이 일간을 밀어주지 않습니다.'},
+      {name:'득지(得地)', hit:qSupportsDay(dayBranchEl), basis:'일지 '+(p.d.j||'-')+' '+(EL_K[dayBranchEl]||''),
+       desc:qSupportsDay(dayBranchEl)?'앉은 자리가 일간의 뿌리가 됩니다.':'앉은 자리가 일간을 돕지 않습니다.'},
+      {name:'득세(得勢)', hit:minePct>=50, basis:'비겁·인성 세력 '+minePct.toFixed(0)+'%',
+       desc:minePct>=50?'내 편 오행이 판의 과반을 쥐고 있습니다.':'내 편 오행이 과반에 못 미칩니다.'}
+    ];
+  })();
+
+  /* ── STEP 4: 격국 판별 ── */
+  /* 정본: worker/lib/saju-gyeokguk.js buildGyeokgukAnalysis (GEOK_BY_TEN_GOD / LAYER_WEIGHT / EXPOSURE_BONUS) */
+  var Q_GEOK_BY_TEN_GOD={정관:'정관격',편관:'편관격',정재:'정재격',편재:'편재격',식신:'식신격',상관:'상관격',정인:'정인격',편인:'편인격'};
+  var Q_EXPOSURE_BONUS=2.2;
+  var qGyeokguk=(function(){
+    if(!qCoreReady)return null;
+    var monthBranch=p.m.j||'';
+    if(!monthBranch)return null;
+    var monthHidden=cdJangganLayers(monthBranch).map(function(row){
+      var tenGod=qTenGodOf(row.gan)||'';
+      var exposed=origGans.indexOf(row.gan)>=0;
+      return {
+        gan:row.gan, layer:row.layer, tenGod:tenGod, exposed:exposed,
+        geok:Q_GEOK_BY_TEN_GOD[tenGod]||null,
+        score:Number((row.weight+(exposed?Q_EXPOSURE_BONUS:0)).toFixed(2))
+      };
+    });
+    var candidates=monthHidden.filter(function(r){return r.geok;})
+      .sort(function(a,b){return b.score-a.score;});
+    var mainQi=monthHidden.filter(function(r){return r.layer==='정기';})[0]||monthHidden[0]||null;
+    var monthStage=(typeof cdTwelveStage==='function')?cdTwelveStage(p.d.g,monthBranch):'';
+    var dayIsYang=(GAN[p.d.g]&&GAN[p.d.g].y)==='+';
+    var name='', type='일반격', reason='', confident=true;
+
+    if(jg&&jg.isJong){
+      name=String(jg.name||'종격').trim()||'종격';
+      type='특수격';
+      reason='일간이 극도로 편중되어 종격(특수격)으로 성립합니다. 정기·투출보다 세력의 종속이 우선입니다.';
+    }else if(mainQi&&(mainQi.tenGod==='비견'||mainQi.tenGod==='겁재')){
+      if(monthStage==='건록'){
+        name='건록격';
+        reason='월지 '+monthBranch+'가 일간 '+(GAN[p.d.g]&&GAN[p.d.g].n||p.d.g)+'의 건록 자리라 건록격으로 봅니다.';
+      }else if(monthStage==='제왕'&&dayIsYang){
+        name='양인격';
+        reason='월지 '+monthBranch+'가 양간 일간의 제왕(양인) 자리라 양인격으로 봅니다.';
+      }else{
+        name='월겁격';
+        reason='월령 본기가 '+mainQi.tenGod+'이라 정규 격 대신 월겁격(신강 구조)으로 봅니다.';
+      }
+      type='특수격';
+    }else if(candidates.length){
+      var best=candidates[0];
+      name=best.geok; type='일반격';
+      reason=best.exposed
+        ? '월지 '+monthBranch+' 지장간의 '+best.tenGod+'이 천간에 투출되어 '+best.geok+'이 뚜렷합니다.'
+        : '월지 '+monthBranch+' 지장간의 '+best.tenGod+'을 기준으로 '+best.geok+'으로 보되, 투출이 약해 확정도는 낮습니다.';
+      if(!best.exposed)confident=false;
+    }else{
+      name='미정'; type='참고'; confident=false;
+      reason='월지 지장간에서 뚜렷한 정규 격이 성립하지 않아, 억부·조후 흐름으로 보완해 읽습니다.';
+    }
+
+    /* 파격 요소 */
+    var breaks=[];
+    var allTenGods={};
+    qPalaceRows.forEach(function(row){
+      if(row.ganTenGod)allTenGods[row.ganTenGod]=1;
+      row.layers.forEach(function(l){ if(l.tenGod)allTenGods[l.tenGod]=1; });
+    });
+    if(allTenGods['정관']&&allTenGods['편관']){
+      breaks.push({type:'관살혼잡',detail:'정관과 편관이 함께 있어 관성이 혼잡합니다. 진로·조직·규율의 갈등 신호.'});
+    }
+    var chungTarget=ZHI_CHUNG[monthBranch];
+    if(chungTarget&&[p.y.j,p.d.j,p.h.j].indexOf(chungTarget)>=0){
+      breaks.push({type:'월지충',detail:'월지 '+monthBranch+'가 '+chungTarget+'와 충하여 격의 뿌리가 흔들립니다.'});
+    }
+    if(qIsGongmang(monthBranch)){
+      breaks.push({type:'월지공망',detail:'월지 '+monthBranch+'가 공망을 맞아 격의 자리가 비어 있습니다.'});
+    }
+    return {name:name,type:type,reason:reason,confident:confident,monthBranch:monthBranch,
+      monthHidden:monthHidden,candidates:candidates.slice(0,3),breaks:breaks,monthStage:monthStage};
+  })();
+
+  /* 십성 2계층 집계 — 천간(드러난) vs 지장간(숨은) */
+  var qTenGodLayers=(function(){
+    var visible={}, hidden={};
+    qPalaceRows.forEach(function(row){
+      if(row.ganTenGod)visible[row.ganTenGod]=(visible[row.ganTenGod]||0)+1;
+      row.layers.forEach(function(l){
+        if(l.tenGod)hidden[l.tenGod]=(hidden[l.tenGod]||0)+1;
+      });
+    });
+    function rank(map){
+      return Object.keys(map).sort(function(a,b){return map[b]-map[a];}).map(function(k){return {tenGod:k,count:map[k]};});
+    }
+    return {visible:visible,hidden:hidden,visibleRank:rank(visible),hiddenRank:rank(hidden)};
+  })();
+
+  /* ── STEP 5: 대운 타임라인 / 세운 / 월운 / 일운 ── */
+
+  /* 대운 전 구간 — renderDaewun이 채워 둔 window.G_DAEWUN 재사용.
+     행 점수는 evalDaewun(메모이즈 내장)을 그대로 쓴다. */
+  var qDaewunTimeline=(function(){
+    var rows=(typeof window!=='undefined'&&Array.isArray(window.G_DAEWUN))?window.G_DAEWUN:[];
+    return rows.map(function(row){
+      var ev=null;
+      try{ if(typeof evalDaewun==='function')ev=evalDaewun(row.g,row.j); }catch(_){}
+      var endAge=Number(row.age)+9;
+      return {
+        age:row.age, endAge:endAge, gan:row.g, zhi:row.j,
+        ganEl:row.gE||((GAN[row.g]&&GAN[row.g].e)||''),
+        zhiEl:row.jE||((JI[row.j]&&JI[row.j].e)||''),
+        ganRole:elType(row.gE||((GAN[row.g]&&GAN[row.g].e)||'')),
+        zhiRole:elType(row.jE||((JI[row.j]&&JI[row.j].e)||'')),
+        tenGod:qTenGodOf(row.g)||'',
+        branchTenGod:qTenGodOfBranch(row.j)||'',
+        stage:(qCoreReady&&typeof cdTwelveStage==='function')?cdTwelveStage(p.d.g,row.j):'',
+        score:ev&&typeof ev.score==='number'?ev.score:null,
+        label:(ev&&ev.label)||'',
+        summary:(ev&&ev.evalSummary)||'',
+        emoji:(ev&&ev.emoji)||'',
+        current:(typeof CURRENT_AGE==='number'&&CURRENT_AGE>=row.age&&CURRENT_AGE<=endAge)
+      };
+    });
+  })();
+
+  /* 세운 — 올해 기준 앞뒤로 5개년 */
+  var qYearlyFlow=(function(){
+    var out=[];
+    try{
+      for(var off=0;off<5;off++){
+        var y=qNow.getFullYear()+off;
+        /* 첫 행만 오늘 날짜(입춘 반영), 이후는 각 연도 중반으로 안전하게 조회 */
+        var probe=(off===0)
+          ? Solar.fromYmdHms(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0)
+          : Solar.fromYmdHms(y,6,15,12,0,0);
+        var ec=probe.getLunar().getEightChar();
+        var gz={g:ec.getYearGan(),j:ec.getYearZhi()};
+        var res=null;
+        try{ res=analyzeFortuneGZ(gz,p,(off===0?'올해 세운':(y+'년 세운'))); }catch(_){}
+        out.push({
+          year:(off===0?(gz.g+gz.j===sg+sz?qNow.getFullYear():qNow.getFullYear()):y),
+          labelYear:y, gan:gz.g, zhi:gz.j, isCurrent:(off===0), result:res,
+          ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
+          zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),
+          tenGod:qTenGodOf(gz.g)||'', branchTenGod:qTenGodOfBranch(gz.j)||''
+        });
+      }
+    }catch(_){}
+    return out;
+  })();
+
+  /* 월운 — 올해 12개월 */
+  var qMonthlyFlow=(function(){
+    var out=[];
+    if(typeof getMonthGanZhi!=='function')return out;
+    for(var m=1;m<=12;m++){
+      var gz=null;
+      try{ gz=getMonthGanZhi(qNow.getFullYear(),m); }catch(_){}
+      if(!gz||!gz.g)continue;
+      var res=null;
+      try{ res=analyzeFortuneGZ(gz,p,m+'월운'); }catch(_){}
+      out.push({
+        month:m, gan:gz.g, zhi:gz.j, result:res,
+        isCurrent:(m===qNow.getMonth()+1),
+        ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
+        zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),
+        tenGod:qTenGodOf(gz.g)||'', branchTenGod:qTenGodOfBranch(gz.j)||''
+      });
+    }
+    return out;
+  })();
+
+  /* 일운 — 오늘부터 7일 */
+  var qDailyFlow=(function(){
+    var out=[];
+    if(typeof getGanZhiForDate!=='function')return out;
+    var WEEK=['일','월','화','수','목','금','토'];
+    for(var d=0;d<7;d++){
+      var dt=new Date(qNow.getFullYear(),qNow.getMonth(),qNow.getDate()+d,12,0,0);
+      var gz=null;
+      try{ gz=getGanZhiForDate(dt.getFullYear(),dt.getMonth()+1,dt.getDate(),12); }catch(_){}
+      if(!gz||!gz.g)continue;
+      var res=null;
+      try{ res=analyzeFortuneGZ(gz,p,(d===0?'오늘 일운':(dt.getMonth()+1)+'/'+dt.getDate()+' 일운')); }catch(_){}
+      out.push({
+        date:dt, month:dt.getMonth()+1, day:dt.getDate(), weekday:WEEK[dt.getDay()],
+        gan:gz.g, zhi:gz.j, result:res, isToday:(d===0),
+        ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
+        zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),
+        tenGod:qTenGodOf(gz.g)||'', branchTenGod:qTenGodOfBranch(gz.j)||''
+      });
+    }
+    return out;
+  })();
+
   /* ── 명식 구조 섹션 ── */
   var yongList=(jg&&jg.isJong)?[jg.dominant,jg.parEl].filter(Boolean):(pw?pw.yongshin:[]);
   var kiList=(jg&&jg.isJong)?[whoControls(jg.dominant)]:(pw?pw.kijishin:[]);
@@ -16421,7 +16882,190 @@ function renderQuantumStrategy(p, natal, bazi){
     '<div class="qm-dual-grid">'+
       '<div class="qm-mini-panel"><div class="qm-mini-title">용신 라인</div><div class="qm-yong-list">'+yongHtml+'</div></div>'+
       '<div class="qm-mini-panel"><div class="qm-mini-title">기신 라인</div><div class="qm-yong-list">'+kiHtml+'</div></div>'+
+    '</div>'+
+    (qGyeokguk?(
+      '<div class="qm-dual-grid" style="margin-top:10px">'+
+        '<div class="qm-mini-panel"><div class="qm-mini-title">격국(格局)</div>'+
+          '<div class="qm-oracle-value">'+qEsc(qGyeokguk.name)+'</div>'+
+          '<div class="qm-yong-list" style="margin-top:6px">'+
+            '<span class="qm-el-chip qm-chip-neutral">'+qEsc(qGyeokguk.type)+'</span>'+
+            '<span class="qm-el-chip '+(qGyeokguk.confident?'qm-chip-good':'qm-chip-neutral')+'">'+(qGyeokguk.confident?'투출 확정':'확정도 낮음')+'</span>'+
+            (qGyeokguk.monthStage?'<span class="qm-el-chip qm-chip-neutral">월령 '+qEsc(qGyeokguk.monthStage)+'</span>':'')+
+          '</div>'+
+          '<div class="qm-oracle-meta">'+qEsc(qGyeokguk.reason)+'</div>'+
+        '</div>'+
+        '<div class="qm-mini-panel"><div class="qm-mini-title">파격(破格) 신호</div>'+
+          (qGyeokguk.breaks.length
+            ? qGyeokguk.breaks.map(function(b){
+                return '<div class="qm-action-item"><div class="qm-action-num">!</div><div class="qm-action-text"><b>'+qEsc(b.type)+'</b><br>'+qEsc(b.detail)+'</div></div>';
+              }).join('')
+            : '<div class="qm-oracle-meta">격을 흔드는 뚜렷한 신호는 잡히지 않습니다. 구조가 비교적 안정적으로 유지됩니다.</div>')+
+        '</div>'+
+      '</div>'
+    ):'');
+
+  /* ── STEP 1 UI: 원국 4주 정밀(궁위·지장간 3층·십이운성·공망) ── */
+  function qLayerChip(l){
+    var cls=l.exposed?'qm-chip-good':'qm-chip-neutral';
+    return '<span class="qm-el-chip '+cls+'" title="'+qEsc(l.layer+' · 가중 '+l.weight)+'">'+
+      qEsc(l.layer)+' '+qEsc(l.gan)+(l.tenGod?' · '+qEsc(l.tenGod):'')+(l.exposed?' ↑투출':'')+
+    '</span>';
+  }
+  var qPalaceHtml=qPalaceRows.map(function(row){
+    return '<div class="qm-pillar-card'+(row.gongmang?' qm-pillar-card--gongmang':'')+'">'+
+      '<div class="qm-pillar-label">'+qEsc(row.label)+' · '+qEsc(row.palace)+'</div>'+
+      '<div class="qm-pillar-gz"><span>'+qEsc(row.gan||'-')+'</span><span>'+qEsc(row.zhi||'-')+'</span></div>'+
+      '<div class="qm-pillar-roles">'+
+        (row.ganEl?qElementChip(row.ganEl,elType(row.ganEl)):'')+
+        (row.zhiEl?qElementChip(row.zhiEl,elType(row.zhiEl)):'')+
+      '</div>'+
+      '<div class="qm-yong-list" style="margin-top:7px">'+
+        (row.ganTenGod?'<span class="qm-el-chip qm-chip-neutral">천간 '+qEsc(row.ganTenGod)+'</span>':'')+
+        (row.zhiTenGod?'<span class="qm-el-chip qm-chip-neutral">지지 '+qEsc(row.zhiTenGod)+'</span>':'')+
+        (row.twelveStage?'<span class="qm-el-chip qm-chip-neutral">십이운성 '+qEsc(row.twelveStage)+'</span>':'')+
+        (row.gongmang?'<span class="qm-el-chip qm-chip-bad">공망</span>':'')+
+      '</div>'+
+      (row.layers.length?'<div class="qm-janggan-stack">'+row.layers.map(qLayerChip).join('')+'</div>':'')+
+      '<div class="qm-oracle-meta">'+qEsc(row.span+' · '+row.domain)+'</div>'+
     '</div>';
+  }).join('');
+  var qGongmangNote=qGongmang.length
+    ? '공망 지지는 <b>'+qEsc(qGongmang.join(' · '))+'</b>입니다. 해당 궁의 작용은 비거나 늦게 채워지는 결로 읽습니다.'
+    : '공망 산출값이 없습니다.';
+
+  /* ── STEP 2 UI: 원국 내부 구조(합·충·형·파·해·원진) ── */
+  function qRelationRow(item,tone){
+    var badgeCls=tone==='good'?'qm-hap-good':(tone==='bad'?'qm-hap-danger':'qm-hap-plain');
+    var cardCls=tone==='bad'?'qm-hap-card hap-bad':(tone==='good'?'qm-hap-card':'qm-hap-card hap-neutral');
+    var members=qArr(item.members||item.branches).join(' · ');
+    var positions=qArr(item.positions).join(' · ');
+    return '<div class="'+cardCls+'">'+
+      '<div class="qm-hap-top">'+
+        '<span class="qm-hap-badge '+badgeCls+'">'+qEsc(item.type||'')+'</span>'+
+        (positions?'<span style="font-size:.7rem;color:#8fa3b8;margin-left:8px">'+qEsc(positions)+'</span>':'')+
+      '</div>'+
+      '<div class="qm-transform"><span class="qm-from">'+qEsc(members)+'</span>'+
+        (item.element?'<span class="qm-arrow">→</span><span class="qm-to qm-to-good">'+qEsc(EL_K[item.element]||item.element)+'</span>':'')+
+      '</div>'+
+      (item.note||item.label?'<div class="qm-hap-desc">'+qEsc(item.note||item.label)+'</div>':'')+
+    '</div>';
+  }
+  var qRelationHtml=(function(){
+    var parts=[];
+    if(qRelations.harmony.length){
+      parts.push('<div class="qm-mini-title">합(合) — 결집·변화</div>'+
+        qRelations.harmony.map(function(r){return qRelationRow(r,'good');}).join(''));
+    }
+    if(qRelations.conflict.length){
+      parts.push('<div class="qm-mini-title" style="margin-top:10px">충·형·파·해 — 충돌·손상</div>'+
+        qRelations.conflict.map(function(r){return qRelationRow(r,'bad');}).join(''));
+    }
+    if(qRelations.wonjin.length){
+      parts.push('<div class="qm-mini-title" style="margin-top:10px">원진(怨嗔) — 미묘한 어긋남</div>'+
+        qRelations.wonjin.map(function(r){return qRelationRow(r,'neutral');}).join(''));
+    }
+    if(!parts.length)return '<div class="qm-no-hap">▎ 원국 8자 사이에 뚜렷한 합·충·형·파·해가 잡히지 않습니다. 구조가 비교적 담백하게 서 있습니다.</div>';
+    return parts.join('');
+  })();
+
+  /* ── STEP 3 UI: 오행 실세력 + 득령·득지·득세 ── */
+  var qStrengthHtml=qStrengthChecks.map(function(row){
+    return '<div class="qm-action-item">'+
+      '<div class="qm-action-num">'+(row.hit?'○':'×')+'</div>'+
+      '<div class="qm-action-text"><b>'+qEsc(row.name)+'</b> · '+qEsc(row.basis)+'<br>'+
+      '<span style="color:#b6c9d8">'+qEsc(row.desc)+'</span></div>'+
+    '</div>';
+  }).join('');
+  var qHiddenPowerHtml=qElements.map(function(el){
+    var pct=(qHiddenPower[el]/qHiddenPowerTotal)*100;
+    var type=elType(el);
+    return '<div class="qm-element-card qm-element-card--'+qEsc(type)+'">'+
+      '<div class="qm-element-top"><span class="qm-element-name">'+qEsc(qElLabel(el))+'</span>'+
+        '<span class="qm-hap-badge '+qTypeClass(type)+'">'+qEsc(qTypeLabel(type))+'</span></div>'+
+      '<div class="qm-element-meta">표면 '+(qNatalCounts[el]||0)+'자 · 지장간 반영 '+qHiddenPower[el].toFixed(1)+'점</div>'+
+      '<div class="qm-element-count"><span>실세력 '+pct.toFixed(1)+'%</span><i><b style="width:'+Math.max(3,Math.min(100,pct)).toFixed(1)+'%"></b></i></div>'+
+    '</div>';
+  }).join('');
+
+  /* ── STEP 4 UI: 십성 2계층 ── */
+  function qTenGodLayerList(rank,emptyText){
+    if(!rank.length)return '<div class="qm-oracle-meta">'+qEsc(emptyText)+'</div>';
+    return rank.slice(0,6).map(function(r){
+      return '<span class="qm-el-chip qm-chip-neutral">'+qEsc(r.tenGod)+' ×'+r.count+'</span>';
+    }).join('');
+  }
+
+  /* ── STEP 5 UI: 대운·세운·월운·일운 ── */
+  function qFlowGrade(res){ return (res&&res.grade)||''; }
+  function qFlowIcon(res){ return (res&&res.icon)||''; }
+  function qFlowBattery(res){ return (res&&typeof res.batteryPercent==='number')?res.batteryPercent:null; }
+  function qFlowAdvice(res,limit){
+    var items=qArr(res&&res.adviceItems).slice(0,limit||2);
+    if(!items.length)return '';
+    return items.map(function(a){
+      return '<div class="qm-oracle-meta" style="margin-top:5px"><b>'+qEsc(a.title||'')+'</b> '+qEsc(a.body||'')+'</div>';
+    }).join('');
+  }
+  var qDaewunHtml=qDaewunTimeline.length
+    ? '<div class="qm-luck-grid qm-luck-grid--timeline">'+qDaewunTimeline.map(function(row){
+        return '<div class="qm-luck-card'+(row.current?' qm-luck-card--current':'')+'">'+
+          '<div class="qm-luck-label">'+row.age+'~'+row.endAge+'세'+(row.current?' · 현재':'')+'</div>'+
+          '<div class="qm-luck-gz">'+qEsc((row.gan||'')+(row.zhi||''))+'</div>'+
+          '<div class="qm-luck-chips">'+
+            (row.ganEl?qElementChip(row.ganEl,row.ganRole):'')+
+            (row.zhiEl?qElementChip(row.zhiEl,row.zhiRole):'')+
+          '</div>'+
+          '<div class="qm-luck-note">'+
+            (row.score!=null?'평점 '+row.score+'점 · ':'')+qEsc(row.label||'')+
+            (row.tenGod?'<br>'+qEsc(row.tenGod+(row.branchTenGod?' · '+row.branchTenGod:'')):'')+
+            (row.stage?' · 십이운성 '+qEsc(row.stage):'')+
+          '</div>'+
+        '</div>';
+      }).join('')+'</div>'
+    : '<div class="qm-no-hap">▎ 대운 데이터를 불러오지 못했습니다</div>';
+
+  var qYearlyHtml=qYearlyFlow.length
+    ? '<div class="qm-luck-grid qm-luck-grid--timeline">'+qYearlyFlow.map(function(row){
+        return '<div class="qm-luck-card'+(row.isCurrent?' qm-luck-card--current':'')+'">'+
+          '<div class="qm-luck-label">'+row.labelYear+'년'+(row.isCurrent?' · 올해':'')+'</div>'+
+          '<div class="qm-luck-gz">'+qEsc(row.gan+row.zhi)+'</div>'+
+          '<div class="qm-luck-chips">'+
+            qElementChip((GAN[row.gan]&&GAN[row.gan].e)||'',row.ganRole)+
+            qElementChip((JI[row.zhi]&&JI[row.zhi].e)||'',row.zhiRole)+
+          '</div>'+
+          '<div class="qm-luck-note">'+qEsc(qFlowIcon(row.result)+' '+qFlowGrade(row.result))+
+            (row.tenGod?'<br>'+qEsc(row.tenGod+(row.branchTenGod?' · '+row.branchTenGod:'')):'')+'</div>'+
+          qFlowAdvice(row.result,1)+
+        '</div>';
+      }).join('')+'</div>'
+    : '<div class="qm-no-hap">▎ 세운 데이터를 불러오지 못했습니다</div>';
+
+  var qMonthlyHtml=qMonthlyFlow.length
+    ? '<div class="qm-flow-grid">'+qMonthlyFlow.map(function(row){
+        var bp=qFlowBattery(row.result);
+        return '<div class="qm-flow-cell'+(row.isCurrent?' qm-flow-cell--current':'')+'">'+
+          '<div class="qm-flow-head">'+row.month+'월'+(row.isCurrent?' · 이번 달':'')+'</div>'+
+          '<div class="qm-flow-gz">'+qEsc(row.gan+row.zhi)+'</div>'+
+          '<div class="qm-flow-grade">'+qEsc(qFlowIcon(row.result)+' '+qFlowGrade(row.result))+'</div>'+
+          (bp!=null?'<div class="qm-flow-bar"><b style="width:'+bp+'%"></b></div>':'')+
+          '<div class="qm-flow-meta">'+qEsc((row.tenGod||'')+(row.branchTenGod?' · '+row.branchTenGod:''))+'</div>'+
+        '</div>';
+      }).join('')+'</div>'
+    : '<div class="qm-no-hap">▎ 월운 데이터를 불러오지 못했습니다</div>';
+
+  var qDailyHtml=qDailyFlow.length
+    ? '<div class="qm-flow-grid">'+qDailyFlow.map(function(row){
+        var bp=qFlowBattery(row.result);
+        return '<div class="qm-flow-cell'+(row.isToday?' qm-flow-cell--current':'')+'">'+
+          '<div class="qm-flow-head">'+row.month+'/'+row.day+' ('+qEsc(row.weekday)+')'+(row.isToday?' · 오늘':'')+'</div>'+
+          '<div class="qm-flow-gz">'+qEsc(row.gan+row.zhi)+'</div>'+
+          '<div class="qm-flow-grade">'+qEsc(qFlowIcon(row.result)+' '+qFlowGrade(row.result))+'</div>'+
+          (bp!=null?'<div class="qm-flow-bar"><b style="width:'+bp+'%"></b></div>':'')+
+          '<div class="qm-flow-meta">'+qEsc((row.tenGod||'')+(row.branchTenGod?' · '+row.branchTenGod:''))+'</div>'+
+        '</div>';
+      }).join('')+'</div>'+
+      (qDailyFlow[0]&&qDailyFlow[0].result?'<div class="qm-panel" style="padding-top:8px">'+qFlowAdvice(qDailyFlow[0].result,3)+'</div>':'')
+    : '<div class="qm-no-hap">▎ 일운 데이터를 불러오지 못했습니다</div>';
 
   /* ── 신살(神殺) 계산 ── */
   var _qSS_day = p.d.g + p.d.j;
@@ -16498,6 +17142,27 @@ function renderQuantumStrategy(p, natal, bazi){
     '<div class="qm-action-item"><div class="qm-action-num">命</div><div class="qm-action-text"><b>격국의 중심</b><br>'+qEsc(structType+' · '+powerLabel+'의 골격 위에 '+johuLabel+'의 온습이 깔립니다. 일간 '+(p.d.g||'-')+' '+dayMasterName+'은 '+qElLabel(dayEl)+'의 결로 서 있고, 월령 '+(p.m.j||'-')+'은 '+qElLabel(monthEl)+'의 계절문을 엽니다.')+'</div></div>'+
     '<div class="qm-action-item"><div class="qm-action-num">神</div><div class="qm-action-text"><b>십성의 초점</b><br>'+qEsc(mainTenGod+'('+qTenGodGroup(mainTenGod)+')이 가장 선명하게 떠오릅니다. '+qTenGodTone(mainTenGod))+'</div></div>'+
     '<div class="qm-action-item"><div class="qm-action-num">運</div><div class="qm-action-text"><b>대운·세운의 문</b><br>'+qEsc(dwLabel+'과 '+seLabel+'이 원국의 용신·기신을 건드리는 자리에서 '+qDecision+'의 결론이 맺힙니다. '+qDecisionTone)+'</div></div>';
+  /* 판단축 칩 — 실제로 산출된 것만 켠다(과거에는 6개가 조건 없이 항상 표시됐다) */
+  var qAxisChips=(function(){
+    var axes=[
+      {label:'합화 우선', on:qHapCount>0},
+      {label:'충 변이', on:qChungCount>0},
+      {label:'원국 내부 합충형파해', on:(qRelations.conflict.length+qRelations.harmony.length+qRelations.wonjin.length)>0},
+      {label:'억부·조후 통합', on:!!pw},
+      {label:'종격 보정', on:!!(jg&&jg.isJong)},
+      {label:'격국 판정', on:!!(qGyeokguk&&qGyeokguk.name&&qGyeokguk.name!=='미정')},
+      {label:'지장간 실세력', on:qCoreReady},
+      {label:'십이운성', on:qCoreReady},
+      {label:'공망', on:qGongmang.length>0},
+      {label:'십성 축', on:tenGodRanking.length>0},
+      {label:'신살 신호', on:_qSS_items.length>0},
+      {label:'대운·세운·월운·일운', on:(qDaewunTimeline.length+qYearlyFlow.length+qMonthlyFlow.length+qDailyFlow.length)>0}
+    ];
+    return axes.map(function(a){
+      return '<span class="qm-el-chip '+(a.on?'qm-chip-good':'qm-chip-neutral')+'">'+(a.on?'✓ ':'– ')+qEsc(a.label)+'</span>';
+    }).join('');
+  })();
+
   var qEvidenceHtml=
     '<div class="qm-summary-grid">'+
       '<div class="qm-oracle-card"><div class="qm-oracle-label">최종 판정</div><div class="qm-oracle-value">'+qEsc(qDecision)+'</div><div class="qm-oracle-meta">합화 '+qHapCount+'건 · 충 '+qChungCount+'건 · 핵심 변이 '+keyEvents.length+'건</div></div>'+
@@ -16505,13 +17170,8 @@ function renderQuantumStrategy(p, natal, bazi){
       '<div class="qm-oracle-card"><div class="qm-oracle-label">주의 오행</div><div class="qm-yong-list">'+qElementChipList(cautionElements.concat(qUnique(kiList)),'bad','주의 오행 중립')+'</div></div>'+
     '</div>'+
     '<div class="qm-dual-grid">'+
-      '<div class="qm-mini-panel"><div class="qm-mini-title">반영된 v3 판단축</div><div class="qm-yong-list">'+
-        '<span class="qm-el-chip qm-chip-good">합화 우선</span>'+
-        '<span class="qm-el-chip qm-chip-good">충 변이</span>'+
-        '<span class="qm-el-chip qm-chip-good">억부·조후 통합</span>'+
-        '<span class="qm-el-chip qm-chip-good">종격 보정</span>'+
-        '<span class="qm-el-chip qm-chip-good">십성 축</span>'+
-        '<span class="qm-el-chip qm-chip-good">신살 신호</span>'+
+      '<div class="qm-mini-panel"><div class="qm-mini-title">반영된 판단축</div><div class="qm-yong-list">'+
+        qAxisChips+
       '</div></div>'+
       '<div class="qm-mini-panel"><div class="qm-mini-title">전문 요약</div><div class="qm-oracle-meta" style="font-size:.82rem;line-height:1.75;color:#d0e8d0">'+qEsc(qProfessionalSummary)+'</div></div>'+
     '</div>';
@@ -16527,7 +17187,20 @@ function renderQuantumStrategy(p, natal, bazi){
     elements:elementMatrix,
     pillars:pillarMatrix,
     luck:luckRows,
-    sinsalItems:_qSS_items.slice()
+    sinsalItems:_qSS_items.slice(),
+    /* 원국 정밀 판별 */
+    palaces:qPalaceRows,
+    gongmang:qGongmang.slice(),
+    relations:qRelations,
+    hiddenPower:qHiddenPower,
+    strengthChecks:qStrengthChecks,
+    gyeokguk:qGyeokguk,
+    tenGodLayers:qTenGodLayers,
+    /* 운의 흐름 4단계 */
+    daewunTimeline:qDaewunTimeline,
+    yearlyFlow:qYearlyFlow.map(function(r){return {year:r.labelYear,gan:r.gan,zhi:r.zhi,grade:(r.result&&r.result.grade)||''};}),
+    monthlyFlow:qMonthlyFlow.map(function(r){return {month:r.month,gan:r.gan,zhi:r.zhi,grade:(r.result&&r.result.grade)||''};}),
+    dailyFlow:qDailyFlow.map(function(r){return {month:r.month,day:r.day,gan:r.gan,zhi:r.zhi,grade:(r.result&&r.result.grade)||''};})
   };
   window.G_QUANTUM={
     version:'QUANTUM_MYEONGRI_ENGINE_V3',
@@ -16554,12 +17227,12 @@ function renderQuantumStrategy(p, natal, bazi){
         '<span class="qm-icon">⚡</span>'+
         '<div class="qm-title-wrap">'+
           '<h3>QUANTUM MYEONGRI Engine '+quantumEngineVersion+'</h3>'+
-          '<p>대운·세운의 합화, 충(沖), 십성, 조후가 한 자리에서 드러납니다.</p>'+
+          '<p>원국 4주·지장간·십이운성·공망부터 합충형파해, 격국, 대운·세운·월운·일운까지 한 자리에서 드러납니다.</p>'+
         '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">퀀텀 v3 전문 판정</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s2">퀀텀 전문 판정</span></div>'+
         '<div class="qm-panel">'+
           qEvidenceHtml+
         '</div>'+
@@ -16580,32 +17253,90 @@ function renderQuantumStrategy(p, natal, bazi){
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">◈</span><span class="qm-sec-title s2">원국 4주 오행 좌표</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◈</span><span class="qm-sec-title s2">원국 4주 정밀 — 궁위·지장간·십이운성·공망</span></div>'+
+        '<div class="qm-panel">'+
+          '<div class="qm-pillar-grid">'+qPalaceHtml+'</div>'+
+          '<div class="qm-oracle-meta" style="margin-top:10px">'+qGongmangNote+'</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<details class="qm-section qm-fold">'+
+        '<summary class="qm-sec-head"><span class="qm-sec-icon">◈</span><span class="qm-sec-title s4">원국 4주 오행 좌표(요약)</span></summary>'+
         '<div class="qm-panel"><div class="qm-pillar-grid">'+
           pillarMatrixHtml+
         '</div></div>'+
-      '</div>'+
+      '</details>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">십성 작동 축</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">⚭</span><span class="qm-sec-title s2">원국 내부 구조 — 합·충·형·파·해·원진</span></div>'+
         '<div class="qm-panel">'+
-          tenGodAxisHtml+
+          qRelationHtml+
         '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">오행별 퀀텀 판정</span></div>'+
-        '<div class="qm-panel"><div class="qm-element-grid">'+
-          elementMatrixHtml+
-        '</div></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">십성 작동 축 — 드러난 십성과 숨은 십성</span></div>'+
+        '<div class="qm-panel">'+
+          '<div class="qm-dual-grid">'+
+            '<div class="qm-mini-panel"><div class="qm-mini-title">천간에 드러난 십성</div><div class="qm-yong-list">'+
+              qTenGodLayerList(qTenGodLayers.visibleRank,'천간에 잡히는 십성이 없습니다.')+'</div></div>'+
+            '<div class="qm-mini-panel"><div class="qm-mini-title">지장간에 숨은 십성</div><div class="qm-yong-list">'+
+              qTenGodLayerList(qTenGodLayers.hiddenRank,'지장간 십성 산출값이 없습니다.')+'</div></div>'+
+          '</div>'+
+          '<div style="margin-top:10px">'+tenGodAxisHtml+'</div>'+
+        '</div>'+
       '</div>'+
 
       '<div class="qm-section">'+
-        '<div class="qm-sec-head"><span class="qm-sec-icon">☽</span><span class="qm-sec-title s1">대운·세운 운행 요약</span></div>'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">오행 균형 진단 — 실세력과 득령·득지·득세</span></div>'+
+        '<div class="qm-panel">'+
+          '<div class="qm-element-grid">'+qHiddenPowerHtml+'</div>'+
+          '<div class="qm-mini-title" style="margin-top:12px">일간의 뿌리 3판정</div>'+
+          qStrengthHtml+
+        '</div>'+
+      '</div>'+
+
+      '<details class="qm-section qm-fold">'+
+        '<summary class="qm-sec-head"><span class="qm-sec-icon">◇</span><span class="qm-sec-title s4">오행별 용신/기신 판정(요약)</span></summary>'+
+        '<div class="qm-panel"><div class="qm-element-grid">'+
+          elementMatrixHtml+
+        '</div></div>'+
+      '</details>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">☽</span><span class="qm-sec-title s1">대운(10년) 흐름 — 전 구간</span></div>'+
+        '<div class="qm-panel">'+
+          qDaewunHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">☀</span><span class="qm-sec-title s2">세운(1년) 흐름 — 5개년</span></div>'+
+        '<div class="qm-panel">'+
+          qYearlyHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">🌙</span><span class="qm-sec-title s1">월운(1개월) 흐름 — 12개월</span></div>'+
+        '<div class="qm-panel">'+
+          qMonthlyHtml+
+        '</div>'+
+      '</div>'+
+
+      '<div class="qm-section">'+
+        '<div class="qm-sec-head"><span class="qm-sec-icon">✧</span><span class="qm-sec-title s3">일운(1일) 흐름 — 오늘부터 7일</span></div>'+
+        '<div class="qm-panel">'+
+          qDailyHtml+
+        '</div>'+
+      '</div>'+
+
+      '<details class="qm-section qm-fold">'+
+        '<summary class="qm-sec-head"><span class="qm-sec-icon">☽</span><span class="qm-sec-title s4">현재 대운·세운 요약</span></summary>'+
         '<div class="qm-panel"><div class="qm-luck-grid">'+
           luckOverviewHtml+
         '</div></div>'+
-      '</div>'+
+      '</details>'+
 
       '<div class="qm-section">'+
         '<div class="qm-sec-head"><span class="qm-sec-icon">⚡</span><span class="qm-sec-title s2">運의 환골탈태 — 합화 및 충(沖) 변이 분석</span></div>'+

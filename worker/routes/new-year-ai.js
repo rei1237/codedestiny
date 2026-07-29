@@ -18,9 +18,9 @@ const SERVICE_KEY = "new-year-ai";
 const FEATURE_KEY = "new-year-ai-consultation";
 const ACCESS_TOKEN_TYPE = "new-year-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "신년운세 AI 상담";
+const ORDER_NAME = "신년운세 전문가 상담";
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
-const LLM_ERROR_MESSAGE = "AI 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
+const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000;
@@ -2050,7 +2050,7 @@ async function handleMessage(request, env) {
   return json({
     ok: false,
     reason: "FOLLOW_UP_DISABLED",
-    message: "신년운세 AI 상담은 처음 입력한 흐름을 기준으로 한 번 생성됩니다. 더 깊게 보고 싶은 내용은 상담 시작 전에 입력해 주세요.",
+    message: "신년운세 전문가 상담은 처음 입력한 흐름을 기준으로 한 번 생성됩니다. 더 깊게 보고 싶은 내용은 상담 시작 전에 입력해 주세요.",
   }, { status: 410 });
 }
 

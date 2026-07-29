@@ -1,10 +1,13 @@
 import Head from "next/head";
 import React from "react";
 
+// 유명인 사주 상세는 전량 noindex 로 바뀌었으므로, 색인·광고 대상인 허브와
+// 기능 가이드로 보낸다. app/not-found.js 와 같은 세트를 유지한다.
 const quickLinks = [
-  { href: "/insights/famous-saju", label: "유명인 사주 분석" },
-  { href: "/insights/famous-saju/yi-sun-sin", label: "이순신 사주" },
-  { href: "/insights/famous-saju/iu", label: "아이유 사주" },
+  { href: "/insights", label: "운세 인사이트" },
+  { href: "/saju/guide", label: "사주 입문 가이드" },
+  { href: "/tarot/guide", label: "타로 가이드" },
+  { href: "/faq", label: "자주 묻는 질문" },
 ];
 
 const chipStyle: React.CSSProperties = {
@@ -69,7 +72,7 @@ export default function NotFoundPage() {
         React.createElement(
           "p",
           { style: { margin: "14px auto 0", maxWidth: 520, lineHeight: 1.8, color: "#cbd5e1" } },
-          "주소가 바뀌었거나 아직 공개되지 않은 길일 수 있습니다. 아래 링크에서 가까운 운세 가이드와 인사이트를 확인해 주세요.",
+          "주소가 바뀌었거나 아직 공개되지 않은 길일 수 있습니다. 오래된 링크를 따라오셨다면 주소의 오타를 한 번 확인해 주시고, 그래도 열리지 않으면 아래에서 가까운 길로 이동해 주세요. 사주·타로·자미두수 가이드와 운세 인사이트는 모두 무료로 열려 있습니다.",
         ),
         React.createElement(
           "div",
@@ -110,6 +113,19 @@ export default function NotFoundPage() {
               },
             },
             "무료 사주 분석",
+          ),
+          React.createElement(
+            "a",
+            {
+              href: "/",
+              style: {
+                ...actionStyle,
+                background: "transparent",
+                color: "#e2e8f0",
+                border: "1px solid rgba(255,255,255,0.28)",
+              },
+            },
+            "홈으로 돌아가기",
           ),
         ),
       ),

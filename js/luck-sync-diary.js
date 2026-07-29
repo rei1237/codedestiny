@@ -67,7 +67,13 @@ const LUCK_SYNC_DIARY_TEXT_TRANSLATIONS = {
 };
 
 function _lsdText(key) {
-  return LUCK_SYNC_DIARY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+  var ko = LUCK_SYNC_DIARY_TEXT_TRANSLATIONS.ko[key] || "";
+  try {
+    if (typeof window !== "undefined" && window && typeof window.cdTranslate === "function") {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || "Translation pending";
 }
 
   function normalizeLsdBirthDate(value) {

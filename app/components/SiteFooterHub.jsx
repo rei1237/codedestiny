@@ -218,7 +218,10 @@ export default function SiteFooterHub() {
             {BUSINESS_INFO_ROWS.map((row, index) => (
               <span key={row.key}>
                 {index > 0 ? " | " : null}
-                <strong>{siteFooterHubText(row.key)}</strong>: {row.value}
+                <strong>{siteFooterHubText(row.key)}</strong>:{" "}
+                {/* 법인 상호·대표자명·신고번호·사업장 주소는 **등록된 그대로가 법적 형식**이라
+                    번역하지 않는다. data-cd-no-trans 로 런타임 번역 대상에서 명시적으로 제외한다. */}
+                <span data-cd-no-trans>{row.value}</span>
               </span>
             ))}
           </p>

@@ -1,4 +1,5 @@
 import InsightsCosmicRouteClient from "./InsightsCosmicRouteClient";
+import { FEATURE_GUIDES } from "./feature-guides";
 import { INSIGHT_SEED_ARTICLES } from "./seed-articles";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
@@ -178,6 +179,30 @@ export default async function InsightsPage() {
               ))}
           </ul>
         </nav>
+      </section>
+      {/*
+        기능 가이드 12종은 사이트에서 가장 품질이 높은 자산인데(상호 공통 문장 0개)
+        2026-07 실측에서 10개가 내부 링크로 도달 불가능했다. 눈에 보이는 섹션으로
+        렌더링해 사용자와 크롤러 양쪽에 경로를 연다 — sr-only 목차에 넣으면
+        은닉 텍스트만 늘어난다.
+      */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 md:px-6">
+        <div className="cd-guide-index">
+          <h2 className="cd-guide-index__title">기능 가이드</h2>
+          <p className="cd-guide-index__lede">
+            각 점술 체계를 어떤 근거로 계산하고 어떻게 읽는지, 그리고 무엇까지는 말할 수 없는지를
+            정리한 안내입니다. 결과 화면을 보기 전에 읽어 두면 해석의 범위를 가늠하기 쉽습니다.
+          </p>
+          <ul className="cd-guide-index__grid">
+            {FEATURE_GUIDES.map((guide) => (
+              <li key={guide.href}>
+                <a href={guide.href} className="cd-guide-index__link">
+                  {guide.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumb) }} />

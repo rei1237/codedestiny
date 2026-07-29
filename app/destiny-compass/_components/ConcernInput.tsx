@@ -6,8 +6,18 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { CHIP_AXES } from "./mapRegions";
+import { ConstellationMark, type ConstellationVariant } from "./ConstellationMark";
 import { PIG_LINES, NEO_VALID_LINE, type MapInputPhase, type PigExpr } from "../_stage/mapDialogue";
 import styles from "./map.module.css";
+
+// 칩 축(지도 노드) → 노드 고유 톤. 성좌 마크·칩 발광이 대응 노드 색과 연동된다.
+const REGION_TONE: Record<string, string> = {
+  castle: "var(--cd-node-castle)",
+  forest: "var(--cd-node-forest)",
+  city: "var(--cd-node-city)",
+  lake: "var(--cd-node-lake)",
+  fog: "var(--cd-node-fog)",
+};
 
 interface ConcernInputProps {
   onSubmit: (concern: string) => void;
@@ -17,12 +27,15 @@ interface ConcernInputProps {
   onWaitingChange?: (waiting: boolean) => void;
   /** 꽃돼지 표정 동기화 */
   onPigExpr?: (expr: PigExpr) => void;
+  /** 꽃돼지 현재 대사 — 지도 위 꽃돼지 말풍선에 앵커(화자=꽃돼지 고정) */
+  onLine?: (text: string) => void;
 }
 
 const IDLE_MS = 8000;
-const RUNES = ["✦", "◇", "✧", "◇", "✦", "◇"]; // 프레임 룬 데코(장식)
+// 프레임 성좌 데코(장식) — 유니코드 룬 대신 자체 SVG 별자리.
+const RUNE_VARIANTS: ConstellationVariant[] = [0, 2, 4, 1, 3, 5];
 
-export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr }: ConcernInputProps) {
+export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr, onLine }: ConcernInputProps) {
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -54,6 +67,10 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
     onPigExpr?.(line.expr);
   }, [line.expr, onPigExpr]);
 
+  useEffect(() => {
+    onLine?.(line.text);
+  }, [line.text, onLine]);
+
   const submit = (v: string) => {
     const t = v.trim();
     if (t) onSubmit(t);
@@ -61,12 +78,7 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
 
   return (
     <div className={styles.concern}>
-      {/* 꽃돼지 말풍선 — 위(현재 위치 꽃돼지)로 꼬리, 상태별 대사 크로스페이드 */}
-      <div className={styles.bubbleWrap}>
-        <div className={styles.speechBubble} aria-live="polite">
-          <span key={phase} className={styles.bubbleLine}>{line.text}</span>
-        </div>
-      </div>
+      {/* 말풍선은 지도 위 꽃돼지에 앵커(DestinyMap.heroLine) — 화자와 분리 방지 */}
 
       {/* 고대의 나침반 — 질문을 새기는 오브젝트 */}
       <form
@@ -80,8 +92,10 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
         }}
       >
         <span className={styles.oracleRunes} aria-hidden="true">
-          {RUNES.map((r, i) => (
-            <span key={i} className={styles.rune}>{r}</span>
+          {RUNE_VARIANTS.map((v, i) => (
+            <span key={i} className={styles.rune}>
+              <ConstellationMark variant={v} size={13} />
+            </span>
           ))}
         </span>
         <input
@@ -114,18 +128,21 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
       <div className={styles.chipDeck}>
         <span className={styles.chipDeckLabel}>빠른 질문</span>
         <div className={styles.chips} role="group" aria-label="빠른 질문 6축">
-          {CHIP_AXES.map((c) => (
+          {CHIP_AXES.map((c, i) => (
             <button
               key={c.key}
               type="button"
               className={styles.chip}
+              style={{ ["--chip-tone" as string]: REGION_TONE[c.region] || "var(--cd-map-gold)" }}
               onMouseEnter={() => onSpotlight?.(c.region)}
               onMouseLeave={() => onSpotlight?.(null)}
               onFocus={() => onSpotlight?.(c.region)}
               onBlur={() => onSpotlight?.(null)}
               onClick={() => submit(c.seed)}
             >
-              <span className={styles.chipGem} aria-hidden="true" />
+              <span className={styles.chipGem} aria-hidden="true">
+                <ConstellationMark variant={(i % 6) as ConstellationVariant} tone={REGION_TONE[c.region] || "var(--cd-map-gold)"} size={15} />
+              </span>
               {c.label}
             </button>
           ))}

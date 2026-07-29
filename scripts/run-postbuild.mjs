@@ -15,6 +15,10 @@ const steps = [
   "scripts/prepare-cloudflare-dist.mjs",
   "scripts/write-version-json.mjs",
   "scripts/promote-static-shell-to-root.mjs",
+  // 셸 승격이 끝난 뒤, 검증 게이트 앞에서 로케일 산출물을 손본다.
+  // 순서를 바꾸면 promote 단계가 다시 한국어 셸로 덮어쓴다.
+  "scripts/fix-locale-html-lang.mjs",
+  "scripts/prerender-locale-shell-translations.mjs",
   "scripts/verify-adsense-readiness.mjs",
 ];
 

@@ -6,7 +6,7 @@ const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
     title: "최애운명 - 사주 기반 덕질 운명 분석 | Code Destiny",
     description: "내 사주와 최애의 사주를 비교해 공명 점수, 오행 보완 포인트, 오늘의 최애운명 액션을 카드로 확인하는 팬덤 맞춤 분석 서비스.",
     ogTitle: "최애운명 - 사주 기반 덕질 운명 분석",
-    ogDescription: "AI는 해석만, 계산은 내부 명식 엔진으로 처리하는 최애운명 카드 분석.",
+    ogDescription: "전문가는 해석만, 계산은 내부 명식 엔진으로 처리하는 최애운명 카드 분석.",
     ogAlt: "최애운명 OG 카드",
   },
   en: {

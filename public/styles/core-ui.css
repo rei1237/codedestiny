@@ -1,4 +1,4 @@
-﻿/* ============================================================
+/* ============================================================
    core-ui.css — Merged critical CSS
    Replaces: globals.css + browser-compat.css + main-glass.css + mobile-ux.css
    Generated: 2026-04-13
@@ -331,7 +331,7 @@ body {
 	background-color: #0f0a1a;
 }
 .wrap {
-	max-width: 960px;
+	max-width: var(--cd-w-wide, 960px);
 	margin: 0 auto;
 	padding: 0 16px 32px;
 }

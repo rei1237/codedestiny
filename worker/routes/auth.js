@@ -1236,6 +1236,23 @@ function buildOAuthFrontendUrl(frontendBase, nextPath = "/") {
   }
 }
 
+/**
+ * 이중 콜백(같은 code 로 두 번 들어온 경우) 응답.
+ *
+ * 첫 콜백이 이미 grant 를 넘겨 로그인을 끝냈으므로 둘째는 아무것도 하지 말고 사용자를
+ * 원래 있던 자리로만 되돌린다. 앱 플로우에서 웹 URL 로 보내면 커스텀탭 안에 갇혀
+ * "브라우저에선 로그인됐는데 앱은 로그아웃" 상태가 된다 — 앱이면 앱으로 되돌린다.
+ * 앱 브리지는 social_grant 가 없으면 조용히 no-op 한다(completeMobileOAuth → deepLink:noGrant).
+ */
+function buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, appRedirect, flow) {
+  const appTarget = buildAppOAuthRedirect(appRedirect, {
+    flow,
+    next: nextPath !== "/" ? nextPath : "",
+  });
+  if (appTarget) return buildAppOAuthHandoffResponse(appTarget);
+  return redirect(buildOAuthFrontendUrl(safeFrontendBase, nextPath));
+}
+
 function buildOAuthFailureRedirect(frontendBase, provider, reason) {
   const loginUrl = new URL("/login", buildOAuthFrontendUrl(frontendBase, "/"));
   loginUrl.searchParams.set("authError", provider || "oauth");
@@ -2713,25 +2730,37 @@ async function handleMe(request, env) {
   }
 }
 
+// 결제용 전화번호 조회에 필요한 최소 필드. 인증 리졸버가 인증 조회와 함께 읽어 authUserDoc로 돌려준다.
+const PAYMENT_PHONE_USER_PROJECTION = {
+  _id: 1,
+  phoneNumber: 1,
+  phone: 1,
+};
+
 async function handlePaymentPhoneStatus(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const auth = await requireAuth(request, env);
+  // 인증 확인과 같은 조회에서 결제용 전화번호까지 함께 읽는다. 이 라우트는 결제창을 여는 직전 경로라
+  // 왕복 하나가 곧 체감 지연이자 일시적 503 표면적이다. (access-token 경로에서만 authUserDoc 부착)
+  const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_PHONE_USER_PROJECTION });
   const userId = String(auth.userId || "");
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
     return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
   }
 
-  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
-  const user = await withAuthOpTimeout(
-    User.findById(userId)
-      .select("phoneNumber phone")
-      .maxTimeMS(dbMaxTimeMs)
-      .lean(),
-    timeoutMs,
-    "auth_payment_phone_find_user",
-  );
+  let user = auth.authUserDoc || null;
+  if (!user) {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+    user = await withAuthOpTimeout(
+      User.findById(userId)
+        .select("phoneNumber phone")
+        .maxTimeMS(dbMaxTimeMs)
+        .lean(),
+      timeoutMs,
+      "auth_payment_phone_find_user",
+    );
+  }
 
   if (!user) {
     return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
@@ -3389,6 +3418,9 @@ async function handleOAuthCallback(request, env, provider) {
   }
 
   let exchangeFailureLogged = false;
+  // 앱(Capacitor) 플로우인지 catch 블록에서도 알아야 한다. state 검증 후에 채워진다.
+  // 이게 없으면 실패 시 무조건 웹 /login 으로 리다이렉트해 앱 사용자가 커스텀탭에 갇힌다.
+  let appOAuthRedirect = "";
   const logExchangeFailed = (reason) => {
     if (exchangeFailureLogged) return;
     exchangeFailureLogged = true;
@@ -3437,6 +3469,17 @@ async function handleOAuthCallback(request, env, provider) {
     const nextPath = sanitizeOAuthNextPath(statePayload.nextPath);
     const safeFrontendBase = String(statePayload.frontendBase || frontendBase).replace(/\/+$/, "");
     const appRedirect = sanitizeAppOAuthRedirect(statePayload.appRedirect);
+    appOAuthRedirect = appRedirect;
+
+    // 🔴 이중 콜백 dedup 은 공급자 분기보다 앞에 있어야 한다.
+    // 과거 이 가드가 kakao 경로 안에만 있어 google·naver 는 dedup 이 전혀 없었고,
+    // 둘째 콜백이 같은 code 를 재사용하다 <provider>_token_exchange_failed 로 죽어
+    // 웹 /login?authError= 로 샜다(앱에서는 로그인 실패로 보임).
+    const exchangeGuard = beginOAuthCodeExchange(provider, code, stateRaw, env);
+    if (exchangeGuard.blocked) {
+      logKakaoCallbackMarker(request, provider, "loopGuardTriggered", { redirectTarget: nextPath });
+      return buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, appRedirect, flow);
+    }
 
     if (provider !== "kakao") {
       const redirectPath = `/auth/${provider}/callback`;
@@ -3474,11 +3517,6 @@ async function handleOAuthCallback(request, env, provider) {
     }
 
     const redirectTarget = buildOAuthFrontendUrl(safeFrontendBase, nextPath);
-    const exchangeGuard = beginOAuthCodeExchange(provider, code, stateRaw, env);
-    if (exchangeGuard.blocked) {
-      logKakaoCallbackMarker(request, provider, "loopGuardTriggered", { redirectTarget: nextPath });
-      return redirect(redirectTarget);
-    }
 
     let exchangeStarted = false;
     try {
@@ -3554,6 +3592,11 @@ async function handleOAuthCallback(request, env, provider) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/callback", provider, "oauth_callback_failed", error);
     const reason = String(error?.message || "oauth_callback_failed").trim() || "oauth_callback_failed";
     logExchangeFailed(reason);
+    // 앱 플로우는 웹 /login 에러 페이지로 보내지 않는다. 커스텀탭에 갇히는 대신 앱으로 되돌린다.
+    // 특히 아이솔레이트가 갈려 위 dedup 을 통과한 둘째 콜백은 code 가 이미 소진돼 여기로 오는데,
+    // 그때 첫 콜백은 이미 로그인을 끝냈으므로 앱으로 돌아가면 정상 상태다.
+    const appFailureTarget = buildAppOAuthRedirect(appOAuthRedirect, { social_error: reason });
+    if (appFailureTarget) return buildAppOAuthHandoffResponse(appFailureTarget);
     return buildOAuthFailureRedirect(frontendBase, provider, reason);
   }
 }

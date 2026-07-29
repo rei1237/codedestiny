@@ -10,7 +10,7 @@ const PAGE_DESCRIPTION =
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["운세 프롬프트", "사주 질문", "타로 질문 만들기", "상담 프롬프트", "AI 운세 상담"],
+  keywords: ["운세 프롬프트", "사주 질문", "타로 질문 만들기", "상담 프롬프트", "전문가 운세 상담"],
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },

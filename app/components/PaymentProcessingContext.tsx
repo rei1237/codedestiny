@@ -644,7 +644,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       });
       emitCoinGateOverlay(true, overlay.message, overlay.mode);
       if (status === "hasEntitlement" || status === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), status === "hasEntitlement" ? 1600 : 1100);
+        window.setTimeout(() => emitCoinGateOverlay(false), status === "hasEntitlement" ? 800 : 700);
       }
       return seq;
     }
@@ -723,7 +723,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       });
       emitCoinGateOverlay(true, overlay.message, overlay.mode);
       if (requestedStatus === "hasEntitlement" || requestedStatus === "paymentSuccess") {
-        window.setTimeout(() => emitCoinGateOverlay(false), requestedStatus === "hasEntitlement" ? 1600 : 1100);
+        window.setTimeout(() => emitCoinGateOverlay(false), requestedStatus === "hasEntitlement" ? 800 : 700);
       }
       return;
     }
@@ -775,7 +775,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       if (hold && hold.requestId === state.requestId) holdRef.current = null;
       close(state.requestId);
     };
-    closeTimerRef.current = setTimeout(tryClose, state.status === "hasEntitlement" ? 1600 : 1100);
+    closeTimerRef.current = setTimeout(tryClose, state.status === "hasEntitlement" ? 800 : 700);
     return () => {
       cancelled = true;
       if (closeTimerRef.current) {
@@ -974,7 +974,7 @@ export function PaymentProcessingProvider({
       clearCompletionCloseTimer();
       completionCloseTimerRef.current = setTimeout(() => {
         closeProcessingNow();
-      }, processingVariantRef.current === "pass-applied" ? 1600 : 1100);
+      }, processingVariantRef.current === "pass-applied" ? 800 : 700);
       return;
     }
     closeProcessingNow();

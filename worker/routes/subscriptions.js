@@ -2,6 +2,7 @@ import { connectDb } from "../lib/db.js";
 import { DailyFortuneSubscription } from "../lib/models.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { sendSingleFortune } from "../lib/daily-fortune-task.js";
+import { buildSajuSnapshotFromBirth } from "../lib/saju-snapshot-from-birth.js";
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SAJU_SNAPSHOT_MAX_CHARS = 36000;
@@ -94,7 +95,6 @@ async function handleDailyFortunePost(request, env) {
     const calendarType = normalizeText(body?.calendarType || "solar", 20) || "solar";
     const timezone = normalizeText(body?.timezone || "Asia/Seoul", 40) || "Asia/Seoul";
     const source = normalizeText(body?.source || "saju-analysis", 40) || "saju-analysis";
-    const sajuSnapshot = normalizeSajuSnapshot(body?.sajuSnapshot);
 
     if (!email || !emailRegex.test(email)) {
       return json({ message: "유효한 이메일 주소를 입력해 주세요." }, { status: 400 });
@@ -104,8 +104,20 @@ async function handleDailyFortunePost(request, env) {
       return json({ message: "현재 이메일 구독은 사주 기반 일일 운세만 지원합니다." }, { status: 400 });
     }
 
-    if (!sajuSnapshot) {
-      return json({ message: "사주 기반 일일 운세 구독을 위해 먼저 사주 분석을 완료해 주세요." }, { status: 400 });
+    // 스냅샷 우선순위: (a) 클라이언트 제공(사주 분석 완료 경로) → (b) 생년정보로 서버 계산 → (c) 없으면 null(범용 발송 폴백)
+    let sajuSnapshot = normalizeSajuSnapshot(body?.sajuSnapshot);
+    if (!sajuSnapshot && birthDate) {
+      const birthTimeUnknown = body?.birthTimeUnknown === true;
+      const birthTime = (!birthTimeUnknown && birthHour != null)
+        ? `${String(birthHour).padStart(2, "0")}:${String(birthMinute ?? 0).padStart(2, "0")}`
+        : "";
+      sajuSnapshot = normalizeSajuSnapshot(buildSajuSnapshotFromBirth({
+        birthDate,
+        birthTime,
+        birthTimeUnknown,
+        calendarType,
+        gender: normalizeText(body?.gender, 10),
+      }));
     }
 
     const updateFields = {
@@ -161,13 +173,15 @@ async function handleDailyFortunePost(request, env) {
       await recordMailError(saved._id, mailErrorCode);
     }
 
+    const planLabel = sajuSnapshot ? "사주 기반 일일 운세" : "일일 운세";
     return json({
       ok: true,
       firstMailSent,
+      personalized: !!sajuSnapshot,
       mailErrorCode,
       message: firstMailSent
-        ? "사주 기반 일일 운세 구독이 등록되었습니다. 첫 번째 운세가 발송되었습니다."
-        : "사주 기반 일일 운세 구독이 등록되었습니다. 첫 메일은 발송 대기 상태이며 다음 발송 작업에서 다시 시도됩니다.",
+        ? `${planLabel} 구독이 등록되었습니다. 첫 번째 운세가 발송되었습니다.`
+        : `${planLabel} 구독이 등록되었습니다. 첫 메일은 발송 대기 상태이며 다음 발송 작업에서 다시 시도됩니다.`,
       subscription: {
         email: saved.email,
         subDaily: !!saved.subDaily,

@@ -1,5 +1,6 @@
 import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
+import { LOCALE_CONFIG } from "./i18n/locales";
 
 type FaqItem = {
   question: string;
@@ -30,7 +31,19 @@ export function buildOrganizationJsonLd() {
   };
 }
 
-export function buildWebsiteJsonLd() {
+/**
+ * 로케일 → JSON-LD `inLanguage` (BCP 47).
+ * LOCALE_CONFIG 의 ogLocale(ko_KR 등)을 재사용한다 — 지역 코드 표를 새로 만들지 않는다.
+ * 인자를 생략하면 ko-KR 로, 기존 호출부의 동작이 그대로 유지된다.
+ */
+export function toInLanguage(locale?: string): string {
+  const key = String(locale || "ko").toLowerCase();
+  const matched = (Object.keys(LOCALE_CONFIG) as Array<keyof typeof LOCALE_CONFIG>)
+    .find((candidate) => candidate === key);
+  return (LOCALE_CONFIG[matched || "ko"].ogLocale || "ko_KR").replace("_", "-");
+}
+
+export function buildWebsiteJsonLd(locale?: string) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -38,7 +51,7 @@ export function buildWebsiteJsonLd() {
     url: siteSeo.siteUrl,
     name: siteSeo.siteName,
     alternateName: siteSeo.alternateName,
-    inLanguage: "ko-KR",
+    inLanguage: toInLanguage(locale),
     publisher: { "@id": `${siteSeo.siteUrl}/#organization` },
     potentialAction: {
       "@type": "SearchAction",
@@ -65,6 +78,7 @@ export function buildWebPageJsonLd(input: {
   title: string;
   description: string;
   path: string;
+  locale?: string;
 }) {
   const url = toAbsoluteUrl(input.path);
   return {
@@ -74,7 +88,7 @@ export function buildWebPageJsonLd(input: {
     name: input.title,
     description: input.description,
     url,
-    inLanguage: "ko-KR",
+    inLanguage: toInLanguage(input.locale),
     isPartOf: { "@id": `${siteSeo.siteUrl}/#website` },
     about: { "@id": `${siteSeo.siteUrl}/#organization` },
   };
@@ -102,18 +116,38 @@ export function buildCollectionPageJsonLd(input: {
   };
 }
 
+type ServiceAudience = { country: string; audienceType: string; serviceType: string };
+
+/** 알 수 없는 로케일의 기본값. 한국 서비스가 원본이므로 KR 기준이다. */
+const DEFAULT_SERVICE_AUDIENCE: ServiceAudience = {
+  country: "KR",
+  audienceType: "Korean fortune and self-reflection readers",
+  serviceType: "Saju reading service",
+};
+
+/** 로케일별 서비스 대상 국가·독자층. */
+const SERVICE_AUDIENCE: Record<string, ServiceAudience> = {
+  ko: DEFAULT_SERVICE_AUDIENCE,
+  ja: { country: "JP", audienceType: "Japanese fortune and self-reflection readers", serviceType: "占い鑑定サービス" },
+  zh: { country: "CN", audienceType: "Chinese-speaking fortune and self-reflection readers", serviceType: "运势解读服务" },
+  en: { country: "US", audienceType: "English-speaking fortune and self-reflection readers", serviceType: "Fortune reading service" },
+};
+
 export function buildServiceJsonLd(input: {
   name: string;
   description: string;
   path: string;
   serviceType?: string;
+  locale?: string;
 }) {
+  const audience = SERVICE_AUDIENCE[String(input.locale || "ko").toLowerCase()] ?? DEFAULT_SERVICE_AUDIENCE;
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     name: input.name,
-    serviceType: input.serviceType || "운세 해석 서비스",
+    serviceType: input.serviceType || audience.serviceType,
     description: input.description,
+    inLanguage: toInLanguage(input.locale),
     provider: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
@@ -121,11 +155,11 @@ export function buildServiceJsonLd(input: {
     },
     areaServed: {
       "@type": "Country",
-      name: "KR",
+      name: audience.country,
     },
     audience: {
       "@type": "Audience",
-      audienceType: "Korean fortune and self-reflection readers",
+      audienceType: audience.audienceType,
     },
     url: toAbsoluteUrl(input.path),
   };

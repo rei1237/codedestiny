@@ -3,6 +3,7 @@ import Link from "next/link";
 import NakshatraFormClient from "./NakshatraFormClient";
 import { Taegeuk, Yantra, Spark, CornerMark } from "./NakshatraSymbols";
 import styles from "./nakshatra.module.css";
+import { SUKUYO_MANSIONS } from "../../worker/lib/sukuyo-premium.js";
 import {
   buildBreadcrumbJsonLd,
   buildFaqPageJsonLd,
@@ -225,6 +226,35 @@ export default function NakshatraLanding({ page }) {
           </div>
         </section>
       )}
+
+      {/*
+        27수 도감(/nakshatra/codex/0~26)은 별마다 손으로 쓴 고유 해설을 갖고 있는데도
+        2026-07 실측에서 인바운드가 서로 간의 이전/다음 링크뿐이라 사실상 도달 불가였다.
+        허브에서 27개를 전부 열어 준다.
+      */}
+      <section className={`${styles.section} ${styles.sectionTop}`}>
+        <div className={styles.wrap}>
+          <div className={styles.secHead}>
+            <div className={styles.eyebrow}>Nakshatra Codex</div>
+            <h2>27수 도감 — 별 하나하나의 두 이름</h2>
+          </div>
+          <p className={styles.lead}>
+            같은 하늘을 동양은 숙요 27수로, 인도는 27 나크샤트라로 나눴습니다. 두 체계는 대표 별을
+            기준으로 이어지므로, 한 자리를 방위·사신·칠요와 지배성·주신·샥티라는 두 언어로 겹쳐
+            읽을 수 있습니다. 아래에서 각 별의 통합 해설을 확인해 보세요.
+          </p>
+          <div className={styles.relatedGrid}>
+            {SUKUYO_MANSIONS.map((mansion, index) => (
+              <Link key={mansion.nameHan} href={`/nakshatra/codex/${index}`} className={styles.relatedLink}>
+                <span>
+                  {mansion.nameKo}수({mansion.nameHan})
+                </span>
+                <span className="arr" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <div className={styles.footNote}>
         <span className={styles.fnSym}>

@@ -8,6 +8,7 @@ import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useCompassSession, type CompassStep } from "../_hooks/useCompassSession";
+import { useFxTier } from "../_hooks/useFxTier";
 import { JourneyHub } from "./JourneyHub";
 import { MapResult } from "./MapResult";
 import { Crossroads } from "./Crossroads";
@@ -17,7 +18,8 @@ import { TodayQuest } from "./TodayQuest";
 import { Arrival } from "./Arrival";
 import { DestinyMap } from "./DestinyMap";
 import { ConcernInput } from "./ConcernInput";
-import type { PigExpr } from "../_stage/mapDialogue";
+import { ConstellationMark } from "./ConstellationMark";
+import { PIG_LINES, type PigExpr } from "../_stage/mapDialogue";
 import { ProcessingScene } from "./ProcessingScene";
 import { Starfield } from "./Starfield";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
@@ -29,6 +31,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [pigExpr, setPigExpr] = useState<PigExpr>("talk");
+  const [heroLine, setHeroLine] = useState<string>(PIG_LINES.intro.text);
 
   if (s.step === "hub") {
     return <JourneyHub onStart={() => s.setStep(s.birth ? "map" : "birth")} />;
@@ -47,12 +50,13 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "map") {
     return (
-      <DestinyMap spotlightRegion={spotlight} pigExpr={pigExpr} guideTilt={waiting}>
+      <DestinyMap islandArt spotlightRegion={spotlight} pigExpr={pigExpr} heroLine={heroLine} guideTilt={waiting}>
         <ConcernInput
           onSubmit={(c) => s.submitConcern(c)}
           onSpotlight={setSpotlight}
           onWaitingChange={setWaiting}
           onPigExpr={setPigExpr}
+          onLine={setHeroLine}
         />
         {s.error && (
           <p role="alert" style={{ textAlign: "center", color: "#ffd9ec", fontWeight: 700 }}>
@@ -65,7 +69,7 @@ export function CompassApp({ start = "birth" }: { start?: CompassStep } = {}) {
 
   if (s.step === "processing") {
     return (
-      <DestinyMap showFog>
+      <DestinyMap showFog hideHero>
         <ProcessingScene />
       </DestinyMap>
     );
@@ -146,6 +150,7 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
   const [editing, setEditing] = useState(false);
   const [rpg, setRpg] = useState<{ level?: number; title?: string } | null>(null);
   const appliedRef = useRef(false);
+  const fxTier = useFxTier();
 
   // 프로필 카드 시드 → 생년 폼 채움. 개별 필드 독립 적용(일부만 있어도 반영 — 부분 등록 대응).
   const applySeed = useCallback((s: AiPrefillSeed | null, force = false) => {
@@ -208,7 +213,7 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
   const showConfirm = prefilled && !editing;
 
   return (
-    <div className={map.birthStage}>
+    <div className={map.birthStage} data-fx={fxTier}>
       <Starfield />
       {showConfirm ? (
         <div className={map.birthPanel}>
@@ -218,7 +223,7 @@ function BirthGate({ onSubmit }: { onSubmit: (birth: AnimalDestinyInput) => void
           <div className={map.birthConfirm}>
             {rpg?.level != null && (
               <div className={map.birthLevelBadge}>
-                <span aria-hidden="true">✦</span> Lv.{rpg.level}{rpg.title ? ` · ${rpg.title}` : ""}
+                <ConstellationMark variant={2} size={13} /> Lv.{rpg.level}{rpg.title ? ` · ${rpg.title}` : ""}
               </div>
             )}
             <dl className={map.birthConfirmList}>

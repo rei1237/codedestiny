@@ -102,6 +102,89 @@
   X-Robots-Tag: noindex, nofollow
 /fortune/sikojen-povailu/*
   X-Robots-Tag: noindex, nofollow
+# 정적 셸 사본 라우트 — 루트 index.html(2.2MB)을 그대로 복사하고 title/description/
+# canonical/robots 만 치환한 결과라 본문이 서로 99.9% 동일하다(페이지당 고유 8~12자).
+# 기능(index-inline-runtime 의 __cdStaticCanonicalPathActions 경로→모달 매핑)은 유지하고
+# 색인만 막는다. 셸 덮어쓰기를 제거하면 기능이 깨지므로 noindex 가 정답.
+/saju/basic
+  X-Robots-Tag: noindex, nofollow
+/saju/basic/*
+  X-Robots-Tag: noindex, nofollow
+/saju/sibyl
+  X-Robots-Tag: noindex, nofollow
+/saju/sibyl/*
+  X-Robots-Tag: noindex, nofollow
+/tarot/mingri
+  X-Robots-Tag: noindex, nofollow
+/tarot/mingri/*
+  X-Robots-Tag: noindex, nofollow
+/tarot/love
+  X-Robots-Tag: noindex, nofollow
+/tarot/love/*
+  X-Robots-Tag: noindex, nofollow
+/tarot/reunion
+  X-Robots-Tag: noindex, nofollow
+/tarot/reunion/*
+  X-Robots-Tag: noindex, nofollow
+/tarot/self-esteem
+  X-Robots-Tag: noindex, nofollow
+/tarot/self-esteem/*
+  X-Robots-Tag: noindex, nofollow
+/astrology/cosmic
+  X-Robots-Tag: noindex, nofollow
+/astrology/cosmic/*
+  X-Robots-Tag: noindex, nofollow
+/oracle/sukuyo
+  X-Robots-Tag: noindex, nofollow
+/oracle/sukuyo/*
+  X-Robots-Tag: noindex, nofollow
+/oracle/juyuk
+  X-Robots-Tag: noindex, nofollow
+/oracle/juyuk/*
+  X-Robots-Tag: noindex, nofollow
+/oracle/hwatu
+  X-Robots-Tag: noindex, nofollow
+/oracle/hwatu/*
+  X-Robots-Tag: noindex, nofollow
+# 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
+# canonical/robots meta 가 아예 없는 상태로 홈 타일에서 직접 링크된다.
+# 기능·링크는 그대로 두고 색인만 막는다(AdSense inventory value: 저가치 화면).
+/neo-operation-room
+  X-Robots-Tag: noindex, nofollow
+/neo-operation-room/*
+  X-Robots-Tag: noindex, nofollow
+/tadagochi
+  X-Robots-Tag: noindex, nofollow
+/tadagochi/*
+  X-Robots-Tag: noindex, nofollow
+/tadagochi.html
+  X-Robots-Tag: noindex, nofollow
+/ifa-oracle.html
+  X-Robots-Tag: noindex, nofollow
+/ifa-oracle-about.html
+  X-Robots-Tag: noindex, nofollow
+/fortune-teller-fish.html
+  X-Robots-Tag: noindex, nofollow
+/royal-tea-oracle.html
+  X-Robots-Tag: noindex, nofollow
+/blood-type-app.html
+  X-Robots-Tag: noindex, nofollow
+/neville-meditation.html
+  X-Robots-Tag: noindex, nofollow
+/geomancy-oracle-v4.html
+  X-Robots-Tag: noindex, nofollow
+/yoga-guru.html
+  X-Robots-Tag: noindex, nofollow
+/destiny-poker.html
+  X-Robots-Tag: noindex, nofollow
+/celestial-harmony.html
+  X-Robots-Tag: noindex, nofollow
+/tarot-ijik.html
+  X-Robots-Tag: noindex, nofollow
+/emoi_omikuji_v2.html
+  X-Robots-Tag: noindex, nofollow
+/cosmic-soul-meditation.html
+  X-Robots-Tag: noindex, nofollow
 
 /
   Content-Type: text/html; charset=utf-8

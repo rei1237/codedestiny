@@ -21,7 +21,7 @@ const BILLING_FEATURE_CATEGORIES = Object.freeze({
     featureKey: "palm-reading",
     subFeatures: Object.freeze({
       general: Object.freeze({ featureKey: "palm-reading-general", cost: 50, reason: "손금 전체운 분석" }),
-      aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 AI 상담 생성" }),
+      aiConsult: Object.freeze({ featureKey: "palm-reading-ai-consult", cost: 50, reason: "손금 전문가 상담 생성" }),
     }),
   }),
   "stonehenge-runes": Object.freeze({

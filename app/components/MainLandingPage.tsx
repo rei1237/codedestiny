@@ -139,7 +139,7 @@ const MAIN_LANDING_COPY_EN: MainLandingCopy = {
     "해석 가이드 콘텐츠": "Reading guide content",
     "하이밸류 아카이브": "High-Value Archive",
     "심층 운세 콘텐츠 모음": "Deep fortune content collection",
-    "AI 동물 관상": "AI Animal Physiognomy",
+    "전문가 동물 관상": "AI Animal Physiognomy",
     "얼굴형 기반 성향 분석": "Temperament analysis based on face shape",
     "MBTI 동물 궁합": "MBTI Animal Compatibility",
     "16타입 관계 에너지": "Relationship energy for sixteen types",
@@ -166,7 +166,7 @@ const MAIN_LANDING_COPY_EN: MainLandingCopy = {
     "감정 온도 회복 리딩": "Reading to restore emotional warmth",
     "성격 유형, 관계 심리, 감정 패턴까지 14종 테스트를 한 번에 탐색": "Explore fourteen tests covering personality type, relationship psychology, and emotional patterns.",
     "심리테스트 열기": "Open Psychology Tests",
-    "AI 이모이 오미쿠지": "AI Emoi Omikuji",
+    "전문가 이모이 오미쿠지": "AI Emoi Omikuji",
     "오늘의 기분과 고민을 바탕으로 행운 흐름과 행동 힌트를 확인": "Check your luck flow and action hints based on today's mood and concern.",
     "오미쿠지 보기": "View Omikuji",
     "연이의 마음 별자리": "Yeoni's Heart Constellation",
@@ -209,7 +209,7 @@ const MAIN_LANDING_COPY_KO: MainLandingCopy = {
   miscAria: "기타 점술 컬렉션",
   miscTitle: "기타 점술 컬렉션",
   miscSubtitle: "심리테스트부터 혈액형 테스트까지",
-  miscDescription: "심리테스트에서 시작해 AI 오미쿠지, 혈액형 테스트를 거쳐 최애운명까지 자연스럽게 이어지는 탐색 흐름입니다.",
+  miscDescription: "심리테스트에서 시작해 전문가 오미쿠지, 혈액형 테스트를 거쳐 최애운명까지 자연스럽게 이어지는 탐색 흐름입니다.",
   recommendationTitle: "나에게 맞는 추천 운세",
   recommendationSubtitle: "입력 정보를 기준으로 우선순위가 높은 리딩",
   recommendationDescription: "첫 진입에 적합한 서비스부터 시작해 오늘의 운세 흐름을 빠르게 확인하세요.",
@@ -315,7 +315,7 @@ const COSMIC_ITEMS_COPY: ServiceCardModel[] = [
 ];
 
 const ANIMAL_ITEMS_COPY: ServiceCardModel[] = [
-  { title: "AI 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-guardian", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
+  { title: "전문가 동물 관상", description: "얼굴형 기반 성향 분석", href: "/saju-guardian", emoji: "🎭", badges: [{ text: "무료", tone: "free" }] },
   { title: "MBTI 동물 궁합", description: "16타입 관계 에너지", href: "/animal/mbti", emoji: "🦁", badges: [{ text: "무료", tone: "free" }] },
   { title: "애니멀 토템", description: "수호 동물 메시지 리딩", href: "/?action=openAnimalTotemModal", emoji: "🐯", badges: [{ text: "3,000원~6,000원", tone: "coin" }] },
   { title: "운명의 알", description: "운세 다마고치 체험", href: "/tadagochi", emoji: "🥚", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
@@ -344,7 +344,7 @@ const MISC_DIVINATION_ITEMS_COPY: ServiceCardModel[] = [
     cta: "심리테스트 열기",
   },
   {
-    title: "AI 이모이 오미쿠지",
+    title: "전문가 이모이 오미쿠지",
     description: "오늘의 기분과 고민을 바탕으로 행운 흐름과 행동 힌트를 확인",
     href: "/emoi_omikuji_v2.html",
     emoji: "🤖",

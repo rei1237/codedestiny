@@ -1,4 +1,5 @@
 import { callLLM } from "../../lib/llm-client.ts";
+import { getAmbientAiLocale } from "./ai-locale-context.js";
 
 function clean(value, maxLength = 0) {
   const text = String(value || "").trim();
@@ -54,6 +55,8 @@ export async function callGeminiText(env, prompt, options = {}) {
     const result = await callLLM({
       prompt: textPrompt,
       systemPrompt: clean(options.systemPrompt),
+      // 명시값 > 앰비언트. 라우트가 직접 넘기면 그게 이기고, 없으면 요청 스코프에서 가져온다.
+      locale: clean(options.locale) || getAmbientAiLocale() || undefined,
       maxTokens: Number(options.maxOutputTokens || options.maxTokens) || undefined,
       temperature: Number.isFinite(Number(options.temperature)) ? Number(options.temperature) : undefined,
       taskType: normalizeTaskType(options),

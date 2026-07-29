@@ -52,6 +52,7 @@ function syncSwissEphVendor() {
 
 const staticTargets = [
   "_headers",
+  "destiny-island.html",
   "vedic-astrology.html",
   "tarot-ijik.html",
   "neville-meditation.html",
@@ -473,12 +474,56 @@ const LOCALE_SHELL_SEO = {
   },
 };
 
+/**
+ * 로케일 셸의 PWA 매니페스트. 홈 화면에 추가하면 앱 이름·설명이 그대로 노출되므로
+ * 한국어 매니페스트를 그대로 물려주면 안 된다. LOCALE_SHELL_SEO 와 같은 문구 계열을 쓴다.
+ */
+const LOCALE_MANIFEST = {
+  "/ja": {
+    name: "CODE DESTINY — 無料占い",
+    short_name: "CODE DESTINY",
+    description: "今日の運勢と四柱推命、相性とタロットの流れが静かに開きます。",
+    lang: "ja",
+  },
+  "/zh": {
+    name: "CODE DESTINY — 免费算命",
+    short_name: "CODE DESTINY",
+    description: "今日运势与八字命理、合婚配对和塔罗的流向静静展开。",
+    lang: "zh-CN",
+  },
+  "/en": {
+    name: "CODE DESTINY — Free Fortune Readings",
+    short_name: "CODE DESTINY",
+    description: "Today's fortune, Four Pillars, compatibility, and tarot — read with a calm, steady hand.",
+    lang: "en",
+  },
+};
+
+/** 로케일별 매니페스트 파일을 public/ 에 쓰고 파일명을 돌려준다. */
+function writeLocaleManifest(localePath) {
+  const override = LOCALE_MANIFEST[localePath];
+  if (!override) return null;
+  const basePath = resolve(publicDir, "manifest.json");
+  if (!existsSync(basePath)) return null;
+  const base = JSON.parse(stripLeadingBom(readFileSync(basePath)).toString("utf8"));
+  const localeCode = localePath.replace("/", "");
+  const fileName = `manifest.${localeCode}.json`;
+  const merged = { ...base, ...override, start_url: `${localePath}/`, scope: "/" };
+  writeFileSyncWithRetry(resolve(publicDir, fileName), Buffer.from(`${JSON.stringify(merged, null, 2)}\n`, "utf8"));
+  return fileName;
+}
+
 function applyLocaleSeoMeta(indexHtml, localePath) {
   const seo = LOCALE_SHELL_SEO[localePath];
   if (!seo) return indexHtml;
 
   const canonicalUrl = `https://code-destiny.com${localePath}/`;
+  const manifestFile = writeLocaleManifest(localePath);
   return indexHtml
+    .replace(
+      /<link rel="manifest" href="\/manifest\.json([^"]*)">/i,
+      manifestFile ? `<link rel="manifest" href="/${manifestFile}$1">` : "$&",
+    )
     .replace(/<html lang="ko"/i, `<html lang="${seo.lang}"`)
     .replace(/<title>[^<]*<\/title>/i, `<title>${seo.title}</title>`)
     .replace(/<link rel="canonical" href="[^"]*">/i, `<link rel="canonical" href="${canonicalUrl}">`)
@@ -592,6 +637,18 @@ if (!existsSync(publicDir)) {
   mkdirSync(publicDir, { recursive: true });
 }
 
+function cpSyncWithRetry(sourcePath, destinationPath, options) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    try {
+      cpSync(sourcePath, destinationPath, options);
+      return;
+    } catch (error) {
+      if (attempt === 19) throw error;
+      sleepSync(100);
+    }
+  }
+}
+
 for (const target of staticTargets) {
   const sourcePath = resolve(rootDir, target);
   const destinationPath = resolve(publicDir, target);
@@ -600,7 +657,7 @@ for (const target of staticTargets) {
     continue;
   }
 
-  cpSync(sourcePath, destinationPath, { recursive: true, force: true });
+  cpSyncWithRetry(sourcePath, destinationPath, { recursive: true, force: true });
 }
 
 removeStaleTadagochiPwaAssets();

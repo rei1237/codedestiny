@@ -3,11 +3,11 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const DREAM_TAROT_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "드림 프롬프트 - 꿈의 잔향을 AI 상담 문장으로 봉인",
+    "meta.title": "드림 프롬프트 - 꿈의 잔향을 전문가 상담 문장으로 봉인",
     "meta.description": "꿈속 장면과 깨어난 뒤의 감정이 세 장의 상징 카드에 머물며, AI에게 건넬 상담 문장으로 고요히 봉인됩니다.",
     "service.h1": "드림 프롬프트",
     "service.seoText": "드림 프롬프트는 꿈속 사건, 감정, 반복 상징을 카드의 언어로 모아 지금 마음이 붙잡은 신호와 AI에게 건넬 질문을 봉인합니다.",
-    "valueGuide.title": "꿈의 잔향을 AI 상담 문장으로 봉인하는 6단계",
+    "valueGuide.title": "꿈의 잔향을 전문가 상담 문장으로 봉인하는 6단계",
     "value.1.title": "1. 꿈해몽은 길흉 예언보다 감정 신호 해석입니다",
     "value.2.title": "2. 상징은 사전 뜻보다 개인 맥락이 우선입니다",
     "value.3.title": "3. 반복 꿈은 해결되지 않은 과제를 가리키는 경우가 많습니다",

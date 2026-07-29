@@ -26,7 +26,7 @@ const PRODUCT_ID = "vedic-ai-consultation";
 const CONSULTATION_TYPE = "vedic";
 const ACCESS_TOKEN_TYPE = "vedic-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "베다점 AI 상담";
+const ORDER_NAME = "베다점 전문가 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
 const MIN_INITIAL_READING_CHARS = 10000;
@@ -92,7 +92,7 @@ const MESSAGES = {
   placeInvalid: "라그나와 바바 계산에는 출생지 좌표가 필요해요. 도시명을 다시 확인해 주세요.",
   calculationFailed: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
   serverFailed: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 };
 
 const SYSTEM_PROMPT = VEDIC_RESULT_ONLY_SYSTEM_PROMPT;
@@ -951,7 +951,7 @@ function validateChartConsistency(content, chart) {
     const wrongLagna = ALL_SIGNS_KO.some((signKo) => signKo !== lagnaKo && new RegExp(`${signKo}\\s*라그나`).test(fullText));
     if (wrongLagna) issues.push("consistency.lagna_sign_mismatch");
     const lagnaBody = sectionBody("lagna");
-    if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || " ")) {
+    if (lagnaBody && !lagnaBody.includes(lagnaKo) && !lagnaBody.includes(clean(chart?.lagna?.sign, 20) || "\u0000")) {
       issues.push("consistency.lagna_sign_unstated");
     }
   }

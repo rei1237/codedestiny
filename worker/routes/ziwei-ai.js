@@ -26,7 +26,7 @@ const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
 const ACCESS_TOKEN_TYPE = "ziwei-ai-access";
 const ACCESS_TOKEN_TTL = "45m";
-const ORDER_NAME = "자미두수 AI 상담";
+const ORDER_NAME = "자미두수 전문가 상담";
 const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
 const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000;
@@ -51,7 +51,7 @@ const MESSAGES = Object.freeze({
   customQuestionRequired: "별궁에 묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
   calculationFailed: "자미두수 명반 계산 중 문제가 발생했습니다. 입력값을 확인한 뒤 다시 시도해 주세요.",
   serverFailed: "자미두수 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
-  llmFailed: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 });
 
 const TOPICS = new Set([

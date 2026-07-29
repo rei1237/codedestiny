@@ -6,8 +6,7 @@
 import { useCallback, useState } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { Starfield } from "./Starfield";
-import { SpriteImage } from "./SpriteImage";
-import { compassAssets } from "../data/assets";
+import { PigFace } from "./PigFace";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
@@ -37,8 +36,8 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
     setError(null);
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-life-voyage",
-      coinPrice: 50,
-      amountKRW: 5000,
+      coinPrice: 100,
+      amountKRW: 10000,
       reason: "삶의 항로 안내",
       forceDeduct: true,
       requestId: makeGateRequestId("destiny-compass-life-voyage"),
@@ -66,16 +65,9 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
 
       <div className={styles.resultBody}>
         <div className={styles.resultSpeak}>
-          <SpriteImage
-            src={compassAssets.yeoni.intro}
-            alt="항로를 안내하는 연이"
-            width={72}
-            height={96}
-            className={styles.speakYeoni}
-            style={{ height: "auto" }}
-          />
+          <PigFace expression="talk" height={80} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
-            <div className={styles.resultWho}>연이</div>
+            <div className={styles.resultWho}>꽃돼지</div>
             <p>
               {revealed
                 ? "여기서부터는 제가 항로를 짚어드릴게요. 날씨는 바뀌어요 — 지금 흐린 구간도 결국 지나가요."
@@ -121,7 +113,7 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
         <div className={styles.resultCtas}>
           {!revealed && (
             <button type="button" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
-              {isPaying ? "결제 확인 중…" : "삶의 항로 펼치기 · 5,000원"}
+              {isPaying ? "결제 확인 중…" : "삶의 항로 펼치기 · 10,000원"}
             </button>
           )}
           <button type="button" className={styles.resultCtaGhost} onClick={onBack}>

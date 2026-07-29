@@ -300,12 +300,29 @@ body.ph-night .fireflies{opacity:1}
 .hud-bottom{position:fixed;left:0;right:0;bottom:0;z-index:var(--z-hud);display:flex;gap:8px;justify-content:center;align-items:center;
   padding:10px 12px calc(12px + env(safe-area-inset-bottom));pointer-events:none}
 .hud-bottom>*{pointer-events:auto}
-.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;white-space:nowrap;
+.hud-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:9px 16px;border-radius:999px;white-space:nowrap;text-decoration:none;
   background:var(--panel);border:1px solid var(--panel-line);font-size:.88rem;font-weight:700;color:var(--text);
   box-shadow:0 8px 26px rgba(0,0,0,.4);transition:transform .16s var(--ease-out),border-color .2s}
 .hud-btn:active{transform:scale(.96)}
 .hud-btn.gold{background:linear-gradient(135deg,rgba(232,213,163,.95),rgba(212,185,106,.95));color:#241a05;box-shadow:var(--glow-gold)}
 .hud-btn .cnt{background:rgba(167,139,250,.25);border-radius:999px;padding:0 8px;font-size:.78rem}
+/* 하단 HUD 버튼 프리미엄 — 바텀 바에만 적용(시트의 .hud-btn은 기존 유지). 프로스티드 글래스 + 그라디언트 림 + 골드 CTA */
+.hud-bottom .hud-btn{position:relative;justify-content:center;gap:7px;min-height:48px;padding:10px 18px;
+  background:linear-gradient(180deg,rgba(40,32,78,.82),rgba(20,16,42,.84));font-family:var(--font-display);font-size:.9rem;letter-spacing:.01em;
+  box-shadow:0 10px 30px rgba(6,4,18,.5),0 1px 0 rgba(255,255,255,.14) inset}
+.hud-bottom .hud-btn::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;
+  background:linear-gradient(180deg,rgba(210,196,255,.6),rgba(167,139,250,.12) 58%,transparent);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude}
+.hud-bottom .hud-btn:hover{border-color:rgba(210,196,255,.5);box-shadow:0 12px 34px rgba(6,4,18,.55),var(--glow-violet),0 1px 0 rgba(255,255,255,.16) inset}
+.hud-bottom .hud-btn .hb-ic{width:17px;height:17px;flex:none;opacity:.92}
+.hud-bottom .hud-btn.gold{border-color:rgba(232,213,163,.62);color:#2a1d05;
+  background:linear-gradient(180deg,#f6e6b6 0%,#ecd79f 44%,#dcc077 100%);
+  box-shadow:0 12px 32px rgba(120,92,20,.34),var(--glow-gold),0 1px 0 rgba(255,255,255,.55) inset,0 -2px 6px rgba(150,110,30,.18) inset}
+.hud-bottom .hud-btn.gold::before{background:linear-gradient(180deg,rgba(255,250,230,.92),rgba(212,185,106,.28) 55%,rgba(150,110,30,.28))}
+.hud-bottom .hud-btn.gold:hover{border-color:rgba(232,213,163,.9);box-shadow:0 14px 38px rgba(120,92,20,.42),0 0 22px rgba(232,213,163,.62),0 1px 0 rgba(255,255,255,.6) inset,0 -2px 6px rgba(150,110,30,.2) inset}
+.hud-bottom .hud-btn.gold .hb-ic{opacity:1}
+.hud-bottom .hud-btn .cnt{background:rgba(167,139,250,.28);border:1px solid rgba(210,196,255,.32);padding:1px 9px;font-weight:800;color:#efeaff}
 
 /* ── 대화(라이트 노벨) 오버레이 (z 40) ── */
 #dlgWrap{position:fixed;inset:0;z-index:var(--z-dlg);display:none;background:rgba(6,4,18,.5)}
@@ -390,6 +407,29 @@ body.ph-night .fireflies{opacity:1}
   font-size:.9rem;font-weight:700;box-shadow:var(--glow-gold);transition:transform .4s var(--ease-out)}
 .toast.on{transform:translate(-50%,0)}
 
+/* ── 궁 기본 설명 시트 ── */
+.pdesc-header{text-align:center;margin-bottom:16px;padding-bottom:14px;border-bottom:1px dashed var(--panel-line)}
+.pdesc-header .pdesc-icon{font-size:2rem;display:block;margin-bottom:4px}
+.pdesc-header h2{font-family:var(--font-serif);font-size:1.3rem;margin-bottom:2px}
+.pdesc-header .pdesc-sub{color:var(--text-muted);font-size:.85rem}
+.pdesc-section{margin-bottom:14px;padding:12px 14px;border-radius:14px;background:rgba(167,139,250,.06);border:1px solid rgba(196,181,253,.12)}
+.pdesc-section h3{font-family:var(--font-display);font-size:.92rem;color:var(--gold);margin-bottom:6px;letter-spacing:.02em}
+.pdesc-section p{font-size:.9rem;line-height:1.8;color:var(--text);word-break:keep-all}
+.pdesc-section .pdesc-stars{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0}
+.pdesc-section .pdesc-stars span{padding:3px 10px;border-radius:999px;font-size:.8rem;border:1px solid var(--panel-line);color:var(--text)}
+.pdesc-section .pdesc-stars span.malefic{color:var(--rose);border-color:rgba(244,190,209,.4)}
+.pdesc-section .pdesc-stars span.sihua{color:var(--gold);border-color:rgba(232,213,163,.45)}
+.pdesc-section .pdesc-stars span.assist{color:#a7c8ff;border-color:rgba(167,200,255,.35)}
+.pdesc-bar-row{display:flex;align-items:center;gap:10px;margin:8px 0}
+.pdesc-bar-row .lab{width:56px;color:var(--text-muted);font-weight:700;font-size:.82rem;flex:none}
+.pdesc-bar-row .bar{flex:1;height:8px;border-radius:999px;background:rgba(196,181,253,.14);overflow:hidden}
+.pdesc-bar-row .bar i{display:block;height:100%;width:100%;border-radius:999px;background:linear-gradient(90deg,var(--violet-deep),var(--gold));transform-origin:left center;transition:transform 1s var(--ease-out)}
+.pdesc-bar-row strong{font-size:.88rem;color:var(--gold);min-width:32px;text-align:right}
+.pdesc-marker{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:.8rem;border:1px solid rgba(232,213,163,.4);color:var(--gold);margin:2px 4px 2px 0}
+.pdesc-marker.mk-body{color:var(--violet);border-color:rgba(196,181,253,.4)}
+.pdesc-marker.mk-year{color:var(--rose);border-color:rgba(244,190,209,.4)}
+.pdesc-reso{font-size:.84rem;color:var(--text-muted);line-height:1.7;margin-top:6px;padding:8px 10px;border-radius:10px;background:rgba(196,181,253,.06)}
+
 @media (max-width:640px){
   .gate-hero{width:min(360px,86vw)}
   .dlg-actor{width:min(30vh,190px);bottom:calc(170px + env(safe-area-inset-bottom))}
@@ -399,6 +439,8 @@ body.ph-night .fireflies{opacity:1}
   .narrator .nav-bubble{max-width:min(62vw,220px)}
   .hud-bottom{gap:6px;padding-left:8px;padding-right:8px}
   .hud-btn{padding:9px 13px;font-size:.82rem}
+  .hud-bottom .hud-btn{padding:9px 14px;font-size:.84rem;gap:6px}
+  .hud-bottom .hud-btn .hb-ic{width:15px;height:15px}
 }
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
@@ -514,9 +556,9 @@ body.ph-night .fireflies{opacity:1}
     </div>
   </div>
   <div class="hud-bottom">
-    <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기">📜 퀘스트 <span class="cnt" id="questCnt">0/3</span></button>
-    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동">🔮 오늘의 조언 더 듣기</a>
-    <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기">⚙️</button>
+    <button class="hud-btn" id="btnQuest" type="button" aria-label="오늘의 퀘스트 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="-5" y="-6" width="10" height="12" rx="1.8"/><path d="M-2.5 -3h5M-2.5 0h5M-2.5 3h3"/></svg><span class="hb-label">퀘스트</span> <span class="cnt" id="questCnt">0/3</span></button>
+    <a class="hud-btn gold" id="btnZiweiAi" href="/island-consult" aria-label="12궁 특화 자미두수 상담으로 이동"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 -5A6 6 0 1 0 4 5.5A4.6 4.6 0 0 1 3 -5Z"/><path d="M-3.4 -4l.5 1.5 1.5 .5 -1.5 .5 -.5 1.5 -.5 -1.5 -1.5 -.5 1.5 -.5z"/></svg><span class="hb-label">오늘의 조언 더 듣기</span></a>
+    <button class="hud-btn" id="btnSettings" type="button" aria-label="설정 열기"><svg class="hb-ic" viewBox="-8 -8 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="0" cy="0" r="2.4"/><path d="M0 -7v2.2M0 4.8v2.2M-7 0h2.2M4.8 0h2.2M-4.95 -4.95l1.55 1.55M3.4 3.4l1.55 1.55M4.95 -4.95l-1.55 1.55M-3.4 3.4l-1.55 1.55"/></svg></button>
   </div>
 </section>
 
@@ -556,6 +598,12 @@ body.ph-night .fireflies{opacity:1}
     <button class="hud-btn" id="setReplay" type="button">재생</button></div>
   <div class="set-row"><div><div class="t">다른 생년월일로 보기</div><div class="d">지금 섬은 그대로 두고 새 명반으로 다시 그려요.</div></div>
     <button class="hud-btn" id="setReset" type="button">입력</button></div>
+</div>
+
+<!-- ═════════ 궁 기본 설명 시트 ═════════ -->
+<div class="sheet" id="sheetPalaceDesc" role="dialog" aria-modal="true" aria-labelledby="pdTitle">
+  <button class="sheet-close" data-close type="button" aria-label="설명 닫기">✕</button>
+  <div id="pdContent"></div>
 </div>
 
 <div class="toast" id="toast" role="status"></div>
@@ -625,11 +673,6 @@ function nextStageAt(exp){for(var i=0;i<STAGES.length;i++){if(exp<STAGES[i][0])r
    ============================================================ */
 function parseJson(raw){try{return JSON.parse(raw);}catch(e){return null;}}
 function readStore(store,key){try{return store.getItem(key);}catch(e){return null;}}
-function scanPrefixed(store,prefix){
-  try{for(var i=0;i<store.length;i++){var k=store.key(i);
-    if(k&&k.indexOf(prefix)===0){var v=parseJson(store.getItem(k));if(v)return v;}}}catch(e){}
-  return null;
-}
 function normalizeProfile(raw){
   if(!raw||typeof raw!=="object")return null;
   var p=raw.profile&&typeof raw.profile==="object"?raw.profile:raw;
@@ -653,13 +696,25 @@ function normalizeProfile(raw){
     name:typeof p.name==="string"?p.name.trim().slice(0,12):""
   };
 }
+/* 현재 로그인 계정 스코프 — destiny-profile.js `_dpResolveProfileScope`와 동일 규칙(섬은 그 파일을 로드하지 않아 소규모 복제) */
+function islandProfileScope(){
+  var u=parseJson(readStore(localStorage,"fortune_auth_user")||"");
+  var id=u&&typeof u==="object"&&(u.id||u.userId||u._id||u.uid);
+  if(id){id=String(id).trim().toLowerCase();if(id)return id;}
+  return "guest";
+}
 function readSavedProfile(){
   if(G.profileOverride)return normalizeProfile(G.profileOverride);
-  var CACHE="code-destiny.activeProfileCache.v1";
-  var cand=scanPrefixed(sessionStorage,CACHE)||scanPrefixed(localStorage,CACHE)
-    ||parseJson(readStore(localStorage,"codeDestiny:guestProfile")||"")
-    ||parseJson(readStore(localStorage,"FORTUNE_APP_USER_PROFILE")||"")
-    ||parseJson(readStore(localStorage,"FORTUNE_APP_VEDIC_PAYLOAD")||"");
+  var scope=islandProfileScope();
+  var scopedCache="code-destiny.activeProfileCache.v1::"+scope;
+  var cand=parseJson(readStore(sessionStorage,scopedCache)||"")||parseJson(readStore(localStorage,scopedCache)||"");
+  if(!cand&&scope==="guest"){ /* 비로그인만 레거시 bare/브릿지 캐시로 폴백 */
+    cand=parseJson(readStore(sessionStorage,"code-destiny.activeProfileCache.v1")||"")
+      ||parseJson(readStore(localStorage,"code-destiny.activeProfileCache.v1")||"")
+      ||parseJson(readStore(localStorage,"codeDestiny:guestProfile")||"")
+      ||parseJson(readStore(localStorage,"FORTUNE_APP_USER_PROFILE")||"")
+      ||parseJson(readStore(localStorage,"FORTUNE_APP_VEDIC_PAYLOAD")||"");
+  }
   return normalizeProfile(cand);
 }
 function profileKeyOf(p){return [p.birthDate,p.birthTimeUnknown?"unknown":p.birthTime,p.gender,p.calendarType,p.isLeapMonth?1:0].join("|");}
@@ -1456,12 +1511,12 @@ function renderMap(pop){
   });
   parts.push(groups.join(""));
   zoom.innerHTML=parts.join("");
-  /* 인터랙션 배선 */
+  /* 인터랙션 배선 — 궁 선택 시 그 명반의 12궁 상담(/island-consult)으로 진입.
+     포인터 탭은 팬/줌 SVG가 setPointerCapture로 삼켜 자식 click이 안 뜨므로, 탭 해석은 initPanZoom의 pointerup에서 처리한다.
+     여기서는 키보드 접근성(포커스 + Enter/Space)만 배선한다. */
   Array.prototype.forEach.call(zoom.querySelectorAll(".palace"),function(node){
-    var name=node.getAttribute("data-palace");
-    var pal=BP.palaces.find(function(p){return p.name===name;});
+    var pal=palaceFromNode(node);
     if(!pal)return;
-    node.addEventListener("click",function(){if(!_mapDragged)openPalace(pal);});
     node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openPalace(pal);}});
   });
   resetMapView();
@@ -1488,16 +1543,32 @@ function mobileFitScale(){
 function resetMapView(){_mapScale=mobileFitScale();
   var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;_mapTx=-mx/2;_mapTy=-my/2;
   clampMap();applyMapTransform();}
+/* ---- 궁 선택 → 12궁 상담 진입(선택 명반을 세션으로 핸드오프해 상담 화면이 재입력 없이 프리필) ---- */
+function palaceFromNode(node){var nm=node&&node.getAttribute&&node.getAttribute("data-palace");return nm&&BP?BP.palaces.find(function(p){return p.name===nm;}):null;}
+function goPalaceConsult(pal){
+  if(!pal)return;
+  try{
+    if(PROFILE)sessionStorage.setItem("cdIslandConsultSeed",JSON.stringify({
+      name:PROFILE.name||"",gender:PROFILE.gender||"",
+      birthDate:PROFILE.birthDate||"",
+      birthTime:PROFILE.birthTimeUnknown?"":(PROFILE.birthTime||""),
+      birthTimeUnknown:!!PROFILE.birthTimeUnknown,
+      calendarType:PROFILE.calendarType||"solar",
+      isLeapMonth:!!PROFILE.isLeapMonth
+    }));
+  }catch(_){}
+  location.href="/island-consult?palace="+encodeURIComponent(pal.name);
+}
 function initPanZoom(){
   if(_mapPanInit)return;_mapPanInit=true;
   var svg=$("mapSvg");if(!svg)return;
-  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,dragging=false;
+  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,dragging=false,tapCandidate=false;
   function vbScale(){var r=svg.getBoundingClientRect();return VBW/(r.width||VBW);}
   svg.addEventListener("pointerdown",function(e){
     pointers[e.pointerId]={x:e.clientX,y:e.clientY};
-    if(Object.keys(pointers).length===1){dragging=true;_mapDragged=false;downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
+    if(Object.keys(pointers).length===1){dragging=true;_mapDragged=false;tapCandidate=true;downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
       $("mapZoom").classList.add("panning");try{svg.setPointerCapture(e.pointerId);}catch(_){}}
-    else if(Object.keys(pointers).length===2){var ps=Object.keys(pointers).map(function(k){return pointers[k];});
+    else if(Object.keys(pointers).length===2){tapCandidate=false;var ps=Object.keys(pointers).map(function(k){return pointers[k];});
       startDist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);startScale=_mapScale;}
   });
   svg.addEventListener("pointermove",function(e){
@@ -1510,7 +1581,15 @@ function initPanZoom(){
       if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>6)_mapDragged=true;
       _mapTx=downTx+dx;_mapTy=downTy+dy;clampMap();applyMapTransform();}
   });
-  function up(e){delete pointers[e.pointerId];if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}}
+  function up(e){
+    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 안내 개시 */
+    var wasTap=Object.keys(pointers).length===1&&tapCandidate&&!_mapDragged;
+    delete pointers[e.pointerId];
+    if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}
+    if(wasTap){var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
+      var node=el&&el.closest?el.closest(".palace"):null;
+      if(node)openPalace(palaceFromNode(node));}
+  }
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
   svg.addEventListener("wheel",function(e){e.preventDefault();
     var f=vbScale(),r=svg.getBoundingClientRect();
@@ -1524,12 +1603,12 @@ function initPanZoom(){
   svg.addEventListener("pointerup",function(){var now=Date.now();if(now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
 }
 /* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
-var YEON_AV=API_BASE+"/fuctionassets/"+enc("연이.webp"); /* 투명 꽃돼지 마스코트(크리스프) */
 var NEO_AV=(PROD||REMOTE_SHELL)
   ? ASSETS+"cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/"+enc("전략실 네오 메인-Photoroom.png")
   : WAR+enc("전략실 네오 메인-Photoroom.png");
-var AV={yeon:{img:YEON_AV,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
-try{[YEON_AV,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
+/* 연이 아바타 = 인맵 NPC와 동일한 표정 시트의 활짝 웃는 프레임(밋밋한 정지 마스코트 대신 표정 크롭 → 더 귀엽게) */
+var AV={yeon:{sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.talk,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
+try{[PIGSHEET,NEO_AV].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */
 var STAR_TRAIT={"자미":"중심과 품격","천기":"지혜와 기획","태양":"공명과 리더십","무곡":"재물과 결단","천동":"복록과 온화","염정":"변혁과 집중","천부":"곳간과 안정","태음":"감성과 자산","탐랑":"다재와 열망","거문":"언변과 탐구","천상":"조력과 중재","천량":"보호와 관록","칠살":"개척과 돌파","파군":"파괴와 재건"};
 var _story=null,_storyIdx=0,_navTimer=null,_navAuto=null;
 function islandFacts(){
@@ -1563,7 +1642,14 @@ function showStory(idx){
   _storyIdx=((idx%_story.length)+_story.length)%_story.length;
   var item=_story[_storyIdx],voice=AV[item.v];
   n.classList.toggle("speaker-neo",item.v==="neo");
-  try{$("navImg").src=voice.img;$("navImg").alt=voice.name;}catch(_){}
+  try{var navImg=$("navImg");
+    if(voice.sheet){ /* 표정 시트 크롭(활짝 웃는 꽃돼지) — dlgSetSprite와 동일 방식 */
+      navImg.src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
+      navImg.style.backgroundImage="url('"+voice.sheet+"')";navImg.style.backgroundSize=voice.size||"cover";
+      navImg.style.backgroundPosition=voice.pos||"center";navImg.style.backgroundRepeat="no-repeat";
+    }else{navImg.style.backgroundImage="";navImg.src=voice.img;}
+    navImg.alt=voice.name;
+  }catch(_){}
   var bub=$("navBubble");bub.innerHTML='<b class="nav-who">'+voice.name+'</b> '+item.h;bub.classList.remove("hide");
   clearTimeout(_navTimer);_navTimer=setTimeout(function(){bub.classList.add("hide");},9000);
   clearTimeout(_navAuto);if(!reduceMotion)_navAuto=setTimeout(function(){showStory(_storyIdx+1);},11000);
@@ -1658,6 +1744,9 @@ function showPalaceChoices(pal,def){
   requestAnimationFrame(function(){var bar=detail.querySelector(".bar i");if(bar)bar.style.transform="scaleX("+(pal.score/100)+")";});
   var box=$("dlgChoices");
   box.innerHTML="";
+  var descBtn=document.createElement("button");descBtn.type="button";
+  descBtn.innerHTML="📖 이 궁 기본 설명 보기 <span class='go'>›</span>";
+  descBtn.addEventListener("click",function(){dlgClose();openPalaceDescription(pal,def);});box.appendChild(descBtn);
   var a=document.createElement("a");a.href="/island-consult?palace="+encodeURIComponent(pal.name);
   a.innerHTML="🔮 이 궁 깊이 상담하기 <span class='go'>12궁 특화 ›</span>";box.appendChild(a);
   var qb=document.createElement("button");qb.type="button";
@@ -1666,6 +1755,141 @@ function showPalaceChoices(pal,def){
   var back=document.createElement("button");back.type="button";back.textContent="↩ 섬으로 돌아가기";
   back.addEventListener("click",dlgClose);box.appendChild(back);
   box.classList.add("on");
+}
+
+/* ── 궁 기본 설명 시트 렌더링 ── */
+var STAR_MEANING={"자미":"존귀함과 중심을 상징하는 황제의 별입니다. 주도적으로 상황을 이끄는 기질을 타고났어요.","천기":"지혜와 기획의 별입니다. 머리 회전이 빠르고 변화에 민첩하게 대응하는 재능이 있어요.","태양":"밝고 따뜻한 리더의 별입니다. 주변을 환히 비추는 에너지로 사람들을 이끄는 힘이 있어요.","무곡":"재물과 결단의 별입니다. 돈의 흐름을 직감적으로 읽고, 실행력으로 밀고 나가는 기질이에요.","천동":"복록과 온화의 별입니다. 서두르지 않고 흐름에 맡기는 지혜가 있으며, 사람들에게 편안함을 줘요.","염정":"변혁과 집중의 별입니다. 한 가지에 깊이 몰입하는 힘이 있고, 때로는 극적인 전환을 만들어내요.","천부":"곳간과 안정의 별입니다. 자원을 모으고 지키는 능력이 뛰어나며, 신뢰를 쌓는 데 강점이 있어요.","태음":"감성과 자산의 별입니다. 섬세한 감수성과 함께 재물을 불리는 직관이 있어요.","탐랑":"다재다능과 열망의 별입니다. 여러 분야에 재능이 있고, 욕망을 현실로 바꾸는 추진력이 있어요.","거문":"언변과 탐구의 별입니다. 깊이 파고드는 분석력과 말로 사람을 움직이는 힘이 있어요.","천상":"조력과 중재의 별입니다. 사람 사이를 부드럽게 잇고, 조직을 안정시키는 역할을 잘 해내요.","천량":"보호와 관록의 별입니다. 오래도록 쌓아 올리는 힘이 있고, 책임감이 강한 기질이에요.","칠살":"개척과 돌파의 별입니다. 장애물을 뚫고 나가는 강한 추진력과 독립적인 기질이 있어요.","파군":"파괴와 재건의 별입니다. 낡은 틀을 깨고 새로 시작하는 용기와 에너지가 있어요."};
+var ASSIST_MEANING={"좌보":"좌측에서 돕는 귀인 — 지혜로운 조언자","우필":"우측에서 돕는 귀인 — 실무적인 도움","문창":"학문과 문장의 별 — 공부·문서·계약에 유리","문곡":"예술과 감성의 별 — 창의력과 표현력","천괴":"하늘의 귀인 — 뜻밖의 도움과 기회","천월":"하늘의 도움 — 은근한 지원과 인맥","록존":"복록의 저장고 — 안정적인 재물과 복","경양":"날카로운 힘 — 경쟁과 돌파의 에너지","타라":"장애물과 인내 — 극복하면 큰 성취","화성":"불의 추진력 — 빠른 실행과 열정","영성":"지혜의 불꽃 — 분석력과 전략적 사고"};
+var MALEFIC_MEANING={"지공":"공허와 상실 — 비어 있음에서 오는 지혜","지겁":"겁탈과 손실 — 지키려는 마음을 내려놓는 연습","청양":"날카로운 충돌 — 직면해야 할 갈등","타라":"반복되는 장애 — 인내가 답","화성":"급한 불 — 서두르면 다치는 일","영성":"느린 불 — 고민이 깊어지는 시기"};
+var SIHUA_MEANING={"화록":"복록이 흐릅니다. 이 궁의 주제에서 풍요와 기쁨이 자연스럽게 찾아와요.","화권":"권위가 실립니다. 이 궁의 주제에서 주도권을 쥐고 결정을 내리게 돼요.","화과":"이름이 빛납니다. 이 궁의 주제에서 인정받고 명예를 얻는 흐름이에요.","화기":"걸림이 생깁니다. 이 궁의 주제에서 집착을 내려놓으면 오히려 길이 열려요."};
+var TIER_DESC={5:"신전의 광휘로 빛나는 궁입니다. 이 힘을 믿고 크게 그려도 좋아요.",4:"궁전처럼 든든한 기운이에요. 지금 흐름을 꾸준히 이어가면 돼요.",3:"저택처럼 안정된 자리예요. 조금만 더 돌보면 한 단계 올라갈 수 있어요.",2:"아직 오두막처럼 소박하지만, 기초는 잘 놓여 있어요. 서두르지 않아도 괜찮아요.",1:"지금은 폐허처럼 보여도 걱정하지 마세요. 비어 있는 땅은 곧 새로 지을 수 있는 땅이니까요."};
+
+function openPalaceDescription(pal,def){
+  var content=$("pdContent");
+  var html="";
+  /* 헤더 */
+  html+='<div class="pdesc-header">';
+  html+='<span class="pdesc-icon">'+esc(def.icon)+'</span>';
+  html+='<h2 id="pdTitle">'+esc(pal.name)+' · '+esc(def.title)+'</h2>';
+  html+='<p class="pdesc-sub">'+esc(pal.tierLabel)+' · 궁의 힘 '+pal.score+'</p>';
+  html+='</div>';
+  // 궁의 힘 바
+  html+='<div class="pdesc-section">';
+  html+='<h3>🏰 궁의 힘</h3>';
+  html+='<div class="pdesc-bar-row"><span class="lab">에너지</span><div class="bar"><i style="transform:scaleX('+(pal.score/100)+')"></i></div><strong>'+pal.score+'</strong></div>';
+  html+='<p>'+esc(TIER_DESC[pal.tier]||"")+'</p>';
+  if(pal.resonanceBonus){
+    html+='<p class="pdesc-reso">공명 보정 '+(pal.resonanceBonus>0?"+":"")+pal.resonanceBonus+' — 이웃 궁들이 보내는 기운이 이 궁에 영향을 주고 있어요.</p>';
+  }
+  html+='</div>';
+  // 주성
+  html+='<div class="pdesc-section">';
+  html+='<h3>주성</h3>';
+  if(pal.mainStars.length){
+    html+='<div class="pdesc-stars">';
+    pal.mainStars.forEach(function(s){
+      var m=brightnessMark(pal.brightness[s]);
+      html+='<span>'+esc(s+(m||""))+'</span>';
+    });
+    html+='</div>';
+    pal.mainStars.forEach(function(s){
+      var meaning=STAR_MEANING[s];
+      if(meaning)html+='<p>'+esc(s)+': '+esc(meaning)+'</p>';
+    });
+  }else{
+    html+='<p>이 궁엔 주성이 비어 있어요. 대신 이웃 궁의 별빛이 흘러들어와 이곳을 비추죠. 무주성 궁은 삼방사정으로 읽는 것이 자미두수의 원칙이에요.</p>';
+  }
+  html+='</div>';
+  // 보좌성
+  if(pal.assistantStars.length){
+    html+='<div class="pdesc-section">';
+    html+='<h3>보좌성</h3>';
+    html+='<div class="pdesc-stars">';
+    pal.assistantStars.forEach(function(s){
+      html+='<span class="assist">'+esc(s)+'</span>';
+    });
+    html+='</div>';
+    pal.assistantStars.forEach(function(s){
+      var meaning=ASSIST_MEANING[s];
+      if(meaning)html+='<p>'+esc(s)+': '+esc(meaning)+'</p>';
+    });
+    html+='</div>';
+  }
+  // 살성
+  if(pal.maleficStars.length){
+    html+='<div class="pdesc-section">';
+    html+='<h3>살성</h3>';
+    html+='<div class="pdesc-stars">';
+    pal.maleficStars.forEach(function(s){
+      html+='<span class="malefic">'+esc(s)+'</span>';
+    });
+    html+='</div>';
+    pal.maleficStars.forEach(function(s){
+      var meaning=MALEFIC_MEANING[s];
+      if(meaning)html+='<p>'+esc(s)+': '+esc(meaning)+'</p>';
+    });
+    html+='<p>살성은 장애물이 아니라 성장의 재료예요. 이 궁의 주제에서 조금 더 신중하게, 조금 더 깊이 들여다보라는 신호로 읽어주세요.</p>';
+    html+='</div>';
+  }
+  // 사화
+  if(pal.transformations.length){
+    html+='<div class="pdesc-section">';
+    html+='<h3>사화</h3>';
+    html+='<div class="pdesc-stars">';
+    pal.transformations.forEach(function(t){
+      html+='<span class="sihua">'+esc(t)+'</span>';
+    });
+    html+='</div>';
+    pal.transformations.forEach(function(t){
+      var key=t.split(":")[0]||t;
+      var meaning=SIHUA_MEANING[key];
+      if(meaning)html+='<p>'+esc(t)+': '+esc(meaning)+'</p>';
+    });
+    html+='</div>';
+  }
+  // 마커
+  var markers=[];
+  if(BP.markers.currentMajorLuck&&BP.markers.currentMajorLuck.palaceName===pal.name)
+    markers.push({cls:"",label:"🧭 지금 대운이 이 궁에 머물러 있어요. 요즘 유난히 자주 마주치는 주제라면, 그래서예요."});
+  if(BP.markers.yearlyLuckPalace===pal.name)
+    markers.push({cls:"mk-year",label:"⭐ 올해의 별이 이 궁 위에 떠 있어요. 올해는 이곳 이야기가 자주 찾아올 거예요."});
+  if(BP.markers.bodyPalace===pal.name)
+    markers.push({cls:"mk-body",label:"🌙 이곳은 당신의 신궁이기도 해요. 나이 들수록 점점 더 소중해지는 자리랍니다."});
+  if(markers.length){
+    html+='<div class="pdesc-section">';
+    html+='<h3>특별한 표식</h3>';
+    markers.forEach(function(m){
+      html+='<p>'+esc(m.label)+'</p>';
+    });
+    html+='</div>';
+  }
+  // 공명
+  var inc=BP.edges.filter(function(e){return e.to===pal.name&&e.weight>0;}).sort(function(a,b){return b.weight-a.weight;});
+  var neg=BP.edges.filter(function(e){return e.to===pal.name&&e.weight<0;});
+  if(inc.length||neg.length){
+    html+='<div class="pdesc-section">';
+    html+='<h3>이웃 궁과의 공명</h3>';
+    inc.slice(0,3).forEach(function(e){
+      html+='<p class="pdesc-reso">✨ '+esc(e.from)+'에서 긍정적인 기운이 흘러들고 있어요. 이 궁의 힘을 더욱 밝혀주는 연결이에요.</p>';
+    });
+    neg.slice(0,2).forEach(function(e){
+      html+='<p class="pdesc-reso">⚡ '+esc(e.from)+' 쪽 기운이 살짝 무겁게 닿아요. 한 박자 천천히 가면 충분해요.</p>';
+    });
+    html+='</div>';
+  }
+  // 대운
+  if(BP.markers.currentMajorLuck){
+    html+='<div class="pdesc-section">';
+    html+='<h3>현재 대운</h3>';
+    html+='<p>지금은 <strong>'+esc(BP.markers.currentMajorLuck.palaceName)+'</strong>의 대운을 지나고 있어요 ('+esc(BP.markers.currentMajorLuck.range)+'세). 이 시기의 삶의 주제는 '+esc(BP.markers.currentMajorLuck.palaceName)+'의 영역에서 펼쳐지고 있어요.</p>';
+    html+='</div>';
+  }
+  html+='<div class="pdesc-actions" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">';
+  html+='<a class="btn-primary" href="/island-consult?palace='+encodeURIComponent(pal.name)+'" style="text-decoration:none;text-align:center;">🔮 이 궁 깊이 상담하기</a>';
+  html+='<button class="btn-ghost" type="button" onclick="closeSheet()" style="width:100%;">닫기</button>';
+  html+='</div>';
+  content.innerHTML=html;
+  openSheet("sheetPalaceDesc");
 }
 
 /* ============================================================
@@ -1958,12 +2182,15 @@ function zodiacEmoji(y){return ZODIAC[((Number(y)-4)%12+12)%12]||"🪐";}
 function readAllProfiles(){
   var out=[],seen={};
   function add(raw){var n=normalizeProfile(raw);if(!n)return;var k=profileKeyOf(n);if(seen[k])return;seen[k]=1;out.push(n);}
-  try{for(var i=0;i<localStorage.length;i++){var key=localStorage.key(i);
-    if(key&&/^FORTUNE_APP_USER_PROFILES\.list(::.+)?$/.test(key)){
-      var arr=parseJson(localStorage.getItem(key));
-      if(Array.isArray(arr))arr.forEach(add);
-    }}}catch(_){}
-  var active=readSavedProfile();if(active)add(active); /* 활성/레거시 캐시 병합 */
+  /* 현재 로그인 스코프의 리스트만 읽는다(홈 카드 DPStorage.list()와 동일). 게스트일 때만 레거시 bare 키 폴백 — 타계정/게스트 명반 혼입 방지 */
+  var scope=islandProfileScope();
+  var keys=["FORTUNE_APP_USER_PROFILES.list::"+scope];
+  if(scope==="guest")keys.push("FORTUNE_APP_USER_PROFILES.list");
+  keys.forEach(function(key){
+    var arr=parseJson(readStore(localStorage,key)||"");
+    if(Array.isArray(arr))arr.forEach(add);
+  });
+  var active=readSavedProfile();if(active)add(active); /* 같은 스코프 활성 캐시 병합 */
   return out;
 }
 function calBadge(p){return p.calendarType==="lunar"?(p.isLeapMonth?"윤":"음"):"양";}

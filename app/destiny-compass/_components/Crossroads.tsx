@@ -46,8 +46,8 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
     setError(null);
     const r = await ensurePaidAccess({
       featureKey: "destiny-compass-crossroads",
-      coinPrice: 50,
-      amountKRW: 5000,
+      coinPrice: 100,
+      amountKRW: 10000,
       reason: "운명의 갈림길 기운 비교",
       forceDeduct: true,
       requestId: makeGateRequestId("destiny-compass-crossroads"),
@@ -133,7 +133,7 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
                 disabled={!a.trim() || !b.trim() || isPaying}
                 onClick={compare}
               >
-                {isPaying ? "결제 확인 중…" : "두 길 견주기 · 5,000원 →"}
+                {isPaying ? "결제 확인 중…" : "두 길 견주기 · 10,000원 →"}
               </button>
               <button type="button" className={styles.resultCtaGhost} onClick={onBack}>
                 ← 돌아가기

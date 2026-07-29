@@ -84,3 +84,7 @@ key/
 release-signing.properties
 key.properties
 local.properties
+
+# i18n 번역 배치의 로컬 캐시·로그 (재생성 가능)
+i18n/.translate-cache/
+i18n/.translate-run*.log

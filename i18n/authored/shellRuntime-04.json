@@ -1,0 +1,234 @@
+{
+  "_comment": "W1 배치 4 — 유명인 이름. 🔴 음차하지 않는다. 한국어 표기는 원어 이름을 옮겨 적은 것이므로, 각 언어에서는 **원래 이름**을 복원한다(스티브 잡스 → Steve Jobs, 이소룡 → Bruce Lee). 한국·일본·중국 인물은 해당 언어권의 정착 표기를 쓴다.",
+
+  "shellRuntime.w1_p0": {
+    "ko": "세종대왕", "en": "King Sejong the Great", "ja": "世宗大王", "zh-CN": "世宗大王", "zh-TW": "世宗大王",
+    "vi": "Vua Sejong Đại đế", "hi": "महाराजा सेजोंग", "es": "Rey Sejong el Grande", "fr": "Le Roi Sejong le Grand",
+    "de": "König Sejong der Große", "nl": "Koning Sejong de Grote", "ms": "Raja Sejong Agung"
+  },
+  "shellRuntime.w1_p1": {
+    "ko": "이순신", "en": "Yi Sun-sin", "ja": "李舜臣", "zh-CN": "李舜臣", "zh-TW": "李舜臣",
+    "vi": "Yi Sun-sin", "hi": "यी सुन-सिन", "es": "Yi Sun-sin", "fr": "Yi Sun-sin",
+    "de": "Yi Sun-sin", "nl": "Yi Sun-sin", "ms": "Yi Sun-sin"
+  },
+  "shellRuntime.w1_p2": {
+    "ko": "정약용", "en": "Jeong Yak-yong", "ja": "丁若鏞", "zh-CN": "丁若镛", "zh-TW": "丁若鏞",
+    "vi": "Jeong Yak-yong", "hi": "जियोंग याक-योंग", "es": "Jeong Yak-yong", "fr": "Jeong Yak-yong",
+    "de": "Jeong Yak-yong", "nl": "Jeong Yak-yong", "ms": "Jeong Yak-yong"
+  },
+  "shellRuntime.w1_p3": {
+    "ko": "김구", "en": "Kim Koo", "ja": "金九", "zh-CN": "金九", "zh-TW": "金九",
+    "vi": "Kim Koo", "hi": "किम कू", "es": "Kim Koo", "fr": "Kim Koo",
+    "de": "Kim Koo", "nl": "Kim Koo", "ms": "Kim Koo"
+  },
+  "shellRuntime.w1_p4": {
+    "ko": "안중근", "en": "An Jung-geun", "ja": "安重根", "zh-CN": "安重根", "zh-TW": "安重根",
+    "vi": "An Jung-geun", "hi": "अन जुंग-गन", "es": "An Jung-geun", "fr": "An Jung-geun",
+    "de": "An Jung-geun", "nl": "An Jung-geun", "ms": "An Jung-geun"
+  },
+  "shellRuntime.w1_p5": {
+    "ko": "유관순", "en": "Yu Gwan-sun", "ja": "柳寛順", "zh-CN": "柳宽顺", "zh-TW": "柳寬順",
+    "vi": "Yu Gwan-sun", "hi": "यू ग्वान-सुन", "es": "Yu Gwan-sun", "fr": "Yu Gwan-sun",
+    "de": "Yu Gwan-sun", "nl": "Yu Gwan-sun", "ms": "Yu Gwan-sun"
+  },
+  "shellRuntime.w1_p6": {
+    "ko": "김대중", "en": "Kim Dae-jung", "ja": "金大中", "zh-CN": "金大中", "zh-TW": "金大中",
+    "vi": "Kim Dae-jung", "hi": "किम डे-जुंग", "es": "Kim Dae-jung", "fr": "Kim Dae-jung",
+    "de": "Kim Dae-jung", "nl": "Kim Dae-jung", "ms": "Kim Dae-jung"
+  },
+  "shellRuntime.w1_p7": {
+    "ko": "박정희", "en": "Park Chung-hee", "ja": "朴正煕", "zh-CN": "朴正熙", "zh-TW": "朴正熙",
+    "vi": "Park Chung-hee", "hi": "पार्क चुंग-ही", "es": "Park Chung-hee", "fr": "Park Chung-hee",
+    "de": "Park Chung-hee", "nl": "Park Chung-hee", "ms": "Park Chung-hee"
+  },
+  "shellRuntime.w1_p8": {
+    "ko": "한강", "en": "Han Kang", "ja": "ハン・ガン", "zh-CN": "韩江", "zh-TW": "韓江",
+    "vi": "Han Kang", "hi": "हान कांग", "es": "Han Kang", "fr": "Han Kang",
+    "de": "Han Kang", "nl": "Han Kang", "ms": "Han Kang"
+  },
+  "shellRuntime.w1_p9": {
+    "ko": "봉준호", "en": "Bong Joon-ho", "ja": "ポン・ジュノ", "zh-CN": "奉俊昊", "zh-TW": "奉俊昊",
+    "vi": "Bong Joon-ho", "hi": "बोंग जून-हो", "es": "Bong Joon-ho", "fr": "Bong Joon-ho",
+    "de": "Bong Joon-ho", "nl": "Bong Joon-ho", "ms": "Bong Joon-ho"
+  },
+  "shellRuntime.w1_p10": {
+    "ko": "유해진", "en": "Yoo Hae-jin", "ja": "ユ・ヘジン", "zh-CN": "刘海镇", "zh-TW": "劉海鎮",
+    "vi": "Yoo Hae-jin", "hi": "यू हे-जिन", "es": "Yoo Hae-jin", "fr": "Yoo Hae-jin",
+    "de": "Yoo Hae-jin", "nl": "Yoo Hae-jin", "ms": "Yoo Hae-jin"
+  },
+  "shellRuntime.w1_p11": {
+    "ko": "IU (이지은)", "en": "IU (Lee Ji-eun)", "ja": "IU（イ・ジウン）", "zh-CN": "IU（李知恩）", "zh-TW": "IU（李知恩）",
+    "vi": "IU (Lee Ji-eun)", "hi": "IU (ली जी-यून)", "es": "IU (Lee Ji-eun)", "fr": "IU (Lee Ji-eun)",
+    "de": "IU (Lee Ji-eun)", "nl": "IU (Lee Ji-eun)", "ms": "IU (Lee Ji-eun)"
+  },
+  "shellRuntime.w1_p12": {
+    "ko": "BTS RM (김남준)", "en": "BTS RM (Kim Nam-joon)", "ja": "BTS RM（キム・ナムジュン）", "zh-CN": "BTS RM（金南俊）", "zh-TW": "BTS RM（金南俊）",
+    "vi": "BTS RM (Kim Nam-joon)", "hi": "BTS RM (किम नाम-जून)", "es": "BTS RM (Kim Nam-joon)", "fr": "BTS RM (Kim Nam-joon)",
+    "de": "BTS RM (Kim Nam-joon)", "nl": "BTS RM (Kim Nam-joon)", "ms": "BTS RM (Kim Nam-joon)"
+  },
+  "shellRuntime.w1_p13": {
+    "ko": "뉴진스 하니", "en": "NewJeans Hanni", "ja": "NewJeans ハニ", "zh-CN": "NewJeans 哈妮", "zh-TW": "NewJeans 哈妮",
+    "vi": "NewJeans Hanni", "hi": "NewJeans हानी", "es": "NewJeans Hanni", "fr": "NewJeans Hanni",
+    "de": "NewJeans Hanni", "nl": "NewJeans Hanni", "ms": "NewJeans Hanni"
+  },
+  "shellRuntime.w1_p14": {
+    "ko": "손흥민", "en": "Son Heung-min", "ja": "ソン・フンミン", "zh-CN": "孙兴慜", "zh-TW": "孫興慜",
+    "vi": "Son Heung-min", "hi": "सोन हिউং-मिन", "es": "Son Heung-min", "fr": "Son Heung-min",
+    "de": "Son Heung-min", "nl": "Son Heung-min", "ms": "Son Heung-min"
+  },
+  "shellRuntime.w1_p15": {
+    "ko": "김연아", "en": "Kim Yuna", "ja": "キム・ヨナ", "zh-CN": "金妍儿", "zh-TW": "金妍兒",
+    "vi": "Kim Yuna", "hi": "किम युना", "es": "Kim Yuna", "fr": "Kim Yuna",
+    "de": "Kim Yuna", "nl": "Kim Yuna", "ms": "Kim Yuna"
+  },
+  "shellRuntime.w1_p16": {
+    "ko": "박세리", "en": "Se Ri Pak", "ja": "パク・セリ", "zh-CN": "朴世莉", "zh-TW": "朴世莉",
+    "vi": "Se Ri Pak", "hi": "से री पाक", "es": "Se Ri Pak", "fr": "Se Ri Pak",
+    "de": "Se Ri Pak", "nl": "Se Ri Pak", "ms": "Se Ri Pak"
+  },
+  "shellRuntime.w1_p17": {
+    "ko": "박찬호", "en": "Chan Ho Park", "ja": "パク・チャンホ", "zh-CN": "朴赞浩", "zh-TW": "朴贊浩",
+    "vi": "Chan Ho Park", "hi": "चान हो पार्क", "es": "Chan Ho Park", "fr": "Chan Ho Park",
+    "de": "Chan Ho Park", "nl": "Chan Ho Park", "ms": "Chan Ho Park"
+  },
+  "shellRuntime.w1_p18": {
+    "ko": "류현진", "en": "Hyun Jin Ryu", "ja": "リュ・ヒョンジン", "zh-CN": "柳贤振", "zh-TW": "柳賢振",
+    "vi": "Hyun Jin Ryu", "hi": "ह्यून जिन रयू", "es": "Hyun Jin Ryu", "fr": "Hyun Jin Ryu",
+    "de": "Hyun Jin Ryu", "nl": "Hyun Jin Ryu", "ms": "Hyun Jin Ryu"
+  },
+  "shellRuntime.w1_p19": {
+    "ko": "나루히토 일왕", "en": "Emperor Naruhito", "ja": "徳仁天皇", "zh-CN": "德仁天皇", "zh-TW": "德仁天皇",
+    "vi": "Nhật hoàng Naruhito", "hi": "सम्राट नारुहितो", "es": "Emperador Naruhito", "fr": "L'empereur Naruhito",
+    "de": "Kaiser Naruhito", "nl": "Keizer Naruhito", "ms": "Maharaja Naruhito"
+  },
+  "shellRuntime.w1_p20": {
+    "ko": "도요토미 히데요시", "en": "Toyotomi Hideyoshi", "ja": "豊臣秀吉", "zh-CN": "丰臣秀吉", "zh-TW": "豐臣秀吉",
+    "vi": "Toyotomi Hideyoshi", "hi": "तोयोतोमी हिदेयोशी", "es": "Toyotomi Hideyoshi", "fr": "Toyotomi Hideyoshi",
+    "de": "Toyotomi Hideyoshi", "nl": "Toyotomi Hideyoshi", "ms": "Toyotomi Hideyoshi"
+  },
+  "shellRuntime.w1_p21": {
+    "ko": "미야자키 하야오", "en": "Hayao Miyazaki", "ja": "宮崎駿", "zh-CN": "宫崎骏", "zh-TW": "宮崎駿",
+    "vi": "Hayao Miyazaki", "hi": "हायाओ मियाज़ाकी", "es": "Hayao Miyazaki", "fr": "Hayao Miyazaki",
+    "de": "Hayao Miyazaki", "nl": "Hayao Miyazaki", "ms": "Hayao Miyazaki"
+  },
+  "shellRuntime.w1_p22": {
+    "ko": "쿠로사와 아키라", "en": "Akira Kurosawa", "ja": "黒澤明", "zh-CN": "黑泽明", "zh-TW": "黑澤明",
+    "vi": "Akira Kurosawa", "hi": "अकीरा कुरोसावा", "es": "Akira Kurosawa", "fr": "Akira Kurosawa",
+    "de": "Akira Kurosawa", "nl": "Akira Kurosawa", "ms": "Akira Kurosawa"
+  },
+  "shellRuntime.w1_p23": {
+    "ko": "기타노 다케시", "en": "Takeshi Kitano", "ja": "北野武", "zh-CN": "北野武", "zh-TW": "北野武",
+    "vi": "Takeshi Kitano", "hi": "ताकेशी कितानो", "es": "Takeshi Kitano", "fr": "Takeshi Kitano",
+    "de": "Takeshi Kitano", "nl": "Takeshi Kitano", "ms": "Takeshi Kitano"
+  },
+  "shellRuntime.w1_p24": {
+    "ko": "무라카미 하루키", "en": "Haruki Murakami", "ja": "村上春樹", "zh-CN": "村上春树", "zh-TW": "村上春樹",
+    "vi": "Haruki Murakami", "hi": "हारुकी मुराकामी", "es": "Haruki Murakami", "fr": "Haruki Murakami",
+    "de": "Haruki Murakami", "nl": "Haruki Murakami", "ms": "Haruki Murakami"
+  },
+  "shellRuntime.w1_p25": {
+    "ko": "아무로 나미에", "en": "Namie Amuro", "ja": "安室奈美恵", "zh-CN": "安室奈美惠", "zh-TW": "安室奈美惠",
+    "vi": "Namie Amuro", "hi": "नामी अमूरो", "es": "Namie Amuro", "fr": "Namie Amuro",
+    "de": "Namie Amuro", "nl": "Namie Amuro", "ms": "Namie Amuro"
+  },
+  "shellRuntime.w1_p26": {
+    "ko": "오타니 쇼헤이", "en": "Shohei Ohtani", "ja": "大谷翔平", "zh-CN": "大谷翔平", "zh-TW": "大谷翔平",
+    "vi": "Shohei Ohtani", "hi": "शोहेई ओहतानी", "es": "Shohei Ohtani", "fr": "Shohei Ohtani",
+    "de": "Shohei Ohtani", "nl": "Shohei Ohtani", "ms": "Shohei Ohtani"
+  },
+  "shellRuntime.w1_p27": {
+    "ko": "공자 (孔子)", "en": "Confucius (孔子)", "ja": "孔子", "zh-CN": "孔子", "zh-TW": "孔子",
+    "vi": "Khổng Tử (孔子)", "hi": "कन्फ्यूशियस (孔子)", "es": "Confucio (孔子)", "fr": "Confucius (孔子)",
+    "de": "Konfuzius (孔子)", "nl": "Confucius (孔子)", "ms": "Confucius (孔子)"
+  },
+  "shellRuntime.w1_p28": {
+    "ko": "마오쩌둥", "en": "Mao Zedong", "ja": "毛沢東", "zh-CN": "毛泽东", "zh-TW": "毛澤東",
+    "vi": "Mao Trạch Đông", "hi": "माओ त्से-तुंग", "es": "Mao Zedong", "fr": "Mao Zedong",
+    "de": "Mao Zedong", "nl": "Mao Zedong", "ms": "Mao Zedong"
+  },
+  "shellRuntime.w1_p29": {
+    "ko": "마윈 (马云)", "en": "Jack Ma (马云)", "ja": "ジャック・マー（馬雲）", "zh-CN": "马云", "zh-TW": "馬雲",
+    "vi": "Jack Ma (马云)", "hi": "जैक मा (马云)", "es": "Jack Ma (马云)", "fr": "Jack Ma (马云)",
+    "de": "Jack Ma (马云)", "nl": "Jack Ma (马云)", "ms": "Jack Ma (马云)"
+  },
+  "shellRuntime.w1_p30": {
+    "ko": "장이머우", "en": "Zhang Yimou", "ja": "チャン・イーモウ", "zh-CN": "张艺谋", "zh-TW": "張藝謀",
+    "vi": "Trương Nghệ Mưu", "hi": "झांग यिमou", "es": "Zhang Yimou", "fr": "Zhang Yimou",
+    "de": "Zhang Yimou", "nl": "Zhang Yimou", "ms": "Zhang Yimou"
+  },
+  "shellRuntime.w1_p31": {
+    "ko": "성룡 (成龍)", "en": "Jackie Chan (成龍)", "ja": "ジャッキー・チェン（成龍）", "zh-CN": "成龙", "zh-TW": "成龍",
+    "vi": "Thành Long (成龍)", "hi": "जैकी चैन (成龍)", "es": "Jackie Chan (成龍)", "fr": "Jackie Chan (成龍)",
+    "de": "Jackie Chan (成龍)", "nl": "Jackie Chan (成龍)", "ms": "Jackie Chan (成龍)"
+  },
+  "shellRuntime.w1_p32": {
+    "ko": "이소룡 (李小龍)", "en": "Bruce Lee (李小龍)", "ja": "ブルース・リー（李小龍）", "zh-CN": "李小龙", "zh-TW": "李小龍",
+    "vi": "Lý Tiểu Long (李小龍)", "hi": "ब्रूस ली (李小龍)", "es": "Bruce Lee (李小龍)", "fr": "Bruce Lee (李小龍)",
+    "de": "Bruce Lee (李小龍)", "nl": "Bruce Lee (李小龍)", "ms": "Bruce Lee (李小龍)"
+  },
+  "shellRuntime.w1_p33": {
+    "ko": "스티브 잡스", "en": "Steve Jobs", "ja": "スティーブ・ジョブズ", "zh-CN": "史蒂夫·乔布斯", "zh-TW": "史蒂夫·賈伯斯",
+    "vi": "Steve Jobs", "hi": "स्टीव जॉब्स", "es": "Steve Jobs", "fr": "Steve Jobs",
+    "de": "Steve Jobs", "nl": "Steve Jobs", "ms": "Steve Jobs"
+  },
+  "shellRuntime.w1_p34": {
+    "ko": "스티브 워즈니악", "en": "Steve Wozniak", "ja": "スティーブ・ウォズニアック", "zh-CN": "史蒂夫·沃兹尼亚克", "zh-TW": "史蒂夫·沃茲尼克",
+    "vi": "Steve Wozniak", "hi": "स्टीव वोज़्नियाक", "es": "Steve Wozniak", "fr": "Steve Wozniak",
+    "de": "Steve Wozniak", "nl": "Steve Wozniak", "ms": "Steve Wozniak"
+  },
+  "shellRuntime.w1_p35": {
+    "ko": "빌 게이츠", "en": "Bill Gates", "ja": "ビル・ゲイツ", "zh-CN": "比尔·盖茨", "zh-TW": "比爾·蓋茲",
+    "vi": "Bill Gates", "hi": "बिल गेट्स", "es": "Bill Gates", "fr": "Bill Gates",
+    "de": "Bill Gates", "nl": "Bill Gates", "ms": "Bill Gates"
+  },
+  "shellRuntime.w1_p36": {
+    "ko": "버락 오바마", "en": "Barack Obama", "ja": "バラク・オバマ", "zh-CN": "巴拉克·奥巴马", "zh-TW": "巴拉克·歐巴馬",
+    "vi": "Barack Obama", "hi": "बराक ओबामा", "es": "Barack Obama", "fr": "Barack Obama",
+    "de": "Barack Obama", "nl": "Barack Obama", "ms": "Barack Obama"
+  },
+  "shellRuntime.w1_p37": {
+    "ko": "마틴 루터 킹", "en": "Martin Luther King Jr.", "ja": "マーティン・ルーサー・キング・ジュニア", "zh-CN": "马丁·路德·金", "zh-TW": "馬丁·路德·金恩",
+    "vi": "Martin Luther King Jr.", "hi": "मार्टिन लूथर किंग जूनियर", "es": "Martin Luther King Jr.", "fr": "Martin Luther King Jr.",
+    "de": "Martin Luther King Jr.", "nl": "Martin Luther King Jr.", "ms": "Martin Luther King Jr."
+  },
+  "shellRuntime.w1_p38": {
+    "ko": "알베르트 아인슈타인", "en": "Albert Einstein", "ja": "アルベルト・アインシュタイン", "zh-CN": "阿尔伯特·爱因斯坦", "zh-TW": "阿爾伯特·愛因斯坦",
+    "vi": "Albert Einstein", "hi": "अल्बर्ट आइंस्टीन", "es": "Albert Einstein", "fr": "Albert Einstein",
+    "de": "Albert Einstein", "nl": "Albert Einstein", "ms": "Albert Einstein"
+  },
+  "shellRuntime.w1_p39": {
+    "ko": "레오나르도 다 빈치", "en": "Leonardo da Vinci", "ja": "レオナルド・ダ・ヴィンチ", "zh-CN": "列奥纳多·达·芬奇", "zh-TW": "李奧納多·達文西",
+    "vi": "Leonardo da Vinci", "hi": "लियोनार्दो दा विंची", "es": "Leonardo da Vinci", "fr": "Léonard de Vinci",
+    "de": "Leonardo da Vinci", "nl": "Leonardo da Vinci", "ms": "Leonardo da Vinci"
+  },
+  "shellRuntime.w1_p40": {
+    "ko": "윌리엄 셰익스피어", "en": "William Shakespeare", "ja": "ウィリアム・シェイクスピア", "zh-CN": "威廉·莎士比亚", "zh-TW": "威廉·莎士比亞",
+    "vi": "William Shakespeare", "hi": "विलियम शेक्सपियर", "es": "William Shakespeare", "fr": "William Shakespeare",
+    "de": "William Shakespeare", "nl": "William Shakespeare", "ms": "William Shakespeare"
+  },
+  "shellRuntime.w1_p41": {
+    "ko": "나폴레옹 (비교)", "en": "Napoleon (comparison)", "ja": "ナポレオン（比較）", "zh-CN": "拿破仑（对照）", "zh-TW": "拿破崙（對照）",
+    "vi": "Napoleon (đối chiếu)", "hi": "नेपोलियन (तुलना)", "es": "Napoleón (comparación)", "fr": "Napoléon (comparaison)",
+    "de": "Napoleon (Vergleich)", "nl": "Napoleon (vergelijking)", "ms": "Napoleon (perbandingan)"
+  },
+  "shellRuntime.w1_p42": {
+    "ko": "마이클 잭슨", "en": "Michael Jackson", "ja": "マイケル・ジャクソン", "zh-CN": "迈克尔·杰克逊", "zh-TW": "麥可·傑克森",
+    "vi": "Michael Jackson", "hi": "माइकल जैक्सन", "es": "Michael Jackson", "fr": "Michael Jackson",
+    "de": "Michael Jackson", "nl": "Michael Jackson", "ms": "Michael Jackson"
+  },
+  "shellRuntime.w1_p43": {
+    "ko": "마돈나", "en": "Madonna", "ja": "マドンナ", "zh-CN": "麦当娜", "zh-TW": "瑪丹娜",
+    "vi": "Madonna", "hi": "मैडोना", "es": "Madonna", "fr": "Madonna",
+    "de": "Madonna", "nl": "Madonna", "ms": "Madonna"
+  },
+  "shellRuntime.w1_p44": {
+    "ko": "엘비스 프레슬리", "en": "Elvis Presley", "ja": "エルヴィス・プレスリー", "zh-CN": "猫王埃尔维斯·普雷斯利", "zh-TW": "貓王艾維斯·普里斯萊",
+    "vi": "Elvis Presley", "hi": "एल्विस प्रेस्ली", "es": "Elvis Presley", "fr": "Elvis Presley",
+    "de": "Elvis Presley", "nl": "Elvis Presley", "ms": "Elvis Presley"
+  },
+  "shellRuntime.w1_p45": {
+    "ko": "마틴 스코세이지", "en": "Martin Scorsese", "ja": "マーティン・スコセッシ", "zh-CN": "马丁·斯科塞斯", "zh-TW": "馬丁·史柯西斯",
+    "vi": "Martin Scorsese", "hi": "मार्टिन स्कोर्सेसे", "es": "Martin Scorsese", "fr": "Martin Scorsese",
+    "de": "Martin Scorsese", "nl": "Martin Scorsese", "ms": "Martin Scorsese"
+  }
+}

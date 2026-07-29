@@ -1,4 +1,5 @@
 import { callGeminiText } from "../lib/gemini.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson, cookieValue } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
@@ -142,7 +143,9 @@ function buildGeomancyPrompt({ question, theme, cause, flow, judge }) {
     "- timing: 7일/21일/40일의 시간축 조언",
     "- actionTip: 오늘 바로 실행할 행동 2~3개를 문장으로 제시",
     "- advice: 현자의 한 줄 경구(1~2문장)",
-    "- 한국어만 사용",
+    // 출력 언어는 llm-client 의 applyOutputLocale 이 붙이는 지시문이 정본이다.
+    // ko 는 지시문이 붙지 않으므로 기존 문구를 그대로 남긴다 — 스프레드라 ko 프롬프트는 바이트 동일.
+    ...((getAmbientAiLocale() || "ko") === "ko" ? ["- 한국어만 사용"] : []),
     "질문:",
     question,
     "카드 데이터(JSON):",

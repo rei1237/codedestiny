@@ -1,0 +1,523 @@
+[
+  {
+    "rel": "app/points/PointsClient.tsx",
+    "name": "POINTS_PAGE_COPY",
+    "have": 2,
+    "missing": [
+      "ja",
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 71,
+    "chars": 737
+  },
+  {
+    "rel": "app/points/history/PointHistoryClient.tsx",
+    "name": "POINT_HISTORY_COPY",
+    "have": 2,
+    "missing": [
+      "ja",
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 67,
+    "chars": 739
+  },
+  {
+    "rel": "app/music/MusicPlayerExample.tsx",
+    "name": "MUSIC_PLAYER_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 48,
+    "chars": 292
+  },
+  {
+    "rel": "components/fortune/destiny-meeting-place/DestinyMeetingPlaceResult.tsx",
+    "name": "DESTINY_MEETING_PLACE_RESULT_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 45,
+    "chars": 165
+  },
+  {
+    "rel": "app/components/LoveRelationshipTarot.tsx",
+    "name": "LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 43,
+    "chars": 378
+  },
+  {
+    "rel": "app/login/LoginClient.tsx",
+    "name": "LOGIN_PAGE_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 42,
+    "chars": 640
+  },
+  {
+    "rel": "app/points/SubscriptionStatusCard.tsx",
+    "name": "SUBSCRIPTION_STATUS_COPY",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 37,
+    "chars": 459
+  },
+  {
+    "rel": "app/saju/destiny-bias/engine/birthEnergy.ts",
+    "name": "BIRTH_ENERGY_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 28,
+    "chars": 132
+  },
+  {
+    "rel": "components/maya/MayaFortunePage.tsx",
+    "name": "MAYA_FORTUNE_PAGE_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 27,
+    "chars": 408
+  },
+  {
+    "rel": "app/components/SeoLandingTemplate.jsx",
+    "name": "SEO_LANDING_TEMPLATE_COPY",
+    "have": 1,
+    "missing": [
+      "en",
+      "ja",
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 20,
+    "chars": 205
+  },
+  {
+    "rel": "components/fpti/FptiExperience.tsx",
+    "name": "FPTI_EXPERIENCE_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 22,
+    "chars": 354
+  },
+  {
+    "rel": "app/oracle/sikojen-povailu/components/PhaseReveal.tsx",
+    "name": "SIKOJEN_REVEAL_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 21,
+    "chars": 164
+  },
+  {
+    "rel": "app/oracle/sikojen-povailu/components/PhaseSharing.tsx",
+    "name": "SIKOJEN_SHARING_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 17,
+    "chars": 128
+  },
+  {
+    "rel": "app/components/GlobalPricingCard.jsx",
+    "name": "GLOBAL_PRICING_CARD_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 13,
+    "chars": 67
+  },
+  {
+    "rel": "app/saju/destiny-bias/utils/createBiasEnergySvg.ts",
+    "name": "BIAS_ENERGY_SVG_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 11,
+    "chars": 39
+  },
+  {
+    "rel": "app/saju/love-simulation/_components/CustomSajuForm.tsx",
+    "name": "CUSTOM_SAJU_FORM_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 11,
+    "chars": 74
+  },
+  {
+    "rel": "app/saju/animal-destiny/store/useAnimalDestinyStore.ts",
+    "name": "ANIMAL_DESTINY_STORE_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 9,
+    "chars": 128
+  },
+  {
+    "rel": "app/_lib/normalize-ziwei-input.ts",
+    "name": "NORMALIZE_ZIWEI_INPUT_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 9,
+    "chars": 222
+  },
+  {
+    "rel": "lib/ai-engine.js",
+    "name": "AI_ENGINE_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 8,
+    "chars": 56
+  },
+  {
+    "rel": "app/fortune/prompt-hub/dangsaju-calc.ts",
+    "name": "DANGSAJU_CALC_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 7,
+    "chars": 58
+  },
+  {
+    "rel": "app/fortune/prompt-hub/meihua-calc.ts",
+    "name": "MEIHUA_CALC_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 6,
+    "chars": 87
+  },
+  {
+    "rel": "lib/fpti/fpti-engine.ts",
+    "name": "FPTI_ENGINE_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 4,
+    "chars": 97
+  },
+  {
+    "rel": "app/saju/destiny-bias/lib/destinyBiasTheme.ts",
+    "name": "DESTINY_BIAS_THEME_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 5,
+    "chars": 62
+  },
+  {
+    "rel": "app/_lib/fortune/ganjiGuardianSprite.ts",
+    "name": "GANJI_GUARDIAN_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 5,
+    "chars": 5
+  },
+  {
+    "rel": "lib/yeon/timeTheme.ts",
+    "name": "YEON_TIME_THEME_TEXT_TRANSLATIONS",
+    "have": 5,
+    "missing": [
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 5,
+    "chars": 24
+  },
+  {
+    "rel": "lib/maya/maya-calendar.ts",
+    "name": "MAYA_CALENDAR_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 3,
+    "chars": 46
+  },
+  {
+    "rel": "app/components/OfflineOverlay.tsx",
+    "name": "OFFLINE_COPY",
+    "have": 4,
+    "missing": [
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 3,
+    "chars": 33
+  },
+  {
+    "rel": "app/api/tarot/love-reading/route.js",
+    "name": "LOVE_READING_ROUTE_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 2,
+    "chars": 11
+  },
+  {
+    "rel": "app/_lib/auth-store.ts",
+    "name": "SESSION_EXPIRED_MESSAGE",
+    "have": 4,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 1,
+    "chars": 32
+  },
+  {
+    "rel": "app/_lib/route-auth.ts",
+    "name": "ROUTE_AUTH_TEXT_TRANSLATIONS",
+    "have": 3,
+    "missing": [
+      "zh-CN",
+      "zh-TW",
+      "vi",
+      "hi",
+      "es",
+      "fr",
+      "de",
+      "nl",
+      "ms"
+    ],
+    "keys": 1,
+    "chars": 12
+  }
+]

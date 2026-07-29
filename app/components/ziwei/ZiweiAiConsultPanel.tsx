@@ -2,7 +2,7 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  심화 자미두수 안 인라인 AI 상담  —  UI 패널
+ *  심화 자미두수 안 인라인 전문가 상담  —  UI 패널
  * ───────────────────────────────────────────────────────────────────────────
  *  심화 명반(무료) 화면 안에서 "따로" 동작하는 회당 결제 LLM 상담.
  *  - 결제: featureKey `ziwei-ai-consultation` (300코인=30,000원), 회당 결제(forceDeduct).
@@ -27,7 +27,7 @@ import {
 import type { ZiweiDeepBirthInput } from "./ZiweiDeepPdfPanel";
 
 const FEATURE_KEY = "ziwei-ai-consultation";
-const FEATURE_REASON = "자미두수 AI 상담";
+const FEATURE_REASON = "자미두수 전문가 상담";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
 const FEATURE_MEMBERSHIP_CREDIT_COST = 3000;
@@ -361,10 +361,10 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
     <section className="font-premium relative overflow-hidden rounded-[1.6rem] border border-violet-300/25 bg-gradient-to-br from-[#171033]/85 via-[#0c1230]/85 to-[#101a34]/85 p-5 text-slate-100 md:p-7">
       <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(circle_at_16%_14%,rgba(167,139,250,.16),transparent_44%),radial-gradient(circle_at_84%_82%,rgba(125,211,252,.13),transparent_46%)]" aria-hidden="true" />
       <div className="relative z-10">
-        <p className="text-[11px] font-semibold tracking-[0.3em] text-violet-100/80">ZIWEI AI 상담 · 회당 결제</p>
-        <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">🔮 별궁 AI 상담</h3>
+        <p className="text-[11px] font-semibold tracking-[0.3em] text-violet-100/80">ZIWEI 전문가 상담 · 회당 결제</p>
+        <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">🔮 별궁 전문가 상담</h3>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200/85">
-          명반은 무료로 열람하고, 지금 가장 궁금한 질문은 <b className="text-violet-100">AI 상담</b>으로 따로 풀어보세요. 명궁·신궁·12궁과 사화의 흐름을 질문에 맞춰 상담해 드립니다.
+          명반은 무료로 열람하고, 지금 가장 궁금한 질문은 <b className="text-violet-100">전문가 상담</b>으로 따로 풀어보세요. 명궁·신궁·12궁과 사화의 흐름을 질문에 맞춰 상담해 드립니다.
         </p>
 
         {phase !== "ready" && (
@@ -404,7 +404,7 @@ export default function ZiweiAiConsultPanel({ birth, disabled = false }: Props) 
                 className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-200 via-fuchsia-100 to-sky-200 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_14px_30px_-10px_rgba(167,139,250,.5)] transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                {phase === "checking" ? "이용권 확인 중..." : phase === "payment" ? "결제 진행 중..." : phase === "reading" ? "상담문 생성 중..." : "별궁 AI 상담 받기 (30,000원)"}
+                {phase === "checking" ? "이용권 확인 중..." : phase === "payment" ? "결제 진행 중..." : phase === "reading" ? "상담문 생성 중..." : "별궁 전문가 상담 받기 (30,000원)"}
               </button>
               <PriceBadge featureKey={FEATURE_KEY} fallbackCoins={FEATURE_COST} prefix="상담 이용 가격 " />
             </div>

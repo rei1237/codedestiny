@@ -6,11 +6,12 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/karma-destiny-ai/";
-const PAGE_TITLE = "운명의 업 AI 상담 | 반복되는 인생 패턴 리딩 — Code Destiny";
+const PAGE_TITLE = "운명의 업 전문가 상담 | 반복되는 인생 패턴 리딩 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "사주와 서양 점성술, 베다의 흐름을 함께 겹쳐 삶에서 반복되는 문양과 지금의 과제를 읽는 운명의 업 AI 상담. 같은 자리에서 되풀이되는 선택의 결을 상담 문장으로 풀어 드립니다.";
+  "사주와 서양 점성술, 베다의 흐름을 함께 겹쳐 삶에서 반복되는 문양과 지금의 과제를 읽는 운명의 업 전문가 상담. 같은 자리에서 되풀이되는 선택의 결을 상담 문장으로 풀어 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
     siteName: siteSeo.siteName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
-    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "운명의 업 AI 상담" }],
+    images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "운명의 업 전문가 상담" }],
   },
   twitter: {
     card: siteSeo.twitterCard,
@@ -42,7 +43,7 @@ export const metadata: Metadata = {
 
 const karmaFaqItems = [
   {
-    question: "운명의 업 AI 상담은 무엇을 봐주나요?",
+    question: "운명의 업 전문가 상담은 무엇을 봐주나요?",
     answer:
       "관계에서, 일에서, 선택의 순간마다 비슷한 자리로 되돌아오는 반복의 문양을 읽습니다. 사주 명식의 강한 십성 흐름, 점성술의 노드 축, 베다의 다샤 주기를 함께 겹쳐 지금 삶이 되풀이하는 주제와 그 매듭을 푸는 방향을 살핍니다.",
   },
@@ -80,7 +81,7 @@ const karmaFaqItems = [
 
 const karmaJsonLd = [
   buildServiceJsonLd({
-    name: "운명의 업 AI 상담",
+    name: "운명의 업 전문가 상담",
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "운명 패턴 상담 서비스",
@@ -88,7 +89,7 @@ const karmaJsonLd = [
   buildFaqPageJsonLd(karmaFaqItems),
   buildBreadcrumbJsonLd([
     { name: "홈", path: "/" },
-    { name: "운명의 업 AI 상담", path: PAGE_PATH },
+    { name: "운명의 업 전문가 상담", path: PAGE_PATH },
   ]),
 ];
 
@@ -99,10 +100,11 @@ export default function KarmaDestinyAiPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(karmaJsonLd) }}
       />
-      <section className="sr-only" aria-label="운명의 업 AI 상담 안내">
-        <h1>운명의 업 AI 상담 — 반복되는 인생 패턴 리딩</h1>
+            <KarmaDestinyAiRouteClient />
+            <ServiceIntroSection label="운명의 업 전문가 상담 안내">
+        <h1>운명의 업 전문가 상담 — 반복되는 인생 패턴 리딩</h1>
         <p>
-          운명의 업은 삶에서 되풀이되는 문양을 읽는 AI 상담입니다. 사주 명식에서 힘이 몰린 십성의
+          운명의 업은 삶에서 되풀이되는 문양을 읽는 전문가 상담입니다. 사주 명식에서 힘이 몰린 십성의
           자리, 서양 점성술의 노드 축이 가리키는 성장 방향, 베다 다샤가 알려주는 시기의 리듬 —
           세 체계를 겹쳐 지금 반복되는 관계와 선택의 패턴이 어디에서 비롯되는지 살핍니다.
         </p>
@@ -145,8 +147,7 @@ export default function KarmaDestinyAiPage() {
             <p>{item.answer}</p>
           </div>
         ))}
-      </section>
-      <KarmaDestinyAiRouteClient />
+                  </ServiceIntroSection>
     </>
   );
 }

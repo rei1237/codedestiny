@@ -1,6 +1,8 @@
 import { getApiBaseUrl } from "./api-config";
 import { fetchWithTimeout, toAbsoluteApiUrl } from "./http-client";
 import { persistSanitizedAuthUser } from "./auth-storage";
+import { AI_LOCALE_HEADER } from "@/lib/i18n/ai-locale";
+import { detectLocale } from "@/lib/i18n/dictionary";
 
 // Must match CACHE_REFRESH_HEADER in user-session-cache.ts — tells that module's
 // window.fetch monkeypatch to bypass its cache and fabricated guest response, since this
@@ -276,6 +278,11 @@ function buildAuthRequest(targetUrl: string, init: RequestInit = {}) {
   if (isAuthoritativeAuthPath(targetUrl)) {
     headers.set(CACHE_REFRESH_HEADER, "1");
   }
+  // AI 응답 언어. 모든 React AI 클라이언트가 authFetch 를 타므로 여기 한 줄이면 전 기능이 커버된다.
+  // 워커는 worker/lib/ai-locale-context.js 가 이 헤더를 읽어 요청 스코프에 심는다.
+  if (!headers.has(AI_LOCALE_HEADER)) {
+    headers.set(AI_LOCALE_HEADER, detectLocale());
+  }
 
   return new Request(targetUrl, {
     ...init,
@@ -316,6 +323,22 @@ function publishAuthSync(event: "login" | "logout") {
     const channel = new BroadcastChannel(AUTH_SYNC_CHANNEL);
     channel.postMessage(payload);
     channel.close();
+  } catch (e) {
+    // best-effort
+  }
+}
+
+// 서버가 "확정적 미인증"을 알린 터미널 신호. auth-store 가 이 이벤트를 받아
+// handleSessionInvalidated 로 강제 로그아웃한다(auth-store → auth-client 단방향 import 를
+// 유지하기 위해 직접 호출 대신 이벤트를 쓴다). 정적 셸도 같은 채널을 들을 수 있다.
+export const AUTH_SESSION_INVALIDATED_EVENT = "cd:auth-session-invalidated";
+
+function dispatchSessionInvalidated(source: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.dispatchEvent(
+      new CustomEvent(AUTH_SESSION_INVALIDATED_EVENT, { detail: { source, at: Date.now() } }),
+    );
   } catch (e) {
     // best-effort
   }
@@ -377,6 +400,7 @@ async function refreshSession(apiBase: string) {
           if (response.status === 401 || response.status === 403) {
             clearClientAuthState();
             publishAuthSync("logout");
+            dispatchSessionInvalidated("refresh-401");
             return "invalid";
           }
           return "transient";

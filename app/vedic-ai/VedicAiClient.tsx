@@ -101,7 +101,7 @@ const CONSULTATION_TYPE = "vedic";
 const FEATURE_COST = 300;
 const AMOUNT_KRW = 30000;
 const MEMBERSHIP_CREDIT_COST = 3000;
-const REASON = "베다점 AI 상담";
+const REASON = "베다점 전문가 상담";
 
 const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
   { value: "overall", label: "전체 흐름" },
@@ -189,7 +189,7 @@ const ERROR_TEXT: Record<string, string> = {
   PAYMENT_CANCELLED: "결제가 취소되었습니다. 필요할 때 다시 진행할 수 있습니다.",
   PREPARE_FAILED: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   CHART_CALCULATION_FAILED: "베다 차트를 계산하는 중 문제가 발생했어요. 입력한 출생 정보를 다시 확인해 주세요.",
-  LLM_FAILED: "AI 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
+  LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   SERVER_ERROR: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   GENERATION_TIMEOUT: "상담 생성이 평소보다 오래 걸리고 있습니다. 페이지를 닫지 말고 잠시 후 다시 시도해 주세요.",
@@ -1230,7 +1230,7 @@ export default function VedicAiClient() {
         featureKey: FEATURE_KEY,
         requestId,
         title: "이용권 확인",
-        reason: "베다 점성술 AI 상담",
+        reason: "베다 점성술 전문가 상담",
         paymentMode: "MEMBERSHIP_PASS",
       });
       gateStarted = true;
@@ -1252,7 +1252,7 @@ export default function VedicAiClient() {
           featureKey: FEATURE_KEY,
           requestId,
           title: "이용권 확인 완료",
-          reason: "베다 점성술 AI 상담",
+          reason: "베다 점성술 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: "이용권 확인이 끝났습니다. 별빛의 흐름을 읽고 있습니다.",
         });
@@ -1307,7 +1307,7 @@ export default function VedicAiClient() {
           featureKey: FEATURE_KEY,
           requestId,
           title: isTransient ? "잠시 후 다시 시도" : "이용권 확인 실패",
-          reason: "베다 점성술 AI 상담",
+          reason: "베다 점성술 전문가 상담",
           paymentMode: "MEMBERSHIP_PASS",
           message: ERROR_TEXT[code] || ERROR_TEXT.SERVER_ERROR,
           cancelled: paymentCancelled,
@@ -1331,7 +1331,7 @@ export default function VedicAiClient() {
         <div className={styles.heroInner}>
           <div className={styles.copy}>
             <span className={styles.eyebrow}><Sparkles size={16} /> Jyotish · Vedic Star Counsel</span>
-            <h1>베다점 AI 상담</h1>
+            <h1>베다점 전문가 상담</h1>
             <p>나크샤트라와 행성의 흐름, 다샤의 리듬 위로 지금의 질문이 조용히 비춥니다.</p>
             <div className={styles.heroMeta}>
               <span>30,000원</span>
@@ -1450,7 +1450,7 @@ export default function VedicAiClient() {
           </div>
           <button type="submit" className={styles.primaryButton} disabled={busy}>
             {busy ? <Loader2 className={styles.spin} size={18} /> : <Moon size={18} />}
-            {busy ? "나크샤트라의 흐름을 읽는 중..." : "베다점 AI 상담 받기"}
+            {busy ? "나크샤트라의 흐름을 읽는 중..." : "베다점 전문가 상담 받기"}
           </button>
         </form>
 
