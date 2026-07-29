@@ -116,12 +116,13 @@ h3{font-size:1.05rem; line-height:1.4}
 .pick__el{position:absolute; top:8px; right:10px; font-family:var(--font-display);
   font-size:.82rem; color:var(--pe); opacity:.9}
 
-/* 스프라이트 초상 — 균일 340×344 프레임을 마진 %로 오프셋한다(마진 %는 컨테이너 width 기준). */
-.por{position:relative; width:100%; aspect-ratio:340/344; overflow:hidden; border-radius:var(--r-md)}
+/* 스프라이트 초상 — 정사각 프레임(--fx/--fy/--fw)을 마진 %로 오프셋한다.
+   마진 %는 세로도 컨테이너 width 기준으로 계산되므로 top 대신 margin을 쓴다. 시트 폭은 둘 다 1536. */
+.por{position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:var(--r-md)}
 .por__img{position:absolute; top:0; left:0; max-width:none; height:auto;
-  width:calc(1536 / 340 * 100%);
-  margin-left:calc(var(--fx) / 340 * -100%);
-  margin-top:calc(var(--fy) / 340 * -100%)}
+  width:calc(1536 / var(--fw) * 100%);
+  margin-left:calc(var(--fx) / var(--fw) * -100%);
+  margin-top:calc(var(--fy) / var(--fw) * -100%)}
 /* 프레임이 없는 종은 심볼로 내려간다 — 실패가 아니라 의도된 표기라서 같은 메달 형태를 유지한다. */
 .por--sym{display:grid; place-items:center; font-size:2.2rem;
   background:radial-gradient(circle at 50% 40%, var(--pe-soft), transparent 70%)}
@@ -488,37 +489,63 @@ var REMOTE_SHELL = location.protocol === "file:" || location.protocol === "capac
 var API_BASE = REMOTE_SHELL ? "https://code-destiny.com" : "";
 var ASSETS = (PROD || REMOTE_SHELL) ? "https://assets.code-destiny.com/" : "/codedestinyassets/";
 function enc(p){ return p.split("/").map(encodeURIComponent).join("/"); }
-var SPRITE = ASSETS + enc("반려동물-Photoroom.webp");
+/* 두 장을 함께 쓴다 — animals 시트가 품종/파충류·어류를 넓게 덮고, pets 시트가
+   토끼·햄스터·고슴도치·새·코기·시바를 채운다. 둘 다 1536×1024. */
+var SHEET = {
+  animals: ASSETS + enc("동물들.webp"),
+  pets: ASSETS + enc("반려동물-Photoroom.webp")
+};
 
-/* 스프라이트 프레임 — 시트 1536×1024, 알파 밴드 실측 후 균일 340×344로 재단.
-   행 밴드 [26,352] [369,687] [715,996] / 열 밴드 [62,352] [429,726] [797,1082] [1156,1451] */
+/* 프레임 — 각 시트의 알파 밴드를 실측해 셀 bbox를 구하고, 이웃 셀 중간점·행 밴드로
+   잘라낸 정사각 좌표다(옆 동물이 딸려오지 않는 최대 크기). */
 var FRAME = {
-  bichon:    { fx:  38, fy: 18 },
-  poodle:    { fx: 408, fy: 18 },
-  catGray:   { fx: 770, fy: 18 },
-  catOrange: { fx:1134, fy: 18 },
-  corgi:     { fx:  38, fy:357 },
-  shiba:     { fx: 408, fy:357 },
-  pomeranian:{ fx: 770, fy:357 },
-  rabbit:    { fx:1134, fy:357 },
-  hamster:   { fx:  38, fy:680 },
-  hedgehog:  { fx: 408, fy:680 },
-  budgie:    { fx: 770, fy:680 }
+  // animals 시트
+  bichon:          { s:"animals", fx:   0, fy: 32, fw:227 },
+  chihuahua:       { s:"animals", fx: 233, fy: 38, fw:216 },
+  dachshund:       { s:"animals", fx: 450, fy: 30, fw:237 },
+  puppyTan:        { s:"animals", fx: 687, fy: 39, fw:219 },
+  borderCollie:    { s:"animals", fx: 912, fy: 33, fw:223 },
+  poodle:          { s:"animals", fx:1135, fy: 38, fw:214 },
+  spitzWhite:      { s:"animals", fx:1353, fy: 53, fw:183 },
+  catSilverTabby:  { s:"animals", fx:   7, fy:307, fw:232 },
+  russianBlue:     { s:"animals", fx: 239, fy:320, fw:207 },
+  bengal:          { s:"animals", fx: 464, fy:316, fw:208 },
+  ragdoll:         { s:"animals", fx: 672, fy:305, fw:237 },
+  scottishFold:    { s:"animals", fx: 921, fy:333, fw:196 },
+  persian:         { s:"animals", fx:1122, fy:322, fw:223 },
+  siamese:         { s:"animals", fx:1347, fy:333, fw:189 },
+  catBrownTabby:   { s:"animals", fx:  15, fy:584, fw:212 },
+  norwegianForest: { s:"animals", fx: 227, fy:560, fw:249 },
+  calico:          { s:"animals", fx: 485, fy:580, fw:226 },
+  lizard:          { s:"animals", fx:   1, fy:836, fw:178 },
+  turtle:          { s:"animals", fx: 222, fy:802, fw:222 },
+  mouse:           { s:"animals", fx: 477, fy:826, fw:180 },
+  fish:            { s:"animals", fx: 670, fy:813, fw:207 },
+  // pets 시트 — animals 에 없는 종/품종만
+  bichonSoft:      { s:"pets", fx:  38, fy: 26, fw:340 },
+  corgi:           { s:"pets", fx:  40, fy:360, fw:341 },
+  shiba:           { s:"pets", fx: 416, fy:358, fw:341 },
+  pomeranian:      { s:"pets", fx: 773, fy:368, fw:333 },
+  rabbit:          { s:"pets", fx:1144, fy:387, fw:320 },
+  hamster:         { s:"pets", fx:  65, fy:713, fw:295 },
+  hedgehog:        { s:"pets", fx: 422, fy:703, fw:302 },
+  budgie:          { s:"pets", fx: 813, fy:714, fw:286 }
 };
 
 /* 품종 → 프레임. 목록에 없으면 종 기본 프레임, 그것도 없으면 심볼 폴백. */
 var BREED_FRAME = {
-  dog: { bichon:"bichon", maltese:"bichon", poodle:"poodle", golden_retriever:"poodle",
-         dachshund:"poodle", border_collie:"poodle", mixed:"poodle", generic:"poodle",
-         welsh_corgi:"corgi", shiba:"shiba", jindo:"shiba",
-         pomeranian:"pomeranian", chihuahua:"pomeranian" },
-  cat: { russian_blue:"catGray", scottish_fold:"catGray", persian:"catGray",
-         norwegian_forest:"catGray", ragdoll:"catGray", generic:"catGray",
-         korean_shorthair:"catOrange", bengal:"catOrange", siamese:"catOrange",
-         munchkin:"catOrange", mixed:"catOrange" }
+  dog: { generic:"puppyTan", mixed:"puppyTan", golden_retriever:"puppyTan",
+         jindo:"spitzWhite", bichon:"bichon", maltese:"bichonSoft", poodle:"poodle",
+         chihuahua:"chihuahua", dachshund:"dachshund", border_collie:"borderCollie",
+         welsh_corgi:"corgi", shiba:"shiba", pomeranian:"pomeranian" },
+  cat: { generic:"catSilverTabby", korean_shorthair:"catBrownTabby", russian_blue:"russianBlue",
+         bengal:"bengal", ragdoll:"ragdoll", scottish_fold:"scottishFold", persian:"persian",
+         siamese:"siamese", norwegian_forest:"norwegianForest",
+         munchkin:"calico", mixed:"calico" }
 };
-var SPECIES_FRAME = { dog:"poodle", cat:"catGray", rabbit:"rabbit", hamster:"hamster",
-                      hedgehog:"hedgehog", bird:"budgie" };
+var SPECIES_FRAME = { dog:"puppyTan", cat:"catSilverTabby", turtle:"turtle", fish:"fish",
+                      bird:"budgie", rabbit:"rabbit", hamster:"hamster", mouse:"mouse",
+                      hedgehog:"hedgehog", lizard:"lizard" };
 
 var ELEMENT_COLOR = { "목":"#5fd198", "화":"#f08a8a", "토":"#caa45a", "금":"#d9d3c1", "수":"#69a7f7" };
 var ELEMENT_HANJA = { "목":"木", "화":"火", "토":"土", "금":"金", "수":"水" };
@@ -574,13 +601,15 @@ function portrait(species, breed, emoji, altText){
     box.appendChild(el("span", null, emoji || "🐾"));
     return box;
   }
+  var frame = FRAME[key];
   var img = el("img", "por__img");
-  img.src = SPRITE;
+  img.src = SHEET[frame.s];
   img.alt = altText || "";
   img.decoding = "async";
   img.loading = "eager";
-  box.style.setProperty("--fx", FRAME[key].fx);
-  box.style.setProperty("--fy", FRAME[key].fy);
+  box.style.setProperty("--fx", frame.fx);
+  box.style.setProperty("--fy", frame.fy);
+  box.style.setProperty("--fw", frame.fw);
   img.addEventListener("error", function(){
     // 스프라이트를 못 받으면 심볼로 내려간다. className을 덮으면 호출자가 준 크기 클래스가
     // 함께 날아가므로 classList.add로만 바꾼다.
