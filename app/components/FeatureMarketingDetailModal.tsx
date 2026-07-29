@@ -24,6 +24,11 @@ export type FeatureMarketingTarget = {
   badges?: FeatureMarketingBadge[];
 };
 
+type FeatureMarketingResultPreview = {
+  lines: string[];
+  caption?: string;
+};
+
 type FeatureMarketingCopy = {
   category: string;
   badge: string;
@@ -33,6 +38,8 @@ type FeatureMarketingCopy = {
   unlockBenefits: string[];
   previewText: string;
   trustNotes: string[];
+  recommendedFor?: string[];
+  resultPreview?: FeatureMarketingResultPreview;
   ctaLabel: string;
 };
 
@@ -141,6 +148,19 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     headline: "내 삶의 큰 흐름을 한 번 깊게 정리해두는 시간을 가져보세요.",
     subheadline: "사주 흐름을 바탕으로 인생의 방향과 반복 패턴을 상담형으로 풀어보는 프리미엄 기능입니다.",
     painPoints: ["삶의 방향을 큰 틀에서 정리하고 싶을 때", "반복되는 선택 패턴의 이유가 궁금할 때", "지금의 전환점을 더 깊게 읽고 싶을 때"],
+    recommendedFor: [
+      "30대·40대 전환점에서 방향을 다시 잡아야 하는 분",
+      "같은 실패가 반복되는 이유를 근본에서 확인하고 싶은 분",
+      "짧은 운세 말고 인생 전체 흐름을 한 번에 훑어보고 싶은 분",
+    ],
+    resultPreview: {
+      lines: [
+        "당신의 일간은 조용히 스며드는 물의 기운입니다. 겉으로는 유연해 보이지만 방향이 정해지면 좀처럼 되돌리지 않습니다.",
+        "첫 번째 큰 전환점은 이미 지나왔습니다. 그때 내린 선택이 지금의 자리와 어떻게 이어져 있는지부터 짚습니다.",
+        "반복되는 굴레의 근원은 재물의 기운과 책임의 기운이 부딪히는 자리에 있습니다. 이 지점을 풀면 다음 장이 열립니다.",
+      ],
+      caption: "실제 인생의 책 도입부 예시입니다. 결제 후에는 본인 사주로 계산된 전 챕터와 시기별 전략까지 이어집니다.",
+    },
     ctaLabel: "인생의 책 열람하기",
   },
   "ziwei-ai-consultation": {
@@ -148,6 +168,19 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "전문가 상담형",
     headline: "별의 배치가 지금의 질문을 어디로 이끄는지 차분히 읽어보세요.",
     subheadline: "명궁과 12궁의 흐름을 바탕으로, 고민의 중심과 다음 선택 기준을 정리하는 상담형 해석입니다.",
+    recommendedFor: [
+      "이직·이사·결혼처럼 큰 결정을 앞두고 판단 근거가 필요한 분",
+      "노력은 계속하는데 성과가 한 곳으로 모이지 않는다고 느끼는 분",
+      "단편적인 오늘 운세 말고 인생 구조를 한 번 정리하고 싶은 분",
+    ],
+    resultPreview: {
+      lines: [
+        "명궁에 놓인 별의 배치는 당신이 결정을 내리는 속도와 방식을 먼저 설명합니다. 지금 고민이 무겁게 느껴지는 이유도 여기서 시작됩니다.",
+        "재백궁의 흐름은 올해 하반기를 지나며 방향을 바꿉니다. 이 시기에 벌리는 일과 정리하는 일을 구분해야 손실이 줄어듭니다.",
+        "관록궁과 명궁이 만나는 자리에서 같은 패턴이 반복됩니다. 이 패턴을 알아채는 순간 선택의 폭이 달라집니다.",
+      ],
+      caption: "실제 상담 결과 화면의 예시입니다. 결제 후에는 본인 명식으로 계산된 12궁 전체 해석과 이어지는 질문까지 확인할 수 있어요.",
+    },
     ctaLabel: "자미두수 상담 열기",
   },
   "loveSimulation": {
@@ -317,7 +350,33 @@ export function FeatureMarketingDetailModal({
               {copy.unlockBenefits.map((item) => <li key={item} className="list-none">• {item}</li>)}
             </ul>
           </section>
+          {copy.recommendedFor && copy.recommendedFor.length > 0 && (
+            <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
+              <h3 className="m-0 mb-2 text-xs font-black text-violet-100">이런 상황이라면 추천해요</h3>
+              <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
+                {copy.recommendedFor.map((item) => <li key={item} className="list-none">• {item}</li>)}
+              </ul>
+            </section>
+          )}
           <p className="m-0 rounded-lg border border-amber-200/18 bg-amber-200/[0.075] p-3 text-sm font-semibold leading-6 text-amber-50">{copy.previewText}</p>
+          {copy.resultPreview && copy.resultPreview.lines.length > 0 && (
+            <figure className="m-0">
+              <h3 className="m-0 mb-2 text-xs font-black text-sky-100">결과 미리보기</h3>
+              {/* 흐린 본문은 "여기서부터 유료"를 알리는 장식이라 aria-hidden. 실제 의미는 caption 이 전한다. */}
+              <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#171236] px-4 pb-7 pt-3.5">
+                <div aria-hidden className="grid select-none gap-2 blur-[2.4px]">
+                  {copy.resultPreview.lines.map((line) => (
+                    <span key={line} className="block text-sm leading-6 text-[#e7e0ff]">{line}</span>
+                  ))}
+                </div>
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-[linear-gradient(180deg,rgba(23,18,54,0),rgba(23,18,54,0.88)_70%,#171236_100%)]" />
+                <span aria-hidden className="absolute bottom-2 right-3 z-[1] text-[10px] font-black tracking-[0.2em] text-[rgba(232,213,163,0.72)]">CODE DESTINY</span>
+              </div>
+              {copy.resultPreview.caption && (
+                <figcaption className="mt-2 text-xs leading-5 text-slate-300">{copy.resultPreview.caption}</figcaption>
+              )}
+            </figure>
+          )}
           <section className="rounded-lg border border-emerald-200/16 bg-emerald-200/[0.055] p-3">
             <h3 className="m-0 mb-2 text-xs font-black text-emerald-100">안심하고 확인하세요</h3>
             <ul className="m-0 grid gap-1.5 p-0 text-xs leading-5 text-emerald-50/86">
