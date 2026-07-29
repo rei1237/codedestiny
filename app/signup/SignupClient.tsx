@@ -15,7 +15,9 @@ import {
   waitForAuthLogoutToSettle,
 } from "../_lib/auth-client";
 import { markAuthUserCacheVerified, persistSanitizedAuthUser } from "../_lib/auth-storage";
-import { calculateKoreanAge, formatBirthDateDigits, normalizeBirthDateFromDigits, validateBirthDateWithAge } from "@/lib/birthDateInput";
+import { calculateKoreanAge, formatBirthDateDigits, MIN_SELF_CONSENT_AGE, normalizeBirthDateFromDigits, validateBirthDateWithAge } from "@/lib/birthDateInput";
+
+const GUARDIAN_EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -32,12 +34,17 @@ const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
     "signupPage.011": "추천인 코드",
     "signupPage.012": "[필수] 개인정보처리방침 전문을 읽고 동의합니다.",
     "signupPage.013": "[필수] 이용약관 전문을 읽고 동의합니다.",
-    "signupPage.014": "대한민국 법령에 따라 만 14세 미만은 가입할 수 없습니다.",
+    "signupPage.014": "만 14세 미만은 법정대리인(보호자) 동의를 받으면 가입할 수 있습니다.",
     "signupPage.015": "만 {age}세",
     "signupPage.016": "올바른 생년월일을 입력해주세요.",
     "signupPage.017": "미래 날짜는 입력할 수 없습니다.",
-    "signupPage.018": "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.",
+    "signupPage.018": "만 14세 미만은 보호자 동의가 필요합니다. 보호자 이메일을 입력해 주세요.",
     "signupPage.019": "[필수] 만 14세 이상이며 대한민국 관련 법령을 확인하였습니다.",
+    "signupPage.020": "[필수] 만 14세 미만이며, 아래 입력한 보호자(법정대리인)의 동의 절차 진행에 동의합니다.",
+    "signupPage.021": "보호자(법정대리인) 이메일",
+    "signupPage.022": "만 14세 미만 계정은 유료 결제를 이용할 수 없으며, 무료 기능만 이용할 수 있습니다.",
+    "signupPage.023": "만 14세 미만은 소셜 회원가입을 이용할 수 없습니다. 위의 아이디/비밀번호 회원가입으로 보호자 동의를 진행해 주세요.",
+    "signupPage.024": "보호자 이메일 형식을 확인해 주세요.",
   },
 } as const;
 
@@ -269,6 +276,8 @@ export default function SignupPage() {
   const [error, setError] = useState<string>("");
   const [birthDateError, setBirthDateError] = useState<string>("");
   const [birthDateAge, setBirthDateAge] = useState<number>(-1);
+  const [guardianEmail, setGuardianEmail] = useState("");
+  const [guardianConsentSent, setGuardianConsentSent] = useState<{ email: string; message: string } | null>(null);
   const socialCompleteOnceRef = useRef(false);
   const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
@@ -476,8 +485,13 @@ export default function SignupPage() {
     }
   }, []);
 
-  const isUnder14 = birthDateAge >= 0 && birthDateAge < 14;
-  const canSubmit = hasRequiredConsents && !isUnder14 && !birthDateError && birthDateAge >= 14;
+  // 만 14세 미만은 가입 차단이 아니라 보호자 동의 절차 대상이다.
+  const isUnder14 = birthDateAge >= 0 && birthDateAge < MIN_SELF_CONSENT_AGE;
+  const guardianEmailValid = GUARDIAN_EMAIL_PATTERN.test(guardianEmail.trim());
+  const canSubmit = hasRequiredConsents
+    && !birthDateError
+    && birthDateAge >= 0
+    && (!isUnder14 || guardianEmailValid);
 
   const handleLocalSignup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -498,6 +512,11 @@ export default function SignupPage() {
     const normalizedPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber);
     if (!normalizedPhoneNumber) {
       setError(signupPageText("signupPage.003"));
+      return;
+    }
+
+    if (isUnder14 && !guardianEmailValid) {
+      setError(signupPageText("signupPage.024"));
       return;
     }
 
@@ -536,6 +555,7 @@ export default function SignupPage() {
             birthDate,
             birthTime,
             gender,
+            ...(isUnder14 ? { guardianEmail: guardianEmail.trim().toLowerCase() } : {}),
             nextPath,
             referralCode: referralCapture.referralCode,
             referralShareToken: referralCapture.referralShareToken,
@@ -552,9 +572,18 @@ export default function SignupPage() {
         throw (lastFetchError || new Error("회원가입 처리 중 오류가 발생했습니다."));
       }
 
-      const payload = await parseJsonResponse<SignupResult & { errors?: string[] }>(response);
+      const payload = await parseJsonResponse<SignupResult & { errors?: string[]; guardianConsentRequired?: boolean }>(response);
       if (!response.ok) {
         throw new Error(normalizeAuthApiError(payload, "회원가입에 실패했습니다."));
+      }
+
+      // 보호자 동의 대기 계정은 세션이 발급되지 않는다(202). 로그인 대신 안내 화면으로 전환한다.
+      if (payload.guardianConsentRequired) {
+        setGuardianConsentSent({
+          email: guardianEmail.trim().toLowerCase(),
+          message: payload.message || "보호자 이메일로 동의 요청을 보냈습니다.",
+        });
+        return;
       }
 
       persistAuth(payload.user, payload.accessToken, payload.refreshToken);
@@ -578,8 +607,9 @@ export default function SignupPage() {
 
     abortBootstrapAuthCheck();
 
+    // 소셜 가입은 보호자 이메일을 받을 단계가 없어 만 14세 미만에게는 열지 않는다.
     if (isUnder14) {
-      setError(signupPageText("signupPage.018"));
+      setError(signupPageText("signupPage.023"));
       return;
     }
 
@@ -700,6 +730,26 @@ export default function SignupPage() {
               <p className="mb-4 rounded-lg border border-rose-400/40 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">{error}</p>
             ) : null}
 
+            {guardianConsentSent ? (
+              <div className="rounded-2xl border border-amber-200/30 bg-amber-100/10 p-6 text-center">
+                <p className="text-3xl" aria-hidden="true">✉️</p>
+                <h2 className="mt-3 text-lg font-bold text-amber-100">보호자 동의 요청을 보냈습니다</h2>
+                <p className="mt-2 text-sm leading-6 text-amber-50/85">{guardianConsentSent.message}</p>
+                <p className="mt-3 break-all rounded-xl bg-slate-950/40 px-3 py-2 text-sm font-semibold text-amber-100">
+                  {guardianConsentSent.email}
+                </p>
+                <p className="mt-3 text-xs leading-5 text-amber-50/75">
+                  동의 링크는 7일간 유효합니다. 보호자가 동의를 완료하면 입력한 아이디와 비밀번호로 로그인할 수 있습니다.
+                </p>
+                <Link
+                  href="/login"
+                  className="mt-5 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-violet-500/25 text-sm font-semibold text-violet-50 transition hover:bg-violet-500/35"
+                >
+                  로그인 화면으로 이동
+                </Link>
+              </div>
+            ) : (
+            <>
             <form className="mb-6 space-y-4" onSubmit={handleLocalSignup}>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="sm:col-span-2">
@@ -850,19 +900,40 @@ export default function SignupPage() {
                 </div>
               </div>
 
-              {isUnder14 ? (
-                <div className="mt-3 rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-center text-sm text-rose-200">
-                  {signupPageText("signupPage.018")}
+              {isUnder14 && (
+                <div className="mt-3 rounded-xl border border-amber-200/30 bg-amber-100/10 p-4">
+                  <label htmlFor="signup-guardian-email" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-amber-100/85">
+                    GUARDIAN EMAIL
+                  </label>
+                  <input
+                    id="signup-guardian-email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="off"
+                    value={guardianEmail}
+                    onChange={(event) => setGuardianEmail(event.target.value)}
+                    disabled={loading || socialLoading !== null}
+                    placeholder={signupPageText("signupPage.021")}
+                    className="h-12 w-full rounded-xl border border-amber-100/30 bg-slate-950/55 px-4 text-sm text-amber-50 outline-none transition placeholder:text-amber-100/40 focus:border-amber-200/70 focus:ring-2 focus:ring-amber-200/25 disabled:cursor-not-allowed disabled:opacity-60"
+                  />
+                  <p className="mt-2 text-[11px] leading-5 text-amber-50/80">
+                    {signupPageText("signupPage.018")} 입력하신 주소로 동의 링크가 발송되며, 보호자가 동의를 완료해야 로그인할 수 있습니다.
+                  </p>
+                  <p className="mt-1 text-[11px] leading-5 text-amber-50/80">{signupPageText("signupPage.022")}</p>
                 </div>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={loading || socialLoading !== null || !canSubmit}
-                  className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {loading ? "회원가입 중..." : "아이디/비밀번호로 회원가입"}
-                </button>
               )}
+
+              <button
+                type="submit"
+                disabled={loading || socialLoading !== null || !canSubmit}
+                className="mt-3 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-violet-200/30 bg-gradient-to-r from-violet-500/80 via-fuchsia-500/70 to-indigo-500/75 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(109,40,217,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading
+                  ? "회원가입 중..."
+                  : isUnder14
+                    ? "보호자 동의 요청 보내기"
+                    : "아이디/비밀번호로 회원가입"}
+              </button>
             </form>
 
             <div className="my-5 flex items-center gap-3">
@@ -947,7 +1018,7 @@ export default function SignupPage() {
                   <strong className="lc-card-label">만 14세 이상 확인 <em>Age Requirement (14+)</em></strong>
                 </div>
                 <div className="px-4 py-3 text-xs leading-relaxed text-violet-100/80">
-                  대한민국 개인정보 보호법 및 관련 법령에 따라 만 14세 미만은 본 회원가입 서비스를 이용할 수 없으며, 본 서비스는 만 14세 이상 전용입니다.
+                  대한민국 개인정보 보호법 제22조의2에 따라 만 14세 미만 아동의 개인정보를 처리하려면 법정대리인(보호자)의 동의가 필요합니다. 생년월일이 만 14세 미만이면 보호자 이메일로 동의 링크가 발송되고, 보호자가 동의를 완료해야 계정을 이용할 수 있습니다. 만 14세 미만 계정은 유료 결제를 이용할 수 없습니다.
                 </div>
                 <label className={`lc-check-row${agreeAge ? " lc-check-row--on" : ""}`} htmlFor="agree-age-requirement">
                   <span className="lc-checkbox" aria-hidden="true">
@@ -964,13 +1035,13 @@ export default function SignupPage() {
                     onChange={(e) => setAgreeAge(e.target.checked)}
                     className="sr-only"
                   />
-                  <span>{signupPageText("signupPage.019")}</span>
+                  <span>{signupPageText(isUnder14 ? "signupPage.020" : "signupPage.019")}</span>
                 </label>
               </article>
 
               <p className="lc-state" role="status" aria-live="polite">
                 {isUnder14 ? (
-                  <><span className="lc-state-dot" style={{ backgroundColor: "#f43f5e" }} />생년월일 입력 결과 만 14세 미만으로 가입이 불가합니다.</>
+                  <><span className="lc-state-dot" style={{ backgroundColor: "#fbbf24" }} />만 14세 미만입니다. 보호자 이메일을 입력하면 동의 요청을 보낼 수 있습니다.</>
                 ) : hasRequiredConsents ? (
                   <><span className="lc-state-dot lc-state-dot--ok" />필수 동의가 완료되었습니다. 이제 회원가입을 진행할 수 있습니다.</>
                 ) : (
@@ -980,8 +1051,8 @@ export default function SignupPage() {
             </section>
 
             {isUnder14 ? (
-              <div className="rounded-xl border border-rose-400/30 bg-rose-500/10 px-4 py-3 text-center text-sm text-rose-200">
-                {signupPageText("signupPage.018")}
+              <div className="rounded-xl border border-amber-200/30 bg-amber-100/10 px-4 py-3 text-center text-sm text-amber-100/90">
+                {signupPageText("signupPage.023")}
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -1015,6 +1086,8 @@ export default function SignupPage() {
                   {socialLoading === "kakao" ? "카카오 인증으로 이동 중..." : "카카오로 회원가입"}
                 </button>
               </div>
+            )}
+            </>
             )}
 
             <footer className="mt-5 text-center text-xs text-violet-100/75">
