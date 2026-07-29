@@ -24,6 +24,9 @@ beforeAll(async () => {
     isAuthDbInfraError: (error) => /mongo|timeout|network/i.test(String(error?.message || "")),
   }));
   jest.unstable_mockModule("../../worker/lib/paid-feature-access.js", () => ({
+    // 라우트가 인증 단계에서 같은 User 문서를 한 번에 읽으려고 이 projection 을 함께 import 한다.
+    // 모킹에서 빠지면 라우트 모듈 로드가 SyntaxError 로 죽으므로 실제 모듈 표면과 맞춰 둔다.
+    PAID_FEATURE_ACCESS_USER_PROJECTION: {},
     canAccessPaidFeature: mockCanAccessPaidFeature,
   }));
   jest.unstable_mockModule("../../worker/lib/premium-access-token.js", () => ({

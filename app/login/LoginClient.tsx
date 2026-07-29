@@ -351,6 +351,8 @@ function normalizeSocialAuthError(rawReason: string | null, copy: LoginPageCopy)
   if (reason.includes("token_exchange_failed")) return copy.tokenExchangeFailed;
   if (reason === "oauth_not_configured") return copy.oauthNotConfigured;
   if (reason === "invalid_callback" || reason === "provider_mismatch") return copy.invalidCallback;
+  // 2026-07-29 하루 운영했던 보호자 동의 절차에서 남은 대기 계정은 잠긴 상태로 둔다.
+  if (reason.startsWith("guardian_consent")) return "이 계정은 이용할 수 없습니다. admin@code-destiny.com 으로 문의해 주세요.";
   return copy.socialDefaultError;
 }
 

@@ -14,6 +14,7 @@
     - **무료 진입 후크 예외(2026-07-16)**: "지금 내 시기 · 올해의 나" 카드(`#currentSeasonCard`, 클라 `renderCurrentSeasonSummary`)는 **현재 소속 대운 1칸 + 올해 세운 요약만** 무료(C유형)로 노출한다. 게이트(`cd-section-gate`) 없이 렌더되며 서버 entitlement와 무관. **전체 10년 대운표·연도별 세운 상세·종합 풀이는 계속 `section_daewun`/`section_summary`로 유료 잠금**이며, 무료 카드는 이 잠긴 콘텐츠를 렌더하지 않는다(범위 초과 시 정책 위반).
   - 자미두수 심화: `ziwei_decade_luck`(대한 흐름), `ziwei_love_deep`(부부궁 심화), `ziwei_twelve_palaces`(12궁 정밀), `ziwei_symbolic_layer`, `ziwei_life_yearly_flow`
   - 숙요점 1년운 전체 해석: `sukyo_yearly_fortune_unlock`
+  - **운명의 섬 12궁 전체 심층 리포트: `ziwei-island-deep-report`(50코인=5,000원)** — 명반에서 결정론으로 산출되는 고정 콘텐츠(LLM 미사용, `worker/lib/island/island-report.js`)라 재열람이 전제다. **계정 스코프 영구 해금**(`PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY`에 등록하지 않아 `User.unlockedFeatures`로 관리). 배달은 `worker/routes/ziwei-island-report.js`, 화면은 `/island-consult`. ⚠️ 같은 화면의 `ziwei-island-palace-consult`(20,000원)와 **별개 상품**이다 — 그쪽은 고른 궁 하나를 LLM이 매번 새로 쓰는 B유형.
 - **UI**: 잠금 아이콘 + 해제 유도 CTA (`PremiumBlurGate.tsx`)
 
 ## B. 이용할 때마다 구매 (Per-Use Payment / 회당 결제)

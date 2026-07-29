@@ -1,0 +1,171 @@
+/**
+ * 모바일 하단 네비게이션 공용 스킨.
+ * 정적 셸(#cdMobileBottomNav)과 React(app/components/MobileBottomNav.tsx)가
+ * 같은 .cd-mnav__* 클래스를 쓰므로 두 화면의 생김새가 갈라지지 않는다.
+ * 탭 정의 정본은 app/_lib/mobile-tabs.ts.
+ */
+
+/**
+ * 하단 네비가 차지하는 높이. 자체 sticky CTA 를 가진 화면이 이 값만큼 위로 올라오면 된다.
+ * 네비가 보이지 않는 뷰포트에서는 0 이므로 그대로 바닥에 붙는다.
+ */
+:root {
+  --cd-mnav-offset: 0px;
+}
+
+.cd-mnav {
+  display: none;
+}
+
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  :root {
+    --cd-mnav-offset: calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .cd-mnav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 960;
+    display: block;
+    padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px))
+      max(12px, env(safe-area-inset-left, 0px));
+    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
+    border-top: 1px solid rgba(244, 190, 209, 0.42);
+    box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transform: translateY(0);
+    opacity: 1;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    will-change: transform;
+  }
+
+  .cd-mnav__list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+    margin: 0 auto;
+    padding: 0;
+    max-width: 560px;
+    list-style: none;
+  }
+
+  .cd-mnav__item {
+    min-width: 0;
+  }
+
+  .cd-mnav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+    min-height: 48px;
+    padding: 4px 2px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
+    color: #7a3457;
+    font: inherit;
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    text-decoration: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .cd-mnav__icon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    font-size: 1.125rem;
+    line-height: 24px;
+  }
+
+  .cd-mnav__label {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cd-mnav__link[aria-current="page"],
+  .cd-mnav__link.is-active {
+    transform: translateY(-2px);
+    border-color: rgba(244, 190, 209, 0.66);
+    background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
+    color: #7a1038;
+    box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  }
+
+  .cd-mnav__link:focus-visible {
+    outline: 2px solid #b31955;
+    outline-offset: 2px;
+  }
+
+  .cd-mnav__link:active {
+    transform: scale(0.97);
+  }
+
+  /* 오버레이·모달이 열리면 셸 스크립트가 body 에 붙이는 클래스로 함께 숨는다. */
+  body.cd-mobile-nav-hidden .cd-mnav {
+    transform: translateY(calc(100% + 18px));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 하단 고정 네비에 가려지지 않도록 본문 여백 확보. */
+  body.cd-mnav-mounted {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* 연이 다크(핑크 다크) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
+@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+  @media (prefers-color-scheme: dark) {
+    .cd-mnav {
+      background: linear-gradient(180deg, #3a0e28, #24081a);
+      border-top-color: rgba(244, 190, 209, 0.38);
+      box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
+    }
+
+    .cd-mnav__link {
+      color: rgba(255, 214, 232, 0.86);
+    }
+
+    .cd-mnav__link[aria-current="page"],
+    .cd-mnav__link.is-active {
+      border-color: rgba(255, 196, 222, 0.5);
+      background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
+      color: #fff1f7;
+      box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
+    }
+
+    .cd-mnav__link:focus-visible {
+      outline-color: #f4bed1;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-mnav,
+  .cd-mnav__link {
+    transition: none;
+  }
+
+  .cd-mnav__link[aria-current="page"],
+  .cd-mnav__link.is-active {
+    transform: none;
+  }
+
+  .cd-mnav__link:active {
+    transform: none;
+  }
+}

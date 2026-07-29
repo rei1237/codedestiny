@@ -233,6 +233,7 @@ type AdminInsightsCopy = {
   menuTitle: string;
   contentManagement: string;
   insightView: string;
+  reviewManagement: string;
   promptLabNav: string;
   searchPlaceholder: string;
   search: string;
@@ -398,6 +399,7 @@ const ADMIN_INSIGHTS_COPY_KO: AdminInsightsCopy = {
   menuTitle: "관리자 메뉴",
   contentManagement: "콘텐츠 관리",
   insightView: "인사이트 전용 보기",
+  reviewManagement: "리뷰 관리",
   promptLabNav: "프롬프트 실험실",
   searchPlaceholder: "제목 또는 slug 검색",
   search: "검색",
@@ -644,6 +646,7 @@ const ADMIN_INSIGHTS_COPY_EN: AdminInsightsCopy = {
   menuTitle: "Admin Menu",
   contentManagement: "Content Management",
   insightView: "Insights View",
+  reviewManagement: "Review Management",
   promptLabNav: "Prompt Lab",
   searchPlaceholder: "Search title or slug",
   search: "Search",
@@ -864,6 +867,7 @@ const ADMIN_INSIGHTS_COPY_JA: AdminInsightsCopy = {
   menuTitle: "管理者メニュー",
   contentManagement: "コンテンツ管理",
   insightView: "インサイト専用表示",
+  reviewManagement: "レビュー管理",
   promptLabNav: "プロンプト実験室",
   searchPlaceholder: "タイトルまたは slug 検索",
   search: "検索",
@@ -939,6 +943,7 @@ const ADMIN_INSIGHTS_COPY_ZH_CN: AdminInsightsCopy = {
   menuTitle: "管理员菜单",
   contentManagement: "内容管理",
   insightView: "仅看洞察",
+  reviewManagement: "评价管理",
   promptLabNav: "提示词实验室",
   searchPlaceholder: "搜索标题或 slug",
   search: "搜索",
@@ -987,6 +992,7 @@ const ADMIN_INSIGHTS_COPY_ZH_TW: AdminInsightsCopy = {
   menuTitle: "管理員選單",
   contentManagement: "內容管理",
   insightView: "僅看洞察",
+  reviewManagement: "評價管理",
   promptLabNav: "提示詞實驗室",
   searchPlaceholder: "搜尋標題或 slug",
   forbiddenHint: "重新取得登入權杖後，可使用內容清單與編輯功能。",
@@ -2082,6 +2088,12 @@ export default function AdminInsightsPage() {
                 className="block rounded-lg px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-slate-200"
               >
                 {copy.insightView}
+              </Link>
+              <Link
+                href="/admin/reviews"
+                className="block rounded-lg px-3 py-2 text-sm bg-emerald-950/50 border border-emerald-800 text-emerald-100"
+              >
+                {copy.reviewManagement}
               </Link>
               <a
                 href="#adminPromptLab"

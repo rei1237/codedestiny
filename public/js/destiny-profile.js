@@ -1250,7 +1250,15 @@
 
             if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
             var hasNext = index < candidates.length - 1;
-            var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
+            /* 후보 베이스 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 워커가 내는 JSON 503은
+               "DB가 잠시 아프다"는 degraded 신호이고, 후보(상대경로·origin·workers.dev)는 전부 같은
+               워커·같은 클러스터로 가므로 순회해봐야 똑같이 503이다. 요청·콘솔오류·DB부하만 후보 수만큼
+               배가된다(홈 진입 1회 블립이 3배로 보이던 원인). 셸의 shouldTryNextCandidate 와 정책을 맞춘다.
+               Cloudflare/Pages 가 내는 503 은 HTML 이라 looksHtml 로 잡혀 종전대로 폴백한다. */
+            var retryable = looksHtml
+              || response.status === 404
+              || response.status === 0
+              || (response.status >= 500 && response.status !== 503);
             if (hasNext && retryable) return attempt(index + 1);
 
             return result;
@@ -6026,7 +6034,68 @@
   /* ──────────────────────────────────────────
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
+
+  /* 사주 입력 폼 위의 "저장된 카드로 바로 보기" 칩 스트립.
+     칩 클릭은 기존 data-action 디스패처가 window.dpRunWithProfile 로 넘겨주므로
+     여기서 클릭 핸들러를 따로 달지 않는다(핸들러 중복 방지).
+
+     🔒 이용권 접근 정책: dpRunWithProfile 에는 dpSelectProfile 이 갖고 있는
+     lockedProfileId/selectionRequired 가드가 없다. 여기서 가드를 새로 구현하면
+     정책이 두 벌이 되므로, 대신 "노출 자체"를 정책에 맞춘다 —
+     확정이 필요한 상태면 스트립을 숨기고, 확정된 카드가 있으면 그 카드만 보여준다. */
+  function renderProfileQuickStrip() {
+    var strip = document.getElementById('dpQuickPickStrip');
+    var inner = document.getElementById('dpQuickPickInner');
+    if (!strip || !inner) return;
+
+    function hide() {
+      strip.hidden = true;
+      inner.innerHTML = '';
+    }
+
+    if (!_dpHasSessionHint()) return hide();
+
+    var access = _dpProfileAccess || {};
+    if (access.selectionRequired === true) return hide();
+
+    var list = DPStorage.list();
+    var lockedId = String(access.lockedProfileId || '').trim();
+    if (lockedId) {
+      list = list.filter(function(p) { return _dpGetProfileId(p) === lockedId; });
+    }
+    if (!list.length) return hide();
+
+    var currId = (DPStorage.current() || {}).id;
+
+    inner.innerHTML = list.map(function(p) {
+      var safe = p || {};
+      var b = safe.birth || {};
+      var pid = _dpGetProfileId(safe);
+      if (!pid || !b.year) return '';
+
+      var pname = safe.name || '이름 없음';
+      var dateLabel = b.year + '.' + String(b.month || 1).padStart(2, '0') + '.' + String(b.day || 1).padStart(2, '0');
+      var isActive = safe.id === currId;
+
+      return '<button type="button" class="dp-qp__chip' + (isActive ? ' is-active' : '') + '"'
+        + ' role="listitem" data-action="dpRunWithProfile" data-action-args="' + _esc(pid) + '"'
+        + (isActive ? ' aria-current="true"' : '')
+        + ' aria-label="' + _esc(pname) + ' 프로필로 사주 바로 보기">'
+        + '<span class="dp-qp__zodiac" aria-hidden="true">' + _zodiacEmoji(b.year) + '</span>'
+        + '<span class="dp-qp__name">' + _esc(pname) + '</span>'
+        + '<span class="dp-qp__date">' + dateLabel + '</span>'
+        + '</button>';
+    }).join('');
+
+    strip.hidden = !inner.innerHTML;
+  }
+
   function renderProfileList() {
+    /* 스트립은 프로필 상태가 바뀌는 모든 지점에서 같이 갱신되어야 한다.
+       renderProfileList 가 이미 저장·선택·삭제·서버동기화 12곳에서 불리므로 여기 얹는다.
+       try/catch 필수 — 스트립이 던지면 아래 목록 렌더까지 죽는다. */
+    try { renderProfileQuickStrip(); } catch (stripErr) { console.warn('[DP] quick strip 렌더 실패', stripErr); }
+
     var list = DPStorage.list();
     var currId = (DPStorage.current() || {}).id;
     var container = document.getElementById('dpListInner');
@@ -7284,6 +7353,49 @@
     }
     if (_dpFindProfileById(list, profileId)) DPStorage.setCurrent(profileId);
     _injectAndRun(p, 'saju');
+  };
+
+  /**
+   * 모바일 하단 네비 '사주' 탭 진입점.
+   * 로그인 + 대표 프로필이 있으면 재입력 없이 곧바로 사주를 계산한다.
+   * 정적 셸에서는 탭이 직접 호출하고, React 페이지에서는 /?action=cdSajuTabEntry 로 넘어와
+   * 라우트 액션 러너가 호출한다(허용목록: js/core/index-inline-runtime.js).
+   */
+  window.cdSajuTabEntry = function() {
+    var loginUrl = '/login?next=' + encodeURIComponent('/?action=cdSajuTabEntry');
+
+    function goCreateProfile() {
+      _toast('사주를 보려면 먼저 프로필을 만들어 주세요.', 'warn');
+      var form = document.getElementById('destinyCardForm') || document.querySelector('.input-section');
+      if (form) {
+        try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }
+
+    // 세션 힌트조차 없으면 왕복 없이 바로 로그인으로 보낸다.
+    if (!_dpHasSessionHint()) {
+      window.location.href = loginUrl;
+      return;
+    }
+
+    // 캐시에 대표 프로필이 있으면 낙관적으로 즉시 실행한다(서버 왕복 대기 없음).
+    var cached = _dpResolveCurrentProfileForSaju('');
+    if (cached && cached.birth && cached.birth.year) {
+      _injectAndRun(cached, 'saju');
+      return;
+    }
+
+    // 캐시가 비었을 때만 서버에서 대표 프로필을 받아온다.
+    _dpLoadFromServer(function(loaded) {
+      if (!loaded) {
+        if (!_dpHasSessionHint()) window.location.href = loginUrl;
+        else goCreateProfile();
+        return;
+      }
+      var profile = _dpResolveCurrentProfileForSaju('');
+      if (profile && profile.birth && profile.birth.year) _injectAndRun(profile, 'saju');
+      else goCreateProfile();
+    });
   };
 
   /* ──────────────────────────────────────────

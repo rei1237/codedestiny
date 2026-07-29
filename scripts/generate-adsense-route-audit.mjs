@@ -395,7 +395,7 @@ function buildReport(rows) {
     "",
     "| Page | Status | Evidence |",
     "|---|---:|---|",
-    `| /privacy | ${rows.some((row) => row.route === "/privacy") ? "존재" : "누락"} | Google, 쿠키, IP, 생년월일, 결제, 이메일, 13세, 삭제 안내 marker를 readiness에서 검증 |`,
+    `| /privacy | ${rows.some((row) => row.route === "/privacy") ? "존재" : "누락"} | Google, 쿠키, IP, 생년월일, 결제, 이메일, 14세, 삭제 안내 marker를 readiness에서 검증 |`,
     `| /disclaimer | ${rows.some((row) => row.route === "/disclaimer") ? "존재" : "누락"} | 의료, 법률, 투자, 결제, 불안 조장 관련 고지 marker를 readiness에서 검증 |`,
     `| /advertising-policy | ${rows.some((row) => row.route === "/advertising-policy") ? "존재" : "누락"} | Google AdSense, 쿠키, 웹 비콘, IP, 광고 식별자, 파트너 사이트 링크 marker를 readiness에서 검증 |`,
     `| /editorial-policy | ${rows.some((row) => row.route === "/editorial-policy") ? "존재" : "누락"} | AI 활용, 광고, 결제, 문의 관련 marker를 readiness에서 검증 |`,

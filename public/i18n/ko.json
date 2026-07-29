@@ -106,6 +106,7 @@
       "nameLabel": "이름",
       "nameHint": "분석 결과에 표시할 이름을 적어 주세요.",
       "birthDateLabel": "생년월일",
+      "quickPickTitle": "✦ 저장된 운명 카드로 바로 보기",
       "birthDateHint": "태어난 날을 선택하면 사주 명식의 첫 기준이 열립니다.",
       "solar": "양력",
       "lunar": "음력(평달)",
@@ -459,7 +460,11 @@
       "mayaAlt": "마야점 - 금빛 달력판과 밤하늘의 시간 문양",
       "mayaTitle": "마야점",
       "mayaDesc": "시간의 문양으로 읽는 오늘의 흐름",
-      "dreamPromptShortTitle": "Dream Prompt"
+      "dreamPromptShortTitle": "Dream Prompt",
+      "petSajuTitle": "🐾 AI 반려동물 사주",
+      "petSajuDesc": "우리 아이 오행과 궁합",
+      "petSajuAria": "AI 반려동물 사주 시작",
+      "petSajuAlt": "AI 반려동물 사주 대표 이미지"
     },
     "destinyFlowerStudio": {
       "closeAria": "운명의 꽃 아틀리에 닫기",
@@ -1594,7 +1599,8 @@
     "funCards": {
       "celebTitle": "✨ 나와 영혼의 쌍둥이 연예인은?",
       "fourCutTitle": "📸 사주네컷 운명 필터 ON",
-      "dashboardTitle": "✦ 재미있는 사주 콘텐츠"
+      "dashboardTitle": "✦ 재미있는 사주 콘텐츠",
+      "dopamineTitle": "🧠 나는 도파민 중독일까?"
     },
     "letter": {
       "title": "💖 연이의 편지"

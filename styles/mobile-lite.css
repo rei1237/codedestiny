@@ -487,23 +487,28 @@
     border-radius: 16px !important;
     background: rgba(255, 255, 255, 0.065) !important;
     color: rgba(226, 232, 240, 0.78) !important;
-    font-size: 0.67rem !important;
+    /* 11px 하한 — 그 아래로는 5탭 라벨이 읽히지 않는다 */
+    font-size: 0.6875rem !important;
     font-weight: 900 !important;
     letter-spacing: 0 !important;
     text-decoration: none !important;
   }
 
   html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item::before {
-    font-size: 1.08rem !important;
-    line-height: 1 !important;
+    width: 24px !important;
+    height: 24px !important;
+    font-size: 1.125rem !important;
+    line-height: 24px !important;
   }
 
   html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item.is-active,
   html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-current="page"],
   html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-selected="true"] {
+    transform: translateY(-2px) !important;
     border-color: rgba(248, 216, 148, 0.48) !important;
     background: linear-gradient(135deg, rgba(248, 216, 148, 0.24), rgba(125, 211, 252, 0.14)) !important;
     color: #fff7dd !important;
+    box-shadow: 0 8px 20px rgba(248, 216, 148, 0.18) !important;
   }
 
   html.cd-mobile-runtime body #tilePvwOverlay.pvw-open,
@@ -539,7 +544,9 @@
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__card:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__category-card:active,
   html.cd-mobile-runtime body #cdMobileDestinyHub .cd-mobile-hub__link:active,
-  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active {
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item:active,
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item.is-active,
+  html.cd-mobile-runtime body #cdMobileBottomNav .cd-mobile-bottom-nav__item[aria-current="page"] {
     transform: none !important;
   }
 }

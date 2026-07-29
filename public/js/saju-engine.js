@@ -5507,6 +5507,7 @@ async function calculate(){
       function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
       function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
       function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
+      function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
       }
     ]);

@@ -12,6 +12,11 @@ import {
   releasePaidFeatureGate,
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
+import { useCoinGate } from "@/app/hooks/useCoinGate";
+import { useContentUnlock } from "@/app/_lib/use-content-unlock";
+import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
+import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
+import AiResultProse from "@/components/fortune/AiResultProse";
 
 // ── 상품 상수(레지스트리 ziwei-island-palace-consult와 일치) ──
 const FEATURE_KEY = "ziwei-island-palace-consult";
@@ -22,6 +27,19 @@ const FEATURE_MEMBERSHIP_CREDIT_COST = 2000;
 const PREPARE = "/api/ziwei-island-ai/prepare";
 const GENERATE = "/api/ziwei-island-ai/generate";
 const RESULT = "/api/ziwei-island-ai/result";
+
+// ── ₩5,000 12궁 전체 심층 리포트(영구 해금) — 위 ₩20,000 상담과는 별개 상품 ──
+// 상담이 "한 궁을 지금 고민에 맞춰 AI가 새로 쓰는 것"이라면, 리포트는 "열두 궁 전체를
+// 명반에서 정밀 판독한 고정 콘텐츠"다. 그래서 회당 결제가 아니라 1회 해금이다.
+const REPORT_FEATURE_KEY = "ziwei-island-deep-report";
+const REPORT_REASON = "운명의 섬 12궁 심층 리포트";
+const REPORT_COIN_PRICE = 50;
+const REPORT_AMOUNT_KRW = 5000;
+const REPORT_ENDPOINT = "/api/ziwei-island-report";
+
+type ReportSection = { key: string; title: string; body: string };
+type ReportPalace = { title: string; focus: string; tier: number; tierLabel: string; sections: ReportSection[] };
+type IslandReport = { version: string; signature: string; biome?: { label?: string } | null; season?: string; palaces: Record<string, ReportPalace> };
 
 type Gender = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -156,6 +174,30 @@ export default function IslandConsultClient() {
 
   const { seed: profileSeed, seedVersion } = useAiProfileSeed();
 
+  // ── ₩5,000 심층 리포트 상태 ──
+  const { ensurePaidAccess, isPaying } = useCoinGate();
+  const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([REPORT_FEATURE_KEY]);
+  // 원장을 먼저 읽어 첫 페인트에서 잠금 화면이 번쩍이지 않게 한다(LoveSimulationClient 선례).
+  const [ledgerUnlocked, setLedgerUnlocked] = useState(false);
+  const [report, setReport] = useState<IslandReport | null>(null);
+  const [reportError, setReportError] = useState("");
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportViewAll, setReportViewAll] = usePagedViewerMode("islandReportViewerModeV1");
+  const reportFetchedRef = useRef(false);
+  const reportRef = useRef<HTMLElement | null>(null);
+  const wantsReportViewRef = useRef(false);
+
+  useEffect(() => { if (hasLedgerUnlock(REPORT_FEATURE_KEY)) setLedgerUnlocked(true); }, []);
+
+  const reportUnlocked = ledgerUnlocked || unlocked[REPORT_FEATURE_KEY] === true;
+  // 🔴 "확인 실패"를 "미구매"로 취급하지 않는다 — 서버 판정이 끝났을 때만 잠금으로 본다.
+  const reportConfirmedLocked = unlockStatus === "ready" && !reportUnlocked;
+
+  // 생년 정보 완성도 — 리포트 자동조회 이펙트가 참조하므로 이펙트보다 위에서 계산한다.
+  const validBirth = /^\d{4}-\d{2}-\d{2}$/.test(form.birthDate);
+  const birthComplete = validBirth && !!form.gender && (form.birthTimeUnknown || /^\d{2}:\d{2}$/.test(form.birthTime));
+  const showBirthConfirm = birthComplete && !birthEditing;
+
   // 사용자가 생년 정보를 직접 만지면 시드 자동반영 중단(빈 값만 채우는 원칙)
   function patchForm(patch: Partial<typeof form>) { formTouchedRef.current = true; setForm((f) => ({ ...f, ...patch })); }
 
@@ -184,9 +226,11 @@ export default function IslandConsultClient() {
         const handoff = JSON.parse(raw) as SeedLike;
         if (handoff && handoff.birthDate) { applySeedToForm(handoff, true); seedAppliedRef.current = true; }
       }
-      const q = new URLSearchParams(window.location.search).get("palace") || "";
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("palace") || "";
       const found = PALACES.find((p) => p.name === q);
       if (found) { setPalace(found); setPhase("form"); }
+      if (params.get("view") === "report") wantsReportViewRef.current = true;
     } catch { /* noop */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -198,6 +242,71 @@ export default function IslandConsultClient() {
     applySeedToForm(profileSeed);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedVersion, profileSeed]);
+
+  // 해금된 사용자의 리포트 본문을 가져온다. 미해금이면 서버가 402를 주므로 잠금 상태를 그대로 둔다.
+  async function loadReport() {
+    if (reportLoading) return;
+    setReportLoading(true);
+    setReportError("");
+    try {
+      const { status, data } = await postJson<{ ok?: boolean; report?: IslandReport; reason?: string }>(REPORT_ENDPOINT, {
+        birthDate: form.birthDate,
+        birthTime: form.birthTimeUnknown ? "" : form.birthTime,
+        birthTimeUnknown: form.birthTimeUnknown,
+        gender: form.gender,
+        calendarType: form.calendarType,
+        isLeapMonth: form.calendarType === "lunar" ? form.isLeapMonth : false,
+      }, `${REPORT_FEATURE_KEY}:${Date.now()}`);
+      if (data.ok && data.report) { setReport(data.report); reportFetchedRef.current = true; return; }
+      if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;           // 잠금 유지
+      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setReportError(ERROR_TEXT.LOGIN_REQUIRED); return; }
+      if (status === 503 || data.reason === "DB_DEGRADED") { setReportError("연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요."); return; }
+      setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } catch {
+      setReportError("리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setReportLoading(false);
+    }
+  }
+
+  // 해금 상태 + 생년 정보가 갖춰지면 한 번만 자동으로 본문을 채운다.
+  useEffect(() => {
+    if (!reportUnlocked || !birthComplete || report || reportFetchedRef.current || reportLoading) return;
+    void loadReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reportUnlocked, birthComplete, report]);
+
+  // ?view=report 로 들어오면 리포트 섹션으로 데려간다(폼 자동 진입 뒤 한 박자 늦게).
+  useEffect(() => {
+    if (!wantsReportViewRef.current || phase !== "form" || !reportRef.current) return;
+    wantsReportViewRef.current = false;
+    reportRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [phase, palace]);
+
+  async function unlockReport() {
+    if (isPaying || reportLoading) return;
+    setReportError("");
+    const r = await ensurePaidAccess({
+      featureKey: REPORT_FEATURE_KEY,
+      coinPrice: REPORT_COIN_PRICE,
+      cost: REPORT_COIN_PRICE,
+      amountKRW: REPORT_AMOUNT_KRW,
+      reason: REPORT_REASON,
+      forceDeduct: true,
+      requestId: `${REPORT_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+    });
+    if (!r.ok) {
+      if (r.code === "AUTH_REQUIRED" || r.code === "LOGIN_REQUIRED") { setReportError(ERROR_TEXT.LOGIN_REQUIRED); return; }
+      if (r.code !== "PAYMENT_CANCELLED") setReportError(r.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      return;
+    }
+    // 서버 스냅샷이 반영되기 전까지 낙관적으로 열어 둔다(원장에도 기록되어 새로고침·다른 탭에서 유지).
+    markOptimisticallyUnlocked(REPORT_FEATURE_KEY);
+    setLedgerUnlocked(true);
+    reportFetchedRef.current = false;
+    await loadReport();
+    void refetchUnlocks({ force: true });
+  }
 
   function pickPalace(p: Palace) { setPalace(p); setError(""); setPhase("form"); }
 
@@ -289,9 +398,98 @@ export default function IslandConsultClient() {
     }
   }
 
-  const validBirth = /^\d{4}-\d{2}-\d{2}$/.test(form.birthDate);
-  const birthComplete = validBirth && !!form.gender && (form.birthTimeUnknown || /^\d{2}:\d{2}$/.test(form.birthTime));
-  const showBirthConfirm = birthComplete && !birthEditing;
+  function reportPages(current: Palace): ResultViewerPage[] {
+    if (!report) return [];
+    // 용어와 명반 골격을 먼저 알려 주는 안내 장(__intro)이 있으면 맨 앞에 둔다.
+    const intro = report.palaces?.__intro;
+    const introPage: ResultViewerPage[] = intro
+      ? [{
+        id: "__intro",
+        label: intro.title,
+        content: (
+          <div className="ic-rpt-page">
+            <h3 className="ic-rpt-page__title"><span aria-hidden="true">📖</span> {intro.title}</h3>
+            <p className="ic-rpt-page__meta">{intro.focus}</p>
+            {intro.sections.map((sec) => (
+              <section key={sec.key} className="ic-rpt-sec">
+                <h4>{sec.title}</h4>
+                <AiResultProse value={sec.body} />
+              </section>
+            ))}
+          </div>
+        ),
+      }]
+      : [];
+    // 고른 궁을 맨 앞에 둔다 — 사용자가 그 궁을 보러 들어왔기 때문.
+    const order = [current.name, ...PALACES.map((p) => p.name).filter((n) => n !== current.name)];
+    return introPage.concat(order.flatMap((name) => {
+      const entry = report.palaces?.[name];
+      if (!entry) return [];
+      const meta = PALACES.find((p) => p.name === name);
+      return [{
+        id: name,
+        label: `${name} · ${entry.title}`,
+        content: (
+          <div className="ic-rpt-page">
+            <h3 className="ic-rpt-page__title"><span aria-hidden="true">{meta?.icon}</span> {name} · {entry.title}</h3>
+            <p className="ic-rpt-page__meta">{entry.tierLabel} · {entry.focus}</p>
+            {entry.sections.map((sec) => (
+              <section key={sec.key} className="ic-rpt-sec">
+                <h4>{sec.title}</h4>
+                <AiResultProse value={sec.body} />
+              </section>
+            ))}
+          </div>
+        ),
+      }];
+    }));
+  }
+
+  function renderReportSection(current: Palace) {
+    if (reportUnlocked && report) {
+      return (
+        <section className="ic-report ic-report--open" ref={reportRef} aria-label="12궁 전체 심층 리포트">
+          <div className="ic-report__head">
+            <span className="ic-report__tag">열람 중</span>
+            <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
+            <p className="ic-report__lead">{report.biome?.label ? `${report.biome.label} · ` : ""}열두 궁을 명반에서 정밀 판독한 결과예요.</p>
+          </div>
+          <PagedResultViewer
+            pages={reportPages(current)}
+            deckLabel="12궁 전체 심층 리포트"
+            viewAll={reportViewAll}
+            onViewAllChange={setReportViewAll}
+          />
+        </section>
+      );
+    }
+
+    return (
+      <section className="ic-report" ref={reportRef} aria-label="12궁 전체 심층 리포트 안내">
+        <div className="ic-report__head">
+          <span className="ic-report__tag">1회 해금</span>
+          <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
+          <p className="ic-report__lead">명궁부터 전택궁까지 <strong>열두 자리를 한 번에</strong> 정밀 판독합니다.</p>
+        </div>
+        <ul className="ic-report__list">
+          <li>궁마다 3~4개 섹션 — 본질 · 강점 · 그림자 · 올해의 과제처럼 자리마다 다른 축</li>
+          <li>주성과 밝기, 사화, 살성, 이웃 궁의 공명, 대운 구간을 종합한 판독</li>
+          <li>한 번 열면 계속 볼 수 있어요 — 다시 결제하지 않습니다</li>
+        </ul>
+        {reportError && <p className="ic-err" role="alert">{reportError}</p>}
+        {!birthComplete && <p className="ic-report__hint">아래에서 생년 정보를 먼저 확인해 주세요.</p>}
+        <button
+          type="button"
+          className="ic-primary"
+          onClick={unlockReport}
+          disabled={isPaying || reportLoading || !birthComplete || (!reportConfirmedLocked && unlockStatus === "loading")}
+        >
+          {reportLoading ? "리포트를 여는 중…" : isPaying ? "결제 확인 중…" : "🗺️ 심층 리포트 열기 · 5,000원"}
+        </button>
+        <p className="ic-note">이용권이 있으면 결제 없이 바로 열려요.</p>
+      </section>
+    );
+  }
 
   return (
     <div className="ic-root">
@@ -324,8 +522,16 @@ export default function IslandConsultClient() {
       )}
 
       {phase === "form" && palace && (
-        <form className="ic-form" onSubmit={startConsult}>
+        <div className="ic-stack">
           <div className="ic-picked"><span aria-hidden="true">{palace.icon}</span> <strong>{palace.name}</strong> · {palace.title} <button type="button" className="ic-change" onClick={() => { setPhase("hub"); setPalace(null); }}>다른 궁</button></div>
+
+          {renderReportSection(palace)}
+
+          <form className="ic-form" onSubmit={startConsult}>
+          <div className="ic-lead">
+            <span className="ic-lead__tag">전문가 상담</span>
+            <p className="ic-lead__desc"><strong>{palace.name} 하나</strong>를 지금 고민에 맞춰 연이·네오가 새로 읽어 드려요.</p>
+          </div>
           {showBirthConfirm ? (
             <div className="ic-confirm">
               <div className="ic-confirm__head">
@@ -362,9 +568,10 @@ export default function IslandConsultClient() {
           )}
           <label className="ic-field"><span>이 궁에 묻고 싶은 것 (선택)</span><textarea value={form.question} maxLength={400} rows={2} placeholder={`${palace.name}과 관련해 지금 가장 궁금한 점을 적어주세요`} onChange={(e) => setForm({ ...form, question: e.target.value })} /></label>
           {error && <p className="ic-err" role="alert">{error}</p>}
-          <button type="submit" className="ic-primary">🔮 {palace.name} 심층 상담 시작 · 20,000원</button>
+          <button type="submit" className="ic-primary" disabled={isPaying}>🔮 {palace.name} 심층 상담 시작 · 20,000원</button>
           <p className="ic-note">이용권·월정석이 있으면 자동으로 먼저 적용돼요. 생성에 실패하면 자동 환불됩니다.</p>
-        </form>
+          </form>
+        </div>
       )}
 
       {(phase === "checking" || phase === "payment" || phase === "reading") && (
@@ -428,6 +635,38 @@ const CSS = `
 .ic-form{max-width:440px;margin:0 auto;background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;box-shadow:0 16px 40px rgba(70,48,130,.2)}
 .ic-picked{font-weight:700;color:#2a1f5e;margin-bottom:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+/* ── 3단 스택: 궁 헤더 → ₩5,000 12궁 리포트 → ₩20,000 상담 폼 ── */
+.ic-stack{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.ic-stack .ic-picked{max-width:440px;width:100%;margin:0 auto}
+.ic-stack .ic-form{width:100%}
+/* 두 유료 상품이 나란히 서므로, 각 카드가 자기 범위를 먼저 말한다(넓게 vs 깊게). */
+.ic-lead{margin-bottom:14px}
+.ic-lead__tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#6a4fb0;
+  background:rgba(138,95,208,.14);border-radius:999px;padding:4px 11px}
+.ic-lead__desc{margin:7px 0 0;font-size:.88rem;line-height:1.7;color:#5c5488;word-break:keep-all}
+.ic-lead__desc strong{color:#2a1f5e}
+.ic-report{max-width:440px;width:100%;margin:0 auto;background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.7);border-radius:22px;padding:20px;box-shadow:0 16px 40px rgba(70,48,130,.2)}
+.ic-report--open{max-width:680px}
+.ic-report__head{margin-bottom:12px}
+.ic-report__tag{display:inline-block;font-size:.72rem;font-weight:800;letter-spacing:.06em;color:#6a4fb0;
+  background:rgba(138,95,208,.14);border-radius:999px;padding:4px 11px}
+.ic-report__title{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.22rem;color:#2a1f5e;margin:8px 0 4px}
+.ic-report__lead{font-size:.9rem;line-height:1.7;color:#5c5488;word-break:keep-all;margin:0}
+.ic-report__lead strong{color:#2a1f5e}
+.ic-report__list{list-style:none;padding:0;margin:14px 0;display:flex;flex-direction:column;gap:8px}
+.ic-report__list li{position:relative;padding-left:15px;font-size:.88rem;line-height:1.7;color:#332b5e;word-break:keep-all}
+.ic-report__list li::before{content:"";position:absolute;left:0;top:.66em;width:5px;height:5px;border-radius:50%;background:#8a5fd0}
+.ic-report__hint{font-size:.82rem;color:#6a4fb0;margin:0 0 10px;line-height:1.6}
+.ic-primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none}
+/* 해금 본문 — PagedResultViewer는 currentColor 기반이라 부모 색만 정해주면 된다. */
+.ic-report--open{color:#332b5e}
+.ic-rpt-page__title{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1.12rem;color:#2a1f5e;margin:0 0 3px}
+.ic-rpt-page__meta{font-size:.82rem;color:#6a4fb0;margin:0 0 14px}
+.ic-rpt-sec{margin-bottom:16px}
+.ic-rpt-sec h4{font-family:'CodeDestinyDisplay','Mulmaru',serif;font-size:1rem;color:#7a4fc0;margin:0 0 5px}
+.ic-rpt-sec p{font-size:.94rem;line-height:1.85;color:#332b5e;word-break:keep-all}
 .ic-change{margin-left:auto;font-size:.78rem;color:#6a4fb0;background:none;border:1px solid rgba(106,79,176,.35);border-radius:999px;padding:5px 12px;cursor:pointer;min-height:36px}
 .ic-field{display:block;margin-bottom:12px}
 .ic-field>span{display:block;font-size:.82rem;font-weight:700;color:#5c5488;margin-bottom:5px}

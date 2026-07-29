@@ -84,9 +84,11 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
+  "master-love-codex",
   "karma-destiny-ai-consultation",
   "premium-sibyl-dominator",
   "ziwei-ai-consultation",
+  "ziwei-island-deep-report",
   "ziwei-island-palace-consult",
   "ziwei_decade_luck",
   "ziwei_love_deep",
@@ -112,6 +114,8 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "rpt_luckSyncDiaryEntryCard",
   "rpt_secretHouseEntryCard",
   "fun.quantumLotto.ritualReport",
+  "pet-saju-ai-consultation",
+  "pet-compatibility-ai",
 ];
 
 export const COIN_GATE_PER_USE_REASON_COSTS = Object.freeze({
@@ -184,7 +188,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "dream-psycho-analysis": { cost: 30, amountKRW: 3000, reason: "정신분석 해몽" },
   "yoga-guru-per-use": { cost: 30, reason: "요가 구루 30분 코스" },
   "flower-studio-per-use": { cost: 50, reason: "운명의 꽃 스튜디오 1회 이용" },
-  "fortune-tea-house-tarot-consultation": { cost: 50, amountKRW: 5000, reason: "운명 찻집 타로 상담" },
+  "fortune-tea-house-tarot-consultation": { cost: 50, amountKRW: 5000, reason: "운명 찻집 타로 상담 (3카드)" },
+  "fortune-tea-house-tarot-five-consultation": { cost: 70, amountKRW: 7000, reason: "운명 찻집 타로 프리미엄 상담 (5카드)" },
   "fortune-tea-house-saju-consultation": { cost: 100, amountKRW: 10000, reason: "운명 찻집 사주 상담" },
   "fortune-tea-house-saju-compatibility-consultation": { cost: 200, amountKRW: 20000, reason: "운명 찻집 사주 궁합 상담" },
   "fortune-tea-house-sukuyo-compatibility-consultation": { cost: 200, amountKRW: 20000, reason: "운명 찻집 숙요점 궁합 상담" },
@@ -209,6 +214,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "destiny-compass-crossroads": { cost: 100, amountKRW: 10000, reason: "운명의 갈림길 기운 비교" },
   "destiny-compass-life-voyage": { cost: 100, amountKRW: 10000, reason: "삶의 항로 안내" },
   "destiny-compass-future-sim": { cost: 100, amountKRW: 10000, reason: "미래 시뮬레이션 안내" },
+  "pet-saju-ai-consultation": { cost: 50, amountKRW: 5000, reason: "반려동물 사주 AI 심층 리포트" },
+  "pet-compatibility-ai": { cost: 50, amountKRW: 5000, reason: "반려동물 궁합 분석" },
   openJuyukModal: { cost: 30, reason: "주역 거북점 리딩" },
   openKemetModal: { cost: 30, reason: "이집트 신탁 리딩" },
   openGeomancyOracle: { cost: 50, reason: "지오맨시 오라클 리딩" },
@@ -253,8 +260,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "astro_yearly_transit": { cost: 50, reason: "점성술 연간 트랜짓 운세" },
   "new-year-ai-consultation": { cost: 300, amountKRW: 30000, reason: "신년운세 전문가 상담" },
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
+  // 마스터 인연의 서 (MASTER_LOVE_CODEX) — 사주×자미두수 융합 20챕터 5만자 전자책. 연애 비책(3만원)과 별개 SKU
+  "master-love-codex": { cost: 500, amountKRW: 50000, reason: "마스터 인연의 서" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 전문가 상담" },
   "ziwei-island-palace-consult": { cost: 200, amountKRW: 20000, reason: "운명의 섬 12궁 심층 상담" },
+  // 운명의 섬 정적 심층 리포트 — LLM 미사용, 1회 결제 후 계정 단위 영구 해금(UNLOCK)
+  "ziwei-island-deep-report": { cost: 50, amountKRW: 5000, reason: "운명의 섬 12궁 심층 리포트 해금" },
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트
   "ziwei-deep-pdf": { cost: 300, amountKRW: 30000, reason: "심화 자미두수 PDF 심층 리포트 생성" },
   "karma-destiny-ai-consultation": { cost: 500, amountKRW: 50000, reason: "운명의 업 전문가 상담" },
@@ -379,6 +390,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "yoga-guru-per-use",
   "flower-studio-per-use",
   "fortune-tea-house-tarot-consultation",
+  "fortune-tea-house-tarot-five-consultation",
   "fortune-tea-house-saju-consultation",
   "fortune-tea-house-saju-compatibility-consultation",
   "fortune-tea-house-sukuyo-compatibility-consultation",
@@ -423,6 +435,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "new-year-ai-consultation",
   "vedic-ai-consultation",
   "love-secret-ai-consultation",
+  "master-love-codex",
   "life-book-ai-consultation",
   "karma-destiny-ai-consultation",
   "ziwei-ai-consultation",
@@ -442,6 +455,8 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny-compass-crossroads",
   "destiny-compass-life-voyage",
   "destiny-compass-future-sim",
+  "pet-saju-ai-consultation",
+  "pet-compatibility-ai",
   "profile-card-manage",
 ]);
 
@@ -460,6 +475,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny-bias-deep-profile",
   "nakshatra-lord-report",
   "nakshatra-dasha-map",
+  "ziwei-island-deep-report",
   "rpt_specialCharmCard",
   "rpt_quantumCard",
   "rpt_healthReportCard",

@@ -1752,7 +1752,9 @@ export default function ComprehensivePromptHubPage() {
 
         /* ── 하단 고정 CTA ───────────────────────────────────────── */
         .prompt-hub-cta {
-          padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+          /* 하단 네비(.cd-mnav) 위로 올라온다. 네비가 없으면 --cd-mnav-offset 이 0 이라 바닥에 붙는다. */
+          bottom: var(--cd-mnav-offset, 0px);
+          padding-bottom: calc(12px + max(0px, env(safe-area-inset-bottom, 0px) - var(--cd-mnav-offset, 0px)));
           transition: transform 260ms cubic-bezier(.22,1,.36,1), opacity 200ms ease-out;
         }
         .prompt-hub-cta[data-visible="false"] {
@@ -2137,7 +2139,7 @@ export default function ComprehensivePromptHubPage() {
       {/* 뷰포트에 고정한다. 이전에는 카드의 마지막 자식에 sticky 를 걸어 둬서 붙을 여백이
           16px 뿐이었고, 게다가 <main> 의 overflow-hidden 이 sticky 자체를 막고 있었다. */}
       <div
-        className="prompt-hub-cta fixed inset-x-0 bottom-0 z-30 border-t border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 pt-3 shadow-[0_-18px_36px_rgba(58,14,40,0.14)] lg:hidden"
+        className="prompt-hub-cta fixed inset-x-0 z-30 border-t border-[color:var(--hairline)] bg-[color:var(--surface-1)] px-3 pt-3 shadow-[0_-18px_36px_rgba(58,14,40,0.14)] lg:hidden"
         data-visible={isFormCardInView}
       >
         <button

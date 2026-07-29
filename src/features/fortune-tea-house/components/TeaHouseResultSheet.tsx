@@ -57,6 +57,15 @@ const resultReadingCardUi =
 const resultActionUi =
   "rounded-2xl border border-[#f6dfb7]/20 bg-[#0e0719]/60 px-3 py-3 shadow-[0_18px_52px_rgba(4,2,12,0.24),inset_0_1px_0_rgba(255,255,255,0.1)] ring-1 ring-white/5 backdrop-blur-xl";
 
+// 카드별 상세 해석 5항목. 순서와 라벨은 워커 프롬프트(tarotCardReadings)와 1:1로 맞춘다.
+const tarotCardDetailFields = [
+  { key: "coreMeaning", label: "핵심 의미" },
+  { key: "currentSituation", label: "현재 상황에서의 의미" },
+  { key: "questionLink", label: "질문과의 연결" },
+  { key: "advice", label: "조언" },
+  { key: "caution", label: "주의할 점" },
+] as const;
+
 const tarotChoiceTitleByCupId: Record<string, string> = {
   "lotus-moon": "7일 행동 플랜",
   "honey-peach": "7일 썸 리듬 플랜",
@@ -122,9 +131,29 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse) 
       result.tarotSpreadCards.forEach((card, index) => {
         lines.push(`${index + 1}. ${card.positionLabel} - ${card.nameKo} (${card.orientation === "upright" ? "정방향" : "역방향"})`);
         if (card.positionMeaning) lines.push(card.positionMeaning);
-        if (card.reading) lines.push(card.reading);
+        if (card.detail) {
+          tarotCardDetailFields.forEach((field) => {
+            const value = card.detail?.[field.key];
+            if (value) lines.push(`- ${field.label}: ${value}`);
+          });
+        } else if (card.reading) {
+          lines.push(card.reading);
+        }
         lines.push("");
       });
+    }
+    if (result.cardInteractions?.length) {
+      lines.push("", "[카드가 서로에게 건네는 말]");
+      result.cardInteractions.forEach((interaction) => {
+        lines.push(`- ${interaction.pair}: ${interaction.insight}`);
+      });
+    }
+    if (result.heartScent?.name) {
+      appendTextBlock(
+        lines,
+        "오늘 당신의 마음의 향",
+        `${result.heartScent.name}${result.heartScent.category ? ` (${result.heartScent.category}의 결)` : ""}\n${result.heartScent.reason}`,
+      );
     }
   }
 
@@ -219,6 +248,8 @@ export default function TeaHouseResultSheet({
           reading: result.tarot.reading,
         },
       ];
+  const cardInteractions = isTarotMode ? result.cardInteractions || [] : [];
+  const heartScent = isTarotMode ? result.heartScent : undefined;
   const selectedCup = getTeaHouseCupById(result.teaCup.id);
   const resultPrelude = result.teaCup.resultPrelude || selectedCup?.resultPrelude || result.teaCup.reading;
   const yeoniOpening = isSajuMode
@@ -511,12 +542,43 @@ export default function TeaHouseResultSheet({
             ))}
           </div>
           <div className={styles.resultTarotReadingFlow}>
-            {tarotSpreadCards.map((card) => (
+            {tarotSpreadCards.map((card, index) => (
               <article className={`${styles.resultTarotReadingCard} ${resultReadingCardUi}`} key={`${card.positionId}-${card.cardId}-reading`}>
-                <span>{card.positionLabel}</span>
+                <span>{index + 1}번째 카드 · {card.positionLabel}</span>
                 <strong>{card.nameKo} · {card.orientation === "upright" ? "정방향" : "역방향"}</strong>
                 <p>{card.positionMeaning || "이 자리는 지금 질문에서 가장 먼저 살필 장면을 가리킵니다."}</p>
-                <LlmParagraphs text={card.reading || result.tarot.reading} />
+                {card.detail ? (
+                  <dl className={styles.resultTarotDetailList}>
+                    {tarotCardDetailFields.map((field) =>
+                      card.detail?.[field.key] ? (
+                        <div className={styles.resultTarotDetailItem} key={field.key}>
+                          <dt>{field.label}</dt>
+                          <dd><LlmParagraphs text={card.detail[field.key]} /></dd>
+                        </div>
+                      ) : null,
+                    )}
+                  </dl>
+                ) : (
+                  // 카드별 상세 해석이 도입되기 전에 저장된 결과의 폴백.
+                  <LlmParagraphs text={card.reading || result.tarot.reading} />
+                )}
+              </article>
+            ))}
+          </div>
+        </section>
+        ) : null}
+
+        {isTarotMode && cardInteractions.length ? (
+        <section className={`${styles.resultBlock} ${resultGlassCardUi}`} aria-labelledby="tarotInteractionTitle">
+          <h3 id="tarotInteractionTitle">카드가 서로에게 건네는 말</h3>
+          <p className={styles.resultInteractionLead}>
+            카드는 한 장씩 볼 때와 겹쳐 볼 때 다른 이야기를 합니다. 두 장이 만났을 때만 드러나는 결을 함께 읽었어요.
+          </p>
+          <div className={styles.resultInteractionList}>
+            {cardInteractions.map((interaction, index) => (
+              <article className={`${styles.resultInteractionCard} ${resultReadingCardUi}`} key={`${interaction.pair}-${index}`}>
+                <strong>{interaction.pair}</strong>
+                <LlmParagraphs text={interaction.insight} />
               </article>
             ))}
           </div>
@@ -580,6 +642,15 @@ export default function TeaHouseResultSheet({
               aria-label="마음의 향을 맡는 꽃돼지 연이"
             />
           </div>
+          {heartScent?.name ? (
+            <article className={`${styles.resultScentCard} ${resultReadingCardUi}`}>
+              <span>오늘 당신의 마음의 향</span>
+              <strong>{heartScent.name}</strong>
+              {heartScent.category ? <em className={styles.resultScentCategory}>{heartScent.category}의 결</em> : null}
+              <LlmParagraphs text={heartScent.reason} />
+            </article>
+          ) : null}
+          {heartScent?.name ? <h4 className={styles.resultEmotionSubTitle}>연이가 읽은 마음의 결</h4> : null}
           <div className={styles.resultEmotionList}>
             {result.emotionAnalysis.map((item, index) => (
               <div className={styles.resultEmotionItem} data-tone={item.tone} key={item.label || String(index)}>

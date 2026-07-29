@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink, LogOut, RefreshCw, RotateCcw, Save, Search, Send } from "lucide-react";
+import { ExternalLink, LogOut, MessageSquare, RefreshCw, RotateCcw, Save, Search, Send } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import { publishedCelebritySajuSeeds } from "@/lib/famous-saju/celebrity-data";
@@ -448,6 +448,10 @@ export default function AdminSiteContentPage() {
               <Link href="/admin/content" className={commandButtonClass()} aria-label="글 편집으로 이동">
                 <ExternalLink className="h-4 w-4" />
                 글 편집
+              </Link>
+              <Link href="/admin/reviews" className={commandButtonClass()} aria-label="리뷰 관리로 이동">
+                <MessageSquare className="h-4 w-4" />
+                리뷰
               </Link>
               <button type="button" onClick={redirectToLogin} className={commandButtonClass()} aria-label="로그아웃">
                 <LogOut className="h-4 w-4" />

@@ -28,6 +28,36 @@ const PROFILE_CARD_MANAGE_COST = PROFILE_CARD_DELETE_COST_COINS;
 const PROFILE_CARD_MANAGE_AMOUNT_KRW = PROFILE_CARD_DELETE_COST_KRW;
 const PROFILE_CARD_MANAGE_MEMBERSHIP_COST = PROFILE_CARD_DELETE_COST_MONTHLY_STONES || calculateMembershipCreditCost(PROFILE_CARD_MANAGE_COST);
 
+/* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 원본 문서를 auth.authUserDoc 로 받는다.
+   그동안 이 라우트는 인증 단계에서 User 를 한 번 읽고 핸들러에서 같은 문서를 또 읽어, 요청 1회에
+   Mongo 왕복이 2회였다 — 홈 진입마다 불리는 /api/profile 이라 일시적 블립에 그만큼 더 노출됐다.
+   🔴 아래 select 문자열과 반드시 같은 집합을 유지할 것. 필드가 빠지면 재조회를 건너뛴 자리에서
+   조용히 undefined 가 되어 구독 등급이 오판된다(= 이용권 보유자에게 결제창이 뜨는 유형의 사고).
+   이 문서를 재사용하는 것은 읽기 GET 3개뿐이다 — 쓰기(POST/PATCH) 핸들러는 자기 write 이후 상태를
+   봐야 하므로 종전대로 직접 조회한다(인증 시점 스냅샷을 쓰면 방금 쓴 값을 놓친다). */
+const PROFILE_ROUTE_USER_PROJECTION = {
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  destinyProfilesCurrentId: 1,
+  destinyProfilesLockedCurrentId: 1,
+  destinyProfilesLockedAt: 1,
+};
+
 function sanitizeString(value, maxLen) {
   return String(value || "").trim().slice(0, maxLen);
 }
@@ -1056,7 +1086,8 @@ async function handleGetProfiles(auth, env) {
   // 일시적 풀 초기화에도 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
   // 두 독립 조회(User.findById · listUserProfiles)는 서로 필요 없으므로 병렬로 시작해 Mongo 왕복 1회를 줄인다.
   const profilesPromise = withMongoRetry(env, () => listUserProfiles(auth.userId));
-  const user = await withMongoRetry(env, () => User.findById(auth.userId)
+  // 인증 단계가 같은 문서를 이미 읽어 왔으면 재조회하지 않는다(access-token 경로에서만 붙으므로 폴백 유지).
+  const user = auth.authUserDoc || await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean());
 
@@ -1107,9 +1138,10 @@ async function handleGetProfileDetail(auth, profileIdRaw, env) {
   if (!profileId) return json({ ok: false, code: "PROFILE_ID_REQUIRED", message: "조회할 프로필 카드 ID가 필요합니다." }, { status: 400 });
 
   // 일시적 풀 초기화에도 프로필 상세 조회가 1회 실패로 죽지 않도록 재시도로 감싼다.
+  // 인증 단계가 읽어 둔 문서가 있으면 User 조회는 아예 발행하지 않는다.
   const [profile, user] = await withMongoRetry(env, () => Promise.all([
     ProfileCard.findOne({ userId: auth.userId, profileId }).lean(),
-    User.findById(auth.userId).select("destinyProfilesCurrentId").lean(),
+    auth.authUserDoc || User.findById(auth.userId).select("destinyProfilesCurrentId").lean(),
   ]));
 
   if (!profile) {
@@ -1131,7 +1163,8 @@ async function handleGetProfileDetail(auth, profileIdRaw, env) {
 
 async function handleGetCurrentProfile(auth, env) {
   // 일시적 풀 초기화에도 현재 프로필/구독 정보를 정확히 반환하도록 조회를 재시도로 감싼다.
-  const user = await withMongoRetry(env, () => User.findById(auth.userId)
+  // 인증 단계가 같은 문서를 이미 읽어 왔으면 재조회하지 않는다(폴백 유지).
+  const user = auth.authUserDoc || await withMongoRetry(env, () => User.findById(auth.userId)
     .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
     .lean());
   if (!user) return json({ ok: false, message: "User not found." }, { status: 404 });
@@ -1524,7 +1557,9 @@ export async function handleProfileRoutes(request, env) {
   try {
     const method = request.method.toUpperCase();
     const path = getRoutePath(request, "/api/profile");
-    const auth = await requireUserFromRequest(request, env);
+    // 인증 조회를 확장해 authUserDoc 를 받아 온다 — 읽기 GET 핸들러들이 같은 User 를 재조회하던
+    // 두 번째 왕복을 없앤다(쓰기 핸들러는 자기 write 이후 상태가 필요해 종전대로 직접 조회한다).
+    const auth = await requireUserFromRequest(request, env, { userProjection: PROFILE_ROUTE_USER_PROJECTION });
     trace.authPresent = true;
     trace.authVerified = true;
     const security = await enforceProfileRouteSecurity(request, env, auth, method, path);

@@ -1,3 +1,6 @@
+// 만 14세 미만은 회원가입·서비스 이용 불가(대한민국 관련 법령). 서버 정본: worker/lib/validation.js
+export const MIN_SELF_CONSENT_AGE = 14;
+
 export function normalizeBirthDateInput(value: unknown): string {
   const raw = String(value ?? "").trim();
   if (!raw) return "";
@@ -75,7 +78,8 @@ export function calculateKoreanAge(birthDateStr: string, referenceDate?: Date): 
 
 /**
  * 생년월일 검증 및 만 나이 검증 (프론트엔드용)
- * @returns {{ isValid: boolean, age: number, error: string | null }}
+ * 만 14세 미만은 가입 불가로 판정한다.
+ * 서버 정본: worker/lib/validation.js
  */
 export function validateBirthDateWithAge(birthDateStr: string): {
   isValid: boolean;
@@ -113,8 +117,8 @@ export function validateBirthDateWithAge(birthDateStr: string): {
   }
 
   const age = calculateKoreanAge(normalized);
-  if (age < 14) {
-    return { isValid: false, age, error: "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다." };
+  if (age < MIN_SELF_CONSENT_AGE) {
+    return { isValid: false, age, error: `만 ${MIN_SELF_CONSENT_AGE}세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.` };
   }
 
   return { isValid: true, age, error: null };

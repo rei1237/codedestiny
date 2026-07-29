@@ -2089,15 +2089,17 @@ export default function NeoOperationRoomPage() {
 
           <div
             className={styles.vnDialogueBox}
-            role="button"
-            tabIndex={0}
             data-speaker={activePrologueLine?.speaker || "neo"}
             data-character={activeHeroCharacter}
             data-complete={isPrologueActive && isLastPrologueStep ? "true" : "false"}
-            onClick={advanceHeroDialogue}
-            onKeyDown={handleIntroKeyDown}
           >
-            <div className={styles.vnDialogueContent}>
+            <div
+              className={styles.vnDialogueContent}
+              role="button"
+              tabIndex={0}
+              onClick={advanceHeroDialogue}
+              onKeyDown={handleIntroKeyDown}
+            >
               <div className={styles.vnSpeaker}>
                 <span aria-hidden="true">{activeHeroSpeakerCode}</span>
                 <strong>{activeHeroSpeakerLabel}</strong>
@@ -2118,39 +2120,39 @@ export default function NeoOperationRoomPage() {
                 {heroDialogueHint}
               </span>
             </div>
-          </div>
 
-          <div className={styles.vnControlRow} data-phase={heroScenePhase}>
-            {isPrologueActive ? (
-              <button type="button" className={styles.vnGhostButton} onClick={revealCommandDeck}>
-                스킵
-              </button>
-            ) : (
-              <button type="button" className={styles.vnGhostButton} onClick={replayPrologue}>
-                {hasSeenPrologue ? "프롤로그 다시보기" : "프롤로그 보기"}
-              </button>
-            )}
+            <div className={styles.vnControlRow} data-phase={heroScenePhase}>
+              {isPrologueActive ? (
+                <button type="button" className={styles.vnGhostButton} onClick={revealCommandDeck}>
+                  스킵
+                </button>
+              ) : (
+                <button type="button" className={styles.vnGhostButton} onClick={replayPrologue}>
+                  {hasSeenPrologue ? "프롤로그 다시보기" : "프롤로그 보기"}
+                </button>
+              )}
 
-            {showHeroActionButton ? (
-              <button
-                type="button"
-                className={styles.vnStartButton}
-                data-phase={heroScenePhase}
-                onClick={isPrologueActive ? revealCommandDeck : enterWarRoom}
-              >
-                <NeoWarRoomAssetImage
-                  asset={neoWarRoomAssets.decor.asset1}
-                  alt=""
-                  sizes="72px"
-                  className={styles.ctaOrbitFrame}
-                  imageClassName={styles.ctaOrbitImage}
-                />
-                <span className={styles.ctaButtonCopy}>
-                  <strong>{heroActionLabel}</strong>
-                  <em>{heroActionMeta}</em>
-                </span>
-              </button>
-            ) : null}
+              {showHeroActionButton ? (
+                <button
+                  type="button"
+                  className={styles.vnStartButton}
+                  data-phase={heroScenePhase}
+                  onClick={isPrologueActive ? revealCommandDeck : enterWarRoom}
+                >
+                  <NeoWarRoomAssetImage
+                    asset={neoWarRoomAssets.decor.asset1}
+                    alt=""
+                    sizes="72px"
+                    className={styles.ctaOrbitFrame}
+                    imageClassName={styles.ctaOrbitImage}
+                  />
+                  <span className={styles.ctaButtonCopy}>
+                    <strong>{heroActionLabel}</strong>
+                    {isPrologueActive ? null : <em>{heroActionMeta}</em>}
+                  </span>
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
       </section>
