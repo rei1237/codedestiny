@@ -18,7 +18,7 @@ function MasterLoveCodexShell() {
         <p className="text-[11px] font-black tracking-[0.34em] text-amber-100/80">MASTER DESTINY</p>
         <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">마스터 인연의 서</h1>
         <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-rose-50/80">
-          사주와 자미두수를 하나로 엮어, 운명의 안내자 박지은이 당신의 연애 인생을 스무 장에 걸쳐 읽어
+          사주와 자미두수를 하나로 엮어, 연애 고수가 당신의 연애 인생을 스무 장에 걸쳐 읽어
           내려갑니다. 도서관의 불이 켜지는 중입니다.
         </p>
       </section>

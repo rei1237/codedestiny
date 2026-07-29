@@ -2,7 +2,7 @@
  * 마스터 인연의 서 (MASTER_LOVE_CODEX) — R2 에셋 매니페스트.
  *
  * 기존 노벨 에셋을 재사용한다(신규 파일명 생성 없음 — 임의 교체 금지 규칙 준수).
- * 화자 박지은의 표정은 온화 4종만 쓴다. 냉소·조롱·유혹·화남·광기 컷은 이 기능의
+ * 화자(연애 고수) 컷은 온화 4종만 쓴다. 냉소·조롱·유혹·화남·광기 컷은 이 기능의
  * "운명의 안내자" 톤과 맞지 않아 의도적으로 제외했다(되살리지 말 것).
  */
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
@@ -40,7 +40,7 @@ export const masterLoveCodexAssets = {
   },
 } as const;
 
-/** 프롤로그 라인의 mood → 박지은 컷 */
+/** 프롤로그 라인의 mood → 화자 컷 */
 export type CodexNarratorMood = "calm" | "base" | "speaking" | "speakingAlt";
 
 export function getNarratorAsset(mood: CodexNarratorMood | undefined): string {

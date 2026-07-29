@@ -14,7 +14,7 @@ export type CodexPrologueStage =
   | "question"
   | "bookOpen";
 
-export type CodexPrologueSpeaker = "narration" | "박지은";
+export type CodexPrologueSpeaker = "narration" | "연애 고수";
 
 export type CodexPrologueChoiceKey = "yes" | "unsure" | "partner" | "self";
 
@@ -124,21 +124,21 @@ export const codexPrologueScenes: readonly CodexPrologueSceneData[] = [
   },
   {
     stage: "narratorEnter",
-    eyebrow: "이 서가의 주인",
-    title: "박지은이 당신을 맞이합니다",
+    eyebrow: "수십 년째 사람의 연애를 읽어 온 사람",
+    title: "연애 고수가 당신을 맞이합니다",
     actor: "narrator",
     background: "library",
     effect: "reveal",
     lines: [
-      { speaker: "박지은", text: "오셨군요.", cta: "인사하기", mood: "calm" },
+      { speaker: "연애 고수", text: "오셨군요.", cta: "인사하기", mood: "calm" },
       {
-        speaker: "박지은",
+        speaker: "연애 고수",
         text: "여기 있는 책은 전부 누군가의 사랑에 대한 기록입니다.\n제가 수십 년 동안 읽고, 듣고, 받아 적은 것들이지요.",
         cta: "둘러보기",
         mood: "speaking",
       },
       {
-        speaker: "박지은",
+        speaker: "연애 고수",
         text: "그런데 저 한 칸만 비어 있습니다.\n아직 아무도 당신의 이야기를 읽은 적이 없어서요.",
         cta: "빈 칸을 보기",
         mood: "base",
@@ -154,7 +154,7 @@ export const codexPrologueScenes: readonly CodexPrologueSceneData[] = [
     effect: "none",
     lines: [
       {
-        speaker: "박지은",
+        speaker: "연애 고수",
         text: "책을 펼치기 전에 하나만 묻겠습니다.\n당신은 사람의 마음을 알고 싶으신가요?",
         mood: "speakingAlt",
       },
@@ -169,7 +169,7 @@ export const codexPrologueScenes: readonly CodexPrologueSceneData[] = [
     effect: "reveal",
     lines: [
       {
-        speaker: "박지은",
+        speaker: "연애 고수",
         text: "그러면 우선 당신의 운명부터 읽겠습니다.\n명식과 명반을 함께 펼쳐 두고, 스무 장에 걸쳐 천천히 짚어 드리지요.",
         cta: "생년 정보 입력하기",
         mood: "speaking",

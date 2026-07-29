@@ -65,7 +65,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
 
           <CodexReveal index={2} className="mt-12">
             <p className="mx-auto max-w-[40ch] text-[1.0625rem] leading-9">
-              사주와 자미두수를 하나로 엮어, 운명의 안내자 박지은이 당신의 연애 인생을 {chapterCount}장에 걸쳐 읽어
+              사주와 자미두수를 하나로 엮어, 연애 고수가 당신의 연애 인생을 {chapterCount}장에 걸쳐 읽어
               내려갑니다.
             </p>
             <p className="mx-auto mt-5 max-w-[38ch] text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>

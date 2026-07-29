@@ -11,7 +11,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 const PAGE_PATH = "/master-love-codex/";
 const PAGE_TITLE = "마스터 인연의 서 | 사주·자미두수 융합 20장 연애 전략서 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 상담. 운명의 안내자 박지은이 한 권의 연애 전략서로 읽어 드립니다.";
+  "사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 상담. 20년 넘게 사람의 연애를 읽어 온 연애 고수가 한 권의 전략서로 풀어 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -61,7 +61,7 @@ const chapterOutline = [
   "제17장 사주 × 자미두수 교차검증",
   "제18장 연애 DNA 프로필",
   "제19장 앞으로 3년, 인연의 흐름",
-  "제20장 박지은의 마지막 편지",
+  "제20장 연애 고수의 마지막 편지",
 ];
 
 const masterLoveCodexFaqItems = [
@@ -132,7 +132,7 @@ export default function MasterLoveCodexPageRoute() {
           한 권의 책으로 읽는 경험을 목표로 만들어졌습니다.
         </p>
         <p>
-          이야기의 화자는 운명의 안내자 박지은입니다. 신비의 도서관에서 당신을 맞이한 뒤, 아직 아무도
+          이야기를 들려주는 사람은 연애 고수입니다. 신비의 도서관에서 당신을 맞이한 뒤, 아직 아무도
           읽지 않은 당신의 책을 한 장씩 펼쳐 보여 줍니다. 결과 화면을 훑는 것이 아니라 누군가가 곁에서
           읽어 주는 흐름이라, 처음부터 끝까지 하나의 이야기로 이어집니다.
         </p>
