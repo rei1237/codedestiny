@@ -57,14 +57,18 @@ const workerIndex = source("worker/index.js");
 ].forEach((marker) => assertContains(models, marker, `model ${marker}`));
 
 assertContains(payments, "enforcePaymentRouteSecurity(request, env, auth, path)", "payments security guard");
-assertBefore(payments, "if (method === \"POST\" && path === \"/webhook\")", "const auth = await requireAuth(request, env);", "payments webhook stays before auth/security guard");
+// 인증 호출의 "인자까지" 고정하지 않는다 — 닫는 괄호를 뺀 접두로만 맞춘다(위 runAiRouteWithSecurity 와 같은 이유).
+// 과거 이 마커가 `requireAuth(request, env);` 로 리터럴 고정돼 있었는데, 결제 라우트가 인증 왕복을 줄이려
+// `requireUserFromRequest(request, env, { userProjection: ... })` 로 바뀌자 지키려던 불변식(웹훅이 인증 앞에
+// 처리된다)은 멀쩡한데 가드만 깨졌다. 여기서 검증할 것은 호출 형태가 아니라 순서다.
+assertBefore(payments, "if (method === \"POST\" && path === \"/webhook\")", "const auth = await requireUserFromRequest(request, env", "payments webhook stays before auth/security guard");
 assertBefore(payments, "const security = await enforcePaymentRouteSecurity(request, env, auth, path);", "if (method === \"POST\" && path === \"/single/start\")", "payments guard before payment mutation dispatch");
 
 assertContains(billing, "enforceBillingRouteSecurity(request, env, path, method)", "billing security guard");
 assertBefore(billing, "const security = await enforceBillingRouteSecurity(request, env, path, method);", "if (method === \"GET\" && path === \"/features\")", "billing guard before dispatch");
 
 assertContains(profile, "enforceProfileRouteSecurity(request, env, auth, method, path)", "profile security guard");
-assertBefore(profile, "const auth = await requireUserFromRequest(request, env);", "const security = await enforceProfileRouteSecurity(request, env, auth, method, path);", "profile auth before security guard");
+assertBefore(profile, "const auth = await requireUserFromRequest(request, env", "const security = await enforceProfileRouteSecurity(request, env, auth, method, path);", "profile auth before security guard");
 assertBefore(profile, "const security = await enforceProfileRouteSecurity(request, env, auth, method, path);", "await connectDb(env);", "profile guard before db mutation dispatch");
 
 [
