@@ -65,7 +65,9 @@ function buildReportFromBirth(body) {
   ).toString(16);
 
   const blueprint = buildIslandBlueprint(chart, { userKey, date, currentYear, birthYear });
-  return buildIslandDeepReport(blueprint);
+  // 🔴 chart를 함께 넘긴다 — 삼방사정·대운 타임라인·유년 주성은 blueprint가 싣지 않는다.
+  //    blueprint 스키마를 늘리면 무인증·무DB인 무료 라우트와 클라이언트 캐시 계약이 깨지므로 이 경로를 쓴다.
+  return buildIslandDeepReport(blueprint, chart);
 }
 
 async function handleReport(request, env) {

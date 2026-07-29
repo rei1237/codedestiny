@@ -152,6 +152,7 @@ const coreRoutes = [
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
+  { path: "/master-love-codex", changefreq: "monthly", priority: 0.9 },
   { path: "/naming-ai", changefreq: "monthly", priority: 0.86 },
   { path: "/new-year-ai-consultation", changefreq: "monthly", priority: 0.86 },
   { path: "/ziwei-ai", changefreq: "weekly", priority: 0.88 },

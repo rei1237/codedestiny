@@ -51,6 +51,10 @@ function buildFixtures() {
   return fixtures;
 }
 
+function chartFor(fixture) {
+  return calculateZiweiAiChart(fixture, { year: 2026 });
+}
+
 function blueprintFor(fixture) {
   const chart = calculateZiweiAiChart(fixture, { year: 2026 });
   return buildIslandBlueprint(chart, {
@@ -71,23 +75,23 @@ function run() {
 
   // 1) 결정론
   const sample = blueprintFor(fixtures[0]);
-  const baseline = JSON.stringify(buildIslandDeepReport(sample));
+  const baseline = JSON.stringify(buildIslandDeepReport(sample, chartFor(fixtures[0])));
   for (let i = 0; i < 100; i += 1) {
-    if (JSON.stringify(buildIslandDeepReport(sample)) !== baseline) {
+    if (JSON.stringify(buildIslandDeepReport(sample, chartFor(fixtures[0]))) !== baseline) {
       check(false, `결정론 위반: ${i}번째 실행 결과가 다름`);
       break;
     }
   }
   // 같은 생년 입력으로 청사진을 다시 만들어도 동일해야 한다.
-  check(JSON.stringify(buildIslandDeepReport(blueprintFor(fixtures[0]))) === baseline, "동일 입력 재생성 시 리포트 불일치");
+  check(JSON.stringify(buildIslandDeepReport(blueprintFor(fixtures[0]), chartFor(fixtures[0]))) === baseline, "동일 입력 재생성 시 리포트 불일치");
 
   // 2) 완전성 · 톤
   for (const fixture of fixtures) {
     const blueprint = blueprintFor(fixture);
-    const report = buildIslandDeepReport(blueprint);
+    const report = buildIslandDeepReport(blueprint, chartFor(fixture));
     const label = `${fixture.birthDate} ${fixture.gender}`;
 
-    check(report.version === "island-report-v1", `${label}: version 누락`);
+    check(report.version === "island-report-v2", `${label}: version 누락`);
     check(report.signature === blueprint.signature, `${label}: signature가 청사진과 불일치`);
 
     for (const name of PALACE_NAMES) {
@@ -102,7 +106,7 @@ function run() {
       );
       for (const section of entry.sections) {
         const body = String(section.body || "");
-        check(body.trim().length >= 120, `${label}: ${name}/${section.key} 본문이 너무 짧음(${body.trim().length}자)`);
+        check(body.trim().length >= 250, `${label}: ${name}/${section.key} 본문이 너무 짧음(${body.trim().length}자)`);
         check(!body.includes("undefined"), `${label}: ${name}/${section.key} 본문에 undefined 노출`);
         check(!/\s{3,}/.test(body), `${label}: ${name}/${section.key} 본문에 빈 조각(연속 공백) 존재`);
         check(!/^\s|\s$/.test(body), `${label}: ${name}/${section.key} 본문 앞뒤 공백`);
@@ -113,6 +117,13 @@ function run() {
           check(!body.includes(placeholder), `${label}: ${name}/${section.key} 조사 병기 "${placeholder}" 노출`);
         }
         check(Boolean(section.title), `${label}: ${name}/${section.key} 제목 누락`);
+      }
+      const palaceLength = entry.sections.reduce((sum, section) => sum + String(section.body).length, 0);
+      check(palaceLength >= 1000, `${label}: ${name} 전체 분량이 너무 적음(${palaceLength}자)`);
+      // 화이트리스트 밖 한자는 쓰지 않는다(palace-prompts의 규칙과 동일).
+      for (const section of entry.sections) {
+        const hanja = String(section.body).match(/[一-鿿]/g);
+        check(!hanja, `${label}: ${name}/${section.key} 한자 노출 ${hanja ? hanja.join("") : ""}`);
       }
       // 한 궁 안에서 같은 문장이 두 번 나오면 유료 리포트가 조악해 보인다(공용 문장을 여러 섹션이 재사용한 탓).
       const seenSentences = new Set();
@@ -127,7 +138,7 @@ function run() {
 
     // 3) 청사진 불변 — 리포트 생성이 입력을 변형하지 않아야 한다.
     const before = JSON.stringify(blueprint);
-    buildIslandDeepReport(blueprint);
+    buildIslandDeepReport(blueprint, chartFor(fixture));
     check(JSON.stringify(blueprint) === before, `${label}: 리포트 생성이 청사진을 변형함`);
   }
 

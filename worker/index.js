@@ -401,6 +401,7 @@ const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destin
 const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트
 const handleZiweiDeepReportRoutes = createLazyRouteHandler("./routes/ziwei-deep-report.js", () => import("./routes/ziwei-deep-report.js"), "handleZiweiDeepReportRoutes", "api/ziwei-deep-report");
+const handleMasterLoveCodexRoutes = createLazyRouteHandler("./routes/master-love-codex.js", () => import("./routes/master-love-codex.js"), "handleMasterLoveCodexRoutes", "api/master-love-codex");
 const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea-house.js", () => import("./routes/fortune-tea-house.js"), "handleFortuneTeaHouseRoutes", "api/fortune-tea-house");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 // 운명의 섬 — 무인증·무DB 결정론 계산(명반→섬 청사진)
@@ -1268,6 +1269,10 @@ export default {
       // 심화 자미두수 PDF (ZIWEI_DEEP_PDF)
       if (url.pathname === "/api/ziwei-deep-report" || url.pathname.startsWith("/api/ziwei-deep-report/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-deep-report", handleZiweiDeepReportRoutes);
+      }
+
+      if (url.pathname === "/api/master-love-codex" || url.pathname.startsWith("/api/master-love-codex/")) {
+        return runAiRouteWithSecurity(request, env, "master-love-codex", handleMasterLoveCodexRoutes);
       }
 
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {

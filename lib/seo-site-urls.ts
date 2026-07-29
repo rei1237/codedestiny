@@ -90,6 +90,7 @@ export const ROUTES: SitemapRouteEntry[] = [
   { path: "/mayan-calendar/guide", changeFrequency: "monthly", priority: 0.88 },
   { path: "/music/guide",   changeFrequency: "monthly", priority: 0.86 },
   { path: "/fortune-tea-house", changeFrequency: "weekly", priority: 0.86 },
+  { path: "/master-love-codex", changeFrequency: "monthly", priority: 0.9 },
   { path: "/yeon-star-hug", changeFrequency: "weekly", priority: 0.84 },
   { path: "/dream",         changeFrequency: "weekly", priority: 0.94 },
   { path: "/love",          changeFrequency: "weekly", priority: 0.94 },

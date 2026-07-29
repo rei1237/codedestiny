@@ -400,9 +400,29 @@ export default function IslandConsultClient() {
 
   function reportPages(current: Palace): ResultViewerPage[] {
     if (!report) return [];
+    // 용어와 명반 골격을 먼저 알려 주는 안내 장(__intro)이 있으면 맨 앞에 둔다.
+    const intro = report.palaces?.__intro;
+    const introPage: ResultViewerPage[] = intro
+      ? [{
+        id: "__intro",
+        label: intro.title,
+        content: (
+          <div className="ic-rpt-page">
+            <h3 className="ic-rpt-page__title"><span aria-hidden="true">📖</span> {intro.title}</h3>
+            <p className="ic-rpt-page__meta">{intro.focus}</p>
+            {intro.sections.map((sec) => (
+              <section key={sec.key} className="ic-rpt-sec">
+                <h4>{sec.title}</h4>
+                <AiResultProse value={sec.body} />
+              </section>
+            ))}
+          </div>
+        ),
+      }]
+      : [];
     // 고른 궁을 맨 앞에 둔다 — 사용자가 그 궁을 보러 들어왔기 때문.
     const order = [current.name, ...PALACES.map((p) => p.name).filter((n) => n !== current.name)];
-    return order.flatMap((name) => {
+    return introPage.concat(order.flatMap((name) => {
       const entry = report.palaces?.[name];
       if (!entry) return [];
       const meta = PALACES.find((p) => p.name === name);
@@ -422,7 +442,7 @@ export default function IslandConsultClient() {
           </div>
         ),
       }];
-    });
+    }));
   }
 
   function renderReportSection(current: Palace) {

@@ -63,6 +63,7 @@ const CHROMELESS_ROUTES = [
   "/new-year-ai-consultation",
   "/life-book-ai",
   "/love-secret-ai",
+  "/master-love-codex",
   "/naming-ai",
   "/astrology-ai",
   "/vedic-ai",
@@ -86,6 +87,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/fortune-tea-house",
+  "/master-love-codex",
   "/fortune/prompt-hub",
   "/olympus",
   "/island-consult",
