@@ -6,7 +6,7 @@ import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { toDisplayText } from "../../lib/llm-text.js";
 import {
@@ -1381,7 +1381,7 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
 
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 401(로그아웃 유발) 대신 재시도 가능한 degraded 응답으로 흘려보낸다.
     if (isTransientMongoError(error)) return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
@@ -1426,6 +1426,8 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     accessDecision = await canAccessPaidFeature(auth.userId, featureKey, {
       env,
       reason: pricingResult.pricing.reason,
+      // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+      userDoc: auth.authUserDoc,
     });
   } catch (error) {
     if (isTransientMongoError(error)) {
@@ -3947,7 +3949,7 @@ function publicFortuneTeaResultListItem(doc) {
 async function readFortuneTeaHouseResultsList(request, env) {
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
     throw error;
@@ -3977,7 +3979,7 @@ async function handleFortuneTeaHouseResultsList(request, env) {
 async function readFortuneTeaHouseResultDetail(request, env, resultId) {
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
     throw error;

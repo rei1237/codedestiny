@@ -22,7 +22,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb } from "../lib/db.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateZiweiAiChart } from "../lib/ziwei-ai-chart.js";
@@ -276,7 +276,7 @@ async function handlePrepare(request, env) {
     return json({ ok: false, reason: "CALCULATION_FAILED", message: MESSAGES.calculationFailed }, { status: 422 });
   }
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
   const pricing = getPricing();
 
@@ -289,7 +289,7 @@ async function handlePrepare(request, env) {
   }
 
   await connectDb(env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision?.allowed) {
     return json({
       ok: true,
@@ -315,7 +315,7 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   if (isAdmin(auth)) return { ok: true, accessType: "admin" };
   // 2) 엔타이틀먼트/이용권/방금 완료된 회당 결제 확인
   await connectDb(env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision?.allowed) return { ok: true, accessType: "paid" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
@@ -326,7 +326,7 @@ async function handleGenerate(request, env) {
   const normalized = normalizeInput(body);
   if (!normalized.ok) return invalidInput(normalized.message);
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
 
   const access = await resolveGenerateAccess(request, env, auth, body, normalized, idempotencyKey);
@@ -386,12 +386,12 @@ function handlePlan() {
  * 오류 시 클라이언트는 fail-open 처리(콘텐츠 노출)하도록 unlocked=true 대신 error 플래그를 준다.
  */
 async function handleWebAccess(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return json({ ok: true, unlocked: false, reason: "LOGIN_REQUIRED" });
   if (isAdmin(auth)) return json({ ok: true, unlocked: true, accessType: "admin" });
   try {
     await connectDb(env);
-    const decision = await canAccessPaidFeature(auth.userId, "premium-ziwei", { env, reason: "심화 자미두수" });
+    const decision = await canAccessPaidFeature(auth.userId, "premium-ziwei", { env, reason: "심화 자미두수", userDoc: auth.authUserDoc });
     return json({ ok: true, unlocked: Boolean(decision?.allowed) });
   } catch (error) {
     console.error("[ziwei-deep-report] access", clean(error?.message, 200));

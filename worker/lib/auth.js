@@ -502,8 +502,8 @@ async function getDevAuthUserFromEnv(env) {
   return user?._id && !isWithdrawnUser(user) ? normalizeAuthResultFromUser(user) : null;
 }
 
-export async function requireAuth(request, env) {
-  return getServerUser(request, env);
+export async function requireAuth(request, env, options = {}) {
+  return getServerUser(request, env, options);
 }
 
 export async function getOptionalUserFromRequest(request, env, options = {}) {
@@ -612,8 +612,10 @@ export async function resolvePaidRouteAuth(request, env) {
   }
 }
 
-export async function getServerUser(request, env) {
-  return requireUserFromRequest(request, env);
+// options 는 requireUserFromRequest 로 그대로 흘려보낸다(현재 쓰이는 건 userProjection 하나).
+// 인자를 주지 않으면 종전과 완전히 동일하게 동작한다 — 기존 호출부는 손대지 않아도 된다.
+export async function getServerUser(request, env, options = {}) {
+  return requireUserFromRequest(request, env, options);
 }
 
 export async function getCurrentUser(request, env) {
