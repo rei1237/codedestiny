@@ -357,7 +357,12 @@ const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-moonbal-fresh-1a2b3";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
-const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
+// 활성 스냅샷이 살아 있는 동안은 이용권 보유자가 서버 왕복 없이 즉시 통과한다(낙관 fast-path).
+// 5분은 짧아서 조금만 쉬었다 들어와도 매번 서버 왕복을 탔고, 그 왕복이 느린 날에 결제창으로 샜다.
+// 만료일·userId 검사가 스냅샷 자체에 내장돼 있어(readSubscriptionSnapshotForUser) 이용권이 만료되면
+// TTL과 무관하게 무효가 되고, 미커버면 백그라운드 coin-gate(402)가 낙관 허용을 꺼서 자기교정한다.
+// 🔴 NONE_TTL(60초)은 늘리지 말 것 — stale-none은 snapshotSaysNoPassFast 로 결제창 직행을 만든다.
+const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 15 * 60 * 1000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
 const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
 
@@ -1667,7 +1672,10 @@ async function authFetchBilling(path: string, init: RequestInit, options: { time
 
 // 이용권 "선검사" 전용 상한. 결제 확정(checkout/confirm/forceDeduct coin-gate)의 40s·60s 상수는 결제 사고와
 // 직결되므로 절대 낮추지 않는다 — 대신 과금이 일어나지 않는 확인 요청에만 호출부에서 이 값을 넘긴다.
-const BILLING_PASS_PROBE_TIMEOUT_MS = 6000;
+// 6000이었을 때, 이 상한을 받는 대상이 하필 "이용권이 커버되는 사용자"뿐이라(coinGateMayDeduct 판별식 참고)
+// 서버가 조금만 느려도 보유자가 결제창으로 새는 역전이 생겼다. 서버 pass 판정은 Mongo 왕복이 여러 번이고
+// 콜드 아이솔레이트에선 op-타임아웃 12s·서버선택 8s(worker/lib/db.js)라 6초는 정상 응답도 자르는 값이었다.
+const BILLING_PASS_PROBE_TIMEOUT_MS = 15000;
 
 function resolveBillingFetchTimeoutMs(path: string, init: RequestInit) {
   const method = String(init.method || "GET").toUpperCase();
@@ -1876,7 +1884,7 @@ const COIN_GATE_TRANSIENT_MAX_RETRIES = 2;
 // 정적 셸 선검사 백오프(250 → 450ms)와 같은 값. 기존 800ms → 1.44s 는 선검사 예산(6초)을 재시도 대기만으로 소진했다.
 const COIN_GATE_TRANSIENT_BASE_DELAY_MS = 250;
 // 과금 없는 pass 확인 구간(첫 요청 + 재시도)의 벽시계 상한. 초과하면 붙잡지 않고 아래 결제 폴백으로 넘긴다.
-const COIN_GATE_PASS_PROBE_BUDGET_MS = 6000;
+const COIN_GATE_PASS_PROBE_BUDGET_MS = 15000;
 
 // 코인게이트가 워커-DB 일시 장애로 돌려주는 degraded-503만 재시도 대상으로 본다.
 // 확정 실패(402/401/PAYMENT_REQUIRED 등)나 성공은 재시도하지 않는다. 이용권 커버 판정은
@@ -1899,6 +1907,23 @@ function isRetryableBillingInfraDegraded(status: number, code?: string) {
     // 코드 없는 503(일부 AI 라우트의 degrade는 reason만 담고 code가 비어 옴)도 인프라 blip으로 보고
     // 짧게 재시도한다. 재시도 소진 후에도 남으면 shouldOpenRuntimePaymentFallback이 결제창을 연다.
     || normalizedCode === "";
+}
+
+// 서버가 "확정적으로 답한" 경우만 true. 402(미커버/잔액부족)와 401/403(인증)이 여기 해당한다.
+// 나머지 실패(클라 타임아웃 BILLING_REQUEST_TIMEOUT·5xx·degraded)는 "커버되지 않음"이 아니라
+// "아직 확인되지 않음"이다 — 이 구분이 없으면 지연 하나가 이용권 보유자를 결제창으로 보낸다.
+function isDefinitiveBillingAnswer(status: number, code?: string) {
+  const normalizedCode = toText(code).toUpperCase();
+  return status === 402
+    || status === 401
+    || status === 403
+    || normalizedCode === "PAYMENT_REQUIRED"
+    || normalizedCode === "MEMBERSHIP_PASS_NOT_COVERED"
+    || normalizedCode === "PRICE_EXCEEDS_PASS_LIMIT"
+    || normalizedCode === "INSUFFICIENT_COINS"
+    || normalizedCode === "AUTH_REQUIRED"
+    || normalizedCode === "LOGIN_REQUIRED"
+    || normalizedCode === "UNAUTHORIZED";
 }
 
 // useCoinGate의 resolveLoginRequired와 동일 판정. authFetch가 401에서 세션 갱신+재시도까지
@@ -3347,6 +3372,24 @@ async function recordMembershipPassInBackground(input: BillingCoinGateInput, att
   }
 }
 
+// 낙관 pass 통과의 합성 grant. 스냅샷 fast-path와 "확인이 지연으로 끝난 경우" 두 곳이 같은 형태를 쓴다.
+// 🔴 evidenceId/accessGrant/premiumAccessToken 을 넣지 말 것 — hasVerifiedBillingAccess 계열이 true가 되면
+// '서버 검증된 결제'용 로컬 마킹이 열려, 검증 전에 해금이 기록된다. 잔액도 싣지 않는다(pass는 무료라 불변).
+function buildOptimisticPassGrant(coinCost: number, featureKey: string, tier: string, transactionId: string): BillingResult<BillingCoinGateData> {
+  return {
+    ok: true,
+    status: 200,
+    data: {
+      freeBySubscription: true,
+      balance: null,
+      pricing: { cost: coinCost, coinPrice: coinCost, featureKey },
+      consume: { accessType: "membership_pass", accessMethod: "PASS", paymentMode: "MEMBERSHIP_PASS", featureKey, transactionId },
+      subscriptionTier: tier,
+    } as unknown as BillingCoinGateData,
+    raw: {},
+  } as BillingResult<BillingCoinGateData>;
+}
+
 export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<BillingResult<BillingCoinGateData>> {
   const featureId = toText(input.featureKey || input.subFeatureKey || input.categoryKey || "coin-gate");
   const inFlightKey = resolvePaidFeatureInFlightKey(input);
@@ -3557,18 +3600,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       // 위반한다. 낙관적 경로는 합성 grant만 반환하고, 이후 onPaid의 생성 마커가 진행 상태를 이어간다.
       // 잔액은 낙관적 응답에 싣지 않는다(user.points는 폐지된 레거시 코인이라 읽지 않음). pass는 무료라 잔액이
       // 변하지 않고, 백그라운드 coin-gate 성공 시 emitBillingBalanceUpdated가 서버 정본 잔액으로 UI를 갱신한다.
-      return {
-        ok: true,
-        status: 200,
-        data: {
-          freeBySubscription: true,
-          balance: null,
-          pricing: { cost: knownInputCoinCost, coinPrice: knownInputCoinCost, featureKey: optimisticFeatureKey },
-          consume: { accessType: "membership_pass", accessMethod: "PASS", paymentMode: "MEMBERSHIP_PASS", featureKey: optimisticFeatureKey, transactionId: `opt-pass-${gateRequestId}` },
-          subscriptionTier: optimisticTier,
-        } as unknown as BillingCoinGateData,
-        raw: {},
-      } as BillingResult<BillingCoinGateData>;
+      return buildOptimisticPassGrant(knownInputCoinCost, optimisticFeatureKey, optimisticTier, `opt-pass-${gateRequestId}`);
     }
     if (eligibility) {
       const eligibilityPassReady = accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true);
@@ -3874,6 +3906,52 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     } else {
       const code = String(parsed.error?.code || "").toUpperCase();
       const status = parsed.status === 402 || code === "INSUFFICIENT_COINS" ? "readyToPay" : "error";
+      // 🔴 확인이 "지연"으로 끝난 것을 "미커버"로 세탁하지 않는다.
+      // 로컬 근거(스냅샷/서버 eligibility)가 이용권 커버를 이미 확인했는데 서버 확인만 타임아웃·degraded로
+      // 끝났다면, 사용자는 돈을 낼 이유가 없다 — 결제창 대신 낙관 통과시키고 기록은 백그라운드로 돌린다.
+      // 확정 응답(402/401 등)은 아래 기존 분기가 그대로 처리하므로 여기서 걸리지 않는다.
+      // pass는 무료라 금전 영향이 0이고, 서버 정본 판정은 백그라운드 coin-gate가 수행해 미커버(402)면
+      // disableOptimisticPassBriefly()로 스스로 교정한다(스냅샷 fast-path와 동일한 위험 프로파일).
+      if (
+        passAccessEligible
+        && !explicitPaymentMode
+        && input.forceDeduct !== false
+        && !isOptimisticPassTemporarilyDisabled()
+        && !isDefinitiveBillingAnswer(parsed.status, code)
+      ) {
+        const degradedTier = eligibility?.pass.tier || initialSnapshot?.tier || "";
+        const degradedFeatureKey = toText(input.featureKey || featureId);
+        const degradedOverlay = resolvePaymentWaitOverlay("hasEntitlement", undefined, {
+          paymentMode: "MEMBERSHIP_PASS",
+          featureKey: featureId,
+          reason: input.reason,
+          accessType: "membership_pass",
+          passTier: degradedTier,
+          subscriptionTier: degradedTier,
+        });
+        holdPaidFeatureGateOpen({ requestId: gateRequestId, maxMs: 700 });
+        emitPaidFeatureGate("update", {
+          featureId,
+          featureKey: featureId,
+          requestId: gateRequestId,
+          status: "hasEntitlement",
+          message: degradedOverlay.message,
+          paymentMode: "MEMBERSHIP_PASS",
+          reason: input.reason,
+          accessType: "membership_pass",
+          passTier: degradedTier,
+          subscriptionTier: degradedTier,
+        });
+        void recordMembershipPassInBackground(input, activeAttempt.attemptId);
+        console.info("[paid-flow]", {
+          stage: "PASS_COVERED_DEGRADED_OPTIMISTIC_GRANT",
+          featureId,
+          requestId: gateRequestId,
+          probeStatus: parsed.status,
+          probeCode: code,
+        });
+        return buildOptimisticPassGrant(knownCoinCost, degradedFeatureKey, degradedTier, `opt-pass-degraded-${gateRequestId}`);
+      }
       if (shouldRedirectToLoginAfterBilling(parsed.status, code)) {
         // authFetch의 401 자동 갱신까지 실패한 진짜 미로그인/만료 세션 — 유료 화면 공통 계약대로
         // 세션을 정리하고 로그인 페이지로 유도한다. runBillingCoinGate를 직접 호출하는 화면 전반에 적용된다.

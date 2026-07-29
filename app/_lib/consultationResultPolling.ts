@@ -44,7 +44,9 @@ function readAttemptStatus(result: AccessCheckAttemptResult | null | undefined):
 // 이 상한이 없던 동안: authFetch에는 요청 타임아웃이 없고(타임아웃을 씌우는 건 billing-client 뿐) 재시도도
 // 횟수로만 묶여 있어, 서버가 느려지면 "이용권 확인 중"이 수십 초씩 붙잡혔다. 확인이 늦어질 때는 붙잡는 것보다
 // 결제창을 먼저 열어주는 편이 낫다 — 결제창에 '이용권 다시 확인'이 있어 dead-end가 아니다.
-export const PASS_CHECK_BUDGET_MS = 6000;
+// 6000은 짧았다 — 서버 pass 판정이 Mongo 왕복 여러 번이라 정상 응답도 잘려 이용권 보유자가
+// 결제창으로 새는 일이 생겼다(2026-07-29). 붙잡히는 느낌은 2.5초 시점의 상태 전환이 완화한다.
+export const PASS_CHECK_BUDGET_MS = 15000;
 export const PASS_CHECK_BUDGET_EXCEEDED_REASON = "PASS_CHECK_BUDGET_EXCEEDED";
 
 // 예산 초과는 "확정 실패"가 아니라 "일시적 지연"으로 표면화한다(503 + retryable). 호출부의 기존 degraded

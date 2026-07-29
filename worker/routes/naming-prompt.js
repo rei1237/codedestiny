@@ -2,7 +2,7 @@ import { requireAuth } from "../lib/auth.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, readJson } from "../lib/http.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -979,7 +979,7 @@ async function verifyNamingAccess(env, auth, body = {}, inputHash = "") {
     throw createHttpError(409, "입력값이 바뀌면 새 결제가 필요합니다.", { code: "INPUT_HASH_MISMATCH" });
   }
 
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
   if (!decision.allowed) {
     throw createHttpError(402, "결제 또는 이용권 확인 후에만 프롬프트를 생성할 수 있습니다.", {
       code: "NAMING_ACCESS_REQUIRED",
@@ -1326,7 +1326,7 @@ async function upsertExecutionRecord(env, auth, access, inputHash, input, sajuSn
 }
 
 async function handleCheckout(request, env) {
-  const auth = await requireAuth(request, env);
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const body = await readJson(request);
   const input = normalizeInput(body.input || body);
   validateInput(input);
@@ -1352,7 +1352,7 @@ async function handleCheckout(request, env) {
 }
 
 async function handleVerifyPayment(request, env) {
-  const auth = await requireAuth(request, env);
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const body = await readJson(request);
   const inputHash = clean(body.inputHash, 160);
   const access = await verifyNamingAccess(env, auth, body, inputHash);
@@ -1371,7 +1371,7 @@ async function handleVerifyPayment(request, env) {
 }
 
 async function handleGenerate(request, env, ctx = null) {
-  const auth = await requireAuth(request, env);
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const body = await readJson(request);
   const input = normalizeInput(body.input || {});
   validateInput(input);
@@ -1480,7 +1480,7 @@ async function handleGenerate(request, env, ctx = null) {
 }
 
 async function handleResult(request, env, id) {
-  const auth = await requireAuth(request, env);
+  const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const record = await findExecutionRecordForUser(env, auth, id);
   if (record) {
     if (record.status === "generating") {
