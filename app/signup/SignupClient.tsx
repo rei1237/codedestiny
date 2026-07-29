@@ -43,7 +43,6 @@ const SIGNUP_PAGE_TEXT_TRANSLATIONS = {
     "signupPage.020": "[필수] 만 14세 미만이며, 아래 입력한 보호자(법정대리인)의 동의 절차 진행에 동의합니다.",
     "signupPage.021": "보호자(법정대리인) 이메일",
     "signupPage.022": "만 14세 미만 계정은 유료 결제를 이용할 수 없으며, 무료 기능만 이용할 수 있습니다.",
-    "signupPage.023": "만 14세 미만은 소셜 회원가입을 이용할 수 없습니다. 위의 아이디/비밀번호 회원가입으로 보호자 동의를 진행해 주세요.",
     "signupPage.024": "보호자 이메일 형식을 확인해 주세요.",
   },
 } as const;
@@ -176,6 +175,8 @@ function normalizeSocialAuthError(rawReason: string | null): string {
   if (reason.includes("token_exchange_failed")) return "소셜 인증 토큰 교환에 실패했습니다. 잠시 후 다시 시도해 주세요.";
   if (reason === "oauth_not_configured") return "소셜 로그인 설정이 아직 완료되지 않았습니다. 관리자에게 문의해 주세요.";
   if (reason === "invalid_callback" || reason === "provider_mismatch") return "소셜 인증 콜백이 유효하지 않습니다. 다시 시도해 주세요.";
+  if (reason === "guardian_consent_pending") return "보호자(법정대리인)의 동의가 완료되어야 로그인할 수 있습니다. 보호자 이메일로 보낸 동의 링크를 확인해 주세요.";
+  if (reason === "guardian_consent_rejected" || reason === "guardian_consent_revoked") return "보호자(법정대리인) 동의가 없어 이 계정은 이용할 수 없습니다.";
   return "소셜 회원가입 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.";
 }
 
@@ -278,6 +279,8 @@ export default function SignupPage() {
   const [birthDateAge, setBirthDateAge] = useState<number>(-1);
   const [guardianEmail, setGuardianEmail] = useState("");
   const [guardianConsentSent, setGuardianConsentSent] = useState<{ email: string; message: string } | null>(null);
+  // 소셜 인증은 끝났지만 아직 계정이 없는 상태. 생년월일을 받아야 계정을 만들 수 있다.
+  const [socialSignupTicket, setSocialSignupTicket] = useState("");
   const socialCompleteOnceRef = useRef(false);
   const authCommittedRef = useRef(false);
   const bootstrapAuthCheckControllerRef = useRef<AbortController | null>(null);
@@ -349,7 +352,8 @@ export default function SignupPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("social_grant") || params.get("social_error")) return;
+    // 소셜 가입 마무리(social_signup)는 아직 계정이 없는 상태라 /me 부트스트랩이 필요 없다.
+    if (params.get("social_grant") || params.get("social_error") || params.get("social_signup")) return;
 
     const controller = new AbortController();
     bootstrapAuthCheckControllerRef.current = controller;
@@ -391,6 +395,11 @@ export default function SignupPage() {
       if (timer) clearTimeout(timer);
     };
   }, [authApiBase, redirectAfterAuth]);
+
+  useEffect(() => {
+    const ticket = new URLSearchParams(window.location.search).get("social_signup");
+    if (ticket) setSocialSignupTicket(ticket);
+  }, []);
 
   useEffect(() => {
     if (socialCompleteOnceRef.current) return;
@@ -493,11 +502,85 @@ export default function SignupPage() {
     && birthDateAge >= 0
     && (!isUnder14 || guardianEmailValid);
 
+  // 소셜 인증을 마친 뒤 생년월일만 받아 계정을 만드는 경로.
+  // 만 14세 미만 여부를 알기 전에는 서버가 계정을 만들지 않기 때문에 이 단계가 필요하다.
+  const handleSocialSignupCompletion = async () => {
+    if (!hasRequiredConsents) {
+      setError(signupPageText("signupPage.001"));
+      return;
+    }
+    if (birthDateError || birthDateAge < 0) {
+      setError(signupPageText("signupPage.016"));
+      return;
+    }
+    if (isUnder14 && !guardianEmailValid) {
+      setError(signupPageText("signupPage.024"));
+      return;
+    }
+
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await fetchWithTimeout(`${authApiBase}/api/auth/oauth/complete-signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
+        credentials: "include",
+        body: JSON.stringify({
+          socialSignupTicket,
+          birthDate,
+          birthTime,
+          gender,
+          ...(isUnder14 ? { guardianEmail: guardianEmail.trim().toLowerCase() } : {}),
+        }),
+      });
+
+      const payload = await parseJsonResponse<SignupResult & {
+        errors?: string[];
+        guardianConsentRequired?: boolean;
+        appRedirectUrl?: string;
+      }>(response);
+
+      if (!response.ok) {
+        throw new Error(normalizeAuthApiError(payload, "소셜 회원가입 처리에 실패했습니다."));
+      }
+
+      if (payload.guardianConsentRequired) {
+        setGuardianConsentSent({
+          email: guardianEmail.trim().toLowerCase(),
+          message: payload.message || "보호자 이메일로 동의 요청을 보냈습니다.",
+        });
+        return;
+      }
+
+      persistAuth(payload.user, payload.accessToken, payload.refreshToken);
+
+      // 앱(Capacitor)에서 시작한 가입은 커스텀탭에서 끝나므로 딥링크로 앱에 돌려준다.
+      if (payload.appRedirectUrl) {
+        window.location.href = payload.appRedirectUrl;
+        return;
+      }
+
+      const nextFromQuery = resolveNextPathFromQuery(new URLSearchParams(window.location.search));
+      redirectAfterAuth(sanitizeNextPath(payload.nextPath || null) || nextFromQuery || "/", payload.user);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : signupPageText("signupPage.004");
+      setError(message === "Failed to fetch" ? signupPageText("signupPage.005") : message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLocalSignup = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (loading || socialLoading !== null) return;
 
     abortBootstrapAuthCheck();
+
+    if (socialSignupTicket) {
+      await handleSocialSignupCompletion();
+      return;
+    }
 
     if (!hasRequiredConsents) {
       setError(signupPageText("signupPage.001"));
@@ -607,12 +690,7 @@ export default function SignupPage() {
 
     abortBootstrapAuthCheck();
 
-    // 소셜 가입은 보호자 이메일을 받을 단계가 없어 만 14세 미만에게는 열지 않는다.
-    if (isUnder14) {
-      setError(signupPageText("signupPage.023"));
-      return;
-    }
-
+    // 소셜 인증 후 가입 마무리 단계에서 생년월일을 받으므로, 여기서 나이로 막지 않는다.
     if (!hasRequiredConsents) {
       setError(signupPageText("signupPage.001"));
       return;
@@ -751,7 +829,15 @@ export default function SignupPage() {
             ) : (
             <>
             <form className="mb-6 space-y-4" onSubmit={handleLocalSignup}>
+              {socialSignupTicket && (
+                <div className="rounded-xl border border-violet-200/25 bg-violet-400/10 px-4 py-3 text-sm leading-6 text-violet-50/90">
+                  소셜 인증이 확인되었습니다. 마지막으로 <strong>생년월일</strong>을 입력하면 가입이 완료됩니다. 만 {MIN_SELF_CONSENT_AGE}세 미만이면 보호자 동의 절차가 이어집니다.
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {!socialSignupTicket && (
+                <>
                 <div className="sm:col-span-2">
                   <label htmlFor="signup-name" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">NAME</label>
                   <input
@@ -821,6 +907,8 @@ export default function SignupPage() {
                   </div>
                   <p className="mt-1.5 text-[11px] text-violet-100/65">비밀번호는 8자 이상으로 설정해 주세요.</p>
                 </div>
+                </>
+                )}
 
                 <div>
                   <label htmlFor="signup-birth-date" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">BIRTH DATE</label>
@@ -882,6 +970,8 @@ export default function SignupPage() {
                   </select>
                 </div>
 
+                {/* 소셜 가입 마무리 단계에서는 추천인 코드가 이미 티켓에 담겨 넘어온다. */}
+                {!socialSignupTicket && (
                 <div className="sm:col-span-2 rounded-xl border border-amber-200/25 bg-amber-100/10 p-3">
                   <label htmlFor="signup-referral-code" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-amber-100/85">REFERRAL CODE</label>
                   <input
@@ -898,6 +988,7 @@ export default function SignupPage() {
                     보상은 프로필 저장 하단의 카카오 공유하기 이벤트 버튼으로 만든 링크를 통해 가입이 완료될 때만 지급됩니다. 친구 1명당 추천인에게 1,000원 상당 보너스, 하루 최대 5,000원 상당 보너스까지 적용됩니다.
                   </p>
                 </div>
+                )}
               </div>
 
               {isUnder14 && (
@@ -932,11 +1023,13 @@ export default function SignupPage() {
                   ? "회원가입 중..."
                   : isUnder14
                     ? "보호자 동의 요청 보내기"
-                    : "아이디/비밀번호로 회원가입"}
+                    : socialSignupTicket
+                      ? "회원가입 완료하기"
+                      : "아이디/비밀번호로 회원가입"}
               </button>
             </form>
 
-            <div className="my-5 flex items-center gap-3">
+            <div className={`my-5 flex items-center gap-3${socialSignupTicket ? " hidden" : ""}`}>
               <div className="h-px flex-1 bg-violet-100/20" />
               <span className="text-[11px] font-semibold tracking-[0.2em] text-violet-100/60">SOCIAL SIGN UP</span>
               <div className="h-px flex-1 bg-violet-100/20" />
@@ -1050,16 +1143,12 @@ export default function SignupPage() {
               </p>
             </section>
 
-            {isUnder14 ? (
-              <div className="rounded-xl border border-amber-200/30 bg-amber-100/10 px-4 py-3 text-center text-sm text-amber-100/90">
-                {signupPageText("signupPage.023")}
-              </div>
-            ) : (
+            {socialSignupTicket ? null : (
               <div className="space-y-2.5">
                 <button
                   type="button"
                   onClick={() => startSocialSignup("google")}
-                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents}
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-white/20 bg-white text-[14px] font-semibold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,.15)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,23,42,.22)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white text-[15px] font-bold text-[#4285F4]">G</span>
@@ -1069,7 +1158,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => startSocialSignup("naver")}
-                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents}
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#0ea05a] bg-[#03C75A] text-[14px] font-semibold text-white shadow-[0_10px_24px_rgba(3,199,90,.28)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(3,199,90,.35)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-[15px] font-black text-[#03C75A]">N</span>
@@ -1079,7 +1168,7 @@ export default function SignupPage() {
                 <button
                   type="button"
                   onClick={() => startSocialSignup("kakao")}
-                  disabled={loading || socialLoading !== null || !hasRequiredConsents || isUnder14}
+                  disabled={loading || socialLoading !== null || !hasRequiredConsents}
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-[#f0d200] bg-[#FEE500] text-[14px] font-semibold text-[#191919] shadow-[0_10px_24px_rgba(254,229,0,.32)] transition-all duration-300 hover:-translate-y-0.5 hover:brightness-105 hover:shadow-[0_16px_30px_rgba(254,229,0,.4)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#191919] text-[15px] font-black text-[#FEE500]">K</span>
