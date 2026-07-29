@@ -337,13 +337,18 @@ body.ph-night .fireflies{opacity:1}
 .dlg-actor .sp{position:absolute;inset:0;background-repeat:no-repeat;background-position:center bottom;background-size:contain}
 .dlg-box{position:absolute;left:50%;bottom:calc(14px + env(safe-area-inset-bottom));transform:translateX(-50%);
   width:min(680px,94vw);background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;
-  padding:14px 18px 16px;box-shadow:0 18px 60px rgba(0,0,0,.6);cursor:pointer;min-height:128px}
+  padding:14px 18px 16px;box-shadow:0 18px 60px rgba(0,0,0,.6);cursor:pointer;min-height:128px;
+  /* 요약 카드와 선택지를 처음부터 펼치므로 높이 상한이 필요하다 — 없으면 소형 기기에서 하단이 잘린다 */
+  max-height:min(78dvh,620px);overflow:auto;overscroll-behavior:contain;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 .dlg-name{display:inline-block;font-size:.8rem;font-weight:800;color:var(--gold);letter-spacing:.06em;margin-bottom:4px}
 .dlg-name.yeon{color:var(--rose)}
 .dlg-text{font-size:1rem;line-height:1.85;min-height:3.7em;word-break:keep-all}
 .dlg-text .caret{display:inline-block;width:.6em;animation:caretB 1s steps(2) infinite;color:var(--violet)}
 @keyframes caretB{50%{opacity:0}}
-.dlg-next{position:absolute;right:16px;bottom:10px;font-size:.75rem;color:var(--text-dim);animation:nextP 1.6s ease-in-out infinite}
+/* 요약 카드·선택지가 아래에 붙으므로 절대배치를 쓰면 버튼 위에 겹친다 — 대사 바로 뒤 흐름에 둔다. */
+.dlg-next{display:block;text-align:right;font-size:.75rem;color:var(--text-dim);animation:nextP 1.6s ease-in-out infinite}
+.dlg-next[hidden]{display:none}
 @keyframes nextP{50%{opacity:.3}}
 .dlg-choices{display:none;flex-direction:column;gap:8px;margin-top:12px}
 .dlg-choices.on{display:flex}
@@ -364,6 +369,13 @@ body.ph-night .fireflies{opacity:1}
 .star-chips span.malefic{color:var(--rose);border-color:rgba(244,190,209,.4)}
 .star-chips span.sihua{color:var(--gold);border-color:rgba(232,213,163,.45)}
 .reso-line{font-size:.82rem;color:var(--text-muted);line-height:1.7}
+/* 무료 궁 설명 — 별칩 아래 문단 묶음. 본문색(--text)을 그대로 써 대비 4.5:1을 지킨다. */
+.pal-notes{margin-top:10px;display:flex;flex-direction:column;gap:7px}
+.pal-notes p{position:relative;padding-left:12px;font-size:.9rem;line-height:1.75;color:var(--text);word-break:keep-all}
+.pal-notes p::before{content:"";position:absolute;left:0;top:.72em;width:4px;height:4px;border-radius:50%;background:var(--violet-deep)}
+/* 대사창이 길어지면 좁은 화면에서 액터와 겹친다 — 액터를 줄이고, 아주 좁으면 접는다. */
+@media (max-height:720px){.dlg-actor{width:min(24vh,168px)}}
+@media (max-width:420px),(max-height:600px){.dlg-actor{display:none}}
 
 /* ── 시트/패널 (퀘스트·설정 z 30/31) ── */
 .backdrop{position:fixed;inset:0;z-index:var(--z-backdrop);background:rgba(6,4,18,.6);opacity:0;pointer-events:none;transition:opacity .25s ease}
@@ -723,7 +735,7 @@ function fetchBlueprint(profile){
    ============================================================ */
 var PALACES={
   "명궁":{x:50,y:33,icon:"🏰",title:"운명의 성",npc:{name:"사자왕 네오",who:"neo",cls:"",sheet:NEO_SHEET,size:"418%",pos:NEO_CELL.neutral},
-    greet:"어서 오게. 이 성은 그대 운명의 중심이라네.",close:"성의 불빛이 흔들려도, 방향을 정하는 건 언제나 그대일세."},
+    greet:"왔군. 이 성이 네 운명의 중심이다.",close:"불빛이 흔들려도 방향은 네가 정한다."},
   "형제궁":{x:33,y:45,icon:"🌲",title:"형제의 숲",npc:{name:"루나",who:"ln",sheet:LN_SHEET,size:"300% 200%",pos:LN_CELL.greet},
     greet:"숲에 오신 걸 환영해요! 여긴 곁을 지켜주는 인연들이 자라는 곳이에요.",close:"가까운 사람에게 먼저 안부를 건네보면 숲이 더 푸르러질 거예요."},
   "부부궁":{x:41,y:57,icon:"💗",title:"연인의 정원",npc:{name:"큐피드 연이",who:"pig",yeon:true,sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.smile},
@@ -731,7 +743,7 @@ var PALACES={
   "자녀궁":{x:72,y:83,icon:"🎈",title:"빛의 놀이터",npc:{name:"보모 언니",who:"lns",sheet:LNS_SHEET,size:"300% 200%",pos:LNS_CELL.bread},
     greet:"쉿— 새싹들이 놀고 있어요. 여긴 돌보고 길러내는 마음의 자리예요.",close:"작게 시작한 일일수록 자주 들여다봐 주세요. 그게 기르는 마음이에요."},
   "재백궁":{x:16,y:56,icon:"⛏️",title:"황금 광산",npc:{name:"광산지기 청토끼",who:"rab",sheet:RAB_SHEET,size:"400% 200%",pos:RAB_CELL.coin},
-    greet:"오호, 손님이군! 이 광산엔 그대의 재물운이 잠들어 있지.",close:"금맥은 한 번에 캐지 않아. 오늘 쓴 돈을 한 줄만 적어봐, 그게 곡괭이야."},
+    greet:"오호, 손님이군! 이 광산엔 네 재물운이 잠들어 있지.",close:"금맥은 한 번에 캐지 않아. 오늘 쓴 돈을 한 줄만 적어봐, 그게 곡괭이야."},
   "질액궁":{x:39,y:77,icon:"💧",title:"치유의 성소",npc:{name:"성소의 수호 토끼",who:"heal",img:NOVEL+enc("루나 언니 회복2-Photoroom.webp")},
     greet:"이곳 샘물은 몸과 마음의 피로를 비춰줘요.",close:"오늘은 물 한 잔, 깊은 숨 한 번. 그거면 충분한 날도 있어요."},
   "천이궁":{x:23,y:76,icon:"⛵",title:"항구",npc:{name:"항구의 전령 까마귀",who:"crow",img:NOVEL+enc("까마귀 빌런1.png")},
@@ -739,7 +751,7 @@ var PALACES={
   "노복궁":{x:60,y:74,icon:"🤝",title:"동료의 광장",npc:{name:"열정 동료 모카",who:"moka",img:NOVEL+enc("모카 기본.png")},
     greet:"요! 광장에 온 걸 환영해! 여긴 함께 뛰는 사람들의 자리야.",close:"고마운 동료가 있다면 오늘 말로 전해봐. 팀의 비트는 그렇게 맞춰지는 거야."},
   "관록궁":{x:61,y:56,icon:"📐",title:"전략실",npc:{name:"전략가 네오",who:"neoh",sheet:NEOH_SHEET,size:"400% 200%",pos:NEOH_CELL.hneutral},
-    greet:"전략실에 온 것을 환영하지. 여긴 그대의 일과 명예가 설계되는 방이다.",close:"큰 그림보다 오늘의 한 수. 책상 위 일 하나만 끝내고 나가게."},
+    greet:"전략실이다. 네 일과 명예를 설계하는 방이지.",close:"큰 그림보다 오늘의 한 수. 책상 위 일 하나만 끝내고 나가라."},
   "전택궁":{x:50,y:68,icon:"🏡",title:"고향의 집",npc:{name:"집 지키는 연이",who:"yeonHuman",yeon:true,img:NOVEL+enc("반신상 기본-Photoroom.png")},
     greet:"다녀오셨어요? 여긴 당신이 돌아와 쉬는 자리, 삶의 터전이에요.",close:"머무는 자리를 아끼는 만큼 운도 머물러요. 오늘 방 한 구석만 정돈해볼까요?"},
   "복덕궁":{x:64,y:32,icon:"📚",title:"신비한 도서관",npc:{name:"사서 백문",who:"baek",img:NOVEL+enc("백문 도서관-Photoroom.webp")},
@@ -813,6 +825,9 @@ function toast(msg){
   clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.classList.remove("on");},2600);
 }
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+/* 받침 유무로 조사를 고른다 — "운명의 성은/항구는"처럼 화면에 "은(는)"이 그대로 찍히지 않게 한다. */
+function hasBatchim(w){var t=String(w||"").trim();if(!t)return false;var c=t.charCodeAt(t.length-1);if(c<0xac00||c>0xd7a3)return false;return (c-0xac00)%28!==0;}
+function josa(w,j){var P={"이":"가","은":"는","을":"를","과":"와","이에요":"예요","이라":"라"};return w+(hasBatchim(w)?j:(P[j]||j));}
 
 /* ============================================================
    7) 대화 엔진 — 타이프라이터(노벨 typeStep 패턴)
@@ -842,7 +857,7 @@ function dlgShow(){
   $("dlgName").textContent=b.name;
   $("dlgName").classList.toggle("yeon",!!b.yeon);
   dlgSetSprite(b.sprite);
-  $("dlgNext").hidden=false;
+  $("dlgNext").hidden=DLG.i>=DLG.beats.length-1; /* 마지막 대사에선 "탭해서 계속"을 감춘다 */
   DLG.cur=b.text;DLG.pos=0;DLG.typing=true;
   if(reduceMotion){$("dlgText").textContent=b.text;DLG.typing=false;return;}
   typeStep();
@@ -855,7 +870,8 @@ function typeStep(){
 }
 function dlgAdvance(){
   if(DLG.typing){clearTimeout(DLG.timer);$("dlgText").textContent=DLG.cur;DLG.typing=false;return;}
-  if($("dlgChoices").classList.contains("on"))return;
+  /* 요약 카드·선택지를 처음부터 띄워두므로, 그것들이 떠 있어도 대사는 끝까지 이어져야 한다. 마지막 비트에서만 멈춘다. */
+  if(DLG.i>=DLG.beats.length-1){$("dlgNext").hidden=true;return;}
   DLG.i++;dlgShow();
 }
 function dlgFinish(){
@@ -1482,13 +1498,13 @@ function renderMap(pop){
   });
   parts.push(groups.join(""));
   zoom.innerHTML=parts.join("");
-  /* 인터랙션 배선 — 궁 선택 시 그 명반의 12궁 상담(/island-consult)으로 진입.
+  /* 인터랙션 배선 — 궁 선택 시 그 자리의 무료 설명 시트(openPalace)를 연다. 상담 진입은 시트 안 CTA가 맡는다.
      포인터 탭은 팬/줌 SVG가 setPointerCapture로 삼켜 자식 click이 안 뜨므로, 탭 해석은 initPanZoom의 pointerup에서 처리한다.
      여기서는 키보드 접근성(포커스 + Enter/Space)만 배선한다. */
   Array.prototype.forEach.call(zoom.querySelectorAll(".palace"),function(node){
     var pal=palaceFromNode(node);
     if(!pal)return;
-    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();goPalaceConsult(pal);}});
+    node.addEventListener("keydown",function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openPalace(pal);}});
   });
   resetMapView();
 }
@@ -1553,13 +1569,13 @@ function initPanZoom(){
       _mapTx=downTx+dx;_mapTy=downTy+dy;clampMap();applyMapTransform();}
   });
   function up(e){
-    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 상담 진입 */
+    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 무료 설명 시트를 연다 */
     var wasTap=Object.keys(pointers).length===1&&tapCandidate&&!_mapDragged;
     delete pointers[e.pointerId];
     if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}
     if(wasTap){var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
       var node=el&&el.closest?el.closest(".palace"):null;
-      if(node)goPalaceConsult(palaceFromNode(node));}
+      if(node)openPalace(palaceFromNode(node));}
   }
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
   svg.addEventListener("wheel",function(e){e.preventDefault();
@@ -1570,8 +1586,10 @@ function initPanZoom(){
     _mapTx=vx-wx*_mapScale;_mapTy=vy-wy*_mapScale;clampMap();applyMapTransform();
   },{passive:false});
   var lastTap=0;
-  svg.addEventListener("dblclick",function(){resetMapView();});
-  svg.addEventListener("pointerup",function(){var now=Date.now();if(now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
+  /* 시트가 열려 있으면 배경 맵을 건드리지 않는다 — 궁을 두 번 탭했을 때 뒤에서 지도가 튀어 보이던 문제 */
+  function sheetOpen(){return $("dlgWrap").classList.contains("on");}
+  svg.addEventListener("dblclick",function(){if(!sheetOpen())resetMapView();});
+  svg.addEventListener("pointerup",function(){var now=Date.now();if(!sheetOpen()&&now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
 }
 /* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
 var NEO_AV=(PROD||REMOTE_SHELL)
@@ -1594,14 +1612,14 @@ function islandFacts(){
 function buildStory(){
   var f=islandFacts(),L=[];
   L.push({v:"yeon",h:"이 섬은 <b>"+esc(f.biome)+"</b>이에요. 당신이 태어난 순간의 별빛이 이런 지형이 됐답니다."});
-  L.push({v:"neo",h:"자미두수엔 <b>삼방사정</b>이란 말이 있네. 한 궁의 길흉은 홀로 정해지지 않고, 마주 보는 세 궁이 함께 짠다네."});
+  L.push({v:"neo",h:"<b>삼방사정</b>. 한 궁만 보고 길흉을 말하지 않는다. 마주 보는 세 궁이 같이 짜는 거다."});
   if(f.strongest)L.push({v:"yeon",h:"가장 환히 빛나는 곳은 <b>"+esc(f.strongest)+"</b>이에요. 오늘은 그 자리가 뜻하는 일에 마음을 조금 더 기울여 보세요."});
   if(f.mingStar)L.push({v:"yeon",h:"명궁엔 <b>"+esc(f.mingStar)+"</b>이 앉아 있어요. <b>"+esc(STAR_TRAIT[f.mingStar]||"당신다움")+"</b>의 기질이니, 오늘 그 힘을 한 번 믿어봐도 좋아요."});
-  if(f.daeun)L.push({v:"neo",h:"지금 그대는 <b>"+esc(f.daeun)+"</b>의 대운을 지나고 있네. 십 년의 주제가 여기 있으니, 요즘 자주 마주치는 고민이 낯설지 않을 걸세."});
-  L.push({v:"neo",h:"<b>사화</b>는 삶을 밀고 당기는 네 바람일세."+(f.huaLu?" 그대에겐 <b>화록</b>의 풍요가 <b>"+esc(f.huaLu)+"</b>을 통해 흐른다네.":"")});
+  if(f.daeun)L.push({v:"neo",h:"지금 네 대운은 <b>"+esc(f.daeun)+"</b>을 지난다. 십 년치 주제가 여기 있어. 요즘 고민이 낯익은 이유다."});
+  L.push({v:"neo",h:"<b>사화</b>는 삶을 밀고 당기는 네 개의 바람이다."+(f.huaLu?" 네겐 <b>화록</b>이 <b>"+esc(f.huaLu)+"</b>"+(hasBatchim(f.huaLu)?"으로":"로")+" 흐른다.":"")});
   if(f.weakest)L.push({v:"yeon",h:"<b>"+esc(f.weakest)+"</b>은 아직 조용해요. 약한 궁일수록 탓하기보다 가만히 들여다보는 게 돌봄의 시작이에요."});
-  if(f.jiPalace)L.push({v:"neo",h:"<b>화기</b>가 <b>"+esc(f.jiPalace)+"</b>에 들었네. 그 자리만은 결정을 하루 묵혀두게. 급할수록 돌아가는 법일세."});
-  L.push({v:"neo",h:"별의 배치는 정해졌으나, 길을 정하는 건 언제나 그대일세. 명반은 지도일 뿐, 걷는 발은 그대의 것이라네."});
+  if(f.jiPalace)L.push({v:"neo",h:"<b>화기</b>가 <b>"+esc(f.jiPalace)+"</b>에 들었다. 거기서만은 결정을 하루 미뤄라. 급할수록 손해다."});
+  L.push({v:"neo",h:"별은 배치만 정한다. 길은 네가 정한다. 명반은 지도고, 걷는 건 너다."});
   L.push({v:"yeon",h:"조급한 날엔 한 박자만 늦춰도 괜찮아요. 별은 서두르는 사람보다 꾸준한 사람 편이더라고요."});
   L.push({v:"yeon",h:"빛나는 건물일수록 지금 힘이 강한 궁이에요. 궁을 눌러 그 자리의 이야기를 직접 들어보세요."});
   return L;
@@ -1659,7 +1677,7 @@ function starLine(pal){
 }
 function tierLine(pal,def){
   switch(pal.tier){
-    case 5:return def.title+"은(는) 지금 신전의 광휘로 빛나고 있어요. 이 힘을 믿고 크게 그려도 좋아요.";
+    case 5:return josa(def.title,"은")+" 지금 신전의 광휘로 빛나고 있어요. 이 힘을 믿고 크게 그려도 좋아요.";
     case 4:return "궁전처럼 든든한 기운이에요. 지금 흐름을 꾸준히 이어가면 돼요.";
     case 3:return "저택처럼 안정된 자리예요. 조금만 더 돌보면 한 단계 올라갈 수 있어요.";
     case 2:return "아직 오두막처럼 소박하지만, 기초는 잘 놓여 있어요. 서두르지 않아도 괜찮아요.";
@@ -1687,19 +1705,15 @@ function markerLine(pal){
   return "";
 }
 function openPalace(pal){
+  if(!pal)return;
   var def=PALACES[pal.name];
+  if(!def)return;
   var npcBeat=function(text){return {name:def.npc.name,sprite:def.npc,yeon:!!def.npc.yeon,text:text};};
   var yeonBeat=function(text){return {name:"연이",sprite:YEON_SPRITE,yeon:true,text:text};};
-  var beats=[
-    yeonBeat(pal.name+", "+def.title+"에 도착했어요. 인사 나눠보실래요?"),
-    npcBeat(def.greet),
-    npcBeat(starLine(pal)),
-    npcBeat(tierLine(pal,def))
-  ];
-  var extra=resonanceLine(pal);if(extra)beats.push(npcBeat(extra));
-  var mk=markerLine(pal);if(mk)beats.push(yeonBeat(mk));
-  beats.push(yeonBeat(def.close));
-  dlgOpen(beats,function(){showPalaceChoices(pal,def);});
+  /* 첫 비트는 NPC 인사 하나. 설명은 아래 카드가 즉시 보여주고, 나머지 대사는 탭해서 이어보는 덤이다. */
+  var beats=[npcBeat(def.greet),yeonBeat(pal.name+", "+josa(def.title,"이에요")+". "+def.close)];
+  dlgOpen(beats,null);
+  showPalaceChoices(pal,def);
 }
 function showPalaceChoices(pal,def){
   var detail=$("dlgDetail");
@@ -1707,16 +1721,22 @@ function showPalaceChoices(pal,def){
     .concat(pal.assistantStars.map(function(s){return "<span>"+esc(s)+"</span>";}))
     .concat(pal.maleficStars.map(function(s){return '<span class="malefic">'+esc(s)+"</span>";}))
     .concat(pal.transformations.map(function(t){return '<span class="sihua">'+esc(t)+"</span>";}));
+  /* 무료 설명 — 주성 → 등급 이유 → 공명 → 대운/유년 마커 순. 문장 생성기는 기존 것을 그대로 쓴다. */
+  var notes=[starLine(pal),tierLine(pal,def),resonanceLine(pal),markerLine(pal)]
+    .filter(Boolean).map(function(t){return "<p>"+esc(t)+"</p>";}).join("");
   detail.innerHTML=
     '<div class="stat-row"><span class="lab">궁의 힘</span><div class="bar"><i></i></div><strong>'+pal.score+"</strong></div>"
     +(pal.resonanceBonus?'<p class="reso-line">공명 보정 '+(pal.resonanceBonus>0?"+":"")+pal.resonanceBonus+" — 이웃 궁들이 보내는 기운이에요.</p>":"")
-    +'<div class="star-chips">'+(chips.join("")||"<span>별빛이 조용한 궁</span>")+"</div>";
+    +'<div class="star-chips">'+(chips.join("")||"<span>별빛이 조용한 궁</span>")+"</div>"
+    +'<div class="pal-notes">'+notes+"</div>";
   detail.classList.add("on");
   requestAnimationFrame(function(){var bar=detail.querySelector(".bar i");if(bar)bar.style.transform="scaleX("+(pal.score/100)+")";});
   var box=$("dlgChoices");
   box.innerHTML="";
-  var a=document.createElement("a");a.href="/island-consult?palace="+encodeURIComponent(pal.name);
-  a.innerHTML="🔮 이 궁 깊이 상담하기 <span class='go'>12궁 특화 ›</span>";box.appendChild(a);
+  /* 상담 진입은 goPalaceConsult 경유 — 여기서 곧장 링크로 나가면 프로필 시드(cdIslandConsultSeed)가 유실된다. */
+  var a=document.createElement("button");a.type="button";
+  a.innerHTML="🔮 이 궁 깊이 상담하기 <span class='go'>12궁 특화 ›</span>";
+  a.addEventListener("click",function(){goPalaceConsult(pal);});box.appendChild(a);
   var qb=document.createElement("button");qb.type="button";
   qb.innerHTML="📜 오늘의 퀘스트 보기 <span class='go'>›</span>";
   qb.addEventListener("click",function(){dlgClose();openSheet("sheetQuest");});box.appendChild(qb);
@@ -1871,7 +1891,7 @@ function startIntro(replay){
     stars.forEach(function(s,i){s.classList.add(i===0?"hero":"dim");});
   },10600);
   iT(function(){
-    setCap("네오","별의 배치는 정해졌네. 허나 그것을 어떻게 살아낼지는… 온전히 그대의 몫이라네.");
+    setCap("네오","별의 배치는 정해졌다. 어떻게 살아낼지는… 네 몫이다.");
   },12600);
   iT(function(){
     setCap("연이","이 별들이 바다 위로 내려앉으면…");
@@ -1884,7 +1904,7 @@ function startIntro(replay){
     setCap("연이","여기가… 당신의 섬이에요.");
   },17000);
   iT(function(){
-    setCap("네오","열두 궁이 그대를 기다리네. 자, 그대의 섬으로 드시게.");
+    setCap("네오","열두 궁이 널 기다린다. 가자, 네 섬이다.");
   },19400);
   iT(function(){askIslandName(replay);},21600);
 }

@@ -409,6 +409,8 @@ const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
 // 운명의 섬 12궁 심층 유료 상담(₩20,000) — 별도 상품, ziwei-ai 결제 흐름 복제(runAiRouteWithSecurity)
 const handleZiweiIslandAiRoutes = createLazyRouteHandler("./routes/ziwei-island-ai.js", () => import("./routes/ziwei-island-ai.js"), "handleZiweiIslandAiRoutes", "api/ziwei-island-ai");
+// 운명의 섬 12궁 심층 리포트(₩5,000) — 정적 결정론 콘텐츠, 영구 해금 상태만 검사
+const handleZiweiIslandReportRoutes = createLazyRouteHandler("./routes/ziwei-island-report.js", () => import("./routes/ziwei-island-report.js"), "handleZiweiIslandReportRoutes", "api/ziwei-island-report");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
@@ -1266,6 +1268,11 @@ export default {
       // 운명의 섬 청사진 (무인증·무DB 순수 계산 — /api/ziwei 툼스톤보다 먼저 매칭될 필요는 없으나 ziwei 계열과 함께 둔다)
       if (url.pathname === "/api/ziwei-island-ai" || url.pathname.startsWith("/api/ziwei-island-ai/")) {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);
+      }
+
+      // ⚠️ 반드시 /api/ziwei-island 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      if (url.pathname === "/api/ziwei-island-report" || url.pathname.startsWith("/api/ziwei-island-report/")) {
+        return withCorsHeaders(request, env, await handleZiweiIslandReportRoutes(request, env));
       }
 
       if (url.pathname === "/api/ziwei-island" || url.pathname.startsWith("/api/ziwei-island/")) {
