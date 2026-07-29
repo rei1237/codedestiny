@@ -1,6 +1,7 @@
-import type { FortuneTeaHouseConsultMode } from "./consult";
+import type { FortuneTeaHouseConsultMode, FortuneTeaTarotSpread } from "./consult";
 
-export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility";
+// 타로는 스프레드(3카드/5카드)에 따라 가격과 featureKey가 갈린다. 나머지 상담은 모드 단위.
+export type FortuneTeaHousePriceKey = FortuneTeaHouseConsultMode | "sajuCompatibility" | "tarotFive";
 
 export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
   featureKey: string;
@@ -11,6 +12,11 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
     featureKey: "fortune-tea-house-tarot-consultation",
     amountKRW: 5000,
     label: "5,000원",
+  },
+  tarotFive: {
+    featureKey: "fortune-tea-house-tarot-five-consultation",
+    amountKRW: 7000,
+    label: "7,000원",
   },
   saju: {
     featureKey: "fortune-tea-house-saju-consultation",
@@ -29,11 +35,26 @@ export const fortuneTeaHouseConsultPricing: Record<FortuneTeaHousePriceKey, {
   },
 };
 
-export function getFortuneTeaHouseConsultPriceLabel(mode: FortuneTeaHousePriceKey) {
-  return fortuneTeaHouseConsultPricing[mode].label;
+/** 타로 상담은 스프레드로 상품이 갈리므로, 모드+스프레드를 가격표 키로 변환한다. */
+export function resolveFortuneTeaHousePriceKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread): FortuneTeaHousePriceKey {
+  if (mode === "tarot" && tarotSpread === "five") return "tarotFive";
+  return mode;
 }
 
-export function getFortuneTeaHouseResultButtonLabel(mode: FortuneTeaHouseConsultMode, priceLabel = getFortuneTeaHouseConsultPriceLabel(mode)) {
+export function getFortuneTeaHouseConsultPriceLabel(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread) {
+  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread)].label;
+}
+
+export function getFortuneTeaHouseConsultFeatureKey(mode: FortuneTeaHousePriceKey, tarotSpread?: FortuneTeaTarotSpread) {
+  return fortuneTeaHouseConsultPricing[resolveFortuneTeaHousePriceKey(mode, tarotSpread)].featureKey;
+}
+
+export function getFortuneTeaHouseResultButtonLabel(
+  mode: FortuneTeaHouseConsultMode,
+  priceLabel?: string,
+  tarotSpread?: FortuneTeaTarotSpread,
+) {
+  priceLabel = priceLabel ?? getFortuneTeaHouseConsultPriceLabel(mode, tarotSpread);
   if (mode === "tarot") return `타로 결과 보기 · ${priceLabel}`;
   if (mode === "sukuyo") return `숙요점 궁합 결과 보기 · ${priceLabel}`;
   if (mode === "sajuCompatibility") return `사주 궁합 결과 보기 · ${priceLabel}`;
