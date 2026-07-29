@@ -1,11 +1,11 @@
 {
-  "total": 105568,
+  "total": 104935,
   "areas": {
-    "app": 34264,
-    "components": 2251,
+    "app": 34309,
+    "components": 2173,
     "src": 5653,
-    "lib": 15996,
-    "js": 33337,
+    "lib": 15395,
+    "js": 33338,
     "worker": 14067
   }
 }

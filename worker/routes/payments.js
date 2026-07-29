@@ -34,6 +34,7 @@ import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PA
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
 import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
+import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
 
 const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
   section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
@@ -5602,9 +5603,40 @@ const PAYMENT_ROUTE_USER_PROJECTION = {
   email: 1,
   points: 1,
   joinedAt: 1,
+  birthDate: 1,
   unlockedFeatures: 1,
   profileSubscription: 1,
 };
+
+// 만 14세 미만 계정은 무료 기능만 이용한다 — 미성년자 결제는 법정대리인 동의 없이는 사후 취소가
+// 가능해(민법 제5조) 결제창이 뜨기 전 단계에서 막는다. 이미 승인된 결제의 완료(/confirm,
+// /single/complete)는 막지 않는다 — 돈만 빠져나가고 지급이 안 되는 상태가 더 나쁘다.
+const MINOR_BLOCKED_PAYMENT_PATHS = new Set(["/single/start", "/prepare", "/subscription/prepare"]);
+
+async function enforceMinorPaymentRestriction(env, auth, method, path) {
+  if (method !== "POST" || !MINOR_BLOCKED_PAYMENT_PATHS.has(path)) return null;
+
+  let birthDate = String(auth?.authUserDoc?.birthDate || "").trim();
+  if (!birthDate) {
+    // refresh/admin 폴백 인증 경로에는 authUserDoc이 없다. 이때만 한 번 더 읽는다.
+    try {
+      const user = await withMongoRetry(env, () => findUserByIdRaw(auth.userId, { birthDate: 1 }));
+      birthDate = String(user?.birthDate || "").trim();
+    } catch (error) {
+      return null;
+    }
+  }
+  if (!birthDate) return null;
+
+  // 나이 판정은 가입 검증과 같은 함수(KST 기준)를 쓴다.
+  const ageCheck = validateBirthDateWithAge(birthDate);
+  if (!ageCheck.isValid || !ageCheck.requiresGuardianConsent) return null;
+
+  return json({
+    message: `만 ${MIN_SELF_CONSENT_AGE}세 미만 계정은 유료 결제를 이용할 수 없습니다. 무료 기능만 이용해 주세요.`,
+    code: "MINOR_PAYMENT_BLOCKED",
+  }, { status: 403 });
+}
 
 export async function handlePaymentRoutes(request, env, ctx) {
   const method = request.method.toUpperCase();
@@ -5656,6 +5688,9 @@ export async function handlePaymentRoutes(request, env, ctx) {
 
     const security = await enforcePaymentRouteSecurity(request, env, auth, path);
     if (!security.ok) return security.response;
+
+    const minorBlocked = await enforceMinorPaymentRestriction(env, auth, method, path);
+    if (minorBlocked) return minorBlocked;
 
     if (method === "GET" && path === "/me") return await handleMe(auth, env);
     if (method === "GET" && path === "/points/me") return await handlePointsMe(auth, env);

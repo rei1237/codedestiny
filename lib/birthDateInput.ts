@@ -1,3 +1,6 @@
+// 개인정보보호법 제22조의2: 만 14세 미만은 법정대리인 동의 대상 (가입 불가가 아님)
+export const MIN_SELF_CONSENT_AGE = 14;
+
 export function normalizeBirthDateInput(value: unknown): string {
   const raw = String(value ?? "").trim();
   if (!raw) return "";
@@ -75,20 +78,22 @@ export function calculateKoreanAge(birthDateStr: string, referenceDate?: Date): 
 
 /**
  * 생년월일 검증 및 만 나이 검증 (프론트엔드용)
- * @returns {{ isValid: boolean, age: number, error: string | null }}
+ * 만 14세 미만은 오류가 아니라 법정대리인(보호자) 동의 대상으로 표시한다.
+ * 서버 정본: worker/lib/validation.js
  */
 export function validateBirthDateWithAge(birthDateStr: string): {
   isValid: boolean;
   age: number;
+  requiresGuardianConsent: boolean;
   error: string | null;
 } {
   if (!birthDateStr || typeof birthDateStr !== "string" || !birthDateStr.trim()) {
-    return { isValid: false, age: -1, error: "올바른 생년월일을 입력해주세요." };
+    return { isValid: false, age: -1, requiresGuardianConsent: false, error: "올바른 생년월일을 입력해주세요." };
   }
 
   const normalized = normalizeBirthDateInput(birthDateStr);
   if (!normalized) {
-    return { isValid: false, age: -1, error: "올바른 생년월일을 입력해주세요." };
+    return { isValid: false, age: -1, requiresGuardianConsent: false, error: "올바른 생년월일을 입력해주세요." };
   }
 
   const [year, month, day] = normalized.split("-").map(Number);
@@ -99,7 +104,7 @@ export function validateBirthDateWithAge(birthDateStr: string): {
     birthDate.getUTCMonth() !== month - 1 ||
     birthDate.getUTCDate() !== day
   ) {
-    return { isValid: false, age: -1, error: "올바른 생년월일을 입력해주세요." };
+    return { isValid: false, age: -1, requiresGuardianConsent: false, error: "올바른 생년월일을 입력해주세요." };
   }
 
   const now = new Date();
@@ -109,13 +114,13 @@ export function validateBirthDateWithAge(birthDateStr: string): {
 
   // 미래 날짜 체크
   if (birthDate.getTime() > todayUtc.getTime()) {
-    return { isValid: false, age: -1, error: "미래 날짜는 입력할 수 없습니다." };
+    return { isValid: false, age: -1, requiresGuardianConsent: false, error: "미래 날짜는 입력할 수 없습니다." };
   }
 
   const age = calculateKoreanAge(normalized);
-  if (age < 14) {
-    return { isValid: false, age, error: "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다." };
+  if (age < MIN_SELF_CONSENT_AGE) {
+    return { isValid: true, age, requiresGuardianConsent: true, error: null };
   }
 
-  return { isValid: true, age, error: null };
+  return { isValid: true, age, requiresGuardianConsent: false, error: null };
 }

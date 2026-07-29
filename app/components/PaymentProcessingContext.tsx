@@ -952,6 +952,49 @@ export function PaymentProcessingProvider({
     DEFAULT_PROCESSING_MESSAGE,
   );
 
+  // 유료 액션을 누르기 "전"에 구독 스냅샷을 데워 둔다. 스냅샷이 활성이면 이용권 보유자는 서버 왕복 없이
+  // 즉시 통과하고(runBillingCoinGate의 낙관 fast-path), 그래서 서버가 느린 날에도 결제창으로 새지 않는다.
+  // 지금까지는 useCoinGate 마운트에서만 워밍해 그 훅을 쓰지 않는 화면(AI 상담 등)이 전부 빠져 있었다.
+  // 여기(앱 전역 Provider) 한 곳에 두면 화면마다 배선하는 중복이 없다. 이미 신선한 스냅샷이 있으면
+  // warmSubscriptionSnapshotOnEntry가 조기 반환하므로 실제 요청은 TTL당 1회다.
+  // billing-client/auth-store는 동적 import로만 참조한다 — 루트 레이아웃 번들을 키우지 않기 위해서다.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    let warmed = false;
+
+    const warmIfAuthenticated = async () => {
+      if (cancelled || warmed) return;
+      try {
+        const { getAuthState } = await import("../_lib/auth-store");
+        if (cancelled || !getAuthState().isAuthenticated) return;
+        warmed = true;
+        const { warmSubscriptionSnapshotOnEntry } = await import("../_lib/billing-client");
+        if (!cancelled) void warmSubscriptionSnapshotOnEntry();
+      } catch {
+        // 워밍 실패는 무시한다 — 첫 유료 액션이 종전대로 서버 판정으로 폴백한다.
+      }
+    };
+
+    // 최초 진입 시점엔 인증이 아직 하이드레이션 전일 수 있어, 인증 상태 변화에도 한 번 더 시도한다.
+    void warmIfAuthenticated();
+    void (async () => {
+      try {
+        const { subscribeAuth } = await import("../_lib/auth-store");
+        if (cancelled) return;
+        unsubscribe = subscribeAuth(() => { void warmIfAuthenticated(); });
+      } catch {
+        // 구독 실패 시엔 위 1회 시도만으로 둔다.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
     processingVariantRef.current = variant;
     setProcessingVariant(variant);
