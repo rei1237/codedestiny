@@ -568,7 +568,11 @@
       "mayaAlt": "Lecture maya — plaque de calendrier dorée et motifs horaires du ciel nocturne",
       "mayaTitle": "Lecture maya",
       "mayaDesc": "Le flux d'aujourd'hui à travers les schémas du temps",
-      "dreamPromptShortTitle": "Invite de rêve"
+      "dreamPromptShortTitle": "Invite de rêve",
+      "petSajuTitle": "🐾 Saju animal IA",
+      "petSajuDesc": "Cinq éléments et compatibilité",
+      "petSajuAria": "Ouvrir le Saju animal IA",
+      "petSajuAlt": "Image du Saju animal IA"
     },
     "destinyFlowerStudio": {
       "closeAria": "Fermer l'Atelier de la Fleur du Destin",

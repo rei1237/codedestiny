@@ -568,7 +568,11 @@
       "mayaAlt": "Lectura maya: placa de calendario dorada y patrones de tiempo del cielo nocturno",
       "mayaTitle": "Lectura maya",
       "mayaDesc": "El flujo de hoy a través de los patrones del tiempo",
-      "dreamPromptShortTitle": "Mensaje de sueño"
+      "dreamPromptShortTitle": "Mensaje de sueño",
+      "petSajuTitle": "🐾 Saju de mascotas IA",
+      "petSajuDesc": "Cinco elementos y compatibilidad",
+      "petSajuAria": "Abrir Saju de mascotas IA",
+      "petSajuAlt": "Imagen de Saju de mascotas IA"
     },
     "destinyFlowerStudio": {
       "closeAria": "Cerrar Atelier de la Flor del Destino",
