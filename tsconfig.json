@@ -47,7 +47,6 @@
     "out",
     "dist",
     "_scripts-archive",
-    "_graveyard",
     "**/_tmp_*.mjs",
     "**/_tmp_*.cjs",
     "**/_test*.mjs",
