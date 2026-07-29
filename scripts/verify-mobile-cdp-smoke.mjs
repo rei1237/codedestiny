@@ -77,10 +77,23 @@ try {
   assert(afterTarotTap.pathname.indexOf("/tarot/mingri") === 0 || afterTarotTap.tilePreviewOpen || afterTarotTap.tarotModalVisible, "tarot touch opens route, sheet, or modal", afterTarotTap);
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"tarot\"]");
+  // 모든 운세 탭은 이동하지 않고 풀스크린 오버레이를 전체 개요 모드로 연다.
+  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
   await delay(350);
-  const afterTarotNav = await evaluate(cdp, "({ hash: location.hash, tarotExpanded: !!document.querySelector('#tarotCollection[data-collection-open=\"true\"], #tarotCollection.is-open, #tarotCollection[open], #tarotCollection.active, #tarotCollection[aria-expanded=\"true\"]'), scrollY: Math.round(scrollY), activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current=\"page\"]')?.getAttribute('data-nav-key') || null })", "after bottom nav tarot tap");
-  assert(afterTarotNav.tarotExpanded || afterTarotNav.scrollY > 300 || afterTarotNav.activeKey === "tarot", "bottom nav tarot touch gives navigation feedback", afterTarotNav);
+  const afterFortunesNav = await evaluate(cdp, `(() => {
+    const panel = document.getElementById('cdMobileFortuneOverview');
+    const api = window.cdMobileCollectionFullscreen;
+    return {
+      pathname: location.pathname,
+      overlayOpen: !!(api && api.isOpen()),
+      overviewShown: !!panel && panel.classList.contains('is-open'),
+      categoryCount: panel ? panel.querySelectorAll('.cd-fov__cat').length : 0,
+      activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current="page"]')?.getAttribute('data-nav-key') || null
+    };
+  })()`, "after bottom nav all-fortunes tap");
+  assert(afterFortunesNav.overlayOpen && afterFortunesNav.overviewShown, "bottom nav all-fortunes opens the overview overlay", afterFortunesNav);
+  assert(afterFortunesNav.categoryCount > 0, "all-fortunes overview lists categories", afterFortunesNav);
+  assert(afterFortunesNav.activeKey === "fortunes", "all-fortunes tab marks itself active", afterFortunesNav);
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);

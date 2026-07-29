@@ -63,9 +63,10 @@ for (const [featureKey, { amountKRW, cost }] of Object.entries(doc)) {
   }
 }
 
-// 운명 찻집 상담 4종(정책 대상) / 레거시 3종(현행 유지 가드)
+// 운명 찻집 상담 5종(정책 대상) / 레거시 3종(현행 유지 가드)
 const TEA_HOUSE_KEYS = [
   "fortune-tea-house-tarot-consultation",
+  "fortune-tea-house-tarot-five-consultation",
   "fortune-tea-house-saju-consultation",
   "fortune-tea-house-saju-compatibility-consultation",
   "fortune-tea-house-sukuyo-compatibility-consultation",
@@ -96,7 +97,7 @@ function parseRegistryEntry(src, featureKey) {
   };
 }
 
-// 운명 찻집 4종: 레지스트리 cost + amountKRW 모두 문서와 일치해야 한다.
+// 운명 찻집 5종: 레지스트리 cost + amountKRW 모두 문서와 일치해야 한다.
 for (const key of TEA_HOUSE_KEYS) {
   const want = doc[key];
   if (!want) continue;
@@ -182,6 +183,6 @@ if (errors.length > 0) {
 }
 
 console.log("[verify-payment-policy-md] PASS");
-console.log(`  운명 찻집 상담 4종 정합: ${TEA_HOUSE_KEYS.join(", ")}`);
+console.log(`  운명 찻집 상담 ${TEA_HOUSE_KEYS.length}종 정합: ${TEA_HOUSE_KEYS.join(", ")}`);
 console.log(`  레거시 현행 유지 가드 3종: ${LEGACY_KEYS.join(", ")}`);
 console.log("  대조 대상: paid-feature-registry.js · consultPricing.ts · integrity.test.js");
