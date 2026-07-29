@@ -1,6 +1,12 @@
 #!/usr/bin/env node
 /**
- * 하드코딩 한국어 ratchet 게이트.
+ * 하드코딩 한국어 ratchet — 🔴 2026-07-29부로 게이트에서 제외됨(수동 실행 전용).
+ *
+ * `npm run i18n:check` 체인과 CI("i18n Gates")에서 빠졌다. 한국어 신규 문구가 늘 때마다
+ * 기준선을 갱신하지 않으면 PR·배포가 함께 멈췄는데(2026-07-28 프로덕션 배포 정지),
+ * 현지화는 점진 과제라 그 비용이 얻는 것보다 컸다. 지표가 필요하면 아래처럼 직접 돌린다:
+ *   npm run verify:i18n-no-hardcoded-korean
+ * 다시 게이트로 쓰려면 package.json 의 `i18n:check` 체인에 되돌려 넣으면 된다.
  *
  * 목표는 "지금 당장 0" 이 아니다 — 현지화 대상이 약 206만 자라 한 번에 0이 될 수 없다.
  * 대신 **되돌아가지 않는 것**을 강제한다. 영역별 한국어 리터럴 수가 기준선을 넘으면 실패한다.
@@ -54,6 +60,9 @@ const EXCLUDED = [
   // 자신을 위반으로 잡는다.
   /^lib\/i18n\//,
   /^worker\/lib\/.*prompt/i,
+  // 운명의 섬 심층 리포트 문장 데이터(14주성·12궁 어휘·서술 원형). 형제 상품인
+  // island/consult/palace-prompts.js 와 같은 계열의 대형 콘텐츠 DB라 기준선을 흐리지 않도록 뺀다.
+  /^worker\/lib\/island\/island-report\.js$/,
   /^lib\/llm-/,
   /prompt\.(js|ts)$/i,
   /^app\/music\/_data\/musicLyrics\.ts$/,

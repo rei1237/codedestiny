@@ -26,7 +26,7 @@ import {
 import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import {
@@ -304,12 +304,13 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
   if (existing?.status === "generating") {
     return { ok: true, accessType: clean(existing.accessType) || "paid", paymentId: clean(existing.paymentId, 160), existing };
   }
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  // 인증 단계가 같은 문서를 이미 읽었으면 재조회하지 않는다(authUserDoc는 access-token 경로에만 붙으므로 폴백 유지).
+  const user = auth.authUserDoc || await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "" };
   }
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (isReusablePaidFeatureAccess(decision)) {
     return {
       ok: true,
@@ -737,7 +738,11 @@ async function handleEnsureAccess(request, env) {
   if (!normalized.ok) return invalidInput(normalized.message);
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // 인증하면서 접근 판정 필드까지 한 번에 읽어 authUserDoc로 받는다(선검사의 User 재조회 제거).
+  const auth = await getOptionalUserFromRequest(request, env, {
+    surfaceDbInfraError: true,
+    userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION,
+  });
   if (!auth) return loginRequired();
   const pricing = getPricing();
   const access = await resolveEnsureAccess(env, auth, pricing, idempotencyKey, normalized.inputHash);

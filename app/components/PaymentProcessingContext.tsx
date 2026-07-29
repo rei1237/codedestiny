@@ -573,7 +573,7 @@ function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale)
 function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdRef = useRef<{ requestId: string; until: number } | null>(null);
+  const holdRef = useRef<{ requestId: string; until: number; capMs: number } | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [state, setState] = useState<PaidFeatureGateState>({
@@ -604,7 +604,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     const id = String(requestId || "").trim();
     if (!id) return;
     const cap = Number.isFinite(Number(maxMs)) && Number(maxMs) > 0 ? Math.min(Number(maxMs), 120000) : 12000;
-    holdRef.current = { requestId: id, until: nowForPaidGate() + cap };
+    holdRef.current = { requestId: id, until: nowForPaidGate() + cap, capMs: cap };
   }, []);
 
   const release = useCallback((requestId?: string) => {
@@ -696,6 +696,16 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       const detailRequestId = detail.requestId ? String(detail.requestId) : "";
       if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {
         holdRef.current = null;
+      }
+    }
+    // hold는 "확인이 끝난 뒤 다음 화면이 뜰 때까지"를 지키는 장치다. 그런데 호출부는 확인을 시작하기 전에
+    // hold를 걸기 때문에, 이용권 확인 자체가 hold 상한(대개 8초)보다 오래 걸리면 성공이 도착한 시점엔 이미
+    // 만료돼 게이트가 곧바로 닫혔다(= 느린 날에만 재현되던 "확인 UI가 사라진 뒤 한참 뒤 실행").
+    // 성공으로 전이하는 순간 같은 상한을 그 시점부터 다시 센다 — 호출부 수정 없이 9개 화면에 함께 적용된다.
+    if (/^(hasEntitlement|paymentSuccess)$/.test(requestedStatus) && holdRef.current) {
+      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
+      if (!detailRequestId || holdRef.current.requestId === detailRequestId) {
+        holdRef.current = { ...holdRef.current, until: nowForPaidGate() + holdRef.current.capMs };
       }
     }
     if (isExternalPaymentWindowStatus(requestedStatus)) {
@@ -792,8 +802,10 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     }
 
     setLoadingPhase("fresh");
-    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 8000);
-    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 20000);
+    // 정적 셸은 2.5초면 "서버 응답이 평소보다 느려요"로 화면이 바뀌는데, React 게이트는 8초/20초라
+    // 느린 날에 아무 변화 없는 화면을 오래 봐야 했다. 선검사 예산(6초)과 맞물리게 앞당긴다.
+    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 2500);
+    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 6000);
 
     return () => {
       window.clearTimeout(warmTimer);

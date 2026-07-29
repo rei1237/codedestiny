@@ -87,6 +87,7 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "karma-destiny-ai-consultation",
   "premium-sibyl-dominator",
   "ziwei-ai-consultation",
+  "ziwei-island-deep-report",
   "ziwei-island-palace-consult",
   "ziwei_decade_luck",
   "ziwei_love_deep",
@@ -255,6 +256,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "love-secret-ai-consultation": { cost: 300, amountKRW: 30000, reason: "연애 비책 전문가 상담" },
   "ziwei-ai-consultation": { cost: 300, amountKRW: 30000, reason: "자미두수 전문가 상담" },
   "ziwei-island-palace-consult": { cost: 200, amountKRW: 20000, reason: "운명의 섬 12궁 심층 상담" },
+  // 운명의 섬 정적 심층 리포트 — LLM 미사용, 1회 결제 후 계정 단위 영구 해금(UNLOCK)
+  "ziwei-island-deep-report": { cost: 50, amountKRW: 5000, reason: "운명의 섬 12궁 심층 리포트 해금" },
   // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 PDF 리포트
   "ziwei-deep-pdf": { cost: 300, amountKRW: 30000, reason: "심화 자미두수 PDF 심층 리포트 생성" },
   "karma-destiny-ai-consultation": { cost: 500, amountKRW: 50000, reason: "운명의 업 전문가 상담" },
@@ -460,6 +463,7 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   "destiny-bias-deep-profile",
   "nakshatra-lord-report",
   "nakshatra-dasha-map",
+  "ziwei-island-deep-report",
   "rpt_specialCharmCard",
   "rpt_quantumCard",
   "rpt_healthReportCard",
