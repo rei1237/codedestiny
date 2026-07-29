@@ -6034,7 +6034,68 @@
   /* ──────────────────────────────────────────
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
+
+  /* 사주 입력 폼 위의 "저장된 카드로 바로 보기" 칩 스트립.
+     칩 클릭은 기존 data-action 디스패처가 window.dpRunWithProfile 로 넘겨주므로
+     여기서 클릭 핸들러를 따로 달지 않는다(핸들러 중복 방지).
+
+     🔒 이용권 접근 정책: dpRunWithProfile 에는 dpSelectProfile 이 갖고 있는
+     lockedProfileId/selectionRequired 가드가 없다. 여기서 가드를 새로 구현하면
+     정책이 두 벌이 되므로, 대신 "노출 자체"를 정책에 맞춘다 —
+     확정이 필요한 상태면 스트립을 숨기고, 확정된 카드가 있으면 그 카드만 보여준다. */
+  function renderProfileQuickStrip() {
+    var strip = document.getElementById('dpQuickPickStrip');
+    var inner = document.getElementById('dpQuickPickInner');
+    if (!strip || !inner) return;
+
+    function hide() {
+      strip.hidden = true;
+      inner.innerHTML = '';
+    }
+
+    if (!_dpHasSessionHint()) return hide();
+
+    var access = _dpProfileAccess || {};
+    if (access.selectionRequired === true) return hide();
+
+    var list = DPStorage.list();
+    var lockedId = String(access.lockedProfileId || '').trim();
+    if (lockedId) {
+      list = list.filter(function(p) { return _dpGetProfileId(p) === lockedId; });
+    }
+    if (!list.length) return hide();
+
+    var currId = (DPStorage.current() || {}).id;
+
+    inner.innerHTML = list.map(function(p) {
+      var safe = p || {};
+      var b = safe.birth || {};
+      var pid = _dpGetProfileId(safe);
+      if (!pid || !b.year) return '';
+
+      var pname = safe.name || '이름 없음';
+      var dateLabel = b.year + '.' + String(b.month || 1).padStart(2, '0') + '.' + String(b.day || 1).padStart(2, '0');
+      var isActive = safe.id === currId;
+
+      return '<button type="button" class="dp-qp__chip' + (isActive ? ' is-active' : '') + '"'
+        + ' role="listitem" data-action="dpRunWithProfile" data-action-args="' + _esc(pid) + '"'
+        + (isActive ? ' aria-current="true"' : '')
+        + ' aria-label="' + _esc(pname) + ' 프로필로 사주 바로 보기">'
+        + '<span class="dp-qp__zodiac" aria-hidden="true">' + _zodiacEmoji(b.year) + '</span>'
+        + '<span class="dp-qp__name">' + _esc(pname) + '</span>'
+        + '<span class="dp-qp__date">' + dateLabel + '</span>'
+        + '</button>';
+    }).join('');
+
+    strip.hidden = !inner.innerHTML;
+  }
+
   function renderProfileList() {
+    /* 스트립은 프로필 상태가 바뀌는 모든 지점에서 같이 갱신되어야 한다.
+       renderProfileList 가 이미 저장·선택·삭제·서버동기화 12곳에서 불리므로 여기 얹는다.
+       try/catch 필수 — 스트립이 던지면 아래 목록 렌더까지 죽는다. */
+    try { renderProfileQuickStrip(); } catch (stripErr) { console.warn('[DP] quick strip 렌더 실패', stripErr); }
+
     var list = DPStorage.list();
     var currId = (DPStorage.current() || {}).id;
     var container = document.getElementById('dpListInner');

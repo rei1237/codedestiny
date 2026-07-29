@@ -148,6 +148,7 @@
       "nameLabel": "Name",
       "nameHint": "Gib den Namen ein, der in der Deutung erscheinen soll.",
       "birthDateLabel": "Geburtsdatum",
+      "quickPickTitle": "✦ Sofort mit einer gespeicherten Schicksalskarte starten",
       "birthDateHint": "Wähle deinen Geburtstag, um die erste Grundlage deines Saju-Charts zu öffnen.",
       "solar": "Solar",
       "lunar": "Mond",
