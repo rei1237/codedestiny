@@ -1,16 +1,18 @@
 "use client";
 
 /**
- * 마스터 인연의 서 — 생년 정보 입력.
+ * 생년 정보 입력.
  *
  * 공용 훅 useAiProfileSeed 로 현재 선택된 프로필 카드에서 자동 프리필한다.
  * 사용자가 이미 손댄 값은 덮어쓰지 않는다(빈 값만 채움).
+ * 입력 박스를 두지 않는다 — 필드는 잉크 위에 놓이고 아래 헤어라인만 남는다.
  */
 
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
-import { masterLoveCodexAssets } from "../data/assets";
+import CodexReveal from "./CodexReveal";
+import styles from "../styles/codex.module.css";
 
 export interface CodexBirthInput {
   name: string;
@@ -75,33 +77,30 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
     try { await reload(); } finally { setReloading(false); }
   }
 
-  const inputClass =
-    "w-full rounded-xl border border-rose-100/20 bg-[#0d0714]/70 px-3.5 py-2.5 text-sm text-rose-50 outline-none transition placeholder:text-rose-100/35 focus:border-amber-200/60 focus:ring-2 focus:ring-amber-200/25";
-  const labelClass = "mb-1.5 block text-xs font-bold text-amber-100/80";
+  const labelClass = "mb-1 block text-[0.6875rem] tracking-[0.2em]";
+  const labelStyle = { color: "var(--codex-gold-dim)" } as const;
 
   return (
-    <section className="relative min-h-[100svh] overflow-hidden bg-[#0d0714]" aria-label="생년 정보 입력">
-      <div
-        className="absolute inset-0 bg-cover bg-center opacity-30"
-        style={{ backgroundImage: `url("${masterLoveCodexAssets.backgrounds.libraryDeep}")` }}
-        aria-hidden="true"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0d0714]/90 via-[#0d0714]/75 to-[#0d0714]" aria-hidden="true" />
+    <section className="flex min-h-[100svh] flex-col justify-center py-16" aria-label="생년 정보 입력">
+      <div className={styles.measure}>
+        <CodexReveal>
+          <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}>
+            THE FIRST PAGE
+          </p>
+          <h2 className={`${styles.chapterTitle} mt-4`}>당신의 명식과 명반을 세우겠습니다</h2>
+          <p className="mt-5 max-w-[38ch] text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>
+            태어난 순간의 좌표가 있어야 스무 장을 채울 수 있습니다. 프로필 카드가 있으면 자동으로 채워집니다.
+          </p>
+          <hr className={`${styles.rule} mt-9`} />
+        </CodexReveal>
 
-      <div className="relative z-10 mx-auto w-full max-w-lg px-5 py-10 sm:px-8 sm:py-14">
-        <p className="text-[11px] font-black tracking-[0.3em] text-amber-100/75">MASTER DESTINY</p>
-        <h2 className="font-display mt-2 text-2xl font-black text-rose-50 sm:text-3xl">당신의 명식과 명반을 세우겠습니다</h2>
-        <p className="mt-3 text-sm leading-7 text-rose-50/75">
-          태어난 순간의 좌표가 있어야 스무 장을 채울 수 있습니다. 프로필 카드가 있으면 자동으로 채워집니다.
-        </p>
-
-        <div className="mt-6 space-y-4 rounded-2xl border border-rose-100/15 bg-[#150b1e]/80 p-5 backdrop-blur-sm">
+        <CodexReveal index={1} className="mt-10 space-y-9">
           <div className="flex justify-end">
             <button
               type="button"
               onClick={() => void handleReload()}
               disabled={reloading}
-              className="inline-flex items-center gap-1.5 rounded-full border border-amber-200/30 px-3 py-1 text-[11px] font-bold text-amber-100/85 transition hover:border-amber-200/60 disabled:opacity-60"
+              className={`${styles.quiet} inline-flex items-center gap-1.5`}
             >
               {reloading ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-3 w-3" aria-hidden="true" />}
               프로필 카드에서 불러오기
@@ -109,10 +108,10 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </div>
 
           <div>
-            <label className={labelClass} htmlFor="codex-name">이름 (선택)</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-name">이름 (선택)</label>
             <input
               id="codex-name"
-              className={inputClass}
+              className={styles.field}
               value={value.name}
               maxLength={20}
               placeholder="표지에 새겨집니다"
@@ -121,19 +120,15 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </div>
 
           <fieldset>
-            <legend className={labelClass}>성별</legend>
-            <div className="grid grid-cols-2 gap-2">
+            <legend className={labelClass} style={labelStyle}>성별</legend>
+            <div className="flex gap-2">
               {([["female", "여성"], ["male", "남성"]] as const).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
                   aria-pressed={value.gender === key}
                   onClick={() => patch({ gender: key })}
-                  className={`rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
-                    value.gender === key
-                      ? "border-amber-200/70 bg-amber-200/15 text-amber-50"
-                      : "border-rose-100/20 text-rose-50/80 hover:border-amber-200/45"
-                  }`}
+                  className={`${styles.choice} flex-1`}
                 >
                   {label}
                 </button>
@@ -142,40 +137,36 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </fieldset>
 
           <div>
-            <label className={labelClass} htmlFor="codex-birth-date">생년월일</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-date">생년월일</label>
             <input
               id="codex-birth-date"
               type="date"
-              className={inputClass}
+              className={styles.field}
               value={value.birthDate}
               onChange={(event) => patch({ birthDate: event.target.value })}
             />
           </div>
 
           <fieldset>
-            <legend className={labelClass}>양력 / 음력</legend>
-            <div className="grid grid-cols-2 gap-2">
+            <legend className={labelClass} style={labelStyle}>양력 / 음력</legend>
+            <div className="flex gap-2">
               {([["solar", "양력"], ["lunar", "음력"]] as const).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
                   aria-pressed={value.calendarType === key}
                   onClick={() => patch({ calendarType: key, isLeapMonth: key === "lunar" ? value.isLeapMonth : false })}
-                  className={`rounded-xl border px-3 py-2.5 text-sm font-bold transition ${
-                    value.calendarType === key
-                      ? "border-amber-200/70 bg-amber-200/15 text-amber-50"
-                      : "border-rose-100/20 text-rose-50/80 hover:border-amber-200/45"
-                  }`}
+                  className={`${styles.choice} flex-1`}
                 >
                   {label}
                 </button>
               ))}
             </div>
             {value.calendarType === "lunar" ? (
-              <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-rose-50/75">
+              <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
                 <input
                   type="checkbox"
-                  className="h-4 w-4 accent-amber-300"
+                  className="h-4 w-4 accent-[#e8d5a3]"
                   checked={value.isLeapMonth}
                   onChange={(event) => patch({ isLeapMonth: event.target.checked })}
                 />
@@ -185,46 +176,41 @@ export default function CodexBirthGate({ value, onChange, onSubmit, busy, busyLa
           </fieldset>
 
           <div>
-            <label className={labelClass} htmlFor="codex-birth-time">태어난 시각</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-time">태어난 시각</label>
             <input
               id="codex-birth-time"
               type="time"
-              className={inputClass}
+              className={styles.field}
               value={value.birthTime}
               disabled={value.birthTimeUnknown}
               onChange={(event) => patch({ birthTime: event.target.value })}
             />
-            <label className="mt-2 flex items-center gap-2 text-xs font-semibold text-rose-50/75">
+            <label className="mt-3 flex items-center gap-2 text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-amber-300"
+                className="h-4 w-4 accent-[#e8d5a3]"
                 checked={value.birthTimeUnknown}
                 onChange={(event) => patch({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : value.birthTime })}
               />
               태어난 시각을 모릅니다
             </label>
-            <p className="mt-1.5 text-[11px] leading-5 text-rose-100/50">
+            <p className="mt-2 text-[0.75rem] leading-6" style={{ color: "var(--codex-ink-text-muted)" }}>
               시각을 모르면 시주를 뺀 채로 읽습니다. 큰 흐름은 그대로지만 세부는 조금 흐려집니다.
             </p>
           </div>
-        </div>
+        </CodexReveal>
 
         {error ? (
-          <p role="alert" className="mt-4 rounded-xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">{error}</p>
+          <p role="alert" className="mt-9 text-[0.875rem] leading-7" style={{ color: "#ffb4b4" }}>{error}</p>
         ) : null}
 
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <button
-            type="button"
-            onClick={onSubmit}
-            disabled={busy}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-amber-200 via-rose-200 to-amber-100 px-6 py-3.5 text-sm font-black text-[#2b1020] shadow-[0_18px_38px_-16px_rgba(255,214,150,.7)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60 sm:text-base"
-          >
+        <CodexReveal index={2} className="mt-12 flex flex-col items-center gap-5">
+          <button type="button" onClick={onSubmit} disabled={busy} className={styles.cta}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-            {busy ? busyLabel : "인연의 서 펼치기"}
+            {busy ? busyLabel : "비책 펼치기"}
           </button>
           {priceSlot}
-        </div>
+        </CodexReveal>
       </div>
     </section>
   );

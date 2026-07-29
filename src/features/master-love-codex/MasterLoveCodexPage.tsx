@@ -29,7 +29,8 @@ import CodexLanding from "./components/CodexLanding";
 import CodexPrologueScene from "./components/CodexPrologueScene";
 import CodexBirthGate, { EMPTY_CODEX_BIRTH, type CodexBirthInput } from "./components/CodexBirthGate";
 import CodexGenerating from "./components/CodexGenerating";
-import CodexBookReader, { type CodexChapter, type CodexLoveDna } from "./components/CodexBookReader";
+import CodexShell from "./components/CodexShell";
+import type { CodexChapter, CodexLoveDna } from "./components/CodexReader";
 import { codexPrologueStageOrder, type CodexPrologueChoiceKey, type CodexPrologueStage } from "./data/prologue";
 import {
   MASTER_LOVE_CODEX_FEATURE_AMOUNT_KRW,
@@ -40,7 +41,8 @@ import {
   MASTER_LOVE_CODEX_TOTAL_CHAPTERS,
 } from "./constants";
 
-type Phase = "landing" | "prologue" | "birth" | "checking" | "payment" | "generating" | "reader";
+// 읽기(reader)는 이 라우트에 없다 — 생성이 끝나면 /master-love-codex/result 로 넘긴다.
+type Phase = "landing" | "prologue" | "birth" | "checking" | "payment" | "generating";
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "인연의 서를 열려면 로그인이 필요합니다.",
@@ -177,13 +179,6 @@ function mapError(data: SessionPayload, status = 0) {
   return data?.message || ERROR_TEXT.SERVER_ERROR;
 }
 
-function buildBirthLine(birth: CodexBirthInput) {
-  const parts: string[] = [birth.calendarType === "lunar" ? "음력" : "양력"];
-  if (birth.birthDate) parts.push(birth.birthDate);
-  parts.push(birth.birthTimeUnknown ? "태어난 시각 모름" : birth.birthTime || "");
-  if (birth.gender) parts.push(birth.gender === "male" ? "남성" : "여성");
-  return parts.filter(Boolean).join(" · ");
-}
 
 export default function MasterLoveCodexPage() {
   const router = useRouter();
@@ -194,9 +189,6 @@ export default function MasterLoveCodexPage() {
   const [birth, setBirth] = useState<CodexBirthInput>(EMPTY_CODEX_BIRTH);
   const [error, setError] = useState("");
   const [chapters, setChapters] = useState<CodexChapter[]>([]);
-  const [loveDna, setLoveDna] = useState<CodexLoveDna | null>(null);
-  const [totalCharCount, setTotalCharCount] = useState(0);
-  const [sessionId, setSessionId] = useState("");
   const busyRef = useRef(false);
   const idempotencyRef = useRef("");
   // 결제 후 생성이 끊겼을 때 catch 에서 즉시 읽어야 하므로 state 가 아니라 ref 로 들고 있는다
@@ -258,12 +250,12 @@ export default function MasterLoveCodexPage() {
       if (data.accessToken) token = data.accessToken;
       current = data;
       setChapters(Array.isArray(data.chapters) ? data.chapters : []);
-      if (data.loveDna) setLoveDna(data.loveDna);
-      setTotalCharCount(toNumber(data.totalCharCount, 0));
       if (data.done || String(data.status) === "completed") break;
     }
-    setPhase("reader");
-  }, []);
+    // 읽기는 몰입 전용 라우트에서 한다 — 그쪽은 사이트맵에 없어 서버 렌더 설명 하한(1,800자)
+    // 대상이 아니고, 따라서 코덱스 아래에 아무 설명도 남지 않는다.
+    router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(startSessionId)}`);
+  }, [router]);
 
   async function startCodex() {
     if (busyRef.current) return;
@@ -334,10 +326,7 @@ export default function MasterLoveCodexPage() {
       if (!started.data?.ok || !started.data.sessionId) throw new Error(mapError(started.data, started.status));
 
       sessionIdRef.current = started.data.sessionId;
-      setSessionId(started.data.sessionId);
       setChapters(Array.isArray(started.data.chapters) ? started.data.chapters : []);
-      if (started.data.loveDna) setLoveDna(started.data.loveDna);
-      setTotalCharCount(toNumber(started.data.totalCharCount, 0));
       await runBatches(started.data.sessionId, toText(started.data.accessToken), started.data);
     } catch (caught) {
       const message = caught instanceof TypeError
@@ -354,10 +343,14 @@ export default function MasterLoveCodexPage() {
           cancelled: message === ERROR_TEXT.PAYMENT_CANCELLED,
         });
       }
-      // 결제까지 끝난 뒤 생성이 끊긴 경우엔 세션이 남아 있으므로 지금까지 쓰인 장을 보여 준다.
+      // 결제까지 끝난 뒤 생성이 끊긴 경우엔 세션이 남아 있으므로 보관된 코덱스로 보낸다.
       // 같은 idempotencyKey 로 다시 시도하면 서버가 같은 세션을 돌려주므로 재결제되지 않는다.
-      setPhase(sessionIdRef.current ? "reader" : "birth");
-      if (!sessionIdRef.current) idempotencyRef.current = "";
+      if (sessionIdRef.current) {
+        router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionIdRef.current)}`);
+      } else {
+        setPhase("birth");
+        idempotencyRef.current = "";
+      }
     } finally {
       busyRef.current = false;
     }
@@ -374,72 +367,53 @@ export default function MasterLoveCodexPage() {
     );
   }
 
+  // 랜딩 이후 단계는 fixed 오버레이로 문서 흐름 위를 덮는다 — 아래 서버 렌더 소개
+  // 섹션(배포 게이트용 1,800자)이 몰입 중에 비치지 않게 하기 위해서다.
   if (phase === "prologue") {
     return (
-      <CodexPrologueScene
-        stage={prologueStage}
-        onStageChange={setPrologueStage}
-        onChoice={setPrologueChoice}
-        onComplete={completePrologue}
-        onSkip={skipPrologue}
-      />
+      <CodexShell overlay ariaLabel="프롤로그">
+        <CodexPrologueScene
+          stage={prologueStage}
+          onStageChange={setPrologueStage}
+          onChoice={setPrologueChoice}
+          onComplete={completePrologue}
+          onSkip={skipPrologue}
+        />
+      </CodexShell>
     );
   }
 
   if (phase === "generating") {
     return (
-      <CodexGenerating
-        completed={chapters.length}
-        total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
-        latestTitles={chapters.map((chapter) => chapter.title)}
-        name={birth.name}
-      />
-    );
-  }
-
-  if (phase === "reader") {
-    return (
-      <>
-        <CodexBookReader
-          chapters={chapters}
-          loveDna={loveDna}
+      <CodexShell overlay motes={false} ariaLabel="인연의 서 생성 중">
+        <CodexGenerating
+          completed={chapters.length}
+          total={MASTER_LOVE_CODEX_TOTAL_CHAPTERS}
+          latestTitles={chapters.map((chapter) => chapter.title)}
           name={birth.name}
-          birthLine={buildBirthLine(birth)}
-          totalCharCount={totalCharCount}
-          sessionId={sessionId}
         />
-        {error ? (
-          <p role="alert" className="mx-auto max-w-3xl px-5 pb-10 text-center text-sm text-rose-200">{error}</p>
-        ) : null}
-        <div className="bg-[#0d0714] pb-12 text-center">
-          <button
-            type="button"
-            onClick={() => router.push(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionId)}`)}
-            className="text-xs font-bold text-amber-100/70 underline-offset-4 hover:underline"
-          >
-            보관함 주소로 이동
-          </button>
-        </div>
-      </>
+      </CodexShell>
     );
   }
 
   return (
-    <CodexBirthGate
-      value={birth}
-      onChange={setBirth}
-      onSubmit={() => void startCodex()}
-      busy={phase === "checking" || phase === "payment"}
-      busyLabel={phase === "payment" ? "결제 진행 중..." : "이용권 확인 중..."}
-      error={error}
-      priceSlot={(
-        <PriceBadge
-          featureKey={MASTER_LOVE_CODEX_FEATURE_KEY}
-          fallbackCoins={MASTER_LOVE_CODEX_FEATURE_COST}
-          prefix="1회 이용 가격 "
-          className="text-xs text-amber-100/75"
-        />
-      )}
-    />
+    <CodexShell overlay ariaLabel="생년 정보 입력">
+      <CodexBirthGate
+        value={birth}
+        onChange={setBirth}
+        onSubmit={() => void startCodex()}
+        busy={phase === "checking" || phase === "payment"}
+        busyLabel={phase === "payment" ? "결제 진행 중..." : "이용권 확인 중..."}
+        error={error}
+        priceSlot={(
+          <PriceBadge
+            featureKey={MASTER_LOVE_CODEX_FEATURE_KEY}
+            fallbackCoins={MASTER_LOVE_CODEX_FEATURE_COST}
+            prefix="1회 "
+            className="text-xs"
+          />
+        )}
+      />
+    </CodexShell>
   );
 }

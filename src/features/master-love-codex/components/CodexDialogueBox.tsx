@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import styles from "../styles/codex.module.css";
 
 const TYPE_INTERVAL_MS = 24;
 const TYPE_INTERVAL_NARRATION_MS = 46;
@@ -95,22 +96,30 @@ export default function CodexDialogueBox({
         event.preventDefault();
         handleClick();
       }}
-      className="w-full cursor-pointer rounded-2xl border border-amber-200/25 bg-[#150b1e]/85 px-5 py-5 text-left shadow-[0_24px_60px_-30px_rgba(0,0,0,.9)] backdrop-blur-sm transition hover:border-amber-200/45 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200/70 sm:px-7 sm:py-6"
+      className="w-full cursor-pointer border-t border-[color:var(--codex-rule)] pt-7 text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[color:var(--codex-gold)]"
     >
       {label ? (
-        <p className="mb-2 text-[11px] font-black tracking-[0.28em] text-amber-100/85">{label}</p>
-      ) : (
-        <p className="mb-2 text-[11px] font-semibold tracking-[0.28em] text-rose-100/50">이야기</p>
-      )}
+        <p
+          className={`${styles.numeral} mb-4 text-[0.6875rem]`}
+          style={{ letterSpacing: "0.28em", color: "var(--codex-gold)" }}
+        >
+          {label}
+        </p>
+      ) : null}
       <p
-        className={`whitespace-pre-wrap text-[15px] leading-8 sm:text-base sm:leading-9 ${
-          speaker === "narration" ? "italic text-rose-50/80" : "text-rose-50"
-        }`}
+        className="whitespace-pre-wrap text-[1.0625rem] leading-9 sm:text-[1.125rem] sm:leading-[1.9]"
+        style={{
+          fontFamily: "var(--font-premium)",
+          letterSpacing: ".02em",
+          color: speaker === "narration" ? "var(--codex-ink-text-muted)" : "var(--codex-ink-text)",
+        }}
       >
         {characters.slice(0, visibleCount).join("")}
-        {!isComplete ? <span className="ml-0.5 inline-block animate-pulse text-amber-200">▌</span> : null}
+        {!isComplete ? (
+          <span className="ml-0.5 inline-block motion-safe:animate-pulse" style={{ color: "var(--codex-gold)" }}>▌</span>
+        ) : null}
       </p>
-      <p className="mt-4 text-right text-xs font-bold text-amber-100/70">
+      <p className={`${styles.quiet} mt-7 text-right`}>
         {isComplete ? (isAdvanceDisabled ? "" : `${cta || "계속"} ›`) : "탭하면 바로 표시"}
       </p>
     </div>

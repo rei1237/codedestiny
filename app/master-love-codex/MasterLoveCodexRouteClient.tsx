@@ -13,7 +13,7 @@ export default function MasterLoveCodexRouteClient() {
 
 function MasterLoveCodexShell() {
   return (
-    <div className="min-h-[100svh] bg-[#0d0714] text-rose-50">
+    <div className="min-h-[100svh] bg-[#0a0818] text-[#efe6d6]">
       <section className="mx-auto flex min-h-[60svh] max-w-3xl flex-col justify-center px-5 py-16 text-center sm:px-8">
         <p className="text-[11px] font-black tracking-[0.34em] text-amber-100/80">MASTER DESTINY</p>
         <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">마스터 인연의 서</h1>

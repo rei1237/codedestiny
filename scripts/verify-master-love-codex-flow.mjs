@@ -126,6 +126,34 @@ assert(
   `${routeFile}: env.PREMIUM_GEMINI_TIMEOUT_MS 를 || 체인에 넣으면 45초로 단락됩니다`,
 );
 
+// ── 5-2. 몰입 리더 계약 ──────────────────────────────────────────────────────
+const readerFile = "src/features/master-love-codex/components/CodexReader.tsx";
+const readerSource = read(readerFile);
+// reveal 이 opacity 0 인 채로 html2canvas 가 돌면 아직 안 본 장이 백지로 저장된다.
+assertIncludes(readerFile, readerSource, "isExporting");
+assertIncludes(readerFile, readerSource, "forceVisible");
+assertIncludes(readerFile, readerSource, "data-codex-pdf-page");
+assert(
+  /setIsExporting\(true\)[\s\S]{0,400}requestAnimationFrame/.test(readerSource),
+  `${readerFile}: PDF 캡처 전에 reveal 을 강제 노출하고 레이아웃 반영을 기다려야 합니다(백지 페이지 방지)`,
+);
+
+const revealFile = "src/features/master-love-codex/components/CodexReveal.tsx";
+const revealSource = read(revealFile);
+assert(
+  /forceVisible\s*\|\|\s*prefersReducedMotion/.test(revealSource),
+  `${revealFile}: forceVisible 과 리듀스드모션은 같은 즉시-노출 경로를 타야 합니다`,
+);
+
+// LazyMotion(strict) 아래에서는 m.* 만 쓴다. motion.* 는 feature 번들 분리를 깨뜨린다.
+for (const file of [readerFile, revealFile]) {
+  const source = read(file);
+  assert(
+    !/\bmotion\.[a-z]/.test(source),
+    `${file}: framer-motion 은 m.* 만 사용해야 합니다(motion.* 는 LazyMotion 청크 분리를 무력화)`,
+  );
+}
+
 // ── 6. 등록 ──────────────────────────────────────────────────────────────────
 const workerIndex = read("worker/index.js");
 assertIncludes("worker/index.js", workerIndex, "handleMasterLoveCodexRoutes");
@@ -141,6 +169,20 @@ assertIncludes("app/components/AppChrome.tsx", appChrome, `"/master-love-codex"`
 assertIncludes("lib/seo-site-urls.ts", read("lib/seo-site-urls.ts"), "/master-love-codex");
 assertIncludes("scripts/generate-sitemap.mjs", read("scripts/generate-sitemap.mjs"), "/master-love-codex");
 assertIncludes("app/_lib/serviceSections.js", read("app/_lib/serviceSections.js"), "/master-love-codex");
+
+// 읽기 라우트는 사이트맵에 넣지 않는다 — 넣는 순간 서버 렌더 1,800자 하한이 걸려
+// 코덱스 아래에 설명 블록을 다시 붙여야 하고 몰입이 깨진다.
+for (const file of ["lib/seo-site-urls.ts", "scripts/generate-sitemap.mjs"]) {
+  assert(
+    !read(file).includes("/master-love-codex/result"),
+    `${file}: /master-love-codex/result 는 사이트맵에 넣지 않는다(1,800자 게이트 대상이 되어 몰입이 깨진다)`,
+  );
+}
+
+// 입장 라우트는 반대로 설명 섹션이 반드시 남아 있어야 배포 게이트를 통과한다.
+// (ssr:false 클라이언트라 이게 없으면 서버 렌더 텍스트가 152자로 떨어진다)
+const entryPage = read("app/master-love-codex/page.tsx");
+assertIncludes("app/master-love-codex/page.tsx", entryPage, "ServiceIntroSection");
 
 // 메인 화면 대표 상담 카드 — 루트 셸과 5개 미러 전부
 for (const shell of [
