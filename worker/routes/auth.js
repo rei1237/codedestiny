@@ -29,14 +29,6 @@ import {
   socialProfileFromSignupTicket,
   verifySocialSignupTicket,
 } from "../lib/social-signup-ticket.js";
-import {
-  buildGuardianConsentRequestPage,
-  buildGuardianConsentResultPage,
-  createGuardianConsentToken,
-  htmlResponse,
-  sendGuardianConsentEmail,
-  verifyGuardianConsentToken,
-} from "../lib/guardian-consent.js";
 import { clearRateLimit, incrementRateLimit, readRateLimitState } from "../lib/rate-limit.js";
 import { Buffer } from "node:buffer";
 import { createHmac, createHash, randomBytes, timingSafeEqual } from "node:crypto";
@@ -1610,7 +1602,7 @@ async function findExistingSocialUser(provider, profile, socialField) {
  * @param {object} [options]
  * @param {boolean} [options.createIfMissing] false면 신규 신원일 때 계정을 만들지 않고 null을 돌려준다.
  *   만 14세 미만 판정을 위해 생년월일을 받기 전에는 계정을 만들 수 없어서 필요하다.
- * @param {object} [options.signupProfile] 가입 마무리 단계에서 받은 생년 정보·보호자 동의 상태.
+ * @param {object} [options.signupProfile] 가입 마무리 단계에서 받은 생년월일·시각·성별.
  */
 async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   const socialField = `socialAccounts.${provider}.id`;
@@ -1643,7 +1635,6 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
         enabled: false,
         activatedAt: null,
       },
-      ...(signupProfile?.guardianConsent ? { guardianConsent: signupProfile.guardianConsent } : {}),
       socialAccounts: {
         [provider]: {
           id: profile.providerId,
@@ -2166,70 +2157,23 @@ function logSignupFailure(request, env, errorCode, errorMessage) {
   }));
 }
 
-const GUARDIAN_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SIGNUP_BIRTH_TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
 /**
- * 보호자 동의 대기 계정 응답. 이메일 가입과 소셜 가입이 같은 결과를 내도록 한 벌만 둔다.
- * 동의 전에는 세션을 발급하지 않고, 추천인 보상도 지급하지 않는다
- * (미승인 계정으로 보상이 나가는 것을 막는다).
- */
-async function respondWithGuardianConsentPending(request, env, { user, guardianEmail, childName, childEmail, timeoutMs }) {
-  const consentToken = createGuardianConsentToken(env, {
-    userId: String(user._id),
-    guardianEmail,
-  });
-  const consentUrl = `${getApiBaseUrl(request, env)}/api/auth/guardian-consent?token=${encodeURIComponent(consentToken)}`;
-  const emailResult = await withOptionalAuthSideEffect(
-    sendGuardianConsentEmail(env, {
-      guardianEmail,
-      childName,
-      childEmail,
-      consentUrl,
-    }),
-    Math.min(timeoutMs, 8000),
-    "auth_register_guardian_consent_email",
-    { ok: false },
-  );
-
-  const emailSent = Boolean(emailResult && emailResult.ok);
-  if (!emailSent) {
-    console.error("[auth/signup] guardian consent email failed", {
-      userId: String(user._id),
-      guardianEmailHash: hashEmailForAudit(guardianEmail, env).slice(0, 12),
-    });
-  }
-
-  return json({
-    ok: true,
-    guardianConsentRequired: true,
-    guardianConsentStatus: "pending",
-    emailSent,
-    message: emailSent
-      ? "보호자(법정대리인) 이메일로 동의 요청을 보냈습니다. 보호자가 동의를 완료하면 로그인할 수 있습니다."
-      : "계정은 생성되었지만 보호자 동의 메일 발송에 실패했습니다. admin@code-destiny.com 으로 문의해 주세요.",
-  }, { status: 202 });
-}
-
-/**
- * 보호자 동의가 완료되지 않은 계정의 로그인 차단 응답. 차단 사유가 없으면 null.
+ * 만 14세 미만은 가입 불가라 이 상태의 계정이 새로 생기지는 않는다.
+ * 2026-07-29 하루 동안 운영했던 보호자 동의 절차에서 남았을 수 있는 대기 계정을
+ * 잠가두기 위한 잔여 가드다. 차단 사유가 없으면 null.
  */
 function buildGuardianConsentLoginBlock(user) {
   const consent = user?.guardianConsent;
   if (!consent || !consent.required) return null;
   if (consent.status === "approved") return null;
 
-  const messages = {
-    pending: "보호자(법정대리인)의 동의가 완료되어야 로그인할 수 있습니다. 보호자 이메일로 보낸 동의 링크를 확인해 주세요.",
-    rejected: "보호자(법정대리인)가 동의하지 않아 이 계정은 이용할 수 없습니다.",
-    revoked: "보호자(법정대리인)가 동의를 철회하여 이 계정은 이용할 수 없습니다.",
-  };
-
   return json({
     ok: false,
     code: "guardian_consent_required",
     guardianConsentStatus: consent.status || "pending",
-    message: messages[consent.status] || messages.pending,
+    message: "이 계정은 이용할 수 없습니다. admin@code-destiny.com 으로 문의해 주세요.",
   }, { status: 403 });
 }
 
@@ -2288,28 +2232,16 @@ async function handleRegister(request, env) {
     );
   }
 
-  // 프론트 우회를 막기 위해 서버에서도 만 나이를 판정한다.
-  // 만 14세 미만은 차단이 아니라 법정대리인(보호자) 동의 절차로 분기한다.
+  // 프론트 우회를 막기 위해 서버에서도 만 나이를 판정한다. 만 14세 미만은 가입 불가.
   const ageCheck = validateBirthDateWithAge(body.birthDate);
   if (!ageCheck.isValid) {
+    const isUnderage = ageCheck.age >= 0 && ageCheck.age < MIN_SELF_CONSENT_AGE;
     return signupErrorResponse(
       request,
       env,
       400,
-      "invalid_birth_date",
+      isUnderage ? "underage" : "invalid_birth_date",
       ageCheck.error || "올바른 생년월일을 입력해주세요.",
-    );
-  }
-
-  const guardianEmail = String(body.guardianEmail || "").trim().toLowerCase();
-  if (ageCheck.requiresGuardianConsent && !GUARDIAN_EMAIL_REGEX.test(guardianEmail)) {
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      "guardian_email_required",
-      `만 ${MIN_SELF_CONSENT_AGE}세 미만은 법정대리인(보호자) 이메일을 입력해야 가입 절차를 시작할 수 있습니다.`,
-      { requiresGuardianConsent: true },
     );
   }
 
@@ -2472,17 +2404,6 @@ async function handleRegister(request, env) {
           enabled: true,
           activatedAt: new Date(),
         },
-        ...(ageCheck.requiresGuardianConsent
-          ? {
-            guardianConsent: {
-              required: true,
-              status: "pending",
-              method: "guardian_email",
-              guardianEmail,
-              requestedAt: new Date(),
-            },
-          }
-          : {}),
       }),
       timeoutMs,
       "auth_register_create_user",
@@ -2505,16 +2426,6 @@ async function handleRegister(request, env) {
       "db_write_failed",
       toErrorMessage(error) || "Failed to create user.",
     );
-  }
-
-  if (ageCheck.requiresGuardianConsent) {
-    return await respondWithGuardianConsentPending(request, env, {
-      user,
-      guardianEmail,
-      childName: name,
-      childEmail: email,
-      timeoutMs,
-    });
   }
 
   const referralCapture = extractReferralCapture(body);
@@ -2557,164 +2468,6 @@ async function handleRegister(request, env) {
       toErrorMessage(error) || "Session issuance failed.",
     );
   }
-}
-
-async function loadGuardianConsentUser(userId) {
-  if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return null;
-  return await User.collection.findOne(
-    { _id: new mongoose.Types.ObjectId(String(userId)) },
-    { projection: { _id: 1, name: 1, email: 1, birthDate: 1, status: 1, guardianConsent: 1 } },
-  );
-}
-
-function guardianConsentTokenErrorPage(code) {
-  const expired = code === "expired";
-  return htmlResponse(buildGuardianConsentResultPage({
-    heading: expired ? "동의 링크가 만료되었어요" : "동의 링크를 확인할 수 없어요",
-    message: expired
-      ? "보안을 위해 동의 링크는 7일간만 유효합니다. 자녀가 회원가입을 다시 신청하면 새 동의 메일이 발송됩니다."
-      : "링크가 손상되었거나 올바르지 않습니다. 메일에 있는 링크 전체를 복사해 다시 열어 주세요.",
-    tone: "warn",
-  }), 400);
-}
-
-/**
- * 보호자가 메일의 링크를 열었을 때 보여주는 동의 요청 페이지 (GET).
- */
-async function handleGuardianConsentPage(request, env) {
-  const token = new URL(request.url).searchParams.get("token") || "";
-  const verified = verifyGuardianConsentToken(env, token);
-  if (!verified.ok) return guardianConsentTokenErrorPage(verified.code);
-
-  let user;
-  try {
-    await connectDb(env);
-    user = await loadGuardianConsentUser(verified.payload.uid);
-  } catch (error) {
-    console.error("[auth/guardian-consent] lookup failed:", error);
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "잠시 후 다시 시도해 주세요",
-      message: "일시적인 서버 문제로 동의 정보를 불러오지 못했습니다.",
-      tone: "warn",
-    }), 503);
-  }
-
-  if (!user || user.status === "withdrawn") {
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "가입 신청을 찾을 수 없어요",
-      message: "해당 가입 신청이 이미 취소되었거나 계정이 삭제되었습니다.",
-      tone: "warn",
-    }), 404);
-  }
-
-  const status = user.guardianConsent?.status || "none";
-  if (status === "approved") {
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "이미 동의가 완료되었어요",
-      message: "자녀는 지금 바로 로그인해 서비스를 이용할 수 있습니다.",
-    }));
-  }
-  if (status !== "pending") {
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "동의를 진행할 수 없어요",
-      message: "이 가입 신청은 이미 종료되었습니다. 자녀가 회원가입을 다시 신청해야 합니다.",
-      tone: "warn",
-    }), 409);
-  }
-
-  return htmlResponse(buildGuardianConsentRequestPage({
-    token,
-    childName: user.name || "",
-    childEmail: user.email || "",
-    birthDate: user.birthDate || "",
-    actionUrl: `${getApiBaseUrl(request, env)}/api/auth/guardian-consent`,
-  }));
-}
-
-/**
- * 보호자가 동의/거부 버튼을 눌렀을 때 처리한다 (POST, 동의 페이지 폼 전송).
- */
-async function handleGuardianConsentSubmit(request, env) {
-  let token = "";
-  let action = "";
-  try {
-    const form = await request.formData();
-    token = String(form.get("token") || "");
-    action = String(form.get("action") || "").toLowerCase();
-  } catch (error) {
-    return guardianConsentTokenErrorPage("malformed_token");
-  }
-
-  const verified = verifyGuardianConsentToken(env, token);
-  if (!verified.ok) return guardianConsentTokenErrorPage(verified.code);
-
-  const approved = action === "approve";
-  const now = new Date();
-  const meta = getRequestMeta(request);
-
-  let updateResult;
-  try {
-    await connectDb(env);
-    updateResult = await User.collection.updateOne(
-      { _id: new mongoose.Types.ObjectId(String(verified.payload.uid)), "guardianConsent.status": "pending" },
-      {
-        $set: {
-          "guardianConsent.status": approved ? "approved" : "rejected",
-          "guardianConsent.method": "guardian_email",
-          [approved ? "guardianConsent.consentedAt" : "guardianConsent.revokedAt"]: now,
-          "guardianConsent.consentIp": String(meta.ip || "").slice(0, 64),
-        },
-      },
-    );
-  } catch (error) {
-    console.error("[auth/guardian-consent] update failed:", error);
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "잠시 후 다시 시도해 주세요",
-      message: "일시적인 서버 문제로 동의 처리가 완료되지 않았습니다.",
-      tone: "warn",
-    }), 503);
-  }
-
-  if (!updateResult.matchedCount) {
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "이미 처리된 요청이에요",
-      message: "이 가입 신청은 이미 동의 또는 거부 처리되었습니다.",
-      tone: "warn",
-    }), 409);
-  }
-
-  if (!approved) {
-    return htmlResponse(buildGuardianConsentResultPage({
-      heading: "동의하지 않음으로 처리했어요",
-      message: "회원가입이 완료되지 않았으며, 해당 계정으로는 로그인할 수 없습니다.",
-      tone: "warn",
-    }));
-  }
-
-  // 동의가 완료된 시점에 가입 혜택 이력을 남긴다(월정석 잔액 자체는 계정 생성 시 지급되어 있다).
-  await withOptionalAuthSideEffect(
-    recordMonthlyCreditGrantLedger({
-      userId: new mongoose.Types.ObjectId(String(verified.payload.uid)),
-      amount: SIGNUP_MONTHLY_CREDIT_GRANT,
-      beforeBalance: 0,
-      afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-      reason: "회원가입 이용권 혜택 지급",
-      sourceId: `signup:${String(verified.payload.uid)}`,
-      serviceKey: "signup_bonus",
-      metadata: {
-        grantType: "signup",
-        authMethod: "local",
-        guardianConsent: true,
-      },
-    }),
-    3000,
-    "auth_guardian_consent_credit_grant_ledger",
-  );
-
-  return htmlResponse(buildGuardianConsentResultPage({
-    heading: "동의가 완료되었어요",
-    message: "자녀는 이제 로그인해 서비스를 이용할 수 있습니다. 만 14세 미만 계정은 유료 결제 없이 무료 기능만 이용할 수 있습니다.",
-  }));
 }
 
 async function handleLogin(request, env) {
@@ -4134,20 +3887,16 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 400, "invalid_social_signup_ticket", "지원하지 않는 소셜 로그인입니다.");
   }
 
+  // 만 14세 미만이면 계정을 만들기 전에 거부한다 — 소셜도 이메일 가입과 같은 기준이다.
   const ageCheck = validateBirthDateWithAge(String(body?.birthDate || "").trim());
   if (!ageCheck.isValid) {
-    return signupErrorResponse(request, env, 400, "invalid_birth_date", ageCheck.error || "올바른 생년월일을 입력해주세요.");
-  }
-
-  const guardianEmail = String(body?.guardianEmail || "").trim().toLowerCase();
-  if (ageCheck.requiresGuardianConsent && !GUARDIAN_EMAIL_REGEX.test(guardianEmail)) {
+    const isUnderage = ageCheck.age >= 0 && ageCheck.age < MIN_SELF_CONSENT_AGE;
     return signupErrorResponse(
       request,
       env,
       400,
-      "guardian_email_required",
-      `만 ${MIN_SELF_CONSENT_AGE}세 미만은 법정대리인(보호자) 이메일을 입력해야 가입 절차를 시작할 수 있습니다.`,
-      { requiresGuardianConsent: true },
+      isUnderage ? "underage" : "invalid_birth_date",
+      ageCheck.error || "올바른 생년월일을 입력해주세요.",
     );
   }
 
@@ -4164,22 +3913,7 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 503, "db_connection_failed", toErrorMessage(error) || "Database connection failed.");
   }
 
-  const signupProfile = {
-    birthDate,
-    birthTime,
-    gender,
-    ...(ageCheck.requiresGuardianConsent
-      ? {
-        guardianConsent: {
-          required: true,
-          status: "pending",
-          method: "guardian_email",
-          guardianEmail,
-          requestedAt: new Date(),
-        },
-      }
-      : {}),
-  };
+  const signupProfile = { birthDate, birthTime, gender };
 
   let socialUser;
   try {
@@ -4198,16 +3932,15 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 500, "unknown_error", "Failed to create social account.");
   }
 
-  // 티켓 재제출·동시 콜백 경합으로 이미 만들어진 계정을 받았을 수도 있다.
-  // 그 계정이 동의 대기 상태면 동의 안내를 다시 돌려준다(세션 없음).
+  // 티켓 재제출·동시 콜백 경합으로 과거 보호자 동의 대기 계정을 받았다면 세션을 주지 않는다.
   if (isGuardianConsentBlocked(user)) {
-    return await respondWithGuardianConsentPending(request, env, {
-      user,
-      guardianEmail: user.guardianConsent?.guardianEmail || guardianEmail,
-      childName: user.name || ticket.name || "",
-      childEmail: user.email || ticket.email || "",
-      timeoutMs,
-    });
+    return signupErrorResponse(
+      request,
+      env,
+      403,
+      "guardian_consent_required",
+      "이 계정은 이용할 수 없습니다. admin@code-destiny.com 으로 문의해 주세요.",
+    );
   }
 
   const nextPath = sanitizeOAuthNextPath(ticket.nextPath);
@@ -4341,8 +4074,6 @@ export async function handleAuthRoutes(request, env) {
       if (oauthConfigError) return oauthConfigError;
     }
 
-    if (method === "GET" && path === "/guardian-consent") return await handleGuardianConsentPage(request, env);
-    if (method === "POST" && path === "/guardian-consent") return await handleGuardianConsentSubmit(request, env);
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
     if (method === "POST" && path === "/signup") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);

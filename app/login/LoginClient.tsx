@@ -351,9 +351,8 @@ function normalizeSocialAuthError(rawReason: string | null, copy: LoginPageCopy)
   if (reason.includes("token_exchange_failed")) return copy.tokenExchangeFailed;
   if (reason === "oauth_not_configured") return copy.oauthNotConfigured;
   if (reason === "invalid_callback" || reason === "provider_mismatch") return copy.invalidCallback;
-  // 만 14세 미만 계정은 보호자(법정대리인) 동의가 끝나야 로그인할 수 있다.
-  if (reason === "guardian_consent_pending") return "보호자(법정대리인)의 동의가 완료되어야 로그인할 수 있습니다. 보호자 이메일로 보낸 동의 링크를 확인해 주세요.";
-  if (reason === "guardian_consent_rejected" || reason === "guardian_consent_revoked") return "보호자(법정대리인) 동의가 없어 이 계정은 이용할 수 없습니다.";
+  // 2026-07-29 하루 운영했던 보호자 동의 절차에서 남은 대기 계정은 잠긴 상태로 둔다.
+  if (reason.startsWith("guardian_consent")) return "이 계정은 이용할 수 없습니다. admin@code-destiny.com 으로 문의해 주세요.";
   return copy.socialDefaultError;
 }
 

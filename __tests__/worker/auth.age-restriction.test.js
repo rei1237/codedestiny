@@ -1,33 +1,28 @@
 /**
  * @jest-environment node
  *
- * 만 14세 미만 가입 정책 회귀 테스트 — 네트워크·DB 접근 없음.
+ * 만 14세 미만 회원가입 차단 회귀 테스트 — 네트워크·DB 접근 없음.
  *
- * 정책: 개인정보보호법 제22조의2에 따라 만 14세 미만은 "가입 불가"가 아니라
- * 법정대리인(보호자) 동의 대상이다. 동의 전까지 계정은 사용할 수 없고,
- * 동의 후에도 만 14세 미만 계정은 유료 결제를 이용할 수 없다(민법 제5조 취소권 회피).
+ * 정책: 대한민국 관련 법령에 따라 만 14세 미만은 회원가입·서비스 이용 불가.
+ * 이메일 가입과 소셜 가입이 같은 기준을 쓴다 — 소셜은 콜백에서 계정을 만들지 않고
+ * 가입 마무리 단계에서 생년월일을 받아 판정한다.
  */
 
 let validateBirthDateWithAge;
 let validateRegisterPayload;
 let MIN_SELF_CONSENT_AGE;
-let createGuardianConsentToken;
-let verifyGuardianConsentToken;
-let buildGuardianConsentRequestPage;
-let GUARDIAN_CONSENT_TTL_MS;
 let signSocialSignupTicket;
 let verifySocialSignupTicket;
 let socialProfileFromSignupTicket;
 let buildSocialSignupRedirectUrl;
 
-const ENV = { JWT_SECRET: "guardian-consent-test-secret" };
 const TICKET_SECRET = "social-signup-ticket-secret";
 const TICKET_ISSUER = "code-destiny";
 
 function baseSignupPayload(overrides = {}) {
   return {
     name: "테스트",
-    email: "kid@example.com",
+    email: "user@example.com",
     password: "password123",
     birthTime: "09:00",
     gender: "M",
@@ -41,12 +36,6 @@ beforeAll(async () => {
   validateRegisterPayload = validation.validateRegisterPayload;
   MIN_SELF_CONSENT_AGE = validation.MIN_SELF_CONSENT_AGE;
 
-  const guardian = await import("../../worker/lib/guardian-consent.js");
-  createGuardianConsentToken = guardian.createGuardianConsentToken;
-  verifyGuardianConsentToken = guardian.verifyGuardianConsentToken;
-  buildGuardianConsentRequestPage = guardian.buildGuardianConsentRequestPage;
-  GUARDIAN_CONSENT_TTL_MS = guardian.GUARDIAN_CONSENT_TTL_MS;
-
   const ticketMod = await import("../../worker/lib/social-signup-ticket.js");
   signSocialSignupTicket = ticketMod.signSocialSignupTicket;
   verifySocialSignupTicket = ticketMod.verifySocialSignupTicket;
@@ -55,29 +44,35 @@ beforeAll(async () => {
 });
 
 describe("만 나이 판정", () => {
-  test("만 14세 미만은 오류가 아니라 보호자 동의 대상이어야 한다", () => {
-    const result = validateBirthDateWithAge("2020-01-01");
-
-    expect(result.isValid).toBe(true);
-    expect(result.requiresGuardianConsent).toBe(true);
-    expect(result.error).toBeNull();
+  test("정책 기준 나이는 14세여야 한다", () => {
+    // scripts/verify-adsense-readiness.mjs 가 이 상수로 개인정보 페이지의 고지 마커를 검사한다.
+    expect(MIN_SELF_CONSENT_AGE).toBe(14);
   });
 
-  test("만 14세 이상은 보호자 동의 없이 통과해야 한다", () => {
+  test("만 14세 미만은 가입 불가로 판정돼야 한다", () => {
+    const result = validateBirthDateWithAge("2020-01-01");
+
+    expect(result.isValid).toBe(false);
+    expect(result.age).toBeGreaterThanOrEqual(0);
+    expect(result.age).toBeLessThan(MIN_SELF_CONSENT_AGE);
+    expect(result.error).toContain("만 14세 미만");
+  });
+
+  test("만 14세 이상은 통과해야 한다", () => {
     const result = validateBirthDateWithAge("1990-01-01");
 
     expect(result.isValid).toBe(true);
-    expect(result.requiresGuardianConsent).toBe(false);
+    expect(result.error).toBeNull();
   });
 
   test("생일 경계는 KST 기준으로 갈려야 한다", () => {
     const now = new Date("2026-07-29T00:00:00Z");
 
-    expect(validateBirthDateWithAge("2012-07-29", now).requiresGuardianConsent).toBe(false);
-    expect(validateBirthDateWithAge("2012-07-30", now).requiresGuardianConsent).toBe(true);
+    expect(validateBirthDateWithAge("2012-07-29", now).isValid).toBe(true);
+    expect(validateBirthDateWithAge("2012-07-30", now).isValid).toBe(false);
   });
 
-  test("잘못된 생년월일은 여전히 거부돼야 한다", () => {
+  test("잘못된 생년월일은 거부돼야 한다", () => {
     expect(validateBirthDateWithAge("1990-02-30").isValid).toBe(false);
     expect(validateBirthDateWithAge("2999-01-01").isValid).toBe(false);
     expect(validateBirthDateWithAge("").isValid).toBe(false);
@@ -85,62 +80,28 @@ describe("만 나이 판정", () => {
 });
 
 describe("가입 페이로드 검증", () => {
-  test("만 14세 미만인데 보호자 이메일이 없으면 거부돼야 한다", () => {
+  test("만 14세 미만 페이로드는 거부돼야 한다", () => {
     const result = validateRegisterPayload(baseSignupPayload({ birthDate: "2020-01-01" }));
 
     expect(result.isValid).toBe(false);
-    expect(result.requiresGuardianConsent).toBe(true);
-    expect(result.errors.some((message) => message.includes("Guardian"))).toBe(true);
+    expect(result.errors.some((message) => message.includes("만 14세 미만"))).toBe(true);
   });
 
-  test("보호자 이메일이 있으면 통과하고 소문자로 정규화돼야 한다", () => {
-    const result = validateRegisterPayload(baseSignupPayload({
-      birthDate: "2020-01-01",
-      guardianEmail: "Parent@Example.COM",
-    }));
-
-    expect(result.isValid).toBe(true);
-    expect(result.requiresGuardianConsent).toBe(true);
-    expect(result.sanitized.guardianEmail).toBe("parent@example.com");
-  });
-
-  test("만 14세 이상에게는 보호자 이메일을 요구하지 않아야 한다", () => {
+  test("만 14세 이상 페이로드는 통과해야 한다", () => {
     const result = validateRegisterPayload(baseSignupPayload({ birthDate: "1990-01-01" }));
 
     expect(result.isValid).toBe(true);
-    expect(result.requiresGuardianConsent).toBe(false);
-  });
-});
-
-describe("보호자 동의 토큰", () => {
-  const userId = "64b7f9c2e1a2b3c4d5e6f708";
-
-  test("발급한 토큰은 같은 시크릿으로 검증돼야 한다", () => {
-    const token = createGuardianConsentToken(ENV, { userId, guardianEmail: "parent@example.com" });
-    const verified = verifyGuardianConsentToken(ENV, token);
-
-    expect(verified.ok).toBe(true);
-    expect(verified.payload.uid).toBe(userId);
-    expect(verified.payload.gem).toBe("parent@example.com");
+    expect(result.sanitized.birthDate).toBe("1990-01-01");
   });
 
-  test("서명 변조·다른 시크릿·형식 오류는 거부돼야 한다", () => {
-    const token = createGuardianConsentToken(ENV, { userId, guardianEmail: "parent@example.com" });
-
-    expect(verifyGuardianConsentToken(ENV, `${token}x`).ok).toBe(false);
-    expect(verifyGuardianConsentToken({ JWT_SECRET: "another-secret" }, token).ok).toBe(false);
-    expect(verifyGuardianConsentToken(ENV, "garbage").ok).toBe(false);
-    expect(verifyGuardianConsentToken({}, token).ok).toBe(false);
-  });
-
-  test("만료된 토큰은 expired 로 거부돼야 한다", () => {
-    const token = createGuardianConsentToken(ENV, {
-      userId,
+  test("보호자 이메일은 더 이상 수집·요구하지 않는다", () => {
+    const result = validateRegisterPayload(baseSignupPayload({
+      birthDate: "1990-01-01",
       guardianEmail: "parent@example.com",
-      issuedAt: Date.now() - GUARDIAN_CONSENT_TTL_MS - 1000,
-    });
+    }));
 
-    expect(verifyGuardianConsentToken(ENV, token).code).toBe("expired");
+    expect(result.isValid).toBe(true);
+    expect(result.sanitized.guardianEmail).toBeUndefined();
   });
 });
 
@@ -148,7 +109,7 @@ describe("소셜 가입 티켓", () => {
   const profile = {
     provider: "google",
     providerId: "1234567890",
-    email: "kid@example.com",
+    email: "user@example.com",
     name: "테스트",
     image: "https://example.com/a.png",
     phoneNumber: "01012345678",
@@ -168,7 +129,7 @@ describe("소셜 가입 티켓", () => {
     expect(verified.nextPath).toBe("/saju");
   });
 
-  test("다른 시크릿·변조·잘못된 용도의 티켓은 거부돼야 한다", async () => {
+  test("다른 시크릿·변조·형식 오류 티켓은 거부돼야 한다", async () => {
     const ticket = await signSocialSignupTicket(profile, TICKET_SECRET, TICKET_ISSUER);
 
     await expect(verifySocialSignupTicket(ticket, "another-secret", TICKET_ISSUER)).rejects.toThrow();
@@ -201,34 +162,5 @@ describe("소셜 가입 티켓", () => {
 
     const rootUrl = buildSocialSignupRedirectUrl("https://code-destiny.com", "TICKET", { nextPath: "/", flow: "signup" });
     expect(rootUrl).not.toContain("next=");
-  });
-});
-
-describe("보호자 동의 페이지", () => {
-  test("아동 이름은 HTML 이스케이프돼야 한다", () => {
-    const page = buildGuardianConsentRequestPage({
-      token: "t",
-      childName: "<script>alert(1)</script>",
-      childEmail: "kid@example.com",
-      birthDate: "2020-01-01",
-      actionUrl: "https://code-destiny.com/api/auth/guardian-consent",
-    });
-
-    expect(page).not.toContain("<script>alert(1)</script>");
-    expect(page).toContain("&lt;script&gt;");
-  });
-
-  test("동의·거부 버튼과 결제 제한 안내가 모두 있어야 한다", () => {
-    const page = buildGuardianConsentRequestPage({
-      token: "t",
-      childName: "아이",
-      childEmail: "kid@example.com",
-      birthDate: "2020-01-01",
-      actionUrl: "https://code-destiny.com/api/auth/guardian-consent",
-    });
-
-    expect(page).toContain('name="action" value="approve"');
-    expect(page).toContain('name="action" value="reject"');
-    expect(page).toContain(`만 ${MIN_SELF_CONSENT_AGE}세 미만 계정은`);
   });
 });

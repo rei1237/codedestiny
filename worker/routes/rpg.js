@@ -1379,7 +1379,9 @@ async function getRpgProgressLite(request, env) {
   }
 
   try {
-    await connectDb(env);
+    /* 선행 connectDb 를 두지 않는다 — withMongoRetry 가 내부에서 connectDb 를 한다.
+       밖에서 또 부르면 그 호출만 시도 타임아웃·재시도·웜 무효화 밖에 놓여, 연결 수립 단계
+       실패가 재시도 0회로 곧장 catch 로 떨어졌다(재시도가 있는 것처럼 보이지만 없던 구간). */
     const doc = await withMongoRetry(env, () => UserRpgProgress.findOne({
       userId,
       profileId: ACCOUNT_PROFILE_SCOPE,
@@ -1389,10 +1391,18 @@ async function getRpgProgressLite(request, env) {
     writeRpgProgressToCache(userId, progress);
     return json({ ok: true, cached: false, progress });
   } catch (error) {
-    /* 일시적 DB 장애를 500으로 터뜨리지 않는다. 클라이언트는 503을 보면 조용히
-       로컬 값을 그대로 쓰고, 카드에는 아무 오류도 보이지 않는다. */
+    /* 일시적 DB 장애를 오류 응답으로 터뜨리지 않는다. 클라이언트(_cdLevelSync)는 실패를 삼키고
+       로컬 값을 그대로 쓰므로 상태코드에서 얻는 정보가 없는데, 503 은 콘솔에 오류만 남기고
+       클라의 베이스 폴백을 유발해 요청을 배로 늘렸다. /api/auth/me 의 degraded 응답과 같은
+       계약으로 200 + degraded 를 돌려준다(progress: null → 클라는 종전대로 로컬 값 유지). */
     console.warn("[RPG][ProgressDegraded]", { message: String(error?.message || error || "") });
-    return json({ ok: false, degraded: true, message: "성장 기록을 잠시 불러오지 못했습니다." }, { status: 503 });
+    return json({
+      ok: true,
+      degraded: true,
+      code: "RPG_PROGRESS_DEGRADED",
+      progress: null,
+      message: "성장 기록을 잠시 불러오지 못했습니다.",
+    });
   }
 }
 
@@ -1676,7 +1686,7 @@ async function collectRpgItem(request, env) {
 
 async function getRpgCollectibles(request, env) {
   const auth = await requireAuth(request, env);
-  await connectDb(env);
+  // 선행 connectDb 없음 — withMongoRetry 가 내부에서 연결한다(getRpgProgressLite 와 같은 이유).
   const rows = await withMongoRetry(env, () => UserRpgRewardLog.find({
     userId: auth.userId,
     profileId: ACCOUNT_PROFILE_SCOPE,
