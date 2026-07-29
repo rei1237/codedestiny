@@ -1,16 +1,20 @@
 "use client";
 
 /**
- * 마스터 인연의 서 — 보관된 인연의 서 재열람.
+ * 보관된 인연의 서 — 읽기 전용 몰입 코덱스.
+ *
+ * 이 라우트는 사이트맵에 없어 서버 렌더 텍스트 하한(1,800자) 대상이 아니다.
+ * 그래서 코덱스 아래에 서비스 설명·주의사항을 두지 않는다 — 봉인 문장에서 끝난다.
  * 회당 결제지만 결과는 서버에 영구 저장되므로 이 화면은 재결제 없이 열린다.
  */
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
-import CodexBookReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexBookReader";
+import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
+import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
+import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 
 type SessionState = {
   sessionId: string;
@@ -88,39 +92,48 @@ export default function MasterLoveCodexResultClient() {
 
   if (loading) {
     return (
-      <div className="flex min-h-[100svh] items-center justify-center bg-[#0d0714] text-rose-50">
-        <p className="flex items-center gap-2 text-sm">
-          <Loader2 className="h-4 w-4 animate-spin text-amber-200" aria-hidden="true" />
-          보관된 인연의 서를 여는 중입니다...
-        </p>
-      </div>
+      <CodexShell ariaLabel="보관된 인연의 서를 여는 중">
+        <div className="flex min-h-[100svh] items-center justify-center text-center">
+          <p
+            className={`${styles.numeral} text-[0.9375rem]`}
+            style={{ letterSpacing: "0.24em", color: "var(--codex-gold)" }}
+            aria-live="polite"
+          >
+            Unsealing
+          </p>
+        </div>
+      </CodexShell>
     );
   }
 
   if (error || !session) {
     return (
-      <div className="flex min-h-[100svh] flex-col items-center justify-center gap-4 bg-[#0d0714] px-6 text-center text-rose-50">
-        <p role="alert" className="max-w-sm text-sm leading-7 text-rose-100/85">{error || "인연의 서를 찾을 수 없습니다."}</p>
-        <Link
-          href="/master-love-codex"
-          className="rounded-full bg-gradient-to-r from-amber-200 via-rose-200 to-amber-100 px-5 py-2.5 text-sm font-black text-[#2b1020]"
-        >
-          인연의 서 화면으로
-        </Link>
-      </div>
+      <CodexShell ariaLabel="인연의 서를 열 수 없음">
+        <div className="flex min-h-[100svh] flex-col items-center justify-center text-center">
+          <div className={styles.measure}>
+            <p role="alert" className="text-[0.9375rem] leading-8">{error || "인연의 서를 찾을 수 없습니다."}</p>
+            <div className="mt-10">
+              <Link href="/master-love-codex" className={styles.cta}>인연의 서 화면으로</Link>
+            </div>
+          </div>
+        </div>
+      </CodexShell>
     );
   }
 
   return (
     <>
       {session.status !== "completed" ? (
-        <div className="bg-[#0d0714] px-5 pt-6">
-          <p className="mx-auto max-w-3xl rounded-xl border border-amber-200/30 bg-amber-200/10 px-4 py-3 text-center text-xs font-semibold text-amber-100/85">
-            아직 다 쓰이지 않은 인연의 서입니다. 본편 화면에서 이어 쓰면 남은 장이 채워집니다.
+        <div className="bg-[#0a0818] pt-6">
+          <p className={`${styles.measure} text-center text-[0.8125rem] leading-7`} style={{ color: "#b9ad99" }}>
+            아직 다 쓰이지 않은 인연의 서입니다.{" "}
+            <Link href="/master-love-codex" className="underline underline-offset-4" style={{ color: "#e8d5a3" }}>
+              이어 쓰기
+            </Link>
           </p>
         </div>
       ) : null}
-      <CodexBookReader
+      <CodexReader
         chapters={session.chapters}
         loveDna={session.loveDna}
         name={session.birthInfo?.name || ""}

@@ -113,7 +113,10 @@ const masterLoveCodexJsonLd = [
 
 export default function MasterLoveCodexPageRoute() {
   return (
-    <>
+    // 코덱스 잉크를 페이지 배경으로 깔아 랜딩과 아래 소개 섹션 사이에 이음매가 보이지 않게 한다.
+    // 이 소개 섹션은 배포 게이트(서버 렌더 1,800자) 때문에 반드시 남아 있어야 하며,
+    // 몰입 단계에서는 CodexShell 이 fixed 로 그 위를 덮는다.
+    <div className="min-h-[100svh] bg-[#0a0818]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(masterLoveCodexJsonLd) }}
@@ -192,6 +195,6 @@ export default function MasterLoveCodexPageRoute() {
           </div>
         ))}
       </ServiceIntroSection>
-    </>
+    </div>
   );
 }
