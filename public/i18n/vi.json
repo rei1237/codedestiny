@@ -4435,10 +4435,10 @@
   },
   "preview": {
     "featuresLabel": "Các tính năng chính",
-    "audienceLabel": "Được đề xuất cho",
-    "chapterPreviewLabel": "Xem trước chương",
+    "audienceLabel": "Khi nào nên mở",
+    "chapterPreviewLabel": "Đây là những gì bạn sẽ thấy sau khi mở khóa.",
     "requiredInfoLabel": "Thông tin cần thiết trước khi tạo",
-    "outcomesLabel": "Những gì bạn có thể thấy trong kết quả",
+    "outcomesLabel": "Yên tâm xem qua",
     "resultPreviewLabel": "Xem trước kết quả",
     "startNow": "Bắt đầu ngay bây giờ →",
     "paywallNote": "Tất cả dịch vụ trả phí được cung cấp ngay sau khi hoàn tất thanh toán (mua), và sau khi bắt đầu cung cấp, quyền rút lại giao dịch có thể bị hạn chế theo quy định pháp luật liên quan."

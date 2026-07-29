@@ -67,6 +67,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["같은 고민이 계속 반복될 때", "내 장점과 약점이 헷갈릴 때", "지금 운의 압박이 어디서 오는지 알고 싶을 때"],
     unlockBenefits: ["기질의 핵심 흐름", "현재 시기에 강하게 작용하는 포인트", "조심해야 할 선택 패턴", "현실적인 행동 기준"],
     previewText: "사주 해석은 길흉을 겁주듯 말하지 않고, 지금의 흐름과 선택 기준을 차분히 드러냅니다.",
+    recommendedFor: ["타고난 기질과 지금 흐름을 함께 보고 싶은 분","같은 고민이 반복되는 이유를 알고 싶은 분","선택을 앞두고 판단 기준이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   tarot: {
@@ -77,6 +78,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["마음은 급한데 답이 흐릿할 때", "상대의 감정이나 가까운 흐름이 궁금할 때", "선택 전에 마음을 정리하고 싶을 때"],
     unlockBenefits: ["현재 분위기 해석", "감정의 온도와 흐름", "조심해야 할 반응", "다음 행동 힌트"],
     previewText: "타로 리딩은 결과를 확정하지 않고, 지금 질문 주변에 떠오르는 상징과 흐름을 비춥니다.",
+    recommendedFor: ["답이 흐릿해 마음부터 정리하고 싶은 분","상대의 감정이나 가까운 흐름이 궁금한 분","짧고 선명한 조언이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   sukuyo: {
@@ -87,6 +89,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["이상하게 끌리지만 자주 부딪힐 때", "상대와의 관계 패턴을 알고 싶을 때", "오래 갈 수 있는 인연인지 궁금할 때"],
     unlockBenefits: ["두 사람의 기본 관계성", "가까워질 때 생기는 장점", "충돌이 생기는 지점", "관계를 부드럽게 만드는 조언"],
     previewText: "숙요점은 궁합을 좋다/나쁘다로만 단정하지 않고, 관계가 움직이는 거리감을 먼저 비춥니다.",
+    recommendedFor: ["상대와 가까워질수록 자꾸 부딪히는 분","관계의 패턴을 이름 붙여 이해하고 싶은 분","오래 갈 인연인지 판단이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   ziwei: {
@@ -97,6 +100,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["내 인생의 구조를 큰 틀에서 보고 싶을 때", "일·돈·관계의 중심축이 궁금할 때", "장기 흐름과 현재 선택을 함께 보고 싶을 때"],
     unlockBenefits: ["명궁과 주요 궁의 흐름", "궁별로 강하게 떠오르는 포인트", "장기 방향성과 주의 패턴", "다음 선택을 위한 기준"],
     previewText: "자미두수 해석은 별의 배치를 따라, 지금 내 삶의 구조에서 무엇이 강하게 움직이는지 살핍니다.",
+    recommendedFor: ["인생 구조를 큰 틀에서 보고 싶은 분","일·돈·관계의 중심축이 궁금한 분","장기 방향과 지금 선택을 함께 보고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   astrology: {
@@ -107,6 +111,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["감정과 선택의 타이밍이 궁금할 때", "내 별자리 흐름을 더 구체적으로 보고 싶을 때", "지금의 방향성을 차분히 정리하고 싶을 때"],
     unlockBenefits: ["별자리와 행성 흐름의 핵심", "심리적으로 강하게 작용하는 포인트", "주의해야 할 선택 패턴", "다음 시기를 준비하는 힌트"],
     previewText: "점성술 해석은 별의 상징을 통해, 지금 마음과 선택의 방향을 부드럽게 비춥니다.",
+    recommendedFor: ["감정과 상황이 따로 논다고 느끼는 분","움직일 시기를 정해야 하는 분","별자리 해석이 늘 겉핥기로 끝났던 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   vedic: {
@@ -117,6 +122,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["지금 선택의 의미가 궁금할 때", "마음속 질문이 쉽게 내려놓아지지 않을 때", "시기와 방향을 함께 보고 싶을 때"],
     unlockBenefits: ["질문의 핵심 흐름", "시점과 내면의 상징 해석", "선택을 막는 걸림돌", "현실적인 다음 기준"],
     previewText: "베다점은 질문이 열린 시점의 결을 따라, 지금 필요한 기준을 차분히 가리킵니다.",
+    recommendedFor: ["지금 선택의 의미를 확인하고 싶은 분","내려놓지 못한 질문이 하나 남아 있는 분","시기와 방향을 함께 보고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   oracle: {
@@ -127,6 +133,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["결정은 해야 하는데 확신이 부족할 때", "반복되는 신호가 있다고 느낄 때", "짧지만 선명한 상징 해석이 필요할 때"],
     unlockBenefits: ["현재 질문의 상징 메시지", "놓치기 쉬운 포인트", "주의해야 할 흐름", "다음 행동을 위한 힌트"],
     previewText: "오라클은 미래를 확정하지 않고, 지금 질문 주변에 떠오르는 상징을 비춥니다.",
+    recommendedFor: ["결정은 해야 하는데 확신이 부족한 분","반복되는 신호가 있다고 느끼는 분","짧지만 선명한 상징 해석이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   report: {
@@ -137,6 +144,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["같은 고민이 반복된다고 느낄 때", "단순 요약보다 구체적인 흐름이 필요할 때", "선택 전에 내 생각을 정리하고 싶을 때"],
     unlockBenefits: ["핵심 흐름 요약", "주제별 해석 포인트", "조심해야 할 패턴", "다음 행동 기준"],
     previewText: "프리미엄 해석은 결과를 과장하지 않고, 지금 필요한 질문의 결을 차분히 정리합니다.",
+    recommendedFor: ["흩어진 고민을 한 번에 정리하고 싶은 분","요약보다 구체적인 흐름이 필요한 분","선택 전에 생각을 매듭짓고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
 };

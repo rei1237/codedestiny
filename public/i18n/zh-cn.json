@@ -4435,10 +4435,10 @@
   },
   "preview": {
     "featuresLabel": "主要功能",
-    "audienceLabel": "推荐对象",
-    "chapterPreviewLabel": "章节预览",
+    "audienceLabel": "适合的情况",
+    "chapterPreviewLabel": "解锁后可以看到这些内容。",
     "requiredInfoLabel": "生成前所需信息",
-    "outcomesLabel": "结果中可查看的内容",
+    "outcomesLabel": "请放心查看",
     "resultPreviewLabel": "结果预览",
     "startNow": "立即开始 →",
     "paywallNote": "所有付费服务在支付（购买）完成后立即提供，服务开始后依据相关法律法规，撤回购买的权利可能受到限制。"

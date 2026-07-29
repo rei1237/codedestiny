@@ -4435,10 +4435,10 @@
   },
   "preview": {
     "featuresLabel": "Ciri utama",
-    "audienceLabel": "Disyorkan untuk",
-    "chapterPreviewLabel": "Pratonton bab",
+    "audienceLabel": "Bila sesuai dibuka",
+    "chapterPreviewLabel": "Ini yang anda lihat selepas dibuka.",
     "requiredInfoLabel": "Maklumat diperlukan sebelum penciptaan",
-    "outcomesLabel": "Perkara yang anda boleh lihat dalam hasilnya",
+    "outcomesLabel": "Semak dengan tenang",
     "resultPreviewLabel": "Pratonton keputusan",
     "startNow": "Mulakan sekarang →",
     "paywallNote": "Semua perkhidmatan berbayar disediakan sebaik sahaja pembayaran (pembelian) selesai, dan setelah penyediaan bermula, hak untuk menarik diri daripada pembelian mungkin terhad menurut undang-undang yang berkaitan."
