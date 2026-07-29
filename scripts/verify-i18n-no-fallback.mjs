@@ -32,6 +32,10 @@ const shouldUpdate = process.argv.includes("--update");
  * 평소에는 --update 만 쓰며, 그건 수치가 내려갈 때만 기록한다.
  */
 const shouldReset = process.argv.includes("--reset");
+/* 래칫은 기본 경고 전용이다. 번역을 한 번에 몰아서 할 예정이라 기준선 증가로 배포가
+   막히지 않게 두고, 다시 조일 때 --strict 또는 I18N_RATCHET=on 으로 되살린다.
+   (verify-i18n-no-hardcoded-korean.mjs 와 같은 규약) */
+const shouldFailOnIncrease = process.argv.includes("--strict") || process.env.I18N_RATCHET === "on";
 
 // A. 금지 패턴 — 로케일 조회 실패를 한국어로 메우는 구조
 const FORBIDDEN = [
@@ -89,10 +93,11 @@ if (!shouldReset && baseline && fallbackCalls > baseline.fallbackCalls) {
 }
 
 if (failures.length) {
-  console.error("[no-fallback] FAILED");
-  failures.forEach((f) => console.error(`- ${f}`));
-  console.error("문구는 public/i18n 키로 옮기고, 한국어는 ko.json 에서 읽으세요.");
-  process.exit(1);
+  const log = shouldFailOnIncrease ? console.error : console.warn;
+  log(`[no-fallback] ${shouldFailOnIncrease ? "FAILED" : "경고"}`);
+  failures.forEach((f) => log(`- ${f}`));
+  log("문구는 public/i18n 키로 옮기고, 한국어는 ko.json 에서 읽으세요.");
+  if (shouldFailOnIncrease) process.exit(1);
 }
 
 if (shouldUpdate || shouldReset) {

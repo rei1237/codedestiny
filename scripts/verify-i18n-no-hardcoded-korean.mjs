@@ -43,7 +43,7 @@ const shouldUpdate = process.argv.includes("--update");
 const shouldReset = process.argv.includes("--reset");
 const showReport = process.argv.includes("--report");
 // 게이트로 쓰려면 명시적으로 --strict 를 붙인다(위 주석 참고).
-const shouldFailOnIncrease = process.argv.includes("--strict");
+const shouldFailOnIncrease = process.argv.includes("--strict") || process.env.I18N_RATCHET === "on";
 
 /**
  * 집계 영역. 현지화는 영역 단위로 진행하므로 기준선도 영역별로 잡는다.
