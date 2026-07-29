@@ -15631,7 +15631,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             '.sy-report::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 88% 4%,rgba(255,255,255,.12),transparent 18%),radial-gradient(circle at 12% 18%,rgba(125,211,252,.08),transparent 24%)}',
             '.sy-sec{margin-bottom:14px;padding:15px 16px;border-radius:14px;font-size:0.92rem;line-height:1.68;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}',
             '.sy-sec-title{font-weight:900;font-size:0.82rem;text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px;text-shadow:0 0 12px rgba(196,181,253,.2)}',
-            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
+            '.sy-compat-moon-hero{display:grid;grid-template-columns:minmax(0,1fr) clamp(270px,28%,330px);gap:16px;align-items:center;background:radial-gradient(circle at 92% 8%,rgba(255,255,255,.26),transparent 18%),' + gradColor + ';padding:22px 20px 20px;position:relative;overflow:hidden}',
             '.sy-compat-moon-hero::before{content:"";position:absolute;right:-24px;top:-32px;width:142px;height:142px;border-radius:999px;background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.78),rgba(226,232,255,.24) 44%,rgba(167,139,250,.08) 70%,transparent 73%);opacity:.76;pointer-events:none}',
             '.sy-compat-moon-copy{position:relative;min-width:0}',
             '.sy-compat-moon-kicker{font-size:.7rem;text-transform:uppercase;letter-spacing:2.5px;color:rgba(255,255,255,.68);margin-bottom:4px;font-weight:900}',
@@ -15848,7 +15848,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                 </div>
               </div>
               <div class="sy-compat-fate-wrap" aria-hidden="true">
-                <svg class="sy-compat-fate-svg" viewBox="0 0 380 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
+                <svg class="sy-compat-fate-svg" viewBox="38 2 304 168" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="인연의 끈 궁합 다이어그램">
                   <defs>
                     <radialGradient id="fgMeGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(251,191,36,0.45)"/><stop offset="100%" stop-color="rgba(251,191,36,0)"/></radialGradient>
                     <radialGradient id="fgPartnerGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="rgba(244,114,182,0.45)"/><stop offset="100%" stop-color="rgba(244,114,182,0)"/></radialGradient>
@@ -15876,7 +15876,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     <circle cx="90" cy="65" r="28" fill="url(#fgOrbMe)" stroke="rgba(251,191,36,0.75)" stroke-width="1.6"/>
                     <circle cx="90" cy="65" r="24" fill="none" stroke="rgba(253,230,138,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
                     <text x="90" y="61" text-anchor="middle" fill="#fef3c7" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(myMansionName || '宿')}</text>
-                    <text x="90" y="76" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">나</text>
+                    <text x="90" y="76" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="700" font-family="'Gowun Dodum', sans-serif">나</text>
                   </g>
                   
                   <!-- right star (partner) -->
@@ -15885,7 +15885,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     <circle cx="290" cy="65" r="28" fill="url(#fgOrbPartner)" stroke="rgba(244,114,182,0.75)" stroke-width="1.6"/>
                     <circle cx="290" cy="65" r="24" fill="none" stroke="rgba(251,207,232,0.4)" stroke-width="0.8" stroke-dasharray="3 3"/>
                     <text x="290" y="61" text-anchor="middle" fill="#fce7f3" font-size="12" font-weight="900" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(tData.mansion || '宿')}</text>
-                    <text x="290" y="76" text-anchor="middle" fill="#f9a8d4" font-size="8" font-weight="700" font-family="'Gowun Dodum', sans-serif">상대</text>
+                    <text x="290" y="76" text-anchor="middle" fill="#f9a8d4" font-size="11" font-weight="700" font-family="'Gowun Dodum', sans-serif">상대</text>
                   </g>
                   
                   <!-- decorative starlight sparkles -->
@@ -15897,7 +15897,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                   <!-- relationship label glassmorphism pill badge at bottom center (guaranteed no overlap) -->
                   <g>
                     <rect x="65" y="132" width="250" height="28" rx="14" fill="rgba(8,13,30,0.85)" stroke="rgba(244,114,182,0.48)" stroke-width="1.2" filter="url(#fgStarGlow)"/>
-                    <text x="190" y="150" text-anchor="middle" fill="#fef3c7" font-size="10" font-weight="800" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(enhanced.distanceKo || '거리')} · ${syCanonicalEsc(enhanced.relationTypeKo || rel.stamp || rel.type)}</text>
+                    <text x="190" y="150" text-anchor="middle" fill="#fef3c7" font-size="13" font-weight="800" font-family="'Gowun Dodum', sans-serif">${syCanonicalEsc(enhanced.distanceKo || '거리')} · ${syCanonicalEsc(enhanced.relationTypeKo || rel.stamp || rel.type)}</text>
                   </g>
                 </svg>
               </div>
