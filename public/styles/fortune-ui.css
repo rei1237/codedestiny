@@ -11480,6 +11480,85 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
       /* ══════════════════════════════════════════
          Master Destiny Card — Cosmic Blossom
       ══════════════════════════════════════════ */
+      /* ── 저장된 카드로 바로 보기: 사주 입력 폼 위 칩 스트립 ── */
+      .dp-qp {
+        margin: 0 16px 10px;
+        padding: 12px 0 2px;
+      }
+      .dp-qp[hidden] { display: none; }
+      /* 제목만 페이지 배경 위에 놓인다(칩은 자체 다크 표면을 가짐).
+         연이 모드의 크림 배경에서 --dp-gold(#FFD700)는 1.35:1 로 대비 미달이므로
+         색 계열(골드)은 유지한 채 명도만 낮춘다(DESIGN.md The Hue-Stays Rule).
+         네오 모드는 배경이 미드나잇이라 원래 골드를 되돌린다. */
+      .dp-qp__title {
+        margin: 0 2px 9px;
+        font-size: 0.82rem;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        color: #7a5000;
+        word-break: keep-all;
+      }
+      html.neo-mode .dp-qp__title,
+      body.neo-mode .dp-qp__title { color: var(--dp-gold); }
+      .dp-qp__scroll {
+        display: flex;
+        gap: 9px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 2px 2px 8px;
+        scroll-snap-type: x proximity;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .dp-qp__scroll::-webkit-scrollbar { display: none; }
+      .dp-qp__chip {
+        flex: 0 0 auto;
+        min-width: 118px;
+        max-width: 168px;
+        scroll-snap-align: start;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding: 10px 13px 11px;
+        border-radius: 14px;
+        cursor: pointer;
+        text-align: left;
+        border: 1px solid rgba(255,215,0,0.20);
+        background: linear-gradient(135deg, #060C1A 0%, #0D1535 60%, #120B2C 100%);
+        box-shadow: 0 4px 18px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        transition: border-color 0.25s, box-shadow 0.25s, transform 0.18s;
+      }
+      .dp-qp__chip:hover { transform: translateY(-1px); border-color: rgba(255,215,0,0.42); }
+      .dp-qp__chip:active { transform: translateY(0); }
+      .dp-qp__chip:focus-visible { outline: 2px solid var(--dp-gold); outline-offset: 2px; }
+      .dp-qp__chip.is-active {
+        border-color: rgba(255,215,0,0.62);
+        box-shadow: 0 4px 22px rgba(0,0,0,0.5), 0 0 20px rgba(255,215,0,0.20), inset 0 1px 0 rgba(255,255,255,0.07);
+      }
+      .dp-qp__zodiac { font-size: 1.32rem; line-height: 1.2; }
+      .dp-qp__name {
+        width: 100%;
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #FFF7E2;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .dp-qp__date { font-size: 0.73rem; font-weight: 600; color: #C9B98A; }
+      @media (max-width: 768px) {
+        .dp-qp { margin: 0 12px 8px; padding: 10px 0 0; }
+        .dp-qp__chip { min-width: 106px; padding: 9px 11px 10px; }
+        .dp-qp__name { font-size: 0.81rem; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .dp-qp__chip { transition: none; }
+        .dp-qp__chip:hover { transform: none; }
+      }
+
       .dp-master-card {
         position: relative;
         border-radius: 20px;

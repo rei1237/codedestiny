@@ -148,6 +148,7 @@
       "nameLabel": "姓名",
       "nameHint": "請輸入要顯示在分析結果中的姓名。",
       "birthDateLabel": "出生日期",
+      "quickPickTitle": "✦ 用已儲存的命運卡片直接查看",
       "birthDateHint": "選擇出生日期，八字命盤的第一項基準就會開啟。",
       "solar": "陽曆",
       "lunar": "陰曆",
