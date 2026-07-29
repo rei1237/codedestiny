@@ -40,25 +40,66 @@ function readAttemptStatus(result: AccessCheckAttemptResult | null | undefined):
   return result?.response?.status ?? result?.status ?? 0;
 }
 
+// 선검사 전체(첫 시도 + 재시도 + 백오프)에 걸리는 벽시계 상한. 정적 셸의 CD_PASS_FIRST_BUDGET_MS 와 같은 값이다.
+// 이 상한이 없던 동안: authFetch에는 요청 타임아웃이 없고(타임아웃을 씌우는 건 billing-client 뿐) 재시도도
+// 횟수로만 묶여 있어, 서버가 느려지면 "이용권 확인 중"이 수십 초씩 붙잡혔다. 확인이 늦어질 때는 붙잡는 것보다
+// 결제창을 먼저 열어주는 편이 낫다 — 결제창에 '이용권 다시 확인'이 있어 dead-end가 아니다.
+export const PASS_CHECK_BUDGET_MS = 6000;
+export const PASS_CHECK_BUDGET_EXCEEDED_REASON = "PASS_CHECK_BUDGET_EXCEEDED";
+
+// 예산 초과는 "확정 실패"가 아니라 "일시적 지연"으로 표면화한다(503 + retryable). 호출부의 기존 degraded
+// 분기(isRetriableResultPollFailure)가 그대로 받아 결제창(단건+월정석)으로 폴백한다.
+function buildAccessCheckBudgetExceeded<T>(): T {
+  return {
+    status: 503,
+    response: { status: 503, ok: false },
+    data: { ok: false, reason: PASS_CHECK_BUDGET_EXCEEDED_REASON, retryable: true },
+  } as unknown as T;
+}
+
 export async function runAccessCheckWithTransientRetry<T extends AccessCheckAttemptResult>(
   attempt: (attemptIndex: number) => Promise<T>,
   options: {
     maxAttempts?: number;
     baseDelayMs?: number;
+    budgetMs?: number;
     onRetry?: (info: { attempt: number; delayMs: number }) => void;
   } = {},
 ): Promise<T> {
   const maxAttempts = Math.max(1, Math.min(6, Math.floor(options.maxAttempts ?? 4)));
-  const baseDelayMs = Math.max(0, Math.floor(options.baseDelayMs ?? 900));
-  let last = await attempt(0);
+  // 백오프도 정적 셸과 같은 값(250 → 450ms)으로 맞춘다. 기존 900 → 1.62s → 2.9s 는 예산 6초를 혼자 다 먹었다.
+  const baseDelayMs = Math.max(0, Math.floor(options.baseDelayMs ?? 250));
+  const budgetMs = Math.max(0, Math.floor(options.budgetMs ?? PASS_CHECK_BUDGET_MS));
+  const deadline = budgetMs > 0 ? Date.now() + budgetMs : Number.POSITIVE_INFINITY;
+
+  const attemptWithinBudget = async (attemptIndex: number): Promise<T> => {
+    if (!Number.isFinite(deadline)) return attempt(attemptIndex);
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return buildAccessCheckBudgetExceeded<T>();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      return await Promise.race([
+        attempt(attemptIndex),
+        new Promise<T>((resolve) => {
+          timer = setTimeout(() => resolve(buildAccessCheckBudgetExceeded<T>()), remainingMs);
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
+
+  let last = await attemptWithinBudget(0);
   for (let i = 1; i < maxAttempts; i += 1) {
     if (last?.data && (last.data as { ok?: unknown }).ok === true) return last;
     // 일시적 실패가 아니면(확정 실패/성공) 재시도하지 않는다.
     if (!isRetriableResultPollFailure(readAttemptStatus(last), last?.data ?? null)) return last;
     const delayMs = Math.round(baseDelayMs * Math.pow(1.8, i - 1));
+    // 다음 시도를 예산 안에 넣을 수 없으면 기다리지 않고 지금 결과로 끝낸다.
+    if (Date.now() + delayMs >= deadline) return last;
     options.onRetry?.({ attempt: i, delayMs });
     await new Promise((resolve) => setTimeout(resolve, delayMs));
-    last = await attempt(i);
+    last = await attemptWithinBudget(i);
   }
   return last;
 }
