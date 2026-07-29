@@ -156,7 +156,7 @@ Source: out
 
 | Page | Status | Evidence |
 |---|---:|---|
-| /privacy | 존재 | Google, 쿠키, IP, 생년월일, 결제, 이메일, 13세, 삭제 안내 marker를 readiness에서 검증 |
+| /privacy | 존재 | Google, 쿠키, IP, 생년월일, 결제, 이메일, 14세, 삭제 안내 marker를 readiness에서 검증 |
 | /disclaimer | 존재 | 의료, 법률, 투자, 결제, 불안 조장 관련 고지 marker를 readiness에서 검증 |
 | /advertising-policy | 존재 | Google AdSense, 쿠키, 웹 비콘, IP, 광고 식별자, 파트너 사이트 링크 marker를 readiness에서 검증 |
 | /editorial-policy | 존재 | AI 활용, 광고, 결제, 문의 관련 marker를 readiness에서 검증 |
