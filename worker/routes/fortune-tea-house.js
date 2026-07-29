@@ -30,9 +30,9 @@ const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시
 const SAJU_MIN_RESULT_CHARS = 6000;
 const SAJU_TARGET_RESULT_CHARS = 8000;
 const TAROT_MIN_RESULT_CHARS = 3200;
-const TAROT_FIVE_CARD_EXTRA_CHARS = 600;
+const TAROT_FIVE_CARD_EXTRA_CHARS = 1200;
 // 카드 한 장당 detail(핵심의미·현재상황·질문연결·조언·주의) 합계 하한(공백 제외).
-const TAROT_CARD_DETAIL_MIN_CHARS = 350;
+const TAROT_CARD_DETAIL_MIN_CHARS = 500;
 const SUKUYO_MIN_RESULT_CHARS = 5000;
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
@@ -483,13 +483,13 @@ function buildFallbackCardDetail(card = {}, question = "") {
     ? "역방향은 나쁘다는 뜻이 아니라, 이 힘이 막히거나 과해지거나 안쪽으로 접혀 있다는 신호입니다"
     : "정방향은 이 카드의 힘이 비교적 자연스럽게 드러나 지금 쓸 수 있는 자원이라는 뜻입니다";
   return {
-    coreMeaning: `${name}이 ${orientationLabel}으로 떠올랐습니다. ${cleanText(card.meaning, 400) || `${keywordLine}의 결을 비추는 카드입니다.`} ${structureLine}. ${orientationLine}.`,
-    currentSituation: `${positionLabel} 자리는 ${positionMeaning} 그래서 ${name}은 지금 상황에서 ${leadKeyword}이 어디까지 작동하고 있는지를 보여 줍니다. 같은 카드라도 다른 자리에 놓였다면 다르게 읽혔을 결입니다.`,
+    coreMeaning: `${name}이 ${orientationLabel}으로 떠올랐습니다. ${cleanText(card.meaning, 400) || `${keywordLine}의 결을 비추는 카드입니다.`} ${structureLine}. ${orientationLine}. 그래서 이 카드는 ${keywordLine}을 좋고 나쁨으로 가르기보다, 지금 어느 쪽으로 기울어 있는지를 먼저 보게 합니다.`,
+    currentSituation: `${positionLabel} 자리는 ${positionMeaning} 그래서 ${name}은 지금 상황에서 ${leadKeyword}이 어디까지 작동하고 있는지를 보여 줍니다. 같은 카드라도 다른 자리에 놓였다면 다르게 읽혔을 결입니다. 이 자리에서는 상황을 바꾸려 애쓰기보다, 이미 벌어진 흐름의 방향을 정확히 읽는 편이 먼저입니다.`,
     questionLink: questionLine
-      ? `"${questionLine}"라는 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 이 질문에서 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다.`
-      : `지금의 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다.`,
-    advice: `${name}이 건네는 조언은 ${leadKeyword}을 서두르지 말고 끝까지 지켜보는 것입니다. 오늘은 판단을 미루더라도, ${subKeyword}이 실제로 어떻게 움직이는지 한 가지만 확인해 두세요.`,
-    caution: `${orientationLabel}의 ${name}에서는 ${subKeyword}이 과해지거나 반대로 계속 미뤄지기 쉽습니다. 마음이 급해질 때 이 카드의 결을 근거 삼아 무리한 확신을 만들지 않도록 살펴 주세요.`,
+      ? `"${questionLine}"라는 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 이 질문에서 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다. 답이 아직 열려 있다는 뜻이기도 하니, 지금 손에 쥔 정보와 아직 추측인 부분을 나누어 보세요.`
+      : `지금의 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다. 답이 아직 열려 있다는 뜻이기도 하니, 지금 손에 쥔 정보와 아직 추측인 부분을 나누어 보세요.`,
+    advice: `${name}이 건네는 조언은 ${leadKeyword}을 서두르지 말고 끝까지 지켜보는 것입니다. 오늘은 판단을 미루더라도, ${subKeyword}이 실제로 어떻게 움직이는지 한 가지만 확인해 두세요. 작게 확인한 사실 하나가 다음 선택의 기준이 되어 줍니다.`,
+    caution: `${orientationLabel}의 ${name}에서는 ${subKeyword}이 과해지거나 반대로 계속 미뤄지기 쉽습니다. 마음이 급해질 때 이 카드의 결을 근거 삼아 무리한 확신을 만들지 않도록 살펴 주세요. 특히 확인되지 않은 상대의 마음이나 결과를 이 카드로 단정하는 것은 피하는 편이 좋습니다.`,
   };
 }
 
@@ -2997,7 +2997,7 @@ function assertTarotDeepQuality(result, fallback) {
   if (!isHeartScentName(cleanText(result.heartScent?.name, 40))) {
     throw new Error("fortune tea house quality failed: heart scent name");
   }
-  if (scentReason.replace(/\s/g, "").length < 120) {
+  if (scentReason.replace(/\s/g, "").length < 150) {
     throw new Error("fortune tea house quality failed: heart scent reason too short");
   }
   if (!spreadCards.some((card) => cleanText(card?.nameKo, 80) && scentReason.includes(cleanText(card.nameKo, 80)))) {
@@ -3397,15 +3397,15 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             fieldStructure: {
               "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 질문 맥락을 4-6문장으로 연결한다. 카드별 전통 의미를 여기서 낱낱이 정의하지 말고(그 자리는 tarotCardReadings다) 펼쳐진 전체 그림을 한눈에 담는다. 권장 분량: 180~280자.",
               tarotCardReadings: "뽑힌 카드 전부를 한 장씩 개별 해석하는 유일한 자리. tarotFactInput.spreadCards와 개수·순서가 정확히 같아야 하고, 한 장이라도 빠지면 실패다. 각 item의 positionId는 입력값을 그대로 복사한다.",
-              "tarotCardReadings[].coreMeaning": "이 카드의 핵심 의미. 정방향/역방향을 문장 안에 반드시 드러내고, arcana·suit·element·rank(숫자/코트) 중 최소 2개를 근거로 삼는다. 권장 분량: 90~130자.",
-              "tarotCardReadings[].currentSituation": "positionLabel/positionMeaning과 결합한 '지금 상황에서의 의미'. 같은 카드라도 이 자리에 놓였기 때문에 달라지는 결을 말한다. 권장 분량: 90~130자.",
-              "tarotCardReadings[].questionLink": "손님의 실제 질문과 이 카드를 잇는 해석. 질문의 핵심 단어를 자연스럽게 되받는다. 권장 분량: 90~130자.",
-              "tarotCardReadings[].advice": "이 카드가 건네는 조언. 카드 상징에서 도출된 구체적인 방향으로 쓴다. 권장 분량: 70~110자.",
-              "tarotCardReadings[].caution": "이 카드 고유의 주의할 점. 왜 이 카드·이 방향에서 그 위험이 커지는지 근거를 붙인다. 다른 카드에도 통하는 일반론이나 전역 금지 문구를 되풀이하면 실패다. 권장 분량: 70~110자.",
+              "tarotCardReadings[].coreMeaning": "이 카드의 핵심 의미. 정방향/역방향을 문장 안에 반드시 드러내고, arcana·suit·element·rank(숫자/코트) 중 최소 2개를 근거로 삼는다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].currentSituation": "positionLabel/positionMeaning과 결합한 '지금 상황에서의 의미'. 같은 카드라도 이 자리에 놓였기 때문에 달라지는 결을 말한다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].questionLink": "손님의 실제 질문과 이 카드를 잇는 해석. 질문의 핵심 단어를 자연스럽게 되받는다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].advice": "이 카드가 건네는 조언. 카드 상징에서 도출된 구체적인 방향으로 쓴다. 권장 분량: 110~160자.",
+              "tarotCardReadings[].caution": "이 카드 고유의 주의할 점. 왜 이 카드·이 방향에서 그 위험이 커지는지 근거를 붙인다. 다른 카드에도 통하는 일반론이나 전역 금지 문구를 되풀이하면 실패다. 권장 분량: 110~160자.",
               cardInteractions: "카드 간 상호작용. tarotFactInput.interactionPairs에 주어진 조합을 전부, 같은 pair 문자열 그대로 사용한다. 조합을 새로 만들거나 빠뜨리지 않는다.",
-              "cardInteractions[].insight": "두 카드가 함께 만드는 의미. '은둔자 + 별 → 지금은 기다림이 필요하지만 그 끝에는 희망이 있다'처럼 한 카드씩 볼 때는 안 보이던 결을 짚는다. spreadDigest의 원소 흐름·수트 편중을 근거로 쓴다. 권장 분량: 100~160자.",
+              "cardInteractions[].insight": "두 카드가 함께 만드는 의미. '은둔자 + 별 → 지금은 기다림이 필요하지만 그 끝에는 희망이 있다'처럼 한 카드씩 볼 때는 안 보이던 결을 짚는다. spreadDigest의 원소 흐름·수트 편중을 근거로 쓴다. 권장 분량: 140~210자.",
               heartScent: "오늘의 마음의 향. 위 해석을 모두 확정한 뒤 마지막에 고른다.",
-              "heartScent.reason": "① 지금 손님에게 필요한 것 ② 오늘의 카드들이 준 메시지(뽑힌 카드 이름을 최소 하나 명시) ③ 그 향이 왜 이 흐름을 보완하는지 — 이 순서로 3~5문장. 권장 분량: 160~260자.",
+              "heartScent.reason": "① 지금 손님에게 필요한 것 ② 오늘의 카드들이 준 메시지(뽑힌 카드 이름을 최소 하나 명시) ③ 그 향이 왜 이 흐름을 보완하는지 — 이 순서로 4~6문장. 권장 분량: 220~320자.",
               "synthesis.summary": "카드별 리딩을 모두 마친 뒤의 종합 해석. 카드들이 공통적으로 보여주는 흐름을 먼저 묶고, 마지막 문장에서 '지금 가장 중요한 메시지' 하나를 분명히 남긴다. 카드별 의미를 다시 정의하지 말고(그 자리는 tarotCardReadings다) 겹치는 결과 어긋나는 결을 짚는다. 권장 분량: 150~250자.",
               "synthesis.sajuTarotBridge": "이름과 달라도 타로-only 전체 흐름 리딩으로 쓴다. 사주 언급 없이, 이 카드 배치가 앞으로 어떤 변화로 이어지는지를 정리한다. 권장 분량: 150~250자.",
               "yeoniReading.intro": "손님을 맞이하는 환영 인사(어서 오세요 류)로 시작하는 찻집 감성의 카드 오픈 멘트와 질문자의 마음의 향. 권장 분량: 120~200자.",
@@ -3592,10 +3592,10 @@ async function generateConsultResult(request, fallback, env) {
   // 타로는 카드별 상세 해석(카드당 5항목) + 카드 조합 + 마음의 향이 추가되어 출력이 커졌다.
   // 3카드/5카드의 카드 수 차이만큼 예산을 나눈다.
   const isFiveCardTarot = consultationMode === "tarot" && normalizeTarotSpread(request.tarotSpread) === "five";
-  const tarotMaxOutputTokens = isFiveCardTarot ? 24000 : 18000;
+  const tarotMaxOutputTokens = isFiveCardTarot ? 32000 : 24000;
   const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : tarotMaxOutputTokens;
   const maxOutputTokensCap = 40000;
-  const tarotTimeoutMs = isFiveCardTarot ? 95000 : 85000;
+  const tarotTimeoutMs = isFiveCardTarot ? 110000 : 95000;
   const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : tarotTimeoutMs;
   let lastError = null;
   let lastCandidate = null;

@@ -135,7 +135,7 @@ function buildLlmPayload(spread) {
     heartScent: {
       name: "시나몬",
       category: "재물",
-      reason: `지금 손님에게 필요한 것은 돈의 흐름을 감정이 아니라 기준으로 보는 눈이에요. 오늘의 ${cards[0].nameKo}과 ${cards[1].nameKo}은 이미 쌓아 온 것과 아쉽게 놓친 것을 함께 보라고 말하고 있고, 어느 한쪽만 붙들면 판단이 기울어진다고 짚어 줍니다. 시나몬은 흩어진 기운을 데워 현실의 결실로 이어주는 향이라, 지금 손님의 재성 흐름을 가장 잘 보완해 줍니다.`,
+      reason: `지금 손님에게 필요한 것은 돈의 흐름을 감정이 아니라 기준으로 보는 눈이에요. 오늘의 ${cards[0].nameKo}과 ${cards[1].nameKo}은 이미 쌓아 온 것과 아쉽게 놓친 것을 함께 보라고 말하고 있고, 어느 한쪽만 붙들면 판단이 기울어진다고 짚어 줍니다. 특히 30일 안에 결정을 몰아서 내리지 말고, 확인 가능한 숫자부터 붙잡으라는 신호가 반복해서 나타나고 있어요. 시나몬은 흩어진 기운을 데워 현실의 결실로 이어주는 향이라, 지금 손님의 재성 흐름을 가장 잘 보완해 줍니다.`,
     },
     // 라벨은 황금 계피차(gold-cinnamon)의 정본 게이지 목록과 일치해야 한다.
     emotionAnalysis: ["안정감", "소비 충동", "회복력", "기회감", "현실감"].map((label) => ({
@@ -235,8 +235,8 @@ function expectEveryCardExplained(result, expectedCount) {
     // 카드 해석이 다른 카드 자리로 밀리지 않았는지.
     const detailText = DETAIL_FIELDS.map((field) => card.detail[field]).join("\n");
     expect(detailText).toContain(card.nameKo);
-    // 카드당 최소 분량(공백 제외 350자) — LLM 폴백 문안도 이 기준을 지켜야 한다.
-    expect(detailText.replace(/\s/g, "").length).toBeGreaterThanOrEqual(350);
+    // 카드당 최소 분량(공백 제외 500자) — LLM 폴백 문안도 이 기준을 지켜야 한다.
+    expect(detailText.replace(/\s/g, "").length).toBeGreaterThanOrEqual(500);
   });
 }
 

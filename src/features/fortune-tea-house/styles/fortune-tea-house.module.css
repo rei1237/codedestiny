@@ -6442,6 +6442,10 @@
 .resultSheet {
   position: relative;
   display: grid;
+  /* 단일 컬럼 grid의 기본 트랙은 자식의 min-content 아래로 못 줄어든다. 긴 상담문·카드
+     그리드가 min-content를 밀어올리면 트랙이 뷰포트보다 넓어지고, 아래 overflow:hidden이
+     그 초과분을 그대로 잘라낸다(360px 이하에서 우측 잘림). minmax(0,1fr)로 축소를 허용한다. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   padding: 30px;
   overflow: hidden;
@@ -14857,6 +14861,8 @@
 
 .resultTarotShowcase {
   display: grid;
+  /* .resultSheet과 같은 이유 — 카드 갤러리가 min-content를 밀어올려 320px에서 우측이 잘렸다. */
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(18px, 3vw, 28px);
   padding: clamp(22px, 4vw, 36px);
   text-align: center;
@@ -14881,7 +14887,9 @@
 
 .resultTarotGallery {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 220px));
+  /* min(148px, 100%): 5카드 스프레드를 320px 화면에서 열 때 트랙 최소폭(148px)이 컨테이너보다
+     넓어져 우측이 잘리던 문제를 막는다. 넓은 화면 동작은 그대로다. */
+  grid-template-columns: repeat(auto-fit, minmax(min(148px, 100%), 220px));
   justify-content: center;
   gap: clamp(14px, 3vw, 28px);
   align-items: center;
@@ -15021,7 +15029,10 @@
   }
 
   .resultTarotGallery {
-    grid-template-columns: repeat(3, minmax(92px, 1fr));
+    /* 3열 고정(minmax 92px)은 3열 최소폭 296px가 320px 화면의 컨테이너(252px)보다 넓어
+       카드가 좌우로 잘렸다. auto-fit으로 바꿔 좁은 화면에서는 2열로 접히게 한다.
+       360px 이상에서는 그대로 3열이 유지된다. */
+    grid-template-columns: repeat(auto-fit, minmax(min(84px, 100%), 1fr));
     gap: 10px;
   }
 
@@ -16697,6 +16708,33 @@
   }
 }
 
+/* grid item의 기본 min-width:auto는 자식의 min-content 아래로 못 줄어든다.
+   결과 시트의 각 섹션에서 이를 풀어야 트랙이 좁아져도 섹션이 밖으로 밀리지 않는다. */
+.resultSheet > *,
+.resultTarotShowcase > *,
+.resultTarotGallery > *,
+.resultTarotReadingFlow > *,
+.resultInteractionList > * {
+  min-width: 0;
+}
+
+/* LLM 상담문에는 긴 영문 용어나 띄어쓰기 없는 표현이 섞일 수 있다. 결과 시트 안의 본문은
+   한국어 단어를 지키되(keep-all) 그래도 넘칠 때는 어디서든 끊어, 좁은 화면에서 가로로
+   삐져나오지 않게 한다. 320px 실측에서 남아 있던 contentOverflowX를 여기서 없앤다. */
+.resultSheet p,
+.resultSheet li,
+.resultSheet dd,
+.resultSheet dt,
+.resultSheet h2,
+.resultSheet h3,
+.resultSheet h4,
+.resultSheet strong,
+.resultSheet em,
+.resultSheet span {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
 /* 카드별 상세 해석 5항목 (핵심 의미 · 현재 상황 · 질문 연결 · 조언 · 주의할 점) */
 .resultTarotDetailList {
   display: grid;
@@ -16709,6 +16747,9 @@
   border: 1px solid rgba(255, 246, 250, 0.12);
   border-radius: 10px;
   background: rgba(255, 246, 250, 0.045);
+  /* .resultTarotShowcase의 text-align:center를 상속하면 130~190자 문단이 가운데 정렬돼
+     읽기 어려워진다. 카드별 상세 해석 본문은 항상 왼쪽 정렬로 고정한다. */
+  text-align: left;
 }
 
 .resultTarotDetailItem dt {
@@ -16781,7 +16822,8 @@
   margin-top: 8px;
   color: #fff8df;
   font-family: var(--tea-font-premium, var(--font-premium, var(--font-body)));
-  font-size: 1.62rem;
+  /* 좁은 화면에서 긴 향 이름("화이트 머스크")이 어색하게 접히지 않도록 뷰포트에 맞춰 줄인다. */
+  font-size: clamp(1.28rem, 5.4vw, 1.62rem);
   line-height: 1.3;
 }
 
