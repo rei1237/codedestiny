@@ -77,10 +77,11 @@ try {
   assert(afterTarotTap.pathname.indexOf("/tarot/mingri") === 0 || afterTarotTap.tilePreviewOpen || afterTarotTap.tarotModalVisible, "tarot touch opens route, sheet, or modal", afterTarotTap);
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"tarot\"]");
+  // 메인 5탭은 실제 링크라 탭하면 이동한다. 이동 자체가 피드백이므로 pathname 을 본다.
+  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
   await delay(350);
-  const afterTarotNav = await evaluate(cdp, "({ hash: location.hash, tarotExpanded: !!document.querySelector('#tarotCollection[data-collection-open=\"true\"], #tarotCollection.is-open, #tarotCollection[open], #tarotCollection.active, #tarotCollection[aria-expanded=\"true\"]'), scrollY: Math.round(scrollY), activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current=\"page\"]')?.getAttribute('data-nav-key') || null })", "after bottom nav tarot tap");
-  assert(afterTarotNav.tarotExpanded || afterTarotNav.scrollY > 300 || afterTarotNav.activeKey === "tarot", "bottom nav tarot touch gives navigation feedback", afterTarotNav);
+  const afterFortunesNav = await evaluate(cdp, "({ pathname: location.pathname, storedTab: (() => { try { return sessionStorage.getItem('cd.mobileTab.v1'); } catch (_) { return null; } })(), activeKey: document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__main [aria-current=\"page\"]')?.getAttribute('data-nav-key') || null })", "after bottom nav all-fortunes tap");
+  assert(afterFortunesNav.pathname.indexOf("/all-fortunes") === 0 || afterFortunesNav.storedTab === "fortunes" || afterFortunesNav.activeKey === "fortunes", "bottom nav all-fortunes touch gives navigation feedback", afterFortunesNav);
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
