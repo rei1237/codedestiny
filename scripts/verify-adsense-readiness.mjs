@@ -356,7 +356,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    "14세",
     "삭제",
   ],
   "/privacy-policy": [
@@ -368,7 +368,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    "14세",
     "삭제",
   ],
   "/terms": ["Google AdSense", "쿠키", "결제", "환불", "문의"],
