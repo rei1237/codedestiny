@@ -22,6 +22,8 @@
     "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
     "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
+    "audit:content-headroom": "node scripts/audit-content-headroom.mjs",
+    "audit:content-headroom:live": "node scripts/audit-content-headroom.mjs --live",
     "ensure:ads-txt": "node scripts/ensure-ads-txt.mjs",
     "verify:ads-txt": "node scripts/ensure-ads-txt.mjs --check",
     "rss:generate": "node scripts/generate-rss.mjs",
