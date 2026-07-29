@@ -4441,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "主な機能",
-    "audienceLabel": "おすすめ対象",
-    "chapterPreviewLabel": "章のプレビュー",
+    "audienceLabel": "おすすめの状況",
+    "chapterPreviewLabel": "ロック解除後に見られる内容です。",
     "requiredInfoLabel": "生成前に必要な情報",
-    "outcomesLabel": "結果で確認できること",
+    "outcomesLabel": "安心してご確認ください",
+    "resultPreviewLabel": "結果プレビュー",
     "startNow": "今すぐ始める →",
     "paywallNote": "すべての有料サービスは決済（購入）完了後ただちに提供され、提供開始後は関連法令に基づき申込みの撤回が制限される場合があります。"
   },
