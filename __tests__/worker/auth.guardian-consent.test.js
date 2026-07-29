@@ -15,8 +15,14 @@ let createGuardianConsentToken;
 let verifyGuardianConsentToken;
 let buildGuardianConsentRequestPage;
 let GUARDIAN_CONSENT_TTL_MS;
+let signSocialSignupTicket;
+let verifySocialSignupTicket;
+let socialProfileFromSignupTicket;
+let buildSocialSignupRedirectUrl;
 
 const ENV = { JWT_SECRET: "guardian-consent-test-secret" };
+const TICKET_SECRET = "social-signup-ticket-secret";
+const TICKET_ISSUER = "code-destiny";
 
 function baseSignupPayload(overrides = {}) {
   return {
@@ -40,6 +46,12 @@ beforeAll(async () => {
   verifyGuardianConsentToken = guardian.verifyGuardianConsentToken;
   buildGuardianConsentRequestPage = guardian.buildGuardianConsentRequestPage;
   GUARDIAN_CONSENT_TTL_MS = guardian.GUARDIAN_CONSENT_TTL_MS;
+
+  const ticketMod = await import("../../worker/lib/social-signup-ticket.js");
+  signSocialSignupTicket = ticketMod.signSocialSignupTicket;
+  verifySocialSignupTicket = ticketMod.verifySocialSignupTicket;
+  socialProfileFromSignupTicket = ticketMod.socialProfileFromSignupTicket;
+  buildSocialSignupRedirectUrl = ticketMod.buildSocialSignupRedirectUrl;
 });
 
 describe("만 나이 판정", () => {
@@ -129,6 +141,66 @@ describe("보호자 동의 토큰", () => {
     });
 
     expect(verifyGuardianConsentToken(ENV, token).code).toBe("expired");
+  });
+});
+
+describe("소셜 가입 티켓", () => {
+  const profile = {
+    provider: "google",
+    providerId: "1234567890",
+    email: "kid@example.com",
+    name: "테스트",
+    image: "https://example.com/a.png",
+    phoneNumber: "01012345678",
+    emailVerified: false,
+    nextPath: "/saju",
+    flow: "signup",
+    appRedirect: "com.codedestiny.app://auth",
+  };
+
+  test("발급한 티켓은 같은 시크릿으로 검증되고 필드가 보존돼야 한다", async () => {
+    const ticket = await signSocialSignupTicket(profile, TICKET_SECRET, TICKET_ISSUER);
+    const verified = await verifySocialSignupTicket(ticket, TICKET_SECRET, TICKET_ISSUER);
+
+    expect(verified.provider).toBe("google");
+    expect(verified.providerId).toBe("1234567890");
+    expect(verified.appRedirect).toBe("com.codedestiny.app://auth");
+    expect(verified.nextPath).toBe("/saju");
+  });
+
+  test("다른 시크릿·변조·잘못된 용도의 티켓은 거부돼야 한다", async () => {
+    const ticket = await signSocialSignupTicket(profile, TICKET_SECRET, TICKET_ISSUER);
+
+    await expect(verifySocialSignupTicket(ticket, "another-secret", TICKET_ISSUER)).rejects.toThrow();
+    await expect(verifySocialSignupTicket(`${ticket}x`, TICKET_SECRET, TICKET_ISSUER)).rejects.toThrow();
+    await expect(verifySocialSignupTicket("garbage", TICKET_SECRET, TICKET_ISSUER)).rejects.toThrow();
+  });
+
+  test("providerId 가 없는 티켓은 거부돼야 한다", async () => {
+    const ticket = await signSocialSignupTicket({ ...profile, providerId: "" }, TICKET_SECRET, TICKET_ISSUER);
+
+    await expect(verifySocialSignupTicket(ticket, TICKET_SECRET, TICKET_ISSUER)).rejects.toThrow("invalid_social_signup_ticket");
+  });
+
+  test("티켓에서 복원한 프로필은 emailVerified=false 를 보존해야 한다", async () => {
+    // 이 값이 뒤집히면 미인증 이메일이 기존 계정에 연결돼 계정 탈취 경로가 된다.
+    const ticket = await signSocialSignupTicket(profile, TICKET_SECRET, TICKET_ISSUER);
+    const verified = await verifySocialSignupTicket(ticket, TICKET_SECRET, TICKET_ISSUER);
+
+    expect(socialProfileFromSignupTicket(verified).emailVerified).toBe(false);
+    expect(socialProfileFromSignupTicket({ ...verified, emailVerified: true }).emailVerified).toBe(true);
+    expect(socialProfileFromSignupTicket({ providerId: "x" }).emailVerified).toBe(true);
+  });
+
+  test("가입 마무리 URL 은 /signup 으로 티켓과 next 를 넘겨야 한다", () => {
+    const url = buildSocialSignupRedirectUrl("https://code-destiny.com/", "TICKET", { nextPath: "/saju", flow: "signup" });
+
+    expect(url.startsWith("https://code-destiny.com/signup?")).toBe(true);
+    expect(url).toContain("social_signup=TICKET");
+    expect(url).toContain("next=%2Fsaju");
+
+    const rootUrl = buildSocialSignupRedirectUrl("https://code-destiny.com", "TICKET", { nextPath: "/", flow: "signup" });
+    expect(rootUrl).not.toContain("next=");
   });
 });
 

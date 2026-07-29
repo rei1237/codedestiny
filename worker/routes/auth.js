@@ -24,6 +24,12 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, verifyPassword } from "../lib/password.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge, validateLoginPayload, validateRegisterPayload } from "../lib/validation.js";
 import {
+  buildSocialSignupRedirectUrl,
+  signSocialSignupTicket,
+  socialProfileFromSignupTicket,
+  verifySocialSignupTicket,
+} from "../lib/social-signup-ticket.js";
+import {
   buildGuardianConsentRequestPage,
   buildGuardianConsentResultPage,
   createGuardianConsentToken,
@@ -1064,6 +1070,7 @@ function requiresSameOriginAuthGuard(method, path) {
     || path === "/logout"
     || path === "/withdraw"
     || path === "/oauth/complete"
+    || path === "/oauth/complete-signup"
     || path === "/referral/kakao-share"
     || path === "/me/phone-number"
     || path === "/me/payment-phone";
@@ -1366,6 +1373,7 @@ async function verifySocialGrant(token, env) {
   return payload;
 }
 
+
 function buildProviderConfig(provider, request, env) {
   const redirectUri = resolveProviderCallbackUrl(provider, request, env);
 
@@ -1598,11 +1606,20 @@ async function findExistingSocialUser(provider, profile, socialField) {
   return null;
 }
 
-async function findOrCreateSocialUser(provider, profile, env) {
+/**
+ * @param {object} [options]
+ * @param {boolean} [options.createIfMissing] false면 신규 신원일 때 계정을 만들지 않고 null을 돌려준다.
+ *   만 14세 미만 판정을 위해 생년월일을 받기 전에는 계정을 만들 수 없어서 필요하다.
+ * @param {object} [options.signupProfile] 가입 마무리 단계에서 받은 생년 정보·보호자 동의 상태.
+ */
+async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   const socialField = `socialAccounts.${provider}.id`;
+  const createIfMissing = options.createIfMissing !== false;
+  const signupProfile = options.signupProfile || null;
 
   const existing = await findExistingSocialUser(provider, profile, socialField);
   if (existing) return existing;
+  if (!createIfMissing) return { user: null, created: false };
 
   const fallbackEmail = `${provider}_${profile.providerId}@social.code-destiny.local`;
   const joinedAt = new Date();
@@ -1615,9 +1632,9 @@ async function findOrCreateSocialUser(provider, profile, env) {
       profileImage: String(profile.image || ""),
       ...(profilePhoneNumber ? { phoneNumber: profilePhoneNumber } : {}),
       passwordHash: "",
-      birthDate: "1900-01-01",
-      birthTime: "00:00",
-      gender: "OTHER",
+      birthDate: signupProfile?.birthDate || "1900-01-01",
+      birthTime: signupProfile?.birthTime || "00:00",
+      gender: signupProfile?.gender || "OTHER",
       role: "user",
       points: 0,
       profileSubscription: buildSignupProfileSubscription(joinedAt),
@@ -1626,6 +1643,7 @@ async function findOrCreateSocialUser(provider, profile, env) {
         enabled: false,
         activatedAt: null,
       },
+      ...(signupProfile?.guardianConsent ? { guardianConsent: signupProfile.guardianConsent } : {}),
       socialAccounts: {
         [provider]: {
           id: profile.providerId,
@@ -1662,13 +1680,13 @@ async function findOrCreateSocialUser(provider, profile, env) {
 // 소셜 유저 조회/생성을 일시 DB 장애(pool-clear·네트워크 버스트·op-타임아웃)에 대해
 // 재시도로 흡수한다. handleOAuthComplete/handleLogin과 동일한 3회 루프 패턴을 재사용한다.
 // 인프라 오류가 아닌 정상 거부(_account_withdrawn·_email_unverified)는 재시도 없이 전파된다.
-async function resolveSocialUserWithRetry(provider, profile, env) {
+async function resolveSocialUserWithRetry(provider, profile, env, options = {}) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   let lastError = null;
   for (let attempt = 1; attempt <= 3; attempt += 1) {
     try {
       return await withAuthOpTimeout(
-        findOrCreateSocialUser(provider, profile, env),
+        findOrCreateSocialUser(provider, profile, env, options),
         timeoutMs,
         "auth_social_resolve_user",
       );
@@ -2149,6 +2167,49 @@ function logSignupFailure(request, env, errorCode, errorMessage) {
 }
 
 const GUARDIAN_EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SIGNUP_BIRTH_TIME_REGEX = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * 보호자 동의 대기 계정 응답. 이메일 가입과 소셜 가입이 같은 결과를 내도록 한 벌만 둔다.
+ * 동의 전에는 세션을 발급하지 않고, 추천인 보상도 지급하지 않는다
+ * (미승인 계정으로 보상이 나가는 것을 막는다).
+ */
+async function respondWithGuardianConsentPending(request, env, { user, guardianEmail, childName, childEmail, timeoutMs }) {
+  const consentToken = createGuardianConsentToken(env, {
+    userId: String(user._id),
+    guardianEmail,
+  });
+  const consentUrl = `${getApiBaseUrl(request, env)}/api/auth/guardian-consent?token=${encodeURIComponent(consentToken)}`;
+  const emailResult = await withOptionalAuthSideEffect(
+    sendGuardianConsentEmail(env, {
+      guardianEmail,
+      childName,
+      childEmail,
+      consentUrl,
+    }),
+    Math.min(timeoutMs, 8000),
+    "auth_register_guardian_consent_email",
+    { ok: false },
+  );
+
+  const emailSent = Boolean(emailResult && emailResult.ok);
+  if (!emailSent) {
+    console.error("[auth/signup] guardian consent email failed", {
+      userId: String(user._id),
+      guardianEmailHash: hashEmailForAudit(guardianEmail, env).slice(0, 12),
+    });
+  }
+
+  return json({
+    ok: true,
+    guardianConsentRequired: true,
+    guardianConsentStatus: "pending",
+    emailSent,
+    message: emailSent
+      ? "보호자(법정대리인) 이메일로 동의 요청을 보냈습니다. 보호자가 동의를 완료하면 로그인할 수 있습니다."
+      : "계정은 생성되었지만 보호자 동의 메일 발송에 실패했습니다. admin@code-destiny.com 으로 문의해 주세요.",
+  }, { status: 202 });
+}
 
 /**
  * 보호자 동의가 완료되지 않은 계정의 로그인 차단 응답. 차단 사유가 없으면 null.
@@ -2446,43 +2507,14 @@ async function handleRegister(request, env) {
     );
   }
 
-  // 보호자 동의 대기 계정은 아직 서비스를 이용할 수 없으므로 세션을 발급하지 않는다.
-  // 추천인 보상도 동의 완료 전에는 지급하지 않는다(미승인 계정으로 보상이 나가는 것을 막는다).
   if (ageCheck.requiresGuardianConsent) {
-    const consentToken = createGuardianConsentToken(env, {
-      userId: String(user._id),
+    return await respondWithGuardianConsentPending(request, env, {
+      user,
       guardianEmail,
+      childName: name,
+      childEmail: email,
+      timeoutMs,
     });
-    const consentUrl = `${getApiBaseUrl(request, env)}/api/auth/guardian-consent?token=${encodeURIComponent(consentToken)}`;
-    const emailResult = await withOptionalAuthSideEffect(
-      sendGuardianConsentEmail(env, {
-        guardianEmail,
-        childName: name,
-        childEmail: email,
-        consentUrl,
-      }),
-      Math.min(timeoutMs, 8000),
-      "auth_register_guardian_consent_email",
-      { ok: false },
-    );
-
-    const emailSent = Boolean(emailResult && emailResult.ok);
-    if (!emailSent) {
-      console.error("[auth/signup] guardian consent email failed", {
-        userId: String(user._id),
-        guardianEmailHash: hashEmailForAudit(guardianEmail, env).slice(0, 12),
-      });
-    }
-
-    return json({
-      ok: true,
-      guardianConsentRequired: true,
-      guardianConsentStatus: "pending",
-      emailSent,
-      message: emailSent
-        ? "보호자(법정대리인) 이메일로 동의 요청을 보냈습니다. 보호자가 동의를 완료하면 로그인할 수 있습니다."
-        : "계정은 생성되었지만 보호자 동의 메일 발송에 실패했습니다. admin@code-destiny.com 으로 문의해 주세요.",
-    }, { status: 202 });
   }
 
   const referralCapture = extractReferralCapture(body);
@@ -3662,6 +3694,44 @@ async function handleOAuthStart(request, env, provider) {
   }
 }
 
+/**
+ * 아직 계정이 없는 소셜 신원을 티켓으로 만든다. 티켓의 필드는 나중에 계정을 만들 때
+ * 그대로 소셜 프로필로 복원되므로, 이메일 연결 판정(hasExplicitlyUnverifiedSocialEmail)에
+ * 쓰이는 emailVerified 까지 함께 보존한다.
+ */
+async function buildSocialSignupTicket(provider, socialProfile, statePayload, env, { nextPath, flow, appRedirect }) {
+  return await signSocialSignupTicket({
+    provider,
+    providerId: String(socialProfile?.providerId || ""),
+    email: String(socialProfile?.email || ""),
+    name: String(socialProfile?.name || ""),
+    image: String(socialProfile?.image || ""),
+    phoneNumber: normalizeKoreanPhoneNumber(socialProfile?.phoneNumber) || "",
+    emailVerified: socialProfile?.emailVerified === false ? false : true,
+    nextPath: nextPath || "/",
+    flow: flow || "signup",
+    appRedirect: appRedirect || "",
+    referralCode: normalizeReferralCode(statePayload?.referralCode),
+    referralShareToken: normalizeReferralShareToken(statePayload?.referralShareToken),
+    referralSource: String(statePayload?.referralSource || "").trim().toLowerCase(),
+  }, getAccessTokenSecret(env), JWT_ISSUER);
+}
+
+/**
+ * 보호자 동의가 끝나지 않은 계정은 소셜 로그인으로도 들어올 수 없다.
+ * (이메일 로그인의 buildGuardianConsentLoginBlock 과 같은 정책을 리다이렉트로 표현한다)
+ */
+function buildSocialGuardianConsentRedirect(frontendBase, provider, consent) {
+  const status = String(consent?.status || "pending");
+  return buildOAuthFailureRedirect(frontendBase, provider, `guardian_consent_${status}`);
+}
+
+function isGuardianConsentBlocked(user) {
+  const consent = user?.guardianConsent;
+  if (!consent || !consent.required) return false;
+  return consent.status !== "approved";
+}
+
 async function applySocialOAuthReferralReward(request, env, user, payload, fallbackCapture, timeoutMs) {
   const referralCapture = {
     referralCode: payload.referralCode || fallbackCapture?.referralCode,
@@ -3766,8 +3836,20 @@ async function handleOAuthCallback(request, env, provider) {
         String(statePayload.redirectUri || ""),
       );
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env);
+      // 신규 신원은 여기서 계정을 만들지 않는다 — 생년월일을 받아야 만 14세 미만 여부를 안다.
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, { createIfMissing: false });
+      if (!socialUser.user) {
+        const ticket = await buildSocialSignupTicket(provider, socialProfile, statePayload, env, {
+          nextPath,
+          flow,
+          appRedirect,
+        });
+        return redirect(buildSocialSignupRedirectUrl(safeFrontendBase, ticket, { nextPath, flow }));
+      }
       const user = socialUser.user;
+      if (isGuardianConsentBlocked(user)) {
+        return buildSocialGuardianConsentRedirect(safeFrontendBase, provider, user.guardianConsent);
+      }
       const grant = await signSocialGrant({
         userId: String(user._id),
         provider,
@@ -3806,9 +3888,23 @@ async function handleOAuthCallback(request, env, provider) {
       );
       logKakaoCallbackMarker(request, provider, "exchangeSuccess");
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env);
+      // 카카오는 이 콜백에서 세션까지 바로 발급하는 유일한 경로다. 신규 신원은 계정을
+      // 만들지 않고 가입 마무리 화면으로 보내야 하므로 세션 발급 앞에서 갈라진다.
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, { createIfMissing: false });
+      if (!socialUser.user) {
+        const ticket = await buildSocialSignupTicket(provider, socialProfile, statePayload, env, {
+          nextPath,
+          flow,
+          appRedirect,
+        });
+        logKakaoCallbackMarker(request, provider, "signupTicketIssued");
+        return redirect(buildSocialSignupRedirectUrl(safeFrontendBase, ticket, { nextPath, flow }));
+      }
       const user = socialUser.user;
       logKakaoCallbackMarker(request, provider, "userResolved");
+      if (isGuardianConsentBlocked(user)) {
+        return buildSocialGuardianConsentRedirect(safeFrontendBase, provider, user.guardianConsent);
+      }
 
       if (appRedirect) {
         const grant = await signSocialGrant({
@@ -3913,6 +4009,7 @@ async function handleOAuthComplete(request, env) {
                 points: 1,
                 joinedAt: 1,
                 profileSubscription: 1,
+                guardianConsent: 1,
                 status: 1,
               },
               maxTimeMS: dbMaxTimeMs,
@@ -3924,6 +4021,9 @@ async function handleOAuthComplete(request, env) {
 
         if (!user) return json({ message: "User not found." }, { status: 404 });
         if (isWithdrawnAuthUser(user)) return json({ message: "User not found." }, { status: 404 });
+
+        const guardianBlock = buildGuardianConsentLoginBlock(user);
+        if (guardianBlock) return guardianBlock;
 
         const referralReward = await applySocialOAuthReferralReward(request, env, user, payload, {
           referralCode: body?.referralCode,
@@ -3989,6 +4089,165 @@ async function handleOAuthComplete(request, env) {
     logAuthDiagnostic(request, env, "/api/auth/oauth/complete", "", "oauth_complete_failed", error);
     throw error;
   }
+}
+
+/**
+ * 소셜 가입 마무리 — 콜백이 넘긴 티켓 + 생년월일로 이제야 계정을 만든다.
+ * 만 14세 미만이면 이메일 가입과 똑같이 보호자 동의 대기 상태로 만들고 세션을 주지 않는다.
+ */
+async function handleOAuthCompleteSignup(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+
+  let body;
+  try {
+    body = await readJson(request);
+  } catch (error) {
+    return signupErrorResponse(request, env, 400, "invalid_request_body", "Request body must be valid JSON.");
+  }
+
+  const ticketRaw = String(body?.socialSignupTicket || body?.socialSignup || "");
+  if (!ticketRaw) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_social_signup_ticket",
+      "소셜 가입 정보를 확인할 수 없습니다. 소셜 인증부터 다시 진행해 주세요.",
+    );
+  }
+
+  let ticket;
+  try {
+    ticket = await verifySocialSignupTicket(ticketRaw, getAccessTokenSecret(env), JWT_ISSUER);
+  } catch (error) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "invalid_social_signup_ticket",
+      "소셜 가입 링크가 만료되었습니다. 소셜 인증부터 다시 진행해 주세요.",
+    );
+  }
+
+  const provider = String(ticket.provider || "").trim().toLowerCase();
+  if (!OAUTH_PROVIDERS.includes(provider)) {
+    return signupErrorResponse(request, env, 400, "invalid_social_signup_ticket", "지원하지 않는 소셜 로그인입니다.");
+  }
+
+  const ageCheck = validateBirthDateWithAge(String(body?.birthDate || "").trim());
+  if (!ageCheck.isValid) {
+    return signupErrorResponse(request, env, 400, "invalid_birth_date", ageCheck.error || "올바른 생년월일을 입력해주세요.");
+  }
+
+  const guardianEmail = String(body?.guardianEmail || "").trim().toLowerCase();
+  if (ageCheck.requiresGuardianConsent && !GUARDIAN_EMAIL_REGEX.test(guardianEmail)) {
+    return signupErrorResponse(
+      request,
+      env,
+      400,
+      "guardian_email_required",
+      `만 ${MIN_SELF_CONSENT_AGE}세 미만은 법정대리인(보호자) 이메일을 입력해야 가입 절차를 시작할 수 있습니다.`,
+      { requiresGuardianConsent: true },
+    );
+  }
+
+  // 위 validateBirthDateWithAge 가 YYYY-MM-DD 형식까지 검증한 값이다.
+  const birthDate = String(body.birthDate).trim();
+  const birthTimeRaw = String(body?.birthTime || "").trim();
+  const birthTime = SIGNUP_BIRTH_TIME_REGEX.test(birthTimeRaw) ? birthTimeRaw : "00:00";
+  const genderRaw = String(body?.gender || "").trim().toUpperCase();
+  const gender = ["M", "F", "OTHER"].includes(genderRaw) ? genderRaw : "OTHER";
+
+  try {
+    await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
+  } catch (error) {
+    return signupErrorResponse(request, env, 503, "db_connection_failed", toErrorMessage(error) || "Database connection failed.");
+  }
+
+  const signupProfile = {
+    birthDate,
+    birthTime,
+    gender,
+    ...(ageCheck.requiresGuardianConsent
+      ? {
+        guardianConsent: {
+          required: true,
+          status: "pending",
+          method: "guardian_email",
+          guardianEmail,
+          requestedAt: new Date(),
+        },
+      }
+      : {}),
+  };
+
+  let socialUser;
+  try {
+    socialUser = await resolveSocialUserWithRetry(
+      provider,
+      socialProfileFromSignupTicket(ticket),
+      env,
+      { createIfMissing: true, signupProfile },
+    );
+  } catch (error) {
+    return signupErrorResponse(request, env, 503, "db_write_failed", toErrorMessage(error) || "Failed to create user.");
+  }
+
+  const user = socialUser?.user;
+  if (!user) {
+    return signupErrorResponse(request, env, 500, "unknown_error", "Failed to create social account.");
+  }
+
+  // 티켓 재제출·동시 콜백 경합으로 이미 만들어진 계정을 받았을 수도 있다.
+  // 그 계정이 동의 대기 상태면 동의 안내를 다시 돌려준다(세션 없음).
+  if (isGuardianConsentBlocked(user)) {
+    return await respondWithGuardianConsentPending(request, env, {
+      user,
+      guardianEmail: user.guardianConsent?.guardianEmail || guardianEmail,
+      childName: user.name || ticket.name || "",
+      childEmail: user.email || ticket.email || "",
+      timeoutMs,
+    });
+  }
+
+  const nextPath = sanitizeOAuthNextPath(ticket.nextPath);
+  const flow = sanitizeAuthFlow(ticket.flow);
+  const referralReward = await applySocialOAuthReferralReward(request, env, user, {
+    isNewUser: !!socialUser.created,
+    flow,
+    referralCode: normalizeReferralCode(ticket.referralCode),
+    referralShareToken: normalizeReferralShareToken(ticket.referralShareToken),
+    referralSource: String(ticket.referralSource || "").trim().toLowerCase(),
+  }, null, timeoutMs);
+
+  // 앱(Capacitor)에서 시작한 가입은 커스텀탭 웹 화면에서 끝난다. 앱으로 돌아가려면
+  // 구버전 브릿지가 이해하는 형식(social_grant 딥링크)을 그대로 만들어 프론트에 넘긴다.
+  const appRedirect = sanitizeAppOAuthRedirect(ticket.appRedirect);
+  let appRedirectUrl = "";
+  if (appRedirect) {
+    const grant = await signSocialGrant({
+      userId: String(user._id),
+      provider,
+      nextPath,
+      flow,
+      isNewUser: !!socialUser.created,
+    }, env);
+    appRedirectUrl = buildAppOAuthRedirect(appRedirect, {
+      social_grant: grant,
+      flow,
+      next: nextPath !== "/" ? nextPath : "",
+    }) || "";
+  }
+
+  return await withAuthOpTimeout(
+    createAuthSuccessResponse(request, env, user, 201, nextPath, {
+      provider,
+      ...(referralReward ? { referralReward } : {}),
+      ...(appRedirectUrl ? { appRedirectUrl } : {}),
+    }),
+    timeoutMs,
+    "auth_social_signup_issue_session",
+  );
 }
 
 async function handleAppExchange(request, env) {
@@ -4057,6 +4316,7 @@ export async function handleAuthRoutes(request, env) {
       || path === "/app/exchange"
       || path === "/withdraw"
       || path === "/oauth/complete"
+      || path === "/oauth/complete-signup"
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
       || path === "/me/payment-phone"
@@ -4096,6 +4356,7 @@ export async function handleAuthRoutes(request, env) {
     if (method === "POST" && path === "/withdraw") return await handleWithdraw(request, env);
     if (method === "POST" && path === "/logout") return await handleLogout(request, env);
     if (method === "POST" && path === "/oauth/complete") return await handleOAuthComplete(request, env);
+    if (method === "POST" && path === "/oauth/complete-signup") return await handleOAuthCompleteSignup(request, env);
     if (method === "POST" && path === "/referral/kakao-share") return await handleKakaoReferralShare(request, env);
 
     const startMatch = path.match(/^\/oauth\/([^/]+)\/start$/);
