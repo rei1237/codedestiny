@@ -1250,7 +1250,15 @@
 
             if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
             var hasNext = index < candidates.length - 1;
-            var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
+            /* 후보 베이스 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 워커가 내는 JSON 503은
+               "DB가 잠시 아프다"는 degraded 신호이고, 후보(상대경로·origin·workers.dev)는 전부 같은
+               워커·같은 클러스터로 가므로 순회해봐야 똑같이 503이다. 요청·콘솔오류·DB부하만 후보 수만큼
+               배가된다(홈 진입 1회 블립이 3배로 보이던 원인). 셸의 shouldTryNextCandidate 와 정책을 맞춘다.
+               Cloudflare/Pages 가 내는 503 은 HTML 이라 looksHtml 로 잡혀 종전대로 폴백한다. */
+            var retryable = looksHtml
+              || response.status === 404
+              || response.status === 0
+              || (response.status >= 500 && response.status !== 503);
             if (hasNext && retryable) return attempt(index + 1);
 
             return result;

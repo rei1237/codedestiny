@@ -249,12 +249,16 @@ async function resolveSukuyoViewerMansionIndex(request, env) {
   try {
     const auth = await getOptionalUserFromRequest(request, env);
     if (!auth?.userId) return null;
-    await connectDb(env);
-    const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
-    const profileId = clean(user?.destinyProfilesCurrentId);
-    const profile = profileId
-      ? await ProfileCard.findOne({ userId: auth.userId, profileId }).lean()
-      : await ProfileCard.findOne({ userId: auth.userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+    // 선행 connectDb 없이 withMongoRetry 한 번으로 묶는다. raw read 는 타임아웃 래퍼가 없어 죽은 소켓에서
+    // socketTimeout(20s)까지 매달렸다 — 감싸면 상한이 11.5s 로 잡히고 일시 블립도 흡수된다.
+    // 바깥 try/catch 의 삼킴은 그대로다(달력은 공개 화면이라 개인화 실패 시 조용히 비개인화로 떨어진다).
+    const profile = await withMongoRetry(env, async () => {
+      const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+      const profileId = clean(user?.destinyProfilesCurrentId);
+      return profileId
+        ? await ProfileCard.findOne({ userId: auth.userId, profileId }).lean()
+        : await ProfileCard.findOne({ userId: auth.userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+    });
     const lunar = resolveSukuyoLunarFromProfile(profile);
     if (!lunar) return null;
     const natal = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "profile-canonical" });
@@ -1160,10 +1164,10 @@ function normalizeProfileCardForSukuyo(profile) {
   };
 }
 
-async function resolvePastLifeProfile(userId, body = {}) {
+async function resolvePastLifeProfile(env, userId, body = {}) {
   const profileId = clean(body.userProfileId || body.profileId || body.selectedProfileId);
   if (profileId) {
-    const profile = await ProfileCard.findOne({ userId, profileId }).lean();
+    const profile = await withMongoRetry(env, () => ProfileCard.findOne({ userId, profileId }).lean());
     if (!profile) throw Object.assign(new Error("대표 프로필을 찾지 못했습니다."), { status: 404, code: "PROFILE_REQUIRED" });
     return normalizeProfileCardForSukuyo(profile);
   }
@@ -1179,11 +1183,14 @@ async function resolvePastLifeProfile(userId, body = {}) {
       timezone: clean(body.timezone || "Asia/Seoul") || "Asia/Seoul",
     };
   }
-  const user = await User.findById(userId).select("destinyProfilesCurrentId destinyProfilesLockedCurrentId").lean();
-  const currentId = clean(user?.destinyProfilesLockedCurrentId || user?.destinyProfilesCurrentId);
-  const profile = currentId
-    ? await ProfileCard.findOne({ userId, profileId: currentId }).lean()
-    : await ProfileCard.findOne({ userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+  // User → ProfileCard 두 read 를 하나의 재시도 단위로 묶는다(왕복 2 → 1, 상한도 1회분).
+  const profile = await withMongoRetry(env, async () => {
+    const user = await User.findById(userId).select("destinyProfilesCurrentId destinyProfilesLockedCurrentId").lean();
+    const currentId = clean(user?.destinyProfilesLockedCurrentId || user?.destinyProfilesCurrentId);
+    return currentId
+      ? await ProfileCard.findOne({ userId, profileId: currentId }).lean()
+      : await ProfileCard.findOne({ userId }).sort({ updatedAt: -1, createdAt: -1 }).lean();
+  });
   const normalized = normalizeProfileCardForSukuyo(profile);
   if (!normalized) throw Object.assign(new Error("대표 프로필이 필요합니다."), { status: 404, code: "PROFILE_REQUIRED" });
   return normalized;
@@ -1281,7 +1288,7 @@ async function handleSukuyoPastLifeReading(request, env) {
   const auth = await requireAuth(request, env);
   const body = await readJson(request);
   await connectDb(env);
-  const profile = await resolvePastLifeProfile(auth.userId, body);
+  const profile = await resolvePastLifeProfile(env, auth.userId, body);
   const partnerRaw = normalizePastLifePartner(body);
   if (!parseDateParts(profile.birthDate)) return pastLifeErrorResponse("INVALID_BIRTH_DATE", "내 생년월일 형식을 확인해 주세요.", 400);
   if (!parseDateParts(partnerRaw.birthDate)) return pastLifeErrorResponse("INVALID_BIRTH_DATE", "상대 생년월일 형식을 확인해 주세요.", 400);
@@ -1412,26 +1419,45 @@ function formatSukuyoBirthDate(profile) {
   return `${y}-${m}-${d}`;
 }
 
+/* 인증 조회를 이 필드까지 확장해 authUserDoc 로 받아, 아래 resolveSukuyoYearlyProfile 이
+   현재 프로필을 알기 위해 User 를 다시 읽는 왕복을 없앤다(worker/lib/auth.js resolveActiveUserAuth). */
+const SUKUYO_YEARLY_USER_PROJECTION = { destinyProfilesCurrentId: 1 };
+
+/* 프로필 해석을 withMongoRetry 한 번으로 끝낸다.
+   종전엔 User·ProfileCard 를 각각 감싸 왕복 2회였고, 각 왕복이 독립적으로 op-타임아웃(비재시도)
+   위험을 져 둘 중 하나만 걸려도 요청 전체가 503이 됐다.
+   게다가 요청이 profileId 를 실어 보내도(클라 정상 경로) User 를 읽고 버렸다 —
+   읽을 필요가 없을 때는 아예 읽지 않는다. 인증 단계가 붙여 준 문서(authUserDoc)도 있으면 재사용한다. */
 async function resolveSukuyoYearlyProfile(env, auth, profileIdRaw) {
   const requestedProfileId = clean(profileIdRaw);
-  const user = await withMongoRetry(env, () =>
-    User.findById(auth.userId).select("destinyProfilesCurrentId").lean());
-  const profileId = requestedProfileId || clean(user?.destinyProfilesCurrentId);
-  if (!profileId) {
+  // authUserDoc 는 access-token 인증 경로에서만 붙는다(refresh/admin 경로엔 없음) → 없으면 아래에서 조회.
+  const authProfileId = clean(auth?.authUserDoc?.destinyProfilesCurrentId);
+
+  const resolved = await withMongoRetry(env, async () => {
+    let profileId = requestedProfileId || authProfileId;
+    if (!profileId) {
+      const user = await User.findById(auth.userId).select("destinyProfilesCurrentId").lean();
+      profileId = clean(user?.destinyProfilesCurrentId);
+    }
+    if (!profileId) return { profileId: "", profile: null };
+    const profile = await ProfileCard.findOne({ userId: auth.userId, profileId }).lean();
+    return { profileId, profile };
+  });
+
+  // 404/403 은 재시도해도 결과가 바뀌지 않으므로 콜백 바깥에서 던진다(재시도 대상 제외).
+  if (!resolved.profileId) {
     const error = new Error("숙요점 1년운을 열 프로필을 먼저 선택해 주세요.");
     error.status = 403;
     error.code = "PROFILE_REQUIRED";
     throw error;
   }
-  const profile = await withMongoRetry(env, () =>
-    ProfileCard.findOne({ userId: auth.userId, profileId }).lean());
-  if (!profile) {
+  if (!resolved.profile) {
     const error = new Error("선택한 프로필을 찾지 못했습니다.");
     error.status = 404;
     error.code = "PROFILE_NOT_FOUND";
     throw error;
   }
-  return profile;
+  return resolved.profile;
 }
 
 /* 1년운 3개 라우트는 requireAuth 가 아니라 resolvePaidRouteAuth 를 쓴다(다른 유료 라우트 정본과 동일).
@@ -1918,56 +1944,63 @@ function buildSukuyoYearlyFortuneResultV2({ auth, profile, targetYear }) {
 
 async function findSukuyoYearlyUnlock({ userId, profileId, targetYear, env = {} }) {
   const contentKey = sukuyoYearlyContentKey(targetYear);
-  const primary = await withMongoRetry(env, () => findActivePaidContentUnlock({
-    userId,
-    profileId,
-    serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
-    contentKey,
-  }));
-  if (primary?._id) return primary;
 
-  for (const serviceKey of ["ziwei", "saju"]) {
-    const legacy = await withMongoRetry(env, () => findActivePaidContentUnlock({
+  /* 조회 3건(정규 1 + 레거시 2)을 withMongoRetry 하나로 묶는다. 미해금 사용자는 매 요청 3건을 모두
+     타는데, 종전엔 각각을 따로 감싸 왕복마다 op-타임아웃(설계상 비재시도) 위험을 독립적으로 졌고
+     최악 지연이 11.5s×3 까지 누적됐다. findActivePaidContentUnlock 은 내부 재시도가 없는 raw read 라
+     여기서 감싸는 것은 중첩이 아니다(verify:no-nested-retry 기준). */
+  const found = await withMongoRetry(env, async () => {
+    const primary = await findActivePaidContentUnlock({
       userId,
       profileId,
-      serviceKey,
+      serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
       contentKey,
-    }));
-    if (!legacy?._id) continue;
-    try {
-      const source = Object.values(CONTENT_ENTITLEMENT_SOURCES).includes(legacy.source)
-        ? legacy.source
-        : CONTENT_ENTITLEMENT_SOURCES.BACKFILL;
-      return await upsertPaidContentUnlock({
-        userId,
-        profileId,
-        featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
-        serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
-        contentKey,
-        source,
-        orderId: legacy.orderId || "",
-        paymentId: legacy.paymentId || "",
-        passId: legacy.passId || "",
-        coinAmount: Number(legacy.coinAmount || 0),
-        unlockedAt: legacy.unlockedAt || null,
-      });
-    } catch (error) {
-      console.warn("[SukuyoYearly][LegacyUnlockBackfillFailed]", {
-        userId: clean(userId),
-        profileId: clean(profileId),
-        targetYear,
-        serviceKey,
-        reason: clean(error?.message || error),
-      });
-      return legacy;
-    }
-  }
+    });
+    if (primary?._id) return { unlock: primary, legacyServiceKey: "" };
 
-  return null;
+    for (const serviceKey of ["ziwei", "saju"]) {
+      const legacy = await findActivePaidContentUnlock({ userId, profileId, serviceKey, contentKey });
+      if (legacy?._id) return { unlock: legacy, legacyServiceKey: serviceKey };
+    }
+    return null;
+  });
+
+  if (!found) return null;
+  if (!found.legacyServiceKey) return found.unlock;
+
+  // 백필은 write 다 — 재시도 콜백 밖에 둔다(withMongoRetry 는 READ 전용, 중복 write 방지).
+  const legacy = found.unlock;
+  try {
+    const source = Object.values(CONTENT_ENTITLEMENT_SOURCES).includes(legacy.source)
+      ? legacy.source
+      : CONTENT_ENTITLEMENT_SOURCES.BACKFILL;
+    return await upsertPaidContentUnlock({
+      userId,
+      profileId,
+      featureKey: SUKYO_YEARLY_FORTUNE_PRODUCT_KEY,
+      serviceKey: SUKYO_YEARLY_FORTUNE_SERVICE_KEY,
+      contentKey,
+      source,
+      orderId: legacy.orderId || "",
+      paymentId: legacy.paymentId || "",
+      passId: legacy.passId || "",
+      coinAmount: Number(legacy.coinAmount || 0),
+      unlockedAt: legacy.unlockedAt || null,
+    });
+  } catch (error) {
+    console.warn("[SukuyoYearly][LegacyUnlockBackfillFailed]", {
+      userId: clean(userId),
+      profileId: clean(profileId),
+      targetYear,
+      serviceKey: found.legacyServiceKey,
+      reason: clean(error?.message || error),
+    });
+    return legacy;
+  }
 }
 
 async function handleSukuyoYearlyFortune(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
   const url = new URL(request.url);
   const targetYear = normalizeSukuyoTargetYear(url.searchParams.get("year"));
   const profile = await resolveSukuyoYearlyProfile(env, auth, url.searchParams.get("profileId"));
@@ -1996,7 +2029,7 @@ async function handleSukuyoYearlyFortune(request, env) {
 }
 
 async function handleSukuyoYearlyUnlock(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);
@@ -2243,7 +2276,7 @@ export const __sukuyoYearlyTestUtils = {
 };
 
 async function handleSukuyoYearlyVerifyPayment(request, env) {
-  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env));
+  const auth = requireSukuyoYearlyAuth(await resolvePaidRouteAuth(request, env, { userProjection: SUKUYO_YEARLY_USER_PROJECTION }));
   const body = await readJson(request);
   const targetYear = normalizeSukuyoTargetYear(body?.targetYear || body?.year);
   const profile = await resolveSukuyoYearlyProfile(env, auth, body?.profileId || body?.selectedProfileId);

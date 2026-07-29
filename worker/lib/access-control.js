@@ -256,6 +256,40 @@ export function buildAlternativePaymentRules(reportType, requestBody = {}) {
     ];
   }
 
+  if (reportType === "petSajuReport") {
+    return [
+      {
+        featureKey: "pet-saju-ai-consultation",
+        reason: "반려동물 사주 AI 심층 리포트",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "반려동물 사주 AI 심층 리포트",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
+  if (reportType === "petCompatReport") {
+    return [
+      {
+        featureKey: "pet-compatibility-ai",
+        reason: "반려동물 궁합 분석",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+      {
+        featureKey: "coin-gate-per-use",
+        reason: "반려동물 궁합 분석",
+        minCost: 50,
+        windowMinutes: 120,
+      },
+    ];
+  }
+
   if (reportType === "sukuyoPastLifeReading") {
     return [
       {
@@ -1056,7 +1090,7 @@ export async function requirePremiumReportAccess(env, userId, reportType, reques
     return allowed;
   }
 
-  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse"].includes(normalizedReportType) && alternativeRules.length) {
+  if (["celestialHarmony", "geomancyOracle", "yogaGuruCourse", "petSajuReport", "petCompatReport"].includes(normalizedReportType) && alternativeRules.length) {
     for (let i = 0; i < alternativeRules.length; i += 1) {
       const evidence = await findRecentDeductionEvidence(user._id, alternativeRules[i]);
       if (!evidence) continue;
