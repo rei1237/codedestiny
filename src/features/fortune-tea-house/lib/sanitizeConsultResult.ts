@@ -98,9 +98,28 @@ export function sanitizeTeaHouseConsultResult(result: FortuneTeaHouseConsultResp
         positionMeaning: text(card.positionMeaning),
         reading: text(card.reading) || undefined,
         keywords: textList(card.keywords),
+        detail: card.detail
+          ? {
+              coreMeaning: text(card.detail.coreMeaning),
+              currentSituation: text(card.detail.currentSituation),
+              questionLink: text(card.detail.questionLink),
+              advice: text(card.detail.advice),
+              caution: text(card.detail.caution),
+            }
+          : undefined,
       })),
       tarot,
     ),
+    cardInteractions: (result.cardInteractions || [])
+      .map((item) => ({ pair: text(item?.pair), insight: text(item?.insight) }))
+      .filter((item) => item.pair && item.insight),
+    heartScent: result.heartScent
+      ? {
+          name: text(result.heartScent.name),
+          category: text(result.heartScent.category),
+          reason: text(result.heartScent.reason),
+        }
+      : undefined,
     sukuyoCompatibility: sukuyo,
     sajuCompatibility: sajuCompat,
     emotionAnalysis: (result.emotionAnalysis || [])

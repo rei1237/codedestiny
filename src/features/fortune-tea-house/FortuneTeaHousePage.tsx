@@ -11,7 +11,8 @@ import { fortuneTeaHouseAssets } from "./data/assets";
 import { toDisplayText } from "@/lib/llm-text";
 import { authFetch } from "@/app/_lib/auth-client";
 import { runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
-import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput } from "./data/consult";
+import type { FortuneTeaHouseConsultMode, FortuneTeaHouseConsultRequest, FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseQuestionInput, FortuneTeaTarotSpread } from "./data/consult";
+import { getFortuneTeaHouseConsultFeatureKey } from "./data/consultPricing";
 import { isTeaHouseEntryStage } from "./data/entryStory";
 import type { TeaHouseStage } from "./data/story";
 import type { TeaHouseCup } from "./data/teaCups";
@@ -126,12 +127,17 @@ type FortuneTeaProgressStep = {
 
 type FortuneTeaConsultPostBody = FortuneTeaHouseConsultRequest & Record<string, unknown>;
 
-const FORTUNE_TEA_FEATURE_KEY_BY_MODE: Record<FortuneTeaHouseConsultMode, string> = {
-  tarot: "fortune-tea-house-tarot-consultation",
-  saju: "fortune-tea-house-saju-consultation",
-  sajuCompatibility: "fortune-tea-house-saju-compatibility-consultation",
-  sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
+// 타로는 스프레드로 상품이 갈리므로(3카드/5카드) 모드만으로 featureKey를 정하면 안 된다.
+// 서버(worker/routes/fortune-tea-house.js)는 요청의 tarotSpread에서 키를 다시 유도하고
+// 불일치하면 거부하므로, 클라이언트도 같은 규칙으로 키를 만든다.
+type FortuneTeaFeatureKeySource = {
+  consultationMode: FortuneTeaHouseConsultMode;
+  tarotSpread?: FortuneTeaTarotSpread;
 };
+
+function resolveFortuneTeaFeatureKey(source: FortuneTeaFeatureKeySource) {
+  return getFortuneTeaHouseConsultFeatureKey(source.consultationMode, source.tarotSpread);
+}
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -162,11 +168,11 @@ function isFortuneTeaGenerationPending(response: Response, payload: FortuneTeaHo
   return response.status === 202 || payload.status === "generating" || payload.reason === "GENERATION_IN_PROGRESS";
 }
 
-function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string): FortuneTeaBillingGateInput {
+function buildFortuneTeaBillingGateInput(payload: FortuneTeaHouseConsultApiResponse, source: FortuneTeaFeatureKeySource, attemptId: string): FortuneTeaBillingGateInput {
   const paymentPayload = asRecord(payload.paymentPayload);
   const runtimeGate = asRecord(paymentPayload.runtimeGate);
   const pricing = asRecord(payload.pricing);
-  const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode];
+  const featureKey = toText(runtimeGate.featureKey ?? payload.featureKey ?? pricing.featureKey) || resolveFortuneTeaFeatureKey(source);
   const coinPrice = Math.floor(toNumber(runtimeGate.coinPrice ?? runtimeGate.cost ?? pricing.coinPrice ?? pricing.cost));
   const amountKRW = Math.floor(toNumber(runtimeGate.amountKRW ?? runtimeGate.amountKrw ?? runtimeGate.paymentAmount ?? pricing.amountKRW ?? pricing.paymentAmount));
   const membershipCreditCost = Math.floor(toNumber(runtimeGate.membershipCreditCost ?? pricing.membershipCreditCost));
@@ -234,8 +240,8 @@ async function pollFortuneTeaConsultResult(body: FortuneTeaConsultPostBody, isCa
   return null; // 상한 소진 — 여전히 생성 중
 }
 
-async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiResponse, mode: FortuneTeaHouseConsultMode, attemptId: string) {
-  const billingInput = buildFortuneTeaBillingGateInput(payload, mode, attemptId);
+async function runFortuneTeaBillingGate(payload: FortuneTeaHouseConsultApiResponse, source: FortuneTeaFeatureKeySource, attemptId: string) {
+  const billingInput = buildFortuneTeaBillingGateInput(payload, source, attemptId);
   const { runBillingCoinGate } = await import("@/app/_lib/billing-client");
   const gate = await runBillingCoinGate(billingInput);
   if (!gate.ok || !gate.data) {
@@ -261,13 +267,13 @@ async function ensureFortuneTeaAuthReady() {
   }
 }
 
-async function beginFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
+async function beginFortuneTeaAccessGate(source: FortuneTeaFeatureKeySource, attemptId: string) {
   const { beginPaidFeatureGateCheck, holdPaidFeatureGateOpen } = await import("@/app/_lib/billing-client") as {
     beginPaidFeatureGateCheck: BeginPaidFeatureGateCheck;
     holdPaidFeatureGateOpen: typeof import("@/app/_lib/billing-client")["holdPaidFeatureGateOpen"];
   };
   beginPaidFeatureGateCheck({
-    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    featureKey: resolveFortuneTeaFeatureKey(source),
     requestId: attemptId,
     title: "이용권 확인",
     reason: "운명 찻집 상담",
@@ -285,12 +291,12 @@ async function releaseFortuneTeaAccessGate(attemptId: string) {
   releasePaidFeatureGate(attemptId);
 }
 
-async function completeFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string) {
+async function completeFortuneTeaAccessGate(source: FortuneTeaFeatureKeySource, attemptId: string) {
   const { completePaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
     completePaidFeatureGateCheck: CompletePaidFeatureGateCheck;
   };
   completePaidFeatureGateCheck({
-    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    featureKey: resolveFortuneTeaFeatureKey(source),
     requestId: attemptId,
     title: "이용권 확인 완료",
     reason: "운명 찻집 상담",
@@ -299,13 +305,13 @@ async function completeFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, at
   });
 }
 
-async function failFortuneTeaAccessGate(mode: FortuneTeaHouseConsultMode, attemptId: string, message?: string) {
+async function failFortuneTeaAccessGate(source: FortuneTeaFeatureKeySource, attemptId: string, message?: string) {
   const { failPaidFeatureGateCheck } = await import("@/app/_lib/billing-client") as {
     failPaidFeatureGateCheck: FailPaidFeatureGateCheck;
   };
   const cancelled = /PAYMENT_CANCELLED|취소/.test(message || "");
   failPaidFeatureGateCheck({
-    featureKey: FORTUNE_TEA_FEATURE_KEY_BY_MODE[mode],
+    featureKey: resolveFortuneTeaFeatureKey(source),
     requestId: attemptId,
     title: "이용권 확인 실패",
     reason: "운명 찻집 상담",
@@ -864,7 +870,7 @@ export default function FortuneTeaHousePage() {
       };
       const attemptId = createFortuneTeaAttemptId(requestPayload);
       localPreviewResultId = attemptId;
-      await beginFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
+      await beginFortuneTeaAccessGate(nextQuestionInput, attemptId);
       accessGateStarted = true;
       // Phase-1 이전에 인증을 예열해 이용권 보유자가 첫 제출에서 서버 게이트를 원샷 통과하도록 한다.
       await ensureFortuneTeaAuthReady();
@@ -908,7 +914,7 @@ export default function FortuneTeaHousePage() {
           label: "가격 확인",
           message: "상담 가격과 결제 권한을 확인하고 있어요.",
         }));
-        const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput.consultationMode, attemptId);
+        const billing = await runFortuneTeaBillingGate(accessCheck.payload, nextQuestionInput, attemptId);
         if (consultRunRef.current !== consultRunId) return;
         const billingGate = asRecord(billing.data);
         const accessGrant = asRecord(billingGate.accessGrant);
@@ -935,7 +941,7 @@ export default function FortuneTeaHousePage() {
       }
 
       // 이용권/결제 판정이 끝났으니 게이트를 닫고, 생성은 찻집 테마 로딩(scentLoading) 아래에서 진행한다.
-      await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
+      await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
       accessGateStarted = false;
       // 다음 화면(scentLoading)이 마운트되는 시점 — 게이트 오버레이 hold를 해제한다(찻집 로딩과 이중 표시 방지).
       void releaseFortuneTeaAccessGate(attemptId);
@@ -983,7 +989,7 @@ export default function FortuneTeaHousePage() {
       }
       logSubmitStep("api result success", payload.generationMeta);
       if (consultRunRef.current !== consultRunId) return;
-      if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, attemptId);
+      if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput, attemptId);
       markGenerationComplete();
 
       const remainingDelay = Math.max(0, 1300 - (Date.now() - startedAt));
@@ -1031,7 +1037,7 @@ export default function FortuneTeaHousePage() {
         || generationPending
       );
       if (localPreviewResult && useLocalPreview && !blocksLocalPreview) {
-        if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, localPreviewResultId);
+        if (accessGateStarted) await completeFortuneTeaAccessGate(nextQuestionInput, localPreviewResultId);
         markGenerationComplete();
         const nextResult = {
           ...localPreviewResult,
@@ -1049,10 +1055,10 @@ export default function FortuneTeaHousePage() {
       }
       if (accessGateStarted) {
         if (generationPending) {
-          await completeFortuneTeaAccessGate(nextQuestionInput.consultationMode, localPreviewResultId);
+          await completeFortuneTeaAccessGate(nextQuestionInput, localPreviewResultId);
         } else {
           await failFortuneTeaAccessGate(
-            nextQuestionInput.consultationMode,
+            nextQuestionInput,
             localPreviewResultId,
             error instanceof Error && error.message ? error.message : undefined,
           );
