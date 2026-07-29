@@ -4441,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Key features",
-    "audienceLabel": "Recommended for",
-    "chapterPreviewLabel": "Chapter preview",
+    "audienceLabel": "Recommended situations",
+    "chapterPreviewLabel": "Here is what you will see after unlocking.",
     "requiredInfoLabel": "Information needed before creation",
-    "outcomesLabel": "What you can see in the result",
+    "outcomesLabel": "Check with peace of mind",
+    "resultPreviewLabel": "Result preview",
     "startNow": "Start now →",
     "paywallNote": "All paid services are provided immediately upon completion of payment (purchase), and once provision has begun, the right of withdrawal may be restricted in accordance with applicable laws."
   },

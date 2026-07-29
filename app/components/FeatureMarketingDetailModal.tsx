@@ -24,6 +24,11 @@ export type FeatureMarketingTarget = {
   badges?: FeatureMarketingBadge[];
 };
 
+type FeatureMarketingResultPreview = {
+  lines: string[];
+  caption?: string;
+};
+
 type FeatureMarketingCopy = {
   category: string;
   badge: string;
@@ -33,6 +38,8 @@ type FeatureMarketingCopy = {
   unlockBenefits: string[];
   previewText: string;
   trustNotes: string[];
+  recommendedFor?: string[];
+  resultPreview?: FeatureMarketingResultPreview;
   ctaLabel: string;
 };
 
@@ -60,6 +67,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["같은 고민이 계속 반복될 때", "내 장점과 약점이 헷갈릴 때", "지금 운의 압박이 어디서 오는지 알고 싶을 때"],
     unlockBenefits: ["기질의 핵심 흐름", "현재 시기에 강하게 작용하는 포인트", "조심해야 할 선택 패턴", "현실적인 행동 기준"],
     previewText: "사주 해석은 길흉을 겁주듯 말하지 않고, 지금의 흐름과 선택 기준을 차분히 드러냅니다.",
+    recommendedFor: ["타고난 기질과 지금 흐름을 함께 보고 싶은 분","같은 고민이 반복되는 이유를 알고 싶은 분","선택을 앞두고 판단 기준이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   tarot: {
@@ -70,6 +78,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["마음은 급한데 답이 흐릿할 때", "상대의 감정이나 가까운 흐름이 궁금할 때", "선택 전에 마음을 정리하고 싶을 때"],
     unlockBenefits: ["현재 분위기 해석", "감정의 온도와 흐름", "조심해야 할 반응", "다음 행동 힌트"],
     previewText: "타로 리딩은 결과를 확정하지 않고, 지금 질문 주변에 떠오르는 상징과 흐름을 비춥니다.",
+    recommendedFor: ["답이 흐릿해 마음부터 정리하고 싶은 분","상대의 감정이나 가까운 흐름이 궁금한 분","짧고 선명한 조언이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   sukuyo: {
@@ -80,6 +89,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["이상하게 끌리지만 자주 부딪힐 때", "상대와의 관계 패턴을 알고 싶을 때", "오래 갈 수 있는 인연인지 궁금할 때"],
     unlockBenefits: ["두 사람의 기본 관계성", "가까워질 때 생기는 장점", "충돌이 생기는 지점", "관계를 부드럽게 만드는 조언"],
     previewText: "숙요점은 궁합을 좋다/나쁘다로만 단정하지 않고, 관계가 움직이는 거리감을 먼저 비춥니다.",
+    recommendedFor: ["상대와 가까워질수록 자꾸 부딪히는 분","관계의 패턴을 이름 붙여 이해하고 싶은 분","오래 갈 인연인지 판단이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   ziwei: {
@@ -90,6 +100,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["내 인생의 구조를 큰 틀에서 보고 싶을 때", "일·돈·관계의 중심축이 궁금할 때", "장기 흐름과 현재 선택을 함께 보고 싶을 때"],
     unlockBenefits: ["명궁과 주요 궁의 흐름", "궁별로 강하게 떠오르는 포인트", "장기 방향성과 주의 패턴", "다음 선택을 위한 기준"],
     previewText: "자미두수 해석은 별의 배치를 따라, 지금 내 삶의 구조에서 무엇이 강하게 움직이는지 살핍니다.",
+    recommendedFor: ["인생 구조를 큰 틀에서 보고 싶은 분","일·돈·관계의 중심축이 궁금한 분","장기 방향과 지금 선택을 함께 보고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   astrology: {
@@ -100,6 +111,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["감정과 선택의 타이밍이 궁금할 때", "내 별자리 흐름을 더 구체적으로 보고 싶을 때", "지금의 방향성을 차분히 정리하고 싶을 때"],
     unlockBenefits: ["별자리와 행성 흐름의 핵심", "심리적으로 강하게 작용하는 포인트", "주의해야 할 선택 패턴", "다음 시기를 준비하는 힌트"],
     previewText: "점성술 해석은 별의 상징을 통해, 지금 마음과 선택의 방향을 부드럽게 비춥니다.",
+    recommendedFor: ["감정과 상황이 따로 논다고 느끼는 분","움직일 시기를 정해야 하는 분","별자리 해석이 늘 겉핥기로 끝났던 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   vedic: {
@@ -110,6 +122,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["지금 선택의 의미가 궁금할 때", "마음속 질문이 쉽게 내려놓아지지 않을 때", "시기와 방향을 함께 보고 싶을 때"],
     unlockBenefits: ["질문의 핵심 흐름", "시점과 내면의 상징 해석", "선택을 막는 걸림돌", "현실적인 다음 기준"],
     previewText: "베다점은 질문이 열린 시점의 결을 따라, 지금 필요한 기준을 차분히 가리킵니다.",
+    recommendedFor: ["지금 선택의 의미를 확인하고 싶은 분","내려놓지 못한 질문이 하나 남아 있는 분","시기와 방향을 함께 보고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   oracle: {
@@ -120,6 +133,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["결정은 해야 하는데 확신이 부족할 때", "반복되는 신호가 있다고 느낄 때", "짧지만 선명한 상징 해석이 필요할 때"],
     unlockBenefits: ["현재 질문의 상징 메시지", "놓치기 쉬운 포인트", "주의해야 할 흐름", "다음 행동을 위한 힌트"],
     previewText: "오라클은 미래를 확정하지 않고, 지금 질문 주변에 떠오르는 상징을 비춥니다.",
+    recommendedFor: ["결정은 해야 하는데 확신이 부족한 분","반복되는 신호가 있다고 느끼는 분","짧지만 선명한 상징 해석이 필요한 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
   report: {
@@ -130,6 +144,7 @@ const CATEGORY_COPY: Record<string, Omit<FeatureMarketingCopy, "ctaLabel">> = {
     painPoints: ["같은 고민이 반복된다고 느낄 때", "단순 요약보다 구체적인 흐름이 필요할 때", "선택 전에 내 생각을 정리하고 싶을 때"],
     unlockBenefits: ["핵심 흐름 요약", "주제별 해석 포인트", "조심해야 할 패턴", "다음 행동 기준"],
     previewText: "프리미엄 해석은 결과를 과장하지 않고, 지금 필요한 질문의 결을 차분히 정리합니다.",
+    recommendedFor: ["흩어진 고민을 한 번에 정리하고 싶은 분","요약보다 구체적인 흐름이 필요한 분","선택 전에 생각을 매듭짓고 싶은 분"],
     trustNotes: SAFE_TRUST_NOTES,
   },
 };
@@ -141,6 +156,19 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     headline: "내 삶의 큰 흐름을 한 번 깊게 정리해두는 시간을 가져보세요.",
     subheadline: "사주 흐름을 바탕으로 인생의 방향과 반복 패턴을 상담형으로 풀어보는 프리미엄 기능입니다.",
     painPoints: ["삶의 방향을 큰 틀에서 정리하고 싶을 때", "반복되는 선택 패턴의 이유가 궁금할 때", "지금의 전환점을 더 깊게 읽고 싶을 때"],
+    recommendedFor: [
+      "30대·40대 전환점에서 방향을 다시 잡아야 하는 분",
+      "같은 실패가 반복되는 이유를 근본에서 확인하고 싶은 분",
+      "짧은 운세 말고 인생 전체 흐름을 한 번에 훑어보고 싶은 분",
+    ],
+    resultPreview: {
+      lines: [
+        "당신의 일간은 조용히 스며드는 물의 기운입니다. 겉으로는 유연해 보이지만 방향이 정해지면 좀처럼 되돌리지 않습니다.",
+        "첫 번째 큰 전환점은 이미 지나왔습니다. 그때 내린 선택이 지금의 자리와 어떻게 이어져 있는지부터 짚습니다.",
+        "반복되는 굴레의 근원은 재물의 기운과 책임의 기운이 부딪히는 자리에 있습니다. 이 지점을 풀면 다음 장이 열립니다.",
+      ],
+      caption: "실제 인생의 책 도입부 예시입니다. 결제 후에는 본인 사주로 계산된 전 챕터와 시기별 전략까지 이어집니다.",
+    },
     ctaLabel: "인생의 책 열람하기",
   },
   "ziwei-ai-consultation": {
@@ -148,13 +176,37 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "전문가 상담형",
     headline: "별의 배치가 지금의 질문을 어디로 이끄는지 차분히 읽어보세요.",
     subheadline: "명궁과 12궁의 흐름을 바탕으로, 고민의 중심과 다음 선택 기준을 정리하는 상담형 해석입니다.",
+    recommendedFor: [
+      "이직·이사·결혼처럼 큰 결정을 앞두고 판단 근거가 필요한 분",
+      "노력은 계속하는데 성과가 한 곳으로 모이지 않는다고 느끼는 분",
+      "단편적인 오늘 운세 말고 인생 구조를 한 번 정리하고 싶은 분",
+    ],
+    resultPreview: {
+      lines: [
+        "명궁에 놓인 별의 배치는 당신이 결정을 내리는 속도와 방식을 먼저 설명합니다. 지금 고민이 무겁게 느껴지는 이유도 여기서 시작됩니다.",
+        "재백궁의 흐름은 올해 하반기를 지나며 방향을 바꿉니다. 이 시기에 벌리는 일과 정리하는 일을 구분해야 손실이 줄어듭니다.",
+        "관록궁과 명궁이 만나는 자리에서 같은 패턴이 반복됩니다. 이 패턴을 알아채는 순간 선택의 폭이 달라집니다.",
+      ],
+      caption: "실제 상담 결과 화면의 예시입니다. 결제 후에는 본인 명식으로 계산된 12궁 전체 해석과 이어지는 질문까지 확인할 수 있어요.",
+    },
     ctaLabel: "자미두수 상담 열기",
+  },
+  "neo-operation-room-consultation": {
+    category: "프리미엄 리포트",
+    badge: "전략 상담형",
+    headline: "흩어진 고민을 하나의 작전 지도로 정리해보세요.",
+    subheadline: "사주와 별자리 흐름을 함께 놓고, 지금 밀리는 지점과 다시 잡아야 할 기준을 읽어주는 전략형 상담입니다.",
+    recommendedFor: ["위로보다 냉정한 진단이 필요한 분","고민이 여러 개 얽혀 우선순위가 안 잡히는 분","사주와 별자리를 한 번에 묶어서 보고 싶은 분"],
+    resultPreview: { lines: ["지금 밀리고 있는 전선은 일이 아니라 관계입니다. 여기서 새는 힘이 나머지를 전부 갉아먹습니다.","당신은 결정을 미루는 사람이 아니라 정보를 너무 오래 모으는 사람입니다. 기준부터 정해야 합니다.","다음 석 달 안에 하나를 접어야 나머지가 삽니다. 무엇을 접을지는 이미 정해져 있습니다."], caption: "실제 작전실 상담 결과의 도입부 예시입니다. 결제 후에는 본인 명식과 별자리를 묶은 전체 전략과 행동 순서가 이어집니다." },
+    ctaLabel: "작전실 열기",
   },
   "loveSimulation": {
     category: "사주",
     badge: "연애 시뮬레이션",
     headline: "내 연애 패턴이 어떤 장면에서 빛나고 흔들리는지 확인해보세요.",
     subheadline: "사주 오행과 일간 흐름을 바탕으로 관계의 케미와 대화 포인트를 시뮬레이션처럼 보여줍니다.",
+    recommendedFor: ["연애가 매번 비슷한 방식으로 끝나는 분","내가 어떤 사람에게 약한지 알고 싶은 분","다음 연애에서는 다르게 해보고 싶은 분"],
+    resultPreview: { lines: ["당신은 처음부터 마음을 다 여는 편이 아니라, 한 번 열면 되돌리지 못하는 쪽입니다.","끌리는 유형과 잘 맞는 유형이 다릅니다. 이 간격에서 반복이 생깁니다.","관계가 흔들리는 시점은 대체로 세 번째 고비에서 옵니다."], caption: "실제 LOVE CODE 결과의 도입부 예시입니다. 결제 후에는 본인 사주로 계산된 연애 패턴 전체를 확인할 수 있어요." },
     ctaLabel: "LOVE CODE 열람하기",
   },
   "destiny_meeting_place": {
@@ -162,6 +214,8 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "장소 리딩",
     headline: "내 인연이 머무르기 쉬운 장소의 결을 살펴보세요.",
     subheadline: "사주 흐름을 바탕으로 인연과 장소, 타이밍의 상징을 정리하는 리딩입니다.",
+    recommendedFor: ["어디서 인연을 만날지 감이 안 오는 분","활동 반경을 바꿔볼 생각이 있는 분","만남의 시기와 장소를 함께 보고 싶은 분"],
+    resultPreview: { lines: ["당신의 인연은 넓은 자리보다 좁고 반복되는 자리에서 열립니다.","방향으로는 지금 사는 곳을 기준으로 한쪽이 뚜렷하게 유리합니다.","사람이 몰리는 시기보다 한 박자 비켜난 시기에 만남이 잡힙니다."], caption: "실제 인연의 장소 결과의 도입부 예시입니다. 결제 후에는 본인 사주로 계산된 장소·방향·시기 해석을 확인할 수 있어요." },
     ctaLabel: "인연의 장소 열람하기",
   },
   "destiny-bias-analyze": {
@@ -169,6 +223,8 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "포토카드 리딩",
     headline: "최애와 나 사이에 떠오르는 무드와 감정 코드를 한 장씩 펼쳐보세요.",
     subheadline: "팬심과 관계 상상을 카드형 문장으로 정리해, 지금의 설렘과 거리감을 가볍게 읽는 리딩입니다.",
+    recommendedFor: ["최애와 나 사이의 거리를 재미있게 보고 싶은 분","팬심을 카드 형태로 남기고 싶은 분","가볍게 즐길 리딩을 찾는 분"],
+    resultPreview: { lines: ["두 사람의 기운은 정면으로 부딪히기보다 서로를 비추는 배치입니다.","당신이 끌리는 지점은 화려함이 아니라 견디는 태도입니다.","올해 이 마음이 가장 짙어지는 시기가 따로 있습니다."], caption: "실제 최애운명 결과의 도입부 예시입니다. 결제 후에는 카드 전체와 무드 해석을 확인할 수 있어요." },
     ctaLabel: "최애운명 열람하기",
   },
   "tarot-prompt-maker": {
@@ -176,6 +232,8 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "프롬프트형",
     headline: "내 질문에 맞는 타로 상담의 문장을 먼저 정리해보세요.",
     subheadline: "카드 해석을 더 깊게 이어가기 위한 질문과 상담 흐름을 프롬프트로 묶는 기능입니다.",
+    recommendedFor: ["타로를 자주 보는데 늘 답이 얕게 느껴지는 분","상담 전에 질문을 정리하고 싶은 분","스스로 리딩을 이어가 보고 싶은 분"],
+    resultPreview: { lines: ["지금 상황에서는 \"이 사람이 나를 좋아할까\"보다 \"무엇이 이 관계를 멈춰 세우고 있나\"가 더 잘 열립니다.","첫 질문이 열리면 이어서 물을 두 번째·세 번째 질문이 준비되어 있습니다.","카드가 애매하게 나왔을 때 다시 묻는 문장도 따로 담겨 있습니다."], caption: "실제 프롬프트 결과의 도입부 예시입니다. 결제 후에는 상황에 맞춘 질문 세트와 프롬프트 원문 전체를 받아보실 수 있어요." },
     ctaLabel: "프롬프트 열람하기",
   },
   "stonehengeRunes": {
@@ -183,6 +241,8 @@ const EXPLICIT_COPY: Record<string, Partial<FeatureMarketingCopy>> = {
     badge: "룬 리딩",
     headline: "지금 선택 앞에 떠오른 룬의 상징을 조용히 펼쳐보세요.",
     subheadline: "룬 문자의 상징으로 현재 질문과 다음 행동의 결을 읽는 오라클 리딩입니다.",
+    recommendedFor: ["흐름을 과거·현재·미래로 나눠 보고 싶은 분","짧지만 묵직한 조언을 원하는 분","북유럽 상징 체계에 끌리는 분"],
+    resultPreview: { lines: ["첫 번째 돌은 이미 지나온 선택을 가리킵니다. 그 선택은 실수가 아니라 필요한 과정이었습니다.","가운데 돌은 멈춤을 뜻합니다. 지금은 나아가는 힘보다 버티는 힘이 필요한 구간입니다.","마지막 돌은 문이 열리는 자리입니다. 다만 먼저 손에 쥔 것을 놓아야 열립니다."], caption: "실제 룬 오라클 결과의 도입부 예시입니다. 결제 후에는 세 룬의 전체 해석과 조합 풀이를 확인할 수 있어요." },
     ctaLabel: "룬 오라클 열람하기",
   },
 };
@@ -317,7 +377,33 @@ export function FeatureMarketingDetailModal({
               {copy.unlockBenefits.map((item) => <li key={item} className="list-none">• {item}</li>)}
             </ul>
           </section>
+          {copy.recommendedFor && copy.recommendedFor.length > 0 && (
+            <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
+              <h3 className="m-0 mb-2 text-xs font-black text-violet-100">이런 상황이라면 추천해요</h3>
+              <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
+                {copy.recommendedFor.map((item) => <li key={item} className="list-none">• {item}</li>)}
+              </ul>
+            </section>
+          )}
           <p className="m-0 rounded-lg border border-amber-200/18 bg-amber-200/[0.075] p-3 text-sm font-semibold leading-6 text-amber-50">{copy.previewText}</p>
+          {copy.resultPreview && copy.resultPreview.lines.length > 0 && (
+            <figure className="m-0">
+              <h3 className="m-0 mb-2 text-xs font-black text-sky-100">결과 미리보기</h3>
+              {/* 흐린 본문은 "여기서부터 유료"를 알리는 장식이라 aria-hidden. 실제 의미는 caption 이 전한다. */}
+              <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#171236] px-4 pb-7 pt-3.5">
+                <div aria-hidden className="grid select-none gap-2 blur-[2.4px]">
+                  {copy.resultPreview.lines.map((line) => (
+                    <span key={line} className="block text-sm leading-6 text-[#e7e0ff]">{line}</span>
+                  ))}
+                </div>
+                <span aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[58%] bg-[linear-gradient(180deg,rgba(23,18,54,0),rgba(23,18,54,0.88)_70%,#171236_100%)]" />
+                <span aria-hidden className="absolute bottom-2 right-3 z-[1] text-[10px] font-black tracking-[0.2em] text-[rgba(232,213,163,0.72)]">CODE DESTINY</span>
+              </div>
+              {copy.resultPreview.caption && (
+                <figcaption className="mt-2 text-xs leading-5 text-slate-300">{copy.resultPreview.caption}</figcaption>
+              )}
+            </figure>
+          )}
           <section className="rounded-lg border border-emerald-200/16 bg-emerald-200/[0.055] p-3">
             <h3 className="m-0 mb-2 text-xs font-black text-emerald-100">안심하고 확인하세요</h3>
             <ul className="m-0 grid gap-1.5 p-0 text-xs leading-5 text-emerald-50/86">
