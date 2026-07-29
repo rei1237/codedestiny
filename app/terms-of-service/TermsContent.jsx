@@ -60,7 +60,7 @@ export const TERMS_SECTIONS = [
     heading: "5. 이용자 자격 및 책임 / Eligibility and User Responsibility",
     body: (
       <p>
-        이용자는 정확한 정보 입력 및 계정/기기 보안 관리 책임을 부담하며, 법령 위반, 권리 침해, 자동화된 비정상 접근, 서비스 방해 행위를 해서는 안 됩니다. Users are responsible for lawful and fair use of the service.
+        대한민국 관련 법령에 따라 만 14세 미만은 회원가입 및 본 서비스를 이용할 수 없으며, 이용자는 정확한 정보 입력 및 계정/기기 보안 관리 책임을 부담합니다. 법령 위반, 권리 침해, 자동화된 비정상 접근, 서비스 방해 행위를 해서는 안 됩니다. Users under 14 years of age are not permitted to register or use the service.
       </p>
     ),
   },
