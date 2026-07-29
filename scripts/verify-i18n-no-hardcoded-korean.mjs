@@ -54,6 +54,9 @@ const EXCLUDED = [
   // 자신을 위반으로 잡는다.
   /^lib\/i18n\//,
   /^worker\/lib\/.*prompt/i,
+  // 운명의 섬 심층 리포트 문장 데이터(14주성·12궁 어휘·서술 원형). 형제 상품인
+  // island/consult/palace-prompts.js 와 같은 계열의 대형 콘텐츠 DB라 기준선을 흐리지 않도록 뺀다.
+  /^worker\/lib\/island\/island-report\.js$/,
   /^lib\/llm-/,
   /prompt\.(js|ts)$/i,
   /^app\/music\/_data\/musicLyrics\.ts$/,
