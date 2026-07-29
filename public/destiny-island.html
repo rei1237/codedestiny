@@ -644,14 +644,12 @@ var NEO_SHEET=WAR+enc("전략실 네오-Photoroom.png");            /* 사자 �
 var NEOH_SHEET=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png"); /* 인간 네오 4×2 */
 var PIGSHEET="/images/novel/pig-expressions.webp";               /* 꽃돼지 연이 표정 4×4 */
 var RAB_SHEET="/images/novel/rab-sheet.webp";                    /* 청토끼 4×2 */
-var LNS_SHEET="/images/novel/lunas-sheet.webp";                  /* 루나 언니 3×2 */
 var LN_SHEET=NOVEL+enc("루나-Photoroom.webp");                   /* 루나 3×2 */
 var NEO_CELL={neutral:"2.306% 3.145%",smile:"95.178% 97.065%",greet:"2.306% 97.065%",calm:"63.941% 65.618%"};
 var NEOH_CELL={hneutral:"0% 0%",hpoint:"33.333% 0%",hsmile:"66.667% 100%"};
 var PIG_CELL={smile:"0% 100%",bliss:"33.333% 33.333%",wave:"0% 0%",talk:"0% 33.333%"};
 var RAB_CELL={coin:"66.667% 0%",invite:"100% 0%",smug:"100% 100%"};
 var LN_CELL={greet:"0% 0%",joy:"50% 0%",cheer:"50% 100%"};
-var LNS_CELL={bread:"0% 0%",blanket:"100% 100%"};
 
 /* BGM — 실존 트랙만 (노벨 TRK와 동일 파일) */
 var TRK={
@@ -769,8 +767,8 @@ var PALACES={
     greet:"숲에 오신 걸 환영해요! 여긴 곁을 지켜주는 인연들이 자라는 곳이에요.",close:"가까운 사람에게 먼저 안부를 건네보면 숲이 더 푸르러질 거예요."},
   "부부궁":{x:41,y:57,icon:"💗",title:"연인의 정원",npc:{name:"큐피드 연이",who:"pig",yeon:true,sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.smile},
     greet:"정원에 오셨네요! 마음과 마음이 이어지는 꽃밭이에요.",close:"마음은 표현한 만큼 피어나요. 오늘 한 송이만 건네볼까요?"},
-  "자녀궁":{x:72,y:83,icon:"🎈",title:"빛의 놀이터",npc:{name:"보모 언니",who:"lns",sheet:LNS_SHEET,size:"300% 200%",pos:LNS_CELL.bread},
-    greet:"쉿— 새싹들이 놀고 있어요. 여긴 돌보고 길러내는 마음의 자리예요.",close:"작게 시작한 일일수록 자주 들여다봐 주세요. 그게 기르는 마음이에요."},
+  "자녀궁":{x:72,y:83,icon:"🎈",title:"빛의 놀이터",npc:{name:"박지은",who:"pje",img:NOVEL+enc("박지은 기본.webp")},
+    greet:"여기가 빛의 놀이터야. 네가 기르고 낳는 것들이 자라는 자리지.",close:"작게 시작한 것일수록 자주 들여다봐. 손을 놓는 순간 자라는 것도 멈추니까."},
   "재백궁":{x:16,y:56,icon:"⛏️",title:"황금 광산",npc:{name:"광산지기 청토끼",who:"rab",sheet:RAB_SHEET,size:"400% 200%",pos:RAB_CELL.coin},
     greet:"오호, 손님이군! 이 광산엔 네 재물운이 잠들어 있지.",close:"금맥은 한 번에 캐지 않아. 오늘 쓴 돈을 한 줄만 적어봐, 그게 곡괭이야."},
   "질액궁":{x:39,y:77,icon:"💧",title:"치유의 성소",npc:{name:"성소의 수호 토끼",who:"heal",img:NOVEL+enc("루나 언니 회복2-Photoroom.webp")},
