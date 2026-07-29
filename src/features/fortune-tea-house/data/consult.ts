@@ -222,11 +222,35 @@ export type FortuneTeaTarotSnapshot = {
   source: "existing-ai-tarot" | "existing-card-data" | "fallback";
 };
 
+// 카드 한 장의 상세 해석 5항목. 워커 LLM이 채우고, 없으면 결정론 폴백이 들어간다.
+export type FortuneTeaTarotCardDetail = {
+  coreMeaning: string;
+  currentSituation: string;
+  questionLink: string;
+  advice: string;
+  caution: string;
+};
+
 export type FortuneTeaTarotSpreadCard = FortuneTeaTarotSnapshot & {
   positionId: string;
   positionLabel: string;
   positionMeaning: string;
+  /** 레거시 한 줄 요약. detail이 없는 과거 저장 결과의 폴백으로만 쓴다. */
   reading?: string;
+  detail?: FortuneTeaTarotCardDetail;
+};
+
+/** 두 카드가 겹칠 때만 생기는 의미. */
+export type FortuneTeaCardInteraction = {
+  pair: string;
+  insight: string;
+};
+
+/** 최종 해석에 맞춰 고른 오늘의 향. 이름은 lib/fortune-tea-house/heart-scents.js 카탈로그 안에서만 나온다. */
+export type FortuneTeaHeartScent = {
+  name: string;
+  category: string;
+  reason: string;
 };
 
 export type FortuneTeaSukuyoPersonSnapshot = {
@@ -413,6 +437,8 @@ export type FortuneTeaHouseConsultResponse = {
   };
   tarotSpread?: FortuneTeaTarotSpread;
   tarotSpreadCards?: FortuneTeaTarotSpreadCard[];
+  cardInteractions?: FortuneTeaCardInteraction[];
+  heartScent?: FortuneTeaHeartScent;
   sukuyoCompatibility?: FortuneTeaSukuyoCompatibilitySnapshot;
   sajuCompatibility?: FortuneTeaSajuCompatibilitySnapshot;
   emotionAnalysis: Array<{

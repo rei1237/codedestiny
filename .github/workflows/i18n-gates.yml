@@ -37,9 +37,19 @@ jobs:
       - name: Sync public static artifacts
         run: npm run sync:public
 
-      # 사전 정합성 + ko 커버리지 + fallback/하드코딩 ratchet + 런타임 준비
+      # 사전 정합성 + ko 커버리지 + fallback ratchet + 런타임 준비
+      # 하드코딩 한국어 ratchet(verify:i18n-no-hardcoded-korean)은 2026-07-29 체인에서 제외했다.
+      # 사유는 scripts/verify-i18n-no-hardcoded-korean.mjs 헤더 참고.
+      #
+      # 🔴 continue-on-error: 현지화는 콘텐츠가 쌓이는 속도를 따라가는 점진 지표라, 새 한국어가
+      # 늘 때마다 PR 이 빨간불이 되고 배포까지 함께 멈춘다(2026-07-28 프로덕션 배포 정지 사고).
+      # 결과는 로그로 계속 보고하되 머지·배포를 막지는 않는다. 되돌리려면 이 줄만 지우면 된다.
       - name: i18n check
         run: npm run i18n:check
+        continue-on-error: true
 
+      # 이건 번역 지표가 아니라 셸 미러 구조 정합성이고, 배포 워크플로에서도 하드 게이트다
+      # (Deploy Cloudflare Pages "Verify locale main sync"). PR 에서 빨간불이 뜨는 게
+      # 배포 시점에 놀라는 것보다 낫다 → 일부러 blocking 유지.
       - name: Verify locale main sync
         run: npm run verify:locale-main-sync

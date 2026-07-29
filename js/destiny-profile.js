@@ -1250,7 +1250,15 @@
 
             if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
             var hasNext = index < candidates.length - 1;
-            var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
+            /* 후보 베이스 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 워커가 내는 JSON 503은
+               "DB가 잠시 아프다"는 degraded 신호이고, 후보(상대경로·origin·workers.dev)는 전부 같은
+               워커·같은 클러스터로 가므로 순회해봐야 똑같이 503이다. 요청·콘솔오류·DB부하만 후보 수만큼
+               배가된다(홈 진입 1회 블립이 3배로 보이던 원인). 셸의 shouldTryNextCandidate 와 정책을 맞춘다.
+               Cloudflare/Pages 가 내는 503 은 HTML 이라 looksHtml 로 잡혀 종전대로 폴백한다. */
+            var retryable = looksHtml
+              || response.status === 404
+              || response.status === 0
+              || (response.status >= 500 && response.status !== 503);
             if (hasNext && retryable) return attempt(index + 1);
 
             return result;
@@ -7284,6 +7292,49 @@
     }
     if (_dpFindProfileById(list, profileId)) DPStorage.setCurrent(profileId);
     _injectAndRun(p, 'saju');
+  };
+
+  /**
+   * 모바일 하단 네비 '사주' 탭 진입점.
+   * 로그인 + 대표 프로필이 있으면 재입력 없이 곧바로 사주를 계산한다.
+   * 정적 셸에서는 탭이 직접 호출하고, React 페이지에서는 /?action=cdSajuTabEntry 로 넘어와
+   * 라우트 액션 러너가 호출한다(허용목록: js/core/index-inline-runtime.js).
+   */
+  window.cdSajuTabEntry = function() {
+    var loginUrl = '/login?next=' + encodeURIComponent('/?action=cdSajuTabEntry');
+
+    function goCreateProfile() {
+      _toast('사주를 보려면 먼저 프로필을 만들어 주세요.', 'warn');
+      var form = document.getElementById('destinyCardForm') || document.querySelector('.input-section');
+      if (form) {
+        try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }
+
+    // 세션 힌트조차 없으면 왕복 없이 바로 로그인으로 보낸다.
+    if (!_dpHasSessionHint()) {
+      window.location.href = loginUrl;
+      return;
+    }
+
+    // 캐시에 대표 프로필이 있으면 낙관적으로 즉시 실행한다(서버 왕복 대기 없음).
+    var cached = _dpResolveCurrentProfileForSaju('');
+    if (cached && cached.birth && cached.birth.year) {
+      _injectAndRun(cached, 'saju');
+      return;
+    }
+
+    // 캐시가 비었을 때만 서버에서 대표 프로필을 받아온다.
+    _dpLoadFromServer(function(loaded) {
+      if (!loaded) {
+        if (!_dpHasSessionHint()) window.location.href = loginUrl;
+        else goCreateProfile();
+        return;
+      }
+      var profile = _dpResolveCurrentProfileForSaju('');
+      if (profile && profile.birth && profile.birth.year) _injectAndRun(profile, 'saju');
+      else goCreateProfile();
+    });
   };
 
   /* ──────────────────────────────────────────

@@ -355,12 +355,40 @@ async function ensureSyncProfileMutationPayment(auth, requestId) {
   return { ok: true };
 }
 
+/* 인증 조회(resolveActiveUserAuth)를 이 필드까지 확장해 auth.authUserDoc 로 받는다 —
+   아래 handleGetDestinyProfiles 가 같은 User 를 재조회하던 왕복을 없앤다.
+   🔴 바로 아래 select 문자열과 같은 집합을 유지할 것(필드가 빠지면 구독 등급이 조용히 오판된다). */
+const DESTINY_PROFILES_USER_PROJECTION = {
+  profileSubscription: 1,
+  subscription: 1,
+  membership: 1,
+  pass: 1,
+  entitlement: 1,
+  plan: 1,
+  planId: 1,
+  productId: 1,
+  subscriptionTier: 1,
+  membershipTier: 1,
+  passTier: 1,
+  status: 1,
+  subscriptionStatus: 1,
+  membershipStatus: 1,
+  isActive: 1,
+  isSubscribed: 1,
+  expiresAt: 1,
+  destinyProfilesCurrentId: 1,
+  destinyProfilesLockedCurrentId: 1,
+  destinyProfilesLockedAt: 1,
+};
+
 async function handleGetDestinyProfiles(auth) {
-  let user = null;
+  let user = auth.authUserDoc || null;
   try {
-    user = await User.findById(auth.userId)
-      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-      .lean();
+    if (!user) {
+      user = await User.findById(auth.userId)
+        .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+        .lean();
+    }
   } catch (error) {
     console.error("[worker-user-route-error]", JSON.stringify(buildErrorDetails("query-destiny-profiles-user", error, {
       userId: String(auth?.userId || ""),
@@ -659,7 +687,12 @@ export async function handleUserRoutes(request, env) {
       // catch-all 로 새어 503 이 된다 — 같은 완충을 인증에도 씌운다.
       let auth;
       try {
-        auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+        // 인증 조회를 확장해 authUserDoc 를 받아, 아래 handleGetDestinyProfiles 가 같은 User 를
+        // 다시 읽던 두 번째 왕복을 없앤다(읽기 전용 경로라 스냅샷 재사용이 안전하다).
+        auth = await getOptionalUserFromRequest(request, env, {
+          surfaceDbInfraError: true,
+          userProjection: DESTINY_PROFILES_USER_PROJECTION,
+        });
       } catch (error) {
         logUserRouteError("auth-get-destiny-profiles", error, request);
         return json({

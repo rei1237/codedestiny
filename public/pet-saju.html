@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AI 반려동물 사주 — Code Destiny</title>
+<meta name="description" content="종·품종·생년으로 읽는 우리 아이의 오행. 운명의 나무와 오늘의 운세를 무료로 확인하고, 심층 리포트와 반려동물 궁합까지 이어집니다.">
+<meta name="robots" content="noindex, follow">
+<meta name="theme-color" content="#24081a">
+<link rel="stylesheet" href="/styles/fonts-serif.css">
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   AI 반려동물 사주 — 몰입형 단일 화면.
+   팔레트: 연이 Dark(핑크 다크) 정본 — DESIGN.md "연이 Dark" 절.
+   딥 플럼 #3a0e28 → #24081a / 텍스트 #fff1f7 / 테두리 rgba(244,190,209,.38)
+   종별로 바뀌는 것은 오행 강조색(--pe)뿐. 배경·본문 색은 고정이라 명암비가 한 번에 보장된다.
+   깊이는 그림자가 아니라 브랜드 색 글로우(Glow-Not-Shadow).
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  --plum-1:#3a0e28; --plum-2:#2d0b20; --plum-3:#24081a;
+  --surface:rgba(72,20,50,.62); --surface-2:rgba(58,14,40,.86);
+  --ink:#fff1f7; --ink-muted:rgba(255,214,232,.86); --ink-dim:rgba(255,203,226,.62);
+  --line:rgba(244,190,209,.38); --line-soft:rgba(244,190,209,.18);
+  --rose:#f4bed1; --rose-deep:#ff9dc0; --gold:#ead089;
+  --pe:#f4bed1; --pe-soft:rgba(244,190,209,.16);
+  --el-mok:#5fd198; --el-hwa:#f08a8a; --el-to:#caa45a; --el-geum:#d9d3c1; --el-su:#69a7f7;
+  --r-sm:8px; --r-md:16px; --r-pill:999px;
+  --s-1:8px; --s-2:16px; --s-3:24px; --s-4:40px;
+  --z-nav:20; --z-overlay:60; --z-toast:80;
+  --ease:cubic-bezier(.22,1,.36,1);
+  --font-body:'Pretendard Variable','SUIT','Gowun Dodum','Noto Sans KR','Apple SD Gothic Neo',system-ui,sans-serif;
+  --font-display:'CodeDestinySerifLatin','CodeDestinySerifKR','Nanum Myeongjo',Georgia,serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100dvh; background:var(--plum-3); color:var(--ink);
+  font-family:var(--font-body); font-size:16px; line-height:1.7; letter-spacing:-.01em;
+  overflow-x:hidden;
+}
+img{max-width:100%; display:block}
+button{font:inherit; color:inherit}
+:focus-visible{outline:2px solid var(--gold); outline-offset:3px; border-radius:4px}
+
+/* ── 밤하늘 ────────────────────────────────────────────────── */
+.sky{position:fixed; inset:0; z-index:-2; background:
+  radial-gradient(120% 80% at 50% 0%, rgba(174,45,104,.32) 0%, transparent 62%),
+  linear-gradient(180deg,var(--plum-1) 0%,var(--plum-2) 46%,var(--plum-3) 100%);}
+.sky__stars{position:absolute; inset:0; overflow:hidden}
+.sky__stars i{position:absolute; width:2px; height:2px; border-radius:50%; background:var(--gold);
+  opacity:.45; animation:twinkle 4.5s var(--ease) infinite}
+@keyframes twinkle{0%,100%{opacity:.18; transform:scale(.7)}50%{opacity:.85; transform:scale(1)}}
+
+/* ── 상단바 ────────────────────────────────────────────────── */
+.topbar{position:sticky; top:0; z-index:var(--z-nav);
+  display:flex; align-items:center; gap:var(--s-2);
+  padding:calc(env(safe-area-inset-top) + 10px) var(--s-2) 10px;
+  background:linear-gradient(180deg,rgba(36,8,26,.94),rgba(36,8,26,.72) 70%,transparent);
+  backdrop-filter:blur(8px)}
+.topbar__back{display:inline-flex; align-items:center; gap:6px; padding:8px 14px;
+  border:1px solid var(--line); border-radius:var(--r-pill); background:transparent;
+  color:var(--ink-muted); text-decoration:none; font-size:.86rem; cursor:pointer;
+  transition:color .18s var(--ease), border-color .18s var(--ease)}
+.topbar__back:hover{color:var(--ink); border-color:var(--rose)}
+.topbar__title{font-family:var(--font-display); font-size:1rem; letter-spacing:.02em; color:var(--ink-muted); margin:0}
+
+/* ── 레이아웃 ──────────────────────────────────────────────── */
+.stage{max-width:760px; margin:0 auto; padding:var(--s-3) var(--s-2) 140px}
+.step{display:none; animation:stepIn .5s var(--ease) both}
+.step.is-active{display:block}
+@keyframes stepIn{from{opacity:0; transform:translateY(14px)}to{opacity:1; transform:none}}
+.lede{color:var(--ink-muted); margin:0 0 var(--s-3); max-width:60ch; text-wrap:pretty}
+h1,h2,h3{font-family:var(--font-display); font-weight:700; letter-spacing:-.015em; text-wrap:balance; margin:0 0 var(--s-1)}
+h1{font-size:clamp(1.6rem,5vw,2.4rem); line-height:1.25}
+h2{font-size:clamp(1.25rem,3.6vw,1.6rem); line-height:1.3; margin-top:var(--s-4)}
+h3{font-size:1.05rem; line-height:1.4}
+
+/* ── 인트로 ────────────────────────────────────────────────── */
+.intro{text-align:center; padding-top:6vh}
+.rune{width:172px; height:172px; margin:0 auto var(--s-3); position:relative}
+.rune svg{width:100%; height:100%; overflow:visible}
+.rune__ring{fill:none; stroke:var(--gold); stroke-width:1.2; opacity:.5;
+  transform-origin:50% 50%; animation:spin 34s linear infinite}
+.rune__ring--in{stroke:var(--rose); opacity:.62; animation-duration:22s; animation-direction:reverse}
+.rune__paw{fill:var(--rose); opacity:.94}
+@keyframes spin{to{transform:rotate(360deg)}}
+.intro__quote{font-family:var(--font-display); font-size:1.12rem; color:var(--ink); margin:0 0 var(--s-3)}
+
+/* ── 버튼 ──────────────────────────────────────────────────── */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  padding:13px 30px; border-radius:var(--r-pill); border:1px solid transparent;
+  font-weight:700; font-size:.98rem; cursor:pointer; text-decoration:none;
+  transition:transform .18s var(--ease), box-shadow .22s var(--ease), background .18s var(--ease)}
+.btn:disabled{opacity:.42; cursor:not-allowed}
+.btn:not(:disabled):hover{transform:translateY(-2px)}
+.btn--primary{background:linear-gradient(135deg,var(--gold) 0%,var(--rose) 100%); color:#3a0e28;
+  box-shadow:0 0 0 rgba(234,208,137,0)}
+.btn--primary:not(:disabled):hover{box-shadow:0 10px 30px rgba(234,208,137,.28)}
+.btn--ghost{background:transparent; border-color:var(--line); color:var(--ink-muted)}
+.btn--ghost:not(:disabled):hover{border-color:var(--rose); color:var(--ink)}
+.btn--block{display:flex; width:100%}
+.btn-row{display:flex; gap:var(--s-1); flex-wrap:wrap; margin-top:var(--s-3)}
+
+/* ── 종 선택 ───────────────────────────────────────────────── */
+.pick{display:grid; grid-template-columns:repeat(auto-fit,minmax(148px,1fr)); gap:var(--s-1)}
+.pick__item{position:relative; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:var(--s-2) 10px 14px; border:1px solid var(--line-soft); border-radius:var(--r-md);
+  background:var(--surface); cursor:pointer; text-align:center; overflow:hidden;
+  transition:border-color .2s var(--ease), background .2s var(--ease), transform .2s var(--ease)}
+.pick__item:hover{border-color:var(--pe); transform:translateY(-3px)}
+.pick__item[aria-pressed="true"]{border-color:var(--pe); background:var(--pe-soft);
+  box-shadow:0 0 26px -6px var(--pe)}
+.pick__name{font-weight:700; font-size:.98rem}
+.pick__meta{font-size:.76rem; color:var(--ink-dim); line-height:1.45}
+.pick__el{position:absolute; top:8px; right:10px; font-family:var(--font-display);
+  font-size:.82rem; color:var(--pe); opacity:.9}
+
+/* 스프라이트 초상 — 균일 340×344 프레임을 마진 %로 오프셋한다(마진 %는 컨테이너 width 기준). */
+.por{position:relative; width:100%; aspect-ratio:340/344; overflow:hidden; border-radius:var(--r-md)}
+.por__img{position:absolute; top:0; left:0; max-width:none; height:auto;
+  width:calc(1536 / 340 * 100%);
+  margin-left:calc(var(--fx) / 340 * -100%);
+  margin-top:calc(var(--fy) / 340 * -100%)}
+/* 프레임이 없는 종은 심볼로 내려간다 — 실패가 아니라 의도된 표기라서 같은 메달 형태를 유지한다. */
+.por--sym{display:grid; place-items:center; font-size:2.2rem;
+  background:radial-gradient(circle at 50% 40%, var(--pe-soft), transparent 70%)}
+.pick__por{width:88px; border-radius:50%; border:1px solid var(--line-soft);
+  background:radial-gradient(circle at 50% 32%, var(--pe-soft), rgba(36,8,26,.5) 74%)}
+
+/* ── 폼 ────────────────────────────────────────────────────── */
+.field{margin-bottom:var(--s-2)}
+.field__label{display:block; font-size:.82rem; font-weight:700; color:var(--ink-muted); margin-bottom:6px}
+.field__hint{font-size:.76rem; color:var(--ink-dim); margin:4px 0 0}
+.input,select.input{width:100%; padding:12px 14px; border-radius:var(--r-sm);
+  border:1px solid var(--line); background:rgba(36,8,26,.72); color:var(--ink);
+  font:inherit; font-size:.96rem; transition:border-color .18s var(--ease)}
+.input::placeholder{color:rgba(255,203,226,.58)}
+.input:focus{border-color:var(--rose); outline:none; box-shadow:0 0 0 3px rgba(244,190,209,.18)}
+.input:invalid:not(:placeholder-shown){border-color:#ff9d9d}
+.grid-2{display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:var(--s-1)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{padding:8px 15px; border-radius:var(--r-pill); border:1px solid var(--line-soft);
+  background:transparent; color:var(--ink-muted); font-size:.86rem; cursor:pointer;
+  transition:all .18s var(--ease)}
+.chip:hover{border-color:var(--rose); color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--pe-soft); border-color:var(--pe); color:var(--ink)}
+.err{color:#ffb4b4; font-size:.84rem; margin:var(--s-1) 0 0; min-height:1.2em}
+
+/* ── 분석 연출 ─────────────────────────────────────────────── */
+.analyze{text-align:center; padding-top:8vh}
+.analyze__list{list-style:none; margin:var(--s-3) auto 0; padding:0; max-width:340px; text-align:left}
+.analyze__list li{display:flex; align-items:center; gap:10px; padding:7px 0;
+  color:var(--ink-dim); font-size:.92rem; transition:color .3s var(--ease)}
+.analyze__list li::before{content:"○"; color:var(--line); font-size:.8rem}
+.analyze__list li.is-done{color:var(--ink-muted)}
+.analyze__list li.is-done::before{content:"●"; color:var(--pe)}
+
+/* ── 결과: 히어로 ──────────────────────────────────────────── */
+.hero{display:flex; align-items:center; gap:var(--s-3); margin-bottom:var(--s-3)}
+.hero__medal{position:relative; flex:0 0 auto; width:clamp(112px,30vw,156px); border-radius:50%;
+  overflow:hidden; border:1px solid var(--line);
+  background:radial-gradient(circle at 50% 30%, var(--pe-soft), rgba(36,8,26,.9) 72%);
+  box-shadow:0 0 44px -10px var(--pe)}
+.hero__medal .por{border-radius:0}
+.hero__name{font-family:var(--font-display); font-size:clamp(1.4rem,5vw,2rem); margin:0 0 4px}
+.hero__meta{color:var(--ink-muted); font-size:.9rem; margin:0}
+.hero__badge{display:inline-block; margin-top:10px; padding:5px 13px; border-radius:var(--r-pill);
+  background:var(--pe-soft); border:1px solid var(--pe); color:var(--ink); font-size:.8rem; font-weight:700}
+
+/* ── 오행 바 ───────────────────────────────────────────────── */
+.els{display:grid; gap:9px; margin:var(--s-2) 0 0}
+.el{display:grid; grid-template-columns:2.6rem 1fr 3rem; align-items:center; gap:10px}
+.el__name{font-family:var(--font-display); font-size:.95rem; color:var(--elc)}
+.el__track{height:9px; border-radius:var(--r-pill); background:rgba(255,241,247,.09); overflow:hidden}
+.el__fill{height:100%; border-radius:var(--r-pill); background:var(--elc);
+  width:var(--w); transform-origin:left; animation:grow .8s var(--ease) both}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.el__val{font-size:.8rem; color:var(--ink-dim); text-align:right; font-variant-numeric:tabular-nums}
+
+/* ── 운명의 나무 ───────────────────────────────────────────── */
+.tree{margin:var(--s-3) 0; padding:var(--s-2); border:1px solid var(--line-soft);
+  border-radius:var(--r-md); background:var(--surface)}
+.tree__svg{width:100%; max-width:420px; margin:0 auto; display:block; height:auto}
+.tree__part{animation:sprout .7s var(--ease) both}
+@keyframes sprout{from{opacity:0; transform:translateY(8px) scale(.86)}to{opacity:1; transform:none}}
+.tree__cap{margin:var(--s-1) 0 0; font-size:.84rem; color:var(--ink-dim); text-align:center}
+
+/* ── 지표 미터 ─────────────────────────────────────────────── */
+.meters{display:grid; gap:12px; margin-top:var(--s-2)}
+.meter{display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:baseline}
+.meter__label{font-size:.9rem; color:var(--ink-muted)}
+.meter__val{font-size:.8rem; color:var(--ink-dim); font-variant-numeric:tabular-nums}
+.meter__track{grid-column:1/-1; height:6px; border-radius:var(--r-pill);
+  background:rgba(255,241,247,.09); overflow:hidden}
+.meter__fill{height:100%; border-radius:var(--r-pill); background:var(--pe);
+  width:var(--w); transform-origin:left; animation:grow .8s var(--ease) both}
+.meter__fill--warn{background:var(--el-hwa)}
+
+/* ── 오늘의 운세 ───────────────────────────────────────────── */
+.daily{display:grid; gap:2px; margin-top:var(--s-2)}
+.daily__row{display:grid; grid-template-columns:auto 1fr auto; gap:10px; align-items:center;
+  padding:11px 0; border-bottom:1px solid var(--line-soft)}
+.daily__row:last-child{border-bottom:0}
+.daily__label{font-size:.92rem}
+.daily__text{grid-column:1/-1; font-size:.84rem; color:var(--ink-dim); margin:0; line-height:1.55}
+.stars{color:var(--gold); letter-spacing:.12em; font-size:.9rem; white-space:nowrap}
+.stars b{color:rgba(255,241,247,.2); font-weight:400}
+
+/* ── 명식 ──────────────────────────────────────────────────── */
+.pillars{display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-top:var(--s-2)}
+.pillar{padding:11px 6px; text-align:center; border:1px solid var(--line-soft);
+  border-radius:var(--r-sm); background:var(--surface)}
+.pillar__cap{display:block; font-size:.72rem; color:var(--ink-dim)}
+.pillar__gz{font-family:var(--font-display); font-size:1.24rem; color:var(--ink)}
+
+/* ── 잠금 CTA ──────────────────────────────────────────────── */
+.locks{display:grid; gap:var(--s-1); margin-top:var(--s-3)}
+.lock{display:grid; grid-template-columns:1fr auto; gap:var(--s-1) var(--s-2); align-items:center;
+  padding:var(--s-2); border:1px solid var(--line); border-radius:var(--r-md);
+  background:linear-gradient(135deg,rgba(72,20,50,.72),rgba(58,14,40,.5))}
+.lock__title{font-family:var(--font-display); font-size:1.02rem; margin:0}
+.lock__desc{grid-column:1/-1; font-size:.85rem; color:var(--ink-muted); margin:0; line-height:1.6}
+.lock__price{font-size:.86rem; color:var(--gold); font-weight:700; white-space:nowrap}
+
+/* ── 리포트 본문 ───────────────────────────────────────────── */
+.prose p{margin:0 0 1em; color:var(--ink-muted); line-height:1.85; max-width:68ch; text-wrap:pretty}
+.rank{display:grid; gap:var(--s-1); margin-top:var(--s-2); counter-reset:rank}
+.rank__item{padding:var(--s-2); border:1px solid var(--line-soft); border-radius:var(--r-md);
+  background:var(--surface)}
+.rank__head{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.rank__no{counter-increment:rank; font-family:var(--font-display); font-size:1.1rem; color:var(--pe)}
+.rank__no::before{content:counter(rank)}
+.rank__name{font-weight:700}
+.rank__cat{font-size:.76rem; color:var(--ink-dim)}
+.rank__body{margin:6px 0 0; font-size:.88rem; color:var(--ink-muted); line-height:1.7}
+.tags{display:flex; flex-wrap:wrap; gap:7px; margin-top:var(--s-2)}
+.tag{padding:6px 13px; border-radius:var(--r-pill); border:1px solid var(--line-soft);
+  font-size:.84rem; color:var(--ink-muted)}
+
+/* ── 궁합 ──────────────────────────────────────────────────── */
+.score{text-align:center; padding:var(--s-3) 0}
+.score__num{font-family:var(--font-display); font-size:clamp(3rem,14vw,4.6rem); line-height:1;
+  color:var(--gold)}
+.score__grade{font-size:1.05rem; color:var(--ink); margin:var(--s-1) 0 0}
+.dims{display:grid; gap:12px; margin-top:var(--s-2)}
+.vs{display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:var(--s-2);
+  margin-bottom:var(--s-3)}
+.vs__side{text-align:center}
+.vs__medal{width:min(100px,26vw); margin:0 auto var(--s-1); border-radius:50%; overflow:hidden;
+  border:1px solid var(--line); box-shadow:0 0 34px -12px var(--pe)}
+.vs__medal .por{border-radius:0}
+.vs__name{font-weight:700; font-size:.94rem}
+.vs__sub{font-size:.76rem; color:var(--ink-dim)}
+.vs__amp{font-family:var(--font-display); color:var(--gold); font-size:1.3rem}
+
+/* ── 저장된 아이 목록 ──────────────────────────────────────── */
+.pets{display:grid; gap:var(--s-1); margin-top:var(--s-2)}
+.petrow{display:grid; grid-template-columns:56px 1fr auto; gap:var(--s-2); align-items:center;
+  padding:10px var(--s-2) 10px 10px; border:1px solid var(--line-soft); border-radius:var(--r-md);
+  background:var(--surface); cursor:pointer; text-align:left; width:100%;
+  transition:border-color .18s var(--ease)}
+.petrow:hover{border-color:var(--rose)}
+.petrow[aria-pressed="true"]{border-color:var(--pe); background:var(--pe-soft)}
+.petrow__medal{width:56px; border-radius:50%; overflow:hidden}
+.petrow__medal .por{border-radius:0}
+.petrow__name{font-weight:700; font-size:.95rem}
+.petrow__sub{font-size:.78rem; color:var(--ink-dim)}
+.petrow__del{padding:6px 11px; border-radius:var(--r-pill); border:1px solid var(--line-soft);
+  background:transparent; color:var(--ink-dim); font-size:.76rem; cursor:pointer}
+.petrow__del:hover{border-color:#ff9d9d; color:#ffb4b4}
+
+/* ── 빈 상태 / 오류 ────────────────────────────────────────── */
+.empty{padding:var(--s-4) var(--s-2); text-align:center; border:1px dashed var(--line);
+  border-radius:var(--r-md); color:var(--ink-muted)}
+.empty p{margin:0 0 var(--s-2); font-size:.92rem}
+
+/* ── 발바닥 네비 ───────────────────────────────────────────── */
+.pawnav{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 14px);
+  transform:translateX(-50%); z-index:var(--z-nav);
+  display:none; gap:4px; padding:6px; border-radius:var(--r-pill);
+  border:1px solid var(--line); background:rgba(36,8,26,.9); backdrop-filter:blur(10px);
+  box-shadow:0 10px 34px rgba(0,0,0,.4)}
+.pawnav.is-on{display:flex}
+.pawnav__btn{display:flex; flex-direction:column; align-items:center; gap:1px;
+  padding:8px 14px; border:0; border-radius:var(--r-pill); background:transparent;
+  color:var(--ink-dim); font-size:.68rem; cursor:pointer; transition:color .18s var(--ease)}
+.pawnav__btn i{font-style:normal; font-size:1.05rem; line-height:1}
+.pawnav__btn:hover{color:var(--ink-muted)}
+.pawnav__btn[aria-current="true"]{color:var(--gold)}
+
+/* ── 오버레이(로딩/오류) ───────────────────────────────────── */
+.overlay{position:fixed; inset:0; z-index:var(--z-overlay); display:none;
+  place-items:center; padding:var(--s-3); background:rgba(24,6,18,.88); backdrop-filter:blur(6px)}
+.overlay.is-on{display:grid}
+.overlay__box{max-width:400px; text-align:center; padding:var(--s-3);
+  border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface-2)}
+.overlay__msg{margin:var(--s-1) 0 0; color:var(--ink-muted); font-size:.9rem; line-height:1.65}
+.spin{width:42px; height:42px; margin:0 auto; border-radius:50%;
+  border:2px solid var(--line-soft); border-top-color:var(--gold); animation:rot 1s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+@media (min-width:820px){
+  .stage{max-width:1040px; padding-bottom:120px}
+  .result-grid{display:grid; grid-template-columns:1fr 1.15fr 1fr; gap:var(--s-3); align-items:start}
+  .result-grid > section{margin-top:0}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important}
+  .step{animation:none}
+  .btn:not(:disabled):hover{transform:none}
+  .pick__item:hover{transform:none}
+}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true"><div class="sky__stars" id="skyStars"></div></div>
+
+<header class="topbar">
+  <a class="topbar__back" href="/" aria-label="홈으로 돌아가기">← 홈</a>
+  <p class="topbar__title">AI 반려동물 사주</p>
+</header>
+
+<main class="stage" id="stage">
+
+  <!-- ① 인트로 -->
+  <section class="step is-active intro" id="stepIntro" aria-labelledby="introTitle">
+    <div class="rune" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <circle class="rune__ring" cx="60" cy="60" r="54"></circle>
+        <circle class="rune__ring rune__ring--in" cx="60" cy="60" r="41"></circle>
+        <polygon class="rune__ring" points="60,14 100,37 100,83 60,106 20,83 20,37"></polygon>
+        <g class="rune__paw" transform="translate(60 62)">
+          <ellipse cx="0" cy="6" rx="13" ry="10"></ellipse>
+          <ellipse cx="-11" cy="-8" rx="4.6" ry="6"></ellipse>
+          <ellipse cx="-3.8" cy="-13" rx="4.6" ry="6.2"></ellipse>
+          <ellipse cx="3.8" cy="-13" rx="4.6" ry="6.2"></ellipse>
+          <ellipse cx="11" cy="-8" rx="4.6" ry="6"></ellipse>
+        </g>
+      </svg>
+    </div>
+    <h1 id="introTitle">우리 아이의 운명을 살펴볼까요?</h1>
+    <p class="intro__quote">종의 기운, 품종의 기질, 태어난 날의 오행을 겹쳐 읽습니다.</p>
+    <p class="lede" style="margin-inline:auto">이름과 생일만 있으면 됩니다. 태어난 시각을 몰라도 괜찮아요. 오행 분포와 운명의 나무, 오늘의 운세까지는 결제 없이 볼 수 있습니다.</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn btn--primary" type="button" data-go="species">우리 아이 등록하기</button>
+      <button class="btn btn--ghost" type="button" data-go="pets" id="introMyPets" hidden>저장한 아이 보기</button>
+    </div>
+  </section>
+
+  <!-- ② 종 선택 -->
+  <section class="step" id="stepSpecies" aria-labelledby="speciesTitle">
+    <h1 id="speciesTitle">우리 가족은 누구인가요?</h1>
+    <p class="lede">종마다 타고난 기운이 다릅니다. 이 기운은 평생 바뀌지 않는 축이에요.</p>
+    <div class="pick" id="speciesGrid"></div>
+  </section>
+
+  <!-- ③ 품종 선택 -->
+  <section class="step" id="stepBreed" aria-labelledby="breedTitle">
+    <h1 id="breedTitle">품종을 알려주세요</h1>
+    <p class="lede">같은 종이라도 품종에 따라 기질이 달라집니다. 모르면 ‘일반’을 고르세요.</p>
+    <div class="pick" id="breedGrid"></div>
+    <div class="btn-row"><button class="btn btn--ghost" type="button" data-go="species">← 종 다시 고르기</button></div>
+  </section>
+
+  <!-- ④ 프로필 입력 -->
+  <section class="step" id="stepProfile" aria-labelledby="profileTitle">
+    <h1 id="profileTitle">우리 아이 소개</h1>
+    <p class="lede">생일은 오행 계산에 쓰이고, 성격 체크는 지표 보정에 쓰입니다.</p>
+    <form id="profileForm" novalidate>
+      <div class="field">
+        <label class="field__label" for="fName">이름</label>
+        <input class="input" id="fName" name="name" type="text" maxlength="20" placeholder="콩이" autocomplete="off" required>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field__label" for="fBirth">생년월일</label>
+          <input class="input" id="fBirth" name="birthDate" type="date" min="1900-01-01" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="fTime">태어난 시각</label>
+          <input class="input" id="fTime" name="birthTime" type="time">
+          <p class="field__hint">모르면 비워 두세요 — 시주만 빠지고 나머지는 그대로 계산됩니다.</p>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field__label" for="fGender">성별</label>
+          <select class="input" id="fGender" name="gender">
+            <option value="unknown">모름 / 밝히지 않음</option>
+            <option value="male">수컷</option>
+            <option value="female">암컷</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="fActivity">활동량</label>
+          <select class="input" id="fActivity" name="activityLevel"></select>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label class="field__label" for="fEnv">생활 환경</label>
+          <select class="input" id="fEnv" name="environment"></select>
+        </div>
+        <div class="field">
+          <label class="field__label" for="fCompanion">같이 사는 동물</label>
+          <select class="input" id="fCompanion" name="companion"></select>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field__label" id="traitLabel">성격 (해당하는 것 모두)</span>
+        <div class="chips" id="traitChips" role="group" aria-labelledby="traitLabel"></div>
+      </div>
+      <p class="err" id="profileErr" role="alert"></p>
+      <div class="btn-row">
+        <button class="btn btn--primary" type="submit">운명 읽기</button>
+        <button class="btn btn--ghost" type="button" data-go="breed">← 뒤로</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ⑤ 분석 연출 -->
+  <section class="step analyze" id="stepAnalyzing" aria-labelledby="analyzeTitle" aria-live="polite">
+    <div class="rune" aria-hidden="true">
+      <svg viewBox="0 0 120 120">
+        <circle class="rune__ring rune__ring--in" cx="60" cy="60" r="48"></circle>
+        <polygon class="rune__ring" points="60,14 100,37 100,83 60,106 20,83 20,37"></polygon>
+      </svg>
+    </div>
+    <h1 id="analyzeTitle">운명을 읽고 있어요</h1>
+    <ol class="analyze__list" id="analyzeSteps">
+      <li>종의 기본 오행 확인</li>
+      <li>품종 기질 분석</li>
+      <li>출생 기운 계산</li>
+      <li>성장 단계 반영</li>
+      <li>생활환경 분석</li>
+      <li>오행 균형 계산</li>
+      <li>행복 에너지 계산</li>
+      <li>운명 리포트 생성</li>
+    </ol>
+  </section>
+
+  <!-- ⑥ 결과 -->
+  <section class="step" id="stepResult" aria-labelledby="resultName"></section>
+
+  <!-- ⑦ 심층 리포트 -->
+  <section class="step" id="stepReport" aria-labelledby="reportTitle"></section>
+
+  <!-- ⑧ 궁합 -->
+  <section class="step" id="stepCompat" aria-labelledby="compatTitle"></section>
+
+  <!-- ⑨ 저장한 아이 -->
+  <section class="step" id="stepPets" aria-labelledby="petsTitle">
+    <h1 id="petsTitle">저장한 아이</h1>
+    <p class="lede">이 브라우저에만 저장됩니다. 궁합은 두 마리 이상 등록해야 볼 수 있어요.</p>
+    <div class="pets" id="petList"></div>
+    <div class="btn-row"><button class="btn btn--primary" type="button" data-go="species">+ 아이 추가하기</button></div>
+  </section>
+
+</main>
+
+<nav class="pawnav" id="pawnav" aria-label="반려동물 사주 메뉴">
+  <button class="pawnav__btn" type="button" data-nav="result"><i aria-hidden="true">🏠</i>사주</button>
+  <button class="pawnav__btn" type="button" data-nav="report"><i aria-hidden="true">📖</i>심층</button>
+  <button class="pawnav__btn" type="button" data-nav="compat"><i aria-hidden="true">❤️</i>궁합</button>
+  <button class="pawnav__btn" type="button" data-nav="pets"><i aria-hidden="true">🐾</i>내 아이</button>
+</nav>
+
+<div class="overlay" id="overlay" role="alertdialog" aria-live="assertive" aria-labelledby="overlayTitle">
+  <div class="overlay__box">
+    <div class="spin" id="overlaySpin" aria-hidden="true"></div>
+    <h2 id="overlayTitle" style="margin-top:var(--s-2)">잠시만요</h2>
+    <p class="overlay__msg" id="overlayMsg"></p>
+    <div class="btn-row" id="overlayActions" style="justify-content:center"></div>
+  </div>
+</div>
+
+<script src="/js/destiny-profile.js?v=build-pet-saju-1"></script>
+<script>
+(function(){
+"use strict";
+
+/* ═══ 0) 환경 · 자산 — destiny-island.html과 동일 규약 ═══ */
+var PROD = /(?:^|\.)code-destiny\.com$/i.test(location.hostname);
+var REMOTE_SHELL = location.protocol === "file:" || location.protocol === "capacitor:" || !!window.Capacitor;
+var API_BASE = REMOTE_SHELL ? "https://code-destiny.com" : "";
+var ASSETS = (PROD || REMOTE_SHELL) ? "https://assets.code-destiny.com/" : "/codedestinyassets/";
+function enc(p){ return p.split("/").map(encodeURIComponent).join("/"); }
+var SPRITE = ASSETS + enc("반려동물-Photoroom.webp");
+
+/* 스프라이트 프레임 — 시트 1536×1024, 알파 밴드 실측 후 균일 340×344로 재단.
+   행 밴드 [26,352] [369,687] [715,996] / 열 밴드 [62,352] [429,726] [797,1082] [1156,1451] */
+var FRAME = {
+  bichon:    { fx:  38, fy: 18 },
+  poodle:    { fx: 408, fy: 18 },
+  catGray:   { fx: 770, fy: 18 },
+  catOrange: { fx:1134, fy: 18 },
+  corgi:     { fx:  38, fy:357 },
+  shiba:     { fx: 408, fy:357 },
+  pomeranian:{ fx: 770, fy:357 },
+  rabbit:    { fx:1134, fy:357 },
+  hamster:   { fx:  38, fy:680 },
+  hedgehog:  { fx: 408, fy:680 },
+  budgie:    { fx: 770, fy:680 }
+};
+
+/* 품종 → 프레임. 목록에 없으면 종 기본 프레임, 그것도 없으면 심볼 폴백. */
+var BREED_FRAME = {
+  dog: { bichon:"bichon", maltese:"bichon", poodle:"poodle", golden_retriever:"poodle",
+         dachshund:"poodle", border_collie:"poodle", mixed:"poodle", generic:"poodle",
+         welsh_corgi:"corgi", shiba:"shiba", jindo:"shiba",
+         pomeranian:"pomeranian", chihuahua:"pomeranian" },
+  cat: { russian_blue:"catGray", scottish_fold:"catGray", persian:"catGray",
+         norwegian_forest:"catGray", ragdoll:"catGray", generic:"catGray",
+         korean_shorthair:"catOrange", bengal:"catOrange", siamese:"catOrange",
+         munchkin:"catOrange", mixed:"catOrange" }
+};
+var SPECIES_FRAME = { dog:"poodle", cat:"catGray", rabbit:"rabbit", hamster:"hamster",
+                      hedgehog:"hedgehog", bird:"budgie" };
+
+var ELEMENT_COLOR = { "목":"#5fd198", "화":"#f08a8a", "토":"#caa45a", "금":"#d9d3c1", "수":"#69a7f7" };
+var ELEMENT_HANJA = { "목":"木", "화":"火", "토":"土", "금":"金", "수":"水" };
+
+var PRICE = { report: { key:"pet-saju-ai-consultation", coin:50, krw:5000, title:"반려동물 사주 AI 심층 리포트" },
+              compat: { key:"pet-compatibility-ai",     coin:50, krw:5000, title:"반려동물 궁합 분석" } };
+
+var STORE_KEY = "cd_pet_profiles_v1";
+var MAX_PETS = 5;
+
+/* ═══ 1) 유틸 ═══ */
+function $(id){ return document.getElementById(id); }
+function el(tag, cls, text){
+  var node = document.createElement(tag);
+  if (cls) node.className = cls;
+  if (text !== undefined && text !== null) node.textContent = String(text);
+  return node;
+}
+function clear(node){ while (node && node.firstChild) node.removeChild(node.firstChild); }
+function kstToday(){ return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); }
+function starsHtml(n){
+  var full = Math.max(0, Math.min(5, Number(n) || 0));
+  return "★".repeat(full) + (full < 5 ? "<b>" + "★".repeat(5 - full) + "</b>" : "");
+}
+function readStore(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    var parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed) ? parsed.slice(0, MAX_PETS) : [];
+  } catch (e) { return []; }
+}
+function writeStore(list){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(list.slice(0, MAX_PETS))); } catch (e) {}
+}
+function profileSignature(p){
+  return [p.species, p.breed, p.birthDate, p.birthTime || "", p.environment, p.companion,
+          p.activityLevel, (p.traits || []).slice().sort().join(",")].join("|");
+}
+
+/* 스프라이트 프레임 노드. 프레임이 없는 종은 이모지 심볼로 폴백한다(이미지 없음이 정상 상태). */
+function frameKeyFor(species, breed){
+  var byBreed = BREED_FRAME[species];
+  if (byBreed && byBreed[breed]) return byBreed[breed];
+  return SPECIES_FRAME[species] || "";
+}
+function portrait(species, breed, emoji, altText){
+  var key = frameKeyFor(species, breed);
+  var box = el("div", "por");
+  if (!key) {
+    box.className = "por por--sym";
+    box.setAttribute("role", "img");
+    box.setAttribute("aria-label", altText || "");
+    box.appendChild(el("span", null, emoji || "🐾"));
+    return box;
+  }
+  var img = el("img", "por__img");
+  img.src = SPRITE;
+  img.alt = altText || "";
+  img.decoding = "async";
+  img.loading = "eager";
+  box.style.setProperty("--fx", FRAME[key].fx);
+  box.style.setProperty("--fy", FRAME[key].fy);
+  img.addEventListener("error", function(){
+    // 스프라이트를 못 받으면 심볼로 내려간다. className을 덮으면 호출자가 준 크기 클래스가
+    // 함께 날아가므로 classList.add로만 바꾼다.
+    clear(box);
+    box.classList.add("por--sym");
+    box.setAttribute("role", "img");
+    box.setAttribute("aria-label", altText || "");
+    box.appendChild(el("span", null, emoji || "🐾"));
+  });
+  box.appendChild(img);
+  return box;
+}
+
+/* ═══ 2) 네트워크 ═══ */
+function apiFetch(path, options){
+  var init = options || {};
+  var headers = { "Content-Type": "application/json", "Accept": "application/json" };
+  var token = "";
+  try { token = String(localStorage.getItem("fortune_auth_token") || "").trim(); } catch (e) {}
+  if (token) headers.Authorization = "Bearer " + token;
+  var premium = "";
+  try {
+    premium = String(window.__cdPremiumAccessToken
+      || sessionStorage.getItem("cd_premium_access_token")
+      || localStorage.getItem("cd_premium_access_token") || "").trim();
+  } catch (e) {}
+  if (premium) headers["x-premium-access-token"] = premium;
+  if (init.headers) { for (var k in init.headers) { if (Object.prototype.hasOwnProperty.call(init.headers, k)) headers[k] = init.headers[k]; } }
+
+  return fetch(API_BASE + path, {
+    method: init.method || "GET",
+    headers: headers,
+    body: init.body,
+    credentials: "include",
+    cache: "no-store"
+  }).then(function(res){
+    return res.text().then(function(text){
+      var payload = {};
+      if (text) { try { payload = JSON.parse(text); } catch (e) { payload = {}; } }
+      return { status: res.status, ok: res.ok && payload && payload.ok !== false, payload: payload };
+    });
+  });
+}
+
+/* ═══ 3) 오버레이 ═══ */
+function showLoading(title, message){
+  $("overlayTitle").textContent = title;
+  $("overlayMsg").textContent = message || "";
+  $("overlaySpin").hidden = false;
+  clear($("overlayActions"));
+  $("overlay").classList.add("is-on");
+}
+/* 실패는 절대 막다른 길로 두지 않는다 — 항상 다시 시도할 버튼을 준다. */
+function showError(title, message, actions){
+  $("overlayTitle").textContent = title;
+  $("overlayMsg").textContent = message || "";
+  $("overlaySpin").hidden = true;
+  var box = $("overlayActions");
+  clear(box);
+  (actions || [{ label: "닫기", onClick: hideOverlay }]).forEach(function(action){
+    var button = el("button", "btn " + (action.primary ? "btn--primary" : "btn--ghost"), action.label);
+    button.type = "button";
+    button.addEventListener("click", action.onClick);
+    box.appendChild(button);
+  });
+  $("overlay").classList.add("is-on");
+}
+function hideOverlay(){ $("overlay").classList.remove("is-on"); }
+
+/* ═══ 4) 상태 ═══ */
+var state = {
+  catalog: null,
+  pets: readStore(),
+  draft: { species: "", breed: "generic" },
+  blueprint: null,
+  report: null,
+  compat: null,
+  compatPick: []
+};
+
+function setAccent(elementKey){
+  var color = ELEMENT_COLOR[elementKey] || "#f4bed1";
+  document.documentElement.style.setProperty("--pe", color);
+  document.documentElement.style.setProperty("--pe-soft", hexToSoft(color));
+}
+function hexToSoft(hex){
+  var v = String(hex).replace("#", "");
+  if (v.length !== 6) return "rgba(244,190,209,.16)";
+  return "rgba(" + parseInt(v.slice(0, 2), 16) + "," + parseInt(v.slice(2, 4), 16) + "," + parseInt(v.slice(4, 6), 16) + ",.16)";
+}
+function dominantElementOf(speciesEntry){
+  if (!speciesEntry || !speciesEntry.elements) return "";
+  var best = "", bestValue = -1;
+  for (var key in speciesEntry.elements) {
+    if (Object.prototype.hasOwnProperty.call(speciesEntry.elements, key) && speciesEntry.elements[key] > bestValue) {
+      bestValue = speciesEntry.elements[key];
+      best = key;
+    }
+  }
+  return best;
+}
+function speciesEntry(key){
+  var list = (state.catalog && state.catalog.species) || [];
+  for (var i = 0; i < list.length; i += 1) { if (list[i].key === key) return list[i]; }
+  return null;
+}
+
+/* ═══ 5) 단계 라우팅 ═══ */
+var STEPS = { intro:"stepIntro", species:"stepSpecies", breed:"stepBreed", profile:"stepProfile",
+              analyzing:"stepAnalyzing", result:"stepResult", report:"stepReport",
+              compat:"stepCompat", pets:"stepPets" };
+var NAV_STEPS = { result:1, report:1, compat:1, pets:1 };
+
+function go(step){
+  var target = STEPS[step];
+  if (!target) return;
+  Object.keys(STEPS).forEach(function(name){
+    $(STEPS[name]).classList.toggle("is-active", STEPS[name] === target);
+  });
+  var nav = $("pawnav");
+  nav.classList.toggle("is-on", !!NAV_STEPS[step] && !!state.blueprint);
+  Array.prototype.forEach.call(nav.querySelectorAll("[data-nav]"), function(button){
+    button.setAttribute("aria-current", button.getAttribute("data-nav") === step ? "true" : "false");
+  });
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+/* ═══ 6) 카탈로그 · 종/품종 선택 ═══ */
+function loadCatalog(){
+  return apiFetch("/api/pet-saju/catalog").then(function(res){
+    if (!res.ok || !res.payload.catalog) throw new Error("CATALOG_FAILED");
+    state.catalog = res.payload.catalog;
+    return state.catalog;
+  });
+}
+
+function renderSpecies(){
+  var grid = $("speciesGrid");
+  clear(grid);
+  state.catalog.species.forEach(function(entry){
+    var item = el("button", "pick__item");
+    item.type = "button";
+    item.setAttribute("aria-pressed", state.draft.species === entry.key ? "true" : "false");
+    var dominant = dominantElementOf(entry);
+    item.style.setProperty("--pe", ELEMENT_COLOR[dominant] || "#f4bed1");
+    item.style.setProperty("--pe-soft", hexToSoft(ELEMENT_COLOR[dominant] || "#f4bed1"));
+
+    var mark = el("span", "pick__el", ELEMENT_HANJA[dominant] || "");
+    var por = portrait(entry.key, "generic", entry.emoji, entry.labelKo + " 대표 이미지");
+    por.classList.add("pick__por");
+    item.appendChild(mark);
+    item.appendChild(por);
+    item.appendChild(el("span", "pick__name", entry.labelKo));
+    item.appendChild(el("span", "pick__meta", entry.keywords.slice(0, 3).join(" · ")));
+    item.addEventListener("click", function(){
+      state.draft.species = entry.key;
+      state.draft.breed = "generic";
+      setAccent(dominant);
+      renderBreeds();
+      go("breed");
+    });
+    grid.appendChild(item);
+  });
+}
+
+function renderBreeds(){
+  var grid = $("breedGrid");
+  clear(grid);
+  var entry = speciesEntry(state.draft.species);
+  var list = (state.catalog.breeds && state.catalog.breeds[state.draft.species]) || [{ key: "generic", labelKo: "일반 / 모름", note: "" }];
+  list.forEach(function(breed){
+    var item = el("button", "pick__item");
+    item.type = "button";
+    item.setAttribute("aria-pressed", state.draft.breed === breed.key ? "true" : "false");
+    var por = portrait(state.draft.species, breed.key, entry ? entry.emoji : "🐾", breed.labelKo + " 대표 이미지");
+    por.classList.add("pick__por");
+    item.appendChild(por);
+    item.appendChild(el("span", "pick__name", breed.labelKo));
+    if (breed.note) item.appendChild(el("span", "pick__meta", breed.note));
+    item.addEventListener("click", function(){
+      state.draft.breed = breed.key;
+      go("profile");
+    });
+    grid.appendChild(item);
+  });
+  if (list.length <= 1) {
+    // 품종 목록이 '일반' 하나뿐인 종은 선택 단계를 건너뛴다.
+    state.draft.breed = "generic";
+  }
+}
+
+function fillSelect(select, list, fallbackKey){
+  clear(select);
+  list.forEach(function(item){
+    var option = el("option", null, item.labelKo);
+    option.value = item.key;
+    if (item.key === fallbackKey) option.selected = true;
+    select.appendChild(option);
+  });
+}
+
+function renderProfileForm(){
+  fillSelect($("fActivity"), state.catalog.activityLevels, "medium");
+  fillSelect($("fEnv"), state.catalog.environments, "balanced");
+  fillSelect($("fCompanion"), state.catalog.companions, "alone");
+  var chips = $("traitChips");
+  clear(chips);
+  state.catalog.traits.forEach(function(trait){
+    var chip = el("button", "chip", trait.labelKo);
+    chip.type = "button";
+    chip.setAttribute("aria-pressed", "false");
+    chip.dataset.trait = trait.key;
+    chip.addEventListener("click", function(){
+      chip.setAttribute("aria-pressed", chip.getAttribute("aria-pressed") === "true" ? "false" : "true");
+    });
+    chips.appendChild(chip);
+  });
+}
+
+function collectProfile(){
+  var traits = [];
+  Array.prototype.forEach.call($("traitChips").querySelectorAll('[aria-pressed="true"]'), function(chip){
+    traits.push(chip.dataset.trait);
+  });
+  var birthTime = $("fTime").value.trim();
+  return {
+    name: $("fName").value.trim(),
+    species: state.draft.species,
+    breed: state.draft.breed,
+    birthDate: $("fBirth").value.trim(),
+    birthTime: birthTime,
+    birthTimeUnknown: !birthTime,
+    gender: $("fGender").value,
+    activityLevel: $("fActivity").value,
+    environment: $("fEnv").value,
+    companion: $("fCompanion").value,
+    traits: traits
+  };
+}
+
+/* ═══ 7) 청사진 요청 + 분석 연출 ═══ */
+function runAnalyzeAnimation(){
+  var items = $("analyzeSteps").querySelectorAll("li");
+  Array.prototype.forEach.call(items, function(item){ item.classList.remove("is-done"); });
+  var index = 0;
+  var timer = setInterval(function(){
+    if (index >= items.length) { clearInterval(timer); return; }
+    items[index].classList.add("is-done");
+    index += 1;
+  }, 260);
+  return function stop(){ clearInterval(timer); Array.prototype.forEach.call(items, function(item){ item.classList.add("is-done"); }); };
+}
+
+function requestBlueprint(profile){
+  go("analyzing");
+  var stop = runAnalyzeAnimation();
+  return apiFetch("/api/pet-saju/blueprint", {
+    method: "POST",
+    body: JSON.stringify({ pet: profile, date: kstToday() })
+  }).then(function(res){
+    stop();
+    if (!res.ok || !res.payload.blueprint) {
+      var message = (res.payload && res.payload.message) || "잠시 후 다시 시도해 주세요.";
+      throw new Error(message);
+    }
+    return res.payload.blueprint;
+  }).catch(function(error){
+    stop();
+    throw error;
+  });
+}
+
+function savePet(profile){
+  var signature = profileSignature(profile);
+  var next = state.pets.filter(function(item){ return profileSignature(item) !== signature; });
+  next.unshift(profile);
+  state.pets = next.slice(0, MAX_PETS);
+  writeStore(state.pets);
+  $("introMyPets").hidden = state.pets.length === 0;
+}
+
+function analyzeAndShow(profile){
+  requestBlueprint(profile).then(function(blueprint){
+    state.blueprint = blueprint;
+    state.report = null;
+    state.profile = profile;
+    savePet(profile);
+    setAccent(blueprint.balance.usefulElement);
+    renderResult();
+    go("result");
+  }).catch(function(error){
+    go("profile");
+    showError("계산에 실패했어요", String(error && error.message || "잠시 후 다시 시도해 주세요."), [
+      { label: "다시 시도", primary: true, onClick: function(){ hideOverlay(); analyzeAndShow(profile); } },
+      { label: "입력 고치기", onClick: hideOverlay }
+    ]);
+  });
+}
+
+/* ═══ 8) 운명의 나무 — tree{leaves,blossoms,trunk,fruits,pond} 0~5단계를 파츠로 그린다 ═══ */
+function buildTreeSvg(tree, accent){
+  var NS = "http://www.w3.org/2000/svg";
+  var svg = document.createElementNS(NS, "svg");
+  svg.setAttribute("viewBox", "0 0 320 300");
+  svg.setAttribute("class", "tree__svg");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label",
+    "운명의 나무 — 잎 " + tree.leaves + "단계, 꽃 " + tree.blossoms + "단계, 줄기 " + tree.trunk +
+    "단계, 열매 " + tree.fruits + "단계, 연못 " + tree.pond + "단계");
+
+  function add(tag, attrs, delay, parent){
+    var node = document.createElementNS(NS, tag);
+    for (var key in attrs) { if (Object.prototype.hasOwnProperty.call(attrs, key)) node.setAttribute(key, attrs[key]); }
+    node.setAttribute("class", "tree__part");
+    node.style.animationDelay = (delay || 0) + "ms";
+    (parent || svg).appendChild(node);
+    return node;
+  }
+  // 배치용 <g>. sprout 애니메이션의 CSS transform이 SVG transform 속성을 덮어쓰므로
+  // 좌표 변환은 애니메이션이 걸리지 않는 그룹에 둔다.
+  function placed(transform){
+    var group = document.createElementNS(NS, "g");
+    group.setAttribute("transform", transform);
+    svg.appendChild(group);
+    return group;
+  }
+
+  // 부족한 기운의 빛 — 캐노피 뒤 은은한 글로우(그림자 대신 글로우)
+  var defs = document.createElementNS(NS, "defs");
+  var glow = document.createElementNS(NS, "radialGradient");
+  glow.setAttribute("id", "petTreeGlow");
+  var stopA = document.createElementNS(NS, "stop");
+  stopA.setAttribute("offset", "0%"); stopA.setAttribute("stop-color", accent); stopA.setAttribute("stop-opacity", "0.34");
+  var stopB = document.createElementNS(NS, "stop");
+  stopB.setAttribute("offset", "100%"); stopB.setAttribute("stop-color", accent); stopB.setAttribute("stop-opacity", "0");
+  glow.appendChild(stopA); glow.appendChild(stopB);
+  defs.appendChild(glow);
+  svg.appendChild(defs);
+  add("circle", { cx: 160, cy: 118, r: 104, fill: "url(#petTreeGlow)" }, 0);
+
+  // 연못(수) — 클수록 나무 아래 물이 넓어진다
+  if (tree.pond > 0) {
+    add("ellipse", { cx: 160, cy: 266, rx: 34 + tree.pond * 16, ry: 7 + tree.pond * 2.2,
+      fill: "#69a7f7", opacity: 0.14 + tree.pond * 0.05 }, 60);
+  }
+  add("path", { d: "M52 266 Q160 258 268 266", stroke: "#f4bed1", "stroke-width": 1.4,
+    fill: "none", opacity: 0.24, "stroke-linecap": "round" }, 90);
+
+  // 줄기(토) — 단계가 오를수록 굵고 뿌리가 벌어진다
+  var half = 5 + tree.trunk * 3.4;
+  var top = half * 0.4;
+  add("path", {
+    d: "M" + (160 - half - tree.trunk * 2) + " 266 Q" + (160 - half) + " 250," + (160 - half * 0.8) + " 214"
+      + " C" + (160 - half * 0.7) + " 190," + (160 - top) + " 178," + (160 - top) + " 158"
+      + " L" + (160 + top) + " 158"
+      + " C" + (160 + top) + " 178," + (160 + half * 0.7) + " 190," + (160 + half * 0.8) + " 214"
+      + " Q" + (160 + half) + " 250," + (160 + half + tree.trunk * 2) + " 266 Z",
+    fill: "#caa45a", opacity: 0.4 + tree.trunk * 0.1
+  }, 140);
+
+  // 가지 — 잎이 붙을 자리로 뻗는다
+  var BRANCH = [[-1, 58, 138], [1, 58, 134], [-1, 34, 112], [1, 38, 108], [0, 0, 96]];
+  BRANCH.slice(0, Math.max(2, tree.leaves)).forEach(function(branch, index){
+    if (branch[0] === 0) return;
+    add("path", {
+      d: "M160 " + (198 - index * 14) + " Q" + (160 + branch[0] * branch[1] * 0.55) + " " + (branch[2] + 18) + ","
+        + (160 + branch[0] * branch[1]) + " " + branch[2],
+      stroke: "#caa45a", "stroke-width": 3.2 - index * 0.4, fill: "none",
+      "stroke-linecap": "round", opacity: 0.46
+    }, 200 + index * 70);
+  });
+
+  // 잎(목) — 가지 끝마다 물방울 모양 잎사귀 다발
+  // 잎은 가지 끝(BRANCH 종점)에서 자라도록 좌표를 맞춘다 — 떠 있으면 나무로 안 읽힌다.
+  var LEAF = [[160, 152, 1.32, 0], [102, 138, 1.02, -36], [218, 134, 1.02, 36], [126, 112, 0.9, -20], [198, 108, 0.9, 20]];
+  for (var i = 0; i < tree.leaves; i += 1) {
+    var leaf = LEAF[i];
+    add("path", {
+      d: "M0 0 C-19 -13 -19 -40 0 -52 C19 -40 19 -13 0 0 Z",
+      fill: "#5fd198", opacity: 0.36 + i * 0.03
+    }, 420 + i * 100, placed("translate(" + leaf[0] + " " + leaf[1] + ") rotate(" + leaf[3] + ") scale(" + leaf[2] + ")"));
+  }
+  if (tree.leaves === 0) {
+    add("text", { x: 160, y: 120, "text-anchor": "middle", fill: "rgba(255,203,226,.62)", "font-size": 12 }, 420)
+      .textContent = "아직 잎이 자라지 않았어요";
+  }
+
+  // 꽃(화) — 다섯 장 꽃잎
+  var BLOSSOM = [[160, 104], [122, 102], [198, 98], [140, 74], [180, 70]];
+  for (var b = 0; b < tree.blossoms; b += 1) {
+    for (var petal = 0; petal < 5; petal += 1) {
+      var angle = (petal / 5) * Math.PI * 2;
+      add("circle", { cx: BLOSSOM[b][0] + Math.cos(angle) * 4.4, cy: BLOSSOM[b][1] + Math.sin(angle) * 4.4,
+        r: 3.4, fill: "#f08a8a", opacity: 0.9 }, 900 + b * 110);
+    }
+    add("circle", { cx: BLOSSOM[b][0], cy: BLOSSOM[b][1], r: 2, fill: "#ead089", opacity: 0.95 }, 900 + b * 110);
+  }
+
+  // 열매(금) — 잎 아래로 매달아 캐노피에 묻히지 않게 한다
+  var FRUIT = [[120, 158], [200, 154], [142, 172], [180, 176], [160, 148]];
+  for (var f = 0; f < tree.fruits; f += 1) {
+    add("path", { d: "M" + FRUIT[f][0] + " " + (FRUIT[f][1] - 9) + " L" + FRUIT[f][0] + " " + (FRUIT[f][1] - 4),
+      stroke: "#caa45a", "stroke-width": 1.4, opacity: 0.6 }, 1240 + f * 100);
+    add("circle", { cx: FRUIT[f][0], cy: FRUIT[f][1], r: 5.2, fill: "#d9d3c1", opacity: 0.95 }, 1240 + f * 100);
+  }
+  return svg;
+}
+
+/* ═══ 9) 결과 렌더 ═══ */
+function sectionTitle(text){ return el("h2", null, text); }
+
+function renderElements(blueprint){
+  var wrap = el("div", "els");
+  blueprint.elements.forEach(function(item, index){
+    var row = el("div", "el");
+    row.style.setProperty("--elc", ELEMENT_COLOR[item.key] || "var(--rose)");
+    row.appendChild(el("span", "el__name", ELEMENT_HANJA[item.key] + " " + item.key));
+    var track = el("div", "el__track");
+    var fill = el("div", "el__fill");
+    fill.style.setProperty("--w", Math.max(2, item.percent) + "%");
+    fill.style.animationDelay = (index * 90) + "ms";
+    track.appendChild(fill);
+    row.appendChild(track);
+    row.appendChild(el("span", "el__val", item.percent + "%"));
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderMeters(metrics){
+  var wrap = el("div", "meters");
+  metrics.forEach(function(metric, index){
+    var row = el("div", "meter");
+    row.appendChild(el("span", "meter__label", metric.emoji + " " + metric.labelKo));
+    row.appendChild(el("span", "meter__val", metric.value + (metric.inverted ? " · 낮을수록 좋아요" : "")));
+    var track = el("div", "meter__track");
+    var fill = el("div", "meter__fill" + (metric.inverted ? " meter__fill--warn" : ""));
+    fill.style.setProperty("--w", Math.max(2, metric.value) + "%");
+    fill.style.animationDelay = (index * 70) + "ms";
+    track.appendChild(fill);
+    row.appendChild(track);
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderDaily(daily){
+  var wrap = el("div", "daily");
+  daily.forEach(function(slot){
+    var row = el("div", "daily__row");
+    row.appendChild(el("span", null, slot.emoji));
+    row.appendChild(el("span", "daily__label", slot.labelKo));
+    var stars = el("span", "stars");
+    stars.innerHTML = starsHtml(slot.stars);
+    stars.setAttribute("aria-label", "5점 만점에 " + slot.stars + "점");
+    row.appendChild(stars);
+    row.appendChild(el("p", "daily__text", slot.text));
+    wrap.appendChild(row);
+  });
+  return wrap;
+}
+
+function renderPillars(natal){
+  var wrap = el("div", "pillars");
+  [["연주", natal.pillars.year], ["월주", natal.pillars.month],
+   ["일주", natal.pillars.day], ["시주", natal.pillars.hour]].forEach(function(pair){
+    var box = el("div", "pillar");
+    box.appendChild(el("span", "pillar__cap", pair[0]));
+    box.appendChild(el("span", "pillar__gz", pair[1] || "—"));
+    wrap.appendChild(box);
+  });
+  return wrap;
+}
+
+function lockCard(title, description, price, onClick){
+  var card = el("div", "lock");
+  card.appendChild(el("h3", "lock__title", title));
+  card.appendChild(el("span", "lock__price", "1회 " + price.toLocaleString("ko-KR") + "원"));
+  card.appendChild(el("p", "lock__desc", description));
+  var button = el("button", "btn btn--primary btn--block", "보기");
+  button.type = "button";
+  button.style.gridColumn = "1 / -1";
+  button.addEventListener("click", onClick);
+  card.appendChild(button);
+  return card;
+}
+
+function renderResult(){
+  var blueprint = state.blueprint;
+  var host = $("stepResult");
+  clear(host);
+
+  var hero = el("div", "hero");
+  var medal = el("div", "hero__medal");
+  medal.appendChild(portrait(blueprint.species.key, state.draft.breed,
+    blueprint.species.emoji, (blueprint.name || "반려동물") + " 초상"));
+  hero.appendChild(medal);
+  var heroText = el("div");
+  var name = el("h1", "hero__name", blueprint.name || "우리 아이");
+  name.id = "resultName";
+  heroText.appendChild(name);
+  heroText.appendChild(el("p", "hero__meta",
+    blueprint.species.labelKo + (blueprint.breed ? " · " + blueprint.breed.labelKo : "")
+    + " · " + blueprint.stage.labelKo + " (약 " + blueprint.stage.ageYears + "살)"));
+  heroText.appendChild(el("p", "hero__meta", blueprint.environment.labelKo + " · " + blueprint.environment.companionLabelKo));
+  heroText.appendChild(el("span", "hero__badge", blueprint.summary.headline));
+  hero.appendChild(heroText);
+  host.appendChild(hero);
+
+  var grid = el("div", "result-grid");
+
+  var left = el("section");
+  left.appendChild(sectionTitle("타고난 오행"));
+  left.appendChild(renderElements(blueprint));
+  left.appendChild(sectionTitle("행복 에너지"));
+  left.appendChild(renderMeters(blueprint.metrics));
+  grid.appendChild(left);
+
+  var center = el("section");
+  center.appendChild(sectionTitle("운명의 나무"));
+  var treeBox = el("div", "tree");
+  treeBox.appendChild(buildTreeSvg(blueprint.tree, ELEMENT_COLOR[blueprint.balance.usefulElement] || "#f4bed1"));
+  treeBox.appendChild(el("p", "tree__cap",
+    "잎=목 · 꽃=화 · 줄기=토 · 열매=금 · 연못=수 — 부족한 " + blueprint.balance.usefulElement + "을(를) 채우면 나무가 자랍니다."));
+  center.appendChild(treeBox);
+  center.appendChild(sectionTitle("명식"));
+  center.appendChild(renderPillars(blueprint.natal));
+  if (blueprint.natal.timeUnknown) {
+    center.appendChild(el("p", "field__hint", "태어난 시각을 몰라 시주는 계산에서 빠졌습니다."));
+  }
+  grid.appendChild(center);
+
+  var right = el("section");
+  right.appendChild(sectionTitle("오늘의 운세"));
+  right.appendChild(el("p", "field__hint",
+    blueprint.today.date + " · 일진 " + blueprint.today.ganji + "(" + blueprint.today.element + ")"));
+  right.appendChild(renderDaily(blueprint.daily));
+  grid.appendChild(right);
+
+  host.appendChild(grid);
+
+  var about = el("section");
+  about.appendChild(sectionTitle("성격 읽기"));
+  var prose = el("div", "prose");
+  blueprint.summary.paragraphs.forEach(function(text){ prose.appendChild(el("p", null, text)); });
+  about.appendChild(prose);
+  host.appendChild(about);
+
+  var locks = el("div", "locks");
+  locks.appendChild(lockCard(PRICE.report.title,
+    "행복 환경 5곳, 오행별 놀이 추천, 오늘의 행복 코치, 생활 관리 조언까지 이어지는 심층 리포트입니다.",
+    PRICE.report.krw, openReport));
+  locks.appendChild(lockCard(PRICE.compat.title,
+    "두 아이의 오행이 서로를 채우는지 증폭시키는지 계산하고, 함께 지내기 좋은 자리를 찾아 줍니다.",
+    PRICE.compat.krw, function(){ renderCompatPicker(); go("compat"); }));
+  host.appendChild(locks);
+}
+
+/* ═══ 10) 결제 게이트 — 이용권 선검사 → 미커버 시에만 결제창 ═══ */
+function runPaidGate(spec){
+  var requestId = "pet-" + spec.key + "-" + Date.now().toString(36);
+  var gatePayload = {
+    categoryKey: "premium-consultation",
+    featureKey: spec.key,
+    subFeatureKey: spec.key,
+    serviceKey: spec.key,
+    title: spec.title,
+    reason: spec.title,
+    coinPrice: spec.coin,
+    cost: spec.coin,
+    amountKRW: spec.krw,
+    requestId: requestId,
+    idempotencyKey: requestId
+  };
+
+  // 1단계: 이용권 선검사. 커버되면 결제창 없이 통과한다.
+  var passStep = Promise.resolve(null);
+  if (typeof window._cdResolvePaidContentAccess === "function") {
+    passStep = window._cdResolvePaidContentAccess(gatePayload).catch(function(){ return null; });
+  }
+
+  return passStep.then(function(pass){
+    if (pass && (pass.status === "already_unlocked" || pass.status === "pass_applied")) {
+      var passData = (pass.payload || pass.rawPayload || {});
+      return { requestId: requestId, evidence: passData.data || passData };
+    }
+    // 2단계: 미커버(또는 선검사 실패)일 때만 결제창. 단건/월정석은 게이트가 동등 노출한다.
+    if (typeof window._cdOpenPaidServiceGate !== "function") {
+      return Promise.reject(new Error("GATE_UNAVAILABLE"));
+    }
+    return new Promise(function(resolve, reject){
+      var settled = false;
+      function finish(payload){
+        if (settled) return;
+        settled = true;
+        var data = (payload && payload.data) || payload || {};
+        resolve({ requestId: requestId, evidence: data });
+      }
+      var gatePromise;
+      try {
+        gatePromise = window._cdOpenPaidServiceGate(Object.assign({}, gatePayload, {
+          actionType: "consult",
+          onGranted: function(transactionId, granted){
+            var next = (granted && typeof granted === "object") ? granted : {};
+            if (!next.transactionId && transactionId) next.transactionId = String(transactionId);
+            finish(next);
+          },
+          onPassApplied: function(access){ finish((access && (access.payload || access.rawPayload)) || access); },
+          onCancel: function(){ if (!settled) { settled = true; reject(new Error("PAYMENT_CANCELLED")); } }
+        }));
+      } catch (error) {
+        reject(error);
+        return;
+      }
+      if (gatePromise && typeof gatePromise.then === "function") {
+        gatePromise.then(function(payload){
+          if (payload === null || payload === undefined) reject(new Error("PAYMENT_CANCELLED"));
+          else finish(payload);
+        }).catch(reject);
+      }
+    });
+  });
+}
+
+function paidRequestBody(gate, extra){
+  var evidence = gate.evidence || {};
+  var body = {
+    date: kstToday(),
+    requestId: gate.requestId,
+    transactionId: evidence.transactionId || evidence.purchaseId || "",
+    purchaseId: evidence.purchaseId || evidence.transactionId || "",
+    sessionId: evidence.sessionId || gate.requestId,
+    premiumAccessToken: evidence.premiumAccessToken || "",
+    accessGrant: evidence.accessGrant || evidence,
+    consume: evidence.consume || {}
+  };
+  for (var key in extra) { if (Object.prototype.hasOwnProperty.call(extra, key)) body[key] = extra[key]; }
+  return body;
+}
+
+function handlePaidFailure(error, retry){
+  var message = String((error && error.message) || "");
+  if (message === "PAYMENT_CANCELLED") { hideOverlay(); return; }
+  if (message === "GATE_UNAVAILABLE") {
+    showError("결제 화면을 불러오지 못했어요", "페이지를 새로고침하면 다시 열 수 있습니다.", [
+      { label: "새로고침", primary: true, onClick: function(){ location.reload(); } },
+      { label: "닫기", onClick: hideOverlay }
+    ]);
+    return;
+  }
+  showError("결과를 가져오지 못했어요", message || "잠시 후 다시 시도해 주세요.", [
+    { label: "다시 시도", primary: true, onClick: function(){ hideOverlay(); retry(); } },
+    { label: "닫기", onClick: hideOverlay }
+  ]);
+}
+
+/* ═══ 11) 심층 리포트 ═══ */
+function openReport(){
+  if (!state.blueprint) { go("species"); return; }
+  if (state.report) { renderReport(); go("report"); return; }
+  showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
+  runPaidGate(PRICE.report).then(function(gate){
+    showLoading("리포트를 쓰는 중", "우리 아이에게 맞는 환경과 놀이를 찾고 있어요.");
+    return apiFetch("/api/pet-saju-ai/report", {
+      method: "POST",
+      body: JSON.stringify(paidRequestBody(gate, { pet: state.profile }))
+    });
+  }).then(function(res){
+    if (!res.ok || !res.payload.report) throw new Error((res.payload && res.payload.message) || "리포트 생성에 실패했습니다.");
+    state.report = res.payload.report;
+    if (res.payload.blueprint) state.blueprint = res.payload.blueprint;
+    hideOverlay();
+    renderReport();
+    go("report");
+  }).catch(function(error){ handlePaidFailure(error, openReport); });
+}
+
+function renderReport(){
+  var host = $("stepReport");
+  var report = state.report;
+  var blueprint = state.blueprint;
+  clear(host);
+
+  var title = el("h1", null, (blueprint.name || "우리 아이") + " 심층 리포트");
+  title.id = "reportTitle";
+  host.appendChild(title);
+  host.appendChild(el("p", "lede", blueprint.summary.headline));
+
+  host.appendChild(sectionTitle("성격"));
+  var prose = el("div", "prose");
+  report.personality.forEach(function(text){ prose.appendChild(el("p", null, text)); });
+  host.appendChild(prose);
+
+  host.appendChild(sectionTitle("가장 편안함을 느끼는 자리"));
+  var ranks = el("div", "rank");
+  blueprint.deep.habitats.forEach(function(habitat){
+    var found = report.habitats.filter(function(item){ return item.id === habitat.id; })[0];
+    var card = el("div", "rank__item");
+    var head = el("div", "rank__head");
+    head.appendChild(el("span", "rank__no"));
+    head.appendChild(el("span", "rank__name", habitat.labelKo));
+    head.appendChild(el("span", "rank__cat", habitat.category));
+    var stars = el("span", "stars");
+    stars.innerHTML = starsHtml(habitat.stars);
+    stars.setAttribute("aria-label", "5점 만점에 " + habitat.stars + "점");
+    head.appendChild(stars);
+    card.appendChild(head);
+    card.appendChild(el("p", "rank__body", found ? found.reading : ""));
+    ranks.appendChild(card);
+  });
+  host.appendChild(ranks);
+
+  host.appendChild(sectionTitle("추천 놀이"));
+  var tags = el("div", "tags");
+  report.plays.forEach(function(play){ tags.appendChild(el("span", "tag", play)); });
+  host.appendChild(tags);
+
+  host.appendChild(sectionTitle("오늘의 행복 코치"));
+  host.appendChild(el("p", "prose", report.coach));
+
+  host.appendChild(sectionTitle("생활 관리"));
+  var care = el("div", "prose");
+  care.appendChild(el("p", null, report.care));
+  if (report.closing) care.appendChild(el("p", null, report.closing));
+  host.appendChild(care);
+
+  if (report.degraded) {
+    host.appendChild(el("p", "field__hint",
+      "AI 서술이 지연되어 계산 결과를 그대로 정리한 판본을 보여 드리고 있습니다. 잠시 후 다시 열면 상세 서술이 붙습니다."));
+  }
+  host.appendChild(el("p", "field__hint", "의학적 진단이 아니라 생활 관리 관점의 안내입니다."));
+}
+
+/* ═══ 12) 궁합 ═══ */
+function renderCompatPicker(){
+  var host = $("stepCompat");
+  clear(host);
+  var title = el("h1", null, "반려동물 궁합");
+  title.id = "compatTitle";
+  host.appendChild(title);
+
+  if (state.pets.length < 2) {
+    host.appendChild(el("p", "lede", "궁합은 두 마리부터 볼 수 있어요."));
+    var empty = el("div", "empty");
+    empty.appendChild(el("p", null, "지금 등록된 아이는 " + state.pets.length + "마리입니다. 한 마리를 더 등록하면 두 아이의 오행이 서로를 채우는지 계산해 드릴게요."));
+    var add = el("button", "btn btn--primary", "+ 아이 추가하기");
+    add.type = "button";
+    add.addEventListener("click", function(){ go("species"); });
+    empty.appendChild(add);
+    host.appendChild(empty);
+    return;
+  }
+
+  host.appendChild(el("p", "lede", "두 아이를 고르세요. 종의 기운, 각자의 사주 오행, 부족한 기운을 서로 채우는지까지 함께 봅니다."));
+  var list = el("div", "pets");
+  state.pets.forEach(function(pet, index){
+    var row = el("button", "petrow");
+    row.type = "button";
+    row.setAttribute("aria-pressed", state.compatPick.indexOf(index) >= 0 ? "true" : "false");
+    var medal = el("div", "petrow__medal");
+    var entry = speciesEntry(pet.species);
+    medal.appendChild(portrait(pet.species, pet.breed, entry ? entry.emoji : "🐾", pet.name + " 초상"));
+    row.appendChild(medal);
+    var text = el("div");
+    text.appendChild(el("div", "petrow__name", pet.name || "이름 없음"));
+    text.appendChild(el("div", "petrow__sub", (entry ? entry.labelKo : pet.species) + " · " + pet.birthDate));
+    row.appendChild(text);
+    row.appendChild(el("span", "petrow__sub", state.compatPick.indexOf(index) >= 0 ? "선택됨" : ""));
+    row.addEventListener("click", function(){
+      var at = state.compatPick.indexOf(index);
+      if (at >= 0) state.compatPick.splice(at, 1);
+      else {
+        state.compatPick.push(index);
+        if (state.compatPick.length > 2) state.compatPick.shift();
+      }
+      renderCompatPicker();
+    });
+    list.appendChild(row);
+  });
+  host.appendChild(list);
+
+  var run = el("button", "btn btn--primary", "궁합 보기 · 1회 " + PRICE.compat.krw.toLocaleString("ko-KR") + "원");
+  run.type = "button";
+  run.disabled = state.compatPick.length !== 2;
+  run.addEventListener("click", openCompat);
+  var row = el("div", "btn-row");
+  row.appendChild(run);
+  host.appendChild(row);
+  if (state.compatPick.length !== 2) {
+    host.appendChild(el("p", "field__hint", "두 아이를 선택하면 버튼이 활성화됩니다."));
+  }
+}
+
+function openCompat(){
+  var petA = state.pets[state.compatPick[0]];
+  var petB = state.pets[state.compatPick[1]];
+  if (!petA || !petB) return;
+  showLoading("이용권 확인 중", "이용권이 있으면 결제 없이 바로 열립니다.");
+  runPaidGate(PRICE.compat).then(function(gate){
+    showLoading("두 아이의 기운을 겹쳐 보는 중", "상생·상극과 서로를 채우는 정도를 계산하고 있어요.");
+    return apiFetch("/api/pet-saju-ai/compat", {
+      method: "POST",
+      body: JSON.stringify(paidRequestBody(gate, { petA: petA, petB: petB }))
+    });
+  }).then(function(res){
+    if (!res.ok || !res.payload.compat) throw new Error((res.payload && res.payload.message) || "궁합 계산에 실패했습니다.");
+    state.compat = { compat: res.payload.compat, reading: res.payload.reading, pets: [petA, petB] };
+    hideOverlay();
+    renderCompatResult();
+    go("compat");
+  }).catch(function(error){ handlePaidFailure(error, openCompat); });
+}
+
+function renderCompatResult(){
+  var host = $("stepCompat");
+  var compat = state.compat.compat;
+  var reading = state.compat.reading;
+  var pets = state.compat.pets;
+  clear(host);
+
+  var title = el("h1", null, "반려동물 궁합");
+  title.id = "compatTitle";
+  host.appendChild(title);
+
+  var vs = el("div", "vs");
+  [0, 1].forEach(function(index){
+    if (index === 1) vs.appendChild(el("div", "vs__amp", "&"));
+    var side = el("div", "vs__side");
+    var medal = el("div", "vs__medal");
+    var entry = speciesEntry(pets[index].species);
+    medal.appendChild(portrait(pets[index].species, pets[index].breed, entry ? entry.emoji : "🐾", pets[index].name + " 초상"));
+    side.appendChild(medal);
+    side.appendChild(el("div", "vs__name", pets[index].name || "이름 없음"));
+    side.appendChild(el("div", "vs__sub",
+      "강한 기운 " + compat.pets[index].excessElement + " · 부족 " + compat.pets[index].usefulElement));
+    vs.appendChild(side);
+  });
+  host.appendChild(vs);
+
+  var score = el("div", "score");
+  score.appendChild(el("div", "score__num", String(compat.score)));
+  score.appendChild(el("p", "score__grade", compat.grade));
+  host.appendChild(score);
+
+  host.appendChild(el("p", "prose", reading.verdict));
+  var overview = el("div", "prose");
+  reading.overview.forEach(function(text){ overview.appendChild(el("p", null, text)); });
+  host.appendChild(overview);
+
+  host.appendChild(sectionTitle("다섯 축"));
+  var dims = el("div", "dims");
+  compat.dimensions.forEach(function(dimension, index){
+    var found = reading.dimensions.filter(function(item){ return item.key === dimension.key; })[0];
+    var row = el("div", "meter");
+    row.appendChild(el("span", "meter__label", dimension.labelKo + (dimension.inverted ? " (낮을수록 좋아요)" : "")));
+    row.appendChild(el("span", "meter__val", String(dimension.value)));
+    var track = el("div", "meter__track");
+    var fill = el("div", "meter__fill" + (dimension.inverted ? " meter__fill--warn" : ""));
+    fill.style.setProperty("--w", Math.max(2, dimension.value) + "%");
+    fill.style.animationDelay = (index * 70) + "ms";
+    track.appendChild(fill);
+    row.appendChild(track);
+    var note = el("p", "daily__text", found ? found.reading : "");
+    note.style.gridColumn = "1 / -1";
+    row.appendChild(note);
+    dims.appendChild(row);
+  });
+  host.appendChild(dims);
+
+  host.appendChild(sectionTitle("함께 가면 좋은 자리"));
+  var ranks = el("div", "rank");
+  compat.sharedPlaces.forEach(function(place){
+    var found = reading.places.filter(function(item){ return item.id === place.id; })[0];
+    var card = el("div", "rank__item");
+    var head = el("div", "rank__head");
+    head.appendChild(el("span", "rank__no"));
+    head.appendChild(el("span", "rank__name", place.labelKo));
+    head.appendChild(el("span", "rank__cat", place.category));
+    card.appendChild(head);
+    card.appendChild(el("p", "rank__body", found ? found.reading : ""));
+    ranks.appendChild(card);
+  });
+  host.appendChild(ranks);
+
+  host.appendChild(sectionTitle("주의할 상황"));
+  var cautions = el("div", "prose");
+  reading.cautions.forEach(function(text){ cautions.appendChild(el("p", null, text)); });
+  host.appendChild(cautions);
+
+  host.appendChild(sectionTitle("함께 지내는 하루"));
+  host.appendChild(el("p", "prose", reading.routine));
+
+  if (reading.degraded) {
+    host.appendChild(el("p", "field__hint",
+      "AI 서술이 지연되어 계산 결과를 그대로 정리한 판본을 보여 드리고 있습니다."));
+  }
+
+  var again = el("button", "btn btn--ghost", "다른 조합 보기");
+  again.type = "button";
+  again.addEventListener("click", function(){ state.compat = null; state.compatPick = []; renderCompatPicker(); });
+  var row = el("div", "btn-row");
+  row.appendChild(again);
+  host.appendChild(row);
+}
+
+/* ═══ 13) 저장한 아이 ═══ */
+function renderPets(){
+  var host = $("petList");
+  clear(host);
+  if (!state.pets.length) {
+    var empty = el("div", "empty");
+    empty.appendChild(el("p", null, "아직 등록한 아이가 없어요. 이름과 생일만 있으면 바로 볼 수 있습니다."));
+    host.appendChild(empty);
+    return;
+  }
+  state.pets.forEach(function(pet, index){
+    var row = el("div", "petrow");
+    var entry = speciesEntry(pet.species);
+    var medal = el("div", "petrow__medal");
+    medal.appendChild(portrait(pet.species, pet.breed, entry ? entry.emoji : "🐾", pet.name + " 초상"));
+    row.appendChild(medal);
+    var open = el("button", null, null);
+    open.type = "button";
+    open.style.cssText = "background:none;border:0;text-align:left;cursor:pointer;padding:0";
+    open.appendChild(el("div", "petrow__name", pet.name || "이름 없음"));
+    open.appendChild(el("div", "petrow__sub", (entry ? entry.labelKo : pet.species) + " · " + pet.birthDate));
+    open.addEventListener("click", function(){
+      state.draft.species = pet.species;
+      state.draft.breed = pet.breed;
+      analyzeAndShow(pet);
+    });
+    row.appendChild(open);
+    var del = el("button", "petrow__del", "삭제");
+    del.type = "button";
+    del.setAttribute("aria-label", (pet.name || "이 아이") + " 삭제");
+    del.addEventListener("click", function(){
+      state.pets.splice(index, 1);
+      writeStore(state.pets);
+      state.compatPick = [];
+      renderPets();
+      $("introMyPets").hidden = state.pets.length === 0;
+    });
+    row.appendChild(del);
+    host.appendChild(row);
+  });
+}
+
+/* ═══ 14) 초기화 ═══ */
+function seedStars(){
+  var host = $("skyStars");
+  var fragment = document.createDocumentFragment();
+  for (var i = 0; i < 46; i += 1) {
+    var star = el("i");
+    star.style.left = ((i * 37) % 100) + "%";
+    star.style.top = ((i * 53) % 96) + "%";
+    star.style.animationDelay = ((i % 9) * 0.45) + "s";
+    star.style.opacity = String(0.2 + ((i % 5) * 0.12));
+    fragment.appendChild(star);
+  }
+  host.appendChild(fragment);
+}
+
+function bindNav(){
+  document.addEventListener("click", function(event){
+    var trigger = event.target.closest ? event.target.closest("[data-go]") : null;
+    if (!trigger) return;
+    var step = trigger.getAttribute("data-go");
+    if (step === "pets") renderPets();
+    if (step === "species") renderSpecies();
+    go(step);
+  });
+  Array.prototype.forEach.call($("pawnav").querySelectorAll("[data-nav]"), function(button){
+    button.addEventListener("click", function(){
+      var target = button.getAttribute("data-nav");
+      if (target === "report") { openReport(); return; }
+      if (target === "compat") { if (!state.compat) renderCompatPicker(); go("compat"); return; }
+      if (target === "pets") { renderPets(); go("pets"); return; }
+      go("result");
+    });
+  });
+  $("profileForm").addEventListener("submit", function(event){
+    event.preventDefault();
+    var profile = collectProfile();
+    var error = "";
+    if (!profile.name) error = "이름을 입력해 주세요.";
+    else if (!profile.birthDate) error = "생년월일을 입력해 주세요.";
+    else if (profile.birthDate > kstToday()) error = "생년월일이 오늘보다 뒤일 수 없어요.";
+    $("profileErr").textContent = error;
+    if (error) return;
+    analyzeAndShow(profile);
+  });
+}
+
+function boot(){
+  seedStars();
+  bindNav();
+  $("introMyPets").hidden = state.pets.length === 0;
+  loadCatalog().then(function(){
+    renderSpecies();
+    renderProfileForm();
+  }).catch(function(){
+    showError("목록을 불러오지 못했어요", "네트워크 상태를 확인한 뒤 다시 시도해 주세요.", [
+      { label: "다시 시도", primary: true, onClick: function(){ hideOverlay(); boot(); } }
+    ]);
+  });
+}
+
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+})();
+</script>
+</body>
+</html>

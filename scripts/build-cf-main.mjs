@@ -7,20 +7,30 @@ const canRunNpmCliWithNode = npmCli && existsSync(npmCli);
 const npmCommand = canRunNpmCliWithNode ? process.execPath : process.platform === "win32" ? "npm.cmd" : "npm";
 const npmArgs = (args) => (canRunNpmCliWithNode ? [npmCli, ...args] : args);
 
+// optional: true 인 스텝은 실패해도 빌드를 멈추지 않고 경고만 남긴다.
+//
+// 🔴 i18n:check 가 optional 인 이유 — 이건 번역 "커버리지/ratchet" 지표라 콘텐츠가 쌓이는 만큼
+// 자연히 뒤처진다. 그런데 이 스텝이 배포 경로(deploy:cf:pages → build:cf → 여기) 안에 있어서,
+// 한국어 문구 몇 개가 늘어난 것만으로 프로덕션 배포 전체가 멈췄다(2026-07-28, 커밋 88685d224 이후
+// Pages 배포 연속 실패). i18n-gates.yml 상단 주석도 원래 "배포 워크플로에는 일부러 넣지 않았다"고
+// 적고 있어, 여기 있는 것 자체가 그 의도와 어긋나 있었다.
+// 회귀 가시성은 유지된다: 실패 내용은 그대로 로그에 찍히고 PR 의 i18n Gates 가 계속 보고한다.
+// 되돌리려면 optional 플래그만 지우면 된다.
 const steps = [
-  [npmCommand, npmArgs(["run", "clean:build"])],
-  [npmCommand, npmArgs(["run", "sync:public"])],
-  [npmCommand, npmArgs(["run", "sitemap:generate"])],
-  [npmCommand, npmArgs(["run", "verify:public-parity"])],
-  [npmCommand, npmArgs(["run", "i18n:check"])],
-  [npmCommand, npmArgs(["run", "verify:locale-main-sync"])],
-  [npmCommand, npmArgs(["run", "verify:runtime-cache-sync"])],
-  [npmCommand, npmArgs(["run", "verify:adsense-route-policy"])],
-  [process.execPath, ["scripts/print-build-context.mjs"]],
-  [process.execPath, ["scripts/next-build-with-pages-manifest.mjs"]],
+  { command: npmCommand, args: npmArgs(["run", "clean:build"]) },
+  { command: npmCommand, args: npmArgs(["run", "sync:public"]) },
+  { command: npmCommand, args: npmArgs(["run", "sitemap:generate"]) },
+  { command: npmCommand, args: npmArgs(["run", "verify:public-parity"]) },
+  { command: npmCommand, args: npmArgs(["run", "i18n:check"]), optional: true },
+  { command: npmCommand, args: npmArgs(["run", "verify:locale-main-sync"]) },
+  { command: npmCommand, args: npmArgs(["run", "verify:runtime-cache-sync"]) },
+  { command: npmCommand, args: npmArgs(["run", "verify:adsense-route-policy"]) },
+  { command: process.execPath, args: ["scripts/print-build-context.mjs"] },
+  { command: process.execPath, args: ["scripts/next-build-with-pages-manifest.mjs"] },
 ];
 
-for (const [command, args] of steps) {
+for (const { command, args, optional } of steps) {
+  const label = `${command} ${args.join(" ")}`;
   const result = spawnSync(command, args, {
     stdio: "inherit",
     shell: false,
@@ -29,11 +39,19 @@ for (const [command, args] of steps) {
   });
 
   if (result.error) {
-    console.error(`[build-cf-main] Failed to run ${command} ${args.join(" ")}: ${result.error.message}`);
+    if (optional) {
+      console.warn(`[build-cf-main] (optional) skipped after launch failure: ${label} — ${result.error.message}`);
+      continue;
+    }
+    console.error(`[build-cf-main] Failed to run ${label}: ${result.error.message}`);
     process.exit(1);
   }
 
   if (result.status !== 0) {
+    if (optional) {
+      console.warn(`[build-cf-main] (optional) step failed but does not block the build: ${label} (exit ${result.status})`);
+      continue;
+    }
     process.exit(typeof result.status === "number" ? result.status : 1);
   }
 }

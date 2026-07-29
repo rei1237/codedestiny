@@ -40,6 +40,18 @@ const userSchema = new mongoose.Schema({
     enabled: { type: Boolean, default: true },
     activatedAt: { type: Date, default: Date.now },
   },
+  // 만 14세 미만 가입자의 법정대리인 동의 기록 (개인정보보호법 제22조의2).
+  // 만 14세 이상 계정에는 이 필드가 아예 생기지 않는다(status 기본값 "none").
+  guardianConsent: {
+    required: { type: Boolean, default: false },
+    status: { type: String, enum: ["none", "pending", "approved", "rejected", "revoked"], default: "none" },
+    method: { type: String, default: "", trim: true },
+    guardianEmail: { type: String, default: "", lowercase: true, trim: true },
+    requestedAt: { type: Date, default: null },
+    consentedAt: { type: Date, default: null },
+    revokedAt: { type: Date, default: null },
+    consentIp: { type: String, default: "", trim: true },
+  },
   socialAccounts: {
     google: {
       id: { type: String, default: "" },

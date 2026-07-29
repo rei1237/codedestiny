@@ -355,7 +355,11 @@ assertBefore(yogaHandlerSource, "requireAuth(request, env)", "callGeminiText", "
 assertBefore(yogaHandlerSource, "requirePremiumReportAccess(", "callGeminiText", "yoga-guru verifies payment before Gemini");
 assertContains(accessControlSource, 'reportType === "geomancyOracle"', "access-control has geomancy payment rule");
 assertContains(accessControlSource, 'reportType === "yogaGuruCourse"', "access-control has yoga payment rule");
-assertContains(accessControlSource, '["celestialHarmony", "geomancyOracle", "yogaGuruCourse"].includes(normalizedReportType)', "recent-payment-window fallback covers geomancy/yoga");
+// 배열은 리포트타입이 늘어날 수 있으므로 리터럴 전체가 아니라 필수 항목 포함 여부로 본다.
+const recentPaymentWindowList = accessControlSource.match(/\[[^\]]*\]\.includes\(normalizedReportType\)/)?.[0] || "";
+for (const reportType of ["celestialHarmony", "geomancyOracle", "yogaGuruCourse"]) {
+  assertContains(recentPaymentWindowList, `"${reportType}"`, `recent-payment-window fallback covers ${reportType}`);
+}
 assertContains(geomancyClientSource, "geomancyPayEvidence", "geomancy client forwards payment evidence");
 assertContains(geomancyClientSource, "credentials:'include'", "geomancy client sends auth credentials");
 assertContains(yogaClientSource, "yogaPayEvidence", "yoga client forwards payment evidence");

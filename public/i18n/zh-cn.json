@@ -568,7 +568,11 @@
       "mayaAlt": "玛雅占卜 — 金色历盘与夜空时间纹样",
       "mayaTitle": "玛雅占卜",
       "mayaDesc": "用时间纹样读取今日流向",
-      "dreamPromptShortTitle": "梦境提示"
+      "dreamPromptShortTitle": "梦境提示",
+      "petSajuTitle": "🐾 AI宠物八字",
+      "petSajuDesc": "毛孩子的五行与合盘",
+      "petSajuAria": "打开AI宠物八字",
+      "petSajuAlt": "AI宠物八字封面图"
     },
     "destinyFlowerStudio": {
       "closeAria": "关闭命运之花工坊",

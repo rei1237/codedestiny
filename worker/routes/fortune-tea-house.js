@@ -6,9 +6,15 @@ import { getCurrentUser, getOptionalUserFromRequest } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { toDisplayText } from "../../lib/llm-text.js";
+import {
+  buildFallbackHeartScent,
+  buildHeartScentPromptCatalog,
+  findHeartScentCategory,
+  isHeartScentName,
+} from "../../lib/fortune-tea-house/heart-scents.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
@@ -24,13 +30,18 @@ const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시
 const SAJU_MIN_RESULT_CHARS = 6000;
 const SAJU_TARGET_RESULT_CHARS = 8000;
 const TAROT_MIN_RESULT_CHARS = 3200;
+const TAROT_FIVE_CARD_EXTRA_CHARS = 1200;
+// 카드 한 장당 detail(핵심의미·현재상황·질문연결·조언·주의) 합계 하한(공백 제외).
+const TAROT_CARD_DETAIL_MIN_CHARS = 500;
 const SUKUYO_MIN_RESULT_CHARS = 5000;
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
 const TAROT_ALBUM_UNLOCK_COST = 10;
 const VALID_HONEY_CONSULTATION_MODES = new Set(["tarot", "saju", "sajuCompatibility", "sukuyo"]);
+// 타로는 스프레드(3카드/5카드)로 상품이 갈린다 — 정본 가격은 PAYMENT_POLICY.md.
 const FORTUNE_TEA_HOUSE_FEATURE_KEYS = Object.freeze({
   tarot: "fortune-tea-house-tarot-consultation",
+  tarotFive: "fortune-tea-house-tarot-five-consultation",
   saju: "fortune-tea-house-saju-consultation",
   sajuCompatibility: "fortune-tea-house-saju-compatibility-consultation",
   sukuyo: "fortune-tea-house-sukuyo-compatibility-consultation",
@@ -449,6 +460,67 @@ function buildMinimalTarotSpreadCards(tarotSpread, tarot) {
     ...position,
     reading: index === 0 ? tarot.reading : `${position.positionLabel} 자리에서는 ${position.positionMeaning}`,
   }));
+}
+
+// 카드별 상세 해석(detail) 5항목. LLM이 이 자리를 채우지 못했을 때만 쓰는 결정론 폴백이다.
+const TAROT_CARD_DETAIL_FIELDS = ["coreMeaning", "currentSituation", "questionLink", "advice", "caution"];
+
+function buildFallbackCardDetail(card = {}, question = "") {
+  const name = cleanText(card.nameKo, 60) || "이 카드";
+  const orientationLabel = card.orientation === "reversed" ? "역방향" : "정방향";
+  const keywords = Array.isArray(card.keywords) ? card.keywords.filter(Boolean).slice(0, 3) : [];
+  const keywordLine = keywords.length ? keywords.join(", ") : "지금의 결";
+  const leadKeyword = keywords[0] || "지금의 결";
+  const subKeyword = keywords[1] || leadKeyword;
+  const positionLabel = cleanText(card.positionLabel, 40) || "이 자리";
+  const positionMeaning = cleanText(card.positionMeaning, 200) || "지금 살펴야 할 장면";
+  const questionLine = cleanText(question, 120);
+  const structure = describeTarotCardStructure(card);
+  const structureLine = structure.arcana === "major"
+    ? "메이저 아르카나라 개인의 선택보다 큰 흐름이 먼저 움직이는 자리입니다"
+    : `${structure.suitKo || "마이너"} 계열${structure.element ? `(${structure.element})` : ""}이라 일상에서 손에 잡히는 변화로 나타납니다`;
+  const orientationLine = card.orientation === "reversed"
+    ? "역방향은 나쁘다는 뜻이 아니라, 이 힘이 막히거나 과해지거나 안쪽으로 접혀 있다는 신호입니다"
+    : "정방향은 이 카드의 힘이 비교적 자연스럽게 드러나 지금 쓸 수 있는 자원이라는 뜻입니다";
+  return {
+    coreMeaning: `${name}이 ${orientationLabel}으로 떠올랐습니다. ${cleanText(card.meaning, 400) || `${keywordLine}의 결을 비추는 카드입니다.`} ${structureLine}. ${orientationLine}. 그래서 이 카드는 ${keywordLine}을 좋고 나쁨으로 가르기보다, 지금 어느 쪽으로 기울어 있는지를 먼저 보게 합니다.`,
+    currentSituation: `${positionLabel} 자리는 ${positionMeaning} 그래서 ${name}은 지금 상황에서 ${leadKeyword}이 어디까지 작동하고 있는지를 보여 줍니다. 같은 카드라도 다른 자리에 놓였다면 다르게 읽혔을 결입니다. 이 자리에서는 상황을 바꾸려 애쓰기보다, 이미 벌어진 흐름의 방향을 정확히 읽는 편이 먼저입니다.`,
+    questionLink: questionLine
+      ? `"${questionLine}"라는 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 이 질문에서 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다. 답이 아직 열려 있다는 뜻이기도 하니, 지금 손에 쥔 정보와 아직 추측인 부분을 나누어 보세요.`
+      : `지금의 물음에서 ${name}은 ${keywordLine}의 결로 답의 방향을 좁혀 줍니다. 결론을 확정하기보다, 무엇을 먼저 확인해야 하는지를 가리키는 카드입니다. 답이 아직 열려 있다는 뜻이기도 하니, 지금 손에 쥔 정보와 아직 추측인 부분을 나누어 보세요.`,
+    advice: `${name}이 건네는 조언은 ${leadKeyword}을 서두르지 말고 끝까지 지켜보는 것입니다. 오늘은 판단을 미루더라도, ${subKeyword}이 실제로 어떻게 움직이는지 한 가지만 확인해 두세요. 작게 확인한 사실 하나가 다음 선택의 기준이 되어 줍니다.`,
+    caution: `${orientationLabel}의 ${name}에서는 ${subKeyword}이 과해지거나 반대로 계속 미뤄지기 쉽습니다. 마음이 급해질 때 이 카드의 결을 근거 삼아 무리한 확신을 만들지 않도록 살펴 주세요. 특히 확인되지 않은 상대의 마음이나 결과를 이 카드로 단정하는 것은 피하는 편이 좋습니다.`,
+  };
+}
+
+// 3카드는 3쌍 전부, 5카드는 인접쌍 + 처음↔끝을 핵심 조합으로 본다.
+function buildTarotInteractionPairIndexes(cardCount) {
+  if (cardCount <= 1) return [];
+  if (cardCount <= 3) {
+    const pairs = [];
+    for (let a = 0; a < cardCount; a += 1) {
+      for (let b = a + 1; b < cardCount; b += 1) pairs.push([a, b]);
+    }
+    return pairs;
+  }
+  const pairs = [];
+  for (let index = 0; index + 1 < cardCount; index += 1) pairs.push([index, index + 1]);
+  pairs.push([0, cardCount - 1]);
+  return pairs;
+}
+
+function buildFallbackCardInteractions(cards = []) {
+  const list = Array.isArray(cards) ? cards : [];
+  return buildTarotInteractionPairIndexes(list.length).map(([a, b]) => {
+    const first = list[a] || {};
+    const second = list[b] || {};
+    const firstKeyword = (first.keywords || [])[0] || "지금의 결";
+    const secondKeyword = (second.keywords || [])[0] || "다음의 결";
+    return {
+      pair: `${cleanText(first.nameKo, 60) || "첫 카드"} + ${cleanText(second.nameKo, 60) || "다음 카드"}`,
+      insight: `${cleanText(first.positionLabel, 40) || "앞자리"}의 ${firstKeyword}이 ${cleanText(second.positionLabel, 40) || "뒷자리"}의 ${secondKeyword}으로 이어집니다. 두 카드는 지금의 마음을 한 방향으로만 몰지 말고, 두 결을 함께 붙잡으라고 말하고 있습니다.`,
+    };
+  });
 }
 
 function normalizeSukuyoPerson(value, fallbackName) {
@@ -920,20 +992,25 @@ function normalizeRequest(body) {
   };
 }
 
-function resolveFortuneTeaHouseFeatureKey(body = {}, consultRequest = {}) {
-  const explicit = cleanText(body?.featureKey || body?.payment?.featureKey || body?._paymentContext?.featureKey, 120);
-  if (explicit && FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS.has(explicit)) {
-    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.sukuyo && consultRequest.consultationMode !== "sukuyo") return "";
-    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility && consultRequest.consultationMode !== "sajuCompatibility") return "";
-    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju && consultRequest.consultationMode !== "saju") return "";
-    if (explicit === FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot && consultRequest.consultationMode !== "tarot") return "";
-    return explicit;
-  }
-
+// 상담 요청 자체(모드 + 타로 스프레드)에서 결정되는 정본 featureKey.
+function expectedFortuneTeaHouseFeatureKey(consultRequest = {}) {
   if (consultRequest.consultationMode === "sukuyo") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sukuyo;
   if (consultRequest.consultationMode === "sajuCompatibility") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.sajuCompatibility;
   if (consultRequest.consultationMode === "saju") return FORTUNE_TEA_HOUSE_FEATURE_KEYS.saju;
-  return FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot;
+  return normalizeTarotSpread(consultRequest.tarotSpread) === "five"
+    ? FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarotFive
+    : FORTUNE_TEA_HOUSE_FEATURE_KEYS.tarot;
+}
+
+function resolveFortuneTeaHouseFeatureKey(body = {}, consultRequest = {}) {
+  const expected = expectedFortuneTeaHouseFeatureKey(consultRequest);
+  const explicit = cleanText(body?.featureKey || body?.payment?.featureKey || body?._paymentContext?.featureKey, 120);
+  // 클라이언트가 보낸 키는 요청에서 유도한 정본과 정확히 같을 때만 인정한다(fail-closed).
+  // 특히 5카드 요청을 3카드 키로 결제하는 금액 조작을 여기서 막는다.
+  if (explicit && FORTUNE_TEA_HOUSE_ALLOWED_FEATURE_KEYS.has(explicit)) {
+    return explicit === expected ? explicit : "";
+  }
+  return expected;
 }
 
 function objectValue(value) {
@@ -1304,7 +1381,7 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
 
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 401(로그아웃 유발) 대신 재시도 가능한 degraded 응답으로 흘려보낸다.
     if (isTransientMongoError(error)) return { ok: false, response: buildFortuneTeaAccessDegradedResponse() };
@@ -1349,6 +1426,8 @@ async function verifyFortuneTeaHouseConsultAccess(request, env, body, consultReq
     accessDecision = await canAccessPaidFeature(auth.userId, featureKey, {
       env,
       reason: pricingResult.pricing.reason,
+      // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+      userDoc: auth.authUserDoc,
     });
   } catch (error) {
     if (isTransientMongoError(error)) {
@@ -1532,8 +1611,10 @@ function resolveTarotCategoryRule(value = {}) {
   return Object.values(teaCategoryTarotPromptMap).find((rule) => rule.aliases.some((alias) => source.includes(alias))) || teaCategoryTarotPromptMap["lotus-moon"];
 }
 
+// 5카드는 카드가 2장 더 많아 카드별 해석 분량이 그만큼 늘어난다 — 전체 하한도 함께 올린다.
 function getTarotMinResultChars(value) {
-  return resolveTarotCategoryRule(value).minChars || TAROT_MIN_RESULT_CHARS;
+  const base = resolveTarotCategoryRule(value).minChars || TAROT_MIN_RESULT_CHARS;
+  return normalizeTarotSpread(value?.tarotSpread) === "five" ? base + TAROT_FIVE_CARD_EXTRA_CHARS : base;
 }
 
 function formatSajuFactItem(item) {
@@ -1901,6 +1982,12 @@ function buildTarotFactInput(request, fallback, rule) {
         existingReading: cleanMultiline(card.reading, 500),
       };
     }),
+    // 어떤 카드 조합을 풀어야 하는지 미리 확정해 준다 — 모델이 조합을 고르거나 세지 않게 한다.
+    interactionPairs: buildTarotInteractionPairIndexes(cards.length).map(([a, b]) => ({
+      pair: `${cleanText(cards[a]?.nameKo, 80)} + ${cleanText(cards[b]?.nameKo, 80)}`,
+      positions: `${cleanText(cards[a]?.positionLabel, 40)} → ${cleanText(cards[b]?.positionLabel, 40)}`,
+    })),
+    heartScentCatalog: buildHeartScentPromptCatalog(),
     categoryReadingFocus: rule.focus,
     requiredCategoryTerms: rule.requiredTerms,
     uncertaintyRule: "입력된 카드와 위치 의미 밖의 카드를 만들지 않는다. 상대 마음, 재회, 금전 결과는 확정하지 않고 카드가 보여주는 조건과 선택 방향으로 말한다.",
@@ -2322,6 +2409,10 @@ function buildMinimalDraft(request) {
     reading: "지금의 질문은 확신보다 감정의 결을 먼저 읽어야 하는 흐름을 비춥니다.",
   };
   const tarotSpread = normalizeTarotSpread(request.tarotSpread);
+  const tarotSpreadCards = buildMinimalTarotSpreadCards(tarotSpread, tarot).map((card) => ({
+    ...card,
+    detail: buildFallbackCardDetail(card, request.question),
+  }));
 
   return {
     consultationMode,
@@ -2351,7 +2442,17 @@ function buildMinimalDraft(request) {
     },
     tarot,
     tarotSpread,
-    tarotSpreadCards: buildMinimalTarotSpreadCards(tarotSpread, tarot),
+    tarotSpreadCards,
+    cardInteractions: consultationMode === "tarot" ? buildFallbackCardInteractions(tarotSpreadCards) : undefined,
+    heartScent: consultationMode === "tarot"
+      ? buildFallbackHeartScent({
+          teaCupId: request.selectedTeaCupId,
+          teaCupTopic: request.selectedTeaCupTopic,
+          question: request.question,
+          seed: `${request.selectedTeaCupId || ""}|${request.question || ""}`,
+          cardNames: tarotSpreadCards.map((card) => card.nameKo),
+        })
+      : undefined,
     sukuyoCompatibility,
     emotionAnalysis: isSajuFamilyMode(consultationMode)
       ? buildSajuCategoryGauges(request, { birthSummary: { birthTimeUnknown: request.birthTimeUnknown === true } })
@@ -2437,6 +2538,10 @@ function normalizeDraftResult(candidate, request) {
   const normalizedEmotionAnalysis = isSajuFamilyMode(request.consultationMode)
     ? buildSajuCategoryGauges(request, mergedSaju)
     : Array.isArray(draft.emotionAnalysis) && draft.emotionAnalysis.length ? draft.emotionAnalysis : fallback.emotionAnalysis;
+  // 클라 초안에는 카드별 detail이 없다. LLM이 통째로 실패해 이 초안이 그대로 degrade 전달될 때도
+  // 카드별 섹션이 비지 않도록 여기서 결정론 detail을 채워 둔다.
+  const draftSpreadCards = (Array.isArray(draft.tarotSpreadCards) && draft.tarotSpreadCards.length ? draft.tarotSpreadCards : fallback.tarotSpreadCards)
+    .map((card) => (card?.detail ? card : { ...card, detail: buildFallbackCardDetail(card, request.question) }));
   return {
     ...fallback,
     ...draft,
@@ -2445,7 +2550,20 @@ function normalizeDraftResult(candidate, request) {
     saju: mergedSaju,
     tarot: draft.tarot && typeof draft.tarot === "object" ? { ...fallback.tarot, ...draft.tarot } : fallback.tarot,
     tarotSpread: normalizeTarotSpread(draft.tarotSpread || request.tarotSpread),
-    tarotSpreadCards: Array.isArray(draft.tarotSpreadCards) && draft.tarotSpreadCards.length ? draft.tarotSpreadCards : fallback.tarotSpreadCards,
+    tarotSpreadCards: draftSpreadCards,
+    // 카드 조합·마음의 향은 초안이 못 채웠어도 항상 결정론 값이 있어야 한다(LLM 실패 시 빈 섹션 방지).
+    cardInteractions: request.consultationMode === "tarot"
+      ? (Array.isArray(draft.cardInteractions) && draft.cardInteractions.length ? draft.cardInteractions : buildFallbackCardInteractions(draftSpreadCards))
+      : undefined,
+    heartScent: request.consultationMode === "tarot"
+      ? mergeHeartScent(draft.heartScent, buildFallbackHeartScent({
+          teaCupId: request.selectedTeaCupId,
+          teaCupTopic: request.selectedTeaCupTopic,
+          question: request.question,
+          seed: `${request.selectedTeaCupId || ""}|${request.question || ""}`,
+          cardNames: draftSpreadCards.map((card) => card?.nameKo),
+        }))
+      : undefined,
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, draft.sukuyoCompatibility),
     // 사주 궁합의 두 사람 명식 스냅샷(user/partner)은 클라 초안에서 온다 — 워커는 이 구조를 보존한다.
     sajuCompatibility: draft.sajuCompatibility && typeof draft.sajuCompatibility === "object" ? draft.sajuCompatibility : fallback.sajuCompatibility,
@@ -2490,6 +2608,53 @@ function mergeEmotionAnalysis(candidates, fallbackItems) {
   return merged;
 }
 
+// 카드 정체성(cardId/이름/방향/키워드)은 계속 preserve하고, LLM이 쓴 산문만 detail로 얹는다.
+// 위치(index) 기준으로 맞추고 positionId는 대조 검증에만 쓴다 — LLM이 순서를 흔들어도 카드가 뒤섞이지 않는다.
+function mergeTarotCardReadings(fallbackCards, candidates, question) {
+  const cards = Array.isArray(fallbackCards) ? fallbackCards : [];
+  const list = Array.isArray(candidates) ? candidates : [];
+  const byPositionId = new Map();
+  for (const item of list) {
+    const positionId = cleanText(item?.positionId, 60);
+    if (positionId && !byPositionId.has(positionId)) byPositionId.set(positionId, item);
+  }
+  return cards.map((card, index) => {
+    const positionMatch = byPositionId.get(cleanText(card?.positionId, 60));
+    const candidate = positionMatch || (list[index] && typeof list[index] === "object" ? list[index] : {});
+    const defaults = buildFallbackCardDetail(card, question);
+    const detail = {};
+    for (const field of TAROT_CARD_DETAIL_FIELDS) {
+      detail[field] = mergeProse(candidate?.[field], card?.detail?.[field] || defaults[field], 900);
+    }
+    return { ...card, detail };
+  });
+}
+
+function mergeCardInteractions(candidates, fallbackItems) {
+  const list = Array.isArray(candidates) ? candidates : [];
+  const merged = list
+    .map((item) => ({
+      pair: mergeLine(item?.pair, "", 120),
+      insight: mergeProse(item?.insight, "", 900),
+    }))
+    .filter((item) => item.pair && item.insight)
+    .slice(0, 10);
+  return merged.length ? merged : fallbackItems;
+}
+
+// 향 이름은 반드시 정본 카탈로그(lib/fortune-tea-house/heart-scents.js) 안에서만 확정된다.
+// 카탈로그를 벗어나면 결정론 폴백으로 교체한다 — 여기서 throw하면 결제된 결과가 통째로 degrade된다.
+function mergeHeartScent(candidate, fallbackScent) {
+  const base = fallbackScent || {};
+  const name = cleanText(candidate?.name, 40);
+  const category = cleanText(candidate?.category, 40);
+  const reason = mergeProse(candidate?.reason, base.reason, 1200);
+  if (name && isHeartScentName(name)) {
+    return { name, category: findHeartScentCategory(name, category), reason };
+  }
+  return { name: base.name, category: base.category, reason: reason || base.reason };
+}
+
 function mergeChoiceSimulation(candidates, fallbackItems) {
   const list = Array.isArray(candidates) ? candidates.slice(0, 4) : [];
   if (!list.length) return fallbackItems;
@@ -2516,6 +2681,7 @@ function mergeLuckyKeywords(candidates, fallbackKeywords) {
 function mergeLlmResult(fallback, parsed) {
   const safeParsed = parsed && typeof parsed === "object" ? parsed : {};
   const parsedDeepSections = normalizeDeepSections(safeParsed.saju?.deepSections);
+  const isTarotConsultation = fallback.consultationMode === "tarot";
   return {
     ...fallback,
     ...safeParsed,
@@ -2564,7 +2730,13 @@ function mergeLlmResult(fallback, parsed) {
       reading: mergeProse(safeParsed.tarot?.reading, fallback.tarot.reading, 2400),
     },
     tarotSpread: fallback.tarotSpread,
-    tarotSpreadCards: fallback.tarotSpreadCards,
+    // 카드 정체성은 fallback 그대로, 카드별 산문(detail)만 LLM 출력으로 채운다.
+    // 카드 조합·마음의 향은 타로 전용 필드다 — 사주/숙요 결과에는 실리지 않게 한다.
+    tarotSpreadCards: isTarotConsultation
+      ? mergeTarotCardReadings(fallback.tarotSpreadCards, safeParsed.tarotCardReadings, fallback.questionSummary)
+      : fallback.tarotSpreadCards,
+    cardInteractions: isTarotConsultation ? mergeCardInteractions(safeParsed.cardInteractions, fallback.cardInteractions) : undefined,
+    heartScent: isTarotConsultation ? mergeHeartScent(safeParsed.heartScent, fallback.heartScent) : undefined,
     sukuyoCompatibility: mergeFortuneTeaSukuyoCompatibility(fallback.sukuyoCompatibility, safeParsed.sukuyoCompatibility),
     // 사주 궁합 두 사람 명식 스냅샷은 결정적 계산값이므로 LLM 출력으로 덮지 않고 fallback 구조를 보존한다.
     sajuCompatibility: fallback.sajuCompatibility,
@@ -2735,6 +2907,7 @@ function assertTarotDeepQuality(result, fallback) {
     concernTopic: fallback?.questionSummary,
     question: fallback?.questionSummary,
   });
+  const spreadCards = Array.isArray(result.tarotSpreadCards) ? result.tarotSpreadCards : [];
   const generated = [
     result.tarot?.reading,
     result.synthesis?.title,
@@ -2746,6 +2919,10 @@ function assertTarotDeepQuality(result, fallback) {
     result.yeoniReading?.caution,
     result.actionPrescription,
     result.closingLine,
+    ...spreadCards.flatMap((card) => TAROT_CARD_DETAIL_FIELDS.map((field) => card?.detail?.[field])),
+    ...(result.cardInteractions || []).flatMap((item) => [item.pair, item.insight]),
+    result.heartScent?.name,
+    result.heartScent?.reason,
     ...(result.emotionAnalysis || []).flatMap((item) => [item.label, item.description]),
     ...(result.choiceSimulation || []).flatMap((item) => [item.title, item.subtitle, item.result, item.caution]),
     ...(result.luckyKeywords || []),
@@ -2757,6 +2934,7 @@ function assertTarotDeepQuality(result, fallback) {
     selectedTeaCupName: fallback?.teaCup?.name,
     selectedTeaCupTopic: fallback?.teaCup?.topic,
     teaCup: fallback?.teaCup,
+    tarotSpread: result.tarotSpread || fallback?.tarotSpread,
   });
   if (compactLength < minChars) {
     throw new Error(`fortune tea house quality failed: tarot length ${compactLength}`);
@@ -2790,6 +2968,44 @@ function assertTarotDeepQuality(result, fallback) {
       throw new Error(`fortune tea house quality failed: emotionAnalysis.${index}.reason too short`);
     }
   });
+  // 🔴 요구사항 1: 뽑힌 카드는 한 장도 빠짐없이 개별 해석되어야 한다.
+  if (!spreadCards.length) {
+    throw new Error("fortune tea house quality failed: tarot spread cards missing");
+  }
+  spreadCards.forEach((card, index) => {
+    const detail = card?.detail || {};
+    const missing = TAROT_CARD_DETAIL_FIELDS.filter((field) => cleanMultiline(detail[field], 900).length < 20);
+    if (missing.length) {
+      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} detail ${missing.join(",")}`);
+    }
+    const detailText = TAROT_CARD_DETAIL_FIELDS.map((field) => cleanMultiline(detail[field], 900)).join("\n");
+    if (detailText.replace(/\s/g, "").length < TAROT_CARD_DETAIL_MIN_CHARS) {
+      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} detail too short`);
+    }
+    // 카드 해석이 다른 카드 자리로 밀리는 사고를 막는다.
+    const cardName = cleanText(card?.nameKo, 80);
+    if (cardName && !detailText.includes(cardName)) {
+      throw new Error(`fortune tea house quality failed: tarot card ${index + 1} name missing`);
+    }
+  });
+
+  const expectedInteractionCount = buildTarotInteractionPairIndexes(spreadCards.length).length;
+  if ((result.cardInteractions || []).length < expectedInteractionCount) {
+    throw new Error(`fortune tea house quality failed: tarot card interactions ${(result.cardInteractions || []).length}/${expectedInteractionCount}`);
+  }
+
+  // 마음의 향은 이름이 정본 카탈로그 안이어야 하고(merge가 보장), 이유가 실제 카드와 이어져야 한다.
+  const scentReason = cleanMultiline(result.heartScent?.reason, 1200);
+  if (!isHeartScentName(cleanText(result.heartScent?.name, 40))) {
+    throw new Error("fortune tea house quality failed: heart scent name");
+  }
+  if (scentReason.replace(/\s/g, "").length < 150) {
+    throw new Error("fortune tea house quality failed: heart scent reason too short");
+  }
+  if (!spreadCards.some((card) => cleanText(card?.nameKo, 80) && scentReason.includes(cleanText(card.nameKo, 80)))) {
+    throw new Error("fortune tea house quality failed: heart scent not linked to cards");
+  }
+
   const expectedGaugeLabels = new Set(tarotRule.gauges || []);
   const matchedGaugeCount = (result.emotionAnalysis || []).filter((item) => expectedGaugeLabels.has(cleanText(item.label, 80))).length;
   if (matchedGaugeCount < Math.min(4, expectedGaugeLabels.size)) {
@@ -3163,8 +3379,10 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             lengthRule: `공백 제외 ${getTarotMinResultChars(request)}자 이상, 전체 4000~5000자 안팎으로 쓴다. 카드 나열이 아니라 하나의 서사로 이어지게 한다.`,
             resultFlow: [
               "카드를 펼치며: 분위기와 전체 그림을 한눈에 담아 짧게 연다. 메이저/마이너 비율, 수트 편중, 코트 카드 등장이 만드는 전체 흐름을 먼저 느끼게 한다.",
-              "포지션별 리딩: 각 카드마다 '카드가 말하는 것 → 이 질문에서의 의미' 순서로, '이 카드의 ○○가 지금 손님의 ○를 비춰요'처럼 상징을 근거로 밝혀 설명한다.",
+              "카드별 리딩(tarotCardReadings): 뽑힌 카드를 한 장도 빠짐없이 개별적으로 푼다. 카드마다 핵심 의미 → 현재 상황에서의 의미 → 질문과의 연결 → 조언 → 주의할 점 순서로 쓴다.",
+              "카드 간 상호작용(cardInteractions): 지정된 조합마다 두 카드가 함께 만드는 의미를 푼다.",
               "카드들이 함께 그리는 이야기: 카드 사이의 서사를 엮어 전체 흐름을 종합한다.",
+              "마음의 향(heartScent): 위 해석을 모두 확정한 다음, 그 결론에 가장 맞는 향 하나를 고르고 이유를 밝힌다.",
               "지금 손님이 붙잡을 수 있는 것: 실천적 조언. 카드 근거를 유지한 채 지금 할 행동과 피할 행동을 구분한다.",
               "연이의 한마디: 카드의 메시지를 따뜻하게 요약한다.",
             ],
@@ -3179,9 +3397,19 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             ],
             toneRule: "타로는 정해진 미래가 아니라 지금의 에너지임을 자연스럽게 전제한다. 탑, 죽음, 악마 같은 부정적 카드는 상징의 본뜻(변화, 전환, 집착의 직면)으로 풀어 위로한다.",
             fieldStructure: {
-              "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 전통 의미, 질문 맥락을 4-6문장으로 연결한다. 카드의 전통 의미를 정의하는 자리는 여기(와 카드별 리딩)뿐이다. 권장 분량: 180~280자.",
-              "synthesis.summary": "스프레드 전체 흐름의 정본 요약. 카드 위치들을 나열하지 말고 현재 상황, 숨은 감정, 선택 포인트를 2-4문장으로 묶는다. yeoniReading.main과 같은 문장을 쓰지 않는다. 권장 분량: 150~250자.",
-              "synthesis.sajuTarotBridge": "이름과 달라도 타로-only 전체 흐름 리딩으로 쓴다. 사주 언급 없이 카드들이 함께 만드는 이야기를 정리한다. 권장 분량: 150~250자.",
+              "tarot.reading": "카드 오픈 멘트와 뽑힌 카드 요약. 카드명, 방향, 키워드, 질문 맥락을 4-6문장으로 연결한다. 카드별 전통 의미를 여기서 낱낱이 정의하지 말고(그 자리는 tarotCardReadings다) 펼쳐진 전체 그림을 한눈에 담는다. 권장 분량: 180~280자.",
+              tarotCardReadings: "뽑힌 카드 전부를 한 장씩 개별 해석하는 유일한 자리. tarotFactInput.spreadCards와 개수·순서가 정확히 같아야 하고, 한 장이라도 빠지면 실패다. 각 item의 positionId는 입력값을 그대로 복사한다.",
+              "tarotCardReadings[].coreMeaning": "이 카드의 핵심 의미. 정방향/역방향을 문장 안에 반드시 드러내고, arcana·suit·element·rank(숫자/코트) 중 최소 2개를 근거로 삼는다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].currentSituation": "positionLabel/positionMeaning과 결합한 '지금 상황에서의 의미'. 같은 카드라도 이 자리에 놓였기 때문에 달라지는 결을 말한다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].questionLink": "손님의 실제 질문과 이 카드를 잇는 해석. 질문의 핵심 단어를 자연스럽게 되받는다. 권장 분량: 130~190자.",
+              "tarotCardReadings[].advice": "이 카드가 건네는 조언. 카드 상징에서 도출된 구체적인 방향으로 쓴다. 권장 분량: 110~160자.",
+              "tarotCardReadings[].caution": "이 카드 고유의 주의할 점. 왜 이 카드·이 방향에서 그 위험이 커지는지 근거를 붙인다. 다른 카드에도 통하는 일반론이나 전역 금지 문구를 되풀이하면 실패다. 권장 분량: 110~160자.",
+              cardInteractions: "카드 간 상호작용. tarotFactInput.interactionPairs에 주어진 조합을 전부, 같은 pair 문자열 그대로 사용한다. 조합을 새로 만들거나 빠뜨리지 않는다.",
+              "cardInteractions[].insight": "두 카드가 함께 만드는 의미. '은둔자 + 별 → 지금은 기다림이 필요하지만 그 끝에는 희망이 있다'처럼 한 카드씩 볼 때는 안 보이던 결을 짚는다. spreadDigest의 원소 흐름·수트 편중을 근거로 쓴다. 권장 분량: 140~210자.",
+              heartScent: "오늘의 마음의 향. 위 해석을 모두 확정한 뒤 마지막에 고른다.",
+              "heartScent.reason": "① 지금 손님에게 필요한 것 ② 오늘의 카드들이 준 메시지(뽑힌 카드 이름을 최소 하나 명시) ③ 그 향이 왜 이 흐름을 보완하는지 — 이 순서로 4~6문장. 권장 분량: 220~320자.",
+              "synthesis.summary": "카드별 리딩을 모두 마친 뒤의 종합 해석. 카드들이 공통적으로 보여주는 흐름을 먼저 묶고, 마지막 문장에서 '지금 가장 중요한 메시지' 하나를 분명히 남긴다. 카드별 의미를 다시 정의하지 말고(그 자리는 tarotCardReadings다) 겹치는 결과 어긋나는 결을 짚는다. 권장 분량: 150~250자.",
+              "synthesis.sajuTarotBridge": "이름과 달라도 타로-only 전체 흐름 리딩으로 쓴다. 사주 언급 없이, 이 카드 배치가 앞으로 어떤 변화로 이어지는지를 정리한다. 권장 분량: 150~250자.",
               "yeoniReading.intro": "손님을 맞이하는 환영 인사(어서 오세요 류)로 시작하는 찻집 감성의 카드 오픈 멘트와 질문자의 마음의 향. 권장 분량: 120~200자.",
               "yeoniReading.main": "카드들이 함께 만드는 이야기와 이번 질문에서의 의미. 카드별 전통 의미를 여기서 다시 정의하지 않는다(이미 tarot.reading과 카드별 리딩에 있다). 새로 더할 것은 spreadDigest(비율·수트 편중·원소 흐름·firstToLast·sequenceRule)가 그리는 배치 서사와, 그 서사가 이번 질문에 주는 답의 결이다. 권장 분량: 280~380자.",
               "yeoniReading.advice": "연이의 방향 제시. 지금 움직일지 기다릴지의 판단 기준과 그 이유(카드·질문 근거)를 다정하게 건네되, 구체적인 할 행동/금지 행동 목록은 나열하지 않는다(그 목록은 actionPrescription 한 곳에만 둔다). 권장 분량: 160~240자.",
@@ -3199,7 +3427,9 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
             ],
             depthStrategyRule: "요구 분량은 같은 말을 늘려서가 아니라, 위 depthLenses의 서로 다른 각도를 각기 다른 필드에서 새 근거로 풀어 채운다. 한 필드에서 이미 한 말을 다른 필드에서 되풀이하지 말고, 각 필드는 자기 렌즈의 깊이를 더하는 방식으로 분량 목표를 채운다.",
             categorySectionRule: "requiredDeepSections의 주제는 각각 가장 알맞은 필드 한 곳에서 깊게 다뤄 결과 전체에서 빠짐없이 등장해야 한다. 섹션 제목을 그대로 쓰지 않아도 되지만, 주제가 누락되어도 실패이고 같은 주제를 같은 문장으로 여러 필드에 반복해도 실패다.",
-            cardByCardRule: "tarotFactInput.spreadCards의 각 카드는 positionLabel, positionMeaning, cardName, orientationLabel, traditionalMeaning에 더해 arcana, suit, element, rank(코트 여부)를 반영한다. 카드가 1장뿐이면 그 한 장을 깊게 읽고, 3장 이상이면 spreadDigest.sequenceRule과 firstToLast의 서사를 따라 위치별 의미를 전체 흐름에 연결한다.",
+            cardByCardRule: "뽑힌 카드는 단 한 장도 예외 없이 tarotCardReadings에서 개별적으로 해석한다. 카드가 3장이면 3개 item, 5장이면 5개 item이며 개수와 순서가 tarotFactInput.spreadCards와 정확히 같아야 한다. '전체적으로 좋은 흐름입니다' 같은 뭉뚱그린 문장으로 특정 카드의 설명을 대신하면 실패다. 각 카드는 positionLabel, positionMeaning, cardName, orientationLabel, traditionalMeaning에 더해 arcana, suit, element, rank(코트 여부)를 반영하고, spreadDigest.sequenceRule과 firstToLast의 서사에 연결한다. 각 카드의 해석 안에 그 카드의 이름(nameKo)을 반드시 한 번 이상 쓴다.",
+            cardInteractionRule: "tarotFactInput.interactionPairs에 지정된 조합을 전부 cardInteractions로 푼다. pair 문자열은 주어진 값을 그대로 복사하고, 목록에 없는 조합을 만들거나 일부를 생략하면 실패다. 카드를 하나씩 볼 때는 보이지 않는, 두 장이 겹칠 때만 생기는 의미를 말한다(예: 통제력은 강하지만 집착이 지나칠 수 있다).",
+            heartScentRule: "heartScent는 반드시 모든 해석을 확정한 뒤 마지막에 고른다. name은 tarotFactInput.heartScentCatalog에 실제로 적힌 향 이름 중 하나여야 하고, 카탈로그 밖의 향 이름을 지어내면 실패다. category는 그 향이 속한 카테고리를 그대로 쓴다. reason에는 오늘 뽑힌 카드 이름을 최소 하나 명시해, 향이 이번 해석의 결론과 이어져 있음을 손님이 알 수 있게 한다.",
             orientationRule: "정방향/역방향은 반드시 문장 안에 드러낸다. 역방향을 단순히 나쁘다고 말하지 말고 막힘, 지연, 과잉, 내면화, 재조정 중 어떤 흐름인지 질문 맥락으로 풀어준다.",
             questionReflectionRule: "사용자의 실제 질문 문장을 상담 본문 안에서 자연스럽게 되받아라. 전체 문장을 기계적으로 복사하지 말고, 핵심 단어와 고민의 방향이 tarot.reading, yeoniReading, actionPrescription 중 최소 한 곳에 살아 있어야 한다.",
             emotionRule: "emotionAnalysis 수치는 상대방 마음이 아니라 질문자의 마음의 향이다. 각 description에 카드와 질문 맥락에서 왜 그 수치가 나왔는지 짧은 근거를 붙인다.",
@@ -3311,7 +3541,16 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
           : "omit — 초안 값이 그대로 유지된다",
         tarot: consultationMode === "tarot" ? "preserve card fields, improve only reading" : "omit — 초안 값이 그대로 유지된다",
         tarotSpread: "preserve",
-        tarotSpreadCards: "preserve",
+        tarotSpreadCards: "preserve — 카드 정체성은 서버가 고정한다. 카드별 해석은 tarotCardReadings에 쓴다.",
+        tarotCardReadings: consultationMode === "tarot"
+          ? `required — tarotFactInput.spreadCards와 정확히 같은 개수(${(fallback.tarotSpreadCards || []).length}개)와 순서. 각 item: { positionId(입력값 그대로 복사), coreMeaning, currentSituation, questionLink, advice, caution }`
+          : "omit",
+        cardInteractions: consultationMode === "tarot"
+          ? `required — tarotFactInput.interactionPairs와 같은 개수(${buildTarotInteractionPairIndexes((fallback.tarotSpreadCards || []).length).length}개)와 순서. 각 item: { pair(주어진 문자열 그대로), insight }`
+          : "omit",
+        heartScent: consultationMode === "tarot"
+          ? "required — { name(heartScentCatalog에 있는 향 이름), category(그 향의 카테고리), reason }"
+          : "omit",
         sukuyoCompatibility: consultationMode === "sukuyo"
           ? "preserve user/partner/calculationBasis/relationDetail/relation/distance/scores/elementHarmony/index fields, improve only title/summary/strengths/cautions/adviceKeywords"
           : "omit — 초안 값이 그대로 유지된다",
@@ -3352,9 +3591,14 @@ async function generateConsultResult(request, fallback, env) {
   const maxAttempts = 2;
   // 잘림(MAX_TOKENS) 발생 시 다음 시도에서 출력 토큰을 상향해 긴 상담문이 완결되도록 한다.
   // gemini-2.5-flash 출력 상한 아래(40k)로 캡, 잘림이 없으면 base 토큰 그대로 유지.
-  const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : 12000;
+  // 타로는 카드별 상세 해석(카드당 5항목) + 카드 조합 + 마음의 향이 추가되어 출력이 커졌다.
+  // 3카드/5카드의 카드 수 차이만큼 예산을 나눈다.
+  const isFiveCardTarot = consultationMode === "tarot" && normalizeTarotSpread(request.tarotSpread) === "five";
+  const tarotMaxOutputTokens = isFiveCardTarot ? 32000 : 24000;
+  const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : tarotMaxOutputTokens;
   const maxOutputTokensCap = 40000;
-  const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : 75000;
+  const tarotTimeoutMs = isFiveCardTarot ? 110000 : 95000;
+  const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : tarotTimeoutMs;
   let lastError = null;
   let lastCandidate = null;
   let truncationRetries = 0;
@@ -3705,7 +3949,7 @@ function publicFortuneTeaResultListItem(doc) {
 async function readFortuneTeaHouseResultsList(request, env) {
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
     throw error;
@@ -3735,7 +3979,7 @@ async function handleFortuneTeaHouseResultsList(request, env) {
 async function readFortuneTeaHouseResultDetail(request, env, resultId) {
   let auth;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     if (isTransientMongoError(error)) return { ok: false, status: 503, message: "잠시 후 다시 확인해주세요." };
     throw error;

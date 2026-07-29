@@ -408,8 +408,14 @@ const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 // 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
+// AI 반려동물 사주 — 무인증·무DB 결정론 계산(프로필→오행 청사진)
+const handlePetSajuRoutes = createLazyRouteHandler("./routes/pet-saju.js", () => import("./routes/pet-saju.js"), "handlePetSajuRoutes", "api/pet-saju");
+// AI 반려동물 사주 심층 리포트·궁합(각 ₩5,000) — 회당 결제 LLM 서술(결정론 수치는 위 엔진이 계산)
+const handlePetSajuAiRoutes = createLazyRouteHandler("./routes/pet-saju-ai.js", () => import("./routes/pet-saju-ai.js"), "handlePetSajuAiRoutes", "api/pet-saju-ai");
 // 운명의 섬 12궁 심층 유료 상담(₩20,000) — 별도 상품, ziwei-ai 결제 흐름 복제(runAiRouteWithSecurity)
 const handleZiweiIslandAiRoutes = createLazyRouteHandler("./routes/ziwei-island-ai.js", () => import("./routes/ziwei-island-ai.js"), "handleZiweiIslandAiRoutes", "api/ziwei-island-ai");
+// 운명의 섬 12궁 심층 리포트(₩5,000) — 정적 결정론 콘텐츠, 영구 해금 상태만 검사
+const handleZiweiIslandReportRoutes = createLazyRouteHandler("./routes/ziwei-island-report.js", () => import("./routes/ziwei-island-report.js"), "handleZiweiIslandReportRoutes", "api/ziwei-island-report");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
@@ -1273,8 +1279,23 @@ export default {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);
       }
 
+      // ⚠️ 반드시 /api/ziwei-island 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      if (url.pathname === "/api/ziwei-island-report" || url.pathname.startsWith("/api/ziwei-island-report/")) {
+        return withCorsHeaders(request, env, await handleZiweiIslandReportRoutes(request, env));
+      }
+
       if (url.pathname === "/api/ziwei-island" || url.pathname.startsWith("/api/ziwei-island/")) {
         return withCorsHeaders(request, env, await handleZiweiIslandRoutes(request, env));
+      }
+
+      // ⚠️ 반드시 /api/pet-saju 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      if (url.pathname === "/api/pet-saju-ai" || url.pathname.startsWith("/api/pet-saju-ai/")) {
+        return runAiRouteWithSecurity(request, env, "pet-saju-ai", handlePetSajuAiRoutes, ctx);
+      }
+
+      // AI 반려동물 사주 청사진 (무인증·무DB 순수 계산)
+      if (url.pathname === "/api/pet-saju" || url.pathname.startsWith("/api/pet-saju/")) {
+        return withCorsHeaders(request, env, await handlePetSajuRoutes(request, env));
       }
 
       if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {

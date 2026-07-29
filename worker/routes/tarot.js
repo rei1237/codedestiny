@@ -2,7 +2,7 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { requireAuth } from "../lib/auth.js";
 import { connectDb, mongoose } from "../lib/db.js";
 import { Payment, PointHistory } from "../lib/models.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
   getWarningCardGuard,
@@ -190,7 +190,7 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
   let auth = null;
   let authError = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     authError = error;
   }
@@ -198,6 +198,8 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
   if (auth?.userId) {
     const accessDecision = await canAccessPaidFeature(auth.userId, NUMEROLOGY_TAROT_READING_FEATURE_KEY, {
       env,
+      // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+      userDoc: auth.authUserDoc,
       reason: "수비학 타로 리딩",
     });
     if (accessDecision?.allowed) {

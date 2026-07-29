@@ -263,6 +263,16 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       return;
     }
 
+    // 아직 계정이 없는 소셜 신원. 생년월일을 받아야 계정을 만들 수 있어 가입 마무리 화면으로 보낸다.
+    var socialSignupTicket = params.get("social_signup");
+    if (socialSignupTicket) {
+      var signupParams = new URLSearchParams({ social_signup: socialSignupTicket });
+      var signupNext = params.get("next");
+      if (signupNext) signupParams.set("next", signupNext);
+      window.location.replace("/signup?" + signupParams.toString());
+      return;
+    }
+
     if (socialGrant) {
       let intentProvider = "";
       try {
