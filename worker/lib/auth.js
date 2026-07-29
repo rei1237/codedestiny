@@ -596,11 +596,17 @@ export async function requireUserFromRequest(request, env, options = {}) {
 // 유료/인증필요 라우트 전용 인증 해석. 로그인 사용자가 DB 풀 초기화 같은 일시적 장애로
 // 인증이 확인 안 될 때, null(→확정 401 "로그인 필요")로 강등되지 않고 503(재시도 가능)으로
 // 표면화한다. 진짜 게스트(토큰 없음/무효)는 그대로 null을 돌려주므로 호출자는 기존 401 유지.
-export async function resolvePaidRouteAuth(request, env) {
+// options.userProjection 을 주면 인증 조회를 그 필드까지 확장해 authUserDoc 를 붙여 준다
+// (호출자의 인증-후 User 재조회 왕복 제거). 기본값 {} 이라 인자를 주지 않으면 종전과 완전히 동일하다 —
+// 아래 getServerUser 와 같은 형태의 패스스루다.
+export async function resolvePaidRouteAuth(request, env, options = {}) {
   try {
     // 🔴 requireUserFromRequest와 같은 이유로 여기도 감싸지 않는다 — 인증 DB 읽기의 재시도는
     // resolveActiveUserAuth·verifyRefreshSessionToAuth 한 지점에만 있어야 한다.
-    return await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    return await getOptionalUserFromRequest(request, env, {
+      surfaceDbInfraError: true,
+      userProjection: options?.userProjection || null,
+    });
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       throw createHttpError(503, "로그인 상태를 일시적으로 확인하지 못했어요. 잠시 후 다시 시도해 주세요.", {
