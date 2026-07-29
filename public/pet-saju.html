@@ -523,6 +523,8 @@ var FRAME = {
   fish:            { s:"animals", fx: 670, fy:813, fw:207 },
   // pets 시트 — animals 에 없는 종/품종만
   bichonSoft:      { s:"pets", fx:  38, fy: 26, fw:340 },
+  creamFluffy:     { s:"pets", fx: 405, fy: 19, fw:346 },
+  catOrangeTabby:  { s:"pets", fx:1135, fy: 13, fw:353 },
   corgi:           { s:"pets", fx:  40, fy:360, fw:341 },
   shiba:           { s:"pets", fx: 416, fy:358, fw:341 },
   pomeranian:      { s:"pets", fx: 773, fy:368, fw:333 },
@@ -532,16 +534,18 @@ var FRAME = {
   budgie:          { s:"pets", fx: 813, fy:714, fw:286 }
 };
 
-/* 품종 → 프레임. 목록에 없으면 종 기본 프레임, 그것도 없으면 심볼 폴백. */
+/* 품종 → 프레임. 정확한 품종 그림이 없으면 색·귀·털결이 가장 가까운 것을 쓴다
+   (골든리트리버=크림 처진귀 복슬, 진돗개=백구 선귀, 말티즈=흰 곱슬).
+   목록에 없으면 종 기본 프레임, 그것도 없으면 심볼 폴백. */
 var BREED_FRAME = {
-  dog: { generic:"puppyTan", mixed:"puppyTan", golden_retriever:"puppyTan",
+  dog: { generic:"puppyTan", mixed:"puppyTan", golden_retriever:"creamFluffy",
          jindo:"spitzWhite", bichon:"bichon", maltese:"bichonSoft", poodle:"poodle",
          chihuahua:"chihuahua", dachshund:"dachshund", border_collie:"borderCollie",
          welsh_corgi:"corgi", shiba:"shiba", pomeranian:"pomeranian" },
   cat: { generic:"catSilverTabby", korean_shorthair:"catBrownTabby", russian_blue:"russianBlue",
          bengal:"bengal", ragdoll:"ragdoll", scottish_fold:"scottishFold", persian:"persian",
          siamese:"siamese", norwegian_forest:"norwegianForest",
-         munchkin:"calico", mixed:"calico" }
+         munchkin:"calico", mixed:"catOrangeTabby" }
 };
 var SPECIES_FRAME = { dog:"puppyTan", cat:"catSilverTabby", turtle:"turtle", fish:"fish",
                       bird:"budgie", rabbit:"rabbit", hamster:"hamster", mouse:"mouse",
