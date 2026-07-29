@@ -107,7 +107,6 @@ const staticCanonicalRouteEntries = STATIC_CANONICAL_ROUTES.map((route) => ({
 const coreRoutes = [
   { path: "/", changefreq: "daily", priority: 1.0 },
   { path: "/kkul-kkul-unse", changefreq: "weekly", priority: 0.99 },
-  { path: "/all-fortunes", changefreq: "weekly", priority: 0.95 },
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },

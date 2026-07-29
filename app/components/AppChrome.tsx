@@ -75,7 +75,6 @@ const CHROMELESS_ROUTES = [
   "/journey",
   "/island-consult",
   "/lock-screen-fortune",
-  "/all-fortunes",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
@@ -86,8 +85,6 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // Routes that render their own in-experience back/home controls, so the global
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
-  // 하단 네비가 홈·뒤로 이동을 이미 제공하므로 플로팅 back/home 이 겹친다
-  "/all-fortunes",
   "/fortune-tea-house",
   "/fortune/prompt-hub",
   "/olympus",

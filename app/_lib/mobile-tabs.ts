@@ -18,10 +18,19 @@ export interface MobileTab {
   ariaLabel: string;
   /** 정적 셸의 data-nav-icon 글리프 (React 는 SVG 아이콘을 쓰지만 동기화 검사 대상) */
   glyph: string;
+  /**
+   * 셸에서 이동 대신 실행할 전역 액션(data-action). 실행은 기존 [data-action] 위임이 맡고,
+   * 네비 스크립트는 이동만 취소한다 — 직접 호출하면 이중 실행이다.
+   * React 네비는 이 필드를 무시하고 href 로만 이동한다.
+   */
+  shellAction?: string;
 }
 
 /** 사주 탭이 셸에서 실행하는 ?action= 이름. js/destiny-profile.js 의 window.cdSajuTabEntry 와 짝. */
 export const SAJU_TAB_ACTION = "cdSajuTabEntry";
+
+/** 모든 운세 탭이 셸에서 실행하는 ?action= 이름. index.html 의 window.cdOpenAllFortunes 와 짝. */
+export const ALL_FORTUNES_ACTION = "cdOpenAllFortunes";
 
 /** 새로고침·뒤로가기에서 활성 탭을 유지하기 위한 sessionStorage 키. */
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
@@ -34,17 +43,25 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     href: `/?action=${SAJU_TAB_ACTION}`,
     ariaLabel: "내 프로필로 사주 보기",
     glyph: "命",
+    shellAction: SAJU_TAB_ACTION,
   },
-  { key: "fortunes", label: "모든 운세", href: "/all-fortunes", ariaLabel: "모든 운세 둘러보기", glyph: "✦" },
+  {
+    key: "fortunes",
+    label: "모든 운세",
+    href: `/?action=${ALL_FORTUNES_ACTION}`,
+    ariaLabel: "모든 운세 둘러보기",
+    glyph: "✦",
+    shellAction: ALL_FORTUNES_ACTION,
+  },
   { key: "pass", label: "이용권", href: "/points", ariaLabel: "이용권 상점", glyph: "◈" },
-  { key: "my", label: "마이", href: "/me", ariaLabel: "마이페이지", glyph: "☰" },
+  // 셸에서는 프로필 시트를 열고(dpOpenList), React 페이지에서는 /me 로 이동한다.
+  { key: "my", label: "마이", href: "/me", ariaLabel: "마이페이지", glyph: "☰", shellAction: "dpOpenList" },
 ] as const;
 
 const TAB_KEYS: readonly MobileTabKey[] = MOBILE_TABS.map((tab) => tab.key);
 
 /** pathname prefix → 탭 key. 위에서부터 먼저 맞는 것을 쓴다(구체적인 것이 앞). */
 const PATH_RULES: ReadonlyArray<{ prefix: string; key: MobileTabKey }> = [
-  { prefix: "/all-fortunes", key: "fortunes" },
   { prefix: "/points", key: "pass" },
   { prefix: "/me", key: "my" },
   { prefix: "/login", key: "my" },
@@ -76,8 +93,10 @@ function readActionParam(search: string): string {
 export function resolveActiveTabKey(pathname: string, search = ""): MobileTabKey | null {
   const path = stripLocalePrefix(String(pathname || "/").replace(/\/+$/, "") || "/");
 
-  // 사주 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
-  if (readActionParam(search) === SAJU_TAB_ACTION) return "saju";
+  // 사주·모든 운세 탭은 홈(/)과 pathname 이 같으므로 ?action= 으로만 구분된다.
+  const action = readActionParam(search);
+  if (action === SAJU_TAB_ACTION) return "saju";
+  if (action === ALL_FORTUNES_ACTION) return "fortunes";
   if (path === "/") return "home";
 
   for (const rule of PATH_RULES) {

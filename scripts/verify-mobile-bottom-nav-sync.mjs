@@ -32,14 +32,23 @@ function fail(message) {
 function readCanonicalTabs() {
   const source = readFileSync(resolve(rootDir, "app/_lib/mobile-tabs.ts"), "utf8");
 
-  const actionMatch = source.match(/export const SAJU_TAB_ACTION\s*=\s*"([^"]+)"/);
-  if (!actionMatch) throw new Error("app/_lib/mobile-tabs.ts 에서 SAJU_TAB_ACTION 을 찾지 못했습니다.");
+  const constants = {};
+  for (const name of ["SAJU_TAB_ACTION", "ALL_FORTUNES_ACTION"]) {
+    const found = source.match(new RegExp(`export const ${name}\\s*=\\s*"([^"]+)"`));
+    if (!found) throw new Error(`app/_lib/mobile-tabs.ts 에서 ${name} 을 찾지 못했습니다.`);
+    constants[name] = found[1];
+  }
 
   const block = source.match(/export const MOBILE_TABS[^=]*=\s*\[([\s\S]*?)\n\] as const;/);
   if (!block) throw new Error("app/_lib/mobile-tabs.ts 에서 MOBILE_TABS 배열을 찾지 못했습니다.");
 
-  // 템플릿 보간(${SAJU_TAB_ACTION})을 먼저 펼친다. 안 그러면 아래 항목 분해가 `}` 에서 끊긴다.
-  const body = block[1].split("${SAJU_TAB_ACTION}").join(actionMatch[1]);
+  // 상수 참조를 먼저 펼친다. 템플릿 보간(`${SAJU_TAB_ACTION}`)을 남겨두면 항목 분해가
+  // `}` 에서 끊기고, 맨 식별자 참조(shellAction: SAJU_TAB_ACTION)는 값이 빈 문자열로 읽힌다.
+  let body = block[1];
+  for (const [name, value] of Object.entries(constants)) {
+    body = body.split("${" + name + "}").join(value);
+    body = body.replace(new RegExp(`\\b${name}\\b`, "g"), `"${value}"`);
+  }
 
   const tabs = [];
   for (const entry of body.split(/\{\s*key:/).slice(1)) {
@@ -54,6 +63,7 @@ function readCanonicalTabs() {
       label: read("label"),
       href: read("href"),
       glyph: read("glyph"),
+      shellAction: read("shellAction"),
     });
   }
   return tabs;
@@ -78,6 +88,7 @@ function readShellTabs(html) {
       label: match[2].replace(/<[^>]*>/g, "").trim(),
       href: attr("href"),
       glyph: attr("data-nav-icon"),
+      shellAction: attr("data-action"),
       ariaLabel: attr("aria-label"),
     });
   }
@@ -110,7 +121,9 @@ for (const relativePath of SHELL_FILES) {
 
   canonical.forEach((tab, index) => {
     const shellTab = shellTabs[index];
-    for (const field of ["key", "label", "href", "glyph"]) {
+    // shellAction 은 셸에서 이동 대신 실행할 전역 액션이다. 어긋나면 탭이 이동해버리거나
+    // 반대로 아무 일도 일어나지 않는다.
+    for (const field of ["key", "label", "href", "glyph", "shellAction"]) {
       if (shellTab[field] !== tab[field]) {
         fail(`${relativePath}: ${index + 1}번째 탭 ${field} 불일치 — 정본 "${tab[field]}" vs 셸 "${shellTab[field]}".`);
       }
