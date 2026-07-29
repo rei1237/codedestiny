@@ -1,0 +1,27 @@
+"use client";
+
+import dynamic from "next/dynamic";
+
+const MasterLoveCodexPage = dynamic(() => import("@/src/features/master-love-codex/MasterLoveCodexPage"), {
+  ssr: false,
+  loading: () => <MasterLoveCodexShell />,
+});
+
+export default function MasterLoveCodexRouteClient() {
+  return <MasterLoveCodexPage />;
+}
+
+function MasterLoveCodexShell() {
+  return (
+    <div className="min-h-[100svh] bg-[#0d0714] text-rose-50">
+      <section className="mx-auto flex min-h-[60svh] max-w-3xl flex-col justify-center px-5 py-16 text-center sm:px-8">
+        <p className="text-[11px] font-black tracking-[0.34em] text-amber-100/80">MASTER DESTINY</p>
+        <h1 className="mt-3 text-3xl font-black leading-tight sm:text-5xl">마스터 운명 연애 비책</h1>
+        <p className="mx-auto mt-5 max-w-xl text-base leading-8 text-rose-50/80">
+          사주와 자미두수를 하나로 엮어, 운명의 안내자 박지은이 당신의 연애 인생을 스무 장에 걸쳐 읽어
+          내려갑니다. 도서관의 불이 켜지는 중입니다.
+        </p>
+      </section>
+    </div>
+  );
+}

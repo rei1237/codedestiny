@@ -848,6 +848,53 @@ loveSecretAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique:
 loveSecretAiConsultationSchema.index({ userId: 1, attemptId: 1 });
 loveSecretAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+/**
+ * 마스터 운명 연애 비책 (MASTER_LOVE_CODEX)
+ * 회당 결제(500코인=50,000원) 20챕터 전자책. 회당 결제지만 생성 결과는 영구 저장해
+ * 같은 세션(sessionId)을 재결제 없이 다시 열람할 수 있게 한다.
+ */
+const masterLoveCodexChapterSchema = new mongoose.Schema({
+  id: { type: String, required: true, trim: true, maxlength: 40 },
+  order: { type: Number, required: true },
+  symbol: { type: String, default: "", trim: true, maxlength: 8 },
+  title: { type: String, required: true, trim: true, maxlength: 160 },
+  body: { type: String, required: true, trim: true, maxlength: 16000 },
+  chars: { type: Number, default: 0 },
+  provider: { type: String, default: "", trim: true, maxlength: 40 },
+  ok: { type: Boolean, default: true },
+}, { _id: false });
+
+const masterLoveCodexSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    isLeapMonth: { type: Boolean, default: false },
+  },
+  prologueChoice: { type: String, default: "", trim: true, maxlength: 20 },
+  sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
+  ziweiChart: { type: mongoose.Schema.Types.Mixed, default: null },
+  chapters: { type: [masterLoveCodexChapterSchema], default: [] },
+  loveDna: { type: mongoose.Schema.Types.Mixed, default: null },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  totalCharCount: { type: Number, default: 0 },
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "masterLoveCodexSessions" });
+
+masterLoveCodexSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+masterLoveCodexSchema.index({ userId: 1, createdAt: -1 });
+
 const lifeBookAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true, trim: true, maxlength: 60000 },
@@ -1162,6 +1209,8 @@ export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
   || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
 export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+export const MasterLoveCodexSession = mongoose.models.MasterLoveCodexSession
+  || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema);
 export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation
   || mongoose.model("LifeBookAiConsultation", lifeBookAiConsultationSchema);
 export const SukuyoCompatibilityAiConsultation = mongoose.models.SukuyoCompatibilityAiConsultation
