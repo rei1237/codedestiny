@@ -1561,7 +1561,8 @@ function resetMapView(){_mapScale=mobileFitScale();
   clampMap();applyMapTransform();}
 /* ---- 궁 선택 → 12궁 상담 진입(선택 명반을 세션으로 핸드오프해 상담 화면이 재입력 없이 프리필) ---- */
 function palaceFromNode(node){var nm=node&&node.getAttribute&&node.getAttribute("data-palace");return nm&&BP?BP.palaces.find(function(p){return p.name===nm;}):null;}
-function goPalaceConsult(pal){
+/* view: "report"면 상담 페이지의 12궁 심층 리포트 섹션으로 데려간다(미지정이면 기존 동작). */
+function goPalaceConsult(pal,view){
   if(!pal)return;
   try{
     if(PROFILE)sessionStorage.setItem("cdIslandConsultSeed",JSON.stringify({
@@ -1573,7 +1574,7 @@ function goPalaceConsult(pal){
       isLeapMonth:!!PROFILE.isLeapMonth
     }));
   }catch(_){}
-  location.href="/island-consult?palace="+encodeURIComponent(pal.name);
+  location.href="/island-consult?palace="+encodeURIComponent(pal.name)+(view?"&view="+encodeURIComponent(view):"");
 }
 function initPanZoom(){
   if(_mapPanInit)return;_mapPanInit=true;
@@ -1765,7 +1766,10 @@ function showPalaceChoices(pal,def){
   var descBtn=document.createElement("button");descBtn.type="button";
   descBtn.innerHTML="📖 이 궁 기본 설명 자세히 <span class='go'>주성 풀이 ›</span>";
   descBtn.addEventListener("click",function(){dlgClose();openPalaceDescription(pal,def);});box.appendChild(descBtn);
-  /* 상담 진입은 goPalaceConsult 경유 — 여기서 곧장 링크로 나가면 프로필 시드(cdIslandConsultSeed)가 유실된다. */
+  /* 상담·리포트 진입은 goPalaceConsult 경유 — 여기서 곧장 링크로 나가면 프로필 시드(cdIslandConsultSeed)가 유실된다. */
+  var rb=document.createElement("button");rb.type="button";
+  rb.innerHTML="🗺️ 12궁 전체 심층 리포트 <span class='go'>1회 5,000원 ›</span>";
+  rb.addEventListener("click",function(){goPalaceConsult(pal,"report");});box.appendChild(rb);
   var a=document.createElement("button");a.type="button";
   a.innerHTML="🔮 이 궁 깊이 상담하기 <span class='go'>12궁 특화 ›</span>";
   a.addEventListener("click",function(){goPalaceConsult(pal);});box.appendChild(a);
@@ -1904,11 +1908,21 @@ function openPalaceDescription(pal,def){
     html+='<p>지금은 <strong>'+esc(BP.markers.currentMajorLuck.palaceName)+'</strong>의 대운을 지나고 있어요 ('+esc(BP.markers.currentMajorLuck.range)+'세). 이 시기의 삶의 주제는 '+esc(BP.markers.currentMajorLuck.palaceName)+'의 영역에서 펼쳐지고 있어요.</p>';
     html+='</div>';
   }
+  /* 이 스크립트는 IIFE라 인라인 onclick(전역 스코프)에서는 내부 함수를 못 찾는다 —
+     버튼은 마크업으로만 두고 아래에서 리스너로 배선한다. 진입은 goPalaceConsult 경유여야
+     프로필 시드(cdIslandConsultSeed)가 상담 페이지로 넘어간다. */
   html+='<div class="pdesc-actions" style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">';
-  html+='<a class="btn-primary" href="/island-consult?palace='+encodeURIComponent(pal.name)+'" style="text-decoration:none;text-align:center;">🔮 이 궁 깊이 상담하기</a>';
-  html+='<button class="btn-ghost" type="button" onclick="closeSheet()" style="width:100%;">닫기</button>';
+  html+='<button class="btn-primary" type="button" data-pd-go="report" style="width:100%;">🗺️ 12궁 전체 심층 리포트 · 5,000원</button>';
+  html+='<button class="btn-ghost" type="button" data-pd-go="consult" style="width:100%;">🔮 이 궁 깊이 상담하기</button>';
+  html+='<button class="btn-ghost" type="button" data-pd-close style="width:100%;">닫기</button>';
   html+='</div>';
   content.innerHTML=html;
+  Array.prototype.forEach.call(content.querySelectorAll("[data-pd-go]"),function(btn){
+    btn.addEventListener("click",function(){goPalaceConsult(pal,btn.getAttribute("data-pd-go")==="report"?"report":"");});
+  });
+  Array.prototype.forEach.call(content.querySelectorAll("[data-pd-close]"),function(btn){
+    btn.addEventListener("click",function(){closeSheet();});
+  });
   openSheet("sheetPalaceDesc");
 }
 

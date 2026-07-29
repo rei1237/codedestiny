@@ -114,6 +114,15 @@ function run() {
         }
         check(Boolean(section.title), `${label}: ${name}/${section.key} 제목 누락`);
       }
+      // 한 궁 안에서 같은 문장이 두 번 나오면 유료 리포트가 조악해 보인다(공용 문장을 여러 섹션이 재사용한 탓).
+      const seenSentences = new Set();
+      for (const sentence of entry.sections
+        .flatMap((section) => String(section.body).split(/(?<=다\.)\s*/))
+        .map((text) => text.trim())
+        .filter((text) => text.length > 18)) {
+        check(!seenSentences.has(sentence), `${label}: ${name} 문장 중복 — "${sentence.slice(0, 40)}…"`);
+        seenSentences.add(sentence);
+      }
     }
 
     // 3) 청사진 불변 — 리포트 생성이 입력을 변형하지 않아야 한다.
