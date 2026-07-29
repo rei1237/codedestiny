@@ -1,9 +1,18 @@
 import { getEnv } from "../lib/env.js";
 import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
-import { connectDb, withMongoRetry } from "../lib/db.js";
+import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { ContentOverride, Insight, PointHistory } from "../lib/models.js";
+import { ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
+import {
+  REVIEW_BODY_MAX_LENGTH,
+  REVIEW_STATUSES,
+  REVIEW_STATUS_LIST,
+  REVIEW_TITLE_MAX_LENGTH,
+  Review,
+} from "../lib/review-models.js";
+import { getReviewProduct } from "../lib/review-product-catalog.js";
+import { screenReviewText } from "../lib/review-moderation.js";
 import {
   FEATURE_KEY_PRICE_TABLE,
   FRONTEND_PAID_FEATURE_KEYS,
@@ -4609,6 +4618,332 @@ async function handleSiteContentOverrideDelete(path, request, env) {
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// 리뷰 관리 (검수 · 수정 · 시딩)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const REVIEW_ADMIN_LIST_LIMIT = 50;
+const REVIEW_BULK_MAX = 100;
+const REVIEW_STATUS_SET = new Set(REVIEW_STATUS_LIST);
+const REVIEW_LOCALE_SET = new Set(["ko", "ja", "zh", "en"]);
+
+function reviewText(value) {
+  return String(value || "").trim();
+}
+
+// 관리자 화면에는 내부 필드(createdByAdmin·플래그·검수 메모)를 모두 노출한다.
+function toAdminReviewItem(doc) {
+  return {
+    id: String(doc?._id || ""),
+    userId: reviewText(doc?.userId),
+    authorName: reviewText(doc?.authorName),
+    authorImage: reviewText(doc?.authorImage),
+    productId: reviewText(doc?.productId),
+    productName: reviewText(doc?.productName),
+    featureKey: reviewText(doc?.featureKey),
+    orderId: reviewText(doc?.orderId),
+    rating: Number(doc?.rating || 0),
+    title: reviewText(doc?.title),
+    body: reviewText(doc?.body),
+    locale: reviewText(doc?.locale) || "ko",
+    status: reviewText(doc?.status),
+    isVerifiedPurchase: Boolean(doc?.isVerifiedPurchase),
+    createdByAdmin: Boolean(doc?.createdByAdmin),
+    autoFlagReasons: Array.isArray(doc?.autoFlagReasons) ? doc.autoFlagReasons : [],
+    aiReviewScore: doc?.aiReviewScore ?? null,
+    aiFlagReason: reviewText(doc?.aiFlagReason),
+    adminNote: reviewText(doc?.adminNote),
+    reviewedBy: reviewText(doc?.reviewedBy),
+    approvedAt: doc?.approvedAt || null,
+    displayedAt: doc?.displayedAt || null,
+    createdAt: doc?.createdAt || null,
+    updatedAt: doc?.updatedAt || null,
+  };
+}
+
+function parseReviewIdFromPath(path, suffix = "") {
+  const pattern = suffix
+    ? new RegExp(`^/reviews/([a-f0-9]{24})${suffix}$`, "i")
+    : /^\/reviews\/([a-f0-9]{24})$/i;
+  const matched = String(path || "").match(pattern);
+  return matched ? matched[1] : "";
+}
+
+function parseReviewDate(value, fallback = null) {
+  const text = reviewText(value);
+  if (!text) return fallback;
+  const parsed = new Date(text);
+  return Number.isFinite(parsed.getTime()) ? parsed : fallback;
+}
+
+function normalizeAdminReviewRating(value) {
+  const rating = Number.parseInt(String(value || ""), 10);
+  if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+    throw createHttpError(400, "별점은 1~5 사이여야 합니다.", { code: "VALIDATION_ERROR" });
+  }
+  return rating;
+}
+
+// 관리자 시딩 리뷰 1건을 저장 가능한 문서로 변환한다.
+// 🔴 isVerifiedPurchase는 클라이언트 입력을 받지 않는다 — 관리자 작성 리뷰는 실제 구매 기록에
+// 대한 사실 진술이 될 수 없으므로 항상 false다(허위 구매 인증 표시 방지).
+async function buildAdminSeedReviewDoc(entry, env) {
+  const product = getReviewProduct(entry?.productId);
+  if (!product) {
+    throw createHttpError(400, "존재하지 않는 상품입니다.", { code: "UNKNOWN_PRODUCT" });
+  }
+
+  const body = reviewText(entry?.body);
+  if (!body) throw createHttpError(400, "리뷰 내용을 입력해 주세요.", { code: "VALIDATION_ERROR" });
+
+  const userId = reviewText(entry?.userId);
+  let authorName = reviewText(entry?.authorName);
+  let authorImage = reviewText(entry?.authorImage);
+
+  if (userId) {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw createHttpError(400, "사용자 ID 형식이 올바르지 않습니다.", { code: "VALIDATION_ERROR" });
+    }
+    const userDoc = await adminMongoRead(env, async () =>
+      User.findById(userId).select("name profileImage").lean()).catch(() => null);
+    if (!userDoc) throw createHttpError(404, "해당 사용자를 찾을 수 없습니다.", { code: "USER_NOT_FOUND" });
+    if (!authorName) authorName = reviewText(userDoc?.name);
+    if (!authorImage) authorImage = reviewText(userDoc?.profileImage);
+  }
+
+  if (!authorName) {
+    throw createHttpError(400, "사용자 ID 또는 닉네임 중 하나는 입력해야 합니다.", { code: "VALIDATION_ERROR" });
+  }
+
+  const statusRaw = reviewText(entry?.status).toLowerCase();
+  const status = REVIEW_STATUS_SET.has(statusRaw) ? statusRaw : REVIEW_STATUSES.PENDING;
+  const localeRaw = reviewText(entry?.locale).toLowerCase();
+  const title = reviewText(entry?.title).slice(0, REVIEW_TITLE_MAX_LENGTH);
+  const screening = screenReviewText({ title, body, isVerifiedPurchase: false });
+
+  return {
+    userId,
+    authorName: authorName.slice(0, 40),
+    authorImage: authorImage.slice(0, 500),
+    productId: product.productId,
+    productName: product.name,
+    featureKey: reviewText(entry?.featureKey).slice(0, 120),
+    orderId: "",
+    rating: normalizeAdminReviewRating(entry?.rating),
+    title,
+    body: body.slice(0, REVIEW_BODY_MAX_LENGTH),
+    locale: REVIEW_LOCALE_SET.has(localeRaw) ? localeRaw : "ko",
+    status,
+    isVerifiedPurchase: false,
+    createdByAdmin: true,
+    autoFlagReasons: screening.flags,
+    adminNote: reviewText(entry?.adminNote).slice(0, 500),
+    approvedAt: status === REVIEW_STATUSES.APPROVED ? new Date() : null,
+    displayedAt: parseReviewDate(entry?.displayedAt, new Date()),
+  };
+}
+
+async function handleAdminReviewList(request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const params = new URL(request.url).searchParams;
+  const statusRaw = reviewText(params.get("status")).toLowerCase();
+  const productId = reviewText(params.get("productId"));
+  const flaggedOnly = ["1", "true", "yes"].includes(reviewText(params.get("flagged")).toLowerCase());
+  const createdByAdminRaw = reviewText(params.get("createdByAdmin")).toLowerCase();
+  const page = Math.max(1, Number.parseInt(reviewText(params.get("page")) || "1", 10) || 1);
+
+  const query = {};
+  if (REVIEW_STATUS_SET.has(statusRaw)) query.status = statusRaw;
+  if (productId && getReviewProduct(productId)) query.productId = productId;
+  if (flaggedOnly) query["autoFlagReasons.0"] = { $exists: true };
+  if (createdByAdminRaw === "true") query.createdByAdmin = true;
+  if (createdByAdminRaw === "false") query.createdByAdmin = false;
+
+  const [items, total, statusCounts] = await Promise.all([
+    adminMongoRead(env, async () => Review.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * REVIEW_ADMIN_LIST_LIMIT)
+      .limit(REVIEW_ADMIN_LIST_LIMIT)
+      .lean()),
+    adminMongoRead(env, async () => Review.countDocuments(query)),
+    adminMongoRead(env, async () => Review.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } },
+    ])).catch(() => []),
+  ]);
+
+  const counts = { pending: 0, approved: 0, rejected: 0, hidden: 0 };
+  for (const row of Array.isArray(statusCounts) ? statusCounts : []) {
+    const key = reviewText(row?._id);
+    if (key in counts) counts[key] = Number(row?.count || 0);
+  }
+
+  return json({
+    ok: true,
+    items: (Array.isArray(items) ? items : []).map(toAdminReviewItem),
+    counts,
+    pagination: {
+      page,
+      limit: REVIEW_ADMIN_LIST_LIMIT,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / REVIEW_ADMIN_LIST_LIMIT)),
+    },
+  });
+}
+
+async function handleAdminReviewCreate(request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const body = await readJson(request);
+  const doc = await Review.create(await buildAdminSeedReviewDoc(body, env));
+  return json({ ok: true, item: toAdminReviewItem(doc) }, { status: 201 });
+}
+
+async function handleAdminReviewBulkCreate(request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const body = await readJson(request);
+  const entries = Array.isArray(body?.items) ? body.items : [];
+  if (!entries.length) {
+    throw createHttpError(400, "생성할 리뷰가 없습니다.", { code: "VALIDATION_ERROR" });
+  }
+  if (entries.length > REVIEW_BULK_MAX) {
+    throw createHttpError(400, `한 번에 최대 ${REVIEW_BULK_MAX}건까지 생성할 수 있습니다.`, { code: "VALIDATION_ERROR" });
+  }
+
+  const docs = [];
+  const errors = [];
+  for (let index = 0; index < entries.length; index += 1) {
+    try {
+      docs.push(await buildAdminSeedReviewDoc(entries[index], env));
+    } catch (error) {
+      errors.push({ index, message: String(error?.message || "알 수 없는 오류") });
+    }
+  }
+
+  if (!docs.length) {
+    throw createHttpError(400, "저장 가능한 리뷰가 없습니다.", { code: "VALIDATION_ERROR", errors });
+  }
+
+  const created = await Review.insertMany(docs, { ordered: false });
+  return json({
+    ok: true,
+    createdCount: created.length,
+    skippedCount: errors.length,
+    errors,
+  }, { status: 201 });
+}
+
+async function handleAdminReviewPatch(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseReviewIdFromPath(path);
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const update = {};
+
+  if (body?.rating !== undefined) update.rating = normalizeAdminReviewRating(body.rating);
+  if (typeof body?.title === "string") update.title = reviewText(body.title).slice(0, REVIEW_TITLE_MAX_LENGTH);
+  if (typeof body?.body === "string") {
+    const nextBody = reviewText(body.body);
+    if (!nextBody) throw createHttpError(400, "리뷰 내용을 입력해 주세요.", { code: "VALIDATION_ERROR" });
+    update.body = nextBody.slice(0, REVIEW_BODY_MAX_LENGTH);
+  }
+  if (typeof body?.authorName === "string") {
+    const nextName = reviewText(body.authorName);
+    if (!nextName) throw createHttpError(400, "닉네임을 입력해 주세요.", { code: "VALIDATION_ERROR" });
+    update.authorName = nextName.slice(0, 40);
+  }
+  if (typeof body?.authorImage === "string") update.authorImage = reviewText(body.authorImage).slice(0, 500);
+  if (typeof body?.adminNote === "string") update.adminNote = reviewText(body.adminNote).slice(0, 500);
+  if (body?.displayedAt !== undefined) {
+    const displayedAt = parseReviewDate(body.displayedAt);
+    if (!displayedAt) throw createHttpError(400, "작성 날짜 형식이 올바르지 않습니다.", { code: "VALIDATION_ERROR" });
+    update.displayedAt = displayedAt;
+  }
+  if (typeof body?.productId === "string") {
+    const product = getReviewProduct(body.productId);
+    if (!product) throw createHttpError(400, "존재하지 않는 상품입니다.", { code: "UNKNOWN_PRODUCT" });
+    update.productId = product.productId;
+    update.productName = product.name;
+  }
+  if (typeof body?.locale === "string") {
+    const localeRaw = reviewText(body.locale).toLowerCase();
+    if (!REVIEW_LOCALE_SET.has(localeRaw)) {
+      throw createHttpError(400, "지원하지 않는 언어입니다.", { code: "VALIDATION_ERROR" });
+    }
+    update.locale = localeRaw;
+  }
+
+  if (!Object.keys(update).length) {
+    throw createHttpError(400, "수정할 필드가 없습니다.", { code: "VALIDATION_ERROR" });
+  }
+
+  // 내용이 바뀌면 자동 필터를 다시 돌린다.
+  if (update.body !== undefined || update.title !== undefined) {
+    const current = await adminMongoRead(env, async () =>
+      Review.findById(id).select("title body isVerifiedPurchase").lean());
+    if (!current) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+    const screening = screenReviewText({
+      title: update.title ?? current.title,
+      body: update.body ?? current.body,
+      isVerifiedPurchase: Boolean(current.isVerifiedPurchase),
+    });
+    update.autoFlagReasons = screening.flags;
+  }
+
+  update.reviewedBy = String(adminContext.userId || "flower-admin");
+
+  const doc = await Review.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+  if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  return json({ ok: true, item: toAdminReviewItem(doc) });
+}
+
+async function handleAdminReviewStatus(path, request, env) {
+  const adminContext = await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseReviewIdFromPath(path, "/status");
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const body = await readJson(request);
+  const statusRaw = reviewText(body?.status).toLowerCase();
+  if (!REVIEW_STATUS_SET.has(statusRaw)) {
+    throw createHttpError(400, `status는 ${REVIEW_STATUS_LIST.join(" / ")} 중 하나여야 합니다.`, { code: "VALIDATION_ERROR" });
+  }
+
+  const update = {
+    status: statusRaw,
+    reviewedBy: String(adminContext.userId || "flower-admin"),
+    approvedAt: statusRaw === REVIEW_STATUSES.APPROVED ? new Date() : null,
+  };
+  if (typeof body?.adminNote === "string") update.adminNote = reviewText(body.adminNote).slice(0, 500);
+
+  const doc = await Review.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
+  if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  return json({ ok: true, item: toAdminReviewItem(doc) });
+}
+
+async function handleAdminReviewDelete(path, request, env) {
+  await authorizeAdminRequest(request, env);
+  await connectDb(env);
+
+  const id = parseReviewIdFromPath(path);
+  if (!id) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  const doc = await Review.findByIdAndDelete(id).lean();
+  if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+
+  return json({ ok: true, item: toAdminReviewItem(doc) });
+}
+
 async function handleSiteDeploy(request, env) {
   await authorizeAdminRequest(request, env);
 
@@ -4760,6 +5095,28 @@ export async function handleAdminRoutes(request, env) {
       if (method === "PUT") return await handleInsightsUpdate(path, request, env);
       if (method === "PATCH") return await handleInsightsUpdate(path, request, env);
       if (method === "DELETE") return await handleInsightsDelete(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/reviews") {
+      if (method === "GET") return await handleAdminReviewList(request, env);
+      if (method === "POST") return await handleAdminReviewCreate(request, env);
+      return methodNotAllowed();
+    }
+
+    if (path === "/reviews/bulk") {
+      if (method === "POST") return await handleAdminReviewBulkCreate(request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/reviews\/[a-f0-9]{24}\/status$/i.test(path)) {
+      if (method === "POST") return await handleAdminReviewStatus(path, request, env);
+      return methodNotAllowed();
+    }
+
+    if (/^\/reviews\/[a-f0-9]{24}$/i.test(path)) {
+      if (method === "PATCH") return await handleAdminReviewPatch(path, request, env);
+      if (method === "DELETE") return await handleAdminReviewDelete(path, request, env);
       return methodNotAllowed();
     }
 

@@ -433,6 +433,7 @@ const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", ()
 const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
+const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
@@ -1105,6 +1106,10 @@ export default {
 
       if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
         return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/reviews" || url.pathname.startsWith("/api/reviews/")) {
+        return withCorsHeaders(request, env, await handleReviewRoutes(request, env));
       }
 
       if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {

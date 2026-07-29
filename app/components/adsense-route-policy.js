@@ -84,6 +84,7 @@ const CONTENT_EXACT_PATHS = new Set([
   "/faq",
   "/famous-saju",
   "/methodology",
+  "/reviews",
   "/astrology/guide",
   "/calendar/guide",
   "/mayan-calendar/guide",
