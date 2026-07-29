@@ -60,7 +60,7 @@ export const TERMS_SECTIONS = [
     heading: "5. 이용자 자격 및 책임 / Eligibility and User Responsibility",
     body: (
       <p>
-        만 14세 미만은 개인정보 보호법 제22조의2에 따라 법정대리인(보호자)의 동의를 받은 경우에만 회원가입 및 서비스 이용이 가능하며, 보호자 동의가 완료되기 전에는 계정을 이용할 수 없습니다. 미성년자 결제 관련 분쟁을 예방하기 위해 만 14세 미만 계정은 유료 결제를 이용할 수 없고 무료 기능만 제공됩니다. 이용자는 정확한 정보 입력 및 계정/기기 보안 관리 책임을 부담하며, 법령 위반, 권리 침해, 자동화된 비정상 접근, 서비스 방해 행위를 해서는 안 됩니다. Users under 14 may register only with verifiable consent from a legal guardian, and such accounts cannot make paid purchases.
+        대한민국 관련 법령에 따라 만 14세 미만은 회원가입 및 본 서비스를 이용할 수 없으며, 이용자는 정확한 정보 입력 및 계정/기기 보안 관리 책임을 부담합니다. 법령 위반, 권리 침해, 자동화된 비정상 접근, 서비스 방해 행위를 해서는 안 됩니다. Users under 14 years of age are not permitted to register or use the service.
       </p>
     ),
   },
