@@ -148,6 +148,7 @@
       "nameLabel": "Tên",
       "nameHint": "Nhập tên để hiển thị trong bài đọc của bạn.",
       "birthDateLabel": "Ngày sinh",
+      "quickPickTitle": "✦ Xem ngay với thẻ vận mệnh đã lưu",
       "birthDateHint": "Chọn ngày sinh của bạn để mở cơ sở đầu tiên trong biểu đồ Tứ trụ của bạn.",
       "solar": "Mặt trời",
       "lunar": "Âm lịch",
@@ -568,7 +569,11 @@
       "mayaAlt": "Cách đọc của người Maya — tấm lịch vàng và mô hình thời gian trên bầu trời đêm",
       "mayaTitle": "Cách đọc của người Maya",
       "mayaDesc": "Dòng chảy hôm nay theo dòng thời gian",
-      "dreamPromptShortTitle": "Lời nhắc ước mơ"
+      "dreamPromptShortTitle": "Lời nhắc ước mơ",
+      "petSajuTitle": "🐾 Tứ trụ thú cưng AI",
+      "petSajuDesc": "Ngũ hành và hợp mệnh",
+      "petSajuAria": "Mở Tứ trụ thú cưng AI",
+      "petSajuAlt": "Ảnh bìa Tứ trụ thú cưng AI"
     },
     "destinyFlowerStudio": {
       "closeAria": "Đóng Xưởng Hoa Định Mệnh",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Người nổi tiếng nào là người song sinh tâm hồn của tôi?",
       "fourCutTitle": "Saju tứ sắc: bộ lọc định mệnh",
-      "dashboardTitle": "Nội dung saju thú vị"
+      "dashboardTitle": "Nội dung saju thú vị",
+      "dopamineTitle": "🧠 Tôi có nghiện dopamine không?"
     },
     "letter": {
       "title": "💖 Thư của Yeoni"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Các tính năng chính",
-    "audienceLabel": "Được đề xuất cho",
-    "chapterPreviewLabel": "Xem trước chương",
+    "audienceLabel": "Tình huống được đề xuất",
+    "chapterPreviewLabel": "Đây là những gì bạn sẽ thấy sau khi mở khóa.",
     "requiredInfoLabel": "Thông tin cần thiết trước khi tạo",
-    "outcomesLabel": "Những gì bạn có thể thấy trong kết quả",
+    "outcomesLabel": "Yên tâm kiểm tra",
+    "resultPreviewLabel": "Xem trước kết quả",
     "startNow": "Bắt đầu ngay bây giờ →",
     "paywallNote": "Tất cả dịch vụ trả phí được cung cấp ngay sau khi hoàn tất thanh toán (mua), và sau khi bắt đầu cung cấp, quyền rút lại giao dịch có thể bị hạn chế theo quy định pháp luật liên quan."
   },

@@ -148,6 +148,7 @@
       "nameLabel": "Naam",
       "nameHint": "Vul de naam in die in je reading moet verschijnen.",
       "birthDateLabel": "Geboortedatum",
+      "quickPickTitle": "✦ Begin meteen met een opgeslagen lotskaart",
       "birthDateHint": "Kies je geboortedatum om de eerste basis van je Saju-chart te openen.",
       "solar": "Zonnekalender",
       "lunar": "Maankalender",
@@ -568,7 +569,11 @@
       "mayaAlt": "Maya-lezing – gouden kalenderplaat en tijdpatronen aan de nachtelijke hemel",
       "mayaTitle": "Maya-lezing",
       "mayaDesc": "De stroom van vandaag door de patronen van de tijd",
-      "dreamPromptShortTitle": "Droomprompt"
+      "dreamPromptShortTitle": "Droomprompt",
+      "petSajuTitle": "🐾 AI-huisdier-saju",
+      "petSajuDesc": "Vijf elementen en harmonie",
+      "petSajuAria": "AI-huisdier-saju openen",
+      "petSajuAlt": "Omslagbeeld AI-huisdier-saju"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier van de Lotsbloem sluiten",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Welke beroemdheid is mijn zielstweeling?",
       "fourCutTitle": "Saju viersnede: bestemmingsfilter",
-      "dashboardTitle": "Leuke saju-inhoud"
+      "dashboardTitle": "Leuke saju-inhoud",
+      "dopamineTitle": "🧠 Ben ik dopamineverslaafd?"
     },
     "letter": {
       "title": "💖 Yeoni’s brief"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Belangrijkste kenmerken",
-    "audienceLabel": "Aanbevolen voor",
-    "chapterPreviewLabel": "Hoofdstukvoorbeeld",
+    "audienceLabel": "Aanbevolen situaties",
+    "chapterPreviewLabel": "Dit ziet u na het ontgrendelen.",
     "requiredInfoLabel": "Informatie die nodig is vóór creatie",
-    "outcomesLabel": "Wat je kunt zien in het resultaat",
+    "outcomesLabel": "Bekijk het met een gerust hart",
+    "resultPreviewLabel": "Resultaatvoorbeeld",
     "startNow": "Begin nu →",
     "paywallNote": "Alle betaalde diensten worden onmiddellijk na voltooiing van de betaling (aankoop) geleverd; zodra de levering is begonnen, kan het herroepingsrecht op grond van de toepasselijke wetgeving beperkt zijn."
   },

@@ -1,5 +1,5 @@
 import { getOptionalUserFromRequest } from "../lib/auth.js";
-import { canAccessPaidFeaturesBatch } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeaturesBatch, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import {
   buildMusicTrackFeatureKey,
@@ -184,6 +184,8 @@ async function resolveTracksAccess(inputs, auth, env) {
       env,
       categoryKey: "music-track",
       reason: "Code Destiny music full track unlock",
+      // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+      userDoc: auth?.authUserDoc,
     })
     : {};
 
@@ -208,7 +210,7 @@ async function handleAccess(request, env) {
   const body = request.method.toUpperCase() === "POST"
     ? await request.json().catch(() => ({}))
     : {};
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const requestedTracks = Array.isArray(body?.tracks) && body.tracks.length
     ? body.tracks
     : [resolveRequestTrack(request, body)];
@@ -284,7 +286,7 @@ async function proxyMusicFile(request, env, options = {}) {
     return streamMusicPreview(env, normalizeMusicAudioSourceKey(input.key));
   }
 
-  const auth = await getOptionalUserFromRequest(request, env);
+  const auth = await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const { entries } = await resolveTracksAccess([input], auth, env);
   const access = entries[0];
 

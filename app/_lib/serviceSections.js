@@ -7,6 +7,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/saju/sibyl", fallbackTitle: "시빌라 시스템", fallbackDesc: "사주 기반 진로 적성 × 운명 위험 계수 · 기본 무료", isStaticCanonical: true },
       { href: "/life-book-ai", aliases: ["/saju/lifebook"], fallbackTitle: "인생의 책 전문가 상담", fallbackDesc: "삶의 흐름을 읽는 1:1 상담 · 50,000원", isStaticCanonical: true },
       { href: "/love-secret-ai", fallbackTitle: "연애 비책 전문가 상담", fallbackDesc: "명리학 기반 1:1 연애 상담 · 30,000원" },
+      { href: "/master-love-codex", fallbackTitle: "마스터 인연의 서", fallbackDesc: "사주×자미두수 융합 20장 연애 전략서 · 1회 50,000원" },
       { href: "/naming-ai", fallbackTitle: "훈민정음 작명소", fallbackDesc: "사주 맞춤 프리미엄 전문가 작명 · 30,000원" },
       { href: "/saju/love-simulation", fallbackTitle: "LOVE CODE", fallbackDesc: "사주 연애 시뮬레이션 · 잠금 해제 10,000원", isStaticCanonical: true },
       { href: "/saju/destiny-bias", fallbackTitle: "최애운명", fallbackDesc: "사주 기반 팬덤 공명 분석 · 1회 5,000원" },
@@ -76,6 +77,24 @@ const SERVICE_SECTION_DEFINITIONS = [
       { href: "/flower/astrology", fallbackTitle: "점성술 꽃", fallbackDesc: "성운 테마 시각화" },
       { href: "/flower/jamidusu", fallbackTitle: "자미두수 꽃", fallbackDesc: "명궁 테마 리포트" },
       { href: "/flower/sukuyo", fallbackTitle: "숙요 꽃", fallbackDesc: "달 위상 기반 꽃" },
+    ],
+  },
+  {
+    // 위 섹션들에 없던 상시 서비스 · AI 상담 라인업. /all-fortunes 허브에서 함께 노출한다.
+    id: "signature",
+    fallbackTitle: "대표 서비스 & AI 상담",
+    items: [
+      { href: "/today", fallbackTitle: "오늘의 운세", fallbackDesc: "매일 새로 갱신되는 하루 운세 · 무료" },
+      { href: "/destiny-compass", fallbackTitle: "운명의 지도", fallbackDesc: "인생의 흐름을 한 장의 지도로" },
+      { href: "/island-consult", fallbackTitle: "운명의 섬", fallbackDesc: "명반을 섬으로 읽는 상담" },
+      { href: "/fortune-tea-house", fallbackTitle: "운명 찻집", fallbackDesc: "연이와 함께 보는 타로·사주 상담" },
+      { href: "/neo-operation-room", fallbackTitle: "네오 전략실", fallbackDesc: "네오와 짜는 실행 전략 상담" },
+      { href: "/palm-reading", fallbackTitle: "손금 리딩", fallbackDesc: "손바닥 선으로 읽는 기질과 흐름" },
+      { href: "/saju-guardian", fallbackTitle: "사주 수호신", fallbackDesc: "십성으로 찾는 나의 수호신" },
+      { href: "/ziwei-ai", fallbackTitle: "자미두수 전문가 상담", fallbackDesc: "명반 기반 1:1 심층 상담" },
+      { href: "/astrology-ai", fallbackTitle: "점성술 전문가 상담", fallbackDesc: "출생 차트 기반 1:1 상담" },
+      { href: "/vedic-ai", fallbackTitle: "베다 점성술 전문가 상담", fallbackDesc: "다샤·나크샤트라 심층 상담" },
+      { href: "/sukuyo-compatibility-ai", fallbackTitle: "숙요 궁합 전문가 상담", fallbackDesc: "27수 기반 관계 상담" },
     ],
   },
 ];

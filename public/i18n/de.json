@@ -148,6 +148,7 @@
       "nameLabel": "Name",
       "nameHint": "Gib den Namen ein, der in der Deutung erscheinen soll.",
       "birthDateLabel": "Geburtsdatum",
+      "quickPickTitle": "✦ Sofort mit einer gespeicherten Schicksalskarte starten",
       "birthDateHint": "Wähle deinen Geburtstag, um die erste Grundlage deines Saju-Charts zu öffnen.",
       "solar": "Solar",
       "lunar": "Mond",
@@ -568,7 +569,11 @@
       "mayaAlt": "Maya-Lesung – goldene Kalenderplatte und Zeitmuster am Nachthimmel",
       "mayaTitle": "Maya-Lesung",
       "mayaDesc": "Der heutige Fluss durch die Muster der Zeit",
-      "dreamPromptShortTitle": "Traumaufforderung"
+      "dreamPromptShortTitle": "Traumaufforderung",
+      "petSajuTitle": "🐾 KI-Haustier-Saju",
+      "petSajuDesc": "Fünf Elemente und Harmonie",
+      "petSajuAria": "KI-Haustier-Saju öffnen",
+      "petSajuAlt": "Titelbild KI-Haustier-Saju"
     },
     "destinyFlowerStudio": {
       "closeAria": "Atelier der Schicksalsblume schließen",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Welcher Promi ist mein Seelenzwilling?",
       "fourCutTitle": "Saju Four-Cut: Schicksalsfilter",
-      "dashboardTitle": "Lustiger Saju-Inhalt"
+      "dashboardTitle": "Lustiger Saju-Inhalt",
+      "dopamineTitle": "🧠 Bin ich dopaminsüchtig?"
     },
     "letter": {
       "title": "💖 Yeonis Brief"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Hauptmerkmale",
-    "audienceLabel": "Empfohlen für",
-    "chapterPreviewLabel": "Kapitelvorschau",
+    "audienceLabel": "Empfohlene Situationen",
+    "chapterPreviewLabel": "Das sehen Sie nach dem Freischalten.",
     "requiredInfoLabel": "Informationen, die vor der Erstellung benötigt werden",
-    "outcomesLabel": "Was Sie im Ergebnis sehen können",
+    "outcomesLabel": "Prüfen Sie beruhigt",
+    "resultPreviewLabel": "Ergebnisvorschau",
     "startNow": "Jetzt starten →",
     "paywallNote": "Alle kostenpflichtigen Dienste werden unmittelbar nach Abschluss der Zahlung (des Kaufs) bereitgestellt; nach Beginn der Bereitstellung kann das Widerrufsrecht gemäß den geltenden Gesetzen eingeschränkt sein."
   },

@@ -148,6 +148,7 @@
       "nameLabel": "姓名",
       "nameHint": "请输入要显示在分析结果中的姓名。",
       "birthDateLabel": "出生日期",
+      "quickPickTitle": "✦ 用已保存的命运卡片直接查看",
       "birthDateHint": "选择出生日期，八字命盘的第一项基准就会开启。",
       "solar": "阳历",
       "lunar": "阴历",
@@ -568,7 +569,11 @@
       "mayaAlt": "玛雅占卜 — 金色历盘与夜空时间纹样",
       "mayaTitle": "玛雅占卜",
       "mayaDesc": "用时间纹样读取今日流向",
-      "dreamPromptShortTitle": "梦境提示"
+      "dreamPromptShortTitle": "梦境提示",
+      "petSajuTitle": "🐾 AI宠物八字",
+      "petSajuDesc": "毛孩子的五行与合盘",
+      "petSajuAria": "打开AI宠物八字",
+      "petSajuAlt": "AI宠物八字封面图"
     },
     "destinyFlowerStudio": {
       "closeAria": "关闭命运之花工坊",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "哪位名人是我的灵魂双胞胎？",
       "fourCutTitle": "Saju 四切：命运过滤器",
-      "dashboardTitle": "有趣的沙剧内容"
+      "dashboardTitle": "有趣的沙剧内容",
+      "dopamineTitle": "🧠 我是多巴胺成瘾者吗？"
     },
     "letter": {
       "title": "💖 妍伊的信"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "主要功能",
-    "audienceLabel": "推荐对象",
-    "chapterPreviewLabel": "章节预览",
+    "audienceLabel": "推荐情况",
+    "chapterPreviewLabel": "解锁后可以看到这些内容。",
     "requiredInfoLabel": "生成前所需信息",
-    "outcomesLabel": "结果中可查看的内容",
+    "outcomesLabel": "请放心查看",
+    "resultPreviewLabel": "结果预览",
     "startNow": "立即开始 →",
     "paywallNote": "所有付费服务在支付（购买）完成后立即提供，服务开始后依据相关法律法规，撤回购买的权利可能受到限制。"
   },

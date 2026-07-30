@@ -15,7 +15,7 @@ import {
 import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
@@ -458,14 +458,17 @@ async function loadUser(userId) {
 
 async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash) {
   await connectDb(env);
+  // 인증 단계에서 이미 같은 User 문서를 읽었으면(authUserDoc) 재조회하지 않는다 — 이용권 확인 1회당
+  // User 왕복이 3회(인증 + 여기 + canAccessPaidFeature)에서 1회로 줄어, Atlas 지연 스파이크에서
+  // 체감 지연이 그만큼 짧아진다. authUserDoc는 access-token 경로에만 붙으므로 없으면 종전 조회로 폴백한다.
   // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  const user = auth.authUserDoc || await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "" };
   }
 
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (!decision.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
 
   const accessType = mapAccessType(decision, user);
@@ -1410,7 +1413,11 @@ async function handleEnsureAccess(request, env) {
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
   console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey });
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // 인증하면서 접근 판정에 필요한 필드까지 한 번에 읽어 authUserDoc로 받는다(resolveEnsureAccess의 재조회 제거).
+  const auth = await getOptionalUserFromRequest(request, env, {
+    surfaceDbInfraError: true,
+    userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION,
+  });
   if (!auth) {
     console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "LOGIN_REQUIRED" });
     return loginRequired();

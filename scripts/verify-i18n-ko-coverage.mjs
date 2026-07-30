@@ -29,6 +29,9 @@ const shouldUpdate = process.argv.includes("--update");
  * 평소에는 --update 만 쓰며, 그건 수치가 내려갈 때만 기록한다.
  */
 const shouldReset = process.argv.includes("--reset");
+/* 커버리지 래칫은 기본 경고 전용. 번역을 완성 단계에 한 번에 할 예정이라 기준선 후퇴로
+   배포가 막히지 않게 두고, 조일 때 --strict 또는 I18N_RATCHET=on 으로 되살린다. */
+const shouldFailOnIncrease = process.argv.includes("--strict") || process.env.I18N_RATCHET === "on";
 
 function flatten(value, prefix = "", out = {}) {
   if (Array.isArray(value)) {
@@ -68,9 +71,11 @@ const baseline = existsSync(baselinePath)
   ? JSON.parse(readFileSync(baselinePath, "utf8"))
   : { coveredKeys: 0, totalKeys: baseKeys.length };
 
+// 기준선 후퇴는 래칫이라 기본 경고 전용, 한글 아닌 값은 실제 품질 오류라 계속 차단한다.
+const ratchetFailures = [];
 const failures = [];
 if (!shouldReset && coverage < baseline.coveredKeys) {
-  failures.push(`커버리지 후퇴: ${baseline.coveredKeys} → ${coverage} (기준선보다 ${baseline.coveredKeys - coverage}개 감소)`);
+  ratchetFailures.push(`커버리지 후퇴: ${baseline.coveredKeys} → ${coverage} (기준선보다 ${baseline.coveredKeys - coverage}개 감소)`);
 }
 if (suspicious.length) {
   failures.push(`한글 아닌 값 ${suspicious.length}개: ${suspicious.slice(0, 10).join(", ")}`);
@@ -79,6 +84,13 @@ if (suspicious.length) {
 console.log(`[i18n:ko-coverage] 기준 키 : ${baseKeys.length}`);
 console.log(`[i18n:ko-coverage] 커버리지: ${coverage} (${pct}%)  기준선 ${baseline.coveredKeys}`);
 console.log(`[i18n:ko-coverage] 남은 키 : ${baseKeys.length - coverage}`);
+
+if (ratchetFailures.length) {
+  const log = shouldFailOnIncrease ? console.error : console.warn;
+  log(`[i18n:ko-coverage] ${shouldFailOnIncrease ? "FAILED" : "경고"} — 커버리지 래칫`);
+  ratchetFailures.forEach((f) => log(`- ${f}`));
+  if (shouldFailOnIncrease) process.exit(1);
+}
 
 if (failures.length) {
   console.error("[i18n:ko-coverage] FAILED");

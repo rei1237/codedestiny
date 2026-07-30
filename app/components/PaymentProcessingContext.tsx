@@ -573,7 +573,7 @@ function resolvePaidGateCopy(state: PaidFeatureGateState, locale: LoadingLocale)
 function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const holdRef = useRef<{ requestId: string; until: number } | null>(null);
+  const holdRef = useRef<{ requestId: string; until: number; capMs: number } | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [state, setState] = useState<PaidFeatureGateState>({
@@ -604,7 +604,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     const id = String(requestId || "").trim();
     if (!id) return;
     const cap = Number.isFinite(Number(maxMs)) && Number(maxMs) > 0 ? Math.min(Number(maxMs), 120000) : 12000;
-    holdRef.current = { requestId: id, until: nowForPaidGate() + cap };
+    holdRef.current = { requestId: id, until: nowForPaidGate() + cap, capMs: cap };
   }, []);
 
   const release = useCallback((requestId?: string) => {
@@ -696,6 +696,16 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
       const detailRequestId = detail.requestId ? String(detail.requestId) : "";
       if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {
         holdRef.current = null;
+      }
+    }
+    // hold는 "확인이 끝난 뒤 다음 화면이 뜰 때까지"를 지키는 장치다. 그런데 호출부는 확인을 시작하기 전에
+    // hold를 걸기 때문에, 이용권 확인 자체가 hold 상한(대개 8초)보다 오래 걸리면 성공이 도착한 시점엔 이미
+    // 만료돼 게이트가 곧바로 닫혔다(= 느린 날에만 재현되던 "확인 UI가 사라진 뒤 한참 뒤 실행").
+    // 성공으로 전이하는 순간 같은 상한을 그 시점부터 다시 센다 — 호출부 수정 없이 9개 화면에 함께 적용된다.
+    if (/^(hasEntitlement|paymentSuccess)$/.test(requestedStatus) && holdRef.current) {
+      const detailRequestId = detail.requestId ? String(detail.requestId) : "";
+      if (!detailRequestId || holdRef.current.requestId === detailRequestId) {
+        holdRef.current = { ...holdRef.current, until: nowForPaidGate() + holdRef.current.capMs };
       }
     }
     if (isExternalPaymentWindowStatus(requestedStatus)) {
@@ -792,8 +802,10 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     }
 
     setLoadingPhase("fresh");
-    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 8000);
-    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 20000);
+    // 정적 셸은 2.5초면 "서버 응답이 평소보다 느려요"로 화면이 바뀌는데, React 게이트는 8초/20초라
+    // 느린 날에 아무 변화 없는 화면을 오래 봐야 했다. 선검사 예산(6초)과 맞물리게 앞당긴다.
+    const warmTimer = window.setTimeout(() => setLoadingPhase("warming"), 2500);
+    const slowTimer = window.setTimeout(() => setLoadingPhase("slow"), 6000);
 
     return () => {
       window.clearTimeout(warmTimer);
@@ -940,6 +952,49 @@ export function PaymentProcessingProvider({
     DEFAULT_PROCESSING_MESSAGE,
   );
 
+  // 유료 액션을 누르기 "전"에 구독 스냅샷을 데워 둔다. 스냅샷이 활성이면 이용권 보유자는 서버 왕복 없이
+  // 즉시 통과하고(runBillingCoinGate의 낙관 fast-path), 그래서 서버가 느린 날에도 결제창으로 새지 않는다.
+  // 지금까지는 useCoinGate 마운트에서만 워밍해 그 훅을 쓰지 않는 화면(AI 상담 등)이 전부 빠져 있었다.
+  // 여기(앱 전역 Provider) 한 곳에 두면 화면마다 배선하는 중복이 없다. 이미 신선한 스냅샷이 있으면
+  // warmSubscriptionSnapshotOnEntry가 조기 반환하므로 실제 요청은 TTL당 1회다.
+  // billing-client/auth-store는 동적 import로만 참조한다 — 루트 레이아웃 번들을 키우지 않기 위해서다.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    let unsubscribe: (() => void) | null = null;
+    let warmed = false;
+
+    const warmIfAuthenticated = async () => {
+      if (cancelled || warmed) return;
+      try {
+        const { getAuthState } = await import("../_lib/auth-store");
+        if (cancelled || !getAuthState().isAuthenticated) return;
+        warmed = true;
+        const { warmSubscriptionSnapshotOnEntry } = await import("../_lib/billing-client");
+        if (!cancelled) void warmSubscriptionSnapshotOnEntry();
+      } catch {
+        // 워밍 실패는 무시한다 — 첫 유료 액션이 종전대로 서버 판정으로 폴백한다.
+      }
+    };
+
+    // 최초 진입 시점엔 인증이 아직 하이드레이션 전일 수 있어, 인증 상태 변화에도 한 번 더 시도한다.
+    void warmIfAuthenticated();
+    void (async () => {
+      try {
+        const { subscribeAuth } = await import("../_lib/auth-store");
+        if (cancelled) return;
+        unsubscribe = subscribeAuth(() => { void warmIfAuthenticated(); });
+      } catch {
+        // 구독 실패 시엔 위 1회 시도만으로 둔다.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
     processingVariantRef.current = variant;
     setProcessingVariant(variant);
@@ -1071,6 +1126,11 @@ export function PaymentProcessingProvider({
     if (!isProcessing || typeof window === "undefined") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // PG(PortOne)는 모바일에서 결제를 상위 프레임 리다이렉트로 처리한다 — 그건 의도된 이동이므로
+      // 막으면 "사이트를 나가시겠습니까?"가 뜨거나 이동 자체가 취소되어 결제창이 안 열린 것처럼 보인다.
+      // 결제 런타임이 requestPayment 직전에 이 플래그를 세운다. isProcessing 이 false 로 flush 되는
+      // 타이밍에 의존하지 않으려고 별도 플래그를 쓴다.
+      if ((window as unknown as { __cdSuppressPaymentUnloadBlock?: boolean }).__cdSuppressPaymentUnloadBlock === true) return;
       event.preventDefault();
       event.returnValue = "";
     };

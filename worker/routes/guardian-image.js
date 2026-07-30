@@ -1,6 +1,6 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireUserFromRequest } from "../lib/auth.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 
 const FEATURE_KEY = "saju-guardian-unlock";
 // NVIDIA NIM Visual GenAI — flux.1-schnell. 엔드포인트에 모델이 포함되므로 body에 model을 넣지 않는다.
@@ -135,7 +135,8 @@ async function requestGuardianImage(env, sajuData) {
 }
 
 async function handleGenerateImage(request, env, auth) {
-  const access = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env });
+  // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+  const access = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, userDoc: auth.authUserDoc });
   if (!access.allowed) {
     return json({
       ok: false,
@@ -166,7 +167,7 @@ export async function handleSajuGuardianImageRoutes(request, env) {
 
   try {
     if (method === "POST" && path === "/generate-image") {
-      const auth = await requireUserFromRequest(request, env);
+      const auth = await requireUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
       return await handleGenerateImage(request, env, auth);
     }
     if (["GET", "POST"].includes(method)) return notFound();

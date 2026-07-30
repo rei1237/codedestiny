@@ -148,6 +148,7 @@
       "nameLabel": "Nom",
       "nameHint": "Indiquez le nom à afficher dans votre lecture.",
       "birthDateLabel": "Date de naissance",
+      "quickPickTitle": "✦ Commencez aussitôt avec une carte du destin enregistrée",
       "birthDateHint": "Choisissez votre date de naissance pour ouvrir la première base du thème Saju.",
       "solar": "Solaire",
       "lunar": "Lunaire",
@@ -568,7 +569,11 @@
       "mayaAlt": "Lecture maya — plaque de calendrier dorée et motifs horaires du ciel nocturne",
       "mayaTitle": "Lecture maya",
       "mayaDesc": "Le flux d'aujourd'hui à travers les schémas du temps",
-      "dreamPromptShortTitle": "Invite de rêve"
+      "dreamPromptShortTitle": "Invite de rêve",
+      "petSajuTitle": "🐾 Saju animal IA",
+      "petSajuDesc": "Cinq éléments et compatibilité",
+      "petSajuAria": "Ouvrir le Saju animal IA",
+      "petSajuAlt": "Image du Saju animal IA"
     },
     "destinyFlowerStudio": {
       "closeAria": "Fermer l'Atelier de la Fleur du Destin",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Quelle célébrité est mon âme jumelle?",
       "fourCutTitle": "Saju quatre coupes: filtre du destin",
-      "dashboardTitle": "Contenu saju amusant"
+      "dashboardTitle": "Contenu saju amusant",
+      "dopamineTitle": "🧠 Suis-je accro à la dopamine ?"
     },
     "letter": {
       "title": "💖 Lettre de Yeoni"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Principales fonctionnalités",
-    "audienceLabel": "Recommandé pour",
-    "chapterPreviewLabel": "Aperçu du chapitre",
+    "audienceLabel": "Situations recommandées",
+    "chapterPreviewLabel": "Voici ce que vous verrez après le déverrouillage.",
     "requiredInfoLabel": "Informations nécessaires avant la création",
-    "outcomesLabel": "Ce que vous pouvez voir dans le résultat",
+    "outcomesLabel": "Consultez en toute tranquillité",
+    "resultPreviewLabel": "Aperçu du résultat",
     "startNow": "Commencez maintenant →",
     "paywallNote": "Tous les services payants sont fournis immédiatement après la finalisation du paiement (de l'achat) et, une fois la prestation commencée, le droit de rétractation peut être limité conformément à la législation en vigueur."
   },

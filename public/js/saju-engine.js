@@ -5507,6 +5507,7 @@ async function calculate(){
       function() { try { findSimilarCelebs(p); } catch(e) { console.error('SimilarCelebs 에러:', e); } },
       function() { try { renderVillain(p, G_POWER); } catch(e) { console.error('Villain 에러:', e); } },
       function() { try { renderHormoneVibe(p, G_POWER); } catch(e) { console.error('HormoneVibe 에러:', e, e.stack); } },
+      function() { try { invokeOptionalGlobalRenderer('renderDopamineReport', [p, natal, G_POWER, johu]); } catch(e) { console.error('Dopamine 에러:', e); } },
       function() { try { renderReportDashboard(); } catch(e) { console.error('ReportDashboard 에러:', e); }
       }
     ]);
@@ -24536,8 +24537,10 @@ function renderZiwei(p, natal, targetId) {
           if (msg) msg.textContent = unlocked ? '잠금 해제됨' : '';
         }
         // 잠금 상태의 단일 소유자는 index.html의 unlockedFeatureMap이다.
-        // 이 게이트는 수동적 뷰: 초기 렌더 시 현재 상태를 반영하고, 이후에는
-        // cd:unlocks-changed 이벤트(결제 확정/서버 스냅샷 싱크 시 발행)로만 해금 방향 갱신한다.
+        // 이 게이트는 수동적 뷰: 초기 렌더 시 현재 상태를 반영하고, 이후에는 해금 이벤트로만
+        // 해금 방향 갱신한다. 두 종류가 발행된다 — cd:unlocks-changed(결제 확정/사주 스냅샷 싱크,
+        // index.html)와 cd:tile-locks-updated(부팅 직후 타일락 서버 싱크, index-inline-runtime.js).
+        // 후자만 오는 경로가 있어서 둘 다 듣지 않으면 해금됐는데 게이트가 잠긴 채 남는다.
         // 재잠금(로그아웃 등)은 index.html의 applyDynamicPaidContentGates가 담당한다.
         function zwBindBasicPaidGates(root) {
           var host = root || document;
@@ -24549,13 +24552,15 @@ function renderZiwei(p, natal, targetId) {
           });
           if (!window.__zwBasicPaidGateEventsBound) {
             window.__zwBasicPaidGateEventsBound = true;
-            window.addEventListener('cd:unlocks-changed', function() {
+            var onUnlocksChanged = function() {
               document.querySelectorAll('.zw-basic-paid-gate').forEach(function(shell) {
                 if (shell.classList.contains('cd-section-gate--unlocked')) return;
                 var k = String(shell.getAttribute('data-unlock-key') || '').trim();
                 if (k && zwBasicPaidFeatureUnlocked(k)) zwSetBasicPaidGateUnlocked(shell, true);
               });
-            });
+            };
+            window.addEventListener('cd:unlocks-changed', onUnlocksChanged);
+            window.addEventListener('cd:tile-locks-updated', onUnlocksChanged);
           }
         }
         function zwBasicPaidGateHtml(featureKey, cost, title, desc, bodyHtml, accent, contentKey) {

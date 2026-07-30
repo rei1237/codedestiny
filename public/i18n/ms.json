@@ -148,6 +148,7 @@
       "nameLabel": "Nama",
       "nameHint": "Masukkan nama yang akan dipaparkan dalam bacaan.",
       "birthDateLabel": "Tarikh lahir",
+      "quickPickTitle": "✦ Mula terus dengan kad takdir yang disimpan",
       "birthDateHint": "Pilih tarikh lahir untuk membuka asas pertama carta Saju anda.",
       "solar": "Suria",
       "lunar": "Bulan",
@@ -568,7 +569,11 @@
       "mayaAlt": "Bacaan Maya — plat kalendar emas dan corak waktu langit malam",
       "mayaTitle": "Bacaan Maya",
       "mayaDesc": "Aliran hari ini melalui corak masa",
-      "dreamPromptShortTitle": "Gesaan Mimpi"
+      "dreamPromptShortTitle": "Gesaan Mimpi",
+      "petSajuTitle": "🐾 Saju Haiwan AI",
+      "petSajuDesc": "Lima unsur dan keserasian",
+      "petSajuAria": "Buka Saju Haiwan AI",
+      "petSajuAlt": "Imej kulit Saju Haiwan AI"
     },
     "destinyFlowerStudio": {
       "closeAria": "Tutup Atelier Bunga Takdir",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Selebriti manakah kembar jiwa saya?",
       "fourCutTitle": "Saju empat potong: penapis takdir",
-      "dashboardTitle": "Kandungan saju yang menyeronokkan"
+      "dashboardTitle": "Kandungan saju yang menyeronokkan",
+      "dopamineTitle": "🧠 Adakah saya ketagih dopamin?"
     },
     "letter": {
       "title": "💖 Surat Yeoni"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Ciri utama",
-    "audienceLabel": "Disyorkan untuk",
-    "chapterPreviewLabel": "Pratonton bab",
+    "audienceLabel": "Situasi yang disyorkan",
+    "chapterPreviewLabel": "Ini yang anda lihat selepas dibuka.",
     "requiredInfoLabel": "Maklumat diperlukan sebelum penciptaan",
-    "outcomesLabel": "Perkara yang anda boleh lihat dalam hasilnya",
+    "outcomesLabel": "Semak dengan tenang",
+    "resultPreviewLabel": "Pratonton keputusan",
     "startNow": "Mulakan sekarang →",
     "paywallNote": "Semua perkhidmatan berbayar disediakan sebaik sahaja pembayaran (pembelian) selesai, dan setelah penyediaan bermula, hak untuk menarik diri daripada pembelian mungkin terhad menurut undang-undang yang berkaitan."
   },

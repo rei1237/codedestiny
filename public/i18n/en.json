@@ -148,6 +148,7 @@
       "nameLabel": "Name",
       "nameHint": "Enter the name to show in your reading.",
       "birthDateLabel": "Date of birth",
+      "quickPickTitle": "✦ Start instantly with a saved destiny card",
       "birthDateHint": "Choose your birth date to open the first basis of your Saju chart.",
       "solar": "Solar",
       "lunar": "Lunar",
@@ -568,7 +569,11 @@
       "mayaAlt": "Mayan reading — golden calendar plate and night-sky time patterns",
       "mayaTitle": "Mayan reading",
       "mayaDesc": "Today’s flow through the patterns of time",
-      "dreamPromptShortTitle": "Dream Prompt"
+      "dreamPromptShortTitle": "Dream Prompt",
+      "petSajuTitle": "🐾 AI Pet Saju",
+      "petSajuDesc": "Five elements & pet compatibility",
+      "petSajuAria": "Open AI Pet Saju",
+      "petSajuAlt": "AI Pet Saju cover image"
     },
     "destinyFlowerStudio": {
       "closeAria": "Close Destiny Flower Atelier",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "Which celebrity is my soul twin?",
       "fourCutTitle": "Saju four-cut: destiny filter",
-      "dashboardTitle": "Fun saju content"
+      "dashboardTitle": "Fun saju content",
+      "dopamineTitle": "🧠 Am I addicted to dopamine?"
     },
     "letter": {
       "title": "💖 Yeoni’s Letter"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "Key features",
-    "audienceLabel": "Recommended for",
-    "chapterPreviewLabel": "Chapter preview",
+    "audienceLabel": "Recommended situations",
+    "chapterPreviewLabel": "Here is what you will see after unlocking.",
     "requiredInfoLabel": "Information needed before creation",
-    "outcomesLabel": "What you can see in the result",
+    "outcomesLabel": "Check with peace of mind",
+    "resultPreviewLabel": "Result preview",
     "startNow": "Start now →",
     "paywallNote": "All paid services are provided immediately upon completion of payment (purchase), and once provision has begun, the right of withdrawal may be restricted in accordance with applicable laws."
   },

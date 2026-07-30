@@ -3,7 +3,7 @@ import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/a
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
@@ -1010,7 +1010,7 @@ async function handleEnsureAccess(request, env) {
   });
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1047,7 +1047,7 @@ async function handleEnsureAccess(request, env) {
       accessType: "admin",
     });
   }
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user || {});
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
@@ -1084,7 +1084,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
     return { ok: true, accessType: tokenPayload.accessType || "pass", paymentId: "" };
   }
   const user = await resolveUser(auth, env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
   const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, body));
   if (billingEvidence?.ok) return billingEvidence;
@@ -1563,7 +1563,7 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, consultation,
 async function handleStart(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1735,7 +1735,7 @@ function buildFollowupPrompt(consultation, userMessage) {
 async function handleMessage(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1784,7 +1784,7 @@ async function handleMessage(request, env) {
 async function handleResult(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;

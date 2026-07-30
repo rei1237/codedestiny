@@ -8,11 +8,22 @@ import { getApiBaseUrl } from "../_lib/api-config";
 import { getAuthState, logout, refreshAuth } from "../_lib/auth-store";
 import { persistSanitizedAuthUser, readSanitizedAuthUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
+import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { isMobileAppRuntime } from "../_lib/billing-client";
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
 import { clearActiveDestinyProfileCache, publishDestinyProfileList } from "../_lib/profile-card-storage";
 import WithdrawModal from "../components/WithdrawModal";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
+import { ALL_FORTUNES_ACTION, SAJU_TAB_ACTION } from "../_lib/mobile-tabs";
+
+// 마이페이지 상단 빠른 메뉴. 실재하는 목적지만 싣는다.
+const QUICK_MENU_ITEMS = [
+  { href: `/?action=${SAJU_TAB_ACTION}`, label: "내 사주 보기", hint: "대표 프로필로 바로 분석" },
+  { href: `/?action=${ALL_FORTUNES_ACTION}`, label: "모든 운세", hint: "전체 운세 둘러보기" },
+  { href: "/points", label: "이용권 관리", hint: "달빛 이용권 구매·확인" },
+  { href: "/points/history", label: "결제 내역", hint: "주문·결제 기록" },
+  { href: "/terms#refund-policy", label: "환불 안내", hint: "환불 정책 확인" },
+] as const;
 
 type AuthUser = {
   id?: string;
@@ -286,8 +297,8 @@ async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Pro
     retryOn401: true,
     apiBase,
   });
-  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-  if (!response.ok) throw new Error(payload.message || "휴대폰 번호 저장에 실패했습니다.");
+  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string; code?: string }>(response);
+  if (!response.ok) throw new Error(describePaymentPhoneFailure(response.status, payload));
   return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
 }
 
@@ -297,10 +308,12 @@ async function ensurePaymentPhoneNumber(apiBase: string, user: AuthUser | null):
   if (current) return current;
   const saved = await getSavedPaymentPhoneNumber(apiBase).catch(() => "");
   if (saved) return saved;
-  const typed = window.prompt("이니시스 단건결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.", "");
-  const normalized = normalizePaymentPhoneNumber(typed || "");
-  if (!normalized) throw new Error("이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
-  const nextPhone = await savePaymentPhoneNumber(apiBase, normalized);
+  // 모달이 저장까지 끝낸 번호를 돌려준다(인앱 웹뷰에서 억제되는 window.prompt 대체).
+  const nextPhone = await promptPaymentPhoneNumber({
+    normalize: normalizePaymentPhoneNumber,
+    onSave: (phone) => savePaymentPhoneNumber(apiBase, phone),
+  });
+  if (!nextPhone) throw new Error("단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
   const latestUser = readSanitizedAuthUser() as AuthUser | null;
   if (latestUser) persistSanitizedAuthUser({ ...latestUser, phoneNumber: nextPhone, phone: latestUser.phone || nextPhone });
   return nextPhone;
@@ -1235,6 +1248,22 @@ export default function MePage() {
             </button>
           </div>
         </header>
+
+        <nav aria-label={"빠른 메뉴"}>
+          <ul className="grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-3 lg:grid-cols-5">
+            {QUICK_MENU_ITEMS.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="flex min-h-[48px] flex-col justify-center gap-0.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 no-underline transition hover:border-amber-300/40 hover:bg-amber-400/10"
+                >
+                  <span className="text-sm font-bold text-slate-100">{item.label}</span>
+                  <span className="text-[11px] leading-tight text-slate-400">{item.hint}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         {authNotice ? (
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300/45 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">

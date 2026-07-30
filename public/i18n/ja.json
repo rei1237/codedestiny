@@ -148,6 +148,7 @@
       "nameLabel": "名前",
       "nameHint": "分析結果に表示する名前を入力してください。",
       "birthDateLabel": "生年月日",
+      "quickPickTitle": "✦ 保存した運命カードですぐ見る",
       "birthDateHint": "生まれた日を選ぶと、四柱命式の最初の基準が開きます。",
       "solar": "新暦",
       "lunar": "旧暦",
@@ -568,7 +569,11 @@
       "mayaAlt": "マヤ占い — 金色の暦盤と夜空の時間模様",
       "mayaTitle": "マヤ占い",
       "mayaDesc": "時間の模様で読む今日の流れ",
-      "dreamPromptShortTitle": "夢のプロンプト"
+      "dreamPromptShortTitle": "夢のプロンプト",
+      "petSajuTitle": "🐾 AIペット四柱推命",
+      "petSajuDesc": "うちの子の五行と相性",
+      "petSajuAria": "AIペット四柱推命を開く",
+      "petSajuAlt": "AIペット四柱推命のイメージ"
     },
     "destinyFlowerStudio": {
       "closeAria": "運命の花アトリエを閉じる",
@@ -3613,7 +3618,8 @@
     "funCards": {
       "celebTitle": "私のソウルツインはどの有名人ですか?",
       "fourCutTitle": "サジュ フォーカット: 運命フィルター",
-      "dashboardTitle": "楽しいサジュコンテンツ"
+      "dashboardTitle": "楽しいサジュコンテンツ",
+      "dopamineTitle": "🧠 私はドーパミン中毒？"
     },
     "letter": {
       "title": "💖 ヨニの手紙"
@@ -4435,10 +4441,11 @@
   },
   "preview": {
     "featuresLabel": "主な機能",
-    "audienceLabel": "おすすめ対象",
-    "chapterPreviewLabel": "章のプレビュー",
+    "audienceLabel": "おすすめの状況",
+    "chapterPreviewLabel": "ロック解除後に見られる内容です。",
     "requiredInfoLabel": "生成前に必要な情報",
-    "outcomesLabel": "結果で確認できること",
+    "outcomesLabel": "安心してご確認ください",
+    "resultPreviewLabel": "結果プレビュー",
     "startNow": "今すぐ始める →",
     "paywallNote": "すべての有料サービスは決済（購入）完了後ただちに提供され、提供開始後は関連法令に基づき申込みの撤回が制限される場合があります。"
   },

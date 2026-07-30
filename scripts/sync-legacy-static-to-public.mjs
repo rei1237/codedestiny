@@ -53,6 +53,7 @@ function syncSwissEphVendor() {
 const staticTargets = [
   "_headers",
   "destiny-island.html",
+  "pet-saju.html",
   "vedic-astrology.html",
   "tarot-ijik.html",
   "neville-meditation.html",

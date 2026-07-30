@@ -184,7 +184,10 @@
       "Bash(node scripts/verify-insight-authored.mjs sukuyo-day-by-day-rhythm-usage sukuyo-couple-finance-rhythm-guide)",
       "Bash(awk 'NR==3394,NR==3600{c+=gsub\\(/\\\\{/,\"{\"\\); c-=gsub\\(/\\\\}/,\"}\"\\); if\\(NR>=3394\\) print NR\": \"c; if\\(NR>3394 && c==0\\) exit}' app/insights/articles.js)",
       "Bash(node scripts/verify-insight-authored.mjs sukuyo-beginner-terms-easy-dictionary sukuyo-qa-most-asked-questions)",
-      "Bash(node scripts/verify-mobile-detail-nonintrusive.mjs)"
+      "Bash(node scripts/verify-mobile-detail-nonintrusive.mjs)",
+      "Bash(awk 'NR>=11560 && NR<=11600' styles/fortune-ui.css)",
+      "Bash(node scripts/verify-mobile-bottom-nav-sync.mjs)",
+      "Bash(node scripts/generate-sitemap.mjs)"
     ],
     "additionalDirectories": [
       "\\tmp"
