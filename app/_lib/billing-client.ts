@@ -3490,18 +3490,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       : await fetchPaymentEligibility(eligibilityInput, { phase: "full" }).catch(() => null);
     const eligibility = eligibilityResult?.ok ? eligibilityResult.data : null;
     const passCoveredByServer = eligibility?.access.canAccess === true || eligibility?.pass.canUse === true;
-    if (eligibility && !passCoveredByServer && !explicitPaymentMode && !passDisabled && input.forceDeduct !== false) {
-      emitPaidFeatureGate("update", {
-        featureId,
-        featureKey: featureId,
-        requestId: gateRequestId,
-        status: "loadingProducts",
-        message: billingClientText("billingClient.message.006"),
-        cost: eligibility.coinCost,
-        paymentMode: requestedMode,
-        reason: input.reason,
-      });
-    }
+    // 🔴 이용권 선검사가 '미커버'로 결론난 직후에는 대기 화면을 한 번 더 띄우지 않는다. 예전에는 여기서
+    // status:"loadingProducts" 를 보냈고, 셸의 카피 해석기가 이를 access_check.single 로 매핑해
+    // '결제 상태 확인 중 / 단건으로 카드 결제를 준비 중이에요' 화면을 띄웠다 — 이용권 확인 화면이
+    // 끝난 뒤에 또 뜨는 그 화면이 정확히 이것이다. 미커버가 확정된 순간 할 일은 결제창을 여는 것뿐이므로
+    // 중간 대기 UI를 없앤다(이용권 선검사 자체와 그 확인 화면은 그대로 유지된다).
     const knownCoinCost = resolveKnownCoinCost(input, eligibility);
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || (!passDisabled && eligibility?.pass.canUse === true);
@@ -3567,9 +3560,12 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     }
     if (eligibility) {
       const eligibilityPassReady = accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true);
+      // 🔴 미커버면 곧바로 '결제 방식 선택'으로 간다. 예전에는 snapshot 이 아직 no-pass 를 확정하지
+      // 못한 경우 "loadingProducts" 를 써서 '단건으로 카드 결제를 준비 중이에요' 대기 화면이 한 번 더
+      // 떴다 — 두 경우 모두 결론은 '미커버'라 같으므로 대기 화면 없이 readyToPay 로 통일한다.
       const eligibilityStatus: PaidFeatureGateRuntimeStatus = eligibilityPassReady
         ? "hasEntitlement"
-        : (snapshotSaysNoPass ? "readyToPay" : "loadingProducts");
+        : "readyToPay";
       const eligibilityPaymentMode = !passDisabled && eligibility.pass.canUse === true ? "MEMBERSHIP_PASS" : (requestedMode || (accessAlreadyGranted ? "DIRECT_KRW" : ""));
       const eligibilityOverlay = resolvePaymentWaitOverlay(
         eligibilityStatus,

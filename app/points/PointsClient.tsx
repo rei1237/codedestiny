@@ -2864,6 +2864,11 @@ export default function PointsPage() {
       });
       const data = await safeParseJson<PrepareSubscriptionOrderResponse>(response);
       return { status: response.status, data: { ...data, ok: response.ok && Boolean(data.order) } };
+      // 🔴 재시도 예산은 관대하게 유지한다. 이 prepare 는 결제수단 모달이 열릴 때 프리페치로
+      // 시작되므로 재시도가 사용자 시간을 쓰지 않는다. 반대로 예산을 줄이면 503 구간에서 실패율이
+      // 올라가 주문이 발급되지 않고, 그러면 requestPayment 에 도달하지 못해 **PG창이 아예 안 뜬다**
+      // (실제로 그 증상이 보고됐다). 클릭 지연은 예산을 줄여서가 아니라 '클릭이 미완료 프리페치를
+      // 기다리지 않게' 만들어 해결한다.
     }, { maxAttempts: 3, baseDelayMs: 700 });
   }, [apiBase]);
 
@@ -2962,16 +2967,12 @@ export default function PointsPage() {
     setProcessingText(text);
   }, []);
 
-  const closeProcessingOverlayBeforeExternalCheckout = useCallback(async () => {
+  // 🔴 동기 함수여야 한다. 예전에는 여기서 rAF 를 await 해 PG 창을 여는 직전에 한 프레임을 더
+  // 먹었다 — 쓸모없는 지연이고, 사용자 제스처와 requestPayment 사이가 벌어져 모바일에서
+  // 결제창이 차단될 위험까지 만든다. 오버레이 정리만 하고 곧바로 PG 를 연다.
+  const closeProcessingOverlayBeforeExternalCheckout = useCallback(() => {
     setIsProcessing(false);
     hideProcessingOverlay();
-    await new Promise<void>((resolve) => {
-      if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
-        resolve();
-        return;
-      }
-      window.requestAnimationFrame(() => resolve());
-    });
   }, [hideProcessingOverlay]);
 
   const buildPassAppliedMessage = useCallback((tier?: unknown) => {
@@ -3733,7 +3734,8 @@ export default function PointsPage() {
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_redirect", "1");
 
-      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser);
+      // 구독 경로와 동일하게 모달 오픈 시 미리 받아둔 번호 조회 결과를 재사용한다(왕복 1회 절감).
+      const customerPhoneNumber = await ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current);
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
@@ -3760,8 +3762,10 @@ export default function PointsPage() {
         requestData.noticeUrls = [paymentConfig.noticeUrl];
       }
 
-      setProcessingStage("원화 결제 준비 중\n주문 정보와 인증 흐름을 확인하고 있어요", "checkout");
-      await closeProcessingOverlayBeforeExternalCheckout();
+      // 🔴 PG 창을 여는 직전에는 대기 UI를 새로 띄우지 않는다. 예전에는 "원화 결제 준비 중" 문구를
+      // 찍은 뒤 바로 아래에서 닫아서, 실제로는 보이지도 않는 오버레이 때문에 프레임만 낭비했다.
+      // 대기 UI는 PG 응답 이후 승인 확인 단계에서만 띄운다.
+      closeProcessingOverlayBeforeExternalCheckout();
       const rsp = await window.PortOne.requestPayment(requestData);
       const paymentId = String(rsp?.paymentId || order.merchantUid || "").trim();
 
@@ -3859,8 +3863,8 @@ export default function PointsPage() {
 
     try {
       const prepareAttempt = await prepareEntry.promise;
-      const prepareStatus = prepareAttempt.status;
-      const prepareData = prepareAttempt.data;
+      let prepareStatus = prepareAttempt.status;
+      let prepareData = prepareAttempt.data;
 
       if (prepareStatus === 404 || prepareStatus === 405 || prepareStatus === 501) {
         pushToast("error", "이용권 결제 API를 확인할 수 없습니다. 잠시 후 다시 시도해 주세요.");
@@ -3874,19 +3878,39 @@ export default function PointsPage() {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");
           return;
         }
+        // 🔴 일시 장애(503/네트워크)를 확정 실패로 세탁하지 않는다. 예전에는 여기서 토스트만 띄우고
+        // return 해서 주문이 없는 채로 끝났고, 그래서 **PG 결제창이 아예 안 떴다**(실제 보고된 증상).
+        // 새 idempotency key 로 즉시 1회 재시도해 결제창까지 도달시킨다. 확정 실패(409·4xx 정책
+        // 오류)는 위/아래에서 그대로 안내하므로 무한 재시도가 되지 않는다.
         if (prepareStatus === 503 || prepareStatus === 0) {
-          pushToast("error", "결제 서버가 잠시 혼잡합니다. 잠시 후 다시 시도해 주세요.");
+          setProcessingStage("결제 서버가 혼잡해 다시 준비하고 있어요", "checkout");
+          setIsProcessing(true);
+          const retryAttempt = await startSubscriptionPrepare(plan).promise;
+          if (retryAttempt.data?.order) {
+            prepareStatus = retryAttempt.status;
+            prepareData = retryAttempt.data;
+          } else {
+            subscriptionPrepareRef.current = null;
+            pushToast("error", "결제 서버가 잠시 혼잡합니다. 잠시 후 다시 시도해 주세요.");
+            return;
+          }
+        } else {
+          pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
           return;
         }
-        pushToast("error", prepareData.message || "이용권 결제 준비에 실패했습니다.");
-        return;
       }
 
       // SDK 로드와 결제 config 조회를 병렬로 진행(순차 2왕복 → 병렬). config는 세션 캐시로 재사용.
       const [, paymentConfig] = await Promise.all([ensurePortoneSdk(), fetchPortOnePaymentConfigCached(apiBase)]);
       if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
 
+      // prepareData 가 재시도로 재대입될 수 있어(let) 타입 내로잉이 유지되지 않는다 — 명시적으로 좁힌다.
+      // 위 블록에서 이미 걸러지므로 런타임에는 도달하지 않는 방어 분기다.
       const order = prepareData.order;
+      if (!order) {
+        pushToast("error", "이용권 결제 준비에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        return;
+      }
 
       const redirectUrl = new URL(PORTONE_MOBILE_REDIRECT_PATH, window.location.origin);
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
@@ -3930,7 +3954,7 @@ export default function PointsPage() {
       });
       savePendingSubscriptionPass(plan.tier, order.merchantUid);
 
-      await closeProcessingOverlayBeforeExternalCheckout();
+      closeProcessingOverlayBeforeExternalCheckout();
       // 이 주문은 결제창으로 넘어갔다. 성공하든 취소되든 재사용하지 않는다 —
       // 이미 시도된 paymentId 로 다시 결제창을 열면 PG 가 거절한다.
       subscriptionPrepareRef.current = null;

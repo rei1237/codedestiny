@@ -607,7 +607,9 @@ function runClientStaticTests() {
   assertContains(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "runtime direct checkout phone fallback");
   assertContains(destinyProfileSource, "phoneNumber: customerPhone", "runtime PortOne V2 customer phoneNumber");
   assertBefore(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "window.PortOne.requestPayment(requestData)", "runtime phone fallback must run before PortOne window opens");
-  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser)", "points page phone fallback");
+  // 두 결제 경로 모두 모달 오픈 시 프리페치해 둔 번호 조회 결과를 재사용해야 한다(왕복 1회 절감).
+  // 예전에는 포인트 패키지 경로만 프리페치 없이 호출해 클릭 후 번호 조회 왕복이 한 번 더 있었다.
+  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, paymentPhonePrefetchRef.current)", "points page reuses the prefetched payment phone lookup");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
   assertContains(mePageSource, "ensurePaymentPhoneNumber(apiBase, user)", "profile action phone fallback");
   assertContains(mePageSource, "phoneNumber: normalizePaymentPhoneNumber", "profile action PortOne phoneNumber");
