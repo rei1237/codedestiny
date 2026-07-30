@@ -12,7 +12,6 @@ import {
   PointHistory,
   ProfileCard,
   RECENT_CONSUME_REQUEST_ID_CAP,
-  SAJU_LOCKED_CONTENT_KEYS,
   User,
 } from "../lib/models.js";
 import { requireUserFromRequest } from "../lib/auth.js";
@@ -32,15 +31,9 @@ import { calculateKrwAmountFromCoins, calculateMembershipCreditCost, normalizeKr
 import { deductLotsFIFO, ensureLotsForBalance, resolveNextExpiry } from "../lib/monthly-credit-lots.js";
 import { HONEY_PASS_POLICY, normalizeHoneyPassEntitlement, normalizePassTier, PASS_TIERS } from "../lib/profile-limits.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { revokePaymentContentAccess } from "../lib/content-unlocks.js";
+import { resolvePaidContentUnlockTarget, revokePaymentContentAccess } from "../lib/content-unlocks.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { MIN_SELF_CONSENT_AGE, validateBirthDateWithAge } from "../lib/validation.js";
-
-const SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY = Object.freeze({
-  section_daewun: SAJU_LOCKED_CONTENT_KEYS.DAEUN_ANALYSIS,
-  section_summary: SAJU_LOCKED_CONTENT_KEYS.FULL_READING,
-  section_compat: SAJU_LOCKED_CONTENT_KEYS.COMPATIBILITY,
-});
 
 const SUKYO_YEARLY_FORTUNE_PRODUCT_KEY = "sukyo_yearly_fortune_unlock";
 const SUKYO_YEARLY_FORTUNE_SERVICE_KEY = "sukuyo";
@@ -744,26 +737,29 @@ async function getUserPoints(userId) {
   return Number(user?.points || 0);
 }
 
-function resolveSajuProfileUnlockContentKey(featureKey) {
-  return SAJU_PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY[String(featureKey || "").trim()] || "";
-}
-
 function isSukuyoYearlyPaymentKey(value) {
   const key = String(value || "").trim();
   return key === SUKYO_YEARLY_FORTUNE_PRODUCT_KEY || key.startsWith(`${SUKYO_YEARLY_FORTUNE_PRODUCT_KEY}:`);
+}
+
+// 프로필 스코프 영구 해금(A유형) 대상인지 정본(content-unlocks.js)에 물어본다.
+// requiresProfile 은 PROFILE_UNLOCK_CONTENT_BY_FEATURE_KEY 에 등재된 키(saju section_* 3종 + ziwei 5종)
+// 에만 true 다. 이 게이트가 없으면 회당결제(PER_USE) 기능까지 영구 엔티틀먼트가 생겨 과금이 멈춘다.
+function resolveProfileUnlockTargetForPayment(featureKey) {
+  const target = resolvePaidContentUnlockTarget({ featureKey });
+  return target.requiresProfile ? target : null;
 }
 
 function resolveProfileUnlockContentKey(featureKey, contentKey = "") {
   const explicitContentKey = String(contentKey || "").trim().slice(0, 160);
   if (isSukuyoYearlyPaymentKey(explicitContentKey)) return explicitContentKey;
   if (isSukuyoYearlyPaymentKey(featureKey)) return explicitContentKey || String(featureKey || "").trim();
-  return resolveSajuProfileUnlockContentKey(featureKey);
+  return resolveProfileUnlockTargetForPayment(featureKey)?.contentKey || "";
 }
 
 function resolveProfileUnlockServiceKey(featureKey, contentKey = "") {
   if (isSukuyoYearlyPaymentKey(featureKey) || isSukuyoYearlyPaymentKey(contentKey)) return SUKYO_YEARLY_FORTUNE_SERVICE_KEY;
-  if (resolveSajuProfileUnlockContentKey(featureKey)) return CONTENT_ENTITLEMENT_SERVICE_KEYS.SAJU;
-  return "";
+  return resolveProfileUnlockTargetForPayment(featureKey)?.serviceKey || "";
 }
 
 function cleanProfileId(value) {
