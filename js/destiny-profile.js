@@ -3143,7 +3143,8 @@
         return { status: 'payment_required', reason: 'membership_pass_not_covered', payload: passResult && passResult.payload ? passResult.payload : null };
       }
       if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
-      else _dpSetPaymentPending(true, title + ' 단건 결제를 준비하는 중입니다.', 'card');
+      // [regression-guard] Moonlight settles server-side immediately so a wait overlay is correct there;
+      // single payment shows NO wait UI until the PG window is open.
       var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
       // 월정석 완료 프레임 표시(단건은 _cdRunDirectKrwCheckout 내부에서 이미 표시). 완료 오버레이 표시 중 onGranted(생성)는 병렬 진행.
       if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'));
@@ -3312,13 +3313,10 @@
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
 
-      // 서버가 만든 redirectUrl 우선(payment_id·merchant_uid·returnPath 포함).
-      var redirectUrl = null;
-      try {
-        redirectUrl = new URL(String(order.redirectUrl || window.location.href), window.location.href);
-      } catch (_dpRedirectUrlErr) {
-        redirectUrl = new URL(window.location.href);
-      }
+      // [regression-guard] redirectUrl is built from the current page URL. PR #104 changed this to
+      // prefer the server-built order.redirectUrl and the PG window stopped opening. Mobile return is
+      // handled by the cd_direct_payment_resume ticket, so the server URL is unnecessary.
+      var redirectUrl = new URL(window.location.href);
       redirectUrl.searchParams.set('portone_redirect', '1');
       var customer = {
         customerId: customerId,
@@ -3337,8 +3335,9 @@
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
-        // 창 방식을 SDK 기본값에 맡기지 않고 명시한다(PC iframe / 모바일 상위프레임 리다이렉트).
-        windowType: { pc: 'IFRAME', mobile: 'REDIRECTION' },
+        // [regression-guard] Do NOT send windowType. PR #104 added { pc:'IFRAME', mobile:'REDIRECTION' }
+        // and the PG window stopped opening; no other working payment path in this repo sends it
+        // (see lib/payment/portone.ts). Do not re-add without confirming PortOne per-PG support.
         customer: customer,
         redirectUrl: redirectUrl.toString(),
         customData: {
@@ -3365,7 +3364,9 @@
         paymentMethod: 'card_general',
       });
 
-      _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4') + ' ' + '\uB2E8\uAC74 \uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4. \uC8FC\uBB38 \uAE08\uC561\uACFC \uC778\uC99D \uC815\uBCF4\uB97C \uC548\uC804\uD558\uAC8C \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'card');
+      // [regression-guard] No wait overlay before the PG window opens. This used to raise an
+      // "opening the payment window" overlay and close it one line later, so users saw only
+      // the waiting screen. Wait UI belongs after requestPayment returns.
       // \uC911\uAC04 \uBA54\uC2DC\uC9C0("\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744\u2026")\uB294 \uBC14\uB85C \uC544\uB798\uC5D0\uC11C \uC624\uBC84\uB808\uC774\uB97C \uB2EB\uC544 \uC2E4\uC81C\uB85C \uBCF4\uC774\uC9C0 \uC54A\uB294\uB370
       // \uD504\uB808\uC784\uB9CC \uD55C \uBC88 \uB354 \uBA39\uC5C8\uB2E4 \u2014 \uC81C\uAC70\uD588\uB2E4. \uC624\uBC84\uB808\uC774 \uD574\uC81C\uC640 requestPayment \uC0AC\uC774\uC5D0\uB294 \uC544\uBB34\uAC83\uB3C4 \uB450\uC9C0 \uC54A\uB294\uB2E4
       // (\uD55C \uD504\uB808\uC784\uC774\uB77C\uB3C4 \uB07C\uC6B0\uBA74 user-gesture \uC18C\uBA78\uC5D0 \uB354 \uAC00\uAE4C\uC6CC\uC9C4\uB2E4. verify:paid-gate-ui \uAC00 \uC774 \uC21C\uC11C\uB97C \uACE0\uC815\uD55C\uB2E4).

@@ -1235,9 +1235,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     };
     const showWaitOverlay = (mode: PaymentChoiceMode) => {
       const runtimeWindow = window as RuntimeApiWindow;
-      if (mode === "direct") {
-        runtimeWindow._cdSetCoinGateOverlay?.(true, "단건 결제창을 여는 중입니다. 결제가 완료되면 이용 권한을 확인합니다.", "card");
-      } else if (mode === "monthly") {
+      // 🔴 단건결제는 대기 오버레이를 띄우지 않는다 — 클릭하면 곧바로 PG 결제창이 열려야 하고,
+      // 대기 UI는 결제 승인 확인 단계에서만 보여야 한다. 예전에는 여기서 오버레이를 켠 탓에
+      // "대기 화면만 뜨고 PG창은 안 뜬다"로 보였다. 월정석은 즉시 서버 처리라 그대로 유지한다.
+      if (mode === "monthly") {
         runtimeWindow._cdSetCoinGateOverlay?.(true, "월정석 이벤트 재화 사용 권한을 확인하고 있습니다.", "monthly");
       }
     };
@@ -1379,7 +1380,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
-        setStatus(mode === "monthly" ? "월정석 이벤트 재화 사용 권한을 확인하고 있습니다." : "단건 결제창을 여는 중입니다.");
+        if (mode === "monthly") setStatus("월정석 이벤트 재화 사용 권한을 확인하고 있습니다.");
         showWaitOverlay(mode);
         close(mode);
       });
