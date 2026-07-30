@@ -505,6 +505,14 @@ export default function SignupPage() {
       return;
     }
 
+    // 이메일 가입과 같은 기준(normalizeKoreanPhoneNumber). 서버도 같은 검증을 하지만, 여기서 먼저
+    // 걸러야 왕복 없이 즉시 안내된다.
+    const normalizedSocialPhoneNumber = normalizeKoreanPhoneNumber(phoneNumber);
+    if (!normalizedSocialPhoneNumber) {
+      setError(signupPageText("signupPage.003"));
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -518,6 +526,7 @@ export default function SignupPage() {
           birthDate,
           birthTime,
           gender,
+          phoneNumber: normalizedSocialPhoneNumber,
         }),
       });
 
@@ -778,7 +787,7 @@ export default function SignupPage() {
             <form className="mb-6 space-y-4" onSubmit={handleLocalSignup}>
               {socialSignupTicket && (
                 <div className="rounded-xl border border-violet-200/25 bg-violet-400/10 px-4 py-3 text-sm leading-6 text-violet-50/90">
-                  소셜 인증이 확인되었습니다. 마지막으로 <strong>생년월일</strong>을 입력하면 가입이 완료됩니다. 만 {MIN_SELF_CONSENT_AGE}세 미만은 가입할 수 없습니다.
+                  소셜 인증이 확인되었습니다. 마지막으로 <strong>생년월일</strong>과 <strong>휴대폰 번호</strong>를 입력하면 가입이 완료됩니다. 만 {MIN_SELF_CONSENT_AGE}세 미만은 가입할 수 없습니다.
                 </div>
               )}
 
@@ -812,7 +821,11 @@ export default function SignupPage() {
                     className="h-12 w-full rounded-xl border border-violet-200/25 bg-slate-950/45 px-4 text-sm text-slate-100 outline-none transition focus:border-violet-300/60 focus:ring-2 focus:ring-violet-300/30 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
+                </>
+                )}
 
+                {/* 번호는 이메일·소셜 두 흐름 모두에서 받는다 — 소셜만 면제하면 그 계정은 첫 단건결제 때
+                    별도 입력 단계를 타야 하고, 그 저장이 실패하면 결제가 그대로 막힌다. */}
                 <div className="sm:col-span-2">
                   <label htmlFor="signup-phone-number" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PHONE</label>
                   <input
@@ -829,6 +842,8 @@ export default function SignupPage() {
                   <p className="mt-1.5 text-[11px] text-violet-100/65">단건 결제창 호출에 필요한 구매자 휴대폰 번호입니다.</p>
                 </div>
 
+                {!socialSignupTicket && (
+                <>
                 <div className="sm:col-span-2">
                   <label htmlFor="signup-password" className="mb-1 block text-xs font-semibold tracking-[0.16em] text-violet-100/75">PASSWORD</label>
                   <div className="relative">

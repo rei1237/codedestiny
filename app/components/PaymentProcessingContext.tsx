@@ -1126,6 +1126,11 @@ export function PaymentProcessingProvider({
     if (!isProcessing || typeof window === "undefined") return;
 
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      // PG(PortOne)는 모바일에서 결제를 상위 프레임 리다이렉트로 처리한다 — 그건 의도된 이동이므로
+      // 막으면 "사이트를 나가시겠습니까?"가 뜨거나 이동 자체가 취소되어 결제창이 안 열린 것처럼 보인다.
+      // 결제 런타임이 requestPayment 직전에 이 플래그를 세운다. isProcessing 이 false 로 flush 되는
+      // 타이밍에 의존하지 않으려고 별도 플래그를 쓴다.
+      if ((window as unknown as { __cdSuppressPaymentUnloadBlock?: boolean }).__cdSuppressPaymentUnloadBlock === true) return;
       event.preventDefault();
       event.returnValue = "";
     };
