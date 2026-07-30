@@ -216,7 +216,12 @@ export default function RootLayout({ children }) {
             app/error.tsx 의 '경로당 1회 새로고침'은 구 HTML 이 삭제된 청크를 가리키는 경우용이라
             이 케이스를 못 고친다. 그래서 계층을 달리해 로더 자체에서 끊는다.
 
-            경로가 둘이라 장치도 둘이다(둘 다 필요 — 서로 대체 불가):
+            경로가 셋이라 장치도 셋이다(셋 다 필요 — 서로 대체 불가):
+            (0) 스타일시트: <link rel="stylesheet"> 는 webpack 로더를 아예 타지 않고, 실패해도
+                리액트가 살아 있어 화면은 그려진다 → "기능은 되는데 CSS 만 통째로 깨진" 상태가 된다
+                (2026-07-30 사고 — /_next/static/css 공용 청크 하나가 죽어 React 라우트 전부가
+                무스타일로 떴다). 죽은 태그 바로 뒤에 우회 URL <link> 를 꽂아 캐스케이드 순서를
+                보존한 채 되받는다(head 끝에 붙이면 뒤 시트를 덮어써 순서가 뒤집힌다).
             (1) 클라이언트 사이드 이동: 청크를 __webpack_require__.l 이 동적으로 받는다 → 로더를 감싼다.
             (2) 직접 진입·새로고침: 청크가 문서에 <script> 로 박혀 온다 → 로더를 타지 않는다.
                 게다가 .l 은 같은 src 의 기존 <script> 를 재사용하는데, 그 태그는 이미 error 를
@@ -232,7 +237,7 @@ export default function RootLayout({ children }) {
             로그인·결제가 통째로 죽은 적이 있다. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t||t.nodeName!==\"SCRIPT\")return;var src=t.src||\"\";if(src.indexOf(\"/_next/static/\")<0||src.indexOf(\"cdcb=\")>-1||hit[src])return;hit[src]=1;var s=document.createElement(\"script\");s.src=bust(src);s.async=t.async;if(t.crossOrigin)s.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(s)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
+            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t)return;var isCss=t.nodeName===\"LINK\"&&String(t.rel||\"\").indexOf(\"stylesheet\")>-1;if(t.nodeName!==\"SCRIPT\"&&!isCss)return;var url=(isCss?t.href:t.src)||\"\";if(url.indexOf(\"/_next/static/\")<0||url.indexOf(\"cdcb=\")>-1||hit[url])return;hit[url]=1;var n;if(isCss){n=document.createElement(\"link\");n.rel=\"stylesheet\";n.href=bust(url);if(t.media)n.media=t.media}else{n=document.createElement(\"script\");n.src=bust(url);n.async=t.async}if(t.crossOrigin)n.crossOrigin=t.crossOrigin;if(isCss&&t.parentNode)t.parentNode.insertBefore(n,t.nextSibling);else (document.head||document.documentElement).appendChild(n)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
           }}
         />
       </head>

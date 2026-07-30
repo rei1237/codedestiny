@@ -1,3 +1,9 @@
+/* 캐시 해시 갱신 마커: cd-css-cachebust-v20260730
+   Cloudflare 엣지가 배포 전환 틈새의 404 를 max-age=172800 으로 캐시해
+   /_next/static/css/c7c5655dece6ff7f.css(= 이 파일의 산출물)가 이틀간 죽었고,
+   React 라우트 전부가 무스타일로 떴다. 캐시 퍼지 권한이 없어 파일 내용을 바꿔
+   새 해시 URL 로 갈아탄다. 재발 방지는 app/layout.js 의 스타일시트 404 재시도 담당.
+   이 주석은 지워도 되지만, 지우면 다시 옛 해시로 돌아가 같은 죽은 URL 을 가리킨다. */
 /* 브랜드 세리프 @font-face(R2 미러 청크) — 자동 생성 파일. 재생성: node scripts/build-serif-font-assets.mjs */
 @import "./fonts-serif.css";
 
