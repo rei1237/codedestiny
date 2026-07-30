@@ -37,8 +37,28 @@
 /code-destiny/                 /                         301
 /codedestiny                   /                         301
 /codedestiny/                  /                         301
+# 2026-05-10 a38052ea6 이 삭제한 운세 시스템 페이지 204개(4기간 × 3체계).
+# 삭제 이후 줄곧 hard 404 였고 301 이 없어 6월 노출 급감의 원인 중 하나였다.
+# 체계별 정본 허브로 보내 주제 관련성을 유지한다(전부 /daily-fortune 으로 몰면 소프트404 위험).
+# Cloudflare Pages 는 splat 을 경로 끝에서만 지원하므로 기간 × 체계를 명시한다.
+# 타겟에 trailing slash 를 붙여야 trailingSlash:true 의 308 과 겹친 리다이렉트 체인이 생기지 않는다.
+/fortune/today/sukuyo/*        /sukuyo/                  301
+/fortune/tomorrow/sukuyo/*     /sukuyo/                  301
+/fortune/weekly/sukuyo/*       /sukuyo/                  301
+/fortune/monthly/sukuyo/*      /sukuyo/                  301
+/fortune/today/vedic/*         /vedic/                   301
+/fortune/tomorrow/vedic/*      /vedic/                   301
+/fortune/weekly/vedic/*        /vedic/                   301
+/fortune/monthly/vedic/*       /vedic/                   301
+/fortune/today/ziwei/*         /ziwei/                   301
+/fortune/tomorrow/ziwei/*      /ziwei/                   301
+/fortune/weekly/ziwei/*        /ziwei/                   301
+/fortune/monthly/ziwei/*       /ziwei/                   301
 /fortune                       /daily-fortune            301
 /fortune/                      /daily-fortune            301
+# 2026-05-28 abdb642f5 가 app/saju/love-secret 을 삭제하고 남긴 404.
+/saju/love-secret              /love-secret-ai/          301
+/saju/love-secret/             /love-secret-ai/          301
 /saju-free                     /saju                     301
 /saju-free/                    /saju                     301
 
