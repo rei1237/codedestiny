@@ -9,7 +9,7 @@ import DestinyIcon from "./icons/DestinyIcon";
 import type { ServiceCardModel } from "./ServiceCard";
 import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 
-const KKULKKUL_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
+const KKULKKUL_LOGO_PUBLIC_PATH = "/icons/app-logo-512.webp";
 const KKULKKUL_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_LOGO_PUBLIC_PATH);
 const MAIN_LANDING_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
 type LoadingLocale = (typeof MAIN_LANDING_LOCALES)[number];

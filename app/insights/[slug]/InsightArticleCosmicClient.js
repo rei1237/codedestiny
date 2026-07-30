@@ -8,7 +8,10 @@ import { sanitizePublicInsightHtml, stripHtmlText } from "../_lib/sanitizePublic
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 
 const SITE_ORIGIN = "https://code-destiny.com";
-const FALLBACK_ARTICLE_IMAGE = "/icons/꿀꿀 운세 로고.webp";
+// 화면에 보이는 폴백은 연이(꽃돼지) 자산, 소셜 공유 썸네일 폴백은 기존 브랜드 배지를 유지한다.
+// 둘은 의도적으로 분리되어 있으니 한쪽만 바꾸지 말 것.
+const FALLBACK_ARTICLE_IMAGE = "/icons/app-logo-512.webp";
+const FALLBACK_OG_IMAGE = "/icons/꿀꿀 운세 로고.webp";
 const ARTICLE_IMAGE_PROFILES = [
   { url: "/fuctionassets/jami.webp", alt: "자미두수 명반 인사이트 이미지", keywords: ["자미", "ziwei", "명궁", "12궁", "궁위", "사화", "자미두수"] },
   { url: "/fuctionassets/sukyo.webp", alt: "숙요점 궁합 인사이트 이미지", keywords: ["숙요", "27숙", "영친", "업태", "안괴", "본명숙", "월명숙"] },
@@ -208,7 +211,7 @@ function buildInsightImageBundle(item) {
   return {
     candidates,
     primaryUrl: candidates[0] || "",
-    ogUrl: toAbsoluteAssetUrl(candidates[0] || FALLBACK_ARTICLE_IMAGE),
+    ogUrl: toAbsoluteAssetUrl(candidates.find((url) => url !== FALLBACK_ARTICLE_IMAGE) || FALLBACK_OG_IMAGE),
     alt: String(item?.featuredImage?.alt || profile?.alt || item?.title || "인사이트 대표 이미지").trim(),
     width: Number(item?.featuredImage?.width || 0) || 1200,
     height: Number(item?.featuredImage?.height || 0) || 630,

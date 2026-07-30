@@ -1042,7 +1042,7 @@ var THEME_MODE_KEY = 'fortuneThemeModeStateV1';
 var THEME_MODE_STATE_META_KEY = 'fortuneThemeModeStateMetaV1';
 var THEME_MODE_STATE_SCHEMA = '20260511-theme-state-v2';
 var THEME_LOGO_REV = '20260511-mobile-logo-fix4';
-var PIG_LOGO_URL = '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=' + THEME_LOGO_REV;
+var PIG_LOGO_URL = '/icons/app-logo-512.webp?v=' + THEME_LOGO_REV;
 var PIG_LOGO_SRCSET = PIG_LOGO_URL + ' 96w, ' + PIG_LOGO_URL + ' 130w, ' + PIG_LOGO_URL + ' 512w';
 var NEO_LOGO_URL = '/icons/neo.webp?v=' + THEME_LOGO_REV;
 var NEO_LOGO_SRCSET = '/icons/neo-96.webp?v=' + THEME_LOGO_REV + ' 96w, /icons/neo-130.webp?v=' + THEME_LOGO_REV + ' 130w, ' + NEO_LOGO_URL + ' 512w';

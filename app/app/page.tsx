@@ -74,7 +74,7 @@ export default function CodeDestinyMobileAppPage() {
       <header className="cd-app-bar flex min-h-16 items-center justify-between gap-3 px-4 pb-3 pt-3">
         <Link href="/app" className="flex min-w-0 items-center gap-3 no-underline" aria-label="Code Destiny 앱 홈">
           <img
-            src="/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp"
+            src="/fuctionassets/%EC%97%B0%EC%9D%B4.webp"
             alt=""
             width={40}
             height={40}

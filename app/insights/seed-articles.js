@@ -3,8 +3,10 @@ import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
 const DEFAULT_AUTHOR = "Code Destiny Editorial Team";
 const SITE_ORIGIN = "https://code-destiny.com";
-const DEFAULT_FEATURED_IMAGE = "/icons/꿀꿀 운세 로고.webp";
-const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}${DEFAULT_FEATURED_IMAGE}`;
+// 화면에 보이는 대표 이미지는 연이(꽃돼지) 자산, 소셜 공유 썸네일은 기존 브랜드 배지를 유지한다.
+// 둘은 의도적으로 분리되어 있으니 한쪽만 바꾸지 말 것.
+const DEFAULT_FEATURED_IMAGE = "/icons/app-logo-512.webp";
+const DEFAULT_OG_IMAGE = `${SITE_ORIGIN}/icons/꿀꿀 운세 로고.webp`;
 
 // 손수 쓴 본문(contentHtml)을 템플릿으로 덮지 않고 그대로 렌더할 슬러그.
 // 저자 글을 새로 넣을 때는 이 Set에 등록하는 대신 글 객체에 `useOriginalContent: true`
