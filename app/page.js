@@ -62,7 +62,7 @@ const HOME_SEO = {
   ogDescription:
     "꿀꿀 운세 — 생년월일 하나로 사주팔자, 타로, 자미두수, 궁합, 신년운세를 재밌고 정확하게 보는 코드 데스티니 공식 서비스.",
   url: "https://code-destiny.com/",
-  image: "https://code-destiny.com/og/code-destiny-og.png",
+  image: "https://code-destiny.com/og/code-destiny-og-vvip.png",
 };
 
 const page = {

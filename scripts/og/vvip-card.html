@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>Code Destiny — VVIP OG Card 1200x630</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     Code Destiny — VVIP Membership Card (Open Graph 1200x630)
+     딥 버건디 벨벳 + 유광 골드 베젤 + 24K 금박 각인 엠블럼
+     ============================================================ */
+
+  :root {
+    /* 골드 램프 (유광 금속 시뮬레이션) */
+    --gold-hi:      #fff4d2;
+    --gold-light:   #f2dda6;
+    --gold:         #e8c878;
+    --gold-mid:     #c9993f;
+    --gold-deep:    #8f6420;
+    --gold-shadow:  #5c3f12;
+
+    /* 벨벳 (연이 딥 플럼 계열) */
+    --velvet-lit:   #4a1233;
+    --velvet:       #340b22;
+    --velvet-deep:  #1d0614;
+
+    /* 배경 (네오 미드나잇) */
+    --night-top:    #191243;
+    --night:        #0e0a26;
+    --night-deep:   #06040f;
+
+    --engrave: 0 -1px 0 rgba(0,0,0,.75), 0 1px 0 rgba(255,238,190,.26);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1200px;
+    height: 630px;
+    overflow: hidden;
+    background: #06040f;
+  }
+
+  /* ---------- 1. 밤하늘 무대 + 황금 가루 ---------- */
+  .stage {
+    position: relative;
+    width: 1200px;
+    height: 630px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    isolation: isolate;
+    background:
+      radial-gradient(78% 62% at 50% 6%,  rgba(84, 66, 178, .40), transparent 66%),
+      radial-gradient(60% 52% at 88% 96%, rgba(122, 38, 92, .34), transparent 70%),
+      radial-gradient(52% 46% at 6% 88%,  rgba(38, 52, 150, .30), transparent 72%),
+      linear-gradient(168deg, var(--night-top) 0%, var(--night) 46%, var(--night-deep) 100%);
+  }
+
+  /* 황금 가루 — 크기가 다른 여섯 겹의 타일이 겹치며 불규칙한 산포를 만든다 */
+  .dust {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background-image:
+      radial-gradient(1.4px 1.4px at 18% 24%,  rgba(255, 226, 150, .90), transparent 62%),
+      radial-gradient(1px 1px     at 72% 62%,  rgba(255, 236, 182, .72), transparent 62%),
+      radial-gradient(1.7px 1.7px at 44% 88%,  rgba(238, 198, 120, .62), transparent 62%),
+      radial-gradient(1.1px 1.1px at 88% 14%,  rgba(255, 244, 206, .58), transparent 62%),
+      radial-gradient(2.4px 2.4px at 30% 52%,  rgba(232, 200, 120, .30), transparent 66%),
+      radial-gradient(3.2px 3.2px at 66% 20%,  rgba(255, 226, 150, .16), transparent 70%);
+    background-size:
+      163px 131px, 211px 173px, 271px 199px,
+      139px 241px, 397px 353px, 487px 421px;
+    background-position:
+      0 0, 41px 63px, 97px 17px,
+      23px 109px, 151px 71px, 59px 187px;
+  }
+
+  /* 상단 달빛 헤일로 + 하단 비네트 */
+  .veil {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background:
+      radial-gradient(46% 34% at 50% 0%, rgba(214, 198, 255, .16), transparent 68%),
+      radial-gradient(120% 92% at 50% 50%, transparent 52%, rgba(0, 0, 0, .62) 100%);
+  }
+
+  /* ---------- 2. 카드 — 유광 골드 베젤 ---------- */
+  .bezel {
+    position: relative;
+    z-index: 3;
+    width: 1128px;
+    height: 542px;
+    margin-top: 30px;
+    padding: 5px;
+    border-radius: 30px;
+    /* 유광 금속: 하이라이트/그림자 밴드를 반복해 광택을 만든다 */
+    background: linear-gradient(
+      128deg,
+      var(--gold-hi)     0%,
+      var(--gold-mid)   11%,
+      var(--gold-deep)  20%,
+      var(--gold-hi)    33%,
+      var(--gold-light) 40%,
+      var(--gold-mid)   52%,
+      var(--gold-shadow)62%,
+      var(--gold-light) 74%,
+      var(--gold-hi)    82%,
+      var(--gold-mid)   92%,
+      var(--gold-deep) 100%
+    );
+    box-shadow:
+      0 0 0 1px rgba(92, 63, 18, .85),
+      0 30px 60px -18px rgba(0, 0, 0, .82),
+      0 8px 22px rgba(0, 0, 0, .55),
+      0 0 90px rgba(214, 168, 78, .17);
+  }
+
+  .card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 25px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 벨벳: 결 방향 조명 + 깊이 */
+    background:
+      radial-gradient(64% 74% at 50% -6%,  rgba(196, 60, 122, .34), transparent 66%),
+      radial-gradient(52% 60% at 8% 104%,  rgba(120, 22, 68, .40), transparent 72%),
+      radial-gradient(46% 56% at 96% 96%,  rgba(88, 14, 52, .46), transparent 74%),
+      linear-gradient(158deg, var(--velvet-lit) 0%, var(--velvet) 44%, var(--velvet-deep) 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 226, 240, .16),
+      inset 0 -1px 0 rgba(0, 0, 0, .6),
+      inset 0 0 70px rgba(0, 0, 0, .5);
+  }
+
+  /* 벨벳 파일(pile) — 아주 미세한 이중 사선 결 */
+  .pile {
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(46deg,  rgba(255, 228, 242, .022) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(-46deg, rgba(0, 0, 0, .05)        0 1px, transparent 1px 4px);
+    mix-blend-mode: overlay;
+  }
+
+  /* 연꽃 잎맥 문양 — 카드 전면에 은은하게 */
+  .damask {
+    position: absolute;
+    inset: 0;
+    opacity: .075;
+  }
+
+  /* 벨벳 위 광택 스윕 */
+  .sheen {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(102deg,
+      transparent 26%,
+      rgba(255, 232, 246, .07) 42%,
+      rgba(255, 240, 250, .11) 49%,
+      rgba(255, 232, 246, .05) 56%,
+      transparent 72%);
+  }
+
+  /* 각인된 이중 괘선 + 네 귀 연잎 장식 */
+  .frame { position: absolute; inset: 0; }
+
+  /* ---------- 3. 내용 ---------- */
+  .content {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 22px 96px 30px;
+  }
+
+  .emblem {
+    width: 220px;
+    height: 220px;
+    flex: none;
+    /* 양각: 아래 어두운 단차 + 위 밝은 하이라이트 */
+    filter:
+      drop-shadow(0 2px 0 rgba(0, 0, 0, .62))
+      drop-shadow(0 -1px 0 rgba(255, 241, 205, .22))
+      drop-shadow(0 10px 20px rgba(0, 0, 0, .5))
+      drop-shadow(0 0 26px rgba(232, 200, 120, .2));
+  }
+
+  .title {
+    margin-top: 8px;
+    font-family: 'Nanum Myeongjo', 'CodeDestinySerifKR', 'Batang', 'Noto Serif KR', serif;
+    font-weight: 800;
+    font-size: 74px;
+    line-height: 1;
+    letter-spacing: .1em;
+    text-indent: .1em; /* letter-spacing 로 생긴 우측 여백 보정 */
+    color: var(--gold);
+    /* 금박 스탬핑: 아래로 눌린 금속 단차 + 은은한 발광 */
+    text-shadow:
+      0 1px 0 var(--gold-deep),
+      0 2px 0 var(--gold-shadow),
+      0 3px 1px rgba(0, 0, 0, .55),
+      0 6px 14px rgba(0, 0, 0, .55),
+      0 0 28px rgba(232, 200, 120, .26);
+  }
+
+  .latin {
+    margin-top: 12px;
+    font-family: 'Cinzel', 'CodeDestinySerifLatin', Georgia, serif;
+    font-weight: 600;
+    font-size: 25px;
+    line-height: 1;
+    letter-spacing: .46em;
+    text-indent: .46em;
+    color: var(--gold-light);
+    text-shadow: var(--engrave), 0 3px 10px rgba(0, 0, 0, .5);
+  }
+
+  /* 마름모를 낀 골드 세필 구분선 — 카드 폭을 가로질러 수평축을 잡는다 */
+  .rule {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .rule i {
+    display: block;
+    width: 232px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(232, 200, 120, .85) 62%, rgba(232, 200, 120, .95));
+  }
+  .rule i + b + i {
+    background: linear-gradient(270deg, transparent, rgba(232, 200, 120, .85) 62%, rgba(232, 200, 120, .95));
+  }
+  .rule b {
+    display: block;
+    width: 8px;
+    height: 8px;
+    transform: rotate(45deg);
+    background: linear-gradient(135deg, var(--gold-hi), var(--gold-mid));
+    box-shadow: 0 0 9px rgba(232, 200, 120, .6);
+  }
+
+  .tagline {
+    margin-top: 17px;
+    font-family: 'Jost', 'Pretendard', system-ui, sans-serif;
+    font-weight: 500;
+    font-size: 15px;
+    line-height: 1;
+    letter-spacing: .38em;
+    text-indent: .38em;
+    color: rgba(246, 226, 176, .96);
+    text-shadow: var(--engrave);
+  }
+
+  .disciplines {
+    margin-top: 12px;
+    font-family: 'Nanum Myeongjo', 'CodeDestinySerifKR', 'Batang', serif;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    color: rgba(255, 214, 232, .84);
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .7);
+  }
+
+  /* 카드 하단 각인 — 회원번호 / 발행처 */
+  .plate {
+    position: absolute;
+    left: 100px;
+    right: 100px;
+    bottom: 36px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    font-family: 'Jost', system-ui, sans-serif;
+    font-feature-settings: 'tnum' 1;
+  }
+  .plate .k {
+    display: block;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    color: rgba(226, 182, 208, .72);
+    margin-bottom: 7px;
+  }
+  .plate .v {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .2em;
+    text-indent: .2em;
+    color: rgba(240, 212, 154, .96);
+    text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, .5);
+  }
+  .plate .issuer {
+    text-align: right;
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    color: rgba(240, 212, 154, .96);
+    text-shadow: var(--engrave), 0 2px 6px rgba(0, 0, 0, .5);
+  }
+
+  /* ---------- 4. 카드 밖 정보 영역 ---------- */
+  .domain {
+    position: relative;
+    z-index: 3;
+    margin-top: 21px;
+    font-family: 'Jost', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    color: rgba(210, 190, 240, .78);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .8);
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="dust"></div>
+  <div class="veil"></div>
+
+  <div class="bezel">
+    <div class="card">
+      <div class="pile"></div>
+
+      <!-- 연꽃 잎맥 문양 -->
+      <svg class="damask" viewBox="0 0 1118 532" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <pattern id="lotusScale" width="96" height="58" patternUnits="userSpaceOnUse">
+            <g fill="none" stroke="#f0d494" stroke-width="1.2">
+              <path d="M-48 58 A48 48 0 0 1 48 58"/>
+              <path d="M48 58 A48 48 0 0 1 144 58"/>
+              <path d="M0 29 A48 48 0 0 1 96 29"/>
+              <path d="M0 58 V44 M96 58 V44 M48 29 V15"/>
+            </g>
+            <g fill="#f0d494" opacity=".55">
+              <circle cx="0" cy="58" r="1.4"/>
+              <circle cx="96" cy="58" r="1.4"/>
+              <circle cx="48" cy="29" r="1.4"/>
+            </g>
+          </pattern>
+        </defs>
+        <rect width="1118" height="532" fill="url(#lotusScale)"/>
+      </svg>
+
+      <div class="sheen"></div>
+
+      <!-- 각인 괘선 + 네 귀 연잎 장식 -->
+      <svg class="frame" viewBox="0 0 1118 532" aria-hidden="true">
+        <g fill="none" stroke="#e8c878">
+          <rect x="24" y="24" width="1070" height="484" rx="14"
+                stroke-opacity=".55" stroke-width="1.2"/>
+          <rect x="31" y="31" width="1056" height="470" rx="9"
+                stroke-opacity=".26" stroke-width="1"/>
+        </g>
+        <g id="cornerLeaf">
+          <path d="M24 66 L24 40 A16 16 0 0 1 40 24 L66 24"
+                fill="none" stroke="#f4dda6" stroke-opacity=".85" stroke-width="2.2"
+                stroke-linecap="round"/>
+          <path d="M40 40 C55 43 63 51 66 66 C51 63 43 55 40 40 Z"
+                fill="#e8c878" fill-opacity=".5"
+                stroke="#f4dda6" stroke-opacity=".7" stroke-width="1.1"/>
+          <circle cx="76" cy="76" r="2" fill="#f4dda6" fill-opacity=".7"/>
+        </g>
+        <use href="#cornerLeaf" transform="translate(1118 0) scale(-1 1)"/>
+        <use href="#cornerLeaf" transform="translate(0 532) scale(1 -1)"/>
+        <use href="#cornerLeaf" transform="translate(1118 532) scale(-1 -1)"/>
+      </svg>
+
+      <div class="content">
+        <!-- ===== 24K 금박 각인 엠블럼 ===== -->
+        <svg class="emblem" viewBox="0 0 240 240" role="img"
+             aria-label="연꽃 관을 쓰고 꿀단지와 꿀수저를 거느린 꿀꿀 운세 금박 엠블럼">
+          <defs>
+            <linearGradient id="foil" x1="14%" y1="0%" x2="86%" y2="100%">
+              <stop offset="0%"   stop-color="#fff6dc"/>
+              <stop offset="20%"  stop-color="#eecb84"/>
+              <stop offset="38%"  stop-color="#c08f36"/>
+              <stop offset="55%"  stop-color="#fdefc4"/>
+              <stop offset="74%"  stop-color="#d9ab52"/>
+              <stop offset="100%" stop-color="#9a6c26"/>
+            </linearGradient>
+            <linearGradient id="foilDeep" x1="10%" y1="0%" x2="90%" y2="100%">
+              <stop offset="0%"   stop-color="#e0bb70"/>
+              <stop offset="34%"  stop-color="#b0812f"/>
+              <stop offset="66%"  stop-color="#dcb15e"/>
+              <stop offset="100%" stop-color="#84591c"/>
+            </linearGradient>
+            <linearGradient id="foilRim" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%"   stop-color="#fff8e4"/>
+              <stop offset="16%"  stop-color="#cfa04a"/>
+              <stop offset="30%"  stop-color="#8d611f"/>
+              <stop offset="46%"  stop-color="#fdf0c8"/>
+              <stop offset="62%"  stop-color="#c39440"/>
+              <stop offset="80%"  stop-color="#7f551a"/>
+              <stop offset="100%" stop-color="#f4dfa8"/>
+            </linearGradient>
+            <radialGradient id="disc" cx="36%" cy="26%" r="84%">
+              <stop offset="0%"   stop-color="#55163a"/>
+              <stop offset="58%"  stop-color="#310a21"/>
+              <stop offset="100%" stop-color="#17040f"/>
+            </radialGradient>
+          </defs>
+
+          <!-- 오목하게 찍힌 원판 -->
+          <circle cx="120" cy="120" r="113" fill="url(#disc)"/>
+          <circle cx="120" cy="120" r="113" fill="none" stroke="url(#foilRim)" stroke-width="5"/>
+          <circle cx="120" cy="120" r="108" fill="none" stroke="#26071a" stroke-width="2" opacity=".85"/>
+          <!-- 구슬 테두리 -->
+          <circle cx="120" cy="120" r="101" fill="none" stroke="url(#foil)" stroke-width="3.2"
+                  stroke-linecap="round" stroke-dasharray="0.1 9"/>
+          <circle cx="120" cy="120" r="93"  fill="none" stroke="url(#foil)" stroke-width="1.1" opacity=".65"/>
+
+          <!-- 달과 별 -->
+          <g fill="url(#foil)">
+            <path d="M196 66 A15 15 0 1 0 196 94 A12 12 0 1 1 196 66 Z" opacity=".95"/>
+            <path d="M50 88 L53 96.5 L61.5 99.5 L53 102.5 L50 111 L47 102.5 L38.5 99.5 L47 96.5 Z" opacity=".9"/>
+            <path d="M40 152 L41.8 157 L46.8 158.8 L41.8 160.6 L40 165.6 L38.2 160.6 L33.2 158.8 L38.2 157 Z" opacity=".6"/>
+          </g>
+
+          <!-- 꿀단지 (좌) — 어깨가 벌어진 항아리 실루엣 -->
+          <g stroke="#26071a" stroke-width="2" stroke-linejoin="round">
+            <path d="M47 147 C40 158 41 172 53 177 C60 179.5 68 179 74 175 C82 169 81 157 75 147 Z"
+                  fill="url(#foil)"/>
+            <rect x="45" y="137" width="32" height="11" rx="5.5" fill="url(#foilDeep)"/>
+            <path d="M61 155 L66.5 158.2 L66.5 164.6 L61 167.8 L55.5 164.6 L55.5 158.2 Z"
+                  fill="none" stroke="#26071a" stroke-width="2" opacity=".5"/>
+          </g>
+
+          <!-- 꿀수저 (우) — 원반을 가운데가 볼록한 통 모양으로 (칼날처럼 뾰족해지면 단검으로 읽힌다) -->
+          <g transform="translate(182 146) rotate(12) scale(.86)"
+             stroke="#26071a" stroke-width="2.4" stroke-linejoin="round">
+            <path d="M0 -34 L0 -12" fill="none" stroke="#c08f36" stroke-width="7.5" stroke-linecap="round"/>
+            <circle cx="0" cy="-37" r="5.2" fill="url(#foil)"/>
+            <ellipse cx="0" cy="-6"   rx="10"   ry="3.6" fill="url(#foil)"/>
+            <ellipse cx="0" cy="1.5"  rx="12.5" ry="4"   fill="url(#foil)"/>
+            <ellipse cx="0" cy="9"    rx="12.5" ry="4"   fill="url(#foil)"/>
+            <ellipse cx="0" cy="16.5" rx="10.5" ry="3.8" fill="url(#foil)"/>
+            <ellipse cx="0" cy="23.5" rx="7"    ry="3.4" fill="url(#foil)"/>
+          </g>
+
+          <!-- 귀 (머리 뒤에서 먼저 — 바깥·위로 확실히 솟게) -->
+          <g fill="url(#foilDeep)" stroke="#26071a" stroke-width="2.4" stroke-linejoin="round">
+            <path d="M104 98 C88 93 73 74 78 60 C83 47 99 60 105 80 Z"/>
+            <path d="M136 98 C152 93 167 74 162 60 C157 47 141 60 135 80 Z"/>
+          </g>
+
+          <!-- 머리 -->
+          <ellipse cx="120" cy="112" rx="44" ry="37" fill="url(#foil)"
+                   stroke="#26071a" stroke-width="2.2"/>
+
+          <!-- 연꽃 관 — 바깥잎이 크게 벌어지고 안쪽잎이 겹쳐 오르는 5판 구성 -->
+          <g stroke="#26071a" stroke-width="2.2" stroke-linejoin="round">
+            <g fill="url(#foilDeep)">
+              <path d="M120 56 C135 65 135 76 120 82 C105 76 105 65 120 56 Z"
+                    transform="rotate(-76 120 82)"/>
+              <path d="M120 56 C135 65 135 76 120 82 C105 76 105 65 120 56 Z"
+                    transform="rotate(76 120 82)"/>
+            </g>
+            <g fill="url(#foil)">
+              <path d="M120 48 C134 61 134 74 120 82 C106 74 106 61 120 48 Z"
+                    transform="rotate(-40 120 82)"/>
+              <path d="M120 48 C134 61 134 74 120 82 C106 74 106 61 120 48 Z"
+                    transform="rotate(40 120 82)"/>
+              <path d="M120 42 C133 57 133 73 120 82 C107 73 107 57 120 42 Z"/>
+            </g>
+            <path d="M120 50 L120 76" fill="none" stroke="#26071a" stroke-width="1.6"
+                  stroke-linecap="round" opacity=".38"/>
+          </g>
+
+          <!-- 볼 -->
+          <g fill="#26071a" opacity=".18">
+            <ellipse cx="93"  cy="126" rx="8.5" ry="4.8"/>
+            <ellipse cx="147" cy="126" rx="8.5" ry="4.8"/>
+          </g>
+
+          <!-- 눈: 왼쪽은 뜨고 오른쪽은 윙크 -->
+          <ellipse cx="102" cy="108" rx="5" ry="6" fill="#26071a"/>
+          <circle cx="103.8" cy="105.6" r="1.7" fill="#fff2cf" opacity=".92"/>
+          <path d="M130 110 C134.5 104.5 141.5 104.5 146 110" fill="none"
+                stroke="#26071a" stroke-width="3.6" stroke-linecap="round"/>
+
+          <!-- 코 -->
+          <ellipse cx="120" cy="127" rx="19" ry="13.5" fill="url(#foil)"
+                   stroke="#26071a" stroke-width="2.2"/>
+          <g fill="#26071a" opacity=".82">
+            <ellipse cx="113.4" cy="127" rx="2.9" ry="4.2"/>
+            <ellipse cx="126.6" cy="127" rx="2.9" ry="4.2"/>
+          </g>
+
+          <!-- 목도리 — 머리 아랫선에 물려 붙어야 '웃음선'으로 읽히지 않는다 -->
+          <g stroke="#26071a" stroke-width="2" stroke-linejoin="round">
+            <path d="M88 136 C103 151 137 151 152 136 C149 153 91 153 88 136 Z"
+                  fill="url(#foilDeep)"/>
+            <path d="M114 148 L120 144 L126 148 L120 157 Z" fill="url(#foil)"/>
+          </g>
+        </svg>
+
+        <div class="title">꿀꿀 운세</div>
+        <div class="latin">HONEY FORTUNE</div>
+
+        <div class="rule"><i></i><b></b><i></i></div>
+
+        <div class="tagline">PRIVATE DESTINY CONSULTATION</div>
+        <div class="disciplines">사주 · 타로 · 자미두수 · 궁합</div>
+
+        <div class="plate">
+          <div>
+            <span class="k">MEMBER No.</span>
+            <span class="v">C-DE5TINY-001</span>
+          </div>
+          <div class="issuer">CODE DESTINY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="domain">code-destiny.com</div>
+</div>
+</body>
+</html>
