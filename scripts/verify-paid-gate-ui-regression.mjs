@@ -284,7 +284,11 @@ assertNotContains(indexSource, "reason: 'pass_applied_in_modal'", "membership pa
 assertContains(destinyProfileSource, "if (choice === 'pass')", "destiny pass choice grant path");
 assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny fallback restores canonical selector");
 assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
-assertNotContains(destinyProfileSource, "달빛 결제 방식 선택", "legacy two-option moon payment modal removed");
+// 독립(정적) 폴백도 정본과 같은 3옵션 결제창이어야 한다. 옛 2옵션(이용권 상점 없는) 모달 부활 방지의
+// 본체는 아래 canonical 위임 단언들이고, 여기서는 세 결제수단이 모두 렌더되는지를 직접 확인한다.
+assertContains(destinyProfileSource, 'data-mode="pass-store"', "standalone chooser keeps pass store option");
+assertContains(destinyProfileSource, 'data-mode="direct"', "standalone chooser keeps direct option");
+assertContains(destinyProfileSource, 'data-mode="monthly" data-monthly-option', "standalone chooser keeps monthly option");
 assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy destiny payment selector renderer removed");
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
 assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
