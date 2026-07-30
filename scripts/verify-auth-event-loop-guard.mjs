@@ -116,8 +116,35 @@ for (const shell of SHELLS) {
     fail(shell, "부팅 게이트가 'cd:destiny-profile-server-ready' 를 구독하지 않는다 — 스플래시가 프로필 준비를 기다리지 않는다");
   }
   const authMarks = (html.match(/__cdMarkBootSignal\('auth'\)/g) || []).length;
-  if (authMarks < 3) {
-    fail(shell, `__cdMarkBootSignal('auth') 호출이 ${authMarks}곳뿐이다 (최소 3: 게스트 확정 / 확정 카드 / 지연 확정) — 일부 경로에서 스플래시가 하드 상한까지 버틴다`);
+  if (authMarks < 2) {
+    fail(shell, `__cdMarkBootSignal('auth') 호출이 ${authMarks}곳뿐이다 (최소 2: 게스트 확정 / 확정 카드) — 일부 경로에서 스플래시가 하드 상한까지 버틴다`);
+  }
+
+  // 5-1) 미확정 상태에서 부팅 신호를 쏘면 안 된다.
+  //      __cdRenderAuthSubscriptionDelay(true) 는 "재시도 예약됨"이지 "확인 종료"가 아니다.
+  //      여기서 auth 를 발행하면 degraded/401 처럼 흔한 일시 오류에 스플래시가 즉시 걷힌다.
+  const delayBlockForSignal = blockAfter(html, 'function __cdRenderAuthSubscriptionDelay');
+  if (delayBlockForSignal && /__cdMarkBootSignal\(\s*'auth'\s*\)/.test(delayBlockForSignal)) {
+    fail(shell, "__cdRenderAuthSubscriptionDelay 가 __cdMarkBootSignal('auth') 를 호출한다 — 이용권 확인이 끝나기 전에 스플래시가 걷힌다(재시도가 예약된 미확정 상태다)");
+  }
+
+  // 5-2) 쿠키 세션 프로브가 예정된 잠정 게스트 렌더도 확정이 아니다.
+  const guestBlock = blockAfter(html, 'function __cdRenderGuestAuthLinks');
+  if (!guestBlock) {
+    fail(shell, '__cdRenderGuestAuthLinks 를 찾을 수 없다');
+  } else if (!guestBlock.includes('pendingProbe')) {
+    fail(shell, '__cdRenderGuestAuthLinks 에 pendingProbe 억제가 없다 — 쿠키 세션 사용자가 게스트로 보이는 시점에 스플래시가 걷힌다');
+  }
+  if (!html.includes('__cdRenderGuestAuthLinks({ pendingProbe:')) {
+    fail(shell, '게스트 프로브 예정 경로가 pendingProbe 를 넘기지 않는다');
+  }
+
+  // 5-3) 하드 상한은 재시도(6500ms)가 답을 낼 시간을 덮어야 한다.
+  const capMatch = html.match(/var HARD_CAP_MS = isDeeplink \? \d+ : (\d+);/);
+  if (!capMatch) {
+    fail(shell, '부팅 게이트 HARD_CAP_MS 선언을 찾을 수 없다');
+  } else if (Number(capMatch[1]) < 7500) {
+    fail(shell, `부팅 게이트 하드 상한이 ${capMatch[1]}ms 다 — __cdScheduleSubscriptionRetry(6500) 의 재시도 결과가 나오기 전에 걷힌다(최소 7500ms)`);
   }
 
   // 6) 확정 카드를 스켈레톤으로 되돌리지 않는 가드.
