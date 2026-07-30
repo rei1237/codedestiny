@@ -2110,6 +2110,13 @@
       text = '단건 결제 준비 중입니다. 주문 정보와 인증 흐름이 조용히 맞춰지고 있어요.';
     }
 
+    // 🔴 이용권 미커버 확정 → 결제창 노출 구간에는 대기 화면을 띄우지 않는다(셸이 세운 공용 플래그).
+    // 셸이 없는 독립 페이지에서는 플래그도 없으니 그대로 동작한다.
+    try {
+      if (show && typeof window.__cdPreCheckoutWaitUiSuppressed === 'function'
+        && window.__cdPreCheckoutWaitUiSuppressed(mode)) return;
+    } catch (_dpPreCheckoutProbeError) {}
+
     try {
       if (typeof window._cdSetCoinGateOverlay === 'function') {
         window._cdSetCoinGateOverlay(!!show, text, mode);
