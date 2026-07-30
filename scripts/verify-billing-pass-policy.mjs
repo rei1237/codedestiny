@@ -599,6 +599,48 @@ assertContains(indexSource, "await portOneLoadPromise", "direct payment reuses p
 assertNotContains(indexSource, "단건 결제 주문 정보를 확인하고 있습니다.", "direct checkout must not open a wait overlay before the PG window");
 assertNotContains(indexSource, "status: 'paymentWindowOpen'", "single payment must not raise wait UI before/while opening the PG window");
 assertNotContains(indexSource, "status: 'paymentPreparing'", "single payment must not raise a preparing overlay before the PG window");
+
+// 🔴 [가장 중요] 전역 fetch 래퍼(installPaymentFetchOverlay)가 결제 API POST 마다 대기 오버레이를
+// **자동으로** 켠다. 그래서 호출부의 명시적 오버레이를 모두 지워도(PR #119) 주문 발급 요청이
+// '결제 상태 확인 중 / 단건으로 카드 결제를 준비 중이에요' 돼지 UI를 띄우고 결제수단 모달까지 덮었다.
+// PG 결제창을 열기 **전** 단계(주문 발급)는 오버레이 meta 를 만들지 않아야 한다.
+assertContains(
+  indexSource,
+  "if (path.indexOf('/api/billing/checkout') === 0 || path.indexOf('/api/payments/prepare') === 0) return null;",
+  "order issuance (checkout/prepare) must not raise the automatic payment fetch overlay",
+);
+assertContains(
+  indexSource,
+  "if (bodyMode === 'DIRECT_KRW') return null;",
+  "coin-gate DIRECT_KRW must not raise the automatic payment fetch overlay",
+);
+// 반대 방향 회귀(대기 UI를 전부 없애 버리는 것)도 막는다 — 결제창 통과 후 승인 검증 대기 UI는 유지.
+assertContains(
+  indexSource,
+  "path.indexOf('/api/billing/confirm') === 0 || path.indexOf('/api/payments/confirm') === 0) return { type: 'payment', mode: 'confirm'",
+  "payment confirmation must keep its wait overlay (this is the only stage that shows one)",
+);
+assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 'payment', mode: 'pass'", "membership pass check keeps its own wait overlay");
+// 사전발급은 결제수단 모달을 덮지 않도록 무음이어야 하고, 클릭을 절대 늦추지 않아야 한다
+// (진행 중인 사전발급을 await 하면 그 대기가 곧 '너무 느리다'+'네트워크 오류'가 된다).
+assertContains(indexSource, "__cdSuppressPaymentOverlay: true", "direct checkout prefetch must be silent");
+assertContains(indexSource, "prefetch.settled === true", "direct checkout must reuse the prefetch only when it already settled (never await a pending one)");
+assertNotContains(indexSource, "var settled = await prefetch.promise;", "direct checkout must not block on a pending prefetch");
+
+// 🔴 게이트 재제안 루프(_cdGateAttempt, 최대 4회)가 같은 requestId 를 Idempotency-Key 로 재사용하면
+// 서버가 같은 주문(merchantUid)을 멱등 반환하고, PortOne 이 **paymentId 중복**을 결제창 렌더 전에
+// 거절한다 → "첫 실패 후에는 몇 번 눌러도 결제창이 안 뜬다". 시도별 키 파생을 고정한다.
+assertContains(indexSource, "var _cdAttemptIdempotencyKey = requestId + ':a' + _cdGateAttempt;", "each payment attempt must derive its own Idempotency-Key (duplicate paymentId = PG window never opens)");
+assertContains(indexSource, "idempotencyKey: _cdAttemptIdempotencyKey", "the per-attempt key must reach both the choice modal (prefetch) and the direct checkout call");
+assertContains(indexSource, "checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId", "the payload builder must prefer the per-attempt key over the loop-stable requestId");
+// 중복 코드로 거절되면 새 키로 1회 재시도해 사용자가 고착되지 않게 한다.
+assertContains(indexSource, "_cdIsPortOneDuplicatePaymentCode", "duplicate paymentId rejection must be detected and retried once with a fresh key");
+assertContains(indexSource, "__cdDuplicatePaymentRetry", "the duplicate-paymentId retry must be bounded to a single attempt");
+// 503 폭풍에서 주문 발급 POST 가 브레이크 없이 재발사되지 않게 한다(쿨다운은 원래 GET 전용이었다).
+assertContains(indexSource, "normalizedMethod === 'POST' && String(pathname || '').indexOf('/api/billing/checkout') === 0) return true", "checkout POST needs a 503 breaker (cooldown used to be GET-only)");
+assertContains(indexSource, "readApiCooldown('/api/billing/checkout') > Date.now()) return;", "prefetch must not fire while checkout is cooling down");
+// 진단 로그는 콘솔에서 'Object' 로 접히면 쓸모가 없다 — 한 줄 문자열이어야 한다.
+assertContains(indexSource, "'[direct-checkout] PortOne requestPayment failed'\n            + ' code='", "PortOne failure must be logged as one flat line (an object collapses to 'Object' in the console)");
 // PG 호출 직전에는 아무것도 끼우지 않는다(한 프레임이라도 끼면 user-gesture 소멸에 가까워진다).
 // verify-paid-gate-ui 가 js/destiny-profile.js 에 대해 같은 성질을 고정한다.
 // 주의: _cdWaitForPaymentOverlayPaint 자체는 이용권 선검사 경로에서 정당하게 쓰이므로 전역 금지가 아니다.
