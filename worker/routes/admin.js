@@ -1,6 +1,7 @@
 import { getEnv } from "../lib/env.js";
 import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
+import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
 import { requireAuth } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { ContentOverride, Insight, PointHistory } from "../lib/models.js";
@@ -4465,10 +4466,10 @@ async function handleAdminPaymentDiagnostics(request, env) {
   });
 }
 
+// 구 오버라이드 API. 신규 편집은 /api/admin/cms/* 로 가고 여기는 유명인 사주만 남는다
+// (웹소설이 라이트 노벨로 대체되며 story/chapter 편집은 폐기 — 라이트 노벨은 CmsEntry 의 light-novel).
 const CONTENT_OVERRIDE_FIELD_KEYS = {
   "famous-saju": ["shortDescription", "heroCopy", "summary", "conclusion", "seoTitle", "seoDescription"],
-  story: ["title", "description"],
-  chapter: ["title", "content"],
 };
 const CONTENT_OVERRIDE_STATUS_SET = new Set(["draft", "published"]);
 const CONTENT_OVERRIDE_MAX_CONTENT_LENGTH = 200000;
@@ -4518,15 +4519,24 @@ function toContentOverrideItem(doc) {
 
 async function handleSiteContentOverrideList(request, env) {
   await authorizeAdminRequest(request, env);
-  await connectDb(env);
 
   const sourceRaw = String(new URL(request.url).searchParams.get("source") || "").toLowerCase();
   const query = CONTENT_OVERRIDE_FIELD_KEYS[sourceRaw] ? { source: sourceRaw } : {};
 
-  const items = await adminMongoRead(env, async () =>
-    ContentOverride.find(query).sort({ updatedAt: -1 }).limit(500).lean());
+  // DB 블립에도 편집 화면이 비지 않도록 캐시를 앞에 둔다. 재시도는 adminMongoRead 가 이미 하므로
+  // 여기서 또 걸지 않는다 — 캐시는 "재시도까지 끝난 결과"만 담는다(코딩 원칙 6).
+  const { value: items, stale, cachedAt } = await readCmsThroughCache({
+    key: `site-content-overrides:${sourceRaw || "all"}`,
+    ttlSeconds: 30,
+    load: async () => {
+      await connectDb(env);
+      const docs = await adminMongoRead(env, async () =>
+        ContentOverride.find(query).sort({ updatedAt: -1 }).limit(500).lean());
+      return docs.map((item) => toContentOverrideItem(item));
+    },
+  });
 
-  return json({ ok: true, items: items.map((item) => toContentOverrideItem(item)) });
+  return json({ ok: true, items, stale, cachedAt: cachedAt || null });
 }
 
 async function handleSiteContentOverrideGet(path, request, env) {
@@ -4540,6 +4550,11 @@ async function handleSiteContentOverrideGet(path, request, env) {
     ContentOverride.findOne({ source: parsed.source, key: parsed.key }).lean());
 
   return json({ ok: true, item: doc ? toContentOverrideItem(doc) : null });
+}
+
+/** 쓰기 직후 목록 캐시를 무효화한다. 안 하면 저장해도 최대 30초간 옛 목록이 보인다. */
+function purgeSiteContentOverrideCache(source) {
+  return purgeCmsCache(["site-content-overrides:all", `site-content-overrides:${source}`]);
 }
 
 async function handleSiteContentOverrideUpsert(path, request, env) {
@@ -4570,6 +4585,7 @@ async function handleSiteContentOverrideUpsert(path, request, env) {
     { new: true, upsert: true, setDefaultsOnInsert: true },
   ).lean();
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -4593,6 +4609,7 @@ async function handleSiteContentOverridePublishStatus(path, request, env) {
   ).lean();
   if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -4606,6 +4623,7 @@ async function handleSiteContentOverrideDelete(path, request, env) {
   const doc = await ContentOverride.findOneAndDelete({ source: parsed.source, key: parsed.key }).lean();
   if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
+  await purgeSiteContentOverrideCache(parsed.source);
   return json({ ok: true, item: toContentOverrideItem(doc) });
 }
 
@@ -4682,6 +4700,14 @@ export async function handleAdminRoutes(request, env) {
     if (path === "/site-deploy") {
       if (method === "POST") return await handleSiteDeploy(request, env);
       return methodNotAllowed();
+    }
+
+    // 통합 CMS. 인증은 여기서 끝내고 핸들러만 별도 청크(routes/cms.js)로 위임한다 —
+    // admin.js 는 이미 4천 줄이 넘고, CMS 는 공개 라우트와 코드를 공유해야 한다.
+    if (path === "/cms" || path.startsWith("/cms/")) {
+      const adminContext = await authorizeAdminRequest(request, env);
+      const { handleAdminCmsRoutes } = await import("./cms.js");
+      return await handleAdminCmsRoutes(path.slice("/cms".length) || "/", request, env, adminContext);
     }
 
     if (path === "/site-content/overrides") {

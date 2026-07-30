@@ -18,6 +18,7 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
@@ -839,6 +840,16 @@ async function calculateAstrologyChart(env, normalized, requestUrl, options = {}
   return chart;
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
+function resolveSystemPrompt(env) {
+  return cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+}
+
 function buildSystemPrompt() {
   return [
     "당신은 30년 경력의 서양 점성술 상담가입니다.",
@@ -1036,7 +1047,7 @@ async function generateConsultation(env, prompt, options = {}) {
     keyExtra: "astrology-ai-v1",
   };
   const ai = await callGeminiText(env, prompt, {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens,
@@ -1065,7 +1076,7 @@ async function generateConsultation(env, prompt, options = {}) {
   if (shouldExpand) {
     const missingExpertParts = options.requireExpertParts === true ? getMissingExpertParts(content) : [];
     const repair = await callGeminiText(env, buildConsultationExpansionPrompt(prompt, content, minLength, missingExpertParts), {
-      systemPrompt: buildSystemPrompt(),
+      systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
       temperature: options.expandTemperature ?? 0.62,
       // 잘려서 재생성하는 경우 원본보다 여유 있는 토큰으로 완결시킨다.
@@ -1094,7 +1105,7 @@ async function generateConsultation(env, prompt, options = {}) {
   qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
   if (maxLength > 0 && qualityIssues.some((issue) => issue.startsWith("MAX_TOTAL_CHARS:"))) {
     const repair = await callGeminiText(env, buildConsultationCondensePrompt(prompt, content, minLength, maxLength), {
-      systemPrompt: buildSystemPrompt(),
+      systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
       temperature: options.condenseTemperature ?? 0.48,
       maxOutputTokens: Math.max(Number(options.condenseMaxOutputTokens || 0), maxOutputTokens, 12000),

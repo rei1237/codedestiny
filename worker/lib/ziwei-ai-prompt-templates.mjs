@@ -1,3 +1,5 @@
+import { applyPromptTemplateOverride } from "./cms-prompt-template-store.js";
+
 export const ZIWEI_PROMPT_TEMPLATES = Object.freeze({
   love: {
     domain: "love",
@@ -142,7 +144,8 @@ export const ZIWEI_PROMPT_TEMPLATES = Object.freeze({
 });
 
 export function getZiweiPromptTemplate(domain) {
-  return ZIWEI_PROMPT_TEMPLATES[String(domain || "").trim()] || null;
+  const key = String(domain || "").trim();
+  return applyPromptTemplateOverride("ziwei", key, ZIWEI_PROMPT_TEMPLATES[key] || null);
 }
 
 export function classifyQuestionToZiweiDomain(question) {

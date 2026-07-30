@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { EditorContent, useEditor } from "@tiptap/react";
-import LinkExtension from "@tiptap/extension-link";
 import ImageExtension from "@tiptap/extension-image";
 import StarterKit from "@tiptap/starter-kit";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -654,12 +653,11 @@ export default function InsightEditorPage({ mode, insightId = "" }: InsightEdito
 
   const editor = useEditor({
     extensions: [
+      // StarterKit v3 가 Link 를 이미 번들한다. 별도 LinkExtension 을 함께 등록하면
+      // "Duplicate extension names found: ['link']" 경고와 함께 두 인스턴스가 경쟁한다.
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
-      }),
-      LinkExtension.configure({
-        openOnClick: false,
-        autolink: true,
+        link: { openOnClick: false, autolink: true },
       }),
       InsightImage,
     ],

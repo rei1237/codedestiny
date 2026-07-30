@@ -427,6 +427,7 @@ const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", ()
 const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
+const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
@@ -1099,6 +1100,11 @@ export default {
 
       if (url.pathname === "/api/insights" || url.pathname.startsWith("/api/insights/")) {
         return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
+      }
+
+      // 공개 CMS 번들(인증 없음, 발행본만). 관리자 경로는 /api/admin/cms/* 로 admin.js 가 처리한다.
+      if (url.pathname === "/api/cms" || url.pathname.startsWith("/api/cms/")) {
+        return withCorsHeaders(request, env, await handleCmsRoutes(request, env));
       }
 
       if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {

@@ -9,6 +9,7 @@ import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -94,6 +95,11 @@ const MESSAGES = {
   serverFailed: "베다점 상담을 준비하는 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동으로 복구됩니다.",
 };
+
+/** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return VEDIC_RESULT_ONLY_SYSTEM_PROMPT;
+}
 
 const SYSTEM_PROMPT = VEDIC_RESULT_ONLY_SYSTEM_PROMPT;
 
@@ -1054,7 +1060,7 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
   const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
   const result = options.requireStructured === true
     ? await callGeminiJsonWithRetry(env, prompt, {
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
         taskType: "fortune",
         temperature: 0.72,
         baseTokens: baseMaxOutputTokens,
@@ -1065,7 +1071,7 @@ async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
         fallbackToWorkersAI: false,
       })
     : await callGeminiText(env, prompt, {
-        systemPrompt: SYSTEM_PROMPT,
+        systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
         maxOutputTokens: baseMaxOutputTokens,
         temperature: 0.72,
         taskType: "fortune",

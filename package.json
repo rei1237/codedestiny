@@ -187,7 +187,10 @@
     "test:jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node",
     "test": "npm run test:jest && npm run test:node",
     "story:generate": "node scripts/build-story-text.mjs",
-    "verify:story-sync": "node scripts/verify-story-text-sync.mjs"
+    "verify:story-sync": "node scripts/verify-story-text-sync.mjs",
+    "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
+    "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
+    "verify:cms-registry": "node scripts/verify-cms-registry.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

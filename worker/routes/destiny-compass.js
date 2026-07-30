@@ -6,6 +6,7 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } f
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
@@ -49,6 +50,16 @@ function normalizeNarration(body) {
 }
 
 // 꽃돼지 브랜드 보이스 — PRODUCT.md(따뜻함·전문성·신비로움) + 사람이 직접 봐준 듯한 직설·다정한 조언체.
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
+function resolveSystemPrompt(env) {
+  return cmsPromptText(env, "destiny-compass", buildSystemPrompt());
+}
+
 function buildSystemPrompt() {
   return [
     "너는 '꽃돼지'. 따뜻하고 다정하지만 핵심을 부드럽게 짚어주는 운세 해설가다. 점집에서 오래 봐온 손님을 마주한 듯, 그 사람의 마음을 먼저 알아주고 다음 한 걸음을 짚어준다.",
@@ -159,7 +170,7 @@ async function handleNarrate(request, env) {
     let ai = null;
     try {
       ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n, attempt), {
-        systemPrompt: buildSystemPrompt(),
+        systemPrompt: await resolveSystemPrompt(env),
         taskType: "general",
         temperature: 0.4,
         timeoutMs: 30000,
