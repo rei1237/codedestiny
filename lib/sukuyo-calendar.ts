@@ -1,3 +1,5 @@
+import { cmsRecordRow } from "./cms/build-text";
+
 import { Solar } from "lunar-javascript";
 import { buildSukuyoFromLunar } from "@/worker/lib/sukuyo-premium.js";
 
@@ -507,7 +509,9 @@ function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
   }
   return {
     mansionIndex,
-    text: SUKUYO_CALENDAR_MANSIONS[mansionIndex],
+    // 관리자 CMS(운세 콘텐츠 → 숙요 달력 해설)의 해당 수 행을 기본값 위에 얹는다.
+    // 키는 27수 순서 인덱스라 임의로 늘지 않는다(폴백 우선).
+    text: cmsRecordRow("sukuyo-calendar", "mansion", String(mansionIndex), SUKUYO_CALENDAR_MANSIONS[mansionIndex]),
     lunarYear: Number.isFinite(lunarYear) ? lunarYear : null,
     lunarMonth,
     lunarDay,

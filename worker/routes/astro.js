@@ -1,3 +1,4 @@
+import { primeCmsRecords } from "../lib/cms-records.js";
 import { getSwissVedicPlanets, getSwissWesternChart } from "../lib/swiss-ephemeris.js";
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
@@ -400,6 +401,10 @@ async function handleAstroWesternChart(request, env) {
 }
 
 async function handleVedicPlanets(request, env) {
+  // 해설 표 오버라이드를 조립 전에 채운다(동기 접근자가 읽기 때문).
+  // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다.
+  await primeCmsRecords(env);
+
   const body = await readJson(request);
   const result = await getSwissVedicPlanets(env, normalizeChartInput(body), { requestUrl: request.url });
   const localVedicChartJson = buildVedicLocalChartJson({

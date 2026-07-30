@@ -162,7 +162,7 @@
     "perf:psi:before": "node scripts/measure-psi.mjs --out reports/psi-before.json",
     "perf:psi:after": "node scripts/measure-psi.mjs --out reports/psi-after.json",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
-    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
+    "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/build-shell-cms-defaults.mjs && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
     "build:cf": "npm run prebuild:cf && npm run build",
     "deploy:cf": "npm run deploy:cf:worker",
     "deploy:cf:pages": "npm run build:cf && node scripts/with-utf8-console.mjs node scripts/deploy-pages.mjs",
@@ -197,7 +197,8 @@
     "verify:story-sync": "node scripts/verify-story-text-sync.mjs",
     "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
     "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
-    "verify:cms-registry": "node scripts/verify-cms-registry.mjs"
+    "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
+    "cms:shell-defaults": "node scripts/build-shell-cms-defaults.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",

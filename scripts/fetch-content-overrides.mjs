@@ -13,6 +13,9 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const FAMOUS_OUT = path.join(ROOT, "lib", "famous-saju", "overrides.generated.json");
 const VN_OUT = path.join(ROOT, "lib", "stories", "vn", "overrides.generated.json");
 const CMS_OUT = path.join(ROOT, "app", "_content", "cms.generated.json");
+// 바닐라 셸(index.html + js/*)은 정적 import 를 못 쓰므로 같은 내용을 public 에도 굽는다.
+// js/core/cms-static.js 가 이 파일 한 장을 받아 숙요·자미두수 해설을 갈아끼운다.
+const CMS_STATIC_OUT = path.join(ROOT, "public", "cms-static-overrides.json");
 
 // 유명인 사주는 구 contentoverrides 컬렉션에도 데이터가 남아 있을 수 있어 두 소스를 함께 읽는다.
 const FAMOUS_SAJU_FIELD_KEYS = ["shortDescription", "heroCopy", "summary", "conclusion", "seoTitle", "seoDescription"];
@@ -35,6 +38,7 @@ function writeOutputs({ famousItems = {}, vnEpisodes = {}, cmsEntries = {} } = {
   writeJson(FAMOUS_OUT, { version: 1, items: famousItems });
   writeJson(VN_OUT, { version: 1, episodes: vnEpisodes });
   writeJson(CMS_OUT, { version: 1, entries: cmsEntries });
+  writeJson(CMS_STATIC_OUT, { version: 1, entries: cmsEntries });
 }
 
 /* 워커의 isCmsEntryPublic 과 같은 기준. 여기서 다르게 판정하면 관리자엔 발행됨으로 보이는데

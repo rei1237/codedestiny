@@ -216,6 +216,11 @@ export default function RootLayout({ children }) {
             app/error.tsx 의 '경로당 1회 새로고침'은 구 HTML 이 삭제된 청크를 가리키는 경우용이라
             이 케이스를 못 고친다. 그래서 계층을 달리해 로더 자체에서 끊는다.
 
+            대상은 <script> 와 <link rel=stylesheet> 둘 다다. 2026-07-30 에 메인 Tailwind 번들
+            (_next/static/css/*.css, 592KB)이 엣지에 404 로 박혀 모든 React 라우트가 무스타일로
+            나왔다 — 그때 이 리스너가 SCRIPT 만 보고 있어 CSS 를 몸랏다. 스타일은 실패해도
+            예외가 안 나고 화면만 깨져 에러 폴백조차 안 걸린다.
+
             경로가 둘이라 장치도 둘이다(둘 다 필요 — 서로 대체 불가):
             (1) 클라이언트 사이드 이동: 청크를 __webpack_require__.l 이 동적으로 받는다 → 로더를 감싼다.
             (2) 직접 진입·새로고침: 청크가 문서에 <script> 로 박혀 온다 → 로더를 타지 않는다.
@@ -232,7 +237,7 @@ export default function RootLayout({ children }) {
             로그인·결제가 통째로 죽은 적이 있다. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t||t.nodeName!==\"SCRIPT\")return;var src=t.src||\"\";if(src.indexOf(\"/_next/static/\")<0||src.indexOf(\"cdcb=\")>-1||hit[src])return;hit[src]=1;var s=document.createElement(\"script\");s.src=bust(src);s.async=t.async;if(t.crossOrigin)s.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(s)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
+            __html: "(function(){function bust(u){return u+(u.indexOf(\"?\")>-1?\"&\":\"?\")+\"cdcb=\"+Date.now()}var hit={};try{window.addEventListener(\"error\",function(e){try{var t=e&&e.target;if(!t)return;var tag=t.nodeName;var isScript=tag===\"SCRIPT\";var isStyle=tag===\"LINK\"&&String(t.rel||\"\").toLowerCase()===\"stylesheet\";if(!isScript&&!isStyle)return;var url=(isScript?t.src:t.href)||\"\";if(url.indexOf(\"/_next/static/\")<0||url.indexOf(\"cdcb=\")>-1||hit[url])return;hit[url]=1;if(isScript){var s=document.createElement(\"script\");s.src=bust(url);s.async=t.async;if(t.crossOrigin)s.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(s);return}var l=document.createElement(\"link\");l.rel=\"stylesheet\";l.href=bust(url);if(t.media)l.media=t.media;if(t.crossOrigin)l.crossOrigin=t.crossOrigin;(document.head||document.documentElement).appendChild(l)}catch(x){}},true)}catch(x){}try{var g=self.webpackChunk_N_E=self.webpackChunk_N_E||[];g.push([[\"cd-chunk-retry\"],{},function(wr){try{if(!wr||typeof wr.l!==\"function\"||wr.__cdChunkRetry)return;wr.__cdChunkRetry=1;var orig=wr.l,busted={};wr.l=function(url,done,key,chunkId){orig(url,function(ev){if(ev&&ev.type===\"error\"&&url.indexOf(\"cdcb=\")<0){if(!busted[url])busted[url]=bust(url);orig(busted[url],done,undefined,chunkId);return}done(ev)},key,chunkId)}}catch(x){}}])}catch(x){}})();",
           }}
         />
       </head>
