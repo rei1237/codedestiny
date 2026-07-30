@@ -22,8 +22,8 @@ import CodexLoveDnaPanel, { type CodexLoveDna, type CodexLoveDnaMetric } from ".
 import CodexSeal from "./CodexSeal";
 import CodexReveal from "./CodexReveal";
 import { getNarratorAsset } from "../data/assets";
-import { groupByAct } from "../data/acts";
-import { MASTER_LOVE_CODEX_TITLE } from "../constants";
+import { groupByAct, type CodexActMode } from "../data/acts";
+import { masterLoveCodexBilling } from "../constants";
 import styles from "../styles/codex.module.css";
 
 export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
@@ -36,6 +36,8 @@ interface CodexReaderProps {
   birthLine: string;
   totalCharCount: number;
   sessionId: string;
+  /** solo = 개인판 / compat = 궁합판. 막 제목과 표지 제목이 갈린다 */
+  mode?: CodexActMode;
 }
 
 function safeFilePart(value: string) {
@@ -52,7 +54,10 @@ export default function CodexReader({
   birthLine,
   totalCharCount,
   sessionId,
+  mode = "solo",
 }: CodexReaderProps) {
+  // 표지·PDF 파일명·막 제목이 모드에 따라 갈린다(리더 레이아웃은 두 모드가 공유한다).
+  const bookTitle = masterLoveCodexBilling(mode).title;
   const [decrypted, setDecrypted] = useState(false);
   const [decryptStep, setDecryptStep] = useState(0);
   const [activeAct, setActiveAct] = useState(1);
@@ -65,7 +70,7 @@ export default function CodexReader({
     () => chapters.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0)),
     [chapters],
   );
-  const groups = useMemo(() => groupByAct(ordered), [ordered]);
+  const groups = useMemo(() => groupByAct(ordered, mode), [ordered, mode]);
   const availableActs = useMemo(() => groups.map((group) => group.act.order), [groups]);
 
   // 진입 연출 — 2초간 해독하는 척한 뒤 본문을 연다.
@@ -122,7 +127,7 @@ export default function CodexReader({
         fileName: `마스터인연의서_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
-          title: `${safeFilePart(name)}님의 ${MASTER_LOVE_CODEX_TITLE}`,
+          title: `${safeFilePart(name)}님의 ${bookTitle}`,
           subtitle: loveDna?.typeName ? `${loveDna.typeName} · 전 ${ordered.length}장` : `전 ${ordered.length}장`,
           name: birthLine,
           date: today,
@@ -134,7 +139,7 @@ export default function CodexReader({
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [birthLine, loveDna?.typeName, name, ordered.length, pdfLoading]);
+  }, [birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading]);
 
   if (!decrypted) {
     return (
@@ -159,8 +164,8 @@ export default function CodexReader({
   }
 
   return (
-    <CodexShell motes={false} ariaLabel={`${MASTER_LOVE_CODEX_TITLE} 본문`}>
-      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} />
+    <CodexShell motes={false} ariaLabel={`${bookTitle} 본문`}>
+      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} />
 
       <div ref={documentRef} id="master-love-codex-document">
         {/* 표지 */}
@@ -179,7 +184,7 @@ export default function CodexReader({
               />
               <h1 className={`${styles.hero} mt-10`}>Master Love Codex</h1>
               <p className={`${styles.actTitle} mt-5`} style={{ color: "var(--codex-ink-text)" }}>
-                {name ? `${name}님의 ${MASTER_LOVE_CODEX_TITLE}` : MASTER_LOVE_CODEX_TITLE}
+                {name ? `${name}님의 ${bookTitle}` : bookTitle}
               </p>
               <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
               <p className="mt-8 text-[0.8125rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>

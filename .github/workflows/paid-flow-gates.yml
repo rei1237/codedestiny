@@ -35,6 +35,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-compat-determinism.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
   push:
@@ -70,6 +71,7 @@ on:
       - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
+      - "scripts/verify-master-love-codex-compat-determinism.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
 
@@ -138,6 +140,10 @@ jobs:
 
       - name: Verify master love codex flow
         run: npm run verify:master-love-codex-flow
+
+      # 궁합 판정이 결정론을 잃거나 축 점수가 한쪽으로 쏠리면 20장이 모든 짝에게 같은 말을 한다.
+      - name: Verify master love codex compat determinism
+        run: npm run verify:master-love-codex-compat
 
       # 아래 11개도 같은 이유로 지금까지 한 번도 PR 을 막은 적이 없었다 — package.json 에만 있고
       # 어떤 워크플로에서도 실행되지 않았다. 실제로 그 공백 때문에 verify:saju-unlock-entitlement-regression

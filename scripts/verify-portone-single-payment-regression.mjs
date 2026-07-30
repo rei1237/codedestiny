@@ -276,6 +276,41 @@ function runDirectPgOverlayTests() {
   }
 }
 
+// 🔴 "결제창 앞 대기 화면"과 "725KB 꽃돼지가 PG창을 막는다" 회귀 가드 (2026-07)
+// ① 그 화면의 진짜 유입구는 React resolvePaymentWaitOverlay 의 access_check.single + mode:"payment"
+//    였다(셸 오버레이로 중계됨). 셸 카피만 세 번 고치고 이 분기를 놓쳐 계속 되살아났다.
+// ② 오버레이 꽃돼지가 외부 호스트 725KB PNG 였고 CSS 가 [aria-hidden="false"] 로 게이트돼 있어,
+//    단건결제 클릭 직후 처음 요청이 나가며 checkout/PortOne SDK 와 대역폭을 다퉜다 →
+//    "네트워크 오류 + PG창 미노출". 같은 그림의 로컬 WebP(78KB, 동일 오리진) + 유휴 예열로 바꿨다.
+function runPreCheckoutWaitUiAndArtWeightTests() {
+  const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+
+  // ① 접근 확인 단계에서 단건/카드 카피에 도달할 수 없다 — 셸과 React 양쪽.
+  assertNotContains(billingClientSource, 'formatLoadingMessage("access_check", "single")', "React access-check copy must not claim a card checkout is being prepared");
+  assertContains(indexSource, "if (paymentType === 'single') paymentType = 'pass';", "shell access-check copy must not fall to the card variant");
+  assertNotContains(indexSource, "_cdLoadingMessage('access_check', 'single')", "shell must not render the card access-check copy");
+
+  // ② 구간 전면 차단 — 셸이 플래그를 세우고, dp·React 가 같은 판정을 본다(구현 세 벌 금지).
+  assertContains(indexSource, "function _cdBeginPreCheckoutWaitUiSuppression()", "pre-checkout wait-UI suppression window");
+  assertContains(indexSource, "function _cdEndPreCheckoutWaitUiSuppression()", "pre-checkout suppression release");
+  assertContains(indexSource, "window.__cdPreCheckoutWaitUiSuppressed = _cdPreCheckoutWaitUiSuppressed;", "suppression probe must be shared with dp/React");
+  assertContains(indexSource, "if (isOpen && _cdPreCheckoutWaitUiSuppressed(mode)) return;", "shell overlay must honour the pre-checkout suppression");
+  assertContains(destinyProfileSource, "window.__cdPreCheckoutWaitUiSuppressed(mode)) return;", "dp overlay must honour the pre-checkout suppression");
+  assertContains(billingClientSource, "runtimeWindow.__cdPreCheckoutWaitUiSuppressed?.(overlayMode)) return;", "React overlay must honour the pre-checkout suppression");
+  // 결제창을 여는 함수 진입에서 세우고, 실제로 붙으면 해제한다.
+  assertBefore(indexSource, "_cdBeginPreCheckoutWaitUiSuppression();", "_cdEndPreCheckoutWaitUiSuppression();", "suppression must begin before it is released");
+  assertContains(indexSource, "window.__cdDirectPaymentChoiceActive = { modal: modal, startedAt: Date.now() };\n      // 결제창이 실제로 붙었으므로 구간 차단은 여기서 끝난다", "suppression must be released when the choice modal mounts");
+
+  // ③ 꽃돼지 자산 경량화: 무거운 외부 PNG 가 CSS 배경으로 남아 있지 않다(img onerror 폴백만 허용).
+  const heavyPig = "https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png";
+  assertNotContains(indexSource, `background-image: url("${heavyPig}")`, "payment overlay art must not load the 725KB PNG");
+  assertNotContains(indexSource, `background-image:url("${heavyPig}")`, "paid-gate sprite must not load the 725KB PNG");
+  assertContains(indexSource, "/DestinyCafe/%EA%BD%83%EB%8F%BC%EC%A7%803.webp", "payment art must use the light same-origin WebP");
+  // 클릭 임계경로에서 빼기 위한 예열이 있어야 한다.
+  assertContains(indexSource, "var _cdWarmPaymentOverlayArt = function() {", "overlay art must be warmed off the click path");
+  assertContains(indexSource, "_cdWarmPaymentOverlayArt();", "overlay art warm-up must be scheduled");
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -803,6 +838,7 @@ try {
   runInstantPgWindowTests();
   runInstantPgLatencyTests();
   runDirectPgOverlayTests();
+  runPreCheckoutWaitUiAndArtWeightTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");

@@ -71,14 +71,76 @@ export const CODEX_ACTS: readonly CodexAct[] = [
   },
 ] as const;
 
+/**
+ * 궁합판 5막. 장 경계(from/to)와 아이콘은 개인판과 같게 두어 리더·진행 레일·PDF 를
+ * 그대로 재사용한다 — 바뀌는 것은 막 제목과 한 문장뿐이다.
+ */
+export const CODEX_COMPAT_ACTS: readonly CodexAct[] = [
+  {
+    order: 1,
+    numeral: "I",
+    title: "두 사람의 결",
+    line: "관계를 보기 전에, 두 사람이 각각 어떤 사람인지부터 읽습니다.",
+    icon: "moon",
+    from: 1,
+    to: 4,
+  },
+  {
+    order: 2,
+    numeral: "II",
+    title: "사주가 보는 궁합",
+    line: "두 명식이 서로를 살리는 자리와 누르는 자리를 나눠 봅니다.",
+    icon: "heart",
+    from: 5,
+    to: 8,
+  },
+  {
+    order: 3,
+    numeral: "III",
+    title: "명반이 보는 궁합",
+    line: "두 장의 별자리가 겹치는 곳에서 관계의 온도가 정해집니다.",
+    icon: "sparkle",
+    from: 9,
+    to: 12,
+  },
+  {
+    order: 4,
+    numeral: "IV",
+    title: "관계의 현실",
+    line: "오래 가는 관계는 다툼이 아니라 다툰 뒤에서 갈립니다.",
+    icon: "crystal",
+    from: 13,
+    to: 16,
+  },
+  {
+    order: 5,
+    numeral: "V",
+    title: "종합과 봉인",
+    line: "두 체계가 같은 말을 하는 지점에서, 이 책을 닫습니다.",
+    icon: "seal",
+    from: 17,
+    to: 20,
+  },
+] as const;
+
+export type CodexActMode = "solo" | "compat";
+
+export function actsForMode(mode: CodexActMode = "solo"): readonly CodexAct[] {
+  return mode === "compat" ? CODEX_COMPAT_ACTS : CODEX_ACTS;
+}
+
 /** 장 번호(1-indexed)가 속한 막 */
-export function actForChapter(order: number): CodexAct {
-  return CODEX_ACTS.find((act) => order >= act.from && order <= act.to) || CODEX_ACTS[CODEX_ACTS.length - 1];
+export function actForChapter(order: number, mode: CodexActMode = "solo"): CodexAct {
+  const acts = actsForMode(mode);
+  return acts.find((act) => order >= act.from && order <= act.to) || acts[acts.length - 1];
 }
 
 /** 화면에 보이는 장 목록을 막 단위로 묶는다. 서버가 아직 다 안 준 장은 자연히 빠진다. */
-export function groupByAct<T extends { order: number }>(chapters: T[]): { act: CodexAct; chapters: T[] }[] {
-  return CODEX_ACTS
+export function groupByAct<T extends { order: number }>(
+  chapters: T[],
+  mode: CodexActMode = "solo",
+): { act: CodexAct; chapters: T[] }[] {
+  return actsForMode(mode)
     .map((act) => ({
       act,
       chapters: chapters.filter((chapter) => chapter.order >= act.from && chapter.order <= act.to),

@@ -35,29 +35,49 @@ function assertIncludes(file, text, marker) {
 }
 
 const FEATURE_KEY = "master-love-codex";
+const COMPAT_FEATURE_KEY = "master-love-codex-compat";
 
 // ── 1~2. 가격/과금 유형 ──────────────────────────────────────────────────────
 const { FEATURE_KEY_PRICE_TABLE, getPaidFeatureBillingType, PAID_FEATURE_BILLING_TYPES, FRONTEND_PAID_FEATURE_KEYS } =
   await import("../worker/lib/paid-feature-registry.js");
 
-const pricing = FEATURE_KEY_PRICE_TABLE[FEATURE_KEY];
-assert(Boolean(pricing), `paid-feature-registry: '${FEATURE_KEY}' 가격이 등록되어 있어야 합니다`);
-assert(pricing?.cost === 500, `paid-feature-registry: '${FEATURE_KEY}' cost 는 500코인이어야 합니다 (현재 ${pricing?.cost})`);
-assert(pricing?.amountKRW === 50000, `paid-feature-registry: '${FEATURE_KEY}' amountKRW 는 50000이어야 합니다 (현재 ${pricing?.amountKRW})`);
+// 개인판(solo) / 궁합판(compat) 두 SKU. 궁합은 상대 명식·명반까지 4장을 근거로 삼아 상위 가격이다.
+const SKUS = [
+  { key: FEATURE_KEY, cost: 300, amountKRW: 30000, label: "개인판" },
+  { key: COMPAT_FEATURE_KEY, cost: 500, amountKRW: 50000, label: "궁합판" },
+];
+
+for (const sku of SKUS) {
+  const pricing = FEATURE_KEY_PRICE_TABLE[sku.key];
+  assert(Boolean(pricing), `paid-feature-registry: '${sku.key}' 가격이 등록되어 있어야 합니다`);
+  assert(pricing?.cost === sku.cost, `paid-feature-registry: '${sku.key}'(${sku.label}) cost 는 ${sku.cost}코인이어야 합니다 (현재 ${pricing?.cost})`);
+  assert(
+    pricing?.amountKRW === sku.amountKRW,
+    `paid-feature-registry: '${sku.key}'(${sku.label}) amountKRW 는 ${sku.amountKRW}이어야 합니다 (현재 ${pricing?.amountKRW})`,
+  );
+  assert(
+    getPaidFeatureBillingType(sku.key) === PAID_FEATURE_BILLING_TYPES.PER_USE,
+    `paid-feature-registry: '${sku.key}' 는 회당 결제(per_use)여야 합니다. unlock 목록에 넣으면 재구매가 막힙니다`,
+  );
+  assert(
+    FRONTEND_PAID_FEATURE_KEYS.includes(sku.key),
+    `paid-feature-registry: '${sku.key}' 를 INTERNAL_FRONTEND_FEATURE_KEYS 에 등록해야 프론트가 서버 가격을 조회합니다`,
+  );
+}
+
+// 궁합이 개인판보다 싸지면 상대 정보를 넣는 쪽이 이득이 되어 가격 체계가 뒤집힌다.
 assert(
-  getPaidFeatureBillingType(FEATURE_KEY) === PAID_FEATURE_BILLING_TYPES.PER_USE,
-  `paid-feature-registry: '${FEATURE_KEY}' 는 회당 결제(per_use)여야 합니다. unlock 목록에 넣으면 재구매가 막힙니다`,
-);
-assert(
-  FRONTEND_PAID_FEATURE_KEYS.includes(FEATURE_KEY),
-  `paid-feature-registry: '${FEATURE_KEY}' 를 INTERNAL_FRONTEND_FEATURE_KEYS 에 등록해야 프론트가 서버 가격을 조회합니다`,
+  FEATURE_KEY_PRICE_TABLE[COMPAT_FEATURE_KEY]?.cost > FEATURE_KEY_PRICE_TABLE[FEATURE_KEY]?.cost,
+  "paid-feature-registry: 궁합판 가격은 개인판보다 높아야 합니다",
 );
 
 const fortuneSource = read("worker/routes/fortune.js");
-assert(
-  !fortuneSource.includes(`"${FEATURE_KEY}"`),
-  `worker/routes/fortune.js: 회당 결제 키 '${FEATURE_KEY}' 가 영구 해금(PERSISTENT_UNLOCK_KEY_SET) 쪽에 들어가면 안 됩니다`,
-);
+for (const sku of SKUS) {
+  assert(
+    !fortuneSource.includes(`"${sku.key}"`),
+    `worker/routes/fortune.js: 회당 결제 키 '${sku.key}' 가 영구 해금(PERSISTENT_UNLOCK_KEY_SET) 쪽에 들어가면 안 됩니다`,
+  );
+}
 
 // ── 3. 워커 라우트: 이용권 선검사 · paymentMode 미하드코딩 ───────────────────
 const routeFile = "worker/routes/master-love-codex.js";
@@ -132,6 +152,30 @@ assert(
   `${birthGateFile}: 가치 블록이 붙은 화면은 justify-start 여야 합니다(justify-center 는 결제 버튼을 화면 밖으로 밀어냅니다)`,
 );
 
+// ── 4-4. 궁합 전환은 명시 선택 + 상대 칸은 프로필 시드 미주입 ─────────────────
+// 금액이 30,000 → 50,000원으로 바뀌므로 사용자가 모르는 채 비싼 SKU 로 넘어가면 안 된다.
+assertIncludes(birthGateFile, birthGateSource, "EMPTY_CODEX_PARTNER");
+assertIncludes(birthGateFile, birthGateSource, "togglePartner");
+assert(
+  /aria-expanded=\{Boolean\(partner\)\}/.test(birthGateSource),
+  `${birthGateFile}: 궁합 섹션 토글에 aria-expanded 가 있어야 합니다`,
+);
+// 🔴 프로필 카드는 본인 명식이다. 상대 칸에 시드를 주입하면 남의 명식이 상대로 들어간다.
+assert(
+  !/patchPartner\([^)]*seed/.test(birthGateSource),
+  `${birthGateFile}: 상대 칸에 useAiProfileSeed 값을 주입하면 안 됩니다(프로필 카드는 본인 명식입니다)`,
+);
+// 결제 금액 배지는 모드에 따라 서버 가격을 다시 읽어야 한다(리터럴 금지).
+assert(
+  /featureKey=\{activeBilling\.featureKey\}/.test(pageSource),
+  `${pageFile}: PriceBadge 의 featureKey 가 모드에 따라 바뀌어야 상대 정보 입력 시 금액이 갱신됩니다`,
+);
+assert(
+  /masterLoveCodexBilling\(partner \? "compat" : "solo"\)/.test(pageSource),
+  `${pageFile}: 게이트 결제 식별자는 제출 시점의 상대 유무로 확정해야 합니다(렌더 시점 값에 의존하면 어긋납니다)`,
+);
+assertIncludes(pageFile, pageSource, "partnerInfo");
+
 // ── 4-3. 프롤로그: 사주×자미두수 다각도 스토리텔링이 질문 씬 앞에 있을 것 ────
 const prologueFile = "src/features/master-love-codex/data/prologue.ts";
 const prologueSource = read(prologueFile);
@@ -157,29 +201,159 @@ assertIncludes(
 );
 
 // ── 5. 챕터 계약 ─────────────────────────────────────────────────────────────
-const { MASTER_LOVE_CODEX_CHAPTERS, MASTER_LOVE_CODEX_META, getMasterLoveCodexPlan } =
-  await import("../worker/lib/master-love-codex-prompt.mjs");
+const {
+  MASTER_LOVE_CODEX_CHAPTERS, MASTER_LOVE_CODEX_META, GENERIC_PHRASE_BLOCKLIST,
+  buildMasterLoveCodexSystemGuide, getMasterLoveCodexPlan,
+} = await import("../worker/lib/master-love-codex-prompt.mjs");
+const {
+  MASTER_LOVE_CODEX_COMPAT_CHAPTERS, MASTER_LOVE_CODEX_COMPAT_META, LOVE_DNA_COMPAT_METRICS,
+  buildMasterLoveCodexCompatSystemGuide, getMasterLoveCodexCompatPlan,
+} = await import("../worker/lib/master-love-codex-compat-prompt.mjs");
 
-assert(MASTER_LOVE_CODEX_CHAPTERS.length === 20, `챕터는 20장이어야 합니다 (현재 ${MASTER_LOVE_CODEX_CHAPTERS.length})`);
-assert(MASTER_LOVE_CODEX_META.costCoins === 500, "META.costCoins 는 500이어야 합니다");
-const plan = getMasterLoveCodexPlan();
+const CHAPTER_SETS = [
+  { label: "개인판", chapters: MASTER_LOVE_CODEX_CHAPTERS, meta: MASTER_LOVE_CODEX_META, plan: getMasterLoveCodexPlan(), costCoins: 300 },
+  { label: "궁합판", chapters: MASTER_LOVE_CODEX_COMPAT_CHAPTERS, meta: MASTER_LOVE_CODEX_COMPAT_META, plan: getMasterLoveCodexCompatPlan(), costCoins: 500 },
+];
+
+for (const set of CHAPTER_SETS) {
+  assert(set.chapters.length === 20, `${set.label} 챕터는 20장이어야 합니다 (현재 ${set.chapters.length})`);
+  assert(set.meta.costCoins === set.costCoins, `${set.label} META.costCoins 는 ${set.costCoins}이어야 합니다 (현재 ${set.meta.costCoins})`);
+  assert(
+    set.plan.minTotalChars >= set.meta.minTotalChars,
+    `${set.label} 챕터 minChars 합(${set.plan.minTotalChars})이 목표 하한(${set.meta.minTotalChars})보다 작습니다`,
+  );
+  const ids = new Set(set.chapters.map((chapter) => chapter.id));
+  assert(ids.size === set.chapters.length, `${set.label} 챕터 id 가 중복됩니다`);
+  assert(
+    set.chapters.filter((chapter) => chapter.jsonMode).length === 1,
+    `${set.label} DNA(JSON) 챕터는 정확히 1개여야 합니다`,
+  );
+
+  // 🔴 네거티브 스코프 — 20장이 한 주제를 다루므로 중복이 이 상품의 최대 품질 리스크다.
+  // avoid 가 없으면 장들이 서로의 내용을 되풀이해 5만자가 물이 된다.
+  for (const chapter of set.chapters) {
+    assert(
+      Array.isArray(chapter.avoid) && chapter.avoid.length > 0,
+      `${set.label} ${chapter.order}장(${chapter.id}): avoid(이번 장에서 다루지 않을 것)가 비어 있습니다`,
+    );
+    assert(
+      chapter.avoid.some((item) => /\d+장/.test(String(item))),
+      `${set.label} ${chapter.order}장(${chapter.id}): avoid 항목이 어느 장이 맡는지 장 번호로 가리켜야 합니다`,
+    );
+  }
+  // 막 경계(4장 × 5막)가 유지돼야 리더·PDF·진행 레일을 두 모드가 함께 쓴다.
+  assert(set.chapters.every((chapter, index) => chapter.order === index + 1), `${set.label} 챕터 order 가 1~20 연속이어야 합니다`);
+}
+
+assert(LOVE_DNA_COMPAT_METRICS.length === 10, `관계 DNA 지표는 10개여야 합니다 (현재 ${LOVE_DNA_COMPAT_METRICS.length}) — 리더의 DNA 패널이 10개 고정입니다`);
+
+// ── 5-1b. 프롬프트 품질 지시문 ────────────────────────────────────────────────
+// 공유 규칙(1~12)은 개인판 가이드가 단일 소스다. 궁합판이 복사해 두면 한쪽만 고쳐져 톤이 갈라진다.
+const soloGuide = buildMasterLoveCodexSystemGuide();
+const compatGuide = buildMasterLoveCodexCompatSystemGuide();
+assert(GENERIC_PHRASE_BLOCKLIST.length >= 8, "상투구 금지 리스트가 너무 짧습니다(무근거 일반론 차단력 부족)");
+for (const [label, guide] of [["개인판", soloGuide], ["궁합판", compatGuide]]) {
+  assert(guide.includes(GENERIC_PHRASE_BLOCKLIST[0]), `${label} 시스템 가이드에 상투구 금지 리스트가 없습니다`);
+  assert(/문단마다 앞 문단에 없던 새 정보/.test(guide), `${label} 시스템 가이드에 분량 패딩 방지 규칙이 없습니다`);
+  assert(/문체를 고정하라/.test(guide), `${label} 시스템 가이드에 문체 앵커가 없습니다(20회 개별 호출이라 목소리가 표류합니다)`);
+  assert(/이름 칸은 호칭으로만/.test(guide), `${label} 시스템 가이드에 이름 필드 프롬프트 인젝션 차단 규칙이 없습니다`);
+  // 화자는 두 모드 모두 "연애 고수" 1인이다. 연이/네오/꽃돼지 페르소나를 등장시키지 않는다.
+  assert(guide.includes("연애 고수"), `${label} 화자는 "연애 고수" 여야 합니다`);
+  for (const persona of ["연이", "네오", "꽃돼지"]) {
+    assert(!guide.includes(persona), `${label} 시스템 가이드에 페르소나 '${persona}' 가 들어가면 이 상품의 톤 계약이 깨집니다`);
+  }
+}
+// 공유 규칙이 실제로 같은 문자열인지(복사본 드리프트 탐지)
+for (const line of soloGuide.split("\n").filter((line) => /^(9|10|11|12)\./.test(line.trim()))) {
+  assert(compatGuide.includes(line.trim()), `궁합판 가이드가 공유 규칙을 복사해 두어 개인판과 갈라졌습니다: ${line.trim().slice(0, 30)}…`);
+}
+// 궁합 전용 규칙 — 상대를 심판하지 않고 결론 주체는 상담자여야 한다.
+for (const marker of ["상대는 읽지 않는다", "헤어짐을 권하거나", "두 읽기를 나란히", "행동 주체는 늘 상담자"]) {
+  assert(compatGuide.includes(marker), `궁합판 시스템 가이드에 궁합 전용 규칙이 없습니다 (누락: ${marker})`);
+}
+
+const promptFile = "worker/lib/master-love-codex-prompt.mjs";
+const compatPromptFile = "worker/lib/master-love-codex-compat-prompt.mjs";
+for (const [file, source] of [[promptFile, read(promptFile)], [compatPromptFile, read(compatPromptFile)]]) {
+  assertIncludes(file, source, "[이번 장에서 다루지 않을 것");
+  assertIncludes(file, source, "서로 다른 근거를 최소 4개");
+  assertIncludes(file, source, "할 수 있는 행동");
+}
+// 궁합판은 명식·명반 직렬화와 공유 가이드를 개인판에서 import 해 재사용한다(중복 구현 금지).
+const compatPromptSource = read(compatPromptFile);
+assertIncludes(compatPromptFile, compatPromptSource, "from \"./master-love-codex-prompt.mjs\"");
+assertIncludes(compatPromptFile, compatPromptSource, "buildMasterLoveCodexSystemGuide");
 assert(
-  plan.minTotalChars >= MASTER_LOVE_CODEX_META.minTotalChars,
-  `챕터 minChars 합(${plan.minTotalChars})이 목표 하한(${MASTER_LOVE_CODEX_META.minTotalChars})보다 작습니다`,
+  !/export function formatSajuForPrompt/.test(compatPromptSource),
+  `${compatPromptFile}: 명식 직렬화를 다시 구현하지 말고 개인판 정본을 import 하세요`,
 );
-const chapterIds = new Set(MASTER_LOVE_CODEX_CHAPTERS.map((chapter) => chapter.id));
-assert(chapterIds.size === MASTER_LOVE_CODEX_CHAPTERS.length, "챕터 id 가 중복됩니다");
+
+// ── 5-1c. 모드 분기 · 액세스 토큰 교차 사용 차단 ──────────────────────────────
+assertIncludes(routeFile, routeSource, "master-love-codex-compat-prompt.mjs");
+assertIncludes(routeFile, routeSource, "buildMasterLoveCodexCompatibility");
+assertIncludes(routeFile, routeSource, "tokenMatchesMode");
 assert(
-  MASTER_LOVE_CODEX_CHAPTERS.filter((chapter) => chapter.jsonMode).length === 1,
-  "연애 DNA(JSON) 챕터는 정확히 1개여야 합니다",
+  /partnerInfo\s*\|\|\s*body\.partner/.test(routeSource),
+  `${routeFile}: 상대 정보(partnerInfo)를 선택 입력으로 받아 궁합 모드로 전환해야 합니다`,
+);
+// 🔴 개인판(30,000원) 토큰으로 궁합판(50,000원)을 생성할 수 있으면 안 된다.
+assert(
+  /featureKey:\s*modeDef\.featureKey/.test(routeSource),
+  `${routeFile}: 액세스 토큰의 featureKey 를 상수로 박으면 개인판 결제로 궁합을 받을 수 있습니다`,
+);
+assert(
+  routeSource.includes("tokenMatchesMode(payload, normalized.mode)"),
+  `${routeFile}: /start 는 토큰이 이 요청의 모드용인지 확인해야 합니다`,
+);
+assert(
+  routeSource.includes("tokenMatchesMode(tokenPayload, modeDef.mode)"),
+  `${routeFile}: /generate 는 세션의 모드와 토큰의 모드가 같은지 확인해야 합니다`,
+);
+// 상대 정보가 없으면 언제나 개인판(가격이 낮은 쪽)으로 떨어져야 한다.
+const { normalizeInput: routeNormalizeInput } = (await import("../worker/routes/master-love-codex.js")).__masterLoveCodexTestUtils;
+const soloInput = routeNormalizeInput({ birthInfo: { gender: "female", birthDate: "1993-05-14", birthTime: "07:20" } });
+const compatInput = routeNormalizeInput({
+  birthInfo: { gender: "female", birthDate: "1993-05-14", birthTime: "07:20" },
+  partnerInfo: { birthDate: "1990-11-02" },
+});
+assert(soloInput.mode === "solo", "상대 정보가 없으면 mode 는 solo 여야 합니다");
+assert(compatInput.mode === "compat", "상대 생년월일이 있으면 mode 는 compat 여야 합니다");
+assert(soloInput.inputHash !== compatInput.inputHash, "개인판과 궁합판의 inputHash 가 갈라져야 합니다(토큰 재사용 방지)");
+// 개인판 해시는 기존 문자열을 문자 단위로 보존해야 진행 중 세션의 토큰 검증이 깨지지 않는다.
+const { createHash } = await import("node:crypto");
+assert(
+  soloInput.inputHash === createHash("sha256").update(["1993-05-14", "07:20", false, "solar", false, "female"].join("|")).digest("hex"),
+  "개인판 inputHash 계산식이 바뀌었습니다 — 진행 중 세션의 액세스 토큰 검증이 전부 실패합니다",
+);
+// 궁합 모드에서만 상대 차트 4장 + 궁합 판정이 만들어져야 한다.
+const { buildCharts: routeBuildCharts } = (await import("../worker/routes/master-love-codex.js")).__masterLoveCodexTestUtils;
+const soloCharts = routeBuildCharts(soloInput);
+const compatCharts = routeBuildCharts(compatInput);
+assert(!soloCharts.partnerSaju && !soloCharts.compatibility, "개인판에서 상대 차트/궁합 판정이 만들어지면 안 됩니다");
+assert(
+  Boolean(compatCharts.partnerSaju && compatCharts.partnerZiweiChart && compatCharts.compatibility?.signature),
+  "궁합판은 상대 명식·명반과 궁합 판정을 함께 만들어야 합니다",
 );
 // 배치 생성이 빠지면 20장 동기 생성이 되어 엣지 100초 컷에 걸린다.
 assertIncludes(routeFile, routeSource, "CHAPTER_BATCH_SIZE");
 assertIncludes(routeFile, routeSource, "acquireBatchLock");
 assert(/BATCH_LOCK_TTL_MS\s*=\s*390_?000/.test(routeSource), `${routeFile}: 배치 락 TTL 은 390초여야 합니다(중복 기동 방지)`);
+// 🔴 2026-07-30 판단 반전 — Workers AI 폴백을 켠 상태로 유지한다.
+//  이전 가드는 "장문이 잘린다"며 폴백을 금지했다. 그 판단은 폐기된 8B 모델
+//  (@cf/meta/llama-3.1-8b-instruct, 2026-05-30 폐기) 기준이었고, 지금 기본 폴백은
+//  llama-3.3-70b-instruct-fp8-fast 다. 무엇보다 비교 대상이 잘못됐다 — 폴백을 끄면
+//  Gemini 장애 시 독자가 받는 건 짧은 장이 아니라 fallbackChapterBody() 사과 문구다.
+//  (실제로 Gemini 크레딧 소진 429 상황에서 결제한 책 20장이 전부 사과문으로 나갔다.)
 assert(
-  !/fallbackToWorkersAI\s*:\s*true/.test(routeSource),
-  `${routeFile}: 장문 생성은 Workers AI 폴백을 켜면 안 됩니다(모델 한계로 잘림)`,
+  !/fallbackToWorkersAI\s*:\s*false/.test(routeSource),
+  `${routeFile}: Workers AI 폴백을 끄면 Gemini 장애 시 결제한 책 20장이 전부 사과 문구로 나갑니다`,
+);
+// Workers AI(env.AI.run)는 responseMimeType 을 받지 않아 JSON 앞뒤에 잡음이 섞인다.
+// JSON.parse 를 그대로 쓰면 DNA 챕터가 폴백 문구로 떨어진다.
+assertIncludes(routeFile, routeSource, "parseChapterJson");
+assert(
+  !/JSON\.parse\(clean\(ai\?\.text/.test(routeSource),
+  `${routeFile}: DNA 챕터 JSON 은 parseChapterJson 으로 관대하게 파싱해야 합니다(Workers AI 는 코드펜스를 섞어 보냅니다)`,
 );
 assert(
   !/PREMIUM_GEMINI_TIMEOUT_MS/.test(routeSource),
