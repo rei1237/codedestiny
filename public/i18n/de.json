@@ -1837,9 +1837,9 @@
         },
         "card": {
           "eyebrow": "EINZIGE SICHERE KASSE",
-          "title": "Einmalige Zahlung wird vorbereitet",
+          "title": "Zahlungsfenster des Anbieters wird geladen",
           "message": "Bestelldetails und Authentifizierung werden angepasst.",
-          "meta": "Setzen Sie die Authentifizierung fort, wenn das sichere Checkout-Fenster geöffnet wird."
+          "meta": "Setzen Sie die Authentifizierung fort, sobald das Zahlungsfenster geöffnet ist."
         },
         "checkout": {
           "eyebrow": "Zur Kasse bereit",
@@ -1905,9 +1905,9 @@
         },
         "card": {
           "eyebrow": "EINZIGE SICHERE KASSE",
-          "title": "Einmalige Zahlung wird vorbereitet",
+          "title": "Zahlungsfenster des Anbieters wird geladen",
           "message": "Bestelldetails und Authentifizierung werden angepasst.",
-          "meta": "Setzen Sie die Authentifizierung fort, wenn das sichere Checkout-Fenster geöffnet wird."
+          "meta": "Setzen Sie die Authentifizierung fort, sobald das Zahlungsfenster geöffnet ist."
         },
         "checkout": {
           "eyebrow": "Zur Kasse bereit",

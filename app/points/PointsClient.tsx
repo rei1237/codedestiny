@@ -2134,11 +2134,15 @@ function getMoonlightPlanPhase(plan: SubscriptionPlan): MoonPhase {
 
 // 히어로 메달리온·지갑 카드·빈 주문 내역 세 곳이 같은 연이를 쓰므로 로딩 실패 폴백까지 여기서만 관리한다.
 // (URL 정본은 결제 대기 화면과 공유하는 PAYMENT_PIG_LOGO_URL — 상점용 상수를 따로 만들지 않는다.)
-// 원본은 742KB PNG인데 상점에서는 최대 90px로만 쓰므로 Cloudflare Image Resizing 축소본을 먼저 받는다(약 12KB).
+// 상점에서는 최대 90px로만 쓰므로 Cloudflare Image Resizing 축소본을 먼저 받는다.
+// 정본이 동일 오리진 상대경로가 된 뒤에도 축소본을 계속 쓰도록 상대경로를 그대로 이어 붙인다
+// (예전에는 new URL(상대경로)가 throw 해서 catch 로 떨어지며 축소를 조용히 포기했다).
 const SHOP_PIG_RESIZED_URL = (() => {
+  const resizePrefix = "/cdn-cgi/image/width=220,quality=82,format=auto";
+  if (PAYMENT_PIG_LOGO_URL.startsWith("/")) return `${resizePrefix}${PAYMENT_PIG_LOGO_URL}`;
   try {
     const parsed = new URL(PAYMENT_PIG_LOGO_URL);
-    return `${parsed.origin}/cdn-cgi/image/width=220,quality=82,format=auto${parsed.pathname}`;
+    return `${parsed.origin}${resizePrefix}${parsed.pathname}`;
   } catch {
     return PAYMENT_PIG_LOGO_URL;
   }

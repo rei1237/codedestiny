@@ -163,11 +163,12 @@ assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/p
 assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
 assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
 assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
-// 🔴 같은 꽃돼지 마스코트를 쓰되 **경량 자산**이어야 한다. 예전에는 외부 호스트의 725KB PNG 를
+// 🔴 결제 마스코트는 **메인 서비스 로고 + 경량 자산**이어야 한다. 예전에는 외부 호스트의 725KB PNG 를
 // 직접 참조했고, CSS 가 [aria-hidden="false"] 로 게이트돼 오버레이를 여는 순간(=단건결제 클릭 직후)
 // 처음 요청이 나가 checkout/PortOne SDK 와 대역폭을 다퉜다 → "네트워크 오류 + PG창 미노출".
-// 동일 오리진 WebP(78KB)로 고정한다 — 마스코트 정체성은 그대로, 무게만 줄인다.
-assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/DestinyCafe/%EA%BD%83%EB%8F%BC%EC%A7%803.webp", "paid gate sprite uses the light branded mascot image");
+// 동일 오리진 32KB 로고로 고정한다 — head 에 rel=preload fetchpriority=high 가 이미 있어
+// 결제 클릭 시점에는 워엄 캐시이고, 클릭 임계경로에 추가 네트워크가 0 이다.
+assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"/icons/app-logo-512.webp", "paid gate sprite uses the preloaded same-origin service logo");
 assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");

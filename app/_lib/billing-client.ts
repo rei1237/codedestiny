@@ -217,8 +217,9 @@ type RuntimeApiWindow = Window & {
   // 단건 결제 leaf를 Play Billing으로 바꿔친다.
   __cdAppPaymentGuard?: { installed?: boolean };
   _cdSetCoinGateOverlay?: (show: boolean, message?: string, mode?: string) => void;
-  // 셸이 세우는 공용 플래그 판정. "이용권 미커버 확정 → 결제창 노출" 구간이면 true.
-  __cdPreCheckoutWaitUiSuppressed?: (mode?: string) => boolean;
+  // 셸이 세우는 공용 판정의 정본. 대기 오버레이를 띄우면 안 되는 구간이면 true
+  // (미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건 확정→PG창).
+  __cdPaymentWaitUiBlocked?: (mode?: string) => boolean;
   _cdChooseServicePaymentMode?: PaymentChoiceFunction;
   _cdOpenPaidServiceGate?: PaidServiceRuntimeGate;
   __cdSuppressPaymentFetchOverlayCount?: number;
@@ -1349,6 +1350,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         close(mode);
       });
     });
+    // 🔴 결제창을 붙이는 순간 열려 있던 대기 오버레이를 내린다. 억제 판정은 "새로 여는 것"만 막고
+    // 이미 열린 오버레이는 닫지 않는데, useCoinGate 가 선검사 때 켠 오버레이는 외곽 finally 의
+    // endPayment() 까지 살아 있어서 결제창 위에 그대로 겹쳐 보였다. 셸 경로는
+    // _cdBeginPreCheckoutWaitUiSuppression()/closeSharedPaidGate() 가 같은 일을 하는데
+    // 이 React 렌더러에는 닫는 호출이 아예 없었다.
+    emitPaymentLoadingState(false);
     document.body.appendChild(modal);
     // 첫 번째 실제 결제 옵션에 포커스(상점 우선 노출 시 상점 버튼). 하드코딩된 direct 포커스 대체.
     (modal.querySelector<HTMLButtonElement>(".cd-direct-payment-option")
@@ -2554,7 +2561,13 @@ function resolvePaymentWaitOverlay(status: string, message?: string, detail?: Re
   }
 
   if (status === "checkingEntitlement") {
-    const paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
+    let paymentType = resolvePaymentTypeForWaitKind(kind, "pass");
+    // 🔴 접근 확인 단계에서는 단건/카드 카피를 쓰지 않는다 — 아직 결제 수단이 확정되지 않은 구간이다.
+    // 셸 _cdResolvePaymentWaitCopy 의 같은 분기와 동일 규칙(index.html 의 checkingEntitlement 분기).
+    // 이 한 줄이 빠져 있어서 'PAYMENT CHECK · 결제 상태 확인 중 · 단건으로 카드 결제를 준비 중이에요'
+    // 조합이 계속 되살아났다(#136 은 아래 opening/loadingProducts/readyToPay 분기만 고쳤다).
+    // 방아쇠는 resolvePaymentWaitKind 의 /카드/ 매칭이라 타로·프로필 카드 계열이 전부 single 로 잡힌다.
+    if (paymentType === "single") paymentType = "pass";
     return {
       message: paymentType === "pass" ? formatPassLoadingMessage("access_check", detail) : formatLoadingMessage("access_check", paymentType),
       mode: paymentType === "pass" ? "pass" : (paymentType === "subscription" ? "monthly" : "payment"),
@@ -2617,10 +2630,11 @@ function emitPaymentLoadingState(open: boolean, message?: string, mode?: string)
   const runtimeWindow = window as RuntimeApiWindow;
   const overlayMessage = toText(message) || "결제 상태를 안전하게 확인하고 있습니다.";
   const overlayMode = toText(mode) || "payment";
-  // 🔴 이용권 미커버 확정 → 결제창 노출 구간에는 대기 화면을 띄우지 않는다(셸이 세운 공용 플래그).
-  // 셸의 _cdSetCoinGateOverlay 안에도 같은 검사가 있지만, 셸이 없는 화면에서는 아래 커스텀 이벤트
+  // 🔴 대기 화면 금지 구간(이용권 미커버 확정→결제창 노출 / 결제창이 떠 있는 동안 / 단건→PG창)에는
+  // 띄우지 않는다. 판정 정본은 셸의 __cdPaymentWaitUiBlocked 하나이고(구현을 두 벌 두지 않는다),
+  // 셸의 _cdSetCoinGateOverlay 안에도 같은 검사가 있지만 셸이 없는 화면에서는 아래 커스텀 이벤트
   // 경로로 나가므로 여기서도 봐야 한다.
-  if (open && runtimeWindow.__cdPreCheckoutWaitUiSuppressed?.(overlayMode)) return;
+  if (open && runtimeWindow.__cdPaymentWaitUiBlocked?.(overlayMode)) return;
   if (typeof runtimeWindow._cdSetCoinGateOverlay === "function") {
     runtimeWindow._cdSetCoinGateOverlay(open, overlayMessage, overlayMode);
     return;

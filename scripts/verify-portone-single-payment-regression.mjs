@@ -179,7 +179,9 @@ function runInstantPgWindowTests() {
   assertNotContains(indexSource, "updateSharedPaidGate('paymentPreparing'", "the choice-time paymentPreparing emit stays removed (the gap overlay is owned by the checkout function)");
   assertContains(indexSource, "function _cdBeginDirectPgWindowSuppression()", "direct-PG wait-UI suppression window");
   assertContains(indexSource, "function _cdEndDirectPgWindowSuppression()", "direct-PG wait-UI suppression release");
-  assertContains(indexSource, "if (isOpen && _cdDirectPgWindowSuppressedMode(mode)) return;", "overlay must honour the direct-PG suppression window");
+  // 이 조건은 _cdSetCoinGateOverlay 본문에서 공용 판정 _cdPaymentWaitUiBlocked 안으로 옮겨졌다
+  // (React 가 셸 렌더러를 갈아치울 때 본문 안 검사가 통째로 우회되던 문제 때문). 판정 내용은 동일하다.
+  assertContains(indexSource, "if (_cdDirectPgWindowSuppressedMode(mode)) return true;", "overlay must honour the direct-PG suppression window");
   assertContains(indexSource, "if (_cdDirectPgWindowSuppressedStatus(status)) return;", "paid-feature gate must honour the direct-PG suppression window");
   assertBefore(indexSource, "_cdBeginDirectPgWindowSuppression();", "_cdEndDirectPgWindowSuppression();", "suppression must begin before it is released");
   assertBefore(indexSource, "_cdEndDirectPgWindowSuppression();", "window.PortOne.requestPayment(requestData)", "suppression must be released right before the PG window renders");
@@ -259,9 +261,11 @@ function runDirectPgOverlayTests() {
   // ⓑ 결제창과 동시 노출 금지
   assertContains(indexSource, "function _cdPaymentChoiceModalOpen()", "payment-choice-modal probe");
   assertContains(indexSource, "document.querySelector('.cd-direct-payment-modal')", "probe must detect any of the three renderers' modal");
+  // 이 조건도 공용 판정 _cdPaymentWaitUiBlocked 안으로 옮겨졌다(React 가 셸 렌더러를 갈아치우면
+  // 본문 안 검사가 우회되기 때문). 셸·dp·React 세 렌더러가 이제 같은 함수를 본다.
   assertContains(
     indexSource,
-    "if (isOpen && _cdPaymentChoiceModalOpen() && !CD_DIRECT_PG_TERMINAL_MODE_RE.test(String(mode || ''))) return;",
+    "if (_cdPaymentChoiceModalOpen() && !CD_DIRECT_PG_TERMINAL_MODE_RE.test(String(mode || ''))) return true;",
     "no progress overlay may be shown while the payment-choice modal is open",
   );
 
@@ -285,27 +289,59 @@ function runDirectPgOverlayTests() {
 function runPreCheckoutWaitUiAndArtWeightTests() {
   const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 
+  const paymentLoadingSource = readFileSync(resolve(root, "app/components/common/PaymentLoading.tsx"), "utf8");
+  const paymentContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
+  const pigVisualSource = readFileSync(resolve(root, "app/components/common/PaymentPigVisual.tsx"), "utf8");
+
   // ① 접근 확인 단계에서 단건/카드 카피에 도달할 수 없다 — 셸과 React 양쪽.
   assertNotContains(billingClientSource, 'formatLoadingMessage("access_check", "single")', "React access-check copy must not claim a card checkout is being prepared");
   assertContains(indexSource, "if (paymentType === 'single') paymentType = 'pass';", "shell access-check copy must not fall to the card variant");
   assertNotContains(indexSource, "_cdLoadingMessage('access_check', 'single')", "shell must not render the card access-check copy");
+  // 🔴 위 리터럴 핀은 **변수 인자 호출을 못 잡는다** — 실제로 checkingEntitlement 분기가
+  // formatLoadingMessage("access_check", paymentType) 로 같은 카피를 계속 만들어냈다(#136 이후 잔존).
+  // 그래서 구조로 단언한다: React 도 셸과 같은 single→pass 교정을 갖고 있어야 한다.
+  assertContains(billingClientSource, 'if (paymentType === "single") paymentType = "pass";', "React access-check branch must coerce single→pass like the shell");
+  // 기본값(variant 'payment' · resolvePaymentLoadingType)이 single 로 되돌아가면 mode 가 확정되지 않은
+  // 모든 오버레이가 다시 "단건으로 카드 결제를 준비 중이에요" 를 렌더한다.
+  assertContains(paymentLoadingSource, 'if (variant === "payment") return { stage: "access_check", paymentType: "pass" };', "React payment variant must not default to the card copy");
+  assertContains(paymentContextSource, 'if (variant === "payment") return "pass";', "React payment variant must not default to the single payment type");
 
-  // ② 구간 전면 차단 — 셸이 플래그를 세우고, dp·React 가 같은 판정을 본다(구현 세 벌 금지).
+  // ② 구간 전면 차단 — 셸이 판정 정본을 세우고, dp·React 가 같은 하나를 본다(구현 세 벌 금지).
   assertContains(indexSource, "function _cdBeginPreCheckoutWaitUiSuppression()", "pre-checkout wait-UI suppression window");
   assertContains(indexSource, "function _cdEndPreCheckoutWaitUiSuppression()", "pre-checkout suppression release");
-  assertContains(indexSource, "window.__cdPreCheckoutWaitUiSuppressed = _cdPreCheckoutWaitUiSuppressed;", "suppression probe must be shared with dp/React");
-  assertContains(indexSource, "if (isOpen && _cdPreCheckoutWaitUiSuppressed(mode)) return;", "shell overlay must honour the pre-checkout suppression");
-  assertContains(destinyProfileSource, "window.__cdPreCheckoutWaitUiSuppressed(mode)) return;", "dp overlay must honour the pre-checkout suppression");
-  assertContains(billingClientSource, "runtimeWindow.__cdPreCheckoutWaitUiSuppressed?.(overlayMode)) return;", "React overlay must honour the pre-checkout suppression");
+  // 🔴 판정 정본은 함수 하나로 묶여 export 되어야 한다. 예전에는 세 조건이 _cdSetCoinGateOverlay 본문
+  // 안에만 있었고, React Provider 가 그 함수를 자기 렌더러로 갈아치우는 탓에 셋 다 우회돼
+  // 결제창 위에 대기 오버레이가 겹쳤다.
+  assertContains(indexSource, "function _cdPaymentWaitUiBlocked(mode) {", "wait-UI block verdict must live in one shared function");
+  assertContains(indexSource, "window.__cdPaymentWaitUiBlocked = _cdPaymentWaitUiBlocked;", "block verdict must be shared with dp/React");
+  assertContains(indexSource, "if (isOpen && _cdPaymentWaitUiBlocked(mode)) return;", "shell overlay must honour the shared block verdict");
+  assertContains(destinyProfileSource, "window.__cdPaymentWaitUiBlocked(mode)) return;", "dp overlay must honour the shared block verdict");
+  assertContains(billingClientSource, "runtimeWindow.__cdPaymentWaitUiBlocked?.(overlayMode)) return;", "React bridge must honour the shared block verdict");
+  assertContains(paymentContextSource, "if (isPaymentWaitUiBlocked(nextMode)) return;", "React renderer must honour the block verdict it hijacked away from the shell");
+  // 차단은 '새로 여는 것'만 막는다 — 이미 열려 있던 오버레이는 결제창이 붙을 때 닫아야 한다.
+  // (useCoinGate 가 선검사 때 켠 오버레이가 외곽 finally 까지 살아 결제창 위에 겹쳐 보였다.)
+  assert.ok(
+    /emitPaymentLoadingState\(false\);\s*\r?\n\s*document\.body\.appendChild\(modal\);/.test(billingClientSource),
+    "React choice modal must close the open wait overlay as it mounts",
+  );
   // 결제창을 여는 함수 진입에서 세우고, 실제로 붙으면 해제한다.
   assertBefore(indexSource, "_cdBeginPreCheckoutWaitUiSuppression();", "_cdEndPreCheckoutWaitUiSuppression();", "suppression must begin before it is released");
   assertContains(indexSource, "window.__cdDirectPaymentChoiceActive = { modal: modal, startedAt: Date.now() };\n      // 결제창이 실제로 붙었으므로 구간 차단은 여기서 끝난다", "suppression must be released when the choice modal mounts");
 
-  // ③ 꽃돼지 자산 경량화: 무거운 외부 PNG 가 CSS 배경으로 남아 있지 않다(img onerror 폴백만 허용).
+  // ③ 결제 마스코트 자산 경량화: 무거운 외부 PNG 가 CSS 배경으로 남아 있지 않다(img onerror 폴백만 허용).
+  // 정본은 메인 서비스 로고이고, head 의 rel=preload fetchpriority=high 덕분에 클릭 시점엔 워엄 캐시다.
+  const paymentArt = "/icons/app-logo-512.webp";
   const heavyPig = "https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png";
   assertNotContains(indexSource, `background-image: url("${heavyPig}")`, "payment overlay art must not load the 725KB PNG");
   assertNotContains(indexSource, `background-image:url("${heavyPig}")`, "paid-gate sprite must not load the 725KB PNG");
-  assertContains(indexSource, "/DestinyCafe/%EA%BD%83%EB%8F%BC%EC%A7%803.webp", "payment art must use the light same-origin WebP");
+  assertContains(indexSource, `background-image: url("${paymentArt}")`, "payment overlay art must use the preloaded same-origin logo");
+  assertContains(indexSource, `background-image:url("${paymentArt}")`, "paid-gate sprite must use the preloaded same-origin logo");
+  assertContains(indexSource, '<link rel="preload" as="image" href="/icons/app-logo-512.webp"', "payment art must stay preloaded so the click path costs no network");
+  // 🔴 React 쪽에도 같은 규칙이 필요하다 — #136 이 셸 3곳만 고쳐서 React 는 742KB 외부 PNG 를
+  // 계속 받고 있었고, 이 누락을 잡아낼 가드가 아예 없었다.
+  assertNotContains(pigVisualSource, "nobackground", "React payment art must not point at the heavy R2 cut-out PNG");
+  assertNotContains(pigVisualSource, "assets.code-destiny.com", "React payment art must be same-origin");
+  assertContains(pigVisualSource, `const PAYMENT_PIG_PUBLIC_PATH = "${paymentArt}";`, "React payment art must use the same preloaded logo as the shell");
   // 클릭 임계경로에서 빼기 위한 예열이 있어야 한다.
   assertContains(indexSource, "var _cdWarmPaymentOverlayArt = function() {", "overlay art must be warmed off the click path");
   assertContains(indexSource, "_cdWarmPaymentOverlayArt();", "overlay art warm-up must be scheduled");
