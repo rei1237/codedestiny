@@ -75,7 +75,8 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 ## AI & API
 
 - **Gemini 호출**: `lib/llm-client.ts` (실제 구현체, `worker/lib/gemini.js`·`gemini-client.js`는 얇은 래퍼). 모델 `gemini-2.5-flash`, REST `generateContent` 엔드포인트 직접 호출(SDK 미사용). API 키는 `GEMINIF_API_KEY` 단일 키만 사용(다른 키 이름 참조는 제거됨).
-- **Workers AI 폴백**: Gemini 실패/타임아웃 시 자동으로 `env.AI.run()` 호출 — PDF 작업은 `@cf/meta/llama-3.3-70b-instruct-fp8-fast`, 그 외는 `@cf/meta/llama-3.1-8b-instruct`.
+- **Workers AI 폴백**: Gemini 실패/타임아웃 시 자동으로 `env.AI.run()` 호출. 기본 모델은 **작업 종류와 무관하게 `@cf/meta/llama-3.3-70b-instruct-fp8-fast`** 하나다(`lib/llm-client.ts`의 `DEFAULT_WORKERS_AI_MODEL`). PDF/비PDF는 모델이 아니라 **env 오버라이드 키만** 다르다 — PDF는 `WORKERS_AI_PDF_MODEL`, 그 외는 `WORKERS_AI_MODEL`(둘 다 없으면 `WORKERS_AI_MODEL` → 기본값). 🔴 `@cf/meta/llama-3.1-8b-instruct` 는 **2026-05-30 폐기**됐다(`5028: This model was deprecated`) — 어디에도 새로 쓰지 말 것.
+- **폴백 품질 한계(2026-07-30 실측)**: 70B는 장문 지시에도 **목표 분량의 60~77%만 쓰고 스스로 멈춘다**(`finish_reason: "stop"`, `completion_tokens` 840 / 상한 8,000). **`maxOutputTokens`를 올려도 늘지 않으므로 다시 재지 말 것.** 또 `responseMimeType`을 받지 않아 JSON 응답에 코드펜스·설명문이 섞이므로, 폴백을 켠 경로는 `JSON.parse` 대신 첫 `{`~마지막 `}`를 잘라내는 관대한 파서를 써야 한다. 그럼에도 폴백은 켜 두는 쪽이 맞다 — 끄면 Gemini 장애 시 사용자가 받는 것은 짧은 결과가 아니라 실패 안내 문구다.
 - **MongoDB**: 연결 env는 `MONGO_URI`/`MONGODB_URI`. 신규 코드는 기존 두 싱글턴 패턴(`lib/mongodb.ts` 또는 `app/_lib/dbConnect.js`) 중 이미 쓰이는 쪽을 따를 것 — 새 패턴 추가 금지.
 - **Cloudflare Workers 제약**: `worker/` 디렉토리는 Node 내장 API(`fs`, `net` 등) 사용 금지, 순수 fetch/Web API 기반 유지. `app/api/*` 라우트 중 Node API가 필요하면 `export const runtime = "nodejs"` 명시.
 - **결제**: 클라이언트는 `lib/payment/portone.ts`(PortOne V2 브라우저 SDK 동적 로드), 서버는 `worker/lib/portone.js`(PortOne REST API) — 결제 로직은 SDK 패키지가 아닌 raw fetch로 구현되어 있음.
