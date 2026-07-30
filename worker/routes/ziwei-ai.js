@@ -1285,8 +1285,8 @@ async function generateConsultationText(env, prompt, options = {}) {
         baseTokens: baseMaxOutputTokens,
         capTokens: Math.round(baseMaxOutputTokens * 1.3),
         responseMimeType: options.responseMimeType,
-        // 대형 구조화 JSON은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패.
-        fallbackToWorkersAI: false,
+        // 폴백 허용(폴백 JSON 은 structured-consultation 이 정화). 너무 짧으면 실패로 돌린다.
+        fallbackMinChars: 2000,
       })
     : await callGeminiText(env, prompt, { ...ziweiCallOptions, maxOutputTokens: baseMaxOutputTokens });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1308,7 +1308,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.62,
       maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
       timeoutMs: ziweiTimeoutMs,
-      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType, fallbackToWorkersAI: false } : {}),
+      ...(options.responseMimeType ? { responseMimeType: options.responseMimeType, fallbackMinChars: 2000 } : {}),
       cache: ziweiLlmCache,
     });
     const expandedText = clean(expanded?.text);

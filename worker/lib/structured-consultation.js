@@ -10,6 +10,31 @@
 import { callGeminiText } from "./gemini.js";
 
 /**
+ * Workers AI 폴백 응답의 JSON 정화.
+ *
+ * 🔴 Gemini 는 responseMimeType 으로 순수 JSON 을 보장하지만 Workers AI(env.AI.run)는
+ *    그 옵션을 받지 않는다. 실측(2026-07-30)에서 코드펜스·앞뒤 설명문이 섞여 와
+ *    엄격한 JSON.parse 는 실패하고 관대한 파싱만 성공했다.
+ *
+ * 라우트마다 파서를 고치는 대신 여기서 한 번 정화해, 폴백이 켜진 모든 구조화 상담이
+ * 라우트 수정 없이 폴백 응답을 파싱할 수 있게 한다. Gemini 응답은 건드리지 않는다.
+ */
+function sanitizeFallbackJsonText(text) {
+  const raw = String(text ?? "").trim();
+  if (!raw) return raw;
+  const withoutFence = raw
+    .replace(/^\s*```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  // 이미 JSON 으로 시작하면 그대로 둔다(불필요한 슬라이스로 배열 응답을 깨뜨리지 않는다).
+  if (withoutFence.startsWith("{") || withoutFence.startsWith("[")) return withoutFence;
+  const start = withoutFence.indexOf("{");
+  const end = withoutFence.lastIndexOf("}");
+  if (start < 0 || end <= start) return withoutFence;
+  return withoutFence.slice(start, end + 1);
+}
+
+/**
  * @param {object} env
  * @param {string | ((attempt: number, prevBest: object|null) => string)} buildPrompt
  * @param {{
@@ -57,6 +82,12 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
     if (!ai?.ok) {
       lastFailure = ai;
       continue;
+    }
+
+    // Workers AI 폴백은 responseMimeType 을 못 받아 코드펜스·설명문이 섞여 온다 —
+    // 라우트가 그대로 JSON.parse 할 수 있게 여기서 정화한다(Gemini 응답은 그대로).
+    if (responseMimeType && ai.provider === "workers-ai") {
+      ai.text = sanitizeFallbackJsonText(ai.text);
     }
 
     // 성공 응답 중 가장 긴(=가장 완결에 가까운) 후보를 보존한다.

@@ -1529,8 +1529,8 @@ async function handleStart(request, env, ctx) {
       expandMaxOutputTokens: Number(env.ASTROLOGY_AI_EXPAND_MAX_OUTPUT_TOKENS || 33000),
       condenseMaxOutputTokens: Number(env.ASTROLOGY_AI_CONDENSE_MAX_OUTPUT_TOKENS || 33000),
       requireExpertParts: true,
-      // 초기 장문(1만자+)은 llama 폴백이 감당 못 함 — 폴백 대기 없이 즉시 실패시켜 재시도/환불 경로로.
-      fallbackToWorkersAI: false,
+      // 폴백 허용. 단 목표(1만자)의 40% 미만이면 gemini.js 가 실패로 돌려 재시도/환불 경로를 지킨다.
+      fallbackMinChars: Math.round(ASTROLOGY_AI_MIN_RESULT_CHARS * 0.4),
     });
     await applyUsageOnce({ userId: auth.userId, sessionId, accessType: access.accessType, pricing, source: access.source });
     await recordSuccessfulUsage(auth, idempotencyKey, access, sessionId, pricing);

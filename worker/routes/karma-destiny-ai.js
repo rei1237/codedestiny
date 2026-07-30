@@ -1105,8 +1105,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     maxOutputTokens: options.maxOutputTokens || (mode === "initial" ? INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS : 7600),
     // 45s 단락 함정 회피(위 ensureInitialConsultationQuality 주석 참고). 배치당 2만 토큰 ≈ 100s.
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
-    // 초기 장문은 llama 폴백이 분량을 못 채움 — 폴백 대기 없이 즉시 실패. follow-up은 폴백 유지.
-    ...(mode === "initial" ? { fallbackToWorkersAI: false } : {}),
+    // 초기 장문도 폴백을 허용하되 목표의 40% 미만이면 실패로 돌린다(재시도·환불 경로 유지).
+    ...(mode === "initial" ? { fallbackMinChars: Math.round(INITIAL_CONSULTATION_MIN_LENGTH * 0.4) } : {}),
     cache: buildKarmaLlmCache(env, mode),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1275,9 +1275,9 @@ async function callRealGeminiText(env, prompt, options = {}) {
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
-    // 45s 단락 함정 회피. 배치 JSON은 llama 폴백이 형식을 못 지켜 시간만 낭비 → 폴백 차단.
+    // 45s 단락 함정 회피. 배치 JSON 폴백은 허용하되 섹션 최소치의 40% 미만이면 실패로 돌린다.
     timeoutMs: Number(env?.KARMA_DESTINY_AI_TIMEOUT_MS) || 120000,
-    fallbackToWorkersAI: false,
+    fallbackMinChars: Math.round(INITIAL_CONSULTATION_SECTION_MIN_LENGTH * 0.4),
     cache: buildKarmaLlmCache(env, "chapter-batch"),
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");

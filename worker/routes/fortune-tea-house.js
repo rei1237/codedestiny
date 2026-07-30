@@ -3615,9 +3615,9 @@ async function generateConsultResult(request, fallback, env) {
         maxOutputTokens,
         timeoutMs,
         responseMimeType: "application/json",
-        // JSON 구조화 출력은 Workers AI(8B, JSON 모드 없음) 폴백이 비-JSON을 반환해 파싱 실패로
-        // 시간만 낭비한다. 찻집은 강한 결정론 fallback이 있으므로 폴백을 끄고 빠르게 degrade한다.
-        fallbackToWorkersAI: false,
+        // 폴백 허용. structured-consultation 이 폴백 JSON 의 코드펜스를 정화하므로 파싱된다.
+        // 너무 짧으면 실패로 돌려 기존 결정론 degrade 경로를 그대로 탄다.
+        fallbackMinChars: 600,
       });
 
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");

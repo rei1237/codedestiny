@@ -1172,7 +1172,7 @@ async function generateNamingResult(env, prompt) {
     // env.PREMIUM_GEMINI_TIMEOUT_MS(운영 45초)를 || 체인에 넣지 않는다 — 45초 단락 함정(다른 -ai 라우트들 반복 경고).
     timeoutMs,
     maxOutputTokens,
-    fallbackToWorkersAI: false,
+    fallbackMinChars: 800,
   });
   let ai = await callAt(baseTokens);
   // 잘림(MAX_TOKENS)은 이름 카드 블록(nameCards/finalPick)을 통째로 날려 유료 결과를 반쪽으로 만든다 —

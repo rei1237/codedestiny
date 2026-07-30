@@ -24,6 +24,9 @@ const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니�
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
 const NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000;
+// Workers AI 폴백 수용 문턱 — 목표의 40%. 실측상 폴백은 ~1,700자에서 멈추므로
+// 이 선을 못 넘으면 gemini.js 가 실패로 돌려 기존 재시도·환불 경로를 그대로 탄다.
+const NEW_YEAR_AI_FALLBACK_MIN_CHARS = Math.round(NEW_YEAR_AI_MIN_TOTAL_CHARS * 0.4);
 const NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000;
 // 총 10,000~20,000자(권장 12,000~18,000자) 요구(한국어 1자≈1~1.5토큰) — 구 상한 16000은
 // 권장 분량대에서 상시 잘려 확장 재시도/degraded로 빠졌다.
@@ -1483,8 +1486,8 @@ async function generateConsultationText(env, prompt, options = {}) {
     temperature: 0.72,
     maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
     timeoutMs: newYearTimeoutMs,
-    // 초기 장문은 llama 폴백이 분량을 못 채움 — 폴백 대기 없이 즉시 실패(신년운세는 초기 생성 전용 라우트).
-    fallbackToWorkersAI: false,
+    // 폴백 허용. 목표의 40% 미만이면 gemini.js 가 실패로 돌려 재시도·환불 경로를 지킨다.
+    fallbackMinChars: NEW_YEAR_AI_FALLBACK_MIN_CHARS,
     cache: newYearLlmCache,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");
@@ -1511,7 +1514,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.58,
       maxOutputTokens: options.maxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       timeoutMs: newYearTimeoutMs,
-      fallbackToWorkersAI: false,
+      fallbackMinChars: NEW_YEAR_AI_FALLBACK_MIN_CHARS,
       cache: newYearLlmCache,
     });
     const repaired = clean(repair?.text);
@@ -1533,7 +1536,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.66,
       maxOutputTokens: options.expansionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       timeoutMs: newYearTimeoutMs,
-      fallbackToWorkersAI: false,
+      fallbackMinChars: NEW_YEAR_AI_FALLBACK_MIN_CHARS,
       cache: newYearLlmCache,
     });
     const expansionProvider = clean(expansion?.provider || expansion?.model || "");
@@ -1553,7 +1556,7 @@ async function generateConsultationText(env, prompt, options = {}) {
       temperature: 0.52,
       maxOutputTokens: options.compressionMaxOutputTokens || NEW_YEAR_AI_MAX_OUTPUT_TOKENS,
       timeoutMs: newYearTimeoutMs,
-      fallbackToWorkersAI: false,
+      fallbackMinChars: NEW_YEAR_AI_FALLBACK_MIN_CHARS,
       cache: newYearLlmCache,
     });
     const compressedProvider = clean(compressed?.provider || compressed?.model || "");
