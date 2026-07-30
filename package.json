@@ -109,6 +109,7 @@
     "verify:new-year-ai-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:karma-destiny-ai-flow": "node scripts/verify-karma-destiny-ai-flow.mjs",
     "verify:vedic-ai-flow": "node scripts/verify-vedic-ai-flow.mjs",
+    "verify:vedic-basic-quality": "node scripts/verify-vedic-basic-quality.mjs",
     "verify:saju-new-year-llm": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-new-year-flow": "node scripts/verify-new-year-ai-flow.mjs",
     "verify:saju-unlock-entitlement-regression": "node scripts/verify-saju-unlock-entitlement-regression.mjs",
