@@ -7,6 +7,8 @@
  *  2. 영구 해금으로 새지 않을 것(회당 결제인데 unlock 목록에 들어가면 재구매 불가)
  *  3. 이용권 선검사(canUseByPass) 후에만 402 를 주고, paymentMode 를 하드코딩하지 않을 것
  *  4. 프론트가 공용 게이트(billing-client)만 쓰고 coin-gate 를 직접 부르지 않을 것
+ *  4-2. 결제 CTA 는 "결과 보기" 하나이며, 그 위에 사주×자미두수 가치·5막·정직한 한계가 함께 있을 것
+ *  4-3. 프롤로그가 두 체계를 겹쳐 본다는 장점을 질문 씬 앞에서 말할 것(+ seen 키 v2)
  *  5. 20챕터·5만자 계약과 배치 생성(엣지 100초 컷 회피) 유지
  *  6. 라우트 등록(worker/index.js)·몰입형 크롬 제외·사이트맵 등재
  */
@@ -92,9 +94,67 @@ assert(
   !/paymentMode\s*:\s*["']DIRECT_KRW["']/.test(pageSource),
   `${pageFile}: 게이트 입력에 paymentMode:"DIRECT_KRW" 를 강제하면 단건 결제로 직행합니다`,
 );
+// 결제 성공 후 /start 가 실패했을 때 idempotencyKey 를 버리면 재시도가 이중 결제된다
+// (ensure-access 는 결제 이력을 보지 않으므로 새 키에 다시 402 를 준다).
+assertIncludes(pageFile, pageSource, "chargedRef.current = true");
+assert(
+  /if \(!chargedRef\.current\) idempotencyRef\.current = ""/.test(pageSource),
+  `${pageFile}: idempotencyRef 초기화는 chargedRef 가드 안에 있어야 합니다(결제 후 새 키로 재시도하면 이중 결제)`,
+);
+assert(
+  !/^\s*idempotencyRef\.current = "";/m.test(pageSource),
+  `${pageFile}: 가드 없는 idempotencyRef.current = "" 가 남아 있으면 결제 후 재시도가 이중 결제됩니다`,
+);
+
 // 생년 프리필은 입력 컴포넌트가 담당한다(공용 훅 재사용 — 조회 로직 중복 구현 금지).
 const birthGateFile = "src/features/master-love-codex/components/CodexBirthGate.tsx";
-assertIncludes(birthGateFile, read(birthGateFile), "useAiProfileSeed");
+const birthGateSource = read(birthGateFile);
+assertIncludes(birthGateFile, birthGateSource, "useAiProfileSeed");
+
+// ── 4-2. 결제 직전 화면: 무엇을 받는지 + 정직한 한계가 버튼 위에 함께 있을 것 ──
+// 결제가 붙은 CTA 는 프롤로그 스토리텔링 뒤의 "결과 보기" 하나다.
+assertIncludes(birthGateFile, birthGateSource, "결과 보기");
+assert(
+  !birthGateSource.includes("비책 펼치기"),
+  `${birthGateFile}: 결제 CTA 문구는 "결과 보기" 하나여야 합니다(구 문구 "비책 펼치기" 잔존)`,
+);
+for (const marker of ["CODEX_VALUE_AXES", "CODEX_HONEST_LIMITS", "CODEX_ACTS"]) {
+  assertIncludes(birthGateFile, birthGateSource, marker);
+}
+// 가격은 서버 조회(PriceBadge)만 쓴다 — 리터럴을 박으면 가격 변경 시 화면이 거짓말을 한다.
+assert(
+  !/5\s*만\s*원|50,?000\s*원/.test(birthGateSource),
+  `${birthGateFile}: 가격을 리터럴로 적지 말고 priceSlot(PriceBadge)만 쓰세요`,
+);
+// 오버레이 안에서 콘텐츠가 100svh 를 넘기면 justify-center 는 위쪽을 잘라 CTA 에 못 닿는다.
+assert(
+  !/min-h-\[100svh\][^"]*justify-center/.test(birthGateSource),
+  `${birthGateFile}: 가치 블록이 붙은 화면은 justify-start 여야 합니다(justify-center 는 결제 버튼을 화면 밖으로 밀어냅니다)`,
+);
+
+// ── 4-3. 프롤로그: 사주×자미두수 다각도 스토리텔링이 질문 씬 앞에 있을 것 ────
+const prologueFile = "src/features/master-love-codex/data/prologue.ts";
+const prologueSource = read(prologueFile);
+const stageOrder = ["narratorEnter", "sajuChart", "ziweiChart", "crossCheck", "question", "bookOpen"];
+let previousIndex = -1;
+for (const stage of stageOrder) {
+  const index = prologueSource.indexOf(`stage: "${stage}"`);
+  assert(index > 0, `${prologueFile}: 씬 '${stage}' 가 없습니다`);
+  assert(index > previousIndex, `${prologueFile}: 씬 순서가 ${stageOrder.join(" → ")} 여야 합니다 ('${stage}' 위치 이상)`);
+  previousIndex = index;
+}
+for (const marker of ["일간", "자미두수", "부부궁", "겹쳐"]) {
+  assert(
+    prologueSource.includes(marker),
+    `${prologueFile}: 프롤로그가 두 체계를 겹쳐 본다는 장점을 말해야 합니다 (누락: ${marker})`,
+  );
+}
+// 프롤로그가 바뀌었으면 seen 키를 올려야 기존 사용자도 새 스토리를 한 번은 본다.
+assertIncludes(
+  "src/features/master-love-codex/constants.ts",
+  read("src/features/master-love-codex/constants.ts"),
+  "masterLoveCodexPrologueSeen:v2",
+);
 
 // ── 5. 챕터 계약 ─────────────────────────────────────────────────────────────
 const { MASTER_LOVE_CODEX_CHAPTERS, MASTER_LOVE_CODEX_META, getMasterLoveCodexPlan } =

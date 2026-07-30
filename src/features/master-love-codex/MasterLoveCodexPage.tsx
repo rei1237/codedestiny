@@ -196,6 +196,9 @@ export default function MasterLoveCodexPage() {
   // 결제 후 생성이 끊겼을 때 catch 에서 즉시 읽어야 하므로 state 가 아니라 ref 로 들고 있는다
   // (setSessionId 직후의 클로저는 아직 빈 문자열이라 세션을 잃어버린다).
   const sessionIdRef = useRef("");
+  // 이번 시도에서 실제로 결제가 완료됐는지. 완료됐다면 idempotencyKey 를 절대 버리지 않는다
+  // (ensure-access 는 결제 이력을 보지 않으므로 새 키로 재시도하면 그대로 두 번 결제된다).
+  const chargedRef = useRef(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -309,6 +312,17 @@ export default function MasterLoveCodexPage() {
           message: "인연의 서를 펼칩니다.",
         });
         startBody = { ...startBody, accessToken: ensure.data.accessToken, accessType: ensure.data.accessType };
+      } else if (ensure.data?.reason === "PAYMENT_REQUIRED" && chargedRef.current) {
+        // 이미 이 idempotencyKey 로 결제가 끝난 회차의 재시도다. ensure-access 는 결제 이력을
+        // 보지 않으므로 여기서도 402 를 주지만, 결제창을 다시 열면 안 된다. /start 는
+        // findBillingEvidence 가 같은 키의 결제 증빙을 찾아 그대로 통과시킨다.
+        completePaidFeatureGateCheck({
+          featureKey: MASTER_LOVE_CODEX_FEATURE_KEY,
+          requestId: idempotencyKey,
+          title: "결제 확인",
+          reason: MASTER_LOVE_CODEX_TITLE,
+          message: "이미 결제된 회차입니다. 이어서 펼칩니다.",
+        });
       } else if (ensure.data?.reason === "PAYMENT_REQUIRED") {
         setPhase("payment");
         const gate = await runBillingCoinGate(buildBillingGateInput(asRecord(ensure.data.paymentPayload), idempotencyKey));
@@ -318,6 +332,7 @@ export default function MasterLoveCodexPage() {
           if (code === "PAYMENT_CANCELLED") throw new Error(ERROR_TEXT.PAYMENT_CANCELLED);
           throw new Error(ERROR_TEXT.PAYMENT_VERIFY_FAILED);
         }
+        chargedRef.current = true;
         startBody = { ...startBody, ...extractPayment(gate, idempotencyKey) };
       } else {
         throw new Error(mapError(ensure.data, ensure.status));
@@ -351,7 +366,10 @@ export default function MasterLoveCodexPage() {
         router.replace(`/master-love-codex/result?sessionId=${encodeURIComponent(sessionIdRef.current)}`);
       } else {
         setPhase("birth");
-        idempotencyRef.current = "";
+        // 결제까지 성공했는데 /start 가 실패한 경우엔 키를 버리면 안 된다 — ensure-access 는
+        // 결제 이력을 보지 않으므로 새 키로 재시도하면 402 를 다시 받고 이중 결제된다.
+        // 같은 키를 유지하면 resolveStartAccess 의 findBillingEvidence 가 결제를 찾아 통과시킨다.
+        if (!chargedRef.current) idempotencyRef.current = "";
       }
     } finally {
       busyRef.current = false;
