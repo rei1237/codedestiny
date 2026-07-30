@@ -15,7 +15,9 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const read = (p) => readFileSync(resolve(root, p), 'utf8');
 
 const TOPICS = ['overview', 'personality', 'wealth', 'career', 'romance', 'energy', 'dasha'];
+const DEEP_BLOCKS = ['partner', 'marriage', 'navamsa', 'career', 'wealth', 'personality'];
 const MIN_CHARS = 600;
+const MIN_DEEP_CHARS = 400;
 // 8부 구조: 배열 필드와 문자열 필드
 const STRING_FIELDS = ['summary', 'meaning', 'merit', 'caution', 'closing'];
 const ARRAY_FIELDS = ['basis', 'reality', 'action'];
@@ -76,7 +78,7 @@ const dom = new JSDOM(html, {
 });
 const win = dom.window;
 
-for (const fn of ['buildChart', 'analyze', 'generateInsights', 'buildVedicSections', 'computeDrishti', 'dignityDetail']) {
+for (const fn of ['buildChart', 'analyze', 'generateInsights', 'buildVedicSections', 'buildVedicDeepDetails', 'buildMarriageWindows', 'computeDrishti', 'dignityDetail']) {
   assert.equal(typeof win[fn], 'function', `인라인 엔진에 ${fn}()가 노출되어야 함`);
 }
 
@@ -106,6 +108,8 @@ const sectionText = (sec) => {
 
 const summariesByTopic = Object.fromEntries(TOPICS.map((t) => [t, new Set()]));
 const lagnaSeen = new Set();
+const partnerProfiles = new Set();
+const mahaNarratives = new Set();
 let minSeen = { topic: null, chars: Infinity, sample: null };
 
 for (const f of SAMPLES) {
@@ -154,6 +158,61 @@ for (const f of SAMPLES) {
 
     summariesByTopic[topic].add(stripTags(sec.summary));
   }
+
+  // ── 심화 서술 블록 ──
+  const deep = win.buildVedicDeepDetails(chart, report);
+  for (const key of DEEP_BLOCKS) {
+    const blk = deep[key];
+    assert.ok(blk, `${f.name}/deep.${key}: 블록이 생성되지 않음`);
+    const text = stripTags([...(blk.paras || []), ...(blk.rows || []).map((r) => `${r.label} ${r.body}`)].join(' '));
+    assert.ok(
+      text.length >= MIN_DEEP_CHARS,
+      `${f.name}/deep.${key}: ${text.length}자 — 최소 ${MIN_DEEP_CHARS}자 미달\n  ${text.slice(0, 160)}…`,
+    );
+    for (const [term, why] of BANNED) {
+      assert.ok(!text.includes(term), `${f.name}/deep.${key}: 금지 용어 "${term}" — ${why}`);
+    }
+    for (const hedge of HEDGES) {
+      assert.ok(!text.includes(hedge), `${f.name}/deep.${key}: 추측성 표현 "${hedge}"`);
+    }
+    assert.ok(!text.includes('undefined'), `${f.name}/deep.${key}: undefined 노출`);
+    assert.ok(!/\$\{/.test(text), `${f.name}/deep.${key}: 미치환 템플릿 리터럴`);
+  }
+  partnerProfiles.add(stripTags((deep.partner.rows || []).map((r) => r.body).join(' ')));
+
+  // 대운/세운은 9그라하 전부, 각 200자 이상
+  for (const bucket of ['perMaha', 'perAntar']) {
+    const map = deep.dasha[bucket] || {};
+    assert.equal(Object.keys(map).length, 9, `${f.name}/dasha.${bucket}: 9그라하가 모두 있어야 함`);
+    for (const [g, body] of Object.entries(map)) {
+      const t = stripTags(body);
+      assert.ok(t.length >= 200, `${f.name}/dasha.${bucket}.${g}: ${t.length}자 — 최소 200자 미달`);
+      mahaNarratives.add(`${g}::${stripTags(deep.dasha.perMaha[g])}`);
+    }
+  }
+
+  // 결혼 구간 정합 — 실제 다샤 범위 안 + 만 20~49세
+  const mw = win.buildMarriageWindows(chart, report);
+  const dashaStartY = chart.dashas[0].start.getFullYear();
+  const dashaEndY = chart.dashas[chart.dashas.length - 1].end.getFullYear();
+  for (const winRow of mw.windows) {
+    assert.ok(
+      winRow.startY >= dashaStartY && winRow.endY <= dashaEndY,
+      `${f.name}/marriage: 구간 ${winRow.startY}~${winRow.endY}가 다샤 범위(${dashaStartY}~${dashaEndY}) 밖`,
+    );
+    assert.ok(
+      winRow.age === null || (winRow.age >= 19 && winRow.age <= 50),
+      `${f.name}/marriage: 만 ${winRow.age}세 — 20~49세 클램프 위반`,
+    );
+    assert.ok(winRow.startM >= 1 && winRow.startM <= 12, `${f.name}/marriage: 월 값이 범위 밖`);
+  }
+
+  // 분할 차트 라그나 + 🔴 d10에 Asc 키 유입 회귀 가드
+  for (const k of ['d9Asc', 'd10Asc']) {
+    assert.ok(chart[k] && chart[k].sign >= 0 && chart[k].sign < 12, `${f.name}: chart.${k}가 0~11 범위여야 함`);
+  }
+  assert.ok(!('Asc' in chart.d10), `${f.name}: chart.d10에 Asc 키가 들어가면 PKR['Asc']=undefined가 화면에 노출됨`);
+  assert.ok(!('Asc' in chart.d9), `${f.name}: chart.d9에 Asc 키를 넣지 말 것`);
 }
 
 // ── 5. 반복 고착 방지: 서로 다른 명식이 같은 요약을 뱉지 않아야 함 ──
@@ -164,6 +223,28 @@ for (const topic of TOPICS) {
   assert.ok(
     ratio >= 0.5,
     `${topic}: ${SAMPLES.length}개 명식 중 고유 요약이 ${uniq}종(${Math.round(ratio * 100)}%) — 템플릿 고착 의심(최소 50%)`,
+  );
+}
+
+// ── 5-2. 심화 서술 다양성 ──
+{
+  const ratio = partnerProfiles.size / SAMPLES.length;
+  assert.ok(
+    ratio >= 0.5,
+    `deep.partner: ${SAMPLES.length}개 명식 중 고유 프로필이 ${partnerProfiles.size}종(${Math.round(ratio * 100)}%) — 템플릿 고착 의심`,
+  );
+}
+{
+  // 같은 그라하 대운이라도 바바가 다르면 문단이 달라져야 한다 (9행성×4패턴 고착 회귀 방지)
+  const byGraha = {};
+  for (const row of mahaNarratives) {
+    const g = row.slice(0, row.indexOf('::'));
+    byGraha[g] = (byGraha[g] || 0) + 1;
+  }
+  const varied = Object.values(byGraha).filter((n) => n > 1).length;
+  assert.ok(
+    varied >= 5,
+    `dasha.perMaha: 9그라하 중 ${varied}개만 명식에 따라 서술이 달라짐 — 최소 5개 필요(바바·품위 미반영 회귀)`,
   );
 }
 
