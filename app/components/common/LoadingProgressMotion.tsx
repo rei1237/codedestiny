@@ -9,6 +9,11 @@ type LoadingProgressMotionProps = {
   tone?: LoadingMotionTone;
   labels?: LoadingMotionStepLabels;
   label?: string;
+  /**
+   * 실제 진행 단계(0~2). 주면 이 값이 표시 단계를 결정하고 phase 는 지연 안내 문구에만 쓰인다.
+   * 주지 않으면 기존대로 phase(경과 시간)로 단계를 유도한다 — 기존 호출부 회귀 방지용 기본값.
+   */
+  step?: number;
 };
 
 const TONE_STYLES: Record<
@@ -51,8 +56,12 @@ export default function LoadingProgressMotion({
   tone = "payment",
   labels = FALLBACK_STEP_LABELS,
   label = "loading progress",
+  step,
 }: LoadingProgressMotionProps) {
-  const activeStep = phase === "slow" ? 2 : phase === "warming" ? 1 : 0;
+  // 🔴 시간이 지난다고 단계가 올라가면 안 된다. step 을 준 호출부는 실제 상태로만 단계를 움직인다.
+  const activeStep = Number.isFinite(step)
+    ? Math.min(2, Math.max(0, Math.floor(step as number)))
+    : (phase === "slow" ? 2 : phase === "warming" ? 1 : 0);
   const styles = TONE_STYLES[tone];
   const progressWidth = activeStep === 2 ? "100%" : activeStep === 1 ? "68%" : "38%";
   const sweepLeft = activeStep === 2 ? "74%" : activeStep === 1 ? "40%" : "8%";

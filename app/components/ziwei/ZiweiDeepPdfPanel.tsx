@@ -21,6 +21,7 @@ import {
   completePaidFeatureGateCheck,
   failPaidFeatureGateCheck,
   runBillingCoinGate,
+  primePaymentEligibility,
 } from "@/app/_lib/billing-client";
 
 const FEATURE_KEY = "ziwei-deep-pdf";
@@ -257,6 +258,8 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     let gateStarted = false;
     try {
       beginPaidFeatureGateCheck({ featureKey: FEATURE_KEY, requestId: idempotencyKey, title: "결제 확인", reason: FEATURE_REASON, paymentMode: "DIRECT" });
+      // 이용권 판정(unlock-status)을 아래 prepare 왕복과 겹쳐 돌린다 — 결제 게이트가 같은 키로 재사용해 직렬 왕복이 1회 준다.
+      void primePaymentEligibility(buildBillingGateInput({}, idempotencyKey));
       gateStarted = true;
       const { status, data } = await postJson<ApiResult>("/api/ziwei-deep-report/prepare", { ...payload, idempotencyKey }, idempotencyKey);
       if (data.ok) {
