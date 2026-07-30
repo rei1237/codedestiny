@@ -5,8 +5,8 @@ import { getAssetUrlFromPublicPath } from "@/lib/r2-public-url";
 import type { LoadingMotionTone } from "./LoadingProgressMotion";
 
 // 결제/이용권 대기 화면과 달빛 이용권 상점(/points)이 함께 쓰는 꽃돼지 로고 — R2 에셋 한 곳에서만 관리한다.
-// 찻집 assets.ts와 동일한 prefix:"" 규칙 → https://assets.code-destiny.com/DestinyCafe/nobackground/꽃돼지3-Photoroom.png
-const PAYMENT_PIG_PUBLIC_PATH = "/DestinyCafe/nobackground/꽃돼지3-Photoroom.png";
+// 찻집 assets.ts와 동일한 prefix:"" 규칙 → https://assets.code-destiny.com/DestinyCafe/nobackground/꽃돼지3-Photoroom.webp
+const PAYMENT_PIG_PUBLIC_PATH = "/DestinyCafe/nobackground/꽃돼지3-Photoroom.webp";
 
 export const PAYMENT_PIG_LOGO_URL = getAssetUrlFromPublicPath(PAYMENT_PIG_PUBLIC_PATH, {
   // 빌드에 NEXT_PUBLIC_ASSETS_BASE_URL이 없어도 R2로 가도록 찻집 assets.ts와 동일한 하드코딩 폴백을 둔다.

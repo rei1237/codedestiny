@@ -29,7 +29,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import sharp from "sharp";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { config as loadDotenv } from "dotenv";
 import { inferR2ContentType, resolveR2CachePolicy } from "./r2-cache-policy.mjs";
@@ -130,23 +130,23 @@ function clean(value) {
   return String(value || "").trim().replace(/^["']|["']$/g, "");
 }
 
-/** `S3_API` in this repo holds the bucket's S3 endpoint URL, not credentials. */
-function parseS3ApiUrl(value) {
+/**
+ * `S3_API` in this repo holds an S3 endpoint URL, not credentials. Only the
+ * origin is trustworthy: its path happens to name the *music* bucket, so
+ * reading a bucket from it would silently point this tool at the wrong bucket.
+ */
+function parseS3ApiEndpoint(value) {
   const raw = clean(value);
-  if (!raw.startsWith("http")) return {};
+  if (!raw.startsWith("http")) return "";
   try {
-    const url = new URL(raw);
-    return {
-      endpoint: url.origin,
-      bucket: decodeURIComponent(url.pathname.replace(/^\/+/, "").split("/")[0] || ""),
-    };
+    return new URL(raw).origin;
   } catch {
-    return {};
+    return "";
   }
 }
 
 function resolveCredentials(options) {
-  const s3Api = parseS3ApiUrl(process.env.S3_API);
+  const s3ApiEndpoint = parseS3ApiEndpoint(process.env.S3_API);
   const accountId = clean(
     process.env.R2_ACCOUNT_ID
       || process.env.Account_ID
@@ -167,12 +167,11 @@ function resolveCredentials(options) {
     options.bucket
       || process.env.R2_BUCKET_NAME
       || process.env.R2_ASSETS_BUCKET
-      || s3Api.bucket
       || DEFAULT_BUCKET,
   );
   const endpoint = clean(
     process.env.R2_ENDPOINT
-      || s3Api.endpoint
+      || s3ApiEndpoint
       || (accountId ? `https://${accountId}.r2.cloudflarestorage.com` : ""),
   ).replace(/\/+$/, "");
 
@@ -234,6 +233,17 @@ async function uploadWebp(client, bucket, webpKey, body) {
 async function uploadedSize(client, bucket, key) {
   const head = await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));
   return head.ContentLength || 0;
+}
+
+/** Existing manifest rows for the same bucket, so prefix-scoped runs add up. */
+async function readManifestEntries(manifestPath, bucket) {
+  try {
+    const parsed = JSON.parse(await readFile(manifestPath, "utf8"));
+    if (parsed.bucket && parsed.bucket !== bucket) return [];
+    return (parsed.converted || []).filter((entry) => entry?.webpKey && entry?.pngKey);
+  } catch {
+    return [];
+  }
 }
 
 function fmtKB(bytes) {
@@ -300,7 +310,13 @@ async function main() {
   }
 
   const summary = { converted: 0, deleted: 0, failed: 0, outBytes: 0, skipped: excluded.length + alreadyConverted.length, srcBytes: 0 };
-  const manifest = [];
+  // The manifest must accumulate: --prefix runs each see only part of the bucket,
+  // and a key whose .webp already exists in R2 is just as safe to reference as one
+  // converted right now. Overwriting per run would silently un-migrate earlier work.
+  const manifest = new Map();
+  for (const key of alreadyConverted) {
+    manifest.set(toWebpKey(key), { pngKey: key, srcBytes: objects.get(key) || 0, webpKey: toWebpKey(key) });
+  }
 
   if (!options.apply) {
     for (const key of targets) console.log(`  plan   ${fmtKB(objects.get(key) || 0)} -> webp          ${key}`);
@@ -331,7 +347,7 @@ async function main() {
       summary.converted += 1;
       summary.srcBytes += source.length;
       summary.outBytes += output.length;
-      manifest.push({ outBytes: output.length, pngKey: key, srcBytes: source.length, webpKey });
+      manifest.set(webpKey, { outBytes: output.length, pngKey: key, srcBytes: source.length, webpKey });
       console.log(`  ok  q${options.quality} ${fmtKB(source.length)} -> ${fmtKB(output.length)} (-${pct(source.length, output.length)}%)  ${key}`);
 
       if (options.deleteSource) {
@@ -345,12 +361,15 @@ async function main() {
     }
   });
 
-  if (manifest.length) {
+  if (manifest.size) {
     const manifestPath = path.resolve(options.manifest);
+    for (const entry of await readManifestEntries(manifestPath, credentials.bucket)) {
+      if (!manifest.has(entry.webpKey)) manifest.set(entry.webpKey, entry);
+    }
+    const converted = [...manifest.values()].sort((a, b) => a.pngKey.localeCompare(b.pngKey));
     await mkdir(path.dirname(manifestPath), { recursive: true });
-    manifest.sort((a, b) => a.pngKey.localeCompare(b.pngKey));
-    await writeFile(manifestPath, `${JSON.stringify({ bucket: credentials.bucket, converted: manifest }, null, 2)}\n`, "utf8");
-    console.log(`\n[r2-webp] manifest -> ${path.relative(process.cwd(), manifestPath)} (${manifest.length} key(s))`);
+    await writeFile(manifestPath, `${JSON.stringify({ bucket: credentials.bucket, converted }, null, 2)}\n`, "utf8");
+    console.log(`\n[r2-webp] manifest -> ${path.relative(process.cwd(), manifestPath)} (${converted.length} key(s) total)`);
   }
 
   console.log("\n[r2-webp] Summary");

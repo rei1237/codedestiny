@@ -163,7 +163,7 @@ assertContains(honeyOverlayTextCss, "white-space: normal !important", "payment/p
 assertContains(honeyOverlayTextCss, "overflow-wrap: break-word", "payment/pass waiting copy avoids overflow");
 assertNotContains(honeyOverlayTextCss, "position: absolute !important", "payment/pass waiting copy must not be visually hidden");
 assertNotContains(honeyOverlayTextCss, "clip: rect", "payment/pass waiting copy must not be clipped");
-assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.png", "paid gate sprite uses branded mascot image");
+assertContains(indexSource, ".cd-paid-gate__sprite-frame{position:relative;width:100%;height:100%;background-image:url(\"https://assets.code-destiny.com/DestinyCafe/nobackground/%EA%BD%83%EB%8F%BC%EC%A7%803-Photoroom.webp", "paid gate sprite uses branded mascot image");
 assertNotContains(indexSource, "window.alert('단건 결제가 완료되어 열람되었습니다.');", "single payment success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(result.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "unlock monthly/pass success uses designed overlay instead of alert");
 assertNotContains(indexSource, "window.alert(_cdIsMembershipFreePayload(r.payload) ? '이용권으로 열람되었습니다.' : '월정석 사용이 완료되었습니다.');", "tile monthly/pass success uses designed overlay instead of alert");

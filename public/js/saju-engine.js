@@ -12923,7 +12923,7 @@ function renderAstroInsightLegacyNeon() {
         +'<p style="margin:0 0 10px 0;color:#cbd5e1;font-size:12px;line-height:1.7;">오늘 차트가 말하는 진짜 핵심</p>'
         +'<div class="expert-msg">'
         +'<div class="expert-msg-row expert-msg-row--neo">'
-        +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=82,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.png" alt="네오" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🔷</span></span>'
+        +'<span class="expert-avatar"><img class="expert-avatar-img" src="https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=82,format=auto/DestinyWar/%EC%A0%84%EB%9E%B5%EC%8B%A4%20%EB%84%A4%EC%98%A4%20%EB%A9%94%EC%9D%B8-Photoroom.webp" alt="네오" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="expert-avatar-fallback" hidden>🔷</span></span>'
         +'<div class="neo-bubble">'
         +'<div class="expert-bubble-head"><strong>네오의 한마디</strong><span class="expert-tag expert-tag--neo">분석형 조언</span></div>'
         +'<p class="expert-lead">오늘 차트의 핵심은 실행 우선순위를 분명히 두는 것입니다. 태양 '+_friendlyHousePair(sunHousePair)+'과 MC '+mcSign+' 축에서 결과물을 먼저 만들고, 토성 '+_friendlyHousePair(saturnHousePair)+' 루틴으로 신뢰를 쌓으세요.</p>'
