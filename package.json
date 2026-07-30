@@ -26,6 +26,7 @@
     "audit:content-headroom:live": "node scripts/audit-content-headroom.mjs --live",
     "ensure:ads-txt": "node scripts/ensure-ads-txt.mjs",
     "verify:ads-txt": "node scripts/ensure-ads-txt.mjs --check",
+    "verify:deployed-assets": "node scripts/verify-deployed-assets.mjs",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
@@ -198,7 +199,9 @@
     "verify:story-sync": "node scripts/verify-story-text-sync.mjs",
     "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
     "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
-    "verify:cms-registry": "node scripts/verify-cms-registry.mjs"
+    "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
+    "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
+    "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
