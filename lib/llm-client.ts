@@ -1,9 +1,15 @@
 import { withLLMCache } from "./llm-cache.ts";
 import type { LLMCacheConfig } from "./llm-cache.ts";
+import { buildOutputLanguageDirective, toAiLocale } from "./i18n/ai-locale.js";
 
 export interface LLMRequest {
   prompt: string;
   systemPrompt?: string;
+  /**
+   * 출력 언어. 비어 있으면 ko 로 간주해 프롬프트를 한 글자도 건드리지 않는다.
+   * 워커 경로는 worker/lib/gemini.js 가 앰비언트 로케일을 채워 넣는다.
+   */
+  locale?: string;
   maxTokens?: number;
   temperature?: number;
   taskType?: "pdf" | "fortune" | "healing" | "general";
@@ -233,9 +239,24 @@ function extractWorkersAiText(result: unknown): string {
   return "";
 }
 
-function pickWorkersAiModel(taskType: LLMRequest["taskType"]): string {
-  if (taskType === "pdf") return "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
-  return "@cf/meta/llama-3.1-8b-instruct";
+/**
+ * Workers AI 폴백 모델.
+ *
+ * 🔴 `@cf/meta/llama-3.1-8b-instruct` 는 2026-05-30 자로 Cloudflare 에서 **폐기**됐다.
+ *    호출하면 `5028: This model was deprecated on 2026-05-30.` 로 즉시 실패한다.
+ *    Gemini 가 살아 있을 때는 폴백이 안 쓰여서 아무도 몰랐고, Gemini 가 죽는 순간
+ *    안전망이 통째로 없다는 게 드러났다.
+ *
+ * 모델 이름을 코드에 못 박지 않고 env 로 덮을 수 있게 둔다 — 다음에 또 폐기되면
+ * 배포 없이 `wrangler secret`/vars 로 넘길 수 있어야 한다.
+ */
+const DEFAULT_WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+
+function pickWorkersAiModel(taskType: LLMRequest["taskType"], env?: CloudflareEnv): string {
+  const envRecord = env as Record<string, unknown> | undefined;
+  const key = taskType === "pdf" ? "WORKERS_AI_PDF_MODEL" : "WORKERS_AI_MODEL";
+  const override = String(envRecord?.[key] || envRecord?.["WORKERS_AI_MODEL"] || "").trim();
+  return override || DEFAULT_WORKERS_AI_MODEL;
 }
 
 async function callGeminiPrimary(
@@ -336,7 +357,7 @@ async function callCloudflareWorkersAI(
     throw new Error("Cloudflare Workers AI binding is not configured. Pass env.AI in Workers or Pages runtime.");
   }
 
-  const model = pickWorkersAiModel(normalized.taskType);
+  const model = pickWorkersAiModel(normalized.taskType, env);
   const messages = [
     ...(normalized.systemPrompt
       ? [{ role: "system", content: normalized.systemPrompt }]
@@ -423,12 +444,34 @@ async function callLLMUncached(
   }
 }
 
+/**
+ * 출력 언어 지시를 프롬프트에 심는다.
+ *
+ * 🔴 systemPrompt 에 넣는 것이 핵심이다. llm-cache 의 buildCacheKey 가 systemPrompt 를
+ *    해시에 포함하므로 캐시가 언어별로 자동 분리된다(스토어 스키마 변경 0). 프롬프트 밖
+ *    옵션으로만 두면 ko 응답이 en 사용자에게 캐시 히트한다.
+ *    또 callCloudflareWorkersAI 가 systemPrompt 를 role:"system" 으로 넘기므로 폴백도 함께 커버된다.
+ *
+ * 🔴 prompt 꼬리에도 붙인다. 기존 "한국어로 작성하세요" 지시문 다수가 user 프롬프트 본문
+ *    안에 있고, 모델은 user 턴의 마지막 지시를 강하게 가중한다.
+ */
+function applyOutputLocale(request: LLMRequest): LLMRequest {
+  const directive = buildOutputLanguageDirective(toAiLocale(request.locale));
+  if (!directive) return request; // ko — 기존 트래픽 100% 보존
+  return {
+    ...request,
+    systemPrompt: [request.systemPrompt || "", directive].filter(Boolean).join("\n\n"),
+    prompt: `${request.prompt}\n\n${directive}`,
+  };
+}
+
 export async function callLLM(
   request: LLMRequest,
   env?: CloudflareEnv,
 ): Promise<LLMResponse> {
-  if (request.cache?.store) {
-    return withLLMCache(request, (req) => callLLMUncached(req, env), request.cache);
+  const localized = applyOutputLocale(request);
+  if (localized.cache?.store) {
+    return withLLMCache(localized, (req) => callLLMUncached(req, env), localized.cache);
   }
-  return callLLMUncached(request, env);
+  return callLLMUncached(localized, env);
 }

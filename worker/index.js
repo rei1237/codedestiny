@@ -1,5 +1,6 @@
 import { getEnv } from "./lib/env.js";
 import { enforceAiRouteSecurity } from "./lib/security/index.js";
+import { resolveAiLocaleFromRequest, runWithAiLocale } from "./lib/ai-locale-context.js";
 
 const ROUTE_METRICS_STATE = {
   byRoute: Object.create(null),
@@ -372,11 +373,13 @@ function createLazyRouteHandler(modulePath, loadModule, exportName, routeNameOve
     };
 
     const metricsEnabled = shouldCollectRouteMetrics(env);
-    if (!metricsEnabled) {
-      return executeHandler();
-    }
+    const runRoute = () => (metricsEnabled
+      ? runWithRouteMetrics(metricRouteName, env, executeHandler, metricsEnabled)
+      : executeHandler());
 
-    return runWithRouteMetrics(metricRouteName, env, executeHandler, metricsEnabled);
+    // 46개 라우트가 전부 이 팩토리를 통과하므로, AI 출력 로케일은 여기 한 곳에서만 잡으면 된다.
+    // 컨텍스트가 없으면(cron 등) 하위에서 ko 로 떨어진다 — fail-safe.
+    return runWithAiLocale(resolveAiLocaleFromRequest(args[0]), runRoute);
   };
 }
 
@@ -398,14 +401,21 @@ const handleKarmaDestinyAiRoutes = createLazyRouteHandler("./routes/karma-destin
 const handleZiweiAiRoutes = createLazyRouteHandler("./routes/ziwei-ai.js", () => import("./routes/ziwei-ai.js"), "handleZiweiAiRoutes", "api/ziwei-ai");
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트
 const handleZiweiDeepReportRoutes = createLazyRouteHandler("./routes/ziwei-deep-report.js", () => import("./routes/ziwei-deep-report.js"), "handleZiweiDeepReportRoutes", "api/ziwei-deep-report");
+const handleMasterLoveCodexRoutes = createLazyRouteHandler("./routes/master-love-codex.js", () => import("./routes/master-love-codex.js"), "handleMasterLoveCodexRoutes", "api/master-love-codex");
 const handleFortuneTeaHouseRoutes = createLazyRouteHandler("./routes/fortune-tea-house.js", () => import("./routes/fortune-tea-house.js"), "handleFortuneTeaHouseRoutes", "api/fortune-tea-house");
 const handleZiweiDaehanRoutes = createLazyRouteHandler("./routes/ziwei-daehan.js", () => import("./routes/ziwei-daehan.js"), "handleZiweiDaehanRoutes");
 // 운명의 섬 — 무인증·무DB 결정론 계산(명반→섬 청사진)
 const handleZiweiIslandRoutes = createLazyRouteHandler("./routes/ziwei-island.js", () => import("./routes/ziwei-island.js"), "handleZiweiIslandRoutes", "api/ziwei-island");
 // 운명의 지도 — 무인증·무DB AI 문장화(규칙 산출 데이터 문장화만, 실패 시 클라 템플릿 폴백)
 const handleDestinyCompassRoutes = createLazyRouteHandler("./routes/destiny-compass.js", () => import("./routes/destiny-compass.js"), "handleDestinyCompassRoutes", "api/destiny-compass");
+// AI 반려동물 사주 — 무인증·무DB 결정론 계산(프로필→오행 청사진)
+const handlePetSajuRoutes = createLazyRouteHandler("./routes/pet-saju.js", () => import("./routes/pet-saju.js"), "handlePetSajuRoutes", "api/pet-saju");
+// AI 반려동물 사주 심층 리포트·궁합(각 ₩5,000) — 회당 결제 LLM 서술(결정론 수치는 위 엔진이 계산)
+const handlePetSajuAiRoutes = createLazyRouteHandler("./routes/pet-saju-ai.js", () => import("./routes/pet-saju-ai.js"), "handlePetSajuAiRoutes", "api/pet-saju-ai");
 // 운명의 섬 12궁 심층 유료 상담(₩20,000) — 별도 상품, ziwei-ai 결제 흐름 복제(runAiRouteWithSecurity)
 const handleZiweiIslandAiRoutes = createLazyRouteHandler("./routes/ziwei-island-ai.js", () => import("./routes/ziwei-island-ai.js"), "handleZiweiIslandAiRoutes", "api/ziwei-island-ai");
+// 운명의 섬 12궁 심층 리포트(₩5,000) — 정적 결정론 콘텐츠, 영구 해금 상태만 검사
+const handleZiweiIslandReportRoutes = createLazyRouteHandler("./routes/ziwei-island-report.js", () => import("./routes/ziwei-island-report.js"), "handleZiweiIslandReportRoutes", "api/ziwei-island-report");
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
@@ -424,6 +434,8 @@ const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", ()
 const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
+const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
+const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
 const handleContentRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentRoutes");
 const handleContentFeedRoutes = createLazyRouteHandler("./routes/content.js", () => import("./routes/content.js"), "handleContentFeedRoutes", "api/content-feed");
 const handlePalmRoutes = createLazyRouteHandler("./routes/palm.js", () => import("./routes/palm.js"), "handlePalmRoutes");
@@ -1098,6 +1110,15 @@ export default {
         return withCorsHeaders(request, env, await handleInsightsRoutes(request, env));
       }
 
+      // 공개 CMS 번들(인증 없음, 발행본만). 관리자 경로는 /api/admin/cms/* 로 admin.js 가 처리한다.
+      if (url.pathname === "/api/cms" || url.pathname.startsWith("/api/cms/")) {
+        return withCorsHeaders(request, env, await handleCmsRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/reviews" || url.pathname.startsWith("/api/reviews/")) {
+        return withCorsHeaders(request, env, await handleReviewRoutes(request, env));
+      }
+
       if (url.pathname === "/api/content" || url.pathname.startsWith("/api/content/")) {
         return withCorsHeaders(request, env, await handleContentRoutes(request, env));
       }
@@ -1256,6 +1277,10 @@ export default {
         return runAiRouteWithSecurity(request, env, "ziwei-deep-report", handleZiweiDeepReportRoutes);
       }
 
+      if (url.pathname === "/api/master-love-codex" || url.pathname.startsWith("/api/master-love-codex/")) {
+        return runAiRouteWithSecurity(request, env, "master-love-codex", handleMasterLoveCodexRoutes);
+      }
+
       if (url.pathname === "/api/ziwei/daehan" || url.pathname.startsWith("/api/ziwei/daehan/")) {
         return withCorsHeaders(request, env, await handleZiweiDaehanRoutes(request, env));
       }
@@ -1265,8 +1290,23 @@ export default {
         return runAiRouteWithSecurity(request, env, "ziwei-island-ai", handleZiweiIslandAiRoutes, ctx);
       }
 
+      // ⚠️ 반드시 /api/ziwei-island 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      if (url.pathname === "/api/ziwei-island-report" || url.pathname.startsWith("/api/ziwei-island-report/")) {
+        return withCorsHeaders(request, env, await handleZiweiIslandReportRoutes(request, env));
+      }
+
       if (url.pathname === "/api/ziwei-island" || url.pathname.startsWith("/api/ziwei-island/")) {
         return withCorsHeaders(request, env, await handleZiweiIslandRoutes(request, env));
+      }
+
+      // ⚠️ 반드시 /api/pet-saju 블록보다 위 — 접두사가 겹치는 형제 라우트다.
+      if (url.pathname === "/api/pet-saju-ai" || url.pathname.startsWith("/api/pet-saju-ai/")) {
+        return runAiRouteWithSecurity(request, env, "pet-saju-ai", handlePetSajuAiRoutes, ctx);
+      }
+
+      // AI 반려동물 사주 청사진 (무인증·무DB 순수 계산)
+      if (url.pathname === "/api/pet-saju" || url.pathname.startsWith("/api/pet-saju/")) {
+        return withCorsHeaders(request, env, await handlePetSajuRoutes(request, env));
       }
 
       if (url.pathname === "/api/destiny-compass" || url.pathname.startsWith("/api/destiny-compass/")) {

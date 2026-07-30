@@ -4,7 +4,9 @@
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
@@ -48,6 +50,16 @@ function normalizeNarration(body) {
 }
 
 // 꽃돼지 브랜드 보이스 — PRODUCT.md(따뜻함·전문성·신비로움) + 사람이 직접 봐준 듯한 직설·다정한 조언체.
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
+function resolveSystemPrompt(env) {
+  return cmsPromptText(env, "destiny-compass", buildSystemPrompt());
+}
+
 function buildSystemPrompt() {
   return [
     "너는 '꽃돼지'. 따뜻하고 다정하지만 핵심을 부드럽게 짚어주는 운세 해설가다. 점집에서 오래 봐온 손님을 마주한 듯, 그 사람의 마음을 먼저 알아주고 다음 한 걸음을 짚어준다.",
@@ -130,8 +142,14 @@ function cleanText(raw) {
 }
 
 // 충실도 검증: 대표 라벨 포함 + 금지어 없음 + 최소 길이.
+//
+// 🔴 라벨 포함·금지어 두 검사는 **한국어 출력에만 성립한다.** primaryLabel 은 "정관" 같은
+//    십성 용어이고 FORBIDDEN 도 한국어 리터럴이라, 비-ko 에서는 모델이 정상적으로 답해도
+//    라벨 검사가 반드시 실패해 매번 UNFAITHFUL → 클라의 한국어 템플릿으로 되돌아간다.
+//    즉 언어 전환이 무력화된다. ko 에서는 기존 판정을 한 글자도 바꾸지 않는다.
 function isFaithful(text, n) {
   if (text.replace(/\s+/g, "").length < 12) return false;
+  if ((getAmbientAiLocale() || "ko") !== "ko") return true;
   if (n.primaryLabel && !text.includes(n.primaryLabel)) return false;
   if (FORBIDDEN.test(text)) return false;
   return true;
@@ -152,7 +170,7 @@ async function handleNarrate(request, env) {
     let ai = null;
     try {
       ai = await callGeminiJsonWithRetry(env, buildNarrativePrompt(n, attempt), {
-        systemPrompt: buildSystemPrompt(),
+        systemPrompt: await resolveSystemPrompt(env),
         taskType: "general",
         temperature: 0.4,
         timeoutMs: 30000,
@@ -163,14 +181,35 @@ async function handleNarrate(request, env) {
         fallbackToWorkersAI: true,
         cache: { store, deterministic: true, ttlSeconds: 7 * 24 * 60 * 60, keyExtra: `compass-narrate-v3-a${attempt}` },
       });
-    } catch {
+    } catch (error) {
+      console.warn("[compass narrate] threw", String(error?.message || error).slice(0, 300));
       ai = null;
     }
-    if (!ai?.ok) continue;
+    // 🔴 이 로그가 없으면 NARRATION_UNFAITHFUL 의 원인 5가지가 응답상 구분 불가다.
+    // ai.message 에 "LLM request failed. Gemini: …; Cloudflare Workers AI: …" 가 들어 있는데
+    // 예전에는 통째로 버려서, 프로바이더가 죽어도 "충실도 미달"로만 보였다.
+    if (!ai?.ok) {
+      console.warn("[compass narrate] llm_failed", {
+        attempt,
+        error: ai?.error || "",
+        status: ai?.status ?? null,
+        message: String(ai?.message || "").slice(0, 300),
+      });
+      continue;
+    }
     const cleaned = cleanText(ai.text);
     if (isFaithful(cleaned, n)) {
       return json({ ok: true, pigCommentary: cleaned, provider: ai.provider || "gemini" });
     }
+    console.warn("[compass narrate] unfaithful", {
+      attempt,
+      locale: getAmbientAiLocale() || "ko",
+      len: cleaned.replace(/\s+/g, "").length,
+      hasLabel: n.primaryLabel ? cleaned.includes(n.primaryLabel) : null,
+      forbidden: FORBIDDEN.test(cleaned),
+      provider: ai.provider || "",
+      preview: cleaned.slice(0, 80),
+    });
   }
 
   // 두 시도 모두 충실도 미달 → 클라가 정확한 규칙 템플릿을 유지한다(틀린 문장 미노출).

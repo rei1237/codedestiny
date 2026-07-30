@@ -616,22 +616,36 @@ const SESSION_EXPIRED_MESSAGE: Record<string, string> = {
   ko: "다른 기기 로그인 또는 세션 만료로 로그아웃되었습니다. 다시 로그인해 주세요.",
   en: "You were signed out — another device signed in, or your session expired. Please sign in again.",
   ja: "他の端末でのログイン、またはセッション期限切れによりログアウトされました。もう一度ログインしてください。",
-  zh: "因其他设备登录或登录状态过期，已自动退出。请重新登录。",
+  "zh-CN": "因其他设备登录或登录状态过期，已自动退出。请重新登录。",
+  "zh-TW": "因其他裝置登入或登入狀態過期，已自動登出。請重新登入。",
+  vi: "Bạn đã bị đăng xuất — thiết bị khác đã đăng nhập hoặc phiên đã hết hạn. Vui lòng đăng nhập lại.",
+  hi: "आप साइन आउट हो गए — किसी अन्य डिवाइस पर साइन इन हुआ या सत्र समाप्त हो गया। कृपया फिर से साइन इन करें।",
+  es: "Se cerró tu sesión: otro dispositivo inició sesión o tu sesión expiró. Vuelve a iniciar sesión.",
+  fr: "Vous avez été déconnecté : un autre appareil s'est connecté ou votre session a expiré. Reconnectez-vous.",
+  de: "Sie wurden abgemeldet — ein anderes Gerät hat sich angemeldet oder Ihre Sitzung ist abgelaufen. Bitte erneut anmelden.",
+  nl: "Je bent uitgelogd — een ander apparaat logde in of je sessie is verlopen. Log opnieuw in.",
+  ms: "Anda telah dilog keluar — peranti lain log masuk atau sesi anda tamat. Sila log masuk semula.",
 };
+
+/** 지원 로케일 하나로 반드시 수렴한다 — 표에 12개가 다 있으므로 조회가 빌 수 없다. */
+function normalizeSessionLocale(raw: string): string {
+  const value = String(raw || "").trim().toLowerCase().replace("_", "-");
+  if (value.startsWith("zh")) {
+    return value.includes("tw") || value.includes("hant") || value.includes("hk") ? "zh-TW" : "zh-CN";
+  }
+  const short = value.slice(0, 2);
+  return ["ko", "en", "ja", "vi", "hi", "es", "fr", "de", "nl", "ms"].includes(short) ? short : "ko";
+}
 
 function resolveSessionExpiredMessage(): string {
   let lang = "ko";
   try {
     const runtimeLang = (window as typeof window & { cdGetCurrentLanguage?: () => string }).cdGetCurrentLanguage?.();
-    const stored = runtimeLang || window.localStorage.getItem("cd_lang") || "";
-    const normalized = String(stored).trim().toLowerCase();
-    if (normalized.startsWith("en")) lang = "en";
-    else if (normalized.startsWith("ja")) lang = "ja";
-    else if (normalized.startsWith("zh")) lang = "zh";
+    lang = normalizeSessionLocale(runtimeLang || window.localStorage.getItem("cd_lang") || "");
   } catch (e) {
-    // fall back to Korean
+    // 저장소 접근이 막힌 환경에서는 기본 로케일을 쓴다
   }
-  return SESSION_EXPIRED_MESSAGE[lang] || SESSION_EXPIRED_MESSAGE.ko;
+  return SESSION_EXPIRED_MESSAGE[lang];
 }
 
 function isAuthRedirectExemptPath(pathname: string): boolean {
@@ -797,6 +811,10 @@ export async function refreshAuth(options: { force?: boolean; silent?: boolean }
       }
       return user;
     } catch (error) {
+      // 🔴 실패 경로에서도 쿨다운을 장전한다. 예전에는 성공 시에만 lastRefreshCompletedAt 을 세워서,
+      // 503 으로 실패하면 1.5초 쿨다운이 영영 꺼진 상태가 되고 이후 모든 refreshAuth({force:false})가
+      // 새 /api/auth/me 를 발사했다 — 정확히 DB 장애 중에 재발사가 폭주하는 조건이었다.
+      lastRefreshCompletedAt = Date.now();
       setState({
         authReady: true,
         isLoading: false,

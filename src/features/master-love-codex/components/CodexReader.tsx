@@ -1,0 +1,233 @@
+"use client";
+
+/**
+ * 코덱스 리더 — 20장을 5막 × 4장으로 묶어 한 흐름으로 읽는다.
+ *
+ * 페이지 넘김(PagedResultViewer) 대신 연속 스크롤을 쓴다. 그쪽은 비활성 장을
+ * `display:none` 으로 감추는데, 그러면 스크롤 진입 감지도 PDF 캡처도 성립하지 않는다.
+ * (PagedResultViewer 자체는 다른 8개 기능이 계속 쓰므로 그대로 둔다.)
+ *
+ * 🔴 PDF: 캡처 직전 `isExporting` 을 올려 아직 화면에 안 들어온 장의 등장 애니메이션을
+ * 건너뛴다. 이걸 빼면 결제한 사용자가 백지 페이지가 섞인 PDF 를 받는다.
+ */
+
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Download, Loader2 } from "lucide-react";
+import CodexShell from "./CodexShell";
+import CodexSpine from "./CodexSpine";
+import CodexActInterstitial from "./CodexActInterstitial";
+import ChapterSection, { type CodexChapterData } from "./CodexChapter";
+import CodexLoveDnaPanel, { type CodexLoveDna, type CodexLoveDnaMetric } from "./CodexLoveDna";
+import CodexSeal from "./CodexSeal";
+import CodexReveal from "./CodexReveal";
+import { getNarratorAsset } from "../data/assets";
+import { groupByAct } from "../data/acts";
+import { MASTER_LOVE_CODEX_TITLE } from "../constants";
+import styles from "../styles/codex.module.css";
+
+export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
+export type { CodexLoveDna, CodexLoveDnaMetric };
+
+interface CodexReaderProps {
+  chapters: CodexChapter[];
+  loveDna: CodexLoveDna | null;
+  name: string;
+  birthLine: string;
+  totalCharCount: number;
+  sessionId: string;
+}
+
+function safeFilePart(value: string) {
+  return String(value || "인연의서").replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || "인연의서";
+}
+
+const DECRYPT_LINES = ["Decrypting", "Reading Destiny", "Synchronizing"] as const;
+const DECRYPT_MS = 2000;
+
+export default function CodexReader({
+  chapters,
+  loveDna,
+  name,
+  birthLine,
+  totalCharCount,
+  sessionId,
+}: CodexReaderProps) {
+  const [decrypted, setDecrypted] = useState(false);
+  const [decryptStep, setDecryptStep] = useState(0);
+  const [activeAct, setActiveAct] = useState(1);
+  const [isExporting, setIsExporting] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [error, setError] = useState("");
+  const documentRef = useRef<HTMLDivElement | null>(null);
+
+  const ordered = useMemo(
+    () => chapters.slice().sort((a, b) => Number(a.order || 0) - Number(b.order || 0)),
+    [chapters],
+  );
+  const groups = useMemo(() => groupByAct(ordered), [ordered]);
+  const availableActs = useMemo(() => groups.map((group) => group.act.order), [groups]);
+
+  // 진입 연출 — 2초간 해독하는 척한 뒤 본문을 연다.
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { setDecrypted(true); return undefined; }
+    const stepTimer = window.setInterval(
+      () => setDecryptStep((current) => (current + 1) % DECRYPT_LINES.length),
+      DECRYPT_MS / DECRYPT_LINES.length,
+    );
+    const doneTimer = window.setTimeout(() => setDecrypted(true), DECRYPT_MS);
+    return () => { window.clearInterval(stepTimer); window.clearTimeout(doneTimer); };
+  }, []);
+
+  // 스크롤 스파이 — 화면 상단 가까이 걸린 막을 현재 막으로 잡는다.
+  useEffect(() => {
+    if (!decrypted || !groups.length || typeof IntersectionObserver === "undefined") return undefined;
+    const visible = new Map<number, number>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const order = Number((entry.target as HTMLElement).dataset.codexActMark || 0);
+          if (!order) continue;
+          if (entry.isIntersecting) visible.set(order, entry.intersectionRatio);
+          else visible.delete(order);
+        }
+        let bestOrder = 0;
+        let bestRatio = 0;
+        for (const [order, ratio] of visible) {
+          if (ratio > bestRatio) { bestRatio = ratio; bestOrder = order; }
+        }
+        if (bestOrder) setActiveAct(bestOrder);
+      },
+      { rootMargin: "-12% 0px -70% 0px", threshold: [0.01, 0.25, 0.5] },
+    );
+    document.querySelectorAll<HTMLElement>("[data-codex-act-mark]").forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, [decrypted, groups.length]);
+
+  const handlePdfDownload = useCallback(async () => {
+    if (pdfLoading) return;
+    setPdfLoading(true);
+    setError("");
+    // 아직 스크롤로 도달하지 않은 장은 opacity 0 이라 그대로 찍으면 백지가 된다.
+    setIsExporting(true);
+    try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      await new Promise((resolve) => setTimeout(resolve, 140));
+      const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
+      const today = new Date().toISOString().slice(0, 10);
+      await exportResultPdf({
+        captureTargets: ["#master-love-codex-document [data-codex-pdf-page]"],
+        fileName: `마스터인연의서_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
+        backgroundColor: "#0a0818",
+        cover: {
+          title: `${safeFilePart(name)}님의 ${MASTER_LOVE_CODEX_TITLE}`,
+          subtitle: loveDna?.typeName ? `${loveDna.typeName} · 전 ${ordered.length}장` : `전 ${ordered.length}장`,
+          name: birthLine,
+          date: today,
+        },
+      });
+    } catch {
+      setError("PDF로 옮기는 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.");
+    } finally {
+      setIsExporting(false);
+      setPdfLoading(false);
+    }
+  }, [birthLine, loveDna?.typeName, name, ordered.length, pdfLoading]);
+
+  if (!decrypted) {
+    return (
+      <CodexShell ariaLabel="코덱스를 여는 중">
+        <div className="flex min-h-[100svh] flex-col items-center justify-center text-center">
+          <div className={styles.measure}>
+            <p
+              className={styles.numeral}
+              style={{ fontSize: "clamp(1rem, 3.4vw, 1.25rem)", letterSpacing: "0.24em", color: "var(--codex-gold)" }}
+              aria-live="polite"
+            >
+              {DECRYPT_LINES[decryptStep]}
+            </p>
+            <hr className={`${styles.rule} ${styles.ruleShort} mt-8`} />
+            <p className="mt-8 text-[0.875rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
+              봉인을 여는 중입니다
+            </p>
+          </div>
+        </div>
+      </CodexShell>
+    );
+  }
+
+  return (
+    <CodexShell motes={false} ariaLabel={`${MASTER_LOVE_CODEX_TITLE} 본문`}>
+      <CodexSpine activeOrder={activeAct} availableOrders={availableActs} />
+
+      <div ref={documentRef} id="master-love-codex-document">
+        {/* 표지 */}
+        <header data-codex-pdf-page className="flex min-h-[86svh] flex-col items-center justify-center text-center">
+          <div className={styles.measure}>
+            <CodexReveal forceVisible={isExporting}>
+              <Image
+                src={getNarratorAsset("calm")}
+                alt="코덱스를 덮는 연애 고수"
+                width={300}
+                height={410}
+                unoptimized
+                priority
+                className="mx-auto h-[24svh] w-auto object-contain"
+                style={{ filter: "drop-shadow(0 24px 48px rgba(0,0,0,.66))" }}
+              />
+              <h1 className={`${styles.hero} mt-10`}>Master Love Codex</h1>
+              <p className={`${styles.actTitle} mt-5`} style={{ color: "var(--codex-ink-text)" }}>
+                {name ? `${name}님의 ${MASTER_LOVE_CODEX_TITLE}` : MASTER_LOVE_CODEX_TITLE}
+              </p>
+              <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
+              <p className="mt-8 text-[0.8125rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
+                {birthLine}
+              </p>
+              <p className={`${styles.numeral} mt-2 text-[0.8125rem]`} style={{ color: "var(--codex-ink-text-muted)" }}>
+                {ordered.length}장 · {totalCharCount.toLocaleString("ko-KR")}자
+              </p>
+            </CodexReveal>
+          </div>
+        </header>
+
+        {/* 5막 × 4장 */}
+        {groups.map((group) => (
+          <div key={group.act.order}>
+            <div data-codex-act-mark={group.act.order}>
+              <CodexActInterstitial act={group.act} forceVisible={isExporting} />
+            </div>
+            {group.chapters.map((chapter) => (
+              <ChapterSection key={chapter.id} chapter={chapter} forceVisible={isExporting} />
+            ))}
+          </div>
+        ))}
+
+        {loveDna ? <CodexLoveDnaPanel loveDna={loveDna} forceVisible={isExporting} /> : null}
+      </div>
+
+      {/* 소장 */}
+      <div className={`${styles.measure} pb-4 text-center`}>
+        <CodexReveal forceVisible={isExporting}>
+          <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className={styles.cta}>
+            {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
+            {pdfLoading ? "책으로 엮는 중" : "PDF로 소장하기"}
+          </button>
+          {error ? (
+            <p role="alert" className="mt-5 text-[0.875rem]" style={{ color: "#ffb4b4" }}>{error}</p>
+          ) : null}
+        </CodexReveal>
+      </div>
+
+      <CodexSeal forceVisible={isExporting} />
+
+      <p
+        className={`${styles.numeral} pb-14 text-center text-[0.6875rem]`}
+        style={{ color: "rgba(185,173,153,.5)", letterSpacing: "0.16em" }}
+      >
+        {sessionId}
+      </p>
+    </CodexShell>
+  );
+}

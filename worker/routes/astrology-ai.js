@@ -15,9 +15,10 @@ import {
 import { consumeMonthlyCreditLots } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { getSwissWesternChart } from "../lib/swiss-ephemeris.js";
@@ -457,14 +458,17 @@ async function loadUser(userId) {
 
 async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash) {
   await connectDb(env);
+  // 인증 단계에서 이미 같은 User 문서를 읽었으면(authUserDoc) 재조회하지 않는다 — 이용권 확인 1회당
+  // User 왕복이 3회(인증 + 여기 + canAccessPaidFeature)에서 1회로 줄어, Atlas 지연 스파이크에서
+  // 체감 지연이 그만큼 짧아진다. authUserDoc는 access-token 경로에만 붙으므로 없으면 종전 조회로 폴백한다.
   // 풀 초기화(MongoPoolClearedError) 순간에도 접근 판정 read가 1회 실패로 죽지 않도록 재시도.
-  const user = await withMongoRetry(env, () => loadUser(auth.userId));
+  const user = auth.authUserDoc || await withMongoRetry(env, () => loadUser(auth.userId));
   if (!user) return { ok: false, reason: "LOGIN_REQUIRED" };
   if (clean(user.role).toLowerCase() === "admin" || clean(auth.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "" };
   }
 
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
   if (!decision.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
 
   const accessType = mapAccessType(decision, user);
@@ -839,6 +843,16 @@ async function calculateAstrologyChart(env, normalized, requestUrl, options = {}
   return chart;
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
+function resolveSystemPrompt(env) {
+  return cmsPromptText(env, "astrology-ai", buildSystemPrompt());
+}
+
 function buildSystemPrompt() {
   return [
     "당신은 30년 경력의 서양 점성술 상담가입니다.",
@@ -1036,7 +1050,7 @@ async function generateConsultation(env, prompt, options = {}) {
     keyExtra: "astrology-ai-v1",
   };
   const ai = await callGeminiText(env, prompt, {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
     temperature: options.temperature ?? 0.72,
     maxOutputTokens,
@@ -1065,7 +1079,7 @@ async function generateConsultation(env, prompt, options = {}) {
   if (shouldExpand) {
     const missingExpertParts = options.requireExpertParts === true ? getMissingExpertParts(content) : [];
     const repair = await callGeminiText(env, buildConsultationExpansionPrompt(prompt, content, minLength, missingExpertParts), {
-      systemPrompt: buildSystemPrompt(),
+      systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
       temperature: options.expandTemperature ?? 0.62,
       // 잘려서 재생성하는 경우 원본보다 여유 있는 토큰으로 완결시킨다.
@@ -1094,7 +1108,7 @@ async function generateConsultation(env, prompt, options = {}) {
   qualityIssues = getConsultationQualityIssues(content, { minLength, maxLength, requireExpertParts: options.requireExpertParts === true });
   if (maxLength > 0 && qualityIssues.some((issue) => issue.startsWith("MAX_TOTAL_CHARS:"))) {
     const repair = await callGeminiText(env, buildConsultationCondensePrompt(prompt, content, minLength, maxLength), {
-      systemPrompt: buildSystemPrompt(),
+      systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
       temperature: options.condenseTemperature ?? 0.48,
       maxOutputTokens: Math.max(Number(options.condenseMaxOutputTokens || 0), maxOutputTokens, 12000),
@@ -1399,7 +1413,11 @@ async function handleEnsureAccess(request, env) {
   const idempotencyKey = readIdempotencyKey(request, body);
   if (idempotencyKey.length < 12) return invalidInput(INVALID_INPUT_MESSAGE);
   console.info("[AstrologyAI] access check started", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey });
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  // 인증하면서 접근 판정에 필요한 필드까지 한 번에 읽어 authUserDoc로 받는다(resolveEnsureAccess의 재조회 제거).
+  const auth = await getOptionalUserFromRequest(request, env, {
+    surfaceDbInfraError: true,
+    userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION,
+  });
   if (!auth) {
     console.warn("[AstrologyAI] access check failed", { route: "/api/astrology-ai/ensure-access", requestId: idempotencyKey, reason: "LOGIN_REQUIRED" });
     return loginRequired();

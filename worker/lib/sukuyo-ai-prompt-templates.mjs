@@ -1,3 +1,5 @@
+import { applyPromptTemplateOverride } from "./cms-prompt-template-store.js";
+
 export const SUKUYO_PROMPT_TEMPLATES = Object.freeze({
   compatibility: {
     domain: "compatibility",
@@ -222,7 +224,8 @@ export const SUKUYO_PROMPT_TEMPLATES = Object.freeze({
 });
 
 export function getSukuyoPromptTemplate(domain) {
-  return SUKUYO_PROMPT_TEMPLATES[String(domain || "").trim()] || null;
+  const key = String(domain || "").trim();
+  return applyPromptTemplateOverride("sukuyo", key, SUKUYO_PROMPT_TEMPLATES[key] || null);
 }
 
 function matchesAny(text, keywords) {

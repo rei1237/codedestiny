@@ -5,8 +5,13 @@ import {
   canLoadAdsense,
   canLoadAdsenseForCanonicalUrl,
 } from "../app/components/adsense-route-policy.js";
+import { MIN_SELF_CONSENT_AGE } from "../worker/lib/validation.js";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
+// 나이 고지 마커는 정책 상수에서 파생한다. 문구를 그대로 박아두면 정책이 바뀔 때
+// 검증만 옛 숫자에 남아 배포 시점에 터진다(2026-07-29 만 13세→14세 드리프트로 Pages 배포 실패).
+const ageNoticeMarker = `만 ${MIN_SELF_CONSENT_AGE}세`;
+const staleAgeNoticeMarker = `만 ${MIN_SELF_CONSENT_AGE - 1}세`;
 const siteOrigin = "https://code-destiny.com";
 // 광고 "서빙" 코드는 항상 googlesyndication(스크립트 도메인) 또는 adsbygoogle(ins/push)를 포함한다.
 // google-adsense-account 검증 메타태그(소유권 확인용, 광고 미서빙)는 `ca-pub-...`만 담으므로,
@@ -356,7 +361,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    `${MIN_SELF_CONSENT_AGE}세`,
     "삭제",
   ],
   "/privacy-policy": [
@@ -368,7 +373,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    `${MIN_SELF_CONSENT_AGE}세`,
     "삭제",
   ],
   "/terms": ["Google AdSense", "쿠키", "결제", "환불", "문의"],
@@ -736,11 +741,11 @@ function verifyPrivacyPolicyEmbedSource() {
     "IP 주소",
     "광고 식별자",
     "policies.google.com/technologies/partner-sites",
-    "만 13세",
+    ageNoticeMarker,
     "개인정보 삭제",
     "로컬스토리지",
   ];
-  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", "만 14세"];
+  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", staleAgeNoticeMarker];
 
   for (const marker of requiredMarkers) {
     assert(source.includes(marker), `${relPath}: missing privacy/ad notice marker ${marker}`);
@@ -1029,6 +1034,28 @@ function verifyPrivateNoindexRoutes(baseDir) {
   }
 }
 
+function verifyCustomNotFoundPage(baseDir) {
+  const notFoundPath = `${baseDir}/404.html`;
+  const html = readRequired(notFoundPath);
+
+  // Next 기본 404 가 export 되면 제목·내비게이션이 전부 사라진다. 과거
+  // scripts/next-build-with-pages-manifest.mjs 의 매니페스트 가드가 export 직후
+  // 지워진 404 번들 자리에 _error 스텁을 다시 써서 이 회귀가 조용히 발생했다.
+  assert(
+    !html.includes("404: This page could not be found"),
+    `${notFoundPath}: framework default 404 was exported instead of the custom page`,
+  );
+
+  const visibleText = getVisibleText(html);
+  assert(visibleText.length >= 200, `${notFoundPath}: 404 page is too thin (${visibleText.length} chars)`);
+
+  const internalLinkCount = (html.match(/<a\s[^>]*href="\/[^"]*"/gi) || []).length;
+  assert(
+    internalLinkCount >= 4,
+    `${notFoundPath}: 404 page must link back into the site (found ${internalLinkCount} internal links)`,
+  );
+}
+
 function verifyXRobotsNoindexHeaders(headersPath) {
   const headersText = readRequired(headersPath);
   for (const pattern of xRobotsNoindexHeaderPatterns) {
@@ -1307,6 +1334,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyFamousSajuAliasRoutesNoindex(baseDir);
   trace(`${baseDir}: private noindex samples`);
   verifyPrivateNoindexRoutes(baseDir);
+  trace(`${baseDir}: custom 404 page`);
+  verifyCustomNotFoundPage(baseDir);
   trace(`${baseDir}: robots`);
   verifyRobots(baseDir);
   trace(`${baseDir}: sitemap`);

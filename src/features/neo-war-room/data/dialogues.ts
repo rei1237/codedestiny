@@ -1,3 +1,4 @@
+import { cmsText } from "@/lib/cms/build-text";
 import type { NeoWarRoomConsultMode } from "./assets";
 import type { NeoWarRoomIntensityId } from "./input-flow";
 import type { NeoWarRoomEmotionState } from "./sprite-states";
@@ -28,6 +29,9 @@ export type NeoOperationDialogue = {
 
 type DialogueMap = Record<string, NeoOperationDialogue[]>;
 
+/* 네오의 모든 대사가 이 한 곳을 지난다. 관리자 CMS 오버라이드도 여기서만 얹으면 된다
+   — 대사마다 호출부를 고치는 대신 키(hero.core 등)로 조회한다.
+   폴백 우선: CMS 값이 없으면 아래 인자로 넘어온 원문이 그대로 쓰인다. */
 function dialogue(
   key: string,
   category: NeoDialogueCategory,
@@ -35,7 +39,13 @@ function dialogue(
   emotionState: NeoWarRoomEmotionState,
   spriteFrame?: number,
 ): NeoOperationDialogue {
-  return { key, category, text, emotionState, spriteFrame };
+  return {
+    key,
+    category,
+    text: cmsText("feature-copy", `neo-war-room:${key}`, "text", text),
+    emotionState,
+    spriteFrame,
+  };
 }
 
 export const neoOperationDialogues = {

@@ -1,5 +1,21 @@
 import { NextResponse } from "next/server";
 
+// 🔴 이 middleware 는 프로덕션에서 실행되지 않는다. next.config.mjs 가 프로덕션 빌드에
+// `output: "export"` 를 쓰므로 정적 export 산출물에 middleware 가 포함되지 않는다 — 즉 아래
+// 정규화 로직은 `next dev` 전용이다.
+//
+// 그래서 아래 REDIRECT_HOSTS 에 www 가 있어도 프로덕션 www 는 리다이렉트되지 않았고,
+// 2026-07-30 까지 www.code-destiny.com 은 전 경로 522 였다(www 가 Pages 커스텀 도메인에도,
+// Worker route 에도 없어 그 호스트를 받아줄 서비스가 없었다).
+//
+// 프로덕션 www → apex 301 의 정본은 **Cloudflare Redirect Rule** 이다:
+//   zone `code-destiny.com` / 룰 이름 `www to apex canonical`
+//   expression : http.host eq "www.code-destiny.com"
+//   dynamic    : concat("https://code-destiny.com", http.request.uri)   (301, preserve-query OFF)
+// 대시보드 설정이라 커밋되지 않으므로 `npm run verify:www-canonical` 이 하루 1회
+// (.github/workflows/canonical-host-check.yml) 살아있는지 실측한다.
+//
+// 여기 로직을 고쳐도 프로덕션 동작은 바뀌지 않는다 — 호스트 정규화를 손봐야 하면 위 룰을 고칠 것.
 const CANONICAL_HOST = "code-destiny.com";
 const REDIRECT_HOSTS = new Set(["www.code-destiny.com", "code-destiny.pages.dev"]);
 

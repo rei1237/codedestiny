@@ -8,8 +8,13 @@ import { ArrowLeft, Home } from "lucide-react";
 import { LazyMotion } from "framer-motion";
 import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
+import MobileBottomNav from "./MobileBottomNav";
 
 const HOME_ROUTE = "/";
+
+// /app/** 은 자체 하단 탭바(app/app/_components/AppTabBar.tsx)를 이미 갖고 있다.
+// 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
+const APP_SHELL_ROUTE = "/app";
 
 // framer-motion feature 번들을 비동기 청크로 로드 (m.* 컴포넌트 전용).
 const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => mod.default);
@@ -58,6 +63,7 @@ const CHROMELESS_ROUTES = [
   "/new-year-ai-consultation",
   "/life-book-ai",
   "/love-secret-ai",
+  "/master-love-codex",
   "/naming-ai",
   "/astrology-ai",
   "/vedic-ai",
@@ -81,6 +87,7 @@ const FEATURE_NAV_EXTRA_ROUTES = [
 // floating nav would duplicate and overlap them.
 const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/fortune-tea-house",
+  "/master-love-codex",
   "/fortune/prompt-hub",
   "/olympus",
   "/island-consult",
@@ -237,6 +244,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
     || FEATURE_NAV_EXTRA_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))
     || /\/(result|play|start)(?=\/|$)/.test(pathname)
   );
+  const isAppShellRoute = pathname === APP_SHELL_ROUTE || pathname.startsWith(`${APP_SHELL_ROUTE}/`);
   const footer = useFooterInView(!hideChrome);
   return (
     <LazyMotion features={loadFramerFeatures} strict>
@@ -249,6 +257,8 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           {footer.isReady ? <DeferredSiteFooterHub /> : <FooterWarmupPreview />}
         </div>
       )}
+      {/* 몰입형(hideChrome) 라우트에서도 하단 네비는 유지한다 — 모든 모바일 화면 공통 탐색. */}
+      {!isAppShellRoute && <MobileBottomNav />}
     </LazyMotion>
   );
 }

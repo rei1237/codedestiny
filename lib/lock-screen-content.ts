@@ -8,6 +8,8 @@
 // 각 요소(풀)는 서로 다른 offset으로 뽑아 독립적으로 변주되며, 풀 크기를 서로소에 가깝게
 // 두어 여러 요소가 동시에 같은 조합으로 반복되는 주기를 극대화한다(사실상 반복 없음).
 
+import { cmsLines } from "./cms/build-text";
+
 export interface LockScreenQuote {
   text: string;
   author: string;
@@ -35,7 +37,34 @@ export interface LockScreenContent {
   dateKey: string; // YYYY-MM-DD (KST)
 }
 
-const HEADERS: readonly string[] = [
+/* ── 관리자 CMS 오버라이드 ──────────────────────────────────────────────────
+   각 풀은 lib/cms/registry.mjs 의 phrase-pool 네임스페이스에서 편집한다.
+   폴백 우선: CMS 값이 없거나 빌드 시 조회가 실패하면 아래 기본 목록이 그대로 쓰인다.
+   두 값을 갖는 항목(명언=문장|저자 등)은 파이프(|)로 나눈 한 줄 형식으로 편집한다. */
+function resolveTextPool(key: string, fallback: readonly string[]): readonly string[] {
+  return cmsLines("phrase-pool", key, "items", fallback as string[]);
+}
+
+function resolvePairPool<T>(
+  key: string,
+  fallback: readonly T[],
+  toItem: (left: string, right: string) => T | null,
+): readonly T[] {
+  const lines = cmsLines("phrase-pool", key, "items", []);
+  if (!lines.length) return fallback;
+
+  const parsed: T[] = [];
+  for (const line of lines) {
+    const separator = line.indexOf("|");
+    if (separator < 1) continue;
+    const item = toItem(line.slice(0, separator).trim(), line.slice(separator + 1).trim());
+    if (item) parsed.push(item);
+  }
+
+  return parsed.length ? parsed : fallback;
+}
+
+export const HEADERS_DEFAULT: readonly string[] = [
   "오늘의 기운을 조용히 정돈합니다",
   "고요한 아침, 마음을 맑게",
   "잠시 멈추고, 오늘을 바라봅니다",
@@ -52,7 +81,7 @@ const HEADERS: readonly string[] = [
   "한 걸음의 여유로 시작합니다",
 ];
 
-const CORE_ENERGIES: readonly string[] = [
+export const CORE_ENERGIES_DEFAULT: readonly string[] = [
   "흐름은 조용히 정리되고 있습니다.",
   "서두르지 않을수록 길이 더 선명해집니다.",
   "오늘은 작은 정돈이 큰 여유를 만듭니다.",
@@ -117,7 +146,7 @@ interface LockScreenAffirmation {
   text: string;
 }
 
-const AFFIRMATIONS: readonly LockScreenAffirmation[] = [
+export const AFFIRMATIONS_DEFAULT: readonly LockScreenAffirmation[] = [
   // 기본(core) — 분야를 고르지 않았을 때 함께 후보가 되는 잔잔한 확언
   { cat: "core", text: "나는 오늘도 나를 맑게 지키며 앞으로 갑니다." },
   { cat: "core", text: "나는 서두르지 않아도 충분히 나아가고 있습니다." },
@@ -376,7 +405,7 @@ const AFFIRMATIONS: readonly LockScreenAffirmation[] = [
   { cat: "resilience", text: "나는 결국 더 강하고, 더 따뜻하고, 더 행복한 사람이 된다." },
 ];
 
-const HOPES: readonly string[] = [
+export const HOPES_DEFAULT: readonly string[] = [
   "막혔던 흐름이 서서히 풀려 갑니다.",
   "정리한 만큼 새로운 자리가 생깁니다.",
   "회복은 이미 조용히 시작되었습니다.",
@@ -409,7 +438,7 @@ const HOPES: readonly string[] = [
   "새 계절은 늘 조용히 먼저 도착합니다.",
 ];
 
-const YEONI_GREETINGS: readonly string[] = [
+export const YEONI_GREETINGS_DEFAULT: readonly string[] = [
   "오늘도 연이가 곁에서 응원할게요. 좋은 하루 되세요!",
   "당신의 하루가 오늘 유난히 반짝이길 바라요.",
   "조금 느려도 괜찮아요. 오늘도 잘 해낼 거예요.",
@@ -436,7 +465,7 @@ const YEONI_GREETINGS: readonly string[] = [
   "좋은 하루 되세요. 연이는 늘 당신 편이에요.",
 ];
 
-const FLOWERS: readonly LockScreenFlower[] = [
+export const FLOWERS_DEFAULT: readonly LockScreenFlower[] = [
   { name: "장미", meaning: "사랑, 그리고 열정" },
   { name: "튤립", meaning: "사랑의 고백" },
   { name: "벚꽃", meaning: "순수한 마음" },
@@ -475,7 +504,7 @@ const FLOWERS: readonly LockScreenFlower[] = [
   { name: "재스민", meaning: "친절, 상냥함" },
 ];
 
-const QUOTES: readonly LockScreenQuote[] = [
+export const QUOTES_DEFAULT: readonly LockScreenQuote[] = [
   { text: "천 리 길도 한 걸음에서 시작된다.", author: "노자" },
   { text: "우리가 반복해서 하는 것이 곧 우리 자신이다.", author: "아리스토텔레스" },
   { text: "지금 서 있는 곳에서, 가진 것으로, 할 수 있는 일을 하라.", author: "시어도어 루스벨트" },
@@ -510,7 +539,7 @@ const QUOTES: readonly LockScreenQuote[] = [
   { text: "행동은 모든 성공의 기본 열쇠다.", author: "파블로 피카소" },
 ];
 
-const KNOWLEDGE: readonly LockScreenKnowledge[] = [
+export const KNOWLEDGE_DEFAULT: readonly LockScreenKnowledge[] = [
   { system: "사주", text: "일간(日干)은 사주에서 '나 자신'을 가리키는 기준점입니다. 오늘의 기운도 이 중심에서 읽습니다." },
   { system: "사주", text: "오행(五行)의 균형은 넘침을 덜고 모자람을 채우는 데 있습니다. 치우친 하루엔 반대의 기운을 더해 보세요." },
   { system: "사주", text: "십성(十星)은 나와 세상의 관계를 열 가지로 나눈 이름표입니다. 관계의 결을 이해하는 실마리가 됩니다." },
@@ -722,6 +751,34 @@ const KNOWLEDGE: readonly LockScreenKnowledge[] = [
   { system: "점성술", text: "어스펙트(각도)는 행성 사이의 대화로, 조화와 긴장의 무늬를 만듭니다." },
   { system: "점성술", text: "출생 차트는 정해진 결말이 아니라, 나를 이해하는 지도이자 언어입니다." },
 ];
+
+// 실제로 쓰이는 풀 = 기본 목록 위에 CMS 발행본을 얹은 것. 이름은 그대로라 아래 코드는 손대지 않는다.
+const HEADERS = resolveTextPool("headers", HEADERS_DEFAULT);
+const CORE_ENERGIES = resolveTextPool("core-energies", CORE_ENERGIES_DEFAULT);
+const HOPES = resolveTextPool("hopes", HOPES_DEFAULT);
+const YEONI_GREETINGS = resolveTextPool("yeoni-greetings", YEONI_GREETINGS_DEFAULT);
+
+const AFFIRMATIONS = resolvePairPool<LockScreenAffirmation>(
+  "affirmations",
+  AFFIRMATIONS_DEFAULT,
+  (text, cat) => (text && cat ? { text, cat } : null),
+);
+const FLOWERS = resolvePairPool<LockScreenFlower>(
+  "flowers",
+  FLOWERS_DEFAULT,
+  (name, meaning) => (name && meaning ? { name, meaning } : null),
+);
+const QUOTES = resolvePairPool<LockScreenQuote>(
+  "quotes",
+  QUOTES_DEFAULT,
+  (text, author) => (text && author ? { text, author } : null),
+);
+const KNOWLEDGE = resolvePairPool<LockScreenKnowledge>(
+  "knowledge",
+  KNOWLEDGE_DEFAULT,
+  (text, system) => (text && system ? { text, system } : null),
+);
+
 
 // KST(UTC+9) 기준 오늘 날짜 키(YYYY-MM-DD).
 export function getKstDateKey(now: Date = new Date()): string {

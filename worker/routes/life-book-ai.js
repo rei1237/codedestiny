@@ -8,11 +8,12 @@ import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthl
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
+import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { handleBillingRoutes } from "./billing.js";
 
 const SERVICE_KEY = "life-book-ai";
@@ -480,7 +481,8 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
   const pass = normalizeHoneyPassEntitlement(user || {});
   if (canUseByPass(pass, pricing.coinPrice)) return { ok: true, accessType: "pass", accessSource: "license_pass", paymentId: "" };
 
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env: pricing.env, reason: orderName });
+  // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env: pricing.env, reason: orderName, userDoc: auth.authUserDoc });
   if (decision?.allowed) {
     const mapped = mapPaidDecision(decision);
     if (mapped) return { ok: true, ...mapped, paymentId: "" };
@@ -1098,7 +1100,13 @@ function buildFirstPrompt(input, sajuResult) {
 }
 
 function cleanForbiddenResult(value) {
-  return clean(value, LIFE_BOOK_RESULT_TEXT_MAX_CHARS).replace(FORBIDDEN_RESULT_PATTERN, "").replace(/\n{3,}/g, "\n\n").trim();
+  const trimmed = clean(value, LIFE_BOOK_RESULT_TEXT_MAX_CHARS);
+  // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERN 에 \bPDF\b·\bprogress\b·\bjob\b·\bAI\b 가 들어 있어
+  // 비-ko 에서 돌리면 영어 상담문의 정상 단어가 문장 중간에서 사라진다.
+  const stripped = canStripForbiddenText()
+    ? trimmed.replace(FORBIDDEN_RESULT_PATTERN, "")
+    : trimmed;
+  return stripped.replace(/\n{3,}/g, "\n\n").trim();
 }
 
 function extractReportJson(content) {
@@ -1609,7 +1617,7 @@ async function handleEnsureAccess(request, env, route = "/api/life-book-ai/prepa
   if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
   logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
   logLifeBookAction("entitlement_check", {
     route,
@@ -1824,7 +1832,7 @@ async function handleResult(request, env, pathId = "") {
   // 재시도 가능하다는 신호를 실어 보내 클라가 폴링을 이어가게 한다(nakshatra/neo와 동일한 완충).
   let auth = null;
   try {
-    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+    auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     return json({
       ok: false,
@@ -1963,7 +1971,7 @@ async function handleStart(request, env, route = "/api/life-book-ai/generate", c
   if (idempotencyKey.length < 12) return invalidInput(MESSAGES.invalidInput);
   logLifeBookAi("LLM Payload Validated", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, validation: "passed", env }));
 
-  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true });
+  const auth = await getOptionalUserFromRequest(request, env, { surfaceDbInfraError: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   if (!auth) return loginRequired();
   logLifeBookAction("generate_start", {
     route,

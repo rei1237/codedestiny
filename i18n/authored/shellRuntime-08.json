@@ -1,0 +1,375 @@
+{
+  "_comment": "공용 푸터(SiteFooterHub·FooterLegal) — 전 React 페이지에 노출된다. 서비스 링크 라벨과 사업자 정보 '라벨'만 번역하고, 법인 상호·대표자명·주소·신고번호 같은 **법정 식별자 값**은 원문을 유지한다(등록된 그대로가 법적 형식이다).",
+
+  "shellRuntime.f0": {
+    "ko": "서비스 링크 허브", "en": "Service Link Hub", "ja": "サービスリンクハブ", "zh-CN": "服务链接中心", "zh-TW": "服務連結中心",
+    "vi": "Trung tâm liên kết dịch vụ", "hi": "सर्विस लिंक हब", "es": "Centro de enlaces", "fr": "Hub de liens",
+    "de": "Service-Link-Hub", "nl": "Servicelinkhub", "ms": "Hab Pautan Perkhidmatan"
+  },
+  "shellRuntime.f1": {
+    "ko": "주요 운세와 랜딩 페이지를 성좌 지도로 재배열해 탐색 흐름과 검색 신호를 함께 강화했습니다.",
+    "en": "Key readings and landing pages, rearranged as a constellation map to sharpen both navigation and search signals.",
+    "ja": "主要な占いとランディングページを星座マップとして並べ替え、回遊性と検索シグナルを同時に強化しました。",
+    "zh-CN": "将主要运势与落地页重排为星座图，同时强化浏览动线与搜索信号。",
+    "zh-TW": "將主要運勢與著陸頁重排為星座圖，同時強化瀏覽動線與搜尋訊號。",
+    "vi": "Sắp xếp lại các mục xem vận mệnh và trang đích thành bản đồ chòm sao, tăng cường cả điều hướng lẫn tín hiệu tìm kiếm.",
+    "hi": "मुख्य रीडिंग और लैंडिंग पेज को नक्षत्र मानचित्र की तरह पुनर्व्यवस्थित किया — नेविगेशन और सर्च सिग्नल दोनों बेहतर।",
+    "es": "Lecturas clave y páginas de destino reorganizadas como un mapa de constelaciones para mejorar navegación y señales de búsqueda.",
+    "fr": "Lectures clés et pages d'atterrissage réorganisées en carte de constellations pour renforcer navigation et signaux de recherche.",
+    "de": "Wichtige Deutungen und Landingpages als Sternkarte neu geordnet — für bessere Navigation und Suchsignale.",
+    "nl": "Belangrijke readings en landingspagina's herschikt als sterrenkaart, voor betere navigatie én zoeksignalen.",
+    "ms": "Bacaan utama dan halaman pendaratan disusun semula sebagai peta buruj untuk mengukuhkan navigasi dan isyarat carian."
+  },
+  "shellRuntime.f2": {
+    "ko": "핵심 운세", "en": "Core Readings", "ja": "主要な占い", "zh-CN": "核心运势", "zh-TW": "核心運勢",
+    "vi": "Xem vận mệnh chính", "hi": "मुख्य रीडिंग", "es": "Lecturas principales", "fr": "Lectures essentielles",
+    "de": "Kern-Deutungen", "nl": "Kernreadings", "ms": "Bacaan Teras"
+  },
+  "shellRuntime.f3": {
+    "ko": "타로 리딩", "en": "Tarot Readings", "ja": "タロットリーディング", "zh-CN": "塔罗解读", "zh-TW": "塔羅解讀",
+    "vi": "Luận giải tarot", "hi": "टैरो रीडिंग", "es": "Lecturas de tarot", "fr": "Lectures de tarot",
+    "de": "Tarot-Deutungen", "nl": "Tarotreadings", "ms": "Bacaan Tarot"
+  },
+  "shellRuntime.f4": {
+    "ko": "신탁 & 특화", "en": "Oracles & Specialties", "ja": "神託＆特化", "zh-CN": "神谕与特色", "zh-TW": "神諭與特色",
+    "vi": "Thần dụ & chuyên biệt", "hi": "ओरेकल और विशेष", "es": "Oráculos y especialidades", "fr": "Oracles et spécialités",
+    "de": "Orakel & Spezialitäten", "nl": "Orakels & specialiteiten", "ms": "Orakel & Khusus"
+  },
+  "shellRuntime.f5": {
+    "ko": "추천 가이드", "en": "Recommended Guides", "ja": "おすすめガイド", "zh-CN": "推荐指南", "zh-TW": "推薦指南",
+    "vi": "Hướng dẫn đề xuất", "hi": "अनुशंसित गाइड", "es": "Guías recomendadas", "fr": "Guides recommandés",
+    "de": "Empfohlene Guides", "nl": "Aanbevolen gidsen", "ms": "Panduan Disyorkan"
+  },
+  "shellRuntime.f6": {
+    "ko": "무료 사주풀이 보기", "en": "See your free Four Pillars reading", "ja": "無料の四柱推命を見る", "zh-CN": "查看免费四柱八字", "zh-TW": "查看免費四柱八字",
+    "vi": "Xem luận giải Tứ Trụ miễn phí", "hi": "मुफ़्त फोर पिलर्स रीडिंग देखें", "es": "Ver tu lectura gratis de Cuatro Pilares", "fr": "Voir votre lecture gratuite des Quatre Piliers",
+    "de": "Kostenlose Vier-Säulen-Deutung ansehen", "nl": "Bekijk je gratis Vier Pijlers-reading", "ms": "Lihat bacaan Empat Tiang percuma"
+  },
+  "shellRuntime.f7": {
+    "ko": "오늘의 운세 확인하기", "en": "Check today's fortune", "ja": "今日の運勢を見る", "zh-CN": "查看今日运势", "zh-TW": "查看今日運勢",
+    "vi": "Xem vận mệnh hôm nay", "hi": "आज का भविष्यफल देखें", "es": "Ver la fortuna de hoy", "fr": "Voir la fortune du jour",
+    "de": "Heutige Deutung ansehen", "nl": "Bekijk het fortuin van vandaag", "ms": "Lihat nasib hari ini"
+  },
+  "shellRuntime.f8": {
+    "ko": "사주 궁합 분석하기", "en": "Analyze Four Pillars compatibility", "ja": "四柱推命の相性を見る", "zh-CN": "分析四柱合婚", "zh-TW": "分析四柱合婚",
+    "vi": "Phân tích hợp duyên Tứ Trụ", "hi": "फोर पिलर्स अनुकूलता जाँचें", "es": "Analizar compatibilidad de Cuatro Pilares", "fr": "Analyser la compatibilité des Quatre Piliers",
+    "de": "Vier-Säulen-Partnerschaft analysieren", "nl": "Vier Pijlers-compatibiliteit analyseren", "ms": "Analisis keserasian Empat Tiang"
+  },
+  "shellRuntime.f9": {
+    "ko": "꿀꿀 만세력 확인하기", "en": "Open the Manseryeok almanac", "ja": "萬歳暦を開く", "zh-CN": "打开万岁历", "zh-TW": "打開萬歲曆",
+    "vi": "Mở lịch Manseryeok", "hi": "मानसेरयोक पंचांग खोलें", "es": "Abrir el almanaque Manseryeok", "fr": "Ouvrir l'almanach Manseryeok",
+    "de": "Manseryeok-Almanach öffnen", "nl": "Open de Manseryeok-almanak", "ms": "Buka almanak Manseryeok"
+  },
+  "shellRuntime.f10": {
+    "ko": "자미두수 명반 보기", "en": "View your Zi Wei Dou Shu chart", "ja": "紫微斗数の命盤を見る", "zh-CN": "查看紫微斗数命盘", "zh-TW": "查看紫微斗數命盤",
+    "vi": "Xem lá số Tử Vi Đẩu Số", "hi": "अपना ज़ी वेई दोउ शू चार्ट देखें", "es": "Ver tu carta Zi Wei Dou Shu", "fr": "Voir votre thème Zi Wei Dou Shu",
+    "de": "Zi-Wei-Dou-Shu-Diagramm ansehen", "nl": "Bekijk je Zi Wei Dou Shu-kaart", "ms": "Lihat carta Zi Wei Dou Shu anda"
+  },
+  "shellRuntime.f11": {
+    "ko": "점성술 출생차트 보기", "en": "View your astrology birth chart", "ja": "西洋占星術の出生図を見る", "zh-CN": "查看占星出生星盘", "zh-TW": "查看占星出生星盤",
+    "vi": "Xem bản đồ sao lúc sinh", "hi": "अपनी ज्योतिष जन्म कुंडली देखें", "es": "Ver tu carta natal astrológica", "fr": "Voir votre thème astral",
+    "de": "Astrologisches Geburtshoroskop ansehen", "nl": "Bekijk je astrologische geboortekaart", "ms": "Lihat carta kelahiran astrologi anda"
+  },
+  "shellRuntime.f12": {
+    "ko": "명리학 타로 시작하기", "en": "Start the Myeongri tarot reading", "ja": "命理タロットを始める", "zh-CN": "开始命理塔罗", "zh-TW": "開始命理塔羅",
+    "vi": "Bắt đầu tarot Mệnh lý", "hi": "म्योंगरी टैरो शुरू करें", "es": "Comenzar el tarot Myeongri", "fr": "Commencer le tarot Myeongri",
+    "de": "Myeongri-Tarot starten", "nl": "Start de Myeongri-tarot", "ms": "Mula tarot Myeongri"
+  },
+  "shellRuntime.f13": {
+    "ko": "동물관상 분석하기", "en": "Analyze your animal face reading", "ja": "動物人相を分析する", "zh-CN": "分析动物面相", "zh-TW": "分析動物面相",
+    "vi": "Phân tích nhân tướng động vật", "hi": "एनिमल फेस रीडिंग जाँचें", "es": "Analizar tu lectura facial animal", "fr": "Analyser votre physiognomonie animale",
+    "de": "Tiergesichtsdeutung analysieren", "nl": "Analyseer je dierengezichtslezing", "ms": "Analisis bacaan wajah haiwan"
+  },
+  "shellRuntime.f14": {
+    "ko": "속마음 알아보기", "en": "Find out what they really feel", "ja": "本音を確かめる", "zh-CN": "看看真心话", "zh-TW": "看看真心話",
+    "vi": "Khám phá tâm ý thật", "hi": "उनके मन की बात जानें", "es": "Descubre lo que siente de verdad", "fr": "Découvrir ses vrais sentiments",
+    "de": "Wahre Gefühle herausfinden", "nl": "Ontdek wat iemand echt voelt", "ms": "Ketahui perasaan sebenar"
+  },
+  "shellRuntime.f15": {
+    "ko": "꿈해몽 무료 해석", "en": "Free dream interpretation", "ja": "無料の夢占い", "zh-CN": "免费解梦", "zh-TW": "免費解夢",
+    "vi": "Giải mộng miễn phí", "hi": "मुफ़्त स्वप्न व्याख्या", "es": "Interpretación de sueños gratis", "fr": "Interprétation des rêves gratuite",
+    "de": "Kostenlose Traumdeutung", "nl": "Gratis droomuitleg", "ms": "Tafsir mimpi percuma"
+  },
+  "shellRuntime.f16": {
+    "ko": "베다점성술 운세 분석", "en": "Vedic astrology reading", "ja": "ヴェーダ占星術の鑑定", "zh-CN": "吠陀占星运势分析", "zh-TW": "吠陀占星運勢分析",
+    "vi": "Luận giải chiêm tinh Vệ Đà", "hi": "वैदिक ज्योतिष विश्लेषण", "es": "Lectura de astrología védica", "fr": "Lecture d'astrologie védique",
+    "de": "Vedische Astrologie-Deutung", "nl": "Vedische astrologie-reading", "ms": "Bacaan astrologi Veda"
+  },
+  "shellRuntime.f17": {
+    "ko": "숙요점 27숙 분석", "en": "Sukuyo 27-mansion reading", "ja": "宿曜二十七宿の鑑定", "zh-CN": "宿曜二十七宿解析", "zh-TW": "宿曜二十七宿解析",
+    "vi": "Luận giải 27 chòm Túc Diệu", "hi": "सुकुयो 27-नक्षत्र विश्लेषण", "es": "Lectura de las 27 mansiones Sukuyo", "fr": "Lecture des 27 demeures Sukuyo",
+    "de": "Sukuyo-Deutung der 27 Mondhäuser", "nl": "Sukuyo 27-huizenreading", "ms": "Bacaan 27 mansion Sukuyo"
+  },
+  "shellRuntime.f18": {
+    "ko": "연애 비책 AI 상담", "en": "Love Secrets AI consultation", "ja": "恋愛秘策AI相談", "zh-CN": "恋爱秘策 AI 咨询", "zh-TW": "戀愛祕策 AI 諮詢",
+    "vi": "Tư vấn AI bí quyết tình yêu", "hi": "लव सीक्रेट्स AI परामर्श", "es": "Consulta IA de secretos del amor", "fr": "Consultation IA secrets de l'amour",
+    "de": "KI-Beratung Liebesgeheimnisse", "nl": "AI-consult liefdesgeheimen", "ms": "Rundingan AI rahsia cinta"
+  },
+  "shellRuntime.f19": {
+    "ko": "우리는 무슨 사이", "en": "What are we to each other", "ja": "私たちはどんな関係", "zh-CN": "我们是什么关系", "zh-TW": "我們是什麼關係",
+    "vi": "Chúng ta là gì của nhau", "hi": "हम एक-दूसरे के क्या हैं", "es": "Qué somos el uno para el otro", "fr": "Que sommes-nous l'un pour l'autre",
+    "de": "Was sind wir füreinander", "nl": "Wat zijn wij voor elkaar", "ms": "Kita ini apa antara satu sama lain"
+  },
+  "shellRuntime.f20": {
+    "ko": "재회운 타로", "en": "Reunion Tarot", "ja": "復縁タロット", "zh-CN": "复合运塔罗", "zh-TW": "復合運塔羅",
+    "vi": "Tarot tái hợp", "hi": "पुनर्मिलन टैरो", "es": "Tarot del reencuentro", "fr": "Tarot des retrouvailles",
+    "de": "Wiedervereinigungs-Tarot", "nl": "Hereniging-tarot", "ms": "Tarot Pertemuan Semula"
+  },
+  "shellRuntime.f21": {
+    "ko": "자존감 레벨업 타로", "en": "Self-Esteem Level-Up Tarot", "ja": "自己肯定感レベルアップタロット", "zh-CN": "自尊升级塔罗", "zh-TW": "自尊升級塔羅",
+    "vi": "Tarot nâng cấp lòng tự trọng", "hi": "सेल्फ-एस्टीम लेवल-अप टैरो", "es": "Tarot para subir la autoestima", "fr": "Tarot pour l'estime de soi",
+    "de": "Selbstwert-Level-Up-Tarot", "nl": "Zelfvertrouwen-tarot", "ms": "Tarot Tingkat Harga Diri"
+  },
+  "shellRuntime.f22": {
+    "ko": "따뜻한 태양 회복 타로", "en": "Warm Sun Recovery Tarot", "ja": "あたたかな太陽の回復タロット", "zh-CN": "暖阳疗愈塔罗", "zh-TW": "暖陽療癒塔羅",
+    "vi": "Tarot hồi phục nắng ấm", "hi": "वॉर्म सन रिकवरी टैरो", "es": "Tarot de recuperación del sol cálido", "fr": "Tarot du soleil réparateur",
+    "de": "Warme-Sonne-Heilungs-Tarot", "nl": "Warme zon-hersteltarot", "ms": "Tarot Pemulihan Mentari Hangat"
+  },
+  "shellRuntime.f23": {
+    "ko": "원석 소울 타로", "en": "Gemstone Soul Tarot", "ja": "原石ソウルタロット", "zh-CN": "原石灵魂塔罗", "zh-TW": "原石靈魂塔羅",
+    "vi": "Tarot linh hồn đá quý", "hi": "जेमस्टोन सोल टैरो", "es": "Tarot del alma de gema", "fr": "Tarot de l'âme-gemme",
+    "de": "Edelstein-Seelen-Tarot", "nl": "Edelsteen-zieltarot", "ms": "Tarot Jiwa Batu Permata"
+  },
+  "shellRuntime.f24": {
+    "ko": "십이지신 천운 타로", "en": "Zodiac Guardian Fortune Tarot", "ja": "十二支の天運タロット", "zh-CN": "十二生肖天运塔罗", "zh-TW": "十二生肖天運塔羅",
+    "vi": "Tarot thiên vận thập nhị chi", "hi": "राशि-रक्षक भाग्य टैरो", "es": "Tarot de la fortuna del zodiaco", "fr": "Tarot de la fortune du zodiaque",
+    "de": "Tierkreis-Schutzgeist-Tarot", "nl": "Dierenriem-fortuintarot", "ms": "Tarot Nasib Penjaga Zodiak"
+  },
+  "shellRuntime.f25": {
+    "ko": "명리학 타로", "en": "Myeongri Tarot", "ja": "命理タロット", "zh-CN": "命理塔罗", "zh-TW": "命理塔羅",
+    "vi": "Tarot Mệnh lý", "hi": "म्योंगरी टैरो", "es": "Tarot Myeongri", "fr": "Tarot Myeongri",
+    "de": "Myeongri-Tarot", "nl": "Myeongri-tarot", "ms": "Tarot Myeongri"
+  },
+  "shellRuntime.f26": {
+    "ko": "타로 프롬프트 라이브러리", "en": "Tarot Prompt Library", "ja": "タロットプロンプト集", "zh-CN": "塔罗提示语库", "zh-TW": "塔羅提示語庫",
+    "vi": "Thư viện prompt tarot", "hi": "टैरो प्रॉम्प्ट लाइब्रेरी", "es": "Biblioteca de prompts de tarot", "fr": "Bibliothèque de prompts tarot",
+    "de": "Tarot-Prompt-Bibliothek", "nl": "Tarot-promptbibliotheek", "ms": "Pustaka Prompt Tarot"
+  },
+  "shellRuntime.f27": {
+    "ko": "로열 티 오라클", "en": "Royal Tea Oracle", "ja": "ロイヤルティー・オラクル", "zh-CN": "皇家红茶神谕", "zh-TW": "皇家紅茶神諭",
+    "vi": "Thần dụ Trà Hoàng gia", "hi": "रॉयल टी ओरेकल", "es": "Oráculo del Té Real", "fr": "Oracle du Thé Royal",
+    "de": "Royal-Tea-Orakel", "nl": "Royal Tea Orakel", "ms": "Orakel Teh Diraja"
+  },
+  "shellRuntime.f28": {
+    "ko": "스톤헨지 룬 오라클", "en": "Stonehenge Rune Oracle", "ja": "ストーンヘンジ・ルーン神託", "zh-CN": "巨石阵符文神谕", "zh-TW": "巨石陣符文神諭",
+    "vi": "Thần dụ rune Stonehenge", "hi": "स्टोनहेंज रून ओरेकल", "es": "Oráculo rúnico de Stonehenge", "fr": "Oracle des runes de Stonehenge",
+    "de": "Stonehenge-Runenorakel", "nl": "Stonehenge-runenorakel", "ms": "Orakel Rune Stonehenge"
+  },
+  "shellRuntime.f29": {
+    "ko": "핀란드 주석점", "en": "Finnish Tin Divination", "ja": "フィンランドの錫占い", "zh-CN": "芬兰锡占卜", "zh-TW": "芬蘭錫占卜",
+    "vi": "Bói thiếc Phần Lan", "hi": "फ़िनिश टिन भविष्यवाणी", "es": "Adivinación finlandesa del estaño", "fr": "Divination finlandaise à l'étain",
+    "de": "Finnisches Zinngießen", "nl": "Finse tinvoorspelling", "ms": "Tilikan Timah Finland"
+  },
+  "shellRuntime.f30": {
+    "ko": "IFA 오라클", "en": "Ifá Oracle", "ja": "イファ神託", "zh-CN": "伊法神谕", "zh-TW": "伊法神諭",
+    "vi": "Thần dụ Ifá", "hi": "इफ़ा ओरेकल", "es": "Oráculo de Ifá", "fr": "Oracle d'Ifá",
+    "de": "Ifá-Orakel", "nl": "Ifá-orakel", "ms": "Orakel Ifá"
+  },
+  "shellRuntime.f31": {
+    "ko": "시빌라 시스템", "en": "Sibyl System", "ja": "シビュラシステム", "zh-CN": "Sibyl 系统", "zh-TW": "Sibyl 系統",
+    "vi": "Hệ thống Sibyl", "hi": "सिबिल प्रणाली", "es": "Sistema Sibila", "fr": "Système Sibylle",
+    "de": "Sibyllensystem", "nl": "Sibyl-systeem", "ms": "Sistem Sibyl"
+  },
+  "shellRuntime.f32": {
+    "ko": "화투 인생 패 테스트", "en": "Hwatu Life Card Test", "ja": "花札・人生の札テスト", "zh-CN": "花牌人生牌测试", "zh-TW": "花牌人生牌測驗",
+    "vi": "Trắc nghiệm lá bài cuộc đời Hwatu", "hi": "ह्वातु लाइफ कार्ड टेस्ट", "es": "Test de la carta de vida Hwatu", "fr": "Test de la carte de vie Hwatu",
+    "de": "Hwatu-Lebenskarten-Test", "nl": "Hwatu-levenskaarttest", "ms": "Ujian Kad Kehidupan Hwatu"
+  },
+  "shellRuntime.f33": {
+    "ko": "인생의 책", "en": "The Book of Life", "ja": "人生の書", "zh-CN": "人生之书", "zh-TW": "人生之書",
+    "vi": "Cuốn sách cuộc đời", "hi": "जीवन की पुस्तक", "es": "El Libro de la Vida", "fr": "Le Livre de la Vie",
+    "de": "Das Buch des Lebens", "nl": "Het Boek van het Leven", "ms": "Kitab Kehidupan"
+  },
+  "shellRuntime.f34": {
+    "ko": "프리미엄 운세 리포트", "en": "Premium Fortune Report", "ja": "プレミアム運勢レポート", "zh-CN": "高级运势报告", "zh-TW": "進階運勢報告",
+    "vi": "Báo cáo vận mệnh cao cấp", "hi": "प्रीमियम भाग्य रिपोर्ट", "es": "Informe premium del destino", "fr": "Rapport premium du destin",
+    "de": "Premium-Schicksalsreport", "nl": "Premium lotsrapport", "ms": "Laporan Nasib Premium"
+  },
+  "shellRuntime.f35": {
+    "ko": "자미두수 12궁 명반", "en": "Zi Wei Dou Shu 12 Palaces", "ja": "紫微斗数 十二宮の命盤", "zh-CN": "紫微斗数十二宫命盘", "zh-TW": "紫微斗數十二宮命盤",
+    "vi": "12 cung lá số Tử Vi", "hi": "ज़ी वेई दोउ शू 12 भाव", "es": "Los 12 palacios de Zi Wei Dou Shu", "fr": "Les 12 palais du Zi Wei Dou Shu",
+    "de": "Zi Wei Dou Shu — 12 Paläste", "nl": "Zi Wei Dou Shu 12 paleizen", "ms": "12 Istana Zi Wei Dou Shu"
+  },
+  "shellRuntime.f36": {
+    "ko": "점성술 코즈믹 차트", "en": "Cosmic Astrology Chart", "ja": "コズミック占星チャート", "zh-CN": "宇宙占星星盘", "zh-TW": "宇宙占星星盤",
+    "vi": "Bản đồ chiêm tinh vũ trụ", "hi": "कॉस्मिक ज्योतिष चार्ट", "es": "Carta astrológica cósmica", "fr": "Carte astrologique cosmique",
+    "de": "Kosmische Astrologiekarte", "nl": "Kosmische astrologiekaart", "ms": "Carta Astrologi Kosmik"
+  },
+  "shellRuntime.f37": {
+    "ko": "사주 만세력 기본 해석", "en": "Manseryeok basics for your Four Pillars", "ja": "四柱推命・萬歳暦の基本解説", "zh-CN": "四柱万岁历基础解读", "zh-TW": "四柱萬歲曆基礎解讀",
+    "vi": "Giải nghĩa cơ bản lịch Manseryeok", "hi": "फोर पिलर्स के लिए मानसेरयोक की मूल बातें", "es": "Fundamentos del Manseryeok para tus Cuatro Pilares", "fr": "Bases du Manseryeok pour vos Quatre Piliers",
+    "de": "Manseryeok-Grundlagen für Ihre Vier Säulen", "nl": "Manseryeok-basis voor je Vier Pijlers", "ms": "Asas Manseryeok untuk Empat Tiang anda"
+  },
+  "shellRuntime.f38": {
+    "ko": "사주 완전 가이드", "en": "The complete Four Pillars guide", "ja": "四柱推命 完全ガイド", "zh-CN": "四柱八字完全指南", "zh-TW": "四柱八字完全指南",
+    "vi": "Hướng dẫn Tứ Trụ toàn tập", "hi": "फोर पिलर्स की संपूर्ण गाइड", "es": "La guía completa de los Cuatro Pilares", "fr": "Le guide complet des Quatre Piliers",
+    "de": "Der komplette Vier-Säulen-Guide", "nl": "De complete Vier Pijlers-gids", "ms": "Panduan lengkap Empat Tiang"
+  },
+  "shellRuntime.f39": {
+    "ko": "타로 리딩 구조 이해", "en": "Understanding tarot reading structure", "ja": "タロットリーディングの構造を理解する", "zh-CN": "理解塔罗解读结构", "zh-TW": "理解塔羅解讀結構",
+    "vi": "Hiểu cấu trúc một bài tarot", "hi": "टैरो रीडिंग की संरचना समझें", "es": "Entender la estructura de una lectura de tarot", "fr": "Comprendre la structure d'une lecture de tarot",
+    "de": "Aufbau einer Tarot-Deutung verstehen", "nl": "De opbouw van een tarotreading begrijpen", "ms": "Memahami struktur bacaan tarot"
+  },
+  "shellRuntime.f40": {
+    "ko": "운명 해석 프레임", "en": "Destiny interpretation framework", "ja": "運命解釈のフレーム", "zh-CN": "命运解读框架", "zh-TW": "命運解讀框架",
+    "vi": "Khung luận giải vận mệnh", "hi": "भाग्य व्याख्या ढाँचा", "es": "Marco de interpretación del destino", "fr": "Cadre d'interprétation du destin",
+    "de": "Deutungsrahmen des Schicksals", "nl": "Interpretatiekader van het lot", "ms": "Rangka tafsiran takdir"
+  },
+  "shellRuntime.f41": {
+    "ko": "콘텐츠 방법론", "en": "Content methodology", "ja": "コンテンツの方法論", "zh-CN": "内容方法论", "zh-TW": "內容方法論",
+    "vi": "Phương pháp nội dung", "hi": "कंटेंट पद्धति", "es": "Metodología de contenidos", "fr": "Méthodologie éditoriale",
+    "de": "Content-Methodik", "nl": "Contentmethodologie", "ms": "Metodologi kandungan"
+  },
+  "shellRuntime.f42": {
+    "ko": "운명 인사이트 허브", "en": "Destiny Insight Hub", "ja": "運命インサイトハブ", "zh-CN": "命运洞察中心", "zh-TW": "命運洞察中心",
+    "vi": "Trung tâm chiêm nghiệm vận mệnh", "hi": "डेस्टिनी इनसाइट हब", "es": "Centro de perspectivas del destino", "fr": "Hub d'analyses du destin",
+    "de": "Schicksals-Insight-Hub", "nl": "Destiny Insight Hub", "ms": "Hab Wawasan Takdir"
+  },
+  "shellRuntime.f43": {
+    "ko": "인사이트 아카이브", "en": "Insight Archive", "ja": "インサイトアーカイブ", "zh-CN": "洞察归档", "zh-TW": "洞察典藏",
+    "vi": "Kho chiêm nghiệm", "hi": "इनसाइट संग्रह", "es": "Archivo de perspectivas", "fr": "Archives d'analyses",
+    "de": "Insight-Archiv", "nl": "Insight-archief", "ms": "Arkib Wawasan"
+  },
+  "shellRuntime.f44": {
+    "ko": "하이밸류 아카이브", "en": "High-Value Archive", "ja": "ハイバリュー・アーカイブ", "zh-CN": "高价值归档", "zh-TW": "高價值典藏",
+    "vi": "Kho nội dung giá trị cao", "hi": "हाई-वैल्यू संग्रह", "es": "Archivo de alto valor", "fr": "Archives à haute valeur",
+    "de": "High-Value-Archiv", "nl": "High-value archief", "ms": "Arkib Bernilai Tinggi"
+  },
+  "shellRuntime.f45": {
+    "ko": "자주 묻는 질문", "en": "Frequently asked questions", "ja": "よくある質問", "zh-CN": "常见问题", "zh-TW": "常見問題",
+    "vi": "Câu hỏi thường gặp", "hi": "अक्सर पूछे जाने वाले प्रश्न", "es": "Preguntas frecuentes", "fr": "Questions fréquentes",
+    "de": "Häufige Fragen", "nl": "Veelgestelde vragen", "ms": "Soalan lazim"
+  },
+  "shellRuntime.f46": {
+    "ko": "Code Destiny 공식 채널", "en": "Code Destiny official channels", "ja": "Code Destiny 公式チャンネル", "zh-CN": "Code Destiny 官方频道", "zh-TW": "Code Destiny 官方頻道",
+    "vi": "Kênh chính thức của Code Destiny", "hi": "Code Destiny के आधिकारिक चैनल", "es": "Canales oficiales de Code Destiny", "fr": "Canaux officiels de Code Destiny",
+    "de": "Offizielle Code-Destiny-Kanäle", "nl": "Officiële Code Destiny-kanalen", "ms": "Saluran rasmi Code Destiny"
+  },
+  "shellRuntime.f47": {
+    "ko": "인스타그램", "en": "Instagram", "ja": "Instagram", "zh-CN": "Instagram", "zh-TW": "Instagram",
+    "vi": "Instagram", "hi": "Instagram", "es": "Instagram", "fr": "Instagram", "de": "Instagram", "nl": "Instagram", "ms": "Instagram"
+  },
+  "shellRuntime.f48": {
+    "ko": "유튜브", "en": "YouTube", "ja": "YouTube", "zh-CN": "YouTube", "zh-TW": "YouTube",
+    "vi": "YouTube", "hi": "YouTube", "es": "YouTube", "fr": "YouTube", "de": "YouTube", "nl": "YouTube", "ms": "YouTube"
+  },
+  "shellRuntime.f49": {
+    "ko": "쓰레드", "en": "Threads", "ja": "Threads", "zh-CN": "Threads", "zh-TW": "Threads",
+    "vi": "Threads", "hi": "Threads", "es": "Threads", "fr": "Threads", "de": "Threads", "nl": "Threads", "ms": "Threads"
+  },
+  "shellRuntime.f50": {
+    "ko": "블로그", "en": "Blog", "ja": "ブログ", "zh-CN": "博客", "zh-TW": "部落格",
+    "vi": "Blog", "hi": "ब्लॉग", "es": "Blog", "fr": "Blog", "de": "Blog", "nl": "Blog", "ms": "Blog"
+  },
+  "shellRuntime.f51": {
+    "ko": "사업자 정보", "en": "Business information", "ja": "事業者情報", "zh-CN": "商家信息", "zh-TW": "商家資訊",
+    "vi": "Thông tin doanh nghiệp", "hi": "व्यवसाय जानकारी", "es": "Información de la empresa", "fr": "Informations sur l'entreprise",
+    "de": "Unternehmensangaben", "nl": "Bedrijfsgegevens", "ms": "Maklumat perniagaan"
+  },
+  "shellRuntime.f52": {
+    "ko": "상호명", "en": "Company name", "ja": "商号", "zh-CN": "公司名称", "zh-TW": "公司名稱",
+    "vi": "Tên doanh nghiệp", "hi": "कंपनी का नाम", "es": "Razón social", "fr": "Raison sociale",
+    "de": "Firmenname", "nl": "Bedrijfsnaam", "ms": "Nama syarikat"
+  },
+  "shellRuntime.f53": {
+    "ko": "대표자", "en": "Representative", "ja": "代表者", "zh-CN": "法定代表人", "zh-TW": "法定代表人",
+    "vi": "Người đại diện", "hi": "प्रतिनिधि", "es": "Representante legal", "fr": "Représentant légal",
+    "de": "Vertretungsberechtigter", "nl": "Vertegenwoordiger", "ms": "Wakil"
+  },
+  "shellRuntime.f54": {
+    "ko": "사업자등록번호", "en": "Business registration number", "ja": "事業者登録番号", "zh-CN": "营业执照号码", "zh-TW": "營業登記號碼",
+    "vi": "Mã số doanh nghiệp", "hi": "व्यवसाय पंजीकरण संख्या", "es": "Número de registro mercantil", "fr": "Numéro d'enregistrement",
+    "de": "Handelsregisternummer", "nl": "KvK-nummer", "ms": "Nombor pendaftaran perniagaan"
+  },
+  "shellRuntime.f55": {
+    "ko": "통신판매업 신고번호", "en": "E-commerce registration number", "ja": "通信販売業申告番号", "zh-CN": "电子商务备案号", "zh-TW": "電子商務備案號",
+    "vi": "Số đăng ký kinh doanh trực tuyến", "hi": "ई-कॉमर्स पंजीकरण संख्या", "es": "Número de registro de comercio electrónico", "fr": "Numéro d'enregistrement e-commerce",
+    "de": "E-Commerce-Registriernummer", "nl": "E-commerceregistratienummer", "ms": "Nombor pendaftaran e-dagang"
+  },
+  "shellRuntime.f56": {
+    "ko": "연락처", "en": "Contact", "ja": "連絡先", "zh-CN": "联系方式", "zh-TW": "聯絡方式",
+    "vi": "Liên hệ", "hi": "संपर्क", "es": "Contacto", "fr": "Contact",
+    "de": "Kontakt", "nl": "Contact", "ms": "Hubungi"
+  },
+  "shellRuntime.f57": {
+    "ko": "이메일", "en": "Email", "ja": "メール", "zh-CN": "电子邮件", "zh-TW": "電子郵件",
+    "vi": "Email", "hi": "ईमेल", "es": "Correo electrónico", "fr": "E-mail",
+    "de": "E-Mail", "nl": "E-mail", "ms": "E-mel"
+  },
+  "shellRuntime.f58": {
+    "ko": "사업장 주소", "en": "Business address", "ja": "事業所所在地", "zh-CN": "营业地址", "zh-TW": "營業地址",
+    "vi": "Địa chỉ doanh nghiệp", "hi": "व्यवसाय का पता", "es": "Domicilio social", "fr": "Adresse de l'établissement",
+    "de": "Geschäftsadresse", "nl": "Bedrijfsadres", "ms": "Alamat perniagaan"
+  },
+  "shellRuntime.f59": {
+    "ko": "교환/환불 정책", "en": "Exchange & refund policy", "ja": "交換・返金ポリシー", "zh-CN": "换货／退款政策", "zh-TW": "換貨／退款政策",
+    "vi": "Chính sách đổi trả & hoàn tiền", "hi": "एक्सचेंज और रिफंड नीति", "es": "Política de cambios y reembolsos", "fr": "Politique d'échange et de remboursement",
+    "de": "Umtausch- und Rückerstattungsrichtlinie", "nl": "Ruil- en restitutiebeleid", "ms": "Dasar pertukaran & bayaran balik"
+  },
+  "shellRuntime.f60": {
+    "ko": "디지털 운세 서비스 환불 안내", "en": "Refund guide for digital reading services", "ja": "デジタル占いサービスの返金案内", "zh-CN": "数字运势服务退款说明", "zh-TW": "數位運勢服務退款說明",
+    "vi": "Hướng dẫn hoàn tiền dịch vụ luận giải số", "hi": "डिजिटल रीडिंग सेवाओं की रिफंड जानकारी", "es": "Guía de reembolso para servicios de lectura digital", "fr": "Guide de remboursement des services de lecture numérique",
+    "de": "Rückerstattungshinweise für digitale Deutungsdienste", "nl": "Restitutie-informatie voor digitale readingdiensten", "ms": "Panduan bayaran balik perkhidmatan bacaan digital"
+  },
+  "shellRuntime.f61": {
+    "ko": "환불 처리는 결제 수단(카드)으로만 가능합니다.", "en": "Refunds are issued only to the original payment method (card).",
+    "ja": "返金は決済に使用した手段（カード）にのみ行われます。", "zh-CN": "退款仅原路退回至支付方式（银行卡）。", "zh-TW": "退款僅原路退回至付款方式（信用卡）。",
+    "vi": "Hoàn tiền chỉ được thực hiện qua phương thức thanh toán ban đầu (thẻ).", "hi": "रिफंड केवल मूल भुगतान माध्यम (कार्ड) पर ही किया जाता है।",
+    "es": "Los reembolsos se emiten únicamente al método de pago original (tarjeta).", "fr": "Les remboursements sont effectués uniquement sur le moyen de paiement d'origine (carte).",
+    "de": "Rückerstattungen erfolgen ausschließlich auf das ursprüngliche Zahlungsmittel (Karte).", "nl": "Restituties gaan alleen terug naar de oorspronkelijke betaalmethode (kaart).",
+    "ms": "Bayaran balik hanya dikembalikan ke kaedah pembayaran asal (kad)."
+  },
+  "shellRuntime.f62": {
+    "ko": "개인정보처리방침 / Privacy", "en": "Privacy Policy", "ja": "プライバシーポリシー / Privacy", "zh-CN": "隐私政策 / Privacy", "zh-TW": "隱私政策 / Privacy",
+    "vi": "Chính sách bảo mật / Privacy", "hi": "गोपनीयता नीति / Privacy", "es": "Política de privacidad / Privacy", "fr": "Politique de confidentialité / Privacy",
+    "de": "Datenschutzerklärung / Privacy", "nl": "Privacybeleid / Privacy", "ms": "Dasar Privasi / Privacy"
+  },
+  "shellRuntime.f63": {
+    "ko": "이용약관 / Terms", "en": "Terms of Service", "ja": "利用規約 / Terms", "zh-CN": "服务条款 / Terms", "zh-TW": "服務條款 / Terms",
+    "vi": "Điều khoản dịch vụ / Terms", "hi": "सेवा की शर्तें / Terms", "es": "Términos del servicio / Terms", "fr": "Conditions d'utilisation / Terms",
+    "de": "Nutzungsbedingungen / Terms", "nl": "Gebruiksvoorwaarden / Terms", "ms": "Terma Perkhidmatan / Terms"
+  },
+  "shellRuntime.f64": {
+    "ko": "면책 고지 / Disclaimer", "en": "Disclaimer", "ja": "免責事項 / Disclaimer", "zh-CN": "免责声明 / Disclaimer", "zh-TW": "免責聲明 / Disclaimer",
+    "vi": "Tuyên bố miễn trừ / Disclaimer", "hi": "अस्वीकरण / Disclaimer", "es": "Aviso legal / Disclaimer", "fr": "Avertissement / Disclaimer",
+    "de": "Haftungsausschluss / Disclaimer", "nl": "Disclaimer", "ms": "Penafian / Disclaimer"
+  },
+  "shellRuntime.f65": {
+    "ko": "광고 운영정책 / Advertising Policy", "en": "Advertising Policy", "ja": "広告運営ポリシー / Advertising Policy", "zh-CN": "广告运营政策 / Advertising Policy", "zh-TW": "廣告營運政策 / Advertising Policy",
+    "vi": "Chính sách quảng cáo / Advertising Policy", "hi": "विज्ञापन नीति / Advertising Policy", "es": "Política publicitaria / Advertising Policy", "fr": "Politique publicitaire / Advertising Policy",
+    "de": "Werberichtlinie / Advertising Policy", "nl": "Advertentiebeleid / Advertising Policy", "ms": "Dasar Pengiklanan / Advertising Policy"
+  },
+  "shellRuntime.f66": {
+    "ko": "서비스 소개 / About", "en": "About", "ja": "サービス紹介 / About", "zh-CN": "服务介绍 / About", "zh-TW": "服務介紹 / About",
+    "vi": "Giới thiệu / About", "hi": "परिचय / About", "es": "Acerca de / About", "fr": "À propos / About",
+    "de": "Über uns / About", "nl": "Over ons / About", "ms": "Tentang / About"
+  },
+  "shellRuntime.f67": {
+    "ko": "문의하기 / Contact", "en": "Contact us", "ja": "お問い合わせ / Contact", "zh-CN": "联系我们 / Contact", "zh-TW": "聯絡我們 / Contact",
+    "vi": "Liên hệ / Contact", "hi": "संपर्क करें / Contact", "es": "Contacto / Contact", "fr": "Nous contacter / Contact",
+    "de": "Kontakt / Contact", "nl": "Contact opnemen / Contact", "ms": "Hubungi kami / Contact"
+  },
+  "shellRuntime.f68": {
+    "ko": "코드 데스티니 (Code Destiny)", "en": "Code Destiny", "ja": "Code Destiny", "zh-CN": "Code Destiny", "zh-TW": "Code Destiny",
+    "vi": "Code Destiny", "hi": "Code Destiny", "es": "Code Destiny", "fr": "Code Destiny",
+    "de": "Code Destiny", "nl": "Code Destiny", "ms": "Code Destiny"
+  },
+  "shellRuntime.f69": {
+    "ko": "코드 데스티니(Code Destiny)", "en": "Code Destiny", "ja": "Code Destiny", "zh-CN": "Code Destiny", "zh-TW": "Code Destiny",
+    "vi": "Code Destiny", "hi": "Code Destiny", "es": "Code Destiny", "fr": "Code Destiny",
+    "de": "Code Destiny", "nl": "Code Destiny", "ms": "Code Destiny"
+  },
+  "shellRuntime.f70": {
+    "ko": "© 2026 Code Destiny. 코드 데스티니 · 꿀꿀 만세력", "en": "© 2026 Code Destiny · Manseryeok almanac",
+    "ja": "© 2026 Code Destiny・萬歳暦", "zh-CN": "© 2026 Code Destiny · 万岁历", "zh-TW": "© 2026 Code Destiny · 萬歲曆",
+    "vi": "© 2026 Code Destiny · lịch Manseryeok", "hi": "© 2026 Code Destiny · मानसेरयोक पंचांग",
+    "es": "© 2026 Code Destiny · almanaque Manseryeok", "fr": "© 2026 Code Destiny · almanach Manseryeok",
+    "de": "© 2026 Code Destiny · Manseryeok-Almanach", "nl": "© 2026 Code Destiny · Manseryeok-almanak",
+    "ms": "© 2026 Code Destiny · almanak Manseryeok"
+  },
+  "shellRuntime.f71": {
+    "ko": "랜딩 페이지 내부 링크 허브", "en": "Landing page internal link hub", "ja": "ランディングページ内部リンクハブ", "zh-CN": "落地页内部链接中心", "zh-TW": "著陸頁內部連結中心",
+    "vi": "Trung tâm liên kết nội bộ trang đích", "hi": "लैंडिंग पेज आंतरिक लिंक हब", "es": "Centro de enlaces internos de la página de destino", "fr": "Hub de liens internes des pages d'atterrissage",
+    "de": "Interner Linkhub der Landingpages", "nl": "Interne linkhub van landingspagina's", "ms": "Hab pautan dalaman halaman pendaratan"
+  }
+}

@@ -2,6 +2,11 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
 
+// 만 14세 미만은 회원가입·서비스 이용 불가(대한민국 관련 법령).
+// 🔴 이 상수는 scripts/verify-adsense-readiness.mjs 가 개인정보 페이지의 "만 14세" 고지 마커를
+// 파생시키는 데도 쓴다 — 이름을 바꾸거나 지우면 배포 게이트가 깨진다.
+export const MIN_SELF_CONSENT_AGE = 14;
+
 /**
  * 만 나이 계산 (대한민국 법적 기준)
  * 생일이 지났으면 만 나이 = 현재 연도 - 출생 연도
@@ -97,9 +102,9 @@ export function validateBirthDateWithAge(birthDateStr, now = null) {
     age -= 1;
   }
 
-  // 14세 미만 차단
-  if (age < 14) {
-    return { isValid: false, age, error: "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다." };
+  // 만 14세 미만 차단
+  if (age < MIN_SELF_CONSENT_AGE) {
+    return { isValid: false, age, error: `만 ${MIN_SELF_CONSENT_AGE}세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.` };
   }
 
   return { isValid: true, age, error: null };
@@ -132,6 +137,7 @@ export function validateRegisterPayload(payload = {}) {
   return {
     isValid: errors.length === 0,
     errors,
+    age: ageValidation.age,
     sanitized: {
       name,
       email,

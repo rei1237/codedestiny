@@ -3,14 +3,16 @@ import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/a
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { canStripForbiddenText } from "../lib/llm-leak-guard.js";
 import { basisGroup, basisItem, basisStage, buildAnalysisBasisPayload } from "../lib/analysis-basis-contract.js";
 import { RELATIONSHIP_ANALYSIS_DOMAINS, buildDomainAnalysisRuleLines, buildEvidenceRuleLines } from "../lib/fortune-reasoning-contract.js";
 
@@ -71,6 +73,15 @@ const MESSAGES = {
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
 };
+
+/** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return SYSTEM_PROMPT;
+}
+
+export function getDefaultCompatibilityJsonSystemPrompt() {
+  return COMPATIBILITY_JSON_SYSTEM_PROMPT;
+}
 
 const SYSTEM_PROMPT = [
   "당신은 숙요점 27숙과 관계 상담에 능한 전문 상담가입니다.",
@@ -999,7 +1010,7 @@ async function handleEnsureAccess(request, env) {
   });
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1036,7 +1047,7 @@ async function handleEnsureAccess(request, env) {
       accessType: "admin",
     });
   }
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user || {});
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {
@@ -1073,7 +1084,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, accessHa
     return { ok: true, accessType: tokenPayload.accessType || "pass", paymentId: "" };
   }
   const user = await resolveUser(auth, env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
   if (decision.allowed) return { ok: true, accessType: mapAccessType(decision, user || {}), paymentId: paymentIdFromBody(body) };
   const billingEvidence = await withMongoRetry(env, () => resolveBillingUsageEvidence(env, auth, body));
   if (billingEvidence?.ok) return billingEvidence;
@@ -1189,7 +1200,11 @@ function buildSukuyoCompatibilityRepairPrompt(input, calculation, previousText, 
 
 function sanitizeConsultationText(text) {
   let result = clean(text, 60000);
-  for (const pattern of FORBIDDEN_RESULT_PATTERNS) result = result.replace(pattern, "");
+  // 🔴 삭제는 ko 에서만. FORBIDDEN_RESULT_PATTERNS 의 /chapter/gi·/progress/gi·/job/gi·/PDF/gi 가
+  // 비-ko 에서는 영어 상담문의 정상 단어를 본문에서 잘라낸다.
+  if (canStripForbiddenText()) {
+    for (const pattern of FORBIDDEN_RESULT_PATTERNS) result = result.replace(pattern, "");
+  }
   return result.replace(/\n{3,}/g, "\n\n").trim();
 }
 
@@ -1263,7 +1278,9 @@ async function createFirstAnswer(env, input, calculation) {
   };
   const isCompatibility = input.consultationType === "compatibility";
   const sukuyoCallOptions = {
-    systemPrompt: isCompatibility ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    systemPrompt: isCompatibility
+      ? await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT)
+      : await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
     taskType: "fortune",
     temperature: 0.74,
     timeoutMs: isCompatibility ? compatibilityTimeoutMs : (Number(env.SUKUYO_COMPAT_AI_TIMEOUT_MS) || 55000),
@@ -1309,7 +1326,7 @@ async function createFirstAnswer(env, input, calculation) {
       let repaired = null;
       try {
         const repair = await callGeminiJsonWithRetry(env, buildSukuyoCompatibilityRepairPrompt(input, calculation, rawContent, normalizeError), {
-          systemPrompt: COMPATIBILITY_JSON_SYSTEM_PROMPT,
+          systemPrompt: await cmsPromptText(env, "sukuyo-compatibility-json", COMPATIBILITY_JSON_SYSTEM_PROMPT),
           taskType: "fortune",
           temperature: 0.72,
           baseTokens: compatibilityMaxOutputTokens,
@@ -1546,7 +1563,7 @@ async function recordSuccessfulUsage(auth, idempotencyKey, access, consultation,
 async function handleStart(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1718,7 +1735,7 @@ function buildFollowupPrompt(consultation, userMessage) {
 async function handleMessage(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;
@@ -1734,7 +1751,7 @@ async function handleMessage(request, env) {
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId });
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
   const ai = await callGeminiText(env, buildFollowupPrompt(consultation, content), {
-    systemPrompt: SYSTEM_PROMPT,
+    systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
     taskType: "fortune",
     temperature: 0.72,
     maxOutputTokens: 2600,
@@ -1767,7 +1784,7 @@ async function handleMessage(request, env) {
 async function handleResult(request, env) {
   let auth = null;
   try {
-    auth = await requireAuth(request, env);
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     // 일시적 DB 장애는 로그아웃 유발 401이 아니라 재시도 가능한 503으로 흘려보낸다.
     if (isTransientMongoError(error)) throw error;

@@ -23,6 +23,7 @@ on:
       - "scripts/verify-runtime-cache-sync.mjs"
       - "scripts/verify-paid-feature-billing-policy.mjs"
       - "scripts/verify-ai-prompt-billing-policy.mjs"
+      - "scripts/verify-profile-server-first.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
   push:
@@ -46,6 +47,7 @@ on:
       - "scripts/verify-runtime-cache-sync.mjs"
       - "scripts/verify-paid-feature-billing-policy.mjs"
       - "scripts/verify-ai-prompt-billing-policy.mjs"
+      - "scripts/verify-profile-server-first.mjs"
       - "package.json"
       - ".github/workflows/paid-flow-gates.yml"
 
@@ -88,6 +90,13 @@ jobs:
       # 실제 크롬으로 클릭을 쏴서 토글 호출 횟수를 센다. 러너 이미지에 Chrome 이 포함돼 있다.
       - name: Verify rpt preview CTA flow (real Chrome)
         run: npm run verify:rpt-preview-cta
+
+      # 프로필 카드는 서버(DB)가 정본이어야 한다. 회귀는 함수가 사라져서가 아니라 부트스트랩이
+      # 프로필 조회를 세션검증 성공에 종속시켜서 났고(로그인했는데 빈 카드), 그때도 코드에는
+      # _dpLoadFromServer/'/api/profile' 문자열이 그대로 남아 있어 마커 검사로는 잡히지 않았다.
+      # jsdom 으로 셸을 띄워 "실제로 어떤 요청이 나갔고 무엇이 렌더됐는지"를 본다.
+      - name: Verify profile card is server-first
+        run: npm run verify:profile-server-first
 
       # 예전에는 여기서 파일 6개만 손으로 지목해 돌렸다. 그래서 나머지 48개 테스트 파일은
       # 어디서도 실행되지 않았고, ESM 목이 낡아 스위트가 통째로 죽어도(로그인 열거·무차별 대입,

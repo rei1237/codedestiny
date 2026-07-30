@@ -184,17 +184,13 @@
       "Bash(node scripts/verify-insight-authored.mjs sukuyo-day-by-day-rhythm-usage sukuyo-couple-finance-rhythm-guide)",
       "Bash(awk 'NR==3394,NR==3600{c+=gsub\\(/\\\\{/,\"{\"\\); c-=gsub\\(/\\\\}/,\"}\"\\); if\\(NR>=3394\\) print NR\": \"c; if\\(NR>3394 && c==0\\) exit}' app/insights/articles.js)",
       "Bash(node scripts/verify-insight-authored.mjs sukuyo-beginner-terms-easy-dictionary sukuyo-qa-most-asked-questions)",
-      "Bash(grep -c '\\\\\\\\u[0-9A-F]\\\\{4\\\\}' index.html)",
-      "Bash(awk 'NR>=21160 && NR<=21215' index.html)",
-      "Bash(awk 'NR>=21215 && NR<=21250' index.html)",
-      "Bash(awk 'NR>=18789 && NR<=18860' index.html)",
-      "Bash(awk 'NR>=18860 && NR<=18990' index.html)",
-      "Bash(cmd //c mklink //J node_modules \"C:\\\\Users\\\\user\\\\Downloads\\\\codedestiny-main\\\\node_modules\")"
+      "Bash(node scripts/verify-mobile-detail-nonintrusive.mjs)",
+      "Bash(awk 'NR>=11560 && NR<=11600' styles/fortune-ui.css)",
+      "Bash(node scripts/verify-mobile-bottom-nav-sync.mjs)",
+      "Bash(node scripts/generate-sitemap.mjs)"
     ],
     "additionalDirectories": [
-      "\\tmp",
-      "c:\\Users\\user\\Downloads\\cd-passfast-wt",
-      "C:\\Users\\user\\Downloads\\codedestiny-island-wt\\worker\\lib\\island"
+      "\\tmp"
     ]
   },
   "hooks": {

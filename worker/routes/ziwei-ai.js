@@ -4,6 +4,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { cmsPromptText } from "../lib/cms-prompts.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
 import { consumeMonthlyCreditLots, restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -831,6 +832,16 @@ async function verifyPaymentForStart({ env, auth, paymentId, idempotencyKey, inp
   return { ok: true, accessType: "paid", paymentId: normalizedPaymentId };
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
+function resolveSystemPrompt(env) {
+  return cmsPromptText(env, "ziwei-ai", buildSystemPrompt());
+}
+
 function buildSystemPrompt() {
   return [
     "당신은 30년 경력의 자미두수(紫微斗數) 명인입니다. 눈앞에 앉은 사람의 명반을 손끝으로 짚어 가며, 따뜻하지만 정확하게 짚어 주는 현역 상담가처럼 답합니다.",
@@ -1262,7 +1273,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   // clamp를 걸면 라우트가 먼저 타임아웃을 판정해, 짧아진 결과라도 아래 degrade 경로로 반드시 전달한다.
   const ziweiTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.ZIWEI_AI_TIMEOUT_MS) || 240000);
   const ziweiCallOptions = {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
     temperature: 0.72,
     timeoutMs: ziweiTimeoutMs,
@@ -1292,7 +1303,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   const initialRangeProblem = bodyCharRangeProblem(bodyChars, minBodyChars, maxBodyChars);
   if (initialRangeProblem) {
     const expanded = await callGeminiText(env, buildBodyRangeRepairPrompt(text, { minBodyChars, maxBodyChars, bodyChars }), {
-      systemPrompt: buildSystemPrompt(),
+      systemPrompt: await resolveSystemPrompt(env),
       taskType: "fortune",
       temperature: 0.62,
       maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,
@@ -1334,7 +1345,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     "",
     text,
   ].filter(Boolean).join("\n"), {
-    systemPrompt: buildSystemPrompt(),
+    systemPrompt: await resolveSystemPrompt(env),
     taskType: "fortune",
     temperature: 0.58,
     maxOutputTokens: options.maxOutputTokens || INITIAL_CONSULTATION_MAX_OUTPUT_TOKENS,

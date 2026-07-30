@@ -96,8 +96,8 @@ const tarotSpreadOptions: Array<{
   title: string;
   description: string;
 }> = [
-  { id: "three", title: "3카드 스프레드", description: "현재 · 흐름 · 조언을 차례로 펼칩니다." },
-  { id: "five", title: "5카드 스프레드", description: "현재 · 상대/상황 · 장애 · 가능성 · 조언까지 깊게 봅니다." },
+  { id: "three", title: "3카드 스프레드", description: "현재 · 흐름 · 조언을 차례로 펼치는 빠르고 핵심적인 리딩입니다." },
+  { id: "five", title: "5카드 프리미엄 스프레드", description: "현재 · 상대/상황 · 장애 · 가능성 · 조언까지, 카드 수만큼 더 깊게 봅니다." },
 ];
 
 const questionSceneUi =
@@ -218,10 +218,10 @@ function mapProfileToTeaHouseOption(profile: DestinyProfileCard): TeaHouseProfil
 export default function QuestionInputScene({ selectedCup, initialInput, onSubmit, onBack, isSubmitting = false, submitError = "", priceLabels = {} }: QuestionInputSceneProps) {
   const [consultationMode, setConsultationMode] = useState<FortuneTeaHouseConsultMode>(initialInput?.consultationMode || "tarot");
   const priceLabelForMode = useCallback(
-    (mode: FortuneTeaHouseConsultMode) => priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode),
+    (mode: FortuneTeaHouseConsultMode, spread?: FortuneTeaTarotSpread) =>
+      priceLabels[mode] || getFortuneTeaHouseConsultPriceLabel(mode, spread),
     [priceLabels],
   );
-  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(consultationMode, priceLabelForMode(consultationMode));
   const [nickname, setNickname] = useState(initialInput?.nickname || "");
   const [profileId, setProfileId] = useState(initialInput?.profileId || "");
   const [selectedProfileOptionId, setSelectedProfileOptionId] = useState(initialInput?.profileId || "");
@@ -237,6 +237,12 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
   const [gender, setGender] = useState(initialInput?.gender || "");
   const [calendarType, setCalendarType] = useState<FortuneTeaHouseCalendarType>(initialInput?.calendarType || "solar");
   const [tarotSpread, setTarotSpread] = useState<FortuneTeaTarotSpread>(initialInput?.tarotSpread === "five" ? "five" : "three");
+  // 타로 금액은 선택한 스프레드(3카드 5,000원 / 5카드 7,000원)에 따라 달라진다.
+  const submitButtonLabel = getFortuneTeaHouseResultButtonLabel(
+    consultationMode,
+    priceLabelForMode(consultationMode, tarotSpread),
+    tarotSpread,
+  );
   const [sukuyoInput, setSukuyoInput] = useState<FortuneTeaHouseSukuyoInput>(() => ({
     user: {
       name: initialInput?.sukuyo?.user?.name || initialInput?.nickname || "",
@@ -641,7 +647,9 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       </span>
                       <span>
                         <b>상담 금액</b>
-                        {priceLabelForMode(option.id)}
+                        {option.id === "tarot"
+                          ? `3카드 ${getFortuneTeaHouseConsultPriceLabel("tarot", "three")} · 5카드 ${getFortuneTeaHouseConsultPriceLabel("tarot", "five")}`
+                          : priceLabelForMode(option.id)}
                       </span>
                     </span>
                   </span>
@@ -726,7 +734,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                       onClick={() => setTarotSpread(option.id)}
                       disabled={isSubmitting}
                     >
-                      <strong>{option.title}</strong>
+                      <strong>{option.title} · {getFortuneTeaHouseConsultPriceLabel("tarot", option.id)}</strong>
                       <span>{option.description}</span>
                     </button>
                   );

@@ -123,7 +123,6 @@ import { nc28 } from "./chapters/chapter-28";
 import { nc29 } from "./chapters/chapter-29";
 import { nc30 } from "./chapters/chapter-30";
 import { nc31 } from "./chapters/chapter-31";
-import storyOverridesJson from "./overrides.generated.json";
 const baseStories: Array<IStory | IChapter> = [
   {
     _id: "story-code-destiny",
@@ -529,38 +528,12 @@ const baseChapters: IChapter[] = [
   },
 ]
 
-// 관리자(꽃 admin)에서 발행한 수정본을 빌드 시 베이스 시드 위에 병합한다.
-// scripts/fetch-content-overrides.mjs가 overrides.generated.json을 갱신한다(기본값은 빈 객체).
-type StoryOverrideFields = { title?: string; description?: string };
-type ChapterOverrideFields = { title?: string; content?: string };
+// 산문판 원고. 관리자 CMS 의 편집 대상은 라이트 노벨(lib/stories/vn) 하나로 통일됐고,
+// 이 산문은 로그라인 집필 소스로만 남는다(lib/stories/vn/index.ts 상단 주석 참고).
+// 구 소설/회차 오버라이드 배관은 제거했다 — 어떤 라우트도 이 데이터를 렌더하지 않는다.
+export const mockStories: Array<IStory | IChapter> = baseStories;
 
-const storyOverrides: Record<string, StoryOverrideFields> =
-  (storyOverridesJson as { stories?: Record<string, StoryOverrideFields> }).stories ?? {};
-const chapterOverrides: Record<string, ChapterOverrideFields> =
-  (storyOverridesJson as { chapters?: Record<string, ChapterOverrideFields> }).chapters ?? {};
-
-export const mockStories: Array<IStory | IChapter> = baseStories.map((story) => {
-  if ("storyId" in story) return story;
-  const override = storyOverrides[(story as IStory).slug];
-  if (!override) return story;
-  return {
-    ...story,
-    title: override.title || story.title,
-    description: override.description || (story as IStory).description,
-  };
-});
-
-export const mockChapters: IChapter[] = baseChapters.map((chapter) => {
-  const override = chapterOverrides[chapter._id];
-  if (!override) return chapter;
-  const content = override.content || chapter.content;
-  return {
-    ...chapter,
-    title: override.title || chapter.title,
-    content,
-    wordCount: content.replace(/\s+/g, "").length,
-  };
-});
+export const mockChapters: IChapter[] = baseChapters;
 
 function isStoryRecord(story: IStory | IChapter): story is IStory {
   const candidate = story as unknown as Record<string, unknown>;

@@ -1,3 +1,5 @@
+import { applyPromptTemplateOverride } from "./cms-prompt-template-store.js";
+
 /**
  * 베다 점성술 AI 상담 프롬프트 템플릿
  * 주제별, 도메인별 구조화된 템플릿
@@ -488,7 +490,7 @@ export const VEDIC_PROMPT_TEMPLATES = {
  * 프롬프트 템플릿에서 특정 도메인 조회
  */
 export function getVedicPromptTemplate(domain) {
-  return VEDIC_PROMPT_TEMPLATES[domain] || null;
+  return applyPromptTemplateOverride("vedic", domain, VEDIC_PROMPT_TEMPLATES[domain] || null);
 }
 
 /**

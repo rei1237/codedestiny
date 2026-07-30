@@ -1108,17 +1108,6 @@ async function resolvePaidContentAccess(env, {
       paymentOptions,
     }), priceCoin);
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return buildTemporaryUnavailableAccessDecision(pricing, null, {
-        scope: "resolve_paid_content_access",
-        errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
-          featureKey,
-          requestId,
-          profileId,
-        }),
-      });
-    }
-
     if (String(error?.code || "") === "MISSING_PROFILE_ID") {
       return buildPaidContentAccessDecision({
         reason: "invalid_profile",
@@ -1126,9 +1115,17 @@ async function resolvePaidContentAccess(env, {
       });
     }
 
-    return buildPaidContentAccessDecision({
-      reason: "error",
-      priceCoin,
+    // DB 일시장애·접근판정 타임아웃(UNLOCK_ACCESS_DECISION_TIMEOUT)·기타 예기치 못한 오류는 모두
+    // '일시 불가'로 degrade한다. 과거엔 비-DB 오류가 reason:"error"→payment_required 로 떨어져,
+    // 이미 해금/이용권 보유한 사용자가 일시적 오류에 결제창을 다시 보거나 해금이 풀렸다(간헐 재잠금).
+    // temporary_unavailable 은 클라가 last-known(해금 유지)로 처리하므로 오탐 재잠금을 막는다.
+    return buildTemporaryUnavailableAccessDecision(pricing, null, {
+      scope: "resolve_paid_content_access",
+      errorDetails: buildBillingErrorDetails("resolve-paid-content-access", error, {
+        featureKey,
+        requestId,
+        profileId,
+      }),
     });
   }
 }

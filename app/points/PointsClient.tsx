@@ -18,6 +18,7 @@ import { getApiBaseUrl } from "../_lib/api-config";
 import { readSubscriptionSnapshotForUser, saveSubscriptionSnapshotForUser } from "../_lib/billing-client";
 import { persistSanitizedAuthUser, readSanitizedAuthUser, resolveAuthScopeFromUser } from "../_lib/auth-storage";
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
+import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPolling";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
@@ -410,8 +411,8 @@ async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Pro
     retryOn401: true,
     apiBase,
   });
-  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string }>(response);
-  if (!response.ok) throw new Error(payload.message || "휴대폰 번호 저장에 실패했습니다.");
+  const payload = await safeParseJson<{ phoneNumber?: string; phone?: string; message?: string; code?: string }>(response);
+  if (!response.ok) throw new Error(describePaymentPhoneFailure(response.status, payload));
   return normalizePaymentPhoneNumber(payload.phoneNumber || payload.phone || phoneNumber);
 }
 
@@ -427,10 +428,12 @@ async function ensurePaymentPhoneNumber(
   // prompt 는 절대 프리페치하지 않는다 — 조회분만 미리 받고, 입력이 필요하면 이 시점에 띄운다.
   const saved = await (prefetchedSaved || getSavedPaymentPhoneNumber(apiBase)).catch(() => "");
   if (saved) return saved;
-  const typed = window.prompt("이니시스 결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.", "");
-  const normalized = normalizePaymentPhoneNumber(typed || "");
-  if (!normalized) throw new Error("이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
-  const nextPhone = await savePaymentPhoneNumber(apiBase, normalized);
+  // 모달이 저장까지 끝낸 번호를 돌려준다(인앱 웹뷰에서 억제되는 window.prompt 대체).
+  const nextPhone = await promptPaymentPhoneNumber({
+    normalize: normalizePaymentPhoneNumber,
+    onSave: (phone) => savePaymentPhoneNumber(apiBase, phone),
+  });
+  if (!nextPhone) throw new Error("단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
   const latestUser = readSanitizedAuthUser() as AuthUser | null;
   if (latestUser) persistSanitizedAuthUser({ ...latestUser, phoneNumber: nextPhone, phone: latestUser.phone || nextPhone });
   return nextPhone;

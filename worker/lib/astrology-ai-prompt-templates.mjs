@@ -1,3 +1,5 @@
+import { applyPromptTemplateOverride } from "./cms-prompt-template-store.js";
+
 export const ASTROLOGY_PROMPT_TEMPLATES = Object.freeze({
   compatibility: {
     domain: "compatibility",
@@ -200,7 +202,8 @@ export const ASTROLOGY_PROMPT_TEMPLATES = Object.freeze({
 });
 
 export function getAstrologyPromptTemplate(domain) {
-  return ASTROLOGY_PROMPT_TEMPLATES[String(domain || "").trim()] || null;
+  const key = String(domain || "").trim();
+  return applyPromptTemplateOverride("astrology", key, ASTROLOGY_PROMPT_TEMPLATES[key] || null);
 }
 
 export function classifyQuestionToAstrologyDomain(question) {

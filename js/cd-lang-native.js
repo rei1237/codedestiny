@@ -270,8 +270,8 @@
     return missingText(lang);
   }
 
-  function loadDictionary(lang) {
-    var file = I18N_FILE_BY_LANG[lang];
+  /** 파일 basename 으로 사전을 받아 온다. ko 는 I18N_FILE_BY_LANG 에 없으므로 이 경로로만 얻는다. */
+  function loadDictionaryFile(file) {
     if (!file) return Promise.resolve(null);
     var cacheKey = file + ':' + nativeScriptCacheKey;
     if (dictionaryCache[cacheKey]) return dictionaryCache[cacheKey];
@@ -285,6 +285,10 @@
         return null;
       });
     return dictionaryCache[cacheKey];
+  }
+
+  function loadDictionary(lang) {
+    return loadDictionaryFile(I18N_FILE_BY_LANG[lang]);
   }
 
   function shouldTranslateText(el) {
@@ -355,7 +359,140 @@
         if (key) el.textContent = interpolate(resolveValue(dictionary, key, lang, 'text'), vars);
         applyAttributeTranslations(el, dictionary, lang, vars);
       });
+      return repairUnmarkedKoreanText(dictionary, lang);
     });
+  }
+
+  /**
+   * 마커 없는 한국어 텍스트를 한국어 원문으로 역조회해 번역한다.
+   *
+   * 왜 필요한가: 셸의 UI 상당수는 인라인 스크립트가 런타임에 만든다. 그 생성기들은
+   * `__cdText(key, '한국어')` 로 문자열만 얻고 **마커는 남기지 않는다**. 사전 fetch 가
+   * 끝나기 전에 그려지면 fallback(한국어)이 그대로 DOM 에 박히고, 언어 전환은
+   * 마커 있는 노드만 훑으므로 그 노드는 영원히 한국어로 남는다. 실측으로 일본어 홈에
+   * 한국어 1,162자가 이렇게 남아 있었다.
+   *
+   * 생성기 수백 곳에 마커를 심는 대신, ko.json(한국어 원문↔키)을 역인덱스로 만들어
+   * 텍스트 자체로 키를 찾는다. 복구한 노드에는 마커를 남겨 다음 전환부터는 정상 경로를 탄다.
+   */
+  /**
+   * 런타임 생성 UI 문구는 코어 사전이 아니라 `<lang>/shellRuntime.json` 네임스페이스에 있다.
+   * 코어 사전은 첫 페인트 경로에서 바로 받으므로 수천 개를 더 얹을 수 없어 분리했다.
+   * 복구 패스는 첫 화면 이후에 도는 보정이라 여기서 한 번 더 받아도 체감 지연이 없다.
+   */
+  var REPAIR_NAMESPACE = 'shellRuntime';
+
+  /** 평면 키("a.b.c" 자체가 프로퍼티)와 중첩 키를 모두 지원하는 조회. */
+  function lookupTranslation(source, key) {
+    if (!source) return undefined;
+    if (typeof source[key] === 'string') return source[key];
+    return valueAtPath(source, key);
+  }
+
+  var koReverseIndex = null;
+  var repairNamespaceCache = {};
+
+  function loadRepairNamespace(langFile) {
+    if (!langFile) return Promise.resolve(null);
+    if (repairNamespaceCache[langFile]) return repairNamespaceCache[langFile];
+    repairNamespaceCache[langFile] = loadDictionaryFile(langFile + '/' + REPAIR_NAMESPACE);
+    return repairNamespaceCache[langFile];
+  }
+
+  function buildKoReverseIndex() {
+    if (koReverseIndex) return Promise.resolve(koReverseIndex);
+    return Promise.all([loadDictionaryFile('ko'), loadRepairNamespace('ko')]).then(function (sources) {
+      var index = {};
+      sources.filter(Boolean).forEach(function (source) {
+        (function walk(node, path) {
+          for (var key in node) {
+            if (!Object.prototype.hasOwnProperty.call(node, key)) continue;
+            var value = node[key];
+            var next = path ? path + '.' + key : key;
+            if (typeof value === 'string') {
+              var text = value.replace(/\s+/g, ' ').trim();
+              // 2자까지 내린다. "추천"·"무료"·"신규" 같은 배지 라벨이 UI 크롬의 상당수라
+              // 4자 하한으로는 그 구간이 통째로 한국어로 남는다. 대신 아래 repair 쪽에서
+              // 입력 필드·사용자 생성 영역을 제외해 오탐을 막는다.
+              if (text.length >= 2 && !Object.prototype.hasOwnProperty.call(index, text)) index[text] = next;
+            } else if (value && typeof value === 'object') {
+              walk(value, next);
+            }
+          }
+        })(source, '');
+      });
+      koReverseIndex = index;
+      return index;
+    });
+  }
+
+  function repairUnmarkedKoreanText(dictionary, lang) {
+    var langFile = I18N_FILE_BY_LANG[lang];
+    return Promise.all([buildKoReverseIndex(), loadRepairNamespace(langFile)]).then(function (loaded) {
+      var index = loaded[0];
+      var namespaceDictionary = loaded[1];
+      if (!index || !document.body) return;
+      var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+      var pending = [];
+      for (var node = walker.nextNode(); node; node = walker.nextNode()) {
+        var raw = node.nodeValue || '';
+        var text = raw.replace(/\s+/g, ' ').trim();
+        if (!text || !/[가-힣]/.test(text)) continue;
+        var parent = node.parentElement;
+        if (!parent) continue;
+        if (parent.closest('script, style, template, noscript, [data-cd-no-trans]')) continue;
+        // 🔴 마커가 있는 노드도 건너뛰지 않는다.
+        // 생성기가 번역이 끝난 뒤 마킹된 노드를 한국어 리터럴로 덮어쓰는 경우가 있다
+        // (예: syncMembershipStatus 가 heroTitle.textContent 에 한국어를 직접 대입).
+        // 마커가 있는데도 한국어가 보인다면 그건 언제나 잘못된 상태이므로 고치는 편이 옳다.
+        // ko 로케일에서는 이 패스 자체가 돌지 않으므로 원문이 훼손될 일은 없다.
+        // 사용자가 넣은 값이 우리 UI 문구와 우연히 같을 수 있는 자리는 건드리지 않는다.
+        // (프로필 이름, 입력 미리보기, 상담 답변 등)
+        // select 는 제외하지 않는다 — <option> 은 우리가 쓴 UI 라벨이지 사용자 입력이 아니다.
+        if (parent.closest('input, textarea, [contenteditable], [data-cd-user-content]')) continue;
+        var key = index[text];
+        if (!key) continue;
+        // 코어 사전 → shellRuntime 네임스페이스 순으로 찾는다.
+        // 네임스페이스 파일은 점을 포함한 **평면 키**일 수도, 중첩일 수도 있어 둘 다 본다.
+        var translated = lookupTranslation(dictionary, key);
+        if (typeof translated !== 'string') translated = lookupTranslation(namespaceDictionary, key);
+        if (typeof translated !== 'string' || !translated || translated === text) continue;
+        pending.push({ node: node, raw: raw, text: text, key: key, translated: translated, parent: parent });
+      }
+      pending.forEach(function (item) {
+        // 앞뒤 공백을 보존해야 인접 인라인 요소와의 간격이 무너지지 않는다
+        var lead = item.raw.match(/^\s*/)[0];
+        var tail = item.raw.match(/\s*$/)[0];
+        item.node.nodeValue = lead + item.translated + tail;
+        // 부모가 이 텍스트만 가지면 마커를 남겨 다음 전환부터 정상 경로를 타게 한다
+        if (item.parent.childNodes.length === 1 && !item.parent.hasAttribute('data-cd-trans')) {
+          item.parent.setAttribute('data-cd-trans', item.key);
+          item.parent.setAttribute('data-cd-origin-text', item.text);
+          item.parent.classList.add('notranslate');
+        }
+      });
+      return pending.length;
+    });
+  }
+
+  /**
+   * 늦게 그려지는 DOM 을 위한 복구 재실행.
+   * 홈 셸은 컬렉션·모달·프로필 카드를 스크롤·클릭 시점에 만든다. 최초 적용 한 번으로는
+   * 그 노드들을 못 잡으므로 DOM 변화를 보고 복구 패스를 다시 돌린다.
+   * 관찰은 하나만 건다 — 이미 걸려 있으면 새로 만들지 않는다(중첩 방지).
+   */
+  var repairTimer = null;
+  function installRepairObserver() {
+    if (window.__cdKoRepairObserverBound || typeof MutationObserver !== 'function' || !document.body) return;
+    window.__cdKoRepairObserverBound = true;
+    new MutationObserver(function () {
+      if (activeDictionaryLang === 'ko' || !activeDictionary) return;
+      if (repairTimer) clearTimeout(repairTimer);
+      repairTimer = setTimeout(function () {
+        repairTimer = null;
+        repairUnmarkedKoreanText(activeDictionary, activeDictionaryLang);
+      }, 400);
+    }).observe(document.body, { childList: true, subtree: true });
   }
 
   function nativeChangeLanguage(langCode, btn) {
@@ -406,6 +543,7 @@
     syncLanguageUiSoon(lang);
     applyNativeTranslations(lang).finally(function () {
       syncLanguageUiSoon(lang);
+      installRepairObserver();
     });
     if (!window.__cdNativeLangClickBound) {
       window.__cdNativeLangClickBound = true;

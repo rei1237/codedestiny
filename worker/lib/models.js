@@ -40,6 +40,18 @@ const userSchema = new mongoose.Schema({
     enabled: { type: Boolean, default: true },
     activatedAt: { type: Date, default: Date.now },
   },
+  // 만 14세 미만 가입자의 법정대리인 동의 기록 (개인정보보호법 제22조의2).
+  // 만 14세 이상 계정에는 이 필드가 아예 생기지 않는다(status 기본값 "none").
+  guardianConsent: {
+    required: { type: Boolean, default: false },
+    status: { type: String, enum: ["none", "pending", "approved", "rejected", "revoked"], default: "none" },
+    method: { type: String, default: "", trim: true },
+    guardianEmail: { type: String, default: "", lowercase: true, trim: true },
+    requestedAt: { type: Date, default: null },
+    consentedAt: { type: Date, default: null },
+    revokedAt: { type: Date, default: null },
+    consentIp: { type: String, default: "", trim: true },
+  },
   socialAccounts: {
     google: {
       id: { type: String, default: "" },
@@ -848,6 +860,53 @@ loveSecretAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique:
 loveSecretAiConsultationSchema.index({ userId: 1, attemptId: 1 });
 loveSecretAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+/**
+ * 마스터 인연의 서 (MASTER_LOVE_CODEX)
+ * 회당 결제(500코인=50,000원) 20챕터 전자책. 회당 결제지만 생성 결과는 영구 저장해
+ * 같은 세션(sessionId)을 재결제 없이 다시 열람할 수 있게 한다.
+ */
+const masterLoveCodexChapterSchema = new mongoose.Schema({
+  id: { type: String, required: true, trim: true, maxlength: 40 },
+  order: { type: Number, required: true },
+  symbol: { type: String, default: "", trim: true, maxlength: 8 },
+  title: { type: String, required: true, trim: true, maxlength: 160 },
+  body: { type: String, required: true, trim: true, maxlength: 16000 },
+  chars: { type: Number, default: 0 },
+  provider: { type: String, default: "", trim: true, maxlength: 40 },
+  ok: { type: Boolean, default: true },
+}, { _id: false });
+
+const masterLoveCodexSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, required: true, trim: true, maxlength: 20 },
+    birthDate: { type: String, required: true, trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], required: true },
+    isLeapMonth: { type: Boolean, default: false },
+  },
+  prologueChoice: { type: String, default: "", trim: true, maxlength: 20 },
+  sajuResult: { type: mongoose.Schema.Types.Mixed, default: null },
+  ziweiChart: { type: mongoose.Schema.Types.Mixed, default: null },
+  chapters: { type: [masterLoveCodexChapterSchema], default: [] },
+  loveDna: { type: mongoose.Schema.Types.Mixed, default: null },
+  generationProgress: { type: mongoose.Schema.Types.Mixed, default: null },
+  totalCharCount: { type: Number, default: 0 },
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "masterLoveCodexSessions" });
+
+masterLoveCodexSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+masterLoveCodexSchema.index({ userId: 1, createdAt: -1 });
+
 const lifeBookAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true, trim: true, maxlength: 60000 },
@@ -1162,6 +1221,8 @@ export const ZiweiAiConsultation = mongoose.models.ZiweiAiConsultation
   || mongoose.model("ZiweiAiConsultation", ziweiAiConsultationSchema);
 export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
+export const MasterLoveCodexSession = mongoose.models.MasterLoveCodexSession
+  || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema);
 export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation
   || mongoose.model("LifeBookAiConsultation", lifeBookAiConsultationSchema);
 export const SukuyoCompatibilityAiConsultation = mongoose.models.SukuyoCompatibilityAiConsultation
@@ -1351,10 +1412,10 @@ insightSchema.index({ isFeatured: 1, updatedAt: -1 });
 
 export const Insight = mongoose.models.Insight || mongoose.model("Insight", insightSchema);
 
-// 파일 기반 정적 콘텐츠(유명인 사주/소설)의 관리자 수정본. 빌드 시
-// scripts/fetch-content-overrides.mjs가 published 문서만 내려받아 베이스 시드 위에 병합한다.
+// 구 오버라이드 컬렉션. 신규 편집은 전부 CmsEntry 로 가고, 이 모델은 유명인 사주의
+// 기존 발행본을 읽기 위해서만 남는다(웹소설이 라이트 노벨로 대체되며 story/chapter 는 폐기).
 const contentOverrideSchema = new mongoose.Schema({
-  source: { type: String, enum: ["famous-saju", "story", "chapter"], required: true },
+  source: { type: String, enum: ["famous-saju"], required: true },
   key: { type: String, required: true, trim: true },
   fields: { type: mongoose.Schema.Types.Mixed, default: {} },
   status: { type: String, enum: ["draft", "published"], default: "draft" },
@@ -1364,6 +1425,58 @@ const contentOverrideSchema = new mongoose.Schema({
 contentOverrideSchema.index({ source: 1, key: 1 }, { unique: true });
 
 export const ContentOverride = mongoose.models.ContentOverride || mongoose.model("ContentOverride", contentOverrideSchema);
+
+/* 통합 CMS 엔트리. 관리자가 고치는 모든 텍스트/프롬프트가 여기 한 컬렉션에 들어간다.
+   무엇을 편집할 수 있는지는 lib/cms/registry.mjs 가 선언하고, 이 스키마는 그 값을 담기만 한다
+   (네임스페이스를 enum 으로 못 박지 않는 이유 — 새 콘텐츠군 추가에 스키마 변경이 따라오면
+    "코드 수정 없이 늘어난다"는 전제가 깨진다).
+
+   channel 이 전달 방식을 가른다:
+     runtime — 워커가 바로 읽어 서빙(즉시 반영). AI 프롬프트·공지·버튼 문구 등.
+     build   — 정적 빌드에 구워짐(사이트 반영 필요). SEO 본문·라이트 노벨·서비스 소개 등.
+   정적 export 라 사용자 화면 문구는 대부분 build 로 갈 수밖에 없다. */
+const cmsEntrySchema = new mongoose.Schema({
+  namespace: { type: String, required: true, trim: true },
+  key: { type: String, required: true, trim: true },
+  locale: { type: String, default: "ko", trim: true, lowercase: true },
+  fields: { type: mongoose.Schema.Types.Mixed, default: {} },
+  status: {
+    type: String,
+    enum: ["draft", "review", "scheduled", "published", "archived"],
+    default: "draft",
+    required: true,
+  },
+  channel: { type: String, enum: ["runtime", "build"], default: "build" },
+  publishAt: { type: Date, default: null },
+  unpublishAt: { type: Date, default: null },
+  version: { type: Number, default: 1, min: 1 },
+  note: { type: String, default: "", trim: true, maxlength: 500 },
+  updatedBy: { type: String, default: "", trim: true },
+}, { timestamps: true });
+
+cmsEntrySchema.index({ namespace: 1, key: 1, locale: 1 }, { unique: true });
+cmsEntrySchema.index({ status: 1, updatedAt: -1 });
+cmsEntrySchema.index({ channel: 1, status: 1 });
+
+export const CmsEntry = mongoose.models.CmsEntry || mongoose.model("CmsEntry", cmsEntrySchema);
+
+/* 버전 스냅샷. 엔트리 본문에 배열로 쌓지 않고 별도 컬렉션으로 뺀 이유는, 문서 안에 이력을 무한히
+   누적하면 문서가 부풀어 결국 저장 자체가 실패하기 때문이다(환불 마커 누적으로 영구 500 이 났던 전례).
+   키당 CMS_REVISION_KEEP 개까지만 남기고 오래된 것부터 지운다. */
+const cmsRevisionSchema = new mongoose.Schema({
+  namespace: { type: String, required: true, trim: true },
+  key: { type: String, required: true, trim: true },
+  locale: { type: String, default: "ko", trim: true, lowercase: true },
+  version: { type: Number, required: true, min: 1 },
+  fields: { type: mongoose.Schema.Types.Mixed, default: {} },
+  status: { type: String, default: "draft", trim: true },
+  note: { type: String, default: "", trim: true, maxlength: 500 },
+  updatedBy: { type: String, default: "", trim: true },
+}, { timestamps: { createdAt: true, updatedAt: false } });
+
+cmsRevisionSchema.index({ namespace: 1, key: 1, locale: 1, version: -1 });
+
+export const CmsRevision = mongoose.models.CmsRevision || mongoose.model("CmsRevision", cmsRevisionSchema);
 
 const destinyBiasCardSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },

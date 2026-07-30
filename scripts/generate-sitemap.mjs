@@ -3,6 +3,9 @@ import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+import { createRequire } from "node:module";
+const requireJson = createRequire(import.meta.url);
+const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
 
 // app/insights/seed-articles.js 를 소스 그대로 import 하기 위한 확장자 보완 로더.
 register(pathToFileURL(resolve(process.cwd(), "scripts", "app-module-loader.mjs")));
@@ -107,6 +110,7 @@ const coreRoutes = [
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },
+  { path: "/reviews", changefreq: "daily", priority: 0.85 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
@@ -148,6 +152,7 @@ const coreRoutes = [
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
+  { path: "/master-love-codex", changefreq: "monthly", priority: 0.9 },
   { path: "/naming-ai", changefreq: "monthly", priority: 0.86 },
   { path: "/new-year-ai-consultation", changefreq: "monthly", priority: 0.86 },
   { path: "/ziwei-ai", changefreq: "weekly", priority: 0.88 },
@@ -165,6 +170,10 @@ const coreRoutes = [
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/editorial-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
+  // 연이의 운명 노벨 텍스트 리더 — 허브 + 44화.
+  // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.
+  { path: "/stories", changefreq: "monthly", priority: 0.86 },
+  ...STORY_EPISODE_SLUGS.map((slug) => ({ path: `/stories/${slug}`, changefreq: "yearly", priority: 0.7 })),
   { path: "/insights/saju", changefreq: "weekly", priority: 0.84 },
   { path: "/insights/ziwei", changefreq: "weekly", priority: 0.88 },
   { path: "/insights/sukuyo", changefreq: "weekly", priority: 0.88 },

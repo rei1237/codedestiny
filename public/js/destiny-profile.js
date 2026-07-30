@@ -847,9 +847,13 @@
     } catch (_) {}
   })();
 
+  // /api/me/* 는 워커에서 /api/auth/me/* 로 재작성돼 CSRF 동일출처 가드를 그대로 탄다. 비민감으로
+  // 두면 아래 _dpBuildApiCandidates 가 저장된 base 를 상대경로보다 먼저 시도하고 workers.dev 폴백까지
+  // 붙여, 교차출처 요청이 403 "Invalid auth request origin."으로 돌아왔다.
   function _dpIsAuthSensitivePath(pathname) {
     var path = String(pathname || '');
     return path.indexOf('/api/auth/') === 0
+      || path.indexOf('/api/me/') === 0
       || path.indexOf('/api/user/') === 0
       || path.indexOf('/api/fortune/pig-coin/') === 0
       || path.indexOf('/api/billing/') === 0
@@ -1250,7 +1254,15 @@
 
             if (cooldownEnabled) _dpMarkCooldown(pathname, response.status, looksHtml);
             var hasNext = index < candidates.length - 1;
-            var retryable = looksHtml || response.status >= 500 || response.status === 404 || response.status === 0;
+            /* 후보 베이스 순회는 "이 API 주소가 틀렸다"를 위한 장치다. 그런데 워커가 내는 JSON 503은
+               "DB가 잠시 아프다"는 degraded 신호이고, 후보(상대경로·origin·workers.dev)는 전부 같은
+               워커·같은 클러스터로 가므로 순회해봐야 똑같이 503이다. 요청·콘솔오류·DB부하만 후보 수만큼
+               배가된다(홈 진입 1회 블립이 3배로 보이던 원인). 셸의 shouldTryNextCandidate 와 정책을 맞춘다.
+               Cloudflare/Pages 가 내는 503 은 HTML 이라 looksHtml 로 잡혀 종전대로 폴백한다. */
+            var retryable = looksHtml
+              || response.status === 404
+              || response.status === 0
+              || (response.status >= 500 && response.status !== 503);
             if (hasNext && retryable) return attempt(index + 1);
 
             return result;
@@ -1310,9 +1322,13 @@
     pending: null
   };
 
+  // 🔴 실패 TTL 이 2000ms 라 9개 호출부가 2초마다 /api/auth/me 를 재발사했고, DB 장애 중에는
+  // 그게 /api/profile 과 짝을 이뤄 503 폭주의 박자를 만들었다. 인프라 실패는 곧 복구되지 않으므로
+  // 확정 미인증(401/403)보다 훨씬 길게 잡는다.
   function _dpGetSessionVerifyTtlMs(state) {
-    var isOk = !!(state && state.ok);
-    return isOk ? 30000 : 2000;
+    if (state && state.ok) return 30000;
+    if (state && state.indeterminate === true) return 15000;
+    return 2000;
   }
 
   function _dpGetSessionHintSignature() {
@@ -1367,6 +1383,15 @@
     _dpSessionVerify.checkedAt = Date.now();
     _dpSessionVerify.ok = !!ok;
     _dpSessionVerify.userId = ok ? String(userId || '') : '';
+    _dpSessionVerify.indeterminate = false;
+    _dpSessionVerify.signature = _dpGetSessionHintSignature();
+  }
+
+  // 인프라 실패로 판정을 못한 경우: 직전 ok/userId 는 그대로 두고 재발사 간격만 늘린다
+  // (_dpGetSessionVerifyTtlMs). 로그인 상태를 인프라 오류로 잃지 않게 하는 것이 핵심이다.
+  function _dpMarkSessionVerifyIndeterminate() {
+    _dpSessionVerify.checkedAt = Date.now();
+    _dpSessionVerify.indeterminate = true;
     _dpSessionVerify.signature = _dpGetSessionHintSignature();
   }
 
@@ -1401,11 +1426,19 @@
         if ((result.status === 401 || result.status === 403) && _dpIsSameOriginBase(result.base)) {
           try { localStorage.removeItem('fortune_auth_token'); } catch (_) {}
           try { localStorage.removeItem('fortune_auth_user'); } catch (_) {}
+          return null;
         }
-        return null;
+        // 확정 미인증이 아닌 실패(503/500/네트워크)는 "미확정"이다 — 짧은 TTL 로 재발사하지 않는다.
+        return { __dpAuthIndeterminate: true };
       }
       return (result.data && typeof result.data === 'object') ? result.data : null;
     }).then(function(payload) {
+      if (payload && payload.__dpAuthIndeterminate === true) {
+        // 직전 판정을 보존한다(ok/userId 유지) — 인프라 실패로 로그인 상태를 잃으면 안 된다.
+        // checkedAt·indeterminate 만 갱신해 재발사 간격을 늘린다.
+        _dpMarkSessionVerifyIndeterminate();
+        return !!_dpSessionVerify.ok;
+      }
       var user = payload && payload.user ? payload.user : null;
       var userId = String((user && (user.id || user.userId || user._id || user.uid)) || '').trim();
       var ok = !!userId;
@@ -1421,8 +1454,9 @@
       _dpMarkSessionVerify(ok, userId);
       return ok;
     }).catch(function() {
-      _dpMarkSessionVerify(false, '');
-      return false;
+      // 네트워크 오류·타임아웃은 확정 미인증이 아니다 — 직전 판정을 유지한다.
+      _dpMarkSessionVerifyIndeterminate();
+      return !!_dpSessionVerify.ok;
     }).finally(function() {
       _dpSessionVerify.pending = null;
     });
@@ -1447,6 +1481,7 @@
   var _dpSetCurrentTimer = null;
   var _dpPendingSwitchBaseId = null;
   var _dpLoadFromServerPending = null;
+  var _dpLastServerSyncAt = 0;
   var _dpProfileServerReadyNotified = false;
   var _dpPendingCurrentProfileId = '';
   var _dpPendingCurrentProfileUntil = 0;
@@ -1646,6 +1681,7 @@
     })().catch(function() {
       return false;
     }).then(function(loaded) {
+      if (loaded) _dpLastServerSyncAt = Date.now();
       _dpNotifyProfileServerReady({
         ok: !!loaded,
         loaded: !!loaded,
@@ -2099,12 +2135,12 @@
         resolve();
         return;
       }
+      // 단일 rAF. 중첩 rAF는 호출마다 프레임을 2개 먹어, 결제창 진입 경로에서만 6프레임이 쌓였다
+      // (정적 셸 _cdWaitForPaymentOverlayPaint 도 단일 rAF로 충분히 페인트를 보장한다).
       var raf = typeof window.requestAnimationFrame === 'function'
         ? window.requestAnimationFrame.bind(window)
         : function(callback) { return setTimeout(callback, 16); };
-      raf(function() {
-        raf(resolve);
-      });
+      raf(resolve);
     });
   }
 
@@ -2469,7 +2505,7 @@
       method: 'POST',
       body: JSON.stringify({ phone: phoneNumber })
     });
-    if (!result || !result.ok) throw new Error(_dpReadBillingMessage(result && result.payload, '휴대폰 번호 저장에 실패했습니다.'));
+    if (!result || !result.ok) throw new Error(_dpDescribePaymentPhoneSaveFailure(result));
     var saved = _dpReadPaymentPhoneState(result.payload);
     if (!saved.phoneNumber) saved.phoneNumber = _dpNormalizePaymentPhoneNumber(phoneNumber);
     try {
@@ -2479,16 +2515,124 @@
     return saved;
   }
 
+  // 서버 원문(예: 교차출처 승격으로 생긴 403 "Invalid auth request origin.")을 그대로 띄우지 않는다.
+  function _dpDescribePaymentPhoneSaveFailure(result) {
+    var status = Number((result && result.status) || 0);
+    var payload = (result && result.payload) || {};
+    var code = String(payload.code || '').trim().toLowerCase();
+    if (status === 0) return '네트워크가 불안정해 저장하지 못했어요. 잠시 후 다시 시도해 주세요.';
+    if (code === 'csrf_origin_mismatch') return '일시적인 문제로 저장하지 못했어요. 다시 시도해 주세요.';
+    if (status === 401) return '로그인이 만료됐어요. 다시 로그인한 뒤 시도해 주세요.';
+    if (status === 400) return '휴대폰 번호를 정확히 입력해 주세요.';
+    if (status >= 500) return '서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.';
+    return '휴대폰 번호 저장에 실패했어요. 잠시 후 다시 시도해 주세요.';
+  }
+
+  // window.prompt 는 카카오·인스타·네이버 등 인앱 웹뷰에서 억제되어 즉시 null 을 반환한다. 그러면
+  // 번호를 넣을 방법이 없는 채로 throw 되어 결제창이 아예 열리지 않았다 — 인페이지 모달로 교체한다.
+  function _dpPromptPaymentPhoneNumber() {
+    if (typeof document === 'undefined') return Promise.resolve(null);
+    return new Promise(function(resolve) {
+      var settled = false;
+      var overlay = document.createElement('div');
+      var card = document.createElement('form');
+      var title = document.createElement('h2');
+      var desc = document.createElement('p');
+      var input = document.createElement('input');
+      var error = document.createElement('p');
+      var notice = document.createElement('p');
+      var actions = document.createElement('div');
+      var cancelButton = document.createElement('button');
+      var submitButton = document.createElement('button');
+
+      function close(value) {
+        if (settled) return;
+        settled = true;
+        try { input.value = ''; } catch (_) {}
+        try { overlay.remove(); } catch (_) {}
+        resolve(value || null);
+      }
+
+      function setBusy(isBusy) {
+        input.disabled = !!isBusy;
+        cancelButton.disabled = !!isBusy;
+        submitButton.disabled = !!isBusy;
+        submitButton.textContent = isBusy ? '저장 중...' : '저장하고 결제 계속하기';
+      }
+
+      overlay.setAttribute('role', 'presentation');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,13,31,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);';
+      card.style.cssText = 'width:min(400px,100%);border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(20,25,48,.98),rgba(45,31,82,.98));box-shadow:0 24px 80px rgba(0,0,0,.46);padding:22px;color:#fff;font-family:inherit;';
+      title.style.cssText = 'margin:0 0 10px;font-size:19px;font-weight:800;letter-spacing:0;';
+      desc.style.cssText = 'margin:0 0 16px;color:rgba(238,242,255,.78);font-size:14px;line-height:1.6;';
+      input.style.cssText = 'width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.78);color:#fff;font-size:16px;padding:0 14px;outline:none;';
+      error.style.cssText = 'min-height:20px;margin:8px 0 0;color:#fecdd3;font-size:13px;line-height:1.45;';
+      notice.style.cssText = 'margin:8px 0 0;color:rgba(221,214,254,.78);font-size:12px;line-height:1.45;';
+      actions.style.cssText = 'display:flex;gap:10px;margin-top:18px;';
+      cancelButton.style.cssText = 'flex:0 0 auto;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#e5e7eb;padding:0 16px;font-weight:700;';
+      submitButton.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:0;background:linear-gradient(135deg,#f59e0b,#fb7185);color:#111827;padding:0 16px;font-weight:900;';
+
+      title.textContent = '단건결제를 위해 휴대폰 번호가 필요해요';
+      desc.textContent = 'KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.';
+      input.type = 'tel';
+      input.inputMode = 'tel';
+      input.autocomplete = 'tel';
+      input.placeholder = '01012345678';
+      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 저장됩니다.';
+      cancelButton.type = 'button';
+      cancelButton.textContent = '취소';
+      submitButton.type = 'submit';
+      submitButton.textContent = '저장하고 결제 계속하기';
+
+      cancelButton.addEventListener('click', function() { close(null); });
+      card.addEventListener('submit', function(event) {
+        event.preventDefault();
+        var normalized = _dpNormalizePaymentPhoneNumber(input.value);
+        if (!normalized) {
+          error.textContent = '휴대폰 번호를 정확히 입력해 주세요.';
+          input.focus();
+          return;
+        }
+        setBusy(true);
+        error.textContent = '';
+        _dpSavePaymentPhoneNumber(normalized).then(function(saved) {
+          close(saved || { phoneNumber: normalized, hasPhone: true });
+        }).catch(function(saveError) {
+          setBusy(false);
+          error.textContent = String((saveError && saveError.message) || '휴대폰 번호 저장에 실패했어요. 잠시 후 다시 시도해 주세요.');
+          input.focus();
+        });
+      });
+
+      card.appendChild(title);
+      card.appendChild(desc);
+      card.appendChild(input);
+      card.appendChild(error);
+      card.appendChild(notice);
+      actions.appendChild(cancelButton);
+      actions.appendChild(submitButton);
+      card.appendChild(actions);
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      try { input.focus(); } catch (_) {}
+    });
+  }
+
   async function _dpEnsurePaymentPhoneNumber() {
     try {
       var current = await _dpGetPaymentPhoneStatus();
       if (current && current.phoneNumber) return current.phoneNumber;
     } catch (_) {}
-    var typed = window.prompt('이니시스 단건결제를 위해 구매자 휴대폰 번호가 필요합니다. 최초 1회만 입력해 주세요.', '');
-    var normalized = _dpNormalizePaymentPhoneNumber(typed || '');
-    if (!normalized) throw new Error('이니시스 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.');
-    var saved = await _dpSavePaymentPhoneNumber(normalized);
-    return saved.phoneNumber || normalized;
+    // 정적 셸이 로드된 화면에서는 셸의 정본 모달을 재사용해 같은 UI가 두 벌 생기지 않게 한다.
+    var saved = null;
+    if (typeof window._cdPromptDirectCheckoutPhoneNumber === 'function') {
+      saved = await window._cdPromptDirectCheckoutPhoneNumber();
+    } else {
+      saved = await _dpPromptPaymentPhoneNumber();
+    }
+    var resolved = _dpNormalizePaymentPhoneNumber((saved && (saved.phoneNumber || saved.phone)) || '');
+    if (!resolved) throw new Error('단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.');
+    return resolved;
   }
 
   function _dpLoadPortOneV2Sdk() {
@@ -2515,6 +2659,139 @@
       existing.addEventListener('error', function() { finish(false); }, { once: true });
       setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 8000);
     });
+  }
+
+  // 결제수단 모달을 띄우는 시점에 SDK 다운로드를 시작해 임계경로에서 뺀다. 예전에는 checkout 응답을
+  // 받은 뒤에야 <script> 를 붙여, CDN 왕복이 클릭~결제창 사이에 그대로 얹혔다(모바일에서 그 지연으로
+  // user-gesture 가 소멸해 결제창이 아예 안 열리는 원인).
+  // 정적 셸과 같은 전역 promise·같은 script#portone-v2-sdk 를 공유하므로 이중 로드가 되지 않는다.
+  function _dpPortOneV2SdkPromise() {
+    var shared = window.__cdPortOneV2PreloadPromise;
+    if (shared && typeof shared.then === 'function') return shared;
+    var created = _dpLoadPortOneV2Sdk();
+    window.__cdPortOneV2PreloadPromise = created;
+    // 실패한 promise 를 캐시에 남기면 재시도가 영구히 같은 실패를 재사용한다.
+    created.catch(function() {
+      if (window.__cdPortOneV2PreloadPromise === created) window.__cdPortOneV2PreloadPromise = null;
+    });
+    return created;
+  }
+
+  function _dpPreloadPortOneV2Sdk() {
+    try { _dpPortOneV2SdkPromise(); } catch (_) {}
+  }
+
+  // 서버 trimUtf8Bytes(worker/routes/payments.js)와 같은 규칙. 이니시스 orderName 제한은
+  // 바이트 기준이라 글자수 slice 로는 안 된다(한글 1자 = 3바이트).
+  function _dpTrimUtf8Bytes(value, maxBytes) {
+    var text = String(value == null ? '' : value);
+    if (typeof TextEncoder === 'undefined') return text.slice(0, Math.max(0, Math.floor(maxBytes / 3))).trim();
+    var encoder = new TextEncoder();
+    var output = '';
+    var chars = Array.from(text);
+    for (var i = 0; i < chars.length; i += 1) {
+      var next = output + chars[i];
+      if (encoder.encode(next).length > maxBytes) break;
+      output = next;
+    }
+    return output.trim();
+  }
+
+  function _dpResolvePortOneOrderName(order, checkoutPayload) {
+    var serverOrderName = _dpTrimUtf8Bytes((order && order.orderName) || '', 40);
+    if (serverOrderName) return serverOrderName;
+    var fallback = _dpTrimUtf8Bytes((checkoutPayload && checkoutPayload.reason) || '', 40);
+    return fallback || 'Code Destiny';
+  }
+
+  // PortOne V2 는 실패를 reject 하지 않고 {code, message} 로 resolve 한다. 사용자 취소만 취소로 분류한다.
+  function _dpIsPortOneUserCancelCode(code) {
+    var normalized = String(code || '').trim().toUpperCase();
+    if (!normalized) return false;
+    return normalized.indexOf('CANCEL') === 0 || normalized.indexOf('USER_CANCEL') === 0 || normalized === 'PAYMENT_CANCELLED';
+  }
+
+  // ── 모바일 리다이렉트 복귀 처리 ──────────────────────────────────────────────
+  // PortOne V2 는 모바일에서 결제를 상위 프레임 리다이렉트로 처리할 수 있다. 그러면 await 중이던
+  // requestPayment 프로미스가 페이지와 함께 죽어 /api/billing/confirm 이 호출되지 않는다 —
+  // 결제는 승인됐는데 권한이 안 붙고, 사용자에겐 "결제창이 안 뜨고 화면만 깜빡"으로 보였다.
+  // redirectUrl 에 심는 portone_redirect=1 의 소비자가 /points 하나뿐이어서 유료 기능은 방치됐다.
+  // 이 파일은 정적 셸(defer)과 React 유료 화면 양쪽에 로드되는 공통 런타임이라 복귀 처리를 여기 한 곳에 둔다.
+  var _DP_DIRECT_RESUME_KEY = 'cd_direct_payment_resume';
+  var _DP_DIRECT_RESUME_TTL_MS = 30 * 60 * 1000;
+
+  function _dpWriteDirectResumeTicket(ticket) {
+    try {
+      sessionStorage.setItem(_DP_DIRECT_RESUME_KEY, JSON.stringify(ticket));
+    } catch (_) {}
+  }
+
+  function _dpClearDirectResumeTicket() {
+    try { sessionStorage.removeItem(_DP_DIRECT_RESUME_KEY); } catch (_) {}
+  }
+
+  function _dpReadDirectResumeTicket() {
+    var raw = '';
+    try { raw = String(sessionStorage.getItem(_DP_DIRECT_RESUME_KEY) || ''); } catch (_) { return null; }
+    if (!raw) return null;
+    var parsed = null;
+    try { parsed = JSON.parse(raw); } catch (_) { parsed = null; }
+    if (!parsed || typeof parsed !== 'object') {
+      _dpClearDirectResumeTicket();
+      return null;
+    }
+    // 오래된 티켓이 훗날 무관한 리다이렉트에서 되살아나 엉뚱한 주문을 확정하지 않도록 만료시킨다.
+    if (!parsed.at || (Date.now() - Number(parsed.at)) > _DP_DIRECT_RESUME_TTL_MS) {
+      _dpClearDirectResumeTicket();
+      return null;
+    }
+    return parsed;
+  }
+
+  async function _dpResumeDirectPaymentAfterRedirect() {
+    if (typeof window === 'undefined' || typeof sessionStorage === 'undefined') return;
+    var query;
+    try { query = new URLSearchParams(window.location.search || ''); } catch (_) { return; }
+    if (query.get('portone_redirect') !== '1') return;
+
+    var ticket = _dpReadDirectResumeTicket();
+    // 티켓이 없으면 이 복귀는 우리 것이 아니다(예: /points 가 자기 키로 처리하는 이용권·월정석 결제).
+    if (!ticket || !ticket.confirmBody) return;
+    _dpClearDirectResumeTicket();
+
+    var paymentId = String(
+      query.get('paymentId') || query.get('payment_id') || query.get('imp_uid') || ticket.merchantUid || '',
+    ).trim();
+    var failed = String(query.get('code') || '').trim() !== ''
+      || String(query.get('imp_success') || '').toLowerCase() === 'false';
+
+    if (!paymentId || failed) {
+      var failMessage = String(query.get('message') || query.get('error_msg') || '').trim();
+      window.alert(failMessage || '결제가 완료되지 않았습니다. 다시 시도해 주세요.');
+      return;
+    }
+
+    try {
+      _dpSetPaymentPending(true, '결제 승인과 콘텐츠 이용 권한을 확인하고 있습니다.', 'confirm');
+      var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
+        method: 'POST',
+        body: JSON.stringify(Object.assign({}, ticket.confirmBody, {
+          impUid: paymentId,
+          paymentId: paymentId,
+        })),
+      });
+      _dpSetPaymentPending(false);
+      if (!confirmRes.ok) {
+        window.alert(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.'));
+        return;
+      }
+      // 서버 confirm 은 멱등이다(existingUnlock 감지 → alreadyUnlocked). 중복 확정 위험은 없다.
+      _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
+    } catch (error) {
+      _dpSetPaymentPending(false);
+      console.error('[direct-payment-resume]', error);
+      window.alert('결제 확인 중 오류가 발생했습니다. 잠시 후 주문 내역을 확인해 주세요.');
+    }
   }
 
 
@@ -2789,7 +3066,9 @@
           _dpRecordMembershipPassInBackground(opts, title, coinPrice, requestId);
           _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
           await _dpWaitForPaymentOverlayPaint();
-          await new Promise(function (resolve) { setTimeout(resolve, 450); });
+          // '확인 중 → 적용 완료' 두 프레임을 보여주되 대기는 최소로. 기존 450ms 는 이용권 보유자 전원이
+          // 매 진입마다 버리는 인위적 지연이었다(왕복이 없는 낙관 경로라 기다릴 이유가 없다).
+          await new Promise(function (resolve) { setTimeout(resolve, 150); });
           _dpShowPassAppliedOverlay(_dpText('passAppliedOverlay'));
           return _dpBuildPaidGateGrantedResult({ status: 'pass_applied', payload: { __cdOptimisticPass: true } }, requestId, opts.onGranted);
         }
@@ -2797,7 +3076,6 @@
         _dpSetPaymentPending(true, '이용권을 확인하고 있어요…', 'pass');
         // 검증 시작 전 한 프레임 페인트를 보장해 즉시 응답/동기 캐시 히트에서도 오버레이가 반드시 그려지도록 한다.
         await _dpWaitForPaymentOverlayPaint();
-        var passShownAt = Date.now();
         var passFirst;
         try {
           passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
@@ -2807,10 +3085,12 @@
             requestId: requestId
           }));
           // 인프라/degraded로 이용권 확인이 실패(status:'error')하면 짧게 최대 2회 재시도(동일 requestId 재사용,
-          // 지수 백오프 800ms→1.44s)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
+          // 지수 백오프 250ms→450ms)해 이용권 보유자의 무료 통과 기회를 살린다. 소진 후에도 error면 throw하지
           // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
+          // 백오프는 정본 셸 게이트(index.html _cdOpenPaidServiceGate)와 같은 값으로 맞춘다 — 기존 800ms→1.44s는
+          // 대기만 2.24초를 더해 '결제가 느리다'는 체감의 절반을 차지했다.
           for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error'; _dpPassRetry += 1) {
-            await new Promise(function(resolve) { setTimeout(resolve, Math.round(800 * Math.pow(1.8, _dpPassRetry - 1))); });
+            await new Promise(function(resolve) { setTimeout(resolve, Math.round(250 * Math.pow(1.8, _dpPassRetry - 1))); });
             passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
               title: title,
               coinPrice: coinPrice,
@@ -2819,9 +3099,9 @@
             }));
           }
         } finally {
-          // 최소 표시 시간 보장(초고속 응답에도 "이용권 확인 중"이 보이도록) + 예외 시에도 오버레이가 멈추지 않고 닫히도록.
-          var passShownElapsed = Date.now() - passShownAt;
-          if (passShownElapsed < 550) await new Promise(function(resolve) { setTimeout(resolve, 550 - passShownElapsed); });
+          // 최소 표시 시간(550ms) 보장은 제거했다 — 결제창 진입 임계경로에 얹히는 순수 인위적 지연이고,
+          // "이용권 확인 중"이 깜빡이는 것보다 결제창이 늦게 뜨는 비용이 훨씬 크다(정적 셸에는 이 floor가 없다).
+          // 예외 시에도 오버레이가 멈추지 않고 닫히도록 finally 자체는 유지한다.
           // pass 적용 성공 시엔 적용 완료 오버레이(_dpApplyMembershipPassBeforePayment 내부 _dpShowPassAppliedOverlay,
           // 자체 ~1.2s 후 자동 닫힘)를 유지해 "적용 완료" 프레임이 즉시 덮여 사라지지 않도록 한다. 미커버·에러만 닫는다.
           var passGrantedInFlight = passFirst && (passFirst.status === 'pass_applied' || passFirst.status === 'already_unlocked');
@@ -2834,6 +3114,8 @@
         // 결제창(단건+월정석)으로 fall-through한다(아래 _cdChooseServicePaymentMode). 요구사항: 이용권 확인
         // 실패 시 무조건 결제창 노출. 결제창 내 '이용권 다시 확인' 버튼으로 실제 보유자는 그 자리에서 재검증한다.
       }
+      // 결제창이 열리는 동안(사용자가 단건/월정석을 읽는 시간) SDK를 내려받아 임계경로에서 뺀다.
+      _dpPreloadPortOneV2Sdk();
       var choice = await window._cdChooseServicePaymentMode(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, internalMainGate: true, skipPassProbe: true }));
       if (!choice || choice === 'cancel') {
         if (typeof opts.onCancel === 'function') opts.onCancel();
@@ -2944,10 +3226,19 @@
       if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
-      await _dpLoadPortOneV2Sdk();
-      var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
-      if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
-      var config = _dpExtractBillingData(configRes.payload);
+      // 결제수단 모달 렌더 시점에 시작된 프리로드를 기다린다 — 정상 경로에서는 이미 resolve 상태다.
+      await _dpPortOneV2SdkPromise();
+      // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
+      // /api/payments/config 왕복이 통째로 사라진다. 정적 셸의 _cdResolveDirectCheckoutConfig 와 같은 방식.
+      var config = {
+        storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
+        channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
+      };
+      if (!config.storeId || !config.channelKey) {
+        var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
+        if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
+        config = _dpExtractBillingData(configRes.payload);
+      }
       if (!config.storeId || !config.channelKey) {
         throw new Error('포트원 V2 결제 설정이 없습니다.');
       }
@@ -3017,7 +3308,13 @@
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
 
-      var redirectUrl = new URL(window.location.href);
+      // 서버가 만든 redirectUrl 우선(payment_id·merchant_uid·returnPath 포함).
+      var redirectUrl = null;
+      try {
+        redirectUrl = new URL(String(order.redirectUrl || window.location.href), window.location.href);
+      } catch (_dpRedirectUrlErr) {
+        redirectUrl = new URL(window.location.href);
+      }
       redirectUrl.searchParams.set('portone_redirect', '1');
       var customer = {
         customerId: customerId,
@@ -3029,10 +3326,15 @@
         storeId: config.storeId,
         channelKey: config.channelKey,
         paymentId: merchantUid,
-        orderName: String(order.productName || checkoutPayload.reason || '디지털 운세 콘텐츠').slice(0, 80),
+        // 🔴 order.productName 은 서버 응답에 없는 필드다(구독 응답 전용). 항상 undefined 가 되어
+        // reason 으로 흘렀고, 서버가 이니시스 제약에 맞춰 40 UTF-8 바이트로 다듬은 orderName 이 버려졌다.
+        // .slice(0,80) 은 글자 기준이라 한글이면 최대 240바이트 — 초과 시 PG 가 결제창을 그리기 전에 거절한다.
+        orderName: _dpResolvePortOneOrderName(order, checkoutPayload),
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
+        // 창 방식을 SDK 기본값에 맡기지 않고 명시한다(PC iframe / 모바일 상위프레임 리다이렉트).
+        windowType: { pc: 'IFRAME', mobile: 'REDIRECTION' },
         customer: customer,
         redirectUrl: redirectUrl.toString(),
         customData: {
@@ -3046,33 +3348,60 @@
       };
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
 
+      // 확정 본문을 한 번만 만들어 정상 완료와 리다이렉트 복귀가 완전히 같은 값을 쓰게 한다.
+      var _dpDirectConfirmBody = Object.assign({}, checkoutPayload, {
+        merchantUid: merchantUid,
+        amount: orderAmount,
+        paymentAmount: orderAmount,
+        coinPrice: Number(order.coinPrice || coinPrice),
+        paymentType: 'digital_content',
+        paymentMode: 'DIRECT_KRW',
+        provider: 'PORTONE_V2',
+        pg: 'KG_INICIS',
+        paymentMethod: 'card_general',
+      });
+
       _dpSetPaymentPending(true, String(order.productName || checkoutPayload.reason || '\uC720\uB8CC \uC11C\uBE44\uC2A4') + ' ' + '\uB2E8\uAC74 \uACB0\uC81C\uCC3D\uC744 \uC5EC\uB294 \uC911\uC785\uB2C8\uB2E4. \uC8FC\uBB38 \uAE08\uC561\uACFC \uC778\uC99D \uC815\uBCF4\uB97C \uC548\uC804\uD558\uAC8C \uB9DE\uCD94\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'card');
-      await _dpWaitForPaymentOverlayPaint();
-      _dpSetPaymentPending(true, '\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744 \uC9C4\uD589\uD574 \uC8FC\uC138\uC694. \uC778\uC99D\uC774 \uB05D\uB098\uBA74 \uAD8C\uD55C\uC744 \uD655\uC778\uD569\uB2C8\uB2E4.', 'card');
-      await _dpWaitForPaymentOverlayPaint();
+      // \uC911\uAC04 \uBA54\uC2DC\uC9C0("\uC5F4\uB9B0 \uACB0\uC81C\uCC3D\uC5D0\uC11C \uCE74\uB4DC \uC778\uC99D\uC744\u2026")\uB294 \uBC14\uB85C \uC544\uB798\uC5D0\uC11C \uC624\uBC84\uB808\uC774\uB97C \uB2EB\uC544 \uC2E4\uC81C\uB85C \uBCF4\uC774\uC9C0 \uC54A\uB294\uB370
+      // \uD504\uB808\uC784\uB9CC \uD55C \uBC88 \uB354 \uBA39\uC5C8\uB2E4 \u2014 \uC81C\uAC70\uD588\uB2E4. \uC624\uBC84\uB808\uC774 \uD574\uC81C\uC640 requestPayment \uC0AC\uC774\uC5D0\uB294 \uC544\uBB34\uAC83\uB3C4 \uB450\uC9C0 \uC54A\uB294\uB2E4
+      // (\uD55C \uD504\uB808\uC784\uC774\uB77C\uB3C4 \uB07C\uC6B0\uBA74 user-gesture \uC18C\uBA78\uC5D0 \uB354 \uAC00\uAE4C\uC6CC\uC9C4\uB2E4. verify:paid-gate-ui \uAC00 \uC774 \uC21C\uC11C\uB97C \uACE0\uC815\uD55C\uB2E4).
+      // PG가 상위 프레임을 리다이렉트하면 아래 await 는 페이지와 함께 죽는다. 그 경우에도 결제를 확정할
+      // 수 있도록 복귀 티켓을 미리 남긴다(_dpResumeDirectPaymentAfterRedirect 가 소비).
+      _dpWriteDirectResumeTicket({ at: Date.now(), merchantUid: merchantUid, confirmBody: _dpDirectConfirmBody });
+
+      // PG의 상위 프레임 리다이렉트는 의도된 이동이다 — PaymentProcessingContext 의 beforeunload
+      // 차단이 그걸 막지 않도록 이 구간만 예외로 표시한다.
+      window.__cdSuppressPaymentUnloadBlock = true;
       _dpSetPaymentPending(false);
       var rsp = await window.PortOne.requestPayment(requestData);
+      window.__cdSuppressPaymentUnloadBlock = false;
+      // 여기에 도달했다면 리다이렉트 없이 이 컨텍스트에서 끝났다 — 티켓은 더 필요 없다.
+      _dpClearDirectResumeTicket();
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
       if (!rsp || rsp.code || !paymentId) {
-        throw new Error(String((rsp && (rsp.message || rsp.code)) || '결제가 완료되지 않았습니다.'));
+        var dpRspCode = String((rsp && rsp.code) || '').trim();
+        if (!_dpIsPortOneUserCancelCode(dpRspCode)) {
+          try {
+            console.error('[dp-direct-checkout] PortOne requestPayment failed', {
+              code: dpRspCode,
+              message: String((rsp && rsp.message) || ''),
+              paymentId: merchantUid,
+              orderName: requestData.orderName,
+              orderNameBytes: (typeof TextEncoder !== 'undefined') ? new TextEncoder().encode(String(requestData.orderName || '')).length : -1,
+              totalAmount: requestData.totalAmount
+            });
+          } catch (_dpLogErr) {}
+        }
+        throw new Error(String((rsp && rsp.message) || dpRspCode || '결제가 완료되지 않았습니다.'));
       }
 
       _dpSetPaymentPending(true, '\uB2E8\uAC74 \uACB0\uC81C \uC2B9\uC778\uACFC \uCF58\uD150\uCE20 \uC774\uC6A9 \uAD8C\uD55C\uC744 \uD655\uC778\uD558\uACE0 \uC788\uC2B5\uB2C8\uB2E4.', 'confirm');
 
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', {
         method: 'POST',
-        body: JSON.stringify(Object.assign({}, checkoutPayload, {
+        body: JSON.stringify(Object.assign({}, _dpDirectConfirmBody, {
           impUid: paymentId,
           paymentId: paymentId,
-          merchantUid: merchantUid,
-          amount: orderAmount,
-          paymentAmount: orderAmount,
-          coinPrice: Number(order.coinPrice || coinPrice),
-          paymentType: 'digital_content',
-          paymentMode: 'DIRECT_KRW',
-          provider: 'PORTONE_V2',
-          pg: 'KG_INICIS',
-          paymentMethod: 'card_general',
         })),
       });
       if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
@@ -3258,7 +3587,13 @@
             if (typeof onCancel === 'function') onCancel(access);
             return null;
           }
-          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') return null;
+          // 🔴 예전에는 여기서 alert 도 onCancel 도 없이 return null 이라, 결제 모듈 미로드 시
+          // 클릭이 완전 무음으로 먹혔다("아무 일도 안 일어남"의 두 원인 중 하나).
+          if (typeof window._cdChooseServicePaymentMode !== 'function' || typeof window._cdRunDirectKrwCheckout !== 'function') {
+            try { window.alert('결제 모듈을 불러오지 못했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요.'); } catch (_dpChoiceMissingAlertErr) {}
+            if (typeof onCancel === 'function') onCancel();
+            return null;
+          }
           return window._cdChooseServicePaymentMode({
             title: reason,
             coinPrice: cost,
@@ -5578,6 +5913,79 @@
       + '</div>';
   }
 
+  /* 로그인 상태인데 서버 프로필을 못 받아온 최종 상태.
+     예전에는 이 경우도 _emptyCard()(= "카드를 새로 작성하세요")로 내려앉아서, 서버에 카드가
+     멀쩡히 있는 계정이 기기에 따라 "카드 없음"으로 보였다. 카드가 없는 것과 못 불러온 것은
+     다른 상태이므로 분리하고, 사용자가 직접 재조회할 수 있게 한다. */
+  /* 문구는 셸의 <template id="dpProfileSyncErrorTpl"> 에 있다(12개 로케일 사전으로 번역됨).
+     여기에 한국어를 박지 않는 이유는 그 템플릿 주석 참고. 템플릿이 없는 진입점(다른 셸에서
+     이 스크립트만 로드하는 경우)에서는 이미 번역된 기존 키로 최소 안내만 띄운다. */
+  function renderProfileSyncErrorCard() {
+    var el = document.getElementById('dpMasterCard');
+    if (!el) return;
+    el.className = 'dp-master-card dp-master-card--empty';
+    var tpl = document.getElementById('dpProfileSyncErrorTpl');
+    if (tpl && tpl.content) {
+      el.innerHTML = '';
+      el.appendChild(document.importNode(tpl.content, true));
+      _dpApplyTranslationsWithin(el);
+      return;
+    }
+    var inner = document.createElement('div');
+    inner.className = 'dp-mc-empty-inner dp-mc-retry-btn';
+    var desc = document.createElement('div');
+    desc.className = 'dp-mc-empty-desc';
+    desc.textContent = _dpText('networkError');
+    inner.appendChild(desc);
+    inner.onclick = dpRetryProfileSync;
+    el.innerHTML = '';
+    el.appendChild(inner);
+  }
+
+  /* 템플릿을 복제해 붙인 노드는 언어 런타임이 이미 훑고 지나간 뒤라 번역이 안 걸려 있다.
+     한국어면 마크업 원문이 곧 정답이므로 아무것도 하지 않는다. */
+  function _dpApplyTranslationsWithin(root) {
+    try {
+      if (!root || typeof window.cdApplyNativeTranslations !== 'function') return;
+      if (_dpTextLang() === 'ko') return;
+      window.cdApplyNativeTranslations(window.cdGetCurrentLanguage());
+    } catch (e) { /* 번역 실패는 표시 자체를 막지 않는다 */ }
+  }
+
+  /* 재시도: 서버를 다시 조회한다. 실패 쿨다운을 걷어내야 즉시 재요청이 나간다. */
+  function dpRetryProfileSync() {
+    _dpClearCooldown('/api/profile');
+    _dpClearCooldown('/api/auth/me');
+    _dpSessionVerify.checkedAt = 0;
+    renderProfileLoadingCard();
+    _dpLoadFromServer(function(loaded) {
+      if (loaded) {
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        return;
+      }
+      _dpRenderProfileSyncFallback();
+    });
+  }
+  window.dpRetryProfileSync = dpRetryProfileSync;
+
+  /* 서버 조회가 끝내 실패했을 때의 최종 렌더. 캐시된 카드가 있으면 그것을 유지하고
+     (SWR — 이미 본 카드를 지우지 않는다), 아무것도 없을 때만 오류/재시도 카드를 띄운다. */
+  function _dpRenderProfileSyncFallback() {
+    var cached = DPStorage.current();
+    if (cached) {
+      renderMasterCard(cached);
+      renderProfileList();
+      return;
+    }
+    if (_dpHasSessionHint()) {
+      renderProfileSyncErrorCard();
+      return;
+    }
+    renderMasterCard(null);
+    renderProfileList();
+  }
+
   function _zodiacEmoji(year) {
     var animals = ['🐀','🐂','🐅','🐇','🐉','🐍','🐎','🐑','🐒','🐓','🐕','🐖'];
     return animals[(year - 4 + 120) % 12];
@@ -5947,7 +6355,68 @@
   /* ──────────────────────────────────────────
      6. UI — Profile Constellation List (바텀 시트)
   ────────────────────────────────────────── */
+
+  /* 사주 입력 폼 위의 "저장된 카드로 바로 보기" 칩 스트립.
+     칩 클릭은 기존 data-action 디스패처가 window.dpRunWithProfile 로 넘겨주므로
+     여기서 클릭 핸들러를 따로 달지 않는다(핸들러 중복 방지).
+
+     🔒 이용권 접근 정책: dpRunWithProfile 에는 dpSelectProfile 이 갖고 있는
+     lockedProfileId/selectionRequired 가드가 없다. 여기서 가드를 새로 구현하면
+     정책이 두 벌이 되므로, 대신 "노출 자체"를 정책에 맞춘다 —
+     확정이 필요한 상태면 스트립을 숨기고, 확정된 카드가 있으면 그 카드만 보여준다. */
+  function renderProfileQuickStrip() {
+    var strip = document.getElementById('dpQuickPickStrip');
+    var inner = document.getElementById('dpQuickPickInner');
+    if (!strip || !inner) return;
+
+    function hide() {
+      strip.hidden = true;
+      inner.innerHTML = '';
+    }
+
+    if (!_dpHasSessionHint()) return hide();
+
+    var access = _dpProfileAccess || {};
+    if (access.selectionRequired === true) return hide();
+
+    var list = DPStorage.list();
+    var lockedId = String(access.lockedProfileId || '').trim();
+    if (lockedId) {
+      list = list.filter(function(p) { return _dpGetProfileId(p) === lockedId; });
+    }
+    if (!list.length) return hide();
+
+    var currId = (DPStorage.current() || {}).id;
+
+    inner.innerHTML = list.map(function(p) {
+      var safe = p || {};
+      var b = safe.birth || {};
+      var pid = _dpGetProfileId(safe);
+      if (!pid || !b.year) return '';
+
+      var pname = safe.name || '이름 없음';
+      var dateLabel = b.year + '.' + String(b.month || 1).padStart(2, '0') + '.' + String(b.day || 1).padStart(2, '0');
+      var isActive = safe.id === currId;
+
+      return '<button type="button" class="dp-qp__chip' + (isActive ? ' is-active' : '') + '"'
+        + ' role="listitem" data-action="dpRunWithProfile" data-action-args="' + _esc(pid) + '"'
+        + (isActive ? ' aria-current="true"' : '')
+        + ' aria-label="' + _esc(pname) + ' 프로필로 사주 바로 보기">'
+        + '<span class="dp-qp__zodiac" aria-hidden="true">' + _zodiacEmoji(b.year) + '</span>'
+        + '<span class="dp-qp__name">' + _esc(pname) + '</span>'
+        + '<span class="dp-qp__date">' + dateLabel + '</span>'
+        + '</button>';
+    }).join('');
+
+    strip.hidden = !inner.innerHTML;
+  }
+
   function renderProfileList() {
+    /* 스트립은 프로필 상태가 바뀌는 모든 지점에서 같이 갱신되어야 한다.
+       renderProfileList 가 이미 저장·선택·삭제·서버동기화 12곳에서 불리므로 여기 얹는다.
+       try/catch 필수 — 스트립이 던지면 아래 목록 렌더까지 죽는다. */
+    try { renderProfileQuickStrip(); } catch (stripErr) { console.warn('[DP] quick strip 렌더 실패', stripErr); }
+
     var list = DPStorage.list();
     var currId = (DPStorage.current() || {}).id;
     var container = document.getElementById('dpListInner');
@@ -7207,6 +7676,49 @@
     _injectAndRun(p, 'saju');
   };
 
+  /**
+   * 모바일 하단 네비 '사주' 탭 진입점.
+   * 로그인 + 대표 프로필이 있으면 재입력 없이 곧바로 사주를 계산한다.
+   * 정적 셸에서는 탭이 직접 호출하고, React 페이지에서는 /?action=cdSajuTabEntry 로 넘어와
+   * 라우트 액션 러너가 호출한다(허용목록: js/core/index-inline-runtime.js).
+   */
+  window.cdSajuTabEntry = function() {
+    var loginUrl = '/login?next=' + encodeURIComponent('/?action=cdSajuTabEntry');
+
+    function goCreateProfile() {
+      _toast('사주를 보려면 먼저 프로필을 만들어 주세요.', 'warn');
+      var form = document.getElementById('destinyCardForm') || document.querySelector('.input-section');
+      if (form) {
+        try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (e) {}
+      }
+    }
+
+    // 세션 힌트조차 없으면 왕복 없이 바로 로그인으로 보낸다.
+    if (!_dpHasSessionHint()) {
+      window.location.href = loginUrl;
+      return;
+    }
+
+    // 캐시에 대표 프로필이 있으면 낙관적으로 즉시 실행한다(서버 왕복 대기 없음).
+    var cached = _dpResolveCurrentProfileForSaju('');
+    if (cached && cached.birth && cached.birth.year) {
+      _injectAndRun(cached, 'saju');
+      return;
+    }
+
+    // 캐시가 비었을 때만 서버에서 대표 프로필을 받아온다.
+    _dpLoadFromServer(function(loaded) {
+      if (!loaded) {
+        if (!_dpHasSessionHint()) window.location.href = loginUrl;
+        else goCreateProfile();
+        return;
+      }
+      var profile = _dpResolveCurrentProfileForSaju('');
+      if (profile && profile.birth && profile.birth.year) _injectAndRun(profile, 'saju');
+      else goCreateProfile();
+    });
+  };
+
   /* ──────────────────────────────────────────
      9. 토스트
   ────────────────────────────────────────── */
@@ -7259,44 +7771,43 @@
     // (네트워크 지연·앱의 교차 출처 401·콜백 미호출) 카드가 영구히 "불러오는 중"으로 남고,
     // 그 아래 입력 폼과 겹쳐 보여 카드가 두 개인 것처럼 읽힌다. 실패해도 최종 상태로 반드시 내려온다.
     if (shouldShowProfileLoading && !initialProfile) {
-      window.setTimeout(function() {
+      // 진행 중인 서버 조회를 잘라내면 안 된다 — 상한(10s)이 요청 타임아웃(20s)보다 짧아서,
+      // 느린 기기·콜드 워커에서는 응답이 오기도 전에 이 실패안전이 먼저 터져 빈 카드를 그렸다.
+      // (앱은 후보 base 를 순회하므로 더 쉽게 걸린다.) 조회가 살아 있으면 한 번 더 기다린다.
+      var failsafeTicks = 0;
+      var runProfileLoadingFailsafe = function() {
         var card = document.getElementById('dpMasterCard');
         if (!card || card.className.indexOf('dp-master-card--moon-loading') < 0) return;
-        renderMasterCard(DPStorage.current());
-        renderProfileList();
-      }, PROFILE_LOADING_FAILSAFE_MS);
+        if (_dpLoadFromServerPending && failsafeTicks < 3) {
+          failsafeTicks += 1;
+          window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
+          return;
+        }
+        _dpRenderProfileSyncFallback();
+      };
+      window.setTimeout(runProfileLoadingFailsafe, PROFILE_LOADING_FAILSAFE_MS);
     }
 
     /* ★ 구독 플랜 기반 저장 버튼 초기화 */
     _dpLoadSubCache();
     _dpUpdateSaveBtn();
 
-    // 초기 진입 시에는 인증 상태를 먼저 확인한 뒤에만 결제/구독/프로필 API를 호출한다.
-    _dpVerifyLoginSession(false).then(function(ok) {
-      if (!ok) {
-        if (shouldShowProfileLoading || initialProfile) {
-          renderMasterCard(DPStorage.current());
-          renderProfileList();
-        }
-        _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'auth-session-not-ready' });
+    // 프로필 조회를 세션검증(/api/auth/me) 성공에 종속시키지 않는다.
+    //
+    // /api/profile 은 쿠키/Authorization 으로 독립 인증되므로(worker requireUserFromRequest)
+    // me 를 기다릴 이유도, me 가 실패했다고 조회를 건너뛸 이유도 없다. 예전에는 me 가
+    // 일시적으로 실패하기만 해도(타임아웃 20s·5xx·앱 교차출처 401) 프로필 조회 자체가
+    // 스킵되어, 서버에 카드가 있는 로그인 사용자에게 빈 카드가 떴다 — 기기·회선에 따라
+    // 결과가 달라지던 원인. _dpLoadFromServer 가 내부에서 검증을 병렬로 돌리고
+    // 토큰 정리·세션 유저 persist 같은 부수효과도 그대로 수행한다.
+    _dpLoadFromServer(function(loaded) {
+      if (loaded) {
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
         return;
       }
-
-      // 구독 상태는 _dpLoadFromServer가 /api/profile 응답의 subscription으로 갱신하므로
-      // 별도 _fetchSubscription() 호출(중복 네트워크)을 제거한다.
-      _dpLoadFromServer(function(loaded) {
-        if (loaded) {
-          renderMasterCard(DPStorage.current());
-          renderProfileList();
-        } else if (shouldShowProfileLoading) {
-          renderMasterCard(DPStorage.current());
-        }
-      });
-    }).catch(function() {
-      // 여기서 렌더를 하지 않으면 로딩 카드가 그대로 남는다 — 실패도 하나의 최종 상태로 내려준다.
-      renderMasterCard(DPStorage.current());
-      renderProfileList();
-      _dpNotifyProfileServerReady({ ok: false, loaded: false, reason: 'profile-bootstrap-error' });
+      // 실패도 하나의 최종 상태로 내려준다 — 로딩 카드가 남지 않게.
+      if (shouldShowProfileLoading || initialProfile) _dpRenderProfileSyncFallback();
     });
 
     /* ESC 키로 시트 닫기 */
@@ -7467,6 +7978,14 @@
           if (e.cancelable) e.preventDefault();
           e.stopPropagation();
           dpToggleProfileMenu({ currentTarget: menuBtn, source: 'touch', preventDefault: function(){}, stopPropagation: function(){} });
+          return;
+        }
+        /* 재시도 버튼은 .dp-mc-load-btn 스타일을 공유하므로 반드시 먼저 걸러낸다.
+           아래 분기에 먼저 걸리면 카드도 없는 상태에서 dpLoadProfile()이 돈다. */
+        var retryBtn = targetEl.closest('.dp-mc-retry-btn');
+        if (retryBtn) {
+          if (e.cancelable) e.preventDefault();
+          dpRetryProfileSync();
           return;
         }
         var loadBtn = targetEl.closest('.dp-mc-load-btn');
@@ -7675,6 +8194,24 @@
 
     window.addEventListener('pageshow', function() {
       dpCloseList();
+    }, { passive: true });
+
+    /* 포그라운드 복귀 시 서버와 재동기화.
+       앱은 화면을 오래 띄워둔 채 다른 기기에서 카드를 추가·삭제·전환할 수 있어, 복귀 시점의
+       로컬 캐시가 낡아 있다. 서버가 정본이므로 다시 읽어온다.
+       요청 중복은 _dpFetchJsonWithFallback 의 in-flight dedup 과 _dpLoadFromServerPending 이
+       이미 막으므로 여기서 또 감싸지 않고, 성공 직후 반복 호출만 최소 간격으로 거른다. */
+    var PROFILE_RESUME_SYNC_MIN_GAP_MS = 15000;
+    document.addEventListener('visibilitychange', function() {
+      if (document.visibilityState !== 'visible') return;
+      if (!_dpHasSessionHint()) return;
+      if (Date.now() - _dpLastServerSyncAt < PROFILE_RESUME_SYNC_MIN_GAP_MS) return;
+      _dpLoadFromServer(function(loaded) {
+        if (!loaded) return;
+        renderMasterCard(DPStorage.current());
+        renderProfileList();
+        _dpUpdateSaveBtn();
+      });
     }, { passive: true });
   }
 
@@ -8183,5 +8720,11 @@
 
     return runMonthlyCreditGate();
   };
+
+  // 리다이렉트 복귀 확정은 한 번만 시도한다(같은 페이지에 이 스크립트가 두 번 주입되는 경우 대비).
+  if (!window.__cdDirectPaymentResumeStarted) {
+    window.__cdDirectPaymentResumeStarted = true;
+    try { void _dpResumeDirectPaymentAfterRedirect(); } catch (_) {}
+  }
 
 })();

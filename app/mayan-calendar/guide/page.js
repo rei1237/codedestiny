@@ -113,7 +113,7 @@ const faqItems = [
 
 export default function MayanCalendarGuidePage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">{mayanCalendarGuideText("heading")}</h1>
         <p className="cd-main-intro">

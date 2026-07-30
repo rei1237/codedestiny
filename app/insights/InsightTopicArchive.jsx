@@ -89,12 +89,57 @@ const TOPIC_GUIDES = {
     paragraphs: [
       "해몽은 꿈에 나타난 상징을 삶의 맥락과 연결해 읽는 오래된 관습입니다. 같은 상징이라도 꾸는 사람의 상황과 감정에 따라 의미가 달라지므로, 꿈의 장면 하나만 떼어 단정하기보다 그때의 기분과 최근의 고민을 함께 떠올리며 읽는 것이 좋습니다.",
       "이 허브에서는 자주 나타나는 꿈 상징의 의미, 태몽처럼 특별하게 여겨지는 꿈, 그리고 꿈을 지나치게 불안하게 해석하지 않는 관점을 정리했습니다. 해몽은 예언이 아니라 무의식이 건네는 신호를 차분히 돌아보는 참고 자료입니다.",
+      "한국에서 널리 쓰이는 해몽 갈래는 크게 둘입니다. 하나는 조선 후기 이후 민간에 전해 내려온 상징 사전 계열로, 물·불·조상·동물 같은 소재마다 길흉을 붙여 읽습니다. 다른 하나는 20세기 심리학이 들여온 관점으로, 꿈을 예고가 아니라 낮에 처리하지 못한 감정의 잔여로 봅니다. 같은 꿈을 두 갈래가 정반대로 읽는 경우도 흔한데, 어느 쪽이 맞다기보다 묻는 질문이 다르다고 보는 편이 정확합니다.",
+      "그래서 이 허브의 글은 상징 풀이를 소개하되 그것을 확정으로 제시하지 않습니다. 꿈에서 무엇을 봤는지보다 그 장면에서 어떤 기분이었는지, 요즘 무엇이 마음에 걸려 있었는지를 함께 적어 두면 해석의 폭이 좁아집니다. 반복해서 꾸는 꿈이라면 특히 그 기록이 도움이 됩니다.",
     ],
   },
 };
 
+/**
+ * 체계별 원전. 해석의 근거가 어디서 왔는지 밝히는 용도이며, 각 허브에 그대로 렌더링된다.
+ * 출처 없이 단정하지 않는다는 편집 원칙(/editorial-policy)을 지면에서도 지키기 위한 블록.
+ */
+const TOPIC_SOURCES = {
+  saju: [
+    { name: "연해자평(淵海子平)", note: "송·명대에 정리된 자평명리의 기초 문헌. 일간을 기준으로 십성을 세우는 틀이 여기서 굳어졌습니다." },
+    { name: "자평진전(子平眞詮)", note: "청대 심효첨의 저술. 격국을 잡는 방법을 체계화해 오늘날 해석의 뼈대가 되었습니다." },
+  ],
+  ziwei: [
+    { name: "자미두수전서(紫微斗數全書)", note: "명대에 정리되어 가장 널리 인용되는 문헌. 이후 유파마다 성요 배치 규칙이 갈렸습니다." },
+  ],
+  sukuyo: [
+    { name: "숙요경(宿曜經)", note: "당대에 한역된 불교 경전. 정식 명칭은 문수사리보살급제선소설길흉시일선악수요경이며, 인도의 나크샤트라 체계가 동아시아로 전해진 통로입니다." },
+  ],
+  tarot: [
+    { name: "라이더-웨이트-스미스 덱(1909)", note: "아서 에드워드 웨이트의 설계와 파멜라 콜먼 스미스의 그림. 오늘날 통용되는 78장 상징 체계의 기준점입니다." },
+    { name: "『타로의 그림 열쇠』(1911)", note: "웨이트가 직접 쓴 해설서. 카드별 의미의 1차 출처로 자주 인용됩니다." },
+  ],
+  astrology: [
+    { name: "테트라비블로스(Tetrabiblos)", note: "2세기 프톨레마이오스의 저술. 행성·별자리·하우스를 다루는 서양 점성술 논의의 출발점입니다." },
+  ],
+  vedic: [
+    { name: "브리핫 파라샤라 호라 샤스트라", note: "베다 점성술(조티쉬)에서 가장 널리 인용되는 고전. 다샤 체계와 나크샤트라 해석의 근거로 쓰입니다." },
+  ],
+  compatibility: [
+    { name: "연해자평 · 자평진전", note: "두 사람의 명식을 나란히 두고 오행의 생극과 십성의 작용을 비교하는 방식의 근거." },
+    { name: "숙요경", note: "27수 사이의 거리로 관계의 결을 읽는 동아시아 궁합법의 출처." },
+  ],
+  dream: [],
+};
+
+/** 아크별 스토리 링크 — 신규 텍스트 리더(/stories)에 주제 관련 인바운드를 공급한다. */
+const TOPIC_STORY_LINKS = {
+  saju: { href: "/stories/", label: "이야기로 읽는 십성 — 연이의 운명 노벨" },
+  ziwei: { href: "/stories/ep-31/", label: "별들의 궁 — 자미두수 아크로 들어가기" },
+  sukuyo: { href: "/stories/ep-35/", label: "붉은 실의 세계 — 숙요 아크로 들어가기" },
+  compatibility: { href: "/stories/ep-38/", label: "끊을 수 없는 실 — 관계를 다루는 화" },
+};
+
 export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath }) {
-  const guide = TOPIC_GUIDES[String(topic || "").toLowerCase()];
+  const topicKey = String(topic || "").toLowerCase();
+  const guide = TOPIC_GUIDES[topicKey];
+  const sources = TOPIC_SOURCES[topicKey] || [];
+  const storyLink = TOPIC_STORY_LINKS[topicKey] || null;
   const featureGuides = getFeatureGuidesByTopic(topic);
   const matcher = topicMatcher(topic);
   const topicItems = getArticlesByTopic(topic);
@@ -137,19 +182,43 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
         </section>
       ) : null}
 
-      {featureGuides.length > 0 ? (
+      {sources.length > 0 ? (
         <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">
-          <h2 className="text-xl font-semibold text-amber-100">이 체계를 계산하는 방식</h2>
+          <h2 className="text-xl font-semibold text-amber-100">해석의 근거 — 참고 원전</h2>
           <p className="mt-3 break-keep text-sm leading-7 text-slate-300 md:text-base">
+            이 허브의 글은 아래 문헌에서 전해 내려온 해석 규칙을 바탕으로 정리했습니다. 다만 같은
+            원전을 두고도 유파마다 강조점이 달라, 여기서 소개하는 내용이 유일한 정답은 아닙니다.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {sources.map((source) => (
+              <li key={source.name} className="rounded-xl border border-white/12 bg-white/5 px-4 py-3">
+                <p className="text-sm font-semibold text-slate-100">{source.name}</p>
+                <p className="mt-1 break-keep text-sm leading-7 text-slate-300">{source.note}</p>
+              </li>
+            ))}
+          </ul>
+          {storyLink ? (
+            <p className="mt-4 break-keep text-sm leading-7 text-slate-300">
+              이 체계를 이야기로 먼저 만나 보고 싶다면{" "}
+              <Link href={storyLink.href} className="text-amber-100 underline">
+                {storyLink.label}
+              </Link>
+              도 함께 읽어 보세요.
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {featureGuides.length > 0 ? (
+        <section className="cd-guide-index mt-6">
+          <h2 className="cd-guide-index__title">이 체계를 계산하는 방식</h2>
+          <p className="cd-guide-index__lede">
             어떤 역법과 근거로 계산하는지, 결과를 어디까지 참고하면 되는지 정리한 기능 가이드입니다.
           </p>
-          <ul className="mt-4 grid grid-cols-1 gap-2 md:grid-cols-2">
+          <ul className="cd-guide-index__grid">
             {featureGuides.map((featureGuide) => (
               <li key={featureGuide.href}>
-                <Link
-                  href={featureGuide.href}
-                  className="block rounded-xl border border-white/15 bg-white/5 px-4 py-3 text-sm leading-6 text-slate-100 hover:border-amber-200/40 hover:bg-white/10 hover:text-amber-100"
-                >
+                <Link href={featureGuide.href} className="cd-guide-index__link">
                   {featureGuide.label}
                 </Link>
               </li>

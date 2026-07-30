@@ -64,7 +64,7 @@ const faqItems = [
 
 export default function SajuTenGodsPage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">십성 해석 가이드</h1>
         <p className="cd-main-intro">

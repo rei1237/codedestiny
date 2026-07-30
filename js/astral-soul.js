@@ -34,7 +34,13 @@ const ASTRAL_SOUL_TEXT_TRANSLATIONS = {
 };
 
 function _astralSoulText(key) {
-  return ASTRAL_SOUL_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+  var ko = ASTRAL_SOUL_TEXT_TRANSLATIONS.ko[key] || "";
+  try {
+    if (typeof window !== "undefined" && window && typeof window.cdTranslate === "function") {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || "Translation pending";
 }
 const ASTRAL_DATA = {
     'INTJ': { animal:'🦉', name:'Owl', title:_astralSoulText("astralSoul.002"), code:'INTJ', 

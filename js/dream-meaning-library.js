@@ -24,8 +24,14 @@
   };
 
   function _dreamMeaningLibraryText(key) {
-    return DREAM_MEANING_LIBRARY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-  }
+  var ko = DREAM_MEANING_LIBRARY_TEXT_TRANSLATIONS.ko[key] || "";
+  try {
+    if (typeof window !== "undefined" && window && typeof window.cdTranslate === "function") {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || "Translation pending";
+}
   var CATEGORY_META = {
     all: { label: _dreamMeaningLibraryText("dreamMeaning.001"), icon: '📚' },
     animal: { label: _dreamMeaningLibraryText("dreamMeaning.002"), icon: '🐾' },

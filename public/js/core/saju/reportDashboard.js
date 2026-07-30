@@ -37,6 +37,8 @@ var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
     "rd.cta.015": "📸 사주네컷 열기",
     "rd.label.013": "시크릿 하우스 : 연애 시뮬",
     "rd.cta.016": "🏠 시크릿 하우스 입장",
+    "rd.label.018": "나는 도파민 중독일까?",
+    "rd.cta.017": "🧠 내 자극 지수 확인하기",
     "rd.label.014": "운명필터",
     "rd.title.004": "MZ 운명 필터 ON",
     "rd.label.015": "러브DM",
@@ -68,7 +70,13 @@ var REPORT_DASHBOARD_TEXT_TRANSLATIONS = {
 };
 
 function _reportDashboardText(key) {
-  return REPORT_DASHBOARD_TEXT_TRANSLATIONS.ko[key] || 'Translation pending';
+  var ko = REPORT_DASHBOARD_TEXT_TRANSLATIONS.ko[key] || '';
+  try {
+    if (typeof window !== 'undefined' && window && typeof window.cdTranslate === 'function') {
+      return window.cdTranslate(key, {}, ko);
+    }
+  } catch (_) {}
+  return ko || 'Translation pending';
 }
 
 
@@ -153,6 +161,7 @@ var REPORT_CARDS = [
   { id:'lotto',      thumb:'사주 로또.webp', label:_reportDashboardText("rd.label.010"),       desc:'사주 오행과 수리 상징으로 만든 재미용 번호가 떠오릅니다.',          note:'오늘 운의 파동과 맞는 상징 번호와 행운 루틴이 가볍게 머뭅니다.', cta:_reportDashboardText("rd.cta.013"),          accent:'#fde047', glow:'rgba(253,224,71,.55)',  target:'lottoCard',          coinCost:0   },
   { id:'godlife',    thumb:'사주 다이어리.webp', label:_reportDashboardText("rd.label.011"),          desc:'갓생 지수 · 럭키 비키 아이템 · 야간회고를 한 번에 관리해보세요.', note:'오늘 운세 실천부터 내일 일진 대비 포인트까지 이어서 기록하면, 운의 패턴이 더 선명해집니다.', cta:_reportDashboardText("rd.cta.014"),       accent:'#818cf8', glow:'rgba(129,140,248,.55)', target:'luckSyncDiaryEntryCard', action:'openLuckSyncDiary', coinCost:100 },
   { id:'4CUT',       thumb:'사주 네컷.webp', label:_reportDashboardText("rd.label.012"),   desc:'사주 데이터를 인생네컷 감성으로 재해석해 한 장에 담아보세요.', note:'킹받는데 공감되는 팩폭으로 네 컷을 완성했어요. 저장하고 카톡으로 바로 던져봐.', cta:_reportDashboardText("rd.cta.015"),            accent:'#f97316', glow:'rgba(249,115,22,.45)',  target:'sajuFourCutCard',    coinCost:0   },
+  { id:'dopamine',   thumb:'도파민 중독.webp', label:_reportDashboardText("rd.label.018"), shortTitle:'도파민 중독 테스트', desc:'새로운 자극을 쫓는 타입인지, 안정을 더 사랑하는 타입인지 확인해보세요.', note:'자극 지수와 등급, 자극 레이더 8축, 몰입 분야, 오늘의 미션까지 한 번에 확인합니다.', cta:_reportDashboardText("rd.cta.017"), accent:'#e879f9', glow:'rgba(232,121,249,.5)', target:'dopamineCard', coinCost:0, badge:'NEW' },
   { id:'secretHouse', thumb:'시크릿 하우스.webp', label:_reportDashboardText("rd.label.013"), desc:'선택형 사주 연애 리얼리티로 엔딩 루트를 체험해보세요.', note:'자동 일간 연동 + 다중 엔딩 + 엔딩 카드 저장/공유까지 이어지는 몰입형 콘텐츠입니다.', cta:_reportDashboardText("rd.cta.016"), accent:'#f43f5e', glow:'rgba(244,63,94,.45)', target:'secretHouseEntryCard', action:'openSecretHouseRoute', coinCost:50 },
   { id: SAJU_ANIMAL_TEST_FEATURE.id, thumb: SAJU_ANIMAL_TEST_FEATURE.thumb, label: SAJU_ANIMAL_TEST_FEATURE.title, shortTitle: SAJU_ANIMAL_TEST_FEATURE.shortTitle, desc: SAJU_ANIMAL_TEST_FEATURE.description, note:'열두 운성의 기세를 동물 캐릭터로 매핑해 "왜 이 관계에서 힘든지"와 "지금 바로 써먹을 한 줄 행동"까지 재밌고 현실적으로 제시합니다.', cta: SAJU_ANIMAL_TEST_FEATURE.cta, accent:'#f59e0b', glow:'rgba(245,158,11,.45)', target: SAJU_ANIMAL_TEST_FEATURE.target, action: SAJU_ANIMAL_TEST_FEATURE.action, lockKey: SAJU_ANIMAL_TEST_FEATURE.lockKey, coinCost: SAJU_ANIMAL_TEST_FEATURE.coinCost, badge: SAJU_ANIMAL_TEST_FEATURE.badge, tags: SAJU_ANIMAL_TEST_FEATURE.tags, group: SAJU_ANIMAL_TEST_FEATURE.group },
   { id: DESTINY_MEETING_PLACE_FEATURE.id, thumb: DESTINY_MEETING_PLACE_FEATURE.thumb, label: DESTINY_MEETING_PLACE_FEATURE.title, shortTitle: DESTINY_MEETING_PLACE_FEATURE.shortTitle, desc: DESTINY_MEETING_PLACE_FEATURE.description, note:'이 페이지 단독으로 생년월일 입력부터 분석까지 실행하며, 인연 장소 TOP5·국가/도시·만남 타이밍·아이템·실천 플랜을 한 번에 제시합니다.', cta: DESTINY_MEETING_PLACE_FEATURE.cta, accent:'#c084fc', glow:'rgba(192,132,252,.45)', target: DESTINY_MEETING_PLACE_FEATURE.target, action: DESTINY_MEETING_PLACE_FEATURE.action, lockKey: DESTINY_MEETING_PLACE_FEATURE.lockKey, coinCost: DESTINY_MEETING_PLACE_FEATURE.coinCost, mainLock: DESTINY_MEETING_PLACE_FEATURE.mainLock, badge: DESTINY_MEETING_PLACE_FEATURE.badge, tags: DESTINY_MEETING_PLACE_FEATURE.tags, group: DESTINY_MEETING_PLACE_FEATURE.group },
@@ -1162,6 +1171,9 @@ function _sajuFunTryRecoverTargetCard(targetId) {
         break;
       case 'sajuFourCutCard':
         if (typeof renderSajuFourCutContent === 'function') renderSajuFourCutContent();
+        break;
+      case 'dopamineCard':
+        if (typeof window.renderDopamineReport === 'function' && p && natal) window.renderDopamineReport(p, natal, power, johu);
         break;
       default:
         break;

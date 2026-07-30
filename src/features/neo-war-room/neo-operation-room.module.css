@@ -581,6 +581,25 @@
   aspect-ratio: 1 / 1;
 }
 
+/* 컨트롤 행이 대화창 안으로 들어오면서 대화창이 그만큼 높아진다.
+   각 scene 의 bottom 값을 건드리지 않고 캐릭터-대화창 간격만 그대로 유지한다. */
+.vnStage[data-phase="prologue"] .vnCharacter {
+  translate: 0 calc(-70px - var(--cd-mnav-offset, 0px));
+}
+
+/* 노트북처럼 세로가 짧은 데스크톱에서는 캐릭터 상단이 스테이지 밖으로 잘린다.
+   대화창 위에 남는 높이에 맞춰 캐릭터를 줄이고 덜 띄운다. */
+@media (min-width: 769px) and (max-height: 760px) {
+  .vnStage[data-phase="prologue"] .vnCharacter[data-scene="humanNeo"] {
+    bottom: clamp(280px, 24vw, 330px);
+    width: min(20vw, 210px);
+  }
+
+  .vnStage[data-phase="prologue"] .vnCharacter {
+    translate: 0 0;
+  }
+}
+
 .vnStage[data-phase="prologue"] .vnCharacter[data-scene="humanNeo"] .vnCharacterCrop[data-sheet-crop="true"] {
   overflow: hidden;
   border-radius: 24px;
@@ -599,7 +618,8 @@
   position: absolute;
   left: clamp(18px, 4vw, 56px);
   right: clamp(18px, 4vw, 56px);
-  bottom: clamp(18px, 4vw, 42px);
+  /* 하단 네비(.cd-mnav) 위로 올라온다. 네비가 없는 뷰포트에서는 0 이라 그대로 바닥에 붙는다. */
+  bottom: calc(clamp(18px, 4vw, 42px) + var(--cd-mnav-offset, 0px));
   z-index: 5;
   display: grid;
   gap: 10px;
@@ -614,7 +634,6 @@
   box-shadow: 0 22px 52px rgba(0, 0, 0, 0.44), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  cursor: pointer;
 }
 
 .vnStage[data-phase="prologue"] .vnDialogueBox {
@@ -702,9 +721,10 @@
   display: grid;
   gap: 10px;
   min-width: 0;
+  cursor: pointer;
 }
 
-.vnDialogueBox:focus-visible,
+.vnDialogueContent:focus-visible,
 .bgmToggle:focus-visible,
 .vnGhostButton:focus-visible,
 .vnStartButton:focus-visible {
@@ -828,25 +848,18 @@
 }
 
 .vnControlRow {
-  position: absolute;
-  z-index: 6;
-  right: clamp(20px, 4vw, 58px);
-  bottom: clamp(188px, 18vw, 226px);
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 10px;
-  max-width: calc(100% - clamp(40px, 8vw, 116px));
-}
-
-.vnStage[data-phase="prologue"] .vnControlRow {
-  bottom: clamp(410px, 34vw, 470px);
-  max-width: min(520px, calc(100% - clamp(40px, 8vw, 116px)));
+  min-width: 0;
+  margin-top: 2px;
 }
 
 .vnGhostButton {
   min-height: 44px;
+  flex: 0 0 auto;
   border: 1px solid rgba(214, 188, 118, 0.46);
   border-radius: 8px;
   padding: 10px 14px;
@@ -873,6 +886,8 @@
   grid-template-columns: 64px minmax(0, auto);
   align-items: center;
   gap: 12px;
+  flex: 0 1 auto;
+  max-width: 100%;
   overflow: hidden;
   border: 1px solid rgba(245, 212, 135, 0.72);
   border-radius: 8px;
@@ -893,7 +908,9 @@
 }
 
 .vnStage[data-phase="prologue"] .vnStartButton {
-  min-height: 78px;
+  min-height: 60px;
+  grid-template-columns: 58px minmax(0, 1fr);
+  padding: 9px 20px 9px 10px;
   border-color: rgba(255, 226, 155, 0.82);
   background:
     linear-gradient(135deg, rgba(110, 28, 38, 0.98), rgba(15, 22, 39, 0.98) 52%, rgba(68, 65, 50, 0.94)),
@@ -3980,6 +3997,10 @@
     aspect-ratio: 1 / 1;
   }
 
+  .vnStage[data-phase="prologue"] .vnCharacter {
+    translate: 0 calc(-58px - var(--cd-mnav-offset, 0px));
+  }
+
   .vnMorphLion {
     left: 2%;
     bottom: 16%;
@@ -4001,7 +4022,8 @@
   .vnDialogueBox {
     left: 12px;
     right: 12px;
-    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    /* safe-area 는 하단 네비가 이미 처리하므로 둘 중 큰 값만 쓴다(이중 가산 방지). */
+    bottom: calc(10px + max(var(--cd-mnav-offset, 0px), env(safe-area-inset-bottom, 0px)));
     min-height: 132px;
     padding: 13px 14px;
   }
@@ -4034,24 +4056,6 @@
   }
 
   .vnControlRow {
-    right: 12px;
-    left: 12px;
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 146px);
-    max-width: none;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-  }
-
-  .vnStage[data-phase="prologue"] .vnControlRow {
-    left: 12px;
-    right: 12px;
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 176px);
-    max-width: none;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
     gap: 8px;
   }
 
@@ -4078,17 +4082,17 @@
   }
 
   .vnStage[data-phase="prologue"] .vnStartButton {
-    max-width: min(100%, 100vw - 54px);
-    min-height: 58px;
-    grid-template-columns: 42px minmax(0, 1fr);
+    max-width: 100%;
+    min-height: 52px;
+    grid-template-columns: 48px minmax(0, 1fr);
     flex: 1 1 0;
     padding: 8px 12px 8px 8px;
   }
 
   .vnStage[data-phase="prologue"] .vnGhostButton {
-    min-width: 54px;
-    flex: 0 0 54px;
-    padding-inline: 8px;
+    min-width: 72px;
+    flex: 0 0 auto;
+    padding-inline: 12px;
   }
 
   .vnStartButton .ctaOrbitFrame {
@@ -4189,14 +4193,6 @@
   .vnStage[data-phase="prologue"] .vnDialogueBox {
     min-height: 168px;
     padding-bottom: 16px;
-  }
-
-  .vnControlRow {
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 154px);
-  }
-
-  .vnStage[data-phase="prologue"] .vnControlRow {
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 186px);
   }
 }
 

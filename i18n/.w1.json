@@ -1,0 +1,31 @@
+{
+  "shellKeys": [
+    "shell.cdSigCard.cdSigCardBody.k1bs96nr",
+    "shell.cdSigCard.cdSigCardBody.k1dc5spb",
+    "shell.cdSigCard.cdSigCardBody.k1f3556p",
+    "shell.cdSigCard.cdSigCardBody.k1ovtqnv",
+    "shell.cdSigCard.cdSigCardBody.k1r7ei5z",
+    "shell.cdSigCard.cdSigCardBody.k1x58ufz",
+    "shell.cdSigCard.cdSigCardBody.kjx6xyr",
+    "shell.cdSigCard.cdSigCardBody.kk0w8v",
+    "shell.cdSigCard.cdSigCardMedia.k1039k",
+    "shell.cdSigCard.cdSigCardMedia.ky3ng",
+    "shell.cdSignatureConsult.cdSigHead.k1uopfsh",
+    "shell.featureBegin.moonPreviewCard.k8jupm2",
+    "shell.inputPage.logoArea.k16nuyta.ariaLabel",
+    "shell.tarotTileBody.pvcPremMeta.kwuu0"
+  ],
+  "runtimeKeys": [
+    "shellRuntime.s103",
+    "shellRuntime.s141",
+    "shellRuntime.s250",
+    "shellRuntime.s350",
+    "shellRuntime.s393",
+    "shellRuntime.s564",
+    "shellRuntime.s681",
+    "shellRuntime.s715",
+    "shellRuntime.s778",
+    "shellRuntime.s831",
+    "shellRuntime.s996"
+  ]
+}

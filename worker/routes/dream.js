@@ -1,7 +1,7 @@
 import { getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { callGeminiText } from "../lib/gemini.js";
-import { canAccessPaidFeature } from "../lib/paid-feature-access.js";
+import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { verifyPremiumAccessToken } from "../lib/premium-access-token.js";
 
 const DREAM_PSYCHO_FEATURE_KEY = "dream-psycho-analysis";
@@ -37,7 +37,7 @@ async function verifyPsychoDreamAccess(request, env = {}, body = {}) {
   try {
     // allowDbFallback: true — 유효한 JWT는 Mongo 풀 초기화 등 일시적 DB 오류에도 신뢰하고
     // (authDbFallback 플래그만 붙여) 인증을 통과시킨다. 실제로 로그인이 안 된 요청만 null.
-    auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true });
+    auth = await getOptionalUserFromRequest(request, env, { allowDbFallback: true, userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   } catch (error) {
     if (isAuthDbInfraError(error)) {
       return {
@@ -56,6 +56,8 @@ async function verifyPsychoDreamAccess(request, env = {}, body = {}) {
   const decision = await canAccessPaidFeature(auth.userId, DREAM_PSYCHO_FEATURE_KEY, {
     env,
     reason: DREAM_PSYCHO_FEATURE_REASON,
+    // 인증 단계에서 이미 읽은 User 문서를 재사용한다(없으면 내부에서 종전대로 조회).
+    userDoc: auth.authUserDoc,
   });
   if (decision?.allowed) {
     return {

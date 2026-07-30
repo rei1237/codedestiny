@@ -64,7 +64,7 @@ const faqItems = [
 
 export default function SukuyoGuidePage() {
   return (
-    <main className="cd-main-shell">
+    <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
         <h1 className="cd-main-title">숙요 27숙과 궁합 구조</h1>
         <p className="cd-main-intro">

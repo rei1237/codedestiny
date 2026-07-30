@@ -162,6 +162,7 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 
 ## UI/UX Standards
 
+- 🔴 **모바일 최적화 = 인체공학만 (UI 재디자인 금지)**: 모바일 전용 공용 래퍼(`MobileFeatureDetail` / `styles/mobile-lite.css`)는 **탭 타깃(44px)·입력 폰트(16px, iOS 확대 방지)·가로 오버플로 방지·세이프에어리어**까지만 다룬다. 기능이 소유한 요소의 색·타이포·배경·테두리·위치(`sticky`/`fixed`)를 덮거나, 마크업에 없는 배지를 `content: attr()` 로 주입하지 않는다. **기능 화면은 모바일에서도 데스크탑과 같은 자기 디자인으로 보여야 한다.** 특정 기능의 모바일 문제는 공용 래퍼가 아니라 **그 기능의 CSS 에서** 고친다(래퍼로 덮으면 나머지 17개 기능이 함께 망가진다 — 2026-07 sticky 이름판·팔레트 재도색 사고). 가드: `npm run verify:mobile-detail-nonintrusive`(CI 차단) + `npm run verify:mobile-detail-render`(실렌더). 계약: [MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md](MOBILE_FEATURE_DETAIL_TEMPLATE_REPORT.md)
 - 🔴 **몰입형 기본(신규 기능 전면 적용)**: 앞으로 추가하는 모든 신규 기능/페이지/화면은 **전역 헤더·푸터 없이 몰입형(immersive)으로 제작한다.** 공용 사이트 헤더(네비게이션 바)와 푸터를 붙이지 말고, 해당 기능 자체의 몰입 경험(풀블리드 배경·자체 상단바/뒤로가기·자체 CTA)으로 화면을 채운다. 기존 헤더/푸터가 이미 붙은 화면을 수정할 때만 그 구조를 존중하고, 신규 화면에는 새로 도입하지 않는다 — 특정 기능에 헤더/푸터가 꼭 필요해 보이면 추측하지 말고 먼저 사용자에게 확인한다.
 - 🔴 **생년 정보 자동 입력(프로필 카드) — 필수, 신규·기존 공통**: 생년월일·태어난 시각·성별·양/음력 등 생년 정보를 입력받는 **모든 기능**은 공용 훅 `app/hooks/useAiProfileSeed()`(변환 `seedFromDestinyProfile`, 저장 `app/_lib/profile-card-storage.ts`)로 **현재 선택된 프로필 카드에서 자동 프리필**한다. 사용자가 이미 입력·편집한 값은 덮어쓰지 않는다(빈 값만 채움). 비로그인·프로필 없음이면 수동 입력으로 폴백하고, 프로필 전환(`destinyProfileChanged` 이벤트)은 자동 반영한다. **프로필 조회/시드 로직을 새로 만들지 말고 이 훅을 재사용**한다(중복 구현 금지). 참조: `app/astrology-ai/AstrologyAiClient.tsx`, `app/destiny-compass/_components/CompassApp.tsx`(BirthGate).
 - 애니메이션은 Tailwind `transition-*`/`animate-*` 클래스만 (외부 라이브러리 신규 도입 지양 — 단 `framer-motion`은 기존 의존성으로 이미 사용 중)
