@@ -410,7 +410,9 @@
             reportId: requestBody.reportId,
             sessionId: requestBody.sessionId,
             reportSessionId: requestBody.reportSessionId,
-            actionType: 'pdf'
+            actionType: 'pdf',
+            // 셸 메인 게이트와 같은 근거로 즉시 판정한다(프리미엄 PDF 도 이용권 유무가 확정되면 왕복 0).
+            allowSnapshotFastPath: true
           });
           if (passAccess && (passAccess.status === 'already_unlocked' || passAccess.status === 'pass_applied')) {
             var passData = (passAccess && (passAccess.payload || passAccess.rawPayload)) || {};

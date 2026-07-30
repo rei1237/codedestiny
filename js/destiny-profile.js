@@ -2339,6 +2339,26 @@
   var _DP_SUB_SNAPSHOT_KEY_PREFIX = 'cd_subscription_snapshot_v2::';
   var _DP_SUB_SNAPSHOT_NONE_TTL_MS = 60000;
   var _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
+  // 🔴 stale-while-revalidate 상한. TTL(60초)을 넘긴 'none' 은 삭제하지 않고 이 상한까지 '미보유 확정'
+  // 판정에 그대로 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다. 셸·React 와 같은 값이다.
+  var _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
+  var _dpSnapshotRevalidateInFlight = false;
+
+  // stale 'none' 을 읽었을 때의 백그라운드 갱신. 결제창이 어차피 쓰는 /api/billing/balance 를 재사용하고
+  // (같은 응답이 스냅샷을 채운다) 동시 1건만 돌린다 — 이 경로에는 기존 dedup 이 없어 여기서 한 겹만 건다.
+  function _dpRevalidateSubscriptionSnapshot() {
+    try {
+      if (_dpSnapshotRevalidateInFlight) return;
+      if (typeof _dpFetchMoonlightStoneBalance !== 'function') return;
+      if (!_dpHasSessionHint()) return;
+      _dpSnapshotRevalidateInFlight = true;
+      _dpFetchMoonlightStoneBalance({}).catch(function() {}).then(function() {
+        _dpSnapshotRevalidateInFlight = false;
+      });
+    } catch (_) {
+      _dpSnapshotRevalidateInFlight = false;
+    }
+  }
 
   function _dpMembershipPassLimitForTier(tier) {
     if (tier === 'family') return 999999999;
@@ -2374,9 +2394,12 @@
     } catch (_) {}
   }
 
-  function _dpReadSubscriptionSnapshotLocal() {
+  // options.allowStaleNone: TTL 을 넘긴 'none' 도 { stale:true } 로 돌려받는다(삭제하지 않음).
+  // 미보유 확정 판정에만 쓴다 — 'active' 는 stale 을 허용하지 않는다(만료 이용권으로 콘텐츠가 샌다).
+  function _dpReadSubscriptionSnapshotLocal(options) {
     var userId = _dpSubSnapshotUserId();
     if (!userId) return null;
+    var allowStaleNone = Boolean(options && options.allowStaleNone);
     try {
       var raw = localStorage.getItem(_dpSubSnapshotKey(userId));
       if (!raw) return null;
@@ -2394,10 +2417,15 @@
         _dpRemoveSubscriptionSnapshot(userId);
         return null;
       }
+      var age = Date.now() - checkedAt;
       var ttl = state === 'none' ? _DP_SUB_SNAPSHOT_NONE_TTL_MS : _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS;
-      if (Date.now() - checkedAt > ttl) {
-        _dpRemoveSubscriptionSnapshot(userId);
-        return null;
+      var stale = false;
+      if (age > ttl) {
+        if (state !== 'none' || !allowStaleNone || age > _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS) {
+          _dpRemoveSubscriptionSnapshot(userId);
+          return null;
+        }
+        stale = true;
       }
       if (state === 'active' && expiresAt && Date.parse(expiresAt) <= Date.now()) {
         _dpRemoveSubscriptionSnapshot(userId);
@@ -2409,7 +2437,8 @@
         tier: state === 'active' ? tier : 'free',
         expiresAt: state === 'active' ? (expiresAt || null) : null,
         checkedAt: checkedAt,
-        source: String(parsed.source || 'local')
+        source: String(parsed.source || 'local'),
+        stale: stale
       };
     } catch (_) {
       _dpRemoveSubscriptionSnapshot(userId);
@@ -2417,14 +2446,15 @@
     }
   }
 
-  function _dpReadSubscriptionSnapshot() {
+  function _dpReadSubscriptionSnapshot(options) {
     try {
       if (typeof window.__cdReadSubscriptionSnapshot === 'function'
         && window.__cdReadSubscriptionSnapshot !== _dpReadSubscriptionSnapshotLocal) {
-        return window.__cdReadSubscriptionSnapshot();
+        // 셸 안에서 돌 때는 셸 리더가 정본 — 옵션도 그대로 넘겨 판정이 두 벌로 갈라지지 않게 한다.
+        return window.__cdReadSubscriptionSnapshot(options);
       }
     } catch (_) {}
-    return _dpReadSubscriptionSnapshotLocal();
+    return _dpReadSubscriptionSnapshotLocal(options);
   }
 
   // 서버가 확인해 준 등급만 저장한다(degraded 응답은 호출부에서 이미 걸러진다).
@@ -2462,9 +2492,11 @@
     if (!(cost > 0)) return '';
     // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
     if (!_dpHasSessionHint()) return 'signed_out';
-    var snapshot = _dpReadSubscriptionSnapshot();
+    // 미보유 확정은 stale 'none' 으로도 내린다(SWR) — TTL 60초 만료마다 차단형 왕복이 되살아나던 지점이다.
+    var snapshot = _dpReadSubscriptionSnapshot({ allowStaleNone: true });
     if (!snapshot) return '';
-    // (2) 서버가 최근(none TTL 60초) '이용권 없음'이라고 답한 기록.
+    if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
+    // (2) 서버가 '이용권 없음'이라고 답한 기록(만료됐어도 판정에 쓰고 갱신은 백그라운드).
     if (snapshot.state === 'none') return 'subscription_snapshot_none';
     // (3) 산술적 한도 초과 — 신선도와 무관하게 이 가격은 이 등급으로 커버되지 않는다.
     if (snapshot.state === 'active' && cost > _dpMembershipPassLimitForTier(snapshot.tier)) return 'snapshot_pass_limit_exceeded';
@@ -3932,7 +3964,10 @@
           profileAction: optionBag.profileAction,
           action: optionBag.action,
           profileId: optionBag.profileId,
-          selectedProfileId: optionBag.selectedProfileId
+          selectedProfileId: optionBag.selectedProfileId,
+          // 셸 메인 게이트와 같은 근거(_cdCoverageFromSubscriptionSnapshot)로 즉시 판정한다. 이 진입점만
+          // 빠져 있어 이용권 유무가 이미 확정된 사용자도 서버 왕복을 기다렸다.
+          allowSnapshotFastPath: true
         }).then(function(access) {
           if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
             var passPayload = access.payload || access.rawPayload || {};
@@ -9045,7 +9080,7 @@
     }
 
     if (typeof window._cdResolvePaidContentAccess === 'function' && optionBag.disablePassFirst !== true && optionBag.disablePassChoice !== true) {
-      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId }).then(function(access) {
+      return window._cdResolvePaidContentAccess({ title: reason, reason: reason, coinPrice: cost, cost: cost, featureKey: normalizedFeatureKey, requestId: requestId, categoryKey: optionBag.categoryKey, subFeatureKey: optionBag.subFeatureKey, contentKey: optionBag.contentKey, productId: optionBag.productId, reportType: optionBag.reportType, serviceKey: optionBag.serviceKey, reportId: optionBag.reportId, sessionId: optionBag.sessionId, reportSessionId: optionBag.reportSessionId || optionBag.sessionId, purchaseId: optionBag.purchaseId, actionType: optionBag.actionType, profileAction: optionBag.profileAction, action: optionBag.action, profileId: optionBag.profileId, selectedProfileId: optionBag.selectedProfileId, allowSnapshotFastPath: true }).then(function(access) {
         if (access && (access.status === 'already_unlocked' || access.status === 'pass_applied')) {
           var passPayload = access.payload || access.rawPayload || {};
           var passTransactionId = String(passPayload.transactionId || passPayload.paymentId || passPayload.purchaseId || passPayload.requestId || access.requestId || requestId);

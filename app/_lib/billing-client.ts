@@ -155,6 +155,9 @@ export type SubscriptionSnapshot = {
   checkedAt: number;
   purchaseVersion: string;
   source: string;
+  // TTL 을 넘긴 'none' 을 stale-while-revalidate 로 읽었을 때만 true. 낙관 통과(무료 제공)에는 절대
+  // 쓰지 않고 '미보유 확정 → 결제창 직행' 방향으로만 쓴다(readSubscriptionSnapshotForUser 주석 참고).
+  stale?: boolean;
 };
 
 export type EntitlementPlan = "NONE" | "STANDARD" | "PREMIUM" | "VVIP" | "FAMILY";
@@ -357,15 +360,21 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-6227c56b281f";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-9322d379c0d2";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 // 활성 스냅샷이 살아 있는 동안은 이용권 보유자가 서버 왕복 없이 즉시 통과한다(낙관 fast-path).
-// 5분은 짧아서 조금만 쉬었다 들어와도 매번 서버 왕복을 탔고, 그 왕복이 느린 날에 결제창으로 샜다.
 // 만료일·userId 검사가 스냅샷 자체에 내장돼 있어(readSubscriptionSnapshotForUser) 이용권이 만료되면
 // TTL과 무관하게 무효가 되고, 미커버면 백그라운드 coin-gate(402)가 낙관 허용을 꺼서 자기교정한다.
-// 🔴 NONE_TTL(60초)은 늘리지 말 것 — stale-none은 snapshotSaysNoPassFast 로 결제창 직행을 만든다.
-const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 15 * 60 * 1000;
+// 🔴 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 읽으므로 값이 갈리면
+// 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라진다. 세 곳 모두 5분으로 고정한다.
+const SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
+// 🔴 stale-while-revalidate 상한. TTL(60초)을 넘긴 'none' 은 **삭제하지 않고** 이 상한까지는 그대로
+// '미보유 확정'에 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다. 60초 만료를 그대로 두면
+// 이용권이 없는 사용자가 60초마다 차단형 서버 왕복을 다시 겪는데, 그것이 체감 지연의 최대 원인이었다.
+// 위험은 '다른 기기에서 방금 이용권을 산 사용자가 딱 1회 결제창을 본다'이고, 그 결제창에도 이용권
+// 상점·재확인이 있으며 단건을 눌러도 서버 grantPassFreeAccessBeforeCardIfAvailable 이 무료 통과시킨다.
+const SUBSCRIPTION_SNAPSHOT_NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
 const SUBSCRIPTION_SNAPSHOT_ACTIVE_STATUSES = new Set(["active", "subscribed", "paid", "success", "succeeded", "complete", "completed", "confirmed", "approved"]);
 const SUBSCRIPTION_SNAPSHOT_INACTIVE_STATUSES = new Set(["none", "free", "inactive", "expired", "canceled", "cancelled", "refunded", "failed", "paused"]);
 
@@ -666,7 +675,13 @@ export function clearSubscriptionSnapshotForUser(userId?: string) {
   removeSubscriptionSnapshotByUserId(resolveSubscriptionSnapshotUserId(userId));
 }
 
-export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSnapshot | null {
+// allowStaleNone: TTL 을 넘긴 'none' 도 { stale:true } 로 돌려받는다(삭제하지 않음). 호출부는 이것을
+// **미보유 확정** 판정에만 쓰고, 동시에 백그라운드 갱신을 예약해야 한다. 'active' 는 stale 을 허용하지
+// 않는다 — 만료된 이용권으로 낙관 통과시키면 유료 콘텐츠가 그대로 샌다.
+export function readSubscriptionSnapshotForUser(
+  userId?: string,
+  options?: { allowStaleNone?: boolean },
+): SubscriptionSnapshot | null {
   const resolvedUserId = resolveSubscriptionSnapshotUserId(userId);
   if (typeof window === "undefined" || !resolvedUserId) return null;
   try {
@@ -686,11 +701,16 @@ export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSn
       removeSubscriptionSnapshotByUserId(resolvedUserId);
       return null;
     }
-    if (state === "none" && Date.now() - checkedAt > SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS) {
-      removeSubscriptionSnapshotByUserId(resolvedUserId);
-      return null;
+    const age = Date.now() - checkedAt;
+    let stale = false;
+    if (state === "none" && age > SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS) {
+      if (!options?.allowStaleNone || age > SUBSCRIPTION_SNAPSHOT_NONE_STALE_MAX_MS) {
+        removeSubscriptionSnapshotByUserId(resolvedUserId);
+        return null;
+      }
+      stale = true;
     }
-    if (state === "active" && Date.now() - checkedAt > SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS) {
+    if (state === "active" && age > SUBSCRIPTION_SNAPSHOT_ACTIVE_TTL_MS) {
       removeSubscriptionSnapshotByUserId(resolvedUserId);
       return null;
     }
@@ -706,6 +726,7 @@ export function readSubscriptionSnapshotForUser(userId?: string): SubscriptionSn
       checkedAt,
       purchaseVersion: toText(parsed.purchaseVersion),
       source: toText(parsed.source || "local"),
+      stale,
     };
   } catch {
     removeSubscriptionSnapshotByUserId(resolvedUserId);
@@ -1957,6 +1978,54 @@ function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentE
     ?? input.cost,
     amountKRW > 0 ? Math.ceil(amountKRW / 100) : 0,
   )));
+}
+
+export type SnapshotPassVerdict = {
+  snapshot: SubscriptionSnapshot | null;
+  passLimit: number;
+  /** 스냅샷만으로 '이용권 커버'가 확정 — 낙관 즉시 통과 후보(서버 왕복 0). */
+  coversNow: boolean;
+  /** 스냅샷만으로 '미보유 또는 한도초과'가 확정 — 결제창 직행(서버 왕복 0). */
+  cannotCover: boolean;
+};
+
+// 🔴 스냅샷만으로 내릴 수 있는 이용권 판정의 **단일 정본**. runBillingCoinGate 와 useCoinGate(대기 UI를
+// 켤지 말지)가 같은 함수를 써야 두 판정이 어긋나지 않는다 — 사본을 만들면 한쪽만 고쳐져 '확인 화면은
+// 떴는데 곧바로 결제창'/'결제창은 떴는데 확인 화면이 남음' 같은 어긋남이 생긴다.
+// 이용권 판정은 canUseByPass(tier, expiresAt, 가격)라는 순수 함수라 기능별 서버 조회가 필요 없다.
+export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): SnapshotPassVerdict {
+  const requestedMode = normalizePaymentMode(input.paymentMode);
+  const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
+  const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
+  const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
+  const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
+  // 미보유 확정은 stale 스냅샷으로도 내린다(SWR). 커버 확정은 신선한 'active' 로만 내린다.
+  const snapshot = readSubscriptionSnapshotForUser(undefined, { allowStaleNone: true });
+  // stale 을 읽었으면 이번 판정은 그대로 쓰고 다음 클릭을 위해 백그라운드로만 갱신한다.
+  // (warmSubscriptionSnapshotOnEntry 는 in-flight dedup + 신선 스냅샷 조기반환을 이미 갖고 있다.)
+  if (snapshot?.stale) void warmSubscriptionSnapshotOnEntry();
+  const passLimit = snapshot?.state === "active" ? subscriptionSnapshotPassLimit(snapshot.tier) : 0;
+  const knownCoinCost = resolveKnownCoinCost(input, null);
+  const usable = !explicitPaymentMode && !passDisabled && knownCoinCost > 0 && Boolean(snapshot);
+  return {
+    snapshot,
+    passLimit,
+    coversNow: Boolean(
+      usable
+      && snapshot?.state === "active"
+      && !snapshot.stale
+      && passLimit > 0
+      && (snapshot.tier === "family" || knownCoinCost <= passLimit),
+    ),
+    cannotCover: Boolean(
+      usable
+      && snapshot
+      && (
+        snapshot.state === "none"
+        || (snapshot.state === "active" && passLimit > 0 && snapshot.tier !== "family" && knownCoinCost > passLimit)
+      ),
+    ),
+  };
 }
 
 function resolveKnownAmountKRW(input: BillingCoinGateInput, eligibility: PaymentEligibility | null, coinCost: number) {
@@ -3477,7 +3546,8 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     mode: toText(input.reason || ""),
   });
   const gateRequestId = toText(input.requestId || activeAttempt.attemptId || inFlightKey);
-  const initialSnapshot = readSubscriptionSnapshotForUser();
+  const snapshotVerdict = resolveSnapshotPassVerdict(input);
+  const initialSnapshot = snapshotVerdict.snapshot;
   const requestedMode = normalizePaymentMode(input.paymentMode);
   const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
@@ -3512,28 +3582,12 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       markPaidAttemptPaymentRequested();
     };
     const knownInputCoinCost = resolveKnownCoinCost(input, null);
-    const initialSnapshotPassLimit = initialSnapshot?.state === "active" ? subscriptionSnapshotPassLimit(initialSnapshot.tier) : 0;
-    const snapshotPassServerCheckFirst = Boolean(
-      !explicitPaymentMode
-      && !passDisabled
-      && knownInputCoinCost > 0
-      && initialSnapshot?.state === "active"
-      && initialSnapshotPassLimit > 0
-      && (initialSnapshot.tier === "family" || knownInputCoinCost <= initialSnapshotPassLimit),
-    );
-    // 무-이용권 즉시 모달(fast-path): 워밍된 스냅샷이 '무이용권'(none) 또는 '가격>이용권한도'(active·초과)로 커버
+    // 판정 정본은 resolveSnapshotPassVerdict 하나다(useCoinGate 의 대기 UI 스킵 판정과 같은 함수).
+    const snapshotPassServerCheckFirst = snapshotVerdict.coversNow;
+    // 무-이용권 즉시 모달(fast-path): 스냅샷이 '무이용권'(none) 또는 '가격>이용권한도'(active·초과)로 커버
     // 불가가 확실하면, 차단형 eligibility 서버 왕복을 건너뛰고 곧장 결제 런타임(모달)로 진입한다. 권위 검증은
     // 실제 결제(coin-gate forceDeduct) 시. 드문 stale-none 보유자는 결제창의 이용권 확인/상점 버튼으로 구제.
-    const snapshotSaysNoPassFast = Boolean(
-      !explicitPaymentMode
-      && !passDisabled
-      && knownInputCoinCost > 0
-      && initialSnapshot
-      && (
-        initialSnapshot.state === "none"
-        || (initialSnapshot.state === "active" && initialSnapshotPassLimit > 0 && initialSnapshot.tier !== "family" && knownInputCoinCost > initialSnapshotPassLimit)
-      ),
-    );
+    const snapshotSaysNoPassFast = snapshotVerdict.cannotCover;
     const loadRuntimeGateForPayment = () => (!explicitPaymentMode && input.forceDeduct !== false && typeof window !== "undefined"
       ? loadPaidServiceRuntimeGate().catch(() => null)
       : Promise.resolve(null));

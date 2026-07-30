@@ -5,8 +5,8 @@ import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/aut
 import {
   PAID_SERVICE_RUNTIME_SRC,
   loadPaidServiceRuntimeGate,
+  resolveSnapshotPassVerdict,
   runBillingCoinGate,
-  warmSubscriptionSnapshotOnEntry,
 } from "../_lib/billing-client";
 import {
   logPaidAttemptEvent,
@@ -313,16 +313,13 @@ export function useCoinGate() {
   const inFlightRef = useRef(false);
   const [isPaying, setIsPaying] = useState(false);
 
-  // 유료 화면 진입 시 구독 스냅샷을 1회 워밍(인증 상태일 때만)해 첫 유료 액션이 낙관적 즉시 허용 경로로
-  // 들어가게 한다. 이미 신선한 스냅샷/진행 중이면 warm 내부에서 조기 반환한다(중복 요청 없음).
+  // 🔴 구독 스냅샷 워밍은 여기서 하지 않는다 — 앱 전역 Provider(PaymentProcessingContext)가 이미
+  // subscribeAuth 로 '인증이 확정되는 순간' 워밍한다. 여기서 한 번 더 걸면 중첩이고, 게다가 이쪽은
+  // 마운트 시점의 getAuthState() 만 봐서 하이드레이션이 늦으면 그냥 건너뛰던 열등한 사본이었다.
+  // 결제 런타임 스크립트(destiny-profile.js, ~400KB)는 인증과 무관한 정적 자산이라 여기서 미리 받는다.
+  // 예전에는 인증 상태일 때만 받아서, 아직 비인증으로 보이던 흔한 경우에 이 다운로드가 클릭 경로의
+  // await(billing-client 의 runtimeGate)로 그대로 옮겨갔다. 내부에서 중복 주입을 막는다.
   useEffect(() => {
-    if (getAuthState().isAuthenticated) {
-      void warmSubscriptionSnapshotOnEntry();
-    }
-    // 결제 런타임 스크립트(destiny-profile.js, ~400KB)는 인증 여부와 무관하게 미리 받는다. 예전에는
-    // 인증 상태일 때만 워밍해서, 하이드레이션이 늦어 아직 비인증으로 보이던 흔한 경우에 이 다운로드가
-    // 클릭 경로의 await(billing-client 의 runtimeGate)로 그대로 옮겨갔다. 인증과 무관한 정적 자산이고
-    // 내부에서 중복 주입을 막으므로 앞당겨도 부작용이 없다.
     void loadPaidServiceRuntimeGate();
   }, []);
 
@@ -342,7 +339,20 @@ export function useCoinGate() {
 
     inFlightRef.current = true;
     setIsPaying(true);
-    startPayment(coinGateText("checkingPass"), "pass-checking");
+    // 🔴 이용권 '미보유'가 스냅샷만으로 확정되면 확인 화면을 아예 켜지 않는다. 켜 봐야 서버 왕복이
+    // 0이라 다음 프레임에 결제창으로 덮이고, 그 사이 진행바가 '혜택 적용 → 결과 준비'까지 흘러
+    // 이용권이 없는 사용자에게 있지도 않은 혜택을 적용하는 것처럼 보였다. 정적 셸의 _cdSkipPassWaitUi
+    // (index.html)와 같은 형태이며, 판정은 runBillingCoinGate 와 **같은 함수**를 쓴다(사본 금지).
+    const skipPassWaitUi = resolveSnapshotPassVerdict({
+      categoryKey: input.categoryKey,
+      subFeatureKey: input.subFeatureKey,
+      featureKey: input.featureKey,
+      reason: input.reason,
+      coinPrice: input.coinPrice,
+      cost: input.cost,
+      amountKRW: input.amountKRW,
+    }).cannotCover;
+    if (!skipPassWaitUi) startPayment(coinGateText("checkingPass"), "pass-checking");
 
     let requiredCoins = 0;
 
@@ -354,7 +364,15 @@ export function useCoinGate() {
             reason: "ensure_paid_access_refresh_auth",
           });
           try {
-            await refreshAuth({ force: true, silent: true });
+            // 🔴 상한 없이 await 하면 여기서 게이트가 고착한다. refreshAuth 는 401 이면 내부에서
+            // /api/auth/me → /api/auth/refresh → /api/auth/me 로 3연쇄가 되고 각 요청에 타임아웃이
+            // 없다(authFetch 는 AbortController 를 쓰지 않는다). billing-client 의 인증 예열과 같은
+            // 4초 상한을 건다 — 실패하면 바로 아래 finalAuth 검사가 AUTH_REQUIRED 로 끊으므로
+            // billing-client 쪽 예열까지 이어지지 않는다(중복 발사 아님).
+            await Promise.race([
+              refreshAuth({ force: true, silent: true }),
+              new Promise<void>((resolve) => { window.setTimeout(resolve, 4000); }),
+            ]);
           } catch (e) {
             // ignore auth refresh errors here; final state check below determines result.
           }
@@ -377,13 +395,16 @@ export function useCoinGate() {
 
       // 해금(영구 잠금 해제) 기능만 "기존 잠금 해제 내역 확인" 문구를 쓰고,
       // 1회당 결제(per-use)는 중립적인 이용권 확인 문구를 재사용한다(잘못된 해제 안내 방지).
-      setPaymentMessage(
-        coinGateText(
-          resolvePaidFeatureBillingType(input.featureKey) === "unlock"
-            ? "checkingEntitlements"
-            : "checkingPass",
-        ),
-      );
+      // 확인 화면을 켜지 않은 경로(미보유 확정)에서는 문구도 건드리지 않는다 — 다음 화면은 결제창이다.
+      if (!skipPassWaitUi) {
+        setPaymentMessage(
+          coinGateText(
+            resolvePaidFeatureBillingType(input.featureKey) === "unlock"
+              ? "checkingEntitlements"
+              : "checkingPass",
+          ),
+        );
+      }
 
       const chargeResult = await runBillingCoinGate({
         categoryKey: input.categoryKey,
