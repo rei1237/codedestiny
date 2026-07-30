@@ -21,6 +21,7 @@ on:
       - "js/**"
       - "PhysiognomyUI.js"
       - "scripts/verify-runtime-cache-sync.mjs"
+      - "scripts/verify-auth-event-loop-guard.mjs"
       - "scripts/verify-paid-feature-billing-policy.mjs"
       - "scripts/verify-ai-prompt-billing-policy.mjs"
       - "scripts/verify-profile-server-first.mjs"
@@ -45,6 +46,7 @@ on:
       - "js/**"
       - "PhysiognomyUI.js"
       - "scripts/verify-runtime-cache-sync.mjs"
+      - "scripts/verify-auth-event-loop-guard.mjs"
       - "scripts/verify-paid-feature-billing-policy.mjs"
       - "scripts/verify-ai-prompt-billing-policy.mjs"
       - "scripts/verify-profile-server-first.mjs"
@@ -73,6 +75,11 @@ jobs:
 
       - name: Verify runtime cache sync
         run: npm run verify:runtime-cache-sync
+
+      # cd:auth-changed 재검증 증폭 루프 재발 방지 — source 필터 하나만 빠져도
+      # 이용권 확인마다 캐시가 전멸하고 홈이 다시 그려진다(증상이 "가끔 느리다"로만 보인다).
+      - name: Verify auth event loop guard
+        run: npm run verify:auth-event-loop
 
       - name: Verify paid feature billing policy
         run: npm run verify:paid-feature-billing-policy
