@@ -1,12 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { showToast } from "./Toast";
 import { showSubscriptionIncludedNotice } from "./subscriptionNotice";
 import { useCoinGate } from "../hooks/useCoinGate";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceFeatureRegistry";
+import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type DrawnCard = {
@@ -363,7 +363,6 @@ function safeCardName(card?: DrawnCard, idx?: number) {
 }
 
 export default function LoveRelationshipTarot() {
-  const router = useRouter();
   const { ensurePaidAccess } = useCoinGate();
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [cards, setCards] = useState<DrawnCard[]>([]);
@@ -552,7 +551,7 @@ export default function LoveRelationshipTarot() {
             <h1 className="text-xl font-semibold">{copy.title}</h1>
             <button
               type="button"
-              onClick={() => router.push("/")}
+              onClick={() => hardNavigateToShellHome()}
               className="rounded-lg border border-slate-600 px-3 py-1.5 text-sm"
             >
               {copy.home}

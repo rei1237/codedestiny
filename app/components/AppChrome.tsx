@@ -9,8 +9,9 @@ import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
 import MobileBottomNav from "./MobileBottomNav";
 import SiteFooterHub from "./SiteFooterHub";
+import { SHELL_HOME_PATH, hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 
-const HOME_ROUTE = "/";
+const HOME_ROUTE = SHELL_HOME_PATH;
 
 // /app/** 은 자체 하단 탭바(app/app/_components/AppTabBar.tsx)를 이미 갖고 있다.
 // 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
@@ -90,9 +91,11 @@ function isUnsafePaymentReferrer(referrer: string) {
 function FeatureBackHomeNav() {
   const router = useRouter();
 
+  // 홈은 React 라우트가 아니라 정적 메인 셸이다. router.push 로 보내면 React 홈이 한 번
+  // 렌더된 뒤 셸로 되돌려져 화면이 번쩍인다 → 문서 로드로 곧장 보낸다.
   const goHome = useCallback(() => {
-    router.push(HOME_ROUTE);
-  }, [router]);
+    hardNavigateToShellHome();
+  }, []);
 
   const goBack = useCallback(() => {
     if (typeof window === "undefined") {
@@ -104,11 +107,11 @@ function FeatureBackHomeNav() {
       const startPath = `${window.location.pathname}${window.location.search}`;
       window.history.back();
       window.setTimeout(() => {
-        if (`${window.location.pathname}${window.location.search}` === startPath) router.replace(HOME_ROUTE);
+        if (`${window.location.pathname}${window.location.search}` === startPath) hardNavigateToShellHome();
       }, 240);
       return;
     }
-    router.push(HOME_ROUTE);
+    hardNavigateToShellHome();
   }, [router]);
 
   return (
