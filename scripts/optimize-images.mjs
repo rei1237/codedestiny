@@ -13,12 +13,9 @@
 import sharp from "sharp";
 import { readdir, stat, mkdir, copyFile } from "node:fs/promises";
 import path from "node:path";
+import { isWebpExcluded } from "./webp-exclusions.mjs";
 
 const RASTER_EXT = new Set([".png", ".jpg", ".jpeg"]);
-// Consumers that cannot read WebP: social crawlers (Kakao/Twitter) read the OG
-// thumbnail, and the OS/browser reads the PWA + favicon icon slots.
-const EXCLUDED_DIR_PATTERN = /(^|[\\/])(og|icons)([\\/]|$)/i;
-const EXCLUDED_BASENAME_PATTERN = /^(favicon|apple-touch-icon|app-logo|android-chrome|mstile|maskable|splash)/i;
 // Crisp edges / pixel-precise sprite crops → near-lossless quality.
 const HERO_PATTERNS = ["sprite", "photoroom", "mascot", "pig", "tarot", "tea-cups", "ten-gods"];
 const QUALITY_DEFAULT = 82;
@@ -37,8 +34,7 @@ if (inputs.length === 0) inputs.push("public/images/fortune-tea-house");
 /** Raster file that is safe to serve as WebP (icons / OG thumbnails are not). */
 function isConvertible(filePath) {
   if (!RASTER_EXT.has(path.extname(filePath).toLowerCase())) return false;
-  if (EXCLUDED_BASENAME_PATTERN.test(path.basename(filePath))) return false;
-  return !EXCLUDED_DIR_PATTERN.test(path.dirname(filePath));
+  return !isWebpExcluded(filePath);
 }
 
 /** Recursively collect raster files from a file or directory path. */

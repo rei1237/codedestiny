@@ -33,6 +33,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { config as loadDotenv } from "dotenv";
 import { inferR2ContentType, resolveR2CachePolicy } from "./r2-cache-policy.mjs";
+import { isWebpExcluded } from "./webp-exclusions.mjs";
 
 loadDotenv({ path: ".env.local", quiet: true });
 loadDotenv({ quiet: true });
@@ -41,13 +42,6 @@ const DEFAULT_BUCKET = "codedestinyassets";
 const DEFAULT_MANIFEST = "reports/converted-r2-webp.json";
 const DEFAULT_QUALITY = 80;
 const CONCURRENCY = 5;
-
-/**
- * Assets whose consumers cannot read WebP: social crawlers (Kakao/Twitter) for
- * OG thumbnails, and the OS/browser for PWA + favicon icon slots.
- */
-const EXCLUDED_PATH_PATTERN = /(^|\/)(og|icons)\//i;
-const EXCLUDED_BASENAME_PATTERN = /^(favicon|apple-touch-icon|app-logo|android-chrome|mstile|maskable|splash)/i;
 
 function usage() {
   return [
@@ -198,11 +192,6 @@ function resolveCredentials(options) {
   return { accessKeyId, bucket, endpoint, secretAccessKey };
 }
 
-function isExcludedKey(key) {
-  const basename = key.split("/").pop() || "";
-  return EXCLUDED_PATH_PATTERN.test(key) || EXCLUDED_BASENAME_PATTERN.test(basename);
-}
-
 function toWebpKey(key) {
   return `${key.slice(0, -path.extname(key).length)}.webp`;
 }
@@ -295,10 +284,10 @@ async function main() {
   }
 
   const allPngKeys = [...objects.keys()].filter((key) => key.toLowerCase().endsWith(".png")).sort();
-  const excluded = allPngKeys.filter(isExcludedKey);
-  const alreadyConverted = allPngKeys.filter((key) => !isExcludedKey(key) && !options.force && objects.has(toWebpKey(key)));
+  const excluded = allPngKeys.filter(isWebpExcluded);
+  const alreadyConverted = allPngKeys.filter((key) => !isWebpExcluded(key) && !options.force && objects.has(toWebpKey(key)));
   const targets = allPngKeys
-    .filter((key) => !isExcludedKey(key))
+    .filter((key) => !isWebpExcluded(key))
     .filter((key) => options.force || !objects.has(toWebpKey(key)))
     .slice(0, options.limit || undefined);
 

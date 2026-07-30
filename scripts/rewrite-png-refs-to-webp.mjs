@@ -21,6 +21,7 @@
  */
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { isWebpExcluded } from "./webp-exclusions.mjs";
 
 const REPO_ROOT = path.resolve();
 const PUBLIC_ROOT = path.join(REPO_ROOT, "public");
@@ -175,6 +176,10 @@ function r2KeyCandidates(reference) {
  * @returns {{action: "rewrite"|"skip", reason: string, r2Pending?: string}}
  */
 async function classify(reference, filePath, manifest) {
+  // Explicit, not incidental: some icons already have a stray .webp sibling
+  // (public/icons/app-logo-512.webp), so "no .webp exists" would not hold them back.
+  if (isWebpExcluded(reference.split(/[?#]/)[0])) return { action: "skip", reason: "icon-or-og-asset" };
+
   const r2Key = r2KeyOf(reference);
   if (r2Key) {
     if (manifest.keys.has(toWebp(r2Key))) return { action: "rewrite", reason: "r2-manifest" };
@@ -185,11 +190,15 @@ async function classify(reference, filePath, manifest) {
   const candidates = localCandidates(reference, filePath);
   for (const candidate of candidates) {
     if (await fileExists(toWebp(candidate))) {
-      // The same path is served from R2 in production via getAssetUrlFromPublicPath.
+      // The same path may also be served from R2 via getAssetUrlFromPublicPath.
+      // R2 stores some of these under `assets/`, some at the bucket root, so a
+      // hit on any of the three forms means it is already converted.
       const relative = path.relative(PUBLIC_ROOT, candidate).replace(/\\/g, "/");
-      const r2Mirror = relative.startsWith("..") ? "" : `assets/${toWebp(relative)}`;
-      const pending = r2Mirror && !manifest.keys.has(r2Mirror) ? r2Mirror : undefined;
-      return { action: "rewrite", r2Pending: pending, reason: "local-webp" };
+      const webpRelative = toWebp(relative);
+      const forms = relative.startsWith("..") ? [] : [`assets/${webpRelative}`, webpRelative];
+      const covered = forms.some((form) => manifest.keys.has(form))
+        || manifest.byBasename.has(webpRelative.split("/").pop());
+      return { action: "rewrite", r2Pending: covered ? undefined : forms[0], reason: "local-webp" };
     }
   }
 
