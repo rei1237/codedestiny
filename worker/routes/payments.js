@@ -3644,10 +3644,18 @@ async function handleSubscriptionPrepare(request, env, auth) {
   // 라우터가 인증과 같은 조회에서 profileSubscription 을 함께 읽어줬으면 재조회하지 않는다
   // (결제창 진입 왕복 1회 절감). refresh/admin 폴백 경로 등 authUserDoc 부재 시에만 직접 읽는다.
   const currentUser = auth.authUserDoc
-    || await withMongoRetry(env, () => User.findById(auth.userId).select("profileSubscription").lean());
+    || await withMongoRetry(env, () => User.findById(auth.userId)
+      // customer 필드는 아래 order.customer 를 만들기 위해 함께 읽는다 — 같은 쿼리라 왕복 추가가 없다.
+      .select("profileSubscription phoneNumber phone fullName name email displayName username")
+      .lean());
   if (!currentUser) {
     return json({ message: "User not found." }, { status: 404 });
   }
+  // 🔴 이용권 주문 응답에도 customer 를 실어 보낸다. 예전에는 이 라우트만 customer 가 없어서(단건
+  // 디지털콘텐츠 응답에는 있었다) 이용권 결제는 저장된 번호가 있어도 결제 직전에 항상
+  // GET /api/me/payment-phone 을 한 번 더 타야 했고, 그 조회가 실패하면 번호 입력창이 다시 떴다.
+  // authUserDoc(PAYMENT_ROUTE_USER_PROJECTION)을 그대로 쓰므로 추가 조회가 0 이다.
+  const orderCustomer = buildSinglePaymentCustomer(currentUser, auth.userId);
 
   const transition = evaluateSubscriptionTierTransition(currentUser?.profileSubscription, tier);
   if (!transition.allow) {
@@ -3684,6 +3692,7 @@ async function handleSubscriptionPrepare(request, env, auth) {
         order: {
           merchantUid: String(existing.merchantUid || ""),
           customerUid: buildSubscriptionCustomerUid(auth.userId),
+          customer: orderCustomer,
           tier,
           planId: plan.planId,
           durationMonths: plan.durationMonths,
@@ -3755,6 +3764,7 @@ async function handleSubscriptionPrepare(request, env, auth) {
       order: {
         merchantUid: String(existing.merchantUid || ""),
         customerUid,
+        customer: orderCustomer,
         tier,
         planId: plan.planId,
         durationMonths: plan.durationMonths,
@@ -3775,6 +3785,7 @@ async function handleSubscriptionPrepare(request, env, auth) {
     order: {
       merchantUid,
       customerUid,
+      customer: orderCustomer,
       tier,
       planId: plan.planId,
       durationMonths: plan.durationMonths,
