@@ -2622,6 +2622,31 @@
     return _dpToText(value).replace(/\D+/g, '');
   }
 
+  // 단건 선택 후 '결제창을 여는 중' 진행 표시. 문구·상한은 셸 정본과 동일하게 맞춘다.
+  var DP_DIRECT_PROGRESS_MAX_MS = 25000;
+  var DP_DIRECT_STAGE_ORDER = '결제 주문을 확인하고 있어요';
+  var DP_DIRECT_STAGE_WINDOW = '결제창을 여는 중이에요';
+  function _dpSetDirectProgressStage(text) {
+    try {
+      var progress = window.__cdPaymentChoiceProgress;
+      if (progress && typeof progress.setStage === 'function') progress.setStage(text);
+    } catch (_dpProgressStageError) {}
+  }
+  function _dpDismissDirectProgress() {
+    try {
+      var progress = window.__cdPaymentChoiceProgress;
+      if (progress && typeof progress.dismiss === 'function') progress.dismiss();
+    } catch (_dpProgressDismissError) {}
+  }
+  function _dpDirectProgressAborted() {
+    try {
+      var progress = window.__cdPaymentChoiceProgress;
+      return Boolean(progress && typeof progress.isAborted === 'function' && progress.isAborted());
+    } catch (_dpProgressAbortError) {
+      return false;
+    }
+  }
+
   function _dpNormalizePaymentPhoneNumber(value) {
     var digits = _dpDigitsOnly(value);
     var normalized = digits.indexOf('82') === 0 && digits.length >= 11 ? ('0' + digits.slice(2)) : digits;
@@ -3535,6 +3560,9 @@
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
 
+      // 2단계 문구: 주문·구매자 정보가 확정됐고 이제 PG창 렌더 구간이다.
+      _dpSetDirectProgressStage(DP_DIRECT_STAGE_WINDOW);
+
       // [regression-guard] redirectUrl is built from the current page URL. PR #104 changed this to
       // prefer the server-built order.redirectUrl and the PG window stopped opening. Mobile return is
       // handled by the cd_direct_payment_resume ticket, so the server URL is unnecessary.
@@ -3600,6 +3628,14 @@
       // 차단이 그걸 막지 않도록 이 구간만 예외로 표시한다.
       window.__cdSuppressPaymentUnloadBlock = true;
       _dpSetPaymentPending(false);
+      // 진행 중 취소를 눌렀으면 PG창을 열지 않는다(기존 취소 오류 분기로 넘긴다).
+      if (_dpDirectProgressAborted()) {
+        _dpDismissDirectProgress();
+        window.__cdSuppressPaymentUnloadBlock = false;
+        throw new Error('결제를 취소했습니다.');
+      }
+      // 결제수단 모달의 진행 표시는 PG창 렌더 직전 이 한 곳에서만 내린다(겹침 방지).
+      _dpDismissDirectProgress();
       var rsp = await window.PortOne.requestPayment(requestData);
       window.__cdSuppressPaymentUnloadBlock = false;
       // 여기에 도달했다면 리다이렉트 없이 이 컨텍스트에서 끝났다 — 티켓은 더 필요 없다.
@@ -3648,7 +3684,12 @@
       var title = String(opts.title || opts.reason || '').trim();
       var key = _dpBuildPaidServiceSingleFlightKey(opts, title, coinPrice, amountKrw);
       return _dpJoinPaidServiceSingleFlight('__cdDirectKrwCheckoutInFlight', key, 60000, function() {
-        return _dpRunDirectKrwCheckoutCore(opts);
+        // 실패로 끝나도 결제수단 모달의 '진행 중' 표시가 남지 않게 여기 한 곳에서 정리한다
+        // (정상 경로는 PG창 렌더 직전에 이미 내려가 있으므로 이 호출은 무해하다).
+        return Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(error) {
+          _dpDismissDirectProgress();
+          throw error;
+        });
       });
     };
     _dpRunDirectKrwCheckoutGuarded.__cdSinglePaymentGuard = true;
@@ -8593,6 +8634,8 @@
       ".cd-direct-payment-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}",
       ".cd-direct-payment-option.is-disabled strong .cd-direct-payment-amount{color:rgba(226,232,240,.64);text-shadow:none}",
       ".cd-direct-payment-option.is-loading{pointer-events:none;opacity:.72}",
+      ".cd-direct-payment-option.is-loading::after{content:\"\";position:absolute;right:14px;top:50%;width:16px;height:16px;margin-top:-8px;border:2px solid rgba(255,242,184,.32);border-top-color:rgba(255,242,184,.92);border-radius:50%;animation:cdDirectPaymentSpin .72s linear infinite;pointer-events:none;z-index:2}",
+      "@keyframes cdDirectPaymentSpin{to{transform:rotate(360deg)}}",
       ".cd-direct-payment-balance-check{position:relative;z-index:1;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(147,197,253,.24);background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));color:#dbeafe;font-size:12.5px;line-height:1.45;font-weight:800}",
       ".cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px}",
       ".cd-direct-payment-balance-check__text{min-width:0}",
@@ -8607,7 +8650,7 @@
       ".cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}",
       ".cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}",
       "@media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}",
-      "@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}}"
+      "@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}.cd-direct-payment-option.is-loading::after{animation:none}}"
     ].join('\n');
     document.head.appendChild(style);
   }
@@ -8750,18 +8793,56 @@
           if (refreshBtn && !settled) refreshBtn.disabled = false;
         });
       }
+      var dpProgressAborted = false;
+      var dpProgressTimer = 0;
+      function removeRoot() {
+        try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
+        if (root.parentNode) root.parentNode.removeChild(root);
+      }
+      function dpSetStatus(text) {
+        var statusNode = root.querySelector('[data-payment-status]');
+        if (!statusNode) return;
+        statusNode.textContent = String(text || '');
+        statusNode.style.color = '#fbbf24';
+      }
+      // 단건을 고르면 모달을 지우지 않고 '진행 중' 상태로 남긴다(셸·React 와 같은 계약).
+      // 실제 제거는 단건 체크아웃이 PG창 렌더 직전에 dismiss() 로 한 번만 한다.
+      function registerDpDirectProgress() {
+        var handle = {
+          requestId: String((options && options.requestId) || ''),
+          setStage: function(text) { if (root.parentNode) dpSetStatus(text); },
+          isAborted: function() { return dpProgressAborted === true; },
+          dismiss: function() {
+            if (dpProgressTimer) { window.clearTimeout(dpProgressTimer); dpProgressTimer = 0; }
+            if (window.__cdPaymentChoiceProgress === handle) window.__cdPaymentChoiceProgress = null;
+            removeRoot();
+          }
+        };
+        window.__cdPaymentChoiceProgress = handle;
+        dpProgressTimer = window.setTimeout(function() { handle.dismiss(); }, DP_DIRECT_PROGRESS_MAX_MS);
+      }
       function finish(choice) {
         if (settled) return;
         settled = true;
-        try { document.removeEventListener('keydown', onKey, true); } catch (_) {}
-        if (root.parentNode) root.parentNode.removeChild(root);
-        resolve(choice === 'direct' || choice === 'monthly' ? choice : 'cancel');
+        var normalizedChoice = choice === 'direct' || choice === 'monthly' ? choice : 'cancel';
+        if (normalizedChoice === 'direct') registerDpDirectProgress();
+        else removeRoot();
+        resolve(normalizedChoice);
       }
       function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
       root.addEventListener('click', function(e) {
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
+          if (settled && act === 'cancel') {
+            // 진행 중(단건 선택 후 PG창 대기) 취소 — 중단 플래그를 세우고 모달을 내린다.
+            e.preventDefault();
+            dpProgressAborted = true;
+            if (window.__cdPaymentChoiceProgress && typeof window.__cdPaymentChoiceProgress.dismiss === 'function') {
+              window.__cdPaymentChoiceProgress.dismiss();
+            }
+            return;
+          }
           if (act === 'monthly-refresh') { e.preventDefault(); refreshStandaloneMoonbal(true); return; }
           if (act === 'pass-store') {
             // 달빛 이용권 상점 바로가기: 충전 모달이 있으면 우선 열고, 없으면 /points로 이동. 모달은 닫는다.
@@ -8772,6 +8853,14 @@
             return;
           }
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
+          if (act === 'direct') {
+            // 결제 옵션만 잠근다 — 취소(닫기)는 활성으로 남겨야 PG창이 늦을 때 빠져나갈 수 있다.
+            Array.prototype.forEach.call(root.querySelectorAll('.cd-direct-payment-option'), function(optionBtn) {
+              optionBtn.disabled = true;
+              optionBtn.classList.add('is-loading');
+            });
+            dpSetStatus(DP_DIRECT_STAGE_ORDER);
+          }
           finish(act);
           return;
         }

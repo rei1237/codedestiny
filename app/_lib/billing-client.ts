@@ -228,6 +228,14 @@ type RuntimeApiWindow = Window & {
     holdOpen?: (requestId?: string, maxMs?: number) => void;
     release?: (requestId?: string) => void;
   };
+  // 단건 선택 후 PG창이 뜰 때까지 결제수단 모달을 '진행 중' 상태로 남겨 두는 핸들. 렌더러 3종
+  // (셸 인라인 정본 / 이 파일 / dp 독립 폴백)이 등록하고 단건 체크아웃이 소비한다.
+  __cdPaymentChoiceProgress?: {
+    requestId?: string;
+    setStage?: (text: string) => void;
+    isAborted?: () => boolean;
+    dismiss?: () => void;
+  } | null;
 };
 
 type PaidFeatureGateRuntimeStatus =
@@ -354,6 +362,9 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
+// 단건 선택 후 '결제창을 여는 중' 진행 표시의 하드 상한 + 2단계 문구(셸 정본과 동일 문구).
+const DIRECT_PROGRESS_MAX_MS = 25000;
+const DIRECT_STAGE_ORDER = "결제 주문을 확인하고 있어요";
 export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-1b9e11827ec6";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
@@ -1057,6 +1068,8 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-option.is-disabled:hover{transform:none;border-color:rgba(148,163,184,.3)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important}
 .cd-direct-payment-option.is-disabled strong .cd-direct-payment-amount{color:rgba(226,232,240,.64);text-shadow:none}
 .cd-direct-payment-option.is-loading{pointer-events:none;opacity:.72}
+.cd-direct-payment-option.is-loading::after{content:"";position:absolute;right:14px;top:50%;width:16px;height:16px;margin-top:-8px;border:2px solid rgba(255,242,184,.32);border-top-color:rgba(255,242,184,.92);border-radius:50%;animation:cdDirectPaymentSpin .72s linear infinite;pointer-events:none;z-index:2}
+@keyframes cdDirectPaymentSpin{to{transform:rotate(360deg)}}
 .cd-direct-payment-balance-check{position:relative;z-index:1;margin:10px 0 0;padding:10px 12px;border-radius:14px;border:1px solid rgba(147,197,253,.24);background:linear-gradient(135deg,rgba(8,47,73,.42),rgba(30,27,75,.34));color:#dbeafe;font-size:12.5px;line-height:1.45;font-weight:800}
 .cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .cd-direct-payment-balance-check__text{min-width:0}
@@ -1071,7 +1084,7 @@ function ensureReactPaymentChoiceStyles() {
 .cd-direct-payment-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;position:relative;z-index:1}
 .cd-direct-payment-cancel{border:1px solid rgba(186,230,253,.28);border-radius:999px;background:rgba(255,255,255,.1);color:#f8fafc;padding:9px 15px;cursor:pointer;font-weight:900}
 @media(max-width:760px){.cd-direct-payment-modal{align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))}.cd-direct-payment-dialog{padding:12px;width:100%;max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border-radius:20px}.cd-direct-payment-dialog::before{width:118px;height:118px;right:-30px;top:-42px;opacity:.58}.cd-direct-payment-moon-header{width:94px;height:78px;margin-bottom:6px}.cd-direct-payment-moon-aura--outer{width:78px;height:78px}.cd-direct-payment-moon-aura--inner{width:60px;height:60px}.cd-direct-payment-moon-glass{left:15px;top:7px;width:64px;height:64px}.cd-direct-payment-moon-crescent{left:29px;top:20px;width:39px;height:39px}.cd-direct-payment-moon-crescent::before{left:15px;top:2px;width:38px;height:38px}.cd-direct-payment-title{font-size:19px;margin-bottom:4px}.cd-direct-payment-sub{font-size:12px;line-height:1.42;margin-bottom:8px}.cd-direct-payment-note{padding:10px 11px;font-size:12px;line-height:1.4;margin-bottom:8px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:11px 12px;border-radius:14px}.cd-direct-payment-option strong{font-size:14px}.cd-direct-payment-option span{font-size:11.5px;line-height:1.38}.cd-direct-payment-option .cd-direct-payment-cardhead{margin-bottom:8px}.cd-direct-payment-cardhead .cd-direct-payment-badge{min-height:20px;padding:0 9px;font-size:10.5px}.cd-direct-payment-option strong .cd-direct-payment-amount{font-size:15.5px}.cd-direct-payment-actions{margin-top:8px}.cd-direct-payment-cancel{padding:8px 13px;font-size:12px}}
-@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.cd-direct-payment-moon-header{animation:none!important}.cd-direct-payment-option{transition:none}.cd-direct-payment-option:hover{transform:none}.cd-direct-payment-option.is-loading::after{animation:none}}
 `;
   document.head.appendChild(style);
 }
@@ -1195,6 +1208,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
 
   return new Promise((resolve) => {
     let settled = false;
+    let directProgressAborted = false;
+    let directProgressTimer = 0;
     let removeBalanceListener: (() => void) | null = null;
     const modal = document.createElement("div");
     modal.className = "cd-direct-payment-modal is-open";
@@ -1227,12 +1242,38 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       </div>
     `;
 
-    const close = (mode: PaymentChoiceMode) => {
-      if (settled) return;
-      settled = true;
+    const dismissModal = () => {
       if (removeBalanceListener) { removeBalanceListener(); removeBalanceListener = null; }
       unlockBodyScroll();
       modal.parentNode?.removeChild(modal);
+    };
+    // 🔴 단건을 고르면 모달을 즉시 지우지 않고 '진행 중' 상태로 남긴다. 예전에는 여기서 곧바로 DOM 에서
+    // 제거해, 붙여 둔 is-loading 표시를 아무도 보지 못한 채 PG창이 뜰 때까지 화면이 완전히 비었다.
+    // 실제 제거는 단건 체크아웃이 PG창 렌더 직전에 dismiss() 로 한 번만 한다(셸과 같은 계약).
+    const registerDirectProgress = () => {
+      const handle = {
+        requestId: toText(opts.requestId),
+        setStage: (text: string) => {
+          if (!modal.parentNode) return;
+          setStatus(text);
+        },
+        isAborted: () => directProgressAborted,
+        dismiss: () => {
+          if (directProgressTimer) { window.clearTimeout(directProgressTimer); directProgressTimer = 0; }
+          const runtimeWindow = window as RuntimeApiWindow;
+          if (runtimeWindow.__cdPaymentChoiceProgress === handle) runtimeWindow.__cdPaymentChoiceProgress = null;
+          dismissModal();
+        },
+      };
+      (window as RuntimeApiWindow).__cdPaymentChoiceProgress = handle;
+      // 실패 안전판: 어떤 경로로도 진행 표시가 영구히 남지 않게 한다.
+      directProgressTimer = window.setTimeout(() => { handle.dismiss(); }, DIRECT_PROGRESS_MAX_MS);
+    };
+    const close = (mode: PaymentChoiceMode) => {
+      if (settled) return;
+      settled = true;
+      if (mode === "direct") registerDirectProgress();
+      else dismissModal();
       resolve(mode);
     };
     const setStatus = (message: string, error = false) => {
@@ -1322,6 +1363,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((button) => {
       button.addEventListener("click", () => {
         const rawMode = toText(button.dataset.mode);
+        if (settled && rawMode === "cancel") {
+          // 진행 중(단건 선택 후 PG창 대기) 취소. 모달을 내리고 중단 플래그를 세우면 체크아웃이
+          // PG창을 열기 직전에 그 플래그를 보고 기존 취소 오류를 던진다(새 중단 경로 없음).
+          directProgressAborted = true;
+          (window as RuntimeApiWindow).__cdPaymentChoiceProgress?.dismiss?.();
+          return;
+        }
         if (rawMode === "monthly-refresh") {
           // 월정석 재조회는 모달을 닫지 않고 잔량만 제자리 갱신한다(결제 선택 모드가 아님).
           // 사용자가 직접 눌렀으므로 서버 캐시를 우회(fresh)해 최신값을 읽는다.
@@ -1340,9 +1388,15 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         }
         if (button.disabled) return;
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
+          // 🔴 취소 버튼은 활성으로 남긴다. 단건은 모달을 '진행 중' 상태로 열어 두는데, 전부
+          // 비활성이면 PG창이 늦을 때 빠져나갈 방법이 없는 데드엔드가 된다.
+          if (toText(node.dataset.mode) === "cancel") return;
           node.disabled = true;
+          if (mode === "direct") node.classList.add("is-loading");
         });
         if (mode === "monthly") setStatus("월정석 이벤트 재화 사용 권한을 확인하고 있습니다.");
+        // 진행 표시의 첫 문구. 이후 단계는 단건 체크아웃이 __cdPaymentChoiceProgress.setStage 로 갈아 끼운다.
+        if (mode === "direct") setStatus(DIRECT_STAGE_ORDER);
         showWaitOverlay(mode);
         close(mode);
       });
