@@ -1,8 +1,12 @@
 package com.codedestiny.app;
 
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
 import android.view.WindowManager;
 
 import androidx.core.splashscreen.SplashScreen;
@@ -20,11 +24,43 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class MainActivity extends BridgeActivity {
+    /** WebView 가 첫 프레임을 그릴 준비를 마쳤는지. 네이티브 스플래시를 걷는 조건이다. */
+    private final boolean[] webViewDrawn = { false };
+
+    /**
+     * 웹 첫 프레임 신호가 끝내 오지 않아도 스플래시에 갇히지 않도록 하는 상한.
+     * 스플래시를 붙잡는 동안에도 WebView 의 로딩·레이아웃은 계속 진행되므로(막히는 것은 draw 뿐)
+     * 이 값은 앱이 준비되는 시각을 늦추지 않는다 — 어느 스플래시를 보여줄지만 정한다.
+     */
+    private static final long SPLASH_HANDOFF_CAP_MS = 1500L;
+
+    private static final int SPLASH_BG_YEON = 0xFFFFFAF7;
+    private static final int SPLASH_BG_NEO = 0xFF0A0818;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // 마지막으로 쓰던 테마. 셸 applyTheme 이 매 부팅 StatusBar.setStyle 을 부르며 기록한다.
+        boolean isNeo = false;
+        try {
+            isNeo = getSharedPreferences(CodeDestinyStatusBarPlugin.PREFS, MODE_PRIVATE)
+                    .getBoolean(CodeDestinyStatusBarPlugin.KEY_NEO, false);
+        } catch (Exception ignored) {}
+
+        // 네오 사용자에게 크림색 스플래시를 띄우면 웹 베일(#0a0818)로 넘어갈 때 색이 튄다.
+        // API 24~30(core-splashscreen 백포트)은 installSplashScreen 시점의 액티비티 테마에서
+        // windowSplashScreenBackground 를 읽으므로 여기서 바꾸면 완전히 해결된다.
+        // API 31+ 는 시스템이 앱 코드 실행 전에 매니페스트 테마로 시작 창을 이미 그려 놓아
+        // 이 호출이 닿지 않는다 — 아래 창 배경색 지정 + 종료 페이드로 하드컷만 완화한다.
+        if (isNeo) setTheme(R.style.AppTheme_NoActionBarLaunch_Neo);
+
         // Android 12+ 스플래시 API / minSdk24 core-splashscreen 백포트 활성화(앱버전 로고 스플래시).
         // super.onCreate 이전 호출 필수.
-        SplashScreen.installSplashScreen(this);
+        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
+        // 기본 동작은 "액티비티 첫 프레임 draw = 스플래시 종료"인데, 그 시점의 WebView 는 아직
+        // 셸을 그리지 않아 흰 화면이 한 번 스친다. 웹 부팅 게이트(cd-boot-gate)는 <head> 에서
+        // 동기로 붙으므로, WebView 가 그릴 준비를 마친 뒤 넘기면 그 틈이 사라진다.
+        splashScreen.setKeepOnScreenCondition(() -> !webViewDrawn[0]);
+        installSplashExitFade(splashScreen);
         registerPlugin(CodeDestinyBillingPlugin.class);
         // 자사 절대 URL 네비게이션이 외부 브라우저로 새는 것을 네이티브에서 최종 차단한다.
         registerPlugin(CodeDestinyNavigationPlugin.class);
@@ -45,6 +81,13 @@ public class MainActivity extends BridgeActivity {
         getWindow().setStatusBarColor(Color.TRANSPARENT);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
+        // 스플래시가 걷히는 순간 드러나는 창 배경. DayNight 테마에서 파생된 색이 새어나오지 않도록
+        // 기억해 둔 테마 색으로 못박는다 — API 31+ 처럼 시작 창 색을 못 바꾸는 경우에도 이 지점부터는
+        // 웹 베일과 같은 색이라 전환이 하드컷이 아니라 짧은 페이드로 읽힌다.
+        try {
+            getWindow().setBackgroundDrawable(new ColorDrawable(isNeo ? SPLASH_BG_NEO : SPLASH_BG_YEON));
+        } catch (Exception ignored) {}
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             WindowManager.LayoutParams layoutParams = getWindow().getAttributes();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -57,15 +100,14 @@ public class MainActivity extends BridgeActivity {
             getWindow().setAttributes(layoutParams);
         }
 
-        // Default status-bar icons for the light "연이" theme (default / first install):
-        // dark icons over the light background. Neo (dark) mode flips these to light icons
-        // via @capacitor/status-bar in the shell's applyTheme().
+        // 시스템 바 아이콘 명암. 연이(밝은 배경)=어두운 아이콘, 네오(다크 배경)=밝은 아이콘.
+        // 예전엔 무조건 연이 기본으로 시작하고 셸 applyTheme 이 나중에 뒤집었는데, 그 사이
+        // 네오 사용자에게 어두운 아이콘이 어두운 배경 위에 잠깐 보이지 않았다.
+        // 기억해 둔 테마로 첫 프레임부터 맞춘다(전환 시에는 setStyle 이 계속 담당).
         WindowInsetsControllerCompat insetsController =
                 WindowCompat.getInsetsController(getWindow(), getWindow().getDecorView());
-        insetsController.setAppearanceLightStatusBars(true);
-        // 하단 시스템 내비게이션 바도 같은 이유로 어두운 아이콘이 기본이다(연이 라이트).
-        // 네오 전환 시에는 CodeDestinyStatusBarPlugin.setStyle 이 상태바와 함께 뒤집는다.
-        insetsController.setAppearanceLightNavigationBars(true);
+        insetsController.setAppearanceLightStatusBars(!isNeo);
+        insetsController.setAppearanceLightNavigationBars(!isNeo);
 
         // 셸은 연이/네오 두 팔레트를 CSS 로 직접 그린다. 시스템 다크모드에서 웹뷰가 알고리즘
         // 다크닝을 켜면 그 색을 임의로 반전시켜 어느 모드에서도 읽을 수 없게 된다 — 명시적으로 끈다.
@@ -84,6 +126,58 @@ public class MainActivity extends BridgeActivity {
                     .getBoolean(CodeDestinyLockScreenPlugin.KEY_ENABLED, false);
             if (lockEnabled) LockScreenForegroundService.start(getApplicationContext());
         } catch (Exception ignored) {}
+
+        scheduleSplashHandoff();
+    }
+
+    /**
+     * 네이티브 스플래시를 웹 부팅 게이트에 넘긴다.
+     *
+     * postVisualStateCallback 은 "이 시점까지의 DOM 이 다음 draw 에 반영될 준비가 됐다"를 알려준다(API 23+).
+     * Capacitor 의 WebViewClient 를 갈아끼우지 않고도 첫 프레임을 잡을 수 있는 지점이라 이 방식을 쓴다.
+     * 콜백이 오지 않는 기기·상황을 대비해 상한 타이머를 함께 건다.
+     */
+    private void scheduleSplashHandoff() {
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(() -> webViewDrawn[0] = true, SPLASH_HANDOFF_CAP_MS);
+        try {
+            getBridge().getWebView().postVisualStateCallback(1L, new android.webkit.WebView.VisualStateCallback() {
+                @Override
+                public void onComplete(long requestId) {
+                    webViewDrawn[0] = true;
+                }
+            });
+        } catch (Exception ignored) {
+            // 콜백을 걸지 못하면 위 상한 타이머가 대신 걷는다.
+            webViewDrawn[0] = true;
+        }
+    }
+
+    /**
+     * 스플래시를 하드컷 대신 짧은 페이드로 걷는다.
+     *
+     * API 31+ 는 시스템이 앱 코드 실행 전에 매니페스트 테마로 시작 창을 그려서, 네오 사용자에게도
+     * 첫 프레임은 크림색이다(setTheme 이 닿지 않는 구간 — 완전 제거는 activity-alias 토글뿐인데
+     * 런처 아이콘이 재등록되며 홈화면에서 앱이 사라질 수 있어 채택하지 않는다).
+     * 아래 창 배경색 지정과 이 페이드로 색 전환을 "튐"에서 "짧은 크로스페이드"까지 낮춘다.
+     */
+    private void installSplashExitFade(SplashScreen splashScreen) {
+        try {
+            splashScreen.setOnExitAnimationListener(provider -> {
+                try {
+                    View splashView = provider.getView();
+                    splashView.animate()
+                            .alpha(0f)
+                            .setDuration(220L)
+                            .withEndAction(provider::remove)
+                            .start();
+                } catch (Exception ignored) {
+                    provider.remove();
+                }
+            });
+        } catch (Exception ignored) {
+            // 리스너를 걸지 못하면 시스템 기본 종료 동작(즉시 제거)이 그대로 쓰인다.
+        }
     }
 
     /**

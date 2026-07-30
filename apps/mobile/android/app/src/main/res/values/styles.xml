@@ -27,4 +27,13 @@
         <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
         <item name="postSplashScreenTheme">@style/AppTheme.NoActionBar</item>
     </style>
+
+    <!-- 네오(다크) 모드용 스플래시. 배경색만 다르고 로고·postSplashScreenTheme 은 상속으로 동일하다.
+         base 스타일(AppTheme.NoActionBarLaunch)은 LockScreenActivity 도 쓰므로 수정하지 않고
+         형제 스타일로 추가한다. MainActivity 가 installSplashScreen() 직전에 골라 적용한다.
+         values-night/ 을 쓰지 않는 이유: 그건 OS 다크모드를 따르는데, 여기서 필요한 것은
+         앱 자체의 연이/네오 토글 상태다(웹뷰 알고리즘 다크닝을 끈 결정과도 일관). -->
+    <style name="AppTheme.NoActionBarLaunch.Neo" parent="AppTheme.NoActionBarLaunch">
+        <item name="windowSplashScreenBackground">@color/cd_splash_bg_neo</item>
+    </style>
 </resources>
