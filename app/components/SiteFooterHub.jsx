@@ -22,46 +22,6 @@ const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
 function siteFooterHubText(key) {
   return SITE_FOOTER_HUB_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
-const MAIN_ACTION_ROUTE_MAP = {
-  "/saju": "/index.html",
-  "/manse": "/index.html",
-  "/daily-fortune": "/index.html",
-  "/compatibility": "/index.html?action=runCompat",
-  "/premium": "/index.html",
-  "/saju/basic": "/saju/basic",
-  "/ziwei/chart": "/ziwei/chart",
-  "/astrology/cosmic": "/astrology/cosmic",
-  "/saju/sibyl": "/saju/sibyl",
-  "/life-book-ai": "/life-book-ai",
-  "/love-secret-ai": "/love-secret-ai",
-  "/tarot": "/index.html?action=openTarotModal",
-  "/physiognomy": "/index.html?action=openPhysiognomyApp",
-  "/tarot/mingri": "/tarot/mingri",
-  "/tarot/love": "/tarot/love",
-  "/tarot/healing": "/index.html?action=openTarotHealingModal",
-  "/tarot/self-esteem": "/tarot/self-esteem",
-  "/tarot/reunion": "/tarot/reunion",
-  "/tarot/year": "/tarot/year",
-  "/ziwei": "/ziwei/chart",
-  "/astrology": "/astrology/cosmic",
-  "/sukuyo": "/oracle/sukuyo",
-  "/vedic": "/vedic/jyotish",
-  "/dream": "/index.html?action=openDreamModal",
-  "/oracle/hwatu-life": "/index.html?action=openHwatuModal",
-  "/oracle/ifa": "/ifa-oracle.html",
-  "/ifa-oracle.html": "/ifa-oracle.html",
-  "/oracle/hwatu": "/oracle/hwatu",
-  "/oracle/juyuk": "/oracle/juyuk",
-  "/oracle/royal-tea": "/index.html?action=openRoyalTeaOracle",
-  "/oracle/rune": "/index.html?action=openRuneOracle",
-  "/oracle/sikojen-povailu": "/index.html?action=openSikojenPovailu",
-};
-
-function toMainActionHref(href, title) {
-  if (title === "추천 가이드") return href;
-  return MAIN_ACTION_ROUTE_MAP[href] || "/index.html";
-}
-
 const POLICY_LINKS = [
   { href: "/privacy", text: "개인정보처리방침 / Privacy" },
   { href: "/terms", text: "이용약관 / Terms" },
@@ -111,10 +71,15 @@ const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.003"),
     links: [
-      { href: "/ziwei/chart", text: "자미두수 명반 보기" },
-      { href: "/astrology/cosmic", text: "점성술 출생차트 보기" },
-      { href: "/oracle/sukuyo", text: "숙요점 27숙 분석" },
-      { href: "/vedic/jyotish", text: "베다점성술 운세 분석" },
+      // 색인 가능한 정본 허브로 보낸다. 예전에는 /ziwei/chart·/oracle/sukuyo 처럼
+      // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
+      // 색인되지 않는 화면에서 끊겼고 정작 허브는 유입 링크가 0이었다.
+      // 각 허브 페이지가 자체 CTA 로 인터랙티브 화면까지 이어 준다.
+      { href: "/ziwei", text: "자미두수 명반 보기" },
+      { href: "/astrology", text: "점성술 출생차트 보기" },
+      { href: "/sukuyo", text: "숙요점 27숙 분석" },
+      { href: "/vedic", text: "베다점성술 운세 분석" },
+      { href: "/nakshatra", text: "나크샤트라 27수 통합 별자리" },
       { href: "/dream", text: "꿈해몽 무료 해석" },
       { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
       { href: "/ifa-oracle.html", text: "IFA 오라클" },
@@ -180,7 +145,7 @@ export default function SiteFooterHub() {
                 <h2 className={styles.sfhGroupTitle}>{group.title}</h2>
                 <nav className={styles.sfhLinkNav} aria-label={`${group.title} 링크`}>
                   {group.links.map((link) => (
-                    <a key={link.href} href={toMainActionHref(link.href, group.title)} className={styles.sfhLink}>
+                    <a key={link.href} href={link.href} className={styles.sfhLink}>
                       {link.text}
                     </a>
                   ))}

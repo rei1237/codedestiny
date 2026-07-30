@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
 import { buildSeoMetadata } from "../../../lib/seo";
+import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
 import { getPexelsInsightImage } from "../../../lib/server/pexels";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
@@ -125,6 +126,24 @@ function relatedArticles(article) {
   return getInsightSeedRelated(article.slug, 6);
 }
 
+// 글 카테고리 → 정본 허브. 인사이트 글들은 서로만 링크하고 정작 해당 주제의
+// 허브(/sukuyo, /ziwei 등)로는 가지 않아 토픽 클러스터가 닫혀 있었다.
+// 허브의 경로·제목은 SEO_LANDING_PAGES 를 그대로 쓴다(별도 목록을 두지 않는다).
+const CATEGORY_HUB_KEY = {
+  사주: "saju",
+  타로: "tarot",
+  자미두수: "ziwei",
+  점성술: "astrology",
+  숙요점: "sukuyo",
+  베다점: "vedic",
+  궁합: "compatibility",
+};
+
+function categoryHub(category) {
+  const hubKey = CATEGORY_HUB_KEY[String(category || "").trim()];
+  return hubKey ? SEO_LANDING_PAGES[hubKey] || null : null;
+}
+
 function normalizeContentHtml(html) {
   return String(html || "")
     .trim()
@@ -144,6 +163,7 @@ export default async function InsightArticlePage({ params }) {
   const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   const description = articleDescription(article);
   const related = relatedArticles(article);
+  const hub = categoryHub(article.category);
   const articleJsonLd = buildArticleJsonLd({
     title: article.title,
     description,
@@ -200,6 +220,19 @@ export default async function InsightArticlePage({ params }) {
         )}
 
         <ContentIntegrityNote datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
+
+        {hub ? (
+          <section className="mt-10 rounded-3xl border border-amber-200/25 bg-amber-100/[0.05] p-5 md:p-7">
+            <p className="text-xs font-semibold tracking-[0.18em] text-amber-100/80">이 주제의 기본 안내</p>
+            <h2 className="mt-2 text-xl font-semibold text-white">{hub.h1}</h2>
+            <Link
+              href={hub.path}
+              className="mt-4 inline-flex min-h-11 items-center rounded-full border border-amber-200/40 bg-amber-100/10 px-5 text-sm font-semibold text-amber-50 transition hover:border-amber-100/70 hover:bg-amber-100/20"
+            >
+              {hub.h1} 자세히 보기
+            </Link>
+          </section>
+        ) : null}
 
         {related.length > 0 ? (
           <section className="mt-10 rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7">
