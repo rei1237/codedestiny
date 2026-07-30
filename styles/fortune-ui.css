@@ -14157,14 +14157,24 @@ body.neo-mode .feature-card__detail-text { color: #94a3b8; }
         .expert-msg-row .neo-bubble, .expert-msg-row .yeon-bubble { flex: 1 1 auto; }
         .expert-msg-row--yeon { flex-direction: row-reverse; }
         .expert-avatar {
-          position: relative; flex: none; width: 30px; height: 30px; border-radius: 50%; overflow: hidden; display: flex; align-items: center;
-          justify-content: center; font-size: 14px; margin-top: 2px;
+          position: relative; flex: none;
+          width: clamp(36px, 11vw, 44px); height: clamp(36px, 11vw, 44px);
+          border-radius: 50%; overflow: hidden; display: flex; align-items: center;
+          justify-content: center; font-size: 18px; margin-top: 2px;
         }
         .expert-msg-row--neo .expert-avatar { background: rgba(33,150,243,0.22); }
         .expert-msg-row--yeon .expert-avatar { background: rgba(233,30,99,0.18); }
-        .expert-avatar-img { position: absolute; left: 50%; display: block; }
-        .expert-msg-row--neo .expert-avatar-img { width: 126px; top: -21px; transform: translateX(-50%); }
-        .expert-msg-row--yeon .expert-avatar-img { width: 120px; top: -22px; transform: translateX(-50%); }
+        /* 얼굴 크롭은 transform 으로만 한다 — 이미지 박스를 부모보다 크게 키우는 방식은
+           이 파일 상단(221행) 전역 `img{max-width:100%;height:auto}` 에 클램프되어 무력화된다.
+           박스는 100%(=상한 이내), 확대·이동은 레이아웃 이후 단계인 transform 이 담당. */
+        .expert-avatar-img {
+          position: absolute; inset: 0; width: 100%; height: 100%;
+          object-fit: cover; object-position: 50% 0; display: block; background: transparent;
+        }
+        /* 확대율·이동값은 원형 클립 안에서 머리(사자=갈기, 꽃돼지=연꽃+귀)가 잘리지 않는
+           조합을 스크린샷 스윕으로 실측해 고른 값이다. 자산을 바꾸면 다시 실측할 것. */
+        .expert-msg-row--neo .expert-avatar-img { transform: translate(-1%, 4%) scale(1.12); }
+        .expert-msg-row--yeon .expert-avatar-img { transform: translate(-1%, 28%) scale(1.5); }
         .expert-avatar-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
         .expert-bubble-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
         .yeon-bubble .expert-bubble-head { justify-content: flex-end; }
