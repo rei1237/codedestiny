@@ -126,6 +126,53 @@ function runPortOneRequestShapeTests() {
   assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
 }
 
+// 🔴 "단건결제를 눌렀는데 PG창 앞에 또 다른 화면이 뜬다" 회귀 가드 (2026-07)
+// 세 증상이 각각 다른 원인이었다: ① 셸 캐시 새니타이저가 결제용 휴대폰 번호를 화이트리스트에서
+// 빠뜨려 이미 입력한 번호를 매번 다시 물었다(그리고 dp 가 저장한 번호까지 덮어 지웠다) ② 이용권
+// 선검사가 '미커버'로 끝난 직후 readyToPay/loadingProducts 게이트 상태를 emit 해 '선택 대기 /
+// 결제 상품 보기' 패널이 결제수단 모달·번호 입력창을 덮었다 ③ 단건을 고른 뒤 PG창이 열리기 전에
+// paymentPreparing 대기 오버레이를 띄웠고, access_check.single("단건으로 카드 결제를 준비 중이에요")
+// 카피가 접근 확인 단계에 물려 있었다.
+function runInstantPgWindowTests() {
+  // ① 셸 캐시 새니타이저는 결제용 번호를 반드시 통과시킨다(dp 새니타이저와 대칭).
+  const sanitizerIndex = indexSource.indexOf("function __cdSanitizeAuthUserCache(");
+  assert.ok(sanitizerIndex >= 0, "shell auth-user cache sanitizer must exist");
+  const sanitizerBody = indexSource.slice(sanitizerIndex, sanitizerIndex + 4000);
+  assertContains(sanitizerBody, "if (user.phoneNumber) safe.phoneNumber = String(user.phoneNumber);", "shell auth-user cache must keep phoneNumber (payment phone re-prompt regression)");
+  assertContains(sanitizerBody, "if (user.phone) safe.phone = String(user.phone);", "shell auth-user cache must keep phone (payment phone re-prompt regression)");
+  assertContains(indexSource, "window._cdReadLocalPaymentPhoneNumber = _cdReadLocalPaymentPhoneNumber;", "shell must expose the local payment-phone reader for the dp path");
+
+  // ① dp 는 서버 왕복 전에 로컬 번호를 먼저 보고, 조회 실패를 '번호 없음'으로 단정하지 않는다.
+  assertContains(destinyProfileSource, "function _dpReadLocalPaymentPhoneNumber()", "dp local payment-phone reader");
+  assertBefore(destinyProfileSource, "var localPhone = _dpReadLocalPaymentPhoneNumber();", "var current = await _dpGetPaymentPhoneStatus();", "dp must read the cached phone before the server round-trip");
+  assertContains(destinyProfileSource, "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must fall back to the cached phone when the lookup fails (503 must not mean 'no phone')");
+  // ① 번호 입력창은 대기 오버레이·게이트 패널을 내린 뒤에 뜬다(가려져서 입력 불가였던 회귀).
+  assertContains(destinyProfileSource, "function _dpCloseBlockingLayersBeforePhonePrompt()", "dp must close blocking layers before the phone prompt");
+  assertBefore(destinyProfileSource, "_dpCloseBlockingLayersBeforePhonePrompt();", "window._cdPromptDirectCheckoutPhoneNumber()", "dp must close blocking layers before opening the phone prompt");
+  assertBefore(indexSource, "if (typeof _cdClosePaidFeatureGate === 'function') _cdClosePaidFeatureGate(); } catch (_) {}", "var overlay = document.createElement('div');", "shell phone prompt must close the gate before rendering its input");
+
+  // ③ 단건 확정 → PG창 렌더 사이에는 진행 상태 UI를 켜지 않는다.
+  assertNotContains(indexSource, "updateSharedPaidGate('paymentPreparing'", "no wait overlay may be raised between the direct-payment choice and the PG window");
+  assertContains(indexSource, "function _cdBeginDirectPgWindowSuppression()", "direct-PG wait-UI suppression window");
+  assertContains(indexSource, "function _cdEndDirectPgWindowSuppression()", "direct-PG wait-UI suppression release");
+  assertContains(indexSource, "if (isOpen && _cdDirectPgWindowSuppressedMode(mode)) return;", "overlay must honour the direct-PG suppression window");
+  assertContains(indexSource, "if (_cdDirectPgWindowSuppressedStatus(status)) return;", "paid-feature gate must honour the direct-PG suppression window");
+  assertBefore(indexSource, "_cdBeginDirectPgWindowSuppression();", "_cdEndDirectPgWindowSuppression();", "suppression must begin before it is released");
+  assertBefore(indexSource, "_cdEndDirectPgWindowSuppression();", "window.PortOne.requestPayment(requestData)", "suppression must be released right before the PG window renders");
+
+  // ③ 접근 확인 단계에 단건/카드 카피를 붙이지 않는다.
+  assertNotContains(indexSource, "_cdLoadingMessage('access_check', 'single')", "access-check copy must not claim a card checkout is being prepared");
+
+  // ② 미커버 확정 후에는 게이트 상태를 emit 하지 않고, 결제수단 모달 직전에는 게이트를 닫는다.
+  const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+  assertNotContains(billingClientSource, 'status: "readyToPay"', "uncovered pass check must not open the paid-feature gate panel before the payment choice");
+  assertNotContains(billingClientSource, 'status: "loadingProducts"', "uncovered pass check must not raise a second wait screen before the payment choice");
+  assertContains(billingClientSource, 'emitPaidFeatureGate("close", {', "gate must be closed before the payment-choice modal opens");
+  assertBefore(billingClientSource, 'emitPaidFeatureGate("close", {', "const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {", "gate close must precede the runtime payment (choice modal) step");
+  // 커버된 경우(무료 통과)의 피드백은 반드시 남아 있어야 한다.
+  assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report hasEntitlement");
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -650,6 +697,7 @@ try {
   await runServerTests();
   runClientStaticTests();
   runPortOneRequestShapeTests();
+  runInstantPgWindowTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");
