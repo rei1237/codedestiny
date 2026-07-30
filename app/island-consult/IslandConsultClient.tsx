@@ -66,7 +66,7 @@ const PALACES: Palace[] = [
 ];
 
 const YEON_AV = "/fuctionassets/" + encodeURIComponent("연이.webp");
-const NEO_AV = "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" + encodeURIComponent("전략실 네오 메인-Photoroom.png");
+const NEO_AV = "https://assets.code-destiny.com/cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/" + encodeURIComponent("전략실 네오 메인-Photoroom.webp");
 
 const ERROR_TEXT: Record<string, string> = {
   LOGIN_REQUIRED: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",

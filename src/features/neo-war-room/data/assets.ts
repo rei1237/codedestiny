@@ -62,7 +62,7 @@ function buildSpriteSet(prefix: string, count: number, altPrefix: string) {
   return Array.from({ length: count }, (_, index) => {
     const frame = index + 1;
     return destinyWarAsset(
-      `${prefix}${frame}.png`,
+      `${prefix}${frame}.webp`,
       `${altPrefix} ${frame}`,
       "sprite",
       `sprite-${frame}`,
@@ -73,25 +73,25 @@ function buildSpriteSet(prefix: string, count: number, altPrefix: string) {
 export const neoWarRoomAssets = {
   hero: {
     portrait: destinyWarAsset(
-      "네오 반신상 배경없음-Photoroom.png",
+      "네오 반신상 배경없음-Photoroom.webp",
       "네오 반신상 캐릭터 일러스트",
       "hero",
       "hero-portrait",
     ),
     fullbody: destinyWarAsset(
-      "네오 전신상 배경없음-Photoroom.png",
+      "네오 전신상 배경없음-Photoroom.webp",
       "네오 전신 캐릭터 일러스트",
       "hero",
       "hero-fullbody",
     ),
     strategyNeoMain: destinyWarAsset(
-      "전략실 네오 메인-Photoroom.png",
+      "전략실 네오 메인-Photoroom.webp",
       "전략실 변신 전 네오 메인 일러스트",
       "hero",
       "strategy-neo-main",
     ),
     blackShadow: destinyWarAsset(
-      "검은 그림자-Photoroom.png",
+      "검은 그림자-Photoroom.webp",
       "전략실에 나타난 검은 그림자",
       "hero",
       "black-shadow",
@@ -107,11 +107,11 @@ export const neoWarRoomAssets = {
     withBackground: buildSpriteSet("네오 스프라이트 배경", 7, "네오 작전실 표정 스프라이트"),
     transparent: buildSpriteSet("네오 스프라이트 배경없음", 5, "네오 배경 없는 표정 스프라이트").map((asset) => ({
       ...asset,
-      src: asset.src.replace(".png", "-Photoroom.png"),
-      objectKey: asset.objectKey.replace(".png", "-Photoroom.png"),
+      src: asset.src.replace(".webp", "-Photoroom.webp"),
+      objectKey: asset.objectKey.replace(".webp", "-Photoroom.webp"),
     })),
     strategyNeo: destinyWarAsset(
-      "전략실 네오-Photoroom.png",
+      "전략실 네오-Photoroom.webp",
       "전략실 변신 전 네오 표정 스프라이트 시트",
       "sprite",
       "strategy-neo-sprite-sheet",
@@ -125,25 +125,25 @@ export const neoWarRoomAssets = {
   },
   backgrounds: {
     lobbyDesktop: destinyWarAsset(
-      "전략 상담실 데스크탑.png",
+      "전략 상담실 데스크탑.webp",
       "네오의 전략 상담실 데스크탑 배경",
       "room-background",
       "lobby-desktop-background",
     ),
     lobbyMobile: destinyWarAsset(
-      "전략 상담실 모바일.png",
+      "전략 상담실 모바일.webp",
       "네오의 전략 상담실 모바일 배경",
       "room-background",
       "lobby-mobile-background",
     ),
     desktop: destinyWarAsset(
-      "네오 전략실 데스크탑1.png",
+      "네오 전략실 데스크탑1.webp",
       "네오의 팩폭 작전실 데스크탑 배경",
       "room-background",
       "desktop-background",
     ),
     mobile: destinyWarAsset(
-      "네오 전략실 모바일1.png",
+      "네오 전략실 모바일1.webp",
       "네오의 팩폭 작전실 모바일 배경",
       "room-background",
       "mobile-background",
@@ -157,25 +157,25 @@ export const neoWarRoomAssets = {
   },
   methods: {
     saju: destinyWarAsset(
-      "네오 전략실 사주 이미지.png",
+      "네오 전략실 사주 이미지.webp",
       "사주 작전 브리핑 선택 이미지",
       "method-cover",
       "method-saju",
     ),
     vedic: destinyWarAsset(
-      "네오 전략실 베다점 이미지.png",
+      "네오 전략실 베다점 이미지.webp",
       "베다점 작전 브리핑 선택 이미지",
       "method-cover",
       "method-vedic",
     ),
     ziwei: destinyWarAsset(
-      "네오 전략실 자미두수 이미지.png",
+      "네오 전략실 자미두수 이미지.webp",
       "자미두수 작전 브리핑 선택 이미지",
       "method-cover",
       "method-ziwei",
     ),
     astrology: destinyWarAsset(
-      "네오 전략실 점성술 이미지.png",
+      "네오 전략실 점성술 이미지.webp",
       "점성술 작전 브리핑 선택 이미지",
       "method-cover",
       "method-astrology",
@@ -183,7 +183,7 @@ export const neoWarRoomAssets = {
   },
   intensity: {
     spicySheet: destinyWarAsset(
-      "매운 맛 강도-Photoroom.png",
+      "매운 맛 강도-Photoroom.webp",
       "팩폭 강도 선택 배지",
       "intensity-cover",
       "intensity-spicy-sheet",
@@ -191,7 +191,7 @@ export const neoWarRoomAssets = {
   },
   badges: {
     grades: destinyWarAsset(
-      "사자 휘장 c부터ex-Photoroom.png",
+      "사자 휘장 c부터ex-Photoroom.webp",
       "사자 휘장 등급 이미지",
       "badge-stamp",
       "badge-grades",
@@ -203,7 +203,7 @@ export const neoWarRoomAssets = {
       "badge-grades-mobile",
     ),
     resultStamp: destinyWarAsset(
-      "사자 휘장 도장-Photoroom.png",
+      "사자 휘장 도장-Photoroom.webp",
       "작전 명령서 완료 도장",
       "badge-stamp",
       "result-stamp",
@@ -217,13 +217,13 @@ export const neoWarRoomAssets = {
   },
   decor: {
     asset1: destinyWarAsset(
-      "작전실 에셋1-Photoroom.png",
+      "작전실 에셋1-Photoroom.webp",
       "작전실 장식 에셋 1",
       "decor",
       "decor-1",
     ),
     asset2: destinyWarAsset(
-      "작전실 에셋2-Photoroom.png",
+      "작전실 에셋2-Photoroom.webp",
       "작전실 장식 에셋 2",
       "decor",
       "decor-2",

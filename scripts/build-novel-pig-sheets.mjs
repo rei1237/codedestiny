@@ -78,12 +78,12 @@ async function buildSheet({ src, figures, cols, rows, scale, out }) {
 await mkdir(OUT, { recursive: true });
 console.log("꽃돼지 스프라이트 시트 정규화");
 await buildSheet({
-  src: join(SRC, "말하는 꽃돼지 연이2-Photoroom.png"),
+  src: join(SRC, "말하는 꽃돼지 연이2-Photoroom.webp"),
   figures: FACE_FIGURES, cols: 4, rows: 4, scale: 1,
   out: join(OUT, "pig-expressions.webp"),
 });
 await buildSheet({
-  src: join(SRC, "꽃돼지5-Photoroom.png"),
+  src: join(SRC, "꽃돼지5-Photoroom.webp"),
   figures: POSE_FIGURES, cols: 4, rows: 2, scale: POSE_SCALE,
   out: join(OUT, "pig-poses.webp"),
 });
