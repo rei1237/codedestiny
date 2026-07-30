@@ -15,6 +15,10 @@ import { readdir, stat, mkdir, copyFile } from "node:fs/promises";
 import path from "node:path";
 
 const RASTER_EXT = new Set([".png", ".jpg", ".jpeg"]);
+// Consumers that cannot read WebP: social crawlers (Kakao/Twitter) read the OG
+// thumbnail, and the OS/browser reads the PWA + favicon icon slots.
+const EXCLUDED_DIR_PATTERN = /(^|[\\/])(og|icons)([\\/]|$)/i;
+const EXCLUDED_BASENAME_PATTERN = /^(favicon|apple-touch-icon|app-logo|android-chrome|mstile|maskable|splash)/i;
 // Crisp edges / pixel-precise sprite crops → near-lossless quality.
 const HERO_PATTERNS = ["sprite", "photoroom", "mascot", "pig", "tarot", "tea-cups", "ten-gods"];
 const QUALITY_DEFAULT = 82;
@@ -30,18 +34,25 @@ const syncAndroid = flags.has("--sync-android");
 const force = flags.has("--force");
 if (inputs.length === 0) inputs.push("public/images/fortune-tea-house");
 
+/** Raster file that is safe to serve as WebP (icons / OG thumbnails are not). */
+function isConvertible(filePath) {
+  if (!RASTER_EXT.has(path.extname(filePath).toLowerCase())) return false;
+  if (EXCLUDED_BASENAME_PATTERN.test(path.basename(filePath))) return false;
+  return !EXCLUDED_DIR_PATTERN.test(path.dirname(filePath));
+}
+
 /** Recursively collect raster files from a file or directory path. */
 async function collect(target) {
   const abs = path.resolve(target);
   const info = await stat(abs);
   if (info.isFile()) {
-    return RASTER_EXT.has(path.extname(abs).toLowerCase()) ? [abs] : [];
+    return isConvertible(abs) ? [abs] : [];
   }
   const out = [];
   for (const entry of await readdir(abs, { withFileTypes: true })) {
     const child = path.join(abs, entry.name);
     if (entry.isDirectory()) out.push(...(await collect(child)));
-    else if (entry.isFile() && RASTER_EXT.has(path.extname(entry.name).toLowerCase())) out.push(child);
+    else if (entry.isFile() && isConvertible(child)) out.push(child);
   }
   return out;
 }
