@@ -1,4 +1,18 @@
 /* 사주 엔진 코어 (1/4). 이어서: js/saju-engine-tarot-sukuyo-quantum.js → js/core/saju/reportDashboard.js → js/saju-engine-continuation.js */
+/* 관리자 CMS 오버라이드 리더(js/core/cms-static.js)를 여기서 끌어오는 이유.
+   index.html 에 <script> 한 줄을 더하는 방식은 그 파일을 다른 작업들이 매일 손대기 때문에
+   병합 충돌로 계속 돌아왔다. 숙요·자미 해설 접근자가 이 엔진 뒤에 로드되므로
+   여기서 바로 받아 두면 결과를 그릴 시점에는 이미 준비되어 있다.
+   못 받아도 무해하다 — 전부 코드 기본값으로 폴백한다(폴백 우선). */
+(function () {
+  if (typeof document === "undefined" || window.__cdCmsStaticRequested) return;
+  window.__cdCmsStaticRequested = true;
+  var tag = document.createElement("script");
+  tag.src = "/js/core/cms-static.js";
+  tag.async = true;
+  (document.head || document.documentElement).appendChild(tag);
+})();
+
 /* ═══════════════════════════════════════
    STEP 1: CDN 폴백 라이브러리 로딩
 ═══════════════════════════════════════ */
