@@ -66,9 +66,10 @@ export default function PromptHubPage() {
             사주·타로·점성술 등 11가지 도구로 나만의 상담 프롬프트를 만들어 보세요. 생년월일·태어난 시간만 넣으면 바로 시작합니다.
           </p>
           <p className="mt-2 max-w-[46ch] text-[13px] font-semibold leading-6 text-[#8a5a1e] dark:text-[#ead089]">
-            {/* 전역 번역 레이어가 짧고 고립된 한글 텍스트 노드를 사전 매칭해 바꾼다. 여기서
-                "질문"만 <strong>으로 떼어 내면 en 로케일에서 "건 Question입니다"로 반쪽 번역된다. */}
-            여기서 만드는 건 &lsquo;질문&rsquo;입니다. 만세력·천체력을 직접 계산하지는 않아요.
+            {/* 전역 번역 레이어가 짧고 고립된 한글 텍스트 노드를 사전 매칭해 바꾼다. 이 문장을
+                인라인 태그로 쪼개면 en 로케일에서 그 조각만 영어가 되어 반쪽 번역된다. */}
+            여기서 만드는 건 여러 운세에 두루 쓰는 범용 질문입니다. 기능마다 전용으로 설계된 해석은 전문가 상담에서
+            만나보세요.
           </p>
         </div>
       </section>
@@ -158,14 +159,14 @@ export default function PromptHubPage() {
         </p>
         <ul className="mt-4 space-y-3 text-sm leading-7 text-slate-700 dark:text-[rgba(255,214,232,0.86)]">
           <li>
-            <strong className="text-rose-600 dark:text-[#ffc4de]">계산</strong> — 무료 허브는 입력한 값을 문장으로
-            정리할 뿐, 만세력·절기·천체력을 직접 계산하지 않습니다(숙요점 도구만 27숙 값을 계산해 함께 넣습니다).
-            유료 전문가 상담은 서버에서 실제 명식과 차트를 세운 뒤 그 값을 근거로 해석합니다.
+            <strong className="text-rose-600 dark:text-[#ffc4de]">설계</strong> — 무료 허브는 여러 운세를 하나의
+            공통 틀에 담아 범용 질문을 만듭니다. 전문가 상담은 기능마다 전용 엔진과 상담 설계를 갖추고 있어, 그
+            운세에서만 의미 있는 항목까지 파고듭니다. 그만큼 해석이 세밀하고 정확해집니다.
           </li>
           <li>
             <strong className="text-rose-600 dark:text-[#ffc4de]">해석하는 쪽</strong> — 무료 허브가 만든 문장은
-            사용자가 ChatGPT 같은 범용 AI에 직접 붙여 넣습니다. 범용 AI에는 만세력 자료가 없어서, 저희 프롬프트는
-            아예 “모르는 값은 지어내지 말고 확인 질문을 하라”고 지시해 둡니다. 그만큼 답이 일반론에 가까워집니다.
+            사용자가 ChatGPT 같은 범용 AI에 직접 붙여 넣어 답을 받습니다. 전문가 상담은 해석까지 저희가 직접 만들어
+            드리므로, 다른 서비스를 오갈 필요가 없습니다.
           </li>
           <li>
             <strong className="text-rose-600 dark:text-[#ffc4de]">결과 보관</strong> — 무료 허브는 입력도 결과도
@@ -177,9 +178,9 @@ export default function PromptHubPage() {
           </li>
         </ul>
         <p className="mt-4 text-sm leading-7 text-slate-700 dark:text-[rgba(255,214,232,0.86)]">
-          그래서 무료 허브는 “무엇을 물어야 할지 모르겠을 때” 가장 쓸모가 있고, 생년월일시를 실제로 계산한 결과가
-          필요할 때는 계산과 해석을 함께 하는 전문가 상담이 맞습니다. 아래 상담들은 각자 다른 전통을 다루니 지금
-          궁금한 결에 맞춰 고르세요. 가격과 결제 방법은 각 상담 화면에서 확인할 수 있습니다.
+          그래서 무료 허브는 “무엇을 물어야 할지 모르겠을 때” 가장 쓸모가 있고, 그 운세에 맞춰 조율된 해석이
+          필요할 때는 전용으로 설계된 전문가 상담이 맞습니다. 아래 상담들은 각자 다른 전통을 다루니 지금 궁금한
+          결에 맞춰 고르세요. 가격과 결제 방법은 각 상담 화면에서 확인할 수 있습니다.
         </p>
         <ul className="mt-4 space-y-2 text-sm leading-7 text-slate-700 dark:text-[rgba(255,214,232,0.86)]">
           <li>
@@ -251,9 +252,9 @@ export default function PromptHubPage() {
           <div>
             <h3 className="font-bold text-slate-950 dark:text-[#fff1f7]">무료 프롬프트 허브가 유료 상담보다 부정확한가요?</h3>
             <p className="mt-1">
-              정확도가 낮다기보다 하는 일이 다릅니다. 무료 허브는 질문을 정리하는 데까지만 하고 명식·차트 계산은
-              하지 않습니다. 그래서 문장을 붙여 넣은 AI가 내놓는 답도 일반적인 조언에 가깝습니다. 생년월일시를 실제로
-              계산한 결과가 필요하다면 계산과 해석을 함께 하는{" "}
+              하는 일이 다릅니다. 무료 허브는 여러 운세를 하나의 공통 틀에 담아 어디에나 쓸 수 있는 범용 질문을
+              만듭니다. 전문가 상담은 기능마다 전용으로 설계·조율되어 있어 그 운세에서만 의미 있는 항목까지 다루고,
+              그만큼 훨씬 세밀하고 정확합니다. 더 깊은 해석이 필요하다면{" "}
               <Link href="/life-book-ai" className="font-bold text-rose-600 underline underline-offset-4 dark:text-[#ffc4de]">
                 전문가 상담
               </Link>

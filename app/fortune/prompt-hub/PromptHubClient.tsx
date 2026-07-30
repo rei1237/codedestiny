@@ -162,26 +162,21 @@ type ToolId =
 
 // 유료 상담 진입점. featureKey 는 worker/lib/paid-feature-registry.js 정본 키(가격 표시용),
 // href 는 각 기능이 자기 결제 게이트를 소유한 실제 라우트다. 이 화면에서 결제창을 열지 않는다.
-//
-// benefit 은 "그 상품이 실제로 해 주는 일"이다. 이 화면의 목적이 무료/유료의 차이를 정직하게
-// 알리는 것이라, 서버 계산을 하지 않는 상품(타로 프롬프트 라이브러리·수비학 타로)에 "명식을
-// 계산한다"고 쓰면 안 된다.
 const UPSELL_PRODUCTS = {
-  lifeBook: { featureKey: "life-book-ai-consultation", href: "/life-book-ai", benefit: "compute" },
-  karma: { featureKey: "karma-destiny-ai-consultation", href: "/karma-destiny-ai", benefit: "compute" },
-  newYear: { featureKey: "new-year-ai-consultation", href: "/new-year-ai-consultation", benefit: "compute" },
-  ziwei: { featureKey: "ziwei-ai-consultation", href: "/ziwei-ai", benefit: "compute" },
-  astrology: { featureKey: "astrology-ai-consultation", href: "/astrology-ai", benefit: "compute" },
-  vedic: { featureKey: "vedic-ai-consultation", href: "/vedic-ai", benefit: "compute" },
-  sukuyo: { featureKey: "sukuyo-compatibility-ai", href: "/sukuyo-compatibility-ai", benefit: "compute" },
-  fpti: { featureKey: "premium-fpti-report", href: "/saju-fpti", benefit: "compute" },
-  dreamPsycho: { featureKey: "dream-psycho-analysis", href: "/dream/psycho", benefit: "reading" },
-  tarotPrompt: { featureKey: "tarot-prompt-maker", href: "/tarot/prompt-maker", benefit: "library" },
-  tarotNumber: { featureKey: "tarot-numerology-reading", href: "/tarot/numerology", benefit: "library" },
+  lifeBook: { featureKey: "life-book-ai-consultation", href: "/life-book-ai" },
+  karma: { featureKey: "karma-destiny-ai-consultation", href: "/karma-destiny-ai" },
+  newYear: { featureKey: "new-year-ai-consultation", href: "/new-year-ai-consultation" },
+  ziwei: { featureKey: "ziwei-ai-consultation", href: "/ziwei-ai" },
+  astrology: { featureKey: "astrology-ai-consultation", href: "/astrology-ai" },
+  vedic: { featureKey: "vedic-ai-consultation", href: "/vedic-ai" },
+  sukuyo: { featureKey: "sukuyo-compatibility-ai", href: "/sukuyo-compatibility-ai" },
+  fpti: { featureKey: "premium-fpti-report", href: "/saju-fpti" },
+  dreamPsycho: { featureKey: "dream-psycho-analysis", href: "/dream/psycho" },
+  tarotPrompt: { featureKey: "tarot-prompt-maker", href: "/tarot/prompt-maker" },
+  tarotNumber: { featureKey: "tarot-numerology-reading", href: "/tarot/numerology" },
 } as const;
 
 type UpsellId = keyof typeof UPSELL_PRODUCTS;
-type UpsellBenefit = (typeof UPSELL_PRODUCTS)[UpsellId]["benefit"];
 
 // 도구별 유료 상담 2종. 첫 번째가 대표(가격 배지와 안내 문구가 이 상품 기준으로 붙는다).
 // match: "closest" 는 1:1 대응 상품이 아직 없다는 뜻으로, 그 사실을 화면에 그대로 밝힌다.
@@ -845,11 +840,10 @@ type PromptHubCopy = {
   missingTranslation: string;
   scopeNoticeTitle: string;
   scopeNoticeBody: string;
-  upsellEyebrow: string;
+  upsellTitle: string;
+  upsellLead: string;
   upsellClosestNote: string;
-  upsellLeadCompute: string;
-  upsellLeadLibrary: string;
-  upsellLeadReading: string;
+  upsellSecondaryLabel: string;
   upsellCta: string;
   upsellCtaAria: string;
   upsellPriceNote: string;
@@ -891,17 +885,14 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   requiredInputPrefix: "Required inputs:",
   mobileToolAria: "Select mobile tool",
   missingTranslation: "Translation unavailable",
-  scopeNoticeTitle: "What this tool does — and does not do",
+  scopeNoticeTitle: "Free prompts vs. an expert reading",
   scopeNoticeBody:
-    "It shapes what you typed into a well-formed request, and stops there. No Saju calendar, solar term or ephemeris is calculated here, and the AI you paste this into cannot build a real chart either — so its answer tends to stay general.",
-  upsellEyebrow: "If you need the real calculation",
-  upsellClosestNote: "No paid reading matches this tool one to one yet. These are the closest to what you entered.",
-  upsellLeadCompute:
-    "The readings below build your actual chart on the server first, interpret it from those values, and keep the result in your account so you can open it again.",
-  upsellLeadLibrary:
-    "The readings below give you question sets and follow-up prompts written by our readers, kept in your account so you can open them again.",
-  upsellLeadReading:
-    "The readings below are written for you end to end and kept in your account so you can open them again.",
+    "This hub pours every tradition into one shared frame and writes a general-purpose question from it. Our expert readings are built and tuned per discipline, so the same details take you somewhere far more precise.",
+  upsellTitle: "An expert reading built for this subject alone",
+  upsellLead:
+    "It reaches the details a general-purpose prompt never gets to, and the result stays in your account for you to reopen any time.",
+  upsellClosestNote: "No reading matches this tool one to one yet. This is the closest to what you entered.",
+  upsellSecondaryLabel: "Another option",
   upsellCta: "Open reading",
   upsellCtaAria: "Open {title}",
   upsellPriceNote: "Price and payment options are shown on each reading's own screen.",
@@ -1146,17 +1137,14 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   requiredInputPrefix: "필수 입력:",
   mobileToolAria: "모바일 도구 선택",
   missingTranslation: "번역 문구를 확인해주세요",
-  scopeNoticeTitle: "이 도구가 하는 일과 하지 않는 일",
+  scopeNoticeTitle: "무료 프롬프트와 전문가 상담의 차이",
   scopeNoticeBody:
-    "입력하신 내용을 상담용 질문 문장으로 다듬는 데까지가 이 도구의 몫입니다. 만세력·절기·천체력 계산은 들어 있지 않고, 이 문장을 붙여 넣은 AI도 명식이나 차트를 직접 세우지는 못합니다. 그래서 돌아오는 답이 일반적인 조언에 머무를 수 있어요.",
-  upsellEyebrow: "정확한 계산이 필요하다면",
-  upsellClosestNote: "이 도구와 1:1로 맞는 유료 상담은 아직 없어요. 입력하신 정보에 가장 가까운 상담입니다.",
-  upsellLeadCompute:
-    "아래 상담은 서버에서 실제 명식과 차트를 먼저 계산하고, 그 값을 근거로 해석해 결과를 계정에 저장합니다. 나중에 다시 열어볼 수 있어요.",
-  upsellLeadLibrary:
-    "아래 상담은 전문가가 미리 설계한 질문 세트와 후속 질문까지 함께 제공하고, 결과를 계정에 저장해 다시 열어볼 수 있어요.",
-  upsellLeadReading:
-    "아래 상담은 해석까지 저희가 직접 만들어 드리고, 결과를 계정에 저장해 다시 열어볼 수 있어요.",
+    "이 허브는 여러 운세를 하나의 공통 틀에 담아 범용 질문 문장을 만듭니다. 전문가 상담은 기능마다 전용으로 설계·조율되어 있어, 같은 정보를 넣어도 훨씬 세밀하고 정확한 해석에 닿습니다.",
+  upsellTitle: "이 주제만을 위해 설계된 전문가 상담",
+  upsellLead:
+    "범용 프롬프트가 닿지 못하는 항목까지 파고들고, 결과는 계정에 저장돼 언제든 다시 열어볼 수 있어요.",
+  upsellClosestNote: "이 도구와 1:1로 맞는 상담은 아직 없어요. 입력하신 정보에 가장 가까운 상담입니다.",
+  upsellSecondaryLabel: "다른 선택",
   upsellCta: "상담 열기",
   upsellCtaAria: "{title} 열기",
   upsellPriceNote: "가격과 결제 방법은 이동한 상담 화면에서 확인할 수 있어요.",
@@ -1966,9 +1954,40 @@ export default function ComprehensivePromptHubPage() {
         }
         .copy-mark { transition: transform 200ms cubic-bezier(.22,1,.36,1); }
         .option-chip { transition: background-color 160ms ease-out, border-color 160ms ease-out, color 160ms ease-out; }
+
+        /* 유료 상담 진열대. 평상시엔 플랫하게 두고 hover/focus 에서만 골드 글로우를 켠다
+           (DESIGN.md Glow-Not-Shadow). 골드는 테두리·글로우 같은 보조 포인트로만 쓰고
+           CTA 배경은 도구 강조색을 유지한다(One Accent Rule). */
+        .upsell-feature { transition: box-shadow 260ms cubic-bezier(.22,1,.36,1); }
+        .upsell-feature:hover, .upsell-feature:focus-within {
+          /* 테두리를 굵히는 대신 인셋 링으로 겹쳐 레이아웃을 밀지 않는다. */
+          box-shadow: inset 0 0 0 1px var(--gold), 0 0 34px -10px rgba(234, 208, 137, 0.55);
+        }
+        /* 라이트 모드에서 골드가 실제로 읽히는 유일한 자리 — 짙은 강조색 버튼 위의 1px 파이핑.
+           흰 표면 위에서는 골드가 1.5:1 이라 선으로 쓰면 사라진다. 면을 골드로 채우지는
+           않는다(DESIGN.md One Accent Rule — 골드는 보조 포인트). */
+        .upsell-cta {
+          transition: transform 200ms cubic-bezier(.22,1,.36,1), box-shadow 240ms ease-out;
+          box-shadow: inset 0 0 0 1px rgba(234, 208, 137, 0.45);
+        }
+        .upsell-cta:hover {
+          transform: translateY(-1px);
+          box-shadow: inset 0 0 0 1px rgba(234, 208, 137, 0.85), 0 0 26px -8px rgba(234, 208, 137, 0.5);
+        }
+        .upsell-cta:active { transform: translateY(0) scale(.988); box-shadow: inset 0 0 0 1px rgba(234, 208, 137, 0.85); }
+        @media (prefers-color-scheme: dark) {
+          /* 다크에서는 버튼 면이 파스텔이라 골드 파이핑이 안 읽힌다 — 링은 잉크로 바꾸고
+             골드는 글로우 쪽으로 자리를 옮긴다. */
+          .upsell-cta { box-shadow: inset 0 0 0 1px rgba(36, 8, 26, 0.24); }
+          .upsell-cta:hover { box-shadow: inset 0 0 0 1px rgba(36, 8, 26, 0.44), 0 0 26px -8px rgba(234, 208, 137, 0.45); }
+          .upsell-cta:active { box-shadow: inset 0 0 0 1px rgba(36, 8, 26, 0.44); }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .prompt-hub-cta { transition: none; }
           .tool-swap, .result-sweep, .copy-mark { animation: none; transition: none; }
+          .upsell-feature, .upsell-cta { transition: none; }
+          .upsell-cta:hover, .upsell-cta:active { transform: none; }
           .premium-glow, .moon-petal, .moon-lotus, .moon-lotus .lotus-petal, .moon-lotus .lotus-ray { animation: none !important; }
         }
       `}</style>
@@ -2334,60 +2353,72 @@ export default function ComprehensivePromptHubPage() {
           {currentResult?.prompt
             ? (() => {
                 const upsell = TOOL_UPSELL_MAP[activeToolId];
-                const leadByBenefit: Record<UpsellBenefit, string> = {
-                  compute: copy.upsellLeadCompute,
-                  library: copy.upsellLeadLibrary,
-                  reading: copy.upsellLeadReading,
-                };
+                const [primaryId, secondaryId] = upsell.pair;
+                const primary = UPSELL_PRODUCTS[primaryId];
+                const secondary = UPSELL_PRODUCTS[secondaryId];
+                const primaryCopy = copy.upsellProducts[primaryId];
+                const secondaryCopy = copy.upsellProducts[secondaryId];
                 return (
                   <section
-                    className="mt-4 rounded-[22px] border border-[color:var(--gold)]/55 bg-[color:var(--surface-1)] p-4 shadow-[var(--lift)] sm:p-5"
+                    className="relative mt-4 overflow-hidden rounded-[22px] border border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-5 shadow-[var(--lift)] sm:p-6"
                     aria-labelledby="promptHubUpsellTitle"
                   >
-                    <h3
-                      id="promptHubUpsellTitle"
-                      className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--tool-accent-strong)]"
-                    >
-                      {copy.upsellEyebrow}
+                    {/* 골드 헤어라인 — 장식이라 스크린리더에서 제외한다. */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--gold),transparent)]"
+                    />
+                    <h3 id="promptHubUpsellTitle" className="text-base font-black text-[color:var(--ink-1)] sm:text-lg">
+                      {copy.upsellTitle}
                     </h3>
-                    <p className="mt-2 max-w-[68ch] text-sm font-medium leading-6 text-[color:var(--ink-2)]">
-                      {leadByBenefit[UPSELL_PRODUCTS[upsell.pair[0]].benefit]}
+                    <p className="mt-2 max-w-[65ch] text-sm font-medium leading-6 text-[color:var(--ink-3)]">
+                      {copy.upsellLead}
                     </p>
                     {upsell.match === "closest" ? (
-                      <p className="mt-1.5 max-w-[68ch] text-xs font-bold leading-6 text-[color:var(--ink-3)]">
+                      <p className="mt-1.5 max-w-[65ch] text-xs font-bold leading-6 text-[color:var(--ink-3)]">
                         {copy.upsellClosestNote}
                       </p>
                     ) : null}
-                    <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                      {upsell.pair.map((productId, index) => {
-                        const product = UPSELL_PRODUCTS[productId];
-                        const item = copy.upsellProducts[productId];
-                        return (
-                          <Link
-                            key={productId}
-                            href={product.href}
-                            aria-label={copy.upsellCtaAria.replace("{title}", item.title)}
-                            className="flex min-h-[44px] flex-col rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-3.5 transition hover:border-[color:var(--gold)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
-                          >
-                            <span className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
-                              <span className="break-keep text-sm font-black text-[color:var(--ink-1)]">{item.title}</span>
-                              {index === 0 ? (
-                                <LazyPriceBadge
-                                  featureKey={product.featureKey}
-                                  className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--gold)]/60 bg-[color:var(--surface-1)] px-2.5 py-0.5 text-xs font-black text-[color:var(--ink-2)]"
-                                />
-                              ) : null}
-                            </span>
-                            <span className="mt-1.5 break-keep text-xs font-medium leading-6 text-[color:var(--ink-3)]">
-                              {item.desc}
-                            </span>
-                            <span className="mt-2 text-xs font-black text-[color:var(--tool-accent-strong)]">
-                              {copy.upsellCta} <span aria-hidden="true">→</span>
-                            </span>
-                          </Link>
-                        );
-                      })}
+
+                    {/* 1순위 — 진열대. 2순위와 규격을 달리해 위계를 드러낸다.
+                        표면을 한 단 올려(밴드=surface-2, 진열대=surface-1) 경계가 테두리 대비에만
+                        기대지 않게 한다 — 라이트에서 골드는 흰 배경 대비 1.5:1 이라 선만으론 안 읽힌다. */}
+                    <div className="upsell-feature mt-5 rounded-2xl border border-[color:var(--gold)] bg-[color:var(--surface-1)] p-4 sm:p-5">
+                      <div className="flex flex-wrap items-start justify-between gap-x-3 gap-y-2">
+                        <h4 className="break-keep text-lg font-black text-[color:var(--ink-1)] sm:text-xl">
+                          {primaryCopy.title}
+                        </h4>
+                        <LazyPriceBadge
+                          featureKey={primary.featureKey}
+                          className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--gold)] bg-[color:var(--surface-2)] px-3 py-1 text-xs font-black text-[color:var(--ink-1)]"
+                        />
+                      </div>
+                      <p className="mt-2 max-w-[62ch] break-keep text-sm font-medium leading-6 text-[color:var(--ink-2)]">
+                        {primaryCopy.desc}
+                      </p>
+                      <Link
+                        href={primary.href}
+                        aria-label={copy.upsellCtaAria.replace("{title}", primaryCopy.title)}
+                        className="upsell-cta mt-4 inline-flex min-h-[48px] items-center gap-2 rounded-2xl bg-[color:var(--tool-accent-strong)] px-5 text-sm font-black text-[color:var(--on-accent-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tool-accent-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--surface-1)]"
+                      >
+                        {copy.upsellCta}
+                        <span aria-hidden="true">→</span>
+                      </Link>
                     </div>
+
+                    {/* 2순위 — 조용한 행 링크. 카드로 만들면 1순위와 같은 무게로 읽힌다. */}
+                    <div className="mt-4 flex flex-wrap items-center gap-x-2 border-t border-[color:var(--hairline)] pt-3">
+                      <span className="text-xs font-bold text-[color:var(--ink-3)]">{copy.upsellSecondaryLabel}</span>
+                      <Link
+                        href={secondary.href}
+                        aria-label={copy.upsellCtaAria.replace("{title}", secondaryCopy.title)}
+                        className="inline-flex min-h-[44px] items-center rounded-lg px-1 text-sm font-black text-[color:var(--tool-accent-strong)] underline decoration-1 underline-offset-[6px] hover:decoration-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--tool-accent-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--surface-2)]"
+                      >
+                        {secondaryCopy.title}
+                        <span aria-hidden="true">&nbsp;→</span>
+                      </Link>
+                    </div>
+
                     <p className="mt-3 text-xs font-medium leading-6 text-[color:var(--ink-3)]">{copy.upsellPriceNote}</p>
                   </section>
                 );
