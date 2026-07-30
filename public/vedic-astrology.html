@@ -4899,7 +4899,7 @@ function buildVedicDeepDetails(chart,report){
     rows:[
       {label:'나밤샤 라그나',body:rashiFull(d9AscSi)+' — '+(NAVAMSA_LAGNA_PROSE[d9AscSi]||'')},
       {label:'나밤샤 7바바',body:rashiTerm(d9H7Si)+' — 결혼 생활에서 상대에게 실제로 기대하게 되는 부분입니다. '+((RASHI_TRAIT_PROSE[d9H7Si]||{}).edge||'')},
-      {label:'카라카의 나밤샤 위치',body:d9Kar?grahaTerm(karaka)+'가 나밤샤에서 '+rashiTerm(d9Kar.sign)+'에 놓입니다. 라시 차트의 '+rashiTerm(karSi)+'와 비교하면, 연애 단계에서 보이던 모습보다 '+((RASHI_TRAIT_PROSE[d9Kar.sign]||{}).core||'')+' 쪽이 결혼 이후 더 뚜렷해집니다.':'카라카의 나밤샤 위치를 산출하지 못했습니다.'}
+      {label:'카라카의 나밤샤 위치',body:d9Kar?grahaTerm(karaka)+'가 나밤샤에서 '+rashiTerm(d9Kar.sign)+'에 놓입니다. 라시 차트의 '+rashiTerm(karSi)+'와 비교하면 결이 달라집니다. 연애 단계에서 보이던 모습보다 결혼 이후에 이 성질이 더 크게 올라옵니다 — '+((RASHI_TRAIT_PROSE[d9Kar.sign]||{}).core||''):'카라카의 나밤샤 위치를 산출하지 못했습니다.'}
     ]
   };
 
