@@ -356,7 +356,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    "14세",
     "삭제",
   ],
   "/privacy-policy": [
@@ -368,7 +368,7 @@ const policyContentExpectations = {
     "생년월일",
     "결제",
     "이메일",
-    "13세",
+    "14세",
     "삭제",
   ],
   "/terms": ["Google AdSense", "쿠키", "결제", "환불", "문의"],
@@ -736,11 +736,11 @@ function verifyPrivacyPolicyEmbedSource() {
     "IP 주소",
     "광고 식별자",
     "policies.google.com/technologies/partner-sites",
-    "만 13세",
+    "만 14세",
     "개인정보 삭제",
     "로컬스토리지",
   ];
-  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", "만 14세"];
+  const forbiddenMarkers = ["\uFFFD", "로컈", "운세 풍이", "당 정보 삭제", "만 13세"];
 
   for (const marker of requiredMarkers) {
     assert(source.includes(marker), `${relPath}: missing privacy/ad notice marker ${marker}`);

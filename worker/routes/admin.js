@@ -2967,6 +2967,21 @@ async function authorizeAdminRequest(request, env) {
 
   const flowerTokenGranted = await verifyFlowerAdminToken(request, env);
 
+  // 꽃 토큰이 유효하면 requireAuth(Mongo 왕복)를 돌리지 않는다.
+  // 아래 분기를 보면 알 수 있듯 flowerTokenGranted 가 true 인 순간 결과는 어느 경로로 가든
+  // "admin 허용"으로 같고, 달라지는 것은 기록용 userId 뿐이다. 관리자 요청마다 DB 왕복을
+  // 하나 더 태우는 대가로는 비싸고, Atlas 가 흔들리는 순간 관리자 화면이 죽는 경로를 하나 더 만든다.
+  // 트레이드오프: 실제 admin 계정으로도 로그인한 상태였다면 updatedBy 가 flower-admin 으로 남는다
+  // (기존에도 비-admin + 꽃토큰 조합은 동일하게 동작했다).
+  if (flowerTokenGranted) {
+    return {
+      mode: "flower",
+      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
+      userId: "flower-admin",
+      isAdmin: true,
+    };
+  }
+
   let auth = null;
   let authError = null;
   try {
@@ -2975,35 +2990,18 @@ async function authorizeAdminRequest(request, env) {
     authError = error;
   }
 
+  // 여기까지 왔다면 꽃 토큰은 없다(위에서 이미 반환됨). JWT 관리자만 통과시킨다.
   if (auth) {
     const role = String(auth.role || "user").toLowerCase();
     const isAdmin = role === "admin" || auth.isAdmin === true;
-    if (!isAdmin && !flowerTokenGranted) {
+    if (!isAdmin) {
       throw createHttpError(403, "관리자 권한이 필요합니다.", { code: "FORBIDDEN" });
-    }
-
-    if (!isAdmin && flowerTokenGranted) {
-      return {
-        mode: "flower",
-        auth: { userId: "flower-admin", role: "admin", isAdmin: true },
-        userId: "flower-admin",
-        isAdmin: true,
-      };
     }
 
     return {
       mode: "jwt",
       auth,
       userId: String(auth.userId || ""),
-      isAdmin: true,
-    };
-  }
-
-  if (flowerTokenGranted) {
-    return {
-      mode: "flower",
-      auth: { userId: "flower-admin", role: "admin", isAdmin: true },
-      userId: "flower-admin",
       isAdmin: true,
     };
   }
