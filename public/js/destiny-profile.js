@@ -2321,6 +2321,146 @@
     return false;
   }
 
+  // ── 구독 스냅샷 소비자 ────────────────────────────────────────────────────────────────
+  // 정본은 셸(index.html)의 cd_subscription_snapshot_v2 이다. 새 저장 포맷을 만들지 않고
+  // 같은 키·같은 TTL·같은 검증을 그대로 쓴다 — 같은 오리진이라 셸을 방문한 사용자의 스냅샷을
+  // 독립 정적 페이지가 그대로 재사용하고, 여기서 갱신한 값은 셸에서도 쓰인다.
+  // 셸 안에서 실행될 때는 셸의 리더를 그대로 호출해 판정 로직이 두 벌로 갈라지지 않게 한다.
+  var _DP_SUB_SNAPSHOT_KEY_PREFIX = 'cd_subscription_snapshot_v2::';
+  var _DP_SUB_SNAPSHOT_NONE_TTL_MS = 60000;
+  var _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
+
+  function _dpMembershipPassLimitForTier(tier) {
+    if (tier === 'family') return 999999999;
+    if (tier === 'vvip') return 100;
+    if (tier === 'premium') return 50;
+    if (tier === 'standard') return 30;
+    return 0;
+  }
+
+  function _dpNormalizeMembershipTierName(value) {
+    var tier = String(value || '').trim().toLowerCase();
+    if (tier.indexOf('family') >= 0) return 'family';
+    if (tier.indexOf('vvip') >= 0) return 'vvip';
+    if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) return 'premium';
+    if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) return 'standard';
+    return 'free';
+  }
+
+  function _dpSubSnapshotKey(userId) {
+    return _DP_SUB_SNAPSHOT_KEY_PREFIX + String(userId || '').trim().toLowerCase();
+  }
+
+  // 셸의 __cdResolveAuthScopeId 와 동일한 규칙(_dpResolveIdScope)이라 키가 정확히 일치한다.
+  function _dpSubSnapshotUserId() {
+    try { return _dpResolveIdScope(_dpReadAuthUser()); } catch (_) { return ''; }
+  }
+
+  function _dpRemoveSubscriptionSnapshot(userId) {
+    try {
+      var resolved = String(userId || '').trim().toLowerCase();
+      if (!resolved) return;
+      localStorage.removeItem(_dpSubSnapshotKey(resolved));
+    } catch (_) {}
+  }
+
+  function _dpReadSubscriptionSnapshotLocal() {
+    var userId = _dpSubSnapshotUserId();
+    if (!userId) return null;
+    try {
+      var raw = localStorage.getItem(_dpSubSnapshotKey(userId));
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+        _dpRemoveSubscriptionSnapshot(userId);
+        return null;
+      }
+      var snapshotUserId = String(parsed.userId || '').trim().toLowerCase();
+      var state = parsed.state === 'active' || parsed.state === 'none' ? parsed.state : '';
+      var tier = _dpNormalizeMembershipTierName(parsed.tier);
+      var checkedAt = Number(parsed.checkedAt);
+      var expiresAt = String(parsed.expiresAt || '').trim();
+      if (snapshotUserId !== userId || !state || !isFinite(checkedAt) || (state === 'active' && tier === 'free')) {
+        _dpRemoveSubscriptionSnapshot(userId);
+        return null;
+      }
+      var ttl = state === 'none' ? _DP_SUB_SNAPSHOT_NONE_TTL_MS : _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS;
+      if (Date.now() - checkedAt > ttl) {
+        _dpRemoveSubscriptionSnapshot(userId);
+        return null;
+      }
+      if (state === 'active' && expiresAt && Date.parse(expiresAt) <= Date.now()) {
+        _dpRemoveSubscriptionSnapshot(userId);
+        return null;
+      }
+      return {
+        userId: userId,
+        state: state,
+        tier: state === 'active' ? tier : 'free',
+        expiresAt: state === 'active' ? (expiresAt || null) : null,
+        checkedAt: checkedAt,
+        source: String(parsed.source || 'local')
+      };
+    } catch (_) {
+      _dpRemoveSubscriptionSnapshot(userId);
+      return null;
+    }
+  }
+
+  function _dpReadSubscriptionSnapshot() {
+    try {
+      if (typeof window.__cdReadSubscriptionSnapshot === 'function'
+        && window.__cdReadSubscriptionSnapshot !== _dpReadSubscriptionSnapshotLocal) {
+        return window.__cdReadSubscriptionSnapshot();
+      }
+    } catch (_) {}
+    return _dpReadSubscriptionSnapshotLocal();
+  }
+
+  // 서버가 확인해 준 등급만 저장한다(degraded 응답은 호출부에서 이미 걸러진다).
+  function _dpWriteSubscriptionSnapshot(membership, source) {
+    var userId = _dpSubSnapshotUserId();
+    if (!userId) return;
+    try {
+      var info = membership && typeof membership === 'object' ? membership : {};
+      var tier = _dpNormalizeMembershipTierName(info.tier || info.passTier);
+      var active = info.isActive === true && tier !== 'free';
+      var expiresAt = String(info.expiresAt || '').trim();
+      if (active && expiresAt && Date.parse(expiresAt) <= Date.now()) active = false;
+      localStorage.setItem(_dpSubSnapshotKey(userId), JSON.stringify({
+        userId: userId,
+        state: active ? 'active' : 'none',
+        tier: active ? tier : 'free',
+        expiresAt: active && expiresAt ? expiresAt : null,
+        checkedAt: Date.now(),
+        source: String(source || 'destiny-profile')
+      }));
+    } catch (_) {}
+  }
+
+  // 셸이 없는 독립 페이지에서도 같은 리더를 다른 코드가 재사용할 수 있게 노출한다(셸 정본은 덮지 않는다).
+  try {
+    if (typeof window.__cdReadSubscriptionSnapshot !== 'function') {
+      window.__cdReadSubscriptionSnapshot = _dpReadSubscriptionSnapshotLocal;
+    }
+  } catch (_) {}
+
+  // 서버 왕복 없이 '이용권 미커버'가 확정되는 신호만 판정한다.
+  // 🔴 지연·타임아웃은 절대 근거로 쓰지 않는다 — 느린 것과 없는 것을 혼동하면 이용권 보유자가 결제창으로 샌다.
+  function _dpResolveCertainPassMiss(coinPrice) {
+    var cost = Math.max(0, Math.floor(Number(coinPrice || 0)));
+    if (!(cost > 0)) return '';
+    // (1) 미로그인 — 자격증명이 없으면 서버는 반드시 401이고, 이 집합에 이용권 보유자는 0명이다.
+    if (!_dpHasSessionHint()) return 'signed_out';
+    var snapshot = _dpReadSubscriptionSnapshot();
+    if (!snapshot) return '';
+    // (2) 서버가 최근(none TTL 60초) '이용권 없음'이라고 답한 기록.
+    if (snapshot.state === 'none') return 'subscription_snapshot_none';
+    // (3) 산술적 한도 초과 — 신선도와 무관하게 이 가격은 이 등급으로 커버되지 않는다.
+    if (snapshot.state === 'active' && cost > _dpMembershipPassLimitForTier(snapshot.tier)) return 'snapshot_pass_limit_exceeded';
+    return '';
+  }
+
   function _dpReadActiveMembershipCoverage(cost) {
     try {
       var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
@@ -2902,19 +3042,39 @@
     return _dpResolvePaidGateReasonFeatureKey(opts, title);
   }
 
+  // 미커버(payment_required) 판정도 캐시한다 — 예전엔 grant 만 15초 캐시하고 그마저 파괴적으로 읽어,
+  // 이용권 없는 사용자가 클릭할 때마다 같은 답을 서버에서 다시 받아왔다. 셸 정본과 같은 30초 TTL.
+  var _DP_PASS_GATE_CACHE_TTL_MS = 30000;
+
   function _dpStorePaidPassGateResult(key, result) {
     if (!key || !result) return;
-    __dpPaidPassGateCache[key] = { access: result, expiresAt: Date.now() + 15000 };
+    var status = String(result.status || '');
+    if (status !== 'pass_applied' && status !== 'already_unlocked' && status !== 'payment_required') return;
+    __dpPaidPassGateCache[key] = { access: result, expiresAt: Date.now() + _DP_PASS_GATE_CACHE_TTL_MS };
   }
 
+  // 비파괴 읽기 — 만료 전에는 반복 클릭이 모두 캐시를 맞는다(파괴적 읽기는 두 번째 클릭부터 다시 왕복했다).
   function _dpTakePaidPassGateResult(key) {
     if (!key) return null;
     var entry = __dpPaidPassGateCache[key];
     if (!entry) return null;
-    delete __dpPaidPassGateCache[key];
-    if (entry.expiresAt && entry.expiresAt < Date.now()) return null;
+    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+      delete __dpPaidPassGateCache[key];
+      return null;
+    }
     return entry.access || null;
   }
+
+  // 이용권 구매·결제 성공·로그인 상태 변화처럼 판정 근거가 바뀌면 캐시를 통째로 비운다.
+  function _dpClearPaidPassGateCache(reason) {
+    try {
+      Object.keys(__dpPaidPassGateCache).forEach(function(key) { delete __dpPaidPassGateCache[key]; });
+    } catch (_) {}
+    try {
+      if (reason === 'auth-changed' || reason === 'logout') _dpRemoveSubscriptionSnapshot(_dpSubSnapshotUserId());
+    } catch (_) {}
+  }
+  try { window._dpClearPaidPassGateCache = _dpClearPaidPassGateCache; } catch (_) {}
 
   function _dpIsMembershipPassGrantedPayload(payload) {
     var data = _dpExtractBillingData(payload || {});
@@ -2969,6 +3129,8 @@
     var cacheKey = _dpPaidPassCacheKey(opts, title, coinPrice);
     var cached = _dpTakePaidPassGateResult(cacheKey);
     if (cached && (cached.status === 'pass_applied' || cached.status === 'already_unlocked')) return cached;
+    // 미커버도 30초간 재사용한다(반복 클릭이 같은 답을 서버에서 다시 받아오지 않도록).
+    if (cached && cached.status === 'payment_required') return cached;
     var res;
     try {
       res = await _dpPaymentFetchJson('/api/billing/coin-gate', { method: 'POST', body: JSON.stringify(_dpBuildPaidGatePayload(opts, title, coinPrice, requestId, 'MEMBERSHIP_PASS')) });
@@ -2991,11 +3153,27 @@
       } catch (_) {}
       return result;
     }
-    if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') return { status: 'payment_required', payload: payload, requestId: requestId };
+    if (statusCode === 402 || code === 'MEMBERSHIP_PASS_NOT_COVERED' || code === 'PAYMENT_REQUIRED') {
+      var notCovered = { status: 'payment_required', payload: payload, requestId: requestId };
+      _dpStorePaidPassGateResult(cacheKey, notCovered);
+      return notCovered;
+    }
     // 진짜 미보유(402/미커버)만 결제창으로 유도한다. 5xx·degraded·인증 일시장애·비2xx 응답을 '이용권 없음'으로
     // 오인해 결제창으로 강등하면 이용권 보유자가 결제창으로 세탁된다 — 정상 게이트(index.html PASS_APPLY_FAILED)와
     // 동일하게 일시 오류로 구분해 결제창 대신 재시도로 유도한다.
     var passCheckDegraded = !!(payload && (payload.degraded === true || (payload.data && payload.data.degraded === true)));
+    // 확정 인증 실패(401/403)는 '일시 오류'가 아니다 — 로그인하지 않았다면 이용권도 있을 수 없다.
+    // 예전엔 아래 res.ok === false 가 이걸 삼켜 재시도 3회 + 백오프 700ms 를 버렸다. 단, 서버가 일시 장애를
+    // 401 로 표면화하는 코드(AUTH_STATUS_TEMPORARILY_UNAVAILABLE / AUTH_DB_UNAVAILABLE)와 degraded 응답은
+    // 계속 '일시 오류'로 남겨 이용권 보유자의 무료 통과 기회를 지킨다.
+    var passCheckAuthDefinite = (statusCode === 401 || statusCode === 403)
+      && !passCheckDegraded
+      && code !== 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
+      && code !== 'AUTH_DB_UNAVAILABLE'
+      && code !== 'AUTH_REFRESH_TEMPORARY_FAILURE';
+    if (passCheckAuthDefinite) {
+      return { status: 'payment_required', code: code || 'AUTH_REQUIRED', payload: payload, requestId: requestId };
+    }
     if (statusCode >= 500 || passCheckDegraded || code === 'PASS_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE' || code === 'BALANCE_SNAPSHOT_UNAVAILABLE' || (res && res.ok === false)) {
       return { status: 'error', code: code || 'PASS_CHECK_UNAVAILABLE', payload: payload, requestId: requestId };
     }
@@ -3062,7 +3240,13 @@
         // \uACB0\uC81C\uCC3D(\uB2E8\uAC74+\uC6D4\uC815\uC11D)\uC774 \uBC18\uB4DC\uC2DC \uC5F4\uB9AC\uB3C4\uB85D \uD55C\uB2E4.
         if (typeof _dpCanonicalPaymentChoice === 'function') window._cdChooseServicePaymentMode = _dpCanonicalPaymentChoice;
       }
-      if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true) {
+      // 확정 미커버(미로그인 / 서버가 쓴 none 스냅샷 / 산술적 한도 초과)면 서버 pass-check 왕복을 건너뛰고
+      // 곧바로 결제창을 연다. 셸(index.html allowSnapshotFastPath)과 같은 근거만 쓰며, 지연을 근거로 쓰지 않는다.
+      // requireServerPassCheck 로 서버 재검증을 명시 요청한 호출부는 이 지름길을 타지 않는다.
+      var _dpCertainPassMiss = (opts.disablePassFirst === true || opts.requireServerPassCheck === true)
+        ? ''
+        : _dpResolveCertainPassMiss(coinPrice);
+      if (typeof window.__cdApplyMembershipPassBeforePayment === 'function' && opts.disablePassFirst !== true && !_dpCertainPassMiss) {
         // 낙관적 즉시 허용: 로컬 구독 스냅샷이 pass 커버를 확인하면 서버 왕복을 백그라운드로 돌려 속도를 유지한다
         // (정확성은 백그라운드 미커버 응답 시 세션 갱신으로 자기수정). 단 "확인 중 → 적용 완료" 2단계 UX는
         // 그대로 유지하고, 완료 오버레이 표시 중 onGranted(콘텐츠 생성)를 병렬 진행한다.
@@ -3093,7 +3277,10 @@
           // 않고 결제창(단건+월정석)으로 fall-through한다(요구사항: 이용권 확인 실패 시 무조건 결제창).
           // 백오프는 정본 셸 게이트(index.html _cdOpenPaidServiceGate)와 같은 값으로 맞춘다 — 기존 800ms→1.44s는
           // 대기만 2.24초를 더해 '결제가 느리다'는 체감의 절반을 차지했다.
-          for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error'; _dpPassRetry += 1) {
+          // 전체 예산 6초(셸 CD_PASS_FIRST_BUDGET_MS 와 동일). 예산 소진은 '미커버'가 아니라 'error' 로 남겨
+          // 기존 폴백(결제창 재노출)을 타게 하고, 커버 여부는 서버가 최종 결정한다 — 지연을 미커버 근거로 쓰지 않는다.
+          var _dpPassDeadline = Date.now() + 6000;
+          for (var _dpPassRetry = 1; _dpPassRetry <= 2 && passFirst && passFirst.status === 'error' && Date.now() < _dpPassDeadline; _dpPassRetry += 1) {
             await new Promise(function(resolve) { setTimeout(resolve, Math.round(250 * Math.pow(1.8, _dpPassRetry - 1))); });
             passFirst = await window.__cdApplyMembershipPassBeforePayment(Object.assign({}, opts, {
               title: title,
@@ -8054,6 +8241,9 @@
     // 프로필+구독 재조회 중복을 막는다(최종 인증 상태 기준으로 실행).
     var _dpAuthScopeRefreshTimer = null;
     function _dpScheduleAuthScopeRefresh() {
+      // 인증이 바뀌면 이용권 판정 근거(스냅샷·미커버 캐시)가 다른 계정 것이 된다 — 즉시 버린다.
+      try { if (typeof _dpClearPaidPassGateCache === 'function') _dpClearPaidPassGateCache('auth-changed'); } catch (_) {}
+      try { window.__cdSubscriptionSnapshotPrewarmed = false; } catch (_) {}
       if (_dpAuthScopeRefreshTimer) clearTimeout(_dpAuthScopeRefreshTimer);
       _dpAuthScopeRefreshTimer = setTimeout(function() {
         _dpAuthScopeRefreshTimer = null;
@@ -8269,6 +8459,13 @@
         return { ok: false, degraded: true, signedOut: false, balance: 0 };
       }
       var membership = (data.membership && typeof data.membership === 'object') ? data.membership : {};
+      // 같은 응답에 이미 들어있는 등급 정보를 버리지 않고 구독 스냅샷에 반영한다(추가 요청 0).
+      // 이 값이 있어야 다음 결제 클릭에서 서버 왕복 없이 이용권 유무를 판정할 수 있다.
+      // degraded 응답은 위에서 이미 반환됐고, 미인증이면 '이용권 없음'이 확정이다.
+      try {
+        if (data.authenticated === false) _dpWriteSubscriptionSnapshot({ isActive: false }, 'billing-balance');
+        else if (data.membership && typeof data.membership === 'object') _dpWriteSubscriptionSnapshot(membership, 'billing-balance');
+      } catch (_) {}
       var raw = (data.monthlyStoneBalance != null) ? data.monthlyStoneBalance
         : (data.membershipCreditBalance != null) ? data.membershipCreditBalance
         : (membership.monthlyStoneBalance != null) ? membership.monthlyStoneBalance : 0;
@@ -8280,6 +8477,29 @@
     });
   }
   try { window._dpFetchMoonlightStoneBalance = _dpFetchMoonlightStoneBalance; } catch (_) {}
+
+  // 진입 시 1회 구독 스냅샷 프리워밍 — 사용자가 리딩 버튼을 누르는 시점에는 이용권 판정이 이미 끝나 있어
+  // 서버 왕복 없이 결제창이 열린다. 요청은 늘지 않는다(결제창이 어차피 쓰던 /api/billing/balance 를 앞당길 뿐).
+  // 셸(index.html)은 자체 스냅샷 워밍 경로가 있으므로 독립 정적 페이지에서만 돈다.
+  function _dpPrewarmSubscriptionSnapshot() {
+    try {
+      if (window.__cdSubscriptionSnapshotPrewarmed) return;
+      if (typeof window.__cdReadSubscriptionSnapshot === 'function'
+        && window.__cdReadSubscriptionSnapshot !== _dpReadSubscriptionSnapshotLocal) return;
+      if (!_dpHasSessionHint()) return;
+      if (_dpReadSubscriptionSnapshotLocal()) return;
+      window.__cdSubscriptionSnapshotPrewarmed = true;
+      _dpFetchMoonlightStoneBalance({});
+    } catch (_) {}
+  }
+  try {
+    var _dpScheduleSnapshotPrewarm = function(fn) {
+      if (typeof window.requestIdleCallback === 'function') window.requestIdleCallback(fn, { timeout: 3000 });
+      else window.setTimeout(fn, 1200);
+    };
+    if (document.readyState === 'complete') _dpScheduleSnapshotPrewarm(_dpPrewarmSubscriptionSnapshot);
+    else window.addEventListener('load', function() { _dpScheduleSnapshotPrewarm(_dpPrewarmSubscriptionSnapshot); }, { once: true });
+  } catch (_) {}
 
   // 독립(정적) 페이지용 자체 결제 선택 모달 스타일(1회 주입).
   function _dpEnsureStandalonePaymentChoiceStyle() {

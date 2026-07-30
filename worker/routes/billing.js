@@ -1132,10 +1132,11 @@ async function resolvePaidContentAccess(env, {
 
 async function getActiveMembershipPassForUser(env, authUserId) {
   const cached = readMembershipPassFromCache(authUserId);
-  if (cached) return cached;
+  // 캐시 히트는 최대 5초 stale 이라 프로필 id 재사용 근거로 쓰지 않는다(프로필 전환 직후 오기록 방지).
+  if (cached) return { ...cached, __userDocFresh: false };
   await connectDb(env);
   const user = await User.findById(authUserId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+    .select("destinyProfilesCurrentId profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
     .lean();
   const entitlement = resolveActivePassPolicyWithProfileFallback(user || {});
   const result = {
@@ -1150,6 +1151,9 @@ async function getActiveMembershipPassForUser(env, authUserId) {
     // 🔴 조회 실패는 throw 로 전파되고 캐시는 성공만 기록하므로(아래 writeMembershipPassToCache),
     // 이 플래그가 "확인 실패"를 "미보유"로 세탁할 수 없다.
     hasSubscriptionSignal: hasResolvableSubscriptionSignal(user),
+    // 같은 User 문서에서 함께 읽어 둔다 — coin-gate 가 프로필 id 를 위해 같은 문서를 또 읽던 중복을 없앤다.
+    destinyProfilesCurrentId: user?.destinyProfilesCurrentId || null,
+    __userDocFresh: true,
   };
   writeMembershipPassToCache(authUserId, result); // healthy 조회만 캐시(실패는 위에서 throw로 전파)
   return result;
@@ -3215,7 +3219,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
   // 이용권/프로필 조회(READ)도 일시적 풀 초기화(MongoPoolClearedError)에 '일시 불가'로
   // 떨어지지 않도록 재시도로 감싼다(재시도 소진 시 degrade 마커는 기존 유지).
   const lookupStartedAt = Date.now();
-  const profileResolvePromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
+  const resolveProfileIdFromDb = () => withMongoRetry(env, () => withDbAccessTimeout(
     resolveBillingProfileId(authCheck.auth.userId, body, env),
     PAID_ACCESS_DECISION_DB_TIMEOUT_MS,
     "COIN_GATE_PROFILE_RESOLVE_TIMEOUT",
@@ -3224,7 +3228,7 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
       throw error;
     }
     return createPassLookupUnavailableMarker("profile_lookup", error);
-  }) : Promise.resolve("");
+  });
   const subscriptionPassPromise = authCheck?.auth?.userId ? withMongoRetry(env, () => withDbAccessTimeout(
     getMembershipPassForBillingRequest(
       request,
@@ -3239,10 +3243,24 @@ async function processCoinGateFromPricing(request, env, body, pricingResult) {
     }
     return createPassLookupUnavailableMarker("membership_pass_lookup", error);
   }) : Promise.resolve(null);
-  const [profileLookupResult, subscriptionPassLookupResult] = await Promise.all([
-    profileResolvePromise,
-    subscriptionPassPromise,
-  ]);
+  const subscriptionPassLookupResult = await subscriptionPassPromise;
+  // 🔴 중복 User 조회 제거: 예전에는 프로필 id 조회와 이용권 조회가 **같은 User 문서**를 projection 만 달리해
+  // 두 번 읽었다(병렬이라 지연은 가려졌지만 왕복은 2회). 이용권 조회가 방금 DB 를 읽었다면 그 문서에 실려 온
+  // destinyProfilesCurrentId 를 그대로 쓴다. 캐시 히트(__userDocFresh !== true)는 stale 일 수 있어 재사용하지
+  // 않고 기존대로 조회하며, 이용권 조회가 실패(marker)면 어차피 아래에서 503 으로 끝나므로 조회하지 않는다.
+  const explicitBillingProfileId = cleanProfileId(
+    body?.profileId || body?.selectedProfileId || body?.profile?.profileId || body?.profile?.id,
+  );
+  let profileLookupResult = "";
+  if (authCheck?.auth?.userId && !isPassLookupUnavailableMarker(subscriptionPassLookupResult)) {
+    if (explicitBillingProfileId) {
+      profileLookupResult = explicitBillingProfileId;
+    } else if (subscriptionPassLookupResult?.__userDocFresh === true) {
+      profileLookupResult = cleanProfileId(subscriptionPassLookupResult.destinyProfilesCurrentId);
+    } else {
+      profileLookupResult = await resolveProfileIdFromDb();
+    }
+  }
   const lookupElapsedMs = Date.now() - lookupStartedAt;
   const lookupUnavailable = isPassLookupUnavailableMarker(profileLookupResult)
     ? profileLookupResult
