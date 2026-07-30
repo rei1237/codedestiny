@@ -12,9 +12,11 @@ import { callGeminiText } from "./gemini.js";
 /**
  * Workers AI 폴백 응답의 JSON 정화.
  *
- * 🔴 Gemini 는 responseMimeType 으로 순수 JSON 을 보장하지만 Workers AI(env.AI.run)는
- *    그 옵션을 받지 않는다. 실측(2026-07-30)에서 코드펜스·앞뒤 설명문이 섞여 와
- *    엄격한 JSON.parse 는 실패하고 관대한 파싱만 성공했다.
+ * 🔴 Gemini 는 responseMimeType 으로 순수 JSON 을 보장하지만 Workers AI 는 모델마다 다르다.
+ *    체인 1차(`@cf/zai-org/*`)는 `response_format: json_object` 를 받아 순수 JSON 을 주지만,
+ *    2차 `@cf/meta/*` 는 스키마 없는 JSON Mode 를 못 받아 종전대로 프롬프트 의존이다.
+ *    실측(2026-07-30, 70B)에서 코드펜스·앞뒤 설명문이 섞여 와 엄격한 JSON.parse 는 실패하고
+ *    관대한 파싱만 성공했다. 순수 JSON 이 오면 이 정화는 무해한 no-op 이다.
  *
  * 라우트마다 파서를 고치는 대신 여기서 한 번 정화해, 폴백이 켜진 모든 구조화 상담이
  * 라우트 수정 없이 폴백 응답을 파싱할 수 있게 한다. Gemini 응답은 건드리지 않는다.
@@ -84,7 +86,7 @@ export async function callGeminiJsonWithRetry(env, buildPrompt, opts = {}) {
       continue;
     }
 
-    // Workers AI 폴백은 responseMimeType 을 못 받아 코드펜스·설명문이 섞여 온다 —
+    // Workers AI 폴백은 모델에 따라 코드펜스·설명문이 섞여 온다(@cf/meta/* 계열) —
     // 라우트가 그대로 JSON.parse 할 수 있게 여기서 정화한다(Gemini 응답은 그대로).
     if (responseMimeType && ai.provider === "workers-ai") {
       ai.text = sanitizeFallbackJsonText(ai.text);

@@ -88,6 +88,7 @@
     "verify:analysis-basis-contract": "node scripts/verify-analysis-basis-contract.mjs",
     "verify:llm-generation-resilience": "node scripts/verify-llm-generation-resilience.mjs",
     "verify:ai-locale-pipeline": "node scripts/verify-ai-locale-pipeline.mjs",
+    "verify:workers-ai-fallback": "node --experimental-strip-types --no-warnings scripts/verify-workers-ai-fallback.mjs",
     "verify:payment-policy-md": "node scripts/verify-payment-policy-md.mjs",
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:naming-prompt": "node scripts/verify-naming-prompt-flow.mjs",
