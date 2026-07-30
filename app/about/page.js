@@ -33,6 +33,51 @@ const ABOUT_PAGE_TEXT_TRANSLATIONS = {
     "principles.body": "개인의 선택을 대신하거나 불안을 조장하는 표현을 지양합니다. 건강·법률·투자·금융처럼 전문적인 판단이 필요한 영역은 반드시 해당 분야 전문가와 상담해야 하며, 어떤 운세 결과도 의료·법률·재무 조언을 대체하지 않습니다. 만 14세 미만 이용자의 개인정보는 별도 기준으로 보호하고, 결제·환불·개인정보 처리 방침은 문서로 공개합니다.",
     "payment.title": "무료와 유료",
     "payment.body": "사주와 타로의 기본 리딩은 부담 없이 무료로 시작할 수 있습니다. 더 깊은 분석이나 PDF 리포트처럼 개인 맞춤형 콘텐츠는 결제 전에 조건과 금액을 분명히 보여드린 뒤 진행합니다. 30일 이용권, 단건 결제, 이벤트로 지급되는 월정석 등 결제 방식의 차이는 구매 전에 안내합니다.",
+    "explore.title": "운세 서비스 둘러보기",
+    "explore.lead": "무료로 시작할 수 있는 기본 리딩과 유료 심화 콘텐츠를 한 카드에 섞지 않았습니다. 아래 항목은 각각 성격이 다르니, 무엇을 보게 되는지 확인한 뒤 열어보세요. 링크를 누르면 해당 서비스가 있는 홈 화면 위치로 이동합니다.",
+    "explore.saju.title": "만세력 사주",
+    "explore.saju.body": "생년월일과 출생시간으로 오행, 십성, 대운의 흐름을 차분하게 펼칩니다.",
+    "explore.saju.meta": "무료 시작",
+    "explore.tarot.title": "타로 리딩",
+    "explore.tarot.body": "질문과 마음의 결을 카드 상징으로 비추고, 선택의 방향을 부드럽게 정리합니다.",
+    "explore.tarot.meta": "무료·유료 혼합",
+    "explore.ziwei.title": "자미두수 명반",
+    "explore.ziwei.body": "12궁의 별 흐름으로 기질, 관계, 일의 방향을 입체적으로 살핍니다.",
+    "explore.ziwei.meta": "기본 무료",
+    "explore.astrology.title": "점성술 차트",
+    "explore.astrology.body": "태양, 달, 상승궁의 분위기를 연결해 오늘의 리듬을 읽습니다.",
+    "explore.astrology.meta": "코즈믹 리딩",
+    "explore.sukuyo.title": "숙요점 궁합",
+    "explore.sukuyo.body": "27숙의 달빛 관계도를 통해 가까운 인연의 온도와 거리를 살핍니다.",
+    "explore.sukuyo.meta": "궁합 안내",
+    "explore.pass.title": "이용권·결제 관리",
+    "explore.pass.body": "30일 이용권, 단건 결제, 월정석 혜택의 차이를 구매 전에 확인합니다.",
+    "explore.pass.meta": "환불 안내 포함",
+    "pass.title": "이용권·단건 결제·월정석의 차이",
+    "pass.lead": "유료 기능은 세 가지 방식으로 열립니다. 어느 쪽으로 열리는지는 결제 화면에서 먼저 보여드립니다.",
+    "pass.free.title": "무료 리딩",
+    "pass.free.body": "사주와 타로의 기본 흐름은 부담 없이 시작할 수 있습니다. 유료 리딩은 결제 전에 표시된 조건을 확인한 뒤에만 열립니다.",
+    "pass.pass30.title": "30일 이용권",
+    "pass.pass30.body": "원화 결제로 활성화되는 일회성 디지털 이용권입니다. 자동결제가 아니며, 30일이 지나면 직접 다시 구매합니다. 커버 범위 안의 기능은 기간 중 횟수 제한 없이 이용합니다.",
+    "pass.single.title": "단건 결제·PDF",
+    "pass.single.body": "상품별 원화 결제로 진행됩니다. 결과 생성이나 PDF 렌더링이 시작되기 전에 환불 요청이 가능한지 확인할 수 있습니다.",
+    "pass.moonlight.title": "월정석",
+    "pass.moonlight.body": "구매·충전 상품이 아니라 이용권 또는 이벤트로 지급되는 보너스 혜택입니다. 따라서 현금 환불 대상 상품으로 보지 않습니다.",
+    "refund.title": "디지털 콘텐츠 환불 기준",
+    "refund.lead": "개인 맞춤형 결과가 생성되거나 열람이 시작된 뒤에는 단순 변심 환불이 제한될 수 있습니다. 다만 서비스 오류, 중복 결제, 결제 후 콘텐츠 미제공은 재처리 또는 환불 대상입니다.",
+    "refund.before.title": "결제 전",
+    "refund.before.body": "결제 완료 전에는 언제든 취소할 수 있습니다. 결제 화면에서 상품명과 환불 조건을 확인해 주세요.",
+    "refund.pending.title": "결제 후, 결과 생성 전",
+    "refund.pending.body": "결제가 끝났더라도 결과 생성·PDF 렌더링·유료 리딩 열람이 시작되지 않았다면 환불 요청이 가능합니다.",
+    "refund.done.title": "결과 생성 후",
+    "refund.done.body": "개인 맞춤형 디지털 콘텐츠가 생성되거나 열람이 시작된 뒤에는 단순 변심 환불이 제한될 수 있습니다.",
+    "refund.error.title": "오류·미제공",
+    "refund.error.body": "결제 후 결과가 제공되지 않았거나 시스템 오류로 정상 이용이 불가능했다면 재생성 또는 환불 처리 대상입니다.",
+    "refund.duplicate.title": "중복 결제",
+    "refund.duplicate.body": "동일 상품의 중복 결제가 확인되면 결제수단과 결제대행사 정책에 따라 중복 결제분을 환불합니다.",
+    "refund.used.title": "이용권 사용분",
+    "refund.used.body": "이미 사용된 이용권 기간과 월정석 혜택은 사용분을 기준으로 확인한 뒤 처리합니다.",
+    "refund.policyLink": "환불정책 상세 보기",
     "docs.title": "관련 문서",
     "docs.methodology": "운세 콘텐츠 방법론",
     "docs.faq": "자주 묻는 질문",
@@ -95,6 +140,20 @@ const ABOUT_PAGE_TEXT_TRANSLATIONS = {
 function aboutPageText(key) {
   return ABOUT_PAGE_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
+
+// 홈은 정적 메인 셸이 담당하므로, 각 서비스는 셸 안의 해당 컬렉션 위치로 보낸다.
+const SERVICE_EXPLORE = [
+  { key: "saju", href: "/static/#destinyCardForm" },
+  { key: "tarot", href: "/static/#tarotCollection" },
+  { key: "ziwei", href: "/static/#cosmicCollection" },
+  { key: "astrology", href: "/static/#cosmicCollection" },
+  { key: "sukuyo", href: "/static/#premiumVvipCollection" },
+  { key: "pass", href: "/static/#premiumVvipCollection" },
+];
+
+const PASS_GUIDE_KEYS = ["free", "pass30", "single", "moonlight"];
+
+const REFUND_GUIDE_KEYS = ["before", "pending", "done", "error", "duplicate", "used"];
 
 const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
@@ -167,6 +226,50 @@ export default function AboutPage() {
         <p>
           {aboutPageText("payment.body")}
         </p>
+      </section>
+
+      {/* 아래 세 섹션은 옛 React 홈(app/page.js)이 담고 있던 서비스 소개·결제 안내를 합친 것이다.
+          홈은 정적 메인 셸로 통일했고, 이 내용의 사용자 대상 위치는 /about 이다. */}
+      <section className="cd-card">
+        <h2>{aboutPageText("explore.title")}</h2>
+        <p>{aboutPageText("explore.lead")}</p>
+        <ul className="grid gap-2">
+          {SERVICE_EXPLORE.map((item) => (
+            <li key={item.key} className="flex flex-wrap items-baseline gap-2">
+              <Link href={item.href} className="cd-chip">{aboutPageText(`explore.${item.key}.title`)}</Link>
+              <span>
+                {aboutPageText(`explore.${item.key}.body`)} ({aboutPageText(`explore.${item.key}.meta`)})
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2>{aboutPageText("pass.title")}</h2>
+        <p>{aboutPageText("pass.lead")}</p>
+        <ul className="grid gap-2">
+          {PASS_GUIDE_KEYS.map((key) => (
+            <li key={key}>
+              <strong>{aboutPageText(`pass.${key}.title`)}</strong> — {aboutPageText(`pass.${key}.body`)}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="cd-card">
+        <h2>{aboutPageText("refund.title")}</h2>
+        <p>{aboutPageText("refund.lead")}</p>
+        <ul className="grid gap-2">
+          {REFUND_GUIDE_KEYS.map((key) => (
+            <li key={key}>
+              <strong>{aboutPageText(`refund.${key}.title`)}</strong> — {aboutPageText(`refund.${key}.body`)}
+            </li>
+          ))}
+        </ul>
+        <div className="cd-chip-wrap mt-3">
+          <Link href="/terms#refund-policy" className="cd-chip">{aboutPageText("refund.policyLink")}</Link>
+        </div>
       </section>
 
       <section className="cd-card">

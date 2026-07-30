@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 
@@ -311,6 +312,25 @@ const modalSheetScrollStyle: CSSProperties = {
   WebkitOverflowScrolling: "touch",
 };
 
+// 카드를 탭해 모달이 열린 직후, 같은 좌표로 떨어지는 유령 탭·연타가 백드롭에 맞아
+// 모달을 즉시 닫아 버리던 문제를 막는다. 모바일에서 시트는 하단 정렬이라 화면 상단이
+// 전부 백드롭이고, 카드가 상단에 있으면 두 번째 탭이 정확히 백드롭에 떨어진다.
+const BACKDROP_CLOSE_GUARD_MS = 500;
+
+// 이동이 시작되지 않는 최악의 경우에도 버튼이 영구히 잠기지 않게 하는 안전장치.
+const NAV_PENDING_FAILSAFE_MS = 6000;
+
+function trimTrailingSlash(path: string) {
+  return String(path || "").replace(/\/+$/, "") || "/";
+}
+
+// 정적 셸 액션 URL(`/index.html?action=...`)과 외부 주소는 App Router 로 이동할 수 없다.
+// 이런 링크는 하드 이동으로 보낸다.
+function isRouterNavigable(href: string) {
+  if (!href.startsWith("/") || href.startsWith("//")) return false;
+  return !href.includes("index.html") && !href.includes("action=");
+}
+
 export function FeatureMarketingDetailModal({
   open,
   target,
@@ -321,8 +341,19 @@ export function FeatureMarketingDetailModal({
   onClose: () => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const openedAtRef = useRef(0);
+  const router = useRouter();
+  const pathname = usePathname() || "/";
+  const [navPending, setNavPending] = useState(false);
   const copy = useMemo(() => resolveFeatureMarketingCopy(target), [target]);
   useBodyScrollLock(open);
+
+  // 오픈 시각은 `open` 이 바뀔 때만 갱신한다 — onClose 처럼 매 렌더 새로 만들어지는 값에
+  // 묶으면 가드 기준 시각이 계속 밀려 백드롭 닫기가 영구히 무력화된다.
+  useEffect(() => {
+    if (open) openedAtRef.current = Date.now();
+    else setNavPending(false);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -336,17 +367,54 @@ export function FeatureMarketingDetailModal({
     };
   }, [open, onClose]);
 
+  useEffect(() => {
+    if (!navPending) return;
+    const timer = window.setTimeout(() => setNavPending(false), NAV_PENDING_FAILSAFE_MS);
+    return () => window.clearTimeout(timer);
+  }, [navPending]);
+
+  const closeFromBackdrop = useCallback(() => {
+    if (Date.now() - openedAtRef.current < BACKDROP_CLOSE_GUARD_MS) return;
+    if (navPending) return;
+    onClose();
+  }, [navPending, onClose]);
+
+  const handleCtaClick = useCallback((event: MouseEvent<HTMLAnchorElement>) => {
+    // 새 탭·수정키 클릭은 브라우저 기본 동작에 맡긴다.
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    if (navPending) return;
+
+    if (!isRouterNavigable(target.href)) {
+      setNavPending(true);
+      window.location.assign(target.href);
+      return;
+    }
+
+    // 이미 그 화면이면 이동할 게 없다 — 모달만 닫는다(대기 표시로 갇히는 것 방지).
+    if (trimTrailingSlash(pathname) === trimTrailingSlash(target.href)) {
+      onClose();
+      return;
+    }
+
+    // 여기서 모달을 닫지 않는다. 닫으면 라우트 전환이 끝날 때까지 화면에 아무 변화가 없어
+    // "버튼을 눌렀는데 팝업만 닫히고 아무 일도 안 일어난다"로 보이고, 그게 연타·이탈을 부른다.
+    // 이동이 완료되면 이 트리가 언마운트되므로 별도 닫기 처리가 필요 없다.
+    setNavPending(true);
+    router.push(target.href);
+  }, [navPending, onClose, pathname, router, target.href]);
+
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-950/72 px-0 sm:items-center sm:px-4" role="presentation" onMouseDown={onClose}>
+    <div className="fixed inset-0 z-[1000] flex items-end justify-center bg-slate-950/72 px-0 sm:items-center sm:px-4" role="presentation" onClick={closeFromBackdrop}>
       <section
         role="dialog"
         aria-modal="true"
         aria-labelledby="featureMarketingTitle"
         className="max-h-[92svh] w-full overflow-y-auto rounded-t-2xl border border-white/12 bg-[linear-gradient(180deg,#081427,#111a34_56%,#070b1d)] p-4 pb-[calc(16px+env(safe-area-inset-bottom))] text-slate-50 shadow-[0_24px_80px_rgba(0,0,0,0.5)] sm:max-w-[620px] sm:rounded-2xl sm:p-6"
         style={modalSheetScrollStyle}
-        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -417,8 +485,18 @@ export function FeatureMarketingDetailModal({
             <span>{priceText(target)}</span>
             <span>{target.accessType === "free" ? "무료 기능" : "결제 후 기존 화면으로 이동"}</span>
           </div>
-          <Link href={target.href} onClick={onClose} className="flex min-h-12 w-full items-center justify-center rounded-xl bg-[#f3d680] px-4 text-sm font-black text-[#111827] no-underline">
-            {copy.ctaLabel}
+          <Link
+            href={target.href}
+            onClick={handleCtaClick}
+            aria-busy={navPending}
+            className={`flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#f3d680] px-4 text-sm font-black text-[#111827] no-underline transition-opacity ${navPending ? "opacity-75" : ""}`}
+          >
+            {navPending ? (
+              <>
+                <span className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-[#111827]" aria-hidden />
+                열고 있어요…
+              </>
+            ) : copy.ctaLabel}
           </Link>
         </div>
       </section>
@@ -428,22 +506,46 @@ export function FeatureMarketingDetailModal({
 
 export function FeatureMarketingLink({ target, href, className, children, onClick, "aria-label": ariaLabel }: FeatureMarketingLinkProps) {
   const [open, setOpen] = useState(false);
+  // 무료 기능은 팝업 없이 바로 이동한다. 그런데 대상 라우트의 청크가 콜드면 전환이 수 초 걸리고
+  // 그 동안 화면이 그대로라, :active 로 눌린 표시가 손을 떼는 순간 사라진 뒤에는 아무 피드백이 없다.
+  // 탭이 접수됐다는 표시를 이동이 시작될 때까지 남긴다.
+  const [navigating, setNavigating] = useState(false);
   const finalHref = href || target.href;
   const finalTarget = useMemo(() => ({ ...target, href: finalHref }), [target, finalHref]);
 
+  useEffect(() => {
+    if (!navigating) return;
+    const timer = window.setTimeout(() => setNavigating(false), NAV_PENDING_FAILSAFE_MS);
+    return () => window.clearTimeout(timer);
+  }, [navigating]);
+
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);
-    if (event.defaultPrevented || !isPaidMarketingTarget(finalTarget)) return;
+    if (event.defaultPrevented) return;
+    if (!isPaidMarketingTarget(finalTarget)) {
+      // 기본 동작(next/link 이동)을 막지 않는다 — 표시만 남긴다.
+      if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) setNavigating(true);
+      return;
+    }
     event.preventDefault();
     setOpen(true);
   };
 
+  // 매 렌더 새 함수를 넘기면 모달 쪽 effect(포커스 이동·키 리스너)가 계속 재실행된다.
+  const handleClose = useCallback(() => setOpen(false), []);
+
   return (
     <>
-      <Link href={finalHref} className={className} onClick={handleClick} aria-label={ariaLabel}>
+      <Link
+        href={finalHref}
+        className={navigating ? `${className || ""} opacity-70 transition-opacity` : className}
+        onClick={handleClick}
+        aria-busy={navigating}
+        aria-label={ariaLabel}
+      >
         {children}
       </Link>
-      <FeatureMarketingDetailModal open={open} target={finalTarget} onClose={() => setOpen(false)} />
+      <FeatureMarketingDetailModal open={open} target={finalTarget} onClose={handleClose} />
     </>
   );
 }
