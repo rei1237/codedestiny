@@ -1062,8 +1062,10 @@ function verifyXRobotsNoindexHeaders(headersPath) {
     const policyPath = pattern.endsWith("/*") ? pattern.slice(0, -2) : pattern;
     assert(!canLoadAdsense(policyPath), `${policyPath}: X-Robots noindex route must not load AdSense`);
 
+    // 셸 사본 라우트는 색인만 막고 링크는 통과시키려고 `noindex, follow` 를 쓴다.
+    // 게이트가 지켜야 할 것은 noindex 이므로 follow/nofollow 는 둘 다 허용한다.
     const rulePattern = new RegExp(
-      `^${escapeRegex(pattern)}\\s*\\r?\\n(?:[ \\t].*\\r?\\n)*?[ \\t]+X-Robots-Tag:\\s*noindex,\\s*nofollow\\s*$`,
+      `^${escapeRegex(pattern)}\\s*\\r?\\n(?:[ \\t].*\\r?\\n)*?[ \\t]+X-Robots-Tag:\\s*noindex,\\s*(?:no)?follow\\s*$`,
       "im",
     );
     assert(rulePattern.test(headersText), `${headersPath}: missing X-Robots-Tag noindex rule for ${pattern}`);
