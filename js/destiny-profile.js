@@ -3871,7 +3871,9 @@
             }
             window._cdCoinGatePerUseInFlight = true;
             window.__cdCoinGatePerUseLockAt = Date.now();
-            _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
+            // 🔴 PG창이 열리기 전에는 어떤 대기 UI도 켜지 않는다. 예전에는 여기서 '단건 결제를 진행
+            // 중입니다' 오버레이를 띄웠고, 사용자에게는 결제수단을 고른 뒤 또 한 겹 로딩이 끼는 것으로 보였다.
+            // _cdRunDirectKrwCheckout 이 진입 시점부터 PG 오픈까지 억제 창을 걸고 스스로 오버레이를 내린다.
             return window._cdRunDirectKrwCheckout({
               coinPrice: cost,
               cost: cost,
@@ -3956,7 +3958,9 @@
           }
           window._cdCoinGatePerUseInFlight = true;
           window.__cdCoinGatePerUseLockAt = Date.now();
-          _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
+          // 🔴 PG창이 열리기 전에는 어떤 대기 UI도 켜지 않는다. 예전에는 여기서 '단건 결제를 진행
+          // 중입니다' 오버레이를 띄웠고, 사용자에게는 결제수단을 고른 뒤 또 한 겹 로딩이 끼는 것으로 보였다.
+          // _cdRunDirectKrwCheckout 이 진입 시점부터 PG 오픈까지 억제 창을 걸고 스스로 오버레이를 내린다.
           return window._cdRunDirectKrwCheckout({
             coinPrice: cost,
             cost: cost,
@@ -9003,7 +9007,9 @@
       }
       window._cdCoinGatePerUseInFlight = true;
       window.__cdCoinGatePerUseLockAt = Date.now();
-      _dpSetPaymentPending(true, String(reason || '유료 서비스') + ' 단건 결제를 진행 중입니다.', 'card');
+      // 🔴 PG창이 열리기 전에는 어떤 대기 UI도 켜지 않는다. 예전에는 여기서 '단건 결제를 진행
+      // 중입니다' 오버레이를 띄웠고, 사용자에게는 결제수단을 고른 뒤 또 한 겹 로딩이 끼는 것으로 보였다.
+      // _cdRunDirectKrwCheckout 이 진입 시점부터 PG 오픈까지 억제 창을 걸고 스스로 오버레이를 내린다.
       return window._cdRunDirectKrwCheckout({
         coinPrice: cost,
         cost: cost,
