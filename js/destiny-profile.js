@@ -2336,12 +2336,12 @@
   // 같은 키·같은 TTL·같은 검증을 그대로 쓴다 — 같은 오리진이라 셸을 방문한 사용자의 스냅샷을
   // 독립 정적 페이지가 그대로 재사용하고, 여기서 갱신한 값은 셸에서도 쓰인다.
   // 셸 안에서 실행될 때는 셸의 리더를 그대로 호출해 판정 로직이 두 벌로 갈라지지 않게 한다.
-  var _DP_SUB_SNAPSHOT_KEY_PREFIX = 'cd_subscription_snapshot_v2::';
-  var _DP_SUB_SNAPSHOT_NONE_TTL_MS = 60000;
-  var _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS = 5 * 60 * 1000;
-  // 🔴 stale-while-revalidate 상한. TTL(60초)을 넘긴 'none' 은 삭제하지 않고 이 상한까지 '미보유 확정'
-  // 판정에 그대로 쓰고(= 결제창 직행, 서버 왕복 0) 백그라운드로만 갱신한다. 셸·React 와 같은 값이다.
-  var _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS = 24 * 60 * 60 * 1000;
+  // 🔴 상수·읽기·쓰기·판정은 전부 /js/core/pass-verdict.js 가 소유한다(셸·React 와 공유하는 정본).
+  // 모듈이 없으면 '스냅샷 없음'으로 취급해 서버 검사로 폴백한다 — 낙관 통과 쪽으로는 폴백하지 않는다.
+  function _dpPassVerdict() {
+    var api = window.__cdPassVerdict;
+    return api && typeof api.readSnapshot === 'function' ? api : null;
+  }
   var _dpSnapshotRevalidateInFlight = false;
 
   // stale 'none' 을 읽었을 때의 백그라운드 갱신. 결제창이 어차피 쓰는 /api/billing/balance 를 재사용하고
@@ -2361,24 +2361,8 @@
   }
 
   function _dpMembershipPassLimitForTier(tier) {
-    if (tier === 'family') return 999999999;
-    if (tier === 'vvip') return 100;
-    if (tier === 'premium') return 50;
-    if (tier === 'standard') return 30;
-    return 0;
-  }
-
-  function _dpNormalizeMembershipTierName(value) {
-    var tier = String(value || '').trim().toLowerCase();
-    if (tier.indexOf('family') >= 0) return 'family';
-    if (tier.indexOf('vvip') >= 0) return 'vvip';
-    if (tier.indexOf('premium') >= 0 || tier.indexOf('프리미엄') >= 0) return 'premium';
-    if (tier.indexOf('standard') >= 0 || tier.indexOf('스탠다드') >= 0) return 'standard';
-    return 'free';
-  }
-
-  function _dpSubSnapshotKey(userId) {
-    return _DP_SUB_SNAPSHOT_KEY_PREFIX + String(userId || '').trim().toLowerCase();
+    var api = _dpPassVerdict();
+    return api ? api.passLimitForTier(tier) : 0;
   }
 
   // 셸의 __cdResolveAuthScopeId 와 동일한 규칙(_dpResolveIdScope)이라 키가 정확히 일치한다.
@@ -2387,63 +2371,16 @@
   }
 
   function _dpRemoveSubscriptionSnapshot(userId) {
-    try {
-      var resolved = String(userId || '').trim().toLowerCase();
-      if (!resolved) return;
-      localStorage.removeItem(_dpSubSnapshotKey(resolved));
-    } catch (_) {}
+    var api = _dpPassVerdict();
+    if (api) api.removeSnapshot(userId);
   }
 
   // options.allowStaleNone: TTL 을 넘긴 'none' 도 { stale:true } 로 돌려받는다(삭제하지 않음).
-  // 미보유 확정 판정에만 쓴다 — 'active' 는 stale 을 허용하지 않는다(만료 이용권으로 콘텐츠가 샌다).
+  // 'active' 는 이용권 만료일이 남아 있으면 TTL 을 넘겨도 { stale:true } 로 유지된다(판정은 그대로 유효).
   function _dpReadSubscriptionSnapshotLocal(options) {
-    var userId = _dpSubSnapshotUserId();
-    if (!userId) return null;
-    var allowStaleNone = Boolean(options && options.allowStaleNone);
-    try {
-      var raw = localStorage.getItem(_dpSubSnapshotKey(userId));
-      if (!raw) return null;
-      var parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-        _dpRemoveSubscriptionSnapshot(userId);
-        return null;
-      }
-      var snapshotUserId = String(parsed.userId || '').trim().toLowerCase();
-      var state = parsed.state === 'active' || parsed.state === 'none' ? parsed.state : '';
-      var tier = _dpNormalizeMembershipTierName(parsed.tier);
-      var checkedAt = Number(parsed.checkedAt);
-      var expiresAt = String(parsed.expiresAt || '').trim();
-      if (snapshotUserId !== userId || !state || !isFinite(checkedAt) || (state === 'active' && tier === 'free')) {
-        _dpRemoveSubscriptionSnapshot(userId);
-        return null;
-      }
-      var age = Date.now() - checkedAt;
-      var ttl = state === 'none' ? _DP_SUB_SNAPSHOT_NONE_TTL_MS : _DP_SUB_SNAPSHOT_ACTIVE_TTL_MS;
-      var stale = false;
-      if (age > ttl) {
-        if (state !== 'none' || !allowStaleNone || age > _DP_SUB_SNAPSHOT_NONE_STALE_MAX_MS) {
-          _dpRemoveSubscriptionSnapshot(userId);
-          return null;
-        }
-        stale = true;
-      }
-      if (state === 'active' && expiresAt && Date.parse(expiresAt) <= Date.now()) {
-        _dpRemoveSubscriptionSnapshot(userId);
-        return null;
-      }
-      return {
-        userId: userId,
-        state: state,
-        tier: state === 'active' ? tier : 'free',
-        expiresAt: state === 'active' ? (expiresAt || null) : null,
-        checkedAt: checkedAt,
-        source: String(parsed.source || 'local'),
-        stale: stale
-      };
-    } catch (_) {
-      _dpRemoveSubscriptionSnapshot(userId);
-      return null;
-    }
+    var api = _dpPassVerdict();
+    if (!api) return null;
+    return api.readSnapshot(_dpSubSnapshotUserId(), options);
   }
 
   function _dpReadSubscriptionSnapshot(options) {
@@ -2459,23 +2396,9 @@
 
   // 서버가 확인해 준 등급만 저장한다(degraded 응답은 호출부에서 이미 걸러진다).
   function _dpWriteSubscriptionSnapshot(membership, source) {
-    var userId = _dpSubSnapshotUserId();
-    if (!userId) return;
-    try {
-      var info = membership && typeof membership === 'object' ? membership : {};
-      var tier = _dpNormalizeMembershipTierName(info.tier || info.passTier);
-      var active = info.isActive === true && tier !== 'free';
-      var expiresAt = String(info.expiresAt || '').trim();
-      if (active && expiresAt && Date.parse(expiresAt) <= Date.now()) active = false;
-      localStorage.setItem(_dpSubSnapshotKey(userId), JSON.stringify({
-        userId: userId,
-        state: active ? 'active' : 'none',
-        tier: active ? tier : 'free',
-        expiresAt: active && expiresAt ? expiresAt : null,
-        checkedAt: Date.now(),
-        source: String(source || 'destiny-profile')
-      }));
-    } catch (_) {}
+    var api = _dpPassVerdict();
+    if (!api) return;
+    api.storeStatus(_dpSubSnapshotUserId(), membership, source || 'destiny-profile');
   }
 
   // 셸이 없는 독립 페이지에서도 같은 리더를 다른 코드가 재사용할 수 있게 노출한다(셸 정본은 덮지 않는다).
@@ -2504,6 +2427,20 @@
   }
 
   function _dpReadActiveMembershipCoverage(cost) {
+    // 1순위는 서버가 채운 구독 스냅샷이다 — 셸·React 와 같은 근거를 써야 판정이 갈리지 않는다.
+    // (아래 auth-cache 폴백은 family 등급을 인식하지 못해 family 사용자가 낙관 통과에서 빠져 있었다.)
+    try {
+      var api = _dpPassVerdict();
+      if (api) {
+        var snapshot = _dpReadSubscriptionSnapshot();
+        if (snapshot) {
+          if (snapshot.stale === true) _dpRevalidateSubscriptionSnapshot();
+          var verdict = api.resolveVerdict(snapshot, cost);
+          if (verdict.coversNow) return { tier: verdict.tier, freeLimit: verdict.passLimit };
+          if (verdict.cannotCover) return null;
+        }
+      }
+    } catch (_) {}
     try {
       var user = JSON.parse(localStorage.getItem('fortune_auth_user') || 'null');
       var sub = user && user.profileSubscription;
