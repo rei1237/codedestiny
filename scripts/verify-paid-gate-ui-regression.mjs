@@ -299,27 +299,7 @@ assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
 assertContains(destinyProfileSource, "_dpHasActivePaidServiceSingleFlight('__cdPaidServiceGateInFlight'", "destiny fallback global paid gate duplicate lock");
 assertNotContains(destinyProfileSource, "opts.internalMainGate !== true && opts.__cdPaymentGateAuthorized !== true && typeof window.__cdApplyMembershipPassBeforePayment", "destiny no pre-modal pass bottleneck");
-// 🔴 PG창 직전 구간은 '무엇이 인접해 있는가'가 아니라 '무엇도 UI를 켜지 않는가'로 판정한다.
-// 예전에는 두 줄의 문자열 인접성을 고정했는데, 그 사이에 UI를 **내리는** 코드(진행 표시 dismiss,
-// 중단 확인)를 넣는 정당한 변경까지 막았다. 의도는 그대로 유지하면서 더 정확히 본다.
-{
-  const hideMarker = "_dpSetPaymentPending(false);";
-  const pgMarker = "var rsp = await window.PortOne.requestPayment(requestData);";
-  const pgIndex = destinyProfileSource.indexOf(pgMarker);
-  assert.ok(pgIndex > 0, "destiny runtime must call PortOne.requestPayment");
-  const hideIndex = destinyProfileSource.lastIndexOf(hideMarker, pgIndex);
-  assert.ok(hideIndex > 0, "destiny runtime must hide the payment overlay before the PG window");
-  const gap = destinyProfileSource.slice(hideIndex + hideMarker.length, pgIndex);
-  assert.ok(
-    gap.length < 900,
-    `destiny runtime keeps the pre-PG gap tight (was ${gap.length} chars)`,
-  );
-  for (const forbidden of ["_dpSetPaymentPending(true", "_cdSetCoinGateOverlay(true", "_dpShowPassAppliedOverlay"]) {
-    assert.ok(!gap.includes(forbidden), `destiny runtime must not raise UI right before the PG window (${forbidden})`);
-  }
-  // 진행 표시(결제수단 모달)는 PG창 렌더 직전에 반드시 내려가야 한다 — 겹침 방지.
-  assert.ok(gap.includes("_dpDismissDirectProgress()"), "destiny runtime dismisses the in-modal progress before the PG window");
-}
+assertContains(destinyProfileSource, "_dpSetPaymentPending(false);\n      var rsp = await window.PortOne.requestPayment(requestData);", "destiny runtime hides payment overlay immediately before PG window");
 // 정적 폴백 오버레이가 결제수단별 안내를 렌더하는지(월정석·단건·완료 제목 전환 + 완료 프레임) 회귀 방지.
 assertContains(destinyProfileSource, "function _dpResolveStandaloneOverlayCopy", "destiny fallback overlay copy is mode-aware");
 assertContains(destinyProfileSource, "title: '월정석 사용 중'", "destiny fallback monthly overlay title");

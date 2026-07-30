@@ -172,8 +172,11 @@ function runInstantPgWindowTests() {
   assertContains(paymentsRouteSource, "const orderCustomer = buildSinglePaymentCustomer(currentUser, auth.userId);", "membership-pass order must carry the saved customer phone");
   assertContains(destinyProfileSource, "orderCustomer.phoneNumber,", "dp must read the server-supplied order.customer phone");
 
-  // ③ 단건 확정 → PG창 렌더 사이에는 진행 상태 UI를 켜지 않는다.
-  assertNotContains(indexSource, "updateSharedPaidGate('paymentPreparing'", "no wait overlay may be raised between the direct-payment choice and the PG window");
+  // ③ 🔴 규칙 정정(2026-07): 예전 규칙은 "클릭~PG창 사이 오버레이 0"이었다. 그 구간이 완전히 비어
+  // 무반응으로 보이자 사용자가 규칙을 뒤집었다 — 이제 그 구간은 **꽃돼지 'card' 오버레이 하나로만**
+  // 채운다(다른 문구가 끼어드는 것은 계속 금지). 억제 창은 유지하되 우리 호출만 통과시킨다.
+  // 선택 시점의 paymentPreparing emit 은 계속 없는 상태로 둔다 — 구간 오버레이의 주인은 체크아웃 함수다.
+  assertNotContains(indexSource, "updateSharedPaidGate('paymentPreparing'", "the choice-time paymentPreparing emit stays removed (the gap overlay is owned by the checkout function)");
   assertContains(indexSource, "function _cdBeginDirectPgWindowSuppression()", "direct-PG wait-UI suppression window");
   assertContains(indexSource, "function _cdEndDirectPgWindowSuppression()", "direct-PG wait-UI suppression release");
   assertContains(indexSource, "if (isOpen && _cdDirectPgWindowSuppressedMode(mode)) return;", "overlay must honour the direct-PG suppression window");
@@ -233,56 +236,43 @@ function runInstantPgLatencyTests() {
   assertNotContains(destinyProfileSource, "' 단건 결제를 진행 중입니다.', 'card'", "dp must not raise a wait overlay right before the PG window opens");
 }
 
-// 🔴 "단건결제를 눌렀는데 아무 반응이 없다" 회귀 가드 (2026-07)
-// PG창 앞 대기 UI를 걷어내는 과정에서 반대쪽으로 넘어가, 클릭~PG창 구간이 완전 무반응이 됐다
-// (이탈 위험). 원인은 세 렌더러 모두 `direct` 를 고른 즉시 결제수단 모달을 DOM 에서 제거해서,
-// 붙여 둔 is-loading 표시를 아무도 보지 못한 것이었다. 이제 모달을 '진행 중' 상태로 남기고 단계
-// 문구를 갈아 끼우며, 제거는 PG창 렌더 직전 단 한 곳에서만 한다.
-function runDirectProgressUiTests() {
+// 🔴 "단건결제 클릭 후 아무 UI가 없다 / 결제창과 오버레이가 겹친다" 회귀 가드 (2026-07)
+// 규칙이 두 번 뒤집혔으므로 현재 규칙을 명시적으로 고정한다:
+//   ⓐ 클릭~PG창 구간은 **꽃돼지 'card' 오버레이 하나**로 채운다(빈 화면 금지).
+//   ⓑ 결제수단 선택 모달이 떠 있는 동안에는 진행 오버레이를 띄우지 않는다(겹침 금지).
+//   ⓒ 그 오버레이는 PG창 렌더 **직전**에 내린다(PG창 가림 금지).
+//   ⓓ 모달 안에 스피너·단계 문구·진행 핸들을 다시 넣지 않는다(볼품없다는 지적으로 폐기된 접근).
+function runDirectPgOverlayTests() {
   const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
-  const renderers = [
-    ["index.html", indexSource, "function registerDirectProgress("],
-    // React 는 화살표 함수로 선언한다.
-    ["app/_lib/billing-client.ts", billingClientSource, "const registerDirectProgress = () => {"],
-    ["js/destiny-profile.js", destinyProfileSource, "function registerDpDirectProgress("],
-  ];
-  for (const [label, source, register] of renderers) {
-    // 진행 핸들을 등록한다(= 모달을 즉시 지우지 않는다).
-    assertContains(source, register, `${label}: direct choice must keep the modal as a progress state`);
-    assertContains(source, "__cdPaymentChoiceProgress", `${label}: progress handle must be published for the checkout to consume`);
-    // 취소 버튼은 진행 중에도 활성으로 남아야 한다(데드엔드 방지). 두 가지 방식 중 하나여야 한다:
-    // ① [data-mode] 를 순회하며 cancel 을 명시적으로 건너뛴다(셸·React) 또는
-    // ② 애초에 결제 옵션 클래스만 순회해 취소 버튼이 선택되지 않는다(dp 독립 폴백).
-    assert.ok(
-      source.includes('=== "cancel") return;')
-        || source.includes("=== 'cancel') return;")
-        || source.includes("querySelectorAll('.cd-direct-payment-option')"),
-      `${label}: cancel must stay enabled while direct payment is in progress`,
-    );
-    // 진행 중 취소를 누르면 중단 플래그가 선다.
-    assertContains(source, "isAborted", `${label}: progress handle must expose the abort flag`);
-    // 실패 안전판(하드 상한)이 있어야 진행 표시가 영구히 남지 않는다.
-    assertContains(source, "PROGRESS_MAX_MS", `${label}: progress state needs a hard timeout failsafe`);
-  }
 
-  // 2단계 문구가 두 소비자(셸/dp 단건 체크아웃)에 배선돼 있어야 한다.
-  assertContains(indexSource, "var CD_DIRECT_STAGE_ORDER = '결제 주문을 확인하고 있어요';", "shell stage 1 copy");
-  assertContains(indexSource, "var CD_DIRECT_STAGE_WINDOW = '결제창을 여는 중이에요';", "shell stage 2 copy");
-  assertContains(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_ORDER);", "shell must show stage 1 before the checkout order call");
-  assertContains(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_WINDOW);", "shell must show stage 2 before the PG window");
-  assertBefore(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_ORDER);", "_cdSetDirectProgressStage(CD_DIRECT_STAGE_WINDOW);", "shell stages must run in order");
-  assertContains(destinyProfileSource, "_dpSetDirectProgressStage(DP_DIRECT_STAGE_WINDOW);", "dp must show stage 2 before the PG window");
+  // ⓐ 구간을 채우는 오버레이 배선
+  assertContains(indexSource, "function _cdShowDirectPgWaitOverlay()", "shell gap overlay helper");
+  assertContains(indexSource, "function _cdHideDirectPgWaitOverlay()", "shell gap overlay release helper");
+  assertContains(indexSource, "_cdSetCoinGateOverlay(true, '', 'card')", "gap overlay must use the canonical mode 'card' copy");
+  assertContains(indexSource, "_cdShowDirectPgWaitOverlay();", "shell must fill the click→PG gap with the overlay");
+  // 억제 창을 우회하는 통로는 이 헬퍼 하나뿐이어야 한다.
+  assertContains(indexSource, "if (_cdDirectPgAllowOwnOverlay) return false;", "only the gap overlay helper may bypass the suppression window");
+  // dp(독립 정적 페이지·App Router React 경로)도 같은 구간을 채운다.
+  assertContains(destinyProfileSource, "_dpSetPaymentPending(true, '', 'card');", "dp must fill the click→PG gap with the overlay");
+  assertContains(destinyProfileSource, "_dpSetStandalonePaymentOverlay(!!show, text, mode);", "dp standalone overlay must receive the mode (otherwise it shows the pass-check copy)");
 
-  // 진행 표시는 PG창 렌더 직전에 내려간다(겹침 방지) — 두 체크아웃 모두.
-  assertBefore(indexSource, "_cdDismissDirectProgress();", "window.PortOne.requestPayment(requestData)", "shell must dismiss the progress state before the PG window renders");
-  assertBefore(destinyProfileSource, "_dpDismissDirectProgress();", "window.PortOne.requestPayment(requestData)", "dp must dismiss the progress state before the PG window renders");
-  // 실패로 끝나도 진행 표시가 남지 않게 정리 경로가 있어야 한다.
-  assertContains(indexSource, "_cdRunDirectKrwCheckoutCore(opts).catch(function(error) {", "shell must clear the progress state when the checkout fails");
-  assertContains(destinyProfileSource, "Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(error) {", "dp must clear the progress state when the checkout fails");
+  // ⓑ 결제창과 동시 노출 금지
+  assertContains(indexSource, "function _cdPaymentChoiceModalOpen()", "payment-choice-modal probe");
+  assertContains(indexSource, "document.querySelector('.cd-direct-payment-modal')", "probe must detect any of the three renderers' modal");
+  assertContains(
+    indexSource,
+    "if (isOpen && _cdPaymentChoiceModalOpen() && !CD_DIRECT_PG_TERMINAL_MODE_RE.test(String(mode || ''))) return;",
+    "no progress overlay may be shown while the payment-choice modal is open",
+  );
 
-  // 스피너는 세 렌더러에 동일 규칙으로 들어간다(verify:payment-choice-parity 가 텍스트 동일성을 강제).
+  // ⓒ PG창 직전에 내린다 + 실패해도 남지 않는다
+  assertBefore(indexSource, "_cdHideDirectPgWaitOverlay();", "window.PortOne.requestPayment(requestData)", "gap overlay must be hidden before the PG window renders");
+  assertContains(indexSource, "Promise.resolve(_cdRunDirectKrwCheckoutCore(opts)).catch(function(_cdDirectCheckoutError) {", "gap overlay must be cleared when the checkout fails");
+
+  // ⓓ 폐기된 '모달 제자리 진행 표시'가 다시 들어오지 않게 막는다
   for (const [label, source] of [["index.html", indexSource], ["app/_lib/billing-client.ts", billingClientSource], ["js/destiny-profile.js", destinyProfileSource]]) {
-    assertContains(source, "animation:cdDirectPaymentSpin", `${label}: in-modal progress spinner`);
+    assertNotContains(source, "__cdPaymentChoiceProgress", `${label}: the in-modal progress handle approach was dropped (unattractive) — do not reintroduce`);
+    assertNotContains(source, "cdDirectPaymentSpin", `${label}: the in-modal option spinner was dropped — do not reintroduce`);
   }
 }
 
@@ -812,7 +802,7 @@ try {
   runPortOneRequestShapeTests();
   runInstantPgWindowTests();
   runInstantPgLatencyTests();
-  runDirectProgressUiTests();
+  runDirectPgOverlayTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");
