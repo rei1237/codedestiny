@@ -232,6 +232,13 @@ async function main() {
   for (const filePath of files) {
     const original = await readFile(filePath, "utf8");
     if (!/\.png\b/i.test(original)) continue;
+    // A regression guard that asserts an asset is ABSENT names the forbidden file
+    // on purpose. Rewriting that string leaves the guard passing while it no longer
+    // watches anything — the legacy asset could come back unnoticed.
+    if (original.includes("assertNotContains")) {
+      skipReasons.set("negative-assertion-guard", (skipReasons.get("negative-assertion-guard") || 0) + 1);
+      continue;
+    }
 
     const references = extractReferences(original);
     let updated = original;
