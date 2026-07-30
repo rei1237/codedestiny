@@ -212,6 +212,59 @@ function runInstantPgLatencyTests() {
   assertNotContains(destinyProfileSource, "' 단건 결제를 진행 중입니다.', 'card'", "dp must not raise a wait overlay right before the PG window opens");
 }
 
+// 🔴 "단건결제를 눌렀는데 아무 반응이 없다" 회귀 가드 (2026-07)
+// PG창 앞 대기 UI를 걷어내는 과정에서 반대쪽으로 넘어가, 클릭~PG창 구간이 완전 무반응이 됐다
+// (이탈 위험). 원인은 세 렌더러 모두 `direct` 를 고른 즉시 결제수단 모달을 DOM 에서 제거해서,
+// 붙여 둔 is-loading 표시를 아무도 보지 못한 것이었다. 이제 모달을 '진행 중' 상태로 남기고 단계
+// 문구를 갈아 끼우며, 제거는 PG창 렌더 직전 단 한 곳에서만 한다.
+function runDirectProgressUiTests() {
+  const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
+  const renderers = [
+    ["index.html", indexSource, "function registerDirectProgress("],
+    // React 는 화살표 함수로 선언한다.
+    ["app/_lib/billing-client.ts", billingClientSource, "const registerDirectProgress = () => {"],
+    ["js/destiny-profile.js", destinyProfileSource, "function registerDpDirectProgress("],
+  ];
+  for (const [label, source, register] of renderers) {
+    // 진행 핸들을 등록한다(= 모달을 즉시 지우지 않는다).
+    assertContains(source, register, `${label}: direct choice must keep the modal as a progress state`);
+    assertContains(source, "__cdPaymentChoiceProgress", `${label}: progress handle must be published for the checkout to consume`);
+    // 취소 버튼은 진행 중에도 활성으로 남아야 한다(데드엔드 방지). 두 가지 방식 중 하나여야 한다:
+    // ① [data-mode] 를 순회하며 cancel 을 명시적으로 건너뛴다(셸·React) 또는
+    // ② 애초에 결제 옵션 클래스만 순회해 취소 버튼이 선택되지 않는다(dp 독립 폴백).
+    assert.ok(
+      source.includes('=== "cancel") return;')
+        || source.includes("=== 'cancel') return;")
+        || source.includes("querySelectorAll('.cd-direct-payment-option')"),
+      `${label}: cancel must stay enabled while direct payment is in progress`,
+    );
+    // 진행 중 취소를 누르면 중단 플래그가 선다.
+    assertContains(source, "isAborted", `${label}: progress handle must expose the abort flag`);
+    // 실패 안전판(하드 상한)이 있어야 진행 표시가 영구히 남지 않는다.
+    assertContains(source, "PROGRESS_MAX_MS", `${label}: progress state needs a hard timeout failsafe`);
+  }
+
+  // 2단계 문구가 두 소비자(셸/dp 단건 체크아웃)에 배선돼 있어야 한다.
+  assertContains(indexSource, "var CD_DIRECT_STAGE_ORDER = '결제 주문을 확인하고 있어요';", "shell stage 1 copy");
+  assertContains(indexSource, "var CD_DIRECT_STAGE_WINDOW = '결제창을 여는 중이에요';", "shell stage 2 copy");
+  assertContains(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_ORDER);", "shell must show stage 1 before the checkout order call");
+  assertContains(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_WINDOW);", "shell must show stage 2 before the PG window");
+  assertBefore(indexSource, "_cdSetDirectProgressStage(CD_DIRECT_STAGE_ORDER);", "_cdSetDirectProgressStage(CD_DIRECT_STAGE_WINDOW);", "shell stages must run in order");
+  assertContains(destinyProfileSource, "_dpSetDirectProgressStage(DP_DIRECT_STAGE_WINDOW);", "dp must show stage 2 before the PG window");
+
+  // 진행 표시는 PG창 렌더 직전에 내려간다(겹침 방지) — 두 체크아웃 모두.
+  assertBefore(indexSource, "_cdDismissDirectProgress();", "window.PortOne.requestPayment(requestData)", "shell must dismiss the progress state before the PG window renders");
+  assertBefore(destinyProfileSource, "_dpDismissDirectProgress();", "window.PortOne.requestPayment(requestData)", "dp must dismiss the progress state before the PG window renders");
+  // 실패로 끝나도 진행 표시가 남지 않게 정리 경로가 있어야 한다.
+  assertContains(indexSource, "_cdRunDirectKrwCheckoutCore(opts).catch(function(error) {", "shell must clear the progress state when the checkout fails");
+  assertContains(destinyProfileSource, "Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(error) {", "dp must clear the progress state when the checkout fails");
+
+  // 스피너는 세 렌더러에 동일 규칙으로 들어간다(verify:payment-choice-parity 가 텍스트 동일성을 강제).
+  for (const [label, source] of [["index.html", indexSource], ["app/_lib/billing-client.ts", billingClientSource], ["js/destiny-profile.js", destinyProfileSource]]) {
+    assertContains(source, "animation:cdDirectPaymentSpin", `${label}: in-modal progress spinner`);
+  }
+}
+
 function assertBefore(source, first, second, label) {
   const firstIndex = source.indexOf(first);
   const secondIndex = source.indexOf(second);
@@ -738,6 +791,7 @@ try {
   runPortOneRequestShapeTests();
   runInstantPgWindowTests();
   runInstantPgLatencyTests();
+  runDirectProgressUiTests();
   runE2EStaticTests();
   assertContains(portoneSource, "Authorization: `PortOne ${apiSecret}`", "PortOne REST authorization header");
   assertContains(portoneSource, "noticeUrl,", "PortOne public config should expose webhook notice URL");
