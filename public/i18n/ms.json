@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Kedai Moonlight Pass",
       "passRetryTitle": "Semak pas sekali lagi",
       "passHint": {
-        "store": "Beralih ke Kedai Moonlight Pass untuk membeli pas yang anda perlukan.",
-        "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran."
+        "store": "Beralih kepada Moonlight Pass untuk membuka ciri ini dan semua ciri dalam hadnya selama 30 hari, tanpa tetingkap pembayaran.",
+        "retry": "Kami akan menyemak pelayan sekali lagi untuk melihat sama ada pas anda boleh membukanya tanpa bayaran.",
+        "upgrade": "Ciri ini melebihi had pas semasa anda. Sila semak Moonlight Pass yang lebih tinggi."
       },
       "applyMethod": {
         "label": "Gunakan kaedah",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "Perkhidmatan ini disediakan serta-merta selepas pembayaran selesai. Penggunaan perkhidmatan bermula dari saat pembayaran disahkan, dan pembatalan langganan mungkin dihadkan untuk kandungan yang telah disediakan mengikut undang-undang e-dagang."
-      }
+      },
+      "passUpgradeTitle": "Naik taraf Moonlight Pass",
+      "recommendBadge": "Disyorkan"
     },
     "overlay": {
       "unlockPreparing": {

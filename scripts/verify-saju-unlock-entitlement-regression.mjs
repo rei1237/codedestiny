@@ -561,7 +561,10 @@ for (const marker of [
   "__cdDirectPaymentChoiceConfirmed",
   "단건결제는 결제 방식 선택창에서 단건결제를 선택한 뒤에만 열 수 있습니다.",
   "var passMode = 'pass-store'",
-  "달빛 이용권 상점으로 이동해 필요한 이용권을 구매합니다.",
+  // 🔴 문구가 아니라 i18n 키를 단언한다. 예전에는 이용권 상점 카드의 한국어 문장 리터럴을 봤는데,
+  // #124가 그 문장을 재작성하면서 이 가드가 깨졌고(UI는 오히려 상시 노출로 강화됨) 아무도 못 알아챘다.
+  // 키는 문구가 바뀌어도 유지되므로 "이용권 상점 카드가 존재하는가"라는 원래 의도만 정확히 지킨다.
+  "payment.directModal.passHint.store",
   "pass_store_opened",
 ]) {
   assert.ok(indexHtml.includes(marker), `UI/access marker exists: ${marker}`);

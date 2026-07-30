@@ -1766,8 +1766,9 @@
       "passStoreTitle": "月光通行券商店",
       "passRetryTitle": "重新检查通行券",
       "passHint": {
-        "store": "前往月光通行券商店购买所需通行券。",
-        "retry": "服务器将重新检查持有通行券是否可免支付开启。"
+        "store": "切換到月光通行券後，包括此功能在內的額度以內功能可在30天內無需支付視窗無限使用。",
+        "retry": "服务器将重新检查持有通行券是否可免支付开启。",
+        "upgrade": "此功能超出目前通行券額度。請查看更高階的月光通行券。"
       },
       "applyMethod": {
         "label": "适用方式",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "本服務於付款完成後立即提供。服務將於確認付款時開始使用，已開始提供的內容根據電子商務法可能限制撤銷訂單。"
-      }
+      },
+      "passUpgradeTitle": "月光通行券升級",
+      "recommendBadge": "推薦"
     },
     "overlay": {
       "unlockPreparing": {

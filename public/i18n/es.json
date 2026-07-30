@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Tienda de pases a la luz de la luna",
       "passRetryTitle": "Verificar pase nuevamente",
       "passHint": {
-        "store": "Vaya a la tienda Moonlight Pass para comprar el pase que necesita.",
-        "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago."
+        "store": "Cambia al Pase Moonlight para abrir esta y todas las funciones dentro del límite durante 30 días, sin ventana de pago.",
+        "retry": "Revisaremos el servidor nuevamente para ver si su pase puede abrirlo sin pago.",
+        "upgrade": "Esta función supera el límite de tu pase actual. Consulta un Pase Moonlight superior."
       },
       "applyMethod": {
         "label": "Aplicar método",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "Este servicio se proporciona inmediatamente después de completar el pago. El uso del servicio comienza en el momento en que se confirma el pago, y el derecho de desistimiento puede estar restringido para el contenido ya proporcionado, según la Ley de Comercio Electrónico."
-      }
+      },
+      "passUpgradeTitle": "Mejorar el pase Moonlight",
+      "recommendBadge": "Recomendado"
     },
     "overlay": {
       "unlockPreparing": {

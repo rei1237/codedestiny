@@ -1766,8 +1766,9 @@
       "passStoreTitle": "Moonlight Pass-winkel",
       "passRetryTitle": "Controleer de pas opnieuw",
       "passHint": {
-        "store": "Ga naar de Moonlight Pass Shop om de pas te kopen die je nodig hebt.",
-        "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen."
+        "store": "Stap over op de Moonlight Pass en gebruik deze en alle functies onder de limiet 30 dagen lang onbeperkt, zonder betaalvenster.",
+        "retry": "Wij controleren de server nogmaals of uw pas deze zonder betaling kan openen.",
+        "upgrade": "Deze functie ligt boven de limiet van je huidige pas. Bekijk een hogere Moonlight Pass."
       },
       "applyMethod": {
         "label": "Methode toepassen",
@@ -1797,7 +1798,9 @@
       },
       "legal": {
         "provisionTiming": "Deze service wordt direct na voltooiing van de betaling geleverd. Het gebruik van de service begint zodra de betaling is bevestigd, en voor reeds geleverde content kan het herroepingsrecht volgens de wet op elektronische handel beperkt zijn."
-      }
+      },
+      "passUpgradeTitle": "Moonlight Pass upgraden",
+      "recommendBadge": "Aanbevolen"
     },
     "overlay": {
       "unlockPreparing": {

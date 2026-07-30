@@ -29,6 +29,10 @@ on:
       # src/** 가 빠져 있어서 마스터 인연의 서·운명 찻집·네오 전략실 변경은 이 게이트를
       # 아예 깨우지 못했다.
       - "src/**"
+      # 결제창 문구는 셸 인라인 폴백이 아니라 로케일 파일이 정본이다(_cdPaymentI18n 조회가 성공하면
+      # 폴백은 죽은 코드가 된다). 여기에 없어서 12개 로케일이 통째로 낡은 문구로 굳어도 게이트가
+      # 깨어나지 않았다.
+      - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "package.json"
@@ -60,6 +64,10 @@ on:
       # src/** 가 빠져 있어서 마스터 인연의 서·운명 찻집·네오 전략실 변경은 이 게이트를
       # 아예 깨우지 못했다.
       - "src/**"
+      # 결제창 문구는 셸 인라인 폴백이 아니라 로케일 파일이 정본이다(_cdPaymentI18n 조회가 성공하면
+      # 폴백은 죽은 코드가 된다). 여기에 없어서 12개 로케일이 통째로 낡은 문구로 굳어도 게이트가
+      # 깨어나지 않았다.
+      - "public/i18n/**"
       - "scripts/verify-paid-gate-ui-regression.mjs"
       - "scripts/verify-master-love-codex-flow.mjs"
       - "package.json"
@@ -130,6 +138,46 @@ jobs:
 
       - name: Verify master love codex flow
         run: npm run verify:master-love-codex-flow
+
+      # 아래 11개도 같은 이유로 지금까지 한 번도 PR 을 막은 적이 없었다 — package.json 에만 있고
+      # 어떤 워크플로에서도 실행되지 않았다. 실제로 그 공백 때문에 verify:saju-unlock-entitlement-regression
+      # 은 결제창 문구가 재작성된 뒤 깨진 채로 방치됐고, 아무도 알아채지 못했다.
+      # 전부 현재 통과함을 확인하고 배선한다(결제 정책 · 동시성 · 보안 · 원장 순).
+      - name: Verify billing pass policy
+        run: npm run verify:billing-pass-policy
+
+      - name: Verify PortOne single payment regression
+        run: npm run verify:portone-single-payment
+
+      - name: Verify paid feature common flow
+        run: npm run verify:paid-feature-common-flow
+
+      - name: Verify static paid gate failsafe
+        run: npm run verify:static-paid-gate-failsafe
+
+      - name: Verify saju unlock entitlement regression
+        run: npm run verify:saju-unlock-entitlement-regression
+
+      - name: Verify profile card action policy
+        run: npm run verify:profile-card-action-policy
+
+      - name: Verify app store billing policy
+        run: npm run verify:app-store-billing-policy
+
+      - name: Verify payment concurrency guards
+        run: npm run verify:payment-concurrency-guards
+
+      - name: Verify monthly credit lots
+        run: npm run verify:monthly-credit-lots
+
+      - name: Verify worker security guards
+        run: npm run verify:worker-security-guards
+
+      - name: Verify no secret leak
+        run: npm run verify:no-secret-leak
+
+      # verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI
+      # 실환경을 요구하는 라이브 점검이라, 시크릿 없는 PR 러너에서는 항상 실패한다.
 
       # 예전에는 여기서 파일 6개만 손으로 지목해 돌렸다. 그래서 나머지 48개 테스트 파일은
       # 어디서도 실행되지 않았고, ESM 목이 낡아 스위트가 통째로 죽어도(로그인 열거·무차별 대입,
