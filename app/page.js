@@ -5,6 +5,7 @@ import {
   buildWebPageJsonLd,
 } from "../lib/structured-data";
 import { buildMusicPublicUrl } from "../lib/r2-public-url";
+import HomeRedirectToStatic from "./HomeRedirectToStatic";
 import styles from "./home-cosmic.module.css";
 
 const HOME_PAGE_TEXT_TRANSLATIONS = {
@@ -227,8 +228,16 @@ export default function HomePage() {
     path: page.path,
   });
 
+  // 🔴 아래 섹션 마크업을 지우지 말 것.
+  // 홈("/")은 정적 메인 셸이 담당하고 이 React 화면은 사용자에게 노출되지 않는다
+  // (HomeRedirectToStatic 이 정적 홈으로 되돌린다. 소개 콘텐츠는 /about 으로 합쳤다).
+  // 그런데 배포 게이트 scripts/verify-adsense-readiness.mjs 는 out·dist 양쪽을 검사하고,
+  // "/" 는 AdSense 비대상이면서 색인 대상이라 렌더 텍스트 1,800자 하한이 걸린다
+  // (verifyBlockedIndexableSitemapRouteQuality). 현재 out/index.html 실측 3,145자 —
+  // 이 섹션들을 줄이면 빌드가 실패해 배포 자체가 막힌다.
   return (
     <main className={styles.pageWrap}>
+      <HomeRedirectToStatic />
       <div className={styles.starLayer} aria-hidden />
 
       <section className={styles.heroSection} aria-labelledby="reactHomeHeroTitle">
