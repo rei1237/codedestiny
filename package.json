@@ -126,6 +126,7 @@
     "verify:i18n-no-hardcoded-korean": "node scripts/verify-i18n-no-hardcoded-korean.mjs",
     "verify:i18n-runtime": "node scripts/verify-i18n-runtime-readiness.mjs",
     "verify:locale-main-sync": "node scripts/verify-locale-main-sync.mjs",
+    "verify:www-canonical": "node scripts/verify-www-canonical.mjs",
     "verify:runtime-cache-sync": "node scripts/verify-runtime-cache-sync.mjs",
     "verify:tarot-love-flow": "node scripts/verify-tarot-love-instant-flow.mjs",
     "verify:mobile-feature-coverage": "node scripts/verify-mobile-feature-coverage.mjs",
