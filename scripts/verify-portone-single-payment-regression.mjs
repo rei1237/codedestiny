@@ -151,6 +151,27 @@ function runInstantPgWindowTests() {
   assertBefore(destinyProfileSource, "_dpCloseBlockingLayersBeforePhonePrompt();", "window._cdPromptDirectCheckoutPhoneNumber()", "dp must close blocking layers before opening the phone prompt");
   assertBefore(indexSource, "if (typeof _cdClosePaidFeatureGate === 'function') _cdClosePaidFeatureGate(); } catch (_) {}", "var overlay = document.createElement('div');", "shell phone prompt must close the gate before rendering its input");
 
+  // 🔴 ①-b "사이트를 나갔다 다시 들어오면 번호를 또 묻는다" 회귀 가드 (2026-07-30)
+  // 셸·dp 두 새니타이저만 대칭으로 맞췄고 세 번째(React app/_lib/auth-storage.ts)를 놓쳐서,
+  // readSanitizedAuthUser 가 읽을 때마다 정제본을 되쓰며 셸이 저장해 둔 번호를 지웠다. 가입 시
+  // 받은 번호도 persistSanitizedAuthUser 를 지나며 버려져 캐시에는 처음부터 번호가 없었다.
+  const authStorageSource = readFileSync(resolve(root, "app/_lib/auth-storage.ts"), "utf8");
+  assertContains(authStorageSource, 'copyString(source, "phoneNumber", safe);', "React auth-user cache must keep phoneNumber (payment phone re-prompt regression)");
+  assertContains(authStorageSource, 'copyString(source, "phone", safe);', "React auth-user cache must keep phone (payment phone re-prompt regression)");
+
+  // 조회 실패(401/503/쿨다운)를 '번호 없음'으로 세탁하지 않는다 — 확정 미보유일 때만 입력창을 띄운다.
+  assertContains(indexSource, "savedState.checked = true;", "shell payment-phone lookup must mark a definitive answer");
+  assertContains(indexSource, "if (current && current.checked !== true) {", "shell must not treat a failed payment-phone lookup as 'no phone'");
+  assertContains(destinyProfileSource, "state.checked = true;", "dp payment-phone lookup must mark a definitive answer");
+  assertContains(destinyProfileSource, "if (current && current.checked !== true) {", "dp must not treat a failed payment-phone lookup as 'no phone'");
+
+  // degraded /api/auth/me(토큰 폴백)에는 phoneNumber 가 없다 — 전체 교체 캐시 쓰기가 번호를 지우면 안 된다.
+  assertContains(indexSource, "if (!safe.phoneNumber && previousUser && previousUser.phoneNumber) safe.phoneNumber = String(previousUser.phoneNumber);", "shell auth-cache write must carry the known phone across a degraded me response");
+
+  // 이용권(구독) 주문 응답도 저장된 번호를 실어 보낸다 → 결제 직전 번호 조회 왕복 자체가 사라진다.
+  assertContains(paymentsRouteSource, "const orderCustomer = buildSinglePaymentCustomer(currentUser, auth.userId);", "membership-pass order must carry the saved customer phone");
+  assertContains(destinyProfileSource, "orderCustomer.phoneNumber,", "dp must read the server-supplied order.customer phone");
+
   // ③ 단건 확정 → PG창 렌더 사이에는 진행 상태 UI를 켜지 않는다.
   assertNotContains(indexSource, "updateSharedPaidGate('paymentPreparing'", "no wait overlay may be raised between the direct-payment choice and the PG window");
   assertContains(indexSource, "function _cdBeginDirectPgWindowSuppression()", "direct-PG wait-UI suppression window");
