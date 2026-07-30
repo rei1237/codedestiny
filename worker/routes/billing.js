@@ -844,6 +844,10 @@ function buildPassPaymentDecision(entitlement = {}, pricing = {}, profileSubscri
     coinCost,
     hasActivePass,
     passTier,
+    // 🔴 클라이언트 스냅샷(cd_subscription_snapshot_v2)의 유효기간 근거. 이 값이 없으면 스냅샷은
+    // "만료일을 모르는 active" 로 저장돼 5분 뒤 폐기되고, 이용권 보유자가 매번 서버 왕복을 다시 탄다.
+    // activeEntitlement 는 위에서 이미 계산돼 있어 DB 왕복이 늘지 않는다.
+    expiresAt: hasActivePass ? (activeEntitlement?.expiresAt || null) : null,
     passLimit: hasActivePass && passLimitValue > 0 ? passLimitValue : null,
     passLimitKRW: hasActivePass && passLimitValue > 0 ? calculateKrwAmountFromCoins(passLimitValue) : null,
     amountKRW: resolvePricingAmountKRW(pricing, coinCost),
@@ -5786,6 +5790,10 @@ async function handleUnlockStatus(request, env) {
   }
 
   if (passOnly) {
+    // 🔴 expiresAt 을 반드시 함께 준다. 클라이언트 스냅샷(cd_subscription_snapshot_v2)의 유효기간은
+    // 벽시계 TTL 이 아니라 이 만료일이라, 이 필드가 없으면 스냅샷이 "만료일을 모르는 active" 가 되어
+    // 5분 뒤 폐기되고 이용권 보유자가 다시 차단형 서버 왕복을 탄다. 값은 위에서 이미 읽어 둔
+    // subscriptionEntitlement 것이라 DB 왕복이 늘지 않는다.
     return success({
       pricing,
       profileId: accessProfileId,
@@ -5796,6 +5804,7 @@ async function handleUnlockStatus(request, env) {
       passLimit: paymentDecision.passLimit,
       passLimitKRW: paymentDecision.passLimitKRW,
       canUseByPass: passStatusCovered,
+      expiresAt: subscriptionEntitlement.expiresAt || null,
       paymentOptions: {
         coinCost: paymentDecision.coinCost,
         amountKRW: paymentDecision.amountKRW,
@@ -5804,6 +5813,7 @@ async function handleUnlockStatus(request, env) {
         passLimit: paymentDecision.passLimit,
         passLimitKRW: paymentDecision.passLimitKRW,
         canUseByPass: passStatusCovered,
+        expiresAt: subscriptionEntitlement.expiresAt || null,
         canUseByMonthly: false,
         canUseByCard: false,
         recommendedMethod: passStatusCovered ? "PASS" : "PAYMENT_REQUIRED",
