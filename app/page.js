@@ -115,7 +115,7 @@ export const metadata = {
   },
 };
 
-const BRAND_LOGO_URL = "https://assets.code-destiny.com/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=react-home-premium-20260625";
+const BRAND_LOGO_URL = "https://code-destiny.com/icons/app-logo-512.webp?v=react-home-premium-20260625";
 const MAYA_IMAGE_URL = "https://assets.code-destiny.com/%EB%A7%88%EC%95%BC%EC%A0%90.webp";
 const FLOWER_IMAGE_URL = "https://code-destiny.com/fuctionassets/flower2.webp";
 const DEST1NOVA_IMAGE_URL = buildMusicPublicUrl("DEST1NOVA/DEST1NOVA.webp");

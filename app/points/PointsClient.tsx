@@ -112,7 +112,7 @@ type SubscriptionPrepareEntry = {
   promise: Promise<SubscriptionPrepareAttempt>;
 };
 
-const KKULKKUL_POINTS_LOGO_PUBLIC_PATH = "/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp";
+const KKULKKUL_POINTS_LOGO_PUBLIC_PATH = "/icons/app-logo-512.webp";
 const KKULKKUL_POINTS_LOGO_URL = getAssetUrlFromPublicPath(KKULKKUL_POINTS_LOGO_PUBLIC_PATH);
 
 type ConfirmResponse = {

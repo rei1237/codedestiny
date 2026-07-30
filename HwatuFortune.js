@@ -1043,7 +1043,7 @@ window.startShuffleSequence = function() {
     for(let i=0; i<4; i++) {
         const char = TAZZA_SYSTEM.CHARACTERS[charKeys[i]];
         const pos = positions[i];
-        document.getElementById(`tc${pos}Img`).src = char.image || '/icons/꿀꿀 운세 로고.webp';
+        document.getElementById(`tc${pos}Img`).src = char.image || '/fuctionassets/연이.webp';
         document.getElementById(`tc${pos}Name`).innerText = char.name;
         document.getElementById(`tc${pos}Text`).innerText = char.catchphrase;
     }

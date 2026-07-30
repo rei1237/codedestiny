@@ -13,8 +13,8 @@
   var BG_SELECTOR = '[data-lazy-bg]';
   var LQIP_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%223%22 viewBox=%220 0 4 3%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 x2=%221%22 y1=%220%22 y2=%221%22%3E%3Cstop stop-color=%22%231a1630%22/%3E%3Cstop offset=%221%22 stop-color=%22%23272545%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%224%22 height=%223%22 fill=%22url(%23g)%22/%3E%3C/svg%3E';
   var SRCSET_HINTS = {
-    '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp': {
-      srcset: '/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 96w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 130w, /icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp?v=20260511-mobile-logo-fix4 512w',
+    '/icons/app-logo-512.webp': {
+      srcset: '/icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 96w, /icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 130w, /icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 512w',
       sizes: '(max-width: 768px) 88px, 130px'
     },
     '/icons/neo.webp': {
@@ -119,8 +119,8 @@
     }
 
     if ((img.id === 'honeypigLogo' || (img.className || '').indexOf('honeypig-logo-icon') !== -1) && !img.getAttribute('srcset')) {
-      img.setAttribute('srcset', SRCSET_HINTS['/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp'].srcset);
-      img.setAttribute('sizes', SRCSET_HINTS['/icons/%EA%BF%80%EA%BF%80%20%EC%9A%B4%EC%84%B8%20%EB%A1%9C%EA%B3%A0.webp'].sizes);
+      img.setAttribute('srcset', SRCSET_HINTS['/icons/app-logo-512.webp'].srcset);
+      img.setAttribute('sizes', SRCSET_HINTS['/icons/app-logo-512.webp'].sizes);
     }
     if ((img.id === 'neoLogo' || (img.className || '').indexOf('neo-logo-icon') !== -1) && !img.getAttribute('srcset')) {
       img.setAttribute('srcset', SRCSET_HINTS['/icons/neo.webp'].srcset);
