@@ -59,6 +59,7 @@
     "verify:cf:migration": "node scripts/verify-cloudflare-migration-readiness.mjs",
     "verify:style-sync": "node scripts/verify-style-sync.mjs",
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
+    "verify:auth-event-loop": "node scripts/verify-auth-event-loop-guard.mjs",
     "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "migrate:payments-read-indexes": "node scripts/migrate-payments-read-indexes.mjs",
     "migrate:auth-core-indexes": "node scripts/migrations/20260705-add-auth-core-indexes.mjs",

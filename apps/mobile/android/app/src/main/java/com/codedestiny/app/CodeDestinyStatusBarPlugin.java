@@ -1,6 +1,7 @@
 package com.codedestiny.app;
 
 import android.app.Activity;
+import android.content.Context;
 import android.view.Window;
 
 import androidx.core.view.WindowCompat;
@@ -33,16 +34,32 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "StatusBar")
 public class CodeDestinyStatusBarPlugin extends Plugin {
 
+    /**
+     * 마지막으로 적용된 테마. 다음 콜드스타트의 네이티브 스플래시 배경색을 여기서 읽는다.
+     *
+     * 셸 applyTheme 은 토글할 때뿐 아니라 매 부팅에도 setStyle 을 부르므로(저장된 테마 복원),
+     * 업데이트 후 첫 실행에서 값이 자동으로 채워진다 — 셸 6미러를 건드릴 필요가 없다.
+     */
+    static final String PREFS = "cd_theme";
+    static final String KEY_NEO = "neo";
+
     @PluginMethod
     public void setStyle(PluginCall call) {
         String style = call.getString("style", "LIGHT");
         // DARK(다크 배경) = appearanceLight false(밝은 아이콘). 그 외(LIGHT/DEFAULT)는 연이 기본.
-        boolean lightBars = !"DARK".equalsIgnoreCase(style);
+        boolean isNeo = "DARK".equalsIgnoreCase(style);
+        boolean lightBars = !isNeo;
 
         Activity activity = getActivity();
         if (activity == null) {
             call.resolve();
             return;
+        }
+        try {
+            activity.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                    .edit().putBoolean(KEY_NEO, isNeo).apply();
+        } catch (Exception ignored) {
+            // 기록에 실패하면 다음 부팅 스플래시가 연이(기본)로 뜰 뿐이다.
         }
         activity.runOnUiThread(() -> {
             try {
