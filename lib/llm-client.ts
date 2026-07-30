@@ -205,18 +205,42 @@ function extractGeminiText(payload: GeminiPayload): string {
     .trim();
 }
 
+type WorkersAiContent = string | Array<string | { text?: string }> | undefined;
+
+function joinWorkersAiParts(content: WorkersAiContent): string {
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => (typeof part === "string" ? part : String(part?.text || "")))
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+}
+
+/**
+ * Workers AI 응답 본문 추출.
+ *
+ * 🔴 모델 세대에 따라 응답 모양이 다르다. `@cf/meta/*` 는 `{ response: "..." }` 를 주지만
+ *    `@cf/zai-org/*` 등 신세대 모델은 OpenAI 호환 `{ choices: [{ message: { content } }] }`
+ *    를 준다. `choices` 경로가 없으면 그 모델의 응답은 전부 "빈 응답" 으로 실패한다.
+ */
 function extractWorkersAiText(result: unknown): string {
   if (!result) return "";
   if (typeof result === "string") return result.trim();
   const payload = result as {
     response?: string;
     text?: string;
-    content?: string | Array<string | { text?: string }>;
+    content?: WorkersAiContent;
     result?: { response?: string; text?: string; content?: string };
     output_text?: string;
+    choices?: Array<{ message?: { content?: WorkersAiContent }; text?: string }>;
   };
+  const choice = payload.choices?.[0];
+  const choiceContent = choice?.message?.content;
   const candidates = [
     payload.response,
+    typeof choiceContent === "string" ? choiceContent : "",
+    choice?.text,
     payload.text,
     typeof payload.content === "string" ? payload.content : "",
     payload.result?.response,
@@ -228,35 +252,64 @@ function extractWorkersAiText(result: unknown): string {
     const text = String(candidate || "").trim();
     if (text) return text;
   }
-  if (Array.isArray(payload.content)) {
-    return payload.content
-      .map((part) => (typeof part === "string" ? part : String(part?.text || "")))
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .join("\n")
-      .trim();
-  }
-  return "";
+  return joinWorkersAiParts(choiceContent) || joinWorkersAiParts(payload.content);
 }
 
 /**
- * Workers AI 폴백 모델.
+ * Workers AI 폴백 모델 체인. 앞에서부터 시도해 첫 성공을 쓴다.
  *
- * 🔴 `@cf/meta/llama-3.1-8b-instruct` 는 2026-05-30 자로 Cloudflare 에서 **폐기**됐다.
- *    호출하면 `5028: This model was deprecated on 2026-05-30.` 로 즉시 실패한다.
- *    Gemini 가 살아 있을 때는 폴백이 안 쓰여서 아무도 몰랐고, Gemini 가 죽는 순간
- *    안전망이 통째로 없다는 게 드러났다.
+ * 🔴 모델은 예고 없이 폐기된다. `@cf/meta/llama-3.1-8b-instruct` 와
+ *    `@cf/moonshotai/kimi-k2.5` 는 **같은 날(2026-05-30) 폐기**됐고, 호출하면
+ *    `5028: This model was deprecated` 로 즉시 실패한다. Gemini 가 살아 있는 동안은
+ *    폴백이 안 쓰여서 아무도 모르다가, Gemini 가 죽는 순간 안전망이 통째로 없다는 게
+ *    드러난다. 그래서 단일 모델이 아니라 **체인**으로 둔다 — 하나가 폐기돼도 다음이 받는다.
  *
- * 모델 이름을 코드에 못 박지 않고 env 로 덮을 수 있게 둔다 — 다음에 또 폐기되면
- * 배포 없이 `wrangler secret`/vars 로 넘길 수 있어야 한다.
+ * 1차 `@cf/zai-org/glm-4.7-flash`: 컨텍스트 131k, `response_format` 지원,
+ *    출력 단가 $0.40/M (2차 70B 의 $2.25/M 대비 5.6배 저렴).
+ * 2차 `@cf/meta/llama-3.3-70b-instruct-fp8-fast`: 종전 기본값. 검증된 최후 안전망이지만
+ *    컨텍스트가 24k 라 장문 프롬프트는 못 받고, 장문 지시에도 840 토큰에서 스스로 멈춘다.
+ *
+ * env 로 덮을 수 있게 둔다 — 다음에 또 폐기되면 배포 없이 vars 로 넘길 수 있어야 한다.
+ * 쉼표로 여러 개를 주면 그 순서가 체인이 된다.
  */
-const DEFAULT_WORKERS_AI_MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
+const DEFAULT_WORKERS_AI_MODELS = [
+  "@cf/zai-org/glm-4.7-flash",
+  "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+];
 
-function pickWorkersAiModel(taskType: LLMRequest["taskType"], env?: CloudflareEnv): string {
+function pickWorkersAiModels(taskType: LLMRequest["taskType"], env?: CloudflareEnv): string[] {
   const envRecord = env as Record<string, unknown> | undefined;
   const key = taskType === "pdf" ? "WORKERS_AI_PDF_MODEL" : "WORKERS_AI_MODEL";
   const override = String(envRecord?.[key] || envRecord?.["WORKERS_AI_MODEL"] || "").trim();
-  return override || DEFAULT_WORKERS_AI_MODEL;
+  const overrideModels = override
+    .split(",")
+    .map((model) => model.trim())
+    .filter(Boolean);
+  return overrideModels.length ? overrideModels : DEFAULT_WORKERS_AI_MODELS;
+}
+
+/**
+ * Workers AI 는 모델마다 입력 스키마가 다르다.
+ *
+ * `@cf/meta/*` 의 JSON Mode 는 `response_format: { type: "json_schema", json_schema }` 로
+ * **스키마를 요구**하는데 우리 라우트에는 스키마가 없다. 그래서 meta 계열에는 붙이지 않고
+ * 종전대로 프롬프트에만 의존한다(코드펜스 정화는 structured-consultation.js 가 담당).
+ * OpenAI 호환 스키마를 쓰는 모델에는 `json_object` 를 붙여 애초에 순수 JSON 을 받는다.
+ */
+function buildWorkersAiInput(
+  model: string,
+  normalized: ReturnType<typeof normalizeRequest>,
+  messages: Array<{ role: string; content: string }>,
+): Record<string, unknown> {
+  const input: Record<string, unknown> = {
+    messages,
+    max_tokens: normalized.maxTokens,
+    temperature: normalized.temperature,
+  };
+  if (normalized.responseMimeType === "application/json" && !model.startsWith("@cf/meta/")) {
+    input.response_format = { type: "json_object" };
+  }
+  return input;
 }
 
 async function callGeminiPrimary(
@@ -357,7 +410,7 @@ async function callCloudflareWorkersAI(
     throw new Error("Cloudflare Workers AI binding is not configured. Pass env.AI in Workers or Pages runtime.");
   }
 
-  const model = pickWorkersAiModel(normalized.taskType, env);
+  const models = pickWorkersAiModels(normalized.taskType, env);
   const messages = [
     ...(normalized.systemPrompt
       ? [{ role: "system", content: normalized.systemPrompt }]
@@ -365,21 +418,28 @@ async function callCloudflareWorkersAI(
     { role: "user", content: normalized.prompt },
   ];
 
-  emitProviderCallLog("cloudflare", model, normalized, env);
-  const result = await env.AI.run(model, {
-    messages,
-    max_tokens: normalized.maxTokens,
-    temperature: normalized.temperature,
-  });
+  const failures: string[] = [];
+  for (const model of models) {
+    try {
+      emitProviderCallLog("cloudflare", model, normalized, env);
+      const result = await env.AI.run(model, buildWorkersAiInput(model, normalized, messages));
 
-  const text = extractWorkersAiText(result);
-  if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
+      const text = extractWorkersAiText(result);
+      if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
 
-  return {
-    text,
-    provider: "cloudflare",
-    model,
-  };
+      return {
+        text,
+        provider: "cloudflare",
+        model,
+      };
+    } catch (error) {
+      // 폐기(5028)·스키마 거부·빈 응답 — 사유를 가리지 않고 다음 모델로 넘긴다.
+      // 마지막 모델까지 실패하면 사유를 전부 합쳐 올린다.
+      failures.push(`${model}: ${getErrorMessage(error)}`);
+    }
+  }
+
+  throw new Error(`Cloudflare Workers AI failed. ${failures.join(" | ")}`);
 }
 
 // 일시적 장애(429/5xx/overloaded/빈 응답)만 재시도 대상. 타임아웃은 이미 시간

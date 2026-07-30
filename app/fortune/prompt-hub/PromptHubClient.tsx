@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Copy, ExternalLink, Home, RotateCcw, Sparkles, WandSparkles } from "lucide-react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -12,6 +13,13 @@ const AI_TARGETS: { id: string; label: string; url: string }[] = [
   { id: "claude", label: "Claude", url: "https://claude.ai/new" },
   { id: "grok", label: "Grok", url: "https://grok.com/" },
 ];
+
+// 가격은 서버 정본(worker/lib/paid-feature-registry.js)에서만 읽는다. PriceBadge 를 그냥 import 하면
+// billing-client 체인이 이 페이지 청크에 얹히므로, 업셀이 실제로 렌더될 때만 내려받게 분리한다.
+// 프롬프트를 생성하기 전에는 이 청크도 네트워크 요청도 발생하지 않는다.
+const LazyPriceBadge = dynamic(() => import("@/app/components/PriceBadge").then((mod) => mod.PriceBadge), {
+  ssr: false,
+});
 
 type MoonLotusDecorationProps = {
   idPrefix: string;
@@ -151,6 +159,52 @@ type ToolId =
   | "dream"
   | "horary"
   | "meihua";
+
+// 유료 상담 진입점. featureKey 는 worker/lib/paid-feature-registry.js 정본 키(가격 표시용),
+// href 는 각 기능이 자기 결제 게이트를 소유한 실제 라우트다. 이 화면에서 결제창을 열지 않는다.
+//
+// benefit 은 "그 상품이 실제로 해 주는 일"이다. 이 화면의 목적이 무료/유료의 차이를 정직하게
+// 알리는 것이라, 서버 계산을 하지 않는 상품(타로 프롬프트 라이브러리·수비학 타로)에 "명식을
+// 계산한다"고 쓰면 안 된다.
+const UPSELL_PRODUCTS = {
+  lifeBook: { featureKey: "life-book-ai-consultation", href: "/life-book-ai", benefit: "compute" },
+  karma: { featureKey: "karma-destiny-ai-consultation", href: "/karma-destiny-ai", benefit: "compute" },
+  newYear: { featureKey: "new-year-ai-consultation", href: "/new-year-ai-consultation", benefit: "compute" },
+  ziwei: { featureKey: "ziwei-ai-consultation", href: "/ziwei-ai", benefit: "compute" },
+  astrology: { featureKey: "astrology-ai-consultation", href: "/astrology-ai", benefit: "compute" },
+  vedic: { featureKey: "vedic-ai-consultation", href: "/vedic-ai", benefit: "compute" },
+  sukuyo: { featureKey: "sukuyo-compatibility-ai", href: "/sukuyo-compatibility-ai", benefit: "compute" },
+  fpti: { featureKey: "premium-fpti-report", href: "/saju-fpti", benefit: "compute" },
+  dreamPsycho: { featureKey: "dream-psycho-analysis", href: "/dream/psycho", benefit: "reading" },
+  tarotPrompt: { featureKey: "tarot-prompt-maker", href: "/tarot/prompt-maker", benefit: "library" },
+  tarotNumber: { featureKey: "tarot-numerology-reading", href: "/tarot/numerology", benefit: "library" },
+} as const;
+
+type UpsellId = keyof typeof UPSELL_PRODUCTS;
+type UpsellBenefit = (typeof UPSELL_PRODUCTS)[UpsellId]["benefit"];
+
+// 도구별 유료 상담 2종. 첫 번째가 대표(가격 배지와 안내 문구가 이 상품 기준으로 붙는다).
+// match: "closest" 는 1:1 대응 상품이 아직 없다는 뜻으로, 그 사실을 화면에 그대로 밝힌다.
+// 사주 계열에 /saju 를 쓰지 않는 이유: /saju 는 SEO 랜딩 껍데기고 사주 AI 상담은 정적 셸의
+// 결과 화면 안에서만 열려 딥링크가 없다. 그래서 실제 유료 라우트인 인생의 책으로 보낸다.
+const TOOL_UPSELL_MAP: Record<ToolId, { pair: readonly [UpsellId, UpsellId]; match: "direct" | "closest" }> = {
+  comprehensive: { pair: ["lifeBook", "karma"], match: "closest" },
+  basic: { pair: ["newYear", "lifeBook"], match: "closest" },
+  saju: { pair: ["lifeBook", "karma"], match: "direct" },
+  yukhyo: { pair: ["lifeBook", "karma"], match: "closest" },
+  dangsaju: { pair: ["lifeBook", "karma"], match: "closest" },
+  kusei: { pair: ["lifeBook", "karma"], match: "closest" },
+  meihua: { pair: ["lifeBook", "karma"], match: "closest" },
+  psych: { pair: ["fpti", "lifeBook"], match: "direct" },
+  numerology: { pair: ["tarotNumber", "lifeBook"], match: "direct" },
+  dream: { pair: ["dreamPsycho", "karma"], match: "direct" },
+  tarot: { pair: ["tarotPrompt", "lifeBook"], match: "direct" },
+  horary: { pair: ["tarotPrompt", "astrology"], match: "closest" },
+  astrology: { pair: ["astrology", "lifeBook"], match: "direct" },
+  vedic: { pair: ["vedic", "lifeBook"], match: "direct" },
+  ziwei: { pair: ["ziwei", "lifeBook"], match: "direct" },
+  sukuyo: { pair: ["sukuyo", "lifeBook"], match: "direct" },
+};
 
 type FieldType = "text" | "textarea" | "select" | "multiselect" | "date" | "time" | "datetime-local" | "number" | "checkbox";
 
@@ -789,6 +843,17 @@ type PromptHubCopy = {
   requiredInputPrefix: string;
   mobileToolAria: string;
   missingTranslation: string;
+  scopeNoticeTitle: string;
+  scopeNoticeBody: string;
+  upsellEyebrow: string;
+  upsellClosestNote: string;
+  upsellLeadCompute: string;
+  upsellLeadLibrary: string;
+  upsellLeadReading: string;
+  upsellCta: string;
+  upsellCtaAria: string;
+  upsellPriceNote: string;
+  upsellProducts: Record<UpsellId, { title: string; desc: string }>;
   text: Record<string, string>;
 };
 
@@ -826,6 +891,66 @@ const PROMPT_HUB_COPY_EN: PromptHubCopy = {
   requiredInputPrefix: "Required inputs:",
   mobileToolAria: "Select mobile tool",
   missingTranslation: "Translation unavailable",
+  scopeNoticeTitle: "What this tool does — and does not do",
+  scopeNoticeBody:
+    "It shapes what you typed into a well-formed request, and stops there. No Saju calendar, solar term or ephemeris is calculated here, and the AI you paste this into cannot build a real chart either — so its answer tends to stay general.",
+  upsellEyebrow: "If you need the real calculation",
+  upsellClosestNote: "No paid reading matches this tool one to one yet. These are the closest to what you entered.",
+  upsellLeadCompute:
+    "The readings below build your actual chart on the server first, interpret it from those values, and keep the result in your account so you can open it again.",
+  upsellLeadLibrary:
+    "The readings below give you question sets and follow-up prompts written by our readers, kept in your account so you can open them again.",
+  upsellLeadReading:
+    "The readings below are written for you end to end and kept in your account so you can open them again.",
+  upsellCta: "Open reading",
+  upsellCtaAria: "Open {title}",
+  upsellPriceNote: "Price and payment options are shown on each reading's own screen.",
+  upsellProducts: {
+    lifeBook: {
+      title: "Book of Life Expert Reading",
+      desc: "Builds your Saju chart for real, then lays out temperament, timing and relationships as one volume.",
+    },
+    karma: {
+      title: "Karma of Destiny Expert Reading",
+      desc: "Reads karma and past-life threads together with your calculated Saju chart.",
+    },
+    newYear: {
+      title: "New Year Expert Reading",
+      desc: "Calculates the coming year's flow against your chart and walks through it month by month.",
+    },
+    ziwei: {
+      title: "Zi Wei Dou Shu Expert Reading",
+      desc: "Places your twelve palaces for real and answers questions palace by palace.",
+    },
+    astrology: {
+      title: "Astrology Expert Reading",
+      desc: "Computes your natal chart from an ephemeris and reads the planetary placements in depth.",
+    },
+    vedic: {
+      title: "Vedic Astrology Expert Reading",
+      desc: "Derives your rashi and nakshatra precisely and reads them in the traditional Vedic frame.",
+    },
+    sukuyo: {
+      title: "Sukuyo Compatibility Expert Reading",
+      desc: "Calculates both people's lunar mansions and reads the angles and rhythm between you.",
+    },
+    fpti: {
+      title: "FPTI Premium Report",
+      desc: "Turns your chart into a full personality report instead of a short test result.",
+    },
+    dreamPsycho: {
+      title: "Psychoanalytic Dream Reading",
+      desc: "We write the full dream interpretation for you — no pasting into another AI.",
+    },
+    tarotPrompt: {
+      title: "Tarot Prompt Library",
+      desc: "Reader-crafted spread scripts and follow-up prompts, far beyond what this free tool assembles.",
+    },
+    tarotNumber: {
+      title: "Numerology Tarot Reading",
+      desc: "Pairs your numbers with a tarot spread in a reading kept in your account.",
+    },
+  },
   text: {
     "종합": "All",
     "사주/명리학": "Saju and Myeongli",
@@ -1021,6 +1146,66 @@ const PROMPT_HUB_COPY_KO: PromptHubCopy = {
   requiredInputPrefix: "필수 입력:",
   mobileToolAria: "모바일 도구 선택",
   missingTranslation: "번역 문구를 확인해주세요",
+  scopeNoticeTitle: "이 도구가 하는 일과 하지 않는 일",
+  scopeNoticeBody:
+    "입력하신 내용을 상담용 질문 문장으로 다듬는 데까지가 이 도구의 몫입니다. 만세력·절기·천체력 계산은 들어 있지 않고, 이 문장을 붙여 넣은 AI도 명식이나 차트를 직접 세우지는 못합니다. 그래서 돌아오는 답이 일반적인 조언에 머무를 수 있어요.",
+  upsellEyebrow: "정확한 계산이 필요하다면",
+  upsellClosestNote: "이 도구와 1:1로 맞는 유료 상담은 아직 없어요. 입력하신 정보에 가장 가까운 상담입니다.",
+  upsellLeadCompute:
+    "아래 상담은 서버에서 실제 명식과 차트를 먼저 계산하고, 그 값을 근거로 해석해 결과를 계정에 저장합니다. 나중에 다시 열어볼 수 있어요.",
+  upsellLeadLibrary:
+    "아래 상담은 전문가가 미리 설계한 질문 세트와 후속 질문까지 함께 제공하고, 결과를 계정에 저장해 다시 열어볼 수 있어요.",
+  upsellLeadReading:
+    "아래 상담은 해석까지 저희가 직접 만들어 드리고, 결과를 계정에 저장해 다시 열어볼 수 있어요.",
+  upsellCta: "상담 열기",
+  upsellCtaAria: "{title} 열기",
+  upsellPriceNote: "가격과 결제 방법은 이동한 상담 화면에서 확인할 수 있어요.",
+  upsellProducts: {
+    lifeBook: {
+      title: "인생의 책 전문가 상담",
+      desc: "사주 명식을 실제로 세운 뒤 성향·시기·관계의 흐름을 한 권으로 정리해 드립니다.",
+    },
+    karma: {
+      title: "운명의 업 전문가 상담",
+      desc: "계산된 사주 명식 위에서 카르마와 전생의 결을 함께 읽습니다.",
+    },
+    newYear: {
+      title: "신년운세 전문가 상담",
+      desc: "다가오는 한 해의 흐름을 명식과 대조해 계산하고 달별로 짚어 드립니다.",
+    },
+    ziwei: {
+      title: "자미두수 전문가 상담",
+      desc: "12궁 명반을 실제로 배치한 뒤 궁별 흐름을 문답으로 풀어 드립니다.",
+    },
+    astrology: {
+      title: "점성술 전문가 상담",
+      desc: "천체력으로 네이탈 차트를 계산해 행성 배치를 깊이 있게 해석합니다.",
+    },
+    vedic: {
+      title: "베다점 전문가 상담",
+      desc: "라시와 나크샤트라를 정밀하게 산출해 전통 베다 관점으로 읽습니다.",
+    },
+    sukuyo: {
+      title: "숙요점 궁합 전문가 상담",
+      desc: "두 사람의 27숙을 계산해 관계의 격각과 흐름을 짚어 드립니다.",
+    },
+    fpti: {
+      title: "FPTI 프리미엄 리포트",
+      desc: "짧은 테스트 결과 대신 명식을 반영한 성향 리포트 전문을 만들어 드립니다.",
+    },
+    dreamPsycho: {
+      title: "정신분석 해몽",
+      desc: "해몽 전문을 저희가 직접 써 드립니다. 다른 AI에 붙여 넣을 필요가 없어요.",
+    },
+    tarotPrompt: {
+      title: "타로 프롬프트 라이브러리",
+      desc: "전문가가 다듬은 스프레드별 상담 문장과 후속 조율 지시를 제공합니다. 이 무료 도구가 조립하는 문장보다 훨씬 촘촘합니다.",
+    },
+    tarotNumber: {
+      title: "수비학 타로 리딩",
+      desc: "이름과 생년월일의 숫자를 타로 스프레드와 엮어 리딩으로 남겨 드립니다.",
+    },
+  },
   text: {},
 };
 
@@ -2096,6 +2281,15 @@ export default function ComprehensivePromptHubPage() {
                       {copy.chatGptPopupBlocked}
                     </p>
                   ) : null}
+                  {/* 복사하거나 외부 AI 로 넘기기 직전에 읽히도록 버튼 행과 프롬프트 사이에 둔다.
+                      오류가 아니라 범위 안내이므로 --danger-ink 를 쓰지 않는다. */}
+                  <div className="mt-3 rounded-xl border border-[color:var(--gold)]/45 bg-[color:var(--surface-2)] px-3.5 py-3">
+                    <p className="text-xs font-black text-[color:var(--ink-1)]">
+                      <span aria-hidden="true">ⓘ </span>
+                      {copy.scopeNoticeTitle}
+                    </p>
+                    <p className="mt-1 text-xs font-medium leading-6 text-[color:var(--ink-3)]">{copy.scopeNoticeBody}</p>
+                  </div>
                   {/* 접힌 상태는 내부 스크롤러 대신 마스크로 잘라 낸다. 페이지 스크롤 안에
                       또 하나의 스크롤 영역이 있으면 모바일에서 손가락이 갇힌다. */}
                   <div className="relative mt-4">
@@ -2133,6 +2327,72 @@ export default function ComprehensivePromptHubPage() {
               )}
             </section>
           </div>
+
+          {/* 결과 패널(aria-live) 바깥의 형제로 둔다. 안에 넣으면 프롬프트를 생성할 때마다
+              스크린리더가 업셀 전체를 다시 읽는다. 결과가 나온 뒤에만 노출해 무료 도구를
+              먼저 써 보는 흐름을 막지 않는다. */}
+          {currentResult?.prompt
+            ? (() => {
+                const upsell = TOOL_UPSELL_MAP[activeToolId];
+                const leadByBenefit: Record<UpsellBenefit, string> = {
+                  compute: copy.upsellLeadCompute,
+                  library: copy.upsellLeadLibrary,
+                  reading: copy.upsellLeadReading,
+                };
+                return (
+                  <section
+                    className="mt-4 rounded-[22px] border border-[color:var(--gold)]/55 bg-[color:var(--surface-1)] p-4 shadow-[var(--lift)] sm:p-5"
+                    aria-labelledby="promptHubUpsellTitle"
+                  >
+                    <h3
+                      id="promptHubUpsellTitle"
+                      className="text-xs font-black uppercase tracking-[0.14em] text-[color:var(--tool-accent-strong)]"
+                    >
+                      {copy.upsellEyebrow}
+                    </h3>
+                    <p className="mt-2 max-w-[68ch] text-sm font-medium leading-6 text-[color:var(--ink-2)]">
+                      {leadByBenefit[UPSELL_PRODUCTS[upsell.pair[0]].benefit]}
+                    </p>
+                    {upsell.match === "closest" ? (
+                      <p className="mt-1.5 max-w-[68ch] text-xs font-bold leading-6 text-[color:var(--ink-3)]">
+                        {copy.upsellClosestNote}
+                      </p>
+                    ) : null}
+                    <div className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                      {upsell.pair.map((productId, index) => {
+                        const product = UPSELL_PRODUCTS[productId];
+                        const item = copy.upsellProducts[productId];
+                        return (
+                          <Link
+                            key={productId}
+                            href={product.href}
+                            aria-label={copy.upsellCtaAria.replace("{title}", item.title)}
+                            className="flex min-h-[44px] flex-col rounded-2xl border border-[color:var(--hairline)] bg-[color:var(--surface-2)] p-3.5 transition hover:border-[color:var(--gold)] focus:outline-none focus:ring-2 focus:ring-[color:var(--tool-accent-soft)]"
+                          >
+                            <span className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
+                              <span className="break-keep text-sm font-black text-[color:var(--ink-1)]">{item.title}</span>
+                              {index === 0 ? (
+                                <LazyPriceBadge
+                                  featureKey={product.featureKey}
+                                  className="inline-flex shrink-0 items-center rounded-full border border-[color:var(--gold)]/60 bg-[color:var(--surface-1)] px-2.5 py-0.5 text-xs font-black text-[color:var(--ink-2)]"
+                                />
+                              ) : null}
+                            </span>
+                            <span className="mt-1.5 break-keep text-xs font-medium leading-6 text-[color:var(--ink-3)]">
+                              {item.desc}
+                            </span>
+                            <span className="mt-2 text-xs font-black text-[color:var(--tool-accent-strong)]">
+                              {copy.upsellCta} <span aria-hidden="true">→</span>
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-3 text-xs font-medium leading-6 text-[color:var(--ink-3)]">{copy.upsellPriceNote}</p>
+                  </section>
+                );
+              })()
+            : null}
         </div>
       </section>
 

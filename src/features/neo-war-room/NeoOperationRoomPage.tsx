@@ -754,7 +754,7 @@ const topicOptions = [
   "내가 반복하는 실수",
 ] as const;
 
-// 사자 휘장 도장 시트(사자 휘장 도장-Photoroom.png)는 4열 × 2행 = 8칸.
+// 사자 휘장 도장 시트(사자 휘장 도장-Photoroom.webp)는 4열 × 2행 = 8칸.
 // 고민 종류 8개를 각 칸에 1:1로 매핑하고 고정 이름을 부여한다.
 const NEO_BADGE_STAMP_COLUMNS = 4;
 const NEO_BADGE_STAMP_ROWS = 2;

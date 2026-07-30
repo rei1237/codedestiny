@@ -13,6 +13,7 @@
 import sharp from "sharp";
 import { readdir, stat, mkdir, copyFile } from "node:fs/promises";
 import path from "node:path";
+import { isWebpExcluded } from "./webp-exclusions.mjs";
 
 const RASTER_EXT = new Set([".png", ".jpg", ".jpeg"]);
 // Crisp edges / pixel-precise sprite crops → near-lossless quality.
@@ -30,18 +31,24 @@ const syncAndroid = flags.has("--sync-android");
 const force = flags.has("--force");
 if (inputs.length === 0) inputs.push("public/images/fortune-tea-house");
 
+/** Raster file that is safe to serve as WebP (icons / OG thumbnails are not). */
+function isConvertible(filePath) {
+  if (!RASTER_EXT.has(path.extname(filePath).toLowerCase())) return false;
+  return !isWebpExcluded(filePath);
+}
+
 /** Recursively collect raster files from a file or directory path. */
 async function collect(target) {
   const abs = path.resolve(target);
   const info = await stat(abs);
   if (info.isFile()) {
-    return RASTER_EXT.has(path.extname(abs).toLowerCase()) ? [abs] : [];
+    return isConvertible(abs) ? [abs] : [];
   }
   const out = [];
   for (const entry of await readdir(abs, { withFileTypes: true })) {
     const child = path.join(abs, entry.name);
     if (entry.isDirectory()) out.push(...(await collect(child)));
-    else if (entry.isFile() && RASTER_EXT.has(path.extname(entry.name).toLowerCase())) out.push(child);
+    else if (entry.isFile() && isConvertible(child)) out.push(child);
   }
   return out;
 }

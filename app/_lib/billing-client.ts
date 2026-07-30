@@ -357,7 +357,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-ecb946e5496b";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-6227c56b281f";
 const SUBSCRIPTION_SNAPSHOT_KEY_PREFIX = "cd_subscription_snapshot_v2::";
 const SUBSCRIPTION_SNAPSHOT_NONE_TTL_MS = 60000;
 // 활성 스냅샷이 살아 있는 동안은 이용권 보유자가 서버 왕복 없이 즉시 통과한다(낙관 fast-path).

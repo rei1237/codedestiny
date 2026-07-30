@@ -587,39 +587,39 @@ function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
 
 /* 연이(사람) 표정 스프라이트 */
 var YEON={
-  base:NOVEL+enc("반신상 기본-Photoroom.png"),
-  left:NOVEL+enc("반신상 좌측-Photoroom.png"),
-  right:NOVEL+enc("반신상 우측-Photoroom.png"),
-  sideL:NOVEL+enc("옆모습 왼쪽 이동시 사용-Photoroom.png"),
-  sideR:NOVEL+enc("옆모습 오른쪽 이동시 사용-Photoroom.png"),
-  fear:NOVEL+enc("두려움-Photoroom.png"),
-  angry:NOVEL+enc("화남-Photoroom.png"),
-  smile:NOVEL+enc("웃음-Photoroom.png"),
-  sleep:NOVEL+enc("자는 모습-Photoroom.png"),
-  cry:NOVEL+enc("우는 모습-Photoroom.png"),
-  onigiri:NOVEL+enc("삼각김밥-Photoroom.png"),
-  disappoint:NOVEL+enc("실망한 모습-Photoroom.png")+"?v=20260725" /* 하단 캡션 제거본 강제 리프레시(엣지 48h 캐시 우회) */
+  base:NOVEL+enc("반신상 기본-Photoroom.webp"),
+  left:NOVEL+enc("반신상 좌측-Photoroom.webp"),
+  right:NOVEL+enc("반신상 우측-Photoroom.webp"),
+  sideL:NOVEL+enc("옆모습 왼쪽 이동시 사용-Photoroom.webp"),
+  sideR:NOVEL+enc("옆모습 오른쪽 이동시 사용-Photoroom.webp"),
+  fear:NOVEL+enc("두려움-Photoroom.webp"),
+  angry:NOVEL+enc("화남-Photoroom.webp"),
+  smile:NOVEL+enc("웃음-Photoroom.webp"),
+  sleep:NOVEL+enc("자는 모습-Photoroom.webp"),
+  cry:NOVEL+enc("우는 모습-Photoroom.webp"),
+  onigiri:NOVEL+enc("삼각김밥-Photoroom.webp"),
+  disappoint:NOVEL+enc("실망한 모습-Photoroom.webp")+"?v=20260725" /* 하단 캡션 제거본 강제 리프레시(엣지 48h 캐시 우회) */
 };
 /* 연이(꽃돼지) — 전부 투명 컷(nobackground). 변신은 8프레임 시퀀스 시트 */
 var PIG={
-  base:CAFE+enc("nobackground/꽃돼지-Photoroom.png"),
-  talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.png"),
-  transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.png")
+  base:CAFE+enc("nobackground/꽃돼지-Photoroom.webp"),
+  talk:CAFE+enc("nobackground/꽃돼지2-Photoroom.webp"),
+  transform:CAFE+enc("nobackground/꽃돼지 연이 변신-Photoroom.webp")
 };
 /* 꽃돼지 연이 표정/포즈 시트 — 원본(R2) 시트는 도형이 균등 격자에 놓여 있지 않아(행마다 40~50px 밀림)
    격자 크롭 시 윗칸 발굽이 딸려 들어오고 다리가 잘렸다. scripts/build-novel-pig-sheets.mjs 로
    도형을 실측해 균등 격자(셀 264×372)로 재조립한 정규화 시트를 쓴다. 동일 출처라 앱 번들에도 포함된다. */
 var PIGSHEET="/images/novel/pig-expressions.webp"; /* 표정 4×4 */
 var PIGPOSE ="/images/novel/pig-poses.webp";       /* 동작 포즈 4×2 */
-var NEO=WAR+enc("전략실 네오-Photoroom.png"); /* 흰 사자 네오 — 4×4 표정 시트, CSS 배경으로 셀 크롭 */
-var MU =WAR+enc("검은 그림자-Photoroom.png");
-var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.png");
+var NEO=WAR+enc("전략실 네오-Photoroom.webp"); /* 흰 사자 네오 — 4×4 표정 시트, CSS 배경으로 셀 크롭 */
+var MU =WAR+enc("검은 그림자-Photoroom.webp");
+var TAROT=CAFE+enc("nobackground/연이 타로 카드-Photoroom.webp");
 /* 가짜 연이(거울자아) — 운명 찻집 연이 4×2 스프라이트 시트에서 한 프레임 크롭(CSS 배경). 셀(col2,row0)=지긋한 미소 */
-var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.png");
+var YEONI_SHEET=CAFE+enc("nobackground/연이 스프라이트1-Photoroom.webp");
 /* 모카(식상의 섬 동료·래퍼 지망생) / 까마귀 빌런(식상의 섬 EP.9~12 · EP.32 무리) — CodeDestinyNovel/ raw png. */
-var MOKA={base:NOVEL+enc("모카 기본.png"),moved:NOVEL+enc("모카 감동.png"),angry:NOVEL+enc("모카 화남.png"),
-  p1:NOVEL+enc("모카1.png"),p2:NOVEL+enc("모카2.png"),p3:NOVEL+enc("모카3.png")};
-var CROW={base:NOVEL+enc("까마귀 빌런1.png"),alt:NOVEL+enc("까마귀 빌런2.png")};
+var MOKA={base:NOVEL+enc("모카 기본.webp"),moved:NOVEL+enc("모카 감동.webp"),angry:NOVEL+enc("모카 화남.webp"),
+  p1:NOVEL+enc("모카1.webp"),p2:NOVEL+enc("모카2.webp"),p3:NOVEL+enc("모카3.webp")};
+var CROW={base:NOVEL+enc("까마귀 빌런1.webp"),alt:NOVEL+enc("까마귀 빌런2.webp")};
 /* 완결부(EP.15~40) 캐스트.
    루나: 원본 3×2가 균등 격자라 CSS % 크롭 직사용.
    청토끼/루나 언니: 원본 격자가 불균등 → scripts/build-novel-cast-sheets.mjs 로 도형 실측 재조립한 정규화 시트.
@@ -636,8 +636,8 @@ var PJE={base:NOVEL+enc("박지은 기본.webp"),blank:NOVEL+enc("박지은 무�
 var MU_TRUE={base:"/images/novel/mu-01.webp",sly:"/images/novel/mu-02.webp",talk:"/images/novel/mu-03.webp",angry:"/images/novel/mu-04.webp",laugh:"/images/novel/mu-05.webp",
   waver:"/images/novel/mu-06.webp",sad:"/images/novel/mu-07.webp",think:"/images/novel/mu-08.webp",calm:"/images/novel/mu-09.webp",side:"/images/novel/mu-10.webp"};
 /* 인간 네오(박병하) — 은발 미남 4×2 표정 시트(정체 공개 후 결말). 화자 neo의 표정(x)이 h* 키면 인간형, 아니면 사자형. */
-var NEOH=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png");
-var NEOH_PORTRAIT=WAR+enc("네오 반신상 배경없음-Photoroom.png");
+var NEOH=WAR+enc("네오 스프라이트 배경없음4-Photoroom.webp");
+var NEOH_PORTRAIT=WAR+enc("네오 반신상 배경없음-Photoroom.webp");
 var NEOH_CELL={hneutral:"0% 0%",hpoint:"33.333% 0%",hspeak:"66.667% 0%",harms:"100% 0%",
   hsoft:"0% 100%",hache:"33.333% 100%",hsmile:"66.667% 100%",hcalm:"100% 100%"};
 
@@ -928,7 +928,7 @@ function buildMenu(){
 function buildPig(){
   var pig=document.getElementById("mainPig");if(!pig)return;
   var spr=pig.querySelector(".pigSprite");
-  if(spr)spr.style.backgroundImage="url('"+CAFE+enc("nobackground/꽃돼지2-Photoroom.png")+"')";
+  if(spr)spr.style.backgroundImage="url('"+CAFE+enc("nobackground/꽃돼지2-Photoroom.webp")+"')";
   var sparks=pig.querySelector(".sparks");
   if(sparks&&!sparks.childElementCount){
     var pts=[[6,18,12],[88,10,10],[96,52,14],[74,92,10],[12,80,12],[-6,44,9],[48,-8,13],[30,4,8]];
@@ -944,7 +944,7 @@ function buildPig(){
 function buildEnterPig(){
   var pig=document.getElementById("enterPig");if(!pig)return;
   var img=pig.querySelector(".epImg");
-  if(img)setImg(img,CAFE+enc("nobackground/꽃돼지-Photoroom.png"),svgData('<rect width="10" height="10" fill="none"/>',10,10));
+  if(img)setImg(img,CAFE+enc("nobackground/꽃돼지-Photoroom.webp"),svgData('<rect width="10" height="10" fill="none"/>',10,10));
   var sparks=pig.querySelector(".sparks");
   if(sparks&&!sparks.childElementCount){
     var pts=[[2,22,11],[93,14,9],[88,82,12],[8,74,10],[52,-6,11]];
