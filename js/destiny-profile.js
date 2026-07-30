@@ -2762,11 +2762,46 @@
     });
   }
 
+  // 로컬에 이미 아는 번호가 있으면 서버에 묻지 않는다(결제창 진입 왕복 1회 절감). 셸이 있으면
+  // 셸의 정본 리더를 그대로 쓰고, 셸이 없는 독립 페이지에서는 같은 캐시를 직접 읽는다.
+  function _dpReadLocalPaymentPhoneNumber() {
+    try {
+      if (typeof window._cdReadLocalPaymentPhoneNumber === 'function') {
+        var shellPhone = _dpNormalizePaymentPhoneNumber(window._cdReadLocalPaymentPhoneNumber());
+        if (shellPhone) return shellPhone;
+      }
+    } catch (_) {}
+    try {
+      var cached = _dpReadAuthUser() || {};
+      return _dpNormalizePaymentPhoneNumber(cached.phoneNumber || cached.phone || '');
+    } catch (_) {
+      return '';
+    }
+  }
+
+  // 번호 입력창을 띄우기 직전에 대기 오버레이·게이트 패널을 내린다. 예전에는 '이용권 확인'/'결제 상품
+  // 보기' 창이 입력창 위에 남아 입력 자체가 보이지 않아 결제를 끝낼 수 없었다.
+  function _dpCloseBlockingLayersBeforePhonePrompt() {
+    try { if (typeof window._cdSetCoinGateOverlay === 'function') window._cdSetCoinGateOverlay(false); } catch (_) {}
+    try {
+      var bridge = window.__cdPaidFeatureGate;
+      if (bridge && typeof bridge.close === 'function') bridge.close();
+    } catch (_) {}
+  }
+
   async function _dpEnsurePaymentPhoneNumber() {
+    var localPhone = _dpReadLocalPaymentPhoneNumber();
+    if (localPhone) return localPhone;
     try {
       var current = await _dpGetPaymentPhoneStatus();
       if (current && current.phoneNumber) return current.phoneNumber;
-    } catch (_) {}
+    } catch (_) {
+      // 조회 실패(503 등)를 '번호 없음'으로 단정하지 않는다. 로컬에 값이 있으면 그것으로 진행하고,
+      // 아무 값도 없을 때에만 입력창을 띄운다.
+      var fallbackPhone = _dpReadLocalPaymentPhoneNumber();
+      if (fallbackPhone) return fallbackPhone;
+    }
+    _dpCloseBlockingLayersBeforePhonePrompt();
     // 정적 셸이 로드된 화면에서는 셸의 정본 모달을 재사용해 같은 UI가 두 벌 생기지 않게 한다.
     var saved = null;
     if (typeof window._cdPromptDirectCheckoutPhoneNumber === 'function') {

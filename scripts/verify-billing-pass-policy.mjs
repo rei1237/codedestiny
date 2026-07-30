@@ -634,7 +634,14 @@ assertContains(indexSource, "if (bodyMode === 'MEMBERSHIP_PASS') return { type: 
 // 여는 것뿐이므로 중간 대기 UI가 없어야 한다.
 // (이용권 선검사 자체와 그 '이용권 확인 중' 화면은 유지된다 — 등급별 무료 통과가 거기 달려 있다.)
 assertNotContains(billingClientSource, 'status: "loadingProducts"', "no extra wait overlay after the pass pre-check concludes not-covered");
-assertContains(billingClientSource, ': "readyToPay";', "uncovered pass check goes straight to the payment choice stage");
+// 🔴 정정(2026-07): 직전 배포에서 이 자리를 status:"readyToPay" 로 바꿨는데, readyToPay 는 대기
+// 오버레이가 아니라 **게이트 패널**을 여는 상태다(셸/React 모두). 그래서 대기화면 하나가 '선택 대기 /
+// 결제 상품 보기' 패널로 바뀌었고, 그 패널이 결제수단 모달과 휴대폰 번호 입력창 위에 남아 결제를
+// 끝낼 수 없었다. 미커버가 확정되면 게이트를 **건드리지 않고**(emit 없음) 결제수단 모달을 열기 직전에
+// 오히려 **닫아야** 한다. 커버된 경우(hasEntitlement)의 무료 통과 피드백은 그대로 남긴다.
+assertNotContains(billingClientSource, 'status: "readyToPay"', "uncovered pass check must not open the gate panel before the payment choice");
+assertContains(billingClientSource, 'emitPaidFeatureGate("close", {', "gate must be closed right before the payment-choice modal opens");
+assertContains(billingClientSource, 'const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";', "covered pass check must still report the free pass-through");
 assertContains(indexSource, "if (status === 'checkingEntitlement')", "pass pre-check keeps its own dedicated wait copy");
 
 assertContains(indexSource, "__cdSuppressPaymentOverlay: true", "direct checkout prefetch must be silent");

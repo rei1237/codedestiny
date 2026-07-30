@@ -3499,7 +3499,6 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
     const accessAlreadyGranted = eligibility?.access.canAccess === true;
     const passFirstEligible = explicitPassMode || snapshotPassServerCheckFirst || accessAlreadyGranted || (!passDisabled && eligibility?.pass.canUse === true);
     const passAccessEligible = !passDisabled && (explicitPassMode || snapshotPassServerCheckFirst || eligibility?.pass.canUse === true);
-    const snapshotSaysNoPass = normalizeAccessReason(eligibility?.access.reason) === "subscription_snapshot_none";
     console.log("[이용권 체크]", {
       passStatus: {
         source: eligibility ? "unlock-status" : (snapshotPassServerCheckFirst ? "subscription-snapshot" : "server-direct"),
@@ -3558,14 +3557,13 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       // 변하지 않고, 백그라운드 coin-gate 성공 시 emitBillingBalanceUpdated가 서버 정본 잔액으로 UI를 갱신한다.
       return buildOptimisticPassGrant(knownInputCoinCost, optimisticFeatureKey, optimisticTier, `opt-pass-${gateRequestId}`);
     }
-    if (eligibility) {
-      const eligibilityPassReady = accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true);
-      // 🔴 미커버면 곧바로 '결제 방식 선택'으로 간다. 예전에는 snapshot 이 아직 no-pass 를 확정하지
-      // 못한 경우 "loadingProducts" 를 써서 '단건으로 카드 결제를 준비 중이에요' 대기 화면이 한 번 더
-      // 떴다 — 두 경우 모두 결론은 '미커버'라 같으므로 대기 화면 없이 readyToPay 로 통일한다.
-      const eligibilityStatus: PaidFeatureGateRuntimeStatus = eligibilityPassReady
-        ? "hasEntitlement"
-        : "readyToPay";
+    // 🔴 이용권 선검사가 '미커버'로 결론나면 게이트를 아예 건드리지 않는다. 남은 할 일은 결제수단
+    // 모달을 여는 것뿐이므로 중간 상태를 emit 하면 안 된다 — "loadingProducts" 는 '단건으로 카드
+    // 결제를 준비 중이에요' 대기 화면을 띄웠고, "readyToPay" 는 '선택 대기 / 결제 상품 보기' 게이트
+    // 패널을 띄운다(그 패널이 결제수단 모달과 번호 입력창까지 덮었다). 커버된 경우(hasEntitlement)
+    // 에만 emit 해서 무료 통과 피드백은 그대로 남긴다.
+    if (eligibility && (accessAlreadyGranted || (!passDisabled && eligibility.pass.canUse === true))) {
+      const eligibilityStatus: PaidFeatureGateRuntimeStatus = "hasEntitlement";
       const eligibilityPaymentMode = !passDisabled && eligibility.pass.canUse === true ? "MEMBERSHIP_PASS" : (requestedMode || (accessAlreadyGranted ? "DIRECT_KRW" : ""));
       const eligibilityOverlay = resolvePaymentWaitOverlay(
         eligibilityStatus,
@@ -3584,9 +3582,7 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
         featureKey: featureId,
         requestId: gateRequestId,
         status: eligibilityStatus,
-        message: eligibilityPassReady
-          ? eligibilityOverlay.message
-          : (snapshotSaysNoPass ? "결제 가능한 상품을 준비하고 있습니다." : eligibilityOverlay.message),
+        message: eligibilityOverlay.message,
         cost: eligibility.coinCost,
         paymentMode: eligibilityPaymentMode,
         reason: input.reason,
@@ -3598,13 +3594,14 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
 
     if (!explicitPaymentMode && !passFirstEligible && (eligibility || snapshotSaysNoPassFast) && knownCoinCost > 0 && input.forceDeduct !== false) {
       markPaymentRequestedOnce();
-      emitPaidFeatureGate("update", {
+      // 🔴 결제수단 모달을 열기 직전에는 게이트를 '열지' 않고 '닫는다'. 예전에는 여기서
+      // status:"readyToPay" 를 emit 해 '선택 대기 / 결제 상품 보기' 패널이 떴고, 그 패널이
+      // 결제수단 모달·휴대폰 번호 입력창 위에 남아 결제를 끝낼 수 없었다. 다음 화면(결제수단
+      // 모달)이 곧바로 뜨므로 빈 화면 구간은 생기지 않는다.
+      emitPaidFeatureGate("close", {
         featureId,
         featureKey: featureId,
         requestId: gateRequestId,
-        status: "readyToPay",
-        message: billingClientText("billingClient.message.007"),
-        cost: knownCoinCost,
         reason: input.reason,
       });
       const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {
@@ -3939,13 +3936,11 @@ export async function runBillingCoinGate(input: BillingCoinGateInput): Promise<B
       }
       if (!explicitPaymentMode && input.forceDeduct !== false && shouldOpenRuntimePaymentFallback(parsed.status, code)) {
         markPaymentRequestedOnce();
-        emitPaidFeatureGate("update", {
+        // 위와 같은 이유로 결제수단 모달 직전에는 게이트를 닫는다(패널이 모달·번호 입력창을 덮지 않게).
+        emitPaidFeatureGate("close", {
           featureId,
           featureKey: featureId,
           requestId: gateRequestId,
-          status: "readyToPay",
-          message: billingClientText("billingClient.message.017"),
-          cost: knownCoinCost,
           reason: input.reason,
         });
         const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {
